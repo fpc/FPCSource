@@ -15,17 +15,22 @@
  **********************************************************************}
 
 procedure TIDEApp.DoRun;
-var
-  ExeFile : string;
 begin
-  if (MainFile='') or (CompilationPhase<>cpDone) then
+  if (not ExistsFile(ExeFile)) or (CompilationPhase<>cpDone) then
    DoCompile(cRun);
-  if (MainFile='') or (CompilationPhase<>cpDone) then
+  if CompilationPhase<>cpDone then
+     Exit;
+  if (EXEFile='') then
    begin
      ErrorBox('Oooops, nothing to run.',nil);
      Exit;
    end;
-  ExeFile:=MakeExeName(MainFile);
+  if not ExistsFile(ExeFile) then
+    begin
+      MsgParms[1].Ptr:=@EXEFile;
+      ErrorBox('Invalid filename %s',@MsgParms);
+      Exit;
+    end;
 
   if UserScreen=nil then
    begin
@@ -35,11 +40,14 @@ begin
   DoneMouse;
   DoneVideo;
 
-  UserScreen^.SwitchTo;
+  if Assigned(UserScreen) then
+    UserScreen^.SwitchTo;
 
   Exec(ExeFile,GetRunParameters);
+  LastExitCode:=DosExitCode;
 
-  UserScreen^.SwitchBack;
+  if Assigned(UserScreen) then
+    UserScreen^.SwitchBack;
 
   InitVideo;
   InitMouse;
@@ -75,7 +83,16 @@ end;
 
 {
   $Log$
-  Revision 1.1  1998-12-28 15:47:50  peter
+  Revision 1.2  1999-01-04 11:49:48  peter
+   * 'Use tab characters' now works correctly
+   + Syntax highlight now acts on File|Save As...
+   + Added a new class to syntax highlight: 'hex numbers'.
+   * There was something very wrong with the palette managment. Now fixed.
+   + Added output directory (-FE<xxx>) support to 'Directories' dialog...
+   * Fixed some possible bugs in Running/Compiling, and the compilation/run
+     process revised
+
+  Revision 1.1  1998/12/28 15:47:50  peter
     + Added user screen support, display & window
     + Implemented Editor,Mouse Options dialog
     + Added location of .INI and .CFG file

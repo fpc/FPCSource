@@ -26,7 +26,7 @@ type
       LastPos   : TPoint;
     end;
 
-    TCompPhase = (cpCompiling,cpLinking,cpDone);
+    TCompPhase = (cpNothing,cpCompiling,cpLinking,cpFailed,cpDone);
 
 const ClipboardWindow  : PClipboardWindow = nil;
       CalcWindow       : PCalculator = nil;
@@ -35,7 +35,8 @@ const ClipboardWindow  : PClipboardWindow = nil;
       PrimaryFile      : string = '';
       IsEXECompiled    : boolean = false;
       MainFile         : string = '';
-      CompilationPhase : TCompPhase = cpDone;
+      EXEFile          : string = '';
+      CompilationPhase : TCompPhase = cpNothing;
       ProgramInfoWindow: PProgramInfoWindow = nil;
       UserScreenWindow : PScreenWindow = nil;
       HelpFiles        : FPViews.PUnsortedStringCollection = nil;
@@ -46,12 +47,13 @@ const ClipboardWindow  : PClipboardWindow = nil;
       CtrlMouseAction  : integer = acTopicSearch;
       AltMouseAction   : integer = acBrowseSymbol;
       StartupOptions   : longint = 0;
+      LastExitCode     : integer = 0;
 
       ActionCommands   : array[acFirstAction..acLastAction] of word =
         (cmHelpTopicSearch,cmGotoCursor,cmToggleBreakpoint,
          cmEvaluate,cmAddWatch,cmBrowseAtCursor);
 
-      AppPalette       : string = CAppColor;
+      AppPalette       : string = CIDEAppColor;
 
 var   RecentFiles      : array[1..MaxRecentFileCount] of TRecentFileEntry;
 
@@ -60,8 +62,14 @@ implementation
 END.
 {
   $Log$
-  Revision 1.2  1998-12-30 13:38:42  peter
-    * patches from Gabor
+  Revision 1.3  1999-01-04 11:49:52  peter
+   * 'Use tab characters' now works correctly
+   + Syntax highlight now acts on File|Save As...
+   + Added a new class to syntax highlight: 'hex numbers'.
+   * There was something very wrong with the palette managment. Now fixed.
+   + Added output directory (-FE<xxx>) support to 'Directories' dialog...
+   * Fixed some possible bugs in Running/Compiling, and the compilation/run
+     process revised
 
   Revision 1.1  1998/12/28 15:47:54  peter
     + Added user screen support, display & window

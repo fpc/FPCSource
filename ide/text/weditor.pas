@@ -26,6 +26,8 @@ uses
   Objects,Drivers,Views,Commands;
 
 const
+      cmFileNameChanged      = 51234;
+
       MaxLineLength = 255;
       MaxLineCount  = 16380;
 
@@ -60,6 +62,7 @@ const
       edReplacePrompt = 10;
       edTooManyLines  = 11;
       edGotoLine      = 12;
+      edReplaceFile   = 13;
 
       ffmOptions         = $0007; ffsOptions     = 0;
       ffmDirection       = $0008; ffsDirection   = 3;
@@ -92,9 +95,10 @@ const
       coAssemblerColor    = 7;
       coSymbolColor       = 8;
       coDirectiveColor    = 9;
+      coHexNumberColor    = 10;
 
       coFirstColor        = 0;
-      coLastColor         = coDirectiveColor;
+      coLastColor         = coHexNumberColor;
 
       CIndicator          = #2#3#1;
       CEditor             = #33#34#35#36#37#38#39#40#41#42#43#44#45#46#47#48;
@@ -246,10 +250,13 @@ type
       function    LoadFile: boolean; virtual;
       function    SaveFile: boolean; virtual;
       function    Valid(Command: Word): Boolean; virtual;
+      procedure   HandleEvent(var Event: TEvent); virtual;
       function    ShouldSave: boolean; virtual;
     end;
 
     TCodeEditorDialog = function(Dialog: Integer; Info: Pointer): Word;
+
+function DefUseSyntaxHighlight(Editor: PFileEditor): boolean;
 
 const
      DefaultCodeEditorFlags : longint =
@@ -272,6 +279,8 @@ const
      WhiteSpaceChars    : set of char = [#0,#32,#255];
      AlphaChars         : set of char = ['A'..'Z','a'..'z','_'];
      NumberChars        : set of char = ['0'..'9'];
+
+     UseSyntaxHighlight : function(Editor: PFileEditor): boolean = DefUseSyntaxHighlight;
 
 implementation
 
@@ -304,14 +313,14 @@ const
      kbShift = kbLeftShift+kbRightShift;
 
 const
-  FirstKeyCount = 36;
+  FirstKeyCount = 37;
   FirstKeys: array[0..FirstKeyCount * 2] of Word = (FirstKeyCount,
     Ord(^A), cmWordLeft, Ord(^C), cmPageDown,
     Ord(^D), cmCharRight, Ord(^E), cmLineUp,
     Ord(^F), cmWordRight, Ord(^G), cmDelChar,
-    Ord(^H), cmBackSpace, Ord(^K), $FF02,
-    Ord(^L), cmSearchAgain, Ord(^M), cmNewLine,
-    Ord(^Q), $FF01,
+    Ord(^H), cmBackSpace, Ord(^J), cmJumpLine,
+    Ord(^K), $FF02, Ord(^L), cmSearchAgain,
+    Ord(^M), cmNewLine, Ord(^Q), $FF01,
     Ord(^R), cmPageUp, Ord(^S), cmCharLeft,
     Ord(^T), cmDelWord, Ord(^U), cmUndo,
     Ord(^V), cmInsMode, Ord(^X), cmLineDown,
@@ -379,6 +388,23 @@ begin
   EatIO:=IOResult;
 end;
 
+function ExistsFile(FileName: string): boolean;
+var f: file;
+    Exists: boolean;
+begin
+  if FileName='' then Exists:=false else
+ begin
+  {$I-}
+  Assign(f,FileName);
+  Reset(f,1);
+  Exists:=EatIO=0;
+  Close(f);
+  EatIO;
+  {$I+}
+ end;
+  ExistsFile:=Exists;
+end;
+
 function Max(A,B: longint): longint;
 begin
   if A>B then Max:=A else Max:=B;
@@ -441,6 +467,32 @@ end;
 function PointOfs(P: TPoint): longint;
 begin
   PointOfs:=longint(P.Y)*MaxLineLength+P.X;
+end;
+
+function ExtractTabs(S: string; TabSize: byte): string;
+var TabS: string;
+    P: byte;
+begin
+  TabS:=CharStr(' ',TabSize);
+  repeat
+    P:=Pos(TAB,S);
+    if P>0 then
+      S:=copy(S,1,P-1)+TabS+copy(S,P+1,255);
+  until P=0;
+  ExtractTabs:=S;
+end;
+
+function CompressUsingTabs(S: string; TabSize: byte): string;
+var TabS: string;
+    P: byte;
+begin
+  TabS:=CharStr(' ',TabSize);
+  repeat
+    P:=Pos(TabS,S);
+    if P>0 then
+      S:=copy(S,1,P-1)+TAB+copy(S,P+TabSize,255);
+  until P=0;
+  CompressUsingTabs:=S;
 end;
 
 {$ifdef ASMSCAN}
@@ -1199,6 +1251,7 @@ begin
   ColorTab[coAssemblerColor]:=GetColor(8);
   ColorTab[coSymbolColor]:=GetColor(9);
   ColorTab[coDirectiveColor]:=GetColor(13);
+  ColorTab[coHexNumberColor]:=GetColor(14);
   SelectColor:=GetColor(10);
   HighlightColColor:=GetColor(11); HighlightRowColor:=GetColor(12);
   ErrorMessageColor:=GetColor(16);
@@ -1309,8 +1362,6 @@ end;
 
 procedure TCodeEditor.SetLineText(I: integer; S: string);
 var L: PLine;
-    TabS: string;
-    P: byte;
     AddCount: word;
 begin
   AddCount:=0;
@@ -1320,14 +1371,7 @@ begin
   L:=Lines^.At(I);
   if L^.Text<>nil then DisposeStr(L^.Text);
   if ((Flags and efUseTabCharacters)<>0) and (TabSize>0) then
-  begin
-    TabS:=CharStr(' ',TabSize);
-    repeat
-      P:=Pos(TabS,S);
-      if P>0 then
-         S:=copy(S,1,P-1)+TAB+copy(S,P+TabSize,255);
-    until P=0;
-  end;
+    S:=CompressUsingTabs(S,TabSize);
   L^.Text:=NewStr(S);
 end;
 
@@ -1945,9 +1989,6 @@ var S: string;
   function ContainsText(const SubS:string;var S: string; Start: Sw_word): Sw_integer;
   var
     P: Sw_Integer;
-{$ifndef ASMSCAN}
-    Hs : string;
-{$endif}
   begin
     if Start<=0 then
      P:=0
@@ -2020,8 +2061,7 @@ begin
 
   X:=X+DX;
   CanExit:=false;
-  if DoReplace and (Confirm=false) and (Owner<>nil) then
-    Owner^.Lock;
+  if DoReplace and (Confirm=false) and (Owner<>nil) then Owner^.Lock;
   if InArea(X,Y) then
   repeat
     S:=GetLineText(Y);
@@ -2230,11 +2270,14 @@ begin
   if InAsm then C:=coAssemblerColor else
   case SClass of
     ccWhiteSpace : C:=coWhiteSpaceColor;
-    ccNumber     : C:=coNumberColor;
+    ccNumber     : if copy(WordS,1,1)='$' then
+                     C:=coHexNumberColor
+                   else
+                     C:=coNumberColor;
     ccSymbol     : C:=coSymbolColor;
     ccAlpha      :
       begin
-        WordS:=copy(LineText,StartX,EndX-StartX+1);
+{        WordS:=copy(LineText,StartX,EndX-StartX+1);}
         if IsReservedWord(WordS) then C:=coReservedWordColor
                                  else C:=coIdentifierColor;
       end;
@@ -2368,6 +2411,7 @@ var I: integer;
 begin
   for I:=1 to length(S) do
     AddChar(S[I]);
+  InsertText:=true;
 end;
 
 function TCodeEditor.InsertFrom(Editor: PCodeEditor): Boolean;
@@ -2471,6 +2515,13 @@ begin
   DrawView;
 end;
 
+procedure TCodeEditor.SetState(AState: Word; Enable: Boolean);
+begin
+  inherited SetState(AState,Enable);
+  if (AState and (sfActive+sfSelected+sfFocused))<>0 then
+     SelectionChanged;
+end;
+
 function TCodeEditor.GetPalette: PPalette;
 const P: string[length(CEditor)] = CEditor;
 begin
@@ -2489,6 +2540,7 @@ begin
   inherited Init(Bounds,AHScrollBAr,AVScrollBAr,AIndicator,0);
   FileName:=AFileName;
   UpdateIndicator;
+  Message(@Self,evBroadcast,cmFileNameChanged,@Self);
 end;
 
 function TFileEditor.LoadFile: boolean;
@@ -2535,7 +2587,7 @@ begin
   begin
     readln(f,S);
     OK:=OK and (IOResult=0);
-    if OK then Lines^.Insert(NewLine(S));
+    if OK then Lines^.Insert(NewLine(ExtractTabs(S,TabSize)));
   end;
   FileMode:=FM;
   Close(F);
@@ -2576,7 +2628,7 @@ begin
   begin
     P:=Lines^.At(Line);
     if P^.Text=nil then S:='' else S:=P^.Text^;
-    writeln(f,S);
+    writeln(f,CompressUsingTabs(S,TabSize));
     Inc(Line);
     OK:=OK and (IOResult=0);
   end;
@@ -2604,17 +2656,33 @@ begin
   if EditorDialog(edSaveAs, @FileName) <> cmCancel then
   begin
     FileName := FExpand(FileName);
-    Message(Owner, evBroadcast, cmUpdateTitle, nil);
+    Message(Owner, evBroadcast, cmUpdateTitle, @Self);
     SaveAs := SaveFile;
     if IsClipboard then FileName := '';
+    Message(Application,evBroadcast,cmFileNameChanged,@Self);
   end;
 end;
 
-procedure TCodeEditor.SetState(AState: Word; Enable: Boolean);
+procedure TFileEditor.HandleEvent(var Event: TEvent);
+var SH,B: boolean;
 begin
-  inherited SetState(AState,Enable);
-  if (AState and (sfActive+sfSelected+sfFocused))<>0 then
-     SelectionChanged;
+  case Event.What of
+    evBroadcast :
+      case Event.Command of
+        cmFileNameChanged :
+          if (Event.InfoPtr=nil) or (Event.InfoPtr=@Self) then
+          begin
+            B:=(Flags and efSyntaxHighlight)<>0;
+            SH:=UseSyntaxHighlight(@Self);
+            if SH<>B then
+              if SH then
+                SetFlags(Flags or efSyntaxHighlight)
+              else
+                SetFlags(Flags and not efSyntaxHighlight);
+          end;
+      end;
+  end;
+  inherited HandleEvent(Event);
 end;
 
 function TFileEditor.Valid(Command: Word): Boolean;
@@ -2808,6 +2876,8 @@ function StdEditorDialog(Dialog: Integer; Info: Pointer): Word;
 var
   R: TRect;
   T: TPoint;
+  Re: word;
+  Name: string;
 begin
   case Dialog of
     edOutOfMemory:
@@ -2823,15 +2893,24 @@ begin
       StdEditorDialog := MessageBox('Error creating file %s.',
         @Info, mfInsertInApp+ mfError + mfOkButton);
     edSaveModify:
-      StdEditorDialog := MessageBox(#3'%s'#13#13#3'has been modified. Save?',
+      StdEditorDialog := MessageBox('%s has been modified. Save?',
         @Info, mfInsertInApp+ mfInformation + mfYesNoCancel);
     edSaveUntitled:
-      StdEditorDialog := MessageBox(#3'Save untitled file?',
+      StdEditorDialog := MessageBox('Save untitled file?',
         nil, mfInsertInApp+ mfInformation + mfYesNoCancel);
     edSaveAs:
-      StdEditorDialog :=
-        Application^.ExecuteDialog(New(PFileDialog, Init('*.*',
-        'Save file as', '~N~ame', fdOkButton, 101)), Info);
+      begin
+        Name:=PString(Info)^;
+        Re:=Application^.ExecuteDialog(New(PFileDialog, Init('*.*',
+        'Save file as', '~N~ame', fdOkButton, 101)), @Name);
+        if (Re<>cmCancel) and (Name<>PString(Info)^) then
+          if ExistsFile(Name) then
+            if EditorDialog(edReplaceFile,@Name)<>cmYes then
+              Re:=cmCancel;
+        if Re<>cmCancel then
+          PString(Info)^:=Name;
+        StdEditorDialog := Re;
+      end;
     edGotoLine:
       StdEditorDialog :=
         Application^.ExecuteDialog(CreateGotoLineDialog(Info), Info);
@@ -2856,14 +2935,29 @@ begin
         StdEditorDialog := MessageBoxRect(R, 'Replace this occurence?',
           nil, mfInsertInApp+ mfYesNoCancel + mfInformation);
       end;
+    edReplaceFile :
+      StdEditorDialog :=
+        MessageBox('File %s already exists. Overwrite?',@Info,mfInsertInApp+mfConfirmation+
+          mfYesButton+mfNoButton);
   end;
+end;
+
+function DefUseSyntaxHighlight(Editor: PFileEditor): boolean;
+begin
+  DefUseSyntaxHighlight:=(Editor^.Flags and efSyntaxHighlight)<>0;
 end;
 
 END.
 {
   $Log$
-  Revision 1.3  1998-12-30 10:16:20  peter
-    * forward search for FPC
+  Revision 1.4  1999-01-04 11:49:55  peter
+   * 'Use tab characters' now works correctly
+   + Syntax highlight now acts on File|Save As...
+   + Added a new class to syntax highlight: 'hex numbers'.
+   * There was something very wrong with the palette managment. Now fixed.
+   + Added output directory (-FE<xxx>) support to 'Directories' dialog...
+   * Fixed some possible bugs in Running/Compiling, and the compilation/run
+     process revised
 
   Revision 1.2  1998/12/28 15:47:55  peter
     + Added user screen support, display & window

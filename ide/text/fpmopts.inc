@@ -375,7 +375,8 @@ var R,R2: TRect;
 const
   LW = 25;
 begin
-  R.Assign(0,0,64,10);
+  Count:=DirectorySwitches^.ItemCount;
+  R.Assign(0,0,64,2+Count*2);
   New(D, Init(R, 'Directories'));
   with D^ do
   begin
@@ -383,7 +384,6 @@ begin
     R.Grow(-2,-2);
     Dec(R.B.X);
     R.B.Y:=R.A.Y+1;
-    Count:=DirectorySwitches^.ItemCount;
     for i:=Count-1 downto 0 do
      begin
        R2.Copy(R);
@@ -398,7 +398,7 @@ begin
      end;
   end;
   InsertButtons(D);
-  IL[0]^.Select;
+  IL[Count-1]^.Select;
   if Desktop^.ExecView(D)=cmOK then
    begin
      for i:=Count-1 downto 0 do
@@ -554,7 +554,7 @@ end;
 procedure TIDEApp.Colors;
 var D: PColorDialog;
 begin
-  New(D, Init(GetPalette^,
+  New(D, Init(AppPalette,
     ColorGroup('Desktop', DesktopColorItems(nil),
     ColorGroup('Dialogs', DialogColorItems(dpGrayDialog,nil),
     ColorGroup('Editor',
@@ -588,12 +588,13 @@ begin
       ColorItem('Identifiers'     , 203,
       ColorItem('Strings'         , 204,
       ColorItem('Numbers'         , 205,
+      ColorItem('Hex numbers'     , 212,
       ColorItem('Assembler'       , 206,
       ColorItem('Symbols'         , 207,
       ColorItem('Directives'      , 211,
-      nil))))))))),
+      nil)))))))))),
     nil))))))));
-  if ExecuteDialog(D, GetPalette)=cmOK then
+  if ExecuteDialog(D, @AppPalette)=cmOK then
     begin
       DoneMemory;
       Message(Application,evBroadcast,cmUpdate,nil);
@@ -651,8 +652,14 @@ end;
 
 {
   $Log$
-  Revision 1.3  1998-12-30 13:38:41  peter
-    * patches from Gabor
+  Revision 1.4  1999-01-04 11:49:47  peter
+   * 'Use tab characters' now works correctly
+   + Syntax highlight now acts on File|Save As...
+   + Added a new class to syntax highlight: 'hex numbers'.
+   * There was something very wrong with the palette managment. Now fixed.
+   + Added output directory (-FE<xxx>) support to 'Directories' dialog...
+   * Fixed some possible bugs in Running/Compiling, and the compilation/run
+     process revised
 
   Revision 1.2  1998/12/28 15:47:49  peter
     + Added user screen support, display & window

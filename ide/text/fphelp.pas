@@ -83,6 +83,8 @@ begin
     hcSourceWindow  : S:='';
     hcHelpWindow    : S:='';
     hcCalcWindow    : S:='';
+    hcInfoWindow    : S:='';
+    hcClipboardWindow:S:='';
 
     hcSystemMenu    : S:='System menu';
     hcUpdate        : S:='Refresh and redraw display';
@@ -151,7 +153,7 @@ begin
     hcEditor        : S:='Specify default editor settings';
     hcMouse         : S:='Specify mouse settings';
     hcStartup       : S:='Permanently change default startup options';
-    hcColors        : S:='Costumize IDE colors for windows, menus, editors, etc.';
+    hcColors        : S:='Customize IDE colors for windows, menus, editors, etc.';
     hcOpenINI       : S:='Load a previously saved options file';
     hcSaveINI       : S:='Save all the changes made in the options menu';
     hcSaveAsINI     : S:='Save all the changes made under a different name';
@@ -166,6 +168,7 @@ begin
     hcPrev          : S:='Make the previous window active';
     hcClose         : S:='Close the active window';
     hcWindowList    : S:='Show a list of all open windows';
+    hcUserScreenWindow:S:='Show contents of user screen in a window';
 
     hcHelpMenu      : S:='Get online help';
     hcHelpContents  : S:='Show table of contents for Online Help';
@@ -314,7 +317,16 @@ end;
 END.
 {
   $Log$
-  Revision 1.2  1998-12-28 15:47:44  peter
+  Revision 1.3  1999-01-04 11:49:44  peter
+   * 'Use tab characters' now works correctly
+   + Syntax highlight now acts on File|Save As...
+   + Added a new class to syntax highlight: 'hex numbers'.
+   * There was something very wrong with the palette managment. Now fixed.
+   + Added output directory (-FE<xxx>) support to 'Directories' dialog...
+   * Fixed some possible bugs in Running/Compiling, and the compilation/run
+     process revised
+
+  Revision 1.2  1998/12/28 15:47:44  peter
     + Added user screen support, display & window
     + Implemented Editor,Mouse Options dialog
     + Added location of .INI and .CFG file

@@ -48,6 +48,7 @@ const
   secEditor          = 'Editor';
   secHighlight       = 'Highlight';
   secMouse           = 'Mouse';
+  secSearch          = 'Search';
 
   { INI file tags }
   ieRecentFile       = 'RecentFile';
@@ -62,6 +63,7 @@ const
   ieReverseButtons   = 'ReverseButtons';
   ieAltClickAction   = 'AltClickAction';
   ieCtrlClickAction  = 'CtrlClickAction';
+  ieFindFlags        = 'FindFlags';
 
 procedure InitINIFile;
 var S: string;
@@ -198,11 +200,12 @@ begin
   INIFile^.SetIntEntry(secEditor,ieDefaultTabSize,DefaultTabSize);
   INIFile^.SetIntEntry(secEditor,ieDefaultEditorFlags,DefaultCodeEditorFlags);
 {$endif}
-  INIFile^.SetEntry(secHighlight,ieHighlightExts,HighlightExts);
+  INIFile^.SetEntry(secHighlight,ieHighlightExts,'"'+HighlightExts+'"');
   INIFile^.SetIntEntry(secMouse,ieDoubleClickDelay,DoubleDelay);
   INIFile^.SetIntEntry(secMouse,ieReverseButtons,byte(MouseReverse));
   INIFile^.SetIntEntry(secMouse,ieAltClickAction,AltMouseAction);
   INIFile^.SetIntEntry(secMouse,ieCtrlClickAction,CtrlMouseAction);
+  INIFile^.SetIntEntry(secSearch,ieFindFlags,FindFlags);
   if AppPalette<>CIDEAppColor then
   begin
     { this has a bug. if a different palette has been read on startup, and
@@ -224,11 +227,14 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  1998-12-30 13:38:40  peter
-    * patches from Gabor
-
-  Revision 1.2  1998/12/30 10:25:01  peter
-    * fixed readinifile
+  Revision 1.4  1999-01-04 11:49:45  peter
+   * 'Use tab characters' now works correctly
+   + Syntax highlight now acts on File|Save As...
+   + Added a new class to syntax highlight: 'hex numbers'.
+   * There was something very wrong with the palette managment. Now fixed.
+   + Added output directory (-FE<xxx>) support to 'Directories' dialog...
+   * Fixed some possible bugs in Running/Compiling, and the compilation/run
+     process revised
 
   Revision 1.1  1998/12/28 15:47:45  peter
     + Added user screen support, display & window

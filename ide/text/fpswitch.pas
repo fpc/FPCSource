@@ -691,6 +691,7 @@ begin
      AddStringItem('~I~nclude directories','i',true);
      AddStringItem('~L~ibrary directories','l',true);
      AddStringItem('~O~bject directories','o',true);
+     AddStringItem('~E~XE & PPU directories','E',true);
    end;
   SwitchesPath:=LocateFile(SwitchesName);
   if SwitchesPath='' then
@@ -717,7 +718,16 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  1998-12-28 15:47:52  peter
+  Revision 1.2  1999-01-04 11:49:50  peter
+   * 'Use tab characters' now works correctly
+   + Syntax highlight now acts on File|Save As...
+   + Added a new class to syntax highlight: 'hex numbers'.
+   * There was something very wrong with the palette managment. Now fixed.
+   + Added output directory (-FE<xxx>) support to 'Directories' dialog...
+   * Fixed some possible bugs in Running/Compiling, and the compilation/run
+     process revised
+
+  Revision 1.1  1998/12/28 15:47:52  peter
     + Added user screen support, display & window
     + Implemented Editor,Mouse Options dialog
     + Added location of .INI and .CFG file

@@ -37,7 +37,7 @@ procedure DoCompile(Mode: TCompileMode);
 implementation
 
 uses
-  Video,CRt,
+  Dos,Video,
   Objects,Drivers,Views,App,
   CompHook,
   FPConst,FPVars,FPUtils,FPIntf,FPSwitches;
@@ -88,7 +88,7 @@ begin
       end;
   end;
   ST^.SetText(
-    'Main file: '+MainFile+#13+
+    'Main file: '+SmartPath(MainFile)+#13+
     StatusS+#13#13+
     'Target: '+LExpand(KillTilde(TargetSwitches^.ItemName(TargetSwitches^.GetCurrSel)),12)+'    '+
     'Line number: '+IntToStrL(Status.CurrentLine,7)+#13+
@@ -126,6 +126,20 @@ begin
    end;
 end;
 
+function GetExePath: string;
+var Path: string;
+    I: integer;
+begin
+  Path:='.\';
+  if DirectorySwitches<>nil then
+    with DirectorySwitches^ do
+    for I:=0 to ItemCount-1 do
+      begin
+        if Pos('EXE',KillTilde(ItemName(I)))>0 then
+          begin Path:=GetStringItem(I); Break; end;
+      end;
+  GetExePath:=CompleteDir(FExpand(Path));
+end;
 
 {****************************************************************************
                                  DoCompile
@@ -164,7 +178,8 @@ begin
        end;
       FileName:=P^.Editor^.FileName;
     end;
-  MainFile:=SmartPath(FileName);
+  MainFile:=FExpand(FileName);
+  EXEFile:=GetEXEPath+NameAndExtOf(MainFile);
 { Reset }
   CtrlBreakHit:=false;
 { Show Program Info }
@@ -186,10 +201,12 @@ begin
 
   Compile(FileName);
 
-  CompilationPhase:=cpDone;
+  if status.errorCount=0
+     then CompilationPhase:=cpDone
+     else CompilationPhase:=cpFailed;
   SD^.Update;
 
-  if ((status.errorcount=0) or (ShowStatusOnError)) and (Mode<>cRun) then
+  if ((CompilationPhase in[cpDone,cpFailed]) or (ShowStatusOnError)) and (Mode<>cRun) then
    repeat
      SD^.GetEvent(E);
      if IsExitEvent(E)=false then
@@ -207,7 +224,16 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  1998-12-28 15:47:42  peter
+  Revision 1.3  1999-01-04 11:49:42  peter
+   * 'Use tab characters' now works correctly
+   + Syntax highlight now acts on File|Save As...
+   + Added a new class to syntax highlight: 'hex numbers'.
+   * There was something very wrong with the palette managment. Now fixed.
+   + Added output directory (-FE<xxx>) support to 'Directories' dialog...
+   * Fixed some possible bugs in Running/Compiling, and the compilation/run
+     process revised
+
+  Revision 1.2  1998/12/28 15:47:42  peter
     + Added user screen support, display & window
     + Implemented Editor,Mouse Options dialog
     + Added location of .INI and .CFG file

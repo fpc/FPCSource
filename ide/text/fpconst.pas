@@ -126,6 +126,7 @@ const
      hcHelpWindow        = 8001;
      hcClipboardWindow   = 8002;
      hcCalcWindow        = 8003;
+     hcInfoWindow        = 8004;
 
      hcShift             = 10000;
 
@@ -237,15 +238,21 @@ const
          { CSourceWindow }
 {167-182}#$17#$1F#$1A#$31#$31#$1E#$71#$1F#$00#$00#$00#$00#$00#$00#$00#$00 + { 1-16}
 {183-198}#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00 + {17-32}
-{199-214}#$1E#$1F#$17#$1F#$1E#$1B#$13#$1A#$1E#$71#$3F#$1F#$1C#$00#$00#$4E ; {33-48}
+{199-214}#$1E#$1F#$17#$1F#$1E#$1B#$13#$1A#$1E#$71#$3F#$1F#$1C#$13#$00#$4E ; {33-48}
 
 implementation
 
 END.
 {
   $Log$
-  Revision 1.3  1998-12-30 13:38:39  peter
-    * patches from Gabor
+  Revision 1.4  1999-01-04 11:49:43  peter
+   * 'Use tab characters' now works correctly
+   + Syntax highlight now acts on File|Save As...
+   + Added a new class to syntax highlight: 'hex numbers'.
+   * There was something very wrong with the palette managment. Now fixed.
+   + Added output directory (-FE<xxx>) support to 'Directories' dialog...
+   * Fixed some possible bugs in Running/Compiling, and the compilation/run
+     process revised
 
   Revision 1.2  1998/12/28 15:47:43  peter
     + Added user screen support, display & window

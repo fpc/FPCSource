@@ -18,12 +18,22 @@ begin
   status.maxerrorcount:=50;
   do_comment(V_Error,'Fake Compiler');
   do_comment(V_Error,'Cmd = "'+cmd+'"');
+  Compile:=0;
 end;
 
 end.
 {
   $Log$
-  Revision 1.2  1998-12-28 15:44:59  peter
+  Revision 1.3  1999-01-04 11:49:39  peter
+   * 'Use tab characters' now works correctly
+   + Syntax highlight now acts on File|Save As...
+   + Added a new class to syntax highlight: 'hex numbers'.
+   * There was something very wrong with the palette managment. Now fixed.
+   + Added output directory (-FE<xxx>) support to 'Directories' dialog...
+   * Fixed some possible bugs in Running/Compiling, and the compilation/run
+     process revised
+
+  Revision 1.2  1998/12/28 15:44:59  peter
     * use V_Error
     * set status.verbosity
 

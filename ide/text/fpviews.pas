@@ -200,12 +200,15 @@ type
 
     PProgramInfoWindow = ^TProgramInfoWindow;
     TProgramInfoWindow = object(TDlgWindow)
-      InfoST: PStaticText;
+      InfoST: PColorStaticText;
       LogLB : PMessageListBox;
       constructor Init;
       procedure   AddMessage(AClass: longint; Msg, Module: string; Line: longint);
       procedure   SizeLimits(var Min, Max: TPoint); virtual;
       procedure   Close; virtual;
+      procedure   HandleEvent(var Event: TEvent); virtual;
+      procedure   Update; virtual;
+      destructor  Done; virtual;
     end;
 
     PTabItem = ^TTabItem;
@@ -305,6 +308,12 @@ const
 
       OpenFileName   : string = '';
 
+var  MsgParms : array[1..10] of
+         record
+           case byte of
+             0 : (Ptr : pointer);
+             1 : (Long: longint);
+         end;
 
 implementation
 
@@ -1665,7 +1674,7 @@ end;
 
 function ConfirmBox(S: string; Params: pointer; CanCancel: boolean): word;
 begin
-  MessageBox(S,Params,mfConfirmation+mfInsertInApp+mfYesButton+mfNoButton+integer(CanCancel)*mfCancelButton);
+  ConfirmBox:=MessageBox(S,Params,mfConfirmation+mfInsertInApp+mfYesButton+mfNoButton+integer(CanCancel)*mfCancelButton);
 end;
 
 function IsSeparator(P: PMenuItem): boolean;
@@ -1888,7 +1897,7 @@ begin
   I:=1;
   for Y:=0 to Size.Y-1 do
   begin
-    MoveChar(B, ' ', C, Size.X);
+    MoveChar(B, ' ', Lo(C), Size.X);
     CurS:='';
     if S<>'' then
     begin
@@ -1951,6 +1960,7 @@ end;
 
 function TLocalMenuListBox.GetLocalMenu: PMenu;
 begin
+  GetLocalMenu:=nil;
   Abstract;
 end;
 
@@ -2081,7 +2091,6 @@ begin
 end;
 
 procedure TMessageListBox.GotoSource;
-var P: PMessageItem;
 begin
 {  if TryToOpenSource(}
 end;
@@ -2222,10 +2231,19 @@ constructor TProgramInfoWindow.Init;
 var R,R2: TRect;
     HSB,VSB: PScrollBar;
     ST: PStaticText;
+    C: word;
+const White = 15;
 begin
   Desktop^.GetExtent(R); R.A.Y:=R.B.Y-13;
   inherited Init(R, 'Program Information', wnNoNumber);
 
+  HelpCtx:=hcInfoWindow;
+
+  GetExtent(R); R.Grow(-1,-1); R.B.Y:=R.A.Y+4;
+  C:=((Desktop^.GetColor(32+6) and $f0) or White)*256+Desktop^.GetColor(32+6);
+  New(InfoST, Init(R,'', C)); InfoST^.GrowMode:=gfGrowHiX;
+  InfoST^.DontWrap:=true;
+  Insert(InfoST);
   GetExtent(R); R.Grow(-1,-1); Inc(R.A.Y,4); R.B.Y:=R.A.Y+1;
   New(ST, Init(R, CharStr('Ä', MaxViewWidth))); ST^.GrowMode:=gfGrowHiX; Insert(ST);
   GetExtent(R); R.Grow(-1,-1); Inc(R.A.Y,5);
@@ -2237,6 +2255,7 @@ begin
   LogLB^.GrowMode:=gfGrowHiX+gfGrowHiY;
   LogLB^.Transparent:=true;
   Insert(LogLB);
+  Update;
 end;
 
 procedure TProgramInfoWindow.AddMessage(AClass: longint; Msg, Module: string; Line: longint);
@@ -2248,12 +2267,41 @@ end;
 procedure TProgramInfoWindow.SizeLimits(var Min, Max: TPoint);
 begin
   inherited SizeLimits(Min,Max);
-  Min.Y:=9;
+  Min.X:=30; Min.Y:=9;
 end;
 
 procedure TProgramInfoWindow.Close;
 begin
   Hide;
+end;
+
+procedure TProgramInfoWindow.HandleEvent(var Event: TEvent);
+begin
+  case Event.What of
+    evBroadcast :
+      case Event.Command of
+        cmUpdate :
+          Update;
+      end;
+  end;
+  inherited HandleEvent(Event);
+end;
+
+procedure TProgramInfoWindow.Update;
+begin
+  InfoST^.SetText(
+    #13+
+    '   Current module : '+MainFile+#13+
+    '   Last exit code : '+IntToStr(LastExitCode)+#13+
+    ' Available memory : '+IntToStrL(MemAvail div 1024,5)+'K'+#13+
+    ''
+  );
+end;
+
+destructor TProgramInfoWindow.Done;
+begin
+  inherited Done;
+  ProgramInfoWindow:=nil;
 end;
 
 function TAdvancedStatusLine.GetStatusText: string;
@@ -2763,7 +2811,16 @@ end;
 END.
 {
   $Log$
-  Revision 1.2  1998-12-28 15:47:54  peter
+  Revision 1.3  1999-01-04 11:49:53  peter
+   * 'Use tab characters' now works correctly
+   + Syntax highlight now acts on File|Save As...
+   + Added a new class to syntax highlight: 'hex numbers'.
+   * There was something very wrong with the palette managment. Now fixed.
+   + Added output directory (-FE<xxx>) support to 'Directories' dialog...
+   * Fixed some possible bugs in Running/Compiling, and the compilation/run
+     process revised
+
+  Revision 1.2  1998/12/28 15:47:54  peter
     + Added user screen support, display & window
     + Implemented Editor,Mouse Options dialog
     + Added location of .INI and .CFG file

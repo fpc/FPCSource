@@ -84,8 +84,14 @@ type
       procedure UpdateRecentFileList;
     end;
 
+function IDEUseSyntaxHighlight(Editor: PFileEditor): boolean; {$ifndef FPC}far;{$endif}
+begin
+  IDEUseSyntaxHighlight:=MatchesFileList(NameAndExtOf(Editor^.FileName),HighlightExts);
+end;
+
 constructor TIDEApp.Init;
 begin
+  {$ifndef EDITORS}UseSyntaxHighlight:=IDEUseSyntaxHighlight;{$endif}
   inherited Init;
   New(ClipboardWindow, Init);
   Desktop^.Insert(ClipboardWindow);
@@ -368,6 +374,7 @@ begin
   if PrimaryFile<>'' then
      SetCmdState(CompileCmds,true);
   UpdateMenu(MenuBar^.Menu);
+  Message(ProgramInfoWindow,evBroadcast,cmUpdate,nil);
 end;
 
 procedure TIDEApp.UpdateINIFile;
@@ -486,8 +493,9 @@ begin
 end;
 
 function TIDEApp.GetPalette: PPalette;
-const P: string[length(CIDEAppColor)] = CIDEAppColor;
+var P: string;
 begin
+  P:=AppPalette;
   GetPalette:=@P;
 end;
 
@@ -570,8 +578,14 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.3  1998-12-30 13:38:38  peter
-    * patches from Gabor
+  Revision 1.4  1999-01-04 11:49:41  peter
+   * 'Use tab characters' now works correctly
+   + Syntax highlight now acts on File|Save As...
+   + Added a new class to syntax highlight: 'hex numbers'.
+   * There was something very wrong with the palette managment. Now fixed.
+   + Added output directory (-FE<xxx>) support to 'Directories' dialog...
+   * Fixed some possible bugs in Running/Compiling, and the compilation/run
+     process revised
 
   Revision 1.2  1998/12/28 15:47:40  peter
     + Added user screen support, display & window

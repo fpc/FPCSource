@@ -118,11 +118,13 @@ uses
 
 function TScreen.GetWidth: integer;
 begin
+  Getwidth:=0;
   Abstract;
 end;
 
 function TScreen.GetHeight: integer;
 begin
+  Getheight:=0;
   Abstract;
 end;
 
@@ -208,10 +210,8 @@ end;
 
 
 procedure TDOSScreen.Capture;
-var X,Y: integer;
-    W: word;
-    r: registers;
-    VSeg,SOfs: word;
+var
+  VSeg,SOfs: word;
 begin
   GetVideoMode(VideoInfo);
   GetBuffer(VideoInfo.ScreenSize);
@@ -229,10 +229,8 @@ end;
 
 
 procedure TDOSScreen.SwitchTo;
-var X,Y: integer;
-    W: word;
-    r: registers;
-    VSeg,SOfs: word;
+var
+  VSeg,SOfs: word;
 begin
   GetVideoMode(TM);
   SetVideoMode(VideoInfo);
@@ -461,7 +459,16 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  1998-12-28 15:47:53  peter
+  Revision 1.2  1999-01-04 11:49:51  peter
+   * 'Use tab characters' now works correctly
+   + Syntax highlight now acts on File|Save As...
+   + Added a new class to syntax highlight: 'hex numbers'.
+   * There was something very wrong with the palette managment. Now fixed.
+   + Added output directory (-FE<xxx>) support to 'Directories' dialog...
+   * Fixed some possible bugs in Running/Compiling, and the compilation/run
+     process revised
+
+  Revision 1.1  1998/12/28 15:47:53  peter
     + Added user screen support, display & window
     + Implemented Editor,Mouse Options dialog
     + Added location of .INI and .CFG file

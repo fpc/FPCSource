@@ -18,7 +18,6 @@ function TIDEApp.OpenEditorWindow(FileName: string; CurX,CurY: integer): PSource
 var P: PView;
     R: TRect;
     W: PSourceWindow;
-    B,SH: boolean;
 begin
   P:=Message(Desktop,evBroadcast,cmSearchWindow,nil);
   if P=nil then Desktop^.GetExtent(R) else
@@ -37,18 +36,6 @@ begin
          TrackCursor(true);
        end;
     W^.HelpCtx:=hcSourceWindow;
-    SH:=MatchesFileList(NameAndExtOf(FileName),HighlightExts);
-    with W^.Editor^ do
-     begin
-       b:=(Flags and efSyntaxHighlight)<>0;
-       if SH<>B then
-        begin
-          if SH then
-           SetFlags(Flags or efSyntaxHighlight)
-          else
-           SetFlags(Flags and not efSyntaxHighlight);
-        end;
-     end;
     Desktop^.Insert(W);
     Message(Application,evBroadcast,cmUpdate,nil);
   end;
@@ -163,7 +150,16 @@ end;
 
 {
   $Log$
-  Revision 1.2  1998-12-28 15:47:47  peter
+  Revision 1.3  1999-01-04 11:49:46  peter
+   * 'Use tab characters' now works correctly
+   + Syntax highlight now acts on File|Save As...
+   + Added a new class to syntax highlight: 'hex numbers'.
+   * There was something very wrong with the palette managment. Now fixed.
+   + Added output directory (-FE<xxx>) support to 'Directories' dialog...
+   * Fixed some possible bugs in Running/Compiling, and the compilation/run
+     process revised
+
+  Revision 1.2  1998/12/28 15:47:47  peter
     + Added user screen support, display & window
     + Implemented Editor,Mouse Options dialog
     + Added location of .INI and .CFG file

@@ -56,6 +56,7 @@ begin
   P:=List^.At(Item);
   case P^.HelpCtx of
     hcSourceWindow : S:=PSourceWindow(P)^.GetTitle(MaxLen);
+    hcInfoWindow   : S:=PProgramInfoWindow(P)^.GetTitle(MaxLen);
     hcHelpWindow   : S:=PHelpWindow(P)^.GetTitle(MaxLen);
     hcCalcWindow   : S:=PCalculator(P)^.GetTitle(MaxLen);
   else S:='???? - '+PWindow(P)^.GetTitle(MaxLen);
@@ -161,7 +162,16 @@ end;
 
 {
   $Log$
-  Revision 1.3  1998-12-28 15:47:50  peter
+  Revision 1.4  1999-01-04 11:49:49  peter
+   * 'Use tab characters' now works correctly
+   + Syntax highlight now acts on File|Save As...
+   + Added a new class to syntax highlight: 'hex numbers'.
+   * There was something very wrong with the palette managment. Now fixed.
+   + Added output directory (-FE<xxx>) support to 'Directories' dialog...
+   * Fixed some possible bugs in Running/Compiling, and the compilation/run
+     process revised
+
+  Revision 1.3  1998/12/28 15:47:50  peter
     + Added user screen support, display & window
     + Implemented Editor,Mouse Options dialog
     + Added location of .INI and .CFG file
