@@ -945,12 +945,16 @@
      UDM_GETBASE = 1134;
      UDM_GETBUDDY = 1130;
      UDM_GETPOS = 1128;
+     UDM_GETPOS32 = 1138;
      UDM_GETRANGE = 1126;
+     UDM_GETRANGE32 = 1136;
      UDM_SETACCEL = 1131;
      UDM_SETBASE = 1133;
      UDM_SETBUDDY = 1129;
      UDM_SETPOS = 1127;
+     UDM_SETPOS32 = 1137;
      UDM_SETRANGE = 1125;
+     UDM_SETRANGE32 = 1135;
   { Up/down control notification  }
      UDN_DELTAPOS = -(722);
   { Window messages  }
@@ -1306,7 +1310,10 @@ Type
 
 {
   $Log$
-  Revision 1.12  2004-08-22 11:12:24  marco
+  Revision 1.13  2004-11-09 14:20:26  marco
+    * patch from vincent
+
+  Revision 1.12  2004/08/22 11:12:24  marco
    * including in both messages and windows caused problems (expected
   	windows.msg, got message.msg and vice versa. Solved by aliasing
 
