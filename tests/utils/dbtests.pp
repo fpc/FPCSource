@@ -7,7 +7,7 @@ Interface
 
 Uses
 {$ifndef ver1_0}
-  mysql3,
+  mysql4,
 {$else}
   mysql,
 {$endif}  
@@ -69,7 +69,11 @@ Var
 
 begin
   Verbose(V_DEBUG,'Connection params : '+DatabaseName+' '+Host+' '+User+' '+Password);
+{$ifdef ver1_0}  
   Result:=mysql_connect(@Connection,PChar(Host),PChar(User),PChar(Password))<>Nil;
+{$else}  
+  Result:=mysql_real_connect(@Connection,PChar(Host),PChar(User),PChar(Password),Nil,0,Nil,0)<>Nil;
+{$endif}  
   If Not Result then
     begin
     S:=Strpas(mysql_error(@connection));
