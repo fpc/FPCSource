@@ -23,7 +23,7 @@ type
   pstring = ^shortstring;
 
 {$ifndef FPC_SYSTEM_HAS_MOVE}
-procedure Move(const source;var dest;count:longint);
+procedure Move(const source;var dest;count:longint);[public, alias: 'FPC_MOVE'];
 type
   bytearray    = array [0..maxlongint-1] of byte;
 var
@@ -1139,7 +1139,10 @@ end;
 
 {
   $Log$
-  Revision 1.69  2004-02-02 20:39:27  florian
+  Revision 1.70  2004-04-26 15:55:01  peter
+    * FPC_MOVE alias
+
+  Revision 1.69  2004/02/02 20:39:27  florian
     + added prefetch(const mem)
 
   Revision 1.68  2004/01/31 16:14:24  florian

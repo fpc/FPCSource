@@ -35,7 +35,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_MOVE}
 {$define FPC_SYSTEM_HAS_MOVE}
-procedure Move(const source;var dest;count:longint);assembler;
+procedure Move(const source;var dest;count:longint);[public, alias: 'FPC_MOVE'];assembler;
 var
   saveesi,saveedi : longint;
 asm
@@ -1457,7 +1457,10 @@ end;
 
 {
   $Log$
-  Revision 1.59  2004-02-05 01:16:12  florian
+  Revision 1.60  2004-04-26 15:55:01  peter
+    * FPC_MOVE alias
+
+  Revision 1.59  2004/02/05 01:16:12  florian
     + completed x86-64/linux system unit
 
   Revision 1.58  2004/01/11 11:10:07  jonas

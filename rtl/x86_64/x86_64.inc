@@ -71,7 +71,7 @@ end ['RAX'];
 
 (*
 {$define FPC_SYSTEM_HAS_MOVE}
-procedure Move(const source;var dest;count:longint);assembler;
+procedure Move(const source;var dest;count:longint);[public, alias: 'FPC_MOVE'];assembler;
   asm
      { rdi destination
        rsi source
@@ -306,7 +306,10 @@ const
 
 {
   $Log$
-  Revision 1.9  2004-04-22 20:20:16  peter
+  Revision 1.10  2004-04-26 15:55:01  peter
+    * FPC_MOVE alias
+
+  Revision 1.9  2004/04/22 20:20:16  peter
     * get_caller_addr fixed
 
   Revision 1.8  2004/04/21 21:26:51  florian
