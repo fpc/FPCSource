@@ -181,6 +181,7 @@ const
   cmNewStatusLine = 46;
   cmNewVideo      = 47;
   cmTransfer      = 48;
+  cmResizeApp     = 49;
 
   cmRecordHistory  = 60;
   cmGrabDefault    = 61;
@@ -624,7 +625,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2001-08-05 02:03:13  peter
+  Revision 1.3  2002-05-21 12:00:49  pierre
+   + cmResizeApp added
+
+  Revision 1.2  2001/08/05 02:03:13  peter
     * view redrawing and small cursor updates
     * merged some more FV extensions
 
