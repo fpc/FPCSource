@@ -40,9 +40,11 @@ begin
 
   ShowUserScreen;
 
+  InitKeyBoard;
   Keyboard.GetKeyEvent;
   while (Keyboard.PollKeyEvent<>0) do
    Keyboard.GetKeyEvent;
+  DoneKeyboard;
 
   ShowIDEScreen;
 end;
@@ -139,7 +141,10 @@ end;
 
 {
   $Log$
-  Revision 1.12  2000-05-02 08:42:28  pierre
+  Revision 1.13  2000-05-17 10:17:49  pierre
+   * Reinit the keyboard in ShowUserScreen
+
+  Revision 1.12  2000/05/02 08:42:28  pierre
    * new set of Gabor changes: see fixes.txt
 
   Revision 1.11  2000/02/04 00:13:59  pierre
