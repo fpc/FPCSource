@@ -314,12 +314,25 @@ Begin
                         End
                       End
                 End;
-              A_FSTP:
+              A_FSTP
+{$IfDef Ver0_99_11}
+              ,A_FISTP
+{$EndIf Ver0_99_11}
+
+              :
                 Begin
                   If (Pai386(p)^.op1t = top_ref) And
                      GetNextInstruction(p, hp1) And
                      (Pai(hp1)^.typ = ait_instruction) And
-                     (Pai386(hp1)^._operator = A_FLD) And
+{$IfDef Ver0_99_11}
+                     ((
+{$EndIf Ver0_99_11}
+                       (Pai386(hp1)^._operator = A_FLD) And
+{$IfDef Ver0_99_11}
+                       (Pai386(p)^._operator = A_FSTP)) Or
+                      ((Pai386(p)^._operator = A_FISTP) And
+                       (Pai386(hp1)^._operator = A_FILD))) And
+{$EndIf Ver0_99_11}
                      (Pai386(hp1)^.op1t = top_ref) And
                      (Pai386(hp1)^.Size = Pai386(p)^.Size) And
                      RefsEqual(TReference(Pai386(p)^.op1^), TReference(Pai386(hp1)^.op1^))
@@ -345,7 +358,14 @@ Begin
                    {fst can't store an extended value!}
                            If (Pai386(p)^.Size <> S_FX) Then
                              Begin
-                               Pai386(p)^._operator := A_FST;
+{$IfDef Ver0_99_11}
+                               If (Pai386(p)^._operator = A_FLD) Then
+{$EndIf Ver0_99_11}
+                                 Pai386(p)^._operator := A_FST
+{$IfDef Ver0_99_11}
+                               Else Pai386(p)^._operator := A_FIST
+{$EndIf Ver0_99_11}
+                               ;
                                AsmL^.Remove(hp1);
                                Dispose(hp1, done)
                              End
@@ -1300,7 +1320,7 @@ Begin
                      GetNextInstruction(hp1, hp2) And
                      (hp2^.typ = ait_instruction) And
                      ((Pai386(hp2)^._operator = A_LEAVE) or
-                      (Pai386(hp2)^._operator = A_RET])) And
+                      (Pai386(hp2)^._operator = A_RET)) And
                      (TReference(Pai386(p)^.Op1^).Base = ProcInfo.FramePointer) And
                      (TReference(Pai386(p)^.Op1^).Index = R_NO) And
                      (TReference(Pai386(p)^.Op1^).Offset >= ProcInfo.RetOffset) And
@@ -1535,7 +1555,11 @@ End.
 
 {
  $Log$
- Revision 1.25  1998-12-02 16:23:29  jonas
+ Revision 1.26  1998-12-09 18:16:13  jonas
+   * corrected small syntax error in part between {ifdef ver0_99_11}
+   + added fistp/fild optimization between {ifdef ver0_99_11}
+
+ Revision 1.25  1998/12/02 16:23:29  jonas
    * changed "if longintvar in set" to case or "if () or () .." statements
    * tree.pas: changed inlinenumber (and associated constructor/vars) to a byte
 
