@@ -17,7 +17,7 @@
 function ProcedureDialog(S : string) : PDialog;
 var D: PDialog;
     R,R1,R2: TRect;
-    IL: PInputLine;
+    IL: PEditorInputLine;
 begin
   R.Assign(0,0,40,8);
   New(D, Init(R, dialog_proceduredialog));
@@ -189,7 +189,7 @@ end;
 function SymbolDialog(S : string) : PDialog;
 var D: PDialog;
     R,R1,R2: TRect;
-    IL: PInputLine;
+    IL: PEditorInputLine;
 begin
   R.Assign(0,0,40,8);
   New(D, Init(R, dialog_browsesymbol));
@@ -228,7 +228,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2002-09-07 15:40:44  peter
+  Revision 1.4  2002-12-18 01:21:42  pierre
+   + Use TEditorInputLine instead of TInputLine
+
+  Revision 1.3  2002/09/07 15:40:44  peter
     * old logs removed and tabs fixed
 
 }

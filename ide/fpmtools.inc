@@ -210,7 +210,7 @@ var
   PGrepDialog : PCenterDialog;
   R,R1,R2 : TRect;
   Control : PView;
-  IL1,IL2 : PInputLine;
+  IL1,IL2 : PEditorInputLine;
   s : string;
   p,lineNb,GrepOutputLine : longint;
   error : word;
@@ -384,7 +384,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  2002-09-07 15:40:44  peter
+  Revision 1.6  2002-12-18 01:21:42  pierre
+   + Use TEditorInputLine instead of TInputLine
+
+  Revision 1.5  2002/09/07 15:40:44  peter
     * old logs removed and tabs fixed
 
   Revision 1.4  2002/08/29 10:06:33  pierre

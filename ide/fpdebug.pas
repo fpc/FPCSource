@@ -183,9 +183,9 @@ type
       Breakpoint : PBreakpoint;
       TypeRB   : PRadioButtons;
       NameIL  : PEditorInputLine;
-      ConditionsIL: PInputLine;
-      LineIL    : PInputLine;
-      IgnoreIL  : PInputLine;
+      ConditionsIL: PEditorInputLine;
+      LineIL    : PEditorInputLine;
+      IgnoreIL  : PEditorInputLine;
     end;
 
     PWatch = ^TWatch;
@@ -3574,7 +3574,10 @@ end.
 
 {
   $Log$
-  Revision 1.42  2002-12-16 15:15:40  pierre
+  Revision 1.43  2002-12-18 01:20:12  pierre
+   + Use TEditorInputLine instead of TInputLine
+
+  Revision 1.42  2002/12/16 15:15:40  pierre
    * Added TBreakpointCollection.FindBreakpointAt method
 
   Revision 1.41  2002/12/16 09:05:28  pierre

@@ -294,7 +294,7 @@ end;
 procedure TIDEApp.Parameters;
 var R,R2: TRect;
     D: PCenterDialog;
-    IL: PInputLine;
+    IL: PEditorInputLine;
 begin
   R.Assign(0,0,round(ScreenWidth*54/80),4);
   New(D, Init(R, dialog_programparameters));
@@ -495,7 +495,10 @@ end;
 
 {
   $Log$
-  Revision 1.7  2002-12-16 09:06:08  pierre
+  Revision 1.8  2002-12-18 01:21:42  pierre
+   + Use TEditorInputLine instead of TInputLine
+
+  Revision 1.7  2002/12/16 09:06:08  pierre
    * don't insert breakpoints in unsaved sources
 
   Revision 1.6  2002/10/12 19:43:07  hajny

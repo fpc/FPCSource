@@ -20,7 +20,7 @@ unit FPCodCmp; { CodeComplete }
 interface
 
 uses Objects,Drivers,Dialogs,
-     WUtils,WViews;
+     WEditor,WUtils,WViews;
 
 type
      PCodeCompleteWordList = ^TCodeCompleteWordList;
@@ -36,7 +36,7 @@ type
       CodeCompleteLB : PAdvancedListBox;
       RB : PRadioButtons;
       CB : PCheckBoxes;
-      MinInputL,InputL : PInputLine;
+      MinInputL,InputL : PEditorInputLine;
       procedure Add;
       procedure Edit;
       procedure Delete;
@@ -69,8 +69,8 @@ uses App,Views,MsgBox,Validate,
      Commands,
 {$endif}
      systems, BrowCol,
-     WEditor, FPSwitch,
-     FPCompil, FPVars, FPSymbol,
+     FPSwitch, FPCompil,
+     FPVars, FPSymbol,
      FPConst,FPString,FPViews;
 
 {$ifndef NOOBJREG}
@@ -638,7 +638,10 @@ END.
 
 {
  $Log$
- Revision 1.11  2002-09-26 13:00:41  pierre
+ Revision 1.12  2002-12-18 01:19:20  pierre
+  + Use TEditorInputLine instead of TInputLine
+
+ Revision 1.11  2002/09/26 13:00:41  pierre
   * avoid RTE 213
 
  Revision 1.10  2002/09/11 13:12:42  pierre

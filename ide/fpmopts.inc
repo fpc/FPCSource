@@ -66,7 +66,7 @@ var R,R2,R3,TabR,TabIR: TRect;
     CB1,CB2,CB3,CB4,CB5: PCheckBoxes;
     RB1,{RB2,}RB3,RB4,RB5,RB6: PRadioButtons;
     Items: PSItem;
-    IL: PInputLine;
+    IL: PEditorInputLine;
     Count : integer;
     I,L: longint;
     Tab: PTab;
@@ -445,9 +445,9 @@ var R,R2,R3: TRect;
     CB2: PCheckBoxes;
 {$endif win32}
 {$ifdef Unix}
-    IL: PInputLine;
+    IL: PEditorInputLine;
 {$endif Unix}
-    IL2: PInputLine;
+    IL2: PEditorInputLine;
     L,I: longint;
     Items: PSItem;
 const
@@ -556,7 +556,7 @@ end;
 procedure TIDEApp.DoRemote;
 
 var R,R2: TRect;
-    IL1,IL2,IL3,IL4,IL5,IL6: PInputLine;
+    IL1,IL2,IL3,IL4,IL5,IL6: PEditorInputLine;
     D: PCenterDialog;
 const
   FieldLines = 6;
@@ -638,7 +638,7 @@ end;
 procedure TIDEApp.Directories;
 var R,R2: TRect;
     D: PCenterDialog;
-    IL : array[0..11] of PInputLine;
+    IL : array[0..11] of PEditorInputLine;
     Count,I : integer;
 const
   LW = 25;
@@ -905,7 +905,7 @@ var D: PCenterDialog;
     R,R2,R3: TRect;
     CB: PCheckBoxes;
     ILTab,ILIdent: PIntegerLine;
-    ExtIL,TabExtIL: PInputLine;
+    ExtIL,TabExtIL: PEditorInputLine;
     TabSize,IndentSize: Integer;
     EFlags,EFValue: Longint;
     Title: string;
@@ -1367,7 +1367,10 @@ end;
 
 {
   $Log$
-  Revision 1.10  2002-11-28 12:56:23  pierre
+  Revision 1.11  2002-12-18 01:21:42  pierre
+   + Use TEditorInputLine instead of TInputLine
+
+  Revision 1.10  2002/11/28 12:56:23  pierre
    + Remote dialog added
 
   Revision 1.9  2002/11/21 00:37:56  pierre

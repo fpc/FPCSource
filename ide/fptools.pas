@@ -20,7 +20,7 @@ interface
 
 uses Objects,Drivers,Views,Dialogs,Validate,
      BrowCol,
-     WViews,
+     WEditor,WViews,
      FPViews;
 
 const
@@ -67,9 +67,9 @@ type
       function    Execute: Word; virtual;
     private
       Tool     : PTool;
-      TitleIL  : PInputLine;
-      ProgramIL: PInputLine;
-      ParamIL  : PInputLine;
+      TitleIL  : PEditorInputLine;
+      ProgramIL: PEditorInputLine;
+      ParamIL  : PEditorInputLine;
       HotKeyRB : PRadioButtons;
     end;
 
@@ -160,7 +160,7 @@ uses Dos,
      Commands,
 {$endif}
      App,MsgBox,
-     WConsts,WUtils,WINI,WEditor,
+     WConsts,WUtils,WINI,
      FPConst,FPString,FPVars,FPUtils;
 
 {$ifndef NOOBJREG}
@@ -896,7 +896,7 @@ var R: TRect;
     OK: boolean;
     I,J,MaxLen: integer;
     Memo: PFPMemo;
-    IL: PInputLine;
+    IL: PEditorInputLine;
     CB: PCheckBoxes;
     RB: PRadioButtons;
     LV: PLabel;
@@ -1621,7 +1621,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.4  2002-09-07 15:40:46  peter
+  Revision 1.5  2002-12-18 01:21:16  pierre
+   + Use TEditorInputLine instead of TInputLine
+
+  Revision 1.4  2002/09/07 15:40:46  peter
     * old logs removed and tabs fixed
 
   Revision 1.3  2002/08/29 10:05:01  pierre
