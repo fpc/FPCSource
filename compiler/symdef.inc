@@ -48,6 +48,8 @@
        tkObject        = 16;
        tkWChar         = 17;
        tkBool          = 18;
+       tkInt64         = 19;
+       tkQWord         = 20;
 
        otSByte         = 0;
        otUByte         = 1;
@@ -1121,24 +1123,63 @@
 
 
     procedure torddef.write_rtti_data;
-      const
-        trans : array[uchar..bool8bit] of byte =
-          (otUByte,otUByte,otUWord,otULong,otSByte,otSWord,otSLong,otUByte);
+
+        procedure dointeger;
+        const
+          trans : array[uchar..bool8bit] of byte =
+            (otUByte,otUByte,otUWord,otULong,otSByte,otSWord,otSLong,otUByte);
+        begin
+          write_rtti_name;
+          rttilist^.concat(new(pai_const,init_8bit(byte(trans[typ]))));
+          rttilist^.concat(new(pai_const,init_32bit(low)));
+          rttilist^.concat(new(pai_const,init_32bit(high)));
+        end;
+
       begin
-         case typ of
-            bool8bit:
+        case typ of
+          s64bit :
+            begin
+              rttilist^.concat(new(pai_const,init_8bit(tkInt64)));
+              write_rtti_name;
+              { low }
+              rttilist^.concat(new(pai_const,init_32bit($0)));
+              rttilist^.concat(new(pai_const,init_32bit($8000)));
+              { high }
+              rttilist^.concat(new(pai_const,init_32bit($ffff)));
+              rttilist^.concat(new(pai_const,init_32bit($7fff)));
+            end;
+          u64bit :
+            begin
+              rttilist^.concat(new(pai_const,init_8bit(tkQWord)));
+              write_rtti_name;
+              { low }
+              rttilist^.concat(new(pai_const,init_32bit($0)));
+              rttilist^.concat(new(pai_const,init_32bit($0)));
+              { high }
+              rttilist^.concat(new(pai_const,init_32bit($0)));
+              rttilist^.concat(new(pai_const,init_32bit($8000)));
+            end;
+          bool8bit:
+            begin
               rttilist^.concat(new(pai_const,init_8bit(tkBool)));
-            uchar:
+              dointeger;
+            end;
+          uchar:
+            begin
               rttilist^.concat(new(pai_const,init_8bit(tkWChar)));
-            uwidechar:
+              dointeger;
+            end;
+          uwidechar:
+            begin
               rttilist^.concat(new(pai_const,init_8bit(tkChar)));
-            else
+              dointeger;
+            end;
+          else
+            begin
               rttilist^.concat(new(pai_const,init_8bit(tkInteger)));
-         end;
-         write_rtti_name;
-         rttilist^.concat(new(pai_const,init_8bit(byte(trans[typ]))));
-         rttilist^.concat(new(pai_const,init_32bit(low)));
-         rttilist^.concat(new(pai_const,init_32bit(high)));
+              dointeger;
+            end;
+        end;
       end;
 
 
@@ -4086,7 +4127,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.201  2000-06-18 18:11:32  peter
+  Revision 1.202  2000-06-22 20:01:57  peter
+    * int64,qword rtti support
+
+  Revision 1.201  2000/06/18 18:11:32  peter
     * C record packing fixed to also check first entry of the record
       if bigger than the recordalignment itself
     * variant record alignment uses alignment per variant and saves the
