@@ -176,7 +176,7 @@ build-indep-stamp: debian-files-stamp build-arch-stamp
 	@echo "--- Building Documentation"
 	dh_testdir
 
-	$(MAKE) -C docs $(DOCTYPE) FPDOC=$(NEWFPDOC) 
+	$(MAKE) -C docs $(DOCTYPE) $(BUILDOPTS) FPDOC=$(NEWFPDOC) 
 
 	touch build-indep-stamp
 
@@ -188,7 +188,7 @@ install-indep-stamp: debian-files build-indep
 	dh_testroot
 	dh_clean -k
 
-	$(MAKE) -C docs $(DOCTYPE)install DOCINSTALLDIR=$(INSTALL_DIR)/usr/share/doc/fp-docs
+	$(MAKE) -C docs $(DOCTYPE)install $(INSTALLOPTS) INSTALL_DOCDIR=$(INSTALL_DIR)/usr/share/doc/fp-docs
 
 	touch install-indep-stamp
 

@@ -31,7 +31,7 @@ GNOME1_PACKAGES="imlib zvt gnome gconf"
 BASE_PACKAGES="paszlib pasjpeg regexpr ncurses md5"
 GFX_PACKAGES="forms ggi libgd svgalib opengl"
 DB_PACKAGES="ibase mysql oracle postgres gdbm odbc"
-MISC_PACKAGES="gdbint utmp syslog cdrom tcl"
+MISC_PACKAGES="gdbint utmp syslog cdrom tcl newt"
 NET_PACKAGES="netdb"
 
 move_examples fcl "$FCL_PACKAGES"

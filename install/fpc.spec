@@ -95,7 +95,7 @@ INSTALLOPTS="FPC=${NEWPP} INSTALL_PREFIX=%{buildroot}/usr INSTALL_LIBDIR=%{build
 	make man_install ${INSTALLOPTS} INSTALL_MANDIR=%{buildmandir}
 	
 if [ -z ${NODOCS} ]; then
-	make -C docs pdfinstall ${INSTALLOPTS} DOCINSTALLDIR=%{builddocdir}
+	make -C docs pdfinstall ${INSTALLOPTS} INSTALL_DOCDIR=%{builddocdir}
 fi
 
 	# create link

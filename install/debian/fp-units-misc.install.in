@@ -11,3 +11,4 @@
 /usr/lib/fpc/%{fpcversion}/units/%{fpctarget}/syslog
 /usr/lib/fpc/%{fpcversion}/units/%{fpctarget}/gdbint
 /usr/lib/fpc/%{fpcversion}/units/%{fpctarget}/unzip
+/usr/lib/fpc/%{fpcversion}/units/%{fpctarget}/newt
