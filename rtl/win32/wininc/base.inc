@@ -48,9 +48,6 @@
 
 {$PACKRECORDS C}
 
-  const
-     NULL = nil;
-
   type
      ATOM = word;
 
@@ -940,7 +937,10 @@ type
 
 {
   $Log$
-  Revision 1.12  2002-10-06 20:00:22  peter
+  Revision 1.13  2002-10-09 20:45:12  florian
+    - NULL definition removed, the system unit contains now a NULL variant
+
+  Revision 1.12  2002/10/06 20:00:22  peter
     * Use Widechar in the Windows unit
 
   Revision 1.11  2002/09/15 17:53:45  peter
