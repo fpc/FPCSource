@@ -1236,9 +1236,15 @@ implementation
 
                     case srsymtable.symtabletype of
                       objectsymtable :
-                        p1:=csubscriptnode.create(srsym,load_self_node);
+                        begin
+                          p1:=csubscriptnode.create(srsym,load_self_node);
+                          node_tree_set_filepos(p1,aktfilepos);
+                        end;
                       withsymtable :
-                        p1:=csubscriptnode.create(srsym,tnode(twithsymtable(srsymtable).withrefnode).getcopy);
+                        begin
+                          p1:=csubscriptnode.create(srsym,tnode(twithsymtable(srsymtable).withrefnode).getcopy);
+                          node_tree_set_filepos(p1,aktfilepos);
+                        end;
                       else
                         p1:=cloadnode.create(srsym,srsymtable);
                     end;
@@ -1840,7 +1846,7 @@ implementation
           if (p1<>oldp1) then
            begin
              if assigned(p1) then
-              p1.set_tree_filepos(filepos);
+               p1.fileinfo:=filepos;
              oldp1:=p1;
              filepos:=akttokenpos;
            end;
@@ -2369,7 +2375,7 @@ implementation
                _UNEQUAL :
                  p1:=caddnode.create(unequaln,p1,p2);
              end;
-             p1.set_tree_filepos(filepos);
+             p1.fileinfo:=filepos;
            end
           else
            break;
@@ -2460,7 +2466,7 @@ implementation
           do_resulttypepass(p1);
          afterassignment:=oldafterassignment;
          if p1<>oldp1 then
-           p1.set_tree_filepos(filepos);
+           p1.fileinfo:=filepos;
          expr:=p1;
       end;
 
@@ -2511,7 +2517,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.176  2004-12-06 19:23:05  peter
+  Revision 1.177  2004-12-26 16:22:01  peter
+    * fix lineinfo for with blocks
+
+  Revision 1.176  2004/12/06 19:23:05  peter
   implicit load of variants unit
 
   Revision 1.175  2004/12/05 12:28:11  peter

@@ -808,7 +808,7 @@ implementation
          withrefnode:=r;
          withsymtable:=symtable;
          tablecount:=count;
-         set_file_line(l);
+         fileinfo:=l.fileinfo;
       end;
 
 
@@ -931,7 +931,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.92  2004-12-05 12:28:11  peter
+  Revision 1.93  2004-12-26 16:22:01  peter
+    * fix lineinfo for with blocks
+
+  Revision 1.92  2004/12/05 12:28:11  peter
     * procvar handling for tp procvar mode fixed
     * proc to procvar moved from addrnode to typeconvnode
     * inlininginfo is now allocated only for inline routines that

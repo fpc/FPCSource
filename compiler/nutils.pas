@@ -27,6 +27,7 @@ unit nutils;
 interface
 
   uses
+    globals,
     symsym,node;
 
   const
@@ -66,11 +67,13 @@ interface
     function finalize_data_node(p:tnode):tnode;
 
     function node_complexity(p: tnode): cardinal;
+    procedure node_tree_set_filepos(var n:tnode;const filepos:tfileposinfo);
+
 
 implementation
 
     uses
-      globtype,globals,verbose,
+      globtype,verbose,
       symconst,symbase,symtype,symdef,symtable,
       defutil,defcmp,
       nbas,ncon,ncnv,nld,nflw,nset,ncal,nadd,nmem,
@@ -547,11 +550,26 @@ implementation
       end;
 
 
+    function setnodefilepos(var n: tnode; arg: pointer): foreachnoderesult;
+      begin
+        result:=fen_true;
+        n.fileinfo:=pfileposinfo(arg)^;
+      end;
+
+
+    procedure node_tree_set_filepos(var n:tnode;const filepos:tfileposinfo);
+      begin
+        foreachnodestatic(n,@setnodefilepos,@filepos);
+      end;
+
 end.
 
 {
   $Log$
-  Revision 1.27  2004-12-15 16:00:16  peter
+  Revision 1.28  2004-12-26 16:22:01  peter
+    * fix lineinfo for with blocks
+
+  Revision 1.27  2004/12/15 16:00:16  peter
     * external is again allowed in implementation
 
   Revision 1.26  2004/12/15 15:27:03  jonas

@@ -1025,7 +1025,7 @@ implementation
            end;
          end;
          if assigned(code) then
-          code.set_tree_filepos(filepos);
+           code.fileinfo:=filepos;
          statement:=code;
       end;
 
@@ -1075,7 +1075,7 @@ implementation
            consume(_END);
 
          last:=cblocknode.create(first);
-         last.set_tree_filepos(filepos);
+         last.fileinfo:=filepos;
          statement_block:=last;
       end;
 
@@ -1147,7 +1147,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.148  2004-12-07 16:11:52  peter
+  Revision 1.149  2004-12-26 16:22:01  peter
+    * fix lineinfo for with blocks
+
+  Revision 1.148  2004/12/07 16:11:52  peter
     * set vo_explicit_paraloc flag
 
   Revision 1.147  2004/12/05 12:28:11  peter

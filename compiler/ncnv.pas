@@ -506,7 +506,7 @@ implementation
          totype:=t;
          if t.def=nil then
           internalerror(200103281);
-         set_file_line(node);
+         fileinfo:=node.fileinfo;
       end;
 
 
@@ -2497,7 +2497,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.167  2004-12-07 16:11:52  peter
+  Revision 1.168  2004-12-26 16:22:01  peter
+    * fix lineinfo for with blocks
+
+  Revision 1.167  2004/12/07 16:11:52  peter
     * set vo_explicit_paraloc flag
 
   Revision 1.166  2004/12/05 12:28:11  peter

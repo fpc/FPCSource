@@ -369,7 +369,7 @@ type
          inherited create(callparan,expr,next);
          if not assigned(expr) then
            internalerror(200305091);
-         expr.set_file_line(self);
+         expr.fileinfo:=fileinfo;
          callparaflags:=[];
       end;
 
@@ -2449,7 +2449,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.271  2004-12-15 21:08:15  peter
+  Revision 1.272  2004-12-26 16:22:01  peter
+    * fix lineinfo for with blocks
+
+  Revision 1.271  2004/12/15 21:08:15  peter
     * disable inlining across units when the inline procedure references
       a variable or procedure in the static symtable
 

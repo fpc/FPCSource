@@ -337,8 +337,6 @@ interface
           procedure printnodetree(var t:text);virtual;
           procedure concattolist(l : tlinkedlist);virtual;
           function ischild(p : tnode) : boolean;virtual;
-          procedure set_file_line(from : tnode);
-          procedure set_tree_filepos(const filepos : tfileposinfo);
        end;
 
        tnodeclass = class of tnode;
@@ -828,19 +826,6 @@ implementation
       end;
 
 
-    procedure tnode.set_file_line(from : tnode);
-      begin
-         if assigned(from) then
-           fileinfo:=from.fileinfo;
-      end;
-
-
-    procedure tnode.set_tree_filepos(const filepos : tfileposinfo);
-      begin
-         fileinfo:=filepos;
-      end;
-
-
 {****************************************************************************
                                  TUNARYNODE
  ****************************************************************************}
@@ -1139,7 +1124,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.92  2004-12-05 12:28:11  peter
+  Revision 1.93  2004-12-26 16:22:01  peter
+    * fix lineinfo for with blocks
+
+  Revision 1.92  2004/12/05 12:28:11  peter
     * procvar handling for tp procvar mode fixed
     * proc to procvar moved from addrnode to typeconvnode
     * inlininginfo is now allocated only for inline routines that

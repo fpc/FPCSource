@@ -260,7 +260,7 @@ implementation
          inherited create(tt,l,r);
          t1:=_t1;
          t2:=_t2;
-         set_file_line(l);
+         fileinfo:=l.fileinfo;
       end;
 
     destructor tloopnode.destroy;
@@ -1424,7 +1424,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.102  2004-11-08 22:09:59  peter
+  Revision 1.103  2004-12-26 16:22:01  peter
+    * fix lineinfo for with blocks
+
+  Revision 1.102  2004/11/08 22:09:59  peter
     * tvarsym splitted
 
   Revision 1.101  2004/10/15 09:14:17  mazen
