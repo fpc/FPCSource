@@ -356,11 +356,13 @@ virtual
 write
 \end{verbatim}
 \end{multicols}
-Remark that predefined types such as \var{Byte}, \var{Boolean} and constants
+\begin{remark}
+Predefined types such as \var{Byte}, \var{Boolean} and constants
 such as \var{maxint} are {\em not} reserved words. They are
 identifiers, declared in the system unit. This means that you can redefine
 these types. You are, however, not encouraged to do this, as it will cause
 a lot of confusion.
+\end{remark}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Identifiers
@@ -393,7 +395,10 @@ The following diagrams show the syntax for numbers.
 \section{Labels}
 Labels can be digit sequences or identifiers.
 \input{syntax/label.syn}
-
+\begin{remark}
+Note that you must specify the \var{-Sg} switch before you can use labels.
+By default, \fpc doesn't support \var{label} and \var{goto} statements.
+\end{remark}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Character strings
@@ -572,7 +577,8 @@ assignments:
 \end{verbatim}
 Boolean expressions are also used in conditions.
 
-{\em Remark:} In \fpc, boolean expressions are always evaluated in such a
+\begin{remark}
+In \fpc, boolean expressions are always evaluated in such a
 way that when the result is known, the rest of the expression will no longer
 be evaluated (Called short-cut evaluation). In the following example, the function \var{Func} will never
 be called, which may have strange side-effects.
@@ -582,9 +588,11 @@ be called, which may have strange side-effects.
  A := B and Func;
 \end{verbatim}
 Here \var{Func} is a function which returns a \var{Boolean} type.
+\end{remark}
 
-{\em Remark:} The \var{WordBool}, \var{LongBool} and \var{ByteBool} types 
+\begin{remark} The \var{WordBool}, \var{LongBool} and \var{ByteBool} types 
 were not supported by \fpc until version 0.99.6.
+\end{remark}
 \subsubsection{Enumeration types}
 Enumeration types are supported in \fpc. On top of the Turbo Pascal
 implementation, \fpc allows also a C-style extension of the
@@ -1012,7 +1020,8 @@ case statement serves to access the tag field value, which otherwise would
 be invisible to the programmer. It can be used to see which variant is
 active at a certain time. In effect, it introduces a new field in the
 record.
-Remark that it is possible to  nest variant parts, as in:
+\begin{remark}
+It is possible to nest variant parts, as in:
 \begin{verbatim}
 Type
   MyRec = Record
@@ -1024,6 +1033,7 @@ Type
                  );
           end;
 \end{verbatim}
+\end{remark}
 The size of a record is the sum of the sizes of its fields, each size of a
 field is rounded up to two. If the record contains a variant part, the size
 of the variant part is the size of the biggest variant, plus the size of the
@@ -1261,7 +1271,7 @@ In this example, \var{BP} {\em is a pointer to} a \var{Buffer} type; while \var{
 {\em is} a variable of type \var{Buffer}. \var{B} takes 256 bytes memory,
 and \var{BP} only takes 4 bytes of memory (enough to keep an adress in
 memory).
-{\em Remark:} \fpc treats pointers much the same way as C does. This means
+\begin{remark} \fpc treats pointers much the same way as C does. This means
 that you can treat a pointer to some type as being an array of this type.
 The pointer then points to the zeroeth element of this array. Thus the
 following pointer declaration
@@ -1291,6 +1301,7 @@ begin
       WriteLn ('Ohoh, problem !')
 end.
 \end{verbatim}
+\end{remark}
 \fpc supports pointer arithmetic as C does. This means that, if \var{P} is a
 typed pointer, the instructions
 \begin{verbatim}
@@ -1360,7 +1371,7 @@ Pascal it isn't necessary to use the address operator (\var{@})
 when assigning a procedural type variable, whereas in \fpc it is required
 (unless you use the \var{-So} switch, in which case you can drop the address
 operator.)
-Remark that the modifiers concerning the calling conventions (\var{cdecl},
+\begin{remark} The modifiers concerning the calling conventions (\var{cdecl},
 \var{pascal}, \var{stdcall} and \var{popstack} stick to the declaration;
 i.e. the following code would give an error:
 \begin{verbatim}
@@ -1376,10 +1387,7 @@ end.
 \end{verbatim}
 Because the \var{TOneArgCcall} type is a procedure that uses the cdecl
 calling convention.
-At the moment, the method procedural pointers (i.e. pointers that point to
-methods of objects, distinguished by the \var{of object} keywords in the
-declaration) are still in an experimental stage.
-
+\end{remark}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Objects
@@ -1432,7 +1440,7 @@ Type MyObj = Object
 \end{verbatim}
 because the field is in a different section.
 
-{\em Remark:}
+\begin{remark}
 \fpc also supports the packed object. This is the same as an object, only
 the elements (fields) of the object are byte-aligned, just as in the packed
 record.
@@ -1448,7 +1456,7 @@ Type
 Var PP : Pobj;
 \end{verbatim}
 Similarly, the \var{\{\$PackRecords \}} directive acts on objects as well.
-
+\end{remark}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Fields
 \section{Fields}
@@ -1705,7 +1713,8 @@ First of all, Line 3 will generate a compiler error, stating that you cannot
 generate instances of objects with abstract methods: The compiler has
 detected that \var{PParent} points to an object which has an abstract
 method. Commenting line 3 would allow compilation of the program.
-Remark that if you override an abstract method, you cannot call the parent
+\begin{remark}
+If you override an abstract method, you cannot call the parent
 method with \var{inherited}, since there is no parent method; The compiler
 will detect this, and complain about it, like this:
 \begin{verbatim}
@@ -1713,6 +1722,7 @@ testo.pp(32,3) Error: Abstract methods can't be called directly
 \end{verbatim}
 If, through some mechanism, an abstract method is called at run-time,
 then a run-time error will occur. (run-time error 211, to be precise)
+\end{remark}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Visibility
@@ -1744,16 +1754,16 @@ In the Delphi approach to Object Oriented Programming, everything revolves
 around  the concept of 'Classes'.  A class can be seen as a pointer to an
 object, or a pointer to a record.
 
-{\em remark}  In earlier versions of \fpc it was necessary, in order to 
-use classes, to put the \file{objpas} unit in the uses 
-clause of your unit or program. {\em This is no longer needed} as of version
-0.99.12. As of version 0.99.12 the \file{system} unit contains the basic 
-definitions of \var{TObject} and  \var{TClass}, as well as some 
-auxiliary methods for using classes.
+\begin{remark}
+In earlier versions of \fpc it was necessary, in order to use classes, 
+to put the \file{objpas} unit in the uses clause of your unit or program. 
+{\em This is no longer needed} as of version 0.99.12. As of version 0.99.12 
+the \file{system} unit contains the basic  definitions of \var{TObject} 
+and  \var{TClass}, as well as some auxiliary methods for using classes.
 The \file{objpas} unit still exists, and contains some redefinitions of
 basic types, so they coincide with Delphi types. The unit will be loaded
 automatically if you specify the \var{-S2} or \var{-Sd} options.
-
+\end{remark}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Class definitions
@@ -1802,7 +1812,7 @@ enough space to hold the class instance data.
 After that, the constuctor's code is executed.
 The constructor has a pointer to it's data, in \var{self}.
 
-{\em Remarks:}
+\begin{remark}
 \begin{itemize}
 \item The \var{\{\$PackRecords \}} directive also affects classes.
 i.e. the alignment in memory of the different fields depends on the
@@ -1814,6 +1824,7 @@ elements are aligned on 1-byte boundaries. i.e. as close as possible.
 an object. To get the size of the class instance data, use the
 \var{TObject.InstanceSize} method.
 \end{itemize}
+\end{remark}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Methods
@@ -1956,9 +1967,10 @@ the \var{Self} parameter into the object instance pointer. The result of
 this is that it is possible to pass \var{Self} as a parameter to such a
 method. 
 
-{\em remark:} The type of the \var{Self} parameter must be of the same class
+\begin{remark} 
+The type of the \var{Self} parameter must be of the same class
 as the class you define the method for.
-
+\end{remark}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Properties
@@ -2433,7 +2445,7 @@ Operator & Operation \\ \hline
 \var{or}  & logical or \\
 \var{xor} & logical xor \\ \hline
 \end{FPCltable}
-Remark that boolean expressions are ALWAYS evaluated with short-circuit
+\begin{remark} Boolean expressions are ALWAYS evaluated with short-circuit
 evaluation. This means that from the moment the result of the complete
 expression is known, evaluation is stopped and the result is returned.
 For instance, in the following expression:
@@ -2444,6 +2456,8 @@ The compiler will never look at the value of \var{MaybeTrue}, since it is
 obvious that the expression will always be true. As a result of this
 strategy, if \var{MaybeTrue} is a function, it will not get called !
 (This can have surprising effects when used in conjunction with properties)
+\end{remark}
+
 \subsection{String operators}
 There is only one string operator : \var{+}. It's action is to concatenate
 the contents of the two strings (or characters) it stands between.
@@ -2534,7 +2548,8 @@ a /= b & Divides \var{a} through \var{b}, and stores the result in
 For these constructs to work, you should specify the \var{-Sc}
 command-line switch.
 
-{\em Remark:} These constructions are just for typing convenience, they
+\begin{remark}
+These constructions are just for typing convenience, they
 don't generate different code.
 Here are some examples of valid assignment statements:
 \begin{verbatim}
@@ -2545,6 +2560,8 @@ Done := False;
 Weather := Good;
 MyPi := 4* Tan(1);
 \end{verbatim}
+\end{remark}
+
 \subsection{Procedure statements}
 Procedure statements are calls to subroutines. There are
 different possibilities for procedure calls: A normal procedure call, an
@@ -2627,7 +2644,8 @@ value, program flow continues after the final \var{end}.
 The case statements can be compound statements
 (i.e. a \var{begin..End} block).
 
-{\em Remark:} Contrary to Turbo Pascal, duplicate case labels are not
+\begin{remark}
+Contrary to Turbo Pascal, duplicate case labels are not
 allowed in \fpc, so the following code will generate an error when
 compiling:
 \begin{verbatim}
@@ -2641,6 +2659,7 @@ end;
 The compiler will generate a \var{Duplicate case label} error when compiling
 this, because the 3 also appears (implicitly) in the range \var{1..5}. This
 is similar to Delhpi syntax.
+\end{remark}
 The following are valid case statements:
 \begin{verbatim}
 Case C of
@@ -2748,8 +2767,10 @@ with 1, depending on whether \var{To} or \var{Downto} is used.
 The control variable must be an ordinal type, no other
 types can be used as counters in a loop.
 
-{\em Remark:} Contrary to ANSI pascal specifications, \fpc first initializes
+\begin{remark}
+Contrary to ANSI pascal specifications, \fpc first initializes
 the counter variable, and only then calculates the upper bound.
+\end{remark}
 
 The following are valid loops:
 \begin{verbatim}
@@ -2922,9 +2943,10 @@ the \var{EAX} and \var{EBX} registers when it encounters this asm statement.
 Function overloading is supported, as well as \var{Const} parameters and
 open arrays.
 
-{\em Remark:} In many of the subsequent paragraphs the words \var{procedure}
+\begin{remark} In many of the subsequent paragraphs the words \var{procedure}
 and \var{function} will be used interchangeably. The statements made are
 valid for both, except when indicated otherwise.
+\end{remark}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Procedure declaration
@@ -3165,8 +3187,10 @@ begin
   WriteLn ('Length of (',p,') : ',strlen(p))
 end.
 \end{verbatim}
-{\em Remark} The parameters in our declaration of the \var{external} function
+\begin{remark}
+The parameters in our declaration of the \var{external} function
 should match exactly the ones in the declaration in the object file.
+\end{remark}
 If the \var{external} modifier is followed by a string constant:
 \begin{verbatim}
 external 'lname';
@@ -3258,11 +3282,13 @@ When compiling this, and linking to the C-library, you will be able to call
 the \var{strlen} function throughout your program. The \var{external}
 directive tells the compiler that the function resides in an external
 object filebrary (see \ref{se:external}).
-{\em Remark} The parameters in our declaration of the \var{C} function should
+\begin{remark} 
+The parameters in our declaration of the \var{C} function should
 match exactly the ones in the declaration in \var{C}. Since \var{C} is case
 sensitive, this means also that the name of the
 function must be exactly the same. the \fpc compiler will use the name {\em
 exactly} as it is typed in the declaration.
+\end{remark}
 \subsection{popstack}
 \label{se:popstack}
 Popstack does the same as \var{cdecl}, namely it tells the \fpc compiler
@@ -3287,11 +3313,12 @@ begin
 end;
 \end{verbatim}
 The square brackets around the modifier are not allowed in this case.
-{\em Remark:}
+\begin{remark}
 as of version 0.9.8, \fpc supports the Delphi \var{cdecl} modifier.
 This modifier works in the same way as the \var{export} modifier.
 More information about these modifiers can be found in the \progref, in the
 section on the calling mechanism and the chapter on linking.
+\end{remark}
 \subsection{StdCall}
 As of version 0.9.8, \fpc supports the Delphi \var{stdcall} modifier.
 This modifier does actually nothing, since the \fpc compiler by default
@@ -3317,8 +3344,9 @@ begin
   end;
 end.
 \end{verbatim}
-{\rm Remark:} the specified alias is inserted straight into the assembly
+\begin{remark} the specified alias is inserted straight into the assembly
 code, thus it is case sensitive.
+\end{remark}
 The \var{Alias} modifier, combined with the \var{Public} modifier, make a
 powerful tool for making externally accessible object files.
 
@@ -3616,11 +3644,12 @@ If the exception instance is omitted, then the current exception is
 re-raised. This construct can only be used in an exception handling
 block (see further).
 
-{\em Remark:} Control {\em never} returns after an exception block. The
+\begin{remark} Control {\em never} returns after an exception block. The
 control is transferred to the first \var{try...finally} or
 \var{try...except} statement that is encountered when unwinding the stack.
 If no such statement is found, the \fpc Run-Time Library will generate a
 run-time error 217 (see also \sees{exceptclasses}).
+\end{remark}
 
 As an example: The following division checks whether the denominator is
 zero, and if so, raises an exception of type \var{EDivException}
@@ -3814,8 +3843,10 @@ be inserted in the assembler generated by the compiler.
 You can still use conditionals in your assembler, the compiler will
 recognise it, and treat it as any other conditionals.
 
-{\em Remark: } Before version 0.99.1, \fpc did not support
-reference to variables by their names in the assembler parts of your code.
+\begin{remark}
+Before version 0.99.1, \fpc did not support reference to variables by 
+their names in the assembler parts of your code.
+\end{remark}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Assembler procedures and functions
@@ -3831,7 +3862,7 @@ parameters. In the case of functions, ordinal values must be returned
 in the accumulator. In the case of floating point values, these depend
 on the target processor and emulation options.
 
-{\em Remark: } From version 0.99.1 to 0.99.5 (\emph{excluding}
+\begin{remark} From version 0.99.1 to 0.99.5 (\emph{excluding}
 FPC 0.99.5a), the \var{Assembler} directive did not have the
 same effect as in Turbo Pascal, so beware! The stack frame would be
 omitted if there were no local variables, in this case if the assembly
@@ -3840,6 +3871,7 @@ pointer. This was \emph{ NOT} like Turbo Pascal where the stack frame is only
 omitted if there are no parameters \emph{ and } no local variables. As
 stated earlier, starting from version 0.99.5a, \fpc now has the same
 behaviour as Turbo Pascal.
+\end{remark}
 
 %
 % System unit reference guide.
@@ -3909,10 +3941,12 @@ const
  { max level in dumping on error }
   max_frame_dump : word = 20;
 \end{lstlisting}{}
-\emph{ Remark: } Processor specific global constants are named Testxxxx
-where xxxx represents the processor number (such as Test8086, Test68000),
+\begin{remark}
+Processor specific global constants are named Testxxxx where xxxx 
+represents the processor number (such as Test8086, Test68000),
 and are used to determine on what generation of processor the program
 is running on.
+\end{remark}
 \subsection{Variables}
 The following variables are defined and initialized in the system unit:
 \begin{verbatim}
@@ -4877,8 +4911,9 @@ Function Maxavail  : Longint;
 \Description
 \var{Maxavail} returns the size, in bytes, of the biggest free memory block in
 the heap.
-{\em Remark:} The heap grows dynamically if more memory is needed than is
-available.
+\begin{remark}
+The heap grows dynamically if more memory is needed than is available.
+\end{remark}
 \Errors
 None.
 \SeeAlso
@@ -4893,8 +4928,9 @@ Function Memavail  : Longint;
 
 \Description
 \var{Memavail} returns the size, in bytes, of the free heap memory.
-{\em Remark:} The heap grows dynamically if more memory is needed than is
-available.
+\begin{remark}
+The heap grows dynamically if more memory is needed than is available.
+\end{remark}
 \Errors
 None.
 \SeeAlso
@@ -5099,7 +5135,7 @@ Function Ptr (Sel,Off : Longint) : Pointer;
 \var{Ptr} returns a pointer, pointing to the address specified by
 segment \var{Sel} and offset \var{Off}.
 
-{\em Remarks:} 
+ \begin{remark} 
 \begin{enumerate}
 \item In the 32-bit flat-memory model supported by \fpc, this
 function is obsolete.
@@ -5108,6 +5144,7 @@ the RTL with \var{-dDoMapping} defined, then the compiler returns the
 following : \var{ptr := pointer(\$e0000000+sel shl 4+off)} under \dos, or
 \var{ptr := pointer(sel shl 4+off)} on other OSes.
 \end{enumerate}
+\end{remark}
 \Errors
 None.
 \SeeAlso
@@ -5432,17 +5469,20 @@ operations this may prove too slow. The \var{SetTextBuf} procedure allows
 you to set a bigger buffer for your application, thus reducing the number of
 system calls, and thus reducing the load on the system resources.
 The maximum size of the newly assigned buffer is 65355 bytes.
-{\em Remark 1:} Never assign a new buffer to an opened file. You can assign a
+\begin{remark}
+\begin{itemize}
+\item Never assign a new buffer to an opened file. You can assign a
 new buffer immediately after a call to \seep{Rewrite}, \seep{Reset} or
 \var{Append}, but not after you read from/wrote to the file. This may cause
 loss of data. If you still want to assign a new buffer after read/write
 operations have been performed, flush the file first. This will ensure that
 the current buffer is emptied.
-{\em Remark 2:} Take care that the buffer you assign is always valid. If you
+\item Take care that the buffer you assign is always valid. If you
 assign a local variable as a buffer, then after your program exits the local
 program block, the buffer will no longer be valid, and stack problems may
 occur.
-
+\end{itemize}
+\end{remark}
 \Errors
 No checking on \var{Size} is done.
 \SeeAlso
@@ -5472,8 +5512,10 @@ Function SizeOf (X : Any Type) : Longint;
 
 \Description
 \var{SizeOf} returns the size, in bytes, of any variable or type-identifier.
- {\em Remark:} this isn't really a RTL function. Its result is calculated at
+\begin{remark} 
+This isn't really a RTL function. It's result is calculated at
 compile-time, and hard-coded in your executable.
+\end{remark}
 \Errors
 None.
 \SeeAlso
@@ -5708,8 +5750,10 @@ Carriage Return - LineFeed character pair after that.
 If the parameter \var{F} is omitted, standard output is assumed.
 If no variables are specified, a Carriage Return - LineFeed character pair
 is emitted, resulting in a new line in the file \var{F}.
-{\em Remark:} Under \linux, the Carriage Return character is omitted, as
+\begin{remark}
+Under \linux, the Carriage Return character is omitted, as
 customary in Unix environments.
+\end{remark}
 
 \Errors
 If an error occurs, a run-time error is generated. This behavior can be
@@ -5717,8 +5761,374 @@ controlled with the \var{\{\$i\}} switch.
 \SeeAlso
 \seep{Write}, \seep{Read}, \seep{Readln}, \seep{Blockwrite}
 \end{procedure}
-
 \FPCexample{ex75}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% The objpas unit
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{The OBJPAS unit}
+The \file{objpas} unit is meant for compatibility with Object Pascal as
+implemented by Delphi. The unit is loaded automatically by the \fpc compiler
+whenever the \var{Delphi} or \var{objfpc} more is entered, either through
+the command line switches \var{-Sd} or \var{-Sh} or with the \var{\{\$MODE
+DELPHI\}} or \var{\{\$MODE OBJFPC\}} directives.
+
+It redefines some basic pascal types, introduces some functions for
+compatibility with Delphi's system unit, and introduces some methods for the
+management of the resource string tables.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Tytpes
+\section{Types}
+The \file{objpas} unit redefines two integer types, for compatibity with
+Delphi:
+\begin{verbatim}
+type
+  smallint = system.integer;
+  integer  = system.longint;
+\end{verbatim}
+The resource string tables can be managed with a callback function which the
+user must provide: \var{TResourceIterator}.
+\begin{verbatim}
+Type
+   TResourceIterator = 
+      Function (Name,Value : AnsiString;Hash : Longint):AnsiString;
+\end{verbatim}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Functions and procedures
+\section{Functions and Procedures}
+
+\begin{procedure}{AssignFile}
+\Declaration
+Procedure AssignFile(Var f: FileType;Name: Character type);
+\Description
+\var{AssignFile} is completely equivalent to the system unit's \seep{Assign}
+function: It assigns \var{Name} to a function of any type (\var{FileType}
+can be \var{Text} or a typed or untyped \var{File} variable). \var{Name} can
+be a string, a single character or a \var{PChar}.
+
+It is most likely introduced to avoid confusion between the regular 
+\seep{Assign} function and the \var{Assign} method of \var{TPersistent} 
+in the Delphi VCL.
+\Errors
+None.
+\SeeAlso
+\seep{CloseFile}, \seep{Assign}, \seep{Reset}, \seep{Rewrite}, \seep{Append}
+\end{procedure}
+
+\FPCexample{ex88}
+
+\begin{procedure}{CloseFile}
+\Declaration
+Procedure CloseFile(Var F: FileType);
+\Description
+\var{CloseFile} flushes and closes a file \var{F} of any file type. 
+\var{F} can be  \var{Text} or a typed or untyped \var{File} variable. 
+After a call to \var{CloseFile}, any attempt to write to the file \var{F}
+will result in an error.
+
+It is most likely introduced to avoid confusion between the regular 
+\seep{Close} function and the \var{Close} method of \var{TForm} 
+in the Delphi VCL.
+
+\Errors
+None.
+\SeeAlso
+\seep{Close}, \seep{AssignFile}, \seep{Reset}, \seep{Rewrite}, \seep{Append}
+\end{procedure}
+
+for an example, see \seep{AssignFile}.
+
+\begin{procedurel}{Freemem}{objpasfreemem}
+\Declaration
+Procedure FreeMem(Var p:pointer[;Size:Longint]);
+\Description
+\var{FreeMem} releases the memory reserved by a call to
+\seepl{GetMem}{objpasgetmem}. The (optional) \var{Size} parameter is
+ignored, since the object pascal version of \var{GetMem} stores the amount
+of memory that was requested. 
+
+be sure not to release memory that was not obtained with the \var{Getmem}
+call in \file{Objpas}. Normally, this should not happen, since objpas
+changes the default memory manager to it's own memory manager.
+\Errors
+None.
+\SeeAlso
+\seep{Freemem}, \seepl{GetMem}{objpasgetmem}, \seep{Getmem}
+\end{procedurel}
+
+\FPCexample{ex89}
+
+\begin{procedurel}{Getmem}{objpasgetmem}
+\Declaration
+Procedure Getmem(Var P:pointer;Size:Longint);
+\Description
+\var{GetMem} reserves \var{Size} bytes of memory on the heap and returns
+a pointer to it in \var{P}. \var{Size} is stored at offset -4 of the 
+result, and is used to release the memory again. \var{P} can be a typed or
+untyped pointer.
+
+Be sure to release this memory with the \seepl{FreeMem}{objpasfreemem} call
+defined in the \file{objpas} unit.
+\Errors
+In case no more memory is available, and no more memory could be obtained
+from the system a run-time error is triggered.
+\SeeAlso
+\seepl{FreeMem}{objpasfreemem}, \seep{Getmem}.
+\end{procedurel}
+
+For an example, see \seepl{FreeMem}{objpasfreemem}.
+
+\begin{function}{GetResourceStringCurrentValue}
+\Declaration
+Function GetResourceStringCurrentValue(TableIndex,StringIndex : Longint) : AnsiString;
+\Description
+\var{GetResourceStringCurrentValue} returns the current value of the 
+resourcestring in table \var{TableIndex} with index \var{StringIndex}.
+
+The current value depends on the system of internationalization that was
+used, and which language is selected when the program is executed.
+\Errors
+If either \var{TableIndex} or \var{StringIndex} are out of range, then
+a empty string is returned.
+\SeeAlso
+\seep{SetResourceStrings},
+\seef{GetResourceStringDefaultValue},
+\seef{GetResourceStringHash},
+\seef{GetResourceStringName},
+\seef{ResourceStringTableCount},
+\seef{ResourceStringCount}
+\end{function}  
+
+\FPCexample{ex90}
+
+\begin{function}{GetResourceStringDefaultValue}
+\Declaration
+Function GetResourceStringDefaultValue(TableIndex,StringIndex : Longint) : AnsiString
+\Description
+\var{GetResourceStringDefaultValue} returns the default value of the 
+resourcestring in table \var{TableIndex} with index \var{StringIndex}.
+
+The default value is the value of the string that appears in the source code
+of the programmer, and is compiled into the program.
+\Errors
+If either \var{TableIndex} or \var{StringIndex} are out of range, then
+a empty string is returned.
+\Errors
+\SeeAlso
+\seep{SetResourceStrings},
+\seef{GetResourceStringCurrentValue},
+\seef{GetResourceStringHash},
+\seef{GetResourceStringName},
+\seef{ResourceStringTableCount},
+\seef{ResourceStringCount}
+\end{function}
+
+\FPCexample{ex91}
+
+\begin{function}{GetResourceStringHash}
+\Declaration
+Function GetResourceStringHash(TableIndex,StringIndex : Longint) : Longint;
+\Description
+\var{GetResourceStringHash} returns the hash value associated with the
+resource string in table \var{TableIndex}, with index \var{StringIndex}.
+
+The hash value is calculated from the default value of the resource string
+in a manner that gives the same result as the GNU \file{gettext} mechanism.
+It is stored in the resourcestring tables, so retrieval is faster than
+actually calculating the hash for each string.
+\Errors
+If either \var{TableIndex} or \var{StringIndex} is zero, 0 is returned.
+\SeeAlso
+\seef{Hash}
+\seep{SetResourceStrings},
+\seef{GetResourceStringDefaultValue},
+\seef{GetResourceStringHash},
+\seef{GetResourceStringName},
+\seef{ResourceStringTableCount},
+\seef{ResourceStringCount}
+\end{function}
+
+For an example, see \seef{Hash}.
+
+\begin{function}{GetResourceStringName}
+\Declaration
+Function GetResourceStringName(TableIndex,StringIndex : Longint) : Ansistring;
+\Description
+\var{GetResourceStringName} returns the name of the resourcestring in table
+\var{TableIndex} with index \var{StringIndex}. The name of the string is
+always the unit name in which the string was declared, followed by a period
+and the name of the constant, all in lowercase.
+
+If a unit \file{MyUnit} declares a resourcestring \var{MyTitle} then the
+name returned will be \var{myunit.mytitle}. A resourcestring in the program file
+will have the name of the program prepended.
+
+The name returned by this function is also the name that is stored in the 
+resourcestring file generated by the compiler. 
+
+Strictly speaking, this information isn't necessary for the functioning
+of the program, it is provided only as a means to easier translation of 
+strings.
+\Errors
+If either \var{TableIndex} or \var{StringIndex} is zero, an empty string
+is returned.
+\SeeAlso
+\seep{SetResourceStrings},
+\seef{GetResourceStringDefaultValue},
+\seef{GetResourceStringHash},
+\seef{GetResourceStringName},
+\seef{ResourceStringTableCount},
+\seef{ResourceStringCount}
+\end{function}
+
+\FPCexample{ex92}
+
+
+\begin{function}{Hash}
+\Declaration
+Function Hash(S : AnsiString) : longint;
+\Description
+\var{Hash} calculates the hash value of the string \var{S} in a manner that 
+is compatible with the GNU gettext hash value for the string. It is the same
+value that is stored in the Resource string tables, and which can be
+retrieved with the \seef{GetResourceStringHash} function call.
+\Errors
+ None. In case the calculated hash value should be 0, the returned result 
+will be -1.
+\SeeAlso
+\seef{GetResourceStringHash},
+\end{function}
+
+\FPCexample{ex93}
+
+\begin{functionl}{Paramstr}{objpasparamstr}
+\Declaration
+Function ParamStr(Param : Integer) : Ansistring;
+\Description
+\var{ParamStr} returns the \var{Param}-th command-line parameter as an 
+AnsiString. The system unit \seef{Paramstr} function limits the result to
+255 characters.
+
+The zeroeth command-line parameter contains the path of the executable,
+except on \linux, where it is the command as typed on the command-line.
+\Errors
+In case \var{Param} is an invalid value, an empty string is returned.
+\SeeAlso
+\seef{Paramstr}
+\end{functionl}
+
+For an example, see \seef{Paramstr}.
+
+\begin{procedure}{ResetResourceTables}
+\Declaration
+Procedure ResetResourceTables;
+\Description
+\var{ResetResourceTables} resets all resource strings to their default
+(i.e. as in the source code) values.
+
+Normally, this should never be called from a user's program. It is called 
+in the initialization code of the \file{objpas} unit. However, if the
+resourcetables get messed up for some reason, this procedure will fix them 
+again. 
+\Errors
+None.
+\SeeAlso
+\seep{SetResourceStrings},
+\seef{GetResourceStringDefaultValue},
+\seef{GetResourceStringHash},
+\seef{GetResourceStringName},
+\seef{ResourceStringTableCount},
+\seef{ResourceStringCount}
+\end{procedure}
+
+\begin{function}{ResourceStringCount}
+\Declaration
+Function ResourceStringCount(TableIndex : longint) : longint;
+\Description
+\var{ResourceStringCount} returns the number of resourcestrings in
+the table with index \var{TableIndex}. The strings in a particular table
+are numbered from \var{0} to \var{ResourceStringCount-1}, i.e. they're zero
+based.
+\Errors
+If an invalid \var{TableIndex} is given, \var{-1} is returned.
+\SeeAlso
+\seep{SetResourceStrings},
+\seef{GetResourceStringCurrentValue},
+\seef{GetResourceStringDefaultValue},
+\seef{GetResourceStringHash},
+\seef{GetResourceStringName},
+\seef{ResourceStringTableCount},
+\end{function}
+
+For an example, see \seef{GetResourceStringDefaultValue}
+
+\begin{function}{ResourceStringTableCount}
+\Declaration
+Function ResourceStringTableCount : Longint;
+\Description
+\var{ResourceStringTableCount} returns the number of resource string tables;
+this may be zero if no resource strings are used in a program.
+
+The tables are numbered from 0 to \var{ResourceStringTableCount-1}, i.e.
+they're zero based.
+\Errors
+\SeeAlso
+\seep{SetResourceStrings},
+\seef{GetResourceStringDefaultValue},
+\seef{GetResourceStringHash},
+\seef{GetResourceStringName},
+\seef{ResourceStringCount}
+\end{function}
+
+For an example, see \seef{GetResourceStringDefaultValue}
+
+\begin{procedure}{SetResourceStrings}
+\Declaration
+TResourceIterator =  Function (Name,Value : AnsiString;Hash : Longint):AnsiString;
+
+Procedure SetResourceStrings (SetFunction :  TResourceIterator);
+\Description
+\var{SetResourceStrings} calls \var{SetFunction} for all resourcestrings
+in the resourcestring tables and sets the resourcestring's current value 
+to the value returned by \var{SetFunction}. 
+
+The \var{Name},\var{Value} and \var{Hash} parameters passed to the iterator 
+function are the values stored in the tables.
+\Errors
+None.
+\SeeAlso
+\seep{SetResourceStrings},
+\seef{GetResourceStringCurrentValue},
+\seef{GetResourceStringDefaultValue},
+\seef{GetResourceStringHash},
+\seef{GetResourceStringName},
+\seef{ResourceStringTableCount},
+\seef{ResourceStringCount}
+\end{procedure}
+
+\FPCexample{ex95}
+
+\begin{function}{SetResourceStringValue}
+\Declaration
+Function SetResourceStringValue(TableIndex,StringIndex : longint; Value : Ansistring) : Boolean;   
+\Description
+\var{SetResourceStringValue} assigns \var{Value} to the resource string in 
+table \var{TableIndex} with index \var{StringIndex}.
+\Errors
+\SeeAlso
+\seep{SetResourceStrings},
+\seef{GetResourceStringCurrentValue},
+\seef{GetResourceStringDefaultValue},
+\seef{GetResourceStringHash},
+\seef{GetResourceStringName},
+\seef{ResourceStringTableCount},
+\seef{ResourceStringCount}
+\end{function}
+
+\FPCexample{ex94}
+
 
 %
 % The index.
