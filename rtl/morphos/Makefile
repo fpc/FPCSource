@@ -1493,3 +1493,4 @@ layers$(PPUEXT)  : layers.pas exec$(PPUEXT) graphics$(PPUEXT) utility$(PPUEXT)
 intuition$(PPUEXT): intuition.pas exec$(PPUEXT) graphics$(PPUEXT) utility$(PPUEXT) \
 		    inputevent$(PPUEXT) timer$(PPUEXT) layers$(PPUEXT)
 clipboard$(PPUEXT): clipboard.pas exec$(PPUEXT)
+get9$(PPUEXT): get9.pas exec$(PPUEXT)
