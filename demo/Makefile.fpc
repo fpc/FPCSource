@@ -21,7 +21,29 @@ fpcpackage=y
 # Demo installation for linux
 #
 
-.PHONY: installexamples
+.PHONY: installexamples demozip
 
 installexamples:
-        $(MAKE) sourceinstall SOURCEINSTALLDIR=$(EXAMPLEINSTALLDIR)
+        $(MKDIR) $(INSTALL_SOURCEDIR)
+	$(COPYTREE) * $(INSTALL_SOURCEDIR)
+demozip:
+	$(DEL) $(ZIPDESTFILE)
+ifdef USEZIPWRAPPER
+ifneq ($(ECHOREDIR),echo)
+	$(ECHOREDIR) -e "$(subst \,\\,$(ZIPCMD_CDPACK))" > $(ZIPWRAPPER)
+	$(ECHOREDIR) -e "$(subst \,\\,$(ZIPCMD_ZIP))" >> $(ZIPWRAPPER)
+	$(ECHOREDIR) -e "$(subst \,\\,$(ZIPCMD_CDBASE))" >> $(ZIPWRAPPER)
+else
+	echo $(ZIPCMD_CDPACK) > $(ZIPWRAPPER)
+	echo $(ZIPCMD_ZIP) >> $(ZIPWRAPPER)
+	echo $(ZIPCMD_CDBASE) >> $(ZIPWRAPPER)
+endif
+ifdef inUnix
+	/bin/sh $(ZIPWRAPPER)
+else
+	$(ZIPWRAPPER)
+endif
+	$(DEL) $(ZIPWRAPPER)
+else
+	$(ZIPCMD_CDPACK) ; $(ZIPCMD_ZIP) ; $(ZIPCMD_CDBASE)
+endif

@@ -350,7 +350,10 @@ docsrc:
 .PHONY: demozip
 
 demozip:
-        $(MAKE) -C demo zipsourceinstall ZIPNAME=demo
+	$(MKDIR) $(PACKDIR)/source/demo
+	$(COPYTREE) ./demo/* $(PACKDIR)/source/demo
+	$(MAKE) -C demo demozip ZIPNAME=demo PACKDIR=$(PACKDIR)
+	$(DELTREE) $(PACKDIR)/source/demo
 
 
 ##########################################################################
