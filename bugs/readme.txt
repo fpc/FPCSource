@@ -67,6 +67,7 @@ Fixed bugs:
                 sign extension
                  (already fixed ) but also for SET_IN_BYTE
   bug0047.pp    compiling with -So crashes the compiler              OK 0.99.1 (CEC)
+  bug0048.pp   shows a problem with putimage on some computers       OK 0.99.13 (JM)
   bug0049.pp    shows an error while defining subrange types         OK 0.99.7 (PFV)
   bug0050.pp    can't set a function result in a nested procedure of a function OK 0.99.7 (PM)
   bug0051.pp    Graph, shows a problem with putpixel                 OK 0.99.9 (PM)
@@ -327,6 +328,7 @@ Fixed bugs:
   bug0269.pp   wrong linenumber for repeat until when type mismatch OK 0.99.12b (PM)
   bug0270.pp   unexpected eof in tp mode with (* and directives     OK 0.99.13 (PFV)
   bug0271.pp   abstract methods can't be assigned to methodpointers OK 0.99.13 (??)
+  bug0272.pp   No error issued if wrong parameter in function inside a second function OK 0.99.13 (PFV)
   bug0273.pp   small array pushing to array of char procedure is wrong OK 0.99.13 (PFV)
   bug0274.pp   @(proc) is not allowed                               OK 0.99.13 (PFV)
   bug0276.pp   Asm, intel reference parsing incompatibility         OK 0.99.13 (PFV)
@@ -345,12 +347,6 @@ Fixed bugs:
 
 Unproducable bugs:
 ------------------
-bug0048.pp   shows a problem with putimage on some computers
-             (I can't reproduce the bug neither with a Millenium II
-              nor a Trio64 card (FK)  )
-             (maybe fixed : there was a problem in SetVESAmode for cards
-              that use a different read and write window !!
-              0.99.9  (PM) )
 
 
 Unfixed not important bugs (mostly incompatibilities):
@@ -367,6 +363,13 @@ bug0243.pp   Arguments of functions are computed from right to left this
              but only BP respects this convention Delphi and GPC also
              use right to left pushing !!
 
+
+Wishlist bugs:
+--------------
+bug0275.pp   too many warnings
+bug0289.pp   no hint/note for unused types
+
+
 Unfixed bugs:
 -------------
 bug0232.pp   const. procedure variables need a special syntax
@@ -375,9 +378,6 @@ bug0246.pp   const para can be changed without error
 bug0262.pp   problems with virtual and overloaded methods
 bug0263.pp   export directive is not necessary in delphi anymore
 bug0265.pp   nested proc with for-counter in other lex level
-bug0272.pp   No error issued if wrong parameter in function inside a second function
-bug0275.pp   too many warnings
 bug0281.pp   dup id checking with property is wrong
-bug0289.pp   no hint/note for unused types
 bug0290.pp   problem with storing hex numbers in integers
 bug0292.pp   objects not finalized when disposed
