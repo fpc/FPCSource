@@ -202,7 +202,7 @@ implementation
       globtype,systems,tokens,
       cutils,verbose,globals,widestr,
       symconst,symdef,symsym,symtable,
-      ncon,ncal,nset,nadd,ninl,nmem,nmat,
+      ncon,ncal,nset,nadd,ninl,nmem,nmat,nutils,
       cgbase,procinfo,
       htypechk,pass_1,cpuinfo;
 
@@ -1141,6 +1141,12 @@ implementation
             exit;
           end;
 
+        { tp procvar support. Skip typecasts to record or set. Those
+          convert on the procvar value. This is used to access the
+          fields of a methodpointer }
+        if not(resulttype.def.deftype in [recorddef,setdef]) then
+          maybe_call_procvar(left,true);
+
         cdoptions:=[cdo_check_operator,cdo_allow_variant];
         if nf_explicit in flags then
           include(cdoptions,cdo_explicit);
@@ -1350,43 +1356,6 @@ implementation
         { Constant folding and other node transitions to
           remove the typeconv node }
         case left.nodetype of
-          loadn :
-            begin
-              { tp7 procvar support, when right is not a procvardef and we got a
-                loadn of a procvar (ignore procedures as void can not be converted)
-                then convert to a calln, the check for the result is already done
-                in is_convertible, also no conflict with @procvar is here because
-                that has an extra addrn.
-                The following deftypes always access the procvar: recorddef,setdef. This
-                has been tested with Kylix using trial and error }
-              if (m_tp_procvar in aktmodeswitches) and
-                 (resulttype.def.deftype<>procvardef) and
-                 { ignore internal typecasts to access methodpointer fields }
-                 not(resulttype.def.deftype in [recorddef,setdef]) and
-                 (left.resulttype.def.deftype=procvardef) and
-                 (not is_void(tprocvardef(left.resulttype.def).rettype.def)) then
-               begin
-                 hp:=ccallnode.create_procvar(nil,left);
-                 resulttypepass(hp);
-                 left:=hp;
-               end;
-            end;
-
-          calln :
-            begin
-              { See remark for loadn, this is the reverse }
-              if (m_tp_procvar in aktmodeswitches) and
-                 (resulttype.def.deftype in [recorddef,setdef]) and
-                 assigned(tcallnode(left).right) and
-                 (tcallnode(left).para_count=0) then
-               begin
-                 hp:=tcallnode(left).right.getcopy;
-                 resulttypepass(hp);
-                 left.free;
-                 left:=hp;
-               end;
-            end;
-
           niln :
             begin
               { nil to ordinal node }
@@ -2410,7 +2379,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.139  2004-02-13 15:42:21  peter
+  Revision 1.140  2004-02-20 21:55:59  peter
+    * procvar cleanup
+
+  Revision 1.139  2004/02/13 15:42:21  peter
     * compare_defs_ext has now a options argument
     * fixes for variants
 

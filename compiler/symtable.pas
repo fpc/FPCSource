@@ -765,7 +765,7 @@ implementation
               [objectsymtable,parasymtable,localsymtable,staticsymtable])) then
           begin
            if (Errorcount<>0) or
-              (copy(p.name,1,3)='def') then
+              (sp_internal in tsym(p).symoptions) then
              exit;
            { do not claim for inherited private fields !! }
            if (Tsym(p).refs=0) and (tsym(p).owner.symtabletype=objectsymtable) then
@@ -1090,7 +1090,7 @@ implementation
         { Calc alignment needed for this record }
         if (usefieldalignment=-1) then
           varalignrecord:=used_align(varalign,aktalignment.recordalignmin,aktalignment.maxCrecordalign)
-        else  
+        else
           varalignrecord:=used_align(varalign,aktalignment.recordalignmin,aktalignment.recordalignmax);
         recordalignment:=max(recordalignment,varalignrecord);
       end;
@@ -1847,10 +1847,10 @@ implementation
                    end;
                  if (not assigned(topclass)) or
                     Tsym(srsym).is_visible_for_object(topclass) then
-                   begin 
+                   begin
                      searchsym:=true;
                      exit;
-                   end;  
+                   end;
                end;
              srsymtable:=srsymtable.next;
            end;
@@ -2427,7 +2427,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.138  2004-02-17 15:57:49  peter
+  Revision 1.139  2004-02-20 21:55:59  peter
+    * procvar cleanup
+
+  Revision 1.138  2004/02/17 15:57:49  peter
   - fix rtti generation for properties containing sl_vec
   - fix crash when overloaded operator is not available
   - fix record alignment for C style variant records

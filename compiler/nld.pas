@@ -133,14 +133,6 @@ interface
        crttinode : trttinodeclass;
 
 
-    procedure load_procvar_from_calln(var p1:tnode);
-    function load_high_value_node(vs:tvarsym):tnode;
-    function load_self_node:tnode;
-    function load_result_node:tnode;
-    function load_self_pointer_node:tnode;
-    function load_vmt_pointer_node:tnode;
-    function is_self_node(p:tnode):boolean;
-
 
 implementation
 
@@ -149,140 +141,9 @@ implementation
       symtable,symnot,
       defutil,defcmp,
       htypechk,pass_1,procinfo,paramgr,
-      ncon,ninl,ncnv,nmem,ncal,cpubase,cgobj,cgbase
+      ncon,ninl,ncnv,nmem,ncal,nutils,
+      cpubase,cgobj,cgbase
       ;
-
-{*****************************************************************************
-                                 Helpers
-*****************************************************************************}
-
-      procedure load_procvar_from_calln(var p1:tnode);
-        var
-          p2 : tnode;
-        begin
-          if p1.nodetype<>calln then
-            internalerror(200212251);
-          { was it a procvar, then we simply remove the calln and
-            reuse the right }
-          if assigned(tcallnode(p1).right) then
-            begin
-              p2:=tcallnode(p1).right;
-              tcallnode(p1).right:=nil;
-            end
-          else
-            begin
-              p2:=cloadnode.create_procvar(tcallnode(p1).symtableprocentry,
-                 tprocdef(tcallnode(p1).procdefinition),tcallnode(p1).symtableproc);
-              { when the methodpointer is typen we've something like:
-                tobject.create. Then only the address is needed of the
-                method without a self pointer }
-              if assigned(tcallnode(p1).methodpointer) and
-                 (tcallnode(p1).methodpointer.nodetype<>typen) then
-               begin
-                 tloadnode(p2).set_mp(tcallnode(p1).methodpointer);
-                 tcallnode(p1).methodpointer:=nil;
-               end;
-            end;
-          resulttypepass(p2);
-          p1.free;
-          p1:=p2;
-        end;
-
-
-    function load_high_value_node(vs:tvarsym):tnode;
-      var
-        srsym : tsym;
-        srsymtable : tsymtable;
-      begin
-        result:=nil;
-        srsymtable:=vs.owner;
-        srsym:=searchsymonlyin(srsymtable,'high'+vs.name);
-        if assigned(srsym) then
-          begin
-            result:=cloadnode.create(srsym,srsymtable);
-            resulttypepass(result);
-          end
-        else
-          CGMessage(cg_e_illegal_expression);
-      end;
-
-
-    function load_self_node:tnode;
-      var
-        srsym : tsym;
-        srsymtable : tsymtable;
-      begin
-        result:=nil;
-        searchsym('self',srsym,srsymtable);
-        if assigned(srsym) then
-          begin
-            result:=cloadnode.create(srsym,srsymtable);
-            resulttypepass(result);
-          end
-        else
-          CGMessage(cg_e_illegal_expression);
-      end;
-
-
-    function load_result_node:tnode;
-      var
-        srsym : tsym;
-        srsymtable : tsymtable;
-      begin
-        result:=nil;
-        searchsym('result',srsym,srsymtable);
-        if assigned(srsym) then
-          begin
-            result:=cloadnode.create(srsym,srsymtable);
-            resulttypepass(result);
-          end
-        else
-          CGMessage(cg_e_illegal_expression);
-      end;
-
-
-    function load_self_pointer_node:tnode;
-      var
-        srsym : tsym;
-        srsymtable : tsymtable;
-      begin
-        result:=nil;
-        searchsym('self',srsym,srsymtable);
-        if assigned(srsym) then
-          begin
-            result:=cloadnode.create(srsym,srsymtable);
-            include(result.flags,nf_load_self_pointer);
-            resulttypepass(result);
-          end
-        else
-          CGMessage(cg_e_illegal_expression);
-      end;
-
-
-    function load_vmt_pointer_node:tnode;
-      var
-        srsym : tsym;
-        srsymtable : tsymtable;
-      begin
-        result:=nil;
-        searchsym('vmt',srsym,srsymtable);
-        if assigned(srsym) then
-          begin
-            result:=cloadnode.create(srsym,srsymtable);
-            resulttypepass(result);
-          end
-        else
-          CGMessage(cg_e_illegal_expression);
-      end;
-
-
-    function is_self_node(p:tnode):boolean;
-      begin
-        is_self_node:=(p.nodetype=loadn) and
-                      (tloadnode(p).symtableentry.typ=varsym) and
-                      (vo_is_self in tvarsym(tloadnode(p).symtableentry).varoptions);
-      end;
-
 
 {*****************************************************************************
                              TLOADNODE
@@ -655,6 +516,11 @@ implementation
         set_varstate(right,vs_used,true);
         if codegenerror then
           exit;
+
+        { tp procvar support, when we don't expect a procvar
+          then we need to call the procvar }
+        if (left.resulttype.def.deftype<>procvardef) then
+          maybe_call_procvar(right,true);
 
         { assignments to formaldefs and open arrays aren't allowed }
         if (left.resulttype.def.deftype=formaldef) or
@@ -1256,7 +1122,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.122  2004-02-20 20:21:16  daniel
+  Revision 1.123  2004-02-20 21:55:59  peter
+    * procvar cleanup
+
+  Revision 1.122  2004/02/20 20:21:16  daniel
     * Tarrayconstructornode sets pi_do_call if a call is possible
 
   Revision 1.121  2004/02/03 22:32:54  peter

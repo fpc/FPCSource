@@ -88,7 +88,7 @@ implementation
 {$endif GDB}
       cgbase,pass_2,
       cpuinfo,aasmbase,aasmtai,
-      nbas,nmem,nld,ncnv,
+      nbas,nmem,nld,ncnv,nutils,
 {$ifdef x86}
       cga,cgx86,
 {$endif x86}
@@ -1210,7 +1210,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.154  2004-02-11 19:59:06  peter
+  Revision 1.155  2004-02-20 21:55:59  peter
+    * procvar cleanup
+
+  Revision 1.154  2004/02/11 19:59:06  peter
     * fix compilation without GDB
 
   Revision 1.153  2004/02/09 22:48:45  florian

@@ -941,16 +941,22 @@ implementation
               end;
 
              if p.nodetype=labeln then
-              begin
-                { the pointer to the following instruction }
-                { isn't a very clean way                   }
-                if token in endtokens then
-                  tlabelnode(p).left:=cnothingnode.create
-                else
-                  tlabelnode(p).left:=statement{$ifdef FPCPROCVAR}(){$endif};
-                { be sure to have left also resulttypepass }
-                resulttypepass(tlabelnode(p).left);
-              end;
+               begin
+                 { the pointer to the following instruction }
+                 { isn't a very clean way                   }
+                 if token in endtokens then
+                   tlabelnode(p).left:=cnothingnode.create
+                 else
+                   tlabelnode(p).left:=statement{$ifdef FPCPROCVAR}(){$endif};
+                 { be sure to have left also resulttypepass }
+                 resulttypepass(tlabelnode(p).left);
+               end
+             else
+               begin
+                 { change a load of a procvar to a call. this is also
+                   supported in fpc mode }
+                 maybe_call_procvar(p,false);
+               end;
 
              { blockn support because a read/write is changed into a blocknode }
              { with a separate statement for each read/write operation (JM)    }
@@ -1092,7 +1098,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.129  2004-02-03 22:32:54  peter
+  Revision 1.130  2004-02-20 21:55:59  peter
+    * procvar cleanup
+
+  Revision 1.129  2004/02/03 22:32:54  peter
     * renamed xNNbittype to xNNinttype
     * renamed registers32 to registersint
     * replace some s32bit,u32bit with torddef([su]inttype).def.typ

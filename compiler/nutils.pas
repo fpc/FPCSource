@@ -27,7 +27,7 @@ unit nutils;
 interface
 
   uses
-    node;
+    symsym,node;
 
   type
     { resulttype of functions that process on all nodes in a (sub)tree }
@@ -50,6 +50,15 @@ interface
     function foreachnode(var n: tnode; f: foreachnodefunction): boolean;
     function foreachnodestatic(var n: tnode; f: staticforeachnodefunction): boolean;
 
+    procedure load_procvar_from_calln(var p1:tnode);
+    function maybe_call_procvar(var p1:tnode;tponly:boolean):boolean;
+    function load_high_value_node(vs:tvarsym):tnode;
+    function load_self_node:tnode;
+    function load_result_node:tnode;
+    function load_self_pointer_node:tnode;
+    function load_vmt_pointer_node:tnode;
+    function is_self_node(p:tnode):boolean;
+
     function call_fail_node:tnode;
     function initialize_data_node(p:tnode):tnode;
     function finalize_data_node(p:tnode):tnode;
@@ -58,8 +67,8 @@ interface
 implementation
 
     uses
-      verbose,
-      symconst,symsym,symtype,symdef,symtable,
+      globtype,globals,verbose,
+      symconst,symbase,symtype,symdef,symtable,
       nbas,ncon,ncnv,nld,nflw,nset,ncal,nadd,nmem,
       cgbase,procinfo,
       pass_1;
@@ -155,6 +164,167 @@ implementation
       else if n.inheritsfrom(tunarynode) then
         result := foreachnodestatic(tunarynode(n).left,f) or result;
     end;
+
+
+    procedure load_procvar_from_calln(var p1:tnode);
+      var
+        p2 : tnode;
+      begin
+        if p1.nodetype<>calln then
+          internalerror(200212251);
+        { was it a procvar, then we simply remove the calln and
+          reuse the right }
+        if assigned(tcallnode(p1).right) then
+          begin
+            p2:=tcallnode(p1).right;
+            tcallnode(p1).right:=nil;
+          end
+        else
+          begin
+            p2:=cloadnode.create_procvar(tcallnode(p1).symtableprocentry,
+               tprocdef(tcallnode(p1).procdefinition),tcallnode(p1).symtableproc);
+            { when the methodpointer is typen we've something like:
+              tobject.create. Then only the address is needed of the
+              method without a self pointer }
+            if assigned(tcallnode(p1).methodpointer) and
+               (tcallnode(p1).methodpointer.nodetype<>typen) then
+             begin
+               tloadnode(p2).set_mp(tcallnode(p1).methodpointer);
+               tcallnode(p1).methodpointer:=nil;
+             end;
+          end;
+        resulttypepass(p2);
+        p1.free;
+        p1:=p2;
+      end;
+
+
+    function maybe_call_procvar(var p1:tnode;tponly:boolean):boolean;
+      var
+        hp : tnode;
+      begin
+        result:=false;
+        if (p1.resulttype.def.deftype<>procvardef) or
+           (tponly and
+            not(m_tp_procvar in aktmodeswitches)) then
+          exit;
+        { ignore vecn,subscriptn }
+        hp:=p1;
+        repeat
+          case hp.nodetype of
+            vecn,
+            derefn,
+            typeconvn,
+            subscriptn :
+              hp:=tunarynode(hp).left;
+            else
+              break;
+          end;
+        until false;
+        if (hp.nodetype=loadn) then
+          begin
+            hp:=ccallnode.create_procvar(nil,p1);
+            resulttypepass(hp);
+            p1:=hp;
+            result:=true;
+          end;
+      end;
+
+
+    function load_high_value_node(vs:tvarsym):tnode;
+      var
+        srsym : tsym;
+        srsymtable : tsymtable;
+      begin
+        result:=nil;
+        srsymtable:=vs.owner;
+        srsym:=searchsymonlyin(srsymtable,'high'+vs.name);
+        if assigned(srsym) then
+          begin
+            result:=cloadnode.create(srsym,srsymtable);
+            resulttypepass(result);
+          end
+        else
+          CGMessage(cg_e_illegal_expression);
+      end;
+
+
+    function load_self_node:tnode;
+      var
+        srsym : tsym;
+        srsymtable : tsymtable;
+      begin
+        result:=nil;
+        searchsym('self',srsym,srsymtable);
+        if assigned(srsym) then
+          begin
+            result:=cloadnode.create(srsym,srsymtable);
+            resulttypepass(result);
+          end
+        else
+          CGMessage(cg_e_illegal_expression);
+      end;
+
+
+    function load_result_node:tnode;
+      var
+        srsym : tsym;
+        srsymtable : tsymtable;
+      begin
+        result:=nil;
+        searchsym('result',srsym,srsymtable);
+        if assigned(srsym) then
+          begin
+            result:=cloadnode.create(srsym,srsymtable);
+            resulttypepass(result);
+          end
+        else
+          CGMessage(cg_e_illegal_expression);
+      end;
+
+
+    function load_self_pointer_node:tnode;
+      var
+        srsym : tsym;
+        srsymtable : tsymtable;
+      begin
+        result:=nil;
+        searchsym('self',srsym,srsymtable);
+        if assigned(srsym) then
+          begin
+            result:=cloadnode.create(srsym,srsymtable);
+            include(result.flags,nf_load_self_pointer);
+            resulttypepass(result);
+          end
+        else
+          CGMessage(cg_e_illegal_expression);
+      end;
+
+
+    function load_vmt_pointer_node:tnode;
+      var
+        srsym : tsym;
+        srsymtable : tsymtable;
+      begin
+        result:=nil;
+        searchsym('vmt',srsym,srsymtable);
+        if assigned(srsym) then
+          begin
+            result:=cloadnode.create(srsym,srsymtable);
+            resulttypepass(result);
+          end
+        else
+          CGMessage(cg_e_illegal_expression);
+      end;
+
+
+    function is_self_node(p:tnode):boolean;
+      begin
+        is_self_node:=(p.nodetype=loadn) and
+                      (tloadnode(p).symtableentry.typ=varsym) and
+                      (vo_is_self in tvarsym(tloadnode(p).symtableentry).varoptions);
+      end;
+
 
 
     function call_fail_node:tnode;
@@ -254,7 +424,10 @@ end.
 
 {
   $Log$
-  Revision 1.9  2004-02-03 22:32:54  peter
+  Revision 1.10  2004-02-20 21:55:59  peter
+    * procvar cleanup
+
+  Revision 1.9  2004/02/03 22:32:54  peter
     * renamed xNNbittype to xNNinttype
     * renamed registers32 to registersint
     * replace some s32bit,u32bit with torddef([su]inttype).def.typ

@@ -48,7 +48,7 @@ implementation
        fmodule,
        { pass 1 }
        node,pass_1,
-       nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,nmem,
+       nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,nmem,nutils,
        { codegen }
        ncgutil,
        { parser }
@@ -725,9 +725,6 @@ implementation
                   Message(parser_e_absolute_only_one_var);
                 { parse the rest }
                 pt:=expr;
-                { transform a procvar calln to loadn }
-                if pt.nodetype=calln then
-                  load_procvar_from_calln(pt);
                 { check allowed absolute types }
                 if (pt.nodetype=stringconstn) or
                    (is_constcharnode(pt)) then
@@ -1117,7 +1114,7 @@ implementation
               { Align the offset where the union symtable is added }
               if (trecordsymtable(symtablestack).usefieldalignment=-1) then
                 usedalign:=used_align(maxalignment,aktalignment.recordalignmin,aktalignment.maxCrecordalign)
-              else  
+              else
                 usedalign:=used_align(maxalignment,aktalignment.recordalignmin,aktalignment.recordalignmax);
               offset:=align(trecordsymtable(symtablestack).datasize,usedalign);
               trecordsymtable(symtablestack).datasize:=offset+unionsymtable.datasize;
@@ -1138,7 +1135,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.66  2004-02-17 15:57:49  peter
+  Revision 1.67  2004-02-20 21:55:59  peter
+    * procvar cleanup
+
+  Revision 1.66  2004/02/17 15:57:49  peter
   - fix rtti generation for properties containing sl_vec
   - fix crash when overloaded operator is not available
   - fix record alignment for C style variant records

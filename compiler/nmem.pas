@@ -130,7 +130,7 @@ implementation
       globtype,systems,
       cutils,verbose,globals,
       symconst,symbase,defutil,defcmp,
-      nbas,
+      nbas,nutils,
       htypechk,pass_1,ncal,nld,ncon,ncnv,cgbase,procinfo
       ;
 
@@ -516,6 +516,9 @@ implementation
          if codegenerror then
           exit;
 
+         { tp procvar support }
+         maybe_call_procvar(left,true);
+
          if left.resulttype.def.deftype=pointerdef then
           resulttype:=tpointerdef(left.resulttype.def).pointertype
          else
@@ -601,6 +604,8 @@ implementation
       begin
         result:=nil;
         resulttypepass(left);
+        { tp procvar support }
+        maybe_call_procvar(left,true);
         resulttype:=vs.vartype;
       end;
 
@@ -970,7 +975,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.79  2004-02-03 22:32:54  peter
+  Revision 1.80  2004-02-20 21:55:59  peter
+    * procvar cleanup
+
+  Revision 1.79  2004/02/03 22:32:54  peter
     * renamed xNNbittype to xNNinttype
     * renamed registers32 to registersint
     * replace some s32bit,u32bit with torddef([su]inttype).def.typ

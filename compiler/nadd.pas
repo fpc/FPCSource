@@ -74,7 +74,7 @@ implementation
       symconst,symtype,symdef,symsym,symtable,defutil,defcmp,
       cgbase,
       htypechk,pass_1,
-      nbas,nmat,ncnv,ncon,nset,nopt,ncal,ninl,nmem,
+      nbas,nmat,ncnv,ncon,nset,nopt,ncal,ninl,nmem,nutils,
       {$ifdef state_tracking}
       nstate,
       {$endif}
@@ -127,6 +127,10 @@ implementation
          set_varstate(right,vs_used,true);
          if codegenerror then
            exit;
+
+         { tp procvar support }
+         maybe_call_procvar(left,true);
+         maybe_call_procvar(right,true);
 
          { convert array constructors to sets, because there is no other operator
            possible for array constructors }
@@ -1910,7 +1914,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.110  2004-02-05 01:24:08  florian
+  Revision 1.111  2004-02-20 21:55:59  peter
+    * procvar cleanup
+
+  Revision 1.110  2004/02/05 01:24:08  florian
     * several fixes to compile x86-64 system
 
   Revision 1.109  2004/02/03 22:32:54  peter

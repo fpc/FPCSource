@@ -93,7 +93,7 @@ implementation
       symconst,symdef,symsym,defutil,paramgr,
       aasmbase,aasmtai,
       procinfo,pass_2,
-      pass_1,nld,ncon,nadd,
+      pass_1,nld,ncon,nadd,nutils,
       cgobj,tgobj,ncgutil,symbase
       ;
 
@@ -881,7 +881,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.86  2004-02-03 22:32:54  peter
+  Revision 1.87  2004-02-20 21:55:59  peter
+    * procvar cleanup
+
+  Revision 1.86  2004/02/03 22:32:54  peter
     * renamed xNNbittype to xNNinttype
     * renamed registers32 to registersint
     * replace some s32bit,u32bit with torddef([su]inttype).def.typ

@@ -194,7 +194,7 @@ implementation
       verbose,globals,
       symconst,defutil,defcmp,
       htypechk,pass_1,
-      ncnv,nld,ninl,nadd,ncon,nmem,
+      ncnv,nld,ninl,nadd,ncon,nmem,nutils,
       procinfo,
       cgbase
       ;
@@ -597,6 +597,16 @@ type
 
          if (left.nodetype<>nothingn) then
            begin
+             { Convert tp procvars, this is needs to be done
+               here to make the change permanent. in the overload
+               choosing the changes are only made temporary }
+             if (left.resulttype.def.deftype=procvardef) and
+                (paraitem.paratype.def.deftype<>procvardef) then
+               begin
+                 if maybe_call_procvar(left,true) then
+                   resulttype:=left.resulttype;
+               end;
+
              { Handle varargs and hidden paras directly, no typeconvs or }
              { typechecking needed                                       }
              if (nf_varargs_para in flags) then
@@ -1468,10 +1478,12 @@ type
         currparanr : byte;
         def_from,
         def_to   : tdef;
+        currpt,
         pt       : tcallparanode;
         eq       : tequaltype;
         convtype : tconverttype;
         pdoper   : tprocdef;
+        releasecurrpt : boolean;
       begin
         { process all procs }
         hp:=procs;
@@ -1487,9 +1499,13 @@ type
            pt:=tcallparanode(left);
            while assigned(pt) and assigned(currpara) do
             begin
+              { currpt can be changed from loadn to calln when a procvar
+                is passed. This is to prevent that the change is permanent }
+              currpt:=pt;
+              releasecurrpt:=false;
               { retrieve current parameter definitions to compares }
               eq:=te_incompatible;
-              def_from:=pt.resulttype.def;
+              def_from:=currpt.resulttype.def;
               def_to:=currpara.paratype.def;
               if not(assigned(def_from)) then
                internalerror(200212091);
@@ -1500,18 +1516,29 @@ type
                     ) then
                internalerror(200212092);
 
+              { Convert tp procvars when not expecting a procvar }
+              if (def_to.deftype<>procvardef) and
+                 (currpt.left.resulttype.def.deftype=procvardef) then
+                begin
+                  releasecurrpt:=true;
+                  currpt:=tcallparanode(pt.getcopy);
+                  if maybe_call_procvar(currpt.left,true) then
+                    begin
+                      currpt.resulttype:=currpt.left.resulttype;
+                      def_from:=currpt.left.resulttype.def;
+                    end;
+                end;
+
               { varargs are always equal, but not exact }
               if (po_varargs in hp^.data.procoptions) and
                  (currparanr>hp^.data.minparacount) then
                begin
-                 inc(hp^.equal_count);
                  eq:=te_equal;
                end
               else
               { same definition -> exact }
                if (def_from=def_to) then
                 begin
-                  inc(hp^.exact_count);
                   eq:=te_exact;
                 end
               else
@@ -1522,7 +1549,6 @@ type
                   is_integer(def_to) and
                   is_in_limit(def_from,def_to) then
                  begin
-                   inc(hp^.equal_count);
                    eq:=te_equal;
                    hp^.ordinal_distance:=hp^.ordinal_distance+
                      abs(bestreal(torddef(def_from).low)-bestreal(torddef(def_to).low));
@@ -1536,7 +1562,7 @@ type
               else
               { generic type comparision }
                begin
-                 eq:=compare_defs_ext(def_from,def_to,pt.left.nodetype,convtype,pdoper,
+                 eq:=compare_defs_ext(def_from,def_to,currpt.left.nodetype,convtype,pdoper,
                                       [cdo_allow_variant,cdo_check_operator]);
 
                  { when the types are not equal we need to check
@@ -1550,31 +1576,38 @@ type
                         eq:=te_incompatible;
                         { var_para_allowed will return te_equal and te_convert_l1 to
                           make a difference for best matching }
-                        var_para_allowed(eq,pt.resulttype.def,currpara.paratype.def)
+                        var_para_allowed(eq,currpt.resulttype.def,currpara.paratype.def)
                       end
                     else
-                      para_allowed(eq,pt,def_to);
+                      para_allowed(eq,currpt,def_to);
                   end;
-
-                 case eq of
-                   te_exact :
-                     internalerror(200212071); { already checked }
-                   te_equal :
-                     inc(hp^.equal_count);
-                   te_convert_l1 :
-                     inc(hp^.cl1_count);
-                   te_convert_l2 :
-                     inc(hp^.cl2_count);
-                   te_convert_l3 :
-                     inc(hp^.cl3_count);
-                   te_convert_operator :
-                     inc(hp^.coper_count);
-                   te_incompatible :
-                     hp^.invalid:=true;
-                   else
-                     internalerror(200212072);
-                 end;
                end;
+
+              { when a procvar was changed to a call an exact much is
+                downgraded to equal. This way an overload call with the
+                procvar is choosen. See tb0471 (PFV) }
+              if (pt<>currpt) and (eq=te_exact) then
+                eq:=te_equal;
+
+              { increase correct counter }
+              case eq of
+                te_exact :
+                  inc(hp^.exact_count);
+                te_equal :
+                  inc(hp^.equal_count);
+                te_convert_l1 :
+                  inc(hp^.cl1_count);
+                te_convert_l2 :
+                  inc(hp^.cl2_count);
+                te_convert_l3 :
+                  inc(hp^.cl3_count);
+                te_convert_operator :
+                  inc(hp^.coper_count);
+                te_incompatible :
+                  hp^.invalid:=true;
+                else
+                  internalerror(200212072);
+              end;
 
               { stop checking when an incompatible parameter is found }
               if hp^.invalid then
@@ -1590,6 +1623,10 @@ type
               { store equal in node tree for dump }
               currpara.eqval:=eq;
 {$endif EXTDEBUG}
+
+              { maybe release temp currpt }
+              if releasecurrpt then
+                currpt.free;
 
               { next parameter in the call tree }
               pt:=tcallparanode(pt.right);
@@ -2719,7 +2756,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.226  2004-02-19 17:07:42  florian
+  Revision 1.227  2004-02-20 21:55:59  peter
+    * procvar cleanup
+
+  Revision 1.226  2004/02/19 17:07:42  florian
     * fixed arg. area calculation
 
   Revision 1.225  2004/02/13 15:42:21  peter

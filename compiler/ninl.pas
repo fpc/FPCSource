@@ -74,7 +74,7 @@ implementation
       globtype, cutils,
       symbase,symconst,symdef,symsym,symtable,paramgr,defutil,defcmp,
       pass_1,
-      ncal,ncon,ncnv,nadd,nld,nbas,nflw,nmem,nmat,
+      ncal,ncon,ncnv,nadd,nld,nbas,nflw,nmem,nmat,nutils,
       cgbase,procinfo
       ;
 
@@ -2374,7 +2374,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.131  2004-02-04 18:45:29  jonas
+  Revision 1.132  2004-02-20 21:55:59  peter
+    * procvar cleanup
+
+  Revision 1.131  2004/02/04 18:45:29  jonas
     + some more usage of register temps
 
   Revision 1.130  2004/02/03 22:32:54  peter

@@ -75,7 +75,7 @@ implementation
        symconst,symtable,symsym,defutil,defcmp,
        { pass 1 }
        pass_1,htypechk,
-       nmat,nadd,ncal,nmem,nset,ncnv,ninl,ncon,nld,nflw,nbas,
+       nmat,nadd,ncal,nmem,nset,ncnv,ninl,ncon,nld,nflw,nbas,nutils,
        { parser }
        scanner,
        pbase,pinline,
@@ -286,50 +286,6 @@ implementation
       end;
 
 
-    procedure check_tp_procvar(var p : tnode);
-      var
-         hp,
-         p1 : tnode;
-      begin
-         if (m_tp_procvar in aktmodeswitches) and
-            (token<>_ASSIGNMENT) and
-            (not got_addrn) and
-            (block_type=bt_body) then
-          begin
-            { ignore vecn,subscriptn }
-            hp:=p;
-            repeat
-              case hp.nodetype of
-                vecn :
-                  hp:=tvecnode(hp).left;
-                subscriptn :
-                  hp:=tsubscriptnode(hp).left;
-                else
-                  break;
-              end;
-            until false;
-            if (hp.nodetype=loadn) then
-               begin
-                  { get the resulttype of p }
-                  do_resulttypepass(p);
-                  { convert the procvar load to a call:
-                     - not expecting a procvar
-                     - the procvar does not get arguments, when it
-                       requires arguments the callnode will fail
-                       Note: When arguments were passed there was no loadn }
-                  if (getprocvardef=nil) and
-                     (p.resulttype.def.deftype=procvardef) and
-                     (tprocvardef(p.resulttype.def).minparacount=0) then
-                    begin
-                       p1:=ccallnode.create_procvar(nil,p);
-                       resulttypepass(p1);
-                       p:=p1;
-                    end;
-               end;
-          end;
-      end;
-
-
      function statement_syssym(l : longint) : tnode;
       var
         p1,p2,paras  : tnode;
@@ -471,16 +427,6 @@ implementation
               p1:=comp_expr(true);
               if not codegenerror then
                begin
-                 { With tp procvars we allways need to load a
-                   procvar when it is passed, but not when the
-                   callnode is inserted due a property or has
-                   arguments }
-                 if (m_tp_procvar in aktmodeswitches) and
-                    (p1.nodetype=calln) and
-                    (tcallnode(p1).para_count=0) and
-                    not(nf_isproperty in tcallnode(p1).flags) then
-                   load_procvar_from_calln(p1);
-
                  case p1.resulttype.def.deftype of
                    procdef, { procvar }
                    pointerdef,
@@ -1761,31 +1707,22 @@ implementation
 
                else
                  begin
-                 { is this a procedure variable ? }
-                   if assigned(p1.resulttype.def) then
-                    begin
-                      if (p1.resulttype.def.deftype=procvardef) then
-                       begin
-                         if assigned(getprocvardef) and
-                            equal_defs(p1.resulttype.def,getprocvardef) then
-                           again:=false
-                         else
-                           if (token=_LKLAMMER) or
-                              ((tprocvardef(p1.resulttype.def).maxparacount=0) and
-                               (not((token in [_ASSIGNMENT,_UNEQUAL,_EQUAL]))) and
-                               (not afterassignment) and
-                               (not in_args)) then
+                   { is this a procedure variable ? }
+                   if assigned(p1.resulttype.def) and
+                      (p1.resulttype.def.deftype=procvardef) then
+                     begin
+                       if assigned(getprocvardef) and
+                          equal_defs(p1.resulttype.def,getprocvardef) then
+                         again:=false
+                       else
+                         begin
+                           if try_to_consume(_LKLAMMER) then
                              begin
-                                if try_to_consume(_LKLAMMER) then
-                                  begin
-                                     p2:=parse_paras(false,false);
-                                     consume(_RKLAMMER);
-                                  end
-                                else
-                                  p2:=nil;
-                                p1:=ccallnode.create_procvar(p2,p1);
-                                { proc():= is never possible }
-                                if token=_ASSIGNMENT then
+                               p2:=parse_paras(false,false);
+                               consume(_RKLAMMER);
+                               p1:=ccallnode.create_procvar(p2,p1);
+                               { proc():= is never possible }
+                               if token=_ASSIGNMENT then
                                  begin
                                    Message(cg_e_illegal_expression);
                                    p1.free;
@@ -1793,14 +1730,12 @@ implementation
                                    again:=false;
                                  end;
                              end
-                         else
-                           again:=false;
-                       end
-                      else
-                       again:=false;
-                    end
+                           else
+                             again:=false;
+                         end;
+                     end
                    else
-                    again:=false;
+                     again:=false;
                   end;
              end;
            end; { while again }
@@ -2248,10 +2183,6 @@ implementation
         if (not assigned(p1.resulttype.def)) then
          do_resulttypepass(p1);
 
-        { tp7 procvar handling, but not if the next token
-          will be a := }
-        check_tp_procvar(p1);
-
         factor:=p1;
         check_tokenpos;
       end;
@@ -2387,7 +2318,6 @@ implementation
          if not assigned(p1.resulttype.def) then
           do_resulttypepass(p1);
          filepos:=akttokenpos;
-         check_tp_procvar(p1);
          if token in [_ASSIGNMENT,_PLUSASN,_MINUSASN,_STARASN,_SLASHASN] then
            afterassignment:=true;
          oldp1:=p1;
@@ -2489,7 +2419,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.149  2004-02-18 21:58:53  peter
+  Revision 1.150  2004-02-20 21:55:59  peter
+    * procvar cleanup
+
+  Revision 1.149  2004/02/18 21:58:53  peter
     * constants are now parsed as 64bit for cpu64bit
 
   Revision 1.148  2004/02/17 23:36:40  daniel
