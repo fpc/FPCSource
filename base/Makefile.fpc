@@ -28,8 +28,6 @@ OLDFPCDIR:=$(FPCDIR)
 checkfpcdir:
 ifdef OLDFPCDIR
 ifneq ($(OLDFPCDIR),)
-FPCDIRSET=fpcdirset
-fpcdirset:
         @echo ---------------------------------------------------------
         @echo
         @echo   You must unset FPCDIR to use this the packaging rules.
@@ -331,7 +329,7 @@ ifdef IDE
         $(NOSTOP)$(MAKE) ide_install $(BUILDOPTS)
 endif
 
-zipinstall: $(FPCDIRSET) build-stamp
+zipinstall: build-stamp
         $(MAKE) fpc_zipinstall ZIPTARGET=installbase PACKAGENAME=base $(INSTALLOPTS)
         $(MAKE) utils_zipinstall $(INSTALLOPTS)
         $(MAKE) api_zipinstall $(INSTALLOPTS) PACKAGEPREFIX=$(PKGPRE)
@@ -404,22 +402,22 @@ sourcezip:
 
 .PHONY: go32v2 win32 linux go32v2zip win32zip linuxzip
 
-go32v2:
+go32v2: checkfpcdir
         $(MAKE) install OS_TARGET=go32v2
 
-win32:
+win32: checkfpcdir
         $(MAKE) install OS_TARGET=win32
 
-linux:
+linux: checkfpcdir
         $(MAKE) install OS_TARGET=linux
 
-go32v2zip:
+go32v2zip: checkfpcdir
         $(MAKE) zipinstall OS_TARGET=go32v2
 
-win32zip:
+win32zip: checkfpcdir
         $(MAKE) zipinstall OS_TARGET=win32
 
-linuxzip:
+linuxzip: checkfpcdir
         $(MAKE) zipinstall OS_TARGET=linux
 
 
@@ -449,7 +447,7 @@ debcopy: distclean
         find $(DEBSRCDIR) -name 'CVS*' | xargs -n1 rm -rf
         chmod 755 $(DEBSRCDIR)/debian/rules
 
-deb: debcopy
+deb: checkfpcdir debcopy
         cd $(DEBSRCDIR) ; debian/rules binary
 
 
@@ -487,7 +485,7 @@ rpmcopy: distclean
         find $(DOCSRCDIR) -name 'CVS*' | xargs -n1 rm -rf
         cd $(DOCSRCDIR) ; tar cvz * > $(RPMSOURCESDIR)/fpc-docs-$(FPC_VERSION)-src.tar.gz
 
-rpm: rpmcopy
+rpm: checkfpcdir rpmcopy
         cd $(RPMSPECDIR) ; rpm -ba fpc-$(FPC_VERSION).spec
         cd $(RPMSPECDIR) ; rpm -ba fpc-docs-$(FPC_VERSION).spec
 
