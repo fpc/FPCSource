@@ -885,6 +885,18 @@ const
          randseed:=time.ds_tick;
       end;
 
+function getheapstart:pointer;assembler;
+asm
+        lea.l   HEAP,a0
+        move.l  a0,d0
+end;
+
+
+function getheapsize:longint;assembler;
+asm
+       move.l   HEAP_SIZE,d0
+end ['D0'];
+
   { This routine is used to grow the heap.  }
   { But here we do a trick, we say that the }
   { heap cannot be regrown!                 }
@@ -1645,15 +1657,15 @@ end;
              path:=path+':';
           end;
 
-	       len := len + elen;
+               len := len + elen;
 
-	       UnLock(lock);
-	       lock := newlock;
+               UnLock(lock);
+               lock := newlock;
     end;
     if (lock <> 0) then
     Begin
-	    UnLock(lock);
-	    path := '';
+            UnLock(lock);
+            path := '';
     end;
     if assigned(fib) then dispose(fib);
  end;
@@ -1800,7 +1812,11 @@ end.
 
 {
   $Log$
-  Revision 1.9  1998-08-17 12:34:22  carl
+  Revision 1.10  1998-09-14 10:48:00  peter
+    * FPC_ names
+    * Heap manager is now system independent
+
+  Revision 1.9  1998/08/17 12:34:22  carl
     * chdir accepts .. characters
     + added ctrl-c checking
     + implemented sbrk

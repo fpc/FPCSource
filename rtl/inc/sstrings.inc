@@ -217,7 +217,7 @@ end;
                               Str() Helpers
 *****************************************************************************}
 
-procedure int_str_real(d : real;len,fr : longint;var s : string);[public, alias : 'STR_REAL'];
+procedure int_str_real(d : real;len,fr : longint;var s : string);[public, alias : {$ifdef FPCNAMES}'FPC_STR_REAL'{$else}'STR_REAL'{$endif}];
 begin
 {$ifdef i386}
    str_real(len,fr,d,rt_s64real,s);
@@ -227,7 +227,7 @@ begin
 end;
 
 {$ifdef SUPPORT_SINGLE}
-procedure int_str_single(d : single;len,fr : longint;var s : string);[public, alias : 'STR_SINGLE'];
+procedure int_str_single(d : single;len,fr : longint;var s : string);[public, alias : {$ifdef FPCNAMES}'FPC_STR_SINGLE'{$else}'STR_SINGLE'{$endif}];
 begin
    str_real(len,fr,d,rt_s32real,s);
 end;
@@ -235,7 +235,7 @@ end;
 
 
 {$ifdef SUPPORT_EXTENDED}
-procedure int_str_extended(d : extended;len,fr : longint;var s : string);[public, alias : 'STR_EXTENDED'];
+procedure int_str_extended(d : extended;len,fr : longint;var s : string);[public, alias : {$ifdef FPCNAMES}'FPC_STR_EXTENDED'{$else}'STR_EXTENDED'{$endif}];
 begin
    str_real(len,fr,d,rt_s80real,s);
 end;
@@ -243,7 +243,7 @@ end;
 
 
 {$ifdef SUPPORT_COMP}
-procedure int_str_comp(d : comp;len,fr : longint;var s : string);[public, alias : 'STR_COMP'];
+procedure int_str_comp(d : comp;len,fr : longint;var s : string);[public, alias : {$ifdef FPCNAMES}'FPC_STR_COMP'{$else}'STR_COMP'{$endif}];
 begin
    str_real(len,fr,d,rt_s64bit,s);
 end;
@@ -251,14 +251,14 @@ end;
 
 
 {$ifdef SUPPORT_FIXED}
-procedure int_str_fixed(d : fixed;len,fr : longint;var s : string);[public, alias : 'STR_FIXED'];
+procedure int_str_fixed(d : fixed;len,fr : longint;var s : string);[public, alias : {$ifdef FPCNAMES}'FPC_STR_FIXED'{$else}'STR_FIXED'{$endif}];
 begin
    str_real(len,fr,d,rt_f32bit,s);
 end;
 {$endif SUPPORT_FIXED}
 
 
-procedure int_str_longint(v : longint;len : longint;var s : string);[public, alias : 'STR_LONGINT'];
+procedure int_str_longint(v : longint;len : longint;var s : string);[public, alias : {$ifdef FPCNAMES}'FPC_STR_LONGINT'{$else}'STR_LONGINT'{$endif}];
 begin
    int_str(v,s);
    if length(s)<len then
@@ -266,7 +266,7 @@ begin
 end;
 
 
-procedure int_str_cardinal(v : cardinal;len : longint;var s : string);[public, alias : 'STR_CARDINAL'];
+procedure int_str_cardinal(v : cardinal;len : longint;var s : string);[public, alias : {$ifdef FPCNAMES}'FPC_STR_CARDINAL'{$else}'STR_CARDINAL'{$endif}];
 begin
   int_str(v,s);
   if length(s)<len then
@@ -753,7 +753,11 @@ end;
 
 {
   $Log$
-  Revision 1.11  1998-08-11 21:39:07  peter
+  Revision 1.12  1998-09-14 10:48:19  peter
+    * FPC_ names
+    * Heap manager is now system independent
+
+  Revision 1.11  1998/08/11 21:39:07  peter
     * splitted default_extended from support_extended
 
   Revision 1.10  1998/08/08 12:28:13  florian

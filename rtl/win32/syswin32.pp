@@ -19,19 +19,15 @@ unit syswin32;
 
 {$I os.inc}
 
-{.$DEFINE WINHEAP}   { Use windows heap manager, if not set use FPC heap }
-
-
 interface
 
 { include system-independent routine headers }
 
 {$I systemh.inc}
 
-{$ifndef WinHeap}
-  { include heap support headers }
-  {$I heaph.inc}
-{$endif}
+{ include heap support headers }
+{$I heaph.inc}
+
 
 const
 { Default filehandles }
@@ -72,14 +68,8 @@ var
   hinstance,
   cmdshow     : longint;
 
-{$ifdef WinHeap}
-var
-  heaperror  : pointer;
-
-function HeapSize:longint;
-{$endif}
-
 implementation
+
 
 { include system independent routines }
 {$I system.inc}
@@ -234,33 +224,29 @@ end;
                               Heap Management
 *****************************************************************************}
 
-{$ifdef WinHeap}
-
-  {$i winheap.inc}
-
-{$else}
-
    { memory functions }
    function GlobalAlloc(mode,size:longint):longint;
      external 'kernel32' name 'GlobalAlloc';
-   function GlobalReAlloc(mode,size:longint):longint;
-     external 'kernel32' name 'GlobalReAlloc';
-   function GlobalHandle(p:pointer):longint;
-     external 'kernel32' name 'GlobalHandle';
    function GlobalLock(handle:longint):pointer;
      external 'kernel32' name 'GlobalLock';
-   function GlobalUnlock(h:longint):longint;
-     external 'kernel32' name 'GlobalUnlock';
-   function GlobalFree(h:longint):longint;
-     external 'kernel32' name 'GlobalFree';
+{$ifdef SYSTEMDEBUG}
    function GlobalSize(h:longint):longint;
      external 'kernel32' name 'GlobalSize';
-   procedure GlobalMemoryStatus(p:pointer);
-     external 'kernel32' name 'GlobalMemoryStatus';
-   function LocalAlloc(uFlags : UINT;uBytes :UINT) : HLOCAL;
-     external 'kernel32' name 'LocalAlloc';
-   function LocalFree(hMem:HLOCAL):HLOCAL;
-     external 'kernel32' name 'LocalFree';
+{$endif}
+
+{$ASMMODE DIRECT}
+function getheapstart:pointer;assembler;
+asm
+        leal    HEAP,%eax
+end ['EAX'];
+
+
+function getheapsize:longint;assembler;
+asm
+        movl    HEAPSIZE,%eax
+end ['EAX'];
+{$ASMMODE ATT}
+
 
 function Sbrk(size : longint):longint;
 var
@@ -268,16 +254,16 @@ var
 begin
   h:=GlobalAlloc(258,size);
   l:=longint(GlobalLock(h));
-  if l=0 then l:=-1;
+  if l=0 then
+    l:=-1;
+{$ifdef SYSTEMDEBUG}
   Writeln('new heap part at $',hexstr(l,8), ' size = ',GlobalSize(h));
+{$endif}
   sbrk:=l;
 end;
 
 { include standard heap management }
 {$I heap.inc}
-
-{$endif WinHeap}
-
 
 {*****************************************************************************
                           Low Level File Routines
@@ -742,9 +728,7 @@ begin
 { real test stack depth        }
 {   stacklimit := setupstack;  }
 { Setup heap }
-{$ifndef WinHeap}
   InitHeap;
-{$endif WinHeap}
 { Setup stdin, stdout and stderr }
   StdInputHandle:=longint(GetStdHandle(STD_INPUT_HANDLE));
   StdOutputHandle:=longint(GetStdHandle(STD_OUTPUT_HANDLE));
@@ -762,7 +746,11 @@ end.
 
 {
   $Log$
-  Revision 1.19  1998-09-02 09:03:46  pierre
+  Revision 1.20  1998-09-14 10:48:33  peter
+    * FPC_ names
+    * Heap manager is now system independent
+
+  Revision 1.19  1998/09/02 09:03:46  pierre
     * do_open sometimes returns -1 as handle on fail
       was not checked correctly
 

@@ -89,7 +89,7 @@ begin
 end;
 
 
-Procedure FillChar(var x;count:longint;value:byte);[alias: 'FILL_OBJECT'];
+Procedure FillChar(var x;count:longint;value:byte);[alias: 'FPC_FILL_OBJECT'];
 begin
         asm
         cld
@@ -151,7 +151,7 @@ end;
 
 {$ASMMODE DIRECT}
 
-procedure int_help_constructor;assembler; [public,alias:'HELP_CONSTRUCTOR'];
+procedure int_help_constructor;assembler; [public,alias:{$ifdef FPCNAMES}'FPC_'+{$endif}'HELP_CONSTRUCTOR'];
 asm
 { Entry without preamble, since we need the ESP of the constructor
   Stack (relative to %ebp):
@@ -173,7 +173,11 @@ asm
       { Memory size }
         pushl   (%eax)
         pushl   %esi
+{$ifdef FPCNAMES}
+        call    FPC_GETMEM
+{$else}
         call    GETMEM
+{$endif}
         popal
       { Memory size to %esi }
         movl    (%esi),%esi
@@ -197,7 +201,7 @@ asm
         pushw   $0
         pushl   (%eax)
         pushl   %esi
-        call    FILL_OBJECT
+        call    FPC_FILL_OBJECT
         popal
       { set the VMT address for the new created object }
         movl    %eax,(%esi)
@@ -211,7 +215,7 @@ asm
 end;
 
 
-procedure int_new_class;assembler;[public,alias:'NEW_CLASS'];
+procedure int_new_class;assembler;[public,alias:'FPC_NEW_CLASS'];
 asm
      { create class ? }
      movl 8(%ebp),%edi
@@ -232,7 +236,7 @@ asm
 end;
 
 
-procedure int_dispose_class;assembler;[public,alias:'DISPOSE_CLASS'];
+procedure int_dispose_class;assembler;[public,alias:'FPC_DISPOSE_CLASS'];
 asm
      { destroy class ? }
      movl 8(%ebp),%edi
@@ -253,7 +257,7 @@ end;
 
 
 { checks for a correct vmt pointer }
-procedure int_check_object;assembler;[public,alias:'CHECK_OBJECT'];
+procedure int_check_object;assembler;[public,alias:'FPC_CHECK_OBJECT'];
 asm
      pushl %edi
      movl 8(%esp),%edi
@@ -273,11 +277,11 @@ asm
      ret $4
 .Lco_re:
      pushl $210
-     call handleerror
+     call FPC_HANDLEERROR
 end;
 
 
-procedure int_help_destructor;assembler;[public,alias:'HELP_DESTRUCTOR'];
+procedure int_help_destructor;assembler;[public,alias:{$ifdef FPCNAMES}'FPC_'+{$endif}'HELP_DESTRUCTOR'];
 asm
 { Stack (relative to %ebp):
     12 Self
@@ -305,7 +309,11 @@ asm
         movl    $0,(%eax)
         movl    %eax,(%edi)
         pushl   %edi
+{$ifdef FPCNAMES}
+        call    FPC_FREEMEM
+{$else}
         call    FREEMEM
+{$endif}
 .LHD_3:
         popal
         addl    $4,%esp
@@ -318,7 +326,7 @@ end;
                                  String
 ****************************************************************************}
 
-procedure strcopy(dstr,sstr:pointer;len:longint);[public,alias:'STRCOPY'];
+procedure strcopy(dstr,sstr:pointer;len:longint);[public,alias:{$ifdef FPCNAMES}'FPC_'+{$endif}'STRCOPY'];
 {
   this procedure must save all modified registers except EDI and ESI !!!
 }
@@ -360,7 +368,7 @@ begin
 end;
 
 
-procedure strconcat(s1,s2 : pointer);[public,alias: 'STRCONCAT'];
+procedure strconcat(s1,s2 : pointer);[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'STRCONCAT'];
 begin
   asm
         xorl    %ecx,%ecx
@@ -399,7 +407,7 @@ begin
 end;
 
 
-procedure strcmp(dstr,sstr : pointer);[public,alias: 'STRCMP'];
+procedure strcmp(dstr,sstr : pointer);[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'STRCMP'];
 begin
   asm
         cld
@@ -499,13 +507,20 @@ asm
         subl    %ecx,%eax
 end ['EDI','ECX','EAX'];
 
+
 {****************************************************************************
-                                 Other
+                       Caller/StackFrame Helpers
 ****************************************************************************}
 
-function get_addr(addrbp:longint):longint;assembler;
+function get_frame:longint;assembler;
 asm
-        movl    addrbp,%eax
+        movl    %ebp,%eax
+end ['EAX'];
+
+
+function get_caller_addr(framebp:longint):longint;assembler;
+asm
+        movl    framebp,%eax
         orl     %eax,%eax
         jz      .Lg_a_null
         movl    4(%eax),%eax
@@ -513,7 +528,7 @@ asm
 end ['EAX'];
 
 
-function get_next_frame(framebp:longint):longint;assembler;
+function get_caller_frame(framebp:longint):longint;assembler;
 asm
         movl    framebp,%eax
         orl     %eax,%eax
@@ -523,101 +538,9 @@ asm
 end ['EAX'];
 
 
-Procedure HandleError (Errno : longint);[alias : 'handleerror'];
-{
-  Procedure to handle internal errors, i.e. not user-invoked errors
-  Internal function should ALWAYS call HandleError instead of RunError.
-}
-function get_addr : Pointer;assembler;
-asm
-  movl (%ebp),%eax
-  movl 4(%eax),%eax
-end;
-
-function get_error_bp : Longint;assembler;
-asm
-   movl (%ebp),%eax
-end;
-
-begin
-  If ErrorProc<>Nil then
-    TErrorProc (ErrorProc)(Errno,get_addr);
-  errorcode:=Errno;
-  exitcode:=Errno;
-  erroraddr:=Get_addr;
-  DoError := TRUE;
-  errorbase:=get_error_bp;
-  halt(errorcode);
-end;
-
-procedure runerror(w : word);[alias: 'runerror'];
-
-  function get_addr : Pointer;assembler;
-  asm
-    movl (%ebp),%eax
-    movl 4(%eax),%eax
-  end;
-
-  function get_error_bp : Longint;assembler;
-  asm
-    movl (%ebp),%eax {%ebp of run_error}
-  end;
-
-begin
-  errorcode:=w;
-  exitcode:=w;
-  erroraddr:=pointer(get_addr);
-  DoError := TRUE;
-  errorbase:=get_error_bp;
-  halt(errorcode);
-end;
-
-procedure int_iocheck(addr : longint);[public,alias: 'IOCHECK'];
-var
-  l : longint;
-begin
-{ Since IOCHECK is called directly and only later the optimiser }
-{ Maybe also save global registers  }
-  asm
-        pushal
-  end;
-  l:=ioresult;
-  if l<>0 then
-   begin
-     If ErrorProc<>Nil then
-       TErrorProc(Errorproc)(l,pointer(addr));
-{$ifndef RTLLITE}
-     writeln('IO-Error ',l,' at 0x',HexStr(addr,8));
-{$else}
-     writeln('IO-Error ',l,' at ',addr);
-{$endif}
-     Halt(byte(l));
-   end;
-  asm
-        popal
-   end;
-end;
-
-
-procedure int_re_overflow;[public,alias: 'RE_OVERFLOW'];
-var
-  addr : longint;
-begin
-{ Overflow was shortly before the return address }
-   asm
-        movl    4(%ebp),%edi
-        movl    %edi,addr
-   end;
-   If ErrorProc<>Nil then
-     TErrorProc (ErrorProc)(215,Pointer(Addr));
-{$ifndef RTLLITE}
-   writeln('Overflow at 0x',HexStr(addr,8));
-{$else}
-   writeln('Overflow at ',addr);
-{$endif}
-   HandleError(215);
-end;
-
+{****************************************************************************
+                                 Math
+****************************************************************************}
 
 function abs(l:longint):longint;assembler;{$ifdef INTERNCONST}[internconst:in_const_abs];{$endif}
 asm
@@ -643,6 +566,20 @@ asm
         imull   %eax,%eax
 end ['EAX'];
 
+
+Function Sptr : Longint;
+begin
+  asm
+    movl %esp,%eax
+    addl $8,%eax
+    movl %eax,-4(%ebp)
+  end ['EAX'];
+end;
+
+
+{****************************************************************************
+                                 Str()
+****************************************************************************}
 
     procedure int_str(l : longint;var s : string);
 
@@ -719,40 +656,43 @@ end ['EAX'];
          end;
       end;
 
-{$ifdef VER0_99_5}
-    procedure f1;[public,alias: 'FLUSH_STDOUT'];
 
-      begin
-         asm
-            pushal
-         end;
-         FileFunc(textrec(output).flushfunc)(textrec(output));
-         asm
-            popal
-         end;
-      end;
-{$endif VER0_99_5}
+{****************************************************************************
+                                 IoCheck
+****************************************************************************}
 
-
-Function Sptr : Longint;
+procedure int_iocheck(addr : longint);[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'IOCHECK'];
+var
+  l : longint;
 begin
   asm
-    movl %esp,%eax
-    addl $8,%eax
-    movl %eax,-4(%ebp)
-  end ['EAX'];
+        pushal
+  end;
+  if InOutRes<>0 then
+   begin
+     l:=InOutRes;
+     InOutRes:=0;
+     If ErrorProc<>Nil then
+       TErrorProc(Errorproc)(l,pointer(addr));
+{$ifndef RTLLITE}
+     writeln('IO-Error ',l,' at 0x',HexStr(addr,8));
+{$endif}
+     Halt(byte(l));
+   end;
+  asm
+        popal
+  end;
 end;
 
 
-{$ifdef VER_0_99_5}
-  {$I386_DIRECT}
-{$endif}
-
-{$ASMMODE ATT}
 
 {
   $Log$
-  Revision 1.20  1998-09-11 17:38:48  pierre
+  Revision 1.21  1998-09-14 10:48:08  peter
+    * FPC_ names
+    * Heap manager is now system independent
+
+  Revision 1.20  1998/09/11 17:38:48  pierre
      merge for fixes branch
 
   Revision 1.19.2.1  1998/09/11 17:37:24  pierre

@@ -5,7 +5,6 @@
 
     functions for heap management in the data segment
 
-
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -24,8 +23,6 @@
    CHECKHEAP    if you want to test the heap integrity
 
 }
-
-{$ASMMODE DIRECT}
 
 const
   max_size = 256;
@@ -111,28 +108,6 @@ const
        tempheap  : theapinfo;
        otherheap : pheapinfo;
 {$endif TEMPHEAP}
-
-
-{$ifndef OS2}
-{ OS2 function getheapstart is in sysos2.pas }
-    function getheapstart : pointer;
-      begin
-         asm
-            leal HEAP,%eax
-            leave
-            ret
-         end ['EAX'];
-      end;
-{$endif}
-
-    function getheapsize : longint;
-      begin
-         asm
-            movl HEAPSIZE,%eax
-            leave
-            ret
-         end ['EAX'];
-      end;
 
 
 {*****************************************************************************
@@ -244,12 +219,7 @@ end;
      begin
        Writeln('Marked memory at ',HexStr(longint(p),8),' released');
        call_stack(p+sizeof(heap_mem_info));
-       asm
-           movl (%ebp),%eax
-           movl (%eax),%eax
-           movl %eax,ebp
-       end;
-       dump_stack(ebp);
+       dump_stack(get_caller_frame(get_frame));
      end;
 
 
@@ -339,8 +309,8 @@ end;
          tempheap.heapsize:=tempheap.memavail;
          getmem(tempheap.block,sizeof(tblocks));
          getmem(tempheap.nblock,sizeof(tnblocks));
-	 fillchar(tempheap.block^,sizeof(tblocks),0);
-	 fillchar(tempheap.nblock^,sizeof(tnblocks),0);
+         fillchar(tempheap.block^,sizeof(tblocks),0);
+         fillchar(tempheap.nblock^,sizeof(tnblocks),0);
          heapend:=baseheap.heapend;
          internal_memavail:=calc_memavail;
          baseheap.memavail:=internal_memavail;
@@ -445,7 +415,7 @@ end;
           begin
             while assigned(hp^.next) do
              hp:=hp^.next;
-          end;  
+          end;
          if tempheap.heapptr<>tempheap.heaporg then
           begin
             if hp<>nil then
@@ -518,21 +488,11 @@ end;
                                 GetMem
 *****************************************************************************}
 
-procedure getmem(var p : pointer;size : longint);[public,alias: 'GETMEM'];
-
-   { changed to removed the OS conditionnals }
-   function call_heaperror(addr : pointer; size : longint) : integer;
-   begin
-     asm
-              pushl size
-              movl  addr,%eax
-              { movl HEAPERROR,%eax doesn't work !!}
-              call %eax
-              movw %ax,__RESULT
-      end;
-   end;
-
+procedure getmem(var p : pointer;size : longint);[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'GETMEM'];
+type
+  heaperrorproc=function(size:longint):integer;
 var
+  proc     : heaperrorproc;
   last,hp  : pfreerecord;
   again    : boolean;
   s,hpsize : longint;
@@ -658,7 +618,8 @@ begin
      begin
        if assigned(heaperror) then
         begin
-          case call_heaperror(heaperror,size) of
+          proc:=heaperrorproc(heaperror);
+          case proc(size) of
            0 : HandleError(203);
            1 : p:=nil;
            2 : again:=true;
@@ -679,10 +640,6 @@ check_new:
   test_memavail;
   if trace then
    begin
-     asm
-         movl (%ebp),%eax
-         movl %eax,bp
-     end;
      pheap_mem_info(p)^.sig:=$DEADBEEF;
      pheap_mem_info(p)^.previous:=last_assigned;
      if last_assigned<>nil then
@@ -690,10 +647,11 @@ check_new:
      last_assigned:=p;
      pheap_mem_info(p)^.next:=nil;
      pheap_mem_info(p)^.size:=orsize;
+     bp:=get_caller_frame(get_frame);
      for i:=1 to tracesize do
       begin
-        pheap_mem_info(p)^.calls[i]:=get_addr(bp);
-        bp:=get_next_frame(bp);
+        pheap_mem_info(p)^.calls[i]:=get_caller_addr(bp);
+        bp:=get_caller_frame(bp);
       end;
      inc(p,sizeof(heap_mem_info));
    end;
@@ -705,7 +663,7 @@ end;
                                 FreeMem
 *****************************************************************************}
 
-procedure freemem(var p : pointer;size : longint);[public,alias: 'FREEMEM'];
+procedure freemem(var p : pointer;size : longint);[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'FREEMEM'];
 var
   hp : pfreerecord;
 {$ifdef TEMPHEAP}
@@ -960,7 +918,9 @@ end;
 
 function growheap(size :longint) : integer;
 var
-  Newlimit,
+{$ifdef CHECKHEAP}
+  NewLimit,
+{$endif CHECKHEAP}
   NewPos,
   wantedsize : longint;
   hp         : pfreerecord;
@@ -1044,12 +1004,6 @@ begin
     to get the memory PM }
    internal_memavail:=calc_memavail;
  { set the total new heap size }
-   asm
-           movl Size,%ebx
-           movl HEAPSIZE,%eax
-           addl %ebx,%eax
-           movl %eax,HEAPSIZE
-   end;
    inc(internal_heapsize,size);
   { try again }
    GrowHeap:=2;
@@ -1076,20 +1030,22 @@ begin
   Curheap:=@baseheap;
   Otherheap:=@tempheap;
 {$endif TEMPHEAP}
-  internal_memavail:=GetHeapSize;
+  internal_heapsize:=GetHeapSize;
+  internal_memavail:=internal_heapsize;
   HeapOrg:=GetHeapStart;
   HeapPtr:=HeapOrg;
   HeapEnd:=HeapOrg+internal_memavail;
   HeapError:=@GrowHeap;
-  internal_heapsize:=longint(heapend)-longint(heaporg);
   Freelist:=nil;
 end;
 
-{$ASMMODE ATT}
-
 {
   $Log$
-  Revision 1.18  1998-09-08 15:02:48  peter
+  Revision 1.1  1998-09-14 10:48:17  peter
+    * FPC_ names
+    * Heap manager is now system independent
+
+  Revision 1.18  1998/09/08 15:02:48  peter
     * much more readable :)
 
   Revision 1.17  1998/09/04 17:27:48  pierre

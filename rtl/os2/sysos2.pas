@@ -243,7 +243,12 @@ function getheapstart:pointer;assembler;
 asm
     movl __heap_base,%eax
 end ['EAX'];
-{$ASMMODE att}
+
+function getheapsize:longint;assembler;
+asm
+    movl    HEAPSIZE,%eax
+end ['EAX'];
+{$ASMMODE ATT}
 
 {$i heap.inc}
 

@@ -98,7 +98,7 @@ implementation
 {$I system.inc}
 
 {$ASMMODE DIRECT}
-procedure int_stackcheck(stack_size:longint);[public,alias: 'STACKCHECK'];
+procedure int_stackcheck(stack_size:longint);[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'STACKCHECK'];
 begin
 { called when trying to get local stack
   if the compiler directive $S is set
@@ -182,6 +182,18 @@ end;
 {*****************************************************************************
                               Heap Management
 *****************************************************************************}
+
+function getheapstart:pointer;assembler;
+asm
+        leal    HEAP,%eax
+end ['EAX'];
+
+
+function getheapsize:longint;assembler;
+asm
+        movl    HEAPSIZE,%eax
+end ['EAX'];
+
 
 function Sbrk(size : longint) : longint;assembler;
 asm
@@ -458,11 +470,11 @@ asm
         popl    %ebp
         jnc     .LDOSDEVICE
         movw    %ax,inoutres
-	     xorl	%edx,%edx
+             xorl       %edx,%edx
   .LDOSDEVICE:
-        movl	%edx,%eax
-	     shrl	$7,%eax
-        andl	$1,%eax
+        movl    %edx,%eax
+             shrl       $7,%eax
+        andl    $1,%eax
 end;
 
 
@@ -597,7 +609,11 @@ Begin
 End.
 {
   $Log$
-  Revision 1.8  1998-07-30 13:28:33  michael
+  Revision 1.9  1998-09-14 10:48:03  peter
+    * FPC_ names
+    * Heap manager is now system independent
+
+  Revision 1.8  1998/07/30 13:28:33  michael
   + Added support for errorproc. Changed runerror to HandleError
 
   Revision 1.7  1998/07/07 12:30:20  carl

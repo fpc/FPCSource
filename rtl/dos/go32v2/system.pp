@@ -29,7 +29,7 @@ interface
 
 const
 { Default filehandles }
-  UnusedHandle    = $ffff;
+  UnusedHandle    = -1;
   StdInputHandle  = 0;
   StdOutputHandle = 1;
   StdErrorHandle  = 2;
@@ -134,7 +134,6 @@ var
 procedure halt(errnum : byte);
 begin
   do_exit;
-  flush(stderr);
   asm
         movzbw  errnum,%ax
         pushw   %ax
@@ -143,7 +142,7 @@ begin
 end;
 
 
-procedure int_stackcheck(stack_size:longint);[public,alias: 'STACKCHECK'];
+procedure int_stackcheck(stack_size:longint);[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'STACKCHECK'];
 {
   called when trying to get local stack if the compiler directive $S
   is set this function must preserve esi !!!! because esi is set by
@@ -562,6 +561,18 @@ end;
 *****************************************************************************}
 
 {$ASMMODE DIRECT}
+
+function getheapstart:pointer;assembler;
+asm
+        leal    HEAP,%eax
+end ['EAX'];
+
+
+function getheapsize:longint;assembler;
+asm
+        movl    HEAPSIZE,%eax
+end ['EAX'];
+
 
 function Sbrk(size : longint):longint;assembler;
 asm
@@ -1106,7 +1117,11 @@ Begin
 End.
 {
   $Log$
-  Revision 1.18  1998-08-28 10:48:04  peter
+  Revision 1.19  1998-09-14 10:48:05  peter
+    * FPC_ names
+    * Heap manager is now system independent
+
+  Revision 1.18  1998/08/28 10:48:04  peter
     * fixed chdir with drive changing
     * updated checklfn from mailinglist
 

@@ -18,11 +18,11 @@
 
 
 {
-  This file contains the implementation of the LongString type, 
+  This file contains the implementation of the LongString type,
   and all things that are needed for it.
   AnsiSTring is defined as a 'silent' pchar :
   a pchar that points to :
-      
+
   @-12 : Longint for maximum size;
   @-8  : Longint for size;
   @-4  : Longint for reference count;
@@ -61,7 +61,7 @@ Type TAnsiRec = Record
 
 Const AnsiRecLen = SizeOf(TAnsiRec);
       FirstOff   = SizeOf(TAnsiRec)-1;
-      
+
 { ---------------------------------------------------------------------
   Internal functions, not in interface.
   ---------------------------------------------------------------------}
@@ -79,7 +79,7 @@ begin
       Writeln ('Maxlen : ',maxlen);
       Writeln ('Len    : ',len);
       Writeln ('Ref    : ',ref);
-      end;  
+      end;
     end;
 end;
 
@@ -118,45 +118,45 @@ begin
 end;
 
 
-Procedure Decr_Ansi_Ref (Var S : AnsiString);[Alias : 'DECR_ANSI_REF'];
+Procedure Decr_Ansi_Ref (Var S : AnsiString);[Alias : 'FPC_DECR_ANSI_REF'];
 {
- Decreases the ReferenceCount of a non constant ansistring; 
+ Decreases the ReferenceCount of a non constant ansistring;
  If the reference count is zero, deallocate the string;
 }
 Type plongint = ^longint;
-     
-Var l : plongint;     
-     
+
+Var l : plongint;
+
 
 Begin
 //  dumpansirec(s);
   If Pointer(S)=Nil then exit; { Zero string }
-  
+
   { check for constant strings ...}
   l:=Pointer(S)-FirstOff+8;
   If l^<0 then exit;
   l^:=l^-1;
 //  dumpansirec(s);
-  If l^=0 then 
+  If l^=0 then
     { Ref count dropped to zero }
     begin
-//    Writeln ('CAlling disposestring'); 
+//    Writeln ('CAlling disposestring');
     DisposeAnsiString (S);        { Remove...}
     end
 end;
 
-Procedure Incr_Ansi_Ref (Var S : AnsiString);[Alias : 'INCR_ANSI_REF'];
+Procedure Incr_Ansi_Ref (Var S : AnsiString);[Alias : 'FPC_INCR_ANSI_REF'];
 
 Begin
   If Pointer(S)=Nil then exit;
   { Let's be paranoid : Constant string ??}
-  If PansiRec(Pointer(S)-FirstOff)^.Ref<0 then exit; 
+  If PansiRec(Pointer(S)-FirstOff)^.Ref<0 then exit;
   inc(PAnsiRec(Pointer(S)-FirstOff)^.Ref);
 end;
 
 Procedure UniqueAnsiString (Var S : AnsiString);
 {
-  Make sure reference count of S is 1, 
+  Make sure reference count of S is 1,
   using copy-on-write semantics.
 }
 
@@ -176,7 +176,7 @@ end;
 
 
 
-Procedure AssignAnsiString (Var S1 : AnsiString; S2 : Pointer); [Public, Alias : 'ASSIGN_ANSI_STRING'];
+Procedure AssignAnsiString (Var S1 : AnsiString; S2 : Pointer); [Public, Alias : 'FPC_ASSIGN_ANSI_STRING'];
 {
  Assigns S2 to S1 (S1:=S2), taking in account reference counts.
  If S2 is a constant string, a new S1 is allocated on the heap.
@@ -188,7 +188,7 @@ begin
     begin
     If PAnsiRec(S2-FirstOff)^.Ref<0 then
       begin
-      { S2 is a constant string, Create new string with copy. } 
+      { S2 is a constant string, Create new string with copy. }
       Temp:=Pointer(NewAnsiString(PansiRec(S2-FirstOff)^.Len));
       Move (S2^,Temp^,PAnsiRec(S2-FirstOff)^.len+1);
       PAnsiRec(Temp-FirstOff)^.Len:=PAnsiRec(S2-FirstOff)^.len;
@@ -207,7 +207,7 @@ end;
 
 Procedure Ansi_String_Concat (Var S1 : AnsiString; Var S2 : AnsiString);
 {
-  Concatenates 2 AnsiStrings : S1+S2. 
+  Concatenates 2 AnsiStrings : S1+S2.
   Result Goes to S1;
 }
 Var Size,Location : Longint;
@@ -221,9 +221,9 @@ begin
     Size:=PAnsiRec(Pointer(S2)-FirstOff)^.Len;
     Location:=Length(S1);
     { Setlength takes case of uniqueness
-      and allocated memory. We need to use length, 
+      and allocated memory. We need to use length,
       to take into account possibility of S1=Nil }
-//!!    SetLength (S1,Size+Location); 
+//!!    SetLength (S1,Size+Location);
     Move (Pointer(S2)^,Pointer(Pointer(S1)+location)^,Size+1);
     end;
 end;
@@ -241,10 +241,10 @@ begin
   Size:=byte(S2[0]);
   Location:=Length(S1);
   If Size=0 then exit;
-    { Setlength takes case of uniqueness 
-      and alllocated memory. We need to use length, 
+    { Setlength takes case of uniqueness
+      and alllocated memory. We need to use length,
       to take into account possibility of S1=Nil }
-  SetLength (S1,Size+Length(S1)); 
+  SetLength (S1,Size+Length(S1));
   Move (S2[1],Pointer(Pointer(S1)+Location)^,Size);
   PByte( Pointer(S1)+length(S1) )^:=0; { Terminating Zero }
 end;
@@ -282,11 +282,11 @@ end;
 
 
 Const EmptyChar : char = #0;
-    
-Function Ansi2pchar (S : Pointer) : Pchar; [Alias : 'ANSI2PCHAR'];
+
+Function Ansi2pchar (S : Pointer) : Pchar; [Alias : 'FPC_ANSI2PCHAR'];
 
 begin
-  If S<>Nil then 
+  If S<>Nil then
     Ansi2Pchar:=S
   else
     Ansi2Pchar:=@emptychar;
@@ -313,7 +313,7 @@ begin
    inc(i);
    end;
  if temp=0 then temp:=Length(S1)-Length(S2);
- AnsiCompare:=Temp; 
+ AnsiCompare:=Temp;
 end;
 
 
@@ -338,7 +338,7 @@ begin
    Temp:= PByte(Pointer(S1)+I)^ - Byte(S2[i+1]);
    inc(i);
    end;
- AnsiCompare:=Temp; 
+ AnsiCompare:=Temp;
 end;
 
 
@@ -354,12 +354,12 @@ begin
 end;
 
 { ---------------------------------------------------------------------
-   Public functions, In interface.  
+   Public functions, In interface.
   ---------------------------------------------------------------------}
 
 Function Length (Var S : AnsiString) : Longint;
 {
- Returns the length of an AnsiString. 
+ Returns the length of an AnsiString.
  Takes in acount that zero strings are NIL;
 }
 begin
@@ -418,7 +418,7 @@ begin
   dec(index);
   { Check Size. Accounts for Zero-length S }
   if Length(S)<Index+Size then
-    Size:=Length(S)-Index; 
+    Size:=Length(S)-Index;
   If Size>0 then
     begin
     ResultAddress:=Pointer(NewAnsiString (Size));
@@ -439,7 +439,7 @@ Function Pos (Var Substr : AnsiString; Var Source : AnsiString) : Longint;
 var i,j : longint;
     e : boolean;
     s : Pointer;
-    
+
 begin
  i := 0;
  j := 0;
@@ -464,7 +464,7 @@ end;
 Procedure Val (var S : AnsiString; var R : real; Var Code : Integer);
 
 Var SS : String;
-    
+
 begin
  Ansi_To_ShortString (SS,S,255);
  Val(SS,R,Code);
@@ -668,7 +668,7 @@ begin
   If Length(Source)=0 then exit;
   if index <= 0 then index := 1;
   s3 := Pointer(copy(s,index,length(s)));
-  if index > Length(s) then 
+  if index > Length(s) then
     index := Length(S)+1;
   SetLength(s,index - 1);
   s4 := Pointer ( NewAnsiString(PansiRec(Pointer(Source)-Firstoff)^.len) );
@@ -683,7 +683,11 @@ end;
 
 {
   $Log$
-  Revision 1.13  1998-08-23 20:58:51  florian
+  Revision 1.14  1998-09-14 10:48:14  peter
+    * FPC_ names
+    * Heap manager is now system independent
+
+  Revision 1.13  1998/08/23 20:58:51  florian
     + rtti for objects and classes
     + TObject.GetClassName implemented
 

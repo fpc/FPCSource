@@ -31,7 +31,7 @@
 
 
     { Don't call the following routines directly. }
- Procedure Hlt;[public,alias: 'HALT_ERROR'];
+ Procedure Hlt;[public,alias: 'FPC_HALT_ERROR'];
  { called by code generator on run-time errors. }
  { on entry contains d0 = error code.           }
  var
@@ -98,11 +98,10 @@
      end ['d0','d1','a0'];
    end;
 
-    procedure int_help_constructor;
+    procedure int_help_constructor;[public,alias:'FPC_HELP_CONSTRUCTOR'];
 
       begin
          asm
-          XDEF HELP_CONSTRUCTOR
             { Entry without preamble, since we need the ESP of the
               constructor }
             { Stack (relative to %ebp):
@@ -178,7 +177,7 @@
          end;
       end;
 
-    procedure int_help_destructor;
+    procedure int_help_destructor;[public,alias:'FPC_HELP_DESTRUCTOR'];
 
       begin
          asm
@@ -189,7 +188,6 @@
                 0 %ebp
             }
             { temporary Variable }
-          XDEF HELP_DESTRUCTOR
             subq.l #4,sp
             move.l sp,d6
             { Save Registers }
@@ -222,10 +220,9 @@
          end;
       end;
 
-  procedure new_class;assembler;
+  procedure new_class;assembler;[public,alias:'FPC_NEW_CLASS'];
 
   asm
-     XDEF NEW_CLASS
      { create class ? }
      move.l 8(a6), d0
      tst.l  d0
@@ -249,10 +246,9 @@
 
 
 
-  procedure dispose_class;assembler;
+  procedure dispose_class;assembler;[public,alias:'FPC_DISPOSE_CLASS'];
 
   asm
-    XDEF DISPOSE_CLASS
      { destroy class ? }
      move.l 8(a6),d0
      { save self }
@@ -272,12 +268,11 @@
   end;
 
   { checks for a correct vmt pointer }
-  procedure co;assembler;
+  procedure int_check_object;assembler;[public,alias:'FPC_CHECK_OBJECT'];
   { ON ENTRY: a0 -> Pointer to the VMT                  }
   {   Nota: All registers must be preserved including   }
   {   A0 itself!                                        }
   asm
-   XDEF CHECK_OBJECT
      move.l   d0,-(sp)
      tst.l    a0
      { z flag set if zero }
@@ -296,8 +291,13 @@
   end;
 
 
+    function get_frame : longint; assembler;
+      asm
+              move.l a6,d0
+      end;
 
-    function get_addr(BP : longint) : longint;
+
+    function get_caller_addr(BP : longint) : longint;
       begin
          asm
             move.l BP,a0
@@ -309,7 +309,7 @@
          end ['a0'];
       end;
 
-    function get_next_frame(bp : longint) : longint;
+    function get_caller_frame(bp : longint) : longint;
 
       begin
          asm
@@ -322,113 +322,8 @@
          end ['a0'];
       end;
 
-Procedure HandleError (Errno : longint);[alias : 'handleerror'];
-{
-  Procedure to handle internal errors, i.e. not user-invoked errors
-  Internal function should ALWAYS call HandleError instead of RunError.
-}
-      function get_addr : pointer;
-
-        begin
-           asm
-              move.l (a6),a0
-              move.l 4(a0),a0
-              move.l a0,@RESULT
-           end ['a0'];
-        end;
-      function get_error_bp : longint;
-
-        begin
-           asm
-              { get base pointer of error }
-              move.l (a6),d0
-              move.l d0,@RESULT
-           end ['d0'];
-        end;
-
-begin
-  If ErrorProc<>Nil then
-    TErrorProc (ErrorProc)(Errno,get_addr);
-  errorcode:=Errno;
-  exitcode:=Errno;
-  erroraddr:=Get_addr;
-  DoError := TRUE;
-  errorbase:=get_error_bp;
-  halt(errorcode);
-end;
-
-
-    procedure runerror(w : word);
-
-      function get_addr : longint;
-
-        begin
-           asm
-              move.l (a6),a0
-              move.l 4(a0),a0
-              move.l a0,@RESULT
-           end ['a0'];
-        end;
-
-      function get_error_bp : longint;
-
-        begin
-           asm
-              { get base pointer of error }
-              move.l (a6),d0
-              move.l d0,@RESULT
-           end ['d0'];
-        end;
-
-      begin
-         errorcode:=w;
-         exitcode:=w;
-         erroraddr:=pointer(get_addr);
-         DoError:=True;
-         ErrorBase:=get_error_bp;
-         halt(byte(errorcode));
-      end;
-
-    procedure io1(addr : longint);[public,alias: 'IOCHECK'];
-
-      var
-         l : longint;
-
-      begin
-         { Since IOCHECK is called directly and only later the optimiser }
-         { Maybe also save global registers  }
-         asm
-            movem.l d0-a7,-(sp)
-         end;
-         l:=ioresult;
-         if l<>0 then
-           begin
-              writeln('IO-Error ',l,' at 0x',HexStr(addr,8));
-              halt(byte(l));
-           end;
-         asm
-            { the register are put back in the correct order }
-            movem.l (sp)+,d0-a7
-         end;
-      end;
-
-    procedure re_overflow;[public,alias: 'RE_OVERFLOW'];
-
-      var
-         addr : longint;
-
-      begin
-         { Overflow was shortly before the return address }
-         asm
-            move.l 4(a6),d0
-            move.l d0,addr
-         end;
-         writeln('Overflow at 0x',HexStr(addr,8));
-         HandleError(215);
-      end;
-
 {    procedure strcopy(dstr,sstr : pointer;len : longint);[public,alias: 'STRCOPY'];}
-     procedure strcopy; assembler;
+     procedure strcopy; assembler;[public,alias: 'FPC_STRCOPY'];
     {---------------------------------------------------}
     { Low-level routine to copy a string to another     }
     { string with maximum length. Never call directly!  }
@@ -439,7 +334,6 @@ end;
     { registers destroyed: a0,a1,d0,d1                  }
     {---------------------------------------------------}
          asm
-           XDEF STRCOPY
 {            move.l 12(a6),a0
             move.l 16(a6),a1
             move.l 8(a6),d1 }
@@ -512,10 +406,8 @@ end;
     {   ALL FLAGS are set appropriately.                    }
     {    ZF = strings are equal                             }
     { REGISTERS DESTROYED: a0, a1, d0, d1, d6               }
-    procedure strcmp; assembler;
+    procedure strcmp; assembler;[public,alias:'FPC_STRCMP'];
      asm
-     XDEF STRCMP
-
             move.b (a0)+,d0     { Get length of first string  }
             move.b (a1)+,d6     { Get length of 2nd string    }
 
@@ -722,22 +614,6 @@ end;
       end;
 
 
-{$IFNDEF NEW_READWRITE}
-    procedure f1;[public,alias: 'FLUSH_STDOUT'];
-
-      begin
-         asm
-            { Save Registers }
-            movem.l d0-a7,-(sp)
-         end;
-         FileFunc(textrec(output).flushfunc)(textrec(output));
-         asm
-            { Restore all registers in the correct order }
-            movem.l (sp)+,d0-a7
-         end;
-      end;
-{$ENDIF NEW_READWRITE}
-
 Function Sptr : Longint;
 begin
   asm
@@ -750,7 +626,7 @@ end;
 
 
 
- Procedure BoundsCheck;assembler;
+ Procedure BoundsCheck;assembler;[public,alias:'FPC_RE_BOUNDS_CHECK'];
  { called by code generator with R+ state to    }
  { determine if a range check occured.          }
  { Only in 68000 mode, in 68020 mode this is    }
@@ -759,7 +635,6 @@ end;
  {   A1 = address contaning min and max indexes }
  {   D0 = value of current index to check.      }
  asm
-XDEF RE_BOUNDS_CHECK
   cmp.l   (A1),D0        { lower bound ...    }
   bmi     @rebounderr    { is index lower ... }
   add.l   #4,A1
@@ -772,9 +647,40 @@ XDEF RE_BOUNDS_CHECK
 @reboundend:
  end;
 
+{****************************************************************************
+                                 IoCheck
+****************************************************************************}
+
+procedure int_iocheck(addr : longint);[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'IOCHECK'];
+var
+  l : longint;
+begin
+  asm
+        movem.l d0-a7,-(sp)
+  end;
+  if InOutRes<>0 then
+   begin
+     l:=InOutRes;
+     InOutRes:=0;
+     If ErrorProc<>Nil then
+       TErrorProc(Errorproc)(l,pointer(addr));
+{$ifndef RTLLITE}
+     writeln('IO-Error ',l,' at 0x',HexStr(addr,8));
+{$endif}
+     Halt(byte(l));
+   end;
+  asm
+        movem.l (sp)+,d0-a7
+  end;
+end;
+
 {
   $Log$
-  Revision 1.10  1998-08-17 12:26:04  carl
+  Revision 1.11  1998-09-14 10:48:29  peter
+    * FPC_ names
+    * Heap manager is now system independent
+
+  Revision 1.10  1998/08/17 12:26:04  carl
     + simple cleanup of comments
 
   Revision 1.9  1998/07/30 13:26:14  michael
@@ -793,72 +699,4 @@ XDEF RE_BOUNDS_CHECK
     * strcopy bugfix was using signed comparison
     + STRCOPY uses register calling conventions
     * FillChar bugfix was loading a word instead of a byte
-
-  Revision 1.2  1998/03/27 23:48:06  carl
-    * bugfix of STRCONCAT alignment problem
-
-  Revision 1.18  1998/03/02 04:17:24  carl
-    * problem with CHECK_OBJECT fixed, will probably only work with
-      GNU tools, as the VMT pointer is an .lcomm and might not be
-      zeroed automatically by other loaders.
-    * CHECK_OBJECT was not jumping on right condition
-
-  Revision 1.17  1998/02/23 02:26:06  carl
-    * bugfix to make it link without problems
-
-  Revision 1.13  1998/02/06 16:35:35  carl
-    * oops commited wrong file
-
-  Revision 1.11  1998/01/26 12:01:32  michael
-  + Added log at the end
-
-
-  
-  Working file: rtl/m68k/m68k.inc
-  description:
-  ----------------------------
-  revision 1.10
-  date: 1998/01/19 10:21:36;  author: michael;  state: Exp;  lines: +1 -12
-  * moved Fillchar t(..,char) to system.inc
-  ----------------------------
-  revision 1.9
-  date: 1998/01/13 03:47:39;  author: carl;  state: Exp;  lines: +3 -3
-    * bugfix of BoundsCheck invalid opcodes
-  ----------------------------
-  revision 1.8
-  date: 1998/01/13 03:24:58;  author: carl;  state: Exp;  lines: +2 -2
-    * moveq.l #201 bugfix (This is of course an impossible opcode)
-  ----------------------------
-  revision 1.7
-  date: 1998/01/12 15:24:47;  author: carl;  state: Exp;  lines: +1 -20
-    * bugfix, a function was being duplicated.
-  ----------------------------
-  revision 1.6
-  date: 1998/01/12 03:40:11;  author: carl;  state: Exp;  lines: +2 -2
-    * bugfix of RE_OVERFLOW, now gives out a runerror(215)
-  ----------------------------
-  revision 1.5
-  date: 1998/01/05 00:31:43;  author: carl;  state: Exp;  lines: +206 -119
-  * Bugfix of syntax errors
-  ----------------------------
-  revision 1.4
-  date: 1998/01/01 16:50:16;  author: michael;  state: Exp;  lines: +1 -21
-  - Moved Do_exit to system.inc. Now processor independent.
-  ----------------------------
-  revision 1.3
-  date: 1997/12/10 12:15:05;  author: michael;  state: Exp;  lines: +2 -2
-  * changed dateifunc to FileFunc.
-  ----------------------------
-  revision 1.2
-  date: 1997/12/01 12:37:21;  author: michael;  state: Exp;  lines: +14 -0
-  + added copyright reference in header.
-  ----------------------------
-  revision 1.1
-  date: 1997/11/27 08:33:48;  author: michael;  state: Exp;
-  Initial revision
-  ----------------------------
-  revision 1.1.1.1
-  date: 1997/11/27 08:33:48;  author: michael;  state: Exp;  lines: +0 -0
-  FPC RTL CVS start
-  =============================================================================
 }

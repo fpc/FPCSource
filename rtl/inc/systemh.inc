@@ -26,12 +26,6 @@
 
 {$i version.inc}
 
-{$ifndef VER0_99_5}
-  {$ifndef VER0_99_6}
-    {$define INTERNCONST}
-  {$endif}
-{$endif}
-
 
 {****************************************************************************
                          Global Types and Constants
@@ -47,11 +41,7 @@ Type
 { at least declare Turbo Pascal real types }
 {$ifdef i386}
    StrLenInt = LongInt;
-  {$ifndef VER0_99_5}
-    {$ifndef VER0_99_6}
-      {$define DEFAULT_EXTENDED}
-    {$endif}
-  {$endif}
+  {$define DEFAULT_EXTENDED}
   {$define SUPPORT_EXTENDED}
   {$define SUPPORT_COMP}
   {$define SUPPORT_SINGLE}
@@ -158,40 +148,6 @@ Function  Swap (X:Word):Word;
 Function  Swap (X:Integer):Integer;
 Function  Swap (X:Cardinal):Cardinal;
 Function  Swap (X:Longint):Longint;
-{$ifdef VER0_99_5}
-Procedure Inc(Var i:cardinal);
-Procedure Inc(Var i:Longint);
-Procedure Inc(Var i:Integer);
-Procedure Inc(Var i:Word);
-Procedure Inc(Var i:shortint);
-Procedure Inc(Var i:byte);
-Procedure Inc(Var c:Char);
-Procedure Inc(Var p:PChar);
-Procedure Dec(Var i:cardinal);
-Procedure Dec(Var i:Longint);
-Procedure Dec(Var i:Integer);
-Procedure Dec(Var i:Word);
-Procedure Dec(Var i:shortint);
-Procedure Dec(Var i:byte);
-Procedure Dec(Var c:Char);
-Procedure Dec(Var p:PChar);
-Procedure Dec(Var i:cardinal;a:Longint);
-Procedure Inc(Var i:cardinal;a:Longint);
-Procedure Dec(Var i:Longint;a:Longint);
-Procedure Inc(Var i:Longint;a:Longint);
-Procedure Dec(Var i:Word;a:Longint);
-Procedure Inc(Var i:Word;a:Longint);
-Procedure Dec(Var i:Integer;a:Longint);
-Procedure Inc(Var i:Integer;a:Longint);
-Procedure Dec(Var i:byte;a:Longint);
-Procedure Inc(Var i:byte;a:Longint);
-Procedure Dec(Var i:shortint;a:Longint);
-Procedure Inc(Var i:shortint;a:Longint);
-Procedure Dec(Var c:Char;a:Longint);
-Procedure Inc(Var c:Char;a:Longint);
-Procedure Dec(Var p:PChar;a:Longint);
-Procedure Inc(Var p:PChar;a:Longint);
-{$endif VER0_99_5}
 {$endif RTLLITE}
 
 Function Chr(b:byte):Char;
@@ -430,7 +386,11 @@ Procedure halt;
 
 {
   $Log$
-  Revision 1.27  1998-09-08 15:03:28  peter
+  Revision 1.28  1998-09-14 10:48:22  peter
+    * FPC_ names
+    * Heap manager is now system independent
+
+  Revision 1.27  1998/09/08 15:03:28  peter
     * moved getmem/freemem/memavail/maxavail to heaph.inc
 
   Revision 1.26  1998/09/04 18:16:14  peter

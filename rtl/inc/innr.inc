@@ -23,14 +23,6 @@ const
    in_ord_x             = 5;
    in_length_string     = 6;
    in_chr_byte          = 7;
-{$ifdef VER0_99_5}
-   in_inc_byte          = 8;
-   in_inc_word          = 9;
-   in_inc_dword         = 10;
-   in_dec_byte          = 11;
-   in_dec_word          = 12;
-   in_dec_dword         = 13;
-{$endif}
    in_write_x           = 14;
    in_writeln_x         = 15;
    in_read_x            = 16;
@@ -74,7 +66,11 @@ const
 
 {
   $Log$
-  Revision 1.3  1998-09-01 17:36:19  peter
+  Revision 1.4  1998-09-14 10:48:17  peter
+    * FPC_ names
+    * Heap manager is now system independent
+
+  Revision 1.3  1998/09/01 17:36:19  peter
     + internconst
 
 }

@@ -47,7 +47,7 @@ const
   {$endif}
 {$else}
   UnusedHandle    = $ffff;
-{$endif}  
+{$endif}
   StdInputHandle  = 0;
   StdOutputHandle = 1;
   StdErrorHandle  = 2;
@@ -96,7 +96,9 @@ Implementation
                        Misc. System Dependent Functions
 *****************************************************************************}
 
-{$ASMMODE DIRECT}
+{$ifdef i386}
+  {$ASMMODE DIRECT}
+{$endif}
 
 Procedure Halt(ErrNum: Byte);
 Begin
@@ -108,6 +110,9 @@ Begin
         jmp     _haltproc
   end;
 {$else}
+  asm
+        jmp     _haltproc
+  end;
 {$endif}
 End;
 
@@ -150,7 +155,7 @@ Begin
   if pp^<>nil then
     Paramstr:=StrPas(pp^)
   else
-    ParamStr:='';  
+    ParamStr:='';
 {$endif}
 End;
 
@@ -169,6 +174,31 @@ End;
                               Heap Management
 *****************************************************************************}
 
+function getheapstart:pointer;assembler;
+{$ifdef i386}
+asm
+        leal    HEAP,%eax
+end ['EAX'];
+{$else}
+asm
+        lea.l   HEAP,a0
+        move.l  a0,d0
+end;
+{$endif}
+
+
+function getheapsize:longint;assembler;
+{$ifdef i386}
+asm
+        movl    HEAPSIZE,%eax
+end ['EAX'];
+{$else}
+asm
+       move.l   HEAP_SIZE,d0
+end ['D0'];
+{$endif}
+
+
 { ___fpc_brk_addr is defined and allocated in prt1.as }
 
 Function Get_Brk_addr : longint;assembler;
@@ -178,7 +208,8 @@ asm
 end ['EAX'];
 {$else}
 asm
-end;
+        move.l  ___fpc_brk_addr,d0
+end ['D0'];
 {$endif}
 
 
@@ -190,10 +221,14 @@ asm
 end ['EAX'];
 {$else}
 asm
-end;
+        move.l  NewAddr,d0
+        move.l  d0,___fpc_brk_addr
+end ['D0'];
 {$endif}
 
-{$ASMMODE ATT}
+{$ifdef i386}
+  {$ASMMODE ATT}
+{$endif}
 
 Function brk(Location : longint) : Longint;
 { set end of data segment to location }
@@ -234,6 +269,7 @@ begin
    end;
   exit(-1);
 end;
+
 
 { include standard heap management }
 {$I heap.inc}
@@ -697,7 +733,11 @@ End.
 
 {
   $Log$
-  Revision 1.15  1998-09-06 19:41:40  peter
+  Revision 1.16  1998-09-14 10:48:27  peter
+    * FPC_ names
+    * Heap manager is now system independent
+
+  Revision 1.15  1998/09/06 19:41:40  peter
     * fixed unusedhandle for 0.99.5
 
   Revision 1.14  1998/09/04 18:16:16  peter

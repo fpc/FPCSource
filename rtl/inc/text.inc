@@ -102,7 +102,7 @@ begin
 end;
 
 
-Procedure Close(var t : Text);[Public,Alias: 'CLOSE_TEXT',IOCheck];
+Procedure Close(var t : Text);[IOCheck];
 Begin
   if InOutRes <> 0 then Exit;
   If (TextRec(t).mode<>fmClosed) Then
@@ -407,14 +407,14 @@ begin
 end;
 
 
-Procedure Write_End(var f:TextRec);[Public,Alias:'WRITE_END'];
+Procedure Write_End(var f:TextRec);[Public,Alias:{$ifdef FPCNAMES}'FPC_'+{$endif}'WRITE_END'];
 begin
   if f.FlushFunc<>nil then
    FileFunc(f.FlushFunc)(f);
 end;
 
 
-Procedure Writeln_End(var f:TextRec);[Public,Alias:'WRITELN_END'];
+Procedure Writeln_End(var f:TextRec);[Public,Alias:{$ifdef FPCNAMES}'FPC_'+{$endif}'WRITELN_END'];
 const
 {$IFDEF SHORT_LINEBREAK}
   eollen=1;
@@ -433,7 +433,7 @@ begin
 end;
 
 
-Procedure Write_Str(Len : Longint;var f : TextRec;const s : String);[Public,Alias: 'WRITE_TEXT_STRING'];
+Procedure Write_Str(Len : Longint;var f : TextRec;const s : String);[Public,Alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'WRITE_TEXT_STRING'];
 Begin
   If InOutRes <> 0 then exit;
   If f.mode<>fmOutput Then
@@ -446,7 +446,7 @@ End;
 
 Type
    array00 = array[0..0] Of Char;
-Procedure Write_Array(Len : Longint;var f : TextRec;const p : array00);[Public,Alias: 'WRITE_TEXT_PCHAR_AS_ARRAY'];
+Procedure Write_Array(Len : Longint;var f : TextRec;const p : array00);[Public,Alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'WRITE_TEXT_PCHAR_AS_ARRAY'];
 var
   ArrayLen : longint;
 Begin
@@ -460,7 +460,7 @@ Begin
 End;
 
 
-Procedure Write_PChar(Len : Longint;var f : TextRec;p : PChar);[Public,Alias: 'WRITE_TEXT_PCHAR_AS_POINTER'];
+Procedure Write_PChar(Len : Longint;var f : TextRec;p : PChar);[Public,Alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'WRITE_TEXT_PCHAR_AS_POINTER'];
 var
   PCharLen : longint;
 Begin
@@ -474,7 +474,7 @@ Begin
 End;
 
 {$ifdef UseAnsiStrings}
-Procedure Write_Text_AnsiString (Len : Longint; Var T : TextRec; Var S : AnsiString);[Public, alias: 'WRITE_TEXT_ANSISTRING'];
+Procedure Write_Text_AnsiString (Len : Longint; Var T : TextRec; Var S : AnsiString);[Public, alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'WRITE_TEXT_ANSISTRING'];
 {
  Writes a AnsiString to the Text file T
 }
@@ -490,7 +490,7 @@ end;
 {$endif}
 
 
-Procedure Write_LongInt(Len : Longint;var t : TextRec;l : Longint);[Public,Alias: 'WRITE_TEXT_LONGINT'];
+Procedure Write_LongInt(Len : Longint;var t : TextRec;l : Longint);[Public,Alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'WRITE_TEXT_LONGINT'];
 var
   s : String;
 Begin
@@ -500,7 +500,7 @@ Begin
 End;
 
 
-Procedure Write_Real(fixkomma,Len : Longint;var t : TextRec;r : real);[Public,Alias: 'WRITE_TEXT_REAL'];
+Procedure Write_Real(fixkomma,Len : Longint;var t : TextRec;r : real);[Public,Alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'WRITE_TEXT_REAL'];
 var
    s : String;
 Begin
@@ -514,7 +514,7 @@ Begin
 End;
 
 
-Procedure Write_Cardinal(Len : Longint;var t : TextRec;l : cardinal);[Public,Alias: 'WRITE_TEXT_CARDINAL'];
+Procedure Write_Cardinal(Len : Longint;var t : TextRec;l : cardinal);[Public,Alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'WRITE_TEXT_CARDINAL'];
 var
   s : String;
 Begin
@@ -524,7 +524,7 @@ Begin
 End;
 
 {$ifdef SUPPORT_SINGLE}
-Procedure Write_Single(fixkomma,Len : Longint;var t : TextRec;r : single);[Public,Alias: 'WRITE_TEXT_SINGLE'];
+Procedure Write_Single(fixkomma,Len : Longint;var t : TextRec;r : single);[Public,Alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'WRITE_TEXT_SINGLE'];
 var
   s : String;
 Begin
@@ -536,7 +536,7 @@ End;
 
 
 {$ifdef SUPPORT_EXTENDED}
-Procedure Write_Extended(fixkomma,Len : Longint;var t : TextRec;r : extended);[Public,Alias: 'WRITE_TEXT_EXTENDED'];
+Procedure Write_Extended(fixkomma,Len : Longint;var t : TextRec;r : extended);[Public,Alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'WRITE_TEXT_EXTENDED'];
 var
   s : String;
 Begin
@@ -548,7 +548,7 @@ End;
 
 
 {$ifdef SUPPORT_COMP}
-Procedure Write_Comp(fixkomma,Len : Longint;var t : TextRec;r : comp);[Public,Alias: 'WRITE_TEXT_COMP'];
+Procedure Write_Comp(fixkomma,Len : Longint;var t : TextRec;r : comp);[Public,Alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'WRITE_TEXT_COMP'];
 var
   s : String;
 Begin
@@ -560,7 +560,7 @@ End;
 
 
 {$ifdef SUPPORT_FIXED}
-Procedure Write_Fixed(fixkomma,Len : Longint;var t : TextRec;r : fixed);[Public,Alias: 'WRITE_TEXT_FIXED'];
+Procedure Write_Fixed(fixkomma,Len : Longint;var t : TextRec;r : fixed);[Public,Alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'WRITE_TEXT_FIXED'];
 var
   s : String;
 Begin
@@ -571,7 +571,7 @@ End;
 {$endif SUPPORT_FIXED}
 
 
-Procedure Write_Boolean(Len : Longint;var t : TextRec;b : Boolean);[Public,Alias: 'WRITE_TEXT_BOOLEAN'];
+Procedure Write_Boolean(Len : Longint;var t : TextRec;b : Boolean);[Public,Alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'WRITE_TEXT_BOOLEAN'];
 Begin
   If InOutRes <> 0 then exit;
 { Can't use array[boolean] because b can be >0 ! }
@@ -582,7 +582,7 @@ Begin
 End;
 
 
-Procedure Write_Char(Len : Longint;var t : TextRec;c : Char);[Public,Alias: 'WRITE_TEXT_CHAR'];
+Procedure Write_Char(Len : Longint;var t : TextRec;c : Char);[Public,Alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'WRITE_TEXT_CHAR'];
 Begin
   If InOutRes <> 0 then exit;
   If t.mode<>fmOutput Then
@@ -594,22 +594,6 @@ Begin
   t.Bufptr^[t.BufPos]:=c;
   Inc(t.BufPos);
 End;
-
-
-{$ifdef VER0_99_5}
-Procedure w(var t : TextRec);[Public,Alias: 'WRITELN_TEXT'];
-var
-  hs : String;
-Begin
-  If InOutRes <> 0 then exit;
-  {$IFDEF SHORT_LINEBREAK}
-   hs:=#10;
-  {$ELSE}
-   hs:=#13#10;
-  {$ENDIF}
-  Write_Str(0,t,hs);
-End;
-{$endif VER0_99_5}
 
 
 {*****************************************************************************
@@ -709,14 +693,14 @@ begin
 end;
 
 
-Procedure Read_End(var f:TextRec);[Public,Alias:'READ_END'];
+Procedure Read_End(var f:TextRec);[Public,Alias:{$ifdef FPCNAMES}'FPC_'+{$endif}'READ_END'];
 begin
   if f.FlushFunc<>nil then
    FileFunc(f.FlushFunc)(f);
 end;
 
 
-Procedure ReadLn_End(var f : TextRec);[Public,Alias: 'READLN_END'];
+Procedure ReadLn_End(var f : TextRec);[Public,Alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'READLN_END'];
 Begin
   If InOutRes <> 0 then exit;
   if not OpenInput(f) then
@@ -736,52 +720,7 @@ Begin
 End;
 
 
-{$ifdef VER0_99_5}
-Procedure Read_String(var f : TextRec;var s : String);[Public,Alias: 'READ_TEXT_STRING'];
-var
-  Temp,sPos : Word;
-Begin
-  { Delete the string }
-  s:='';
-  If InOutRes <> 0 then exit;
-  if not OpenInput(f) then
-   exit;
-  Temp:=f.BufPos;
-  sPos:=1;
-  while (f.BufPos<f.BufEnd) and (f.Bufptr^[Temp]<>#10) Do
-   Begin
-   { search linefeed }
-     while (f.Bufptr^[Temp]<>#10) and (Temp<f.BufEnd) Do
-      Inc(Temp);
-   { copy String. Take 255 char limit in account.}
-     If sPos+Temp-f.BufPos<=255 Then
-      Begin
-        Move (f.Bufptr^[f.BufPos],s[sPos],Temp-f.BufPos);
-        sPos:=sPos+Temp-f.BufPos;
-      { Remove #13 from a #13#10 break }
-        If s[sPos-1]=#13 Then
-         dec(sPos);
-      End
-     else
-      Begin
-        If (sPos<=255) Then
-         Move(f.Bufptr^[f.BufPos],s[sPos],256-sPos);
-        sPos:=256
-      End;
-   { update f.BufPos }
-     f.BufPos:=Temp;
-     If Temp>=f.BufEnd Then
-      Begin
-        FileFunc(f.InOutFunc)(f);
-        Temp:=f.BufPos;
-      End
-   End;
-  s[0]:=chr(sPos-1);
-End;
-
-{$else VER0_99_5}
-
-Procedure Read_String(Maxlen : Longint;var f : TextRec;var s : String);[Public,Alias:'READ_TEXT_STRING'];
+Procedure Read_String(Maxlen : Longint;var f : TextRec;var s : String);[Public,Alias:{$ifdef FPCNAMES}'FPC_'+{$endif}'READ_TEXT_STRING'];
 var
   Temp,sPos,nrread : Word;
 Begin
@@ -826,10 +765,9 @@ Begin
    End;
   s[0]:=chr(sPos-1);
 End;
-{$endif VER0_99_5}
 
 
-Procedure Read_Char(var f : TextRec;var c : Char);[Public,Alias: 'READ_TEXT_CHAR'];
+Procedure Read_Char(var f : TextRec;var c : Char);[Public,Alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'READ_TEXT_CHAR'];
 Begin
   c:=#0;
   If InOutRes <> 0 then exit;
@@ -843,7 +781,7 @@ Begin
 End;
 
 
-Procedure Read_PChar(var f : TextRec;var s : PChar);[Public,Alias:'READ_TEXT_PCHAR_AS_POINTER'];
+Procedure Read_PChar(var f : TextRec;var s : PChar);[Public,Alias:{$ifdef FPCNAMES}'FPC_'+{$endif}'READ_TEXT_PCHAR_AS_POINTER'];
 var
   p    : PChar;
   Temp : byte;
@@ -877,7 +815,7 @@ Begin
 End;
 
 
-Procedure Read_Array(var f : TextRec;var s : array00);[Public,Alias:'READ_TEXT_PCHAR_AS_ARRAY'];
+Procedure Read_Array(var f : TextRec;var s : array00);[Public,Alias:{$ifdef FPCNAMES}'FPC_'+{$endif}'READ_TEXT_PCHAR_AS_ARRAY'];
 var
   p    : PChar;
   Temp : byte;
@@ -912,7 +850,7 @@ End;
 
 
 {$ifdef useansistrings}
-Procedure Read_String(Maxlen : Longint;var f : TextRec;var s : AnsiString);[Public,Alias: 'READ_TEXT_ANSISTRING'];
+Procedure Read_String(Maxlen : Longint;var f : TextRec;var s : AnsiString);[Public,Alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'READ_TEXT_ANSISTRING'];
 var
   p    : PChar;
   Temp : byte;
@@ -952,7 +890,7 @@ End;
 {$endif}
 
 
-Procedure Read_Longint(var f : TextRec;var l : Longint);[Public,Alias: 'READ_TEXT_LONGINT'];
+Procedure Read_Longint(var f : TextRec;var l : Longint);[Public,Alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'READ_TEXT_LONGINT'];
 var
   hs   : String;
   code : Word;
@@ -971,7 +909,7 @@ Begin
 End;
 
 
-Procedure Read_Integer(var f : TextRec;var l : Integer);[Public,Alias: 'READ_TEXT_INTEGER'];
+Procedure Read_Integer(var f : TextRec;var l : Integer);[Public,Alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'READ_TEXT_INTEGER'];
 var
   ll : Longint;
 Begin
@@ -984,7 +922,7 @@ Begin
 End;
 
 
-Procedure Read_Word(var f : TextRec;var l : Word);[Public,Alias: 'READ_TEXT_WORD'];
+Procedure Read_Word(var f : TextRec;var l : Word);[Public,Alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'READ_TEXT_WORD'];
 var
   ll : Longint;
 Begin
@@ -997,7 +935,7 @@ Begin
 End;
 
 
-Procedure Read_Byte(var f : TextRec;var l : byte);[Public,Alias: 'READ_TEXT_BYTE'];
+Procedure Read_Byte(var f : TextRec;var l : byte);[Public,Alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'READ_TEXT_BYTE'];
 var
   ll : Longint;
 Begin
@@ -1010,7 +948,7 @@ Begin
 End;
 
 
-Procedure Read_Shortint(var f : TextRec;var l : shortint);[Public,Alias: 'READ_TEXT_SHORTINT'];
+Procedure Read_Shortint(var f : TextRec;var l : shortint);[Public,Alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'READ_TEXT_SHORTINT'];
 var
    ll : Longint;
 Begin
@@ -1023,7 +961,7 @@ Begin
 End;
 
 
-Procedure Read_Cardinal(var f : TextRec;var l : cardinal);[Public,Alias: 'READ_TEXT_CARDINAL'];
+Procedure Read_Cardinal(var f : TextRec;var l : cardinal);[Public,Alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'READ_TEXT_CARDINAL'];
 var
   hs   : String;
   code : Word;
@@ -1042,7 +980,7 @@ Begin
 End;
 
 
-Procedure Read_Real(var f : TextRec;var d : Real);[Public,Alias: 'READ_TEXT_REAL'];
+Procedure Read_Real(var f : TextRec;var d : Real);[Public,Alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'READ_TEXT_REAL'];
 var
   hs   : String;
   code : Word;
@@ -1081,7 +1019,7 @@ End;
 
 
 {$ifdef SUPPORT_EXTENDED}
-Procedure Read_Extended(var f : TextRec;var d : extended);[Public,Alias: 'READ_TEXT_EXTENDED'];
+Procedure Read_Extended(var f : TextRec;var d : extended);[Public,Alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'READ_TEXT_EXTENDED'];
 var
   hs   : String;
   code : Word;
@@ -1121,7 +1059,7 @@ End;
 
 
 {$ifdef SUPPORT_COMP}
-Procedure Read_Comp(var f : TextRec;var d : comp);[Public,Alias: 'READ_TEXT_COMP'];
+Procedure Read_Comp(var f : TextRec;var d : comp);[Public,Alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'READ_TEXT_COMP'];
 var
   hs   : String;
   code : Word;
@@ -1160,24 +1098,6 @@ End;
 {$endif SUPPORT_COMP}
 
 
-{$ifdef VER0_99_5}
-Procedure r(var f : TextRec);[Public,Alias: 'READLN_TEXT'];
-Begin
-  If InOutRes <> 0 then exit;
-  if not OpenInput(f) then
-   exit;
-  while (f.BufPos<f.BufEnd) do
-   begin
-     inc(f.BufPos);
-     if (f.BufPtr^[f.BufPos-1]=#10) then
-      exit;
-     If f.BufPos>=f.BufEnd Then
-      FileFunc(f.InOutFunc)(f);
-   end;
-End;
-{$endif VER0_99_5}
-
-
 {*****************************************************************************
                                Initializing
 *****************************************************************************}
@@ -1202,7 +1122,11 @@ end;
 
 {
   $Log$
-  Revision 1.24  1998-09-08 10:14:06  peter
+  Revision 1.25  1998-09-14 10:48:23  peter
+    * FPC_ names
+    * Heap manager is now system independent
+
+  Revision 1.24  1998/09/08 10:14:06  peter
     + textrecbufsize
 
   Revision 1.23  1998/08/26 15:33:28  peter

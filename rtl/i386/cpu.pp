@@ -5,7 +5,7 @@
 
     This unit contains some routines to get informations about the
     processor
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -29,12 +29,8 @@ unit cpu;
 
   implementation
 
-{$ifdef VER0_99_5}
-  {$I386_INTEL}
-{$endif}
-
 {$ASMMODE INTEL}
-  
+
 
     function cpuid_support : boolean;assembler;
       {
@@ -64,7 +60,7 @@ unit cpu;
          DB 0Fh,20h,0C0h
          { mov eax,cr0
            special registers are not allowed in the assembler
-  	        parsers }
+                parsers }
       end;
 
 
@@ -79,7 +75,11 @@ end.
 
 {
   $Log$
-  Revision 1.4  1998-08-11 00:04:46  peter
+  Revision 1.5  1998-09-14 10:48:06  peter
+    * FPC_ names
+    * Heap manager is now system independent
+
+  Revision 1.4  1998/08/11 00:04:46  peter
     * $ifdef ver0_99_5 updates
 
   Revision 1.3  1998/05/25 10:51:27  pierre

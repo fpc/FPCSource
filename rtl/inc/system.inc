@@ -54,24 +54,6 @@ Function  lo(l : Longint) : Word;  [INTERNPROC: In_lo_long];
 Function  hi(i : Integer) : byte;  [INTERNPROC: In_hi_Word];
 Function  hi(w : Word) : byte;     [INTERNPROC: In_hi_Word];
 Function  hi(l : Longint) : Word;  [INTERNPROC: In_hi_long];
-{$ifdef VER0_99_5}
-Procedure Inc(var i : Cardinal);   [INTERNPROC: In_Inc_DWord];
-Procedure Inc(var i : Longint);    [INTERNPROC: In_Inc_DWord];
-Procedure Inc(var i : Integer);    [INTERNPROC: In_Inc_Word];
-Procedure Inc(var i : Word);       [INTERNPROC: In_Inc_Word];
-Procedure Inc(var i : shortint);   [INTERNPROC: In_Inc_byte];
-Procedure Inc(var i : byte);       [INTERNPROC: In_Inc_byte];
-Procedure Inc(var c : Char);       [INTERNPROC: In_Inc_byte];
-Procedure Inc(var p : PChar);      [INTERNPROC: In_Inc_DWord];
-Procedure Dec(var i : Cardinal);   [INTERNPROC: In_Dec_DWord];
-Procedure Dec(var i : Longint);    [INTERNPROC: In_Dec_DWord];
-Procedure Dec(var i : Integer);    [INTERNPROC: In_Dec_Word];
-Procedure Dec(var i : Word);       [INTERNPROC: In_Dec_Word];
-Procedure Dec(var i : shortint);   [INTERNPROC: In_Dec_byte];
-Procedure Dec(var i : byte);       [INTERNPROC: In_Dec_byte];
-Procedure Dec(var c : Char);       [INTERNPROC: In_Dec_byte];
-Procedure Dec(var p : PChar);      [INTERNPROC: In_Dec_DWord];
-{$endif VER0_99_5}
 
 Function chr(b : byte) : Char;      [INTERNPROC: In_chr_byte];
 Function Length(s : string) : byte; [INTERNPROC: In_Length_string];
@@ -122,11 +104,11 @@ Type
 {$else}
 
 { Provide dummy procedures needed for rtti}
-Procedure decr_ansi_ref (P : pointer);[Alias : 'DECR_ANSI_REF'];
+Procedure decr_ansi_ref (P : pointer);[Alias : 'FPC_DECR_ANSI_REF'];
   begin
   end;
 
-Procedure incr_ansi_ref (P : pointer);[Alias : 'INCR_ANSI_REF'];
+Procedure incr_ansi_ref (P : pointer);[Alias : 'FPC_INCR_ANSI_REF'];
   begin
   end;
 
@@ -137,9 +119,8 @@ Procedure incr_ansi_ref (P : pointer);[Alias : 'INCR_ANSI_REF'];
                          Run-Time Type Information (RTTI)
 ****************************************************************************}
 
-{$ifndef VER0_99_5}
-  {$i rtti.inc}
-{$endif  VER0_99_5}
+{$i rtti.inc}
+
 
 {****************************************************************************
                                Math Routines
@@ -156,90 +137,6 @@ function Lo(b : byte): byte;
 begin
    Lo := b and $0f
 end;
-
-{$ifdef VER0_99_5}
-
-Procedure Inc(var i : Cardinal;a: Longint);
-Begin
-  I:=I+A;
-End;
-
-Procedure Dec(var i : Cardinal;a: Longint);
-Begin
-  I:=I-A;
-End;
-
-Procedure Inc(var i : Longint;a : Longint);
-Begin
-  i:=i+a;
-End;
-
-Procedure Dec(var i : Longint;a : Longint);
-Begin
-  i:=i-a;
-End;
-
-Procedure Dec(var i : Word;a : Longint);
-Begin
-  i:=i-a;
-End;
-
-Procedure Inc(var i : Word;a : Longint);
-Begin
-  i:=i+a;
-End;
-
-Procedure Dec(var i : Integer;a : Longint);
-Begin
-  i:=i-a;
-End;
-
-Procedure Inc(var i : Integer;a : Longint);
-Begin
-  i:=i+a;
-End;
-
-Procedure Dec(var i : byte;a : Longint);
-Begin
-  i:=i-a;
-End;
-
-Procedure Inc(var i : byte;a : Longint);
-Begin
-  i:=i+a;
-End;
-
-Procedure Dec(var i : shortint;a : Longint);
-Begin
-  i:=i-a;
-End;
-
-Procedure Inc(var i : shortint;a : Longint);
-Begin
-  i:=i+a;
-End;
-
-Procedure Dec(var c : Char;a : Longint);
-Begin
-  byte(c):=byte(c)-a;
-End;
-
-Procedure Inc(var c : Char;a : Longint);
-Begin
-  Byte(c):=byte(c)+a;
-End;
-
-Procedure Dec(var p : PChar;a : Longint);
-Begin
-  longint(p):=longint(p)-a;
-End;
-
-Procedure Inc(var p : PChar;a : Longint);
-Begin
-  longint(p):=longint(p)+a;
-End;
-
-{$endif VER0_99_5}
 
 Function swap (X : Word) : Word;{$ifdef INTERNCONST}[internconst:in_const_swap_word];{$endif}
 Begin
@@ -265,7 +162,7 @@ End;
 
 {****************************************************************************
                           Random function routines
-                        
+
         This implements a very long cycle random number generator by combining
    three independant generators.  The technique was described in the March
    1987 issue of Byte.
@@ -370,12 +267,26 @@ End;
 
 {$endif RTLLITE}
 
+
 {*****************************************************************************
                              Miscellaneous
 *****************************************************************************}
 
+procedure int_overflow;[public,alias: {$ifdef FPCNAMES}'FPC_OVERFLOW'{$else}'RE_OVERFLOW'{$endif}];
+var
+  addr : longint;
+begin
+   addr:=get_caller_addr(get_frame);
+   If ErrorProc<>Nil then
+     TErrorProc (ErrorProc)(215,Pointer(Addr));
+{$ifndef RTLLITE}
+   Writeln('Overflow at 0x',HexStr(addr,8));
+{$endif}
+   HandleError(215);
+end;
 
-Function IOResult:Word;
+
+function IOResult:Word;
 Begin
   IOResult:=InOutRes;
   InOutRes:=0;
@@ -392,6 +303,37 @@ end;
                           Init / Exit / ExitProc
 *****************************************************************************}
 
+Procedure HandleError (Errno : longint);[alias : 'FPC_HANDLEERROR'];
+{
+  Procedure to handle internal errors, i.e. not user-invoked errors
+  Internal function should ALWAYS call HandleError instead of RunError.
+}
+var
+  addr : longint;
+begin
+  addr:=get_caller_addr(get_frame);
+  If ErrorProc<>Nil then
+    TErrorProc (ErrorProc)(Errno,pointer(addr));
+  errorcode:=Errno;
+  exitcode:=Errno;
+  erroraddr:=pointer(addr);
+  errorbase:=get_caller_frame(get_frame);
+  DoError:=true;
+  halt(errorcode);
+end;
+
+
+procedure runerror(w : word);[alias: 'FPC_RUNERROR'];
+begin
+  errorcode:=w;
+  exitcode:=w;
+  erroraddr:=pointer(get_caller_addr(get_frame));
+  errorbase:=get_caller_frame(get_frame);
+  DoError:=true;
+  halt(errorcode);
+end;
+
+
 Procedure RunError;
 Begin
   RunError (0);
@@ -405,16 +347,6 @@ End;
 
 
 Procedure dump_stack(bp : Longint);
-
-  Procedure dump_frame(addr : Longint);
-  Begin
-  {To be used by symify}
-    Writeln(stderr,'  0x',HexStr(addr,8));
-{$ifdef VER0_99_5}
-    Flush(stderr);
-{$endif VER0_99_5}
-  End;
-
 var
   i, prevbp : Longint;
 Begin
@@ -422,17 +354,17 @@ Begin
   i:=0;
   while bp > prevbp Do
    Begin
-     dump_frame(get_addr(bp));
+     Writeln(stderr,'  0x',HexStr(get_caller_addr(bp),8));
      Inc(i);
      If i>max_frame_dump Then
       exit;
      prevbp:=bp;
-     bp:=get_next_frame(bp);
+     bp:=get_caller_frame(bp);
    End;
 End;
 
 
-Procedure Do_exit;[Public,Alias: '__EXIT'];
+Procedure do_exit;[Public,Alias: {$ifdef FPCNAMES}'FPC_DO_EXIT'{$else}'__EXIT'{$endif}];
 {
   Don't call this direct, the call is generated by the compiler
   and by the halt procedure.
@@ -458,9 +390,6 @@ Begin
      Writeln('Run time error  ',Errorcode,' at 0x',hexstr(Longint(Erroraddr),8));
      dump_stack(ErrorBase);
    End;
-{$ifdef VER0_99_5}
-  Flush(stderr);
-{$endif VER0_99_5}
 End;
 
 
@@ -500,8 +429,9 @@ Begin
   ExitProc:=@DoExitProc;
 End;
 
+
 {*****************************************************************************
-      Assert() support.
+                           Assert() support.
 *****************************************************************************}
 
 Procedure do_assert (Const Name,Msg : string; LineNo : Longint); [Public,Alias : 'FPC_DO_ASSERT'];
@@ -511,7 +441,6 @@ begin
   else
     write (stderr,msg);
   writeln (stderr,'(File : ',name,', line ',LineNo,'.');
-  flush (stderr);
   HandleError (227);
 end;
 
@@ -533,7 +462,11 @@ end;
 
 {
   $Log$
-  Revision 1.29  1998-09-01 17:36:21  peter
+  Revision 1.30  1998-09-14 10:48:20  peter
+    * FPC_ names
+    * Heap manager is now system independent
+
+  Revision 1.29  1998/09/01 17:36:21  peter
     + internconst
 
   Revision 1.28  1998/08/17 12:24:16  carl

@@ -4,7 +4,7 @@
     Copyright (c) 1998 by the Free Pascal development team
 
     SetJmp and LongJmp implementation for exception handling
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -14,12 +14,8 @@
 
  **********************************************************************}
 
-{$ifdef VER0_99_5}
-  {$I386_DIRECT}
-{$endif}
-
 {$ASMMODE DIRECT}
-  
+
 Function SetJmp (Var S : Jmp_buf) : longint;assembler;[Public, alias : 'FPC_SETJMP'];
 asm
   movl 8(%ebp),%eax
@@ -56,7 +52,11 @@ end;
 
 {
   $Log$
-  Revision 1.3  1998-08-11 00:04:52  peter
+  Revision 1.4  1998-09-14 10:48:13  peter
+    * FPC_ names
+    * Heap manager is now system independent
+
+  Revision 1.3  1998/08/11 00:04:52  peter
     * $ifdef ver0_99_5 updates
 
 }

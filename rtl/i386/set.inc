@@ -16,7 +16,7 @@
 
 {$ASMMODE ATT}
 
-procedure do_load_small(p : pointer;l:longint);[public,alias: 'SET_LOAD_SMALL'];
+procedure do_load_small(p : pointer;l:longint);[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_LOAD_SMALL'];
 {
   load a set from an
 }
@@ -34,7 +34,7 @@ begin
 end;
 
 
-procedure do_set_byte(p : pointer;b : byte); [public,alias: 'SET_SET_BYTE'];
+procedure do_set_byte(p : pointer;b : byte); [public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_SET_BYTE'];
 {
   add the element b to the set pointed by p
 }
@@ -57,7 +57,7 @@ begin
 end;
 
 
-procedure do_set_range(p : pointer;l,h : byte);[public,alias: 'SET_SET_RANGE'];
+procedure do_set_range(p : pointer;l,h : byte);[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_SET_RANGE'];
 {
   bad implementation, but it's very seldom used
 }
@@ -86,7 +86,7 @@ begin
 end;
 
 
-procedure do_in_byte(p : pointer;b : byte);[public,alias: 'SET_IN_BYTE'];
+procedure do_in_byte(p : pointer;b : byte);[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_IN_BYTE'];
 {
   tests if the element b is in the set p the carryflag is set if it present
 }
@@ -110,7 +110,7 @@ end;
 
 
 
-procedure do_add_sets(set1,set2,dest : pointer);[public,alias: 'SET_ADD_SETS'];
+procedure do_add_sets(set1,set2,dest : pointer);[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_ADD_SETS'];
 {
   adds set1 and set2 into set dest
 }
@@ -134,7 +134,7 @@ end;
 { multiplies (i.E. takes common elements of) set1 and set2 }
 { result put in dest                                       }
 
-procedure do_mul_sets(set1,set2,dest : pointer);[public,alias: 'SET_MUL_SETS'];
+procedure do_mul_sets(set1,set2,dest : pointer);[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_MUL_SETS'];
 begin
    asm
       movl 8(%ebp),%esi
@@ -152,7 +152,7 @@ begin
 end;
 
 
-procedure do_sub_sets(set1,set2,dest : pointer);[public,alias: 'SET_SUB_SETS'];
+procedure do_sub_sets(set1,set2,dest : pointer);[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_SUB_SETS'];
 {
   computes the diff from set1 to set2 result in dest
 }
@@ -175,7 +175,7 @@ begin
 end;
 
 
-procedure do_symdif_sets(set1,set2,dest : pointer);[public,alias: 'SET_SYMDIF_SETS'];
+procedure do_symdif_sets(set1,set2,dest : pointer);[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_SYMDIF_SETS'];
 {
    computes the symetric diff from set1 to set2 result in dest
 }
@@ -196,7 +196,7 @@ begin
      end;
 end;
 
-procedure do_comp_sets(set1,set2 : pointer);[public,alias: 'SET_COMP_SETS'];
+procedure do_comp_sets(set1,set2 : pointer);[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_COMP_SETS'];
 {
   compares set1 and set2 zeroflag is set if they are equal
 }
@@ -223,7 +223,7 @@ end;
 
 {$ifdef LARGESETS}
 
-procedure do_set(p : pointer;b : word);[public,alias: 'SET_SET_WORD'];
+procedure do_set(p : pointer;b : word);[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_SET_WORD'];
 {
   sets the element b in set p works for sets larger than 256 elements
   not yet use by the compiler so
@@ -244,7 +244,7 @@ begin
 end;
 
 
-procedure do_in(p : pointer;b : word);[public,alias: 'SET_IN_WORD'];
+procedure do_in(p : pointer;b : word);[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_IN_WORD'];
 {
   tests if the element b is in the set p the carryflag is set if it present
   works for sets larger than 256 elements
@@ -265,7 +265,7 @@ begin
 end;
 
 
-procedure add_sets(set1,set2,dest : pointer;size : longint);[public,alias: 'SET_ADD_SETS_SIZE'];
+procedure add_sets(set1,set2,dest : pointer;size : longint);[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_ADD_SETS_SIZE'];
 {
   adds set1 and set2 into set dest size is the number of bytes in the set
 }
@@ -287,7 +287,7 @@ begin
 end;
 
 
-procedure mul_sets(set1,set2,dest : pointer;size : longint);[public,alias: 'SET_MUL_SETS_SIZE'];
+procedure mul_sets(set1,set2,dest : pointer;size : longint);[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_MUL_SETS_SIZE'];
 {
   multiplies (i.E. takes common elements of) set1 and set2 result put in
   dest size is the number of bytes in the set
@@ -309,7 +309,7 @@ begin
 end;
 
 
-procedure sub_sets(set1,set2,dest : pointer;size : longint);[public,alias: 'SET_SUB_SETS_SIZE'];
+procedure sub_sets(set1,set2,dest : pointer;size : longint);[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_SUB_SETS_SIZE'];
 begin
       asm
          movl 8(%ebp),%esi
@@ -329,7 +329,7 @@ begin
 end;
 
 
-procedure sym_sub_sets(set1,set2,dest : pointer;size : longint);[public,alias: 'SET_SYMDIF_SETS_SIZE'];
+procedure sym_sub_sets(set1,set2,dest : pointer;size : longint);[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_SYMDIF_SETS_SIZE'];
 {
    computes the symetric diff from set1 to set2 result in dest
 }
@@ -351,7 +351,7 @@ begin
 end;
 
 
-procedure comp_sets(set1,set2 : pointer;size : longint);[public,alias: 'SET_COMP_SETS_SIZE'];
+procedure comp_sets(set1,set2 : pointer;size : longint);[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_COMP_SETS_SIZE'];
 begin
    asm
       movl 8(%ebp),%esi
@@ -376,7 +376,11 @@ end;
 
 {
   $Log$
-  Revision 1.3  1998-08-14 18:13:44  peter
+  Revision 1.4  1998-09-14 10:48:12  peter
+    * FPC_ names
+    * Heap manager is now system independent
+
+  Revision 1.3  1998/08/14 18:13:44  peter
     + set_load_small
     * fixed set_set_range
 

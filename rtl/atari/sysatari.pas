@@ -36,7 +36,7 @@ unit sysatari;
     {$I heaph.inc}
 
 const
-  UnusedHandle    = $ffff; 
+  UnusedHandle    = $ffff;
   StdInputHandle  = 0;
   StdOutputHandle = 1;
   StdErrorHandle  = $ffff;
@@ -233,6 +233,18 @@ const
          end;
          randseed:=hl;
       end;
+
+function getheapstart:pointer;assembler;
+asm
+        lea.l   HEAP,a0
+        move.l  a0,d0
+end;
+
+
+function getheapsize:longint;assembler;
+asm
+       move.l   HEAP_SIZE,d0
+end ['D0'];
 
   { This routine is used to grow the heap.  }
   { But here we do a trick, we say that the }
@@ -697,7 +709,7 @@ end;
 {*****************************************************************************
                          SystemUnit Initialization
 *****************************************************************************}
-      
+
 
 begin
 { Initialize ExitProc }
@@ -719,7 +731,11 @@ end.
 
 {
   $Log$
-  Revision 1.8  1998-07-15 12:11:59  carl
+  Revision 1.9  1998-09-14 10:48:02  peter
+    * FPC_ names
+    * Heap manager is now system independent
+
+  Revision 1.8  1998/07/15 12:11:59  carl
     * hmmm... can't remember! :(...
 
   Revision 1.5  1998/07/13 12:34:13  carl

@@ -46,32 +46,36 @@ begin
 end;
 
 
-Procedure Int_Typed_Reset(var f : TypedFile;Size : Longint);[Public,IOCheck, Alias: 'RESET_TYPED'];
+Procedure Int_Typed_Reset(var f : TypedFile;Size : Longint);[Public,IOCheck, Alias: {$ifdef FPCNAMES}'FPC_RESET_TYPED'{$else}'RESET_TYPED'{$endif}];
 Begin
-  If InOutRes <> 0 then exit;
+  If InOutRes <> 0 then
+   exit;
   Reset(UnTypedFile(f),Size);
 End;
 
 
-Procedure Int_Typed_Rewrite(var f : TypedFile;Size : Longint);[Public,IOCheck, Alias: 'REWRITE_TYPED'];
+Procedure Int_Typed_Rewrite(var f : TypedFile;Size : Longint);[Public,IOCheck, Alias: {$ifdef FPCNAMES}'FPC_REWRITE_TYPED'{$else}'REWRITE_TYPED'{$endif}];
 Begin
-  If InOutRes <> 0 then exit;
+  If InOutRes <> 0 then
+   exit;
   Rewrite(UnTypedFile(f),Size);
 End;
 
 
-Procedure Int_Typed_Write(TypeSize : Longint;var f : TypedFile;var Buf);[IOCheck, Public, Alias : 'TYPED_WRITE'];
+Procedure Int_Typed_Write(TypeSize : Longint;var f : TypedFile;var Buf);[IOCheck, Public, Alias : {$ifdef FPCNAMES}'FPC_TYPED_WRITE'{$else}'TYPED_WRITE'{$endif}];
 Begin
-  If InOutRes <> 0 then exit;
+  If InOutRes <> 0 then
+   exit;
   Do_Write(FileRec(f).Handle,Longint(@Buf),TypeSize);
 End;
 
 
-Procedure Int_Typed_Read(TypeSize : Longint;var f : TypedFile;var Buf);[IOCheck, Public, Alias : 'TYPED_READ'];
+Procedure Int_Typed_Read(TypeSize : Longint;var f : TypedFile;var Buf);[IOCheck, Public, Alias : {$ifdef FPCNAMES}'FPC_TYPED_READ'{$else}'TYPED_READ'{$endif}];
 var
   Result : Longint;
 Begin
-  If InOutRes <> 0 then exit;
+  If InOutRes <> 0 then
+   exit;
   Result:=Do_Read(FileRec(f).Handle,Longint(@Buf),TypeSize);
   If Result<TypeSize Then
    InOutRes:=100;
@@ -79,7 +83,11 @@ End;
 
 {
   $Log$
-  Revision 1.4  1998-07-02 12:16:28  carl
+  Revision 1.5  1998-09-14 10:48:26  peter
+    * FPC_ names
+    * Heap manager is now system independent
+
+  Revision 1.4  1998/07/02 12:16:28  carl
     * IoCheck routines now check for InOutRes before executing, just like TP
 
   Revision 1.3  1998/05/21 19:31:02  peter
