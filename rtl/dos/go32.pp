@@ -16,8 +16,7 @@
 unit go32;
 
 {$S-}{no stack check, used by DPMIEXCP !! }
-{$I os.inc}
-
+{$i os.inc}
   interface
 
     const
@@ -86,9 +85,11 @@ unit go32;
     function get_segment_base_address(d : word) : longint;
     function set_segment_base_address(d : word;s : longint) : boolean;
     function set_segment_limit(d : word;s : longint) : boolean;
+    function set_descriptor_access_right(d : word;w : word) : longint;
     function create_code_segment_alias_descriptor(seg : word) : word;
     function get_linear_addr(phys_addr : longint;size : longint) : longint;
     function get_segment_limit(d : word) : longint;
+    function get_descriptor_access_right(d : word) : longint;
     function get_page_size:longint;
     function map_device_in_memory_block(handle,offset,pagecount,device:longint):boolean;
     function realintr(intnr : word;var regs : trealregs) : boolean;
@@ -100,6 +101,8 @@ unit go32;
     var
        { selector for the DOS memory (only usable if in DPMI mode) }
        dosmemselector : word;
+       { result of dpmi call }
+       int31error : word;
 
     { this procedure copies data where the source and destination }
     { are specified by 48 bit pointers                            }
@@ -506,17 +509,15 @@ unit go32;
          end;
       end;
 
-    var
-       int31error : word;
-
     procedure test_int31(flag : longint);[alias : 'test_int31'];
       begin
          asm
             pushl %ebx
+            movw  $0,U_GO32_INT31ERROR
             movl  flag,%ebx
             testb $1,%bl
             jz    1f
-            movw  %ax,_INT31ERROR
+            movw  %ax,U_GO32_INT31ERROR
             xorl  %eax,%eax
             jmp   2f
             1:
@@ -829,6 +830,7 @@ unit go32;
             shll $16,%esi
             movl $0x502,%eax
             int  $0x31
+            pushf
             call test_int31
             movb %al,__RESULT
          end;
@@ -932,6 +934,20 @@ unit go32;
          end;
       end;
 
+    function set_descriptor_access_right(d : word;w : word) : longint;
+
+      begin
+         asm
+            movw d,%bx
+            movw w,%cx
+            movl $9,%eax
+            int $0x31
+            pushf
+            call test_int31
+            movw %ax,__RESULT
+         end;
+      end;
+
     function set_segment_limit(d : word;s : longint) : boolean;
 
       begin
@@ -948,15 +964,27 @@ unit go32;
          end;
       end;
 
+    function get_descriptor_access_right(d : word) : longint;
+
+      begin
+         asm
+            movzwl d,%eax
+            lar %eax,%eax
+            jz .L_ok
+            xorl %eax,%eax
+         .L_ok:
+            movl %eax,__RESULT
+         end;
+      end;
     function get_segment_limit(d : word) : longint;
 
       begin
          asm
             movzwl d,%eax
             lsl %eax,%eax
-            jz .L_ok
+            jz .L_ok2
             xorl %eax,%eax
-         .L_ok:
+         .L_ok2:
             movl %eax,__RESULT
          end;
       end;
@@ -968,6 +996,8 @@ unit go32;
             movw seg,%bx
             movl $0xa,%eax
             int $0x31
+            pushf
+            call test_int31
             movw %ax,__RESULT
          end;
       end;
@@ -980,8 +1010,8 @@ unit go32;
             movl $0x500,%eax
             int $0x31
             pushf
-            call test_int31
             movb %al,__RESULT
+            call test_int31
          end;
       end;
 
@@ -997,6 +1027,8 @@ unit go32;
             shrl $16,%esi
             movl $0x800,%eax
             int $0x31
+            pushf
+            call test_int31
             shll $16,%ebx
             movw %cx,%bx
             movl %ebx,__RESULT
@@ -1033,8 +1065,10 @@ unit go32;
            movl pagecount,%ecx
            movl $0x0508,%eax
            int $0x31
+           pushf
            setnc %al
            movb %al,__RESULT
+           call test_int31
          end;
       end;
 
@@ -1086,6 +1120,7 @@ unit go32;
 {$endif not V0_6}
 
 begin
+   int31error:=0;
 {$ifndef go32v2}
    if not (get_run_mode=rm_dpmi) then
      begin
@@ -1104,8 +1139,11 @@ end.
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:41  root
-  Initial revision
+  Revision 1.2  1998-03-29 17:26:20  florian
+    * small improvements
+
+  Revision 1.1.1.1  1998/03/25 11:18:41  root
+  * Restored version
 
   Revision 1.8  1998/03/24 15:54:14  peter
     - raw_ functions are not necessary for go32v2, $ifdef'd them
