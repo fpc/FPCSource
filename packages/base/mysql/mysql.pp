@@ -44,6 +44,12 @@ Var
   mysql_unix_port : pchar; external name 'mysql_unix_port';
 {$endif}
 
+{$ifdef darwin}
+Var
+  mysql_port : cardinal; external mysqllib name 'mysql_port'; 
+  mysql_unix_port : pchar; external mysqllib name 'mysql_unix_port';
+{$endif}
+
 {
 #define IS_PRI_KEY(n)   ((n) & PRI_KEY_FLAG)
 #define IS_NOT_NULL(n)  ((n) & NOT_NULL_FLAG)
@@ -372,7 +378,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2002-09-10 19:44:28  michael
+  Revision 1.5  2004-03-29 18:16:02  florian
+    + darwin support
+
+  Revision 1.4  2002/09/10 19:44:28  michael
   + Changed stdcall to appropriate OS calling declaration
 
   Revision 1.3  2002/09/07 15:42:52  peter
