@@ -418,102 +418,109 @@ begin
   errno:=0;
 end;
 
-Procedure OSErr2InOutRes(err: OSErr);
-{ Convert MacOS specific error codes to the correct InOutRes value}
-
+Function MacOSErr2RTEerr(err: OSErr): Integer;
+{ Converts MacOS specific error codes to the correct FPC error code.
+  All non zero MacOS errors shall correspond to a nonzero FPC error.}
+var
+  res: Integer;
 begin
   if err = noErr then { Else it will go through all the cases }
-    exit;
-
-  case err of
+    res:= 0
+  else case err of
     dirFulErr, { Directory full }
     dskFulErr  { disk full }
-      :Inoutres:=101;
+      :res:=101;
     nsvErr     { no such volume }
-      :Inoutres:=3;
+      :res:=3;
     ioErr,     { I/O error (bummers) }
     bdNamErr   { there may be no bad names in the final system! }
-      :Inoutres:=1; //TODO Exchange to something better
+      :res:=1; //TODO Exchange to something better
     fnOpnErr   { File not open }
-      :Inoutres:=103;
+      :res:=103;
     eofErr,    { End of file }
     posErr     { tried to position to before start of file (r/w) }
-      :Inoutres:=100;
+      :res:=100;
     mFulErr    { memory full (open) or file won't fit (load) }
-      :Inoutres:=1; //TODO Exchange to something better
+      :res:=1; //TODO Exchange to something better
     tmfoErr    { too many files open}
-      :Inoutres:=4;
+      :res:=4;
     fnfErr     { File not found }
-      :Inoutres:=2;
+      :res:=2;
     wPrErr     { diskette is write protected. }
-      :Inoutres:=150;
+      :res:=150;
     fLckdErr   { file is locked }
-      :Inoutres:=5;
+      :res:=5;
     vLckdErr   { volume is locked }
-      :Inoutres:=150;
+      :res:=150;
     fBsyErr    { File is busy (delete) }
-      :Inoutres:=5;
+      :res:=5;
     dupFNErr   { duplicate filename (rename) }
-      :Inoutres:=5;
+      :res:=5;
     opWrErr    { file already open with with write permission }
-      :Inoutres:=5;
+      :res:=5;
     rfNumErr,  { refnum error }
     gfpErr     { get file position error }
-      :Inoutres:=1; //TODO Exchange to something better
+      :res:=1; //TODO Exchange to something better
     volOffLinErr   { volume not on line error (was Ejected) }
-      :Inoutres:=152;
+      :res:=152;
     permErr    { permissions error (on file open) }
-      :Inoutres:=5;
+      :res:=5;
     volOnLinErr{ drive volume already on-line at MountVol }
-      :Inoutres:=0; //TODO Exchange to something other      
+      :res:=1; //TODO Exchange to something other      
     nsDrvErr       { no such drive (tried to mount a bad drive num) }
-      :Inoutres:=1; //TODO Perhaps exchange to something better
+      :res:=1; //TODO Perhaps exchange to something better
     noMacDskErr,   { not a mac diskette (sig bytes are wrong) }
     extFSErr       { volume in question belongs to an external fs }
-      :Inoutres:=157; //TODO Perhaps exchange to something better
+      :res:=157; //TODO Perhaps exchange to something better
     fsRnErr,   { file system internal error:during rename the old 
                  entry was deleted but could not be restored. }
     badMDBErr  { bad master directory block }
-      :Inoutres:=1; //TODO Exchange to something better
+      :res:=1; //TODO Exchange to something better
     wrPermErr  { write permissions error }
-      :Inoutres:=5;
+      :res:=5;
     dirNFErr   { Directory not found }
-      :Inoutres:=3;
+      :res:=3;
     tmwdoErr   { No free WDCB available }
-      :Inoutres:=1; //TODO Exchange to something better
+      :res:=1; //TODO Exchange to something better
     badMovErr  { Move into offspring error }
-      :Inoutres:=5;
+      :res:=5;
     wrgVolTypErr   { Wrong volume type error [operation not 
                      supported for MFS] }
-      :Inoutres:=1; //TODO Exchange to something better
+      :res:=1; //TODO Exchange to something better
     volGoneErr { Server volume has been disconnected. }
-      :Inoutres:=152;
+      :res:=152;
 
     diffVolErr         { files on different volumes }
-      :Inoutres:=17;
+      :res:=17;
     catChangedErr      { the catalog has been modified }
                        { OR comment: when searching with PBCatSearch }
-      :Inoutres:=0; //TODO Exchange to something other      
+      :res:=1; //TODO Exchange to something other      
     afpAccessDenied,   {  Insufficient access privileges for operation  }
     afpDenyConflict    {  Specified open/deny modes conflict with current open modes  }
-      :Inoutres:=5;
+      :res:=5;
     afpNoMoreLocks     {  Maximum lock limit reached  }
-      :Inoutres:=5;
+      :res:=5;
     afpRangeNotLocked, {  Tried to unlock range that was not locked by user  }
     afpRangeOverlap    {  Some or all of range already locked by same user  }
-      :Inoutres:=1; //TODO Exchange to something better
+      :res:=1; //TODO Exchange to something better
     afpObjectTypeErr   {  File/Directory specified where Directory/File expected  }
-      :Inoutres:=3;
+      :res:=3;
     afpCatalogChanged  { OR comment: when searching with PBCatSearch }
-      :Inoutres:=0; //TODO Exchange to something other      
+      :res:=1; //TODO Exchange to something other      
     afpSameObjectErr  
-      :Inoutres:=5; //TODO Exchange to something better
+      :res:=5; //TODO Exchange to something better
 
     memFullErr { Not enough room in heap zone }
-      :Inoutres:=203;
+      :res:=203;
   else
-    InOutRes := 1; //TODO Exchange to something better
+    res := 1; //TODO Exchange to something better
   end;
+  MacOSErr2RTEerr:= res;
+end;
+
+Procedure OSErr2InOutRes(err: OSErr);
+begin
+  InOutRes:= MacOSErr2RTEerr(err);
 end;
 
 function PathArgToFSSpec(s: string; var spec: FSSpec): Boolean;
@@ -1141,7 +1148,10 @@ end.
 
 {
   $Log$
-  Revision 1.12  2004-01-20 23:11:20  hajny
+  Revision 1.13  2004-02-04 15:17:16  olle
+    * internal changes
+
+  Revision 1.12  2004/01/20 23:11:20  hajny
     * ExecuteProcess fixes, ProcessID and ThreadID added
 
   Revision 1.11  2004/01/04 21:06:43  jonas
