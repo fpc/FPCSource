@@ -272,10 +272,15 @@ unit objpas;
         begin
         end;
 
+{$i except.inc}
+
 end.
 {
   $Log$
-  Revision 1.2  1998-03-25 23:40:24  florian
+  Revision 1.3  1998-07-29 10:09:28  michael
+  + put in exception support
+
+  Revision 1.2  1998/03/25 23:40:24  florian
     + stuff from old objpash.inc and objpas.inc merged in
 
 }
