@@ -3034,9 +3034,9 @@ VAR
 BEGIN
 {$IFDEF FPC}
   IF not assigned(Report) THEN
-   Report := DummyReport;
+   Report := @DummyReport;
   IF not assigned(Question) THEN
-   Question := DummyQuestion;
+   Question := @DummyQuestion;
 {$ELSE}
   IF @Report = nil THEN
    Report := DummyReport;
@@ -3328,7 +3328,11 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.2  1999-06-10 07:28:28  hajny
+  Revision 1.3  1999-06-10 15:00:16  peter
+    * fixed to compile for not os2
+    * update install.dat
+
+  Revision 1.2  1999/06/10 07:28:28  hajny
     * compilable with TP again
 
   Revision 1.1  1999/02/19 16:45:26  peter

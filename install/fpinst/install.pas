@@ -16,8 +16,8 @@
  **********************************************************************}
 program install;
 
-{$DEFINE FV}       (* TH - added to make use of the original Turbo Vision possible. *)
-{$DEFINE DLL}      (* TH - if defined, UNZIP32.DLL library is used to unpack. *)
+{$DEFINE FV}         (* TH - added to make use of the original Turbo Vision possible. *)
+{ $DEFINE DLL}       (* TH - if defined, UNZIP32.DLL library is used to unpack. *)
 { $DEFINE DOSSTUB}   (* TH - should _not_ be defined unless creating a bound DOS and OS/2 installer!!! *)
 (* Defining DOSSTUB causes adding a small piece of code    *)
 (* for starting the OS/2 part from the DOS part of a bound *)
@@ -930,7 +930,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  1999-06-10 07:28:27  hajny
+  Revision 1.3  1999-06-10 15:00:14  peter
+    * fixed to compile for not os2
+    * update install.dat
+
+  Revision 1.2  1999/06/10 07:28:27  hajny
     * compilable with TP again
 
   Revision 1.1  1999/02/19 16:45:26  peter
