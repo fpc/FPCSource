@@ -1,6 +1,7 @@
 uses
    dotest;
 
+{$ifdef HASOUT}
 type
    tr1 = record
       l1,l2 : longint;
@@ -87,3 +88,8 @@ begin
    if a<>'Now it''s another ansistring' then
      do_error(1105);
 end.
+{$else}
+begin
+  Writeln('No out parameter support');
+end.
+{$endif HASOUT}

@@ -1,5 +1,6 @@
 {$ifdef win32}
  {$define supported}
+ {$define supportidx}
 {$endif win32}
 {$ifdef linux}
  {$define supported}
@@ -20,8 +21,10 @@ procedure Test;export;
 
 exports
   Test name publicname;
+{$ifdef supportidx}
 exports
   Test index publicindex;
+{$endif}
 
 begin
 end.
