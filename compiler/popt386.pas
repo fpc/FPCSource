@@ -1486,7 +1486,16 @@ Begin
                   If (Paicpu(p)^.oper[0].typ = top_const) And
                      (Paicpu(p)^.oper[1].typ = top_reg) Then
                     If (Paicpu(p)^.oper[0].val = 2) And
-                       (Paicpu(p)^.oper[1].reg = R_ESP) Then
+                       (Paicpu(p)^.oper[1].reg = R_ESP) and
+                       { Don't do the sub/push optimization if the sub }
+                       { comes from setting up the stack frame (JM)    }
+                       (not getLastInstruction(p,hp1) or
+                        (hp1^.typ <> ait_instruction) or
+                        (paicpu(hp1)^.opcode <> A_MOV) or
+                        (paicpu(hp1)^.oper[0].typ <> top_reg) or
+                        (paicpu(hp1)^.oper[0].reg <> R_ESP) or
+                        (paicpu(hp1)^.oper[1].typ <> top_reg) or
+                        (paicpu(hp1)^.oper[1].reg <> R_EBP)) then
                       Begin
                         hp1 := Pai(p^.next);
                         While Assigned(hp1) And
@@ -1911,7 +1920,12 @@ End.
 
 {
  $Log$
- Revision 1.92  2000-04-23 14:56:36  jonas
+ Revision 1.93  2000-05-23 10:58:46  jonas
+   * fixed bug in "subl $2,%esp; .. ; pushw mem" optimization when the
+     sub comes from setting up the stack frame instead of from aligning
+     esp (I hope)
+
+ Revision 1.92  2000/04/23 14:56:36  jonas
    * changed "mov reg1, reg2; mov reg2, y" optimization that caused
      regalloc info to become invalid (it's still performed, but the
      regalloc info stays valid now)
