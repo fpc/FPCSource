@@ -557,14 +557,25 @@ Type & Range & Size in bytes \\ \hline
 Byte & 0 .. 255 & 1 \\
 Shortint & -128 .. 127 & 1\\
 Smallint & -32768 .. 32767 & 2\\
-Integer & -32768 .. 32767 & 2\footnote{The integer type is redefined as
-longint if you are in Delphi or ObjFPC mode, and then has size 4} \\
 Word & 0 .. 65535 & 2 \\
 Longint & -2147483648 .. 2147483647 & 4\\
 Cardinal & 0..4294967295 & 4 \\
 Int64 & -9223372036854775808 .. 9223372036854775807 & 8 \\
 QWord & 0 .. 18446744073709551615 & 8 \\ \hline
 \end{FPCltable}
+
+The \var{integer} type maps to the smallint type in the default
+\fpc mode. It maps to a longint in either Delphi or ObjFPC
+mode. This is summarized in \seet{integertype}.
+
+\begin{FPCltable}{lcr}{\var{Integer} type}{integertype}
+Compiler mode & Range & Size in bytes \\ \hline
+<default> & -32768 .. 32767 & 2\\
+Delphi    & -2147483648 .. 2147483647 & 4\\
+ObjFPC    & -2147483648 .. 2147483647 & 4\\
+\end{FPCltable}
+
+
 \fpc does automatic type conversion in expressions where different kinds of
 integer types are used.
 \subsubsection{Boolean types}
@@ -698,7 +709,7 @@ supported, and these depend on the target processor and emulation options.
 The true Turbo Pascal compatible types are listed in
 \seet{Reals}.
  \begin{FPCltable}{lccr}{Supported Real types}{Reals}
-Type & Range & Significant digits & Size\footnote{In Turbo Pascal.} \\ \hline
+Type & Range & Significant digits & Size \\ \hline
 Real & platform dependant & ??? & 4 or 8 \\
 Single & 1.5E-45 .. 3.4E38 & 7-8 & 4 \\
 Double & 5.0E-324 .. 1.7E308 & 15-16 & 8 \\
