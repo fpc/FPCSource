@@ -113,6 +113,7 @@ Fixed bugs:
   bug0098.pp   File type casts are not allowed (works in TP7)        OK 0.99.1 (FK)
   bug0099.pp   wrong assembler code is genereatoed for range check   OK 0.99.1 (?)
                (at least under 0.99.0)
+  bug0100.pp   a unit may only occure once in uses                   OK 0.99.6 (PM)
   bug0101.pp   no type checking for routines in interfance and       OK 0.99.1 (CEC)
                 implementation
   bug0102.pp   page fault when trying to compile under ppcm68k       OK 0.99.1
@@ -128,12 +129,13 @@ Fixed bugs:
   bug0115.pp   missing writeln for comp data type                    OK 0.99.6 (FK)
   bug0116.pp   when local variable size is > $ffff, enter can't be   OK 0.99.1 (FK)
                used to create the stack frame, but it is with -Og
-  bug0117.pp   internalerror 17 (and why is there an automatic float OK 0.99.6 (FK) 
+  bug0117.pp   internalerror 17 (and why is there an automatic float OK 0.99.6 (FK)
                conversion?)
   bug0118.pp   Procedural vars cannot be assigned nil ?              OK 0.99.6 (FK)
   bug0119.pp   problem with methods                                  OK 0.99.6 (FK)
-  bug0121.pp   cardinal -> byte conversion not work (and crashes)    OK 0.99.6 (FK) 
+  bug0121.pp   cardinal -> byte conversion not work (and crashes)    OK 0.99.6 (FK)
   bug0122.pp   exit() gives a warning that the result is not set     OK 0.99.6 (??)
+  bug0125.pp   wrong colors with DOS CRT unit                        OK 0.99.6 (PFV)
   bug0126.pp   packed array isn't allowed                            OK 0.99.6 (FK)
   bug0128.pp   problem with ^[                                       OK 0.99.6 (PFV)
   bug0129.pp   endless loop with while/continue                      OK 0.99.6 (FK)
@@ -167,7 +169,6 @@ bug0083.pp   shows missing "dynamic" set constructor
 bug0090.pp   shows PChar comparison problem
 bug0091.pp   missing standard functions in constant expressions
 bug0096.pp   problem with objects as parameters
-bug0100.pp   a unit may only occure once in uses
 bug0103.pp   problems with boolean typecasts (other type)
 bug0107.pp   shows page fault problem (run in TRUE DOS mode)
 bug0110.pp   SigSegv when using undeclared var in Case
@@ -175,7 +176,6 @@ bug0111.pp   blockread(typedfile,...) is not allowed in TP7
 bug0120.pp   inc/dec(enumeration) doesn't work
 bug0123.pp   problem with intel assembler (shrd)
 bug0124.pp   problem with -Rintel switch and indexing (whatever the order)
-bug0125.pp   wrong colors with DOS CRT unit
 bug0127.pp   problem with cdecl in implementation part
 bug0130.pp   in [..#255] problem
 bug0131.pp   internal error 10 with highdimension arrays
@@ -184,3 +184,4 @@ bug0133.pp   object type declaration not 100% compatibile with TP7
 bug0135.pp   Unsupported subrange type construction.
 bug0136.pp   No types necessary in the procedure header
 bug0137.pp   Cannot assign child object variable to parent objcet type variable
+bug0138.pp   with object^ do bug, %esi is not reloaded when it should
