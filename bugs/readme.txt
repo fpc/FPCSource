@@ -187,3 +187,5 @@ bug0131.pp   internal error 10 with highdimension arrays
 bug0132.pp   segmentation fault with type loop
 bug0135.pp   Unsupported subrange type construction.
 bug0137.pp   Cannot assign child object variable to parent objcet type variable
+bug0138.pp   ?? Peter ??
+bug0139.pp   Cannot access protected method of ancestor class from other unit.
