@@ -1302,7 +1302,7 @@ implementation
          ppufile.puttype(vartype);
          { symbols which are load are never candidates for a register,
            turn off the regable }
-         hvo:=varoptions-[vo_regable];
+         hvo:=varoptions-[vo_regable,vo_fpuregable];
          ppufile.putsmallset(hvo);
          if (vo_is_C_var in varoptions) then
            ppufile.putstring(mangledname);
@@ -2238,7 +2238,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  2001-08-06 21:40:48  peter
+  Revision 1.16  2001-08-12 20:00:26  peter
+    * don't write fpuregable for varoptions
+
+  Revision 1.15  2001/08/06 21:40:48  peter
     * funcret moved from tprocinfo to tprocdef
 
   Revision 1.14  2001/07/01 20:16:17  peter
