@@ -549,8 +549,8 @@ function  TellDir(p:pdir):longint;
 Function  AssignPipe(var pipe_in,pipe_out:longint):boolean;
 Function  AssignPipe(var pipe_in,pipe_out:text):boolean;
 Function  AssignPipe(var pipe_in,pipe_out:file):boolean;
-Procedure PClose(Var F:text);
-Procedure PClose(Var F:file);
+Function  PClose(Var F:text) : longint;
+Function  PClose(Var F:file) : longint;
 Procedure POpen(var F:text;const Prog:String;rw:char);
 Procedure POpen(var F:file;const Prog:String;rw:char);
 
@@ -1896,31 +1896,35 @@ begin
 end;
 
 
-Procedure PClose(Var F:text);
+Function PClose(Var F:text) :longint;
 var
-  sr : syscallregs;
-  pl : ^longint;
+  sr  : syscallregs;
+  pl  : ^longint;
+  res : longint; 
   
 begin
   sr.reg2:=Textrec(F).Handle;
   SysCall (syscall_nr_close,sr);
 { closed our side, Now wait for the other - this appears to be needed ?? }
   pl:=@(textrec(f).userdata[2]);
-  waitpid(pl^,nil,0);
+  waitpid(pl^,@res,0);
+  pclose:=res shr 8;
 end;
 
 
-Procedure PClose(Var F:file);
+Function PClose(Var F:file) : longint;
 var
   sr : syscallregs;
   pl : ^longint;
+  res : longint;
   
 begin
  sr.reg2:=FileRec(F).Handle;
  SysCall (Syscall_nr_close,sr);
 { closed our side, Now wait for the other - this appears to be needed ?? }
   pl:=@(filerec(f).userdata[2]);
-  waitpid(pl^,nil,0);
+  waitpid(pl^,@res,0);
+  pclose:=res shr 8;
 end;
 
 
@@ -3158,7 +3162,10 @@ End.
 
 {
   $Log$
-  Revision 1.4  1998-04-07 13:08:29  michael
+  Revision 1.5  1998-04-10 15:23:03  michael
+  + Pclose now returns exit status of process
+
+  Revision 1.4  1998/04/07 13:08:29  michael
   + Added flock for file locking
 
 
