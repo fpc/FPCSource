@@ -40,7 +40,7 @@ const
   StdOutputHandle = 1;
   StdErrorHandle  = 2;
 
-  FileNameCaseSensitive : boolean = false; 
+  FileNameCaseSensitive : boolean = false;
 
 { Default memory segments (Tp7 compatibility) }
   seg0040 = $0040;
@@ -819,10 +819,13 @@ begin
         InOutRes:=lo(regs.realeax);
         exit(writesize);
       end;
-     len:=len-size;
-     writesize:=writesize+size;
+     inc(writesize,regs.realeax);
+     dec(len,regs.realeax);
+     { stop when not the specified size is written }
+     if regs.realeax<size then
+      break;
    end;
-  Do_Write:=WriteSize
+  Do_Write:=WriteSize;
 end;
 
 
@@ -850,17 +853,13 @@ begin
         InOutRes:=lo(regs.realeax);
         do_read:=0;
         exit;
-      end
-     else
-      if regs.realeax<size then
-       begin
-         syscopyfromdos(addr+readsize,regs.realeax);
-         do_read:=readsize+regs.realeax;
-         exit;
-       end;
+      end;
      syscopyfromdos(addr+readsize,regs.realeax);
-     readsize:=readsize+regs.realeax;
-     len:=len-regs.realeax;
+     inc(readsize,regs.realeax);
+     dec(len,regs.realeax);
+     { stop when not the specified size is read }
+     if regs.realeax<size then
+      break;
    end;
   do_read:=readsize;
 end;
@@ -1250,7 +1249,7 @@ Begin
 { to test stack depth }
   loweststack:=maxlongint;
 { Setup heap }
-  InitHeap;  
+  InitHeap;
 {$ifdef MT}
   { before this, you can't use thread vars !!!! }
   { threadvarblocksize is calculate before the initialization }
@@ -1275,7 +1274,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.15  1999-08-19 14:03:16  pierre
+  Revision 1.16  1999-09-08 16:09:18  peter
+    * do_isdevice not called if already error
+
+  Revision 1.15  1999/08/19 14:03:16  pierre
    * use sysgetmem for startup and debug allocations
 
   Revision 1.14  1999/07/19 07:57:49  michael
