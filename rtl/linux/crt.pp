@@ -1045,7 +1045,7 @@ End;
 
 
 {****************************************************************************
-                          HighLevel Crt Functions
+                        Write(ln)/Read(ln) support
 ****************************************************************************}
 
 procedure DoLn;
@@ -1193,9 +1193,14 @@ begin
                  DoLn;
                end;
           #9 : begin {Tab}
-                SendText;
-                ttyWrite(Space(9-((CurrX-1) and $08)));
-              end;
+                 SendText;
+                 ttyWrite(Space(9-((CurrX-1) and $08)));
+               end;
+          #8 : begin {BackSpace}
+                 SendText;
+                 ttyWrite(#8);
+                 dec(CurrX);
+               end;
         else
          inc(SendBytes);
         end;
@@ -1206,7 +1211,6 @@ begin
    SendText;
   ttySetFlush(oldFLush);
 end;
-
 
 
 Function CrtWrite(Var F: TextRec): Integer;
@@ -1222,33 +1226,6 @@ Begin
   F.BufPos:=0;
   CrtWrite:=0;
 End;
-
-
-
-Function CrtClose(Var F: TextRec): Integer;
-
-{
-  Close CRT associated file.
-}
-Begin
-  F.Mode:=fmClosed;
-  CrtClose:=0;
-End;
-
-
-
-Function CrtOpen(Var F: TextRec): Integer;
-
-{
-  Open CRT associated file.
-}
-Begin
-  If F.Mode = fmOutput Then
-   CrtOpen:=0
-  Else
-   CrtOpen:=5;
-End;
-
 
 
 Function CrtRead(Var F: TextRec): Integer;
@@ -1271,38 +1248,56 @@ Begin
 End;
 
 
+Function CrtReturn:Integer;
+Begin
+  CrtReturn:=0;
+end;
 
-Function CrtInOut(Var F: TextRec): Integer;
+
+Function CrtClose(Var F: TextRec): Integer;
 {
-  InOut function for CRT associated file.
+  Close CRT associated file.
 }
 Begin
-  Case F.Mode of
-   fmInput: CrtInOut:=CrtRead(F);
-   fmOutput: CrtInOut:=CrtWrite(F);
-  End;
+  F.Mode:=fmClosed;
+  CrtClose:=0;
 End;
 
 
+Function CrtOpen(Var F: TextRec): Integer;
+{
+  Open CRT associated file.
+}
+Begin
+  If F.Mode=fmOutput Then
+   begin
+     TextRec(F).InOutFunc:=@CrtWrite;
+     TextRec(F).FlushFunc:=@CrtWrite;
+   end
+  Else
+   begin
+     F.Mode:=fmInput;
+     TextRec(F).InOutFunc:=@CrtRead;
+     TextRec(F).FlushFunc:=@CrtReturn;
+   end;
+  TextRec(F).CloseFunc:=@CrtClose;
+  CrtOpen:=0;
+End;
 
-Procedure AssignCrt(Var F: Text);
+
+procedure AssignCrt(var F: Text);
 {
   Assign a file to the console. All output on file goes to console instead.
 }
-Begin
-  TextRec(F).Mode:=fmClosed;
-  TextRec(F).BufSize:=SizeOf(TextBuf);
-  TextRec(F).BufPtr:=@TextRec(F).Buffer;
-  TextRec(F).BufPos:=0;
+begin
+  Assign(F,'');
   TextRec(F).OpenFunc:=@CrtOpen;
-  TextRec(F).InOutFunc:=@CrtInOut;
-  TextRec(F).FlushFunc:=@CrtWrite;
-  TextRec(F).CloseFunc:=@CrtClose;
-  TextRec(F).Name[0]:='.';
-  TextRec(F).Name[1]:=#0;
-End;
+end;
 
 
+{******************************************************************************
+                            High Level Functions
+******************************************************************************}
 
 Procedure DelLine;
 {
@@ -1414,7 +1409,6 @@ end;
 
 
 Procedure CrtExit;
-
 {
   We need to restore normal keyboard mode upon exit !!
 }
@@ -1430,11 +1424,14 @@ Begin
 {Hook Exit}
   ExitSave:=ExitProc;
   ExitProc:=@CrtExit;
-{Assign Input and Output to Crt}
-  AssignCrt(Output);
-  AssignCrt(Input);
-  TextRec(Output).Mode:=fmOutput;
-  TextRec(Input).Mode:=fmInput;
+{ Redirect the standard output }
+  assigncrt(Output);
+  Rewrite(Output);
+  TextRec(Output).Handle:=StdOutputHandle;
+  assigncrt(Input);
+  Reset(Input);
+  TextRec(Input).Handle:=StdInputHandle;
+{ Are we redirected to a file ? }
   Redir:=not IsAtty(TextRec(Output).Handle);
 {Set default Terminal Settings}
   SetRawMode(True);
@@ -1459,7 +1456,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.7  1998-07-04 11:17:18  peter
+  Revision 1.8  1998-08-28 11:00:20  peter
+    * fixed #8 writing
+
+  Revision 1.7  1998/07/04 11:17:18  peter
     * fixes for window (from "Heinz Ziegenhorn" <info@ziegenhorn.de>)
 
   Revision 1.6  1998/06/19 16:51:50  peter
