@@ -38,11 +38,11 @@ implementation
 uses
   globtype,systems,
   globals,cgbase,procinfo,
-  symsym,symdef,
+  symsym,
 {$ifdef finaldestdebug}
   cobjects,
 {$endif finaldestdebug}
-  cpuinfo,cpubase,cgutils,daopt386,rgobj;
+  cpuinfo,cpubase,cgutils,daopt386;
 
 function RegUsedAfterInstruction(reg: Tregister; p: tai; var UsedRegs: TRegSet): Boolean;
 var
@@ -108,7 +108,7 @@ end;
 procedure PrePeepHoleOpts(asml: taasmoutput; BlockStart, BlockEnd: tai);
 var
   p,hp1: tai;
-  l: Aword;
+  l: aint;
   tmpRef: treference;
 begin
   p := BlockStart;
@@ -358,7 +358,7 @@ begin
                         taicpu(p).opcode := A_AND;
                         l := (1 shl (taicpu(p).oper[0]^.val))-1;
                         case taicpu(p).opsize Of
-                          S_L: taicpu(p).LoadConst(0,l Xor aword($ffffffff));
+                          S_L: taicpu(p).LoadConst(0,l Xor aint($ffffffff));
                           S_B: taicpu(p).LoadConst(0,l Xor $ff);
                           S_W: taicpu(p).LoadConst(0,l Xor $ffff);
                         end;
@@ -374,7 +374,7 @@ begin
                           case taicpu(p).opsize Of
                             S_B: taicpu(p).LoadConst(0,l Xor $ff);
                             S_W: taicpu(p).LoadConst(0,l Xor $ffff);
-                            S_L: taicpu(p).LoadConst(0,l Xor aword($ffffffff));
+                            S_L: taicpu(p).LoadConst(0,l Xor aint($ffffffff));
                           end;
                           asml.remove(hp1);
                           hp1.free;
@@ -403,7 +403,7 @@ procedure PeepHoleOptPass1(Asml: taasmoutput; BlockStart, BlockEnd: tai);
 {First pass of peepholeoptimizations}
 
 var
-  l,l1 : longint;
+  l : longint;
   p,hp1,hp2 : tai;
   hp3,hp4: tai;
 
@@ -1619,6 +1619,7 @@ end;
 
 procedure PeepHoleOptPass2(asml: taasmoutput; BlockStart, BlockEnd: tai);
 
+{$ifdef  USECMOV}
   function CanBeCMOV(p : tai) : boolean;
     begin
        CanBeCMOV:=assigned(p) and (p.typ=ait_instruction) and
@@ -1629,6 +1630,7 @@ procedure PeepHoleOptPass2(asml: taasmoutput; BlockStart, BlockEnd: tai);
            (taicpu(p).oper[0]^.ref^.refaddr = addr_no))) and
          (taicpu(p).oper[1]^.typ in [top_reg]);
     end;
+{$endif  USECMOV}
 
 var
   p,hp1,hp2: tai;
@@ -2002,7 +2004,10 @@ end.
 
 {
   $Log$
-  Revision 1.61  2004-06-20 08:55:31  florian
+  Revision 1.62  2004-10-05 17:31:41  peter
+    * range check errors fixed
+
+  Revision 1.61  2004/06/20 08:55:31  florian
     * logs truncated
 
   Revision 1.60  2004/06/16 20:07:10  florian
