@@ -774,6 +774,7 @@ implementation
               else
                 begin
                    consume(_LKLAMMER);
+                   sorg:='';
                    aktpos:=0;
                    srsym := tsym(trecorddef(t.def).symtable.symindex.first);
                    recsym := nil;
@@ -787,7 +788,7 @@ implementation
                         recsym := tsym(trecorddef(t.def).symtable.search(s));
                         if not assigned(recsym) then
                           begin
-                            Message1(sym_e_illegal_field,s);
+                            Message1(sym_e_illegal_field,sorg);
                             error := true;
                           end;
                         if (not error) and
@@ -862,7 +863,7 @@ implementation
                     { after the last initialized field                      }
                     ((recsym=nil) or
                      (tvarsym(srsym).address > tvarsym(recsym).address)) then
-                   Message1(parser_w_skipped_fields_after,s);
+                   Message1(parser_w_skipped_fields_after,sorg);
 
                  for i:=1 to t.def.size-aktpos do
                    curconstSegment.concat(Tai_const.Create_8bit(0));
@@ -987,7 +988,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.63  2002-12-26 12:34:54  florian
+  Revision 1.64  2003-01-02 20:45:08  peter
+    * fix uninited var
+
+  Revision 1.63  2002/12/26 12:34:54  florian
     * fixed support for type widechar consts
 
   Revision 1.62  2002/12/07 14:15:33  carl
