@@ -164,6 +164,12 @@ End;
 
 
 { Include processor specific routines }
+{$ifdef m68k}
+ { The motorola 680x0 is different then the others }
+ { since it may not contain an FPU - this includes }
+ { all emulation code.                             }
+ {$i lowmath.inc}
+{$endif}
 {$I math.inc}
 
 {****************************************************************************
@@ -659,7 +665,10 @@ end;
 
 {
   $Log$
-  Revision 1.18  2001-07-29 13:49:15  peter
+  Revision 1.19  2001-07-29 14:05:55  peter
+    * include lowmath for m68k (merged)
+
+  Revision 1.18  2001/07/29 13:49:15  peter
     * m68k updates merged
 
   Revision 1.17  2001/07/09 21:15:41  peter
