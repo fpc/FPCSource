@@ -30,7 +30,7 @@ unit SAX_HTML;
 
 interface
 
-uses SysUtils, Classes, SAX, DOM;
+uses SysUtils, Classes, SAX, DOM, DOM_HTML;
 
 type
 
@@ -80,6 +80,8 @@ type
     FDocument: TDOMDocument;
     FElementStack: TList;
     FNodeBuffer: TList;
+    IsFragmentMode, FragmentRootSet: Boolean;
+    FragmentRoot: TDOMNode;
 
     procedure ReaderCharacters(Sender: TObject; const ch: PSAXChar;
       Start, Count: Integer);
@@ -93,8 +95,18 @@ type
 
   public
     constructor Create(AReader: THTMLReader; ADocument: TDOMDocument);
+    constructor CreateFragment(AReader: THTMLReader; AFragmentRoot: TDOMNode);
     destructor Destroy; override;
   end;
+
+
+// Helper functions; these ones are HTML equivalents of ReadXML[File|Fragment]
+
+procedure ReadHTMLFile(var ADoc: THTMLDocument; const AFilename: String);
+procedure ReadHTMLFile(var ADoc: THTMLDocument; var f: TStream);
+
+procedure ReadHTMLFragment(AParentNode: TDOMNode; const AFilename: String);
+procedure ReadHTMLFragment(AParentNode: TDOMNode; var f: TStream);
 
 
 
@@ -391,7 +403,8 @@ end;
 
 { THTMLToDOMConverter }
 
-constructor THTMLToDOMConverter.Create(AReader: THTMLReader; ADocument: TDOMDocument);
+constructor THTMLToDOMConverter.Create(AReader: THTMLReader;
+  ADocument: TDOMDocument);
 begin
   inherited Create;
   FReader := AReader;
@@ -403,6 +416,23 @@ begin
   FDocument := ADocument;
   FElementStack := TList.Create;
   FNodeBuffer := TList.Create;
+end;
+
+constructor THTMLToDOMConverter.CreateFragment(AReader: THTMLReader;
+  AFragmentRoot: TDOMNode);
+begin
+  inherited Create;
+  FReader := AReader;
+  FReader.OnCharacters := @ReaderCharacters;
+  FReader.OnIgnorableWhitespace := @ReaderIgnorableWhitespace;
+  FReader.OnSkippedEntity := @ReaderSkippedEntity;
+  FReader.OnStartElement := @ReaderStartElement;
+  FReader.OnEndElement := @ReaderEndElement;
+  FDocument := AFragmentRoot.OwnerDocument;
+  FElementStack := TList.Create;
+  FNodeBuffer := TList.Create;
+  FragmentRoot := AFragmentRoot;
+  IsFragmentMode := True;
 end;
 
 destructor THTMLToDOMConverter.Destroy;
@@ -481,8 +511,16 @@ begin
   NodeInfo := THTMLNodeInfo.Create;
   NodeInfo.NodeType := ntTag;
   NodeInfo.DOMNode := Element;
-  if not Assigned(FDocument.DocumentElement) then
-    FDocument.AppendChild(Element);
+  if IsFragmentMode then
+  begin
+    if not FragmentRootSet then
+    begin
+      FragmentRoot.AppendChild(Element);
+      FragmentRootSet := True;
+    end;
+  end else
+    if not Assigned(FDocument.DocumentElement) then
+      FDocument.AppendChild(Element);
   FNodeBuffer.Add(NodeInfo);
   // WriteLn('Start: ', LocalName, '. Node buffer after: ', FNodeBuffer.Count, ' elements');
 end;
@@ -543,12 +581,78 @@ begin
 end;
 
 
+procedure ReadHTMLFile(var ADoc: THTMLDocument; const AFilename: String);
+var
+  f: TStream;
+begin
+  ADoc := nil;
+  f := TFileStream.Create(AFilename, fmOpenRead);
+  try
+    ReadHTMLFile(ADoc, f);
+  finally
+    f.Free;
+  end;
+end;
+
+procedure ReadHTMLFile(var ADoc: THTMLDocument; var f: TStream);
+var
+  Reader: THTMLReader;
+  Converter: THTMLToDOMConverter;
+begin
+  ADoc := THTMLDocument.Create;
+  Reader := THTMLReader.Create;
+  try
+    Converter := THTMLToDOMConverter.Create(Reader, ADoc);
+    try
+      Reader.ParseStream(f);
+    finally
+      Converter.Free;
+    end;
+  finally
+    Reader.Free;
+  end;
+end;
+
+procedure ReadHTMLFragment(AParentNode: TDOMNode; const AFilename: String);
+var
+  f: TStream;
+begin
+  f := TFileStream.Create(AFilename, fmOpenRead);
+  try
+    ReadHTMLFragment(AParentNode, f);
+  finally
+    f.Free;
+  end;
+end;
+
+procedure ReadHTMLFragment(AParentNode: TDOMNode; var f: TStream);
+var
+  Reader: THTMLReader;
+  Converter: THTMLToDOMConverter;
+begin
+  Reader := THTMLReader.Create;
+  try
+    Converter := THTMLToDOMConverter.CreateFragment(Reader, AParentNode);
+    try
+      Reader.ParseStream(f);
+    finally
+      Converter.Free;
+    end;
+  finally
+    Reader.Free;
+  end;
+end;
+
+
 end.
 
 
 {
   $Log$
-  Revision 1.4  2002-12-14 19:18:21  sg
+  Revision 1.5  2003-03-16 22:38:09  sg
+  * Added fragment parsing functions
+
+  Revision 1.4  2002/12/14 19:18:21  sg
   * Improved whitespace handling (although it's still not perfect in all
     cases)
 
