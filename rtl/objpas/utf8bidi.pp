@@ -462,15 +462,11 @@ end;
 
 procedure VDelete(var str:TUTF8String; vp, len:Integer; pDir:TDirection);
 var
-  v2l:TVisualToLogical;
-  i:Integer;
+  temp:TString;
 begin
-  v2l := VisualToLogical(str, pDir);
-  for i := 1 to v2l[0] do
-    if(v2l[i] < vp) and (v2l[i] > vp + len)
-    then
-      Delete(str, v2l[i], 1);
-WriteLn('kjjkjkjkj');
+  temp := UTF8ToUnicode(str);
+  FreeBIDI.VDelete(temp, vp, len, pDir);
+  str := UnicodeToUTF8(temp);
 end;
 
 end.
