@@ -296,7 +296,15 @@ implementation
          if p^.firstpasscount>0 then
            begin
               move(p^,str1[1],sizeof(ttree));
+       {$ifndef TP}
+         {$ifopt H+}
+           SetLength(str1,sizeof(ttree));
+         {$else}
               str1[0]:=char(sizeof(ttree));
+         {$endif}
+       {$else}
+              str1[0]:=char(sizeof(ttree));
+       {$endif}
               new(oldp);
               oldp^:=p^;
               not_first:=true;
@@ -324,7 +332,15 @@ implementation
            begin
               { dirty trick to compare two ttree's (PM) }
               move(p^,str2[1],sizeof(ttree));
+       {$ifndef TP}
+         {$ifopt H+}
+           SetLength(str2,sizeof(ttree));
+         {$else}
               str2[0]:=char(sizeof(ttree));
+         {$endif}
+       {$else}
+              str2[0]:=char(sizeof(ttree));
+       {$endif}
               if str1<>str2 then
                 begin
                    comment(v_debug,'tree changed after first counting pass '
@@ -350,7 +366,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.97  1998-11-05 14:26:47  peter
+  Revision 1.98  1998-11-23 17:49:03  pierre
+   * ansistring support in extdebug code
+
+  Revision 1.97  1998/11/05 14:26:47  peter
     * fixed variant warning with was sometimes said with sets
 
   Revision 1.96  1998/10/06 20:49:07  peter
