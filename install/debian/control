@@ -3,7 +3,7 @@ Section: devel
 Priority: optional
 Maintainer: Carlos Laviola <claviola@debian.org>
 Standards-Version: 3.6.1
-Build-Depends: fp-compiler, fp-utils, debhelper (>= 4.2), tetex-bin, tetex-extra, awk, gs-common
+Build-Depends: fp-compiler, fp-utils, debhelper (>= 4.2), tetex-bin, tetex-extra, awk, gs-common, ncurses-dev, libgpmg1-dev
 
 Package: fp-compiler
 Architecture: i386 powerpc sparc amd64
@@ -89,7 +89,7 @@ Description: Free Pascal -- Free Component Library
 Package: fp-units-fv
 Architecture: i386 powerpc sparc amd64
 Depends: fp-units-rtl (= 1.9.6-1)
-Description: Free Pascal -- Free Component Library
+Description: Free Pascal -- Free Vision units
  The Free Pascal Compiler is a Turbo Pascal 7.0 and Delphi compatible 32/64-bit
  Pascal Compiler. It comes with a fully compatible TP 7.0 runtime library.
  This package contains the Free Vision units for the Free Pascal Compiler.
