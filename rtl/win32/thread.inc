@@ -28,7 +28,8 @@ var
    dataindex : dword;
 
 { import the necessary stuff from windows }
-function TlsAlloc : DWord;external 'kernel32' name 'TlsAlloc';
+function TlsAlloc : DWord;
+  external 'kernel32' name 'TlsAlloc';
 function TlsGetValue(dwTlsIndex : DWord) : pointer;
   external 'kernel32' name 'TlsGetValue';
 function TlsSetValue(dwTlsIndex : DWord;lpTlsValue : pointer) : LongBool;
@@ -196,28 +197,6 @@ procedure EndThread;
 
 { we implement these procedures for win32 by importing them }
 { directly from windows                                     }
-
-procedure InitCriticalsection(var cs : tcriticalsection);
-
-  begin
-  end;
-
-procedure DoneCriticalsection(var cs : tcriticalsection);
-
-  begin
-  end;
-
-procedure EnterCriticalsection(var cs : tcriticalsection);
-
-  begin
-  end;
-
-procedure LeaveCriticalsection(var cs : tcriticalsection);
-
-  begin
-  end;
-
-{
 procedure InitCriticalSection(var cs : tcriticalsection);
   external 'kernel32' name 'InitializeCriticalSection';
 
@@ -229,13 +208,15 @@ procedure EnterCriticalSection(var cs : tcriticalsection);
 
 procedure LeaveCriticalSection(var cs : tcriticalsection);
   external 'kernel32' name 'LeaveCriticalSection';
-}
 
 {$endif MT}
 
 {
   $Log$
-  Revision 1.3  2001-01-26 16:38:03  florian
+  Revision 1.4  2001-01-26 21:02:21  florian
+  *** empty log message ***
+
+  Revision 1.3  2001/01/26 16:38:03  florian
   *** empty log message ***
 
   Revision 1.2  2001/01/24 21:47:38  florian
