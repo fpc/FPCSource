@@ -1252,9 +1252,17 @@ begin
               if (po_overload in pd^.procoptions) or
                  (po_overload in hd^.procoptions) then
                begin
-                 if not((po_overload in pd^.procoptions) and
-                        (po_overload in hd^.procoptions)) then
-                  Message1(parser_e_no_overload_for_all_procs,aktprocsym^.name);
+                 { one a forwarddef and the other not then the not may not have
+                   the directive as in D5 (PFV) }
+                 if hd^.forwarddef and (not pd^.forwarddef) then
+                  begin
+                    if (po_overload in pd^.procoptions) then
+                     Message1(parser_e_proc_dir_not_allowed_in_implementation,'OVERLOAD');
+                  end
+                 else
+                  if not((po_overload in pd^.procoptions) and
+                         ((po_overload in hd^.procoptions))) then
+                   Message1(parser_e_no_overload_for_all_procs,aktprocsym^.name);
                end
               else
                begin
@@ -2058,10 +2066,12 @@ end.
 
 {
   $Log$
-  Revision 1.3  2000-07-13 12:08:27  michael
+  Revision 1.4  2000-07-30 17:04:43  peter
+    * merged fixes
+
+  Revision 1.3  2000/07/13 12:08:27  michael
   + patched to 1.1.0 with former 1.09patch from peter
 
   Revision 1.2  2000/07/13 11:32:46  michael
   + removed logs
-
 }

@@ -99,36 +99,32 @@ unit pdecl;
               varspez:=vs_value;
           inserthigh:=false;
           tt.reset;
-          if idtoken=_SELF then
+          { self is only allowed in procvars and class methods }
+          if (idtoken=_SELF) and
+             (is_procvar or
+              (assigned(procinfo^._class) and procinfo^._class^.is_class)) then
             begin
-               { only allowed in procvars and class methods }
-               if is_procvar or
-                  (assigned(procinfo^._class) and procinfo^._class^.is_class) then
-                begin
-                  if not is_procvar then
-                   begin
+              if not is_procvar then
+               begin
 {$ifndef UseNiceNames}
-                     hs2:=hs2+'$'+'self';
+                 hs2:=hs2+'$'+'self';
 {$else UseNiceNames}
-                     hs2:=hs2+tostr(length('self'))+'self';
+                 hs2:=hs2+tostr(length('self'))+'self';
 {$endif UseNiceNames}
-                     vs:=new(Pvarsym,initdef('@',procinfo^._class));
-                     vs^.varspez:=vs_var;
-                   { insert the sym in the parasymtable }
-                     pprocdef(aktprocdef)^.parast^.insert(vs);
-                     include(aktprocdef^.procoptions,po_containsself);
-                     inc(procinfo^.selfpointer_offset,vs^.address);
-                   end;
-                  consume(idtoken);
-                  consume(_COLON);
-                  single_type(tt,hs1,false);
-                  aktprocdef^.concatpara(tt,vs_value);
-                  { check the types for procedures only }
-                  if not is_procvar then
-                   CheckTypes(tt.def,procinfo^._class);
-                end
-               else
-                consume(_ID);
+                 vs:=new(Pvarsym,initdef('@',procinfo^._class));
+                 vs^.varspez:=vs_var;
+               { insert the sym in the parasymtable }
+                 pprocdef(aktprocdef)^.parast^.insert(vs);
+                 include(aktprocdef^.procoptions,po_containsself);
+                 inc(procinfo^.selfpointer_offset,vs^.address);
+               end;
+              consume(idtoken);
+              consume(_COLON);
+              single_type(tt,hs1,false);
+              aktprocdef^.concatpara(tt,vs_value);
+              { check the types for procedures only }
+              if not is_procvar then
+               CheckTypes(tt.def,procinfo^._class);
             end
           else
             begin
@@ -1232,7 +1228,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.4  2000-07-14 05:11:49  michael
+  Revision 1.5  2000-07-30 17:04:43  peter
+    * merged fixes
+
+  Revision 1.4  2000/07/14 05:11:49  michael
   + Patch to 1.1
 
   Revision 1.3  2000/07/13 12:08:26  michael

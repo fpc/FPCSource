@@ -1338,6 +1338,28 @@ uses
           lowval,
           highval   : longint;
           arraytype : pdef;
+          ht        : ttype;
+
+          procedure setdefdecl(p:pdef);
+          begin
+            case p^.deftype of
+              enumdef :
+                begin
+                  lowval:=penumdef(p)^.min;
+                  highval:=penumdef(p)^.max;
+                  arraytype:=p;
+                end;
+              orddef :
+                begin
+                  lowval:=porddef(p)^.low;
+                  highval:=porddef(p)^.high;
+                  arraytype:=p;
+                end;
+              else
+                Message(sym_e_error_in_type_def);
+            end;
+          end;
+
         begin
            consume(_ARRAY);
            consume(_LECKKLAMMER);
@@ -1347,51 +1369,44 @@ uses
            highval:=$7fffffff;
            tt.reset;
            repeat
-             { read the expression and check it }
-             pt:=expr;
-             if pt^.treetype=typen then
-               begin
-                 case pt^.resulttype^.deftype of
-                   enumdef :
-                     begin
-                       lowval:=penumdef(pt^.resulttype)^.min;
-                       highval:=penumdef(pt^.resulttype)^.max;
-                       arraytype:=pt^.resulttype;
-                     end;
-                   orddef :
-                     begin
-                       lowval:=porddef(pt^.resulttype)^.low;
-                       highval:=porddef(pt^.resulttype)^.high;
-                       arraytype:=pt^.resulttype;
-                     end;
-                   else
-                     Message(sym_e_error_in_type_def);
-                 end;
-               end
+             { read the expression and check it, check apart if the
+               declaration is an enum declaration because that needs to
+               be parsed by readtype (PFV) }
+             if token=_LKLAMMER then
+              begin
+                read_type(ht,'');
+                setdefdecl(ht.def);
+              end
              else
-               begin
-                  do_firstpass(pt);
-                  if (pt^.treetype=rangen) then
-                   begin
-                     if (pt^.left^.treetype=ordconstn) and
-                        (pt^.right^.treetype=ordconstn) then
+              begin
+                pt:=expr;
+                if pt^.treetype=typen then
+                 setdefdecl(pt^.resulttype)
+                else
+                  begin
+                     do_firstpass(pt);
+                     if (pt^.treetype=rangen) then
                       begin
-                        lowval:=pt^.left^.value;
-                        highval:=pt^.right^.value;
-                        if highval<lowval then
+                        if (pt^.left^.treetype=ordconstn) and
+                           (pt^.right^.treetype=ordconstn) then
                          begin
-                           Message(parser_e_array_lower_less_than_upper_bound);
-                           highval:=lowval;
-                         end;
-                        arraytype:=pt^.right^.resulttype;
+                           lowval:=pt^.left^.value;
+                           highval:=pt^.right^.value;
+                           if highval<lowval then
+                            begin
+                              Message(parser_e_array_lower_less_than_upper_bound);
+                              highval:=lowval;
+                            end;
+                           arraytype:=pt^.right^.resulttype;
+                         end
+                        else
+                         Message(type_e_cant_eval_constant_expr);
                       end
                      else
-                      Message(type_e_cant_eval_constant_expr);
-                   end
-                  else
-                   Message(sym_e_error_in_type_def)
-               end;
-             disposetree(pt);
+                      Message(sym_e_error_in_type_def)
+                  end;
+                disposetree(pt);
+              end;
 
            { create arraydef }
              if not assigned(tt.def) then
@@ -1578,7 +1593,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.3  2000-07-13 12:08:27  michael
+  Revision 1.4  2000-07-30 17:04:43  peter
+    * merged fixes
+
+  Revision 1.3  2000/07/13 12:08:27  michael
   + patched to 1.1.0 with former 1.09patch from peter
 
   Revision 1.2  2000/07/13 11:32:47  michael

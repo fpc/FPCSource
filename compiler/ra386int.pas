@@ -1167,7 +1167,8 @@ Begin
 
       AS_REGISTER :
         begin
-          if (not GotPlus) and (not GotStar) then
+          if not((GotPlus and (not Negative)) or
+                 GotStar) then
             Message(asmr_e_invalid_reference_syntax);
           hreg:=actasmregister;
           Consume(AS_REGISTER);
@@ -1902,7 +1903,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:48  michael
+  Revision 1.3  2000-07-30 17:04:43  peter
+    * merged fixes
+
+  Revision 1.2  2000/07/13 11:32:48  michael
   + removed logs
 
 }

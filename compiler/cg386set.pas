@@ -632,6 +632,14 @@ implementation
 
         procedure genitem(t : pcaserecord);
 
+            procedure gensub(value:longint);
+            begin
+              if value=1 then
+                emit_reg(A_DEC,opsize,hregister)
+              else
+                emit_const_reg(A_SUB,opsize,value,hregister);
+            end;
+
           begin
              if assigned(t^.less) then
                genitem(t^.less);
@@ -643,12 +651,10 @@ implementation
                end;
              if t^._low=t^._high then
                begin
-                  if t^._low-last=1 then
-                    emit_reg(A_DEC,opsize,hregister)
-                  else if t^._low-last=0 then
+                  if t^._low-last=0 then
                     emit_reg_reg(A_OR,opsize,hregister,hregister)
                   else
-                    emit_const_reg(A_SUB,opsize,t^._low-last,hregister);
+                    gensub(t^._low-last);
                   last:=t^._low;
                   emitjmp(C_Z,t^.statement);
                end
@@ -661,29 +667,18 @@ implementation
                     begin
                        { have we to ajust the first value ? }
                        if t^._low>get_min_value(p^.left^.resulttype) then
-                         begin
-                            if t^._low=1 then
-                              emit_reg(A_DEC,opsize,
-                                hregister)
-                            else
-                              emit_const_reg(A_SUB,opsize,
-                                t^._low,hregister);
-                         end;
+                         gensub(t^._low);
                     end
                   else
-                  { if there is no unused label between the last and the }
-                  { present label then the lower limit can be checked    }
-                  { immediately. else check the range in between:       }
-                  if (t^._low-last>1) then
                     begin
-                       emit_const_reg(A_SUB,opsize,t^._low-last,hregister);
-                       emitjmp(jmp_le,elselabel);
-                    end
-                  else
-                    emit_reg(A_DEC,opsize,hregister);
+                      { if there is no unused label between the last and the }
+                      { present label then the lower limit can be checked    }
+                      { immediately. else check the range in between:       }
+                      emit_const_reg(A_SUB,opsize,t^._low-last,hregister);
+                      emitjmp(jmp_le,elselabel);
+                    end;
                   emit_const_reg(A_SUB,opsize,t^._high-t^._low,hregister);
                   emitjmp(jmp_lee,t^.statement);
-
                   last:=t^._high;
                end;
              first:=false;
@@ -969,7 +964,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2000-07-27 09:25:05  jonas
+  Revision 1.4  2000-07-30 17:04:43  peter
+    * merged fixes
+
+  Revision 1.3  2000/07/27 09:25:05  jonas
     * moved locflags2reg() procedure from cg386add to cgai386
     + added locjump2reg() procedure to cgai386
     * fixed internalerror(2002) when the result of a case expression has
