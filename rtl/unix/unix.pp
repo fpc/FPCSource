@@ -2295,10 +2295,10 @@ begin
   nr:=0;
   while(buf^<>#0) do
    begin
-     while (buf^ in [' ',#8,#10]) do
+     while (buf^ in [' ',#9,#10]) do
       inc(buf);
      inc(nr);
-     while not (buf^ in [' ',#0,#8,#10]) do
+     while not (buf^ in [' ',#0,#9,#10]) do
       inc(buf);
    end;
   getmem(p,nr*4);
@@ -2311,7 +2311,7 @@ begin
   buf:=s;
   while (buf^<>#0) do
    begin
-     while (buf^ in [' ',#8,#10]) do
+     while (buf^ in [' ',#9,#10]) do
       begin
         buf^:=#0;
         inc(buf);
@@ -2319,7 +2319,7 @@ begin
      p^:=buf;
      inc(p);
      p^:=nil;
-     while not (buf^ in [' ',#0,#8,#10]) do
+     while not (buf^ in [' ',#0,#9,#10]) do
       inc(buf);
    end;
 end;
@@ -3058,7 +3058,10 @@ End.
 
 {
   $Log$
-  Revision 1.25  2002-12-18 16:50:39  marco
+  Revision 1.26  2003-03-11 08:27:59  michael
+  * stringtoppchar should use tabs instead of backspace as delimiter
+
+  Revision 1.25  2002/12/18 16:50:39  marco
    * Unix RTL generic parts. Linux working, *BSD will follow shortly
 
   Revision 1.24  2002/09/07 16:01:28  peter

@@ -2265,10 +2265,10 @@ begin
   nr:=0;
   while(buf^<>#0) do
    begin
-     while (buf^ in [' ',#8,#10]) do
+     while (buf^ in [' ',#9,#10]) do
       inc(buf);
      inc(nr);
-     while not (buf^ in [' ',#0,#8,#10]) do
+     while not (buf^ in [' ',#0,#9,#10]) do
       inc(buf);
    end;
   getmem(p,nr*4+1);
@@ -2281,7 +2281,7 @@ begin
   buf:=s;
   while (buf^<>#0) do
    begin
-     while (buf^ in [' ',#8,#10]) do
+     while (buf^ in [' ',#9,#10]) do
       begin
         buf^:=#0;
         inc(buf);
@@ -2289,7 +2289,7 @@ begin
      p^:=buf;
      inc(p);
      p^:=nil;
-     while not (buf^ in [' ',#0,#8,#10]) do
+     while not (buf^ in [' ',#0,#9,#10]) do
       inc(buf);
    end;
 end;
@@ -3032,7 +3032,10 @@ End.
 
 {
   $Log$
-  Revision 1.27  2003-01-05 19:11:32  marco
+  Revision 1.28  2003-03-11 08:26:50  michael
+  * stringtoppchar should use tabs instead of backspace as delimiter
+
+  Revision 1.27  2003/01/05 19:11:32  marco
    * small changes originating from introduction of Baseunix to FreeBSD
 
   Revision 1.26  2002/12/18 17:52:07  peter
