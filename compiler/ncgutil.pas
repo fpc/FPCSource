@@ -2381,6 +2381,7 @@ implementation
                       _class.implementedinterfaces.interfaces(i).objname^+'_$_'+
                       tostr(j)+'_$_'+_class.implementedinterfaces.implprocs(i,j).mangledname);
                     { create wrapper code }
+                    new_section(list,sec_code,lower(tmps),0);
                     cg.g_intf_wrapper(list,_class.implementedinterfaces.implprocs(i,j),tmps,_class.implementedinterfaces.ioffsets(i));
                   end;
               end;
@@ -2392,7 +2393,6 @@ implementation
       var
         def : tstoreddef;
       begin
-        new_section(list,sec_code,'',0);
         def:=tstoreddef(st.defindex.first);
         while assigned(def) do
           begin
@@ -2405,7 +2405,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.265  2005-03-25 21:55:43  jonas
+  Revision 1.266  2005-03-28 13:10:22  peter
+  named sections for intf wrappers
+
+  Revision 1.265  2005/03/25 21:55:43  jonas
     * removed some unused variables
 
   Revision 1.264  2005/03/09 22:37:24  peter
