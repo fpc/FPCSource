@@ -37,7 +37,7 @@
 \title{Free Pascal :\\ Users' manual}
 \docdescription{Users' manual for \fpc, version \fpcversion}
 \docversion{1.2}
-\date{March 1998}
+\input{date.inc}
 \author{Micha\"el Van Canneyt\\Florian Kl\"ampfl}
 \maketitle
 \tableofcontents
@@ -1419,6 +1419,11 @@ begin
 {...}
 end;
 \end{verbatim}
+(The \seeo{So} switch disables overloading. When you use it, the above will
+compile, as in Turbo Pascal.
+\item Operator overloading. \fpc allows to overload operators, i.e. you can
+define e.g. the '+' operator for matrices.
+\item On FAT16 and FAT32 systems, long file names are supported.
 \end{enumerate}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1431,7 +1436,9 @@ attempt to mimic the Turbo Pascal compiler in the following ways:
 the differences between Turbo Pascal and \fpc is that the latter requires
 you to specify an address operator when assigning a value to a procedural
 variable. In Turbo Pascal compatibility mode, this is not required.
-\item Procedure overloading is disabled.
+\item Procedure overloading is disabled. This means that function header and
+implementation can be different (i.e. the function iplementation doesn't
+need to repeat the function header).
 \item Forward defined procedures don't need the full parameter list when
 they are defined. Due to the procedure overloading feature of \fpc, you must
 always specify the parameter list of a function when you define it, even
@@ -1811,7 +1818,11 @@ function in \var{gdb}.
 The appendix {\ref{ch:GdbIniFile}} contains a sample init file for
 \var{gdb}, which produces good results when debugging \fpc programs.
 
+It is also possible to use \file{RHIDE}, a text-based IDE that uses gdb.
+There is a version of RHIDE available that can work together with FPC.
+
 \section{Caveats when debugging with \var{gdb}}
+
 There are some peculiarities of \fpc which you should be aware of when using
 \var{gdb}. We list the main ones here:
 \begin{enumerate}
@@ -1854,13 +1865,11 @@ end
 If you insert it in your \file{gdb.ini} file, you can look at a string with this
 function. There is a sample \file{gdb.ini} in appendix \ref{ch:GdbIniFile}.
 
-
 \item Objects are difficult to handle, mainly because \var{gdb} is oriented
 towards C and C++. The workaround implemented in \fpc is that object methods
 are represented as functions, with an extra parameter \var{this} (all
 lowercase !) The name of this function is a concatenation of the object type
 and the function name, separated by two underscore characters.
-
 
 For example, the method \var{TPoint.Draw} would be converted to
 \var{TPOINT\_\_DRAW}, and could be stopped at with

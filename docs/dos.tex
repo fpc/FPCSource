@@ -540,7 +540,7 @@ Under \linux the call exists, but is not implemented, i.e. it does nothing.}
 {\seep{GetFAttr}}
 
 \procedure{SetFTime}{(var F; Time: longint)}{
-\var{GetFTime} returns the modification time of a file,
+\var{SetFTime} sets the modification time of a file,
 this time is encoded and must be encoded with \var{PackTime}. 
 \var{F} must be a file type, which has been assigned, and
 opened.}{Errors are reported in \var{DosError}}

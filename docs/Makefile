@@ -45,8 +45,8 @@ endif
 
 # Ascii mode ? (i.e. no pics)
 ifndef ASCIIMODE
-ASCIIMODE=NO
-#ASCIIMODE=YES
+#ASCIIMODE=NO
+ASCIIMODE=YES
 endif
 
 # DVI to PS converter
@@ -124,11 +124,6 @@ endif
 	$(PDFLATEX) $*pdf
 	mv $*pdf.pdf $*.pdf
 
-$(TXT) : %.txt: %.dvi
-
-$(DVI) : %.dvi: %.tex
-
-$(PDF) : %.pdf: %.tex
 
 #####################################################################
 # Targets
@@ -148,7 +143,6 @@ help:
 	@echo ' htmldist      : html, and rchive result.'
 	@echo ' psdist        : ps, and archive result.'
 	@echo ' pdfdist       : pdf, and archive result.'
- 
 
 clean:
 	-rm -rf $(HTML)
@@ -165,6 +159,12 @@ clean:
 	-$(MAKE) -C go32ex clean
 	-$(MAKE) -C stringex clean
 	-$(MAKE) -C refex clean
+
+$(TXT) : %.txt: %.dvi
+
+$(DVI) : %.dvi: %.tex
+
+$(PDF) : %.pdf: %.tex
 
 unitex.chk:
 	$(MAKE) -C crtex tex
@@ -187,9 +187,16 @@ refex.chk:
 messages: 
 	msg2inc -TE ../compiler/errore.msg messages.tex
 
-units.dvi: units.tex $(CHAPTERS)
+date:
+	@echo \\date\{`date +'%B %Y'`\} >date.inc
 
-ref.dvi: ref.tex
+units.dvi: units.tex date.inc $(CHAPTERS)
+
+ref.dvi: ref.tex date.inc
+
+prog.dvi: prog.tex date.inc
+
+user.dvi: user.tex date.inc
 
 units.pdf: units.tex $(CHAPTERS)
 
@@ -207,7 +214,7 @@ all : dvi ps pdf txt html
 
 user: user.chk
 
-user.chk: user.tex userex.chk
+user.chk: user.tex 
 	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 2 -link 2\
          -t "User's guide for Free Pascal" user.tex
 	sed -f foot.sed <user/footnode.html >user/footnote.html
@@ -277,14 +284,13 @@ dvidist: dvi
 	zip docs-dvi $(DVI)
 
 htmldist: html
-	find . -name '*.html' >htmllist
-	find . -name '*.gif' >>htmllist
+	find . -name '*.html' -or -name '*.gif' -or -name '*.css' >htmllist
 	tar -czf fpcdoc.tar.gz --files-from=htmllist
 	rm -f htmllist
 
 htm: html
 	makehtm `find . -name '*.html'`
-	zip -q doc-htm `find . -name '*.htm'` `find . -name '*.gif'`
+	zip -q docs-htm `find . -name '*.htm' -or -name '*.gif' -or -name '*.css'`
 	rm `find -name '*.htm'`
 	
 htmdist: htm
@@ -320,7 +326,10 @@ linuxexamples: examples
 
 #
 # $Log$
-# Revision 1.14  1998-10-01 12:57:22  michael
+# Revision 1.15  1998-11-17 23:42:02  michael
+# + too many changes to enumerate
+#
+# Revision 1.14  1998/10/01 12:57:22  michael
 # + Correction in dependencies
 #
 # Revision 1.13  1998/09/13 19:26:13  michael

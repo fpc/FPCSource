@@ -35,7 +35,7 @@
 \title{Free Pascal \\ Programmers' manual}
 \docdescription{Programmers' manual for \fpc, version \fpcversion}
 \docversion{1.5}
-\date{September 1998}
+\input{date.inc}
 \author{Micha\"el Van Canneyt}
 \maketitle
 \tableofcontents
@@ -3578,7 +3578,7 @@ some limitations to the compiler:
 \begin{enumerate}
 \item Procedure or Function definitions can be nested to a level of 32.
 \item Maximally 255 units can be used in a program when using the real-mode
-compiler. When using the 32-bit compiler, the limit is set to 1024. You can
+compiler (i.e. a binary that was compiled by Borland Pascal). When using the 32-bit compiler, the limit is set to 1024. You can
 change this by redefining the \var{maxunits} constant in the 
 \file{files.pas} compiler source file.
 \end{enumerate}
