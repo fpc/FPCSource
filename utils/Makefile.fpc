@@ -1,17 +1,21 @@
 #
-#   Makefile.fpc for shedit
+#   Makefile.fpc for Free Pascal Utils
 #
 
 [targets]
-units=
-programs=ppudump ppumove ppdep ptop rstconv fpcmake data2inc
+programs=ppufiles ppudump ppumove ppdep ptop rstconv fpcmake data2inc
 
 [clean]
 units=ppu ptopu
 
+[packages]
+fcl=1
+
+[tools]
+tooldata2inc=1
+
 [dirs]
 fpcdir=..
-unitdir=$(FPCDIR)/fcl/$(OS_TARGET)
 targetdir=.
 
 [rules]
@@ -43,7 +47,10 @@ ptopu$(PPUEXT): ptopu.pp
 # Other
 #
 
-fpcmake$(EXEEXT): fpcmake.pp
+fpcmake.inc: fpcmake.ini
+        $(DATA2INC) -b -s fpcmake.ini fpcmake.inc fpcmakeini
+
+fpcmake$(EXEEXT): fpcmake.pp fpcmake.inc
 
 ppdep$(EXEEXT): ppdep.pp
 
