@@ -29,8 +29,9 @@ unit aggas;
 interface
 
     uses
+      dos,
       cclasses,
-      globals,
+      globals,      
       aasmbase,aasmtai,aasmcpu,
       assemble;
 
@@ -877,7 +878,10 @@ var
 end.
 {
   $Log$
-  Revision 1.50  2004-04-25 21:26:16  florian
+  Revision 1.51  2004-04-27 13:38:24  florian
+    * fixed wrong commit from yesterday
+
+  Revision 1.50  2004/04/25 21:26:16  florian
     * some m68k stuff fixed
 
   Revision 1.49  2004/04/12 18:59:32  florian
