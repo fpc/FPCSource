@@ -2251,7 +2251,10 @@ implementation
     function tpointerdef.gettypename : string;
 
       begin
-         gettypename:='^'+pointertype.def^.typename;
+         if is_far then
+          gettypename:='^'+pointertype.def^.typename+';far'
+         else
+          gettypename:='^'+pointertype.def^.typename;
       end;
 
 {****************************************************************************
@@ -5521,7 +5524,10 @@ Const local_symtable_index : longint = $8001;
 end.
 {
   $Log$
-  Revision 1.9  2000-11-07 20:01:57  peter
+  Revision 1.10  2000-11-11 16:12:38  peter
+    * add far; to typename for far pointer
+
+  Revision 1.9  2000/11/07 20:01:57  peter
     * fix vmt index for classes
 
   Revision 1.8  2000/11/06 23:13:53  peter
