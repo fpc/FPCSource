@@ -53,10 +53,10 @@ begin
   ExecVE(S,A);
 end;
 
-Function fpWaitPID(H: Longint; P : Pointer; OPts : Longint) : Integer;
+Function fpWaitPID(H: Longint; P : Pointer; Opts : Longint) : Integer;
 
 begin
-  Result:=WaitPID(Handle,@FExitCode,WNOHANG);
+  Result:=WaitPID(Handle,@FExitCode,Opts);
 end;
 
 Function fpKill(PID,SIG : Longint) : Longint;
@@ -383,7 +383,7 @@ end;
 Function TProcess.WaitOnExit : Dword;
 
 begin
-  Result:=fpWaitPid(Handle,@FExitCode,WNOHANG);
+  Result:=fpWaitPid(Handle,@FExitCode,0);
   If Result=Handle then
     FExitCode:=WexitStatus(FExitCode);
   FRunning:=False;
