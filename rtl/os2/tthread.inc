@@ -61,25 +61,25 @@ procedure DosGetInfoBlocks (PATIB: PPThreadInfoBlock;
               PAPIB: PPProcessInfoBlock); cdecl; external 'DOSCALLS' index 312;
 
 function DosSetPriority (Scope, TrClass: cardinal; Delta: longint;
-              PortID: cardinal): longint; cdecl; external 'DOSCALLS' index 236;
+             PortID: cardinal): cardinal; cdecl; external 'DOSCALLS' index 236;
 
-procedure DosExit (Action, Result: longint); cdecl;
+procedure DosExit (Action, Result: cardinal); cdecl;
                                                  external 'DOSCALLS' index 233;
 
 function DosCreateThread (var TID: cardinal; Address: TThreadEntry;
-       aParam: pointer; Flags: cardinal; StackSize: cardinal): longint; cdecl;
+      aParam: pointer; Flags: cardinal; StackSize: cardinal): cardinal; cdecl;
                                                  external 'DOSCALLS' index 311;
 
-function DosKillThread (TID: longint): longint; cdecl;
+function DosKillThread (TID: cardinal): cardinal; cdecl;
                                                  external 'DOSCALLS' index 111;
 
-function DosResumeThread (TID: longint): longint; cdecl;
+function DosResumeThread (TID: cardinal): cardinal; cdecl;
                                                  external 'DOSCALLS' index 237;
 
-function DosSuspendThread (TID: longint): longint; cdecl;
+function DosSuspendThread (TID: cardinal): cardinal; cdecl;
                                                  external 'DOSCALLS' index 238;
 
-function DosWaitThread (var TID: longint; Option: longint): longint; cdecl;
+function DosWaitThread (var TID: cardinal; Option: cardinal): cardinal; cdecl;
                                                  external 'DOSCALLS' index 349;
 
 
@@ -232,15 +232,19 @@ end;
 
 
 function TThread.WaitFor: Integer;
-
+var
+ FH: cardinal;
 begin
- WaitFor := DosWaitThread (cardinal (FHandle), dtWait);
+ WaitFor := DosWaitThread (FH, dtWait);
 end;
 
 
 {
   $Log$
-  Revision 1.3  2003-10-14 21:19:12  hajny
+  Revision 1.4  2003-10-16 19:24:24  hajny
+    * another longint2cardinal fix
+
+  Revision 1.3  2003/10/14 21:19:12  hajny
     * another longint2cardinal fix
 
   Revision 1.2  2003/10/13 21:17:31  hajny
