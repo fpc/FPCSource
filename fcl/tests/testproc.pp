@@ -4,7 +4,7 @@ uses classes,process;
 
 Const BufSize = 1024;
 
-{$ifdef linux} 
+{$ifdef unix} 
       TheProgram = 'doecho';
 {$else}
       TheProgram = 'doecho.exe'; 
@@ -28,11 +28,16 @@ begin
   until Count=0;  
   writeln;
   S.Free;  
-end.  $Log$
-end.  Revision 1.3  2002-05-18 13:38:30  michael
-end.  + Fixed test program to new interface
 end.
-end.  Revision 1.2  2000/07/13 11:33:04  michael
-end.  + removed logs
-end. 
+
+{
+   $Log$
+   Revision 1.4  2002-05-31 11:33:49  marco
+    * 1.0.x renamefest
+
+     Revision 1.3  2002/05/18 13:38:30  michael 
+     + Fixed test program to new interface
+
+     Revision 1.2  2000/07/13 11:33:04  michael
+     + removed logs
 }
