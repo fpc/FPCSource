@@ -891,7 +891,19 @@ parser_e_interface_id_expected=03169_E_interface identifier expected
 % \end{verbatim}
 % and the \var{interface} before the dot not listed in the inheritance list.
 parser_e_type_cant_be_used_in_array_index=03170_E_Type "$1" can't be used as array index type
-% Types like DWord or Int64 aren't allowed as array index type% \end{description}
+% Types like DWord or Int64 aren't allowed as array index type
+parser_e_no_con_des_in_interfaces=03171_E_Con- and destructors aren't allowed in interfaces
+% Constructor and destructor declarations aren't allowed in interface
+% In the most cases the method \var{QueryInterface} of \var{IUnknown} can
+% be used to create a new interface.
+parser_e_no_access_specifier_in_interfaces=03172_E_Access specifiers can't be used in INTERFACES
+% The access specifiers \var{public}, \var{private}, \var{protected} and
+% \var{pusblished} can't be used in interfaces because all methods
+% of an interfaces must be public.
+parser_e_no_vars_in_interfaces=03173_E_An interface can't contain fields
+% Declarations of fields aren't allowed in interfaces. An interface
+% can contain only methods
+% \end{description}
 #
 # Type Checking
 #

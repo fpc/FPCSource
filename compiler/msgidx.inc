@@ -245,6 +245,10 @@ const
   parser_f_interface_cant_have_constr_or_destr=03167;
   parser_w_interface_mapping_notfound=03168;
   parser_e_interface_id_expected=03169;
+  parser_e_type_cant_be_used_in_array_index=03170;
+  parser_e_no_con_des_in_interfaces=03171;
+  parser_e_no_access_specifier_in_interfaces=03172;
+  parser_e_no_vars_in_interfaces=03173;
   type_e_mismatch=04000;
   type_e_incompatible_types=04001;
   type_e_not_equal_types=04002;
@@ -564,9 +568,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 31647;
+  MsgTxtSize = 31853;
 
   MsgIdxMax : array[1..20] of longint=(
-    17,59,170,35,41,41,86,14,35,40,
+    17,59,174,35,41,41,86,14,35,40,
     26,1,1,1,1,1,1,1,1,1
   );

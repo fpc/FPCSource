@@ -1023,28 +1023,39 @@ implementation
               _ID : begin
                       case idtoken of
                        _PRIVATE : begin
+                                    if is_interface(aktclass) then
+                                      Message(parser_e_no_access_specifier_in_interfaces);
                                     consume(_PRIVATE);
                                     actmembertype:=[sp_private];
                                     current_object_option:=[sp_private];
                                   end;
                      _PROTECTED : begin
+                                    if is_interface(aktclass) then
+                                      Message(parser_e_no_access_specifier_in_interfaces);
                                     consume(_PROTECTED);
                                     current_object_option:=[sp_protected];
                                     actmembertype:=[sp_protected];
                                   end;
                         _PUBLIC : begin
+                                    if is_interface(aktclass) then
+                                      Message(parser_e_no_access_specifier_in_interfaces);
                                     consume(_PUBLIC);
                                     current_object_option:=[sp_public];
                                     actmembertype:=[sp_public];
                                   end;
                      _PUBLISHED : begin
-                                    if not(oo_can_have_published in aktclass^.objectoptions) then
-                                     Message(parser_e_cant_have_published);
+                                    if is_interface(aktclass) then
+                                      Message(parser_e_no_access_specifier_in_interfaces)
+                                    else
+                                      if not(oo_can_have_published in aktclass^.objectoptions) then
+                                        Message(parser_e_cant_have_published);
                                     consume(_PUBLISHED);
                                     current_object_option:=[sp_published];
                                     actmembertype:=[sp_published];
                                   end;
                       else
+                        if is_interface(aktclass) then
+                          Message(parser_e_no_vars_in_interfaces);
                         read_var_decs(false,true,false);
                       end;
                     end;
@@ -1076,6 +1087,8 @@ implementation
      _CONSTRUCTOR : begin
                       if not(sp_public in actmembertype) then
                         Message(parser_w_constructor_should_be_public);
+                      if is_interface(aktclass) then
+                        Message(parser_e_no_con_des_in_interfaces);
                       oldparse_only:=parse_only;
                       parse_only:=true;
                       constructor_head;
@@ -1092,6 +1105,8 @@ implementation
       _DESTRUCTOR : begin
                       if there_is_a_destructor then
                         Message(parser_n_only_one_destructor);
+                      if is_interface(aktclass) then
+                        Message(parser_e_no_con_des_in_interfaces);
                       there_is_a_destructor:=true;
                       if not(sp_public in actmembertype) then
                         Message(parser_w_destructor_should_be_public);
@@ -1155,7 +1170,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  2000-11-12 23:24:11  florian
+  Revision 1.12  2000-11-17 08:21:07  florian
+  *** empty log message ***
+
+  Revision 1.11  2000/11/12 23:24:11  florian
     * interfaces are basically running
 
   Revision 1.10  2000/11/12 22:17:47  peter
