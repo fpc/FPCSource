@@ -741,8 +741,7 @@ uses
         do_compile:=false;
         if (flags and uf_in_library)=0 then
          begin
-           if ((flags and uf_static_linked)<>0) or
-              ((flags and uf_smartlink)<>0) then
+           if (flags and (uf_static_linked or uf_smartlink))<>0 then
             begin
               objfiletime:=getnamedfiletime(staticlibfilename^);
               Message2(unit_u_check_time,staticlibfilename^,filetimestring(objfiletime));
@@ -766,32 +765,33 @@ uses
                 end;
              end
            else
-            begin
-            { the objectfile should be newer than the ppu file }
-              objfiletime:=getnamedfiletime(objfilename^);
-              Message2(unit_u_check_time,objfilename^,filetimestring(objfiletime));
-              if (ppufiletime<0) or (objfiletime<0) or (ppufiletime>objfiletime) then
-               begin
-               { check if assembler file is older than ppu file }
-                 asmfileTime:=GetNamedFileTime(asmfilename^);
-                 Message2(unit_u_check_time,asmfilename^,filetimestring(asmfiletime));
-                 if (asmfiletime<0) or (ppufiletime>asmfiletime) then
-                  begin
-                    Message(unit_u_recompile_obj_and_asm_older);
-                    do_compile:=true;
-                    exit;
-                  end
-                 else
-                  begin
-                    Message(unit_u_recompile_obj_older_than_asm);
-                    if not(cs_asm_extern in aktglobalswitches) then
-                     begin
-                       do_compile:=true;
-                       exit;
-                     end;
-                  end;
-               end;
-            end;
+            if (flags and uf_obj_linked)<>0 then
+             begin
+             { the objectfile should be newer than the ppu file }
+               objfiletime:=getnamedfiletime(objfilename^);
+               Message2(unit_u_check_time,objfilename^,filetimestring(objfiletime));
+               if (ppufiletime<0) or (objfiletime<0) or (ppufiletime>objfiletime) then
+                begin
+                { check if assembler file is older than ppu file }
+                  asmfileTime:=GetNamedFileTime(asmfilename^);
+                  Message2(unit_u_check_time,asmfilename^,filetimestring(asmfiletime));
+                  if (asmfiletime<0) or (ppufiletime>asmfiletime) then
+                   begin
+                     Message(unit_u_recompile_obj_and_asm_older);
+                     do_compile:=true;
+                     exit;
+                   end
+                  else
+                   begin
+                     Message(unit_u_recompile_obj_older_than_asm);
+                     if not(cs_asm_extern in aktglobalswitches) then
+                      begin
+                        do_compile:=true;
+                        exit;
+                      end;
+                   end;
+                end;
+             end;
          end;
         openppu:=true;
       end;
@@ -1097,7 +1097,11 @@ uses
 end.
 {
   $Log$
-  Revision 1.86  1999-02-05 08:54:24  pierre
+  Revision 1.87  1999-02-16 00:48:23  peter
+    * save in the ppu if linked with obj file instead of using the
+      library flag, so the .inc files are also checked
+
+  Revision 1.86  1999/02/05 08:54:24  pierre
     + linkofiles splitted inot linkofiles and linkunitfiles
       because linkofiles must be stored with directory
       to enabled linking of different objects with same name

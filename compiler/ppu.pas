@@ -62,6 +62,7 @@ const
   ibdefref         = 11;
   ibendsymtablebrowser   = 12;
   ibbeginsymtablebrowser = 13;
+  iblinkunitfiles  = 14;
   {syms}
   ibtypesym       = 20;
   ibprocsym       = 21;
@@ -94,19 +95,18 @@ const
   ibwidestringdef = 56;
   ibfarpointerdef = 57;
 
-  iblinkunitfiles     = 58;
-
 { unit flags }
   uf_init          = $1;
   uf_finalize      = $2;
   uf_big_endian    = $4;
   uf_has_dbx       = $8;
   uf_has_browser   = $10;
-  uf_smartlink     = $20;
-  uf_in_library    = $40; { is the file in another file than <ppufile>.* ? }
-  uf_static_linked = $80;
-  uf_shared_linked = $100;
+  uf_smartlink     = $20;  { the ppu is smartlinked }
+  uf_in_library    = $40;  { is the file in another file than <ppufile>.* ? }
+  uf_static_linked = $80;  { the ppu is linked in a static library }
+  uf_shared_linked = $100; { the ppu is linked in a shared library }
   uf_local_browser = $200;
+  uf_obj_linked    = $400; { the ppu is linked in a object file }
 
 type
 {$ifdef m68k}
@@ -795,7 +795,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.22  1999-02-05 08:54:29  pierre
+  Revision 1.23  1999-02-16 00:48:24  peter
+    * save in the ppu if linked with obj file instead of using the
+      library flag, so the .inc files are also checked
+
+  Revision 1.22  1999/02/05 08:54:29  pierre
     + linkofiles splitted inot linkofiles and linkunitfiles
       because linkofiles must be stored with directory
       to enabled linking of different objects with same name

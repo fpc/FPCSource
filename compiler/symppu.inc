@@ -178,19 +178,13 @@
        { create unit flags }
          with Current_Module^ do
           begin
-            if (cs_create_staticlib in aktmoduleswitches) or
-               (cs_smartlink in aktmoduleswitches) then
-             begin
-               flags:=flags or uf_static_linked;
-               if SplitName(ppufilename^)<>SplitName(staticlibfilename^) then
-                 flags:=flags or uf_in_library;
-             end;
-            if cs_create_sharedlib in aktmoduleswitches then
-             begin
-               flags:=flags or uf_shared_linked;
-               if SplitName(ppufilename^)<>SplitName(sharedlibfilename^) then
-                 flags:=flags or uf_in_library;
-             end;
+            if (((cs_create_staticlib in aktmoduleswitches) or
+                 (cs_smartlink in aktmoduleswitches)) and
+                (SplitName(ppufilename^)<>SplitName(staticlibfilename^))) or
+
+               ((cs_create_sharedlib in aktmoduleswitches) and
+                (SplitName(ppufilename^)<>SplitName(sharedlibfilename^))) then
+             flags:=flags or uf_in_library;
             if cs_smartlink in aktmoduleswitches then
              flags:=flags or uf_smartlink;
 {$ifdef GDB}
@@ -445,7 +439,11 @@
 
 {
   $Log$
-  Revision 1.30  1999-02-05 08:54:30  pierre
+  Revision 1.31  1999-02-16 00:48:25  peter
+    * save in the ppu if linked with obj file instead of using the
+      library flag, so the .inc files are also checked
+
+  Revision 1.30  1999/02/05 08:54:30  pierre
     + linkofiles splitted inot linkofiles and linkunitfiles
       because linkofiles must be stored with directory
       to enabled linking of different objects with same name
