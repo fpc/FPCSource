@@ -4,7 +4,7 @@ Program Example5;
 
 Uses linux;
 
-Var Hour, Minute, Second : Word
+Var Hour, Minute, Second : Word;
 
 begin
   GetTime (Hour, Minute, Second);
