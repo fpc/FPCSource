@@ -388,7 +388,7 @@ implementation
                       case sym.typ of
                         procsym :
                           begin
-                            pd:=Tprocsym(sym).search_procdef_bypara(propertyparas,true);
+                            pd:=Tprocsym(sym).search_procdef_bypara(propertyparas,true,false);
                             if not(assigned(pd)) or
                                not(is_equal(pd.rettype.def,p.proptype.def)) then
                               Message(parser_e_ill_property_access_sym);
@@ -423,7 +423,7 @@ implementation
                           begin
                             { insert data entry to check access method }
                             propertyparas.insert(datacoll);
-                            pd:=Tprocsym(sym).search_procdef_bypara(propertyparas,true);
+                            pd:=Tprocsym(sym).search_procdef_bypara(propertyparas,true,false);
                             { ... and remove it }
                             propertyparas.remove(datacoll);
                             if not(assigned(pd)) then
@@ -1150,7 +1150,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.51  2002-09-09 17:34:15  peter
+  Revision 1.52  2002-09-16 14:11:13  peter
+    * add argument to equal_paras() to support default values or not
+
+  Revision 1.51  2002/09/09 17:34:15  peter
     * tdicationary.replace added to replace and item in a dictionary. This
       is only allowed for the same name
     * varsyms are inserted in symtable before the types are parsed. This

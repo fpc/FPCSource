@@ -1769,7 +1769,7 @@ const
               ) or
               { check arguments }
               (
-               equal_paras(aprocdef.para,hd.para,cp_none) and
+               equal_paras(aprocdef.para,hd.para,cp_none,false) and
                { for operators equal_paras is not enough !! }
                ((aprocdef.proctypeoption<>potype_operator) or (optoken<>_ASSIGNMENT) or
                 is_equal(hd.rettype.def,aprocdef.rettype.def))
@@ -1788,7 +1788,7 @@ const
                       (
                        (m_repeat_forward in aktmodeswitches) and
                        (not((aprocdef.maxparacount=0) or
-                            equal_paras(aprocdef.para,hd.para,cp_all)))
+                            equal_paras(aprocdef.para,hd.para,cp_all,false)))
                       ) or
                       (
                        ((m_repeat_forward in aktmodeswitches) or
@@ -1989,7 +1989,10 @@ const
 end.
 {
   $Log$
-  Revision 1.74  2002-09-10 16:27:28  peter
+  Revision 1.75  2002-09-16 14:11:13  peter
+    * add argument to equal_paras() to support default values or not
+
+  Revision 1.74  2002/09/10 16:27:28  peter
     * don't insert parast in symtablestack, because typesyms should not be
       searched in the the parast
 

@@ -1603,7 +1603,7 @@ implementation
                                       hp:=procs;
                                       while assigned(hp) do
                                        begin
-                                         if equal_paras(hp^.data.para,pd.para,cp_value_equal_const) then
+                                         if equal_paras(hp^.data.para,pd.para,cp_value_equal_const,false) then
                                           begin
                                             found:=true;
                                             break;
@@ -2604,7 +2604,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.100  2002-09-15 17:49:59  peter
+  Revision 1.101  2002-09-16 14:11:12  peter
+    * add argument to equal_paras() to support default values or not
+
+  Revision 1.100  2002/09/15 17:49:59  peter
     * don't have strict var parameter checking for procedures in the
       system unit
 

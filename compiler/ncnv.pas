@@ -1915,6 +1915,8 @@ implementation
 
 
     function tasnode.det_resulttype:tnode;
+      var
+        hp : tnode;
       begin
          result:=nil;
          resulttypepass(right);
@@ -1969,8 +1971,12 @@ implementation
             { load the GUID of the interface }
             if (right.nodetype=typen) then
              begin
-               if tobjectdef(left.resulttype.def).isiidguidvalid then
-                 right:=cguidconstnode.create(tobjectdef(left.resulttype.def).iidguid)
+               if tobjectdef(right.resulttype.def).isiidguidvalid then
+                 begin
+                   hp:=cguidconstnode.create(tobjectdef(right.resulttype.def).iidguid);
+                   right.free;
+                   right:=hp;
+                 end
                else
                  internalerror(200206282);
                resulttypepass(right);
@@ -2012,7 +2018,7 @@ implementation
                 else
                   procname := 'fpc_intf_as';
                 call := ccallnode.createinternres(procname,
-                   ccallparanode.create(left,ccallparanode.create(right,nil)),
+                   ccallparanode.create(right,ccallparanode.create(left,nil)),
                    resulttype);
               end;
             left := nil;
@@ -2037,7 +2043,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.80  2002-09-07 20:40:23  carl
+  Revision 1.81  2002-09-16 14:11:13  peter
+    * add argument to equal_paras() to support default values or not
+
+  Revision 1.80  2002/09/07 20:40:23  carl
     * cardinal -> longword
 
   Revision 1.79  2002/09/07 15:25:03  peter

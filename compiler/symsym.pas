@@ -139,7 +139,8 @@ interface
           function search_procdef_nopara_boolret:Tprocdef;
           function search_procdef_bytype(pt:Tproctypeoption):Tprocdef;
           function search_procdef_bypara(params:Tparalinkedlist;
-                                         allowconvert:boolean):Tprocdef;
+                                         allowconvert,
+                                         allowdefault:boolean):Tprocdef;
           function search_procdef_byprocvardef(d:Tprocvardef):Tprocdef;
           function search_procdef_by1paradef(firstpara:Tdef):Tprocdef;
           function search_procdef_byretdef_by1paradef(retdef,firstpara:Tdef;
@@ -915,18 +916,18 @@ implementation
 
 
     procedure Tprocsym.add_para_match_to(Aprocsym:Tprocsym);
-
-    var pd:Pprocdeflist;
-
-    begin
+      var
+        pd:Pprocdeflist;
+      begin
         pd:=defs;
         while assigned(pd) do
-            begin
-                if Aprocsym.search_procdef_bypara(pd^.def.para,false)=nil then
-                    Aprocsym.addprocdef(pd^.def);
-                pd:=pd^.next;
-            end;
-    end;
+          begin
+            if Aprocsym.search_procdef_bypara(pd^.def.para,false,true)=nil then
+              Aprocsym.addprocdef(pd^.def);
+            pd:=pd^.next;
+          end;
+      end;
+
 
     procedure Tprocsym.concat_procdefs_to(s:Tprocsym);
 
@@ -1010,7 +1011,8 @@ implementation
     end;
 
     function Tprocsym.search_procdef_bypara(params:Tparalinkedlist;
-                                            allowconvert:boolean):Tprocdef;
+                                            allowconvert,
+                                            allowdefault:boolean):Tprocdef;
 
     var pd:Pprocdeflist;
 
@@ -1019,7 +1021,7 @@ implementation
         pd:=defs;
         while assigned(pd) do
             begin
-                if equal_paras(pd^.def.para,params,cp_value_equal_const) or
+                if equal_paras(pd^.def.para,params,cp_value_equal_const,allowdefault) or
                    (allowconvert and convertable_paras(pd^.def.para,params,
                                                        cp_value_equal_const)) then
                     begin
@@ -2495,7 +2497,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.65  2002-09-09 17:34:16  peter
+  Revision 1.66  2002-09-16 14:11:13  peter
+    * add argument to equal_paras() to support default values or not
+
+  Revision 1.65  2002/09/09 17:34:16  peter
     * tdicationary.replace added to replace and item in a dictionary. This
       is only allowed for the same name
     * varsyms are inserted in symtable before the types are parsed. This

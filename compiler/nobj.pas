@@ -605,7 +605,7 @@ implementation
                                      if not(po_virtualmethod in pd.procoptions) then
                                       begin
                                         if (not pdoverload or
-                                            equal_paras(procdefcoll^.data.para,pd.para,cp_value_equal_const)) and
+                                            equal_paras(procdefcoll^.data.para,pd.para,cp_value_equal_const,false)) and
                                            (tstoredsym(procdefcoll^.data.procsym).is_visible_for_object(pd._class)) then
                                          begin
                                            if is_visible then
@@ -624,7 +624,7 @@ implementation
                                          begin
                                            { we start a new virtual tree, hide the old }
                                            if (not pdoverload or
-                                               equal_paras(procdefcoll^.data.para,pd.para,cp_value_equal_const)) and
+                                               equal_paras(procdefcoll^.data.para,pd.para,cp_value_equal_const,false)) and
                                               (tstoredsym(procdefcoll^.data.procsym).is_visible_for_object(pd._class)) then
                                             begin
                                               if is_visible then
@@ -640,7 +640,7 @@ implementation
                                            { do nothing, the error will follow when adding the entry }
                                          end
                                         { same parameters }
-                                        else if (equal_paras(procdefcoll^.data.para,pd.para,cp_value_equal_const)) then
+                                        else if (equal_paras(procdefcoll^.data.para,pd.para,cp_value_equal_const,false)) then
                                          begin
                                            { overload is inherited }
                                            if (po_overload in procdefcoll^.data.procoptions) then
@@ -694,7 +694,7 @@ implementation
                                           if the new defintion has not the overload directive }
                                         if is_visible and
                                            ((not pdoverload) or
-                                            equal_paras(procdefcoll^.data.para,pd.para,cp_value_equal_const)) then
+                                            equal_paras(procdefcoll^.data.para,pd.para,cp_value_equal_const,false)) then
                                           procdefcoll^.hidden:=true;
                                       end;
                                    end
@@ -704,7 +704,7 @@ implementation
                                        has not the overload directive }
                                      if is_visible and
                                         ((not pdoverload) or
-                                         equal_paras(procdefcoll^.data.para,pd.para,cp_value_equal_const)) then
+                                         equal_paras(procdefcoll^.data.para,pd.para,cp_value_equal_const,false)) then
                                        procdefcoll^.hidden:=true;
                                    end;
                                 end; { not hidden }
@@ -1002,7 +1002,7 @@ implementation
           for i:=1 to sym.procdef_count do
             begin
               implprocdef:=sym.procdef[i];
-              if equal_paras(proc.para,implprocdef.para,cp_none) and
+              if equal_paras(proc.para,implprocdef.para,cp_none,false) and
                  (proc.proccalloption=implprocdef.proccalloption) then
                 begin
                   gintfgetcprocdef:=implprocdef;
@@ -1301,7 +1301,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.27  2002-09-03 16:26:26  daniel
+  Revision 1.28  2002-09-16 14:11:13  peter
+    * add argument to equal_paras() to support default values or not
+
+  Revision 1.27  2002/09/03 16:26:26  daniel
     * Make Tprocdef.defs protected
 
   Revision 1.26  2002/09/03 15:44:44  peter

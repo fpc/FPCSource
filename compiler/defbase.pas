@@ -239,7 +239,7 @@ interface
       and call by const parameter are assumed as
       equal
     }
-    function equal_paras(paralist1,paralist2 : tlinkedlist; acp : compare_type) : boolean;
+    function equal_paras(paralist1,paralist2 : TLinkedList; acp : compare_type;allowdefaults:boolean) : boolean;
 
 
     { True if a type can be allowed for another one
@@ -333,7 +333,7 @@ implementation
 
     {  compare_type = ( cp_none, cp_value_equal_const, cp_all); }
 
-    function equal_paras(paralist1,paralist2 : TLinkedList; acp : compare_type) : boolean;
+    function equal_paras(paralist1,paralist2 : TLinkedList; acp : compare_type;allowdefaults:boolean) : boolean;
       var
         def1,def2 : TParaItem;
       begin
@@ -389,12 +389,15 @@ implementation
          { when both lists are empty then the parameters are equal. Also
            when one list is empty and the other has a parameter with default
            value assigned then the parameters are also equal }
-         if ((def1=nil) and ((def2=nil) or assigned(def2.defaultvalue))) or
-            ((def2=nil) and ((def1=nil) or assigned(def1.defaultvalue))) then
+         if ((def1=nil) and (def2=nil)) or
+            (allowdefaults and
+             ((assigned(def1) and assigned(def1.defaultvalue)) or
+              (assigned(def2) and assigned(def2.defaultvalue)))) then
            equal_paras:=true
          else
            equal_paras:=false;
       end;
+
 
     function convertable_paras(paralist1,paralist2 : TLinkedList;acp : compare_type) : boolean;
       var
@@ -479,7 +482,7 @@ implementation
          { check return value and para's and options, methodpointer is already checked
            parameters may also be convertable }
          if is_equal(def1.rettype.def,def2.rettype.def) and
-            (equal_paras(def1.para,def2.para,cp_all) or
+            (equal_paras(def1.para,def2.para,cp_all,false) or
              ((not exact) and convertable_paras(def1.para,def2.para,cp_all))) and
             ((po_comp * def1.procoptions)= (po_comp * def2.procoptions)) then
            proc_to_procvar_equal:=true
@@ -1132,7 +1135,7 @@ implementation
                    ((tprocvardef(def1).procoptions * po_compatibility_options)=
                     (tprocvardef(def2).procoptions * po_compatibility_options)) and
                    is_equal(tprocvardef(def1).rettype.def,tprocvardef(def2).rettype.def) and
-                   equal_paras(tprocvardef(def1).para,tprocvardef(def2).para,cp_all);
+                   equal_paras(tprocvardef(def1).para,tprocvardef(def2).para,cp_all,false);
              end
          else
            if (def1.deftype=arraydef) and (def2.deftype=arraydef) then
@@ -1953,7 +1956,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  2002-09-15 17:54:46  peter
+  Revision 1.12  2002-09-16 14:11:12  peter
+    * add argument to equal_paras() to support default values or not
+
+  Revision 1.11  2002/09/15 17:54:46  peter
     * allow default parameters in equal_paras
 
   Revision 1.10  2002/09/08 11:10:17  carl
