@@ -775,7 +775,8 @@ procedure DetectVideo;
 VAR
   CurrMode : TVideoMode;
 begin
-  Video.InitVideo;
+  { Video.InitVideo; Incompatible with BP
+    and forces a screen clear which is often a bad thing PM }
   GetVideoMode(CurrMode);
   ScreenMode:=CurrMode;
 end;
@@ -1673,7 +1674,10 @@ BEGIN
 END.
 {
  $Log$
- Revision 1.32  2002-09-09 08:04:05  pierre
+ Revision 1.33  2002-09-13 09:21:15  pierre
+  * don't call InitVideo in DetectVideo procedure
+
+ Revision 1.32  2002/09/09 08:04:05  pierre
   * remove all warnings about far
 
  Revision 1.31  2002/09/07 15:06:36  peter
