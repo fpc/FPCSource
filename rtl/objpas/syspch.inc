@@ -92,7 +92,7 @@ end ;
 
 function StrPCopy(Dest: PChar; Source: string): PChar;
 begin
-result := StrMove(Dest, PChar(@Source[1]), length(Source));
+result := StrMove(Dest, PChar(Source), length(Source));
 end ;
 
 {  StrPLCopy copies MaxLen or less characters from the pascal string
@@ -106,7 +106,7 @@ if (Result <> Nil) and (MaxLen <> 0) then begin
    Count := Length(Source);
    if Count > MaxLen then
       Count := MaxLen;
-   StrMove(Dest, PChar(@Source[1]), Count);
+   StrMove(Dest, PChar(Source), Count);
    CharArray(result^)[Count] := #0;  { terminate ! }
    end ;
 end ;
@@ -357,7 +357,10 @@ end ;
 
 {
   $Log$
-  Revision 1.2  1998-09-16 08:28:40  michael
+  Revision 1.3  1999-02-10 22:15:11  michael
+  + Changed to ansistrings
+
+  Revision 1.2  1998/09/16 08:28:40  michael
   Update from gertjan Schouten, plus small fix for linux
 
 

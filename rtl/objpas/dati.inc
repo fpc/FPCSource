@@ -430,11 +430,11 @@ var
    begin
    Len := Length(Str);
    if ResultLen + Len < SizeOf(ResultBuffer) then begin
-      StrMove(ResultCurrent, pchar(@Str[1]), Len);
+      StrMove(ResultCurrent, pchar(Str), Len);
       ResultCurrent := ResultCurrent + Len;
       ResultLen := ResultLen + Len;
-      end ;
-   end ;
+      end;
+   end;
 
    procedure StoreInt(Value, Digits: integer);
    var S: string; Len: integer;
@@ -461,7 +461,7 @@ var
       P: pchar;
 
    begin
-   FormatCurrent := @FormatStr[1];
+   FormatCurrent := Pchar(FormatStr);
    FormatEnd := FormatCurrent + Length(FormatStr);
    Clock12 := false;
    P := FormatCurrent;
@@ -625,7 +625,10 @@ end;
 
 {
   $Log$
-  Revision 1.6  1999-02-09 12:38:42  michael
+  Revision 1.7  1999-02-10 22:15:10  michael
+  + Changed to ansistrings
+
+  Revision 1.6  1999/02/09 12:38:42  michael
   * Fixed INt() proble. Defined THandle, included Filemode constants
 
   Revision 1.5  1998/10/15 09:39:12  michael

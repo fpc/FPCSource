@@ -104,7 +104,7 @@ Count1 := Length(S1);
 Count2 := Length(S2);
 if Count1 > Count2 then Count := Count2
 else Count := Count1;
-result := CompareMem(@S1[1], @S2[1], Count);
+result := CompareMem(Pointer(S1),Pointer(S2), Count);
 if (result = 0) and (Count1 <> Count2) then begin
    if Count1 > Count2 then result := ord(s1[Count1 + 1])
    else result := -ord(s2[Count2 + 1]);
@@ -880,7 +880,10 @@ end ;
 
 {
   $Log$
-  Revision 1.10  1998-12-15 22:43:09  peter
+  Revision 1.11  1999-02-10 22:15:12  michael
+  + Changed to ansistrings
+
+  Revision 1.10  1998/12/15 22:43:09  peter
     * removed temp symbols
 
   Revision 1.9  1998/11/04 10:20:52  peter

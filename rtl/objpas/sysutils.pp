@@ -16,7 +16,8 @@ unit sysutils;
 interface
 
 {$MODE objfpc}
-
+{ force ansistrings }
+{$H+}
     uses
     {$ifdef linux}
        linux
@@ -271,7 +272,10 @@ begin
 end.
 {
     $Log$
-    Revision 1.21  1999-02-09 14:24:50  pierre
+    Revision 1.22  1999-02-10 22:15:13  michael
+    + Changed to ansistrings
+
+    Revision 1.21  1999/02/09 14:24:50  pierre
      * dos unit missing for go32v2 !!
 
     Revision 1.20  1999/02/09 12:38:44  michael
