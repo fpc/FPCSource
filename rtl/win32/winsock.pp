@@ -17,6 +17,17 @@
 
 {$PACKRECORDS 1}
 unit winsock;
+{$ifndef VER0_99_14}
+{$ifndef NO_SMART_LINK}
+{$define support_smartlink}
+{$endif}
+{$endif}
+
+
+{$ifdef support_smartlink}
+{$smartlink on}
+{$endif}
+
 
   interface
 
@@ -78,13 +89,13 @@ unit winsock;
        IOC_INOUT = IOC_IN or IOC_OUT;
        FIONREAD = IOC_OUT or
          ((4 and IOCPARM_MASK) shl 16) or
-         (101 shl 8) or 127;
+         (102 shl 8) or 127;
        FIONBIO = IOC_IN or
          ((4 and IOCPARM_MASK) shl 16) or
-         (101 shl 8) or 126;
+         (102 shl 8) or 126;
        FIOASYNC     = IOC_IN or
          ((4 and IOCPARM_MASK) shl 16) or
-         (101 shl 8) or 125;
+         (102 shl 8) or 125;
        {
          Structures returned by network data base library, taken from the
          BSD file netdb.h.  All addresses are supplied in host order, and
@@ -940,7 +951,10 @@ unit winsock;
 end.
 {
   $Log$
-  Revision 1.10  2000-03-20 16:14:37  alex
+  Revision 1.11  2000-06-21 22:26:08  pierre
+   * link smart and FIXXX const corrected
+
+  Revision 1.10  2000/03/20 16:14:37  alex
    * extended to make use of OS_TYPES unit.
 
   Revision 1.9  2000/03/01 11:18:39  pierre
