@@ -1,10 +1,26 @@
-#######################################################################
-# Makefile for FPK-Pascal documentation.
-# Michael Van Canneyt
-#######################################################################
 #
+#   $Id$
+#   This file is part of the Free Pascal run time library.
+#   Copyright (c) 1996-98 by Michael van Canneyt
+#
+#   Makefile for the Free Pascal Documentation
+#
+#   See the file COPYING.FPC, included in this distribution,
+#   for details about the copyright.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#
+
+#####################################################################
+# Configurable section
+#####################################################################
+
 # Where do you want the html files to be put ?
-DOCINSTALLDIR=/usr/doc/ppc-0.99.0
+ifndef DOCINSTALLDIR
+DOCINSTALLDIR=/usr/doc/fpc-0.99.0
+endif 
 
 #
 # Program definitions
@@ -56,18 +72,22 @@ endif
 HTML = user units ref prog
 
 PS = $(addsuffix .ps, $(HTML))
-
 DVI = $(addsuffix .dvi, $(HTML))
-
 TXT = $(addsuffix .txt, $(HTML))
-
 PDF = $(addsuffix .pdf, $(HTML))
 
 CHAPTERS = $(addsuffix .tex, crt dos getopts go32 graph linux printer strings)
 
-.PHONY: clean dvi help html ps psdist htmldist htm txt pdf refex
+#####################################################################
+# Conversion from types
+#####################################################################
+
+.PHONY: all clean dvi help html ps psdist htmldist htm txt pdf refex
 
 .SUFFIXES: .dvi .tex .ps .txt .pdf
+
+# default show help
+all: help
 
 .dvi.ps:
 	$(DVIPS) $<
@@ -89,6 +109,16 @@ CHAPTERS = $(addsuffix .tex, crt dos getopts go32 graph linux printer strings)
 	-$(MAKEINDEX) $*pdf
 	$(PDFLATEX) $*pdf
 
+$(TXT) : %.txt: %.dvi
+
+$(DVI) : %.dvi: %.tex
+
+$(PDF) : %.pdf: %.tex
+
+#####################################################################
+# Targets
+#####################################################################
+
 help:
 	@echo 'Possible targets :'
 	@echo ' dvi   : Make documentation using latex.'
@@ -97,14 +127,17 @@ help:
 	@echo ' htm   : Convert .html to .htm files, zip result'
 	@echo ' clean : Clean up the mess.'
 
-
-$(TXT) : %.txt: %.dvi
-
-$(DVI) : %.dvi: %.tex
-
-$(PDF) : %.pdf: %.tex
-
-units.dvi: units.tex $(CHAPTERS) unitex
+clean:
+	-rm -rf $(HTML)
+	-rm -f *.aux *.log *.dvi *.ps *.toc *.i* *.lot *.pdf *.txt
+	-$(MAKE) -C refex clean
+	-$(MAKE) -C linuxex clean
+	-$(MAKE) -C crtex clean
+	-$(MAKE) -C dosex clean
+	-$(MAKE) -C optex clean
+	-$(MAKE) -C printex clean
+	-$(MAKE) -C stringex clean
+	-$(MAKE) -C sockex clean
 
 unitex:
 	$(MAKE) -C crtex tex
@@ -115,16 +148,16 @@ unitex:
 	$(MAKE) -C stringex tex
 	$(MAKE) -C sockex tex
 
-ref.dvi: ref.tex refex
-
 refex:
 	$(MAKE) -C refex tex
+
+units.dvi: units.tex $(CHAPTERS) unitex
+
+ref.dvi: ref.tex refex
 
 dvi : $(DVI)
 
 txt : dvi $(TXT)
-
-html : dvi $(HTML) 
 
 ps : dvi $(PS)
 
@@ -132,45 +165,57 @@ pdf : $(PDF)
 
 user:
 	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 2 -link 2\
-         -t "User's guide for FPK Pascal" user.tex
+         -t "User's guide for Free Pascal" user.tex
 	sed -f foot.sed <user/footnode.html >user/footnote.html
 	mv user/footnote.html user/footnode.html
+	rm -rf user/labels.pl user/internals.pl user/.*.pag user/.*.dir
 
-units:
+units: unitex
 	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 3 -link 2\
-        -t "Unit reference for FPK Pascal" units.tex
+        -t "Unit reference for Free Pascal" units.tex
 	sed -f foot.sed <units/footnode.html >units/footnote.html
 	mv units/footnote.html units/footnode.html
+	rm -rf units/labels.pl units/internals.pl units/.*.pag units/.*.dir
 
-ref:
+ref: refex
 	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 3 -link 2\
-        -t "FPK Pascal reference guide" ref.tex
+        -t "Free Pascal reference guide" ref.tex
 	sed -f foot.sed <ref/footnode.html >ref/footnote.html
 	mv ref/footnote.html ref/footnode.html
-
+	rm -rf ref/labels.pl ref/internals.pl ref/.*.pag ref/.*.dir
+	
 prog:
 	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 2 -link 2\
-        -t "FPK Pascal programmers guide" prog.tex
+        -t "Free Pascal programmers guide" prog.tex
 	sed -f foot.sed <prog/footnode.html >prog/footnote.html
 	mv prog/footnote.html prog/footnode.html
+	rm -rf prog/labels.pl prog/internals.pl prog/.*.pag prog/.*.dir
 
-clean:
-	-rm -f *.aux *.log *.dvi *.ps *.toc *.i* *.lot *.pdf *.txt
-	-rm -rf $(HTML)
-	-$(MAKE) -C refex clean
-	-$(MAKE) -C linuxex clean
-	-$(MAKE) -C crtex clean
-	-$(MAKE) -C dosex clean
-	-$(MAKE) -C optex clean
-	-$(MAKE) -C printex clean
-	-$(MAKE) -C stringex clean
-	-$(MAKE) -C sockex clean
+html: $(HTML)
 
-htmldist: html
-	find . -name '*.html' >htmllist
-	find . -name '*.gif' >>htmllist
-	tar -czvf fpcdoc.tar.gz --files-from=htmllist
-	rm -f htmllist
+htm:
+	makehtm `find . -name '*.html'`
+	zip fpcdoc `find . -name '*.htm'`
+	rm `find -name '*.htm'`
+	
+all-formats: ps txt pdf html
+	
+#####################################################################
+# Installation
+#####################################################################
+	
+install:
+	install -d -m 755 $(DOCINSTALLDIR)
+	cp -R $(HTML) $(DOCINSTALLDIR)
+	cp fpctoc.html $(DOCINSTALLDIR)
+
+www-install: psdist htmldist htm
+	rcp fpcdoc.zip fpcdocps.zip fpcdocps.tar.gz fpcdoc.tar.gz tfdec1:htdocs/fpk
+	rsh tfdec1 '(cd htdocs/fpk/docs ; /usr/local/bin/tar -xzf ../fpcdoc.tar.gz)'
+
+#####################################################################
+# Distribution
+#####################################################################
 
 psdist: ps
 	tar -cvzf fpcdocps.tar.gz *.ps
@@ -179,12 +224,12 @@ psdist: ps
 pdfdist: pdf
 	zip fpcdocpdf *.pdf
 
-
-htm:
-	makehtm `find . -name '*.html'`
-	zip fpcdoc `find . -name '*.htm'`
-	rm `find -name '*.htm'`
-
+htmldist: html
+	find . -name '*.html' >htmllist
+	find . -name '*.gif' >>htmllist
+	tar -czvf fpcdoc.tar.gz --files-from=htmllist
+	rm -f htmllist
+	
 dist:
 	-mkdir $(DISTDIR)/docs
 	cp Makefile README.DOCS makehtm fpktoc.html $(DISTDIR)/docs
@@ -192,14 +237,3 @@ dist:
 
 distclean: clean
 	-rm -f *.tar.gz *.zip
-
-install: html
-	install -d -m 755  $(DOCINSTALLDIR)
-	cp -R $(HTML) $(DOCINSTALLDIR)
-	cp fpctoc.html $(DOCINSTALLDIR)
-
-www-install: psdist htmldist htm
-	rcp fpcdoc.zip fpcdocps.zip fpcdocps.tar.gz fpcdoc.tar.gz tfdec1:htdocs/fpk
-	rsh tfdec1 '(cd htdocs/fpk/docs ; /usr/local/bin/tar -xzf ../fpcdoc.tar.gz)'
-
-all-formats: ps txt pdf html
