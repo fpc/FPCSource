@@ -48,9 +48,13 @@ function VPos(UTF8Char:PChar; Len:integer; BytePos:integer):Cardinal;
 function VCharOf(UTF8Str:TUTF8String; vp:Integer; dir:TDirection):TUTF8Char;
 {Inserts a string into an other paying attention of RTL/LTR direction}
 procedure VInsert(const Src:TUTF8String; var Dest:TUTF8String; vp:Integer; pDir:TDirection);
+{Deletes a string into an other paying attention of RTL/LTR direction}
+procedure VDelete(var str:TUTF8String; vp, len:Integer; pDir:TDirection);
 {****************************Helper routines***********************************}
 {Returns direction of a character}
 function DirectionOf(UTF8Char:TUTF8Char):TDirection;
+{Returns contextual direction of caracter in a string}
+function DirectionOf(UTF8String:TUTF8String; lp:Integer; pDir:TDirection):TDirection;
 {Inserts a char as if it was typed using keyboard in the most user friendly way.
 Returns the new cursor position after insersion depending on the new visual text}
 function InsertChar(Src:TUTF8Char; var Dest:TUTF8String; vp:Integer; pDir:TDirection):Integer;
@@ -211,7 +215,6 @@ var
   i:integer;
 begin
   v2l := VisualToLogical(UTF8Str, pDir);
-  for i:= 0 to v2l[0] do Write(v2l[i],' ');writeln('vp=',vp,' v2l[vp]=',v2l[vp]);
   if vp <= v2l[0]
   then
     Result := v2l[vp]
@@ -224,8 +227,11 @@ begin
   if lp > Length(UTF8String)
   then
     Exit('');
-  while(lp > 0) and ((Ord(UTF8String[lp]) and $F0) = $80) do
+  while(lp > 0) and ((Ord(UTF8String[lp]) and $F0) in [$80..$B0]) do
+begin
+writeln(lp,' ',HexStr(Ord(UTF8String[lp]),2),'!',HexStr(Ord(UTF8String[lp]) and $F0,2));
     Dec(lp);
+end;
   if lp = 0
   then
     Exit('');
@@ -291,6 +297,20 @@ begin
   end;
 end;
 
+function DirectionOf(UTF8String:TUTF8String; lp:Integer; pDir:TDirection):TDirection;
+var
+  c:TUTF8Char;
+begin
+  c := LCharOf(UTF8String, lp);
+  Result := DirectionOf(c);
+  while(lp > 1) and (Result = drNONE)do
+  begin
+    c := LCharOf(UTF8String, lp - 1);
+    Result := DirectionOf(c);
+    lp := lp - Length(c);
+  end;
+end;
+
 function VisualToLogical(const UTF8String:TUTF8String; pDir:TDirection):TVisualToLogical;
   procedure Insert(value:Byte; var v2l:TVisualToLogical; InsPos:Byte);
     var
@@ -318,9 +338,8 @@ begin
   while lp <= Length(UTF8String) do
   begin
     Character := LCharOf(UTF8String, lp);
-    cDir := DirectionOf(Character);
+    cDir := DirectionOf(UTF8String, lp, pDir);
     Inc(Result[0]);
-          WriteLn('lpos=',lp,' vpos=',vp,' cDir=',Byte(cDir));
     case cDir of
       drRTL:
         begin
@@ -332,16 +351,9 @@ begin
           vp := Result[0];
         end;
     else
-      case pDir of
-        drRTL:;
-        drLTR:
-          vp := Result[0];
-      else
-        vp := vp;
-      end;
+      vp := Result[0];
     end;
     Insert(lp, Result, vp);
-    for i := 1 to Result[0] do Write('v2l[',i,']=',Result[vp],'/',lp);
     Inc(lp, Length(Character));
   end;
 end;
@@ -349,52 +361,65 @@ end;
 function InsertChar(Src:TUTF8Char; var Dest:TUTF8String; vp:Integer; pDir:TDirection):Integer;
 var
   v2l:TVisualToLogical;
-  lp:Integer;
+  lp,rvp:Integer;
+  c:TUTF8Char;
 begin
   v2l := VisualToLogical(Dest, pDir);
-  if vp > v2l[0]
+  rvp := v2l[0];
+  if vp > rvp
   then
     begin
       lp := Length(Dest) + 1
     end
   else
     lp := v2l[vp];
-Write('vp=',vp,' lp=',lp,' len=', Length(Dest));
+  c := LCharOf(Dest, lp);
+  if DirectionOf(c) = drRTL
+  then
+    begin
+      lp := lp + Length(c);
+      rvp := rvp + 1;
+    end;
   case DirectionOf(Src) of
     drRTL:
       begin
-        if lp > Length(Dest)
-        then
-          Insert(Src, Dest, v2l[v2l[0]])
-        else
-          if(vp > v2l[0]) or (DirectionOf(LCharOf(Dest,v2l[vp])) = drRTL)
-          then
-            Insert(Src, Dest, lp + Length(LCharOf(Dest, lp)))
-          else
-            Insert(Src, Dest, lp);
         Result := vp;
+Write(Result);
+        while (Result > 0) and (DirectionOf(LCharOf(Dest, v2l[Result])) <> drLTR) do
+          Result := Result - 1;
+Write('-->',Result);
+        while (Result < vp) and (DirectionOf(LCharOf(Dest, v2l[Result])) <> drRTL) do
+          Result := Result + 1;
+WriteLn('-->',Result)
       end;
     drLTR:
       begin
-        Insert(Src, Dest, lp);
-        Result := vp + 1;
+        Result := rvp + 1;
       end;
   else
     begin
-      Insert(Src, Dest, lp);
-      if lp > Length(Dest)
-      then
-        Result := lp
-      else
-        Result := lp + 1;
+      Result := rvp + 1;
     end;
   end;
-WriteLn(' Result=', Result);
+  Insert(Src, Dest, lp);
+WriteLn('vp=',vp,' lp=',lp,' len=', Length(Dest),' Result=', Result);
 end;
 
 procedure VInsert(const Src:TUTF8String;var Dest:TUTF8String; vp:Integer; pDir:TDirection);
 begin
   Insert(Src, Dest, LPos(Dest, vp, pDir));
+end;
+
+procedure VDelete(var str:TUTF8String; vp, len:Integer; pDir:TDirection);
+var
+  v2l:TVisualToLogical;
+  i:Integer;
+begin
+  v2l := VisualToLogical(str, pDir);
+  for i := 1 to v2l[0] do
+    if(v2l[i] < vp) and (v2l[i] > vp + len)
+    then
+      Delete(str, v2l[i], 1);
 end;
 
 end.
