@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999-2000 by Florian Klaempfl,
+    Copyright (c) 1999-2001 by Florian Klaempfl,
     member of the Free Pascal development team.
 
     This file implements support routines for WideStrings with FPC
@@ -129,8 +129,9 @@ Begin
   { check for constant strings ...}
   l:=@PWIDEREC(S-WideFirstOff)^.Ref;
   If l^<0 then exit;
-  Dec(l^);
-  If l^=0 then
+
+  { declocked does a MT safe dec and returns true, if the counter is 0 }
+  If declocked(l^) then
     { Ref count dropped to zero }
     DisposeWideString (S);        { Remove...}
   { this pointer is not valid anymore, so set it to zero }
@@ -144,10 +145,80 @@ Begin
     exit;
   { Let's be paranoid : Constant string ??}
   If PWideRec(S-WideFirstOff)^.Ref<0 then exit;
-  Inc(PWideRec(S-WideFirstOff)^.Ref);
+  inclocked(PWideRec(S-WideFirstOff)^.Ref);
+end;
+
+Procedure WideStr_To_ShortStr (Var S1 : ShortString;S2 : Pointer);[Public, alias: 'FPC_WIDESTR_TO_SHORTSTR'];
+{
+  Converts a WideString to a ShortString;
+}
+Var
+  Size : Longint;
+begin
+  if S2=nil then
+   S1:=''
+  else
+   begin
+     {!!!!! FIXME
+     Size:=PAnsiRec(S2-FirstOff)^.Len;
+     If Size>high(S1) then
+      Size:=high(S1);
+     Move (S2^,S1[1],Size);
+     byte(S1[0]):=Size;
+     }
+   end;
 end;
 
 
+Procedure ShortStr_To_WideStr (Var S1 : Pointer; Const S2 : ShortString);[Public, alias: 'FPC_SHORTSTR_TO_WIDESTR'];
+{
+  Converts a ShortString to a WideString;
+}
+Var
+  Size : Longint;
+begin
+  Size:=Length(S2);
+  Setlength (WideString(S1),Size);
+  if Size>0 then
+   begin
+     {!!!! FIXME
+     Move (S2[1],Pointer(S1)^,Size);
+      Terminating Zero
+     PByte(Pointer(S1)+Size)^:=0;
+     }
+   end;
+end;
+
+Procedure WideStr_To_AnsiStr (Var S1 : Pointer;S2 : Pointer);[Public, alias: 'FPC_WIDESTR_TO_ANSISTR'];
+{
+  Converts a WideString to an AnsiString
+}
+begin
+  if s2=nil then
+    s1:=nil
+  else
+    begin
+       {!!!!! FIXME }
+    end;
+end;
+
+
+Procedure AnsiStr_To_WideStr (Var S1 : Pointer; Const S2 : Pointer);[Public, alias: 'FPC_ANSISTR_TO_WIDESTR'];
+{
+  Converts an AnsiString to a WideString;
+}
+Var
+  Size : Longint;
+begin
+   if s2=nil then
+     s1:=nil
+   else
+     begin
+        {!!!! FIXME }
+     end;
+end;
+
+{ checked against the ansistring routine, 2001-05-27 (FK) }
 Procedure WideStr_Assign (Var S1 : Pointer;S2 : Pointer);[Public,Alias:'FPC_WIDESTR_ASSIGN'];
 {
   Assigns S2 to S1 (S1:=S2), taking in account reference counts.
@@ -162,7 +233,7 @@ begin
   S1:=S2;
 end;
 
-
+{ checked against the ansistring routine, 2001-05-27 (FK) }
 Procedure WideStr_Concat (S1,S2 : Pointer;var S3 : Pointer);[Public, alias: 'FPC_WIDESTR_CONCAT'];
 {
   Concatenates 2 WideStrings : S1+S2.
@@ -185,16 +256,15 @@ begin
        Size:=PWideRec(S2-WideFirstOff)^.Len;
        Location:=Length(WideString(S1));
        SetLength (WideString(S3),Size+Location);
-       Move (S1^,S3^,Location);
-       Move (S2^,(S3+location)^,Size+1);
+       Move (S1^,S3^,Location*2);
+       Move (S2^,(S3+location*2)^,(Size+1)*2);
     end;
 end;
 
 
-(* !!!:
 Procedure Char_To_WideStr(var S1 : Pointer; c : Char);[Public, alias: 'FPC_CHAR_TO_WIDESTR'];
 {
-  Converts a ShortString to a WideString;
+  Converts a Char to a WideString;
 }
 begin
   Setlength (WideString(S1),1);
@@ -249,7 +319,6 @@ begin
       Move (P[0],Pointer(A)^,i)
     end;
 end;
-*)
 
 
 Function WideStr_Compare(S1,S2 : Pointer): Longint;[Public,Alias : 'FPC_WIDESTR_COMPARE'];
@@ -499,7 +568,10 @@ end;}
 
 {
   $Log$
-  Revision 1.6  2000-11-06 23:17:15  peter
+  Revision 1.7  2001-05-27 14:28:03  florian
+    + some procedures added
+
+  Revision 1.6  2000/11/06 23:17:15  peter
     * removed some warnings
 
   Revision 1.5  2000/11/06 20:34:24  peter
@@ -517,5 +589,4 @@ end;}
 
   Revision 1.2  2000/07/13 11:33:46  michael
   + removed logs
-
 }
