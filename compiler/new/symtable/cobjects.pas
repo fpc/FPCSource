@@ -36,10 +36,14 @@ uses    strings,objects
 {$IFDEF TP}
         ,xobjects
 {$ENDIF}
-{$ifndef linux}
+{$ifndef Unix}
         ,dos
 {$else}
+	{$ifdef VER1_0}
         ,linux
+	{$else}
+   	,Unix
+	{$endif}
 {$endif};
 
     const
@@ -1729,11 +1733,11 @@ end;
 
       var
          l : longint;
-{$ifdef linux}
+{$ifdef Unix}
          Info : Stat;
 {$endif}
       begin
-{$ifndef linux}
+{$ifndef Unix}
          { this only works if the file is open !! }
          dos.getftime(f,l);
 {$else}
@@ -1971,7 +1975,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:13  michael
+  Revision 1.2  2002-06-02 08:41:22  marco
+   * renamefest
+
+  Revision 1.1  2000/07/13 06:30:13  michael
   + Initial import
 
   Revision 1.3  2000/03/11 21:11:24  daniel

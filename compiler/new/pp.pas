@@ -136,7 +136,7 @@ uses
 {$ifdef heaptrc}
   ppheap,
 {$endif heaptrc}
-{$ifdef linux}
+{$ifdef Unix}
   catch,
 {$endif}
 {$endif FPC}
@@ -276,7 +276,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:08  michael
+  Revision 1.2  2002-06-02 08:41:22  marco
+   * renamefest
+
+  Revision 1.1  2000/07/13 06:30:08  michael
   + Initial import
 
   Revision 1.8  2000/01/07 01:14:54  peter
