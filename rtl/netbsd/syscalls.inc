@@ -71,12 +71,12 @@ begin
  sys_close:=do_syscall(syscall_nr_close,f);
 end;
 
-{$ifndef m68k}
+{$ifndef cpum68k}
 Function Sys_Lseek(F:longint;Off:longint;Whence:longint):longint;
 var returnvalue64 : int64;
 begin
  {Lseek's offset is 64-bit, the highword  is the 0}
-{$ifdef i386} 
+{$ifdef cpui386} 
  do_syscall(syscall_nr___syscall,syscall_nr_lseek,0,f,0,off,0,whence);
  asm
   lea  returnvalue64,%ebx
@@ -88,7 +88,7 @@ begin
   sys_lseek:=fplseek(f,off,whence);
  {$endif}
 end;
-{$endif m68k}
+{$endif cpum68k}
 
 
 Function Sys_Read(f:longint;buffer:pchar;count:longint):longint;
@@ -354,7 +354,10 @@ end;
 
 {
   $Log$
-  Revision 1.6  2003-08-21 22:22:11  olle
+  Revision 1.7  2003-10-17 20:57:10  olle
+    * Changed m68k to cpum68k, i386 to cpui386
+
+  Revision 1.6  2003/08/21 22:22:11  olle
     - removed parameter from fpc_iocheck
 
   Revision 1.5  2003/05/30 19:58:40  marco

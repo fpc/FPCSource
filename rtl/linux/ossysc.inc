@@ -344,13 +344,13 @@ type
   end;
 
 
-{$ifdef i386}
+{$ifdef cpui386}
 {$define OLDMMAP}
-{$endif i386}
+{$endif cpui386}
 
-{$ifdef m68k}
+{$ifdef cpum68k}
 {$define OLDMMAP}
-{$endif m68k}
+{$endif cpum68k}
 
 Function Fpmmap(adr:pointer;len:size_t;prot:cint;flags:cint;fd:cint;off:off_t):pointer;  [public, alias : 'FPC_SYSC_MMAP'];
 // OFF_T procedure, and returns a pointer, NOT cint.
@@ -454,7 +454,10 @@ end;
 
 {
  $Log$
- Revision 1.8  2003-09-27 13:45:58  peter
+ Revision 1.9  2003-10-17 20:56:24  olle
+   * Changed m68k to cpum68k, i386 to cpui386
+
+ Revision 1.8  2003/09/27 13:45:58  peter
    * fpnanosleep exported in baseunix
    * fpnanosleep has pointer arguments to be C compliant
 

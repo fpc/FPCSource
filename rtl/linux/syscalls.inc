@@ -54,7 +54,7 @@ function Clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint;
 begin
   if (pointer(func)=nil) or (sp=nil) then
    exit(-1); // give an error result
-{$ifdef i386}
+{$ifdef cpui386}
   asm
         { Insert the argument onto the new stack. }
         movl    sp,%ecx
@@ -87,8 +87,8 @@ begin
 .Lclone_end:
         movl    %eax,__RESULT
   end;
-{$endif i386}
-{$ifdef m68k}
+{$endif cpui386}
+{$ifdef cpum68k}
   { No yet translated, my m68k assembler is too weak for such things PM }
 (*
   asm
@@ -124,7 +124,7 @@ begin
         movl    %eax,__RESULT
   end;
   *)
-{$endif m68k}
+{$endif cpum68k}
 end;
 
 
@@ -149,7 +149,10 @@ end;
 
 {
   $Log$
-  Revision 1.18  2003-09-14 20:15:01  marco
+  Revision 1.19  2003-10-17 20:56:24  olle
+    * Changed m68k to cpum68k, i386 to cpui386
+
+  Revision 1.18  2003/09/14 20:15:01  marco
    * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
 
   Revision 1.17  2002/12/18 16:43:26  marco

@@ -410,9 +410,9 @@ begin
  if elfheader.magic0123<>$7f454c46 then
    exit;
  { this seems to be at least the case for m68k cpu PM }
-{$ifdef m68k}
+{$ifdef cpum68k}
  {StabsFunctionRelative:=false;}
-{$endif m68k}
+{$endif cpum68k}
 {$endif ENDIAN_BIG}
   if elfheader.e_shentsize<>sizeof(telf32sechdr) then
    exit;
@@ -781,7 +781,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.18  2003-03-25 19:27:45  peter
+  Revision 1.19  2003-10-17 20:52:12  olle
+    * Changed m68k to cpum68k, i386 to cpui386
+
+  Revision 1.18  2003/03/25 19:27:45  peter
     * fix ifdef to define elf32
 
   Revision 1.16  2003/03/17 14:30:11  peter

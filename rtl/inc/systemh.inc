@@ -291,14 +291,14 @@ type
   PPCharArray = ^TPCharArray;
 
 const
-{$ifdef i386}
+{$ifdef cpui386}
   Test8086 : byte = 2;       { Always i386 or newer }
   Test8087 : byte = 3;       { Always 387 or newer. Emulated if needed. }
-{$endif i386}
-{$ifdef m68k}
+{$endif cpui386}
+{$ifdef cpum68k}
   Test68000 : byte = 0;      { Must be determined at startup for both }
   Test68881 : byte = 0;
-{$endif}
+{$endif cpum68k}
 
 { max level in dumping on error }
   Max_Frame_Dump : Word = 8;
@@ -693,7 +693,10 @@ const
 
 {
   $Log$
-  Revision 1.75  2003-10-16 15:43:13  peter
+  Revision 1.76  2003-10-17 20:52:12  olle
+    * Changed m68k to cpum68k, i386 to cpui386
+
+  Revision 1.75  2003/10/16 15:43:13  peter
     * THandle is platform dependent
 
   Revision 1.74  2003/10/08 16:24:47  florian

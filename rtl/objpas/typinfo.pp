@@ -910,10 +910,10 @@ begin
          Value:=PDouble(Pointer(Instance)+Longint(PropInfo^.GetProc))^;
        ftExtended:
          Value:=PExtended(Pointer(Instance)+Longint(PropInfo^.GetProc))^;
-{$ifndef m68k}
+{$ifndef cpum68k}
        ftcomp:
          Value:=PComp(Pointer(Instance)+Longint(PropInfo^.GetProc))^;
-{$endif m68k}
+{$endif cpum68k}
        end;
 
     ptStatic:
@@ -971,10 +971,10 @@ begin
           PDouble(Pointer(Instance)+Longint(PropInfo^.SetProc))^:=Value;
         ftExtended:
           PExtended(Pointer(Instance)+Longint(PropInfo^.SetProc))^:=Value;
-{$ifndef m68k}
+{$ifndef cpum68k}
        ftcomp:
           PComp(Pointer(Instance)+Longint(PropInfo^.SetProc))^:=Comp(Value);
-{$endif m68k}
+{$endif cpum68k}
         { Uncommenting this code results in a internal error!!
        ftFixed16:
          PFixed16(Pointer(Instance)+Longint(PropInfo^.SetProc))^:=Value;
@@ -1213,7 +1213,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.16  2003-04-24 11:46:25  florian
+  Revision 1.17  2003-10-17 20:58:27  olle
+    * Changed m68k to cpum68k, i386 to cpui386
+
+  Revision 1.16  2003/04/24 11:46:25  florian
     * fixed wrong newlines
 
   Revision 1.15  2003/03/29 16:55:56  michael
