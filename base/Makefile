@@ -194,7 +194,16 @@ gdb_sharedinstall:
 # IDE
 #######################################
 
-ide_all: rtl_all api_all fv_all gdb_all
+ide_all: rtl_all api_all fv_all
+	$(MAKE) -C $(IDEDIR) all
+
+ide_gdb: rtl_all api_all fv_all gdb_all
+	$(MAKE) -C $(IDEDIR) gdb
+
+ide_full: rtl_all api_all fv_all
+	$(MAKE) -C $(IDEDIR) full
+
+ide_fullgdb: rtl_all api_all fv_all gdb_all
 	$(MAKE) -C $(IDEDIR) fullgdb
 
 ide_clean:
@@ -231,7 +240,10 @@ sharedinstall: $(addsuffix _sharedinstall,$(MODULES))
 
 #
 # $Log$
-# Revision 1.2  1999-01-28 19:58:19  peter
+# Revision 1.3  1999-02-16 00:50:12  peter
+#   + ide_all,ide_gdb,ide_full,ide_fullgdb targets
+#
+# Revision 1.2  1999/01/28 19:58:19  peter
 #   * makefile updates
 #
 # Revision 1.1  1999/01/21 11:48:39  peter

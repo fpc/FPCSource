@@ -2,6 +2,7 @@
 First you need to install all the sources like:
 
 <basedir>/
+  base
   compiler
   rtl
   ide/text
@@ -11,7 +12,7 @@ First you need to install all the sources like:
   gdbint
   gdbint/libgdb
 
-- Copy the files (Makefile,makefile.fpc) from the base repository to the
+- Copy the files (Makefile,makefile.fpc) from the base/ directory to the
 <basedir>. 
 
 - get the libgdb_<system>.zip from tflily ftp and unzip it in the
@@ -21,4 +22,10 @@ gdbint/libgdb directory
 
 - Then you can type 'make info' and see it finds the correct files.
 
-- When that works fine, then you can type in the <basedir>: 'make ide_all'
+- When that works fine, then you can type in the <basedir>:
+
+  'make ide_all'	IDE without compiler/debugger
+  'make ide_gdb'	IDE with debugger
+  'make ide_full'	IDE with compiler
+  'make ide_fullgdb'	IDE with compiler/debugger
+  
