@@ -68,11 +68,13 @@ function CompareStr(const S1, S2: string): Integer;
 function CompareMemRange(P1, P2: Pointer; Length: cardinal): integer;
 function CompareMem(P1, P2: Pointer; Length: cardinal): Boolean;
 function CompareText(const S1, S2: string): integer;
+function SameText(const s1,s2:String):Boolean;
 
 function AnsiUpperCase(const s: string): string;
 function AnsiLowerCase(const s: string): string;
 function AnsiCompareStr(const S1, S2: string): integer;
 function AnsiCompareText(const S1, S2: string): integer;
+function AnsiSameText(const s1,s2:String):Boolean;
 function AnsiStrComp(S1, S2: PChar): integer;
 function AnsiStrIComp(S1, S2: PChar): integer;
 function AnsiStrLComp(S1, S2: PChar; MaxLen: cardinal): integer;
@@ -160,7 +162,10 @@ function BCDToInt(Value: integer): integer;
 
 {
   $Log$
-  Revision 1.1  2003-10-06 21:01:06  peter
+  Revision 1.2  2003-10-07 12:02:47  marco
+   * sametext and ansisametext added. (simple (ansi)comparetext wrappers)
+
+  Revision 1.1  2003/10/06 21:01:06  peter
     * moved classes unit to rtl
 
   Revision 1.17  2003/09/06 21:22:08  marco

@@ -193,6 +193,12 @@ begin
     result:=(count1-count2);
 end;
 
+function SameText(const s1,s2:String):Boolean;
+
+begin
+ Result:=CompareText(S1,S2)=0;
+end;
+
 {==============================================================================}
 {   Ansi string functions                                                      }
 {   these functions rely on the character set loaded by the OS                 }
@@ -250,6 +256,12 @@ begin
     end;
   If Result=0 Then
     Result:=L1-L2;
+end;
+
+function AnsiSameText(const s1,s2:String):Boolean;
+
+begin
+ AnsiSameText:=AnsiCompareText(S1,S2)=0;
 end;
 
 function AnsiStrComp(S1, S2: PChar): integer;
@@ -2000,7 +2012,10 @@ const
 
 {
   $Log$
-  Revision 1.1  2003-10-06 21:01:06  peter
+  Revision 1.2  2003-10-07 12:02:47  marco
+   * sametext and ansisametext added. (simple (ansi)comparetext wrappers)
+
+  Revision 1.1  2003/10/06 21:01:06  peter
     * moved classes unit to rtl
 
   Revision 1.26  2003/09/06 21:22:07  marco
