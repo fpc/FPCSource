@@ -539,7 +539,7 @@ Function  FSStat(Path:Pathstr;Var Info:statfs):Boolean;
 Function  FSStat(Fd: Longint;Var Info:statfs):Boolean;
 Function  Fcntl(Fd:Text;Cmd:Integer):integer;
 Procedure Fcntl(Fd:Text;Cmd:Integer;Arg:Longint);
-Function  Dup(oldfile,newfile:longint):Boolean;
+Function  Dup(oldfile:longint;var newfile:longint):Boolean;
 Function  Dup(var oldfile,newfile:text):Boolean;
 Function  Dup(var oldfile,newfile:file):Boolean;
 Function  Dup2(oldfile,newfile:longint):Boolean;
@@ -1709,7 +1709,7 @@ begin
 end;
 
 
-Function Dup(oldfile,newfile:longint):Boolean;
+Function  Dup(oldfile:longint;var newfile:longint):Boolean;
 {
   Copies the filedescriptor oldfile to newfile
 }
@@ -3521,7 +3521,10 @@ End.
 
 {
   $Log$
-  Revision 1.31  1999-02-22 11:47:42  peter
+  Revision 1.32  1999-02-22 12:50:53  peter
+    * fixed dup() to have var para
+
+  Revision 1.31  1999/02/22 11:47:42  peter
     * fixed juliantogregorian (mailinglist)
 
   Revision 1.29  1999/02/02 21:19:54  michael
