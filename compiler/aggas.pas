@@ -318,6 +318,7 @@ var
         if copy(s,1,4)='.gnu' then
           begin
             case atype of
+              sec_rodata,
               sec_data :
                 AsmWrite(',""');
               sec_code :
@@ -331,6 +332,7 @@ var
         case atype of
           sec_code :
             n_line:=n_textline;
+          sec_rodata,
           sec_data :
             n_line:=n_dataline;
           sec_bss  :
@@ -583,10 +585,14 @@ var
                    s:=tostr(tai_const(hp).value);
                  AsmWrite(s);
                  inc(l,length(s));
-                 if (LasTSecType<>sec_data) or
+                 { Values with symbols are written on a single line to improve
+                   reading of the .s file (PFV) }
+                 if assigned(tai_const(hp).sym) or
+                    not(LasTSecType in [sec_data,sec_rodata]) or
                     (l>line_length) or
                     (hp.next=nil) or
-                    (tai(hp.next).typ<>consttyp) then
+                    (tai(hp.next).typ<>consttyp) or
+                    assigned(tai_const(hp.next).sym) then
                    break;
                  hp:=tai(hp.next);
                  AsmWrite(',');
@@ -980,7 +986,10 @@ var
 end.
 {
   $Log$
-  Revision 1.60  2004-10-14 16:49:14  mazen
+  Revision 1.61  2004-10-24 13:35:25  peter
+    * support rodata like data when writing ordinal cosnts
+
+  Revision 1.60  2004/10/14 16:49:14  mazen
   * Merge is complete for this file, cycles !
 
   Revision 1.59  2004/09/26 17:45:29  peter
