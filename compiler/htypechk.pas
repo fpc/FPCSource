@@ -1248,6 +1248,9 @@ implementation
         pt         : tcallparanode;
 
       begin
+        if not assigned(sym) then
+          internalerror(200411015);
+
         FProcSym:=sym;
         FProcs:=nil;
         FProccnt:=0;
@@ -1928,7 +1931,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.101  2004-10-24 11:44:28  peter
+  Revision 1.102  2004-11-01 16:58:57  peter
+    * give IE instead of crash when no procsym is passed for calln
+
+  Revision 1.101  2004/10/24 11:44:28  peter
     * small regvar fixes
     * loadref parameter removed from concatcopy,incrrefcount,etc
 

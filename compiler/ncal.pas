@@ -185,7 +185,7 @@ implementation
       systems,
       verbose,globals,
       symconst,defutil,defcmp,
-      htypechk,pass_1,tgobj,
+      htypechk,pass_1,
       ncnv,nld,ninl,nadd,ncon,nmem,
       procinfo,
       cgbase
@@ -1412,6 +1412,9 @@ type
          result:=nil;
          candidates:=nil;
 
+         if not assigned(symtableprocentry) then
+           internalerror(200411014);
+
          oldcallnode:=aktcallnode;
          aktcallnode:=self;
 
@@ -2416,7 +2419,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.254  2004-10-31 21:45:03  peter
+  Revision 1.255  2004-11-01 16:58:57  peter
+    * give IE instead of crash when no procsym is passed for calln
+
+  Revision 1.254  2004/10/31 21:45:03  peter
     * generic tlocation
     * move tlocation to cgutils
 
