@@ -643,6 +643,12 @@ implementation
             if hs='FPCTARGET' then
              hs:=target_cpu_string
            else
+            if hs='FPCTARGETCPU' then
+             hs:=target_cpu_string
+           else
+            if hs='FPCTARGETOS' then
+             hs:=target_info.name
+           else
              hs:=getenv(hs);
            if hs='' then
             Message1(scan_w_include_env_not_found,path);
@@ -2656,7 +2662,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.28  2002-01-24 18:25:50  peter
+  Revision 1.29  2002-01-27 21:44:26  peter
+    * FPCTARGETOS/FPCTARGETCPU added as internal environment variable
+
+  Revision 1.28  2002/01/24 18:25:50  peter
    * implicit result variable generation for assembler routines
    * removed m_tp modeswitch, use m_tp7 or not(m_fpc) instead
 
