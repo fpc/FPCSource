@@ -21,19 +21,9 @@
 # with the main makefile.
 #####################################################################
 
-# set the directory where to install the units.
-ifndef UNITINSTALLDIR
-UNITINSTALLDIR=/usr/lib/fpc/0.99.6/linuxunits
-endif
-
-# set the directory where to install the libs (must exist)
-ifndef LIBINSTALLDIR
-LIBINSTALLDIR=/usr/lib
-endif
-
 # What is the Operating System ?
-ifndef OS_SRC
-OS_SRC=linux
+ifndef OS_SOURCE
+OS_SOURCE=linux
 endif
 
 # What is the target operating system ?
@@ -122,24 +112,6 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 ifeq ($(LINK_TO_C),YES)
 override OPT:=$(OPT) -dCRTLIB
 endif
-
-# check whether we make shared or static libs
-ifndef LIBTYPE
-LIBTYPE=shared
-endif
-
-# determine libary extension.
-ifeq ($(LIBTYPE),static)
-LIBEXT=.a
-else
-LIBEXT=.so
-endif
-
-# Determine needed extensions
-PPUEXT=.ppu
-PPLEXT=.ppl
-OEXT=.o
-ASMEXT=.s
 
 # Define Linux Units
 SYSTEMPPU=syslinux$(PPUEXT)
@@ -293,36 +265,13 @@ libfpc.a:
 libinstall : libs
 	$(INSTALLEXE) libfpc$(LIBEXT) $(LIBINSTALLDIR)
 	$(INSTALL) *$(PPLEXT) $(UNITINSTALLDIR)
-
+	ldconfig
+	
 libsclean : clean
 	-$(DEL) *.a *.so *$(PPLEXT)
 
 #####################################################################
-# Diffs
+# Default targets
 #####################################################################
 
-%.dif : %.pp
-	-$(DIFF) $(DIFFOPTS) $*.pp $(REFPATH)/linux/$*.pp >$*.dif
-
-%.dif :  %.inc
-	-$(DIFF) $(DIFFOPTS) $*.inc $(REFPATH)/linux/$*.inc >$*.dif
-
-%.dif : %.as
-	-$(DIFF) $(DIFFOPTS) $*.s $(REFPATH)/linux/$*.s >$*.dif
-
-diffclean :
-	-$(DEL) *.dif
-
-makefile.dif : makefile
-	-$(DIFF) $(DIFFOPTS) makefile $(REFPATH)/linux/makefile > makefile.dif
-
-diffs : dos.dif syslinux.dif objects.dif errno.dif prt0.dif prt1.dif \
-	objects.dif linux.dif printer.dif os.dif syscalls.dif sysnr.dif \
-	makefile.dif
-
-#####################################################################
-# Distribution
-#####################################################################
-
-distclean : clean libsclean diffclean
-
+include $(CFG)/makefile.def
