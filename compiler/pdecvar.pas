@@ -83,7 +83,7 @@ implementation
                 if (st^.symtabletype=objectsymtable) and
                    (sp_static in current_object_option) then
                   begin
-                     s:=lower(st^.name^)+'_'+s;
+                     s:='$'+lower(st^.name^)+'_'+upper(s);
                      st^.defowner^.owner^.insert(new(pvarsym,init(s,tt)));
                   end;
              end;
@@ -515,7 +515,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  2000-11-29 00:30:36  florian
+  Revision 1.5  2000-12-17 14:00:18  peter
+    * fixed static variables
+
+  Revision 1.4  2000/11/29 00:30:36  florian
     * unused units removed from uses clause
     * some changes for widestrings
 

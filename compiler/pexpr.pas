@@ -978,8 +978,6 @@ implementation
                         Message(parser_e_only_class_methods_via_class_ref);
                       if (sp_static in sym^.symoptions) then
                         begin
-                           { static_name:=lower(srsymtable^.name^)+'_'+sym^.name;
-                             this is wrong for static field in with symtable (PM) }
                            static_name:=lower(srsym^.owner^.name^)+'_'+sym^.name;
                            getsym(static_name,true);
                            p1.destroy;
@@ -2420,7 +2418,10 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.21  2000-12-15 13:26:01  jonas
+  Revision 1.22  2000-12-17 14:00:18  peter
+    * fixed static variables
+
+  Revision 1.21  2000/12/15 13:26:01  jonas
     * only return int64's from functions if it int64funcresok is defined
     + added int64funcresok define to options.pas
 
