@@ -1333,8 +1333,9 @@ unit pmodules;
          DLLsource:=islibrary;
          IsExe:=true;
          parse_only:=false;
-         { relocation works only without stabs !! PM }
-         if RelocSection then
+         { relocation works only without stabs under win32 !! PM }
+         if RelocSection and
+            (target_info.target=target_i386_win32) then
            begin
               aktglobalswitches:=aktglobalswitches+[cs_link_strip];
               { Warning stabs info does not work with reloc section !! }
@@ -1557,7 +1558,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.175  1999-11-30 10:40:44  peter
+  Revision 1.176  1999-12-10 10:02:53  peter
+    * only check relocsection for win32
+
+  Revision 1.175  1999/11/30 10:40:44  peter
     + ttype, tsymlist
 
   Revision 1.174  1999/11/29 16:24:52  pierre
