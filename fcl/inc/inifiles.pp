@@ -516,8 +516,8 @@ begin
            end
           else
            begin
-             sIdent:=Trim(Copy(sLine, 1,  j- 1));
-             sValue:=Trim(Copy(sLine, j + 1, Length(sLine) - j - 1));
+             sIdent:=Trim(Copy(sLine, 1,  j - 1));
+             sValue:=Trim(Copy(sLine, j + 1, Length(sLine) - j));
            end;
         end;
         oSection.KeyList.Add(TIniFileKey.Create(sIdent, sValue));
@@ -770,7 +770,10 @@ end.
 
 {
   $Log$
-  Revision 1.12  2000-05-11 14:50:01  peter
+  Revision 1.13  2000-06-30 22:11:25  peter
+    * fixed truncating of last char
+
+  Revision 1.12  2000/05/11 14:50:01  peter
     * fixed getting of value when there was no separator. But it still
       doesn't work for fpcmake
 
