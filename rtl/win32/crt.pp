@@ -553,62 +553,62 @@ begin
    begin
      nevents:=0;
      GetNumberOfConsoleInputEvents(TextRec(input).Handle,nevents);
-     For i := 1 to nevents do
-      begin
-        ReadConsoleInputA(TextRec(input).Handle,buf,1,nread);
-        if buf.EventType = KEY_EVENT then
-         if buf.KeyEvent.bKeyDown then
-          begin
-            { Alt key is VK_MENU }
-            { Capslock key is VK_CAPITAL }
-
-            AltKey := ((Buf.KeyEvent.dwControlKeyState AND
-                          (RIGHT_ALT_PRESSED OR LEFT_ALT_PRESSED)) > 0);
-            if (Buf.KeyEvent.wVirtualKeyCode in [VK_SHIFT, VK_MENU, VK_CONTROL,
-                                                VK_CAPITAL, VK_NUMLOCK,
-                                                VK_SCROLL]) then
+     while nevents>1 do
+       begin
+          ReadConsoleInputA(TextRec(input).Handle,buf,1,nread);
+          if buf.EventType = KEY_EVENT then
+            if buf.KeyEvent.bKeyDown then
               begin
-                { Discard this key }
-              end
-                else begin
-            KeyPressed := TRUE;
+                 { Alt key is VK_MENU }
+                 { Capslock key is VK_CAPITAL }
 
-            if (ord(buf.KeyEvent.AsciiChar) = 0) or
-               (buf.keyevent.dwControlKeyState=2) then
-             begin
-               SpecialKey := TRUE;
-               ScanCode := Chr(RemapScanCode(Buf.KeyEvent.wVirtualScanCode, Buf.KeyEvent.dwControlKeyState,
-                                             Buf.KeyEvent.wVirtualKeyCode));
-             end
-            else
-             begin
-               SpecialKey := FALSE;
-               ScanCode := Chr(Ord(buf.KeyEvent.AsciiChar));
-             end;
-
-                        if Buf.KeyEvent.wVirtualKeyCode in [VK_NUMPAD0..VK_NUMPAD9] then
-                         if AltKey then
-                          begin
-                            Keypressed := false;
-                            Specialkey := false;
-                            ScanCode := #0;
-                          end
-                            else BREAK;
-          end;
-          end { if }
-           else if (Buf.KeyEvent.wVirtualKeyCode in [VK_MENU]) then
-                 if DoingNumChars then
-                  if DoingNumCode > 0 then
+                 AltKey := ((Buf.KeyEvent.dwControlKeyState AND
+                            (RIGHT_ALT_PRESSED OR LEFT_ALT_PRESSED)) > 0);
+                 if not(Buf.KeyEvent.wVirtualKeyCode in [VK_SHIFT, VK_MENU, VK_CONTROL,
+                                                      VK_CAPITAL, VK_NUMLOCK,
+                                                      VK_SCROLL]) then
                    begin
-                     ScanCode := Chr(DoingNumCode);
-                     Keypressed := true;
+                      keypressed:=true;
 
-                     DoingNumChars := false;
-                     DoingNumCode := 0;
-                     BREAK;
+                      if (ord(buf.KeyEvent.AsciiChar) = 0) or
+                        (buf.keyevent.dwControlKeyState=2) then
+                        begin
+                           SpecialKey := TRUE;
+                           ScanCode := Chr(RemapScanCode(Buf.KeyEvent.wVirtualScanCode, Buf.KeyEvent.dwControlKeyState,
+                                           Buf.KeyEvent.wVirtualKeyCode));
+                        end
+                      else
+                        begin
+                           SpecialKey := FALSE;
+                           ScanCode := Chr(Ord(buf.KeyEvent.AsciiChar));
+                        end;
+
+                      if Buf.KeyEvent.wVirtualKeyCode in [VK_NUMPAD0..VK_NUMPAD9] then
+                        if AltKey then
+                          begin
+                             Keypressed := false;
+                             Specialkey := false;
+                             ScanCode := #0;
+                          end
+                        else break;
+                   end;
+              end
+             else if (Buf.KeyEvent.wVirtualKeyCode in [VK_MENU]) then
+               if DoingNumChars then
+                 if DoingNumCode > 0 then
+                   begin
+                      ScanCode := Chr(DoingNumCode);
+                      Keypressed := true;
+
+                      DoingNumChars := false;
+                      DoingNumCode := 0;
+                      break
                    end; { if }
-
-      end;
+          { if we got a key then we can exit }
+          if keypressed then
+            exit;
+          GetNumberOfConsoleInputEvents(TextRec(input).Handle,nevents);
+       end;
    end;
 end;
 
@@ -1007,7 +1007,10 @@ end. { unit Crt }
 
 {
   $Log$
-  Revision 1.3  2000-09-10 20:17:56  peter
+  Revision 1.4  2000-12-09 13:27:41  florian
+    * web bug 1228 fixed (keypressed ate too muck keys)
+
+  Revision 1.3  2000/09/10 20:17:56  peter
     * fixed alt-<key>
 
   Revision 1.2  2000/07/13 11:33:56  michael
