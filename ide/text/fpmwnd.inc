@@ -63,7 +63,8 @@ begin
     hcMessagesWindow:S:=PMessagesWindow(P)^.GetTitle(MaxLen);
     hcGDBWindow,
     hcWatches,
-    hcStack, 
+    hcStack,
+    hcRegisters,
     hcBreakpointListWindow :
       S:=PWindow(P)^.GetTitle(MaxLen);
   else S:='???? - '+PWindow(P)^.GetTitle(MaxLen);
@@ -161,7 +162,10 @@ end;
 
 {
   $Log$
-  Revision 1.12  1999-09-09 14:09:58  pierre
+  Revision 1.13  2000-01-10 00:24:18  pierre
+   * register window type added
+
+  Revision 1.12  1999/09/09 14:09:58  pierre
    + StackWindow is a known window type
 
   Revision 1.11  1999/07/10 01:24:20  pierre
