@@ -481,6 +481,28 @@ end;
   begin
      offs := longint(y) * BytesPerLine + x;
      SetWriteBank(integer(offs shr 16));
+<<<<<<< vesa.inc
+     Case CurrentWriteMode of
+       XorPut:
+         Begin
+           SetReadBank(integer(offs shr 16));
+           mem[WinWriteSeg : word(offs)] := mem[WinReadSeg : word(offs)] xor byte(currentcolor);
+         End;
+       AndPut:
+         Begin
+           SetReadBank(integer(offs shr 16));
+           mem[WinWriteSeg : word(offs)] := mem[WinReadSeg : word(offs)] And byte(currentcolor);
+         End;
+       OrPut:
+         Begin
+           SetReadBank(integer(offs shr 16));
+           mem[WinWriteSeg : word(offs)] := mem[WinReadSeg : word(offs)] or byte(currentcolor);
+         End;
+       NormalPut:
+         mem[WinWriteSeg : word(offs)] := byte(currentcolor)
+      else mem[WinWriteSeg : word(offs)] := byte(CurrentColor);
+   End;
+=======
      Case CurrentWriteMode of
        XorPut:
          Begin
@@ -501,6 +523,7 @@ end;
          mem[WinWriteSeg : word(offs)] := byte(CurrentColor)
      Else mem[WinWriteSeg : word(offs)] := byte(CurrentColor);
    End;
+>>>>>>> 1.8
   end;
 
   function GetPixVESA256(x, y : integer): word; far;
@@ -1461,7 +1484,11 @@ end;
 
 {
 $Log$
-Revision 1.8  1999-07-18 15:07:21  jonas
+Revision 1.9  1999-08-01 14:51:07  jonas
+  * removed and/or/xorput support from vesaputpix256 (not in TP either)
+  * added notput support to directputpix256
+
+Revision 1.8  1999/07/18 15:07:21  jonas
   + xor-, and and- orput support for VESA256 modes
   * compile with -dlogging if you wnt some info to be logged to grlog.txt
 
