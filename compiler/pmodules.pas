@@ -1458,11 +1458,7 @@ implementation
          { of the program                                             }
          st:=new(punitsymtable,init(staticsymtable,current_module.modulename^));
          current_module.localsymtable:=st;
-         symtablestack:=st;
          refsymtable:=st;
-
-         { necessary for browser }
-         loaded_units.insert(current_module);
 
          { load standard units (system,objpas,profile unit) }
          loaddefaultunits;
@@ -1473,6 +1469,9 @@ implementation
          {Load the units used by the program we compile.}
          if token=_USES then
            loadunits;
+
+         { necessary for browser }
+         loaded_units.insert(current_module);
 
 {$ifndef DONOTCHAINOPERATORS}
          pstoredsymtable(symtablestack)^.chainoperators;
@@ -1626,7 +1625,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.20  2000-12-25 00:07:27  peter
+  Revision 1.21  2001-01-14 22:13:52  peter
+    * fixed crash with program name as a important unit name
+
+  Revision 1.20  2000/12/25 00:07:27  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 
