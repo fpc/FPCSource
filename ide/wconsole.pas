@@ -53,14 +53,14 @@ Begin
   GetConsoleMode(GetStdHandle(STD_INPUT_HANDLE),ConsoleMode);
 {$endif Win32}
 {$ifdef go32v2}
-  ConsoleMode:=;
+  ConsoleMode:=0;
 {$endif go32v2}
 End;
 
 Procedure RestoreConsoleMode(const ConsoleMode : TConsoleMode);
 Begin
 {$ifdef UNIX}
-  TCSetAttr(1,TCSANOW,StartTio);
+  TCSetAttr(1,TCSANOW,ConsoleMode);
 {$endif UNIX}
 {$ifdef Win32}
   SetConsoleMode(GetStdHandle(STD_INPUT_HANDLE),ConsoleMode);
@@ -73,7 +73,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2001-10-02 23:40:44  pierre
+  Revision 1.2  2001-10-02 23:58:51  pierre
+   * fix linux code
+
+  Revision 1.1  2001/10/02 23:40:44  pierre
    New unit to preserve console mode
 
 }
