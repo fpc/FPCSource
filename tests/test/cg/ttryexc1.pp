@@ -1,4 +1,3 @@
-{ %RESULT=217 }
 {****************************************************************}
 {  CODE GENERATOR TEST PROGRAM                                   }
 {  By Carl Eric Codere                                           }
@@ -44,14 +43,14 @@ Type
 
 var
  global_counter : integer;
- 
- 
+
+
  constructor tbobject.create(c:longint);
   begin
     inherited create;
     b:=c;
   end;
- 
+
 
 Procedure raiseanexception;
 
@@ -156,17 +155,17 @@ begin
   x:=0;
   Try
     IncrementCounter(global_counter);
-    Try 
+    Try
         DecrementCounter(global_counter);
         IncrementCounter(global_counter);
-        Try 
+        Try
            DecrementCounter(global_counter);
         except
           Inc(x);
         end;
     except
       Inc(x);
-    End;  
+    End;
   except
   end;
   if (global_counter = 0) then
@@ -189,10 +188,10 @@ begin
   begin
       Try
         IncrementCounter(global_counter);
-        Try 
+        Try
           DecrementCounter(global_counter);
           IncrementCounter(global_counter);
-          Try 
+          Try
              DecrementCounter(global_counter);
              break;
           except
@@ -200,7 +199,7 @@ begin
           end;
         except
             Inc(x);
-        End;  
+        End;
      except
      end;
  end;
@@ -224,10 +223,10 @@ begin
   begin
       Try
         IncrementCounter(global_counter);
-        Try 
+        Try
           DecrementCounter(global_counter);
           IncrementCounter(global_counter);
-          Try 
+          Try
              DecrementCounter(global_counter);
              DoTryExceptEight := false;
              exit;
@@ -236,7 +235,7 @@ begin
           end;
         except
             Inc(x);
-        End;  
+        End;
      except
      end;
   end;
@@ -258,10 +257,10 @@ begin
     begin
         Try
           IncrementCounter(global_counter);
-          Try 
+          Try
             DecrementCounter(global_counter);
             IncrementCounter(global_counter);
-            Try 
+            Try
                DecrementCounter(global_counter);
                break;
             except
@@ -269,7 +268,7 @@ begin
             end;
           except
               Inc(x);
-          End;  
+          End;
        except
        end;
     end; {end while }
@@ -342,10 +341,10 @@ begin
   x:=0;
   Try
     IncrementCounter(global_counter);
-    Try 
+    Try
         DecrementCounter(global_counter);
         IncrementCounter(global_counter);
-        Try 
+        Try
            DecrementCounter(global_counter);
            RaiseAnException;
         except
@@ -355,7 +354,7 @@ begin
         end;
     except
       DoTryExceptTwelve := true;
-    End;  
+    End;
   except
       DoTryExceptTwelve := true;
   end;
@@ -374,11 +373,11 @@ begin
   x:=0;
   Try
     IncrementCounter(global_counter);
-    Try 
+    Try
         DecrementCounter(global_counter);
         IncrementCounter(global_counter);
         RaiseAnException;
-        Try 
+        Try
            DecrementCounter(global_counter);
         except
           DoTryExceptThirteen := true;
@@ -387,7 +386,7 @@ begin
       if (global_counter = 1) then
         failed :=false;
       DoTryExceptThirteen := failed;
-    End;  
+    End;
   except
       DoTryExceptThirteen := true;
   end;
@@ -408,10 +407,10 @@ begin
   x:=0;
   Try
     IncrementCounter(global_counter);
-    Try 
+    Try
         DecrementCounter(global_counter);
         IncrementCounter(global_counter);
-        Try 
+        Try
            DecrementCounter(global_counter);
            RaiseAnException;
         except
@@ -422,7 +421,7 @@ begin
       if (global_counter = 0) then
         failed :=false;
       DoTryExceptFourteen := failed;
-    End;  
+    End;
   except
       DoTryExceptFourteen := true;
   end;
@@ -442,10 +441,10 @@ begin
   x:=0;
   Try
     IncrementCounter(global_counter);
-    Try 
+    Try
         DecrementCounter(global_counter);
         IncrementCounter(global_counter);
-        Try 
+        Try
            DecrementCounter(global_counter);
            RaiseAnException;
         except
@@ -455,7 +454,7 @@ begin
     except
        { re-raise to next block }
        Raise;
-    End;  
+    End;
   except
       if (global_counter = 0) then
         failed :=false;
@@ -466,10 +465,10 @@ end;
 procedure nestedtryblock(var global_counter: integer);
 begin
     IncrementCounter(global_counter);
-    Try 
+    Try
         DecrementCounter(global_counter);
         IncrementCounter(global_counter);
-        Try 
+        Try
            DecrementCounter(global_counter);
            RaiseAnException;
         except
@@ -479,8 +478,8 @@ begin
     except
        { re-raise to next block }
        Raise;
-    End;  
-end;    
+    End;
+end;
 
 
 Function DoTryExceptSixteen: boolean;
@@ -515,10 +514,10 @@ begin
   x:=0;
   Try
     IncrementCounter(global_counter);
-    Try 
+    Try
         DecrementCounter(global_counter);
         IncrementCounter(global_counter);
-        Try 
+        Try
            DecrementCounter(global_counter);
            RaiseAnException;
         except
@@ -528,7 +527,7 @@ begin
     except
        { re-raise to next block }
        raise TBObject.Create(1234);
-    End;  
+    End;
   except
       if (global_counter = 0) then
         failed :=false;
@@ -599,12 +598,12 @@ begin
   x:=0;
   Try
     IncrementCounter(global_counter);
-    Try 
+    Try
         while (x = 0) do
           begin
             DecrementCounter(global_counter);
             IncrementCounter(global_counter);
-            Try 
+            Try
                DecrementCounter(global_counter);
                RaiseAnException;
             except
@@ -616,7 +615,7 @@ begin
     except
        { re-raise to next block }
        raise TBObject.Create(1234);
-    End;  
+    End;
   except
       if (global_counter = 0) then
         failed :=false;
@@ -637,12 +636,12 @@ begin
   x:=0;
   Try
     IncrementCounter(global_counter);
-    Try 
+    Try
         while (x = 0) do
           begin
             DecrementCounter(global_counter);
             IncrementCounter(global_counter);
-            Try 
+            Try
                DecrementCounter(global_counter);
                RaiseAnException;
             except
@@ -655,7 +654,7 @@ begin
     except
        { re-raise to next block }
        raise TBObject.Create(1234);
-    End;  
+    End;
   except
       if (global_counter = 0) then
         failed :=false;
@@ -676,12 +675,12 @@ begin
   x:=0;
   Try
     IncrementCounter(global_counter);
-    Try 
+    Try
         while (x = 0) do
           begin
             DecrementCounter(global_counter);
             IncrementCounter(global_counter);
-            Try 
+            Try
                DecrementCounter(global_counter);
                RaiseAnException;
             except
@@ -693,7 +692,7 @@ begin
     except
        { re-raise to next block }
        raise TBObject.Create(1234);
-    End;  
+    End;
   except
       if (global_counter = 0) then
         failed :=false;
@@ -750,7 +749,7 @@ begin
    fail
   else
    WriteLn('Success!');
-  (************************ Exceptions are created from here ****************************) 
+  (************************ Exceptions are created from here ****************************)
   failed := DoTryExceptTen;
   if failed then
    fail
@@ -771,7 +770,7 @@ begin
    fail
   else
    WriteLn('Success!');
-  (************************ Exceptions in except block       ****************************) 
+  (************************ Exceptions in except block       ****************************)
   failed := DoTryExceptFourteen;
   if failed then
    fail
@@ -821,8 +820,12 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-08-03 11:05:14  carl
+  Revision 1.2  2002-09-01 14:45:54  peter
+    * updates to compile with kylix
+    * fixed some tests
+
+  Revision 1.1  2002/08/03 11:05:14  carl
     + exception handling testing
        (still missing raise / on node testing)
 
-}  
+}

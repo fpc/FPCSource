@@ -315,6 +315,10 @@ Begin
  write('Testing secondexitn() simple case...');
  failed := false;
  simple_exit;
+ if failed then
+   fail
+ else
+   writeln('Passed!');
 
  write('Testing secondexitn() with reference (simple case)...');
  failed := false;
@@ -474,7 +478,11 @@ end.
 
 {
  $Log$
- Revision 1.2  2002-07-07 11:16:06  carl
+ Revision 1.3  2002-09-01 14:45:54  peter
+   * updates to compile with kylix
+   * fixed some tests
+
+ Revision 1.2  2002/07/07 11:16:06  carl
    + ansistring testing (from mailing list)
 
  Revision 1.1  2002/03/25 20:18:46  carl

@@ -26,13 +26,16 @@
 {  LOC_REGISTER / LOC_CREGISTER                                 }
 {  LOC_REFERENCE / LOC_MEM                                      }
 
+{$ifdef VER70}
+  {$define TP}
+{$endif}
 
 function getlongcnt: longint;
  begin
    getlongcnt := -10;
  end;
 
- {$IFDEF FPC}
+ {$IFNDEF TP}
 function getcardinalcnt: cardinal;
  begin
    getcardinalcnt := 10;
@@ -59,7 +62,7 @@ end;
 var
  longres : longint;
  longcnt : longint;
-{$IFDEF FPC}
+{$IFNDEF TP}
   cardinalres : cardinal;
   cardinalcnt : cardinal;
   int64res : int64;
@@ -152,7 +155,7 @@ begin
   Write('Value should be 7...');
   test(cardinalres, 7);
 
-{$IFDEF FPC}
+{$IFNDEF TP}
   WriteLn('------------------- CARDINAL -----------------------');
   { special tests for results }
   Writeln('special numeric values tests...');

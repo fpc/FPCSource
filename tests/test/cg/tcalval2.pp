@@ -407,8 +407,18 @@ begin
   else
     WriteLn('Passed!');
 
+  { LOC_REFERENCE }
   write('(Inline) Value parameter test (src : LOC_REFERENCE (orddef/enumdef))...');
   clear_globals;
+  clear_values;
+  value_u8bit := RESULT_U8BIT;
+  value_u16bit := RESULT_U16BIT;
+  value_s32bit := RESULT_S32BIT;
+{$ifndef tp}
+  value_s64bit := RESULT_S64BIT;
+{$endif}
+  value_s32real := RESULT_S32REAL;
+  value_s64real  := RESULT_S64REAL;
   failed:=false;
   proc_value_u8bit_inline(value_u8bit);
   if global_u8bit <> RESULT_U8BIT then

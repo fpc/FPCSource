@@ -1,10 +1,10 @@
 { %version=1.1 }
 
-{$mode objfpc}
+{$ifdef fpc}{$mode objfpc}{$endif}
 program test_fpu_excpetions;
 
 uses
-  sysutils;
+  SysUtils;
 
   function mysqrt(x : real) : real;
 
