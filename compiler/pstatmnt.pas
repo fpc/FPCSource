@@ -513,11 +513,13 @@ implementation
                  htype:=p.resulttype
                else
                  htype.setdef(tpointerdef.create(p.resulttype));
+{$ifdef WITHNODEDEBUG}
                { we can't generate debuginfo for a withnode stored in a }
                { register                                               }
                if (cs_debuginfo in aktmoduleswitches) then
                  loadp:=ctempcreatenode.create(htype,sizeof(aint),tt_persistent)
                else
+{$endif WITHNODEDEBUG}
                  loadp:=ctempcreatenode.create_reg(htype,sizeof(aint),tt_persistent);
                resulttypepass(loadp);
                if hasimplicitderef then
@@ -1182,7 +1184,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.137  2004-09-13 20:28:27  peter
+  Revision 1.138  2004-09-21 16:00:50  peter
+    * no difference for withnode when debuginfo is generated
+
+  Revision 1.137  2004/09/13 20:28:27  peter
     * for loop variable assignment is not allowed anymore
 
   Revision 1.136  2004/06/20 08:55:30  florian
