@@ -1,6 +1,7 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Jonas Maebe
+    Copyright (c) 1998-2000 by Jonas Maebe, member of the Freepascal
+      development team
 
     This unit contains the data flow analyzer and several helper procedures
     and functions.
@@ -73,6 +74,9 @@ Function GetNextInstruction(Current: Pai; Var Next: Pai): Boolean;
 Function GetLastInstruction(Current: Pai; Var Last: Pai): Boolean;
 Procedure SkipHead(var P: Pai);
 
+Procedure RemoveLastDeallocForFuncRes(asmL: PAasmOutput; p: pai);
+Function regLoadedWithNewValue(reg: tregister; canDependOnPrevValue: boolean;
+           hp: pai): boolean;
 Procedure UpdateUsedRegs(Var UsedRegs: TRegSet; p: Pai);
 Function RegsEquivalent(OldReg, NewReg: TRegister; Var RegInfo: TRegInfo; OpAct: TopAction): Boolean;
 Function InstructionsEquivalent(p1, p2: Pai; Var RegInfo: TRegInfo): Boolean;
@@ -218,7 +222,7 @@ Var
 Implementation
 
 Uses
-  globals, systems, strings, verbose, hcodegen;
+  globals, systems, strings, verbose, hcodegen, symconst;
 
 Type
   TRefCompare = function(const r1, r2: TReference): Boolean;
@@ -304,15 +308,14 @@ End;
 Function FindLoHiLabels(Var LowLabel, HighLabel, LabelDif: Longint; BlockStart: Pai): Pai;
 {Walks through the paasmlist to find the lowest and highest label number}
 Var LabelFound: Boolean;
-    P: Pai;
+    P, lastP: Pai;
 Begin
   LabelFound := False;
   LowLabel := MaxLongint;
   HighLabel := 0;
   P := BlockStart;
-  While Assigned(P) And
-        ((P^.typ <> Ait_Marker) Or
-         (Pai_Marker(P)^.Kind <> AsmBlockStart)) Do
+  lastP := p;
+  While Assigned(P) Do
     Begin
       If (Pai(p)^.typ = ait_label) Then
         If (Pai_Label(p)^.l^.is_used)
@@ -324,19 +327,23 @@ Begin
               If (Pai_Label(p)^.l^.labelnr > HighLabel) Then
                 HighLabel := Pai_Label(p)^.l^.labelnr;
             End;
+      lastP := p;
       GetNextInstruction(p, p);
     End;
-  FindLoHiLabels := p;
+  if (lastP^.typ = ait_marker) and
+     (pai_marker(lastP)^.kind = asmBlockStart) then
+    FindLoHiLabels := lastP
+  else FindLoHiLabels := nil;
   If LabelFound
     Then LabelDif := HighLabel+1-LowLabel
     Else LabelDif := 0;
 End;
 
-Function FindRegAlloc(Reg: TRegister; StartPai: Pai): Boolean;
-{Returns true if a ait_alloc object for Reg is found in the block of Pai's
- starting with StartPai and ending with the next "real" instruction}
+Function FindRegAlloc(Reg: TRegister; StartPai: Pai; alloc: boolean): Boolean;
+{ Returns true if a ait_alloc object for Reg is found in the block of Pai's }
+{ starting with StartPai and ending with the next "real" instruction        }
 Begin
-  FindRegAlloc:=False;
+  FindRegAlloc := false;
   Repeat
     While Assigned(StartPai) And
           ((StartPai^.typ in (SkipInstr - [ait_regAlloc])) Or
@@ -344,29 +351,106 @@ Begin
             Not(Pai_Label(StartPai)^.l^.Is_Used))) Do
       StartPai := Pai(StartPai^.Next);
     If Assigned(StartPai) And
-       (StartPai^.typ = ait_regAlloc) and (PairegAlloc(StartPai)^.allocation) Then
+       (StartPai^.typ = ait_regAlloc) and (PairegAlloc(StartPai)^.allocation = alloc) Then
       Begin
         if PairegAlloc(StartPai)^.Reg = Reg then
          begin
            FindRegAlloc:=true;
-           exit;
+           break;
          end;
         StartPai := Pai(StartPai^.Next);
       End
     else
-      exit;
+      break;
   Until false;
 End;
 
+Procedure RemoveLastDeallocForFuncRes(asmL: PAasmOutput; p: pai);
+
+  Procedure DoRemoveLastDeallocForFuncRes(asmL: PAasmOutput; reg: TRegister);
+  var hp, hp2: pai;
+  begin
+    hp := nil;
+    hp2 := p;
+    repeat
+      hp2 := pai(hp2^.previous);
+      if assigned(hp2) and
+         (hp2^.typ = ait_regalloc) and
+         not(pairegalloc(hp2)^.allocation) and
+         (pairegalloc(hp2)^.reg = reg) then
+        begin
+          asml^.remove(hp2);
+          dispose(hp2,done);
+          break;
+        end;
+    until not(assigned(hp2)) or
+          regInInstruction(reg,hp2);
+  end;
+
+begin
+  if assigned(procinfo^.returntype.def) then
+    case procinfo^.returntype.def^.deftype of
+      arraydef,recorddef,pointerdef,
+         stringdef,enumdef,procdef,objectdef,errordef,
+         filedef,setdef,procvardef,
+         classrefdef,forwarddef:
+        DoRemoveLastDeallocForFuncRes(asmL,R_EAX);
+      orddef:
+        if procinfo^.returntype.def^.size <> 0 then
+          begin
+            DoRemoveLastDeallocForFuncRes(asmL,R_EAX);
+            { for int64/qword }
+            if procinfo^.returntype.def^.size = 8 then
+              DoRemoveLastDeallocForFuncRes(asmL,R_EDX);
+          end;
+    end;
+end;
+
+procedure getFuncResRegs(var regs: TRegSet);
+begin
+  regs := [];
+  if assigned(procinfo^.returntype.def) then
+    case procinfo^.returntype.def^.deftype of
+      arraydef,recorddef,pointerdef,
+         stringdef,enumdef,procdef,objectdef,errordef,
+         filedef,setdef,procvardef,
+         classrefdef,forwarddef:
+       regs := [R_EAX];
+      orddef:
+        if procinfo^.returntype.def^.size <> 0 then
+          begin
+            regs := [R_EAX];
+            { for int64/qword }
+            if procinfo^.returntype.def^.size = 8 then
+              regs := regs + [R_EDX];
+          end;
+    end
+end;
+
 Procedure AddRegDeallocFor(asmL: paasmOutput; reg: TRegister; p: pai);
 var hp1: pai;
+    funcResRegs: TRegset;
+    funcResReg: boolean;
 begin
+  getFuncResRegs(funcResRegs);
+  funcResReg := reg in funcResRegs;
   hp1 := p;
-  While GetLastInstruction(p, p) And
-        Not(RegInInstruction(reg, p)) Do
+  while not(funcResReg and
+            (p^.typ = ait_instruction) and
+            (paicpu(p)^.opcode = A_JMP) and
+            (pasmlabel(paicpu(p)^.oper[0].sym) = aktexit2label)) and
+        getLastInstruction(p, p) And
+        not(regInInstruction(reg, p)) Do
     hp1 := p;
-  p := New(PaiRegAlloc, DeAlloc(reg));
-  InsertLLItem(AsmL, hp1^.previous, hp1, p);
+  { don't insert a dealloc for registers which contain the function result }
+  { if they are followed by a jump to the exit label (for exit(...))       }
+  if not((hp1^.typ = ait_instruction) and
+         (paicpu(hp1)^.opcode = A_JMP) and
+         (pasmlabel(paicpu(hp1)^.oper[0].sym) = aktexit2label)) then
+    begin
+      p := new(paiRegAlloc, deAlloc(reg));
+      insertLLItem(AsmL, hp1^.previous, hp1, p);
+    end;
 end;
 
 Procedure BuildLabelTableAndFixRegAlloc(asmL: PAasmOutput; Var LabelTable: PLabelTable; LowLabel: Longint;
@@ -375,7 +459,7 @@ Procedure BuildLabelTableAndFixRegAlloc(asmL: PAasmOutput; Var LabelTable: PLabe
  Also fixes some RegDeallocs like "# %eax released; push (%eax)"}
 Var p, hp1, hp2, lastP: Pai;
     regCounter: TRegister;
-    UsedRegs: TRegSet;
+    UsedRegs, funcResRegs: TRegSet;
 Begin
   UsedRegs := [];
   If (LabelDif <> 0) Then
@@ -403,39 +487,42 @@ Begin
         ait_regAlloc:
           { ESI and EDI are (de)allocated manually, don't mess with them }
           if not(paiRegAlloc(p)^.Reg in [R_EDI,R_ESI]) then
-           begin
-             if PairegAlloc(p)^.Allocation then
-              Begin
-                If Not(paiRegAlloc(p)^.Reg in UsedRegs) Then
-                  UsedRegs := UsedRegs + [paiRegAlloc(p)^.Reg]
-                Else
-                  addRegDeallocFor(asmL, paiRegAlloc(p)^.reg, p);
-              End
-             else
-              Begin
-                UsedRegs := UsedRegs - [paiRegAlloc(p)^.Reg];
-                hp1 := p;
-                hp2 := nil;
-                While Not(FindRegAlloc(paiRegAlloc(p)^.Reg, Pai(hp1^.Next))) And
-                      GetNextInstruction(hp1, hp1) And
-                      RegInInstruction(paiRegAlloc(p)^.Reg, hp1) Do
-                  hp2 := hp1;
-                If hp2 <> nil Then
-                  Begin
-                    hp1 := Pai(p^.previous);
-                    AsmL^.Remove(p);
-                    InsertLLItem(AsmL, hp2, Pai(hp2^.Next), p);
-                    p := hp1;
-                  End;
-              End;
-           end;
-      End;
+            begin
+              if PairegAlloc(p)^.Allocation then
+                Begin
+                  If Not(paiRegAlloc(p)^.Reg in UsedRegs) Then
+                    UsedRegs := UsedRegs + [paiRegAlloc(p)^.Reg]
+                  Else
+                    addRegDeallocFor(asmL, paiRegAlloc(p)^.reg, p);
+                End
+              else
+                begin
+                  UsedRegs := UsedRegs - [paiRegAlloc(p)^.Reg];
+                  hp1 := p;
+                  hp2 := nil;
+                  While Not(FindRegAlloc(paiRegAlloc(p)^.Reg, Pai(hp1^.Next),true)) And
+                        GetNextInstruction(hp1, hp1) And
+                        RegInInstruction(paiRegAlloc(p)^.Reg, hp1) Do
+                    hp2 := hp1;
+                  If hp2 <> nil Then
+                    Begin
+                      hp1 := Pai(p^.previous);
+                      AsmL^.Remove(p);
+                      InsertLLItem(AsmL, hp2, Pai(hp2^.Next), p);
+                      p := hp1;
+                    end;
+                end;
+            end;
+      end;
       repeat
         lastP := p;
         P := Pai(P^.Next);
-      until not(Assigned(p) And
-                (p^.typ in (SkipInstr - [ait_regalloc])));
+      until not(Assigned(p)) or
+            not(p^.typ in (SkipInstr - [ait_regalloc]));
     End;
+  { don't add deallocation for function result variable }
+  getFuncResRegs(funcResRegs);
+  usedRegs := usedRegs - funcResRegs;
   for regCounter := R_EAX to R_EDI do
     if regCounter in usedRegs then
       addRegDeallocFor(asmL,regCounter,lastP);
@@ -783,8 +870,8 @@ End;
 
 {********************* GetNext and GetLastInstruction *********************}
 Function GetNextInstruction(Current: Pai; Var Next: Pai): Boolean;
-{skips ait_regalloc, ait_regdealloc and ait_stab* objects and puts the
- next pai object in Next. Returns false if there isn't any}
+{ skips ait_regalloc, ait_regdealloc and ait_stab* objects and puts the }
+{ next pai object in Next. Returns false if there isn't any             }
 Begin
   Repeat
     If (Current^.typ = ait_marker) And
@@ -817,7 +904,10 @@ Begin
      Not((Current^.typ In SkipInstr) or
          ((Current^.typ = ait_label) And
           Not(Pai_Label(Current)^.l^.is_used)))
-    Then GetNextInstruction := True
+    Then
+      GetNextInstruction :=
+         not((current^.typ = ait_marker) and
+             (pai_marker(current)^.kind = asmBlockStart))
     Else
       Begin
         GetNextInstruction := False;
@@ -882,17 +972,39 @@ Begin
    {a marker of the NoPropInfoStart can't be the first instruction of a
     paasmoutput list}
       GetNextInstruction(Pai(P^.Previous),P);
-    If (P^.Typ = Ait_Marker) And
+{    If (P^.Typ = Ait_Marker) And
        (Pai_Marker(P)^.Kind = AsmBlockStart) Then
       Begin
         P := Pai(P^.Next);
         While (P^.typ <> Ait_Marker) Or
               (Pai_Marker(P)^.Kind <> AsmBlockEnd) Do
           P := Pai(P^.Next)
-      End;
+      End;}
     Until P = OldP
 End;
 {******************* The Data Flow Analyzer functions ********************}
+
+function regLoadedWithNewValue(reg: tregister; canDependOnPrevValue: boolean;
+           hp: pai): boolean;
+{ assumes reg is a 32bit register }
+var p: paicpu;
+begin
+  p := paicpu(hp);
+  regLoadedWithNewValue :=
+    assigned(hp) and
+    (hp^.typ = ait_instruction) and
+    (((p^.opcode = A_MOV) or
+      (p^.opcode = A_MOVZX) or
+      (p^.opcode = A_MOVSX) or
+      (p^.opcode = A_LEA)) and
+     (p^.oper[1].typ = top_reg) and
+     (Reg32(p^.oper[1].reg) = reg) and
+     (canDependOnPrevValue or
+      (p^.oper[0].typ <> top_ref) or
+      not regInRef(reg,p^.oper[0].ref^)) or
+     ((p^.opcode = A_POP) and
+      (Reg32(p^.oper[0].reg) = reg)));
+end;
 
 Procedure UpdateUsedRegs(Var UsedRegs: TRegSet; p: Pai);
 {updates UsedRegs with the RegAlloc Information coming after P}
@@ -2019,7 +2131,12 @@ End.
 
 {
  $Log$
- Revision 1.78  2000-01-13 13:07:06  jonas
+ Revision 1.79  2000-01-22 16:08:06  jonas
+   * better handling of exit(func_result) (no release of register that
+     holds the function result added)
+   * several other small improvements for reg allocation fixes
+
+ Revision 1.78  2000/01/13 13:07:06  jonas
    * released -dalignreg
    * some small fixes to -dnewOptimizations helper procedures
 
