@@ -2866,6 +2866,7 @@ end;
         _GraphResult := grNotDetected;
         exit;
       end;
+    _GraphResult := grOK;
     GraphDriver := CpyDriver;
     GraphMode := CpyMode;
   end;
@@ -2880,19 +2881,18 @@ end;
 
     if not assigned(SaveVideoState) then
       RunError(216);
-{$ifdef logging}
-    LogLn('Calling SaveVideoState at '+strf(longint(savevideostate)));
-{$endif logging}
-    SaveVideoState;
-    InitVars;
     DriverName:=InternalDriverName;   { DOS Graphics driver }
 
     if (Graphdriver=Detect) then
       begin
         DetectGraph(GraphDriver,GraphMode);
         If _GraphResult = grNotDetected then Exit;
+
+        { _GraphResult is now already set to grOK by DetectGraph }
         IntCurrentDriver := GraphDriver;
-        { Actually set the graph mode...}
+        SaveVideoState;
+        InitVars;
+{ Actually set the graph mode...}
         SetGraphMode(GraphMode);
       end
     else
@@ -2905,7 +2905,10 @@ end;
          end
         else
          begin
+           _GraphResult := grOK;
            IntCurrentDriver := GraphDriver;
+           SaveVideoState;
+           InitVars;
            SetGraphMode(GraphMode);
          end;
       end;
@@ -3003,7 +3006,11 @@ SetGraphBufSize
 
 {
   $Log$
-  Revision 1.41  1999-11-27 21:48:01  jonas
+  Revision 1.42  1999-11-28 12:19:59  jonas
+    * _GraphResult is now properly set to grOK by DetectGraph and
+      InitGraph if there are no errors
+
+  Revision 1.41  1999/11/27 21:48:01  jonas
     * fixed VlineVESA256 and re-enabled it in graph.inc
     * added procedure detectgraph to interface of graph unit
 
