@@ -177,6 +177,7 @@ implementation
                 if is_64bit then
                   begin
                     paraloc.registerhigh:=newreg(R_INTREGISTER,nextintreg,R_SUBWHOLE);
+                    paraloc.lochigh:=LOC_REGISTER;
                     inc(nextintreg);
                   end;
                 paraloc.registerlow:=newreg(R_INTREGISTER,nextintreg,R_SUBWHOLE);
@@ -296,7 +297,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.36  2004-02-25 14:25:47  mazen
+  Revision 1.37  2004-03-09 13:05:49  mazen
+  + give location for 64bit to fix IE 200402061
+
+  Revision 1.36  2004/02/25 14:25:47  mazen
   * fix compile problem for sparc
 
   Revision 1.35  2003/11/10 19:05:50  peter
