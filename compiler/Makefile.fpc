@@ -8,7 +8,7 @@ version=1.1
 
 [compiler]
 targetdir=.
-unitdir=$(CPU_TARGET)
+unitdir=$(CPU_TARGET) targets
 includedir=$(CPU_TARGET)
 
 [require]

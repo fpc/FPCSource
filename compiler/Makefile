@@ -177,7 +177,7 @@ endif
 override LOCALOPT+=$(LOCALDEF)
 override FPCOPT:=$(LOCALOPT)
 override COMPILER_INCLUDEDIR+=$(CPU_TARGET)
-override COMPILER_UNITDIR+=$(CPU_TARGET)
+override COMPILER_UNITDIR+=$(CPU_TARGET) targets
 override COMPILER_TARGETDIR+=.
 ifndef ECHO
 ECHO:=$(strip $(wildcard $(addsuffix /gecho$(EXEEXT),$(SEARCHPATH))))
