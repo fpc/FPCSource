@@ -551,11 +551,11 @@ begin
   asm
         movzwl  hz,%ecx
         movl    $1193046,%eax
-{$ifdef NOATTCDQ}	
+{$ifdef NOATTCDQ}
         cltd
 {$else}
-	cdq
-{$endif}		
+        cdq
+{$endif}
         divl    %ecx
         movl    %eax,%ecx
         movb    $0xb6,%al
@@ -615,7 +615,7 @@ var
 begin
   fil:=32 or (textattr shl 8);
   y:=WhereY;
-  my:=WinMaxY-1;
+  my:=WinMaxY-WinMinY;
   while (my>=y) do
    begin
      dosmemmove($b800,(((WinMinY+my-1)-1)*ScreenWidth+(WinMinX-1))*2,
@@ -920,7 +920,10 @@ end.
 
 {
   $Log$
-  Revision 1.15  1998-11-28 14:09:48  peter
+  Revision 1.16  1998-12-09 23:04:36  jonas
+    * fixed bug in InsLine (changed "my" from "WinMaxY -1" to "WinMaxY - WinMinY")
+
+  Revision 1.15  1998/11/28 14:09:48  peter
     * NOATTCDQ define
 
   Revision 1.14  1998/11/26 23:14:52  jonas
