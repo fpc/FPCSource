@@ -723,6 +723,7 @@ implementation
        { global }
        verbose,
        { target }
+       aasmcpu,
        systems,
        { symtable }
        symsym,symtable,paramgr,
@@ -1098,6 +1099,7 @@ implementation
                write_child_rtti_data(rt);
                if (cs_create_smart in aktmoduleswitches) then
                 rttiList.concat(Tai_cut.Create);
+               rttiList.concat(Tai_align.create(const_align(pointer_size)));
                rttiList.concat(Tai_symbol.Create(localrttilab[rt],0));
                write_rtti_data(rt);
                rttiList.concat(Tai_symbol_end.Create(localrttilab[rt]));
@@ -4881,12 +4883,14 @@ implementation
          symtable.foreach({$ifdef FPC}@{$endif}count_published_fields,nil);
          if (cs_create_smart in aktmoduleswitches) then
           rttiList.concat(Tai_cut.Create);
+         rttilist.concat(tai_align.create(const_align(pointer_size)));
          rttiList.concat(Tai_label.Create(fieldtable));
          rttiList.concat(Tai_const.Create_16bit(count));
          rttiList.concat(Tai_const_symbol.Create(classtable));
          symtable.foreach({$ifdef FPC}@{$endif}writefields,nil);
 
          { generate the class table }
+         rttilist.concat(tai_align.create(const_align(pointer_size)));
          rttiList.concat(Tai_label.Create(classtable));
          rttiList.concat(Tai_const.Create_16bit(tablecount));
          hp:=tclasslistitem(classtablelist.first);
@@ -5459,7 +5463,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.100  2002-10-19 15:09:25  peter
+  Revision 1.101  2002-11-09 15:31:02  carl
+    + align RTTI tables
+
+  Revision 1.100  2002/10/19 15:09:25  peter
     + tobjectdef.members_need_inittable that is used to generate only the
       inittable when it is really used. This saves a lot of useless calls
       to fpc_finalize when destroying classes

@@ -2455,6 +2455,7 @@ implementation
            def.write_child_rtti_data(fullrtti);
            if (cs_create_smart in aktmoduleswitches) then
             rttiList.concat(Tai_cut.Create);
+           rttilist.concat(tai_align.create(const_align(pointer_size)));
            rttiList.concat(Tai_symbol.Create(rsym.get_label,0));
            def.write_rtti_data(fullrtti);
            rttiList.concat(Tai_symbol_end.Create(rsym.get_label));
@@ -2493,6 +2494,7 @@ implementation
            def.write_child_rtti_data(initrtti);
            if (cs_create_smart in aktmoduleswitches) then
             rttiList.concat(Tai_cut.Create);
+           rttilist.concat(tai_align.create(const_align(pointer_size)));
            rttiList.concat(Tai_symbol.Create(rsym.get_label,0));
            def.write_rtti_data(initrtti);
            rttiList.concat(Tai_symbol_end.Create(rsym.get_label));
@@ -2504,7 +2506,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.70  2002-10-13 21:33:37  peter
+  Revision 1.71  2002-11-09 15:30:07  carl
+    + align RTTI tables
+
+  Revision 1.70  2002/10/13 21:33:37  peter
     * give correct fileposition for undefined forward procs
 
   Revision 1.69  2002/10/05 12:43:29  carl
