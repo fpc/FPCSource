@@ -139,9 +139,9 @@ interface
        utilsdirectory : dirstr;
        { targetname specific prefix used by these utils (options -XP<path>) }
        utilsprefix    : dirstr;
-       cshared	      : boolean;	{ pass --shared to ld to link C libs shared}
-       Dontlinkstdlibpath: Boolean;	{ Don't add std paths to linkpath}
-       rlinkpath      : dirstr;		{ rpath-link linkdir override}
+       cshared        : boolean;        { pass --shared to ld to link C libs shared}
+       Dontlinkstdlibpath: Boolean;     { Don't add std paths to linkpath}
+       rlinkpath      : dirstr;         { rpath-link linkdir override}
 
        { some flags for global compiler switches }
        do_build,
@@ -1340,8 +1340,9 @@ implementation
               if changeinit then
                exclude(initlocalswitches,cs_ansistrings);
             end;
-           { enum packing }
-           if (m_tp7 in aktmodeswitches) then
+           { Default enum packing for delphi/tp7 }
+           if (m_tp7 in aktmodeswitches) or
+              (m_delphi in aktmodeswitches) then
              aktpackenum:=1
            else
              aktpackenum:=4;
@@ -1615,7 +1616,7 @@ implementation
       { Utils directory }
         utilsdirectory:='';
         utilsprefix:='';
-	cshared:=false;
+        cshared:=false;
         rlinkpath:='';
 
       { Search Paths }
@@ -1712,7 +1713,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.111  2003-10-22 15:40:44  marco
+  Revision 1.112  2003-10-23 17:18:56  peter
+    * delphi mode uses packenum 1
+
+  Revision 1.111  2003/10/22 15:40:44  marco
    * -Xc -Xr support
 
   Revision 1.110  2003/10/22 15:22:33  peter
