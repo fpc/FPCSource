@@ -29,7 +29,13 @@ implementation
 uses
   ncgbas,ncgflw,ncgcnv,ncgld,ncgmem,ncgcon,{ncgset,}
   naddcpu,ncpucall,{n386con,n386cnv,n386flw,n386mat,n386mem,}
-  {n386set,}ncpuinline,{n386opt,}ncpucnv,
+  {n386set,}ncpuinln,{n386opt,}ncpucnv,
   { this not really a node }
   {nSPARCobj,}rgcpu;
 end.
+{
+    $Log$
+    Revision 1.5  2002-11-30 20:03:29  mazen
+    + ncpuinln node
+
+}
