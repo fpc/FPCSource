@@ -51,19 +51,19 @@ type texception_state = record
 
 { /* Copyright (C) 1995 DJ Delorie, see COPYING.DJ for details */ }
 {#define __djgpp_exception_state (*__djgpp_exception_state_ptr) }
-const SIGABRT	= 288;
-const SIGFPE	= 289;
-const SIGILL	= 290;
-const SIGSEGV	= 291;
-const SIGTERM	= 292;
+const SIGABRT   = 288;
+const SIGFPE    = 289;
+const SIGILL    = 290;
+const SIGSEGV   = 291;
+const SIGTERM   = 292;
 const SIGINT   = 295;
 
 {const SIG_DFL  = 0;}
 function SIG_DFL( x: longint) : longint;
 function SIG_ERR( x: longint) : longint;
 function SIG_IGN( x: longint) : longint;
-{const SIG_ERR	= -1;
-const SIG_IGN	= -1;}
+{const SIG_ERR  = -1;
+const SIG_IGN   = -1;}
 
 { __DJ_pid_t
 #undef __DJ_pid_t
@@ -71,41 +71,41 @@ const __DJ_pid_t
 
 typedef int sig_atomic_t;
 
-int	raise(int _sig);
-void	(*signal(int _sig, void (*_func)(int)))(int); }
-  
+int     raise(int _sig);
+void    (*signal(int _sig, void (*_func)(int)))(int); }
+
 { #ifndef __STRICT_ANSI__
 
-const SA_NOCLDSTOP	1
+const SA_NOCLDSTOP      1
 
-const SIGALRM	293
-const SIGHUP	294
+const SIGALRM   293
+const SIGHUP    294
 /* SIGINT is ansi */}
-const SIGKILL	= 296;
-const SIGPIPE	= 297;
-const SIGQUIT	= 298;
-const SIGUSR1	= 299;
-const SIGUSR2	= 300;
+const SIGKILL   = 296;
+const SIGPIPE   = 297;
+const SIGQUIT   = 298;
+const SIGUSR1   = 299;
+const SIGUSR2   = 300;
 {
-const SIG_BLOCK	1
-const SIG_SETMASK	2
-const SIG_UNBLOCK	3 }
+const SIG_BLOCK 1
+const SIG_SETMASK       2
+const SIG_UNBLOCK       3 }
 
 const SIGNOFP = 301;
 const SIGTRAP = 302;
-const SIGTIMR = 303;	{/* Internal for setitimer (SIGALRM, SIGPROF) */ }
+const SIGTIMR = 303;    {/* Internal for setitimer (SIGALRM, SIGPROF) */ }
 const SIGPROF = 304;
 const SIGMAX  = 320;
 
 
 
 { extern unsigned short __djgpp_our_DS;
-extern unsigned short __djgpp_app_DS;	/* Data selector invalidated by HW ints */
-extern unsigned short __djgpp_ds_alias;	/* Data selector always valid */
-extern unsigned short __djgpp_dos_sel;	/* Linear mem selector copy in locked mem */
+extern unsigned short __djgpp_app_DS;   /* Data selector invalidated by HW ints */
+extern unsigned short __djgpp_ds_alias; /* Data selector always valid */
+extern unsigned short __djgpp_dos_sel;  /* Linear mem selector copy in locked mem */
 extern unsigned short __djgpp_hwint_flags; /* 1 = Disable Ctrl-C; 2 = Count Ctrl-Break (don't kill) */
-extern unsigned __djgpp_cbrk_count;	/* Count of CTRL-BREAK hits */
-extern int __djgpp_exception_inprog;	/* Nested exception count */ }
+extern unsigned __djgpp_cbrk_count;     /* Count of CTRL-BREAK hits */
+extern int __djgpp_exception_inprog;    /* Nested exception count */ }
 
 type SignalHandler = function (v : longint) : longint;
 
@@ -115,7 +115,7 @@ function _raise(sig : longint) : longint;
 
 procedure djgpp_exception_toggle;
 
-function  djgpp_set_ctrl_c(enable : boolean) : boolean; {	/* On by default */}
+function  djgpp_set_ctrl_c(enable : boolean) : boolean; {       /* On by default */}
 
 procedure djgpp_exception_setup;
 
@@ -130,6 +130,8 @@ function dpmi_set_coprocessor_emulation(flag : longint) : longint;
 procedure longjmp({const}var rec : tjmprec;return_value : longint);
 
 implementation
+
+{$ASMMODE DIRECT}
 
 {$L exceptn.o}
 
@@ -166,7 +168,7 @@ end;
 #include <crt0.h>
 #include <pc.h>
 #include <sys/exceptn.h>
-#include <sys/nearptr.h>		/* For DS base/limit info */
+#include <sys/nearptr.h>                /* For DS base/limit info */
 #include <libc/internal.h> }
 
 { const newline = #13#10; }
@@ -185,7 +187,7 @@ end;
 
 { extern unsigned end __asm__ ('end'); }
 const cbrk_vect : byte = $1b;
-{	/* May be $06 for PC98 */ }
+{       /* May be $06 for PC98 */ }
 
 { /* These are all defined in exceptn.S and only used here */
 extern int __djgpp_exception_table;
@@ -213,7 +215,7 @@ function except_to_sig(excep : longint) : longint;
         7                 : exit(SIGNOFP);
         else
            begin
-              if(excep = $75)	then	{/* HW int to fake exception values hardcoded in exceptn.S */}
+              if(excep = $75)   then    {/* HW int to fake exception values hardcoded in exceptn.S */}
                 exit(SIGFPE)
               else if (excep = $78) then
                 exit(SIGTIMR)
@@ -278,12 +280,12 @@ procedure dump_selector(const name : string; sel : word);
   if (sel<>0) then
     begin
        base:=get_segment_base_address(sel);
-   
+
        {
          err('  invalid');
        }
        { else }
-   
+
        err('  base='); itox(base, 8);
        limit:=get_segment_limit(sel);
        err('  limit='); itox(limit, 8);
@@ -391,7 +393,7 @@ function do_faulting_finish_message : integer;
 end;
 
 var  signal_list : Array[0..SIGMAX] of SignalHandler;
- {	/* SIG_DFL = 0 */ }
+ {      /* SIG_DFL = 0 */ }
 
 function signal(sig : longint;func : SignalHandler) : SignalHandler;
   var temp : SignalHandler;
@@ -436,7 +438,7 @@ function _raise(sig : longint) : longint;
     exit(-1);
   temp:=signal_list[sig - 1];
   if (temp = SignalHandler(@SIG_IGN)) then
-    exit(0); {			/* Ignore it */ }
+    exit(0); {                  /* Ignore it */ }
   if (temp = SignalHandler(@SIG_DFL)) then
     begin
       traceback_exit:
@@ -452,7 +454,7 @@ function _raise(sig : longint) : longint;
         end;
       errln('');
       { if(djgpp_exception_state<>nil) then }
-        do_faulting_finish_message();	{/* Exits, does not return */ }
+        do_faulting_finish_message();   {/* Exits, does not return */ }
       exit(-1);
     end;
   if ((longint(temp) < longint(starttext)) or (longint(temp) > longint(endtext))) then
@@ -513,8 +515,8 @@ function _raise(sig : longint) : longint;
             movw %gs,48(%edi)
             movw %ss,50(%edi)
 
-	    movl ___djgpp_exception_state_ptr, %eax
-	    movl %eax, 60(%edi)
+            movl ___djgpp_exception_state_ptr, %eax
+            movl %eax, 60(%edi)
 
             { restore EDI }
             pop %edi
@@ -540,65 +542,65 @@ const exception_level : longint = 0;
             popl %ebp
 {/* Copyright (C) 1995 DJ Delorie, see COPYING.DJ for details */}
 {/* This is file LONGJMP.S */}
-	movl	4(%esp),%edi	{/* get jmp_buf */}
-	movl	8(%esp),%eax	{/* store retval in j->eax */}
-	movl	%eax,0(%edi)
+        movl    4(%esp),%edi    {/* get jmp_buf */}
+        movl    8(%esp),%eax    {/* store retval in j->eax */}
+        movl    %eax,0(%edi)
 
-	movw	46(%edi),%fs
-	movw	48(%edi),%gs
-	movl	4(%edi),%ebx
-	movl	8(%edi),%ecx
-	movl	12(%edi),%edx
-	movl	24(%edi),%ebp
+        movw    46(%edi),%fs
+        movw    48(%edi),%gs
+        movl    4(%edi),%ebx
+        movl    8(%edi),%ecx
+        movl    12(%edi),%edx
+        movl    24(%edi),%ebp
 
-	{/* Now for some uglyness.  The jmp_buf structure may be ABOVE the
-	   point on the new SS:ESP we are moving to.  We don't allow overlap,
-	   but do force that it always be valid.  We will use ES:ESI for
-	   our new stack before swapping to it.  */}
+        {/* Now for some uglyness.  The jmp_buf structure may be ABOVE the
+           point on the new SS:ESP we are moving to.  We don't allow overlap,
+           but do force that it always be valid.  We will use ES:ESI for
+           our new stack before swapping to it.  */}
 
-	movw	50(%edi),%es
-	movl	28(%edi),%esi
-	subl	$28,%esi	{/* We need 7 working longwords on stack */}
+        movw    50(%edi),%es
+        movl    28(%edi),%esi
+        subl    $28,%esi        {/* We need 7 working longwords on stack */}
 
-	movl	60(%edi),%eax
-	es
-	movl	%eax,(%esi)	{/* Exception pointer */}
+        movl    60(%edi),%eax
+        es
+        movl    %eax,(%esi)     {/* Exception pointer */}
 
-	movzwl	42(%edi),%eax
-	es
-	movl	%eax,4(%esi)	{/* DS */}
+        movzwl  42(%edi),%eax
+        es
+        movl    %eax,4(%esi)    {/* DS */}
 
-	movl	20(%edi),%eax
-	es
-	movl	%eax,8(%esi)	{/* EDI */}
+        movl    20(%edi),%eax
+        es
+        movl    %eax,8(%esi)    {/* EDI */}
 
-	movl	16(%edi),%eax
-	es
-	movl	%eax,12(%esi)	{/* ESI */}
+        movl    16(%edi),%eax
+        es
+        movl    %eax,12(%esi)   {/* ESI */}
 
-	movl	32(%edi),%eax
-	es
-	movl	%eax,16(%esi)	{/* EIP - start of IRET frame */}
+        movl    32(%edi),%eax
+        es
+        movl    %eax,16(%esi)   {/* EIP - start of IRET frame */}
 
-	movl	40(%edi),%eax
-	es
-	movl	%eax,20(%esi)	{/* CS */}
+        movl    40(%edi),%eax
+        es
+        movl    %eax,20(%esi)   {/* CS */}
 
-	movl	36(%edi),%eax
-	es
-	movl	%eax,24(%esi)	{/* EFLAGS */}
+        movl    36(%edi),%eax
+        es
+        movl    %eax,24(%esi)   {/* EFLAGS */}
 
-	movl	0(%edi),%eax
-	movw	44(%edi),%es
+        movl    0(%edi),%eax
+        movw    44(%edi),%es
 
-	movw	50(%edi),%ss
-	movl	%esi,%esp
+        movw    50(%edi),%ss
+        movl    %esi,%esp
 
-	popl	___djgpp_exception_state_ptr
-	popl	%ds
-	popl	%edi
-	popl	%esi
-	iret			{/* actually jump to new cs:eip loading flags */}
+        popl    ___djgpp_exception_state_ptr
+        popl    %ds
+        popl    %edi
+        popl    %esi
+        iret                    {/* actually jump to new cs:eip loading flags */}
          end;
       end;
 
@@ -844,8 +846,8 @@ procedure djgpp_exception_setup;
 
       for i:=0 to EXCEPTIONCOUNT-1 do
         begin
-           except_ori[i] := _except;	{/* New value to set */}
-           _except.offset:=_except.offset + 4;	{/* This is the size of push n, jmp */}
+           except_ori[i] := _except;    {/* New value to set */}
+           _except.offset:=_except.offset + 4;  {/* This is the size of push n, jmp */}
         end;
 
       kbd_ori.segment := _except.segment;
@@ -875,7 +877,7 @@ procedure djgpp_exception_setup;
               leal _except,%eax
               movl $___djgpp_iret,(%eax)
            end;
-           {_except.offset32 = (unsigned) &__djgpp_iret;		/* TDPMI98 bug */}
+           {_except.offset32 = (unsigned) &__djgpp_iret;                /* TDPMI98 bug */}
            set_pm_interrupt($23,_except);
         end;
      asm
@@ -892,7 +894,7 @@ procedure djgpp_exception_setup;
         rep
         movsb
      end;
-     djgpp_exception_toggle;	{/* Set new values & save old values */}
+     djgpp_exception_toggle;    {/* Set new values & save old values */}
 
      {/* get original video mode and save */}
      old_video_mode := farpeekb(dosmemselector, $449);
@@ -937,96 +939,11 @@ djgpp_exception_setup;
 end.
 {
   $Log$
-  Revision 1.2  1998-04-21 14:46:33  pierre
+  Revision 1.3  1998-05-31 14:18:23  peter
+    * force att or direct assembling
+    * cleanup of some files
+
+  Revision 1.2  1998/04/21 14:46:33  pierre
     + debug info better output
       no normal code changed
-
-  Revision 1.1.1.1  1998/03/25 11:18:42  root
-  * Restored version
-
-  Revision 1.9  1998/03/18 15:34:46  pierre
-    + fpu state is restaured in excep_exit
-      less risk of problems
-
-  Revision 1.8  1998/03/01 18:18:53  carl
-    * bugfix of wrong vector initialization because of incorrect
-      error indexes (were starting at 1 instead of zero in some places).
-
-  Revision 1.7  1998/02/05 17:04:58  pierre
-    * emulation is working with wmemu387.dxe
-
-  Revision 1.6  1998/02/03 15:52:49  pierre
-    * swapvectors really disable exception handling
-      and interrupt redirection with go32v2
-    * in dos.pp bug if arg path from fsearch had a directory part fixed
-
-  Revision 1.5  1998/01/26 11:57:25  michael
-  + Added log at the end
-
-  Revision 1.4  1998/01/16 16:49:12  pierre
-    * Crtl-C did not break the program
-
-}
-
-
-{
-  $Log$
-  Revision 1.2  1998-04-21 14:46:33  pierre
-    + debug info better output
-      no normal code changed
-
-  Revision 1.1.1.1  1998/03/25 11:18:42  root
-  * Restored version
-
-  Revision 1.9  1998/03/18 15:34:46  pierre
-    + fpu state is restaured in excep_exit
-      less risk of problems
-
-  Revision 1.8  1998/03/01 18:18:53  carl
-    * bugfix of wrong vector initialization because of incorrect
-      error indexes (were starting at 1 instead of zero in some places).
-
-  Revision 1.7  1998/02/05 17:04:58  pierre
-    * emulation is working with wmemu387.dxe
-
-  Revision 1.6  1998/02/03 15:52:49  pierre
-    * swapvectors really disable exception handling
-      and interrupt redirection with go32v2
-    * in dos.pp bug if arg path from fsearch had a directory part fixed
-
-  Revision 1.5  1998/01/26 11:57:25  michael
-  + Added log at the end
-
-
-  
-  Working file: rtl/dos/go32v2/dpmiexcp.pp
-  description:
-  ----------------------------
-  revision 1.4
-  date: 1998/01/16 16:49:12;  author: pierre;  state: Exp;  lines: +8 -3
-    * Crtl-C did not break the program
-  ----------------------------
-  revision 1.3
-  date: 1997/12/12 13:14:38;  author: pierre;  state: Exp;  lines: +40 -4
-     + added handling of swap_vectors if under exceptions
-       i.e. swapvector is not dummy under go32v2
-     * bug in output, exceptions where not allways reset correctly
-       now the code in dpmiexcp is called from v2prt0.as exit routine
-     * in crt.pp corrected init_delay calibration loop
-       and added it for go32v2 also (was disabled before due to crashes !!)
-       the previous code did a wrong assumption on the time need to call
-       get_ticks compared to an internal loop without call
-  ----------------------------
-  revision 1.2
-  date: 1997/12/01 12:26:08;  author: michael;  state: Exp;  lines: +14 -3
-  + added copyright reference in header.
-  ----------------------------
-  revision 1.1
-  date: 1997/11/27 08:33:52;  author: michael;  state: Exp;
-  Initial revision
-  ----------------------------
-  revision 1.1.1.1
-  date: 1997/11/27 08:33:52;  author: michael;  state: Exp;  lines: +0 -0
-  FPC RTL CVS start
-  =============================================================================
 }

@@ -97,6 +97,7 @@ implementation
 
 {$I system.inc}
 
+{$ASMMODE DIRECT}
 procedure int_stackcheck(stack_size:longint);[public,alias: 'STACKCHECK'];
 begin
 { called when trying to get local stack
@@ -132,9 +133,8 @@ begin
   end['EAX','EBX'];
   RunError(202);
 end;
+{$ASMMODE ATT}
 
-
-{$I386_ATT}
 
 procedure halt(errnum : byte);
 begin
@@ -582,7 +582,11 @@ Begin
 End.
 {
   $Log$
-  Revision 1.3  1998-05-22 00:39:33  peter
+  Revision 1.4  1998-05-31 14:18:19  peter
+    * force att or direct assembling
+    * cleanup of some files
+
+  Revision 1.3  1998/05/22 00:39:33  peter
     * go32v1, go32v2 recompiles with the new objects
     * remake3 works again with go32v2
     - removed some "optimizes" from daniel which were wrong

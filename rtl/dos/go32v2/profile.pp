@@ -1,8 +1,10 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1993,97 by Pierre Muller,
+    Copyright (c) 1993-98 by Pierre Muller,
     member of the Free Pascal development team.
+
+    Profiling support for Go32V2
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -11,105 +13,99 @@
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
- **********************************************************************}
-
+ **********************************************************************
+}
 Unit profile;
-
-{$I os.inc}
-
 interface
 
-uses go32,dpmiexcp;
-
-type header = record
-             low,high,nbytes : longint;
-             end;
-
-{/* entry of a GPROF type file
-*/}
-type MTABE = record
-             from,_to,count : longint;
-             end;
-
-     pMTABE = ^MTABE;
-     ppMTABE = ^pMTABE;
-{/* internal form - sizeof(MTAB) is 4096 for efficiency
-*/ }
 type
+  header = record
+    low,high,nbytes : longint;
+  end;
+
+{ entry of a GPROF type file }
+  ppMTABE = ^pMTABE;
+  pMTABE = ^MTABE;
+  MTABE = record
+    from,_to,count : longint;
+  end;
+
+{ internal form - sizeof(MTAB) is 4096 for efficiency }
   PMTAB = ^M_TAB;
   M_TAB  = record
-          calls : array [0..340] of MTABE;
-          prev : PMTAB;
-          end;
-var
-   h : header;
-   histogram : ^integer;
-const
-   mcount_skip : longint = 1;
-var
-   histlen : longint;
-   oldexitproc : pointer;
+    calls : array [0..340] of MTABE;
+    prev  : PMTAB;
+  end;
 
 const
-   mtab : PMTAB = nil;
+  mcount_skip : longint = 1;
+  mtab        : PMTAB = nil;
+var
+  h           : header;
+  histogram   : ^integer;
+  histlen     : longint;
+  oldexitproc : pointer;
 
-{/* called by functions.  Use the pointer it provides to cache
-** the last used MTABE, so that repeated calls to/from the same
-** pair works quickly - no lookup.
-*/ }
+{ called by functions.  Use the pointer it provides to cache the last used
+  MTABE, so that repeated calls to/from the same pair works quickly -
+  no lookup. }
 procedure mcount;
+
 
 implementation
 
-type plongint = ^longint;
+uses
+  go32,dpmiexcp;
 
-var starttext, endtext : longint;
+{$ASMMODE ATT}
 
-const cache : pMTABE = nil;
+type
+  plongint = ^longint;
+var
+  starttext, endtext : longint;
+const
+  cache : pMTABE = nil;
 
-  { ebp contains the frame of mcount)
-    (ebp) the frame of calling (to_)
-    ((ebp)) the frame of from }
-
-    { problem how to avoid mcount calling itself !! }
-  procedure mcount;  [public, alias : 'MCOUNT'];
-    var
-       m : pmtab;
-       i,to_,ebp,from,mtabi : longint;
-
-    begin
-       { optimisation !! }
-       asm
-          pushal
-          movl 4(%ebp),%eax
-          movl %eax,to_
-          movl (%ebp),%eax
-          movl 4(%eax),%eax
-          movl %eax,from
-       end;
-       if endtext=0 then
-         asm
-            popal
-            leave
-            ret
-         end;
-       mcount_skip := 1;
-       if (to_ > endtext) or (from > endtext) then runerror(255);
-       if ((cache<>nil) and
-         (cache^.from=from) and
-         (cache^._to=to_)) then
-         begin
-       {/* cache paid off - works quickly */}
+{ problem how to avoid mcount calling itself !! }
+procedure mcount;  [public, alias : 'MCOUNT'];
+{
+  ebp contains the frame of mcount (ebp) the frame of calling (to_)
+  ((ebp)) the frame of from
+}
+var
+   m : pmtab;
+   i,to_,ebp,from,mtabi : longint;
+begin
+   { optimisation !! }
+   asm
+      pushal
+      movl 4(%ebp),%eax
+      movl %eax,to_
+      movl (%ebp),%eax
+      movl 4(%eax),%eax
+      movl %eax,from
+   end;
+   if endtext=0 then
+     asm
+        popal
+        leave
+        ret
+     end;
+   mcount_skip := 1;
+   if (to_ > endtext) or (from > endtext) then
+     runerror(255);
+   if ((cache<>nil) and (cache^.from=from) and (cache^._to=to_)) then
+     begin
+     { cache paid off - works quickly }
        inc(cache^.count);
        mcount_skip:=0;
        asm
-          popal
-          leave
-          ret
+         popal
+         leave
+         ret
        end;
-    end;
-
-  {/* no cache hit - search all mtab tables for a match, or an empty slot */}
+     end;
+{ no cache hit - search all mtab tables for a match, or an empty slot }
   mtabi := -1;
   m:=mtab;
   while m<>nil do
@@ -118,14 +114,13 @@ const cache : pMTABE = nil;
          begin
            if m^.calls[i].from=0 then
              begin
-                {/* empty slot - end of table */ }
+              { empty slot - end of table }
                 mtabi := i;
                 break;
              end;
-           if ((m^.calls[i].from = from) and
-               (m^.calls[i]._to = to_)) then
+           if ((m^.calls[i].from = from) and (m^.calls[i]._to = to_)) then
              begin
-                {/* found a match - bump count and return */}
+              { found a match - bump count and return }
                 inc(m^.calls[i].count);
                 cache:=@(m^.calls[i]);
                 mcount_skip:=0;
@@ -140,7 +135,7 @@ const cache : pMTABE = nil;
    end;
   if (mtabi<>-1) then
     begin
-       {/* found an empty - fill it in */}
+     { found an empty - fill it in }
        mtab^.calls[mtabi].from := from;
        mtab^.calls[mtabi]._to := to_;
        mtab^.calls[mtabi].count := 1;
@@ -152,7 +147,7 @@ const cache : pMTABE = nil;
           ret
        end;
     end;
-  {/* lob off another page of memory and initialize the new table */}
+{ lob off another page of memory and initialize the new table }
   getmem(m,sizeof(M_TAB));
   fillchar(m^, sizeof(M_TAB),#0);
   m^.prev := mtab;
@@ -167,31 +162,40 @@ const cache : pMTABE = nil;
      leave
      ret
   end;
-  end;
+end;
 
-  var new_timer,old_timer : tseginfo;
 
-{ from itimer.c
-/* Copyright (C) 1995 Charles Sandmann (sandmann@clio.rice.edu)
-   setitimer implmentation - used for profiling and alarm
-   BUGS: ONLY ONE AT A TIME, first pass code
-   This software may be freely distributed, no warranty. */ }
+var
+  new_timer,
+  old_timer       : tseginfo;
+  invalid_mcount_call,
+  mcount_nb,
+  doublecall,
+  reload          : longint; {=0}
 
-{ static void timer_action(int signum) }
-{
-  if(reload)
-    __djgpp_timer_countdown = reload;
-  else
-    stop_timer();
-  raise(sigtype);
-}
-var reload : longint;
-const invalid_mcount_call : longint = 0;
-      mcount_nb : longint = 0;
-      doublecall : longint = 0;
+function mcount_tick(x : longint) : longint;
+var
+  bin : longint;
+begin
+   if mcount_skip=0 then
+     begin
+        bin := djgpp_exception_state^.__eip;
+        if (djgpp_exception_state^.__cs=get_cs) and (bin >= starttext) and (bin <= endtext) then
+          begin
+             bin := (bin - starttext) div 16;
+             inc(histogram[bin]);
+          end
+        else
+          inc(invalid_mcount_call);
+        inc(mcount_nb);
+     end
+   else
+     inc(doublecall);
+   mcount_tick:=0;
+end;
 
-function mcount_tick(x : longint) : longint;forward;
 
+{$ASMMODE DIRECT}
 function timer(x : longint) : longint;
 begin
    if reload>0 then
@@ -199,28 +203,20 @@ begin
        movl _RELOAD,%eax
        movl %eax,___djgpp_timer_countdown
      end;
-
    mcount_tick(x);
    { _raise(SIGPROF); }
 end;
 
-{/* this is called during program exit (installed by atexit). */}
+
 procedure mcount_write;
- var m : PMTAB;
-     i : longint;
-     f : file;
 {
-  MTAB *m;
-  int i, f;
-  struct itimerval new_values;
-
-  mcount_skip = 1;
-
-  /* disable timer */
-  new_values.it_value.tv_usec = new_values.it_interval.tv_usec = 0;
-  new_values.it_value.tv_sec = new_values.it_interval.tv_sec = 0;
-  setitimer(ITIMER_PROF, &new_values, NULL); }
-  begin
+  this is called during program exit
+}
+var
+  m : PMTAB;
+  i : longint;
+  f : file;
+begin
   mcount_skip:=1;
   signal(SIGTIMR,@SIG_IGN);
   signal(SIGPROF,@SIG_IGN);
@@ -257,41 +253,11 @@ procedure mcount_write;
   close(f);
 end;
 
-(* extern unsigned start __asm__ ("start");
-#define START (unsigned)&start
-extern int etext;
 
-/* ARGSUSED */
-static void *)
-
-
-function mcount_tick(x : longint) : longint;
-  var bin : longint;
-begin
-   if mcount_skip=0 then
-     begin
-        {bin = __djgpp_exception_state->__eip;}
-        bin := djgpp_exception_state^.__eip;
-        if (djgpp_exception_state^.__cs=get_cs) and
-           (bin >= starttext) and (bin <= endtext) then
-          begin
-             {bin := (bin - starttext) div 4;}	{/* 4 EIP's per bin */}
-             bin := (bin - starttext) div 16;
-             inc(histogram[bin]);
-          end
-        else
-          inc(invalid_mcount_call);
-        inc(mcount_nb);
-     end
-   else
-     inc(doublecall);
-   mcount_tick:=0;
-end;
-
-{/* this is called to initialize profiling before the program starts */}
-procedure _mcount_init;
-
-{struct itimerval new_values;}
+procedure mcount_init;
+{
+  this is called to initialize profiling before the program starts
+}
 
   function djgpp_timer_hdlr : pointer;
     begin
@@ -311,14 +277,13 @@ procedure _mcount_init;
           movw 4(%eax),%ax
           movw %ax,4(%ebx)
        end;
-
     end;
-begin
 
-       asm
-          movl $_etext,_ENDTEXT
-          movl $start,_STARTTEXT
-       end;
+begin
+  asm
+        movl    $_etext,_ENDTEXT
+        movl    $start,_STARTTEXT
+  end;
   h.low := starttext;
   h.high := endtext;
   histlen := ((h.high-h.low) div 16) * 2; { must be even }
@@ -329,79 +294,41 @@ begin
   oldexitproc:=exitproc;
   exitproc:=@mcount_write;
 
-  {/* here, do whatever it takes to initialize the timer interrupt */}
+{ here, do whatever it takes to initialize the timer interrupt }
   signal(SIGPROF,@mcount_tick);
   signal(SIGTIMR,@timer);
 
   get_pm_interrupt($8,old_timer);
   set_old_timer_handler;
 {$ifdef DEBUG}
-       writeln(stderr,'ori pm int8  '+hexstr(old_timer.segment,4)+':'
-           +hexstr(longint(old_timer.offset),8));
-       flush(stderr);
+  writeln(stderr,'ori pm int8  '+hexstr(old_timer.segment,4)+':'+hexstr(longint(old_timer.offset),8));
+  flush(stderr);
 {$endif DEBUG}
   new_timer.segment:=get_cs;
   new_timer.offset:=djgpp_timer_hdlr;
   reload:=3;
 {$ifdef DEBUG}
-       writeln(stderr,'new pm int8  '+hexstr(new_timer.segment,4)+':'
-           +hexstr(longint(new_timer.offset),8));
-       flush(stderr);
+  writeln(stderr,'new pm int8  '+hexstr(new_timer.segment,4)+':'+hexstr(longint(new_timer.offset),8));
+  flush(stderr);
 {$endif DEBUG}
   set_pm_interrupt($8,new_timer);
   reload:=1;
-     asm
-       movl _RELOAD,%eax
-       movl %eax,___djgpp_timer_countdown
-     end;
-  mcount_skip := 0;
+  asm
+        movl    _RELOAD,%eax
+        movl    %eax,___djgpp_timer_countdown
   end;
+  mcount_skip := 0;
+end;
+{$ASMMODE ATT}
+
 
 begin
-_mcount_init;
+  mcount_init;
 end.
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:42  root
-  Initial revision
+  Revision 1.2  1998-05-31 14:18:28  peter
+    * force att or direct assembling
+    * cleanup of some files
 
-  Revision 1.4  1998/01/26 11:57:39  michael
-  + Added log at the end
-
-  Revision 1.3  1998/01/16 16:54:22  pierre
-    + logs added at end
-    + dxeload and emu387 added in makefile
-
-}
-
-{
-  $Log$
-  Revision 1.1  1998-03-25 11:18:42  root
-  Initial revision
-
-  Revision 1.4  1998/01/26 11:57:39  michael
-  + Added log at the end
-
-
-  
-  Working file: rtl/dos/go32v2/profile.pp
-  description:
-  ----------------------------
-  revision 1.3
-  date: 1998/01/16 16:54:22;  author: pierre;  state: Exp;  lines: +5 -2
-    + logs added at end
-    + dxeload and emu387 added in makefile
-  ----------------------------
-  revision 1.2
-  date: 1997/12/01 12:26:09;  author: michael;  state: Exp;  lines: +14 -3
-  + added copyright reference in header.
-  ----------------------------
-  revision 1.1
-  date: 1997/11/27 08:33:52;  author: michael;  state: Exp;
-  Initial revision
-  ----------------------------
-  revision 1.1.1.1
-  date: 1997/11/27 08:33:52;  author: michael;  state: Exp;  lines: +0 -0
-  FPC RTL CVS start
-  =============================================================================
 }

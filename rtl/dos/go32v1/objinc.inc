@@ -1,3 +1,21 @@
+{
+    $Id$
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 1993-98 by the Free Pascal development team.
+
+    Includefile for objects.pp implementing OS-dependent file routines
+    for Go32V1
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************
+}
+
 {---------------------------------------------------------------------------}
 {  FileClose -> Platforms DOS              - Not checked                    }
 {---------------------------------------------------------------------------}
@@ -39,66 +57,6 @@ begin
 end;
 
 
-{---------------------------------------------------------------------------}
-{  FileRead -> Platforms DOS              - Checked 05May1998 CEC           }
-{---------------------------------------------------------------------------}
-FUNCTION FileRead (Handle: THandle; Var Buf; Count: Sw_Word;
-Var Actual: Sw_Word): Word;
-BEGIN
-  asm
-     movl count,%ecx
-     movl buf,%edx
-     xorl %ebx,%ebx
-     movw handle,%bx
-     movb $0x3f,%ah
-     int $0x21
-     jnc .LDOSREAD1
-     movw %ax,DosStreamError
-     xorl %eax,%eax
-  .LDOSREAD1:
-  end;
-  Actual:=Count;
-  FileRead:=DosStreamError;
-end;
-
-
-
-{---------------------------------------------------------------------------}
-{  FileWrite -> Platforms DOS              - Checked 05May1998 CEC          }
-{---------------------------------------------------------------------------}
-FUNCTION FileWrite (Handle: THandle; Var Buf; Count: Sw_Word; Var Actual: Sw_Word): Word;
-BEGIN
-  Actual:=0;
-  asm
-     movl Count,%ecx
-     movl buf,%edx
-     xorl %ebx,%ebx
-     movw Handle,%bx
-     movb $0x40,%ah
-     pushl %ebp
-     int $0x21
-     pop   %ebp
-     jnc .LDOSWRITE1
-     movw %ax,DosStreamError
-  .LDOSWRITE1:
-  end;
-  Actual:=Count;
-  FileWrite:=DosStreamError;
-end;
-
-{---------------------------------------------------------------------------}
-{  SetFileSize -> Platforms DOS          - Not Checked                      }
-{---------------------------------------------------------------------------}
-FUNCTION SetFileSize (Handle: THandle; FileSize: LongInt): Word;
-VAR Actual, Buf: LongInt;
-BEGIN
-   If (Actual = FileSize) Then Begin                  { No position error }
-     Actual := FileWrite(Handle, Pointer(@Buf), 0,Actual);   { Truncate the file }
-     If (Actual <> -1) Then SetFileSize := 0 Else     { No truncate error }
-       SetFileSize := 103;                            { File truncate error }
-   End Else SetFileSize := 103;                       { File truncate error }
-END;
-
 {***************************************************************************}
 {  DosSetFilePtr -> Platforms DOS          - Checked 05May1998 CEC          }
 {***************************************************************************}
@@ -131,4 +89,77 @@ BEGIN
 END;
 
 
+{---------------------------------------------------------------------------}
+{  FileRead -> Platforms DOS              - Checked 05May1998 CEC           }
+{---------------------------------------------------------------------------}
+FUNCTION FileRead (Handle: THandle; Var Buf; Count: Sw_Word;
+Var Actual: Sw_Word): Word;
+BEGIN
+  asm
+     movl count,%ecx
+     movl buf,%edx
+     xorl %ebx,%ebx
+     movw handle,%bx
+     movb $0x3f,%ah
+     int $0x21
+     jnc .LDOSREAD1
+     movw %ax,DosStreamError
+     xorl %eax,%eax
+  .LDOSREAD1:
+  end;
+  Actual:=Count;
+  FileRead:=DosStreamError;
+end;
+
+
+{---------------------------------------------------------------------------}
+{  FileWrite -> Platforms DOS              - Checked 05May1998 CEC          }
+{---------------------------------------------------------------------------}
+FUNCTION FileWrite (Handle: THandle; Var Buf; Count: Sw_Word; Var Actual: Sw_Word): Word;
+BEGIN
+  Actual:=0;
+  asm
+     movl Count,%ecx
+     movl buf,%edx
+     xorl %ebx,%ebx
+     movw Handle,%bx
+     movb $0x40,%ah
+     pushl %ebp
+     int $0x21
+     pop   %ebp
+     jnc .LDOSWRITE1
+     movw %ax,DosStreamError
+  .LDOSWRITE1:
+  end;
+  Actual:=Count;
+  FileWrite:=DosStreamError;
+end;
+
+
+{---------------------------------------------------------------------------}
+{  SetFileSize -> Platforms DOS          - Not Checked                      }
+{---------------------------------------------------------------------------}
+FUNCTION SetFileSize (Handle: THandle; FileSize: LongInt): Word;
+VAR Actual, Buf: LongInt;
+BEGIN
+   SetFilePos(Handle,FileSize,0,Actual);
+   If (Actual = FileSize) Then
+    Begin
+      Actual := FileWrite(Handle, Pointer(@Buf), 0,Actual);   { Truncate the file }
+      If (Actual <> -1) Then
+       SetFileSize := 0
+      Else
+       SetFileSize := 103;                            { File truncate error }
+    End
+   Else
+    SetFileSize := 103;                       { File truncate error }
+END;
+
+{
+  $Log$
+  Revision 1.2  1998-05-31 14:18:18  peter
+    * force att or direct assembling
+    * cleanup of some files
+
+}
 

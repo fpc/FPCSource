@@ -5,7 +5,7 @@
     members of the Free Pascal development team.
 
     Graph unit for BP7 compatible RTL
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -95,7 +95,7 @@ procedure SetBkColor(Color : longint);
 { FILL.PPI }
 procedure FloodFill(x,y:integer; Border:longint);
 procedure GetFillSettings(var FillInfo : FillSettingsType);
-procedure GetFillPattern(var FillPattern : FillPatternType); 
+procedure GetFillPattern(var FillPattern : FillPatternType);
 procedure SetFillStyle(pattern : word;color : longint);
 procedure SetFillPattern(pattern : FillPatternType;color : longint);
 
@@ -128,12 +128,14 @@ function  Convert(color:longint):longint;
 
 implementation
 
+{$ASMMODE DIRECT}
+
 type
   PString=^String;
   PInteger=^integer;
   PWord=^word;
   PLong=^longint;
-  
+
   VgaInfoBlock = record
     VESASignature: array[1..4]of Char;
     VESAloVersion: Byte;
@@ -186,19 +188,19 @@ type
     OffscreenMem   : word;
     reserved2      : Array[1..458]of Byte;
    end;
-    
+
 {$I MODES.PPI}
 
 const
      CheckRange    : Boolean=true;
      isVESA2       : Boolean=false;
      core          : longint=$E0000000;
-     
-var    { X/Y Verhaeltnis des Bildschirm }               
+
+var    { X/Y Verhaeltnis des Bildschirm }
        AspectRatio  : real;
        XAsp , YAsp  : Word;
        { Zeilen & Spalten des aktuellen Graphikmoduses }
-       _maxx,_maxy : longint; 
+       _maxx,_maxy : longint;
        { aktuell eingestellte Farbe }
        aktcolor : longint;
        { Hintegrundfarbe }
@@ -237,20 +239,20 @@ var    { X/Y Verhaeltnis des Bildschirm }
        { in diesem Puffer werden bei SetFillStyle bereits die Pattern in der }
        { zu verwendenden Farbe abgelegt }
        PatternBuffer : Array[0..63]of LongInt;
-       
+
        X_Array         : array[0..1280]of LongInt;
        Y_Array         : array[0..1024]of LongInt;
 
-       Sel,Seg      : word;    
+       Sel,Seg      : word;
        VGAInfo      : VGAInfoBlock;
        VESAInfo     : VESAInfoBlock;
    { Selectors for Protected Mode }
-       seg_WRITE    : word;    
-       seg_READ     : word;   
+       seg_WRITE    : word;
+       seg_READ     : word;
    { Registers for RealModeInterrupts in DPMI-Mode }
        dregs        : TRealRegs;
        AW_Bank      : longint;
-       AR_Bank      : Longint;
+{       AR_Bank      : Longint;}
    { Variables for Bankswitching }
        BytesPerLine : longint;
        BytesPerPixel: Word;
@@ -289,7 +291,7 @@ end;
 
 procedure Oh_Kacke(ErrString:String);
 begin
-  CloseGraph; 
+  CloseGraph;
   writeln('Error in Unit VESA: ',ErrString);
   halt;
 end;
@@ -301,7 +303,7 @@ procedure WaitRetrace;
 begin
   asm
     cli
-    movw  $0x03Da,%dx 
+    movw  $0x03Da,%dx
 WaitNotHSyncLoop:
     inb   %dx,%al
     testb $0x8,%al
@@ -313,7 +315,7 @@ WaitHSyncLoop:
     sti
   end;
 end;
-    
+
 procedure getmem(var p : pointer;size : longint);
 begin
   asm
@@ -362,7 +364,7 @@ procedure graphdefaults;
          aktviewport.y2:=_maxy-1;
 
          aktscreen:=aktviewport;
-         
+
          { normaler Schreibmodus }
          setwritemode(normalput);
 
@@ -372,7 +374,7 @@ procedure graphdefaults;
          akttextinfo.charsize:=1;
          akttextinfo.horiz:=LeftText;
          akttextinfo.vert:=TopText;
-         
+
          { Vergrî·erungsfaktoren}
          XAsp:=10000; YAsp:=10000;
          aspectratio:=1;
@@ -426,7 +428,7 @@ begin
     end;
   GetGraphMode:=GetVesaMode;
 end;
-  
+
 procedure ClearViewport;
 var bank1,bank2,diff,c:longint;
     ofs1,ofs2         :longint;
@@ -445,17 +447,17 @@ begin
   begin
     bank1:=ofs1 shr winshift;
     bank2:=ofs2 shr winshift;
-    if bank1 <> AW_BANK then 
-    begin 
-      Switchbank(bank1); 
+    if bank1 <> AW_BANK then
+    begin
+      Switchbank(bank1);
       AW_BANK:=bank1;
     end;
-    if bank1 <> bank2 then 
+    if bank1 <> bank2 then
     begin
       diff:=((bank2 shl winshift)-ofs1) div BytesPerPixel;
       horizontalline(aktviewport.x1, aktviewport.x1+diff-1, y);
       Switchbank(bank2); AW_BANK:=bank2;
-      horizontalline(aktviewport.x1+diff, aktviewport.x2, y); 
+      horizontalline(aktviewport.x1+diff, aktviewport.x2, y);
     end else horizontalline(aktviewport.x1, aktviewport.x2, y);
     ofs1:=ofs1 + BytesPerLine;
     ofs2:=ofs2 + BytesPerLine;
@@ -473,9 +475,9 @@ begin
     end;
     _XAsp:=XAsp; _YAsp:=YAsp;
 end;
-    
+
 procedure SetAspectRatio(_Xasp, _Yasp : word);
-begin     
+begin
   _graphresult:=grOk;
     if not isgraphmode then
       begin
@@ -483,8 +485,8 @@ begin
         exit;
       end;
     Xasp:=_XAsp; YAsp:=_YAsp;
-end; 
-    
+end;
+
 
 procedure ClearDevice;
 var Viewport:ViewportType;
@@ -527,12 +529,12 @@ begin
   origcolor:=aktcolor;
   aktlineinfo.linestyle:=solidln;
   aktlineinfo.thickness:=normwidth;
-  case aktfillsettings.pattern of 
+  case aktfillsettings.pattern of
      0 : begin
            aktcolor:=aktbackcolor;
            for y:=y1 to y2 do line(x1,y,x2,y);
          end;
-     1 : begin 
+     1 : begin
            aktcolor:=aktfillsettings.color;
            for y:=y1 to y2 do line(x1,y,x2,y);
          end;
@@ -540,7 +542,7 @@ begin
   end;
   aktcolor:=origcolor;
   aktlineinfo:=origlinesettings;
-end;  
+end;
 
 procedure bar3D(x1, y1, x2, y2 : integer;depth : word;top : boolean);
 begin
@@ -630,7 +632,7 @@ end;
 
 procedure SetGraphMode(GraphMode:Integer);
 
-var i,index:Integer;
+var index:Integer;
 begin
    _graphresult:=grOk;
    if not isgraphmode then
@@ -667,16 +669,16 @@ end;
 function GetMaxMode:Integer;
 var i:Byte;
 begin
-  for i:=VESANumber downto 0 do 
-    if GetVesaInfo(VESAModes[i]) then 
-    begin 
+  for i:=VESANumber downto 0 do
+    if GetVesaInfo(VESAModes[i]) then
+    begin
        GetMaxMode:=VESAModes[i];
        Exit;
     end;
 end;
 
 function GetMaxX:Integer;
-begin 
+begin
   if not isgraphmode then
     begin
       _graphresult:=grNoInitGraph;
@@ -724,7 +726,7 @@ begin
   if not isgraphmode then
     begin
       _graphresult:=grNoInitGraph;
-      exit;                                          
+      exit;
     end;
   { Daten ÅberprÅfen }
   if (x1<0) or (y1<0) or (x2>=_maxx) or (y2>=_maxy) then exit;
@@ -734,7 +736,7 @@ begin
   aktviewport.y2:=y2;
   aktviewport.clip:=clip;
 end;
-      
+
 procedure GetViewSettings(var viewport : ViewPortType);
 
 begin
@@ -772,7 +774,7 @@ procedure SetActivePage(page : word);
           exit;
        end;
   end;
-    
+
 procedure SetWriteMode(WriteMode : integer);
 begin
   _graphresult:=grOk;
@@ -785,7 +787,7 @@ begin
    begin
       _graphresult:=grError;
       exit;
-   end; 
+   end;
   aktwritemode:=writemode;
 end;
 
@@ -807,7 +809,7 @@ end;
 
 begin
   InitVESA;
-  if not DetectVESA then Oh_Kacke('VESA-BIOS not found...'); 
+  if not DetectVESA then Oh_Kacke('VESA-BIOS not found...');
   startmode:=GetVESAMode;
   bankswitchptr:=@switchbank;
   GraphGetMemPtr:=@system.getmem;
@@ -817,7 +819,7 @@ begin
    wrbuffer:=pointer($D0000000);
    rbuffer:=pointer($D0200000);
    wbuffer:=pointer($D0200000);
-  end else begin 
+  end else begin
    wrbuffer:=pointer($0);
    rbuffer:=pointer($0);
    wbuffer:=pointer($0);
@@ -826,7 +828,11 @@ end.
 
 {
   $Log$
-  Revision 1.3  1998-05-22 00:39:23  peter
+  Revision 1.4  1998-05-31 14:18:14  peter
+    * force att or direct assembling
+    * cleanup of some files
+
+  Revision 1.3  1998/05/22 00:39:23  peter
     * go32v1, go32v2 recompiles with the new objects
     * remake3 works again with go32v2
     - removed some "optimizes" from daniel which were wrong

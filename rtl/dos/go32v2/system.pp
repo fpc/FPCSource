@@ -124,12 +124,23 @@ implementation
 
 const
   carryflag = 1;
-
 type
   plongint = ^longint;
-
 var
   doscmd : string[128];  { Dos commandline copied from PSP, max is 128 chars }
+
+{$ASMMODE DIRECT}
+
+procedure halt(errnum : byte);
+begin
+  do_exit;
+  flush(stderr);
+  asm
+        movzbw  errnum,%ax
+        pushw   %ax
+        call    ___exit         {frees all dpmi memory !!}
+  end;
+end;
 
 
 procedure int_stackcheck(stack_size:longint);[public,alias: 'STACKCHECK'];
@@ -166,6 +177,28 @@ __short_on_stack:
   end['EAX','EBX'];
   RunError(202);
 end;
+
+
+function far_strlen(selector : word;linear_address : longint) : longint;
+begin
+asm
+        movl linear_address,%edx
+        movl %edx,%ecx
+        movw selector,%gs
+.Larg19:
+        movb %gs:(%edx),%al
+        testb %al,%al
+        je .Larg20
+        incl %edx
+        jmp .Larg19
+.Larg20:
+        movl %edx,%eax
+        subl %ecx,%eax
+        movl %eax,__RESULT
+end;
+end;
+
+{$ASMMODE ATT}
 
 
 function tb : longint;
@@ -259,25 +292,6 @@ end;
               popw %es
            end ['ESI','EDI','ECX'];
       end;
-
-function far_strlen(selector : word;linear_address : longint) : longint;
-begin
-asm
-        movl linear_address,%edx
-        movl %edx,%ecx
-        movw selector,%gs
-.Larg19:
-        movb %gs:(%edx),%al
-        testb %al,%al
-        je .Larg20
-        incl %edx
-        jmp .Larg19
-.Larg20:
-        movl %edx,%eax
-        subl %ecx,%eax
-        movl %eax,__RESULT
-end;
-end;
 
 
 function atohex(s : pchar) : longint;
@@ -384,10 +398,12 @@ getmem(argv,argc shl 2);
 for i := 0 to argc-1  do
    argv[i] := largs[i];
   tempargv:=argv;
+{$ASMMODE DIRECT}
   asm
      movl tempargv,%eax
      movl %eax,_args
   end;
+{$ASMMODE ATT}
 end;
 
 
@@ -425,10 +441,12 @@ var env_selector : word;
     dos_env,cp : pchar;
     stubaddr : p_stub_info;
 begin
+{$ASMMODE DIRECT}
    asm
    movl __stubinfo,%eax
    movl %eax,stubaddr
    end;
+{$ASMMODE ATT}
    stub_info:=stubaddr;
    getmem(dos_env,stub_info^.env_size);
    env_count:=0;
@@ -489,21 +507,6 @@ end;
          end;
       end;
 
-    procedure halt(errnum : byte);
-
-    var regs : trealregs;
-      begin
-         do_exit;
-         flush(stderr);
-         {regs.realeax:=$4c00+errnum;
-         sysrealintr($21,regs);}
-         asm
-         movzbw errnum,%ax
-         pushw  %ax
-         call   ___exit
-         {call ___exit frees all dpmi memory !!}
-         end;
-      end;
 
 function paramcount : longint;
 begin
@@ -535,6 +538,8 @@ end;
                               Heap Management
 *****************************************************************************}
 
+{$ASMMODE DIRECT}
+
 function Sbrk(size : longint):longint;assembler;
 asm
         movl    size,%eax
@@ -542,6 +547,8 @@ asm
         call    ___sbrk
         addl    $4,%esp
 end;
+
+{$ASMMODE ATT}
 
 { include standard heap management }
 {$I heap.inc}
@@ -1006,7 +1013,11 @@ Begin
 End.
 {
   $Log$
-  Revision 1.5  1998-05-21 19:30:52  peter
+  Revision 1.6  1998-05-31 14:18:29  peter
+    * force att or direct assembling
+    * cleanup of some files
+
+  Revision 1.5  1998/05/21 19:30:52  peter
     * objects compiles for linux
     + assign(pchar), assign(char), rename(pchar), rename(char)
     * fixed read_text_as_array

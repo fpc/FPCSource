@@ -1,3 +1,21 @@
+{
+    $Id$
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 1993-98 by the Free Pascal development team.
+
+    Includefile for objects.pp implementing OS-dependent file routines
+    for Go32V2
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************
+}
+
 {---------------------------------------------------------------------------}
 {  FileClose -> Platforms DOS              - Not checked                    }
 {---------------------------------------------------------------------------}
@@ -11,13 +29,14 @@ begin
   FileClose := 0;
 end;
 
+
 {---------------------------------------------------------------------------}
 {  FileOpen -> Platforms DOS              - Checked 05May1998 CEC           }
 {  Returns 0 on failure                                                     }
 {---------------------------------------------------------------------------}
 FUNCTION FileOpen (Var FileName: AsciiZ; Mode: Word): THandle;
 Var
-var regs : trealregs;
+  regs : trealregs;
 BEGIN
          DosStreamError:=0;
          syscopytodos(longint(@FileName),256);
@@ -38,6 +57,48 @@ BEGIN
             FileOpen:=regs.realeax and $ffff;
 END;
 
+
+{---------------------------------------------------------------------------}
+{  SetFilePos -> Platforms DOS             - Checked 05May1998 CEC          }
+{---------------------------------------------------------------------------}
+{
+  Calls the operating system to move the file denoted by the handle to
+  to the requested position. The move method can be: 0 = absolute offset;
+  1 = offset from present location; 2 = offset from end of file;
+  Any error is held in DosErrorStream and returned from the call.
+  If the return is zero (ie no error) NewPos contains the new absolute
+  file position.
+}
+FUNCTION SetFilePos (Handle: THandle; Pos: LongInt; MoveType: Word;Var Actual: LongInt): Word;
+Var
+ regs: Trealregs;
+const
+ CarryFlag = $001;
+BEGIN
+  regs.realeax := ($42 shl 8) + Byte(MoveType);
+  regs.realedx := pos and $ffff;   { keep low word }
+  regs.realecx := pos shr 16;
+  regs.realebx := longint(Handle);
+  sysrealintr($21,regs);
+  if (regs.RealFlags and CarryFlag = 0) then { no error }
+     Actual:=(regs.realeax and $ffff) + ((regs.realedx and $ffff) shl 16)
+  else
+     DosStreamError:=word(regs.realeax);
+  SetFilePos := DosStreamError;                   { Return any error }
+END;
+
+
+{---------------------------------------------------------------------------}
+{  FileRead -> Platforms DOS              - Checked 05May1998 CEC           }
+{---------------------------------------------------------------------------}
+FUNCTION FileRead (Handle: THandle; Var Buf; Count: Sw_Word;
+Var Actual: Sw_Word): Word;
+BEGIN
+  Actual:=system.do_read(longint(Handle),longint(@Buf),Count);
+  FileRead:=InOutRes;
+End;
+
+
 {---------------------------------------------------------------------------}
 {  FileWrite -> Platforms DOS              - Checked 05May1998 CEC          }
 {---------------------------------------------------------------------------}
@@ -55,57 +116,23 @@ End;
 FUNCTION SetFileSize (Handle: THandle; FileSize: LongInt): Word;
 VAR Actual, Buf: LongInt;
 BEGIN
-   If (Actual = FileSize) Then Begin                  { No position error }
-     Actual := FileWrite(Handle, Pointer(@Buf), 0,Actual);   { Truncate the file }
-     If (Actual <> -1) Then SetFileSize := 0 Else     { No truncate error }
+   SetFilePos(Handle,FileSize,0,Actual);
+   If (Actual = FileSize) Then
+    Begin
+      Actual := FileWrite(Handle, Pointer(@Buf), 0,Actual);   { Truncate the file }
+      If (Actual <> -1) Then
+       SetFileSize := 0
+      Else
        SetFileSize := 103;                            { File truncate error }
-   End Else SetFileSize := 103;                       { File truncate error }
+    End
+   Else
+    SetFileSize := 103;                       { File truncate error }
 END;
 
+{
+  $Log$
+  Revision 1.2  1998-05-31 14:18:26  peter
+    * force att or direct assembling
+    * cleanup of some files
 
-{---------------------------------------------------------------------------}
-{  FileRead -> Platforms DOS              - Checked 05May1998 CEC           }
-{---------------------------------------------------------------------------}
-FUNCTION FileRead (Handle: THandle; Var Buf; Count: Sw_Word;
-Var Actual: Sw_Word): Word;
-BEGIN
-  Actual:=system.do_read(longint(Handle),longint(@Buf),Count);
-  FileRead:=InOutRes;
-End;
-
-
-
-{***************************************************************************}
-{  DosSetFilePtr -> Platforms DOS          - Checked 05May1998 CEC          }
-{***************************************************************************}
-{=DosSetFilePtr======================================================
-Calls the operating system to move the file denoted by the handle to
-to the requested position. The move method can be: 0 = absolute offset;
-1 = offset from present location; 2 = offset from end of file;
-Any error is held in DosErrorStream and returned from the call.
-If the return is zero (ie no error) NewPos contains the new absolute
-file position.
--> Platforms DOS/DPMI/WIN - Checked 16May96 LdB}
-
-FUNCTION SetFilePos (Handle: THandle; Pos: LongInt; MoveType: Word;
-Var Actual: LongInt): Word;
-Var
- regs: Trealregs;
-const
- CarryFlag = $001;
-BEGIN
-  regs.realeax := ($42 shl 8) + Byte(MoveType);
-{  regs.realah := $42;
-  regs.realal := Byte(MoveType); }
-  regs.realedx := pos and $ffff;   { keep low word }
-  regs.realecx := pos shr 16;
-  regs.realebx := longint(Handle);
-  sysrealintr($21,regs);
-  if (regs.RealFlags and CarryFlag = 0) then { no error }
-     Actual:=(regs.realeax and $ffff) + ((regs.realedx and $ffff) shl 16)
-  else
-     DosStreamError:=word(regs.realeax);
-
-  SetFilePos := DosStreamError;                   { Return any error }
-END;
-
+}

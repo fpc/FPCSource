@@ -161,8 +161,8 @@ var
 
 
     procedure screensetcursor(row,col : longint);
-      var
 {$ifdef GO32V2}
+      var
          regs : trealregs;
 {$endif GO32V2}
       begin
@@ -869,7 +869,11 @@ end.
 
 {
   $Log$
-  Revision 1.4  1998-05-28 10:21:38  pierre
+  Revision 1.5  1998-05-31 14:18:12  peter
+    * force att or direct assembling
+    * cleanup of some files
+
+  Revision 1.4  1998/05/28 10:21:38  pierre
     * Handles of input and output restored
 
   Revision 1.3  1998/05/27 00:19:16  peter

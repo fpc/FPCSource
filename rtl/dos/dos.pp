@@ -4,7 +4,7 @@
     Copyright (c) 1993,97 by the Free Pascal development team.
 
     Dos unit for BP7 compatible RTL
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -167,8 +167,9 @@ Procedure Keep(exitcode: word);
 implementation
 
 uses
-
   strings;
+
+{$ASMMODE ATT}
 
 {******************************************************************************
                            --- Dos Interrupt ---
@@ -193,6 +194,7 @@ var
       end;
 
 {$else GO32V2}
+{$ASMMODE DIRECT}
     procedure intr(intno : byte;var regs : registers);
 
       begin
@@ -247,6 +249,7 @@ var
             // FS and GS too
          end;
       end;
+{$ASMMODE ATT}
 {$endif GO32V2}
 
 procedure msdos(var regs : registers);
@@ -497,7 +500,7 @@ begin
         leal    b,%ebx
         movw    $0xff07,%ax
         int     $0x21
-        movw    %ax,_LASTDOSEXITCODE
+        movw    %ax,LastDosExitCode
   end;
 end;
 
@@ -639,15 +642,15 @@ end;
            for i:=0 to strlen(path) do
              if path[i]='/' then path[i]:='\';
            asm
-              movl 18(%ebp),%edx
+              movl f,%edx
               movb $0x1a,%ah
               int $0x21
-              movl 12(%ebp),%edx
-              movzwl 16(%ebp),%ecx
+              movl path,%edx
+              movzwl attr,%ecx
               movb $0x4e,%ah
               int $0x21
               jnc .LFF
-              movw %ax,U_DOS_DOSERROR
+              movw %ax,DosError
            .LFF:
            end;
         end;
@@ -695,7 +698,7 @@ end;
               movb $0x4f,%ah
               int $0x21
               jnc .LFN
-              movw %ax,U_DOS_DOSERROR
+              movw %ax,DosError
            .LFN:
            end;
         end;
@@ -711,12 +714,11 @@ end;
       end;
 
     procedure swapvectors;
-
 {$ifdef go32v2}
-{ uses four global symbols from v2prt0.as
-  to be able to know the current exception state
-  without using dpmiexcp unit }
-      begin
+{ uses four global symbols from v2prt0.as to be able to know the current
+  exception state without using dpmiexcp unit }
+{$ASMMODE DIRECT}
+    begin
          asm
             movl _exception_exit,%eax
             orl  %eax,%eax
@@ -733,9 +735,9 @@ end;
          .Lno_excep:
          end;
       end;
+{$ASMMODE ATT}
 {$else not go32v2}
       begin
-         { only a dummy }
       end;
 {$endif go32v2}
 
@@ -1009,7 +1011,11 @@ End;
 end.
 {
   $Log$
-  Revision 1.4  1998-05-22 00:39:22  peter
+  Revision 1.5  1998-05-31 14:18:13  peter
+    * force att or direct assembling
+    * cleanup of some files
+
+  Revision 1.4  1998/05/22 00:39:22  peter
     * go32v1, go32v2 recompiles with the new objects
     * remake3 works again with go32v2
     - removed some "optimizes" from daniel which were wrong
