@@ -1,0 +1,11 @@
+Run the MPW script 'prepare' to create an installer package (as a stuffit archive).
+
+The installer package will consist of:
+
+1) 'Installer README' (renamed to README in the installer package)
+
+2) 'Install' (which in the installer package will get creator 'MPSX', so
+              that when doubleclicked, it will be run by ToolServer )
+
+3) A FreePascal folder, containing all files to be installed.
+

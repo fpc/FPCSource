@@ -1,0 +1,40 @@
+# MPW script to  prepare an installation package
+# Precondition: fpc:install:macos is current dir.
+
+Set compilerdir :::compiler:
+Set rtlunitsdir :::rtl:units:powerpc-macos:
+
+Set units 'charset cmem dos getopts heaptrc macostp macpas macutils matrix ¶
+          objects objpas strings system unixutil'
+
+#Obtain path to compression program
+Set -e stuffapp `getFileName -m 'Tell me where the DroppStuff application is'`
+Set stuffolder ":Free Pascal for MPW:"
+
+Set Exit 0
+Delete -y "{stuffolder}"  ³ Dev:Null
+Set Exit 1
+NewFolder "{stuffolder}"
+
+Duplicate :"Installer README"  "{stuffolder}"README
+SetFile -c 'ttxt' -t 'TEXT' "{stuffolder}"README
+
+Duplicate :Install  "{stuffolder}"
+SetFile -c 'MPSX' -t 'TEXT' "{stuffolder}"install
+
+NewFolder "{stuffolder}FreePascal"
+NewFolder "{stuffolder}FreePascal:bin"
+Duplicate "{compilerdir}"ppcppc  "{stuffolder}FreePascal:bin"
+Duplicate "{compilerdir}"utils:fpc.mpw  "{stuffolder}FreePascal:bin:fpc"
+
+NewFolder "{stuffolder}FreePascal:units"
+NewFolder "{stuffolder}FreePascal:units:rtl"
+For unit In {units}
+  Duplicate "{rtlunitsdir}"{unit}.ppu  "{stuffolder}FreePascal:units:rtl"
+  Duplicate "{rtlunitsdir}"{unit}.o  "{stuffolder}FreePascal:units:rtl"
+  #Echo {unit}
+End
+
+If "{stuffapp}" != ""
+  "{stuffapp}" "{stuffolder}"
+End

@@ -1,0 +1,34 @@
+Welcome to Free Pascal for MPW on classic Mac OS
+================================================
+
+How to install:
+---------------
+
+1. If  yo do not have MPW, please install MPW first.
+   MPW can be obtained for free from Apple.
+
+2. Double click the file "Install". This will launch an
+   install script (via the ToolServer application, which is
+   included in MPW).
+
+3. If it is the first time you install Free Pascal,
+   the install script will ask where you want to create the
+   FreePascal folder.
+
+4. The installer will copy necessary files to the
+   FreePascal folder, create an fpc.cfg file,
+   and also add a startup script in 
+   the Startup Items folder in the MPW folder.
+
+5. Done.
+
+
+Tips
+----
+
+If you want to compile large programs, and in particular the rtl or
+the compiler itself, please increase the memory setting of
+MPW to 50 MB and ToolServer to 30 MB.
+
+An upgrade to MPW Shell 3.6b1 is recommended
+

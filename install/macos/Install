@@ -1,0 +1,29 @@
+Confirm "This will install Free Pascal for MPW.¶n¶nDo you want to proceed ?"
+
+Set installerdir `Directory`
+If {FPCDIR} == ''
+	Set -e FPCDIR `GetFileName -wd -m 'Select where I should put the FreePascal folder'`FreePascal:
+	Set -e Commands "{Commands},{FPCDIR}bin:"
+Else
+  Alert "Free Pascal will be reinstalled in {FPCDIR}"
+End
+
+# Write startup script
+Echo "Set -e FPCDIR ¶'{FPCDIR}¶'" > "{MPW}Startup Items:FPC Startup"
+Echo 'Set -e Commands "{Commands},{FPCDIR}bin:"' >> "{MPW}Startup Items:FPC Startup"
+
+# Copy files
+Set Exit 0
+Delete -y "{FPCDIR}" ³ Dev:Null
+Set Exit 1
+NewFolder "{FPCDIR}"
+Duplicate -y "{installerdir}Freepascal":Å "{FPCDIR}"
+
+# Write configuration file
+Echo "# Configuration file for Free Pascal for MPW" > "{FPCDIR}bin:fpc.cfg"
+Echo "-Fu¶'{FPCDIR}units:rtl:¶'" >> "{FPCDIR}bin:fpc.cfg"
+Echo "-l" >> "{FPCDIR}bin:fpc.cfg"
+Echo "-vi" >> "{FPCDIR}bin:fpc.cfg"
+
+Alert 'The installation was successful.'
+
