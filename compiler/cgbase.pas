@@ -573,7 +573,12 @@ implementation
               if not is_special_array(def) then
                 result := int_cgsize(def.size)
               else
-                result := OS_NO;
+                begin
+                  if is_dynamic_array(def) then
+                    result := OS_ADDR
+                  else
+                    result := OS_NO;
+                end;
             end;
           else
             begin
@@ -646,7 +651,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.36  2003-01-08 18:43:56  daniel
+  Revision 1.37  2003-03-20 17:51:45  peter
+    * dynamic arrays have size OS_ADDR
+
+  Revision 1.36  2003/01/08 18:43:56  daniel
    * Tregister changed into a record
 
   Revision 1.35  2003/01/01 21:04:48  peter
