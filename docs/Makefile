@@ -51,7 +51,7 @@ endif
 ifndef LATEX2HTMLOPTS
 LATEX2HTMLOPTS = -no_reuse -up_url "../fpctoc.html"\
                  -up_title "Free Pascal manuals" -contents_in_navigation\
-                 -html_version 3.2 -image_type gif
+                 -html_version 4.0 -split 3
 endif
 
 # Ascii mode ? (i.e. no pics)
@@ -101,7 +101,7 @@ OUT = $(addsuffix .out, $(HTML))
 CHK = $(addsuffix .chk, $(HTML) unitex refex)
 
 CHAPTERS = $(addsuffix .tex, crt dos getopts go32 graph linux printer\
-              strings objects heaptrc sysutils ipc mouse)
+              strings objects heaptrc sysutils ipc mouse gpm)
 
 # Check if ascii-mode requested
 ifeq ($(ASCIIMODE),YES)
@@ -443,7 +443,10 @@ linuxexamples: examples
 
 #
 # $Log$
-# Revision 1.35  2000-02-20 16:27:38  peter
+# Revision 1.36  2000-06-14 19:38:43  michael
+# + Added gpm units, and corrected L2H options
+#
+# Revision 1.35  2000/02/20 16:27:38  peter
 #   * htmlinstall fixes
 #
 # Revision 1.33  2000/01/23 20:15:16  peter
