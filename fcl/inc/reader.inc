@@ -25,7 +25,7 @@ end;
 
 destructor TBinaryObjectReader.Destroy;
 begin
-  { Seek back the amount of bytes that we didn't process unitl now: }
+  { Seek back the amount of bytes that we didn't process until now: }
   FStream.Seek(Integer(FBufPos) - Integer(FBufEnd), soFromCurrent);
 
   if Assigned(FBuffer) then
@@ -709,12 +709,11 @@ begin
             FOnCreateComponent(Self, ComponentClass, Result);
           if not Assigned(Result) then
           begin
-//!!!:            NewComponent := TComponent(ComponentClass.NewInstance);
-	    NewComponent := TComponentClass(ComponentClass).Create(Owner);
+            NewComponent := TComponent(ComponentClass.NewInstance);
             if ffInline in Flags then
 	      NewComponent.FComponentState :=
 	        NewComponent.FComponentState + [csLoading, csInline];
-//!!!:            NewComponent.Create(Owner);
+            NewComponent.Create(Owner);
 
 	    { Don't set Result earlier because else we would come in trouble
 	      with the exception recover mechanism! (Result should be NIL if
@@ -928,6 +927,7 @@ begin
 	  FPropName := DotPos;
 	  break;
 	end;
+	DotPos := NextPos + 1;
 
         PropInfo := GetPropInfo(Instance.ClassInfo, FPropName);
         if not Assigned(PropInfo) then
@@ -1003,6 +1003,8 @@ begin
           raise EReadError.Create(SInvalidPropertyValue);
       end else
         SetOrdProp(Instance, PropInfo, ReadInteger);
+    tkBool:
+      SetOrdProp(Instance, PropInfo, Ord(ReadBoolean));
     tkChar:
       SetOrdProp(Instance, PropInfo, Ord(ReadChar));
     tkEnumeration:
@@ -1051,6 +1053,8 @@ begin
           FFixups.Add(TPropFixup.Create(Instance, Root, PropInfo, '', ReadIdent));
       end;
     tkInt64: SetInt64Prop(Instance, PropInfo, ReadInt64);
+    else
+      raise EReadError.CreateFmt(SUnknownPropertyType, [Ord(PropType^.Kind)]);
   end;
 end;
 
@@ -1092,7 +1096,7 @@ begin
               Inc(i);
               ResultName := CompName + '_' + IntToStr(i);
             end;
-	    ResultName := Result.Name;
+	    Result.Name := ResultName;
           end else
             Result.Name := '';
         end;
@@ -1263,7 +1267,10 @@ end;
 
 {
   $Log$
-  Revision 1.1.2.1  2000-12-20 23:11:25  sg
+  Revision 1.1.2.2  2001-01-10 16:59:38  sg
+  * Merged bugfixes from the main branch and added other small fixes
+
+  Revision 1.1.2.1  2000/12/20 23:11:25  sg
   * Applied bugfixes by Mattias Gaertner for TBinaryObjectReader.ReadSet
     (uninitialized result and missing bit shifting) and
     TReader.ReadRootComponent (finding an unique component name)

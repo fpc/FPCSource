@@ -42,6 +42,7 @@ const
   SInvalidPropertyPath = 'Ungültiger Pfad für Eigenschaft';
   SUnknownProperty = 'Eigenschaft existiert nicht';
   SReadOnlyProperty = 'Eigenschaft kann nur gelesen werden';
+  SUnknownPropertyType = 'Unbekannter Eigenschaftstyp %d';
   SPropertyException = 'Fehler beim Lesen von %s%s: %s';
   SAncestorNotFound = 'Vorfahr für ''%s'' nicht gefunden';
   SInvalidBitmap = 'Bitmap ist ungültig';
@@ -273,7 +274,17 @@ const
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:59  michael
-  + removed logs
- 
+  Revision 1.1.2.1  2001-01-10 16:59:38  sg
+  * Merged bugfixes from the main branch and added other small fixes
+
+  Revision 1.1  2000/07/13 06:31:30  michael
+  + Initial import
+
+  Revision 1.7  2000/06/29 16:29:23  sg
+  * Implemented streaming. Note: The writer driver interface is stable, but
+    the reader interface is not final yet!
+
+  Revision 1.6  2000/02/15 21:57:51  sg
+  * Added copyright notice and CVS log tags where necessary
+
 }
