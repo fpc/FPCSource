@@ -300,7 +300,7 @@ asm
         { setup for aligning x to multiple of 4}
         rlwinm    r10,r3,0,31-2+1,31
         rlwimi    r5,r5,16,0,15
-        beq       cr6,LFillCharDone
+        ble       cr6,LFillCharDone
         { get the start of the data in the cache (and mark it as "will be }
         { modified")                                                      }
         dcbst     0,r3
@@ -413,22 +413,15 @@ asm
         r3              x
         r4              count
         r5              value
-        r13             value.value
-        r14             ptr to dest word
-        r15             increment 1
-        r16             increment 2
-        r17             scratch
-        r18             scratch
-        f1              value.value.value.value
 }
                 cmpwi   cr0,r3,0
                 mtctr   r4
                 subi    r3,r3,4
-                ble    .FillWordEnd    //if count<=0 Then Exit
-.FillWordLoop:
+                ble    LFillDWordEnd    //if count<=0 Then Exit
+LFillDWordLoop:
                 stwu    r5,4(r3)
-                bdnz    .FillWordLoop
-.FillWordEnd:
+                bdnz    LFillDWordLoop
+LFillDWordEnd:
 end ['R3','R4','R5','CTR'];
 
 
@@ -445,7 +438,7 @@ asm
                 mr      r0,r3
                 { assume not found }
                 li      r3,-1
-                beq     LIndexByteDone
+                ble     LIndexByteDone
 LIndexByteLoop:
                 lbzu    r9,1(r10)
                 cmplw   r9,r5
@@ -470,7 +463,7 @@ asm
                 mr      r0,r3
                 { assume not found }
                 li      r3,-1
-                beq     LIndexWordDone
+                ble     LIndexWordDone
 LIndexWordLoop:
                 lhzu    r9,2(r10)
                 cmplw   r9,r5
@@ -495,7 +488,7 @@ asm
                 mr      r0,r3
                 { assume not found }
                 li      r3,-1
-                beq     LIndexDWordDone
+                ble     LIndexDWordDone
 LIndexDWordLoop:
                 lwzu    r9,4(r30)
                 cmplw   r9,r5
@@ -520,7 +513,7 @@ asm
         subi    r11,r3,1
         subi    r4,r4,1
         li      r3,0
-        beq     LCompByteDone
+        ble     LCompByteDone
 LCompByteLoop:
         { load next chars }
         lbzu    r9,1(r11)
@@ -546,7 +539,7 @@ asm
         subi    r11,r3,2
         subi    r4,r4,2
         li      r3,0
-        beq     LCompWordDone
+        ble     LCompWordDone
 LCompWordLoop:
         { load next chars }
         lhzu    r9,2(r11)
@@ -573,7 +566,7 @@ asm
         subi    r11,r3,4
         subi    r4,r4,4
         li      r3,0
-        beq     LCompDWordDone
+        ble     LCompDWordDone
 LCompDWordLoop:
         { load next chars }
         lwzu    r9,4(r11)
@@ -596,12 +589,11 @@ asm
         cmplwi  r4,0
         mtctr   r4
         subi    r9,r3,1
-        mr      r0,r9
+        subi    r0,r3,1
         { assume not found }
         li      r3,-1
         { if yes, do nothing }
-        beq     LIndexChar0Done
-        subi    r3,r3,1
+        ble     LIndexChar0Done
 LIndexChar0Loop:
         lbzu    r10,1(r9)
         cmplwi  cr1,r10,0
@@ -965,7 +957,10 @@ end ['R3','R10'];
 
 {
   $Log$
-  Revision 1.23  2002-10-17 10:12:50  jonas
+  Revision 1.24  2002-10-20 13:40:55  jonas
+    * move/fill*/index*/comp* routines immediately exit if length is negative
+
+  Revision 1.23  2002/10/17 10:12:50  jonas
     * fixed return value of declocked()
 
   Revision 1.22  2002/10/05 14:20:16  peter
