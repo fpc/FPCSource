@@ -66,7 +66,7 @@ interface
          { generation }
          cs_profile,cs_debuginfo,cs_browser,cs_local_browser,cs_compilesystem,
          { linking }
-         cs_smartlink,cs_create_sharedlib,cs_create_staticlib
+         cs_smartlink
        );
        tmoduleswitches = set of tmoduleswitch;
 
@@ -89,7 +89,7 @@ interface
          cs_asm_leave,cs_asm_extern,cs_asm_pipe,cs_asm_source,
          cs_asm_regalloc,cs_asm_tempalloc,
          { linking }
-         cs_link_extern,cs_link_shared,cs_link_static,cs_link_deffile
+         cs_link_extern,cs_link_static,cs_link_smart,cs_link_shared,cs_link_deffile
        );
        tglobalswitches = set of tglobalswitch;
 
@@ -107,10 +107,14 @@ interface
        tmodeswitches = set of tmodeswitch;
 
        { win32 sub system }
-       tapptype = (at_gui,at_cui);
+       tapptype = (at_none,
+         at_gui,at_cui
+       );
 
        { currently parsed block type }
-       tblock_type = (bt_general,bt_type,bt_const);
+       tblock_type = (bt_none,
+         bt_general,bt_type,bt_const
+       );
 
        stringid = string[maxidlen];
 
@@ -122,6 +126,15 @@ interface
        pword      = ^word;
        plongint   = ^longint;
 
+    const
+       { link options }
+       link_none    = $0;
+       link_allways = $1;
+       link_static  = $2;
+       link_smart   = $4;
+       link_shared  = $8;
+
+
 implementation
 
 
@@ -129,7 +142,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  1999-05-17 14:30:39  pierre
+  Revision 1.11  1999-07-03 00:29:49  peter
+    * new link writing to the ppu, one .ppu is needed for all link types,
+      static (.o) is now always created also when smartlinking is used
+
+  Revision 1.10  1999/05/17 14:30:39  pierre
    + cs_checkpointer
 
   Revision 1.9  1999/05/12 00:19:49  peter

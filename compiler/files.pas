@@ -24,8 +24,25 @@
 unit files;
 
 {$ifdef TP}
-{$V+}
+  {$V+}
 {$endif}
+
+{$ifdef TP}
+  {$define SHORTASMPREFIX}
+{$endif}
+{$ifdef go32v1}
+  {$define SHORTASMPREFIX}
+{$endif}
+{$ifdef go32v2}
+  {$define SHORTASMPREFIX}
+{$endif}
+{$ifdef OS2}
+  { Allthough OS/2 supports long filenames I play it safe and
+    use 8.3 filenames, because this allows the compiler to run
+    on a FAT partition. (DM) }
+  {$define SHORTASMPREFIX}
+{$endif}
+
 
   interface
 
@@ -107,8 +124,23 @@ unit files;
           function  get_file_path(l :longint):string;
        end;
 
+       plinkcontaineritem=^tlinkcontaineritem;
+       tlinkcontaineritem=object(tcontaineritem)
+          data     : pstring;
+          needlink : longint;
+          constructor init(const s:string;m:longint);
+          destructor  done;virtual;
+       end;
 
-    type
+       plinkcontainer=^tlinkcontainer;
+       tlinkcontainer=object(tcontainer)
+          constructor Init;
+          procedure insert(const s : string;m:longint);
+          function get(var m:longint) : string;
+          function getusemask(mask:longint) : string;
+          function find(const s:string):boolean;
+       end;
+
 {$ifndef NEWMAP}
        tunitmap = array[0..maxunits-1] of pointer;
        punitmap = ^tunitmap;
@@ -150,13 +182,18 @@ unit files;
           _exports      : plinkedlist;
 
           sourcefiles   : pfilemanager;
-          resourcefiles,
-          linksharedlibs,
-          linkstaticlibs,
-          linkunitfiles,
-          linkofiles    : tstringcontainer;
-          used_units    : tlinkedlist;
-          dependent_units : tlinkedlist;
+          resourcefiles : tstringcontainer;
+
+          linkunitofiles,
+          linkunitstaticlibs,
+          linkunitsharedlibs,
+          linkotherofiles,           { objects,libs loaded from the source }
+          linkothersharedlibs,       { using $L or $LINKLIB or import lib (for linux) }
+          linkotherstaticlibs  : tlinkcontainer;
+
+          used_units           : tlinkedlist;
+          dependent_units      : tlinkedlist;
+
           localunitsearchpath,           { local searchpaths }
           localobjectsearchpath,
           localincludesearchpath,
@@ -645,6 +682,101 @@ uses
 
 
 {****************************************************************************
+                             TLinkContainerItem
+ ****************************************************************************}
+
+constructor TLinkContainerItem.Init(const s:string;m:longint);
+begin
+  inherited Init;
+  data:=stringdup(s);
+  needlink:=m;
+end;
+
+
+destructor TLinkContainerItem.Done;
+begin
+  stringdispose(data);
+end;
+
+
+{****************************************************************************
+                           TLinkContainer
+ ****************************************************************************}
+
+    constructor TLinkContainer.Init;
+      begin
+        inherited init;
+      end;
+
+
+    procedure TLinkContainer.insert(const s : string;m:longint);
+      var
+        newnode : plinkcontaineritem;
+      begin
+         if find(s) then
+          exit;
+         new(newnode,init(s,m));
+         inherited insert(newnode);
+      end;
+
+
+    function TLinkContainer.get(var m:longint) : string;
+      var
+        p : plinkcontaineritem;
+      begin
+        p:=plinkcontaineritem(inherited get);
+        if p=nil then
+         begin
+           get:='';
+           m:=0;
+           exit;
+         end;
+        get:=p^.data^;
+        m:=p^.needlink;
+        dispose(p,done);
+      end;
+
+
+    function TLinkContainer.getusemask(mask:longint) : string;
+      var
+         p : plinkcontaineritem;
+         found : boolean;
+      begin
+        found:=false;
+        repeat
+          p:=plinkcontaineritem(inherited get);
+          if p=nil then
+           begin
+             getusemask:='';
+             exit;
+           end;
+          getusemask:=p^.data^;
+          found:=(p^.needlink and mask)<>0;
+          dispose(p,done);
+        until found;
+      end;
+
+
+    function TLinkContainer.find(const s:string):boolean;
+      var
+        newnode : plinkcontaineritem;
+      begin
+        find:=false;
+        newnode:=plinkcontaineritem(root);
+        while assigned(newnode) do
+         begin
+           if newnode^.data^=s then
+            begin
+              find:=true;
+              exit;
+            end;
+           newnode:=plinkcontaineritem(newnode^.next);
+         end;
+      end;
+
+
+
+{****************************************************************************
                                   TMODULE
  ****************************************************************************}
 
@@ -700,9 +832,9 @@ uses
 
     function tmodule.openppu:boolean;
       var
-         objfiletime,
-         ppufiletime,
-         asmfiletime : longint;
+        objfiletime,
+        ppufiletime,
+        asmfiletime : longint;
       begin
         openppu:=false;
         Message1(unit_t_ppu_loading,ppufilename^);
@@ -762,7 +894,7 @@ uses
         do_compile:=false;
         if (flags and uf_in_library)=0 then
          begin
-           if (flags and (uf_static_linked or uf_smartlink))<>0 then
+           if (flags and uf_smart_linked)<>0 then
             begin
               objfiletime:=getnamedfiletime(staticlibfilename^);
               Message2(unit_u_check_time,staticlibfilename^,filetimestring(objfiletime));
@@ -772,47 +904,34 @@ uses
                   do_compile:=true;
                   exit;
                 end;
-            end
-           else
-            if (flags and uf_shared_linked)<>0 then
-             begin
-               objfiletime:=getnamedfiletime(sharedlibfilename^);
-               Message2(unit_u_check_time,sharedlibfilename^,filetimestring(objfiletime));
-               if (ppufiletime<0) or (objfiletime<0) or (ppufiletime>objfiletime) then
-                begin
-                  Message(unit_u_recompile_sharedlib_is_older);
-                  do_compile:=true;
-                  exit;
-                end;
-             end
-           else
-            if (flags and uf_obj_linked)<>0 then
-             begin
-             { the objectfile should be newer than the ppu file }
-               objfiletime:=getnamedfiletime(objfilename^);
-               Message2(unit_u_check_time,objfilename^,filetimestring(objfiletime));
-               if (ppufiletime<0) or (objfiletime<0) or (ppufiletime>objfiletime) then
-                begin
-                { check if assembler file is older than ppu file }
-                  asmfileTime:=GetNamedFileTime(asmfilename^);
-                  Message2(unit_u_check_time,asmfilename^,filetimestring(asmfiletime));
-                  if (asmfiletime<0) or (ppufiletime>asmfiletime) then
-                   begin
-                     Message(unit_u_recompile_obj_and_asm_older);
-                     do_compile:=true;
-                     exit;
-                   end
-                  else
-                   begin
-                     Message(unit_u_recompile_obj_older_than_asm);
-                     if not(cs_asm_extern in aktglobalswitches) then
-                      begin
-                        do_compile:=true;
-                        exit;
-                      end;
-                   end;
-                end;
-             end;
+            end;
+           if (flags and uf_static_linked)<>0 then
+            begin
+              { the objectfile should be newer than the ppu file }
+              objfiletime:=getnamedfiletime(objfilename^);
+              Message2(unit_u_check_time,objfilename^,filetimestring(objfiletime));
+              if (ppufiletime<0) or (objfiletime<0) or (ppufiletime>objfiletime) then
+               begin
+                 { check if assembler file is older than ppu file }
+                 asmfileTime:=GetNamedFileTime(asmfilename^);
+                 Message2(unit_u_check_time,asmfilename^,filetimestring(asmfiletime));
+                 if (asmfiletime<0) or (ppufiletime>asmfiletime) then
+                  begin
+                    Message(unit_u_recompile_obj_and_asm_older);
+                    do_compile:=true;
+                    exit;
+                  end
+                 else
+                  begin
+                    Message(unit_u_recompile_obj_older_than_asm);
+                    if not(cs_asm_extern in aktglobalswitches) then
+                     begin
+                       do_compile:=true;
+                       exit;
+                     end;
+                  end;
+               end;
+            end;
          end;
         openppu:=true;
       end;
@@ -978,15 +1097,19 @@ uses
         dependent_units.done;
         dependent_units.init;
         resourcefiles.done;
-        resourcefiles.init_no_double;
-        linkunitfiles.done;
-        linkunitfiles.init_no_double;
-        linkofiles.done;
-        linkofiles.init_no_double;
-        linkstaticlibs.done;
-        linkstaticlibs.init_no_double;
-        linksharedlibs.done;
-        linksharedlibs.init_no_double;
+        resourcefiles.init;
+        linkunitofiles.done;
+        linkunitofiles.init;
+        linkunitstaticlibs.done;
+        linkunitstaticlibs.init;
+        linkunitsharedlibs.done;
+        linkunitsharedlibs.init;
+        linkotherofiles.done;
+        linkotherofiles.init;
+        linkotherstaticlibs.done;
+        linkotherstaticlibs.init;
+        linkothersharedlibs.done;
+        linkothersharedlibs.init;
         uses_imports:=false;
         do_assemble:=false;
         do_compile:=false;
@@ -1009,79 +1132,70 @@ uses
         n : namestr;
         e : extstr;
       begin
-         FSplit(s,p,n,e);
+        FSplit(s,p,n,e);
       { Programs have the name program to don't conflict with dup id's }
-         if _is_unit then
-           modulename:=stringdup(Upper(n))
-         else
-           modulename:=stringdup('PROGRAM');
-         mainsource:=stringdup(s);
-         ppufilename:=nil;
-         objfilename:=nil;
-         asmfilename:=nil;
-         staticlibfilename:=nil;
-         sharedlibfilename:=nil;
-         exefilename:=nil;
-         outpath:=nil;
-         { Dos has the famous 8.3 limit :( }
-{$ifdef tp}
-         asmprefix:=stringdup(FixFileName('as'));
+        if _is_unit then
+          modulename:=stringdup(Upper(n))
+        else
+          modulename:=stringdup('PROGRAM');
+        mainsource:=stringdup(s);
+        ppufilename:=nil;
+        objfilename:=nil;
+        asmfilename:=nil;
+        staticlibfilename:=nil;
+        sharedlibfilename:=nil;
+        exefilename:=nil;
+        outpath:=nil;
+        { Dos has the famous 8.3 limit :( }
+{$ifdef SHORTASMPREFIX}
+        asmprefix:=stringdup(FixFileName('as'));
 {$else}
-  {$ifdef go32v2}
-         asmprefix:=stringdup(FixFileName('as'));
-  {$else}
-    {$ifdef OS2}
-         {Allthough OS/2 supports long filenames I play it safe and
-          use 8.3 filenames, because this allows the compiler to run
-          on a FAT partition. (DM)}
-         asmprefix:=stringdup(FixFileName('as'));
-    {$else}
-         asmprefix:=stringdup(FixFileName(n));
-    {$endif}
-  {$endif}
-{$endif tp}
-         path:=nil;
-         setfilename(p+n,true);
-         localunitsearchpath:=nil;
-         localobjectsearchpath:=nil;
-         localincludesearchpath:=nil;
-         locallibrarysearchpath:=nil;
-         used_units.init;
-         dependent_units.init;
-         new(sourcefiles,init);
-         resourcefiles.init_no_double;
-         linkunitfiles.init_no_double;
-         linkofiles.init_no_double;
-         linkstaticlibs.init_no_double;
-         linksharedlibs.init_no_double;
-         ppufile:=nil;
-         scanner:=nil;
-         map:=nil;
-         globalsymtable:=nil;
-         localsymtable:=nil;
-         loaded_from:=nil;
-         flags:=0;
-         crc:=0;
-         interface_crc:=0;
-         do_reload:=false;
-         unitcount:=1;
-         inc(global_unit_count);
-         unit_index:=global_unit_count;
-         do_assemble:=false;
-         do_compile:=false;
-         sources_avail:=true;
-         compiled:=false;
-         in_second_compile:=false;
-         in_implementation:=false;
-         in_global:=true;
-         is_unit:=_is_unit;
-         islibrary:=false;
-         uses_imports:=false;
-         imports:=new(plinkedlist,init);
-         _exports:=new(plinkedlist,init);
-       { search the PPU file if it is an unit }
-         if is_unit then
-          search_unit(modulename^,false);
+        asmprefix:=stringdup(FixFileName(n));
+{$endif}
+        path:=nil;
+        setfilename(p+n,true);
+        localunitsearchpath:=nil;
+        localobjectsearchpath:=nil;
+        localincludesearchpath:=nil;
+        locallibrarysearchpath:=nil;
+        used_units.init;
+        dependent_units.init;
+        new(sourcefiles,init);
+        resourcefiles.init;
+        linkunitofiles.init;
+        linkunitstaticlibs.init;
+        linkunitsharedlibs.init;
+        linkotherofiles.init;
+        linkotherstaticlibs.init;
+        linkothersharedlibs.init;
+        ppufile:=nil;
+        scanner:=nil;
+        map:=nil;
+        globalsymtable:=nil;
+        localsymtable:=nil;
+        loaded_from:=nil;
+        flags:=0;
+        crc:=0;
+        interface_crc:=0;
+        do_reload:=false;
+        unitcount:=1;
+        inc(global_unit_count);
+        unit_index:=global_unit_count;
+        do_assemble:=false;
+        do_compile:=false;
+        sources_avail:=true;
+        compiled:=false;
+        in_second_compile:=false;
+        in_implementation:=false;
+        in_global:=true;
+        is_unit:=_is_unit;
+        islibrary:=false;
+        uses_imports:=false;
+        imports:=new(plinkedlist,init);
+        _exports:=new(plinkedlist,init);
+      { search the PPU file if it is an unit }
+        if is_unit then
+         search_unit(modulename^,false);
       end;
 
 
@@ -1106,10 +1220,12 @@ uses
         used_units.done;
         dependent_units.done;
         resourcefiles.done;
-        linkunitfiles.done;
-        linkofiles.done;
-        linkstaticlibs.done;
-        linksharedlibs.done;
+        linkunitofiles.done;
+        linkunitstaticlibs.done;
+        linkunitsharedlibs.done;
+        linkotherofiles.done;
+        linkotherstaticlibs.done;
+        linkothersharedlibs.done;
         stringdispose(objfilename);
         stringdispose(asmfilename);
         stringdispose(ppufilename);
@@ -1186,7 +1302,11 @@ uses
 end.
 {
   $Log$
-  Revision 1.95  1999-05-13 21:59:25  peter
+  Revision 1.96  1999-07-03 00:29:47  peter
+    * new link writing to the ppu, one .ppu is needed for all link types,
+      static (.o) is now always created also when smartlinking is used
+
+  Revision 1.95  1999/05/13 21:59:25  peter
     * removed oldppu code
     * warning if objpas is loaded from uses
     * first things for new deref writing

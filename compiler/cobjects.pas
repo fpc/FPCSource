@@ -68,14 +68,6 @@ unit cobjects;
        end;
 
 
-       { some help data types }
-       pstringitem = ^tstringitem;
-       tstringitem = record
-          data : pstring;
-          next : pstringitem;
-          fileinfo : tfileposinfo; { pointer to tinputfile }
-       end;
-
        plinkedlist_item = ^tlinkedlist_item;
        tlinkedlist_item = object
           next,previous : plinkedlist_item;
@@ -125,11 +117,17 @@ unit cobjects;
           function  empty:boolean;
        end;
 
+       { some help data types }
+       pstringqueueitem = ^tstringqueueitem;
+       tstringqueueitem = object
+          data : pstring;
+          next : pstringqueueitem;
+       end;
 
        { String Queue}
        PStringQueue=^TStringQueue;
        TStringQueue=object
-         first,last : PStringItem;
+         first,last : PStringqueueItem;
          constructor Init;
          destructor Done;
          function Empty:boolean;
@@ -139,36 +137,58 @@ unit cobjects;
          procedure Clear;
        end;
 
-
-       { string container }
-       pstringcontainer = ^tstringcontainer;
-       tstringcontainer = object
-          root,
-          last    : pstringitem;
-          doubles : boolean;  { if this is set to true, doubles are allowed }
+       { containeritem }
+       pcontaineritem = ^tcontaineritem;
+       tcontaineritem = object
+          next : pcontaineritem;
           constructor init;
-          constructor init_no_double;
-          destructor done;
+          destructor  done;virtual;
+       end;
 
+       { container }
+       pcontainer = ^tcontainer;
+       tcontainer = object
+          root,
+          last    : pcontaineritem;
+          constructor init;
+          destructor  done;
           { true when the container is empty }
-          function empty:boolean;
-
+          function  empty:boolean;
           { inserts a string }
-          procedure insert(const s : string);
-          procedure insert_with_tokeninfo(const s : string;const file_info : tfileposinfo);
-
+          procedure insert(item:pcontaineritem);
           { gets a string }
-          function get : string;
-          function get_with_tokeninfo(var file_info : tfileposinfo) : string;
-
-          { true if string is in the container }
-          function find(const s:string):boolean;
-
-          { deletes all strings }
+          function  get:pcontaineritem;
+          { deletes all items }
           procedure clear;
        end;
 
+       { containeritem }
+       pstringcontaineritem = ^tstringcontaineritem;
+       tstringcontaineritem = object(tcontaineritem)
+          data : pstring;
+          file_info : tfileposinfo;
+          constructor init(const s:string);
+          constructor Init_TokenInfo(const s:string;const pos:tfileposinfo);
+          destructor  done;virtual;
+       end;
 
+       { string container }
+       pstringcontainer = ^tstringcontainer;
+       tstringcontainer = object(tcontainer)
+          doubles : boolean;  { if this is set to true, doubles are allowed }
+          constructor init;
+          constructor init_no_double;
+          procedure insert(const s : string);
+          procedure insert_with_tokeninfo(const s : string;const file_info : tfileposinfo);
+          { gets a string }
+          function get : string;
+          function get_with_tokeninfo(var file_info : tfileposinfo) : string;
+          { true if string is in the container }
+          function find(const s:string):boolean;
+       end;
+
+
+       { namedindexobject for use with dictionary and indexarray }
        Pnamedindexobject=^Tnamedindexobject;
        Tnamedindexobject=object
          indexnr    : longint;
@@ -578,7 +598,7 @@ end;
 
 function TStringQueue.Get:string;
 var
-  newnode : pstringitem;
+  newnode : pstringqueueitem;
 begin
   if first=nil then
    begin
@@ -595,7 +615,7 @@ end;
 
 procedure TStringQueue.Insert(const s:string);
 var
-  newnode : pstringitem;
+  newnode : pstringqueueitem;
 begin
   new(newnode);
   newnode^.next:=first;
@@ -608,7 +628,7 @@ end;
 
 procedure TStringQueue.Concat(const s:string);
 var
-  newnode : pstringitem;
+  newnode : pstringqueueitem;
 begin
   new(newnode);
   newnode^.next:=nil;
@@ -623,7 +643,7 @@ end;
 
 procedure TStringQueue.Clear;
 var
-  newnode : pstringitem;
+  newnode : pstringqueueitem;
 begin
   while (first<>nil) do
    begin
@@ -640,146 +660,194 @@ begin
   Clear;
 end;
 
+
+{****************************************************************************
+                                TContainerItem
+ ****************************************************************************}
+
+constructor TContainerItem.Init;
+begin
+end;
+
+
+destructor TContainerItem.Done;
+begin
+end;
+
+
+{****************************************************************************
+                             TStringContainerItem
+ ****************************************************************************}
+
+constructor TStringContainerItem.Init(const s:string);
+begin
+  inherited Init;
+  data:=stringdup(s);
+  file_info.fileindex:=0;
+  file_info.line:=0;
+  file_info.column:=0;
+end;
+
+
+constructor TStringContainerItem.Init_TokenInfo(const s:string;const pos:tfileposinfo);
+begin
+  inherited Init;
+  data:=stringdup(s);
+  file_info:=pos;
+end;
+
+
+destructor TStringContainerItem.Done;
+begin
+  stringdispose(data);
+end;
+
+
+
+{****************************************************************************
+                                   TCONTAINER
+ ****************************************************************************}
+
+    constructor tcontainer.init;
+      begin
+         root:=nil;
+         last:=nil;
+      end;
+
+
+    destructor tcontainer.done;
+      begin
+         clear;
+      end;
+
+
+    function tcontainer.empty:boolean;
+      begin
+        empty:=(root=nil);
+      end;
+
+
+    procedure tcontainer.insert(item:pcontaineritem);
+      begin
+         item^.next:=nil;
+         if root=nil then
+          root:=item
+         else
+          last^.next:=item;
+         last:=item;
+      end;
+
+
+    procedure tcontainer.clear;
+      var
+         newnode : pcontaineritem;
+      begin
+         newnode:=root;
+         while assigned(newnode) do
+           begin
+              root:=newnode^.next;
+              dispose(newnode,done);
+              newnode:=root;
+           end;
+         last:=nil;
+         root:=nil;
+      end;
+
+
+    function tcontainer.get:pcontaineritem;
+      begin
+         if root=nil then
+          get:=nil
+         else
+          begin
+            get:=root;
+            root:=root^.next;
+          end;
+      end;
+
+
 {****************************************************************************
                            TSTRINGCONTAINER
  ****************************************************************************}
 
     constructor tstringcontainer.init;
       begin
-         root:=nil;
-         last:=nil;
+         inherited init;
          doubles:=true;
       end;
 
 
     constructor tstringcontainer.init_no_double;
       begin
-         root:=nil;
-         last:=nil;
          doubles:=false;
-      end;
-
-
-    destructor tstringcontainer.done;
-      begin
-         clear;
-      end;
-
-
-    function tstringcontainer.empty:boolean;
-      begin
-        empty:=(root=nil);
       end;
 
 
     procedure tstringcontainer.insert(const s : string);
       var
-        newnode : pstringitem;
+        newnode : pstringcontaineritem;
       begin
-         if not(doubles) then
-           begin
-              newnode:=root;
-              while assigned(newnode) do
-                begin
-                   if newnode^.data^=s then exit;
-                   newnode:=newnode^.next;
-                end;
-           end;
-         new(newnode);
-         newnode^.next:=nil;
-         newnode^.data:=stringdup(s);
-         if root=nil then root:=newnode
-           else last^.next:=newnode;
-         last:=newnode;
+         if (s='') or
+            ((not doubles) and find(s)) then
+          exit;
+         new(newnode,init(s));
+         inherited insert(newnode);
       end;
 
 
     procedure tstringcontainer.insert_with_tokeninfo(const s : string; const file_info : tfileposinfo);
       var
-         newnode : pstringitem;
+        newnode : pstringcontaineritem;
       begin
-         if not(doubles) then
-           begin
-              newnode:=root;
-              while assigned(newnode) do
-                begin
-                   if newnode^.data^=s then exit;
-                   newnode:=newnode^.next;
-                end;
-           end;
-         new(newnode);
-         newnode^.next:=nil;
-         newnode^.data:=stringdup(s);
-         newnode^.fileinfo:=file_info;
-         if root=nil then root:=newnode
-           else last^.next:=newnode;
-         last:=newnode;
-      end;
-
-
-    procedure tstringcontainer.clear;
-      var
-         newnode : pstringitem;
-      begin
-         newnode:=root;
-         while assigned(newnode) do
-           begin
-              stringdispose(newnode^.data);
-              root:=newnode^.next;
-              dispose(newnode);
-              newnode:=root;
-           end;
-         last:=nil;
-         root:=nil;
+         if (not doubles) and find(s) then
+          exit;
+         new(newnode,init_tokeninfo(s,file_info));
+         inherited insert(newnode);
       end;
 
 
     function tstringcontainer.get : string;
       var
-         newnode : pstringitem;
+         p : pstringcontaineritem;
       begin
-         if root=nil then
+         p:=pstringcontaineritem(inherited get);
+         if p=nil then
           get:=''
          else
           begin
-            get:=root^.data^;
-            newnode:=root;
-            root:=root^.next;
-            stringdispose(newnode^.data);
-            dispose(newnode);
+            get:=p^.data^;
+            dispose(p,done);
           end;
       end;
 
 
     function tstringcontainer.get_with_tokeninfo(var file_info : tfileposinfo) : string;
       var
-         newnode : pstringitem;
+         p : pstringcontaineritem;
       begin
-         if root=nil then
+         p:=pstringcontaineritem(inherited get);
+         if p=nil then
           begin
-             get_with_tokeninfo:='';
-             file_info.fileindex:=0;
-             file_info.line:=0;
-             file_info.column:=0;
+            get_with_tokeninfo:='';
+            file_info.fileindex:=0;
+            file_info.line:=0;
+            file_info.column:=0;
           end
          else
           begin
-            get_with_tokeninfo:=root^.data^;
-            newnode:=root;
-            root:=root^.next;
-            stringdispose(newnode^.data);
-            file_info:=newnode^.fileinfo;
-            dispose(newnode);
+            get_with_tokeninfo:=p^.data^;
+            file_info:=p^.file_info;
+            dispose(p,done);
           end;
       end;
 
 
     function tstringcontainer.find(const s:string):boolean;
       var
-         newnode : pstringitem;
+        newnode : pstringcontaineritem;
       begin
         find:=false;
-        newnode:=root;
+        newnode:=pstringcontaineritem(root);
         while assigned(newnode) do
          begin
            if newnode^.data^=s then
@@ -787,7 +855,7 @@ end;
               find:=true;
               exit;
             end;
-           newnode:=newnode^.next;
+           newnode:=pstringcontaineritem(newnode^.next);
          end;
       end;
 
@@ -2136,7 +2204,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.36  1999-06-23 11:13:20  peter
+  Revision 1.37  1999-07-03 00:29:45  peter
+    * new link writing to the ppu, one .ppu is needed for all link types,
+      static (.o) is now always created also when smartlinking is used
+
+  Revision 1.36  1999/06/23 11:13:20  peter
     * fixed linebreak
 
   Revision 1.35  1999/06/23 11:07:23  daniel

@@ -74,7 +74,7 @@ uses
   dmisc,
 {$endif Delphi}
   globtype,systems,
-  script,globals,verbose
+  script,globals,verbose,ppu
 {$ifdef i386}
   ,win_targ
 {$endif}
@@ -139,17 +139,69 @@ end;
 
 
 procedure TLinker.AddModuleFiles(hp:pmodule);
+var
+  mask : longint;
 begin
   with hp^ do
    begin
-     while not linkunitfiles.empty do
-      AddObject(linkunitfiles.Get);
-     while not linkofiles.empty do
-      AddObject(linkofiles.Get);
-     while not linksharedlibs.empty do
-      AddSharedLibrary(linksharedlibs.Get);
-     while not linkstaticlibs.empty do
-      AddStaticLibrary(linkstaticlibs.Get);
+     { create mask which unit files need linking }
+     mask:=link_allways;
+     { static linking ? }
+     if (cs_link_static in aktglobalswitches) then
+      begin
+        if (flags and uf_static_linked)=0 then
+          Comment(V_Error,'unit '+modulename^+' can''t be static linked')
+        else
+          mask:=mask or link_static;
+      end;
+     { smart linking ? }
+     if (cs_link_smart in aktglobalswitches) then
+      begin
+        if (flags and uf_smart_linked)=0 then
+         begin
+           { if smart not avail then try static linking }
+           if (flags and uf_static_linked)<>0 then
+            begin
+              Comment(V_Error,'unit '+modulename^+' can''t be smart linked, switching to static linking');
+              mask:=mask or link_static;
+            end
+           else
+            Comment(V_Error,'unit '+modulename^+' can''t be smart or static linked');
+         end
+        else
+         mask:=mask or link_smart;
+      end;
+     { shared linking }
+     if (cs_link_shared in aktglobalswitches) then
+      begin
+        if (flags and uf_shared_linked)=0 then
+         begin
+           { if shared not avail then try static linking }
+           if (flags and uf_static_linked)<>0 then
+            begin
+              Comment(V_Error,'unit '+modulename^+' can''t be shared linked, switching to static linking');
+              mask:=mask or link_static;
+            end
+           else
+            Comment(V_Error,'unit '+modulename^+' can''t be shared or static linked');
+         end
+        else
+         mask:=mask or link_shared;
+      end;
+     { unit files }
+     while not linkunitofiles.empty do
+      AddObject(linkunitofiles.getusemask(mask));
+     while not linkunitstaticlibs.empty do
+      AddStaticLibrary(linkunitstaticlibs.getusemask(mask));
+     while not linkunitsharedlibs.empty do
+      AddSharedLibrary(linkunitsharedlibs.getusemask(mask));
+     { Other needed .o and libs, specified using $L,$LINKLIB,external }
+     while not linkotherofiles.empty do
+      AddObject(linkotherofiles.Getusemask(mask));
+     while not linkotherstaticlibs.empty do
+      AddStaticLibrary(linkotherstaticlibs.Getusemask(mask));
+     while not linkothersharedlibs.empty do
+      AddSharedLibrary(linkothersharedlibs.Getusemask(mask));
    end;
 end;
 
@@ -184,6 +236,9 @@ function TLinker.FindObjectFile(s:string) : string;
 var
   found : boolean;
 begin
+  findobjectfile:='';
+  if s='' then
+   exit;
   if pos('.',s)=0 then
    s:=s+target_info.objext;
   s:=FixFileName(s);
@@ -218,6 +273,9 @@ function TLinker.FindLibraryFile(s:string;const ext:string) : string;
 var
   found : boolean;
 begin
+  findlibraryfile:='';
+  if s='' then
+   exit;
   if pos('.',s)=0 then
    s:=s+ext;
   if FileExists(s) then
@@ -652,7 +710,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.57  1999-06-28 16:02:31  peter
+  Revision 1.58  1999-07-03 00:29:51  peter
+    * new link writing to the ppu, one .ppu is needed for all link types,
+      static (.o) is now always created also when smartlinking is used
+
+  Revision 1.57  1999/06/28 16:02:31  peter
     * merged
 
   Revision 1.54.2.3  1999/06/28 15:55:40  peter

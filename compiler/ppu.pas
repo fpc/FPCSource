@@ -61,19 +61,21 @@ const
   ibendbrowser        = 254;
   ibend               = 255;
   {general}
-  ibmodulename     = 1;
-  ibsourcefiles    = 2;
-  ibloadunit       = 3;
-  ibinitunit       = 5;
-  iblinkofiles     = 6;
-  iblinksharedlibs = 7;
-  iblinkstaticlibs = 8;
-  ibdbxcount       = 9;
-  ibsymref         = 10;
-  ibdefref         = 11;
-  ibendsymtablebrowser   = 12;
-  ibbeginsymtablebrowser = 13;
-  iblinkunitfiles  = 14;
+  ibmodulename           = 1;
+  ibsourcefiles          = 2;
+  ibloadunit             = 3;
+  ibinitunit             = 4;
+  iblinkunitofiles       = 5;
+  iblinkunitstaticlibs   = 6;
+  iblinkunitsharedlibs   = 7;
+  iblinkotherofiles      = 8;
+  iblinkotherstaticlibs  = 9;
+  iblinkothersharedlibs  = 10;
+  ibdbxcount             = 11;
+  ibsymref               = 12;
+  ibdefref               = 13;
+  ibendsymtablebrowser   = 14;
+  ibbeginsymtablebrowser = 15;
   {syms}
   ibtypesym       = 20;
   ibprocsym       = 21;
@@ -113,12 +115,11 @@ const
   uf_big_endian    = $4;
   uf_has_dbx       = $8;
   uf_has_browser   = $10;
-  uf_smartlink     = $20;  { the ppu is smartlinked }
-  uf_in_library    = $40;  { is the file in another file than <ppufile>.* ? }
-  uf_static_linked = $80;  { the ppu is linked in a static library }
-  uf_shared_linked = $100; { the ppu is linked in a shared library }
+  uf_in_library    = $20;  { is the file in another file than <ppufile>.* ? }
+  uf_smart_linked  = $40;  { the ppu can be smartlinked }
+  uf_static_linked = $80;  { the ppu can be linked static }
+  uf_shared_linked = $100; { the ppu can be linked shared }
   uf_local_browser = $200;
-  uf_obj_linked    = $400; { the ppu is linked in a object file }
 
 type
 {$ifdef m68k}
@@ -868,7 +869,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.33  1999-05-13 21:59:36  peter
+  Revision 1.34  1999-07-03 00:29:57  peter
+    * new link writing to the ppu, one .ppu is needed for all link types,
+      static (.o) is now always created also when smartlinking is used
+
+  Revision 1.33  1999/05/13 21:59:36  peter
     * removed oldppu code
     * warning if objpas is loaded from uses
     * first things for new deref writing

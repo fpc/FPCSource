@@ -1121,7 +1121,7 @@ unit globals;
         initoptprocessor:=Class386;
         initlocalswitches:=[];
         initmoduleswitches:=[cs_extsyntax,cs_browser];
-        initglobalswitches:=[cs_check_unit_name];
+        initglobalswitches:=[cs_check_unit_name,cs_link_static];
         initmodeswitches:=fpcmodeswitches;
         initpackenum:=4;
         initpackrecords:=2;
@@ -1133,7 +1133,7 @@ unit globals;
         initoptprocessor:=MC68000;
         initlocalswitches:=[];
         initmoduleswitches:=[cs_extsyntax,cs_browser,cs_fp_emulation];
-        initglobalswitches:=[cs_check_unit_name];
+        initglobalswitches:=[cs_check_unit_name,cs_link_static];
         initmodeswitches:=fpcmodeswitches;
         initpackenum:=4;
         initpackrecords:=2;
@@ -1162,7 +1162,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  1999-05-27 19:44:29  peter
+  Revision 1.9  1999-07-03 00:29:48  peter
+    * new link writing to the ppu, one .ppu is needed for all link types,
+      static (.o) is now always created also when smartlinking is used
+
+  Revision 1.8  1999/05/27 19:44:29  peter
     * removed oldasm
     * plabel -> pasmlabel
     * -a switches to source writing automaticly

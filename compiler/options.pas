@@ -388,27 +388,6 @@ begin
                       while j <= length(more) Do
                         Begin
                           case more[j] of
-                            'D' :
-                              begin
-                                If UnsetBool(More, j) then
-                                  Begin
-                                    initmoduleswitches:=initmoduleswitches-[cs_create_sharedlib];
-                                    inc(j)
-                                  End
-                                Else
-                                  Begin
-                                    if target_info.target in [target_i386_GO32V1,target_i386_GO32V2] then
-                                      begin
-                                        Message(option_no_shared_lib_under_dos);
-                                        initmoduleswitches:=initmoduleswitches+[cs_create_staticlib];
-                                      end
-                                    Else
-                                      Begin
-                                        initmoduleswitches:=initmoduleswitches+[cs_create_sharedlib];
-                                        initmoduleswitches:=initmoduleswitches-[cs_create_staticlib]
-                                      End;
-                                  End;
-                               end;
                             'h' :
                                begin
                                  val(copy(more,j+1,length(more)-j),heapsize,code);
@@ -428,18 +407,22 @@ begin
                                       inc(j)
                                     End
                                   Else initglobalswitches:=initglobalswitches+[cs_link_extern];
-                            'o' : If UnsetBool(More, j) then
-                                    Begin
-                                      initlocalswitches:=initlocalswitches-[cs_check_overflow];
-                                      inc(j)
-                                    End
-                                  Else initlocalswitches:=initlocalswitches+[cs_check_overflow];
-                            'r' : If UnsetBool(More, j) then
-                                    Begin
-                                      initlocalswitches:=initlocalswitches-[cs_check_range];
-                                      inc(j)
-                                    End
-                                  Else initlocalswitches:=initlocalswitches+[cs_check_range];
+                            'o' :
+                              If UnsetBool(More, j) then
+                                Begin
+                                  initlocalswitches:=initlocalswitches-[cs_check_overflow];
+                                  inc(j);
+                                End
+                              Else
+                                initlocalswitches:=initlocalswitches+[cs_check_overflow];
+                            'r' :
+                              If UnsetBool(More, j) then
+                                Begin
+                                  initlocalswitches:=initlocalswitches-[cs_check_range];
+                                  inc(j);
+                                End
+                              Else
+                                initlocalswitches:=initlocalswitches+[cs_check_range];
                             's' :
                                begin
                                  val(copy(more,j+1,length(more)-j),stacksize,code);
@@ -447,28 +430,22 @@ begin
                                   IllegalPara(opt);
                                  break;
                                end;
-                            't' : If UnsetBool(More, j) then
-                                    Begin
-                                      initlocalswitches:=initlocalswitches-[cs_check_stack];
-                                      inc(j)
-                                    End
-                                  Else initlocalswitches:=initlocalswitches+[cs_check_stack];
-                            'x' : If UnsetBool(More, j) then
-                                    Begin
-                                      initmoduleswitches:=initmoduleswitches-[cs_smartlink];
-                                      inc(j)
-                                    End
-                                  Else initmoduleswitches:=initmoduleswitches+[cs_smartlink];
-                            'S' : If UnsetBool(More, j) then
-                                    Begin
-                                      initmoduleswitches:=initmoduleswitches-[cs_create_staticlib];
-                                      inc(j)
-                                    End
-                                  Else
-                                    Begin
-                                      initmoduleswitches:=initmoduleswitches+[cs_create_staticlib];
-                                      initmoduleswitches:=initmoduleswitches-[cs_create_sharedlib];
-                                    End
+                            't' :
+                               If UnsetBool(More, j) then
+                                 Begin
+                                   initlocalswitches:=initlocalswitches-[cs_check_stack];
+                                   inc(j)
+                                 End
+                               Else
+                                 initlocalswitches:=initlocalswitches+[cs_check_stack];
+                            'x' :
+                               If UnsetBool(More, j) then
+                                 Begin
+                                   initmoduleswitches:=initmoduleswitches-[cs_smartlink];
+                                   inc(j)
+                                 End
+                               Else
+                                 initmoduleswitches:=initmoduleswitches+[cs_smartlink];
                             else
                                IllegalPara(opt);
                           end;
@@ -701,15 +678,24 @@ begin
                         's' : Linker.Strip:=true;
                         'D' : begin
                                 def_symbol('FPC_LINK_DYNAMIC');
+                                undef_symbol('FPC_LINK_SMART');
                                 undef_symbol('FPC_LINK_STATIC');
                                 initglobalswitches:=initglobalswitches+[cs_link_shared];
-                                initglobalswitches:=initglobalswitches-[cs_link_static];
+                                initglobalswitches:=initglobalswitches-[cs_link_static,cs_link_smart];
                               end;
                         'S' : begin
                                 def_symbol('FPC_LINK_STATIC');
+                                undef_symbol('FPC_LINK_SMART');
                                 undef_symbol('FPC_LINK_DYNAMIC');
-                                initglobalswitches:=initglobalswitches-[cs_link_shared];
                                 initglobalswitches:=initglobalswitches+[cs_link_static];
+                                initglobalswitches:=initglobalswitches-[cs_link_shared,cs_link_smart];
+                              end;
+                        'X' : begin
+                                def_symbol('FPC_LINK_SMART');
+                                undef_symbol('FPC_LINK_STATIC');
+                                undef_symbol('FPC_LINK_DYNAMIC');
+                                initglobalswitches:=initglobalswitches+[cs_link_smart];
+                                initglobalswitches:=initglobalswitches-[cs_link_shared,cs_link_static];
                               end;
                        else
                          IllegalPara(opt);
@@ -1167,7 +1153,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  1999-07-01 15:49:19  florian
+  Revision 1.3  1999-07-03 00:29:54  peter
+    * new link writing to the ppu, one .ppu is needed for all link types,
+      static (.o) is now always created also when smartlinking is used
+
+  Revision 1.2  1999/07/01 15:49:19  florian
     * int64/qword type release
     + lo/hi for int64/qword
 

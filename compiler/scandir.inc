@@ -616,7 +616,7 @@ const
       begin
         current_scanner^.skipspace;
         s:=AddExtension(FixFileName(current_scanner^.readcomment),target_info.objext);
-        current_module^.linkofiles.insert(s);
+        current_module^.linkotherofiles.insert(s,link_allways);
       end;
 
 
@@ -637,7 +637,7 @@ const
       begin
         current_scanner^.skipspace;
         current_scanner^.readstring;
-        current_module^.linkSharedLibs.insert(orgpattern);
+        current_module^.linkOtherSharedLibs.insert(orgpattern,link_allways);
       end;
 
 
@@ -1087,7 +1087,11 @@ const
 
 {
   $Log$
-  Revision 1.53  1999-06-02 22:44:18  pierre
+  Revision 1.54  1999-07-03 00:29:58  peter
+    * new link writing to the ppu, one .ppu is needed for all link types,
+      static (.o) is now always created also when smartlinking is used
+
+  Revision 1.53  1999/06/02 22:44:18  pierre
    * previous wrong log corrected
 
   Revision 1.52  1999/06/02 22:25:48  pierre

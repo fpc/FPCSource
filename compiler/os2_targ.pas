@@ -264,7 +264,7 @@ const   ar_magic:array[1..8] of char='!<arch>'#10;
 begin
     seq_no:=1;
     if not (cs_smartlink in aktmoduleswitches) then
-        current_module^.linkstaticlibs.insert(s);
+      current_module^.linkotherstaticlibs.insert(s,link_allways);
     assign(out_file,current_module^.path^+s+'.ao2');
     rewrite(out_file,1);
     blockwrite(out_file,ar_magic,sizeof(ar_magic));
@@ -333,7 +333,11 @@ end.
 
 {
   $Log$
-  Revision 1.7  1999-05-04 21:44:52  florian
+  Revision 1.8  1999-07-03 00:29:55  peter
+    * new link writing to the ppu, one .ppu is needed for all link types,
+      static (.o) is now always created also when smartlinking is used
+
+  Revision 1.7  1999/05/04 21:44:52  florian
     * changes to compile it with Delphi 4.0
 
   Revision 1.6  1998/12/11 00:03:25  peter

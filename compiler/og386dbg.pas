@@ -37,7 +37,7 @@ unit og386dbg;
        tdbgoutput = object(tobjectoutput)
          nsyms   : longint;
          rawidx  : longint;
-         constructor init;
+         constructor init(smart:boolean);
          destructor  done;virtual;
          procedure initwriting;virtual;
          procedure donewriting;virtual;
@@ -54,9 +54,9 @@ unit og386dbg;
                                 Tdbgoutput
 ****************************************************************************}
 
-    constructor tdbgoutput.init;
+    constructor tdbgoutput.init(smart:boolean);
       begin
-        inherited init;
+        inherited init(smart);
         rawidx:=-1;
         nsyms:=0;
       end;
@@ -182,7 +182,11 @@ unit og386dbg;
 end.
 {
   $Log$
-  Revision 1.3  1999-05-05 17:34:32  peter
+  Revision 1.4  1999-07-03 00:29:53  peter
+    * new link writing to the ppu, one .ppu is needed for all link types,
+      static (.o) is now always created also when smartlinking is used
+
+  Revision 1.3  1999/05/05 17:34:32  peter
     * output is more like as 2.9.1
     * stabs really working for go32v2
 

@@ -72,29 +72,6 @@
       end;
 
 
-    procedure writecontainer(var p:tstringcontainer;id:byte;hold,strippath:boolean);
-      var
-        hcontainer : tstringcontainer;
-        s          : string;
-      begin
-        if hold then
-         hcontainer.init;
-        while not p.empty do
-         begin
-           s:=p.get;
-           if strippath then
-            current_ppu^.putstring(SplitFileName(s))
-           else
-            current_ppu^.putstring(s);
-           if hold then
-            hcontainer.insert(s);
-         end;
-        current_ppu^.writeentry(id);
-        if hold then
-         p:=hcontainer;
-      end;
-
-
     procedure writeposinfo(const p:tfileposinfo);
       begin
         current_ppu^.putword(p.fileindex);
@@ -223,6 +200,49 @@
       end;
 
 
+    procedure writelinkcontainer(var p:tlinkcontainer;id:byte;strippath:boolean);
+      var
+        hcontainer : tlinkcontainer;
+        s : string;
+        mask : longint;
+      begin
+        hcontainer.init;
+        while not p.empty do
+         begin
+           s:=p.get(mask);
+           if strippath then
+            current_ppu^.putstring(SplitFileName(s))
+           else
+            current_ppu^.putstring(s);
+           current_ppu^.putlongint(mask);
+           hcontainer.insert(s,mask);
+         end;
+        current_ppu^.writeentry(id);
+        p:=hcontainer;
+      end;
+
+
+{    procedure writelinkother(var p:tstringcontainer;id:byte;strippath:boolean);
+      var
+        hcontainer : tstringcontainer;
+        s : string;
+      begin
+        hcontainer.init;
+        while not p.empty do
+         begin
+           s:=p.get;
+           if strippath then
+            current_ppu^.putstring(SplitFileName(s))
+           else
+            current_ppu^.putstring(s);
+           hcontainer.insert(s);
+         end;
+        current_ppu^.writeentry(id);
+        p:=hcontainer;
+      end; }
+
+
+
     procedure writeunitas(const s : string;unittable : punitsymtable;only_crc : boolean);
       begin
          Message1(unit_u_ppu_write,s);
@@ -230,15 +250,8 @@
        { create unit flags }
          with Current_Module^ do
           begin
-            if (((cs_create_staticlib in aktmoduleswitches) or
-                 (cs_smartlink in aktmoduleswitches)) and
-                (SplitName(ppufilename^)<>SplitName(staticlibfilename^))) or
-
-               ((cs_create_sharedlib in aktmoduleswitches) and
-                (SplitName(ppufilename^)<>SplitName(sharedlibfilename^))) then
-             flags:=flags or uf_in_library;
             if cs_smartlink in aktmoduleswitches then
-             flags:=flags or uf_smartlink;
+             flags:=flags or uf_smart_linked;
 {$ifdef GDB}
             if cs_gdb_dbx in aktglobalswitches then
              flags:=flags or uf_has_dbx;
@@ -373,13 +386,6 @@
       end;
 
 
-    procedure readcontainer(var p:tstringcontainer);
-      begin
-        while not current_ppu^.endofentry do
-         p.insert(current_ppu^.getstring);
-      end;
-
-
     procedure readposinfo(var p:tfileposinfo);
       begin
         p.fileindex:=current_ppu^.getword;
@@ -410,8 +416,6 @@
                 break;
               end;
             derefindex,
-            derefpara,
-            dereflocal,
             derefrecord :
               begin
                 new(p,init(b,current_ppu^.getword));
@@ -553,6 +557,20 @@
       end;
 
 
+    procedure readlinkcontainer(var p:tlinkcontainer);
+      var
+        s : string;
+        m : longint;
+      begin
+        while not current_ppu^.endofentry do
+         begin
+           s:=current_ppu^.getstring;
+           m:=current_ppu^.getlongint;
+           p.insert(s,m);
+         end;
+      end;
+
+
     procedure load_interface;
       var
         b : byte;
@@ -561,17 +579,29 @@
          repeat
            b:=current_ppu^.readentry;
            case b of
-            ibmodulename : begin
-                             stringdispose(current_module^.modulename);
-                             current_module^.modulename:=stringdup(current_ppu^.getstring);
-                           end;
-           ibsourcefiles : readsourcefiles;
-              ibloadunit : readloadunit;
-        iblinksharedlibs : readcontainer(current_module^.LinkSharedLibs);
-        iblinkstaticlibs : readcontainer(current_module^.LinkStaticLibs);
-         iblinkunitfiles : readcontainer(current_module^.LinkUnitFiles);
-            iblinkofiles : readcontainer(current_module^.LinkOFiles);
-          ibendinterface : break;
+             ibmodulename :
+               begin
+                 stringdispose(current_module^.modulename);
+                 current_module^.modulename:=stringdup(current_ppu^.getstring);
+               end;
+             ibsourcefiles :
+               readsourcefiles;
+             ibloadunit :
+               readloadunit;
+             iblinkunitofiles :
+               readlinkcontainer(current_module^.LinkUnitOFiles);
+             iblinkunitstaticlibs :
+               readlinkcontainer(current_module^.LinkUnitStaticLibs);
+             iblinkunitsharedlibs :
+               readlinkcontainer(current_module^.LinkUnitSharedLibs);
+             iblinkotherofiles :
+               readlinkcontainer(current_module^.LinkotherOFiles);
+             iblinkotherstaticlibs :
+               readlinkcontainer(current_module^.LinkotherStaticLibs);
+             iblinkothersharedlibs :
+               readlinkcontainer(current_module^.LinkotherSharedLibs);
+             ibendinterface :
+               break;
            else
              Message1(unit_f_ppu_invalid_entry,tostr(b));
            end;
@@ -580,7 +610,11 @@
 
 {
   $Log$
-  Revision 1.42  1999-06-22 16:24:47  pierre
+  Revision 1.43  1999-07-03 00:30:00  peter
+    * new link writing to the ppu, one .ppu is needed for all link types,
+      static (.o) is now always created also when smartlinking is used
+
+  Revision 1.42  1999/06/22 16:24:47  pierre
    * local browser stuff corrected
 
   Revision 1.41  1999/05/14 17:52:28  peter

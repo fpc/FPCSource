@@ -94,14 +94,14 @@ var
     { Update asmres when externmode is set }
     if cs_link_extern in aktglobalswitches then
       AsmRes.AddLinkCommand(resbin,s,'');
-    current_module^.linkofiles.insert(resobj);
+    current_module^.linkotherofiles.insert(resobj,link_allways);
   end;
 
 begin
   resnr:=0;
   While not Current_module^.ResourceFiles.Empty do
    begin
-     S:=Current_module^.ResourceFiles.Get;
+     S:=Current_module^.ResourceFiles.get;
      CompileResource(s);
    end;
 end;
@@ -110,7 +110,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  1999-05-04 21:44:40  florian
+  Revision 1.5  1999-07-03 00:29:46  peter
+    * new link writing to the ppu, one .ppu is needed for all link types,
+      static (.o) is now always created also when smartlinking is used
+
+  Revision 1.4  1999/05/04 21:44:40  florian
     * changes to compile it with Delphi 4.0
 
   Revision 1.3  1999/01/06 14:38:09  michael

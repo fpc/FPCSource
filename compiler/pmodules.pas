@@ -49,42 +49,31 @@ unit pmodules;
     procedure create_objectfile;
       begin
         { create the .s file and assemble it }
-        GenerateAsm;
+        GenerateAsm(false);
+
+        { Also create a smartlinked version ? }
+        if (cs_smartlink in aktmoduleswitches) then
+         begin
+           GenerateAsm(true);
+           if target_asm.needar then
+             Linker.MakeStaticLibrary(SmartLinkFilesCnt);
+         end;
 
         { resource files }
         CompileResourceFiles;
-
-        { When creating a library call the linker. And insert the output
-          of the linker files }
-        if (cs_create_sharedlib in aktmoduleswitches) then
-          Linker.MakeSharedLibrary
-        else
-          if (cs_smartlink in aktmoduleswitches) and target_asm.needar then
-            Linker.MakeStaticLibrary(SmartLinkFilesCnt);
       end;
 
 
     procedure insertobjectfile;
     { Insert the used object file for this unit in the used list for this unit }
       begin
-        if (cs_create_sharedlib in aktmoduleswitches) then
-          begin
-            current_module^.linksharedlibs.insert(current_module^.sharedlibfilename^);
-            current_module^.flags:=current_module^.flags or uf_shared_linked;
-          end
-        else
+        current_module^.linkunitofiles.insert(current_module^.objfilename^,link_static);
+        current_module^.flags:=current_module^.flags or uf_static_linked;
+
+        if (cs_smartlink in aktmoduleswitches) then
          begin
-           if (cs_create_staticlib in aktmoduleswitches) or
-              (cs_smartlink in aktmoduleswitches) then
-             begin
-               current_module^.linkstaticlibs.insert(current_module^.staticlibfilename^);
-               current_module^.flags:=current_module^.flags or uf_static_linked;
-             end
-           else
-             begin
-               current_module^.linkunitfiles.insert(current_module^.objfilename^);
-               current_module^.flags:=current_module^.flags or uf_obj_linked;
-             end;
+           current_module^.linkunitstaticlibs.insert(current_module^.staticlibfilename^,link_smart);
+           current_module^.flags:=current_module^.flags or uf_smart_linked;
          end;
       end;
 
@@ -1335,7 +1324,11 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.125  1999-06-15 13:57:32  peter
+  Revision 1.126  1999-07-03 00:29:56  peter
+    * new link writing to the ppu, one .ppu is needed for all link types,
+      static (.o) is now always created also when smartlinking is used
+
+  Revision 1.125  1999/06/15 13:57:32  peter
     * merged
 
   Revision 1.124.2.1  1999/06/15 13:54:26  peter

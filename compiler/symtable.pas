@@ -1878,10 +1878,12 @@ implementation
         the link.res. All doesn't depend on the crc! It doesn't matter
         if a unit is in a .o or .a file }
         current_ppu^.do_crc:=false;
-        writecontainer(current_module^.linkunitfiles,iblinkunitfiles,true,true);
-        writecontainer(current_module^.linkofiles,iblinkofiles,true,false);
-        writecontainer(current_module^.linksharedlibs,iblinksharedlibs,true,true);
-        writecontainer(current_module^.linkstaticlibs,iblinkstaticlibs,true,true);
+        writelinkcontainer(current_module^.linkunitofiles,iblinkunitofiles,true);
+        writelinkcontainer(current_module^.linkunitstaticlibs,iblinkunitstaticlibs,true);
+        writelinkcontainer(current_module^.linkunitsharedlibs,iblinkunitsharedlibs,true);
+        writelinkcontainer(current_module^.linkotherofiles,iblinkotherofiles,false);
+        writelinkcontainer(current_module^.linkotherstaticlibs,iblinkotherstaticlibs,true);
+        writelinkcontainer(current_module^.linkothersharedlibs,iblinkothersharedlibs,true);
         current_ppu^.do_crc:=true;
 
         current_ppu^.writeentry(ibendinterface);
@@ -2308,7 +2310,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.23  1999-06-28 17:02:44  pierre
+  Revision 1.24  1999-07-03 00:30:01  peter
+    * new link writing to the ppu, one .ppu is needed for all link types,
+      static (.o) is now always created also when smartlinking is used
+
+  Revision 1.23  1999/06/28 17:02:44  pierre
    merged from v0-99-12 branch
 
   Revision 1.21.2.2  1999/06/28 16:59:55  pierre
