@@ -85,13 +85,17 @@ ideinifile=fp.ini
 filecheck=*emx.zip
 package=baseemx.zip,~B~asic system for EMX (required)
 package=asldemx.zip,GNU ~L~inker and GNU assembler for EMX (required)
+#package=ideemx.zip,~I~DE with integrated debugger/compiler (BETA)
 package=utilemx.zip,~E~xtra Utilities
 package=makeemx.zip,GNU ~U~tilities (needed for Makefile usage)
 package=gdbemx.zip,GNU ~D~ebugger for EMX and PMGDB front-end
 package=ufclemx.zip,~F~ree Component Libary (FCL)
-package=ubasemx.zip,Ba~s~ic units (needed by FCL)
-package=unetemx.zip,~N~etworking units
-package=umisemx.zip,~M~iscellaneous units
+#package=ugdbintemx.zip[ugdbemx.zip],GDB Interfacing units
+package=upaszlibemx.zip[upzlemx.zip],PasZLib units
+package=uregexpremx.zip[uregemx.zip],Regular expression units
+package=uunzipemx.zip[uzipemx.zip],Unzip units
+package=uuncgiemx.zip[ucgiemx.zip],Uncgi units
+#package=ufvemx.zip,Free ~V~ision (FV)
 
 
 #
