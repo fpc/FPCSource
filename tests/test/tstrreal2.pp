@@ -26,16 +26,20 @@ var
   e: extended;
   c: longint;
   s2: string;
-
+  lenadjust: longint;
 begin
+  if sizeof(extended) = 8 then
+    lenadjust := 2
+  else
+    lenadjust := 0;
   e := 10.0;
   for c := 1 to 21 do
     begin
       str(e:0:17,s2);
       writeln(s2);
-      if s2 <> s[c] then
+      if s2 <> copy(s[c],1,length(s[c])-lenadjust) then
         begin
-          writeln('  Error, should be ',s[c]);
+          writeln('  Error, should be ',copy(s[c],1,length(s[c])-lenadjust));
           halt(1);
         end;
       e := e / 10.0;
