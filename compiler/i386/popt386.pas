@@ -1442,10 +1442,14 @@ Begin
                         While TmpBool1 And
                               GetNextInstruction(p, hp1) And
                               (Tai(hp1).typ = ait_instruction) And
-                              ((Taicpu(hp1).opcode = A_ADD) Or
-                               (Taicpu(hp1).opcode = A_SUB)) And
-                              (Taicpu(hp1).oper[1].typ = Top_Reg) And
-                              (Taicpu(hp1).oper[1].reg = Taicpu(p).oper[1].reg) Do
+                              ((((Taicpu(hp1).opcode = A_ADD) Or
+                                 (Taicpu(hp1).opcode = A_SUB)) And
+                                (Taicpu(hp1).oper[1].typ = Top_Reg) And
+                                (Taicpu(hp1).oper[1].reg = Taicpu(p).oper[1].reg)) or
+                               (((Taicpu(hp1).opcode = A_INC) or
+                                 (Taicpu(hp1).opcode = A_DEC)) and
+                                (Taicpu(hp1).oper[0].typ = Top_Reg) and
+                                (Taicpu(hp1).oper[0].reg = Taicpu(p).oper[1].reg))) Do
                           Begin
                             TmpBool1 := False;
                             If (Taicpu(hp1).oper[0].typ = Top_Const)
@@ -1453,24 +1457,35 @@ Begin
                                 Begin
                                   TmpBool1 := True;
                                   TmpBool2 := True;
-                                  If Taicpu(hp1).opcode = A_ADD Then
-                                    Inc(TmpRef.offset, longint(Taicpu(hp1).oper[0].val))
-                                  Else
-                                    Dec(TmpRef.offset, longint(Taicpu(hp1).oper[0].val));
+                                  case Taicpu(hp1).opcode of
+                                    A_ADD:
+                                      inc(TmpRef.offset, longint(Taicpu(hp1).oper[0].val));
+                                    A_SUB:
+                                      dec(TmpRef.offset, longint(Taicpu(hp1).oper[0].val));
+                                  end;
                                   asml.Remove(hp1);
                                   hp1.free;
                                 End
-                              Else
-                                If (Taicpu(hp1).oper[0].typ = Top_Reg) And
-                                   (Taicpu(hp1).opcode = A_ADD) And
-                                   (TmpRef.base = R_NO) Then
-                                  Begin
-                                    TmpBool1 := True;
-                                    TmpBool2 := True;
-                                    TmpRef.base := Taicpu(hp1).oper[0].reg;
-                                    asml.Remove(hp1);
-                                    hp1.free;
-                                  End;
+                            Else
+                              If (Taicpu(hp1).oper[0].typ = Top_Reg) And
+                                 (((Taicpu(hp1).opcode = A_ADD) And
+                                   (TmpRef.base = R_NO)) or
+                                  (Taicpu(hp1).opcode = A_INC) or
+                                  (Taicpu(hp1).opcode = A_DEC)) Then
+                                Begin
+                                  TmpBool1 := True;
+                                  TmpBool2 := True;
+                                  case Taicpu(hp1).opcode of
+                                    A_ADD:
+                                      TmpRef.base := Taicpu(hp1).oper[0].reg;
+                                    A_INC:
+                                      inc(TmpRef.offset);
+                                    A_DEC:
+                                      dec(TmpRef.offset);
+                                  end;
+                                  asml.Remove(hp1);
+                                  hp1.free;
+                                End;
                           End;
                         If TmpBool2 Or
                            ((aktoptprocessor < ClassP6) And
@@ -2025,7 +2040,11 @@ End.
 
 {
   $Log$
-  Revision 1.19  2002-04-02 13:01:58  jonas
+  Revision 1.20  2002-04-02 20:30:16  jonas
+    + support for folding inc/dec in shl/add/sub sequences toa single lea
+      instruction
+
+  Revision 1.19  2002/04/02 13:01:58  jonas
     * fixed nasty bug in "and" peepholeoptimization that caused wrong
       optimizations after Peter's big location patch
 
