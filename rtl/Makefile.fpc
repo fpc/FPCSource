@@ -7,11 +7,16 @@ name=rtl
 version=1.0.5
 
 [target]
-dirs=linux win32 go32v2 go32v1 os2 freebsd
+dirs_linux=linux
+dirs_win32=win32
+dirs_go32v2=go32v2
+dirs_go32v1=go32v1
+dirs_os2=os2
+dirs_freebsd=freebsd
+dirs_beos=beos
 
 [install]
 fpcpackage=y
 
 [default]
 fpcdir=..
-dir=$(OS_TARGET)
