@@ -6,7 +6,7 @@
 
     This is unit implements some of the crt functionality
     for the gui win32 graph unit implementation
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -23,8 +23,22 @@ unit wincrt;
     function keypressed : boolean;
     procedure delay(ms : word);
 
+    { dummy }
+    procedure textmode(mode : integer);
+
+    { plays the windows standard sound }
+    { hz is ignored (at least on win95 }
+    procedure sound(hz : word);
+
+    { dummy }
+    procedure nosound;
+
+
   var
      directvideo : boolean;
+
+     { dummy }
+     lastmode : word;
 
   implementation
 
@@ -92,6 +106,22 @@ unit wincrt;
          Sleep(ms);
       end;
 
+    procedure textmode(mode : integer);
+
+      begin
+      end;
+
+    procedure sound(hz : word);
+
+      begin
+         Windows.Beep(hz,500);
+      end;
+
+    procedure nosound;
+
+      begin
+      end;
+
     function msghandler(Window: hwnd; AMessage, WParam,
       LParam: Longint): Longint;
 
@@ -100,12 +130,9 @@ unit wincrt;
            WM_CHAR:
              begin
                 addchar(chr(wparam));
-                writeln('got char message: ',wparam);
              end;
            WM_KEYDOWN:
              begin
-
-                writeln('got key message');
              end;
          end;
          msghandler:=0;
@@ -121,6 +148,7 @@ unit wincrt;
          charmessagehandler:=nil;
          DeleteCriticalSection(keyboardhandling);
       end;
+
 begin
    charmessagehandler:=@msghandler;
    nextfree:=1;
@@ -128,10 +156,14 @@ begin
    InitializeCriticalSection(keyboardhandling);
    oldexitproc:=exitproc;
    exitproc:=@myexitproc;
+   lastmode:=0;
 end.
 {
   $Log$
-  Revision 1.3  2000-01-07 16:41:53  daniel
+  Revision 1.4  2000-03-05 13:07:58  florian
+    + some more functions added, also some dummies
+
+  Revision 1.3  2000/01/07 16:41:53  daniel
     * copyright 2000
 
   Revision 1.2  1999/11/29 22:03:39  florian
