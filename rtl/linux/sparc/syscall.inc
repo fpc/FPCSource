@@ -134,22 +134,22 @@ asm
         ta      0x10
         bcc     .LSyscOK3
         nop
-        sethi   %hi(fpc_threadvar_relocate_proc),%o0
-        or      %o0,%lo(fpc_threadvar_relocate_proc),%o0
-        ld      [%o0],%o7
+        sethi   %hi(fpc_threadvar_relocate_proc),%o2
+        or      %o2,%lo(fpc_threadvar_relocate_proc),%o2
+        ld      [%o2],%o3
         subcc   %o7,%g0,%g0
         bne     .LThread3
         nop
-        sethi   %hi(Errno+4),%o0
+        sethi   %hi(Errno+4),%o2
         ba      .LNoThread3
-        or      %o0,%lo(Errno+4),%o0
+        or      %o2,%lo(Errno+4),%o2
 .LThread3:
-        sethi   %hi(Errno),%o0
-        ld      [%o7],%o1
-        or      %o0,%lo(Errno),%o0
+        sethi   %hi(Errno),%o2
+        ld      [%o3],%o1
+        or      %o2,%lo(Errno),%o2
         call    %o1
 .LNoThread3:
-        st      %i0,[%o0]
+        st      %o0,[%o2]
         mov     -1,%o0
 .LSyscOK3:
         mov     %o0,%i0
@@ -269,7 +269,10 @@ end;
 
 {
   $Log$
-  Revision 1.11  2004-02-06 23:06:16  florian
+  Revision 1.12  2004-06-30 21:15:51  florian
+    * first syscall fix
+
+  Revision 1.11  2004/02/06 23:06:16  florian
     - killed tsyscallregs
 
   Revision 1.10  2004/01/05 17:22:03  peter
@@ -312,4 +315,3 @@ end;
     * syscall moved into seperate include
 
 }
-
