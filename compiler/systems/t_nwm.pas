@@ -293,7 +293,7 @@ begin
   if i>0 then
     Delete(ProgNam,i,255);
   NlmNam := ProgNam + target_info.exeext;
-
+  
   { Open link.res file }
   LinkRes:=TLinkRes.Create(outputexedir+Info.ResName);             {for ld}
   NLMConvLinkFile:=TLinkRes.Create(outputexedir+'n'+Info.ResName); {for nlmconv, written in CreateExeFile}
@@ -433,17 +433,30 @@ begin
            i:=Pos(target_info.sharedlibext,S);
            if i>0 then
              Delete(S,i,255);
-           S := S + '.imp';
-           librarysearchpath.FindFile(S,S3);
-           {$ifdef netware}
-           Comment(V_Debug,'IMPORT @'+S3);
-           S3 := FExpand (S3);
-           {$endif}
-           NLMConvLinkFile.Add('IMPORT @'+S3);
-           NLMConvLinkFile.Add('MODULE '+s2);
-           Comment(V_Debug,'MODULE '+S2);
-           Comment(V_Debug,'IMPORT @'+S3);
-         end
+	   if s[1] = '!' then
+	   begin  // special, with ! only the imp will be included but no module is autoloaded, needed i.e. for netware.imp
+	     S := copy(S,2,255) + '.imp';
+             librarysearchpath.FindFile(S,S3);
+             {$ifdef netware}
+             Comment(V_Debug,'IMPORT @'+S3);
+             S3 := FExpand (S3);
+             {$endif}
+             NLMConvLinkFile.Add('IMPORT @'+S3);
+             Comment(V_Debug,'IMPORT @'+S3);
+	   end else
+	   begin
+             S := S + '.imp';
+             librarysearchpath.FindFile(S,S3);
+             {$ifdef netware}
+             Comment(V_Debug,'IMPORT @'+S3);
+             S3 := FExpand (S3);
+             {$endif}
+             NLMConvLinkFile.Add('IMPORT @'+S3);
+             NLMConvLinkFile.Add('MODULE '+s2);
+             Comment(V_Debug,'MODULE '+S2);
+             Comment(V_Debug,'IMPORT @'+S3);
+           end;
+	 end;
       end;
    end;
 
@@ -564,7 +577,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.23  2004-12-22 16:32:46  peter
+  Revision 1.24  2005-01-01 20:08:59  armin
+  * support ! in import file names for netware also
+
+  Revision 1.23  2004/12/22 16:32:46  peter
     * maybequoted() added
 
   Revision 1.22  2004/11/25 18:46:11  armin
