@@ -203,7 +203,10 @@ Interface
      windows;
   {$endif win32}
 
+type smallint = -32768..32767;
+
     const
+       maxsmallint = high(smallint);
        { error codes }
        grOk =  0;
        grNoInitGraph = -1;
@@ -2879,6 +2882,10 @@ end;
     repeat
        GetModeRange(GraphDriver,LoMode,HiMode);
        { save the highest mode possible...}
+       {$ifdef logging}
+       logln('Found driver '+strf(graphdriver)+' with modes '+
+              strf(lomode)+' - '+strf(himode));
+       {$endif logging}
        if HiMode = -1 then break;
        CpyMode:=HiMode;
        CpyDriver:=GraphDriver;
@@ -3036,7 +3043,13 @@ SetGraphBufSize
 
 {
   $Log$
-  Revision 1.49  1999-12-21 09:16:48  pierre
+  Revision 1.50  1999-12-21 17:42:17  jonas
+    * changed vesa.inc do it doesn't try to use linear modes anymore (doesn't work
+      yet!!)
+    * fixed mode detection so the low modenumber of a driver doesn't have to be zero
+      anymore (so VESA autodetection now works)
+
+  Revision 1.49  1999/12/21 09:16:48  pierre
    + CloseGraph if errors
 
   Revision 1.48  1999/12/20 11:22:36  peter

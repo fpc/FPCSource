@@ -59,7 +59,7 @@
    end;
 
 
-   function searchmode(ReqDriver : smallint; reqmode: smallint): PModeInfo;
+   function searchmode(ReqDriver : smallint; var reqmode: smallint): PModeInfo;
   {********************************************************}
   { Procedure SearchMode()                                 }
   {--------------------------------------------------------}
@@ -67,15 +67,20 @@
   { and tries to find the <reqmode> in the <reqdriver>     }
   { return nil if not found, otherwise returns the found   }
   { structure.                                             }
+  { note: if reqmode = -32768, the first mode available    }
+  {   for reqdriver is returned (JM)                       }
   {********************************************************}
     var
-     list: PModeInfo;
+     lastDriver, lastMode: SmallInt;
+     list, lastModeInfo: PModeInfo;
     begin
 {$ifdef logging}
       LogLn('Searching for driver '+strf(reqdriver)+' and mode '+strf(reqmode));
 {$endif logging}
         searchmode := nil;
         list := ModeList;
+        If assigned(list) then
+          lastModeInfo := list;
         { go to the end of the list }
         while assigned(list) do
           begin
@@ -83,18 +88,33 @@
            Log('Found driver '+strf(list^.DriverNumber)+
                ' and mode $'+hexstr(list^.ModeNumber,4)+'... ');
 {$endif logging}
-             if (list^.DriverNumber = ReqDriver) and
-               (list^.ModeNumber = ReqMode) then
+             if ((list^.DriverNumber = ReqDriver) and
+                 ((list^.ModeNumber = ReqMode) or
+                  { search for lowest mode }
+                  (reqMode = -32768))) or
+                 { search for highest mode }
+                ((reqMode = -32767) and
+                 (lastModeInfo^.driverNumber = reqDriver) and
+                 ((list^.driverNumber <> lastModeInfo^.driverNumber) or
+                   not(assigned(list^.next)))) then
                begin
 {$ifdef logging}
                  LogLn('Accepted!');
 {$endif logging}
                  searchmode := list;
+                 If reqMode = -32768 then
+                   reqMode := list^.modeNumber
+                 else if reqMode = -32767 then
+                   begin
+                     reqMode := lastModeInfo^.modeNumber;
+                     searchMode := lastModeInfo;
+                   end;
                  exit;
                end;
 {$ifdef logging}
-                 LogLn('Rejected.');
+             LogLn('Rejected.');
 {$endif logging}
+             lastModeInfo := list;
              list:=list^.next;
           end;
     end;
@@ -153,37 +173,39 @@
     procedure GetModeRange(GraphDriver: smallint; var LoMode,
       HiMode: smallint);
       var
-       i : smallint;
        mode : PModeInfo;
      begin
        {$ifdef logging}
        LogLn('GetModeRange : Enter ('+strf(GraphDriver)+')');
        {$endif}
-       LoMode:=-1;
        HiMode:=-1;
        mode := nil;
        { First search if the graphics driver is supported ..  }
        { since mode zero is always supported.. if that driver }
        { is supported it should return something...           }
-       mode := SearchMode(GraphDriver, 0);
+
+       { not true, e.g. VESA doesn't have a mode 0. Changed so}
+       { -32768 means "return lowest mode in second parameter }
+       { also, under VESA some modes may not be supported     }
+       { (e.g. $108 here) while some with a higher number can }
+       { be supported ($112 and onward), so I also added that }
+       { -32767 means "return highest mode in second parameter}
+       { This whole system should be overhauled though to work}
+       { without such hacks (JM)                              }
+       loMode := -32768;
+       mode := SearchMode(GraphDriver, loMode);
        { driver not supported...}
-       if not assigned(mode) then exit;
+       if not assigned(mode) then
+         begin
+           loMode := -1;
+           exit;
+         end;
        {$ifdef logging}
        LogLn('GetModeRange : Mode 0 found');
        {$endif}
        { now it exists... find highest available mode... }
-       LoMode := 0;
-       mode:=nil;
-       i:=-1;
-       repeat
-         inc(i);
-         { start search at 0..     }
-         {$ifdef logging}
-         LogLn('GetModeRange : Searching Mode '+strf(i));
-         {$endif}
-         mode:=SearchMode(GraphDriver,i);
-       until not assigned(mode);
-       HiMode := i-1;
+       hiMode := -32767;
+       mode:=SearchMode(GraphDriver,hiMode);
      end;
 
 
@@ -341,7 +363,13 @@
 
 {
 $Log$
-Revision 1.15  1999-12-20 11:22:36  peter
+Revision 1.16  1999-12-21 17:42:18  jonas
+  * changed vesa.inc do it doesn't try to use linear modes anymore (doesn't work
+    yet!!)
+  * fixed mode detection so the low modenumber of a driver doesn't have to be zero
+    anymore (so VESA autodetection now works)
+
+Revision 1.15  1999/12/20 11:22:36  peter
   * integer -> smallint to overcome -S2 switch needed for ggi version
 
 Revision 1.14  1999/12/04 21:20:04  michael

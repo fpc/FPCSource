@@ -1675,9 +1675,9 @@ end;
        m1280x1024x32k,
        m1280x1024x64k :
          begin
-           DirectPutPixel:=@DirectPutPixVESA256Linear;
-           PutPixel:=@PutPixVESA256Linear;
-           GetPixel:=@GetPixVESA256Linear;
+           DirectPutPixel:=@DirectPutPixVESA32kor64kLinear;
+           PutPixel:=@PutPixVESA32kor64kLinear;
+           GetPixel:=@GetPixVESA32kor64kLinear;
            { linear mode for lines not yet implemented PM }
            HLine:=@HLineDefault;
            VLine:=@VLineDefault;
@@ -1688,9 +1688,9 @@ end;
        m1024x768x256,
        m1280x1024x256:
          begin
-           DirectPutPixel:=@DirectPutPixVESA32kor64kLinear;
-           PutPixel:=@PutPixVESA32kor64kLinear;
-           GetPixel:=@GetPixVESA32kor64kLinear;
+           DirectPutPixel:=@DirectPutPixVESA256Linear;
+           PutPixel:=@PutPixVESA256Linear;
+           GetPixel:=@GetPixVESA256Linear;
            { linear mode for lines not yet implemented PM }
            HLine:=@HLineDefault;
            VLine:=@VLineDefault;
@@ -1880,7 +1880,7 @@ end;
 
      { VBE 2.0 and higher supports >= non VGA linear buffer types...}
      { this is backward compatible.                                 }
-     if {((VESAModeInfo.Attr and ModeNoWindowed) <> 0) and }
+     if ((VESAModeInfo.Attr and ModeNoWindowed) <> 0) and
           ((VESAModeInfo.Attr and ModeLinearBuffer) <> 0) then
         begin
           if not SetupLinear(VESAModeInfo,mode) then
@@ -2369,7 +2369,13 @@ end;
 
 {
 $Log$
-Revision 1.9  1999-12-12 13:34:20  jonas
+Revision 1.10  1999-12-21 17:42:17  jonas
+  * changed vesa.inc do it doesn't try to use linear modes anymore (doesn't work
+    yet!!)
+  * fixed mode detection so the low modenumber of a driver doesn't have to be zero
+    anymore (so VESA autodetection now works)
+
+Revision 1.9  1999/12/12 13:34:20  jonas
   * putimage now performs the lipping itself and uses directputpixel
     (note: this REQUIRES or/and/notput support in directputpixel,
     this is not yet the case in the assembler versions!)
