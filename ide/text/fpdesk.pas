@@ -124,8 +124,10 @@ begin
       OWC:=WatchesCollection;
       WatchesCollection:=PWatchesCollection(S^.Get);
       OK:=(S^.Status=stOK);
-      if OK and assigned(OWC) then
-        Dispose(OWC,Done);
+      if OK and assigned(OWC) and assigned(WatchesCollection) then
+        Dispose(OWC,Done)
+      else if assigned(OWC) then
+        WatchesCollection:=OWC;
     end;
   ReadWatches:=OK;
   Dispose(S, Done);
@@ -173,8 +175,11 @@ begin
       OBC:=BreakpointsCollection;
       BreakpointsCollection:=PBreakpointCollection(S^.get);
       OK:=(S^.Status=stOK);
-      If OK and assigned(OBC) then
-        Dispose(OBC,Done);
+
+      If OK and assigned(OBC) and assigned(BreakpointsCollection) then
+        Dispose(OBC,Done)
+      else if assigned(OBC) then
+        BreakpointsCollection:=OBC;
     end;
   ReadBreakpoints:=OK;
   Dispose(S, Done);
@@ -362,6 +367,12 @@ begin
       OK:=ReadWatches(F);
     if OK and ((DesktopFileFlags and dfBreakpoints)<>0) then
       OK:=ReadBreakpoints(F);
+    if OK and ((DesktopFileFlags and dfOpenWindows)<>0) then
+      OK:=ReadOpenWindows(F);
+    { no errors if no browser info available PM }
+    if OK and ((DesktopFileFlags and dfSymbolInformation)<>0) then
+      OK:=ReadSymbols(F);
+    Dispose(F, Done);
   end;
 
   PopStatus;
@@ -403,7 +414,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.12  1999-09-17 16:41:10  pierre
+  Revision 1.13  1999-09-20 15:37:59  pierre
+   * ReadOpenWindows and ReadSymobls was missing, still does not work correctly :(
+
+  Revision 1.12  1999/09/17 16:41:10  pierre
    * other stream error for Watches/Breakpoints corrected
 
   Revision 1.11  1999/09/17 16:28:58  pierre
