@@ -270,7 +270,7 @@ Uses
   globals, systems, verbose, symconst, cgobj,procinfo;
 
 Type
-  TRefCompare = function(const r1, r2: treference; size: tcgsize): boolean;
+  TRefCompare = function(const r1, r2: treference; size1, size2: tcgsize): boolean;
 
 var
  {How many instructions are between the current instruction and the last one
@@ -696,13 +696,15 @@ end;
 {$endif q+}
 
 // checks whether a write to r2 of size "size" contains address r1
-function refsoverlapping(const r1, r2: treference; size: tcgsize): boolean;
+function refsoverlapping(const r1, r2: treference; size1, size2: tcgsize): boolean;
 var
-  realsize: aword;
+  realsize1, realsize2: aint;
 begin
-  realsize := tcgsize2size[size];
+  realsize1 := tcgsize2size[size1];
+  realsize2 := tcgsize2size[size2];
   refsoverlapping :=
-    (aword(r1.offset-r2.offset) <= realsize) and
+    (r2.offset <= r1.offset+realsize1) and
+    (r1.offset <= r2.offset+realsize2) and
     (r1.segment = r2.segment) and (r1.base = r2.base) and
     (r1.index = r2.index) and (r1.scalefactor = r2.scalefactor) and
     (r1.symbol=r2.symbol) and (r1.refaddr = r2.refaddr) and
@@ -1648,22 +1650,24 @@ function RefInInstruction(const ref: TReference; p: tai;
            RefsEq: TRefCompare; size: tcgsize): Boolean;
 {checks whehter ref is used in p}
 var
+  mysize: tcgsize;
   TmpResult: Boolean;
 begin
   TmpResult := False;
   if (p.typ = ait_instruction) then
     begin
+      mysize := topsize2tcgsize[taicpu(p).opsize];
       if (taicpu(p).ops >= 1) and
          (taicpu(p).oper[0]^.typ = top_ref) then
-        TmpResult := RefsEq(taicpu(p).oper[0]^.ref^,ref,size);
+        TmpResult := RefsEq(taicpu(p).oper[0]^.ref^,ref,mysize,size);
       if not(TmpResult) and
          (taicpu(p).ops >= 2) and
          (taicpu(p).oper[1]^.typ = top_ref) then
-        TmpResult := RefsEq(taicpu(p).oper[1]^.ref^,ref,size);
+        TmpResult := RefsEq(taicpu(p).oper[1]^.ref^,ref,mysize,size);
       if not(TmpResult) and
          (taicpu(p).ops >= 3) and
          (taicpu(p).oper[2]^.typ = top_ref) then
-        TmpResult := RefsEq(taicpu(p).oper[2]^.ref^,ref,size);
+        TmpResult := RefsEq(taicpu(p).oper[2]^.ref^,ref,mysize,size);
     end;
   RefInInstruction := TmpResult;
 end;
@@ -1697,15 +1701,18 @@ end;
 {$define overflowon}
 {$endif q+}
 // checks whether a write to r2 of size "size" contains address r1
-function ArrayRefsOverlapping(const r1, r2: treference; size: tcgsize): Boolean;
+function arrayrefsoverlapping(const r1, r2: treference; size1, size2: tcgsize): Boolean;
 var
-  realsize: aword;
+  realsize1, realsize2: aint;
 begin
-  realsize := tcgsize2size[size];
-  ArrayRefsOverlapping := (aword(r1.offset-r2.offset) <= realsize) and
-                 (r1.segment = r2.segment) and
-                 (r1.symbol=r2.symbol) and
-                 (r1.base = r2.base)
+  realsize1 := tcgsize2size[size1];
+  realsize2 := tcgsize2size[size2];
+  arrayrefsoverlapping :=
+    (r2.offset <= r1.offset+realsize1) and
+    (r1.offset <= r2.offset+realsize2) and
+    (r1.segment = r2.segment) and
+    (r1.symbol=r2.symbol) and
+    (r1.base = r2.base)
 end;
 {$ifdef overflowon}
 {$q+}
@@ -1790,7 +1797,7 @@ begin
         assigned(c.memwrite) and
         ((not(cs_uncertainOpts in aktglobalswitches) and
           containsPointerRef(c.memwrite)) or
-         refsEq(c.memwrite.oper[1]^.ref^,ref,size));
+         refsEq(c.memwrite.oper[1]^.ref^,ref,topsize2tcgsize[c.memwrite.opsize],size));
       if not(c.typ in [con_ref,con_noRemoveRef,con_invalid]) then
         begin
           writeToMemDestroysContents := false;
@@ -1817,7 +1824,7 @@ begin
              not((nrOfMods = 1) and
                  {StarMod is always of the type ait_instruction}
                  (taicpu(StartMod).oper[0]^.typ = top_ref) and
-                 refsEq(taicpu(StartMod).oper[0]^.ref^, ref, size)
+                 refsEq(taicpu(StartMod).oper[0]^.ref^, ref, topsize2tcgsize[taicpu(StartMod).opsize],size)
                 )
             )
            )
@@ -2793,7 +2800,10 @@ end.
 
 {
   $Log$
-  Revision 1.78  2004-12-28 18:01:41  jonas
+  Revision 1.79  2004-12-30 13:49:42  jonas
+    * fixed checking of overlapping references
+
+  Revision 1.78  2004/12/28 18:01:41  jonas
     * fixed several regvar related bugs, cycle with -OZp3r doesn't work
       yet though
 
