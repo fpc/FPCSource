@@ -119,14 +119,14 @@ begin
   DFreeMem(P);
 end;
 
-function zlibAllocMem(AppData: Pointer; Items, Size: Integer): Pointer;cdecl;
+function zlibAllocMem(opaque:pointer; items:uInt; size:uInt):pointer;cdecl;
 begin
   Result:=DGetMem(Items*Size);
 end;
 
-procedure zlibFreeMem(AppData, Block: Pointer);cdecl;
+procedure zlibFreeMem(opaque:pointer; address:pointer);cdecl;
 begin
-  DFreeMem(Block);
+  DFreeMem(address);
 end;
 
 
