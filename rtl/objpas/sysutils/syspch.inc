@@ -29,6 +29,9 @@ type
 
 { Processor dependent part, shared withs strings unit }
 {$IFNDEF VIRTUALPASCAL}  // in system there
+{$ifdef FPC_USE_LIBC}
+{$i cgenstr.inc}
+{$endif FPC_USE_LIBC}
 {$i strings.inc }
 {$ENDIF}
 
@@ -122,7 +125,10 @@ end ;
 
 {
   $Log$
-  Revision 1.3  2004-05-01 23:55:18  peter
+  Revision 1.4  2004-08-09 16:44:23  jonas
+    * use C versions of string routines if FPC_USE_LIBC is defined
+
+  Revision 1.3  2004/05/01 23:55:18  peter
     * replace strlenint with sizeint
 
   Revision 1.2  2004/02/20 22:15:16  florian
