@@ -27,7 +27,7 @@ unit ninl;
 interface
 
     uses
-       node,htypechk;
+       node,htypechk,cpuinfo;
 
     {$i compinnr.inc}
 
@@ -112,7 +112,7 @@ implementation
       function do_lowhigh(adef : pdef) : tnode;
 
         var
-           v : longint;
+           v : tconstexprint;
            enum : penumsym;
 
         begin
@@ -123,8 +123,30 @@ implementation
                     v:=porddef(adef)^.low
                   else
                     v:=porddef(adef)^.high;
+
+                  { low/high of torddef are longints, so we need special }
+                  { handling for cardinal and 64bit types (JM)           }
+                  if is_signed(adef) then
+                    if is_64bitint(adef) and
+                       (inlinenumber=in_low_x) then
+                      v := int64($80000000) shl 32
+                    else
+                      v := (int64($7fffffff) shl 32) or $ffffffff
+                  else
+                    if is_64bitint(adef) then
+                      { we have to use a dirty trick for high(qword), }
+                      { because it's bigger than high(v)  (JM)        }
+                      v := 0
+                    else
+                      v := cardinal(v);
                   hp:=genordinalconstnode(v,adef);
                   firstpass(hp);
+                  { fix high(qword) }
+                  if not is_signed(adef) and
+                     is_64bitint(adef) and
+                     (inlinenumber = in_high_x) then
+                    tordconstnode(hp).value :=
+                      tconstexprint(qword($ffffffff) shl 32 or $ffffffff);
                   do_lowhigh:=hp;
                end;
              enumdef:
@@ -1507,7 +1529,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.24  2001-01-06 19:54:11  peter
+  Revision 1.25  2001-02-21 12:57:46  jonas
+    * fixed high/low for cardinal, int64 and qword
+
+  Revision 1.24  2001/01/06 19:54:11  peter
     * merged fix for 1310
 
   Revision 1.23  2001/01/06 18:28:39  peter
