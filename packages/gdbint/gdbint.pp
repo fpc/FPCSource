@@ -223,6 +223,7 @@ const
   use_gdb_file : boolean = false;
 var
   gdb_file : text;
+  inferior_pid : longint;cvar;external;
 
 {$ifdef go32v2}
   { needed to be sure %fs contains the DOS memory selector
@@ -825,7 +826,6 @@ var
 { external variables }
   error_return : jmp_buf;cvar;external;
   quit_return  : jmp_buf;cvar;external;
-  inferior_pid : longint;cvar;external;
   create_breakpoint_hook : pointer;cvar;external;
   current_target : target_ops;cvar;external;
   stop_pc      : CORE_ADDR;cvar;external;
@@ -2152,7 +2152,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2000-02-06 22:32:45  pierre
+  Revision 1.5  2000-03-07 10:39:59  pierre
+   + inferior_pid moved to interface
+
+  Revision 1.4  2000/02/06 22:32:45  pierre
    + Get_current_frame and Set_current_frame
 
   Revision 1.3  2000/01/10 11:14:42  peter

@@ -109,7 +109,7 @@ const
   use_gdb_file : boolean = false;
 var
   gdb_file : text;
-
+  inferior_pid : longint;
 
 implementation
 
@@ -298,7 +298,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  2000-02-13 00:01:18  carl
+  Revision 1.9  2000-03-07 10:39:59  pierre
+   + inferior_pid moved to interface
+
+  Revision 1.8  2000/02/13 00:01:18  carl
     * Private variables were wrongly placed.
 
   Revision 1.7  2000/02/07 13:19:43  pierre
