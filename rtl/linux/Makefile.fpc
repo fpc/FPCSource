@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 loaders=prt0 dllprt0 cprt0 gprt0 $(CRT21)
-units=$(SYSTEMUNIT) unixtype baseunix strings systhrds  objpas syscall unixutil \
+units=$(SYSTEMUNIT) unixtype baseunix strings systhrds  objpas macpas syscall unixutil \
       heaptrc lineinfo \
       $(LINUXUNIT1) termio unix $(LINUXUNIT2) initc cmem $(CPU_UNITS) \
       dos crt objects printer ggigraph \

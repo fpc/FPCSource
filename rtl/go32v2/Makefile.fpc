@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 loaders=prt0 exceptn fpu
-units=system objpas strings \
+units=system objpas macpas strings \
       go32 dpmiexcp initc ports profile dxeload emu387 \
       dos crt objects printer graph \
       sysutils classes math typinfo matrix \

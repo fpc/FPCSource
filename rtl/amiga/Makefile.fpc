@@ -9,7 +9,7 @@ main=rtl
 loaders=prt0
 units=system exec strings \
       dos crt objects printer \
-      objpas matrix \
+      objpas macpas matrix \
       heaptrc lineinfo getopts graph \
       sysutils math typinfo
 rsts=math
@@ -155,7 +155,10 @@ heaptrc$(PPUEXT) : $(INC)/heaptrc.pp system$(PPUEXT)
 
 #
 # $Log$
-# Revision 1.8  2004-08-16 16:22:17  olle
+# Revision 1.9  2004-08-25 16:57:22  olle
+#   * fix so that macpas.pp really is compiled
+#
+# Revision 1.8  2004/08/16 16:22:17  olle
 #   + Added unit macpas
 #
 # Revision 1.7  2004/07/07 21:37:29  daniel

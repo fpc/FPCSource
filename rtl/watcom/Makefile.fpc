@@ -8,7 +8,7 @@ main=rtl
 [target]
 loaders=prt0
 #exceptn fpu
-units=system objpas strings watcom dos crt objects \
+units=system objpas macpas strings watcom dos crt objects \
       cpu charset types getopts heaptrc lineinfo
 #      math typinfo mmx ucomplex \
 #      varutils variants sysutils

@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 loaders=prt0
-units=$(SYSTEMUNIT) objpas strings \
+units=$(SYSTEMUNIT) objpas macpas strings \
       dos \
       sysutils classes math typinfo varutils \
       charset ucomplex getopts matrix \

@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 loaders=prt0 cprt0 func dllprt
-units=system posix objpas strings \
+units=system posix objpas macpas strings \
       beos \
       dos matrix \
       sysutils classes typinfo math varutils \
