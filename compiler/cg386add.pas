@@ -48,6 +48,24 @@ implementation
                                 Helpers
 *****************************************************************************}
 
+    procedure locflags2reg(var l:tlocation;opsize:topsize);
+      var
+        hregister : tregister;
+      begin
+        if (l.loc=LOC_FLAGS) then
+         begin
+           case opsize of
+            S_L : hregister:=getregister32;
+            S_W : hregister:=reg32toreg16(getregister32);
+            S_B : hregister:=reg32toreg8(getregister32);
+           end;
+           emit_flag2reg(l.resflags,hregister);
+           l.loc:=LOC_REGISTER;
+           l.register:=hregister;
+         end;
+      end;
+
+
     function getresflags(p : ptree;unsigned : boolean) : tresflags;
 
       begin
@@ -616,11 +634,11 @@ implementation
                        if p^.left^.treetype=ordconstn then
                         swaptree(p);
                        secondpass(p^.left);
+                       { if in flags then copy first to register, because the
+                         flags can be destroyed }
+                       if (p^.left^.location.loc=LOC_FLAGS) then
+                        locflags2reg(p^.left^.location,opsize);
                        set_location(p^.location,p^.left^.location);
-                       {p^.location:=p^.left^.location;
-                       created a bug !!! PM
-                       because symbol was used twice }
-                       { are enough registers free ? }
                        pushed:=maybe_push(p^.right^.registers32,p);
                        secondpass(p^.right);
                        if pushed then restore(p);
@@ -881,6 +899,12 @@ implementation
                        exit;
                      end;
 
+                   { Convert flags to register first }
+                   if (p^.left^.location.loc=LOC_FLAGS) then
+                    locflags2reg(p^.left^.location,opsize);
+                   if (p^.right^.location.loc=LOC_FLAGS) then
+                    locflags2reg(p^.right^.location,opsize);
+
                    { left and right no register?  }
                    { then one must be demanded    }
                    if (p^.left^.location.loc<>LOC_REGISTER) and
@@ -912,16 +936,6 @@ implementation
                                     hregister);
                                end
                           end
-                             else
-                             { Flags ? }
-                              if (p^.left^.location.loc=LOC_FLAGS) then
-                               begin
-                                 case opsize of
-                                   S_L : hregister:=getregister32;
-                                   S_B : hregister:=reg32toreg8(getregister32);
-                                 end;
-                                 emit_flag2reg(p^.left^.location.resflags,hregister);
-                               end
                         else
                           begin
                              ungetiftemp(p^.left^.location.reference);
@@ -1900,7 +1914,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.48  1999-04-14 09:14:45  peter
+  Revision 1.49  1999-04-16 11:44:24  peter
+    * better support for flags result
+
+  Revision 1.48  1999/04/14 09:14:45  peter
     * first things to store the symbol/def number in the ppu
 
   Revision 1.47  1999/04/12 19:09:08  florian
