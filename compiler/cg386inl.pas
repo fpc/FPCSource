@@ -452,6 +452,10 @@ implementation
                                 if pfloatdef(p^.resulttype)^.typ<>f32bit then
                                   dec(fpuvaroffset);
                                 }
+                                { the result is on the fpu stack   }
+                                { and storedirectreuslt decrements }
+                                { fpuvaroffset                     }
+                                inc(fpuvaroffset);
                                 if doread then
                                   begin
                                      maybe_loadesi;
@@ -1528,7 +1532,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.101  2000-05-11 09:56:20  pierre
+  Revision 1.102  2000-07-05 20:19:47  florian
+    * fixed fpuvaroffset calculation in read statements
+
+  Revision 1.101  2000/05/11 09:56:20  pierre
     * fixed several compare problems between longints and
       const > $80000000 that are treated as int64 constanst
       by Delphi reported by Kovacs Attila Zoltan
