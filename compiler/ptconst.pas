@@ -65,7 +65,6 @@ unit ptconst;
          pd     : pprocdef;
          obj       : pobjectdef;
          symt      : psymtable;
-         hp1,hp2   : pdefcoll;
          value     : bestreal;
 
       procedure check_range;
@@ -701,7 +700,10 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.51  1999-08-04 13:03:02  jonas
+  Revision 1.52  1999-08-10 12:30:02  pierre
+   * avoid unused locals
+
+  Revision 1.51  1999/08/04 13:03:02  jonas
     * all tokens now start with an underscore
     * PowerPC compiles!!
 

@@ -47,7 +47,10 @@ Procedure PeepHoleOptPass1(Asml: PAasmOutput; BlockStart, BlockEnd: Pai);
 
 Var
   l : longint;
-  p ,hp1, hp2, hp3, hp4: pai;
+  p ,hp1, hp2 : pai;
+{$ifdef foropt}
+  hp3, hp4: pai;
+{$endif foropt}
   TmpBool1, TmpBool2: Boolean;
 
   TmpRef: PReference;
@@ -1566,7 +1569,10 @@ End.
 
 {
  $Log$
- Revision 1.61  1999-08-05 15:02:48  jonas
+ Revision 1.62  1999-08-10 12:30:00  pierre
+  * avoid unused locals
+
+ Revision 1.61  1999/08/05 15:02:48  jonas
    * "add/sub const,%esp;sub $2,%esp" wasn't always optimized
 
  Revision 1.60  1999/08/04 00:23:16  florian
