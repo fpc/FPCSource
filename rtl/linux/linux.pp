@@ -1,5 +1,4 @@
 {
-    $Id$
     This file is part of the Free Pascal run time library.
     Copyright (c) 1993,97 by Michael Van Canneyt,
     member of the Free Pascal development team.
@@ -45,6 +44,13 @@ Const
 Const
   P_IN  = 1;
   P_OUT = 2;
+
+Const
+  LOCK_SH = 1;
+  LOCK_EX = 2;
+  LOCK_UN = 8;
+  LOCK_NB = 4;
+  
 Type
   Tpipe = array[1..2] of longint;
 
@@ -503,6 +509,9 @@ Function  Chmod(path:pathstr;Newmode:longint):boolean;
 Function  Utime(path:pathstr;utim:utimbuf):boolean;
 Function  Access(Path:Pathstr ;mode:integer):boolean;
 Function  Umask(Mask:Integer):integer;
+Function  Flock (fd,mode : longint) : boolean;
+Function  Flock (var T : text;mode : longint) : boolean;
+Function  Flock (var F : File;mode : longint) : boolean;
 Function  FStat(Path:Pathstr;Var Info:stat):Boolean;
 Function  FStat(Fd:longint;Var Info:stat):Boolean;
 Function  FStat(var F:Text;Var Info:stat):Boolean;
@@ -1348,6 +1357,34 @@ begin
   sr.reg3:=longint(@utim);
   Utime:=SysCall(Syscall_nr_utime,sr)=0;
   linuxerror:=errno;
+end;
+
+
+
+Function  Flock (fd,mode : longint) : boolean;
+
+var sr : Syscallregs;
+begin
+  sr.reg2:=fd;
+  sr.reg3:=mode;
+  flock:=Syscall(Syscall_nr_flock,sr)=0;
+  LinuxError:=errno;
+end;
+
+
+
+Function Flock (var T : text;mode : longint) : boolean;
+
+begin
+  Flock:=Flock( TextRec(T).Handle,mode );
+end;
+
+
+
+Function  Flock (var F : File;mode : longint) : boolean;
+
+begin
+  Flock:=Flock(FileRec(F).Handle,mode);
 end;
 
 
@@ -3121,7 +3158,11 @@ End.
 
 {
   $Log$
-  Revision 1.3  1998-04-07 12:27:41  peter
+  Revision 1.4  1998-04-07 13:08:29  michael
+  + Added flock for file locking
+
+
+  Revision 1.3  1998/04/07 12:27:41  peter
     * fixed fexpand('..')
 
   Revision 1.2  1998/04/04 17:07:17  michael
