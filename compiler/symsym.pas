@@ -856,7 +856,7 @@ implementation
              { only write the proc definitions that belong
                to this procsym and are in the global symtable }
              if (p^.def.procsym=self) and
-                (p^.def.owner.symtabletype=globalsymtable) then
+                (p^.def.owner.symtabletype in [globalsymtable,objectsymtable]) then
                inc(n);
              p:=p^.next;
            end;
@@ -868,7 +868,7 @@ implementation
              { only write the proc definitions that belong
                to this procsym and are in the global symtable }
              if (p^.def.procsym=self) and
-                (p^.def.owner.symtabletype=globalsymtable) then
+                (p^.def.owner.symtabletype in [globalsymtable,objectsymtable]) then
                ppufile.putderef(p^.def,p^.defderef);
              p:=p^.next;
            end;
@@ -2662,7 +2662,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.116  2003-09-14 12:58:00  peter
+  Revision 1.117  2003-09-14 13:20:12  peter
+    * fix previous commit, also include objectsymtable
+
+  Revision 1.116  2003/09/14 12:58:00  peter
     * support mulitple overloads in implementation, this is delphi
       compatible
     * procsym only stores the overloads available in the interface
