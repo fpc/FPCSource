@@ -72,6 +72,9 @@ INSTALLOPTS=FPC=$(PPNEW) PPUFILES=$(PPUFILESNEW) ZIPDESTDIR=$(BASEDIR)
 
 
 [rules]
+# These values can change
+unexport FPC_VERSION OS_SOURCE
+
 .PHONY: help checkfpcdir
 
 help:
@@ -220,8 +223,8 @@ source:
         $(MAKE) -C $(CVSBASE) fcl_zipsourceinstall
         $(MAKE) -C $(CVSBASE) packages_zipsourceinstall
         $(MAKE) -C $(CVSBASE) utils_zipsourceinstall
-        $(MAKE) installersrc
-        $(MAKE) docsrc
+#        $(MAKE) installersrc
+#        $(MAKE) docsrc
 
 
 ##########################################################################
