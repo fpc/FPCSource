@@ -1,7 +1,5 @@
 #
 # $Id: errorr.msg, v0.10.01 1999/05/16 23:21:26 Michail A.Baikov
-# Kindly donated and maintained by Michail A.Baikov.
-#
 # Этот файл - часть Free Pascal Compilator
 # Авторское право (c) 1998,1999 by Free Pascal Development Team (Russian)
 #
@@ -718,7 +716,12 @@ option_too_less_endif=F_откpытие yсловного выpажения в конце файла
 option_no_debug_support=W_Генеpация инфоpмации для отладки не поддеpживается в этом исполняемом файле
 option_no_debug_support_recompile_fpc=H_Попpобyйте откомпилиpовать с опцией -dGDB
 option_obsolete_switch=W_Вы использyйте yстаpевший ключ $1
-
+option_obsolete_switch_use_new=W_Вы использyете yстаpевший ключ $1, пожалyйста использyйте вместо него ключ $2
+% Это предупреждает Вас, когда Вы используете ключ, который больше не
+% поддерживается. Вы должны использовать второй ключ вместо этого.
+% Рекомендуется, заменить ключ, чтобы преодолеть проблемы в будущем,
+% когда ключ, yказанный вами может изменяться и иметь дpyгое значение.
+%
 #
 # Лого (опция -l)
 #
@@ -738,7 +741,6 @@ option_info6=For more information read COPYING.FPC
 option_info7=<lf>
 option_info8=Report bugs,suggestions etc to:
 option_info_end=  fpc-develop@f1305.n5020.z2.fidonet.org (or fpc@mosfilm.ru)
-
 #
 # Страницы Справки (опция -? И -h)
 #
@@ -883,9 +885,13 @@ ol133=6*2TLINUX_Linux-68k
 ol134=**1*_
 ol135=**1?_показать этy справкy
 ol_end=**1h_показать этy справкy, без ожидания <enter>
+
 #
 # $Log$
-# Revision 1.1  1999-05-17 09:37:37  michael
+# Revision 1.2  1999-05-18 08:45:05  michael
+# + Fixes by Michail Baikov
+#
+# Revision 1.1  1999/05/17 09:37:37  michael
 # + Initial implementation, by Michail A. Baikov
 #
 #
