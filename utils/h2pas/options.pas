@@ -40,6 +40,7 @@ var
                               { is passed                               }
    includefile : boolean;     { creates an include file instead of a unit }
    palmpilot : boolean;       { handling of PalmOS SYS_CALLs }
+   packrecords: boolean;      { All records should be packed in the file }
 
 { Helpers }
 Function ForceExtension(Const HStr,ext:String):String;
@@ -107,6 +108,7 @@ begin
   writeln ('        -l libname         Specify the library name for external');
   writeln ('        -o outputfilename  Specify the outputfilename');
   writeln ('        -p                 Use "P" instead of "^" for pointers');
+  writeln ('        -pr                Pack all records (1 byte alignment)');
   writeln ('        -s                 strip comments from inputfile');
   writeln ('        -S                 strip comments and don''t write info to outputfile.');
   writeln ('        -t                 Prepend typedef type names with T');
@@ -156,6 +158,7 @@ begin
   usevarparas:=false;
   palmpilot:=false;
   includefile:=false;
+  packrecords:=false;
   i:=1;
   while i<=paramcount do
    begin
@@ -173,7 +176,14 @@ begin
          'i' : includefile:=true;
          'l' : LibFileName:=GetNextParam ('l','libname');
          'o' : outputfilename:=GetNextParam('o','outputfilename');
-         'p' : UsePPointers:=true;
+         'p' : begin
+                  if (cp[3] = 'r') then
+                     begin
+                        PackRecords := true;
+                     end
+                  else
+                      UsePPointers:=true;
+               end;   
          's' : stripcomment:=true;
          'S' : begin
                  stripcomment:=true;
@@ -226,7 +236,11 @@ end;
 end.
 {
    $Log$
-   Revision 1.3  2004-08-13 02:35:30  carl
+   Revision 1.4  2004-09-08 22:21:41  carl
+     + support for creating packed records
+     * var parameter bugfixes
+
+   Revision 1.3  2004/08/13 02:35:30  carl
      + bugfixes with C++ comments, they are now placed above the definition
      * some bugfixes with the _label reserved word.
 

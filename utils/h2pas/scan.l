@@ -112,6 +112,40 @@ unit scan;
           { p1 expr for value }
           );
 
+const
+   ttypstr: array[ttyp] of string =
+   (
+          't_id',
+          't_arraydef',
+          't_pointerdef',
+          't_addrdef',
+          't_void',
+          't_dec',
+          't_declist',
+          't_memberdec',
+          't_structdef',
+          't_memberdeclist',
+          't_procdef',
+          't_uniondef',
+          't_enumdef',
+          't_enumlist',
+          't_preop',
+          't_bop',
+          't_arrayop',
+          't_callop',
+          't_arg',
+          't_arglist',
+          't_funexprlist',
+          't_exprlist',
+          't_ifexpr',
+          't_funcname',
+          't_typespec',
+          't_size_specifier',
+          't_default_value' 
+   );
+    
+type
+
        presobject = ^tresobject;
        tresobject = object
           typ : ttyp;
@@ -161,6 +195,9 @@ unit scan;
     procedure internalerror(i : integer);
 
     function strpnew(const s : string) : pchar;
+    
+    procedure writetree(p: presobject);
+    
 
   implementation
 
@@ -169,6 +206,53 @@ unit scan;
 
     const
        newline = #10;
+       
+       
+    procedure writeentry(p: presobject; var currentlevel: integer);
+    begin
+                     if assigned(p^.p1) then
+                        begin
+                          WriteLn(' Entry p1[',ttypstr[p^.p1^.typ],']',p^.p1^.str);
+                        end;
+                     if assigned(p^.p2) then
+                        begin
+                          WriteLn(' Entry p2[',ttypstr[p^.p2^.typ],']',p^.p2^.str);
+                        end;
+                     if assigned(p^.p3) then
+                        begin
+                          WriteLn(' Entry p3[',ttypstr[p^.p3^.typ],']',p^.p3^.str);
+                        end;
+    end;
+       
+    procedure writetree(p: presobject);
+    var
+     i : integer;
+     localp: presobject;
+     localp1: presobject;
+     currentlevel : integer;
+    begin
+      localp:=p;
+      currentlevel:=0;
+      while assigned(localp) do
+         begin
+          WriteLn('Entry[',ttypstr[localp^.typ],']',localp^.str);
+          case localp^.typ of
+          { Some arguments sharing the same type }
+          t_arglist:
+            begin
+               localp1:=localp;
+               while assigned(localp1) do
+                  begin
+                     writeentry(localp1,currentlevel);
+                     localp1:=localp1^.p1;
+                  end;
+            end;
+          end;
+           
+          localp:=localp^.next;
+         end;
+    end;
+       
 
 
     procedure internalerror(i : integer);
