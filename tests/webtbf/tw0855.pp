@@ -1,3 +1,4 @@
+{ %FAIL }
 {$MODE objfpc}
 {$R+}
 type
