@@ -302,12 +302,7 @@ implementation
               pass_1:=t;
               exit;
            end;
-           { nasm can not cope with negativ reals !! }
-         if is_constrealnode(left)
-{$ifdef i386}
-           and not(aktoutputformat in [as_i386_nasmcoff,as_i386_nasmelf,as_i386_nasmobj])
-{$endif i386}
-             then
+         if is_constrealnode(left) then
            begin
               t:=genrealconstnode(-trealconstnode(left).value_real,bestrealdef^);
               firstpass(t);
@@ -528,7 +523,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2001-01-06 18:28:39  peter
+  Revision 1.14  2001-02-20 21:48:17  peter
+    * remove nasm hack
+
+  Revision 1.13  2001/01/06 18:28:39  peter
     * fixed wrong notes about locals
 
   Revision 1.12  2001/01/05 17:36:57  florian
