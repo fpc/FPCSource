@@ -1,0 +1,7 @@
+[25m[1m[37m[46mษอ[[32mþ[37m]ออออออออออออออออออออออออออออออ Messages ออออออออออออออออออออออออออออ3อ[[32m[37m]อป
+บ[21m[34m E:\PAS\V100\BIN\GO32V2\grep.exe -n  -i "hello" *.pas *.pp *.inc              
+[1m[37mบ[42m test.pas(61): var Hello : word;                                              [21m[34m[46mþ
+[1m[37mบ[21m[34m test.pas(139):   if Hello=0 then X:=0 else X:=1;                             ฑ
+[1m[37mบ[21m[34m test.pas(151):   writeln('Hello world!');                                    ฑ
+[1m[37mบ[21m[34m testgpc.pp(34): var Hello : word;                                            
+[1m[37mศอ[21m[34mþฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ[1m[32mฤู

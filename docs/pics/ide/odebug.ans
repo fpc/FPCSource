@@ -1,0 +1,21 @@
+[25m[1m[37m[47mษอ[[32mþ[37m]ออออออออออ Browsing/Debugging/Profiling ออออออออออออออป
+บ                                                          บ
+บ   Debugging information                                  บ
+บ  [21m[30m[46m [ ] [1m[33mS[21m[30mtrip all debug symbols from executable          [1m[37m[47m  บ
+บ  [21m[30m[46m ( ) Skip [1m[33md[21m[30mebug information generation                [1m[37m[47m  บ
+บ  [46m (*) Generate [33md[37mebug symbol information                [47m  บ
+บ  [21m[30m[46m ( ) Generate also backtrace [1m[33ml[21m[30mine information         [1m[37m[47m  บ
+บ                                                          บ
+บ  [21m[30m Profiling Switches                                   [1m[37m  บ
+บ  [21m[30m[46m (*) [1m[33mN[21m[30mo profile information                           [1m[37m[47m  บ
+บ  [21m[30m[46m ( ) Generate profile code for g[1m[33mp[21m[30mrof                  [1m[37m[47m  บ
+บ                                                          บ
+บ  [21m[30m [1m[33mA[21m[30mdditional compiler args                             [1m[37m  บ
+บ  [44m                                                  [47m [21m[30m[42m[][1m[37m[47m  บ
+บ                                                          บ
+บ  [21m[30m Debuggee [1m[33mR[21m[30medirection                                 [1m[37m  บ
+บ  [21m[30m[46m [ ] [1m[33mU[21m[30mse another console                              [1m[37m[47m  บ
+บ                                                          บ
+บ            [21m[30m [1m[36m[42m   O[33mK[36m   [21m[30m[47mÜ[1m[37m               [21m[30m [42m Cancel [47mÜ[1m[37m           บ
+บ            [21m[30m  ฿฿฿฿฿฿฿฿[1m[37m               [21m[30m  ฿฿฿฿฿฿฿฿[1m[37m           บ
+ศออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผ
