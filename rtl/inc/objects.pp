@@ -1087,7 +1087,10 @@ VAR ObjType: Sw_Word; Link: pointer; Q: PStreamRec; VmtPtr: ^pointer;
     ObjTypeWord: Word;
 BEGIN
    VmtPtr := Pointer(P);                              { Xfer object to ptr }
-   Link := VmtPtr^;                                   { VMT link }
+   if assigned(vmtptr) then
+    Link := VmtPtr^                                   { VMT link }
+   else
+    Link:=nil;
    ObjType := 0;                                      { Set objtype to zero }
    If (P<>Nil) AND (Link<>Nil) Then Begin               { We have a VMT link }
      Q := StreamTypes;                                { Current reg list }
@@ -2758,7 +2761,10 @@ END;
 END.
 {
   $Log$
-  Revision 1.31  1999-11-06 14:35:38  peter
+  Revision 1.32  1999-12-06 18:25:30  peter
+    * fixed vmtptr crash in tstream.put
+
+  Revision 1.31  1999/11/06 14:35:38  peter
     * truncated log
 
   Revision 1.30  1999/09/10 17:15:13  peter
