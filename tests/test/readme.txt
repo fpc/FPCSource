@@ -26,3 +26,4 @@ Units ................. testu1.pp      tests init. & finalization and halt
                         testu5.pp
 case .................. testcase.pp    tests case statements with byte and word
                                        sized decision variables
+Arrays ................ testarr1.pp    small test for open arrays with classes
