@@ -217,13 +217,14 @@ L8BytesAligned:
 
           {  adjust the update count: it will now be 8 or -8 depending on overlap  }
           slwi    r10,r10,1
-          slwi    r6,r6,1
 
           {  adjust source and dest pointers: because of the above loop, dest is now   }
           {  aligned to 8 bytes. So if we add r6 we will still have an 8 bytes         }
           { aligned address)                                                           }
           add     r3,r3,r6
           add     r4,r4,r6
+
+          slwi    r6,r6,1
 
 LMove32ByteLoop:
           lfdux   f0,r3,r10
@@ -886,7 +887,10 @@ end ['R3','R10'];
 
 {
   $Log$
-  Revision 1.39  2003-05-02 19:03:25  jonas
+  Revision 1.40  2003-05-10 17:33:06  jonas
+    * final (? :) fix to move, passes new tests/test/tmove test
+
+  Revision 1.39  2003/05/02 19:03:25  jonas
     * fixed some bugs in move()
 
   Revision 1.38  2003/04/27 16:24:44  jonas
