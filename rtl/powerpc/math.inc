@@ -1,0 +1,259 @@
+{
+    $Id$
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 2000 by Jonas Maebe and other members of the
+    Free Pascal development team
+
+    Implementation of mathamatical Routines (only for real)
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
+
+
+{****************************************************************************
+                       EXTENDED data type routines
+ ****************************************************************************}
+
+    function pi : double;[internconst:in_pi];
+      begin
+        pi := 3.14159265358979320;
+      end;
+
+    function abs(d : extended) : extended;[internproc:in_abs_extended];
+    function sqr(d : extended) : extended;[internproc:in_sqr_extended];
+    function sqrt(d : extended) : extended;[internproc:in_sqrt_extended];
+
+    function arctan(d : extended) : extended;[internconst:in_arctan_extended];
+      begin
+        runerror(207);
+      end;
+
+    function ln(d : extended) : extended;[internconst:in_ln_extended];
+      begin
+        runerror(207);
+      end;
+
+    function sin(d : extended) : extended;[internconst: in_sin_extended];
+      begin
+        runerror(207);
+      end;
+
+    function cos(d : extended) : extended;[internconst:in_cos_extended];
+      begin
+        runerror(207);
+      end;
+
+    function exp(d : extended) : extended;assembler;[internconst:in_const_exp];
+      begin
+        runerror(207);
+      end;
+
+
+    function frac(d : extended) : extended;assembler;[internconst:in_const_frac];
+      begin
+        runerror(207);
+      end;
+
+
+    function int(d : extended) : extended;assembler;[internconst:in_const_int];
+      begin
+        runerror(207);
+      end;
+
+
+    function trunc(d : extended) : longint;assembler;[internconst:in_const_trunc];
+      { input: d in fr1      }
+      { output: result in r3 }
+      assembler;
+      var
+        temp:
+          record
+            case byte of
+              0: (l1,l2: longint);
+              1: (d: double);
+          end;
+      asm
+        fctiwz   fr1,fr1
+        stfd     fr1,temp.d
+        lwz      r3,temp.l2
+      end ['r3','fr1'];
+
+
+    function round(d : extended) : longint;assembler;[internconst:in_const_round];
+      { input: d in fr1      }
+      { output: result in r3 }
+      assembler;
+      var
+        temp:
+          record
+            case byte of
+              0: (l1,l2: longint);
+              1: (d: double);
+          end;
+      asm
+        fctiw    fr1,fr1
+        stfd     fr1,temp.d
+        lwz      r3,temp.l2
+      end ['r3','fr1'];
+
+
+   function power(bas,expo : extended) : extended;
+     begin
+        if bas=0 then
+          begin
+            if expo<>0 then
+              power:=0.0
+            else
+              HandleError(207);
+          end
+        else if expo=0 then
+         power:=1
+        else
+        { bas < 0 is not allowed }
+         if bas<0 then
+          handleerror(207)
+         else
+          power:=exp(ln(bas)*expo);
+     end;
+
+
+{****************************************************************************
+                       Longint data type routines
+ ****************************************************************************}
+
+   function power(bas,expo : longint) : longint;
+     begin
+        if bas=0 then
+          begin
+            if expo<>0 then
+              power:=0
+            else
+              HandleError(207);
+          end
+        else if expo=0 then
+         power:=1
+        else
+         begin
+           if bas<0 then
+            begin
+              if odd(expo) then
+               power:=-round(exp(ln(-bas)*expo))
+              else
+               power:=round(exp(ln(-bas)*expo));
+            end
+           else
+            power:=round(exp(ln(bas)*expo));
+         end;
+     end;
+
+{****************************************************************************
+                    Helper routines to support old TP styled reals
+ ****************************************************************************}
+
+    { warning: the following converts a little-endian TP-style real }
+    { to a big-endian double. So don't byte-swap the TP real!       }
+    function real2double(r : real48) : double;
+
+      var
+         res : array[0..7] of byte;
+         exponent : word;
+
+      begin
+         { copy mantissa }
+         res[6]:=0;
+         res[5]:=r[1] shl 5;
+         res[4]:=(r[1] shr 3) or (r[2] shl 5);
+         res[3]:=(r[2] shr 3) or (r[3] shl 5);
+         res[2]:=(r[3] shr 3) or (r[4] shl 5);
+         res[1]:=(r[4] shr 3) or (r[5] and $7f) shl 5;
+         res[0]:=(r[5] and $7f) shr 3;
+
+         { copy exponent }
+         { correct exponent: }
+         exponent:=(word(r[0])+(1023-129));
+         res[1]:=res[1] or ((exponent and $f) shl 4);
+         res[0]:=exponent shr 4;
+
+         { set sign }
+         res[0]:=res[0] or (r[5] and $80);
+         real2double:=double(res);
+      end;
+
+
+{****************************************************************************
+                         Int to real helpers
+ ****************************************************************************}
+
+function fpc_int64_to_real(i: int64): double; compilerproc;
+assembler;
+{ input: high(i) in r3, low(i) in r4 }
+{ output: double(i) in f0            }
+var
+  temp:
+    record
+      case byte of
+        0: (l1,l2: cardinal);
+        1: (d: double);
+    end;
+asm
+           li     r0,$43300000
+           stw    r0,temp.l1
+           xoris  r3,r3,$8000
+           stw    r3,temp.l2
+           lis    r3,longint_to_real_helper@ha
+           lfd    fr1,longint_to_real_helper@l(r3)
+           lfd    fr0,temp.d
+           stw    r4,temp.l2
+           fsub   fr0,fr1,fr0
+           lis    r4,cardinal_to_real_helper@ha
+           lfd    fr1,cardinal_to_real_helper@l(r4)
+           lis    r3,int_to_real_factor@ha
+           lfd    fr3,temp
+           lfd    fr2,int_to_real_factor@l(r3)
+           fsub   fr3,fr1,fr3
+           fmadd  fr0,fr0,fr2,fr3
+end ['r0','r3','r4','fr0','fr1','fr2','fr3'];
+
+
+function fpc_qword_to_real(q: qword): double; compilerproc;
+assembler;
+{ input: high(q) in r3, low(q) in r4 }
+{ output: double(q) in f0            }
+var
+  temp:
+    record
+      case byte of
+        0: (l1,l2: cardinal);
+        1: (d: double);
+    end;
+asm
+           li     r0,$43300000
+           stw    r0,temp.l1
+           stw    r3,temp.l2
+           lfd    fr0,temp.d
+           lis    r3,cardinal_to_real_helper@ha
+           lfd    fr1,cardinal_to_real_helper@l(r3)
+           stw    r4,temp.l2
+           fsub   fr0,fr1,fr0
+           lfd    fr3,temp
+           lis    r3,int_to_real_factor@ha
+           lfd    fr2,int_to_real_factor@l(r3)
+           fsub   fr3,fr1,fr3
+           fmadd  fr0,fr0,fr2,fr3
+end ['r0','r3','fr0','fr1','fr2','fr3'];
+
+
+
+{
+  $Log$
+  Revision 1.1  2001-10-28 14:09:13  jonas
+    + initial implementation, lots of things still missing
+
+
+}
