@@ -248,8 +248,8 @@ begin
   Hstr:='';
   Fg:=Attr and $f;
   Bg:=Attr shr 4;
-  OFg:=Attr and $f;
-  OBg:=Attr shr 4;
+  OFg:=OAttr and $f;
+  OBg:=OAttr shr 4;
   if (OFg<>7) or (Fg=7) or ((OFg>7) and (Fg<8)) or ((OBg>7) and (Bg<8)) then
    begin
      hstr:='0';
@@ -463,10 +463,10 @@ procedure ttyColor(a:longint);
   Set Attribute to A, only output if not the last attribute is set
 }
 begin
-  if a<>TextAttr then
+  if a<>OldTextAttr then
    begin
      if not OutputRedir then
-      ttySendStr(Attr2Ansi(a,TextAttr));
+      ttySendStr(Attr2Ansi(a,OldTextAttr));
      TextAttr:=a;
      OldTextAttr:=a;
    end;
@@ -622,8 +622,13 @@ Procedure TextColor(Color: Byte);
 {
   Switch foregroundcolor
 }
+  var AddBlink : byte;
 Begin
-  ttyColor((Color and $8f) or (TextAttr and $70));
+  If (Color>15) Then
+    AddBlink:=Blink
+  else
+    AddBlink:=0;
+  ttyColor((Color and $f) or (TextAttr and $70) or AddBlink);
 End;
 
 
@@ -633,7 +638,8 @@ Procedure TextBackground(Color: Byte);
   Switch backgroundcolor
 }
 Begin
-  TextAttr:=((Color shl 4) and ($f0 and not Blink)) or (TextAttr and ($0f OR Blink) );
+  TextAttr:=((Color shl 4) and ($f0 and not Blink)) or (TextAttr and ($0f OR Blink));
+  ttyColor(TextAttr);
 End;
 
 
@@ -1232,7 +1238,7 @@ begin
             'H' : begin {No other way :( Coz First Para=Y}
                     y:=AnsiPara(AnsiCode);
                     x:=AnsiPara(AnsiCode);
-                    GotoXY(y,x);
+                    GotoXY(x,y);
                   end;
             'J' : if AnsiPara(AnsiCode)=2 then
                    ClrScr;
@@ -1573,7 +1579,7 @@ Begin
 { Are we redirected to a file ? }
  OutputRedir:= not IsAtty(TextRec(Output).Handle);
 { does the input come from another console or from a file? }
- InputRedir := 
+ InputRedir :=
    not IsAtty(TextRec(Input).Handle) or
    (not OutputRedir and
     (TTYName(TextRec(Input).Handle) <> TTYName(TextRec(Output).Handle)));
@@ -1604,7 +1610,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.23  2000-04-07 13:26:27  jonas
+  Revision 1.24  2000-04-14 12:15:31  pierre
+   * several bugs fixed
+
+  Revision 1.23  2000/04/07 13:26:27  jonas
     * fix for web bug 917
     * also do not mirror input if input is another TTY than output or if
       input is redirected
