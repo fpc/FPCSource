@@ -20,6 +20,7 @@ program ImgConv;
 
 uses FPWriteXPM, FPWritePNG, FPWriteBMP,
      FPReadXPM, FPReadPNG, FPReadBMP, fpreadjpeg,fpwritejpeg,
+     fpreadtga,
      {$ifndef UseFile}classes,{$endif}
      FPImage, sysutils;
 
@@ -42,6 +43,8 @@ begin
       Reader := TFPReaderJPEG.Create
     else if T = 'P' then
       Reader := TFPReaderPNG.Create
+    else if T = 'T' then
+      Reader := TFPReaderTarga.Create
     else
       begin
       Writeln('Unknown file format : ',T);
@@ -63,7 +66,10 @@ begin
   if T = 'X' then
     Writer := TFPWriterXPM.Create
   else if T = 'B' then
-    Writer := TFPWriterBMP.Create
+    begin
+    Writer := TFPWriterBMP.Create;
+    TFPWriterBMP(Writer).BytesPerPixel:=4;
+    end
   else if T = 'J' then
     Writer := TFPWriterJPEG.Create
   else if T = 'P' then
