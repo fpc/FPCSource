@@ -769,6 +769,8 @@ begin
          Begin
             If (Path[i]='.') Then
               begin
+                 while (i>0) and (Path[i]='.') do
+                  dec(i);
                  DotPos:=i;
                  break;
               end;
@@ -1135,7 +1137,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.6  2000-08-04 21:45:39  peter
+  Revision 1.7  2000-09-04 19:38:12  peter
+    * fsplit with .. fix from Thomas (merged)
+
+  Revision 1.6  2000/08/04 21:45:39  peter
     * getenv case insensitive (merged)
 
   Revision 1.4  2000/07/22 12:24:55  jonas

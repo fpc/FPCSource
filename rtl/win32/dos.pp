@@ -667,6 +667,8 @@ begin
      Begin
         If (Path[i]='.') Then
           begin
+             while (i>0) and (path[i]='.') do
+              dec(i);
              DotPos:=i;
              break;
           end;
@@ -718,12 +720,14 @@ var temp        : PChar;
     name        : namestr;
     ext         : extstr;
     s           : SearchRec;
+    found       : boolean;
 begin
 { check if the file specified exists }
   findfirst(path,anyfile,s);
-  if doserror=0 then
+  found:=(doserror=0);
+  findclose(s);
+  if found then
    begin
-     findclose(s);
      fsearch:=path;
      exit;
    end;
@@ -1014,7 +1018,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2000-08-24 19:02:36  peter
+  Revision 1.4  2000-09-04 19:38:13  peter
+    * fsplit with .. fix from Thomas (merged)
+
+  Revision 1.3  2000/08/24 19:02:36  peter
     * fsearch checks if file exists first (merged)
 
   Revision 1.2  2000/07/13 11:33:57  michael

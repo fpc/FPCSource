@@ -2556,7 +2556,11 @@ Begin
   While (i>0) and (SlashPos=0) Do
    Begin
      If (DotPos=256) and (Path[i]='.') Then
-      DotPos:=i;
+      begin
+        while (i>0) and (Path[i]='.') do
+         dec(i);
+        DotPos:=i;
+      end;
      If (Path[i]='/') Then
       SlashPos:=i;
      Dec(i);
@@ -2931,7 +2935,10 @@ End.
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:48  michael
+  Revision 1.3  2000-09-04 19:38:13  peter
+    * fsplit with .. fix from Thomas (merged)
+
+  Revision 1.2  2000/07/13 11:33:48  michael
   + removed logs
- 
+
 }
