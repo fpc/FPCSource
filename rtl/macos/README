@@ -1,53 +1,77 @@
-Wellcome to the MacOS port of FreePascal (FPC)
+Welcome to the MacOS port of FreePascal (FPC)
 ==============================================
 
 It is considered under construction, at the moment.
 
+Most of the programs in demo/text works.
 
+Prerequisites:
+--------------
 Please note that compiling must be done on a platform
-supported by FPC, e g a PC. Then the generated assemble files
-is to be transfered to a Macintosh with MPW installed.
+supported by FPC, either in Darwin (MacOS X) or e g on
+Windows or Linux.
 
+MPW must be installed on the target Macintosh.
 
-For compiling with FPC, use it as for other operating systems 
-and add these options:
+Compiling on host:
+------------------
+When compiling for target MacOS, use FPC as for other
+operating systems with these options:
 
 -Tmacos # target macos
--dpowerpc
--al	# dont delete asm output
--s	# dont generate executable
+-st	# dont generate executable, link on target
 
-Note that at the moment, FPC yells about not supporting 
-creating of executables at the platform, nevertheless
-it creates all asm files to produce an application on the Mac.
+If make is used, add OPT=-st OS_TARGET=macos (on foreign platforms
+CPU_TARGET=powerpc must also be added)
+
+Note that one must build the RTL by issuing make in rtl/macos, with
+the above options, to be able to buld other programs. (Currently only
+system.pp is available)
 
 
-Use MPW to assemble and link the output from FreePascal
+Assembling and linking on target:
+---------------------------------
+In case that host and target machine is different, transfer the produced
+files, that is assembler files (*.s) and link script *_ppas, to the host.
 
-For PPCAsm, use options:
+On the target, use MPW to assemble and link the output from FreePascal by
+executing the link script (which is an MPW script), with its directory
+as current directory. Unfortunatelly the link script does not have the
+proper file type, so this has to be fixed first e. g with
+the MPW command SetFile.
 
--case on
+Example: To build Hello World, execute:
 
-For PPCLink, use options
+Directory HD:Projekt:FreePascal:fpc:rtl:macos
+SetFile -c 'MPS ' -t 'TEXT' system_ppas
+system_ppas	#executes the script
+Directory HD:Projekt:FreePascal:fpc:demo:text
+SetFile -c 'MPS ' -t 'TEXT' hello_ppas
+magic_hello	#executes the script
 
--dead on
--tocdataref off
--m program_init
 
 Note on the compiler implementation
 ===================================
-
-Procedure pointers
-------------------
-The entries in the transition vector is used as procedure pointers.
-That is the symbol xxx[DS].
 
 Global variables
 ----------------
 Currently all global variables are indirect, that is the entry in
 the TOC is always a pointer to data. (In the future small data items
-may be stored directly in the TOC, but I have not found out how this
-is supported by PPCLink.)
+may be stored directly in the TOC)
 
 Thus all references to globals are via a construct like:
 lwz rX, yyy[TC](r2)  ;loads a pointer to a global into rX
+
+Debugging
+----------
+-g is considered under construction.
+
+When -g is working, one should be able to see source code
+in the Power Mac Debugger 2.1 (can be downloaded from Apple), 
+but it will not be possible to examine variables.
+One can of course examine registers, especially
+at entry and exit point where the parameter lists is stored
+in registers, according to the calling conventions.
+
+A suggestion is to do the main debugging in the darwin version of the
+program.
