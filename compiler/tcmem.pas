@@ -119,6 +119,8 @@ implementation
          if p^.left^.location.loc<>LOC_REFERENCE then
            CGMessage(cg_e_illegal_expression);
          }
+         if p^.left^.location.loc=LOC_CREGISTER then
+           inc(p^.registers32);
          p^.location.loc:=LOC_REFERENCE;
          p^.resulttype:=ppointerdef(p^.left^.resulttype)^.definition;
       end;
@@ -592,7 +594,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.24  1999-08-05 16:53:25  peter
+  Revision 1.25  1999-08-23 23:34:15  pierre
+   * one more register needed if hnewn with CREGISTER
+
+  Revision 1.24  1999/08/05 16:53:25  peter
     * V_Fatal=1, all other V_ are also increased
     * Check for local procedure when assigning procvar
     * fixed comment parsing because directives
