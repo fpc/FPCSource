@@ -705,11 +705,12 @@ procedure CreateBrowserCol;
         objectdef :
           if precdef(definition)^.symtable<>Table then
             ProcessSymTable(Symbol,Symbol^.Items,pobjectdef(definition)^.publicsyms);
+        { leads to infinite loops !!
         pointerdef :
           with ppointerdef(definition)^ do
             if assigned(definition) then
               if assigned(definition^.sym) then
-                ProcessDefIfStruct(definition^.sym^.definition);
+                ProcessDefIfStruct(definition^.sym^.definition);}
       end;
     end;
   end;
@@ -899,7 +900,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  1999-02-22 11:51:32  peter
+  Revision 1.8  1999-03-03 01:38:11  pierre
+   * avoid infinite recursion in ProcessDefIfStruct
+
+  Revision 1.7  1999/02/22 11:51:32  peter
     * browser updates from gabor
 
   Revision 1.6  1999/02/04 09:31:59  pierre
