@@ -342,21 +342,22 @@ implementation
          secondpass(left);
          if is_64bitint(left.resulttype.def) then
            begin
-             location_force_reg(exprasmlist,left.location,def_cgsize(left.resulttype.def),false);
+             location_force_reg(exprasmlist,left.location,def_cgsize(left.resulttype.def),true);
              location_copy(location,left.location);
-             exprasmlist.concat(taicpu.op_reg_reg(A_NEG,location.registerlow,
-               location.registerlow));
-             cg.a_op_reg_reg(exprasmlist,OP_NOT,OS_32,location.registerhigh,location.registerhigh);
-             tmp := cg.get_scratch_reg_int(exprasmlist);
-             cg.a_op_const_reg_reg(exprasmlist,OP_SAR,OS_32,31,location.registerlow,
-               tmp);
+             if (location.loc = LOC_CREGISTER) then
+               begin
+                 location.registerlow := rg.getregisterint(exprasmlist);
+                 location.registerhigh := rg.getregisterint(exprasmlist);
+                 location.loc := LOC_CREGISTER;
+               end;
+             exprasmlist.concat(taicpu.op_reg_reg_const(A_SUBFIC,
+               location.registerlow,left.location.registerlow,0));
              if not(cs_check_overflow in aktlocalswitches) then
-               cg.a_op_reg_reg(exprasmlist,OP_ADD,OS_32,location.registerhigh,
-                 tmp)
+               exprasmlist.concat(taicpu.op_reg_reg(A_SUBFZE,
+                 location.registerhigh,left.location.registerhigh))
              else
-               exprasmlist.concat(taicpu.op_reg_reg_reg(A_ADDO_,tmp,
-                 location.registerhigh,tmp));
-             cg.free_scratch_reg(exprasmlist,tmp);
+               exprasmlist.concat(taicpu.op_reg_reg(A_SUBFZEO_,
+                 location.registerhigh,left.location.registerhigh));
            end
          else
            begin
@@ -502,7 +503,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  2002-09-07 15:25:14  peter
+  Revision 1.19  2002-09-10 21:21:29  jonas
+    * fixed unary minus of 64bit values
+
+  Revision 1.18  2002/09/07 15:25:14  peter
     * old logs removed and tabs fixed
 
   Revision 1.17  2002/08/15 15:15:55  carl
