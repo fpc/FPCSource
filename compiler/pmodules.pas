@@ -59,8 +59,7 @@ unit pmodules;
         if (cs_create_sharedlib in aktmoduleswitches) then
           Linker.MakeSharedLibrary
         else
-          if (cs_create_staticlib in aktmoduleswitches) or
-             ((cs_smartlink in aktmoduleswitches) and target_asm.needar) then
+          if (cs_smartlink in aktmoduleswitches) and target_asm.needar then
             Linker.MakeStaticLibrary(SmartLinkFilesCnt);
       end;
 
@@ -1336,7 +1335,13 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.124  1999-05-27 19:44:48  peter
+  Revision 1.125  1999-06-15 13:57:32  peter
+    * merged
+
+  Revision 1.124.2.1  1999/06/15 13:54:26  peter
+    * don't run ar anymore for binary writer, also not with -CS
+
+  Revision 1.124  1999/05/27 19:44:48  peter
     * removed oldasm
     * plabel -> pasmlabel
     * -a switches to source writing automaticly
