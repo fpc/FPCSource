@@ -146,6 +146,12 @@ endif
 # to the RTL !!)
 override RTLOPTS+=$(OPT)
 
+# We don't need the intel and binary writer on linux...
+ifdef inlinux
+override COMPILER+=-dNOAG386INT
+override COMPILER+=-dNOAG386BIN
+endif
+
 
 #####################################################################
 # Setup Targets
@@ -393,7 +399,10 @@ $(M68KEXENAME): $(PASFILES) $(INCFILES)
 
 #
 # $Log$
-# Revision 1.34  1999-06-15 15:10:06  peter
+# Revision 1.35  1999-08-15 22:16:51  michael
+# + No Intel and binary writer for linux=smaller executable
+#
+# Revision 1.34  1999/06/15 15:10:06  peter
 #   * updated for samplecfg
 #
 # Revision 1.33  1999/06/08 22:11:27  peter
