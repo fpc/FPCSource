@@ -427,9 +427,9 @@ end;
 procedure UpdateScreen (Force: boolean);
 
 {$IFDEF BIT_32}
-var SOfs: cardinal;
+var SOfs, CLen: cardinal;
 {$ELSE}
-var SOfs: word;
+var SOfs, CLen: word;
 {$ENDIF}
 
 begin
@@ -439,34 +439,74 @@ begin
                 begin
 {$IFDEF BIT_32}
                     asm
+                        cld
                         mov esi, VideoBuf
                         mov edi, OldVideoBuf
-                        mov ecx, VideoBufSize
+                        mov eax, VideoBufSize
+                        mov ecx, eax
                         shr ecx
                         shr ecx
                         repe
                         cmpsd
+                        inc cx
                         mov SOfs, ecx
                         or ecx, ecx
                         jz @no_update
                         mov Force, 1
+                        std
+                        mov edi, eax
+                        mov esi, VideoBuf
+                        add eax, esi
+                        sub eax, 4
+                        mov esi, eax
+                        mov eax, OldVideoBuf
+                        add eax, edi
+                        sub eax, 4
+                        mov edi, eax
+                        repe
+                        cmpsd
+                        inc ecx
+                        shl ecx
+                        shl ecx
+                        mov CLen, ecx
+                        cld
 @no_update:
                     end;
-                    Inc (SOfs);
                     SOfs := VideoBufSize - (SOfs shl 2);
 {$ELSE}
                     asm
+                        cld
                         push ds
                         lds si, VideoBuf
                         les di, OldVideoBuf
-                        mov cx, word ptr VideoBufSize
+                        mov ax, word ptr VideoBufSize
+                        mov cx, ax
                         shr cx
                         repe
                         cmpsw
+                        inc cx
                         mov SOfs, cx
                         or cx, cx
                         jz @no_update
                         mov Force, 1
+                        std
+                        mov di, ax
+                        mov si, offset VideoBuf
+                        add ax, si
+                        dec ax
+                        dec ax
+                        mov si, ax
+                        mov ax, offset OldVideoBuf
+                        add ax, di
+                        dec ax
+                        dec ax
+                        mov di, ax
+                        repe
+                        cmpsw
+                        inc cx
+                        shl cx
+                        mov CLen, cx
+                        cld
 @no_update:
                         pop ds
                     end;
@@ -474,11 +514,15 @@ begin
                     SOfs := VideoBufSize - (SOfs shl 1);
 {$ENDIF}
                 end else
-                    SOfs := 0;
+                    begin
+                        SOfs := 0;
+                        CLen := VideoBufSize;
+                    end;
             if Force then
                 begin
-                    VioShowBuf (SOfs, VideoBufSize - SOfs, 0);
-                    Move (VideoBuf^, OldVideoBuf^, VideoBufSize);
+                    VioShowBuf (SOfs, CLen, 0);
+                    Move (VideoBuf^ [SOfs div SizeOf (TVideoCell)],
+                            OldVideoBuf^ [SOfs div SizeOf (TVideoCell)], CLen);
                 end;
         end;
 end;
@@ -487,7 +531,10 @@ end;
 {
 
   $Log$
-  Revision 1.10  2000-10-11 20:10:04  hajny
+  Revision 1.11  2000-10-15 20:52:56  hajny
+    * optimization of UpdateScreen finished
+
+  Revision 1.10  2000/10/11 20:10:04  hajny
     * compatibility enhancements
 
   Revision 1.9  2000/10/11 05:28:29  hajny
