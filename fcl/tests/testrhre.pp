@@ -5,7 +5,7 @@
 
 program testrhre;
 
-uses resolve,sysutils;
+uses resolve,sysutils,Sockets;
 
 Var
   I : integer;
