@@ -180,7 +180,7 @@ begin
 
 { Call linker }
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
-  Replace(cmdstr,'$EXE',maybequoted(ScriptFixFileName(current_module.exefilename^));
+  Replace(cmdstr,'$EXE',maybequoted(ScriptFixFileName(current_module.exefilename^)));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$RES',maybequoted(ScriptFixFileName(outputexedir+Info.ResName)));
   success:=DoExec(FindUtil(BinStr),cmdstr,true,false);
@@ -215,7 +215,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.9  2004-12-22 16:32:46  peter
+  Revision 1.10  2004-12-23 18:45:23  jonas
+    * fixed typo
+
+  Revision 1.9  2004/12/22 16:32:46  peter
     * maybequoted() added
 
   Revision 1.8  2004/10/25 15:38:41  peter
