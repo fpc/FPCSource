@@ -742,6 +742,7 @@ implementation
                            emit_const_reg(A_SUB,S_L,size,R_ESP);
                            r:=new_reference(R_ESP,0);
                            concatcopy(tempreference,r^,size,false,false);
+                           dispose(r);
                          end
                        else
                          internalerror(8954);
@@ -1509,7 +1510,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.18  2001-07-08 21:00:18  peter
+  Revision 1.19  2001-08-24 12:22:14  jonas
+    * fixed memory leak with coping of array-of-consts as valuepara
+
+  Revision 1.18  2001/07/08 21:00:18  peter
     * various widestring updates, it works now mostly without charset
       mapping supported
 
