@@ -73,10 +73,10 @@
 
      PINTEGER = ^longint;
 
-     LONGLONG  = double;
+     LONGLONG  = int64;
      PLONGLONG = ^LONGLONG;
 
-     DWORDLONG  = double;  { was unsigned long  }
+     DWORDLONG  = qword;  { was unsigned long  }
      PDWORDLONG = ^DWORDLONG;
 
      FLOAT = real;
@@ -944,7 +944,11 @@ type
 
 {
   $Log$
-  Revision 1.8  2001-07-30 14:35:13  marco
+  Revision 1.9  2002-07-16 13:52:14  florian
+    * LARGE_INT and ULARGE_INT types fixed
+    * LONGLONG defined properly
+
+  Revision 1.8  2001/07/30 14:35:13  marco
    * wchar now system.wchar
 
   Revision 1.7  2001/07/30 14:08:57  marco

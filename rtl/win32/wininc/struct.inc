@@ -1770,13 +1770,28 @@
      PDIBSECTION = ^DIBSECTION;
 
      LARGE_INTEGER = record
-          LowPart : DWORD;
-          HighPart : LONG;
+        case byte of
+          0: (LowPart : DWORD;
+              HighPart : LONG);
+          1: (QuadPart : LONGLONG);
        end;
      PLARGE_INTEGER = ^LARGE_INTEGER;
      _LARGE_INTEGER = LARGE_INTEGER;
-     TLARGEINTEGER = LARGE_INTEGER;
-     PLARGEINTEGER = ^LARGE_INTEGER;
+
+     TLargeInteger = Int64;
+     PLargeInteger = ^TLargeInteger;
+
+     ULARGE_INTEGER = record
+        case byte of
+          0: (LowPart : DWORD;
+              HighPart : DWORD);
+          1: (QuadPart : LONGLONG);
+       end;
+     PULARGE_INTEGER = ^ULARGE_INTEGER;
+     _ULARGE_INTEGER = ULARGE_INTEGER;
+
+     TULargeInteger = QWord;
+     PULargeInteger = ^TULargeInteger;
 
      DISK_GEOMETRY = record
           Cylinders : LARGE_INTEGER;
@@ -5997,14 +6012,6 @@
      TUDACCEL = UDACCEL;
      PUDACCEL = ^UDACCEL;
 
-     ULARGE_INTEGER = record
-          LowPart : DWORD;
-          HighPart : DWORD;
-       end;
-     PULARGE_INTEGER = ^ULARGE_INTEGER;
-     _ULARGE_INTEGER = ULARGE_INTEGER;
-     TULARGEINTEGER = ULARGE_INTEGER;
-     PULARGEINTEGER = ^ULARGE_INTEGER;
 
      UNIVERSAL_NAME_INFO = record
           lpUniversalName : LPTSTR;
@@ -7006,7 +7013,11 @@ type
 
 {
   $Log$
-  Revision 1.12  2002-02-07 13:04:40  florian
+  Revision 1.13  2002-07-16 13:52:14  florian
+    * LARGE_INT and ULARGE_INT types fixed
+    * LONGLONG defined properly
+
+  Revision 1.12  2002/02/07 13:04:40  florian
     * some property sheet related structs fixed
 
   Revision 1.11  2002/01/19 11:58:21  peter
