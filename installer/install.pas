@@ -1158,7 +1158,17 @@ program install;
                   S := FExpand (Data.BasePath);
                   if S [Length (S)] = DirSep then
                    Dec (S [0]);
-                  Space := DiskFree (byte (Upcase(S [1])) - 64) shr 10;
+                  Space := DiskFree (byte (Upcase(S [1])) - 64);
+                  { -1 means that the drive is invalid }
+                  if Space=-1 then
+                    begin
+                     if messagebox('The drive '+S[1]+': is not valid. Do you ' +
+                                   'want to change the installation path?',nil,
+                                   mferror+mfyesbutton+mfnobutton) = cmYes then
+                      Continue;
+                      Space:=0;
+                    end;
+                  Space := Space shr 10;
 
                   if Space < DSize then
                    S := 'is not'
@@ -1167,8 +1177,8 @@ program install;
                   if (Space < DSize + 500) then
                    begin
                      if S = '' then
-                      S := 'might not be';
-                     if messagebox('There ' + S + ' enough space on the target ' +
+                      S := 'might not be ';
+                     if messagebox('There ' + S + 'enough space on the target ' +
                                    'drive for all the selected components. Do you ' +
                                    'want to change the installation path?',nil,
                                    mferror+mfyesbutton+mfnobutton) = cmYes then
@@ -1638,7 +1648,13 @@ begin
           createlog:=true
 {$ifdef MAYBE_LFN}
         else if paramstr(i)='--nolfn' then
-          locallfnsupport:=false
+          begin
+            locallfnsupport:=false;
+{$ifdef GO32V2}
+            { lfnsupport is a const in win32 RTL }
+            system.lfnsupport:=locallfnsupport;
+{$endif GO32V2}
+          end
 {$endif MAYBE_LFN}
         else if paramstr(i)='-h' then
           begin
@@ -1692,7 +1708,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2002-02-28 21:30:34  peter
+  Revision 1.5  2002-03-13 22:27:36  pierre
+   * fix problem if invalid drive is given
+
+  Revision 1.4  2002/02/28 21:30:34  peter
     * regenated
 
   Revision 1.3  2002/02/28 17:02:08  pierre
