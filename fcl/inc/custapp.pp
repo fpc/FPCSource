@@ -312,7 +312,7 @@ Var
   O,OV,SO : String;
   HaveArg : Boolean;
   
-  Function FindLongOpt(Const S : String) : boolean;
+  Function FindLongOpt(S : String) : boolean;
   
   Var
     I : integer;
@@ -325,8 +325,13 @@ Var
         Dec(i);
       end
     else
-      I:=LongOpts.IndexOf(S);
-    Result:=(I<>-1)  
+      begin
+      S:=UpperCase(S);
+      I:=LongOpts.Count-1;
+      While (I>=0) and (UpperCase(LongOpts[i])<>S) do
+        Dec(i);
+      end;  
+    Result:=(I<>-1);
   end;
   
 begin
@@ -379,7 +384,7 @@ begin
               end
             else
               begin // Optional Argument.
-              If FindLongOpt(O+'::') then
+              If not FindLongOpt(O+'::') then
                 Result:=Format(SErrInvalidOption,[I,O]);
               end;
             end;  
