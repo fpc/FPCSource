@@ -669,6 +669,13 @@ implementation
                  if psetdef(ld)^.settype=smallset then
                   begin
                      calcregisters(p,1,0,0);
+                     { are we adding set elements ? }
+                     if p^.right^.treetype=setelementn then
+                       begin
+                       { we need at least two registers PM }
+                         if p^.registers32<2 then
+                           p^.registers32:=2;
+                       end;
                      p^.location.loc:=LOC_REGISTER;
                   end
                  else
@@ -1115,7 +1122,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.42  1999-08-07 11:29:27  peter
+  Revision 1.43  1999-08-23 23:44:05  pierre
+   * setelementn registers32 corrected
+
+  Revision 1.42  1999/08/07 11:29:27  peter
     * better fix for muln register allocation
 
   Revision 1.41  1999/08/05 21:58:57  peter
