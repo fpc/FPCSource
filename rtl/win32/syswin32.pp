@@ -253,7 +253,7 @@ function do_filepos(handle : longint) : longint;
  var
   l:longint;
  begin
-  l:=SetFilePointer(handle,0,nil,1);
+  l:=SetFilePointer(handle,0,nil,FILE_CURRENT);
   if l=-1 then
    begin
     l:=0;
@@ -264,13 +264,19 @@ function do_filepos(handle : longint) : longint;
 
 procedure do_seek(handle,pos : longint);
 begin
-  if SetFilePointer(handle,pos,nil,0)=-1 then
+  if SetFilePointer(handle,pos,nil,FILE_BEGIN)=-1 then
    inoutres:=GetLastError;
 end;
 
 function do_seekend(handle:longint):longint;
+
 begin
-   {!!!!!!!!!!!!}
+  do_seekend:=SetFilePointer(handle,0,nil,FILE_END);
+  if do_seekend=-1 then
+    begin
+       inoutres:=GetLastError;
+       do_seekend:=0;
+    end;
 end;
 
 
@@ -283,24 +289,102 @@ begin
    do_seek(handle,aktfilepos);
 end;
 
-
+{ truncate at a given position }
 procedure do_truncate (handle,pos:longint);
 begin
-  {!!!!!!!!!!!!}
+   do_seek(handle,pos);
+   if not(SetEndOfFile(handle)) then
+     inoutres:=GetLastError;
 end;
 
-procedure do_open(var f;p:pchar;flags:longint);
-{
-  filerec and textrec have both handle and mode as the first items so
-  they could use the same routine for opening/creating.
-  when (flags and $10)   the file will be append
-  when (flags and $100)  the file will be truncate/rewritten
-  when (flags and $1000) there is no check for close (needed for textfiles)
-}
-begin
-  AllowSlash(p);
-  {!!!!!!!!!!!!}
-end;
+procedure do_open(var f;p : pchar;flags:longint);
+
+  {
+    filerec and textrec have both handle and mode as the first items so
+    they could use the same routine for opening/creating.
+    when (flags and $10)   the file will be append
+    when (flags and $100)  the file will be truncate/rewritten
+    when (flags and $1000) there is no check for close (needed for textfiles)
+  }
+
+  var
+     oflags,cd : longint;
+
+  begin
+    AllowSlash(p);
+    { close first if opened }
+    if ((flags and $1000)=0) then
+     begin
+       case filerec(f).mode of
+          fminput,fmoutput,fminout:
+	    Do_Close(filerec(f).handle);
+          fmclosed:
+	    ;
+       else
+        begin
+          {not assigned}
+          inoutres:=102;
+          exit;
+        end;
+       end;
+     end;
+    { reset file handle }
+    filerec(f).handle:=UnusedHandle;
+    { convert filemode to filerec modes }
+    case (flags and 3) of
+       0:
+         begin
+            filerec(f).mode:=fminput;
+            oflags:=GENERIC_READ;
+         end;
+       1:
+         begin
+	    filerec(f).mode:=fmoutput;
+            oflags:=GENERIC_WRITE;
+         end;
+       2:
+         begin
+	    filerec(f).mode:=fminout;
+            oflags:=GENERIC_WRITE or GENERIC_READ;
+         end;
+    end;
+    { standard is opening and existing file }
+    cd:=OPEN_EXISTING;
+
+    { create it ? }
+    if (flags and $100)<>0 then
+       cd:=CREATE_ALWAYS
+
+    { or append ? }
+    else if (flags and $10)<>0 then
+       cd:=OPEN_ALWAYS;
+
+    { empty name is special }
+    if p[0]=#0 then
+     begin
+        case filerec(f).mode of
+           fminput:
+	     filerec(f).handle:=StdInputHandle;
+           fmappend,
+           fmoutput:
+	     begin
+                filerec(f).handle:=StdOutputHandle;
+                filerec(f).mode:=fmoutput; {fool fmappend}
+             end;
+        end;
+        exit;
+     end;
+    filerec(f).handle:=CreateFile(p,oflags,0,nil,cd,FILE_ATTRIBUTE_NORMAL,0);
+
+    { append mode }
+    if (flags and $10)<>0 then
+     begin
+       do_seekend(filerec(f).handle);
+       filerec(f).mode:=fmoutput; {fool fmappend}
+     end;
+     if filerec(f).handle=0 then
+       inoutres:=GetLastError;
+  end;
 
 {*****************************************************************************
                            UnTyped File Handling
@@ -459,7 +543,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  1998-04-27 13:58:21  florian
+  Revision 1.6  1998-04-27 18:29:09  florian
+    + do_open implemented, the file-I/O should be now complete
+
+  Revision 1.5  1998/04/27 13:58:21  florian
     + paramstr/paramcount implemented
 
   Revision 1.4  1998/04/26 22:37:22  florian
