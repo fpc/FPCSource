@@ -271,6 +271,7 @@ begin
      for i:=1to ops do
       begin
         if (operands[i]^.opr.typ<>OPR_CONSTANT) and
+           (operands[i]^.size in [S_B,S_W,S_L]) and
            (operands[i]^.size<>opsize) then
          sizeerr:=true;
       end;
@@ -338,7 +339,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  1999-08-25 12:00:05  jonas
+  Revision 1.10  1999-12-12 12:59:34  peter
+    * only check suffixsize for byte,word,long
+
+  Revision 1.9  1999/08/25 12:00:05  jonas
     * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
 
   Revision 1.8  1999/08/04 00:23:23  florian
