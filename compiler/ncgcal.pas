@@ -650,16 +650,18 @@ implementation
                 and nested procedures
               }
               inc(push_size,12);
-              emit_reg_reg(A_MOV,S_L,R_ESP,R_EDI);
+              r.enum:=R_ESP:
+              r2.enum:=R_EDI;
+              emit_reg_reg(A_MOV,S_L,r,r2);
               if (push_size mod 8)=0 then
-                emit_const_reg(A_AND,S_L,$fffffff8,R_ESP)
+                emit_const_reg(A_AND,S_L,$fffffff8,r)
               else
                 begin
-                   emit_const_reg(A_SUB,S_L,push_size,R_ESP);
-                   emit_const_reg(A_AND,S_L,$fffffff8,R_ESP);
-                   emit_const_reg(A_SUB,S_L,push_size,R_ESP);
+                   emit_const_reg(A_SUB,S_L,push_size,r);
+                   emit_const_reg(A_AND,S_L,$fffffff8,r);
+                   emit_const_reg(A_SUB,S_L,push_size,r);
                 end;
-              emit_reg(A_PUSH,S_L,R_EDI);
+              emit_reg(A_PUSH,S_L,r2);
            end
          else
            pop_esp:=false;
@@ -1248,8 +1250,9 @@ implementation
            tppcprocinfo(procinfo).maxpushedparasize:=pushedparasize;
 {$endif powerpc}
 {$ifdef OPTALIGN}
+         r.enum:=R_ESP;
          if pop_esp then
-           emit_reg(A_POP,S_L,R_ESP);
+           emit_reg(A_POP,S_L,r);
 {$endif OPTALIGN}
       dont_call:
          pushedparasize:=oldpushedparasize;
@@ -1569,7 +1572,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.33  2003-01-08 18:43:56  daniel
+  Revision 1.34  2003-01-17 12:03:45  daniel
+    * Optalign conditional code adapted to record Tregister
+
+  Revision 1.33  2003/01/08 18:43:56  daniel
    * Tregister changed into a record
 
   Revision 1.32  2002/12/15 22:50:00  florian
