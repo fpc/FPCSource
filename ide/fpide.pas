@@ -98,6 +98,10 @@ type
       procedure MemorySizes;
       procedure DoLinkerSwitch;
       procedure DoDebuggerSwitch;
+{$ifdef SUPPORT_REMOTE}
+      procedure DoRemote;
+      procedure TransferRemote;
+{$endif SUPPORT_REMOTE}
       procedure Directories;
       procedure Tools;
       procedure DoGrep;
@@ -126,11 +130,11 @@ type
       procedure CreateAnsiFile;
     public
       procedure SourceWindowClosed;
+      function  DoExecute(ProgramPath, Params, InFile, OutFile, ErrFile: string; ExecType: TExecType): boolean;
     private
       SaveCancelled: boolean;
       InsideDone : boolean;
       LastEvent: longint;
-      function  DoExecute(ProgramPath, Params, InFile, OutFile, ErrFile: string; ExecType: TExecType): boolean;
       procedure AddRecentFile(AFileName: string; CurX, CurY: sw_integer);
       function  SearchRecentFile(AFileName: string): integer;
       procedure RemoveRecentFile(Index: integer);
@@ -378,6 +382,9 @@ begin
       NewItem(menu_debug_output,'', kbNoKey, cmUserScreenWindow, hcUserScreenWindow,
       NewItem(menu_debug_userscreen,menu_key_debug_userscreen, kbAltF5, cmUserScreen, hcUserScreen,
       NewLine(
+{$ifdef SUPPORT_REMOTE}
+      NewItem(menu_debug_remote,'', kbNoKey, cmTransferRemote, hcTransferRemote,
+{$endif SUPPORT_REMOTE}
       NewItem(menu_debug_registers,'', kbNoKey, cmRegisters, hcRegistersWindow,
       NewItem(menu_debug_fpu_registers,'', kbNoKey, cmFPURegisters, hcRegistersWindow,
       NewItem(menu_debug_addwatch,menu_key_debug_addwatch, kbCtrlF7, cmAddWatch, hcAddWatch,
@@ -387,7 +394,11 @@ begin
       NewItem(menu_debug_callstack,menu_key_debug_callstack, kbCtrlF3, cmStack, hcStackWindow,
       NewLine(
       NewItem(menu_debug_gdbwindow,'', kbNoKey, cmOpenGDBWindow, hcOpenGDBWindow,
-      nil))))))))))))),
+      nil
+{$ifdef SUPPORT_REMOTE}
+      )
+{$endif SUPPORT_REMOTE}
+      ))))))))))))),
     NewSubMenu(menu_tools, hcToolsMenu, NewMenu(
       NewItem(menu_tools_messages,menu_key_tools_messages, kbF11, cmToolsMessages, hcToolsMessages,
       NewItem(menu_tools_msgnext,menu_key_tools_msgnext, kbAltF8, cmToolsMsgNext, hcToolsMsgNext,
@@ -403,6 +414,9 @@ begin
       NewItem(menu_options_memory,'', kbNoKey, cmMemorySizes, hcMemorySizes,
       NewItem(menu_options_linker,'', kbNoKey, cmLinker, hcLinker,
       NewItem(menu_options_debugger,'', kbNoKey, cmDebugger, hcDebugger,
+{$ifdef SUPPORT_REMOTE}
+      NewItem(menu_options_remote,'', kbNoKey, cmRemoteDialog, hcRemoteDialog,
+{$endif SUPPORT_REMOTE}
       NewItem(menu_options_directories,'', kbNoKey, cmDirectories, hcDirectories,
       NewItem(menu_options_browser,'',kbNoKey, cmBrowser, hcBrowser,
       NewItem(menu_options_tools,'', kbNoKey, cmTools, hcTools,
@@ -419,12 +433,20 @@ begin
 {$ifdef Unix}
         NewItem(menu_options_learn_keys,'', kbNoKey, cmKeys, hcKeys,
 {$endif Unix}
-        nil{$ifdef Unix}){$endif Unix}))))))))),
+        nil
+{$ifdef Unix}
+        )
+{$endif Unix}
+        ))))))))),
       NewLine(
       NewItem(menu_options_open,'', kbNoKey, cmOpenINI, hcOpenINI,
       NewItem(menu_options_save,'', kbNoKey, cmSaveINI, hcSaveINI,
       NewItem(menu_options_saveas,'', kbNoKey, cmSaveAsINI, hcSaveAsINI,
-      nil))))))))))))))),
+      nil
+{$ifdef SUPPORT_REMOTE}
+      )
+{$endif SUPPORT_REMOTE}
+      ))))))))))))))),
     NewSubMenu(menu_window, hcWindowMenu, NewMenu(
       NewItem(menu_window_tile,'', kbNoKey, cmTile, hcTile,
       NewItem(menu_window_cascade,'', kbNoKey, cmCascade, hcCascade,
@@ -686,6 +708,10 @@ begin
              cmMemorySizes   : MemorySizes;
              cmLinker        : DoLinkerSwitch;
              cmDebugger      : DoDebuggerSwitch;
+{$ifdef SUPPORT_REMOTE}
+             cmRemoteDialog  : DoRemote;
+             cmTransferRemote: TransferRemote;
+{$endif SUPPORT_REMOTE}
              cmDirectories   : Directories;
              cmTools         : Tools;
              cmPreferences   : Preferences;
@@ -911,8 +937,9 @@ begin
     SaveConsoleMode(ConsoleMode);
 
     if ExecType=exDosShell then
-      WriteShellMsg;
-
+      WriteShellMsg
+    else if ExecType<>exNoSwap then
+      Writeln('Running "'+ProgramPath+' '+Params+'"');
      { DO NOT use COMSPEC for exe files as the
       ExitCode is lost in those cases PM }
 
@@ -1223,7 +1250,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.22  2002-10-12 19:43:07  hajny
+  Revision 1.23  2002-11-28 12:58:15  pierre
+   + remote support additions
+
+  Revision 1.22  2002/10/12 19:43:07  hajny
     * missing HasSignal conditionals added (needed for FPC/2)
 
   Revision 1.21  2002/09/13 07:16:56  pierre
