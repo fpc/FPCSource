@@ -211,8 +211,6 @@ unit parser;
 
       var
          a : PAsmFile;
-         g : file;
-         ftime : longint;
       label
          done;
 
@@ -532,7 +530,11 @@ done:
 end.
 {
   $Log$
-  Revision 1.4  1998-04-08 16:58:03  pierre
+  Revision 1.5  1998-04-10 14:41:43  peter
+    * removed some Hints
+    * small speed optimization for AsmLn
+
+  Revision 1.4  1998/04/08 16:58:03  pierre
     * several bugfixes
       ADD ADC and AND are also sign extended
       nasm output OK (program still crashes at end

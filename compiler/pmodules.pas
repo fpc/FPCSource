@@ -196,7 +196,6 @@ unit pmodules;
          pu : pused_unit;
          a  : pasmfile;
          hs : pstring;
-         i  : longint;
       begin
          old_current_module:=current_module;
          { be sure not to mix lines from different files }
@@ -935,7 +934,11 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.3  1998-04-03 09:51:00  daniel
+  Revision 1.4  1998-04-10 14:41:43  peter
+    * removed some Hints
+    * small speed optimization for AsmLn
+
+  Revision 1.3  1998/04/03 09:51:00  daniel
   * Fixed heap allocation for OS/2.
 
   Revision 1.2  1998/03/30 15:53:01  florian

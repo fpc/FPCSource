@@ -130,7 +130,7 @@ end;
 Procedure TAsmList.AsmWriteLn(const s:string);
 begin
   AsmWrite(s);
-  AsmWrite(target_info.newline);
+  AsmLn;
 end;
 
 
@@ -157,7 +157,15 @@ end;
 
 Procedure TAsmList.AsmLn;
 begin
-  AsmWrite(target_info.newline);
+  if OutCnt>=AsmOutSize-2 then
+   AsmFlush;
+  OutBuf[OutCnt]:=target_info.newline[1];
+  inc(OutCnt); 
+  if length(target_info.newline)>1 then
+   begin
+     OutBuf[OutCnt]:=target_info.newline[2];
+     inc(OutCnt); 
+   end;
 end;
 
 
@@ -410,7 +418,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  1998-04-08 11:34:18  peter
+  Revision 1.3  1998-04-10 14:41:43  peter
+    * removed some Hints
+    * small speed optimization for AsmLn
+
+  Revision 1.2  1998/04/08 11:34:18  peter
     * nasm works (linux only tested)
 
   Revision 1.1.1.1  1998/03/25 11:18:16  root
