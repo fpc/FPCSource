@@ -69,8 +69,9 @@ procedure insert_intern_types(p : psymtable);
 {
   all the types inserted into the system unit
 }
-{$ifdef GDB}
 var
+  booleandef  : pdef;
+{$ifdef GDB}
   { several defs to simulate more or less C++ objects for GDB }
   vmtdef      : precdef;
   pvmtdef     : ppointerdef;
@@ -122,7 +123,9 @@ begin
   p^.insert(new(ptypesym,init('LONGSTRING',clongstringdef)));
   p^.insert(new(ptypesym,init('ANSISTRING',cansistringdef)));
   p^.insert(new(ptypesym,init('WIDESTRING',cwidestringdef)));
-  p^.insert(new(ptypesym,init('BYTEBOOL',new(porddef,init(bool8bit,0,1)))));
+  booleandef:=new(porddef,init(bool8bit,0,1));
+  p^.insert(new(ptypesym,init('BOOLEAN',booleandef)));
+  p^.insert(new(ptypesym,init('BYTEBOOL',booleandef)));
   p^.insert(new(ptypesym,init('WORDBOOL',new(porddef,init(bool16bit,0,1)))));
   p^.insert(new(ptypesym,init('LONGBOOL',new(porddef,init(bool32bit,0,1)))));
   p^.insert(new(ptypesym,init('CHAR',new(porddef,init(uchar,0,255)))));
@@ -228,7 +231,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  1998-06-03 22:49:01  peter
+  Revision 1.2  1998-06-04 08:23:57  pierre
+    * boolean again intern declared (needed to be able to compile
+      older RTL's)
+
+  Revision 1.1  1998/06/03 22:49:01  peter
     + wordbool,longbool
     * rename bis,von -> high,low
     * moved some systemunit loading/creating to psystem.pas
