@@ -45,6 +45,7 @@ interface
     uses
       globtype,systems,
       cutils,verbose,globals,
+      cpuinfo,
       symconst,symdef,paramgr,
       aasmbase,aasmtai,aasmcpu,
       cgbase,
@@ -424,9 +425,9 @@ interface
                end;
              LOC_CONSTANT :
                begin
-                 exprasmlist.concat(taicpu.op_const_reg(A_CMP,S_L,hi(right.location.valueqword),left.location.registerhigh));
+                 exprasmlist.concat(taicpu.op_const_reg(A_CMP,S_L,aword(hi(right.location.valueqword)),left.location.registerhigh));
                  firstjmp64bitcmp;
-                 exprasmlist.concat(taicpu.op_const_reg(A_CMP,S_L,lo(right.location.valueqword),left.location.registerlow));
+                 exprasmlist.concat(taicpu.op_const_reg(A_CMP,S_L,aword(lo(right.location.valueqword)),left.location.registerlow));
                  secondjmp64bitcmp;
                end;
              else
@@ -686,7 +687,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.95  2004-02-04 19:22:27  peter
+  Revision 1.96  2004-05-19 23:30:18  peter
+    * extra typecast to prevent range check
+
+  Revision 1.95  2004/02/04 19:22:27  peter
   *** empty log message ***
 
   Revision 1.94  2004/01/20 12:59:37  florian
