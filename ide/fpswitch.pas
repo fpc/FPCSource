@@ -1094,9 +1094,6 @@ begin
 {$ifdef go32v2}
        TargetSwitches^.SetCurrSel(1);
 {$endif}
-{$ifdef freebsd}
-       TargetSwitches^.SetCurrSel(2);
-{$endif}
 {$ifdef linux}
 {$ifdef i386}
        TargetSwitches^.SetCurrSel(3);
@@ -1105,6 +1102,10 @@ begin
        TargetSwitches^.SetCurrSel(2);
 {$endif m68k}
 {$endif linux}
+{$ifdef freebsd}
+       TargetSwitches^.SetCurrSel(2);
+{$endif}
+
 {$ifdef os2}
        TargetSwitches^.SetCurrSel(4);
 {$endif}
@@ -1237,7 +1238,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  2002-04-11 06:42:54  pierre
+  Revision 1.9  2002-06-01 20:08:42  marco
+   * Renamefest
+
+  Revision 1.8  2002/04/11 06:42:54  pierre
    * Add allow spaces for directories entries
 
   Revision 1.7  2002/04/10 22:41:05  pierre

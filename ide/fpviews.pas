@@ -3779,6 +3779,10 @@ begin
 {$ifdef FreeBSD}
   OSStr:='FreeBSD';
 {$endif}
+{$ifdef NetBSD}
+  OSStr:='NetBSD';
+{$endif}
+
   R.Assign(0,0,38,14{$ifdef NODEBUG}-1{$endif});
   inherited Init(R, dialog_about);
   HelpCtx:=hcAbout;
@@ -4206,7 +4210,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.19  2002-05-31 12:37:10  pierre
+  Revision 1.20  2002-06-01 20:08:42  marco
+   * Renamefest
+
+  Revision 1.19  2002/05/31 12:37:10  pierre
    + register asciitable char
 
   Revision 1.18  2002/05/30 15:02:39  pierre

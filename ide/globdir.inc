@@ -49,6 +49,12 @@
   {$define HasSignal}
 {$endif}
 
+{$ifdef NetBSD}
+  {$undef SUPPORTVESA}
+  {$define SUPPORTREDIR}
+  {$undef WinClipSupported}
+  {$define HasSignal}
+{$endif}
 
 {$ifdef Win32}
   {$undef SUPPORTVESA}
