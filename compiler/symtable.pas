@@ -1910,7 +1910,12 @@ implementation
             (classh.owner.unitid=0) then
            topclassh:=classh
          else
-           topclassh:=nil;
+           begin
+             if assigned(current_procinfo) then
+               topclassh:=current_procinfo.procdef._class
+             else
+               topclassh:=nil;
+           end;
          sym:=nil;
          def:=nil;
          while assigned(classh) do
@@ -1929,11 +1934,7 @@ implementation
                       break;
                    end
                   else
-                   begin
-                     if (not assigned(current_procinfo) or
-                         tprocdef(def).is_visible_for_proc(current_procinfo.procdef)) then
-                      break;
-                   end;
+                   break;
                 end;
                def:=tdef(def.indexnext);
              end;
@@ -1960,7 +1961,12 @@ implementation
             (classh.owner.unitid=0) then
            topclassh:=classh
          else
-           topclassh:=nil;
+           begin
+             if assigned(current_procinfo) then
+               topclassh:=current_procinfo.procdef._class
+             else
+               topclassh:=nil;
+           end;
          sym:=nil;
          def:=nil;
          while assigned(classh) do
@@ -1979,11 +1985,7 @@ implementation
                       break;
                    end
                   else
-                   begin
-                     if (not assigned(current_procinfo) or
-                         tprocdef(def).is_visible_for_proc(current_procinfo.procdef)) then
-                      break;
-                   end;
+                   break;
                 end;
                def:=tdef(def.indexnext);
              end;
@@ -2259,7 +2261,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.111  2003-10-01 19:05:33  peter
+  Revision 1.112  2003-10-02 21:13:46  peter
+    * protected visibility fixes
+
+  Revision 1.111  2003/10/01 19:05:33  peter
     * searchsym_type to search for type definitions. It ignores
       records,objects and parameters
 

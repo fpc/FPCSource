@@ -148,11 +148,11 @@ implementation
                 else
                   callflag:=nf_dispose_call;
                 if is_new then
-                  do_member_read(false,sym,p2,again,[callflag])
+                  do_member_read(classh,false,sym,p2,again,[callflag])
                 else
                   begin
                     if not(m_fpc in aktmodeswitches) then
-                      do_member_read(false,sym,p2,again,[callflag])
+                      do_member_read(classh,false,sym,p2,again,[callflag])
                     else
                       begin
                         p2:=ccallnode.create(nil,tprocsym(sym),sym.owner,p2);
@@ -364,7 +364,7 @@ implementation
             afterassignment:=false;
             sym:=searchsym_in_class(classh,pattern);
             consume(_ID);
-            do_member_read(false,sym,p1,again,[nf_new_call]);
+            do_member_read(classh,false,sym,p1,again,[nf_new_call]);
             { we need to know which procedure is called }
             do_resulttypepass(p1);
             if not(
@@ -685,7 +685,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.19  2003-10-01 20:34:49  peter
+  Revision 1.20  2003-10-02 21:15:31  peter
+    * protected visibility fixes
+
+  Revision 1.19  2003/10/01 20:34:49  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

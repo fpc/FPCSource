@@ -554,7 +554,7 @@ interface
           function  cplusplusmangledname : string;
           function  is_methodpointer:boolean;override;
           function  is_addressonly:boolean;override;
-          function  is_visible_for_proc(currprocdef:tprocdef):boolean;
+//          function  is_visible_for_proc(currprocdef:tprocdef):boolean;
           function  is_visible_for_object(currobjdef:tobjectdef):boolean;
           { debug }
 {$ifdef GDB}
@@ -3709,6 +3709,7 @@ implementation
       end;
 
 
+(*
     function tprocdef.is_visible_for_proc(currprocdef:tprocdef):boolean;
       begin
         is_visible_for_proc:=false;
@@ -3739,7 +3740,7 @@ implementation
 
         is_visible_for_proc:=true;
       end;
-
+*)
 
     function tprocdef.is_visible_for_object(currobjdef:tobjectdef):boolean;
       begin
@@ -3753,7 +3754,8 @@ implementation
           exit;
 
         { protected symbols are vissible in the module that defines them and
-          also visible to related objects }
+          also visible to related objects. The related object must be defined
+          in the current module }
         if (sp_protected in symoptions) and
            (
             (
@@ -3762,6 +3764,7 @@ implementation
             ) and
             not(
                 assigned(currobjdef) and
+                (currobjdef.owner.unitid=0) and
                 currobjdef.is_related(tobjectdef(owner.defowner))
                )
            ) then
@@ -5897,7 +5900,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.168  2003-10-01 20:34:49  peter
+  Revision 1.169  2003-10-02 21:19:42  peter
+    * protected visibility fixes
+
+  Revision 1.168  2003/10/01 20:34:49  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose
