@@ -1095,7 +1095,9 @@ begin
 end;
 begin
   EC:=nil;
-  Desktop^.FirstThat(@Check);
+  { do not use the same core for all new files }
+  if AFileName<>'' then
+    Desktop^.FirstThat(@Check);
   SearchCoreForFileName:=EC;
 end;
 
@@ -1685,7 +1687,9 @@ begin
     begin
       if Editor^.LoadFile=false then
         ErrorBox(FormatStrStr(msg_errorreadingfile,AFileName),nil)
-      else if Editor^.GetModified then
+      { warn if modified, but not if modified in another
+        already open window PM }
+      else if Editor^.GetModified and (Editor^.Core^.GetBindingCount=1) then
         begin
           PA[1]:=@AFileName;
           longint(PA[2]):={Editor^.ChangedLine}-1;
@@ -4177,7 +4181,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.6  2001-09-25 22:46:50  pierre
+  Revision 1.7  2001-09-27 22:29:12  pierre
+   * avoid to give the same core to all new files
+
+  Revision 1.6  2001/09/25 22:46:50  pierre
    highlight i386 movw in asm code correctly
 
   Revision 1.5  2001/08/29 23:28:20  pierre
