@@ -4032,6 +4032,13 @@ unit pass_1;
                                 p^.left^.right^.left:=gentypeconvnode(p^.left^.right^.left,s32bitdef);
                                 { check the type conversion }
                                 firstpass(p^.left^.right^.left);
+
+                                { need we an additional register ? }
+                                if not(is_constintnode(p^.left^.right^.left)) and
+                                  (p^.left^.right^.left^.location.loc in [LOC_MEM,LOC_REFERENCE]) and
+                                  (p^.left^.right^.left^.registers32<1) then
+                                  inc(p^.registers32);
+
                                 if assigned(p^.left^.right^.right) then
                                   Message(cg_e_illegal_expression);
                              end;
@@ -5441,7 +5448,14 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.73  1998-09-05 22:29:57  florian
+  Revision 1.74  1998-09-05 23:04:00  florian
+    * some fixes to get -Or work:
+      - inc/dec didn't take care of CREGISTER
+      - register calculcation of inc/dec was wrong
+      - var/const parameters get now assigned 32 bit register, but
+        const parameters only if they are passed by reference !
+
+  Revision 1.73  1998/09/05 22:29:57  florian
     + the boolean comparision a=true generates now the same code as only a,
       (a=1 was compiled to cmp 1,a now it is compiled to cmp 0,a)
 

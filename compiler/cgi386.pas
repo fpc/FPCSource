@@ -434,14 +434,24 @@ implementation
                                   dec(c_usableregs);
 
                                   { possibly no 32 bit register are needed }
-                                  if  (regvars[i]^.definition^.deftype=orddef) and
+
+                                  { call by reference/const ? }
+                                  if (regvars[i]^.varspez=vs_var) or
+                                    ((regvars[i]^.varspez=vs_const) and
+                                     dont_copy_const_param(regvars[i]^.definition)
+                                    ) then
+                                    begin
+                                       regvars[i]^.reg:=varregs[i];
+                                       regsize:=S_L;
+                                    end
+                                  else if  (regvars[i]^.definition^.deftype=orddef) and
                                       (porddef(regvars[i]^.definition)^.typ in [bool8bit,uchar,u8bit,s8bit]) then
                                     begin
                                        regvars[i]^.reg:=reg32toreg8(varregs[i]);
                                        regsize:=S_B;
                                     end
-                                  else if  (regvars[i]^.definition^.deftype=orddef) and
-                                           (porddef(regvars[i]^.definition)^.typ in [bool16bit,u16bit,s16bit]) then
+                                  else if (regvars[i]^.definition^.deftype=orddef) and
+                                          (porddef(regvars[i]^.definition)^.typ in [bool16bit,u16bit,s16bit]) then
                                     begin
                                        regvars[i]^.reg:=reg32toreg16(varregs[i]);
                                        regsize:=S_W;
@@ -506,7 +516,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.51  1998-08-31 12:22:14  peter
+  Revision 1.52  1998-09-05 23:03:58  florian
+    * some fixes to get -Or work:
+      - inc/dec didn't take care of CREGISTER
+      - register calculcation of inc/dec was wrong
+      - var/const parameters get now assigned 32 bit register, but
+        const parameters only if they are passed by reference !
+
+  Revision 1.51  1998/08/31 12:22:14  peter
     * secondinline moved to cg386inl
 
   Revision 1.50  1998/08/28 10:54:20  peter

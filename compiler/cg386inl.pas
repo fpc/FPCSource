@@ -767,6 +767,7 @@ implementation
                   LOC_CREGISTER : hregister:=p^.left^.right^.left^.location.register;
                         LOC_MEM,
                   LOC_REFERENCE : begin
+                                    del_reference(p^.left^.right^.left^.location.reference);
                                     hregister:=getregister32;
                                     exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
                                       newreference(p^.left^.right^.left^.location.reference),hregister)));
@@ -785,16 +786,32 @@ implementation
                 if addconstant then
                  begin
                    if (addvalue=1) and not(cs_check_overflow in aktlocalswitches) then
-                    exprasmlist^.concat(new(pai386,op_ref(incdecop[p^.inlinenumber],opsize,
-                      newreference(p^.left^.left^.location.reference))))
+                     begin
+                        if p^.left^.left^.location.loc=LOC_CREGISTER then
+                          exprasmlist^.concat(new(pai386,op_reg(incdecop[p^.inlinenumber],opsize,
+                            p^.left^.left^.location.register)))
+                        else
+                          exprasmlist^.concat(new(pai386,op_ref(incdecop[p^.inlinenumber],opsize,
+                            newreference(p^.left^.left^.location.reference))))
+                     end
                    else
-                    exprasmlist^.concat(new(pai386,op_const_ref(addsubop[p^.inlinenumber],opsize,
-                      addvalue,newreference(p^.left^.left^.location.reference))));
+                     begin
+                        if p^.left^.left^.location.loc=LOC_CREGISTER then
+                          exprasmlist^.concat(new(pai386,op_const_reg(addsubop[p^.inlinenumber],opsize,
+                            addvalue,p^.left^.left^.location.register)))
+                        else
+                          exprasmlist^.concat(new(pai386,op_const_ref(addsubop[p^.inlinenumber],opsize,
+                            addvalue,newreference(p^.left^.left^.location.reference))));
+                     end
                  end
                 else
                  begin
-                   exprasmlist^.concat(new(pai386,op_reg_ref(addsubop[p^.inlinenumber],opsize,
-                      hregister,newreference(p^.left^.left^.location.reference))));
+                    if p^.left^.left^.location.loc=LOC_CREGISTER then
+                      exprasmlist^.concat(new(pai386,op_reg_reg(addsubop[p^.inlinenumber],opsize,
+                        hregister,p^.left^.left^.location.register)))
+                    else
+                      exprasmlist^.concat(new(pai386,op_reg_ref(addsubop[p^.inlinenumber],opsize,
+                        hregister,newreference(p^.left^.left^.location.reference))));
                    ungetregister32(hregister);
                  end;
                 emitoverflowcheck(p^.left^.left);
@@ -913,7 +930,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  1998-09-04 08:41:40  peter
+  Revision 1.3  1998-09-05 23:03:57  florian
+    * some fixes to get -Or work:
+      - inc/dec didn't take care of CREGISTER
+      - register calculcation of inc/dec was wrong
+      - var/const parameters get now assigned 32 bit register, but
+        const parameters only if they are passed by reference !
+
+  Revision 1.2  1998/09/04 08:41:40  peter
     * updated some error messages
 
   Revision 1.1  1998/08/31 12:22:14  peter
