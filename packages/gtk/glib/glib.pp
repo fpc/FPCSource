@@ -891,13 +891,6 @@ procedure g_scanner_thaw_symbol_table(scanner:PGScanner);cdecl;external glibdll 
 procedure g_scanner_unexp_token(scanner:PGScanner; expected_token:TGTokenType; identifier_spec:Pgchar; symbol_spec:Pgchar; symbol_name:Pgchar; message:Pgchar; is_error:gint);cdecl;external glibdll name 'g_scanner_unexp_token';
 function  g_scanner_stat_mode(filename:Pgchar):gint;cdecl;external glibdll name 'g_scanner_stat_mode';
 
-{$ifndef gtkwin}
-      var
-         func : TGCompletionFunc;external glibdll name 'exportfunc';
-         prefix : Pgchar;external glibdll name 'exportprefix';
-         cache : PGList;external glibdll name 'exportcache';
-{$endif}
-
 type
      PGCompletion = ^TGCompletion;
      TGCompletion = record
@@ -1649,7 +1642,11 @@ procedure set_year(var a : TGDate; __year : guint);
 end.
 {
   $Log$
-  Revision 1.1  1999-11-24 23:36:33  peter
+  Revision 1.2  2000-02-20 14:05:28  sg
+  * Removed the following symbols because they don't exist in newer glib
+    versions anymore: exportfunc, exportprefix, exportcache
+
+  Revision 1.1  1999/11/24 23:36:33  peter
     * moved to packages dir
 
   Revision 1.11  1999/10/06 17:42:47  peter
