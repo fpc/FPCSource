@@ -869,6 +869,7 @@ implementation
                    if make_ref then
                      begin
                         procs^.data^.lastref:=new(pref,init(procs^.data^.lastref,@p^.fileinfo));
+                        inc(procs^.data^.refcount); 
                         if procs^.data^.defref=nil then
                           procs^.data^.defref:=procs^.data^.lastref;
                      end;
@@ -1117,7 +1118,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.26  1999-03-02 18:24:22  peter
+  Revision 1.27  1999-03-19 17:31:54  pierre
+   * lost reference because refcount not increased fixed
+
+  Revision 1.26  1999/03/02 18:24:22  peter
     * fixed overloading of array of char
 
   Revision 1.25  1999/02/22 15:09:44  florian
