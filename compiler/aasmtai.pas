@@ -676,8 +676,8 @@ implementation
     constructor tailineinfo.create;
      begin
        inherited create;
-       if (not inlining_procedure) and
-          (cs_gdb_valgrind in aktglobalswitches) then
+       if not(inlining_procedure and
+              (cs_gdb_valgrind in aktglobalswitches)) then
          fileinfo:=aktfilepos;
      end;
 
@@ -2006,7 +2006,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.79  2004-03-15 08:44:51  michael
+  Revision 1.80  2004-03-15 16:09:03  peter
+    * fix lineinfo broken by valgrind patch
+
+  Revision 1.79  2004/03/15 08:44:51  michael
   + Fix from peter: fixes crash when inlining assembler code referencing local vars
 
   Revision 1.78  2004/03/14 22:47:56  peter
