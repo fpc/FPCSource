@@ -36,6 +36,7 @@ interface
 
        tcginnode = class(tinnode)
           procedure pass_2;override;
+       protected
           {# Routine to test bitnumber in bitnumber register on value
              in value register. The __result register should be set
              to one if the bit is set, otherwise __result register
@@ -175,13 +176,6 @@ implementation
              compares,maxcompares:word;
              i:byte;
            begin
-             if Aset=[] then
-              {The expression...
-                  if expr in []
-               ...is allways false. It should be optimized away in the
-               resulttype pass, and thus never occur here. Since we
-               do generate wrong code for it, do internalerror.}
-              internalerror(2002072301);
              analizeset:=false;
              ranges:=false;
              numparts:=0;
@@ -956,7 +950,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  2002-08-13 18:01:52  carl
+  Revision 1.18  2002-08-15 15:11:53  carl
+    * oldset define is now correct for all cpu's except i386
+    * correct compilation problems because of the above
+
+  Revision 1.17  2002/08/13 18:01:52  carl
     * rename swatoperands to swapoperands
     + m68k first compilable version (still needs a lot of testing):
         assembler generator, system information , inline
