@@ -78,6 +78,7 @@
 
      HANDLE = System.THandle;
      HRESULT = System.HResult;
+     PHRESULT= ^HRESULT;
 
      HACCEL = HANDLE;
      HBITMAP = HANDLE;
@@ -939,7 +940,10 @@ type
 
 {
   $Log$
-  Revision 1.22  2004-08-08 16:52:52  florian
+  Revision 1.23  2004-11-28 15:27:14  marco
+   * PRESULT added
+
+  Revision 1.22  2004/08/08 16:52:52  florian
     * tried to fix some wsprintf issues
     + now compiled in objfpc mode
       so some integer => smallint changes where necessary; hopefully,
