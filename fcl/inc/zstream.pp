@@ -1,4 +1,3 @@
-unit zstream;
 {
     $Id$
     This file is part of the Free Pascal run time library.
@@ -14,6 +13,7 @@ unit zstream;
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+unit zstream;
 
 { ---------------------------------------------------------------------
   On linux, the default is to use the zlib libraries.
@@ -447,3 +447,9 @@ begin
 end;
 
 end.
+{
+  $Log$
+  Revision 1.14  2000-01-12 23:29:49  peter
+    * log added
+
+}
