@@ -176,10 +176,8 @@ type
 
   PPaiProp = ^TPaiProp;
 
-{$IfNDef TP}
   TPaiPropBlock = Array[1..250000] Of TPaiProp;
   PPaiPropBlock = ^TPaiPropBlock;
-{$EndIf TP}
 
   TInstrSinceLastMod = Array[R_EAX..R_EDI] Of Byte;
 
@@ -191,11 +189,7 @@ type
                       JmpsProcessed: Word
 {$EndIf JumpAnal}
                     End;
-{$IfDef tp}
-  TLabelTable = Array[0..10000] Of TLabelTableItem;
-{$Else tp}
   TLabelTable = Array[0..2500000] Of TLabelTableItem;
-{$Endif tp}
   PLabelTable = ^TLabelTable;
 
 {******************************* Variables *******************************}
@@ -204,10 +198,8 @@ Var
 {the amount of PaiObjects in the current assembler list}
   NrOfPaiObjs: Longint;
 
-{$IfNDef TP}
 {Array which holds all TPaiProps}
   PaiPropBlock: PPaiPropBlock;
-{$EndIf TP}
 
   LoLab, HiLab, LabDif: Longint;
 
@@ -470,17 +462,8 @@ Begin
   UsedRegs := [];
   If (LabelDif <> 0) Then
     Begin
-{$IfDef TP}
-      If (MaxAvail >= LabelDif*SizeOf(Pai))
-        Then
-          Begin
-{$EndIf TP}
-            GetMem(LabelTable, LabelDif*SizeOf(TLabelTableItem));
-            FillChar(LabelTable^, LabelDif*SizeOf(TLabelTableItem), 0);
-{$IfDef TP}
-          End
-        Else LabelDif := 0;
-{$EndIf TP}
+      GetMem(LabelTable, LabelDif*SizeOf(TLabelTableItem));
+      FillChar(LabelTable^, LabelDif*SizeOf(TLabelTableItem), 0);
     End;
   p := BlockStart;
   lastP := p;
@@ -1769,11 +1752,7 @@ Begin
   FillChar(NrOfInstrSinceLastMod, SizeOf(NrOfInstrSinceLastMod), 0);
   While (P <> BlockEnd) Do
     Begin
-{$IfDef TP}
-      New(CurProp);
-{$Else TP}
       CurProp := @PaiPropBlock^[InstrCnt];
-{$EndIf TP}
       If (p <> BlockStart)
         Then
           Begin
@@ -1795,9 +1774,6 @@ Begin
       CurProp^.UsedRegs := UsedRegs;
       CurProp^.CanBeRemoved := False;
       UpdateUsedRegs(UsedRegs, Pai(p^.Next));
-{$ifdef TP}
-      PPaiProp(p^.OptInfo) := CurProp;
-{$Endif TP}
       For TmpReg := R_EAX To R_EDI Do
         Inc(NrOfInstrSinceLastMod[TmpReg]);
       Case p^.typ Of
@@ -2284,13 +2260,6 @@ Begin
       Inc(NrOfPaiObjs);
       GetNextInstruction(p, p);
     End;
-{$IfDef TP}
-  If (MemAvail < (SizeOf(TPaiProp)*NrOfPaiObjs))
-     Or (NrOfPaiObjs = 0)
-    {this doesn't have to be one contiguous block}
-    Then InitDFAPass2 := False
-    Else InitDFAPass2 := True;
-{$Else}
 {Uncomment the next line to see how much memory the reloading optimizer needs}
 {  Writeln((NrOfPaiObjs*(((SizeOf(TPaiProp)+3)div 4)*4)));}
 {no need to check mem/maxavail, we've got as much virtual memory as we want}
@@ -2307,7 +2276,6 @@ Begin
         End;
     End
   Else InitDFAPass2 := False;
- {$EndIf TP}
 End;
 
 Function DFAPass2(
@@ -2338,7 +2306,10 @@ End.
 
 {
   $Log$
-  Revision 1.12  2000-09-24 21:19:50  peter
+  Revision 1.13  2000-09-25 09:50:30  jonas
+    - removed TP conditional code
+
+  Revision 1.12  2000/09/24 21:19:50  peter
     * delphi compile fixes
 
   Revision 1.11  2000/09/24 15:06:15  peter

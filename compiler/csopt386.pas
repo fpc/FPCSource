@@ -1464,9 +1464,6 @@ begin
         if assigned(p^.optInfo) and
               PPaiProp(p^.optInfo)^.canBeRemoved then
           begin
-{$IfDef TP}
-            Dispose(PPaiProp(p^.OptInfo));
-{$EndIf}
             hp1 := pai(p^.next);
             AsmL^.Remove(p);
             Dispose(p, Done);
@@ -1475,17 +1472,11 @@ begin
         Else
 {$endif noinstremove}
           Begin
-{$IfDef TP}
-            if assigned(p^.optInfo) then
-              Dispose(PPaiProp(p^.OptInfo));
-{$EndIf TP}
             p^.OptInfo := nil;
             p := pai(p^.next);;
           End;
     End;
-{$IfNDef TP}
     FreeMem(PaiPropBlock, NrOfPaiObjs*(((SizeOf(TPaiProp)+3)div 4)*4))
-{$EndIf TP}
 End;
 
 Procedure CSE(AsmL: PAasmOutput; First, Last: Pai);
@@ -1498,7 +1489,10 @@ End.
 
 {
   $Log$
-  Revision 1.10  2000-09-24 15:06:14  peter
+  Revision 1.11  2000-09-25 09:50:29  jonas
+    - removed TP conditional code
+
+  Revision 1.10  2000/09/24 15:06:14  peter
     * use defines.inc
 
   Revision 1.9  2000/09/22 15:01:59  jonas
