@@ -15,23 +15,23 @@
 
 {$define uselibc:=cdecl; external;}
 
-function cfpaccept      (s:cint; addrx : psockaddr; addrlen : psocklen):cint; uselibc
-function cfpbind 	(s:cint; addrx : psockaddr; addrlen : tsocklen):cint;  uselibc
-function cfpconnect     (s:cint; name  : psockaddr; namelen : tsocklen):cint;  uselibc
-function cfpgetpeername (s:cint; name  : psockaddr; namelen : psocklen):cint; uselibc
-function cfpgetsockname (s:cint; name  : psockaddr; namelen : psocklen):cint; uselibc
-function cfpgetsockopt  (s:cint; level:cint; optname:cint; optval:pointer; optlen : psocklen):cint; uselibc
-function cfplisten      (s:cint; backlog : cint):cint;                          uselibc
-function cfprecv 	(s:cint; buf: pointer; len: size_t; flags: cint):ssize_t; uselibc
-function cfprecvfrom    (s:cint; buf: pointer; len: size_t; flags: cint; from : psockaddr; fromlen : psocklen):ssize_t; uselibc
-//function cfprecvmsg     (s:cint; msg: pmsghdr; flags:cint):ssize_t; uselibc
-function cfpsend 	(s:cint; msg:pointer; len:size_t; flags:cint):ssize_t; uselibc
-function cfpsendto 	(s:cint; msg:pointer; len:size_t; flags:cint; tox :psockaddr; tolen: tsocklen):ssize_t; uselibc
-//function cfpsendmsg 	(s:cint; hdr: pmsghdr; flags:cint):ssize; uselibc
-function cfpsetsockopt  (s:cint; level:cint; optname:cint; optval:pointer; optlen :tsocklen):cint; uselibc
-function cfpshutdown 	(s:cint; how:cint):cint; uselibc
-function cfpsocket 	(domain:cint; xtype:cint; protocol: cint):cint; uselibc
-function cfpsocketpair  (d:cint; xtype:cint; protocol:cint; sv:pcint):cint; uselibc
+function cfpaccept      (s:cint; addrx : psockaddr; addrlen : psocklen):cint; cdecl; external name 'accept';
+function cfpbind 	(s:cint; addrx : psockaddr; addrlen : tsocklen):cint;  cdecl; external name 'bind';
+function cfpconnect     (s:cint; name  : psockaddr; namelen : tsocklen):cint;  cdecl; external name 'connect';
+function cfpgetpeername (s:cint; name  : psockaddr; namelen : psocklen):cint; cdecl; external name 'getpeername';
+function cfpgetsockname (s:cint; name  : psockaddr; namelen : psocklen):cint; cdecl; external name 'getsockname';
+function cfpgetsockopt  (s:cint; level:cint; optname:cint; optval:pointer; optlen : psocklen):cint; cdecl; external name 'getsockopt';
+function cfplisten      (s:cint; backlog : cint):cint;                          cdecl; external name 'listen';
+function cfprecv 	(s:cint; buf: pointer; len: size_t; flags: cint):ssize_t; cdecl; external name 'recv';
+function cfprecvfrom    (s:cint; buf: pointer; len: size_t; flags: cint; from : psockaddr; fromlen : psocklen):ssize_t; cdecl; external name 'recvfrom';
+//function cfprecvmsg     (s:cint; msg: pmsghdr; flags:cint):ssize_t; cdecl; external name '';
+function cfpsend 	(s:cint; msg:pointer; len:size_t; flags:cint):ssize_t; cdecl; external name 'send';
+function cfpsendto 	(s:cint; msg:pointer; len:size_t; flags:cint; tox :psockaddr; tolen: tsocklen):ssize_t; cdecl; external name 'sendto';
+//function cfpsendmsg 	(s:cint; hdr: pmsghdr; flags:cint):ssize; cdecl; external name '';
+function cfpsetsockopt  (s:cint; level:cint; optname:cint; optval:pointer; optlen :tsocklen):cint; cdecl; external name 'setsockopt';
+function cfpshutdown 	(s:cint; how:cint):cint; cdecl; external name 'shutdown';
+function cfpsocket 	(domain:cint; xtype:cint; protocol: cint):cint; cdecl; external name 'socket';
+function cfpsocketpair  (d:cint; xtype:cint; protocol:cint; sv:pcint):cint; cdecl; external name 'socketpair';
 
 
 function fpaccept      (s:cint; addrx : psockaddr; addrlen : psocklen):cint; 
@@ -112,7 +112,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  2004-03-16 18:04:27  marco
+  Revision 1.2  2004-03-16 22:56:53  marco
+   * stupid mistake fixed
+
+  Revision 1.1  2004/03/16 18:04:27  marco
    * new files sockets changes
 
 
