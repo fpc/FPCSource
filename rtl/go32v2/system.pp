@@ -104,7 +104,10 @@ type
 var
   stub_info       : p_stub_info;
   go32_info_block : t_go32_info_block;
-
+{$ifdef SYSTEMDEBUG}
+const
+   accept_sbrk : boolean = true;
+{$endif}
 
 {
   necessary for objects.pas, should be removed (at least from the interface
@@ -742,10 +745,20 @@ function ___sbrk(size:longint):longint;cdecl;external name '___sbrk';
 
 function Sbrk(size : longint):longint;assembler;
 asm
+{$ifdef SYSTEMDEBUG}
+        cmpb    $1,accept_sbrk
+        je      .Lsbrk
+        movl    $-1,%eax
+        jmp     .Lsbrk_fail
+      .Lsbrk:
+{$endif}
         movl    size,%eax
         pushl   %eax
         call    ___sbrk
         addl    $4,%esp
+{$ifdef SYSTEMDEBUG}
+      .Lsbrk_fail:
+{$endif}
 end;
 
 
@@ -1188,6 +1201,12 @@ begin
   move(s[1],buffer,length(s));
   buffer[length(s)]:=#0;
   AllowSlash(pchar(@buffer));
+  { True DOS does not like backslashes at end
+    Win95 DOS accepts this !!
+    but "\" and "c:\" should still be kept and accepted hopefully PM }
+  if (length(s)>0) and (buffer[length(s)-1]='\') and
+     Not ((length(s)=1) or ((length(s)=3) and (s[2]=':'))) then
+    buffer[length(s)-1]:=#0;
   syscopytodos(longint(@buffer),length(s)+1);
   regs.realedx:=tb_offset;
   regs.realds:=tb_segment;
@@ -1331,6 +1350,14 @@ end;
 {$I thread.inc}
 {$endif MT}
 
+{ define EXCEPTIONS_IN_SYSTEM}
+{$ifndef RTLLITE}
+{$ifdef  EXCEPTIONS_IN_SYSTEM}
+{$define IN_SYSTEM}
+{$i ndpmi.pp}
+{$endif  EXCEPTIONS_IN_SYSTEM}
+{$endif RTLLITE}
+
 var
   temp_int : tseginfo;
 Begin
@@ -1367,10 +1394,21 @@ Begin
    FileNameCaseSensitive:=true;
 { Reset IO Error }
   InOutRes:=0;
+{$ifndef RTLLITE}
+{$ifdef  EXCEPTIONS_IN_SYSTEM}
+  InitDPMIExcp;
+  InstallDefaultHandlers;
+{$endif  EXCEPTIONS_IN_SYSTEM}
+{$endif RTLLITE}
 End.
 {
   $Log$
-  Revision 1.33  2000-02-09 16:59:29  peter
+  Revision 1.34  2000-03-07 11:05:58  pierre
+    * fix for the problem of backslashes at and of directory
+    + some code for exception support (far from working :()
+    + debug variable accept_sbrk
+
+  Revision 1.33  2000/02/09 16:59:29  peter
     * truncated log
 
   Revision 1.32  2000/02/09 12:41:14  peter
@@ -1427,5 +1465,14 @@ End.
 
   Revision 1.15  1999/08/19 14:03:16  pierre
    * use sysgetmem for startup and debug allocations
+
+  Revision 1.14  1999/07/19 07:57:49  michael
+  + Small fix from Michael Baikov in setup_params
+
+  Revision 1.13  1999/05/19 16:54:21  pierre
+   * closes all handles >+ 5
+
+  Revision 1.12  1999/05/17 21:52:33  florian
+    * most of the Object Pascal stuff moved to the system unit
 
 }
