@@ -10,7 +10,8 @@ packages=paszlib
 
 [target]
 units=fpimgcmn fpimage pngcomn fpreadpng fpwritepng fpreadxpm fpwritexpm \
-      clipping fpcanvas pixtools fppixlcanv fpimgcanv pscanvas fpwritebmp
+      clipping fpcanvas pixtools fppixlcanv fpimgcanv pscanvas fpwritebmp \
+      fpreadbmp bmpcomn
 examples=imgconv
 
 [compiler]
