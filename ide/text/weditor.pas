@@ -2129,8 +2129,10 @@ end;
 procedure TCodeEditor.DefineMark(MarkIdx: integer);
 begin
   if (MarkIdx<Low(Bookmarks)) or (MarkIdx>High(Bookmarks)) then
-    begin ErrorBox('Invalid mark index ('+IntToStr(MarkIdx)+')',nil); Exit; end;
-
+    begin
+      ErrorBox('Invalid mark index ('+IntToStr(MarkIdx)+')',nil);
+      Exit;
+    end;
   with Bookmarks[MarkIdx] do
    begin
      Pos:=CurPos;
@@ -2140,6 +2142,7 @@ end;
 
 procedure TCodeEditor.JumpToLastCursorPos;
 begin
+  NotImplemented;
 end;
 
 function TCodeEditor.InsertLine: Sw_integer;
@@ -2160,6 +2163,7 @@ var SelBack: sw_integer;
     SCP: TPoint;
 begin
   if IsReadOnly then begin InsertLine:=-1; Exit; end;
+  Lock;
   SCP:=CurPos;
   if CurPos.Y<GetLineCount then S:=GetLineText(CurPos.Y) else S:='';
   if Overwrite=false then
@@ -2194,6 +2198,7 @@ begin
   end;
   DrawLines(CurPos.Y);
   SetModified(true);
+  Unlock;
 end;
 
 procedure TCodeEditor.BreakLine;
@@ -2207,6 +2212,7 @@ var S,PreS: string;
     SCP: TPoint;
 begin
   if IsReadOnly then Exit;
+  Lock;
   SCP:=CurPos;
   if CurPos.X=0 then
    begin
@@ -2253,13 +2259,15 @@ begin
   AdjustSelection(CurPos.X-SCP.X,CurPos.Y-SCP.Y);
   DrawLines(CurPos.Y);
   SetModified(true);
+  Unlock;
 end;
 
 procedure TCodeEditor.DelChar;
 var S: string;
-    SDX,SDY: integer;
+    SDX,SDY,CI : sw_integer;
 begin
   if IsReadOnly then Exit;
+  Lock;
   S:=GetLineText(CurPos.Y);
   if CurPos.X=length(S) then
    begin
@@ -2273,7 +2281,12 @@ begin
    end
   else
    begin
-     Delete(S,LinePosToCharIdx(CurPos.Y,CurPos.X)+1,1);
+     { Problem if S[CurPos.X+1]=TAB !! PM }
+     CI:=LinePosToCharIdx(CurPos.Y,CurPos.X);
+     if S[CI]=TAB then
+       S:=Copy(S,1,CI-1)+CharStr(' ',TabSize-1)+Copy(S,CI+1,255)
+     else
+       Delete(S,LinePosToCharIdx(CurPos.Y,CurPos.X)+1,1);
      SetLineText(CurPos.Y,S);
      SDX:=-1; SDY:=0;
    end;
@@ -2282,23 +2295,33 @@ begin
   AdjustSelection(SDX,SDY);
   DrawLines(CurPos.Y);
   SetModified(true);
+  Unlock;
 end;
 
 procedure TCodeEditor.DelWord;
+var
+  SP,EP : TPoint;
+  SelSize : sw_integer;
 begin
   if IsReadOnly then Exit;
-
-  NotImplemented; Exit;
-
+  Lock;
+  SP:=SelStart;
+  EP:=SelEnd;
+  SelectWord;
+  SelSize:=SelEnd.X-SelStart.X;
+  DelSelect;
+  SetSelection(SP,EP);
+  AdjustSelectionPos(CurPos.X,CurPos.Y,SelSize,0);
   SetModified(true);
+  Unlock;
 end;
 
 procedure TCodeEditor.DelStart;
 var S: string;
 begin
   if IsReadOnly then Exit;
+  Lock;
   S:=GetLineText(CurPos.Y);
-
   if (S<>'') and (CurPos.X<>0) then
   begin
     SetLineText(CurPos.Y,copy(S,LinePosToCharIdx(CurPos.Y,CurPos.X)+1,255));
@@ -2307,12 +2330,14 @@ begin
     DrawLines(CurPos.Y);
     SetModified(true);
   end;
+  Unlock;
 end;
 
 procedure TCodeEditor.DelEnd;
 var S: string;
 begin
   if IsReadOnly then Exit;
+  Lock;
   S:=GetLineText(CurPos.Y);
   if (S<>'') and (CurPos.X<>length(S)) then
   begin
@@ -2322,11 +2347,13 @@ begin
     DrawLines(CurPos.Y);
     SetModified(true);
   end;
+  Unlock;
 end;
 
 procedure TCodeEditor.DelLine;
 begin
   if IsReadOnly then Exit;
+  Lock;
   if GetLineCount>0 then
   begin
     DeleteLine(CurPos.Y);
@@ -2337,6 +2364,7 @@ begin
     DrawLines(CurPos.Y);
     SetModified(true);
   end;
+  Unlock;
 end;
 
 procedure TCodeEditor.InsMode;
@@ -2668,9 +2696,9 @@ begin
   if (S[CI]=TAB) then
     begin
       TabStart:=CharIdxToLinePos(CurPos.Y,CI);
-      if SC=Tab then TabS:='' else
+      if SC=Tab then TabS:=Tab else
         TabS:=CharStr(' ',CurPos.X-TabStart);
-      SetLineText(CurPos.Y,copy(S,1,CI-1)+TabS+SC+copy(S,CI,255));
+      SetLineText(CurPos.Y,copy(S,1,CI-1)+TabS+SC+copy(S,CI+1,255));
       SetCurPtr(CharIdxToLinePos(CurPos.Y,CI+length(TabS)+length(SC)),CurPos.Y);
     end
   else
@@ -4519,7 +4547,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.52  1999-10-12 23:35:18  pierre
+  Revision 1.53  1999-10-14 10:21:48  pierre
+   * more tabs related problems fiwes
+
+  Revision 1.52  1999/10/12 23:35:18  pierre
     + DelStart and SelectWord implemented
     * AddChar(tab) now reacts correctly if efAutoIndent is set
 
@@ -4782,4 +4813,3 @@ END.
     + find and replace routines
 
 }
-   
