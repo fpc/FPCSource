@@ -104,8 +104,8 @@ type
     procedure SetLineCount(count: Integer); override;
 
     // Clipboard support
-    //function  GetClipboard: String; override;
-    //procedure SetClipboard(Content: String); override;
+    function  GetClipboard: String; override;
+    procedure SetClipboard(Content: String); override;
 
   public
     Widget: PGtkWidget;  // this is the outer editor widget
@@ -123,6 +123,8 @@ type
 
 implementation
 
+var
+  InternalClipboardContent: String;
 
 {*****************************************************************************
                               GTK/GDK Callbacks
@@ -160,6 +162,7 @@ begin
   Result := 1;
 
   case Event^.KeyVal of
+    GDK_Return       : KeyCode:=13;
     GDK_KP_Insert    : KeyCode:=GDK_Insert;
     GDK_KP_Home      : KeyCode:=GDK_Home;
     GDK_KP_Left      : KeyCode:=GDK_Left;
@@ -530,6 +533,18 @@ begin
 end;
 
 
+function TGtkSHWidget.GetClipboard: String;
+begin
+  Result := InternalClipboardContent;
+end;
+
+
+procedure TGtkSHWidget.SetClipboard(Content: String);
+begin
+  InternalClipboardContent := Content;
+end;
+
+
 function TGtkSHWidget.GetHorzPos: Integer;
 begin
   Result := Trunc(hadj^.value);
@@ -573,7 +588,13 @@ end.
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:02  michael
+  Revision 1.3  2001-02-04 14:32:56  sg
+  Improvements as suggested by Vasily Volchenko:
+  * Added mapping for Enter key (= it works now :) )
+  * Simple clipboard implementation. (although the keys for clipboard
+    functions don't work yet)
+
+  Revision 1.2  2000/07/13 11:33:02  michael
   + removed logs
  
 }
