@@ -227,7 +227,7 @@ function TMySQLDataset.GetFieldData(Field: TField; Buffer: Pointer): Boolean;
 
 var
   I, FC: Integer;
-  fld: TMYSQL_FIELD;
+  fld: PMYSQL_FIELD;
   CurBuf: PChar;
 
 begin
@@ -237,22 +237,22 @@ begin
   for I := 0 to FC-1 do
     begin
     fld := mysql_fetch_field_direct(FMYSQLRES, I);
-    if Field.FieldName = fld.name then
+    if Field.FieldName = fld^.name then
       begin
-      Move(CurBuf^, PChar(Buffer)^, MySQLDataSize(fld.ftype, fld.length));
+      Move(CurBuf^, PChar(Buffer)^, MySQLDataSize(fld^.ftype, fld^.length));
       if Field.DataType in [ftString{, ftWideString}] then
         begin
         Result := PChar(buffer)^ <> #0;
         if Result then
           // Terminate string (necessary for enum fields)
-          PChar(buffer)[fld.length] := #0;
+          PChar(buffer)[fld^.length] := #0;
         end
       else
         Result := True;
       break;
       end
     else
-      Inc(CurBuf, MySQLDataSize(fld.ftype, fld.length));
+      Inc(CurBuf, MySQLDataSize(fld^.ftype, fld^.length));
     end;
 end;
 
@@ -353,7 +353,7 @@ procedure TMySQLDataset.InternalInitFieldDefs;
 
 var
   I, FC: Integer;
-  field: TMYSQL_FIELD;
+  field: PMYSQL_FIELD;
   DFT: TFieldType;
   DFS: Integer;
   WasClosed: Boolean;
@@ -374,8 +374,8 @@ begin
       for I := 0 to FC-1 do
         begin
         field := mysql_fetch_field_direct(FMYSQLRES, I);
-        if MySQLFieldToFieldType(field.ftype, field.length, DFT, DFS) then
-            TFieldDef.Create(FieldDefs, field.name, DFT, DFS, False, I+1);
+        if MySQLFieldToFieldType(field^.ftype, field^.length, DFT, DFS) then
+            TFieldDef.Create(FieldDefs, field^.name, DFT, DFS, False, I+1);
         end;
     finally
       if WasClosed then
@@ -516,14 +516,14 @@ end;
 procedure TMySQLDataset.CalculateSizes;
 var
   I, FC: Integer;
-  field: TMYSQL_FIELD;
+  field: PMYSQL_FIELD;
 begin
   FRecordSize := 0;
   FC := mysql_num_fields(FMYSQLRES);
   for I := 0 to FC-1 do
     begin
     field := mysql_fetch_field_direct(FMYSQLRES, I);
-    FRecordSize := FRecordSize + MySQLDataSize(field.ftype, field.length);
+    FRecordSize := FRecordSize + MySQLDataSize(field^.ftype, field^.length);
     end;
   FBufferSize := FRecordSize + SizeOf(TMySQLDatasetBookmark);
 end;
@@ -532,7 +532,7 @@ procedure TMySQLDataset.LoadBufferFromData(Buffer: PChar);
 
 var
   I, FC, CT: Integer;
-  field: TMYSQL_FIELD;
+  field: PMYSQL_FIELD;
   row: TMYSQL_ROW;
 
 begin
@@ -544,7 +544,7 @@ begin
   for I := 0 to FC-1 do
     begin
     field := mysql_fetch_field_direct(FMYSQLRES, I);
-    CT := MySQLWriteFieldData(field.ftype, field.length, row^, Buffer);
+    CT := MySQLWriteFieldData(field^.ftype, field^.length, row^, Buffer);
     Inc(Buffer, CT);
     Inc(row);
     end;
@@ -918,7 +918,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2005-02-14 17:13:12  peter
+  Revision 1.3  2005-03-27 14:55:47  joost
+  - adapted for new mysql_fetch_field_direct
+
+  Revision 1.2  2005/02/14 17:13:12  peter
     * truncate log
 
 }
