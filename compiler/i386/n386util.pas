@@ -64,7 +64,7 @@ implementation
        ncon,nld,
        pass_1,pass_2,
        hcodegen,tgcpu,temp_gen,
-       cgai386;
+       cgai386,regvars;
 
 
 {*****************************************************************************
@@ -79,6 +79,11 @@ implementation
          href : treference;
 {$endif TEMPS_NOT_PUSH}
       begin
+         if p.location.loc = LOC_CREGISTER then
+           begin
+             maybe_push := true;
+             exit;
+           end;
          if needed>usablereg32 then
            begin
               if (p.location.loc=LOC_REGISTER) then
@@ -196,6 +201,11 @@ implementation
          href : treference;
 {$endif TEMPS_NOT_PUSH}
       begin
+         if p.location.loc = LOC_CREGISTER then
+           begin
+             load_regvar_reg(exprasmlist,p.location.register);
+             exit;
+           end;
          hregister:=getregister32;
 {$ifdef TEMPS_NOT_PUSH}
          reset_reference(href);
@@ -857,6 +867,7 @@ implementation
          aktfilepos:=p.fileinfo;
          if is_boolean(p.resulttype) then
            begin
+              load_all_regvars(exprasmlist);
               if is_constboolnode(p) then
                 begin
                    if tordconstnode(p).value<>0 then
@@ -1416,6 +1427,7 @@ implementation
          end;
          push_shortstring_length(dest);
          emitpushreferenceaddr(dest.location.reference);
+         saveregvars($ff);
          emitcall('FPC_ANSISTR_TO_SHORTSTR');
          popusedregisters(pushed);
          maybe_loadesi;
@@ -1460,6 +1472,7 @@ implementation
          end;
          emitpushreferenceaddr(p.left.location.reference);
          del_reference(p.left.location.reference);
+         saveregvars($ff);
          emitcall('FPC_INTF_ASSIGN');
          maybe_loadesi;
          popusedregisters(pushed);
@@ -1472,7 +1485,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2000-11-29 00:30:49  florian
+  Revision 1.6  2000-12-05 11:44:34  jonas
+    + new integer regvar handling, should be much more efficient
+
+  Revision 1.5  2000/11/29 00:30:49  florian
     * unused units removed from uses clause
     * some changes for widestrings
 

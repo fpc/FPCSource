@@ -55,7 +55,7 @@ implementation
       hcodegen,temp_gen,pass_2,
       nmem,ncon,ncnv,
       cpubase,cpuasm,
-      cgai386,tgcpu,n386cnv,n386util;
+      cgai386,tgcpu,n386cnv,n386util,regvars;
 
 {*****************************************************************************
                              SecondLoad
@@ -154,11 +154,20 @@ implementation
                                    location.register:=pvarsym(symtableentry)^.reg;
                                 end
                               else
+                                if not(makereg32(pvarsym(symtableentry)^.reg) in [R_EAX..R_EBX]) or
+                                   regvar_loaded[pvarsym(symtableentry)^.reg] then
                                 begin
                                    location.loc:=LOC_CREGISTER;
                                    location.register:=pvarsym(symtableentry)^.reg;
                                    unused:=unused-[pvarsym(symtableentry)^.reg];
-                                end;
+                                end
+                              else
+                                begin
+                                  load_regvar(exprasmlist,pvarsym(symtableentry));
+                                  location.loc:=LOC_CREGISTER;
+                                  location.register:=pvarsym(symtableentry)^.reg;
+                                  unused:=unused-[pvarsym(symtableentry)^.reg];
+                                end
                            end
                          else
                            begin
@@ -407,6 +416,7 @@ implementation
          getlabel(truelabel);
          getlabel(falselabel);
          { calculate left sides }
+         { don't do it yet if it's a crgister (JM) }
          if not(nf_concat_string in flags) then
            secondpass(left);
 
@@ -498,6 +508,7 @@ implementation
                   end;
                   emitpushreferenceaddr(left.location.reference);
                   del_reference(left.location.reference);
+                  saveregvars($ff);
                   emitcall('FPC_ANSISTR_ASSIGN');
                   maybe_loadesi;
                   popusedregisters(regspushed);
@@ -1050,7 +1061,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2000-11-29 00:30:48  florian
+  Revision 1.10  2000-12-05 11:44:33  jonas
+    + new integer regvar handling, should be much more efficient
+
+  Revision 1.9  2000/11/29 00:30:48  florian
     * unused units removed from uses clause
     * some changes for widestrings
 

@@ -110,6 +110,7 @@ implementation
                 opname:='DIV_'
               else
                 opname:='MOD_';
+              saveregvars($ff);
               emitcall('FPC_'+opname+typename);
 
               emit_reg_reg(A_MOV,S_L,R_EAX,location.registerlow);
@@ -995,7 +996,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2000-11-29 00:30:48  florian
+  Revision 1.8  2000-12-05 11:44:33  jonas
+    + new integer regvar handling, should be much more efficient
+
+  Revision 1.7  2000/11/29 00:30:48  florian
     * unused units removed from uses clause
     * some changes for widestrings
 

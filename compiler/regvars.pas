@@ -28,20 +28,27 @@ interface
 
     uses
        aasm,
-       node;
+       node,
+       symsym,
+       cpubase;
 
     procedure assign_regvars(p: tnode);
     procedure load_regvars(asml: paasmoutput; p: tnode);
     procedure cleanup_regvars(asml: paasmoutput);
-
+{$ifdef i386}
+    procedure store_regvar(asml: paasmoutput; reg: tregister);
+    procedure load_regvar(asml: paasmoutput; vsym: pvarsym);
+    procedure load_regvar_reg(asml: paasmoutput; reg: tregister);
+    procedure load_all_regvars(asml: paasmoutput);
+{$endif i386}
 
 implementation
 
     uses
       globtype,systems,comphook,
       cutils,cobjects,verbose,globals,
-      symconst,symbase,symtype,symdef,symsym,types,
-      hcodegen,cpubase,cpuasm,tgcpu;
+      symconst,symbase,symtype,symdef,types,
+      hcodegen,cpuasm,tgcpu;
 
 
     var
@@ -278,16 +285,118 @@ implementation
     end;
 
 
+{$ifdef i386}
+    procedure store_regvar(asml: paasmoutput; reg: tregister);
+    var
+      i: longint;
+      hr: preference;
+      regvarinfo: pregvarinfo;
+      vsym: pvarsym;
+    begin
+      regvarinfo := pregvarinfo(aktprocsym^.definition^.regvarinfo);
+      if not assigned(regvarinfo) then
+        exit;
+      for i := 1 to maxvarregs do
+        if assigned(regvarinfo^.regvars[i]) and
+           (reg32(regvarinfo^.regvars[i]^.reg) = reg) then
+          begin
+            if regvar_loaded[reg32(reg)] then
+              begin
+                vsym := pvarsym(regvarinfo^.regvars[i]);
+                new(hr);
+                reset_reference(hr^);
+                if vsym^.owner^.symtabletype in [inlinelocalsymtable,localsymtable] then
+                  hr^.offset:=-vsym^.address+vsym^.owner^.address_fixup
+                else hr^.offset:=vsym^.address+vsym^.owner^.address_fixup;
+                hr^.base:=procinfo^.framepointer;
+                asml^.concat(new(paicpu,op_reg_ref(A_MOV,regsize(vsym^.reg),vsym^.reg,hr)));
+                asml^.concat(new(pairegalloc,dealloc(reg32(reg))));
+                regvar_loaded[reg32(reg)] := false;
+              end;
+            break;
+          end;
+    end;
+
+    procedure load_regvar(asml: paasmoutput; vsym: pvarsym);
+    var
+      hr: preference;
+      opsize: topsize;
+      opcode: tasmop;
+    begin
+      if not regvar_loaded[reg32(vsym^.reg)] then
+        begin
+          asml^.concat(new(pairegalloc,alloc(reg32(vsym^.reg))));
+          { zero the regvars because the upper 48bits must be clear }
+          { for 8bits vars when using them with btrl                }
+          { don't care about sign extension, since the upper 24/16  }
+          { bits won't be adapted when doing maths anyway (JM)      }
+          case regsize(vsym^.reg) of
+            S_L:
+              begin
+                opsize := S_L;
+                opcode := A_MOV;
+              end;
+            S_W:
+              begin
+                opsize := S_WL;
+                opcode := A_MOVZX;
+              end;
+            S_B:
+              begin
+                opsize := S_BL;
+                opcode := A_MOVZX;
+              end;
+          end;
+          asml^.concat(new(pairegalloc,alloc(reg32(vsym^.reg))));
+          new(hr);
+          reset_reference(hr^);
+          if vsym^.owner^.symtabletype in [inlinelocalsymtable,localsymtable] then
+            hr^.offset:=-vsym^.address+vsym^.owner^.address_fixup
+          else hr^.offset:=vsym^.address+vsym^.owner^.address_fixup;
+          hr^.base:=procinfo^.framepointer;
+          asml^.concat(new(paicpu,op_ref_reg(opcode,opsize,hr,reg32(vsym^.reg))));
+          regvar_loaded[reg32(vsym^.reg)] := true;
+        end;
+    end;
+
+    procedure load_regvar_reg(asml: paasmoutput; reg: tregister);
+    var
+      i: longint;
+      regvarinfo: pregvarinfo;
+      vsym: pvarsym;
+    begin
+      regvarinfo := pregvarinfo(aktprocsym^.definition^.regvarinfo);
+      if not assigned(regvarinfo) then
+        exit;
+      reg := reg32(reg);
+      for i := 1 to maxvarregs do
+        if assigned(regvarinfo^.regvars[i]) and
+           (reg32(regvarinfo^.regvars[i]^.reg) = reg) then
+          load_regvar(asml,pvarsym(regvarinfo^.regvars[i]))
+    end;
+
+    procedure load_all_regvars(asml: paasmoutput);
+    var
+      i: longint;
+      regvarinfo: pregvarinfo;
+    begin
+      regvarinfo := pregvarinfo(aktprocsym^.definition^.regvarinfo);
+      if not assigned(regvarinfo) then
+        exit;
+      for i := 1 to maxvarregs do
+        if assigned(regvarinfo^.regvars[i]) and
+           (reg32(regvarinfo^.regvars[i]^.reg) in [R_EAX,R_EBX,R_ECX,R_EDX]) then
+          load_regvar(asml,pvarsym(regvarinfo^.regvars[i]))
+    end;
+
+{$endif i386}
+
+
     procedure load_regvars(asml: paasmoutput; p: tnode);
     var
       i: longint;
       hr      : preference;
       regvarinfo: pregvarinfo;
-{$ifdef i386}
-      opsize: topsize;
-      opcode: tasmop;
-      signed: boolean;
-{$endif i386}
     begin
       if (cs_regalloc in aktglobalswitches) and
          ((procinfo^.flags and (pi_uses_asm or pi_uses_exceptions))=0) then
@@ -296,14 +405,12 @@ implementation
           { can happen when inlining assembler procedures (JM) }
           if not assigned(regvarinfo) then
             exit;
+{$ifdef m68k}
           for i:=1 to maxvarregs do
             begin
               { parameter must be load }
               if regvarinfo^.regvars_para[i] then
                 begin
-{$ifdef i386}
-                  asml^.concat(new(pairegalloc,alloc(reg32(regvarinfo^.regvars[i]^.reg))));
-{$endif i386}
                   { procinfo is there actual,    }
                   { because we can't never be in a }
                   { nested procedure        }
@@ -312,65 +419,21 @@ implementation
                   reset_reference(hr^);
                   hr^.offset:=pvarsym(regvarinfo^.regvars[i])^.address+procinfo^.para_offset;
                   hr^.base:=procinfo^.framepointer;
-{$ifdef i386}
-                { zero the regvars because the upper 48bits must be clear }
-                { for 8bits vars when using them with btrl (JM)           }
-                  signed :=
-                    (pvarsym(regvarinfo^.regvars[i])^.vartype.def^.deftype =
-                      orddef) and
-                    is_signed(pvarsym(regvarinfo^.regvars[i])^.vartype.def);
-                  case regsize(regvarinfo^.regvars[i]^.reg) of
-                    S_L:
-                      begin
-                        opsize := S_L;
-                        opcode := A_MOV;
-                      end;
-                    S_W:
-                      begin
-                        opsize := S_WL;
-                        if signed then
-                          opcode := A_MOVSX
-                        else opcode := A_MOVZX;
-                      end;
-                    S_B:
-                      begin
-                        opsize := S_BL;
-                        if signed then
-                          opcode := A_MOVSX
-                        else opcode := A_MOVZX;
-                      end;
-                  end;
-                  asml^.concat(new(paicpu,op_ref_reg(opcode,opsize,
-                    hr,reg32(regvarinfo^.regvars[i]^.reg))));
-{$endif i386}
-{$ifdef m68k}
                   asml^.concat(new(paicpu,op_ref_reg(A_MOVE,regsize(regvarinfo^.regvars[i]^.reg),
                     hr,regvarinfo^.regvars[i]^.reg)));
-{$endif m68k}
                 end
             end;
+{$endif m68k}
           for i:=1 to maxvarregs do
             begin
              if assigned(regvarinfo^.regvars[i]) then
                begin
-{$ifdef i386}
-                if not(regvarinfo^.regvars_para[i]) then
-                  begin
-                    asml^.concat(new(pairegalloc,alloc(reg32(regvarinfo^.regvars[i]^.reg))));
-                    { zero the regvars because the upper 48bits must be clear }
-                    { for 8bits vars when using them with btrl (JM)           }
-                    if (regsize(regvarinfo^.regvars[i]^.reg) in [S_B,S_W]) then
-                      asml^.concat(new(paicpu,op_reg_reg(A_XOR,S_L,
-                        reg32(regvarinfo^.regvars[i]^.reg),
-                        reg32(regvarinfo^.regvars[i]^.reg))));
-                  end;
-{$endif i386}
                 if cs_asm_source in aktglobalswitches then
-                asml^.insert(new(pai_asm_comment,init(strpnew(regvarinfo^.regvars[i]^.name+
+                 asml^.insert(new(pai_asm_comment,init(strpnew(regvarinfo^.regvars[i]^.name+
                   ' with weight '+tostr(regvarinfo^.regvars[i]^.refs)+' assigned to register '+
                   reg2str(regvarinfo^.regvars[i]^.reg)))));
                 if (status.verbosity and v_debug)=v_debug then
-                Message3(cg_d_register_weight,reg2str(regvarinfo^.regvars[i]^.reg),
+                 Message3(cg_d_register_weight,reg2str(regvarinfo^.regvars[i]^.reg),
                   tostr(regvarinfo^.regvars[i]^.refs),regvarinfo^.regvars[i]^.name);
                end;
             end;
@@ -447,7 +510,8 @@ implementation
                 { ... and clean it up }
                 asml^.concat(new(paicpu,op_reg(A_FSTP,S_NO,R_ST0)));
             for i := 1 to maxvarregs do
-              if assigned(regvars[i]) then
+              if assigned(regvars[i]) and
+                 (regvar_loaded[reg32(regvars[i]^.reg)]) then
                 asml^.concat(new(pairegalloc,dealloc(reg32(regvars[i]^.reg))));
           end;
 {$endif i386}
@@ -457,7 +521,10 @@ end.
 
 {
   $Log$
-  Revision 1.13  2000-11-29 00:30:39  florian
+  Revision 1.14  2000-12-05 11:44:32  jonas
+    + new integer regvar handling, should be much more efficient
+
+  Revision 1.13  2000/11/29 00:30:39  florian
     * unused units removed from uses clause
     * some changes for widestrings
 

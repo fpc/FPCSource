@@ -175,6 +175,7 @@ interface
                         emitpushreferenceaddr(location.reference);
                         emit_push_loc(right.location);
                         emit_push_loc(left.location);
+                        saveregvars($ff);
                         emitcall('FPC_ANSISTR_CONCAT');
                         popusedregisters(pushedregs);
                         maybe_loadesi;
@@ -244,6 +245,7 @@ interface
                                LOC_REGISTER,LOC_CREGISTER:
                                  emit_reg(A_PUSH,S_L,left.location.register);
                              end;
+                             saveregvars($ff);
                              emitcall('FPC_ANSISTR_COMPARE');
                              emit_reg_reg(A_OR,S_L,R_EAX,R_EAX);
                              popusedregisters(pushedregs);
@@ -380,7 +382,7 @@ interface
                             regstopush := $ff;
                             remove_non_regvars_from_loc(right.location,
                               regstopush);
-                           pushusedregisters(pushedregs,regstopush);
+                            pushusedregisters(pushedregs,regstopush);
                            { push the maximum possible length of the result }
 {$ifdef newoptimizations2}
                            { string (could be < 255 chars now) (JM)         }
@@ -394,6 +396,7 @@ interface
                            { the pushref needs a "lea (..),edi; push edi")  }
                             del_reference(right.location.reference);
                             emitpushreferenceaddr(right.location.reference);
+                            saveregvars(regstopush);
 {$ifdef newoptimizations2}
                             emitcall('FPC_SHORTSTR_CONCAT_LEN');
 {$else newoptimizations2}
@@ -443,6 +446,7 @@ interface
                              secondpass(right);
                              emitpushreferenceaddr(right.location.reference);
                              del_reference(right.location.reference);
+                             saveregvars($ff);
                              emitcall('FPC_SHORTSTR_COMPARE');
                              maybe_loadesi;
                              popusedregisters(pushedregs);
@@ -526,6 +530,7 @@ interface
                          emitpushreferenceaddr(left.location.reference);
                          emitpushreferenceaddr(right.location.reference);
                        End;
+                     saveregvars($ff);
                      Case nodetype of
                        equaln, unequaln:
 {$EndIf NoSetInclusion}
@@ -573,6 +578,7 @@ interface
                       begin
                         pushsetelement(tunarynode(right).left);
                         emitpushreferenceaddr(href);
+                        saveregvars(regstopush);
                         emitcall('FPC_SET_CREATE_ELEMENT');
                       end
                      else
@@ -590,12 +596,14 @@ interface
                               pushsetelement(tbinarynode(right).right);
                               pushsetelement(tunarynode(right).left);
                               emitpushreferenceaddr(href);
+                              saveregvars(regstopush);
                               emitcall('FPC_SET_SET_RANGE');
                             end
                            else
                             begin
                               pushsetelement(tunarynode(right).left);
                               emitpushreferenceaddr(href);
+                              saveregvars(regstopush);
                               emitcall('FPC_SET_SET_BYTE');
                             end;
                          end
@@ -611,6 +619,7 @@ interface
 {$IfDef regallocfix}
                            del_location(left.location);
 {$EndIf regallocfix}
+                           saveregvars(regstopush);
                            emitcall('FPC_SET_ADD_SETS');
                          end;
                       end;
@@ -641,6 +650,7 @@ interface
                      { The same here }
                      del_location(left.location);
                      emitpushreferenceaddr(left.location.reference);
+                     saveregvars(regstopush);
                      case nodetype of
                       subn : emitcall('FPC_SET_SUB_SETS');
                    symdifn : emitcall('FPC_SET_SYMDIF_SETS');
@@ -1672,6 +1682,7 @@ interface
                         emit_pushq_loc(hloc);
                         clear_location(hloc);
                         emit_pushq_loc(right.location);
+                        saveregvars($ff);
                         if porddef(resulttype)^.typ=u64bit then
                           emitcall('FPC_MUL_QWORD')
                         else
@@ -2288,7 +2299,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2000-11-29 00:30:45  florian
+  Revision 1.6  2000-12-05 11:44:32  jonas
+    + new integer regvar handling, should be much more efficient
+
+  Revision 1.5  2000/11/29 00:30:45  florian
     * unused units removed from uses clause
     * some changes for widestrings
 

@@ -379,6 +379,7 @@ implementation
                           { reset and rewrite to the inline list a call }
                           { allways read only one record by element }
                             push_int(typedtyp^.size);
+                            saveregvars($ff);
                             if doread then
                               emitcall('FPC_TYPED_READ')
                             else
@@ -434,6 +435,7 @@ implementation
                               if pararesult^.deftype=floatdef then
                                 push_int(ord(orgfloattype));
                             end;
+                          saveregvars($ff);
                           case pararesult^.deftype of
                             stringdef :
                               begin
@@ -501,6 +503,7 @@ implementation
              begin
                pushusedregisters(pushed,$ff);
                emit_push_mem(aktfile);
+               saveregvars($ff);
                if doread then
                 begin
                   if doln then
@@ -649,6 +652,7 @@ implementation
            if codegenerror then
              exit;
 
+           saveregvars($ff);
            if is_real then
              emitcall(procedureprefix+'FLOAT')
            else
@@ -778,6 +782,8 @@ implementation
                       procedureprefix := 'FPC_VAL_UINT_';
                  end;
            End;
+           
+           saveregvars($ff);
            emitcall(procedureprefix+pstringdef(node.resulttype)^.stringtypname);
            { before disposing node we need to ungettemp !! PM }
            if node.left.location.loc in [LOC_REFERENCE,LOC_MEM] then
@@ -1341,6 +1347,7 @@ implementation
                   if codegenerror then
                     exit;
                   emitpushreferenceaddr(tcallparanode(left).left.location.reference);
+                  saveregvars($ff);
                   if assigned(tcallparanode(left).right) then
                     emitcall('FPC_FINALIZEARRAY')
                   else
@@ -1373,6 +1380,7 @@ implementation
                   emit_const(A_PUSH,S_L,pfiledef(left.resulttype)^.typedfiletype.def^.size);
                   secondpass(left);
                   emitpushreferenceaddr(left.location.reference);
+                  saveregvars($ff);
                   if inlinenumber=in_reset_typedfile then
                     emitcall('FPC_RESET_TYPED')
                   else
@@ -1436,6 +1444,7 @@ implementation
                        hr2.symbol:=pstoreddef(def)^.get_inittable_label;
                        emitpushreferenceaddr(hr2);
                        emitpushreferenceaddr(tcallparanode(hp).left.location.reference);
+                       saveregvars($ff);
                        emitcall('FPC_DYNARR_SETLENGTH');
                        ungetiftemp(hr);
                     end
@@ -1446,15 +1455,20 @@ implementation
                           st_widestring:
                             begin
                               emitpushreferenceaddr(tcallparanode(hp).left.location.reference);
+                              saveregvars($ff);
                               emitcall('FPC_WIDESTR_SETLENGTH');
                             end;
                           st_ansistring:
                             begin
                               emitpushreferenceaddr(tcallparanode(hp).left.location.reference);
+                              saveregvars($ff);
                               emitcall('FPC_ANSISTR_SETLENGTH');
                             end;
                           st_shortstring:
-                            emitcall('FPC_SHORTSTR_SETLENGTH');
+                            begin
+                              saveregvars($ff);
+                              emitcall('FPC_SHORTSTR_SETLENGTH');
+                            end;
                        end;
                     end;
                   popusedregisters(pushed);
@@ -1503,8 +1517,11 @@ implementation
                         end
                       else
                         { LOC_CREGISTER }
-                        emit_const_reg(asmop,S_L,
-                          l,tcallparanode(left).left.location.register);
+                        begin
+                          secondpass(tcallparanode(left).left);
+                          emit_const_reg(asmop,S_L,
+                            l,tcallparanode(left).left.location.register);
+                        end;
                    end
                  else
                    begin
@@ -1665,7 +1682,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2000-11-29 00:30:47  florian
+  Revision 1.8  2000-12-05 11:44:33  jonas
+    + new integer regvar handling, should be much more efficient
+
+  Revision 1.7  2000/11/29 00:30:47  florian
     * unused units removed from uses clause
     * some changes for widestrings
 

@@ -63,7 +63,7 @@ implementation
       hcodegen,temp_gen,pass_2,
       cpubase,cpuasm,
       nmem,nld,
-      cgai386,tgcpu,n386ld,n386util;
+      cgai386,tgcpu,n386ld,n386util,regvars;
 
 {*****************************************************************************
                              TI386CALLPARANODE
@@ -266,10 +266,10 @@ implementation
          { we must pop this size also after !! }
 {        must_pop : boolean; }
          pop_size : longint;
-         pop_allowed : boolean;
-         pop_esp : boolean;
          push_size : longint;
-
+         pop_esp : boolean;
+         pop_allowed : boolean;
+         regs_to_push : byte;
 
       label
          dont_call;
@@ -341,14 +341,16 @@ implementation
                 iolabel:=nil;
 
               { save all used registers }
-              pushusedregisters(pushed,pprocdef(procdefinition)^.usedregisters);
+              regs_to_push := pprocdef(procdefinition)^.usedregisters;
+              pushusedregisters(pushed,regs_to_push);
 
               { give used registers through }
               usedinproc:=usedinproc or pprocdef(procdefinition)^.usedregisters;
            end
          else
            begin
-              pushusedregisters(pushed,$ff);
+              regs_to_push := $ff;
+              pushusedregisters(pushed,regs_to_push);
               usedinproc:=$ff;
               { no IO check for methods and procedure variables }
               iolabel:=nil;
@@ -876,6 +878,8 @@ implementation
                      internalerror(25000);
                 end;
 
+              saveregvars(regs_to_push);
+
               if (po_virtualmethod in procdefinition^.procoptions) and
                  not(no_virtual_call) then
                 begin
@@ -1020,6 +1024,7 @@ implementation
                        emit_reg(A_PUSH,S_L,R_ESI);
                      end;
 
+                   saveregvars($ff);
                    if hregister=R_NO then
                      emit_ref(A_CALL,S_NO,newreference(right.location.reference))
                    else
@@ -1039,6 +1044,7 @@ implementation
                 end
               else
                 begin
+                   saveregvars($ff);
                    case right.location.loc of
                       LOC_REGISTER,LOC_CREGISTER:
                          begin
@@ -1393,7 +1399,8 @@ implementation
            oldunused,oldusableregs : tregisterset;
            oldc_usableregs : longint;
            oldreg_pushes : regvar_longintarray;
-           oldis_reg_var : regvar_booleanarray;
+           oldregvar_loaded,
+           oldis_reg_var       : regvar_booleanarray;
 {$ifdef TEMPREGDEBUG}
            oldreg_user   : regvar_ptreearray;
            oldreg_releaser : regvar_ptreearray;
@@ -1410,19 +1417,13 @@ implementation
               with pregvarinfo(aktprocsym^.definition^.regvarinfo)^ do
                 for i := 1 to maxvarregs do
                   if assigned(regvars[i]) then
-                    begin
-                      case regsize(regvars[i]^.reg) of
-                        S_B: tmpreg := reg8toreg32(regvars[i]^.reg);
-                        S_W: tmpreg := reg16toreg32(regvars[i]^.reg);
-                        S_L: tmpreg := regvars[i]^.reg;
-                      end;
-                      exprasmlist^.concat(new(pairegalloc,dealloc(tmpreg)));
-                    end;
+                    store_regvar(exprasmlist,regvars[i]^.reg);
               oldunused := unused;
               oldusableregs := usableregs;
               oldc_usableregs := c_usableregs;
               oldreg_pushes := reg_pushes;
               oldis_reg_var := is_reg_var;
+              oldregvar_loaded := regvar_loaded;
 {$ifdef TEMPREGDEBUG}
               oldreg_user := reg_user;
               oldreg_releaser := reg_releaser;
@@ -1566,25 +1567,15 @@ implementation
           { procedure (JM)                                                     }
           if assigned(aktprocsym^.definition^.regvarinfo) then
             begin
-              with pregvarinfo(aktprocsym^.definition^.regvarinfo)^ do
-                for i := 1 to maxvarregs do
-                  if assigned(regvars[i]) then
-                    begin
-                      case regsize(regvars[i]^.reg) of
-                        S_B: tmpreg := reg8toreg32(regvars[i]^.reg);
-                        S_W: tmpreg := reg16toreg32(regvars[i]^.reg);
-                        S_L: tmpreg := regvars[i]^.reg;
-                      end;
-                      exprasmlist^.concat(new(pairegalloc,alloc(tmpreg)));
-                    end;
-              oldunused := oldunused;
-              oldusableregs := oldusableregs;
-              oldc_usableregs := oldc_usableregs;
-              oldreg_pushes := oldreg_pushes;
-              oldis_reg_var := oldis_reg_var;
+              unused := oldunused;
+              usableregs := oldusableregs;
+              c_usableregs := oldc_usableregs;
+              reg_pushes := oldreg_pushes;
+              is_reg_var := oldis_reg_var;
+              regvar_loaded := oldregvar_loaded;
 {$ifdef TEMPREGDEBUG}
-              oldreg_user := oldreg_user;
-              oldreg_releaser := oldreg_releaser;
+              reg_user := oldreg_user;
+              reg_releaser := oldreg_releaser;
 {$endif TEMPREGDEBUG}
             end;
        end;
@@ -1597,7 +1588,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2000-12-03 22:26:54  florian
+  Revision 1.13  2000-12-05 11:44:33  jonas
+    + new integer regvar handling, should be much more efficient
+
+  Revision 1.12  2000/12/03 22:26:54  florian
     * fixed web buzg 1275: problem with int64 functions results
 
   Revision 1.11  2000/11/29 00:30:46  florian

@@ -142,6 +142,7 @@ implementation
               { determines the size of the mem block }
               push_int(ppointerdef(resulttype)^.pointertype.def^.size);
               emit_push_lea_loc(location,false);
+              saveregvars($ff);
               emitcall('FPC_GETMEM');
 
               if ppointerdef(resulttype)^.pointertype.def^.needs_inittable then
@@ -212,7 +213,8 @@ implementation
            exit;
 
          pushusedregisters(pushed,$ff);
-
+         saveregvars($ff);
+         
          { call the mem handling procedures }
          case nodetype of
            simpledisposen:
@@ -481,6 +483,7 @@ implementation
                      end;
                    pushusedregisters(pushed,$ff);
                    emitpushreferenceaddr(left.location.reference);
+                   saveregvars($ff);
                    if is_ansistring(left.resulttype) then
                      emitcall('FPC_ANSISTR_UNIQUE')
                    else
@@ -508,6 +511,7 @@ implementation
                 begin
                    pushusedregisters(pushed,$ff);
                    emit_reg(A_PUSH,S_L,location.reference.base);
+                   saveregvars($ff);
                    emitcall('FPC_ANSISTR_CHECKZERO');
                    maybe_loadesi;
                    popusedregisters(pushed);
@@ -552,6 +556,7 @@ implementation
                 begin
                    pushusedregisters(pushed,$ff);
                    emit_reg(A_PUSH,S_L,location.reference.base);
+                   saveregvars($ff);
                    emitcall('FPC_ANSISTR_CHECKZERO');
                    maybe_loadesi;
                    popusedregisters(pushed);
@@ -612,6 +617,7 @@ implementation
                              hp:=newreference(location.reference);
                              dec(hp^.offset,7);
                              emit_ref(A_PUSH,S_L,hp);
+                             saveregvars($ff);
                              emitcall('FPC_ANSISTR_RANGECHECK');
                              popusedregisters(pushed);
                              maybe_loadesi;
@@ -834,6 +840,7 @@ implementation
                               hp:=newreference(location.reference);
                               dec(hp^.offset,7);
                               emit_ref(A_PUSH,S_L,hp);
+                              saveregvars($ff);
                               emitcall('FPC_ANSISTR_RANGECHECK');
                               popusedregisters(pushed);
                               maybe_loadesi;
@@ -1053,7 +1060,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2000-11-29 00:30:48  florian
+  Revision 1.7  2000-12-05 11:44:33  jonas
+    + new integer regvar handling, should be much more efficient
+
+  Revision 1.6  2000/11/29 00:30:48  florian
     * unused units removed from uses clause
     * some changes for widestrings
 

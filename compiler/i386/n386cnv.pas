@@ -279,6 +279,7 @@ implementation
                       release_loc(left.location);
                       emit_push_lea_loc(left.location,true);
                       emit_push_lea_loc(location,false);
+                      saveregvars(regs_to_push);
                       emitcall('FPC_SHORTSTR_TO_ANSISTR');
                       maybe_loadesi;
                       popusedregisters(pushed);
@@ -440,6 +441,7 @@ implementation
          end;
          push_int(arrsize);
          push_int(strtype);
+         saveregvars(regstopush);
          emitcall('FPC_STR_TO_CHARARRAY');
          popusedregisters(pushedregs);
       end;
@@ -517,6 +519,7 @@ implementation
                emit_push_lea_loc(left.location,true);
                del_reference(left.location.reference);
                emitpushreferenceaddr(location.reference);
+               saveregvars(regstopush);
                emitcall('FPC_CHARARRAY_TO_SHORTSTR');
                maybe_loadesi;
                popusedregisters(pushed);
@@ -532,6 +535,7 @@ implementation
                emitpushreferenceaddr(left.location.reference);
                release_loc(left.location);
                emitpushreferenceaddr(location.reference);
+               saveregvars(regstopush);
                emitcall('FPC_CHARARRAY_TO_ANSISTR');
                popusedregisters(pushed);
                maybe_loadesi;
@@ -571,6 +575,7 @@ implementation
                pushusedregisters(pushed,$ff);
                emit_pushw_loc(left.location);
                emitpushreferenceaddr(location.reference);
+               saveregvars($ff);
                emitcall('FPC_CHAR_TO_ANSISTR');
                popusedregisters(pushed);
                maybe_loadesi;
@@ -1102,6 +1107,7 @@ implementation
         gettempofsizereference(32,href);
         emit_push_mem_size(left.location.reference,4);
         emitpushreferenceaddr(href);
+        saveregvars($ff);
         emitcall('FPC_SET_LOAD_SMALL');
         maybe_loadesi;
         popusedregisters(pushedregs);
@@ -1166,6 +1172,7 @@ implementation
                      end;
                 end;
                 emitpushreferenceaddr(location.reference);
+                saveregvars($ff);
                 emitcall('FPC_PCHAR_TO_SHORTSTR');
                 maybe_loadesi;
                 popusedregisters(pushed);
@@ -1196,6 +1203,7 @@ implementation
                    end;
                 end;
                 emitpushreferenceaddr(location.reference);
+                saveregvars(regs_to_push);
                 emitcall('FPC_PCHAR_TO_ANSISTR');
                 maybe_loadesi;
                 popusedregisters(pushed);
@@ -1419,6 +1427,7 @@ implementation
               end;
             else internalerror(100);
          end;
+         saveregvars($ff);
          emitcall('FPC_DO_IS');
          emit_reg_reg(A_OR,S_B,R_AL,R_AL);
          popusedregisters(pushed);
@@ -1469,6 +1478,7 @@ implementation
               end;
             else internalerror(100);
          end;
+         saveregvars($ff);
          emitcall('FPC_DO_AS');
          { restore register, this restores automatically the }
          { result                                           }
@@ -1483,7 +1493,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2000-11-29 00:30:46  florian
+  Revision 1.9  2000-12-05 11:44:33  jonas
+    + new integer regvar handling, should be much more efficient
+
+  Revision 1.8  2000/11/29 00:30:46  florian
     * unused units removed from uses clause
     * some changes for widestrings
 

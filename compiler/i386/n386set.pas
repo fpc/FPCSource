@@ -50,7 +50,7 @@ implementation
       hcodegen,temp_gen,pass_2,
       ncon,
       cpubase,
-      cgai386,tgcpu,n386util;
+      cgai386,tgcpu,n386util,regvars;
 
      const
        bytes2Sxx:array[1..8] of Topsize=(S_B,S_W,S_NO,S_L,S_NO,S_NO,S_NO,S_Q);
@@ -950,6 +950,8 @@ implementation
          { we need the min_label always to choose between }
          { cmps and subs/decs                             }
          min_label:=case_get_min(nodes);
+         
+         load_all_regvars(exprasmlist);
          { now generate the jumps }
          if opsize=S_Q then
            genlinearcmplist(nodes)
@@ -1046,6 +1048,7 @@ implementation
               secondpass(tbinarynode(hp).right);
               { don't come back to case line }
               aktfilepos:=exprasmlist^.getlasttaifilepos^;
+              load_all_regvars(exprasmlist);
               emitjmp(C_None,endlabel);
               hp:=tbinarynode(hp).left;
            end;
@@ -1055,6 +1058,7 @@ implementation
            begin
               cleartempgen;
               secondpass(elseblock);
+              load_all_regvars(exprasmlist);
            end;
          emitlab(endlabel);
       end;
@@ -1067,7 +1071,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2000-11-29 00:30:49  florian
+  Revision 1.7  2000-12-05 11:44:34  jonas
+    + new integer regvar handling, should be much more efficient
+
+  Revision 1.6  2000/11/29 00:30:49  florian
     * unused units removed from uses clause
     * some changes for widestrings
 

@@ -982,6 +982,7 @@ implementation
       begin
          pushusedregisters(pushedregs,$ff);
          emit_ref(A_PUSH,S_L,newreference(ref));
+         saveregvars($ff);
          if is_interfacecom(t) then
            emitcall('FPC_INTF_INCR_REF')
          else
@@ -998,6 +999,7 @@ implementation
       begin
          pushusedregisters(pushedregs,$ff);
          emitpushreferenceaddr(ref);
+         saveregvars($ff);
          if is_interfacecom(t) then
            begin
               emitcall('FPC_INTF_DECR_REF');
@@ -1033,6 +1035,7 @@ implementation
          else
           emitpushreferenceaddr(sref);
          push_int(len);
+         saveregvars($ff);
          emitcall('FPC_LONGSTR_COPY');
          maybe_loadesi;
       end;
@@ -1046,6 +1049,7 @@ implementation
       begin
          pushusedregisters(pushedregs,$ff);
          emitpushreferenceaddr(ref);
+         saveregvars($ff);
          if is_ansistring(t) then
            begin
               emitcall('FPC_ANSISTR_INCR_REF');
@@ -1067,6 +1071,7 @@ implementation
       begin
          pushusedregisters(pushedregs,$ff);
          emitpushreferenceaddr(ref);
+         saveregvars($ff);
          if is_ansistring(t) then
            begin
               emitcall('FPC_ANSISTR_DECR_REF');
@@ -1608,6 +1613,7 @@ implementation
             reset_reference(hr);
             hr.symbol:=newasmsymbol(pvarsym(p)^.mangledname);
             emitpushreferenceaddr(hr);
+            saveregvars($ff);
             emitcall('FPC_INIT_THREADVAR');
          end;
     end;
@@ -2949,7 +2955,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  2000-11-29 00:30:43  florian
+  Revision 1.15  2000-12-05 11:44:32  jonas
+    + new integer regvar handling, should be much more efficient
+
+  Revision 1.14  2000/11/29 00:30:43  florian
     * unused units removed from uses clause
     * some changes for widestrings
 

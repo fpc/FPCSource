@@ -75,6 +75,9 @@ interface
     procedure pushusedregisters(var pushed : tpushed;b : byte);
     procedure popusedregisters(const pushed : tpushed);
 
+    { saves register variables (restoring happens automatically (JM) }
+    procedure saveregvars(b: byte);
+
     { saves and restores used registers to temp. values }
     procedure saveusedregisters(var saved : tsaved;b : byte);
     procedure restoreusedregisters(const saved : tsaved);
@@ -112,6 +115,8 @@ interface
        { variable                                                           }
        reg_pushes : regvar_longintarray;
        is_reg_var : regvar_booleanarray;
+       regvar_loaded: regvar_booleanarray;
+
 {$ifdef TEMPREGDEBUG}
        reg_user   : regvar_ptreearray;
        reg_releaser : regvar_ptreearray;
@@ -121,7 +126,7 @@ interface
 implementation
 
     uses
-      globtype,temp_gen;
+      globtype,temp_gen,regvars;
 
     procedure incrementregisterpushed(b : byte);
 
@@ -151,8 +156,9 @@ implementation
               { if the register is used by the calling subroutine    }
               if ((b and ($80 shr byte(r)))<>0) then
                 begin
-                   { and is present in use }
-                   if not(r in unused) then
+                  { and is present in use }
+                  if not is_reg_var[r] then
+                    if not(r in unused) then
                      begin
                         { then save it }
                         exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,r)));
@@ -203,6 +209,22 @@ implementation
         testregisters32;
 {$endif TEMPREGDEBUG}
       end;
+
+    
+    procedure saveregvars(b: byte);
+    
+      var
+         r : tregister;
+
+      begin
+         if not(cs_regalloc in aktglobalswitches) then
+           exit;
+         for r:=R_EAX to R_EBX do
+           { if the register is used by the calling subroutine    }
+           if ((b and ($80 shr byte(r)))<>0) and is_reg_var[r] then
+             store_regvar(exprasmlist,r)
+      end;
+
 
     procedure saveusedregisters(var saved : tsaved;b : byte);
 
@@ -645,6 +667,8 @@ implementation
         usableregs:=[R_EAX,R_EBX,R_ECX,R_EDX];
         c_usableregs:=4;
 {$endif SUPPORT_MMX}
+        fillchar(regvar_loaded,sizeof(regvar_loaded),false);
+        fillchar(is_reg_var,sizeof(is_reg_var),false);
         fpuvaroffset:=0;
       end;
 
@@ -653,7 +677,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-11-29 00:30:51  florian
+  Revision 1.2  2000-12-05 11:44:34  jonas
+    + new integer regvar handling, should be much more efficient
+
+  Revision 1.1  2000/11/29 00:30:51  florian
     * unused units removed from uses clause
     * some changes for widestrings
 

@@ -90,7 +90,7 @@ implementation
       hcodegen,temp_gen,pass_2,
       cpubase,cpuasm,
       pass_1,nld,ncon,
-      cgai386,tgcpu,n386util;
+      cgai386,tgcpu,n386util,regvars;
 
 {*****************************************************************************
                          Second_While_RepeatN
@@ -102,6 +102,9 @@ implementation
          oldclabel,oldblabel : pasmlabel;
          otlabel,oflabel : pasmlabel;
 
+         start_regvars_loaded,
+         then_regvars_loaded: regvar_booleanarray;
+
       begin
          getlabel(lloop);
          getlabel(lcont);
@@ -110,10 +113,11 @@ implementation
          oldclabel:=aktcontinuelabel;
          oldblabel:=aktbreaklabel;
 
+         load_all_regvars(exprasmlist);
          { handling code at the end as it is much more efficient, and makes
            while equal to repeat loop, only the end true/false is swapped (PFV) }
          if nodetype=whilen then
-          emitjmp(C_None,lcont);
+           emitjmp(C_None,lcont);
 
          emitlab(lloop);
 
@@ -122,6 +126,9 @@ implementation
          cleartempgen;
          if assigned(right) then
            secondpass(right);
+         
+         load_all_regvars(exprasmlist);
+         
          emitlab(lcont);
          otlabel:=truelabel;
          oflabel:=falselabel;
@@ -138,10 +145,14 @@ implementation
           end;
          cleartempgen;
          secondpass(left);
+         
+         load_all_regvars(exprasmlist);
+
          maketojumpbool(left);
          emitlab(lbreak);
          truelabel:=otlabel;
          falselabel:=oflabel;
+
 
          aktcontinuelabel:=oldclabel;
          aktbreaklabel:=oldblabel;
@@ -166,12 +177,15 @@ implementation
          getlabel(falselabel);
          cleartempgen;
          secondpass(left);
+         load_all_regvars(exprasmlist);
          maketojumpbool(left);
          if assigned(right) then
            begin
               emitlab(truelabel);
               cleartempgen;
               secondpass(right);
+              { automatically done for blocks, but not for statements (JM) }
+              load_all_regvars(exprasmlist);
            end;
          if assigned(t1) then
            begin
@@ -185,6 +199,7 @@ implementation
               emitlab(falselabel);
               cleartempgen;
               secondpass(t1);
+              load_all_regvars(exprasmlist);
               if assigned(right) then
                 emitlab(hl);
            end
@@ -324,6 +339,8 @@ implementation
            else
              hcond:=C_A;
 
+         load_all_regvars(exprasmlist);
+
          if not(omitfirstcomp) or temptovalue then
            emitjmp(hcond,aktbreaklabel);
 
@@ -336,7 +353,10 @@ implementation
          { help register must not be in instruction block }
          cleartempgen;
          if assigned(t1) then
-           secondpass(t1);
+           begin
+             secondpass(t1);
+             load_all_regvars(exprasmlist);
+           end;
 
          emitlab(aktcontinuelabel);
 
@@ -390,6 +410,7 @@ implementation
               hcond:=C_GE
             else
               hcond:=C_AE;
+         load_all_regvars(exprasmlist);
          emitjmp(hcond,aktbreaklabel);
          { according to count direction DEC or INC... }
          { must be after the test because of 0 to 255 for bytes !! }
@@ -434,6 +455,7 @@ implementation
       label
          do_jmp;
       begin
+         load_all_regvars(exprasmlist);
          include(flowcontrol,fc_exit);
          if assigned(left) then
          if left.nodetype=assignn then
@@ -541,9 +563,7 @@ do_jmp:
               emitjmp(C_None,aktexit2label);
            end
          else
-           begin
-              emitjmp(C_None,aktexitlabel);
-           end;
+            emitjmp(C_None,aktexitlabel);
        end;
 
 
@@ -555,7 +575,10 @@ do_jmp:
       begin
          include(flowcontrol,fc_break);
          if aktbreaklabel<>nil then
-           emitjmp(C_None,aktbreaklabel)
+           begin
+             load_all_regvars(exprasmlist);
+             emitjmp(C_None,aktbreaklabel)
+           end
          else
            CGMessage(cg_e_break_not_allowed);
       end;
@@ -569,7 +592,10 @@ do_jmp:
       begin
          include(flowcontrol,fc_continue);
          if aktcontinuelabel<>nil then
-           emitjmp(C_None,aktcontinuelabel)
+           begin
+             load_all_regvars(exprasmlist);
+             emitjmp(C_None,aktcontinuelabel)
+           end
          else
            CGMessage(cg_e_continue_not_allowed);
       end;
@@ -582,6 +608,7 @@ do_jmp:
     procedure ti386gotonode.pass_2;
 
        begin
+         load_all_regvars(exprasmlist);
          emitjmp(C_None,labelnr);
          { the assigned avoids only crashes if the label isn't defined }
          if assigned(labsym) and
@@ -597,6 +624,7 @@ do_jmp:
 
     procedure ti386labelnode.pass_2;
       begin
+         load_all_regvars(exprasmlist);
          emitlab(labelnr);
          cleartempgen;
          secondpass(left);
@@ -1284,7 +1312,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2000-11-29 00:30:47  florian
+  Revision 1.4  2000-12-05 11:44:33  jonas
+    + new integer regvar handling, should be much more efficient
+
+  Revision 1.3  2000/11/29 00:30:47  florian
     * unused units removed from uses clause
     * some changes for widestrings
 
