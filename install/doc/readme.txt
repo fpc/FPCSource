@@ -94,7 +94,7 @@ Don't forget to set the path as mentioned by the install program.
 
 To test the compiler, change to the demo directory of the compiler
 and type
-        ppc386 hello          or          ppos2 hello    (for EMX version)
+        ppc386 hello
         hello
 
 
