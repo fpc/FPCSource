@@ -194,7 +194,6 @@ implementation
          { Find out which registers have to be pushed (JM) }
          regs_to_push := $ff;
          remove_non_regvars_from_loc(source^.location,regs_to_push);
-         remove_non_regvars_from_loc(dest^.location,regs_to_push);
          { Push them (JM) }
          pushusedregisters(pushed,regs_to_push);
          case source^.location.loc of
@@ -215,8 +214,6 @@ implementation
          end;
          push_shortstring_length(dest);
          emitpushreferenceaddr(dest^.location.reference);
-         { Only now release the destination (JM) }
-         del_reference(dest^.location.reference);
          emitcall('FPC_ANSISTR_TO_SHORTSTR');
          popusedregisters(pushed);
          maybe_loadesi;
@@ -347,6 +344,7 @@ implementation
 
       var
          pushed : tpushed;
+         regs_to_push: byte;
 
       begin
          { does anybody know a better solution than this big case statement ? }
@@ -412,7 +410,11 @@ implementation
                       pto^.location.loc:=LOC_REFERENCE;
                       gettempansistringreference(pto^.location.reference);
                       decrstringref(cansistringdef,pto^.location.reference);
-                      pushusedregisters(pushed,$ff);
+                      { We don't need the source regs anymore (JM) }
+                      regs_to_push := $ff;
+                      remove_non_regvars_from_loc(pfrom^.location,regs_to_push);
+                      pushusedregisters(pushed,regs_to_push);
+                      release_loc(pfrom^.location);
                       emit_push_lea_loc(pfrom^.location,true);
                       emit_push_lea_loc(pto^.location,false);
                       emitcall('FPC_SHORTSTR_TO_ANSISTR');
@@ -1534,7 +1536,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2000-07-28 09:09:10  jonas
+  Revision 1.4  2000-08-02 07:05:32  jonas
+    * fixed ie(10) when using -Or and shortstring -> ansistring conversions
+      (or when using a lot of ss -> as conversions in one statement, the
+      source was freed only *after* pushusedregisters($ff), which means its
+      registers were reallocated when popusedregisters was called) (merged
+      from fixes branch)
+
+  Revision 1.3  2000/07/28 09:09:10  jonas
     * fixed web bug1073 (merged from fixes branch)
 
   Revision 1.2  2000/07/13 11:32:33  michael
