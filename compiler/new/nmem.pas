@@ -35,7 +35,21 @@ unit nmem;
           is_absolute,is_first,is_methodpointer : boolean;
           constructor init(v : pvarsym;st : psymtable);
           destructor done;virtual;
+          procedure det_temp;virtual;
+          procedure det_resulttype;virtual;
+          procedure secondpass;virtual;
+       end;
 
+       tassigntyp = (at_normal,at_plus,at_minus,at_star,at_slash);
+
+       passignmentnode = ^tassignmentnode;
+       tassignmentnode = object(tbinarynode)
+          assigntyp : tassigntyp;
+	  concat_string : boolean;
+          constructor init(l,r : pnode);
+          destructor done;virtual;
+          procedure det_temp;virtual;
+          procedure det_resulttype;virtual;
           procedure secondpass;virtual;
        end;
 
@@ -116,7 +130,7 @@ unit nmem;
                       end
 
 {$ifdef i386}
-                    { DLL variable, DLL variables are onyl available on the win32 target }
+                    { DLL variable, DLL variables are only available on the win32 target }
                     { maybe we've to add this later for the alpha WinNT                  }
                     else if (pvarsym(symtableentry)^.var_options and vo_is_dll_var)<>0 then
                       begin
@@ -134,9 +148,17 @@ unit nmem;
                          { in case it is a register variable: }
                          if pvarsym(symtableentry)^.reg<>R_NO then
                            begin
-                              location.loc:=LOC_CREGISTER;
+                              if pvarsym(p^.symtableentry)^.reg in fpureg then
+                                begin
+                                   location.loc:=LOC_CFPUREGISTER;
+                                   tg.unusedregsfpu:=tg.unusedregsfpu-[pvarsym(symtableentry)^.reg];
+                                end
+                              else
+                                begin
+                                   location.loc:=LOC_CREGISTER;
+                                   tg.unusedregsint:=tg.unusedregsint-[pvarsym(symtableentry)^.reg];
+                                end;
                               location.register:=pvarsym(symtableentry)^.reg;
-                              tg.unusedregsint:=tg.unusedregsint-[pvarsym(symtableentry)^.reg];
                            end
                          else
                            begin
@@ -268,10 +290,470 @@ unit nmem;
          end;
       end;
 
+{****************************************************************************
+                            TASSIGNMENTNODE
+ ****************************************************************************}
+
+    constructor tassignmentnode.init(l,r : pnode);
+
+      begin
+         inherited init(l,r);
+         concat_string:=false;
+         assigntyp:=at_normal;
+      end;
+
+    destructor tassignmentnode.done;
+
+      begin
+         inherited done;
+      end;
+
+    procedure tassignmentnode.det_temp;
+
+      begin
+         store_valid:=must_be_valid;
+         must_be_valid:=false;
+
+         { must be made unique }
+         set_unique(p^.left);
+
+         firstpass(p^.left);
+         if codegenerror then
+           exit;
+
+         { test if we can avoid copying string to temp
+           as in s:=s+...; (PM) }
+         must_be_valid:=true;
+         firstpass(p^.right);
+         must_be_valid:=store_valid;
+         if codegenerror then
+           exit;
+
+         { some string functions don't need conversion, so treat them separatly }
+         if is_shortstring(p^.left^.resulttype) and (assigned(p^.right^.resulttype)) then
+          begin
+            if not (is_shortstring(p^.right^.resulttype) or
+                    is_ansistring(p^.right^.resulttype) or
+                    is_char(p^.right^.resulttype)) then
+             begin
+               p^.right:=gentypeconvnode(p^.right,p^.left^.resulttype);
+               firstpass(p^.right);
+               if codegenerror then
+                exit;
+             end;
+            { we call STRCOPY }
+            procinfo.flags:=procinfo.flags or pi_do_call;
+            hp:=p^.right;
+          end
+         else
+          begin
+            p^.right:=gentypeconvnode(p^.right,p^.left^.resulttype);
+            firstpass(p^.right);
+            if codegenerror then
+             exit;
+          end;
+
+         { set assigned flag for varsyms }
+         if (p^.left^.treetype=loadn) and
+            (p^.left^.symtableentry^.typ=varsym) and
+            (pvarsym(p^.left^.symtableentry)^.varstate=vs_declared) then
+           pvarsym(p^.left^.symtableentry)^.varstate:=vs_assigned;
+
+         p^.registersint:=p^.left^.registersint+p^.right^.registersint;
+         p^.registersfpu:=max(p^.left^.registersfpu,p^.right^.registersfpu);
+         p^.registersmm:=max(p^.left^.registersmm,p^.right^.registersmm);
+      end;
+
+    procedure tassignmentnode.det_resulttype;
+
+      begin
+         inherited det_resulttype;
+         resulttype:=voiddef;
+         { assignements to open arrays aren't allowed }
+         if is_open_array(p^.left^.resulttype) then
+           CGMessage(type_e_mismatch);
+      end;
+
+    procedure tassignmentnode.secondpass;
+
+      begin
+         { calculate left sides }
+         if not(p^.concat_string) then
+           secondpass(p^.left);
+
+         if codegenerror then
+           exit;
+
+         case p^.left^.location.loc of
+            LOC_REFERENCE : begin
+                              { in case left operator uses to register }
+                              { but to few are free then LEA }
+                              if (p^.left^.location.reference.base<>R_NO) and
+                                 (p^.left^.location.reference.index<>R_NO) and
+                                 (usablereg32<p^.right^.registers32) then
+                                begin
+                                   del_reference(p^.left^.location.reference);
+                                   hregister:=getregister32;
+                                   exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,newreference(
+                                     p^.left^.location.reference),
+                                     hregister)));
+                                   reset_reference(p^.left^.location.reference);
+                                   p^.left^.location.reference.base:=hregister;
+                                   p^.left^.location.reference.index:=R_NO;
+                                end;
+                              loc:=LOC_REFERENCE;
+                           end;
+            LOC_CFPUREGISTER:
+              loc:=LOC_CFPUREGISTER;
+            LOC_CREGISTER:
+              loc:=LOC_CREGISTER;
+            LOC_MMXREGISTER:
+              loc:=LOC_MMXREGISTER;
+            LOC_CMMXREGISTER:
+              loc:=LOC_CMMXREGISTER;
+            else
+               begin
+                  CGMessage(cg_e_illegal_expression);
+                  exit;
+               end;
+         end;
+         { lets try to optimize this (PM)            }
+         { define a dest_loc that is the location      }
+         { and a ptree to verify that it is the right }
+         { place to insert it                    }
+{$ifdef test_dest_loc}
+         if (aktexprlevel<4) then
+           begin
+              dest_loc_known:=true;
+              dest_loc:=p^.left^.location;
+              dest_loc_tree:=p^.right;
+           end;
+{$endif test_dest_loc}
+
+         secondpass(p^.right);
+         if codegenerror then
+           exit;
+
+{$ifdef test_dest_loc}
+         dest_loc_known:=false;
+         if in_dest_loc then
+           begin
+              truelabel:=otlabel;
+              falselabel:=oflabel;
+              in_dest_loc:=false;
+              exit;
+           end;
+{$endif test_dest_loc}
+         if p^.left^.resulttype^.deftype=stringdef then
+           begin
+              if is_ansistring(p^.left^.resulttype) then
+                begin
+                  { the source and destinations are released
+                    in loadansistring, because an ansi string can
+                    also be in a register
+                  }
+                  loadansistring(p);
+                end
+              else
+              if is_shortstring(p^.left^.resulttype) and
+                not (p^.concat_string) then
+                begin
+                  if is_ansistring(p^.right^.resulttype) then
+                    begin
+                      if (p^.right^.treetype=stringconstn) and
+                         (p^.right^.length=0) then
+                        begin
+                          exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_B,
+                            0,newreference(p^.left^.location.reference))));
+{$IfDef regallocfix}
+                          del_reference(p^.left^.location.reference);
+{$EndIf regallocfix}
+                        end
+                      else
+                        loadansi2short(p^.right,p^.left);
+                    end
+                  else
+                    begin
+                       { we do not need destination anymore }
+                       del_reference(p^.left^.location.reference);
+                       del_reference(p^.right^.location.reference);
+                       loadshortstring(p);
+                       ungetiftemp(p^.right^.location.reference);
+                    end;
+                end
+              else if is_longstring(p^.left^.resulttype) then
+                begin
+                end
+              else
+                begin
+                  { its the only thing we have to do }
+                  del_reference(p^.right^.location.reference);
+                end
+           end
+        else case p^.right^.location.loc of
+            LOC_REFERENCE,
+            LOC_MEM : begin
+                         { extra handling for ordinal constants }
+                         if (p^.right^.treetype in [ordconstn,fixconstn]) or
+                            (loc=LOC_CREGISTER) then
+                           begin
+                              case p^.left^.resulttype^.size of
+                                 1 : opsize:=S_B;
+                                 2 : opsize:=S_W;
+                                 4 : opsize:=S_L;
+                                 { S_L is correct, the copy is done }
+                                 { with two moves                   }
+                                 8 : opsize:=S_L;
+                              end;
+                              if loc=LOC_CREGISTER then
+                                begin
+                                  exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,opsize,
+                                    newreference(p^.right^.location.reference),
+                                    p^.left^.location.register)));
+                                  if is_64bitint(p^.right^.resulttype) then
+                                    begin
+                                       r:=newreference(p^.right^.location.reference);
+                                       inc(r^.offset,4);
+                                       exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,opsize,r,
+                                         p^.left^.location.registerhigh)));
+                                    end;
+{$IfDef regallocfix}
+                                  del_reference(p^.right^.location.reference);
+{$EndIf regallocfix}
+                                end
+                              else
+                                begin
+                                  exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,opsize,
+                                    p^.right^.location.reference.offset,
+                                    newreference(p^.left^.location.reference))));
+                                  if is_64bitint(p^.right^.resulttype) then
+                                    begin
+                                       r:=newreference(p^.left^.location.reference);
+                                       inc(r^.offset,4);
+                                       exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,opsize,
+                                         0,r)));
+                                    end;
+{$IfDef regallocfix}
+                                  del_reference(p^.left^.location.reference);
+{$EndIf regallocfix}
+                                {exprasmlist^.concat(new(pai386,op_const_loc(A_MOV,opsize,
+                                    p^.right^.location.reference.offset,
+                                    p^.left^.location)));}
+                                end;
+
+                           end
+                         else if loc=LOC_CFPUREGISTER then
+                           begin
+                              floatloadops(pfloatdef(p^.right^.resulttype)^.typ,op,opsize);
+                              exprasmlist^.concat(new(pai386,op_ref(op,opsize,
+                                newreference(p^.right^.location.reference))));
+                              exprasmlist^.concat(new(pai386,op_reg(A_FSTP,S_NO,
+                                correct_fpuregister(p^.left^.location.register,fpuvaroffset+1))));
+                           end
+                         else
+                           begin
+                              if (p^.right^.resulttype^.needs_inittable) and
+                                ( (p^.right^.resulttype^.deftype<>objectdef) or
+                                  not(pobjectdef(p^.right^.resulttype)^.is_class)) then
+                                begin
+                                   { this would be a problem }
+                                   if not(p^.left^.resulttype^.needs_inittable) then
+                                     internalerror(3457);
+
+                                   { increment source reference counter }
+                                   new(r);
+                                   reset_reference(r^);
+                                   r^.symbol:=p^.right^.resulttype^.get_inittable_label;
+                                   emitpushreferenceaddr(r^);
+
+                                   emitpushreferenceaddr(p^.right^.location.reference);
+                                   exprasmlist^.concat(new(pai386,
+                                     op_sym(A_CALL,S_NO,newasmsymbol('FPC_ADDREF'))));
+                                   { decrement destination reference counter }
+                                   new(r);
+                                   reset_reference(r^);
+                                   r^.symbol:=p^.left^.resulttype^.get_inittable_label;
+                                   emitpushreferenceaddr(r^);
+                                   emitpushreferenceaddr(p^.left^.location.reference);
+                                   exprasmlist^.concat(new(pai386,
+                                     op_sym(A_CALL,S_NO,newasmsymbol('FPC_DECREF'))));
+                                end;
+
+{$ifdef regallocfix}
+                              concatcopy(p^.right^.location.reference,
+                                p^.left^.location.reference,p^.left^.resulttype^.size,true,false);
+                              ungetiftemp(p^.right^.location.reference);
+{$Else regallocfix}
+                              concatcopy(p^.right^.location.reference,
+                                p^.left^.location.reference,p^.left^.resulttype^.size,false,false);
+                              ungetiftemp(p^.right^.location.reference);
+{$endif regallocfix}
+                           end;
+                      end;
+{$ifdef SUPPORT_MMX}
+            LOC_CMMXREGISTER,
+            LOC_MMXREGISTER:
+              begin
+                 if loc=LOC_CMMXREGISTER then
+                   exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVQ,S_NO,
+                   p^.right^.location.register,p^.left^.location.register)))
+                 else
+                   exprasmlist^.concat(new(pai386,op_reg_ref(A_MOVQ,S_NO,
+                     p^.right^.location.register,newreference(p^.left^.location.reference))));
+              end;
+{$endif SUPPORT_MMX}
+            LOC_REGISTER,
+            LOC_CREGISTER : begin
+                              case p^.right^.resulttype^.size of
+                                 1 : opsize:=S_B;
+                                 2 : opsize:=S_W;
+                                 4 : opsize:=S_L;
+                                 8 : opsize:=S_L;
+                              end;
+                              { simplified with op_reg_loc       }
+                              if loc=LOC_CREGISTER then
+                                begin
+                                  exprasmlist^.concat(new(pai386,op_reg_reg(A_MOV,opsize,
+                                    p^.right^.location.register,
+                                    p^.left^.location.register)));
+{$IfDef regallocfix}
+                                 ungetregister(p^.right^.location.register);
+{$EndIf regallocfix}
+                                end
+                              else
+                                Begin
+                                  exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,opsize,
+                                    p^.right^.location.register,
+                                    newreference(p^.left^.location.reference))));
+{$IfDef regallocfix}
+                                  ungetregister(p^.right^.location.register);
+                                  del_reference(p^.left^.location.reference);
+{$EndIf regallocfix}
+                                end;
+                              if is_64bitint(p^.right^.resulttype) then
+                                begin
+                                   { simplified with op_reg_loc  }
+                                   if loc=LOC_CREGISTER then
+                                     exprasmlist^.concat(new(pai386,op_reg_reg(A_MOV,opsize,
+                                       p^.right^.location.registerhigh,
+                                       p^.left^.location.registerhigh)))
+                                   else
+                                     begin
+                                        r:=newreference(p^.left^.location.reference);
+                                        inc(r^.offset,4);
+                                        exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,opsize,
+                                          p^.right^.location.registerhigh,r)));
+                                     end;
+                                end;
+                              {exprasmlist^.concat(new(pai386,op_reg_loc(A_MOV,opsize,
+                                  p^.right^.location.register,
+                                  p^.left^.location)));      }
+
+                           end;
+            LOC_FPU : begin
+                              if (p^.left^.resulttype^.deftype=floatdef) then
+                               fputyp:=pfloatdef(p^.left^.resulttype)^.typ
+                              else
+                               if (p^.right^.resulttype^.deftype=floatdef) then
+                                fputyp:=pfloatdef(p^.right^.resulttype)^.typ
+                              else
+                               if (p^.right^.treetype=typeconvn) and
+                                  (p^.right^.left^.resulttype^.deftype=floatdef) then
+                                fputyp:=pfloatdef(p^.right^.left^.resulttype)^.typ
+                              else
+                                fputyp:=s32real;
+                              case loc of
+                                 LOC_CFPUREGISTER:
+                                   begin
+                                      exprasmlist^.concat(new(pai386,op_reg(A_FSTP,S_NO,
+                                        correct_fpuregister(p^.left^.location.register,fpuvaroffset))));
+                                      dec(fpuvaroffset);
+                                   end;
+                                 LOC_REFERENCE:
+                                   floatstore(fputyp,p^.left^.location.reference);
+                                 else
+                                   internalerror(48991);
+                              end;
+                           end;
+            LOC_CFPUREGISTER: begin
+                              if (p^.left^.resulttype^.deftype=floatdef) then
+                               fputyp:=pfloatdef(p^.left^.resulttype)^.typ
+                              else
+                               if (p^.right^.resulttype^.deftype=floatdef) then
+                                fputyp:=pfloatdef(p^.right^.resulttype)^.typ
+                              else
+                               if (p^.right^.treetype=typeconvn) and
+                                  (p^.right^.left^.resulttype^.deftype=floatdef) then
+                                fputyp:=pfloatdef(p^.right^.left^.resulttype)^.typ
+                              else
+                                fputyp:=s32real;
+                              exprasmlist^.concat(new(pai386,op_reg(A_FLD,S_NO,
+                                correct_fpuregister(p^.right^.location.register,fpuvaroffset))));
+                              inc(fpuvaroffset);
+                              case loc of
+                                 LOC_CFPUREGISTER:
+                                   begin
+                                      exprasmlist^.concat(new(pai386,op_reg(A_FSTP,S_NO,
+                                        correct_fpuregister(p^.right^.location.register,fpuvaroffset))));
+                                      dec(fpuvaroffset);
+                                   end;
+                                 LOC_REFERENCE:
+                                   floatstore(fputyp,p^.left^.location.reference);
+                                 else
+                                   internalerror(48992);
+                              end;
+                           end;
+            LOC_JUMP     : begin
+                              getlabel(hlabel);
+                              emitlab(truelabel);
+                              if loc=LOC_CREGISTER then
+                                exprasmlist^.concat(new(pai386,op_const_reg(A_MOV,S_B,
+                                  1,p^.left^.location.register)))
+                              else
+                                exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_B,
+                                  1,newreference(p^.left^.location.reference))));
+                              {exprasmlist^.concat(new(pai386,op_const_loc(A_MOV,S_B,
+                                  1,p^.left^.location)));}
+                              emitjmp(C_None,hlabel);
+                              emitlab(falselabel);
+                              if loc=LOC_CREGISTER then
+                                exprasmlist^.concat(new(pai386,op_reg_reg(A_XOR,S_B,
+                                  p^.left^.location.register,
+                                  p^.left^.location.register)))
+                              else
+                                begin
+                                  exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_B,
+                                    0,newreference(p^.left^.location.reference))));
+{$IfDef regallocfix}
+                                  del_reference(p^.left^.location.reference);
+{$EndIf regallocfix}
+                                 end;
+                              emitlab(hlabel);
+                           end;
+            LOC_FLAGS    : begin
+                              if loc=LOC_CREGISTER then
+                                emit_flag2reg(p^.right^.location.resflags,p^.left^.location.register)
+                              else
+                                begin
+                                  ai:=new(pai386,op_ref(A_Setcc,S_B,newreference(p^.left^.location.reference)));
+                                  ai^.SetCondition(flag_2_cond[p^.right^.location.resflags]);
+                                  exprasmlist^.concat(ai);
+                                end;
+{$IfDef regallocfix}
+                              del_reference(p^.left^.location.reference);
+{$EndIf regallocfix}
+                           end;
+         end;
+      end;
+
 end.
 {
   $Log$
-  Revision 1.5  1999-08-04 00:23:56  florian
+  Revision 1.6  1999-08-05 14:58:13  florian
+    * some fixes for the floating point registers
+    * more things for the new code generator
+
+  Revision 1.5  1999/08/04 00:23:56  florian
     * renamed i386asm and i386base to cpuasm and cpubase
 
   Revision 1.4  1999/08/03 17:09:45  florian

@@ -42,14 +42,10 @@ unit cgobj;
           { code generation for subroutine entry/exit code }
 
           { helper routines }
-          procedure g_initialize_data(p : psym);
-          procedure g_incr_data(p : psym);
-          procedure g_finalize_data(p : pnamedindexobject);
-{$ifndef VALUEPARA}
-          procedure g_copyopenarrays(p : pnamedindexobject);
-{$else}
-          procedure g_copyvalueparas(p : pnamedindexobject);
-{$endif}
+          procedure g_initialize_data(list : paasmoutput;p : psym);
+          procedure g_incr_data(list : paasmoutput;p : psym);
+          procedure g_finalize_data(list : paasmoutput;p : pnamedindexobject);
+          procedure g_copyvalueparas(list : paasmoutput;p : pnamedindexobject);
 
           procedure g_entrycode(list : paasmoutput;
             const proc_names : tstringcontainer;make_global : boolean;
@@ -75,6 +71,7 @@ unit cgobj;
           procedure a_load_const32_ref(list : paasmoutput;l : longint;const ref : treference);virtual;
           procedure a_load_const64_ref(list : paasmoutput;q : qword;const ref : treference);virtual;
 
+          procedure a_loadaddress_ref_reg(list : paasmoutput;ref : treference;r : tregister);virtual;
 
           procedure g_stackframe_entry(list : paasmoutput;localsize : longint);virtual;
           procedure g_maybe_loadself(list : paasmoutput);virtual;
@@ -99,6 +96,7 @@ unit cgobj;
           procedure a_param_const16(list : paasmoutput;w : word;nr : longint);virtual;
           procedure a_param_const32(list : paasmoutput;l : longint;nr : longint);virtual;
           procedure a_param_const64(list : paasmoutput;q : qword;nr : longint);virtual;
+          procedure a_param_ref(list : paasmoutput;r : treference;nr : longint);virtual;
        end;
 
     var
@@ -170,6 +168,13 @@ unit cgobj;
          {!!!!!!!! a_push_const64(list,q); }
       end;
 
+    procedure tcg.a_param_ref(list : paasmoutput;r : treference;nr : longint);
+
+      begin
+         a_loadaddress_ref_reg(list,r,scratchregister);
+         a_param_reg(list,scratchregister,nr);
+      end;
+
     procedure tcg.g_stackcheck(list : paasmoutput;stackframesize : longint);
 
       begin
@@ -225,21 +230,40 @@ unit cgobj;
  *****************************************************************************}
 
     { generates the code for initialisation of local data }
-    procedure tcg.g_initialize_data(p : psym);
+    procedure tcg.g_initialize_data(list : paasmoutput;p : psym);
 
       begin
          runerror(255);
       end;
 
     { generates the code for incrementing the reference count of parameters }
-    procedure tcg.g_incr_data(p : psym);
+    procedure tcg.g_incr_data(list : paasmoutput;p : psym);
+
+      var
+         hr : treference;
 
       begin
-         runerror(255);
+         if (psym(p)^.typ=varsym) and
+            not((pvarsym(p)^.definition^.deftype=objectdef) and
+              pobjectdef(pvarsym(p)^.definition)^.is_class) and
+            pvarsym(p)^.definition^.needs_inittable and
+            ((pvarsym(p)^.varspez=vs_value)) then
+           begin
+              procinfo.flags:=procinfo.flags or pi_needs_implicit_finally;
+              reset_reference(hr);
+              hr.symbol:=pvarsym(p)^.definition^.get_inittable_label;
+              a_param_ref(list,hr,2);
+              reset_reference(hr);
+              hr.base:=procinfo.framepointer;
+              hr.offset:=pvarsym(p)^.address+procinfo.call_offset;
+              a_param_ref(list,hr,1);
+              reset_reference(hr);
+              a_call_name(list,'FPC_ADDREF',0);
+           end;
       end;
 
     { generates the code for finalisation of local data }
-    procedure tcg.g_finalize_data(p : pnamedindexobject);
+    procedure tcg.g_finalize_data(list : paasmoutput;p : pnamedindexobject);
 
       begin
          runerror(255);
@@ -247,36 +271,39 @@ unit cgobj;
 
 
     { generates the code to make local copies of the value parameters }
-    procedure tcg.g_copyopenarrays(p : pnamedindexobject);
+    procedure tcg.g_copyvalueparas(list : paasmoutput;p : pnamedindexobject);
       begin
          runerror(255);
       end;
 
+    var
+       _list : paasmoutput;
+
     { wrappers for the methods, because TP doesn't know procedures }
     { of objects                                                   }
 
-    procedure _copyopenarrays(s : pnamedindexobject);{$ifndef FPC}far;{$endif}
+    procedure _copyvalueparas(s : pnamedindexobject);{$ifndef FPC}far;{$endif}
 
       begin
-         cg^.g_copyopenarrays(s);
+         cg^.g_copyvalueparas(_list,s);
       end;
 
     procedure _finalize_data(s : pnamedindexobject);{$ifndef FPC}far;{$endif}
 
       begin
-         cg^.g_finalize_data(s);
+         cg^.g_finalize_data(_list,s);
       end;
 
     procedure _incr_data(s : pnamedindexobject);{$ifndef FPC}far;{$endif}
 
       begin
-         cg^.g_incr_data(psym(s));
+         cg^.g_incr_data(_list,psym(s));
       end;
 
     procedure _initialize_data(s : pnamedindexobject);{$ifndef FPC}far;{$endif}
 
       begin
-         cg^.g_initialize_data(psym(s));
+         cg^.g_initialize_data(_list,psym(s));
       end;
 
     { generates the entry code for a procedure }
@@ -384,8 +411,8 @@ unit cgobj;
            begin
              if procinfo._class^.isclass then
                begin
-                 list^.insert(new(pai386,op_cond_sym(A_Jcc,C_Z,S_NO,quickexitlabel)));
-                 list^.insert(new(pai386,op_sym(A_CALL,S_NO,newasmsymbol('FPC_NEW_CLASS'))));
+                 list^.concat(new(pai386,op_sym(A_CALL,S_NO,newasmsymbol('FPC_NEW_CLASS'))));
+                 list^.concat(new(pai386,op_cond_sym(A_Jcc,C_Z,S_NO,quickexitlabel)));
                end
              else
                begin
@@ -414,15 +441,10 @@ unit cgobj;
               a_load_const32_ref(list,0,hr);
            end;
 
+         _list:=list;
          { generate copies of call by value parameters }
          if (po_assembler in aktprocsym^.definition^.procoptions) then
-           begin
-  {$ifndef VALUEPARA}
-              aktprocsym^.definition^.parast^.foreach({$ifdef FPC}@{$endif FPC}_copyopenarrays);
-  {$else}
-              aktprocsym^.definition^.parast^.foreach({$ifdef FPC}@{$endif FPC}_copyvalueparas);
-  {$endif}
-           end;
+            aktprocsym^.definition^.parast^.foreach({$ifdef FPC}@{$endif FPC}_copyvalueparas);
 
          { initialisizes local data }
          aktprocsym^.definition^.localst^.foreach({$ifdef FPC}@{$endif FPC}_initialize_data);
@@ -484,7 +506,6 @@ unit cgobj;
   begin
 {$ifdef dummy}
       { !!!! insert there automatic destructors }
-      curlist:=list;
       if aktexitlabel^.is_used then
         list^.insert(new(pai_label,init(aktexitlabel)));
 
@@ -505,7 +526,7 @@ unit cgobj;
               concat_external('FPC_HELP_DESTRUCTOR',EXT_NEAR);
             end;
         end;
-
+      _list:=list;
       { finalize local data }
       aktprocsym^.definition^.localst^.foreach({$ifdef FPC}@{$endif FPC}finalize_data);
 
@@ -671,10 +692,20 @@ unit cgobj;
          abstract;
       end;
 
+    procedure tcg.a_loadaddress_ref_reg(list : paasmoutput;ref : treference;r : tregister);
+
+      begin
+         abstract;
+      end;
+
 end.
 {
   $Log$
-  Revision 1.10  1999-08-04 00:23:52  florian
+  Revision 1.11  1999-08-05 14:58:11  florian
+    * some fixes for the floating point registers
+    * more things for the new code generator
+
+  Revision 1.10  1999/08/04 00:23:52  florian
     * renamed i386asm and i386base to cpuasm and cpubase
 
   Revision 1.9  1999/08/02 23:13:21  florian

@@ -96,6 +96,8 @@ unit cobjects;
           first,last : plinkedlist_item;
           constructor init;
           destructor done;
+          { destructors the linkedlist without cleaning the items up }
+          destructor done_noclear;
 
           { disposes the items of the list }
           procedure clear;
@@ -922,10 +924,15 @@ end;
 
 
     destructor tlinkedlist.done;
+
       begin
          clear;
       end;
 
+    destructor tlinkedlist.done_noclear;
+
+      begin
+      end;
 
     procedure tlinkedlist.clear;
       var
@@ -2209,7 +2216,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.38  1999-07-18 10:19:46  florian
+  Revision 1.39  1999-08-05 14:58:07  florian
+    * some fixes for the floating point registers
+    * more things for the new code generator
+
+  Revision 1.38  1999/07/18 10:19:46  florian
     * made it compilable with Dlephi 4 again
     + fixed problem with large stack allocations on win32
 

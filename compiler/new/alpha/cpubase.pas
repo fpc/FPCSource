@@ -101,6 +101,7 @@ Const
   frame_pointer = R_15;
   self_pointer  = R_16;
   accumulator   = R_0;
+  scratchregister = R_14;
 
   { sizes }
   pointersize   = 8;
@@ -231,7 +232,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  1999-08-03 17:09:48  florian
+  Revision 1.6  1999-08-05 14:58:17  florian
+    * some fixes for the floating point registers
+    * more things for the new code generator
+
+  Revision 1.5  1999/08/03 17:09:48  florian
     * the alpha compiler can be compiled now
 
   Revision 1.4  1999/08/03 15:52:40  michael

@@ -347,7 +347,7 @@ type
   tcpuflags = (cf_registers64);}
 
 const
-  availabletempregsint = [R_0,R_11..R_30];
+  availabletempregsint = [R_11..R_30];
   availabletempregsfpu = [R_F14..R_F31];
   availabletempregsmm  = [R_M0..R_M31];
 
@@ -372,6 +372,7 @@ const
   frame_pointer = R_31;
   self_pointer  = R_9;
   accumulator   = R_3;
+  scratchregister = R_0;
 
 (*  cpuflags : set of tcpuflags = []; *)
 
@@ -463,7 +464,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  1999-08-04 12:59:25  jonas
+  Revision 1.3  1999-08-05 14:58:18  florian
+    * some fixes for the floating point registers
+    * more things for the new code generator
+
+  Revision 1.2  1999/08/04 12:59:25  jonas
     * all tokes now start with an underscore
     * PowerPC compiles!!
 

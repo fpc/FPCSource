@@ -132,12 +132,25 @@ implementation
            cg^.g_maybe_loadself(exprasmlist);
        end;
 
+     function generateexprlist(p : pnode) : plinkedlist;
+
+       var
+          l : plinkedlist;
+
+       begin
+          l:=new(plinkedlist,init);
+          p^.concattolist(l);
+          generateexprlist:=l;
+       end;
+
      procedure secondpass(p : pnode);
 
       var
          oldcodegenerror  : boolean;
          oldlocalswitches : tlocalswitches;
          oldpos           : tfileposinfo;
+         l                : plinkedlist;
+         hp : pnode;
 
       begin
          if not(p^.error) then
@@ -149,9 +162,35 @@ implementation
             aktfilepos:=p^.fileinfo;
             aktlocalswitches:=p^.localswitches;
             codegenerror:=false;
-            p^.secondpass;
-            p^.error:=codegenerror;
 
+            { do we have a list of statements? }
+            if p^.treetype=statementn then
+              begin
+                 l:=generateexprlist(p);
+                 { here we should do CSE and node reordering }
+                 hp:=pnode(l^.first);
+                 while assigned(hp) do
+                   begin
+                      if assigned(hp^.parent) then
+		        begin
+                           if nf_needs_truefalselabel in hp^.parent^.flags then
+                             begin
+      		                if not(assigned(punarynode(hp^.parent)^.truelabel)) then
+                                  getlabel(punarynode(hp^.parent)^.truelabel);
+	      	                if not(assigned(punarynode(hp^.parent)^.falselabel)) then
+                                  getlabel(punarynode(hp^.parent)^.falselabel);
+                                truelabel:=punarynode(hp^.parent)^.truelabel;
+                                falselabel:=punarynode(hp^.parent)^.falselabel;
+                             end;
+                        end;
+                      hp^.secondpass;
+                      hp:=pnode(hp^.next);
+                   end;
+              end
+            else
+              p^.secondpass;
+
+            p^.error:=codegenerror;
             codegenerror:=codegenerror or oldcodegenerror;
             aktlocalswitches:=oldlocalswitches;
             aktfilepos:=oldpos;
@@ -409,6 +448,7 @@ implementation
               if assigned(aktprocsym) and
                  (pocall_inline in aktprocsym^.definition^.proccalloptions) then
                 make_const_global:=true;
+
               do_secondpass(p);
 
               if assigned(procinfo.def) then
@@ -424,7 +464,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  1999-08-04 00:23:58  florian
+  Revision 1.6  1999-08-05 14:58:15  florian
+    * some fixes for the floating point registers
+    * more things for the new code generator
+
+  Revision 1.5  1999/08/04 00:23:58  florian
     * renamed i386asm and i386base to cpuasm and cpubase
 
   Revision 1.4  1999/08/03 17:09:46  florian

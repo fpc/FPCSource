@@ -170,12 +170,20 @@ unit tree;
           less,greater : pcaserecord;
        end;
 
+       tnodeflags = (nf_needs_truefalselabel,tf_callunique);
+
+       tnodeflagset = set of tnodeflags;
+
        pnode = ^tnode;
-       tnode = object
+       tnode = object(tlinkedlist_item)
           treetype : ttreetyp;
           { the location of the result of this node }
           location : tlocation;
-
+          { the parent node of this is node    }
+          { this field is set by concattolist  }
+          parent : pnode;
+          { there are some properties about the node stored }
+          flags : tnodeflagset;
           { the number of registers needed to evalute the node }
           registersint,registersfpu : longint;  { must be longint !!!! }
 {$ifdef SUPPORT_MMX}
@@ -204,6 +212,8 @@ unit tree;
           { to write a complete tree                                 }
           procedure dowrite;virtual;
 {$endif EXTDEBUG}
+          procedure concattolist(l : plinkedlist);virtual;
+          function ischild(p : pnode) : boolean;virtual;
        end;
 
        { allows to determine which elementes are to be replaced }
@@ -269,20 +279,37 @@ unit tree;
              arrayconstructn : (cargs,cargswap: boolean);
            end;
 
+          { this node is the anchestor for all classes with at least }
+          { one child, you have to use it if you want to use         }
+          { true- and falselabel				     }
           punarynode = ^tunarynode;
           tunarynode = object(tnode)
              left : pnode;
+             truelabel,falselabel : pasmlabel;
 {$ifdef extdebug}
              procedure dowrite;virtual;
 {$endif extdebug}
              constructor init(l : pnode);
+             procedure concattolist(l : plinkedlist);virtual;
+             function ischild(p : pnode) : boolean;virtual;
+             procedure det_resulttype;virtual;
+             procedure det_temp;virtual;
           end;
 
           pbinarynode = ^tbinarynode;
           tbinarynode = object(tunarynode)
              right : pnode;
              constructor init(l,r : pnode);
+             procedure concattolist(l : plinkedlist);virtual;
+             function ischild(p : pnode) : boolean;virtual;
+             procedure det_resulttype;virtual;
+             procedure det_temp;virtual;
           end;
+
+          pvecnode = ^tvecnode;
+          tvecnode = object(tbinarynode)
+          end;
+
 
           pbinopnode = ^tbinopnode;
           tbinopnode = object(tbinarynode)
@@ -379,7 +406,7 @@ unit tree;
 
     { sets the callunique flag, if the node is a vecn, }
     { takes care of type casts etc.                    }
-    procedure set_unique(p : ptree);
+    procedure set_unique(p : pnode);
 
     { gibt den ordinalen Werten der Node zurueck oder falls sie }
     { keinen ordinalen Wert hat, wird ein Fehler erzeugt        }
@@ -423,6 +450,7 @@ unit tree;
     constructor tnode.init;
 
       begin
+         inherited init;
          treetype:=nothingn;
          { this allows easier error tracing }
          location.loc:=LOC_INVALID;
@@ -435,6 +463,7 @@ unit tree;
 {$ifdef SUPPORT_MMX}
          registersmmx:=0;
 {$endif SUPPORT_MMX}
+         flags:=[];
       end;
 
     destructor tnode.done;
@@ -475,6 +504,18 @@ unit tree;
 
       begin
          abstract;
+      end;
+
+    procedure tnode.concattolist(l : plinkedlist);
+
+      begin
+         l^.concat(@self);
+      end;
+
+    function tnode.ischild(p : pnode) : boolean;
+
+      begin
+         ischild:=false;
       end;
 
 {$ifdef EXTDEBUG}
@@ -587,7 +628,33 @@ unit tree;
          writeln(')');
          dec(byte(indention[0]),2);
       end;
-{$endif}         
+{$endif}
+
+    procedure tunarynode.concattolist(l : plinkedlist);
+
+      begin
+         left^.parent:=@self;
+         left^.concattolist(l);
+         inherited concattolist(l);
+      end;
+
+    function tunarynode.ischild(p : pnode) : boolean;
+
+      begin
+         ischild:=p=left;
+      end;
+
+    procedure tunarynode.det_resulttype;
+
+      begin
+         left^.det_resulttype;
+      end;
+
+    procedure tunarynode.det_temp;
+
+      begin
+         left^.det_temp;
+      end;
 
 {****************************************************************************
                             TBINARYNODE
@@ -598,6 +665,38 @@ unit tree;
       begin
          inherited init(l);
          right:=r
+      end;
+
+    procedure tbinarynode.concattolist(l : plinkedlist);
+
+      begin
+         { we could change that depending on the number of }
+         { required registers			           }
+         left^.parent:=@self;
+         left^.concattolist(l);
+         left^.parent:=@self;
+         left^.concattolist(l);
+         inherited concattolist(l);
+      end;
+
+    function tbinarynode.ischild(p : pnode) : boolean;
+
+      begin
+         ischild:=(p=right) or (p=right);
+      end;
+
+    procedure tbinarynode.det_resulttype;
+
+      begin
+         left^.det_resulttype;
+         right^.det_resulttype;
+      end;
+
+    procedure tbinarynode.det_temp;
+
+      begin
+         left^.det_temp;
+         right^.det_temp;
       end;
 
 {****************************************************************************
@@ -1817,16 +1916,16 @@ unit tree;
           equal_trees:=false;
      end;
 
-    procedure set_unique(p : ptree);
+    procedure set_unique(p : pnode);
 
       begin
          if assigned(p) then
            begin
               case p^.treetype of
                  vecn:
-                    p^.callunique:=true;
+                    include(p^.flags,tf_callunique);
                  typeconvn:
-                    set_unique(p^.left);
+                    set_unique(punarynode(p)^.left);
               end;
            end;
       end;
@@ -1900,7 +1999,11 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.11  1999-08-04 00:23:59  florian
+  Revision 1.12  1999-08-05 14:58:16  florian
+    * some fixes for the floating point registers
+    * more things for the new code generator
+
+  Revision 1.11  1999/08/04 00:23:59  florian
     * renamed i386asm and i386base to cpuasm and cpubase
 
   Revision 1.10  1999/08/02 17:14:12  florian

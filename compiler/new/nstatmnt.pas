@@ -30,9 +30,9 @@ unit nstatmnt;
     type
        pblocknode = ^tblocknode;
        tblocknode = object(tunarynode)
-         constructor init(l : pnode);
-         procedure det_temp;virtual;
-         procedure det_resulttype;virtual;
+          constructor init(l : pnode);
+          procedure det_temp;virtual;
+          procedure det_resulttype;virtual;
           procedure secondpass;virtual;
        end;
 
@@ -146,7 +146,11 @@ unit nstatmnt;
 end.
 {
   $Log$
-  Revision 1.3  1999-08-02 17:14:09  florian
+  Revision 1.4  1999-08-05 14:58:14  florian
+    * some fixes for the floating point registers
+    * more things for the new code generator
+
+  Revision 1.3  1999/08/02 17:14:09  florian
     + changed the temp. generator to an object
 
   Revision 1.2  1999/08/01 23:36:43  florian

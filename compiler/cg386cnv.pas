@@ -762,8 +762,8 @@ implementation
                 exprasmlist^.concat(new(pai386,op_ref(A_FILD,S_IL,r)));
                 exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_EDI)));
              end;
-      end;
-
+         end;
+         inc(fpuvaroffset);
          clear_location(pto^.location);
          pto^.location.loc:=LOC_FPU;
       end;
@@ -804,6 +804,7 @@ implementation
          clear_location(pto^.location);
          pto^.location.loc:=LOC_REGISTER;
          pto^.location.register:=rreg;
+         inc(fpuvaroffset);
       end;
 
 
@@ -1468,7 +1469,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.83  1999-08-04 13:45:19  florian
+  Revision 1.84  1999-08-05 14:58:03  florian
+    * some fixes for the floating point registers
+    * more things for the new code generator
+
+  Revision 1.83  1999/08/04 13:45:19  florian
     + floating point register variables !!
     * pairegalloc is now generated for register variables
 

@@ -35,6 +35,10 @@ unit cgbase;
        pi_C_import  = $10;      { set, if the procedure is an external C function }
        pi_uses_exceptions = $20;{ set, if the procedure has a try statement => }
                                 { no register variables                        }
+       pi_is_assembler = $40;   { set if the procedure is declared as ASSEMBLER
+                                  => don't optimize}
+       pi_needs_implicit_finally = $80; { set, if the procedure contains data which }
+                                        { needs to be finalized              }
 
     type
        pprocinfo = ^tprocinfo;
@@ -393,7 +397,11 @@ unit cgbase;
 end.
 {
   $Log$
-  Revision 1.6  1999-08-04 00:23:51  florian
+  Revision 1.7  1999-08-05 14:58:10  florian
+    * some fixes for the floating point registers
+    * more things for the new code generator
+
+  Revision 1.6  1999/08/04 00:23:51  florian
     * renamed i386asm and i386base to cpuasm and cpubase
 
   Revision 1.5  1999/08/01 18:22:32  florian

@@ -716,6 +716,7 @@ const
   frame_pointer = R_EBP;
   self_pointer  = R_ESI;
   accumulator   = R_EAX;
+  scratchregister = R_EDI;
 
   cpuflags : set of tcpuflags = [];
 
@@ -1010,7 +1011,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  1999-08-04 13:45:25  florian
+  Revision 1.3  1999-08-05 14:58:09  florian
+    * some fixes for the floating point registers
+    * more things for the new code generator
+
+  Revision 1.2  1999/08/04 13:45:25  florian
     + floating point register variables !!
     * pairegalloc is now generated for register variables
 

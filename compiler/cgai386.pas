@@ -1197,10 +1197,12 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                        r^.offset:=para_offset-pushedparasize;
                     end;
                   exprasmlist^.concat(new(pai386,op_ref(op,opsize,r)));
+                  dec(fpuvaroffset);
                end;
              LOC_CFPUREGISTER:
                begin
-                  exprasmlist^.concat(new(pai386,op_reg(A_FLD,S_NO,p^.location.register)));
+                  exprasmlist^.concat(new(pai386,op_reg(A_FLD,S_NO,
+                    correct_fpuregister(p^.location.register,fpuvaroffset))));
                   size:=align(pfloatdef(p^.resulttype)^.size,alignment);
                   inc(pushedparasize,size);
                   if not inlined then
@@ -3161,7 +3163,11 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.25  1999-08-04 13:45:24  florian
+  Revision 1.26  1999-08-05 14:58:04  florian
+    * some fixes for the floating point registers
+    * more things for the new code generator
+
+  Revision 1.25  1999/08/04 13:45:24  florian
     + floating point register variables !!
     * pairegalloc is now generated for register variables
 
