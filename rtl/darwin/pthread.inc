@@ -23,6 +23,7 @@
 CONST PTHREAD_EXPLICIT_SCHED       = 0;
       PTHREAD_CREATE_DETACHED      = 1;
       PTHREAD_SCOPE_PROCESS        = 0;
+      PTHREAD_MUTEX_RECURSIVE      = 2;
 
  TYPE
     pthread_t       = pointer;
@@ -37,7 +38,12 @@ CONST PTHREAD_EXPLICIT_SCHED       = 0;
     __startroutine_t= function (p :pointer):pointer;cdecl;
     pthread_mutex_attr_t  = pointer;
     ppthread_mutex_attr_t = ^pthread_mutex_t;
+    ppthread_mutexattr_t  = ^pthread_mutex_t;
+
     sem_t	    = cint;
+    psem_t	    = ^sem_t;
+   TSemaphore         = sem_t;
+    PSemaphore         = ^TSemaphore;
 
 function  pthread_getspecific      (t : pthread_key_t):pointer; cdecl; external 'c';
 function  pthread_setspecific      (t : pthread_key_t;p:pointer):cint; cdecl; external 'c';
@@ -67,9 +73,18 @@ function sem_post(__sem:Psem_t):cint;cdecl;external ;
 function sem_getvalue(__sem:Psem_t; __sval:Pcint):cint;cdecl;external;
 
 
+function pthread_mutexattr_init(_para1:Ppthread_mutexattr_t):cint;cdecl;external;
+function pthread_mutexattr_destroy(_para1:Ppthread_mutexattr_t):cint;cdecl;external;
+function pthread_mutexattr_gettype(_para1:Ppthread_mutexattr_t; _para2:Pcint):cint;cdecl;external;
+function pthread_mutexattr_settype(_para1:Ppthread_mutexattr_t; _para2:cint):cint;cdecl;external;
+
+
 {
   $Log$
-  Revision 1.2  2004-05-26 19:23:17  marco
+  Revision 1.3  2004-05-26 20:05:21  marco
+   * 2nd attempt
+
+  Revision 1.2  2004/05/26 19:23:17  marco
    * first iteration
 
   Revision 1.1  2004/01/04 20:05:38  jonas
