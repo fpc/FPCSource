@@ -327,11 +327,26 @@ implementation
                    (from_def.deftype=pointerdef) and
                    (to_def.deftype=pointerdef)
                     ) and
-              { child classes can be also passed }
+              { child objects can be also passed }
+              { in non-delphi mode, otherwise    }
+              { they must match exactly, except  }
+              { if they are objects              }
                 not(
-                   (from_def.deftype=objectdef) and
-                   (to_def.deftype=objectdef) and
-                   tobjectdef(from_def).is_related(tobjectdef(to_def))
+                    (from_def.deftype=objectdef) and
+                    (to_def.deftype=objectdef) and
+                   
+                    ((
+                      (tobjectdef(from_def).is_related(tobjectdef(to_def))) and
+                      (m_delphi in aktmodeswitches) and                  
+                      (tobjectdef(from_def).objecttype=odt_object) and
+                      (tobjectdef(to_def).objecttype=odt_object)
+                     ) or
+                   
+                    (
+                      (tobjectdef(from_def).is_related(tobjectdef(to_def))) and
+                      (not (m_delphi in aktmodeswitches))
+                    ))
+                   
                    ) and
               { passing a single element to a openarray of the same type }
                 not(
@@ -2631,7 +2646,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.105  2002-10-06 21:02:17  peter
+  Revision 1.106  2002-10-14 18:20:30  carl
+    * var parameter checking for classes and interfaces in Delphi mode
+
+  Revision 1.105  2002/10/06 21:02:17  peter
     * fixed limit checking for qword
 
   Revision 1.104  2002/10/05 15:15:45  peter
