@@ -8,7 +8,7 @@ program test;
 {$endif}  
 
 uses
-  {$ifdef fpc}CThreads,{$endif}
+  {$ifdef fpc}{$ifdef unix}CThreads,{$endif}{$endif}
   Classes;
 
 type
