@@ -1,23 +1,55 @@
 #
-#   Makefile.fpc for shedit
+#   Makefile.fpc for FPC demoes and FPCGames package
 #
 
 [targets]
+units=gameunit
 programs=eratos qsort hello blackbox magic lines fpctris
 programs_win32=winhello menu mandel dlltest testdll
-programs_linux=mandel samegame
-programs_go32v2=mandel samegame
+programs_linux=mandel samegame quad maze gravwars
+programs_go32v2=mandel samegame quad maze gravwars
+
+# Not always necessary, but saves a lot of trouble
+
+[packages]
+packages=api
+
+[defaults]
+defaultrule=both
 
 [dirs]
 fpcdir=../..
 unitdir=$(FPCDIR)/api
 targetdir=.
 
+[postsettings]
+ifdef GRAPHICS
+override FPCOPT+=-dUSEGRAPHICS
+endif
 
 [rules]
 ifeq ($(OS_TARGET),win32)
 vpath %$(PASEXT) win32
 endif
+.PHONY: text gfx both
+
+clean : execlean fpc_cleanall
+
+execlean :
+          -$(DEL) tfpctris$(EXEEXT) tsamegam$(EXEEXT) *.scr
+
+text:
+        $(MAKE) all
+        $(MOVE) fpctris$(EXEEXT) tfpctris$(EXEEXT)
+        $(MOVE) samegame$(EXEEXT) tsamegam$(EXEEXT)
+
+gfx:
+        $(MAKE) all GRAPHICS=1
+
+both:
+        $(MAKE) text
+        $(DEL) gameunit$(OEXT) gameunit$(PPUEXT)
+        $(MAKE) gfx
 
 #################################
 # Demo installation for linux
