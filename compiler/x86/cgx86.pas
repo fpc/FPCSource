@@ -1493,7 +1493,6 @@ unit cgx86;
 
     procedure tcgx86.g_copyvaluepara_openarray(list : taasmoutput;const ref, lenref:treference;elesize:integer);
       var
-        lenref : treference;
         power,len  : longint;
         opsize : topsize;
 {$ifndef __NOWINPECOFF__}
@@ -1501,8 +1500,6 @@ unit cgx86;
 {$endif}
         r,r2,rsp:Tregister;
       begin
-        lenref:=ref;
-        inc(lenref.offset,4);
         { get stack space }
         r.enum:=R_INTREGISTER;
         r.number:=NR_EDI;
@@ -1935,7 +1932,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.52  2003-06-07 10:06:55  jonas
+  Revision 1.53  2003-06-07 10:24:10  peter
+    * fixed copyvaluepara for left-to-right pushing
+
+  Revision 1.52  2003/06/07 10:06:55  jonas
     * fixed cycling problem
 
   Revision 1.51  2003/06/03 21:11:09  peter
