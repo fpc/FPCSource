@@ -96,6 +96,7 @@ var
   Regs:SysCallRegs;
   Args:array[1..6] of longint;
 begin
+{$IFNDEF BSD}
   args[1]:=a1;
   args[2]:=a2;
   args[3]:=a3;
@@ -107,8 +108,11 @@ begin
   SocketCall:=Syscall(syscall_nr_socketcall,regs);
   If SocketCall<0 then
    SocketError:=Errno
-  else
+  else 
    SocketError:=0;
+ {$ELSE}
+  SocketError:=-1;
+ {$ENDIF}
 end;
 
 
@@ -316,7 +320,10 @@ end.
 
 {
   $Log$
-  Revision 1.13  2000-02-09 16:59:32  peter
+  Revision 1.14  2000-03-16 15:24:37  marco
+   * Put one BSD incompability under an ifndef BSD
+
+  Revision 1.13  2000/02/09 16:59:32  peter
     * truncated log
 
   Revision 1.12  2000/01/07 16:41:41  daniel
