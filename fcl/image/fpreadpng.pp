@@ -32,8 +32,8 @@ Type
       ZData : TMemoryStream;  // holds compressed data until all blocks are read
       Decompress : TDeCompressionStream; // decompresses the data
       FPltte : boolean;     // if palette is used
-      CountScanlines : EightLong; //Number of scanlines to process for each pass
-      ScanLineLength : EightLong; //Length of scanline for each pass
+      FCountScanlines : EightLong; //Number of scanlines to process for each pass
+      FScanLineLength : EightLong; //Length of scanline for each pass
       FCurrentPass : byte;
       ByteWidth : byte;          // number of bytes to read for pixel information
       BitsUsed : EightLong; // bitmasks to use to split a byte into smaller parts
@@ -50,6 +50,8 @@ Type
     protected
       UseTransparent, EndOfFile : boolean;
       TransparentDataValue : TColorData;
+      UsingBitGroup : byte;
+      DataIndex,DataBytes : longword;
       function CurrentLine(x:longword) : byte;
       function PrevSample (x:longword): byte;
       function PreviousLine (x:longword) : byte;
@@ -57,6 +59,10 @@ Type
       procedure HandleChunk; virtual;
       procedure HandlePalette; virtual;
       procedure HandleAlpha; virtual;
+      function CalcX (relX:integer) : integer;
+      function CalcY (relY:integer) : integer;
+      function CalcColor: TColorData;
+      procedure HandleScanLine (const y : integer; const ScanLine : PByteArray); virtual;
       procedure DoDecompress; virtual;
       function  DoFilter(LineFilter:byte;index:longword; b:byte) : byte; virtual;
       procedure SetPalettePixel (x,y:integer; CD : TColordata);
@@ -71,6 +77,8 @@ Type
       property Pltte : boolean read FPltte;
       property ThePalette : TFPPalette read FPalette;
       property Header : THeaderChunk read FHeader;
+      property CountScanlines : EightLong read FCountScanlines;
+      property ScanLineLength : EightLong read FScanLineLength;
     public
       constructor create; override;
       destructor destroy; override;
@@ -218,6 +226,7 @@ begin
       if (aLength mod 3) > 0 then
         raise PNGImageException.Create ('Impossible length for PLTE-chunk');
       r := 0;
+      ThePalette.count := 0;
       while r < alength do
         begin
         c.red := ShiftAndFill(data^[r], 8);
@@ -345,6 +354,55 @@ begin
       result := @SetColorPixel;
 end;
 
+function TFPReaderPNG.CalcX (relX:integer) : integer;
+begin
+  result := StartX + (relX * deltaX);
+end;
+
+function TFPReaderPNG.CalcY (relY:integer) : integer;
+begin
+  result := StartY + (relY * deltaY);
+end;
+
+function TFPReaderPNG.CalcColor: TColorData;
+var cd : longword;
+begin
+  if UsingBitGroup = 0 then
+    begin
+    Databytes := 0;
+    move (FCurrentLine^[DataIndex], Databytes, bytewidth);
+    inc (DataIndex,bytewidth);
+    end;
+  if bytewidth = 1 then
+    begin
+    cd := (Databytes and BitsUsed[UsingBitGroup]);
+    result := cd shr ((CountBitsUsed-UsingBitGroup-1) * BitShift);
+    inc (UsingBitgroup);
+    if UsingBitGroup >= CountBitsUsed then
+      UsingBitGroup := 0;
+    end
+{    else if bytewidth = 2 then
+    result := DataBytes shr 16
+  else if bytewidth = 3 then
+    result := Databytes shr 8}
+  else
+    result := Databytes;
+end;
+
+procedure TFPReaderPNG.HandleScanLine (const y : integer; const ScanLine : PByteArray);
+var x, rx : integer;
+    c : TColorData;
+begin
+  UsingBitGroup := 0;
+  DataIndex := 0;
+  for rx := 0 to ScanlineLength[CurrentPass]-1 do
+    begin
+    X := CalcX(rx);
+    c := CalcColor;
+    FSetPixel (x,y,c);
+    end
+end;
+
 procedure TFPReaderPNG.DoDecompress;
 
   procedure initVars;
@@ -381,7 +439,7 @@ procedure TFPReaderPNG.DoDecompress;
               1  : CFmt := cfMono;
               2  : CFmt := cfGray2;
               4  : CFmt := cfGray4;
-              8  : CFmt := cdGray8;
+              8  : CFmt := cfGray8;
               16 : CFmt := cfGray16;
             end;
         2 : if BitDepth = 8 then
@@ -423,47 +481,9 @@ procedure TFPReaderPNG.DoDecompress;
       end;
   end;
 
-  function CalcX (relX:integer) : integer;
-  begin
-    result := StartX + (relX * deltaX);
-  end;
-
-  function CalcY (relY:integer) : integer;
-  begin
-    result := StartY + (relY * deltaY);
-  end;
-
-  var lf, UsingBitGroup : byte;
-      index,DataBytes : longword;
-
-  function CalcColor: TColorData;
-  var cd : longword;
-  begin
-    if UsingBitGroup = 0 then
-      begin
-      Databytes := 0;
-      move (FCurrentLine^[index], Databytes, bytewidth);
-      inc (index,bytewidth);
-      end;
-    if bytewidth = 1 then
-      begin
-      cd := (Databytes and BitsUsed[UsingBitGroup]);
-      result := cd shr ((CountBitsUsed-UsingBitGroup-1) * BitShift);
-      inc (UsingBitgroup);
-      if UsingBitGroup >= CountBitsUsed then
-        UsingBitGroup := 0;
-      end
-{    else if bytewidth = 2 then
-      result := DataBytes shr 16
-    else if bytewidth = 3 then
-      result := Databytes shr 8}
-    else
-      result := Databytes;
-  end;
-
   procedure Decode;
-  var x, y, rp, ry, rx, l : integer;
-      c : TColorData;
+  var y, rp, ry, rx, l : integer;
+      lf : byte;
   begin
     FSetPixel := DecideSetPixel;
     for rp := StartPass to EndPass do
@@ -495,17 +515,8 @@ procedure TFPReaderPNG.DoDecompress;
           Decompress.Read (FCurrentLine^, l);
           if lf <> 0 then  // Do nothing when there is no filter used
             for rx := 0 to l-1 do
-              begin
               FCurrentLine^[rx] := DoFilter (lf, rx, FCurrentLine^[rx]);
-              end;
-          UsingBitGroup := 0;
-          index := 0;
-          for rx := 0 to ScanlineLength[rp]-1 do
-            begin
-            X := CalcX(rx);
-            c := CalcColor;
-            FSetPixel (x,y,c);
-            end
+          HandleScanLine (y, FCurrentLine);
           end;
       finally
         freemem (FPreviousLine);
@@ -533,7 +544,7 @@ end;
 
 procedure TFPReaderPNG.HandleUnknown;
 begin
-  if (chunk.readtype[1] in ['A'..'Z']) then
+  if (chunk.readtype[0] in ['A'..'Z']) then
     raise PNGImageException.Create('Critical chunk '+chunk.readtype+' not recognized');
   //writeln ('Unhandled chunk ',chunk.readtype);
 end;

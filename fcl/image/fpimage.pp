@@ -33,7 +33,7 @@ type
   end;
   PFPColor = ^TFPColor;
 
-  TColorFormat = (cfMono,cfGray2,cfGray4,cdGray8,cfGray16,cfGray24,
+  TColorFormat = (cfMono,cfGray2,cfGray4,cfGray8,cfGray16,cfGray24,
                   cfGrayA8,cfGrayA16,cfGrayA32,
                   cfRGB15,cfRGB16,cfRGB24,cfRGB32,cfRGB48,
                   cfRGBA8,cfRGBA16,cfRGBA32,cfRGBA64,
@@ -348,12 +348,12 @@ end;
 
 initialization
   ImageHandlers := TImageHandlersManager.Create;
-  ColorBits [cfRGBA64,1] := ColorBits [cfRGBA64,0] shl 32;
-  ColorBits [cfRGBA64,2] := ColorBits [cfRGBA64,1] shl 16;
+  ColorBits [cfRGBA64,1] := ColorBits [cfRGBA64,1] shl 32;
+  ColorBits [cfRGBA64,2] := ColorBits [cfRGBA64,2] shl 16;
   ColorBits [cfRGB48,1] := ColorBits [cfRGB48,1] shl 16;
   ColorBits [cfABGR64,0] := ColorBits [cfABGR64,0] shl 32;
-  ColorBits [cfABGR64,3] := ColorBits [cfABGR64,1] shl 16;
-  ColorBits [cfBGR48,3] := ColorBits [cfBGR48,1] shl 16;
+  ColorBits [cfABGR64,3] := ColorBits [cfABGR64,3] shl 16;
+  ColorBits [cfBGR48,3] := ColorBits [cfBGR48,3] shl 16;
 finalization
   ImageHandlers.Free;
 

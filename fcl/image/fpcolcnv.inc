@@ -52,7 +52,7 @@ const
     {cfBGR24} ($00000000, $000000FF, $0000FF00, $00FF0000),
     {cfBGR32} ($00000000, $000000FF, $0000FF00, $00FF0000),
     {cfBGR48} ($00000000, $0000FFFF, $FFFF0000, $FFFF0000),
-    //                                          shl 16
+    //                                           shl 16
     {cfABGR8} ($000000C0, $00000003, $0000000C, $00000030),
     {cfABGR16}($0000F000, $0000000F, $000000F0, $00000F00),
     {cfABGR32}($FF000000, $000000FF, $0000FF00, $00FF0000),
@@ -118,7 +118,7 @@ begin
     cfMono : result := SetGrayScaleA (ShiftAndFill(From,1));
     cfGray2 : result := SetGrayScaleA (ShiftAndFill(From,2));
     cfGray4 : result := SetGrayScaleA (ShiftAndFill(From,4));
-    cdGray8 : result := SetGrayScaleA (ShiftAndFill(From,8));
+    cfGray8 : result := SetGrayScaleA (ShiftAndFill(From,8));
     cfGray16 : result := SetGrayScaleA (From);
     cfGray24 : result := SetGrayScaleA ((From and $00FFFF00) shr 8);
     cfGrayA8 :
@@ -163,6 +163,7 @@ end;
 function CalculateGray (const c : TFPcolor; Bits:byte) : TColorData;
 begin
   // MG: ToDo
+  raise FPImageException.create ('Not yet implemented');
   if (c.alpha=0) or (Bits=0) then ;
   Result:=0;
 end;
@@ -182,12 +183,19 @@ function ConvertColorToData (const From : TFPColor; Fmt : TColorFormat) : TColor
 var sb : TShiftBits;
     cb : TColorBits;
   function MakeSample (Value:word; ToShift:shortint; ToUse:TColorData) : TColorData;
+  var sh : word;
   begin
     result := Value;
-    if ToShift > 0 then
-      result := result shl ToShift
+    if ToShift >= 0 then
+      begin
+      sh := ToShift;            // if not converting first to word, there will be a
+      result := result shl Sh;  // color shift
+      end
     else
-      result := result shr ToShift;
+      begin
+      sh := -ToShift;
+      result := result shr Sh;
+      end;
     result := result and ToUse;
   end;
 begin
@@ -195,7 +203,7 @@ begin
     cfMono : result := CalculateGray (From,1);
     cfGray2 : result := CalculateGray (From,2);
     cfGray4 : result := CalculateGray (From,4);
-    cdGray8 : result := CalculateGray (From,8);
+    cfGray8 : result := CalculateGray (From,8);
     cfGray16 : result := CalculateGray (From,16);
     cfGray24 : result := CalculateGray (From,24);
     cfGrayA8 : result := CalculateGrayA (From, 8);

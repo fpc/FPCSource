@@ -38,13 +38,13 @@ type
     procedure DoGetTextSize (text:string; var w,h:integer); override;
     function  DoGetTextHeight (text:string) : integer; override;
     function  DoGetTextWidth (text:string) : integer; override;
-    procedure DoRectangle (Bounds:TRect); override;
-    procedure DoRectangleFill (Bounds:TRect); override;
-    procedure DoEllipseFill (Bounds:TRect); override;
-    procedure DoEllipse (Bounds:TRect); override;
-    procedure DoPolygonFill (points:array of TPoint); override;
-    procedure DoPolygon (points:array of TPoint); override;
-    procedure DoPolyline (points:array of TPoint); override;
+    procedure DoRectangle (const Bounds:TRect); override;
+    procedure DoRectangleFill (const Bounds:TRect); override;
+    procedure DoEllipseFill (const Bounds:TRect); override;
+    procedure DoEllipse (const Bounds:TRect); override;
+    procedure DoPolygonFill (const points:array of TPoint); override;
+    procedure DoPolygon (const points:array of TPoint); override;
+    procedure DoPolyline (const points:array of TPoint); override;
     procedure DoFloodFill (x,y:integer); override;
     procedure DoLine (x1,y1,x2,y2:integer); override;
   end;
@@ -115,11 +115,13 @@ begin
   NotImplemented;
 end;
 
-procedure TFPPixelCanvas.DoRectangle (Bounds:TRect);
+procedure TFPPixelCanvas.DoRectangle (const Bounds:TRect);
+var b : TRect;
 begin
+  b := bounds;
   if clipping then
-    CheckRectClipping (ClipRect, Bounds);
-  with Bounds do
+    CheckRectClipping (ClipRect, B);
+  with B do
     begin
     DoLine (left,top,left,bottom);
     DoLine (left,bottom,right,bottom);
@@ -128,15 +130,14 @@ begin
     end;
 end;
 
-procedure TFPPixelCanvas.DoRectangleFill (Bounds:TRect);
+procedure TFPPixelCanvas.DoRectangleFill (const Bounds:TRect);
+var b : TRect;
 begin
-  writeln ('Rectangle Fill, sorting bounds');
-  SortRect (bounds);
-  writeln ('Checking clipping');
+  b := Bounds;
+  SortRect (b);
   if clipping then
-    CheckRectClipping (ClipRect, Bounds);
-  writeln ('Choosing what to do');
-  with bounds do
+    CheckRectClipping (ClipRect, B);
+  with b do
     case Brush.style of  //TODO: patterns and image
       bsSolid : FillRectangleColor (self, left,top, right,bottom);
       bsPattern : ;
@@ -148,22 +149,21 @@ begin
       bsHorizontal : ;
       bsVertical : ;
     end;
-  writeln ('Rectangle finished');
 end;
 
-procedure TFPPixelCanvas.DoEllipseFill (Bounds:TRect);
+procedure TFPPixelCanvas.DoEllipseFill (const Bounds:TRect);
 begin  //TODO
 end;
 
-procedure TFPPixelCanvas.DoEllipse (Bounds:TRect);
+procedure TFPPixelCanvas.DoEllipse (const Bounds:TRect);
 begin  //TODO
 end;
 
-procedure TFPPixelCanvas.DoPolygonFill (points:array of TPoint);
+procedure TFPPixelCanvas.DoPolygonFill (const points:array of TPoint);
 begin  //TODO: how to find a point inside the polygon ?
 end;
 
-procedure TFPPixelCanvas.DoPolygon (points:array of TPoint);
+procedure TFPPixelCanvas.DoPolygon (const points:array of TPoint);
 var i,a, r : integer;
     p : TPoint;
 begin
@@ -178,7 +178,7 @@ begin
   DoLine (p.x,p.y, points[i].x,points[i].y);
 end;
 
-procedure TFPPixelCanvas.DoPolyline (points:array of TPoint);
+procedure TFPPixelCanvas.DoPolyline (const points:array of TPoint);
 var i,a, r : integer;
     p : TPoint;
 begin

@@ -16,7 +16,7 @@
 {$mode objfpc}{$h+}
 program ImgConv;
 
-uses FPImage, FPWriteXPM, {FPWritePNG,} FPReadXPM, FPReadPNG, sysutils;
+uses FPImage, FPWriteXPM, FPWritePNG, FPReadXPM, FPReadPNG, sysutils;
 
 var img : TFPMemoryImage;
     reader : TFPCustomImageReader;
@@ -34,7 +34,7 @@ begin
   if T = 'X' then
     Writer := TFPWriterXPM.Create
   else
-    Writer := TFPWriterXPM.Create;
+    Writer := TFPWriterPNG.Create;
   img := TFPMemoryImage.Create(1,1);
 end;
 
@@ -44,7 +44,19 @@ begin
 end;
 
 procedure WriteImage;
+var t : string;
 begin
+  t := UpperCase(paramstr(3));
+  if (t[1] = 'P') then
+    with (Writer as TFPWriterPNG) do
+      begin
+      Grayscale := pos ('G', t) > 0;
+      Indexed := pos ('I', t) > 0;
+      WordSized := pos('W', t) > 0;
+      UseAlpha := pos ('A', t) > 0;
+      writeln ('Grayscale ',Grayscale, ' - Indexed ',Indexed,
+               ' - WordSized ',WordSized,' - UseAlpha ',UseAlpha);
+      end;
   img.SaveToFile (paramstr(4), Writer);
 end;
 
@@ -60,6 +72,9 @@ begin
     begin
     writeln ('Give filename to read and to write, preceded by filetype:');
     writeln ('X for XPM, P for PNG');
+    writeln ('imgconv X hello.xpm P hello.png');
+    writeln ('  The P has settings when writing:  G : grayscale,');
+    writeln ('    A : use alpha, I : Indexed in palette, W : Word sized.');
     end
   else
     try

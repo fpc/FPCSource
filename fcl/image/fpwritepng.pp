@@ -1,0 +1,648 @@
+{
+    $Id$
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 2003 by the Free Pascal development team
+
+    XPM writer class.
+    
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
+{$mode objfpc}{$h+}
+unit FPWritePNG;
+
+interface
+
+uses classes, FPImage, FPImgCmn, PNGComn, ZStream, sysutils;
+
+type
+
+  TGetPixelFunc = function (x,y : integer) : TColorData of object;
+
+  TFPWriterPNG = class (TFPCustomImageWriter)
+    private
+      FUsetRNS, FCompressedText, FWordSized, FIndexed,
+      FUseAlpha, FGrayScale : boolean;
+      FByteWidth : byte;
+      FChunk : TChunk;
+      CFmt : TColorFormat; // format of the colors to convert from
+      FTransparentColor : TFPColor;
+      FSwitchLine, FCurrentLine, FPreviousLine : pByteArray;
+      FPalette : TFPPalette;
+      FHeader : THeaderChunk;
+      FGetPixel : TGetPixelFunc;
+      FDatalineLength : longword;
+      ZData : TMemoryStream;  // holds uncompressed data until all blocks are written
+      Compressor : TCompressionStream; // compresses the data
+      procedure WriteChunk;
+      function GetColorPixel (x,y:longword) : TColorData;
+      function GetPalettePixel (x,y:longword) : TColorData;
+      function GetColPalPixel (x,y:longword) : TColorData;
+      procedure InitWriteIDAT;
+      procedure Gatherdata;
+      procedure WriteCompressedData;
+      procedure FinalWriteIDAT;
+    protected
+      property Header : THeaderChunk read FHeader;
+      procedure InternalWrite (Str:TStream; Img:TFPCustomImage); override;
+      procedure WriteIHDR; virtual;
+      procedure WritePLTE; virtual;
+      procedure WritetRNS; virtual;
+      procedure WriteIDAT; virtual;
+      procedure WriteTexts; virtual;
+      procedure WriteIEND; virtual;
+      function CurrentLine (x:longword) : byte;
+      function PrevSample (x:longword): byte;
+      function PreviousLine (x:longword) : byte;
+      function PrevLinePrevSample (x:longword): byte;
+      function  DoFilter (LineFilter:byte;index:longword; b:byte) : byte; virtual;
+      procedure SetChunkLength (aValue : longword);
+      procedure SetChunkType (ct : TChunkTypes);
+      procedure SetChunkType (ct : TChunkCode);
+      function DecideGetPixel : TGetPixelFunc; virtual;
+      procedure DetermineHeader (var AHeader : THeaderChunk); virtual;
+      function DetermineFilter (Current, Previous:PByteArray; linelength:longword):byte; virtual;
+      procedure FillScanLine (y : integer; ScanLine : pByteArray); virtual;
+      property ChunkDataBuffer : PByteArray read FChunk.data;
+      property UsetRNS : boolean read FUsetRNS;
+      property SingleTransparentColor : TFPColor read FTransparentColor;
+      property ThePalette : TFPPalette read FPalette;
+      property ColorFormat : TColorformat read CFmt;
+      property byteWidth : byte read FByteWidth;
+      property DatalineLength : longword read FDatalineLength;
+    public
+      constructor create; override;
+      destructor destroy; override;
+      property GrayScale : boolean read FGrayscale write FGrayScale;
+      property Indexed : boolean read FIndexed write FIndexed;
+      property CompressedText : boolean read FCompressedText write FCompressedText;
+      property WordSized : boolean read FWordSized write FWordSized;
+      property UseAlpha : boolean read FUseAlpha write FUseAlpha;
+  end;
+
+implementation
+
+constructor TFPWriterPNG.create;
+begin
+  inherited;
+  Fchunk.acapacity := 0;
+  Fchunk.data := nil;
+  FGrayScale := False;
+  FIndexed := True;
+  FCompressedText := True;
+  FWordSized := True;
+  FUseAlpha := False;
+end;
+
+destructor TFPWriterPNG.destroy;
+begin
+  with Fchunk do
+    if acapacity > 0 then
+      freemem (data);
+  inherited;
+end;
+
+procedure TFPWriterPNG.WriteChunk;
+var chead : TChunkHeader;
+    c : longword;
+begin
+  with FChunk do
+    begin
+    chead.CLength := swap (alength);
+    if (ReadType = '') then
+      if atype <> ctUnknown then
+        chead.CType := ChunkTypes[aType]
+      else
+        raise PNGImageException.create ('Doesn''t have a chunktype to write')
+    else
+      chead.CType := ReadType;
+    writeln ('Writing chunk ',Readtype,' with length ',alength);
+    c := CalculateCRC (All1Bits, ReadType, sizeOf(ReadType));
+    c := CalculateCRC (c, data^, alength);
+    crc := swap(c xor All1Bits);
+    with TheStream do
+      begin
+      Write (chead, sizeof(chead));
+      Write (data^[0], alength);
+      Write (crc, sizeof(crc));
+      end;
+    end;
+end;
+
+procedure TFPWriterPNG.SetChunkLength(aValue : longword);
+begin
+  writeln ('Setting length to ',AValue);
+  with Fchunk do
+    begin
+    alength := aValue;
+    if aValue > acapacity then
+      begin
+      if acapacity > 0 then
+        freemem (data);
+      GetMem (data, alength);
+      acapacity := alength;
+      end;
+    end;
+end;
+
+procedure TFPWriterPNG.SetChunkType (ct : TChunkTypes);
+begin
+  with Fchunk do
+    begin
+    aType := ct;
+    ReadType := ChunkTypes[ct];
+    end;
+end;
+
+procedure TFPWriterPNG.SetChunkType (ct : TChunkCode);
+begin
+  with FChunk do
+    begin
+    ReadType := ct;
+    aType := low(TChunkTypes);
+    while (aType < high(TChunkTypes)) and (ChunkTypes[aType] <> ct) do
+      inc (aType);
+    end;
+end;
+
+function TFPWriterPNG.CurrentLine(x:longword):byte;
+begin
+  result := FCurrentLine^[x];
+end;
+
+function TFPWriterPNG.PrevSample (x:longword): byte;
+begin
+  if x < byteWidth then
+    result := 0
+  else
+    result := FCurrentLine^[x - bytewidth];
+end;
+
+function TFPWriterPNG.PreviousLine (x:longword) : byte;
+begin
+  result := FPreviousline^[x];
+end;
+
+function TFPWriterPNG.PrevLinePrevSample (x:longword): byte;
+begin
+  if x < byteWidth then
+    result := 0
+  else
+    result := FPreviousLine^[x - bytewidth];
+end;
+
+function TFPWriterPNG.DoFilter(LineFilter:byte;index:longword; b:byte) : byte;
+var diff : byte;
+  procedure FilterSub;
+  begin
+    diff := PrevSample(index);
+  end;
+  procedure FilterUp;
+  begin
+    diff := PreviousLine(index);
+  end;
+  procedure FilterAverage;
+  var l, p : word;
+  begin
+    l := PrevSample(index);
+    p := PreviousLine(index);
+    Diff := (l + p) div 2;
+  end;
+  procedure FilterPaeth;
+  var dl, dp, dlp : word; // index for previous and distances for:
+      l, p, lp : byte;  // r:predictor, Left, Previous, LeftPrevious
+      r : integer;
+  begin
+    l := PrevSample(index);
+    lp := PrevLinePrevSample(index);
+    p := PreviousLine(index);
+    r := l + p - lp;
+    dl := abs (r - l);
+    dlp := abs (r - lp);
+    dp := abs (r - p);
+    if (dl <= dp) and (dl <= dlp) then
+      diff := l
+    else if dp <= dlp then
+      diff := p
+    else
+      diff := lp;
+  end;
+begin
+  case LineFilter of
+    0 : diff := 0;
+    1 : FilterSub;
+    2 : FilterUp;
+    3 : FilterAverage;
+    4 : FilterPaeth;
+  end;
+  if diff > b then
+    result := (b + $100 - diff)
+  else
+    result := b - diff;
+end;
+
+procedure TFPWriterPNG.DetermineHeader (var AHeader : THeaderChunk);
+var c : integer;
+  function CountAlphas : integer;
+  var none, half : boolean;
+      x,y : longword;
+      p : integer;
+      c : TFPColor;
+      a : word;
+  begin
+    half := false;
+    none := false;
+    with TheImage do
+      if UsePalette then
+        with Palette do
+          begin
+          p := count-1;
+          FTransparentColor.alpha := alphaOpaque;
+          while (p >= 0) do
+            begin
+            c := color[p];
+            a := c.Alpha;
+            if a = alphaTransparant then
+              begin
+              none := true;
+              FTransparentColor := c;
+              end
+            else if a <> alphaOpaque then
+              begin
+              half := true;
+              if FtransparentColor.alpha < a then
+                FtransparentColor := c;
+              end;
+            dec (p);
+            end;
+          end
+      else
+        begin
+        x := width-1;
+        y := height-1;
+        FTransparentColor.alpha := alphaOpaque;
+        while (y >= 0) and not (half and none) do
+          begin
+          c := colors[x,y];
+          a := c.Alpha;
+          if a = alphaTransparant then
+            begin
+            none := true;
+            FTransparentColor := c;
+            end
+          else if a <> alphaOpaque then
+            begin
+            half := true;
+            if FtransparentColor.alpha < a then
+              FtransparentColor := c;
+            end;
+          dec (x);
+          if (x < 0) then
+            begin
+            dec (y);
+            x := width-1;
+            end;
+          end;
+        end;
+      result := 1;
+      if none then
+        inc (result);
+      if half then
+        inc (result);
+  end;
+  procedure DetermineColorFormat;
+  begin
+    with AHeader do
+      case colortype of
+        0 : if FWordSized then
+              CFmt := cfGray16
+            else
+              CFmt := cfGray8;
+        2 : if FWordSized then
+              CFmt := cfBGR48
+            else
+              CFmt := cfBGR24;
+        4 : if FWordSized then
+              CFmt := cfGrayA32
+            else
+              CFmt := cfGrayA16;
+        6 : if FWordSized then
+              CFmt := cfABGR64
+            else
+              CFmt := cfABGR32;
+      end;
+  end;
+begin
+  with AHeader do
+    begin
+    // problem: TheImage has integer width, PNG header longword width.
+    //          Integer Swap can give negative value
+    writeln ('Using header, swapping width ',Theimage.Width);
+    Width := swap (longword(TheImage.Width));
+    writeln ('Swapping height ',TheImage.height);
+    height := swap (longword(TheImage.Height));
+    writeln (' - Width ',Width, '(',TheImage.Width,')');
+    writeln (' - height ', Height, '(',TheImage.Height,')');
+    writeln ('- Alpha');
+    if FUseAlpha then
+      c := CountAlphas
+    else
+      c := 0;
+    writeln ('- Colortype');
+    if FIndexed then
+      begin
+      if TheImage.UsePalette then
+        FPalette := TheImage.Palette
+      else
+        begin
+        FPalette := TFPPalette.Create (16);
+        FPalette.Build (TheImage);
+        end;
+      if ThePalette.count > 256 then
+        raise PNGImageException.Create ('To many colors to use indexed PNG color type');
+      ColorType := 3;
+      FUsetRNS := C > 1;
+      BitDepth := 8;
+      FByteWidth := 1;
+      end
+    else
+      begin
+      if c = 3 then
+        ColorType := 4;
+      FUsetRNS := (c = 2);
+      if not FGrayScale then
+        ColorType := ColorType + 2;
+      if FWordSized then
+        BitDepth := 16
+      else
+        BitDepth := 8;
+      DetermineColorFormat;
+      FByteWidth := BytesNeeded[CFmt];
+      writeln ('Color format ', ord(CFmt), ' bytes needed:',FByteWidth);
+      end;
+    writeln ('- Fixed values');
+    Compression := 0;
+    Filter := 0;
+    Interlace := 0;
+    end;
+end;
+
+procedure TFPWriterPNG.WriteIHDR;
+begin
+  // signature for PNG
+  writeln ('Signature to stream');
+  TheStream.writeBuffer(Signature,sizeof(Signature));
+  // Determine all settings for filling the header
+  writeln ('Filling header');
+  DetermineHeader (FHeader);
+  // write the header chunk
+  writeln ('Filling chunk');
+  SetChunkLength (13);   // (sizeof(FHeader)); gives 14 and is wrong !!
+  move (FHeader, ChunkDataBuffer^, 13);  // sizeof(FHeader));
+  SetChunkType (ctIHDR);
+  writeln ('writing chunk');
+  WriteChunk;
+  writeln ('Finished header');
+end;
+
+function TFPWriterPNG.GetColorPixel (x,y:longword) : TColorData;
+begin
+  result := ConvertColorToData(TheImage.Colors[x,y],CFmt);
+end;
+
+function TFPWriterPNG.GetPalettePixel (x,y:longword) : TColorData;
+begin
+  result := TheImage.Pixels[x,y];
+end;
+
+function TFPWriterPNG.GetColPalPixel (x,y:longword) : TColorData;
+begin
+  result := ThePalette.IndexOf (TheImage.Colors[x,y]);
+end;
+
+function TFPWriterPNG.DecideGetPixel : TGetPixelFunc;
+begin
+  case Fheader.colortype of
+    3 : if TheImage.UsePalette then
+          begin
+          result := @GetPalettePixel;
+          writeln ('GetPalettePixel');
+          end
+        else
+          begin
+          result := @GetColPalPixel;
+          writeln ('GetColPalPixel');
+          end;
+    else  begin
+          result := @GetColorPixel;
+          writeln ('GetColorPixel');
+          end
+  end;
+end;
+
+procedure TFPWriterPNG.WritePLTE;
+var r,t : integer;
+    c : TFPColor;
+begin
+  with ThePalette do
+    begin
+    SetChunkLength (count*3);
+    SetChunkType (ctPLTE);
+    t := 0;
+    For r := 0 to count-1 do
+      begin
+      c := Color[r];
+      ChunkdataBuffer^[t] := c.red div 256;
+      inc (t);
+      ChunkdataBuffer^[t] := c.green div 256;
+      inc (t);
+      ChunkdataBuffer^[t] := c.blue div 256;
+      inc (t);
+      end;
+    end;
+  WriteChunk;
+end;
+
+procedure TFPWriterPNG.InitWriteIDAT;
+begin
+  FDatalineLength := TheImage.Width*ByteWidth;
+  GetMem (FPreviousLine, FDatalineLength);
+  GetMem (FCurrentLine, FDatalineLength);
+  fillchar (FCurrentLine^,FDatalineLength,0);
+  ZData := TMemoryStream.Create;
+  Compressor := TCompressionStream.Create (clMax,ZData);
+  FGetPixel := DecideGetPixel;
+end;
+
+procedure TFPWriterPNG.FinalWriteIDAT;
+begin
+  ZData.Free;
+  FreeMem (FPreviousLine);
+  FreeMem (FCurrentLine);
+end;
+
+function TFPWriterPNG.DetermineFilter (Current, Previous:PByteArray; linelength:longword) : byte;
+begin
+  result := 0;
+end;
+
+procedure TFPWriterPNG.FillScanLine (y : integer; ScanLine : pByteArray);
+var r, x : integer;
+    cd : TColorData;
+    index : longword;
+begin
+  index := 0;
+  for x := 0 to pred(TheImage.Width) do
+    begin
+    cd := FGetPixel (x,y);
+    move (cd, ScanLine^[index], FBytewidth);
+    inc (index, FByteWidth);
+    end;
+end;
+
+procedure TFPWriterPNG.GatherData;
+var x,y : integer;
+    lf : byte;
+begin
+  for y := 0 to pred(TheImage.height) do
+    begin
+    write ('*');
+    FSwitchLine := FCurrentLine;
+    FCurrentLine := FPreviousLine;
+    FPreviousLine := FSwitchLine;
+    FillScanLine (y, FCurrentLine);
+    lf := DetermineFilter (FCurrentLine, FpreviousLine, FDataLineLength);
+    for x := 0 to FDatalineLength-1 do
+      FCurrentLine^[x] := DoFilter (lf, x, FCurrentLine^[x]);
+    Compressor.Write (lf, sizeof(lf));
+    Compressor.Write (FCurrentLine^, FDataLineLength);
+    end;
+  writeln;
+end;
+
+procedure TFPWriterPNG.WriteCompressedData;
+var l : longword;
+begin
+  Compressor.Free;  // Close compression and finish the writing in ZData
+  writeln (' -- ZData position: ',zdata.position, '  --  size: ',zdata.size);
+  l := ZData.position;
+  ZData.position := 0;
+  SetChunkLength(l);
+  SetChunkType (ctIDAT);
+  ZData.Read (ChunkdataBuffer^, l);
+  WriteChunk;
+end;
+
+procedure TFPWriterPNG.WriteIDAT;
+begin
+  InitWriteIDAT;
+  GatherData;
+  WriteCompressedData;
+  FinalWriteIDAT;
+end;
+
+procedure TFPWriterPNG.WritetRNS;
+  procedure PaletteAlpha;
+  var r : integer;
+  begin
+    with TheImage.palette do
+      begin
+      // search last palette entry with transparency
+      r := count;
+      repeat
+        dec (r);
+      until (r < 0) or (color[r].alpha <> alphaOpaque);
+      if r >= 0 then // there is at least 1 transparant color
+        begin
+        // from this color we go to the first palette entry
+        SetChunkLength (r+1);
+        repeat
+          chunkdatabuffer^[r] := (color[r].alpha shr 8);
+          dec (r);
+        until (r < 0);
+        end;
+      writechunk;
+      end;
+  end;
+  procedure GrayAlpha;
+  var g : word;
+  begin
+    SetChunkLength(2);
+    if WordSized then
+      g := ConvertColorToData (SingleTransparentColor, cfGray16)
+    else
+      g := ConvertColorToData (SingleTransparentColor, cfGray8);
+    g := swap (g);
+    move (g,ChunkDataBuffer^[0],2);
+    WriteChunk;
+  end;
+  procedure ColorAlpha;
+  var g : TFPColor;
+  begin
+    SetChunkLength(6);
+    g := SingleTransparentColor;
+    with g do
+      if WordSized then
+        begin
+        red := swap (red);
+        green := swap (green);
+        blue := swap (blue);
+        move (g, ChunkDatabuffer^[0], 6);
+        end
+      else
+        begin
+        ChunkDataBuffer^[0] := 0;
+        ChunkDataBuffer^[1] := red shr 8;
+        ChunkDataBuffer^[2] := 0;
+        ChunkDataBuffer^[3] := green shr 8;
+        ChunkDataBuffer^[4] := 0;
+        ChunkDataBuffer^[5] := blue shr 8;
+        end;
+    WriteChunk;
+  end;
+begin
+  SetChunkType (cttRNS);
+  case fheader.colortype of
+    6,4 : raise PNGImageException.create ('tRNS chunk forbidden for full alpha channels');
+    3 : PaletteAlpha;
+    2 : ColorAlpha;
+    0 : GrayAlpha;
+  end;
+end;
+
+procedure TFPWriterPNG.WriteTexts;
+begin
+end;
+
+procedure TFPWriterPNG.WriteIEND;
+begin
+  SetChunkLength(0);
+  SetChunkType (ctIEND);
+  WriteChunk;
+end;
+
+procedure TFPWriterPNG.InternalWrite (Str:TStream; Img:TFPCustomImage);
+begin
+  writeln ('PNG Writing');
+  WriteIHDR;
+  writeln ('Header finished');
+  if Fheader.colorType = 3 then
+    WritePLTE;
+  writeln ('Palette finished');
+  if FUsetRNS then
+    WritetRNS;
+  writeln ('Finished transparency');
+  WriteIDAT;
+  writeln ('Finished data');
+  WriteTexts;
+  writeln ('Finished Texts');
+  WriteIEND;
+  writeln ('Finished texts');
+end;
+
+end.
