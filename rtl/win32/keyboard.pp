@@ -57,7 +57,11 @@ var
    { used for keyboard specific stuff }
    KeyBoardLayout : HKL;
    Inited : Boolean;
-   
+   hklold    : HKL    {$Ifndef ver1_0} = 0 {$endif};   // can be used to force kbd redetect.
+   HasAltGr  : Boolean{$ifndef ver1_0} = false {$endif};
+
+
+
 procedure incqueueindex(var l : longint);
 
   begin
@@ -70,6 +74,14 @@ procedure incqueueindex(var l : longint);
 function keyEventsInQueue : boolean;
 begin
   keyEventsInQueue := (nextkeyevent <> nextfreekeyevent);
+end;
+
+function rightistruealt(dw:cardinal):boolean; // inline ?
+// used to wrap checks for right alt/altgr.
+begin
+  rightistruealt:=true;
+  if hasaltgr then
+    rightistruealt:=(dw and RIGHT_ALT_PRESSED)=0;
 end;
 
 
@@ -226,6 +238,40 @@ begin
            end;
 end;
 
+procedure CheckAltGr;
+
+var ahkl : HKL;
+    i    : integer;
+
+ begin
+   HasAltGr:=FALSE;
+
+   ahkl:=GetKeyboardLayout(0);
+   if (hklOld<>ahkl) then
+     Begin
+       hklOld:=ahkl;
+       i:=$20;
+       while i<$100 do
+         begin
+           // <MSDN>
+           // For keyboard layouts that use the right-hand ALT key as ashift key
+           // (for example, the French keyboard layout), the shift state is
+           // represented by the value 6, because the right-hand ALT key is
+           // converted internally into CTRL+ALT.
+           // </MSDN>
+          if (HIBYTE(VkKeyScanEx(chr(i),ahkl))=6) then
+            begin
+              HasAltGr:=TRUE;
+              break;
+            end;
+         inc(i);
+        end;
+     end;
+end;
+
+
+
+
 procedure SysInitKeyboard;
 begin
    KeyBoardLayout:=GetKeyboardLayout(0);
@@ -246,6 +292,7 @@ begin
 
    nextkeyevent:=0;
    nextfreekeyevent:=0;
+   checkaltgr;
    SetKeyboardEventHandler (@HandleKeyboard);
    Inited:=true;
 end;
@@ -622,7 +669,7 @@ begin
       Key := byte (t.AsciiChar) + (t.wVirtualScanCode shl 8) + $03000000;
       ss := transShiftState (t.dwControlKeyState);
       key := key or (ss shl 16);
-      if (ss and kbAlt <> 0) and (t.dwControlKeyState and RIGHT_ALT_PRESSED = 0) then
+      if (ss and kbAlt <> 0) and rightistruealt(t.dwControlKeyState) then
         key := key and $FFFFFF00;
 {$else not USEKEYCODES}
       Key := byte (t.AsciiChar) + ((t.wVirtualScanCode AND $00FF) shl 8) + $03000000;
@@ -656,6 +703,7 @@ begin
     { Handling of ~ key as AltGr 2 }
     { This is also French keyboard specific !! }
     { but without this I can not get a ~ !! PM }
+    { MvdV: not rightruealtised, since it already has frenchkbd guard}
     if (t.wVirtualKeyCode=$32) and
        (KeyBoardLayout = FrenchKeyboard) and
        (t.dwControlKeyState and RIGHT_ALT_PRESSED <> 0) then
@@ -667,7 +715,7 @@ begin
     { Reset Ascii-Char if Alt+Key, fv needs that, may be we
       need it for other special keys too
       18 Sept 1999 AD: not for right Alt i.e. for AltGr+ß = \ on german keyboard }
-    if ((ss and kbAlt <> 0) and (t.dwControlKeyState and RIGHT_ALT_PRESSED = 0)) or
+    if ((ss and kbAlt <> 0) and rightistruealt(t.dwControlKeyState)) or
     (*
       { yes, we need it for cursor keys, 25=left, 26=up, 27=right,28=down}
       {aggg, this will not work because esc is also virtualKeyCode 27!!}
@@ -683,7 +731,7 @@ begin
     {and translate to dos-scancodes to make fv happy, we will convert this
      back in translateKeyEvent}
 
-     if (t.dwControlKeyState and RIGHT_ALT_PRESSED) = 0 then {not for alt-gr}
+     if rightistruealt(t.dwControlKeyState) then {not for alt-gr}
      if (t.wVirtualScanCode >= low (DosTT)) and
         (t.wVirtualScanCode <= high (dosTT)) then
      begin
@@ -703,7 +751,7 @@ begin
      end;
 
      {Alt-0 to Alt-9}
-     if (t.dwControlKeyState and RIGHT_ALT_PRESSED) = 0 then {not for alt-gr}
+     if rightistruealt(t.dwControlKeyState) then {not for alt-gr}
        if (t.wVirtualScanCode >= low (DosTT09)) and
           (t.wVirtualScanCode <= high (dosTT09)) then
        begin
@@ -833,7 +881,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2003-10-27 15:28:07  peter
+  Revision 1.11  2004-11-21 12:38:45  marco
+   * altgr handling now gets OS information. Works for default layout, not for manually (tray) changed layouts
+
+  Revision 1.10  2003/10/27 15:28:07  peter
     * set inited boolean to prevent crashes
 
   Revision 1.9  2002/09/07 16:01:28  peter
