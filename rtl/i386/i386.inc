@@ -15,14 +15,85 @@
 
  **********************************************************************}
 
-{$asmmode ATT}
-
 {****************************************************************************
                                Primitives
 ****************************************************************************}
+var
+  has_sse_support,has_mmx_support : boolean;
+
+{$asmmode intel}
+
+function cpuid_support : boolean;assembler;
+  {
+    Check if the ID-flag can be changed, if changed then CpuID is supported.
+    Tested under go32v1 and Linux on c6x86 with CpuID enabled and disabled (PFV)
+  }
+  asm
+     pushf
+     pushf
+     pop     eax
+     mov     ebx,eax
+     xor     eax,200000h
+    push    eax
+     popf
+     pushf
+     pop     eax
+     popf
+     and     eax,200000h
+     and     ebx,200000h
+     cmp     eax,ebx
+     setnz   al
+  end;
+
+{$asmmode ATT}
+
+function sse_support : boolean;
+  var
+     _edx : longint;
+  begin
+    if cpuid_support then
+     begin
+        asm
+           movl $1,%eax
+           cpuid
+           movl %edx,_edx
+        end;
+        sse_support:=(_edx and $2000000)<>0;
+     end
+    else
+     { a cpu with without cpuid instruction supports never sse }
+     sse_support:=false;
+  end;
+
+
+{ returns true, if the processor supports the mmx instructions }
+function mmx_support : boolean;
+
+  var
+     _edx : longint;
+
+  begin
+     if cpuid_support then
+       begin
+          asm
+             movl $1,%eax
+             cpuid
+             movl %edx,_edx
+          end;
+          mmx_support:=(_edx and $800000)<>0;
+       end
+     else
+       { a cpu with without cpuid instruction supports never mmx }
+       mmx_support:=false;
+  end;
+
+{$i fastmove.inc}
 
 procedure fpc_cpuinit;
 begin
+  has_sse_support:=sse_support;
+  has_mmx_support:=mmx_support;
+  setup_fastmove;
 end;
 
 
@@ -31,7 +102,6 @@ asm
   movl (%esp),%ebx
   ret
 end;
-
 
 {$ifndef FPC_SYSTEM_HAS_MOVE}
 {$define FPC_SYSTEM_HAS_MOVE}
@@ -1510,7 +1580,10 @@ end;
 
 {
   $Log$
-  Revision 1.66  2004-11-17 22:19:04  peter
+  Revision 1.67  2005-01-23 20:03:23  florian
+    + fastmove from John O'Harrow integrated
+
+  Revision 1.66  2004/11/17 22:19:04  peter
   internconst, internproc and some external declarations moved to interface
 
   Revision 1.65  2004/11/01 12:43:29  peter
