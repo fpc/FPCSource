@@ -961,7 +961,7 @@ On error, -1 is returned to the parent, and no child is created.
 \seef{Fork}, \seem{clone}{2}
 \end{function}
 
-\FPCexample{ex14}
+\FPCexample{ex71}
 
 \begin{function}{CloseDir}
 \Declaration
@@ -3398,7 +3398,7 @@ Other errors may occur, but aren't documented.
 
 \begin{function}{WaitPid}
 \Declaration
-Function WaitPid (Pid : longint; Status : pointer; Options : Integer) : Longint;
+Function WaitPid (Pid : longint; Status : pointer; Options : Longint) : Longint;
 \Description
  \var{WaitPid} waits for a child process with process ID \var{Pid} to exit. The
 value of \var{Pid} can be one of the following:
@@ -3419,6 +3419,8 @@ behaves:
 exited.
 \item [WUNTRACED] Causes \var{WaitPid} to return also for children which are
 stopped, but whose status has not yet been reported.
+\item[__WCLONE] Causes \var{WaitPid} also to wait for threads created by
+the \seef{Clone} call.
 \end{description} 
 Upon return, it returns the exit status of the process, or -1 in case of
 failure. 
