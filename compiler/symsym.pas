@@ -738,13 +738,20 @@ implementation
 
 
     procedure tprocsym.deref;
-{$ifdef DONOTCHAINOPERATORS}
       var
+{$ifdef DONOTCHAINOPERATORS}
         t    : ttoken;
-        last,pd : pprocdef;
+        last : pprocdef;
 {$endif DONOTCHAINOPERATORS}
+        pd : pprocdef;
       begin
          resolvedef(pdef(definition));
+         pd:=definition;
+         while assigned(pd) do
+           begin
+              pd^.procsym:=@self;
+              pd:=pd^.nextoverloaded;
+           end;
 {$ifdef DONOTCHAINOPERATORS}
          if (definition^.proctypeoption=potype_operator) then
            begin
@@ -2464,7 +2471,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2000-11-06 23:13:53  peter
+  Revision 1.4  2000-11-08 23:15:17  florian
+    * tprocdef.procsym must be set also when a tprocdef is loaded from a PPU
+
+  Revision 1.3  2000/11/06 23:13:53  peter
     * uppercase manglednames
 
   Revision 1.2  2000/11/01 23:04:38  peter
