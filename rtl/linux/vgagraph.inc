@@ -354,7 +354,7 @@ end;
 
 procedure libvga_setrgbpaletteproc(ColorNum, RedValue, GreenValue, BlueValue: Integer);
 begin
-  vga_setpalette(ColorNum,RedValue,GreenValue,BlueValue);
+  vga_setpalette(ColorNum,RedValue shr 2,GreenValue shr 2,BlueValue shr 2);
 end;
 
 procedure libvga_getrgbpaletteproc (ColorNum: integer;
@@ -364,9 +364,9 @@ Var R,G,B : longint;
 
 begin
   vga_getpalette(ColorNum,R,G,B);
-  RedValue:=R;
-  GreenValue:=G;
-  BlueValue:=B;
+  RedValue:=R * 255 div 63;
+  GreenValue:=G * 255 div 63;
+  BlueValue:=B * 255 div 63;
 end;
 
 {************************************************************************}
@@ -450,7 +450,10 @@ end;
 
 {
 $Log$
-Revision 1.7  2000-02-06 01:48:55  sg
+Revision 1.8  2000-02-06 11:26:45  sg
+* Fixed SetRGBPalette and GetRGBPalette (hopefully; not tested)
+
+Revision 1.7  2000/02/06 01:48:55  sg
 * Fixed the default palette. libsvga works with a RGB range from 0-63, not
   0-255!
 * PutPixel fixed (pixels didn't get drawn before)
