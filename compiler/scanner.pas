@@ -738,7 +738,7 @@ implementation
     function tscannerfile.readval:longint;
       var
         l : longint;
-        w : word;
+        w : integer;
       begin
         readnumber;
         valint(pattern,l,w);
@@ -947,7 +947,7 @@ implementation
     function tscannerfile.yylex : ttoken;
       var
         y       : ttoken;
-        code    : word;
+        code    : integer;
         l       : longint;
         mac     : pmacrosym;
         asciinr : string[3];
@@ -1510,7 +1510,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.51  1998-09-16 16:41:49  peter
+  Revision 1.52  1998-09-18 16:03:45  florian
+    * some changes to compile with Delphi
+
+  Revision 1.51  1998/09/16 16:41:49  peter
     * merged fixes
 
   Revision 1.50.2.1  1998/09/16 16:09:49  peter

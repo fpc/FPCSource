@@ -218,7 +218,7 @@ const
          hs1,hs2 : string;
          b : boolean;
          t : ttoken;
-         w : word;
+         w : integer;
          l1,l2 : longint;
       begin
          hs1:=read_simple_expr;
@@ -622,7 +622,9 @@ const
             1 : aktpackrecords:=1;
             2 : aktpackrecords:=2;
             4 : aktpackrecords:=4;
+            8 : aktpackrecords:=8;
            16 : aktpackrecords:=16;
+           32 : aktpackrecords:=32;
            else
             Message(scan_w_only_pack_records);
            end;
@@ -903,7 +905,10 @@ const
 
 {
   $Log$
-  Revision 1.30  1998-09-16 16:41:47  peter
+  Revision 1.31  1998-09-18 16:03:44  florian
+    * some changes to compile with Delphi
+
+  Revision 1.30  1998/09/16 16:41:47  peter
     * merged fixes
 
   Revision 1.28.2.1  1998/09/16 16:09:51  peter

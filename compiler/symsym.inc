@@ -1025,9 +1025,23 @@
                                 inc(owner^.datasize,l);
                               end
                             else
+                             if (l<=8) or (aktpackrecords=8) then
+                              begin
+                                owner^.datasize:=(owner^.datasize+7) and (not 7);
+                                address:=owner^.datasize;
+                                inc(owner^.datasize,l);
+                              end
+                            else
                              if (l<=16) or (aktpackrecords=16) then
                               begin
                                 owner^.datasize:=(owner^.datasize+15) and (not 15);
+                                address:=owner^.datasize;
+                                inc(owner^.datasize,l);
+                              end
+                            else
+                             if (l<=32) or (aktpackrecords=32) then
+                              begin
+                                owner^.datasize:=(owner^.datasize+31) and (not 31);
                                 address:=owner^.datasize;
                                 inc(owner^.datasize,l);
                               end;
@@ -1655,7 +1669,10 @@
 
 {
   $Log$
-  Revision 1.43  1998-09-18 08:01:38  pierre
+  Revision 1.44  1998-09-18 16:03:47  florian
+    * some changes to compile with Delphi
+
+  Revision 1.43  1998/09/18 08:01:38  pierre
     + improvement on the usebrowser part
       (does not work correctly for now)
 

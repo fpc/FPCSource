@@ -655,7 +655,7 @@ unit pexpr;
          l        : longint;
          oldp1,
          p1,p2,p3 : ptree;
-         code     : word;
+         code     : integer;
          pd,pd2   : pdef;
          possible_error,
          unit_specific,
@@ -1856,7 +1856,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.50  1998-09-17 13:41:18  pierre
+  Revision 1.51  1998-09-18 16:03:43  florian
+    * some changes to compile with Delphi
+
+  Revision 1.50  1998/09/17 13:41:18  pierre
   sizeof(TPOINT) problem
 
   Revision 1.49.2.1  1998/09/17 08:42:31  pierre

@@ -284,7 +284,7 @@ unit cobjects;
          i : longint;
 
       begin
-         w:=ord(p^[0]);
+         w:=length(p^[0]);
          for i:=1 to w do
            p^[i-1]:=p^[i];
          p^[w]:=#0;
@@ -1142,7 +1142,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.13  1998-08-12 19:28:16  peter
+  Revision 1.14  1998-09-18 16:03:37  florian
+    * some changes to compile with Delphi
+
+  Revision 1.13  1998/08/12 19:28:16  peter
     * better libc support
 
   Revision 1.12  1998/07/14 14:46:47  peter
