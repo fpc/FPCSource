@@ -287,7 +287,17 @@ implementation
                    cg64.a_param64_loc(exprasmlist,left.location,tempcgpara)
                  else
 {$endif cpu64bit}
-                   cg.a_param_loc(exprasmlist,left.location,tempcgpara);
+                   begin
+{$ifndef cpu64bit}
+                     { Only a_param_ref supports multiple locations, when the
+                       value is still a const or in a register then write it
+                       to a reference first. This situation can be triggered
+                       by typecasting an int64 constant to a record of 8 bytes }
+                     if left.location.size in [OS_64,OS_S64] then
+                       location_force_mem(exprasmlist,left.location);
+{$endif cpu64bit}
+                     cg.a_param_loc(exprasmlist,left.location,tempcgpara);
+                   end;
                end;
 {$ifdef SUPPORT_MMX}
              LOC_MMXREGISTER,
@@ -1235,7 +1245,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.202  2005-02-27 16:40:13  peter
+  Revision 1.203  2005-04-05 21:06:44  peter
+    * support typecasting a ordinal const to 8 byte record. a_param_loc
+      can't be used. Instead force the location to memory so it uses
+      a_param_ref
+
+  Revision 1.202  2005/02/27 16:40:13  peter
   fix register deallocation for 64bit results
 
   Revision 1.201  2005/02/15 21:39:48  peter
