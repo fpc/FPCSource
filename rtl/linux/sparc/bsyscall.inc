@@ -21,36 +21,28 @@ Function fppipe(var fildes : tfildes):cint;assembler;
   copies back the registers as they are after the SysCall.
 }
 asm
-				mov     42,%g1
+        mov     42,%g1
         mov     %i0,%o0        
         ta      0x10
         bcc     .LSyscOK
         nop
-        mov     %o0,%l0
-        sethi   %hi(fpc_threadvar_relocate_proc),%o2
-        or      %o2,%lo(fpc_threadvar_relocate_proc),%o2
-        ld      [%o2],%o3
-        subcc   %o3,%g0,%g0
-        bne     .LThread
+        call    fpseterrno
         nop
-        sethi   %hi(Errno+4),%o0
-        ba      .LNoThread
-        or      %o0,%lo(Errno+4),%o0
-.LThread:
-        sethi   %hi(Errno),%o0
-        or      %o0,%lo(Errno),%o0
-        call    %o3
-        ld      [%o0],%o0
-.LNoThread:
-        st      %l0,[%o0]
-        mov     -1,%o0
+        mov     -1,%i0
+        b	.Lend
+        nop
 .LSyscOK:
-        st      [%i0],%o0
-        st      [%i0+4],%o1
+        st      %o0,[%i0]
+        st      %o1,[%i0+4]
+        mov	0,%i0
+.Lend:
 end;
 
 {
   $Log$
-  Revision 1.1  2005-03-03 20:58:38  florian
+  Revision 1.2  2005-03-03 22:02:59  florian
+    * final fppipe fix hopefully
+
+  Revision 1.1  2005/03/03 20:58:38  florian
     + routines in baseunix can be overriden by processor specifics in bsyscall.inc
 }
