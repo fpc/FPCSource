@@ -159,9 +159,22 @@ type
   );
   tvaroptions=set of tvaroption;
 
+  { definition contains the informations about a type }
+  tdeftype = (abstractdef,arraydef,recorddef,pointerdef,orddef,
+              stringdef,enumdef,procdef,objectdef,errordef,
+              filedef,formaldef,setdef,procvardef,floatdef,
+              classrefdef,forwarddef);
+
+  { possible types for symtable entries }
+  tsymtyp = (abstractsym,varsym,typesym,procsym,unitsym,programsym,
+             constsym,enumsym,typedconstsym,errorsym,syssym,
+             labelsym,absolutesym,propertysym,funcretsym,
+             macrosym);
+
   { State of the variable, if it's declared, assigned or used }
   tvarstate=(vs_none,
-    vs_declared,vs_declared2,vs_assigned,vs_used
+    vs_declared,vs_declared_and_first_found,
+    vs_set_but_first_not_passed,vs_assigned,vs_used
   );
 
 const
@@ -176,12 +189,22 @@ const
     po_exports
   ];
 
+const
+     SymTypeName : array[tsymtyp] of string[12] =
+     ('abstractsym','variable','type','proc','unit','program',
+      'const','enum','typed const','errorsym','system sym',
+      'label','absolute','property','funcret',
+      'macrosym');
+
 implementation
 
 end.
 {
   $Log$
-  Revision 1.5  1999-11-07 23:16:49  florian
+  Revision 1.6  1999-11-17 17:05:04  pierre
+   * Notes/hints changes
+
+  Revision 1.5  1999/11/07 23:16:49  florian
     * finally bug 517 solved ...
 
   Revision 1.4  1999/10/26 12:30:45  peter

@@ -24,12 +24,6 @@
                    TSym
 ************************************************}
 
-       { possible types for symtable entries }
-       tsymtyp = (abstractsym,varsym,typesym,procsym,unitsym,programsym,
-                  constsym,enumsym,typedconstsym,errorsym,syssym,
-                  labelsym,absolutesym,propertysym,funcretsym,
-                  macrosym);
-
        { this object is the base for all symbol objects }
        psym = ^tsym;
        tsym = object(tsymtableentry)
@@ -39,6 +33,7 @@
 {$ifdef GDB}
           isstabwritten : boolean;
 {$endif GDB}
+          refs          : longint;
           lastref,
           defref,
           lastwritten : pref;
@@ -77,7 +72,6 @@
        tunitsym = object(tsym)
           unitsymtable : punitsymtable;
           prevsym      : punitsym;
-          refs         : longint;
           constructor init(const n : string;ref : punitsymtable);
           constructor load;
           destructor done;virtual;
@@ -122,6 +116,7 @@
           { tests, if all procedures definitions are defined and not }
           { only forward                                             }
           procedure check_forward;
+          procedure order_overloaded;
           procedure write;virtual;
           procedure deref;virtual;
           procedure load_references;virtual;
@@ -164,7 +159,6 @@
           islocalcopy   : boolean;
           definition    : pdef;
           definitionsym : ptypesym;
-          refs          : longint;
           varoptions    : tvaroptions;
           reg           : tregister; { if reg<>R_NO, then the variable is an register variable }
           varspez       : tvarspez;  { sets the type of access }
@@ -329,7 +323,10 @@
 
 {
   $Log$
-  Revision 1.39  1999-11-15 22:00:48  peter
+  Revision 1.40  1999-11-17 17:05:06  pierre
+   * Notes/hints changes
+
+  Revision 1.39  1999/11/15 22:00:48  peter
     * labels used but not defined give error instead of warning, the warning
       is now only with declared but not defined and not used.
 

@@ -33,7 +33,7 @@ implementation
     uses
       cobjects,
       tokens,verbose,
-      aasm,symtable,cpubase;
+      aasm,symconst,symtable,cpubase;
 
     const
        pi_uses_asm  = $1;       { set, if the procedure uses asm }
@@ -74,7 +74,8 @@ implementation
           { firsttemp position }
           firsttemp : longint;
 
-          funcret_is_valid : boolean;
+          { funcret_is_valid : boolean; }
+          funcret_state : tvarstate;
 
           { parameter offset }
           call_offset : longint;
@@ -374,7 +375,10 @@ end.
 
 {
   $Log$
-  Revision 1.48  1999-11-09 23:06:45  peter
+  Revision 1.49  1999-11-17 17:04:59  pierre
+   * Notes/hints changes
+
+  Revision 1.48  1999/11/09 23:06:45  peter
     * esi_offset -> selfpointer_offset to be newcg compatible
     * hcogegen -> cgbase fixes for newcg
 

@@ -150,7 +150,8 @@ implementation
 
                    if must_be_valid and p^.is_first then
                      begin
-                       if pvarsym(p^.symtableentry)^.varstate=vs_declared2 then
+                       if (pvarsym(p^.symtableentry)^.varstate=vs_declared_and_first_found) or
+                          (pvarsym(p^.symtableentry)^.varstate=vs_set_but_first_not_passed) then
                         if (assigned(pvarsym(p^.symtableentry)^.owner) and
                            assigned(aktprocsym) and
                            (pvarsym(p^.symtableentry)^.owner = aktprocsym^.definition^.localst)) then
@@ -165,9 +166,26 @@ implementation
                      begin
                         if (p^.is_first) then
                           begin
-                            if pvarsym(p^.symtableentry)^.varstate=vs_declared2 then
-                             pvarsym(p^.symtableentry)^.varstate:=vs_used;
+                            if pvarsym(p^.symtableentry)^.varstate=vs_declared_and_first_found then
+                            { this can only happen at left of an assignment, no ? PM }
+                             if (parsing_para_level=0) and not must_be_valid then
+                              pvarsym(p^.symtableentry)^.varstate:=vs_assigned
+                             else
+                              pvarsym(p^.symtableentry)^.varstate:=vs_used;
+                            if pvarsym(p^.symtableentry)^.varstate=vs_set_but_first_not_passed then
+                              pvarsym(p^.symtableentry)^.varstate:=vs_used;
                             p^.is_first:=false;
+                          end
+                        else
+                          begin
+                            if (pvarsym(p^.symtableentry)^.varstate=vs_assigned) and
+                               (must_be_valid or (parsing_para_level>0) or
+                                (p^.resulttype^.deftype=procvardef)) then
+                              pvarsym(p^.symtableentry)^.varstate:=vs_used;
+                            if (pvarsym(p^.symtableentry)^.varstate=vs_declared_and_first_found) and
+                               (must_be_valid or (parsing_para_level>0) or
+                               (p^.resulttype^.deftype=procvardef)) then
+                              pvarsym(p^.symtableentry)^.varstate:=vs_set_but_first_not_passed;
                           end;
                      end;
                      { this will create problem with local var set by
@@ -346,12 +364,13 @@ implementation
          { no claim if setting higher return value_str }
          if must_be_valid and
             (procinfo=pprocinfo(p^.funcretprocinfo)) and
-            not procinfo^.funcret_is_valid then
-           CGMessage(sym_w_function_result_not_set);
-         {
-         if count_ref then
-           pprocinfo(p^.funcretprocinfo)^.funcret_is_valid:=true;
-         }
+            ((procinfo^.funcret_state=vs_declared) or
+            (p^.is_first_funcret)) then
+           begin
+             CGMessage(sym_w_function_result_not_set);
+             { avoid multiple warnings }
+             procinfo^.funcret_state:=vs_assigned;
+           end;
       end;
 
 
@@ -502,7 +521,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.49  1999-11-06 14:34:30  peter
+  Revision 1.50  1999-11-17 17:05:07  pierre
+   * Notes/hints changes
+
+  Revision 1.49  1999/11/06 14:34:30  peter
     * truncated log to 20 revs
 
   Revision 1.48  1999/10/26 12:30:46  peter

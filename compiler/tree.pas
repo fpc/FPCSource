@@ -225,7 +225,8 @@ unit tree;
              ordconstn : (value : longint);
              realconstn : (value_real : bestreal;lab_real : pasmlabel);
              fixconstn : (value_fix: longint);
-             funcretn : (funcretprocinfo : pointer;retdef : pdef);
+             funcretn : (funcretprocinfo : pointer;retdef : pdef;
+                       is_first_funcret : boolean);
              subscriptn : (vs : pvarsym);
              vecn : (memindex,memseg:boolean;callunique : boolean);
              stringconstn : (value_str : pchar;length : longint; lab_str : pasmlabel;stringtype : tstringtype);
@@ -1645,7 +1646,10 @@ unit tree;
            begin
               case p^.treetype of
                  funcretn:
-                    procinfo^.funcret_is_valid:=true;
+                    begin
+                      if p^.is_first_funcret then
+                        pprocinfo(p^.funcretprocinfo)^.funcret_state:=vs_assigned;
+                    end;
                  vecn,typeconvn,subscriptn,derefn:
                     set_funcret_is_valid(p^.left);
               end;
@@ -1791,7 +1795,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.101  1999-11-06 14:34:31  peter
+  Revision 1.102  1999-11-17 17:05:07  pierre
+   * Notes/hints changes
+
+  Revision 1.101  1999/11/06 14:34:31  peter
     * truncated log to 20 revs
 
   Revision 1.100  1999/10/22 14:37:31  peter

@@ -774,7 +774,7 @@ begin
             begin
                 if procinfo^.retdef<>pdef(voiddef) then
                     begin
-                        if not procinfo^.funcret_is_valid then
+                        if procinfo^.funcret_state<>vs_assigned then
                           CGMessage(sym_w_function_result_not_set);
                         new(hr);
                         reset_reference(hr^);
@@ -1391,7 +1391,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.37  1999-11-09 23:06:44  peter
+  Revision 1.38  1999-11-17 17:04:58  pierre
+   * Notes/hints changes
+
+  Revision 1.37  1999/11/09 23:06:44  peter
     * esi_offset -> selfpointer_offset to be newcg compatible
     * hcogegen -> cgbase fixes for newcg
 

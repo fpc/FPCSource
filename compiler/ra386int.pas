@@ -38,7 +38,7 @@ Implementation
 Uses
   globtype,
   strings,cobjects,systems,verbose,globals,
-  files,aasm,types,scanner,symtable,cpubase,
+  files,aasm,types,scanner,symconst,symtable,cpubase,
 {$ifdef NEWCG}
   cgbase,
 {$else}
@@ -1656,7 +1656,7 @@ Begin
   if assigned(procinfo^.retdef) and
      (is_fpu(procinfo^.retdef) or
      ret_in_acc(procinfo^.retdef)) then
-    procinfo^.funcret_is_valid:=true;
+    procinfo^.funcret_state:=vs_assigned;
  { sets up all opcode and register tables in uppercase }
   if not _asmsorted then
    Begin
@@ -1772,7 +1772,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.52  1999-11-09 23:06:46  peter
+  Revision 1.53  1999-11-17 17:05:03  pierre
+   * Notes/hints changes
+
+  Revision 1.52  1999/11/09 23:06:46  peter
     * esi_offset -> selfpointer_offset to be newcg compatible
     * hcogegen -> cgbase fixes for newcg
 

@@ -683,7 +683,7 @@ Begin
      opr.ref.offset:=procinfo^.retoffset;
      opr.ref.base:= procinfo^.framepointer;
      { always assume that the result is valid. }
-     procinfo^.funcret_is_valid:=true;
+     procinfo^.funcret_state:=vs_assigned;
      SetupResult:=true;
    end
   else
@@ -1438,7 +1438,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.29  1999-11-09 23:06:46  peter
+  Revision 1.30  1999-11-17 17:05:04  pierre
+   * Notes/hints changes
+
+  Revision 1.29  1999/11/09 23:06:46  peter
     * esi_offset -> selfpointer_offset to be newcg compatible
     * hcogegen -> cgbase fixes for newcg
 

@@ -650,6 +650,30 @@ begin
 end;
 
 
+procedure pd_pascal(const procnames:Tstringcontainer);
+var st,parast : psymtable;
+    lastps,ps : psym;
+begin
+   new(st,init(parasymtable));
+   parast:=aktprocsym^.definition^.parast;
+   lastps:=nil;
+   while assigned(parast^.symindex^.first) and (lastps<>psym(parast^.symindex^.first)) do
+     begin
+       ps:=psym(parast^.symindex^.first);
+       while assigned(ps^.next) and (psym(ps^.next)<>lastps) do
+         ps:=psym(ps^.next);
+       ps^.owner:=st;
+       { recalculate the corrected offset }
+       { the really_insert_in_data procedure
+         for parasymtable should only calculateoffset PM }
+       ps^.insert_in_data;
+       { reset the owner correctly }
+       ps^.owner:=parast;
+       lastps:=ps;
+     end;
+end;
+
+
 procedure pd_register(const procnames:Tstringcontainer);
 begin
   Message(parser_w_proc_register_ignored);
@@ -743,8 +767,8 @@ end;
   {$F-}
 {$endif}
 
-const
-   namelength=15;
+{const
+   namelength=15;}
 type
    pd_handler=procedure(const procnames:Tstringcontainer);
    proc_dir_rec=record
@@ -927,7 +951,7 @@ const
     ),(
       idtok:_PASCAL;
       pd_flags : pd_implemen+pd_body+pd_procvar;
-      handler  : nil;
+      handler  : {$ifndef TP}@{$endif}pd_pascal;
       pocall   : [pocall_leftright];
       pooption : [];
       mutexclpocall : [pocall_internproc];
@@ -1740,8 +1764,11 @@ begin
            vs^.varspez:=varspez;
            aktprocsym^.definition^.localst^.insert(vs);
            vs^.islocalcopy:=true;
-           vs^.varstate:=vs_used;
+           vs^.varstate:=vs_assigned;
            localvarsym:=vs;
+           inc(refs); { the para was used to set the local copy ! }
+           { warnings only on local copy ! }
+           varstate:=vs_used;
          end
         else
          begin
@@ -1782,7 +1809,8 @@ begin
       flags:=0;
     { standard frame pointer }
       framepointer:=frame_pointer;
-      funcret_is_valid:=false;
+      { funcret_is_valid:=false; }
+      funcret_state:=vs_declared;
     { is this a nested function of a method ? }
       if assigned(oldprocinfo) then
         _class:=oldprocinfo^._class;
@@ -1909,7 +1937,10 @@ end.
 
 {
   $Log$
-  Revision 1.34  1999-11-10 00:24:02  pierre
+  Revision 1.35  1999-11-17 17:05:02  pierre
+   * Notes/hints changes
+
+  Revision 1.34  1999/11/10 00:24:02  pierre
    * more browser details
 
   Revision 1.33  1999/11/09 23:43:08  pierre

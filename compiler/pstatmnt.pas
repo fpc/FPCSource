@@ -372,10 +372,12 @@ unit pstatmnt;
       var
          right,hp,p : ptree;
          i,levelcount : longint;
+         store_valid : boolean;
          withsymtable,symtab : psymtable;
          obj : pobjectdef;
 
       begin
+         Store_valid := Must_be_valid;
          Must_be_valid:=false;
          p:=comp_expr(true);
          do_firstpass(p);
@@ -472,6 +474,7 @@ unit pstatmnt;
              end;
             _with_statement:=nil;
           end;
+         Must_be_valid:=Store_valid;
       end;
 
 
@@ -694,10 +697,6 @@ unit pstatmnt;
                 Message(parser_e_exit_with_argument_not__possible);
               if procinfo^.retdef=pdef(voiddef) then
                 Message(parser_e_void_function);
-              {
-              else
-                procinfo^.funcret_is_valid:=true;
-              }
            end
          else
            p:=nil;
@@ -826,7 +825,7 @@ unit pstatmnt;
           p,p2 : ptree;
           ht : ttoken;
           again : boolean; { dummy for do_proc_call }
-          destrukname : stringid;
+          {destrukname : stringid;}
           sym : psym;
           classh : pobjectdef;
           pd,pd2 : pdef;
@@ -868,7 +867,7 @@ unit pstatmnt;
                    { extended syntax of new and dispose }
                    { function styled new is handled in factor }
                    { destructors have no parameters }
-                   destrukname:=pattern;
+                   {destrukname:=pattern;}
                    destructorpos:=tokenpos;
                    consume(_ID);
 
@@ -1329,7 +1328,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.109  1999-11-15 22:00:48  peter
+  Revision 1.110  1999-11-17 17:05:02  pierre
+   * Notes/hints changes
+
+  Revision 1.109  1999/11/15 22:00:48  peter
     * labels used but not defined give error instead of warning, the warning
       is now only with declared but not defined and not used.
 

@@ -44,7 +44,7 @@ implementation
     uses
       globtype,systems,
       cobjects,verbose,globals,
-      symtable,aasm,types,
+      symconst,symtable,aasm,types,
       hcodegen,htypechk,temp_gen,pass_1,cpubase
 {$ifdef i386}
       ,tgeni386
@@ -236,21 +236,8 @@ implementation
          old_t_times:=t_times;
          if not(cs_littlesize in aktglobalswitches) then
            t_times:=t_times*8;
-         cleartempgen;
-         if assigned(p^.t1) then
-          begin
-            firstpass(p^.t1);
-            if codegenerror then
-             exit;
-          end;
          { save counter var }
          p^.t2:=getcopy(p^.left^.left);
-
-         p^.registers32:=p^.t1^.registers32;
-         p^.registersfpu:=p^.t1^.registersfpu;
-{$ifdef SUPPORT_MMX}
-         p^.registersmmx:=p^.left^.registersmmx;
-{$endif SUPPORT_MMX}
 
          if p^.left^.treetype<>assignn then
            CGMessage(cg_e_illegal_expression);
@@ -258,7 +245,20 @@ implementation
          cleartempgen;
          must_be_valid:=false;
          firstpass(p^.left);
-         must_be_valid:=true;
+
+         cleartempgen;
+         if assigned(p^.t1) then
+          begin
+            firstpass(p^.t1);
+            if codegenerror then
+             exit;
+          end;
+
+         p^.registers32:=p^.t1^.registers32;
+         p^.registersfpu:=p^.t1^.registersfpu;
+{$ifdef SUPPORT_MMX}
+         p^.registersmmx:=p^.left^.registersmmx;
+{$endif SUPPORT_MMX}
          if p^.left^.registers32>p^.registers32 then
            p^.registers32:=p^.left^.registers32;
          if p^.left^.registersfpu>p^.registersfpu then
@@ -269,6 +269,7 @@ implementation
 {$endif SUPPORT_MMX}
 
          { process count var }
+         must_be_valid:=true;
          cleartempgen;
          firstpass(p^.t2);
          if codegenerror then
@@ -281,8 +282,12 @@ implementation
          if (hp^.treetype<>loadn) then
           CGMessage(cg_e_illegal_count_var)
          else
-          if (not(is_ordinal(p^.t2^.resulttype)) or is_64bitint(p^.t2^.resulttype)) then
-           CGMessage(type_e_ordinal_expr_expected);
+          begin
+            if hp^.symtableentry^.typ=varsym then
+              pvarsym(hp^.symtableentry)^.varstate:=vs_used;
+            if (not(is_ordinal(p^.t2^.resulttype)) or is_64bitint(p^.t2^.resulttype)) then
+              CGMessage(type_e_ordinal_expr_expected);
+          end;
 
          if p^.t2^.registers32>p^.registers32 then
            p^.registers32:=p^.t2^.registers32;
@@ -328,7 +333,7 @@ implementation
          if assigned(p^.left) then
            begin
               firstpass(p^.left);
-              procinfo^.funcret_is_valid:=true;
+              procinfo^.funcret_state:=vs_assigned;
               if codegenerror then
                exit;
               { Check the 2 types }
@@ -507,7 +512,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.24  1999-11-06 14:34:30  peter
+  Revision 1.25  1999-11-17 17:05:07  pierre
+   * Notes/hints changes
+
+  Revision 1.24  1999/11/06 14:34:30  peter
     * truncated log to 20 revs
 
   Revision 1.23  1999/10/05 22:01:53  pierre

@@ -1273,7 +1273,7 @@ uses
         pt : ptree;
         hp1,p : pdef;
         aufdef : penumdef;
-        aufsym : penumsym;
+        {aufsym : penumsym;}
         ap : parraydef;
         s : stringid;
         l,v : longint;
@@ -1445,7 +1445,7 @@ uses
                  consume(_LKLAMMER);
                  { allow negativ value_str }
                  l:=-1;
-                 aufsym := Nil;
+                 {aufsym := Nil;}
                  aufdef:=new(penumdef,init);
                  repeat
                    s:=pattern;
@@ -1608,7 +1608,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.9  1999-11-11 00:56:54  pierre
+  Revision 1.10  1999-11-17 17:05:03  pierre
+   * Notes/hints changes
+
+  Revision 1.9  1999/11/11 00:56:54  pierre
    * Enum element reference location corrected
 
   Revision 1.8  1999/11/09 23:43:09  pierre

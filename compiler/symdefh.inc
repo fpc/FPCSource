@@ -24,12 +24,6 @@
                     TDef
 ************************************************}
 
-       { definition contains the informations about a type }
-       tdeftype = (abstractdef,arraydef,recorddef,pointerdef,orddef,
-                   stringdef,enumdef,procdef,objectdef,errordef,
-                   filedef,formaldef,setdef,procvardef,floatdef,
-                   classrefdef,forwarddef);
-
        pdef = ^tdef;
        tdef = object(tsymtableentry)
           deftype   : tdeftype;
@@ -531,7 +525,10 @@
 
 {
   $Log$
-  Revision 1.46  1999-11-09 23:35:50  pierre
+  Revision 1.47  1999-11-17 17:05:04  pierre
+   * Notes/hints changes
+
+  Revision 1.46  1999/11/09 23:35:50  pierre
    + better reference pos for forward defs
 
   Revision 1.45  1999/11/06 14:34:27  peter

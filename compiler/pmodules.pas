@@ -881,6 +881,8 @@ unit pmodules;
         {Generate a procsym for main}
         make_ref:=false;
         aktprocsym:=new(Pprocsym,init(name));
+        { main are allways used }
+        inc(aktprocsym^.refs);
         {Try to insert in in static symtable ! }
         stt:=symtablestack;
         symtablestack:=st;
@@ -1505,7 +1507,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.165  1999-11-15 15:03:47  pierre
+  Revision 1.166  1999-11-17 17:05:02  pierre
+   * Notes/hints changes
+
+  Revision 1.165  1999/11/15 15:03:47  pierre
     * Pavel's changes for reloc section in executable
     + warning that -g needs -WN under win32
 

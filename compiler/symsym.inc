@@ -34,6 +34,7 @@
 {$endif GDB}
          fileinfo:=tokenpos;
          defref:=nil;
+         refs:=0;
          lastwritten:=nil;
          refcount:=0;
          if (cs_browser in aktmoduleswitches) and make_ref then
@@ -55,6 +56,7 @@
          readposinfo(fileinfo);
          lastref:=nil;
          defref:=nil;
+         refs:=0;
          lastwritten:=nil;
          refcount:=0;
 {$ifdef GDB}
@@ -423,6 +425,46 @@
                      last^.nextoverloaded:=overloaded_operators[t]^.definition;
                    overloaded_operators[t]:=@self;
                 end;
+           end;
+      end;
+
+    procedure tprocsym.order_overloaded;
+      var firstdef,currdef,lastdef : pprocdef;
+      begin
+         firstdef:=definition;
+         currdef:=definition;
+         while assigned(currdef) do
+           begin
+             currdef^.count:=false;
+             currdef:=currdef^.nextoverloaded;
+           end;
+         definition:=definition^.nextoverloaded;
+         firstdef^.nextoverloaded:=nil;
+         while assigned(definition) do
+           begin
+             currdef:=firstdef;
+             lastdef:=definition;
+             definition:=definition^.nextoverloaded;
+             if lastdef^.mangledname>currdef^.mangledname then
+               begin
+                 lastdef^.nextoverloaded:=firstdef;
+                 firstdef:=lastdef;
+               end
+             else
+               begin
+                 while assigned(currdef^.nextoverloaded) and
+                    (currdef^.mangledname>lastdef^.mangledname) do
+                   currdef:=currdef^.nextoverloaded;
+                 lastdef^.nextoverloaded:=currdef^.nextoverloaded;
+                 currdef^.nextoverloaded:=lastdef;
+               end;
+           end;
+         definition:=firstdef;
+         currdef:=definition;
+         while assigned(currdef) do
+           begin
+             currdef^.count:=true;
+             currdef:=currdef^.nextoverloaded;
            end;
       end;
 
@@ -1368,6 +1410,7 @@
                    { here we need the size of a push instead of the
                      size of the data }
                    l:=getpushsize;
+                   varstate:=vs_assigned;
                    address:=owner^.datasize;
                    owner^.datasize:=align(owner^.datasize+l,target_os.stackalignment);
                  end
@@ -2145,7 +2188,10 @@
 
 {
   $Log$
-  Revision 1.126  1999-11-15 22:00:48  peter
+  Revision 1.127  1999-11-17 17:05:04  pierre
+   * Notes/hints changes
+
+  Revision 1.126  1999/11/15 22:00:48  peter
     * labels used but not defined give error instead of warning, the warning
       is now only with declared but not defined and not used.
 

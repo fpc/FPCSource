@@ -872,21 +872,49 @@ implementation
       begin
          if (psym(p)^.typ=varsym) and
             ((psym(p)^.owner^.symtabletype in [parasymtable,localsymtable,staticsymtable])) then
+          begin
            { unused symbol should be reported only if no }
            { error is reported                     }
            { if the symbol is in a register it is used   }
            { also don't count the value parameters which have local copies }
            { also don't claim for high param of open parameters (PM) }
+           if (Errorcount<>0) then
+             exit;
            if (pvarsym(p)^.refs=0) and
-              (Errorcount=0) and
               (copy(p^.name,1,3)<>'val') and
               (copy(p^.name,1,4)<>'high') then
              begin
                 if (psym(p)^.owner^.symtabletype=parasymtable) or pvarsym(p)^.islocalcopy then
-                  MessagePos1(psym(p)^.fileinfo,sym_h_para_identifier_not_used,p^.name)
+                  begin
+                    MessagePos1(psym(p)^.fileinfo,sym_h_para_identifier_not_used,p^.name);
+                  end
                 else
                   MessagePos1(psym(p)^.fileinfo,sym_n_local_identifier_not_used,p^.name);
+             end
+           else if pvarsym(p)^.varstate=vs_assigned then
+             begin
+                if (psym(p)^.owner^.symtabletype=parasymtable) then
+                  begin
+                    if (pvarsym(p)^.varspez<>vs_var)  then
+                      MessagePos1(psym(p)^.fileinfo,sym_h_para_identifier_only_set,p^.name)
+                  end
+                else if pvarsym(p)^.islocalcopy then
+                  begin
+                    if (pvarsym(p)^.varspez<>vs_var) then
+                      MessagePos1(psym(p)^.fileinfo,sym_h_para_identifier_only_set,p^.name);
+                  end
+                else if (psym(p)^.owner^.symtabletype<>parasymtable) then
+                  MessagePos1(psym(p)^.fileinfo,sym_n_local_identifier_only_set,p^.name);
              end;
+         end
+      else if ((psym(p)^.owner^.symtabletype in [parasymtable,localsymtable,staticsymtable])) then
+          begin
+           if (Errorcount<>0) then
+             exit;
+           { units references are problematic }
+           if (psym(p)^.refs=0) and not(psym(p)^.typ in [funcretsym,enumsym,unitsym]) then
+             MessagePos2(psym(p)^.fileinfo,sym_h_local_symbol_not_used,SymTypeName[psym(p)^.typ],p^.name);
+          end;
       end;
 
 {$ifdef GDB}
@@ -1109,6 +1137,12 @@ implementation
       end;
 
 
+    procedure order_overloads(p : Pnamedindexobject);
+      begin
+         if psym(p)^.typ=procsym then
+           pprocsym(p)^.order_overloaded;
+      end;
+
     procedure tsymtable.foreach(proc2call : tnamedindexcallback);
       begin
         symindex^.foreach(proc2call);
@@ -1316,6 +1350,7 @@ implementation
     procedure tsymtable.write;
       begin
       { write definitions }
+         foreach({$ifndef TP}@{$endif}Order_overloads);
          writedefs;
       { write symbols }
          writesyms;
@@ -1409,6 +1444,8 @@ implementation
            end;
          if (symtabletype in [recordsymtable,objectsymtable]) then
          current_ppu^.entrytyp:=subentryid;
+      { order procsym overloads }
+         foreach({$ifndef TP}@{$endif}Order_overloads);
          { write definitions }
          writedefs;
          { write symbols }
@@ -1632,6 +1669,10 @@ implementation
                 else
                   hp^.lastref:=newref;
                 inc(hp^.refcount);
+             end;
+           if assigned(hp) and make_ref then
+             begin
+               inc(hp^.refs);
              end;
          end;
         speedsearch:=hp;
@@ -2492,7 +2533,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.62  1999-11-15 22:00:48  peter
+  Revision 1.63  1999-11-17 17:05:06  pierre
+   * Notes/hints changes
+
+  Revision 1.62  1999/11/15 22:00:48  peter
     * labels used but not defined give error instead of warning, the warning
       is now only with declared but not defined and not used.
 

@@ -3127,11 +3127,11 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
   begin
       if procinfo^.retdef<>pdef(voiddef) then
           begin
-              if ((procinfo^.flags and pi_operator)<>0) and
+              {if ((procinfo^.flags and pi_operator)<>0) and
                  assigned(opsym) then
                 procinfo^.funcret_is_valid:=
-                  procinfo^.funcret_is_valid or (opsym^.refs>0);
-              if not(procinfo^.funcret_is_valid) and not inlined { and
+                  procinfo^.funcret_is_valid or (opsym^.refs>0);}
+              if (procinfo^.funcret_state<>vs_assigned) and not inlined { and
                 ((procinfo^.flags and pi_uses_asm)=0)} then
                CGMessage(sym_w_function_result_not_set);
               hr:=new_reference(procinfo^.framepointer,procinfo^.retoffset);
@@ -3447,7 +3447,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.59  1999-11-15 14:04:00  pierre
+  Revision 1.60  1999-11-17 17:04:58  pierre
+   * Notes/hints changes
+
+  Revision 1.59  1999/11/15 14:04:00  pierre
    * self pointer stabs for local function was wrong
 
   Revision 1.58  1999/11/09 23:06:44  peter

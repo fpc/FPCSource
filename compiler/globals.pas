@@ -327,13 +327,13 @@ unit globals;
 
     function assigned(p : pointer) : boolean;
 
+{$ifndef FPC}
+    {$ifndef DPMI}
       type
          ptrrec = record
             ofs,seg : word;
          end;
 
-{$ifndef FPC}
-    {$ifndef DPMI}
       var
          lp : longint;
     {$endif DPMI}
@@ -948,9 +948,13 @@ unit globals;
    function FixFileName(const s:string):string;
      var
        i      : longint;
+      {$ifdef Linux}
        NoPath : boolean;
+      {$endif Linux}
      begin
+      {$ifdef Linux}
        NoPath:=true;
+      {$endif Linux}
        for i:=length(s) downto 1 do
         begin
           case s[i] of
@@ -1351,7 +1355,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.34  1999-11-15 17:42:41  pierre
+  Revision 1.35  1999-11-17 17:04:59  pierre
+   * Notes/hints changes
+
+  Revision 1.34  1999/11/15 17:42:41  pierre
    * -g disables reloc section for win32
 
   Revision 1.33  1999/11/12 11:03:50  peter

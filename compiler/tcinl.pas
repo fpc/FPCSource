@@ -129,8 +129,9 @@ implementation
              (pfloatdef(p^.left^.resulttype)^.typ<>s80real) then
              begin
                 p^.left:=gentypeconvnode(p^.left,s80floatdef);
-                firstpass(p^.left);
              end;
+           { redo firstpass for varstate status PM }
+           firstpass(p^.left);
            p^.registers32:=p^.left^.registers32;
            p^.registersfpu:=p^.left^.registersfpu;
 {$ifdef SUPPORT_MMX}
@@ -158,6 +159,7 @@ implementation
               left_right_max(p);
               set_location(p^.location,p^.left^.location);
            end;
+         count_ref:=true;
          { handle intern constant functions in separate case }
          if p^.inlineconst then
           begin
@@ -578,6 +580,7 @@ implementation
                  p^.resulttype:=voiddef;
                  if assigned(p^.left) then
                    begin
+                      p^.left^.resulttype:=nil;
                       firstcallparan(p^.left,nil);
                       if codegenerror then
                        exit;
@@ -633,6 +636,7 @@ implementation
                   if assigned(p^.left) then
                     begin
                        dowrite:=(p^.inlinenumber in [in_write_x,in_writeln_x]);
+                       p^.left^.resulttype:=nil;
                        firstcallparan(p^.left,nil);
                        { now we can check }
                        hp:=p^.left;
@@ -786,6 +790,7 @@ implementation
                        if codegenerror then
                          exit;
                        must_be_valid:=true;
+                       p^.left^.resulttype:=nil;
                        firstcallparan(p^.left,nil);
                        { calc registers }
                        left_right_max(p);
@@ -839,12 +844,14 @@ implementation
                   must_be_valid:=false;
                   count_ref:=true;
                   p^.left^.right:=nil;
+                  p^.left^.resulttype:=nil;
                   firstcallparan(p^.left,nil);
                   { remove warning when result is passed }
-                  if (p^.left^.left^.treetype=funcretn) then
-                   procinfo^.funcret_is_valid:=true;
+                  set_funcret_is_valid(p^.left^.left);
                   must_be_valid:=true;
                   p^.left^.right:=hp;
+                  { force second parsing }
+                  hp^.resulttype:=nil;
                   firstcallparan(p^.left^.right,nil);
                   hp:=p^.left;
                   { valid string ? }
@@ -919,6 +926,7 @@ implementation
                   if codegenerror then
                     exit;
                   must_be_valid:=true;
+                  p^.left^.resulttype:=nil;
                   firstcallparan(p^.left,nil);
                   { calc registers }
                   left_right_max(p);
@@ -944,6 +952,7 @@ implementation
                        must_be_valid := false;
                        count_ref := true;
                        make_not_regable(p^.left^.left);
+                       p^.left^.resulttype:=nil;
                        firstcallparan(p^.left, nil);
                        if codegenerror then exit;
                        p^.left^.right := hp;
@@ -966,12 +975,12 @@ implementation
                   hpp^.right:=nil;
                   {hpp = destination}
                   make_not_regable(hpp^.left);
+                  hpp^.resulttype:=nil;
                   firstcallparan(hpp,nil);
                   if codegenerror then
                     exit;
                   { remove warning when result is passed }
-                  if (hpp^.left^.treetype=funcretn) then
-                   procinfo^.funcret_is_valid:=true;
+                  set_funcret_is_valid(hpp^.left);
                   hpp^.right := hp;
                   if valid_for_assign(hpp^.left,false) then
                    begin
@@ -984,8 +993,9 @@ implementation
                    end;
                   must_be_valid:=true;
                  {hp = source (String)}
-                  count_ref := false;
+                  { count_ref := false; WHY ?? }
                   must_be_valid := true;
+                  hp^.resulttype:=nil;
                   firstcallparan(hp,nil);
                   if codegenerror then
                     exit;
@@ -1013,6 +1023,7 @@ implementation
                  p^.resulttype:=voiddef;
                  if assigned(p^.left) then
                    begin
+                      p^.left^.resulttype:=nil;
                       firstcallparan(p^.left,nil);
                       p^.registers32:=p^.left^.registers32;
                       p^.registersfpu:=p^.left^.registersfpu;
@@ -1020,8 +1031,7 @@ implementation
                       p^.registersmmx:=p^.left^.registersmmx;
 {$endif SUPPORT_MMX}
                       { remove warning when result is passed }
-                      if (p^.left^.left^.treetype=funcretn) then
-                       procinfo^.funcret_is_valid:=true;
+                      set_funcret_is_valid(p^.left^.left);
                       { first param must be var }
                       valid_for_assign(p^.left^.left,false);
                       { check type }
@@ -1225,6 +1235,7 @@ implementation
                  p^.resulttype:=voiddef;
                  if assigned(p^.left) then
                    begin
+                      p^.left^.resulttype:=nil;
                       firstcallparan(p^.left,nil);
                       p^.registers32:=p^.left^.registers32;
                       p^.registersfpu:=p^.left^.registersfpu;
@@ -1269,7 +1280,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.58  1999-11-06 14:34:30  peter
+  Revision 1.59  1999-11-17 17:05:07  pierre
+   * Notes/hints changes
+
+  Revision 1.58  1999/11/06 14:34:30  peter
     * truncated log to 20 revs
 
   Revision 1.57  1999/10/29 15:28:51  peter

@@ -30,7 +30,7 @@ interface
 var
   CRCFile : text;
 const
-  CRC_array_Size = 20000;
+  CRC_array_Size = 200000;
 type
   tcrc_array = array[0..crc_array_size] of longint;
   pcrc_array = ^tcrc_array;
@@ -1000,7 +1000,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.47  1999-11-06 14:34:23  peter
+  Revision 1.48  1999-11-17 17:05:02  pierre
+   * Notes/hints changes
+
+  Revision 1.47  1999/11/06 14:34:23  peter
     * truncated log to 20 revs
 
   Revision 1.46  1999/09/17 09:14:56  peter

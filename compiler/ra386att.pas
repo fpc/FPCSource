@@ -59,7 +59,7 @@ type
    {------------------ Assembler Operators  --------------------}
    AS_MOD,AS_SHL,AS_SHR,AS_NOT,AS_AND,AS_OR,AS_XOR,AS_NOR);
 
-   tasmkeyword = string[8];
+   tasmkeyword = string[10];
 
 const
    { These tokens should be modified accordingly to the modifications }
@@ -71,7 +71,7 @@ const
    _count_asmspecialops = 25;
    _count_asmoverrides  = 3;
 
-  token2str : array[tasmtoken] of string[10]=(
+  token2str : array[tasmtoken] of tasmkeyword=(
     '','Label','LLabel','string','integer',
     'float',',','(',
     ')',':','.','+','-','*',
@@ -85,7 +85,7 @@ const
 const
   newline = #10;
   firsttoken : boolean = TRUE;
-  charcount  : byte = 0;
+{  charcount  : byte = 0;}
 var
   _asmsorted,
   inexpression   : boolean;
@@ -1748,7 +1748,7 @@ Begin
   if assigned(procinfo^.retdef) and
      (is_fpu(procinfo^.retdef) or
      ret_in_acc(procinfo^.retdef)) then
-    procinfo^.funcret_is_valid:=true;
+    procinfo^.funcret_state:=vs_assigned;
   { sets up all opcode and register tables in uppercase }
   if not _asmsorted then
    Begin
@@ -1992,7 +1992,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.62  1999-11-09 23:06:46  peter
+  Revision 1.63  1999-11-17 17:05:03  pierre
+   * Notes/hints changes
+
+  Revision 1.62  1999/11/09 23:06:46  peter
     * esi_offset -> selfpointer_offset to be newcg compatible
     * hcogegen -> cgbase fixes for newcg
 

@@ -27,7 +27,7 @@ unit browlog;
 
 interface
 uses
-  cobjects,globtype,files,symtable;
+  cobjects,globtype,files,symconst,symtable;
 
 const
 {$ifdef TP}
@@ -448,7 +448,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  1999-08-03 22:02:30  peter
+  Revision 1.3  1999-11-17 17:04:58  pierre
+   * Notes/hints changes
+
+  Revision 1.2  1999/08/03 22:02:30  peter
     * moved bitmask constants to sets
     * some other type/const renamings
 

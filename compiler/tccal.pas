@@ -176,8 +176,8 @@ implementation
               if count_ref then
                begin
                  { not completly proper, but avoids some warnings }
-                 if (p^.left^.treetype=funcretn) and (defcoll^.paratyp=vs_var) then
-                   procinfo^.funcret_is_valid:=true;
+                 if (defcoll^.paratyp=vs_var) then
+                   set_funcret_is_valid(p^.left);
 
                  store_valid:=must_be_valid;
                  { protected has nothing to do with read/write
@@ -187,12 +187,16 @@ implementation
                  must_be_valid:=(defcoll^.paratyp<>vs_var);
                  { only process typeconvn and arrayconstructn, else it will
                    break other trees }
+                 { But this is need to get correct varstate !! PM }
                  old_array_constructor:=allow_array_constructor;
                  old_get_para_resulttype:=get_para_resulttype;
                  allow_array_constructor:=true;
                  get_para_resulttype:=false;
-                 if (p^.left^.treetype in [arrayconstructn,typeconvn]) then
+                 { if (p^.left^.treetype in [arrayconstructn,typeconvn]) or
+                    not assigned(p^.resulttype) then  }
                    firstpass(p^.left);
+                 if not assigned(p^.resulttype) then
+                   p^.resulttype:=p^.left^.resulttype;
                  get_para_resulttype:=old_get_para_resulttype;
                  allow_array_constructor:=old_array_constructor;
                  must_be_valid:=store_valid;
@@ -494,7 +498,9 @@ implementation
                    if codegenerror then
                      goto errorexit;
                 end;
+              must_be_valid:=true;
               firstpass(p^.right);
+              must_be_valid:=false;
 
               { check the parameters }
               pdc:=pparaitem(pprocvardef(p^.right^.resulttype)^.para^.first);
@@ -521,6 +527,7 @@ implementation
                      goto errorexit;
                 end;
               p^.resulttype:=pprocvardef(p^.right^.resulttype)^.retdef;
+
               { this was missing, leads to a bug below if
                 the procvar is a function }
               p^.procdefinition:=pabstractprocdef(p^.right^.resulttype);
@@ -546,7 +553,6 @@ implementation
                 end;
 
               aktcallprocsym:=pprocsym(p^.symtableprocentry);
-
               { do we know the procedure to call ? }
               if not(assigned(p^.procdefinition)) then
                 begin
@@ -1156,12 +1162,12 @@ implementation
                      if (p^.procdefinition^.proctypeoption=potype_constructor) or
                         ((p^.methodpointer^.treetype=loadn) and
                         (not(oo_has_virtual in pobjectdef(p^.methodpointer^.resulttype)^.objectoptions))) then
-                       must_be_valid:=false;
-                     {
+                       must_be_valid:=false
                      else
                        must_be_valid:=true;
-                     }
+                     count_ref:=true;
                      firstpass(p^.methodpointer);
+                     must_be_valid:=store_valid;
                      p^.registersfpu:=max(p^.methodpointer^.registersfpu,p^.registersfpu);
                      p^.registers32:=max(p^.methodpointer^.registers32,p^.registers32);
 {$ifdef SUPPORT_MMX}
@@ -1221,7 +1227,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.71  1999-11-06 14:34:29  peter
+  Revision 1.72  1999-11-17 17:05:07  pierre
+   * Notes/hints changes
+
+  Revision 1.71  1999/11/06 14:34:29  peter
     * truncated log to 20 revs
 
   Revision 1.70  1999/10/26 12:30:46  peter

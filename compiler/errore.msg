@@ -1013,12 +1013,20 @@ sym_e_ill_type_decl_set=E_illegal type declaration of set elements
 % The declaration of a set contains an invalid type definition.
 sym_e_class_forward_not_resolved=E_Forward class definition not resolved $1
 % You declared a class, but you didn't implement it.
-sym_h_para_identifier_not_used=H_Parameter not used $1
+sym_h_para_identifier_not_used=H_Parameter $1 not used
 % This is a warning. The identifier was declared (locally or globally) but
 % wasn't used (locally or globally).
-sym_n_local_identifier_not_used=N_Local variable not used $1
+sym_n_local_identifier_not_used=N_Local variable $1 not used
 % You have declared, but not used a variable in a procedure or function
 % implementation.
+sym_h_para_identifier_only_set=H_Const or value parameter $1 is set but not used
+% This is a warning. The identifier was declared (locally or globally)
+% set but not used (locally or globally).
+sym_n_local_identifier_only_set=N_Local variable $1 is set but not used
+% The variable in a procedure or function
+% implementation is declared, set but never used.
+sym_h_local_symbol_not_used=H_Local $1 $2 is not used
+% A local symbol is never used.
 sym_e_set_expected=E_Set type expected
 % The variable or expression isn't of type \var{set}. This happens in an
 % \var{in} statement.

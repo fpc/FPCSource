@@ -72,7 +72,7 @@ unit Ra386dir;
             { consider it set function set if the offset was loaded }
            if assigned(procinfo^.retdef) and
               (pos(retstr,upper(s))>0) then
-              procinfo^.funcret_is_valid:=true;
+              procinfo^.funcret_state:=vs_assigned;
            s:='';
          end;
 
@@ -81,7 +81,7 @@ unit Ra386dir;
        s:='';
        if assigned(procinfo^.retdef) and
           is_fpu(procinfo^.retdef) then
-         procinfo^.funcret_is_valid:=true;
+         procinfo^.funcret_state:=vs_assigned;
        if assigned(procinfo^.retdef) and
           (procinfo^.retdef<>pdef(voiddef)) then
          retstr:=upper(tostr(procinfo^.retoffset)+'('+att_reg2str[procinfo^.framepointer]+')')
@@ -144,7 +144,7 @@ unit Ra386dir;
                                     ret_in_acc(procinfo^.retdef) and
                                     ((pos('AX',upper(hs))>0) or
                                     (pos('AL',upper(hs))>0)) then
-                                   procinfo^.funcret_is_valid:=true;
+                                   procinfo^.funcret_state:=vs_assigned;
                                  if (s[length(s)]<>'%') and
                                    (s[length(s)]<>'$') and
                                    ((s[length(s)]<>'0') or (hs[1]<>'x')) then
@@ -266,7 +266,7 @@ unit Ra386dir;
                    end;
  '{',';',#10,#13 : begin
                       if pos(retstr,s) > 0 then
-                        procinfo^.funcret_is_valid:=true;
+                        procinfo^.funcret_state:=vs_assigned;
                      writeasmline;
                      c:=current_scanner^.asmgetchar;
                    end;
@@ -295,7 +295,10 @@ unit Ra386dir;
 end.
 {
   $Log$
-  Revision 1.26  1999-11-09 23:06:46  peter
+  Revision 1.27  1999-11-17 17:05:03  pierre
+   * Notes/hints changes
+
+  Revision 1.26  1999/11/09 23:06:46  peter
     * esi_offset -> selfpointer_offset to be newcg compatible
     * hcogegen -> cgbase fixes for newcg
 

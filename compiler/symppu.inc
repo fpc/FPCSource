@@ -536,13 +536,12 @@
            was_defined_at_startup:=boolean(current_ppu^.getbyte);
            was_used:=boolean(current_ppu^.getbyte);
            mac:=pmacrosym(macros^.search(hs));
-           if assigned(mac)
+           if assigned(mac) then
+             begin
 {$ifndef EXTDEBUG}
            { if we don't have the sources why tell }
-             and current_module^.sources_avail
+              if current_module^.sources_avail then
 {$endif ndef EXTDEBUG}
-             then
-             begin
                if not was_defined_at_startup and was_used and
                  mac^.defined_at_startup then
                  Comment(V_Hint,'Conditional '+hs+' was not set at startup '+
@@ -756,7 +755,10 @@
 
 {
   $Log$
-  Revision 1.54  1999-11-12 11:03:50  peter
+  Revision 1.55  1999-11-17 17:05:04  pierre
+   * Notes/hints changes
+
+  Revision 1.54  1999/11/12 11:03:50  peter
     * searchpaths changed to stringqueue object
 
   Revision 1.53  1999/11/06 14:34:27  peter

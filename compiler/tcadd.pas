@@ -190,6 +190,7 @@ implementation
                 end
               else
                 begin
+                   inc(t^.symtableprocentry^.refs);
                    t^.left:=gencallparanode(p^.left,nil);
                    t^.left:=gencallparanode(p^.right,t^.left);
                    if p^.treetype=unequaln then
@@ -1158,7 +1159,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.54  1999-11-16 23:45:28  pierre
+  Revision 1.55  1999-11-17 17:05:06  pierre
+   * Notes/hints changes
+
+  Revision 1.54  1999/11/16 23:45:28  pierre
    * global var token was changed by overload code (form bug 707)
 
   Revision 1.53  1999/11/15 21:53:42  peter

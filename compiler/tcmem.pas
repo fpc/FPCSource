@@ -235,10 +235,6 @@ implementation
                    begin
                      hp:=genloadmethodcallnode(pprocsym(p^.left^.symtableprocentry),p^.left^.symtableproc,
                        getcopy(p^.left^.methodpointer));
-                     disposetree(p);
-                     firstpass(hp);
-                     p:=hp;
-                     exit;
                    end
                   else
                    hp:=genloadcallnode(pprocsym(p^.left^.symtableprocentry),p^.left^.symtableproc);
@@ -339,6 +335,7 @@ implementation
 {$endif SUPPORT_MMX}
          if p^.registers32<1 then
            p^.registers32:=1;
+         { is this right for object of methods ?? }
          p^.location.loc:=LOC_REGISTER;
       end;
 
@@ -378,8 +375,12 @@ implementation
 *****************************************************************************}
 
     procedure firstderef(var p : ptree);
+      var store_valid : boolean;
       begin
+         store_valid:=must_be_valid;
+         must_be_valid:=true;
          firstpass(p^.left);
+         must_be_valid:=store_valid;
          if codegenerror then
            begin
              p^.resulttype:=generrordef;
@@ -445,6 +446,7 @@ implementation
       var
          harr : pdef;
          ct : tconverttype;
+         store_valid : boolean;
 {$ifdef consteval}
          tcsym : ptypedconstsym;
 {$endif}
@@ -484,7 +486,10 @@ implementation
                 harr:=new(parraydef,init(0,$7fffffff,s32bitdef));
                 parraydef(harr)^.definition:=ppointerdef(p^.left^.resulttype)^.definition;
                 p^.left:=gentypeconvnode(p^.left,harr);
+                store_valid:=must_be_valid;
+                must_be_valid:=true;
                 firstpass(p^.left);
+                must_be_valid:=store_valid;
 
                 if codegenerror then
                   exit;
@@ -629,7 +634,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.32  1999-11-06 14:34:30  peter
+  Revision 1.33  1999-11-17 17:05:07  pierre
+   * Notes/hints changes
+
+  Revision 1.32  1999/11/06 14:34:30  peter
     * truncated log to 20 revs
 
   Revision 1.31  1999/10/26 12:30:46  peter
@@ -713,4 +721,3 @@ end.
     * procedure of object and addrn fixes
 
 }
-

@@ -908,20 +908,22 @@ unit pexpr;
                     if ((pvarsym(sym)=opsym) and
                        ((p^.flags and pi_operator)<>0)) then
                        inc(opsym^.refs);
-                    if ((pvarsym(sym)=opsym) and
-                       ((p^.flags and pi_operator)<>0)) then
-                       inc(opsym^.refs);
                     p1:=genzeronode(funcretn);
                     pd:=p^.retdef;
                     p1^.funcretprocinfo:=p;
                     p1^.retdef:=pd;
                     is_func_ret:=true;
+                    if p^.funcret_state=vs_declared then
+                      begin
+                        p^.funcret_state:=vs_declared_and_first_found;
+                        p1^.is_first_funcret:=true;
+                      end;
                     exit;
                  end;
                p:=p^.parent;
             end;
           { we must use the function call }
-          if(sym^.typ=funcretsym) then
+          if (sym^.typ=funcretsym) then
             begin
                storesymtablestack:=symtablestack;
                symtablestack:=srsymtable^.next;
@@ -1003,7 +1005,7 @@ unit pexpr;
                                begin
                                  p1^.is_first := true;
                                  { set special between first loaded until checked in firstpass }
-                                 pvarsym(srsym)^.varstate:=vs_declared2;
+                                 pvarsym(srsym)^.varstate:=vs_declared_and_first_found;
                                end;
                               pd:=pvarsym(srsym)^.definition;
                             end;
@@ -2116,7 +2118,10 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.159  1999-11-15 17:52:59  pierre
+  Revision 1.160  1999-11-17 17:05:01  pierre
+   * Notes/hints changes
+
+  Revision 1.159  1999/11/15 17:52:59  pierre
     + one field added for ttoken record for operator
       linking the id to the corresponding operator token that
       can now now all be overloaded
