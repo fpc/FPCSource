@@ -62,7 +62,7 @@ type
    BOOL  = longint; obsolete }
    UINT  = cardinal;
    BOOL  = longbool;
-   WCHAR = word;
+//   WCHAR = word;
 {$ifdef UNICODE}
    LPTCH   = ^word;
    LPTSTR  = ^word;
@@ -120,7 +120,10 @@ type
 
 {
   $Log$
-  Revision 1.5  2001-05-02 10:25:23  marco
+  Revision 1.6  2001-07-30 14:53:17  marco
+   * whcar now in system.
+
+  Revision 1.5  2001/05/02 10:25:23  marco
    * LPSystemTime added.
 
   Revision 1.4  2001/05/02 10:18:04  marco
