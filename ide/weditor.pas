@@ -2484,6 +2484,9 @@ end;
 procedure TCustomCodeEditor.Lock;
 begin
   Inc(ELockFlag);
+{$ifdef FVISION}
+  Inc(LockUpdateScreen);
+{$endif FVISION}
 end;
 
 procedure TCustomCodeEditor.UnLock;
@@ -2493,6 +2496,9 @@ begin
     Bug('negative lockflag',nil)
   else
 {$endif DEBUG}
+{$ifdef FVISION}
+  Dec(LockUpdateScreen);
+{$endif FVISION}
     Dec(ELockFlag);
   if (ELockFlag>0) then
     Exit;
@@ -6937,7 +6943,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.4  2001-09-04 22:58:58  pierre
+  Revision 1.5  2001-09-12 09:31:42  pierre
+   * fix bug 1579
+
+  Revision 1.4  2001/09/04 22:58:58  pierre
    * fix highlight for 'i:=1to'
 
   Revision 1.3  2001/08/12 00:06:49  pierre
