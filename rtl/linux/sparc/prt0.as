@@ -1,6 +1,7 @@
-/* Startup code for programs linked with GNU libc.
-   Copyright (C) 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
+/* Startup code for elf32-sparc
+   Copyright (C) 1997, 1998 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
+   Contributed by Richard Henderson <richard@gnu.ai.mit.edu>, 1997.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -17,67 +18,44 @@
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
    02111-1307 USA.  */
 
-        .section ".text"
-        .globl  _start
+#include <sysdep.h>
+
+
+	.section ".text"
+	.align 4
+	.global _start
+	.type _start,#function
 _start:
- 	/* Save the stack pointer, in case we're statically linked under Linux.  */
-	mr	9,1
-	/* Set up an initial stack frame, and clear the LR.  */
-	clrrwi	1,1,4
-	li	0,0
-	stwu	1,-16(1)
-	mtlr	0
-	stw	0,0(1)
-	bl	PASCALMAIN
 
-        .globl  _haltproc
-        .type   _haltproc,@function
-_haltproc:
-        li      0,1	         /* exit call */
-	lis	3,U_SYSTEM_EXITCODE@h
-	stw	3,U_SYSTEM_EXITCODE@l(3)
-        sc
-        b	_haltproc
+  /* Terminate the stack frame, and reserve space for functions to
+     drop their arguments.  */
+	mov	%g0, %fp
+	sub	%sp, 6*4, %sp
 
-	/* Define a symbol for the first piece of initialized data.  */
-	.section ".data"
-	.globl	__data_start
-__data_start:
-data_start:
-        .globl  ___fpc_brk_addr         /* heap management */
-        .type   ___fpc_brk_addr,@object
-        .size   ___fpc_brk_addr,4
-___fpc_brk_addr:
-        .long   0
-/*
-  $Log$
-  Revision 1.1  2002-11-15 12:08:37  mazen
-  + SPARC support added based on PowerPc sources
+  /* Extract the arguments and environment as encoded on the stack.  The
+     argument info starts after one register window (16 words) past the SP.  */
+	ld	[%sp+22*4], %o1
+	add	%sp, 23*4, %o2
 
-  Revision 1.9  2002/09/07 16:01:20  peter
-    * old logs removed and tabs fixed
+  /* Load the addresses of the user entry points.  */
+	sethi	%hi(main), %o0
+	sethi	%hi(_init), %o3
+	sethi	%hi(_fini), %o4
+	or	%o0, %lo(main), %o0
+	or	%o3, %lo(_init), %o3
+	or	%o4, %lo(_fini), %o4
 
-  Revision 1.8  2002/08/31 21:29:57  florian
-    * several PC related fixes
+  /* When starting a binary via the dynamic linker, %g1 contains the
+     address of the shared library termination function, which will be
+     registered with atexit().  If we are statically linked, this will
+     be NULL.  */
+	mov	%g1, %o5
 
-  Revision 1.7  2002/08/31 16:13:12  florian
-    * made _start global
+  /* Let libc do the rest of the initialization, and call main.  */
+	call	__libc_start_main
+	 nop
 
-  Revision 1.6  2002/08/31 14:02:23  florian
-    * r3 renamed to 3
+  /* Die very horribly if exit returns.  */
+	unimp
 
-  Revision 1.5  2002/08/31 14:01:28  florian
-    * _haltproc to prt0.as added (Linux/PPC)
-
-  Revision 1.4  2002/08/31 13:11:11  florian
-    * several fixes for Linux/PPC compilation
-
-  Revision 1.3  2002/08/19 21:19:15  florian
-    * small fixes
-
-  Revision 1.2  2002/07/26 17:09:44  florian
-    * log fixed
-
-  Revision 1.1  2002/07/26 16:57:40  florian
-    + initial version, plain copy from glibc/sysdeps/powerpc/elf/start.S
-*/
+	.size _start, .-_start
