@@ -23,7 +23,7 @@
 {   var
      Errno : cint; external name 'errno';}
 
-    function sys_time(var tloc:time_t): time_t; cdecl; external name 'time';
+    function sys_time(tloc:ptime_t): time_t; cdecl; external name 'time';
     function sys_open(const path: pchar; flags : cint; mode: mode_t):cint; cdecl; external name 'open';
     function sys_close(fd : cint): cint; cdecl; external name 'close';
     function sys_lseek(fd : cint; offset : off_t; whence : cint): off_t; cdecl; external name 'lseek';
@@ -71,7 +71,7 @@
 
 // Should be moved to a FreeBSD specific unit in the future.
 
-function sys_time(var tloc:time_t): time_t; [public, alias : 'FPC_SYSC_TIME'];
+function sys_time( tloc:ptime_t): time_t; [public, alias : 'FPC_SYSC_TIME'];
 
 VAR tv     : timeval;
     tz     : timezone;
@@ -83,8 +83,8 @@ begin
    sys_time:=-1
   else
    Begin
-//    If Assigned(tloc) Then
-     TLoc:=tv.tv_sec;
+   If Assigned(tloc) Then
+     TLoc^:=tv.tv_sec;
     sys_time:=tv.tv_sec;
    End;
 End;
@@ -574,7 +574,10 @@ end;
 
 {
  $Log$
- Revision 1.8  2002-10-27 17:21:29  marco
+ Revision 1.9  2002-11-13 18:15:08  marco
+  * sigset functions more flexible, small changes to sys_time
+
+ Revision 1.8  2002/10/27 17:21:29  marco
   * Only "difficult" functions + execvp + termios + rewinddir left to do
 
  Revision 1.7  2002/10/27 11:58:29  marco

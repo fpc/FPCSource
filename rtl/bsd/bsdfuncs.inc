@@ -38,7 +38,11 @@ begin
 end;
 
 Const 
-   SIG_MAXSIG = 128;
+   SIG_MAXSIG      = 128;
+   wordsinsigset   = 4;
+   ln2bitsinword   = 5;    { 32bit : ln(32)/ln(2)=5 } 
+
+   ln2bitmask	   = 2 shl ln2bitsinword -1;
    
 function sys_sigaddset(var _set : sigset_t;signo:cint): cint;
 
@@ -48,7 +52,7 @@ Begin
        seterrno(sys_EINVAL);
        exit(-1);
      End;
-   _set[(signo-1) shr 5]:=_set[(signo-1) shr 5] OR (1 shl ((signo-1) and 31));
+   _set[(signo-1) shr ln2bitsinword]:=_set[(signo-1) shr ln2bitsinword] OR (1 shl ((signo-1) and ln2bitmask));
    sys_sigaddset:=0;
 End;   
 
@@ -60,7 +64,7 @@ Begin
        seterrno(sys_EINVAL);
        exit(-1);
      End;
-   _set[(signo-1) shr 5]:=_set[(signo-1) shr 5] AND NOT (1 shl ((signo-1) and 31));
+   _set[(signo-1) shr ln2bitsinword]:=_set[(signo-1) shr ln2bitsinword] AND NOT (1 shl ((signo-1) and ln2bitmask));
    sys_sigdelset:=0;
 End;
 
@@ -69,7 +73,7 @@ function sys_sigemptyset(var _set : sigset_t):cint;
 var i :longint;
 
 Begin
-  for i:=0 to 3 DO _set[i]:=0;
+  for i:=0 to wordsinsigset-1 DO _set[i]:=0;
   sys_sigemptyset:=0;
 End;
 
@@ -78,7 +82,7 @@ function sys_sigfillset(var _set : sigset_t):cint;
 var i :longint;
 
 Begin
-  for i:=0 to 3 DO _set[i]:=NOT 0;
+  for i:=0 to wordsinsignset DO _set[i]:=NOT 0;
   sys_sigfillset:=0;
 End;
 
@@ -90,7 +94,7 @@ Begin
        seterrno(sys_EINVAL);
        exit(-1);
      End;
-    if ((_set[(signo-1) shr 5]) and (1 shl ((signo-1) and 31)))>0 Then
+    if ((_set[(signo-1) shr ln2bitsinword]) and (1 shl ((signo-1) and ln2bitmask)))>0 Then
      sys_sigismember:=1
     else 
      sys_sigismember:=0;
@@ -511,7 +515,10 @@ end;
 
 {
  $Log$
- Revision 1.8  2002-10-27 17:21:29  marco
+ Revision 1.9  2002-11-13 18:15:08  marco
+  * sigset functions more flexible, small changes to sys_time
+
+ Revision 1.8  2002/10/27 17:21:29  marco
   * Only "difficult" functions + execvp + termios + rewinddir left to do
 
  Revision 1.7  2002/10/27 11:58:29  marco
