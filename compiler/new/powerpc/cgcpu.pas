@@ -59,9 +59,13 @@ unit cgcpu;
           procedure a_cmp_reg_reg_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : pasmlabel);
 
 
-          procedure g_stackframe_entry(list : paasmoutput;localsize : longint);virtual;
+          procedure g_stackframe_entry_sysv(list : paasmoutput;localsize : longint);
+          procedure g_stackframe_entry_mac(list : paasmoutput;localsize : longint);
+{          procedure g_stackframe_entry(list : paasmoutput;localsize : longint);virtual;}
           procedure g_restore_frame_pointer(list : paasmoutput);virtual;
-          procedure g_return_from_proc(list : paasmoutput;parasize : aword); virtual;
+{          procedure g_return_from_proc(list : paasmoutput;parasize : aword); virtual;}
+          procedure g_return_from_proc_sysv(list : paasmoutput;parasize : aword); virtual;
+          procedure g_return_from_proc_mac(list : paasmoutput;parasize : aword); virtual;
 
           procedure a_loadaddress_ref_reg(list : paasmoutput;const ref2 : treference;r : tregister);virtual;
 
@@ -342,73 +346,173 @@ const
         reg1,reg2 : tregister;l : pasmlabel);
 
       var p: paicpu;
-          AsmCond: TAsmCondFlags;
+          op: tasmop;
 
       begin
-        list^.concat(new(paicpu,op_const_reg_reg(A_CMPL,0,reg1,reg2)));
+        if cmp_op in [OC_GT,OC_LT,OC_GTE,OC_LTE] then
+          op := A_CMP
+        else op := A_CMPL;
+        list^.concat(new(paicpu,op_const_reg_reg(op,0,reg1,reg2)));
         a_jmp(list,A_BC,TOpCmp2AsmCond[cmp_op],l);
       end;
 
 
 { *********** entry/exit code and address loading ************ }
 
-    procedure tcgppc.g_stackframe_entry(list : paasmoutput;localsize : longint);
+    procedure tcgppc.g_stackframe_entry_sysv(list : paasmoutput;localsize : longint);
  { generated the entry code of a procedure/function. Note: localsize is the }
  { sum of the size necessary for local variables and the maximum possible   }
  { combined size of ALL the parameters of a procedure called by the current }
  { one                                                                      }
-     var scratch_register: TRegister;
+     var regcounter: TRegister;
 
       begin
         if (localsize mod 8) <> 0 then internalerror(58991);
  { CR and LR only have to be saved in case they are modified by the current }
  { procedure, but currently this isn't checked, so save them always         }
-        scratch_register := get_scratch_reg(list);
-        list^.concat(new(paicpu,op_reg(A_MFCR,scratch_register)));
+        { following is the entry code as described in "Altivec Programming }
+        { Interface Manual", bar the saving of AltiVec registers           }
+        a_reg_alloc(list,R_SP);
+        a_reg_alloc(list,R_0);
+        { allocate registers containing reg parameters }
+        for regcounter := R_3 to R_10 do
+          a_reg_alloc(list,regcounter);
+        { save return address... }
+        list^.concat(new(paicpu,op_reg(A_MFLR,R_0)));
+        { ... in caller's frame }
+        list^.concat(new(paicpu,op_reg_ref(A_STW,R_0,new_reference(R_SP,4))));
+        a_reg_dealloc(list,R_0);
+        a_reg_alloc(list,R_11);
+        { save end of fpr save area }
+        list^.concat(new(paicpu,op_reg_reg_const(A_ORI,R_11,R_SP,0)));
+        a_reg_alloc(list,R_12);
+        { 0 or 8 based on SP alignment }
+        list^.concat(new(paicpu,op_reg_reg_const_const_const(A_RLWINM,
+          R_12,R_SP,0,28,28)));
+        { add in stack length }
+        list^.concat(new(paicpu,op_reg_reg_const(A_SUBFIC,R_12,R_12,
+          -localsize)));
+        { establish new alignment }
+        list^.concat(new(paicpu,op_reg_reg_reg(A_STWUX,R_SP,R_SP,R_12)));
+        a_reg_dealloc(list,R_12);
+        { save floating-point registers }
+        { !!! has to be optimized: only save registers that are used }
+        list^.concat(new(op_sym_ofs(A_BL,newasmsymbol('_savefpr_14'),0)));
+        { compute end of gpr save area }
+        list^.concat(new(paicpu,op_reg_reg_const(A_ADDI,R_11,R_11,-144)));
+        { save gprs and fetch GOT pointer }
+        { !!! has to be optimized: only save registers that are used }
+        list^.concat(new(op_sym_ofs(A_BL,newasmsymbol('_savegpr_14_go'),0)));
+        a_reg_alloc(list,R_31);
+        { place GOT ptr in r31 }
+        list^.concat(new(paicpu,op_reg(A_MFLR,R_31));
+        { save the CR if necessary ( !!! always done currently ) }
+        { still need to find out where this has to be done for SystemV
+        a_reg_alloc(list,R_0);
+        list^.concat(new(paicpu,op_reg(A_MFCR,R_0);
         list^.concat(new(paicpu,op_reg_ref(A_STW,scratch_register,
           new_reference(stack_pointer,LA_CR))));
-        free_scratch_reg(list,scratch_register);
-        scratch_register := get_scratch_reg(list);
-        list^.concat(new(paicpu,op_reg_reg(A_MFSPR,scratch_register,
-          R_LR)));
-        list^.concat(new(paicpu,op_reg_ref(A_STW,scratch_register,
-          new_reference(stack_pointer,LA_LR))));
-        free_scratch_reg(list,scratch_register);
-{ if the current procedure is a leaf procedure, we can use the Red Zone,    }
-{ but this is not yet implemented                                           }
-{        if ((procinfo.flags and pi_do_call) <> 0) And                      }
-{           (localsize <= (256 - LinkageAreaSize)) Then                     }
-           Begin
-             if localsize<>0 then
-               begin
- { allocate space for the local variable, parameter and linkage area and   }
- { save the stack pointer at the end of the linkage area                   }
-                 if localsize <= $ffff Then
-                   list^.concat(new(paicpu,op_reg_ref
-                     (A_STWU,stack_pointer, new_reference(stack_pointer,localsize+
-                      LinkageAreaSize))))
-                 else
-                   Begin
-                     scratch_register := get_scratch_reg(list);
-                     a_load_const_reg(list,OS_32,localsize,scratch_register);
-                     list^.concat(new(paicpu,op_reg_reg_reg(A_STWUX,stack_pointer,
-                       stack_pointer,scratch_register)));
-                     free_scratch_reg(list,scratch_register);
-                  End;
-               End
-           End;
+        a_reg_dealloc(list,R_0); }
+        { save pointer to incoming arguments }
+        list^.concat(new(paicpu,op_reg_reg_const(A_ADDI,R_30,R_11,144)));
+        { now comes the AltiVec context save, not yet implemented !!! }
        end;
+
+    procedure tcgppc.g_stackframe_entry_mac(list : paasmoutput;localsize : longint);
+ { generated the entry code of a procedure/function. Note: localsize is the }
+ { sum of the size necessary for local variables and the maximum possible   }
+ { combined size of ALL the parameters of a procedure called by the current }
+ { one                                                                      }
+     var regcounter: TRegister;
+
+      begin
+        if (localsize mod 8) <> 0 then internalerror(58991);
+ { CR and LR only have to be saved in case they are modified by the current }
+ { procedure, but currently this isn't checked, so save them always         }
+        { following is the entry code as described in "Altivec Programming }
+        { Interface Manual", bar the saving of AltiVec registers           }
+        a_reg_alloc(list,R_SP);
+        a_reg_alloc(list,R_0);
+        { allocate registers containing reg parameters }
+        for regcounter := R_3 to R_10 do
+          a_reg_alloc(list,regcounter);
+        { save return address... }
+        list^.concat(new(paicpu,op_reg(A_MFLR,R_0)));
+        { ... in caller's frame }
+        list^.concat(new(paicpu,op_reg_ref(A_STW,R_0,new_reference(R_SP,8))));
+        a_reg_dealloc(list,R_0);
+        { save floating-point registers }
+        { !!! has to be optimized: only save registers that are used }
+        list^.concat(new(op_sym_ofs(A_BL,'_savef14',0)));
+        { save gprs in gpr save area }
+        { !!! has to be optimized: only save registers that are used }
+        list^.concat(new(op_reg_ref(A_STMW,R_13,new_reference(R_SP,-220))));
+        { save the CR if necessary ( !!! always done currently ) }
+        a_reg_alloc(list,R_0);
+        list^.concat(new(paicpu,op_reg(A_MFCR,R_0);
+        list^.concat(new(paicpu,op_reg_ref(A_STW,scratch_register,
+          new_reference(stack_pointer,LA_CR))));
+        a_reg_dealloc(list,R_0);
+        { save pointer to incoming arguments }
+        list^.concat(new(paicpu,op_reg_reg_const(A_ORI,R_31,R_SP,0)));
+        a_reg_alloc(list,R_12);
+        { 0 or 8 based on SP alignment }
+        list^.concat(new(paicpu,op_reg_reg_const_const_const(A_RLWINM,
+          R_12,R_SP,0,28,28)));
+        { add in stack length }
+        list^.concat(new(paicpu,op_reg_reg_const(A_SUBFIC,R_12,R_12,
+          -localsize)));
+        { establish new alignment }
+        list^.concat(new(paicpu,op_reg_reg_reg(A_STWUX,R_SP,R_SP,R_12)));
+        a_reg_dealloc(list,R_12);
+        { now comes the AltiVec context save, not yet implemented !!! }
+       end;
+
 
     procedure tcgppc.g_restore_frame_pointer(list : paasmoutput);
 
       begin
- { no frame pointer on the PowerPC                                          }
+ { no frame pointer on the PowerPC (maybe there is one in the SystemV ABI?)}
       end;
 
-     procedure tcgppc.g_return_from_proc(list : paasmoutput;parasize : aword);
+     procedure tcgppc.g_return_from_proc_sysv(list : paasmoutput;parasize : aword);
+
+     var regcounter: TRegister;
 
      begin
-       abstract;
+       { release parameter registers }
+       for regcounter := R_3 to R_10 do
+         a_reg_dealloc(list,regcounter);
+       { AltiVec context restore, not yet implemented !!! }
+
+       { address if gpr save area to r11 }
+       list^.concat(new(paicpu,op_reg_reg_const(A_ADDI,R_11,R_31,-144)));
+       { restore gprs }
+       list^.concat(new(paicpu,op_sym_ofs(A_BL,newasmsymbol('_restgpr_14'),0)));
+       { address of fpr save area to r11 }
+       list^.concat(new(paicpu,op_reg_reg_const(A_ADDI,R_11,R_11,144)));
+       { restore fprs and return }
+       list^.concat(new(paicpu,op_sym_ofs(A_BL,newasmsymbol('_restfpr_14_x'),0)));
+     end;
+
+     procedure tcgppc.g_return_from_proc_sysv(list : paasmoutput;parasize : aword);
+
+     var regcounter: TRegister;
+
+     begin
+       { release parameter registers }
+       for regcounter := R_3 to R_10 do
+         a_reg_dealloc(list,regcounter);
+       { AltiVec context restore, not yet implemented !!! }
+
+       { restore SP }
+       list^.concat(new(paicpu,op_reg_reg_const(A_ORI,R_SP,R_31,0)));
+       { restore gprs }
+       list^.concat(new(paicpu,op_reg_ref(A_LMW,R_13,new_reference(R_SP,-220))));
+       { restore return address ... }
+       list^.concat(new(paicpu,op_reg_ref(A_LWZ,R_0,new_reference(R_SP,8))));
+       { ... and return from _restf14 }
+       list^.concat(new(paicpu,op_sym_ofs(A_B,newasmsymbol('_restf14'),0)));
      end;
 
      procedure tcgppc.a_loadaddress_ref_reg(list : paasmoutput;const ref2 : treference;r : tregister);
@@ -422,27 +526,27 @@ const
          if assigned(ref.symbol) then
            { add the symbol's value to the base of the reference, and if the }
            { reference doesn't have a base, create one                       }
-	 	       begin
-	           tmpreg := get_scratch_reg(list);
-	           reset_reference(tmpref);
-	           tmpref.symbol := ref.symbol;
-	           tmpref.symaddr := refs_ha;
-	           tmpref.is_immediate := true;
-	           if ref.base <> R_NO then
-	             list^.concat(new(paicpu,op_reg_reg_ref(A_ADDIS,tmpreg,
-	               ref.base,newreference(tmpref))))
-	           else
-	             list^.concat(new(paicpu,op_reg_ref(A_LIS,tmpreg,
-	                newreference(tmpref))));
-	           ref.base := tmpreg
-	           ref.symaddr := refs_l;
-	           { can be folded with one of the next instructions by the }
-	           { optimizer probably                                     }
-	           list^.concat(new(paicpu,op_reg_ref(A_ADDI,tmpreg,tmpreg
-	              newreference(tmpref))));
-	 	       end;
-         If ref.offset <> 0 Then
-           If ref.base <> R_NO then
+           begin
+             tmpreg := get_scratch_reg(list);
+             reset_reference(tmpref);
+             tmpref.symbol := ref.symbol;
+             tmpref.symaddr := refs_ha;
+             tmpref.is_immediate := true;
+             if ref.base <> R_NO then
+               list^.concat(new(paicpu,op_reg_reg_ref(A_ADDIS,tmpreg,
+                 ref.base,newreference(tmpref))))
+             else
+               list^.concat(new(paicpu,op_reg_ref(A_LIS,tmpreg,
+                  newreference(tmpref))));
+             ref.base := tmpreg
+             ref.symaddr := refs_l;
+             { can be folded with one of the next instructions by the }
+             { optimizer probably                                     }
+             list^.concat(new(paicpu,op_reg_ref(A_ADDI,tmpreg,tmpreg
+                newreference(tmpref))));
+           end;
+         if ref.offset <> 0 Then
+           if ref.base <> R_NO then
              a_op_reg_reg_const32(list,A_ADDI,A_ADDIS,r,r,ref.offset)
   { FixRef makes sure that "(ref.index <> R_NO) and (ref.offset <> 0)" never}
   { occurs, so now only ref.offset has to be loaded                         }
@@ -451,18 +555,9 @@ const
            if ref.index <> R_NO Then
              list^.concat(new(paicpu,op_reg_reg_reg(A_ADD,r,ref.base,ref.index)))
            else list^.concat(new(paicpu,op_reg_reg(A_MR,r,ref.base)));
-         If assigned(ref.symbol) then
+         if assigned(ref.symbol) then
            free_scratch_reg(list,tmpreg);
        end;
-
-
-	     begin
-	         begin
-	         end;
-	       list^.concat(new(paicpu,op_reg_ref(op,reg,newreference(ref))));
-	       if assigned(ref.symbol) then
-	         free_scratch_reg(list,tmpreg);
-	     end;
 
 
 { ************* concatcopy ************ }
@@ -506,7 +601,7 @@ const
             countreg := get_scratch_reg(list);
             a_load_const_reg(list,OS_32,count-1,countreg);
             { explicitely allocate R_0 since it can be used safely here }
-            { (for holding date that's being copyied)                   }
+            { (for holding date that's being copied)                    }
             tempreg := R_0;
             a_reg_alloc(list,R_0);
             getlabel(lab);
@@ -617,7 +712,12 @@ const
 end.
 {
   $Log$
-  Revision 1.7  1999-10-20 12:23:24  jonas
+  Revision 1.8  1999-10-24 09:22:18  jonas
+    + entry/exitcode for SystemV (Linux) and AIX/Mac from the Altivec
+      PIM (no AltiVec support yet though)
+    * small fix to the a_cmp_* methods
+
+  Revision 1.7  1999/10/20 12:23:24  jonas
     * fixed a_loadaddress_ref_reg (mentioned as ToDo in rev. 1.5)
     * small bugfix in a_load_store
 
