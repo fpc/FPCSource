@@ -924,7 +924,7 @@ Function TDataset.ActiveBuffer: PChar;
 
 begin
 {$ifdef dsdebug}
-//  Writeln ('Active buffer requested. Returning:',ActiveRecord);
+  Writeln ('Active buffer requested. Returning:',ActiveRecord);
 {$endif}
   Result:=FBuffers[ActiveRecord];
 end;
@@ -1573,15 +1573,15 @@ begin
 {$endif}
     { throw an exception if not found.
       Normally the descendant should do this if DoCheck is true. }
-    If GetRecord(Fbuffers[FRecordCount-1],gmcurrent,True)<>grOk Then
+    If GetRecord(Fbuffers[0],gmcurrent,True)<>grOk Then
       DatabaseError(SNoSuchRecord,Self);
     end
   else
     { Can we find a record in the neighbourhood ?
       Use Shortcut evaluation for this, or we'll have some funny results. }
-    If (GetRecord(Fbuffers[FRecordCount-1],gmcurrent,True)<>grOk) and
-       (GetRecord(Fbuffers[FRecordCount-1],gmprior,True)<>grOk) and
-       (GetRecord(Fbuffers[FRecordCount-1],gmprior,True)<>grOk) then
+    If (GetRecord(Fbuffers[0],gmcurrent,True)<>grOk) and
+       (GetRecord(Fbuffers[0],gmprior,True)<>grOk) and
+       (GetRecord(Fbuffers[0],gmNext,True)<>grOk) then
        begin
 {$ifdef dsdebug}
        Writeln ('Resync: fuzzy resync');
@@ -1600,9 +1600,8 @@ begin
     // keep current position.
     ShiftCount:=FActiveRecord;
   // Reposition on 0
-  ShiftBuffers(0,FRecordCount-1);
 {$ifdef dsdebug}
-    Writeln ('Resync: activating buffers');
+  Writeln ('Resync: activating buffers');
 {$endif}
   ActivateBuffers;
   try
@@ -1614,10 +1613,6 @@ begin
       Inc(Count);
     FActiveRecord:=Count;
     // fill rest of buffers, adjust ActiveBuffer.
-{$ifdef dsdebug}
-    Writeln ('Resync: Set current record to ',FRecordCount,' records');
-{$endif}
-    SetCurrentRecord(FRecordCount-1);
     GetNextRecords;
     Inc(FActiveRecord,GetPriorRecords);
   finally
@@ -1765,7 +1760,10 @@ end;
 
 {
   $Log$
-  Revision 1.16  2004-08-02 15:13:42  michael
+  Revision 1.17  2004-08-03 19:08:48  michael
+  + Latest patch from Micha Nelissen
+
+  Revision 1.16  2004/08/02 15:13:42  michael
   + Patch from Micha Nelissen to implement Delete method
 
   Revision 1.15  2004/07/25 11:32:40  michael
