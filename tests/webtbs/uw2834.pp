@@ -1,6 +1,6 @@
 unit uw2834;
 
-{$mode objfpc}{$H+}
+{$ifdef fpc}{$mode objfpc}{$H+}{$endif}
 
 interface
 
