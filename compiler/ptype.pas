@@ -695,7 +695,7 @@ uses
                        ((p^.proptype^.deftype=setdef) and
                         (psetdef(p^.proptype)^.settype=smallset)
                        ) or
-                       assigned(propertyparas)
+                       not(propertyparas^.empty)
                        ) then
                        Message(parser_e_property_cant_have_a_default_value);
                      { Get the result of the default, the firstpass is
@@ -743,7 +743,7 @@ uses
 {$else}
                           p^.propoptions:=p^.propoptions+[ppo_defaultproperty];
 {$endif}
-                          if not(assigned(propertyparas)) then
+                          if propertyparas^.empty then
                             message(parser_e_property_need_paras);
                        end;
                      consume(_SEMICOLON);
@@ -1598,7 +1598,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.4  1999-10-27 14:17:08  florian
+  Revision 1.5  1999-10-27 16:04:06  peter
+    * fixed property reading
+
+  Revision 1.4  1999/10/27 14:17:08  florian
     * property overriding fixed
 
   Revision 1.3  1999/10/26 12:30:45  peter
