@@ -232,24 +232,20 @@ function ReadPortB (Port : Longint): Byte; assembler;
 }
 
 asm
-  xorl %eax,%eax
   movl port,%edx
+  xorl %eax,%eax
   inb %dx,%al
 end ['EAX','EDX'];
-
-
 
 function ReadPortW (Port : Longint): Word; assembler;
 {
   Reads a word from port 'Port'
 }
 asm
-  xorl %eax,%eax
   movl port,%edx
+  xorl %eax,%eax
   inw %dx,%ax
 end ['EAX','EDX'];
-
-
 
 function ReadPortL (Port : Longint): LongInt; assembler;
 {
@@ -259,8 +255,6 @@ asm
   movl port,%edx
   inl %dx,%eax
 end ['EAX','EDX'];
-
-
 
 Procedure ReadPortL (Port : Longint; Var Buf; Count: longint);
 {
@@ -330,7 +324,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2004-04-12 10:31:58  marco
+  Revision 1.4  2005-02-05 08:42:24  marco
+   * regvars problem fixed
+
+  Revision 1.3  2004/04/12 10:31:58  marco
    * ioperm/iopl added from linuxold. Untested but will probably work
 
 }
