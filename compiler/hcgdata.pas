@@ -461,7 +461,7 @@ implementation
 
                 { check, if a method should be overridden }
                 if (po_overridingmethod in hp^.procoptions) then
-                  Message1(parser_e_nothing_to_be_overridden,_c^.objname^+'.'+_name+hp^.demangled_paras);
+                  MessagePos1(hp^.fileinfo,parser_e_nothing_to_be_overridden,_c^.objname^+'.'+_name+hp^.demangled_paras);
                 { next overloaded method }
                 hp:=hp^.nextoverloaded;
              end;
@@ -584,7 +584,7 @@ implementation
                                     end;
                                   { check, if a method should be overridden }
                                   if (po_overridingmethod in hp^.procoptions) then
-                                   Message1(parser_e_nothing_to_be_overridden,_c^.objname^+'.'+_name+hp^.demangled_paras);
+                                   MessagePos1(hp^.fileinfo,parser_e_nothing_to_be_overridden,_c^.objname^+'.'+_name+hp^.demangled_paras);
                                end;
                              hp:=hp^.nextoverloaded;
                           end;
@@ -696,7 +696,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.25  2000-02-09 13:22:53  peter
+  Revision 1.26  2000-03-06 15:57:42  peter
+    * better error pos for overridden error
+
+  Revision 1.25  2000/02/09 13:22:53  peter
     * log truncated
 
   Revision 1.24  2000/01/28 23:17:53  florian
