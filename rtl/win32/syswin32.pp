@@ -273,7 +273,7 @@ begin
   l:=longint(GlobalLock(h));
   if l=0 then
     l:=-1;
-{$ifdef SYSTEMDEBUG}
+{$ifdef DUMPGROW}
   Writeln('new heap part at $',hexstr(l,8), ' size = ',GlobalSize(h));
 {$endif}
   sbrk:=l;
@@ -744,19 +744,27 @@ end;
 {*****************************************************************************
                          System Dependent Exit code
 *****************************************************************************}
+
+  procedure install_exception_handlers;forward;
+  procedure remove_exception_handlers;forward;
+  procedure PascalMain;external name 'PASCALMAIN';
+  procedure fpc_do_exit;external name 'FPC_DO_EXIT';
+  Procedure ExitDLL(Exitcode : longint); forward;
+
 Procedure system_exit;
 begin
   { don't call ExitProcess inside
     the DLL exit code !!
     This crashes Win95 at least PM }
   if IsLibrary then
-    Exit;
+    ExitDLL(ExitCode);
   if not IsConsole then
    begin
      Close(stderr);
      Close(stdout);
      { what about Input and Output ?? PM }
    end;
+  remove_exception_handlers;
   ExitProcess(ExitCode);
 end;
 
@@ -777,10 +785,6 @@ begin
   end;
 end;
 {$endif}
-
-  procedure install_exception_handlers;forward;
-  procedure PascalMain;external name 'PASCALMAIN';
-  procedure fpc_do_exit;external name 'FPC_DO_EXIT';
 
 
 var
@@ -817,33 +821,34 @@ Const
      DLL_THREAD_ATTACH = 2;
      DLL_PROCESS_DETACH = 0;
      DLL_THREAD_DETACH = 3;
+Var
+     DLLBuf : Jmp_buf;
+Const
+     DLLExitOK : boolean = true;
 
 function Dll_entry : longbool;[public, alias : '_FPC_DLL_Entry'];
 var
   res : longbool;
+
   begin
      IsLibrary:=true;
+     Dll_entry:=false;
      case DLLreason of
        DLL_PROCESS_ATTACH :
          begin
-           asm
-             movl %esp,%eax
-             movl %eax,Win32StackTop
-             xorl %edi,%edi
-             movw %ss,%di
-             movl %edi,_SS
-           end;
-           if assigned(Dll_Process_Attach_Hook) then
+           If SetJmp(DLLBuf) = 0 then
              begin
-               res:=Dll_Process_Attach_Hook(DllParam);
-               if not res then
+               if assigned(Dll_Process_Attach_Hook) then
                  begin
-                   Dll_entry:=false;
-                   exit;
+                   res:=Dll_Process_Attach_Hook(DllParam);
+                   if not res then
+                     exit(false);
                  end;
-             end;
-           PASCALMAIN;
-           Dll_entry:=true;
+               PASCALMAIN;
+               Dll_entry:=true;
+             end
+           else
+             Dll_entry:=DLLExitOK;
          end;
        DLL_THREAD_ATTACH :
          begin
@@ -861,15 +866,22 @@ var
          end;
        DLL_PROCESS_DETACH :
          begin
-           inc(Thread_count);
            Dll_entry:=true; { return value is ignored }
-           FPC_DO_EXIT;
+           If SetJmp(DLLBuf) = 0 then
+             begin
+               FPC_DO_EXIT;
+             end;
            if assigned(Dll_Process_Detach_Hook) then
              Dll_Process_Detach_Hook(DllParam);
          end;
      end;
   end;
 
+Procedure ExitDLL(Exitcode : longint);
+begin
+    DLLExitOK:=ExitCode=0;
+    LongJmp(DLLBuf,1);
+end;
 
 {$ifdef Set_i386_Exception_handler}
 
@@ -1017,12 +1029,19 @@ type pexception_record = ^exception_record;
       SetUnhandledExceptionFilter(@syswin32_i386_exception_handler);
     end;
 
+  procedure remove_exception_handlers;
+    begin
+      SetUnhandledExceptionFilter(nil);
+    end;
 
 {$else not i386 (Processor specific !!)}
   procedure install_exception_handlers;
     begin
     end;
 
+  procedure remove_exception_handlers;
+    begin
+    end;
 
 {$endif Set_i386_Exception_handler}
 
@@ -1161,7 +1180,11 @@ end.
 
 {
   $Log$
-  Revision 1.60  2000-02-09 16:59:34  peter
+  Revision 1.61  2000-03-10 09:21:11  pierre
+    * ExitDLL fixed : uses now SetJmp LongJmp
+    * System_exit unloads the exception hanlder before leaving
+
+  Revision 1.60  2000/02/09 16:59:34  peter
     * truncated log
 
   Revision 1.59  2000/02/09 12:24:39  peter
