@@ -782,7 +782,7 @@ implementation
                       procedureprefix := 'FPC_VAL_UINT_';
                  end;
            End;
-           
+
            saveregvars($ff);
            emitcall(procedureprefix+pstringdef(node.resulttype)^.stringtypname);
            { before disposing node we need to ungettemp !! PM }
@@ -1682,7 +1682,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2000-12-07 17:19:46  jonas
+  Revision 1.10  2000-12-09 22:51:37  florian
+    * helper name of val for qword fixed
+
+  Revision 1.9  2000/12/07 17:19:46  jonas
     * new constant handling: from now on, hex constants >$7fffffff are
       parsed as unsigned constants (otherwise, $80000000 got sign extended
       and became $ffffffff80000000), all constants in the longint range
