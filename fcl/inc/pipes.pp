@@ -21,11 +21,11 @@ Interface
 Uses sysutils,Classes;
 
 Type
-
-  ENoReadPipe = Class(ESTreamError);
-  ENoWritePipe = Class (EStreamError);
-  EPipeSeek = Class (EStreamError);
-  EPipeCreation = Class (Exception);
+  EPipeError = Class(EStreamError);
+  ENoReadPipe = Class(EPipeError);
+  ENoWritePipe = Class (EPipeError);
+  EPipeSeek = Class (EPipeError);
+  EPipeCreation = Class (EPipeError);
 
   TPipeStream = Class (THandleStream)
     public
