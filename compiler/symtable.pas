@@ -548,11 +548,11 @@ implementation
               the user. (Under delphi it can still be accessed using result),
               but don't allow hiding of RESULT }
             if (m_duplicate_names in aktmodeswitches) and
-               (hsym.typ=varsym) and
-               (vo_is_funcret in tvarsym(hsym).varoptions) and
+               (sym.typ in [varsym,absolutesym]) and
+               (vo_is_funcret in tvarsym(sym).varoptions) and
                not((m_result in aktmodeswitches) and
-                   (vo_is_result in tvarsym(hsym).varoptions)) then
-             hsym.owner.rename(hsym.name,'hidden'+hsym.name)
+                   (vo_is_result in tvarsym(sym).varoptions)) then
+             sym.name:='hidden'+sym.name
             else
              begin
                DuplicateSym(hsym);
@@ -708,9 +708,11 @@ implementation
            { also don't count the value parameters which have local copies }
            { also don't claim for high param of open parameters (PM) }
            if (Errorcount<>0) or
-              (copy(p.name,1,3)='val') or
-              (copy(p.name,1,6)='hidden') or
-              (copy(p.name,1,4)='high') then
+              (vo_is_self in tvarsym(p).varoptions) or
+              (vo_is_vmt in tvarsym(p).varoptions) or
+              (vo_is_high_value in tvarsym(p).varoptions) or
+              assigned(tvarsym(p).localvarsym) or
+              (copy(p.name,1,6)='hidden') then
              exit;
            if (tvarsym(p).refs=0) then
              begin
@@ -1259,7 +1261,7 @@ implementation
                      (vo_is_funcret in tvarsym(sym).varoptions) and
                      not((m_result in aktmodeswitches) and
                          (vo_is_result in tvarsym(sym).varoptions)) then
-                   sym.owner.rename(sym.name,'hidden'+sym.name)
+                   sym.name:='hidden'+sym.name
                   else
                    begin
                      DuplicateSym(hsym);
@@ -2418,7 +2420,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.98  2003-05-11 14:45:12  peter
+  Revision 1.99  2003-05-13 15:17:13  peter
+    * fix crash with hiding function result. The function result is now
+      inserted as last so the symbol that we are going to insert is the
+      result and needs to be renamed instead of the already existing
+      symbol
+
+  Revision 1.98  2003/05/11 14:45:12  peter
     * tloadnode does not support objectsymtable,withsymtable anymore
     * withnode cleanup
     * direct with rewritten to use temprefnode
