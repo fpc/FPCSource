@@ -29,13 +29,13 @@ Unit {$ifdef VER1_0}Syslinux{$else}System{$endif};
 
 Interface
 
+{$I sysunixh.inc}
+
 {$define FPC_USE_SIGPROCMASK}
 {$define FPC_USE_SIGALTSTACK}
 
 CONST SIGSTKSZ = 40960;
 
-
-{$I sysunixh.inc}
 
 Implementation
 
@@ -108,7 +108,10 @@ End.
 
 {
   $Log$
-  Revision 1.9  2003-10-26 16:42:22  marco
+  Revision 1.10  2003-10-26 17:01:04  marco
+   * moved sigprocmask to system
+
+  Revision 1.9  2003/10/26 16:42:22  marco
    * texception4 fix merge
 
   Revision 1.8  2003/01/05 19:01:28  marco

@@ -532,6 +532,21 @@ begin
  fpgettimeofday:=do_syscall(syscall_nr_gettimeofday,TSysParam(tp),TSysParam(tzp));
 end;
 
+function FPSigProcMask(how:cint;nset : psigset;oset : psigset):cint; [public, alias : 'FPC_SYSC_SIGPROCMASK'];
+
+{
+  Change the list of currently blocked signals.
+  How determines which signals will be blocked :
+   SigBlock   : Add SSet to the current list of blocked signals
+   SigUnBlock : Remove the signals in SSet from the list of blocked signals.
+   SigSetMask : Set the list of blocked signals to SSet
+  if OldSSet is non-null, the old set will be saved there.
+}
+
+begin
+  FPsigprocmask:=do_syscall(syscall_nr_sigprocmask,longint(how),longint(nset),longint(oset));
+end;
+
 Function FpNanoSleep(req : ptimespec;rem : ptimespec) : cint; [public, alias : 'FPC_SYSC_NANOSLEEP'];
 begin
 {$ifndef darwin}
@@ -599,7 +614,10 @@ end;
 
 {
  $Log$
- Revision 1.13  2003-10-17 22:10:30  olle
+ Revision 1.14  2003-10-26 17:01:04  marco
+  * moved sigprocmask to system
+
+ Revision 1.13  2003/10/17 22:10:30  olle
    * changed i386 to cpui386
 
  Revision 1.12  2003/09/27 13:45:58  peter

@@ -45,21 +45,6 @@ begin
 //  Kill:=0;
 end;
 
-function FPSigProcMask(how:cint;nset : psigset;oset : psigset):cint; [public, alias : 'FPC_SYSC_SIGPROCMASK'];
-
-{
-  Change the list of currently blocked signals.
-  How determines which signals will be blocked :
-   SigBlock   : Add SSet to the current list of blocked signals
-   SigUnBlock : Remove the signals in SSet from the list of blocked signals.
-   SigSetMask : Set the list of blocked signals to SSet
-  if OldSSet is non-null, the old set will be saved there.
-}
-
-begin
-  FPsigprocmask:=do_syscall(syscall_nr_sigprocmask,longint(how),longint(nset),longint(oset));
-end;
-
 Function FPSigPending(var nset: sigset_t):cint;
 {
   Allows examination of pending signals. The signal mask of pending
@@ -469,7 +454,10 @@ end;
 
 {
  $Log$
- Revision 1.4  2003-09-27 13:45:58  peter
+ Revision 1.5  2003-10-26 17:01:04  marco
+  * moved sigprocmask to system
+
+ Revision 1.4  2003/09/27 13:45:58  peter
    * fpnanosleep exported in baseunix
    * fpnanosleep has pointer arguments to be C compliant
 

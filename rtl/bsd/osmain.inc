@@ -492,6 +492,21 @@ end;
                          SystemUnit Initialization
 *****************************************************************************}
 
+function  reenable_signal(sig : longint) : boolean;
+var
+  e,oe : TSigSet;
+  i,j : byte;
+begin
+  fillchar(e,sizeof(e),#0);
+  fillchar(oe,sizeof(oe),#0);
+  { set is 1 based PM }
+  dec(sig);
+  i:=sig mod 32;
+  j:=sig div 32;
+  e[j]:=1 shl i;
+  fpsigprocmask(SIG_UNBLOCK,@e,@oe);
+  reenable_signal:=geterrno=0;
+end;
 
 procedure SignalToRunerror(signo: cint); cdecl;
 var
@@ -613,7 +628,10 @@ End.
 
 {
    $Log$
-   Revision 1.3  2003-09-27 13:04:58  peter
+   Revision 1.4  2003-10-26 17:01:04  marco
+    * moved sigprocmask to system
+
+   Revision 1.3  2003/09/27 13:04:58  peter
      * fpISxxx renamed
 
    Revision 1.2  2003/05/29 20:54:09  marco
