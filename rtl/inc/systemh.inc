@@ -119,7 +119,8 @@ var
 
 Const
   ErrorProc   : Pointer = nil;
-
+  AbstractErrorHandler : Pointer = Nil;
+  
 {****************************************************************************
                         Processor specific routines
 ****************************************************************************}
@@ -386,7 +387,10 @@ Procedure halt;
 
 {
   $Log$
-  Revision 1.28  1998-09-14 10:48:22  peter
+  Revision 1.29  1998-09-16 13:08:04  michael
+  Added AbstractErrorHandler
+
+  Revision 1.28  1998/09/14 10:48:22  peter
     * FPC_ names
     * Heap manager is now system independent
 

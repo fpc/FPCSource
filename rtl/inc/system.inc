@@ -289,7 +289,11 @@ end;
 
 procedure abstracterror;[public,alias : 'FPC_ABSTRACTERROR'];
 
+Type TAbstractErrorHandler = Procedure;
+
 begin
+  If AbstractErrorHandler<>nil then
+    TAbstractErrorHAndler(AbstractErrorHAndler);
   Runerror(211);
 end;
   
@@ -469,7 +473,10 @@ end;
 
 {
   $Log$
-  Revision 1.32  1998-09-16 12:37:07  michael
+  Revision 1.33  1998-09-16 13:08:03  michael
+  Added AbstractErrorHandler
+
+  Revision 1.32  1998/09/16 12:37:07  michael
   Added FPC_ prefix to abstracterror
 
   Revision 1.31  1998/09/15 17:12:32  michael

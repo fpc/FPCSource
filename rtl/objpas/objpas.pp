@@ -132,7 +132,7 @@ unit objpas;
            runerror(219);
       end;
 
-    procedure abstracterror;[public,alias: 'ABSTRACTERROR'];
+    procedure abstracterror;
 
       type
          proc = procedure;
@@ -141,7 +141,7 @@ unit objpas;
          if assigned(abstracterrorproc) then
            proc(abstracterrorproc)()
          else
-           runerror(210);
+           runerror(211);
       end;
 
   {************************************************************************}
@@ -315,12 +315,16 @@ unit objpas;
 {$i except.inc}
 
 begin
-  InitExceptions
+  InitExceptions;
+  AbstractErrorHandler:=@AbstractError;
 end.
 {$endif VER0_99_5}
 {
   $Log$
-  Revision 1.8  1998-09-06 21:27:31  florian
+  Revision 1.9  1998-09-16 13:08:19  michael
+  Added AbstractErrorHandler
+
+  Revision 1.8  1998/09/06 21:27:31  florian
     + method tobject.classinfo added
 
   Revision 1.7  1998/09/04 08:49:06  peter
