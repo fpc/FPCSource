@@ -73,9 +73,7 @@ implementation
     uses
       systems,tokens,
       verbose,globals,cutils,
-{$ifdef support_mmx}
       globtype,
-{$endif}
       symconst,symtype,symtable,symdef,types,
       htypechk,pass_1,cpubase,cpuinfo,
       cgbase,
@@ -680,7 +678,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.27  2001-12-29 15:27:24  jonas
+  Revision 1.28  2002-02-11 11:45:51  michael
+  * Compilation without mmx support fixed from Peter
+
+  Revision 1.27  2001/12/29 15:27:24  jonas
     * made 'mod powerof2' -> 'and' optimization processor independent
 
   Revision 1.26  2001/12/27 15:33:58  jonas
