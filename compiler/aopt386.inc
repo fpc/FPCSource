@@ -27,6 +27,7 @@
 Type    TwoWords = Record
             Word1, Word2: Word
         End;
+
 Function Reg32(Reg: TRegister): TRegister;
 {Returns the 32 bit component of Reg if it exists, otherwise Reg is returned}
 Begin
@@ -88,13 +89,11 @@ Const MaxCh = 3;
 
 Type TChange = (C_None,
                 C_EAX, C_ECX, C_EDX, C_EBX, C_ESP, C_EBP, C_ESI, C_EDI,
-{                C_AX,  C_CX,  C_DX,  C_BX,  C_SP,  C_BP,  C_SI,  C_DI,
-                C_AL,  C_CL,  C_DL,  C_BL,
-                C_AH,  C_CH,  C_BH,  C_DH,
-                C_DEFAULT_SEG, C_CS, C_DS, C_ES, C_FS, C_GS, C_SS,
-}                C_Flags, C_FPU,
+                C_CDirFlag, C_SDirFlag, C_Flags, C_FPU,
                 C_Op1, C_Op2, C_Op3,
                 C_MemEDI);
+
+     TFlagContents = (F_Unknown, F_NotSet, F_Set);
 
      TAsmInstrucProp = Record
                          NCh: Byte;
@@ -103,8 +102,8 @@ Type TChange = (C_None,
 
      TContent = Record
                   StartMod: Pointer; {start and end of block instructions that defines the
-                                          content of this register; If Typ = con_const, then
-                                          Longint(StartMod) = value of the constant)}
+                                      content of this register; If Typ = con_const, then
+                                      Longint(StartMod) = value of the constant)}
                    State: Word; {starts at 0, gets increased everytime the register is modified}
                    NrOfMods: Byte;
 {                  ModReg: TRegister; }{if one register gets a block assigned from an other register,
@@ -121,6 +120,7 @@ Type TChange = (C_None,
                   Regs: TRegContent;
 {                  FPURegs: TRegFPUContent;} {currently not yet used}
                   LineSave: Longint;
+                  DirFlag: TFlagContents;
                   {can this instruction be removed?}
                   CanBeRemoved: Boolean;
                 End;
@@ -190,7 +190,7 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
   {NONE} (NCh: 0; Ch: (C_None, C_None, C_None)),
  {ENTER} (NCh: 1; Ch: (C_ESP, C_None, C_None)),
  {LEAVE} (NCh: 1; Ch: (C_ESP, C_None, C_None)),
-   {CLD} (NCh: 1; Ch: (C_Flags, C_None, C_None)),
+   {CLD} (NCh: 1; Ch: (C_CDirFlag, C_None, C_None)),
   {MOVS} (NCh: 3; Ch: (C_ESI, C_EDI, C_MemEDI)),
    {REP} (NCh: 1; Ch: (C_ECX, C_None, C_None)),
    {SHL} (NCh: 2; Ch: (C_Op2, C_Flags, C_None)),
@@ -249,7 +249,7 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
  {PUSHF} (NCh: 1; Ch: (C_ESP, C_None, C_None)),
 {PUSHFD} (NCh: 1; Ch: (C_ESP, C_None, C_None)),
    {STC} (NCh: 1; Ch: (C_Flags, C_None, C_None)),
-   {STD} (NCh: 1; Ch: (C_Flags, C_None, C_None)),
+   {STD} (NCh: 1; Ch: (C_SDirFlag, C_None, C_None)),
    {STI} (NCh: 1; Ch: (C_Flags, C_None, C_None)),
   {STOS} (NCh: 2; Ch: (C_MemEDI, C_EDI, C_None)),
   {WAIT} (NCh: 0; Ch: (C_None, C_None, C_None)),
@@ -470,52 +470,52 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
  {POPFD} (NCh: 2; Ch: (C_ESP, C_Flags, C_None)),
 {below are the MMX instructions}
 {A_EMMS} (NCh: 1; Ch: (C_FPU, C_None, C_None)),
-{A_MOVD} (NCh: 255; Ch: (C_FPU, C_None, C_None)),
-{A_MOVQ} (NCh: 255; Ch: (C_FPU, C_None, C_None)),
+{A_MOVD} (NCh: 1; Ch: (C_Op2, C_None, C_None)),
+{A_MOVQ} (NCh: 1; Ch: (C_Op2, C_None, C_None)),
 {A_PACKSSDW} (NCh: 255; Ch: (C_FPU, C_None, C_None)),
 {A_PACKSSWB} (NCh: 255; Ch: (C_FPU, C_None, C_None)),
 {A_PACKUSWB} (NCh: 255; Ch: (C_FPU, C_None, C_None)),
-{A_PADDB} (NCh: 255; Ch: (C_FPU, C_None, C_None)),
-{A_PADDD} (NCh: 255; Ch: (C_FPU, C_None, C_None)),
-{A_PADDSB} (NCh: 255; Ch: (C_FPU, C_None, C_None)),
-{A_PADDSW} (NCh: 255; Ch: (C_FPU, C_None, C_None)),
-{A_PADDUSB} (NCh: 255; Ch: (C_FPU, C_None, C_None)),
-{A_PADDUSW} (NCh: 255; Ch: (C_FPU, C_None, C_None)),
-{A_PADDW} (NCh: 255; Ch: (C_FPU, C_None, C_None)),
-{A_PAND} (NCh: 255; Ch: (C_FPU, C_None, C_None)),
-{A_PANDN} (NCh: 255; Ch: (C_FPU, C_None, C_None)),
+{A_PADDB} (NCh: 1; Ch: (C_Op2, C_None, C_None)),
+{A_PADDD} (NCh: 1; Ch: (C_Op2, C_None, C_None)),
+{A_PADDSB} (NCh: 1; Ch: (C_Op2, C_None, C_None)),
+{A_PADDSW} (NCh: 1; Ch: (C_Op2, C_None, C_None)),
+{A_PADDUSB} (NCh: 1; Ch: (C_Op2, C_None, C_None)),
+{A_PADDUSW} (NCh: 1; Ch: (C_Op2, C_None, C_None)),
+{A_PADDW} (NCh: 1; Ch: (C_Op2, C_None, C_None)),
+{A_PAND} (NCh: 1; Ch: (C_Op2, C_None, C_None)),
+{A_PANDN} (NCh: 1; Ch: (C_Op2, C_None, C_None)),
 {A_PCMPEQB} (NCh: 255; Ch: (C_FPU, C_None, C_None)),
 {A_PCMPEQD} (NCh: 255; Ch: (C_FPU, C_None, C_None)),
 {A_PCMPEQW} (NCh: 255; Ch: (C_FPU, C_None, C_None)),
 {A_PCMPGTB} (NCh: 255; Ch: (C_FPU, C_None, C_None)),
 {A_PCMPGTD} (NCh: 255; Ch: (C_FPU, C_None, C_None)),
 {A_PCMPGTW} (NCh: 255; Ch: (C_FPU, C_None, C_None)),
-{A_PMADDWD} (NCh: 255; Ch: (C_FPU, C_None, C_None)),
+{A_PMADDWD} (NCh: 1; Ch: (C_Op2, C_None, C_None)),
 {A_PMULHW} (NCh: 255; Ch: (C_FPU, C_None, C_None)),
 {A_PMULLW} (NCh: 255; Ch: (C_FPU, C_None, C_None)),
-{A_POR} (NCh: 255; Ch: (C_FPU, C_None, C_None)),
-{A_PSLLD} (NCh: 255; Ch: (C_FPU, C_None, C_None)),
-{A_PSLLQ} (NCh: 255; Ch: (C_FPU, C_None, C_None)),
-{A_PSLLW} (NCh: 255; Ch: (C_FPU, C_None, C_None)),
-{A_PSRAD} (NCh: 255; Ch: (C_FPU, C_None, C_None)),
-{A_PSRAW} (NCh: 255; Ch: (C_FPU, C_None, C_None)),
-{A_PSRLD} (NCh: 255; Ch: (C_FPU, C_None, C_None)),
-{A_PSRLQ} (NCh: 255; Ch: (C_FPU, C_None, C_None)),
-{A_PSRLW} (NCh: 255; Ch: (C_FPU, C_None, C_None)),
-{A_PSUBB} (NCh: 255; Ch: (C_FPU, C_None, C_None)),
-{A_PSUBD} (NCh: 255; Ch: (C_FPU, C_None, C_None)),
-{A_PSUBSB} (NCh: 255; Ch: (C_FPU, C_None, C_None)),
-{A_PSUBSW} (NCh: 255; Ch: (C_FPU, C_None, C_None)),
-{A_PSUBUSB} (NCh: 255; Ch: (C_FPU, C_None, C_None)),
-{A_PSUBUSW} (NCh: 255; Ch: (C_FPU, C_None, C_None)),
-{A_PSUBW} (NCh: 255; Ch: (C_FPU, C_None, C_None)),
+{A_POR} (NCh: 1; Ch: (C_Op2, C_None, C_None)),
+{A_PSLLD} (NCh: 1; Ch: (C_Op2, C_None, C_None)),
+{A_PSLLQ} (NCh: 1; Ch: (C_Op2, C_None, C_None)),
+{A_PSLLW} (NCh: 1; Ch: (C_Op2, C_None, C_None)),
+{A_PSRAD} (NCh: 1; Ch: (C_Op2, C_None, C_None)),
+{A_PSRAW} (NCh: 1; Ch: (C_Op2, C_None, C_None)),
+{A_PSRLD} (NCh: 1; Ch: (C_Op2, C_None, C_None)),
+{A_PSRLQ} (NCh: 1; Ch: (C_Op2, C_None, C_None)),
+{A_PSRLW} (NCh: 1; Ch: (C_Op2, C_None, C_None)),
+{A_PSUBB} (NCh: 1; Ch: (C_Op2, C_None, C_None)),
+{A_PSUBD} (NCh: 1; Ch: (C_Op2, C_None, C_None)),
+{A_PSUBSB} (NCh: 1; Ch: (C_Op2, C_None, C_None)),
+{A_PSUBSW} (NCh: 1; Ch: (C_Op2, C_None, C_None)),
+{A_PSUBUSB} (NCh: 1; Ch: (C_Op2, C_None, C_None)),
+{A_PSUBUSW} (NCh: 1; Ch: (C_Op2, C_None, C_None)),
+{A_PSUBW} (NCh: 1; Ch: (C_Op2, C_None, C_None)),
 {A_PUNPCKHBW} (NCh: 255; Ch: (C_FPU, C_None, C_None)),
 {A_PUNPCKHDQ} (NCh: 255; Ch: (C_FPU, C_None, C_None)),
 {A_PUNPCKHWD} (NCh: 255; Ch: (C_FPU, C_None, C_None)),
 {A_PUNPCKLBW} (NCh: 255; Ch: (C_FPU, C_None, C_None)),
 {A_PUNPCKLDQ} (NCh: 255; Ch: (C_FPU, C_None, C_None)),
 {A_PUNPCKLWD} (NCh: 255; Ch: (C_FPU, C_None, C_None)),
-{A_PXOR} (NCh: 255; Ch: (C_FPU, C_None, C_None)));
+{A_PXOR} (NCh: 1; Ch: (C_Op2, C_None, C_None)));
 
 Var NrOfPaiObjs, NrOfPaiFast: Longint;
     PaiPropBlock: PPaiPropBlock;
@@ -778,6 +778,7 @@ Var Counter: TRegister;
 Begin {initializes/desrtoys all registers}
   For Counter := R_EAX To R_EDI Do
     DestroyReg(p, Counter);
+  PPaiProp(p^.line)^.DirFlag := F_Unknown;
 End;
 
 Procedure Destroy(PaiObj: Pai; opt: Longint; Op: Pointer);
@@ -933,6 +934,9 @@ Begin
                       For Cnt := 1 To InstrProp.NCh Do
                         Case InstrProp.Ch[Cnt] Of
                           C_None:;
+                          C_EAX..C_EDI: DestroyReg(p, TCh2Reg(InstrProp.Ch[Cnt]));
+                          C_CDirFlag: PPaiProp(Pai(p)^.line)^.DirFlag := F_NotSet;
+                          C_SDirFlag: PPaiProp(Pai(p)^.line)^.DirFlag := F_Set;
                           C_Op1: Destroy(p, Pai386(p)^.op1t, Pai386(p)^.op1);
                           C_Op2: Destroy(p, Pai386(p)^.op2t, Pai386(p)^.op2);
                           C_Op3: Destroy(p, Pai386(p)^.op2t, Pointer(Longint(TwoWords(Pai386(p)^.op2).word2)));
@@ -942,7 +946,6 @@ Begin
                               TmpRef.Base := R_EDI;
                               DestroyRefs(p, TmpRef, R_NO)
                             End;
-                          C_EAX..C_EDI: DestroyReg(p, TCh2Reg(InstrProp.Ch[Cnt]));
                           C_Flags, C_FPU:;
                         End
                     Else
@@ -977,6 +980,9 @@ Begin
         ait_instruction:
           Begin
             Case Pai386(p)^._operator Of
+              A_CLD: If Assigned(p^.last) And
+                        (PPaiProp(Pai(p^.last)^.line)^.DirFlag = F_NotSet) Then
+                          PPaiProp(Pai(p)^.line)^.CanBeRemoved := True;
 {$IfDef OptimizeMovs}
               A_MOV{, A_MOVZX, A_MOVSX}:
                 Begin
@@ -1060,6 +1066,9 @@ Begin
                   End;
                 End;
 {$EndIf OptimizeMovs}
+              A_STD: If Assigned(p^.last) And
+                        (PPaiProp(Pai(p^.last)^.line)^.DirFlag = F_Set) Then
+                        PPaiProp(Pai(p)^.line)^.CanBeRemoved := True;
               A_XOR:
                 Begin
                   If (Pai386(p)^.op1t = top_reg) And
@@ -1169,8 +1178,11 @@ End;
 
 {
  $Log$
- Revision 1.1  1998-03-25 11:18:12  root
- Initial revision
+ Revision 1.2  1998-04-06 22:42:32  jonas
+   + removal of superflouos cld/std instructions
+
+ Revision 1.1.1.1  1998/03/25 11:18:12  root
+ * Restored version
 
  Revision 1.22  1998/03/24 21:48:29  florian
    * just a couple of fixes applied:
