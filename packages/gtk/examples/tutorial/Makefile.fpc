@@ -3,15 +3,7 @@
 #
 
 [targets]
-programs=$(subst $(PASEXT),,$(wildcard tut*$(PASEXT)))
+programs=$(subst .pp,,$(wildcard tut*.pp))
 
 [require]
 packages=gtk
-
-[dirs]
-fpcdir=../../../..
-targetdir=.
-
-[libs]
-libgcc=1
-libother=1

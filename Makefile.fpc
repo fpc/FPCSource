@@ -2,46 +2,32 @@
 #   Makefile.fpc for Free Pascal Source Tree
 #
 
-[targets]
-dirs=compiler rtl utils fcl api fv packages ide
+[package]
+name=fpc
+version=1.0.5
 
-[defaults]
-defaultrule=help
+[target]
+dirs=compiler rtl utils fcl fv packages ide
 
-[tools]
-toolzip=1
-toolupx=1
-tooldate=1
+[default]
+rule=help
 
-[sections]
-none=1
-dirs=1
-tools=1
-exts=1
-clean=1
-zipinstall=1
-
-
-[presettings]
-OLDFPCDIR:=$(FPCDIR)
-
-checkfpcdir:
-ifdef OLDFPCDIR
-ifneq ($(OLDFPCDIR),)
-        @echo ---------------------------------------------------------
-        @echo
-        @echo   You must unset FPCDIR to use this the packaging rules.
-        @echo
-        @echo ---------------------------------------------------------
-        @cantcontinuewithfpcdir
-endif
-endif
+[prerules]
+override FPCDIR:=$(BASEDIR)
+export FPCDIR
 
 # Check if install/ subdir is available
 ifneq ($(wildcard install),)
 CVSINSTALL=install
 else
 CVSINSTALL=.
+endif
+
+# Install target
+ifdef SNAPSHOT
+INSTALLTARGET=install
+else
+INSTALLTARGET=distinstall
 endif
 
 # All target
@@ -58,12 +44,11 @@ else
 ifeq ($(OS_TARGET),linux)
 ALLTARGET=smart
 else
-ALLTARGET=all
-endif
 ifeq ($(OS_TARGET),freebsd)
 ALLTARGET=smart
 else
 ALLTARGET=all
+endif
 endif
 endif
 endif
@@ -81,20 +66,10 @@ endif
 ifeq ($(OS_TARGET),linux)
 PKGPRE=units
 else
-PKGPRE=u
-endif
 ifeq ($(OS_TARGET),freebsd)
 PKGPRE=units
 else
 PKGPRE=u
-endif
-
-# Test dir if none specified
-ifndef PREFIXINSTALLDIR
-ifdef UNIXINSTALLDIR
-PREFIXINSTALLDIR=/tmp/pptest
-else
-PREFIXINSTALLDIR=/pptest
 endif
 endif
 
@@ -140,9 +115,13 @@ endif
 endif
 endif
 
+
 [rules]
 # These values can change
 unexport FPC_VERSION OS_SOURCE
+
+# Only process directories that really exists
+override TARGET_DIRS:=$(wildcard $(TARGET_DIRS))
 
 #####################################################################
 # Main targets
@@ -154,7 +133,7 @@ help:
         @echo
         @echo Directory targets:
         @echo
-        @echo $(DIROBJECTS)
+        @echo $(TARGET_DIRS)
         @echo
         @echo Packing targets are:
         @echo
@@ -275,7 +254,7 @@ export RELEASE DESTZIPDIR
 
 all: build
 
-clean: $(addsuffix _distclean,$(DIROBJECTS))
+clean: $(addsuffix _distclean,$(TARGET_DIRS))
         $(DEL) build-stamp.$(OS_TARGET)
 
 distclean: clean
@@ -291,7 +270,6 @@ else
 endif
 # clean
         $(MAKE) rtl_clean
-        $(MAKE) api_clean
         $(MAKE) fcl_clean
         $(MAKE) packages_clean
         $(MAKE) utils_clean
@@ -301,7 +279,6 @@ ifdef IDE
 endif
 # build everything
         $(MAKE) rtl_$(ALLTARGET) $(BUILDOPTS)
-        $(MAKE) api_$(ALLTARGET) $(BUILDOPTS)
         $(MAKE) fcl_$(ALLTARGET) $(BUILDOPTS)
         $(MAKE) packages_$(ALLTARGET) $(BUILDOPTS)
         $(MAKE) utils_all $(BUILDOPTS)
@@ -313,19 +290,19 @@ endif
 
 installbase: build-stamp.$(OS_TARGET)
 # create dirs
-        $(MKDIR) $(BASEINSTALLDIR)
-        $(MKDIR) $(DOCINSTALLDIR)
-        $(MKDIR) $(BININSTALLDIR)
+        $(MKDIR) $(INSTALL_BASEDIR)
+        $(MKDIR) $(INSTALL_DOCDIR)
+        $(MKDIR) $(INSTALL_BINDIR)
 ifndef SNAPSHOT
 # readme & whatsnew and docs
-        $(COPY) $(CVSINSTALL)/doc/*.txt $(CVSINSTALL)/doc/copying* $(CVSINSTALL)/doc/faq.* $(DOCINSTALLDIR)
+        $(COPY) $(CVSINSTALL)/doc/*.txt $(CVSINSTALL)/doc/copying* $(CVSINSTALL)/doc/faq.* $(INSTALL_DOCDIR)
 # bingo32 (cwsdpmi,wmemu387.dxe)
 ifeq ($(OS_TARGET),go32v2)
-        $(COPY) $(CVSINSTALL)/bingo32/* $(BININSTALLDIR)
+        $(COPY) $(CVSINSTALL)/bingo32/* $(INSTALL_BINDIR)
 endif
 # binw32 (cygwin1.dll)
 ifeq ($(OS_TARGET),win32)
-        $(COPY) $(CVSINSTALL)/binw32/* $(BININSTALLDIR)
+        $(COPY) $(CVSINSTALL)/binw32/* $(INSTALL_BINDIR)
 endif
 # manpages for linux
 ifeq ($(OS_TARGET),linux)
@@ -334,41 +311,27 @@ endif
 ifeq ($(OS_TARGET),freebsd)
         $(MAKE) -C $(CVSINSTALL)/man installman
 endif
-
 endif
 # install generated things
-        $(MAKE) compiler_install $(INSTALLOPTS)
-        $(MAKE) rtl_install $(INSTALLOPTS)
+        $(MAKE) compiler_$(INSTALLTARGET) $(INSTALLOPTS)
+        $(MAKE) rtl_$(INSTALLTARGET) $(INSTALLOPTS)
 
 install: build-stamp.$(OS_TARGET)
         $(MAKE) installbase $(INSTALLOPTS)
-        $(MAKE) utils_install $(INSTALLOPTS)
-        $(MAKE) api_install $(INSTALLOPTS)
-        $(MAKE) fcl_install $(INSTALLOPTS)
-        $(MAKE) packages_install $(INSTALLOPTS)
+        $(MAKE) utils_$(INSTALLTARGET) $(INSTALLOPTS)
+        $(MAKE) fcl_$(INSTALLTARGET) $(INSTALLOPTS)
+        $(MAKE) packages_$(INSTALLTARGET) $(INSTALLOPTS)
 ifdef IDE
-        $(NOSTOP)$(MAKE) ide_install $(BUILDOPTS)
-endif
-# install examples
-ifndef SNAPSHOT
-        $(MAKE) fcl_exampleinstall $(INSTALLOPTS)
-        $(MAKE) api_exampleinstall $(INSTALLOPTS)
-        $(MAKE) packages_exampleinstall $(INSTALLOPTS)
+        $(NOSTOP)$(MAKE) ide_$(INSTALLTARGET) $(BUILDOPTS)
 endif
 
 zipinstall: build-stamp.$(OS_TARGET)
-        $(MAKE) fpc_zipinstall ZIPTARGET=installbase PACKAGENAME=base $(INSTALLOPTS)
-        $(MAKE) utils_zipinstall $(INSTALLOPTS)
-        $(MAKE) api_zipinstall $(INSTALLOPTS) PACKAGEPREFIX=$(PKGPRE)
-        $(MAKE) fcl_zipinstall $(INSTALLOPTS) PACKAGEPREFIX=$(PKGPRE)
-        $(MAKE) packages_zipinstall $(INSTALLOPTS) PACKAGEPREFIX=$(PKGPRE)
+        $(MAKE) fpc_zipinstall ZIPTARGET=installbase ZIPNAME=base$(ZIPSUFFIX) $(INSTALLOPTS)
+        $(MAKE) utils_zip$(INSTALLTARGET) $(INSTALLOPTS) ZIPNAME=util$(ZIPSUFFIX)
+        $(MAKE) fcl_zip$(INSTALLTARGET) $(INSTALLOPTS) ZIPPREFIX=$(PKGPRE)
+        $(MAKE) packages_zip$(INSTALLTARGET) $(INSTALLOPTS) ZIPPREFIX=$(PKGPRE)
 ifdef IDE
-        $(NOSTOP)$(MAKE) ide_zipinstall $(INSTALLOPTS)
-endif
-ifndef SNAPSHOT
-        $(MAKE) fcl_zipexampleinstall $(INSTALLOPTS) PACKAGEPREFIX=$(PKGPRE)
-        $(MAKE) api_zipexampleinstall $(INSTALLOPTS) PACKAGEPREFIX=$(PKGPRE)
-        $(MAKE) packages_zipexampleinstall $(INSTALLOPTS) PACKAGEPREFIX=$(PKGPRE)
+        $(NOSTOP)$(MAKE) ide_zip$(INSTALLTARGET) $(INSTALLOPTS)
 endif
 
 
@@ -386,8 +349,8 @@ docs:
 
 docsrcinstall:
         $(MAKE) -C docs clean
-        $(MKDIR) $(SOURCEINSTALLDIR)
-        $(COPYTREE) docs $(SOURCEINSTALLDIR)
+        $(MKDIR) $(INSTALL_SOURCEDIR)
+        $(COPYTREE) docs $(INSTALL_SOURCEDIR)
 
 docsrc:
         $(MAKE) fpc_zipinstall ZIPTARGET=docsrcinstall ZIPNAME=docsrc
@@ -411,18 +374,17 @@ demozip:
 
 sourcebase:
 # base Makefiles needed for sources
-        $(MKDIR) $(SOURCEINSTALLDIR)
-        $(MKDIR) $(SOURCEINSTALLDIR)/rtl
-        $(MKDIR) $(SOURCEINSTALLDIR)/packages
-        $(COPY) Makefile*  $(SOURCEINSTALLDIR)
-        $(COPY) rtl/Makefile* $(SOURCEINSTALLDIR)/rtl
-        $(COPY) packages/Makefile* $(SOURCEINSTALLDIR)/packages
+        $(MKDIR) $(INSTALL_SOURCEDIR)
+        $(MKDIR) $(INSTALL_SOURCEDIR)/rtl
+        $(MKDIR) $(INSTALL_SOURCEDIR)/packages
+        $(COPY) Makefile*  $(INSTALL_SOURCEDIR)
+        $(COPY) rtl/Makefile* $(INSTALL_SOURCEDIR)/rtl
+        $(COPY) packages/Makefile* $(INSTALL_SOURCEDIR)/packages
 
 sourcezip: distclean
         $(MAKE) fpc_zipinstall ZIPTARGET=sourcebase ZIPNAME=basesrc
         $(MAKE) compiler_zipsourceinstall
         $(MAKE) rtl_zipsourceinstall
-        $(MAKE) api_zipsourceinstall
         $(MAKE) fcl_zipsourceinstall
         $(MAKE) packages_zipsourceinstall
         $(MAKE) utils_zipsourceinstall
@@ -460,7 +422,6 @@ win32zip: checkfpcdir
 
 linuxzip: checkfpcdir
         $(MAKE) zipinstall OS_TARGET=linux
-
 
 freebsdzip : checkfpcdir
         $(MAKE) zipinstall OS_TARGET=freebsd

@@ -2,17 +2,10 @@
 #   Makefile.fpc for Internet Units
 #
 
-[targets]
+[package]
+name=inet
+version=1.0.5
+
+[target]
 units=inet
 examples=testinet pfinger
-
-[install]
-examplesubdir=inet
-
-[dirs]
-fpcdir=../..
-
-[rules]
-testinet$(EXEEXT): testinet$(PASEXT) inet$(PPUEXT)
-
-pfinger$(EXEEXT): pfinger$(PASEXT) inet$(PPUEXT)

@@ -2,8 +2,13 @@
 #   Makefile.fpc for X11 Bindings
 #
 
-[targets]
+[package]
+name=x11
+version=1.0.5
+
+[target]
 units=x xlib xutil xresource xcms xshm xrender
 
-[dirs]
-fpcdir=../..
+[require]
+libc=y
+

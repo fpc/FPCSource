@@ -2,15 +2,11 @@
 #   Makefile.fpc for fprcp
 #
 
-[targets]
+[target]
 programs=fprcp
 
 [clean]
 units=comments expr pasprep
 
-[dirs]
-fpcdir=../..
-
-
 [rules]
-fpcrp$(EXEEXT): fpcrp$(PASEXT) comments$(PASEXT) pexpr$(PASEXT) pasprep$(PASEXT)
+fpcrp$(EXEEXT): fpcrp.pp comments.pp pexpr.pp pasprep.pp

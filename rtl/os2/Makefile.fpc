@@ -29,7 +29,7 @@ incdir=$(INC) $(PROCINC)
 targetdir=.
 
 
-[presettings]
+[prerules]
 RTL=..
 INC=$(RTL)/inc
 PROCINC=$(RTL)/$(CPU_TARGET)
@@ -46,7 +46,7 @@ endif
 OBJPASDIR=$(RTL)/objpas
 GRAPHDIR=$(INC)/graph
 
-[postsettings]
+[rules]
 # Get the system independent include file names.
 # This will set the following variables :
 # SYSINCNAMES
@@ -62,10 +62,6 @@ SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 # Put system unit dependencies together.
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 
-
-[rules]
-vpath %.pas $(INC) $(PROCINC)
-vpath %.pp $(INC) $(PROCINC)
 
 #
 # Loaders

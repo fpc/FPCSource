@@ -2,17 +2,14 @@
 #   Makefile.fpc for MySql bindings
 #
 
-[targets]
+[package]
+name=mysql
+version=1.0.5
+
+[target]
 units=mysql_com mysql_version mysql
 examples=testdb
 
-[install]
-examplesubdir=mysql
+[require]
+libc=y
 
-[dirs]
-fpcdir=../..
-
-[rules]
-mysql$(PPUEXT): mysql$(PASEXT) mysql_com$(PPUEXT)
-
-testdb$(EXEEXT): testdb$(PASEXT) mysql$(PPUEXT)

@@ -115,7 +115,9 @@ endif
 override FPCDIR:=$(wildcard $(FPCDIR))
 UNITSDIR=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 PACKAGESDIR=$(wildcard $(FPCDIR) $(FPCDIR)/packages)
-override TARGET_PROGRAMS+=glutdemo morph3d bounce
+override TARGET_PROGRAMS+=fpcmake
+override TARGET_RSTS+=fpcmmain
+override CLEAN_UNITS+=fpcmmain fpcmdic fpcmwr
 ifndef ECHO
 ECHO:=$(strip $(wildcard $(addsuffix /gecho$(EXEEXT),$(SEARCHPATH))))
 ifeq ($(ECHO),)
@@ -411,19 +413,11 @@ endif
 ifndef INSTALL_DATADIR
 INSTALL_DATADIR=$(INSTALL_BASEDIR)
 endif
-ifdef inUnix
-ifndef GCCLIBDIR
-GCCLIBDIR:=$(shell dirname `(gcc -v 2>&1)| head -n 1| awk '{ print $$4 } '`)
-endif
-ifndef OTHERLIBDIR
-OTHERLIBDIR:=$(shell grep -v "^\#" /etc/ld.so.conf | awk '{ ORS=" "; print $1 }')
-endif
-export GCCLIBDIR OTHERLIB
-endif
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_OPENGL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL=1
 ifeq ($(OS_TARGET),linux)
-REQUIRE_PACKAGES_X11=1
+REQUIRE_PACKAGES_INET=1
 endif
 ifdef REQUIRE_PACKAGES_RTL
 PACKAGEDIR_RTL:=$(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /rtl/Makefile.fpc,$(PACKAGESDIR)))))
@@ -452,61 +446,88 @@ ifdef UNITDIR_RTL
 override COMPILER_UNITDIR+=$(UNITDIR_RTL)
 endif
 endif
-ifdef REQUIRE_PACKAGES_X11
-PACKAGEDIR_X11:=$(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /x11/Makefile.fpc,$(PACKAGESDIR)))))
-ifneq ($(PACKAGEDIR_X11),)
-PACKAGEDIR_X11:=$(firstword $(PACKAGEDIR_X11))
-ifeq ($(wildcard $(PACKAGEDIR_X11)/$(FPCMADE)),)
-override COMPILEPACKAGES+=package_x11
-package_x11:
-	$(MAKE) -C $(PACKAGEDIR_X11) all
+ifdef REQUIRE_PACKAGES_PASZLIB
+PACKAGEDIR_PASZLIB:=$(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /paszlib/Makefile.fpc,$(PACKAGESDIR)))))
+ifneq ($(PACKAGEDIR_PASZLIB),)
+PACKAGEDIR_PASZLIB:=$(firstword $(PACKAGEDIR_PASZLIB))
+ifeq ($(wildcard $(PACKAGEDIR_PASZLIB)/$(FPCMADE)),)
+override COMPILEPACKAGES+=package_paszlib
+package_paszlib:
+	$(MAKE) -C $(PACKAGEDIR_PASZLIB) all
 endif
-ifneq ($(wildcard $(PACKAGEDIR_X11)/$(OS_TARGET)),)
-UNITDIR_X11=$(PACKAGEDIR_X11)/$(OS_TARGET)
+ifneq ($(wildcard $(PACKAGEDIR_PASZLIB)/$(OS_TARGET)),)
+UNITDIR_PASZLIB=$(PACKAGEDIR_PASZLIB)/$(OS_TARGET)
 else
-UNITDIR_X11=$(PACKAGEDIR_X11)
-endif
-else
-PACKAGEDIR_X11=
-UNITDIR_X11:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /x11/Package.fpc,$(UNITSDIR)))))
-ifneq ($(UNITDIR_X11),)
-UNITDIR_X11:=$(firstword $(UNITDIR_X11))
-else
-UNITDIR_X11=
-endif
-endif
-ifdef UNITDIR_X11
-override COMPILER_UNITDIR+=$(UNITDIR_X11)
-endif
-endif
-ifdef REQUIRE_PACKAGES_OPENGL
-PACKAGEDIR_OPENGL:=$(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /opengl/Makefile.fpc,$(PACKAGESDIR)))))
-ifneq ($(PACKAGEDIR_OPENGL),)
-PACKAGEDIR_OPENGL:=$(firstword $(PACKAGEDIR_OPENGL))
-ifeq ($(wildcard $(PACKAGEDIR_OPENGL)/$(FPCMADE)),)
-override COMPILEPACKAGES+=package_opengl
-package_opengl:
-	$(MAKE) -C $(PACKAGEDIR_OPENGL) all
-endif
-ifneq ($(wildcard $(PACKAGEDIR_OPENGL)/$(OS_TARGET)),)
-UNITDIR_OPENGL=$(PACKAGEDIR_OPENGL)/$(OS_TARGET)
-else
-UNITDIR_OPENGL=$(PACKAGEDIR_OPENGL)
+UNITDIR_PASZLIB=$(PACKAGEDIR_PASZLIB)
 endif
 else
-PACKAGEDIR_OPENGL=
-UNITDIR_OPENGL:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /opengl/Package.fpc,$(UNITSDIR)))))
-ifneq ($(UNITDIR_OPENGL),)
-UNITDIR_OPENGL:=$(firstword $(UNITDIR_OPENGL))
+PACKAGEDIR_PASZLIB=
+UNITDIR_PASZLIB:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /paszlib/Package.fpc,$(UNITSDIR)))))
+ifneq ($(UNITDIR_PASZLIB),)
+UNITDIR_PASZLIB:=$(firstword $(UNITDIR_PASZLIB))
 else
-UNITDIR_OPENGL=
+UNITDIR_PASZLIB=
 endif
 endif
-ifdef UNITDIR_OPENGL
-override COMPILER_UNITDIR+=$(UNITDIR_OPENGL)
+ifdef UNITDIR_PASZLIB
+override COMPILER_UNITDIR+=$(UNITDIR_PASZLIB)
 endif
 endif
-.PHONY: package_rtl package_x11 package_opengl
+ifdef REQUIRE_PACKAGES_INET
+PACKAGEDIR_INET:=$(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /inet/Makefile.fpc,$(PACKAGESDIR)))))
+ifneq ($(PACKAGEDIR_INET),)
+PACKAGEDIR_INET:=$(firstword $(PACKAGEDIR_INET))
+ifeq ($(wildcard $(PACKAGEDIR_INET)/$(FPCMADE)),)
+override COMPILEPACKAGES+=package_inet
+package_inet:
+	$(MAKE) -C $(PACKAGEDIR_INET) all
+endif
+ifneq ($(wildcard $(PACKAGEDIR_INET)/$(OS_TARGET)),)
+UNITDIR_INET=$(PACKAGEDIR_INET)/$(OS_TARGET)
+else
+UNITDIR_INET=$(PACKAGEDIR_INET)
+endif
+else
+PACKAGEDIR_INET=
+UNITDIR_INET:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /inet/Package.fpc,$(UNITSDIR)))))
+ifneq ($(UNITDIR_INET),)
+UNITDIR_INET:=$(firstword $(UNITDIR_INET))
+else
+UNITDIR_INET=
+endif
+endif
+ifdef UNITDIR_INET
+override COMPILER_UNITDIR+=$(UNITDIR_INET)
+endif
+endif
+ifdef REQUIRE_PACKAGES_FCL
+PACKAGEDIR_FCL:=$(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /fcl/Makefile.fpc,$(PACKAGESDIR)))))
+ifneq ($(PACKAGEDIR_FCL),)
+PACKAGEDIR_FCL:=$(firstword $(PACKAGEDIR_FCL))
+ifeq ($(wildcard $(PACKAGEDIR_FCL)/$(FPCMADE)),)
+override COMPILEPACKAGES+=package_fcl
+package_fcl:
+	$(MAKE) -C $(PACKAGEDIR_FCL) all
+endif
+ifneq ($(wildcard $(PACKAGEDIR_FCL)/$(OS_TARGET)),)
+UNITDIR_FCL=$(PACKAGEDIR_FCL)/$(OS_TARGET)
+else
+UNITDIR_FCL=$(PACKAGEDIR_FCL)
+endif
+else
+PACKAGEDIR_FCL=
+UNITDIR_FCL:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /fcl/Package.fpc,$(UNITSDIR)))))
+ifneq ($(UNITDIR_FCL),)
+UNITDIR_FCL:=$(firstword $(UNITDIR_FCL))
+else
+UNITDIR_FCL=
+endif
+endif
+ifdef UNITDIR_FCL
+override COMPILER_UNITDIR+=$(UNITDIR_FCL)
+endif
+endif
+.PHONY: package_rtl package_paszlib package_inet package_fcl
 override FPCOPTDEF=$(CPU_TARGET)
 ifneq ($(OS_TARGET),$(OS_SOURCE))
 override FPCOPT+=-T$(OS_TARGET)
@@ -582,12 +603,6 @@ override COMPILER_UNITTARGETDIR=$(COMPILER_TARGETDIR)
 override UNITTARGETDIRPREFIX=$(TARGETDIRPREFIX)
 endif
 endif
-ifdef GCCLIBDIR
-override FPCOPT+=-Fl$(GCCLIBDIR)
-endif
-ifdef OTHERLIBDIR
-override FPCOPT+=$(addprefix -Fl,$(OTHERLIBDIR))
-endif
 ifdef OPT
 override FPCOPT+=$(OPT)
 endif
@@ -619,6 +634,10 @@ override INSTALLEXEFILES+=$(EXEFILES)
 override CLEANEXEFILES+=$(EXEFILES) $(EXEOFILES)
 endif
 fpc_exes: $(EXEFILES)
+ifdef TARGET_RSTS
+override RSTFILES=$(addsuffix $(RSTEXT),$(TARGET_RSTS))
+override CLEANRSTFILES+=$(RSTFILES)
+endif
 .PHONY: fpc_packages fpc_all fpc_smart fpc_debug
 $(FPCMADE): $(ALLTARGET)
 	@$(ECHO) Compiled > $(FPCMADE)
@@ -816,6 +835,15 @@ fpc_info:
 	@$(ECHO)  DIST_DESTDIR......... $(DIST_DESTDIR)
 	@$(ECHO)  DIST_ZIPNAME......... $(DIST_ZIPNAME)
 	@$(ECHO)
+ifndef DATA2INC
+DATA2INC:=$(strip $(wildcard $(addsuffix /data2inc$(SRCEXEEXT),$(SEARCHPATH))))
+ifeq ($(DATA2INC),)
+DATA2INC=
+else
+DATA2INC:=$(firstword $(DATA2INC))
+endif
+endif
+export DATA2INC
 all: fpc_all
 debug: fpc_debug
 examples: fpc_examples
@@ -837,3 +865,6 @@ info: fpc_info
 ifneq ($(wildcard fpcmake.loc),)
 include fpcmake.loc
 endif
+fpcmake.inc: fpcmake.ini
+	$(DATA2INC) -b -s fpcmake.ini fpcmake.inc fpcmakeini
+fpcmake$(EXEEXT): $(wildcard fpcm*.pp) fpcmake.inc

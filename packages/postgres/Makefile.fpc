@@ -2,12 +2,14 @@
 #   Makefile.fpc for Postgres bindings
 #
 
-[targets]
+[package]
+name=postgres
+version=1.0.5
+
+[target]
 units=dllist postgres
 examples=testpg1 testpg2
 
-[install]
-examplesubdir=postgres
+[require]
+libc=y
 
-[dirs]
-fpcdir=../..

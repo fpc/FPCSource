@@ -2,15 +2,15 @@
 #   Makefile.fpc for Free Pascal installer
 #
 
-[targets]
+[package]
+name=fpinst
+version=1.0.5
+
+[target]
 programs_go32v2=install
 programs_win32=install
 programs_os2=install
 programs_linux=installer
-
-[install]
-packagename=fpinst
-sourcesubdir=fpinst
 
 [clean]
 units=ziptypes unzip
@@ -18,11 +18,9 @@ units_os2=unzipdll
 files_linux=installer.pas
 
 [require]
-packages=api fv
+packages=fv
 
-[dirs]
-fpcdir=..
-targetdir=.
+[compiler]
 unitdir=../ide/text
 
 [rules]

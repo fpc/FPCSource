@@ -3,7 +3,7 @@
 #  tests for all targets
 #
 
-[targets]
+[target]
 units=erroru
 
 
@@ -12,11 +12,11 @@ units=erroru
 
 rtl:
         $(MAKE) -C ../../rtl/$(OS_TARGET) all
-        $(MAKE) -C ../../rtl/$(OS_TARGET) install UNITINSTALLDIR=$(BASEDIR)
+        $(MAKE) -C ../../rtl/$(OS_TARGET) install INSTALL_UNITDIR=$(BASEDIR)
 
 fcl:
         $(MAKE) -C ../../fcl/$(OS_TARGET) all
-        $(MAKE) -C ../../fcl/$(OS_TARGET) install UNITINSTALLDIR=$(BASEDIR)
+        $(MAKE) -C ../../fcl/$(OS_TARGET) install INSTALL_UNITDIR=$(BASEDIR)
 
 clean : cleanall
 

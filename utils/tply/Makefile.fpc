@@ -2,7 +2,7 @@
 #   Makefile.fpc for Pascal lex/yacc
 #
 
-[targets]
+[target]
 programs=plex pyacc
 units=lexlib yacclib
 
@@ -10,30 +10,27 @@ units=lexlib yacclib
 units=lexbase lexopt lexdfa lexpos lexlist lexrules lexmsgs lextable \
       yaccbase yaccmsgs yaccclos yaccpars yacclook yaccsem yacclr0 yacctabl
 
-[dirs]
-fpcdir=../..
-
-[require]
+[compiler]
 options=-Sg
 
 
 [rules]
-pyacc$(EXEEXT): pyacc$(PASEXT) $(wildcard yacc*$(PASEXT))
-        $(COMPILER) pyacc$(PASEXT) $(REDIR)
+pyacc$(EXEEXT): pyacc.pas $(wildcard yacc*.pas)
+        $(COMPILER) pyacc.pas
 
-plex$(EXEEXT): plex$(PASEXT) $(wildcard lex*$(PASEXT))
-        $(COMPILER) plex$(PASEXT) $(REDIR)
+plex$(EXEEXT): plex.pas $(wildcard lex*.pas)
+        $(COMPILER) plex.pas
 
-lexlib$(PPUEXT): lexlib$(PASEXT)
+lexlib$(PPUEXT): lexlib.pas
 
-yacclib$(PPUEXT): yacclib$(PASEXT)
+yacclib$(PPUEXT): yacclib.pas
 
 ifdef UNIXINSTALLDIR
-CODPATH=$(PREFIXINSTALLDIR)/lib/fpc/lexyacc
+CODPATH=$(INSTALL_PREFIX)/lib/fpc/lexyacc
 else
-CODPATH=$(BININSTALLDIR)
+CODPATH=$(INSTALL_BINDIR)
 endif
 
 install: fpc_install
-	$(MKDIR) $(CODPATH)
-	$(COPY) yylex.cod yyparse.cod $(CODPATH)
+        $(MKDIR) $(CODPATH)
+        $(COPY) yylex.cod yyparse.cod $(CODPATH)

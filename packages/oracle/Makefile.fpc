@@ -1,20 +1,20 @@
 #
-# Makefile.fpc for oracle units
+#  Makefile.fpc for oracle units
 #
 
-[targets]
+[package]
+name=oracle
+version=1.0.5
+
+[target]
 units=oraoci oraclew
 examples=test01
 
 [require]
 packages=fcl
+libc=y
 
-[dirs]
 # in libdir variable must be path to libraries
 # libclntsh.*,libnlsrtl3.*
+#[compiler]
 #libdir=/usr/local/oracle8cli/lib
-fpcdir=../..
-
-[install]
-packagename=oracle
-examplesubdir=oracle

@@ -2,8 +2,13 @@
 #   Makefile.fpc for ZLib (LibC version)
 #
 
-[targets]
+[package]
+name=zlib
+version=1.0.5
+
+[target]
 units=zlib
 
-[dirs]
-fpcdir=../..
+[require]
+libc=y
+

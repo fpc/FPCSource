@@ -1,6 +1,6 @@
 #
-#   Makefile.fpc for Fake GDB
+#   Makefile.fpc for Fake Compiler
 #
 
-[targets]
+[target]
 units=browcol compiler systems version comphook globtype tokens

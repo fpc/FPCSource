@@ -17,15 +17,14 @@
 
 unit zstream;
 
+
 { ---------------------------------------------------------------------
-  On linux, the default is to use the zlib libraries.
-  On all other platforms we use paszlib. If you want to use
-  paszlib in all cases, just define -dUsePasZlib
+  For linux and freebsd it's also possible to use ZLib instead
+  of paszlib. You need to undefine 'usepaszlib'.
   ---------------------------------------------------------------------}
 
-{$ifndef Unix}
-  {$define usepaszlib}
-{$endif}
+{$define usepaszlib}
+
 
 interface
 
@@ -449,10 +448,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2000-11-13 15:46:55  marco
+  Revision 1.4  2001-01-29 21:52:17  peter
+    * New FPCMake update
+
+  Revision 1.3  2000/11/13 15:46:55  marco
    * Unix renamefest for defines.
 
   Revision 1.2  2000/07/13 11:33:01  michael
   + removed logs
- 
+
 }

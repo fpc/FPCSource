@@ -2,54 +2,17 @@
 #   Makefile.fpc for Free Pascal Packages
 #
 
-[targets]
+[target]
 dirs_linux=zlib ncurses x11 gtk syslog \
            inet uncgi \
-           mysql ibase postgres \
+           mysql ibase postgres oracle \
            opengl forms svgalib ggi \
-           utmp paszlib gdbint cmem regexpr zip
-dirs_win32=uncgi gtk gdbint ibase mysql zlib paszlib zip regexpr opengl
-dirs_go32v2=uncgi gdbint paszlib zip regexpr
-dirs_os2=uncgi paszlib zip regexpr
+           utmp paszlib gdbint cmem regexpr unzip
+dirs_win32=uncgi gtk gdbint ibase mysql zlib paszlib unzip regexpr opengl
+dirs_go32v2=uncgi gdbint paszlib unzip regexpr
+dirs_os2=uncgi paszlib unzip regexpr
 dirs_freebsd=zlib ncurses x11 gtk syslog \
            inet uncgi \
            mysql ibase postgres \
            opengl forms svgalib ggi \
-           utmp paszlib gdbint cmem regexpr zip
-
-pkgs_linux=base{zlib,ncurses,x11,regexpr} \
-           gtk{gtk} \
-           net{inet,uncgi} \
-           db{mysql,ibase,postgres} \
-           gfx{opengl,forms,svgalib,ggi} \
-           misc{utmp,syslog,gdbint,paszlib,zip}
-pkgs_freebsd=base{zlib,ncurses,x11,regexpr} \
-           gtk{gtk} \
-           net{inet,uncgi} \
-           db{mysql,ibase,postgres} \
-           gfx{opengl,forms,svgalib,ggi} \
-           misc{utmp,syslog,gdbint,paszlib,zip}
-# We use shorternames due the 8.3 limit of fat16
-pkgs_win32=bas{paszlib,regexpr} \
-           gtk{gtk} \
-           net{uncgi} \
-           db{ibase,mysql} \
-           gfx{opengl} \
-           mis{gdbint,zip}
-pkgs_go32v2=bas{paszlib,regexpr} \
-            net{uncgi} \
-            mis{gdbint,zip}
-pkgs_os2=bas{paszlib,regexpr} \
-            net{uncgi} \
-            mis{zip}
-
-[install]
-packagename=packages
-sourcesubdirs=0
-examplesubdirs=1
-
-[sections]
-none=1
-zipsourceinstall=1
-zipexampleinstall=1
-
+           utmp paszlib gdbint cmem regexpr unzip

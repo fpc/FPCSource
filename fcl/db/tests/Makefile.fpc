@@ -2,15 +2,11 @@
 #   Makefile.fpc for TDataSet Tests
 #
 
-[targets]
-programs=testds createds mtest tested
+[target]
+programs=testds createds tested
 
 [require]
+packages=fcl
+
+[compiler]
 options=-S2
-packages=fcl mysql
-
-[dirs]
-fpcdir=../../..
-
-[libs]
-libgcc=1

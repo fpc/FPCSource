@@ -2,16 +2,12 @@
 #   Makefile.fpc for XML for FCL
 #
 
-[targets]
+[package]
+main=fcl
+
+[target]
 units=dom htmldoc xmlcfg xmlread xmlstreaming xmlwrite xhtml htmwrite
 
-[require]
+[compiler]
 options=-S2
-
-[install]
-unitsubdir=fcl
-packagename=fcl
-
-[dirs]
-fpcdir=../..
 targetdir=../$(OS_TARGET)

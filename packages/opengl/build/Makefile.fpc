@@ -2,18 +2,16 @@
 #   Makefile.fpc for auto generation of OpenGL units
 #
 
-[targets]
+[target]
 units=buildgl
 programs=c_gen
 
 [require]
 packages=fcl
 
-[dirs]
-fpcdir=../../..
+[default]
+rule=all_units
 
-[defaults]
-defaultrule=all_units
 
 [rules]
 .PHONY: all_units linux win32 w32d w32s

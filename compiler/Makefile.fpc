@@ -2,28 +2,21 @@
 #   Makefile.fpc for Free Pascal Compiler
 #
 
-[dirs]
-fpcdir=..
+[package]
+name=fpcompiler
+version=1.1
+
+[compiler]
 targetdir=.
 unitdir=$(CPU_TARGET)
-incdir=$(CPU_TARGET)
-
-[install]
-packagename=compiler
-sourcesubdirs=0
+includedir=$(CPU_TARGET)
 
 [require]
-rtl=1
-options=-Sg
-
-[tools]
-tooldiff=1
-toolcmp=1
-tooldate=1
-toolupx=1
+packages=rtl
+tools=diff cmp
 
 
-[presettings]
+[prerules]
 # Don't export OS_SOURCE because it can change after the first compile
 unexport OS_SOURCE FPC_VERSION
 
@@ -97,8 +90,6 @@ override LOCALDEF+=-dUNIX
 endif
 endif
 
-
-[postsettings]
 # Default message file
 MSGFILE=error$(FPCLANG).msg
 
@@ -328,7 +319,7 @@ cvstest:
 
 .PHONY: quickinstall install installsym
 
-MSGINSTALLDIR=$(BASEINSTALLDIR)/msg
+MSGINSTALLDIR=$(INSTALL_BASEDIR)/msg
 override FPCEXEFILE:=$(wildcard $(FPCEXE))
 override PPEXEFILE:=$(wildcard $(EXENAME))
 
@@ -339,8 +330,8 @@ ifneq ($(FPCEXEFILE),)
 ifdef UPXPROG
         -$(UPXPROG) $(FPCEXEFILE)
 endif
-        $(MKDIR) $(BININSTALLDIR)
-        $(INSTALLEXE) $(FPCEXEFILE) $(BININSTALLDIR)
+        $(MKDIR) $(INSTALL_BINDIR)
+        $(INSTALLEXE) $(FPCEXEFILE) $(INSTALL_BINDIR)
 endif
 # Install ppc386.exe
 ifneq ($(PPEXEFILE),)
@@ -348,17 +339,18 @@ ifdef UPXPROG
         -$(UPXPROG) $(EXENAME)
 endif
 ifdef UNIXINSTALLDIR
-        $(MKDIR) $(BASEINSTALLDIR)
-        $(INSTALLEXE) $(EXENAME) $(BASEINSTALLDIR)
+        $(MKDIR) $(INSTALL_BASEDIR)
+        $(INSTALLEXE) $(EXENAME) $(INSTALL_BASEDIR)
 else
-        $(MKDIR) $(BININSTALLDIR)
-        $(INSTALLEXE) $(EXENAME) $(BININSTALLDIR)
+        $(MKDIR) $(INSTALL_BINDIR)
+        $(INSTALLEXE) $(EXENAME) $(INSTALL_BINDIR)
 endif
 endif
 
 install: quickinstall
 ifdef UNIXINSTALLDIR
-        $(INSTALLEXE) $(COMPILERUTILSDIR)/samplecfg $(BASEINSTALLDIR)/samplecfg
+        $(MKDIR) $(INSTALL_BASEDIR)
+        $(INSTALLEXE) $(COMPILERUTILSDIR)/samplecfg $(INSTALL_BASEDIR)/samplecfg
 endif
         $(MKDIR) $(MSGINSTALLDIR)
         $(INSTALL) $(MSGFILES) $(MSGINSTALLDIR)
@@ -366,8 +358,8 @@ endif
 # this also installs the link /usr/bin/ppc386. The .deb does that later
 installsymlink: install
 ifdef UNIXINSTALLDIR
-        $(MKDIR) $(BININSTALLDIR)
-        ln -sf $(BASEINSTALLDIR)/ppc386 $(BININSTALLDIR)/ppc386
+        $(MKDIR) $(INSTALL_BINDIR)
+        ln -sf $(INSTALL_BASEDIR)/ppc386 $(INSTALL_BINDIR)/ppc386
 endif
 
 

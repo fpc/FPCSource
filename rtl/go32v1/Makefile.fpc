@@ -2,7 +2,7 @@
 #   Makefile.fpc for Go32v1 RTL
 #
 
-[targets]
+[target]
 loaders=prt0
 units=$(SYSTEMUNIT) objpas strings \
       go32 \
@@ -12,27 +12,21 @@ units=$(SYSTEMUNIT) objpas strings \
       msmouse
 
 [require]
-rtl=0
+nortl=y
 
-[defaults]
-defaulttarget=go32v1
-defaultcpu=i386
+[default]
+target=go32v1
+cpu=i386
 
-[install]
-unitsubdir=rtl
-
-[dirs]
-fpcdir=.
-incdir=$(INC) $(PROCINC)
+[compiler]
+includedir=$(INC) $(PROCINC)
 targetdir=.
 
 
-[presettings]
+[prerules]
 RTL=..
 INC=../inc
 PROCINC=../$(CPU_TARGET)
-
-UNITPREFIX=rtl
 
 # Paths
 OBJPASDIR=$(RTL)/objpas
@@ -42,7 +36,7 @@ GRAPHDIR=$(INC)/graph
 SYSTEMUNIT=system
 
 
-[postsettings]
+[rules]
 SYSTEMPPU=$(addsuffix $(PPUEXT),$(SYSTEMUNIT))
 
 # Get the system independent include file names.
@@ -61,9 +55,6 @@ SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 
 
-[rules]
-vpath %$(PASEXT) $(INC) $(PROCINC)
-
 #
 # Loaders
 #
@@ -76,10 +67,10 @@ prt0$(OEXT) : prt0.as
 #
 
 system$(PPUEXT) : system.pp $(SYSDEPS)
-        $(COMPILER) -Us -Sg system.pp $(REDIR)
+        $(COMPILER) -Us -Sg system.pp
 
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc system$(PPUEXT)
-        $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp $(REDIR)
+        $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
 
 strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
                    $(PROCINC)/strings.inc $(PROCINC)/stringss.inc \
@@ -110,13 +101,13 @@ printer$(PPUEXT) : printer.pp system$(PPUEXT)
 
 sysutils$(PPUEXT) : $(OBJPASDIR)/sysutils.pp $(wildcard $(OBJPASDIR)/*.inc) \
                     filutil.inc disk.inc objpas$(PPUEXT) dos$(PPUEXT) go32$(PPUEXT)
-        $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/sysutils.pp $(REDIR)
+        $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/sysutils.pp
 
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
-        $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp $(REDIR)
+        $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp
 
 math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/math.pp $(REDIR)
+        $(COMPILER) $(OBJPASDIR)/math.pp
 
 #
 # Other system-independent RTL Units
@@ -129,7 +120,7 @@ mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) system$(PPUEXT)
 getopts$(PPUEXT) : $(INC)/getopts.pp system$(PPUEXT)
 
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp system$(PPUEXT)
-        $(COMPILER) -Sg $(INC)/heaptrc.pp $(REDIR)
+        $(COMPILER) -Sg $(INC)/heaptrc.pp
 
 #
 # Other system-dependent RTL Units

@@ -2,11 +2,20 @@
 #   Makefile.fpc for OpenGL for FPC
 #
 
-[targets]
-dirs_win32=win32 gtkgl
-dirs_linux=linux gtkgl
+[package]
+name=opengl
+version=1.0.5
+
+[require]
+packages_linux=x11
+libc=y
+
+[target]
+units=gl glut
+units_win32=glaux gl_sl glut_sl glaux_sl
+units_linux=glx
 exampledirs=examples
 
-[install]
-packagename=opengl
-examplesubdir=opengl
+[compiler]
+sourcedir=$(OS_TARGET)
+targetdir=$(OS_TARGET)

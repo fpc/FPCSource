@@ -2,16 +2,13 @@
 #   Makefile.fpc for h2pas
 #
 
-[targets]
+[target]
 programs=h2pas h2paspp
 
 [clean]
 units=options lexlib scan yacclib converu
 
-[dirs]
-fpcdir=../..
-
-[require]
+[compiler]
 options=-Sg
 
 
@@ -36,18 +33,18 @@ export PLEX:=$(firstword $(PLEX))
 endif
 endif
 
-h2pas$(EXEEXT): h2pas$(PASEXT) scan$(PASEXT) options$(PASEXT)
+h2pas$(EXEEXT): h2pas.pas scan.pas options.pas
 
 #
 # Lex and Yacc (only if pyacc is found)
 #
 ifdef  PYACC
-h2pas$(PASEXT): h2pas.y
+h2pas.pas: h2pas.y
         $(PYACC) h2pas.y
 
 yacclex: yacc lex
 
-scan$(PASEXT): scan.l
+scan.pas: scan.l
         $(PLEX) scan.l
 
 yacc:

@@ -2,16 +2,12 @@
 #   Makefile.fpc for Free Pascal Runtime Library
 #
 
-[targets]
-dirs=go32v2 linux win32 os2 go32v1 freebsd
+[package]
+name=rtl
+version=1.0.5
 
-[defaults]
-defaultdir=$(OS_TARGET)
+[target]
+dirs=linux win32 go32v2 go32v1 os2 freebsd
 
-[install]
-packagename=rtl
-sourcesubdirs=0
-
-[sections]
-none=1
-zipsourceinstall=1
+[default]
+dir=$(OS_TARGET)

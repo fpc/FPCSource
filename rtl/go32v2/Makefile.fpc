@@ -2,7 +2,7 @@
 #   Makefile.fpc for Go32v2 RTL
 #
 
-[targets]
+[target]
 loaders=prt0 exceptn fpu
 units=system objpas strings \
       go32 dpmiexcp initc ports profile dxeload emu387 \
@@ -10,27 +10,22 @@ units=system objpas strings \
       sysutils math typinfo \
       cpu mmx getopts heaptrc lineinfo \
       msmouse charset varutils \
-      video mouse keyboard vesamode callspec
-      
+      video mouse keyboard vesamode
 rst=math varutils
 
 [require]
-rtl=0
+nortl=y
 
-[defaults]
-defaulttarget=go32v2
-defaultcpu=i386
+[default]
+target=go32v2
+cpu=i386
 
-[install]
-unitsubdir=rtl
-
-[dirs]
-fpcdir=.
-incdir=$(INC) $(PROCINC)
+[compiler]
+includedir=$(INC) $(PROCINC)
 targetdir=.
 
 
-[presettings]
+[prerules]
 RTL=..
 INC=../inc
 PROCINC=../$(CPU_TARGET)
@@ -51,7 +46,8 @@ ifdef NO_EXCEPTIONS_IN_SYSTEM
 override FPCOPT+=-dNO_EXCEPTIONS_IN_SYSTEM
 endif
 
-[postsettings]
+
+[rules]
 # Get the system independent include file names.
 # This will set the following variables :
 # SYSINCNAMES
@@ -68,9 +64,6 @@ SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 
 
-[rules]
-vpath %$(PASEXT) $(INC) $(PROCINC)
-
 #
 # Loaders
 #
@@ -83,10 +76,10 @@ prt0$(OEXT) : v2prt0.as
 #
 
 system$(PPUEXT) : system.pp $(SYSDEPS)
-        $(COMPILER) -Us -Sg system.pp $(REDIR)
+        $(COMPILER) -Us -Sg system.pp
 
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc system$(PPUEXT)
-        $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp $(REDIR)
+        $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
 
 strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
                    $(PROCINC)/strings.inc $(PROCINC)/stringss.inc \
@@ -99,7 +92,7 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
 go32$(PPUEXT) : go32.pp system$(PPUEXT)
 
 dpmiexcp$(PPUEXT) : dpmiexcp.pp exceptn$(OEXT) system$(PPUEXT)
-        $(COMPILER) -Sg dpmiexcp.pp $(REDIR)
+        $(COMPILER) -Sg dpmiexcp.pp
 
 initc$(PPUEXT) : initc.pp system$(PPUEXT)
 
@@ -134,7 +127,7 @@ GRAPHINCDEPS=$(addprefix $(GRAPHDIR)/,$(GRAPHINCNAMES))
 
 graph$(PPUEXT) : graph.pp go32$(PPUEXT) ports$(PPUEXT) system$(PPUEXT) \
                  $(GRAPHINCDEPS) vesa.inc vesah.inc dpmi.inc
-        $(COMPILER) -I$(GRAPHDIR) graph.pp $(REDIR)
+        $(COMPILER) -I$(GRAPHDIR) graph.pp
 
 #
 # Delphi Compatible Units
@@ -142,17 +135,17 @@ graph$(PPUEXT) : graph.pp go32$(PPUEXT) ports$(PPUEXT) system$(PPUEXT) \
 
 sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/*.inc) \
                     objpas$(PPUEXT) dos$(PPUEXT) go32$(PPUEXT)
-        $(COMPILER) -I$(OBJPASDIR) sysutils.pp $(REDIR)
+        $(COMPILER) -I$(OBJPASDIR) sysutils.pp
 
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
-        $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp $(REDIR)
+        $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp
 
 math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/math.pp $(REDIR)
+        $(COMPILER) $(OBJPASDIR)/math.pp
 
 varutils$(PPUEXT) : $(OBJPASDIR)/cvarutil.inc $(OBJPASDIR)/varutils.inc \
                     $(OBJPASDIR)/varutilh.inc varutils.pp
-        $(COMPILER) -I$(OBJPASDIR) varutils.pp $(REDIR)
+        $(COMPILER) -I$(OBJPASDIR) varutils.pp
 
 #
 # Other system-independent RTL Units
@@ -165,7 +158,7 @@ mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) system$(PPUEXT)
 getopts$(PPUEXT) : $(INC)/getopts.pp system$(PPUEXT)
 
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp system$(PPUEXT)
-        $(COMPILER) -Sg $(INC)/heaptrc.pp $(REDIR)
+        $(COMPILER) -Sg $(INC)/heaptrc.pp
 
 lineinfo$(PPUEXT) : $(INC)/lineinfo.pp system$(PPUEXT)
 

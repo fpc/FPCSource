@@ -2,15 +2,13 @@
 #   Makefile.fpc for RegExpr
 #
 
-[targets]
+[package]
+name=regexpr
+version=1.0.5
+
+[target]
 units=regexpr
 examples=testreg1
 
-[require]
+[compiler]
 options=-S2
-
-[install]
-examplesubdir=regexpr
-
-[dirs]
-fpcdir=../..

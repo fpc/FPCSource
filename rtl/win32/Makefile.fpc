@@ -2,7 +2,7 @@
 #   Makefile.fpc for Free Pascal Win32 RTL
 #
 
-[targets]
+[target]
 loaders=wprt0 wdllprt0
 units=$(SYSTEMUNIT) objpas strings \
       windows ole2 opengl32 os_types winsock initc \
@@ -11,26 +11,21 @@ units=$(SYSTEMUNIT) objpas strings \
       cpu mmx getopts heaptrc lineinfo \
       wincrt winmouse winevent sockets printer dynlibs \
       video mouse keyboard callspec
-
 rst=math varutils
 
 [require]
-rtl=0
+nortl=y
 
-[defaults]
-defaulttarget=win32
-defaultcpu=i386
+[default]
+target=win32
+cpu=i386
 
-[install]
-unitsubdir=rtl
-
-[dirs]
-fpcdir=.
-incdir=$(INC) $(PROCINC)
+[compiler]
+includedir=$(INC) $(PROCINC)
 targetdir=.
 
 
-[presettings]
+[prerules]
 RTL=..
 INC=$(RTL)/inc
 PROCINC=$(RTL)/$(CPU_TARGET)
@@ -56,7 +51,7 @@ include $(WININC)/makefile.inc
 WINDOWS_SOURCE_FILES=$(addprefix $(WININC)/,$(addsuffix .inc,$(WINDOWS_FILES)))
 
 
-[postsettings]
+[rules]
 SYSTEMPPU=$(addsuffix $(PPUEXT),$(SYSTEMUNIT))
 
 # Get the system independent include file names.
@@ -74,9 +69,6 @@ SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 # Put system unit dependencies together.
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 
-
-[rules]
-vpath %$(PASEXT) $(INC) $(PROCINC)
 
 #
 # Loaders
@@ -96,10 +88,10 @@ wdllprt0$(OEXT) : wdllprt0.as
 #
 
 $(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp win32.inc $(SYSDEPS)
-        $(COMPILER) -Us -Sg $(SYSTEMUNIT).pp $(REDIR)
+        $(COMPILER) -Us -Sg $(SYSTEMUNIT).pp
 
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp $(REDIR)
+        $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
 
 strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
                    $(PROCINC)/strings.inc $(PROCINC)/stringss.inc\
@@ -110,7 +102,7 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
 #
 
 windows$(PPUEXT) : windows.pp $(WINDOWS_SOURCE_FILES) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) -I$(WININC) windows.pp $(REDIR)
+        $(COMPILER) -I$(WININC) windows.pp
 
 ole2$(PPUEXT) : ole2.pp windows$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
@@ -150,7 +142,7 @@ GRAPHINCDEPS=$(addprefix $(GRAPHDIR)/,$(GRAPHINCNAMES))
 
 graph$(PPUEXT) : graph.pp strings$(PPUEXT) windows$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
                  $(GRAPHINCDEPS)
-        $(COMPILER) -I$(GRAPHDIR) graph.pp $(REDIR)
+        $(COMPILER) -I$(GRAPHDIR) graph.pp
 
 
 #
@@ -159,17 +151,17 @@ graph$(PPUEXT) : graph.pp strings$(PPUEXT) windows$(PPUEXT) $(SYSTEMUNIT)$(PPUEX
 
 sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/*.inc) \
                     objpas$(PPUEXT) dos$(PPUEXT) windows$(PPUEXT)
-        $(COMPILER) -I$(OBJPASDIR) sysutils.pp $(REDIR)
+        $(COMPILER) -I$(OBJPASDIR) sysutils.pp
 
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
-        $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp $(REDIR)
+        $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp
 
 math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/math.pp $(REDIR)
+        $(COMPILER) $(OBJPASDIR)/math.pp
 
 varutils$(PPUEXT) : varutils.pp $(OBJPASDIR)/cvarutil.inc \
                     $(OBJPASDIR)/varutilh.inc
-        $(COMPILER) -I$(OBJPASDIR) varutils.pp $(REDIR)
+        $(COMPILER) -I$(OBJPASDIR) varutils.pp
 
 #
 # Other system-independent RTL Units
@@ -182,7 +174,7 @@ mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMUNIT)$(PPUEXT)
 
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) -Sg $(INC)/heaptrc.pp $(REDIR)
+        $(COMPILER) -Sg $(INC)/heaptrc.pp
 
 lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT)
 

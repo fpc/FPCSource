@@ -2,30 +2,20 @@
 #   Makefile.fpc for Free Pascal Utils
 #
 
-[targets]
-dirs=tply h2pas fprcp
+[package]
+name=fputils
+version=1.1
+
+[target]
+dirs=fpcm tply h2pas fprcp
 programs=ppufiles ppudump ppumove ppdep ptop rstconv data2inc fpcmake delp bin2obj postw32
 
 [clean]
 units=ppu ptopu makeini crc
 
-[install]
-packagename=util
-sourcesubdirs=0
-
 [require]
 packages=fcl
-packages_linux=zlib
-packages_os2=paszlib
-packages_win32=paszlib
-packages_go32v2=paszlib
 
-[tools]
-tooldata2inc=1
-
-[dirs]
-fpcdir=..
-targetdir=.
 
 [rules]
 #
@@ -47,13 +37,6 @@ ptopu$(PPUEXT): ptopu.pp
 #
 # Other
 #
-
-makeini$(PPUEXT): makeini.pp
-
-fpcmake.inc: fpcmake.ini
-        $(DATA2INC) -b -s fpcmake.ini fpcmake.inc fpcmakeini
-
-fpcmake$(EXEEXT): fpcmake.pp fpcmake.inc makeini$(PPUEXT)
 
 ppdep$(EXEEXT): ppdep.pp
 

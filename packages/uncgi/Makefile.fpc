@@ -2,15 +2,13 @@
 #   Makefile.fpc for CGI Units
 #
 
-[targets]
+[package]
+name=uncgi
+version=1.0.5
+
+[target]
 units=uncgi
 examples=testcgi
-
-[install]
-examplesubdir=uncgi
-
-[dirs]
-fpcdir=../..
 
 [rules]
 exampleinstall: fpc_exampleinstall

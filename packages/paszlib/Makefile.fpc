@@ -2,13 +2,10 @@
 #   Makefile.fpc for PasZLib
 #
 
-[targets]
+[package]
+name=paszlib
+version=1.0.5
+
+[target]
 units=paszlib adler gzcrc gzcrcasm gzio infblock infcodes inffast inftrees infutil strutils trees zcompres zdeflate zinflate zbase zuncompr zutil
 examples=example minigzip
-
-[install]
-unitsubdir=paszlib
-examplesubdir=paszlib
-
-[dirs]
-fpcdir=../..

@@ -2,20 +2,12 @@
 #   Makefile.fpc for FP IDE
 #
 
-[targets]
+[package]
+name=ide
+version=1.0.5
+
+[target]
 dirs=fake text
-
-[install]
-packagename=ide
-sourcesubdirs=0
-
-[sections]
-none=1
-zipsourceinstall=1
-
-[defaults]
-defaultinstalldir=text
-
 
 [rules]
 .PHONY: gdb full fullgdb clean_compiler

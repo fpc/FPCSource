@@ -2,12 +2,14 @@
 #   Makefile.fpc for SysLog Units
 #
 
-[targets]
+[package]
+name=syslog
+version=1.0.5
+
+[target]
 units=systemlog
 examples=testlog
 
-[install]
-examplesubdir=syslog
+[require]
+libc=y
 
-[dirs]
-fpcdir=../..

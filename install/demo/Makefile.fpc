@@ -2,40 +2,19 @@
 #   Makefile.fpc for FPC demo package
 #
 
-[targets]
+[package]
+name=demo
+version=1.0.5
+
+[target]
 dirs=text graph
 dirs_go32v2=modex
 dirs_win32=win32
 dirs_linux=linux
 dirs_os2=os2
 
-[install]
-packagename=demo
-
-[defaults]
-defaultrule=all
-
-[dirs]
-fpcdir=..
-targetdir=.
-
-[sections]
-info=0
 
 [rules]
-.PHONY: info
-
-info:
-        @echo Makefile targets are
-        @echo - all
-        @echo - text
-        @echo - graph
-        @echo - modex
-        @echo - win32
-        @echo - os2
-        @echo
-        @echo - installexamples
-
 #################################
 # Demo installation for linux
 #

@@ -1,18 +1,17 @@
 #
-# Makefile.fpc for interbase.pp units
+# Makefile.fpc for interbase FCL db units
+#
 
-[targets]
+[package]
+main=fcl
+
+[target]
 units=interbase
 examples=testib
 
 [require]
-options=-S2 
 packages=ibase
 
-[install]
-unitsubdir=fcl
-packagename=fcl
-
-[dirs]
-fpcdir=../../..
+[compiler]
+options=-S2 
 targetdir=../../$(OS_TARGET)

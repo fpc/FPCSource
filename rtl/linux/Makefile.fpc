@@ -2,7 +2,10 @@
 #   Makefile.fpc for Free Pascal Linux RTL
 #
 
-[targets]
+[require]
+nortl=1
+
+[target]
 loaders=prt0 cprt0 gprt0 cprt21 gprt21
 units=$(SYSTEMUNIT) objpas strings \
       unix ports initc \
@@ -10,29 +13,22 @@ units=$(SYSTEMUNIT) objpas strings \
       sysutils typinfo math varutils \
       cpu mmx getopts heaptrc lineinfo \
       errors sockets gpm ipc serial terminfo dl dynlibs \
-      video mouse keyboard callspec
-
+      video mouse keyboard
 rst=math varutils
 
 [clean]
 units=syslinux
 
-[require]
-rtl=0
+[default]
+target=linux
+cpu=i386
 
-[defaults]
-defaulttarget=linux
-defaultcpu=i386
-
-[install]
-unitsubdir=rtl
-
-[dirs]
-fpcdir=.
-incdir=$(INC) $(PROCINC) $(UNIXINC)
+[compiler]
+includedir=$(INC) $(PROCINC) $(UNIXINC)
+sourcedir=$(INC) $(PROCINC) $(UNIXINC)
 targetdir=.
 
-[libs]
+[lib]
 libname=libfprtl.so
 libversion=1.0
 libunits=$(SYSTEMUNIT) objpas strings \
@@ -42,7 +38,7 @@ libunits=$(SYSTEMUNIT) objpas strings \
       cpu mmx getopts heaptrc \
       errors sockets ipc dl dynlibs varutils
 
-[presettings]
+[prerules]
 RTL=..
 INC=$(RTL)/inc
 PROCINC=$(RTL)/$(CPU_TARGET)
@@ -72,7 +68,7 @@ ifndef USELIBGGI
 USELIBGGI=NO
 endif
 
-[postsettings]
+[rules]
 # Get the $(SYSTEMUNIT) independent include file names.
 # This will set the following variables :
 # SYSINCNAMES
@@ -88,9 +84,6 @@ SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 # Put $(SYSTEMUNIT) unit dependencies together.
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 
-
-[rules]
-vpath %$(PASEXT) $(INC) $(PROCINC) $(UNIXINC)
 
 #
 # Loaders
@@ -118,10 +111,10 @@ gprt21$(OEXT) : $(CPU_TARGET)/gprt0.as
 #
 
 $(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp sysconst.inc systypes.inc syscalls.inc $(SYSDEPS)
-        $(COMPILER) -Us -Sg $(SYSTEMUNIT).pp $(REDIR)
+        $(COMPILER) -Us -Sg $(SYSTEMUNIT).pp
 
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp $(REDIR)
+        $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
 
 strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
                    $(PROCINC)/strings.inc $(PROCINC)/stringss.inc\
@@ -163,11 +156,11 @@ GRAPHINCDEPS=$(addprefix $(GRAPHDIR)/,$(GRAPHINCNAMES))
 
 graph$(PPUEXT) : graph.pp unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
                  $(GRAPHINCDEPS) $(UNIXINC)/graph16.inc
-        $(COMPILER) -I$(GRAPHDIR) $(UNIXINC)/graph.pp $(REDIR)
+        $(COMPILER) -I$(GRAPHDIR) $(UNIXINC)/graph.pp
 
 ggigraph$(PPUEXT) : $(UNIXINC)/ggigraph.pp unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
                  $(GRAPHINCDEPS)
-        $(COMPILER) -I$(GRAPHDIR) $(UNIXINC)/ggigraph.pp $(REDIR)
+        $(COMPILER) -I$(GRAPHDIR) $(UNIXINC)/ggigraph.pp
 
 #
 # Delphi Compatible Units
@@ -175,20 +168,20 @@ ggigraph$(PPUEXT) : $(UNIXINC)/ggigraph.pp unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) 
 
 sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/*.inc) \
                     objpas$(PPUEXT) unix$(PPUEXT) errors$(PPUEXT)
-        $(COMPILER) -I$(OBJPASDIR) $(UNIXINC)/sysutils.pp $(REDIR)
+        $(COMPILER) -I$(OBJPASDIR) $(UNIXINC)/sysutils.pp
 
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
-        $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp $(REDIR)
+        $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp
 
 math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/math.pp $(REDIR)
+        $(COMPILER) $(OBJPASDIR)/math.pp
 
 gettext$(PPUEXT): $(OBJPASDIR)/gettext.pp objpas$(PPUEXT) sysutils$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/gettext.pp $(REDIR)
+        $(COMPILER) $(OBJPASDIR)/gettext.pp
 
 varutils$(PPUEXT) : $(OBJPASDIR)/cvarutil.inc $(OBJPASDIR)/varutils.inc \
                     $(OBJPASDIR)/varutilh.inc varutils.pp
-        $(COMPILER) -I$(OBJPASDIR) $(UNIXINC)/varutils.pp $(REDIR)
+        $(COMPILER) -I$(OBJPASDIR) $(UNIXINC)/varutils.pp
 
 #
 # Other $(SYSTEMUNIT)-independent RTL Units
@@ -201,7 +194,7 @@ mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMUNIT)$(PPUEXT)
 
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) -Sg $(INC)/heaptrc.pp $(REDIR)
+        $(COMPILER) -Sg $(INC)/heaptrc.pp
 
 lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT)
 

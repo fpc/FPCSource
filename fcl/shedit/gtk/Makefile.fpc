@@ -2,13 +2,9 @@
 #   Makefile.fpc for GTK shedit
 #
 
-[targets]
+[target]
 units=gtkshedit
 programs=gtkdemo
 
 [require]
 packages=fcl gtk
-
-[dirs]
-fpcdir=../../..
-

@@ -2,27 +2,26 @@
 #   Makefile.fpc for Free Pascal GDB Interface
 #
 
-[targets]
+[package]
+name=gdbint
+version=1.0.5
+
+[target]
 units=gdbint gdbcon
 examples=testgdb symify
 
-[install]
-examplesubdir=gdbint
-
-[dirs]
-fpcdir=../..
-targetdir=.
+[compiler]
 objdir=libgdb/$(OS_TARGET)
 libdir=libgdb/$(OS_TARGET)
 
-[libs]
-libgcc=1
+[require]
+libc=y
 
 
 [rules]
-gdbint$(PPUEXT): gdbint$(PASEXT)
+gdbint$(PPUEXT): gdbint.pp
 
-gdbcon$(PPUEXT): gdbcon$(PASEXT) gdbint$(PPUEXT)
+gdbcon$(PPUEXT): gdbcon.pp gdbint$(PPUEXT)
 
 ifeq ($(OS_TARGET),go32v2)
 DBGCOM=dbgcom$(OEXT)

@@ -2,21 +2,11 @@
 #   Makefile.fpc for FPC graph demos (part of FPC demo package)
 #
 
-[targets]
+[target]
 units=gameunit
 programs=fpctris mandel samegame quad maze gravwars
 
-[require]
-packages=api
-
-[install]
-packagename=demo
-
-[dirs]
-fpcdir=../..
-targetdir=.
-
-[postsettings]
+[prerules]
 ifdef GRAPHICS
 override FPCOPT+=-dUSEGRAPHICS
 endif
@@ -36,11 +26,11 @@ execlean :
 
 text:
         $(MKDIR) text
-        $(MAKE) fpc_all TARGETDIR=text
+        $(MAKE) fpc_all COMPILER_TARGETDIR=text
 
 graph:
         $(MKDIR) graph
-        $(MAKE) fpc_all TARGETDIR=graph GRAPHICS=1
+        $(MAKE) fpc_all COMPILER_TARGETDIR=graph GRAPHICS=1
 
 both:
         $(MAKE) text

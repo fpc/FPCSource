@@ -2,7 +2,7 @@
 #   Makefile.fpc for Free Pascal GTK 1.2.x Examples
 #
 
-[targets]
+[target]
 dirs=tutorial
 programs=entry notebook scribble clist ttt_test pixmap list progressbar filesel
 
@@ -11,11 +11,3 @@ packages=gtk
 
 [clean]
 units=tictactoe
-
-[dirs]
-fpcdir=../../..
-targetdir=.
-
-[libs]
-libgcc=1
-libother=1

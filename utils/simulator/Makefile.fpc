@@ -2,11 +2,8 @@
 #   Makefile.fpc for Alpha simulator
 #
 
-[targets]
+[target]
 programs=alphasim
 
 [clean]
 units=mm64 fastmm64 simlib simbase
-
-[dirs]
-fpcdir=../..

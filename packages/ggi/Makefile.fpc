@@ -2,12 +2,13 @@
 #   Makefile.fpc for GGI Bindings
 #
 
-[targets]
+[package]
+name=ggi
+version=1.0.5
+
+[target]
 units=gii ggi ggi2d
 examples=ggi1
 
-[install]
-examplesubdir=ggi
-
-[dirs]
-fpcdir=../..
+[require]
+libc=y

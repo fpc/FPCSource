@@ -1,16 +1,11 @@
 #
-#   Makefile.fpc for InterBase bindings
+#   Makefile.fpc for C Memory Manager
 #
 
-[targets]
+[package]
+name=cmem
+version=1.0.5
+
+[target]
 units=cmem
 examples=testcmem
-
-[install]
-examplesubdir=cmem
-
-[dirs]
-fpcdir=../..
-
-[rules]
-testcmem$(EXEEXT): testcmem.pp cmem$(PPUEXT)

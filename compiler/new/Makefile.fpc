@@ -1,31 +1,27 @@
 #
-#   Makefile.fpc for Free Pascal Compiler NEWCG
+#   Makefile.fpc for Free Pascal Compiler
 #
 
-[dirs]
-fpcdir=../..
-unitdir=$(CPU_TARGET) . $(OLDDIR)
-incdir=$(OLDDIR)
-targetdir=.
+[package]
+name=fpcompiler
+version=1.1
 
-[install]
-packagename=compiler
-sourcesubdirs=0
+[compiler]
+targetdir=.
+unitdir=$(OLDDIR)/$(CPU_TARGET)
+includedir=$(OLDDIR)/$(CPU_TARGET) $(OLDDIR)
 
 [require]
-rtl=1
-options=-Sg
-
-[tools]
-tooldiff=1
-toolcmp=1
-tooldate=1
-toolupx=1
+packages=rtl
+tools=diff cmp
 
 
-[presettings]
+[prerules]
 # Don't export OS_SOURCE because it can change after the first compile
 unexport OS_SOURCE FPC_VERSION
+
+# Where is the 'old' compiler located
+OLDDIR=..
 
 # Allow ALPHA, POWERPC, M68K, I386 defines for target cpu
 ifdef ALPHA
@@ -40,9 +36,6 @@ endif
 ifdef I386
 CPU_TARGET=i386
 endif
-
-# Where is the 'old' compiler located
-OLDDIR=..
 
 # RTL
 UTILSDIR=$(OLDDIR)/../utils
@@ -87,8 +80,19 @@ ifeq ($(CPU_TARGET),powerpc)
 CPUSUF=ppc
 endif
 
+# Define Unix also for Linux
+ifeq ($(OS_TARGET),linux)
+ifneq ($(findstring 1.0.,$(FPC_VERSION)),)
+override LOCALDEF+=-dUNIX
+endif
+endif
 
-[postsettings]
+ifeq ($(OS_TARGET),freebsd)
+ifneq ($(findstring 1.0.,$(FPC_VERSION)),)
+override LOCALDEF+=-dUNIX
+endif
+endif
+
 # Default message file
 MSGFILE=$(OLDDIR)/error$(FPCLANG).msg
 
@@ -99,15 +103,11 @@ override LOCALDEF+=-dGDB -dBROWSERLOG -dNEWCG
 ifeq ($(CPU_TARGET),i386)
 # also insert MMX support
 override LOCALDEF+=-dSUPPORT_MMX
-# We don't need the intel and binary writer on linux...
-ifdef inlinux
-override LOCALDEF+=-dNOAG386INT -dNOAG386BIN
-endif
 endif
 
 override LOCALOPT+=$(LOCALDEF)
 
-override FPCOPT+=$(LOCALOPT)
+override FPCOPT:=$(LOCALOPT)
 
 
 [rules]
@@ -119,6 +119,8 @@ ifeq ($(OS_TARGET),win32)
 ifdef CMP
 override DIFF:=$(CMP) -i138
 endif
+# force try to smartlink for windows unit
+override COMPILER+=-XX
 endif
 
 # Used to avoid unnecessary steps in remake3
@@ -137,7 +139,8 @@ endif
 # Setup os-independent filenames
 #####################################################################
 
-FPCEXENAME=pp$(EXEEXT)
+FPCEXE=fpc$(EXEEXT)
+PPEXENAME=pp$(EXEEXT)
 EXENAME=ppc$(CPUSUF)$(EXEEXT)
 TEMPNAME=ppc$(EXEEXT)
 TEMPNAME1=ppc1$(EXEEXT)
@@ -169,7 +172,8 @@ powerpc:
 #####################################################################
 
 all: $(EXENAME)
-        $(MAKE) echotime
+
+fpcexe: $(FPCEXE)
 
 ifeq ($(MAKELEVEL),0)
 ifndef STARTTIME
@@ -200,17 +204,19 @@ else
 next :
         $(MAKE) execlean
         $(MAKE) -C $(UNITDIR_RTL) clean
-        $(MAKE) -C $(UNITDIR_RTL) 'FPC=$(FPC)' 'OPT=$(RTLOPTS)' all
+        $(MAKE) -C $(UNITDIR_RTL) 'FPC=$(FPC)' 'OPT=$(RTLOPTS)'
         $(MAKE) clean
-        $(MAKE) all
+        $(MAKE) $(EXENAME)
+        $(MAKE) echotime
 endif
 
 clean : execlean fpc_cleanall
 
-ppuclean: fpc_cleanall
+ppuclean:
+        -$(DEL) *$(OEXT) *$(PPUEXT) *$(RSTEXT) *$(ASMEXT) *$(STATICLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT)
 
 execlean :
-        -$(DEL) ppc386$(EXEEXT) ppcaxp$(EXEEXT) ppc68k$(EXEEXT) ppcppc$(EXEEXT)
+        -$(DEL) fpc$(EXEEXT) ppc386$(EXEEXT) ppcaxp$(EXEEXT) ppc68k$(EXEEXT) ppcppc$(EXEEXT)
 
 distclean: clean
         -$(DEL) $(TEMPNAME) $(TEMPNAME1) $(TEMPNAME2) $(TEMPNAME3) $(MSG2INC)
@@ -254,7 +260,7 @@ ifndef COMPLETE
 $(EXENAME) : $(wildcard *.pas) $(wildcard *.inc) msg
         $(COMPILER) pp.pas
         $(EXECPPAS)
-        $(MOVE) $(FPCEXENAME) $(EXENAME)
+        $(MOVE) $(PPEXENAME) $(EXENAME)
 else
 $(EXENAME) : $(wildcard *.pas) $(wildcard *.inc) msg
         $(COMPILER) pp.pas
@@ -263,7 +269,7 @@ $(EXENAME) : $(wildcard *.pas) $(wildcard *.inc) msg
         $(EXECPPAS)
         $(COMPILER) pp.pas
         $(EXECPPAS)
-        $(MOVE) $(FPCEXENAME) $(EXENAME)
+        $(MOVE) $(PPEXENAME) $(EXENAME)
 endif
 
 tokens.dat : $(wildcard *.pas) $(wildcard *.inc)
@@ -316,33 +322,47 @@ cvstest:
 
 .PHONY: quickinstall install installsym
 
-MSGINSTALLDIR=$(BASEINSTALLDIR)/msg
+MSGINSTALLDIR=$(INSTALL_BASEDIR)/msg
+override FPCEXEFILE:=$(wildcard $(FPCEXE))
+override PPEXEFILE:=$(wildcard $(EXENAME))
 
 # This will only install the ppc386.exe, not the message files etc.
 quickinstall:
-ifdef inlinux
-        $(MKDIR) $(BASEINSTALLDIR)
-        $(INSTALLEXE) $(EXENAME) $(BASEINSTALLDIR)
-else
-        $(MKDIR) $(BININSTALLDIR)
+# Install fpc.exe
+ifneq ($(FPCEXEFILE),)
+ifdef UPXPROG
+        -$(UPXPROG) $(FPCEXEFILE)
+endif
+        $(MKDIR) $(INSTALL_BINDIR)
+        $(INSTALLEXE) $(FPCEXEFILE) $(INSTALL_BINDIR)
+endif
+# Install ppc386.exe
+ifneq ($(PPEXEFILE),)
 ifdef UPXPROG
         -$(UPXPROG) $(EXENAME)
 endif
-        $(INSTALLEXE) $(EXENAME) $(BININSTALLDIR)
+ifdef UNIXINSTALLDIR
+        $(MKDIR) $(INSTALL_BASEDIR)
+        $(INSTALLEXE) $(EXENAME) $(INSTALL_BASEDIR)
+else
+        $(MKDIR) $(INSTALL_BINDIR)
+        $(INSTALLEXE) $(EXENAME) $(INSTALL_BINDIR)
+endif
 endif
 
 install: quickinstall
-ifdef inlinux
-        $(INSTALLEXE) $(COMPILERUTILSDIR)/samplecfg $(BASEINSTALLDIR)/samplecfg
+ifdef UNIXINSTALLDIR
+        $(MKDIR) $(INSTALL_BASEDIR)
+        $(INSTALLEXE) $(COMPILERUTILSDIR)/samplecfg $(INSTALL_BASEDIR)/samplecfg
 endif
         $(MKDIR) $(MSGINSTALLDIR)
         $(INSTALL) $(MSGFILES) $(MSGINSTALLDIR)
 
 # this also installs the link /usr/bin/ppc386. The .deb does that later
 installsymlink: install
-ifdef inlinux
-        $(MKDIR) $(BININSTALLDIR)
-        ln -sf $(BASEINSTALLDIR)/ppc386 $(BININSTALLDIR)/ppc386
+ifdef UNIXINSTALLDIR
+        $(MKDIR) $(INSTALL_BINDIR)
+        ln -sf $(INSTALL_BASEDIR)/ppc386 $(INSTALL_BINDIR)/ppc386
 endif
 
 
@@ -360,6 +380,7 @@ rtlclean:
 
 rtlinstall:
         $(MAKE) -C $(UNITDIR_RTL) install
+
 
 #####################################################################
 # local user configurable file

@@ -2,7 +2,7 @@
 #   Makefile.fpc for Forms Examples
 #
 
-[targets]
+[target]
 programs=pushme yesno pushbutton touchbutton minput inputall choice butttypes \
          colsel colsel1 buttonall chartall positioner secretinput cursor fdial \
          ldial ndial invslider sliderall borderwidth boxtype xyplotover \
@@ -11,10 +11,4 @@ programs=pushme yesno pushbutton touchbutton minput inputall choice butttypes \
          objinactive objpos newbutton multilabel objreturn
 
 [require]
-packages=forms x11
-
-[libs]
-libother=1
-
-[dirs]
-fpcdir=../../..
+packages=forms

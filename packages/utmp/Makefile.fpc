@@ -2,15 +2,10 @@
 #   Makefile.fpc for UTmp Unit
 #
 
-[targets]
+[package]
+name=utmp
+version=1.0.5
+
+[target]
 units=utmp
 examples=testutmp
-
-[install]
-examplesubdir=utmp
-
-[dirs]
-fpcdir=../..
-
-[rules]
-testutmp$(EXEEXT): testutmp$(PASEXT) utmp$(PPUEXT)

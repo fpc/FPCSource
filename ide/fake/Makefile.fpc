@@ -2,8 +2,5 @@
 #   Makefile.fpc for Fake compiler/gdb
 #
 
-[targets]
+[target]
 dirs=compiler gdb
-
-[sections]
-none=1

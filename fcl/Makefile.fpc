@@ -2,18 +2,30 @@
 #   Makefile.fpc for Free Component Library
 #
 
-[targets]
-dirs=go32v2 linux win32 os2 freebsd
-exampledirs=tests shedit/gtk
+[package]
+name=fcl
+version=1.0.5
 
-[install]
-examplesubdir=fcl
-packagename=fcl
+[require]
+packages=paszlib
+packages_linux=inet
 
-[sections]
-none=1
-zipsourceinstall=1
-zipexampleinstall=1
+[target]
+dirs=xml db shedit
+units=classes inifiles registry ezcgi pipes rtfpars idea base64 gettext iostream zstream cachecls
+units_freebsd=process asyncio ssockets http
+units_linux=process asyncio ssockets http
+units_win32=process fileinfo
+rsts=classes ssockets cachecls
+exampledirs=tests db/tests shedit/gtk
 
-[defaults]
-defaultdir=$(OS_TARGET)
+[compiler]
+options=-S2
+targetdir=$(OS_TARGET)
+includedir=$(OS_TARGET) inc
+includedir_linux=unix
+includedir_freebsd=unix
+sourcedir=$(OS_TARGET) inc
+
+[libs]
+libname=fpfcl

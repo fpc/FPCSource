@@ -2,16 +2,8 @@
 #   Makefile.fpc for GL demos
 #
 
-[targets]
+[target]
 programs=glutdemo morph3d bounce
 
 [require]
 packages=opengl
-packages_linux=x11
-
-[dirs]
-fpcdir=../../..
-
-[libs]
-libother=1
-libgcc=1

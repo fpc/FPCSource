@@ -2,18 +2,14 @@
 #   Makefile.fpc for NCurses bindings
 #
 
-[targets]
+[package]
+name=ncurses
+version=1.0.5
+
+[target]
 units=ncurses panel ncrt ocrt menu
 examples=firework testn ocrt_demo edit_demo db_demo screen_demo
 
-[install]
-examplesubdir=ncurses
+[require]
+libc=y
 
-[dirs]
-fpcdir=../..
-
-
-[rules]
-testn$(EXEEXT): testn$(PASEXT) ncurses$(PPUEXT)
-
-firework$(EXEEXT): firework$(PASEXT) ncurses$(PPUEXT)

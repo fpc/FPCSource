@@ -2,15 +2,16 @@
 #   Makefile.fpc for InterBase bindings
 #
 
-[targets]
+[package]
+name=ibase
+version=1.0.5
+
+[target]
 units=ibase40 ibase60
 examples=testib40 testib60
 
-[install]
-examplesubdir=ibase
-
-[dirs]
-fpcdir=../..
+[require]
+libc=y
 
 [rules]
 testib40$(EXEEXT): testib40.pp ibase40$(PPUEXT)

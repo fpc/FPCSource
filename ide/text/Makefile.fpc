@@ -2,25 +2,24 @@
 #   Makefile.fpc for FP IDE
 #
 
-[targets]
+[target]
 programs=fp
 rst=fpstrings
 
 [install]
-datadir=$(BASEINSTALLDIR)/ide
+datadir=$(INSTALL_BASEDIR)/ide
 
-[dirs]
-fpcdir=../..
+[compiler]
+options=-Sg
 targetdir=.
 
 [require]
-options=-Sg
-packages=api fv gdbint
+packages=fv gdbint
 
 [libs]
 libgcc=1
 
-[presettings]
+[prerules]
 ifeq ($(OS_TARGET),linux)
 ifneq ($(findstring 1.0.,$(FPC_VERSION)),)
 override FPCOPT+=-dUNIX
@@ -33,8 +32,6 @@ override FPCOPT+=-dUNIX
 endif
 endif
 
-
-[postsettings]
 # when making a full version include the compiler
 ifeq ($(FULL),1)
 override UNITDIR+=../../compiler ../../compiler/$(CPU_TARGET)

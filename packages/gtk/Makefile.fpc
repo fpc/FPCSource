@@ -2,16 +2,20 @@
 #   Makefile.fpc for Free Pascal GTK 1.2.x Bindings
 #
 
-[targets]
+[package]
+name=gtk
+version=1.0.5
+
+[require]
+libc=y
+
+[target]
+dirs=gtkgl
 units=glib gmodule gdk gtk
 exampledirs=examples
 
-[install]
-examplesubdir=gtk
-
-[dirs]
-fpcdir=../..
-sourcesdir=glib gdk gtk
+[compiler]
+sourcedir=glib gdk gtk
 targetdir=.
 
 [libs]
@@ -19,10 +23,10 @@ libname=libfpgtk.so
 libversion=1.0
 
 [rules]
-glib$(PPUEXT): $(wildcard glib/glib*$(PASEXT))
+glib$(PPUEXT): $(wildcard glib/glib*.pp)
 
-gmodule$(PPUEXT): $(wildcard glib/gmodule*$(PASEXT)) glib$(PPUEXT)
+gmodule$(PPUEXT): $(wildcard glib/gmodule*.pp) glib$(PPUEXT)
 
-gdk$(PPUEXT): $(wildcard gdk/gdk*$(PASEXT)) glib$(PPUEXT)
+gdk$(PPUEXT): $(wildcard gdk/gdk*.pp) glib$(PPUEXT)
 
-gtk$(PPUEXT): $(wildcard gtk/gtk*$(PASEXT)) gdk$(PPUEXT)
+gtk$(PPUEXT): $(wildcard gtk/gtk*.pp) gdk$(PPUEXT)
