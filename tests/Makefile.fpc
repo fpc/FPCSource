@@ -15,7 +15,7 @@ packages_linux=mysql
 
 [rules]
 # Subdirs available in the test subdir
-TESTSUBDIRS=cg cg/cdecl units/system units/dos units/crt units/objects units/strings units/sysutils
+TESTSUBDIRS=cg cg/cdecl units/system units/dos units/crt units/objects units/strings units/sysutils units/math
 
 # All full dirnames in the test/ dir including the subdir self
 TESTDIRS:=test $(addprefix test/,$(TESTSUBDIRS))
@@ -291,4 +291,3 @@ ifdef LASTDATESUFFIX
         -diff -u faillist.$(LASTDATESUFFIX) faillist.$(DATESUFFIX) > difflist.$(DATESUFFIX)
 endif
         @echo $(DATESUFFIX) > lastdate.txt
-
