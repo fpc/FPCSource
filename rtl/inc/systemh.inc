@@ -58,7 +58,7 @@ Type
   ValSInt = Longint;
   ValUInt = Cardinal;
   ValReal = Extended;
-{$endif}
+{$endif i386}
 
 {$ifdef x86_64}
   StrLenInt = LongInt;
@@ -78,8 +78,6 @@ Type
 {$ifdef m68k}
   StrLenInt = Longint;
 
-  {$define SUPPORT_ANSISTRING}
-
   ValSInt = Longint;
   ValUInt = Cardinal;
   ValReal = Real;
@@ -97,6 +95,19 @@ Type
     {$define SUPPORT_DOUBLE}
   {$ENDIF}
 {$endif}
+
+{$ifdef powerpc}
+  StrLenInt = LongInt;
+
+  {$define DEFAULT_DOUBLE}
+
+  {$define SUPPORT_SINGLE}
+  {$define SUPPORT_DOUBLE}
+
+  ValSInt = Longint;
+  ValUInt = Cardinal;
+  ValReal = Double;
+{$endif powerpc}
 
 { Zero - terminated strings }
   PChar               = ^Char;
@@ -570,7 +581,10 @@ const
 
 {
   $Log$
-  Revision 1.48  2002-07-04 20:40:09  florian
+  Revision 1.49  2002-07-26 21:29:03  florian
+    + powerpc type support
+
+  Revision 1.48  2002/07/04 20:40:09  florian
     + some x86-64 support added
 
   Revision 1.47  2002/07/01 16:29:05  peter
