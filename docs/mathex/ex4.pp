@@ -5,6 +5,6 @@ Program Example4;
 Uses math;
 
 begin
-//  Writeln(arsinh(0));
+  Writeln(arsinh(0));
   Writeln(arsinh(1));
 end.
