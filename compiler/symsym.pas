@@ -177,6 +177,7 @@ interface
           reg           : tregister; { if reg<>R_NO, then the variable is an register variable }
           varspez       : tvarspez;  { sets the type of access }
           varstate      : tvarstate;
+          paraitem      : tparaitem;
 {$ifdef var_notification}
           notifications : Tlinkedlist;
 {$endif}
@@ -2496,7 +2497,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.62  2002-09-07 15:25:10  peter
+  Revision 1.63  2002-09-07 18:17:41  florian
+    + tvarsym.paraitem added
+
+  Revision 1.62  2002/09/07 15:25:10  peter
     * old logs removed and tabs fixed
 
   Revision 1.61  2002/09/05 19:29:45  peter
