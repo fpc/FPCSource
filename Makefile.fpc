@@ -402,6 +402,10 @@ linuxzip: checkfpcdir
 freebsdzip : checkfpcdir
         $(MAKE) zipinstall OS_TARGET=freebsd
 
+beoszip : checkfpcdir
+        $(MAKE) zipinstall OS_TARGET=beos USEZIP=1
+
+
 os2zip: checkfpcdir
         $(MAKE) zipinstall OS_TARGET=os2
 
