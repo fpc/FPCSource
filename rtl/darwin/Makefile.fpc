@@ -10,7 +10,7 @@ main=rtl
 loaders=
 units=$(SYSTEMUNIT) objpas strings sysctl baseunix unixtype unixutil \
       unix initc cmem \
-      dos dl objects printer \
+      dos dl objects printer sockets \
       sysutils typinfo systhrds classes math varutils \
       charset ucomplex getopts heaptrc lineinfo \
       errors terminfo termio video crt mouse keyboard console \
