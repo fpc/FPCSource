@@ -786,6 +786,7 @@ end;
 
     constructor tstringcontainer.init_no_double;
       begin
+         inherited init;
          doubles:=false;
       end;
 
@@ -2216,7 +2217,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.39  1999-08-05 14:58:07  florian
+  Revision 1.40  1999-08-12 23:19:05  pierre
+   * added inherited init call to tstringcontainer.init_no_double for Peter
+
+  Revision 1.39  1999/08/05 14:58:07  florian
     * some fixes for the floating point registers
     * more things for the new code generator
 
