@@ -175,7 +175,7 @@ function writeToMemDestroysContents(regWritten: tsuperregister; const ref: trefe
 function writeToRegDestroysContents(destReg, supreg: tsuperregister;
   const c: tcontent): boolean;
 function writeDestroysContents(const op: toper; supreg: tsuperregister;
-  const c: tcontent): boolean;
+  const c: tcontent; var memwritedestroyed: boolean): boolean;
 
 
 function GetNextInstruction(Current: tai; var Next: tai): Boolean;
@@ -1805,19 +1805,18 @@ end;
 
 
 function writeDestroysContents(const op: toper; supreg: tsuperregister;
-  const c: tcontent): boolean;
+  const c: tcontent; var memwritedestroyed: boolean): boolean;
 { returns whether the contents c of reg are invalid after regWritten is }
 { is written to op                                                      }
-var
-  dummy: boolean;
 begin
+  memwritedestroyed := false;
   case op.typ of
     top_reg:
       writeDestroysContents :=
         writeToRegDestroysContents(getsupreg(op.reg),supreg,c);
     top_ref:
       writeDestroysContents :=
-        writeToMemDestroysContents(RS_INVALID,op.ref^,supreg,c,dummy);
+        writeToMemDestroysContents(RS_INVALID,op.ref^,supreg,c,memwritedestroyed);
   else
     writeDestroysContents := false;
   end;
@@ -2714,7 +2713,11 @@ end.
 
 {
   $Log$
-  Revision 1.61  2003-12-15 21:25:49  peter
+  Revision 1.62  2003-12-20 22:53:33  jonas
+    * fixed some more optimizer bugs, make cycle now works with -O2p3,
+      -O2p3u, -O3p3 and -O3p3u
+
+  Revision 1.61  2003/12/15 21:25:49  peter
     * reg allocations for imaginary register are now inserted just
       before reg allocation
     * tregister changed to enum to allow compile time check

@@ -68,7 +68,7 @@ end;
 }
 
 function modifiesConflictingMemLocation(p1: tai; supreg: tsuperregister; c: tregContent;
-   var regsStillValid: tregset; onlymem: boolean): boolean;
+   var regsStillValid: tregset; onlymem: boolean; var invalsmemwrite: boolean): boolean;
 var
   p, hp: taicpu;
   tmpRef: treference;
@@ -77,6 +77,7 @@ var
   dummy: boolean;
 begin
   modifiesConflictingMemLocation := false;
+  invalsmemwrite := false;
   if p1.typ <> ait_instruction then
     exit;
   p := taicpu(p1);
@@ -93,13 +94,15 @@ begin
                 exclude(regsStillValid,regCounter);
                 modifiesConflictingMemLocation := not(supreg in regsStillValid);
               end;
+            if (regcounter = supreg) then
+              invalsmemwrite := invalsmemwrite or dummy;
           end
       else
 {         if is_reg_var[getsupreg(p.oper[1]^.reg)] then }
         if not onlymem  then
           for regCounter := RS_EAX to RS_EDI do
             begin
-              if writeDestroysContents(p.oper[1]^,regCounter,c[regCounter]) then
+              if writeDestroysContents(p.oper[1]^,regCounter,c[regCounter],dummy) then
                 begin
                   exclude(regsStillValid,regCounter);
                   modifiesConflictingMemLocation := not(supreg in regsStillValid);
@@ -129,7 +132,7 @@ begin
             { last operand is always destination }
             for regCounter := RS_EAX to RS_EDI do
               begin
-                if writeDestroysContents(p.oper[p.ops-1]^,regCounter,c[regCounter]) then
+                if writeDestroysContents(p.oper[p.ops-1]^,regCounter,c[regCounter],dummy) then
                   begin
                     exclude(regsStillValid,regCounter);
                     modifiesConflictingMemLocation := not(supreg in regsStillValid);
@@ -144,33 +147,45 @@ begin
                  (p.oper[0]^.typ = top_ref) then
 {                or ((p.oper[0]^.typ = top_reg) and }
 {                 is_reg_var[getsupreg(p.oper[0]^.reg)]) then }
-              for regCounter := RS_EAX to RS_EDI do
-                if writeDestroysContents(p.oper[0]^,regCounter,c[regCounter]) then
+                for regCounter := RS_EAX to RS_EDI do
                   begin
-                    exclude(regsStillValid,regCounter);
-                    modifiesConflictingMemLocation := not(supreg in regsStillValid);
+                    if writeDestroysContents(p.oper[0]^,regCounter,c[regCounter],dummy) then
+                      begin
+                        exclude(regsStillValid,regCounter);
+                        modifiesConflictingMemLocation := not(supreg in regsStillValid);
+                      end;
+                    if (regcounter = supreg) then
+                      invalsmemwrite := invalsmemwrite or dummy;
                   end;
           Ch_MOp2,CH_WOp2,CH_RWOp2:
               if not(onlymem) or
                  (p.oper[1]^.typ = top_ref) then
 {                or ((p.oper[1]^.typ = top_reg) and }
 {                 is_reg_var[getsupreg(p.oper[1]^.reg)]) then }
-              for regCounter := RS_EAX to RS_EDI do
-                if writeDestroysContents(p.oper[1]^,regCounter,c[regCounter]) then
+                for regCounter := RS_EAX to RS_EDI do
                   begin
-                    exclude(regsStillValid,regCounter);
-                    modifiesConflictingMemLocation := not(supreg in regsStillValid);
+                    if writeDestroysContents(p.oper[1]^,regCounter,c[regCounter],dummy) then
+                      begin
+                        exclude(regsStillValid,regCounter);
+                        modifiesConflictingMemLocation := not(supreg in regsStillValid);
+                      end;
+                    if (regcounter = supreg) then
+                      invalsmemwrite := invalsmemwrite or dummy;
                   end;
           Ch_MOp3,CH_WOp3,CH_RWOp3:
               if not(onlymem) or
                  (p.oper[2]^.typ = top_ref) then
 {                or ((p.oper[2]^.typ = top_reg) and }
 {                 is_reg_var[getsupreg(p.oper[2]^.reg)]) then }
-              for regCounter := RS_EAX to RS_EDI do
-                if writeDestroysContents(p.oper[2]^,regCounter,c[regCounter]) then
+                for regCounter := RS_EAX to RS_EDI do
                   begin
-                    exclude(regsStillValid,regCounter);
-                    modifiesConflictingMemLocation := not(supreg in regsStillValid);
+                    if writeDestroysContents(p.oper[2]^,regCounter,c[regCounter],dummy) then
+                      begin
+                        exclude(regsStillValid,regCounter);
+                        modifiesConflictingMemLocation := not(supreg in regsStillValid);
+                      end;
+                    if (regcounter = supreg) then
+                      invalsmemwrite := invalsmemwrite or dummy;
                   end;
           Ch_WMemEDI:
             begin
@@ -183,6 +198,8 @@ begin
                     exclude(regsStillValid,regCounter);
                     modifiesConflictingMemLocation := not(supreg in regsStillValid);
                  end;
+              if (regcounter = supreg) then
+                invalsmemwrite := invalsmemwrite or dummy;
             end;
         end;
   end;
@@ -213,7 +230,8 @@ var
   regsNotRead, regsStillValid : tregset;
   checkingPrevSequences,
   passedFlagsModifyingInstr,
-  passedJump                  : boolean;
+  passedJump,
+  invalsmemwrite               : boolean;
 
   function getPrevSequence(p: tai; supreg: tsuperregister; currentPrev: tai; var newPrev: tai): tsuperregister;
 
@@ -267,6 +285,7 @@ var
   var
     hp, prevFound: tai;
     tmpResult, regCounter: tsuperregister;
+    invalsmemwrite: boolean;
   begin
     if (current_reg <> RS_EDI) and
        (current_reg <> RS_INVALID) then
@@ -296,7 +315,7 @@ var
           stillValid(hp) and
           (ptaiprop(prevFound.optinfo)^.canBeRemoved or
            not(modifiesConflictingMemLocation(prevFound,supreg,
-             ptaiprop(p.optinfo)^.regs,regsStillValid,false))) do
+             ptaiprop(p.optinfo)^.regs,regsStillValid,false, invalsmemwrite))) do
       begin
         { only update the regsread for the instructions we already passed }
         if not(ptaiprop(prevFound.optinfo)^.canBeRemoved) then
@@ -363,6 +382,7 @@ var
     var
       orgdiffregs,diffregs: tregset;
       runner: tai;
+      invalsmemwrite: boolean;
     begin
       diffregs := newreginfo.newregsencountered - oldreginfo.newregsencountered;
       orgdiffregs := diffregs;
@@ -370,7 +390,7 @@ var
         begin
           runner := startp;
           repeat
-            modifiesConflictingMemLocation(runner,RS_EAX { dummy },ptaiprop(current.optinfo)^.regs,diffregs,true);
+            modifiesConflictingMemLocation(runner,RS_EAX { dummy },ptaiprop(current.optinfo)^.regs,diffregs,true,invalsmemwrite);
             if orgdiffregs <> diffregs then
               begin
                 changedreginvalidatedbetween := true;
@@ -463,9 +483,11 @@ begin {CheckSequence}
                        ((taicpu(hp3).oper[0]^.ref^.index = NR_NO) or
                         regModified[index]) and
                        not(regInRef(tmpReg,taicpu(hp3).oper[0]^.ref^)) then
-                      with ptaiprop(hp3.optinfo)^.regs[tmpreg] do
-                        if nrofMods > (oldNrofMods - found) then
-                          oldNrofMods := found + nrofMods;
+                      begin
+                        with ptaiprop(hp3.optinfo)^.regs[tmpreg] do
+                          if nrofMods > (oldNrofMods - found) then
+                            oldNrofMods := found + nrofMods;
+                      end;
                   end;
                 top_reg:
                   if regModified[getsupreg(taicpu(hp3).oper[0]^.reg)] then
@@ -637,7 +659,7 @@ begin
                       exclude(regsUsable,regCounter);
 {$ifdef alignregdebug}
                       temp := tai_comment.Create(strpnew(
-                                std_reg2str[regCounter]+' removed')));
+                                std_regname(newreg(R_INTREGISTER,regCounter,R_SUBWHOLE))+' removed')));
                       temp.next := prev.next;
                       temp.previous := prev;
                       prev.next := temp;
@@ -687,7 +709,7 @@ begin
                       exclude(regsUsable,regCounter);
 {$ifdef alignregdebug}
                       temp := tai_comment.Create(strpnew(
-                                std_reg2str[regCounter]+' removed')));
+                                std_regname(newreg(R_INTREGISTER,regCounter,R_SUBWHOLE))+' removed')));
                       temp.next := next.next;
                       temp.previous := next;
                       next.next := temp;
@@ -730,7 +752,7 @@ begin
           break
         end;
 {$ifdef alignregdebug}
-  next := tai_comment.Create(strpnew(std_reg2str[lastRemoved]+
+  next := tai_comment.Create(strpnew(std_regname(newreg(R_INTREGISTER,lastremoved,R_SUBWHOLE))+
                ' chosen as alignment register')));
   next.next := p.next;
   next.previous := p;
@@ -768,12 +790,12 @@ begin
 {$ifdef replaceregdebug}
   l := random(1000);
   hp := tai_comment.Create(strpnew(
-          'cleared '+std_reg2str[reg]+' from here... '+tostr(l))));
+          'cleared '+std_regname(newreg(R_INTREGISTER,supreg,R_SUBWHOLE))+' from here... '+tostr(l)));
   hp.next := p;
   hp.previous := p.previous;
   p.previous := hp;
   if assigned(hp.previous) then
-    hp.previous^.next := hp;
+    hp.previous.next := hp;
 {$endif replaceregdebug}
   ptaiprop(p.optinfo)^.Regs[supreg].typ := con_unknown;
   while (p <> endP) do
@@ -803,12 +825,12 @@ begin
   if assigned(p) then
     begin
       hp := tai_comment.Create(strpnew(
-        'cleared '+std_reg2str[reg]+' till here... '+tostr(l))));
+        'cleared '+std_regname(newreg(R_INTREGISTER,supreg,R_SUBWHOLE))+' till here... '+tostr(l)));
       hp.next := p;
       hp.previous := p.previous;
       p.previous := hp;
       if assigned(hp.previous) then
-        hp.previous^.next := hp;
+        hp.previous.next := hp;
     end;
 {$endif replaceregdebug}
 end;
@@ -819,18 +841,21 @@ var
   hp: tai;
   l: longint;
 {$endif replaceregdebug}
+  dummyregs: tregset;
   tmpState: byte;
   prevcontenttyp: byte;
+  memconflict: boolean;
+  invalsmemwrite: boolean;
 begin
 {$ifdef replaceregdebug}
   l := random(1000);
   hp := tai_comment.Create(strpnew(
-          'restored '+std_reg2str[supreg]+' with data from here... '+tostr(l))));
+          'restored '+std_regname(newreg(R_INTREGISTER,supreg,R_SUBWHOLE))+' with data from here... '+tostr(l)));
   hp.next := p;
   hp.previous := p.previous;
   p.previous := hp;
   if assigned(hp.previous) then
-    hp.previous^.next := hp;
+    hp.previous.next := hp;
 {$endif replaceregdebug}
 {  ptaiprop(p.optinfo)^.Regs[reg] := c;}
   while (p <> endP) do
@@ -839,27 +864,35 @@ begin
       getNextInstruction(p,p);
     end;
   tmpState := ptaiprop(p.optinfo)^.Regs[supreg].wState;
-   repeat
+  dummyregs := [supreg];
+  repeat
     prevcontenttyp := ptaiprop(p.optinfo)^.Regs[supreg].typ;
-    ptaiprop(p.optinfo)^.Regs[supreg] := c;
-  until not getNextInstruction(p,p) or
+    // is this a write to memory that destroys the contents we are restoring?
+    memconflict := modifiesConflictingMemLocation(p,supreg,ptaiprop(p.optinfo)^.regs,dummyregs,true,invalsmemwrite);
+    if not memconflict and not invalsmemwrite then
+      ptaiprop(p.optinfo)^.Regs[supreg] := c;
+  until invalsmemwrite or
+        memconflict or
+        not getNextInstruction(p,p) or
         (ptaiprop(p.optinfo)^.Regs[supreg].wState <> tmpState) or
         (p.typ = ait_label) or
         ((prevcontenttyp <> con_invalid) and
          (ptaiprop(p.optinfo)^.Regs[supreg].typ = con_invalid));
   if assigned(p) and
-     (p.typ = ait_label) then
+     ((p.typ = ait_label) or
+      memconflict or
+      invalsmemwrite) then
     clearRegContentsFrom(supreg,p,p);
 {$ifdef replaceregdebug}
   if assigned(p) then
     begin
       hp := tai_comment.Create(strpnew(
-        'restored '+std_reg2str[reg]+' till here... '+tostr(l))));
+        'restored '+std_regname(newreg(R_INTREGISTER,supreg,R_SUBWHOLE))+' till here... '+tostr(l)));
       hp.next := p;
       hp.previous := p.previous;
       p.previous := hp;
       if assigned(hp.previous) then
-        hp.previous^.next := hp;
+        hp.previous.next := hp;
     end;
 {$endif replaceregdebug}
 end;
@@ -1159,9 +1192,9 @@ begin
 end;
 
 
-function ReplaceReg(asml: TAAsmOutput; orgsupreg, newsupreg: tsuperregister; p: tai;
-           const c: TContent; orgRegCanBeModified: Boolean;
-           var returnEndP: tai): Boolean;
+function ReplaceReg(asml: TAAsmOutput; orgsupreg, newsupreg: tsuperregister; p,
+          seqstart: tai; const c: TContent; orgRegCanBeModified: Boolean;
+          var returnEndP: tai): Boolean;
 { Tries to replace orgsupreg with newsupreg in all instructions coming after p }
 { until orgsupreg gets loaded with a new value. Returns true if successful, }
 { false otherwise. if successful, the contents of newsupreg are set to c,   }
@@ -1196,7 +1229,7 @@ begin
           hp.previous := endp.previous;
           endp.previous := hp;
           if assigned(hp.previous) then
-            hp.previous^.next := hp;}
+            hp.previous.next := hp;}
           exit;
         end;
       if tmpResult and
@@ -1268,17 +1301,17 @@ begin
     begin
 {$ifdef replaceregdebug}
       hp := tai_comment.Create(strpnew(
-        'replacing '+std_reg2str[newsupreg]+' with '+std_reg2str[orgsupreg]+
-        ' from here...')));
+        'replacing '+std_regname(newreg(R_INTREGISTER,newsupreg,R_SUBWHOLE))+' with '+std_regname(newreg(R_INTREGISTER,orgsupreg,R_SUBWHOLE))+
+        ' from here...'));
       hp.next := p;
       hp.previous := p.previous;
       p.previous := hp;
       if assigned(hp.previous) then
-        hp.previous^.next := hp;
+        hp.previous.next := hp;
 
       hp := tai_comment.Create(strpnew(
-        'replaced '+std_reg2str[newsupreg]+' with '+std_reg2str[orgsupreg]+
-        ' till here')));
+        'replaced '+std_regname(newreg(R_INTREGISTER,newsupreg,R_SUBWHOLE))+' with '+std_regname(newreg(R_INTREGISTER,orgsupreg,R_SUBWHOLE))+
+        ' till here'));
       hp.next := endp.next;
       hp.previous := endp;
       endp.next := hp;
@@ -1309,26 +1342,18 @@ begin
       if stateChanged or readStateChanged then
         updateState(orgsupreg,endP);
 
-{ the replacing stops either at the moment that                             }
-{  a) the newsupreg gets loaded with a new value (one not depending on the     }
-{     current value of newsupreg)                                              }
-{  b) newsupreg is completely replaced in this sequence and it's current value }
-{     isn't used anymore                                                    }
-{ in case b, the newsupreg was completely replaced by oldreg, so it's contents }
-{ are unchanged compared the start of this sequence, so restore them        }
+{ We replaced newreg with oldreg between p and endp, so restore the contents }
+{ of newreg there with its contents from before the sequence.                }
       if removeLast or
          RegLoadedWithNewValue(newsupreg,true,endP) then
         GetLastInstruction(endP,hp)
       else hp := endP;
-      if removeLast or
-         (p <> endp) or
-         not RegLoadedWithNewValue(newsupreg,true,endP) then
-        RestoreRegContentsTo(newsupreg,c,p,hp);
+      RestoreRegContentsTo(newsupreg,c,seqstart,hp);
 
-{ in both case a and b, it is possible that the new register was modified   }
-{ (e.g. an add/sub), so if it was replaced by oldreg in that instruction,   }
-{ oldreg's contents have been changed. To take this into account, we simply }
-{ set the contents of orgsupreg to "unknown" after this sequence               }
+{ Ot is possible that the new register was modified (e.g. an add/sub), so if  }
+{ it was replaced by oldreg in that instruction, oldreg's contents have been  }
+{ changed. To take this into account, we simply set the contents of orgsupreg }
+{ to "unknown" after this sequence                                            }
       if newRegModified then
         ClearRegContentsFrom(orgsupreg,p,hp);
       if removeLast then
@@ -1340,17 +1365,17 @@ begin
      else
        begin
          hp := tai_comment.Create(strpnew(
-           'replacing '+std_reg2str[newsupreg]+' with '+std_reg2str[orgsupreg]+
-           ' from here...')));
+           'replacing '+std_regname(newreg(R_INTREGISTER,newsupreg,R_SUBWHOLE))+' with '+std_regname(newreg(R_INTREGISTER,orgsupreg,R_SUBWHOLE))+
+           ' from here...'));
          hp.previous := p.previous;
          hp.next := p;
          p.previous := hp;
         if assigned(hp.previous) then
-          hp.previous^.next := hp;
+          hp.previous.next := hp;
 
       hp := tai_comment.Create(strpnew(
-        'replacing '+std_reg2str[newsupreg]+' with '+std_reg2str[orgsupreg]+
-        ' failed here')));
+        'replacing '+std_regname(newreg(R_INTREGISTER,newsupreg,R_SUBWHOLE))+' with '+std_regname(newreg(R_INTREGISTER,orgsupreg,R_SUBWHOLE))+
+        ' failed here'));
       hp.next := endp.next;
       hp.previous := endp;
       endp.next := hp;
@@ -1376,12 +1401,12 @@ begin
      if (ptaiprop(p.optinfo)^.regs[counter].typ in [con_const,con_noRemoveConst]) then
        begin
          hp := tai_comment.Create(strpnew(
-           'checking const load of '+tostr(l)+' here...')));
+           'checking const load of '+tostr(l)+' here...'));
          hp.next := ptaiprop(p.optinfo)^.Regs[Counter].StartMod;
          hp.previous := ptaiprop(p.optinfo)^.Regs[Counter].StartMod^.previous;
          ptaiprop(p.optinfo)^.Regs[Counter].StartMod^.previous := hp;
          if assigned(hp.previous) then
-           hp.previous^.next := hp;
+           hp.previous.next := hp;
        end;
 {$endif testing}
      if (ptaiprop(p.optinfo)^.regs[counter].typ in [con_const,con_noRemoveConst]) and
@@ -1564,7 +1589,7 @@ begin
                 {not(regCounter in rg.usableregsint + [RS_EDI,RS_ESI]) or}
                 not(regCounter in [RS_EAX,RS_EBX,RS_ECX,RS_EDX,RS_EDI,RS_ESI]) or
                 not ReplaceReg(asml,reginfo.new2oldreg[regcounter],
-                    regCounter,hp,
+                    regCounter,hp,curseqstart,
                     ptaiprop(prevseqstart.optinfo)^.Regs[regCounter],true,hp2) then
               begin
                 if not(reginfo.new2oldreg[regcounter] in regsloaded) or
@@ -1598,6 +1623,20 @@ begin
                 updateState(reginfo.new2oldreg[regcounter],hp2);
                 updateState(regcounter,hp2);
               end
+            else
+              begin
+                // replace the new register with the old register in the
+                // sequence itself as well so later comparisons get the
+                // correct knowledge about which registers are used
+                hp2 := curseqstart;
+                // curseqend = instruction following last instruction of this
+                // sequence
+                while hp2 <> curseqend do
+                  begin
+                    doreplacereg(taicpu(hp2),regcounter,reginfo.new2oldreg[regcounter]);
+                    getnextinstruction(hp2,hp2);
+                  end;
+              end;
           end
         else
   {   imagine the following code:                                            }
@@ -1778,7 +1817,7 @@ begin
                           { we only have to start replacing from the instruction after the mov, }
                           { but replacereg only starts with getnextinstruction(p,p)             }
                             replaceReg(asml,getsupreg(taicpu(p).oper[0]^.reg),
-                              getsupreg(taicpu(p).oper[1]^.reg),p,
+                              getsupreg(taicpu(p).oper[1]^.reg),p,p,
                               ptaiprop(hp4.optinfo)^.regs[getsupreg(taicpu(p).oper[1]^.reg)],false,hp1) then
                           begin
                             ptaiprop(p.optinfo)^.canBeRemoved := true;
@@ -2074,7 +2113,11 @@ end.
 
 {
   $Log$
-  Revision 1.58  2003-12-15 21:25:49  peter
+  Revision 1.59  2003-12-20 22:53:33  jonas
+    * fixed some more optimizer bugs, make cycle now works with -O2p3,
+      -O2p3u, -O3p3 and -O3p3u
+
+  Revision 1.58  2003/12/15 21:25:49  peter
     * reg allocations for imaginary register are now inserted just
       before reg allocation
     * tregister changed to enum to allow compile time check
