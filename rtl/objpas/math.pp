@@ -47,6 +47,8 @@ interface
        { the original delphi functions use extended as argument, }
        { but I would prefer double, because 8 bytes is a very    }
        { natural size for the processor                          }
+       { WARNING : changing float type will                      }
+       { break all assembler code  PM                            }
        float = extended;
 
        tpaymenttime = (ptendofperiod,ptstartofperiod);
@@ -299,8 +301,8 @@ function arctan2( x,y : float) : float;
     fldt X
     fldt Y
     fpatan
-    leave
-    ret $20
+    //leave
+    // ret $20 This is wrong for 4 byte aligned OS !!
     end;
   {$endif}
   end;
@@ -675,7 +677,10 @@ end;
 end.
 {
     $Log$
-    Revision 1.16  2000-04-20 08:14:27  jonas
+    Revision 1.17  2000-04-20 13:12:40  pierre
+     * fix bug visible in new tests/webtbs/tbug788 file
+
+    Revision 1.16  2000/04/20 08:14:27  jonas
       * better arcsin/arccos from Arjan van Dijk
 
     Revision 1.15  2000/02/09 16:59:32  peter
