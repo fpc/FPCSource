@@ -1,7 +1,6 @@
 uses graph;
 var
  gd,gm:integer;
- s : string;
  testimage:array[1..50000] of byte; {this is plenty big}
 begin
  gd:=VESA;
@@ -12,7 +11,6 @@ begin
      Writeln('Unable to open driver ',gd,' in mode ',gm);
      Halt(1);
    end;
- readln(s);
  line(0,0,639,399);
  getimage(190,49,257,125,testimage);
  { a simple statement, and yet
@@ -22,7 +20,5 @@ begin
    Is this a bug in getimage, or is there something i am
    missing here?
   }
-
- readln(s);
  closegraph;
 end.
