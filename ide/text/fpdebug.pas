@@ -882,7 +882,11 @@ begin
       PopStatus;
     end
   else
-    IDEApp.ShowIDEScreen;
+    begin
+      IDEApp.ShowIDEScreen;
+      Message(Application,evBroadcast,cmDebuggerStopped,pointer(RunCount));
+      PopStatus;
+    end;
 {$ifdef win32}
    ChangeDebuggeeWindowTitleTo(Stopped_State);
 {$endif win32}
@@ -897,7 +901,10 @@ begin
       PushStatus('Executable running in another window..');
     end
   else
-    IDEApp.ShowUserScreen;
+    begin
+      PushStatus('Running...');
+      IDEApp.ShowUserScreen;
+    end;
 {$ifdef win32}
    ChangeDebuggeeWindowTitleTo(Running_State);
 {$endif win32}
@@ -3324,7 +3331,10 @@ end.
 
 {
   $Log$
-  Revision 1.56  2000-03-08 16:57:01  pierre
+  Revision 1.57  2000-03-14 14:22:30  pierre
+   + generate cmDebuggerStopped broadcast
+
+  Revision 1.56  2000/03/08 16:57:01  pierre
     * Wrong highlighted line while debugging fixed
     + Check if exe has debugging info
 
