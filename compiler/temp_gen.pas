@@ -309,7 +309,7 @@ unit temp_gen;
                     so we need to convert that space into
                     a tempfreeitem ! }
                     new(tl);
-                    tl^.pos:=lastoccupied;
+                    tl^.pos:=maxtemp;
                     tl^.size:=lastoccupied-maxtemp;
                     tl^.next:=tmpfreelist;
                     lastoccupied:=maxtemp;
@@ -331,7 +331,7 @@ unit temp_gen;
            end;
          gettempansioffset:=ofs;
       end;
-      
+
     procedure gettempansistringreference(var ref : treference);
 
       begin
@@ -635,7 +635,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  1999-04-09 13:05:45  pierre
+  Revision 1.16  1999-04-14 09:10:46  peter
+    * fixed tempansi which set wrong pos in free temp
+
+  Revision 1.15  1999/04/09 13:05:45  pierre
    * Minenumsize=1 under TEST_ENUMSIZE cond because buggy
 
   Revision 1.14  1999/04/09 09:55:20  peter
