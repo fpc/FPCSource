@@ -305,6 +305,16 @@ implementation
                         equal_paras:=false;
                         exit;
                      end;
+		   { also check default value if both have it declared }
+		   if assigned(def1^.defaultvalue) and
+		      assigned(def2^.defaultvalue) then
+		    begin
+		      if not equal_constsym(pconstsym(def1^.defaultvalue),pconstsym(def2^.defaultvalue)) then
+		       begin
+		         equal_paras:=false;
+			 exit;
+		       end; 	   
+		    end;
                 end;
               end;
               def1:=pparaitem(def1^.next);
@@ -1130,7 +1140,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2000-08-12 06:49:22  florian
+  Revision 1.6  2000-08-13 13:07:18  peter
+    * equal_paras now also checks default parameter value
+
+  Revision 1.5  2000/08/12 06:49:22  florian
     + case statement for int64/qword implemented
 
   Revision 1.4  2000/08/08 19:26:41  peter
