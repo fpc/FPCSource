@@ -27,4 +27,8 @@ procedure test;external libname name 'TestName';
 begin
   test;
 end.
-{$endif supported}
+{$else not supported}
+begin
+  Writeln('Dummy test because target does not support libraries');
+end.
+{$endif not supported}
