@@ -1647,6 +1647,11 @@ option_obsolete_switch_use_new=E_You are using the obsolete switch $1, please us
 option_switch_bin_to_src_assembler=N_Switching assembler to default source writing assembler
 % this notifies you that the assembler has been changed because you used the
 % -a switch which can't be used with a binary assembler writer.
+option_incompatible_asm=W_Assembler output selected "$1" is not compatible with "$2"
+option_asm_forced=W_"$1" assembler use forced
+% The assembler output selected can not generate
+% object files with the correct format. Therefore, the
+% default assembler for this target is used instead.
 %\end{description}
 # EndOfTeX
 #

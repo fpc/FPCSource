@@ -1434,6 +1434,16 @@ begin
      initoutputformat:=target_asm.id;
    end;
 
+  if (target_asm.supported_target <> target_any) and
+     (target_asm.supported_target <> target_info.target) then
+   begin
+     Message2(option_incompatible_asm,target_asm.idtxt,target_os.name);
+     { Should we reset to default ??? }
+     set_target_asm(target_info.assemsrc);
+     Message1(option_asm_forced,target_asm.idtxt);
+     initoutputformat:=target_asm.id;
+   end;
+
 { turn off stripping if compiling with debuginfo or profile }
   if (cs_debuginfo in initmoduleswitches) or
      (cs_profile in initmoduleswitches) then
@@ -1453,7 +1463,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.68  2000-05-16 20:19:06  pierre
+  Revision 1.69  2000-05-23 21:28:22  pierre
+    + check of compatibility between selected assembler
+      output and target OS
+
+  Revision 1.68  2000/05/16 20:19:06  pierre
     + -CR option to enable check for object virtual method
 
   Revision 1.67  2000/05/10 13:40:19  peter

@@ -528,6 +528,8 @@ type tmsgconst=(
   option_obsolete_switch,
   option_obsolete_switch_use_new,
   option_switch_bin_to_src_assembler,
+  option_incompatible_asm,
+  option_asm_forced,
   option_logo_start,
   option_logo_end,
   option_info_start,
@@ -695,4 +697,4 @@ type tmsgconst=(
 endmsgconst
 );
 const
-  MsgCRCValue : longint = -1828337603;
+  MsgCRCValue : longint = 58101950;
