@@ -25,7 +25,7 @@ unit hcodegen;
   interface
 
     uses
-      verbose,aasm,tree,symtable
+      verbose,aasm,tree,symtable,cobjects
 {$ifdef i386}
       ,i386
 {$endif}
@@ -93,6 +93,15 @@ unit hcodegen;
           { local data is used for smartlink }
        end;
 
+       { some kind of temp. types needs to be destructed }
+       { for example ansistring, this is done using this }
+       { list                                            }
+       ttemptodestroy = object(tlinkedlist_item)
+          typ : tdef;
+          address : treference;
+          constructor init(const a : treference;t : tdef);
+       end;
+
     var
        { info about the current sub routine }
        procinfo : tprocinfo;
@@ -158,10 +167,13 @@ unit hcodegen;
     const
        make_const_global : boolean = false;
 
+    var
+       temptoremove : tlinkedlist;
+
 implementation
 
      uses
-        systems,comphook,cobjects,globals,files,strings;
+        systems,comphook,globals,files,strings;
 
 {*****************************************************************************
             override the message calls to set codegenerror
@@ -379,12 +391,23 @@ implementation
            end;
       end;
 
+    constructor ttemptodestroy.init(const a : treference;t : tdef);
+
+      begin
+         inherited init;
+         address:=a;
+         typ:=t;
+      end;
 
 end.
 
 {
   $Log$
-  Revision 1.18  1998-10-06 17:16:50  pierre
+  Revision 1.19  1998-10-26 22:58:18  florian
+    * new introduded problem with classes fix, the parent class wasn't set
+      correct, if the class was defined forward before
+
+  Revision 1.18  1998/10/06 17:16:50  pierre
     * some memory leaks fixed (thanks to Peter for heaptrc !)
 
   Revision 1.17  1998/09/17 09:42:37  peter

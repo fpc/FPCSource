@@ -1121,7 +1121,7 @@ unit pdecl;
                         class_tobject:=aktclass;
                      end
                    else
-                     aktclass:=new(pobjectdef,init(n,class_tobject));
+                     aktclass:=new(pobjectdef,init(n,nil));
                    aktclass^.options:=aktclass^.options or oo_is_class or oo_isforward;
                    object_dec:=aktclass;
                    exit;
@@ -2082,7 +2082,11 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.76  1998-10-25 23:31:18  peter
+  Revision 1.77  1998-10-26 22:58:20  florian
+    * new introduded problem with classes fix, the parent class wasn't set
+      correct, if the class was defined forward before
+
+  Revision 1.76  1998/10/25 23:31:18  peter
     * procvar parsing updated just like psub.pas routine
 
   Revision 1.75  1998/10/21 08:39:59  florian

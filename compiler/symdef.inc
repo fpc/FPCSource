@@ -2573,6 +2573,7 @@
         tdef.init;
         deftype:=objectdef;
         options:=0;
+        childof:=nil;
         publicsyms:=new(psymtable,init(objectsymtable));
         publicsyms^.name := stringdup(n);
         { create space for vmt !! }
@@ -2613,7 +2614,7 @@
                publicsyms^.datasize:=publicsyms^.datasize-target_os.size_of_pointer;
              { if parent has a vmt field then
                the offset is the same for the child PM }
-             if ((c^.options and oo_hasvmt)<>0) then
+             if ((c^.options and oo_hasvmt)<>0) or isclass then
                begin
                   vmt_offset:=c^.vmt_offset;
                   options:=options or oo_hasvmt;
@@ -3199,7 +3200,11 @@
 
 {
   $Log$
-  Revision 1.65  1998-10-26 14:19:28  pierre
+  Revision 1.66  1998-10-26 22:58:22  florian
+    * new introduded problem with classes fix, the parent class wasn't set
+      correct, if the class was defined forward before
+
+  Revision 1.65  1998/10/26 14:19:28  pierre
     + added options -lS and -lT for source and target os output
       (to have a easier way to test OS_SOURCE abd OS_TARGET in makefiles)
     * several problems with rtti data

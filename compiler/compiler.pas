@@ -104,7 +104,7 @@ var
 
 procedure RecoverStop;{$ifndef FPC}far;{$endif}
 begin
-  if assigned(recoverpospointer) then
+  if recoverpospointer<>nil then
     LongJmp(recoverpospointer^,1)
   else
     Halt(1);
@@ -242,7 +242,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.13  1998-10-26 17:15:17  pierre
+  Revision 1.14  1998-10-26 22:58:17  florian
+    * new introduded problem with classes fix, the parent class wasn't set
+      correct, if the class was defined forward before
+
+  Revision 1.13  1998/10/26 17:15:17  pierre
     + added two level of longjump to
       allow clean freeing of used memory on errors
 

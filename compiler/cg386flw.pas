@@ -77,8 +77,7 @@ implementation
          aktbreaklabel:=lbreak;
          cleartempgen;
          if assigned(p^.right) then
-          secondpass(p^.right);
-
+           secondpass(p^.right);
          emitl(A_LABEL,lcont);
          otlabel:=truelabel;
          oflabel:=falselabel;
@@ -738,7 +737,11 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.20  1998-10-06 17:16:42  pierre
+  Revision 1.21  1998-10-26 22:58:16  florian
+    * new introduded problem with classes fix, the parent class wasn't set
+      correct, if the class was defined forward before
+
+  Revision 1.20  1998/10/06 17:16:42  pierre
     * some memory leaks fixed (thanks to Peter for heaptrc !)
 
   Revision 1.19  1998/09/28 12:13:53  peter

@@ -49,8 +49,8 @@ type
   procedure longjmp(const rec : jmp_buf;return_value : longint);
 {$endif TP}
 
-  var
-     recoverpospointer : pjmp_buf;
+  const
+     recoverpospointer : pjmp_buf = nil;
 
 implementation
 
@@ -335,7 +335,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  1998-10-26 17:15:19  pierre
+  Revision 1.4  1998-10-26 22:58:24  florian
+    * new introduded problem with classes fix, the parent class wasn't set
+      correct, if the class was defined forward before
+
+  Revision 1.3  1998/10/26 17:15:19  pierre
     + added two level of longjump to
       allow clean freeing of used memory on errors
 

@@ -67,11 +67,12 @@ implementation
        secondpassproc = procedure(var p : ptree);
 
     procedure secondnothing(var p : ptree);
+
       begin
       end;
 
-
     procedure seconderror(var p : ptree);
+
       begin
          p^.error:=true;
          codegenerror:=true;
@@ -485,7 +486,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  1998-09-23 09:58:52  peter
+  Revision 1.7  1998-10-26 22:58:19  florian
+    * new introduded problem with classes fix, the parent class wasn't set
+      correct, if the class was defined forward before
+
+  Revision 1.6  1998/09/23 09:58:52  peter
     * first working array of const things
 
   Revision 1.5  1998/09/21 10:01:06  peter
