@@ -4,7 +4,7 @@ uses
 procedure chararray2stringtest;
 
   var
-     a : array[1..2,1..10,1..5] of char;
+     a : array[1..10,1..10,1..5] of char;
      i,j,k,l : integer;
 
   begin
@@ -16,9 +16,9 @@ procedure chararray2stringtest;
      l:=4;
      { test register allocation }
      if (a[i,i]<>'Hello') or
-       (a[i,i]<>'Hello') or
-       (a[i,i]<>'Hello') or
-       (a[i,i]<>'Hello') then
+       (a[j,j]<>'Hello') or
+       (a[k,k]<>'Hello') or
+       (a[l,l]<>'Hello') then
        do_error(1000);
    end;
 
