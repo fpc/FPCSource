@@ -132,18 +132,24 @@
         var
            methodtable : pmethodnametable;
            i : dword;
+           c : tclass;
 
         begin
-           methodtable:=pmethodnametable((Pointer(Self)+vmtMethodTable)^);
-           if assigned(methodtable) then
+           c:=self;
+           while assigned(c) do
              begin
-                for i:=1 to methodtable^.count do
-                  if methodtable^.entries[i].name^=name then
-                    begin
-                       MethodAddress:=methodtable^.entries[i].addr;
-                       exit;
-                    end;                  
-             end;
+                methodtable:=pmethodnametable((Pointer(c)+vmtMethodTable)^);
+                if assigned(methodtable) then
+                  begin
+                     for i:=1 to methodtable^.count do
+                       if methodtable^.entries[i].name^=name then
+                         begin
+                            MethodAddress:=methodtable^.entries[i].addr;
+                            exit;
+                         end;
+                  end;
+                c:=c.ClassParent;
+             end;                                                                                                                                                                                                                                              
            MethodAddress:=nil;
         end;
 
@@ -152,21 +158,27 @@
         var
            methodtable : pmethodnametable;
            i : dword;
+           c : tclass;
 
         begin
-           methodtable:=pmethodnametable((Pointer(Self)+vmtMethodTable)^);
-           if assigned(methodtable) then
+           c:=self;
+           while assigned(c) do
              begin
-                for i:=1 to methodtable^.count do
-                  if methodtable^.entries[i].addr=address then
-                    begin
-                       MethodName:=methodtable^.entries[i].name^;
-                       exit;
-                    end;                  
+                methodtable:=pmethodnametable((Pointer(c)+vmtMethodTable)^);
+                if assigned(methodtable) then
+                  begin
+                     for i:=1 to methodtable^.count do
+                       if methodtable^.entries[i].addr=address then
+                         begin
+                            MethodName:=methodtable^.entries[i].name^;
+                            exit;
+                         end;
+                  end;
+                c:=c.ClassParent;
              end;
            MethodName:='';
         end;
-           
+
       function TObject.FieldAddress(const name : shortstring) : pointer;
 
         begin
@@ -393,7 +405,11 @@
 
 {
   $Log$
-  Revision 1.9  1999-09-12 08:01:00  florian
+  Revision 1.10  1999-09-12 14:53:26  florian
+    + tobject.methodaddress und tobject.methodname durchsucht nun auch
+      die Elternklassen
+
+  Revision 1.9  1999/09/12 08:01:00  florian
     + implementation of TObject.MethodName and TObject.MethodAddress (not
       in the compiler yet)
 
