@@ -1109,9 +1109,7 @@ Begin
               end;
              if GotOffset then
               begin
-                if procinfo.framepointer.enum<>R_INTREGISTER then
-                  internalerror(200302121);
-                if hasvar and (opr.ref.base.enum=procinfo.framepointer.enum) then
+                if hasvar and (opr.ref.base.number=procinfo.framepointer.number) then
                  begin
                    opr.ref.base.enum:=R_INTREGISTER;
                    opr.ref.base.number:=NR_NO;
@@ -1124,10 +1122,6 @@ Begin
                    { should we allow ?? }
                  end;
               end;
-             if opr.ref.base.enum<>R_INTREGISTER then
-               internalerror(200302121);
-             if opr.ref.index.enum<>R_INTREGISTER then
-               internalerror(200302121);
              { is the base register loaded by the var ? }
              if (opr.ref.base.number<>NR_NO) then
               begin
@@ -1218,10 +1212,6 @@ Begin
              1. just read a *
              2. next token is a *
              3. base register is already used }
-          if opr.ref.base.enum<>R_INTREGISTER then
-            internalerror(200302123);
-          if opr.ref.index.enum<>R_INTREGISTER then
-            internalerror(200302123);
           if (GotStar) or
              (actasmtoken=AS_STAR) or
              (opr.ref.base.number<>NR_NO) then
@@ -1971,7 +1961,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.44  2003-03-28 19:16:57  peter
+  Revision 1.45  2003-04-21 20:05:10  peter
+    * removed some ie checks
+
+  Revision 1.44  2003/03/28 19:16:57  peter
     * generic constructor working for i386
     * remove fixed self register
     * esi added as address register for i386

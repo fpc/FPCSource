@@ -64,6 +64,7 @@ interface
          srsym,sym : tsym;
          srsymtable : tsymtable;
          code : TAAsmoutput;
+         framereg : tregister;
          i,l : longint;
 
        procedure writeasmline;
@@ -89,10 +90,10 @@ interface
        if assigned(aktprocdef.funcretsym) and
           is_fpu(aktprocdef.rettype.def) then
          tfuncretsym(aktprocdef.funcretsym).funcretstate:=vs_assigned;
-       if procinfo.framepointer.enum>lastreg then
-         internalerror(200301081);
+       framereg:=procinfo.framepointer;
+       convert_register_to_enum(framereg);
        if (not is_void(aktprocdef.rettype.def)) then
-         retstr:=upper(tostr(procinfo.return_offset)+'('+gas_reg2str[procinfo.framepointer.enum]+')')
+         retstr:=upper(tostr(procinfo.return_offset)+'('+gas_reg2str[framereg.enum]+')')
        else
          retstr:='';
          c:=current_scanner.asmgetchar;
@@ -173,7 +174,7 @@ interface
                                                hs:=tvarsym(sym).mangledname
                                              else
                                                hs:='-'+tostr(tvarsym(sym).address)+
-                                                   '('+gas_reg2str[procinfo.framepointer.enum]+')';
+                                                   '('+gas_reg2str[framereg.enum]+')';
                                              end
                                            else
                                            { call to local function }
@@ -196,7 +197,7 @@ interface
                                                      l:=tvarsym(sym).address;
                                                      { set offset }
                                                      inc(l,aktprocdef.parast.address_fixup);
-                                                     hs:=tostr(l)+'('+gas_reg2str[procinfo.framepointer.enum]+')';
+                                                     hs:=tostr(l)+'('+gas_reg2str[framereg.enum]+')';
                                                      if pos(',',s) > 0 then
                                                        tvarsym(sym).varstate:=vs_used;
                                                   end;
@@ -242,7 +243,7 @@ interface
                                              begin
                                                 if assigned(procinfo._class) then
                                                   hs:=tostr(procinfo.selfpointer_offset)+
-                                                      '('+gas_reg2str[procinfo.framepointer.enum]+')'
+                                                      '('+gas_reg2str[framereg.enum]+')'
                                                 else
                                                  Message(asmr_e_cannot_use_SELF_outside_a_method);
                                              end
@@ -259,7 +260,7 @@ interface
                                                 { we do it: }
                                                 if lexlevel>normal_function_level then
                                                   hs:=tostr(procinfo.framepointer_offset)+
-                                                    '('+gas_reg2str[procinfo.framepointer.enum]+')'
+                                                    '('+gas_reg2str[framereg.enum]+')'
                                                 else
                                                   Message(asmr_e_cannot_use_OLDEBP_outside_nested_procedure);
                                              end;
@@ -307,7 +308,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.6  2003-01-08 18:43:57  daniel
+  Revision 1.7  2003-04-21 20:05:10  peter
+    * removed some ie checks
+
+  Revision 1.6  2003/01/08 18:43:57  daniel
    * Tregister changed into a record
 
   Revision 1.5  2002/11/25 17:43:27  peter

@@ -1440,8 +1440,6 @@ Begin
          begin
            opr.typ:=OPR_REGISTER;
            opr.reg:=actasmregister;
-           if opr.reg.enum<>R_INTREGISTER then
-             internalerror(200302023);
            size:=reg2opsize(actasmregister);
            Consume(AS_REGISTER);
          end
@@ -2135,7 +2133,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.40  2003-03-18 18:15:53  peter
+  Revision 1.41  2003-04-21 20:05:10  peter
+    * removed some ie checks
+
+  Revision 1.40  2003/03/18 18:15:53  peter
     * changed reg2opsize to function
 
   Revision 1.39  2003/02/20 15:52:58  pierre
