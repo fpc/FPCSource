@@ -167,7 +167,7 @@
             movl res,%eax
             movl res+4,%edx
             fldcw oldcw
-      end ['EAX','ECX'];
+      end ['EAX','EDX'];
 
 
     {$define FPC_SYSTEM_HAS_POWER}
@@ -192,7 +192,10 @@
 
 {
   $Log$
-  Revision 1.12  2003-01-15 00:45:17  peter
+  Revision 1.13  2003-02-05 19:53:17  carl
+    * round bugfix with -Or switch
+
+  Revision 1.12  2003/01/15 00:45:17  peter
     * use generic int64 power
 
   Revision 1.11  2003/01/15 00:40:18  peter
