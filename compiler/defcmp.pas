@@ -753,8 +753,8 @@ implementation
                      { char constant to zero terminated string constant }
                      if (fromtreetype=ordconstn) then
                       begin
-                        if is_char(def_from) and
-                           is_pchar(def_to) then
+                        if (is_char(def_from) or is_widechar(def_from)) and
+                           (is_pchar(def_to) or is_pwidechar(def_to)) then
                          begin
                            doconv:=tc_cchar_2_pchar;
                            eq:=te_convert_l1;
@@ -1401,7 +1401,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.71  2005-03-13 11:42:48  florian
+  Revision 1.72  2005-03-28 15:19:18  peter
+  support (wide)char to pwidechar
+
+  Revision 1.71  2005/03/13 11:42:48  florian
     + made @(<formaldef>) assignment compatible with all pointer types
 
   Revision 1.70  2005/03/11 21:55:43  florian
