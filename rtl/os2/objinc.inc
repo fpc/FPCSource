@@ -132,12 +132,12 @@ end;
 function SetFileSize (Handle: THandle; FileSize: longint): word; assembler;
 asm
     movl $0x7F18, %eax
-    movzwl Handle, %ebx
+    movl Handle, %ebx
     movl FileSize,%edx
     call syscall
     jc .LSetFSize1
     movl $0x4202, %eax
-    movzwl Handle, %ebx
+    movl Handle, %ebx
     movl $0, %edx
     call syscall
     movl $0, %eax
@@ -148,7 +148,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  2002-09-07 16:01:24  peter
+  Revision 1.5  2002-09-22 16:04:19  hajny
+    * correction for THandle length change
+
+  Revision 1.4  2002/09/07 16:01:24  peter
     * old logs removed and tabs fixed
 
 }
