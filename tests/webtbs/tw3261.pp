@@ -1,3 +1,6 @@
+{ %norun }
+{ %target=win32 }
+
 { Source provided for Free Pascal Bug Report 3261 }
 { Submitted by "Andreas Hausladen" on  2004-08-18 }
 { e-mail: Andreas.Hausladen@gmx.de }
