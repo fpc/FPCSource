@@ -19,17 +19,20 @@
     *********************************************************************
 }
 
-function AnsiCompareFileName(const S1, S2 : Ansistring) : Longint;
+function AnsiCompareFileName(const S1, S2 : Ansistring) : SizeInt;
 function AnsiLowerCaseFileName(const s : string) : Ansistring;
 function AnsiUpperCaseFileName(const s : string) : Ansistring;
-function AnsiPos(const substr,s : string) : Longint;
+function AnsiPos(const substr,s : string) : SizeInt;
 function AnsiStrPos(str,substr : PChar) : PChar;
 function AnsiStrRScan(Str : PChar;Chr : Char) : PChar;
 function AnsiStrScan(Str : PChar;Chr: Char) : PChar;
 
 {
   $Log$
-  Revision 1.1  2003-10-06 21:01:06  peter
+  Revision 1.2  2004-06-17 16:23:50  peter
+    * use sizeint
+
+  Revision 1.1  2003/10/06 21:01:06  peter
     * moved classes unit to rtl
 
   Revision 1.1  2002/10/07 19:43:24  florian
