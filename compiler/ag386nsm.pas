@@ -21,9 +21,8 @@
 
  ****************************************************************************
 }
-{ R- Necessary for the in [] }
 {$ifdef TP}
-  {$N+,E+,R-}
+  {$N+,E+}
 {$endif}
 unit ag386nsm;
 
@@ -285,6 +284,7 @@ unit ag386nsm;
       counter,
       lines,
       i,j,l    : longint;
+      op       : tasmop;
       consttyp : tait;
       found,
       quoted   : boolean;
@@ -437,8 +437,10 @@ unit ag386nsm;
                      end;
 ait_labeled_instruction :
                      begin
-                       if not (pai_labeled(hp)^._operator in [A_JMP,A_LOOP,A_LOOPZ,A_LOOPE,
-                          A_LOOPNZ,A_LOOPNE,A_JCXZ,A_JECXZ]) then
+                       op:=pai_labeled(hp)^._operator;
+                       if not((op=A_JMP) or (op=A_LOOP) or (op=A_LOOPZ) or
+                              (op=A_LOOPE) or (op=A_LOOPNZ) or (op=A_LOOPNE) or
+                              (op=A_JCXZ) or (op=A_JECXZ)) then
                         AsmWriteLn(#9#9+int_op2str[pai_labeled(hp)^._operator]+#9+'near '+lab2str(pai_labeled(hp)^.lab))
                        else
                         AsmWriteLn(#9#9+int_op2str[pai_labeled(hp)^._operator]+#9+lab2str(pai_labeled(hp)^.lab));
@@ -486,7 +488,7 @@ ait_labeled_instruction :
                          pai386(hp)^._operator:=A_FSTSW;
                        if pai386(hp)^.op1t<>top_none then
                         begin
-                          if pai386(hp)^._operator in [A_CALL] then
+                          if pai386(hp)^._operator=A_CALL then
                            s:=getopstr_jmp(pai386(hp)^.op1t,pai386(hp)^.op1)
                           else
                            begin
@@ -582,7 +584,10 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.14  1998-11-30 09:42:56  pierre
+  Revision 1.15  1998-12-01 11:19:39  peter
+    * fixed range problem with in [tasmop]
+
+  Revision 1.14  1998/11/30 09:42:56  pierre
     * some range check bugs fixed (still not working !)
     + added DLL writing support for win32 (also accepts variables)
     + TempAnsi for code that could be used for Temporary ansi strings

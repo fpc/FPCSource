@@ -20,6 +20,9 @@
 
  ****************************************************************************
 }
+{$ifdef TP}
+  {$N+,E+}
+{$endif}
 unit ag386int;
 
     interface
@@ -481,7 +484,7 @@ ait_labeled_instruction : AsmWriteLn(#9#9+int_op2str[pai_labeled(hp)^._operator]
                         prefix:= '';
                        if pai386(hp)^.op1t<>top_none then
                         begin
-                          if pai386(hp)^._operator in [A_CALL] then
+                          if pai386(hp)^._operator=A_CALL then
                            begin
                            { with tasm call near ptr [edi+12] does not
                              work but call near [edi+12] works ?? (PM)
@@ -592,7 +595,10 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.21  1998-11-30 09:42:55  pierre
+  Revision 1.22  1998-12-01 11:19:38  peter
+    * fixed range problem with in [tasmop]
+
+  Revision 1.21  1998/11/30 09:42:55  pierre
     * some range check bugs fixed (still not working !)
     + added DLL writing support for win32 (also accepts variables)
     + TempAnsi for code that could be used for Temporary ansi strings
