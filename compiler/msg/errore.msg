@@ -904,6 +904,8 @@ parser_w_cdecl_no_openstring=03191_W_cdecl'ared functions do not support open st
 parser_e_initialized_not_for_threadvar=03192_E_Cannot initialize variables declared as threadvar
 % Variables declared as threadvar can not be initialized with a default value.
 % The variables will always be filled with zero at the start of a new thread.
+parser_e_msg_only_for_classes=03193_E_Message directive is only allowed in Classes
+% The message directive is only supported for Class types.
 % \end{description}
 #
 # Type Checking

@@ -103,7 +103,6 @@ implementation
       var
          sc : tsinglelist;
          old_block_type : tblock_type;
-         declarepos,storetokenpos : tfileposinfo;
          oldsymtablestack : tsymtable;
          symdone : boolean;
          { to handle absolute }
@@ -203,12 +202,17 @@ implementation
                 (idtoken=_ABSOLUTE) and not(is_record or is_object or is_threadvar) then
               begin
                 consume(_ABSOLUTE);
+                abssym:=nil;
                 { only allowed for one var }
                 vs:=tvarsym(sc.first);
                 if assigned(vs.listnext) then
                   Message(parser_e_absolute_only_one_var);
                 { parse the rest }
                 pt:=expr;
+                { transform a procvar calln to loadn }
+                if pt.nodetype=calln then
+                  load_procvar_from_calln(pt);
+                { check allowed absolute types }
                 if (pt.nodetype=stringconstn) or
                    (is_constcharnode(pt)) then
                  begin
@@ -287,10 +291,13 @@ implementation
                  end
                 else
                  Message(parser_e_absolute_only_to_var_or_const);
-                { try to consume the hint directives with absolute symbols }
-                dummysymoptions:=[];
-                try_consume_hintdirective(dummysymoptions);
-                abssym.symoptions := abssym.symoptions + dummysymoptions;
+                if assigned(abssym) then
+                 begin
+                   { try to consume the hint directives with absolute symbols }
+                   dummysymoptions:=[];
+                   try_consume_hintdirective(dummysymoptions);
+                   abssym.symoptions := abssym.symoptions + dummysymoptions;
+                 end;
                 pt.free;
                 symdone:=true;
               end;
@@ -308,6 +315,8 @@ implementation
                   vs:=tvarsym(sc.first);
                   if assigned(vs.listnext) then
                     Message(parser_e_initialized_only_one_var);
+                  if is_threadvar then
+                    Message(parser_e_initialized_not_for_threadvar);
                   tconstsym:=ttypedconstsym.createtype(vs.realname,tt,true);
                   tconstsym.fileinfo:=vs.fileinfo;
                   symtablestack.replace(vs,tconstsym);
@@ -317,7 +326,7 @@ implementation
                   readtypedconst(tt,tconstsym,true);
                   symdone:=true;
                end;
-             { if the symbol is not completely handled, then try to parse the 
+             { if the symbol is not completely handled, then try to parse the
                hint directives }
              if not symdone then
                begin
@@ -588,7 +597,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.42  2002-12-07 14:04:59  carl
+  Revision 1.43  2002-12-27 15:22:20  peter
+    * don't allow initialized threadvars
+
+  Revision 1.42  2002/12/07 14:04:59  carl
    * convert some vars from longint -> byte
 
   Revision 1.41  2002/11/29 22:31:19  carl
