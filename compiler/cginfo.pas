@@ -108,8 +108,9 @@ interface
         R_INVALIDREGISTER, { = 0 }
         R_INTREGISTER,     { = 1 }
         R_FPUREGISTER,     { = 2 }
+        { used by Intel only }
         R_MMXREGISTER,     { = 3 }
-        R_KNIREGISTER,     { = 4 }
+        R_MMREGISTER,      { = 4 }
         R_SPECIALREGISTER, { = 5 }
         R_ADDRESSREGISTER  { = 6 }
       );
@@ -270,9 +271,9 @@ implementation
           R_FPUREGISTER:
             t:='f';
           R_MMXREGISTER:
+            t:='x';
+          R_MMREGISTER:
             t:='m';
-          R_KNIREGISTER:
-            t:='k';
           else
             begin
               result:='INVALID';
@@ -305,7 +306,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.24  2003-09-03 21:06:19  peter
+  Revision 1.25  2003-09-04 21:07:03  florian
+    * ARM compiler compiles again
+
+  Revision 1.24  2003/09/03 21:06:19  peter
     * write INVALID as register name instead of IE
 
   Revision 1.23  2003/09/03 16:29:37  peter

@@ -85,8 +85,8 @@ unit cgcpu;
 
         procedure g_overflowcheck(list: taasmoutput; const l: tlocation; def: tdef); override;
 
-        procedure g_save_standard_registers(list : taasmoutput; usedinproc : Tsupregset);override;
-        procedure g_restore_standard_registers(list : taasmoutput; usedinproc : Tsupregset);override;
+        procedure g_save_standard_registers(list : taasmoutput; usedinproc : tsuperregisterset);override;
+        procedure g_restore_standard_registers(list : taasmoutput; usedinproc : tsuperregisterset);override;
         procedure g_save_all_registers(list : taasmoutput);override;
         procedure g_restore_all_registers(list : taasmoutput;accused,acchiused:boolean);override;
 
@@ -206,9 +206,7 @@ unit cgcpu;
       var
          r : tregister;
       begin
-        r.enum:=R_INTREGISTER;
-        r.number:=NR_PC;
-        list.concat(taicpu.op_reg_reg(A_MOV,r,reg));
+        list.concat(taicpu.op_reg_reg(A_MOV,NR_PC,reg));
         if not(pi_do_call in current_procinfo.flags) then
           internalerror(2003060704);
       end;
@@ -218,9 +216,7 @@ unit cgcpu;
       var
          r : tregister;
       begin
-        r.enum:=R_INTREGISTER;
-        r.number:=NR_PC;
-        a_load_ref_reg(list,OS_ADDR,OS_ADDR,ref,r);
+        a_load_ref_reg(list,OS_ADDR,OS_ADDR,ref,NR_PC);
         if not(pi_do_call in current_procinfo.flags) then
           internalerror(2003060705);
       end;
@@ -348,9 +344,9 @@ unit cgcpu;
            OP_MUL:
              begin
                { the arm doesn't allow that rd and rm are the same }
-               if dst.number=src2.number then
+               if dst=src2 then
                  begin
-                   if src1.number<>src2.number then
+                   if src1<>src2 then
                      list.concat(taicpu.op_reg_reg_reg(A_MUL,dst,src1,src2))
                    else
                      begin
@@ -420,16 +416,15 @@ unit cgcpu;
         tmpref : treference;
         l : tasmlabel;
       begin
-        tmpreg.enum:=R_INTREGISTER;
-        tmpreg.number:=NR_NO;
+        tmpreg:=NR_NO;
 
         { Be sure to have a base register }
-        if (ref.base.number=NR_NO) then
+        if (ref.base=NR_NO) then
           begin
             if ref.shiftmode<>SM_None then
               internalerror(200308294);
             ref.base:=ref.index;
-            ref.index.number:=NR_NO;
+            ref.index:=NR_NO;
           end;
 
         { absolute symbols can't be handled directly, we've to store the symbol reference
@@ -464,13 +459,12 @@ unit cgcpu;
             tmpreg:=rg.getregisterint(list,OS_INT);
             reference_reset(tmpref);
             tmpref.symbol:=l;
-            tmpref.base.enum:=R_INTREGISTER;
-            tmpref.base.number:=NR_R15;
+            tmpref.base:=NR_R15;
             list.concat(taicpu.op_reg_ref(A_LDR,tmpreg,tmpref));
 
-            if (ref.base.number<>NR_NO) then
+            if (ref.base<>NR_NO) then
               begin
-                if ref.index.number<>NR_NO then
+                if ref.index<>NR_NO then
                   begin
                     list.concat(taicpu.op_reg_reg_reg(A_ADD,tmpreg,ref.base,tmpreg));
                     rg.ungetregister(list,ref.base);
@@ -490,7 +484,7 @@ unit cgcpu;
             ref.symbol:=nil;
           end;
         list.concat(setoppostfix(taicpu.op_reg_ref(op,reg,ref),oppostfix));
-        if (tmpreg.number<>NR_NO) then
+        if (tmpreg<>NR_NO) then
           rg.ungetregisterint(list,tmpreg);
       end;
 
@@ -547,11 +541,7 @@ unit cgcpu;
          so : tshifterop;
        begin
          shifterop_reset(so);
-         if (reg1.enum<>R_INTREGISTER) or (reg1.number = 0) then
-           internalerror(200303101);
-         if (reg2.enum<>R_INTREGISTER) or (reg2.number = 0) then
-           internalerror(200303102);
-         if (reg1.number<>reg2.number) or
+         if (reg1<>reg2) or
             (tcgsize2size[tosize] < tcgsize2size[fromsize]) or
             ((tcgsize2size[tosize] = tcgsize2size[fromsize]) and
              (tosize <> fromsize) and
@@ -649,24 +639,19 @@ unit cgcpu;
         tmpreg : tregister;
         b : byte;
       begin
-        if reg.enum=R_INTREGISTER then
-          begin
-            if is_shifter_const(a,b) then
-              list.concat(taicpu.op_reg_const(A_CMN,reg,a))
-            { CMN reg,0 and CMN reg,$80000000 are different from CMP reg,$ffffffff
-              and CMP reg,$7fffffff regarding the flags according to the ARM manual }
-            else if is_shifter_const(not(a),b) and (a<>$7fffffff) and (a<>$ffffffff) then
-              list.concat(taicpu.op_reg_const(A_CMN,reg,not(a)))
-            else
-              begin
-                tmpreg:=rg.getregisterint(list,size);
-                a_load_const_reg(list,size,a,tmpreg);
-                list.concat(taicpu.op_reg_reg(A_CMP,reg,tmpreg));
-                rg.ungetregisterint(list,tmpreg);
-              end
-          end
+        if is_shifter_const(a,b) then
+          list.concat(taicpu.op_reg_const(A_CMN,reg,a))
+        { CMN reg,0 and CMN reg,$80000000 are different from CMP reg,$ffffffff
+          and CMP reg,$7fffffff regarding the flags according to the ARM manual }
+        else if is_shifter_const(not(a),b) and (a<>$7fffffff) and (a<>$ffffffff) then
+          list.concat(taicpu.op_reg_const(A_CMN,reg,not(a)))
         else
-          internalerror(200308131);
+          begin
+            tmpreg:=rg.getregisterint(list,size);
+            a_load_const_reg(list,size,a,tmpreg);
+            list.concat(taicpu.op_reg_reg(A_CMP,reg,tmpreg));
+            rg.ungetregisterint(list,tmpreg);
+          end;
         a_jmp_cond(list,cmp_op,l);
       end;
 
@@ -688,8 +673,8 @@ unit cgcpu;
        var
          ai : taicpu;
        begin
-         ai := Taicpu.op_sym_cond(A_B,l,flags_to_cond(f));
-         ai.is_jmp := true;
+         ai:=setcondition(taicpu.op_sym(A_B,l),flags_to_cond(f));
+         ai.is_jmp:=true;
          list.concat(ai);
        end;
 
@@ -698,8 +683,8 @@ unit cgcpu;
       var
         ai : taicpu;
       begin
-        list.concat(setcondition(taicpu.op_reg_const(A_MOV,reg,1),flags_to_cond(f));
-        list.concat(setcondition(aicpu.op_reg_const(A_MOV,reg,0),inverse_cond[flags_to_cond(f)]));
+        list.concat(setcondition(taicpu.op_reg_const(A_MOV,reg,1),flags_to_cond(f)));
+        list.concat(setcondition(taicpu.op_reg_const(A_MOV,reg,0),inverse_cond[flags_to_cond(f)]));
       end;
 
 
@@ -733,7 +718,7 @@ unit cgcpu;
     procedure tcgarm.g_return_from_proc(list : taasmoutput;parasize : aword);
       begin
         if (current_procinfo.framepointer=NR_STACK_POINTER_REG) then
-          list.concat(taicpu.op_reg_reg(A_MOV,NR_R15,NR_R14));
+          list.concat(taicpu.op_reg_reg(A_MOV,NR_R15,NR_R14))
         else
           { restore int registers and return }
           list.concat(setoppostfix(taicpu.op_reg_regset(A_LDM,NR_R11,rg.used_in_proc_int-[RS_R0..RS_R3]+[RS_R11,RS_R13,RS_R15]),PF_EA));
@@ -753,25 +738,25 @@ unit cgcpu;
       begin
         tmpref:=ref;
         { Be sure to have a base register }
-        if (tmpref.base.number=NR_NO) then
+        if (tmpref.base=NR_NO) then
           begin
             if tmpref.shiftmode<>SM_None then
               internalerror(200308294);
             tmpref.base:=tmpref.index;
-            tmpref.index.number:=NR_NO;
+            tmpref.index:=NR_NO;
           end;
 
         if assigned(tmpref.symbol) or
            not(is_shifter_const(tmpref.offset,b)) or
-           ((tmpref.base.number<>NR_NO) and tmpref.index.number<>NR_NO)) then
+           ((tmpref.base<>NR_NO) and (tmpref.index<>NR_NO)) then
           fixref(list,tmpref);
 
-        if ref.index.number<>NR_NO then
+        if ref.index<>NR_NO then
           begin
           end
-        else
+{        else
           list.concat(taicpu.op_reg_reg(A_MOV,r,));
-          ref.signindex<0 then
+          ref.signindex<0 then }
       end;
 
 
@@ -807,13 +792,12 @@ unit cgcpu;
         tmpreg:=rg.getregisterint(list,OS_INT);
         reference_reset(tmpref);
         tmpref.symbol:=l;
-        tmpref.base.enum:=R_INTREGISTER;
-        tmpref.base.number:=NR_R15;
+        tmpref.base:=NR_PC;
         list.concat(taicpu.op_reg_ref(A_LDR,tmpreg,tmpref));
 
-        if (ref.base.number<>NR_NO) then
+        if (ref.base<>NR_NO) then
           begin
-            if ref.index.number<>NR_NO then
+            if ref.index<>NR_NO then
               begin
                 list.concat(taicpu.op_reg_reg_reg(A_ADD,tmpreg,ref.base,tmpreg));
                 rg.ungetregister(list,ref.base);
@@ -953,13 +937,13 @@ unit cgcpu;
       end;
 
 
-    procedure tcgarm.g_save_standard_registers(list : taasmoutput; usedinproc : Tsupregset);
+    procedure tcgarm.g_save_standard_registers(list : taasmoutput; usedinproc : tsuperregisterset);
       begin
         { we support only ARM standard calling conventions so this procedure has no use on the ARM }
       end;
 
 
-    procedure tcgarm.g_restore_standard_registers(list : taasmoutput; usedinproc : Tsupregset);
+    procedure tcgarm.g_restore_standard_registers(list : taasmoutput; usedinproc : tsuperregisterset);
       begin
         { we support only ARM standard calling conventions so this procedure has no use on the ARM }
       end;
@@ -1101,7 +1085,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2003-09-04 00:15:29  florian
+  Revision 1.14  2003-09-04 21:07:03  florian
+    * ARM compiler compiles again
+
+  Revision 1.13  2003/09/04 00:15:29  florian
     * first bunch of adaptions of arm compiler for new register type
 
   Revision 1.12  2003/09/03 19:10:30  florian

@@ -440,7 +440,7 @@ implementation
           R_FPUREGISTER :
             reg2opsize:=S_FL;
           R_MMXREGISTER,
-          R_KNIREGISTER :
+          R_MMREGISTER :
             reg2opsize:=S_D;
           R_SPECIALREGISTER :
             begin
@@ -563,7 +563,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  2003-09-03 15:55:02  peter
+  Revision 1.16  2003-09-04 21:07:03  florian
+    * ARM compiler compiles again
+
+  Revision 1.15  2003/09/03 15:55:02  peter
     * NEWRA branch merged
 
   Revision 1.14  2003/09/03 11:18:37  florian

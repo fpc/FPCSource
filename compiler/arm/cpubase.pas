@@ -116,6 +116,9 @@ unit cpubase;
       { Available Registers }
       {$i rarmcon.inc}
 
+      { aliases }
+      NR_PC = NR_R15;
+
       { Integer Super registers first and last }
 {$warning Supreg shall be $00-$1f}
       first_int_supreg = RS_R3;
@@ -632,7 +635,10 @@ unit cpubase;
 end.
 {
   $Log$
-  Revision 1.12  2003-09-04 00:15:29  florian
+  Revision 1.13  2003-09-04 21:07:03  florian
+    * ARM compiler compiles again
+
+  Revision 1.12  2003/09/04 00:15:29  florian
     * first bunch of adaptions of arm compiler for new register type
 
   Revision 1.11  2003/09/03 19:10:30  florian

@@ -69,14 +69,14 @@ uses
 
          function is_nop: boolean; override;
          function is_move:boolean; override;
-         function spill_registers(list:Taasmoutput;
-                                  rgget:Trggetproc;
-                                  rgunget:Trgungetproc;
-                                  r:tsuperregisterset;
-                                  var unusedregsint:tsuperregisterset;
-                                  const spilltemplist:Tspill_temp_list):boolean; override;
-      end;
 
+         { register spilling code }
+         function spilling_decode_loadstore(op: tasmop; var counterpart: tasmop; var wasload: boolean): boolean;override;
+         function spilling_create_loadstore(op: tasmop; r:tregister; const ref:treference): tai;override;
+         function spilling_create_load(const ref:treference;r:tregister): tai;override;
+         function spilling_create_store(r:tregister; const ref:treference): tai;override;
+
+      end;
       tai_align = class(tai_align_abstract)
         { nothing to add }
       end;
@@ -247,16 +247,6 @@ implementation
       end;
 
 
-     constructor taicpu.op_const_const_sym(op : tasmop;_op1,_op2 : longint; _op3: tasmsymbol);
-      begin
-         inherited create(op);
-         ops:=3;
-         loadconst(0,aword(_op1));
-         loadconst(1,aword(_op2));
-         loadsymbol(2,_op3,0);
-      end;
-
-
     constructor taicpu.op_sym(op : tasmop;_op1 : tasmsymbol);
       begin
          inherited create(op);
@@ -306,278 +296,38 @@ implementation
       end;
 
 
-    function taicpu.spill_registers(list:Taasmoutput;
-                             rgget:Trggetproc;
-                             rgunget:Trgungetproc;
-                             r:tsuperregisterset;
-                             var unusedregsint:tsuperregisterset;
-                              const spilltemplist:Tspill_temp_list): boolean;
-
-
-      function get_insert_pos(p:Tai;huntfor1,huntfor2,huntfor3:Tsuperregister):Tai;
-
-      var back:tsuperregisterset;
-
+    function taicpu.spilling_decode_loadstore(op: tasmop; var counterpart: tasmop; var wasload: boolean): boolean;
       begin
-        back:=unusedregsint;
-        get_insert_pos:=p;
-        while (p<>nil) and (p.typ=ait_regalloc) do
-          begin
-            {Rewind the register allocation.}
-            if Tai_regalloc(p).allocation then
-              include(unusedregsint,Tai_regalloc(p).reg.number shr 8)
-            else
-              begin
-                exclude(unusedregsint,Tai_regalloc(p).reg.number shr 8);
-                if Tai_regalloc(p).reg.number shr 8=huntfor1 then
-                  begin
-                    get_insert_pos:=Tai(p.previous);
-                    back:=unusedregsint;
-                  end;
-                if Tai_regalloc(p).reg.number shr 8=huntfor2 then
-                  begin
-                    get_insert_pos:=Tai(p.previous);
-                    back:=unusedregsint;
-                  end;
-                if Tai_regalloc(p).reg.number shr 8=huntfor3 then
-                  begin
-                    get_insert_pos:=Tai(p.previous);
-                    back:=unusedregsint;
-                  end;
-              end;
-            p:=Tai(p.previous);
-          end;
-        unusedregsint:=back;
-      end;
-
-      procedure forward_allocation(p:Tai);
-
-      begin
-        {Forward the register allocation again.}
-        while (p<>self) do
-          begin
-            if p.typ<>ait_regalloc then
-              internalerror(200305311);
-            if Tai_regalloc(p).allocation then
-              exclude(unusedregsint,Tai_regalloc(p).reg.number shr 8)
-            else
-              include(unusedregsint,Tai_regalloc(p).reg.number shr 8);
-            p:=Tai(p.next);
-          end;
-      end;
-
-
-      function decode_loadstore(op: tasmop; var counterpart: tasmop; wasload: boolean): boolean;
-
-        begin
-          result := true;
-          wasload := true;
-          case op of
-            A_LDR:
-              begin
-                counterpart := A_STR;
-              end;
-            A_LDM:
-              internalerror(2003070602);
-            else
-              result := false;
-          end;
-       end;
-
-
-    var i:byte;
-        supreg, reg1, reg2, reg3: Tsuperregister;
-        helpreg:Tregister;
-        helpins:Taicpu;
-        op:Tasmop;
-        pos:Tai;
-        wasload: boolean;
-
-      begin
-        spill_registers:=false;
-        if (ops = 2) and
-           (oper[1].typ=top_ref) and
-           { oper[1] can also be ref in case of "lis r3,symbol@ha" or so }
-           decode_loadstore(opcode,op,wasload) then
-          begin
-            { the register that's being stored/loaded }
-            supreg:=oper[0].reg.number shr 8;
-            if supreg in r then
-              begin
-                // Example:
-                //   l?? r20d, 8(r1)   ; r20d must be spilled into -60(r1)
-                //
-                //   Change into:
-                //
-                //   l?? r21d, 8(r1)
-                //   st? r21d, -60(r1)
-                //
-                // And:
-                //
-                //   st? r20d, 8(r1)   ; r20d must be spilled into -60(r1)
-                //
-                //   Change into:
-                //
-                //   l?? r21d, -60(r1)
-                //   st? r21d, 8(r1)
-
-                pos := get_insert_pos(Tai(previous),oper[0].reg.number shr 8,
-                                      oper[1].ref^.base.number shr 8,oper[1].ref^.index.number shr 8);
-                rgget(list,pos,0,helpreg);
-                spill_registers := true;
-                if wasload then
-                  begin
-                    helpins := taicpu.op_reg_ref(opcode,helpreg,oper[1].ref^);
-                    loadref(1,spilltemplist[supreg]);
-                    opcode := op;
-                  end
-                else
-                  helpins := taicpu.op_reg_ref(op,helpreg,spilltemplist[supreg]);
-                if pos=nil then
-                  list.insertafter(helpins,list.first)
-                else
-                  list.insertafter(helpins,pos.next);
-                loadreg(0,helpreg);
-                rgunget(list,helpins,helpreg);
-                forward_allocation(tai(helpins.next));
-{$ifdef debugra}
-                writeln('spilling!');
-                list.insertafter(tai_comment.Create(strpnew('Spilling!')),helpins);
-{$endif debugra}
-              end;
-
-            { now the registers used in the reference }
-            { a) base                                 }
-            supreg := oper[1].ref^.base.number shr 8;
-            if supreg in r then
-              begin
-                if wasload then
-                  pos:=get_insert_pos(Tai(previous),oper[1].ref^.index.number shr 8,oper[0].reg.number shr 8,0)
-                else
-                  pos:=get_insert_pos(Tai(previous),oper[1].ref^.index.number shr 8,0,0);
-                rgget(list,pos,0,helpreg);
-                spill_registers:=true;
-                helpins:=Taicpu.op_reg_ref(A_LDR,helpreg,spilltemplist[supreg]);
-                if pos=nil then
-                  list.insertafter(helpins,list.first)
-                else
-                  list.insertafter(helpins,pos.next);
-                oper[1].ref^.base:=helpreg;
-                rgunget(list,helpins,helpreg);
-                forward_allocation(Tai(helpins.next));
-{$ifdef debugra}
-                writeln('spilling!');
-                list.insertafter(tai_comment.Create(strpnew('Spilling!')),helpins);
-{$endif debugra}
-              end;
-
-            { b) index }
-            supreg := oper[1].ref^.index.number shr 8;
-            if supreg in r then
-              begin
-                if wasload then
-                  pos:=get_insert_pos(Tai(previous),oper[1].ref^.base.number shr 8,oper[0].reg.number shr 8,0)
-                else
-                  pos:=get_insert_pos(Tai(previous),oper[1].ref^.base.number shr 8,0,0);
-                rgget(list,pos,0,helpreg);
-                spill_registers:=true;
-                helpins:=Taicpu.op_reg_ref(A_LDR,helpreg,spilltemplist[supreg]);
-                if pos=nil then
-                  list.insertafter(helpins,list.first)
-                else
-                  list.insertafter(helpins,pos.next);
-                oper[1].ref^.index:=helpreg;
-                rgunget(list,helpins,helpreg);
-                forward_allocation(Tai(helpins.next));
-{$ifdef debugra}
-                writeln('spilling!');
-                list.insertafter(tai_comment.Create(strpnew('Spilling!')),helpins);
-{$endif debugra}
-              end;
-            { load/store is done }
-            exit;
-          end;
-
-        { all other instructions the compiler generates are the same (I hope):   }
-        { operand 0 is a register and is the destination, the others are sources }
-        { and can be either registers or constants                               }
-        { exception: branches (is_jmp isn't always set for them)                 }
-        if oper[0].typ <> top_reg then
-          exit;
-        reg1 := oper[0].reg.number shr 8;
-        if oper[1].typ = top_reg then
-          reg2 := oper[1].reg.number shr 8
-        else
-          reg2 := 0;
-        if (ops >= 3) and
-           (oper[2].typ = top_reg) then
-          reg3 := oper[2].reg.number shr 8
-        else
-          reg3 := 0;
-
-        supreg:=reg1;
-        if supreg in r then
-          begin
-            // Example:
-            //   add r20d, r21d, r22d   ; r20d must be spilled into -60(r1)
-            //
-            //   Change into:
-            //
-            //   lwz r23d, -60(r1)
-            //   add r23d, r21d, r22d
-            //   stw r23d, -60(r1)
-
-            pos := get_insert_pos(Tai(previous),reg1,reg2,reg3);
-            rgget(list,pos,0,helpreg);
-            spill_registers := true;
-            helpins := taicpu.op_reg_ref(A_STR,helpreg,spilltemplist[supreg]);
-            list.insertafter(helpins,self);
-            helpins := taicpu.op_reg_ref(A_LDR,helpreg,spilltemplist[supreg]);
-            if pos=nil then
-              list.insertafter(helpins,list.first)
-            else
-              list.insertafter(helpins,pos.next);
-            loadreg(0,helpreg);
-            rgunget(list,helpins,helpreg);
-            forward_allocation(tai(helpins.next));
-{$ifdef debugra}
-            writeln('spilling!');
-            list.insertafter(tai_comment.Create(strpnew('Spilling!')),helpins);
-{$endif debugra}
-          end;
-
-        for i := 1 to 2 do
-          if (oper[i].typ = top_reg) then
+        result := true;
+        wasload := true;
+        case op of
+          A_LDR:
             begin
-              supreg:=oper[i].reg.number;
-              if supreg in r then
-                begin
-                  // Example:
-                  //   add r20d, r21d, r22d   ; r20d must be spilled into -60(r1)
-                  //
-                  //   Change into:
-                  //
-                  //   lwz r23d, -60(r1)
-                  //   add r23d, r21d, r22d
-                  //   stw r23d, -60(r1)
-
-                  pos := get_insert_pos(Tai(previous),reg1,reg2,reg3);
-                  rgget(list,pos,0,helpreg);
-                  spill_registers := true;
-                  helpins := taicpu.op_reg_ref(A_LDR,helpreg,spilltemplist[supreg]);
-                  if pos=nil then
-                    list.insertafter(helpins,list.first)
-                  else
-                    list.insertafter(helpins,pos.next);
-                  loadreg(i,helpreg);
-                  rgunget(list,helpins,helpreg);
-                  forward_allocation(tai(helpins.next));
-{$ifdef debugra}
-                  writeln('spilling!');
-                  list.insertafter(tai_comment.Create(strpnew('Spilling!')),helpins);
-{$endif debugra}
-                end;
+              counterpart := A_STR;
             end;
+          A_LDM:
+            internalerror(2003070602);
+          else
+            result := false;
+        end;
+      end;
+
+
+    function taicpu.spilling_create_loadstore(op: tasmop; r:tregister; const ref:treference): tai;
+      begin
+        result:=taicpu.op_reg_ref(opcode,r,ref);
+      end;
+
+
+    function taicpu.spilling_create_load(const ref:treference;r:tregister): tai;
+      begin
+        result:=taicpu.op_reg_ref(A_LDR,r,ref);
+      end;
+
+
+    function taicpu.spilling_create_store(r:tregister; const ref:treference): tai;
+      begin
+        result:=taicpu.op_reg_ref(A_STR,r,ref);
       end;
 
 
@@ -615,7 +365,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  2003-09-04 00:15:29  florian
+  Revision 1.10  2003-09-04 21:07:03  florian
+    * ARM compiler compiles again
+
+  Revision 1.9  2003/09/04 00:15:29  florian
     * first bunch of adaptions of arm compiler for new register type
 
   Revision 1.8  2003/09/03 11:18:37  florian
