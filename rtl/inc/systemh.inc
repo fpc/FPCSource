@@ -363,6 +363,7 @@ const
   IsMultiThread : boolean = FALSE;
   { Indicates if there was an error }
   StackError : boolean = FALSE;
+  InitProc : Pointer = nil;
 
 var
   ExitCode    : Word; public name 'operatingsystem_result';
@@ -372,7 +373,6 @@ var
   IsConsole : boolean;
   { Threading support }
   fpc_threadvar_relocate_proc : pointer; public name 'FPC_THREADVAR_RELOCATE';
-  InitProc : Pointer;
 
 {$ifdef SUPPORT_THREADVAR}
 ThreadVar
@@ -772,7 +772,10 @@ const
 
 {
   $Log$
-  Revision 1.117  2005-02-06 20:35:54  florian
+  Revision 1.118  2005-02-06 20:37:31  florian
+    * InitProc gets an inital value
+
+  Revision 1.117  2005/02/06 20:35:54  florian
     + InitProc
 
   Revision 1.116  2005/02/06 11:20:52  peter
