@@ -1,0 +1,19 @@
+#
+#   Makefile.fpc for FCL net units
+#
+
+[package]
+main=fcl
+
+[target]
+units=fpimgcmn fpimage pngcomn fpreadpng  fpreadxpm  fpwritexpm 
+examples=imgconv
+
+[compiler]
+targetdir=../$(OS_TARGET)
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
