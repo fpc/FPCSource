@@ -54,9 +54,14 @@ _start:
         xorq    %rbp, %rbp
         call    PASCALMAIN
 
-	hlt                           /* Crash if somehow `exit' does return.	 */
-
-/*!!!! hlt syscall? */
+        .globl  _haltproc
+        .type   _haltproc,@function
+_haltproc:
+        movl    $1,%eax                 /* exit call */
+        xorq    %rbx,%rbx
+        movw    U_SYSTEM_EXITCODE,%bx
+        syscall
+        jmp     _haltproc
 
 /* Define a symbol for the first piece of initialized data.  */
 	.data
@@ -84,7 +89,10 @@ __data_start:
 
 #
 # $Log$
-# Revision 1.4  2004-02-20 23:48:27  peter
+# Revision 1.5  2004-04-12 19:05:55  florian
+#   + haltproc added
+#
+# Revision 1.4  2004/02/20 23:48:27  peter
 #   * c stub implemented
 #
 # Revision 1.3  2004/02/08 15:33:50  florian
