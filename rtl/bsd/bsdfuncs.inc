@@ -89,17 +89,16 @@ Const   ITimer_Real    =0;
   ITimer_Virtual =1;
   ITimer_Prof    =2;
 
-
-Function SetITimer(Which : Longint;Const value : ItimerVal; VarOValue:ItimerVal):Longint;
+Function SetITimer(Which : Longint;Const value : ItimerVal; var VarOValue:ItimerVal):Longint;
 
 Begin
- SetItimer:=Do_Syscall(syscall_nr_setitimer,Which,Longint(@Value),longint(@value));
+  SetItimer:=Do_Syscall(syscall_nr_setitimer,Which,Longint(@Value),longint(@varovalue));
 End;
 
 Function GetITimer(Which : Longint;Var value : ItimerVal):Longint;
 
 Begin
- GetItimer:=Do_Syscall(syscall_nr_getItimer,Which,Longint(@value));
+  GetItimer:=Do_Syscall(syscall_nr_getItimer,Which,Longint(@value));
 End;
 
 Function sys_alarm(Seconds: cuint):cuint;
@@ -132,6 +131,7 @@ begin
  sigblock:= sys_sigprocmask(SIG_BLOCK,nset,oset);   // SIG_BLOCK=1
  if sigblock=0 Then
   sigblock:=oset[0];
+ el
 end;
 
 function sigpause(sigmask:cint):cint;
@@ -150,7 +150,6 @@ function sys_pause:cint;
 begin
   sys_pause:=sigpause(sigblock(cuint(0)));
 end;
-
 
 function sys_sleep(seconds:cuint):cuint;
 
@@ -461,7 +460,10 @@ end;
 
 {
  $Log$
- Revision 1.10  2002-11-14 12:34:20  marco
+ Revision 1.11  2002-11-14 13:25:27  marco
+  * Fix setitimer.
+
+ Revision 1.10  2002/11/14 12:34:20  marco
   * took out the generic sethandling.
 
  Revision 1.9  2002/11/13 18:15:08  marco
