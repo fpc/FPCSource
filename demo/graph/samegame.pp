@@ -354,6 +354,8 @@ END;
 PROCEDURE BuildScreen;
 {Some procedures that build the screen}
 
+Var S:String; // do not remove. Depends on usegraphics.
+
 BEGIN
   {$IFDEF UseGraphics}
    setbkcolor(black);
@@ -554,6 +556,12 @@ BEGIN
   SetFillStyle(SolidFill,1);
   GetDefaultPalette(Pal);
   SetAllPalette(Pal);
+  {$ifdef win32}
+   {$ifdef win32}
+    Windows.SetWindowText(GraphWindow,'Samegame, a demonstration of Free Pascal');
+   {$endif}
+
+  {$endif}
  {$ENDIF}
   IF NOT MousePresent THEN
    BEGIN
@@ -592,7 +600,11 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.6  2003-09-06 14:14:12  marco
+  Revision 1.7  2004-02-18 16:43:29  marco
+   *  added an API call to avoid the "Graph Window" window title, and readded previously removed variable
+  	It was used in usegraph
+
+  Revision 1.6  2003/09/06 14:14:12  marco
    * removed unused var reported in bug 2170
 
   Revision 1.5  2002/09/07 15:06:35  peter
