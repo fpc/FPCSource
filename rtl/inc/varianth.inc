@@ -88,7 +88,7 @@ type
                      vardate : (vdate : tdatetime);
                      varolestr : (volestr : pwidechar);
                      vardispatch : (vdispatch : pointer);
-                     varerror : (verror : dword);
+                     varerror : (verror : hresult);
                      varboolean : (vboolean : wordbool);
                      varunknown : (vunknown : pointer);
                      // vardecimal : ( : );
@@ -311,7 +311,10 @@ operator <=(const op1,op2 : variant) dest : boolean;
 
 {
   $Log$
-  Revision 1.15  2003-12-10 01:36:39  florian
+  Revision 1.16  2003-12-22 23:07:52  peter
+    * fixed type of verror
+
+  Revision 1.15  2003/12/10 01:36:39  florian
     * real functions ifdef'ed depending on the supported types
 
   Revision 1.14  2003/11/05 15:26:37  florian
