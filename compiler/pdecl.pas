@@ -572,10 +572,9 @@ unit pdecl;
 
         begin
            consume(_DESTRUCTOR);
+           _proc_head(podestructor);
            if (cs_checkconsname in aktswitches) and (aktprocsym^.name<>'DONE') then
             Message(parser_e_destructorname_must_be_done);
-
-           _proc_head(podestructor);
            consume(SEMICOLON);
            if assigned(aktprocsym^.definition^.para1) then
             Message(parser_e_no_paras_for_destructor);
@@ -663,6 +662,9 @@ unit pdecl;
                      parse_only:=true;
                      constructor_head;
                      parse_only:=oldparse_only;
+                     if (token=ID) and
+                       ((pattern='VIRTUAL') or (pattern='DYNAMIC')) then
+                       Message(parser_w_constructor_cannot_be_not_virtual);
                   end;
                 _DESTRUCTOR:
                   begin
@@ -1619,8 +1621,13 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:14  root
-  Initial revision
+  Revision 1.2  1998-04-05 13:58:35  peter
+    * fixed the -Ss bug
+    + warning for Virtual constructors
+    * helppages updated with -TGO32V1
+
+  Revision 1.1.1.1  1998/03/25 11:18:14  root
+  * Restored version
 
   Revision 1.31  1998/03/24 21:48:33  florian
     * just a couple of fixes applied:

@@ -90,11 +90,11 @@ Report bugs,suggestions etc to:
 **2St_allows static keyword in objects
 **1s_don't call assembler and linker (only with -a)
 **1T<x>_Target operating system
-3*2TDOS_DOS extender by DJ Delorie
-3*2TOS2_OS/2 2.x
-3*2TLINUX_Linux
-3*2TWin32_Windows 32 Bit
+3*2TGO32V1_version 1 of DJ Delorie DOS extender
 3*2TGO32V2_version 2 of DJ Delorie DOS extender
+3*2TLINUX_Linux
+3*2TOS2_OS/2 2.x
+3*2TWin32_Windows 32 Bit
 6*2TAMIGA_Commodore Amiga
 6*2TATARI_Atari ST/STe/TT
 6*2TMACOS_Macintosh m68k

@@ -243,6 +243,14 @@ endif
 # Make targets
 #####################################################################
 
+msgtxt.inc: errore.msg
+	msg2inc errore.msg msgtxt.inc msgtxt
+
+optmsg.inc: optione.msg
+	msg2inc optione.msg optmsg.inc optiontxt
+
+msg: msgtxt.inc optmsg.inc
+	
 # Make only the compiler
 ifdef inlinux
 $(EXENAME) : $(PPEXENAME)
