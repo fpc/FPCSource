@@ -482,7 +482,7 @@ implementation
 
     begin
         inherited _dowrite;
-        system.write(writenodeindention,',value = ',value);
+        system.write(',value = ',value);
     end;
 {$endif}
 
@@ -912,7 +912,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.39  2002-08-18 20:06:23  peter
+  Revision 1.40  2002-08-22 11:21:44  florian
+    + register32 is now written by tnode.dowrite
+    * fixed write of value of tconstnode
+
+  Revision 1.39  2002/08/18 20:06:23  peter
     * inlining is now also allowed in interface
     * renamed write/load to ppuwrite/ppuload
     * tnode storing in ppu

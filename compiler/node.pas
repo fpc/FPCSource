@@ -617,6 +617,7 @@ implementation
         else
           write(',resulttype = <nil>');
         write(',location.loc = ',ord(location.loc));
+        write(',registersint = ',registers32);
         write(',registersfpu = ',registersfpu);
       end;
 
@@ -972,7 +973,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.38  2002-08-19 19:36:44  peter
+  Revision 1.39  2002-08-22 11:21:45  florian
+    + register32 is now written by tnode.dowrite
+    * fixed write of value of tconstnode
+
+  Revision 1.38  2002/08/19 19:36:44  peter
     * More fixes for cross unit inlining, all tnodes are now implemented
     * Moved pocall_internconst to po_internconst because it is not a
       calling type at all and it conflicted when inlining of these small
