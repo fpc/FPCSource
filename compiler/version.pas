@@ -25,12 +25,12 @@ interface
 
     const
        { word version for ppu file }
-       wordversion = (0 shl 11)+99;
+       wordversion = (0 shl 12)+99;
 
        { version string }
        version_nr = '0';
        release_nr = '99';
-       patch_nr   = '11';
+       patch_nr   = '12';
        version_string = version_nr+'.'+release_nr+'.'+patch_nr;
 
        { date string }
@@ -66,7 +66,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  1998-12-23 14:02:01  peter
+  Revision 1.6  1999-06-08 12:52:38  peter
+    * 0.99.12
+
+  Revision 1.5  1998/12/23 14:02:01  peter
     * daniels patches against the latest versions
 
   Revision 1.3  1998/12/15 10:23:34  peter
