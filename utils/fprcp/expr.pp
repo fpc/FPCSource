@@ -1,7 +1,7 @@
 {$ifdef win32}
 {$H-}
 {$endif}
-{$N+}
+{$ifndef fpc}{$N+}{$endif}
 Unit Expr;
 interface
 const
@@ -67,7 +67,7 @@ FUNCTION add_subt: Real;
             'ARCTAN','LN','LOG','EXP','FACT',
             'PRED','SUCC','ROUND','TRUNC');
           VAR
-            E, L, Start    : Integer;
+            L, Start    : Integer;
             Funnet         : Boolean;
             F              : Real;
             Sf             : StdFunc;
@@ -106,7 +106,7 @@ FUNCTION add_subt: Real;
                 IF Copy(Formula,Posn,l)=StdFuncName[sf] THEN
                 BEGIN
                   Posn:=Posn+l-1; ParseNext;
-                  f:=UnsignedOp;
+                  f:=UnsignedOp{$ifdef fpc}(){$endif};
                   CASE sf of
                     fabs:     f:=abs(f);
                     fsqrt:    f:=SqrT(f);
@@ -208,7 +208,7 @@ function HexToDecS:longbool;
   DecError:longbool;
  procedure Decim(const pattern:string);
   var
-   i,p,b,x:longint;
+   p,b,x:longint;
    ss,st:string;
   begin
    repeat

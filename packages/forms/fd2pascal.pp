@@ -77,7 +77,7 @@ Const
    To force setting of a property, put 'FL_FORCE' as a string.
    Mind : Case sensitive }
 
-  DefProps : array[ObjClasses,AdjProps] of string[25] =
+  DefProps : array[ObjClasses,AdjProps] of string[30] =
              (('FL_INVALID','','','','','','FL_NORMAL_STYLE','FL_FORCE'),
               ('BUTTON','FL_UP_BOX','FL_COL1 FL_COL1','FL_ALIGN_CENTER','','FL_LCOL','FL_NORMAL_STYLE','FL_FORCE'),
               ('LIGHTBUTTON','FL_UP_BOX','FL_COL1 FL_YELLOW','FL_ALIGN_CENTER','','FL_LCOL','FL_NORMAL_STYLE','FL_FORCE'),

@@ -134,7 +134,6 @@ Type
   TPrettyPrinter=Object(TObject)
     Private
       RecordSeen,
-      ConfigFileRead,
       CRPending : BOOLEAN;
       currchar,nextchar : charinfo;
       currsym,nextsym : symbolinfo;
@@ -1223,7 +1222,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  2000-05-03 13:04:08  pierre
+  Revision 1.8  2000-06-01 10:59:22  peter
+    * removed warning/notes
+
+  Revision 1.7  2000/05/03 13:04:08  pierre
    * avoid a problem with range check
 
   Revision 1.6  2000/02/09 16:44:15  peter

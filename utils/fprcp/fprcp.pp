@@ -2,7 +2,7 @@ program FreePasResourcePreprocessor;
 {$ifdef win32}
 {$APPTYPE CONSOLE}
 {$endif}
-{$N+}
+{$ifndef fpc}{$N+}{$endif}
 uses
  Comments,PasPrep,Expr
 {$ifndef win32}
@@ -171,7 +171,7 @@ function GetSwitch(const switch:str255):str255;
    if paramstr(i)='-'+switch then
     GetSwitch:=paramstr(succ(i));
  end;
-procedure saveproc(const key,value:str255;CaseSent:longbool);far;
+procedure saveproc(const key,value:str255;CaseSent:longbool);{$ifndef fpc}far;{$endif}
  var
   c:pReplaceRec;
  begin
@@ -341,9 +341,8 @@ function do_include(name:str255):longbool;
  var
   buf:pchars;
   f:file;
-  i,size,nextpos:longint;
-  s1,s2:str255;
-  done:longbool;
+  size:longint;
+  s1:str255;
  procedure trim;
   begin
    delete(name,1,1);
@@ -373,6 +372,7 @@ function do_include(name:str255):longbool;
     do_pascal(buf,size,@saveProc);
   end;
   FreeMem(buf,size);
+  do_include:=true;
  end;
 function CheckRight(const s:str255;pos:longint):longbool;
  begin
@@ -412,7 +412,7 @@ var
  c:pReplaceRec;
  j,kk:longint;
  sss,sst:str255;
- MustBeReplaced,includeStatement,beginline:longbool;
+ MustBeReplaced:longbool;
 begin
  if(paramcount=0)or isSwitch('h')or isSwitch('-help')or((paramcount>1)and(GetSwitch('i')=''))then
   begin
@@ -500,8 +500,6 @@ begin
  else
   begin
    sss:='';
-   includeStatement:=false;
-   beginline:=true;
    i:=1;
    sss:='';
    while i<=size do

@@ -23,7 +23,7 @@ type
   Float                = Single;
 
   { Pointers to basic types }
- 
+
   PByte                = ^Byte;
   PInt                 = ^Int;
   PShort               = ^Short;
@@ -35,7 +35,7 @@ type
   PVoid                = ^Pointer;
   PSmallint            = ^Smallint;
   PWOrd                = ^Word;
-    
+
 
 {$PACKRECORDS C}
 
@@ -47,26 +47,26 @@ type
      ISC__FALSE = ISC_FALSE;
 
 Type
-   ISC_USHORT	 = word;
-   ISC_STATUS	 = longint;
-   ISC_INT64     = int64;	
-   ISC_UINT64    = qword;	
+   ISC_USHORT    = word;
+   ISC_STATUS    = longint;
+   ISC_INT64     = int64;
+   ISC_UINT64    = qword;
    ISC_LONG      = Longint;
-   
+
    PISC_USHORT = ^ISC_USHORT;
    PISC_STATUS = ^ISC_STATUS;
    PPISC_STATUS = ^PISC_STATUS;
    PISC_INT64 = ^ISC_INT64;
    PISC_UINT64 = ^ISC_UINT64;
    PISC_LONG = ^ISC_LONG;
-   
+
   const
      DSQL_close = 1;
      DSQL_drop = 2;
 
   {!!MVC
-    Removed all ISC_FAR, ISC_EXPORT_VARARG and ISC_EXPORT 
-    macros. 
+    Removed all ISC_FAR, ISC_EXPORT_VARARG and ISC_EXPORT
+    macros.
     They confuse h2pas...
   !!MVC }
   {                                                                  }
@@ -100,19 +100,19 @@ Type
   {                                                                  }
 
 Type
-  
+
    GDS_QUAD = record
       gds_quad_high : ISC_LONG;
-      gds_quad_low : ISC_LONG; 
-   end;               
+      gds_quad_low : ISC_LONG;
+   end;
    TGDS_QUAD = GDS_QUAD;
    PGDS_QUAD = ^GDS_QUAD;
-   
+
 Type
      ISC_QUAD = GDS_QUAD;
      TISC_QUAD = ISC_QUAD;
      PISC_QUAD = ^ISC_QUAD;
-      
+
 { !!field redefinitions !!
      isc_quad_high = gds_quad_high;
      isc_quad_low = gds_quad_low;
@@ -124,9 +124,9 @@ type
           array_bound_lower : smallint;
           array_bound_upper : smallint;
        end;
-     TISC_ARRAY_BOUND = ISC_ARRAY_BOUND;  
+     TISC_ARRAY_BOUND = ISC_ARRAY_BOUND;
      PISC_ARRAY_BOUND = ^ISC_ARRAY_BOUND;
-     
+
      ISC_ARRAY_DESC = record
           array_desc_dtype : byte;
           array_desc_scale : char;
@@ -137,9 +137,9 @@ type
           array_desc_flags : smallint;
           array_desc_bounds : array[0..15] of ISC_ARRAY_BOUND;
        end;
-     TISC_ARRAY_DESC = ISC_ARRAY_DESC;  
+     TISC_ARRAY_DESC = ISC_ARRAY_DESC;
      PISC_ARRAY_DESC = ^ISC_ARRAY_DESC;
-     
+
      ISC_BLOB_DESC = record
           blob_desc_subtype : smallint;
           blob_desc_charset : smallint;
@@ -147,8 +147,8 @@ type
           blob_desc_field_name : array[0..31] of byte;
           blob_desc_relation_name : array[0..31] of byte;
        end;
-     TISC_BLOB_DESC = ISC_BLOB_DESC;  
-     PISC_BLOB_DESC = ^ISC_BLOB_DESC ;   
+     TISC_BLOB_DESC = ISC_BLOB_DESC;
+     PISC_BLOB_DESC = ^ISC_BLOB_DESC ;
   {                          }
   { Blob control structure   }
   {                          }
@@ -174,11 +174,11 @@ type
   { Address of status vector  }
   { Application specific data  }
   TCTLSourceFunction  = function : isc_long;
-  
-     PISC_BLOB_CTL = ^ISC_BLOB_CTL ; 
+
+     PISC_BLOB_CTL = ^ISC_BLOB_CTL ;
      ISC_BLOB_CTL = record
           ctl_source : TCTLSourceFunction;     //  was ISC_STATUS ( *ctl_source)();
-          ctl_source_handle : pisc_blob_ctl  ; // was struct isc_blob_ctl  * ctl_source_handle; 
+          ctl_source_handle : pisc_blob_ctl  ; // was struct isc_blob_ctl  * ctl_source_handle;
           ctl_to_sub_type : smallint;
           ctl_from_sub_type : smallint;
           ctl_buffer_length : word;
@@ -193,7 +193,7 @@ type
           ctl_data : array[0..7] of longint;
        end;
      TISC_BLOB_CTL = ISC_BLOB_CTL;
-       
+
   {                          }
   { Blob stream definitions  }
   {                          }
@@ -215,11 +215,11 @@ type
      TBSTREAM = BSTREAM;
      PBstream = ^BSTREAM;
   {!!MVC
-  
-  #define getb(p)	(--(p)->bstr_cnt >= 0 ?  (p)->bstr_ptr++ & 0377: BLOB_get (p))
+
+  #define getb(p)       (--(p)->bstr_cnt >= 0 ?  (p)->bstr_ptr++ & 0377: BLOB_get (p))
   #define putb(x,p) (((x) == '\n' || (!(--(p)->bstr_cnt))) ? BLOB_put ((x),p) : ((int) ( (p)->bstr_ptr++ = (unsigned) (x))))
   #define putbx(x,p) ((!(--(p)->bstr_cnt)) ? BLOB_put ((x),p) : ((int) ( (p)->bstr_ptr++ = (unsigned) (x))))
-  
+
   !!MVC  }
   {                          }
   { Dynamic SQL definitions  }
@@ -263,8 +263,8 @@ type
           aliasname_length : smallint;
           aliasname : array[0..31] of char;
        end;
-     TXSQLVAR = XSQLVAR;  
-     PXSQLVAR =^XSQLVAR;  
+     TXSQLVAR = XSQLVAR;
+     PXSQLVAR =^XSQLVAR;
   { version of this XSQLDA  }
   { XSQLDA name field  }
   { length in bytes of SQLDA  }
@@ -284,10 +284,10 @@ type
      PXSQLDA =^XSQLDA;
   { was #define dname(params) def_expr }
   { argument types are unknown }
-  { return type might be wrong }   
+  { return type might be wrong }
   Const
      XSQLDA_LENGTH = sizeof(XSQLDA);
-    { return type might be wrong }   
+    { return type might be wrong }
 
 
   const
@@ -349,38 +349,38 @@ type
   { OSRI database functions  }
   {                          }
 
-  function isc_attach_database(_para1:PISC_STATUS; _para2:smallint; _para3:Pchar; _para4:Pisc_db_handle; _para5:smallint; 
+  function isc_attach_database(_para1:PISC_STATUS; _para2:smallint; _para3:Pchar; _para4:Pisc_db_handle; _para5:smallint;
              _para6:Pchar):ISC_STATUS; cdecl; external;
 
   function isc_array_gen_sdl(_para1:PISC_STATUS; _para2:PISC_ARRAY_DESC; _para3:Psmallint; _para4:Pchar; _para5:Psmallint):ISC_STATUS; cdecl; external;
 
-  function isc_array_get_slice(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:PISC_QUAD; _para5:PISC_ARRAY_DESC; 
+  function isc_array_get_slice(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:PISC_QUAD; _para5:PISC_ARRAY_DESC;
              _para6:pointer; _para7:PISC_LONG):ISC_STATUS; cdecl; external;
 
-  function isc_array_lookup_bounds(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:Pchar; _para5:Pchar; 
+  function isc_array_lookup_bounds(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:Pchar; _para5:Pchar;
              _para6:PISC_ARRAY_DESC):ISC_STATUS; cdecl; external;
 
-  function isc_array_lookup_desc(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:Pchar; _para5:Pchar; 
+  function isc_array_lookup_desc(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:Pchar; _para5:Pchar;
              _para6:PISC_ARRAY_DESC):ISC_STATUS; cdecl; external;
 
-  function isc_array_set_desc(_para1:PISC_STATUS; _para2:Pchar; _para3:Pchar; _para4:Psmallint; _para5:Psmallint; 
+  function isc_array_set_desc(_para1:PISC_STATUS; _para2:Pchar; _para3:Pchar; _para4:Psmallint; _para5:Psmallint;
              _para6:Psmallint; _para7:PISC_ARRAY_DESC):ISC_STATUS; cdecl; external;
 
-  function isc_array_put_slice(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:PISC_QUAD; _para5:PISC_ARRAY_DESC; 
+  function isc_array_put_slice(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:PISC_QUAD; _para5:PISC_ARRAY_DESC;
              _para6:pointer; _para7:PISC_LONG):ISC_STATUS; cdecl; external;
 
   procedure isc_blob_default_desc(_para1:PISC_BLOB_DESC; _para2:Pbyte; _para3:Pbyte); cdecl; external;
 
-  function isc_blob_gen_bpb(_para1:PISC_STATUS; _para2:PISC_BLOB_DESC; _para3:PISC_BLOB_DESC; _para4:word; _para5:Pbyte; 
+  function isc_blob_gen_bpb(_para1:PISC_STATUS; _para2:PISC_BLOB_DESC; _para3:PISC_BLOB_DESC; _para4:word; _para5:Pbyte;
              _para6:Pword):ISC_STATUS; cdecl; external;
 
-  function isc_blob_info(_para1:PISC_STATUS; _para2:Pisc_blob_handle; _para3:smallint; _para4:Pchar; _para5:smallint; 
+  function isc_blob_info(_para1:PISC_STATUS; _para2:Pisc_blob_handle; _para3:smallint; _para4:Pchar; _para5:smallint;
              _para6:Pchar):ISC_STATUS; cdecl; external;
 
-  function isc_blob_lookup_desc(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:Pbyte; _para5:Pbyte; 
+  function isc_blob_lookup_desc(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:Pbyte; _para5:Pbyte;
              _para6:PISC_BLOB_DESC; _para7:Pbyte):ISC_STATUS; cdecl; external;
 
-  function isc_blob_set_desc(_para1:PISC_STATUS; _para2:Pbyte; _para3:Pbyte; _para4:smallint; _para5:smallint; 
+  function isc_blob_set_desc(_para1:PISC_STATUS; _para2:Pbyte; _para3:Pbyte; _para4:smallint; _para5:smallint;
              _para6:smallint; _para7:PISC_BLOB_DESC):ISC_STATUS; cdecl; external;
 
   function isc_cancel_blob(_para1:PISC_STATUS; _para2:Pisc_blob_handle):ISC_STATUS; cdecl; external;
@@ -395,13 +395,13 @@ type
 
   function isc_create_blob(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:Pisc_blob_handle; _para5:PISC_QUAD):ISC_STATUS; cdecl; external;
 
-  function isc_create_blob2(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:Pisc_blob_handle; _para5:PISC_QUAD; 
+  function isc_create_blob2(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:Pisc_blob_handle; _para5:PISC_QUAD;
              _para6:smallint; _para7:Pchar):ISC_STATUS; cdecl; external;
 
-  function isc_create_database(_para1:PISC_STATUS; _para2:smallint; _para3:Pchar; _para4:Pisc_db_handle; _para5:smallint; 
+  function isc_create_database(_para1:PISC_STATUS; _para2:smallint; _para3:Pchar; _para4:Pisc_db_handle; _para5:smallint;
              _para6:Pchar; _para7:smallint):ISC_STATUS; cdecl; external;
 
-  function isc_database_info(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:smallint; _para4:Pchar; _para5:smallint; 
+  function isc_database_info(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:smallint; _para4:Pchar; _para5:smallint;
              _para6:Pchar):ISC_STATUS; cdecl; external;
 
   procedure isc_decode_date(_para1:PISC_QUAD; _para2:pointer); cdecl; external;
@@ -424,15 +424,15 @@ type
 
   function isc_dsql_describe_bind(_para1:PISC_STATUS; _para2:Pisc_stmt_handle; _para3:word; _para4:PXSQLDA):ISC_STATUS; cdecl; external;
 
-  function isc_dsql_exec_immed2(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:word; _para5:Pchar; 
+  function isc_dsql_exec_immed2(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:word; _para5:Pchar;
              _para6:word; _para7:PXSQLDA; _para8:PXSQLDA):ISC_STATUS; cdecl; external;
 
   function isc_dsql_execute(_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:Pisc_stmt_handle; _para4:word; _para5:PXSQLDA):ISC_STATUS; cdecl; external;
 
-  function isc_dsql_execute2(_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:Pisc_stmt_handle; _para4:word; _para5:PXSQLDA; 
+  function isc_dsql_execute2(_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:Pisc_stmt_handle; _para4:word; _para5:PXSQLDA;
              _para6:PXSQLDA):ISC_STATUS; cdecl; external;
 
-  function isc_dsql_execute_immediate(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:word; _para5:Pchar; 
+  function isc_dsql_execute_immediate(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:word; _para5:Pchar;
              _para6:word; _para7:PXSQLDA):ISC_STATUS; cdecl; external;
 
   function isc_dsql_fetch(_para1:PISC_STATUS; _para2:Pisc_stmt_handle; _para3:word; _para4:PXSQLDA):ISC_STATUS; cdecl; external;
@@ -443,12 +443,12 @@ type
 
   function isc_dsql_insert(_para1:PISC_STATUS; _para2:Pisc_stmt_handle; _para3:word; _para4:PXSQLDA):ISC_STATUS; cdecl; external;
 
-  function isc_dsql_prepare(_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:Pisc_stmt_handle; _para4:word; _para5:Pchar; 
+  function isc_dsql_prepare(_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:Pisc_stmt_handle; _para4:word; _para5:Pchar;
              _para6:word; _para7:PXSQLDA):ISC_STATUS; cdecl; external;
 
   function isc_dsql_set_cursor_name(_para1:PISC_STATUS; _para2:Pisc_stmt_handle; _para3:Pchar; _para4:word):ISC_STATUS; cdecl; external;
 
-  function isc_dsql_sql_info(_para1:PISC_STATUS; _para2:Pisc_stmt_handle; _para3:smallint; _para4:Pchar; _para5:smallint; 
+  function isc_dsql_sql_info(_para1:PISC_STATUS; _para2:Pisc_stmt_handle; _para3:smallint; _para4:Pchar; _para5:smallint;
              _para6:Pchar):ISC_STATUS; cdecl; external;
 
   procedure isc_encode_date(_para1:pointer; _para2:PISC_QUAD); cdecl; external;
@@ -462,10 +462,10 @@ type
   function isc_event_block(_para1:PPchar; _para2:PPchar; _para3:word; args:array of const):ISC_LONG; cdecl; external;
 
   {!!MVC
-  void         isc_event_counts (unsigned ISC_LONG   , 
-  					 short, 
-  					 char   ,
-  					 char   ); cdecl; external;
+  void         isc_event_counts (unsigned ISC_LONG   ,
+                                         short,
+                                         char   ,
+                                         char   ); cdecl; external;
   !!MVC }
   procedure isc_expand_dpb(_para1:PPchar; _para2:Psmallint; args:array of const); cdecl; external;
 
@@ -475,15 +475,15 @@ type
 
   function isc_get_segment(_para1:PISC_STATUS; _para2:Pisc_blob_handle; _para3:Pword; _para4:word; _para5:Pchar):ISC_STATUS; cdecl; external;
 
-  function isc_get_slice(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:PISC_QUAD; _para5:smallint; 
-             _para6:Pchar; _para7:smallint; _para8:PISC_LONG; _para9:ISC_LONG; _para10:pointer; 
+  function isc_get_slice(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:PISC_QUAD; _para5:smallint;
+             _para6:Pchar; _para7:smallint; _para8:PISC_LONG; _para9:ISC_LONG; _para10:pointer;
              _para11:PISC_LONG):ISC_STATUS; cdecl; external;
 
   function isc_interprete(_para1:Pchar; _para2:PPISC_STATUS):ISC_STATUS; cdecl; external;
 
   function isc_open_blob(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:Pisc_blob_handle; _para5:PISC_QUAD):ISC_STATUS; cdecl; external;
 
-  function isc_open_blob2(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:Pisc_blob_handle; _para5:PISC_QUAD; 
+  function isc_open_blob2(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:Pisc_blob_handle; _para5:PISC_QUAD;
              _para6:smallint; _para7:Pchar):ISC_STATUS; cdecl; external;
 
   function isc_prepare_transaction2(_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:smallint; _para4:Pchar):ISC_STATUS; cdecl; external;
@@ -494,10 +494,10 @@ type
 
   function isc_put_segment(_para1:PISC_STATUS; _para2:Pisc_blob_handle; _para3:word; _para4:Pchar):ISC_STATUS; cdecl; external;
 
-  function isc_put_slice(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:PISC_QUAD; _para5:smallint; 
+  function isc_put_slice(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:PISC_QUAD; _para5:smallint;
              _para6:Pchar; _para7:smallint; _para8:PISC_LONG; _para9:ISC_LONG; _para10:pointer):ISC_STATUS; cdecl; external;
 
-  function isc_que_events(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:PISC_LONG; _para4:smallint; _para5:Pchar; 
+  function isc_que_events(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:PISC_LONG; _para4:smallint; _para5:Pchar;
              _para6:isc_callback; _para7:pointer):ISC_STATUS; cdecl; external;
 
   function isc_rollback_retaining(_para1:PISC_STATUS; _para2:Pisc_tr_handle):ISC_STATUS; cdecl; external;
@@ -512,10 +512,10 @@ type
 
   procedure isc_sql_interprete(_para1:smallint; _para2:Pchar; _para3:smallint); cdecl; external;
 
-  function isc_transaction_info(_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:smallint; _para4:Pchar; _para5:smallint; 
+  function isc_transaction_info(_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:smallint; _para4:Pchar; _para5:smallint;
              _para6:Pchar):ISC_STATUS; cdecl; external;
 
-  function isc_transact_request(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:word; _para5:Pchar; 
+  function isc_transact_request(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:word; _para5:Pchar;
              _para6:word; _para7:Pchar; _para8:word; _para9:Pchar):ISC_STATUS; cdecl; external;
 
   function isc_vax_integer(_para1:Pchar; _para2:smallint):ISC_LONG; cdecl; external;
@@ -574,7 +574,7 @@ type
        end;
      TUSER_SEC_DATA = USER_SEC_DATA;
      PUSER_SEC_DATA = ^USER_SEC_DATA;
-     
+
   function isc_add_user(_para1:PISC_STATUS; _para2:PUSER_SEC_DATA):longint; cdecl; external;
 
   function isc_delete_user(_para1:PISC_STATUS; _para2:PUSER_SEC_DATA):longint; cdecl; external;
@@ -592,22 +592,22 @@ type
 
   function isc_prepare_transaction(_para1:PISC_STATUS; _para2:Pisc_tr_handle):ISC_STATUS; cdecl; external;
 
-  function isc_receive(_para1:PISC_STATUS; _para2:Pisc_req_handle; _para3:smallint; _para4:smallint; _para5:pointer; 
+  function isc_receive(_para1:PISC_STATUS; _para2:Pisc_req_handle; _para3:smallint; _para4:smallint; _para5:pointer;
              _para6:smallint):ISC_STATUS; cdecl; external;
 
   function isc_reconnect_transaction(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:smallint; _para5:Pchar):ISC_STATUS; cdecl; external;
 
   function isc_release_request(_para1:PISC_STATUS; _para2:Pisc_req_handle):ISC_STATUS; cdecl; external;
 
-  function isc_request_info(_para1:PISC_STATUS; _para2:Pisc_req_handle; _para3:smallint; _para4:smallint; _para5:Pchar; 
+  function isc_request_info(_para1:PISC_STATUS; _para2:Pisc_req_handle; _para3:smallint; _para4:smallint; _para5:Pchar;
              _para6:smallint; _para7:Pchar):ISC_STATUS; cdecl; external;
 
   function isc_seek_blob(_para1:PISC_STATUS; _para2:Pisc_blob_handle; _para3:smallint; _para4:ISC_LONG; _para5:PISC_LONG):ISC_STATUS; cdecl; external;
 
-  function isc_send(_para1:PISC_STATUS; _para2:Pisc_req_handle; _para3:smallint; _para4:smallint; _para5:pointer; 
+  function isc_send(_para1:PISC_STATUS; _para2:Pisc_req_handle; _para3:smallint; _para4:smallint; _para5:pointer;
              _para6:smallint):ISC_STATUS; cdecl; external;
 
-  function isc_start_and_send(_para1:PISC_STATUS; _para2:Pisc_req_handle; _para3:Pisc_tr_handle; _para4:smallint; _para5:smallint; 
+  function isc_start_and_send(_para1:PISC_STATUS; _para2:Pisc_req_handle; _para3:Pisc_tr_handle; _para4:smallint; _para5:smallint;
              _para6:pointer; _para7:smallint):ISC_STATUS; cdecl; external;
 
   function isc_start_request(_para1:PISC_STATUS; _para2:Pisc_req_handle; _para3:Pisc_tr_handle; _para4:smallint):ISC_STATUS; cdecl; external;
@@ -635,35 +635,35 @@ type
 
   function isc_open(_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:Pchar; _para4:PXSQLDA):ISC_STATUS; cdecl; external;
 
-  function isc_prepare(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:Pchar; _para5:Psmallint; 
+  function isc_prepare(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:Pchar; _para5:Psmallint;
              _para6:Pchar; _para7:PXSQLDA):ISC_STATUS; cdecl; external;
 
   {                                    }
   { Other Dynamic sql functions        }
   {                                    }
-  function isc_dsql_execute_m(_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:Pisc_stmt_handle; _para4:word; _para5:Pchar; 
+  function isc_dsql_execute_m(_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:Pisc_stmt_handle; _para4:word; _para5:Pchar;
              _para6:word; _para7:word; _para8:Pchar):ISC_STATUS; cdecl; external;
 
-  function isc_dsql_execute2_m(_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:Pisc_stmt_handle; _para4:word; _para5:Pchar; 
-             _para6:word; _para7:word; _para8:Pchar; _para9:word; _para10:Pchar; 
+  function isc_dsql_execute2_m(_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:Pisc_stmt_handle; _para4:word; _para5:Pchar;
+             _para6:word; _para7:word; _para8:Pchar; _para9:word; _para10:Pchar;
              _para11:word; _para12:word; _para13:Pchar):ISC_STATUS; cdecl; external;
 
-  function isc_dsql_execute_immediate_m(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:word; _para5:Pchar; 
-             _para6:word; _para7:word; _para8:Pchar; _para9:word; _para10:word; 
+  function isc_dsql_execute_immediate_m(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:word; _para5:Pchar;
+             _para6:word; _para7:word; _para8:Pchar; _para9:word; _para10:word;
              _para11:Pchar):ISC_STATUS; cdecl; external;
 
-  function isc_dsql_exec_immed3_m(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:word; _para5:Pchar; 
-             _para6:word; _para7:word; _para8:Pchar; _para9:word; _para10:word; 
-             _para11:Pchar; _para12:word; _para13:Pchar; _para14:word; _para15:word; 
+  function isc_dsql_exec_immed3_m(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:word; _para5:Pchar;
+             _para6:word; _para7:word; _para8:Pchar; _para9:word; _para10:word;
+             _para11:Pchar; _para12:word; _para13:Pchar; _para14:word; _para15:word;
              _para16:Pchar):ISC_STATUS; cdecl; external;
 
-  function isc_dsql_fetch_m(_para1:PISC_STATUS; _para2:Pisc_stmt_handle; _para3:word; _para4:Pchar; _para5:word; 
+  function isc_dsql_fetch_m(_para1:PISC_STATUS; _para2:Pisc_stmt_handle; _para3:word; _para4:Pchar; _para5:word;
              _para6:word; _para7:Pchar):ISC_STATUS; cdecl; external;
 
-  function isc_dsql_insert_m(_para1:PISC_STATUS; _para2:Pisc_stmt_handle; _para3:word; _para4:Pchar; _para5:word; 
+  function isc_dsql_insert_m(_para1:PISC_STATUS; _para2:Pisc_stmt_handle; _para3:word; _para4:Pchar; _para5:word;
              _para6:word; _para7:Pchar):ISC_STATUS; cdecl; external;
 
-  function isc_dsql_prepare_m(_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:Pisc_stmt_handle; _para4:word; _para5:Pchar; 
+  function isc_dsql_prepare_m(_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:Pisc_stmt_handle; _para4:word; _para5:Pchar;
              _para6:word; _para7:word; _para8:Pchar; _para9:word; _para10:Pchar):ISC_STATUS; cdecl; external;
 
   function isc_dsql_release(_para1:PISC_STATUS; _para2:Pchar):ISC_STATUS; cdecl; external;
@@ -678,22 +678,22 @@ type
 
   function isc_embed_dsql_execute(_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:Pchar; _para4:word; _para5:PXSQLDA):ISC_STATUS; cdecl; external;
 
-  function isc_embed_dsql_execute2(_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:Pchar; _para4:word; _para5:PXSQLDA; 
+  function isc_embed_dsql_execute2(_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:Pchar; _para4:word; _para5:PXSQLDA;
              _para6:PXSQLDA):ISC_STATUS; cdecl; external;
 
-  function isc_embed_dsql_execute_immed(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:word; _para5:Pchar; 
+  function isc_embed_dsql_execute_immed(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:word; _para5:Pchar;
              _para6:word; _para7:PXSQLDA):ISC_STATUS; cdecl; external;
 
   function isc_embed_dsql_fetch(_para1:PISC_STATUS; _para2:Pchar; _para3:word; _para4:PXSQLDA):ISC_STATUS; cdecl; external;
 
   function isc_embed_dsql_open(_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:Pchar; _para4:word; _para5:PXSQLDA):ISC_STATUS; cdecl; external;
 
-  function isc_embed_dsql_open2(_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:Pchar; _para4:word; _para5:PXSQLDA; 
+  function isc_embed_dsql_open2(_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:Pchar; _para4:word; _para5:PXSQLDA;
              _para6:PXSQLDA):ISC_STATUS; cdecl; external;
 
   function isc_embed_dsql_insert(_para1:PISC_STATUS; _para2:Pchar; _para3:word; _para4:PXSQLDA):ISC_STATUS; cdecl; external;
 
-  function isc_embed_dsql_prepare(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:Pchar; _para5:word; 
+  function isc_embed_dsql_prepare(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:Pchar; _para5:word;
              _para6:Pchar; _para7:word; _para8:PXSQLDA):ISC_STATUS; cdecl; external;
 
   function isc_embed_dsql_release(_para1:PISC_STATUS; _para2:Pchar):ISC_STATUS; cdecl; external;
@@ -747,21 +747,22 @@ type
   {                                        }
   { Service manager functions              }
   {                                        }
-  {!!MVC
-  #define ADD_SPB_LENGTH(p, length)	{ (p)++ = (length); \
-      					  (p)++ = (length) >> 8;}
-  
-  #define ADD_SPB_NUMERIC(p, data)	{ (p)++ = (data); \
-      					  (p)++ = (data) >> 8; \
-  					  (p)++ = (data) >> 16; \
-  					  (p)++ = (data) >> 24;}
-  !!MVC }
-  function isc_service_attach(_para1:PISC_STATUS; _para2:word; _para3:Pchar; _para4:Pisc_svc_handle; _para5:word; 
+  (*!!MVC
+  #define ADD_SPB_LENGTH(p, length)     { (p)++ = (length); \
+                                          (p)++ = (length) >> 8;}
+
+  #define ADD_SPB_NUMERIC(p, data)      { (p)++ = (data); \
+                                          (p)++ = (data) >> 8; \
+                                          (p)++ = (data) >> 16; \
+                                          (p)++ = (data) >> 24;}
+  !!MVC *)
+
+  function isc_service_attach(_para1:PISC_STATUS; _para2:word; _para3:Pchar; _para4:Pisc_svc_handle; _para5:word;
              _para6:Pchar):ISC_STATUS; cdecl; external;
 
   function isc_service_detach(_para1:PISC_STATUS; _para2:Pisc_svc_handle):ISC_STATUS; cdecl; external;
 
-  function isc_service_query(_para1:PISC_STATUS; _para2:Pisc_svc_handle; _para3:Pisc_resv_handle; _para4:word; _para5:Pchar; 
+  function isc_service_query(_para1:PISC_STATUS; _para2:Pisc_svc_handle; _para3:Pisc_resv_handle; _para4:word; _para5:Pchar;
              _para6:word; _para7:Pchar; _para8:word; _para9:Pchar):ISC_STATUS; cdecl; external;
 
   function isc_service_start(_para1:PISC_STATUS; _para2:Pisc_svc_handle; _para3:Pisc_resv_handle; _para4:word; _para5:Pchar):ISC_STATUS; cdecl; external;
@@ -775,16 +776,16 @@ type
 
   function isc_compile_sub_map(_para1:PISC_STATUS; _para2:Pisc_win_handle; _para3:Pisc_req_handle; _para4:Psmallint; _para5:Pchar):ISC_STATUS; cdecl; external;
 
-  function isc_create_window(_para1:PISC_STATUS; _para2:Pisc_win_handle; _para3:Psmallint; _para4:Pchar; _para5:Psmallint; 
+  function isc_create_window(_para1:PISC_STATUS; _para2:Pisc_win_handle; _para3:Psmallint; _para4:Pchar; _para5:Psmallint;
              _para6:Psmallint):ISC_STATUS; cdecl; external;
 
   function isc_delete_window(_para1:PISC_STATUS; _para2:Pisc_win_handle):ISC_STATUS; cdecl; external;
 
-  function isc_drive_form(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:Pisc_win_handle; _para5:Pisc_req_handle; 
+  function isc_drive_form(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:Pisc_win_handle; _para5:Pisc_req_handle;
              _para6:Pbyte; _para7:Pbyte):ISC_STATUS; cdecl; external;
 
-  function isc_drive_menu(_para1:PISC_STATUS; _para2:Pisc_win_handle; _para3:Pisc_req_handle; _para4:Psmallint; _para5:Pchar; 
-             _para6:Psmallint; _para7:Pchar; _para8:Psmallint; _para9:Psmallint; _para10:Pchar; 
+  function isc_drive_menu(_para1:PISC_STATUS; _para2:Pisc_win_handle; _para3:Pisc_req_handle; _para4:Psmallint; _para5:Pchar;
+             _para6:Psmallint; _para7:Pchar; _para8:Psmallint; _para9:Psmallint; _para10:Pchar;
              _para11:PISC_LONG):ISC_STATUS; cdecl; external;
 
   function isc_form_delete(_para1:PISC_STATUS; _para2:Pisc_form_handle):ISC_STATUS; cdecl; external;
@@ -793,14 +794,14 @@ type
 
   function isc_form_insert(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:Pisc_req_handle; _para5:Pbyte):ISC_STATUS; cdecl; external;
 
-  function isc_get_entree(_para1:PISC_STATUS; _para2:Pisc_req_handle; _para3:Psmallint; _para4:Pchar; _para5:PISC_LONG; 
+  function isc_get_entree(_para1:PISC_STATUS; _para2:Pisc_req_handle; _para3:Psmallint; _para4:Pchar; _para5:PISC_LONG;
              _para6:Psmallint):ISC_STATUS; cdecl; external;
 
   function isc_initialize_menu(_para1:PISC_STATUS; _para2:Pisc_req_handle):ISC_STATUS; cdecl; external;
 
   function isc_menu(_para1:PISC_STATUS; _para2:Pisc_win_handle; _para3:Pisc_req_handle; _para4:Psmallint; _para5:Pchar):ISC_STATUS; cdecl; external;
 
-  function isc_load_form(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:Pisc_form_handle; _para5:Psmallint; 
+  function isc_load_form(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:Pisc_form_handle; _para5:Psmallint;
              _para6:Pchar):ISC_STATUS; cdecl; external;
 
   function isc_pop_window(_para1:PISC_STATUS; _para2:Pisc_win_handle):ISC_STATUS; cdecl; external;
@@ -1562,8 +1563,8 @@ type
   { Transaction information items  }
   {                                }
      isc_info_tra_id = 4;
-  {                            
-     Service action items       
+  {
+     Service action items
                                 }
   { Starts database backup process on the server  }
      isc_action_svc_backup = 1;
@@ -1589,8 +1590,8 @@ type
      isc_action_svc_db_stats = 11;
   { Retrieves the InterBase log file from the server  }
      isc_action_svc_get_ib_log = 12;
-  {                            
-     Service information items  
+  {
+     Service information items
                                 }
   { Retrieves the number of attachments and databases  }
      isc_info_svc_svr_db_info = 50;
@@ -1630,8 +1631,8 @@ type
      isc_info_svc_running = 67;
   { Returns the user information from isc_action_svc_display_users  }
      isc_info_svc_get_users = 68;
-  {                                                     
-     Parameters for isc_action_(add|delete|modify)_user  
+  {
+     Parameters for isc_action_(add|delete|modify)_user
    }
      isc_spb_sec_userid = 5;
      isc_spb_sec_groupid = 6;
@@ -1641,15 +1642,15 @@ type
      isc_spb_sec_firstname = 10;
      isc_spb_sec_middlename = 11;
      isc_spb_sec_lastname = 12;
-  {                                                      
-     Parameters for isc_action_svc_(add|remove)_license,  
-     isc_info_svc_get_license                             
+  {
+     Parameters for isc_action_svc_(add|remove)_license,
+     isc_info_svc_get_license
                                                           }
      isc_spb_lic_key = 5;
      isc_spb_lic_id = 6;
      isc_spb_lic_desc = 7;
-  {                                        
-     Parameters for isc_action_svc_backup   
+  {
+     Parameters for isc_action_svc_backup
                                             }
      isc_spb_bkp_file = 5;
      isc_spb_bkp_factor = 6;
@@ -1662,8 +1663,8 @@ type
      isc_spb_bkp_non_transportable = $20;
      isc_spb_bkp_convert = $40;
      isc_spb_bkp_expand = $80;
-  {                                           
-     Parameters for isc_action_svc_properties  
+  {
+     Parameters for isc_action_svc_properties
                                                }
      isc_spb_prp_page_buffers = 5;
      isc_spb_prp_sweep_interval = 6;
@@ -1676,23 +1677,23 @@ type
      isc_spb_prp_set_sql_dialect = 14;
      isc_spb_prp_activate = $0100;
      isc_spb_prp_db_online = $0200;
-  {                                           
-     Parameters for isc_spb_prp_reserve_space  
+  {
+     Parameters for isc_spb_prp_reserve_space
                                                }
      isc_spb_prp_res_use_full = 35;
      isc_spb_prp_res = 36;
-  {                                         
-     Parameters for isc_spb_prp_write_mode   
+  {
+     Parameters for isc_spb_prp_write_mode
                                              }
      isc_spb_prp_wm_async = 37;
      isc_spb_prp_wm_sync = 38;
-  {                                         
-     Parameters for isc_spb_prp_access_mode  
+  {
+     Parameters for isc_spb_prp_access_mode
                                              }
      isc_spb_prp_am_readonly = 39;
      isc_spb_prp_am_readwrite = 40;
-  {                                        
-     Parameters for isc_action_svc_repair   
+  {
+     Parameters for isc_action_svc_repair
                                             }
      isc_spb_rpr_commit_trans = 15;
      isc_spb_rpr_rollback_trans = 34;
@@ -1720,8 +1721,8 @@ type
      isc_spb_rpr_ignore_checksum = $20;
      isc_spb_rpr_kill_shadows = $40;
      isc_spb_rpr_full = $80;
-  {                                        
-     Parameters for isc_action_svc_restore  
+  {       
+     Parameters for isc_action_svc_restore
                                             }
      isc_spb_res_buffers = 9;
      isc_spb_res_page_size = 10;
@@ -1734,18 +1735,18 @@ type
      isc_spb_res_replace = $1000;
      isc_spb_res_create = $2000;
      isc_spb_res_use_all_space = $4000;
-  {                                         
-     Parameters for isc_spb_res_access_mode   
+  {
+     Parameters for isc_spb_res_access_mode
                                              }
      isc_spb_res_am_readonly = isc_spb_prp_am_readonly;
      isc_spb_res_am_readwrite = isc_spb_prp_am_readwrite;
-  {                                          
-     Parameters for isc_info_svc_svr_db_info  
+  {
+     Parameters for isc_info_svc_svr_db_info
                                               }
      isc_spb_num_att = 5;
      isc_spb_num_db = 6;
-  {                                        
-     Parameters for isc_info_svc_db_stats   
+  {
+     Parameters for isc_info_svc_db_stats
                                             }
      isc_spb_sts_data_pages = $01;
      isc_spb_sts_db_log = $02;
