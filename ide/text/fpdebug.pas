@@ -3061,7 +3061,7 @@ begin
     begin
      cm:=ConfirmBox(#3'Sorry, can not debug'#13#3'programs compiled for'
        +TargetSwitches^.GetCurrSelParam+'.'#13#3
-       +'Change target to'
+       +'Change target to '
        +source_os.shortname+'?',nil,true);
      if cm=cmCancel then
        Exit;
@@ -3217,7 +3217,10 @@ end.
 
 {
   $Log$
-  Revision 1.52  2000-02-07 11:50:30  pierre
+  Revision 1.53  2000-02-07 12:51:32  pierre
+   * typo fix
+
+  Revision 1.52  2000/02/07 11:50:30  pierre
    Gabor changes for TP
 
   Revision 1.51  2000/02/06 23:43:57  pierre
