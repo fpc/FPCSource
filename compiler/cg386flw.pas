@@ -605,8 +605,8 @@ do_jmp:
          { default handling }
          if assigned(p^.t1) then
            begin
-           // FPC_CATCHES must be called with 
-           // 'default handler' flag (=-1)
+{           // FPC_CATCHES must be called with
+           // 'default handler' flag (=-1)}
            push_int (-1);
            emitcall('FPC_CATCHES',true);
            secondpass(p^.t1);
@@ -736,7 +736,10 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.9  1998-07-31 11:36:34  michael
+  Revision 1.10  1998-08-04 16:26:26  jonas
+  * converted // comment to {} comment
+
+  Revision 1.9  1998/07/31 11:36:34  michael
   Default exception handler also needs to call FPC_CATCHES
 
   Revision 1.8  1998/07/30 13:30:32  florian
