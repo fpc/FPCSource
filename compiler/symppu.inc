@@ -192,6 +192,28 @@
         current_ppu^.do_crc:=true;
       end;
 
+    procedure writeusedmacros;
+      var
+        hp    : pmacrosym;
+        i     : longint;
+      begin
+      { second write the used source files }
+        current_ppu^.do_crc:=false;
+        for i:=1 to macros^.symindex^.count do
+         begin
+           hp:=pmacrosym(macros^.symindex^.search(i));
+         { only used or init defined macros are stored }
+           if hp^.is_used or hp^.defined_at_startup then
+             begin
+               current_ppu^.putstring(hp^._name^);
+               current_ppu^.putbyte(byte(hp^.defined_at_startup));
+               current_ppu^.putbyte(byte(hp^.is_used));
+             end;
+         end;
+        current_ppu^.writeentry(ibusedmacros);
+        current_ppu^.do_crc:=true;
+      end;
+
 
     procedure writeusedunit;
       var
@@ -470,6 +492,38 @@
 {$endif}
 
 
+    procedure readusedmacros;
+      var
+        hs : string;
+        mac : pmacrosym;
+        was_defined_at_startup,
+        was_used : boolean;
+      begin
+        while not current_ppu^.endofentry do
+         begin
+           hs:=current_ppu^.getstring;
+           was_defined_at_startup:=boolean(current_ppu^.getbyte);
+           was_used:=boolean(current_ppu^.getbyte);
+           mac:=pmacrosym(macros^.search(hs));
+           if assigned(mac)
+{$ifndef EXTDEBUG}
+           { if we don't have the sources why tell }
+             and current_module^.sources_avail
+{$endif ndef EXTDEBUG}
+             then
+             begin
+               if not was_defined_at_startup and was_used and
+                 mac^.defined_at_startup then
+                 Comment(V_Note,'Conditionnal '+hs+' was not set at startup '+
+                 'in last compilation of '+current_module^.mainsource^);
+             end
+           else { not assigned }
+             if was_defined_at_startup and was_used then
+               Comment(V_Note,'Conditionnal '+hs+' was set at startup '+
+               'in last compilation of '+current_module^.mainsource^);
+         end;
+      end;
+      
     procedure readsourcefiles;
       var
         temp,hs       : string;
@@ -609,6 +663,8 @@
                end;
              ibsourcefiles :
                readsourcefiles;
+             ibusedmacros :
+               readusedmacros;
              ibloadunit :
                readloadunit;
              iblinkunitofiles :
@@ -633,7 +689,10 @@
 
 {
   $Log$
-  Revision 1.47  1999-08-27 10:54:45  pierre
+  Revision 1.48  1999-08-31 15:47:56  pierre
+   + startup conditionnals stored in PPU file for debug info
+
+  Revision 1.47  1999/08/27 10:54:45  pierre
     * some code adapted to CRC_only computation
     + main file is search in unitspathlist
       and triggers do_compile flag
@@ -836,4 +895,3 @@
     * symtable adapted for $ifdef NEWPPU
 
 }
-

@@ -80,6 +80,7 @@ const
   ibdefref               = 13;
   ibendsymtablebrowser   = 14;
   ibbeginsymtablebrowser = 15;
+  ibusedmacros           = 16;
   {syms}
   ibtypesym       = 20;
   ibprocsym       = 21;
@@ -985,7 +986,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.41  1999-08-30 16:21:40  pierre
+  Revision 1.42  1999-08-31 15:47:56  pierre
+   + startup conditionnals stored in PPU file for debug info
+
+  Revision 1.41  1999/08/30 16:21:40  pierre
    * tempclosing of ppufiles under dos was wrong
 
   Revision 1.40  1999/08/27 10:48:40  pierre
