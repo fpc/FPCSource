@@ -84,7 +84,7 @@ begin
   movl %edx,4(%ebx)
  end;
  sys_lseek:=longint(returnvalue64);
- {$else}		// powerpc
+ {$else}		// cpupowerpc
   sys_lseek:=fplseek(f,off,whence);
  {$endif}
 end;
@@ -354,7 +354,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  2003-05-30 19:58:40  marco
+  Revision 1.6  2003-08-21 22:22:11  olle
+    - removed parameter from fpc_iocheck
+
+  Revision 1.5  2003/05/30 19:58:40  marco
    * Getting NetBSD/i386 to compile.
 
   Revision 1.3  2003/01/21 15:39:45  marco

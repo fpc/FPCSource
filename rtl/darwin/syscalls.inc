@@ -29,7 +29,7 @@ Procedure Do_SysCall( callnr:longint;var regs : SysCallregs );assembler;
   This function puts the registers in place, does the call, and then
   copies back the registers as they are after the SysCall.
 }
-{$ifdef powerpc}
+{$ifdef cpupowerpc}
 {$define fpc_syscall_ok}
 asm
 { load the registers... }
@@ -52,7 +52,7 @@ asm
   stw    r6, 16(r8)
   stw    r7, 20(r8)
 end;
-{$endif powerpc}
+{$endif cpupowerpc}
 {$ifndef fpc_syscall_ok}
 {$error Cannot decide which processor you have!}
 asm
@@ -462,7 +462,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2002-09-08 15:29:23  jonas
+  Revision 1.4  2003-08-21 22:25:17  olle
+    - removed parameter from fpc_iocheck
+
+  Revision 1.3  2002/09/08 15:29:23  jonas
     + added sys_readdir code from OpenBSD in fixes branch
 
   Revision 1.2  2002/09/07 16:01:17  peter

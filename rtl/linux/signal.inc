@@ -97,7 +97,7 @@ type
            status: cardinal;
   end;
 
-{$ifdef i386}
+{$ifdef cpui386}
   PSigContextRec = ^SigContextRec;
   SigContextRec = record
     gs, __gsh: word;
@@ -123,27 +123,27 @@ type
     oldmask: cardinal;
     cr2: cardinal;
   end;
-{$endif i386}
+{$endif cpui386}
 
-{$Ifdef m68k}
+{$Ifdef cpum68k}
   PSigContextRec = ^SigContextRec;
   SigContextRec = record
     { dummy for now PM }
   end;
-{$endif m68k}
+{$endif cpum68k}
 
-{$ifdef powerpc}
+{$ifdef cpupowerpc}
   PSigContextRec = ^SigContextRec;
   SigContextRec = record
     { dummy for now PM }
   end;
-{$endif powerpc}
-{$ifdef SPARC}
+{$endif cpupowerpc}
+{$ifdef cpusparc}
   PSigContextRec = ^SigContextRec;
   SigContextRec = record
     { dummy for now PM }
   end;
-{$endif SPARC}
+{$endif cpusparc}
 
 (*
   PSigInfoRec = ^SigInfoRec;
@@ -224,7 +224,10 @@ type
 
 {
   $Log$
-  Revision 1.9  2002-12-24 21:30:20  mazen
+  Revision 1.10  2003-08-21 22:24:52  olle
+    - removed parameter from fpc_iocheck
+
+  Revision 1.9  2002/12/24 21:30:20  mazen
   - some writeln(s) removed in compiler
   + many files added to RTL
   * some errors fixed in RTL

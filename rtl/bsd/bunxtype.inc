@@ -23,10 +23,10 @@
 
 {$i ptypes.inc}
 
-{$ifdef powerpc}
- {$ifdef netbsd}
-   {$define netbsdpowerpc}
-{$endif}
+{$ifdef cpupowerpc}
+  {$ifdef netbsd}
+    {$define netbsdpowerpc}
+  {$endif}
 {$endif}
 
 //      CONST SYS_NMLN=65;
@@ -191,7 +191,10 @@ CONST
 
 {
   $Log$
-  Revision 1.2  2003-06-01 16:35:27  marco
+  Revision 1.3  2003-08-21 22:23:34  olle
+    - removed parameter from fpc_iocheck
+
+  Revision 1.2  2003/06/01 16:35:27  marco
    * Several small fixes to harmonize the *BSD rtls and Linux.
 
   Revision 1.1  2003/01/03 15:45:21  marco

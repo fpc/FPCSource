@@ -60,23 +60,23 @@ type
 { can't put definition in stat.inc because stat.inc is also included in }
 { bunxtype.inc, which is used together with ptypes.inc, which defines   }
 { def_t in another way :(                                               }
-{$ifdef i386}
+{$ifdef cpui386}
   dev_t = word;
-{$else i386}
-{$ifdef m68k}
+{$else cpui386}
+{$ifdef cpum68k}
   dev_t = word;
-{$else m68k}
-{$ifdef powerpc}
+{$else cpum68k}
+{$ifdef cpupowerpc}
   dev_t = cardinal;
-{$else powerpc}
-{$ifdef sparc}
+{$else cpupowerpc}
+{$ifdef cpusparc}
   dev_t = cardinal;
-{$else sparc}
+{$else cpusparc}
 {$error dev_t unknown for this processor}
-{$endif sparc}
-{$endif powerpc}
-{$endif m68k}
-{$endif i386}
+{$endif cpusparc}
+{$endif cpupowerpc}
+{$endif cpum68k}
+{$endif cpui386}
 
 { definition of stat record type }
 {$i stat.inc}
@@ -130,7 +130,10 @@ type
 
 {
   $Log$
-  Revision 1.10  2003-07-08 21:23:24  peter
+  Revision 1.11  2003-08-21 22:24:52  olle
+    - removed parameter from fpc_iocheck
+
+  Revision 1.10  2003/07/08 21:23:24  peter
     * sparc fixes
 
   Revision 1.9  2003/07/08 14:18:40  peter

@@ -119,13 +119,13 @@ asm
         move.l  a0,d0
 end['A0','D0'];
 {$endif m68k}
-{$ifdef powerpc}
+{$ifdef cpupowerpc}
 {$define fpc_getheapstart_ok}
 asm
         lis r3,HEAP@ha
         la r3,HEAP@l(r3)
 end['R3'];
-{$endif powerpc}
+{$endif cpupowerpc}
 {$ifndef fpc_getheapstart_ok}
 asm
 end;
@@ -147,13 +147,13 @@ asm
         move.l   _HEAPSIZE,d0
 end ['D0'];
 {$endif m68k}
-{$ifdef powerpc}
+{$ifdef cpupowerpc}
 {$define fpc_getheapsize_ok}
 asm
         lis r9,HEAPSIZE@ha
         lwz r3,HEAPSIZE@l(r9)
 end ['R0','R9'];
-{$endif powerpc}
+{$endif cpupowerpc}
 {$ifndef fpc_getheapsize_ok}
 asm
 end;
@@ -394,6 +394,7 @@ Begin
    end;
 { reset file Handle }
   FileRec(f).Handle:=UnusedHandle;
+
 { We do the conversion of filemodes here, concentrated on 1 place }
   case (flags and 3) of
    0 : begin
@@ -414,6 +415,7 @@ Begin
   else
    if (flags and $100)=$100 then
     oflags:=oflags or (Open_APPEND);
+
 { empty name is special }
   if p[0]=#0 then
    begin
@@ -802,7 +804,10 @@ End.
 
 {
   $Log$
-  Revision 1.31  2002-10-14 19:39:17  peter
+  Revision 1.32  2003-08-21 22:21:00  olle
+    - removed parameter from fpc_iocheck
+
+  Revision 1.31  2002/10/14 19:39:17  peter
     * threads unit added for thread support
 
   Revision 1.30  2002/10/13 09:20:56  peter

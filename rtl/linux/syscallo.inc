@@ -28,7 +28,7 @@ Procedure Do_SysCall( callnr:longint;var regs : SysCallregs );assembler;
   This function puts the registers in place, does the call, and then
   copies back the registers as they are after the SysCall.
 }
-{$ifdef i386}
+{$ifdef cpui386}
 {$define fpc_syscall_ok}
 asm
 { load the registers... }
@@ -53,8 +53,8 @@ asm
   popl %ebx
   movl %ebx,(%eax)
 end;
-{$endif i386}
-{$ifdef m68k}
+{$endif cpui386}
+{$ifdef cpum68k}
 {$define fpc_syscall_ok}
 asm
 { load the registers... }
@@ -79,8 +79,8 @@ asm
   move.l (sp)+,d1
   move.l d1,(a0)
 end;
-{$endif m68k}
-{$ifdef powerpc}
+{$endif cpum68k}
+{$ifdef cpupowerpc}
 {$define fpc_syscall_ok}
 asm
 { load the registers... }
@@ -104,8 +104,8 @@ Lsyscallo_ok:
   stw    r6, 12(r8)
   stw    r7, 16(r8)
 end;
-{$endif powerpc}
-{$ifdef sparc}
+{$endif cpupowerpc}
+{$ifdef cpusparc}
 {$define fpc_syscall_ok}
 asm
 { we are using the callers register window }
@@ -124,7 +124,7 @@ asm
   st   %o3,[%i1+12]
   st   %o4,[%i1+16]
 end;
-{$endif powerpc}
+{$endif cpupowerpc}
 {$ifndef fpc_syscall_ok}
 {$error Cannot decide which processor you have!}
 asm
@@ -186,7 +186,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  2003-06-17 16:39:58  jonas
+  Revision 1.5  2003-08-21 22:24:52  olle
+    - removed parameter from fpc_iocheck
+
+  Revision 1.4  2003/06/17 16:39:58  jonas
     * fixed old syscall handling for ppc
 
   Revision 1.3  2003/06/04 15:18:14  peter

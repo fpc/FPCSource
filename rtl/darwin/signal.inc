@@ -63,15 +63,15 @@
         @(#)signal.h    8.2 (Berkeley) 1/21/94
     }
 
-{$ifdef powerpc}
+{$ifdef cpupowerpc}
 {$include powerpc/signal.inc}    { sigcontext }
-{$else powerpc}
-{$ifdef i386}
+{$else cpupowerpc}
+{$ifdef cpui386}
 {$include i386/signal.inc}    { sigcontext }
-{$else i386}
+{$else cpui386}
 {$error Unsupported cpu type!}
-{$endif i386}
-{$endif powerpc}
+{$endif cpui386}
+{$endif cpupowerpc}
 
 
   const
@@ -243,7 +243,10 @@
 
 {
   $Log$
-  Revision 1.2  2003-05-25 12:59:57  jonas
+  Revision 1.3  2003-08-21 22:25:17  olle
+    - removed parameter from fpc_iocheck
+
+  Revision 1.2  2003/05/25 12:59:57  jonas
     * several fixes, addition of Mach trap numbers (thye are simply syscalls
       with a negative number)
 

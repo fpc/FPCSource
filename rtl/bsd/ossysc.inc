@@ -107,7 +107,7 @@ begin
 end;
 
 {$ifdef netbsd}
-  {$ifdef powerpc}
+  {$ifdef cpupowerpc}
     {$define netbsdmacppc}
   {$endif}
 {$endif}
@@ -139,7 +139,7 @@ end;
 Function Fpmmap(adr,len,prot,flags,fdes,off:longint):longint;  [public, alias : 'FPC_SYSC_MMAP'];
 
 begin
-  Fpmmap:=do_syscall(syscall_nr_mmap,Adr,Len,Prot,Flags,fdes,{$ifdef powerpc} 0,{$endif}off{$ifdef i386},0{$endif});
+  Fpmmap:=do_syscall(syscall_nr_mmap,Adr,Len,Prot,Flags,fdes,{$ifdef cpupowerpc} 0,{$endif}off{$ifdef i386},0{$endif});
 end;
 
 {$endif}
@@ -597,7 +597,10 @@ end;
 
 {
  $Log$
- Revision 1.4  2003-05-29 21:45:23  marco
+ Revision 1.5  2003-08-21 22:23:34  olle
+   - removed parameter from fpc_iocheck
+
+ Revision 1.4  2003/05/29 21:45:23  marco
   * Some other workaround
 
  Revision 1.3  2003/05/29 20:52:55  marco
