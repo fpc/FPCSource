@@ -305,6 +305,11 @@ cycle:
 	$(MAKE) -C $(UNITDIR)
 	$(MAKE) remake3
 
+ansirtl:
+	$(MAKE) -C $(UNITDIR) clean
+	$(MAKE) -C $(UNITDIR) PP=$(COMPILERDIR)/ppc386 \
+         OPT='-g -dUSeAnsiStrings' all 
+
 #####################################################################
 # Installation
 #####################################################################
@@ -417,7 +422,10 @@ rtlclean :
 # Test of log at the end
 # does CVS add # at start of each line ??
 # $Log$
-# Revision 1.21  1998-07-22 21:33:32  michael
+# Revision 1.22  1998-07-23 18:17:58  michael
+# + Added ansirtl target to make an ansistrings capable rtl
+#
+# Revision 1.21  1998/07/22 21:33:32  michael
 # + COPY and Replace back to mv and cp
 #
 # Revision 1.20  1998/06/24 14:02:58  peter
