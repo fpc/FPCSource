@@ -398,9 +398,10 @@ implementation
             begin
               if (sym^.typ=typesym) then
                begin
-                 if (token=_CLASS) and
+                 if ((token=_CLASS) or
+                     (token=_INTERFACE)) and
                     (assigned(ptypesym(sym)^.restype.def)) and
-                    is_class(ptypesym(sym)^.restype.def) and
+                    is_class_or_interface(ptypesym(sym)^.restype.def) and
                     (oo_is_forward in pobjectdef(ptypesym(sym)^.restype.def)^.objectoptions) then
                   begin
                     { we can ignore the result   }
@@ -545,7 +546,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.26  2001-04-02 21:20:31  peter
+  Revision 1.27  2001-04-04 21:30:43  florian
+    * applied several fixes to get the DD8 Delphi Unit compiled
+     e.g. "forward"-interfaces are working now
+
+  Revision 1.26  2001/04/02 21:20:31  peter
     * resulttype rewrite
 
   Revision 1.25  2001/03/11 22:58:49  peter

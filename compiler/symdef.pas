@@ -4329,8 +4329,8 @@ Const local_symtable_index : longint = $8001;
 
    procedure tobjectdef.check_forwards;
      begin
-        if objecttype in [odt_interfacecom,odt_interfacecorba] then exit; { Kaz: ??? }
-        pstoredsymtable(symtable)^.check_forwards;
+        if not(objecttype in [odt_interfacecom,odt_interfacecorba]) then
+          pstoredsymtable(symtable)^.check_forwards;
         if (oo_is_forward in objectoptions) then
           begin
              { ok, in future, the forward can be resolved }
@@ -5570,7 +5570,11 @@ Const local_symtable_index : longint = $8001;
 end.
 {
   $Log$
-  Revision 1.24  2001-04-02 21:20:34  peter
+  Revision 1.25  2001-04-04 21:30:45  florian
+    * applied several fixes to get the DD8 Delphi Unit compiled
+     e.g. "forward"-interfaces are working now
+
+  Revision 1.24  2001/04/02 21:20:34  peter
     * resulttype rewrite
 
   Revision 1.23  2001/03/22 23:28:39  florian

@@ -769,7 +769,11 @@ implementation
                        if (cs_compilesystem in aktmoduleswitches) and
                           (classtype=odt_interfacecom) and (upper(n)='IUNKNOWN') then
                          interface_iunknown:=aktclass;
-                       aktclass^.objectoptions:=aktclass^.objectoptions+[oo_is_forward];
+                       include(aktclass^.objectoptions,oo_is_forward);
+                       object_dec:=aktclass;
+                       typecanbeforward:=storetypecanbeforward;
+                       readobjecttype:=false;
+                       exit;
                      end;
                 end;
               _CLASS:
@@ -1165,7 +1169,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.18  2001-04-02 21:20:31  peter
+  Revision 1.19  2001-04-04 21:30:43  florian
+    * applied several fixes to get the DD8 Delphi Unit compiled
+     e.g. "forward"-interfaces are working now
+
+  Revision 1.18  2001/04/02 21:20:31  peter
     * resulttype rewrite
 
   Revision 1.17  2001/03/16 14:56:38  marco

@@ -239,7 +239,9 @@ implementation
                 { absolute address ?!? }
                  if token=_INTCONST then
                   begin
-                    if (target_info.target=target_i386_go32v2) then
+                    if (target_info.target=target_i386_go32v2)
+                      or (m_objfpc in aktmodeswitches)
+                      or (m_delphi in aktmodeswitches) then
                      begin
                        storetokenpos:=akttokenpos;
                        akttokenpos:=declarepos;
@@ -249,7 +251,8 @@ implementation
                        s:=pattern;
                        consume(_INTCONST);
                        val(s,abssym^.address,code);
-                       if token=_COLON then
+                       if (token=_COLON) and
+                         (target_info.target=target_i386_go32v2) then
                         begin
                           consume(token);
                           s:=pattern;
@@ -527,7 +530,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  2001-04-02 21:20:33  peter
+  Revision 1.13  2001-04-04 21:30:45  florian
+    * applied several fixes to get the DD8 Delphi Unit compiled
+     e.g. "forward"-interfaces are working now
+
+  Revision 1.12  2001/04/02 21:20:33  peter
     * resulttype rewrite
 
   Revision 1.11  2001/03/11 22:58:50  peter

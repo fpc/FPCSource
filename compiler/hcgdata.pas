@@ -1054,7 +1054,7 @@ implementation
           if (cs_create_smart in aktmoduleswitches) then
             dataSegment.concat(Tai_cut.Create);
           dataSegment.concat(Tai_symbol.Createname_global('IID$_'+s1,0));
-          dataSegment.concat(Tai_const.Create_32bit(c^.iidguid.D1));
+          dataSegment.concat(Tai_const.Create_32bit(longint(c^.iidguid.D1)));
           dataSegment.concat(Tai_const.Create_16bit(c^.iidguid.D2));
           dataSegment.concat(Tai_const.Create_16bit(c^.iidguid.D3));
           for i:=Low(c^.iidguid.D4) to High(c^.iidguid.D4) do
@@ -1070,7 +1070,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.17  2000-12-25 00:07:26  peter
+  Revision 1.18  2001-04-04 21:30:43  florian
+    * applied several fixes to get the DD8 Delphi Unit compiled
+     e.g. "forward"-interfaces are working now
+
+  Revision 1.17  2000/12/25 00:07:26  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 

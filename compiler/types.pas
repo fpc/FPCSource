@@ -1028,7 +1028,7 @@ implementation
                   b:=((porddef(def1)^.typ=porddef(def2)^.typ) and
                    (porddef(def1)^.low=porddef(def2)^.low) and
                    (porddef(def1)^.high=porddef(def2)^.high));
-                uvoid,uchar,
+                uvoid,uchar,uwidechar,
                 bool8bit,bool16bit,bool32bit:
                   b:=(porddef(def1)^.typ=porddef(def2)^.typ);
                 end;
@@ -1733,7 +1733,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.37  2001-04-02 21:20:35  peter
+  Revision 1.38  2001-04-04 21:30:47  florian
+    * applied several fixes to get the DD8 Delphi Unit compiled
+     e.g. "forward"-interfaces are working now
+
+  Revision 1.37  2001/04/02 21:20:35  peter
     * resulttype rewrite
 
   Revision 1.36  2001/03/23 00:16:07  florian

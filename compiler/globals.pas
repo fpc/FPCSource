@@ -1158,7 +1158,7 @@ implementation
            ishexstr(copy(s,2,8)) and ishexstr(copy(s,11,4)) and
            ishexstr(copy(s,16,4)) and ishexstr(copy(s,21,4)) and
            ishexstr(copy(s,26,12)) then begin
-          GUID.D1:=hexstr2longint(copy(s,2,8));
+          GUID.D1:=dword(hexstr2longint(copy(s,2,8)));
           GUID.D2:=hexstr2longint(copy(s,11,4));
           GUID.D3:=hexstr2longint(copy(s,16,4));
           for i:=0 to 1 do
@@ -1341,7 +1341,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.28  2001-02-20 21:41:16  peter
+  Revision 1.29  2001-04-04 21:30:42  florian
+    * applied several fixes to get the DD8 Delphi Unit compiled
+     e.g. "forward"-interfaces are working now
+
+  Revision 1.28  2001/02/20 21:41:16  peter
     * new fixfilename, findfile for unix. Look first for lowercase, then
       NormalCase and last for UPPERCASE names.
 

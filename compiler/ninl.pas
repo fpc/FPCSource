@@ -988,7 +988,7 @@ implementation
                        firstpass(hp);
                        result:=hp;
                     end
-                  { length of char is one allways }
+                  { length of char is one always }
                   else if is_constcharnode(left) then
                     begin
                        hp:=cordconstnode.create(1,s32bittype);
@@ -1764,7 +1764,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.32  2001-04-02 21:20:31  peter
+  Revision 1.33  2001-04-04 21:30:43  florian
+    * applied several fixes to get the DD8 Delphi Unit compiled
+     e.g. "forward"-interfaces are working now
+
+  Revision 1.32  2001/04/02 21:20:31  peter
     * resulttype rewrite
 
   Revision 1.31  2001/03/23 00:16:07  florian
