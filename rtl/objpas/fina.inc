@@ -83,9 +83,108 @@ if (I > 0) and (FileName[I] = '.') then
 else Result := '';
 end;
 
+function ExpandFileName (Const FileName : string): String;
+
+Begin
+{$ifdef linux}
+  Result:=Linux.fexpand(FileName);
+{$else}
+  Result:=Dos.Fexpand(FileName);
+{$endif}
+end;
+
+function ExpandUNCFileName (Const FileName : string): String;
+begin
+  Result:=ExpandFileName (FileName);
+  //!! Here should follow code to replace the drive: part with UNC...
+end;
+
+Const MaxDirs = 129;
+
+function ExtractRelativepath (Const BaseName,DestName : String): String;
+
+Var Source, Dest : String;
+    Sc,Dc,I,J    : Longint;
+    SD,DD        : Array[1..MaxDirs] of PChar;
+
+Const OneLevelBack = '..'+OSDirSeparator;
+
+begin
+  If Upcase(ExtractFileDrive(BaseName))<>Upcase(ExtractFileDrive(DestName)) Then
+    begin
+    Result:=DestName;
+    exit;
+    end;
+  Source:=ExtractFilePath(BaseName);
+  Dest:=ExtractFilePath(DestName);
+  SC:=GetDirs (Source,SD);
+  DC:=GetDirs (Dest,DD);
+  I:=1;
+  While (I<DC) and (I<SC) do
+    begin
+    If StrIcomp(DD[i],SD[i])=0 then 
+      Inc(i)
+    else
+      Break;
+    end;
+  Result:='';
+  For J:=I to SC-1 do Result:=Result+OneLevelBack;
+  For J:=I to DC-1 do Result:=Result+DD[J]+OsDirSeparator;
+  Result:=Result+ExtractFileName(DestNAme);
+end;
+
+Procedure DoDirSeparators (Var FileName : String);
+
+VAr I : longint;
+
+begin
+  For I:=1 to Length(FileName) do
+    If FileName[I] in DirSeparators then 
+      FileName[i]:=OSDirSeparator;
+end;
+
+
+Function SetDirSeparators (Const FileName : string) : String;
+
+begin
+  Result:=FileName;
+  DoDirSeparators (Result);
+end;
+
+{
+  DirName is split in a #0 separated list of directory names,
+  Dirs is an array of pchars, pointing to these directory names.
+  The function returns the number of directories found, or -1
+  if none were found.
+  DirName must contain only OSDirSeparator as Directory separator chars.
+}
+
+Function GetDirs (Var DirName : String; Var Dirs : Array of pchar) : Longint; 
+
+Var I : Longint;
+
+begin
+  I:=1; 
+  Result:=-1;
+  While I<=Length(DirName) do
+    begin
+    If DirName[i]=OsDirSeparator then
+      begin
+      DirName[i]:=#0;
+      Inc(Result);
+      Dirs[Result]:=@DirName[I+1];
+      end;
+    Inc(I);
+    end;
+  If Result>-1 then inc(Result);
+end;
+
 {
   $Log$
-  Revision 1.2  1998-09-16 08:28:38  michael
+  Revision 1.3  1998-10-04 20:19:56  michael
+  + Added missing functions and some extra
+
+  Revision 1.2  1998/09/16 08:28:38  michael
   Update from gertjan Schouten, plus small fix for linux
 
   Revision 1.1  1998/04/10 15:17:46  michael

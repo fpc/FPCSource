@@ -21,15 +21,33 @@
     System Utilities For Free Pascal
 }
 
+Const
+  DirSeparators : set of char = ['/','\'];  
+{$ifdef Linux}
+  OSDirSeparator = '/';
+{$else}
+  OsDirSeparator = '\';
+{$endif}
+
 function ChangeFileExt(const FileName, Extension: string): string;
 function ExtractFilePath(const FileName: string): string;
 function ExtractFileDrive(const FileName: string): string;
 function ExtractFileName(const FileName: string): string;
-function ExtractFileExt(const FileName: string): string; { Returns file extension like '.123' }
+function ExtractFileExt(const FileName: string): string; 
+function ExtractFileDir(Const FileName : string): string;
+function ExpandFileName (Const FileName : string): String;
+function ExpandUNCFileName (Const FileName : string): String;
+function ExtractRelativepath (Const BaseName,DestNAme : String): String;
+Procedure DoDirSeparators (Var FileName : String);
+Function SetDirSeparators (Const FileName : String) : String;
+Function GetDirs (Var DirName : String; Var Dirs : Array of pchar) : Longint; 
 
 {
   $Log$
-  Revision 1.2  1998-09-16 08:28:39  michael
+  Revision 1.3  1998-10-04 20:19:55  michael
+  + Added missing functions and some extra
+
+  Revision 1.2  1998/09/16 08:28:39  michael
   Update from gertjan Schouten, plus small fix for linux
 
   Revision 1.1  1998/04/10 15:17:46  michael
