@@ -1183,9 +1183,9 @@ const
              r2.enum:=R_INTREGISTER;
              r2.number:=NR_R12;
              if usesfpr then
-               list.concat(taicpu.op_reg_reg_const(A_ADDI,r2,r,tppcprocinfo(procinfo).localsize-(ord(R_F31)-ord(firstregfpu.enum)+1)*8))
+               a_op_const_reg_reg(list,OP_ADD,OS_ADDR,tppcprocinfo(procinfo).localsize-(ord(R_F31)-ord(firstregfpu.enum)+1)*8,r,r2)
              else
-               list.concat(taicpu.op_reg_reg_const(A_ADDI,r2,r,tppcprocinfo(procinfo).localsize));
+               a_op_const_reg_reg(list,OP_ADD,OS_ADDR,tppcprocinfo(procinfo).localsize,r,r2);
 
              { restore gprs }
              { at least for now we use LMW }
@@ -2353,7 +2353,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.81  2003-04-24 11:24:00  florian
+  Revision 1.82  2003-04-25 20:55:34  florian
+    * stack frame calculations are now completly done using the code generator
+      routines instead of generating directly assembler so also large stack frames
+      are handle properly
+
+  Revision 1.81  2003/04/24 11:24:00  florian
     * fixed several issues with nested procedures
 
   Revision 1.80  2003/04/23 22:18:01  peter
