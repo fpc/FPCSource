@@ -57,6 +57,7 @@ unit og386;
 
        pobjectoutput = ^tobjectoutput;
        tobjectoutput = object
+         smarthcount : longint;
          objsmart  : boolean;
          writer    : pobjectwriter;
          path      : pathstr;
@@ -155,6 +156,7 @@ unit og386;
       var
         i : longint;
       begin
+        smarthcount:=0;
         objsmart:=smart;
         objfile:=current_module^.objfilename^;
       { Which path will be used ? }
@@ -198,11 +200,14 @@ unit og386;
          s:=current_module^.modulename^;
         case place of
           cut_begin :
-            s:=s+'h';
+            begin
+              inc(smarthcount);
+              s:=s+tostr(smarthcount)+'h';
+            end;
           cut_normal :
-            s:=s+'s';
+            s:=s+tostr(smarthcount)+'s';
           cut_end :
-            s:=s+'t';
+            s:=s+tostr(smarthcount)+'t';
         end;
         ObjFile:=Path+FixFileName(s+tostr(SmartLinkFilesCnt)+target_info.objext)
       end;
@@ -270,7 +275,10 @@ unit og386;
 end.
 {
   $Log$
-  Revision 1.14  1999-11-06 14:34:21  peter
+  Revision 1.15  1999-11-08 10:37:12  peter
+    * filename fixes for win32 imports for units with multiple needed dll's
+
+  Revision 1.14  1999/11/06 14:34:21  peter
     * truncated log to 20 revs
 
   Revision 1.13  1999/11/02 15:06:57  peter

@@ -49,6 +49,7 @@ type
     objfile,
     as_bin   : string;
     SmartAsm : boolean;
+    smarthcount : longint;
     place    : TCutPlace; { special 'end' file for import dir ? }
   {outfile}
     AsmSize,
@@ -255,11 +256,14 @@ begin
    Message(asmw_f_too_many_asm_files);
   case place of
     cut_begin :
-      s:=current_module^.asmprefix^+'h';
+      begin
+        inc(smarthcount);
+        s:=current_module^.asmprefix^+tostr(smarthcount)+'h';
+      end;
     cut_normal :
-      s:=current_module^.asmprefix^+'s';
+      s:=current_module^.asmprefix^+tostr(smarthcount)+'s';
     cut_end :
-      s:=current_module^.asmprefix^+'t';
+      s:=current_module^.asmprefix^+tostr(smarthcount)+'t';
   end;
   AsmFile:=Path+FixFileName(s+tostr(SmartLinkFilesCnt)+target_info.asmext);
   ObjFile:=Path+FixFileName(s+tostr(SmartLinkFilesCnt)+target_info.objext);
@@ -433,6 +437,7 @@ begin
   SmartLinkFilesCnt:=0;
   place:=cut_normal;
   SmartAsm:=smart;
+  SmartHCount:=0;
 { Which path will be used ? }
   if SmartAsm then
    begin
@@ -559,7 +564,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.56  1999-11-06 14:34:17  peter
+  Revision 1.57  1999-11-08 10:37:12  peter
+    * filename fixes for win32 imports for units with multiple needed dll's
+
+  Revision 1.56  1999/11/06 14:34:17  peter
     * truncated log to 20 revs
 
   Revision 1.55  1999/11/02 15:06:57  peter
