@@ -15,9 +15,12 @@
 
  **********************************************************************}
 
+
+{$define FPC_UNIT_HAS_STRPAS}
 function strpas(p : pchar) : string;
 {$i strpas.inc}
 
+{$define FPC_UNIT_HAS_STRPCOPY}
 function strpcopy(d : pchar;const s : string) : pchar;assembler;
 asm
         pushl   %esi            // Save ESI
@@ -35,7 +38,10 @@ end ['EDI','EAX','ECX'];
 
 {
   $Log$
-  Revision 1.7  2002-09-07 16:01:19  peter
+  Revision 1.8  2003-07-07 20:22:05  peter
+    * generic string routines added
+
+  Revision 1.7  2002/09/07 16:01:19  peter
     * old logs removed and tabs fixed
 
 }

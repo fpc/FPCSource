@@ -14,12 +14,12 @@
  **********************************************************************}
 
 {$ifndef FPC_UNIT_HAS_STRLEN}
- function strlen(Str : pchar) : StrLenInt;
+ function strlen(P : pchar) : StrLenInt;
   var
    counter : StrLenInt;
  Begin
    counter := 0;
-   while Str[counter] <> #0 do
+   while P[counter] <> #0 do
      Inc(counter);
    strlen := counter;
  end;
@@ -27,14 +27,14 @@
 
 
 {$ifndef FPC_UNIT_HAS_STREND}
- Function StrEnd(Str: PChar): PChar;
+ Function StrEnd(P: PChar): PChar;
  var
   counter: StrLenInt;
  begin
    counter := 0;
-   while Str[counter] <> #0 do
+   while P[counter] <> #0 do
       Inc(counter);
-   StrEnd := @(Str[Counter]);
+   StrEnd := @(P[Counter]);
  end;
 {$endif FPC_UNIT_HAS_STREND}
 
@@ -58,60 +58,60 @@
 
 
 
-{$ifndef FPC_UNIT_HAS_UPPER}
- function StrUpper(Str: PChar): PChar;
+{$ifndef FPC_UNIT_HAS_STRUPPER}
+ function StrUpper(P: PChar): PChar;
  var
   counter: StrLenInt;
  begin
    counter := 0;
-   while (Str[counter] <> #0) do
+   while (P[counter] <> #0) do
    begin
-     if Str[Counter] in [#97..#122,#128..#255] then
-        Str[counter] := Upcase(Str[counter]);
+     if P[Counter] in [#97..#122,#128..#255] then
+        P[counter] := Upcase(P[counter]);
      Inc(counter);
    end;
-   StrUpper := Str;
+   StrUpper := P;
  end;
-{$endif FPC_UNIT_HAS_UPPER}
+{$endif FPC_UNIT_HAS_STRUPPER}
 
 
-{$ifndef FPC_UNIT_HAS_LOWER}
- function StrLower(Str: PChar): PChar;
+{$ifndef FPC_UNIT_HAS_STRLOWER}
+ function StrLower(P: PChar): PChar;
  var
   counter: StrLenInt;
  begin
    counter := 0;
-   while (Str[counter] <> #0) do
+   while (P[counter] <> #0) do
    begin
-     if Str[counter] in [#65..#90] then
-        Str[Counter] := chr(ord(Str[Counter]) + 32);
+     if P[counter] in [#65..#90] then
+        P[Counter] := chr(ord(P[Counter]) + 32);
      Inc(counter);
    end;
-   StrLower := Str;
+   StrLower := P;
  end;
-{$endif FPC_UNIT_HAS_LOWER}
+{$endif FPC_UNIT_HAS_STRLOWER}
 
 
 
 {$ifndef FPC_UNIT_HAS_STRSCAN}
- function StrScan(Str: PChar; Ch: Char): PChar;
+ function StrScan(P: PChar; C: Char): PChar;
    Var
      count: StrLenInt;
   Begin
 
    count := 0;
    { As in Borland Pascal , if looking for NULL return null }
-   if ch = #0 then
+   if C = #0 then
    begin
-     StrScan := @(Str[StrLen(Str)]);
+     StrScan := @(P[StrLen(P)]);
      exit;
    end;
    { Find first matching character of Ch in Str }
-   while Str[count] <> #0 do
+   while P[count] <> #0 do
    begin
-     if Ch = Str[count] then
+     if C = P[count] then
       begin
-          StrScan := @(Str[count]);
+          StrScan := @(P[count]);
           exit;
       end;
      Inc(count);
@@ -124,24 +124,24 @@
 
 
 {$ifndef FPC_UNIT_HAS_STRRSCAN}
- function StrRScan(Str: PChar; Ch: Char): PChar;
+ function StrRScan(P: PChar; C: Char): PChar;
  Var
   count: StrLenInt;
   index: StrLenInt;
  Begin
-   count := Strlen(Str);
+   count := Strlen(P);
    { As in Borland Pascal , if looking for NULL return null }
-   if ch = #0 then
+   if C = #0 then
    begin
-     StrRScan := @(Str[count]);
+     StrRScan := @(P[count]);
      exit;
    end;
    Dec(count);
    for index := count downto 0 do
    begin
-     if Ch = Str[index] then
+     if C = P[index] then
       begin
-          StrRScan := @(Str[index]);
+          StrRScan := @(P[index]);
           exit;
       end;
    end;
@@ -197,7 +197,7 @@
 
 
 {$ifndef FPC_UNIT_HAS_STRCOMP}
- function StrComp(Str1, Str2 : PChar): Integer;
+ function StrComp(Str1, Str2 : PChar): StrLenInt;
      var
       counter: StrLenInt;
      Begin
@@ -214,7 +214,7 @@
 
 
 {$ifndef FPC_UNIT_HAS_STRICOMP}
-     function StrIComp(Str1, Str2 : PChar): Integer;
+     function StrIComp(Str1, Str2 : PChar): StrLenInt;
      var
       counter: StrLenInt;
       c1, c2: char;
@@ -235,53 +235,56 @@
 
 
 {$ifndef FPC_UNIT_HAS_STRLCOMP}
-     function StrLComp(Str1, Str2 : PChar; MaxLen: StrLenInt): Integer;
+     function StrLComp(Str1, Str2 : PChar; L: StrLenInt): StrLenInt;
      var
       counter: StrLenInt;
       c1, c2: char;
      Begin
         counter := 0;
-       if MaxLen = 0 then
+       if L = 0 then
        begin
          StrLComp := 0;
          exit;
        end;
        Repeat
-         if (c1 = #0) or (c2 = #0) then break;
          c1 := str1[counter];
          c2 := str2[counter];
+         if (c1 = #0) or (c2 = #0) then break;
          Inc(counter);
-      Until (c1 <> c2) or (counter >= MaxLen);
+      Until (c1 <> c2) or (counter >= L);
        StrLComp := ord(c1) - ord(c2);
      end;
 {$endif FPC_UNIT_HAS_STRLCOMP}
 
 
 {$ifndef FPC_UNIT_HAS_STRLICOMP}
-     function StrLIComp(Str1, Str2 : PChar; MaxLen: StrLenInt): Integer;
+     function StrLIComp(Str1, Str2 : PChar; L: StrLenInt): StrLenInt;
      var
       counter: StrLenInt;
       c1, c2: char;
      Begin
         counter := 0;
-       if MaxLen = 0 then
+       if L = 0 then
        begin
          StrLIComp := 0;
          exit;
        end;
        Repeat
-         if (c1 = #0) or (c2 = #0) then break;
          c1 := upcase(str1[counter]);
          c2 := upcase(str2[counter]);
+         if (c1 = #0) or (c2 = #0) then break;
          Inc(counter);
-      Until (c1 <> c2) or (counter >= MaxLen);
+      Until (c1 <> c2) or (counter >= L);
        StrLIComp := ord(c1) - ord(c2);
      end;
 {$endif FPC_UNIT_HAS_STRLICOMP}
 
 {
   $Log$
-  Revision 1.1  2003-04-30 16:36:39  florian
+  Revision 1.2  2003-07-07 20:22:05  peter
+    * generic string routines added
+
+  Revision 1.1  2003/04/30 16:36:39  florian
     + support for generic pchar routines added
     + some basic rtl stuff for x86-64 added
 }

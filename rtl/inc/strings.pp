@@ -99,6 +99,10 @@ implementation
 { Read processor denpendent part, NOT shared with sysutils unit }
 {$i stringss.inc }
 
+{ Read generic string functions that are not implemented for the processor }
+{$i genstr.inc}
+{$i genstrs.inc}
+
 { Functions not in assembler, but shared with sysutils unit  }
 {$i stringsi.inc}
 
@@ -140,7 +144,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2002-09-07 15:07:46  peter
+  Revision 1.5  2003-07-07 20:22:05  peter
+    * generic string routines added
+
+  Revision 1.4  2002/09/07 15:07:46  peter
     * old logs removed and tabs fixed
 
 }
