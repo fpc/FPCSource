@@ -227,7 +227,8 @@ asm
            lis    r3,longint_to_real_helper@ha
            lfd    f1,longint_to_real_helper@l(r3)
            {$else}
-           lfd    f1,longint_to_real_helper(r2)
+           lwz    r3,longint_to_real_helper[TC](r2)
+           lfd    f1,0(r3)
            {$endif}
            lfd    f0,temp
            stw    r4,4+temp
@@ -239,9 +240,11 @@ asm
            lfd    f3,temp
            lfd    f2,int_to_real_factor@l(r3)
            {$else}
-           lfd    f1,cardinal_to_real_helper(r2)
+           lwz    r4,cardinal_to_real_helper[TC](r2)
+           lwz    r3,int_to_real_factor[TC](r2)
            lfd    f3,temp
-           lfd    f2,int_to_real_factor(r2)
+           lfd    f1,0(r4)
+           lfd    f2,0(r3)
            {$endif}
            fsub   f3,f3,f1
            fmadd  f1,f0,f2,f3
@@ -267,7 +270,8 @@ asm
            lis    r3,cardinal_to_real_helper@ha
            lfd    f1,cardinal_to_real_helper@l(r3)
            {$else}
-           lfd    f1,cardinal_to_real_helper(r2)
+           lwz    r3,longint_to_real_helper[TC](r2)
+           lfd    f1,0(r3)
            {$endif}
            stw    r4,4+temp
            fsub   f0,f0,f1
@@ -276,7 +280,8 @@ asm
            lis    r3,int_to_real_factor@ha
            lfd    f2,int_to_real_factor@l(r3)
            {$else}
-           lfd    f2,int_to_real_factor(r2)
+           lwz    r3,int_to_real_factor[TC](r2)
+           lfd    f2,0(r3)
            {$endif}
            fsub   f3,f3,f1
            fmadd  f1,f0,f2,f3
@@ -285,7 +290,10 @@ end ['R0','R3','F0','F1','F2','F3'];
 
 {
   $Log$
-  Revision 1.15  2003-01-15 01:09:04  florian
+  Revision 1.16  2003-01-16 11:29:11  olle
+    * changed access of globals to be indirect via TOC
+
+  Revision 1.15  2003/01/15 01:09:04  florian
     * changed power(...) prototype to int64
 
   Revision 1.14  2002/11/28 11:04:16  olle
