@@ -600,7 +600,6 @@ Begin
                               Then
                    {we have "mov %reg1, %reg2; test/or %reg2, %reg2"}
                                 Begin
-                                (*
                                   If GetNextInstruction(hp1, hp2) And
                                      (Pai(hp2)^.typ = ait_labeled_instruction) And
                                      (TRegister(Pai386(p)^.op2) <> R_ESI)
@@ -616,7 +615,6 @@ Begin
                                         continue
                                       End
                                     Else
-                                  *)
                    {change "mov %reg1, %reg2; test/or %reg2, %reg2" to
                     "mov %reg1, %reg2; test/or %reg1, %reg1"}
                                       Begin
@@ -1329,7 +1327,9 @@ Begin
                                     Pai386(p)^.size := S_B;
                                     Pai386(p)^.op2 :=
                                       Pointer(Reg32ToReg8(TRegister(Pai386(p)^.op2)));
+                                    { Jonas
                                     InsertLLItem(AsmL,p, p^.next, hp2);
+                                      I think you forgot to delete this line PM }
                                   End;
                             End;
                         End
@@ -1365,8 +1365,10 @@ End.
 
 {
  $Log$
- Revision 1.8  1998-08-25 14:23:17  florian
-   * patch of Jonas applied
+ Revision 1.9  1998-08-25 16:58:59  pierre
+   * removed a line that add no sense and
+     introduce garbage in the asmlist
+     (uninitialized data !)
 
  Revision 1.7  1998/08/19 16:07:53  jonas
    * changed optimizer switches + cleanup of DestroyRefs in daopt386.pas
