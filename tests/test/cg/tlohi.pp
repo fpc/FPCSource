@@ -53,7 +53,7 @@ begin
   i := int64(w);
   if lo(w) <> (cardinal(w)) then
     error('lo qword');
-  if lo(i) <> (longint(w)) then
+  if longint(lo(i)) <> (longint(w)) then
     error('lo int64');
 
   if hi(w) <> (w shr 32) then

@@ -135,7 +135,7 @@ begin
  i := 0;
  j := $55555555;
  i := i xor j xor $AAAAAAAA;
- if i <> $FFFFFFFF then
+ if i <> longint($FFFFFFFF) then
    result := false;
  if not result then
   Fail
@@ -164,8 +164,8 @@ Begin
 
  i := 0;
  j := $55555555;
- i := i or j or $AAAAAAAA;
- if i <> $FFFFFFFF then
+ i := i or j or longint($AAAAAAAA);
+ if i <> longint($FFFFFFFF) then
    result := false;
  if not result then
   Fail
@@ -193,19 +193,19 @@ Begin
  if i <> 0 then
    result := false;
 
- i := $FFFFFFFF;
+ i := longint($FFFFFFFF);
  j := $55555555;
  i := i and j;
  if i <> $55555555 then
    result := false;
- i := $FFFFFFFF;
- i := i and $AAAAAAAA;
- if i <> $AAAAAAAA then
+ i := longint($FFFFFFFF);
+ i := i and longint($AAAAAAAA);
+ if i <> longint($AAAAAAAA) then
    result := false;
 
  i := 0;
  j := $55555555;
- i := i and j and $AAAAAAAA;
+ i := i and j and longint($AAAAAAAA);
  if i <> 0 then
    result := false;
  if not result then
@@ -272,10 +272,10 @@ begin
  j := $FFFF;
  if i >= j then
    result := false;
- i := $FFFFFFFF;
- if i <= $FFFFFFFE then
+ i := longint($FFFFFFFF);
+ if i <= longint($FFFFFFFE) then
     result := false;
- j := $FFFFFFFF;
+ j := longint($FFFFFFFF);
  if i <= j then
   begin
     if result then
@@ -295,19 +295,19 @@ var
 begin
  Write('Longint >= Longint test...');
  result := true;
- i := $FFFFFFFE;
- j := $FFFFFFFF;
+ i := longint($FFFFFFFE);
+ j := longint($FFFFFFFF);
  if i >= j then
    result := false;
- i := $FFFFFFFE;
- j := $FFFFFFFF;
+ i := longint($FFFFFFFE);
+ j := longint($FFFFFFFF);
  if i > j then
    result := false;
- i := $FFFFFFFE;
- if i > $FFFFFFFE then
+ i := longint($FFFFFFFE);
+ if i > longint($FFFFFFFE) then
     result := false;
- i := $FFFFFFFF;
- j := $FFFFFFFF;
+ i := longint($FFFFFFFF);
+ j := longint($FFFFFFFF);
  if i >= j then
   begin
     if result then
