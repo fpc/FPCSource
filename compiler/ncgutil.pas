@@ -1222,7 +1222,8 @@ implementation
              hp:=tparaitem(procinfo^.procdef.para.first);
              while assigned(hp) do
                begin
-                  if (hp.paraloc.loc in [LOC_REGISTER,LOC_FPUREGISTER,LOC_MMREGISTER]) and (([vo_regable,vo_fpuregable]*tvarsym(hp.parasym).varoptions)=[]) then
+                  if (hp.paraloc.loc in [LOC_REGISTER,LOC_FPUREGISTER
+                   {$ifdef SUPPORT_MMX},LOC_MMREGISTER{$endif}]) and (([vo_regable,vo_fpuregable]*tvarsym(hp.parasym).varoptions)=[]) then
                     begin
                        case hp.paraloc.loc of
                           LOC_REGISTER:
@@ -1730,7 +1731,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.35  2002-08-13 21:40:56  florian
+  Revision 1.36  2002-08-14 19:25:09  carl
+    * fix Florian's last commit for m68k compilation
+
+  Revision 1.35  2002/08/13 21:40:56  florian
     * more fixes for ppc calling conventions
 
   Revision 1.34  2002/08/12 15:08:39  carl
