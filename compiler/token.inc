@@ -244,7 +244,7 @@ const
       (str:'ASM'           ;special:false;keyword:m_all),
       (str:'DIV'           ;special:false;keyword:m_all),
       (str:'END'           ;special:false;keyword:m_all),
-      (str:'FAR'           ;special:false;keyword:m_all),
+      (str:'FAR'           ;special:false;keyword:m_none),
       (str:'FOR'           ;special:false;keyword:m_all),
       (str:'MOD'           ;special:false;keyword:m_all),
       (str:'NEW'           ;special:false;keyword:m_all),
@@ -264,7 +264,7 @@ const
       (str:'FILE'          ;special:false;keyword:m_all),
       (str:'GOTO'          ;special:false;keyword:m_all),
       (str:'NAME'          ;special:false;keyword:m_none),
-      (str:'NEAR'          ;special:false;keyword:m_all),
+      (str:'NEAR'          ;special:false;keyword:m_none),
       (str:'READ'          ;special:false;keyword:m_none),
       (str:'SELF'          ;special:false;keyword:m_all),
       (str:'THEN'          ;special:false;keyword:m_all),
@@ -288,7 +288,7 @@ const
       (str:'DOWNTO'        ;special:false;keyword:m_all),
       (str:'EXCEPT'        ;special:false;keyword:m_objpas),
       (str:'EXPORT'        ;special:false;keyword:m_none),
-      (str:'INLINE'        ;special:false;keyword:m_all),
+      (str:'INLINE'        ;special:false;keyword:m_none),
       (str:'OBJECT'        ;special:false;keyword:m_all),
       (str:'PACKED'        ;special:false;keyword:m_all),
       (str:'PUBLIC'        ;special:false;keyword:m_none),
@@ -333,7 +333,10 @@ const
 
 {
   $Log$
-  Revision 1.1  1998-09-26 17:45:47  peter
+  Revision 1.2  1998-09-30 12:12:30  peter
+    * fixed far,near which are not keywords
+
+  Revision 1.1  1998/09/26 17:45:47  peter
     + idtoken and only one token table
 
 }
