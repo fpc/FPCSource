@@ -1,0 +1,791 @@
+<?xml version="1.0" encoding="ISO8859-1"?>
+<fpdoc-descriptions>
+<package name="rtl">
+
+<!--
+  ====================================================================
+    unixtype
+  ====================================================================
+-->
+
+<module name="unixtype">
+<short>Basic unix types</short>
+<descr>
+<p>
+The <file>unixtype</file> unit contains the definitions of basic unix types.
+It was initially implemented by Marco van de Voort.
+</p>
+<p>
+When porting to a new unix platform, this unit should be adapted to the
+sizes and conventions of the platform to which the compiler is ported.
+</p>
+</descr>
+
+<!-- alias type Visibility: default -->
+<element name="cInt8">
+<short>C type: 8 bits sized, signed integer.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="cUInt8">
+<short>C type: 8 bits sized, unsigned integer.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="cUInt16">
+<short>C type: 16 bits sized, unsigned integer.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="cInt16">
+<short>C type: 16 bits sized, signed integer.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="cInt32">
+<short>C type: 32 bits sized, signed integer.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="cUInt32">
+<short>C type: 32 bits sized, unsigned integer.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="cInt64">
+<short>C type: 64 bits sized, signed integer.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="cUInt64">
+<short>C type: 64 bits sized, unsigned integer.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="cuchar">
+<short>C type: unsigned character</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="cInt">
+<short>C type: integer (natural size)</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="cUInt">
+<short>C type: unsigned integer (natural size)</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="cLong">
+<short>C type: long signed integer (double sized)</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="cuLong">
+<short>C type: long unsigned integer (double sized)</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="cshort">
+<short>C type: short signed integer (half sized)</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="cushort">
+<short>C type: short unsigned integer (half sized)</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pcInt">
+<short>Pointer to <link id="cInt"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pcUInt">
+<short>Pointer to <link id="cUInt"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pcLong">
+<short>Pointer to <link id="cLong"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pculong">
+<short>Pointer to <link id="cuLong"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pcshort">
+<short>Pointer to <link id="cShort"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pcushort">
+<short>Pointer to <link id="cuShort"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="dev_t">
+<short>Device descriptor type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TDev">
+<short>Alias for <link id="dev_t"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pDev">
+<short>Pointer to <link id="TDev"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="gid_t">
+<short>Group ID type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TGid">
+<short>Alias for <link id="gid_t"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pGid">
+<short>Pointer to <link id="TGid"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="ino_t">
+<short>Inode type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TIno">
+<short>Alias for <link id="ino_t"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pIno">
+<short>Pointer to <link id="TIno"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="mode_t">
+<short>Inode mode type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TMode">
+<short>Alias for <link id="mode_t"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pMode">
+<short>Pointer to <link id="TMode"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="nlink_t">
+<short>Number of links type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TnLink">
+<short>Alias for <link id="nlink_t"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pnLink">
+<short>Pointer to <link id="TnLink"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="off_t">
+<short>Offset type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TOff">
+<short>Alias for <link id="off_t"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pOff">
+<short>Pointer to <link id="TOff"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pid_t">
+<short>Process ID type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TPid">
+<short>Alias for <link id="pid_t"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pPid">
+<short>Pointer to <link id="TPid"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="size_t">
+<short>Size specification type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TSize">
+<short>Alias for <link id="size_t"/> type</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pSize">
+<short>Pointer to <link id="TSize"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="ssize_t">
+<short>Small size type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TsSize">
+<short>Alias for <link id="ssize_t"/> type</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="psSize">
+<short>Pointer to <link id="TsSize"/> type</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="uid_t">
+<short>User ID type</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TUid">
+<short>Alias for <link id="uid_t"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pUid">
+<short>Pointer to <link id="TUid"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="clock_t">
+<short>Clock ticks type</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TClock">
+<short>Alias for <link id="clock_t"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pClock">
+<short>Pointer to <link id="TClock"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="time_t">
+<short>Time span type</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TTime">
+<short>Alias for <link id="TTime"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pTime">
+<short>Pointer to <link id="TTime"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="ptime_t">
+<short>Pointer to <link id="time_t"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="socklen_t">
+<short>Socket address length type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TSocklen">
+<short>Alias for <link id="socklen_t"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pSocklen">
+<short>Pointer to <link id="TSockLen"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="timeval">
+<short>Time specification type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="ptimeval">
+<short>Pointer to <link id="timeval"/> record.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TTimeVal">
+<short>Alias for <link id="TimeVal"/> record.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="timespec">
+<short>Record specifying time interval.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="ptimespec">
+<short>Pointer to <link id="timespec"/> record.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TTimeSpec">
+<short>Alias for <link id="TimeSpec"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="clonglong">
+<short>C type: 64-bit (double long) signed integer.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="culonglong">
+<short>C type: 64-bit (double long) unsigned integer.</short>
+</element>
+
+
+<!-- variable Visibility: default -->
+<element name="timeval.tv_sec">
+<short>Seconds</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="timeval.tv_usec">
+<short>Milliseconds</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="timespec.tv_sec">
+<short>Seconds</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="timespec.tv_nsec">
+<short>Nanoseconds</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="kDev_t">
+<short>Kernel device type</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TkDev">
+<short>Alias for <link id="kDev_t"/> type.</short>
+</element>
+
+<!-- pointer type Visibility: default -->
+<element name="pkDev">
+<short>Pointer to <link id="TkDev"/> type.</short>
+</element>
+
+<element name="TStatFS">
+<short>Record describing a file system in the <link id="baseunix.fpstatfs"/> call.</short>
+</element>
+<element name="TStatFS.fstype">
+<short>File system type</short>
+</element>
+<element name="TStatFS.bsize">
+<short>Block size</short>
+</element>
+<element name="TStatFS.blocks">
+<short>Total number of blocks</short>
+</element>
+<element name="TStatFS.bfree">
+<short>Number of free blocks</short>
+</element>
+<element name="TStatFS.bavail">
+<short>Number of available blocks</short>
+</element>
+<element name="TStatFS.files">
+<short>Number of files</short>
+</element>
+<element name="TStatFS.ffree">
+<short>?</short>
+</element>
+<element name="TStatFS.fsid">
+<short>?</short>
+</element>
+<element name="TStatFS.namelen">
+<short>Max name length for files.</short>
+</element>
+<element name="TStatFS.spare">
+<short>Pad bytes. Do not use.</short>
+</element>
+
+
+<!-- pointer type Visibility: default -->
+<element name="PStatFS">
+<short>Pointer to <link id="TStatFS"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pthread_t">
+<short>Thread description record</short>
+</element>
+
+<!-- record type Visibility: default -->
+<element name="sched_param">
+<short>Scheduling parameter description record.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="sched_param.__sched_priority">
+<short>Priority.</short>
+</element>
+
+<!-- record type Visibility: default -->
+<element name="pthread_attr_t">
+<short>Thread attributes record. Opaque.</short>
+<descr>
+<var>pthread_attr_t</var> describes the thread attributes. It should be
+considered an opaque record, the names of the fields can change anytime.
+Use the appropriate functions to set the thread attributes.
+</descr>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="pthread_attr_t.__detachstate">
+<short>?</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="pthread_attr_t.__schedpolicy">
+<short>?</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="pthread_attr_t.__schedparam">
+<short>?</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="pthread_attr_t.__inheritsched">
+<short>?</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="pthread_attr_t.__scope">
+<short>?</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="pthread_attr_t.__guardsize">
+<short>?</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="pthread_attr_t.__stackaddr_set">
+<short>?</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="pthread_attr_t.__stackaddr">
+<short>?</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="pthread_attr_t.__stacksize">
+<short>?</short>
+</element>
+
+<!-- record type Visibility: default -->
+<element name="_pthread_fastlock">
+<short>Fast lock (mutex) type (opaque).</short>
+<descr>
+<var>_pthread_fastlock</var> describes a thread mutex. 
+It should be considered an opaque record, the names of the fields can change
+anytime.
+</descr>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="_pthread_fastlock.__status">
+<short>?</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="_pthread_fastlock.__spinlock">
+<short>?</short>
+</element>
+
+<!-- record type Visibility: default -->
+<element name="pthread_mutex_t">
+<short>Thread mutex type (opaque).</short>
+<descr>
+<var>_pthread_mutex_t</var> describes a thread mutex.
+It should be considered an opaque record, the names of the fields can change
+anytime.
+</descr>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="pthread_mutex_t.__m_reserved">
+<short>?</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="pthread_mutex_t.__m_count">
+<short>?</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="pthread_mutex_t.__m_owner">
+<short>?</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="pthread_mutex_t.__m_kind">
+<short>?</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="pthread_mutex_t.__m_lock">
+<short>?</short>
+</element>
+
+<!-- record type Visibility: default -->
+<element name="pthread_mutexattr_t">
+<short>Mutex attributes type (opaque).</short>
+<descr>
+<var>pthread_mutexattr_t</var> describes the attributes of a thread mutex.
+It should be considered an opaque record, the names of the fields can change
+anytime.
+</descr>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="pthread_mutexattr_t.__mutexkind">
+<short>?</short>
+</element>
+
+<!-- record type Visibility: default -->
+<element name="pthread_cond_t">
+<short>Thread conditional variable (opaque).</short>
+<descr>
+<var>pthread_cond_t</var> describes a thread conditional variable.
+It should be considered an opaque record, the names of the fields can change
+anytime.
+</descr>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="pthread_cond_t.__c_lock">
+<short>?</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="pthread_cond_t.__c_waiting">
+<short>?</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="pthread_cond_t.__padding">
+<short>?</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="pthread_cond_t.__align">
+<short>?</short>
+</element>
+
+<!-- record type Visibility: default -->
+<element name="pthread_condattr_t">
+<short>Conditional variable attributes type (opaque).</short>
+<descr>
+<var>pthread_condattr_t</var> describes the attributes of a thread mutex.
+It should be considered an opaque record, the names of the fields can change
+anytime.
+</descr>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="pthread_condattr_t.__dummy">
+<short>?</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pthread_key_t">
+<short>Thread local storage key (opaque)</short>
+</element>
+
+<!-- record type Visibility: default -->
+<element name="pthread_rwlock_t">
+<short>Read/Write lock type (opaque)</short>
+<descr>
+<var>pthread_rwlock_t</var> describes a lock.
+It should be considered an opaque record, the names of the fields can change
+anytime.
+</descr>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="pthread_rwlock_t.__rw_readers">
+<short>?</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="pthread_rwlock_t.__rw_writer">
+<short>?</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="pthread_rwlock_t.__rw_read_waiting">
+<short>?</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="pthread_rwlock_t.__rw_write_waiting">
+<short>?</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="pthread_rwlock_t.__rw_kind">
+<short>?</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="pthread_rwlock_t.__rw_pshared">
+<short>?</short>
+</element>
+
+<!-- record type Visibility: default -->
+<element name="pthread_rwlockattr_t">
+<short>R/W lock attributes (opaque).</short>
+<descr>
+<var>pthread_rwlockattr_t</var> describes the attributes of a lock.
+It should be considered an opaque record, the names of the fields can change
+anytime.
+</descr>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="pthread_rwlockattr_t.__lockkind">
+<short>?</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="pthread_rwlockattr_t.__pshared">
+<short>?</short>
+</element>
+
+<!-- record type Visibility: default -->
+<element name="sem_t">
+<short>Semaphore type. (opaque)</short>
+<descr>
+<var>sem_t</var> describes a thread semaphore.
+It should be considered an opaque record, the names of the fields can change
+anytime.
+</descr>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="sem_t.__sem_lock">
+<short>?</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="sem_t.__sem_value">
+<short>?</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="sem_t.__sem_waiting">
+<short>?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="_PTHREAD_MUTEX_TIMED_NP">
+<short>Mutex options: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="_PTHREAD_MUTEX_RECURSIVE_NP">
+<short>Mutex options: recursive mutex</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="_PTHREAD_MUTEX_ERRORCHECK_NP">
+<short>Mutex options: double lock returns an error code.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="_PTHREAD_MUTEX_ADAPTIVE_NP">
+<short>Mutex options:</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="_PTHREAD_MUTEX_NORMAL">
+<short>Mutex options:</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="_PTHREAD_MUTEX_RECURSIVE">
+<short>Mutex options:</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="_PTHREAD_MUTEX_ERRORCHECK">
+<short>Mutex options:</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="_PTHREAD_MUTEX_DEFAULT">
+<short>Mutex options: </short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="_PTHREAD_MUTEX_FAST_NP">
+<short>Mutex options: Fast mutex</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ARG_MAX">
+<short>Max number of command-line arguments.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="NAME_MAX">
+<short>Max length (in bytes) of filename</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="PATH_MAX">
+<short>Max length (in bytes) of pathname</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SYS_NMLN">
+<short>Max system namelength</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SIG_MAXSIG">
+<short>Maximum signal number.</short>
+</element>
+</module> <!-- unixtype -->
+</package>
+</fpdoc-descriptions>

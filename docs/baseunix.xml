@@ -1,0 +1,4229 @@
+<?xml version="1.0" encoding="ISO8859-1"?>
+<fpdoc-descriptions>
+<package name="rtl">
+
+<!--
+  ====================================================================
+    BaseUnix
+  ====================================================================
+-->
+
+<module name="BaseUnix">
+<short>Basic unix functionality</short>
+<descr>
+<p>
+The <file>BaseUnix</file> unit was implemented by Marco Van de Voort.
+It contains basic unix functionality. It supersedes the Linux unit of
+version 1.0.X of the compiler, but does not implement all functionality of
+the linux unit. 
+</p>
+<p>
+People that have code which heavily uses the old <file>Linux</file> unit,
+can simply change <file>linux</file> by <file>oldlinux</file> in the
+<var>uses</var> clause of their projects, but they should really consider
+moving to the <file>Unix</var> and <var>BaseUnix</var> units.
+</p>
+<p>
+For porting FPC to new unix-like platforms, it should be sufficient to
+implement the functionality in this unit for the new platform.
+</p>
+</descr>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="UnixType">
+<short>Basic unix types.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="cInt8">
+<short>C type: 8 bits sized, signed integer.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="cUInt8">
+<short>C type: 8 bits sized, unsigned integer.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="cUInt16">
+<short>C type: 16 bits sized, unsigned integer.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="cInt16">
+<short>C type: 16 bits sized, signed integer.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="cInt32">
+<short>C type: 32 bits sized, signed integer.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="cUInt32">
+<short>C type: 32 bits sized, unsigned integer.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="cInt64">
+<short>C type: 64 bits sized, signed integer.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="cUInt64">
+<short>C type: 64 bits sized, unsigned integer.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="cuchar">
+<short>C type: unsigned character</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="cInt">
+<short>C type: integer (natural size)</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="cUInt">
+<short>C type: unsigned integer (natural size)</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="cLong">
+<short>C type: long signed integer (double sized)</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="cuLong">
+<short>C type: long unsigned integer (double sized)</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="cshort">
+<short>C type: short signed integer (half sized)</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="cushort">
+<short>C type: short unsigned integer (half sized)</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pcInt">
+<short>Pointer to <link id="cInt"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pcUInt">
+<short>Pointer to <link id="cUInt"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pcLong">
+<short>Pointer to <link id="cLong"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pculong">
+<short>Pointer to <link id="cuLong"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pcshort">
+<short>Pointer to <link id="cShort"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pcushort">
+<short>Pointer to <link id="cuShort"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="dev_t">
+<short>Device descriptor type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TDev">
+<short>Alias for <link id="dev_t"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pDev">
+<short>Pointer to <link id="TDev"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="gid_t">
+<short>Group ID type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TGid">
+<short>Alias for <link id="gid_t"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pGid">
+<short>Pointer to <link id="TGid"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="ino_t">
+<short>Inode type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TIno">
+<short>Alias for <link id="ino_t"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pIno">
+<short>Pointer to <link id="TIno"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="mode_t">
+<short>Inode mode type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TMode">
+<short>Alias for <link id="mode_t"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pMode">
+<short>Pointer to <link id="TMode"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="nlink_t">
+<short>Number of links type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TnLink">
+<short>Alias for <link id="nlink_t"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pnLink">
+<short>Pointer to <link id="TnLink"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="off_t">
+<short>Offset type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TOff">
+<short>Alias for <link id="off_t"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pOff">
+<short>Pointer to <link id="TOff"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pid_t">
+<short>Process ID type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TPid">
+<short>Alias for <link id="pid_t"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pPid">
+<short>Pointer to <link id="TPid"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="size_t">
+<short>Size specification type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TSize">
+<short>Alias for <link id="size_t"/> type</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pSize">
+<short>Pointer to <link id="TSize"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="ssize_t">
+<short>Small size type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TsSize">
+<short>Alias for <link id="ssize_t"/> type</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="psSize">
+<short>Pointer to <link id="TsSize"/> type</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="uid_t">
+<short>User ID type</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TUid">
+<short>Alias for <link id="uid_t"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pUid">
+<short>Pointer to <link id="TUid"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="clock_t">
+<short>Clock ticks type</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TClock">
+<short>Alias for <link id="clock_t"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pClock">
+<short>Pointer to <link id="TClock"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="time_t">
+<short>Time span type</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TTime">
+<short>Alias for <link id="TTime"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pTime">
+<short>Pointer to <link id="TTime"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="ptime_t">
+<short>Pointer to <link id="time_t"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="socklen_t">
+<short>Socket address length type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TSocklen">
+<short>Alias for <link id="socklen_t"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pSocklen">
+<short>Pointer to <link id="TSockLen"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="timeval">
+<short>Time specification type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="ptimeval">
+<short>Pointer to <link id="timeval"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TTimeVal">
+<short>Alias for <link id="timeval"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="timespec">
+<short>Short time specification type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="ptimespec">
+<short>Pointer to <link id="timespec"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="Ttimespec">
+<short>Alias for <link id="TimeSpec"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pthread_mutex_t">
+<short>Thread mutex type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pthread_cond_t">
+<short>Thread conditional variable type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="pthread_t">
+<short>Posix thread type.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ARG_MAX">
+<short>Maximum number of arguments to a program.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="NAME_MAX">
+<short>Maximum filename length.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="PATH_MAX">
+<short>Maximum pathname length.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SYS_NMLN">
+<short>Max system name length.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SIG_MAXSIG">
+<short>Maximum system signal number.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysEPERM">
+<short>System error: Operation not permitted.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysENOENT">
+<short>System error: No such file or directory</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysESRCH">
+<short>System error: No such process</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysEINTR">
+<short>System error: Interrupted system call</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysEIO">
+<short>System error: I/O error</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysENXIO">
+<short>System error: No such device or address</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysE2BIG">
+<short>System error: Argument list too long</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysENOEXEC">
+<short>System error: Exec format error</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysEBADF">
+<short>System error: Bad file number</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysECHILD">
+<short>System error: No child processes</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysEAGAIN">
+<short>System error: Try again</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysENOMEM">
+<short>System error: Out of memory</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysEACCES">
+<short>System error: Permission denied</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysEFAULT">
+<short>System error: Bad address</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysENOTBLK">
+<short>System error: Block device required</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysEBUSY">
+<short>System error: Device or resource busy</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysEEXIST">
+<short>System error: File exists</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysEXDEV">
+<short>System error: Cross-device link</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysENODEV">
+<short>System error: No such device</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysENOTDIR">
+<short>System error: Not a directory</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysEISDIR">
+<short>System error: Is a directory</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysEINVAL">
+<short>System error: Invalid argument</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysENFILE">
+<short>System error: File table overflow</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysEMFILE">
+<short>System error: Too many open files</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysENOTTY">
+<short>System error: Not a typewriter</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysETXTBSY">
+<short>System error: Text (code segment) file busy</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysEFBIG">
+<short>System error: File too large</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysENOSPC">
+<short>System error: No space left on device</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysESPIPE">
+<short>System error: Illegal seek</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysEROFS">
+<short>System error: Read-only file system</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysEMLINK">
+<short>System error: Too many links</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysEPIPE">
+<short>System error: Broken pipe</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysEDOM">
+<short>System error: Math argument out of domain of func</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysERANGE">
+<short>System error: Math result not representable</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysEDEADLK">
+<short>System error: Resource deadlock would occur</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysENAMETOOLONG">
+<short>System error: File name too long</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysENOLCK">
+<short>System error: No record locks available</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysENOSYS">
+<short>System error: Function not implemented</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysENOTEMPTY">
+<short>System error: Directory not empty</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysELOOP">
+<short>System error: Too many symbolic links encountered</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysEWOULDBLOCK">
+<short>System error: Operation would block</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysENOMSG">
+<short>System error: No message of desired type</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysEIDRM">
+<short>System error: Identifier removed</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysECHRNG">
+<short>System error: Channel number out of range</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysEL2NSYNC">
+<short>System error: Level 2 not synchronized</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysEL3HLT">
+<short>System error: Level 3 halted</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysEL3RST">
+<short>System error: Level 3 reset</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysELNRNG">
+<short>System error: Link number out of range</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysEUNATCH">
+<short>System error: Protocol driver not attached</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysENOCSI">
+<short>System error: No CSI structure available</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysEL2HLT">
+<short>System error: Level 2 halted</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysEBADE">
+<short>System error: Invalid exchange</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysEBADR">
+<short>System error: Invalid request descriptor</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysEXFULL">
+<short>System error: Exchange full</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysENOANO">
+<short>System error: No anode</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysEBADRQC">
+<short>System error: Invalid request code</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysEBADSLT">
+<short>System error: Invalid slot</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysEDEADLOCK">
+<short>System error: File locking deadlock error</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysEBFONT">
+<short>System error: Bad font file format</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysENOSTR">
+<short>System error: Device not a stream</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysENODATA">
+<short>System error: No data available</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysETIME">
+<short>System error: Timer expired</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysENOSR">
+<short>System error: Out of streams resources</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysENONET">
+<short>System error: Machine is not on the network</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysENOPKG">
+<short>System error: Package not installed</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysEREMOTE">
+<short>System error: Object is remote</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysENOLINK">
+<short>System error: Link has been severed</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysEADV">
+<short>System error: Advertise error</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysESRMNT">
+<short>System error: Srmount error</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysECOMM">
+<short>System error: Communication error on send</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysEPROTO">
+<short>System error: Protocol error</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysEMULTIHOP">
+<short>System error: Multihop attempted</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysEDOTDOT">
+<short>System error: RFS specific error</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysEBADMSG">
+<short>System error: Not a data message</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysEOVERFLOW">
+<short>System error: Value too large for defined data type</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysENOTUNIQ">
+<short>System error: Name not unique on network</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysEBADFD">
+<short>System error: File descriptor in bad state</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysEREMCHG">
+<short>System error: Remote address changed</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysELIBACC">
+<short>System error: Can not access a needed shared library</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysELIBBAD">
+<short>System error: Accessing a corrupted shared library</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysELIBSCN">
+<short>System error: .lib section in a.out corrupted</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysELIBMAX">
+<short>System error: Attempting to link in too many shared libraries</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysELIBEXEC">
+<short>System error: Cannot exec a shared library directly</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysEILSEQ">
+<short>System error: Illegal byte sequence</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysERESTART">
+<short>System error: Interrupted system call should be restarted</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysESTRPIPE">
+<short>System error: Streams pipe error</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysEUSERS">
+<short>System error: Too many users</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysENOTSOCK">
+<short>System error: Socket operation on non-socket</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysEDESTADDRREQ">
+<short>System error: Destination address required</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysEMSGSIZE">
+<short>System error: Message too long</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysEPROTOTYPE">
+<short>System error: Protocol wrong type for socket</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysENOPROTOOPT">
+<short>System error: Protocol not available</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysEPROTONOSUPPORT">
+<short>System error: Protocol not supported</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysESOCKTNOSUPPORT">
+<short>System error: Socket type not supported</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysEOPNOTSUPP">
+<short>System error: Operation not supported on transport endpoint</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysEPFNOSUPPORT">
+<short>System error: Protocol family not supported</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysEAFNOSUPPORT">
+<short>System error: Address family not supported by protocol</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysEADDRINUSE">
+<short>System error: Address already in use</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysEADDRNOTAVAIL">
+<short>System error: Cannot assign requested address</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysENETDOWN">
+<short>System error: Network is down</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysENETUNREACH">
+<short>System error: Network is unreachable</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysENETRESET">
+<short>System error: Network dropped connection because of reset</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysECONNABORTED">
+<short>System error: Software caused connection abort</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysECONNRESET">
+<short>System error: Connection reset by peer</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysENOBUFS">
+<short>System error: No buffer space available</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysEISCONN">
+<short>System error: Transport endpoint is already connected</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysENOTCONN">
+<short>System error: Transport endpoint is not connected</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysESHUTDOWN">
+<short>System error: Cannot send after transport endpoint shutdown</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysETOOMANYREFS">
+<short>System error: Too many references: cannot splice</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysETIMEDOUT">
+<short>System error: Connection timed out</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysECONNREFUSED">
+<short>System error: Connection refused</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysEHOSTDOWN">
+<short>System error: Host is down</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysEHOSTUNREACH">
+<short>System error: No route to host</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysEALREADY">
+<short>System error: Operation already in progress</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysEINPROGRESS">
+<short>System error: Operation now in progress</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysESTALE">
+<short>System error: Stale NFS file handle</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysEUCLEAN">
+<short>System error: Structure needs cleaning</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysENOTNAM">
+<short>System error: Not a XENIX named type file</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysENAVAIL">
+<short>System error: No XENIX semaphores available</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysEISNAM">
+<short>System error: Is a named type file</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysEREMOTEIO">
+<short>System error: Remote I/O error</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ESysEDQUOT">
+<short>System error: Quota exceeded</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="UTSNAME_LENGTH">
+<short>Max length of <link id="utsname"/> system name, release, version, machine.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="UTSNAME_NODENAME_LENGTH">
+<short>Max length of <link id="utsname"/> node name.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="UTSNAME_DOMAIN_LENGTH">
+<short>Max length of <link id="utsname"/> domain name.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="FD_MAXFDSET">
+<short>Maximum elements in a <link id="TFDSet"/> array.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="BITSINWORD">
+<short>Number of bits in a word.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="wordsinsigset">
+<short>Number of words in a signal set.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="wordsinfdset">
+<short>Number of words in a <link id="TFDSet"/> array</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ln2bitsinword">
+<short>Power of 2 number of bits in word.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ln2bitmask">
+<short>Last bit in word.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="Blksize_t">
+<short>Block size type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="Blkcnt_t">
+<short>Block count type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="Ino64_t">
+<short>64-bit inode type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="Off64_t">
+<short>64-bit offset type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TBlkSize">
+<short>Alias for <link id="blksize_t"/> type.</short>
+</element>
+
+<!-- pointer type Visibility: default -->
+<element name="PBlkSize">
+<short>Pointer to <link id="TBlkSize"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TBlkCnt">
+<short>Alias for <link id="Blkcnt_t"/> type.</short>
+</element>
+
+<!-- pointer type Visibility: default -->
+<element name="PBlkCnt">
+<short>pointer to <link id="TBlkCnt"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TIno64">
+<short>Alias for <link id="Ino64_t"/> type.</short>
+</element>
+
+<!-- pointer type Visibility: default -->
+<element name="PIno64">
+<short>Pointer to <link id="TIno64"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TOff64">
+<short>Alias for <link id="Ino64_t"/> type.</short>
+</element>
+
+<!-- pointer type Visibility: default -->
+<element name="POff64">
+<short>Pointer to <link id="TOff64"/> type.</short>
+</element>
+
+<element name="utsname">
+<short>Record used to return kernel information in <link id="fpUName"/> function.</short>
+<descr>
+The elements of this record are null-terminated C style strings, you cannot access them
+directly.
+</descr>
+</element>
+<element name="utsname.sysname">
+<short>System name</short>
+</element>
+<element name="utsname.nodename">
+<short>Computer name</short>
+</element>
+<element name="utsname.release">
+<short>Release number</short>
+</element>
+<element name="utsname.version">
+<short>Version number</short>
+</element>
+<element name="utsname.machine">
+<short>Machine type</short>
+</element>
+<element name="utsname.domain">
+<short>Domain name</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TUtsName">
+<short>Alias for <link id="UtsName"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="PUtsName">
+<short>Pointer to <link id="TUtsName"/> type.</short>
+</element>
+
+<element name="stat">
+<short>Record describing an inode (file) in the <link id="FPFstat"/> call.</short>
+</element>
+<element name="stat.dev">
+<short>Device number</short>
+</element>
+<element name="stat.pad1">
+<short>Pad byte. Do not use</short>
+</element>
+<element name="stat.ino">
+<short>Inode number of file</short>
+</element>
+<element name="stat.mode">
+<short>File mode</short>
+</element>
+<element name="stat.nlink">
+<short>Number of links to file.</short>
+</element>
+<element name="stat.uid">
+<short>File owner UID</short>
+</element>
+<element name="stat.gid">
+<short>File owner GID</short>
+</element>
+<element name="stat.rdev">
+<short></short>
+</element>
+<element name="stat.pad2">
+<short>Pad byte. Do not use</short>
+</element>
+<element name="stat.size">
+<short>File size</short>
+</element>
+<element name="stat.blksize">
+<short>Block size</short>
+</element>
+<element name="stat.blocks">
+<short>Number of blocks used</short>
+</element>
+<element name="stat.atime">
+<short>Last access time</short>
+</element>
+<element name="stat.unused1">
+<short>Pad byte. Do not use</short>
+</element>
+<element name="stat.mtime">
+<short>Last modification time.</short>
+</element>
+<element name="stat.unused2">
+<short>Pad byte. Do not use</short>
+</element>
+<element name="stat.ctime">
+<short>Creation time</short>
+</element>
+<element name="stat.unused3">
+<short>Pad byte. Do not use</short>
+</element>
+<element name="stat.unused4">
+<short>Pad byte. Do not use</short>
+</element>
+<element name="stat.unused5">
+<short>Pad byte. Do not use</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TStat">
+<short>Alias for <link id="Stat"/> type.</short>
+</element>
+
+<!-- pointer type Visibility: default -->
+<element name="PStat">
+<short>Pointer to <link id="TStat"/> type.</short>
+</element>
+
+<element name="PDirEnt">
+<short>Pointer to <link id="TDirent"/> record.</short>
+</element>
+<element name="Dirent">
+<short>Record used in the <link id="fpReadDir"/> function to return files in a directory.</short>
+</element>
+<element name="Dirent.d_fileno">
+<short>Inode number of file</short>
+</element>
+<element name="Dirent.d_off">
+<short>Offset in directory.</short>
+</element>
+<element name="Dirent.d_reclen">
+<short>Record length</short>
+</element>
+<element name="Dirent.d_name">
+<short>Name of file</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TDirent">
+<short>Alias for <link id="Dirent"/> type.</short>
+</element>
+
+<element name="PDir">
+<short>Pointer to <link id="TDir"/> record</short>
+</element>
+<element name="Dir">
+<short>Record used in <link id="fpOpenDir"/> and <link id="fpReadDir"/> calls </short>
+</element>
+<element name="Dir.dd_fd">
+<short>File descriptor. Do not use.</short>
+</element>
+<element name="Dir.dd_loc">
+<short>Location in directory listing</short>
+</element>
+<element name="Dir.dd_size">
+<short>File size</short>
+</element>
+<element name="Dir.dd_buf">
+<short>Pointer to <link id="Dir"/> records</short>
+</element>
+<element name="Dir.dd_nextoff">
+<short>?</short>
+</element>
+<element name="Dir.dd_max">
+<short>?</short>
+</element>
+<element name="Dir.dd_lock">
+<short>?</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TDir">
+<short>Alias for <link id="Dir"/> type.</short>
+</element>
+
+<element name="Utimbuf">
+<short>Record used in <link id="fpUtime"/> to set file access and modificaton times.</short>
+</element>
+<element name="Utimbuf.actime">
+<short>Access time</short>
+</element>
+<element name="Utimbuf.modtime">
+<short>Modification time</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TUtimBuf">
+<short>Alias for <link id="UtimBuf"/> type.</short>
+</element>
+
+<!-- pointer type Visibility: default -->
+<element name="pUtimBuf">
+<short>Pointer to <link id="TUTimBuf"/> type.</short>
+</element>
+
+<!-- record type Visibility: default -->
+<element name="FLock">
+<short>Lock description type for <link id="fpFCntl"/> lock call.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="FLock.l_type">
+<short>Type of lock.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="FLock.l_whence">
+<short>Where to measure start of lock from</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="FLock.l_start">
+<short>Start of lock</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="FLock.l_len">
+<short>Length of locked area</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="FLock.l_pid">
+<short>Process ID of process holding the lock</short>
+</element>
+
+<!-- record type Visibility: default -->
+<element name="tms">
+<short>Record containing timings for <link id="fpTimes"/> call.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="tms.tms_utime">
+<short>User time.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="tms.tms_stime">
+<short>System time.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="tms.tms_cutime">
+<short>Children's user time.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="tms.tms_cstime">
+<short>Children's system time.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TTms">
+<short>Alias for <link id="Tms"/> record type.</short>
+</element>
+
+<!-- pointer type Visibility: default -->
+<element name="PTms">
+<short>Pointer to <link id="TTms"/> type.</short>
+</element>
+
+<!-- array type Visibility: default -->
+<element name="TFDSet">
+<short>File descriptor set for <link id="fpSelect"/> call.</short>
+</element>
+
+<!-- pointer type Visibility: default -->
+<element name="pFDSet">
+<short>Pointer to <link id="TFDSet"/> type.</short>
+</element>
+
+<element name="R_OK">
+<short><link id="fpAccess"/> call test: read allowed  </short>
+</element>
+<element name="W_OK">
+<short><link id="fpAccess"/> call test: write allowed </short>
+</element>
+<element name="X_OK">
+<short><link id="fpAccess"/> call test: execute allowed </short>
+</element>
+<element name="F_OK">
+<short><link id="fpAccess"/> call test: file exists.</short>
+</element>
+
+<element name="Seek_set">
+<short><link id="fpLSeek"/> option: Set absolute position.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="Seek_Cur">
+<short><link id="fpLSeek"/> option: Set position relative to current position.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="Seek_End">
+<short><link id="fpLSeek"/> option: Set position relative to end of file.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="O_RdOnly">
+<short><link id="fpOpen"/> file open mode: Read only</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="O_WrOnly">
+<short><link id="fpOpen"/> file open mode: Write only</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="O_RdWr">
+<short><link id="fpOpen"/> file open mode: Read/Write</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="O_Creat">
+<short><link id="fpOpen"/> file open mode: Create if file does not yet exist.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="O_Excl">
+<short><link id="fpOpen"/> file open mode: Open exclusively</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="O_NoCtty">
+<short><link id="fpOpen"/> file open mode: No TTY control.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="O_Trunc">
+<short><link id="fpOpen"/> file open mode: Truncate file to length 0</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="O_Append">
+<short><link id="fpOpen"/> file open mode: Append to file</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="O_NonBlock">
+<short><link id="fpOpen"/> file open mode: Open in non-blocking mode</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="O_NDelay">
+<short><link id="fpOpen"/> file open mode: Alias for <link id="O_NonBlock"/></short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="O_Sync">
+<short><link id="fpOpen"/> file open mode: Write to disc at once</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="O_Direct">
+<short><link id="fpOpen"/> file open mode: Minimize caching effects</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="O_LargeFile">
+<short><link id="fpOpen"/> file open mode: Open for 64-bit I/O</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="O_Directory">
+<short><link id="fpOpen"/> file open mode: File must be directory.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="O_NoFollow">
+<short><link id="fpOpen"/> file open mode: Fail if file is symbolic link.</short>
+</element>
+
+<element name="S_ISUID">
+<short>Mode flag: Set user ID on execution.</short>
+</element>
+<element name="S_ISGID">
+<short>Mode flag: Set Group ID on execution.</short>
+</element>
+<element name="S_ISVTX">
+<short>Mode flag: Set sticky bit.</short>
+</element>
+<element name="S_IRUSR">
+<short>Mode flag: Read by owner.</short>
+</element>
+<element name="S_IWUSR">
+<short>Mode flag: Write by owner.</short>
+</element>
+<element name="S_IXUSR">
+<short>Mode flag: Execute by owner.</short>
+</element>
+<element name="S_IRGRP">
+<short>Mode flag: Read by group.</short>
+</element>
+<element name="S_IWGRP">
+<short>Mode flag: Write by group.</short>
+</element>
+<element name="S_IXGRP">
+<short>Mode flag: Execute by group.</short>
+</element>
+<element name="S_IROTH">
+<short>Mode flag: Read by others.</short>
+</element>
+<element name="S_IWOTH">
+<short>Mode flag: Write by others.</short>
+</element>
+<element name="S_IXOTH">
+<short>Mode flag: Execute by others.</short>
+</element>
+<element name="S_IRWXO">
+<short>Mode flag: Read, write, execute by others.</short>
+</element>
+<element name="S_IRWXG">
+<short>Mode flag: Read, write, execute by groups.</short>
+</element>
+<element name="S_IRWXU">
+<short>Mode flag: Read, write, execute by user.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="WNOHANG">
+<short><link id="fpWaitpid"/> option: Do not wait for processes to terminate.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="WUNTRACED">
+<short><link id="fpWaitpid"/> option: Also report children wich were stopped but not yet reported</short>
+</element>
+
+<element name="F_GetFd">
+<short><link id="fpFCntl"/> command:  Get close-on-exec flag</short>
+</element>
+<element name="F_SetFd">
+<short><link id="fpFCntl"/> command:  Set close-on-exec flag</short>
+</element>
+<element name="F_GetFl">
+<short><link id="fpFCntl"/> command:  Get filedescriptor flags</short>
+</element>
+<element name="F_SetFl">
+<short><link id="fpFCntl"/> command:  Set filedescriptor flags</short>
+</element>
+<element name="F_GetLk">
+<short><link id="fpFCntl"/> command:  Get lock</short>
+</element>
+<element name="F_SetLk">
+<short><link id="fpFCntl"/> command:  Set lock</short>
+</element>
+<element name="F_SetLkW">
+<short><link id="fpFCntl"/> command:  Test lock</short>
+</element>
+<element name="F_GetOwn">
+<short><link id="fpFCntl"/> command:  get owner of filedescriptor events</short>
+</element>
+<element name="F_SetOwn">
+<short><link id="fpFCntl"/> command:  Set owner of filedescriptor events</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SA_NOCLDSTOP">
+<short>Sigaction options: Do not receive notification when child processes stop</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SA_NOCLDWAIT">
+<short>Sigaction options: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SA_SIGINFO">
+<short>Sigaction options: The signal handler takes 3 arguments, not one.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SA_SHIRQ">
+<short>Sigaction options: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SA_STACK">
+<short>Sigaction options: Call the signal handler on an alternate signal stack.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SA_RESTART">
+<short>Sigaction options: Provide behaviour compatible with BSD signal semantics</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SA_INTERRUPT">
+<short>Sigaction options: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SA_NOMASK">
+<short>Sigaction options: Do not prevent the signal from being received when it is handled.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SA_ONESHOT">
+<short>Sigaction options: Restore the signal action to the default state.</short>
+</element>
+
+<element name="SIG_BLOCK">
+<short>Sigprocmask flags: Add signals to the set of blocked signals.</short>
+</element>
+<element name="SIG_UNBLOCK">
+<short>Sigprocmask flags: Remove signals from the set set of blocked signals.</short>
+</element>
+<element name="SIG_SETMASK">
+<short>Sigprocmask flags: Set of blocked signals is given.</short>
+</element>
+<element name="SIG_DFL">
+<short>Signal handler: Default signal handler</short>
+</element>
+<element name="SIG_IGN">
+<short>Signal handler: Ignore signal</short>
+</element>
+<element name="SIG_ERR">
+<short>Signal handler: error</short>
+</element>
+
+<element name="SIGHUP">
+<short>Signal: HUP (Hangup)</short>
+</element>
+<element name="SIGINT">
+<short>Signal: INT (Interrupt)</short>
+</element>
+<element name="SIGQUIT">
+<short>Signal: QUIT</short>
+</element>
+<element name="SIGILL">
+<short>Signal: ILL (Illegal instruction)</short>
+</element>
+<element name="SIGTRAP">
+<short>Signal: TRAP (Trace trap)</short>
+</element>
+<element name="SIGABRT">
+<short>Signal: ABRT (Abort)</short>
+</element>
+<element name="SIGIOT">
+<short>Signal: IOT (IOT trap)</short>
+</element>
+<element name="SIGBUS">
+<short>Signal: BUS (bus error)</short>
+</element>
+<element name="SIGFPE">
+<short>Signal: FPE (Floating point error)</short>
+</element>
+<element name="SIGKILL">
+<short>Signal: KILL (unblockable)</short>
+</element>
+<element name="SIGUSR1">
+<short>Signal: USR1 (User-defined signal 1)</short>
+</element>
+<element name="SIGSEGV">
+<short>Signal: SEGV (Segmentation violation)</short>
+</element>
+<element name="SIGUSR2">
+<short>Signal: USR2 (User-defined signal 2)</short>
+</element>
+<element name="SIGPIPE">
+<short>Signal: PIPE (Broken pipe</short>
+</element>
+<element name="SIGALRM">
+<short>Signal: ALRM (Alarm clock)</short>
+</element>
+<element name="SIGTERM">
+<short>Signal: TERM (Terminate)</short>
+</element>
+<element name="SIGSTKFLT">
+<short>Signal: STKFLT (Stack Fault)</short>
+</element>
+<element name="SIGCHLD">
+<short>Signal: CHLD (child status changed)</short>
+</element>
+<element name="SIGCONT">
+<short>Signal: CONT (Continue)</short>
+</element>
+<element name="SIGSTOP">
+<short>Signal: STOP (Stop, unblockable)</short>
+</element>
+<element name="SIGTSTP">
+<short>Signal: TSTP (keyboard stop)</short>
+</element>
+<element name="SIGTTIN">
+<short>Signal: TTIN (Terminal input, background)</short>
+</element>
+<element name="SIGTTOU">
+<short>Signal: TTOU (Terminal output, background)</short>
+</element>
+<element name="SIGURG">
+<short>Signal: URG (Socket urgent condition)</short>
+</element>
+<element name="SIGXCPU">
+<short>Signal: XCPU (CPU limit exceeded)</short>
+</element>
+<element name="SIGXFSZ">
+<short>Signal: XFSZ (File size limit exceeded)</short>
+</element>
+<element name="SIGVTALRM">
+<short>Signal: VTALRM (Virtual alarm clock)</short>
+</element>
+<element name="SIGPROF">
+<short>Signal: PROF (Profiling alarm)</short>
+</element>
+<element name="SIGWINCH">
+<short>Signal: WINCH (Window/Terminal size change)</short>
+</element>
+<element name="SIGIO">
+<short>Signal: IO (I/O operation possible)</short>
+</element>
+<element name="SIGPOLL">
+<short>Signal: POLL (Pollable event) </short>
+</element>
+<element name="SIGPWR">
+<short>Signal: PWR (power failure restart)</short>
+</element>
+<element name="SIGUNUSED">
+<short>Signal: Unused</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SI_PAD_SIZE">
+<short>Signal information pad size.</short>
+</element>
+
+<element name="tfpreg">
+<short>Record describing floating point register in signal handler.</short>
+</element>
+<element name="tfpreg.significand">
+<short>Decimal part of floating point value</short>
+</element>
+<element name="tfpreg.exponent">
+<short>Exponent of floating point value</short>
+</element>
+
+<element name="pfpstate">
+<short>Pointer to <link id="tfpstate"/> record.</short>
+</element>
+<element name="tfpstate">
+<short>Record describing floating point unit in signal handler.</short>
+</element>
+<element name="tfpstate.cw">
+<short></short>
+</element>
+<element name="tfpstate.sw">
+<short></short>
+</element>
+<element name="tfpstate.tag">
+<short></short>
+</element>
+<element name="tfpstate.ipoff">
+<short></short>
+</element>
+<element name="tfpstate.cssel">
+<short></short>
+</element>
+<element name="tfpstate.dataoff">
+<short></short>
+</element>
+<element name="tfpstate.datasel">
+<short></short>
+</element>
+<element name="tfpstate.st">
+<short></short>
+</element>
+<element name="tfpstate.status">
+<short></short>
+</element>
+
+<!-- array type Visibility: default -->
+<!-- alias type Visibility: default -->
+<element name="SigSet">
+<short>Signal set type</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="sigset_t">
+<short>Signal set type</short>
+</element>
+
+<!-- pointer type Visibility: default -->
+<element name="PSigSet">
+<short>Pointer to <link id="SigSet"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="psigset_t">
+<short>Pointer to <link id="sigset_t"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TSigSet">
+<short>Alias for <link id="SigSet"/> type.</short>
+</element>
+
+<!-- pointer type Visibility: default -->
+<element name="PSigInfoRec">
+<short>Pointer to <link id="SigInfoRec"/> record type.</short>
+</element>
+
+<!-- record type Visibility: default -->
+<element name="SigInfoRec">
+<short>Record containing signal information.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="SigInfoRec.si_signo">
+<short>Signal number.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="SigInfoRec.si_errno">
+<short>?</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="SigInfoRec.si_code">
+<short>?</short>
+</element>
+
+<!-- procedure type Visibility: default -->
+<element name="SignalHandler">
+<short>Simple signal handler prototype</short>
+</element>
+
+<!-- pointer type Visibility: default -->
+<element name="PSignalHandler">
+<short>Pointer to <link id="SignalHandler"/> type.</short>
+</element>
+
+<element name="SignalRestorer">
+<short>Signal restorer function prototype</short>
+</element>
+<element name="PSignalrestorer">
+<short>Pointer to <link id="SignalRestorer"/> type</short>
+</element>
+
+<!-- procedure type Visibility: default -->
+<element name="TSigAction">
+<short>Extended signal handler prototype.</short>
+</element>
+
+<!-- record type Visibility: default -->
+<element name="SigActionRec">
+<short>Record used in <link id="fpSigAction"/> call.</short>
+</element>
+<element name="SigActionRec.sa_handler">
+<short>Funcion called when signal is triggered.</short>
+</element>
+<element name="SigActionRec.Sa_Mask">
+<short>Signal mask.</short>
+</element>
+<element name="SigActionRec.SA_FLAGS">
+<short>Flags for SigAction</short>
+</element>
+<element name="SigActionRec.SA_RESTORER">
+<short>Obsolete, don't use</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TSigActionRec">
+<short>Alias for <link id="SigActionRec"/> record type.</short>
+</element>
+
+<!-- pointer type Visibility: default -->
+<element name="PSigActionRec">
+<short>Pointer to <link id="SigActionRec"/> record type.</short>
+</element>
+
+<!-- array type Visibility: default -->
+<element name="TGrpArr">
+<short>Array of <link id="gid_t"/> IDs</short>
+</element>
+
+<!-- pointer type Visibility: default -->
+<element name="pGrpArr">
+<short>Pointer to <link id="TGrpArr"/> array.</short>
+</element>
+
+<!-- array type Visibility: default -->
+<element name="TFilDes">
+<short>Array of file descriptors as used in <link id="fpPipe"/> call.</short>
+</element>
+
+<!-- pointer type Visibility: default -->
+<element name="pFilDes">
+<short>Pointer to <link id="TFilDes"/> type.</short>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpSigProcMask">
+<short>Set list of blocked signals</short>
+<descr>
+<p>
+Changes the list of currently blocked signals. The behaviour of the call
+depends on <var>How</var> :
+</p>
+<dl>
+<dt>SIG_BLOCK</dt>
+<dd>The set of blocked signals is the union of the current set
+and the <var>nset</var> argument.</dd>
+<dt>SIG_UNBLOCK</dt>
+<dd>The signals in <var>nset</var> are removed from the set of
+currently blocked signals.</dd>
+<dt>SIG_SETMASK</dt>
+<dd>The list of blocked signals is set so <var>nset</var>.
+</dd>
+</dl>
+<p>
+If <var>oset</var> is non-nil, then the old set is stored in it.
+</p>
+</descr>
+<errors>
+<p>
+<var>Errno</var> is used to report errors.
+</p>
+<dl>
+<dt>sys_efault</dt>
+<dd><var>oset</var> or <var>nset</var> point to an adress outside
+the range of the process.</dd>
+<dt>sys_eintr</dt>
+<dd> System call was interrupted.</dd>
+</dl>
+</errors>
+<seealso>
+<link id="fpSigAction"/>
+<link id="fpSigPending"/>
+<link id="fpSigSuspend"/>
+<link id="fpKill"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpSigPending">
+<short>Return set of currently pending signals</short>
+<descr>
+<var>fpSigpending</var> allows the examination of pending signals (which have been raised
+while blocked.) The signal mask of pending signals is returned.
+</descr>
+<errors>
+None
+</errors>
+<seealso>
+<link id="fpSigAction"/>
+<link id="fpSigProcMask"/>
+<link id="fpSigSuspend"/>
+<link id="fpSignal"/>
+<link id="fpKill"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpSigSuspend">
+<short>Set signal mask and suspend process till signal is received</short>
+<descr>
+<var>fpSigSuspend</var> temporarily replaces the signal mask for the process with the one
+given in <var>SigMask</var>, and then suspends the process until a signal is received.
+</descr>
+<errors>
+None
+</errors>
+<seealso>
+<link id="fpSigAction"/>
+<link id="fpSigProcMask"/>
+<link id="fpSigPending"/>
+<link id="fpSignal"/>
+<link id="fpKill"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpUmask">
+<short>Set file creation mask.</short>
+<descr>
+<var>fpUmask</var> changes the file creation mask for the current user to 
+<var>cmask</var>. The current mask is returned.
+</descr>
+<seealso>
+<link id="fpChmod"/>
+</seealso>
+<example file="linuxex/ex27"/>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpLink">
+<short>Create a hard link to a file</short>
+<descr>
+<var>fpLink</var> makes <var>NewOne</var> point to the same file als
+<var>Existing</var>. The two files
+then have the same inode number. This is known as a 'hard' link.
+The function returns <var>zero</var> if the call was succesfull, and returns
+a <var>non-zero</var> value if the call failed.
+</descr>
+<errors>
+<p>
+The following error codes are returned:
+</p>
+<dl>
+<dt>sys_exdev</dt>
+<dd> <var>Existing</var> and <var>NewOne</var> are not on the same filesystem.</dd>
+<dt>sys_eperm</dt><dd> The filesystem containing <var>Existing</var> and
+<var>NewOne</var> doesn't support linking files.</dd>
+<dt>sys_eaccess</dt>
+<dd>Write access for the directory containing <var>NewOne</var>
+is disallowed, or one of the directories in <var>Existing</var> or <var>NewOne</var> has no
+search (=execute) permission.</dd>
+<dt>sys_enoent</dt>
+<dd>A directory entry in <var>Existing</var> or <var>NewOne</var> does
+not exist or is a symbolic link pointing to a non-existent directory.</dd>
+<dt>sys_enotdir</dt>
+<dd> A directory entry in <var>Existing</var> or <var>NewOne</var> is
+nor a directory.</dd>
+<dt>sys_enomem</dt><dd> Insufficient kernel memory.</dd>
+<dt>sys_erofs</dt><dd> The files are on a read-only filesystem.</dd>
+<dt>sys_eexist</dt><dd> <var>NewOne</var> already exists.</dd>
+<dt>sys_emlink</dt><dd> <var>Existing</var> has reached maximal link count.</dd>
+<dt>sys_eloop</dt>
+<dd><var>existing</var> or <var>NewOne</var> has a reference to a circular
+symbolic link, i.e. a symbolic link, whose expansion points to itself.</dd>
+<dt>sys_enospc</dt>
+<dd> The device containing <var>NewOne</var> has no room for another
+entry.</dd>
+<dt>sys_eperm</dt>
+<dd><var>Existing</var> points to . or .. of a directory.</dd>
+</dl>
+</errors>
+<seealso>
+<link id="#rtl.unix.fpSymLink"/>
+<link id="fpUnLink"/>
+</seealso>
+<example file="linuxex/ex21"/>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpMkfifo">
+<short>Create FIFO (named pipe) in file system</short>
+<descr>
+<p>
+<var>fpMkFifo</var> creates named a named pipe in the filesystem, with name
+<var>Path</var> and mode <var>Mode</var>.
+</p>
+<p>
+The function returns zero if the command was succesful, and nonzero if it
+failed.
+</p>
+</descr>
+<errors>
+<p>
+The error codes include:
+</p>
+<dl>
+<dt>sys_emfile</dt><dd> Too many file descriptors for this process.</dd>
+<dt>sys_enfile</dt><dd> The system file table is full.</dd>
+</dl>
+</errors>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpChmod">
+<short>Change file permission bits</short>
+<descr>
+<p>
+<var>fpChmod</var>
+sets the Mode bits of the file in <var>Path</var> to <var>Mode</var>.
+<var>Mode</var> can be specified by 'or'-ing the following values:
+</p>
+<dl>
+<dt>S_ISUID</dt><dd> Set user ID on execution.</dd>
+<dt>S_ISGID</dt><dd> Set Group ID on execution.</dd>
+<dt>S_ISVTX</dt><dd> Set sticky bit.</dd>
+<dt>S_IRUSR</dt><dd> Read by owner.</dd>
+<dt>S_IWUSR</dt><dd> Write by owner.</dd>
+<dt>S_IXUSR</dt><dd> Execute by owner.</dd>
+<dt>S_IRGRP</dt><dd> Read by group.</dd>
+<dt>S_IWGRP</dt><dd> Write by group.</dd>
+<dt>S_IXGRP</dt><dd> Execute by group.</dd>
+<dt>S_IROTH</dt><dd> Read by others.</dd>
+<dt>S_IWOTH</dt><dd> Write by others.</dd>
+<dt>S_IXOTH</dt><dd> Execute by others.</dd>
+<dt>S_IRWXO</dt><dd> Read, write, execute by others.</dd>
+<dt>S_IRWXG</dt><dd> Read, write, execute by groups.</dd>
+<dt>S_IRWXU</dt><dd> Read, write, execute by user.</dd>
+</dl>
+<p>
+If the function is successful, zero is returned. A nonzero return value
+indicates an error.
+</p>
+</descr>
+<errors>
+<p>
+The following error codes are returned:
+</p>
+<dl>
+<dt>sys_eperm</dt>
+<dd> The effective UID doesn't match the ownership of the file,
+and is not zero. Owner or group were not specified correctly.</dd>
+<dt>sys_eaccess</dt>
+<dd> One of the directories in <var>Path</var> has no
+search (=execute) permission.</dd>
+<dt>sys_enoent</dt>
+<dd> A directory entry in <var>Path</var> does
+not exist or is a symbolic link pointing to a non-existent directory.</dd>
+<dt>sys_enomem</dt>
+<dd> Insufficient kernel memory.</dd>
+<dt>sys_erofs</dt>
+<dd> The file is on a read-only filesystem.</dd>
+<dt>sys_eloop</dt>
+<dd> <var>Path</var> has a reference to a circular
+symbolic link, i.e. a symbolic link, whose expansion points to itself.</dd>
+</dl>
+</errors>
+<seealso>
+<link id="fpChown"/>
+<link id="fpAccess"/>
+</seealso>
+<example file="linuxex/ex23"/>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpChown">
+<short>Change owner of file</short>
+<descr>
+<p>
+<var>fpChown</var> sets the User ID and Group ID of the file in <var>Path</var> to
+<var>Owner</var>,<var>Group</var>.
+</p>
+<p>
+The function returns zero if the call was succesfull, a nonzero return value
+indicates an error.
+</p>
+</descr>
+<errors>
+<p>
+The following error codes are returned:
+</p>
+<dl>
+<dt>sys_eperm</dt>
+<dd> The effective UID doesn't match the ownership of the file,
+and is not zero. Owner or group were not specified correctly.</dd>
+<dt>sys_eaccess</dt>
+<dd> One of the directories in <var>Path</var> has no
+search (=execute) permission.</dd>
+<dt>sys_enoent</dt>
+<dd> A directory entry in <var>Path</var> does
+not exist or is a symbolic link pointing to a non-existent directory.</dd>
+<dt>sys_enomem</dt>
+<dd> Insufficient kernel memory.</dd>
+<dt>sys_erofs</dt>
+<dd> The file is on a read-only filesystem.</dd>
+<dt>sys_eloop</dt>
+<dd> <var>Path</var> has a reference to a circular
+symbolic link, i.e. a symbolic link, whose expansion points to itself.</dd>
+</dl>
+</errors>
+<seealso>
+<link id="fpChmod"/>
+<link id="fpAccess"/>
+</seealso>
+<example file="linuxex/ex24"/>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpUtime">
+<short>Set access and modification times of a file (touch).</short>
+<descr>
+<var>FpUtime</var> sets the access and modification times of a file.
+the <var>times</var> record contains 2 fields, <var>actime</var>, and <var>modtime</var>,
+both of type Longint. They should be filled with an epoch-like time,
+specifying, respectively, the last access time, and the last modification
+time. 
+For some filesystem (most notably, FAT), these times are the same. 
+</descr>
+<errors>
+<p>
+Errors are returned in <var>LinuxError</var>.
+</p>
+<dl>
+<dt>sys_eaccess</dt>
+<dd> One of the directories in <var>Path</var> has no
+search (=execute) permission.</dd>
+<dt>sys_enoent</dt>
+<dd> A directory entry in <var>Path</var> does 
+not exist or is a symbolic link pointing to a non-existent directory.
+</dd>
+</dl>
+<p>
+Other errors may occur, but aren't documented.
+</p>
+</errors>
+<seealso>
+<link id="fpChown"/>
+<link id="fpAccess"/>
+</seealso>
+<example file="linuxex/ex25"/>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpPipe">
+<short>Create a set of pipe file handlers</short>
+<descr>
+<p>
+<var>FpPipe</var> creates a pipe, i.e. two file objects, one for input,
+one for output. The filehandles are returned in the array <var>fildes</var>.
+The input handle is in the 0-th element of the array, the output handle is 
+in the 1-st element.
+</p>
+<p>
+The function returns zero if everything went succesfully,
+a nonzero return value indicates an error.
+</p>
+</descr>
+<errors>
+<p>
+In case the function fails, the following return values are possible:
+</p>
+<dl>
+<dt>sys_emfile</dt>
+<dd> Too many file descriptors for this process.</dd>
+<dt>sys_enfile</dt>
+<dd> The system file table is full.</dd>
+</dl>
+</errors>
+<seealso>
+<link id="#rtl.unix.fpPOpen"/>
+<link id="fpMkFifo"/>
+</seealso>
+<example file="linuxex/ex36"/>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpDup">
+<short>Duplicate a file handle</short>
+<descr>
+<p>
+<var>FpDup</var>  returns a file descriptor that is a duplicate of the file
+descriptor <var>fildes</var>.
+</p>
+<p>The second and third forms make <var>NewFile</var> an exact copy of <var>OldFile</var>, 
+after having flushed the buffer of <var>OldFile</var> in case it is a Text file
+or untyped file. 
+Due to the buffering mechanism of Pascal, these calls do not have the same functionality
+as the <var>dup</var> call in C. The internal Pascal buffers are not the same 
+after this call, but when the buffers are flushed (e.g. after output), 
+the output is sent to the same file.
+Doing an lseek will, however, work as in C, i.e. doing a lseek will change 
+the fileposition in both files.
+</p>
+<p>
+The function returns a negative value in case of an error, a positive value
+is a file handle, and indicates succes.
+</p>
+</descr>
+<errors>
+<p>
+A negative value can be one of the following error codes:
+</p>
+<dl>
+<dt>sys_ebadf</dt><dd> <var>OldFile</var> hasn't been assigned.</dd>
+<dt>sys_emfile</dt><dd> Maximum number of open files for the process is reached.</dd>
+</dl>
+</errors>
+<seealso>
+<link id="fpDup2"/>
+</seealso>
+<example file="linuxex/ex31"/>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpDup2">
+<short>Duplicate one filehandle to another</short>
+<descr>
+<p>
+Makes <var>fildes2</var> or <var>NewFile</var> an exact copy of
+<var>fildes</var> or <var>OldFile</var>, after having flushed the
+buffer of <var>OldFile</var> in the case of text or untyped files. 
+</p>
+<p>
+<var>NewFile</var> can be an assigned file. If <var>newfile</var> was open, it is 
+closed first. Due to the buffering mechanism of Pascal, this has not
+the same functionality as the <var>dup2</var> call in C. The internal Pascal
+buffers are not the same after this call, but when the buffers are flushed
+(e.g. after output), the output is sent to the same file.
+Doing an lseek will, however, work as in C, i.e. doing a lseek will change the
+fileposition in both files.
+</p>
+<p>
+The function returns zero if succesful, a nonzero return value means the
+call failed.
+</p>
+</descr>
+<errors>
+<p>
+In case of error, the following error codes can be reported:
+</p>
+<dl>
+<dt>sys_ebadf</dt><dd> <var>OldFile</var> (or <var>fildes</var>) hasn't been assigned.</dd>
+<dt>sys_emfile</dt><dd> Maximum number of open files for the process is reached.</dd>
+</dl>
+</errors>
+<seealso>
+<link id="fpDup"/>
+</seealso>
+<example file="linuxex/ex32"/>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpTimes">
+<short>Return execution times for the current process</short>
+<descr>
+<p>
+<var>fpTimes</var> stores the execution time of the current process and
+child processes in <var>buffer</var>. 
+</p>
+<p>
+The return value (on linux) is the number of clock ticks since boot time. On
+error, -1 is returned, and extended error information can be retrieved with
+<link id="fpGetErrno"/>.
+</p>
+</descr>
+<seealso>
+<link id="fpUTime"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpAlarm">
+<short>Schedule an alarm signal to be delivered</short>
+<descr>
+<p>
+<var>FpAlarm</var> schedules an alarm signal to be delivered to your process in
+<var>Seconds</var> seconds. When <var>Seconds</var> seconds have elapsed, 
+the system will send a <var>SIGALRM</var> signal to the current process.  
+If <var>Seconds</var> is zero, then no new alarm will
+be set. Whatever the value of <var>Seconds</var>, any previous alarm is cancelled.
+</p>
+<p>
+The function returns the number of seconds till the previously scheduled
+alarm was due to be delivered, or zero if there was none. A negative value
+indicates an error.
+</p>
+</descr>
+<example file="linuxex/ex59"/>
+<seealso>
+<link id="fpSigAction"/>
+<link id="fpPause"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpPause">
+<short>Wait for a signal to arrive</short>
+<descr>
+<p>
+<var>FpPause</var> puts the process to sleep and waits until the application 
+receives  a signal. If a signal handler is installed for the received
+sigal, the handler will be called and after that pause will return
+control to the process.
+</p>
+<p>
+For an example, see <link id="fpAlarm"/>.
+</p>
+</descr>
+<link id="FpAlarm"/>
+<link id="FpSigAction"/>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpSleep">
+<short>Suspend process for several seconds</short>
+<descr>
+<p>
+<var>FpSleep</var> suspends the process till a time period as specified
+in <var>seconds</var> has passed, then the function returns. If the
+call was interrupted (e.g. by some signal) then the function may
+return earlier, and the return value is the remaining time till the
+end of the intended period. 
+</p>
+<p>
+If the function returns without error, the return value is zero.
+</p>
+</descr>
+<seealso>
+<link id="fpPause"/>
+<link id="fpAlarm"/>
+<link id="fpNanoSleep"/>
+</seealso>
+<example file="linuxex/ex73"/>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpGetpid">
+<short>Return current process ID</short>
+<descr>
+<var>FpGetpid</var> returns the Process ID of the currently running process.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="FpGetPPid"/>
+</seealso>
+<example file="linuxex/ex16"/>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpGetppid">
+<short>Return parent process ID</short>
+<descr>
+<var>FpGetppid</var> returns the Process ID of the parent process.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="FpGetPid"/>
+</seealso>
+<example file="linuxex/ex16"/>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpGetuid">
+<short>Return current user ID</short>
+<descr>
+<var>FpGetuid</var> returns the real user ID of the currently running process.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="FpGetGid"/>
+<link id="FpGetEUid"/>
+<link id="FpGetEGid"/>
+<link id="FpGetPid"/>
+<link id="FpGetPPid"/>
+<link id="fpSetUID"/>
+</seealso>
+<example file="linuxex/ex17"/>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpGeteuid">
+<short>Return effective user ID</short>
+<descr>
+<var>FpGeteuid</var> returns the effective user ID of the currently running process.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="FpGetUid"/>
+<link id="FpGetGid"/>
+<link id="FpGetEGid"/>
+<link id="FpGetPid"/>
+<link id="FpGetPPid"/>
+<link id="fpSetUID"/>
+<link id="FpSetGid"/>
+</seealso>
+<example file="linuxex/ex17"/>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpGetgid">
+<short>Return real group ID</short>
+<descr>
+<var>FpGetgid</var> returns the real group ID of the currently running process.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="FpGetEGid"/>
+<link id="FpGetUid"/>
+<link id="FpGetEUid"/>
+<link id="FpGetPid"/>
+<link id="FpGetPPid"/>
+<link id="fpSetUID"/>
+<link id="FpSetGid"/>
+</seealso>
+<example file="linuxex/ex18"/>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpGetegid">
+<short>Return effective group ID</short>
+<descr>
+<var>FpGetegid</var> returns the effective group ID of the currently running process.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="FpGetGid"/>
+<link id="FpGetUid"/>
+<link id="FpGetEUid"/>
+<link id="FpGetPid"/>
+<link id="FpGetPPid"/>
+<link id="fpSetUID"/>
+<link id="FpSetGid"/>
+</seealso>
+<example file="linuxex/ex18"/>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpSetuid">
+<short>Set the current user ID</short>
+<descr>
+<p>
+<var>fpSetUID</var> sets the user ID of the current process. This call will
+only work if it is executed as root, or the program is setuid root.
+</p>
+<p>
+On success, zero is returned, on error -1 is returned.
+</p>
+</descr>
+<errors>
+Extended error information can be retrieved with <link id="fpGetErrNo"/>.
+</errors>
+<seealso>
+<link id="FpGetGid"/>
+<link id="FpGetUid"/>
+<link id="FpGetEUid"/>
+<link id="FpGetEGid"/>
+<link id="FpGetPid"/>
+<link id="FpGetPPid"/>
+<link id="FpSetGid"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpSetgid">
+<short>Set the current group ID</short>
+<descr>
+<p>
+<var>fpSetUID</var> sets the group ID of the current process. This call will
+only work if it is executed as root, or the program is setgid root.
+</p>
+<p>
+On success, zero is returned, on error -1 is returned.
+</p>
+</descr>
+<errors>
+Extended error information can be retrieved with <link id="fpGetErrNo"/>.
+</errors>
+<seealso>
+<link id="FpSetUid"/>
+<link id="FpGetGid"/>
+<link id="FpGetUid"/>
+<link id="FpGetEUid"/>
+<link id="FpGetEGid"/>
+<link id="FpGetPid"/>
+<link id="FpGetPPid"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpGetgroups">
+<short>Get the list of supplementary groups.</short>
+<descr>
+<p>
+<var>FpGetgroups</var> returns up to <var>gidsetsize</var> groups in
+<var>GroupList</var>
+</p>
+<p>
+If the function is successful, then number of groups that were stored is
+returned. On error, -1 is returned.
+</p>
+</descr>
+<errors>
+On error, -1 is returned. Extended error information can be retrieved with
+<link id="fpGetErrNo"/>
+</errors>
+<seealso>
+<link id="FpGetpgrp"/>
+<link id="FpGetGID"/>
+<link id="FpGetEGID"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpGetpgrp">
+<short>Get process group ID</short>
+<descr>
+<var>FpGetpgrp</var> returns the process group ID of the current process.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="fpGetPID"/>
+<link id="fpGetPPID"/>
+<link id="FpGetGID"/>
+<link id="FpGetUID"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpSetsid">
+<short>Create a new session.</short>
+<descr>
+<var>FpSetsid</var> creates a new session (process group). It returns the
+new process group id (as returned by <link id="FpGetpgrp"/>.  This call will
+fail if the current process is already the process group leader.
+</descr>
+<errors>
+On error, -1 is returned. Extended error information can be retrieved with
+<link id="fpGetErrNo"/>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpFcntl">
+<short>File control operations.</short>
+<descr>
+<p>
+Read/set a file's attributes. <var>Fildes</var>  a valid file descriptor.
+<var>Cmd</var> speciefies what to do, and is one of the following:
+</p>
+<dl>
+<dt>F_GetFd</dt>
+<dd>Read the close_on_exec flag. If the low-order bit is 0, then
+the file will remain open across execve calls.</dd>
+<dt>F_GetFl</dt><dd>Read the descriptor's flags.</dd>
+<dt>F_GetOwn</dt><dd>Get the Process ID of the owner of a socket.</dd>
+<dt>F_SetFd</dt>
+<dd>Set the close_on_exec flag of <var>fildes</var>. (only the least
+siginificant bit is used).
+</dd>
+<dt>F_GetLk</dt>
+<dd>Return the <var>flock</var> record that prevents this process from
+obtaining the lock, or set the <var>l_type</var> field of the lock of there is no
+obstruction. <var>Arg</var> is the flock record.
+</dd>
+<dt>F_SetLk</dt>
+<dd> Set the lock or clear it (depending on <var>l_type</var> in the
+<var>flock</var> structure). if the lock is held by another process, an error
+occurs.
+</dd>
+<dt>F_GetLkw</dt>
+<dd> Same as for <b>F_Setlk</b>, but wait until the lock is
+released.
+</dd>
+<dt>F_SetOwn</dt>
+<dd> Set the Process or process group that owns a socket.
+</dd>
+</dl>
+<p>
+The function returns 0 if successful, -1 otherwise.
+</p>
+</descr>
+<errors>
+<p>
+On error, -1 is returned. Use <link id="fpGetErrno"/> for extended error information. 
+</p>
+<dl>
+<dt>sys_ebadf</dt><dd> <var>Fd</var> has a bad file descriptor.</dd>
+<dt>sys_eagain or sys_eaccess</dt><dd> For \textbf{F_SetLk}, if the lock is
+held by another process.</dd>
+</dl>
+</errors>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpGetcwd">
+<short>Retrieve the current working directory.</short>
+<descr>
+<p>
+<var>fpgetCWD</var> returns the current working directory of the running
+process. It is returned in <var>Path</var>, which points to a memory
+location of at least <var>siz</var> bytes.
+</p>
+<p>
+If the function is succesful, a pointer to <var>Path</var> is returned, or a
+string with the result. On error <var>Nil</var> or an empty string are
+returned.
+</p>
+</descr>
+<errors>
+On error <var>Nil</var> or an empty string are returned.
+</errors>
+<seealso>
+<link id="FpGetPID"/>
+<link id="FpGetUID"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpFork">
+<short>Create child process</short>
+<descr>
+<var>FpFork</var> creates a child process which is a copy of the parent process.
+<var>FpFork</var> returns the process ID in the parent process, and zero in the child's
+process. (you can get the parent's PID with <link id="fpGetPPid"/>).
+</descr>
+<errors>
+<p>
+On error, -1 is returned to the parent, and no child is created.
+</p>
+<dl>
+<dt>sys_eagain</dt><dd> Not enough memory to create child process.
+</dd>
+</dl>
+</errors>
+<seealso>
+<link id="fpExecve"/>
+<link id="#rtl.linux.Clone"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpExecve">
+<short>Execute process using environment</short>
+<descr>
+Replaces the currently running program with the program, specified in
+<var>path</var>.
+It gives the program the options in <var>argv</var>, and the environment in
+<var>envp</var>. They are pointers to an array of pointers to null-terminated
+strings. The last pointer in this array should be <var>nil</var>.
+On success, <var>execve</var> does not return.
+</descr>
+<errors>
+<p>
+Extended error information can be retrieved with <link id="fpGetErrno"/>,
+and includes the following:
+</p>
+<dl>
+<dt>sys_eacces</dt>
+<dd> File is not a regular file, or has no execute permission.
+A compononent of the path has no search permission.</dd>
+<dt>sys_eperm</dt><dd> The file system is mounted \textit{noexec}.</dd>
+<dt>sys_e2big</dt><dd> Argument list too big.</dd>
+<dt>sys_enoexec</dt><dd> The magic number in the file is incorrect.</dd>
+<dt>sys_enoent</dt><dd> The file does not exist.</dd>
+<dt>sys_enomem</dt><dd> Not enough memory for kernel.</dd>
+<dt>sys_enotdir</dt><dd> A component of the path is not a directory.</dd>
+<dt>sys_eloop</dt><dd> The path contains a circular reference (via symlinks).</dd>
+</dl>
+</errors>
+<seealso>
+<link id="fpExecv"/>
+<link id="fpFork"/>
+</seealso>
+<example file="linuxex/ex7"/>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpExecv">
+<short>Execute process</short>
+<descr>
+Replaces the currently running program with the program, specified in
+<var>path</var>.
+It gives the program the options in <var>argvp</var>.
+This is a pointer to an array of pointers to null-terminated
+strings. The last pointer in this array should be nil.
+The current environment is passed to the program.
+On success, <var>execv</var> does not return.
+</descr>
+<errors>
+<p>
+Errors are reported in <var>LinuxError</var>:
+</p>
+<dl>
+<dt>sys_eacces</dt>
+<dd> File is not a regular file, or has no execute permission.
+A compononent of the path has no search permission.</dd>
+<dt>sys_eperm</dt><dd> The file system is mounted \textit{noexec}.</dd>
+<dt>sys_e2big</dt><dd> Argument list too big.</dd>
+<dt>sys_enoexec</dt><dd> The magic number in the file is incorrect.</dd>
+<dt>sys_enoent</dt><dd> The file does not exist.</dd>
+<dt>sys_enomem</dt><dd> Not enough memory for kernel.</dd>
+<dt>sys_enotdir</dt><dd> A component of the path is not a directory.</dd>
+<dt>sys_eloop</dt><dd> The path contains a circular reference (via symlinks).</dd>
+</dl>
+</errors>
+<seealso>
+<link id="fpExecve"/>
+<link id="fpFork"/>
+</seealso>
+<example file="linuxex/ex8"/>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpWaitpid">
+<short>Wait for a process to terminate</short>
+<descr>
+<p>
+<var>fpWaitPid</var> waits for a child process with process ID <var>Pid</var> to exit. The
+value of <var>Pid</var> can be one of the following:
+</p>
+<dl>
+<dt>Pid &lt; -1</dt>
+<dd> Causes <var>fpWaitPid</var> to wait for  any  child  process  whose
+process group ID equals the absolute value of <var>pid</var>.</dd>
+<dt>Pid = -1</dt>
+<dd>Causes <var>fpWaitPid</var> to wait for any child process.</dd>
+<dt>Pid = 0</dt>
+<dd>Causes <var>fpWaitPid</var> to wait for  any  child  process  whose
+process  group  ID  equals the one of the calling process.</dd>
+<dt>Pid &gt; 0</dt>
+<dd> Causes <var>fpWaitPid</var> to wait for the child whose process ID
+equals the value of <var>Pid</var>.</dd>
+</dl>
+<p>
+The <var>Options</var> parameter can be used to specify further how <var>fpWaitPid</var>
+behaves:
+</p>
+<dl>
+<dt>WNOHANG</dt>
+<dd> Causes <var>fpWaitpid</var> to return immediately if no child  hasexited.</dd>
+<dt>WUNTRACED</dt>
+<dd> Causes <var>fpWaitPid</var> to return also for children which are
+stopped, but whose status has not yet been reported.</dd>
+<dt>__WCLONE</dt>
+<dd> Causes <var>fpWaitPid</var> also to wait for threads created by
+the <link id="#rtl.linux.Clone"/> call.</dd>
+</dl>
+<p>
+The exit status of the process that caused <var>fpWaitPID</var> is reported
+in <var>stat_loc</var> or <var>Status</var>.
+</p>
+<p> 
+Upon return, it returns the process id of the process that exited, 0 if no
+process exited, or -1 in case of failure. 
+</p>
+<p>
+For an example, see <link id="fpFork"/>.
+</p>
+</descr>
+<errors>
+Extended error information can be retrieved using <link id="fpgetErrno"/>.
+</errors>
+<seealso>
+<link id="fpFork"/>
+<link id="fpExecve"/>
+<link id="fpWait"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpWait">
+<short>Wait for a child to exit.</short>
+<descr>
+<p>
+<var>fpWait</var> suspends the current process and 
+waits for any child to exit or stop due to a signal. 
+It reports the exit status of the exited child 
+in <var>stat_loc</var>.
+</p>
+<p>
+The return value of the function is the process ID of the child that
+exited, or -1 on error.
+</p>
+</descr>
+<errors>
+Extended error information can be retrieved using <link id="fpgetErrno"/>.
+</errors>
+<seealso>
+<link id="fpFork"/>
+<link id="fpExecve"/>
+<link id="fpWaitPid"/>
+</seealso>
+</element>
+
+<!-- procedure Visibility: default -->
+<element name="FpExit">
+<short>Exit the current process</short>
+<descr>
+<p>
+<var>FpExit</var> exits the currently running process, and report
+<var>Status</var> as the exit status.
+</p>
+<remark>
+If this call is executed, the normal unit finalization code will not be
+executed. This may lead to unexpected errors and stray files on your system.
+It is therefore recommended to use the <var>Halt</var> call instead.
+</remark>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="FpFork"/>
+<link id="FpExecve"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpKill">
+<short>Send a signal to a process</short>
+<descr>
+<p>
+<var>fpKill</var> sends a signal <var>Sig</var> to a process or process group. If <var>Pid</var>&gt;0 then
+the signal is sent to <var>Pid</var>, if it equals -1, then the signal is sent to
+all processes except process 1. If <var>Pid</var>&lt;-1 then the signal is sent to
+process group -Pid.
+</p>
+<p>
+The return value is zero, except in case three, where the return value is the
+number of processes to which the signal was sent.
+</p>
+</descr>
+<errors>
+<p>
+Extended error information can be retrieved using <link id="fpGetErrno"/>:
+</p>
+<dl>
+<dt>sys_einval</dt><dd> An invalid signal is sent.</dd>
+<dt>sys_esrch</dt><dd> The <var>Pid</var> or process group don't exist.</dd>
+<dt>sys_eperm</dt><dd> The effective userid of the current process doesn't math
+the one of process <var>Pid</var>.</dd>
+</dl>
+</errors>
+<seealso>
+<link id="FpSigAction"/>
+<link id="FpSignal"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpUname">
+<short>Return system name.</short>
+<descr>
+<p>
+<var>Uname</var> gets the name and configuration of the current linux kernel,
+and returns it in the <var>name</var> record.
+</p>
+<p>
+On success, 0 is returned, on error, -1 is returned.
+</p>
+</descr>
+<errors>
+Extended error information can be retrieved using <link id="fpGetErrno"/>.
+</errors>
+<seealso>
+<link id="FpUTime"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpOpendir">
+<short>Open a directory for reading</short>
+<descr>
+<var>FpOpenDir</var> opens the directory  <var>DirName</var>, and returns a
+<var>pdir</var> pointer to a <link id="Dir"/> record, which can be used to 
+read the directory  structure. If the directory cannot be opened, <var>nil
+</var> is returned.
+</descr>
+<errors>
+Extended error information can be retrieved using <link id="fpGetErrno"/>.
+</errors>
+<seealso>
+<link id="FpCloseDir"/>
+<link id="FpReadDir"/>
+</seealso>
+<example file="linuxex/ex35"/>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpReaddir">
+<short>Read entry from directory</short>
+<descr>
+<p>
+<var>FpReadDir</var> reads the next entry in the directory pointed to by
+<var>dirp</var>.
+It returns a <var>pdirent</var> pointer to a <link id="dirent"/> record describing the entry.
+If the next entry can't be read, <var>Nil</var> is returned.
+</p>
+<p>
+For an example, see <link id="FpOpenDir"/>.
+</p>
+</descr>
+<errors>
+Extended error information can be retrieved using <link id="fpGetErrno"/>.
+</errors>
+<seealso>
+<link id="FpCloseDir"/>
+<link id="FpOpenDir"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpClosedir">
+<short>Close directory file descriptor</short>
+<descr>
+<p>
+<var>FpCloseDir</var> closes the directory pointed to by <var>dirp</var>.
+It returns zero if the directory was closed succesfully, -1 otherwise.
+</p>
+<p>
+For an example, see <link id="fpOpenDir"/>.
+</p>
+</descr>
+<errors>
+Extended error information can be retrieved using <link id="fpGetErrno"/>.
+</errors>
+<seealso>
+<link id="FpOpenDir"/>
+<link id="FpReadDir"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpChdir">
+<short>Change current working directory.</short>
+<descr>
+<p>
+<var>fpChDir</var> sets the current working directory to <var>Path</var>.
+</p>
+<p>
+It returns zero if the call was succesful, -1 on error.
+</p>
+</descr>
+<errors>
+Extended error information can be retrieved using <link id="fpGetErrno"/>.
+</errors>
+<seealso>
+<link id="fpGetCwd"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpOpen">
+<short>Open file and return file descriptor</short>
+<descr>
+<p>
+<var>FpOpen</var> opens a file in <var>Path</var> with flags <var>flags</var>
+and mode <var>Mode</var>
+One of the following:
+</p>
+<dl>
+<dt>O_RdOnly</dt><dd>File is opened Read-only</dd>
+<dt>O_WrOnly</dt><dd>File is opened Write-only</dd>
+<dt>O_RdWr</dt><dd>File is opened Read-Write</dd>
+</dl>
+<p>
+The flags may be<var>OR</var>-ed with one of the following constants:
+</p>
+<dl>
+<dt>O_Creat</dt><dd> File is created if it doesn't exist.</dd>
+<dt>O_Excl</dt><dd> If the file is opened with <var>Open_Creat</var> and it
+already exists, the call wil fail.</dd>
+<dt>O_NoCtty</dt><dd> If the file is a terminal device, it will NOT become
+the process' controlling terminal.</dd>
+<dt>O_Trunc</dt><dd> If the file exists, it will be truncated.</dd>
+<dt>O_Append</dt><dd> the file is opened in append mode. <em>Before each
+write</em>, the file pointer is positioned at the end of the file.</dd>
+<dt>O_NonBlock</dt><dd> The file is opened in non-blocking mode. No operation
+on the file descriptor will cause the calling process to wait till.</dd>
+<dt>O_NDelay</dt><dd> Idem as <var>Open_NonBlock</var></dd>
+<dt>O_Sync</dt><dd> The file is opened for synchronous IO. Any write
+operation on the file will not return untill the data is physically written
+to disk.</dd>
+<dt>O_NoFollow</dt><dd> if the file is a symbolic link, the open fails.
+(linux 2.1.126 and higher only)</dd>
+<dt>O_Directory</dt><dd> if the file is not a directory, the open fails.
+(linux 2.1.126 and higher only)</dd>
+</dl>
+<p>
+<var>Path</var> can be of type <var>PChar</var> or <var>String</var>.
+The optional <var>mode</var> argument specifies the permissions to set when opening
+the file. This is modified by the umask setting. The real permissions are
+<var>Mode and not umask</var>.
+The return value of the function is the filedescriptor, or a negative
+value if there was an error.
+</p>
+</descr>
+<errors>
+Extended error information can be retrieved using <link id="fpGetErrno"/>.
+</errors>
+<seealso>
+<link id="FpClose"/>
+<link id="FpRead"/>
+<link id="FpWrite"/>
+<link id="FpFTruncate"/>
+<link id="FpLSeek"/>
+</seealso>
+<example file="linuxex/ex19"/>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpMkdir">
+<short>Create a new directory</short>
+<descr>
+<p>
+<var>FpMkDir</var> creates a new directory <var>Path</var>, and sets the new
+directory's mode to <var>Mode</var>. Path can be an absolute path or a
+relative path. Note that only the last element of the directory will be
+created, higher level directories must already exist, and must be writeable
+by the current user.
+</p>
+<p>
+On succes, 0 is returned. if the function fails, -1 is returned.
+</p>
+</descr>
+<errors>
+Extended error information can be retrieved using <link id="fpGetErrno"/>.
+</errors>
+<seealso>
+<link id="fpGetCWD"/>
+<link id="fpChDir"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpUnlink">
+<short>Unlink (i.e. remove) a file.</short>
+<descr>
+<p>
+<var>FpUnLink</var> decreases the link count on file <var>Path</var>. <var>Path</var> can be
+of type <var>AnsiString</var> or <var>PChar</var>. If the link count is zero, the
+file is removed from the disk.
+</p>
+<p>
+The function returns zero if the call was succesfull, a nonzero value
+indicates failure.
+</p>
+<p>
+For an example, see <link id="FpLink"/>.
+</p>
+</descr>
+<errors>
+<p>
+Extended error information can be retrieved using <link id="fpGetErrno"/>.
+</p>
+<dl>
+<dt>sys_eaccess</dt>
+<dd>You have no write access right in the directory containing <var>Path</var>, 
+or you have no search permission in one of the directory components of 
+<var>Path</var>.</dd>
+<dt>sys_eperm</dt>
+<dd>The directory containing pathname has the sticky-bit set and the process's 
+effective uid is neither the uid of the file to be deleted nor that of the 
+directory containing it.</dd>
+<dt>sys_enoent</dt><dd>A component of the path doesn't exist.</dd>
+<dt>sys_enotdir</dt><dd>A directory component of the path is not a directory.</dd>
+<dt>sys_eisdir</dt><dd><var>Path</var> refers to a directory.</dd>
+<dt>sys_enomem</dt><dd>Insufficient kernel memory.</dd>
+<dt>sys_erofs</dt><dd><var>Path</var> is on a read-only filesystem.</dd>
+</dl>
+</errors>
+<seealso>
+<link id="FpLink"/>
+<link id="#rtl.unix.SymLink"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpRmdir">
+<short>Remove a directory.</short>
+<descr>
+<p>
+<var>FpRmdir</var> removes the directory <var>Path</var> from the system.
+The directory must be empty for this call to succeed, and the user must have
+the necessary permissions in the parent directory. Only the last component
+of the directory is removed, i.e. higher-lying directories are not removed.
+</p>
+<p>
+On success, zero is returned. A nonzero return value indicates failure.
+</p>
+</descr>
+<errors>
+Extended error information can be retrieved using <link id="fpGetErrno"/>.
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpRename">
+<short>Rename file</short>
+<descr>
+<p>
+<var>FpRename</var> renames the file <var>Old</var> to <var>NewPath</var>.
+<var>NewPath</var> can be in a different directory than <var>Old</var>, but it cannot be on
+another partition (device). Any existing file on the new location will be replaced.
+</p>
+<p>
+If the operation fails, then the <var>Old</var> file will be preserved. 
+</p>
+<p>
+The function returns zero on succes, a nonzero value indicates failure.
+</p>
+</descr>
+<errors>
+<p>
+Extended error information can be retrieved using <link id="fpGetErrno"/>.
+</p>
+<dl>
+<dt>sys_eisdir</dt>
+<dd><var>NewPath</var> exists and is a directory, but <var>Old</var> is not a directory.</dd>
+<dt>sys_exdev</dt>
+<dd><var>NewPath</var> and <var>Old</var> are on different devices.</dd>
+<dt>sys_enotempty or sys_eexist</dt>
+<dd><var>NewPath</var> is an existing, non-empty directory. </dd>
+<dt>sys_ebusy</dt>
+<dd><var>Old</var> or <var>NewPath</var> is a directory and is in use by another process.</dd>
+<dt>sys_einval</dt>
+<dd><var>NewPath</var> is part of <var>Old</var>.</dd>
+<dt>sys_emlink</dt>
+<dd><var>OldPath</var> or <var>NewPath</var> already have tha maximum
+amount of links pointing to them.</dd>
+<dt>sys_enotdir</dt>
+<dd>part of <var>Old</var> or <var>NewPath</var> is not directory.</dd>
+<dt>sys_efault</dt>
+<dd>For the <var>pchar</var> case: One of the pointers points to
+an invalid address.</dd>
+<dt>sys_eaccess</dt>
+<dd>access is denied when attempting to move the file.</dd>
+<dt>sys_enametoolong</dt>
+<dd> Either <var>Old</var> or <var>NewPath</var> is too long.</dd>
+<dt>sys_enoent</dt>
+<dd>a directory component in <var>Old</var> or <var>NewPath</var>
+didn't exist.</dd>
+<dt>sys_enomem</dt>
+<dd>not enough kernel memory.</dd>
+<dt>sys_erofs</dt>
+<dd><var>NewPath</var> or <var>Old</var> is on a read-only file system.</dd>
+<dt>sys_eloop</dt>
+<dd> too many symbolic links were encountered trying to expand
+<var>Old</var> or <var>NewPath</var></dd>
+<dt>sys_enospc</dt>
+<dd> the filesystem has no room for the new directory entry.</dd>
+</dl>
+</errors>
+<seealso>
+<link id="FpUnLink"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpFStat">
+<short>Retrieve file information about a file descriptor.</short>
+<descr>
+<p>
+<var>FpFStat</var> gets information about the file specified in one of the
+following:
+</p>
+<dl>
+<dt>Fd</dt><dd> a valid file descriptor.</dd>
+<dt>F</dt><dd> an opened text file or untyped file.</dd>
+</dl>
+<p>
+and stores it in  <var>Info</var>, which is of type <link id="stat"/>.
+The function returns zero if the call was succesfull,
+a nonzero return value indicates failure.
+</p>
+</descr>
+<errors>
+<p>
+Extended error information can be retrieved using <link id="fpGetErrno"/>.
+</p>
+<dl>
+<dt>sys_enoent</dt><dd> <var>Path</var> does not exist.</dd>
+</dl>
+</errors>
+<seealso>
+<link id="FpStat"/>
+<link id="#rtl.unix.FpLStat"/>
+</seealso>
+<example file="linuxex/ex28"/>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpStat">
+<short>Retrieve file information about a file descriptor.</short>
+<descr>
+<p>
+<var>FpFStat</var> gets information about the file specified in
+<var>Path</var>, and stores it in  <var>Info</var>, which is of 
+type <link id="stat"/>. 
+The function returns zero if the call was succesfull,
+a nonzero return value indicates failure.
+</p>
+</descr>
+<errors>
+<p>
+Extended error information can be retrieved using <link id="fpGetErrno"/>.
+</p>
+<dl>
+<dt>sys_enoent</dt><dd> <var>Path</var> does not exist.</dd>
+</dl>
+</errors>
+<seealso>
+<link id="FpStat"/>
+<link id="#rtl.unix.FpLStat"/>
+</seealso>
+<example file="linuxex/ex28"/>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpAccess">
+<short>Check file access</short>
+<descr>
+<p>
+<var>FpAccess</var> tests user's access rights on the specified file. 
+<var>Mode</var> is a mask existing of one or more of the following:
+</p>
+<dl>
+<dt>R_OK</dt><dd>User has read rights.</dd>
+<dt>W_OK</dt><dd>User has write rights.</dd>
+<dt>X_OK</dt><dd>User has execute rights.</dd>
+<dt>F_OK</dt><dd>File exists.</dd>
+</dl>
+<p>
+The test is done with the real user ID, instead of the effective user ID.
+If the user has the requested rights, zero is returned. If access is denied, 
+or an error occurred, a nonzero value is returned.
+</p>
+</descr>
+<errors>
+<p>
+Extended error information can be retrieved using <link id="fpGetErrno"/>.
+</p>
+<dl>
+<dt>sys_eaccess</dt>
+<dd> The requested access is denied, either to the file or one
+of the directories in its path.</dd>
+<dt>sys_einval</dt>
+<dd><var>Mode</var> was incorrect.</dd>
+<dt>sys_enoent</dt>
+<dd>A directory component in <var>Path</var> doesn't exist or is a
+dangling symbolic link.</dd>
+<dt>sys_enotdir</dt>
+<dd> A directory component in <var>Path</var> is not a directory.</dd>
+<dt>sys_enomem</dt>
+<dd> Insufficient kernel memory.</dd>
+<dt>sys_eloop</dt>
+<dd> <var>Path</var> has a circular symbolic link.</dd>
+</dl>
+</errors>
+<seealso>
+<link id="FpChown"/>
+<link id="FpChmod"/>
+</seealso>
+<example file="linuxex/ex26"/>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpClose">
+<short>Close file descriptor</short>
+<descr>
+<p>
+<var>FpClose</var> closes a file with file descriptor <var>Fd</var>. The function
+returns zero if the file was closed successfully, a nonzero return value
+indicates an error.
+</p>
+<p>
+For an example, see <link id="FpOpen"/>.
+</p>
+</descr>
+<errors>
+Extended error information can be retrieved using <link id="fpGetErrno"/>.
+</errors>
+<seealso>
+<link id="FpOpen"/>
+<link id="FpRead"/>
+<link id="FpWrite"/>
+<link id="FpFTruncate"/>
+<link id="FpLSeek"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpRead">
+<short>Read data from file descriptor</short>
+<descr>
+<p>
+<var>FpdRead</var> reads at most <var>nbytes</var> bytes from the file descriptor
+<var>fd</var>, and stores them in <var>buf</var>. 
+</p>
+<p>
+The function returns the number of bytes actually read, or -1 if
+an error occurred.
+No checking on the length of <var>buf</var> is done.
+</p>
+</descr>
+<errors>
+Extended error information can be retrieved using <link id="fpGetErrno"/>.
+</errors>
+<seealso>
+<link id="FpOpen"/>
+<link id="FpClose"/>
+<link id="FpWrite"/>
+<link id="FpFTruncate"/>
+<link id="FpLSeek"/>
+</seealso>
+<example file="linuxex/ex20"/>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpWrite">
+<short>Write data to file descriptor</short>
+<descr>
+<p>
+<var>FpWrite</var> writes at most <var>nbytes</var> bytes from <var>buf</var> to
+file descriptor <var>fd</var>.
+</p>
+<p>
+The function returns the number of bytes actually written, or -1 if an error
+occurred.
+</p>
+</descr>
+<errors>
+Extended error information can be retrieved using <link id="fpGetErrno"/>.
+</errors>
+<seealso>
+<link id="FpOpen"/>
+<link id="FpClose"/>
+<link id="FpRead"/>
+<link id="FpFTruncate"/>
+<link id="FpLSeek"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpLseek">
+<short>Set file pointer position.</short>
+<descr>
+<p>
+<var>FpLSeek</var> sets the current fileposition of file <var>fd</var> to
+<var>Offset</var>, starting from <var>Whence</var>, which can be one of the following:
+</p>
+<dl>
+<dt>Seek_Set</dt><dd><var>Offset</var> is the absolute position in the file.</dd>
+<dt>Seek_Cur</dt><dd><var>Offset</var> is relative to the current position.</dd>
+<dt>Seek_end</dt><dd><var>Offset</var> is relative to the end of the file.</dd>
+</dl>
+<p>
+The function returns the new fileposition, or -1 of an error occurred.
+</p>
+<p>
+For an example, see <link id="FpOpen"/>.
+</p>
+</descr>
+<errors>
+Extended error information can be retrieved using <link id="fpGetErrno"/>.
+</errors>
+<seealso>
+<link id="FpOpen"/>
+<link id="FpWrite"/>
+<link id="FpClose"/>
+<link id="FpRead"/>
+<link id="FpFTruncate"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpTime">
+<short>Return the current unix time</short>
+<descr>
+<p>
+<var>FpTime</var> returns the number of seconds since 00:00:00 GMT, january 1, 1970.
+it is adjusted to the local time zone, but not to DST. The result is also
+stored in <var>tloc</var>, if it is specified.
+</p>
+</descr>
+<errors>
+On error, -1 is returned. Extended error information can be retrieved using
+<link id="fpGetErrno"/>.
+</errors>
+<example file="linuxex/ex1"/>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpFtruncate">
+<short>Truncate file on certain size.</short>
+<descr>
+<p>
+<var>FpFTruncate</var> sets the length of a file in <var>fd</var> on
+<var>flength</var>
+bytes, where <var>flength</var> must be less than or equal to the current length of
+the file in <var>fd</var>.
+</p>
+<p>
+The function returns zero if the call was successful, a nonzero return value
+indicates that an error occurred.
+</p>
+</descr>
+<errors>
+Extended error information can be retrieved using <link id="fpGetErrno"/>.
+</errors>
+<seealso>
+<link id="FpOpen"/>
+<link id="FpClose"/>
+<link id="FpRead"/>
+<link id="FpWrite"/>
+<link id="FpLSeek"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FPSigaction">
+<short>Install signal handler</short>
+<descr>
+<p>
+<var>FPSigaction</var> changes the action to take upon receipt of a signal. 
+<var>Act</var> and
+<var>Oact</var> are pointers to a <link id="SigActionRec"/> record.
+<var>Sig</var> specifies the signal, and can be any signal except
+<b>SIGKILL</b> or <b>SIGSTOP</b>.
+</p>
+<p>
+If <var>Act</var> is non-nil, then the new action for signal <var>Sig</var> is taken
+from it. If <var>OAct</var> is non-nil, the old action is stored there.
+<var>Sa_Handler</var> may be <var>SIG_DFL</var> for the default action or
+<var>SIG_IGN</var> to ignore the signal.
+<var>Sa_Mask</var> Specifies which signals should be ignord during the execution
+of the signal handler.
+<var>Sa_Flags</var> Speciefies a series of flags which modify the behaviour of
+the signal handler. You can 'or' none or more of the following :
+</p>
+<dl>
+<dt>SA_NOCLDSTOP</dt>
+<dd>If <var>sig</var> is <b>SIGCHLD</b> do not receive notification when child processes stop.
+</dd>
+<dt>SA_ONESHOT or SA_RESETHAND</dt>
+<dd>Restore the signal action to the default
+state once the signal handler has been called.
+</dd>
+<dt>SA_RESTART</dt>
+<dd>For compatibility with BSD signals.</dd>
+<dt>SA_NOMASK or SA_NODEFER</dt>
+<dd>Do not prevent the signal from being received from within its own signal handler.
+</dd>
+</dl>
+</descr>
+<errors>
+<p>
+Extended error information can be retrieved using <link id="fpGetErrno"/>.
+</p>
+<dl>
+<dt>sys_einval</dt>
+<dd>an invalid signal was specified, or it was <b>SIGKILL</b> or <b>SIGSTOP</b>. </dd>
+<dt>sys_efault</dt>
+<dd><var>Act,OldAct</var> point outside this process address space </dd>
+<dt>sys_eintr</dt><dd> System call was interrupted.</dd>
+</dl>
+</errors>
+<seealso>
+<link id="FpSigProcMask"/>
+<link id="FpSigPending"/>
+<link id="FpSigSuspend"/>
+<link id="FpKill"/>
+</seealso>
+<example file="linuxex/ex57"/>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FPSelect">
+<short>Wait for events on file descriptors</short>
+<descr>
+<p>
+<var>FpSelect</var> checks one of the file descriptors in the <var>FDSets</var> to see if its
+status changed.
+</p>
+<p>
+<var>readfds, writefds</var> and <var>exceptfds</var> are pointers to arrays of 256
+bits. If you want a file descriptor to be checked, you set the
+corresponding element in the array to 1. The other elements in the array
+must be set to zero. Three arrays are passed : The entries in <var>readfds</var>
+are checked to see if characters become available for reading. The entries
+in <var>writefds</var> are checked to see if it is OK to write to them, while
+entries in <var>exceptfds</var> are cheked to see if an exception occorred on
+them.
+</p>
+<p>
+You can use the functions <link id="fpFD_ZERO"/>, <link id="fpFD_Clr"/>,
+<link id="fpFD_Set"/> or <link id="fpFD_IsSet"/> to manipulate the individual 
+elements of a set.
+</p>
+<p>
+The pointers can be <var>Nil</var>.
+</p>
+<p>
+<var>N</var> is the largest index of a nonzero entry plus 1. (= the largest
+file-descriptor + 1).
+</p>
+<p>
+<var>TimeOut</var> can be used to set a time limit.
+If <var>TimeOut</var> can be two types :
+</p>
+<ol>
+<li><var>TimeOut</var> is of type <var>ptimeval</var> and contains a
+zero time, the call returns immediately.  If <var>TimeOut</var> is <var>Nil</var>, the
+kernel will wait forever, or until a status changed. </li>
+<li><var>TimeOut</var> is of type <var>cint</var>. If it is -1, this has the same
+effect as a <var>Timeout</var> of type  <var>PTime</var> which is <var>Nil</var>.
+Otherwise, <var>TimeOut</var> contains a time in milliseconds.</li>
+</ol>
+<p>
+When the TimeOut is reached, or one of the file descriptors has changed,
+the <var>Select</var> call returns. On return, it will have modified the entries
+in the array which have actually changed, and it returns the number of
+entries that have been changed. If the timout was reached, and no decsriptor
+changed, zero is returned; The arrays of indexes are undefined after that.
+On error, -1 is returned.
+</p>
+<p>
+The variant with the text file will execute the <var>FpSelect</var> call on
+the file descriptor associated with the text file <var>T</var>
+</p>
+</descr>
+<errors>
+<p>
+On error, the function returns -1.
+Extended error information can be retrieved using <link id="fpGetErrno"/>.
+</p>
+<dl>
+<dt>SYS_EBADF</dt>
+<dd>An invalid descriptor was specified in one of the sets.</dd>
+<dt>SYS_EINTR</dt>
+<dd>A non blocked signal was caught.</dd>
+<dt>SYS_EINVAL</dt>
+<dd><var>N</var> is negative or too big.</dd>
+<dt>SYS_ENOMEM</dt>
+<dd><var>Select</var> was unable to allocate memory for its internal tables.</dd>
+</dl>
+</errors>
+<seealso>
+<link id="fpFD_ZERO"/>
+<link id="fpFD_Clr"/>
+<link id="fpFD_Set"/> 
+<link id="fpFD_IsSet"/>
+</seealso>
+<example file="linuxex/ex33"/>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpIOCtl">
+<short>General kernel IOCTL call.</short>
+<descr>
+This is a general interface to the Unix/ linux ioctl call.
+It performs various operations on the filedescriptor <var>Handle</var>.
+<var>Ndx</var> describes the operation to perform.
+<var>Data</var> points to data needed for the <var>Ndx</var> function. 
+The structure of this data is function-dependent, so we don't elaborate on
+this here. 
+For more information on this, see various manual pages under linux.
+</descr>
+<errors>
+Extended error information can be retrieved using <link id="fpGetErrno"/>.
+</errors>
+<example file="linuxex/ex54"/>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpNanoSleep">
+<short>Suspend process for a short time</short>
+<descr>
+<p>
+<var>FpNanoSleep</var> suspends the process till a time period as specified
+in <var>req</var> has passed. Then the function returns. If the
+call was interrupted (e.g. by some signal) then the function may
+return earlier, and <var>rem</var> will contain the remaining time till the
+end of the intended period. In this case the return value will be 
+-1, and <var>LinuxError</var> will be set to <var>EINTR</var>
+</p>
+<p>
+If the function returns without error, the return value is zero.
+</p>
+</descr>
+<errors>
+If an error occurred or the call was interrupted, -1 is returned.
+Extended error information can be retrieved using <link id="fpGetErrno"/>.
+</errors>
+<seealso>
+<link id="FpPause"/>
+<link id="FpAlarm"/>
+</seealso>
+<example file="linuxex/ex72"/>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpGetEnv">
+<short>Return value of environment variable.</short>
+<descr>
+<p>
+<var>FPGetEnv</var> returns the value of the environment variable in
+<var>Name</var>. If the variable is
+not defined, nil is returned. The value of the environment variable may be
+the empty string.
+A PChar is returned to accomodate for strings longer than 255 bytes,
+<var>TERMCAP</var> and <var>LS_COLORS</var>, for instance.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<example file="linuxex/ex41"/>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpUtime">
+<short>Set access and modification times of a file (touch).</short>
+<descr>
+<p>
+<var>FpUtime</var> sets the access and modification times of the file
+specified in <var>Path</var>.
+the <var>times</var> record contains 2 fields, <var>actime</var>, and <var>modtime</var>,
+both of type <var>time_t</var> (commonly a longint). They should be filled with an epoch-like time,
+specifying, respectively, the last access time, and the last modification
+time. 
+For some filesystem (most notably, FAT), these times are the same. 
+</p>
+<p>
+The function returns zero on success, a nonzero return value indicates
+failure.
+</p>
+</descr>
+<errors>
+<p>
+Extended error information can be retrieved using <link id="fpGetErrno"/>.
+</p>
+<dl>
+<dt>sys_eaccess</dt>
+<dd> One of the directories in <var>Path</var> has no
+search (=execute) permission.</dd>
+<dt>sys_enoent</dt>
+<dd> A directory entry in <var>Path</var> does 
+not exist or is a symbolic link pointing to a non-existent directory.
+</dd>
+</dl>
+<p>
+Other errors may occur, but aren't documented.
+</p>
+</errors>
+<seealso>
+<link id="FpTime"/>
+<link id="FpChown"/>
+<link id="FpAccess"/>
+</seealso>
+<example file="linuxex/ex25"/>
+</element>
+
+
+<!-- function Visibility: default -->
+<element name="FpSignal">
+<short>Install signal handler (deprecated)</short>
+<descr>
+<p>
+<var>FPSignal</var> installs a new signal handler (specified by
+<var>Handler</var>) for signal <var>SigNum</var>. 
+</p>
+<p>
+This call has a subset of the functionality provided by the <link id="FpSigAction"/> call.
+The return value for <var>FpSignal</var> is the old signal handler, or nil on error.
+</p>
+</descr>
+<errors>
+<p>
+Extended error information can be retrieved using <link id="fpGetErrno"/>.
+</p>
+<dl>
+<dt>SIG_ERR</dt>
+<dd>An error occurred.</dd>
+</dl>
+</errors>
+<seealso>
+<link id="FpSigAction"/>
+<link id="FpKill"/>
+</seealso>
+<example file="linuxex/ex58"/>
+</element>
+
+
+
+<!-- function Visibility: default -->
+<element name="fpFD_SET">
+<short>Set a filedescriptor in a set</short>
+<descr>
+<p>
+<var>FpFD_Set</var> sets file descriptor <var>fdno</var> in filedescriptor set
+<var>nset</var>.
+</p>
+<p>
+For an example, see <link id="FpSelect"/>.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="FpSelect"/>
+<link id="FpFD_ZERO"/> 
+<link id="FpFD_Clr"/>
+<link id="FpFD_IsSet"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="fpFD_CLR">
+<short>Clears a filedescriptor in a set</short>
+<descr>
+<p>
+<var>FpFD_Clr</var> clears file descriptor <var>fdno</var> in filedescriptor set
+<var>nset</var>.
+</p>
+<p>
+For an example, see <link id="FpSelect"/>.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="FpSelect"/>,
+<link id="FpFD_ZERO"/>
+<link id="FpFD_Set"/>
+<link id="FpFD_IsSet"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="fpFD_ZERO">
+<short>Clear all file descriptors in set</short>
+<descr>
+<p>
+<var>FpFD_ZERO</var> clears all the filedescriptors in the file descriptor 
+set <var>nset</var>.
+</p>
+<p>
+For an example, see <link id="FpSelect"/>.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="FpSelect"/>
+<link id="FpFD_Clr"/>
+<link id="FpFD_Set"/>
+<link id="FpFD_IsSet"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="fpFD_ISSET">
+<short>Check whether a filedescriptor is set</short>
+<descr>
+<p>
+<var>FpFD_Set</var> Checks whether file descriptor <var>fdNo</var> in filedescriptor set <var>fds</var>
+is set. It returns zero if the descriptor is not set, 1 if it is set. If the
+number of the filedescriptor it wrong, -1 is returned.
+</p>
+<p>
+For an example, see <link id="FpSelect"/>.
+</p>
+</descr>
+<errors>
+If an invald file descriptor number is passed, -1 is returned.
+</errors>
+<seealso>
+<link id="FpSelect"/>
+<link id="FpFD_ZERO"/>
+<link id="FpFD_Clr"/>
+<link id="FpFD_Set"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="fpfdfillset">
+<short>Set all filedescriptors in the set.</short>
+<descr>
+<var>fpfdfillset</var> sets all filedescriptors in <var>nset</var>.
+</descr>
+<seealso>
+<link id="FpSelect"/>
+<link id="FpFD_ZERO"/>
+<link id="FpFD_IsSet"/>
+<link id="FpFD_Clr"/>
+<link id="FpFD_Set"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpSigEmptySet">
+<short>Clear all signals from signal set.</short>
+<descr>
+<var>FpSigEmptySet</var> clears all signals from the signal set
+<var>nset</var>.
+</descr>
+<errors>
+None. This function always returns zero.
+</errors>
+<seealso>
+<link id="FpSigFillSet"/>
+<link id="FpSigAddSet"/>
+<link id="FpSigDelSet"/>
+<link id="FpSigIsMember"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpSigFillSet">
+<short>Set all signals in signal set.</short>
+<descr>
+<var>FpSigFillSet</var> sets all signals in the signal set
+<var>nset</var>.
+</descr>
+<errors>
+None. This function always returns zero.
+</errors>
+<seealso>
+<link id="FpSigEmptySet"/>
+<link id="FpSigAddSet"/>
+<link id="FpSigDelSet"/>
+<link id="FpSigIsMember"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpSigAddSet">
+<short>Set a signal in a signal set.</short>
+<descr>
+<var>FpSigAddSet</var> adds signal <var>Signo</var> to the signal set
+<var>nset</var>. The function returns 0 on success.
+</descr>
+<errors>
+If an invalid signal number is given, -1 is returned.
+</errors>
+<seealso>
+<link id="FpSigEmptySet"/>
+<link id="FpSigFillSet"/>
+<link id="FpSigDelSet"/>
+<link id="FpSigIsMember"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpSigDelSet">
+<short>Remove a signal from a signal set.</short>
+<descr>
+<var>FpSigDelSet</var> removes signal <var>Signo</var> to the signal set
+<var>nset</var>. The function returns 0 on success.
+</descr>
+<errors>
+If an invalid signal number is given, -1 is returned.
+</errors>
+<seealso>
+<link id="FpSigEmptySet"/>
+<link id="FpSigFillSet"/>
+<link id="FpSigAddSet"/>
+<link id="FpSigIsMember"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="FpSigIsMember">
+<short>Check whether a signal appears in a signal set.</short>
+<descr>
+<var>FpSigIsMember</var> checks whether <var>SigNo</var> appears in the set
+<var>nset</var>. If it is a member, then 1 is returned. If not, zero is
+returned.
+</descr>
+<errors>
+If an invalid signal number is given, -1 is returned.
+</errors>
+<seealso>
+<link id="FpSigEmptySet"/>
+<link id="FpSigFillSet"/>
+<link id="FpSigAddSet"/>
+<link id="FpSigDelSet"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="fpS_ISDIR">
+<short>Is file a directory</short>
+<descr>
+<var>fpS_ISDIR</var> checks the file mode <var>m</var> to see whether the file
+is a directory. If so, it returns <var>True</var>
+</descr>
+<seealso>
+<link id="FpFStat"/>
+<link id="FpS_ISLNK"/>
+<link id="FpS_ISREG"/>
+<link id="FpS_ISCHR"/>
+<link id="FpS_ISBLK"/>
+<link id="fpS_ISFIFO"/>
+<link id="FpS_ISSOCK"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="fpS_ISCHR">
+<short>Is file a character device</short>
+<descr>
+<var>FpS_ISCHR</var> checks the file mode <var>m</var> to see whether the file is a
+character device file. If so it returns <var>True</var>.
+</descr>
+<seealso>
+<link id="FpFStat"/>
+<link id="FpS_ISLNK"/> 
+<link id="FpS_ISREG"/>
+<link id="FpS_ISDIR"/>
+<link id="FpS_ISBLK"/>
+<link id="FpS_ISFIFO"/>
+<link id="FpS_ISSOCK"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="fpS_ISBLK">
+<short>Is file a block device</short>
+<descr>
+<var>FpS_ISBLK</var> checks the file mode <var>m</var> to see whether the file is a
+block device file. If so it returns <var>True</var>.
+</descr>
+<seealso>
+<link id="FpFStat"/>
+<link id="FpS_ISLNK"/> 
+<link id="FpS_ISREG"/>
+<link id="FpS_ISDIR"/>
+<link id="FpS_ISCHR"/>
+<link id="FpS_ISFIFO"/>
+<link id="FpS_ISSOCK"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="fpS_ISREG">
+<short>Is file a regular file</short>
+<descr>
+<var>FpS_ISREG</var> checks the file mode <var>m</var> to see whether the file is a
+regular file. If so it returns <var>True</var>
+</descr>
+<seealso>
+<link id="FpFStat"/>
+<link id="FpS_ISFIFO"/> 
+<link id="FpS_ISLNK"/>
+<link id="FpS_ISCHR"/>
+<link id="FpS_ISBLK"/>
+<link id="FpS_ISDIR"/>
+<link id="FPS_ISSOCK"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="fpS_ISFIFO">
+<short>Is file a FIFO</short>
+<descr>
+<var>FpS_ISFIFO</var> checks the file mode <var>m</var> to see whether the file is a
+fifo (a named pipe). If so it returns <var>True</var>.
+</descr>
+<seealso>
+<link id="FpFStat"/>
+<link id="FpS_ISLNK"/>
+<link id="FpS_ISREG"/>
+<link id="FpS_ISCHR"/>
+<link id="FpS_ISBLK"/>
+<link id="FpS_ISDIR"/>
+<link id="FpS_ISSOCK"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="fpS_ISLNK">
+<short>Is file a symbolic link</short>
+<descr>
+<var>FpS_ISLNK</var> checks the file mode <var>m</var> to see whether the file is a
+symbolic link. If so it returns <var>True</var>
+</descr>
+<seealso>
+<link id="FpFStat"/>
+<link id="FpS_ISFIFO"/> 
+<link id="FpS_ISREG"/>
+<link id="FpS_ISCHR"/>
+<link id="FpS_ISBLK"/>
+<link id="FpS_ISDIR"/>
+<link id="FpS_ISSOCK"/>
+</seealso>
+<example file="linuxex/ex53"/>
+</element>
+
+<!-- function Visibility: default -->
+<element name="fpS_ISSOCK">
+<short>Is file a unix socket</short>
+<descr>
+<var>FpS_ISSOCK</var> checks the file mode <var>m</var> to see whether the file is a
+socket. If so it returns <var>True</var>.
+</descr>
+<seealso>
+<link id="FpFStat"/>
+<link id="FpS_ISFIFO"/> 
+<link id="FpS_ISLNK"/>
+<link id="FpS_ISCHR"/>
+<link id="FpS_ISBLK"/>
+<link id="FpS_ISDIR"/>
+<link id="FpS_ISREG"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="WEXITSTATUS">
+<short>Extract the exit status from the <link id="FpWaitPID"/> result.</short>
+<descr>
+<var>WEXITSTATUS</var> can be used to extract the exit status from
+<var>Status</var>, the result of the <link id="FpWaitPID"/> call.
+</descr>
+<seealso>
+<link id="FpWaitPID"/>
+<link id="WTERMSIG"/>
+<link id="WSTOPSIG"/>
+<link id="WIFEXITED"/>
+<link id="WIFSIGNALED"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="WTERMSIG">
+<short>Return the signal that caused a process to exit.</short>
+<descr>
+<var>WTERMSIG</var> extracts from <var>Status</var> the signal number which
+caused the process to exit.
+</descr>
+<seealso>
+<link id="FpWaitPID"/>
+<link id="WSTOPSIG"/>
+<link id="WIFEXITED"/>
+<link id="WIFSIGNALED"/>
+<link id="WEXITSTATUS"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="WSTOPSIG">
+<short>Return the exit code from the process.</short>
+<descr>
+<var>WSTOPSIG</var> is an alias for <link id="WEXITSTATUS"/>.
+</descr>
+<seealso>
+<link id="FpWaitPID"/>
+<link id="WTERMSIG"/>
+<link id="WIFEXITED"/>
+<link id="WIFSIGNALED"/>
+<link id="WEXITSTATUS"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="WIFEXITED">
+<short>Check whether the process exited normally</short>
+<descr>
+<var>WIFEXITED</var> checks <var>Status</var> and returns <var>True</var> if
+the status indicates that the process terminated normally, i.e. was not
+stopped by a signal.
+</descr>
+<seealso>
+<link id="FpWaitPID"/>
+<link id="WTERMSIG"/>
+<link id="WSTOPSIG"/>
+<link id="WIFSIGNALED"/>
+<link id="WEXITSTATUS"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="WIFSIGNALED">
+<short>Check whether the process was exited by a signal.</short>
+<descr>
+<var>WIFSIGNALED</var> returns <var>True</var> if <var>Status</var>
+indicates that the process exited because it received a signal.
+</descr>
+<seealso>
+<link id="FpWaitPID"/>
+<link id="WTERMSIG"/>
+<link id="WSTOPSIG"/>
+<link id="WIFEXITED"/>
+<link id="WEXITSTATUS"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="fpgeterrno">
+<short>Retrieve extended error information.</short>
+<descr>
+<var>fpgeterrno</var> returns extended information on the latest error.
+It is set by all functions that communicate with the kernel or C library.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="fpseterrno"/>
+</seealso>
+</element>
+
+<!-- procedure Visibility: default -->
+<element name="fpseterrno">
+<short>Set extended error information.</short>
+<descr>
+<p>
+<var>fpseterrno</var> sets the extended information on the latest error.
+It is called by all functions that communicate with the kernel or C library.
+</p>
+<p>
+Unless a direct kernel call is performed, there should never be any need to
+call this function.
+</p>
+</descr>
+<errors>
+</errors>
+<seealso>
+<link id="fpgeterrno"/>
+</seealso>
+</element>
+
+</module> <!-- BaseUnix -->
+</package>
+</fpdoc-descriptions>
