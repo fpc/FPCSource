@@ -110,7 +110,7 @@ unit og386cff;
           procedure  write(var d;l:longint);
           procedure  alloc(l:longint);
           procedure  addsymreloc(ofs:longint;p:pasmsymbol;relative:relative_type);
-          procedure  addsectionreloc(ofs:longint;sec:tsection);
+          procedure  addsectionreloc(ofs:longint;sec:tsection;relative:relative_type);
        end;
 
        pgenericcoffoutput = ^tgenericcoffoutput;
@@ -136,7 +136,8 @@ unit og386cff;
          function  text_flags : longint;virtual;
          function  data_flags : longint;virtual;
          function  bss_flags : longint;virtual;
-         function  info_flags : longint;virtual;
+         function  idata_flags : longint;virtual;
+         function  edata_flags : longint;virtual;
        private
          procedure createsection(sec:tsection);
          procedure write_relocs(s:pcoffsection);
@@ -151,7 +152,6 @@ unit og386cff;
          function text_flags : longint;virtual;
          function data_flags : longint;virtual;
          function bss_flags : longint;virtual;
-         function info_flags : longint;virtual;
        end;
 
        pwin32coffoutput = ^twin32coffoutput;
@@ -160,7 +160,8 @@ unit og386cff;
          function text_flags : longint;virtual;
          function data_flags : longint;virtual;
          function bss_flags : longint;virtual;
-         function info_flags : longint;virtual;
+         function idata_flags : longint;virtual;
+         function edata_flags : longint;virtual;
        end;
 
   implementation
@@ -286,7 +287,7 @@ unit og386cff;
       end;
 
 
-    procedure tcoffsection.addsectionreloc(ofs:longint;sec:tsection);
+    procedure tcoffsection.addsectionreloc(ofs:longint;sec:tsection;relative:relative_type);
       var
         r : PReloc;
       begin
@@ -297,7 +298,7 @@ unit og386cff;
         r^.address:=ofs+mempos;
         r^.symbol:=nil;
         r^.section:=sec;
-        r^.relative:=relative_false;
+        r^.relative:=relative;
         inc(nrelocs);
       end;
 
@@ -384,9 +385,14 @@ unit og386cff;
         bss_flags:=0;
       end;
 
-    function tgenericcoffoutput.info_flags : longint;
+    function tgenericcoffoutput.edata_flags : longint;
       begin
-        info_flags:=0;
+        edata_flags:=0;
+      end;
+
+    function tgenericcoffoutput.idata_flags : longint;
+      begin
+        idata_flags:=0;
       end;
 
 
@@ -402,6 +408,14 @@ unit og386cff;
             Aflags:=data_flags;
           sec_bss :
             Aflags:=bss_flags;
+          sec_idata2,
+          sec_idata4,
+          sec_idata5,
+          sec_idata6,
+          sec_idata7 :
+            Aflags:=idata_flags;
+          sec_edata :
+            Aflags:=edata_flags;
           else
             Aflags:=0;
         end;
@@ -505,7 +519,7 @@ unit og386cff;
                case relative of
                  relative_false :
                    begin
-                     sects[currsec]^.addsectionreloc(sects[currsec]^.len,currsec);
+                     sects[currsec]^.addsectionreloc(sects[currsec]^.len,currsec,relative_false);
                      inc(data,symaddr);
                    end;
                  relative_true :
@@ -516,7 +530,7 @@ unit og386cff;
                    begin
                      { don't know if this can happens !! }
                      { does this work ?? }
-                     sects[currsec]^.addsectionreloc(sects[currsec]^.len,currsec);
+                     sects[currsec]^.addsectionreloc(sects[currsec]^.len,currsec,relative_rva);
                      inc(data,symaddr);
                    end;
                end;
@@ -525,7 +539,7 @@ unit og386cff;
              begin
                writesymbol(p);
                if (p^.section<>sec_none) and (relative=relative_false) then
-                 sects[currsec]^.addsectionreloc(sects[currsec]^.len,p^.section)
+                 sects[currsec]^.addsectionreloc(sects[currsec]^.len,p^.section,relative_false)
                else
                  sects[currsec]^.addsymreloc(sects[currsec]^.len,p,relative);
                if not win32 then {seems wrong to me (PM) }
@@ -584,7 +598,7 @@ unit og386cff;
         { when the offset is not 0 then write a relocation, take also the
           hdrstab into account with the offset }
         if reloc then
-          sects[sec_stab]^.addsectionreloc(sects[sec_stab]^.len-4,s);
+          sects[sec_stab]^.addsectionreloc(sects[sec_stab]^.len-4,s,relative_false);
       end;
 
 
@@ -780,10 +794,12 @@ unit og386cff;
         for sec:=low(tsection) to high(tsection) do
          if assigned(sects[sec]) then
           begin
+{$ifdef EXTDEBUG}
           { check if the section is still the same size }
             if (sects[sec]^.len<>sects[sec]^.size) then
               Comment(V_Warning,'Size of section changed '+tostr(sects[sec]^.size)+'->'+tostr(sects[sec]^.len)+
                 ' ['+target_asm.secnames[sec]+']');
+{$endif EXTDEBUG}
           { fill with zero }
             if sects[sec]^.fillsize>0 then
              begin
@@ -904,12 +920,6 @@ unit og386cff;
         bss_flags:=$80;
       end;
 
-    function tdjgppcoffoutput.info_flags : longint;
-      begin
-        writeln('djgpp coff doesn''t support info sections');
-        info_flags:=$40;
-      end;
-
 
 {****************************************************************************
                             Win32coffoutput
@@ -936,16 +946,25 @@ unit og386cff;
         bss_flags:=$c0300080;
       end;
 
-    function twin32coffoutput.info_flags : longint;
+    function twin32coffoutput.edata_flags : longint;
       begin
-        info_flags:=$100a00;
+        edata_flags:=$c0300040;
+      end;
+
+    function twin32coffoutput.idata_flags : longint;
+      begin
+        idata_flags:=$40000000;
       end;
 
 
 end.
 {
   $Log$
-  Revision 1.10  1999-08-04 00:23:05  florian
+  Revision 1.11  1999-08-11 17:17:38  peter
+    * fixed rva writting for section relocs
+    * fixed section flags for edata and idata
+
+  Revision 1.10  1999/08/04 00:23:05  florian
     * renamed i386asm and i386base to cpuasm and cpubase
 
   Revision 1.9  1999/07/03 00:27:02  peter
