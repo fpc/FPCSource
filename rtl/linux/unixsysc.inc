@@ -305,7 +305,7 @@ end;
 
 
 
-Function Fcntl(Fd:longint;Cmd:integer):integer;
+Function Fcntl(Fd:longint;Cmd:longint):longint;
 {
   Read or manipulate a file.(See also fcntl (2) )
   Possible values for Cmd are :
@@ -341,7 +341,7 @@ end;
 
 
 
-Procedure Fcntl(Fd:longint;Cmd:Integer;Arg:Longint);
+Procedure Fcntl(Fd:longint;Cmd : longint;Arg:Longint);
 {
   Read or manipulate a file. (See also fcntl (2) )
   Possible values for Cmd are :
@@ -885,7 +885,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  2001-10-14 13:33:20  peter
+  Revision 1.6  2002-03-05 20:04:25  michael
+  + Patch from Sebastian for FCNTL call
+
+  Revision 1.5  2001/10/14 13:33:20  peter
     * start of thread support for linux
 
   Revision 1.4  2001/07/15 11:57:16  peter

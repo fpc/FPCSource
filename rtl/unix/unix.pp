@@ -294,17 +294,10 @@ Function  FStat(var F:File;Var Info:stat):Boolean;
 Function  Lstat(Filename: PathStr;var Info:stat):Boolean;
 Function  StatFS(Path:Pathstr;Var Info:tstatfs):Boolean;
 Function  StatFS(Fd: Longint;Var Info:tstatfs):Boolean;
-{$ifdef bsd}
 Function  Fcntl(Fd:longint;Cmd:longint):longint;
 Procedure Fcntl(Fd:longint;Cmd:longint;Arg:Longint);
 Function  Fcntl(var Fd:Text;Cmd:longint):longint;
 Procedure Fcntl(var Fd:Text;Cmd:longint;Arg:Longint);
-{$else}
-Function  Fcntl(Fd:longint;Cmd:Integer):integer;
-Procedure Fcntl(Fd:longint;Cmd:Integer;Arg:Longint);
-Function  Fcntl(var Fd:Text;Cmd:Integer):integer;
-Procedure Fcntl(var Fd:Text;Cmd:Integer;Arg:Longint);
-{$endif}
 Function  Dup(oldfile:longint;var newfile:longint):Boolean;
 Function  Dup(var oldfile,newfile:text):Boolean;
 Function  Dup(var oldfile,newfile:file):Boolean;
@@ -1170,20 +1163,13 @@ end;
 {$endif}
 
 
-{$ifdef BSD}
 Function Fcntl(var Fd:Text;Cmd:longint):longint;
-{$else}
-Function Fcntl(var Fd:Text;Cmd:integer):integer;
-{$endif}
+
 begin
   Fcntl := Fcntl(textrec(Fd).handle, Cmd);
 end;
 
-{$ifdef BSD}
 Procedure Fcntl(var Fd:Text;Cmd,Arg:Longint);
-{$else}
-Procedure Fcntl(var Fd:Text;Cmd:Integer;Arg:Longint);
-{$endif}
 
 begin
   Fcntl(textrec(Fd).handle, Cmd, Arg);
@@ -3072,7 +3058,10 @@ End.
 
 {
   $Log$
-  Revision 1.21  2002-01-02 12:22:54  marco
+  Revision 1.22  2002-03-05 20:04:25  michael
+  + Patch from Sebastian for FCNTL call
+
+  Revision 1.21  2002/01/02 12:22:54  marco
    * Removed ifdef arround getepoch.
 
   Revision 1.20  2001/12/26 21:03:57  peter
