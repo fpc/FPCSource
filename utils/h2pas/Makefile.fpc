@@ -36,7 +36,7 @@ export PLEX:=$(firstword $(PLEX))
 endif
 endif
 
-h2pas$(EXEEXT): h2pas$(PASEXT)
+h2pas$(EXEEXT): h2pas$(PASEXT) scan$(PASEXT) options$(PASEXT)
 
 #
 # Lex and Yacc (only if pyacc is found)
@@ -46,6 +46,9 @@ h2pas$(PASEXT): h2pas.y
         $(PYACC) h2pas.y
 
 yacclex: yacc lex
+
+scan$(PASEXT): scan.l
+        $(PLEX) scan.l
 
 yacc:
         $(PYACC) h2pas.y
