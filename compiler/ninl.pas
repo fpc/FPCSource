@@ -1275,7 +1275,7 @@ implementation
                end;
              end;
             if hp=nil then
-             hp:=terrornode.create;
+             hp:=cerrornode.create;
             result:=hp;
             goto myexit;
           end
@@ -2479,7 +2479,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.161  2005-03-16 21:24:43  peter
+  Revision 1.162  2005-03-25 21:46:06  jonas
+    * terrornode.create -> cerrornode.create
+
+  Revision 1.161  2005/03/16 21:24:43  peter
     * check parameters of str() better
 
   Revision 1.160  2005/02/14 17:13:06  peter
