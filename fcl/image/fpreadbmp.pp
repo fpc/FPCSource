@@ -87,10 +87,10 @@ procedure TFPReaderBMP.InternalRead(Stream:TStream; Img:TFPCustomImage);
               with aLine[Coulumn],aColor do
                 begin
 {Use only the high byte to convert the color}
-                  Red:=R shl 8;
-                  Green:=G shl 8;
-                  Blue:=B shl 8;
-                  alpha:=AlphaOpaque;
+                  Red := (R shl 8) + R;
+                  Green := (G shl 8) + G;
+                  Blue := (B shl 8) + B;
+                  alpha := AlphaOpaque;
                   img.colors[Coulumn,Row]:=aColor;
                 end;
             Stream.Read(aLine{$IFNDEF UseDynArray}^{$ENDIF UseDynArray},ReadSize);
@@ -122,7 +122,10 @@ initialization
 end.
 {
 $Log$
-Revision 1.4  2003-09-30 06:17:38  mazen
+Revision 1.5  2003-09-30 14:17:05  luk
+* better color conversion (White didn't stay white)
+
+Revision 1.4  2003/09/30 06:17:38  mazen
 - all common defintions are now included into bmpcomn unit
 
 Revision 1.3  2003/09/15 11:39:01  mazen
