@@ -81,7 +81,7 @@ unit ag386bin;
     procedure ti386binasmlist.convertstabs(p:pchar);
       var
         ofs,
-        nidx,nother,i,line,j : longint;
+        nidx,nother,ii,i,line,j : longint;
         code : integer;
         hp : pchar;
         reloc : boolean;
@@ -100,6 +100,7 @@ unit ag386bin;
            while not ((p[i]='"') and (p[i-1]<>'\')) do
             inc(i);
            p[i]:=#0;
+           ii:=i;
            hp:=@p[1];
            s:=StrPas(@P[i+2]);
          end
@@ -204,7 +205,7 @@ unit ag386bin;
         else
           objectoutput^.WriteStabs(sec,ofs,hp,nidx,nother,line,reloc);
         if assigned(hp) then
-         p[i]:='"';
+         p[ii]:='"';
       end;
 
 
@@ -615,16 +616,18 @@ unit ag386bin;
                objectoutput^.writesymbol(pai_symbol(hp)^.sym);
              ait_datablock :
                begin
-                 l:=pai_datablock(hp)^.size;
-                 if l>2 then
-                   objectoutput^.writealign(4)
-                 else if l>1 then
-                   objectoutput^.writealign(2);
                  objectoutput^.writesymbol(pai_datablock(hp)^.sym);
 {$ifdef EXTERNALBSS}
                  if not pai_datablock(hp)^.is_global then
 {$endif}
-                   objectoutput^.writealloc(pai_datablock(hp)^.size);
+                   begin
+                     l:=pai_datablock(hp)^.size;
+                     if l>2 then
+                       objectoutput^.writealign(4)
+                     else if l>1 then
+                       objectoutput^.writealign(2);
+                     objectoutput^.writealloc(pai_datablock(hp)^.size);
+                   end;
                end;
              ait_const_32bit :
                objectoutput^.writebytes(pai_const(hp)^.value,4);
@@ -812,7 +815,13 @@ unit ag386bin;
 end.
 {
   $Log$
-  Revision 1.16  1999-06-03 16:39:10  pierre
+  Revision 1.17  1999-06-10 23:52:34  pierre
+   * merged from fixes branch
+
+  Revision 1.16.2.1  1999/06/10 23:33:35  pierre
+   * pchar memory loss and .bss size problem solved
+
+  Revision 1.16  1999/06/03 16:39:10  pierre
    * EXTERNALBSS fixed for stabs and default again
 
   Revision 1.15  1999/06/02 22:43:59  pierre
