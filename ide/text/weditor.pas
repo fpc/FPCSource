@@ -1848,14 +1848,14 @@ begin
         Color:=CombineColors(Color,HighlightRowColor);
         FreeFormat[X]:=false;
       end;
-    if DebuggerRow=AY then
-      begin
-        Color:=CombineColors(Color,HighlightRowColor);
-        FreeFormat[X]:=false;
-      end;
     if isbreak then
       begin
         Color:=ColorTab[coBreakColor];
+        FreeFormat[X]:=false;
+      end;
+    if DebuggerRow=AY then
+      begin
+        Color:=CombineColors(Color,HighlightRowColor);
         FreeFormat[X]:=false;
       end;
 
@@ -5521,7 +5521,11 @@ end;
 END.
 {
   $Log$
-  Revision 1.76  2000-01-25 00:12:23  pierre
+  Revision 1.77  2000-01-27 22:30:38  florian
+    * start of FPU window
+    * current executed line color has a higher priority then a breakpoint now
+
+  Revision 1.76  2000/01/25 00:12:23  pierre
    * fix for Backspace Undo
 
   Revision 1.75  2000/01/14 15:36:42  pierre

@@ -244,12 +244,11 @@ type
       destructor  Done; virtual;
     end;
 
-  type
-     TIntRegs = record
-        eax,ebx,ecx,edx,eip,esi,edi,esp,ebp : dword;
-        cs,ds,es,ss,fs,gs : word;
-        eflags : dword;
-     end;
+    TIntRegs = record
+       eax,ebx,ecx,edx,eip,esi,edi,esp,ebp : dword;
+       cs,ds,es,ss,fs,gs : word;
+       eflags : dword;
+    end;
 
     PRegistersView = ^TRegistersView;
     TRegistersView = object(TView)
@@ -269,9 +268,31 @@ type
       destructor  Done; virtual;
     end;
 
+    TFPURegs = record
+    end;
+
+    PFPUView = ^TFPUView;
+    TFPUView = object(TView)
+      OldReg : TFPURegs;
+      constructor Init(var Bounds: TRect);
+      procedure   Draw;virtual;
+      destructor  Done; virtual;
+    end;
+
+    PFPUWindow = ^TFPUWindow;
+    TFPUWindow = Object(TDlgWindow)
+      RV : PFPUView;
+      Constructor Init;
+      constructor Load(var S: TStream);
+      procedure   Store(var S: TStream);
+      procedure   Update; virtual;
+      destructor  Done; virtual;
+    end;
+
 const
   StackWindow : PStackWindow = nil;
   RegistersWindow : PRegistersWindow = nil;
+  FPUWindow : PFPUWindow = nil;
 
   procedure InitStackWindow;
   procedure DoneStackWindow;
@@ -400,6 +421,20 @@ const
      Store:   @TRegistersView.Store
   );
 
+  RFPUWindow: TStreamRec = (
+     ObjType: 1713;
+     VmtLink: Ofs(TypeOf(TFPUWindow)^);
+     Load:    @TFPUWindow.Load;
+     Store:   @TFPUWindow.Store
+  );
+
+  RFPUView: TStreamRec = (
+     ObjType: 1714;
+     VmtLink: Ofs(TypeOf(TFPUView)^);
+     Load:    @TFPUView.Load;
+     Store:   @TFPUView.Store
+  );
+
 
 {****************************************************************************
                             TDebugController
@@ -414,6 +449,8 @@ procedure UpdateDebugViews;
        RegistersWindow^.Update;
      If assigned(Debugger) then
        Debugger^.ReadWatches;
+     If assigned(FPUWindow) then
+       FPUWindow^.Update;
   end;
 
 constructor TDebugController.Init(const exefn:string);
@@ -2398,7 +2435,7 @@ end;
        Desktop^.GetExtent(R);
        R.A.X:=R.B.X-28;
        R.B.Y:=R.A.Y+11;
-       inherited Init(R,' Register View', wnNoNumber);
+       inherited Init(R,'Register View', wnNoNumber);
        Flags:=wfClose or wfMove;
        Palette:=wpCyanWindow;
        HelpCtx:=hcRegisters;
@@ -2438,6 +2475,244 @@ end;
 
     begin
        RegistersWindow:=nil;
+       inherited done;
+    end;
+
+{****************************************************************************
+                         TFPUView
+****************************************************************************}
+
+  function GetFPURegs(var rs : TFPURegs) : boolean;
+
+    var
+       p,po : pchar;
+       p1 : pchar;
+       reg,value : string;
+       buffer : array[0..255] of char;
+       v : dword;
+       code : word;
+
+    begin
+       GetFPURegs:=false;
+{$ifndef NODEBUG}
+       Debugger^.Command('info registers');
+       if Debugger^.Error then
+         exit
+       else
+         begin
+            po:=StrNew(Debugger^.GetOutput);
+            p:=po;
+            if assigned(p) then
+              begin
+                 fillchar(rs,sizeof(rs),0);
+                 p1:=strscan(p,' ');
+                 while assigned(p1) do
+                   begin
+                   {
+                      strlcopy(buffer,p,p1-p);
+                      reg:=strpas(buffer);
+                      p:=strscan(p,'$');
+                      p1:=strscan(p,#9);
+                      strlcopy(buffer,p,p1-p);
+                      value:=strpas(buffer);
+                      val(value,v,code);
+                      if reg='eax' then
+                        rs.eax:=v
+                      else if reg='ebx' then
+                        rs.ebx:=v
+                      else if reg='ecx' then
+                        rs.ecx:=v
+                      else if reg='edx' then
+                        rs.edx:=v
+                      else if reg='eip' then
+                        rs.eip:=v
+                      else if reg='esi' then
+                        rs.esi:=v
+                      else if reg='edi' then
+                        rs.edi:=v
+                      else if reg='esp' then
+                        rs.esp:=v
+                      else if reg='ebp' then
+                        rs.ebp:=v
+                      { under win32 flags are on a register named ps !! PM }
+                      else if (reg='eflags') or (reg='ps') then
+                        rs.eflags:=v
+                      else if reg='cs' then
+                        rs.cs:=v
+                      else if reg='ds' then
+                        rs.ds:=v
+                      else if reg='es' then
+                        rs.es:=v
+                      else if reg='fs' then
+                        rs.fs:=v
+                      else if reg='gs' then
+                        rs.gs:=v
+                      else if reg='ss' then
+                        rs.ss:=v;
+                      p:=strscan(p1,#10);
+                      if assigned(p) then
+                        begin
+                           p1:=strscan(p,' ');
+                           inc(p);
+                        end
+                      else
+                        break;
+                   }
+                   end;
+                 { free allocated memory }
+                 strdispose(po);
+              end
+            else
+              exit;
+         end;
+       { do not open a messagebox for such errors }
+       Debugger^.got_error:=false;
+       GetFPURegs:=true;
+{$endif}
+    end;
+
+  constructor TFPUView.Init(var Bounds: TRect);
+
+    begin
+       inherited init(Bounds);
+    end;
+
+  procedure TFPUView.Draw;
+
+    var
+       rs : tfpuregs;
+       color :byte;
+
+    procedure SetColor(x,y : longint);
+    begin
+      if x=y then
+        color:=7
+      else
+        color:=8;
+    end;
+
+    begin
+       inherited draw;
+       If not assigned(Debugger) then
+         begin
+            WriteStr(1,0,'<no values available>',7);
+            exit;
+         end;
+       if GetFPURegs(rs) then
+         begin
+         {
+            SetColor(rs.eax,OldReg.eax);
+            WriteStr(1,0,'EAX '+HexStr(rs.eax,8),color);
+            SetColor(rs.ebx,OldReg.ebx);
+            WriteStr(1,1,'EBX '+HexStr(rs.ebx,8),color);
+            SetColor(rs.ecx,OldReg.ecx);
+            WriteStr(1,2,'ECX '+HexStr(rs.ecx,8),color);
+            SetColor(rs.edx,OldReg.edx);
+            WriteStr(1,3,'EDX '+HexStr(rs.edx,8),color);
+            SetColor(rs.eip,OldReg.eip);
+            WriteStr(1,4,'EIP '+HexStr(rs.eip,8),color);
+            SetColor(rs.esi,OldReg.esi);
+            WriteStr(1,5,'ESI '+HexStr(rs.esi,8),color);
+            SetColor(rs.edi,OldReg.edi);
+            WriteStr(1,6,'EDI '+HexStr(rs.edi,8),color);
+            SetColor(rs.esp,OldReg.esp);
+            WriteStr(1,7,'ESP '+HexStr(rs.esp,8),color);
+            SetColor(rs.ebp,OldReg.ebp);
+            WriteStr(1,8,'EBP '+HexStr(rs.ebp,8),color);
+            SetColor(rs.cs,OldReg.cs);
+            WriteStr(14,0,'CS '+HexStr(rs.cs,4),color);
+            SetColor(rs.ds,OldReg.ds);
+            WriteStr(14,1,'DS '+HexStr(rs.ds,4),color);
+            SetColor(rs.es,OldReg.es);
+            WriteStr(14,2,'ES '+HexStr(rs.es,4),color);
+            SetColor(rs.fs,OldReg.fs);
+            WriteStr(14,3,'FS '+HexStr(rs.fs,4),color);
+            SetColor(rs.gs,OldReg.gs);
+            WriteStr(14,4,'GS '+HexStr(rs.gs,4),color);
+            SetColor(rs.ss,OldReg.ss);
+            WriteStr(14,5,'SS '+HexStr(rs.ss,4),color);
+            SetColor(rs.eflags and $1,OldReg.eflags and $1);
+            WriteStr(22,0,'c='+chr(byte((rs.eflags and $1)<>0)+48),color);
+            SetColor(rs.eflags and $20,OldReg.eflags and $20);
+            WriteStr(22,1,'z='+chr(byte((rs.eflags and $20)<>0)+48),color);
+            SetColor(rs.eflags and $80,OldReg.eflags and $80);
+            WriteStr(22,2,'s='+chr(byte((rs.eflags and $80)<>0)+48),color);
+            SetColor(rs.eflags and $800,OldReg.eflags and $800);
+            WriteStr(22,3,'o='+chr(byte((rs.eflags and $800)<>0)+48),color);
+            SetColor(rs.eflags and $4,OldReg.eflags and $4);
+            WriteStr(22,4,'p='+chr(byte((rs.eflags and $4)<>0)+48),color);
+            SetColor(rs.eflags and $200,OldReg.eflags and $200);
+            WriteStr(22,5,'i='+chr(byte((rs.eflags and $200)<>0)+48),color);
+            SetColor(rs.eflags and $10,OldReg.eflags and $10);
+            WriteStr(22,6,'a='+chr(byte((rs.eflags and $10)<>0)+48),color);
+            SetColor(rs.eflags and $400,OldReg.eflags and $400);
+            WriteStr(22,7,'d='+chr(byte((rs.eflags and $400)<>0)+48),color);
+            OldReg:=rs;
+         }
+         end
+       else
+         WriteStr(0,0,'<debugger error>',7);
+    end;
+
+  destructor TFPUView.Done;
+
+    begin
+       inherited done;
+    end;
+
+{****************************************************************************
+                         TFPUWindow
+****************************************************************************}
+
+  constructor TFPUWindow.Init;
+
+    var
+       R : TRect;
+
+    begin
+       Desktop^.GetExtent(R);
+       R.A.X:=R.B.X-28;
+       R.B.Y:=R.A.Y+11;
+       inherited Init(R,'FPU View', wnNoNumber);
+       Flags:=wfClose or wfMove;
+       Palette:=wpCyanWindow;
+       HelpCtx:=hcRegisters;
+       R.Assign(1,1,26,10);
+       RV:=new(PFPUView,init(R));
+       Insert(RV);
+       If assigned(FPUWindow) then
+         dispose(FPUWindow,done);
+       FPUWindow:=@Self;
+       Update;
+    end;
+
+  constructor TFPUWindow.Load(var S: TStream);
+
+    begin
+       inherited load(S);
+       GetSubViewPtr(S,RV);
+       If assigned(FPUWindow) then
+         dispose(FPUWindow,done);
+       FPUWindow:=@Self;
+    end;
+
+  procedure TFPUWindow.Store(var S: TStream);
+
+    begin
+       inherited Store(s);
+       PutSubViewPtr(S,RV);
+    end;
+
+  procedure TFPUWindow.Update;
+
+    begin
+       ReDraw;
+    end;
+
+  destructor TFPUWindow.Done;
+
+    begin
+       FPUWindow:=nil;
        inherited done;
     end;
 
@@ -2717,13 +2992,19 @@ begin
   RegisterType(RWatchesCollection);
   RegisterType(RRegistersWindow);
   RegisterType(RRegistersView);
+  RegisterType(RFPUWindow);
+  RegisterType(RFPUView);
 end;
 
 end.
 
 {
   $Log$
-  Revision 1.43  2000-01-20 00:31:53  pierre
+  Revision 1.44  2000-01-27 22:30:38  florian
+    * start of FPU window
+    * current executed line color has a higher priority then a breakpoint now
+
+  Revision 1.43  2000/01/20 00:31:53  pierre
    * uses ShortName of exe to start GDB
 
   Revision 1.42  2000/01/10 17:49:40  pierre
