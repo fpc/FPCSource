@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1996-98 by Pierre Muller
+    Copyright (c) 1998-2000 by Pierre Muller
 
     FPU Emulator support
 
@@ -217,7 +217,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  1999-09-08 18:55:50  peter
+  Revision 1.6  2000-01-07 16:32:23  daniel
+    * copyright 2000 added
+
+  Revision 1.5  1999/09/08 18:55:50  peter
     * pointer fixes
 
   Revision 1.4  1999/04/28 00:27:43  pierre

@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1993,97 by Michael Van Canneyt,
+    Copyright (c) 1998-2000 by Michael Van Canneyt,
     member of the Free Pascal development team.
 
     See the file COPYING.FPC, included in this distribution,
@@ -3817,7 +3817,10 @@ End.
 
 {
   $Log$
-  Revision 1.57  2000-01-04 12:56:09  jonas
+  Revision 1.58  2000-01-07 16:32:26  daniel
+    * copyright 2000 added
+
+  Revision 1.57  2000/01/04 12:56:09  jonas
     * fixed modified registers for port routines
 
   Revision 1.56  1999/12/28 09:38:07  sg

@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1993,97 by Michael Van Canneyt,
+    Copyright (c) 1998-2000 by Michael Van Canneyt,
     member of the Free Pascal development team.
 
     See the file COPYING.FPC, included in this distribution,
@@ -22,7 +22,7 @@
    Current version is 0.9
 
    Date          Version          Who         Comments
-   1996          0.8              Michael     Initial implementation
+   1999-2000 by         0.8              Michael     Initial implementation
    11/97         0.9              Peter Vreman <pfv@worldonline.nl>
                                               Unit now depends on the
                                               linux unit only.
@@ -254,7 +254,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  1999-09-08 16:14:43  peter
+  Revision 1.5  2000-01-07 16:32:28  daniel
+    * copyright 2000 added
+
+  Revision 1.4  1999/09/08 16:14:43  peter
     * pointer fixes
 
   Revision 1.3  1998/11/16 10:21:29  peter

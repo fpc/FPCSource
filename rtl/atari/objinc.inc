@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1993-98 by the Free Pascal development team.
+    Copyright (c) 1998-2000 by the Free Pascal development team.
 
     Includefile for objects.pp implementing OS-dependent file routines
     for Atari TOS
@@ -199,7 +199,10 @@ END;
 
 {
   $Log$
-  Revision 1.1  1998-07-15 12:10:48  carl
+  Revision 1.2  2000-01-07 16:32:22  daniel
+    * copyright 2000 added
+
+  Revision 1.1  1998/07/15 12:10:48  carl
     + first working version
 
 }

@@ -2,7 +2,7 @@
 
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1993,99 by Carl Eric Codere
+    Copyright (c) 1998-2000 by Carl Eric Codere
 
     This include implements VESA basic access.
 
@@ -96,7 +96,10 @@ var
                           { initialized in QueryAdapterInfo in graph.inc }
 {
   $Log$
-  Revision 1.2  1999-12-10 12:51:09  pierre
+  Revision 1.3  2000-01-07 16:32:24  daniel
+    * copyright 2000 added
+
+  Revision 1.2  1999/12/10 12:51:09  pierre
    + some VESA 2 extensions
 
   Revision 1.1  1999/11/08 11:15:21  peter

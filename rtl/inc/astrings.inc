@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1993,97 by Michael Van Canneyt,
+    Copyright (c) 1998-2000 by Michael Van Canneyt,
     member of the Free Pascal development team.
 
     This file implements AnsiStrings for FPC
@@ -642,7 +642,10 @@ end;
 
 {
   $Log$
-  Revision 1.37  1999-11-28 11:24:04  sg
+  Revision 1.38  2000-01-07 16:32:24  daniel
+    * copyright 2000 added
+
+  Revision 1.37  1999/11/28 11:24:04  sg
   * Fixed bug 722: If the start position of AnsiString Copy is less than 1,
     it will be set to 1 (same behaviour as in Delphi)
 

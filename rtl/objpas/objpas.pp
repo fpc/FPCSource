@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1998,99 by the Free Pascal development team
+    Copyright (c) 1998-2000 by the Free Pascal development team
 
     This unit makes Free Pascal as much as possible Delphi compatible
 
@@ -360,7 +360,10 @@ end.
 
 {
   $Log$
-  Revision 1.45  1999-12-20 11:20:35  peter
+  Revision 1.46  2000-01-07 16:32:29  daniel
+    * copyright 2000 added
+
+  Revision 1.45  1999/12/20 11:20:35  peter
     * integer is defined as longint, removed smallint which is now in system
 
   Revision 1.44  1999/11/06 14:41:30  peter

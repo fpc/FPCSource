@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1993,97 by the Free Pascal development team
+    Copyright (c) 1998-2000 by the Free Pascal development team
 
     Mouse unit for microsoft mouse compatible drivers
 
@@ -391,7 +391,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.1  1999-01-21 11:54:37  peter
+  Revision 1.2  2000-01-07 16:32:23  daniel
+    * copyright 2000 added
+
+  Revision 1.1  1999/01/21 11:54:37  peter
     * renamed mouse->msmouse to resolve conflict with the api mouse unit
 
 }

@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1993,98 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
     member of the Free Pascal development team
 
     Printer unit for BP7 compatible RTL
@@ -40,7 +40,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  1998-12-21 13:07:03  peter
+  Revision 1.2  2000-01-07 16:32:23  daniel
+    * copyright 2000 added
+
+  Revision 1.1  1998/12/21 13:07:03  peter
     * use -FE
 
   Revision 1.2  1998/05/22 00:39:26  peter

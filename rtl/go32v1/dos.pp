@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1993,97 by the Free Pascal development team.
+    Copyright (c) 1998-2000 by the Free Pascal development team.
 
     Dos unit for BP7 compatible RTL
 
@@ -791,7 +791,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.3  1999-01-22 16:22:09  pierre
+  Revision 1.4  2000-01-07 16:32:23  daniel
+    * copyright 2000 added
+
+  Revision 1.3  1999/01/22 16:22:09  pierre
    * Daniel removal of findclose reverted
 
   Revision 1.2  1999/01/22 10:07:02  daniel

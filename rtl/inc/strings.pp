@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1993,97 by the Free Pascal development team.
+    Copyright (c) 1998-2000 by the Free Pascal development team.
 
     Strings unit for PChar (asciiz/C compatible strings) handling
 
@@ -136,7 +136,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  1999-12-10 15:02:12  peter
+  Revision 1.3  2000-01-07 16:32:25  daniel
+    * copyright 2000 added
+
+  Revision 1.2  1999/12/10 15:02:12  peter
     * strnew is ofcourse also different between sysutils and strings, just
       like stralloc/strdispose.
 

@@ -2,7 +2,7 @@
     $Id$
 
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1993,99 by the Free Pascal development team
+    Copyright (c) 1998-2000 by the Free Pascal development team
 
     This include implements the different palette manipulation
     routines.
@@ -383,7 +383,10 @@ CONST
 
 {
 $Log$
-Revision 1.6  1999-12-25 22:22:56  jonas
+Revision 1.7  2000-01-07 16:32:26  daniel
+  * copyright 2000 added
+
+Revision 1.6  1999/12/25 22:22:56  jonas
   * setpallette only worked for colors 0-63, fixed
 
 Revision 1.5  1999/12/20 11:22:36  peter

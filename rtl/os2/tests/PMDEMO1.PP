@@ -2,7 +2,7 @@
 
     $Id$
 
-                   Copyright (c) 1993,94 by Florian Kl„mpfl
+                   Copyright (c) 1998-2000 by Florian Kl„mpfl
 
  ****************************************************************************}
 
@@ -71,7 +71,10 @@ program pmdemo1;
  end.
 {
   $Log$
-  Revision 1.2  1999-08-10 14:33:51  hajny
+  Revision 1.3  2000-01-07 16:32:34  daniel
+    * copyright 2000 added
+
+  Revision 1.2  1999/08/10 14:33:51  hajny
     * PM samples
 
   Revision 1.1  1999/06/02 16:01:35  hajny

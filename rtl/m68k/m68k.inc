@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1993,97 by Carl-Eric Codere,
+    Copyright (c) 1998-2000 by Carl-Eric Codere,
     member of the Free Pascal development team.
 
     See the file COPYING.FPC, included in this distribution,
@@ -688,7 +688,10 @@ end;
 
 {
   $Log$
-  Revision 1.15  1998-10-17 14:34:37  carl
+  Revision 1.16  2000-01-07 16:32:29  daniel
+    * copyright 2000 added
+
+  Revision 1.15  1998/10/17 14:34:37  carl
    * FillChar and FillObject bugfix, count was compared with byte
 
   Revision 1.14  1998/10/16 13:37:45  pierre

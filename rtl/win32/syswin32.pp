@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1993-98 by Florian Klaempfl and Pavel Ozerski
+    Copyright (c) 1998-2000 by Florian Klaempfl and Pavel Ozerski
     member of the Free Pascal development team.
 
     FPC Pascal system unit for the Win32 API.
@@ -1159,7 +1159,10 @@ end.
 
 {
   $Log$
-  Revision 1.52  2000-01-06 23:40:36  peter
+  Revision 1.53  2000-01-07 16:32:34  daniel
+    * copyright 2000 added
+
+  Revision 1.52  2000/01/06 23:40:36  peter
     * fixed exitprocess call, it's now in system_exit and uses exitcode
 
   Revision 1.51  1999/12/01 22:57:31  peter

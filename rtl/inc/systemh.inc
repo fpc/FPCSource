@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal Run time library.
-    Copyright (c) 1993,97 by the Free Pascal development team
+    Copyright (c) 1998-2000 by the Free Pascal development team
 
     This File contains the OS independent declarations of the system unit
 
@@ -410,7 +410,10 @@ const
 
 {
   $Log$
-  Revision 1.72  1999-12-20 11:20:14  peter
+  Revision 1.73  2000-01-07 16:32:25  daniel
+    * copyright 2000 added
+
+  Revision 1.72  1999/12/20 11:20:14  peter
     + smallint, maxsmallint
     * integer is redefined as smallint
 

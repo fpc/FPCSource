@@ -2,7 +2,7 @@
     $Id$
 
     This file is part of the Free Pascal Run time library.
-    Copyright (c) 1993,97 by the Free Pascal development team
+    Copyright (c) 1998-2000 by the Free Pascal development team
 
     See the file COPYING.FPC, included in this distribution,
     For details about the copyright.
@@ -593,7 +593,10 @@ end;
 
 {
   $Log$
-  Revision 1.77  1999-12-21 11:10:22  pierre
+  Revision 1.78  2000-01-07 16:32:25  daniel
+    * copyright 2000 added
+
+  Revision 1.77  1999/12/21 11:10:22  pierre
    * allow v09912 to compile system
 
   Revision 1.76  1999/12/18 14:54:34  florian

@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1993,97 by the Free Pascal development team
+    Copyright (c) 1998-2000 by the Free Pascal development team
 
     Include file with set operations called by the compiler
 
@@ -428,7 +428,10 @@ end;
 
 {
   $Log$
-  Revision 1.10  1999-03-01 15:40:59  peter
+  Revision 1.11  2000-01-07 16:32:24  daniel
+    * copyright 2000 added
+
+  Revision 1.10  1999/03/01 15:40:59  peter
     * use external names
     * removed all direct assembler modes
 

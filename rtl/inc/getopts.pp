@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1993,97 by Michael Van Canneyt,
+    Copyright (c) 1998-2000 by Michael Van Canneyt,
     member of the Free Pascal development team.
 
     Getopt implementation for Free Pascal, modeled after GNU getopt
@@ -510,7 +510,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  1998-10-30 09:18:22  michael
+  Revision 1.6  2000-01-07 16:32:24  daniel
+    * copyright 2000 added
+
+  Revision 1.5  1998/10/30 09:18:22  michael
   Long options NEED -- as starting char
 
   Revision 1.4  1998/10/29 23:06:55  peter

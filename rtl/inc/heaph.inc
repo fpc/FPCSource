@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1993,97 by the Free Pascal development team
+    Copyright (c) 1998-2000 by the Free Pascal development team
 
     Heap manager interface section
 
@@ -76,7 +76,10 @@ Procedure release(var p : pointer);
 
 {
   $Log$
-  Revision 1.12  1999-11-01 13:56:50  peter
+  Revision 1.13  2000-01-07 16:32:24  daniel
+    * copyright 2000 added
+
+  Revision 1.12  1999/11/01 13:56:50  peter
     * freemem,reallocmem now get var argument
 
   Revision 1.11  1999/10/30 17:39:05  peter

@@ -5,7 +5,7 @@
 
                            DOSCALLS interface unit
                      FPC Pascal Runtime Library for OS/2
-                   Copyright (c) 1993,94 by Florian Klaempfl
+                   Copyright (c) 1998-2000 by Florian Klaempfl
                     Copyright (c) 1997 by Daniel Mantione
 
  The FPK-Pascal runtime library is distributed under the Library GNU Public
@@ -3943,7 +3943,10 @@ external 'DOSCALLS' index 582;
 end.
 {
   $Log$
-  Revision 1.8  1999-12-26 19:30:18  hajny
+  Revision 1.9  2000-01-07 16:32:30  daniel
+    * copyright 2000 added
+
+  Revision 1.8  1999/12/26 19:30:18  hajny
     * cdecl modifications
 
   Revision 1.7  1999/12/18 18:32:38  hajny

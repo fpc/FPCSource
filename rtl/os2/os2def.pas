@@ -2,7 +2,7 @@
 
     $Id$
 
-              Copyright (c) 1993,94 by Florian Klaempfl
+              Copyright (c) 1998-2000 by Florian Klaempfl
                   Copyright (c) 1999 by Ramon Bosque
 
  The Free Pascal runtime library is distributed under the Library GNU Public
@@ -289,7 +289,10 @@ const
 end.
 {
   $Log$
-  Revision 1.7  1999-08-10 14:20:54  hajny
+  Revision 1.8  2000-01-07 16:32:32  daniel
+    * copyright 2000 added
+
+  Revision 1.7  1999/08/10 14:20:54  hajny
     * compatibility updates
 
   Revision 1.6  1999/08/05 07:37:27  hajny

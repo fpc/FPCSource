@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1993,97 by Michael Van Canneyt,
+    Copyright (c) 1998-2000 by Michael Van Canneyt,
     member of the Free Pascal development team.
 
     See the file COPYING.FPC, included in this distribution,
@@ -127,7 +127,10 @@ type
 
 {
   $Log$
-  Revision 1.3  1998-10-15 08:31:10  peter
+  Revision 1.4  2000-01-07 16:32:28  daniel
+    * copyright 2000 added
+
+  Revision 1.3  1998/10/15 08:31:10  peter
     * type aliases using delphi typenaming
 
 }

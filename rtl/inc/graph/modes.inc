@@ -2,7 +2,7 @@
     $Id$
 
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1993,99 by the Free Pascal development team
+    Copyright (c) 1998-2000 by the Free Pascal development team
 
     This include implements video mode management.
 
@@ -362,7 +362,10 @@
 
 {
 $Log$
-Revision 1.17  2000-01-02 19:02:39  jonas
+Revision 1.18  2000-01-07 16:32:26  daniel
+  * copyright 2000 added
+
+Revision 1.17  2000/01/02 19:02:39  jonas
   * removed/commented out (inited but) unused vars and unused types
 
 Revision 1.16  1999/12/21 17:42:18  jonas

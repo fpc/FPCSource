@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1997-98 by the Free Pascal development team.
+    Copyright (c) 1998-2000 by the Free Pascal development team.
 
     Objects.pas clone for Free Pascal
 
@@ -20,7 +20,7 @@
 {                                                          }
 {    Interface Copyright (c) 1992 Borland International    }
 {                                                          }
-{    Parts Copyright (c) 1992,96 by Florian Klaempfl       }
+{    Parts Copyright (c) 1998-2000 by Florian Klaempfl       }
 {    fnklaemp@cip.ft.uni-erlangen.de                       }
 {                                                          }
 {    Parts Copyright (c) 1996 by Frank ZAGO                }
@@ -2761,7 +2761,10 @@ END;
 END.
 {
   $Log$
-  Revision 1.32  1999-12-06 18:25:30  peter
+  Revision 1.33  2000-01-07 16:32:24  daniel
+    * copyright 2000 added
+
+  Revision 1.32  1999/12/06 18:25:30  peter
     * fixed vmtptr crash in tstream.put
 
   Revision 1.31  1999/11/06 14:35:38  peter

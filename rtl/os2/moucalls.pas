@@ -3,7 +3,7 @@
 
                            MOUCALLS interface unit
                      FPK-Pascal Runtime Library for OS/2
-                   Copyright (c) 1993,94 by Florian Kl„mpfl
+                   Copyright (c) 1998-2000 by Florian Kl„mpfl
                     Copyright (c) 1997 by Dani‰l Mantione
                       Copyright (c) 1998 by Tomas Hajny
 

@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1993-98 by the Free Pascal development team
+    Copyright (c) 1998-2000 by the Free Pascal development team
 
     Implementation of mathamatical Routines (only for real)
 
@@ -370,7 +370,10 @@
 
 {
   $Log$
-  Revision 1.17  1999-10-06 17:44:43  peter
+  Revision 1.18  2000-01-07 16:32:24  daniel
+    * copyright 2000 added
+
+  Revision 1.17  1999/10/06 17:44:43  peter
     * fixed power(int,int) with negative base
     * power(ext,ext) with negative base gives rte 207
 

@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1998,99 by the Free Pascal development team
+    Copyright (c) 1998-2000 by the Free Pascal development team
 
     This unit makes Free Pascal as much as possible Delphi compatible
 
@@ -220,7 +220,10 @@
        end;
 {
   $Log$
-  Revision 1.5  1999-12-02 19:28:53  peter
+  Revision 1.6  2000-01-07 16:32:25  daniel
+    * copyright 2000 added
+
+  Revision 1.5  1999/12/02 19:28:53  peter
     * public added to TObject
 
   Revision 1.4  1999/08/09 22:20:03  peter

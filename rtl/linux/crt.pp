@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1993-98 by Michael Van Canneyt and Peter Vreman,
+    Copyright (c) 1998-2000 by Michael Van Canneyt and Peter Vreman,
     members of the Free Pascal development team.
 
     See the file COPYING.FPC, included in this distribution,
@@ -1597,7 +1597,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.19  1999-10-22 14:36:20  peter
+  Revision 1.20  2000-01-07 16:32:26  daniel
+    * copyright 2000 added
+
+  Revision 1.19  1999/10/22 14:36:20  peter
     * crtreturn also needs f:textrec as parameter
 
   Revision 1.18  1999/09/07 07:47:46  peter

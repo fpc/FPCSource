@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1993-98 by the Free Pascal development team.
+    Copyright (c) 1998-2000 by the Free Pascal development team.
 
     Includefile for objects.pp implementing OS-dependent file routines
     for WIN32
@@ -184,7 +184,10 @@ END;
 
 {
   $Log$
-  Revision 1.2  1999-08-24 08:44:43  michael
+  Revision 1.3  2000-01-07 16:32:34  daniel
+    * copyright 2000 added
+
+  Revision 1.2  1999/08/24 08:44:43  michael
   + Fixed setfilepos and openfile
 
   Revision 1.1  1998/07/07 12:38:46  carl

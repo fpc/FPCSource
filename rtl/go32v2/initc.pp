@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1997-98 by Pierre Muller
+    Copyright (c) 1998-2000 by Pierre Muller
 
     Code to generate execution of all c functions
     with constructors attributes
@@ -89,7 +89,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  1998-12-21 14:13:07  pierre
+  Revision 1.3  2000-01-07 16:32:23  daniel
+    * copyright 2000 added
+
+  Revision 1.2  1998/12/21 14:13:07  pierre
    * problems with procvar address solved
 
   Revision 1.1  1998/12/21 13:14:30  peter

@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1993-99 by the Free Pascal development team.
+    Copyright (c) 1998-2000 by the Free Pascal development team.
 
     functions for heap management in the data segment
 
@@ -783,7 +783,10 @@ end;
 
 {
   $Log$
-  Revision 1.27  1999-12-16 19:11:49  peter
+  Revision 1.28  2000-01-07 16:32:24  daniel
+    * copyright 2000 added
+
+  Revision 1.27  1999/12/16 19:11:49  peter
     * fixed sysmemsize which did the and sizemask wrong
 
   Revision 1.26  1999/12/13 21:04:46  peter

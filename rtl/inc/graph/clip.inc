@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1993,99 by the Free Pascal development team
+    Copyright (c) 1998-2000 by the Free Pascal development team
 
     This include implements the different clipping algorithms
 
@@ -142,7 +142,10 @@ end;
 
 {
 $Log$
-Revision 1.7  1999-12-20 11:22:35  peter
+Revision 1.8  2000-01-07 16:32:25  daniel
+  * copyright 2000 added
+
+Revision 1.7  1999/12/20 11:22:35  peter
   * integer -> smallint to overcome -S2 switch needed for ggi version
 
 Revision 1.6  1999/09/27 12:35:27  jonas

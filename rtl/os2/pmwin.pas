@@ -4,7 +4,7 @@
 
                             PMWIN interface unit
                      FPC Pascal Runtime Library for OS/2
-                   Copyright (c) 1993,94 by Florian Kl„mpfl
+                   Copyright (c) 1998-2000 by Florian Kl„mpfl
                     Copyright (c) 1999 by Ramon Bosque
 
  The FPK-Pascal runtime library is distributed under the Library GNU Public
@@ -2295,7 +2295,10 @@ const
 end.
 {
   $Log$
-  Revision 1.7  1999-08-10 14:20:52  hajny
+  Revision 1.8  2000-01-07 16:32:33  daniel
+    * copyright 2000 added
+
+  Revision 1.7  1999/08/10 14:20:52  hajny
     * compatibility updates
 
   Revision 1.6  1999/08/04 15:51:05  hajny

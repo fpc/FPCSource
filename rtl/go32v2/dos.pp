@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1993,97 by the Free Pascal development team.
+    Copyright (c) 1998-2000 by the Free Pascal development team.
 
     Dos unit for BP7 compatible RTL
 
@@ -1047,7 +1047,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.15  1999-12-06 18:26:49  peter
+  Revision 1.16  2000-01-07 16:32:23  daniel
+    * copyright 2000 added
+
+  Revision 1.15  1999/12/06 18:26:49  peter
     * fpcmake updated for win32 commandline
 
   Revision 1.14  1999/11/09 11:07:50  pierre

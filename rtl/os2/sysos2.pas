@@ -2,7 +2,7 @@
 
                      FPK-Pascal -- OS/2 runtime library
 
-                  Copyright (c) 1993,95 by Florian Kl„mpfl
+                  Copyright (c) 1998-2000 by Florian Kl„mpfl
                    Copyright (c) 1997 by Dani‰l Mantione
 
  FPK-Pascal is distributed under the GNU Public License v2. So is this unit.
@@ -750,7 +750,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  2000-01-02 17:45:25  hajny
+  Revision 1.19  2000-01-07 16:32:33  daniel
+    * copyright 2000 added
+
+  Revision 1.18  2000/01/02 17:45:25  hajny
     * cdecl added for doscalls routines
 
   Revision 1.17  1999/09/10 15:40:35  peter

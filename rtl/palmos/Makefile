@@ -1,7 +1,7 @@
 #
 #   $Id$
 #   This file is part of the Free Pascal run time library.
-#   Copyright (c) 1996-98 by Michael van Canneyt
+#   Copyright (c) 1998-2000 by Michael van Canneyt
 #
 #   Makefile for the Free Pascal PalmOS Runtime Library
 #
@@ -242,7 +242,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.3  1998-10-14 10:31:28  florian
+# Revision 1.4  2000-01-07 16:32:34  daniel
+#   * copyright 2000 added
+#
+# Revision 1.3  1998/10/14 10:31:28  florian
 #   * adapted to work
 #
 # Revision 1.2  1998/10/02 09:26:03  peter

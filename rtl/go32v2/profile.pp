@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1993-98 by Pierre Muller,
+    Copyright (c) 1998-2000 by Pierre Muller,
     member of the Free Pascal development team.
 
     Profiling support for Go32V2
@@ -324,7 +324,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  1999-03-02 13:56:35  peter
+  Revision 1.3  2000-01-07 16:32:23  daniel
+    * copyright 2000 added
+
+  Revision 1.2  1999/03/02 13:56:35  peter
     * use ATT assembler in profile
     * use AS output in graph
 

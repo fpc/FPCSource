@@ -2,7 +2,7 @@
     $Id$
     This file is part of the Free Pascal run time library.
     This unit contains the record definition for the Win32 API
-    Copyright (c) 1993,97 by Florian KLaempfl,
+    Copyright (c) 1998-2000 by Florian KLaempfl,
     member of the Free Pascal development team.
 
     See the file COPYING.FPC, included in this distribution,
@@ -770,7 +770,10 @@ end.
 {$endif windows_include_files}
 {
   $Log$
-  Revision 1.1  1999-09-16 13:38:22  peter
+  Revision 1.2  2000-01-07 16:32:36  daniel
+    * copyright 2000 added
+
+  Revision 1.1  1999/09/16 13:38:22  peter
     * windows unit include moved to wininc/
 
   Revision 1.1  1998/08/31 11:53:56  pierre

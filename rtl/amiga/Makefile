@@ -1,7 +1,7 @@
 #
 #   $Id$
 #   This file is part of the Free Pascal run time library.
-#   Copyright (c) 1996-98 by Michael van Canneyt
+#   Copyright (c) 1998-2000 by Michael van Canneyt
 #
 #   Makefile for the Free Pascal Amiga Runtime Library
 #
@@ -274,7 +274,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.6  1998-10-22 16:43:54  pierre
+# Revision 1.7  2000-01-07 16:32:21  daniel
+#   * copyright 2000 added
+#
+# Revision 1.6  1998/10/22 16:43:54  pierre
 #   + added some units
 #
 # Revision 1.5  1998/10/14 10:49:46  pierre

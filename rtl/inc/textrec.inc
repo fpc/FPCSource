@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1993-98 by the Free Pascal development team
+    Copyright (c) 1998-2000 by the Free Pascal development team
 
     Textrec record definition
 
@@ -45,7 +45,10 @@ type
 
 {
   $Log$
-  Revision 1.6  1998-09-14 10:48:25  peter
+  Revision 1.7  2000-01-07 16:32:25  daniel
+    * copyright 2000 added
+
+  Revision 1.6  1998/09/14 10:48:25  peter
     * FPC_ names
     * Heap manager is now system independent
 

@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1993,97 by the Free Pascal development team
+    Copyright (c) 1998-2000 by the Free Pascal development team
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -563,7 +563,10 @@ end;
 
 {
   $Log$
-  Revision 1.31  1999-12-11 19:07:44  jonas
+  Revision 1.32  2000-01-07 16:32:25  daniel
+    * copyright 2000 added
+
+  Revision 1.31  1999/12/11 19:07:44  jonas
     * avoid unwanted type conversion from cardinal to longint in val for
       signed and unsigned 32bit int
 

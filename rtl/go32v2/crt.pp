@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1993-98 by the Free Pascal development team.
+    Copyright (c) 1998-2000 by the Free Pascal development team.
 
     Borland Pascal 7 Compatible CRT Unit for Go32V2
 
@@ -820,7 +820,10 @@ end.
 
 {
   $Log$
-  Revision 1.9  2000-01-07 14:55:47  pierre
+  Revision 1.10  2000-01-07 16:32:23  daniel
+    * copyright 2000 added
+
+  Revision 1.9  2000/01/07 14:55:47  pierre
    * bad sound if changing frequency solved
 
   Revision 1.8  1999/11/06 14:38:23  peter

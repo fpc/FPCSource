@@ -1722,7 +1722,10 @@ End.
 
 {
   $Log$
-  Revision 1.10  1998-10-14 10:46:14  pierre
+  Revision 1.11  2000-01-07 16:32:21  daniel
+    * copyright 2000 added
+
+  Revision 1.10  1998/10/14 10:46:14  pierre
   added several ; missing
 
   Revision 1.9  1998/09/14 20:20:57  carl
@@ -1746,10 +1749,10 @@ End.
     * bugfix of findfirst, was not convberting correctl backslahes
 
        History (Nils Sjoholm):
-       10.02.1998  First version for Amiga.
+       10.02.1999-2000 by First version for Amiga.
                    Just GetDate and GetTime.
 
-       11.02.1998  Added AmigaToDt and DtToAmiga
+       11.02.1999-2000 by Added AmigaToDt and DtToAmiga
                    Changed GetDate and GetTime to
                    use AmigaToDt and DtToAmiga.
 
@@ -1757,14 +1760,14 @@ End.
                    They are using a string as arg
                    have to try to fix that.
 
-       12.02.1998  Added Fsplit and FExpand.
+       12.02.1999-2000 by Added Fsplit and FExpand.
                    Cleaned up the unit and removed
                    stuff that was not used yet.
 
-       13.02.1998  Added CToPas and PasToC and removed
+       13.02.1999-2000 by Added CToPas and PasToC and removed
                    the uses of strings.
 
-       14.02.1998  Removed AmigaToDt and DtToAmiga
+       14.02.1999-2000 by Removed AmigaToDt and DtToAmiga
                    from public area.
                    Added deviceids and devicenames
                    arrays so now diskfree and disksize
