@@ -170,9 +170,61 @@ begin
   else
    Accept:=false;
 end;
+
+type thostaddr= packed array[1..4] of byte;
+
+function htonl( host : longint):longint; {$ifndef VER1_0} inline; {$ENDIF}
+
+begin
+{$ifdef FPC_BIG_ENDIAN}
+  htonl:=host;
+{$else}
+  htonl:=THostAddr(host)[4];
+  htonl:=htonl or ( (THostAddr(host)[3]) shl 8);
+  htonl:=htonl or ( (THostAddr(host)[2]) shl 16);
+  htonl:=htonl or ( (THostAddr(host)[1]) shl 24);
+{$endif}
+end;
+
+Function NToHl (Net : Longint) : Longint;  {$ifndef VER1_0} inline; {$ENDIF}
+
+begin
+{$ifdef FPC_BIG_ENDIAN}
+  ntohl:=net;
+{$else}
+  ntohl:=THostAddr(Net)[4];
+  ntohl:=ntohl or ( (THostAddr(Net)[3]) shl 8);
+  ntohl:=ntohl or ( (THostAddr(Net)[2]) shl 16);
+  ntohl:=ntohl or ( (THostAddr(Net)[1]) shl 24);
+{$endif}
+end;
+
+function htons( host : word):word; {$ifndef VER1_0} inline; {$ENDIF}
+
+begin
+{$ifdef FPC_BIG_ENDIAN}
+  htonl:=host;
+{$else}
+  htons:=swap(host);
+{$endif}
+end;
+
+Function NToHs (Net : word):word;{$ifndef VER1_0} inline; {$ENDIF}
+
+begin
+{$ifdef FPC_BIG_ENDIAN}
+  ntohs:=net;
+{$else}
+  ntohs:=swap(net);
+{$endif}
+end;
+
 {
   $Log$
-  Revision 1.11  2003-11-23 10:57:15  michael
+  Revision 1.12  2004-11-01 16:23:15  marco
+   * htons etc
+
+  Revision 1.11  2003/11/23 10:57:15  michael
   + Changed mode to output for file sockets
 
   Revision 1.10  2003/11/22 21:58:09  marco

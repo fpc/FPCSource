@@ -184,9 +184,17 @@ Function Accept(Sock:longint;var addr:TInetSockAddr;var SockIn,SockOut:text):Boo
 Function Connect(Sock:longint;const addr:TInetSockAddr;var SockIn,SockOut:text):Boolean;
 Function Connect(Sock:longint;const addr:TInetSockAddr;var SockIn,SockOut:file):Boolean;
 
+function htonl( host : longint):longint;  {$ifndef ver1_0} inline; {$endif}
+Function NToHl (Net : Longint) : Longint; {$ifndef ver1_0} inline; {$endif}
+function htons( host : word):word;	  {$ifndef ver1_0} inline; {$endif}
+Function NToHs (Net : word):word;         {$ifndef ver1_0} inline; {$endif}
+
 {
   $Log$
-  Revision 1.14  2004-03-16 19:15:57  marco
+  Revision 1.15  2004-11-01 16:23:15  marco
+   * htons etc
+
+  Revision 1.14  2004/03/16 19:15:57  marco
    * sockaddr is now a union between the old and new struct as grace period
 
   Revision 1.13  2004/03/16 18:03:37  marco
