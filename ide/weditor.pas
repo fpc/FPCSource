@@ -3896,8 +3896,13 @@ begin
 {$endif FVISION}
      while true do
       begin
+{$ifdef FVISION}
+        if (cur.x<p^.origin.x) or (cur.x>=p^.origin.x+p^.size.x) or
+           (cur.y<p^.origin.y) or (cur.y>=p^.origin.y+p^.size.y) then
+{$else not FVISION}
         if (cur.x<0) or (cur.x>=p^.size.x) or
            (cur.y<0) or (cur.y>=p^.size.y) then
+{$endif FVISION}
           break;
         p2:=p;
 {$ifndef FVISION}
@@ -7099,7 +7104,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.18  2002-04-16 08:27:01  pierre
+  Revision 1.19  2002-05-30 22:01:12  pierre
+   * fix ResetCursor for fvision
+
+  Revision 1.18  2002/04/16 08:27:01  pierre
    * fix for bug report 1869
 
   Revision 1.17  2002/01/25 14:15:35  pierre
