@@ -73,8 +73,8 @@ unit pdecl;
 
     function read_type(const name : stringid) : pdef;forward;
 
-    procedure const_dec;
 
+    procedure const_dec;
       var
          name : stringid;
          p : ptree;
@@ -82,8 +82,9 @@ unit pdecl;
          sym : psym;
          ps : pconstset;
          pd : pbestreal;
+{$ifdef USEANSISTRING}	 
          sp : pstring;
-
+{$endif USEANSISTRING}	 
       begin
          consume(_CONST);
          repeat
@@ -310,6 +311,7 @@ unit pdecl;
                    not(is_record or is_object) and
                    ((pattern='EXPORT') or
                     (pattern='EXTERNAL') or
+                    (pattern='PUBLIC') or
                     (pattern='CDECL')) then
                  begin
                    { only allowed for one var }
@@ -335,7 +337,7 @@ unit pdecl;
                       extern_csym:=true;
                     end;
                    { export }
-                   if pattern='EXPORT' then
+                   if (pattern='EXPORT') or (pattern='PUBLIC') then
                     begin
                       consume(ID);
                       if extern_csym then
@@ -362,6 +364,8 @@ unit pdecl;
                     consume(SEMICOLON);
                  { insert in the symtable }
                    Csym:=new(pvarsym,init_C(s,C_name,p));
+		   if export_Csym then
+		    inc(Csym^.refs);
                    if extern_Csym then
                     begin
                       Csym^.var_options:=Csym^.var_options or vo_is_external;
@@ -1881,7 +1885,11 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.37  1998-08-11 15:31:38  peter
+  Revision 1.38  1998-08-12 19:20:39  peter
+    + public is the same as export for c_vars
+    * a exported/public c_var incs now the refcount
+
+  Revision 1.37  1998/08/11 15:31:38  peter
     * write extended to ppu file
     * new version 0.99.7
 
