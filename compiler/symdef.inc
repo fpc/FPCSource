@@ -1565,7 +1565,11 @@
 
     function tarraydef.size : longint;
       begin
-         size:=(highrange-lowrange+1)*elesize;
+         { dirty hack to overcome an overflow (PFV) }
+         if highrange=$7fffffff then
+          size:=$7fffffff
+         else
+          size:=(highrange-lowrange+1)*elesize;
       end;
 
 
@@ -3219,7 +3223,10 @@
 
 {
   $Log$
-  Revision 1.74  1998-11-27 14:50:47  peter
+  Revision 1.75  1998-11-29 12:45:59  peter
+    * hack for arraydef.size overflow
+
+  Revision 1.74  1998/11/27 14:50:47  peter
     + open strings, $P switch support
 
   Revision 1.73  1998/11/26 14:47:00  michael
