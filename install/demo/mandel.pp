@@ -322,12 +322,15 @@ begin
   readln;
 {$endif fpc_profile}
   CloseGraph;
-  Writeln('Mandel took ',neededtime/100:0:3,' secs to generate mandel graph');
+  Writeln('Mandel took ',Real(neededtime)/100:0:3,' secs to generate mandel graph');
   Writeln('With graph driver ',gd,' and graph mode ',gm);
 end.
 {
   $Log$
-  Revision 1.9  2000-02-22 03:43:55  alex
+  Revision 1.10  2000-03-08 22:32:41  alex
+  fixed warnings about type conversion
+
+  Revision 1.9  2000/02/22 03:43:55  alex
   fixed the warning
 
   Revision 1.8  2000/01/04 15:29:42  marco
