@@ -26,7 +26,7 @@ uses
   {$endif}
   {$ifdef FPC}
     {$ifdef GO32V2}
-    Go32,
+    Go32,Video,
     {$endif}
   {$endif}
   Objects,Strings,WUtils;
@@ -431,10 +431,20 @@ end;
 function VESASetMode(Mode: word): boolean;
 var r: registers;
     OK: boolean;
+{$ifdef FPC}
+    B: TVESAModeInfoBlock;
+{$endif FPC}
 begin
   r.ah:=$4f; r.al:=$02; r.bx:=Mode;
   dos.intr($10,r);
   OK:=(r.ax=$004f);
+{$ifdef FPC}
+  VESAGetModeInfo(Mode,B);
+  { cheat to get a correct mouse }
+  { mem[$40:$84]:=B.XResolution-1;
+    memw[$40:$4a]:=B.YResolution;}
+  { memw[$40:$4c]:=ScreenHeight*((ScreenWidth shl 1)-1); }
+{$endif FPC}
   VESASetMode:=OK;
 end;
 
@@ -482,7 +492,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.4  1999-04-07 21:55:58  peter
+  Revision 1.5  1999-12-23 23:33:43  pierre
+   * use FPC syntax for procvar args
+
+  Revision 1.4  1999/04/07 21:55:58  peter
     + object support for browser
     * html help fixes
     * more desktop saving things
