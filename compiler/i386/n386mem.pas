@@ -149,7 +149,7 @@ implementation
                 begin
                    new(r);
                    reset_reference(r^);
-                   r^.symbol:=pstoreddef(ppointerdef(left.resulttype)^.pointertype.def)^.get_inittable_label;
+                   r^.symbol:=pstoreddef(ppointerdef(resulttype)^.pointertype.def)^.get_inittable_label;
                    emitpushreferenceaddr(r^);
                    dispose(r);
                    { push pointer we just allocated, we need to initialize the
@@ -1060,7 +1060,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2000-12-25 00:07:33  peter
+  Revision 1.9  2001-02-02 22:38:00  peter
+    * fixed crash with new(precord), merged
+
+  Revision 1.8  2000/12/25 00:07:33  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 
