@@ -140,7 +140,7 @@ begin
 end;
 
 
-Procedure TWriter.WriteDescendent(Root: TComponent; AAncestor: TComponent);
+Procedure TWriter.WriteDescendent(ARoot: TComponent; AAncestor: TComponent);
 
 begin
 end;
@@ -176,7 +176,7 @@ begin
 end;
 
 
-Procedure TWriter.WriteRootComponent(Root: TComponent);
+Procedure TWriter.WriteRootComponent(ARoot: TComponent);
 
 begin
 end;
@@ -200,7 +200,11 @@ begin
 end;
 {
   $Log$
-  Revision 1.2  1999-04-08 10:18:58  peter
+  Revision 1.3  1999-09-13 08:35:16  fcl
+  * Changed some argument names (Root->ARoot etc.) because the new compiler
+    now performs more ambiguity checks  (sg)
+
+  Revision 1.2  1999/04/08 10:18:58  peter
     * makefile updates
 
 }

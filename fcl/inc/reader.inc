@@ -137,7 +137,7 @@ end;
 
 
 
-Function TReader.FindMethod(Root: TComponent; const MethodName: string): Pointer;
+Function TReader.FindMethod(ARoot: TComponent; const AMethodName: string): Pointer;
 
 begin
   FindMethod:=nil;
@@ -328,7 +328,7 @@ end;
 
 
 
-Function TReader.ReadRootComponent(Root: TComponent): TComponent;
+Function TReader.ReadRootComponent(ARoot: TComponent): TComponent;
 
 begin
   ReadRootComponent:=nil;
@@ -373,7 +373,11 @@ begin
 end;
 {
   $Log$
-  Revision 1.2  1999-04-08 10:18:54  peter
+  Revision 1.3  1999-09-13 08:35:16  fcl
+  * Changed some argument names (Root->ARoot etc.) because the new compiler
+    now performs more ambiguity checks  (sg)
+
+  Revision 1.2  1999/04/08 10:18:54  peter
     * makefile updates
 
 }

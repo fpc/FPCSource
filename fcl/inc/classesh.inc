@@ -505,7 +505,7 @@ type
     FMemory: Pointer;
     FSize, FPosition: Longint;
   protected
-    procedure SetPointer(Ptr: Pointer; Size: Longint);
+    procedure SetPointer(Ptr: Pointer; ASize: Longint);
   public
     function Read(var Buffer; Count: Longint): Longint; override;
     function Seek(Offset: Longint; Origin: Word): Longint; override;
@@ -673,7 +673,7 @@ type
     procedure SkipComponent(SkipHeader: Boolean);
   protected
     function Error(const Message: string): Boolean; virtual;
-    function FindMethod(Root: TComponent; const MethodName: string): Pointer; virtual;
+    function FindMethod(ARoot: TComponent; const AMethodName: string): Pointer; virtual;
     procedure SetName(Component: TComponent; var Name: string); virtual;
     procedure ReferenceName(var Name: string); virtual;
     function FindAncestorComponent(const Name: string;
@@ -705,7 +705,7 @@ type
     procedure ReadListBegin;
     procedure ReadListEnd;
     procedure ReadPrefix(var Flags: TFilerFlags; var AChildPos: Integer);
-    function ReadRootComponent(Root: TComponent): TComponent;
+    function ReadRootComponent(ARoot: TComponent): TComponent;
     procedure ReadSignature;
     function ReadStr: string;
     function ReadString: string;
@@ -756,13 +756,13 @@ type
     procedure WriteCollection(Value: TCollection);
     procedure WriteComponent(Component: TComponent);
     procedure WriteChar(Value: Char);
-    procedure WriteDescendent(Root: TComponent; AAncestor: TComponent);
+    procedure WriteDescendent(ARoot: TComponent; AAncestor: TComponent);
     procedure WriteFloat(Value: Extended);
     procedure WriteIdent(const Ident: string);
     procedure WriteInteger(Value: Longint);
     procedure WriteListBegin;
     procedure WriteListEnd;
-    procedure WriteRootComponent(Root: TComponent);
+    procedure WriteRootComponent(ARoot: TComponent);
     procedure WriteSignature;
     procedure WriteStr(const Value: string);
     procedure WriteString(const Value: string);
@@ -1071,7 +1071,11 @@ function LineStart(Buffer, BufPos: PChar): PChar;
 
 {
   $Log$
-  Revision 1.15  1999-09-11 22:01:03  fcl
+  Revision 1.16  1999-09-13 08:35:16  fcl
+  * Changed some argument names (Root->ARoot etc.) because the new compiler
+    now performs more ambiguity checks  (sg)
+
+  Revision 1.15  1999/09/11 22:01:03  fcl
   * Activated component registration callbacks  (sg)
 
   Revision 1.14  1999/08/26 21:11:25  peter

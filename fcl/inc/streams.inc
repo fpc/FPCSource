@@ -336,11 +336,11 @@ end;
 {*                             TCustomMemoryStream                          *}
 {****************************************************************************}
 
-procedure TCustomMemoryStream.SetPointer(Ptr: Pointer; Size: Longint);
+procedure TCustomMemoryStream.SetPointer(Ptr: Pointer; ASize: Longint);
 
 begin
   FMemory:=Ptr;
-  FSize:=Size;
+  FSize:=ASize;
 end;
 
 
@@ -619,7 +619,11 @@ end;
 
 {
   $Log$
-  Revision 1.14  1999-07-18 20:58:47  michael
+  Revision 1.15  1999-09-13 08:35:16  fcl
+  * Changed some argument names (Root->ARoot etc.) because the new compiler
+    now performs more ambiguity checks  (sg)
+
+  Revision 1.14  1999/07/18 20:58:47  michael
   * fixed bug in realloc and setcapacity of tmemorystream
 
   Revision 1.13  1999/04/08 10:18:55  peter
