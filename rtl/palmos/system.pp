@@ -16,7 +16,7 @@
 
 {$define PALMOS}
 {$ASMMODE DIRECT}
-unit system;
+unit {$ifdef VER1_0}syspalm{$else}system{$endif};
 
 {$I os.inc}
 
@@ -94,7 +94,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2001-03-16 20:01:48  hajny
+  Revision 1.2  2001-03-21 21:17:58  hajny
+    * system unit name change corrections
+
+  Revision 1.1  2001/03/16 20:01:48  hajny
     + system unit name change
 
   Revision 1.2  2000/07/13 11:33:54  michael

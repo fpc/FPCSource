@@ -1,1 +1,1 @@
-{$i system.pp}
+{$i system.pas}
