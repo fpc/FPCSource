@@ -251,13 +251,13 @@ end;
 
 Procedure TAsmScriptDos.AddDeleteCommand (Const FileName : String);
 begin
- Add('Del '+ScriptFixFileName(FileName));
+ Add('Del ' + MaybeQuoted (ScriptFixFileName (FileName)));
 end;
 
 
 Procedure TAsmScriptDos.AddDeleteDirCommand (Const FileName : String);
 begin
- Add('Rmdir '+FileName);
+ Add('Rmdir ' + MaybeQuoted (ScriptFixFileName (FileName)));
 end;
 
 
@@ -317,13 +317,13 @@ end;
 
 Procedure TAsmScriptAmiga.AddDeleteCommand (Const FileName : String);
 begin
- Add('Delete '+ScriptFixFileName(FileName));
+ Add('Delete ' + MaybeQuoted (ScriptFixFileName(FileName)));
 end;
 
 
 Procedure TAsmScriptAmiga.AddDeleteDirCommand (Const FileName : String);
 begin
- Add('Delete '+ScriptFixFileName(FileName));
+ Add('Delete ' + MaybeQuoted (ScriptFixFileName(FileName)));
 end;
 
 
@@ -372,13 +372,13 @@ end;
 
 Procedure TAsmScriptUnix.AddDeleteCommand (Const FileName : String);
 begin
- Add('rm '+ScriptFixFileName(FileName));
+ Add('rm ' + MaybeQuoted (ScriptFixFileName(FileName)));
 end;
 
 
 Procedure TAsmScriptUnix.AddDeleteDirCommand (Const FileName : String);
 begin
- Add('rmdir '+ScriptFixFileName(FileName));
+ Add('rmdir ' + MaybeQuoted (ScriptFixFileName(FileName)));
 end;
 
 
@@ -434,13 +434,13 @@ end;
 
 Procedure TAsmScriptMPW.AddDeleteCommand (Const FileName : String);
 begin
- Add('Delete '+ScriptFixFileName(FileName));
+ Add('Delete ' + MaybeQuoted (ScriptFixFileName(FileName)));
 end;
 
 
 Procedure TAsmScriptMPW.AddDeleteDirCommand (Const FileName : String);
 begin
- Add('Delete '+FileName);
+ Add('Delete ' + MaybeQuoted (ScriptFixFileName (FileName)));
 end;
 
 
@@ -503,7 +503,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.30  2004-08-20 10:23:35  olle
+  Revision 1.31  2004-12-27 19:48:58  hajny
+    * missing maybequoted() added for deletion of generated .s files during external assembly
+
+  Revision 1.30  2004/08/20 10:23:35  olle
     * minor fix for macos
 
   Revision 1.29  2004/06/20 08:55:30  florian
