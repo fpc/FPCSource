@@ -434,94 +434,88 @@ begin
 end;
 
 
-function readderef(const s:string;skipnil:boolean):boolean;
+procedure readderef;
 type
-  tdereftype = (derefnil,derefaktrecordindex,derefaktstaticindex,
-                derefunit,derefrecord,derefindex,
-                dereflocal,derefpara,derefaktlocalindex);
+  tdereftype = (derefnil,
+    derefaktrecordindex,
+    derefaktstaticindex,
+    derefaktglobalindex,
+    derefaktlocalindex,
+    derefunit,
+    derefrecord,
+    derefindex,
+    dereflocal,
+    derefpara
+  );
 var
   b : tdereftype;
+  first : boolean;
+  idx : word;
+  typ,
+  i,n : byte;
+  s : string;
 begin
-  readderef:=true;
-  repeat
-    b:=tdereftype(ppufile.getbyte);
-    case b of
-      derefnil :
-        begin
-          if not skipnil then
-           writeln('nil');
-          readderef:=false;
-          break;
-        end;
-      derefaktrecordindex :
-        begin
-          writeln('AktRecord ',s,' ',ppufile.getword);
-          break;
-        end;
-      derefaktstaticindex :
-        begin
-          writeln('AktStatic ',s,' ',ppufile.getword);
-          break;
-        end;
-      derefaktlocalindex :
-        begin
-          writeln('AktLocal ',s,' ',ppufile.getword);
-          break;
-        end;
-      derefunit :
-        begin
-          writeln('Unit ',ppufile.getword);
-          break;
-        end;
-      derefrecord :
-        begin
-          write('RecordDef ',ppufile.getword,', ');
-        end;
-      derefpara :
-        begin
-          write('Parameter of procdef ',ppufile.getword,', ');
-        end;
-      dereflocal :
-        begin
-          write('Local of procdef ',ppufile.getword,', ');
-        end;
-      derefindex :
-        begin
-          write(s,' ',ppufile.getword,', ');
-        end;
-      else
-        begin
-          writeln('!! unsupported dereftyp: ',ord(b));
-          break;
-        end;
-    end;
-  until false;
-end;
-
-
-function readdefref:boolean;
-begin
-  readdefref:=readderef('Definition',false);
-end;
-
-
-function readsymref:boolean;
-begin
-  readsymref:=readderef('Symbol',false);
+  first:=true;
+  i:=0;
+  n:=ppufile.getbyte;
+  if n<1 then
+   begin
+     writeln('!! Error, deref len < 1');
+     exit;
+   end;
+  typ:=ppufile.getbyte;
+  case typ of
+    0 : write('Nil');
+    1 : s:='Symbol';
+    2 : s:='Definition';
+    else write('!! Error, unknown deref destination type');
+  end;
+  inc(i);
+  while (i<n) do
+   begin
+     if not first then
+      write(', ')
+     else
+      first:=false;
+     b:=tdereftype(ppufile.getbyte);
+     idx:=ppufile.getbyte shl 8;
+     idx:=idx or ppufile.getbyte;
+     inc(i,3);
+     case b of
+       derefnil :
+         write('!! Error (nil)');
+       derefaktrecordindex :
+         write('AktRecord ',s,' ',idx);
+       derefaktstaticindex :
+         write('AktStatic ',s,' ',idx);
+       derefaktglobalindex :
+         write('AktGlobal ',s,' ',idx);
+       derefaktlocalindex :
+         write('AktLocal ',s,' ',idx);
+       derefunit :
+         write('Unit ',idx);
+       derefrecord :
+         write('RecordDef ',idx);
+       derefpara :
+         write('Parameter of procdef ',idx);
+       dereflocal :
+         write('Local of procdef ',idx);
+       derefindex :
+         write(s,' ',idx);
+       else
+         begin
+           writeln('!! unsupported dereftyp: ',ord(b));
+           break;
+         end;
+     end;
+   end;
+  writeln;
 end;
 
 
 procedure readtype;
-var
-  b1,b2 : boolean;
 begin
-  b1:=readderef('Definition',true);
-  b2:=readderef('Symbol',true);
-  if not(b1 or b2) then
-   Writeln('nil')
-  else
-   if (b1 and b2) then
-    Writeln('!! Type has both definition and symbol stored');
+  readderef;
 end;
 
 
@@ -543,7 +537,7 @@ const
 var
   sl : tsltype;
 begin
-  readdefref;
+  readderef;
   repeat
     sl:=tsltype(ppufile.getbyte);
     if sl=sl_none then
@@ -553,7 +547,7 @@ begin
       sl_call,
       sl_load,
       sl_subscript :
-        readsymref;
+        readderef;
       sl_vec :
         writeln(ppufile.getlongint);
     end;
@@ -783,9 +777,9 @@ begin
      write  (space,'       Type : ');
      readtype;
      write  (space,'    Default : ');
-     readsymref;
+     readderef;
      write  (space,'     Symbol : ');
-     readsymref;
+     readderef;
      writeln(space,'  Is Hidden : ',(ppufile.getbyte<>0));
      write  (space,'   Location : ');
      writeln('<not yet implemented>');
@@ -820,7 +814,7 @@ begin
   writeln(space,'** Definition Nr. ',ppufile.getword,' **');
   writeln(space,s);
   write  (space,'      Type symbol : ');
-  readsymref;
+  readderef;
   ppufile.getsmallset(defopts);
 
   if df_unique in defopts then
@@ -829,12 +823,12 @@ begin
   if df_has_rttitable in defopts then
    begin
      write  (space,'      RTTI symbol : ');
-     readsymref;
+     readderef;
    end;
   if df_has_inittable in defopts then
    begin
      write  (space,'      Init symbol : ');
-     readsymref;
+     readderef;
    end;
 end;
 
@@ -922,9 +916,12 @@ begin
          ibprocsym :
            begin
              readcommonsym('Procedure symbol ');
-             repeat
-               write(space,'  Definition: ');
-             until not readdefref;
+             len:=ppufile.getword;
+             for i:=1 to len do
+              begin
+                write(space,'  Definition: ');
+                readderef;
+              end;
            end;
 
          ibconstsym :
@@ -1021,7 +1018,7 @@ begin
            begin
              readcommonsym('Enumeration symbol ');
              write  (space,'  Definition: ');
-             readdefref;
+             readderef;
              writeln(space,'       Value: ',getlongint);
            end;
 
@@ -1078,7 +1075,7 @@ begin
              if (i and 32)>0 then
               begin
                 write  (space,'OverrideProp: ');
-                readsymref;
+                readderef;
               end
              else
               begin
@@ -1320,9 +1317,9 @@ begin
              writeln(space,'  Overload Number : ',getword);
              writeln(space,'           Number : ',getword);
              write  (space,'            Class : ');
-             readdefref;
+             readderef;
              write  (space,'          Procsym : ');
-             readsymref;
+             readderef;
              write  (space,'         File Pos : ');
              readposinfo;
              write  (space,'       SymOptions : ');
@@ -1330,7 +1327,7 @@ begin
              if (calloption=pocall_inline) then
               begin
                 write  (space,'       FuncretSym : ');
-                readdefref;
+                readderef;
               end;
              space:='    '+space;
              { parast }
@@ -1412,7 +1409,7 @@ begin
              writeln(space,'       Vmt offset : ',getlongint);
              writeln(space,'    Name of Class : ',getstring);
              write(space,  '   Ancestor Class : ');
-             readdefref;
+             readderef;
              writeln(space,'          Options : ',getlongint);
 
              if tobjectdeftype(b) in [odt_interfacecom,odt_interfacecorba] then
@@ -1431,7 +1428,7 @@ begin
                 for j:=1 to l do
                  begin
                    write  (space,'  - Definition : ');
-                   readdefref;
+                   readderef;
                    writeln(space,'       IOffset : ',getlongint);
                  end;
               end;
@@ -1468,7 +1465,7 @@ begin
            begin
              readcommondef('Enumeration type definition');
              write(space,'Base enumeration type : ');
-             readdefref;
+             readderef;
              writeln(space,' Smallest element : ',getlongint);
              writeln(space,'  Largest element : ',getlongint);
              writeln(space,'             Size : ',getlongint);
@@ -1679,12 +1676,12 @@ begin
            end;
          ibsymref :
            begin
-             readsymref;
+             readderef;
              readref;
            end;
          ibdefref :
            begin
-             readdefref;
+             readderef;
              readref;
              if ((ppufile.header.flags and uf_local_browser)<>0) and
                 (UnitIndex=0) then
@@ -1940,7 +1937,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.43  2003-06-05 20:06:11  peter
+  Revision 1.44  2003-06-09 12:59:00  peter
+    * updated for new deref info
+
+  Revision 1.43  2003/06/05 20:06:11  peter
     * new procoptions
 
   Revision 1.42  2003/05/09 17:47:03  peter
