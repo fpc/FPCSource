@@ -284,6 +284,13 @@ begin
   end;
   { Handle the BW,BL,WL separatly }
   sizeerr:=false;
+  { special push/pop selector case }
+  if ((opcode=A_PUSH) or
+      (opcode=A_POP)) and
+     (operands[1]^.opr.typ=OPR_REGISTER) and
+     ((operands[1]^.opr.reg>=firstsreg) and
+      (operands[1]^.opr.reg<=lastsreg)) then
+     exit;
   if opsize in [S_BW,S_BL,S_WL] then
    begin
      if ops<>2 then
@@ -373,7 +380,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.15  2000-05-09 21:44:28  pierre
+  Revision 1.16  2000-05-10 08:55:08  pierre
+   * no warning nor error for pushl of segment register
+
+  Revision 1.15  2000/05/09 21:44:28  pierre
     * add .byte 066h to force correct pushw %es
     * handle push es as a pushl %es
 
