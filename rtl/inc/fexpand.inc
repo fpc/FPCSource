@@ -17,7 +17,7 @@
 ****************************************************************************}
 
 
-function GetDirIO (DriveNr: byte; var Dir: OpenString): word;
+procedure GetDirIO (DriveNr: byte; var Dir: OpenString);
 
 (* GetDirIO is supposed to return the root of the given drive   *)
 (* in case of an error for compatibility of FExpand with TP/BP. *)
@@ -28,19 +28,32 @@ begin
   OldInOutRes := InOutRes;
   InOutRes := 0;
   GetDir (DriveNr, Dir);
-  GetDirIO := InOutRes;
   InOutRes := OldInOutRes;
 end;
+
+
+{$IFDEF FPC_FEXPAND_VOLUMES}
+procedure GetDirIO (const VolumeName: OpenString; var Dir: OpenString);
+
+var
+  OldInOutRes: word;
+begin
+  OldInOutRes := InOutRes;
+  InOutRes := 0;
+  GetDir (VolumeName, Dir);
+  InOutRes := OldInOutRes;
+end;
+{$ENDIF FPC_FEXPAND_VOLUMES}
 
 
 function FExpand (const Path: PathStr): PathStr;
 
 (* LFNSupport boolean constant, variable or function must be declared for all
    the platforms, at least locally in the Dos unit implementation part.
-   In addition, FPC_FEXPAND_UNC, FPC_FEXPAND_DRIVES, FPC_FEXPAND_GETENV_PCHAR
-   and FPC_FEXPAND_TILDE conditionals might be defined to specify FExpand
-   behaviour. Only forward slashes are supported if UNIX conditional
-   is defined, both forward and backslashes otherwise.
+   In addition, FPC_FEXPAND_UNC, FPC_FEXPAND_DRIVES, FPC_FEXPAND_GETENV_PCHAR,
+   FPC_FEXPAND_TILDE and FPC_FEXPAND_VOLUMES conditionals might be defined to
+   specify FExpand behaviour. Only forward slashes are supported if UNIX
+   conditional is defined, both forward and backslashes otherwise.
 *)
 
 const
@@ -49,13 +62,14 @@ const
 {$ELSE UNIX}
     DirSep = '\';
 {$ENDIF UNIX}
+    DriveSep = ':';
 {$IFDEF FPC_FEXPAND_DRIVES}
-    PathStart = 3;
+    PathStart: longint = 3;
 {$ELSE FPC_FEXPAND_DRIVES}
     PathStart = 1;
 {$ENDIF FPC_FEXPAND_DRIVES}
 
-var S, Pa: PathStr;
+var S, Pa, Dirs: PathStr;
     I, J: longint;
 
 begin
@@ -68,10 +82,13 @@ begin
     for I := 1 to Length (Pa) do
         if Pa [I] = '/' then
             Pa [I] := DirSep;
-{$ENDIF}
+{$ENDIF UNIX}
+{$IFDEF FPC_FEXPAND_VOLUMES}
+    PathStart := Succ (Pos (DriveSep, Pa));
+{$ENDIF FPC_FEXPAND_VOLUMES}
 {$IFDEF FPC_FEXPAND_TILDE}
-    {Replace ~/ with $HOME}
-    if (Length (Pa) >= 1) and (Pa [1] ='~') and 
+    {Replace ~/ with $HOME/}
+    if (Length (Pa) >= 1) and (Pa [1] = '~') and 
                                   ((Pa [2] = DirSep) or (Length (Pa) = 1)) then
         begin
  {$IFDEF FPC_FEXPAND_GETENV_PCHAR}
@@ -88,45 +105,85 @@ begin
                     Pa := S + Copy (Pa, 2, Pred (Length (Pa)));
    end;
 {$ENDIF FPC_FEXPAND_TILDE}
+{$IFDEF FPC_FEXPAND_VOLUMES}
+    if PathStart > 1 then
+{$ELSE FPC_FEXPAND_VOLUMES}
     if (Length (Pa) > 1) and (Pa [1] in ['A'..'Z', 'a'..'z']) and
-                                                            (Pa [2] = ':') then
+                                                       (Pa [2] = DriveSep) then
+{$ENDIF FPC_FEXPAND_VOLUMES}
         begin
 {$IFDEF FPC_FEXPAND_DRIVES}
+ {$IFDEF FPC_FEXPAND_VOLUMES}
+            GetDirIO (Copy (Pa, 1, PathStart - 2), S);
+ {$ELSE FPC_FEXPAND_VOLUMES}
             { Always uppercase driveletter }
             if (Pa [1] in ['a'..'z']) then
                 Pa [1] := Chr (Ord (Pa [1]) and not ($20));
-            if GetDirIO (Ord (Pa [1]) - Ord ('A') + 1, S) = 0 then ;
-            case Length (Pa) of
-                2: Pa := S;
+            GetDirIO (Ord (Pa [1]) - Ord ('A') + 1, S);
+ {$ENDIF FPC_FEXPAND_VOLUMES}
+            if Length (Pa) = Pred (PathStart) then
+                Pa := S
             else
-                if Pa [3] <> DirSep then
+                if Pa [PathStart] <> DirSep then
+ {$IFDEF FPC_FEXPAND_VOLUMES}
+                    if Copy (Pa, 1, PathStart - 2) = Copy (S, 1, PathStart - 2)
+                                                                           then
+ {$ELSE FPC_FEXPAND_VOLUMES}
                     if Pa [1] = S [1] then
+ {$ENDIF FPC_FEXPAND_VOLUMES}
                         begin
                             { remove ending slash if it already exists }
                             if S [Length (S)] = DirSep then
                                 Dec (S [0]);
-                            Pa := S + DirSep + Copy (Pa, 3, Length (Pa))
+                            Pa := S + DirSep +
+                              Copy (Pa, PathStart, Length (Pa) - PathStart + 1)
                         end
                     else
-                        Pa := Pa [1] + ':' + DirSep + Copy (Pa, 3, Length (Pa))
-            end;
+ {$IFDEF FPC_FEXPAND_VOLUMES}
+                        Pa := Copy (Pa, 1, PathStart - 2) + DriveSep + DirSep +
+                              Copy (Pa, PathStart, Length (Pa) - PathStart + 1)
+ {$ELSE FPC_FEXPAND_VOLUMES}
+                        Pa := Pa [1] + DriveSep + DirSep +
+                              Copy (Pa, PathStart, Length (Pa) - PathStart + 1)
+ {$ENDIF FPC_FEXPAND_VOLUMES}
         end
     else
 {$ELSE FPC_FEXPAND_DRIVES}
             Delete (Pa, 1, 2);
         end;
+    {Check whether we don't have an absolute path already}
+    if (Length (Pa) >= PathStart) and (Pa [PathStart] <> DirSep) then
 {$ENDIF FPC_FEXPAND_DRIVES}
         begin
-            if GetDirIO (0, S) = 0 then ;
+            GetDirIO (0, S);
 {$IFDEF FPC_FEXPAND_DRIVES}
             if (Length (Pa) > 0) and (Pa [1] = DirSep) then
                 begin
  {$IFDEF FPC_FEXPAND_UNC}
-                    { Do not touch Network drive names }
-                    if not ((Length (Pa) > 1) and (Pa [2] = Pa [1])
-                                                           and LFNSupport) then
+                    {Do not touch network drive names}
+                    if (Length (Pa) > 1) and (Pa [2] = DirSep)
+                                                            and LFNSupport then
+                        begin
+                            if Length (Pa) = 2 then
+                                Pa := DirSep + DirSep + '.' + DirSep;
+                            PathStart := 3;
+                            {Find the start of the string of directories}
+                            while (Pa [PathStart] <> DirSep) and
+                                                  (PathStart <= Length (Pa)) do
+                                Inc (PathStart);
+                            if PathStart > Length (Pa) then Pa := Pa + DirSep;
+                        end
+                    else
  {$ENDIF FPC_FEXPAND_UNC}
-                        Pa := S [1] + ':' + Pa
+ {$IFDEF FPC_FEXPAND_VOLUMES}
+                        begin
+                            I := Pos (DriveSep, S);
+                            Pa := Copy (S, 1, Pred (I)) + DriveSep + Pa;
+                            PathStart := Succ (I);
+                        end;
+ {$ELSE FPC_FEXPAND_VOLUMES}
+                        Pa := S [1] + DriveSep + Pa;
+ {$ENDIF FPC_FEXPAND_VOLUMES}
                 end
             else
 {$ENDIF FPC_FEXPAND_DRIVES}
@@ -141,62 +198,69 @@ begin
                     else
                         Pa := S + DirSep + Pa;
         end;
+    {Get string of directories to only process relative references on this one}
+    Dirs := Copy (Pa, Succ (PathStart), Length (Pa) - PathStart);
     {First remove all references to '\.\'}
-    I := Pos (DirSep + '.' + DirSep, Pa);
+    I := Pos (DirSep + '.' + DirSep, Dirs);
     while I <> 0 do
         begin
-            Delete (Pa, I, 2);
-            I := Pos (DirSep + '.' + DirSep, Pa);
+            Delete (Dirs, I, 2);
+            I := Pos (DirSep + '.' + DirSep, Dirs);
         end;
     {Now remove also all references to '\..\' + of course previous dirs..}
-    I := Pos (DirSep + '..' + DirSep, Pa);
+    I := Pos (DirSep + '..' + DirSep, Dirs);
     while I <> 0 do
         begin
             J := Pred (I);
-            while (J > 0) and (Pa [J] <> DirSep) do
+            while (J > 0) and (Dirs [J] <> DirSep) do
                 Dec (J);
-            if (J = 0)
-{$IFDEF FPC_FEXPAND_UNC}
-                       or (J = 1) and (I = 2)
-{$ENDIF FPC_FEXPAND_UNC}
-                                              then
-                Delete (Pa, Succ (I), 3)
-            else
-                Delete (Pa, Succ (J), I - J + 3);
-            I := Pos (DirSep + '..' + DirSep, Pa);
+            Delete (Dirs, Succ (J), I - J + 3);
+            I := Pos (DirSep + '..' + DirSep, Dirs);
         end;
-    {Now remove also any reference to '\..' at the end of line
-    + of course previous dir..}
-    I := Pos (DirSep + '..', Pa);
-    if (I <> 0) and (I = Length (Pa) - 2) then
+    {Then remove also a reference to '\..' at the end of line
+    + the previous directory, of course,...}
+    I := Pos (DirSep + '..', Dirs);
+    if (I <> 0) and (I = Length (Dirs) - 2) then
         begin
             J := Pred (I);
-            while (J >= 1) and (Pa [J] <> DirSep) do
+            while (J >= 0) and (Dirs [J] <> DirSep) do
                 Dec (J);
-            if (J = 0)
-{$IFDEF FPC_FEXPAND_UNC}
-                       or (J = 1) and (I = 2)
-{$ENDIF FPC_FEXPAND_UNC}
-                                              then
-                Delete (Pa, Succ (I), 2)
+            if (J = 0) then
+                Dirs := ''
             else
-                Delete (Pa, Succ (J), I - J + 2);
+                Delete (Dirs, Succ (J), I - J + 2);
         end;
-    {Now remove also any reference to '\.' at the end of line}
-    I := Pos (DirSep + '.', Pa);
-    if (I <> 0) and (I = Pred (Length (Pa))) then
-{$IFDEF FPC_FEXPAND_DRIVES}
-        if (I = 3) and (Pa [2] = ':')
-{$ELSE FPC_FEXPAND_DRIVES}
-        if (I = 1)
-{$ENDIF FPC_FEXPAND_DRIVES}
-{$IFDEF FPC_FEXPAND_UNC}
-                                      or (I = 2) and (Pa [1] = '\')
-{$ENDIF FPC_FEXPAND_UNC}
-                                                                    then
-            Dec (Pa [0])
-        else
-            Delete (Pa, I, 2);
+    {...and also a possible reference to '\.'}
+    if (Length (Dirs) = 1) then
+        begin
+            if (Dirs [1] = '.') then
+            {A special case}
+                Dirs := ''
+        end
+    else
+        if (Length (Dirs) <> 0) and (Dirs [Length (Dirs)] = '.') and
+                                    (Dirs [Pred (Length (Dirs))] = DirSep) then
+            Dec (Dirs [0], 2);
+    {Finally remove '.\' at the beginning of the string of directories...}
+    while (Length (Dirs) >= 2) and (Dirs [1] = '.') and (Dirs [2] = DirSep) do
+        Delete (Dirs, 1, 2);
+    {...and possible (invalid) references to '..\' as well}
+    while (Length (Dirs) >= 3) and (Dirs [1] = '.') and (Dirs [2] = '.') and
+                                                         (Dirs [3] = DirSep) do
+        Delete (Dirs, 1, 3);
+    {Two special cases - '.' and '..' alone}
+    if (Length (Dirs) = 1) and (Dirs [1] = '.') or
+             (Length (Dirs) = 2) and (Dirs [1] = '.') and (Dirs [2] = '.') then
+        Dirs := '';
+    {Join the parts back to create the complete path}
+    if Length (Dirs) = 0 then
+        begin
+            Pa := Copy (Pa, 1, PathStart);
+            if Pa [PathStart] <> DirSep then
+                Pa := Pa + DirSep;
+        end
+    else
+        Pa := Copy (Pa, 1, PathStart) + Dirs;
     {Remove ending \ if not supplied originally, the original string
     wasn't empty (to stay compatible) and if not really needed}
     if (Length (Pa) > PathStart) and (Pa [Length (Pa)] = DirSep)
@@ -207,7 +271,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  2001-03-21 21:08:20  hajny
+  Revision 1.6  2001-04-07 19:37:27  hajny
+    * fix for absolute paths on platforms without drives (*nix), support for long volume names added
+
+  Revision 1.5  2001/03/21 21:08:20  hajny
     * GetDir fixed
 
   Revision 1.4  2001/03/19 21:09:30  hajny
