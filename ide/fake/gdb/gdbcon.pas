@@ -37,7 +37,7 @@ type
     constructor Init;
     destructor  Done;
     procedure Reset;
-    procedure Resize;
+    procedure Resize(nsize : longint);
     procedure Append(p:pchar);
   end;
 
@@ -55,6 +55,7 @@ type
     frame_count   : longint;
     record_frames,
     frame_begin_seen : boolean;
+    stop_breakpoint_number,
     current_address,
     current_line_number,
     signal_start,
@@ -95,7 +96,6 @@ type
     progargs   : pchar;
     in_command,
     init_count : longint;
-    call_reset : boolean;
     constructor Init;
     destructor  Done;
     procedure Command(const s:string);
@@ -108,6 +108,8 @@ type
     { needed for dos because newlines are only #10 (PM) }
     procedure WriteErrorBuf;
     procedure WriteOutputBuf;
+    function  GetOutput : Pchar;
+    function  GetError : Pchar;
     function  LoadFile(const fn:string):boolean;
     procedure SetArgs(const s : string);
     procedure ClearSymbols;
@@ -220,6 +222,15 @@ procedure TGDBController.WriteOutputBuf;
 begin
 end;
 
+function  TGDBController.GetOutput : Pchar;
+begin
+  GetOutput:=nil;
+end;
+
+function  TGDBController.GetError : Pchar;
+begin
+  GetError:=nil;
+end;
 
 constructor TGDBInterface.Init;
 begin
@@ -309,17 +320,22 @@ end;
                                  tgdbbuffer
 *****************************************************************************}
 
+const
+  blocksize=2048;
+
 constructor tgdbbuffer.init;
 begin
+  Buf:=nil;
   Size:=0;
-  Resize;
+  Resize(blocksize);
   Reset;
 end;
 
 
 destructor tgdbbuffer.done;
 begin
-  freemem(buf,size);
+  if assigned(buf) then
+    freemem(buf,size);
 end;
 
 
@@ -339,21 +355,18 @@ begin
    exit;
   len:=Strlen(p);
   if len+idx>size then
-   Resize;
+   Resize(len+idx);
   Move(p^,buf[idx],len);
   inc(idx,len);
   buf[idx]:=#0;
 end;
 
 
-procedure tgdbbuffer.resize;
-const
-  blocksize=2048;
+procedure tgdbbuffer.resize(nsize : longint);
 var
-  nsize : longint;
   np    : pchar;
 begin
-  nsize:=size+blocksize;
+  nsize:=((nsize+blocksize-1) div blocksize)*blocksize;
   getmem(np,nsize);
   move(buf^,np^,size);
   freemem(buf,size);
@@ -366,7 +379,14 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  1999-02-08 17:35:07  pierre
+  Revision 1.7  1999-02-10 09:00:43  pierre
+     * duplicate call_reset removed
+     * frames allocation and freeing corrected
+     + GetError and GetOutput pchar function added
+     + stop_breakpoint_number to know why the program stopped
+       (used for watches)
+
+  Revision 1.6  1999/02/08 17:35:07  pierre
     + added Run made TraceStep TraceNext Continue virtual
 
   Revision 1.5  1999/02/08 13:59:58  pierre
