@@ -150,6 +150,10 @@ type
 
 const
   Modes: PVideoModeList = nil;
+{$ifdef go32v2}
+var
+  VideoSeg    : word;
+{$endif go32v2}
 implementation
 
 { Include system dependent part }
@@ -219,7 +223,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-01-06 01:20:31  peter
+  Revision 1.2  2000-02-06 14:28:19  florian
+    * mouse support for vesa resolutions under go32v2, needs currently the define
+      custommouse
+
+  Revision 1.1  2000/01/06 01:20:31  peter
     * moved out of packages/ back to topdir
 
   Revision 1.1  1999/12/23 19:36:47  peter

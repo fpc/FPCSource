@@ -26,7 +26,7 @@ unit vesamode;
   implementation
 
     uses
-       dos,go32,dpmiexcp,video;
+       dos,go32,dpmiexcp,video,mouse;
 
     type
        twordarray = array[0..0] of word;
@@ -91,6 +91,9 @@ unit vesamode;
               mem[$40:$4a]:=ScreenWidth;
               memw[$40:$4c]:=ScreenHeight*((ScreenWidth shl 1)-1);
               }
+{$ifdef custommouse}
+              DoCustomMouse(true);
+{$endif custommouse}
            end;
       end;
 
@@ -131,7 +134,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-01-06 01:20:30  peter
+  Revision 1.2  2000-02-06 14:29:45  florian
+    * mouse support for vesa resolutions under go32v2, needs currently the define
+      custommouse
+
+  Revision 1.1  2000/01/06 01:20:30  peter
     * moved out of packages/ back to topdir
 
   Revision 1.2  1999/12/23 22:37:38  pierre

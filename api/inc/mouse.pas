@@ -110,6 +110,13 @@ function PollMouseEvent(var MouseEvent: TMouseEvent):boolean;
 { Checks if a Mouseevent is available, and returns it if one is found. If no
   event is pending, it returns 0 }
 
+{$ifdef go32v2}
+{$ifdef custommouse}
+{ tells the mouse unit to draw the mouse cursor itself }
+procedure DoCustomMouse(b : boolean);
+{$endif custommouse}
+{$endif go32v2}
+
 implementation
 
 { Include platform dependent routines }
@@ -136,7 +143,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2000-01-06 01:20:31  peter
+  Revision 1.2  2000-02-06 14:28:19  florian
+    * mouse support for vesa resolutions under go32v2, needs currently the define
+      custommouse
+
+  Revision 1.1  2000/01/06 01:20:31  peter
     * moved out of packages/ back to topdir
 
   Revision 1.2  1999/12/31 17:25:24  marco

@@ -5,6 +5,9 @@
 }
 
 uses
+{$ifdef custommouse}
+  video,
+{$endif custommouse}
   go32;
 
 var
@@ -29,17 +32,95 @@ const
   MouseError   : longint = 0;
   CallCounter  : longint = 0;
 {$endif DEBUG}
+{$ifdef custommouse}
+  drawmousecursor : boolean = false;
+  mouseisvisible : boolean = false;
+  { position where the mouse was drawn the last time }
+  oldmousex : longint = -1;
+  oldmousey : longint = -1;
+  mouselock : boolean = false;
+
+{ if the cursor is drawn by this the unit, we must be careful }
+{ when drawing while the interrupt handler is called          }
+procedure lockmouse;assembler;
+
+  asm
+  .Ltrylockagain:
+     movb    $1,%al
+     xchgb   mouselock,%al
+     orb     %al,%al
+     jne     .Ltrylockagain
+  end;
+
+procedure unlockmouse;
+
+  begin
+     mouselock:=false;
+  end;
+{$endif custommouse}
+
+
 {$ASMMODE ATT}
 procedure MouseInt;assembler;
 asm
         movb    %bl,mousebuttons
         movw    %cx,mousewherex
         movw    %dx,mousewherey
+        shrw    $3,%cx
+        shrw    $3,%dx
+{$ifdef custommouse}
+        { should we draw the mouse cursor? }
+        cmpb    $0,drawmousecursor
+        je      .Lmouse_nocursor
+        cmpb    $0,mouseisvisible
+        je      .Lmouse_nocursor
+        pushw   %fs
+        pushl   %eax
+        pushl   %edi
+        { check lock }
+        movb    $1,%al
+        xchgb   mouselock,%al
+        orl     %al,%al
+        { don't update the cursor yet, because hide/showcursor is called }
+        jne    .Ldont_draw
+
+        { load start of video buffer }
+        movzwl  videoseg,%edi
+        shll    $4,%edi
+        movw    dosmemselector,%fs
+
+        { calculate address of old mouse cursor }
+        movzwl  oldmousey,%eax
+        imulw   screenwidth,%ax
+        addw    oldmousex,%ax
+        leal    1(%edi,%eax,2),%eax
+        { remove old cursor }
+        xorb    $0xff,%fs:(%eax)
+
+        { store position of old cursor }
+        movw    %cx,oldmousex
+        movw    %dx,oldmousey
+
+        { calculate address of new cursor }
+        movzwl  %dx,%eax
+        imulw   screenwidth,%ax
+        addw    %cx,%ax
+        leal    1(%edi,%eax,2),%eax
+        { draw new cursor }
+        xorb    $0xff,%fs:(%eax)
+
+        { unlock mouse }
+        movb    $0,mouselock
+
+.Ldont_draw:
+        popl    %edi
+        popl    %eax
+        popw    %fs
+.Lmouse_nocursor:
+{$endif custommouse}
         cmpb    MouseEventBufSize,PendingMouseEvents
         je      .Lmouse_exit
         movl    PendingMouseTail,%edi
-        shrw    $3,%cx
-        shrw    $3,%dx
         movw    %bx,(%edi)
         movw    %cx,2(%edi)
         movw    %dx,4(%edi)
@@ -282,6 +363,12 @@ begin
     end;
   If MouseCallBack=Nil then
     Mouse_Action($ffff, @MouseInt);                    { Set masks/interrupt }
+{$ifdef custommouse}
+  drawmousecursor:=false;
+  mouseisvisible:=false;
+  if (screenwidth>80) or (screenheight>50) then
+    DoCustomMouse(true);
+{$endif custommouse}
   ShowMouse;
 end;
 
@@ -313,7 +400,35 @@ asm
 end;
 
 
-procedure ShowMouse;assembler;
+procedure ShowMouse;
+{$ifdef custommouse}
+begin
+   if drawmousecursor then
+     begin
+        lockmouse;
+        if not(mouseisvisible) then
+          begin
+             oldmousex:=getmousex-1;
+             oldmousey:=getmousey-1;
+             mem[videoseg:(((screenwidth*oldmousey)+oldmousex)*2)+1]:=
+               mem[videoseg:(((screenwidth*oldmousey)+oldmousex)*2)+1] xor $ff;
+             mouseisvisible:=true;
+          end;
+        unlockmouse;
+     end
+   else
+     asm
+             cmpb    $1,MousePresent
+             jne     .LShowMouseExit
+             movl    $1,%eax
+             pushl   %ebp
+             int     $0x33
+             popl    %ebp
+     .LShowMouseExit:
+     end;
+end;
+{$else custommouse}
+assembler;
 asm
         cmpb    $1,MousePresent
         jne     .LShowMouseExit
@@ -323,9 +438,39 @@ asm
         popl    %ebp
 .LShowMouseExit:
 end;
+{$endif custommouse}
 
 
-procedure HideMouse;assembler;
+procedure HideMouse;
+{$ifdef custommouse}
+
+begin
+   if drawmousecursor then
+     begin
+        lockmouse;
+        if mouseisvisible then
+          begin
+             mouseisvisible:=false;
+             mem[videoseg:(((screenwidth*oldmousey)+oldmousex)*2)+1]:=
+               mem[videoseg:(((screenwidth*oldmousey)+oldmousex)*2)+1] xor $ff;
+             oldmousex:=-1;
+             oldmousey:=-1;
+          end;
+        unlockmouse;
+     end
+   else
+     asm
+             cmpb    $1,MousePresent
+             jne     .LHideMouseExit
+             movl    $2,%eax
+             pushl   %ebp
+             int     $0x33
+             popl    %ebp
+     .LHideMouseExit:
+     end;
+end;
+{$else custommouse}
+assembler;
 asm
         cmpb    $1,MousePresent
         jne     .LHideMouseExit
@@ -335,6 +480,7 @@ asm
         popl    %ebp
 .LHideMouseExit:
 end;
+{$endif custommouse}
 
 
 function GetMouseX:word;assembler;
@@ -399,6 +545,54 @@ asm
 .LSetMouseXYExit:
 end;
 
+{$ifdef custommouse}
+
+Procedure SetMouseXRange (Min,Max:Longint);
+begin
+  If Not(MousePresent) Then Exit;
+  asm
+        movl    $7,%eax
+        movl    min,%ecx
+        movl    max,%edx
+        pushl   %ebp
+        int     $0x33
+        popl    %ebp
+  end;
+end;
+
+Procedure SetMouseYRange (min,max:Longint);
+begin
+  If Not(MousePresent) Then Exit;
+  asm
+        movl    $8,%eax
+        movl    min,%ecx
+        movl    max,%edx
+        pushl   %ebp
+        int     $0x33
+        popl    %ebp
+  end;
+end;
+
+procedure DoCustomMouse(b : boolean);
+
+  begin
+     HideMouse;
+     lockmouse;
+     oldmousex:=-1;
+     oldmousey:=-1;
+     SetMouseXRange(0,(screenwidth-1)*8);
+     SetMouseYRange(0,(screenheight-1)*8);
+     if b then
+       begin
+          mouseisvisible:=false;
+          drawmousecursor:=true;
+       end
+     else
+       drawmousecursor:=false;
+     unlockmouse;
+  end;
+
+{$endif custommouse}
 
 const
   LastCallcounter : longint = 0;
@@ -450,7 +644,11 @@ end;
 
 {
   $Log$
-  Revision 1.1  2000-01-06 01:20:30  peter
+  Revision 1.2  2000-02-06 14:29:45  florian
+    * mouse support for vesa resolutions under go32v2, needs currently the define
+      custommouse
+
+  Revision 1.1  2000/01/06 01:20:30  peter
     * moved out of packages/ back to topdir
 
   Revision 1.2  1999/12/08 13:25:20  pierre

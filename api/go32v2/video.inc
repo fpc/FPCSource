@@ -7,10 +7,10 @@
 {$ASMMODE ATT}
 
 uses
+  mouse,
   go32;
 
 var
-  VideoSeg    : word;
   OldVideoBuf : PVideoBuf;
 
   { used to know if LastCursorType is valid }
@@ -179,6 +179,9 @@ begin
   regs.bx:=wordrec(Params).hi;
   realintr($10,regs);
   defaultvideomodeselector:=true;
+{$ifdef custommouse}
+  DoCustomMouse(false);
+{$endif custommouse}
 end;
 
 function VideoModeSelector8x8(const VideoMode: TVideoMode; Params: Longint): Boolean;
@@ -199,6 +202,9 @@ begin
   ScreenColor:=true;
   ScreenWidth:=80;
   ScreenHeight:=50;
+{$ifdef custommouse}
+  DoCustomMouse(false);
+{$endif custommouse}
 end;
 
 procedure ClearScreen;
@@ -264,7 +270,11 @@ end;
 
 {
   $Log$
-  Revision 1.1  2000-01-06 01:20:30  peter
+  Revision 1.2  2000-02-06 14:29:45  florian
+    * mouse support for vesa resolutions under go32v2, needs currently the define
+      custommouse
+
+  Revision 1.1  2000/01/06 01:20:30  peter
     * moved out of packages/ back to topdir
 
   Revision 1.1  1999/11/24 23:36:38  peter
