@@ -747,7 +747,8 @@ Var ChPos,OldPos,ArgPos,DoArg,Len : Longint;
         begin
         inc(chpos);
         ReadInteger;
-        If Value=-1 then DoFormaterror(feMissingArgument);
+        If Value=-1 then
+         Value:=0;
         prec:=Value;
         end;
 {$ifdef fmtdebug}
@@ -1068,7 +1069,10 @@ Begin
         Str(Value:0:Digits, Result);
         If Result[1] = ' ' Then System.Delete(Result, 1, 1);
         P := Pos('.', Result);
-        If P <> 0 Then Result[P] := DecimalSeparator;
+        If P <> 0 Then
+          Result[P] := DecimalSeparator
+        else
+          P := Length(Result)+1;
         Dec(P, 3);
         While (P > 1) Do
         Begin
@@ -1277,7 +1281,11 @@ const
 
 {
   $Log$
-  Revision 1.11  2001-01-18 22:09:09  michael
+  Revision 1.12  2001-08-01 21:44:20  peter
+    * fix thousend separator when no decimal separator is available
+    * allow precision to be left away like %10.n
+
+  Revision 1.11  2001/01/18 22:09:09  michael
   + Merged fixes from fixbranch - file modes
 
   Revision 1.10  2000/12/16 15:58:18  jonas
