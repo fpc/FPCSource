@@ -76,18 +76,39 @@ end;
 procedure TIDEApp.Open(FileName: string);
 var D: PFileDialog;
     OpenIt: boolean;
+    DriveNumber : byte;
+    StoreDir,StoreDir2 : DirStr;
 begin
   OpenIt:=FileName<>'';
+  DriveNumber:=0;
   if not OpenIt then
    begin
+     GetDir(0,StoreDir);
+     if (Length(FileDir)>1) and (FileDir[2]=':') then
+       begin
+         { does not assume that lowercase are greater then uppercase ! }
+         if (FileDir[1]>='a') and (FileDir[1]>='z') then
+           DriveNumber:=Ord(FileDir[1])-ord('a')+1
+         else
+           DriveNumber:=Ord(FileDir[1])-ord('A')+1;
+         GetDir(DriveNumber,StoreDir2);
+         ChDir(Copy(FileDir,1,2));
+       end;
+     ChDir(FileDir);
      New(D, Init(OpenExts,'Open a file','File to open',fdOpenButton,0));
      OpenIt:=Desktop^.ExecView(D)<>cmCancel;
      if OpenIt then
        Begin
          D^.GetFileName(FileName);
          OpenExts:=D^.WildCard;
+         FileDir:=DirOf(FExpand(FileName));
        End;
      Dispose(D, Done);
+     if DriveNumber<>0 then
+       ChDir(StoreDir2);
+     if (Length(StoreDir)>1) and (StoreDir[2]=':') then
+       ChDir(Copy(StoreDir,1,2));
+     ChDir(StoreDir);
    end;
   if OpenIt then
    begin
@@ -158,7 +179,10 @@ end;
 
 {
   $Log$
-  Revision 1.10  1999-03-23 15:11:32  peter
+  Revision 1.11  1999-06-25 00:35:54  pierre
+   + uses weditor FileDir var to remember Directory for Open/Save
+
+  Revision 1.10  1999/03/23 15:11:32  peter
     * desktop saving things
     * vesa mode
     * preferences dialog
