@@ -260,14 +260,23 @@ end;
 
 procedure int_new_class;assembler;[public,alias:'FPC_NEW_CLASS'];
 asm
+        { to be sure in the future, we save also edit }
+        pushl   %edi
         { create class ? }
         movl    8(%ebp),%edi
         orl     %edi,%edi
         jz      .LNEW_CLASS1
+        { save registers !! }
+        pushl   %ebx
+        pushl   %ecx
+        pushl   %edx
         { esi contains the vmt }
         pushl   %esi
         { call newinstance (class method!) }
         call    *16(%esi)
+        popl    %edx
+        popl    %ecx
+        popl    %ebx
         { newinstance returns a pointer to the new created }
         { instance in eax                                  }
         { load esi and insert self                         }
@@ -275,22 +284,35 @@ asm
 .LNEW_CLASS1:
         movl    %esi,8(%ebp)
         orl     %eax,%eax
+        popl   %edi
 end;
 
 
 procedure int_dispose_class;assembler;[public,alias:'FPC_DISPOSE_CLASS'];
 asm
+        { to be sure in the future, we save also edit }
+        pushl   %edi
         { destroy class ? }
         movl    12(%ebp),%edi
         orl     %edi,%edi
         jz      .LDISPOSE_CLASS1
         { no inherited call }
         movl    (%esi),%edi
+        { save registers !! }
+        pushl   %eax
+        pushl   %ebx
+        pushl   %ecx
+        pushl   %edx
         { push self }
         pushl   %esi
         { call freeinstance }
         call    *20(%edi)
+        popl    %edx
+        popl    %ecx
+        popl    %ebx
+        popl    %eax
 .LDISPOSE_CLASS1:
+        popl   %edi
 end;
 
 {$ifndef NEWATT}
@@ -772,7 +794,11 @@ end;
 
 {
   $Log$
-  Revision 1.43  1999-04-08 11:30:57  peter
+  Revision 1.44  1999-04-19 06:13:28  florian
+    * the class helper routines doesn't store the registers properly,
+      fixed
+
+  Revision 1.43  1999/04/08 11:30:57  peter
     * removed warnings
 
   Revision 1.42  1999/04/07 16:21:10  pierre
