@@ -2645,9 +2645,12 @@ Const
     YOffset := (MaxY+1)*page;
   end;
 
-(*
+{
   $Log$
-  Revision 1.2  2000-07-13 11:33:41  michael
+  Revision 1.3  2000-07-16 07:08:22  jonas
+    * fixed wrongly matched comment pair for log section
+
+  Revision 1.2  2000/07/13 11:33:41  michael
   + removed logs
- 
+
 }
