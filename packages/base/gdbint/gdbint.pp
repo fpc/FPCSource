@@ -518,7 +518,7 @@ uses
   {$ifdef ver1_0}
     linux,
   {$else}
-    unix,
+    baseunix,
   {$endif}
  {$endif}
 {$ifdef go32v2}
@@ -2588,7 +2588,11 @@ begin
 {$ifdef go32v2}
   OldSigInt:=Signal(SIGINT,SignalHandler(@SIG_DFL));
 {$else}
-  OldSigInt:=Signal(SIGINT,SignalHandler(SIG_DFL));
+  {$ifdef Unix}
+    OldSigInt:={$ifdef VER1_0}Signal{$else}fpSignal{$endif}(SIGINT,SignalHandler(SIG_DFL));
+  {$else}
+    OldSigInt:=Signal(SIGINT,SignalHandler(SIG_DFL));
+  {$endif}
 {$endif}
 {$endif supportexceptions}
 
@@ -2641,7 +2645,11 @@ begin
   exitproc:=@DoneLibGDB;
   gdb_init;
 {$ifdef supportexceptions}
-  Signal(SIGINT,OldSigInt);
+  {$ifdef unix}
+    {$ifdef VER1_0}Signal{$else}fpsignal{$endif}(SIGINT,OldSigInt);
+  {$else}
+    Signal(SIGINT,OldSigInt);
+  {$endif}
 {$endif supportexceptions}
   if setjmp(error_return)=0 then
     begin
@@ -2674,7 +2682,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2003-03-30 11:15:51  armin
+  Revision 1.16  2003-09-18 16:34:19  marco
+   * unix reform
+
+  Revision 1.15  2003/03/30 11:15:51  armin
   * the ide somtimes crashed in annotate_frame_end
 
   Revision 1.14  2003/03/25 22:50:29  armin
