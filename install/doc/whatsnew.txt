@@ -30,17 +30,21 @@ RTL:
   + Sysutils.GetLastOSError added
   + Classes.TOwnedCollection added
   + Sysutils.FileIsReadOnly added
+  + support of widestring and currency in the typinfo unit
   * Better support for Libc based RTL (FPC_USE_LIBC)
   * 64bit cleanup for future x86_64 port
   * ExecuteProcess fixes
   * Linux use getdents syscall instead of deprecated readdir
+  * bug fixes
 
 FCL:
   + SDF DB backend
   + TGA support in fpImage
+  + support of widestring and currency type in stream related classes
   * Lot of fixes to fpImage classes
 
 Misc:
+  * better cross development support
   * Documentation updates
   * Testsuite updates to store testrun results in a database
   * Testsuite updates for cross platform testing, with remote rsh/ssh support
