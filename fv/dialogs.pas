@@ -1290,11 +1290,9 @@ BEGIN
    S.Read(W, sizeof(w)); SelStart:=w;                 { Read selected start }
    S.Read(W, sizeof(w)); SelEnd:=w;                   { Read selected end }
    S.Read(B, SizeOf(B));                              { Read string length }
-   If (MaxAvail > MaxLen+1) Then Begin                { Check enough memory }
-     GetMem(Data, MaxLen + 1);                        { Allocate memory }
-     S.Read(Data^[1], Length(Data^));                 { Read string data }
-     SetLength(Data^, B);                             { Xfer string length }
-   End Else S.Seek(S.GetPos + B);                     { Move to position }
+   GetMem(Data, B + 1);                        { Allocate memory }
+   S.Read(Data^[1], B);                             { Read string data }
+   SetLength(Data^, B);                             { Xfer string length }
    If (Options AND ofVersion >= ofVersion20) Then     { Version 2 or above }
      Validator := PValidator(S.Get);                  { Get any validator }
    Options := Options OR ofVersion20;                 { Set version 2 flag }
@@ -2164,8 +2162,7 @@ BEGIN
    CNorm := GetColor($0301);                          { Normal colour }
    CSel := GetColor($0402);                           { Selected colour }
    CDis := GetColor($0505);                           { Disabled colour }
-   If (Options AND ofFramed <>0) OR                   { Normal frame }
-   (GOptions AND goThickFramed <>0) Then              { Thick frame }
+   If (Options AND ofFramed <>0) Then              { Thick frame }
      K := 1 Else  K := 0;                             { Select offset }
    For I := 0 To Size.Y-K-K-1 Do Begin                { For each line }
      MoveChar(B, ' ', Byte(CNorm), Size.X-K-K);       { Fill buffer }
@@ -2305,8 +2302,7 @@ BEGIN
      End;
      ClearEvent(Event);                               { Event was handled }
    End Else If (Event.What = evKeyDown) Then Begin    { KEY EVENT }
-     If (Options AND ofFramed <> 0) OR                { Normal frame }
-     (GOptions AND goThickFramed <> 0) Then           { Thick frame }
+     If (Options AND ofFramed <> 0) Then           { Thick frame }
        J := 1 Else J := 0;                            { Adjust value }
      Vh := Size.Y - J - J;                            { View height }
      S := Sel;                                        { Hold current item }
@@ -2383,8 +2379,7 @@ VAR I, J, S, Vh: Sw_Integer; R: TRect;
 BEGIN
    GetExtent(R);                                      { Get view extents }
    If R.Contains(P) Then Begin                        { Point in view }
-     If (Options AND ofFramed <> 0) OR                { Normal frame }
-     (GOptions AND goThickFramed <> 0) Then           { Thick frame }
+     If (Options AND ofFramed <> 0) Then           { Thick frame }
        J := 1 Else J := 0;                            { Adjust value }
      Vh := Size.Y - J - J;                            { View height }
      I := 0;                                          { Preset zero value }
@@ -2400,8 +2395,7 @@ END;
 {---------------------------------------------------------------------------}
 FUNCTION TCluster.Row (Item: Sw_Integer): Sw_Integer;
 BEGIN
-   If (Options AND ofFramed <> 0) OR                  { Normal frame }
-  (GOptions AND goThickFramed <> 0) Then              { Thick frame }
+   If (Options AND ofFramed <> 0) Then              { Thick frame }
     Row := Item MOD (Size.Y - 2) Else                 { Allow for frames }
     Row := Item MOD Size.Y;                           { Normal mod value }
 END;
@@ -2412,8 +2406,7 @@ END;
 FUNCTION TCluster.Column (Item: Sw_Integer): Sw_Integer;
 VAR I, J, Col, Width, L, Vh: Sw_Integer; Ts: PString;
 BEGIN
-   If (Options AND ofFramed <> 0) OR                  { Normal frame }
-   (GOptions AND goThickFramed <> 0) Then             { Thick frame }
+   If (Options AND ofFramed <> 0) Then             { Thick frame }
      J := 1 Else J := 0;                              { Adjust value }
    Vh := Size.Y - J - J;                              { Vertical size }
    If (Item >= Vh) Then Begin                         { Valid selection }
@@ -2633,7 +2626,7 @@ END;
 TYPE
    TListBoxRec = PACKED RECORD
      List: PCollection;                               { List collection ptr }
-     Selection: Word;                                 { Selected item }
+     Selection: sw_integer;                           { Selected item }
    END;
 
 {--TListBox-----------------------------------------------------------------}
@@ -4158,7 +4151,11 @@ END;
 END.
 {
  $Log$
- Revision 1.28  2004-11-06 23:24:36  peter
+ Revision 1.29  2004-12-15 19:14:11  peter
+   * goptions removed
+   * small patches from antonio talamini
+
+ Revision 1.28  2004/11/06 23:24:36  peter
    * fixed button click
 
  Revision 1.27  2004/11/06 17:08:48  peter

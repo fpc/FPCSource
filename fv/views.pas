@@ -123,16 +123,6 @@ CONST
    dmLimitAll = $F0;                                  { Limit all sides }
 
 {---------------------------------------------------------------------------}
-{                      >> NEW << TView OPTION MASKS                         }
-{---------------------------------------------------------------------------}
-CONST
-   goThickFramed = $0001;                             { Thick framed mask }
-   goTabSelect   = $0002;                             { Tab selectable }
-   goEveryKey    = $0004;                             { Report every key }
-   goEndModal    = $0008;                             { End modal }
-   goNativeClass = $4000;                             { Native class window }
-
-{---------------------------------------------------------------------------}
 {                       >> NEW << TAB OPTION MASKS                          }
 {---------------------------------------------------------------------------}
 CONST
@@ -335,7 +325,6 @@ TYPE
          State    : Word;                             { View state masks }
          Options  : Word;                             { View options masks }
          EventMask: Word;                             { View event masks }
-         GOptions : Word;                             { Graphics options }
          Origin   : TPoint;                           { View origin }
          Size     : TPoint;                           { View size }
          Cursor   : TPoint;                           { Cursor position }
@@ -952,7 +941,6 @@ BEGIN
    HelpCtx := hcNoContext;                            { Clear help context }
    State := sfVisible;                                { Default state }
    EventMask := evMouseDown + evKeyDown + evCommand;  { Default event masks }
-   GOptions := goTabSelect;                           { Set new options }
    BackgroundChar := ' ';
    SetBounds(Bounds);                                 { Set view bounds }
 END;
@@ -1930,7 +1918,6 @@ BEGIN
    Options := Options OR (ofSelectable + ofBuffered); { Set options }
    GetExtent(Clip);                                   { Get clip extents }
    EventMask := $FFFF;                                { See all events }
-   GOptions := GOptions OR goTabSelect;               { Set graphic options }
 END;
 
 {--TGroup-------------------------------------------------------------------}
@@ -2505,7 +2492,7 @@ END;
 {  GetSubViewPtr -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 20May98 LdB     }
 {---------------------------------------------------------------------------}
 PROCEDURE TGroup.GetSubViewPtr (Var S: TStream; Var P);
-VAR Index, I: Word; Q: PView;
+VAR Index, I: Sw_Word; Q: PView;
 BEGIN
    Index := 0;                                        { Zero index value }
    S.Read(Index, SizeOf(Index));                      { Read view index }
@@ -2561,9 +2548,8 @@ BEGIN
      Repeat
        If Forwards Then P := P^.Next                  { Get next view }
          Else P := P^.Prev;                           { Get prev view }
-     Until ((P^.State AND (sfVisible+sfDisabled) = sfVisible)
-     AND ((P^.Options AND ofSelectable <> 0) AND      { Selectable }
-     (P^.GOptions AND goTabSelect <> 0))) OR          { Tab selectable }
+     Until ((P^.State AND (sfVisible+sfDisabled) = sfVisible) AND
+            (P^.Options AND ofSelectable <> 0)) OR          { Tab selectable }
      (P = Current);                                   { Not singular select }
      If (P <> Current) Then FindNext := P;            { Return result }
    End;
@@ -3744,7 +3730,6 @@ BEGIN
    Title := NewStr(ATitle);                           { Hold title }
    Number := ANumber;                                 { Hold number }
    Palette := wpBlueWindow;                           { Default palette }
-   GOptions := GOptions OR goThickFramed;             { Thick frame }
    InitFrame;                                         { Initialize frame }
    If (Frame <> Nil) Then Insert(Frame);              { Insert any frame }
    GetBounds(ZoomRect);                               { Default zoom rect }
@@ -3768,10 +3753,6 @@ BEGIN
    S.Read(i, SizeOf(i)); ZoomRect.B.X:=i;                          { Read zoom area x2 }
    S.Read(i, SizeOf(i)); ZoomRect.B.Y:=i;                          { Read zoom area y2 }
    GetSubViewPtr(S, Frame);                           { Now read frame object }
-   If (Frame <> Nil) Then Begin
-     Dispose(Frame, Done);                            { Kill we don't use it }
-     Frame := Nil;                                    { Clear the pointer }
-   End;
    Title := S.ReadStr;                                { Read title }
 END;
 
@@ -4639,7 +4620,11 @@ END.
 
 {
  $Log$
- Revision 1.50  2004-11-24 21:03:05  florian
+ Revision 1.51  2004-12-15 19:14:11  peter
+   * goptions removed
+   * small patches from antonio talamini
+
+ Revision 1.50  2004/11/24 21:03:05  florian
    * increased max. possible screen/view width to 255
 
  Revision 1.49  2004/11/06 23:24:37  peter
