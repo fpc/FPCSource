@@ -142,7 +142,6 @@ BEGIN
   InitTemplates;
 
   ReadSwitches(SwitchesPath);
-
   MyApp.Init;
 
   { load all options after init because of open files }
@@ -152,6 +151,7 @@ BEGIN
 
   { Update IDE }
   MyApp.Update;
+  MyApp.UpdateTarget;
 
   ProcessParams(false);
 
@@ -191,7 +191,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.22  1999-05-22 13:44:28  peter
+  Revision 1.23  1999-06-25 00:48:05  pierre
+   + adds current target in menu at startup
+
+  Revision 1.22  1999/05/22 13:44:28  peter
     * fixed couple of bugs
 
   Revision 1.21  1999/04/07 21:55:40  peter
