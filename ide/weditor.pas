@@ -568,7 +568,7 @@ type
    {a}function    IsAsmReservedWord(const S: string): boolean; virtual;
     public
      { CodeTemplate support }
-   {a}function    TranslateCodeTemplate(const Shortcut: string; ALines: PUnsortedStringCollection): boolean; virtual;
+   {a}function    TranslateCodeTemplate(var Shortcut: string; ALines: PUnsortedStringCollection): boolean; virtual;
       function    SelectCodeTemplate(var ShortCut: string): boolean; virtual;
      { CodeComplete support }
    {a}function    CompleteCodeWord(const WordS: string; var Text: string): boolean; virtual;
@@ -3069,7 +3069,7 @@ begin
   IsAsmReservedWord:=false;
 end;
 
-function TCustomCodeEditor.TranslateCodeTemplate(const Shortcut: string; ALines: PUnsortedStringCollection): boolean;
+function TCustomCodeEditor.TranslateCodeTemplate(var Shortcut: string; ALines: PUnsortedStringCollection): boolean;
 begin
   { Abstract }
   TranslateCodeTemplate:=false;
@@ -5520,8 +5520,14 @@ begin
   begin
     LineIndent:=X;
     SetCurPtr(X,CurPos.Y);
-    for I:=1 to length(ShortCutInEditor) do
-      DelChar;
+    if Copy(ShortCut,1,length(ShortCutInEditor))=ShortCutInEditor then
+      begin
+        for I:=1 to length(ShortCutInEditor) do
+          DelChar;
+      end
+    else
+      { restore correct position }
+      SetCurPtr(X+Length(ShortCutInEditor),CurPos.Y);
     for Y:=0 to CodeLines^.Count-1 do
     begin
       Line:=GetStr(CodeLines^.At(Y));
@@ -7106,7 +7112,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.26  2002-09-03 13:56:21  pierre
+  Revision 1.27  2002-09-04 08:39:55  pierre
+   * only suppress current word in CodeTemplate if it matches Template name
+
+  Revision 1.26  2002/09/03 13:56:21  pierre
    * declare TEditorInputLine in interface and use it in Replace dialog
 
   Revision 1.25  2002/09/02 10:33:37  pierre
