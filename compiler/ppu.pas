@@ -26,6 +26,10 @@
 unit ppu;
 interface
 
+{ Also write the ppu if only crc if done, this can be used with ppudump to
+  see the differences between the intf and implementation }
+{ define INTFPPU}
+
 {$ifdef Test_Double_checksum}
 var
   CRCFile : text;
@@ -713,6 +717,13 @@ end;
 function tppufile.create:boolean;
 begin
   create:=false;
+{$ifdef INTFPPU}
+  if crc_only then
+   begin
+     fname:=fname+'.intf';
+     crc_only:=false;
+   end;
+{$endif}
   if not crc_only then
     begin
       assign(f,fname);
@@ -994,7 +1005,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.52  1999-11-30 10:40:45  peter
+  Revision 1.53  1999-12-02 11:29:07  peter
+    * INFTPPU define to write the ppu of the interface to .ppu.intf
+
+  Revision 1.52  1999/11/30 10:40:45  peter
     + ttype, tsymlist
 
   Revision 1.51  1999/11/23 09:42:38  peter
