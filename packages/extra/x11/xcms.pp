@@ -3,8 +3,15 @@ interface
 uses
   x,xlib;
 
-{$LinkLib c}
-{$LinkLib X11}
+{$ifndef os2}
+  {$LinkLib c}
+  {$LinkLib X11}
+const
+  libX11='X11';
+{$else}
+const
+  libX11='X11';
+{$endif}
 
 {
   Automatically converted by H2Pas 0.99.15 from xcms.h
@@ -213,80 +220,80 @@ type
 extern Status XcmsAddColorSpace (
 in declaration at line 323 *)
 
-function XcmsAddFunctionSet(para1:PXcmsFunctionSet):TStatus;cdecl;external;
-function XcmsAllocColor(para1:PDisplay; para2:TColormap; para3:PXcmsColor; para4:TXcmsColorFormat):TStatus;cdecl;external;
+function XcmsAddFunctionSet(para1:PXcmsFunctionSet):TStatus;cdecl;external libX11;
+function XcmsAllocColor(para1:PDisplay; para2:TColormap; para3:PXcmsColor; para4:TXcmsColorFormat):TStatus;cdecl;external libX11;
 function XcmsAllocNamedColor(para1:PDisplay; para2:TColormap; para3:Pchar; para4:PXcmsColor; para5:PXcmsColor;
-               para6:TXcmsColorFormat):TStatus;cdecl;external;
-function XcmsCCCOfColormap(para1:PDisplay; para2:TColormap):TXcmsCCC;cdecl;external;
-function XcmsCIELabClipab(para1:TXcmsCCC; para2:PXcmsColor; para3:dword; para4:dword; para5:PBool):TStatus;cdecl;external;
-function XcmsCIELabClipL(para1:TXcmsCCC; para2:PXcmsColor; para3:dword; para4:dword; para5:PBool):TStatus;cdecl;external;
-function XcmsCIELabClipLab(para1:TXcmsCCC; para2:PXcmsColor; para3:dword; para4:dword; para5:PBool):TStatus;cdecl;external;
-function XcmsCIELabQueryMaxC(para1:TXcmsCCC; para2:TXcmsFloat; para3:TXcmsFloat; para4:PXcmsColor):TStatus;cdecl;external;
-function XcmsCIELabQueryMaxL(para1:TXcmsCCC; para2:TXcmsFloat; para3:TXcmsFloat; para4:PXcmsColor):TStatus;cdecl;external;
-function XcmsCIELabQueryMaxLC(para1:TXcmsCCC; para2:TXcmsFloat; para3:PXcmsColor):TStatus;cdecl;external;
-function XcmsCIELabQueryMinL(para1:TXcmsCCC; para2:TXcmsFloat; para3:TXcmsFloat; para4:PXcmsColor):TStatus;cdecl;external;
-function XcmsCIELabToCIEXYZ(para1:TXcmsCCC; para2:PXcmsColor; para3:PXcmsColor; para4:dword):TStatus;cdecl;external;
+               para6:TXcmsColorFormat):TStatus;cdecl;external libX11;
+function XcmsCCCOfColormap(para1:PDisplay; para2:TColormap):TXcmsCCC;cdecl;external libX11;
+function XcmsCIELabClipab(para1:TXcmsCCC; para2:PXcmsColor; para3:dword; para4:dword; para5:PBool):TStatus;cdecl;external libX11;
+function XcmsCIELabClipL(para1:TXcmsCCC; para2:PXcmsColor; para3:dword; para4:dword; para5:PBool):TStatus;cdecl;external libX11;
+function XcmsCIELabClipLab(para1:TXcmsCCC; para2:PXcmsColor; para3:dword; para4:dword; para5:PBool):TStatus;cdecl;external libX11;
+function XcmsCIELabQueryMaxC(para1:TXcmsCCC; para2:TXcmsFloat; para3:TXcmsFloat; para4:PXcmsColor):TStatus;cdecl;external libX11;
+function XcmsCIELabQueryMaxL(para1:TXcmsCCC; para2:TXcmsFloat; para3:TXcmsFloat; para4:PXcmsColor):TStatus;cdecl;external libX11;
+function XcmsCIELabQueryMaxLC(para1:TXcmsCCC; para2:TXcmsFloat; para3:PXcmsColor):TStatus;cdecl;external libX11;
+function XcmsCIELabQueryMinL(para1:TXcmsCCC; para2:TXcmsFloat; para3:TXcmsFloat; para4:PXcmsColor):TStatus;cdecl;external libX11;
+function XcmsCIELabToCIEXYZ(para1:TXcmsCCC; para2:PXcmsColor; para3:PXcmsColor; para4:dword):TStatus;cdecl;external libX11;
 function XcmsCIELabWhiteShiftColors(para1:TXcmsCCC; para2:PXcmsColor; para3:PXcmsColor; para4:TXcmsColorFormat; para5:PXcmsColor;
-               para6:dword; para7:PBool):TStatus;cdecl;external;
-function XcmsCIELuvClipL(para1:TXcmsCCC; para2:PXcmsColor; para3:dword; para4:dword; para5:PBool):TStatus;cdecl;external;
-function XcmsCIELuvClipLuv(para1:TXcmsCCC; para2:PXcmsColor; para3:dword; para4:dword; para5:PBool):TStatus;cdecl;external;
-function XcmsCIELuvClipuv(para1:TXcmsCCC; para2:PXcmsColor; para3:dword; para4:dword; para5:PBool):TStatus;cdecl;external;
-function XcmsCIELuvQueryMaxC(para1:TXcmsCCC; para2:TXcmsFloat; para3:TXcmsFloat; para4:PXcmsColor):TStatus;cdecl;external;
-function XcmsCIELuvQueryMaxL(para1:TXcmsCCC; para2:TXcmsFloat; para3:TXcmsFloat; para4:PXcmsColor):TStatus;cdecl;external;
-function XcmsCIELuvQueryMaxLC(para1:TXcmsCCC; para2:TXcmsFloat; para3:PXcmsColor):TStatus;cdecl;external;
-function XcmsCIELuvQueryMinL(para1:TXcmsCCC; para2:TXcmsFloat; para3:TXcmsFloat; para4:PXcmsColor):TStatus;cdecl;external;
-function XcmsCIELuvToCIEuvY(para1:TXcmsCCC; para2:PXcmsColor; para3:PXcmsColor; para4:dword):TStatus;cdecl;external;
+               para6:dword; para7:PBool):TStatus;cdecl;external libX11;
+function XcmsCIELuvClipL(para1:TXcmsCCC; para2:PXcmsColor; para3:dword; para4:dword; para5:PBool):TStatus;cdecl;external libX11;
+function XcmsCIELuvClipLuv(para1:TXcmsCCC; para2:PXcmsColor; para3:dword; para4:dword; para5:PBool):TStatus;cdecl;external libX11;
+function XcmsCIELuvClipuv(para1:TXcmsCCC; para2:PXcmsColor; para3:dword; para4:dword; para5:PBool):TStatus;cdecl;external libX11;
+function XcmsCIELuvQueryMaxC(para1:TXcmsCCC; para2:TXcmsFloat; para3:TXcmsFloat; para4:PXcmsColor):TStatus;cdecl;external libX11;
+function XcmsCIELuvQueryMaxL(para1:TXcmsCCC; para2:TXcmsFloat; para3:TXcmsFloat; para4:PXcmsColor):TStatus;cdecl;external libX11;
+function XcmsCIELuvQueryMaxLC(para1:TXcmsCCC; para2:TXcmsFloat; para3:PXcmsColor):TStatus;cdecl;external libX11;
+function XcmsCIELuvQueryMinL(para1:TXcmsCCC; para2:TXcmsFloat; para3:TXcmsFloat; para4:PXcmsColor):TStatus;cdecl;external libX11;
+function XcmsCIELuvToCIEuvY(para1:TXcmsCCC; para2:PXcmsColor; para3:PXcmsColor; para4:dword):TStatus;cdecl;external libX11;
 function XcmsCIELuvWhiteShiftColors(para1:TXcmsCCC; para2:PXcmsColor; para3:PXcmsColor; para4:TXcmsColorFormat; para5:PXcmsColor;
-               para6:dword; para7:PBool):TStatus;cdecl;external;
-function XcmsCIEXYZToCIELab(para1:TXcmsCCC; para2:PXcmsColor; para3:PXcmsColor; para4:dword):TStatus;cdecl;external;
-function XcmsCIEXYZToCIEuvY(para1:TXcmsCCC; para2:PXcmsColor; para3:PXcmsColor; para4:dword):TStatus;cdecl;external;
-function XcmsCIEXYZToCIExyY(para1:TXcmsCCC; para2:PXcmsColor; para3:PXcmsColor; para4:dword):TStatus;cdecl;external;
-function XcmsCIEXYZToRGBi(para1:TXcmsCCC; para2:PXcmsColor; para3:dword; para4:PBool):TStatus;cdecl;external;
-function XcmsCIEuvYToCIELuv(para1:TXcmsCCC; para2:PXcmsColor; para3:PXcmsColor; para4:dword):TStatus;cdecl;external;
-function XcmsCIEuvYToCIEXYZ(para1:TXcmsCCC; para2:PXcmsColor; para3:PXcmsColor; para4:dword):TStatus;cdecl;external;
-function XcmsCIEuvYToTekHVC(para1:TXcmsCCC; para2:PXcmsColor; para3:PXcmsColor; para4:dword):TStatus;cdecl;external;
-function XcmsCIExyYToCIEXYZ(para1:TXcmsCCC; para2:PXcmsColor; para3:PXcmsColor; para4:dword):TStatus;cdecl;external;
-function XcmsClientWhitePointOfCCC(para1:TXcmsCCC):PXcmsColor;cdecl;external;
-function XcmsConvertColors(para1:TXcmsCCC; para2:PXcmsColor; para3:dword; para4:TXcmsColorFormat; para5:PBool):TStatus;cdecl;external;
+               para6:dword; para7:PBool):TStatus;cdecl;external libX11;
+function XcmsCIEXYZToCIELab(para1:TXcmsCCC; para2:PXcmsColor; para3:PXcmsColor; para4:dword):TStatus;cdecl;external libX11;
+function XcmsCIEXYZToCIEuvY(para1:TXcmsCCC; para2:PXcmsColor; para3:PXcmsColor; para4:dword):TStatus;cdecl;external libX11;
+function XcmsCIEXYZToCIExyY(para1:TXcmsCCC; para2:PXcmsColor; para3:PXcmsColor; para4:dword):TStatus;cdecl;external libX11;
+function XcmsCIEXYZToRGBi(para1:TXcmsCCC; para2:PXcmsColor; para3:dword; para4:PBool):TStatus;cdecl;external libX11;
+function XcmsCIEuvYToCIELuv(para1:TXcmsCCC; para2:PXcmsColor; para3:PXcmsColor; para4:dword):TStatus;cdecl;external libX11;
+function XcmsCIEuvYToCIEXYZ(para1:TXcmsCCC; para2:PXcmsColor; para3:PXcmsColor; para4:dword):TStatus;cdecl;external libX11;
+function XcmsCIEuvYToTekHVC(para1:TXcmsCCC; para2:PXcmsColor; para3:PXcmsColor; para4:dword):TStatus;cdecl;external libX11;
+function XcmsCIExyYToCIEXYZ(para1:TXcmsCCC; para2:PXcmsColor; para3:PXcmsColor; para4:dword):TStatus;cdecl;external libX11;
+function XcmsClientWhitePointOfCCC(para1:TXcmsCCC):PXcmsColor;cdecl;external libX11;
+function XcmsConvertColors(para1:TXcmsCCC; para2:PXcmsColor; para3:dword; para4:TXcmsColorFormat; para5:PBool):TStatus;cdecl;external libX11;
 function XcmsCreateCCC(para1:PDisplay; para2:longint; para3:PVisual; para4:PXcmsColor; para5:TXcmsCompressionProc;
-               para6:TXPointer; para7:TXcmsWhiteAdjustProc; para8:TXPointer):TXcmsCCC;cdecl;external;
-function XcmsDefaultCCC(para1:PDisplay; para2:longint):TXcmsCCC;cdecl;external;
-function XcmsDisplayOfCCC(para1:TXcmsCCC):PDisplay;cdecl;external;
-function XcmsFormatOfPrefix(para1:Pchar):TXcmsColorFormat;cdecl;external;
-procedure XcmsFreeCCC(para1:TXcmsCCC);cdecl;external;
+               para6:TXPointer; para7:TXcmsWhiteAdjustProc; para8:TXPointer):TXcmsCCC;cdecl;external libX11;
+function XcmsDefaultCCC(para1:PDisplay; para2:longint):TXcmsCCC;cdecl;external libX11;
+function XcmsDisplayOfCCC(para1:TXcmsCCC):PDisplay;cdecl;external libX11;
+function XcmsFormatOfPrefix(para1:Pchar):TXcmsColorFormat;cdecl;external libX11;
+procedure XcmsFreeCCC(para1:TXcmsCCC);cdecl;external libX11;
 function XcmsLookupColor(para1:PDisplay; para2:TColormap; para3:Pchar; para4:PXcmsColor; para5:PXcmsColor;
-               para6:TXcmsColorFormat):TStatus;cdecl;external;
-function XcmsPrefixOfFormat(para1:TXcmsColorFormat):Pchar;cdecl;external;
-function XcmsQueryBlack(para1:TXcmsCCC; para2:TXcmsColorFormat; para3:PXcmsColor):TStatus;cdecl;external;
-function XcmsQueryBlue(para1:TXcmsCCC; para2:TXcmsColorFormat; para3:PXcmsColor):TStatus;cdecl;external;
-function XcmsQueryColor(para1:PDisplay; para2:TColormap; para3:PXcmsColor; para4:TXcmsColorFormat):TStatus;cdecl;external;
-function XcmsQueryColors(para1:PDisplay; para2:TColormap; para3:PXcmsColor; para4:dword; para5:TXcmsColorFormat):TStatus;cdecl;external;
-function XcmsQueryGreen(para1:TXcmsCCC; para2:TXcmsColorFormat; para3:PXcmsColor):TStatus;cdecl;external;
-function XcmsQueryRed(para1:TXcmsCCC; para2:TXcmsColorFormat; para3:PXcmsColor):TStatus;cdecl;external;
-function XcmsQueryWhite(para1:TXcmsCCC; para2:TXcmsColorFormat; para3:PXcmsColor):TStatus;cdecl;external;
-function XcmsRGBiToCIEXYZ(para1:TXcmsCCC; para2:PXcmsColor; para3:dword; para4:PBool):TStatus;cdecl;external;
-function XcmsRGBiToRGB(para1:TXcmsCCC; para2:PXcmsColor; para3:dword; para4:PBool):TStatus;cdecl;external;
-function XcmsRGBToRGBi(para1:TXcmsCCC; para2:PXcmsColor; para3:dword; para4:PBool):TStatus;cdecl;external;
-function XcmsScreenNumberOfCCC(para1:TXcmsCCC):longint;cdecl;external;
-function XcmsScreenWhitePointOfCCC(para1:TXcmsCCC):PXcmsColor;cdecl;external;
-function XcmsSetCCCOfColormap(para1:PDisplay; para2:TColormap; para3:TXcmsCCC):TXcmsCCC;cdecl;external;
-function XcmsSetCompressionProc(para1:TXcmsCCC; para2:TXcmsCompressionProc; para3:TXPointer):TXcmsCompressionProc;cdecl;external;
-function XcmsSetWhiteAdjustProc(para1:TXcmsCCC; para2:TXcmsWhiteAdjustProc; para3:TXPointer):TXcmsWhiteAdjustProc;cdecl;external;
-function XcmsSetWhitePoint(para1:TXcmsCCC; para2:PXcmsColor):TStatus;cdecl;external;
-function XcmsStoreColor(para1:PDisplay; para2:TColormap; para3:PXcmsColor):TStatus;cdecl;external;
-function XcmsStoreColors(para1:PDisplay; para2:TColormap; para3:PXcmsColor; para4:dword; para5:PBool):TStatus;cdecl;external;
-function XcmsTekHVCClipC(para1:TXcmsCCC; para2:PXcmsColor; para3:dword; para4:dword; para5:PBool):TStatus;cdecl;external;
-function XcmsTekHVCClipV(para1:TXcmsCCC; para2:PXcmsColor; para3:dword; para4:dword; para5:PBool):TStatus;cdecl;external;
-function XcmsTekHVCClipVC(para1:TXcmsCCC; para2:PXcmsColor; para3:dword; para4:dword; para5:PBool):TStatus;cdecl;external;
-function XcmsTekHVCQueryMaxC(para1:TXcmsCCC; para2:TXcmsFloat; para3:TXcmsFloat; para4:PXcmsColor):TStatus;cdecl;external;
-function XcmsTekHVCQueryMaxV(para1:TXcmsCCC; para2:TXcmsFloat; para3:TXcmsFloat; para4:PXcmsColor):TStatus;cdecl;external;
-function XcmsTekHVCQueryMaxVC(para1:TXcmsCCC; para2:TXcmsFloat; para3:PXcmsColor):TStatus;cdecl;external;
-function XcmsTekHVCQueryMaxVSamples(para1:TXcmsCCC; para2:TXcmsFloat; para3:PXcmsColor; para4:dword):TStatus;cdecl;external;
-function XcmsTekHVCQueryMinV(para1:TXcmsCCC; para2:TXcmsFloat; para3:TXcmsFloat; para4:PXcmsColor):TStatus;cdecl;external;
-function XcmsTekHVCToCIEuvY(para1:TXcmsCCC; para2:PXcmsColor; para3:PXcmsColor; para4:dword):TStatus;cdecl;external;
+               para6:TXcmsColorFormat):TStatus;cdecl;external libX11;
+function XcmsPrefixOfFormat(para1:TXcmsColorFormat):Pchar;cdecl;external libX11;
+function XcmsQueryBlack(para1:TXcmsCCC; para2:TXcmsColorFormat; para3:PXcmsColor):TStatus;cdecl;external libX11;
+function XcmsQueryBlue(para1:TXcmsCCC; para2:TXcmsColorFormat; para3:PXcmsColor):TStatus;cdecl;external libX11;
+function XcmsQueryColor(para1:PDisplay; para2:TColormap; para3:PXcmsColor; para4:TXcmsColorFormat):TStatus;cdecl;external libX11;
+function XcmsQueryColors(para1:PDisplay; para2:TColormap; para3:PXcmsColor; para4:dword; para5:TXcmsColorFormat):TStatus;cdecl;external libX11;
+function XcmsQueryGreen(para1:TXcmsCCC; para2:TXcmsColorFormat; para3:PXcmsColor):TStatus;cdecl;external libX11;
+function XcmsQueryRed(para1:TXcmsCCC; para2:TXcmsColorFormat; para3:PXcmsColor):TStatus;cdecl;external libX11;
+function XcmsQueryWhite(para1:TXcmsCCC; para2:TXcmsColorFormat; para3:PXcmsColor):TStatus;cdecl;external libX11;
+function XcmsRGBiToCIEXYZ(para1:TXcmsCCC; para2:PXcmsColor; para3:dword; para4:PBool):TStatus;cdecl;external libX11;
+function XcmsRGBiToRGB(para1:TXcmsCCC; para2:PXcmsColor; para3:dword; para4:PBool):TStatus;cdecl;external libX11;
+function XcmsRGBToRGBi(para1:TXcmsCCC; para2:PXcmsColor; para3:dword; para4:PBool):TStatus;cdecl;external libX11;
+function XcmsScreenNumberOfCCC(para1:TXcmsCCC):longint;cdecl;external libX11;
+function XcmsScreenWhitePointOfCCC(para1:TXcmsCCC):PXcmsColor;cdecl;external libX11;
+function XcmsSetCCCOfColormap(para1:PDisplay; para2:TColormap; para3:TXcmsCCC):TXcmsCCC;cdecl;external libX11;
+function XcmsSetCompressionProc(para1:TXcmsCCC; para2:TXcmsCompressionProc; para3:TXPointer):TXcmsCompressionProc;cdecl;external libX11;
+function XcmsSetWhiteAdjustProc(para1:TXcmsCCC; para2:TXcmsWhiteAdjustProc; para3:TXPointer):TXcmsWhiteAdjustProc;cdecl;external libX11;
+function XcmsSetWhitePoint(para1:TXcmsCCC; para2:PXcmsColor):TStatus;cdecl;external libX11;
+function XcmsStoreColor(para1:PDisplay; para2:TColormap; para3:PXcmsColor):TStatus;cdecl;external libX11;
+function XcmsStoreColors(para1:PDisplay; para2:TColormap; para3:PXcmsColor; para4:dword; para5:PBool):TStatus;cdecl;external libX11;
+function XcmsTekHVCClipC(para1:TXcmsCCC; para2:PXcmsColor; para3:dword; para4:dword; para5:PBool):TStatus;cdecl;external libX11;
+function XcmsTekHVCClipV(para1:TXcmsCCC; para2:PXcmsColor; para3:dword; para4:dword; para5:PBool):TStatus;cdecl;external libX11;
+function XcmsTekHVCClipVC(para1:TXcmsCCC; para2:PXcmsColor; para3:dword; para4:dword; para5:PBool):TStatus;cdecl;external libX11;
+function XcmsTekHVCQueryMaxC(para1:TXcmsCCC; para2:TXcmsFloat; para3:TXcmsFloat; para4:PXcmsColor):TStatus;cdecl;external libX11;
+function XcmsTekHVCQueryMaxV(para1:TXcmsCCC; para2:TXcmsFloat; para3:TXcmsFloat; para4:PXcmsColor):TStatus;cdecl;external libX11;
+function XcmsTekHVCQueryMaxVC(para1:TXcmsCCC; para2:TXcmsFloat; para3:PXcmsColor):TStatus;cdecl;external libX11;
+function XcmsTekHVCQueryMaxVSamples(para1:TXcmsCCC; para2:TXcmsFloat; para3:PXcmsColor; para4:dword):TStatus;cdecl;external libX11;
+function XcmsTekHVCQueryMinV(para1:TXcmsCCC; para2:TXcmsFloat; para3:TXcmsFloat; para4:PXcmsColor):TStatus;cdecl;external libX11;
+function XcmsTekHVCToCIEuvY(para1:TXcmsCCC; para2:PXcmsColor; para3:PXcmsColor; para4:dword):TStatus;cdecl;external libX11;
 function XcmsTekHVCWhiteShiftColors(para1:TXcmsCCC; para2:PXcmsColor; para3:PXcmsColor; para4:TXcmsColorFormat; para5:PXcmsColor;
-               para6:dword; para7:PBool):TStatus;cdecl;external;
-function XcmsVisualOfCCC(para1:TXcmsCCC):PVisual;cdecl;external;
+               para6:dword; para7:PBool):TStatus;cdecl;external libX11;
+function XcmsVisualOfCCC(para1:TXcmsCCC):PVisual;cdecl;external libX11;
 
 
 implementation

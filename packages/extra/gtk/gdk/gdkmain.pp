@@ -373,8 +373,10 @@ function  gdk_keyval_to_upper(keyval:guint):guint;cdecl;external gdkdll name 'gd
 function  gdk_keyval_to_lower(keyval:guint):guint;cdecl;external gdkdll name 'gdk_keyval_to_lower';
 function  gdk_keyval_is_upper(keyval:guint):gboolean;cdecl;external gdkdll name 'gdk_keyval_is_upper';
 function  gdk_keyval_is_lower(keyval:guint):gboolean;cdecl;external gdkdll name 'gdk_keyval_is_lower';
+{$ifndef gtkos2}
 var
   gdk_threads_mutex : PGMutex;external gdkdll name 'gdk_threads_mutex';
+{$endif}
 procedure gdk_threads_enter;cdecl;external gdkdll name 'gdk_threads_enter';
 procedure gdk_threads_leave;cdecl;external gdkdll name 'gdk_threads_leave';
 
@@ -389,7 +391,10 @@ procedure gdk_threads_leave;cdecl;external gdkdll name 'gdk_threads_leave';
 
 {
   $Log$
-  Revision 1.2  2002-09-07 15:42:58  peter
+  Revision 1.3  2003-03-02 02:08:50  hajny
+    + OS/2 support for GTK and X11 added by Yuri
+
+  Revision 1.2  2002/09/07 15:42:58  peter
     * old logs removed and tabs fixed
 
   Revision 1.1  2002/01/29 17:55:07  peter

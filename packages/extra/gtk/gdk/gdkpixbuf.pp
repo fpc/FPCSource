@@ -29,6 +29,7 @@
 unit gdkpixbuf;
 
 interface
+{$ifndef os2}
 
 {$Ifdef FPC}
   {$PACKRECORDS C}
@@ -389,7 +390,9 @@ Type
   Function gnome_canvas_pixbuf_get_type : PGtkType; cdecl; external libgdkpixbuf name 'gnome_canvas_pixbuf_get_type';
 {$EndIf}
 
+{$endif os2}
 implementation
+{$ifndef os2}
 
 {$Ifdef FPC}
 { There is a bug in the compiler. If an external variable is not used, it will
@@ -432,10 +435,15 @@ end;
   end;
 {$EndIf}
 
+{$endif os2}
 end.
+
 {
   $Log$
-  Revision 1.2  2002-09-07 15:42:58  peter
+  Revision 1.3  2003-03-02 02:08:50  hajny
+    + OS/2 support for GTK and X11 added by Yuri
+
+  Revision 1.2  2002/09/07 15:42:58  peter
     * old logs removed and tabs fixed
 
   Revision 1.1  2002/08/13 07:36:27  michael

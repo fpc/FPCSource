@@ -41,16 +41,24 @@ uses
 
   {$packrecords C}
 {$else}
-  const
-  {$ifdef BSD}
-    gdkdll='gdk12';
-  {$else}
-    gdkdll='gdk';
-  {$endif}
-  {$linklib c}
-  {$linklib X11}
+  {$ifdef os2}
+    const
+      gdkdll='gdk12';
+    {$define gtkos2}
 
-  {$packrecords C}
+    {$packrecords C}
+  {$else}
+    const
+    {$ifdef BSD}
+      gdkdll='gdk12';
+    {$else}
+      gdkdll='gdk';
+    {$endif}
+    {$linklib c}
+    {$linklib X11}
+
+    {$packrecords C}
+  {$endif}
 {$endif}
 
 Type
@@ -90,7 +98,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2002-09-07 15:42:58  peter
+  Revision 1.4  2003-03-02 02:08:50  hajny
+    + OS/2 support for GTK and X11 added by Yuri
+
+  Revision 1.3  2002/09/07 15:42:58  peter
     * old logs removed and tabs fixed
 
   Revision 1.2  2002/08/31 04:16:48  marco

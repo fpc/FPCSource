@@ -40,14 +40,24 @@ uses
 
   {$packrecords C}
 {$else}
-  const
-    gmoduledll='gmodule';
+  {$ifdef os2}
+    const
+      gmoduledll='gmodule';
+    {$define gtkos2}
 
-  {$packrecords C}
+    {$packrecords C}
+  {$else}
+    const
+      gmoduledll='gmodule';
+
+    {$packrecords C}
+  {$endif}
 {$endif}
 
+{$ifndef gtkos2}
     var
        g_log_domain_gmodule : Pgchar;external gmoduledll name 'g_log_domain_gmodule';
+{$endif}
 
     type
        PGModule=pointer;
@@ -76,7 +86,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2002-09-07 15:42:59  peter
+  Revision 1.3  2003-03-02 02:10:19  hajny
+    + OS/2 support for GTK and X11 added by Yuri
+
+  Revision 1.2  2002/09/07 15:42:59  peter
     * old logs removed and tabs fixed
 
   Revision 1.1  2002/01/29 17:55:08  peter

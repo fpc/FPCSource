@@ -29,6 +29,7 @@ unit gtkglarea;
 {$PACKRECORDS C}
 
 interface
+{$ifndef os2}
 
 uses
   GDK, GTK, GL;
@@ -151,8 +152,9 @@ function  gtk_gl_area_new_vargs(share: PGtkGLArea; args: array of const): PGtkWi
 function  gtk_gl_area_make_current(glarea: PGtkGLArea): Integer; cdecl; external libgtkgl;
 procedure gtk_gl_area_swapbuffers(glarea: PGtkGLArea); cdecl; external libgtkgl;
 
-
+{$endif os2}
 implementation
+{$ifndef os2}
 
 
 function GTK_IS_GL_AREA(obj: Pointer): Boolean;
@@ -165,11 +167,14 @@ begin
   Result := Assigned(klass) and (PGtkTypeClass(klass)^.thetype = GTK_TYPE_GL_AREA);
 end;
 
-
+{$endif os2}
 end.
 {
   $Log$
-  Revision 1.2  2002-09-07 15:43:00  peter
+  Revision 1.3  2003-03-02 02:11:55  hajny
+    + OS/2 support for GTK and X11 added by Yuri
+
+  Revision 1.2  2002/09/07 15:43:00  peter
     * old logs removed and tabs fixed
 
   Revision 1.1  2002/01/29 17:55:16  peter

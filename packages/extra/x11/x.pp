@@ -1,8 +1,10 @@
 unit x;
 interface
 
-{$LinkLib c}
-{$LinkLib X11}
+{$ifndef os2}
+  {$LinkLib c}
+  {$LinkLib X11}
+{$endif}
 
 {
   Automatically converted by H2Pas 0.99.15 from x.h

@@ -3,6 +3,16 @@ interface
 uses
   x,xlib;
 
+{$ifndef os2}
+  {$LinkLib c}
+  {$LinkLib X11}
+const
+  libX11='X11';
+{$else}
+const
+  libX11='X11';
+{$endif}
+
 {
   Automatically converted by H2Pas 0.99.15 from xrender.h
   The following command line parameters were used:
@@ -196,26 +206,26 @@ type
         yOff : smallint;
      end;
 
-function XRenderQueryExtension(dpy:PDisplay; event_basep:Plongint; error_basep:Plongint):TBool;cdecl;external;
-function XRenderQueryVersion(dpy:PDisplay; major_versionp:Plongint; minor_versionp:Plongint):TStatus;cdecl;external;
-function XRenderQueryFormats(dpy:PDisplay):TStatus;cdecl;external;
-function XRenderFindVisualFormat(dpy:PDisplay; visual:PVisual):PXRenderPictFormat;cdecl;external;
-function XRenderFindFormat(dpy:PDisplay; mask:dword; template:PXRenderPictFormat; count:longint):PXRenderPictFormat;cdecl;external;
-function XRenderCreatePicture(dpy:PDisplay; drawable:TDrawable; format:PXRenderPictFormat; valuemask:dword; attributes:PXRenderPictureAttributes):TPicture;cdecl;external;
-procedure XRenderChangePicture(dpy:PDisplay; picture:TPicture; valuemask:dword; attributes:PXRenderPictureAttributes);cdecl;external;
-procedure XRenderFreePicture(dpy:PDisplay; picture:TPicture);cdecl;external;
+function XRenderQueryExtension(dpy:PDisplay; event_basep:Plongint; error_basep:Plongint):TBool;cdecl;external libX11;
+function XRenderQueryVersion(dpy:PDisplay; major_versionp:Plongint; minor_versionp:Plongint):TStatus;cdecl;external libX11;
+function XRenderQueryFormats(dpy:PDisplay):TStatus;cdecl;external libX11;
+function XRenderFindVisualFormat(dpy:PDisplay; visual:PVisual):PXRenderPictFormat;cdecl;external libX11;
+function XRenderFindFormat(dpy:PDisplay; mask:dword; template:PXRenderPictFormat; count:longint):PXRenderPictFormat;cdecl;external libX11;
+function XRenderCreatePicture(dpy:PDisplay; drawable:TDrawable; format:PXRenderPictFormat; valuemask:dword; attributes:PXRenderPictureAttributes):TPicture;cdecl;external libX11;
+procedure XRenderChangePicture(dpy:PDisplay; picture:TPicture; valuemask:dword; attributes:PXRenderPictureAttributes);cdecl;external libX11;
+procedure XRenderFreePicture(dpy:PDisplay; picture:TPicture);cdecl;external libX11;
 procedure XRenderComposite(dpy:PDisplay; op:longint; src:TPicture; mask:TPicture; dst:TPicture;
             src_x:longint; src_y:longint; mask_x:longint; mask_y:longint; dst_x:longint;
-            dst_y:longint; width:dword; height:dword);cdecl;external;
-function XRenderCreateGlyphSet(dpy:PDisplay; format:PXRenderPictFormat):TGlyphSet;cdecl;external;
-function XRenderReferenceGlyphSet(dpy:PDisplay; existing:TGlyphSet):TGlyphSet;cdecl;external;
-procedure XRenderFreeGlyphSet(dpy:PDisplay; glyphset:TGlyphSet);cdecl;external;
+            dst_y:longint; width:dword; height:dword);cdecl;external libX11;
+function XRenderCreateGlyphSet(dpy:PDisplay; format:PXRenderPictFormat):TGlyphSet;cdecl;external libX11;
+function XRenderReferenceGlyphSet(dpy:PDisplay; existing:TGlyphSet):TGlyphSet;cdecl;external libX11;
+procedure XRenderFreeGlyphSet(dpy:PDisplay; glyphset:TGlyphSet);cdecl;external libX11;
 procedure XRenderAddGlyphs(dpy:PDisplay; glyphset:TGlyphSet; gids:PGlyph; glyphs:PXGlyphInfo; nglyphs:longint;
-            images:Pchar; nbyte_images:longint);cdecl;external;
-procedure XRenderFreeGlyphs(dpy:PDisplay; glyphset:TGlyphSet; gids:PGlyph; nglyphs:longint);cdecl;external;
+            images:Pchar; nbyte_images:longint);cdecl;external libX11;
+procedure XRenderFreeGlyphs(dpy:PDisplay; glyphset:TGlyphSet; gids:PGlyph; nglyphs:longint);cdecl;external libX11;
 procedure XRenderCompositeString8(dpy:PDisplay; op:longint; src:TPicture; dst:TPicture; maskFormat:PXRenderPictFormat;
             glyphset:TGlyphSet; xSrc:longint; ySrc:longint; xDst:longint; yDst:longint;
-            _string:Pchar; nchar:longint);cdecl;external;
+            _string:Pchar; nchar:longint);cdecl;external libX11;
 
 implementation
 

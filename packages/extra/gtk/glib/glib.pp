@@ -37,15 +37,23 @@ interface
 
   {$packrecords C}
 {$else}
-  const
-   {$ifdef BSD}
-    glibdll='glib12';
-   {$else}
-    glibdll='glib';
-   {$endif}
-  {$linklib c}
+  {$ifdef os2}
+    const
+      glibdll='glib12';
+    {$define gtkos2}
 
-  {$packrecords C}
+    {$packrecords C}
+  {$else}
+    const
+     {$ifdef BSD}
+      glibdll='glib12';
+     {$else}
+      glibdll='glib';
+     {$endif}
+    {$linklib c}
+
+    {$packrecords C}
+  {$endif}
 {$endif}
 
 { Pointers to basic pascal types, inserted by h2pas conversion program.}
@@ -121,12 +129,14 @@ type
    TGQuark = guint32;
    TGTime = gint32;
 
+{$ifndef gtkos2}
 var
    glib_major_version : guint;external glibdll name 'glib_major_version';
    glib_minor_version : guint;external glibdll name 'glib_minor_version';
    glib_micro_version : guint;external glibdll name 'glib_micro_version';
    glib_interface_age : guint;external glibdll name 'glib_interface_age';
    glib_binary_age : guint;external glibdll name 'glib_binary_age';
+{$endif}
 
 type
    PGList = ^TGList;
@@ -641,8 +651,10 @@ procedure g_on_error_query(prg_name:Pgchar);cdecl;external glibdll name 'g_on_er
 procedure g_on_error_stack_trace(prg_name:Pgchar);cdecl;external glibdll name 'g_on_error_stack_trace';
 
 {$ifndef gtkwin}
+  {$ifndef gtkos2}
 var
   g_log_domain_glib : Pgchar;external glibdll name 'g_log_domain_glib';
+  {$endif}
 {$endif}
 
 function  g_log_set_handler(log_domain:Pgchar; log_levels:TGLogLevelFlags; log_func:TGLogFunc; user_data:gpointer):guint;cdecl;external glibdll name 'g_log_set_handler';
@@ -1654,7 +1666,10 @@ procedure set_year(var a : TGDate; __year : guint);
 end.
 {
   $Log$
-  Revision 1.3  2002-09-07 15:42:58  peter
+  Revision 1.4  2003-03-02 02:10:19  hajny
+    + OS/2 support for GTK and X11 added by Yuri
+
+  Revision 1.3  2002/09/07 15:42:58  peter
     * old logs removed and tabs fixed
 
   Revision 1.2  2002/08/31 04:16:48  marco

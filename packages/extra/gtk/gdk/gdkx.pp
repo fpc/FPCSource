@@ -9,6 +9,7 @@
 {$ifdef read_interface}
 
 {$ifndef gtkwin}
+  {$ifndef gtkos2}
 function  GDK_GET_ROOT_WINDOW : PGdkWindow;
 function  GDK_GET_ROOT_PARENT : PGdkWindow;
 function  GDK_GET_XDISPLAY : PDisplay;
@@ -29,6 +30,7 @@ function  gdkx_colormap_get(xcolormap:TColormap):PGdkColormap;cdecl;external gdk
 function  gdk_get_client_window(dpy:pDisplay; win:TWindow):TWindow;cdecl;external gdkdll name 'gdk_get_client_window';
 function  gdk_pixmap_foreign_new(anid:guint32):PGdkPixmap;cdecl;external gdkdll name 'gdk_pixmap_foreign_new';
 function  gdk_window_foreign_new(anid:guint32):PGdkWindow;cdecl;external gdkdll name 'gdk_window_foreign_new';
+  {$endif}
 {$endif}
 
 {$endif read_interface}
@@ -41,6 +43,7 @@ function  gdk_window_foreign_new(anid:guint32):PGdkWindow;cdecl;external gdkdll 
 {$ifdef read_implementation}
 
 {$ifndef gtkwin}
+  {$ifndef gtkos2}
 function  GDK_GET_ROOT_WINDOW : PGdkWindow;
     begin
        GDK_GET_ROOT_WINDOW:=PGdkwindow(gdk_root_window);
@@ -111,6 +114,7 @@ function  GDK_FONT_XFONT(font : PGdkFontPrivate) : gpointer;
        GDK_FONT_XFONT:=(PGdkFontPrivate(font))^.xfont;
     end;
 
+  {$endif}
 {$endif}
 
 {$endif read_implementation}
@@ -118,7 +122,10 @@ function  GDK_FONT_XFONT(font : PGdkFontPrivate) : gpointer;
 
 {
   $Log$
-  Revision 1.2  2002-09-07 15:42:58  peter
+  Revision 1.3  2003-03-02 02:08:50  hajny
+    + OS/2 support for GTK and X11 added by Yuri
+
+  Revision 1.2  2002/09/07 15:42:58  peter
     * old logs removed and tabs fixed
 
   Revision 1.1  2002/01/29 17:55:08  peter

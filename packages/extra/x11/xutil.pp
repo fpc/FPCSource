@@ -3,8 +3,15 @@ interface
 uses
   x,xlib;
 
-{$LinkLib c}
-{$LinkLib X11}
+{$ifndef os2}
+  {$LinkLib c}
+  {$LinkLib X11}
+const
+  libX11='X11';
+{$else}
+const
+  libX11='X11';
+{$endif}
 
 {
   Automatically converted by H2Pas 0.99.15 from xutil.h
@@ -245,79 +252,79 @@ function XUniqueContext : TXContext;
 function XStringToContext(_string : longint) : TXContext;
 {$endif MACROS}
 
-function XAllocClassHint:PXClassHint;cdecl;external;
-function XAllocIconSize:PXIconSize;cdecl;external;
-function XAllocSizeHints:PXSizeHints;cdecl;external;
-function XAllocStandardColormap:PXStandardColormap;cdecl;external;
-function XAllocWMHints:PXWMHints;cdecl;external;
-function XClipBox(para1:TRegion; para2:PXRectangle):longint;cdecl;external;
-function XCreateRegion:TRegion;cdecl;external;
-function XDefaultString:Pchar;cdecl;external;
-function XDeleteContext(para1:PDisplay; para2:TXID; para3:TXContext):longint;cdecl;external;
-function XDestroyRegion(para1:TRegion):longint;cdecl;external;
-function XEmptyRegion(para1:TRegion):longint;cdecl;external;
-function XEqualRegion(para1:TRegion; para2:TRegion):longint;cdecl;external;
-function XFindContext(para1:PDisplay; para2:TXID; para3:TXContext; para4:PXPointer):longint;cdecl;external;
-function XGetClassHint(para1:PDisplay; para2:TWindow; para3:PXClassHint):TStatus;cdecl;external;
-function XGetIconSizes(para1:PDisplay; para2:TWindow; para3:PPXIconSize; para4:Plongint):TStatus;cdecl;external;
-function XGetNormalHints(para1:PDisplay; para2:TWindow; para3:PXSizeHints):TStatus;cdecl;external;
-function XGetRGBColormaps(para1:PDisplay; para2:TWindow; para3:PPXStandardColormap; para4:Plongint; para5:TAtom):TStatus;cdecl;external;
-function XGetSizeHints(para1:PDisplay; para2:TWindow; para3:PXSizeHints; para4:TAtom):TStatus;cdecl;external;
-function XGetStandardColormap(para1:PDisplay; para2:TWindow; para3:PXStandardColormap; para4:TAtom):TStatus;cdecl;external;
-function XGetTextProperty(para1:PDisplay; para2:TWindow; para3:PXTextProperty; para4:TAtom):TStatus;cdecl;external;
-function XGetVisualInfo(para1:PDisplay; para2:longint; para3:PXVisualInfo; para4:Plongint):PXVisualInfo;cdecl;external;
-function XGetWMClientMachine(para1:PDisplay; para2:TWindow; para3:PXTextProperty):TStatus;cdecl;external;
-function XGetWMHints(para1:PDisplay; para2:TWindow):PXWMHints;cdecl;external;
-function XGetWMIconName(para1:PDisplay; para2:TWindow; para3:PXTextProperty):TStatus;cdecl;external;
-function XGetWMName(para1:PDisplay; para2:TWindow; para3:PXTextProperty):TStatus;cdecl;external;
-function XGetWMNormalHints(para1:PDisplay; para2:TWindow; para3:PXSizeHints; para4:Plongint):TStatus;cdecl;external;
-function XGetWMSizeHints(para1:PDisplay; para2:TWindow; para3:PXSizeHints; para4:Plongint; para5:TAtom):TStatus;cdecl;external;
-function XGetZoomHints(para1:PDisplay; para2:TWindow; para3:PXSizeHints):TStatus;cdecl;external;
-function XIntersectRegion(para1:TRegion; para2:TRegion; para3:TRegion):longint;cdecl;external;
-procedure XConvertCase(para1:TKeySym; para2:PKeySym; para3:PKeySym);cdecl;external;
-function XLookupString(para1:PXKeyEvent; para2:Pchar; para3:longint; para4:PKeySym; para5:PXComposeStatus):longint;cdecl;external;
-function XMatchVisualInfo(para1:PDisplay; para2:longint; para3:longint; para4:longint; para5:PXVisualInfo):TStatus;cdecl;external;
-function XOffsetRegion(para1:TRegion; para2:longint; para3:longint):longint;cdecl;external;
-function XPointInRegion(para1:TRegion; para2:longint; para3:longint):TBool;cdecl;external;
-function XPolygonRegion(para1:PXPoint; para2:longint; para3:longint):TRegion;cdecl;external;
-function XRectInRegion(para1:TRegion; para2:longint; para3:longint; para4:dword; para5:dword):longint;cdecl;external;
-function XSaveContext(para1:PDisplay; para2:TXID; para3:TXContext; para4:Pchar):longint;cdecl;external;
-function XSetClassHint(para1:PDisplay; para2:TWindow; para3:PXClassHint):longint;cdecl;external;
-function XSetIconSizes(para1:PDisplay; para2:TWindow; para3:PXIconSize; para4:longint):longint;cdecl;external;
-function XSetNormalHints(para1:PDisplay; para2:TWindow; para3:PXSizeHints):longint;cdecl;external;
-procedure XSetRGBColormaps(para1:PDisplay; para2:TWindow; para3:PXStandardColormap; para4:longint; para5:TAtom);cdecl;external;
-function XSetSizeHints(para1:PDisplay; para2:TWindow; para3:PXSizeHints; para4:TAtom):longint;cdecl;external;
+function XAllocClassHint:PXClassHint;cdecl;external libX11;
+function XAllocIconSize:PXIconSize;cdecl;external libX11;
+function XAllocSizeHints:PXSizeHints;cdecl;external libX11;
+function XAllocStandardColormap:PXStandardColormap;cdecl;external libX11;
+function XAllocWMHints:PXWMHints;cdecl;external libX11;
+function XClipBox(para1:TRegion; para2:PXRectangle):longint;cdecl;external libX11;
+function XCreateRegion:TRegion;cdecl;external libX11;
+function XDefaultString:Pchar;cdecl;external libX11;
+function XDeleteContext(para1:PDisplay; para2:TXID; para3:TXContext):longint;cdecl;external libX11;
+function XDestroyRegion(para1:TRegion):longint;cdecl;external libX11;
+function XEmptyRegion(para1:TRegion):longint;cdecl;external libX11;
+function XEqualRegion(para1:TRegion; para2:TRegion):longint;cdecl;external libX11;
+function XFindContext(para1:PDisplay; para2:TXID; para3:TXContext; para4:PXPointer):longint;cdecl;external libX11;
+function XGetClassHint(para1:PDisplay; para2:TWindow; para3:PXClassHint):TStatus;cdecl;external libX11;
+function XGetIconSizes(para1:PDisplay; para2:TWindow; para3:PPXIconSize; para4:Plongint):TStatus;cdecl;external libX11;
+function XGetNormalHints(para1:PDisplay; para2:TWindow; para3:PXSizeHints):TStatus;cdecl;external libX11;
+function XGetRGBColormaps(para1:PDisplay; para2:TWindow; para3:PPXStandardColormap; para4:Plongint; para5:TAtom):TStatus;cdecl;external libX11;
+function XGetSizeHints(para1:PDisplay; para2:TWindow; para3:PXSizeHints; para4:TAtom):TStatus;cdecl;external libX11;
+function XGetStandardColormap(para1:PDisplay; para2:TWindow; para3:PXStandardColormap; para4:TAtom):TStatus;cdecl;external libX11;
+function XGetTextProperty(para1:PDisplay; para2:TWindow; para3:PXTextProperty; para4:TAtom):TStatus;cdecl;external libX11;
+function XGetVisualInfo(para1:PDisplay; para2:longint; para3:PXVisualInfo; para4:Plongint):PXVisualInfo;cdecl;external libX11;
+function XGetWMClientMachine(para1:PDisplay; para2:TWindow; para3:PXTextProperty):TStatus;cdecl;external libX11;
+function XGetWMHints(para1:PDisplay; para2:TWindow):PXWMHints;cdecl;external libX11;
+function XGetWMIconName(para1:PDisplay; para2:TWindow; para3:PXTextProperty):TStatus;cdecl;external libX11;
+function XGetWMName(para1:PDisplay; para2:TWindow; para3:PXTextProperty):TStatus;cdecl;external libX11;
+function XGetWMNormalHints(para1:PDisplay; para2:TWindow; para3:PXSizeHints; para4:Plongint):TStatus;cdecl;external libX11;
+function XGetWMSizeHints(para1:PDisplay; para2:TWindow; para3:PXSizeHints; para4:Plongint; para5:TAtom):TStatus;cdecl;external libX11;
+function XGetZoomHints(para1:PDisplay; para2:TWindow; para3:PXSizeHints):TStatus;cdecl;external libX11;
+function XIntersectRegion(para1:TRegion; para2:TRegion; para3:TRegion):longint;cdecl;external libX11;
+procedure XConvertCase(para1:TKeySym; para2:PKeySym; para3:PKeySym);cdecl;external libX11;
+function XLookupString(para1:PXKeyEvent; para2:Pchar; para3:longint; para4:PKeySym; para5:PXComposeStatus):longint;cdecl;external libX11;
+function XMatchVisualInfo(para1:PDisplay; para2:longint; para3:longint; para4:longint; para5:PXVisualInfo):TStatus;cdecl;external libX11;
+function XOffsetRegion(para1:TRegion; para2:longint; para3:longint):longint;cdecl;external libX11;
+function XPointInRegion(para1:TRegion; para2:longint; para3:longint):TBool;cdecl;external libX11;
+function XPolygonRegion(para1:PXPoint; para2:longint; para3:longint):TRegion;cdecl;external libX11;
+function XRectInRegion(para1:TRegion; para2:longint; para3:longint; para4:dword; para5:dword):longint;cdecl;external libX11;
+function XSaveContext(para1:PDisplay; para2:TXID; para3:TXContext; para4:Pchar):longint;cdecl;external libX11;
+function XSetClassHint(para1:PDisplay; para2:TWindow; para3:PXClassHint):longint;cdecl;external libX11;
+function XSetIconSizes(para1:PDisplay; para2:TWindow; para3:PXIconSize; para4:longint):longint;cdecl;external libX11;
+function XSetNormalHints(para1:PDisplay; para2:TWindow; para3:PXSizeHints):longint;cdecl;external libX11;
+procedure XSetRGBColormaps(para1:PDisplay; para2:TWindow; para3:PXStandardColormap; para4:longint; para5:TAtom);cdecl;external libX11;
+function XSetSizeHints(para1:PDisplay; para2:TWindow; para3:PXSizeHints; para4:TAtom):longint;cdecl;external libX11;
 function XSetStandardProperties(para1:PDisplay; para2:TWindow; para3:Pchar; para4:Pchar; para5:TPixmap;
-           para6:PPchar; para7:longint; para8:PXSizeHints):longint;cdecl;external;
-procedure XSetTextProperty(para1:PDisplay; para2:TWindow; para3:PXTextProperty; para4:TAtom);cdecl;external;
-procedure XSetWMClientMachine(para1:PDisplay; para2:TWindow; para3:PXTextProperty);cdecl;external;
-function XSetWMHints(para1:PDisplay; para2:TWindow; para3:PXWMHints):longint;cdecl;external;
-procedure XSetWMIconName(para1:PDisplay; para2:TWindow; para3:PXTextProperty);cdecl;external;
-procedure XSetWMName(para1:PDisplay; para2:TWindow; para3:PXTextProperty);cdecl;external;
-procedure XSetWMNormalHints(para1:PDisplay; para2:TWindow; para3:PXSizeHints);cdecl;external;
+           para6:PPchar; para7:longint; para8:PXSizeHints):longint;cdecl;external libX11;
+procedure XSetTextProperty(para1:PDisplay; para2:TWindow; para3:PXTextProperty; para4:TAtom);cdecl;external libX11;
+procedure XSetWMClientMachine(para1:PDisplay; para2:TWindow; para3:PXTextProperty);cdecl;external libX11;
+function XSetWMHints(para1:PDisplay; para2:TWindow; para3:PXWMHints):longint;cdecl;external libX11;
+procedure XSetWMIconName(para1:PDisplay; para2:TWindow; para3:PXTextProperty);cdecl;external libX11;
+procedure XSetWMName(para1:PDisplay; para2:TWindow; para3:PXTextProperty);cdecl;external libX11;
+procedure XSetWMNormalHints(para1:PDisplay; para2:TWindow; para3:PXSizeHints);cdecl;external libX11;
 procedure XSetWMProperties(para1:PDisplay; para2:TWindow; para3:PXTextProperty; para4:PXTextProperty; para5:PPchar;
-            para6:longint; para7:PXSizeHints; para8:PXWMHints; para9:PXClassHint);cdecl;external;
+            para6:longint; para7:PXSizeHints; para8:PXWMHints; para9:PXClassHint);cdecl;external libX11;
 procedure XmbSetWMProperties(para1:PDisplay; para2:TWindow; para3:Pchar; para4:Pchar; para5:PPchar;
-            para6:longint; para7:PXSizeHints; para8:PXWMHints; para9:PXClassHint);cdecl;external;
-procedure XSetWMSizeHints(para1:PDisplay; para2:TWindow; para3:PXSizeHints; para4:TAtom);cdecl;external;
-function XSetRegion(para1:PDisplay; para2:TGC; para3:TRegion):longint;cdecl;external;
-procedure XSetStandardColormap(para1:PDisplay; para2:TWindow; para3:PXStandardColormap; para4:TAtom);cdecl;external;
-function XSetZoomHints(para1:PDisplay; para2:TWindow; para3:PXSizeHints):longint;cdecl;external;
-function XShrinkRegion(para1:TRegion; para2:longint; para3:longint):longint;cdecl;external;
-function XStringListToTextProperty(para1:PPchar; para2:longint; para3:PXTextProperty):TStatus;cdecl;external;
-function XSubtractRegion(para1:TRegion; para2:TRegion; para3:TRegion):longint;cdecl;external;
-function XmbTextListToTextProperty(para1:PDisplay; para2:PPchar; para3:longint; para4:TXICCEncodingStyle; para5:PXTextProperty):longint;cdecl;external;
-function XwcTextListToTextProperty(para1:PDisplay; para2:PPWideChar; para3:longint; para4:TXICCEncodingStyle; para5:PXTextProperty):longint;cdecl;external;
-procedure XwcFreeStringList(para1:PPWideChar);cdecl;external;
-function XTextPropertyToStringList(para1:PXTextProperty; para2:PPPchar; para3:Plongint):TStatus;cdecl;external;
-function XmbTextPropertyToTextList(para1:PDisplay; para2:PXTextProperty; para3:PPPchar; para4:Plongint):longint;cdecl;external;
-function XwcTextPropertyToTextList(para1:PDisplay; para2:PXTextProperty; para3:PPPWideChar; para4:Plongint):longint;cdecl;external;
-function XUnionRectWithRegion(para1:PXRectangle; para2:TRegion; para3:TRegion):longint;cdecl;external;
-function XUnionRegion(para1:TRegion; para2:TRegion; para3:TRegion):longint;cdecl;external;
+            para6:longint; para7:PXSizeHints; para8:PXWMHints; para9:PXClassHint);cdecl;external libX11;
+procedure XSetWMSizeHints(para1:PDisplay; para2:TWindow; para3:PXSizeHints; para4:TAtom);cdecl;external libX11;
+function XSetRegion(para1:PDisplay; para2:TGC; para3:TRegion):longint;cdecl;external libX11;
+procedure XSetStandardColormap(para1:PDisplay; para2:TWindow; para3:PXStandardColormap; para4:TAtom);cdecl;external libX11;
+function XSetZoomHints(para1:PDisplay; para2:TWindow; para3:PXSizeHints):longint;cdecl;external libX11;
+function XShrinkRegion(para1:TRegion; para2:longint; para3:longint):longint;cdecl;external libX11;
+function XStringListToTextProperty(para1:PPchar; para2:longint; para3:PXTextProperty):TStatus;cdecl;external libX11;
+function XSubtractRegion(para1:TRegion; para2:TRegion; para3:TRegion):longint;cdecl;external libX11;
+function XmbTextListToTextProperty(para1:PDisplay; para2:PPchar; para3:longint; para4:TXICCEncodingStyle; para5:PXTextProperty):longint;cdecl;external libX11;
+function XwcTextListToTextProperty(para1:PDisplay; para2:PPWideChar; para3:longint; para4:TXICCEncodingStyle; para5:PXTextProperty):longint;cdecl;external libX11;
+procedure XwcFreeStringList(para1:PPWideChar);cdecl;external libX11;
+function XTextPropertyToStringList(para1:PXTextProperty; para2:PPPchar; para3:Plongint):TStatus;cdecl;external libX11;
+function XmbTextPropertyToTextList(para1:PDisplay; para2:PXTextProperty; para3:PPPchar; para4:Plongint):longint;cdecl;external libX11;
+function XwcTextPropertyToTextList(para1:PDisplay; para2:PXTextProperty; para3:PPPWideChar; para4:Plongint):longint;cdecl;external libX11;
+function XUnionRectWithRegion(para1:PXRectangle; para2:TRegion; para3:TRegion):longint;cdecl;external libX11;
+function XUnionRegion(para1:TRegion; para2:TRegion; para3:TRegion):longint;cdecl;external libX11;
 function XWMGeometry(para1:PDisplay; para2:longint; para3:Pchar; para4:Pchar; para5:dword;
            para6:PXSizeHints; para7:Plongint; para8:Plongint; para9:Plongint; para10:Plongint;
-           para11:Plongint):longint;cdecl;external;
-function XXorRegion(para1:TRegion; para2:TRegion; para3:TRegion):longint;cdecl;external;
+           para11:Plongint):longint;cdecl;external libX11;
+function XXorRegion(para1:TRegion; para2:TRegion; para3:TRegion):longint;cdecl;external libX11;
 
 implementation
 

@@ -221,6 +221,7 @@ procedure gdk_dnd_display_drag_cursor(x:gint; y:gint; drag_ok:gboolean; change_m
 function  gdk_window_xid_at(base:TWindow; bx:gint; by:gint; x:gint; y:gint; excludes:PGList; excl_child:gboolean):TWindow;cdecl;external gdkdll name 'gdk_window_xid_at';
 function  gdk_window_xid_at_coords(x:gint; y:gint; excludes:PGList; excl_child:gboolean):TWindow;cdecl;external gdkdll name 'gdk_window_xid_at_coords';
 
+{$ifndef os2}
     var
        gdk_use_xshm : gint;external gdkdll name 'gdk_use_xshm';
        gdk_display_name : Pgchar;external gdkdll name 'gdk_display_name';
@@ -241,6 +242,7 @@ function  gdk_window_xid_at_coords(x:gint; y:gint; excludes:PGList; excl_child:g
        gdk_default_filters : PGList;external gdkdll name 'gdk_default_filters';
        gdk_nevent_masks : longint;external gdkdll name 'gdk_nevent_masks';
        gdk_xgrab_window : PGdkWindowPrivate;external gdkdll name 'gdk_xgrab_window';
+{$endif}
 
 {$ifdef USE_XIM}
 function  gdk_im_open:gint;cdecl;external gdkdll name 'gdk_im_open';
@@ -315,7 +317,10 @@ function  GDK_font_lookup(xid : longint) : PGdkFont;
 
 {
   $Log$
-  Revision 1.2  2002-09-07 15:42:58  peter
+  Revision 1.3  2003-03-02 02:08:50  hajny
+    + OS/2 support for GTK and X11 added by Yuri
+
+  Revision 1.2  2002/09/07 15:42:58  peter
     * old logs removed and tabs fixed
 
   Revision 1.1  2002/01/29 17:55:07  peter

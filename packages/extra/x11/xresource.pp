@@ -3,8 +3,15 @@ interface
 uses
   x,xlib;
 
-{$LinkLib c}
-{$LinkLib X11}
+{$ifndef os2}
+  {$LinkLib c}
+  {$LinkLib X11}
+const
+  libX11='X11';
+{$else}
+const
+  libX11='X11';
+{$endif}
 
 {
   Automatically converted by H2Pas 0.99.15 from xresource.h
@@ -20,7 +27,7 @@ uses
 {$PACKRECORDS C}
 
 
-function Xpermalloc(para1:dword):Pchar;cdecl;external;
+function Xpermalloc(para1:dword):Pchar;cdecl;external libX11;
 type
 
    PXrmQuark = ^TXrmQuark;
@@ -35,10 +42,10 @@ type
    TXrmString = char;
 function NULLSTRING : TXrmString;
 
-function XrmStringToQuark(para1:Pchar):TXrmQuark;cdecl;external;
-function XrmPermStringToQuark(para1:Pchar):TXrmQuark;cdecl;external;
-function XrmQuarkToString(para1:TXrmQuark):TXrmString;cdecl;external;
-function XrmUniqueQuark:TXrmQuark;cdecl;external;
+function XrmStringToQuark(para1:Pchar):TXrmQuark;cdecl;external libX11;
+function XrmPermStringToQuark(para1:Pchar):TXrmQuark;cdecl;external libX11;
+function XrmQuarkToString(para1:TXrmQuark):TXrmString;cdecl;external libX11;
+function XrmUniqueQuark:TXrmQuark;cdecl;external libX11;
 {$ifdef MACROS}
 function XrmStringsEqual(a1,a2 : longint) : longint;
 {$endif MACROS}
@@ -50,8 +57,8 @@ type
    TXrmBindingList = PXrmBinding;
    PXrmBindingList = ^TXrmBindingList;
 
-procedure XrmStringToQuarkList(para1:Pchar; para2:TXrmQuarkList);cdecl;external;
-procedure XrmStringToBindingQuarkList(para1:Pchar; para2:TXrmBindingList; para3:TXrmQuarkList);cdecl;external;
+procedure XrmStringToQuarkList(para1:Pchar; para2:TXrmQuarkList);cdecl;external libX11;
+procedure XrmStringToBindingQuarkList(para1:Pchar; para2:TXrmBindingList; para3:TXrmQuarkList);cdecl;external libX11;
 type
 
    PXrmName = ^TXrmName;
@@ -113,25 +120,25 @@ type
    TXrmDatabase = PXrmHashBucketRec;
    PXrmDatabase = ^TXrmDatabase;
 
-procedure XrmDestroyDatabase(para1:TXrmDatabase);cdecl;external;
-procedure XrmQPutResource(para1:PXrmDatabase; para2:TXrmBindingList; para3:TXrmQuarkList; para4:TXrmRepresentation; para5:PXrmValue);cdecl;external;
-procedure XrmPutResource(para1:PXrmDatabase; para2:Pchar; para3:Pchar; para4:PXrmValue);cdecl;external;
-procedure XrmQPutStringResource(para1:PXrmDatabase; para2:TXrmBindingList; para3:TXrmQuarkList; para4:Pchar);cdecl;external;
-procedure XrmPutStringResource(para1:PXrmDatabase; para2:Pchar; para3:Pchar);cdecl;external;
-procedure XrmPutLineResource(para1:PXrmDatabase; para2:Pchar);cdecl;external;
-function XrmQGetResource(para1:TXrmDatabase; para2:TXrmNameList; para3:TXrmClassList; para4:PXrmRepresentation; para5:PXrmValue):TBool;cdecl;external;
-function XrmGetResource(para1:TXrmDatabase; para2:Pchar; para3:Pchar; para4:PPchar; para5:PXrmValue):TBool;cdecl;external;
+procedure XrmDestroyDatabase(para1:TXrmDatabase);cdecl;external libX11;
+procedure XrmQPutResource(para1:PXrmDatabase; para2:TXrmBindingList; para3:TXrmQuarkList; para4:TXrmRepresentation; para5:PXrmValue);cdecl;external libX11;
+procedure XrmPutResource(para1:PXrmDatabase; para2:Pchar; para3:Pchar; para4:PXrmValue);cdecl;external libX11;
+procedure XrmQPutStringResource(para1:PXrmDatabase; para2:TXrmBindingList; para3:TXrmQuarkList; para4:Pchar);cdecl;external libX11;
+procedure XrmPutStringResource(para1:PXrmDatabase; para2:Pchar; para3:Pchar);cdecl;external libX11;
+procedure XrmPutLineResource(para1:PXrmDatabase; para2:Pchar);cdecl;external libX11;
+function XrmQGetResource(para1:TXrmDatabase; para2:TXrmNameList; para3:TXrmClassList; para4:PXrmRepresentation; para5:PXrmValue):TBool;cdecl;external libX11;
+function XrmGetResource(para1:TXrmDatabase; para2:Pchar; para3:Pchar; para4:PPchar; para5:PXrmValue):TBool;cdecl;external libX11;
 { There is no definition of TXrmSearchList }
-{function XrmQGetSearchList(para1:TXrmDatabase; para2:TXrmNameList; para3:TXrmClassList; para4:TXrmSearchList; para5:longint):TBool;cdecl;external;
-function XrmQGetSearchResource(para1:TXrmSearchList; para2:TXrmName; para3:TXrmClass; para4:PXrmRepresentation; para5:PXrmValue):TBool;cdecl;external;}
-procedure XrmSetDatabase(para1:PDisplay; para2:TXrmDatabase);cdecl;external;
-function XrmGetDatabase(para1:PDisplay):TXrmDatabase;cdecl;external;
-function XrmGetFileDatabase(para1:Pchar):TXrmDatabase;cdecl;external;
-function XrmCombineFileDatabase(para1:Pchar; para2:PXrmDatabase; para3:TBool):TStatus;cdecl;external;
-function XrmGetStringDatabase(para1:Pchar):TXrmDatabase;cdecl;external;
-procedure XrmPutFileDatabase(para1:TXrmDatabase; para2:Pchar);cdecl;external;
-procedure XrmMergeDatabases(para1:TXrmDatabase; para2:PXrmDatabase);cdecl;external;
-procedure XrmCombineDatabase(para1:TXrmDatabase; para2:PXrmDatabase; para3:TBool);cdecl;external;
+{function XrmQGetSearchList(para1:TXrmDatabase; para2:TXrmNameList; para3:TXrmClassList; para4:TXrmSearchList; para5:longint):TBool;cdecl;external libX11;
+function XrmQGetSearchResource(para1:TXrmSearchList; para2:TXrmName; para3:TXrmClass; para4:PXrmRepresentation; para5:PXrmValue):TBool;cdecl;external libX11;}
+procedure XrmSetDatabase(para1:PDisplay; para2:TXrmDatabase);cdecl;external libX11;
+function XrmGetDatabase(para1:PDisplay):TXrmDatabase;cdecl;external libX11;
+function XrmGetFileDatabase(para1:Pchar):TXrmDatabase;cdecl;external libX11;
+function XrmCombineFileDatabase(para1:Pchar; para2:PXrmDatabase; para3:TBool):TStatus;cdecl;external libX11;
+function XrmGetStringDatabase(para1:Pchar):TXrmDatabase;cdecl;external libX11;
+procedure XrmPutFileDatabase(para1:TXrmDatabase; para2:Pchar);cdecl;external libX11;
+procedure XrmMergeDatabases(para1:TXrmDatabase; para2:PXrmDatabase);cdecl;external libX11;
+procedure XrmCombineDatabase(para1:TXrmDatabase; para2:PXrmDatabase; para3:TBool);cdecl;external libX11;
 
 const
    XrmEnumAllLevels = 0;
@@ -139,8 +146,8 @@ const
 type
   funcbool=function :TBool;
 function XrmEnumerateDatabase(para1:TXrmDatabase; para2:TXrmNameList; para3:TXrmClassList; para4:longint; para5:funcbool;
-           para6:TXPointer):TBool;cdecl;external;
-function XrmLocaleOfDatabase(para1:TXrmDatabase):Pchar;cdecl;external;
+           para6:TXPointer):TBool;cdecl;external libX11;
+function XrmLocaleOfDatabase(para1:TXrmDatabase):Pchar;cdecl;external libX11;
 type
 
    PXrmOptionKind = ^TXrmOptionKind;
@@ -159,7 +166,7 @@ type
    PXrmOptionDescList = ^TXrmOptionDescList;
 
 procedure XrmParseCommand(para1:PXrmDatabase; para2:TXrmOptionDescList; para3:longint; para4:Pchar; para5:Plongint;
-            para6:PPchar);cdecl;external;
+            para6:PPchar);cdecl;external libX11;
 
 implementation
 

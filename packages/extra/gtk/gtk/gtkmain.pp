@@ -21,12 +21,14 @@
      TGtkModuleInitFunc = procedure (argc:Pgint; argv:pPPgchar);cdecl;
      TGtkKeySnoopFunc = function (grab_widget:PGtkWidget;event:PGdkEventKey;func_data:gpointer):gint;cdecl;
 
+{$ifndef gtkos2}
     var
        gtk_major_version : guint;external gtkdll name 'gtk_major_version';
        gtk_minor_version : guint;external gtkdll name 'gtk_minor_version';
        gtk_micro_version : guint;external gtkdll name 'gtk_micro_version';
        gtk_binary_age : guint;external gtkdll name 'gtk_binary_age';
        gtk_interface_age : guint;external gtkdll name 'gtk_interface_age';
+{$endif}
 
 function  gtk_check_gtkversion(required_major:guint; required_minor:guint; required_micro:guint):Pgchar;cdecl;external gtkdll name 'gtk_check_version';
 procedure gtk_init(argc:plongint; argv:pppchar);cdecl;external gtkdll name 'gtk_init';
@@ -82,7 +84,10 @@ procedure gtk_propagate_event(widget:PGtkWidget; event:PGdkEvent);cdecl;external
 
 {
   $Log$
-  Revision 1.2  2002-09-07 15:42:59  peter
+  Revision 1.3  2003-03-02 02:11:10  hajny
+    + OS/2 support for GTK and X11 added by Yuri
+
+  Revision 1.2  2002/09/07 15:42:59  peter
     * old logs removed and tabs fixed
 
   Revision 1.1  2002/01/29 17:55:12  peter
