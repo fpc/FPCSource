@@ -1,4 +1,5 @@
 {
+    $Id$
     This file is part of the Free Pascal run time library.
     Copyright (c) 1993,97 by Michael Van Canneyt,
     member of the Free Pascal development team.
@@ -154,16 +155,13 @@ Type
   SigSet  = Integer;
   PSigSet = ^SigSet;
 
-
-{$PACKRECORDS 1}
-  SigActionRec = record
+  SigActionRec = packed record
     Sa_Handler : SignalHandler;
     Sa_Mask : longint;
     Sa_Flags : Integer;
     Sa_restorer : SignalRestorer;{ Obsolete - Don't use }
   end;
   PSigActionRec = ^SigActionRec;
-{$PACKRECORDS NORMAL}
 
 
 {********************
@@ -240,15 +238,14 @@ Const
 
 
 Type
-{$PACKRECORDS 1}
-  winsize = record
+  winsize = packed record
     ws_row,
     ws_col,
     ws_xpixel,
-    ws_ypixel : byte;
+    ws_ypixel : word;
   end;
 
-  TermIO = record
+  TermIO = packed record
     c_iflag,                             { input mode flags }
     c_oflag,                             { output mode flags }
     c_cflag,                             { control mode flags }
@@ -257,19 +254,14 @@ Type
     c_cc     : array [0..NCC-1] of char;{ control characters }
   end;
 
-  TermIOS = record
+  TermIOS = packed record
     c_iflag,
-
     c_oflag,
-
     c_cflag,
-
     c_lflag  : longint;
     c_line  : char;
-
     c_cc     : array[0..NCCS-1] of byte;
   end;
-{$PACKRECORDS 2}
 
 const
   InitCC:array[0..NCCS-1] of byte=(3,34,177,25,4,0,1,0,21,23,32,0,22,17,27,26,0,0,0);
@@ -437,12 +429,11 @@ const
 ********************}
 
 Type
-{$PACKRECORDS 1}
-  utimbuf = record
+  utimbuf = packed record
     actime,modtime : Longint;
   end;
 
-  TSysinfo = record
+  TSysinfo = packed record
     uptime    : longint;
     loads     : array[1..3] of longint;
     totalram,
@@ -454,7 +445,7 @@ Type
     procs     : integer;
     s         : string[18];
   end;
-{$PACKRECORDS 2}
+
 
 {******************************************************************************
                             Procedure/Functions
@@ -1163,7 +1154,6 @@ begin
 end;
 
 
-
 Function GetEpochTime:longint;
 {
   Get the number of seconds since 00:00, January 1 1970, GMT
@@ -1188,7 +1178,6 @@ begin
 end;
 
 
-
 Procedure EpochToLocal(epoch:longint;var year,month,day,hour,minute,second:Word);
 {
   Transforms Epoch time(seconds since 00:00, january 1 1970, corrected for
@@ -1208,7 +1197,6 @@ Begin { Beginning of Localtime }
 End;
 
 
-
 Function LocalToEpoch(year,month,day,hour,minute,second:Word):Longint;
 {
   Transforms local time (year,month,day,hour,minutes,second) to Epoch time
@@ -1218,7 +1206,6 @@ Begin
   LocalToEpoch:=((GregorianToJulian(Year,Month,Day)-c1970)*86400)+
                (LongInt(Hour)*3600)+(Minute*60)+Second+(LocalTZ.minuteswest*60);
 End;
-
 
 
 Procedure GetTime(Var Hour,Minute,Second:Word);
@@ -1294,7 +1281,6 @@ end;
 
 
 Function  fdOpen(pathname:pchar;flags:longint):longint;
-
 begin
   fdOpen:=Sys_Open(pathname,flags,0);
   LinuxError:=Errno;
@@ -1302,9 +1288,7 @@ end;
 
 
 
-
 Function  fdOpen(pathname:pchar;flags,mode:longint):longint;
-
 begin
   fdOpen:=Sys_Open(pathname,flags,mode);
   LinuxError:=Errno;
@@ -1361,11 +1345,8 @@ end;
 
 
 Function  fdFlush (fd : Longint) : Boolean;
-
-
 var
   SR: SysCallRegs;
-
 begin
   SR.reg2 := fd;
   fdFlush := (SysCall(syscall_nr_fsync, SR)=0);
@@ -1424,7 +1405,6 @@ var
   sr : Syscallregs;
 begin
   if (cmd in [F_SetFd,F_SetFl,F_GetLk,F_SetLk,F_SetLkw,F_SetOwn]) then
-
    begin
      sr.reg2:=textrec(fd).handle;
      sr.reg3:=cmd;
@@ -1487,8 +1467,8 @@ end;
 
 
 Function  Flock (fd,mode : longint) : boolean;
-
-var sr : Syscallregs;
+var
+  sr : Syscallregs;
 begin
   sr.reg2:=fd;
   sr.reg3:=mode;
@@ -1499,15 +1479,13 @@ end;
 
 
 Function Flock (var T : text;mode : longint) : boolean;
-
 begin
-  Flock:=Flock( TextRec(T).Handle,mode );
+  Flock:=Flock(TextRec(T).Handle,mode);
 end;
 
 
 
 Function  Flock (var F : File;mode : longint) : boolean;
-
 begin
   Flock:=Flock(FileRec(F).Handle,mode);
 end;
@@ -1772,13 +1750,13 @@ Function Dup2(var oldfile,newfile:text):Boolean;
 var
   tmphandle : word;
 begin
- flush(oldfile);{ We cannot share buffers, so we flush them. }
- flush(newfile);
- tmphandle:=textrec(newfile).handle;
- textrec(newfile):=textrec(oldfile);
- textrec(newfile).handle:=tmphandle;
- textrec(newfile).bufptr:=@(textrec(newfile).buffer);{ No shared buffer. }
- Dup2:=Dup2(textrec(oldfile).handle,textrec(newfile).handle);
+  flush(oldfile);{ We cannot share buffers, so we flush them. }
+  flush(newfile);
+  tmphandle:=textrec(newfile).handle;
+  textrec(newfile):=textrec(oldfile);
+  textrec(newfile).handle:=tmphandle;
+  textrec(newfile).bufptr:=@(textrec(newfile).buffer);{ No shared buffer. }
+  Dup2:=Dup2(textrec(oldfile).handle,textrec(newfile).handle);
 end;
 
 
@@ -1982,7 +1960,6 @@ begin
      AssignPipe:=false;
      exit;
    end;
-
 { Set up input }
   Assign(Pipe_in,'.');
   Textrec(Pipe_in).Handle:=f_in;
@@ -2019,7 +1996,6 @@ begin
      AssignPipe:=false;
      exit;
    end;
-
 { Set up input }
   Assign(Pipe_in,'.');
   Filerec(Pipe_in).Handle:=f_in;
@@ -2037,12 +2013,10 @@ end;
 
 
 Function PClose(Var F:text) :longint;
-
 var
   sr  : syscallregs;
   pl  : ^longint;
   res : longint;
-
 begin
   flush (f);
   sr.reg2:=Textrec(F).Handle;
@@ -2059,8 +2033,6 @@ var
   sr : syscallregs;
   pl : ^longint;
   res : longint;
-
-
 begin
   sr.reg2:=FileRec(F).Handle;
   SysCall (Syscall_nr_close,sr);
@@ -2075,7 +2047,6 @@ Procedure PCloseText(Var F:text);
 {
   May not use @PClose due overloading
 }
-
 begin
   PClose(f);
 end;
@@ -2311,13 +2282,11 @@ begin
    begin
    { we're in the parent}
    {
-
      Let's redraw the schedule :
           Parent      Child
           pipo[1] --> pipi[1]
           pipi[0] <-- pipo[0]
       }
-
      close(pipo);
      // dup(pipi[0],streamin);
      // close (pipi[0]);
@@ -2325,7 +2294,6 @@ begin
      // dup(pipo[1],streamout);
      // close (pipo[1]);
    end;
-
 end;
 
 
@@ -2614,13 +2582,11 @@ begin
   with tios do
    begin
      c_iflag:=c_iflag and (not (IGNBRK or BRKINT or PARMRK or ISTRIP or
-
                                 INLCR or IGNCR or ICRNL or IXON));
      c_oflag:=c_oflag and (not OPOST);
      c_lflag:=c_lflag and (not (ECHO or ECHONL or ICANON or ISIG or IEXTEN));
      c_cflag:=(c_cflag and (not (CSIZE or PARENB))) or CS8;
    end;
-
 end;
 
 
@@ -2815,7 +2781,6 @@ end;
 
 
 
-
 Function FExpand(Const Path:PathStr):PathStr;
 var
   temp : pathstr;
@@ -2846,7 +2811,6 @@ Begin
       inc(i);
      temp:=temp+'/'+copy(path,i,length(path)-i+1)+'/';
    end;
-
 {First remove all references to '/./'}
   while pos('/./',temp)<>0 do
    delete(temp,pos('/./',temp),2);
@@ -2911,7 +2875,6 @@ Begin
        if NewDir[Length(NewDir)]<>'/' then
         NewDir:=NewDir+'/';
        NewDir:=NewDir+Path;
-
        Delete(DirList,1,p1);
        if FStat(NewDir,Info) then
         Begin
@@ -2984,7 +2947,6 @@ end;
 
 
 Function FNMatch(const Pattern,Name:string):Boolean;
-
 Var
   LenPat,LenName : longint;
 
@@ -3320,8 +3282,8 @@ Function  IOperm (From,Num : Cardinal; Value : Longint) : boolean;
   this works ONLY as root.
 }
 
-Var Sr : Syscallregs;
-
+Var
+  Sr : Syscallregs;
 begin
   Sr.Reg2:=From;
   Sr.Reg3:=Num;
@@ -3336,13 +3298,12 @@ Procedure WritePort (Port : Longint; Value : Byte);
 {
   Writes 'Value' to port 'Port'
 }
-
 begin
-	asm
-	movl 8(%ebp),%edx
-	movb 12(%ebp),%al
-	outb %al,%dx
-	end;
+        asm
+        movl 8(%ebp),%edx
+        movb 12(%ebp),%al
+        outb %al,%dx
+        end;
 end;
 
 Procedure WritePort (Port : Longint; Value : Word);
@@ -3351,11 +3312,11 @@ Procedure WritePort (Port : Longint; Value : Word);
 }
 
 begin
-	asm
-	movl 8(%ebp),%edx
-	movw 12(%ebp),%ax
-	outw %ax,%dx
-	end ['EAX','EBX'];
+        asm
+        movl 8(%ebp),%edx
+        movw 12(%ebp),%ax
+        outw %ax,%dx
+        end ['EAX','EBX'];
 end;
 
 
@@ -3366,27 +3327,27 @@ Procedure WritePort (Port : Longint; Value : Longint);
 }
 
 begin
-	asm
-	movl 8(%ebp),%edx
-	movl 12(%ebp),%eax
-	outl %eax,%dx
-	end ['EAX','EBX'];
+        asm
+        movl 8(%ebp),%edx
+        movl 12(%ebp),%eax
+        outl %eax,%dx
+        end ['EAX','EBX'];
 end;
 
 
 
 Procedure WritePortl (Port : Longint; Var Buf; Count: longint);
 {
- Writes 'Count' longints from 'Buf' to Port
+  Writes 'Count' longints from 'Buf' to Port
 }
 begin
   asm
-	movl 16(%ebp),%ecx
-	movl 12(%ebp),%esi
-	movl 8(%ebp),%edx
-	cld
-	rep
-	outsl
+        movl 16(%ebp),%ecx
+        movl 12(%ebp),%esi
+        movl 8(%ebp),%edx
+        cld
+        rep
+        outsl
   end ['ECX','ESI','EDX'];
 end;
 
@@ -3394,16 +3355,16 @@ end;
 
 Procedure WritePortW (Port : Longint; Var Buf; Count: longint);
 {
- Writes 'Count' words from 'Buf' to Port
+  Writes 'Count' words from 'Buf' to Port
 }
 begin
   asm
-	movl 16(%ebp),%ecx
-	movl 12(%ebp),%esi
-	movl 8(%ebp),%edx
-	cld
-	rep
-	outsw
+        movl 16(%ebp),%ecx
+        movl 12(%ebp),%esi
+        movl 8(%ebp),%edx
+        cld
+        rep
+        outsw
   end ['ECX','ESI','EDX'];
 end;
 
@@ -3411,16 +3372,16 @@ end;
 
 Procedure WritePortB (Port : Longint; Var Buf; Count: longint);
 {
- Writes 'Count' bytes from 'Buf' to Port
+  Writes 'Count' bytes from 'Buf' to Port
 }
 begin
   asm
-	movl 16(%ebp),%ecx
-	movl 12(%ebp),%esi
-	movl 8(%ebp),%edx
-	cld
-	rep
-	outsb
+        movl 16(%ebp),%ecx
+        movl 12(%ebp),%esi
+        movl 8(%ebp),%edx
+        cld
+        rep
+        outsb
   end ['ECX','ESI','EDX'];
 end;
 
@@ -3430,14 +3391,13 @@ Procedure ReadPort (Port : Longint; Var Value : Byte);
 {
   Reads 'Value' from port 'Port'
 }
-
 begin
-	asm
-	movl 8(%ebp),%edx
-	inb %dx,%al
-	andl $255,%eax
-	movl %eax,12(%ebp)
-	end ['EAX','EBX'];
+        asm
+        movl 8(%ebp),%edx
+        inb %dx,%al
+        andl $255,%eax
+        movl %eax,12(%ebp)
+        end ['EAX','EBX'];
 end;
 
 
@@ -3446,14 +3406,13 @@ Procedure ReadPort (Port : Longint; Var Value : Word);
 {
   Reads 'Value' from port 'Port'
 }
-
 begin
-	asm
-	movl 8(%ebp),%edx
-	inw %dx,%ax
-	andl $65535,%eax
-	movl %eax,12(%ebp)
-	end ['EAX','EBX'];
+        asm
+        movl 8(%ebp),%edx
+        inw %dx,%ax
+        andl $65535,%eax
+        movl %eax,12(%ebp)
+        end ['EAX','EBX'];
 end;
 
 
@@ -3462,14 +3421,14 @@ Procedure ReadPort (Port : Longint; Var Value : Longint);
 {
   Reads 'Value' from port 'Port'
 }
-
 begin
-	asm
-	movl 8(%ebp),%edx
-	inl %dx,%eax
-	movl %eax,12(%ebp)
-	end ['EAX','EBX'];
+        asm
+        movl 8(%ebp),%edx
+        inl %dx,%eax
+        movl %eax,12(%ebp)
+        end ['EAX','EBX'];
 end;
+
 
 Procedure ReadPortL (Port : Longint; Var Buf; Count: longint);
 {
@@ -3477,12 +3436,12 @@ Procedure ReadPortL (Port : Longint; Var Buf; Count: longint);
 }
 begin
   asm
-	movl 16(%ebp),%ecx
-	movl 12(%ebp),%edi
-	movl 8(%ebp),%edx
-	cld
-	rep
-	insl
+        movl 16(%ebp),%ecx
+        movl 12(%ebp),%edi
+        movl 8(%ebp),%edx
+        cld
+        rep
+        insl
   end ['ECX','ESI','EDX'];
 end;
 
@@ -3494,12 +3453,12 @@ Procedure ReadPortW (Port : Longint; Var Buf; Count: longint);
 }
 begin
   asm
-	movl 16(%ebp),%ecx
-	movl 12(%ebp),%edi
-	movl 8(%ebp),%edx
-	cld
-	rep
-	insw
+        movl 16(%ebp),%ecx
+        movl 12(%ebp),%edi
+        movl 8(%ebp),%edx
+        cld
+        rep
+        insw
   end ['ECX','ESI','EDX'];
 end;
 
@@ -3511,16 +3470,15 @@ Procedure ReadPortB (Port : Longint; Var Buf; Count: longint);
 }
 begin
   asm
-	movl 16(%ebp),%ecx
-	movl 12(%ebp),%edi
-	movl 8(%ebp),%edx
-	cld
-	rep
-	insb
+        movl 16(%ebp),%ecx
+        movl 12(%ebp),%edi
+        movl 8(%ebp),%edx
+        cld
+        rep
+        insb
   end ['ECX','ESI','EDX'];
 end;
 {$ENDIF}
-
 
 
 Begin
@@ -3529,7 +3487,13 @@ End.
 
 {
   $Log$
-  Revision 1.18  1998-09-08 13:01:51  michael
+  Revision 1.19  1998-09-18 09:56:33  peter
+    * merged
+
+  Revision 1.18.2.1  1998/09/18 09:53:46  peter
+    * fixed winsize record
+
+  Revision 1.18  1998/09/08 13:01:51  michael
   + Signal call now correctly implemented
 
   Revision 1.17  1998/08/19 00:50:31  peter
