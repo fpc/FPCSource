@@ -54,11 +54,13 @@ unit objpas;
      { ParamStr should return also an ansistring }
      Function ParamStr(Param : Integer) : Ansistring;
 
+
+{$ifdef HasResourceStrings}
      { Resourcestring support }
      Function GetResourceString(Hash : Longint) : AnsiString;
      Procedure ResetResourceTables;
      Function SetResourceString(Hash : longint; Const Value : AnsiString) : Boolean;
-     
+{$endif}     
      
      
   implementation
@@ -156,19 +158,21 @@ begin
     else
       paramstr:='';
   end;
+
+{$IFDEF HasResourceStrings}
   
 { ---------------------------------------------------------------------
     ResourceString support
   ---------------------------------------------------------------------}
-
 Type
 
-  TResourceStringRecord = Record
+  TResourceStringRecord = Packed Record
      DefaultValue,
      CurrentValue : AnsiString;
      HashValue : longint;
      end;
-   TResourceStringTable = Record 
+     
+   TResourceStringTable = Packed Record 
      Count : longint;
      Resrec : Array[Cardinal] of TResourceStringRecord;
      end;
@@ -216,19 +220,23 @@ Procedure ResetResourceTables;
 Var I : longint;
 
 begin
-  With ResourceStringTable do 
-    For I:=0 to Count-1 do
-      With ResRec[i] do 
-        CurrentValue:=DefaultValue;
+  For I:=0 to ResourceStringTable.Count-1 do
+    ResourceStringTable.ResRec[i].CurrentValue:=
+    ResourceStringTable.ResRec[i].DefaultValue;
 end;
 
 Initialization
   ResetResourceTables;
+{$endif}  
+  
 end.
 
 {
   $Log$
-  Revision 1.27  1999-07-22 20:30:13  michael
+  Revision 1.28  1999-07-23 22:51:11  michael
+  * Added HasResourceStrings check
+
+  Revision 1.27  1999/07/22 20:30:13  michael
   + Implemented resource stuff
 
   Revision 1.26  1999/07/07 10:04:04  michael
