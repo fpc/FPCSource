@@ -548,8 +548,9 @@ implementation
                                                    CGMessage(type_e_cant_read_write_type);
                                                 end;
                                     stringdef : begin
-                                                  { generate the high() value for the string }
-                                                  if not dowrite then
+                                                  { generate the high() value for the shortstring }
+                                                  if (not dowrite) and
+                                                     is_shortstring(hp^.left^.resulttype) then
                                                     gen_high_tree(hp,true);
                                                 end;
                                    pointerdef : begin
@@ -707,8 +708,9 @@ implementation
                      (hp^.right=nil) or
                      (hp^.left^.location.loc<>LOC_REFERENCE) then
                     CGMessage(cg_e_illegal_expression);
-                  { generate the high() value for the string }
-                  gen_high_tree(hp,true);
+                  { generate the high() value for the shortstring }
+                  if is_shortstring(hp^.left^.resulttype) then
+                    gen_high_tree(hp,true);
 
                   { !!!! check length of string }
 
@@ -949,7 +951,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  1999-01-27 16:28:22  pierre
+  Revision 1.16  1999-01-28 19:43:43  peter
+    * fixed high generation for ansistrings with str,writeln
+
+  Revision 1.15  1999/01/27 16:28:22  pierre
    * bug0157 solved : write(x:5.3) is rejected now
 
   Revision 1.14  1999/01/21 22:10:50  peter
