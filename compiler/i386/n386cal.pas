@@ -45,20 +45,14 @@ implementation
     uses
       globtype,systems,
       cutils,verbose,globals,
-      symconst,symbase,symdef,symsym,symtable,defutil,
 {$ifdef GDB}
-  {$ifdef delphi}
-      sysutils,
-  {$else}
-      strings,
-  {$endif}
       gdb,
 {$endif GDB}
-      cgbase,pass_2,
-      cpubase,paramgr,procinfo,
-      aasmbase,aasmtai,aasmcpu,
-      node,ncal,nbas,nmem,nld,ncnv,
-      ncgutil,cga,cgobj,tgobj,rgobj,cpuinfo;
+      cgbase,
+      cpubase,paramgr,
+      aasmtai,aasmcpu,
+      ncal,nbas,nmem,nld,ncnv,
+      cga,cgobj,cpuinfo;
 
 
 {*****************************************************************************
@@ -170,7 +164,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.97  2003-10-09 21:31:37  daniel
+  Revision 1.98  2003-10-10 17:48:14  peter
+    * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
+    * tregisteralloctor renamed to trgobj
+    * removed rgobj from a lot of units
+    * moved location_* and reference_* to cgobj
+    * first things for mmx register allocation
+
+  Revision 1.97  2003/10/09 21:31:37  daniel
     * Register allocator splitted, ans abstract now
 
   Revision 1.96  2003/10/01 20:34:49  peter

@@ -59,7 +59,7 @@ implementation
       cgbase,pass_1,pass_2,
       cpuinfo,cpubase,paramgr,procinfo,
       nbas,ncon,ncal,ncnv,nld,
-      tgobj,ncgutil,cgobj,rgobj
+      tgobj,ncgutil,cgobj
 {$ifndef cpu64bit}
       ,cg64f32
 {$endif cpu64bit}
@@ -656,7 +656,14 @@ end.
 
 {
   $Log$
-  Revision 1.46  2003-10-09 21:31:37  daniel
+  Revision 1.47  2003-10-10 17:48:13  peter
+    * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
+    * tregisteralloctor renamed to trgobj
+    * removed rgobj from a lot of units
+    * moved location_* and reference_* to cgobj
+    * first things for mmx register allocation
+
+  Revision 1.46  2003/10/09 21:31:37  daniel
     * Register allocator splitted, ans abstract now
 
   Revision 1.45  2003/10/08 19:19:45  peter

@@ -90,11 +90,11 @@ implementation
 {$endif GDB}
       globtype,systems,
       cutils,verbose,globals,
-      symconst,symdef,symsym,symtable,defutil,paramgr,
+      symconst,symdef,symsym,defutil,paramgr,
       aasmbase,aasmtai,
       procinfo,pass_2,
       pass_1,nld,ncon,nadd,
-      cgobj,tgobj,rgobj,ncgutil,symbase
+      cgobj,tgobj,ncgutil,symbase
       ;
 
 
@@ -876,7 +876,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.78  2003-10-09 21:31:37  daniel
+  Revision 1.79  2003-10-10 17:48:13  peter
+    * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
+    * tregisteralloctor renamed to trgobj
+    * removed rgobj from a lot of units
+    * moved location_* and reference_* to cgobj
+    * first things for mmx register allocation
+
+  Revision 1.78  2003/10/09 21:31:37  daniel
     * Register allocator splitted, ans abstract now
 
   Revision 1.77  2003/10/01 20:34:48  peter

@@ -69,7 +69,7 @@ interface
       procinfo,cgbase,
       cgobj,
       ncgutil,
-      tgobj,rgobj
+      tgobj
       ;
 
 
@@ -515,7 +515,14 @@ end.
 
 {
   $Log$
-  Revision 1.48  2003-10-09 21:31:37  daniel
+  Revision 1.49  2003-10-10 17:48:13  peter
+    * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
+    * tregisteralloctor renamed to trgobj
+    * removed rgobj from a lot of units
+    * moved location_* and reference_* to cgobj
+    * first things for mmx register allocation
+
+  Revision 1.48  2003/10/09 21:31:37  daniel
     * Register allocator splitted, ans abstract now
 
   Revision 1.47  2003/10/01 20:34:48  peter

@@ -40,7 +40,7 @@ interface
 {$ifdef GDB}
        gdb,
 {$endif}
-       import,export,link,rgobj,i_win32;
+       import,export,link,cgobj,i_win32;
 
 
   const
@@ -1622,7 +1622,14 @@ initialization
 end.
 {
   $Log$
-  Revision 1.22  2003-10-09 16:14:49  peter
+  Revision 1.23  2003-10-10 17:48:14  peter
+    * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
+    * tregisteralloctor renamed to trgobj
+    * removed rgobj from a lot of units
+    * moved location_* and reference_* to cgobj
+    * first things for mmx register allocation
+
+  Revision 1.22  2003/10/09 16:14:49  peter
     * fix check for generatenasmlib
 
   Revision 1.21  2003/10/03 14:16:48  marco

@@ -75,6 +75,8 @@ unit cgobj;
           {# Gets a register suitable to do integer operations on.}
           function getaddressregister(list:Taasmoutput):Tregister;virtual;abstract;
           function getfpuregister(list:Taasmoutput;size:Tcgsize):Tregister;virtual;abstract;
+          function getmmxregister(list:Taasmoutput;size:Tcgsize):Tregister;virtual;abstract;
+          function getmmregister(list:Taasmoutput;size:Tcgsize):Tregister;virtual;abstract;
           function getabtregister(list:Taasmoutput;size:Tcgsize):Tregister;virtual;abstract;
           {Does the generic cg need SIMD registers, like getmmxregister? Or should
            the cpu specific child cg object have such a method?}
@@ -492,6 +494,31 @@ unit cgobj;
         procedure g_rangecheck64(list: taasmoutput; const l:tlocation; fromdef,todef: tdef);virtual;abstract;
     end;
 
+
+    { trerefence handling }
+
+    {# Clear to zero a treference }
+    procedure reference_reset(var ref : treference);
+    {# Clear to zero a treference, and set is base address
+       to base register.
+    }
+    procedure reference_reset_base(var ref : treference;base : tregister;offset : longint);
+    procedure reference_reset_symbol(var ref : treference;sym : tasmsymbol;offset : longint);
+    procedure reference_release(list: taasmoutput; const ref : treference);
+    { This routine verifies if two references are the same, and
+       if so, returns TRUE, otherwise returns false.
+    }
+    function references_equal(sref : treference;dref : treference) : boolean;
+
+    { tlocation handling }
+
+    procedure location_reset(var l : tlocation;lt:TCGLoc;lsize:TCGSize);
+    procedure location_release(list: taasmoutput; const l : tlocation);
+    procedure location_freetemp(list: taasmoutput; const l : tlocation);
+    procedure location_copy(var destloc:tlocation; const sourceloc : tlocation);
+    procedure location_swap(var destloc,sourceloc : tlocation);
+
+
     var
        {# Main code generator class }
        cg : tcg;
@@ -503,8 +530,8 @@ implementation
 
     uses
        globals,globtype,options,systems,
-       verbose,defutil,paramgr,symsym,
-       rgobj,cutils;
+       verbose,defutil,paramgr,
+       tgobj,cutils;
 
     const
       { Please leave this here, this module should NOT use
@@ -1542,6 +1569,10 @@ implementation
       end;
 
 
+{*****************************************************************************
+                                    TCG64
+*****************************************************************************}
+
     procedure tcg64.a_op64_const_reg_reg(list: taasmoutput;op:TOpCG;value : qword; regsrc,regdst : tregister64);
       begin
         a_load64_reg_reg(list,regsrc,regdst,false);
@@ -1555,6 +1586,103 @@ implementation
         a_op64_reg_reg(list,op,regsrc1,regdst);
       end;
 
+{****************************************************************************
+                                  TReference
+****************************************************************************}
+
+    procedure reference_reset(var ref : treference);
+      begin
+        FillChar(ref,sizeof(treference),0);
+{$ifdef arm}
+        ref.signindex:=1;
+{$endif arm}
+      end;
+
+
+    procedure reference_reset_base(var ref : treference;base : tregister;offset : longint);
+      begin
+        reference_reset(ref);
+        ref.base:=base;
+        ref.offset:=offset;
+      end;
+
+
+    procedure reference_reset_symbol(var ref : treference;sym : tasmsymbol;offset : longint);
+      begin
+        reference_reset(ref);
+        ref.symbol:=sym;
+        ref.offset:=offset;
+      end;
+
+
+    procedure reference_release(list: taasmoutput; const ref : treference);
+      begin
+        cg.ungetreference(list,ref);
+      end;
+
+
+    function references_equal(sref : treference;dref : treference):boolean;
+      begin
+        references_equal:=CompareByte(sref,dref,sizeof(treference))=0;
+      end;
+
+
+{****************************************************************************
+                                  TLocation
+****************************************************************************}
+
+    procedure location_reset(var l : tlocation;lt:TCGLoc;lsize:TCGSize);
+      begin
+        FillChar(l,sizeof(tlocation),0);
+        l.loc:=lt;
+        l.size:=lsize;
+{$ifdef arm}
+        if l.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
+          l.reference.signindex:=1;
+{$endif arm}
+      end;
+
+
+    procedure location_release(list: taasmoutput; const l : tlocation);
+      begin
+        case l.loc of
+          LOC_REGISTER,LOC_CREGISTER :
+            begin
+              cg.ungetregister(list,l.register);
+              if l.size in [OS_64,OS_S64] then
+               cg.ungetregister(list,l.registerhigh);
+            end;
+          LOC_FPUREGISTER,LOC_CFPUREGISTER :
+            cg.ungetregister(list,l.register);
+          LOC_CREFERENCE,LOC_REFERENCE :
+            cg.ungetreference(list, l.reference);
+        end;
+      end;
+
+
+    procedure location_freetemp(list:taasmoutput; const l : tlocation);
+      begin
+        if (l.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
+         tg.ungetiftemp(list,l.reference);
+      end;
+
+
+    procedure location_copy(var destloc:tlocation; const sourceloc : tlocation);
+      begin
+        destloc:=sourceloc;
+      end;
+
+
+    procedure location_swap(var destloc,sourceloc : tlocation);
+      var
+        swapl : tlocation;
+      begin
+        swapl := destloc;
+        destloc := sourceloc;
+        sourceloc := swapl;
+      end;
+
+
 
 initialization
     ;
@@ -1564,7 +1692,14 @@ finalization
 end.
 {
   $Log$
-  Revision 1.127  2003-10-09 21:31:37  daniel
+  Revision 1.128  2003-10-10 17:48:13  peter
+    * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
+    * tregisteralloctor renamed to trgobj
+    * removed rgobj from a lot of units
+    * moved location_* and reference_* to cgobj
+    * first things for mmx register allocation
+
+  Revision 1.127  2003/10/09 21:31:37  daniel
     * Register allocator splitted, ans abstract now
 
   Revision 1.126  2003/10/01 20:34:48  peter

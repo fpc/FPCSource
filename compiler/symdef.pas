@@ -531,8 +531,9 @@ interface
           { check the problems of manglednames }
           has_mangledname : boolean;
           { small set which contains the modified registers }
-          usedintregisters:Tsuperregisterset;
-          usedotherregisters:Totherregisterset;
+          usedintregisters,
+          usedmmxregisters,
+          usedfpuregisters : Tsuperregisterset;
           constructor create(level:byte);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor  destroy;override;
@@ -788,8 +789,7 @@ implementation
 {$endif GDB}
        fmodule,
        { other }
-       gendef,
-       rgobj
+       gendef
        ;
 
 
@@ -3457,7 +3457,10 @@ implementation
          lastref:=defref;
        { first, we assume that all registers are used }
          usedintregisters:=paramanager.get_volatile_registers_int(pocall_default);
-         usedotherregisters:=ALL_OTHERREGISTERS;
+{$ifdef SUPPORT_MMX}
+         usedmmxregisters:=paramanager.get_volatile_registers_fpu(pocall_default);
+{$endif SUPPORT_MMX}
+         usedfpuregisters:=paramanager.get_volatile_registers_fpu(pocall_default);
          forwarddef:=true;
          interfacedef:=false;
          hasforward:=false;
@@ -3477,7 +3480,8 @@ implementation
          deftype:=procdef;
 
          ppufile.getnormalset(usedintregisters);
-         ppufile.getnormalset(usedotherregisters);
+         ppufile.getnormalset(usedfpuregisters);
+{$warning need to add usedmmxregisters}
          has_mangledname:=boolean(ppufile.getbyte);
          if has_mangledname then
           _mangledname:=stringdup(ppufile.getstring)
@@ -3603,11 +3607,13 @@ implementation
          if simplify_ppu then
            begin
              usedintregisters:=paramanager.get_volatile_registers_int(pocall_default);
-             usedotherregisters:=ALL_OTHERREGISTERS;
+             usedfpuregisters:=paramanager.get_volatile_registers_fpu(pocall_default);
+             usedmmxregisters:=paramanager.get_volatile_registers_mmx(pocall_default);
            end;
 
          ppufile.putnormalset(usedintregisters);
-         ppufile.putnormalset(usedotherregisters);
+         ppufile.putnormalset(usedfpuregisters);
+{$warning need to add usedmmxregisters}
          ppufile.do_interface_crc:=oldintfcrc;
          ppufile.putbyte(byte(has_mangledname));
          if has_mangledname then
@@ -5918,7 +5924,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.175  2003-10-07 20:43:49  peter
+  Revision 1.176  2003-10-10 17:48:14  peter
+    * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
+    * tregisteralloctor renamed to trgobj
+    * removed rgobj from a lot of units
+    * moved location_* and reference_* to cgobj
+    * first things for mmx register allocation
+
+  Revision 1.175  2003/10/07 20:43:49  peter
     * Add calling convention in fullprocname when it is specified
 
   Revision 1.174  2003/10/07 16:06:30  peter

@@ -51,7 +51,7 @@ Implementation
        { register allocator }
        rautils,rax86,itx86int,
        { codegen }
-       rgobj,cgbase,cgobj,procinfo
+       cgbase,cgobj,procinfo
        ;
 
 type
@@ -1932,7 +1932,14 @@ finalization
 end.
 {
   $Log$
-  Revision 1.55  2003-10-07 18:21:18  peter
+  Revision 1.56  2003-10-10 17:48:14  peter
+    * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
+    * tregisteralloctor renamed to trgobj
+    * removed rgobj from a lot of units
+    * moved location_* and reference_* to cgobj
+    * first things for mmx register allocation
+
+  Revision 1.55  2003/10/07 18:21:18  peter
     * fix crash
     * allow parameter subscription for register parameters
 

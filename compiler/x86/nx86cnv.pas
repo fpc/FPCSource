@@ -58,12 +58,12 @@ interface
 implementation
 
    uses
-      verbose,systems,globtype,globals,
-      symconst,symdef,aasmbase,aasmtai,aasmcpu,
+      verbose,systems,globals,
+      aasmbase,aasmtai,
       cgbase,pass_2,
       ncon,ncal,ncnv,
       cpubase,
-      cgobj,tgobj,rgobj,ncgutil;
+      cgobj,ncgutil;
 
 
     procedure tx86typeconvnode.second_int_to_bool;
@@ -166,7 +166,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  2003-10-09 21:31:38  daniel
+  Revision 1.7  2003-10-10 17:48:14  peter
+    * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
+    * tregisteralloctor renamed to trgobj
+    * removed rgobj from a lot of units
+    * moved location_* and reference_* to cgobj
+    * first things for mmx register allocation
+
+  Revision 1.6  2003/10/09 21:31:38  daniel
     * Register allocator splitted, ans abstract now
 
   Revision 1.5  2003/10/01 20:34:51  peter

@@ -65,7 +65,7 @@ implementation
       cgbase,pass_1,pass_2,
       ncon,
       cpubase,cpuinfo,
-      cga,tgobj,ncgutil,cgobj,rgobj;
+      cga,ncgutil,cgobj;
 
 {*****************************************************************************
                              TI386MODDIVNODE
@@ -387,28 +387,27 @@ implementation
     procedure ti386unaryminusnode.second_mmx;
       var
         op : tasmop;
+        hreg : tregister;
       begin
-      (*
         secondpass(left);
         location_reset(location,LOC_MMXREGISTER,OS_NO);
+        hreg:=cg.getmmxregister(exprasmlist,OS_M64);
+        emit_reg_reg(A_PXOR,S_NO,hreg,hreg);
         case left.location.loc of
           LOC_MMXREGISTER:
             begin
                location.register:=left.location.register;
-               emit_reg_reg(A_PXOR,S_NO,NR_MM7,NR_MM7);
             end;
           LOC_CMMXREGISTER:
             begin
-               location.register:=rg.getregistermm(exprasmlist);
-               emit_reg_reg(A_PXOR,S_NO,NR_MM7,NR_MM7);
+               location.register:=cg.getmmxregister(exprasmlist,OS_M64);
                emit_reg_reg(A_MOVQ,S_NO,left.location.register,location.register);
             end;
           LOC_REFERENCE,
           LOC_CREFERENCE:
             begin
                reference_release(exprasmlist,left.location.reference);
-               location.register:=rg.getregistermm(exprasmlist);
-               emit_reg_reg(A_PXOR,S_NO,NR_MM7,NR_MM7);
+               location.register:=cg.getmmxregister(exprasmlist,OS_M64);
                emit_ref_reg(A_MOVQ,S_NO,left.location.reference,location.register);
             end;
           else
@@ -434,9 +433,9 @@ implementation
              mmxs32bit,mmxu32bit:
                op:=A_PSUBD;
           end;
-        emit_reg_reg(op,S_NO,location.register,NR_MM7);
-        emit_reg_reg(A_MOVQ,S_NO,NR_MM7,location.register);
-        *)
+        emit_reg_reg(op,S_NO,location.register,hreg);
+        cg.ungetregister(exprasmlist,hreg);
+        emit_reg_reg(A_MOVQ,S_NO,hreg,location.register);
       end;
 {$endif SUPPORT_MMX}
 
@@ -527,10 +526,9 @@ implementation
 {$ifdef SUPPORT_MMX}
     procedure ti386notnode.second_mmx;
 
-    var r:Tregister;
+    var hreg,r:Tregister;
 
     begin
-    (*
       secondpass(left);
       location_reset(location,LOC_MMXREGISTER,OS_NO);
       r:=cg.getintregister(exprasmlist,OS_INT);
@@ -541,27 +539,28 @@ implementation
           location_copy(location,left.location);
         LOC_CMMXREGISTER:
           begin
-            location.register:=rg.getregistermm(exprasmlist);
+            location.register:=cg.getmmxregister(exprasmlist,OS_M64);
             emit_reg_reg(A_MOVQ,S_NO,left.location.register,location.register);
           end;
         LOC_REFERENCE,
         LOC_CREFERENCE:
           begin
             location_release(exprasmlist,left.location);
-            location.register:=rg.getregistermm(exprasmlist);
+            location.register:=cg.getmmxregister(exprasmlist,OS_M64);
             emit_ref_reg(A_MOVQ,S_NO,left.location.reference,location.register);
           end;
       end;
       { load mask }
-      emit_reg_reg(A_MOVD,S_NO,r,NR_MM7);
-      rg.ungetregisterint(exprasmlist,r);
+      hreg:=cg.getmmxregister(exprasmlist,OS_M64);
+      emit_reg_reg(A_MOVD,S_NO,r,hreg);
+      cg.ungetregister(exprasmlist,r);
       { lower 32 bit }
-      emit_reg_reg(A_PXOR,S_D,NR_MM7,location.register);
+      emit_reg_reg(A_PXOR,S_D,hreg,location.register);
       { shift mask }
-      emit_const_reg(A_PSLLQ,S_NO,32,NR_MM7);
+      emit_const_reg(A_PSLLQ,S_NO,32,hreg);
       { higher 32 bit }
-      emit_reg_reg(A_PXOR,S_D,NR_MM7,location.register);
-      *)
+      cg.ungetregister(exprasmlist,hreg);
+      emit_reg_reg(A_PXOR,S_D,hreg,location.register);
     end;
 {$endif SUPPORT_MMX}
 
@@ -573,7 +572,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.64  2003-10-09 21:31:37  daniel
+  Revision 1.65  2003-10-10 17:48:14  peter
+    * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
+    * tregisteralloctor renamed to trgobj
+    * removed rgobj from a lot of units
+    * moved location_* and reference_* to cgobj
+    * first things for mmx register allocation
+
+  Revision 1.64  2003/10/09 21:31:37  daniel
     * Register allocator splitted, ans abstract now
 
   Revision 1.63  2003/10/01 20:34:49  peter

@@ -47,6 +47,7 @@ unit cpupara;
           function get_para_align(calloption : tproccalloption):byte;override;
           function get_volatile_registers_int(calloption : tproccalloption):tsuperregisterset;override;
           function get_volatile_registers_fpu(calloption : tproccalloption):tsuperregisterset;override;
+          function get_volatile_registers_mmx(calloption : tproccalloption):tsuperregisterset;override;
           function getintparaloc(calloption : tproccalloption; nr : longint) : tparalocation;override;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
           function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tlinkedlist):longint;override;
@@ -60,8 +61,7 @@ unit cpupara;
 
     uses
        cutils,
-       systems,globals,verbose,
-       symsym,
+       systems,verbose,
        defutil,
        cpuinfo;
 
@@ -188,7 +188,13 @@ unit cpupara;
 
     function ti386paramanager.get_volatile_registers_fpu(calloption : tproccalloption):tsuperregisterset;
       begin
-        result:=[first_fpu_supreg..last_fpu_supreg];;
+        result:=[first_fpu_supreg..last_fpu_supreg];
+      end;
+
+
+    function ti386paramanager.get_volatile_registers_mmx(calloption : tproccalloption):tsuperregisterset;
+      begin
+        result:=[first_mmx_supreg..last_mmx_supreg];
       end;
 
 
@@ -440,7 +446,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.38  2003-10-07 15:17:07  peter
+  Revision 1.39  2003-10-10 17:48:14  peter
+    * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
+    * tregisteralloctor renamed to trgobj
+    * removed rgobj from a lot of units
+    * moved location_* and reference_* to cgobj
+    * first things for mmx register allocation
+
+  Revision 1.38  2003/10/07 15:17:07  peter
     * inline supported again, LOC_REFERENCEs are used to pass the
       parameters
     * inlineparasymtable,inlinelocalsymtable removed

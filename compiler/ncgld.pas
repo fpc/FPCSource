@@ -50,12 +50,12 @@ implementation
       cutils,
       systems,
       verbose,globtype,globals,
-      symconst,symtype,symdef,symsym,symtable,defutil,paramgr,
+      symconst,symtype,symdef,symsym,defutil,paramgr,
       ncnv,ncon,nmem,nbas,
-      aasmbase,aasmtai,aasmcpu,regvars,
+      aasmbase,aasmtai,
       cgbase,pass_2,
-      cpubase,cpuinfo,procinfo,
-      tgobj,ncgutil,cgobj,rgobj,ncgbas;
+      cpubase,cpuinfo,
+      tgobj,ncgutil,cgobj,ncgbas;
 
 {*****************************************************************************
                              SecondLoad
@@ -884,7 +884,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.92  2003-10-09 21:31:37  daniel
+  Revision 1.93  2003-10-10 17:48:13  peter
+    * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
+    * tregisteralloctor renamed to trgobj
+    * removed rgobj from a lot of units
+    * moved location_* and reference_* to cgobj
+    * first things for mmx register allocation
+
+  Revision 1.92  2003/10/09 21:31:37  daniel
     * Register allocator splitted, ans abstract now
 
   Revision 1.91  2003/10/07 15:17:07  peter

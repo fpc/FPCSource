@@ -33,11 +33,11 @@ uses
   systems,
   verbose,globals,globtype,
   aasmbase,aasmtai,
-  symconst,symtype,symdef,symsym,
+  symconst,symdef,
   fmodule,
   nobj,
   cpuinfo,cpubase,
-  cga,tgobj,rgobj,cgobj;
+  cga,cgobj;
 
    type
      ti386classheader=class(tclassheader)
@@ -223,7 +223,14 @@ initialization
 end.
 {
   $Log$
-  Revision 1.26  2003-10-01 20:34:49  peter
+  Revision 1.27  2003-10-10 17:48:14  peter
+    * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
+    * tregisteralloctor renamed to trgobj
+    * removed rgobj from a lot of units
+    * moved location_* and reference_* to cgobj
+    * first things for mmx register allocation
+
+  Revision 1.26  2003/10/01 20:34:49  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

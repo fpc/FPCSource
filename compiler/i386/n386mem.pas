@@ -55,7 +55,7 @@ implementation
       symdef,paramgr,
       aasmtai,
       nld,ncon,nadd,
-      cgobj,tgobj,rgobj;
+      cgobj;
 
 {*****************************************************************************
                              TI386ADDRNODE
@@ -142,7 +142,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.57  2003-10-09 21:31:37  daniel
+  Revision 1.58  2003-10-10 17:48:14  peter
+    * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
+    * tregisteralloctor renamed to trgobj
+    * removed rgobj from a lot of units
+    * moved location_* and reference_* to cgobj
+    * first things for mmx register allocation
+
+  Revision 1.57  2003/10/09 21:31:37  daniel
     * Register allocator splitted, ans abstract now
 
   Revision 1.56  2003/10/01 20:34:49  peter

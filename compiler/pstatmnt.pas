@@ -56,7 +56,7 @@ implementation
        scanner,
        pbase,pexpr,
        { codegen }
-       procinfo,rgobj,cgbase
+       procinfo,cgbase
        ,radirect
 {$ifdef i386}
   {$ifndef NoRa386Int}
@@ -815,7 +815,7 @@ implementation
          { END is read, got a list of changed registers? }
          if try_to_consume(_LECKKLAMMER) then
            begin
-             asmstat.used_regs_fpu:=ALL_OTHERREGISTERS;
+             asmstat.used_regs_fpu:=[first_fpu_supreg..last_fpu_supreg];
              if token<>_RECKKLAMMER then
               begin
                 repeat
@@ -838,7 +838,7 @@ implementation
          else
            begin
               asmstat.used_regs_int:=paramanager.get_volatile_registers_int(current_procinfo.procdef.proccalloption);
-              asmstat.used_regs_fpu:=ALL_OTHERREGISTERS;
+              asmstat.used_regs_fpu:=paramanager.get_volatile_registers_fpu(current_procinfo.procdef.proccalloption);
            end;
 
          { mark the start and the end of the assembler block
@@ -1129,7 +1129,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.114  2003-10-08 19:19:45  peter
+  Revision 1.115  2003-10-10 17:48:13  peter
+    * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
+    * tregisteralloctor renamed to trgobj
+    * removed rgobj from a lot of units
+    * moved location_* and reference_* to cgobj
+    * first things for mmx register allocation
+
+  Revision 1.114  2003/10/08 19:19:45  peter
     * set_varstate cleanup
 
   Revision 1.113  2003/10/07 20:06:37  peter

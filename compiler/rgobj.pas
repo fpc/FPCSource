@@ -84,7 +84,7 @@ unit rgobj;
     uses
       cutils, cpubase,
       aasmbase,aasmtai,aasmcpu,
-      cclasses,globtype,cgbase,node,cgobj,
+      cclasses,globtype,cgbase,node,
 {$ifdef delphi}
       dmisc,
 {$endif}
@@ -141,86 +141,6 @@ unit rgobj;
       end;
 
 
-       trgobj = class
-          { The "usableregsxxx" contain all registers of type "xxx" that }
-          { aren't currently allocated to a regvar. The "unusedregsxxx"  }
-          { contain all registers of type "xxx" that aren't currently    }
-          { allocated                                                    }
-          unusedregsfpu,usableregsfpu : Tsuperregisterset;
-          unusedregsmm,usableregsmm : Tsuperregisterset;
-          { these counters contain the number of elements in the }
-          { unusedregsxxx/usableregsxxx sets                     }
-          countunusedregsfpu,
-          countunusedregsmm : byte;
-          countusableregsaddr,
-          countusableregsfpu,
-          countusableregsmm : byte;
-
-          { Contains the registers which are really used by the proc itself.
-            It doesn't take care of registers used by called procedures
-          }
-          used_in_proc_other : totherregisterset;
-
-          reg_pushes_other : regvarother_longintarray;
-          is_reg_var_other : regvarother_booleanarray;
-          regvar_loaded_other : regvarother_booleanarray;
-
-          { tries to hold the amount of times which the current tree is processed  }
-          t_times: longint;
-
-          constructor create;
-
-          {# Allocate a floating point register.}
-          function getregisterfpu(list: taasmoutput;size:Tcgsize) : tregister; virtual;
-          {# Free a floating point register.}
-          procedure ungetregisterfpu(list: taasmoutput; r : tregister); virtual;
-
-          function getregistermm(list: taasmoutput) : tregister; virtual;
-          procedure ungetregistermm(list: taasmoutput; r : tregister); virtual;
-
-          {# Tries to allocate the passed fpu register, if possible.}
-          function getexplicitregisterfpu(list : taasmoutput; r : Tregister) : tregister;virtual;
-
-          {# Deallocate any kind of register. }
-          procedure ungetregister(list: taasmoutput; r : tregister); virtual;
-
-          {# Saves register variables (restoring happens automatically).}
-          procedure saveotherregvars(list:Taasmoutput;const s:Totherregisterset);
-
-          {# Saves in temporary references (allocated via the temp. allocator)
-             the registers defined in @var(s). The registers are only saved
-             if they are currently in use, otherwise they are left as is.
-
-             On processors which have instructions which manipulate the stack,
-             this routine should be overriden for performance reasons.
-
-             @param(list)   List to add the instruction to
-             @param(saved)  Array of saved register information
-             @param(s)      Registers which might require saving
-          }
-          procedure saveusedotherregisters(list:Taasmoutput;
-                                           var saved:Tpushedsavedother;
-                                           const s:Totherregisterset);virtual;
-          {# Restores the registers which were saved with a call
-             to @var(saveusedregisters).
-
-             On processors which have instructions which manipulate the stack,
-             this routine should be overriden for performance reasons.
-          }
-          procedure restoreusedotherregisters(list:Taasmoutput;
-                                              const saved:Tpushedsavedother);virtual;
-
-          procedure resetusableregisters;virtual;
-
-       protected
-          { the following two contain the common (generic) code for all }
-          { get- and ungetregisterxxx functions/procedures              }
-          function getregistergenother(list: taasmoutput; const lowreg, highreg: tsuperregister;
-              var unusedregs:Tsuperregisterset;var countunusedregs:byte): tregister;
-          procedure ungetregistergen(list: taasmoutput; r: tregister;
-              const usableregs:tsuperregisterset;var unusedregs: tsuperregisterset; var countunusedregs: byte);
-       end;
-
       {#------------------------------------------------------------------
 
       This class implements the abstract register allocator. It is used by the
@@ -231,9 +151,7 @@ unit rgobj;
       by cpu-specific implementations.
 
       --------------------------------------------------------------------}
-      Tregisterallocator=class
-        {# A register allocator is owned by a code generator.}
-        owner:Tcg;
+      trgobj=class
         preserved_by_proc,used_in_proc:Tsuperregisterset;
         is_reg_var:Tsuperregisterset; {old regvars}
         reg_var_loaded:Tsuperregisterset; {old regvars}
@@ -243,18 +161,19 @@ unit rgobj;
 
         constructor create(Acpu_registers:byte;
                            Aregtype:Tregistertype;
+                           Adefaultsub:Tsubregister;
                            const Ausable:string;
                            Afirst_imaginary:Tsuperregister;
                            Apreserved_by_proc:Tsuperregisterset);
         destructor destroy;override;
         {# Allocate a register. An internalerror will be generated if there is
          no more free registers which can be allocated.}
-        function getregister(list:Taasmoutput;size:Tcgsize):Tregister;
+        function getregister(list:Taasmoutput;subreg:Tsubregister):Tregister;
         procedure add_constraints(reg:Tregister);virtual;
         {# Allocate an ABT register. An internalerror will be generated if there
          are no more free registers that can be allocated. An explanantion of
          abt registers can be found near the implementation.}
-        function getabtregister(list:Taasmoutput;size:Tcgsize):Tregister;
+        function getabtregister(list:Taasmoutput;subreg:Tsubregister):Tregister;
         {# Get the register specified.}
         procedure getexplicitregister(list:Taasmoutput;r:Tregister);
         {# Get multiple registers specified.}
@@ -287,6 +206,8 @@ unit rgobj;
         procedure add_edge(u,v:Tsuperregister);
       protected
         regtype:Tregistertype;
+        { default subregister used }
+        defaultsub:tsubregister;
         {# First imaginary register.}
         first_imaginary,
         {# Last register allocated.}
@@ -337,41 +258,21 @@ unit rgobj;
             maxspillingcounter = 20;
 
 
-     { trerefence handling }
-
-     {# Clear to zero a treference }
-     procedure reference_reset(var ref : treference);
-     {# Clear to zero a treference, and set is base address
-        to base register.
-     }
-     procedure reference_reset_base(var ref : treference;base : tregister;offset : longint);
-     procedure reference_reset_symbol(var ref : treference;sym : tasmsymbol;offset : longint);
-     procedure reference_release(list: taasmoutput; const ref : treference);
-     { This routine verifies if two references are the same, and
-        if so, returns TRUE, otherwise returns false.
-     }
-     function references_equal(sref : treference;dref : treference) : boolean;
-
-     { tlocation handling }
-     procedure location_reset(var l : tlocation;lt:TCGLoc;lsize:TCGSize);
-     procedure location_release(list: taasmoutput; const l : tlocation);
-     procedure location_freetemp(list: taasmoutput; const l : tlocation);
-     procedure location_copy(var destloc:tlocation; const sourceloc : tlocation);
-     procedure location_swap(var destloc,sourceloc : tlocation);
 
 
 implementation
 
     uses
-       systems,{$ifdef EXTDEBUG}fmodule,{$endif}
-       globals,verbose,tgobj,regvars,procinfo;
+       systems,
+       globals,verbose,tgobj,procinfo;
 
 {******************************************************************************
-                                Tregisterallocator
+                                trgobj
 ******************************************************************************}
 
-    constructor Tregisterallocator.create(Acpu_registers:byte;
+    constructor trgobj.create(Acpu_registers:byte;
                                           Aregtype:Tregistertype;
+                                          Adefaultsub:Tsubregister;
                                           const Ausable:string;
                                           Afirst_imaginary:Tsuperregister;
                                           Apreserved_by_proc:Tsuperregisterset);
@@ -386,6 +287,7 @@ implementation
       first_imaginary:=Afirst_imaginary;
       cpu_registers:=Acpu_registers;
       regtype:=Aregtype;
+      defaultsub:=Adefaultsub;
       unusedregs:=[first_reg..last_reg]; { 255 (RS_INVALID) can't be used }
     {$ifdef powerpc}
       preserved_by_proc:=[RS_R13..RS_R31];
@@ -405,7 +307,7 @@ implementation
       fillchar(colour,sizeof(colour),RS_INVALID);
    end;
 
-    destructor Tregisterallocator.destroy;
+    destructor trgobj.destroy;
 
     var i:Tsuperregister;
 
@@ -421,14 +323,12 @@ implementation
     end;
 
 
-    function Tregisterallocator.getregister(list:Taasmoutput;size:Tcgsize):Tregister;
+    function trgobj.getregister(list:Taasmoutput;subreg:Tsubregister):Tregister;
     var i,p:Tsuperregister;
         r:Tregister;
         min : byte;
         adj : pstring;
-        subreg:Tsubregister;
     begin
-      subreg:=cgsize2subreg(size);
       if maxreg<last_reg then
         begin
           inc(maxreg);
@@ -481,7 +381,7 @@ implementation
     end;
 
 
-    procedure Tregisterallocator.ungetregister(list:Taasmoutput;r:Tregister);
+    procedure trgobj.ungetregister(list:Taasmoutput;r:Tregister);
 
     var supreg:Tsuperregister;
 
@@ -497,7 +397,7 @@ implementation
     end;
 
 
-    procedure Tregisterallocator.getexplicitregister(list:Taasmoutput;r:Tregister);
+    procedure trgobj.getexplicitregister(list:Taasmoutput;r:Tregister);
 
     var supreg:Tsuperregister;
 
@@ -519,7 +419,7 @@ implementation
     end;
 
 
-    procedure Tregisterallocator.allocexplicitregisters(list:Taasmoutput;r:Tsuperregisterset);
+    procedure trgobj.allocexplicitregisters(list:Taasmoutput;r:Tsuperregisterset);
 
     var reg:Tregister;
         i:Tsuperregister;
@@ -544,7 +444,7 @@ implementation
          ;
     end;
 
-    procedure Tregisterallocator.deallocexplicitregisters(list:Taasmoutput;r:Tsuperregisterset);
+    procedure trgobj.deallocexplicitregisters(list:Taasmoutput;r:Tsuperregisterset);
 
     var reg:Tregister;
         i:Tsuperregister;
@@ -565,7 +465,7 @@ implementation
     end;
 
 
-    procedure Tregisterallocator.do_register_allocation(list:Taasmoutput;headertai:tai);
+    procedure trgobj.do_register_allocation(list:Taasmoutput;headertai:tai);
 
     var spillingcounter:byte;
         fastspill:boolean;
@@ -589,13 +489,13 @@ implementation
     end;
 
 
-    procedure Tregisterallocator.add_constraints(reg:Tregister);
+    procedure trgobj.add_constraints(reg:Tregister);
 
     begin
     end;
 
 
-    procedure Tregisterallocator.add_edge(u,v:Tsuperregister);
+    procedure trgobj.add_edge(u,v:Tsuperregister);
 
     {This procedure will add an edge to the virtual interference graph.}
 
@@ -632,7 +532,7 @@ implementation
     end;
 
 
-    procedure Tregisterallocator.add_edges_used(u:Tsuperregister);
+    procedure trgobj.add_edges_used(u:Tsuperregister);
 
     var i:Tsuperregister;
 
@@ -643,7 +543,7 @@ implementation
     end;
 
 {$ifdef EXTDEBUG}
-    procedure Tregisterallocator.writegraph(loopidx:longint);
+    procedure trgobj.writegraph(loopidx:longint);
 
     {This procedure writes out the current interference graph in the
     register allocator.}
@@ -680,7 +580,7 @@ implementation
     end;
 {$endif EXTDEBUG}
 
-    procedure Tregisterallocator.add_to_movelist(u:Tsuperregister;data:Tlinkedlistitem);
+    procedure trgobj.add_to_movelist(u:Tsuperregister;data:Tlinkedlistitem);
 
     begin
       if movelist[u]=nil then
@@ -694,7 +594,7 @@ implementation
       inc(movelist[u]^.count);
     end;
 
-    procedure Tregisterallocator.add_move_instruction(instr:Taicpu);
+    procedure trgobj.add_move_instruction(instr:Taicpu);
 
     {This procedure notifies a certain as a move instruction so the
      register allocator can try to eliminate it.}
@@ -717,7 +617,7 @@ implementation
       i.y:=dsupreg;
     end;
 
-    function Tregisterallocator.move_related(n:Tsuperregister):boolean;
+    function trgobj.move_related(n:Tsuperregister):boolean;
 
     var i:cardinal;
 
@@ -735,7 +635,7 @@ implementation
         end;
     end;
 
-    procedure Tregisterallocator.make_work_list;
+    procedure trgobj.make_work_list;
 
     var n:Tsuperregister;
 
@@ -751,7 +651,7 @@ implementation
           simplifyworklist:=simplifyworklist+char(n);
     end;
 
-    procedure Tregisterallocator.prepare_colouring;
+    procedure trgobj.prepare_colouring;
 
     begin
       make_work_list;
@@ -764,7 +664,7 @@ implementation
       selectstack:='';
     end;
 
-    procedure Tregisterallocator.enable_moves(n:Tsuperregister);
+    procedure trgobj.enable_moves(n:Tsuperregister);
 
     var m:Tlinkedlistitem;
         i:cardinal;
@@ -787,7 +687,7 @@ implementation
           end;
     end;
 
-    procedure Tregisterallocator.decrement_degree(m:Tsuperregister);
+    procedure trgobj.decrement_degree(m:Tsuperregister);
 
     var adj:Pstring;
         d:byte;
@@ -826,7 +726,7 @@ implementation
         end;
     end;
 
-    procedure Tregisterallocator.simplify;
+    procedure trgobj.simplify;
 
     var adj:Pstring;
         i,min,p:byte;
@@ -873,7 +773,7 @@ implementation
           end;
     end;
 
-    function Tregisterallocator.get_alias(n:Tsuperregister):Tsuperregister;
+    function trgobj.get_alias(n:Tsuperregister):Tsuperregister;
 
     begin
       while pos(char(n),coalescednodes)<>0 do
@@ -881,7 +781,7 @@ implementation
       get_alias:=n;
     end;
 
-    procedure Tregisterallocator.add_worklist(u:Tsuperregister);
+    procedure trgobj.add_worklist(u:Tsuperregister);
 
     var p:byte;
 
@@ -900,7 +800,7 @@ implementation
         end;
     end;
 
-    function Tregisterallocator.adjacent_ok(u,v:Tsuperregister):boolean;
+    function trgobj.adjacent_ok(u,v:Tsuperregister):boolean;
 
     {Check wether u and v should be coalesced. u is precoloured.}
 
@@ -932,7 +832,7 @@ implementation
           end;
     end;
 
-    function Tregisterallocator.conservative(u,v:Tsuperregister):boolean;
+    function trgobj.conservative(u,v:Tsuperregister):boolean;
 
     var adj:Pstring;
         done:set of char; {To prevent that we count nodes twice.}
@@ -967,7 +867,7 @@ implementation
       conservative:=(k<cpu_registers);
     end;
 
-    procedure Tregisterallocator.combine(u,v:Tsuperregister);
+    procedure trgobj.combine(u,v:Tsuperregister);
 
     var add:boolean;
         adj:Pstring;
@@ -1030,7 +930,7 @@ implementation
         end;
     end;
 
-    procedure Tregisterallocator.coalesce;
+    procedure trgobj.coalesce;
 
     var m:Tmoveins;
         x,y,u,v:Tsuperregister;
@@ -1081,7 +981,7 @@ implementation
         end;
     end;
 
-    procedure Tregisterallocator.freeze_moves(u:Tsuperregister);
+    procedure trgobj.freeze_moves(u:Tsuperregister);
 
     var i:cardinal;
         m:Tlinkedlistitem;
@@ -1119,7 +1019,7 @@ implementation
           end;
     end;
 
-    procedure Tregisterallocator.freeze;
+    procedure trgobj.freeze;
 
     var n:Tsuperregister;
 
@@ -1133,7 +1033,7 @@ implementation
       freeze_moves(n);
     end;
 
-    procedure Tregisterallocator.select_spill;
+    procedure trgobj.select_spill;
 
     var n:char;
 
@@ -1146,7 +1046,7 @@ implementation
       freeze_moves(Tsuperregister(n));
     end;
 
-    procedure Tregisterallocator.assign_colours;
+    procedure trgobj.assign_colours;
 
     {Assign_colours assigns the actual colours to the registers.}
 
@@ -1215,7 +1115,7 @@ implementation
 {$endif ra_debug}
     end;
 
-    procedure Tregisterallocator.colour_registers;
+    procedure trgobj.colour_registers;
 
     begin
       repeat
@@ -1234,7 +1134,7 @@ implementation
       assign_colours;
     end;
 
-    procedure Tregisterallocator.epilogue_colouring;
+    procedure trgobj.epilogue_colouring;
 
 {
       procedure move_to_worklist_moves(list:Tlinkedlist);
@@ -1280,7 +1180,7 @@ implementation
     end;
 
 
-    procedure Tregisterallocator.clear_interferences(u:Tsuperregister);
+    procedure trgobj.clear_interferences(u:Tsuperregister);
 
     {Remove node u from the interference graph and remove all collected
      move instructions it is associated with.}
@@ -1373,7 +1273,7 @@ implementation
 {$endif Principle_wrong_by_definition}
     end;
 
-    procedure Tregisterallocator.getregisterinline(list:Taasmoutput;
+    procedure trgobj.getregisterinline(list:Taasmoutput;
                   position:Tai;subreg:Tsubregister;var result:Tregister);
     var min,p,i:Tsuperregister;
         r:Tregister;
@@ -1461,12 +1361,10 @@ implementation
     by the normal register get procedures. In other words it is for sure it
     will never get spilled.}
 
-    function Tregisterallocator.getabtregister(list:Taasmoutput;
-                                               size:Tcgsize):Tregister;
+    function trgobj.getabtregister(list:Taasmoutput;subreg:tsubregister):Tregister;
 
     var p,i:Tsuperregister;
         r:Tregister;
-        subreg:tsubregister;
         found:boolean;
         min : byte;
         adj:Pstring;
@@ -1528,7 +1426,6 @@ implementation
 
        exclude(unusedregs,p);
        include(used_in_proc,p);
-       subreg:=cgsize2subreg(size);
        r:=newreg(regtype,p,subreg);
        list.concat(Tai_regalloc.alloc(r));
        result:=r;
@@ -1539,7 +1436,7 @@ implementation
     end;
 
 
-    procedure Tregisterallocator.ungetregisterinline(list:Taasmoutput;
+    procedure trgobj.ungetregisterinline(list:Taasmoutput;
                 position:Tai;r:Tregister);
 
     var supreg:Tsuperregister;
@@ -1555,7 +1452,7 @@ implementation
       add_constraints(r);
     end;
 
-    function Tregisterallocator.spill_registers(list:Taasmoutput;headertai:tai;const regs_to_spill:string):boolean;
+    function trgobj.spill_registers(list:Taasmoutput;headertai:tai;const regs_to_spill:string):boolean;
 
     {Returns true if any help registers have been used.}
 
@@ -1637,386 +1534,18 @@ implementation
       dispose(spill_temps);
     end;
 
-{******************************************************************************
-                                    Trgobj
-******************************************************************************}
-
-    constructor Trgobj.create;
-
-    var i:Tsuperregister;
-
-    begin
-      used_in_proc_other:=[];
-      t_times := 0;
-      resetusableregisters;
-      unusedregsfpu:=usableregsfpu;
-      unusedregsmm:=usableregsmm;
-      countunusedregsfpu:=countusableregsfpu;
-      countunusedregsmm:=countusableregsmm;
-    end;
-
-    function trgobj.getregistergenother(list: taasmoutput; const lowreg, highreg: tsuperregister;
-        var unusedregs: tsuperregisterset; var countunusedregs: byte): tregister;
-      var
-        i: tsuperregister;
-        r: Tregister;
-      begin
-         for i:=lowreg to highreg do
-           begin
-              if i in unusedregs then
-                begin
-                   exclude(unusedregs,i);
-                   include(used_in_proc_other,i);
-                   dec(countunusedregs);
-{$warning Only FPU Registers supported}
-                   r:=newreg(R_FPUREGISTER,i,R_SUBNONE);
-                   list.concat(tai_regalloc.alloc(r));
-                   result := r;
-                   exit;
-                end;
-           end;
-         internalerror(10);
-      end;
-
-    procedure trgobj.ungetregistergen(list: taasmoutput; r: tregister;
-        const usableregs: tsuperregisterset; var unusedregs: tsuperregisterset; var countunusedregs: byte);
-      var
-        supreg : tsuperregister;
-      begin
-         supreg:=getsupreg(r);
-         { takes much time }
-         if not(supreg in usableregs) then
-           exit;
-         if (supreg in unusedregs) then
-           exit
-         else
-          inc(countunusedregs);
-        include(unusedregs,supreg);
-        list.concat(tai_regalloc.dealloc(r));
-      end;
-
-    { tries to allocate the passed register, if possible }
-    function trgobj.getexplicitregisterfpu(list : taasmoutput; r : Tregister) : tregister;
-      var
-        supreg : tsuperregister;
-      begin
-         supreg:=getsupreg(r);
-         if supreg in unusedregsfpu then
-           begin
-              dec(countunusedregsfpu);
-              exclude(unusedregsfpu,supreg);
-              include(used_in_proc_other,supreg);
-              list.concat(tai_regalloc.alloc(r));
-              getexplicitregisterfpu:=r;
-           end
-         else
-{$warning Size for FPU reg is maybe not correct}
-           getexplicitregisterfpu:=getregisterfpu(list,OS_F32);
-      end;
-
-    function trgobj.getregisterfpu(list: taasmoutput;size:Tcgsize) : tregister;
-
-      begin
-        if countunusedregsfpu=0 then
-          internalerror(10);
-{$warning TODO firstsavefpureg}
-        result := getregistergenother(list,firstsavefpureg,lastsavefpureg,
-          unusedregsfpu,countunusedregsfpu);
-      end;
-
-
-    procedure trgobj.ungetregisterfpu(list : taasmoutput; r : tregister);
-
-      begin
-         ungetregistergen(list,r,usableregsfpu,unusedregsfpu,
-           countunusedregsfpu);
-      end;
-
-
-    function trgobj.getregistermm(list: taasmoutput) : tregister;
-      begin
-        if countunusedregsmm=0 then
-           internalerror(10);
-       result := getregistergenother(list,firstsavemmreg,lastsavemmreg,
-                   unusedregsmm,countunusedregsmm);
-      end;
-
-
-    procedure trgobj.ungetregistermm(list: taasmoutput; r: tregister);
-      begin
-       ungetregistergen(list,r,usableregsmm,unusedregsmm,
-         countunusedregsmm);
-      end;
-
-
-    procedure trgobj.ungetregister(list: taasmoutput; r : tregister);
-
-      begin
-         if r=NR_NO then
-           exit;
-         if getregtype(r)=R_FPUREGISTER then
-           ungetregisterfpu(list,r)
-         else if getregtype(r)=R_MMXREGISTER then
-           ungetregistermm(list,r)
-         else internalerror(2002070602);
-      end;
-
-    procedure trgobj.saveotherregvars(list: taasmoutput; const s: totherregisterset);
-      var
-        r: Tregister;
-      begin
-        if not(cs_regvars in aktglobalswitches) then
-          exit;
-{$warning TODO firstsavefpureg}
-{
-        if firstsavefpureg <> NR_NO then
-          for r.enum := firstsavefpureg to lastsavefpureg do
-            if is_reg_var_other[r.enum] and
-               (r.enum in s) then
-              store_regvar(list,r);
-        if firstsavemmreg <> R_NO then
-          for r.enum := firstsavemmreg to lastsavemmreg do
-            if is_reg_var_other[r.enum] and
-               (r.enum in s) then
-              store_regvar(list,r);
-}
-      end;
-
-
-    procedure trgobj.saveusedotherregisters(list: taasmoutput;
-        var saved : tpushedsavedother; const s: totherregisterset);
-
-      var
-         r : tregister;
-         hr : treference;
-
-      begin
-        used_in_proc_other:=used_in_proc_other + s;
-
-{$warning TODO firstsavefpureg}
-(*
-        { don't try to save the fpu registers if not desired (e.g. for }
-        { the 80x86)                                                   }
-        if firstsavefpureg <> R_NO then
-          for r.enum:=firstsavefpureg to lastsavefpureg do
-            begin
-              saved[r.enum].ofs:=reg_not_saved;
-              { if the register is used by the calling subroutine and if }
-              { it's not a regvar (those are handled separately)         }
-              if not is_reg_var_other[r.enum] and
-                 (r.enum in s) and
-                 { and is present in use }
-                 not(r.enum in unusedregsfpu) then
-                begin
-                  { then save it }
-                  tg.GetTemp(list,extended_size,tt_persistent,hr);
-                  saved[r.enum].ofs:=hr.offset;
-                  cg.a_loadfpu_reg_ref(list,OS_FLOAT,r,hr);
-                  cg.a_reg_dealloc(list,r);
-                  include(unusedregsfpu,r.enum);
-                  inc(countunusedregsfpu);
-                end;
-            end;
-
-        { don't save the vector registers if there's no support for them }
-        if firstsavemmreg <> R_NO then
-          for r.enum:=firstsavemmreg to lastsavemmreg do
-            begin
-              saved[r.enum].ofs:=reg_not_saved;
-              { if the register is in use and if it's not a regvar (those }
-              { are handled separately), save it                          }
-              if not is_reg_var_other[r.enum] and
-                 (r.enum in s) and
-                 { and is present in use }
-                 not(r.enum in unusedregsmm) then
-                begin
-                  { then save it }
-                  tg.GetTemp(list,mmreg_size,tt_persistent,hr);
-                  saved[r.enum].ofs:=hr.offset;
-                  cg.a_loadmm_reg_ref(list,r,hr);
-                  cg.a_reg_dealloc(list,r);
-                  include(unusedregsmm,r.enum);
-                  inc(countunusedregsmm);
-               end;
-            end;
-*)
-      end;
-
-
-    procedure trgobj.restoreusedotherregisters(list : taasmoutput;
-        const saved : tpushedsavedother);
-
-      var
-         r,r2 : tregister;
-         hr : treference;
-
-      begin
-{$warning TODO firstsavefpureg}
-(*
-        if firstsavemmreg <> R_NO then
-          for r.enum:=lastsavemmreg downto firstsavemmreg do
-            begin
-              if saved[r.enum].ofs <> reg_not_saved then
-                begin
-                  r2.enum:=R_INTREGISTER;
-                  r2.number:=NR_FRAME_POINTER_REG;
-                  reference_reset_base(hr,r2,saved[r.enum].ofs);
-                  cg.a_reg_alloc(list,r);
-                  cg.a_loadmm_ref_reg(list,hr,r);
-                  if not (r.enum in unusedregsmm) then
-                    { internalerror(10)
-                      in n386cal we always save/restore the reg *state*
-                      using save/restoreunusedstate -> the current state
-                      may not be real (JM) }
-                  else
-                    begin
-                      dec(countunusedregsmm);
-                      exclude(unusedregsmm,r.enum);
-                    end;
-                  tg.UnGetTemp(list,hr);
-                end;
-            end;
-
-        if firstsavefpureg <> R_NO then
-          for r.enum:=lastsavefpureg downto firstsavefpureg do
-            begin
-              if saved[r.enum].ofs <> reg_not_saved then
-                begin
-                  r2.enum:=R_INTREGISTER;
-                  r2.number:=NR_FRAME_POINTER_REG;
-                  reference_reset_base(hr,r2,saved[r.enum].ofs);
-                  cg.a_reg_alloc(list,r);
-                  cg.a_loadfpu_ref_reg(list,OS_FLOAT,hr,r);
-                  if not (r.enum in unusedregsfpu) then
-                    { internalerror(10)
-                      in n386cal we always save/restore the reg *state*
-                      using save/restoreunusedstate -> the current state
-                      may not be real (JM) }
-                  else
-                    begin
-                      dec(countunusedregsfpu);
-                      exclude(unusedregsfpu,r.enum);
-                    end;
-                  tg.UnGetTemp(list,hr);
-                end;
-            end;
-*)
-      end;
-
-
-    procedure trgobj.resetusableregisters;
-
-      begin
-        { initialize fields with constant values from cpubase }
-        countusableregsfpu := cpubase.c_countusableregsfpu;
-        countusableregsmm := cpubase.c_countusableregsmm;
-        usableregsfpu := cpubase.usableregsfpu;
-        usableregsmm := cpubase.usableregsmm;
-      end;
-
-
-{****************************************************************************
-                                  TReference
-****************************************************************************}
-
-    procedure reference_reset(var ref : treference);
-      begin
-        FillChar(ref,sizeof(treference),0);
-{$ifdef arm}
-        ref.signindex:=1;
-{$endif arm}
-      end;
-
-
-    procedure reference_reset_base(var ref : treference;base : tregister;offset : longint);
-      begin
-        reference_reset(ref);
-        ref.base:=base;
-        ref.offset:=offset;
-      end;
-
-
-    procedure reference_reset_symbol(var ref : treference;sym : tasmsymbol;offset : longint);
-      begin
-        reference_reset(ref);
-        ref.symbol:=sym;
-        ref.offset:=offset;
-      end;
-
-
-    procedure reference_release(list: taasmoutput; const ref : treference);
-      begin
-        cg.ungetreference(list,ref);
-      end;
-
-
-    function references_equal(sref : treference;dref : treference):boolean;
-      begin
-        references_equal:=CompareByte(sref,dref,sizeof(treference))=0;
-      end;
-
-
-{****************************************************************************
-                                  TLocation
-****************************************************************************}
-
-    procedure location_reset(var l : tlocation;lt:TCGLoc;lsize:TCGSize);
-      begin
-        FillChar(l,sizeof(tlocation),0);
-        l.loc:=lt;
-        l.size:=lsize;
-{$ifdef arm}
-        if l.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
-          l.reference.signindex:=1;
-{$endif arm}
-      end;
-
-
-    procedure location_release(list: taasmoutput; const l : tlocation);
-      begin
-        case l.loc of
-          LOC_REGISTER,LOC_CREGISTER :
-            begin
-              cg.ungetregister(list,l.register);
-              if l.size in [OS_64,OS_S64] then
-               cg.ungetregister(list,l.registerhigh);
-            end;
-          LOC_FPUREGISTER,LOC_CFPUREGISTER :
-            cg.ungetregister(list,l.register);
-          LOC_CREFERENCE,LOC_REFERENCE :
-            cg.ungetreference(list, l.reference);
-        end;
-      end;
-
-
-    procedure location_freetemp(list:taasmoutput; const l : tlocation);
-      begin
-        if (l.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
-         tg.ungetiftemp(list,l.reference);
-      end;
-
-
-    procedure location_copy(var destloc:tlocation; const sourceloc : tlocation);
-      begin
-        destloc:=sourceloc;
-      end;
-
-
-    procedure location_swap(var destloc,sourceloc : tlocation);
-      var
-        swapl : tlocation;
-      begin
-        swapl := destloc;
-        destloc := sourceloc;
-        sourceloc := swapl;
-      end;
-
-
 end.
 
 {
   $Log$
-  Revision 1.82  2003-10-09 21:31:37  daniel
+  Revision 1.83  2003-10-10 17:48:14  peter
+    * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
+    * tregisteralloctor renamed to trgobj
+    * removed rgobj from a lot of units
+    * moved location_* and reference_* to cgobj
+    * first things for mmx register allocation
+
+  Revision 1.82  2003/10/09 21:31:37  daniel
     * Register allocator splitted, ans abstract now
 
   Revision 1.81  2003/10/01 20:34:49  peter

@@ -30,7 +30,7 @@ interface
        aasmbase,aasmtai,aasmcpu,
        node,
        symsym,
-       cpubase, cgbase, tgobj, rgobj;
+       cpubase, cgbase, tgobj;
 
     procedure assign_regvars(p: tnode);
     procedure load_regvars(asml: TAAsmoutput; p: tnode);
@@ -43,10 +43,12 @@ interface
    procedure translate_regvars(list: taasmoutput; const table:Ttranstable);
 
 {$ifdef i386}
+(*
     procedure sync_regvars_other(list1, list2: taasmoutput; const regvarsloaded1,
       regvarsloaded2: regvarother_booleanarray);
     procedure sync_regvars_int(list1, list2: taasmoutput; const regvarsloaded1,
       regvarsloaded2: Tsuperregisterset);
+*)
 {$endif i386}
 
 implementation
@@ -56,7 +58,7 @@ implementation
       cutils,cclasses,verbose,globals,
       psub,
       symconst,symbase,symtype,symdef,paramgr,defutil,
-      cpuinfo,cgobj,rgcpu,procinfo;
+      cpuinfo,cgobj,procinfo;
 
 
     procedure searchregvars(p : tnamedindexitem;arg:pointer);
@@ -501,12 +503,12 @@ implementation
     end;
 
 {$ifdef i386}
+(*
     procedure sync_regvars_other(list1, list2: taasmoutput; const regvarsloaded1,
       regvarsloaded2: regvarother_booleanarray);
     var
       counter: tregisterindex;
     begin
-(*
       for counter := low(rg.regvar_loaded_other) to high(rg.regvar_loaded_other) do
         begin
            rg.regvar_loaded_other[counter] := regvarsloaded1[counter] and
@@ -517,7 +519,6 @@ implementation
              else
                load_regvar_reg(list1,counter);
         end;
-*)
     end;
 
 
@@ -539,6 +540,7 @@ implementation
               load_regvar_reg(list1,r);
         end;
     end;
+*)
 {$endif i386}
 
 
@@ -634,7 +636,14 @@ end.
 
 {
   $Log$
-  Revision 1.69  2003-10-09 21:31:37  daniel
+  Revision 1.70  2003-10-10 17:48:14  peter
+    * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
+    * tregisteralloctor renamed to trgobj
+    * removed rgobj from a lot of units
+    * moved location_* and reference_* to cgobj
+    * first things for mmx register allocation
+
+  Revision 1.69  2003/10/09 21:31:37  daniel
     * Register allocator splitted, ans abstract now
 
   Revision 1.68  2003/10/01 20:34:49  peter

@@ -29,7 +29,7 @@ interface
     uses
        cclasses,
        cpuinfo,
-       globals,
+       globtype,globals,tokens,
        node,
        symconst,symbase,symtype,symdef;
 
@@ -114,9 +114,8 @@ interface
 implementation
 
     uses
-      globtype,tokens,
       verbose,systems,
-      symsym,symtable,
+      symtable,symsym,
       defutil,symutil;
 
 
@@ -1216,7 +1215,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.31  2003-10-07 21:14:32  peter
+  Revision 1.32  2003-10-10 17:48:13  peter
+    * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
+    * tregisteralloctor renamed to trgobj
+    * removed rgobj from a lot of units
+    * moved location_* and reference_* to cgobj
+    * first things for mmx register allocation
+
+  Revision 1.31  2003/10/07 21:14:32  peter
     * compare_paras() has a parameter to ignore hidden parameters
     * cross unit overload searching ignores hidden parameters when
       comparing parameter lists. Now function(string):string is

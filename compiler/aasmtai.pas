@@ -498,7 +498,7 @@ interface
        taasmoutput = class(tlinkedlist)
           constructor create;
           function getlasttaifilepos : pfileposinfo;
-          procedure translate_registers(const table:Ttranstable);
+          procedure translate_registers(regtype:tregistertype;const table:Ttranstable);
        end;
 
 
@@ -2090,7 +2090,7 @@ implementation
            end;
       end;
 
-    procedure Taasmoutput.translate_registers(const table:Ttranstable);
+    procedure Taasmoutput.translate_registers(regtype:tregistertype;const table:Ttranstable);
 
     var p,q:Tai;
         i:shortint;
@@ -2106,22 +2106,25 @@ implementation
         begin
           case p.typ of
             ait_regalloc:
-              if (getregtype(Tai_regalloc(p).reg)=R_INTREGISTER) then
+              if (getregtype(Tai_regalloc(p).reg)=regtype) then
                 setsupreg(Tai_regalloc(p).reg,table[getsupreg(Tai_regalloc(p).reg)]);
             ait_instruction:
               begin
                 for i:=0 to Taicpu_abstract(p).ops-1 do
                   case Taicpu_abstract(p).oper[i].typ of
                     Top_reg:
-                       if (getregtype(Taicpu_abstract(p).oper[i].reg)=R_INTREGISTER) then
+                       if (getregtype(Taicpu_abstract(p).oper[i].reg)=regtype) then
                          setsupreg(Taicpu_abstract(p).oper[i].reg,table[getsupreg(Taicpu_abstract(p).oper[i].reg)]);
                     Top_ref:
                       begin
-                        r:=Taicpu_abstract(p).oper[i].ref;
-                        if r^.base<>NR_NO then
-                          setsupreg(r^.base,table[getsupreg(r^.base)]);
-                        if r^.index<>NR_NO then
-                          setsupreg(r^.index,table[getsupreg(r^.index)]);
+                        if regtype=R_INTREGISTER then
+                          begin
+                            r:=Taicpu_abstract(p).oper[i].ref;
+                            if r^.base<>NR_NO then
+                              setsupreg(r^.base,table[getsupreg(r^.base)]);
+                            if r^.index<>NR_NO then
+                              setsupreg(r^.index,table[getsupreg(r^.index)]);
+                          end;
                       end;
 {$ifdef arm}
                     Top_shifterop:
@@ -2151,7 +2154,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.41  2003-10-01 20:34:48  peter
+  Revision 1.42  2003-10-10 17:48:13  peter
+    * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
+    * tregisteralloctor renamed to trgobj
+    * removed rgobj from a lot of units
+    * moved location_* and reference_* to cgobj
+    * first things for mmx register allocation
+
+  Revision 1.41  2003/10/01 20:34:48  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

@@ -90,7 +90,7 @@ implementation
       cpubase,cpuinfo,
       nld,ncon,
       ncgutil,
-      tgobj,rgobj,paramgr,
+      tgobj,paramgr,
       regvars,cgobj
 {$ifndef cpu64bit}
       ,cg64f32
@@ -176,6 +176,7 @@ implementation
       var
          hl,otlabel,oflabel : tasmlabel;
 {$ifdef i386}
+(*
          org_regvar_loaded_other,
          then_regvar_loaded_other,
          else_regvar_loaded_other : regvarother_booleanarray;
@@ -185,6 +186,7 @@ implementation
          org_list,
          then_list,
          else_list : taasmoutput;
+*)
 {$endif i386}
 
       begin
@@ -197,6 +199,7 @@ implementation
          secondpass(left);
 
 {$ifdef i386}
+(*
          { save regvars loaded in the beginning so that we can restore them }
          { when processing the else-block                                   }
          if cs_regvars in aktglobalswitches then
@@ -204,15 +207,18 @@ implementation
              org_list := exprasmlist;
              exprasmlist := taasmoutput.create;
            end;
+*)
 {$endif i386}
          maketojumpbool(exprasmlist,left,lr_dont_load_regvars);
 
 {$ifdef i386}
+(*
          if cs_regvars in aktglobalswitches then
            begin
-{             org_regvar_loaded_int := rg.regvar_loaded_int;
-             org_regvar_loaded_other := rg.regvar_loaded_other;}
+             org_regvar_loaded_int := rg.regvar_loaded_int;
+             org_regvar_loaded_other := rg.regvar_loaded_other;
            end;
+*)
 {$endif i386}
 
          if assigned(right) then
@@ -241,19 +247,24 @@ implementation
                 begin
                    objectlibrary.getlabel(hl);
                    { do go back to if line !! }
+(*
 {$ifdef i386}
                    if not(cs_regvars in aktglobalswitches) then
 {$endif i386}
+*)
                      aktfilepos:=exprasmList.getlasttaifilepos^
+(*
 {$ifdef i386}
                    else
                      aktfilepos:=then_list.getlasttaifilepos^
 {$endif i386}
+*)
                    ;
                    cg.a_jmp_always(exprasmlist,hl);
                 end;
               cg.a_label(exprasmlist,falselabel);
               secondpass(t1);
+(*
 {$ifdef i386}
               { save current asmlist (previous instructions + else-block) }
               { and loaded regvar state and create a new clean list       }
@@ -265,11 +276,13 @@ implementation
                   exprasmlist := taasmoutput.create;
                 end;
 {$endif i386}
+*)
               if assigned(right) then
                 cg.a_label(exprasmlist,hl);
            end
          else
            begin
+(*
 {$ifdef i386}
               if cs_regvars in aktglobalswitches then
                 begin
@@ -279,6 +292,7 @@ implementation
                   exprasmlist := taasmoutput.create;
                 end;
 {$endif i386}
+*)
               cg.a_label(exprasmlist,falselabel);
            end;
          if not(assigned(right)) then
@@ -286,6 +300,7 @@ implementation
               cg.a_label(exprasmlist,truelabel);
            end;
 
+(*
 {$ifdef i386}
          if cs_regvars in aktglobalswitches then
            begin
@@ -320,6 +335,8 @@ implementation
              exprasmlist := org_list;
            end;
 {$endif i386}
+*)
+
          truelabel:=otlabel;
          falselabel:=oflabel;
       end;
@@ -1444,7 +1461,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.83  2003-10-09 21:31:37  daniel
+  Revision 1.84  2003-10-10 17:48:13  peter
+    * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
+    * tregisteralloctor renamed to trgobj
+    * removed rgobj from a lot of units
+    * moved location_* and reference_* to cgobj
+    * first things for mmx register allocation
+
+  Revision 1.83  2003/10/09 21:31:37  daniel
     * Register allocator splitted, ans abstract now
 
   Revision 1.82  2003/10/01 20:34:48  peter

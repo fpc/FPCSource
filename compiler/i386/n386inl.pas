@@ -60,14 +60,14 @@ interface
 implementation
 
     uses
-      systems,globtype,
+      systems,
       cutils,verbose,
       defutil,
       aasmtai,
       cgbase,pass_2,
       cpubase,paramgr,
       nbas,ncon,ncal,ncnv,nld,
-      cga,cgx86,tgobj,ncgutil,cgobj,rgobj,rgcpu;
+      cga,cgx86,cgobj;
 
 
 {*****************************************************************************
@@ -324,7 +324,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.69  2003-10-09 21:31:37  daniel
+  Revision 1.70  2003-10-10 17:48:14  peter
+    * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
+    * tregisteralloctor renamed to trgobj
+    * removed rgobj from a lot of units
+    * moved location_* and reference_* to cgobj
+    * first things for mmx register allocation
+
+  Revision 1.69  2003/10/09 21:31:37  daniel
     * Register allocator splitted, ans abstract now
 
   Revision 1.68  2003/10/01 20:34:49  peter

@@ -61,7 +61,7 @@ interface
       aasmbase,aasmtai,aasmcpu,defutil,htypechk,
       cgbase,pass_2,regvars,
       ncon,nset,
-      cga,cgx86,ncgutil,tgobj,rgobj,cgobj,cg64f32,rgcpu;
+      cga,cgx86,ncgutil,cgobj,cg64f32;
 
 {*****************************************************************************
                                   Helpers
@@ -550,7 +550,6 @@ interface
         resflags   : tresflags;
         pushedfpu,
         cmpop      : boolean;
-        r : Tregister;
       begin
         pass_left_and_right(pushedfpu);
 
@@ -1083,9 +1082,9 @@ interface
         pushedfpu,
         cmpop      : boolean;
         mmxbase    : tmmxtype;
-        r,hregister  : tregister;
+        hreg,
+        hregister  : tregister;
       begin
-      (*
         pass_left_and_right(pushedfpu);
 
         cmpop:=false;
@@ -1178,7 +1177,7 @@ interface
               { register variable ? }
               if (left.location.loc=LOC_CMMXREGISTER) then
                begin
-                 hregister:=rg.getregistermm(exprasmlist);
+                 hregister:=cg.getmmxregister(exprasmlist,OS_M64);
                  emit_reg_reg(A_MOVQ,S_NO,left.location.register,hregister);
                end
               else
@@ -1188,7 +1187,7 @@ interface
 
                  location_release(exprasmlist,left.location);
 
-                 hregister:=rg.getregistermm(exprasmlist);
+                 hregister:=cg.getmmxregister(exprasmlist,OS_M64);
                  emit_ref_reg(A_MOVQ,S_NO,left.location.reference,hregister);
                end;
 
@@ -1204,18 +1203,22 @@ interface
             begin
               if right.location.loc=LOC_CMMXREGISTER then
                begin
-                 emit_reg_reg(A_MOVQ,S_NO,right.location.register,NR_MM7);
-                 emit_reg_reg(op,S_NO,left.location.register,NR_MM7);
-                 emit_reg_reg(A_MOVQ,S_NO,NR_MM7,left.location.register);
+                 hreg:=cg.getmmxregister(exprasmlist,OS_M64);
+                 emit_reg_reg(A_MOVQ,S_NO,right.location.register,hreg);
+                 emit_reg_reg(op,S_NO,left.location.register,hreg);
+                 cg.ungetregister(exprasmlist,hreg);
+                 emit_reg_reg(A_MOVQ,S_NO,hreg,left.location.register);
                end
               else
                begin
                  if not(left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
                   internalerror(200203247);
-                 emit_ref_reg(A_MOVQ,S_NO,right.location.reference,NR_MM7);
-                 emit_reg_reg(op,S_NO,left.location.register,NR_MM7);
-                 emit_reg_reg(A_MOVQ,S_NO,NR_MM7,left.location.register);
                  location_release(exprasmlist,right.location);
+                 hreg:=cg.getmmxregister(exprasmlist,OS_M64);
+                 emit_ref_reg(A_MOVQ,S_NO,right.location.reference,hreg);
+                 emit_reg_reg(op,S_NO,left.location.register,hreg);
+                 cg.ungetregister(exprasmlist,hreg);
+                 emit_reg_reg(A_MOVQ,S_NO,hreg,left.location.register);
                end;
             end
            else
@@ -1254,7 +1257,6 @@ interface
            location_release(exprasmlist,left.location);
          end;
         set_result_location(cmpop,true);
-        *)
       end;
 {$endif SUPPORT_MMX}
 
@@ -1492,7 +1494,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.82  2003-10-09 21:31:37  daniel
+  Revision 1.83  2003-10-10 17:48:14  peter
+    * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
+    * tregisteralloctor renamed to trgobj
+    * removed rgobj from a lot of units
+    * moved location_* and reference_* to cgobj
+    * first things for mmx register allocation
+
+  Revision 1.82  2003/10/09 21:31:37  daniel
     * Register allocator splitted, ans abstract now
 
   Revision 1.81  2003/10/08 09:13:16  florian

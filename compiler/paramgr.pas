@@ -73,6 +73,8 @@ unit paramgr;
           function get_para_align(calloption : tproccalloption):byte;virtual;
           function get_volatile_registers_int(calloption : tproccalloption):tsuperregisterset;virtual;
           function get_volatile_registers_fpu(calloption : tproccalloption):tsuperregisterset;virtual;
+          function get_volatile_registers_mmx(calloption : tproccalloption):tsuperregisterset;virtual;
+          function get_volatile_registers_mm(calloption : tproccalloption):tsuperregisterset;virtual;
           function getintparaloc(calloption : tproccalloption; nr : longint) : tparalocation;virtual;abstract;
 
           {# allocate a parameter location created with create_paraloc_info
@@ -121,9 +123,8 @@ unit paramgr;
 implementation
 
     uses
-       cpuinfo,globals,systems,
-       symbase,symsym,
-       rgobj,cgobj,
+       cpuinfo,systems,
+       cgobj,
        defutil,verbose;
 
     { true if uses a parameter as return value }
@@ -268,6 +269,18 @@ implementation
 
 
     function tparamanager.get_volatile_registers_fpu(calloption : tproccalloption):tsuperregisterset;
+      begin
+        result:=[];
+      end;
+
+
+    function tparamanager.get_volatile_registers_mmx(calloption : tproccalloption):tsuperregisterset;
+      begin
+        result:=[];
+      end;
+
+
+    function tparamanager.get_volatile_registers_mm(calloption : tproccalloption):tsuperregisterset;
       begin
         result:=[];
       end;
@@ -424,7 +437,14 @@ end.
 
 {
    $Log$
-   Revision 1.61  2003-10-09 21:31:37  daniel
+   Revision 1.62  2003-10-10 17:48:13  peter
+     * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
+     * tregisteralloctor renamed to trgobj
+     * removed rgobj from a lot of units
+     * moved location_* and reference_* to cgobj
+     * first things for mmx register allocation
+
+   Revision 1.61  2003/10/09 21:31:37  daniel
      * Register allocator splitted, ans abstract now
 
    Revision 1.60  2003/10/05 21:21:52  peter

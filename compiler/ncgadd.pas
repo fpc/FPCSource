@@ -69,7 +69,7 @@ interface
       symconst,symdef,paramgr,
       aasmbase,aasmtai,aasmcpu,defutil,htypechk,
       cgbase,cpuinfo,pass_1,pass_2,regvars,
-      ncon,nset,ncgutil,tgobj,rgobj,cgobj,
+      ncon,nset,ncgutil,tgobj,cgobj,
 {$ifdef cpu64bit}
       cg64f64
 {$else cpu64bit}
@@ -735,7 +735,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  2003-10-01 20:34:48  peter
+  Revision 1.21  2003-10-10 17:48:13  peter
+    * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
+    * tregisteralloctor renamed to trgobj
+    * removed rgobj from a lot of units
+    * moved location_* and reference_* to cgobj
+    * first things for mmx register allocation
+
+  Revision 1.20  2003/10/01 20:34:48  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

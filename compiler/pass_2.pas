@@ -55,10 +55,10 @@ implementation
      globtype,systems,verbose,
      cclasses,globals,
      symconst,symbase,symtype,symsym,paramgr,
-     aasmbase,aasmtai,
-     pass_1,cpubase,cgbase,
+     aasmtai,
+     pass_1,cgbase,
      procinfo,
-     regvars,nflw,rgobj,cgobj;
+     nflw,cgobj;
 
 {*****************************************************************************
                               SecondPass
@@ -243,10 +243,6 @@ implementation
       end;
 
     procedure generatecode(var p : tnode);
-{$ifdef EXTDEBUG}
-      var
-        sr : tsuperregister;
-{$endif EXTDEBUG}
       begin
          flowcontrol:=[];
          { when size optimization only count occurrence }
@@ -272,7 +268,7 @@ implementation
                 end;
 
               { process register variable stuff (JM) }
-              assign_regvars(p);
+{              assign_regvars(p);}
 {              load_regvars(current_procinfo.aktentrycode,p);}
 
               { for the i386 it must be done in genexitcode because it has  }
@@ -304,7 +300,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.68  2003-10-09 21:31:37  daniel
+  Revision 1.69  2003-10-10 17:48:13  peter
+    * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
+    * tregisteralloctor renamed to trgobj
+    * removed rgobj from a lot of units
+    * moved location_* and reference_* to cgobj
+    * first things for mmx register allocation
+
+  Revision 1.68  2003/10/09 21:31:37  daniel
     * Register allocator splitted, ans abstract now
 
   Revision 1.67  2003/10/01 20:34:49  peter

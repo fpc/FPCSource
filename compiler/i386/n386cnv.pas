@@ -62,12 +62,12 @@ interface
 implementation
 
    uses
-      verbose,systems,globtype,
+      verbose,systems,
       symconst,symdef,aasmbase,aasmtai,aasmcpu,
-      cgbase,pass_2,
+      cgbase,
       ncon,ncal,ncnv,
       cpubase,
-      cgobj,cga,cgx86,tgobj,rgobj,rgcpu,ncgutil;
+      cgobj,cga,cgx86;
 
 
     function ti386typeconvnode.first_int_to_real : tnode;
@@ -332,7 +332,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.66  2003-10-09 21:31:37  daniel
+  Revision 1.67  2003-10-10 17:48:14  peter
+    * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
+    * tregisteralloctor renamed to trgobj
+    * removed rgobj from a lot of units
+    * moved location_* and reference_* to cgobj
+    * first things for mmx register allocation
+
+  Revision 1.66  2003/10/09 21:31:37  daniel
     * Register allocator splitted, ans abstract now
 
   Revision 1.65  2003/10/01 20:34:49  peter

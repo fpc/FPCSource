@@ -154,7 +154,7 @@ implementation
 {$endif GDB}
        aasmcpu,
        cpubase,cgbase,
-       cgobj,rgobj
+       cgobj
        ;
 
 
@@ -1356,7 +1356,14 @@ initialization
 end.
 {
   $Log$
-  Revision 1.51  2003-10-07 21:14:32  peter
+  Revision 1.52  2003-10-10 17:48:13  peter
+    * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
+    * tregisteralloctor renamed to trgobj
+    * removed rgobj from a lot of units
+    * moved location_* and reference_* to cgobj
+    * first things for mmx register allocation
+
+  Revision 1.51  2003/10/07 21:14:32  peter
     * compare_paras() has a parameter to ignore hidden parameters
     * cross unit overload searching ignores hidden parameters when
       comparing parameter lists. Now function(string):string is

@@ -72,7 +72,7 @@ interface
       aasmbase,aasmtai,aasmcpu,symsym,
       defutil,
       nflw,pass_2,
-      cgbase,procinfo,cgobj,tgobj,rgobj
+      cgbase,procinfo,cgobj,tgobj
       ;
 
 {*****************************************************************************
@@ -372,7 +372,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.43  2003-10-09 21:31:37  daniel
+  Revision 1.44  2003-10-10 17:48:13  peter
+    * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
+    * tregisteralloctor renamed to trgobj
+    * removed rgobj from a lot of units
+    * moved location_* and reference_* to cgobj
+    * first things for mmx register allocation
+
+  Revision 1.43  2003/10/09 21:31:37  daniel
     * Register allocator splitted, ans abstract now
 
   Revision 1.42  2003/10/07 18:18:16  peter

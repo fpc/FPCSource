@@ -57,7 +57,7 @@ unit cgcpu;
     uses
        globtype,globals,verbose,systems,cutils,
        symdef,symsym,defutil,paramgr,
-       rgobj,tgobj;
+       tgobj;
 
 
     class function tcg386.reg_cgsize(const reg: tregister): tcgsize;
@@ -207,7 +207,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.39  2003-10-01 20:34:49  peter
+  Revision 1.40  2003-10-10 17:48:14  peter
+    * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
+    * tregisteralloctor renamed to trgobj
+    * removed rgobj from a lot of units
+    * moved location_* and reference_* to cgobj
+    * first things for mmx register allocation
+
+  Revision 1.39  2003/10/01 20:34:49  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

@@ -35,77 +35,96 @@ unit rgcpu;
       cclasses,globtype,cgbase,rgobj;
 
     type
-       Tregisterallocatorcpu = class(Tregisterallocator)
+       trgcpu = class(trgobj)
           procedure add_constraints(reg:Tregister);override;
        end;
 
 
-       Trgcpu = class(Trgobj)
+       trgx86fpu = class
+          { The "usableregsxxx" contain all registers of type "xxx" that }
+          { aren't currently allocated to a regvar. The "unusedregsxxx"  }
+          { contain all registers of type "xxx" that aren't currently    }
+          { allocated                                                    }
+          unusedregsfpu,usableregsfpu : Tsuperregisterset;
+          { these counters contain the number of elements in the }
+          { unusedregsxxx/usableregsxxx sets                     }
+          countunusedregsfpu : byte;
+          countusableregsfpu : byte;
+
+          { Contains the registers which are really used by the proc itself.
+            It doesn't take care of registers used by called procedures
+          }
+          used_in_proc_other : totherregisterset;
+
+          {reg_pushes_other : regvarother_longintarray;
+          is_reg_var_other : regvarother_booleanarray;
+          regvar_loaded_other : regvarother_booleanarray;}
+
+          { tries to hold the amount of times which the current tree is processed  }
+          t_times: longint;
+
           fpuvaroffset : byte;
 
-          function getregisterfpu(list: taasmoutput;size:TCGSize) : tregister; override;
-          procedure ungetregisterfpu(list: taasmoutput; r : tregister); override;
+          constructor create;
 
-          {# Returns a subset register of the register r with the specified size.
-             WARNING: There is no clearing of the upper parts of the register,
-             if a 8-bit / 16-bit register is converted to a 32-bit register.
-             It is up to the code generator to correctly zero fill the register
-          }
-{          function makeregsize(reg: tregister; size: tcgsize): tregister; override;}
+          function getregisterfpu(list: taasmoutput) : tregister;
+          procedure ungetregisterfpu(list: taasmoutput; r : tregister);
 
           { pushes and restores registers }
-{$ifdef SUPPORT_MMX}
-          procedure pushusedotherregisters(list:Taasmoutput;
-                                           var pushed:Tpushedsavedother;
-                                           const s:Totherregisterset);
-{$endif SUPPORT_MMX}
-{$ifdef SUPPORT_MMX}
-          procedure popusedotherregisters(list:Taasmoutput;
-                                          const pushed:Tpushedsavedother);
-{$endif SUPPORT_MMX}
-
           procedure saveusedotherregisters(list:Taasmoutput;
                                            var saved:Tpushedsavedother;
-                                           const s:Totherregisterset);override;
+                                           const s:Totherregisterset);
           procedure restoreusedotherregisters(list:Taasmoutput;
-                                              const saved:Tpushedsavedother);override;
+                                              const saved:Tpushedsavedother);
 
-          procedure resetusableregisters;override;
-
-         { corrects the fpu stack register by ofs }
-         function correct_fpuregister(r : tregister;ofs : byte) : tregister;
+          { corrects the fpu stack register by ofs }
+          function correct_fpuregister(r : tregister;ofs : byte) : tregister;
        end;
 
-  implementation
+
+implementation
 
     uses
        systems,
-       globals,verbose;
+       verbose;
 
 {************************************************************************
-                          tregisterallocatorcpu
+                                 trgcpu
 *************************************************************************}
 
-    procedure Tregisterallocatorcpu.add_constraints(reg:Tregister);
-    var
-      supreg : tsuperregister;
-    begin
-      if getsubreg(reg) in [R_SUBL,R_SUBH] then
-        begin
-          supreg:=getsupreg(reg);
-          {These registers have no 8-bit subregister, so add interferences.}
-          add_edge(supreg,RS_ESI);
-          add_edge(supreg,RS_EDI);
-          add_edge(supreg,RS_EBP);
-        end;
-    end;
+    procedure trgcpu.add_constraints(reg:Tregister);
+      var
+        supreg : tsuperregister;
+      begin
+        if getsubreg(reg) in [R_SUBL,R_SUBH] then
+          begin
+            supreg:=getsupreg(reg);
+            {These registers have no 8-bit subregister, so add interferences.}
+            add_edge(supreg,RS_ESI);
+            add_edge(supreg,RS_EDI);
+            add_edge(supreg,RS_EBP);
+          end;
+      end;
 
 
-{************************************************************************
-                                   trgcpu
-*************************************************************************}
+{******************************************************************************
+                                    Trgobj
+******************************************************************************}
 
-    function trgcpu.getregisterfpu(list: taasmoutput;size: TCGSize) : tregister;
+    constructor Trgx86fpu.create;
+
+      var i:Tsuperregister;
+
+      begin
+        used_in_proc_other:=[];
+        t_times := 0;
+        countusableregsfpu:=c_countusableregsfpu;
+        unusedregsfpu:=usableregsfpu;
+        countunusedregsfpu:=countusableregsfpu;
+      end;
+
+
+    function trgx86fpu.getregisterfpu(list: taasmoutput) : tregister;
 
       begin
         { note: don't return R_ST0, see comments above implementation of }
@@ -114,7 +133,7 @@ unit rgcpu;
       end;
 
 
-    procedure trgcpu.ungetregisterfpu(list : taasmoutput; r : tregister);
+    procedure trgx86fpu.ungetregisterfpu(list : taasmoutput; r : tregister);
 
       begin
         { nothing to do, fpu stack management is handled by the load/ }
@@ -122,132 +141,115 @@ unit rgcpu;
       end;
 
 
-{$ifdef SUPPORT_MMX}
-    procedure trgcpu.pushusedotherregisters(list:Taasmoutput;
-                                            var pushed:Tpushedsavedother;
-                                            const s:Totherregisterset);
 
-{    var r:Toldregister;
-        r2:Tregister;
-        hr:Treference;}
+    function trgx86fpu.correct_fpuregister(r : tregister;ofs : byte) : tregister;
 
-    begin
-(*      used_in_proc_other:=used_in_proc_other+s;
-      for r:=R_MM0 to R_MM6 do
-        begin
-          pushed[r].pushed:=false;
-          { if the register is used by the calling subroutine    }
-          if not is_reg_var_other[r] and
-             (r in s) and
-             { and is present in use }
-             not(r in unusedregsmm) then
-            begin
-              r2.enum:=R_INTREGISTER;
-              r2.number:=NR_ESP;
-              list.concat(Taicpu.Op_const_reg(A_SUB,S_L,8,r2));
-              reference_reset_base(hr,r2,0);
-              r2.enum:=r;
-              list.concat(Taicpu.Op_reg_ref(A_MOVQ,S_NO,r2,hr));
-              include(unusedregsmm,r);
-              pushed[r].pushed:=true;
-            end;
-        end;*)
-{$ifdef TEMPREGDEBUG}
-      testregisters;
-{$endif TEMPREGDEBUG}
-    end;
-{$endif SUPPORT_MMX}
-
-
-{$ifdef SUPPORT_MMX}
-    procedure trgcpu.popusedotherregisters(list:Taasmoutput;
-                                           const pushed:Tpushedsavedother);
-
-{    var r:Toldregister;
-        r2,r3:Tregister;
-        hr:Treference;}
-
-    begin
-      { restore in reverse order: }
-{      for r:=R_MM6 downto R_MM0 do
-        if pushed[r].pushed then
-          begin
-            r2.enum:=R_INTREGISTER;
-            r2.number:=NR_ESP;
-            reference_reset_base(hr,r2,0);
-            r3.enum:=r;
-            list.concat(Taicpu.op_ref_reg(A_MOVQ,S_NO,hr,r3));
-            list.concat(Taicpu.op_const_reg(A_ADD,S_L,8,r2));
-            exclude(unusedregsmm,r);
-          end;}
-{$ifdef TEMPREGDEBUG}
-      testregisters;
-{$endif TEMPREGDEBUG}
-    end;
-{$endif SUPPORT_MMX}
-
-
-
-    procedure trgcpu.saveusedotherregisters(list:Taasmoutput;var saved:Tpushedsavedother;
-                                            const s:totherregisterset);
-
-    begin
-{$ifdef SUPPORT_MMX}
-      if (aktoptprocessor in [class386,classP5]) or
-         (CS_LittleSize in aktglobalswitches) then
-        pushusedotherregisters(list,saved,s)
-      else
-{$endif SUPPORT_MMX}
-        inherited saveusedotherregisters(list,saved,s);
-    end;
-
-
-    procedure trgcpu.restoreusedotherregisters(list:Taasmoutput;
-                                               const saved:tpushedsavedother);
-
-    begin
-{$ifdef SUPPORT_MMX}
-      if (aktoptprocessor in [class386,classP5]) or
-         (CS_LittleSize in aktglobalswitches) then
-        popusedotherregisters(list,saved)
-      else
-{$endif SUPPORT_MMX}
-        inherited restoreusedotherregisters(list,saved);
-    end;
-
-
-   procedure trgcpu.resetusableregisters;
-
-     begin
-       inherited resetusableregisters;
-       fpuvaroffset := 0;
-     end;
-
-
-   function trgcpu.correct_fpuregister(r : tregister;ofs : byte) : tregister;
-
-     begin
+      begin
         correct_fpuregister:=r;
         setsupreg(correct_fpuregister,ofs);
-     end;
+      end;
+
+
+    procedure trgx86fpu.saveusedotherregisters(list: taasmoutput;
+        var saved : tpushedsavedother; const s: totherregisterset);
+
+      var
+         r : tregister;
+         hr : treference;
+
+      begin
+        used_in_proc_other:=used_in_proc_other + s;
+
+{$warning TODO firstsavefpureg}
+(*
+        { don't try to save the fpu registers if not desired (e.g. for }
+        { the 80x86)                                                   }
+        if firstsavefpureg <> R_NO then
+          for r.enum:=firstsavefpureg to lastsavefpureg do
+            begin
+              saved[r.enum].ofs:=reg_not_saved;
+              { if the register is used by the calling subroutine and if }
+              { it's not a regvar (those are handled separately)         }
+              if not is_reg_var_other[r.enum] and
+                 (r.enum in s) and
+                 { and is present in use }
+                 not(r.enum in unusedregsfpu) then
+                begin
+                  { then save it }
+                  tg.GetTemp(list,extended_size,tt_persistent,hr);
+                  saved[r.enum].ofs:=hr.offset;
+                  cg.a_loadfpu_reg_ref(list,OS_FLOAT,r,hr);
+                  cg.a_reg_dealloc(list,r);
+                  include(unusedregsfpu,r.enum);
+                  inc(countunusedregsfpu);
+                end;
+            end;
+*)
+      end;
+
+
+    procedure trgx86fpu.restoreusedotherregisters(list : taasmoutput;
+        const saved : tpushedsavedother);
+
+      var
+         r,r2 : tregister;
+         hr : treference;
+
+      begin
+{$warning TODO firstsavefpureg}
+(*
+        if firstsavefpureg <> R_NO then
+          for r.enum:=lastsavefpureg downto firstsavefpureg do
+            begin
+              if saved[r.enum].ofs <> reg_not_saved then
+                begin
+                  r2.enum:=R_INTREGISTER;
+                  r2.number:=NR_FRAME_POINTER_REG;
+                  reference_reset_base(hr,r2,saved[r.enum].ofs);
+                  cg.a_reg_alloc(list,r);
+                  cg.a_loadfpu_ref_reg(list,OS_FLOAT,hr,r);
+                  if not (r.enum in unusedregsfpu) then
+                    { internalerror(10)
+                      in n386cal we always save/restore the reg *state*
+                      using save/restoreunusedstate -> the current state
+                      may not be real (JM) }
+                  else
+                    begin
+                      dec(countunusedregsfpu);
+                      exclude(unusedregsfpu,r.enum);
+                    end;
+                  tg.UnGetTemp(list,hr);
+                end;
+            end;
+*)
+      end;
 
 (*
-    function trgcpu.makeregsize(reg: tregister; size: tcgsize): tregister;
+    procedure Trgx86fpu.saveotherregvars(list: taasmoutput; const s: totherregisterset);
       var
-        subreg : tsubregister;
+        r: Tregister;
       begin
-        if getregtype(reg)<>R_INTREGISTER then
-          internalerror(200306032);
-        subreg:=cgsize2subreg(size);
-        result:=reg;
-        setsubreg(result,subreg);
-        add_constraints(result);
+        if not(cs_regvars in aktglobalswitches) then
+          exit;
+        if firstsavefpureg <> NR_NO then
+          for r.enum := firstsavefpureg to lastsavefpureg do
+            if is_reg_var_other[r.enum] and
+               (r.enum in s) then
+              store_regvar(list,r);
       end;
 *)
+
 end.
 {
   $Log$
-  Revision 1.37  2003-10-09 21:31:37  daniel
+  Revision 1.38  2003-10-10 17:48:14  peter
+    * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
+    * tregisteralloctor renamed to trgobj
+    * removed rgobj from a lot of units
+    * moved location_* and reference_* to cgobj
+    * first things for mmx register allocation
+
+  Revision 1.37  2003/10/09 21:31:37  daniel
     * Register allocator splitted, ans abstract now
 
   Revision 1.36  2003/10/01 20:34:49  peter

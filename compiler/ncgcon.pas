@@ -67,7 +67,7 @@ implementation
       verbose,globals,
       symconst,symdef,aasmbase,aasmtai,aasmcpu,defutil,
       cpuinfo,cpubase,
-      cgbase,tgobj,rgobj
+      cgbase,tgobj,cgobj
 {$ifdef delphi}
       ,dmisc
 {$endif}
@@ -554,7 +554,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.31  2003-10-01 20:34:48  peter
+  Revision 1.32  2003-10-10 17:48:13  peter
+    * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
+    * tregisteralloctor renamed to trgobj
+    * removed rgobj from a lot of units
+    * moved location_* and reference_* to cgobj
+    * first things for mmx register allocation
+
+  Revision 1.31  2003/10/01 20:34:48  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

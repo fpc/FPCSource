@@ -92,7 +92,6 @@ implementation
       cga,cgx86,
 {$endif x86}
       ncgutil,cgobj,tgobj,
-      rgobj,rgcpu,
       procinfo;
 
 
@@ -573,7 +572,6 @@ implementation
       var
          regs_to_push_other : totherregisterset;
          regs_to_alloc,regs_to_free:Tsuperregisterset;
-         pushedother : tpushedsavedother;
          oldpushedparasize : longint;
          { adress returned from an I/O-error }
          { help reference pointer }
@@ -756,6 +754,7 @@ implementation
                    freeparas;
 
                    cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,regs_to_alloc);
+                   cg.allocexplicitregisters(exprasmlist,R_MMXREGISTER,paramanager.get_volatile_registers_mmx(procdefinition.proccalloption));
 
                    { call method }
                    cg.a_call_reg(exprasmlist,pvreg);
@@ -771,6 +770,8 @@ implementation
                   freeparas;
 
                   cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,regs_to_alloc);
+                  cg.allocexplicitregisters(exprasmlist,R_MMXREGISTER,paramanager.get_volatile_registers_mmx(procdefinition.proccalloption));
+
                   { Calling interrupt from the same code requires some
                     extra code }
                   if (po_interrupt in procdefinition.procoptions) then
@@ -804,6 +805,7 @@ implementation
               freeparas;
 
               cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,regs_to_alloc);
+              cg.allocexplicitregisters(exprasmlist,R_MMXREGISTER,paramanager.get_volatile_registers_mmx(procdefinition.proccalloption));
 
               { Calling interrupt from the same code requires some
                 extra code }
@@ -855,6 +857,7 @@ implementation
                  end;
              end;
            end;
+         cg.deallocexplicitregisters(exprasmlist,R_MMXREGISTER,paramanager.get_volatile_registers_mmx(procdefinition.proccalloption));
          cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,regs_to_free);
 
          { handle function results }
@@ -908,7 +911,6 @@ implementation
 
     procedure tcgcallnode.inlined_pass_2;
       var
-         unusedstate: pointer;
          oldaktcallnode : tcallnode;
          oldprocinfo : tprocinfo;
          oldinlining_procedure : boolean;
@@ -1102,7 +1104,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.128  2003-10-10 09:21:53  marco
+  Revision 1.129  2003-10-10 17:48:13  peter
+    * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
+    * tregisteralloctor renamed to trgobj
+    * removed rgobj from a lot of units
+    * moved location_* and reference_* to cgobj
+    * first things for mmx register allocation
+
+  Revision 1.128  2003/10/10 09:21:53  marco
    * typo fix from Wiktor
 
   Revision 1.127  2003/10/09 21:31:37  daniel

@@ -33,9 +33,9 @@ interface
       aasmbase,aasmtai,aasmcpu,
       symconst,symbase,symdef,symsym,symtype,symtable,
 {$ifndef cpu64bit}
-      cg64f32,
+      cg64f32
 {$endif cpu64bit}
-      rgobj;
+      ;
 
     type
       tloadregvars = (lr_dont_load_regvars, lr_load_regvars);
@@ -1948,7 +1948,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.157  2003-10-09 21:31:37  daniel
+  Revision 1.158  2003-10-10 17:48:13  peter
+    * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
+    * tregisteralloctor renamed to trgobj
+    * removed rgobj from a lot of units
+    * moved location_* and reference_* to cgobj
+    * first things for mmx register allocation
+
+  Revision 1.157  2003/10/09 21:31:37  daniel
     * Register allocator splitted, ans abstract now
 
   Revision 1.156  2003/10/07 18:18:16  peter
