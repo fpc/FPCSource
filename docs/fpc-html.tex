@@ -33,6 +33,11 @@
 \newenvironment{FPCltable}[3]{\begin{table}\caption{#2}\label{tab:#3}\begin{center}\begin{tabular}{#1}}{\end{tabular}\end{center}\end{table}}
 
 %
+% Picture including with breaks before and after
+%
+\newcommand{\fpcaddimg}[1]{\htmlclear\htmlclear\htmladdimg{#1}\htmlclear\htmlclear}
+
+%
 % Html Refs
 %
 \newcommand{\seefl}[2]{\htmlref{#1}{fu:#2}}
