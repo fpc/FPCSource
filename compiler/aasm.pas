@@ -256,6 +256,14 @@ unit aasm;
          Constructor init(_Kind: TMarker);
        end;
 
+       paitempalloc = ^taitempalloc;
+       taitempalloc = object(tai)
+          allocation : boolean;
+          temppos,
+          tempsize   : longint;
+          constructor alloc(pos,size:longint);
+          constructor dealloc(pos,size:longint);
+       end;
 
 { for each processor define the best precision }
 { bestreal is defined in globals }
@@ -722,6 +730,30 @@ uses
        Kind := _Kind;
      End;
 
+{*****************************************************************************
+                                TaiTempAlloc
+*****************************************************************************}
+
+    constructor taitempalloc.alloc(pos,size:longint);
+      begin
+        inherited init;
+        typ:=ait_tempalloc;
+        allocation:=true;
+        temppos:=pos;
+        tempsize:=size;
+      end;
+
+
+    constructor taitempalloc.dealloc(pos,size:longint);
+      begin
+        inherited init;
+        typ:=ait_tempalloc;
+        allocation:=false;
+        temppos:=pos;
+        tempsize:=size;
+      end;
+
+
 
 {*****************************************************************************
                                   AsmSymbol
@@ -933,7 +965,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.54  1999-07-29 20:53:55  peter
+  Revision 1.55  1999-08-01 23:55:55  michael
+  * Moved taitempalloc
+
+  Revision 1.54  1999/07/29 20:53:55  peter
     * write .size also
 
   Revision 1.53  1999/07/22 09:37:28  florian

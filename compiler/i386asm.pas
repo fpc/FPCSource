@@ -53,14 +53,6 @@ type
      constructor dealloc(r : tregister);
   end;
 
-  paitempalloc = ^taitempalloc;
-  taitempalloc = object(tai)
-     allocation : boolean;
-     temppos,
-     tempsize   : longint;
-     constructor alloc(pos,size:longint);
-     constructor dealloc(pos,size:longint);
-  end;
 
   pai386 = ^tai386;
   tai386 = object(tai)
@@ -160,30 +152,6 @@ uses
         typ:=ait_regalloc;
         allocation:=false;
         reg:=r;
-      end;
-
-
-{*****************************************************************************
-                                TaiTempAlloc
-*****************************************************************************}
-
-    constructor taitempalloc.alloc(pos,size:longint);
-      begin
-        inherited init;
-        typ:=ait_tempalloc;
-        allocation:=true;
-        temppos:=pos;
-        tempsize:=size;
-      end;
-
-
-    constructor taitempalloc.dealloc(pos,size:longint);
-      begin
-        inherited init;
-        typ:=ait_tempalloc;
-        allocation:=false;
-        temppos:=pos;
-        tempsize:=size;
       end;
 
 
@@ -1524,7 +1492,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.16  1999-07-05 20:25:32  peter
+  Revision 1.17  1999-08-01 23:55:53  michael
+  * Moved taitempalloc
+
+  Revision 1.16  1999/07/05 20:25:32  peter
     * merged
 
   Revision 1.15  1999/07/05 11:56:55  jonas
