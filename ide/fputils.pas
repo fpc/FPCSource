@@ -490,6 +490,8 @@ begin
     begin
       Delete(S,I,length(What));
       Insert(NewS,S,I);
+      Delete(UpcaseS,I,length(What));
+      Insert(NewS,UpcaseS,I);
     end;
   until I=0;
 end;
@@ -498,7 +500,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.2  2002-09-07 15:40:46  peter
+  Revision 1.3  2002-11-28 12:53:59  pierre
+   * fix implementation of ReplaceStrI function
+
+  Revision 1.2  2002/09/07 15:40:46  peter
     * old logs removed and tabs fixed
 
 }
