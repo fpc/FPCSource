@@ -1809,15 +1809,22 @@ implementation
     function tvarsym.stabstring : pchar;
      var
        st : string;
+       threadvaroffset : string;
      begin
        st:=tstoreddef(vartype.def).numberstring;
+      if (vo_is_thread_var in varoptions) then
+        threadvaroffset:='+'+tostr(pointer_size)
+      else
+        threadvaroffset:='';
+
        if (owner.symtabletype = objectsymtable) and
           (sp_static in symoptions) then
          begin
             if (cs_gdb_gsym in aktglobalswitches) then st := 'G'+st else st := 'S'+st;
             stabstring := strpnew('"'+owner.name^+'__'+name+':'+st+
                      '",'+
-                     tostr(N_LCSYM)+',0,'+tostr(fileinfo.line)+','+mangledname);
+                     tostr(N_LCSYM)+',0,'+tostr(fileinfo.line)
+                     +','+mangledname+threadvaroffset);
          end
        else if (owner.symtabletype = globalsymtable) then
          begin
@@ -1827,12 +1834,14 @@ implementation
               but these names don't exist in pascal !}
             if (cs_gdb_gsym in aktglobalswitches) then st := 'G'+st else st := 'S'+st;
             stabstring := strpnew('"'+name+':'+st+'",'+
-                     tostr(N_LCSYM)+',0,'+tostr(fileinfo.line)+','+mangledname);
+                     tostr(N_LCSYM)+',0,'+tostr(fileinfo.line)+
+                     ','+mangledname+threadvaroffset);
          end
        else if owner.symtabletype = staticsymtable then
          begin
             stabstring := strpnew('"'+name+':S'+st+'",'+
-                  tostr(N_LCSYM)+',0,'+tostr(fileinfo.line)+','+mangledname);
+                  tostr(N_LCSYM)+',0,'+tostr(fileinfo.line)+
+                  ','+mangledname+threadvaroffset);
          end
        else if (owner.symtabletype in [parasymtable,inlineparasymtable]) then
          begin
@@ -2656,7 +2665,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.110  2003-06-13 21:19:31  peter
+  Revision 1.111  2003-07-04 22:41:41  pierre
+   * single threadvar debugging support
+
+  Revision 1.110  2003/06/13 21:19:31  peter
     * current_procdef removed, use current_procinfo.procdef instead
 
   Revision 1.109  2003/06/07 20:26:32  peter
