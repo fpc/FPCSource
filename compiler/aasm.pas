@@ -226,7 +226,7 @@ unit aasm;
        { generates a double (64 bit real) }
        pai_real_64bit = ^tai_real_64bit;
        tai_real_64bit = object(tai)
-          value : ts80real;
+          value : ts64real;
           constructor init(_value : ts64real);
        end;
 
@@ -984,7 +984,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.44  1999-05-12 00:19:34  peter
+  Revision 1.45  1999-05-20 22:18:51  pierre
+   * fix from Peter for double bug reported 20/05/1999
+
+  Revision 1.44  1999/05/12 00:19:34  peter
     * removed R_DEFAULT_SEG
     * uniform float names
 
