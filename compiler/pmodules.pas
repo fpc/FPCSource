@@ -665,7 +665,9 @@ unit pmodules;
              else
               begin
                 if (cs_check_unit_name in aktglobalswitches) and
-                   (current_module^.modulename^<>s2^) then
+                   not((current_module^.modulename^=s2^) or
+                       ((length(current_module^.modulename^)>8) and
+                        (copy(current_module^.modulename^,1,8)=s2^))) then
                  Message1(unit_e_illegal_unit_name,current_module^.modulename^);
                 if (current_module^.modulename^=s1^) then
                  Message(unit_w_switch_us_missed);
@@ -692,7 +694,7 @@ unit pmodules;
 {$ifndef UseNiceNames}
          procprefix:='_'+current_module^.modulename^+'$$';
 {$else UseNiceNames}
-         procprefix:='_'+tostr(length(current_module^.unitname^))+lowercase(current_module^.unitname^)+'_';
+         procprefix:='_'+tostr(length(current_module^.modulename^))+lowercase(current_module^.modulename^)+'_';
 {$endif UseNiceNames}
 
          parse_only:=true;
@@ -1110,7 +1112,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.77  1998-10-29 11:35:52  florian
+  Revision 1.78  1998-10-30 12:23:41  peter
+    * fix for lognunitname and longunit.pas
+
+  Revision 1.77  1998/10/29 11:35:52  florian
     * some dll support for win32
     * fixed assembler writing for PalmOS
 
