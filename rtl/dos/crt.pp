@@ -100,13 +100,14 @@ uses
   go32;
 
 {$ifdef VER0_99_5}
-  {$I386_ATT} {can be removed in the future}
+  {$I386_DIRECT} {due to a bug in the assembler reader using a  }
+                 { call to a symbol will crash under FPC 0.99.5 }
 {$endif}
 
 {$ASMMODE ATT}
 
 var
-  DelayCnt,
+  DelayCnt,  { don't modify this var name, as it is hard coded }
   ScreenWidth,
   ScreenHeight : longint;
 
@@ -498,6 +499,61 @@ end;
                                    Delay
 *************************************************************************}
 
+{$ifdef VER0_99_5}
+
+{ Workaround for ATT reader with CALL }
+procedure Delayloop;
+begin
+  asm
+.LDelayLoop1:
+        subl    $1,%eax
+        jc      .LDelayLoop2
+        cmpl    %fs:(%edi),%ebx
+        je      .LDelayLoop1
+.LDelayLoop2:
+  end;
+end;
+
+
+procedure initdelay;
+begin
+  asm
+        movl    $0x46c,%edi
+        movl    $-28,%edx
+        movl    %fs:(%edi),%ebx
+.LInitDel1:
+        cmpl    %fs:(%edi),%ebx
+        je      .LInitDel1
+        movl    %fs:(%edi),%ebx
+        movl    %edx,%eax
+        call    _CRT$$_DELAYLOOP
+
+        notl    %eax
+        xorl    %edx,%edx
+        movl    $55,%ecx
+        divl    %ecx
+        movl    %eax,_DELAYCNT
+  end;
+end;
+
+
+procedure Delay(MS: Word);
+begin
+  asm
+        movzwl  MS,%ecx
+        jecxz   .LDelay2
+        movl    $0x400,%edi
+        movl    _DELAYCNT,%edx
+        movl    %fs:(%edi),%ebx
+.LDelay1:
+        movl    %edx,%eax
+        call    _CRT$$_DELAYLOOP
+        loop    .LDelay1
+.LDelay2:
+  end;
+end;
+
+{$else}
 procedure Delayloop;
 begin
   asm
@@ -548,6 +604,8 @@ begin
 .LDelay2:
   end;
 end;
+
+{$endif VER0_99_5}
 
 
 procedure sound(hz : word);
@@ -923,7 +981,11 @@ end.
 
 {
   $Log$
-  Revision 1.9  1998-08-15 17:00:10  peter
+  Revision 1.10  1998-08-18 13:32:46  carl
+    * bugfix to make it work with FPC 0.99.5 (Delayloop is not correctly
+  converted by ATT parser)
+
+  Revision 1.9  1998/08/15 17:00:10  peter
     * moved delaycnt from interface to implementation
 
   Revision 1.8  1998/08/08 21:56:45  peter
