@@ -2583,7 +2583,7 @@ begin
       with MI do
         if (Attributes and vesa_vma_GraphicsMode)=0 then
           RegisterVideoMode(XResolution,YResolution,
-            (Attributes and vesa_vma_ColorMode)<>0,VESASetVideoModeProc,ML.Modes[I]);
+            (Attributes and vesa_vma_ColorMode)<>0,{$ifdef FPC}@{$endif}VESASetVideoModeProc,ML.Modes[I]);
     end;
 end;
 {$endif}
@@ -2607,7 +2607,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.30  1999-05-22 13:44:33  peter
+  Revision 1.31  1999-06-02 11:19:13  pierre
+   * @ is now required for FPC for procedure address passing in functions
+
+  Revision 1.30  1999/05/22 13:44:33  peter
     * fixed couple of bugs
 
   Revision 1.29  1999/04/15 08:58:08  peter
