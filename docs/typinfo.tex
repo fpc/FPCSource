@@ -2,7 +2,7 @@
 % The TYPINFO unit
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{The TYPINFO unit}
-
+\FPCexampledir{typinfex}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Constants, Types and variables
 \section{Constants, Types and variables}
@@ -188,32 +188,273 @@ TPropList = array[0..65535] of PPropInfo;
 % Functions and procedures
 \section{Functions and Procedures}
 
-\begin{function}{GetTypeData}
+\begin{function}{FindPropInfo}
 \Declaration
-Function GetTypeData(TypeInfo : PTypeInfo) : PTypeData;
+Function FindPropInfo(AClass:TClass;const PropName: string): PPropInfo;\\
+Function FindPropInfo(Instance: TObject; const PropName: string): PPropInfo;   
 \Description
-\var{GetTypeData} returns a pointer to the \var{TTypeData} record that
-follows after the \var{TTypeInfo} record pointed to by \var{TypeInfo}.
-It essentially skips the \var{Kind} and \var{Name} fields in the 
-\var{TTypeInfo} record.
+\var{FindPropInfo} examines the published property information of a class and
+returns a pointer to the property information for property \var{PropName}.
+The class to be examined can be specified in one of two ways:
+\begin{description}
+\item[AClass] a class pointer.
+\item[Instance] an instance of the class to be investigated.
+\end{description}
+If the property does not exist, a \var{EPropertyError} exception will be
+raised. The \seef{GetPropInfo} function has the same function as the
+\var{FindPropInfo} function, but returns \var{Nil} if the property does not
+exist.
 \Errors
-None.
+Specifying an invalid property name in \var{PropName} will result in an
+\var{EPropertyError} exception.
 \SeeAlso
+\seef{GetPropInfo}, \seef{GetPropList}, \seep{GetPropInfos}
 \end{function}
 
+\FPCexample{ex14}
+
+\begin{function}{GetEnumName}
+\Declaration
+Function GetEnumName(TypeInfo : PTypeInfo;Value : Integer) : string;
+\Description
+\var{GetEnumName} scans the type information for the enumeration type
+described by \var{TypeInfo} and returns the name of the enumeration 
+constant for the element with ordinal value equal to \var{Value}.
+
+If \var{Value} is out of range, the first element of the enumeration type
+is returned. The result is lowercased, but this may change in the future.
+
+This can be used in combination with \var{GetOrdProp} to stream a property
+of an enumerated type.
+\Errors
+No check is done to determine whether \var{TypeInfo} really points to the 
+type information for an enumerated type. 
+\SeeAlso
+\seef{GetOrdProp}, \seef{GetEnumValue}
+\end{function}
+
+\FPCexample{ex9}
+
+\begin{function}{GetEnumProp}
+\Declaration
+Function GetEnumProp(Instance: TObject;const PropInfo: PPropInfo): string;\\
+Function GetEnumProp(Instance: TObject;const PropName: string): string;       
+\Description
+\var{GetEnumProp} returns the value of an property of an enumerated type
+and returns the name of the enumerated value for the objetc \var{Instance}. 
+The property whose value must be returned can be specified by its property 
+info in \var{PropInfo} or by its name in \var{PropName}
+\Errors
+No check is done to determine whether \var{PropInfo} really points to the 
+property information for an enumerated type. 
+Specifying an invalid property name in \var{PropName} will result in an
+\var{EPropertyError} exception.
+\SeeAlso
+\seep{SetEnumProp} \seef{GetOrdProp}, \seef{GetStrProp},
+\seef{GetInt64Prop},\seef{GetMethodProp}, \seef{GetSetProp},
+\seef{GetObjectProp}, \seef{GetEnumProp}
+\end{function}
+
+\FPCexample{ex2}
+
+\begin{function}{GetEnumValue}
+\Declaration
+Function GetEnumValue(TypeInfo : PTypeInfo;const Name : string) : Integer;
+\Description
+\var{GetEnumValue} scans the type information for the enumeration type
+described by \var{TypeInfor} and returns the ordinal value for the element
+in the enumerated type that has identifier \var{Name}. The identifier is
+searched in a case-insensitive manner.
+
+This can be used to set the value of enumerated properties from a stream. 
+\Errors
+If \var{Name} is not found in the list of enumerated values, then -1 is
+returned. No check is done whether \var{TypeInfo} points to the type information
+for an enumerated type. 
+\SeeAlso
+\seef{GetEnumName}, \seep{SetOrdProp}
+\end{function}
+
+For an example, see \seef{GetEnumName}.
+
+\begin{function}{GetFloatProp}
+\Declaration
+Function GetFloatProp(Instance : TObject;PropInfo : PPropInfo) : Extended;\\
+Procedure SetFloatProp(Instance: TObject; const PropName: string; Value: Extended);
+\Description
+\var{GetFloatProp} returns the value of the float property described by 
+\var{PropInfo} or with name \var{Propname} for the object \var{Instance}. 
+All float types are converted
+to extended.
+\Errors
+No checking is done whether \var{Instance} is non-nil, or whether
+\var{PropInfo} describes a valid float property of \var{Instance}.
+Specifying an invalid property name in \var{PropName} will result in an
+\var{EPropertyError} exception.
+\SeeAlso
+\seep{SetFloatProp}, \seef{GetOrdProp}, \seef{GetStrProp},
+\seef{GetInt64Prop},\seef{GetMethodProp}, \seef{GetSetProp},
+\seef{GetObjectProp}, \seef{GetEnumProp}
+\end{function}
+
+\FPCexample{ex4}
+
+\begin{function}{GetInt64Prop}
+\Declaration
+Function GetInt64Prop(Instance: TObject; PropInfo: PPropInfo): Int64;\\
+Function GetInt64Prop(Instance: TObject; const PropName: string): Int64;
+\Description
+{\em Publishing of Int64 properties is not yet supported by \fpc. This
+function is provided for Delphi compatibility only at the moment.}
+
+\var{GetInt64Prop} returns the value of the property of type
+\var{Int64} that is described by \var{PropInfo} or with name \var{Propname} 
+for the object \var{Instance}.
+
+\Errors
+No checking is done whether \var{Instance} is non-nil, or whether
+\var{PropInfo} describes a valid \var{Int64} property of \var{Instance}.
+Specifying an invalid property name in \var{PropName} will result in an
+\var{EPropertyError} exception
+\SeeAlso
+\seep{SetInt64Prop}, \seef{GetOrdProp}, \seef{GetStrProp},
+\seef{GetFloatProp}, \seef{GetMethodProp}, \seef{GetSetProp},
+\seef{GetObjectProp}, \seef{GetEnumProp}
+\end{function}
+
+\FPCexample{ex15}
+
+\begin{function}{GetMethodProp}
+\Declaration
+Function GetMethodProp(Instance : TObject;PropInfo : PPropInfo) : TMethod;\\
+Function GetMethodProp(Instance: TObject; const PropName: string): TMethod;
+\Description
+\var{GetMethodProp} returns the method the property described by
+\var{PropInfo} or with name \var{Propname} for object \var{Instance}.
+The return type \var{TMethod} is defined in the \file{SysUtils} unit as:
+\begin{verbatim}
+TMethod = packed record
+  Code, Data: Pointer;
+end;                                                                         
+\end{verbatim}
+\var{Data} points to the instance of the class with the method \var{Code}.
+
+\Errors
+No checking is done whether \var{Instance} is non-nil, or whether
+\var{PropInfo} describes a valid method property of \var{Instance}.
+Specifying an invalid property name in \var{PropName} will result in an
+\var{EPropertyError} exception
+\SeeAlso
+\seep{SetMethodProp}, \seef{GetOrdProp}, \seef{GetStrProp},
+\seef{GetFloatProp}, \seef{GetInt64Prop}, \seef{GetSetProp},
+\seef{GetObjectProp}, \seef{GetEnumProp}
+\end{function}
+
+\FPCexample{ex6}
+
+\begin{function}{GetObjectProp}
+\Declaration
+Function GetObjectProp(Instance: TObject; const PropName: string): TObject;\\
+Function GetObjectProp(Instance: TObject; const PropName: string; MinClass:TClass): TObject; \\
+Function GetObjectProp(Instance: TObject; PropInfo: PPropInfo; MinClass: TClass):
+TObject;\\
+\Description
+\var{GetObjectProp} returns the object which the property descroibed by
+\var{PropInfo} with name \var{Propname} points to for object \var{Instance}.
+
+If \var{MinClass} is specified, then if the object is not descendent of
+class \var{MinClass}, then \var{Nil} is returned.
+
+\Errors
+No checking is done whether \var{Instance} is non-nil, or whether
+\var{PropInfo} describes a valid method property of \var{Instance}. 
+Specifying an invalid property name in \var{PropName} will result in an
+\var{EPropertyError} exception.
+\SeeAlso
+\seep{SetMethodProp}, \seef{GetOrdProp}, \seef{GetStrProp},
+\seef{GetFloatProp}, \seef{GetInt64Prop}, \seef{GetSetProp},
+\seef{GetObjectProp}, \seef{GetEnumProp}
+\end{function}
+
+\FPCexample{ex5}
+
+\begin{function}{GetObjectPropClass}
+\Declaration
+Function GetObjectPropClass(Instance: TObject; const PropName: string): TClass;                                             
+\Description
+\var{GetObjectPropClass} returns the declared class of the property with name 
+\var{PropName}. This may not be the actual class of the property value.
+\Errors
+No checking is done whether \var{Instance} is non-nil.
+Specifying an invalid property name in \var{PropName} will result in an
+\var{EPropertyError} exception.
+\SeeAlso
+\seep{SetMethodProp}, \seef{GetOrdProp}, \seef{GetStrProp},
+\seef{GetFloatProp}, \seef{GetInt64Prop}
+\end{function}
+
+For an example, see \seef{GetObjectProp}.
+
+\begin{function}{GetOrdProp}
+\Declaration
+Function GetOrdProp(Instance : TObject;PropInfo : PPropInfo) : Longint;\\
+Function GetOrdProp(Instance: TObject;const PropName: string): Longint;
+\Description
+\var{GetOrdProp} returns the value of the ordinal property described by
+\var{PropInfo} or with name \var{PropName} for the object \var{Instance}. 
+The value is returned as a longint, which should be typecasted to the 
+needed type.
+
+Ordinal properties that can be retrieved include:
+\begin{description}
+\item[Integers and subranges of integers] The value of the integer will be
+returned.
+\item[Enumerated types and subranges of enumerated types] The ordinal value
+of the enumerated type will be returned.
+\item[Sets] If the base type of the set has less than 31 possible values.
+If a bit is set in the return value, then the corresponding element of the
+base ordinal class of the set type must be included in the set.
+\end{description}
+\Errors
+No checking is done whether \var{Instance} is non-nil, or whether
+\var{PropInfo} describes a valid ordinal property of \var{Instance}
+Specifying an invalid property name in \var{PropName} will result in an
+\var{EPropertyError} exception.
+\SeeAlso
+\seep{SetOrdProp}, \seef{GetStrProp}, \seef{GetFloatProp},
+\seef{GetInt64Prop},\seef{GetMethodProp}, \seef{GetSetProp},
+\seef{GetObjectProp}, \seef{GetEnumProp}
+\end{function}
+
+\FPCexample{ex1}
 
 \begin{function}{GetPropInfo}
 \Declaration
-function GetPropInfo(TypeInfo: PTypeInfo; 
-                     const PropName: string) : PPropInfo;
+Function GetPropInfo(AClass: TClass; const PropName: string; AKinds: TTypeKinds) : PPropInfo;\\
+Function GetPropInfo(AClass: TClass; const PropName: string): PPropInfo;\\
+Function GetPropInfo(Instance: TObject; const PropName: string): PPropInfo;\\
+Function GetPropInfo(Instance: TObject; const PropName: string; AKinds: TTypeKinds) : PPropInfo;\\
+Function GetPropInfo(TypeInfo: PTypeInfo;const PropName: string) : PPropInfo;\\
+Function GetPropInfo(TypeInfo: PTypeInfo;const PropName: string; AKinds : TTypeKinds) : PPropInfo;
 \Description
-\var{GetPropInfo} returns a pointer to the \var{TPropInfo} record for a the \var{PropName}
-property of a class that has \var{TypeInfo} as class info. 
+\var{GetPropInfo} returns a pointer to the \var{TPropInfo} record for a the 
+\var{PropName} property of a class. The class to examine can be specified 
+in one of three ways:
+\begin{description}
+\item[Instance] An instance of the class.
+\item[AClass] A class pointer to the class.
+\item[TypeInfo] A pointer to the type information of the class.
+\end{description}
+In each of these three ways, if \var{AKinds} is specified, if the property 
+has \var{TypeKind} which is not included in \var{Akinds}, \var{Nil} will be
+returned.
 \Errors
 If the property \var{PropName} does not exist, \var{Nil} is returned.
 \SeeAlso
 \seep{GetPropInfos},\seef{GetPropList}
 \end{function}
+
+for an example, see most of the other functions.
 
 
 \begin{procedure}{GetPropInfos}
@@ -231,6 +472,7 @@ is big enough to hold all pointers.
 \seef{GetPropInfo},\seef{GetPropList}
 \end{procedure}
 
+\FPCexample{ex12}
 
 \begin{function}{GetPropList}
 \Declaration
@@ -251,14 +493,118 @@ to hold all pointers.
 \seep{GetPropInfos}, \seef{GetPropInfo}
 \end{function}
 
+\FPCexample{ex13}
+
+\begin{function}{GetPropValue}
+\Declaration
+Function GetPropValue(Instance: TObject; const PropName: string): Variant;\\
+Function GetPropValue(Instance: TObject; const PropName: string; PreferStrings: Boolean): Variant;
+\Description
+Due to missing \var{Variant} support, \var{GetPropValue} is not yet implemented. 
+The declaration is provided for compatibility with Delphi.
+\Errors
+\SeeAlso
+\end{function}
+
+\begin{function}{GetSetProp}
+\Declaration
+Function GetSetProp(Instance: TObject; const PropInfo: PPropInfo; Brackets: Boolean):
+string;\\
+Function GetSetProp(Instance: TObject; const PropName: string): string;\\
+Function GetSetProp(Instance: TObject; const PropName: string; Brackets: Boolean): string;                 
+\Description
+\var{GetSetProp} returns the contents of a set property as a string.
+The property to be returned can be specified by it's name in \var{PropName}
+or by its property information in \var{PropInfo}.
+
+The returned set is a string representation of the elements in the set as
+returned by \seef{SetToString}. The \var{Brackets} option can be used to 
+enclose the string representation in square brackets.
+\Errors
+No checking is done whether \var{Instance} is non-nil, or whether
+\var{PropInfo} describes a valid ordinal property of \var{Instance}
+Specifying an invalid property name in \var{PropName} will result in an
+\var{EPropertyError} exception.                                                 
+\SeeAlso
+\seep{SetSetProp}, \seef{GetStrProp}, \seef{GetFloatProp},
+\seef{GetInt64Prop},\seef{GetMethodProp}
+\end{function}
+
+\FPCexample{ex7}
+
+\begin{function}{GetStrProp}
+\Declaration
+Function GetStrProp(Instance : TObject;
+                    PropInfo : PPropInfo) : Ansistring;\\
+Function GetStrProp(Instance: TObject; 
+                    const PropName: string): string;
+\Description
+\var{GetStrProp} returns the value of the string property described by
+\var{PropInfo} or with name \var{PropName} for object \var{Instance}. 
+\Errors
+No checking is done whether \var{Instance} is non-nil, or whether
+\var{PropInfo} describes a valid string property of \var{Instance}.
+Specifying an invalid property name in \var{PropName} will result in an
+\var{EPropertyError} exception.
+\SeeAlso
+\seep{SetStrProp}, \seef{GetOrdProp}, \seef{GetFloatProp},
+\seef{GetInt64Prop},\seef{GetMethodProp}
+\end{function}
+
+\FPCexample{ex3}
+
+\begin{function}{GetTypeData}
+\Declaration
+Function GetTypeData(TypeInfo : PTypeInfo) : PTypeData;
+\Description
+\var{GetTypeData} returns a pointer to the \var{TTypeData} record that
+follows after the \var{TTypeInfo} record pointed to by \var{TypeInfo}.
+It essentially skips the \var{Kind} and \var{Name} fields in the 
+\var{TTypeInfo} record.
+\Errors
+None.
+\SeeAlso
+\end{function}
+
+\begin{function}{GetVariantProp}
+\Declaration
+Function GetVariantProp(Instance : TObject;PropInfo : PPropInfo): Variant;
+\Description
+Due to mising Variant support, the \var{GetVariantProp} function is not 
+yet implemented. Provided for Delphi compatibility only.
+\Errors
+\SeeAlso
+\seep{SetVariantProp}
+\end{function}
+
+\begin{function}{IsPublishedProp}
+\Declaration
+Function IsPublishedProp(AClass: TClass; const PropName: string): Boolean;\\
+Function IsPublishedProp(Instance: TObject; const PropName: string): Boolean;                              
+\Description
+\var{IsPublishedProp} returns true if a class has a published property with
+name \var{PropName}. The class can be specfied in one of two ways:
+\begin{description}
+\item[AClass] A class pointer to the class.
+\item[Instance] An instance of the class.
+\end{description}
+\Errors
+No checks are done to ensure \var{Instance} or \var{AClass} are valid
+pointers. Specifying an invalid property name in \var{PropName} will result
+in an \var{EPropertyError} exception.                                                 
+\SeeAlso
+\seef{IsStoredProp}, \seef{PropIsType}
+\end{function}
 
 \begin{function}{IsStoredProp}
 \Declaration
-Function IsStoredProp(Instance : TObject;PropInfo : PPropInfo) : Boolean;
+Function IsStoredProp(Instance : TObject;PropInfo : PPropInfo) : Boolean;\\
+Function IsStoredProp(Instance: TObject; const PropName: string): Boolean; 
 \Description
 \var{IsStoredProp} returns \var{True} if the \var{Stored} modifier evaluates
-to \var{True} for the property described by \var{PropInfo} for object 
-\var{Instance}. It returns \var{False} otherwise. If the function returns
+to \var{True} for the property described by \var{PropInfo} or with name
+\var{PropName} for object \var{Instance}. 
+It returns \var{False} otherwise. If the function returns
 \var{True}, this indicates that the property should be written when
 streaming the object \var{Instance}.
 
@@ -267,44 +613,168 @@ If there was no \var{stored} modifier in the declaration of the property,
 \Errors
 No checking is done whether \var{Instance} is non-nil, or whether
 \var{PropInfo} describes a valid property of \var{Instance}.
+Specifying an invalid property name in \var{PropName} will result in an
+\var{EPropertyError} exception.                                                 
 \SeeAlso
+\seef{IsPublishedProp}, \seef{PropIsType}
 \end{function}
 
-
-\begin{function}{GetOrdProp}
+\begin{function}{PropIsType}
 \Declaration
-Function GetOrdProp(Instance : TObject;PropInfo : PPropInfo) : Longint;
+Function PropIsType(AClass: TClass; 
+                    const PropName: string; TypeKind: TTypeKind): Boolean;\\
+Function PropIsType(Instance: TObject; 
+                    const PropName: string; TypeKind: TTypeKind): Boolean;              
 \Description
-\var{GetOrdProp} returns the value of the ordinal property described by
-\var{PropInfo} for the object \var{Instance}. The value is returned as a
-longint, which should be typecasted to the needed type.
-
-Ordinal properties that can be retrieved include:
+\var{PropIsType} returns \var{True} if the property with name \var{PropName}
+has type \var{TypeKind}. It returns \var{False} otherwise. The class to be
+examined can be specified in one of two ways:
 \begin{description}
-\item[Integers and subranges of integers] The value of the integer will be
-returned.
-\item[Enumerated types and subranges of enumerated types] The ordinal value
-of the enumerated type will be returned.
-\item[Sets] If the base type of the set has less than 31 possible values.
-If a bit is set in the return value, then the corresponding element of the
-base ordinal class of the set type must be included in the set.
+\item[AClass] A class pointer. 
+\item[Instance] An instance of the class.
 \end{description}
 \Errors
-No checking is done whether \var{Instance} is non-nil, or whether
-\var{PropInfo} describes a valid ordinal property of \var{Instance}
+No checks are done to ensure \var{Instance} or \var{AClass} are valid
+pointers.Specifying an invalid property name in \var{PropName} will result
+in an \var{EPropertyError} exception.                                                 
 \SeeAlso
-\seep{SetOrdProp}, \seef{GetStrProp}, \seef{GetFloatProp},
-\seef{GetInt64Prop},\seef{GetMethodProp}
-
+\seef{IsPublishedProp}, \seef{IsStoredProp}, \seef{PropType}
 \end{function}
 
+\begin{function}{PropType}
+\Declaration
+Function PropType(AClass: TClass; const PropName: string): TTypeKind;\\
+Function PropType(Instance: TObject; const PropName: string): TTypeKind;
+\Description
+\var{Proptype} returns the type of the property \var{PropName} for a class.
+The class to be examined can be specified in one of 2 ways:
+\begin{description}
+\item[AClass] A class pointer. 
+\item[Instance] An instance of the class.
+\end{description}
+\Errors
+No checks are done to ensure \var{Instance} or \var{AClass} are valid
+pointers. Specifying an invalid property name in \var{PropName} will result
+in an \var{EPropertyError} exception.
+\SeeAlso
+\seef{IsPublishedProp}, \seef{IsStoredProp}, \seef{PropIsType}
+\end{function}
+
+\begin{procedure}{SetEnumProp}
+\Declaration
+Procedure SetEnumProp(Instance: TObject; const PropInfo: PPropInfo;
+                      const Value: string);\\
+Procedure SetEnumProp(Instance: TObject; const PropName: string;
+                      const Value: string);                      
+\Description
+\var{SetEnumProp} sets the property described by \var{PropInfo} or with name
+\var{PropName} to \var{Value}. \var{Value} must be a string with the name
+of the enumerate value, i.e. it can be used as an argument to 
+\seef{GetEnumValue}.
+\Errors
+No checks are done to ensure \var{Instance} or \var{PropInfo} are valid
+pointers. Specifying an invalid property name in \var{PropName} will result
+in an \var{EPropertyError} exception.                                           
+\SeeAlso
+\seef{GetEnumProp}, \seep{SetStrProp}, \seep{SetFloatProp},
+\seep{SetInt64Prop},\seep{SetMethodProp}.
+\end{procedure}
+
+\begin{procedure}{SetFloatProp}
+\Declaration
+Procedure SetFloatProp(Instance : TObject;
+                       PropInfo : PPropInfo;
+                       Value : Extended);\\
+Procedure SetFloatProp(Instance: TObject; 
+                       const PropName: string; 
+                       Value: Extended);
+\Description
+\var{SetFloatProp} assigns \var{Value} to the property described by
+\var{PropInfo} or with name \var{Propname} for the object \var{Instance}.
+\Errors
+No checking is done whether \var{Instance} is non-nil, or whether
+\var{PropInfo} describes a valid float property of \var{Instance}.
+Specifying an invalid property name in \var{PropName} will result in an
+\var{EPropertyError} exception.
+\SeeAlso
+\seef{GetFloatProp}, \seep{SetOrdProp}, \seep{SetStrProp},
+\seep{SetInt64Prop},\seep{SetMethodProp}
+\end{procedure}
+
+\begin{procedure}{SetInt64Prop}
+\Declaration
+Procedure SetInt64Prop(Instance: TObject; PropInfo: PPropInfo; const Value: Int64);\\
+Procedure SetInt64Prop(Instance: TObject; const PropName: string; const Value: Int64);
+\Description
+\var{SetInt64Prop} assigns \var{Value} to the property of type
+\var{Int64} that is described by \var{PropInfo} or with name \var{Propname} 
+for the object \var{Instance}.
+\Errors
+No checking is done whether \var{Instance} is non-nil, or whether
+\var{PropInfo} describes a valid \var{Int64} property of \var{Instance}.
+Specifying an invalid property name in \var{PropName} will result in an
+\var{EPropertyError} exception.
+\SeeAlso
+\seef{GetInt64Prop}, \seef{GetMethodProp}, \seep{SetOrdProp}, \seep{SetStrProp},
+\seep{SetFloatProp}
+\end{procedure}
+
+\begin{procedure}{SetMethodProp}
+\Declaration
+Procedure SetMethodProp(Instance : TObject;PropInfo : PPropInfo; const Value :
+TMethod);\\
+Procedure SetMethodProp(Instance: TObject; const PropName: string; const Value: TMethod);
+\Description
+\var{SetMethodProp} assigns \var{Value} to the method the property described 
+by \var{PropInfo} or with name \var{Propname} for object \var{Instance}.
+
+The type \var{TMethod} of the \var{Value} parameter is defined in the
+\file{SysUtils} unit as:
+\begin{verbatim}
+TMethod = packed record
+  Code, Data: Pointer;
+end;                                                                         
+\end{verbatim}
+\var{Data} should point to the instance of the class with the method \var{Code}.
+
+\Errors
+No checking is done whether \var{Instance} is non-nil, or whether
+\var{PropInfo} describes a valid method property of \var{Instance}.
+Specifying an invalid property name in \var{PropName} will result in an
+\var{EPropertyError} exception.
+\SeeAlso
+\seef{GetMethodProp}, \seep{SetOrdProp}, \seep{SetStrProp},
+\seep{SetFloatProp}, \seep{SetInt64Prop}
+\end{procedure}
+
+\begin{procedure}{SetObjectProp}
+\Declaration
+Procedure SetObjectProp(Instance: TObject; 
+                        PropInfo: PPropInfo; Value: TObject);\\
+Procedure SetObjectProp(Instance: TObject; 
+                        const PropName: string; Value: TObject);                        
+\Description
+\var{SetObjectProp} assigns \var{Value} to the the object property described by
+\var{PropInfo} or with name \var{Propname} for the object \var{Instance}. 
+\Errors
+No checking is done whether \var{Instance} is non-nil, or whether
+\var{PropInfo} describes a valid method property of \var{Instance}.
+Specifying an invalid property name in \var{PropName} will result in an
+\var{EPropertyError} exception.
+\SeeAlso
+\seef{GetObjectProp}, \seep{SetOrdProp}, \seep{SetStrProp},
+\seep{SetFloatProp}, \seep{SetInt64Prop}, \seep{SetMethodProp}
+\end{procedure}
 
 \begin{procedure}{SetOrdProp}
 \Declaration
-Procedure SetOrdProp(Instance : TObject;PropInfo : PPropInfo; Value : Longint);
+Procedure SetOrdProp(Instance : TObject; PropInfo : PPropInfo; 
+                     Value : Longint);\\
+Procedure SetOrdProp(Instance: TObject; const PropName: string;
+                     Value: Longint);
 \Description
 \var{SetOrdProp} assigns \var{Value} to the the ordinal property described by 
-\var{PropInfo} for the object \var{Instance}. 
+\var{PropInfo} or with name \var{Propname} for the object \var{Instance}. 
 
 Ordinal properties that can be set include:
 \begin{description}
@@ -321,92 +791,71 @@ For each possible value; the corresponding bit of \var{Value} must be set.
 No checking is done whether \var{Instance} is non-nil, or whether
 \var{PropInfo} describes a valid ordinal property of \var{Instance}. 
 No range checking is performed.
+Specifying an invalid property name in \var{PropName} will result in an
+\var{EPropertyError} exception.
 \SeeAlso
 \seef{GetOrdProp}, \seep{SetStrProp}, \seep{SetFloatProp},
 \seep{SetInt64Prop},\seep{SetMethodProp}
 \end{procedure}
 
-
-\begin{function}{GetStrProp}
+\begin{procedure}{SetPropValue}
 \Declaration
-Function GetStrProp(Instance : TObject;PropInfo : PPropInfo) : Ansistring;
+Procedure SetPropValue(Instance: TObject; 
+                       const PropName: string; const Value: Variant);                   
 \Description
-\var{GetStrProp} returns the value of the string property described by
-\var{PropInfo} for object \var{Instance}. 
 \Errors
-No checking is done whether \var{Instance} is non-nil, or whether
-\var{PropInfo} describes a valid string property of \var{Instance}.
 \SeeAlso
-\seep{SetStrProp}, \seef{GetOrdProp}, \seef{GetFloatProp},
-\seef{GetInt64Prop},\seef{GetMethodProp}
-\end{function}
+\end{procedure}
+
+\begin{procedure}{SetSetProp}
+\Declaration
+Procedure SetSetProp(Instance: TObject; 
+                     const PropInfo: PPropInfo; const Value: string);\\
+Procedure SetSetProp(Instance: TObject;
+                     const PropName: string; const Value: string);                      
+\Description
+\Errors
+\SeeAlso
+\end{procedure}
 
 \begin{procedure}{SetStrProp}
 \Declaration
-    procedure SetStrProp(Instance : TObject;PropInfo : PPropInfo;
-      const Value : Ansistring);
+procedure SetStrProp(Instance : TObject; PropInfo : PPropInfo; 
+                     const Value : Ansistring);\\
+Procedure SetStrProp(Instance: TObject; const PropName: string; 
+                     const Value: AnsiString);
 \Description
-\var{GetStrProp} assigns \var{Value} to the string property described by
-\var{PropInfo} for object \var{Instance}. 
+\var{SetStrProp} assigns \var{Value} to the string property described by
+\var{PropInfo} or with name \var{Propname} for object \var{Instance}. 
 \Errors
 No checking is done whether \var{Instance} is non-nil, or whether
 \var{PropInfo} describes a valid string property of \var{Instance}.
+Specifying an invalid property name in \var{PropName} will result in an
+\var{EPropertyError} exception.
 \SeeAlso
 \seef{GetStrProp}, \seep{SetOrdProp}, \seep{SetFloatProp},
 \seep{SetInt64Prop},\seep{SetMethodProp}
-
-
 \end{procedure}
 
-\begin{function}{GetFloatProp}
+\begin{function}{SetToString}
 \Declaration
-Function GetFloatProp(Instance : TObject;PropInfo : PPropInfo) : Extended;
+function SetToString(PropInfo: PPropInfo; 
+                     Value: Integer) : String;\\
+function SetToString(PropInfo: PPropInfo; 
+                     Value: Integer; Brackets: Boolean) : String;
 \Description
-\var{GetFloatProp} returns the value of the float property described by 
-\var{PropInfo} for the object \var{Instance}. All float types are converted
-to extended.
-\Errors
-No checking is done whether \var{Instance} is non-nil, or whether
-\var{PropInfo} describes a valid float property of \var{Instance}.
-\SeeAlso
-\seep{SetFloatProp}, \seef{GetOrdProp}, \seef{GetStrProp},
-\seef{GetInt64Prop},\seef{GetMethodProp}
-\end{function}
-
-
-\begin{procedure}{SetFloatProp}
-\Declaration
-Procedure SetFloatProp(Instance : TObject;
-                       PropInfo : PPropInfo;
-                       Value : Extended);
-\Description
-\var{SetFloatProp} assigns \var{Value} to the property described by
-\var{PropInfo} for the object \var{Instance}.
-\Errors
-No checking is done whether \var{Instance} is non-nil, or whether
-\var{PropInfo} describes a valid float property of \var{Instance}.
-\SeeAlso
-\seef{GetFloatProp}, \seep{SetOrdProp}, \seep{SetStrProp},
-\seep{SetInt64Prop},\seep{SetMethodProp}
-
-\end{procedure}
-
-
-\begin{function}{GetVariantProp}
-\Declaration
-Function GetVariantProp(Instance : TObject;PropInfo : PPropInfo): Variant;
-\Description
-Not yet implemented. Provided for Delphi compatibility only.
 \Errors
 \SeeAlso
 \end{function}
-
 
 \begin{procedure}{SetVariantProp}
 \Declaration
 Procedure SetVariantProp(Instance : TObject;
                          PropInfo : PPropInfo;
-                         Const Value: Variant);
+                         Const Value: Variant);\\
+Procedure SetVariantProp(Instance: TObject; 
+                         const PropName: string; 
+                         const Value: Variant);                 
 \Description
 Not yet implemented. Provided for Delphi compatibility only.
 \Errors
@@ -414,119 +863,10 @@ Not yet implemented. Provided for Delphi compatibility only.
 \end{procedure}
 
 
-\begin{function}{GetMethodProp}
+\begin{function}{StringToSet}
 \Declaration
-Function GetMethodProp(Instance : TObject;PropInfo : PPropInfo) : TMethod;
+function StringToSet(PropInfo: PPropInfo; const Value: string): Integer;
 \Description
-\var{GetMethodProp} returns the method the property described by
-\var{PropInfo} for object \var{Instance}.
-The return type \var{TMethod} is defined in the \file{SysUtils} unit as:
-\begin{verbatim}
-TMethod = packed record
-  Code, Data: Pointer;
-end;                                                                         
-\end{verbatim}
-\var{Data} points to the instance of the class with the method \var{Code}.
-
 \Errors
-No checking is done whether \var{Instance} is non-nil, or whether
-\var{PropInfo} describes a valid method property of \var{Instance}.
 \SeeAlso
-\seep{SetMethodProp}, \seef{GetOrdProp}, \seef{GetStrProp},
-\seef{GetFloatProp}, \seef{GetInt64Prop}
-\end{function}
-
-
-\begin{procedure}{SetMethodProp}
-\Declaration
-Procedure SetMethodProp(Instance : TObject;PropInfo : PPropInfo; const Value : TMethod);
-\Description
-\var{SetMethodProp} assigns \var{Value} to the method the property described 
-by \var{PropInfo} for object \var{Instance}.
-
-The type \var{TMethod} of the \var{Value} parameter is defined in the
-\file{SysUtils} unit as:
-\begin{verbatim}
-TMethod = packed record
-  Code, Data: Pointer;
-end;                                                                         
-\end{verbatim}
-\var{Data} should point to the instance of the class with the method \var{Code}.
-
-\Errors
-No checking is done whether \var{Instance} is non-nil, or whether
-\var{PropInfo} describes a valid method property of \var{Instance}.
-\SeeAlso
-\seef{GetMethodProp}, \seep{SetOrdProp}, \seep{SetStrProp},
-\seep{SetFloatProp}, \seep{SetInt64Prop}
-\end{procedure}
-
-\begin{function}{GetInt64Prop}
-\Declaration
-Function GetInt64Prop(Instance: TObject; PropInfo: PPropInfo): Int64;
-\Description
-\var{GetInt64Prop} returns the value of the property of type
-\var{Int64} that is described by \var{PropInfo} for the object
-\var{Instance}.
-
-\Errors
-No checking is done whether \var{Instance} is non-nil, or whether
-\var{PropInfo} describes a valid \var{Int64} property of \var{Instance}.
-\SeeAlso
-\seep{SetInt64Prop}, \seef{GetOrdProp}, \seef{GetStrProp},
-\seef{GetFloatProp}, \seef{GetMethodProp}
-
-\end{function}
-
-\begin{procedure}{SetInt64Prop}
-\Declaration
-Procedure SetInt64Prop(Instance: TObject; PropInfo: PPropInfo; const Value: Int64);
-\Description
-\var{SetInt64Prop} assigns \var{Value} to the property of type
-\var{Int64} that is described by \var{PropInfo} for the object
-\var{Instance}.
-\Errors
-No checking is done whether \var{Instance} is non-nil, or whether
-\var{PropInfo} describes a valid \var{Int64} property of \var{Instance}.
-\SeeAlso
-\seef{GetInt64Prop}, \seef{GetMethodProp}, \seep{SetOrdProp}, \seep{SetStrProp},
-\seep{SetFloatProp}
-\end{procedure}
-
-\begin{function}{GetEnumName}
-\Declaration
-Function GetEnumName(TypeInfo : PTypeInfo;Value : Integer) : string;
-\Description
-\var{GetEnumName} scans the type information for the enumeration type
-desribed by \var{TypeInfo} and returns the name of the enumeration 
-constant for the element with ordinal value equal to \var{Value}.
-
-If \var{Value} is out of range, the first element of the enumeration type
-is returned. The result is lowercased, but this may change in the future.
-
-This can be used in combination with \var{GetOrdProp} to stream a property
-of an enumerated type.
-\Errors
-No check is done whether \var{TypeInfo} points to the type information
-for an enumerated type. 
-\SeeAlso
-\seef{GetOrdProp}, \seef{GetEnumValue}
-\end{function}
-
-\begin{function}{GetEnumValue}
-\Declaration
-Function GetEnumValue(TypeInfo : PTypeInfo;const Name : string) : Integer;
-\Description
-\var{GetEnumValue} scans the type information for the enumeration type
-described by \var{TypeInfor} and returns the ordinal value for the element
-in the enumerated type that has identifier \var{Name}. The identifier is
-searched in a case-insensitive manner.
-
-This can be used to set the value of enumerated properties from a stream. 
-\Errors
-If \var{Name} is not found in the list of enumerated values, then -1 is
-returned. No check is done whether \var{TypeInfo} points to the type information
-for an enumerated type. 
-\SeeAlso
-\seef{GetEnumName}, \seep{SetOrdProp}
 \end{function}
