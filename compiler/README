@@ -87,3 +87,23 @@ Changes in the syntax or semantic of FPC:
   01/04/00   fix the handling of value parameters in cdecl function
   11/05/00   changed vmt handling to fix problems some problems
              with overloading in objects
+  11/11/00   default parameter support
+  11/11/00   you can declare a pointer type with directive far; to make
+             it a farpointer. Only usefull for dos.
+  11/11/00   ptr() returns a farpointer instead of pointer. Becuase the
+             pointer result would be useless and only causing segmentation
+             faults. With the farpointer this would already be detected at
+             compiletime. To get the code working you can declare a pointer
+             with far; like:
+
+             type
+               farlongint = ^longint;far;
+             var
+               timer : farlongint;
+             begin
+               timer:=ptr($40,$6c);
+               writeln(timer^);
+             end.
+
+
+
