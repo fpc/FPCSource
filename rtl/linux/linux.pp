@@ -174,48 +174,48 @@ Const
   NCC = 8;
 
   { For Terminal handling }
-  TCGETS          = $5401;
-  TCSETS          = $5402;
-  TCSETSW         = $5403;
-  TCSETSF         = $5404;
-  TCGETA          = $5405;
-  TCSETA          = $5406;
-  TCSETAW         = $5407;
-  TCSETAF         = $5408;
-  TCSBRK          = $5409;
-  TCXONC          = $540A;
-  TCFLSH          = $540B;
-  TIOCEXCL        = $540C;
-  TIOCNXCL        = $540D;
+  TCGETS	  = $5401;
+  TCSETS	  = $5402;
+  TCSETSW	 = $5403;
+  TCSETSF	 = $5404;
+  TCGETA	  = $5405;
+  TCSETA	  = $5406;
+  TCSETAW	 = $5407;
+  TCSETAF	 = $5408;
+  TCSBRK	  = $5409;
+  TCXONC	  = $540A;
+  TCFLSH	  = $540B;
+  TIOCEXCL	= $540C;
+  TIOCNXCL	= $540D;
   TIOCSCTTY       = $540E;
   TIOCGPGRP       = $540F;
   TIOCSPGRP       = $5410;
-  TIOCOUTQ        = $5411;
-  TIOCSTI         = $5412;
+  TIOCOUTQ	= $5411;
+  TIOCSTI	 = $5412;
   TIOCGWINSZ      = $5413;
   TIOCSWINSZ      = $5414;
-  TIOCMGET        = $5415;
-  TIOCMBIS        = $5416;
-  TIOCMBIC        = $5417;
-  TIOCMSET        = $5418;
+  TIOCMGET	= $5415;
+  TIOCMBIS	= $5416;
+  TIOCMBIC	= $5417;
+  TIOCMSET	= $5418;
   TIOCGSOFTCAR    = $5419;
   TIOCSSOFTCAR    = $541A;
-  FIONREAD        = $541B;
-  TIOCINQ         = FIONREAD;
+  FIONREAD	= $541B;
+  TIOCINQ	 = FIONREAD;
   TIOCLINUX       = $541C;
-  TIOCCONS        = $541D;
+  TIOCCONS	= $541D;
   TIOCGSERIAL     = $541E;
   TIOCSSERIAL     = $541F;
-  TIOCPKT         = $5420;
-  FIONBIO         = $5421;
+  TIOCPKT	 = $5420;
+  FIONBIO	 = $5421;
   TIOCNOTTY       = $5422;
-  TIOCSETD        = $5423;
-  TIOCGETD        = $5424;
-  TCSBRKP         = $5425;
+  TIOCSETD	= $5423;
+  TIOCGETD	= $5424;
+  TCSBRKP	 = $5425;
   TIOCTTYGSTRUCT  = $5426;
-  FIONCLEX        = $5450;
-  FIOCLEX         = $5451;
-  FIOASYNC        = $5452;
+  FIONCLEX	= $5450;
+  FIOCLEX	 = $5451;
+  FIOASYNC	= $5452;
   TIOCSERCONFIG   = $5453;
   TIOCSERGWILD    = $5454;
   TIOCSERSWILD    = $5455;
@@ -247,11 +247,11 @@ Type
   TWinSize=winsize;
 
   Termio = packed record
-    c_iflag,                             { input mode flags }
-    c_oflag,                             { output mode flags }
-    c_cflag,                             { control mode flags }
-    c_lflag  : Word;                    { local mode flags }
-    c_line   : Word;                    { line discipline - careful, only High byte in use}
+    c_iflag,			     { input mode flags }
+    c_oflag,			     { output mode flags }
+    c_cflag,			     { control mode flags }
+    c_lflag  : Word;		    { local mode flags }
+    c_line   : Word;		    { line discipline - careful, only High byte in use}
     c_cc     : array [0..NCC-1] of char;{ control characters }
   end;
   TTermio=Termio;
@@ -449,12 +449,12 @@ Type
     totalswap,
     freeswap  : longint;
     procs     : integer;
-    s         : string[18];
+    s	 : string[18];
   end;
   PSysInfo = ^TSysInfo;
 
 {******************************************************************************
-                            Procedure/Functions
+			    Procedure/Functions
 ******************************************************************************}
 
 Function SysCall(callnr:longint;var regs:SysCallregs):longint;
@@ -539,7 +539,7 @@ Function  FSStat(Path:Pathstr;Var Info:statfs):Boolean;
 Function  FSStat(Fd: Longint;Var Info:statfs):Boolean;
 Function  Fcntl(Fd:Text;Cmd:Integer):integer;
 Procedure Fcntl(Fd:Text;Cmd:Integer;Arg:Longint);
-Function  Dup(oldfile,newfile:longint):Boolean;
+Function  Dup(oldfile:longint;var newfile:longint):Boolean;
 Function  Dup(var oldfile,newfile:text):Boolean;
 Function  Dup(var oldfile,newfile:file):Boolean;
 Function  Dup2(oldfile,newfile:longint):Boolean;
@@ -587,7 +587,7 @@ Function  Sysinfo(var Info:TSysinfo):Boolean;
 Function  Uname(var unamerec:utsname):Boolean;
 
 {**************************
-        Signal
+	Signal
 ***************************}
 
 Procedure SigAction(Signum:Integer;Var Act,OldAct:PSigActionRec );
@@ -671,7 +671,7 @@ Function S_ISSOCK(m:integer):boolean;
 
 
 {******************************************************************************
-                            Implementation
+			    Implementation
 ******************************************************************************}
 
 Implementation
@@ -692,7 +692,7 @@ var
 
 
 {******************************************************************************
-                          Process related calls
+			  Process related calls
 ******************************************************************************}
 
 function CreateShellArgV(const prog:string):ppchar;
@@ -892,7 +892,7 @@ Function Shell(const Command:String):Longint;
   If the Exec call failed exit status 127 is reported.
 }
 var
-  p        : ppchar;
+  p	: ppchar;
   temp,pid : longint;
 begin
   pid:=fork;
@@ -916,14 +916,14 @@ Function GetPriority(Which,Who:Integer):integer;
 {
   Get Priority of process, process group, or user.
    Which : selects what kind of priority is used.
-           can be one of the following predefined Constants :
-              Prio_User.
-              Prio_PGrp.
-              Prio_Process.
+	   can be one of the following predefined Constants :
+	      Prio_User.
+	      Prio_PGrp.
+	      Prio_Process.
    Who : depending on which, this is , respectively :
-              Uid
-              Pid
-              Process Group id
+	      Uid
+	      Pid
+	      Process Group id
    Errors are reported in linuxerror _only_. (priority can be negative)
 }
 var
@@ -951,16 +951,16 @@ Procedure SetPriority(Which:Integer;Who:Integer;What:Integer);
 {
  Set Priority of process, process group, or user.
    Which : selects what kind of priority is used.
-           can be one of the following predefined Constants :
-              Prio_User.
-              Prio_PGrp.
-              Prio_Process.
+	   can be one of the following predefined Constants :
+	      Prio_User.
+	      Prio_PGrp.
+	      Prio_Process.
    Who : depending on value of which, this is, respectively :
-              Uid
-              Pid
-              Process Group id
+	      Uid
+	      Pid
+	      Process Group id
    what : A number between -20 and 20. -20 is most favorable, 20 least.
-          0 is the default.
+	  0 is the default.
 }
 var
   sr : Syscallregs;
@@ -1072,7 +1072,7 @@ end;
 
 
 {******************************************************************************
-                       Date and Time related calls
+		       Date and Time related calls
 ******************************************************************************}
 
 Const
@@ -1212,7 +1212,7 @@ Function LocalToEpoch(year,month,day,hour,minute,second:Word):Longint;
 }
 Begin
   LocalToEpoch:=((GregorianToJulian(Year,Month,Day)-c1970)*86400)+
-               (LongInt(Hour)*3600)+(Minute*60)+Second+(LocalTZ.minuteswest*60);
+	       (LongInt(Hour)*3600)+(Minute*60)+Second+(LocalTZ.minuteswest*60);
 End;
 
 
@@ -1267,7 +1267,7 @@ end;
 
 
 {******************************************************************************
-                           FileSystem calls
+			   FileSystem calls
 ******************************************************************************}
 
 Function fdOpen(pathname:string;flags:longint):longint;
@@ -1382,13 +1382,13 @@ begin
      Linuxerror:=SysCall(Syscall_nr_fcntl,sr);
      if linuxerror=-1 then
       begin
-        linuxerror:=errno;
-        fcntl:=0;
+	linuxerror:=errno;
+	fcntl:=0;
       end
      else
       begin
-        fcntl:=linuxerror;
-        linuxerror:=0;
+	fcntl:=linuxerror;
+	linuxerror:=0;
       end;
    end
   else
@@ -1708,7 +1708,7 @@ begin
 end;
 
 
-Function Dup(oldfile,newfile:longint):Boolean;
+Function Dup(oldfile:longint;var newfile:longint):Boolean;
 {
   Copies the filedescriptor oldfile to newfile
 }
@@ -1857,7 +1857,7 @@ end;
 
 
 {******************************************************************************
-                               Directory
+			       Directory
 ******************************************************************************}
 
 Function OpenDir(F:String):PDir;
@@ -1906,16 +1906,16 @@ end;
 
 
 {******************************************************************************
-                               Pipes/Fifo
+			       Pipes/Fifo
 ******************************************************************************}
 
 Procedure OpenPipe(var F:Text);
 begin
   case textrec(f).mode of
    fmoutput : if textrec(f).userdata[1]<>P_OUT then
-               textrec(f).mode:=fmclosed;
+	       textrec(f).mode:=fmclosed;
     fminput : if textrec(f).userdata[1]<>P_IN then
-               textrec(f).mode:=fmclosed;
+	       textrec(f).mode:=fmclosed;
   else
    textrec(f).mode:=fmclosed;
   end;
@@ -1926,11 +1926,11 @@ Procedure IOPipe(var F:text);
 begin
   case textrec(f).mode of
    fmoutput : begin
-                { first check if we need something to write, else we may
-                  get a SigPipe when Close() is called (PFV) }
-                if textrec(f).bufpos>0 then
-                 Sys_write(textrec(f).handle,pchar(textrec(f).bufptr),textrec(f).bufpos);
-              end;
+		{ first check if we need something to write, else we may
+		  get a SigPipe when Close() is called (PFV) }
+		if textrec(f).bufpos>0 then
+		 Sys_write(textrec(f).handle,pchar(textrec(f).bufptr),textrec(f).bufpos);
+	      end;
     fminput : textrec(f).bufend:=Sys_read(textrec(f).handle,pchar(textrec(f).bufptr),textrec(f).bufsize);
   end;
   textrec(f).bufpos:=0;
@@ -2116,19 +2116,19 @@ begin
    { We're in the child }
      if rw='W' then
       begin
-        close(pipo);
-        dup2(pipi,input);
-        close(pipi);
-        if linuxerror<>0 then
-         halt(127);
+	close(pipo);
+	dup2(pipi,input);
+	close(pipi);
+	if linuxerror<>0 then
+	 halt(127);
       end
      else
       begin
-        close(pipi);
-        dup2(pipo,output);
-        close(pipo);
-        if linuxerror<>0 then
-         halt(127);
+	close(pipi);
+	dup2(pipo,output);
+	close(pipo);
+	if linuxerror<>0 then
+	 halt(127);
       end;
      pp:=createshellargv(prog);
      Execve(pp^,pp,envp);
@@ -2139,15 +2139,15 @@ begin
    { We're in the parent }
      if rw='W' then
       begin
-        close(pipi);
-        f:=pipo;
-        textrec(f).bufptr:=@textrec(f).buffer;
+	close(pipi);
+	f:=pipo;
+	textrec(f).bufptr:=@textrec(f).buffer;
       end
      else
       begin
-        close(pipo);
-        f:=pipi;
-        textrec(f).bufptr:=@textrec(f).buffer;
+	close(pipo);
+	f:=pipi;
+	textrec(f).bufptr:=@textrec(f).buffer;
       end;
    {Save the process ID - needed when closing }
      pl:=@(textrec(f).userdata[2]);
@@ -2195,19 +2195,19 @@ begin
    { We're in the child }
      if rw='W' then
       begin
-        close(pipo);
-        dup2(filerec(pipi).handle,stdinputhandle);
-        close(pipi);
-        if linuxerror<>0 then
-         halt(127);
+	close(pipo);
+	dup2(filerec(pipi).handle,stdinputhandle);
+	close(pipi);
+	if linuxerror<>0 then
+	 halt(127);
       end
      else
       begin
-        close(pipi);
-        dup2(filerec(pipo).handle,stdoutputhandle);
-        close(pipo);
-        if linuxerror<>0 then
-         halt(127);
+	close(pipi);
+	dup2(filerec(pipo).handle,stdoutputhandle);
+	close(pipo);
+	if linuxerror<>0 then
+	 halt(127);
       end;
      getmem(pp,sizeof(pchar)*4);
      temp:='/bin/sh'#0'-c'#0+prog+#0;
@@ -2226,13 +2226,13 @@ begin
    { We're in the parent }
      if rw='W' then
       begin
-        close(pipi);
-        f:=pipo;
+	close(pipi);
+	f:=pipo;
       end
      else
       begin
-        close(pipo);
-        f:=pipi;
+	close(pipo);
+	f:=pipi;
       end;
    {Save the process ID - needed when closing }
      pl:=@(filerec(f).userdata[2]);
@@ -2260,7 +2260,7 @@ Procedure AssignStream(Var StreamIn,Streamout:text;Const Prog:String);
   specified in 'Prog'.
   streamout can be used to write to the program, streamin can be used to read
   the output of the program. See the following diagram :
-  Parent          Child
+  Parent	  Child
   STreamout -->  Input
   Streamin  <--  Output
 }
@@ -2322,7 +2322,7 @@ end;
 
 
 {******************************************************************************
-                        General information calls
+			General information calls
 ******************************************************************************}
 
 Function Sysinfo(var Info:TSysinfo):Boolean;
@@ -2362,17 +2362,17 @@ var
   ep    : ppchar;
   found : boolean;
 Begin
-  p:=p+'=';            {Else HOST will also find HOSTNAME, etc}
+  p:=p+'=';	    {Else HOST will also find HOSTNAME, etc}
   ep:=envp;
   found:=false;
   if ep<>nil then
    begin
      while (not found) and (ep^<>nil) do
       begin
-        if strlcomp(@p[1],(ep^),length(p))=0 then
-         found:=true
-        else
-         ep:=ep+4;
+	if strlcomp(@p[1],(ep^),length(p))=0 then
+	 found:=true
+	else
+	 ep:=ep+4;
       end;
    end;
   if found then
@@ -2417,15 +2417,15 @@ end;
 
 
 {******************************************************************************
-                          Signal handling calls
+			  Signal handling calls
 ******************************************************************************}
 
 Function Kill(Pid:longint;Sig:integer):integer;
 {
   Send signal 'sig' to a process, or a group of processes.
   If Pid >  0 then the signal is sent to pid
-     pid=-1                         to all processes except process 1
-     pid < -1                         to process group -pid
+     pid=-1			 to all processes except process 1
+     pid < -1			 to process group -pid
   Return value is zero, except for case three, where the return value
   is the number of processes to which the signal was sent.
 }
@@ -2540,7 +2540,7 @@ end;
 
 
 {******************************************************************************
-                         IOCtl and Termios calls
+			 IOCtl and Termios calls
 ******************************************************************************}
 
 Function IOCtl(Handle,Ndx: Longint;Data: Pointer):boolean;
@@ -2609,7 +2609,7 @@ begin
   with tios do
    begin
      c_iflag:=c_iflag and (not (IGNBRK or BRKINT or PARMRK or ISTRIP or
-                                INLCR or IGNCR or ICRNL or IXON));
+				INLCR or IGNCR or ICRNL or IXON));
      c_oflag:=c_oflag and (not OPOST);
      c_lflag:=c_lflag and (not (ECHO or ECHONL or ICANON or ISIG or IEXTEN));
      c_cflag:=(c_cflag and (not (CSIZE or PARENB))) or CS8;
@@ -2691,11 +2691,11 @@ Const
   dev='/dev';
 var
   name      : string;
-  st        : stat;
+  st	: stat;
   mydev,
   myino     : longint;
   dirstream : pdir;
-  d         : pdirent;
+  d	 : pdirent;
 begin
   TTYName:='';
   fstat(handle,st);
@@ -2711,14 +2711,14 @@ begin
    begin
      if (d^.ino=myino) then
       begin
-        name:=dev+'/'+strpas(@(d^.name));
-        fstat(name,st);
-        if (linuxerror=0) and (st.dev=mydev) then
-         begin
-           closedir(dirstream);
-           ttyname:=name;
-           exit;
-         end;
+	name:=dev+'/'+strpas(@(d^.name));
+	fstat(name,st);
+	if (linuxerror=0) and (st.dev=mydev) then
+	 begin
+	   closedir(dirstream);
+	   ttyname:=name;
+	   exit;
+	 end;
       end;
      d:=Readdir(dirstream);
    end;
@@ -2738,7 +2738,7 @@ end;
 
 
 {******************************************************************************
-                             Utility calls
+			     Utility calls
 ******************************************************************************}
 
 Function Octal(l:longint):longint;
@@ -2795,8 +2795,8 @@ begin
    begin
      while (buf^ in [' ',#8,#10]) do
       begin
-        buf^:=#0;
-        buf:=buf+1;
+	buf^:=#0;
+	buf:=buf+1;
       end;
      p^:=buf;
      p:=p+4;
@@ -2849,11 +2849,11 @@ Begin
      begin
        j:=i-1;
        while (j>1) and (temp[j]<>'/') do
-        dec (j);{temp[1] is always '/'}
+	dec (j);{temp[1] is always '/'}
        delete(temp,j,i-j+3);
       end
      else
-      if i=1 then               {i=1, so we have temp='/../something', just delete '/../'}
+      if i=1 then	       {i=1, so we have temp='/../something', just delete '/../'}
        delete(temp,1,3);
   until i=0;
   { Remove ending /.. }
@@ -2897,20 +2897,20 @@ Begin
      Repeat
        p1:=Pos(';',DirList);
        If p1=0 Then
-        p1:=255;
+	p1:=255;
        NewDir:=Copy(DirList,1,P1 - 1);
        if NewDir[Length(NewDir)]<>'/' then
-        NewDir:=NewDir+'/';
+	NewDir:=NewDir+'/';
        NewDir:=NewDir+Path;
        Delete(DirList,1,p1);
        if FStat(NewDir,Info) then
-        Begin
-          If Pos('./',NewDir)=1 Then
-           Delete(NewDir,1,2);
-        {DOS strips off an initial .\}
-        End
+	Begin
+	  If Pos('./',NewDir)=1 Then
+	   Delete(NewDir,1,2);
+	{DOS strips off an initial .\}
+	End
        Else
-        NewDir:='';
+	NewDir:='';
      Until (DirList='') or (Length(NewDir) > 0);
      FSearch:=NewDir;
    End;
@@ -2991,46 +2991,46 @@ Var
      Case Pattern[i] of
       '?' : Found:=(j<=LenName);
       '*' : Begin
-            {find the next character in pattern, different of ? and *}
-              while Found and (i<LenPat) do
-                begin
-                inc(i);
-                case Pattern[i] of
-                  '*' : ;
-                  '?' : begin
-                          inc(j);
-                          Found:=(j<=LenName);
-                        end;
-                else
-                  Found:=false;
-                end;
-               end;
-            {Now, find in name the character which i points to, if the * or ?
-             wasn't the last character in the pattern, else, use up all the
-             chars in name}
-              Found:=true;
-              if (i<=LenPat) then
-                begin
-                repeat
-                {find a letter (not only first !) which maches pattern[i]}
-                while (j<=LenName) and (name[j]<>pattern[i]) do
-                  inc (j);
-                 if (j<LenName) then
-                  begin
-                    if DoFnMatch(i+1,j+1) then
-                     begin
-                       i:=LenPat;
-                       j:=LenName;{we can stop}
-                       Found:=true;
-                     end
-                    else
-                     inc(j);{We didn't find one, need to look further}
-                  end;
-               until (j>=LenName);
-                end
-              else
-                j:=LenName;{we can stop}
-            end;
+	    {find the next character in pattern, different of ? and *}
+	      while Found and (i<LenPat) do
+		begin
+		inc(i);
+		case Pattern[i] of
+		  '*' : ;
+		  '?' : begin
+			  inc(j);
+			  Found:=(j<=LenName);
+			end;
+		else
+		  Found:=false;
+		end;
+	       end;
+	    {Now, find in name the character which i points to, if the * or ?
+	     wasn't the last character in the pattern, else, use up all the
+	     chars in name}
+	      Found:=true;
+	      if (i<=LenPat) then
+		begin
+		repeat
+		{find a letter (not only first !) which maches pattern[i]}
+		while (j<=LenName) and (name[j]<>pattern[i]) do
+		  inc (j);
+		 if (j<LenName) then
+		  begin
+		    if DoFnMatch(i+1,j+1) then
+		     begin
+		       i:=LenPat;
+		       j:=LenName;{we can stop}
+		       Found:=true;
+		     end
+		    else
+		     inc(j);{We didn't find one, need to look further}
+		  end;
+	       until (j>=LenName);
+		end
+	      else
+		j:=LenName;{we can stop}
+	    end;
      else {not a wildcard character in pattern}
        Found:=(j<=LenName) and (pattern[i]=name[j]);
      end;
@@ -3110,43 +3110,43 @@ begin
     if buffer<>nil then
      begin
        if fnmatch(temp,strpas(@(buffer^.name[0]))) then
-        begin
-        { get memory for pglob }
-          new(run^.next);
-          if run^.next=nil then
-           begin
-             linuxerror:=Sys_ENOMEM;
-             globfree(root);
-             glob:=nil;
-             exit;
-           end
-          else
-           begin
-             run:=run^.next;
-             run^.next:=nil;
-           end;
-        { Get memory for name }
-          getmem(run^.name,strlen(@(buffer^.name[0]))+1);
-          if run^.name=nil then
-           begin
-             linuxerror:=Sys_ENOMEM;
-             globfree(root);
-             glob:=nil;
-             exit;
-           end;
-          move(buffer^.name[0],run^.name^,strlen(@(buffer^.name[0]))+1);
-        end;{ if fnmatch }
+	begin
+	{ get memory for pglob }
+	  new(run^.next);
+	  if run^.next=nil then
+	   begin
+	     linuxerror:=Sys_ENOMEM;
+	     globfree(root);
+	     glob:=nil;
+	     exit;
+	   end
+	  else
+	   begin
+	     run:=run^.next;
+	     run^.next:=nil;
+	   end;
+	{ Get memory for name }
+	  getmem(run^.name,strlen(@(buffer^.name[0]))+1);
+	  if run^.name=nil then
+	   begin
+	     linuxerror:=Sys_ENOMEM;
+	     globfree(root);
+	     glob:=nil;
+	     exit;
+	   end;
+	  move(buffer^.name[0],run^.name^,strlen(@(buffer^.name[0]))+1);
+	end;{ if fnmatch }
      end { buffer <> nil }
     else
      begin
        run:=root;
        if root^.next<>nil then
-        root:=root^.next;{ put root on first entry}
+	root:=root^.next;{ put root on first entry}
        if run<>nil then
-        begin
-          run^.next:=nil;
-          globfree(run);
-        end;
+	begin
+	  run^.next:=nil;
+	  globfree(run);
+	end;
      end;
   until buffer=nil;
   if root^.name=nil then
@@ -3332,11 +3332,11 @@ Procedure WritePort (Port : Longint; Value : Byte);
   Writes 'Value' to port 'Port'
 }
 begin
-        asm
-        movl 8(%ebp),%edx
-        movb 12(%ebp),%al
-        outb %al,%dx
-        end;
+	asm
+	movl 8(%ebp),%edx
+	movb 12(%ebp),%al
+	outb %al,%dx
+	end;
 end;
 
 Procedure WritePort (Port : Longint; Value : Word);
@@ -3345,11 +3345,11 @@ Procedure WritePort (Port : Longint; Value : Word);
 }
 
 begin
-        asm
-        movl 8(%ebp),%edx
-        movw 12(%ebp),%ax
-        outw %ax,%dx
-        end ['EAX','EBX'];
+	asm
+	movl 8(%ebp),%edx
+	movw 12(%ebp),%ax
+	outw %ax,%dx
+	end ['EAX','EBX'];
 end;
 
 
@@ -3360,11 +3360,11 @@ Procedure WritePort (Port : Longint; Value : Longint);
 }
 
 begin
-        asm
-        movl 8(%ebp),%edx
-        movl 12(%ebp),%eax
-        outl %eax,%dx
-        end ['EAX','EBX'];
+	asm
+	movl 8(%ebp),%edx
+	movl 12(%ebp),%eax
+	outl %eax,%dx
+	end ['EAX','EBX'];
 end;
 
 
@@ -3375,12 +3375,12 @@ Procedure WritePortl (Port : Longint; Var Buf; Count: longint);
 }
 begin
   asm
-        movl 16(%ebp),%ecx
-        movl 12(%ebp),%esi
-        movl 8(%ebp),%edx
-        cld
-        rep
-        outsl
+	movl 16(%ebp),%ecx
+	movl 12(%ebp),%esi
+	movl 8(%ebp),%edx
+	cld
+	rep
+	outsl
   end ['ECX','ESI','EDX'];
 end;
 
@@ -3392,12 +3392,12 @@ Procedure WritePortW (Port : Longint; Var Buf; Count: longint);
 }
 begin
   asm
-        movl 16(%ebp),%ecx
-        movl 12(%ebp),%esi
-        movl 8(%ebp),%edx
-        cld
-        rep
-        outsw
+	movl 16(%ebp),%ecx
+	movl 12(%ebp),%esi
+	movl 8(%ebp),%edx
+	cld
+	rep
+	outsw
   end ['ECX','ESI','EDX'];
 end;
 
@@ -3409,12 +3409,12 @@ Procedure WritePortB (Port : Longint; Var Buf; Count: longint);
 }
 begin
   asm
-        movl 16(%ebp),%ecx
-        movl 12(%ebp),%esi
-        movl 8(%ebp),%edx
-        cld
-        rep
-        outsb
+	movl 16(%ebp),%ecx
+	movl 12(%ebp),%esi
+	movl 8(%ebp),%edx
+	cld
+	rep
+	outsb
   end ['ECX','ESI','EDX'];
 end;
 
@@ -3425,12 +3425,12 @@ Procedure ReadPort (Port : Longint; Var Value : Byte);
   Reads 'Value' from port 'Port'
 }
 begin
-        asm
-        movl 8(%ebp),%edx
-        inb %dx,%al
-        andl $255,%eax
-        movl %eax,12(%ebp)
-        end ['EAX','EBX'];
+	asm
+	movl 8(%ebp),%edx
+	inb %dx,%al
+	andl $255,%eax
+	movl %eax,12(%ebp)
+	end ['EAX','EBX'];
 end;
 
 
@@ -3440,12 +3440,12 @@ Procedure ReadPort (Port : Longint; Var Value : Word);
   Reads 'Value' from port 'Port'
 }
 begin
-        asm
-        movl 8(%ebp),%edx
-        inw %dx,%ax
-        andl $65535,%eax
-        movl %eax,12(%ebp)
-        end ['EAX','EBX'];
+	asm
+	movl 8(%ebp),%edx
+	inw %dx,%ax
+	andl $65535,%eax
+	movl %eax,12(%ebp)
+	end ['EAX','EBX'];
 end;
 
 
@@ -3455,11 +3455,11 @@ Procedure ReadPort (Port : Longint; Var Value : Longint);
   Reads 'Value' from port 'Port'
 }
 begin
-        asm
-        movl 8(%ebp),%edx
-        inl %dx,%eax
-        movl %eax,12(%ebp)
-        end ['EAX','EBX'];
+	asm
+	movl 8(%ebp),%edx
+	inl %dx,%eax
+	movl %eax,12(%ebp)
+	end ['EAX','EBX'];
 end;
 
 
@@ -3469,12 +3469,12 @@ Procedure ReadPortL (Port : Longint; Var Buf; Count: longint);
 }
 begin
   asm
-        movl 16(%ebp),%ecx
-        movl 12(%ebp),%edi
-        movl 8(%ebp),%edx
-        cld
-        rep
-        insl
+	movl 16(%ebp),%ecx
+	movl 12(%ebp),%edi
+	movl 8(%ebp),%edx
+	cld
+	rep
+	insl
   end ['ECX','ESI','EDX'];
 end;
 
@@ -3486,12 +3486,12 @@ Procedure ReadPortW (Port : Longint; Var Buf; Count: longint);
 }
 begin
   asm
-        movl 16(%ebp),%ecx
-        movl 12(%ebp),%edi
-        movl 8(%ebp),%edx
-        cld
-        rep
-        insw
+	movl 16(%ebp),%ecx
+	movl 12(%ebp),%edi
+	movl 8(%ebp),%edx
+	cld
+	rep
+	insw
   end ['ECX','ESI','EDX'];
 end;
 
@@ -3503,12 +3503,12 @@ Procedure ReadPortB (Port : Longint; Var Buf; Count: longint);
 }
 begin
   asm
-        movl 16(%ebp),%ecx
-        movl 12(%ebp),%edi
-        movl 8(%ebp),%edx
-        cld
-        rep
-        insb
+	movl 16(%ebp),%ecx
+	movl 12(%ebp),%edi
+	movl 8(%ebp),%edx
+	cld
+	rep
+	insb
   end ['ECX','ESI','EDX'];
 end;
 {$ENDIF}
@@ -3520,7 +3520,10 @@ End.
 
 {
   $Log$
-  Revision 1.29  1999-02-02 21:19:54  michael
+  Revision 1.30  1999-02-22 10:32:10  pierre
+   * Dup second arg must be var arg !
+
+  Revision 1.29  1999/02/02 21:19:54  michael
   Corrected wrong mode error in fdopen
 
   Revision 1.28  1999/01/20 13:29:09  peter
