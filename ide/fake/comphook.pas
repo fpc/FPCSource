@@ -32,6 +32,7 @@ type
   TCompilerStatus = record
   { Current status }
     currentmodule,
+    currentsourcepath,
     currentsource : string;   { filename }
     currentline,
     currentcolumn : longint;  { current line and column }
@@ -243,7 +244,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  1998-12-22 14:27:54  peter
+  Revision 1.2  1999-01-14 21:43:08  peter
+    + status.currentsourcepath
+
+  Revision 1.1  1998/12/22 14:27:54  peter
     * moved
 
   Revision 1.1  1998/12/10 23:54:28  peter
