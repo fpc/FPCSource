@@ -121,6 +121,7 @@ Function  FSearch(path: pathstr; dirlist: string): pathstr;
 Function  FExpand(const path: pathstr): pathstr;
 Procedure FSplit(path: pathstr; var dir: dirstr; var name: namestr; var ext: extstr);
 function  GetShortName(var p : String) : boolean;
+function  GetLongName(var p : String) : boolean;
 
 {Environment}
 Function  EnvCount: longint;
@@ -1007,6 +1008,34 @@ begin
 end;
 
 
+{ change to long filename if successful DOS call PM }
+function GetLongName(var p : String) : boolean;
+var
+  c : array[0..255] of char;
+begin
+  move(p[1],c[0],length(p));
+  c[length(p)]:=#0;
+  copytodos(@c,length(p)+1);
+  dosregs.ax:=$7160;
+  dosregs.cx:=2;
+  dosregs.ds:=tb_segment;
+  dosregs.si:=tb_offset;
+  dosregs.es:=tb_segment;
+  dosregs.di:=tb_offset;
+  msdos(dosregs);
+  LoadDosError;
+  if DosError=0 then
+   begin
+     copyfromdos(@c,255);
+     move(c[0],p[1],strlen(c));
+     p[0]:=char(strlen(c));
+     GetLongName:=true;
+   end
+  else
+   GetLongName:=false;
+end;
+
+
 {******************************************************************************
                        --- Get/Set File Time,Attr ---
 ******************************************************************************}
@@ -1140,7 +1169,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.20  2000-02-02 17:34:49  pierre
+  Revision 1.21  2000-02-09 13:00:32  peter
+    + getlongname
+
+  Revision 1.20  2000/02/02 17:34:49  pierre
    * use int64 typecast to avoid overflows in diskfree and disksize
 
   Revision 1.19  2000/01/23 16:31:23  peter
