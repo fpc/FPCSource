@@ -122,7 +122,7 @@ begin
   longjmp(ExceptAddrStack^.Buf^,FPC_Exception);
 end;
 
-Procedure PopAddrStack ;[Public, Alias : 'FPC_POPADDRSTACK'];
+Procedure PopAddrStack;[Public, Alias : 'FPC_POPADDRSTACK'];
 
 var
    hp : PExceptAddr;
@@ -137,15 +137,18 @@ begin
     halt (1);
     end
   else
-    begin
-       dispose(ExceptAddrStack^.buf);
-       hp:=ExceptAddrStack^.Next;
-       dispose(ExceptAddrStack);
-       ExceptAddrStack:=hp;
+    begin       
+       hp:=ExceptAddrStack;
+       ExceptAddrStack:=ExceptAddrStack^.Next;
+       dispose(hp^.buf);
+       dispose(hp);       
     end;
 end;
 
-Procedure PopObjectStack ;
+Procedure PopObjectStack;
+
+var
+   hp : PExceptObject;
 
 begin
 {$ifdef excdebug}
@@ -157,7 +160,11 @@ begin
     halt (1);
     end
   else
-    ExceptObjectStack:=ExceptObjectStack^.Next;
+    begin
+       hp:=ExceptObjectStack;
+       ExceptObjectStack:=ExceptObjectStack^.next;
+       dispose(hp);
+    end;
 end;
 
 
@@ -174,7 +181,7 @@ begin
   longjmp(ExceptAddrStack^.Buf^,FPC_Exception);
 end;
 
-Function Catches (Objtype : TExceptObjectClass) : TObject; [Public, Alias : 'FPC_CATCHES'];
+Function Catches(Objtype : TExceptObjectClass) : TObject;[Public, Alias : 'FPC_CATCHES'];
 
 begin
   If ExceptObjectStack=Nil then
@@ -194,6 +201,12 @@ begin
     end;
 end;
 
+Procedure DestroyException(o : TObject);[Public, Alias : 'FPC_DESTROYEXCEPTION'];
+
+  begin
+     o.Destroy;
+  end;
+
 Procedure InitExceptions;
 {
   Initialize exceptionsupport
@@ -204,7 +217,12 @@ begin
 end;
 {
   $Log$
-  Revision 1.9  1999-05-13 16:30:18  florian
-    * popaddrstack didn't release any memory, fixed
+  Revision 1.10  1999-05-13 18:38:26  florian
+    * more memory leaks fixed:
+         - exceptaddrobject is now properly disposed
+         - after the end of the on ... do block the exception
+           class instance is disposed
 
+  Revision 1.9  1999/05/13 16:30:18  florian
+    * popaddrstack didn't release any memory, fixed
 }
