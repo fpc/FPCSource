@@ -121,6 +121,9 @@ Implementation
 {$i textrec.inc}
 {$i filerec.inc}
 
+Var
+  maxcols,maxrows : word;
+
 Type
 
     pInfoData = ^tInfoData;
@@ -646,16 +649,19 @@ end;
 
 procedure TextColor(color : byte);
 begin
+   TextAttr := (TextAttr and $70) or color;
    Write(CSI, '3', color, 'm');
 end;
 
 procedure TextBackground(color : byte);
 begin
+   Textattr:=(textattr and $8f) or ((color and $7) shl 4);
    Write(CSI, '4', color, 'm');
 end;
 
 procedure window(X1,Y1,X2,Y2 : Integer);
 begin
+
 end;
 
 procedure assigncrt(var f : text);
@@ -721,6 +727,14 @@ procedure normvideo;
 begin
 end;
 
+
+
+Begin
+   { load system variables to temporary variables to save time }
+   maxcols:=maxy;
+   maxrows:=maxx;
+   { set output window }
+   windmax:=((maxcols-1) shl 8) or (maxrows-1);
 end.
 
 
