@@ -717,10 +717,8 @@ implementation
                lowppn:=cordconstnode.create(-1,s32inttype,false);
              end;
 
-            { create temp for result, we've to use a temp because a dynarray
-              type is handled differently from a pointer so we can't
-              use createinternres() and a function }
-            temp := ctempcreatenode.create(voidpointertype,voidpointertype.def.size,tt_persistent);
+            { create typed temp for result so the temp is finalized }
+            temp := ctempcreatenode.create(ppn.left.resulttype,ppn.left.resulttype.def.size,tt_persistent);
             addstatement(newstatement,temp);
 
             { create call to fpc_dynarray_copy }
@@ -731,13 +729,13 @@ implementation
                    ccallparanode.create
                       (ctypeconvnode.create_explicit(ppn.left,voidpointertype),
                    ccallparanode.create
-                      (ctemprefnode.create(temp),nil)))));
+                      (ctypeconvnode.create_explicit(ctemprefnode.create(temp),voidpointertype),nil)))));
             addstatement(newstatement,ccallnode.createintern('fpc_dynarray_copy',npara));
 
             { convert the temp to normal and return the reference to the
               created temp, and convert the type of the temp to the dynarray type }
             addstatement(newstatement,ctempdeletenode.create_normal_temp(temp));
-            addstatement(newstatement,ctypeconvnode.create_explicit(ctemprefnode.create(temp),ppn.left.resulttype));
+            addstatement(newstatement,ctemprefnode.create(temp));
 
             ppn.left:=nil;
             paras.free;
@@ -756,7 +754,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.33  2004-10-15 09:14:17  mazen
+  Revision 1.34  2004-11-01 10:32:27  peter
+    * temp for dynarray copy needs to be typed
+
+  Revision 1.33  2004/10/15 09:14:17  mazen
   - remove $IFDEF DELPHI and related code
   - remove $IFDEF FPCPROCVAR and related code
 
