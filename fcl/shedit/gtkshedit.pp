@@ -210,15 +210,10 @@ begin
 end;
 
 
-function TGtkSHEdit_ButtonPressEvent(GtkWidget: PGtkWidget; event: PGdkEventButton ;  edit: TGtkSHEdit): Integer; cdecl;
-var
-  px,py : integer;
+function TGtkSHEdit_ButtonPressEvent(GtkWidget: PGtkWidget; event: PGdkEventButton; edit: TGtkSHEdit): Integer; cdecl;
 begin
-  px:=(round(event^.x)-edit.leftindent) div edit.CharW;
-  py:=(round(event^.y)-edit.leftindent) div edit.CharH;
-//  Writeln('button press ',px,',',py);
-  edit.Edit.CursorX:=px;
-  edit.Edit.CursorY:=py;
+  edit.Edit.CursorX := Round((event^.x - edit.LeftIndent) / edit.CharW);
+  edit.Edit.CursorY := Trunc(event^.y) div edit.CharH;
   edit.SetFocus;
   Result := 1;
 end;
@@ -595,7 +590,14 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  1999-12-22 22:28:08  peter
+  Revision 1.9  1999-12-23 09:52:42  sg
+  * Fixed cursor placement as reaction on a mouse click:
+    - x value: if the click is within the left half of a character cell, the
+      cursor will be set in front of this char; if the click is in the right
+      halft, the cursor must be set _behind_ this character!
+    - y value: don't subtract "LeftIndent" from the y pixel coordinate...
+
+  Revision 1.8  1999/12/22 22:28:08  peter
     * updates for cursor setting
     * button press event works
 
