@@ -766,7 +766,8 @@ End;
 
 
 Begin
- Negative:=True;
+  Initmouse;
+  Negative:=True;
   clean;
   Repeat
     interpret;
@@ -810,11 +811,15 @@ Begin
   {$ifdef Win32}
    CloseGraph;
   {$endif}
-
+   DoneMouse;
 
 End.
+{
   $Log$
-  Revision 1.2  2002-02-25 12:23:05  marco
+  Revision 1.3  2002-02-27 16:29:54  carl
+  * We should initialize the mouse!
+
+  Revision 1.2  2002/02/25 12:23:05  marco
    * Fixes for Quad Win32 GUI mode
 
   Revision 1.1  2001/05/03 21:39:33  peter
