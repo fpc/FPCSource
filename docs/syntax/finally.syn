@@ -4,11 +4,10 @@
 \lit*{try}
 \synt{statement\ list}
 \lit*{finally}
-\synt{statement\ list}
+\synt{finally\ statements}
 \lit*{end}
 \end{mysyntdiag}
 \begin{mysyntdiag}
-\synt{statement\ list}
-\<[b] \synt{statement} \\ \lit*; \>
+\synt{finally\ statements} \synt{statement list}
 \end{mysyntdiag}
 \end{diagram}

@@ -4,7 +4,9 @@
 \synt{unit\ header}
 \synt{interface\ part}
 \synt{implementation\ part}
-\[ \synt{initialization\ part} \]
+\[ \synt{initialization\ part} \[ \synt{finalization\ part} \] \\
+    \lit*{begin} \<[b] \synt{statement} \\ \lit* ; \>
+\]
 \lit*{end} \lit* .
 \end{mysyntdiag}
 \begin{mysyntdiag}
@@ -14,7 +16,7 @@
 \lit* ;
 \end{mysyntdiag}
 \begin{mysyntdiag}
-\synt{interface\ part} 
+\synt{interface\ part} \lit*{interface}
 \<[b]
   \[  \synt{constant\ declaration\ part} \\
       \synt{type\ declaration\ part}\\
@@ -35,7 +37,12 @@
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{initialization\ part}
-  \lit*{begin} 
+  \lit*{initialization} 
+  \<[b] \synt{statement} \\ \lit* ; \>
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{finalization\ part}
+  \lit*{finalization} 
   \<[b] \synt{statement} \\ \lit* ; \>
 \end{mysyntdiag}
 \end{diagram}

@@ -5,7 +5,7 @@
 ; 
  \( 
  \lit*{public} \\
- \lit*{alias} \synt{string\ constant}\\
+ \lit*{alias} \lit* : \synt{string\ constant}\\
  \lit*{interrupt} \\
  \lit*{call\ modifiers}
 \)

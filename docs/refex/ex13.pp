@@ -5,6 +5,6 @@ Program Example13;
 var W : word;
 
 begin
-  W:=CSeg; {W:=0, provided for comppatibility,
+  W:=CSeg; {W:=0, provided for compatibility,
                   FPC is 32 bit.}
 end.

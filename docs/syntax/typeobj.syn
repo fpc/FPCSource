@@ -34,12 +34,10 @@
 \begin{mysyntdiag}
 \synt{method\ directives}
 \[
-\lit*{virtual} \lit*;
+\lit*{virtual} \lit*; 
+\[ \lit*{abstract} \lit*; \]
 \]
 \[ \synt{call\ modifiers} \lit*; \]
-\[
-\lit*{abstract} \lit*;
-\]
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{object\ visibility\ specifier}

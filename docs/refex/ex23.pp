@@ -17,13 +17,13 @@ begin
     end;
   Close (F);
   Reset (F);
-  { If ll goes well, nothing is displayed here. }
+  { If all goes well, nothing is displayed here. }
   While not (Eof(F)) do
     begin
     FP:=FilePos (F);
     Read (F,L);
     if L<>FP then 
-      Writeln ('Something is wrong here ! : Got ',l,' on pos ',FP);
+      Writeln ('Something wrong: Got ',l,' on pos ',FP);
     end;
   Close (F);
   Erase (f);

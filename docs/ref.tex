@@ -51,6 +51,7 @@
 % Settings
 %
 \pagestyle{fancy}
+\fancyhead[LO,RE]{}
 \makeindex
 %
 % Syntax style
@@ -78,10 +79,15 @@
 \listoftables
 \newpage
 
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Introduction
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{About this guide}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% About this guide
+\section*{About this guide}
 This document describes all constants, types, variables, functions and
 procedures as they are declared in the system unit.
 Furthermore, it describes all pascal constructs supported by \fpc, and lists
@@ -89,7 +95,7 @@ all supported data types. It does not, however, give a detailed explanation
 of the pascal language. The aim is to list which Pascal constructs are
 supported, and to show where the \fpc implementation differs from the
 Turbo Pascal implementation.
-\subsection{Notations}
+\subsection*{Notations}
 Throughout this document, we will refer to functions, types and variables
 with \var{typewriter} font. Functions and procedures have their own
 subsections, and for each function or procedure we have the following
@@ -110,7 +116,7 @@ which you can click to jump to the declaration.
 are printed in \var{typewriter} font, and the number after it is the Unix
 manual section.
 \end{itemize}
-\subsection{Syntax diagrams}
+\subsection*{Syntax diagrams}
 All elements of the pascal language are explained in syntax diagrams.
 Syntax diagrams are like flow charts. Reading a syntax diagram means that
 you must get from the left side to the right side, following the arrows.
@@ -147,13 +153,19 @@ Note, that one of the possibilities can be empty:
 \end{mysyntdiag}
 This means that both the first or second possibility are optional.
 Of course, all these elements can be combined and nested.
+
 \part{The Pascal language}
-%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The Pascal language
-%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Pascal Tokens}
 In this chapter we describe all the pascal reserved words, as well as the
 various ways to denote strings, numbers, identifiers etc.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Symbols
 \section{Symbols}
 Free Pascal allows all characters, digits and some special ASCII symbols
 in a Pascal source file.
@@ -173,6 +185,10 @@ When used for comment delimiters, the character pair \var{(*} is equivalent
 to the  left brace \var{\{} and the character pair \var{*)} is equivalent
 to the right brace \var{\}}.
 These character pairs retain their normal meaning in string expressions.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Comments
 \section{Comments}
 \fpc supports the use of nested comments. The following constructs are valid
 comments:
@@ -203,6 +219,9 @@ and
 \end{verbatim}
 The compiler will react with a 'invalid character' error when it encounters
 such constructs, regardless of the \var{-So} switch.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Reserved words
 \section{Reserved words}
 Reserved words are part of the Pascal language, and cannot be redefined.
 They will be denoted as {\sffamily\bfseries this} throughout the syntax
@@ -342,6 +361,9 @@ such as \var{maxint} are {\em not} reserved words. They are
 identifiers, declared in the system unit. This means that you can redefine
 these types. You are, however, not encouraged to do this, as it will cause
 a lot of confusion.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Identifiers
 \section{Identifiers}
 Identifiers denote constants, types, variables, procedures and functions,
 units, and programs. All names of things that you define are identifiers.
@@ -350,6 +372,9 @@ the underscore character), from which the first must be an alphanumeric
 character, or an underscore (\var{\_})
 The following diagram gives the basic syntax for identifiers.
 \input{syntax/identifier.syn}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Numbers
 \section{Numbers}
 Numbers are denoted in decimal notation. Real (or decimal) numbers are
 written using engeneering notation (e.g. \var{0.314E1}).
@@ -362,10 +387,16 @@ percent sign (\var{\%}). Thus, \var{255} can be specified in binary notation
 as \var{\%11111111}.
 The following diagrams show the syntax for numbers.
 \input{syntax/numbers.syn}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Labels
 \section{Labels}
 Labels can be digit sequences or identifiers.
 \input{syntax/label.syn}
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Character strings
 \section{Character strings}
 A character string (or string for short) is a sequence of zero or more
 characters from the ASCII character set, enclosed by single quotes, and on 1
@@ -375,6 +406,9 @@ string.
 \input{syntax/string.syn}
 \chapter{Constants}
 Just as in Turbo Pascal, \fpc supports both normal and typed constants.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Ordinary constants
 \section{Ordinary constants}
 Ordinary constants declarations are no different from the Turbo Pascal or
 Delphi  implementation.
@@ -403,6 +437,9 @@ in a compiler error:
 \begin{verbatim}
   s := 'some other string';
 \end{verbatim}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Typed constants
 \section{Typed constants}
 Typed constants serve to provide a program with initialised variables.
 Contrary to ordinary constants, they may be assigned to at run-time.
@@ -460,6 +497,9 @@ individually. The programmer that uses your units doesn't have to worry
 about type size and so on. It also allows you to use shortcut names for
 fully qualified type names. You can e.g. define \var{system.longint} as
 \var{Olongint} and then redefine \var{longint}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Base types
 \section{Base types}
 The base or simple types of \fpc are the Delphi types.
 We will discuss each separate.
@@ -652,6 +692,9 @@ Until version 0.9.1 of the compiler, all the \var{Real} types were mapped to
 type \var{Double}, meaning that they all have size 8. The \seef{SizeOf} function
 is your friend here. The \var{Real} type of turbo pascal is automatically
 mapped to Double. The \var{Comp} type is, in effect, a 64-bit integer.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Character types
 \section{Character types}
 \subsection{Char}
 \fpc supports the type \var{Char}. A \var{Char} is exactly 1 byte in
@@ -908,6 +951,9 @@ Operation & Result \\ \hline
  & (or the number of characters between \var{P} and \var{Q}) \\
 \hline
 \end{FPCltable}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Structured Types
 \section{Structured Types}
 A structured type is a type that can hold multiple values in one variable.
 Stuctured types can be nested to unlimited levels.
@@ -1185,6 +1231,9 @@ declared in the DOS unit.
 A special file type is the \var{Text} file type, represented by the
 \var{TextRec} record. A file of type \var{Text} uses special input-output
 routines.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Pointers
 \section{Pointers}
 \fpc supports the use of pointers. A variable of the pointer type
 contains an address in memory, where the data of another variable may be
@@ -1271,6 +1320,9 @@ end.
 \end{verbatim}
 Here, the value that is added or substracted is {\em not} multiplied by the
 size of the type the pointer points to.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Procedural types
 \section{Procedural types}
 \fpc has support for procedural types, although it differs a little from
 the Turbo Pascal implementation of them. The type declaration remains the
@@ -1327,7 +1379,17 @@ calling convention.
 At the moment, the method procedural pointers (i.e. pointers that point to
 methods of objects, distinguished by the \var{of object} keywords in the
 declaration) are still in an experimental stage.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Objects
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Objects}
+\label{ch:Objects}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Declaration
 \section{Declaration}
 \fpc supports object oriented programming. In fact, most  of the compiler is
 written using objects. Here we present some technical questions regarding
@@ -1335,11 +1397,13 @@ object oriented programming in \fpc.
 Objects should be treated as a special kind of record. The record contains
 all the fields that are declared in the objects definition, and pointers
 to the methods that are associated to the objects' type.
+
 An object is declared just as you would declare a record; except that you
-can now declare procedures and fuctions as if they were part of the record.
+can now declare procedures and functions as if they were part of the record.
 Objects can ''inherit'' fields and methods from ''parent'' objects. This means
 that you can use these fields and methods as if they were included in the
 objects you declared as a ''child'' object.
+
 Furthermore, you can declare fields, procedures and functions as \var{public}
 or \var{private}. By default, fields and methods are \var{public}, and are
 exported outside the current unit. Fields or methods that are declared
@@ -1367,6 +1431,7 @@ Type MyObj = Object
      end;
 \end{verbatim}
 because the field is in a different section.
+
 {\em Remark:}
 \fpc also supports the packed object. This is the same as an object, only
 the elements (fields) of the object are byte-aligned, just as in the packed
@@ -1383,6 +1448,9 @@ Type
 Var PP : Pobj;
 \end{verbatim}
 Similarly, the \var{\{\$PackRecords \}} directive acts on objects as well.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Fields
 \section{Fields}
 Object Fields are like record fields. They are accessed in the same way as
 you would access a record field : by using a qualified identifier. Given the
@@ -1431,6 +1499,9 @@ With AnObject do
 In this example, between the \var{begin} and \var{end}, it is as if
 \var{AnObject} was prepended to the \var{Afield} and \var{Amethod}
 identifiers. More about this in \sees{With}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Constructors and destructors 
 \section{Constructors and destructors }
 \label{se:constructdestruct}
 As can be seen in the syntax diagram for an object declaration, \fpc supports
@@ -1478,6 +1549,9 @@ Similarly, the \var{Dispose} procedure accepts the name of a destructor. The
 destructor will then be called, before removing the object from the heap.
 In view of the compiler warning remark, the now following Delphi approach may
 be considered a more natural way of object-oriented programming.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Methods
 \section{Methods}
 Object methods are just like ordinary procedures or functions, only they
 have an implicit extra parameter : \var{self}. Self points to the object
@@ -1485,8 +1559,11 @@ with which the method was invoked.
 When implementing methods, the fully qualified identifier must be given
 in the function header. When declaring methods, a normal identifier must be
 given.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Method invocation
 \section{Method invocation}
-Methods are called just as normal procedures are called, only they have a
+Methods are called just as normal procedures are called, only they have an
 object instance identifier prepended to them (see also \seec{Statements}).
 To determine which method is called, it is necessary to know the type of
 the method. We treat the different types in what follows.
@@ -1553,7 +1630,7 @@ Type
   PChild = ^TChild;
 \end{verbatim}
 As it is visible, both the parent and child objects have a method called
-\var{Draw}. Consider now the following declarations and calls :
+\var{Doit}. Consider now the following declarations and calls :
 \begin{verbatim}
 Var ParentA,ParentB : PParent;
     Child           : PChild;
@@ -1613,7 +1690,7 @@ Type
   PChild = ^TChild;
 \end{verbatim}
 As it is visible, both the parent and child objects have a method called
-\var{Draw}. Consider now the following declarations and calls :
+\var{Doit}. Consider now the following declarations and calls :
 \begin{verbatim}
 Var ParentA,ParentB : PParent;
     Child           : PChild;
@@ -1624,10 +1701,10 @@ Var ParentA,ParentB : PParent;
    ParentB^.Doit;
    Child^.Doit;
 \end{verbatim}
-First of all, Line 4 will generate a compiler error, stating that you cannot
+First of all, Line 3 will generate a compiler error, stating that you cannot
 generate instances of objects with abstract methods: The compiler has
 detected that \var{PParent} points to an object which has an abstract
-method. Commenting line 4 would allow compilation of the program.
+method. Commenting line 3 would allow compilation of the program.
 Remark that if you override an abstract method, you cannot call the parent
 method with \var{inherited}, since there is no parent method; The compiler
 will detect this, and complain about it, like this:
@@ -1636,6 +1713,9 @@ testo.pp(32,3) Error: Abstract methods can't be called directly
 \end{verbatim}
 If, through some mechanism, an abstract method is called at run-time,
 then a run-time error will occur. (run-time error 211, to be precise)
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Visibility
 \section{Visibility}
 For objects, only 2 visibility specifiers exist : \var{private} and
 \var{public}. If you don't specify a visibility specifier, \var{public}
@@ -1652,7 +1732,14 @@ e.g. from other objects' methods, or global functions.
 Fields and metods in a \var{public} section behave as though they were part
 of an ordinary \var{record} type.
 \end{description}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Classes
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Classes}
+\label{ch:Classes}
 In the Delphi approach to Object Oriented Programming, everything revolves
 around  the concept of 'Classes'.  A class can be seen as a pointer to an
 object, or a pointer to a record.
@@ -1667,6 +1754,9 @@ The \file{objpas} unit still exists, and contains some redefinitions of
 basic types, so they coincide with Delphi types. The unit will be loaded
 automatically if you specify the \var{-S2} or \var{-Sd} options.
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Class definitions
 \section{Class definitions}
 The prototype declaration of a class is as follows :
 \input{syntax/typeclas.syn}
@@ -1691,6 +1781,10 @@ generates also type information that is needed for automatic streaming of
 these classes. Fields defined in a \var{published} section must be of class type.
 Array peroperties cannot be in a \var{published} section.
 \end{description}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Class instantiation
 \section{Class instantiation}
 Classes must be created using their constructor. Remember that a class is a
 pointer to an object, so when you declare a variable of some class, the
@@ -1707,7 +1801,8 @@ Calling the constructor will provoke a call to \var{getmem}, to allocate
 enough space to hold the class instance data.
 After that, the constuctor's code is executed.
 The constructor has a pointer to it's data, in \var{self}.
-{\em Remark :}
+
+{\em Remarks:}
 \begin{itemize}
 \item The \var{\{\$PackRecords \}} directive also affects classes.
 i.e. the alignment in memory of the different fields depends on the
@@ -1719,6 +1814,9 @@ elements are aligned on 1-byte boundaries. i.e. as close as possible.
 an object. To get the size of the class instance data, use the
 \var{TObject.InstanceSize} method.
 \end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Methods
 \section{Methods}
 \subsection{invocation}
 Method invocaticn for classes is no different than for objects. The
@@ -1736,7 +1834,7 @@ same method in a descendent object with the keyword \var{virtual} to
 override it. For classes, the situation is different: you {\em must}
 override virtual methods with the \var{override} keyword. Failing to do so,
 will start a {\em new} batch of virtual methods, hiding the previous
-one.  The \var{Inherited} keyword will not jup to the inhherited method, if
+one.  The \var{Inherited} keyword will not jump to the inherited method, if
 virtual was used. 
 
 The following code is {\em wrong}:
@@ -1784,9 +1882,9 @@ ordinary method. It is also possible to call a message method directly,
 but you should not do this. Instead use the \var{TObject.Dispatch} method.
 
 The \var{TOBject.Dispatch} method can be used to call a \var{message}
-handler. It is  declared in the system unit will accept a var parameter 
-which must have at the first position a cardinal with the message ID that
-should be called. For example:
+handler. It is declared in the \file{system} unit and will accept a var 
+parameter  which must have at the first position a cardinal with the
+message ID that should be called. For example:
 \begin{lstlisting}{}
 Type 
   TMsg = Record
@@ -1822,7 +1920,7 @@ integer message handler:
 
 The \var{TOBject.DispatchStr} method can be used to call a \var{message}
 handler. It is declared in the system unit and will accept one parameter
-which must have at the first position a cardinal with the message ID that
+which must have at the first position a string with the message ID that
 should be called. For example:
 \begin{lstlisting}{}
 Type 
@@ -1861,11 +1959,14 @@ method.
 {\em remark:} The type of the \var{Self} parameter must be of the same class
 as the class you define the method for.
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Properties
 \section{Properties}
 Classes can contain properties as part of their fields list. A property
 acts like a normal field, i.e. you can get or set it's value, but
 allows to redirect the access of the field through functions and
-procedures. They provide a means to assiciate an action with an assignment
+procedures. They provide a means to associate an action with an assignment
 of or a reading from a class 'field'. This allows for e.g. checking that a
 value is valid when assigning, or, when reading, it allows to construct the
 value on the fly. Moreover, properties can be read-only or write only.
@@ -1874,13 +1975,13 @@ The prototype declaration of a property is as follows:
 A \var{read specifier} is either the name of a field that contains the
 property, or the name of a method function that has the same return type as
 the property type. In the case of a simple type, this
-function must not accept an argument. A read specifier is optional, making
-the property write-only.
-A \var{write specifier} is optional: If there is no write specifier, the
+function must not accept an argument. A \var{read specifier} is optional, 
+making the property write-only.
+A \var{write specifier} is optional: If there is no \var{write specifier}, the
 property is read-only. A write specifier is either the name of a field, or
 the name of a method procedure that accepts as a sole argument a variable of
 the same type as the property.
-The section (\var{private}, \var{published} in which the specified function or
+The section (\var{private}, \var{published}) in which the specified function or
 procedure resides is irrelevant. Usually, however, this will be a protected
 or private method.
 Example:
@@ -1973,11 +2074,13 @@ Indexes can only be integer values.
 You can also have array properties. These are properties that accept an
 index, just as an array does. Only now the index doesn't have to be an
 ordinal type, but can be any type.
+
 A \var{read specifier} for an array property is the name method function
 that has the same return type as  the property type.
 The function must accept as a sole arguent a variable of the same type as
-the index type. For an array property, you cannot specify fields as read
-specifiers.
+the index type. For an array property, you cannot specify fields as \var{read
+specifiers}.
+
 A \var{write specifier} for an array property is the name of a method
 procedure that accepts two arguments: The first argument has the same
 type as the index, and the second argument is a parameter of the same
@@ -2029,6 +2132,12 @@ AIntList[26] := 1;
 \end{verbatim}
 You can have only one default property per class, and descendent classes
 cannot redeclare the default property.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Expressions
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Expressions}
 \label{ch:Expressions}
 Expressions occur in assignments or in tests. Expressions produce a value,
@@ -2043,27 +2152,30 @@ When using multiple operands in an expression, the precedence rules of
 \seet{OperatorPrecedence} are used.
 \begin{FPCltable}{lll}{Precedence of operators}{OperatorPrecedence}
 Operator & Precedence & Category \\ \hline
-\var{Not, @} & Highest & Unary operators\\
+\var{Not, @} & Highest (first) & Unary operators\\
 \var{* / div mod and shl shr as} & Second & Multiplying operators\\
 \var{+ - or xor} & Third & Adding operators \\
-\var{< <> < > <= >= in is} & Lowest (Fourth) & relational operators \\
+\var{< <> < > <= >= in is} & Lowest (Last) & relational operators \\
 \hline
 \end{FPCltable}
-When determining the precedence, te compiler uses the following rules:
+When determining the precedence, the compiler uses the following rules:
 \begin{enumerate}
-\item Operations with equal precedence are executed from left to right.
-\item In operations with unequal precedence the operands belong to the
+\item Operators with equal precedence are executed from left to right.
+\item In operations with unequal precedences the operands belong to the
 operater with the highest precedence. For example, in \var{5*3+7}, the
 multiplication is higher in precedence than the addition, so it is
 executed first. The result would be 22.
 \item If parentheses are used in an epression, their contents is evaluated
 first. Thus, \var {5*(3+7)} would result in 50.
 \end{enumerate}
-An expression is a sequence of terms and factors. A factor is an operand of
-a multiplication operator. A term is an operand of an adding operator.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Expression syntax
 \section{Expression syntax}
 An expression applies relational operators to simple expressions. Simple
-expressions are a series of terms, joined by adding operators.
+expressions are a series of terms (what a term is, is explained below), joined by 
+adding operators.
 \input{syntax/expsimpl.syn}
 The following are valid expressions:
 \begin{verbatim}
@@ -2075,7 +2187,7 @@ And here are some simple expressions:
 \begin{verbatim}
 A + B
 -Pi
-ToBe or Not ToBe
+ToBe or NotToBe
 \end{verbatim}
 Terms consist of factors, connected by multiplication operators.
 \input{syntax/expterm.syn}
@@ -2087,19 +2199,22 @@ A Div B
 \end{verbatim}
 Factors are all other constructions:
 \input{syntax/expfact.syn}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Function calls
 \section{Function calls}
 Function calls are part of expressions (although, using extended syntax,
 they can be statements too). They are constructed as follows:
 \input{syntax/fcall.syn}
-The \synt{variable reference} must be a procedural type variable referce.
-A method designator can only be used in side the method of an object. A
+The \synt{variable reference} must be a procedural type variable reference.
+A method designator can only be used inside the method of an object. A
 qualified method designator can be used outside object methods too.
 The function that will get called is the function with a declared parameter
 list that matches the actual parameter list. This means that
 \begin{enumerate}
 \item The number of actual parameters must equal the number of declared
 parameters.
-\item The types of the parameters must be compatible. For varriable
+\item The types of the parameters must be compatible. For variable
 reference parameters, the parameter types must be exactly the same.
 \end{enumerate}
 If no matching function is found, then the compiler will generate an error.
@@ -2154,6 +2269,9 @@ parameter list:
     WriteLn ('Functions return same values ');
 \end{verbatim}
 Remark that this behaviour is not compatible with Delphi syntax.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Set constructors
 \section{Set constructors}
 When you want to enter a set-type constant in an expression, you must give a
 set constructor. In essence this is the same thing as when you define a set
@@ -2173,6 +2291,9 @@ The following are valid set constructors:
 [ 2, 3*2, 6*2, 9*2 ]
 ['A'..'Z','a'..'z','0'..'9']
 \end{verbatim}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Value typecasts
 \section{Value typecasts}
 Sometimes it is necessary to change the type of an expression, or a part of
 the expression, to be able to be assignment compatible. This is done through
@@ -2195,6 +2316,11 @@ Char(4875)
 boolean(100)
 Word(@Buffer)
 \end{verbatim}
+This is different from Delphi or Turbo Pascal behaviour.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% The @ operator
 \section{The @ operator}
 The address operator \var{@} returns the address of a variable, procedure
 or function. It is used as follows:
@@ -2227,6 +2353,9 @@ By default, you must use the address operator if you want to assign a value
 to a procedural type variable. This behaviour can be avoided by using the
 \var{-So} or \var{-S2} switches, which result in a more compatible Delphi or
 Turbo Pascal syntax.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Operators
 \section{Operators}
 Operators can be classified according to the type of expression they
 operate on. We will discuss them type by type.
@@ -2374,6 +2503,9 @@ statements.
 This can be seen in the following syntax diagram:
 \input{syntax/statement.syn}
 A label can be an identifier or an integer digit.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Simple statements
 \section{Simple statements}
 A simple statement cannot be decomposed in separate statements. There are
 basically 4 kinds of simple statements:
@@ -2382,7 +2514,7 @@ Of these statements, the {\em raise statement} will be explained in the
 chapter on Exceptions (\seec{Exceptions})
 \subsection{Assignments}
 Assignments give a value to a variable, replacing any previous value the
-observable might have had:
+variable might have had:
 \input{syntax/assign.syn}
 In addition to the standard Pascal assignment operator (\var{ := }), which
 simply replaces the value of the varable with the value resulting from the
@@ -2401,6 +2533,7 @@ a /= b & Divides \var{a} through \var{b}, and stores the result in
 \end{FPCltable}
 For these constructs to work, you should specify the \var{-Sc}
 command-line switch.
+
 {\em Remark:} These constructions are just for typing convenience, they
 don't generate different code.
 Here are some examples of valid assignment statements:
@@ -2415,7 +2548,7 @@ MyPi := 4* Tan(1);
 \subsection{Procedure statements}
 Procedure statements are calls to subroutines. There are
 different possibilities for procedure calls: A normal procedure call, an
-object method call (qualified or not) , or even a call to a procedural
+object method call (fully qualified or not), or even a call to a procedural
 type variable. All types are present in the following diagram.
 \input{syntax/procedure.syn}
 The \fpc compiler will look for a procedure with the same name as given in
@@ -2454,6 +2587,9 @@ Jumpto :
 Goto jumpto;
 ...
 \end{verbatim}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Structured statements
 \section{Structured statements}
 Structured statements can be broken into smaller simple statements, which
 should be executed repeatedly, conditionally  or sequentially:
@@ -2478,10 +2614,10 @@ in cases where Pascal syntax expects 1 statement, such as in
 The constants appearing in the various case parts must be known at
 compile-time, and can be of the following types : enumeration types,
 Ordinal types (except boolean), and chars. The expression must be also of
-this type, or an compiler error will occur. All case constants must
+this type, or a compiler error will occur. All case constants must
 have the same type.
 The compiler will evaluate the expression. If one of the case constants
-values matches the value of the expression, the statement that containing
+values matches the value of the expression, the statement that follows
 this constant is executed. After that, the program continues after the final
 \var{end}.
 If none of the case constants match the expression value, the statement
@@ -2490,6 +2626,7 @@ If no else part is present, and no case constant matches the expression
 value, program flow continues after the final \var{end}.
 The case statements can be compound statements
 (i.e. a \var{begin..End} block).
+
 {\em Remark:} Contrary to Turbo Pascal, duplicate case labels are not
 allowed in \fpc, so the following code will generate an error when
 compiling:
@@ -2505,17 +2642,16 @@ The compiler will generate a \var{Duplicate case label} error when compiling
 this, because the 3 also appears (implicitly) in the range \var{1..5}. This
 is similar to Delhpi syntax.
 The following are valid case statements:
- 'b' : WriteLn ('B pressed');
 \begin{verbatim}
 Case C of
  'a' : WriteLn ('A pressed');
+ 'b' : WriteLn ('B pressed');
  'c' : WriteLn ('C pressed');
 else
   WriteLn ('unknown letter pressed : ',C);
 end;
 \end{verbatim}
 Or
- 'b' : WriteLn ('B pressed');
 \begin{verbatim}
 Case C of
  'a','e','i','o','u' : WriteLn ('vowel pressed');
@@ -2533,20 +2669,22 @@ else
 end;
 \end{verbatim}
 \subsection{The \var{If..then..else} statement}
-The \var{If .. then .. else..} protottype syntax is
+The \var{If .. then .. else..} prototype syntax is
 \input{syntax/ifthen.syn}
 The expression between the \var{if} and \var{then} keywords must have a
 boolean return type. If the expression evaluates to \var{True} then the
-statement following{then} is executed. If the expression evaluates to
-\var{False}, then the statement following \var{else} is executed, if it is
-present.
+statement following \var{then} is executed. 
+
+If the expression evaluates to \var{False}, then the statement following 
+\var{else} is executed, if it is present.
+
 Be aware of the fact that the boolean expression will be short-cut evaluated.
 (Meaning that the evaluation will be stopped at the point where the
  outcome is known with certainty)
 Also, before the \var {else} keyword,  no semicolon (\var{;}) is allowed,
 but all statements can be compound statements.
 In nested \var{If.. then .. else} constructs, some ambiguity may araise as
-to which  \var{else} statement paits with which \var{if} statement. The rule
+to which  \var{else} statement pairs with which \var{if} statement. The rule
 is that the \var{else } keyword matches the first \var{if} keyword not
 already matched by an \var{else} keyword.
 For example:
@@ -2557,7 +2695,7 @@ If exp1 Then
 else
   stat2;
 \end{verbatim}
-Despite it's appreance, the statement is syntactically equivalent to
+Despite it's appearance, the statement is syntactically equivalent to
 \begin{verbatim}
 If exp1 Then
    begin
@@ -2581,6 +2719,7 @@ else
 If it is this latter construct you want, you must explicitly put the
 \var{begin} and \var{end} keywords. When in doubt, add them, they don't
 hurt.
+
 The following is a valid statement:
 \begin{verbatim}
 If Today in [Monday..Friday] then
@@ -2608,8 +2747,10 @@ execution of the statement, the control variable is increased or decreased
 with 1, depending on whether \var{To} or \var{Downto} is used.
 The control variable must be an ordinal type, no other
 types can be used as counters in a loop.
+
 {\em Remark:} Contrary to ANSI pascal specifications, \fpc first initializes
 the counter variable, and only then calculates the upper bound.
+
 The following are valid loops:
 \begin{verbatim}
 For Day := Monday to Friday do Work;
@@ -2617,12 +2758,13 @@ For I := 100 downto 1 do
   WriteLn ('Counting down : ',i);
 For I := 1 to 7*dwarfs do KissDwarf(i);
 \end{verbatim}
+
 \subsection{The \var{Repeat..until} statement}
 The \var{repeat} statement is used to execute a statement until a certain
 condition is reached. The statement will be executed at least once.
 The prototype syntax of the \var{Repeat..until} statement is
 \input{syntax/repeat.syn}
-This will execute the statements between \var{repeat} and {until} up to
+This will execute the statements between \var{repeat} and \var{until} up to
 the moment when \var{Expression} evaluates to \var{True}.
 Since the \var{expression} is evaluated {\em after} the execution of the
 statements, they are executed at least once.
@@ -2738,6 +2880,9 @@ As of version 0.99.7, \fpc supports exceptions. Exceptions provide a
 convenient way to program error and error-recovery mechanisms, and are
 closely related to classes.
 Exception support is explained in \seec{Exceptions}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Assembler statements
 \section{Assembler statements}
 An assembler statement allows you to insert assembler code right in your
 pascal code.
@@ -2763,14 +2908,18 @@ the \var{EAX} and \var{EBX} registers when it encounters this asm statement.
 \fpc supports the use of functions and procedures, but with some extras:
 Function overloading is supported, as well as \var{Const} parameters and
 open arrays.
-{\em remark:} In many of the subsequent paragraphs the word \var{procedure}
+
+{\em Remark:} In many of the subsequent paragraphs the words \var{procedure}
 and \var{function} will be used interchangeably. The statements made are
 valid for both, except when indicated otherwise.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Procedure declaration
 \section{Procedure declaration}
 A procedure declaration defines an identifier and associates it with a
 block of code. The procedure can then be called with a procedure statement.
 \input{syntax/procedur.syn}
-\sees{Parameters} for the list of parameters.
+See \sees{Parameters} for the list of parameters.
 A procedure declaration that is followed by a block implements the action of
 the procedure in that block.
 The following is a valid procedure :
@@ -2782,12 +2931,20 @@ begin
 end;
 \end{verbatim}
 Note that it is possible that a procedure calls itself.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Function declaration
 \section{Function declaration}
 A function declaration defines an identifier and associates it with a
 block of code. The block of code will return a result.
 The function can then be called inside an expression, or with a procedure
-statement.
+statement, if extended syntax is on.
 \input{syntax/function.syn}
+The result type of a function can be any previously declared type.
+contrary to Turbo pascal, where only simple types could be returned.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Parameter lists
 \section{Parameter lists}
 \label{se:Parameters}
 When you need to pass arguments to a function or procedure, these parameters
@@ -2795,7 +2952,7 @@ must be declared in the formal parameter list of that function or procedure.
 The parameter list is a declaration of identifiers that can be referred to
 only in that procedure or function's block.
 \input{syntax/params.syn}
-\var{const} parameters and \var{var} parameters can also be \var{untyped}
+Constant parameters and variable parameters can also be \var{untyped}
 parameters if they have no type identifier.
 \subsection{Value parameters}
 Value parameters are declared as follows:
@@ -2808,13 +2965,15 @@ A block that wishes to call a procedure with value parameters must pass
 assignment compatible parameters to the procedure. This means that the types
 should not match exactly, but can be converted (conversion code is inserted
 by the compiler itself)
+
 Take care that using value parameters makes heavy use of the stack,
 especially if you pass large parameters. The total size of all parameters in
 the formal parameter list should be below 32K for portability's sake (the
 Intel version limits this to 64K).
+
 You can pass open arrays as value parameters. See \sees{openarray} for
 more information on using open arrays.
-\subsection{\var{var} parameters}
+\subsection{Variable parameters}
 \label{se:varparams}
 Variable parameters are declared as follows:
 \input{syntax/paramvar.syn}
@@ -2828,17 +2987,20 @@ values back in procedures.
 Because of this, the calling block must pass a parameter of {\em exactly}
 the same type as the declared parameter's type. If it does not, the compiler
 will generate an error.
+
 Variable parameters can be untyped. In that case the variable has no type,
-and hence is incompatible with all othertypes. However, you can use the
+and hence is incompatible with all other types. However, you can use the
 address operator on it, or you can pass it to a function that has also an
 untyped parameter. If you want to use an untyped parameter in an assigment,
 or you want to assign to it, you must use a typecast.
+
 File type variables must always be passed as variable parameters.
+
 You can pass open arrays as variable parameters. See \sees{openarray} for
 more information on using open arrays.
-\subsection{\var{Const} parameters}
+\subsection{Constant parameters}
 In addition to variable parameters and value parameters \fpc also supports
-\var{Const} parameters. You can specify a \var{Const} parameter as follows:
+Constant parameters. You can specify a constant parameter as follows:
 \input{syntax/paramcon.syn}
 A constant argument is passed by reference if it's size is larger than a
 longint. It is passed by value if the size equals 4 or less.
@@ -2848,8 +3010,10 @@ compiler error. Likewise, you cannot pass a const parameter on to another
 function that requires a variable parameter.
 The main use for this is reducing the stack size, hence improving
 performance, and still retaining the semantics of passing by value...
+
 Constant parameters can also be untyped. See \sees{varparams} for more
 information about untyped parameters.
+
 You can pass open arrays as constant parameters. See \sees{openarray} for
 more information on using open arrays.
 \subsection{Open array parameters}
@@ -2857,7 +3021,7 @@ more information on using open arrays.
 \fpc supports the passing of open arrays, i.e. you can declare a procedure
 with an array of unspecified length as a parameter, as in Delphi.
 Open array parameters can be accessed in the procedure or function as an
-array that is declared with starting starting index 0, and last element
+array that is declared with starting index 0, and last element
 index \var{High(paremeter)}.
 For example, the parameter
 \begin{verbatim}
@@ -2865,13 +3029,13 @@ Row : Array of Integer;
 \end{verbatim}
 would be equivalent to
 \begin{verbatim}
-Row : Array[1..N-1] of Integer;
+Row : Array[0..N-1] of Integer;
 \end{verbatim}
 Where  \var{N} would be the actual size of the array that is passed to the
 function. \var{N-1} can be calculated as \var{High(Row)}.
 Open parameters can be passed by value, by reference or as a constant
 parameter. In the latter cases the procedure receives a pointer to the
-actual array. In the former case,it receives a copy of the array.
+actual array. In the former case, it receives a copy of the array.
 In a function or procedure, you can pass open arrays only to functions which
 are also declared with open arrays as parameters, {\em not} to functions or
 procedures which accept arrays of fixed length.
@@ -2887,14 +3051,17 @@ begin
   Average := Temp / (High(Row)+1);
 end;
 \end{verbatim}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Function overloading
 \section{Function overloading}
 Function overloading simply means that you can define the same function more
 than once, but each time with a different formal parameter list.
 The parameter lists must differ at least in one of it's elements type.
 When the compiler encounters a function call, it will look at the function
-parameters to decide which od the defined function
+parameters to decide which of the defined function
 This can be useful if you want to define the same function for different
-types. For example, if the RTL, the  \var{Dec} procedure is
+types. For example, in the RTL, the  \var{Dec} procedure is
 is defined as:
 \begin{verbatim}
 ...
@@ -2906,14 +3073,17 @@ Dec(Var I : Byte);
 \end{verbatim}
 When the compiler encounters a call to the dec function, it wil first search
 which function it should use. It therefore checks the parameters in your
-function call, and looks if there is a function definition which maches the
+function call, and looks if there is a function definition which matches the
 specified parameter list. If the compiler finds such a function, a call is
 inserted to that function. If no such function is found, a compiler error is
 generated.
 You cannot have overloaded functions that have a \var{cdecl} or \var{export}
 modifier (Technically, because these two modifiers prevent the mangling of
 the function name by the compiler)
-\section{forward defined functions}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% forward defined functions
+\section{Forward defined functions}
 You can define a function without having it followed by it's implementation,
 by having it followed by the \var{forward} procedure. The effective
 implementation of that function must follow later in the module.
@@ -2960,6 +3130,9 @@ begin
 end;
 end.
 \end{verbatim}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% External functions
 \section{External functions}
 \label{se:external}
 The \var{external} modifier can be used to declare a function that resides in
@@ -2986,7 +3159,7 @@ If the \var{external} modifier is followed by a string constant:
 external 'lname';
 \end{verbatim}
 Then this tells the compiler that the function resides in library
-'lname'. The compiler will the automatically link this library to
+'lname'. The compiler will then automatically link this library to
 your program.
 
 You can also specify the name that the function has in the library:
@@ -2994,16 +3167,19 @@ You can also specify the name that the function has in the library:
 external 'lname' name Fname;
 \end{verbatim}
 This tells the compiler that the function resides in library 'lname',
-but with name 'Fname'. The compiler will the automatically link this
+but with name 'Fname'. The compiler will then automatically link this
 library to your program, and use the correct name for the function.
 Under \windows and \ostwo, you can also use the following form:
 \begin{verbatim}
 external 'lname' Index Ind;
 \end{verbatim}
 This tells the compiler that the function resides in library 'lname',
-but with index \var{Ind}. The compiler will the automatically
+but with index \var{Ind}. The compiler will then automatically
 link this library to your program, and use the correct index for the
 function.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Assembler functions
 \section{Assembler functions}
 Functions and procedures can be completely implemented in assembly
 language. To indicate this, you use the \var{assembler} keyword:
@@ -3013,6 +3189,9 @@ assembler function.
 For more information about assembler functions, see the chapter on using
 assembler in the \progref.
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Modifiers
 \section{Modifiers}
 A function or procedure declaration can contain modifiers. Here we list the
 various possibilities:
@@ -3020,7 +3199,7 @@ various possibilities:
 \fpc doesn't support all Turbo Pascal modifiers, but
 does support a number of additional modifiers. They are used mainly for assembler and
 reference to C object files. More on the use of modifiers can be found in
-\progref.
+the \progref.
 \subsection{Public}
 The \var{Public} keyword is used to declare a function globally in a unit.
 This is useful if you don't want a function to be accessible from the unit
@@ -3044,7 +3223,7 @@ end.
 If another program or unit uses this unit, it will not be able to use the
 function \var{Second}, since it isn't declared in the interface part.
 However, it will be possible to access the function \var{Second} at the
-assembly-language level, by using it's mangled name (\progref).
+assembly-language level, by using it's mangled name (see the \progref).
 \subsection{cdecl}
 \label{se:cdecl}
 The \var{cdecl} modifier can be used to declare a function that uses a C
@@ -3129,6 +3308,9 @@ end.
 code, thus it is case sensitive.
 The \var{Alias} modifier, combined with the \var{Public} modifier, make a
 powerful tool for making externally accessible object files.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Unsupported Turbo Pascal modifiers
 \section{Unsupported Turbo Pascal modifiers}
 The modifiers that exist in Turbo pascal, but aren't supported by \fpc, are
 listed in \seet{Modifs}.
@@ -3139,8 +3321,10 @@ Far & \fpc is a 32-bit compiler. \\
 %External & Replaced by \var{C} modifier. \\ \hline
 \end{FPCltable}
 
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Programs, Units, Blocks
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \chapter{Programs, units, blocks}
@@ -3149,6 +3333,9 @@ to group pieces of code together, or to give someone code without giving
 the sources.
 Both programs and units consist of code blocks, which are mixtures of
 statements, procedures, and variable or type declarations.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Programs
 \section{Programs}
 A pascal program consists of the program header, followed possibly by a
 'uses' clause, and a block.
@@ -3166,11 +3353,16 @@ first in the last unit in the uses clause, then the last but one, and so on.
 This is important in case two units declare different types with the same
 identifier.
 When the compiler looks for unit files, it adds the extension \file{.ppu}
-(\file{.ppw} for \windowsnt) to the name of the unit. On \linux, unit names
+(\file{.ppw} for Win32 platforms) to the name of the unit. On \linux, unit names
 are converted to all lowercase when looking for a unit.
+
 If a unit name is longer than 8 characters, the compiler will first look for
 a unit name with this length, and then it will truncate the name to 8
-characters and look for it again.
+characters and look for it again. For compatibility reasons, this is also 
+true on platforms that suport long file names.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Units
 \section{Units}
 A unit contains a set of declarations, procedures and functions that can be
 used by a program or another unit.
@@ -3179,24 +3371,28 @@ The syntax for a unit is as follows:
 The interface part declares all identifiers that must be exported from the
 unit. This can be constant, type or variable identifiers, and also procedure
 or function identifier declarations. Declarations inside the
-implementationpart are {\em not} accessible outside the unit. The
+implementation part are {\em not} accessible outside the unit. The
 implementation must contain a function declaration for each function or
 procedure that is declared in the interface part. If a function is declared
 in the interface part, but no declaration of that function is present in the
-implementation section is present, then the compiler will give an error.
+implementation part, then the compiler will give an error.
+
 When a program uses a unit (say \file{unitA}) and this units uses a second
 unit, say \file{unitB}, then the program depends indirectly also on
 \var{unitB}. This means that the compiler must have access to \file{unitB} when
 trying to compile the program. If the unit is not present at compile time,
 an error occurs.
+
 Note that the identifiers from a unit on which a program depends indirectly,
 are not accessible to the program. To have access to the identifiers of a
 unit, you must put that unit in the uses clause of the program or unit where
 you want to yuse the identifier.
+
 Units can be mutually dependent, that is, they can reference each other in
 their uses clauses. This is allowed, on the condition that at least one of
 the references is in the implementation section of the unit. This also holds
 for indirect mutually dependent units.
+
 If it is possible to start from one interface uses clause of a unit, and to return
 there via uses clauses of interfaces only, then there is circular unit
 dependence, and the compiler will generate an error.
@@ -3207,7 +3403,9 @@ interface
 Uses UnitB;
 implementation
 end.
+
 Unit UnitB
+interface
 Uses UnitA;
 implementation
 end.
@@ -3227,6 +3425,9 @@ end.
 Because \file{UnitB} uses \file{UnitA} only in it's implentation section.
 In general, it is a bad idea to have circular unit dependencies, even if it is
 only in implementation sections.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Blocks
 \section{Blocks}
 Units and programs are made of blocks. A block is made of declarations of
 labels, constants, types variables and functions or procedures. Blocks can
@@ -3249,6 +3450,9 @@ After the different declaration parts comes the statement part. This
 contains any actions that the block should execute.
 All identifiers declared before the statement part can be used in that
 statement part.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Scope
 \section{Scope}
 Identifiers are valid from the point of their declaration until the end of
 the block in which the declaration occurred. The range where the identifier
@@ -3330,8 +3534,11 @@ begin
 end.
 \end{verbatim}
 This is especially useful if you redeclare the system unit's identifiers.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Libraries
 \section{Libraries}
-\fpc supports making of dynamic libraries (DLLs under Windows) trough
+\fpc supports making of dynamic libraries (DLLs under Win32 and \ostwo) trough
 the use of the \var{Library} keyword.
 
 A Library is just like a unit or a program:
@@ -3345,21 +3552,23 @@ you must export them in an export clause:
 
 \input{syntax/exports.syn}
 
-Under \windowsnt, an index clause can be added to an exports entry.
+Under Win32, an index clause can be added to an exports entry.
 an index entry must be a positive number larger or equal than 1.
 It is best to use low index values, although nothing forces you to
 do this.
 
 Optionally, an exports entry can have a name specifier. If present, the name
-specifier gives the exavt name (case sensitive) of the function in the
+specifier gives the exact name (case sensitive) of the function in the
 library.
 
 If neither of these constructs is present, the functions or procedures
 are exported with the exact names as specified in the exports clause.
 
 
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Exceptions
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Exceptions}
 \label{ch:Exceptions}
@@ -3376,8 +3585,13 @@ code.
 \item [Try ... Finally\ ] blocks. These block serve to force code to be
 executed irrespective of an exception occurrence or not. They generally
 serve to clean up memory or close files in case an exception occurs.
-code.
+The compiler generates many implicit \var{Try ... Finally} blocks around
+procedure, to force memory consistence.
 \end{description}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% The raise statement
 \section{The raise statement}
 The \var{raise} statement is as follows:
 \input{syntax/raise.syn}
@@ -3388,11 +3602,13 @@ will provide the address by itself.
 If the exception instance is omitted, then the current exception is
 re-raised. This construct can only be used in an exception handling
 block (see further).
-Remark that control {\em never} returns after an exception block. The
+
+{\em Remark:} Control {\em never} returns after an exception block. The
 control is transferred to the first \var{try...finally} or
 \var{try...except} statement that is encountered when unwinding the stack.
 If no such statement is found, the \fpc Run-Time Library will generate a
 run-time error 217 (see also \sees{exceptclasses}).
+
 As an example: The following division checks whether the denominator is
 zero, and if so, raises an exception of type \var{EDivException}
 \begin{verbatim}
@@ -3406,6 +3622,9 @@ end;
 \end{verbatim}
 The class \var{Exception} is defined in the \file{Sysutils} unit of the rtl.
 (\sees{exceptclasses})
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% The try...except statement
 \section{The try...except statement}
 A \var{try...except} exception handling block is of the following form :
 \input{syntax/try.syn}
@@ -3413,10 +3632,12 @@ If no exception is raised during the execution of the \var{statement list},
 then all statements in the list will be executed sequentially, and the
 except block will be skipped, transferring program flow to the statement
 after the final \var{end}.
+
 If an exception occurs during the execution of the \var{statement list}, the
-program flow fill be transferred to the except block. Statements in the
+program flow will be transferred to the except block. Statements in the
 statement list between the place where the exception was raised and the
 exception block are ignored.
+
 In the exception handling block, the type of the exception is checked,
 and if there is an exception handler where the class type matches the
 exception object type, or is a parent type of
@@ -3424,18 +3645,22 @@ the exception object type, then the statement following the corresponding
 \var{Do} will be executed. The first matching type is used. After the
 \var{Do} block was executed, the program continues after the \var{End}
 statement.
+
 The identifier in an exception handling statement is optional, and declares
 an exception object. It can be used to manipulate the exception object in
 the exception handling code. The scope of this declaration is the statement
 block foillowing the \var{Do} keyword.
+
 If none of the \var{On} handlers matches the exception object type, then the
-\var{Default exception handler} is executed. If no such default handler is
+statement list after \var{else} is executed. If no such list is
 found, then the exception is automatically re-raised. This process allows
 to nest \var{try...except} blocks.
+
 If, on the other hand, the exception was caught, then the exception object is
 destroyed at the end of the exception handling block, before program flow
 continues. The exception is destroyed through a call to the object's
 \var{Destroy} destructor.
+
 As an example, given the previous declaration of the \var{DoDiv} function,
 consider the following
 \begin{verbatim}
@@ -3454,19 +3679,26 @@ To allow error recovery, the \var{Try ... Finally} block is supported.
 A \var{Try...Finally} block ensures that the statements following the
 \var{Finally} keyword are guaranteed to be executed, even if an exception
 occurs.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% The try...finally statement
 \section{The try...finally statement}
 A \var{Try..Finally} statement has the following form:
 \input{syntax/finally.syn}
 If no exception occurs inside the \var{statement List}, then the program
 runs as if the \var{Try}, \var{Finally} and \var{End} keywords were not
 present.
+
 If, however, an exception occurs, the program flow is immediatly
 transferred from the point where the excepion was raised to the first
-statement  of the \var{Finally statements}.
-All statements after the finally kayword will be executed, and then
+statement of the \var{Finally statements}.
+
+All statements after the finally keyword will be executed, and then
 the exception will be automatically re-raised. Any statements between the
 place where the exception was raised and the first statement of the
 \var{Finally Statements} are skipped.
+
 As an example consider the following routine:
 \begin{verbatim}
 Procedure Doit (Name : string);
@@ -3480,24 +3712,33 @@ begin
     Close(F);
   end;
 \end{verbatim}
-If during the execution of the file handling an excption occurs, then
+If during the execution of the file handling an execption occurs, then
 program flow will continue at the \var{close(F)} statement, skipping any
 file operations that might follow between the place where the exception
 was raised, and the \var{Close} statement.
 If no exception occurred, all file operations will be executed, and the file
 will be closed at the end.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Exception handling nesting
 \section{Exception handling nesting}
 It is possible to nest \var{Try...Except} blocks with \var{Try...Finally}
 blocks. Program flow will be done according to a \var{lifo} (last in, first
 out) principle: The code of the last encountered \var{Try...Except} or
  \var{Try...Finally} block will be executed first. If the exception is not
-caught, or it was a finally statement, program flow will we transferred to
-the last but-one block, {\em ad infinitum}.
+caught, or it was a finally statement, program flow will be transferred to
+the last-but-one block, {\em ad infinitum}.
+
 If an exception occurs, and there is no exception handler present, then a
 runerror 217 will be generated. If you use the \file{sysutils} unit, a default
-handler is installed which ioll show the exception object message, and the
+handler is installed which will show the exception object message, and the
 address where the exception occurred, after which the program will exit with
 a \var{Halt} instruction.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Exception classes
 \section{Exception classes}
 \label{se:exceptclasses}
 The \file{sysutils} unit contains a great deal of exception handling.
@@ -3527,13 +3768,21 @@ Run-Time library. Basically, it prints the exception address, and it prints
 the message of the Exception object, and exits with a exit code of 217.
 If the exception object is not a descendent object of the \var{Exception}
 object, then the class name is printed instead of the exception message.
-It is recommended to use the Exception object or a descendant class for
-all raise statemnts, since then you can use the message field of the
+
+It is recommended to use the \var{Exception} object or a descendant class for
+all \var{raise} statements, since then you can use the message field of the
 exception object.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Using Assembler
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Using assembler}
 \fpc supports the use of assembler in your code, but not inline
 assembler macros.  To have more information on the processor
 specific assembler syntax and its limitations, see the \progref.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Assembler statements 
 \section{Assembler statements }
 The following is an example of assembler inclusion in your code.
 \begin{verbatim}
@@ -3551,21 +3800,25 @@ The assembler instructions between the \var{Asm} and \var{end} keywords will
 be inserted in the assembler generated by the compiler.
 You can still use conditionals in your assembler, the compiler will
 recognise it, and treat it as any other conditionals.
-\emph{ Remark: } Before version 0.99.1, \fpc did not support
+
+{\em Remark: } Before version 0.99.1, \fpc did not support
 reference to variables by their names in the assembler parts of your code.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Assembler procedures and functions
 \section{Assembler procedures and functions}
 Assembler procedures and functions are declared using the
 \var{Assembler} directive. The \var{Assembler} keyword is supported
 as of version 0.9.7. This permits the code generator to make a number
 of code generation optimizations.
+
 The code generator does not generate any stack frame (entry and exit
 code for the routine) if it contains no local variables and no
 parameters. In the case of functions, ordinal values must be returned
 in the accumulator. In the case of floating point values, these depend
 on the target processor and emulation options.
-\emph{ Remark: } Before version 0.99.1, \fpc did not support
-reference to variables by their names in the assembler parts of your code.
-\emph{ Remark: } From version 0.99.1 to 0.99.5 (\emph{excluding}
+
+{\em Remark: } From version 0.99.1 to 0.99.5 (\emph{excluding}
 FPC 0.99.5a), the \var{Assembler} directive did not have the
 same effect as in Turbo Pascal, so beware! The stack frame would be
 omitted if there were no local variables, in this case if the assembly
@@ -3574,21 +3827,31 @@ pointer. This was \emph{ NOT} like Turbo Pascal where the stack frame is only
 omitted if there are no parameters \emph{ and } no local variables. As
 stated earlier, starting from version 0.99.5a, \fpc now has the same
 behaviour as Turbo Pascal.
+
 %
 % System unit reference guide.
 %
-%\end{document}
+
 \part{Reference : The System unit}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% The system unit
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{The system unit}
 \label{ch:refchapter}
+\FPCexampledir{refex}
 The system unit contains the standard supported functions of \fpc. It is the
 same for all platforms. Basically it is the same as the system unit provided
 with Borland or Turbo Pascal.
-Functions are listed in alphabetical order.
-Arguments to functions or procedures that are optional are put between
-square brackets.
+
+Functions are listed in alphabetical order. Arguments of functions or 
+procedures that are optional are put between square brackets.
+
 The pre-defined constants and variables are listed in the first section. The
 second section contains the supported functions and procedures.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Types, Constants and Variables
 \section{Types, Constants and Variables}
 \subsection{Types}
 The following integer types are defined in the System unit:
@@ -3648,7 +3911,8 @@ var
   loweststack : Longint;
 \end{verbatim}
 The variables \var{ExitProc}, \var{exitcode} are used in the \fpc exit
-scheme. It works similarly to the on in Turbo Pascal:
+scheme. It works similarly to the one in Turbo Pascal:
+
 When a program halts (be it through the call of the \var{Halt} function or
 \var{Exit} or through a run-time error), the exit mechanism checks the value
 of \var{ExitProc}. If this one is non-\var{Nil}, it is set to \var{Nil}, and
@@ -3659,13 +3923,16 @@ of \var{ExitProc} (may be non-\var{Nil}, since other units could have set it bef
 you did). In your exit procedure you then restore the value of
 \var{ExitProc}, such that if it was non-\var{Nil} the exit-procedure can be
 called.
+
 The \var{ErrorAddr} and \var{ExitCode} can be used to check for
 error-conditions. If \var{ErrorAddr} is non-\var{Nil}, a run-time error has
 occurred. If so, \var{ExitCode} contains the error code. If \var{ErrorAddr} is
 \var{Nil}, then {ExitCode} contains the argument to \var{Halt} or 0 if the
 program terminated normally.
+
 \var{ExitCode} is always passed to the operating system as the exit-code of
 your process.
+
 Under \file{GO32}, the following constants are also defined :
 \begin{verbatim}
 const
@@ -3675,11 +3942,14 @@ const
    segB800 = $B800;
 \end{verbatim}
 These constants allow easy access to the bios/screen segment via mem/absolute.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Functions and Procedures
 \section{Functions and Procedures}
+
 \begin{function}{Abs}
 \Declaration
 Function Abs (X : Every numerical type) : Every numerical type;
-
 \Description
 \var{Abs} returns the absolute value of a variable. The result of the
 function has the same type as its argument, which can be any numerical
@@ -3689,8 +3959,9 @@ None.
 \SeeAlso
 \seef{Round}
 \end{function}
-\latex{\lstinputlisting{refex/ex1.pp}}
-\html{\input{refex/ex1.tex}}
+
+\FPCexample{ex1}
+
 \begin{function}{Addr}
 \Declaration
 Function Addr (X : Any type) : Pointer;
@@ -3705,8 +3976,9 @@ None
 \SeeAlso
 \seef{SizeOf}
 \end{function}
-\latex{\lstinputlisting{refex/ex2.pp}}
-\html{\input{refex/ex2.tex}}
+
+\FPCexample{ex2}
+
 \begin{procedure}{Append}
 \Declaration
 Procedure Append (Var F : Text);
@@ -3716,16 +3988,17 @@ Procedure Append (Var F : Text);
 \var{F} will be appended to the file. If the file didn't exist, it will be
 created, contrary to the Turbo Pascal implementation of \var{Append}, where
 a file needed to exist in order to be opened by
-append.
+\var{Append}.
 Only text files can be opened in append mode.
 
 \Errors
 If the file can't be created, a run-time error will be generated.
 \SeeAlso
-\seep{Rewrite},\seep{Append}, \seep{Reset}
+\seep{Rewrite},\seep{Close}, \seep{Reset}
 \end{procedure}
-\latex{\lstinputlisting{refex/ex3.pp}}
-\html{\input{refex/ex3.tex}}
+
+\FPCexample{ex3}
+
 \begin{function}{Arctan}
 \Declaration
 Function Arctan (X : Real) : Real;
@@ -3738,8 +4011,9 @@ None
 \SeeAlso
 \seef{Sin}, \seef{Cos}
 \end{function}
-\latex{\lstinputlisting{refex/ex4.pp}}
-\html{\input{refex/ex4.tex}}
+
+\FPCexample{ex4}
+
 \begin{procedure}{Assign}
 \Declaration
 Procedure Assign (Var F; Name : String);
@@ -3753,23 +4027,23 @@ None.
 \SeeAlso
 \seep{Reset}, \seep{Rewrite}, \seep{Append}
 \end{procedure}
-\latex{\lstinputlisting{refex/ex5.pp}}
-\html{\input{refex/ex5.tex}}
+
+\FPCexample{ex5}
+
 \begin{function}{Assigned}
 \Declaration
 Function Assigned (P : Pointer) : Boolean;
-
 \Description
- \var{Assigned} returns \var{True} if \var{P} is non-nil
+\var{Assigned} returns \var{True} if \var{P} is non-nil
 and retuns \var{False} of \var{P} is nil.
-The main use of Assigned it that Procedural variables and
+The main use of Assigned is that Procedural variables, method variables and
 class-type variables also can be passed to \var{Assigned}.
-
 \Errors
 None
 \SeeAlso
-
+\seep{New}
 \end{function}
+
 \begin{function}{BinStr}
 \Declaration
 Function BinStr Value : longint; cnt : byte) : String;
@@ -3784,18 +4058,22 @@ bits, i.e. \var{cnt=32}
 \Errors
 None.
 \SeeAlso
-\seep{Str},seep{Val},\seef{HexStr}
+\seep{Str},\seep{Val},\seef{HexStr}
 \end{function}
-\latex{\lstinputlisting{refex/ex82.pp}}
-\html{\input{refex/ex82.tex}}
+
+\FPCexample{ex82}
+
 \begin{procedure}{Blockread}
 \Declaration
 Procedure Blockread (Var F : File; Var Buffer; Var Count : Longint [; var
 Result : Longint]);
 
 \Description
-\var{Blockread} reads \var{count} or less records from file \var{F}. The
-result is placed in \var{Buffer}, which must contain enough room for
+\var{Blockread} reads \var{count} or less records from file \var{F}. A
+record is a block of bytes with size specified by the \seep{Rewrite} or
+\seep{Reset} statement.
+
+The result is placed in \var{Buffer}, which must contain enough room for
 \var{Count} records. The function cannot read partial records.
 If \var{Result} is specified, it contains the number of records actually
 read. If \var{Result} isn't specified, and less than \var{Count} records were
@@ -3807,15 +4085,18 @@ than \var{count} records were read.
 \SeeAlso
 \seep{Blockwrite}, \seep{Close}, \seep{Reset}, \seep{Assign}
 \end{procedure}
-\latex{\lstinputlisting{refex/ex6.pp}}
-\html{\input{refex/ex6.tex}}
+
+\FPCexample{ex6}
+
 \begin{procedure}{Blockwrite}
 \Declaration
 Procedure Blockwrite (Var F : File; Var Buffer; Var Count : Longint);
 
 \Description
 \var{BlockWrite} writes \var{count} records from \var{buffer} to the file
- \var{F}.
+ \var{F}.A record is a block of bytes with size specified by the \seep{Rewrite} or
+\seep{Reset} statement.
+
 If the records couldn't be written to disk, a run-time error is generated.
 This behavior can be controlled by the \var{\{\$i\}} switch.
 
@@ -3825,11 +4106,12 @@ written to disk.
 \SeeAlso
 \seep{Blockread},\seep{Close}, \seep{Rewrite}, \seep{Assign}
 \end{procedure}
+
 For the example, see \seep{Blockread}.
+
 \begin{procedure}{Chdir}
 \Declaration
 Procedure Chdir (const S : string);
-
 \Description
 \var{Chdir} changes the working directory of the process to \var{S}.
 \Errors
@@ -3837,21 +4119,22 @@ If the directory \var{S} doesn't exist, a run-time error is generated.
 \SeeAlso
 \seep{Mkdir}, \seep{Rmdir}
 \end{procedure}
-\latex{\lstinputlisting{refex/ex7.pp}}
-\html{\input{refex/ex7.tex}}
+
+\FPCexample{ex7}
+
 \begin{function}{Chr}
 \Declaration
 Function Chr (X : byte) : Char;
-
 \Description
 \var{Chr} returns the character which has ASCII value \var{X}.
 \Errors
 None.
 \SeeAlso
-\seef{Ord},\seep{Str}
+\seef{Ord}, \seep{Str}
 \end{function}
-\latex{\lstinputlisting{refex/ex8.pp}}
-\html{\input{refex/ex8.tex}}
+
+\FPCexample{ex8}
+
 \begin{procedure}{Close}
 \Declaration
 Procedure Close (Var F : Anyfiletype);
@@ -3865,10 +4148,11 @@ file again. A call to \seep{Reset} or \seep{Rewrite} is sufficient.
 \Errors
 None.
 \SeeAlso
-\seep{Assign}, \seep{Reset}, \seep{Rewrite}
+\seep{Assign}, \seep{Reset}, \seep{Rewrite}, \seep{Flush}
 \end{procedure}
-\latex{\lstinputlisting{refex/ex9.pp}}
-\html{\input{refex/ex9.tex}}
+
+\FPCexample{ex9}
+
 \begin{function}{Concat}
 \Declaration
 Function Concat (S1,S2 [,S3, ... ,Sn]) : String;
@@ -3882,8 +4166,9 @@ None.
 \SeeAlso
 \seef{Copy}, \seep{Delete}, \seep{Insert}, \seef{Pos}, \seef{Length}
 \end{function}
-\latex{\lstinputlisting{refex/ex10.pp}}
-\html{\input{refex/ex10.tex}}
+
+\FPCexample{ex10}
+
 \begin{function}{Copy}
 \Declaration
 Function Copy (Const S : String;Index : Integer;Count : Byte) : String;
@@ -3899,8 +4184,9 @@ None.
 \SeeAlso
 \seep{Delete}, \seep{Insert}, \seef{Pos}
 \end{function}
-\latex{\lstinputlisting{refex/ex11.pp}}
-\html{\input{refex/ex11.tex}}
+
+\FPCexample{ex11}
+
 \begin{function}{Cos}
 \Declaration
 Function Cos (X : Real) : Real;
@@ -3912,8 +4198,9 @@ None.
 \SeeAlso
 \seef{Arctan}, \seef{Sin}
 \end{function}
-\latex{\lstinputlisting{refex/ex12.pp}}
-\html{\input{refex/ex12.tex}}
+
+\FPCexample{ex12}
+
 \begin{function}{CSeg}
 \Declaration
 Function CSeg  : Word;
@@ -3926,8 +4213,9 @@ None.
 \SeeAlso
 \seef{DSeg}, \seef{Seg}, \seef{Ofs}, \seef{Ptr}
 \end{function}
-\latex{\lstinputlisting{refex/ex13.pp}}
-\html{\input{refex/ex13.tex}}
+
+\FPCexample{ex13}
+
 \begin{procedure}{Dec}
 \Declaration
 Procedure Dec (Var X : Any ordinal type[; Decrement : Longint]);
@@ -3941,40 +4229,48 @@ below its minimum value.
 \SeeAlso
 \seep{Inc}
 \end{procedure}
-\latex{\lstinputlisting{refex/ex14.pp}}
-\html{\input{refex/ex14.tex}}
+
+\FPCexample{ex14}
+
 \begin{procedure}{Delete}
 \Declaration
 Procedure Delete (var S : string;Index : Integer;Count : Integer);
 
 \Description
 \var{Delete} removes \var{Count} characters from string \var{S}, starting
-at position \var{Index}. All remaining characters are shifted \var{Count}
-positions to the left, and the length of the string is adjusted.
+at position \var{Index}. All characters after the delected characters are 
+shifted \var{Count} positions to the left, and the length of the string is adjusted.
 
 \Errors
 None.
 \SeeAlso
 \seef{Copy},\seef{Pos},\seep{Insert}
 \end{procedure}
-\latex{\lstinputlisting{refex/ex15.pp}}
-\html{\input{refex/ex15.tex}}
+
+\FPCexample{ex15}
+
 \begin{procedure}{Dispose}
 \Declaration
-Procedure Dispose (P : pointer);
-
+Procedure Dispose (P : pointer);\\
+Procedure Dispiose (P : Typed Pointer; Des : Procedure);
 \Description
-\var{Dispose} releases the memory allocated with a call to \seep{New}.
-The pointer \var{P} must be typed. The released memory is returned to the
-heap.
+The first form \var{Dispose} releases the memory allocated with a call to 
+\seep{New}. The pointer \var{P} must be typed. The released memory is 
+returned to the heap.
+
+The second form of \var{Dispose} accepts as a first parameter a pointer 
+to an object type, and as a second parameter the name of a destructor
+of this object. The destructor will be called, and the memory allocated 
+for the object will be freed.
 \Errors
 An error will occur if the pointer doesn't point to a location in the
 heap.
 \SeeAlso
 \seep{New}, \seep{Getmem}, \seep{Freemem}
 \end{procedure}
-\latex{\lstinputlisting{refex/ex16.pp}}
-\html{\input{refex/ex16.tex}}
+
+\FPCexample{ex16}
+
 \begin{function}{DSeg}
 \Declaration
 Function DSeg  : Word;
@@ -3987,8 +4283,9 @@ None.
 \SeeAlso
 \seef{CSeg}, \seef{Seg}, \seef{Ofs}, \seef{Ptr}
 \end{function}
-\latex{\lstinputlisting{refex/ex17.pp}}
-\html{\input{refex/ex17.tex}}
+
+\FPCexample{ex17}
+
 \begin{function}{Eof}
 \Declaration
 Function Eof [(F : Any file type)] : Boolean;
@@ -4003,8 +4300,9 @@ None.
 \SeeAlso
 \seef{Eoln}, \seep{Assign}, \seep{Reset}, \seep{Rewrite}
 \end{function}
-\latex{\lstinputlisting{refex/ex18.pp}}
-\html{\input{refex/ex18.tex}}
+
+\FPCexample{ex18}
+
 \begin{function}{Eoln}
 \Declaration
 Function Eoln [(F : Text)] : Boolean;
@@ -4021,8 +4319,9 @@ None.
 \SeeAlso
 \seef{Eof}, \seep{Assign}, \seep{Reset}, \seep{Rewrite}
 \end{function}
-\latex{\lstinputlisting{refex/ex19.pp}}
-\html{\input{refex/ex19.tex}}
+
+\FPCexample{ex19}
+
 \begin{procedure}{Erase}
 \Declaration
 Procedure Erase (Var F : Any file type);
@@ -4031,12 +4330,14 @@ Procedure Erase (Var F : Any file type);
 \var{Erase} removes an unopened file from disk. The file should be
 assigned with \var{Assign}, but not opened with \var{Reset} or \var{Rewrite}
 \Errors
-A run-time error will be generated if the specified file doesn't exist.
+A run-time error will be generated if the specified file doesn't exist, or
+is opened by the program.
 \SeeAlso
 \seep{Assign}
 \end{procedure}
-\latex{\lstinputlisting{refex/ex20.pp}}
-\html{\input{refex/ex20.tex}}
+
+\FPCexample{ex20}
+
 \begin{procedure}{Exit}
 \Declaration
 Procedure Exit ([Var X : return type )];
@@ -4052,8 +4353,9 @@ None.
 \SeeAlso
 \seep{Halt}
 \end{procedure}
-\latex{\lstinputlisting{refex/ex21.pp}}
-\html{\input{refex/ex21.tex}}
+
+\FPCexample{ex21}
+
 \begin{function}{Exp}
 \Declaration
 Function Exp (Var X : Real) : Real;
@@ -4066,39 +4368,41 @@ None.
 \SeeAlso
 \seef{Ln}, \seef{Power}
 \end{function}
-\latex{\lstinputlisting{refex/ex22.pp}}
-\html{\input{refex/ex22.tex}}
+
+\FPCexample{ex22}
+
 \begin{function}{Filepos}
 \Declaration
 Function Filepos (Var F : Any file type) : Longint;
 
 \Description
 \var{Filepos} returns the current record position of the file-pointer in file
-\var{F}. It cannot be invoked with a file of type \var{Text}.
+\var{F}. It cannot be invoked with a file of type \var{Text}. If you try to
+do this, a compiler error will be generated.
 \Errors
 None.
 \SeeAlso
 \seef{Filesize}
 \end{function}
-\latex{\lstinputlisting{refex/ex23.pp}}
-\html{\input{refex/ex23.tex}}
+
+\FPCexample{ex23}
+
 \begin{function}{Filesize}
 \Declaration
 Function Filesize (Var F : Any file type) : Longint;
-
 \Description
-\var{Filepos} returns the total number of records in file \var{F}.
+\var{Filesize} returns the total number of records in file \var{F}.
 It cannot be invoked with a file of type \var{Text}. (under \linux, this
 also means that it cannot be invoked on pipes.)
 If \var{F} is empty, 0 is returned.
-
 \Errors
 None.
 \SeeAlso
 \seef{Filepos}
 \end{function}
-\latex{\lstinputlisting{refex/ex24.pp}}
-\html{\input{refex/ex24.tex}}
+
+\FPCexample{ex24}
+
 \begin{procedure}{Fillchar}
 \Declaration
 Procedure Fillchar (Var X;Count : Longint;Value : char or byte);;
@@ -4112,8 +4416,9 @@ No checking on the size of \var{X} is done.
 \SeeAlso
 \seep{Fillword}, \seep{Move}
 \end{procedure}
-\latex{\lstinputlisting{refex/ex25.pp}}
-\html{\input{refex/ex25.tex}}
+
+\FPCexample{ex25}
+
 \begin{procedure}{Fillword}
 \Declaration
 Procedure Fillword (Var X;Count : Longint;Value : Word);;
@@ -4125,24 +4430,26 @@ with value equal to \var{Value}.
 \Errors
 No checking on the size of \var{X} is done.
 \SeeAlso
-\seep{Fillword}, \seep{Move}
+\seep{Fillchar}, \seep{Move}
 \end{procedure}
-\latex{\lstinputlisting{refex/ex76.pp}}
-\html{\input{refex/ex76.tex}}
+
+\FPCexample{ex76}
+
 \begin{procedure}{Flush}
 \Declaration
 Procedure Flush (Var F : Text);
 
 \Description
-\var{Flush} empties the internal buffer of file \var{F} and writes the
+\var{Flush} empties the internal buffer of an opened file \var{F} and writes the
 contents to disk. The file is \textit{not} closed as a result of this call.
 \Errors
 If the disk is full, a run-time error will be generated.
 \SeeAlso
 \seep{Close}
 \end{procedure}
-\latex{\lstinputlisting{refex/ex26.pp}}
-\html{\input{refex/ex26.tex}}
+
+\FPCexample{ex26}
+
 \begin{function}{Frac}
 \Declaration
 Function Frac (X : Real) : Real;
@@ -4154,23 +4461,25 @@ None.
 \SeeAlso
 \seef{Round}, \seef{Int}
 \end{function}
-\latex{\lstinputlisting{refex/ex27.pp}}
-\html{\input{refex/ex27.tex}}
+
+\FPCexample{ex27}
+
 \begin{procedure}{Freemem}
 \Declaration
 Procedure Freemem (Var P : pointer; Count : Longint);
 
 \Description
 \var{Freemem} releases the memory occupied by the pointer \var{P}, of size
-\var{Count}, and returns it to the heap. \var{P} should point to the memory
+\var{Count} (in bytes), and returns it to the heap. \var{P} should point to the memory
 allocated to a dynamical variable.
 \Errors
 An error will occur when \var{P} doesn't point to the heap.
 \SeeAlso
 \seep{Getmem}, \seep{New}, \seep{Dispose}
 \end{procedure}
-\latex{\lstinputlisting{refex/ex28.pp}}
-\html{\input{refex/ex28.tex}}
+
+\FPCexample{ex28}
+
 \begin{procedure}{Getdir}
 \Declaration
 Procedure Getdir (drivenr : byte;var dir : string);
@@ -4185,8 +4494,9 @@ An error is returned under \dos, if the drive requested isn't ready.
 \SeeAlso
 \seep{Chdir}
 \end{procedure}
-\latex{\lstinputlisting{refex/ex29.pp}}
-\html{\input{refex/ex29.tex}}
+
+\FPCexample{ex29}
+
 \begin{procedure}{Getmem}
 \Declaration
 Procedure Getmem (var p : pointer;size : Longint);
@@ -4203,8 +4513,7 @@ None.
 For an example, see \seep{Freemem}.
 \begin{procedure}{Halt}
 \Declaration
-Procedure Halt [(Errnum : byte];
-
+Procedure Halt [(Errnum : byte)];
 \Description
 \var{Halt} stops program execution and returns control to the calling
 program. The optional argument \var{Errnum} specifies an exit value. If
@@ -4214,12 +4523,12 @@ None.
 \SeeAlso
 \seep{Exit}
 \end{procedure}
-\latex{\lstinputlisting{refex/ex30.pp}}
-\html{\input{refex/ex30.tex}}
+
+\FPCexample{ex30}
+
 \begin{function}{HexStr}
 \Declaration
-Function HexStr Value : longint; cnt : byte) : String;
-
+Function HexStr (Value : longint; cnt : byte) : String;
 \Description
 \var{HexStr} returns a string with the hexadecimal representation
 of \var{Value}. The string has at most \var{cnt} charaters.
@@ -4230,10 +4539,11 @@ nibbles, i.e. \var{cnt=8}.
 \Errors
 None.
 \SeeAlso
-\seep{Str},seep{Val},\seef{BinStr}
+\seep{Str}, \seep{Val}, \seef{BinStr}
 \end{function}
-\latex{\lstinputlisting{refex/ex81.pp}}
-\html{\input{refex/ex81.tex}}
+
+\FPCexample{ex81}
+
 \begin{function}{Hi}
 \Declaration
 Function Hi (X : Ordinal type) : Word or byte;
@@ -4241,15 +4551,16 @@ Function Hi (X : Ordinal type) : Word or byte;
 \Description
 \var{Hi} returns the high byte or word from \var{X}, depending on the size
 of X. If the size of X is 4, then the high word is returned. If the size is
-2 then the high byte is retuned.
-\var{hi} cannot be invoked on types of size 1, such as byte or char.
+2 then the high byte is returned.
+\var{Hi} cannot be invoked on types of size 1, such as byte or char.
 \Errors
 None
 \SeeAlso
 \seef{Lo}
 \end{function}
-\latex{\lstinputlisting{refex/ex31.pp}}
-\html{\input{refex/ex31.tex}}
+
+\FPCexample{ex31}
+
 \begin{function}{High}
 \Declaration
 Function High (Type identifier or variable reference) : Longint;
@@ -4257,8 +4568,8 @@ Function High (Type identifier or variable reference) : Longint;
 \Description
  The return value of \var{High} depends on it's argument:
 \begin{enumerate}
-\item If the argument is an ordinal type, \var{High} returns the lowest value in the range of the given ordinal
-type when it gets.
+\item If the argument is an ordinal type, \var{High} returns the lowest
+ value in the range of the given ordinal type.
 \item If the argument is an array type or an array type variable then
 \var{High} returns the highest possible value of it's index.
 \item If the argument is an open array identifier in a function or
@@ -4269,10 +4580,11 @@ array has a zero-based index.
 \Errors
 None.
 \SeeAlso
-\seef{High}, \seef{Ord}, \seef{Pred}, \seef{Succ}
+\seef{Low}, \seef{Ord}, \seef{Pred}, \seef{Succ}
 \end{function}
-\latex{\lstinputlisting{refex/ex80.pp}}
-\html{\input{refex/ex80.tex}}
+
+\FPCexample{ex80}
+
 \begin{procedure}{Inc}
 \Declaration
 Procedure Inc (Var X : Any ordinal type[; Increment : Longint]);
@@ -4281,13 +4593,14 @@ Procedure Inc (Var X : Any ordinal type[; Increment : Longint]);
 \var{Inc} increases the value of \var{X} with \var{Increment}.
 If \var{Increment} isn't specified, then 1 is taken as a default.
 \Errors
-A range check can occur, or an overflow error, if you try to increase \var{X}
-over its maximum value.
+If range checking is on, then A range check can occur, or an overflow 
+error, if you try to increase \var{X} over its maximum value.
 \SeeAlso
 \seep{Dec}
 \end{procedure}
-\latex{\lstinputlisting{refex/ex32.pp}}
-\html{\input{refex/ex32.tex}}
+
+\FPCexample{ex32}
+
 \begin{procedure}{Insert}
 \Declaration
 Procedure Insert (Const Source : String;var S : String;Index : Longint);
@@ -4295,14 +4608,16 @@ Procedure Insert (Const Source : String;var S : String;Index : Longint);
 \Description
 \var{Insert} inserts string \var{Source} in string \var{S}, at position
 \var{Index}, shifting all characters after \var{Index} to the right. The
-resulting string is truncated at 255 characters, if needed.
+resulting string is truncated at 255 characters, if needed. (i.e. for
+shortstrings)
 \Errors
 None.
 \SeeAlso
 \seep{Delete}, \seef{Copy}, \seef{Pos}
 \end{procedure}
-\latex{\lstinputlisting{refex/ex33.pp}}
-\html{\input{refex/ex33.tex}}
+
+\FPCexample{ex33}
+
 \begin{function}{Int}
 \Declaration
 Function Int (X : Real) : Real;
@@ -4314,18 +4629,20 @@ None.
 \SeeAlso
 \seef{Frac}, \seef{Round}
 \end{function}
-\latex{\lstinputlisting{refex/ex34.pp}}
-\html{\input{refex/ex34.tex}}
+
+\FPCexample{ex34}
+
 \begin{function}{IOresult}
 \Declaration
 Function IOresult  : Word;
 
 \Description
 IOresult contains the result of any input/output call, when the
-\var{\{\$i-\}} compiler directive is active, and IO checking is disabled. When the
-flag is read, it is reset to zero.
+\var{\{\$i-\}} compiler directive is active, disabling IO checking. 
+When the flag is read, it is reset to zero.
 If \var{IOresult} is zero, the operation completed successfully. If
 non-zero, an error occurred. The following errors can occur:
+
 \dos errors :
 \begin{description}
 \item [2\ ] File not found.
@@ -4370,24 +4687,28 @@ None.
 \SeeAlso
 All I/O functions.
 \end{function}
-\latex{\lstinputlisting{refex/ex35.pp}}
-\html{\input{refex/ex35.tex}}
+
+\FPCexample{ex35}
+
 \begin{function}{Length}
 \Declaration
 Function Length (S : String) : Byte;
 
 \Description
-\var{Length} returns the length of the string \var{S},
-which is limited to 255. If the strings \var{S} is empty, 0 is returned.
-{\em Note:} The length of the string \var{S} is stored in \var{S[0]}.
+\var{Length} returns the length of the string \var{S}, which is limited 
+to 255 for shortstrings. If the strings \var{S} is empty, 0 is returned.
+{\em Note:} The length of the string \var{S} is stored in \var{S[0]} for
+shortstrings only. Ansistrings have their length stored elsewhere,
+the \var{Length} fuction should always be used on ansistrings.
 
 \Errors
 None.
 \SeeAlso
 \seef{Pos}
 \end{function}
-\latex{\lstinputlisting{refex/ex36.pp}}
-\html{\input{refex/ex36.tex}}
+
+\FPCexample{ex36}
+
 \begin{function}{Ln}
 \Declaration
 Function Ln (X : Real) : Real;
@@ -4402,8 +4723,9 @@ An run-time error will occur when \var{X} is negative.
 \SeeAlso
 \seef{Exp}, \seef{Power}
 \end{function}
-\latex{\lstinputlisting{refex/ex37.pp}}
-\html{\input{refex/ex37.tex}}
+
+\FPCexample{ex37}
+
 \begin{function}{Lo}
 \Declaration
 Function Lo (O : Word or Longint) : Byte or Word;
@@ -4416,10 +4738,11 @@ Function Lo (O : Word or Longint) : Byte or Word;
 \Errors
 None.
 \SeeAlso
-\seef{Ord}, \seef{Chr}
+\seef{Ord}, \seef{Chr}, \seef{Hi}
 \end{function}
-\latex{\lstinputlisting{refex/ex38.pp}}
-\html{\input{refex/ex38.tex}}
+
+\FPCexample{ex38}
+
 \begin{procedure}{LongJmp}
 \Declaration
 Procedure LongJmp (Var env : Jmp\_Buf; Value : Longint);
@@ -4448,8 +4771,8 @@ Function Low (Type identifier or variable reference) : Longint;
 \Description
  The return value of \var{Low} depends on it's argument:
 \begin{enumerate}
-\item If the argument is an ordinal type, \var{Low} returns the lowest value in the range of the given ordinal
-type when it gets.
+\item If the argument is an ordinal type, \var{Low} returns the lowest 
+value in the range of the given ordinal type.
 \item If the argument is an array type or an array type variable then
 \var{Low} returns the lowest possible value of it's index.
 \end{enumerate}
@@ -4474,8 +4797,9 @@ None.
 \SeeAlso
 \seef{Upcase}
 \end{function}
-\latex{\lstinputlisting{refex/ex73.pp}}
-\html{\input{refex/ex73.tex}}
+
+\FPCexample{ex73}
+
 \begin{procedure}{Mark}
 \Declaration
 Procedure Mark (Var P : Pointer);
@@ -4487,8 +4811,9 @@ None.
 \SeeAlso
 \seep{Getmem}, \seep{Freemem}, \seep{New}, \seep{Dispose}, \seef{Maxavail}
 \end{procedure}
-\latex{\lstinputlisting{refex/ex39.pp}}
-\html{\input{refex/ex39.tex}}
+
+\FPCexample{ex39}
+
 \begin{function}{Maxavail}
 \Declaration
 Function Maxavail  : Longint;
@@ -4503,8 +4828,9 @@ None.
 \SeeAlso
 \seep{Release}, \seef{Memavail},\seep{Freemem}, \seep{Getmem}
 \end{function}
-\latex{\lstinputlisting{refex/ex40.pp}}
-\html{\input{refex/ex40.tex}}
+
+\FPCexample{ex40}
+
 \begin{function}{Memavail}
 \Declaration
 Function Memavail  : Longint;
@@ -4518,14 +4844,15 @@ None.
 \SeeAlso
 \seef{Maxavail},\seep{Freemem}, \seep{Getmem}
 \end{function}
-\latex{\lstinputlisting{refex/ex41.pp}}
-\html{\input{refex/ex41.tex}}
+
+\FPCexample{ex41}
+
 \begin{procedure}{Mkdir}
 \Declaration
 Procedure Mkdir (const S : string);
 
 \Description
-\var{Chdir} creates a new  directory \var{S}.
+\var{Mkdir} creates a new  directory \var{S}.
 \Errors
 If a parent-directory of directory \var{S} doesn't exist, a run-time error is generated.
 \SeeAlso
@@ -4545,8 +4872,9 @@ the compiler, a segmentation-fault will occur.
 \SeeAlso
 \seep{Fillword}, \seep{Fillchar}
 \end{procedure}
-\latex{\lstinputlisting{refex/ex42.pp}}
-\html{\input{refex/ex42.tex}}
+
+\FPCexample{ex42}
+
 \begin{procedure}{New}
 \Declaration
 Procedure New (Var P : Pointer[, Constructor]);
@@ -4574,8 +4902,9 @@ None.
 \SeeAlso
 \seef{Abs}, \seef{Ord}
 \end{function}
-\latex{\lstinputlisting{refex/ex43.pp}}
-\html{\input{refex/ex43.tex}}
+
+\FPCexample{ex43}
+
 \begin{function}{Ofs}
 \Declaration
 Function Ofs Var X : Longint;
@@ -4591,8 +4920,9 @@ None.
 \SeeAlso
 \seef{DSeg}, \seef{CSeg}, \seef{Seg}, \seef{Ptr}
 \end{function}
-\latex{\lstinputlisting{refex/ex44.pp}}
-\html{\input{refex/ex44.tex}}
+
+\FPCexample{ex44}
+
 \begin{function}{Ord}
 \Declaration
 Function Ord (X : Any ordinal type) : Longint;
@@ -4602,10 +4932,11 @@ Function Ord (X : Any ordinal type) : Longint;
 \Errors
 None.
 \SeeAlso
-\seef{Chr}, \seef{Ord}, \seef{Pred}, \seef{High}, \seef{Low}
+\seef{Chr}, \seef{Succ}, \seef{Pred}, \seef{High}, \seef{Low}
 \end{function}
-\latex{\lstinputlisting{refex/ex45.pp}}
-\html{\input{refex/ex45.tex}}
+
+\FPCexample{ex45}
+
 \begin{function}{Paramcount}
 \Declaration
 Function Paramcount  : Longint;
@@ -4619,8 +4950,9 @@ None.
 \SeeAlso
 \seef{Paramstr}
 \end{function}
-\latex{\lstinputlisting{refex/ex46.pp}}
-\html{\input{refex/ex46.tex}}
+
+\FPCexample{ex46}
+
 \begin{function}{Paramstr}
 \Declaration
 Function Paramstr (L : Longint) : String;
@@ -4630,11 +4962,12 @@ Function Paramstr (L : Longint) : String;
 be between \var{0} and \var{Paramcount}, these values included.
 The zeroth argument is the name with which the program was started.
 
-\Errors
- In all cases, the command-line will be truncated to a length of 255,
+In all cases, the command-line will be truncated to a length of 255,
 even though the operating system may support bigger command-lines. If you
 want to access the complete command-line, you must use the \var{argv} pointer
 to access the Real values of the command-line parameters.
+\Errors
+None.
 \SeeAlso
 \seef{Paramcount}
 \end{function}
@@ -4650,28 +4983,27 @@ None.
 \SeeAlso
 \seef{Cos}, \seef{Sin}
 \end{function}
-\latex{\lstinputlisting{refex/ex47.pp}}
-\html{\input{refex/ex47.tex}}
+
+\FPCexample{ex47}
+
 \begin{function}{Pos}
 \Declaration
 Function Pos (Const Substr : String;Const S : String) : Byte;
-
 \Description
 \var{Pos} returns the index of \var{Substr} in \var{S}, if \var{S} contains
 \var{Substr}. In case \var{Substr} isn't found, \var{0} is returned.
 The search is case-sensitive.
-
 \Errors
 None
 \SeeAlso
 \seef{Length}, \seef{Copy}, \seep{Delete}, \seep{Insert}
 \end{function}
-\latex{\lstinputlisting{refex/ex48.pp}}
-\html{\input{refex/ex48.tex}}
+
+\FPCexample{ex48}
+
 \begin{function}{Power}
 \Declaration
 Function Power (base,expon : Real) : Real;
-
 \Description
 
 \var{Power} returns the value of \var{base} to the power \var{expon}.
@@ -4679,55 +5011,55 @@ Function Power (base,expon : Real) : Real;
 result will also be a Longint.
 
 The function actually returns \var{Exp(expon*Ln(base))}
-
 \Errors
 None.
 \SeeAlso
 \seef{Exp}, \seef{Ln}
 \end{function}
-\latex{\lstinputlisting{refex/ex78.pp}}
-\html{\input{refex/ex78.tex}}
+
+\FPCexample{ex78}
+
 \begin{function}{Pred}
 \Declaration
 Function Pred (X : Any ordinal type) : Same type;
-
 \Description
  \var{Pred} returns the element that precedes the element that was passed
 to it. If it is applied to the first value of the ordinal type, and the
 program was compiled with range checking on (\var{\{\$R+\}}, then a run-time
 error will be generated.
-
 \Errors
 Run-time error 201 is generated when the result is out of
 range.
 \SeeAlso
 \seef{Ord}, \seef{Pred}, \seef{High}, \seef{Low}
 \end{function}
+
 for an example, see \seef{Ord}
-\latex{\lstinputlisting{refex/ex80.pp}}
-\html{\input{refex/ex80.tex}}
+
 \begin{function}{Ptr}
 \Declaration
 Function Ptr (Sel,Off : Longint) : Pointer;
-
 \Description
-
 \var{Ptr} returns a pointer, pointing to the address specified by
 segment \var{Sel} and offset \var{Off}.
-{\em Remark 1:} In the 32-bit flat-memory model supported by \fpc, this
+
+{\em Remarks:} 
+\begin{enumerate}
+\item In the 32-bit flat-memory model supported by \fpc, this
 function is obsolete.
-{\em Remark 2:} The returned address is simply the offset. If you recompile
+\item The returned address is simply the offset. If you recompile
 the RTL with \var{-dDoMapping} defined, then the compiler returns the
 following : \var{ptr := pointer(\$e0000000+sel shl 4+off)} under \dos, or
 \var{ptr := pointer(sel shl 4+off)} on other OSes.
-
+\end{enumerate}
 \Errors
 None.
 \SeeAlso
 \seef{Addr}
 \end{function}
-\latex{\lstinputlisting{refex/ex59.pp}}
-\html{\input{refex/ex59.tex}}
+
+\FPCexample{ex59}
+
 \begin{function}{Random}
 \Declaration
 Function Random [(L : Longint)] : Longint or Real;
@@ -4742,8 +5074,9 @@ None.
 \SeeAlso
 \seep{Randomize}
 \end{function}
-\latex{\lstinputlisting{refex/ex49.pp}}
-\html{\input{refex/ex49.tex}}
+
+\FPCexample{ex49}
+
 \begin{procedure}{Randomize}
 \Declaration
 Procedure Randomize ;
@@ -4767,7 +5100,7 @@ Procedure Read ([Var F : Any file type], V1 [, V2, ... , Vn]);
 result in \var{V1}, \var{V2}, etc.; If no file \var{F} is specified, then
 standard input is read.
 If \var{F} is of type \var{Text}, then the variables \var{V1, V2} etc. must be
-of type \var{Char}, \var{Integer}, \var{Real} or \var{String}.
+of type \var{Char}, \var{Integer}, \var{Real}, \var{String} or \var{PChar}.
 If \var{F} is a typed file, then each of the variables must be of the type
 specified in the declaration of \var{F}. Untyped files are not allowed as an
 argument.
@@ -4777,8 +5110,9 @@ be controlled with the \var{\{\$i\}} compiler switch.
 \SeeAlso
 \seep{Readln}, \seep{Blockread}, \seep{Write}, \seep{Blockwrite}
 \end{procedure}
-\latex{\lstinputlisting{refex/ex50.pp}}
-\html{\input{refex/ex50.tex}}
+
+\FPCexample{ex50}
+
 \begin{procedure}{Readln}
 \Declaration
 Procedure Readln [Var F : Text], V1 [, V2, ... , Vn]);
@@ -4816,7 +5150,6 @@ For an example, see \seep{Mark}.
 \begin{procedure}{Rename}
 \Declaration
 Procedure Rename (Var F : Any Filetype; Const S : String);
-
 \Description
 \var{Rename} changes the name of the assigned file \var{F} to \var{S}.
 \var{F}
@@ -4827,12 +5160,12 @@ or doesn't exist.
 \SeeAlso
 \seep{Erase}
 \end{procedure}
-\latex{\lstinputlisting{refex/ex77.pp}}
-\html{\input{refex/ex77.tex}}
+
+\FPCexample{ex77}
+
 \begin{procedure}{Reset}
 \Declaration
 Procedure Reset (Var F : Any File Type[; L : Longint]);
-
 \Description
 \var{Reset} opens a file \var{F} for reading. \var{F} can be any file type.
 If \var{F} is an untyped or typed file, then it is opened for reading and
@@ -4842,14 +5175,14 @@ the optional parameter \var{L}. Default a value of 128 is used.
 If the file cannot be opened for reading, then a run-time error is
 generated. This behavior can be changed by the \var{\{\$i\} } compiler switch.
 \SeeAlso
-\seep{Rewrite}, \seep{Assign}, \seep{Close}
+\seep{Rewrite}, \seep{Assign}, \seep{Close}, \seep{Append}
 \end{procedure}
-\latex{\lstinputlisting{refex/ex51.pp}}
-\html{\input{refex/ex51.tex}}
+
+\FPCexample{ex51}
+
 \begin{procedure}{Rewrite}
 \Declaration
 Procedure Rewrite (Var F : Any File Type[; L : Longint]);
-
 \Description
 \var{Rewrite} opens a file \var{F} for writing. \var{F} can be any file type.
 If \var{F} is an untyped or typed file, then it is opened for reading and
@@ -4858,29 +5191,30 @@ the optional parameter \var{L}. Default a value of 128 is used.
 if \var{Rewrite} finds a file with the same name as \var{F}, this file is
 truncated to length \var{0}. If it doesn't find such a file, a new file is
 created.
-
 \Errors
 If the file cannot be opened for writing, then a run-time error is
 generated. This behavior can be changed by the \var{\{\$i\} } compiler switch.
 \SeeAlso
-\seep{Reset}, \seep{Assign}, \seep{Close}
+\seep{Reset}, \seep{Assign}, \seep{Close}, \seep{Flush}, \seep{Append}
 \end{procedure}
-\latex{\lstinputlisting{refex/ex52.pp}}
-\html{\input{refex/ex52.tex}}
+
+\FPCexample{ex52}
+
 \begin{procedure}{Rmdir}
 \Declaration
 Procedure Rmdir (const S : string);
 
 \Description
-\var{Rmdir} removes the  directory \var{S}.
+\var{Rmdir} removes the directory \var{S}.
 \Errors
 If \var{S} doesn't exist, or isn't empty, a run-time error is generated.
 
 \SeeAlso
-\seep{Chdir}, \seep{Rmdir}
+\seep{Chdir}, \seep{Mkdir}
 \end{procedure}
-\latex{\lstinputlisting{refex/ex53.pp}}
-\html{\input{refex/ex53.tex}}
+
+\FPCexample{ex53}
+
 \begin{function}{Round}
 \Declaration
 Function Round (X : Real) : Longint;
@@ -4893,8 +5227,9 @@ None.
 \SeeAlso
 \seef{Frac}, \seef{Int}, \seef{Trunc}
 \end{function}
-\latex{\lstinputlisting{refex/ex54.pp}}
-\html{\input{refex/ex54.tex}}
+
+\FPCexample{ex54}
+
 \begin{procedure}{Runerror}
 \Declaration
 Procedure Runerror (ErrorCode : Word);
@@ -4907,8 +5242,9 @@ None.
 \SeeAlso
 \seep{Exit}, \seep{Halt}
 \end{procedure}
-\latex{\lstinputlisting{refex/ex55.pp}}
-\html{\input{refex/ex55.tex}}
+
+\FPCexample{ex55}
+
 \begin{procedure}{Seek}
 \Declaration
 Procedure Seek (Var F; Count : Longint);
@@ -4916,16 +5252,17 @@ Procedure Seek (Var F; Count : Longint);
 \Description
 \var{Seek} sets the file-pointer for file \var{F} to record Nr. \var{Count}.
 The first record in a file has \var{Count=0}. F can be any file type, except
-\var{Text}. If \var{F} is an untyped file, with no specified record size, 128
-is assumed.
+\var{Text}. If \var{F} is an untyped file, with no record size specified in
+\seep{Reset} or \seep{Rewrite}, 128 is assumed.
 \Errors
 A run-time error is generated if \var{Count} points to a position outside
 the file, or the file isn't opened.
 \SeeAlso
 \seef{Eof}, \seef{SeekEof}, \seef{SeekEoln}
 \end{procedure}
-\latex{\lstinputlisting{refex/ex56.pp}}
-\html{\input{refex/ex56.tex}}
+
+\FPCexample{ex56}
+
 \begin{function}{SeekEof}
 \Declaration
 Function SeekEof [(Var F : text)] : Boolean;
@@ -4945,8 +5282,9 @@ A run-time error is generated if the file \var{F} isn't opened.
 \SeeAlso
 \seef{Eof}, \seef{SeekEoln}, \seep{Seek}
 \end{function}
-\latex{\lstinputlisting{refex/ex57.pp}}
-\html{\input{refex/ex57.tex}}
+
+\FPCexample{ex57}
+
 \begin{function}{SeekEoln}
 \Declaration
 Function SeekEoln [(Var F : text)] : Boolean;
@@ -4966,8 +5304,9 @@ A run-time error is generated if the file \var{F} isn't opened.
 \SeeAlso
 \seef{Eof}, \seef{SeekEof}, \seep{Seek}
 \end{function}
-\latex{\lstinputlisting{refex/ex58.pp}}
-\html{\input{refex/ex58.tex}}
+
+\FPCexample{ex58}
+
 \begin{function}{Seg}
 \Declaration
 Function Seg Var X : Longint;
@@ -4982,8 +5321,9 @@ None.
 \SeeAlso
 \seef{DSeg}, \seef{CSeg}, \seef{Ofs}, \seef{Ptr}
 \end{function}
-\latex{\lstinputlisting{refex/ex60.pp}}
-\html{\input{refex/ex60.tex}}
+
+\FPCexample{ex60}
+
 \begin{function}{SetJmp}
 \Declaration
 Function SetJmp (Var Env : Jmp\_Buf) : Longint;
@@ -5000,8 +5340,9 @@ None.
 \SeeAlso
 \seep{LongJmp}
 \end{function}
-\latex{\lstinputlisting{refex/ex79.pp}}
-\html{\input{refex/ex79.tex}}
+
+\FPCexample{ex79}
+
 
 \begin{procedure}{SetLength}
 \Declaration
@@ -5018,8 +5359,9 @@ None.
 \seef{Length}
 \end{procedure}
 
-\latex{\lstinputlisting{refex/ex85.pp}}
-\html{\input{refex/ex85.tex}}
+
+\FPCexample{ex85}
+
 
 \begin{procedure}{SetTextBuf}
 \Declaration
@@ -5050,8 +5392,9 @@ No checking on \var{Size} is done.
 \SeeAlso
 \seep{Assign}, \seep{Reset}, \seep{Rewrite}, \seep{Append}
 \end{procedure}
-\latex{\lstinputlisting{refex/ex61.pp}}
-\html{\input{refex/ex61.tex}}
+
+\FPCexample{ex61}
+
 \begin{function}{Sin}
 \Declaration
 Function Sin (X : Real) : Real;
@@ -5064,8 +5407,9 @@ None.
 \SeeAlso
 \seef{Cos}, \seef{Pi}, \seef{Exp}
 \end{function}
-\latex{\lstinputlisting{refex/ex62.pp}}
-\html{\input{refex/ex62.tex}}
+
+\FPCexample{ex62}
+
 \begin{function}{SizeOf}
 \Declaration
 Function SizeOf (X : Any Type) : Longint;
@@ -5079,8 +5423,9 @@ None.
 \SeeAlso
 \seef{Addr}
 \end{function}
-\latex{\lstinputlisting{refex/ex63.pp}}
-\html{\input{refex/ex63.tex}}
+
+\FPCexample{ex63}
+
 \begin{function}{Sptr}
 \Declaration
 Function Sptr  : Pointer;
@@ -5093,8 +5438,9 @@ None.
 \SeeAlso
 
 \end{function}
-\latex{\lstinputlisting{refex/ex64.pp}}
-\html{\input{refex/ex64.tex}}
+
+\FPCexample{ex64}
+
 \begin{function}{Sqr}
 \Declaration
 Function Sqr (X : Real) : Real;
@@ -5106,8 +5452,9 @@ None.
 \SeeAlso
 \seef{Sqrt}, \seef{Ln}, \seef{Exp}
 \end{function}
-\latex{\lstinputlisting{refex/ex65.pp}}
-\html{\input{refex/ex65.tex}}
+
+\FPCexample{ex65}
+
 \begin{function}{Sqrt}
 \Declaration
 Function Sqrt (X : Real) : Real;
@@ -5120,8 +5467,9 @@ If \var{X} is negative, then a run-time error is generated.
 \SeeAlso
 \seef{Sqr}, \seef{Ln}, \seef{Exp}
 \end{function}
-\latex{\lstinputlisting{refex/ex66.pp}}
-\html{\input{refex/ex66.tex}}
+
+\FPCexample{ex66}
+
 \begin{function}{SSeg}
 \Declaration
 Function SSeg  : Longint;
@@ -5135,8 +5483,9 @@ None.
 \SeeAlso
 \seef{Sptr}
 \end{function}
-\latex{\lstinputlisting{refex/ex67.pp}}
-\html{\input{refex/ex67.tex}}
+
+\FPCexample{ex67}
+
 \begin{procedure}{Str}
 \Declaration
 Procedure Str (Var X[:NumPlaces[:Decimals]]; Var S : String);
@@ -5151,8 +5500,9 @@ None.
 \SeeAlso
 \seep{Val}
 \end{procedure}
-\latex{\lstinputlisting{refex/ex68.pp}}
-\html{\input{refex/ex68.tex}}
+
+\FPCexample{ex68}
+
 \begin{function}{Succ}
 \Declaration
 Function Succ (X : Any ordinal type) : Same type;
@@ -5184,8 +5534,9 @@ None.
 \SeeAlso
 \seef{Lo}, \seef{Hi}
 \end{function}
-\latex{\lstinputlisting{refex/ex69.pp}}
-\html{\input{refex/ex69.tex}}
+
+\FPCexample{ex69}
+
 \begin{function}{Trunc}
 \Declaration
 Function Trunc (X : Real) : Longint;
@@ -5198,8 +5549,9 @@ None.
 \SeeAlso
 \seef{Frac}, \seef{Int}, \seef{Trunc}
 \end{function}
-\latex{\lstinputlisting{refex/ex70.pp}}
-\html{\input{refex/ex70.tex}}
+
+\FPCexample{ex70}
+
 \begin{procedure}{Truncate}
 \Declaration
 Procedure Truncate (Var F : file);
@@ -5214,8 +5566,9 @@ Errors are reported by IOresult.
 \seep{Append}, \seef{Filepos},
 \seep{Seek}
 \end{procedure}
-\latex{\lstinputlisting{refex/ex71.pp}}
-\html{\input{refex/ex71.tex}}
+
+\FPCexample{ex71}
+
 \begin{function}{Upcase}
 \Declaration
 Function Upcase (C : Char or string) : Char or String;
@@ -5230,8 +5583,9 @@ None.
 \SeeAlso
 \seef{Lowercase}
 \end{function}
-\latex{\lstinputlisting{refex/ex72.pp}}
-\html{\input{refex/ex72.tex}}
+
+\FPCexample{ex72}
+
 \begin{procedure}{Val}
 \Declaration
 Procedure Val (const S : string;var V;var Code : word);
@@ -5249,8 +5603,9 @@ position where the conversion went wrong.
 \SeeAlso
 \seep{Str}
 \end{procedure}
-\latex{\lstinputlisting{refex/ex74.pp}}
-\html{\input{refex/ex74.tex}}
+
+\FPCexample{ex74}
+
 \begin{procedure}{Write}
 \Declaration
 Procedure Write ([Var F : Any filetype;] V1 [; V2; ... , Vn)];
@@ -5306,8 +5661,9 @@ controlled with the \var{\{\$i\}} switch.
 \SeeAlso
 \seep{Write}, \seep{Read}, \seep{Readln}, \seep{Blockwrite}
 \end{procedure}
-\latex{\lstinputlisting{refex/ex75.pp}}
-\html{\input{refex/ex75.tex}}
+
+\FPCexample{ex75}
+
 %
 % The index.
 %

@@ -43,7 +43,7 @@
 \)
 \lit*;
 \[
-  \( \lit*{virtual}  \\
+  \( \lit*{virtual} \[ \lit*; \lit*{abstract} \]  \\
      \lit*{override} \\
      \lit*{message} 
       \( \synt{integer\ constant} \\
@@ -52,9 +52,6 @@
 \lit*;
 \]
 \[ \synt{call\ modifiers} \lit*; \]
-\[
-\lit*{abstract} \lit*;
-\]
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{class\ visibility\ specifier}

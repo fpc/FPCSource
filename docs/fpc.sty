@@ -89,7 +89,6 @@
 \newenvironment{FPCtable}[2]{\begin{table}\caption{#2}\begin{center}\begin{tabular}{#1}}{\end{tabular}\end{center}\end{table}}
 % The same, but with label in third argument (tab:#3)
 \newenvironment{FPCltable}[3]{\begin{table}\caption{#2}\label{tab:#3}\begin{center}\begin{tabular}{#1}}{\end{tabular}\end{center}\end{table}}
-
 %
 % Refs
 %
@@ -98,9 +97,8 @@
 \newcommand{\seetyl}[2]{\textsf{#1} (\pageref{ty:#2})}
 \newcommand{\seec}[1]{chapter \ref{ch:#1}, page \pageref{ch:#1}\xspace}
 \newcommand{\sees}[1]{section \ref{se:#1}, page \pageref{se:#1}\xspace}
-\newcommand{\seeo}[1]{See \ref{option:#1}}
-\newcommand{\seet}[1]{table (\ref{tab:#1}) }
-
+\newcommand{\seeo}[1]{See \ref{option:#1}\xspace}
+\newcommand{\seet}[1]{table (\ref{tab:#1})\xspace}
 %
 % Function/procedure environments
 %
@@ -169,7 +167,6 @@
 % Some versions
 %
 \newcommand{\fpcversion}{0.99.12}
-
 %
 % PDF support
 %
@@ -182,5 +179,11 @@
      \pdftrue
   \fi
 }
+%
+% For examples
+%
+\newcommand{\FPCexample}[1]{\latex{\lstinputlisting{\exampledir/#1.pp}}\html{\input{\exampledir/#1.tex}}}
+\newcommand{\exampledir}{.}
+\newcommand{\FPCexampledir}[1]{\renewcommand{\exampledir}{#1}}
 %
 % end of fpc.sty

@@ -16,17 +16,10 @@
 \lit* ( 
 \[
 \<[b] 
-\synt{actual\ parameter} \\ 
+\synt{expression} \\ 
 \lit* , 
 \> 
 \]
 \lit* )
-\end{mysyntdiag}
-\begin{mysyntdiag}
-\synt{actual\ parameter} 
-\( 
-\synt{expression} \\ 
-\synt{variable\ reference}
-\)
 \end{mysyntdiag}
 \end{diagram}

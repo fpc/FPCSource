@@ -12,7 +12,7 @@
 \synt{qualified\ method\ identifier}
 \)
 \synt{formal\ parameter\ list}
-\lit* : \( \synt{result\ type} \\ \lit*{string} \)
+\lit* : \synt{result\ type} 
 \[ \synt{modifiers} \]
 \end{mysyntdiag}
 \begin{mysyntdiag}

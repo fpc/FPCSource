@@ -10,7 +10,7 @@ begin
     { Fill S with i spaces }
     FillChar (S,SizeOf(S),' ');
     { Set Length }
-    S[0]:=chr(i);
+    SetLength(S,I);
     Writeln (s,'*');
     end;
 end.

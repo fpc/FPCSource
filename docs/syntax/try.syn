@@ -4,7 +4,7 @@
 \lit*{try}
 \synt{statement\ list}
 \lit*{except}
-\synt{exception\ handling\ statements}
+\synt{exceptionhandlers}
 \lit*{end}
 \end{mysyntdiag}
 \begin{mysyntdiag}
@@ -12,16 +12,15 @@
 \<[b] \synt{statement} \\ \lit*; \>
 \end{mysyntdiag}
 \begin{mysyntdiag}
-\synt{exception\ handling\ statements}
-\(
-\<[b] \synt{exception\ handler} \\ \lit*; \>
+\synt{exceptionhandlers}
 \[
-  \lit*{else} \synt{statement\ list}
+   \<[b] \synt{exception\ handler} \\ \lit*; \>
+   \[ \lit*{else} \synt{statement\ list} \] \\
+   \synt{statement\ list}
 \]
-\synt{statement\ list}
-\)
 \end{mysyntdiag}
 \begin{mysyntdiag}
+\synt{exception\ handler}
 \lit*{on} \[ \synt{identifier} \lit* : \] 
 \synt{class\ type\ identifier}
 \lit*{do}
