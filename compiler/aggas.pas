@@ -309,6 +309,7 @@ var
       found    : boolean;
       i,pos,l  : longint;
       InlineLevel : longint;
+      last_align : longint;
       co       : comp;
       sin      : single;
       d        : double;
@@ -319,6 +320,7 @@ var
     begin
       if not assigned(p) then
        exit;
+      last_align := 2;
       InlineLevel:=0;
       { lineinfo is only needed for codesegment (PFV) }
       do_line:=(cs_asm_source in aktglobalswitches) or
@@ -429,6 +431,7 @@ var
                    if not ispowerof2(tai_align(hp).aligntype,i) then
                      internalerror(2003010305);
                    AsmWrite(#9'.align '+tostr(i));
+                   last_align := i;
                  end;
                AsmLn;
              end;
@@ -459,7 +462,11 @@ var
                else
                 AsmWrite(#9'.lcomm'#9);
                AsmWrite(tai_datablock(hp).sym.name);
-               AsmWriteLn(','+tostr(tai_datablock(hp).size));
+               AsmWrite(','+tostr(tai_datablock(hp).size));
+               if (target_info.system = system_powerpc_darwin) and
+                  not(tai_datablock(hp).is_global) then
+                 AsmWrite(','+tostr(last_align));
+               AsmWriteln('');
              end;
 
            ait_const_32bit,
@@ -845,7 +852,11 @@ var
 end.
 {
   $Log$
-  Revision 1.41  2004-01-04 21:08:59  jonas
+  Revision 1.42  2004-01-07 17:40:06  jonas
+    * darwin requires the alginment of .lcomm symbols to be specified
+      together with the symbol itself, instead of in a .align directive
+
+  Revision 1.41  2004/01/04 21:08:59  jonas
     * darwin only supports .align, no .balign
 
   Revision 1.40  2004/01/03 13:51:05  jonas
