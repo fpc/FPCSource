@@ -32,7 +32,7 @@ Type
        FExtended : Extended;
        FMyEnum   : TMyEnum;
        FAnsiString   : AnsiSTring;
-       FStored   : Boolean; 
+       FStored   : Boolean;
        Function GetBoolean : Boolean;
        Function GetByte : Byte;
        Function GetChar : Char;
@@ -78,7 +78,7 @@ Type
        Procedure SetVirtualAnsiString ( Value : AnsiString ); virtual;
        Procedure SetVirtualMyEnum ( Value : TMyEnum ); virtual;
        Function GetStaticStored : Boolean;
-       Function GetVirtualStored : Boolean;
+       Function GetVirtualStored : Boolean;virtual;
        Public
        Constructor Create;
        Destructor Destroy;override;       
@@ -99,28 +99,28 @@ Type
        Property CharMethod : Char Read GetChar Write SetChar;       
        Property WordMethod : Word Read GetWord Write SetWord;       
        Property IntegerMethod : Integer Read GetInteger Write SetInteger;       
-       Property LongintMethod : Longint Read GetLongint Write SetLongint;       
+       Property LongintMethod : Longint Read GetLongint Write SetLongint;
        Property CardinalMethod : Cardinal Read GetCardinal Write SetCardinal;       
        Property RealMethod : Real Read GetReal Write SetReal;       
        Property ExtendedMethod : Extended Read GetExtended Write SetExtended;       
-       Property AnsiStringMethod : AnsiString Read GetAnsiString Write SetAnsiString;       
+       Property AnsiStringMethod : AnsiString Read GetAnsiString Write SetAnsiString;
        Property MyEnumMethod : TMyEnum Read GetMyEnum Write SetMyEnum;
        Property BooleanVirtualMethod : Boolean Read GetVirtualBoolean Write SetVirtualBoolean;
-       Property ByteVirtualMethod : Byte Read GetVirtualByte Write SetVirtualByte;       
-       Property CharVirtualMethod : Char Read GetVirtualChar Write SetVirtualChar;       
-       Property WordVirtualMethod : Word Read GetVirtualWord Write SetVirtualWord;       
-       Property IntegerVirtualMethod : Integer Read GetVirtualInteger Write SetVirtualInteger;       
-       Property LongintVirtualMethod : Longint Read GetVirtualLongint Write SetVirtualLongint;       
-       Property CardinalVirtualMethod : Cardinal Read GetVirtualCardinal Write SetVirtualCardinal;       
-       Property RealVirtualMethod : Real Read GetVirtualReal Write SetVirtualReal;       
-       Property ExtendedVirtualMethod : Extended Read GetVirtualExtended Write SetVirtualExtended;       
-       Property AnsiStringVirtualMethod : AnsiString Read GetVirtualAnsiString Write SetVirtualAnsiString;       
+       Property ByteVirtualMethod : Byte Read GetVirtualByte Write SetVirtualByte;
+       Property CharVirtualMethod : Char Read GetVirtualChar Write SetVirtualChar;
+       Property WordVirtualMethod : Word Read GetVirtualWord Write SetVirtualWord;
+       Property IntegerVirtualMethod : Integer Read GetVirtualInteger Write SetVirtualInteger;
+       Property LongintVirtualMethod : Longint Read GetVirtualLongint Write SetVirtualLongint;
+       Property CardinalVirtualMethod : Cardinal Read GetVirtualCardinal Write SetVirtualCardinal;
+       Property RealVirtualMethod : Real Read GetVirtualReal Write SetVirtualReal;
+       Property ExtendedVirtualMethod : Extended Read GetVirtualExtended Write SetVirtualExtended;
+       Property AnsiStringVirtualMethod : AnsiString Read GetVirtualAnsiString Write SetVirtualAnsiString;
        Property MyEnumVirtualMethod : TMyEnum Read GetVirtualMyEnum Write SetVirtualMyEnum;
        Property StoredIntegerConstFalse : Longint Read FLongint Stored False;
        Property StoredIntegerConstTrue : Longint Read FLongint Stored True;
        Property StoredIntegerField : Longint Read FLongint Stored FStored;
        Property StoredIntegerMethod : Longint Read Flongint Stored GetStaticStored;
-       Property StoredIntegerVirtualMethod : Longint Read Flongint Stored GetStaticStored;
+       Property StoredIntegerVirtualMethod : Longint Read Flongint Stored GetVirtualStored;
        end;
 
 Constructor TMyTestObject.Create;
@@ -453,7 +453,7 @@ begin
       Writeln (' Storedproc available');
       Writeln (' Get property ',proctype(Propprocs));
       Writeln (' Set Property ',proctype(propprocs shr 2));
-      Writeln (' Stored Property ',proctype(propprocs shr 2));
+      Writeln (' Stored Property ',proctype(propprocs shr 4));
       Writeln (' Default : ',Default,' Index : ',Index);
       Writeln (' NameIndex : ',NameIndex);
       end;
