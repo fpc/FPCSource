@@ -250,6 +250,8 @@ type
       destructor  Done; virtual;
     end;
 
+    {$ifdef TP} dword = longint; {$endif}
+
     TIntRegs = record
        eax,ebx,ecx,edx,eip,esi,edi,esp,ebp : dword;
        cs,ds,es,ss,fs,gs : word;
@@ -443,6 +445,12 @@ const
      Store:   @TFPUView.Store
   );
 
+{$ifdef TP}
+function HexStr(Value: longint; Len: byte): string;
+begin
+  HexStr:=IntToHexL(Value,Len);
+end;
+{$endif}
 
 function  GDBFileName(st : string) : string;
 {$ifndef Linux}
@@ -3209,7 +3217,10 @@ end.
 
 {
   $Log$
-  Revision 1.51  2000-02-06 23:43:57  pierre
+  Revision 1.52  2000-02-07 11:50:30  pierre
+   Gabor changes for TP
+
+  Revision 1.51  2000/02/06 23:43:57  pierre
    * breakpoint path problems fixes
 
   Revision 1.50  2000/02/05 01:27:58  pierre
