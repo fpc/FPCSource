@@ -30,14 +30,14 @@ asm
   movq  fpc_threadvar_relocate_proc,%rax
   testq %rax,%rax
   jne   .LThread
-  movq  %rdx,Errno+8
+  movl  %edx,Errno+8
   jmp   .LNoThread
 .LThread:
   pushq %rdx
   movq  Errno,%rdi
   call  *%rax
   popq  %rdx
-  movq  %rdx,(%rax)
+  movl  %edx,(%rax)
 .LNoThread:
   movq  $-1,%rax
 .LSyscOK:
@@ -56,14 +56,14 @@ asm
   movq  fpc_threadvar_relocate_proc,%rax
   testq %rax,%rax
   jne   .LThread
-  movq  %rdx,Errno+8
+  movl  %edx,Errno+8
   jmp   .LNoThread
 .LThread:
   pushq %rdx
   movq  Errno,%rdi
   call  *%rax
   popq  %rdx
-  movq  %rdx,(%rax)
+  movl  %edx,(%rax)
 .LNoThread:
   movq  $-1,%rax
 .LSyscOK:
@@ -83,14 +83,14 @@ asm
   movq  fpc_threadvar_relocate_proc,%rax
   testq %rax,%rax
   jne   .LThread
-  movq  %rdx,Errno+8
+  movl  %edx,Errno+8
   jmp   .LNoThread
 .LThread:
   pushq %rdx
   movq  Errno,%rdi
   call  *%rax
   popq  %rdx
-  movq  %rdx,(%rax)
+  movl  %edx,(%rax)
 .LNoThread:
   movq  $-1,%rax
 .LSyscOK:
@@ -111,14 +111,14 @@ asm
   movq  fpc_threadvar_relocate_proc,%rax
   testq %rax,%rax
   jne   .LThread
-  movq  %rdx,Errno+8
+  movl  %edx,Errno+8
   jmp   .LNoThread
 .LThread:
   pushq %rdx
   movq  Errno,%rdi
   call  *%rax
   popq  %rdx
-  movq  %rdx,(%rax)
+  movl  %edx,(%rax)
 .LNoThread:
   movq  $-1,%rax
 .LSyscOK:
@@ -140,14 +140,14 @@ asm
   movq  fpc_threadvar_relocate_proc,%rax
   testq %rax,%rax
   jne   .LThread
-  movq  %rdx,Errno+8
+  movl  %edx,Errno+8
   jmp   .LNoThread
 .LThread:
   pushq %rdx
   movq  Errno,%rdi
   call  *%rax
   popq  %rdx
-  movq  %rdx,(%rax)
+  movl  %edx,(%rax)
 .LNoThread:
   movq  $-1,%rax
 .LSyscOK:
@@ -170,14 +170,14 @@ asm
   movq  fpc_threadvar_relocate_proc,%rax
   testq %rax,%rax
   jne   .LThread
-  movq  %rdx,Errno+8
+  movl  %edx,Errno+8
   jmp   .LNoThread
 .LThread:
   pushq %rdx
   movq  Errno,%rdi
   call  *%rax
   popq  %rdx
-  movq  %rdx,(%rax)
+  movl  %edx,(%rax)
 .LNoThread:
   movq  $-1,%rax
 .LSyscOK:
@@ -202,14 +202,14 @@ asm
   movq  fpc_threadvar_relocate_proc,%rax
   testq %rax,%rax
   jne   .LThread
-  movq  %rdx,Errno+8
+  movl  %edx,Errno+8
   jmp   .LNoThread
 .LThread:
   pushq %rdx
   movq  Errno,%rdi
   call  *%rax
   popq  %rdx
-  movq  %rdx,(%rax)
+  movl  %edx,(%rax)
 .LNoThread:
   movq  $-1,%rax
 .LSyscOK:
@@ -224,7 +224,10 @@ end;
 
 {
   $Log$
-  Revision 1.9  2004-12-12 14:30:27  peter
+  Revision 1.10  2005-02-05 23:49:49  florian
+    * threadvars on x86_64 fixed
+
+  Revision 1.9  2004/12/12 14:30:27  peter
     * x86_64 updates
 
   Revision 1.8  2004/05/28 21:37:34  peter

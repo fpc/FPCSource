@@ -67,7 +67,7 @@ begin
   while tableEntry^.varaddr <> nil do
    begin
      newp:=CurrentTM.RelocateThreadVar(tableEntry^.varaddr^);
-     oldp:=pointer(pchar(tableEntry^.varaddr)+4);
+     oldp:=pointer(pchar(tableEntry^.varaddr)+sizeof(pointer));
      move(oldp^,newp^,tableEntry^.size);
      inc (pchar (tableEntry), sizeof (tableEntry^));
    end;
@@ -102,7 +102,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2004-11-01 20:37:49  florian
+  Revision 1.4  2005-02-05 23:49:49  florian
+    * threadvars on x86_64 fixed
+
+  Revision 1.3  2004/11/01 20:37:49  florian
     * fixed some x86-64 multithreading stuff
 
   Revision 1.2  2003/11/26 20:10:59  michael
