@@ -143,7 +143,8 @@ Const
   GrepExeName = 'grep'+ExeExt;
 var
   PGrepDialog : PCenterDialog;
-  R,R2 : TRect;
+  R,R1,R2 : TRect;
+  Control : PView;
   IL1,IL2 : PInputLine;
   s : string;
   p,lineNb : longint;
@@ -175,21 +176,26 @@ begin
   ReplaceStr(s,';',' ');
   { add "" for args with spaces }
   { WARNING : text must still be entered in usual grep syntax }
-  GrepArgs:='-n -i "$TEXT" '+s;
+  { -n is always added later because otherwise
+    we don't get the line info PM }
+  GrepArgs:=' -i "$TEXT" '+s;
 { Dialog }
-  R.Assign(0,0,45,8);
+  R.Assign(0,0,50,8);
   new(PGrepDialog,Init(R,'Grep arguments'));
   with PGrepDialog^ do
     begin
       R2.A.Y:=R.A.Y+3;
       R2.B.Y:=R2.A.Y+1;
       R2.A.X:=R.A.X+3;
-      R2.B.X:=R.B.X-3;
+      R2.B.X:=R.B.X-6;
       New(IL1, Init(R2, 128));
       IL1^.Data^:=SearchWord;
       Insert(IL1);
       R2.Move(0,-1);
       Insert(New(PLabel, Init(R2, '~T~ext to find', IL1)));
+      R1.Assign(R2.B.X, R2.A.Y+1, R2.B.X+3, R2.B.Y+1);
+      Control := New(PHistory, Init(R1, IL1, TextGrepId));
+      Insert(Control);
 
       R2.Move(0,4);
       New(IL2, Init(R2, 128));
@@ -210,7 +216,7 @@ begin
          GrepArgs:=IL2^.Data^;
          ReplaceStr(GrepArgs,'$TEXT',SearchWord);
          { Linux ? }
-         AddToolCommand(GrepExe+' '+GrepArgs);
+         AddToolCommand(GrepExe+' -n '+GrepArgs);
          ToFocus:=ToolMessages^.count-1;
          if not ExecuteRedir(GrepExe,GrepArgs,'',GrepOutName,GrepErrName) then
            Begin
@@ -262,7 +268,10 @@ end;
 
 {
   $Log$
-  Revision 1.13  1999-08-03 20:22:35  peter
+  Revision 1.14  1999-09-22 16:17:31  pierre
+   + HistList for Grep
+
+  Revision 1.13  1999/08/03 20:22:35  peter
     + TTab acts now on Ctrl+Tab and Ctrl+Shift+Tab...
     + Desktop saving should work now
        - History saved
