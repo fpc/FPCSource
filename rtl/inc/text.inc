@@ -559,7 +559,7 @@ var
 begin
   if (InOutRes<>0) then
    exit;
-  int_str(q,s);
+  qword_str(q,s);
   write_str(len,t,s);
 end;
 
@@ -569,7 +569,7 @@ var
 begin
   if (InOutRes<>0) then
    exit;
-  int_str(i,s);
+  int64_str(i,s);
   write_str(len,t,s);
 end;
 {$endif INT64}
@@ -1016,7 +1016,10 @@ end;
 
 {
   $Log$
-  Revision 1.64  2000-01-08 17:08:36  jonas
+  Revision 1.65  2000-01-20 20:19:37  florian
+   * writing of int64/qword fixed
+
+  Revision 1.64  2000/01/08 17:08:36  jonas
     + Mac linebreak (#13) support for readln
 
   Revision 1.63  2000/01/07 16:41:36  daniel
