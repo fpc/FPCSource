@@ -491,7 +491,7 @@ Begin
  Failure := True;
  FoundDir := False;
  s:='Searching using * wildcard (normal files + directories)...';
- FindFirst('*',Directory,Search);
+ FindFirst('*',Archive+Directory,Search);
  WriteLn(#9'Resources found (full path should not be displayed):');
  while DosError = 0 do
  Begin
@@ -567,6 +567,7 @@ Begin
 {$IFDEF FPC}
   FindClose(Search);
 {$ENDIF}
+{$ifdef go32v2}
  { search for volume ID }
  s:='Searching using * wildcard in ROOT (normal files + volume ID)...';
  FindFirst(RootPath+'*',Directory+VolumeID,Search);
@@ -590,7 +591,7 @@ Begin
 {$IFDEF FPC}
   FindClose(Search);
 {$ENDIF}
-
+{$endif}
 
 end;
 
@@ -687,7 +688,10 @@ end.
 
 {
   $Log$
-  Revision 1.9  2002-11-18 09:49:49  pierre
+  Revision 1.10  2002-11-27 16:41:46  peter
+    * volumeid is dos specific
+
+  Revision 1.9  2002/11/18 09:49:49  pierre
    * tried to make as many as possible tests non interactive
 
   Revision 1.8  2002/11/08 21:01:18  carl
