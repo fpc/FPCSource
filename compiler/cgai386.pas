@@ -77,7 +77,7 @@ unit cgai386;
     procedure release_qword_loc(const t : tlocation);
 
     { remove non regvar registers in loc from regs (in the format }
-    { pushusedregisters uses)                                     } 
+    { pushusedregisters uses)                                     }
     procedure remove_non_regvars_from_loc(const t: tlocation; var regs: byte);
     { releases the registers of a location }
     procedure release_loc(const t : tlocation);
@@ -616,7 +616,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
     begin
       case t.loc of
         LOC_REGISTER:
-          { can't be a regvar, since it would be LOC_CREGISTER then } 
+          { can't be a regvar, since it would be LOC_CREGISTER then }
           regs := regs and not($80 shr byte(t.register));
         LOC_MEM,LOC_REFERENCE:
           begin
@@ -3087,7 +3087,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
       { a constructor needs a help procedure }
       if (aktprocsym^.definition^.proctypeoption=potype_constructor) then
         begin
-          procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
+          {!!!! not yet procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;}
           if procinfo^._class^.is_class then
             begin
               exprasmlist^.insert(new(paicpu,op_cond_sym(A_Jcc,C_Z,S_NO,faillabel)));
@@ -3489,14 +3489,14 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                           emit_reg(A_PUSH,S_L,R_ESI);
                           emit_sym(A_PUSH,S_L,newasmsymbol(procinfo._class^.vmt_mangledname);
                        end;
-                      if (po_virtualmethod in pd^.procoptions) then
-                        begin
-                           emit_ref_reg(A_MOV,S_L,ref,R_EDI)
-                           emit_ref(A_CALL,S_NO,ref);
-                        end
-                      else
-                        begin
-                        end;
+                     if (po_virtualmethod in pd^.procoptions) then
+                       begin
+                          emit_ref_reg(A_MOV,S_L,ref,R_EDI)
+                          emit_ref(A_CALL,S_NO,ref);
+                       end
+                     else
+                       begin
+                       end;
                   end
                 }
              end
@@ -3715,7 +3715,11 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.73  2000-01-23 21:29:14  florian
+  Revision 1.74  2000-01-24 12:17:22  florian
+    * some improvemenst to cmov support
+    * disabled excpetion frame generation in cosntructors temporarily
+
+  Revision 1.73  2000/01/23 21:29:14  florian
     * CMOV support in optimizer (in define USECMOV)
     + start of support of exceptions in constructors
 

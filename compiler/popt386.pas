@@ -1646,9 +1646,7 @@ Begin
                        CanBeCMOV(hp1) do
                        begin
                           inc(l);
-                          hp1:=pai(hp1^.next);
-                          while assigned(hp1) and (hp1^.typ in skipinstr) do
-                            hp1:=pai(hp1^.next);
+                          GetNextInstruction(hp1,hp1);
                        end;
                      if assigned(hp1) then
                        begin
@@ -1668,7 +1666,7 @@ Begin
                                     until not(assigned(hp1)) or
                                       not(CanBeCMOV(hp1));
                                     asml^.remove(hp1);
-                                    p:=hp1;
+                                    dispose(hp1,done);
                                     continue;
                                  end;
                             end
@@ -1682,23 +1680,51 @@ Begin
                                       <several movs>
                               yyy:
                                }
-                               {!!!!!!!!!!!1
-                               hp1:=hp1^.next;
-                               if assigned(hp3) and
-                                 (l<=3) and
-                                 (hp3^.typ=ait_instruction) and
-                                 (paicpu(hp3)^.is_jmp) and
-                                 (paicpu(hp3)^.condition=C_None) and
-                                 FindLabel(PAsmLabel(paicpu(p)^.oper[0].sym),hp1) then
+                              { hp2 points to jmp xxx }
+                              hp2:=hp1;
+                              { skip hp1 to xxx }
+                              GetNextInstruction(hp1, hp1);
+                              if assigned(hp2) and
+                                assigned(hp1) and
+                                (l<=3) and
+                                (hp2^.typ=ait_instruction) and
+                                (paicpu(hp2)^.is_jmp) and
+                                (paicpu(hp2)^.condition=C_None) and
+                                FindLabel(PAsmLabel(paicpu(p)^.oper[0].sym),hp1) then
                                  begin
-                                    while GetNextInstruction(p, hp1) And
+                                    l:=0;
+                                    while assigned(hp1) And
                                       CanBeCMOV(hp1) do
                                       begin
-                                         hp2:=hp1;
                                          inc(l);
+                                         GetNextInstruction(hp1, hp1);
                                       end;
                                  end;
-                               }
+                              {
+                              if assigned(hp1) and
+                                FindLabel(PAsmLabel(paicpu(hp2)^.oper[0].sym),hp1) then
+                                begin
+                                   condition:=inverse_cond[paicpu(p)^.condition];
+                                   GetNextInstruction(p,hp1);
+                                   asml^.remove(p);
+                                   dispose(p,done);
+                                   p:=hp1;
+                                   repeat
+                                     paicpu(hp1)^.opcode:=A_CMOVcc;
+                                     paicpu(hp1)^.condition:=condition;
+                                     GetNextInstruction(hp1,hp1);
+                                   until not(assigned(hp1)) or
+                                     not(CanBeCMOV(hp1));
+                                   hp2:=hp1^.next;
+                                   condition:=inverse_cond[condition];
+
+                                   asml^.remove(hp1^.next)
+                                   dispose(hp1^.next,done);
+                                   asml^.remove(hp1);
+                                   dispose(hp1,done);
+                                   continue;
+                                end;
+                              }
                             end;
                        end;
                   end;
@@ -1830,7 +1856,11 @@ End.
 
 {
  $Log$
- Revision 1.81  2000-01-23 21:29:17  florian
+ Revision 1.82  2000-01-24 12:17:24  florian
+   * some improvemenst to cmov support
+   * disabled excpetion frame generation in cosntructors temporarily
+
+ Revision 1.81  2000/01/23 21:29:17  florian
    * CMOV support in optimizer (in define USECMOV)
    + start of support of exceptions in constructors
 
