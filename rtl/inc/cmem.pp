@@ -19,6 +19,22 @@ unit cmem;
 interface
 
 Const
+{$ifndef ver1_0}
+
+{$if defined(win32)}
+  LibName = 'msvcrt';
+{$elseif defined(netware)}
+  LibName = 'clib';
+{$elseif defined(netwlibc)}
+  LibName = 'libc';
+{$elseif defined(macos)}
+  LibName = 'StdCLib';
+{$else}
+  LibName = 'c';
+{$endif}
+
+{$else}
+
 {$ifndef win32}
   {$ifdef netware}
   LibName = 'clib';
@@ -35,6 +51,8 @@ Const
   {$endif}
 {$else}
   LibName = 'msvcrt';
+{$endif}
+
 {$endif}
 
 Function Malloc (Size : ptrint) : Pointer; {$ifdef win32}stdcall{$else}cdecl{$endif}; external LibName name 'malloc';
@@ -173,7 +191,10 @@ end.
 
 {
  $Log$
- Revision 1.8  2004-09-19 08:16:03  olle
+ Revision 1.9  2004-09-19 19:04:11  olle
+   * added $if defined(..) for 2.0.
+
+ Revision 1.8  2004/09/19 08:16:03  olle
    * reverted to $ifdef style, so 1.0.x can eat it.
 
  Revision 1.7  2004/09/18 08:40:26  olle
