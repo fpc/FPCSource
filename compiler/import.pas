@@ -102,6 +102,7 @@ end;
 destructor timported_item.done;
 begin
   stringdispose(name);
+  stringdispose(func);
   inherited done;
 end;
 
@@ -194,7 +195,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  1998-11-28 16:20:50  peter
+  Revision 1.10  1999-05-17 14:33:01  pierre
+   * func was not disposed in timported_item
+
+  Revision 1.9  1998/11/28 16:20:50  peter
     + support for dll variables
 
   Revision 1.8  1998/10/19 18:07:12  peter
