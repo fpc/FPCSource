@@ -29,6 +29,7 @@ interface
 
 {$ifdef SYSTEMDEBUG}
   {$define SYSTEMEXCEPTIONDEBUG}
+  {$define IODEBUG}
 {$endif SYSTEMDEBUG}
 
 { $DEFINE OS2EXCEPTIONS}
@@ -53,11 +54,11 @@ type
   THandle = Longint;
 
 const
- LineEnding = #13#10;
+  LineEnding = #13#10;
 { LFNSupport is defined separately below!!! }
- DirectorySeparator = '\';
- DriveSeparator = ':';
- PathSeparator = ';';
+  DirectorySeparator = '\';
+  DriveSeparator = ':';
+  PathSeparator = ';';
 { FileNameCaseSensitive is defined separately below!!! }
 
 {$IFDEF OS2EXCEPTIONS}
@@ -189,6 +190,49 @@ function DosDelete(FileName:PChar):cardinal; cdecl;
 
 procedure DosExit(Action, Result: cardinal); cdecl;
     external 'DOSCALLS' index 234;
+
+// EAs not used in System unit
+function DosOpen(FileName:PChar;var Handle:longint;var Action:cardinal;
+                 InitSize,Attrib,OpenFlags,FileMode:cardinal;
+                 EA:Pointer):longint; cdecl;
+    external 'DOSCALLS' index 273;
+
+function DosClose(Handle:longint): longint; cdecl;
+    external 'DOSCALLS' index 257;
+
+function DosRead(Handle:longint; Buffer: Pointer;Count:longint;
+                 var ActCount:longint):longint; cdecl;
+    external 'DOSCALLS' index 281;
+function DosWrite(Handle:longint; Buffer: Pointer;Count:longint;
+                  var ActCount:longint):longint; cdecl;
+    external 'DOSCALLS' index 282;
+
+function DosSetFilePtr(Handle:longint;Pos:longint;Method:cardinal;
+                       var PosActual:longint):longint; cdecl;
+    external 'DOSCALLS' index 256;
+
+function DosSetFileSize(Handle:longint;Size:cardinal):longint; cdecl;
+    external 'DOSCALLS' index 272;
+
+function DosQueryHType(Handle:longint;var HandType:longint;
+                       var Attr:longint):longint; cdecl;
+    external 'DOSCALLS' index 224;
+
+type
+  TSysDateTime=packed record
+    Hour,
+    Minute,
+    Second,
+    Sec100,
+    Day,
+    Month: byte;
+    Year: word;
+    TimeZone: smallint;
+    WeekDay: byte;
+  end;
+
+function DosGetDateTime(var Buf:TSysDateTime):longint; cdecl;
+    external 'DOSCALLS' index 230;
 
 {This is the correct way to call external assembler procedures.}
 procedure syscall; external name '___SYSCALL';
@@ -402,37 +446,22 @@ function paramstr(l:longint):string;
 var p:^Pchar;
 
 begin
-  if L = 0 then
+  if (l>=0) and (l<=paramcount) then
   begin
-    GetMem (P, 260);
-    p[0] := #0;  { in case of error, initialize to empty string }
-{$ASMMODE INTEL}
-    asm
-      mov edx, P
-      mov ecx, 260
-      mov eax, 7F33h
-      call syscall    { error handle already with empty string }
-            end ['eax', 'ecx', 'edx'];
-    ParamStr := StrPas (PChar (P));
-    FreeMem (P, 260);
+    p:=args;
+    paramstr:=strpas(p[l]);
   end
-  else
-    if (l>0) and (l<=paramcount) then
-    begin
-      p:=args;
-      paramstr:=strpas(p[l]);
-    end
     else paramstr:='';
 end;
 
-
-procedure randomize; assembler;
-asm
-    mov ah, 2Ch
-    call syscall
-    mov word ptr [randseed], cx
-    mov word ptr [randseed + 2], dx
-end {['eax', 'ecx', 'edx']};
+procedure randomize;
+var
+  dt: TSysDateTime;
+begin
+  // Hmm... Lets use timer
+  DosGetDateTime(dt);
+  randseed:=dt.hour+(dt.minute shl 8)+(dt.second shl 16)+(dt.sec100 shl 32);
+end;
 
 {$ASMMODE ATT}
 
@@ -501,33 +530,23 @@ end {['EAX']};
 ****************************************************************************}
 
 procedure allowslash(p:Pchar);
-
 {Allow slash as backslash.}
-
 var i:longint;
-
 begin
     for i:=0 to strlen(p) do
         if p[i]='/' then p[i]:='\';
 end;
 
 procedure do_close(h:longint);
-
 begin
 { Only three standard handles under real OS/2 }
   if h>2 then
-   begin
-     asm
-        pushl %ebx
-        movb $0x3e,%ah
-        movl h,%ebx
-        call syscall
-        jnc  .Lnoerror           { error code?            }
-        movw  %ax, InOutRes       { yes, then set InOutRes }
-     .Lnoerror:
-        popl %ebx
-     end ['eax'];
-   end;
+  begin
+    InOutRes:=DosClose(h);
+  end;
+{$ifdef IODEBUG}
+  writeln('do_close: handle=', H, ', InOutRes=', InOutRes);
+{$endif}
 end;
 
 procedure do_erase(p:Pchar);
@@ -543,109 +562,79 @@ begin
   inoutres:=DosMove(p1, p2);
 end;
 
-function do_read(h,addr,len:longint):longint; assembler;
-asm
-    pushl %ebx
-    movl len,%ecx
-    movl addr,%edx
-    movl h,%ebx
-    movb $0x3f,%ah
-    call syscall
-    jnc .LDOSREAD1
-    movw %ax,inoutres;
-    xorl %eax,%eax
-.LDOSREAD1:
-    popl %ebx
-end {['eax', 'ebx', 'ecx', 'edx']};
-
-function do_write(h,addr,len:longint) : longint; assembler;
-asm
-    pushl %ebx
-    xorl %eax,%eax
-    cmpl $0,len    { 0 bytes to write is undefined behavior }
-    jz   .LDOSWRITE1
-    movl len,%ecx
-    movl addr,%edx
-    movl h,%ebx
-    movb $0x40,%ah
-    call syscall
-    jnc .LDOSWRITE1
-    movw %ax,inoutres;
-.LDOSWRITE1:
-    popl %ebx
-end {['eax', 'ebx', 'ecx', 'edx']};
-
-function do_filepos(handle:longint): longint; assembler;
-asm
-    pushl %ebx
-    movw $0x4201,%ax
-    movl handle,%ebx
-    xorl %edx,%edx
-    call syscall
-    jnc .LDOSFILEPOS
-    movw %ax,inoutres;
-    xorl %eax,%eax
-.LDOSFILEPOS:
-    popl %ebx
-end {['eax', 'ebx', 'ecx', 'edx']};
-
-procedure do_seek(handle,pos:longint); assembler;
-asm
-    pushl %ebx
-    movw $0x4200,%ax
-    movl handle,%ebx
-    movl pos,%edx
-    call syscall
-    jnc .LDOSSEEK1
-    movw %ax,inoutres;
-.LDOSSEEK1:
-    popl %ebx
-end {['eax', 'ebx', 'ecx', 'edx']};
-
-function do_seekend(handle:longint):longint; assembler;
-asm
-    pushl %ebx
-    movw $0x4202,%ax
-    movl handle,%ebx
-    xorl %edx,%edx
-    call syscall
-    jnc .Lset_at_end1
-    movw %ax,inoutres;
-    xorl %eax,%eax
-.Lset_at_end1:
-    popl %ebx
-end {['eax', 'ebx', 'ecx', 'edx']};
-
-function do_filesize(handle:longint):longint;
-
-var aktfilepos:longint;
-
+function do_read(h,addr,len:longint):longint;
+Var
+  T: Longint;
 begin
-    aktfilepos:=do_filepos(handle);
-    do_filesize:=do_seekend(handle);
-    do_seek(handle,aktfilepos);
+{$ifdef IODEBUG}
+  write('do_read: handle=', h, ', addr=', addr, ', length=', len);
+{$endif}
+  InOutRes:=DosRead(H, Pointer(Addr), Len, T);
+  do_read:=T;
+{$ifdef IODEBUG}
+  writeln(', actual_len=', t, ', InOutRes=', InOutRes);
+{$endif}
 end;
 
-procedure do_truncate(handle,pos:longint); assembler;
-asm
-(* DOS function 40h isn't safe for this according to EMX documentation *)
-    movl $0x7F25,%eax
-    movl Handle,%ebx
-    movl Pos,%edx
-    call syscall
-    incl %eax
-    movl %ecx, %eax
-    jnz .LTruncate1      { compare the value of EAX to verify error }
-(* File position is undefined after truncation, move to the end. *)
-    movl $0x4202,%eax
-    movl Handle,%ebx
-    movl $0,%edx
-    call syscall
-    jnc .LTruncate2
-.LTruncate1:
-    movw %ax,inoutres;
-.LTruncate2:
-end ['eax', 'ebx', 'ecx', 'edx'];
+function do_write(h,addr,len:longint) : longint;
+Var
+  T: Longint;
+begin
+{$ifdef IODEBUG}
+  write('do_write: handle=', h, ', addr=', addr, ', length=', len);
+{$endif}
+  InOutRes:=DosWrite(H, Pointer(Addr), Len, T);
+  do_write:=T;
+{$ifdef IODEBUG}
+  writeln(', actual_len=', t, ', InOutRes=', InOutRes);
+{$endif}
+end;
+
+function do_filepos(handle:longint): longint;
+var
+  PosActual: Longint;
+begin
+  InOutRes:=DosSetFilePtr(Handle, 0, 1, PosActual);
+  do_filepos:=PosActual;
+{$ifdef IODEBUG}
+  writeln('do_filepos: handle=', Handle, ', actual_pos=', PosActual, ', InOutRes=', InOutRes);
+{$endif}
+end;
+
+procedure do_seek(handle,pos:longint);
+var
+  PosActual: Longint;
+begin
+  InOutRes:=DosSetFilePtr(Handle, Pos, 0 {ZeroBased}, PosActual);
+{$ifdef IODEBUG}
+  writeln('do_seek: handle=', Handle, ', pos=', pos, ', actual_pos=', PosActual, ', InOutRes=', InOutRes);
+{$endif}
+end;
+
+function do_seekend(handle:longint):longint;
+var
+  PosActual: Longint;
+begin
+  InOutRes:=DosSetFilePtr(Handle, 0, 2 {EndBased}, PosActual);
+  do_seekend:=PosActual;
+{$ifdef IODEBUG}
+  writeln('do_seekend: handle=', Handle, ', actual_pos=', PosActual, ', InOutRes=', InOutRes);
+{$endif}
+end;
+
+function do_filesize(handle:longint):longint;
+var aktfilepos:longint;
+begin
+  aktfilepos:=do_filepos(handle);
+  do_filesize:=do_seekend(handle);
+  do_seek(handle,aktfilepos);
+end;
+
+procedure do_truncate(handle,pos:longint);
+begin
+  InOutRes:=DosSetFileSize(Handle, Pos);
+  do_seekend(handle);
+end;
 
 const
     FileHandleCount: cardinal = 20;
@@ -669,129 +658,139 @@ begin
 end;
 
 procedure do_open(var f;p:pchar;flags:longint);
-
 {
   filerec and textrec have both handle and mode as the first items so
   they could use the same routine for opening/creating.
+
   when (flags and $100)   the file will be append
   when (flags and $1000)  the file will be truncate/rewritten
   when (flags and $10000) there is no check for close (needed for textfiles)
 }
-
-var Action: cardinal;
-
+// Helper constants
+const
+  fmShareCompat    = $0000;
+  fmShareExclusive = $0010;
+  fmShareDenyWrite = $0020;
+  fmShareDenyRead  = $0030;
+  fmShareDenyNone  = $0040;
+var
+  Action, Attrib, OpenFlags, FileMode: Cardinal;
 begin
-    allowslash(p);
-    { close first if opened }
-    if ((flags and $10000)=0) then
-        begin
-            case filerec(f).mode of
-                fminput,fmoutput,fminout : Do_Close(filerec(f).handle);
-                fmclosed:;
-            else
-                begin
-                    inoutres:=102; {not assigned}
-                    exit;
-                end;
-            end;
-       end;
-    { reset file handle }
-    filerec(f).handle := UnusedHandle;
-    Action := 0;
-    { convert filemode to filerec modes }
-    case (flags and 3) of
-        0 : filerec(f).mode:=fminput;
-        1 : filerec(f).mode:=fmoutput;
-        2 : filerec(f).mode:=fminout;
+  // convert unix slashes to normal slashes
+  allowslash(p);
+
+  // close first if opened
+  if ((flags and $10000)=0) then
+  begin
+    case filerec(f).mode of
+      fminput,fmoutput,fminout : Do_Close(filerec(f).handle);
+      fmclosed:;
+    else
+      begin
+        inoutres:=102; {not assigned}
+        exit;
+      end;
     end;
-    if (flags and $1000)<>0 then
-        Action := $50000; (* Create / replace *)
-    { empty name is special }
-    if p[0]=#0 then
+  end;
+
+  // reset file handle
+  filerec(f).handle := UnusedHandle;
+
+  Attrib:=0;
+  OpenFlags:=0;
+  FileMode:=0;
+
+  // convert filesharing
+  if ((filemode and fmshareExclusive) = fmshareExclusive) then
+    FileMode:=FileMode or 16 //Deny Read Write
+  else
+    if (filemode = fmShareCompat) or ((filemode and fmshareDenyWrite) = fmshareDenyWrite) then
+      FileMode:=FileMode or 32 // Deny Write
+  else
+    if ((filemode and fmshareDenyRead) = fmshareDenyRead) then
+      FileMode:=FileMode or 48 // Deny Read
+  else
+    if ((filemode and fmshareDenyNone) = fmshareDenyNone) then
+      FileMode:=FileMode or 64; // Deny None
+
+  // convert filemode to filerec modes and access mode
+  case (flags and 3) of
+    0 : begin
+      FileMode:=FileMode or 0; // Read only
+      filerec(f).mode:=fminput;
+    end;
+    1 : begin
+      FileMode:=FileMode or 1; // Write only
+      filerec(f).mode:=fmoutput;
+    end;
+    2 : begin
+      FileMode:=FileMode or 2; // Read & Write
+      filerec(f).mode:=fminout;
+    end;
+  end;
+
+  if (flags and $1000)<>0 then
+    OpenFlags:=OpenFlags or 2 {doOverwrite} or 16 {doCreate} // Create/overwrite
+  else
+    OpenFlags:=OpenFlags or 1 {doOpen}; // Open existing
+
+  // Handle Std I/O
+  if p[0]=#0 then
+  begin
+    case FileRec(f).mode of
+      fminput :
+        FileRec(f).Handle:=StdInputHandle;
+      fminout, // this is set by rewrite
+      fmoutput :
+        FileRec(f).Handle:=StdOutputHandle;
+      fmappend :
         begin
-          case FileRec(f).mode of
-            fminput :
-              FileRec(f).Handle:=StdInputHandle;
-            fminout, { this is set by rewrite }
-            fmoutput :
-              FileRec(f).Handle:=StdOutputHandle;
-            fmappend :
-              begin
-                FileRec(f).Handle:=StdOutputHandle;
-                FileRec(f).mode:=fmoutput; {fool fmappend}
-              end;
-            end;
-            exit;
+          FileRec(f).Handle:=StdOutputHandle;
+          FileRec(f).mode:=fmoutput; // fool fmappend
         end;
-    Action := Action or (Flags and $FF);
-(* DenyNone if sharing not specified. *)
-    if Flags and 112 = 0 then
-        Action := Action or 64;
-    asm
-        pushl %ebx
-        movl $0x7f2b, %eax
-        movl Action, %ecx
-        movl p, %edx
-        call syscall
-        cmpl $0xffffffff, %eax
-        jnz .LOPEN1
-        movw %cx, InOutRes
-        movl UnusedHandle, %eax
-.LOPEN1:
-        movl f,%edx         { Warning : This assumes Handle is first }
-        movl %eax,(%edx)    { field of FileRec                       }
-        popl %ebx
-    end ['eax', 'ecx', 'edx'];
-    if (InOutRes = 4) and Increase_File_Handle_Count then
-(* Trying again after increasing amount of file handles *)
-        asm
-            pushl %ebx
-            movl $0x7f2b, %eax
-            movl Action, %ecx
-            movl p, %edx
-            call syscall
-            cmpl $0xffffffff, %eax
-            jnz .LOPEN2
-            movw %cx, InOutRes
-            movl UnusedHandle, %eax
-.LOPEN2:
-            movl f,%edx
-            movl %eax,(%edx)
-            popl %ebx
-        end ['eax', 'ecx', 'edx'];
-      { for systems that have more handles }
-    if (FileRec (F).Handle <> UnusedHandle) then
-        begin
-            if (FileRec (F).Handle > FileHandleCount) then
-                                         FileHandleCount := FileRec (F).Handle;
-            if ((Flags and $100) <> 0) then
-                begin
-                    do_seekend (FileRec (F).Handle);
-                    FileRec (F).Mode := fmOutput; {fool fmappend}
-                end;
-        end;
+    end;
+    exit;
+  end;
+
+  Attrib:=32 {faArchive};
+
+  InOutRes:=DosOpen(p, FileRec(F).Handle, Action, 0, Attrib, OpenFlags, FileMode, nil);
+
+  // If too many open files try to set more file handles and open again
+  if (InOutRes = 4) then
+    if Increase_File_Handle_Count then
+      InOutRes:=DosOpen(p, FileRec(F).Handle, Action, 0, Attrib, OpenFlags, FileMode, nil);
+
+  If InOutRes<>0 then FileRec(F).Handle:=UnusedHandle;
+
+  // If Handle created -> make some things
+  if (FileRec(F).Handle <> UnusedHandle) then
+  begin
+    // for systems that have more handles
+    if (FileRec(F).Handle>FileHandleCount) then FileHandleCount:=FileRec(F).Handle;
+
+    // Move to end of file for Append command
+    if ((Flags and $100) <> 0) then
+    begin
+      do_seekend(FileRec(F).Handle);
+      FileRec(F).Mode := fmOutput;
+    end;
+
+  end;
+
+{$ifdef IODEBUG}
+  writeln('do_open,', filerec(f).handle, ',', filerec(f).name, ',', filerec(f).mode, ', InOutRes=', InOutRes);
+{$endif}
 end;
 
-{$ASMMODE INTEL}
-function do_isdevice (Handle: longint): boolean; assembler;
-(*
-var HT, Attr: longint;
+function do_isdevice (Handle: longint): boolean;
+var
+  HT, Attr: longint;
 begin
-  if DosQueryHType (Handle, HT, Attr) <> 0 then HT := 1;
-*)
-asm
-    push ebx
-    mov ebx, Handle
-    mov eax, 4400h
-    call syscall
-    mov eax, 1
-    jc @IsDevEnd
-    test edx, 80h           { verify if it is a file  }
-    jnz @IsDevEnd
-    dec eax                 { nope, so result is zero }
-@IsDevEnd:
-    pop ebx
-end {['eax', 'ebx', 'edx']};
+  do_isdevice:=false;
+  If DosQueryHType(Handle, HT, Attr)<>0 then exit;
+  if ht=1 then do_isdevice:=true;
+end;
 {$ASMMODE ATT}
 
 
@@ -1135,8 +1134,6 @@ begin
 {$ENDIF CONTHEAP}
     end;
 
-    {Now request, if we are running under DOS,
-     read-access to the first meg. of memory.}
     (* Initialize the amount of file handles *)
     FileHandleCount := GetFileHandleCount;
     DosGetInfoBlocks (@TIB, @PIB);
@@ -1171,7 +1168,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.53  2003-10-27 04:33:58  yuri
+  Revision 1.54  2003-10-28 14:57:31  yuri
+  * do_* functions now native
+
+  Revision 1.53  2003/10/27 04:33:58  yuri
   * os_mode removed (not required anymore)
 
   Revision 1.52  2003/10/25 22:45:37  hajny
