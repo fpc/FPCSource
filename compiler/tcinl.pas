@@ -541,7 +541,12 @@ implementation
                                        orddef : begin
                                                   case porddef(hp^.left^.resulttype)^.typ of
                                                      uchar,
-                                             u32bit,s32bit : ;
+                                                     u32bit,
+                                                     s32bit,
+                                                     s64bitint,
+                                                     u64bit:
+                                                       ;
+
                                                u8bit,s8bit,
                                              u16bit,s16bit : if dowrite then
                                                               hp^.left:=gentypeconvnode(hp^.left,s32bitdef);
@@ -672,9 +677,17 @@ implementation
                        case hp^.resulttype^.deftype of
                         orddef : begin
                                    case porddef(hp^.left^.resulttype)^.typ of
-                              u32bit,s32bit : ;
-                                u8bit,s8bit,
-                              u16bit,s16bit : hp^.left:=gentypeconvnode(hp^.left,s32bitdef);
+
+                                      u32bit,
+                                      s32bit,
+                                      s64bitint,
+                                      u64bit:
+                                        ;
+
+                                      u8bit,s8bit,
+                                      u16bit,s16bit:
+                                        hp^.left:=gentypeconvnode(hp^.left,s32bitdef);
+
                                    else
                                      CGMessage(type_e_integer_or_real_expr_expected);
                                    end;
@@ -875,7 +888,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  1998-11-27 14:50:53  peter
+  Revision 1.11  1998-12-11 23:36:08  florian
+    + again more stuff for int64/qword:
+         - comparision operators
+         - code generation for: str, read(ln), write(ln)
+
+  Revision 1.10  1998/11/27 14:50:53  peter
     + open strings, $P switch support
 
   Revision 1.9  1998/11/24 17:04:28  peter

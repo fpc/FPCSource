@@ -351,8 +351,6 @@ implementation
 {$endif SUPPORT_MMX}
       end;
 
-
-
    procedure resetusableregisters;
       begin
 {$ifdef SUPPORT_MMX}
@@ -370,7 +368,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  1998-12-11 17:22:40  florian
+  Revision 1.17  1998-12-11 23:36:09  florian
+    + again more stuff for int64/qword:
+         - comparision operators
+         - code generation for: str, read(ln), write(ln)
+
+  Revision 1.16  1998/12/11 17:22:40  florian
     * fixed previous commit bug fix of getexplicitregister32
       (usableregs32 was decremented twice, thnaks Pierre for that hint)
 

@@ -354,6 +354,15 @@ implementation
                                                     emitcall('FPC_READ_TEXT_CHAR',true)
                                                   else
                                                     emitcall('FPC_WRITE_TEXT_CHAR',true);
+                                         s64bitint:
+                                                  if doread then
+                                                    emitcall('FPC_READ_TEXT_INT64',true)
+                                                  else
+                                                    emitcall('FPC_WRITE_TEXT_INT64',true);
+                                         u64bit : if doread then
+                                                    emitcall('FPC_READ_TEXT_QWORD',true)
+                                                  else
+                                                    emitcall('FPC_WRITE_TEXT_QWORD',true);
                                        bool8bit,
                                       bool16bit,
                                       bool32bit : if  doread then
@@ -508,10 +517,20 @@ implementation
 
            if is_real then
              emitcall('FPC_STR_'+float_name[pfloatdef(hp^.resulttype)^.typ],true)
-           else if porddef(hp^.resulttype)^.typ=u32bit then
-             emitcall('FPC_STR_CARDINAL',true)
            else
-             emitcall('FPC_STR_LONGINT',true);
+             case porddef(hp^.resulttype)^.typ of
+                u32bit:
+                  emitcall('FPC_STR_CARDINAL',true);
+
+                u64bit:
+                  emitcall('FPC_STR_QWORD',true);
+
+                s64bitint:
+                  emitcall('FPC_STR_INT64',true);
+
+                else
+                  emitcall('FPC_STR_LONGINT',true);
+             end;
            popusedregisters(pushed);
         end;
 
@@ -971,7 +990,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.21  1998-12-11 00:02:50  peter
+  Revision 1.22  1998-12-11 23:36:07  florian
+    + again more stuff for int64/qword:
+         - comparision operators
+         - code generation for: str, read(ln), write(ln)
+
+  Revision 1.21  1998/12/11 00:02:50  peter
     + globtype,tokens,version unit splitted from globals
 
   Revision 1.20  1998/11/27 14:50:32  peter

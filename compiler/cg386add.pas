@@ -43,9 +43,56 @@ implementation
                                 Helpers
 *****************************************************************************}
 
+    function getresflags(p : ptree;unsigned : boolean) : tresflags;
+
+      begin
+         if not(unsigned) then
+           begin
+              if p^.swaped then
+                case p^.treetype of
+                   equaln : getresflags:=F_E;
+                   unequaln : getresflags:=F_NE;
+                   ltn : getresflags:=F_G;
+                   lten : getresflags:=F_GE;
+                   gtn : getresflags:=F_L;
+                   gten : getresflags:=F_LE;
+                end
+              else
+                case p^.treetype of
+                   equaln : getresflags:=F_E;
+                   unequaln : getresflags:=F_NE;
+                   ltn : getresflags:=F_L;
+                   lten : getresflags:=F_LE;
+                   gtn : getresflags:=F_G;
+                   gten : getresflags:=F_GE;
+                end;
+           end
+         else
+           begin
+              if p^.swaped then
+                case p^.treetype of
+                   equaln : getresflags:=F_E;
+                   unequaln : getresflags:=F_NE;
+                   ltn : getresflags:=F_A;
+                   lten : getresflags:=F_AE;
+                   gtn : getresflags:=F_B;
+                   gten : getresflags:=F_BE;
+                end
+              else
+                case p^.treetype of
+                   equaln : getresflags:=F_E;
+                   unequaln : getresflags:=F_NE;
+                   ltn : getresflags:=F_B;
+                   lten : getresflags:=F_BE;
+                   gtn : getresflags:=F_A;
+                   gten : getresflags:=F_AE;
+                end;
+           end;
+      end;
+
+
     procedure SetResultLocation(cmpop,unsigned:boolean;var p :ptree);
-      var
-         flags : tresflags;
+
       begin
          { remove temporary location if not a set or string }
          { that's a bad hack (FK) who did this ?            }
@@ -60,51 +107,9 @@ implementation
          { in case of comparison operation the put result in the flags }
          if cmpop then
            begin
-              if not(unsigned) then
-                begin
-                   if p^.swaped then
-                     case p^.treetype of
-                        equaln : flags:=F_E;
-                        unequaln : flags:=F_NE;
-                        ltn : flags:=F_G;
-                        lten : flags:=F_GE;
-                        gtn : flags:=F_L;
-                        gten : flags:=F_LE;
-                     end
-                   else
-                     case p^.treetype of
-                        equaln : flags:=F_E;
-                        unequaln : flags:=F_NE;
-                        ltn : flags:=F_L;
-                        lten : flags:=F_LE;
-                        gtn : flags:=F_G;
-                        gten : flags:=F_GE;
-                     end;
-                end
-              else
-                begin
-                   if p^.swaped then
-                     case p^.treetype of
-                        equaln : flags:=F_E;
-                        unequaln : flags:=F_NE;
-                        ltn : flags:=F_A;
-                        lten : flags:=F_AE;
-                        gtn : flags:=F_B;
-                        gten : flags:=F_BE;
-                     end
-                   else
-                     case p^.treetype of
-                        equaln : flags:=F_E;
-                        unequaln : flags:=F_NE;
-                        ltn : flags:=F_B;
-                        lten : flags:=F_BE;
-                        gtn : flags:=F_A;
-                        gten : flags:=F_AE;
-                     end;
-                end;
               clear_location(p^.location);
               p^.location.loc:=LOC_FLAGS;
-              p^.location.resflags:=flags;
+              p^.location.resflags:=getresflags(p,unsigned);
            end;
       end;
 
@@ -1114,7 +1119,7 @@ implementation
                              begin
                                op:=A_CMP;
                                op2:=A_CMP;
-                               { cmpop is set later, if necessary }
+                               cmpop:=true;
                              end;
 
                       xorn:
@@ -1152,9 +1157,9 @@ implementation
                                begin
                                   hregister:=p^.location.registerlow;
                                   hregister2:=p^.location.registerhigh;
-                                  emit_reg_reg(A_MOV,opsize,p^.left^.location.registerlow,
+                                  emit_reg_reg(A_MOV,S_L,p^.left^.location.registerlow,
                                     hregister);
-                                  emit_reg_reg(A_MOV,opsize,p^.left^.location.registerlow,
+                                  emit_reg_reg(A_MOV,S_L,p^.left^.location.registerlow,
                                     hregister2);
                                end
                              else
@@ -1168,9 +1173,9 @@ implementation
                                begin
                                   hregister:=getregister32;
                                   hregister2:=getregister32;
-                                  emit_reg_reg(A_MOV,opsize,p^.left^.location.registerlow,
+                                  emit_reg_reg(A_MOV,S_L,p^.left^.location.registerlow,
                                     hregister);
-                                  emit_reg_reg(A_MOV,opsize,p^.left^.location.registerhigh,
+                                  emit_reg_reg(A_MOV,S_L,p^.left^.location.registerhigh,
                                     hregister2);
                                end
                           end
@@ -1182,23 +1187,23 @@ implementation
                                begin
                                   hregister:=p^.location.registerlow;
                                   hregister2:=p^.location.registerhigh;
-                                  exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,opsize,
+                                  exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
                                     newreference(p^.left^.location.reference),hregister)));
                                   hr:=newreference(p^.left^.location.reference);
                                   inc(hr^.offset,4);
-                                  exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,opsize,
+                                  exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
                                     hr,hregister2)));
                                end
                              else
                                begin
                                   hregister:=getregister32;
                                   hregister2:=getregister32;
-                                  exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,opsize,
+                                  exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
                                     newreference(p^.left^.location.reference),hregister)));
                                   hr:=newreference(p^.left^.location.reference);
                                   inc(hr^.offset,4);
-                                  exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,opsize,
-                                    newreference(p^.left^.location.reference),hregister2)));
+                                  exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
+                                    hr,hregister2)));
                                end;
                           end;
                         clear_location(p^.location);
@@ -1239,6 +1244,38 @@ implementation
                                   del_reference(p^.right^.location.reference);
                                end;
                           end
+                        else if cmpop then
+                          begin
+                             if (p^.right^.location.loc=LOC_CREGISTER) then
+                               begin
+                                  emit_reg_reg(A_CMP,S_L,p^.right^.location.registerhigh,
+                                     p^.location.registerhigh);
+                                  emitl(flag_2_jmp[getresflags(p,unsigned)],truelabel);
+
+                                  emit_reg_reg(A_CMP,S_L,p^.right^.location.registerlow,
+                                     p^.location.registerlow);
+                                  emitl(flag_2_jmp[getresflags(p,unsigned)],truelabel);
+
+                                  emitl(A_JMP,falselabel);
+                               end
+                             else
+                               begin
+                                  hr:=newreference(p^.right^.location.reference);
+                                  inc(hr^.offset,4);
+                                  exprasmlist^.concat(new(pai386,op_ref_reg(A_CMP,S_L,
+                                    hr,p^.location.registerhigh)));
+                                  emitl(flag_2_jmp[getresflags(p,unsigned)],truelabel);
+
+                                  exprasmlist^.concat(new(pai386,op_ref_reg(A_CMP,S_L,newreference(
+                                    p^.right^.location.reference),p^.location.registerlow)));
+                                  emitl(flag_2_jmp[getresflags(p,unsigned)],truelabel);
+
+                                  emitl(A_JMP,falselabel);
+
+                                  ungetiftemp(p^.right^.location.reference);
+                                  del_reference(p^.right^.location.reference);
+                               end;
+                          end
                         else
                           begin
                              {
@@ -1261,16 +1298,18 @@ implementation
                                begin
                                   if (p^.right^.location.loc=LOC_CREGISTER) then
                                     begin
-                                       emit_reg_reg(op,opsize,p^.right^.location.register,
-                                          p^.location.register);
+                                       emit_reg_reg(op,S_L,p^.right^.location.registerlow,
+                                          p^.location.registerlow);
+                                       emit_reg_reg(op2,S_L,p^.right^.location.registerhigh,
+                                          p^.location.registerhigh);
                                     end
                                   else
                                     begin
-                                       exprasmlist^.concat(new(pai386,op_ref_reg(op,opsize,newreference(
+                                       exprasmlist^.concat(new(pai386,op_ref_reg(op,S_L,newreference(
                                          p^.right^.location.reference),p^.location.registerlow)));
                                        hr:=newreference(p^.right^.location.reference);
                                        inc(hr^.offset,4);
-                                       exprasmlist^.concat(new(pai386,op_ref_reg(op2,opsize,
+                                       exprasmlist^.concat(new(pai386,op_ref_reg(op2,S_L,
                                          hr,p^.location.registerhigh)));
                                        ungetiftemp(p^.right^.location.reference);
                                        del_reference(p^.right^.location.reference);
@@ -1290,12 +1329,24 @@ implementation
                                { just to maintain ordering           }
                                p^.swaped:=not(p^.swaped);
                           end
+                        else if cmpop then
+                          begin
+                             exprasmlist^.concat(new(pai386,op_reg_reg(A_CMP,S_L,
+                               p^.right^.location.registerhigh,
+                               p^.location.registerhigh)));
+                             emitl(flag_2_jmp[getresflags(p,unsigned)],truelabel);
+                             exprasmlist^.concat(new(pai386,op_reg_reg(A_CMP,S_L,
+                               p^.right^.location.registerlow,
+                               p^.location.registerlow)));
+                             emitl(flag_2_jmp[getresflags(p,unsigned)],truelabel);
+                             emitl(A_JMP,falselabel);
+                          end
                         else
                           begin
-                             exprasmlist^.concat(new(pai386,op_reg_reg(op,opsize,
-                               p^.right^.location.register,
-                               p^.location.register)));
-                             exprasmlist^.concat(new(pai386,op_reg_reg(op2,opsize,
+                             exprasmlist^.concat(new(pai386,op_reg_reg(op,S_L,
+                               p^.right^.location.registerlow,
+                               p^.location.registerlow)));
+                             exprasmlist^.concat(new(pai386,op_reg_reg(op2,S_L,
                                p^.right^.location.registerhigh,
                                p^.location.registerhigh)));
                           end;
@@ -1304,9 +1355,9 @@ implementation
                      end;
 
                    if cmpop then
-                     case opsize of
-                        S_L : ungetregister32(p^.location.register);
-                        S_B : ungetregister32(reg8toreg32(p^.location.register));
+                     begin
+                        ungetregister32(p^.location.registerlow);
+                        ungetregister32(p^.location.registerhigh);
                      end;
 
                    { only in case of overflow operations }
@@ -1326,6 +1377,13 @@ implementation
                          emitl(A_LABEL,hl4);
                        end;
                     end;
+                   { we have LOC_JUMP as result }
+                   if cmpop then
+                     begin
+                        clear_location(p^.location);
+                        p^.location.loc:=LOC_JUMP;
+                        cmpop:=false;
+                     end;
                 end
               else
               { Floating point }
@@ -1639,7 +1697,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.34  1998-12-11 00:02:46  peter
+  Revision 1.35  1998-12-11 23:36:06  florian
+    + again more stuff for int64/qword:
+         - comparision operators
+         - code generation for: str, read(ln), write(ln)
+
+  Revision 1.34  1998/12/11 00:02:46  peter
     + globtype,tokens,version unit splitted from globals
 
   Revision 1.33  1998/12/10 11:16:00  florian
