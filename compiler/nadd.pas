@@ -24,6 +24,12 @@ unit nadd;
 
 {$i fpcdefs.inc}
 
+{ define addstringopt}
+
+{$ifdef callparatemp}
+  {$undef addstringopt}
+{$endif}
+
 interface
 
     uses
@@ -777,11 +783,11 @@ implementation
                     if not(is_constcharnode(left) and is_constcharnode(right)) then
                      begin
                        inserttypeconv(left,cshortstringtype);
-{$ifndef callparatemp}
+{$ifdef addstringopt}
                        hp := genaddsstringcharoptnode(self);
                        result := hp;
                        exit;
-{$endif callparatemp}
+{$endif addstringopt}
                      end;
                   end;
                end
@@ -1776,7 +1782,7 @@ implementation
                 end
               else
                 begin
-{$ifndef callparatemp}
+{$ifdef addstringopt}
                    { can create a call which isn't handled by callparatemp }
                    if canbeaddsstringcharoptnode(self) then
                      begin
@@ -1785,7 +1791,7 @@ implementation
                        exit;
                      end
                    else
-{$endif callparatemp}
+{$endif addstringopt}
                      begin
                        { Fix right to be shortstring }
                        if is_char(right.resulttype.def) then
@@ -1794,7 +1800,7 @@ implementation
                           firstpass(right);
                         end;
                      end;
-{$ifndef callparatemp}
+{$ifdef addstringopt}
                    { can create a call which isn't handled by callparatemp }
                    if canbeaddsstringcsstringoptnode(self) then
                      begin
@@ -1802,7 +1808,7 @@ implementation
                        pass_1 := hp;
                        exit;
                      end;
-{$endif callparatemp}
+{$endif addstringopt}
                 end;
              { otherwise, let addstring convert everything }
               result := first_addstring;
@@ -1953,7 +1959,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.90  2003-05-26 19:38:28  peter
+  Revision 1.91  2003-05-26 21:15:18  peter
+    * disable string node optimizations for the moment
+
+  Revision 1.90  2003/05/26 19:38:28  peter
     * generic fpc_shorstr_concat
     + fpc_shortstr_append_shortstr optimization
 

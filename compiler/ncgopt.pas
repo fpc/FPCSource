@@ -34,10 +34,6 @@ type
      procedure pass_2; override;
   end;
 
-  tcgaddsstringcsstringoptnode = class(taddsstringcsstringoptnode)
-     { must be duplicated from ti386addnode :( }
-     procedure pass_2; override;
-  end;
 
 implementation
 
@@ -200,59 +196,17 @@ begin
   location_copy(location,left.location);
 end;
 
-procedure tcgaddsstringcsstringoptnode.pass_2;
-var
-  href: treference;
-  pushedregs: tpushedsavedint;
-  regstopush: tsupregset;
-begin
-  { first, we have to more or less replicate some code from }
-  { ti386addnode.pass_2                                     }
-  secondpass(left);
-  if not(tg.istemp(left.location.reference) and
-         (tg.sizeoftemp(exprasmlist,left.location.reference) = 256)) and
-     not(nf_use_strconcat in flags) then
-    begin
-       tg.GetTemp(exprasmlist,256,tt_normal,href);
-       cg.g_copyshortstring(exprasmlist,left.location.reference,href,255,true,false);
-       { release the registers }
-       location_freetemp(exprasmlist,left.location);
-       { return temp reference }
-       location_reset(left.location,LOC_REFERENCE,def_cgsize(resulttype.def));
-       left.location.reference:=href;
-    end;
-  secondpass(right);
-  { on the right we do not need the register anymore too }
-  { Instead of releasing them already, simply do not }
-  { push them (so the release is in the right place, }
-  { because emitpushreferenceaddr doesn't need extra }
-  { registers) (JM)                                  }
-  regstopush := all_intregisters;
-  remove_non_regvars_from_loc(right.location,regstopush);
-  rg.saveusedintregisters(exprasmlist,pushedregs,regstopush);
-  { push the maximum possible length of the result }
-  cg.a_paramaddr_ref(exprasmlist,left.location.reference,paramanager.getintparaloc(2));
-  { the optimizer can more easily put the          }
-  { deallocations in the right place if it happens }
-  { too early than when it happens too late (if    }
-  { the pushref needs a "lea (..),edi; push edi")  }
-  reference_release(exprasmlist,right.location.reference);
-  cg.a_paramaddr_ref(exprasmlist,right.location.reference,paramanager.getintparaloc(1));
-  rg.saveintregvars(exprasmlist,regstopush);
-  cg.a_call_name(exprasmlist,'FPC_SHORTSTR_CONCAT');
-  tg.ungetiftemp(exprasmlist,right.location.reference);
-  rg.restoreusedintregisters(exprasmlist,pushedregs);
-  location_copy(location,left.location);
-end;
 
 begin
   caddsstringcharoptnode := tcgaddsstringcharoptnode;
-  caddsstringcsstringoptnode := tcgaddsstringcsstringoptnode
 end.
 
 {
   $Log$
-  Revision 1.2  2003-04-26 09:12:55  peter
+  Revision 1.3  2003-05-26 21:15:18  peter
+    * disable string node optimizations for the moment
+
+  Revision 1.2  2003/04/26 09:12:55  peter
     * add string returns in LOC_REFERENCE
 
   Revision 1.1  2003/04/24 11:20:06  florian

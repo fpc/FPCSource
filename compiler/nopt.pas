@@ -67,6 +67,7 @@ type
   { add a constant string to a short string }
   taddsstringcsstringoptnode = class(taddsstringoptnode)
     constructor create(l,r : tnode); virtual;
+    function pass_1: tnode; override;
   end;
   taddsstringcsstringoptnodeclass = class of taddsstringcsstringoptnode;
 
@@ -84,7 +85,7 @@ var
 
 implementation
 
-uses cutils, htypechk, defutil, defcmp, globtype, globals, cpubase, ncnv, ncon,
+uses cutils, htypechk, defutil, defcmp, globtype, globals, cpubase, ncnv, ncon,ncal,
      verbose, symdef, cginfo,cgbase;
 
 
@@ -224,6 +225,17 @@ begin
   inherited create(addsstringcsstringoptn,l,r);
 end;
 
+
+function taddsstringcsstringoptnode.pass_1: tnode;
+begin
+  { create the call to the concat routine both strings as arguments }
+  result := ccallnode.createintern('fpc_shortstr_append_shortstr',
+    ccallparanode.create(left,ccallparanode.create(right,nil)));
+  left:=nil;
+  right:=nil;
+end;
+
+
 {*****************************************************************************
                                 HELPERS
 *****************************************************************************}
@@ -278,7 +290,10 @@ end.
 
 {
   $Log$
-  Revision 1.15  2003-04-27 11:21:33  peter
+  Revision 1.16  2003-05-26 21:15:18  peter
+    * disable string node optimizations for the moment
+
+  Revision 1.15  2003/04/27 11:21:33  peter
     * aktprocdef renamed to current_procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be
