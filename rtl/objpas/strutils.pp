@@ -219,7 +219,7 @@ end;
 Function AnsiContainsStr(const AText, ASubText: string): Boolean;
 
 begin
-  NotYetImplemented(' AnsiContainsStr');
+  Result := Pos(ASubText,AText)<>0;
 end;
 
 
@@ -227,7 +227,7 @@ end;
 Function AnsiStartsStr(const ASubText, AText: string): Boolean;
 
 begin
-  NotYetImplemented(' AnsiStartsStr');
+  Result := Pos(ASubText,AText)=1;
 end;
 
 
@@ -235,31 +235,53 @@ end;
 Function AnsiEndsStr(const ASubText, AText: string): Boolean;
 
 begin
-  NotYetImplemented(' AnsiEndsStr');
+ Result := Pos(ASubText,AText)=(length(AText)-length(ASubText)+1);
 end;
-
 
 
 Function AnsiReplaceStr(const AText, AFromText, AToText: string): string;
 
 begin
-  NotYetImplemented(' AnsiReplaceStr');
+Result := StringReplace(AText,AFromText,AToText,[rfReplaceAll]);
 end;
 
 
 
 Function AnsiMatchStr(const AText: string; const AValues: array of string): Boolean;
 
+var
+  counter: integer;
 begin
-  NotYetImplemented(' AnsiMatchStr');
+  counter := 0;
+  while(counter < length(AValues)) do
+  begin
+    if(AText = AValues[counter]) then
+    begin
+      Result := true;
+      exit;
+    end;
+    inc(counter);
+  end;
+  Result := false;
 end;
-
 
 
 Function AnsiIndexStr(const AText: string; const AValues: array of string): Integer;
 
+var
+  counter: integer;
 begin
-  NotYetImplemented(' AnsiIndexStr');
+  counter := 0;
+  while(counter < length(AValues)) do
+  begin
+    if(AText = AValues[counter]) then
+    begin
+      Result := counter;
+      exit;
+    end;
+    inc(counter);
+  end;
+  Result := -1;
 end;
 
 
@@ -406,7 +428,7 @@ end;
 Function AnsiLeftStr(const AText: AnsiString; const ACount: Integer): AnsiString;
 
 begin
-  NotYetImplemented(' AnsiLeftStr');
+  Result := copy(AText,1,ACount);
 end;
 
 
@@ -414,7 +436,7 @@ end;
 Function AnsiRightStr(const AText: AnsiString; const ACount: Integer): AnsiString;
 
 begin
-  NotYetImplemented(' AnsiRightStr');
+  Result := copy(AText,length(AText)-ACount+1,ACount);
 end;
 
 
@@ -658,7 +680,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2004-05-17 07:33:01  marco
+  Revision 1.6  2004-06-29 19:37:17  marco
+   * updates from B. Tierens
+
+  Revision 1.5  2004/05/17 07:33:01  marco
    * fixes from Luiz Am?rico
 
   Revision 1.4  2004/03/19 12:54:22  marco
