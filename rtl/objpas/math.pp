@@ -27,19 +27,31 @@ unit math;
 interface
 
 {$MODE objfpc}
+{$ifdef VER1_0}
+  { we don't assume cross compiling from 1.0.x-m68k ... }
+  {$define FPC_HAS_TYPE_EXTENDED}
+{$endif VER1_0}
 
     uses
        sysutils;
 
     const { Ranges of the IEEE floating point types, including denormals }
+{$ifdef FPC_HAS_TYPE_SINGLE}
       MinSingle    =  1.5e-45;
       MaxSingle    =  3.4e+38;
+{$endif FPC_HAS_TYPE_SINGLE}
+{$ifdef FPC_HAS_TYPE_DOUBLE}
       MinDouble    =  5.0e-324;
       MaxDouble    =  1.7e+308;
+{$endif FPC_HAS_TYPE_DOUBLE}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
       MinExtended  =  3.4e-4932;
       MaxExtended  =  1.1e+4932;
+{$endif FPC_HAS_TYPE_EXTENDED}
+{$ifdef FPC_HAS_TYPE_COMP}
       MinComp      = -9.223372036854775807e+18;
       MaxComp      =  9.223372036854775807e+18;
+{$endif FPC_HAS_TYPE_COMP}
 
     type
        { the original delphi functions use extended as argument, }
@@ -47,7 +59,41 @@ interface
        { natural size for the processor                          }
        { WARNING : changing float type will                      }
        { break all assembler code  PM                            }
-       float = extended;
+{$ifdef FPC_HAS_TYPE_FLOAT128}
+         float = float128;
+
+      const
+         MinFloat = MinFloat128;
+         MaxFloat = MaxFloat128;
+{$else FPC_HAS_TYPE_FLOAT128}
+  {$ifdef FPC_HAS_TYPE_EXTENDED}
+         float = extended;
+
+      const
+         MinFloat = MinExtended;
+         MaxFloat = MaxExtended;
+  {$else FPC_HAS_TYPE_EXTENDED}
+    {$ifdef FPC_HAS_TYPE_DOUBLE}
+         float = double;
+
+      const
+         MinFloat = MinDouble;
+         MaxFloat = MaxDouble;
+    {$else FPC_HAS_TYPE_DOUBLE}
+      {$ifdef FPC_HAS_TYPE_SINGLE}
+         float = single;
+
+      const
+         MinFloat = MinSingle;
+         MaxFloat = MaxSingle;
+      {$else FPC_HAS_TYPE_SINGLE}
+        {$error At least one floating point type must be supported}
+      {$endif FPC_HAS_TYPE_SINGLE}
+    {$endif FPC_HAS_TYPE_DOUBLE}
+  {$endif FPC_HAS_TYPE_EXTENDED}
+{$endif FPC_HAS_TYPE_FLOAT128}
+
+    type
        PFloat = ^Float;
        PInteger = ^Integer;
 
@@ -210,23 +256,8 @@ procedure momentskewkurtosis(const data : PFloat; Const N : Integer;
 function norm(const data : array of float) : float;
 function norm(const data : PFloat; Const N : Integer) : float;
 
-{ i386 fpu control word }
-{$ifdef cpui386}
-type
-  TFPURoundingMode = (rmNearest, rmDown, rmUp, rmTruncate);
-  TFPUPrecisionMode = (pmSingle, pmReserved, pmDouble, pmExtended);
-  TFPUException = (exInvalidOp, exDenormalized, exZeroDivide,
-                   exOverflow, exUnderflow, exPrecision);
-  TFPUExceptionMask = set of TFPUException;
-
-function GetRoundMode: TFPURoundingMode;
-function SetRoundMode(const RoundMode: TFPURoundingMode): TFPURoundingMode;
-function GetPrecisionMode: TFPUPrecisionMode;
-function SetPrecisionMode(const Precision: TFPUPrecisionMode): TFPUPrecisionMode;
-function GetExceptionMask: TFPUExceptionMask;
-function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
-procedure ClearExceptions(RaisePending: Boolean {$ifndef VER1_0}=true{$endif});
-{$endif cpui386}
+{ include cpu specific stuff }
+{$i mathuh.inc}
 
 implementation
 
@@ -950,65 +981,16 @@ begin
     Result := b;
 end;
 
-{$ifdef cpui386}
-
-function GetRoundMode: TFPURoundingMode;
-begin
-  Result := TFPURoundingMode((Get8087CW shr 10) and 3);
-end;
-
-function SetRoundMode(const RoundMode: TFPURoundingMode): TFPURoundingMode;
-var
-  CtlWord: Word;
-begin
-  CtlWord := Get8087CW;
-  Set8087CW((CtlWord and $F3FF) or (Ord(RoundMode) shl 10));
-  Result := TFPURoundingMode((CtlWord shr 10) and 3);
-end;
-
-function GetPrecisionMode: TFPUPrecisionMode;
-begin
-  Result := TFPUPrecisionMode((Get8087CW shr 8) and 3);
-end;
-
-function SetPrecisionMode(const Precision: TFPUPrecisionMode): TFPUPrecisionMode;
-var
-  CtlWord: Word;
-begin
-  CtlWord := Get8087CW;
-  Set8087CW((CtlWord and $FCFF) or (Ord(Precision) shl 8));
-  Result := TFPUPrecisionMode((CtlWord shr 8) and 3);
-end;
-
-function GetExceptionMask: TFPUExceptionMask;
-begin
-  Result := TFPUExceptionMask(Get8087CW and $3F);
-end;
-
-function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
-var
-  CtlWord: Word;
-begin
-  CtlWord := Get8087CW;
-  Set8087CW( (CtlWord and $FFC0) or Byte(Longint(Mask)) );
-  Result := TFPUExceptionMask(CtlWord and $3F);
-end;
-
-procedure ClearExceptions(RaisePending: Boolean);assembler;
-asm
-  cmpb $0,RaisePending
-  je .Lclear
-  fwait
-.Lclear:
-  fnclex
-end;
-
-{$endif cpui386}
+{ include cpu specific stuff }
+{$i mathu.inc}
 
 end.
 {
   $Log$
-  Revision 1.9  2003-01-03 20:34:02  peter
+  Revision 1.10  2003-04-24 09:21:59  florian
+    + moved cpu dependend code to mathuh.inc and mathu.inc
+
+  Revision 1.9  2003/01/03 20:34:02  peter
     * i386 fpu controlword functions added
 
   Revision 1.8  2002/09/07 21:06:12  carl
