@@ -731,17 +731,21 @@ var
   argvlen : longint;
 
   procedure allocarg(idx,len:longint);
-  begin
-    if idx>=argvlen then
-     begin
-       argvlen:=(idx+8) and (not 7);
-       sysreallocmem(argv,argvlen*sizeof(pointer));
-     end;
-    { use realloc to reuse already existing memory }
-    { always allocate, even if length is zero, since }
-    { the arg. is still present!                     }
-    sysreallocmem(argv[idx],len+1);
-  end;
+    var
+      oldargvlen : longint;
+    begin
+      oldargvlen:=argvlen;
+      if idx>=argvlen then
+       begin
+         argvlen:=(idx+8) and (not 7);
+         sysreallocmem(argv,argvlen*sizeof(pointer));
+         fillchar(argv[oldargvlen],(argvlen-oldargvlen)*sizeof(pointer),0);
+       end;
+      { use realloc to reuse already existing memory }
+      { always allocate, even if length is zero, since }
+      { the arg. is still present!                     }
+      sysreallocmem(argv[idx],len+1);
+    end;
 
 begin
   { create commandline, it starts with the executed filename which is argv[0] }
@@ -1621,7 +1625,10 @@ end.
 
 {
   $Log$
-  Revision 1.58  2004-06-20 09:24:40  peter
+  Revision 1.59  2004-06-26 15:05:14  florian
+    * fixed argument copying
+
+  Revision 1.58  2004/06/20 09:24:40  peter
   fixed go32v2 compile
 
   Revision 1.57  2004/06/17 16:16:14  peter
