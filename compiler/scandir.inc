@@ -512,6 +512,8 @@ const
          exit;
         if (hs[1]='%') then
          begin
+         { case insensitive }
+           hs:=upper(hs);
          { save old }
            path:=hs;
          { remove %'s }
@@ -524,6 +526,12 @@ const
            else
             if hs='DATE' then
              hs:=getdatestr
+           else
+            if hs='FILE' then
+             hs:=current_module^.sourcefiles^.get_file_name(aktfilepos.fileindex)
+           else
+            if hs='LINE' then
+             hs:=tostr(aktfilepos.line)
            else
             if hs='FPCVERSION' then
              hs:=version_string
@@ -930,7 +938,10 @@ const
 
 {
   $Log$
-  Revision 1.34  1998-09-28 16:57:24  pierre
+  Revision 1.35  1998-10-08 13:44:39  peter
+    * fixed $I %date% not in uppercase
+
+  Revision 1.34  1998/09/28 16:57:24  pierre
     * changed all length(p^.value_str^) into str_length(p)
       to get it work with and without ansistrings
     * changed sourcefiles field of tmodule to a pointer
