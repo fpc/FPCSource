@@ -2435,7 +2435,7 @@ begin
    end;
 end;
 
-procedure AssignStream(var StreamIn, StreamOut, StreamErr: Text; const prog: String);
+function AssignStream(var StreamIn, StreamOut, StreamErr: Text; const prog: String): LongInt;
 {
   Starts the program in 'prog' and makes its input, output and error output the
   other end of three pipes, which are the stdin, stdout and stderr of a program
@@ -2485,6 +2485,7 @@ begin
     Close(PipeErr);
     Close(PipeIn);
     Close(StreamOut);
+    Result := -1;
     exit;
   end;
 
@@ -2524,7 +2525,7 @@ begin
     pl := @(TextRec(StreamErr).userdata[2]);
     pl^ := pid;
     TextRec(StreamErr).closefunc := @PCloseText;
-    LinuxError := 0;
+    Result := pid;
   end;
 end;
 
@@ -3740,7 +3741,10 @@ End.
 
 {
   $Log$
-  Revision 1.41  1999-07-29 15:53:55  michael
+  Revision 1.42  1999-07-29 15:55:54  michael
+  + Fixes to assignstream with rerouting of stderr, by Sebastian Guenther
+
+  Revision 1.41  1999/07/29 15:53:55  michael
   + Added assignstream with rerouting of stderr, by Sebastian Guenther
 
   Revision 1.40  1999/07/15 20:00:31  michael
