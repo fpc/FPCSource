@@ -80,7 +80,6 @@ procedure TFPWriterBMP.InternalWrite (Stream:TStream; Img:TFPCustomImage);
       BFH:TBitMapFileHeader;
       BFI:TBitMapInfoHeader;
     begin
-      writeln ('SaveHeader');
       SaveHeader := false;
       with BFI do
         begin
@@ -112,7 +111,6 @@ procedure TFPWriterBMP.InternalWrite (Stream:TStream; Img:TFPCustomImage);
 //          stream.Write(Palet, bfh.bfOffset - 54);
         end;
       SaveHeader := true;
-      writeln ('End header save');
     end;
   type
     TPixel=packed record
@@ -135,14 +133,14 @@ procedure TFPWriterBMP.InternalWrite (Stream:TStream; Img:TFPCustomImage);
 {$ELSE UseDynArray}
     GetMem(aLine,(Img.Width+1)*SizeOf(TPixel));//3 extra byte for BMP 4Bytes alignement.
 {$ENDIF UseDynArray}
-    writeln ('Start colordata');
     for Row:=img.Height-1 downto 0 do
       begin
         for Coulumn:=0 to img.Width-1 do
           with aLine[Coulumn],aColor do
             begin
-              aColor:=img.Palette.Color[img.Pixels[Coulumn,Row]];
-              R:=(Red and $FF00) shr 8;
+              //aColor:=img.Palette.Color[img.Pixels[Coulumn,Row]]; // Will raise exception when image doesn't have palette
+              aColor := img.colors[Coulumn,Row];
+              R:=(Red and $FF00) shr 8;  // Use only the high byte to convert the color
               G:=(Green and $FF00) shr 8;
               B:=(Blue and $FF00) shr 8;
             end;
@@ -158,7 +156,11 @@ initialization
 end.
 {
 $Log$
-Revision 1.2  2003-09-04 22:29:43  luk
+Revision 1.3  2003-09-08 10:38:56  luk
+- removed debug info
+* prevented exceptions when using non indexed images
+
+Revision 1.2  2003/09/04 22:29:43  luk
 * correct color conversion (prevent range check errors)
 
 Revision 1.1  2003/09/04 12:02:21  mazen
