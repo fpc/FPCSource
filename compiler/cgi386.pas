@@ -2080,7 +2080,6 @@ implementation
 
       var
          opsize : topsize;
-         {pushed,}withresult : boolean;
          otlabel,hlabel,oflabel : plabel;
          hregister : tregister;
          loc : tloc;
@@ -2090,7 +2089,6 @@ implementation
          oflabel:=falselabel;
          getlabel(truelabel);
          getlabel(falselabel);
-         withresult:=false;
          { calculate left sides }
          secondpass(p^.left);
          case p^.left^.location.loc of
@@ -2165,8 +2163,7 @@ implementation
              { we do not need destination anymore }
              del_reference(p^.left^.location.reference);
              { only source if withresult is set }
-             if not(withresult) then
-               del_reference(p^.right^.location.reference);
+             del_reference(p^.right^.location.reference);
              loadstring(p);
              ungetiftemp(p^.right^.location.reference);
            end
@@ -2197,8 +2194,7 @@ implementation
                          else
                            begin
                               concatcopy(p^.right^.location.reference,
-                                p^.left^.location.reference,p^.left^.resulttype^.size,
-                                withresult);
+                                p^.left^.location.reference,p^.left^.resulttype^.size,false);
                               ungetiftemp(p^.right^.location.reference);
                            end;
                       end;
@@ -2824,7 +2820,12 @@ implementation
                                          exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,r,R_ESI)));
                                       end;
 
-                                    exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_ESI)));
+                                    { direct call to class constructor, don't allocate memory }
+                                    if is_con_or_destructor and (p^.methodpointer^.resulttype^.deftype=objectdef) and
+                                      (pobjectdef(p^.methodpointer^.resulttype)^.isclass) then
+                                      exprasmlist^.concat(new(pai386,op_const(A_PUSH,S_L,0)))
+                                    else
+                                      exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_ESI)));
                                     if is_con_or_destructor then
                                       begin
                                          { classes don't get a VMT pointer pushed }
@@ -2960,6 +2961,7 @@ implementation
                        if ((aktprocsym^.properties and sp_static)<>0) or
                         ((aktprocsym^.definition^.options and poclassmethod)<>0) or
                         ((p^.procdefinition^.options and postaticmethod)<>0) or
+                        ((p^.procdefinition^.options and poconstructor)<>0) or
                         { ESI is loaded earlier }
                         ((p^.procdefinition^.options and poclassmethod)<>0)then
                          begin
@@ -2979,6 +2981,9 @@ implementation
                          end;
                      end
                    else
+                     { aktprocsym should be assigned, also in main program }
+                     internalerror(12345);
+                   {
                      begin
                        new(r);
                        reset_reference(r^);
@@ -2988,6 +2993,7 @@ implementation
                        reset_reference(r^);
                        r^.base:=R_EDI;
                      end;
+                   }
                    if p^.procdefinition^.extnumber=-1 then
                         internalerror($Da);
                    r^.offset:=p^.procdefinition^.extnumber*4+12;
@@ -5709,7 +5715,11 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.7  1998-04-09 14:28:05  jonas
+  Revision 1.8  1998-04-09 22:16:33  florian
+    * problem with previous REGALLOC solved
+    * improved property support
+
+  Revision 1.7  1998/04/09 14:28:05  jonas
     + basic k6 and 6x86 optimizing support (-O7 and -O8)
 
   Revision 1.6  1998/04/08 11:34:20  peter

@@ -2393,24 +2393,24 @@ unit pass_1;
               p^.resulttype:=p^.left^.resulttype;
            end
          { if we know the routine which is called, then the type }
-         { conversions are inserted                            }
+         { conversions are inserted                              }
          else
            begin
                if count_ref then
-                     begin
-                     store_valid:=must_be_valid;
-                     if (defcoll^.paratyp<>vs_var) then
-                       must_be_valid:=true
-                     else
-                       must_be_valid:=false;
-                     { here we must add something for the implicit type }
-                     { conversion from array of char to pchar }
-                     if isconvertable(p^.left^.resulttype,defcoll^.data,convtyp,p^.left^.treetype) then
-                       if convtyp=tc_array_to_pointer then
-                         must_be_valid:=false;
-                     firstpass(p^.left);
-                     must_be_valid:=store_valid;
-                     End;
+                 begin
+                    store_valid:=must_be_valid;
+                    if (defcoll^.paratyp<>vs_var) then
+                      must_be_valid:=true
+                    else
+                      must_be_valid:=false;
+                    { here we must add something for the implicit type }
+                    { conversion from array of char to pchar }
+                    if isconvertable(p^.left^.resulttype,defcoll^.data,convtyp,p^.left^.treetype) then
+                      if convtyp=tc_array_to_pointer then
+                        must_be_valid:=false;
+                    firstpass(p^.left);
+                    must_be_valid:=store_valid;
+                 end;
               if not((p^.left^.resulttype^.deftype=stringdef) and
                      (defcoll^.data^.deftype=stringdef)) and
                      (defcoll^.data^.deftype<>formaldef) then
@@ -2438,7 +2438,7 @@ unit pass_1;
                          ) and
                      not(is_equal(p^.left^.resulttype,defcoll^.data))) then
                        Message(parser_e_call_by_ref_without_typeconv);
-                   { don't generate an type conversion for open arrays }
+                   { don't generate an type conversion for open arrays   }
                    { else we loss the ranges                             }
                    if not(is_open_array(defcoll^.data)) then
                      begin
@@ -2534,24 +2534,81 @@ unit pass_1;
          procs:=nil;
          { made this global for disposing !! }
          store_valid:=must_be_valid;
-         if not assigned(p^.procdefinition) then
+         must_be_valid:=false;
+
+         { procedure variable ? }
+         if assigned(p^.right) then
            begin
-              must_be_valid:=false;
-              { procedure variable ? }
-              if not(assigned(p^.right)) then
+              { procedure does a call }
+              procinfo.flags:=procinfo.flags or pi_do_call;
+
+              { calc the correture value for the register }
+{$ifdef i386}
+              for regi:=R_EAX to R_EDI do
+                inc(reg_pushes[regi],t_times*2);
+{$endif}
+{$ifdef m68k}
+              for regi:=R_D0 to R_A6 do
+                inc(reg_pushes[regi],t_times*2);
+{$endif}
+              { calculate the type of the parameters }
+              if assigned(p^.left) then
                 begin
-                   if assigned(p^.left) then
-                     begin
-                        old_count_ref:=count_ref;
-                        count_ref:=false;
-                        store_valid:=must_be_valid;
-                        must_be_valid:=false;
-                        firstcallparan(p^.left,nil);
-                        count_ref:=old_count_ref;
-                        must_be_valid:=store_valid;
-                        if codegenerror then
-                          exit;
-                     end;
+                   old_count_ref:=count_ref;
+                   count_ref:=false;
+                   firstcallparan(p^.left,nil);
+                   count_ref:=old_count_ref;
+                   if codegenerror then
+                     exit;
+                end;
+              firstpass(p^.right);
+
+              { check the parameters }
+              pdc:=pprocvardef(p^.right^.resulttype)^.para1;
+              pt:=p^.left;
+              while assigned(pdc) and assigned(pt) do
+                begin
+                   pt:=pt^.right;
+                   pdc:=pdc^.next;
+                end;
+              if assigned(pt) or assigned(pdc) then
+               Message(parser_e_illegal_parameter_list);
+
+              { insert type conversions }
+              if assigned(p^.left) then
+                begin
+                   old_count_ref:=count_ref;
+                   count_ref:=true;
+                   firstcallparan(p^.left,pprocvardef(p^.right^.resulttype)^.para1);
+                   count_ref:=old_count_ref;
+                   if codegenerror then
+                     exit;
+                end;
+              p^.resulttype:=pprocvardef(p^.right^.resulttype)^.retdef;
+              { this was missing, leads to a bug below if
+                the procvar is a function }
+              p^.procdefinition:=pprocdef(p^.right^.resulttype);
+           end
+         else
+           begin
+              { determine the type of the parameters }
+              if assigned(p^.left) then
+                begin
+                   old_count_ref:=count_ref;
+                   count_ref:=false;
+                   store_valid:=must_be_valid;
+                   must_be_valid:=false;
+                   firstcallparan(p^.left,nil);
+                   count_ref:=old_count_ref;
+                   must_be_valid:=store_valid;
+                   if codegenerror then
+                     exit;
+                end;
+
+              { do we know the procedure to call ? }
+              if not(assigned(p^.procdefinition)) then
+                begin
+
                    { determine length of parameter list }
                    pt:=p^.left;
                    paralength:=0;
@@ -2876,117 +2933,61 @@ unit pass_1;
                         p^.methodpointer:=nil;
                      end;
 {$endif CHAINPROCSYMS}
+                end; { end of procedure to call determination }
+              { work trough all parameters to insert the type conversions }
+              if assigned(p^.left) then
+                begin
+                   old_count_ref:=count_ref;
+                   count_ref:=true;
+                   firstcallparan(p^.left,p^.procdefinition^.para1);
+                   count_ref:=old_count_ref;
+                end;
 
-                   { work trough all parameters to insert the type conversions }
-                   if assigned(p^.left) then
-                     begin
-                        old_count_ref:=count_ref;
-                        count_ref:=true;
-                        firstcallparan(p^.left,p^.procdefinition^.para1);
-                        count_ref:=old_count_ref;
-                     end;
-                   { handle predefined procedures }
-                   if (p^.procdefinition^.options and pointernproc)<>0 then
-                     begin
-                        { settextbuf needs two args }
-                        if assigned(p^.left^.right) then
-                          pt:=geninlinenode(pprocdef(p^.procdefinition)^.extnumber,p^.left)
-                        else
-                          begin
-                             pt:=geninlinenode(pprocdef(p^.procdefinition)^.extnumber,p^.left^.left);
-                             putnode(p^.left);
-                          end;
-                        putnode(p);
-                        firstpass(pt);
-                        { was placed after the exit          }
-                        { caused GPF                         }
-                        { error caused and corrected by (PM) }
-                        p:=pt;
-
-                        must_be_valid:=store_valid;
-                        if codegenerror then
-                          exit;
-
-                        dispose(procs);
-                        exit;
-                     end
+              { handle predefined procedures }
+              if (p^.procdefinition^.options and pointernproc)<>0 then
+                begin
+                   { settextbuf needs two args }
+                   if assigned(p^.left^.right) then
+                     pt:=geninlinenode(pprocdef(p^.procdefinition)^.extnumber,p^.left)
                    else
-                     { no intern procedure => we do a call }
-                     procinfo.flags:=procinfo.flags or pi_do_call;
-
-                   { calc the correture value for the register }
-{$ifdef i386}
-                   { calc the correture value for the register }
-                   for regi:=R_EAX to R_EDI do
                      begin
-                        if (p^.procdefinition^.usedregisters and ($80 shr word(regi)))<>0 then
-                          inc(reg_pushes[regi],t_times*2);
+                        pt:=geninlinenode(pprocdef(p^.procdefinition)^.extnumber,p^.left^.left);
+                        putnode(p^.left);
                      end;
-{$endif}
-{$ifdef m68k}
-                  for regi:=R_D0 to R_A6 do
-                    begin
-                       if (p^.procdefinition^.usedregisters and ($800 shr word(regi)))<>0 then
-                         inc(reg_pushes[regi],t_times*2);
-                    end;
-{$endif}
+                   putnode(p);
+                   firstpass(pt);
+                   { was placed after the exit          }
+                   { caused GPF                         }
+                   { error caused and corrected by (PM) }
+                   p:=pt;
+
+                   must_be_valid:=store_valid;
+                   if codegenerror then
+                     exit;
+
+                   dispose(procs);
+                   exit;
                 end
               else
-                begin
-                   { procedure variable }
-                   { die Typen der Parameter berechnen }
+                { no intern procedure => we do a call }
+                procinfo.flags:=procinfo.flags or pi_do_call;
 
-                   { procedure does a call }
-                   procinfo.flags:=procinfo.flags or pi_do_call;
-
+              { calc the correture value for the register }
 {$ifdef i386}
-                   { calc the correture value for the register }
-                   for regi:=R_EAX to R_EDI do
+              for regi:=R_EAX to R_EDI do
+                begin
+                   if (p^.procdefinition^.usedregisters and ($80 shr word(regi)))<>0 then
                      inc(reg_pushes[regi],t_times*2);
+                end;
 {$endif}
 {$ifdef m68k}
-                   { calc the correture value for the register }
-                   for regi:=R_D0 to R_A6 do
-                     inc(reg_pushes[regi],t_times*2);
+             for regi:=R_D0 to R_A6 do
+               begin
+                  if (p^.procdefinition^.usedregisters and ($800 shr word(regi)))<>0 then
+                    inc(reg_pushes[regi],t_times*2);
+               end;
 {$endif}
-                   if assigned(p^.left) then
-                     begin
-                        old_count_ref:=count_ref;
-                        count_ref:=false;
-                        firstcallparan(p^.left,nil);
-                        count_ref:=old_count_ref;
-                        if codegenerror then
-                          exit;
-                     end;
-                   firstpass(p^.right);
-
-                   { check the parameters }
-                   pdc:=pprocvardef(p^.right^.resulttype)^.para1;
-                   pt:=p^.left;
-                   while assigned(pdc) and assigned(pt) do
-                     begin
-                        pt:=pt^.right;
-                        pdc:=pdc^.next;
-                     end;
-                   if assigned(pt) or assigned(pdc) then
-                    Message(parser_e_illegal_parameter_list);
-
-                   { insert type conversions }
-                   if assigned(p^.left) then
-                     begin
-                        old_count_ref:=count_ref;
-                        count_ref:=true;
-                        firstcallparan(p^.left,pprocvardef(p^.right^.resulttype)^.para1);
-                        count_ref:=old_count_ref;
-                        if codegenerror then
-                          exit;
-                     end;
-                   p^.resulttype:=pprocvardef(p^.right^.resulttype)^.retdef;
-                   { this was missing , leads to a bug below if
-                     the procvar is a function }
-                   p^.procdefinition:=pprocdef(p^.right^.resulttype);
-                end;
-         end; { not assigned(p^.procdefinition) }
+           end; { not assigned(p^.procdefinition) }
 
          { get a register for the return value }
          if (p^.resulttype<>pdef(voiddef)) then
@@ -4495,7 +4496,11 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.5  1998-04-08 16:58:04  pierre
+  Revision 1.6  1998-04-09 22:16:34  florian
+    * problem with previous REGALLOC solved
+    * improved property support
+
+  Revision 1.5  1998/04/08 16:58:04  pierre
     * several bugfixes
       ADD ADC and AND are also sign extended
       nasm output OK (program still crashes at end

@@ -204,11 +204,12 @@ unit tgeni386;
            begin
               if not(r in [R_EAX,R_EBX,R_ECX,R_EDX]) then
                 exit;
-{$ifdef REGALLOC}
-              exprasmlist^.concat(new(pairegdealloc,init(r)));
-{$endif REGALLOC}
+              unused:=unused+[r];
               inc(usablereg32);
            end;
+{$ifdef REGALLOC}
+         exprasmlist^.concat(new(pairegdealloc,init(r)));
+{$endif REGALLOC}
       end;
 
 {$ifdef SUPPORT_MMX}
@@ -600,7 +601,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  1998-04-09 15:46:39  florian
+  Revision 1.3  1998-04-09 22:16:36  florian
+    * problem with previous REGALLOC solved
+    * improved property support
+
+  Revision 1.2  1998/04/09 15:46:39  florian
     + register allocation tracing stuff added
 
   Revision 1.1.1.1  1998/03/25 11:18:15  root

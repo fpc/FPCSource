@@ -370,6 +370,7 @@ unit pdecl;
            sc : pstringcontainer;
            hp : pdef;
            s : string;
+           pp : pprocdef;
 
         begin
            { check for a class }
@@ -471,8 +472,11 @@ unit pdecl;
                           { take the whole info: }
                           p^.options:=ppropertysym(overriden)^.options;
                           p^.index:=ppropertysym(overriden)^.index;
+                          p^.proptype:=ppropertysym(overriden)^.proptype;
                           p^.writeaccesssym:=ppropertysym(overriden)^.writeaccesssym;
                           p^.readaccesssym:=ppropertysym(overriden)^.readaccesssym;
+                          p^.writeaccessdef:=ppropertysym(overriden)^.writeaccessdef;
+                          p^.readaccessdef:=ppropertysym(overriden)^.readaccessdef;
                        end
                      else
                        begin
@@ -480,6 +484,12 @@ unit pdecl;
                           message(parser_e_no_property_found_to_override);
                        end;
                   end;
+                { create data defcoll to allow correct parameter checks }
+                new(datacoll);
+                datacoll^.paratyp:=vs_value;
+                datacoll^.data:=p^.proptype;
+                datacoll^.next:=nil;
+
                 if (token=ID) and (pattern='READ') then
                   begin
                      consume(ID);
@@ -492,14 +502,27 @@ unit pdecl;
                           { varsym aren't allowed for an indexed property
                             or an property with parameters }
                           if ((sym^.typ=varsym) and
-                            (((p^.options and ppo_indexed)<>0) or
-                             assigned(propertyparas))) or
+                             { not necessary, an index forces propertyparas
+                               to be assigned
+                             }
+                             { (((p^.options and ppo_indexed)<>0) or }
+                             assigned(propertyparas)) or
                              not(sym^.typ in [varsym,procsym]) then
                             Message(parser_e_ill_property_access_sym);
                           { search the matching definition }
                           if sym^.typ=procsym then
                             begin
-                               { !!!!!! }
+                               pp:=get_procdef;
+                               if not(assigned(pp)) or
+                                 not(is_equal(pp^.retdef,p^.proptype)) then
+                                 Message(parser_e_ill_property_access_sym);
+                               p^.readaccessdef:=pp;
+                            end
+                          else if sym^.typ=varsym then
+                            begin
+                               if not(is_equal(pvarsym(sym)^.definition,
+                                 p^.proptype)) then
+                                 Message(parser_e_ill_property_access_sym);
                             end;
                           p^.readaccesssym:=sym;
                        end;
@@ -513,16 +536,28 @@ unit pdecl;
                        Message1(sym_e_unknown_id,pattern)
                      else
                        begin
-                          { !!!! check sym }
                           if ((sym^.typ=varsym) and
-                            (((p^.options and ppo_indexed)<>0)
-                            { or property paras })) or
+                             assigned(propertyparas)) or
                              not(sym^.typ in [varsym,procsym]) then
                             Message(parser_e_ill_property_access_sym);
                           { search the matching definition }
                           if sym^.typ=procsym then
                             begin
-                               { !!!!!! }
+                               { insert data entry to check access method }
+                               datacoll^.next:=propertyparas;
+                               propertyparas:=datacoll;
+                               pp:=get_procdef;
+                               { ... and remove it }
+                               propertyparas:=propertyparas^.next;
+                               if not(assigned(pp)) then
+                                 Message(parser_e_ill_property_access_sym);
+                               p^.writeaccessdef:=pp;
+                            end
+                          else if sym^.typ=varsym then
+                            begin
+                               if not(is_equal(pvarsym(sym)^.definition,
+                                 p^.proptype)) then
+                                 Message(parser_e_ill_property_access_sym);
                             end;
                           p^.writeaccesssym:=sym;
                        end;
@@ -536,23 +571,7 @@ unit pdecl;
                 if (token=ID) and (pattern='DEFAULT') then
                   begin
                      consume(ID);
-                     if token=SEMICOLON then
-                       begin
-                          p2:=search_default_property(aktclass);
-                          if assigned(p2) then
-                            message1(parser_e_only_one_default_property,
-                              pobjectdef(p2^.owner^.defowner)^.name^)
-                          else
-                            begin
-                               p^.options:=p^.options and ppo_defaultproperty;
-                               if not(assigned(propertyparas)) then
-                                 message(parser_e_property_need_paras);
-                            end;
-                       end
-                     else
-                       begin
-                          { !!!!!!! storage }
-                       end;
+                     { !!!!!!! storage }
                      consume(SEMICOLON);
                   end
                 else if (token=ID) and (pattern='NODEFAULT') then
@@ -561,13 +580,32 @@ unit pdecl;
                      { !!!!!!!! }
                   end;
                 symtablestack^.insert(p);
+                { default property ? }
+                consume(SEMICOLON);
+                if (token=ID) and (pattern='DEFAULT') then
+                  begin
+                     consume(ID);
+                     p2:=search_default_property(aktclass);
+                     if assigned(p2) then
+                       message1(parser_e_only_one_default_property,
+                         pobjectdef(p2^.owner^.defowner)^.name^)
+                     else
+                       begin
+                          p^.options:=p^.options or ppo_defaultproperty;
+                          if not(assigned(propertyparas)) then
+                            message(parser_e_property_need_paras);
+                       end;
+                     consume(SEMICOLON);
+                  end;
                 { clean up }
                 if assigned(datacoll) then
                   dispose(datacoll);
              end
            else
-              consume(ID);
-           consume(SEMICOLON);
+             begin
+                consume(ID);
+                consume(SEMICOLON);
+             end;
         end;
 
       procedure destructor_head;
@@ -1689,7 +1727,11 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.5  1998-04-08 14:59:20  florian
+  Revision 1.6  1998-04-09 22:16:35  florian
+    * problem with previous REGALLOC solved
+    * improved property support
+
+  Revision 1.5  1998/04/08 14:59:20  florian
     * problem with new expr_type solved
 
   Revision 1.4  1998/04/08 10:26:09  florian

@@ -418,15 +418,140 @@ unit pexpr;
          afterassignment:=prevafterassn;
       end;
 
+    { the following procedure handles the access to a property symbol }
+    procedure handle_propertysym(sym : psym;var p1 : ptree;
+      var pd : pdef);
+
+      var
+         paras : ptree;
+         oldafterassignment : boolean;
+         p2 : ptree;
+
+      begin
+         paras:=nil;
+         { property parameters? }
+         if token=LECKKLAMMER then
+           begin
+              consume(LECKKLAMMER);
+              paras:=parse_paras(false,true);
+              consume(RECKKLAMMER);
+           end;
+         { indexed property }
+         if (ppropertysym(sym)^.options and ppo_indexed)<>0 then
+           begin
+              p2:=genordinalconstnode(ppropertysym(sym)^.index,s32bitdef);
+              paras:=gencallparanode(p2,paras);
+           end;
+         if not(afterassignment) and not(in_args) then
+           begin
+              { write property: }
+              { no result }
+              pd:=voiddef;
+              if assigned(ppropertysym(sym)^.writeaccesssym) then
+                begin
+                   if ppropertysym(sym)^.writeaccesssym^.typ=procsym then
+                     begin
+                        { generate the method call }
+                        p1:=genmethodcallnode(pprocsym(
+                          ppropertysym(sym)^.writeaccesssym),
+                          ppropertysym(sym)^.writeaccesssym^.owner,p1);
+                        { we know the procedure to call, so
+                          force the usage of that procedure }
+                        p1^.procdefinition:=pprocdef(ppropertysym(sym)^.writeaccessdef);
+                        p1^.left:=paras;
+                        { to be on the save side }
+                        oldafterassignment:=afterassignment;
+                        consume(ASSIGNMENT);
+                        { read the expression }
+                        afterassignment:=true;
+                        p2:=expr;
+                        p1^.left:=gencallparanode(p2,p1^.left);
+                        afterassignment:=oldafterassignment;
+                     end
+                   else if ppropertysym(sym)^.writeaccesssym^.typ=varsym then
+                     begin
+                        if assigned(paras) then
+                          message(parser_e_no_paras_allowed);
+                        p1:=gensubscriptnode(pvarsym(
+                          ppropertysym(sym)^.readaccesssym),p1);
+                        { to be on the save side }
+                        oldafterassignment:=afterassignment;
+                        consume(ASSIGNMENT);
+                        { read the expression }
+                        afterassignment:=true;
+                        p2:=expr;
+                        p1:=gennode(assignn,p1,p2);
+                        afterassignment:=oldafterassignment;
+                     end
+                   else
+                     begin
+                        p1:=genzeronode(errorn);
+                        Message(parser_e_no_procedure_to_access_property);
+                     end;
+                end
+              else
+                begin
+                   p1:=genzeronode(errorn);
+                   Message(parser_e_no_procedure_to_access_property);
+                end;
+           end
+         else
+           begin
+              { read property: }
+              pd:=ppropertysym(sym)^.proptype;
+              if assigned(ppropertysym(sym)^.readaccesssym) then
+                begin
+                   if ppropertysym(sym)^.readaccesssym^.typ=varsym then
+                     begin
+                        if assigned(paras) then
+                          message(parser_e_no_paras_allowed);
+                        p1:=gensubscriptnode(pvarsym(
+                          ppropertysym(sym)^.readaccesssym),p1);
+                        pd:=pvarsym(sym)^.definition;
+                     end
+                   else if ppropertysym(sym)^.readaccesssym^.typ=procsym then
+                     begin
+                        { generate the method call }
+                        p1:=genmethodcallnode(pprocsym(
+                          ppropertysym(sym)^.readaccesssym),
+                          ppropertysym(sym)^.readaccesssym^.owner,p1);
+                        { we know the procedure to call, so
+                          force the usage of that procedure }
+                        p1^.procdefinition:=pprocdef(ppropertysym(sym)^.writeaccessdef);
+                        { insert paras }
+                        p1^.left:=paras;
+
+                        { if we should be delphi compatible  }
+                        { then force type conversion         }
+                        { isn't neccessary, the result types }
+                        { have to match excatly              }
+                        {if cs_delphi2_compatible in aktswitches then
+                          p1:=gentypeconvnode(p1,pd);
+                        }
+                     end
+                   else
+                     begin
+                        p1:=genzeronode(errorn);
+                        Message(sym_e_type_mismatch);
+                     end;
+                end
+              else
+                begin
+                   { error, no function to read property }
+                   p1:=genzeronode(errorn);
+                   Message(parser_e_no_procedure_to_access_property);
+                end;
+           end;
+      end;
+
+
     { the ID token has to be consumed before calling this function }
     procedure do_member_read(const sym : psym;var p1 : ptree;
       var pd : pdef;var again : boolean);
 
       var
          static_name : string;
-         paras : ptree;
-         oldafterassignment,isclassref : boolean;
-         p2 : ptree;
+         isclassref : boolean;
 
       begin
          if sym=nil then
@@ -472,110 +597,7 @@ unit pexpr;
                    begin
                       if isclassref then
                         Message(parser_e_only_class_methods_via_class_ref);
-                      paras:=nil;
-                      { property parameters? }
-                      if token=LECKKLAMMER then
-                        begin
-                           consume(LECKKLAMMER);
-                           paras:=parse_paras(false,true);
-                           consume(RECKKLAMMER);
-                        end;
-                      { indexed property }
-                      if (ppropertysym(sym)^.options and ppo_indexed)<>0 then
-                        begin
-                           p2:=genordinalconstnode(ppropertysym(sym)^.index,s32bitdef);
-                           paras:=gencallparanode(p2,paras);
-                        end;
-                      if not(afterassignment) and not(in_args) then
-                        begin
-                           { write property: }
-                           { no result }
-                           pd:=voiddef;
-                           if assigned(ppropertysym(sym)^.writeaccesssym) then
-                             begin
-                                if ppropertysym(sym)^.writeaccesssym^.typ=procsym then
-                                  begin
-                                     { generate the method call }
-                                     p1:=genmethodcallnode(pprocsym(
-                                       ppropertysym(sym)^.writeaccesssym),
-                                       ppropertysym(sym)^.writeaccesssym^.owner,p1);
-                                     p1^.left:=paras;
-                                     { to be on the save side }
-                                     oldafterassignment:=afterassignment;
-                                     consume(ASSIGNMENT);
-                                     { read the expression }
-                                     afterassignment:=true;
-                                     p2:=expr;
-                                     p1^.left:=gencallparanode(p2,p1^.left);
-                                     afterassignment:=oldafterassignment;
-                                  end
-                                else if ppropertysym(sym)^.writeaccesssym^.typ=varsym then
-                                  begin
-                                     if assigned(paras) then
-                                       message(parser_e_no_paras_allowed);
-                                     p1:=gensubscriptnode(pvarsym(
-                                       ppropertysym(sym)^.readaccesssym),p1);
-                                     { to be on the save side }
-                                     oldafterassignment:=afterassignment;
-                                     consume(ASSIGNMENT);
-                                     { read the expression }
-                                     afterassignment:=true;
-                                     p2:=expr;
-                                     p1:=gennode(assignn,p1,p2);
-                                     afterassignment:=oldafterassignment;
-                                  end
-                                else
-                                  begin
-                                     p1:=genzeronode(errorn);
-                                     Message(parser_e_no_procedure_to_access_property);
-                                  end;
-                             end
-                           else
-                             begin
-                                p1:=genzeronode(errorn);
-                                Message(parser_e_no_procedure_to_access_property);
-                             end;
-                        end
-                      else
-                        begin
-                           { read property: }
-                           pd:=ppropertysym(sym)^.proptype;
-                           if assigned(ppropertysym(sym)^.readaccesssym) then
-                             begin
-                                if ppropertysym(sym)^.readaccesssym^.typ=varsym then
-                                  begin
-                                     if assigned(paras) then
-                                       message(parser_e_no_paras_allowed);
-                                     p1:=gensubscriptnode(pvarsym(
-                                       ppropertysym(sym)^.readaccesssym),p1);
-                                     pd:=pvarsym(sym)^.definition;
-                                  end
-                                else if ppropertysym(sym)^.readaccesssym^.typ=procsym then
-                                  begin
-                                     { generate the method call }
-                                     p1:=genmethodcallnode(pprocsym(
-                                       ppropertysym(sym)^.readaccesssym),
-                                       ppropertysym(sym)^.readaccesssym^.owner,p1);
-                                     { insert paras }
-                                     p1^.left:=paras;
-                                     { if we should be delphi compatible }
-                                     { then force type conversion      }
-                                     if cs_delphi2_compatible in aktswitches then
-                                       p1:=gentypeconvnode(p1,pd);
-                                  end
-                                else
-                                  begin
-                                     p1:=genzeronode(errorn);
-                                     Message(sym_e_type_mismatch);
-                                  end;
-                             end
-                           else
-                             begin
-                                { error, no function to read property }
-                                p1:=genzeronode(errorn);
-                                Message(parser_e_no_procedure_to_access_property);
-                             end;
-                        end;
+                      handle_propertysym(sym,p1,pd);
                    end;
                  else internalerror(16);
               end;
@@ -595,6 +617,7 @@ unit pexpr;
          classh : pobjectdef;
          d : bestreal;
          constset : pconstset;
+         propsym : ppropertysym;
 
 
       { p1 and p2 must contain valid values }
@@ -621,148 +644,171 @@ unit pexpr;
                              pd:=ppointerdef(pd)^.definition;
                           end;
                      end;
-                   LECKKLAMMER : begin
-                                    consume(LECKKLAMMER);
-                                    repeat
-                                      if (pd^.deftype<>arraydef) and
-                                         (pd^.deftype<>stringdef) and
-                                         (pd^.deftype<>pointerdef) then
-                                        begin
-                                           Message(cg_e_invalid_qualifier);
-                                           disposetree(p1);
-                                           p1:=genzeronode(errorn);
-                                        end
-                                      else if (pd^.deftype=pointerdef) then
-                                        begin
-                                           p2:=expr;
-                                           p1:=gennode(vecn,p1,p2);
-                                           pd:=ppointerdef(pd)^.definition;
-                                        end
-                                      else
-                                        begin
-                                           p2:=expr;
-                                         { support SEG:OFS for go32v2 Mem[] }
-                                           if (target_info.target=target_GO32V2) and
-                                              (p1^.treetype=loadn) and
-                                              assigned(p1^.symtableentry) and
-                                              assigned(p1^.symtableentry^.owner^.name) and
-                                              (p1^.symtableentry^.owner^.name^='SYSTEM') and
-                                              ((p1^.symtableentry^.name='MEM') or
-                                               (p1^.symtableentry^.name='MEMW') or
-                                               (p1^.symtableentry^.name='MEML')) then
-                                             begin
-                                               if (token=COLON) then
-                                                begin
-                                                  consume(COLON);
-                                                  p3:=gennode(muln,genordinalconstnode($10,s32bitdef),p2);
-                                                  p2:=expr;
-                                                  p2:=gennode(addn,p2,p3);
-                                                  p1:=gennode(vecn,p1,p2);
-                                                  p1^.memseg:=true;
-                                                  p1^.memindex:=true;
-                                                end
-                                               else
-                                                begin
-                                                  p1:=gennode(vecn,p1,p2);
-                                                  p1^.memindex:=true;
-                                                end;
-                                             end
-                                           { else
-                                           if (target_info.target=target_GO32V2) and
-                                              assigned(p1^.symtableentry) and
-                                              assigned(p1^.symtableentry^.owner^.name) and
-                                              (p1^.symtableentry^.owner^.name^='SYSTEM') and
-                                              ((p1^.symtableentry^.name='PORT') or
-                                               (p1^.symtableentry^.name='PORTW') or
-                                               (p1^.symtableentry^.name='PORTL')) then
-                                                begin
-                                                  p1:=gennode(vecn,p1,p2);
-                                                  p1^.portindex:=true;
-                                                  p
-                                                end;
-                                             end      }
-                                           else
-                                             p1:=gennode(vecn,p1,p2);
-                                           if pd^.deftype=stringdef then
-                                             pd:=cchardef
-                                           else
-                                             pd:=parraydef(pd)^.definition;
-                                        end;
-                                      if token=COMMA then consume(COMMA)
-                                        else break;
-                                    until false;
-                                    consume(RECKKLAMMER);
-                                 end;
-                   POINT       : begin
-                                    consume(POINT);
-                                    case pd^.deftype of
-                                       recorddef:
-                                             begin
-                                                sym:=pvarsym(precdef(pd)^.symtable^.search(pattern));
-                                                consume(ID);
-                                                if sym=nil then
-                                                  begin
-                                                     Message(sym_e_illegal_field);
-                                                     disposetree(p1);
-                                                     p1:=genzeronode(errorn);
-                                                  end
-                                                else
-                                                  begin
-                                                     p1:=gensubscriptnode(sym,p1);
-                                                     pd:=sym^.definition;
-                                                  end;
-                                             end;
-                                       classrefdef:
+                   LECKKLAMMER:
+                     begin
+                        if (pd^.deftype=objectdef) and
+                          pobjectdef(pd)^.isclass then
+                          begin
+                             { default property }
+                             propsym:=search_default_property(pobjectdef(pd));
+                             if not(assigned(propsym)) then
+                               begin
+                                  disposetree(p1);
+                                  p1:=genzeronode(errorn);
+                                  again:=false;
+                               end
+                             else
+                               begin
+                                  p1:=nil;
+                                  handle_propertysym(propsym,p1,pd);
+                               end;
+                          end
+                        else
+                          begin
+                             consume(LECKKLAMMER);
+                             repeat
+                               if (pd^.deftype<>arraydef) and
+                                  (pd^.deftype<>stringdef) and
+                                  (pd^.deftype<>pointerdef) then
+                                 begin
+                                    Message(cg_e_invalid_qualifier);
+                                    disposetree(p1);
+                                    p1:=genzeronode(errorn);
+                                    again:=false;
+                                 end
+                               else if (pd^.deftype=pointerdef) then
+                                 begin
+                                    p2:=expr;
+                                    p1:=gennode(vecn,p1,p2);
+                                    pd:=ppointerdef(pd)^.definition;
+                                 end
+                               else
+                                 begin
+                                    p2:=expr;
+                                  { support SEG:OFS for go32v2 Mem[] }
+                                    if (target_info.target=target_GO32V2) and
+                                       (p1^.treetype=loadn) and
+                                       assigned(p1^.symtableentry) and
+                                       assigned(p1^.symtableentry^.owner^.name) and
+                                       (p1^.symtableentry^.owner^.name^='SYSTEM') and
+                                       ((p1^.symtableentry^.name='MEM') or
+                                        (p1^.symtableentry^.name='MEMW') or
+                                        (p1^.symtableentry^.name='MEML')) then
+                                      begin
+                                        if (token=COLON) then
                                          begin
-                                            classh:=pobjectdef(pclassrefdef(pd)^.definition);
-                                            sym:=nil;
-                                            while assigned(classh) do
-                                              begin
-                                                 sym:=pvarsym(classh^.publicsyms^.search(pattern));
-                                                 srsymtable:=classh^.publicsyms;
-                                                 if assigned(sym) then
-                                                   break;
-                                                 classh:=classh^.childof;
-                                              end;
-                                            consume(ID);
-                                            do_member_read(sym,p1,pd,again);
+                                           consume(COLON);
+                                           p3:=gennode(muln,genordinalconstnode($10,s32bitdef),p2);
+                                           p2:=expr;
+                                           p2:=gennode(addn,p2,p3);
+                                           p1:=gennode(vecn,p1,p2);
+                                           p1^.memseg:=true;
+                                           p1^.memindex:=true;
+                                         end
+                                        else
+                                         begin
+                                           p1:=gennode(vecn,p1,p2);
+                                           p1^.memindex:=true;
                                          end;
-                                       objectdef:
-                                             begin
-                                                classh:=pobjectdef(pd);
-                                                sym:=nil;
-                                                while assigned(classh) do
-                                                  begin
-                                                     sym:=pvarsym(classh^.publicsyms^.search(pattern));
-                                                     srsymtable:=classh^.publicsyms;
-                                                     if assigned(sym) then
-                                                       break;
-                                                     classh:=classh^.childof;
-                                                  end;
-                                                consume(ID);
-                                                do_member_read(sym,p1,pd,again);
-                                             end;
-                                       pointerdef:
-                                          begin
-                                             if ppointerdef(pd)^.definition^.deftype
-                                                in [recorddef,objectdef,classrefdef] then
-                                                begin
-                                                   Message(cg_e_invalid_qualifier);
-                                                   { exterror:=strpnew(' may be pointer deref ^ is missing');
-                                                   error(invalid_qualifizier); }
-                                                   Comment(V_hint,' may be pointer deref ^ is missing');
-                                                end
-                                             else
-                                                Message(cg_e_invalid_qualifier);
-                                          end
-                                          else
-                                             begin
-                                                Message(cg_e_invalid_qualifier);
-                                                disposetree(p1);
-                                                p1:=genzeronode(errorn);
-                                             end;
-                                    end;
+                                      end
+                                    { else
+                                    if (target_info.target=target_GO32V2) and
+                                       assigned(p1^.symtableentry) and
+                                       assigned(p1^.symtableentry^.owner^.name) and
+                                       (p1^.symtableentry^.owner^.name^='SYSTEM') and
+                                       ((p1^.symtableentry^.name='PORT') or
+                                        (p1^.symtableentry^.name='PORTW') or
+                                        (p1^.symtableentry^.name='PORTL')) then
+                                         begin
+                                           p1:=gennode(vecn,p1,p2);
+                                           p1^.portindex:=true;
+                                           p
+                                         end;
+                                      end      }
+                                    else
+                                      p1:=gennode(vecn,p1,p2);
+                                    if pd^.deftype=stringdef then
+                                      pd:=cchardef
+                                    else
+                                      pd:=parraydef(pd)^.definition;
                                  end;
+                               if token=COMMA then consume(COMMA)
+                                 else break;
+                             until false;
+                             consume(RECKKLAMMER);
+                          end;
+                     end;
+                   POINT:
+                     begin
+                        consume(POINT);
+                        case pd^.deftype of
+                           recorddef:
+                                 begin
+                                    sym:=pvarsym(precdef(pd)^.symtable^.search(pattern));
+                                    consume(ID);
+                                    if sym=nil then
+                                      begin
+                                         Message(sym_e_illegal_field);
+                                         disposetree(p1);
+                                         p1:=genzeronode(errorn);
+                                      end
+                                    else
+                                      begin
+                                         p1:=gensubscriptnode(sym,p1);
+                                         pd:=sym^.definition;
+                                      end;
+                                 end;
+                           classrefdef:
+                             begin
+                                classh:=pobjectdef(pclassrefdef(pd)^.definition);
+                                sym:=nil;
+                                while assigned(classh) do
+                                  begin
+                                     sym:=pvarsym(classh^.publicsyms^.search(pattern));
+                                     srsymtable:=classh^.publicsyms;
+                                     if assigned(sym) then
+                                       break;
+                                     classh:=classh^.childof;
+                                  end;
+                                consume(ID);
+                                do_member_read(sym,p1,pd,again);
+                             end;
+                           objectdef:
+                                 begin
+                                    classh:=pobjectdef(pd);
+                                    sym:=nil;
+                                    while assigned(classh) do
+                                      begin
+                                         sym:=pvarsym(classh^.publicsyms^.search(pattern));
+                                         srsymtable:=classh^.publicsyms;
+                                         if assigned(sym) then
+                                           break;
+                                         classh:=classh^.childof;
+                                      end;
+                                    consume(ID);
+                                    do_member_read(sym,p1,pd,again);
+                                 end;
+                           pointerdef:
+                              begin
+                                 if ppointerdef(pd)^.definition^.deftype
+                                    in [recorddef,objectdef,classrefdef] then
+                                    begin
+                                       Message(cg_e_invalid_qualifier);
+                                       { exterror:=strpnew(' may be pointer deref ^ is missing');
+                                       error(invalid_qualifizier); }
+                                       Comment(V_hint,' may be pointer deref ^ is missing');
+                                    end
+                                 else
+                                    Message(cg_e_invalid_qualifier);
+                              end
+                              else
+                                 begin
+                                    Message(cg_e_invalid_qualifier);
+                                    disposetree(p1);
+                                    p1:=genzeronode(errorn);
+                                 end;
+                        end;
+                     end;
                    else
                      begin
                         { is this a procedure variable ? }
@@ -1049,7 +1095,9 @@ unit pexpr;
                                      assigned(aktprocsym) and
                                      ((aktprocsym^.definition^.options and poclassmethod)<>0) then
                                      Message(parser_e_only_class_methods);
-                                   { !!!!! }
+                                   { no method pointer }
+                                   p1:=nil;
+                                   handle_propertysym(srsym,p1,pd);
                                 end;
                               errorsym:
                                 begin
@@ -1577,7 +1625,11 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.5  1998-04-08 10:26:09  florian
+  Revision 1.6  1998-04-09 22:16:35  florian
+    * problem with previous REGALLOC solved
+    * improved property support
+
+  Revision 1.5  1998/04/08 10:26:09  florian
     * correct error handling of virtual constructors
     * problem with new type declaration handling fixed
 
