@@ -1,7 +1,8 @@
 #!/bin/sh
 #
-# Free Pascal installation script for Linux.
-# Copyright 1996-2000 Michael Van Canneyt and Peter Vreman
+# Free Pascal installation script for BeOS.
+# Copyright 1996-2002 Michael Van Canneyt, Peter Vreman
+# and Carl Eric Codere
 #
 # Don't edit this file. 
 # Everything can be set when the script is run.
@@ -173,7 +174,7 @@ echo
 # Install the documentation. Optional.
 if yesno "Install documentation"; then
   echo Installing documentation in $DOCDIR ...
-  unztar docs.zip $PREFIX
+  unztar doc-html.zip $PREFIX
   echo Done.
 fi
 echo
@@ -189,7 +190,8 @@ fi
 echo
 
 # Install /etc/fpc.cfg, this is done using the samplecfg script
-#$LIBDIR/samplecfg $LIBDIR
+echo Installing sample configuration file
+./samplecfg $PREFIX $HOME
 
 if yesno "Extend PATH to include installed compiler binary"; then
   echo Changing PATH ...
