@@ -778,10 +778,27 @@ implementation
          begin
            v:=tordconstnode(left).value;
            if is_currency(resulttype.def) then
-             v:=v*10000
-           else if is_currency(left.resulttype.def) then
-             v:=v div 10000;
-           result:=cordconstnode.create(v,resulttype,false);
+             v:=v*10000;
+           if (resulttype.def.deftype=pointerdef) then
+             result:=cpointerconstnode.create(v,resulttype)
+           else
+             begin
+               if is_currency(left.resulttype.def) then
+                 v:=v div 10000;
+               result:=cordconstnode.create(v,resulttype,false);
+             end;
+         end
+        else if left.nodetype=pointerconstn then
+         begin
+           v:=tpointerconstnode(left).value;
+           if (resulttype.def.deftype=pointerdef) then
+             result:=cpointerconstnode.create(v,resulttype)
+           else
+             begin
+               if is_currency(resulttype.def) then
+                 v:=v*10000;
+               result:=cordconstnode.create(v,resulttype,false);
+             end;
          end
         else
          begin
@@ -1161,7 +1178,7 @@ implementation
                   end
                  else
                   if (left.nodetype=calln) and
-                     not assigned(tcallnode(left).left) then
+                     (tcallnode(left).para_count=0) then
                    begin
                      if assigned(tcallnode(left).right) then
                       begin
@@ -2091,7 +2108,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.111  2003-05-11 21:37:03  peter
+  Revision 1.112  2003-06-03 21:05:48  peter
+    * fix check for procedure without parameters
+    * calling constructor as member will not allocate memory
+
+  Revision 1.111  2003/05/11 21:37:03  peter
     * moved implicit exception frame from ncgutil to psub
     * constructor/destructor helpers moved from cobj/ncgutil to psub
 

@@ -120,6 +120,7 @@ interface
        {$endif state_tracking}
           function  docompare(p: tnode): boolean; override;
           procedure printnodedata(var t:text);override;
+          function  para_count:longint;
        private
 {$ifdef callparatemp}
           function extract_functioncall_paras: tblocknode;
@@ -1687,6 +1688,11 @@ type
         if (nf_inherited in flags) then
           vmttree:=cpointerconstnode.create(0,voidpointertype)
         else
+          { do not create/destroy when called from member function
+            without specifying self explicit }
+          if (nf_member_call in flags) then
+            vmttree:=cpointerconstnode.create(0,voidpointertype)
+        else
           { constructor with extended syntax called from new }
           if (nf_new_call in flags) then
             vmttree:=cloadvmtaddrnode.create(ctypenode.create(methodpointer.resulttype))
@@ -1711,14 +1717,7 @@ type
             { destructor: release instance, flag(vmt)=1
               constructor: direct call, do nothing, leave vmt=0 }
             if (procdefinition.proctypeoption=potype_destructor) then
-             begin
-               { do not release when called from member function
-                 without specifying self explicit }
-               if (nf_member_call in flags) then
-                 vmttree:=cpointerconstnode.create(0,voidpointertype)
-               else
-                 vmttree:=cpointerconstnode.create(1,voidpointertype);
-             end
+             vmttree:=cpointerconstnode.create(1,voidpointertype)
             else
              vmttree:=cpointerconstnode.create(0,voidpointertype);
           end
@@ -2536,6 +2535,23 @@ type
     end;
 {$endif}
 
+
+    function tcallnode.para_count:longint;
+      var
+        ppn : tcallparanode;
+      begin
+        result:=0;
+        ppn:=tcallparanode(left);
+        while assigned(ppn) do
+          begin
+            if not(assigned(ppn.paraitem) and
+                   ppn.paraitem.is_hidden) then
+              inc(result);
+            ppn:=tcallparanode(ppn.right);
+          end;
+      end;
+
+
     function tcallnode.docompare(p: tnode): boolean;
       begin
         docompare :=
@@ -2573,7 +2589,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.163  2003-06-03 13:01:59  daniel
+  Revision 1.164  2003-06-03 21:05:48  peter
+    * fix check for procedure without parameters
+    * calling constructor as member will not allocate memory
+
+  Revision 1.163  2003/06/03 13:01:59  daniel
     * Register allocator finished
 
   Revision 1.162  2003/05/26 21:17:17  peter
