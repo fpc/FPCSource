@@ -7,12 +7,12 @@ program threadvartest;
 {$H+}
 
 uses
+{$ifdef unix}
+  cthreads,
+{$endif}
   erroru,
   sysutils,
   classes
-{$ifdef unix}
-  , cthreads
-{$endif}
   ;
 
 type
