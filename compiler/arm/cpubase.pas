@@ -211,7 +211,7 @@ unit cpubase;
 
       { reference record }
       preference = ^treference;
-      treference = packed record
+      treference = record
          symbol      : tasmsymbol;
          offset      : longint;
          offsetfixup : longint;
@@ -227,7 +227,7 @@ unit cpubase;
 
       { reference record }
       pparareference = ^tparareference;
-      tparareference = packed record
+      tparareference = record
          index       : tregister;
          offset      : longint;
       end;
@@ -255,7 +255,7 @@ unit cpubase;
         References are given from the caller's point of view. The usual
         TLocation isn't used, because contains a lot of unnessary fields.
       }
-      tparalocation = packed record
+      tparalocation = record
          size : TCGSize;
          loc  : TCGLoc;
          alignment : byte;
@@ -275,7 +275,7 @@ unit cpubase;
               );
       end;
 
-      tlocation = packed record
+      tlocation = record
          loc  : TCGLoc;
          size : TCGSize;
          case TCGLoc of
@@ -566,7 +566,10 @@ unit cpubase;
 end.
 {
   $Log$
-  Revision 1.24  2004-01-22 20:13:18  florian
+  Revision 1.25  2004-01-29 17:09:14  florian
+    * alignment issues fixed
+
+  Revision 1.24  2004/01/22 20:13:18  florian
     * fixed several issues with flags
 
   Revision 1.23  2004/01/21 19:01:03  florian
