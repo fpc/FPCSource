@@ -248,6 +248,7 @@ clean:
 	$(MAKE) -C linux clean
 	$(MAKE) -C win32 clean
 	$(MAKE) -C os2 clean
+	$(MAKE) -C utils clean
 	-$(DEL) *.dif
 
 diffclean:
