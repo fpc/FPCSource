@@ -1,12 +1,12 @@
 #
 # $Id$
 #
-# Install file for Go32v2/Win32/OS2
+# Install file for Go32v2/Win32/OS2/EMX
 #
 # Warning: no package should contain more than 16 files
 
-title=Free Pascal Compiler 1.0.12
-version=1.0.12
+title=Free Pascal Compiler 1.9.2
+version=1.9.2
 
 #
 # General
@@ -50,7 +50,7 @@ package=uregexprgo32.zip[ureggo32.zip],Regular expression units
 # Dos 11
 package=uunzipgo32.zip[uzipgo32.zip],Unzip units
 # Dos 12
-package=unetdbgo32.zip[undbgo32.zip],~N~etDB units
+package=unetdbgo32.zip[undbgo32.zip],NetDB units
 # Dos 13
 package=uuncgigo32.zip[ucgigo32.zip],Uncgi unit
 # Dos 14
@@ -88,7 +88,7 @@ package=ufclw32.zip,~F~ree Component Libary (FCL)
 #
 # Win32 packages 2nd part
 #
-pack=Win32-~2~
+pack=Wi~n~32-2
 filecheck=*w32.zip
 # Win32-2 1
 package=uopenglw32.zip,OpenGL units
@@ -121,39 +121,115 @@ package=uuncgiw32.zip,Uncgi unit
 
 
 #
-# Emx packages
+# OS/2 packages
 #
-pack=OS/2 ~E~MX
+pack=~O~S/2
 binsub=\bin\os2
 ppc386=ppc386
 targetname=os2
 cfgfile=fpc.cfg
 idecfgfile=fp.cfg
 ideinifile=fp.ini
-filecheck=*emx.zip
+filecheck=*os2.zip
 # OS/2 1
-package=baseemx.zip,~B~asic system for EMX (required)
+package=baseos2.zip,~B~asic system for OS/2 (required)
 # OS/2 2
-package=asldemx.zip,GNU ~L~inker and GNU assembler for EMX (required)
+package=asldos2.zip,GNU ~L~inker and GNU assembler for OS/2 (required)
 # OS/2 3
-#package=ideemx.zip,~I~DE with integrated debugger/compiler (BETA)
+#package=ideos2.zip,~I~DE with integrated debugger/compiler (BETA)
 # OS/2 4
-package=utilemx.zip,~E~xtra Utilities
+package=utilos2.zip,~E~xtra Utilities
 # OS/2 5
-package=makeemx.zip,GNU ~U~tilities (needed for Makefile usage)
+package=makeos2.zip,GNU ~U~tilities (needed for Makefile usage)
 # OS/2 6
-package=gdbemx.zip,GNU ~D~ebugger for EMX and PMGDB front-end
+#package=gdbos2.zip,GNU ~D~ebugger for EMX and PMGDB front-end
 # OS/2 7
-package=ufclemx.zip,~F~ree Component Library (FCL)
+package=ufclos2.zip,~F~ree Component Library (FCL)
 # OS/2 8
-package=uuncgiemx.zip[ucgiemx.zip],Uncgi unit
+package=uuncgios2.zip[ucgios2.zip],Uncgi unit
 # OS/2 9
-#package=ufvemx.zip,Free ~V~ision (FV)
+#package=ufvos2.zip,Free ~V~ision (FV)
 # OS/2 10
-package=uclkdllemx.zip[uclkemx.zip],CLKDLL interface unit (eCS 1.1+)
+package=uclkdllos2.zip[uclkos2.zip],CLKDLL interface unit (eCS 1.1+)
 # OS/2 11
-package=ulvmemx.zip,LVM interface unit
+package=ulvmos2.zip,LVM interface unit
 # OS/2 12
+package=upasjpegos2.zip[upjpgos2.zip],PasJPEG units
+
+
+#
+# OS/2 packages 2nd part
+#
+pack=OS/~2~
+filecheck=*os2.zip
+# OS/2-2 1
+#package=ugdbintos2.zip[ugdbos2.zip],GDB interfacing units
+# OS/2-2 2
+package=upaszlibos2.zip[upzlos2.zip],PasZLib units
+# OS/2-2 3
+package=uregexpros2.zip[uregos2.zip],Regular expression units
+# OS/2-2 4
+package=urexxos2.zip,REXX SAA interface units
+# OS/2-2 5
+package=uunzipos2.zip[uzipos2.zip],Unzip units
+# OS/2-2 6
+package=uftpapios2.zip[uftpos2.zip],FTP API interface units
+# OS/2-2 7
+package=uhwvideoos2.zip[uhwvos2.zip],HW Video interface units
+# OS/2-2 8
+package=ummtkos2.zip,MMOS/2 interface units
+# OS/2-2 9
+package=ux11os2.zip,X11 interface units
+# OS/2-2 10
+package=ugtkos2.zip,GTK interface units
+# OS/2-2 11
+package=ufpgtkos2.zip[ufpgtos2.zip],fpGTK units
+# OS/2-2 12
+package=uimlibos2.zip[uimlbos2.zip],ImLib interface units
+# OS/2-2 13
+package=ulibpngos2.zip[ulpngos2.zip],LibPNG interface units
+# OS/2-2 14
+package=utclos2.zip,TCL interface units
+# OS/2-2 15
+package=uzlibos2.zip,ZLib interface units
+# OS/2-2 16
+package=unetdbos2.zip[undbos2.zip],NetDB units
+
+
+#
+# EMX packages
+#
+pack=~E~MX
+binsub=\bin\emx
+ppc386=ppc386
+targetname=emx
+cfgfile=fpc.cfg
+idecfgfile=fp.cfg
+ideinifile=fp.ini
+filecheck=*emx.zip
+# EMX 1
+package=baseemx.zip,~B~asic system for EMX (required)
+# EMX 2
+package=asldemx.zip,GNU ~L~inker and GNU assembler for EMX (required)
+# EMX 3
+#package=ideemx.zip,~I~DE with integrated debugger/compiler (BETA)
+# EMX 4
+package=utilemx.zip,~E~xtra Utilities
+# EMX 5
+package=makeemx.zip,GNU ~U~tilities (needed for Makefile usage)
+# EMX 6
+package=gdbemx.zip,GNU ~D~ebugger for EMX and PMGDB front-end
+# EMX 7
+package=ufclemx.zip,~F~ree Component Library (FCL)
+# EMX 8
+package=uuncgiemx.zip[ucgiemx.zip],Uncgi unit
+# EMX 9
+#package=ufvemx.zip,Free ~V~ision (FV)
+# EMX 10
+package=uclkdllemx.zip[uclkemx.zip],CLKDLL interface unit (eCS 1.1+)
+# EMX 11
+package=ulvmemx.zip,LVM interface unit
+# EMX 12
 package=upasjpegemx.zip[upjpgemx.zip],PasJPEG units
 
 
@@ -162,37 +238,37 @@ package=upasjpegemx.zip[upjpgemx.zip],PasJPEG units
 #
 pack=E~M~X-2
 filecheck=*emx.zip
-# OS/2-2 1
+# EMX-2 1
 #package=ugdbintemx.zip[ugdbemx.zip],GDB interfacing units
-# OS/2-2 2
+# EMX-2 2
 package=upaszlibemx.zip[upzlemx.zip],PasZLib units
-# OS/2-2 3
+# EMX-2 3
 package=uregexpremx.zip[uregemx.zip],Regular expression units
-# OS/2-2 4
+# EMX-2 4
 package=urexxemx.zip,REXX SAA interface units
-# OS/2-2 5
+# EMX-2 5
 package=uunzipemx.zip[uzipemx.zip],Unzip units
-# OS/2-2 6
+# EMX-2 6
 package=uftpapiemx.zip[uftpemx.zip],FTP API interface units
-# OS/2-2 7
+# EMX-2 7
 package=uhwvideoemx.zip[uhwvemx.zip],HW Video interface units
-# OS/2-2 8
+# EMX-2 8
 package=ummtkemx.zip,MMOS/2 interface units
-# OS/2-2 9
+# EMX-2 9
 package=ux11emx.zip,X11 interface units
-# OS/2-2 10
+# EMX-2 10
 package=ugtkemx.zip,GTK interface units
-# OS/2-2 11
+# EMX-2 11
 package=ufpgtkemx.zip[ufpgtemx.zip],fpGTK units
-# OS/2-2 12
+# EMX-2 12
 package=uimlibemx.zip[uimlbemx.zip],ImLib interface units
-# OS/2-2 13
+# EMX-2 13
 package=ulibpngemx.zip[ulpngemx.zip],LibPNG interface units
-# OS/2-2 14
+# EMX-2 14
 package=utclemx.zip,TCL interface units
-# OS/2-2 15
+# EMX-2 15
 package=uzlibemx.zip,ZLib interface units
-# OS/2-2 16
+# EMX-2 16
 package=unetdbemx.zip[undbemx.zip],NetDB units
 
 
@@ -277,7 +353,7 @@ package=upasjpegsrc.zip[upjpgsrc.zip],PasJPEG units
 
 defaultcfg=
 #
-# Example fpc.cfg for Free Pascal Compiler Version 1.0.12
+# Example fpc.cfg for Free Pascal Compiler Version 1.9.0
 #
 
 # ----------------------
