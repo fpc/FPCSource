@@ -10,7 +10,7 @@ units=system objpas strings \
       sysutils math typinfo \
       cpu mmx getopts heaptrc lineinfo \
       msmouse charset varutils \
-      video mouse keyboard vesamode
+      video mouse keyboard vesamode callspec
       
 rst=math varutils
 
@@ -176,3 +176,5 @@ charset$(PPUEXT) : $(INC)/charset.pp system$(PPUEXT)
 #
 
 msmouse$(PPUEXT) : msmouse.pp system$(PPUEXT)
+
+callspec$(PPUEXT) : $(INC)/callspec.pp system$(PPUEXT)
