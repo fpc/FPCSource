@@ -1119,6 +1119,64 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_COMPARE}
 {$define FPC_SYSTEM_HAS_FPC_SHORTSTR_COMPARE}
+
+{$ifdef SHORTSTRCOMPAREINREG}
+function fpc_shortstr_compare(const left,right:shortstring): longint;assembler; [public,alias:'FPC_SHORTSTR_COMPARE']; compilerproc;
+var
+  saveesi,saveedi,saveebx : longint;
+asm
+        movl    %edi,saveedi
+        movl    %esi,saveesi
+        movl    %ebx,saveebx
+        cld
+        movl    right,%esi
+        movl    left,%edi
+        movzbl  (%esi),%eax
+        movzbl  (%edi),%ebx
+        movl    %eax,%edx
+        incl    %esi
+        incl    %edi
+        cmpl    %ebx,%eax
+        jbe     .LStrCmp1
+        movl    %ebx,%eax
+.LStrCmp1:
+        cmpl    $7,%eax
+        jl      .LStrCmp2
+        movl    %edi,%ecx       { Align on 32bits }
+        negl    %ecx
+        andl    $3,%ecx
+        subl    %ecx,%eax
+        orl     %ecx,%ecx
+        rep
+        cmpsb
+        jne     .LStrCmp3
+        movl    %eax,%ecx
+        andl    $3,%eax
+        shrl    $2,%ecx
+        orl     %ecx,%ecx
+        rep
+        cmpsl
+        je      .LStrCmp2
+        movl    $4,%eax
+        subl    %eax,%esi
+        subl    %eax,%edi
+.LStrCmp2:
+        movl    %eax,%ecx
+        orl     %eax,%eax
+        rep
+        cmpsb
+        je      .LStrCmp4
+.LStrCmp3:
+        movzbl  -1(%esi),%edx      // Compare failing (or equal) position
+        movzbl  -1(%edi),%ebx
+.LStrCmp4:
+        movl    %ebx,%eax          // Compare length or position
+        subl    %edx,%eax
+        movl    saveedi,%edi
+        movl    saveesi,%esi
+        movl    saveebx,%ebx
+end;
+{$else SHORTSTRCOMPAREINREG}
 function fpc_shortstr_compare(const left,right:shortstring): longint; [public,alias:'FPC_SHORTSTR_COMPARE']; {$ifdef hascompilerproc} compilerproc; {$endif}
 begin
   asm
@@ -1166,6 +1224,8 @@ begin
 .LStrCmp3:
   end ['EDX','ECX','EBX','EAX','ESI','EDI'];
 end;
+{$endif SHORTSTRCOMPAREINREG}
+
 {$endif FPC_SYSTEM_HAS_FPC_SHORTSTR_COMPARE}
 
 
@@ -1450,7 +1510,11 @@ end;
 
 {
   $Log$
-  Revision 1.64  2004-07-18 20:21:44  florian
+  Revision 1.65  2004-11-01 12:43:29  peter
+    * shortstr compare with empty string fixed
+    * removed special i386 code
+
+  Revision 1.64  2004/07/18 20:21:44  florian
     + several unicode (to/from utf-8 conversion) stuff added
     * some longint -> SizeInt changes
 

@@ -45,7 +45,6 @@ interface
     uses
       globtype,systems,
       cutils,verbose,globals,
-      cpuinfo,
       symconst,symdef,paramgr,
       aasmbase,aasmtai,aasmcpu,
       cgbase,
@@ -654,7 +653,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.100  2004-10-31 21:45:03  peter
+  Revision 1.101  2004-11-01 12:43:29  peter
+    * shortstr compare with empty string fixed
+    * removed special i386 code
+
+  Revision 1.100  2004/10/31 21:45:03  peter
     * generic tlocation
     * move tlocation to cgutils
 

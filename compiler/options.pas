@@ -1748,6 +1748,7 @@ begin
   def_symbol('HAS_INTERNAL_INTTYPES');
   def_symbol('STR_USES_VALINT');
   def_symbol('NOSAVEREGISTERS');
+  def_symbol('SHORTSTRCOMPAREINREG');
 
 { using a case is pretty useless here (FK) }
 { some stuff for TP compatibility }
@@ -2088,7 +2089,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.151  2004-10-31 19:09:54  peter
+  Revision 1.152  2004-11-01 12:43:28  peter
+    * shortstr compare with empty string fixed
+    * removed special i386 code
+
+  Revision 1.151  2004/10/31 19:09:54  peter
     * default paths fixed
 
   Revision 1.150  2004/10/26 15:11:01  peter

@@ -1360,8 +1360,9 @@ implementation
             end;
           ltn,lten,gtn,gten,equaln,unequaln :
             begin
-              { generate better code for s='' and s<>'' }
-              if (nodetype in [equaln,unequaln]) and
+              { generate better code for comparison with empty string, we
+                only need to compare the length with 0 }
+              if (nodetype in [equaln,unequaln,gtn,gten,ltn,lten]) and
                  (((left.nodetype=stringconstn) and (str_length(left)=0)) or
                   ((right.nodetype=stringconstn) and (str_length(right)=0))) then
                 begin
@@ -1372,7 +1373,8 @@ implementation
                       left := right;
                       right := p;
                     end;
-                  if is_shortstring(left.resulttype.def) then
+                  if is_shortstring(left.resulttype.def) or
+                     (nodetype in [gtn,gten,ltn,lten]) then
                     { compare the length with 0 }
                     result := caddnode.create(nodetype,
                       cinlinenode.create(in_length_x,false,left),
@@ -2030,7 +2032,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.129  2004-09-21 17:25:12  peter
+  Revision 1.130  2004-11-01 12:43:28  peter
+    * shortstr compare with empty string fixed
+    * removed special i386 code
+
+  Revision 1.129  2004/09/21 17:25:12  peter
     * paraloc branch merged
 
   Revision 1.128  2004/09/13 20:32:53  peter

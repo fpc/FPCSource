@@ -44,10 +44,6 @@ unit nx86add;
         procedure second_addfloatsse;
         procedure second_mul;virtual;abstract;
       public
-{$ifdef i386}
-        function  first_addstring : tnode; override;
-        procedure second_addstring;override;
-{$endif i386}
         procedure second_addfloat;override;
         procedure second_addsmallset;override;
         procedure second_add64bit;override;
@@ -66,11 +62,9 @@ unit nx86add;
       verbose,cutils,
       cpuinfo,
       aasmbase,aasmtai,aasmcpu,
-      symconst,symdef,
+      symconst,
       cgobj,cgx86,cga,cgutils,
-      paramgr,parabase,
-      htypechk,tgobj,
-      pass_2,ncgutil,
+      paramgr,tgobj,ncgutil,
       ncon,nset,
       defutil;
 
@@ -684,111 +678,6 @@ unit nx86add;
 
 
 {*****************************************************************************
-                                Addstring
-*****************************************************************************}
-
-{$ifdef i386}
-    { note: if you implemented an fpc_shortstr_concat similar to the    }
-    { one in i386.inc, you have to override first_addstring like in     }
-    { ti386addnode.first_string and implement the shortstring concat    }
-    { manually! The generic routine is different from the i386 one (JM) }
-    function tx86addnode.first_addstring : tnode;
-      begin
-        { special cases for shortstrings, handled in pass_2 (JM) }
-        { can't handle fpc_shortstr_compare with compilerproc either because it }
-        { returns its results in the flags instead of in eax                    }
-        if (nodetype in [ltn,lten,gtn,gten,equaln,unequaln]) and
-           is_shortstring(left.resulttype.def) and
-           not(((left.nodetype=stringconstn) and (str_length(left)=0)) or
-              ((right.nodetype=stringconstn) and (str_length(right)=0))) then
-         begin
-           expectloc:=LOC_FLAGS;
-           calcregisters(self,0,0,0);
-           result := nil;
-           exit;
-         end;
-        { otherwise, use the generic code }
-        result := inherited first_addstring;
-      end;
-
-
-    procedure tx86addnode.second_addstring;
-      var
-        paraloc1,
-        paraloc2   : tcgpara;
-        hregister1,
-        hregister2 : tregister;
-      begin
-        { string operations are not commutative }
-        if nf_swaped in flags then
-          swapleftright;
-        case tstringdef(left.resulttype.def).string_typ of
-           st_shortstring:
-             begin
-                case nodetype of
-                   ltn,lten,gtn,gten,equaln,unequaln :
-                     begin
-                       paraloc1.init;
-                       paraloc2.init;
-                       paramanager.getintparaloc(pocall_default,1,paraloc1);
-                       paramanager.getintparaloc(pocall_default,2,paraloc2);
-                       { process parameters }
-                       secondpass(left);
-                       if paraloc2.location^.loc=LOC_REGISTER then
-                         begin
-                           hregister2:=cg.getaddressregister(exprasmlist);
-                           cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,hregister2);
-                         end
-                       else
-                         begin
-                           paramanager.allocparaloc(exprasmlist,paraloc2);
-                           cg.a_paramaddr_ref(exprasmlist,left.location.reference,paraloc2);
-                         end;
-                       secondpass(right);
-                       if paraloc1.location^.loc=LOC_REGISTER then
-                         begin
-                           hregister1:=cg.getaddressregister(exprasmlist);
-                           cg.a_loadaddr_ref_reg(exprasmlist,right.location.reference,hregister1);
-                         end
-                       else
-                         begin
-                           paramanager.allocparaloc(exprasmlist,paraloc1);
-                           cg.a_paramaddr_ref(exprasmlist,right.location.reference,paraloc1);
-                         end;
-                       { push parameters }
-                       if paraloc1.location^.loc=LOC_REGISTER then
-                         begin
-                           paramanager.allocparaloc(exprasmlist,paraloc2);
-                           cg.a_param_reg(exprasmlist,OS_ADDR,hregister2,paraloc2);
-                         end;
-                       if paraloc2.location^.loc=LOC_REGISTER then
-                         begin
-                           paramanager.allocparaloc(exprasmlist,paraloc1);
-                           cg.a_param_reg(exprasmlist,OS_ADDR,hregister1,paraloc1);
-                         end;
-                       paramanager.freeparaloc(exprasmlist,paraloc1);
-                       paramanager.freeparaloc(exprasmlist,paraloc2);
-                       cg.alloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-                       cg.a_call_name(exprasmlist,'FPC_SHORTSTR_COMPARE');
-                       cg.dealloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-                       location_freetemp(exprasmlist,left.location);
-                       location_freetemp(exprasmlist,right.location);
-                       paraloc1.done;
-                       paraloc2.done;
-                     end;
-                end;
-                location_reset(location,LOC_FLAGS,OS_NO);
-                location.resflags:=getresflags(true);
-             end;
-           else
-             { rest should be handled in first pass (JM) }
-             internalerror(200108303);
-       end;
-     end;
-{$endif i386}
-
-
-{*****************************************************************************
                                   Add64bit
 *****************************************************************************}
 
@@ -906,7 +795,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2004-10-31 21:45:04  peter
+  Revision 1.15  2004-11-01 12:43:29  peter
+    * shortstr compare with empty string fixed
+    * removed special i386 code
+
+  Revision 1.14  2004/10/31 21:45:04  peter
     * generic tlocation
     * move tlocation to cgutils
 
