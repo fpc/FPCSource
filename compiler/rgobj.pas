@@ -1264,7 +1264,8 @@ unit rgobj;
                 if supregset_in(colourednodes,a) and (reginfo[a].colour<=255) then
                   include(adj_colours,reginfo[a].colour);
               end;
-          include(adj_colours,RS_STACK_POINTER_REG);
+          if regtype=R_INTREGISTER then
+            include(adj_colours,RS_STACK_POINTER_REG);
           {Assume a spill by default...}
           found:=false;
           {Search for a colour not in this list.}
@@ -1462,6 +1463,8 @@ unit rgobj;
           start with the headertai, because before the header tai is
           only symbols. }
         live_registers.clear;
+//live_registers.add(RS_STACK_POINTER_REG);
+//live_registers.add(RS_FRAME_POINTER_REG);
         p:=headertai;
         while assigned(p) do
           begin
@@ -1992,7 +1995,10 @@ unit rgobj;
 end.
 {
   $Log$
-  Revision 1.141  2004-10-11 15:47:03  peter
+  Revision 1.142  2004-10-13 21:12:51  peter
+    * -Or fixes for open array
+
+  Revision 1.141  2004/10/11 15:47:03  peter
     * removed warning about register used only once
 
   Revision 1.140  2004/10/06 20:14:08  peter

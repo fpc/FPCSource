@@ -60,8 +60,8 @@ implementation
       begin
         if getsubreg(reg) in [R_SUBL,R_SUBH] then
           begin
+            { Some registers have no 8-bit subregister }
             supreg:=getsupreg(reg);
-            {These registers have no 8-bit subregister, so add interferences.}
             add_edge(supreg,RS_ESI);
             add_edge(supreg,RS_EDI);
             add_edge(supreg,RS_EBP);
@@ -72,7 +72,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.43  2004-06-20 08:55:31  florian
+  Revision 1.44  2004-10-13 21:12:51  peter
+    * -Or fixes for open array
+
+  Revision 1.43  2004/06/20 08:55:31  florian
     * logs truncated
 
   Revision 1.42  2004/01/12 16:39:40  peter

@@ -724,7 +724,7 @@ implementation
                   hsym:=tvarsym(tsym(p).owner.search('high'+p.name));
                   if not assigned(hsym) then
                     internalerror(200306061);
-                  cg.g_copyvaluepara_openarray(list,href1,hsym.localloc,tarraydef(tvarsym(p).vartype.def).elesize);
+                  cg.g_copyvaluepara_openarray(list,href1,hsym.localloc,tarraydef(tvarsym(p).vartype.def).elesize,loadref);
                 end;
             end
            else
@@ -749,6 +749,25 @@ implementation
               tg.Ungetlocal(list,tvarsym(p).localloc.reference);
               tvarsym(p).localloc:=localcopyloc;
             end;
+         end;
+      end;
+
+
+    { initializes the regvars from staticsymtable with 0 }
+    procedure initialize_regvars(p : tnamedindexitem;arg:pointer);
+      var
+        oldexprasmlist : TAAsmoutput;
+        hp : tnode;
+      begin
+        if (tsym(p).typ=varsym) then
+         begin
+           case tvarsym(p).localloc.loc of
+             LOC_CREGISTER :
+               cg.a_load_const_reg(taasmoutput(arg),reg_cgsize(tvarsym(p).localloc.register),0,tvarsym(p).localloc.register);
+             LOC_REFERENCE : ;
+             else
+               internalerror(200410124);
+           end;
          end;
       end;
 
@@ -894,14 +913,8 @@ implementation
                end;
              vs_out :
                begin
-                 case tvarsym(p).localloc.loc of
-                   LOC_REFERENCE :
-                     href:=tvarsym(p).localloc.reference;
-                   else
-                     internalerror(2003091810);
-                 end;
                  tmpreg:=cg.getaddressregister(list);
-                 cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,tmpreg);
+                 cg.a_load_loc_reg(list,OS_ADDR,tvarsym(p).localloc,tmpreg);
                  reference_reset_base(href,tmpreg,0);
                  cg.g_initialize(list,tvarsym(p).vartype.def,href,false);
                end;
@@ -1381,6 +1394,10 @@ implementation
 
         { initialize ansi/widesstring para's }
         current_procinfo.procdef.parast.foreach_static({$ifndef TP}@{$endif}init_paras,list);
+
+        { initialize regvars in staticsymtable with 0, like .bss }
+        if current_procinfo.procdef.localst.symtabletype=staticsymtable then
+          current_procinfo.procdef.localst.foreach_static({$ifndef TP}@{$endif}initialize_regvars,list);
 
 {$ifdef OLDREGVARS}
         load_regvars(list,nil);
@@ -2202,7 +2219,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.226  2004-10-11 15:48:15  peter
+  Revision 1.227  2004-10-13 21:12:51  peter
+    * -Or fixes for open array
+
+  Revision 1.226  2004/10/11 15:48:15  peter
     * small regvar for para fixes
     * function tvarsym.is_regvar added
     * tvarsym.getvaluesize removed, use getsize instead

@@ -384,7 +384,7 @@ unit cgobj;
           procedure g_overflowcheck(list: taasmoutput; const Loc:tlocation; def:tdef); virtual;abstract;
           procedure g_overflowCheck_loc(List:TAasmOutput;const Loc:TLocation;def:TDef;ovloc : tlocation);virtual;
 
-          procedure g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;const lenloc:tlocation;elesize:aint);virtual;
+          procedure g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;const lenloc:tlocation;elesize:aint;loadref:boolean);virtual;
           procedure g_releasevaluepara_openarray(list : taasmoutput;const ref:treference);virtual;
 
           {# Emits instructions when compilation is done in profile
@@ -1888,7 +1888,7 @@ implementation
                             Entry/Exit Code Functions
 *****************************************************************************}
 
-    procedure tcg.g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;const lenloc:tlocation;elesize:aint);
+    procedure tcg.g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;const lenloc:tlocation;elesize:aint;loadref:boolean);
       var
         sizereg,sourcereg,destreg : tregister;
         paraloc1,paraloc2,paraloc3 : TCGPara;
@@ -1906,7 +1906,14 @@ implementation
         a_op_const_reg(list,OP_ADD,OS_INT,1,sizereg);
         a_op_const_reg(list,OP_IMUL,OS_INT,elesize,sizereg);
         { load source }
-        a_load_ref_reg(list,OS_ADDR,OS_ADDR,ref,sourcereg);
+        if loadref then
+          a_load_ref_reg(list,OS_ADDR,OS_ADDR,ref,sourcereg)
+        else
+          begin
+            if (ref.index<>NR_NO) or (ref.offset<>0) then
+              internalerror(200410126);
+            a_load_reg_reg(list,OS_ADDR,OS_ADDR,ref.base,sourcereg);
+          end;
 
         { do getmem call }
         paraloc1.init;
@@ -1919,9 +1926,13 @@ implementation
         a_call_name(list,'FPC_GETMEM');
         dealloccpuregisters(list,R_FPUREGISTER,paramanager.get_volatile_registers_fpu(pocall_default));
         dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-        a_load_reg_reg(list,OS_ADDR,OS_ADDR,NR_FUNCTION_RESULT_REG,destreg);
-        a_load_reg_ref(list,OS_ADDR,OS_ADDR,NR_FUNCTION_RESULT_REG,ref);
         paraloc1.done;
+        a_load_reg_reg(list,OS_ADDR,OS_ADDR,NR_FUNCTION_RESULT_REG,destreg);
+        { patch the new address }
+        if loadref then
+          a_load_reg_ref(list,OS_ADDR,OS_ADDR,NR_FUNCTION_RESULT_REG,ref)
+        else
+          a_load_reg_reg(list,OS_ADDR,OS_ADDR,NR_FUNCTION_RESULT_REG,ref.base);
 
         { do move call }
         paraloc1.init;
@@ -2084,7 +2095,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.177  2004-10-11 15:46:45  peter
+  Revision 1.178  2004-10-13 21:12:51  peter
+    * -Or fixes for open array
+
+  Revision 1.177  2004/10/11 15:46:45  peter
     * length parameter for copyvaluearray changed to tlocation
 
   Revision 1.176  2004/10/10 20:31:48  peter

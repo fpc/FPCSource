@@ -33,15 +33,30 @@ unit rgcpu;
 
      type
        trgcpu = class(trgx86)
+         procedure add_constraints(reg:Tregister);
        end;
 
   implementation
+
+
+    procedure trgcpu.add_constraints(reg:Tregister);
+      var
+        supreg : tsuperregister;
+      begin
+        supreg:=getsupreg(reg);
+        { All registers conflict with rsp/rbp }
+        add_edge(supreg,RS_RSP);
+        add_edge(supreg,RS_RBP);
+      end;
 
 end.
 
 {
   $Log$
-  Revision 1.9  2004-06-20 08:55:32  florian
+  Revision 1.10  2004-10-13 21:12:51  peter
+    * -Or fixes for open array
+
+  Revision 1.9  2004/06/20 08:55:32  florian
     * logs truncated
 
   Revision 1.8  2004/02/05 01:24:08  florian

@@ -49,7 +49,7 @@ unit cgcpu;
         procedure g_save_all_registers(list : taasmoutput);override;
         procedure g_restore_all_registers(list : taasmoutput;const funcretparaloc:tcgpara);override;
         procedure g_proc_exit(list : taasmoutput;parasize:longint;nostackframe:boolean);override;
-        procedure g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;const lenloc:tlocation;elesize:aint);override;
+        procedure g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;const lenloc:tlocation;elesize:aint;loadref:boolean);override;
 
         procedure g_exception_reason_save(list : taasmoutput; const href : treference);override;
         procedure g_exception_reason_save_const(list : taasmoutput; const href : treference; a: aint);override;
@@ -299,7 +299,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcg386.g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;const lenloc:tlocation;elesize:aint);
+    procedure tcg386.g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;const lenloc:tlocation;elesize:aint;loadref:boolean);
       var
         power,len  : longint;
         opsize : topsize;
@@ -354,8 +354,9 @@ unit cgcpu;
           list.concat(Taicpu.op_reg_reg(A_SUB,S_L,NR_EDI,NR_ESP));
         { align stack on 4 bytes }
         list.concat(Taicpu.op_const_reg(A_AND,S_L,aint($fffffff4),NR_ESP));
-        { load destination }
-        a_load_reg_reg(list,OS_INT,OS_INT,NR_ESP,NR_EDI);
+        { load destination, don't use a_load_reg_reg, that will add a move instruction
+          that can confuse the reg allocator }
+        list.concat(Taicpu.Op_reg_reg(A_MOV,S_L,NR_ESP,NR_EDI));
 
         { Allocate other registers }
         getcpuregister(list,NR_ECX);
@@ -365,7 +366,14 @@ unit cgcpu;
         a_load_loc_reg(list,OS_INT,lenloc,NR_ECX);
 
         { load source }
-        a_load_ref_reg(list,OS_INT,OS_INT,ref,NR_ESI);
+        if loadref then
+          a_load_ref_reg(list,OS_INT,OS_INT,ref,NR_ESI)
+        else
+          begin
+            if (ref.index<>NR_NO) or (ref.offset<>0) then
+              internalerror(200410123);
+            a_load_reg_reg(list,OS_INT,OS_INT,ref.base,NR_ESI)
+          end;
 
         { scheduled .... }
         list.concat(Taicpu.op_reg(A_INC,S_L,NR_ECX));
@@ -385,10 +393,13 @@ unit cgcpu;
             len:=len shr 1;
           end;
 
-        if ispowerof2(len, power) then
-          list.concat(Taicpu.op_const_reg(A_SHL,S_L,power,NR_ECX))
-        else
-          list.concat(Taicpu.op_const_reg(A_IMUL,S_L,len,NR_ECX));
+        if len<>0 then
+          begin
+            if ispowerof2(len, power) then
+              list.concat(Taicpu.op_const_reg(A_SHL,S_L,power,NR_ECX))
+            else
+              list.concat(Taicpu.op_const_reg(A_IMUL,S_L,len,NR_ECX));
+          end;
         list.concat(Taicpu.op_none(A_REP,S_NO));
         case opsize of
           S_B : list.concat(Taicpu.Op_none(A_MOVSB,S_NO));
@@ -400,7 +411,14 @@ unit cgcpu;
         ungetcpuregister(list,NR_ESI);
 
         { patch the new address }
-        a_load_reg_ref(list,OS_INT,OS_INT,NR_ESP,ref);
+        if loadref then
+          a_load_reg_ref(list,OS_INT,OS_INT,NR_ESP,ref)
+        else
+          begin
+            { Don't use a_load_reg_reg, that will add a move instruction
+              that can confuse the reg allocator }
+            list.concat(Taicpu.Op_reg_reg(A_MOV,S_L,NR_ESP,ref.base));
+          end;
       end;
 
 
@@ -556,7 +574,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.55  2004-10-11 15:46:45  peter
+  Revision 1.56  2004-10-13 21:12:51  peter
+    * -Or fixes for open array
+
+  Revision 1.55  2004/10/11 15:46:45  peter
     * length parameter for copyvaluearray changed to tlocation
 
   Revision 1.54  2004/10/05 20:41:01  peter
