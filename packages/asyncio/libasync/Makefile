@@ -120,7 +120,7 @@ else
 override FPCDIR=wrong
 endif
 ifeq ($(FPCDIR),wrong)
-override FPCDIR=../../../
+override FPCDIR=../../..
 ifeq ($(wildcard $(FPCDIR)/rtl),)
 ifeq ($(wildcard $(FPCDIR)/units),)
 override FPCDIR=wrong

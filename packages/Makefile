@@ -172,13 +172,13 @@ ifeq ($(OS_TARGET),os2)
 override TARGET_DIRS+=uncgi paszlib unzip regexpr
 endif
 ifeq ($(OS_TARGET),freebsd)
-override TARGET_DIRS+=zlib ncurses x11 gtk syslog inet uncgi mysql ibase postgres oracle opengl forms svgalib ggi libpng libgd utmp paszlib gdbint cmem regexpr unzip
+override TARGET_DIRS+=zlib ncurses x11 gtk syslog inet uncgi mysql ibase postgres oracle opengl forms svgalib ggi libpng libgd utmp paszlib gdbint cmem regexpr unzip asyncio bfd gdbm
 endif
 ifeq ($(OS_TARGET),beos)
 override TARGET_DIRS+=paszlib regexpr
 endif
 ifeq ($(OS_TARGET),netbsd)
-override TARGET_DIRS+=zlib ncurses x11 gtk syslog inet uncgi mysql ibase postgres oracle opengl forms svgalib ggi libpng libgd utmp paszlib gdbint cmem regexpr unzip
+override TARGET_DIRS+=zlib ncurses x11 gtk syslog inet uncgi mysql ibase postgres oracle opengl forms svgalib ggi libpng libgd utmp paszlib gdbint cmem regexpr unzip asyncio bfd gdbm
 endif
 override INSTALL_FPCPACKAGE=y
 ifdef REQUIRE_UNITSDIR
@@ -998,6 +998,9 @@ TARGET_DIRS_GDBINT=1
 TARGET_DIRS_CMEM=1
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_UNZIP=1
+TARGET_DIRS_ASYNCIO=1
+TARGET_DIRS_BFD=1
+TARGET_DIRS_GDBM=1
 endif
 ifeq ($(OS_TARGET),beos)
 TARGET_DIRS_PASZLIB=1
@@ -1027,6 +1030,9 @@ TARGET_DIRS_GDBINT=1
 TARGET_DIRS_CMEM=1
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_UNZIP=1
+TARGET_DIRS_ASYNCIO=1
+TARGET_DIRS_BFD=1
+TARGET_DIRS_GDBM=1
 endif
 ifdef TARGET_DIRS_ZLIB
 zlib_all:
@@ -1963,6 +1969,123 @@ mmsystem_info:
 mmsystem:
 	$(MAKE) -C mmsystem all
 .PHONY: mmsystem_all mmsystem_debug mmsystem_smart mmsystem_examples mmsystem_shared mmsystem_install mmsystem_sourceinstall mmsystem_exampleinstall mmsystem_distinstall mmsystem_zipinstall mmsystem_zipsourceinstall mmsystem_zipexampleinstall mmsystem_zipdistinstall mmsystem_clean mmsystem_distclean mmsystem_cleanall mmsystem_info mmsystem
+endif
+ifdef TARGET_DIRS_ASYNCIO
+asyncio_all:
+	$(MAKE) -C asyncio all
+asyncio_debug:
+	$(MAKE) -C asyncio debug
+asyncio_smart:
+	$(MAKE) -C asyncio smart
+asyncio_examples:
+	$(MAKE) -C asyncio examples
+asyncio_shared:
+	$(MAKE) -C asyncio shared
+asyncio_install:
+	$(MAKE) -C asyncio install
+asyncio_sourceinstall:
+	$(MAKE) -C asyncio sourceinstall
+asyncio_exampleinstall:
+	$(MAKE) -C asyncio exampleinstall
+asyncio_distinstall:
+	$(MAKE) -C asyncio distinstall
+asyncio_zipinstall:
+	$(MAKE) -C asyncio zipinstall
+asyncio_zipsourceinstall:
+	$(MAKE) -C asyncio zipsourceinstall
+asyncio_zipexampleinstall:
+	$(MAKE) -C asyncio zipexampleinstall
+asyncio_zipdistinstall:
+	$(MAKE) -C asyncio zipdistinstall
+asyncio_clean:
+	$(MAKE) -C asyncio clean
+asyncio_distclean:
+	$(MAKE) -C asyncio distclean
+asyncio_cleanall:
+	$(MAKE) -C asyncio cleanall
+asyncio_info:
+	$(MAKE) -C asyncio info
+asyncio:
+	$(MAKE) -C asyncio all
+.PHONY: asyncio_all asyncio_debug asyncio_smart asyncio_examples asyncio_shared asyncio_install asyncio_sourceinstall asyncio_exampleinstall asyncio_distinstall asyncio_zipinstall asyncio_zipsourceinstall asyncio_zipexampleinstall asyncio_zipdistinstall asyncio_clean asyncio_distclean asyncio_cleanall asyncio_info asyncio
+endif
+ifdef TARGET_DIRS_BFD
+bfd_all:
+	$(MAKE) -C bfd all
+bfd_debug:
+	$(MAKE) -C bfd debug
+bfd_smart:
+	$(MAKE) -C bfd smart
+bfd_examples:
+	$(MAKE) -C bfd examples
+bfd_shared:
+	$(MAKE) -C bfd shared
+bfd_install:
+	$(MAKE) -C bfd install
+bfd_sourceinstall:
+	$(MAKE) -C bfd sourceinstall
+bfd_exampleinstall:
+	$(MAKE) -C bfd exampleinstall
+bfd_distinstall:
+	$(MAKE) -C bfd distinstall
+bfd_zipinstall:
+	$(MAKE) -C bfd zipinstall
+bfd_zipsourceinstall:
+	$(MAKE) -C bfd zipsourceinstall
+bfd_zipexampleinstall:
+	$(MAKE) -C bfd zipexampleinstall
+bfd_zipdistinstall:
+	$(MAKE) -C bfd zipdistinstall
+bfd_clean:
+	$(MAKE) -C bfd clean
+bfd_distclean:
+	$(MAKE) -C bfd distclean
+bfd_cleanall:
+	$(MAKE) -C bfd cleanall
+bfd_info:
+	$(MAKE) -C bfd info
+bfd:
+	$(MAKE) -C bfd all
+.PHONY: bfd_all bfd_debug bfd_smart bfd_examples bfd_shared bfd_install bfd_sourceinstall bfd_exampleinstall bfd_distinstall bfd_zipinstall bfd_zipsourceinstall bfd_zipexampleinstall bfd_zipdistinstall bfd_clean bfd_distclean bfd_cleanall bfd_info bfd
+endif
+ifdef TARGET_DIRS_GDBM
+gdbm_all:
+	$(MAKE) -C gdbm all
+gdbm_debug:
+	$(MAKE) -C gdbm debug
+gdbm_smart:
+	$(MAKE) -C gdbm smart
+gdbm_examples:
+	$(MAKE) -C gdbm examples
+gdbm_shared:
+	$(MAKE) -C gdbm shared
+gdbm_install:
+	$(MAKE) -C gdbm install
+gdbm_sourceinstall:
+	$(MAKE) -C gdbm sourceinstall
+gdbm_exampleinstall:
+	$(MAKE) -C gdbm exampleinstall
+gdbm_distinstall:
+	$(MAKE) -C gdbm distinstall
+gdbm_zipinstall:
+	$(MAKE) -C gdbm zipinstall
+gdbm_zipsourceinstall:
+	$(MAKE) -C gdbm zipsourceinstall
+gdbm_zipexampleinstall:
+	$(MAKE) -C gdbm zipexampleinstall
+gdbm_zipdistinstall:
+	$(MAKE) -C gdbm zipdistinstall
+gdbm_clean:
+	$(MAKE) -C gdbm clean
+gdbm_distclean:
+	$(MAKE) -C gdbm distclean
+gdbm_cleanall:
+	$(MAKE) -C gdbm cleanall
+gdbm_info:
+	$(MAKE) -C gdbm info
+gdbm:
+	$(MAKE) -C gdbm all
+.PHONY: gdbm_all gdbm_debug gdbm_smart gdbm_examples gdbm_shared gdbm_install gdbm_sourceinstall gdbm_exampleinstall gdbm_distinstall gdbm_zipinstall gdbm_zipsourceinstall gdbm_zipexampleinstall gdbm_zipdistinstall gdbm_clean gdbm_distclean gdbm_cleanall gdbm_info gdbm
 endif
 all: $(addsuffix _all,$(TARGET_DIRS))
 debug: $(addsuffix _debug,$(TARGET_DIRS))

@@ -157,12 +157,6 @@ endif
 ifeq ($(OS_TARGET),freebsd)
 override TARGET_DIRS+=libasync fpasync
 endif
-ifeq ($(OS_TARGET),linux)
-override TARGET_EXAMPLEDIRS+=tests
-endif
-ifeq ($(OS_TARGET),freebsd)
-override TARGET_EXAMPLEDIRS+=tests
-endif
 ifdef REQUIRE_UNITSDIR
 override UNITSDIR+=$(REQUIRE_UNITSDIR)
 endif
@@ -778,21 +772,6 @@ ifdef TARGET_RSTS
 override RSTFILES=$(addsuffix $(RSTEXT),$(TARGET_RSTS))
 override CLEANRSTFILES+=$(RSTFILES)
 endif
-.PHONY: fpc_examples
-ifdef TARGET_EXAMPLES
-HASEXAMPLES=1
-override EXAMPLESOURCEFILES:=$(wildcard $(addsuffix .pp,$(TARGET_EXAMPLES)) $(addsuffix .pas,$(TARGET_EXAMPLES)))
-override EXAMPLEFILES:=$(addsuffix $(EXEEXT),$(TARGET_EXAMPLES))
-override EXAMPLEOFILES:=$(addsuffix $(OEXT),$(TARGET_EXAMPLES)) $(addprefix $(STATICLIBPREFIX),$(addsuffix $(STATICLIBEXT),$(TARGET_EXAMPLES)))
-override CLEANEXEFILES+=$(EXAMPLEFILES) $(EXAMPLEOFILES)
-ifeq ($(OS_TARGET),os2)
-override CLEANEXEFILES+=$(addsuffix $(AOUTEXT),$(TARGET_EXAMPLES))
-endif
-endif
-ifdef TARGET_EXAMPLEDIRS
-HASEXAMPLES=1
-endif
-fpc_examples: all $(EXAMPLEFILES) $(addsuffix _all,$(TARGET_EXAMPLEDIRS))
 .PHONY: fpc_clean fpc_cleanall fpc_distclean
 ifdef EXEFILES
 override CLEANEXEFILES:=$(addprefix $(TARGETDIRPREFIX),$(CLEANEXEFILES))
@@ -1006,55 +985,10 @@ fpasync:
 	$(MAKE) -C fpasync all
 .PHONY: fpasync_all fpasync_debug fpasync_smart fpasync_examples fpasync_shared fpasync_install fpasync_sourceinstall fpasync_exampleinstall fpasync_distinstall fpasync_zipinstall fpasync_zipsourceinstall fpasync_zipexampleinstall fpasync_zipdistinstall fpasync_clean fpasync_distclean fpasync_cleanall fpasync_info fpasync
 endif
-ifeq ($(OS_TARGET),linux)
-TARGET_EXAMPLEDIRS_TESTS=1
-endif
-ifeq ($(OS_TARGET),freebsd)
-TARGET_EXAMPLEDIRS_TESTS=1
-endif
-ifdef TARGET_EXAMPLEDIRS_TESTS
-tests_all:
-	$(MAKE) -C tests all
-tests_debug:
-	$(MAKE) -C tests debug
-tests_smart:
-	$(MAKE) -C tests smart
-tests_examples:
-	$(MAKE) -C tests examples
-tests_shared:
-	$(MAKE) -C tests shared
-tests_install:
-	$(MAKE) -C tests install
-tests_sourceinstall:
-	$(MAKE) -C tests sourceinstall
-tests_exampleinstall:
-	$(MAKE) -C tests exampleinstall
-tests_distinstall:
-	$(MAKE) -C tests distinstall
-tests_zipinstall:
-	$(MAKE) -C tests zipinstall
-tests_zipsourceinstall:
-	$(MAKE) -C tests zipsourceinstall
-tests_zipexampleinstall:
-	$(MAKE) -C tests zipexampleinstall
-tests_zipdistinstall:
-	$(MAKE) -C tests zipdistinstall
-tests_clean:
-	$(MAKE) -C tests clean
-tests_distclean:
-	$(MAKE) -C tests distclean
-tests_cleanall:
-	$(MAKE) -C tests cleanall
-tests_info:
-	$(MAKE) -C tests info
-tests:
-	$(MAKE) -C tests all
-.PHONY: tests_all tests_debug tests_smart tests_examples tests_shared tests_install tests_sourceinstall tests_exampleinstall tests_distinstall tests_zipinstall tests_zipsourceinstall tests_zipexampleinstall tests_zipdistinstall tests_clean tests_distclean tests_cleanall tests_info tests
-endif
 all: $(addsuffix _all,$(TARGET_DIRS))
 debug: $(addsuffix _debug,$(TARGET_DIRS))
 smart: $(addsuffix _smart,$(TARGET_DIRS))
-examples: fpc_examples $(addsuffix _examples,$(TARGET_DIRS))
+examples: $(addsuffix _examples,$(TARGET_DIRS))
 shared: $(addsuffix _shared,$(TARGET_DIRS))
 install: $(addsuffix _install,$(TARGET_DIRS))
 sourceinstall: $(addsuffix _sourceinstall,$(TARGET_DIRS))
@@ -1064,7 +998,7 @@ zipinstall: $(addsuffix _zipinstall,$(TARGET_DIRS))
 zipsourceinstall: $(addsuffix _zipsourceinstall,$(TARGET_DIRS))
 zipexampleinstall: $(addsuffix _zipexampleinstall,$(TARGET_DIRS))
 zipdistinstall: $(addsuffix _zipdistinstall,$(TARGET_DIRS))
-clean: $(addsuffix _clean,$(TARGET_DIRS)) $(addsuffix _clean,$(TARGET_EXAMPLEDIRS))
+clean: $(addsuffix _clean,$(TARGET_DIRS))
 distclean: $(addsuffix _distclean,$(TARGET_DIRS))
 cleanall: $(addsuffix _cleanall,$(TARGET_DIRS))
 info: fpc_info

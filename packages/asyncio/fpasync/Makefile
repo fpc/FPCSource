@@ -120,7 +120,7 @@ else
 override FPCDIR=wrong
 endif
 ifeq ($(FPCDIR),wrong)
-override FPCDIR=../../../
+override FPCDIR=../../..
 ifeq ($(wildcard $(FPCDIR)/rtl),)
 ifeq ($(wildcard $(FPCDIR)/units),)
 override FPCDIR=wrong
@@ -336,6 +336,20 @@ endif
 endif
 else
 CROSSBINDIR=
+endif
+ifdef inUnix
+ifndef GCCLIBDIR
+GCCLIBDIR:=$(shell dirname `(gcc -v 2>&1)| head -n 1| awk '{ print $$4 } '`)
+endif
+ifeq ($(OS_TARGET),linux)
+ifndef OTHERLIBDIR
+OTHERLIBDIR:=$(shell grep -v "^\#" /etc/ld.so.conf | awk '{ ORS=" "; print $1 }')
+endif
+endif
+ifeq ($(OS_TARGET),netbsd)
+OTHERLIBDIR+=/usr/pkg/lib
+endif
+export GCCLIBDIR OTHERLIB
 endif
 LOADEREXT=.as
 EXEEXT=.exe
@@ -676,30 +690,57 @@ TAREXT=.tar.gz
 endif
 ifeq ($(OS_TARGET),linux)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_INET=1
+REQUIRE_PACKAGES_FCL=1
+REQUIRE_PACKAGES_MYSQL=1
+REQUIRE_PACKAGES_IBASE=1
 endif
 ifeq ($(OS_TARGET),go32v2)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL=1
 endif
 ifeq ($(OS_TARGET),win32)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL=1
+REQUIRE_PACKAGES_MYSQL=1
+REQUIRE_PACKAGES_IBASE=1
 endif
 ifeq ($(OS_TARGET),os2)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL=1
 endif
 ifeq ($(OS_TARGET),freebsd)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_INET=1
+REQUIRE_PACKAGES_FCL=1
+REQUIRE_PACKAGES_MYSQL=1
+REQUIRE_PACKAGES_IBASE=1
 endif
 ifeq ($(OS_TARGET),beos)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL=1
 endif
 ifeq ($(OS_TARGET),netbsd)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_INET=1
+REQUIRE_PACKAGES_FCL=1
 endif
 ifeq ($(OS_TARGET),amiga)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL=1
 endif
 ifeq ($(OS_TARGET),atari)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL=1
 endif
 ifdef REQUIRE_PACKAGES_RTL
 PACKAGEDIR_RTL:=$(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /rtl/Makefile.fpc,$(PACKAGESDIR)))))
@@ -728,7 +769,142 @@ ifdef UNITDIR_RTL
 override COMPILER_UNITDIR+=$(UNITDIR_RTL)
 endif
 endif
-.PHONY: package_rtl
+ifdef REQUIRE_PACKAGES_PASZLIB
+PACKAGEDIR_PASZLIB:=$(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /paszlib/Makefile.fpc,$(PACKAGESDIR)))))
+ifneq ($(PACKAGEDIR_PASZLIB),)
+PACKAGEDIR_PASZLIB:=$(firstword $(PACKAGEDIR_PASZLIB))
+ifeq ($(wildcard $(PACKAGEDIR_PASZLIB)/$(FPCMADE)),)
+override COMPILEPACKAGES+=package_paszlib
+package_paszlib:
+	$(MAKE) -C $(PACKAGEDIR_PASZLIB) all
+endif
+ifneq ($(wildcard $(PACKAGEDIR_PASZLIB)/$(OS_TARGET)),)
+UNITDIR_PASZLIB=$(PACKAGEDIR_PASZLIB)/$(OS_TARGET)
+else
+UNITDIR_PASZLIB=$(PACKAGEDIR_PASZLIB)
+endif
+else
+PACKAGEDIR_PASZLIB=
+UNITDIR_PASZLIB:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /paszlib/Package.fpc,$(UNITSDIR)))))
+ifneq ($(UNITDIR_PASZLIB),)
+UNITDIR_PASZLIB:=$(firstword $(UNITDIR_PASZLIB))
+else
+UNITDIR_PASZLIB=
+endif
+endif
+ifdef UNITDIR_PASZLIB
+override COMPILER_UNITDIR+=$(UNITDIR_PASZLIB)
+endif
+endif
+ifdef REQUIRE_PACKAGES_INET
+PACKAGEDIR_INET:=$(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /inet/Makefile.fpc,$(PACKAGESDIR)))))
+ifneq ($(PACKAGEDIR_INET),)
+PACKAGEDIR_INET:=$(firstword $(PACKAGEDIR_INET))
+ifeq ($(wildcard $(PACKAGEDIR_INET)/$(FPCMADE)),)
+override COMPILEPACKAGES+=package_inet
+package_inet:
+	$(MAKE) -C $(PACKAGEDIR_INET) all
+endif
+ifneq ($(wildcard $(PACKAGEDIR_INET)/$(OS_TARGET)),)
+UNITDIR_INET=$(PACKAGEDIR_INET)/$(OS_TARGET)
+else
+UNITDIR_INET=$(PACKAGEDIR_INET)
+endif
+else
+PACKAGEDIR_INET=
+UNITDIR_INET:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /inet/Package.fpc,$(UNITSDIR)))))
+ifneq ($(UNITDIR_INET),)
+UNITDIR_INET:=$(firstword $(UNITDIR_INET))
+else
+UNITDIR_INET=
+endif
+endif
+ifdef UNITDIR_INET
+override COMPILER_UNITDIR+=$(UNITDIR_INET)
+endif
+endif
+ifdef REQUIRE_PACKAGES_FCL
+PACKAGEDIR_FCL:=$(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /fcl/Makefile.fpc,$(PACKAGESDIR)))))
+ifneq ($(PACKAGEDIR_FCL),)
+PACKAGEDIR_FCL:=$(firstword $(PACKAGEDIR_FCL))
+ifeq ($(wildcard $(PACKAGEDIR_FCL)/$(FPCMADE)),)
+override COMPILEPACKAGES+=package_fcl
+package_fcl:
+	$(MAKE) -C $(PACKAGEDIR_FCL) all
+endif
+ifneq ($(wildcard $(PACKAGEDIR_FCL)/$(OS_TARGET)),)
+UNITDIR_FCL=$(PACKAGEDIR_FCL)/$(OS_TARGET)
+else
+UNITDIR_FCL=$(PACKAGEDIR_FCL)
+endif
+else
+PACKAGEDIR_FCL=
+UNITDIR_FCL:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /fcl/Package.fpc,$(UNITSDIR)))))
+ifneq ($(UNITDIR_FCL),)
+UNITDIR_FCL:=$(firstword $(UNITDIR_FCL))
+else
+UNITDIR_FCL=
+endif
+endif
+ifdef UNITDIR_FCL
+override COMPILER_UNITDIR+=$(UNITDIR_FCL)
+endif
+endif
+ifdef REQUIRE_PACKAGES_MYSQL
+PACKAGEDIR_MYSQL:=$(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /mysql/Makefile.fpc,$(PACKAGESDIR)))))
+ifneq ($(PACKAGEDIR_MYSQL),)
+PACKAGEDIR_MYSQL:=$(firstword $(PACKAGEDIR_MYSQL))
+ifeq ($(wildcard $(PACKAGEDIR_MYSQL)/$(FPCMADE)),)
+override COMPILEPACKAGES+=package_mysql
+package_mysql:
+	$(MAKE) -C $(PACKAGEDIR_MYSQL) all
+endif
+ifneq ($(wildcard $(PACKAGEDIR_MYSQL)/$(OS_TARGET)),)
+UNITDIR_MYSQL=$(PACKAGEDIR_MYSQL)/$(OS_TARGET)
+else
+UNITDIR_MYSQL=$(PACKAGEDIR_MYSQL)
+endif
+else
+PACKAGEDIR_MYSQL=
+UNITDIR_MYSQL:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /mysql/Package.fpc,$(UNITSDIR)))))
+ifneq ($(UNITDIR_MYSQL),)
+UNITDIR_MYSQL:=$(firstword $(UNITDIR_MYSQL))
+else
+UNITDIR_MYSQL=
+endif
+endif
+ifdef UNITDIR_MYSQL
+override COMPILER_UNITDIR+=$(UNITDIR_MYSQL)
+endif
+endif
+ifdef REQUIRE_PACKAGES_IBASE
+PACKAGEDIR_IBASE:=$(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /ibase/Makefile.fpc,$(PACKAGESDIR)))))
+ifneq ($(PACKAGEDIR_IBASE),)
+PACKAGEDIR_IBASE:=$(firstword $(PACKAGEDIR_IBASE))
+ifeq ($(wildcard $(PACKAGEDIR_IBASE)/$(FPCMADE)),)
+override COMPILEPACKAGES+=package_ibase
+package_ibase:
+	$(MAKE) -C $(PACKAGEDIR_IBASE) all
+endif
+ifneq ($(wildcard $(PACKAGEDIR_IBASE)/$(OS_TARGET)),)
+UNITDIR_IBASE=$(PACKAGEDIR_IBASE)/$(OS_TARGET)
+else
+UNITDIR_IBASE=$(PACKAGEDIR_IBASE)
+endif
+else
+PACKAGEDIR_IBASE=
+UNITDIR_IBASE:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /ibase/Package.fpc,$(UNITSDIR)))))
+ifneq ($(UNITDIR_IBASE),)
+UNITDIR_IBASE:=$(firstword $(UNITDIR_IBASE))
+else
+UNITDIR_IBASE=
+endif
+endif
+ifdef UNITDIR_IBASE
+override COMPILER_UNITDIR+=$(UNITDIR_IBASE)
+endif
+endif
+.PHONY: package_rtl package_paszlib package_inet package_fcl package_mysql package_ibase
 ifndef NOCPUDEF
 override FPCOPTDEF=$(CPU_TARGET)
 endif
@@ -815,6 +991,12 @@ ifdef COMPILER_TARGETDIR
 override COMPILER_UNITTARGETDIR=$(COMPILER_TARGETDIR)
 override UNITTARGETDIRPREFIX=$(TARGETDIRPREFIX)
 endif
+endif
+ifdef GCCLIBDIR
+override FPCOPT+=-Fl$(GCCLIBDIR)
+endif
+ifdef OTHERLIBDIR
+override FPCOPT+=$(addprefix -Fl,$(OTHERLIBDIR))
 endif
 ifdef OPT
 override FPCOPT+=$(OPT)

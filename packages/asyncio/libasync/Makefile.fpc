@@ -18,5 +18,8 @@ sourcedir_linux=unix
 sourcedir_freebsd=unix
 targetdir=.
 
+[require]
+packages=rtl
+
 [default]
-fpcdir=../../../
+fpcdir=../../..

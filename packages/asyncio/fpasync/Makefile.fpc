@@ -10,7 +10,7 @@ version=1.0.5
 units=fpasync
 
 [require]
-package=fcl
+packages=rtl fcl
 
 [install]
 fpcpackage=y
@@ -23,4 +23,4 @@ sourcedir_freebsd=unix
 targetdir=.
 
 [default]
-fpcdir=../../../
+fpcdir=../../..

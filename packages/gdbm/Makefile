@@ -120,6 +120,14 @@ else
 override FPCDIR=wrong
 endif
 ifeq ($(FPCDIR),wrong)
+override FPCDIR=../..
+ifeq ($(wildcard $(FPCDIR)/rtl),)
+ifeq ($(wildcard $(FPCDIR)/units),)
+override FPCDIR=wrong
+endif
+endif
+endif
+ifeq ($(FPCDIR),wrong)
 ifdef inUnix
 override FPCDIR=/usr/local/lib/fpc/$(FPC_VERSION)
 ifeq ($(wildcard $(FPCDIR)/units),)
@@ -151,6 +159,10 @@ else
 UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages)
+override PACKAGE_NAME=gdbm
+override PACKAGE_VERSION=1.0.5
+override TARGET_UNITS+=gdbm
+override TARGET_EXAMPLES+=testgdbm testgdbm2
 override INSTALL_FPCPACKAGE=y
 ifdef REQUIRE_UNITSDIR
 override UNITSDIR+=$(REQUIRE_UNITSDIR)
@@ -654,6 +666,61 @@ else
 TAROPT=vz
 TAREXT=.tar.gz
 endif
+ifeq ($(OS_TARGET),linux)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(OS_TARGET),go32v2)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(OS_TARGET),win32)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(OS_TARGET),os2)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(OS_TARGET),freebsd)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(OS_TARGET),beos)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(OS_TARGET),netbsd)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(OS_TARGET),amiga)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(OS_TARGET),atari)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifdef REQUIRE_PACKAGES_RTL
+PACKAGEDIR_RTL:=$(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /rtl/Makefile.fpc,$(PACKAGESDIR)))))
+ifneq ($(PACKAGEDIR_RTL),)
+PACKAGEDIR_RTL:=$(firstword $(PACKAGEDIR_RTL))
+ifeq ($(wildcard $(PACKAGEDIR_RTL)/$(FPCMADE)),)
+override COMPILEPACKAGES+=package_rtl
+package_rtl:
+	$(MAKE) -C $(PACKAGEDIR_RTL) all
+endif
+ifneq ($(wildcard $(PACKAGEDIR_RTL)/$(OS_TARGET)),)
+UNITDIR_RTL=$(PACKAGEDIR_RTL)/$(OS_TARGET)
+else
+UNITDIR_RTL=$(PACKAGEDIR_RTL)
+endif
+else
+PACKAGEDIR_RTL=
+UNITDIR_RTL:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /rtl/Package.fpc,$(UNITSDIR)))))
+ifneq ($(UNITDIR_RTL),)
+UNITDIR_RTL:=$(firstword $(UNITDIR_RTL))
+else
+UNITDIR_RTL=
+endif
+endif
+ifdef UNITDIR_RTL
+override COMPILER_UNITDIR+=$(UNITDIR_RTL)
+endif
+endif
+.PHONY: package_rtl
 ifndef NOCPUDEF
 override FPCOPTDEF=$(CPU_TARGET)
 endif
@@ -763,10 +830,200 @@ ifeq ($(OS_SOURCE),$(OS_TARGET))
 EXECPPAS:=@$(PPAS)
 endif
 endif
+.PHONY: fpc_units
+ifdef TARGET_UNITS
+override ALLTARGET+=fpc_units
+override UNITPPUFILES=$(addsuffix $(PPUEXT),$(TARGET_UNITS))
+override INSTALLPPUFILES+=$(UNITPPUFILES)
+override CLEANPPUFILES+=$(UNITPPUFILES)
+endif
+fpc_units: $(UNITPPUFILES)
 ifdef TARGET_RSTS
 override RSTFILES=$(addsuffix $(RSTEXT),$(TARGET_RSTS))
 override CLEANRSTFILES+=$(RSTFILES)
 endif
+.PHONY: fpc_examples
+ifdef TARGET_EXAMPLES
+HASEXAMPLES=1
+override EXAMPLESOURCEFILES:=$(wildcard $(addsuffix .pp,$(TARGET_EXAMPLES)) $(addsuffix .pas,$(TARGET_EXAMPLES)))
+override EXAMPLEFILES:=$(addsuffix $(EXEEXT),$(TARGET_EXAMPLES))
+override EXAMPLEOFILES:=$(addsuffix $(OEXT),$(TARGET_EXAMPLES)) $(addprefix $(STATICLIBPREFIX),$(addsuffix $(STATICLIBEXT),$(TARGET_EXAMPLES)))
+override CLEANEXEFILES+=$(EXAMPLEFILES) $(EXAMPLEOFILES)
+ifeq ($(OS_TARGET),os2)
+override CLEANEXEFILES+=$(addsuffix $(AOUTEXT),$(TARGET_EXAMPLES))
+endif
+endif
+ifdef TARGET_EXAMPLEDIRS
+HASEXAMPLES=1
+endif
+fpc_examples: all $(EXAMPLEFILES) $(addsuffix _all,$(TARGET_EXAMPLEDIRS))
+.PHONY: fpc_packages fpc_all fpc_smart fpc_debug
+$(FPCMADE): $(ALLTARGET)
+	@$(ECHOREDIR) Compiled > $(FPCMADE)
+fpc_packages: $(COMPILEPACKAGES)
+fpc_all: fpc_packages $(FPCMADE)
+fpc_smart:
+	$(MAKE) all LINKSMART=1 CREATESMART=1
+fpc_debug:
+	$(MAKE) all DEBUG=1
+.SUFFIXES: $(EXEEXT) $(PPUEXT) $(OEXT) .pas .pp
+%$(PPUEXT): %.pp
+	$(COMPILER) $<
+	$(EXECPPAS)
+%$(PPUEXT): %.pas
+	$(COMPILER) $<
+	$(EXECPPAS)
+%$(EXEEXT): %.pp
+	$(COMPILER) $<
+	$(EXECPPAS)
+%$(EXEEXT): %.pas
+	$(COMPILER) $<
+	$(EXECPPAS)
+vpath %.pp $(COMPILER_SOURCEDIR) $(COMPILER_INCLUDEDIR)
+vpath %.pas $(COMPILER_SOURCEDIR) $(COMPILER_INCLUDEDIR)
+vpath %$(PPUEXT) $(COMPILER_UNITTARGETDIR)
+.PHONY: fpc_install fpc_sourceinstall fpc_exampleinstall
+ifdef INSTALL_UNITS
+override INSTALLPPUFILES+=$(addsuffix $(PPUEXT),$(INSTALL_UNITS))
+endif
+ifdef INSTALLPPUFILES
+override INSTALLPPULINKFILES:=$(subst $(PPUEXT),$(OEXT),$(INSTALLPPUFILES)) $(addprefix $(STATICLIBPREFIX),$(subst $(PPUEXT),$(STATICLIBEXT),$(INSTALLPPUFILES)))
+override INSTALLPPUFILES:=$(addprefix $(UNITTARGETDIRPREFIX),$(INSTALLPPUFILES))
+override INSTALLPPULINKFILES:=$(wildcard $(addprefix $(UNITTARGETDIRPREFIX),$(INSTALLPPULINKFILES)))
+override INSTALL_CREATEPACKAGEFPC=1
+endif
+ifdef INSTALLEXEFILES
+override INSTALLEXEFILES:=$(addprefix $(TARGETDIRPREFIX),$(INSTALLEXEFILES))
+endif
+fpc_install: all $(INSTALLTARGET)
+ifdef INSTALLEXEFILES
+	$(MKDIR) $(INSTALL_BINDIR)
+ifdef UPXPROG
+	-$(UPXPROG) $(INSTALLEXEFILES)
+endif
+	$(INSTALLEXE) $(INSTALLEXEFILES) $(INSTALL_BINDIR)
+endif
+ifdef INSTALL_CREATEPACKAGEFPC
+ifdef FPCMAKE
+ifdef PACKAGE_VERSION
+ifneq ($(wildcard Makefile.fpc),)
+	$(FPCMAKE) -p -T$(OS_TARGET) Makefile.fpc
+	$(MKDIR) $(INSTALL_UNITDIR)
+	$(INSTALL) Package.fpc $(INSTALL_UNITDIR)
+endif
+endif
+endif
+endif
+ifdef INSTALLPPUFILES
+	$(MKDIR) $(INSTALL_UNITDIR)
+	$(INSTALL) $(INSTALLPPUFILES) $(INSTALL_UNITDIR)
+ifneq ($(INSTALLPPULINKFILES),)
+	$(INSTALL) $(INSTALLPPULINKFILES) $(INSTALL_UNITDIR)
+endif
+ifneq ($(wildcard $(LIB_FULLNAME)),)
+	$(MKDIR) $(INSTALL_LIBDIR)
+	$(INSTALL) $(LIB_FULLNAME) $(INSTALL_LIBDIR)
+ifdef inUnix
+	ln -sf $(LIB_FULLNAME) $(INSTALL_LIBDIR)/$(LIB_NAME)
+endif
+endif
+endif
+ifdef INSTALL_FILES
+	$(MKDIR) $(INSTALL_DATADIR)
+	$(INSTALL) $(INSTALL_FILES) $(INSTALL_DATADIR)
+endif
+fpc_sourceinstall: distclean
+	$(MKDIR) $(INSTALL_SOURCEDIR)
+	$(COPYTREE) $(BASEDIR) $(INSTALL_SOURCEDIR)
+fpc_exampleinstall: $(addsuffix _distclean,$(TARGET_EXAMPLEDIRS))
+ifdef HASEXAMPLES
+	$(MKDIR) $(INSTALL_EXAMPLEDIR)
+endif
+ifdef EXAMPLESOURCEFILES
+	$(COPY) $(EXAMPLESOURCEFILES) $(INSTALL_EXAMPLEDIR)
+endif
+ifdef TARGET_EXAMPLEDIRS
+	$(COPYTREE) $(addsuffix /*,$(TARGET_EXAMPLEDIRS)) $(INSTALL_EXAMPLEDIR)
+endif
+.PHONY: fpc_distinstall
+fpc_distinstall: install exampleinstall
+.PHONY: fpc_zipinstall fpc_zipsourceinstall fpc_zipexampleinstall
+ifndef PACKDIR
+ifndef inUnix
+PACKDIR=$(BASEDIR)/../fpc-pack
+else
+PACKDIR=/tmp/fpc-pack
+endif
+endif
+ifndef ZIPNAME
+ifdef DIST_ZIPNAME
+ZIPNAME=$(DIST_ZIPNAME)
+else
+ZIPNAME=$(ZIPPREFIX)$(PACKAGE_NAME)$(ZIPSUFFIX)
+endif
+endif
+ifndef ZIPTARGET
+ifdef DIST_ZIPTARGET
+ZIPTARGET=DIST_ZIPTARGET
+else
+ZIPTARGET=install
+endif
+endif
+ifndef USEZIP
+ifdef inUnix
+USETAR=1
+endif
+endif
+ifndef inUnix
+USEZIPWRAPPER=1
+endif
+ifdef USEZIPWRAPPER
+ZIPPATHSEP=$(PATHSEP)
+ZIPWRAPPER=$(subst /,$(PATHSEP),$(DIST_DESTDIR)/fpczip$(BATCHEXT))
+else
+ZIPPATHSEP=/
+endif
+ZIPCMD_CDPACK:=cd $(subst /,$(ZIPPATHSEP),$(PACKDIR))
+ZIPCMD_CDBASE:=cd $(subst /,$(ZIPPATHSEP),$(BASEDIR))
+ifdef USETAR
+ZIPDESTFILE:=$(DIST_DESTDIR)/$(ZIPNAME)$(TAREXT)
+ZIPCMD_ZIP:=$(TARPROG) cf$(TAROPT) $(ZIPDESTFILE) *
+else
+ZIPDESTFILE:=$(DIST_DESTDIR)/$(ZIPNAME)$(ZIPEXT)
+ZIPCMD_ZIP:=$(subst /,$(ZIPPATHSEP),$(ZIPPROG)) -Dr $(ZIPOPT) $(ZIPDESTFILE) *
+endif
+fpc_zipinstall:
+	$(MAKE) $(ZIPTARGET) INSTALL_PREFIX=$(PACKDIR) ZIPINSTALL=1
+	$(MKDIR) $(DIST_DESTDIR)
+	$(DEL) $(ZIPDESTFILE)
+ifdef USEZIPWRAPPER
+ifneq ($(ECHOREDIR),echo)
+	$(ECHOREDIR) -e "$(subst \,\\,$(ZIPCMD_CDPACK))" > $(ZIPWRAPPER)
+	$(ECHOREDIR) -e "$(subst \,\\,$(ZIPCMD_ZIP))" >> $(ZIPWRAPPER)
+	$(ECHOREDIR) -e "$(subst \,\\,$(ZIPCMD_CDBASE))" >> $(ZIPWRAPPER)
+else
+	echo $(ZIPCMD_CDPACK) > $(ZIPWRAPPER)
+	echo $(ZIPCMD_ZIP) >> $(ZIPWRAPPER)
+	echo $(ZIPCMD_CDBASE) >> $(ZIPWRAPPER)
+endif
+ifdef inUnix
+	/bin/sh $(ZIPWRAPPER)
+else
+	$(ZIPWRAPPER)
+endif
+	$(DEL) $(ZIPWRAPPER)
+else
+	$(ZIPCMD_CDPACK) ; $(ZIPCMD_ZIP) ; $(ZIPCMD_CDBASE)
+endif
+	$(DELTREE) $(PACKDIR)
+fpc_zipsourceinstall:
+	$(MAKE) fpc_zipinstall ZIPTARGET=sourceinstall ZIPSUFFIX=src
+fpc_zipexampleinstall:
+ifdef HASEXAMPLES
+	$(MAKE) fpc_zipinstall ZIPTARGET=exampleinstall ZIPSUFFIX=exm
+endif
+fpc_zipdistinstall:
+	$(MAKE) fpc_zipinstall ZIPTARGET=distinstall
 .PHONY: fpc_clean fpc_cleanall fpc_distclean
 ifdef EXEFILES
 override CLEANEXEFILES:=$(addprefix $(TARGETDIRPREFIX),$(CLEANEXEFILES))
@@ -894,22 +1151,22 @@ fpc_info:
 	@$(ECHO)  Dist destination dir. $(DIST_DESTDIR)
 	@$(ECHO)  Dist zip name........ $(DIST_ZIPNAME)
 	@$(ECHO)
-all:
-debug:
-smart:
-examples:
+all: fpc_all
+debug: fpc_debug
+smart: fpc_smart
+examples: fpc_examples
 shared:
-install:
-sourceinstall:
-exampleinstall:
-distinstall:
-zipinstall:
-zipsourceinstall:
-zipexampleinstall:
-zipdistinstall:
-clean:
-distclean:
-cleanall:
+install: fpc_install
+sourceinstall: fpc_sourceinstall
+exampleinstall: fpc_exampleinstall
+distinstall: fpc_distinstall
+zipinstall: fpc_zipinstall
+zipsourceinstall: fpc_zipsourceinstall
+zipexampleinstall: fpc_zipexampleinstall
+zipdistinstall: fpc_zipdistinstall
+clean: fpc_clean
+distclean: fpc_distclean
+cleanall: fpc_cleanall
 info: fpc_info
 .PHONY: all debug smart examples shared install sourceinstall exampleinstall distinstall zipinstall zipsourceinstall zipexampleinstall zipdistinstall clean distclean cleanall info
 ifneq ($(wildcard fpcmake.loc),)
