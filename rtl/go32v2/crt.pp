@@ -95,7 +95,7 @@ procedure cursorbig;
 implementation
 
 uses
-  go32;
+  go32,dpmiexcp;
 
 
 {$ASMMODE ATT}
@@ -817,11 +817,17 @@ begin
   TextRec(Input).Handle:=StdInputHandle;
 { Calculates delay calibration }
   initdelay;
+{ Enable ctrl-c input (JM) }
+  djgpp_set_ctrl_c(false);
 end.
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:39  michael
+  Revision 1.3  2000-07-31 14:07:43  jonas
+    * fixed web bug 1037 (disable linking of ctrl-c to exception handler,
+      ctrl-break still works fine then) (merged from fixes)
+
+  Revision 1.2  2000/07/13 11:33:39  michael
   + removed logs
  
 }
