@@ -729,6 +729,7 @@ implementation
                    p^.methodpointer:=genzeronode(callparan);
                    p^.methodpointer^.location.loc:=LOC_REGISTER;
                    p^.methodpointer^.location.register:=R_ESI;
+                   p^.methodpointer^.resulttype:=p^.symtable^.defowner;
                    { make a reference }
                    new(r);
                    reset_reference(r^);
@@ -871,7 +872,8 @@ implementation
                                       end;
 
                                     { direct call to class constructor, don't allocate memory }
-                                    if is_con_or_destructor and (p^.methodpointer^.resulttype^.deftype=objectdef) and
+                                    if is_con_or_destructor and
+                                      (p^.methodpointer^.resulttype^.deftype=objectdef) and
                                       (pobjectdef(p^.methodpointer^.resulttype)^.isclass) then
                                       exprasmlist^.concat(new(pai386,op_const(A_PUSH,S_L,0)))
                                     else
@@ -2314,7 +2316,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.17  1998-08-19 16:07:36  jonas
+  Revision 1.18  1998-08-20 21:36:38  peter
+    * fixed 'with object do' bug
+
+  Revision 1.17  1998/08/19 16:07:36  jonas
     * changed optimizer switches + cleanup of DestroyRefs in daopt386.pas
 
   Revision 1.16  1998/08/18 09:24:36  pierre

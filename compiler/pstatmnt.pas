@@ -366,6 +366,7 @@ unit pstatmnt;
 
                           withsymtable:=new(psymtable,init(symtable.withsymtable));
                           withsymtable^.root:=obj^.publicsyms^.root;
+                          withsymtable^.defowner:=obj;
                           symtab:=withsymtable;
                           levelcount:=1;
                           obj:=obj^.childof;
@@ -386,6 +387,7 @@ unit pstatmnt;
                            withsymtable:=new(psymtable,init(symtable.withsymtable));
                            withsymtable^.root:=symtab^.root;
                            withsymtable^.next:=symtablestack;
+                           withsymtable^.defowner:=obj;
                            symtablestack:=withsymtable;
                         end;
             else
@@ -1236,7 +1238,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.35  1998-08-20 09:26:42  pierre
+  Revision 1.36  1998-08-20 21:36:41  peter
+    * fixed 'with object do' bug
+
+  Revision 1.35  1998/08/20 09:26:42  pierre
     + funcret setting in underproc testing
       compile with _dTEST_FUNCRET
 
