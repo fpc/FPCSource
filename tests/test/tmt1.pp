@@ -11,8 +11,18 @@ uses
   ;
 
 const
+{$ifdef cpuarm}
+  {$define slowcpu}
+{$endif cpuarm}
+
+{$ifdef slowcpu}
+   threadcount = 40;
+   stringlen = 2000;
+{$else slowcpu}
    threadcount = 100;
    stringlen = 10000;
+{$endif slowcpu}
+
 var
    finished : longint;
 threadvar
