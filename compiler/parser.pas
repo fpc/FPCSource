@@ -163,6 +163,7 @@ unit parser;
        { symtable }
          oldmacros,
          oldrefsymtable,
+         olddefaultsymtablestack,
          oldsymtablestack : psymtable;
          oldprocprefix    : string;
          oldaktprocsym    : pprocsym;
@@ -211,6 +212,7 @@ unit parser;
          old_compiled_module:=compiled_module;
        { save symtable state }
          oldsymtablestack:=symtablestack;
+         olddefaultsymtablestack:=defaultsymtablestack;
          oldrefsymtable:=refsymtable;
          oldmacros:=macros;
          oldprocprefix:=procprefix;
@@ -419,6 +421,7 @@ unit parser;
               { restore symtable state }
               refsymtable:=oldrefsymtable;
               symtablestack:=oldsymtablestack;
+              defaultsymtablestack:=olddefaultsymtablestack;
               macros:=oldmacros;
               aktprocsym:=oldaktprocsym;
               procprefix:=oldprocprefix;
@@ -501,7 +504,10 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.92  1999-11-18 15:34:46  pierre
+  Revision 1.93  1999-11-24 11:41:03  pierre
+   * defaultsymtablestack is now restored after parser.compile
+
+  Revision 1.92  1999/11/18 15:34:46  pierre
     * Notes/Hints for local syms changed to
       Set_varstate function
 

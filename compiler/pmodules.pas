@@ -670,7 +670,7 @@ unit pmodules;
            refsymtable^.insert(new(punitsym,init('HEAPTRC',hp^.globalsymtable)));
          end;
       { save default symtablestack }
-        defaultsymtablestack:=symtablestack;
+         defaultsymtablestack:=symtablestack;
       end;
 
 
@@ -1552,7 +1552,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.171  1999-11-22 22:21:46  pierre
+  Revision 1.172  1999-11-24 11:41:05  pierre
+   * defaultsymtablestack is now restored after parser.compile
+
+  Revision 1.171  1999/11/22 22:21:46  pierre
    * Compute correct Exe Filenam
 
   Revision 1.170  1999/11/22 00:23:09  pierre

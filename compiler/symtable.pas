@@ -245,7 +245,7 @@ unit symtable;
        registerdef : boolean;      { true, when defs should be registered }
 
        defaultsymtablestack,       { symtablestack after default units
-                                     have been loaded }
+                                            have been loaded }
        symtablestack : psymtable;  { linked list of symtables }
 
        srsym : psym;           { result of the last search }
@@ -2566,7 +2566,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.66  1999-11-22 00:23:09  pierre
+  Revision 1.67  1999-11-24 11:41:05  pierre
+   * defaultsymtablestack is now restored after parser.compile
+
+  Revision 1.66  1999/11/22 00:23:09  pierre
    * also complain about unused functions in program
 
   Revision 1.65  1999/11/19 14:49:15  pierre
