@@ -673,6 +673,8 @@ begin
      begin
       errno := word (GetLastError);
       Errno2InoutRes;
+      Dir := char (DriveNr + 64) + ':\';
+      Exit;
      end;
    end;
   GetCurrentDirectory(SizeOf(DirBuf),DirBuf);
@@ -1563,7 +1565,10 @@ end.
 
 {
   $Log$
-  Revision 1.14  2001-06-18 14:26:16  jonas
+  Revision 1.15  2001-06-30 18:55:48  hajny
+    * GetDir fix for inaccessible drives
+
+  Revision 1.14  2001/06/18 14:26:16  jonas
     * move platform independent constant declarations after inclusion of
       systemh.inc
 

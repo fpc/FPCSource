@@ -546,6 +546,7 @@ var
   temp : array[0..255] of char;
   sof  : pchar;
   i    : byte;
+  Err: boolean;
 begin
   sof:=pchar(@dir[4]);
 { dir[1..3] will contain '[drivenr]:\', but is not supplied by DOS,
@@ -554,12 +555,19 @@ begin
   asm
         movb    drivenr,%dl
         movl    sof,%esi
-        mov     $0x47,%ah
+        movw    $0x4700,%ax
+        movb    %al,Err
         int     $0x21
         jnc .LGetDir
         movw %ax, InOutRes
+        incb Err
 .LGetDir:
   end;
+  if Err and (DriveNr <> 0) then
+   begin
+    Dir := char (DriveNr + 64) + ':\';
+    Exit;
+   end;
 { Now Dir should be filled with directory in ASCIIZ starting from dir[4] }
   dir[0]:=#3;
   dir[2]:=':';
@@ -628,7 +636,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.6  2001-06-19 20:46:07  hajny
+  Revision 1.7  2001-06-30 18:55:49  hajny
+    * GetDir fix for inaccessible drives
+
+  Revision 1.6  2001/06/19 20:46:07  hajny
     * platform specific constants moved after systemh.inc, BeOS omission corrected
 
   Revision 1.5  2001/06/13 22:22:59  hajny

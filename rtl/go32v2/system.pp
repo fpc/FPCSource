@@ -1429,6 +1429,7 @@ begin
   if (regs.realflags and carryflag) <> 0 then
    Begin
      GetInOutRes (lo(regs.realeax));
+     Dir := char (DriveNr + 64) + ':\';
      exit;
    end
   else
@@ -1547,7 +1548,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.11  2001-06-18 14:26:16  jonas
+  Revision 1.12  2001-06-30 18:55:48  hajny
+    * GetDir fix for inaccessible drives
+
+  Revision 1.11  2001/06/18 14:26:16  jonas
     * move platform independent constant declarations after inclusion of
       systemh.inc
 
