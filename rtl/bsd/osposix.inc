@@ -128,31 +128,18 @@ begin
 end;
 
 function sys_lseek(fd : cint; offset : off_t; whence : cint): off_t;
+{
+this one is special for the return value being 64-bit..
+hi/lo offset not yet tested.
 
-{this one is special for the return value being 64-bit..
-Have to test on 5.x to make it fully 64-bit}
+NetBSD: ok, but implicit return value in edx:eax
+FreeBSD: same implementation as NetBSD.
+}
 
 begin
   {ugly implicit returnvalue}
-  do_syscall(syscall_nr___syscall,syscall_nr_lseek,0,longint(fd),0,Offset,0,Whence);
+  do_syscall(syscall_nr___syscall,syscall_nr_lseek,0,longint(fd),0,lo(Offset),{0} hi(offset),Whence);
 end;
-
-
-{ old code:
- asm
-  pushl Whence
-  pushl $0      // high dword
-  pushl Off
-  pushl $0
-  pushl F
-  pushl $0      // Your guess is as good as mine. Pointer to ret val?
-  pushl $0xc7   // Actual lseek syscall number.
-  movl  $0xc6,%eax
-  call  actualsyscall
-  addl  $28,%esp
-  mov   %ebx,Errno
- end;
-}
 
 function sys_read(fd: cint; buf: pchar; nbytes : size_t): ssize_t;
 
@@ -356,14 +343,14 @@ begin
   do_syscall(syscall_nr_sigaction,longint(sig),longint(@act),longint(@oact));
 end;
 
-(*=================== MOVED from syslinux.inc ========================*)
+(*=================== MOVED from sysunix.inc ========================*)
 
 function sys_ftruncate(fd : cint; flength : off_t): cint; 
+{ See notes lseek. This one is completely similar.
 
-{this one is special for the return value being 64-bit..}
-
+}
 begin
- Do_syscall(syscall_nr___syscall,syscall_nr_ftruncate,0,fd,0,flength,0);
+ Do_syscall(syscall_nr___syscall,syscall_nr_ftruncate,0,fd,0,lo(flength),hi(flength));
 end;
 
 function sys_fstat(fd : cint; var sb : stat): cint; 
@@ -440,7 +427,7 @@ function sys_access(const pathname : pchar; amode : cint): cint;
   The test is done with the real user-ID, instead of the effective.
   If access is denied, or an error occurred, false is returned.
   If access is granted, true is returned.
-  Errors other than no access,are reported in linuxerror.
+  Errors other than no access,are reported in unixerror.
 }
 
 begin
@@ -459,7 +446,7 @@ function sys_access(const pathname : pathstr; amode : cint): cint;
   The test is done with the real user-ID, instead of the effective.
   If access is denied, or an error occurred, false is returned.
   If access is granted, true is returned.
-  Errors other than no access,are reported in linuxerror.
+  Errors other than no access,are reported in unixerror.
 }
 
 begin
@@ -537,7 +524,11 @@ end;
 
 {
  $Log$
- Revision 1.1  2002-08-03 19:34:19  marco
+ Revision 1.2  2002-08-04 04:29:34  marco
+  * More POSIX updates. Small changes to lseek and ftruncate in osposix.inc
+    Initial versions of the type includefiles
+
+ Revision 1.1  2002/08/03 19:34:19  marco
   * Initial *BSD versions. Seems that OpenBSD doesn't need much change,
      NetBSD may need some fixes to stat record and ftruncate and lseek.
      It is all close together, and it should be doable to have just one copy
