@@ -259,6 +259,7 @@ Fixed bugs:
   bug0214.pp   bug for static methods                               OK 0.99.11 (PM)
   bug0215.pp   more bugs with static methods                        OK 0.99.11 (PM)
   bug0216.pp   problem with with fields as function args            OK 0.99.11 (PM)
+  bug0219.pp   wrong error message                                  OK 0.99.11 (PFV)
 
 
 Unproducable bugs:
@@ -296,7 +297,6 @@ bug0217.pp   in tp mode can't use the procvar in writeln
 bug0218.pp   rounding errors with write/str (the bug is fixed, but there
              is still some rounding error left when writing the extended
              value PFV)
-bug0219.pp   wrong error message
 bug0220.pp   can't choose overload with array of char
 bug0221.pp   syntax parsing incompatibilities with tp7
 
