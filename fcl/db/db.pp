@@ -1768,7 +1768,8 @@ begin
       Result := Items[i];
       Break;
     end;
-  if Result := Nil Then DatabaseErrorFmt(SIndexNotFound, [IndexName], DataSet);
+  if (Result=Nil) Then
+    DatabaseErrorFmt(SIndexNotFound, [IndexName], DataSet);
 end;
 
 function TIndexDefs.FindIndexForFields(const Fields: string): TIndexDef;
@@ -1865,7 +1866,10 @@ end.
 
 {
   $Log$
-  Revision 1.39  2005-03-18 10:17:34  michael
+  Revision 1.40  2005-03-18 11:53:14  michael
+  + Fixed typo in provided patch
+
+  Revision 1.39  2005/03/18 10:17:34  michael
   + Patch to IndexDefs from Alexandrov Alexandru
 
   Revision 1.38  2005/02/16 09:31:58  michael
