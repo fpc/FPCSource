@@ -161,10 +161,10 @@ program install;
        defsetpath : tcfgarray;
      end;
 
-     datarec=packed record
+     datarec=record
        basepath : DirStr;
        cfgval   : word;
-       packmask : array[1..maxpacks] of word;
+       packmask : array[1..maxpacks] of sw_word;
      end;
 
      punzipdialog=^tunzipdialog;
@@ -1123,9 +1123,9 @@ program install;
                       if not(haslfn(zipfile)) then
                         begin
                            items[j]:=newsitem(package[i].name+diskspacestr(package[i].diskspace),items[j]);
-                             packmask[j]:=packmask[j] or packagemask(i);
+                           packmask[j]:=packmask[j] or packagemask(i);
                            enabmask[j]:=enabmask[j] or packagemask(i);
-                           firstitem[j]:=i;
+                           firstitem[j]:=i-1;
                            if createlog then
                              writeln(log,'Checking lfn usage for ',zipfile,' ... no lfn');
                         end
@@ -1133,7 +1133,7 @@ program install;
                         begin
                            items[j]:=newsitem(package[i].name+' (requires LFN support)',items[j]);
                            enabmask[j]:=enabmask[j] or packagemask(i);
-                           firstitem[j]:=i;
+                           firstitem[j]:=i-1;
                            if createlog then
                              writeln(log,'Checking lfn usage for ',zipfile,' ... uses lfn');
                         end;
@@ -1143,8 +1143,8 @@ program install;
                    begin
                       items[j]:=newsitem(package[i].name+diskspacestr(package[i].diskspace),items[j]);
                       packmask[j]:=packmask[j] or packagemask(i);
-                        enabmask[j]:=enabmask[j] or packagemask(i);
-                      firstitem[j]:=i;
+                      enabmask[j]:=enabmask[j] or packagemask(i);
+                      firstitem[j]:=i-1;
                    end;
                end
               else
@@ -1207,10 +1207,10 @@ program install;
           if R.A.Y+cfg.pack[j].packages>R.B.Y then
             R.B.Y:=R.A.Y+cfg.pack[j].packages;
           new(packcbs[j],init(r,items[j]));
-          if data.packmask[j]=$ffff then
+          if data.packmask[j]=high(sw_word) then
            data.packmask[j]:=packmask[j];
           packcbs[j]^.enablemask:={$ifdef DEV}$7fffffff{$else}enabmask[j]{$endif};
-          packcbs[j]^.movedto(firstitem[j]);
+          packcbs[j]^.sel:=firstitem[j];
         end;
 
        {--------- Main ---------}
@@ -1337,7 +1337,7 @@ end;
       data.basepath:=cfg.basepath;
       data.cfgval:=0;
       for j:=1 to cfg.packs do
-       data.packmask[j]:=$ffff;
+       data.packmask[j]:=high(sw_word);
 
       repeat
       { select components }
@@ -1995,7 +1995,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.21  2004-12-20 18:27:00  peter
+  Revision 1.22  2004-12-21 18:52:31  peter
+  checkbox mask works, scrollbox still not
+
+  Revision 1.21  2004/12/20 18:27:00  peter
     * win32 fixes
 
   Revision 1.20  2004/12/18 16:19:57  peter

@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2000 by B‚rczi, G bor
+    Copyright (c) 2000 by B'rczi, Gÿbor
     member of the Free Pascal development team
 
     Support objects for the install program
@@ -148,10 +148,10 @@ begin
 end;
 
 procedure TScrollBox.ShiftViews(DX,DY: sw_integer);
-procedure DoShift(P: PView); {$ifndef FPC}far;{$endif}
-begin
-  P^.MoveTo(P^.Origin.X+DX,P^.Origin.Y+DY);
-end;
+  procedure DoShift(P: PView);
+  begin
+    P^.MoveTo(P^.Origin.X+DX,P^.Origin.Y+DY);
+  end;
 begin
   ForEach(@DoShift);
 end;
@@ -197,12 +197,19 @@ var V: PView;
 begin
   V:=Current;
   if (not Assigned(V)) then Exit;
-  P.X:=V^.Origin.X+V^.Cursor.X; P.Y:=V^.Origin.Y+V^.Cursor.Y;
+  P.X:=V^.Origin.X+V^.Cursor.X;
+  P.Y:=V^.Origin.Y+V^.Cursor.Y;
   ND:=Delta;
-  if (P.X<0) then Dec(ND.X,-P.X) else
-  if (P.X>=Size.X) then Inc(ND.X,P.X-(Size.X-1));
-  if (P.Y<0) then Dec(ND.Y,-P.Y) else
-  if (P.Y>=Size.Y) then Inc(ND.Y,P.Y-(Size.Y-1));
+  if (P.X<0) then
+    Dec(ND.X,-P.X)
+  else
+    if (P.X>=Size.X) then
+      Inc(ND.X,P.X-(Size.X-1));
+  if (P.Y<0) then
+    Dec(ND.Y,-P.Y)
+  else
+    if (P.Y>=Size.Y) then
+      Inc(ND.Y,P.Y-(Size.Y-1));
   if (ND.X<>Delta.X) or (ND.Y<>Delta.Y) then
     ScrollTo(ND.X,ND.Y);
 end;
@@ -236,13 +243,18 @@ end;
 
 procedure TScrollBox.UpdateLimits;
 var Max: TPoint;
-procedure Check(P: PView); {$ifndef FPC}far;{$endif}
-var O: TPoint;
-begin
-  O.X:=P^.Origin.X+P^.Size.X+Delta.X; O.Y:=P^.Origin.Y+P^.Size.Y+Delta.Y;
-  if O.X>Max.X then Max.X:=O.X;
-  if O.Y>Max.Y then Max.Y:=O.Y;
-end;
+
+  procedure Check(P: PView);
+  var O: TPoint;
+  begin
+    O.X:=P^.Origin.X+P^.Size.X+Delta.X;
+    O.Y:=P^.Origin.Y+P^.Size.Y+Delta.Y;
+    if O.X>Max.X then
+      Max.X:=O.X;
+    if O.Y>Max.Y then
+      Max.Y:=O.Y;
+  end;
+
 begin
   Max.X:=0; Max.Y:=0;
   ForEach(@Check);
@@ -253,7 +265,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.4  2004-12-20 18:27:00  peter
+  Revision 1.5  2004-12-21 18:52:31  peter
+  checkbox mask works, scrollbox still not
+
+  Revision 1.4  2004/12/20 18:27:00  peter
     * win32 fixes
 
   Revision 1.3  2002/09/07 15:40:59  peter
