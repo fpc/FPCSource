@@ -168,9 +168,9 @@ procedure TGasSPARC.WriteInstruction(hp:Tai);
     if taicpu(hp).ops>0
     then
       begin
-        s+=#9+getopstr(taicpu(hp).oper[0]);
+        s:=s+#9+getopstr(taicpu(hp).oper[0]);
         for i:=1 to taicpu(hp).ops-1 do
-          s+=','+getopstr(taicpu(hp).oper[i]);
+          s:=s+','+getopstr(taicpu(hp).oper[i]);
       end;
     AsmWriteLn(s);
   end;
@@ -209,7 +209,10 @@ initialization
 end.
 {
     $Log$
-    Revision 1.9  2002-11-10 19:07:46  mazen
+    Revision 1.10  2002-11-16 15:29:16  florian
+      * fixed Cish syntax
+
+    Revision 1.9  2002/11/10 19:07:46  mazen
     * SPARC calling mechanism almost OK (as in GCC./mppcsparc )
 
     Revision 1.8  2002/10/25 19:37:53  mazen
