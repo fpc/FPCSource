@@ -32,12 +32,14 @@ type
  
  tclass3 = class
  end;
-
+ 
+ 
 
 var
  myclass1 : tclass1;
  myclass2 : tclass2;
  myclass3 : tclass3;
+ class1 : class of tclass1;
 
 
 procedure fail;
@@ -67,6 +69,7 @@ end;
 { possible types : right : LOC_REFERENCE, LOC_REGISTER }
 var
  failed : boolean;
+ myclass4 : class of tclass1;
 begin
   failed := false;
   { create class instance }
@@ -107,18 +110,22 @@ begin
 
 
   failed := false; 
-{  Write('Testing left/right : LOC_REFERENCE/LOC_REFERENCE...');
+  Write('Testing left/right : LOC_REFERENCE/LOC_REFERENCE...');
+  if (myclass1 is class1) then
+    failed := true;
   if failed then
     Fail
   else
     WriteLn('Passed!');
-}    
 end.
 
 {
 
  $Log$
- Revision 1.1  2002-03-21 20:16:23  carl
+ Revision 1.2  2002-03-22 21:32:23  carl
+ + added test LOC_REFERENCE/LOC_REFERENCE (thanks to Florian)
+
+ Revision 1.1  2002/03/21 20:16:23  carl
  + is operator testing
 
 
