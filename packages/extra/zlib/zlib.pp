@@ -16,7 +16,11 @@ interface
 const
   ZLIB_VERSION = '1.1.3';
 
+  {$ifdef netware}  {zlib.nlm comes with netware6}
+  libz='zlib';
+  {$else}
   libz='z';
+  {$endif}
 
 type
   { Compatible with paszlib }
@@ -177,7 +181,10 @@ function zError(err:longint):string;
 end.
 {
   $Log$
-  Revision 1.3  2002-09-07 15:43:06  peter
+  Revision 1.4  2003-03-17 15:59:10  armin
+  + zlib libname for netware
+
+  Revision 1.3  2002/09/07 15:43:06  peter
     * old logs removed and tabs fixed
 
   Revision 1.2  2002/05/31 11:54:33  marco
