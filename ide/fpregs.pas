@@ -184,6 +184,9 @@ uses
       NewReg,OldReg : TVectorRegs;
       InDraw : boolean;
       GDBCount : longint;
+{$ifndef cpu_known}
+      UseInfoVector : boolean;
+{$endif not cpu_known}
       first : boolean;
       constructor Init(var Bounds: TRect);
       procedure   Draw;virtual;
@@ -1237,7 +1240,7 @@ Const
 
   function GetVectorRegs(var rs : TVectorRegs
 {$ifndef cpu_known}
-             ; UseInfoFloat : boolean
+             ; UseInfoVector : boolean
 {$endif not cpu_known}
              ) : boolean;
 
@@ -1257,12 +1260,12 @@ Const
        GetVectorRegs:=false;
 {$ifndef NODEBUG}
 {$ifndef cpu_known}
-       if UseInfoFloat then
+       if UseInfoVector then
          begin
            Debugger^.Command('info vector');
            if Debugger^.Error then
              begin
-               UseInfofloat:=false;
+               UseInfoVector:=false;
                Debugger^.Command('info all');
              end;
          end
@@ -1291,7 +1294,7 @@ Const
                       if assigned(p1) then
                         begin
                           strlcopy(buffer,p,p1-p);
-                          rs.freg[i]:=ExtractTabs(strpas(buffer),8);
+                          rs.vreg[i]:=ExtractTabs(strpas(buffer),8);
                           if i<MaxRegs-1 then
                             inc(i);
                         end;
@@ -1367,7 +1370,7 @@ Const
        FillChar(NewReg,Sizeof(newreg),#0);
        GDBCount:=-1;
 {$ifndef cpu_known}
-       UseInfoFloat:=true;
+       UseInfoVector:=true;
 {$endif not cpu_known}
     end;
 
@@ -1417,7 +1420,7 @@ Const
            OldReg:=NewReg;
            OK:=GetVectorRegs(rs
 {$ifndef cpu_known}
-             ,UseInfoFloat
+             ,UseInfoVector
 {$endif not cpu_known}
              );
            NewReg:=rs;
@@ -1469,8 +1472,8 @@ Const
 {$else not cpu_known}
             for i:=0 to MaxRegs-1 do
               begin
-                SetColor(rs.freg[i],OldReg.freg[i]);
-                WriteStr(1,i,rs.freg[i],color);
+                SetColor(rs.vreg[i],OldReg.vreg[i]);
+                WriteStr(1,i,rs.vreg[i],color);
               end;
 {$endif cpu_known}
          end
@@ -1635,7 +1638,10 @@ end.
 
 {
   $Log$
-  Revision 1.9  2005-01-16 00:26:43  florian
+  Revision 1.10  2005-02-03 22:18:08  peter
+    * fix generic cpu compile
+
+  Revision 1.9  2005/01/16 00:26:43  florian
     + all sparc registers are displayed now
     + more sophisticated coloring of changed registers
 
