@@ -54,7 +54,7 @@ interface
 
     type
       TCpu=(
-        c_i386,c_m68k,c_powerpc,c_sparc,c_x86_64
+        c_i386,c_m68k,c_powerpc,c_sparc,c_x86_64,c_arm
       );
       TCpuSet=set of TCpu;
 
@@ -67,11 +67,11 @@ interface
 
     const
       CpuStr : array[TCpu] of string=(
-        'i386','m68k','powerpc','sparc','x86_64'
+        'i386','m68k','powerpc','sparc','x86_64','arm'
       );
 
       CpuSuffix : array[TCpu] of string=(
-        '_i386','_m68k','_powerpc','_sparc','_x86_64'
+        '_i386','_m68k','_powerpc','_sparc','_x86_64','_arm'
       );
 
       TargetStr : array[TTarget] of string=(
@@ -87,26 +87,26 @@ interface
       );
 
       TargetCpuPossible : array[TTarget,TCpu] of boolean = (
-        { os          i386    m68k  ppc    sparc  x86_64 }
-        { linux }   ( true,  true,  true,  true,  true  ),
-        { go32v2 }  ( true,  false, false, false, false ),
-        { win32 }   ( true,  false, false, false, false ),
-        { os2 }     ( true,  false, false, false, false ),
-        { freebsd } ( true,  true,  false, false, false ),
-        { beos }    ( true,  false, false, false, false ),
-        { netbsd }  ( true,  true,  true,  true, false ),
-        { amiga }   ( false, true,  false, false, false ),
-        { atari }   ( false, true,  false, false, false ),
-        { sunos }   ( true,  false, false, true,  false ),
-        { qnx }     ( true,  false, false, false, false ),
-        { netware } ( true,  false, false, false, false ),
-        { openbsd } ( true,  true,  false, false, false ),
-        { wdosx }   ( true,  false, false, false, false ),
-        { palmos }  ( false, true,  false, false, false ),
-        { macos }   ( false, false, true,  false, false ),
-        { macosx }  ( false, false, true,  false, false ),
-        { emx }     ( true,  false, false, false, false ),
-	{ watcom }  ( true,  false, false, false ,false )
+        { os          i386    m68k  ppc    sparc  x86_64 arm }
+        { linux }   ( true,  true,  true,  true,  true,  true),
+        { go32v2 }  ( true,  false, false, false, false, false),
+        { win32 }   ( true,  false, false, false, false, false),
+        { os2 }     ( true,  false, false, false, false, false),
+        { freebsd } ( true,  true,  false, false, false, false),
+        { beos }    ( true,  false, false, false, false, false),
+        { netbsd }  ( true,  true,  true,  true,  false, false),
+        { amiga }   ( false, true,  false, false, false, false),
+        { atari }   ( false, true,  false, false, false, false),
+        { sunos }   ( true,  false, false, true,  false, false),
+        { qnx }     ( true,  false, false, false, false, false),
+        { netware } ( true,  false, false, false, false, false),
+        { openbsd } ( true,  true,  false, false, false, false),
+        { wdosx }   ( true,  false, false, false, false, false),
+        { palmos }  ( false, true,  false, false, false, false),
+        { macos }   ( false, false, true,  false, false, false),
+        { macosx }  ( false, false, true,  false, false, false),
+        { emx }     ( true,  false, false, false, false, false),
+	{ watcom }  ( true,  false, false, false ,false, false)
       );
 
     type
@@ -1556,7 +1556,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.35  2004-01-05 17:45:02  marco
+  Revision 1.36  2004-02-07 00:22:24  florian
+    + arm-linux target
+
+  Revision 1.35  2004/01/05 17:45:02  marco
    * netbsd patches
 
   Revision 1.34  2003/09/30 09:10:28  marco
