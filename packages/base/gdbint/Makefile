@@ -230,10 +230,9 @@ ifdef GDBLIBDIR
 override LIBGDBFILE:=$(firstword $(wildcard $(addsuffix /libgdb.a,$(GDBLIBDIR))))
 endif
 ifeq ($(LIBGDBFILE),)
+override GDBLIBDIR=$(wildcard libgdb/$(OS_TARGET)/$(CPU_TARGET))
+ifeq ($(GDBLIBDIR),)
 override GDBLIBDIR=libgdb/$(OS_TARGET)
-ifeq ($(OS_TARGET),go32v2)
-ifneq ($(DJDIR),)
-GDBLIBDIR+=$(DJDIR)/lib
 endif
 endif
 override LIBGDBFILE:=$(firstword $(wildcard $(addsuffix /libgdb.a,$(GDBLIBDIR))))
