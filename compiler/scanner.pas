@@ -66,8 +66,17 @@ interface
           constructor Create(atyp:preproctyp;a:boolean;n:tpreprocstack);
        end;
 
-       pscannerfile = ^tscannerfile;
-       tscannerfile = object
+       tdirectiveproc=procedure;
+
+       tdirectiveitem = class(TNamedIndexItem)
+       public
+          is_conditional : boolean;
+          proc : tdirectiveproc;
+          constructor Create(const n:string;p:tdirectiveproc);
+          constructor CreateCond(const n:string;p:tdirectiveproc);
+       end;
+
+       tscannerfile = class
           inputfile    : tinputfile;  { current inputfile list }
 
           inputbuffer,                { input buffer }
@@ -90,8 +99,11 @@ interface
           macros         : Tdictionary;
           in_asm_string  : boolean;
 
-          constructor init(const fn:string);
-          destructor done;
+          preproc_pattern : string;
+          preproc_token   : ttoken;
+
+          constructor Create(const fn:string);
+          destructor Destroy;override;
         { File buffer things }
           function  openinputfile:boolean;
           procedure closeinputfile;
@@ -115,6 +127,8 @@ interface
           procedure poppreprocstack;
           procedure addpreprocstack(atyp : preproctyp;a:boolean;const s:string;w:longint);
           procedure elsepreprocstack;
+          procedure handleconditional(p:tdirectiveitem);
+          procedure handledirectives;
           procedure linebreak;
           procedure readchar;
           procedure readstring;
@@ -134,14 +148,13 @@ interface
        end;
 
 {$ifdef PREPROCWRITE}
-       tpreprocfile=^tpreprocfile;
-       tpreprocfile=object
+       tpreprocfile=class
          f   : text;
          buf : pointer;
          spacefound,
          eolfound : boolean;
-         constructor init(const fn:string);
-         destructor  done;
+         constructor create(const fn:string);
+         destructor  destroy;
          procedure Add(const s:string);
          procedure AddSpace;
        end;
@@ -152,17 +165,26 @@ interface
         c              : char;
         orgpattern,
         pattern        : string;
-        patternw : tcompilerwidestring;
+        patternw       : tcompilerwidestring;
 
         { token }
         token,                        { current token being parsed }
         idtoken    : ttoken;          { holds the token if the pattern is a known word }
 
-        current_scanner : pscannerfile;
+        current_scanner : tscannerfile;  { current scanner in use }
+
+        scannerdirectives : tdictionary; { dictionary with the supported directives }
+
         aktcommentstyle : tcommentstyle; { needed to use read_comment from directives }
 {$ifdef PREPROCWRITE}
-        preprocfile     : tpreprocfile; { used with only preprocessing }
+        preprocfile     : tpreprocfile;  { used with only preprocessing }
 {$endif PREPROCWRITE}
+
+    procedure adddirective(const s:string;p:tdirectiveproc);
+    procedure addconditional(const s:string;p:tdirectiveproc);
+
+    procedure InitScanner;
+    procedure DoneScanner;
 
 
 implementation
@@ -213,6 +235,462 @@ implementation
 
 
 {*****************************************************************************
+                           Conditional Directives
+*****************************************************************************}
+
+    procedure dir_else;
+      begin
+        current_scanner.elsepreprocstack;
+      end;
+
+
+    procedure dir_endif;
+      begin
+        current_scanner.poppreprocstack;
+      end;
+
+
+    procedure dir_ifdef;
+      var
+        hs    : string;
+        mac   : tmacro;
+      begin
+        current_scanner.skipspace;
+        hs:=current_scanner.readid;
+        mac:=tmacro(current_scanner.macros.search(hs));
+        if assigned(mac) then
+          mac.is_used:=true;
+        current_scanner.addpreprocstack(pp_ifdef,assigned(mac) and mac.defined,hs,scan_c_ifdef_found);
+      end;
+
+
+    procedure dir_ifndef;
+      var
+        hs    : string;
+        mac   : tmacro;
+      begin
+        current_scanner.skipspace;
+        hs:=current_scanner.readid;
+        mac:=tmacro(current_scanner.macros.search(hs));
+        if assigned(mac) then
+          mac.is_used:=true;
+        current_scanner.addpreprocstack(pp_ifndef,not(assigned(mac) and mac.defined),hs,scan_c_ifndef_found);
+      end;
+
+
+    procedure dir_ifopt;
+      var
+        hs    : string;
+        found : boolean;
+        state : char;
+      begin
+        current_scanner.skipspace;
+        hs:=current_scanner.readid;
+        if (length(hs)>1) then
+         Message1(scan_w_illegal_switch,hs)
+        else
+         begin
+           state:=current_scanner.ReadState;
+           if state in ['-','+'] then
+            found:=CheckSwitch(hs[1],state);
+         end;
+        current_scanner.addpreprocstack(pp_ifopt,found,hs,scan_c_ifopt_found);
+      end;
+
+
+    procedure dir_if;
+
+        function read_expr : string; forward;
+
+        procedure preproc_consume(t : ttoken);
+        begin
+          if t<>current_scanner.preproc_token then
+           Message(scan_e_preproc_syntax_error);
+          current_scanner.preproc_token:=current_scanner.readpreproc;
+        end;
+
+        function read_factor : string;
+        var
+           hs : string;
+           mac : tmacro;
+           len : byte;
+        begin
+           if current_scanner.preproc_token=_ID then
+             begin
+                if current_scanner.preproc_pattern='NOT' then
+                  begin
+                     preproc_consume(_ID);
+                     hs:=read_expr;
+                     if hs='0' then
+                       read_factor:='1'
+                     else
+                       read_factor:='0';
+                  end
+                else
+                  begin
+                     mac:=tmacro(current_scanner.macros.search(hs));
+                     hs:=current_scanner.preproc_pattern;
+                     preproc_consume(_ID);
+                     if assigned(mac) then
+                       begin
+                          if mac.defined and assigned(mac.buftext) then
+                            begin
+                               if mac.buflen>255 then
+                                 begin
+                                    len:=255;
+                                    Message(scan_w_macro_cut_after_255_chars);
+                                 end
+                               else
+                                 len:=mac.buflen;
+                               hs[0]:=char(len);
+                               move(mac.buftext^,hs[1],len);
+                            end
+                          else
+                            read_factor:='';
+                       end
+                     else
+                       read_factor:=hs;
+                  end
+             end
+           else if current_scanner.preproc_token=_LKLAMMER then
+             begin
+                preproc_consume(_LKLAMMER);
+                read_factor:=read_expr;
+                preproc_consume(_RKLAMMER);
+             end
+           else
+             Message(scan_e_error_in_preproc_expr);
+        end;
+
+        function read_term : string;
+        var
+           hs1,hs2 : string;
+        begin
+           hs1:=read_factor;
+           while true do
+             begin
+                if (current_scanner.preproc_token=_ID) then
+                  begin
+                     if current_scanner.preproc_pattern='AND' then
+                       begin
+                          preproc_consume(_ID);
+                          hs2:=read_factor;
+                          if (hs1<>'0') and (hs2<>'0') then
+                            hs1:='1';
+                       end
+                     else
+                       break;
+                  end
+                else
+                  break;
+             end;
+           read_term:=hs1;
+        end;
+
+
+        function read_simple_expr : string;
+        var
+           hs1,hs2 : string;
+        begin
+           hs1:=read_term;
+           while true do
+             begin
+                if (current_scanner.preproc_token=_ID) then
+                  begin
+                     if current_scanner.preproc_pattern='OR' then
+                       begin
+                          preproc_consume(_ID);
+                          hs2:=read_term;
+                          if (hs1<>'0') or (hs2<>'0') then
+                            hs1:='1';
+                       end
+                     else
+                       break;
+                  end
+                else
+                  break;
+             end;
+           read_simple_expr:=hs1;
+        end;
+
+        function read_expr : string;
+        var
+           hs1,hs2 : string;
+           b : boolean;
+           t : ttoken;
+           w : integer;
+           l1,l2 : longint;
+        begin
+           hs1:=read_simple_expr;
+           t:=current_scanner.preproc_token;
+           if not(t in [_EQUAL,_UNEQUAL,_LT,_GT,_LTE,_GTE]) then
+             begin
+                read_expr:=hs1;
+                exit;
+             end;
+           preproc_consume(t);
+           hs2:=read_simple_expr;
+           if is_number(hs1) and is_number(hs2) then
+             begin
+                valint(hs1,l1,w);
+                valint(hs2,l2,w);
+                case t of
+                   _EQUAL : b:=l1=l2;
+                 _UNEQUAL : b:=l1<>l2;
+                      _LT : b:=l1<l2;
+                      _GT : b:=l1>l2;
+                     _GTE : b:=l1>=l2;
+                     _LTE : b:=l1<=l2;
+                end;
+             end
+           else
+             begin
+                case t of
+                   _EQUAL : b:=hs1=hs2;
+                 _UNEQUAL : b:=hs1<>hs2;
+                      _LT : b:=hs1<hs2;
+                      _GT : b:=hs1>hs2;
+                     _GTE : b:=hs1>=hs2;
+                     _LTE : b:=hs1<=hs2;
+                end;
+             end;
+           if b then
+             read_expr:='1'
+           else
+             read_expr:='0';
+        end;
+
+      var
+        hs : string;
+      begin
+        current_scanner.skipspace;
+        { start preproc expression scanner }
+        current_scanner.preproc_token:=current_scanner.readpreproc;
+        hs:=read_expr;
+        current_scanner.addpreprocstack(pp_if,hs<>'0',hs,scan_c_if_found);
+      end;
+
+
+    procedure dir_define;
+      var
+        hs  : string;
+        bracketcount : longint;
+        mac : tmacro;
+        macropos : longint;
+        macrobuffer : pmacrobuffer;
+      begin
+        current_scanner.skipspace;
+        hs:=current_scanner.readid;
+        mac:=tmacro(current_scanner.macros.search(hs));
+        if not assigned(mac) then
+          begin
+            mac:=tmacro.create(hs);
+            mac.defined:=true;
+            Message1(parser_m_macro_defined,mac.name);
+            current_scanner.macros.insert(mac);
+          end
+        else
+          begin
+            Message1(parser_m_macro_defined,mac.name);
+            mac.defined:=true;
+          { delete old definition }
+            if assigned(mac.buftext) then
+             begin
+               freemem(mac.buftext,mac.buflen);
+               mac.buftext:=nil;
+             end;
+          end;
+        mac.is_used:=true;
+        if (cs_support_macro in aktmoduleswitches) then
+          begin
+          { key words are never substituted }
+             if is_keyword(hs) then
+              Message(scan_e_keyword_cant_be_a_macro);
+           { !!!!!! handle macro params, need we this? }
+             current_scanner.skipspace;
+           { may be a macro? }
+             if c=':' then
+               begin
+                  current_scanner.readchar;
+                  if c='=' then
+                    begin
+                       new(macrobuffer);
+                       macropos:=0;
+                       { parse macro, brackets are counted so it's possible
+                         to have a $ifdef etc. in the macro }
+                       bracketcount:=0;
+                       repeat
+                         current_scanner.readchar;
+                         case c of
+                           '}' :
+                             if (bracketcount=0) then
+                              break
+                             else
+                              dec(bracketcount);
+                           '{' :
+                             inc(bracketcount);
+                           #26 :
+                             current_scanner.end_of_file;
+                         end;
+                         macrobuffer^[macropos]:=c;
+                         inc(macropos);
+                         if macropos>maxmacrolen then
+                          Message(scan_f_macro_buffer_overflow);
+                       until false;
+                       { free buffer of macro ?}
+                       if assigned(mac.buftext) then
+                         freemem(mac.buftext,mac.buflen);
+                       { get new mem }
+                       getmem(mac.buftext,macropos);
+                       mac.buflen:=macropos;
+                       { copy the text }
+                       move(macrobuffer^,mac.buftext^,macropos);
+                       dispose(macrobuffer);
+                    end;
+               end;
+          end
+        else
+          begin
+           { check if there is an assignment, then we need to give a
+             warning }
+             current_scanner.skipspace;
+             if c=':' then
+              begin
+                current_scanner.readchar;
+                if c='=' then
+                  Message(scan_w_macro_support_turned_off);
+              end;
+          end;
+      end;
+
+
+    procedure dir_undef;
+      var
+        hs  : string;
+        mac : tmacro;
+      begin
+        current_scanner.skipspace;
+        hs:=current_scanner.readid;
+        mac:=tmacro(current_scanner.macros.search(hs));
+        if not assigned(mac) then
+          begin
+             mac:=tmacro.create(hs);
+             Message1(parser_m_macro_undefined,mac.name);
+             mac.defined:=false;
+             current_scanner.macros.insert(mac);
+          end
+        else
+          begin
+             Message1(parser_m_macro_undefined,mac.name);
+             mac.defined:=false;
+             { delete old definition }
+             if assigned(mac.buftext) then
+               begin
+                  freemem(mac.buftext,mac.buflen);
+                  mac.buftext:=nil;
+               end;
+          end;
+        mac.is_used:=true;
+      end;
+
+    procedure dir_include;
+      var
+        foundfile,
+        hs    : string;
+        path  : dirstr;
+        name  : namestr;
+        ext   : extstr;
+        hp    : tinputfile;
+        i     : longint;
+        found : boolean;
+      begin
+        current_scanner.skipspace;
+        hs:=current_scanner.readcomment;
+        i:=length(hs);
+        while (i>0) and (hs[i]=' ') do
+         dec(i);
+        Delete(hs,i+1,length(hs)-i);
+        if hs='' then
+         exit;
+        if (hs[1]='%') then
+         begin
+         { case insensitive }
+           hs:=upper(hs);
+         { remove %'s }
+           Delete(hs,1,1);
+           if hs[length(hs)]='%' then
+            Delete(hs,length(hs),1);
+         { save old }
+           path:=hs;
+         { first check for internal macros }
+           if hs='TIME' then
+            hs:=gettimestr
+           else
+            if hs='DATE' then
+             hs:=getdatestr
+           else
+            if hs='FILE' then
+             hs:=current_module.sourcefiles.get_file_name(aktfilepos.fileindex)
+           else
+            if hs='LINE' then
+             hs:=tostr(aktfilepos.line)
+           else
+            if hs='FPCVERSION' then
+             hs:=version_string
+           else
+            if hs='FPCTARGET' then
+             hs:=target_cpu_string
+           else
+             hs:=getenv(hs);
+           if hs='' then
+            Message1(scan_w_include_env_not_found,path);
+           { make it a stringconst }
+           hs:=''''+hs+'''';
+           current_scanner.insertmacro(path,@hs[1],length(hs));
+         end
+        else
+         begin
+           hs:=FixFileName(hs);
+           fsplit(hs,path,name,ext);
+         { look for the include file
+            1. specified path,path of current inputfile,current dir
+            2. local includepath
+            3. global includepath }
+           found:=false;
+           foundfile:='';
+           if path<>'' then
+             path:=path+';';
+           found:=FindFile(name+ext,path+current_scanner.inputfile.path^+';.'+DirSep,foundfile);
+           if (not found) then
+            found:=current_module.localincludesearchpath.FindFile(name+ext,foundfile);
+           if (not found) then
+            found:=includesearchpath.FindFile(name+ext,foundfile);
+         { save old postion and decrease linebreak }
+           if c=newline then
+            dec(current_scanner.line_no);
+           dec(longint(current_scanner.inputpointer));
+         { shutdown current file }
+           current_scanner.tempcloseinputfile;
+         { load new file }
+           hp:=do_openinputfile(foundfile);
+           current_scanner.addfile(hp);
+           current_module.sourcefiles.register_file(hp);
+           if not current_scanner.openinputfile then
+            Message1(scan_f_cannot_open_includefile,hs);
+           Message1(scan_t_start_include_file,current_scanner.inputfile.path^+current_scanner.inputfile.name^);
+           current_scanner.reload;
+         { process first read char }
+           case c of
+            #26 : current_scanner.reload;
+            #10,
+            #13 : current_scanner.linebreak;
+           end;
+         end;
+      end;
+
+
+
+{*****************************************************************************
                                  TMacro
 *****************************************************************************}
 
@@ -240,7 +718,7 @@ implementation
 *****************************************************************************}
 
 {$ifdef PREPROCWRITE}
-    constructor tpreprocfile.init(const fn:string);
+    constructor tpreprocfile.create(const fn:string);
       begin
       { open outputfile }
         assign(f,fn);
@@ -257,7 +735,7 @@ implementation
       end;
 
 
-    destructor tpreprocfile.done;
+    destructor tpreprocfile.destroy;
       begin
         close(f);
         freemem(buf,preprocbufsize);
@@ -299,11 +777,30 @@ implementation
       end;
 
 
+{*****************************************************************************
+                              TDirectiveItem
+*****************************************************************************}
+
+    constructor TDirectiveItem.Create(const n:string;p:tdirectiveproc);
+      begin
+        inherited CreateName(n);
+        is_conditional:=false;
+        proc:={$ifndef FPCPROCVAR}@{$endif}p;
+      end;
+
+
+    constructor TDirectiveItem.CreateCond(const n:string;p:tdirectiveproc);
+      begin
+        inherited CreateName(n);
+        is_conditional:=true;
+        proc:={$ifndef FPCPROCVAR}@{$endif}p;
+      end;
+
 {****************************************************************************
                                 TSCANNERFILE
  ****************************************************************************}
 
-    constructor tscannerfile.init(const fn:string);
+    constructor tscannerfile.create(const fn:string);
       begin
         inputfile:=do_openinputfile(fn);
         if assigned(current_module) then
@@ -340,7 +837,7 @@ implementation
       end;
 
 
-    destructor tscannerfile.done;
+    destructor tscannerfile.destroy;
       begin
         if not invalid then
           begin
@@ -692,6 +1189,9 @@ implementation
         Message(scan_f_end_of_file);
       end;
 
+  {-------------------------------------------
+           IF Conditional Handling
+  -------------------------------------------}
 
     procedure tscannerfile.checkpreprocstack;
       begin
@@ -747,6 +1247,117 @@ implementation
          end
         else
          Message(scan_e_endif_without_if);
+      end;
+
+
+    procedure tscannerfile.handleconditional(p:tdirectiveitem);
+      var
+        oldaktfilepos : tfileposinfo;
+      begin
+        oldaktfilepos:=aktfilepos;
+        repeat
+          current_scanner.gettokenpos;
+          p.proc{$ifdef FPCPROCVAR}(){$endif};
+          { accept the text ? }
+          if (current_scanner.preprocstack=nil) or current_scanner.preprocstack.accept then
+           break
+          else
+           begin
+             current_scanner.gettokenpos;
+             Message(scan_c_skipping_until);
+             repeat
+               current_scanner.skipuntildirective;
+               p:=tdirectiveitem(scannerdirectives.search(current_scanner.readid));
+             until assigned(p) and (p.is_conditional);
+             current_scanner.gettokenpos;
+             Message1(scan_d_handling_switch,'$'+p.name);
+           end;
+        until false;
+        aktfilepos:=oldaktfilepos;
+      end;
+
+
+    procedure tscannerfile.handledirectives;
+      var
+         t  : tdirectiveitem;
+         hs : string;
+      begin
+         gettokenpos;
+         readchar; {Remove the $}
+         hs:=readid;
+{$ifdef PREPROCWRITE}
+         if parapreprocess then
+          begin
+            t:=Get_Directive(hs);
+            if not(is_conditional(t) or (t=_DIR_DEFINE) or (t=_DIR_UNDEF)) then
+             begin
+               preprocfile^.AddSpace;
+               preprocfile^.Add('{$'+hs+current_scanner.readcomment+'}');
+               exit;
+             end;
+          end;
+{$endif PREPROCWRITE}
+         { skip this directive? }
+         if (ignoredirectives.find(hs)<>nil) then
+          begin
+            if (comment_level>0) then
+             readcomment;
+            { we've read the whole comment }
+            aktcommentstyle:=comment_none;
+            exit;
+          end;
+         if hs='' then
+          begin
+            Message1(scan_w_illegal_switch,'$'+hs);
+          end;
+      { Check for compiler switches }
+         while (length(hs)=1) and (c in ['-','+']) do
+          begin
+            HandleSwitch(hs[1],c);
+            current_scanner.readchar; {Remove + or -}
+            if c=',' then
+             begin
+               current_scanner.readchar;   {Remove , }
+             { read next switch, support $v+,$+}
+               hs:=current_scanner.readid;
+               if (hs='') then
+                begin
+                  if (c='$') and (m_fpc in aktmodeswitches) then
+                   begin
+                     current_scanner.readchar;  { skip $ }
+                     hs:=current_scanner.readid;
+                   end;
+                  if (hs='') then
+                   Message1(scan_w_illegal_directive,'$'+c);
+                end
+               else
+                Message1(scan_d_handling_switch,'$'+hs);
+             end
+            else
+             hs:='';
+          end;
+      { directives may follow switches after a , }
+         if hs<>'' then
+          begin
+            t:=tdirectiveitem(scannerdirectives.search(hs));
+            if assigned(t) then
+             begin
+               if t.is_conditional then
+                handleconditional(t)
+               else
+                t.proc{$ifdef FPCPROCVAR}(){$endif};
+             end
+            else
+             begin
+               current_scanner.ignoredirectives.insert(hs);
+               Message1(scan_w_illegal_directive,'$'+hs);
+             end;
+          { conditionals already read the comment }
+            if (current_scanner.comment_level>0) then
+             current_scanner.readcomment;
+            { we've read the whole comment }
+            aktcommentstyle:=comment_none;
+          end;
       end;
 
 
@@ -963,8 +1574,8 @@ implementation
         state:=' ';
         if c=' ' then
          begin
-           current_scanner^.skipspace;
-           current_scanner^.readid;
+           current_scanner.skipspace;
+           current_scanner.readid;
            if pattern='ON' then
             state:='+'
            else
@@ -1099,13 +1710,6 @@ implementation
              end;
          until (found=2);
       end;
-
-
-{****************************************************************************
-                      Include directive scanning/parsing
-****************************************************************************}
-
-{$i scandir.inc}
 
 
 {****************************************************************************
@@ -1817,7 +2421,7 @@ exit_label:
         'A'..'Z',
         'a'..'z',
     '_','0'..'9' : begin
-                     preprocpat:=readid;
+                     current_scanner.preproc_pattern:=readid;
                      readpreproc:=_ID;
                    end;
              '}' : begin
@@ -1941,10 +2545,58 @@ exit_label:
          end;
       end;
 
+
+{*****************************************************************************
+                                   Helpers
+*****************************************************************************}
+
+    procedure adddirective(const s:string;p:tdirectiveproc);
+      begin
+        scannerdirectives.insert(tdirectiveitem.create(s,p));
+      end;
+
+
+    procedure addconditional(const s:string;p:tdirectiveproc);
+      begin
+        scannerdirectives.insert(tdirectiveitem.createcond(s,p));
+      end;
+
+
+{*****************************************************************************
+                                Initialization
+*****************************************************************************}
+
+    procedure InitScanner;
+      begin
+        scannerdirectives:=TDictionary.Create;
+        { Default directives }
+        AddDirective('DEFINE',{$ifdef FPCPROCVAR}@{$endif}dir_define);
+        AddDirective('UNDEF',{$ifdef FPCPROCVAR}@{$endif}dir_undef);
+        AddDirective('I',{$ifdef FPCPROCVAR}@{$endif}dir_include);
+        AddDirective('INCLUDE',{$ifdef FPCPROCVAR}@{$endif}dir_include);
+        { Default conditionals }
+        AddConditional('ELSE',{$ifdef FPCPROCVAR}@{$endif}dir_else);
+        AddConditional('ENDIF',{$ifdef FPCPROCVAR}@{$endif}dir_endif);
+        AddConditional('IF',{$ifdef FPCPROCVAR}@{$endif}dir_if);
+        AddConditional('IFDEF',{$ifdef FPCPROCVAR}@{$endif}dir_ifdef);
+        AddConditional('IFNDEF',{$ifdef FPCPROCVAR}@{$endif}dir_ifndef);
+        AddConditional('IFOPT',{$ifdef FPCPROCVAR}@{$endif}dir_ifopt);
+      end;
+
+
+    procedure DoneScanner;
+      begin
+        scannerdirectives.Free;
+      end;
+
+
 end.
 {
   $Log$
-  Revision 1.14  2001-04-13 01:22:13  peter
+  Revision 1.15  2001-04-13 18:00:36  peter
+    * easier registration of directives
+
+  Revision 1.14  2001/04/13 01:22:13  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed
