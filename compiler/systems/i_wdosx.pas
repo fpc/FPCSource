@@ -62,10 +62,10 @@ unit i_wdosx;
             dirsep       : '\';
             files_case_relevent : false;
             assem        : as_i386_pecoffwdosx;
-            assemextern  : as_i386_asw;
+            assemextern  : as_gas;
             link         : nil;
             linkextern   : nil;
-            ar           : ar_gnu_arw;
+            ar           : ar_gnu_ar;
             res          : res_gnu_windres;
             script       : script_dos;
             endian       : endian_little;
@@ -105,7 +105,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.3  2003-03-23 23:31:54  hajny
+  Revision 1.4  2003-10-02 21:17:08  peter
+    * use as,ld,ar instead of asw,ldw,arw for win32
+
+  Revision 1.3  2003/03/23 23:31:54  hajny
     + platform extensions unified
 
   Revision 1.2  2002/09/07 15:25:15  peter

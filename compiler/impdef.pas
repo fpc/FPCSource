@@ -40,8 +40,8 @@ interface
    {$endif}
 
    var
-     asw_name,
-     arw_name : string;
+     as_name,
+     ar_name : string;
 
     function makedef(const binname,
 {$IFDEF STANDALONE}
@@ -173,12 +173,11 @@ procedure CreateTempDir(const s:string);
     if ioresult<>0 then;
   end;
  end;
-procedure call_asw(const name:string);
+procedure call_as(const name:string);
  begin
- writeln(name);
-  exec(asw_name,'-o '+name+'o '+name);
+  exec(as_name,'-o '+name+'o '+name);
  end;
-procedure call_arw;
+procedure call_ar;
  var
   f:file;
   attr:word;
@@ -191,7 +190,7 @@ procedure call_arw;
   GetFAttr(f,attr);
   If DOSError=0 then
    erase(f);
-  exec(arw_name,'rs '+impname+' '+path+dirsep+'*.swo');
+  exec(ar_name,'rs '+impname+' '+path+dirsep+'*.swo');
   cleardir(path,'*.sw');
   cleardir(path,'*.swo');
   {$i-}
@@ -294,7 +293,7 @@ procedure makeasm(index:cardinal;name:pchar;isData:longbool);
       writeln(f,s);
      end;
     close(f);
-    call_asw(asmout);
+    call_as(asmout);
     common_created:=true;
    end;
   n:=strpas(name);
@@ -316,7 +315,7 @@ procedure makeasm(index:cardinal;name:pchar;isData:longbool);
     writeln(f,s);
    end;
   close(f);
-  call_asw(asmout);
+  call_as(asmout);
  end;
 procedure ProcessEdata;
   type
@@ -402,7 +401,7 @@ procedure ProcessEdata;
 {$ENDIF}
        makeasm(j,cstring,isData);
       end;
-     call_arw;
+     call_ar;
    end;
   end;
 
@@ -479,7 +478,10 @@ end.
 
 {
   $Log$
-  Revision 1.10  2002-10-05 12:43:24  carl
+  Revision 1.11  2003-10-02 21:17:08  peter
+    * use as,ld,ar instead of asw,ldw,arw for win32
+
+  Revision 1.10  2002/10/05 12:43:24  carl
     * fixes for Delphi 6 compilation
      (warning : Some features do not work under Delphi)
 

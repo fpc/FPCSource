@@ -111,8 +111,8 @@ interface
              system_x86_64_linux,       { 26 }
              system_powerpc_darwin,     { 27 }
              system_i386_EMX,           { 28 }
-	     system_powerpc_netbsd,     { 29 }
-    	     system_powerpc_openbsd,    { 30 }
+             system_powerpc_netbsd,     { 29 }
+             system_powerpc_openbsd,    { 30 }
              system_arm_linux,          { 31 }
              system_i386_watcom         { 32 }
        );
@@ -120,7 +120,6 @@ interface
        tasm = (as_none
              ,as_gas                   { standard gnu assembler }
              ,as_i386_as_aout
-             ,as_i386_asw
              ,as_i386_nasmcoff
              ,as_i386_nasmwin32
              ,as_i386_nasmwdosx
@@ -138,7 +137,7 @@ interface
        );
 
        tar = (ar_none
-            ,ar_gnu_ar,ar_gnu_arw,ar_mpw_ar
+            ,ar_gnu_ar,ar_mpw_ar
        );
 
        tres = (res_none
@@ -697,7 +696,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.68  2003-09-05 17:41:13  florian
+  Revision 1.69  2003-10-02 21:17:08  peter
+    * use as,ld,ar instead of asw,ldw,arw for win32
+
+  Revision 1.68  2003/09/05 17:41:13  florian
     * merged Wiktor's Watcom patches in 1.1
 
   Revision 1.67  2003/08/08 15:49:24  olle

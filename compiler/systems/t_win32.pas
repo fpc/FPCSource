@@ -261,7 +261,7 @@ const
 
 
     const
-     MainAsmFormats=[as_i386_asw,as_i386_pecoff,as_i386_pecoffwdosx];
+     MainAsmFormats=[as_i386_pecoff,as_i386_pecoffwdosx];
 
     procedure timportlibwin32.generatesmartlib;
       var
@@ -862,17 +862,17 @@ Procedure TLinkerWin32.SetDefaultInfo;
 begin
   with Info do
    begin
-     ExeCmd[1]:='ldw $OPT $STRIP $APPTYPE $IMAGEBASE $RELOC -o $EXE $RES';
-     DllCmd[1]:='ldw $OPT $STRIP --dll $APPTYPE $IMAGEBASE $RELOC -o $EXE $RES';
+     ExeCmd[1]:='ld $OPT $STRIP $APPTYPE $IMAGEBASE $RELOC -o $EXE $RES';
+     DllCmd[1]:='ld $OPT $STRIP --dll $APPTYPE $IMAGEBASE $RELOC -o $EXE $RES';
      if RelocSection or UseDeffileForExport then
        begin
           { ExeCmd[2]:='dlltool --as $ASBIN --dllname $EXE --output-exp exp.$$$ $RELOC $DEF';
             use short forms to avoid 128 char limitation problem }
           ExeCmd[2]:='dlltool -S $ASBIN -D $EXE -e exp.$$$ $RELOC $DEF';
-          ExeCmd[3]:='ldw $OPT $STRIP $APPTYPE $IMAGEBASE -o $EXE $RES exp.$$$';
+          ExeCmd[3]:='ld $OPT $STRIP $APPTYPE $IMAGEBASE -o $EXE $RES exp.$$$';
           { DllCmd[2]:='dlltool --as $ASBIN --dllname $EXE --output-exp exp.$$$ $RELOC $DEF'; }
           DllCmd[2]:='dlltool -S $ASBIN -D $EXE -e exp.$$$ $RELOC $DEF';
-          DllCmd[3]:='ldw $OPT $STRIP --dll $APPTYPE $IMAGEBASE -o $EXE $RES exp.$$$';
+          DllCmd[3]:='ld $OPT $STRIP --dll $APPTYPE $IMAGEBASE -o $EXE $RES exp.$$$';
        end;
    end;
 end;
@@ -1007,7 +1007,7 @@ begin
   AppTypeStr:='';
   ImageBaseStr:='';
   StripStr:='';
-  AsBinStr:=FindUtil('asw');
+  AsBinStr:=FindUtil('as');
   if RelocSection then
    { Using short form to avoid problems with 128 char limitation under Dos. }
    RelocStr:='-b base.$$$';
@@ -1087,7 +1087,7 @@ begin
   AppTypeStr:='';
   ImageBaseStr:='';
   StripStr:='';
-  AsBinStr:=FindUtil('asw');
+  AsBinStr:=FindUtil('as');
   if RelocSection then
    { Using short form to avoid problems with 128 char limitation under Dos. }
    RelocStr:='-b base.$$$';
@@ -1620,14 +1620,16 @@ initialization
   RegisterImport(system_i386_win32,TImportLibWin32);
   RegisterExport(system_i386_win32,TExportLibWin32);
   RegisterDLLScanner(system_i386_win32,TDLLScannerWin32);
-  RegisterAr(ar_gnu_arw_info);
   RegisterRes(res_gnu_windres_info);
   RegisterTarget(system_i386_win32_info);
 {$endif i386}
 end.
 {
   $Log$
-  Revision 1.19  2003-09-30 20:10:12  peter
+  Revision 1.20  2003-10-02 21:17:08  peter
+    * use as,ld,ar instead of asw,ldw,arw for win32
+
+  Revision 1.19  2003/09/30 20:10:12  peter
     * smartlink fix for dlls from Pavel
 
   Revision 1.18  2003/08/21 14:47:41  peter
