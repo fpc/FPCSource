@@ -364,15 +364,17 @@ implementation
                           begin
                              emit_reg_reg(A_XOR,S_L,hregisterhigh,
                                hregisterhigh);
-                             emit_const_reg(A_SHL,S_L,tordconstnode(right).value and 31,
-                               hregisterlow);
+                             if ((tordconstnode(right).value and 31) <> 0) then
+                               emit_const_reg(A_SHL,S_L,tordconstnode(right).value and 31,
+                                 hregisterlow);
                           end
                         else
                           begin
                              emit_reg_reg(A_XOR,S_L,hregisterlow,
                                hregisterlow);
-                             emit_const_reg(A_SHR,S_L,tordconstnode(right).value and 31,
-                               hregisterhigh);
+                             if ((tordconstnode(right).value and 31) <> 0) then
+                               emit_const_reg(A_SHR,S_L,tordconstnode(right).value and 31,
+                                 hregisterhigh);
                           end;
                         location.registerhigh:=hregisterlow;
                         location.registerlow:=hregisterhigh;
@@ -1016,7 +1018,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  2001-12-02 16:19:17  jonas
+  Revision 1.18  2001-12-04 15:57:28  jonas
+    * never generate any "shll/shrl $0,%reg" anymore
+
+  Revision 1.17  2001/12/02 16:19:17  jonas
     * less unnecessary regvar loading with if-statements
 
   Revision 1.16  2001/09/05 15:22:10  jonas
