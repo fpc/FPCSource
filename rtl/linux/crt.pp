@@ -1342,8 +1342,8 @@ Function CrtRead(Var F: TextRec): Integer;
   Read from CRT associated file.
 }
 var
-  c: char;
-  i, CurX, CurY : longint;
+  c : char;
+  i : longint;
 Begin
   if isATTY(F.Handle) then
     begin
@@ -1472,7 +1472,7 @@ End;
 
 
 const
-  KIOCSOUND = $4B2F;	// start sound generation (0 for off)
+  KIOCSOUND = $4B2F;    // start sound generation (0 for off)
 
 Procedure Sound(Hz: Word);
 begin
@@ -1663,7 +1663,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.30  2000-06-20 08:52:16  jonas
+  Revision 1.31  2000-06-22 18:37:49  peter
+    * removed unused vars
+
+  Revision 1.30  2000/06/20 08:52:16  jonas
     * crtread didn't set f.bufpos back to 0, so it failed if that wasn't
       already the case on entry
     * crtread now makes sure it doesn't try to read mode characters than
