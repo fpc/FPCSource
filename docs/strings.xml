@@ -1,0 +1,454 @@
+<?xml version="1.0" encoding="ISO8859-1"?>
+<fpdoc-descriptions>
+<!-- 
+   $Id$ 
+   This file is part of the FPC documentation. 
+   Copyright (C) 1997, by Michael Van Canneyt 
+ 
+   The FPC documentation is free text; you can redistribute it and/or 
+   modify it under the terms of the GNU Library General Public License as 
+   published by the Free Software Foundation; either version 2 of the 
+   License, or (at your option) any later version. 
+ 
+   The FPC Documentation is distributed in the hope that it will be useful, 
+   but WITHOUT ANY WARRANTY; without even the implied warranty of 
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+   Library General Public License for more details. 
+ 
+   You should have received a copy of the GNU Library General Public 
+   License along with the FPC documentation; see the file COPYING.LIB.  If not, 
+   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, 
+   Boston, MA 02111-1307, USA.  
+--> 
+<package name="rtl">
+<module name="strings">
+<short>Null-terminated string (PChar) routines.</short>
+<!-- \FPCexampledir{stringex -->
+<descr>
+<p>
+This chapter describes the <var>STRINGS</var> unit for Free Pascal. 
+This unit is system independent, and therefore works on all supported 
+platforms.
+</p>
+</descr>
+
+<element name="StrAlloc">
+<short>Allocate memory for a new null-terminated string on the heap</short>
+<descr>
+<var>StrAlloc</var> reserves memory on the heap for a string with length <var>Len</var>,
+terminating <var>\#0</var> included, and returns a pointer to it.
+</descr>
+<errors>
+If there is not enough memory, a run-time error occurs.
+</errors>
+<seealso>
+<link id="StrNew"/>
+<link id="StrPCopy"/>.
+</seealso>
+</element>
+
+<element name="StrCat">
+<short>Concatenate 2 null-terminated strings.</short>
+<descr>
+Attaches <var>Source</var> to <var>Dest</var> and returns <var>Dest</var>.
+</descr>
+<errors>
+No length checking is performed.
+</errors>
+<seealso>
+<link id="StrLCat"/>
+</seealso>
+<example file="stringex/ex11"/>
+</element>
+
+<element name="StrComp">
+<short>Compare 2 null-terminated strings, case sensitive.</short>
+<descr>
+<p>
+Compares the null-terminated strings <var>S1</var> and <var>S2</var>.
+The result is 
+</p>
+<ul>
+<li> A negative <var>Longint</var> when <var>S1&lt;S2</var>.
+</li>
+<li> 0 when <var>S1=S2</var>.
+</li>
+<li> A positive <var>Longint</var> when <var>S1&gt;S2</var>.
+</li>
+</ul>
+<p>
+For an example, see <link id="StrLComp"/>.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="StrLComp"/>
+<link id="StrIComp"/>
+<link id="StrLIComp"/>
+</seealso>
+</element>
+
+<element name="StrCopy">
+<short>Copy a null-terminated string</short>
+<descr>
+Copy the null terminated string in <var>Source</var> to <var>Dest</var>, and
+returns a pointer to <var>Dest</var>. <var>Dest</var> needs enough room to contain
+<var>Source</var>, i.e. <var>StrLen(Source)+1</var> bytes.
+</descr>
+<errors>
+No length checking is performed.
+</errors>
+<seealso>
+<link id="StrPCopy"/>
+<link id="StrLCopy"/>
+<link id="StrECopy"/>
+</seealso>
+<example file="stringex/ex4"/>
+</element>
+
+
+<element name="StrDispose">
+<short>disposes of a null-terminated string on the heap</short>
+<descr>
+Removes the string in <var>P</var> from the heap and releases the memory.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="StrNew"/>
+</seealso>
+<example file="stringex/ex17"/>
+</element>
+
+<element name="StrECopy">
+<short>Copy a null-terminated string, return a pointer to the end.</short>
+<descr>
+Copies the Null-terminated string in <var>Source</var> to <var>Dest</var>, and
+returns a pointer to the end (i.e. the terminating Null-character) of the
+copied string.
+</descr>
+<errors>
+No length checking is performed.
+</errors>
+<seealso>
+<link id="StrLCopy"/>
+<link id="StrCopy"/>
+</seealso>
+<example file="stringex/ex6"/>
+</element>
+
+<element name="StrEnd">
+<short>Return a pointer to the end of a null-terminated string</short>
+<descr>
+Returns a pointer to the end of <var>P</var>. (i.e. to the terminating
+null-character.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="StrLen"/>
+</seealso>
+<example file="stringex/ex7"/>
+</element>
+
+<element name="StrIComp">
+<short>Compare 2 null-terminated strings, case insensitive.</short>
+<descr>
+<p>
+Compares the null-terminated strings <var>S1</var> and <var>S2</var>, ignoring case.
+The result is 
+</p>
+<ul>
+<li> A negative <var>Longint</var> when <var>S1&lt;S2</var>.
+</li>
+<li> 0 when <var>S1=S2</var>.
+</li>
+<li> A positive <var>Longint</var> when <var>S1&gt;S2</var>.
+</li>
+</ul>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="StrLComp"/>
+<link id="StrComp"/>
+<link id="StrLIComp"/>
+</seealso>
+<example file="stringex/ex8"/>
+</element>
+
+<element name="StrLCat">
+<short>Concatenate 2 null-terminated strings, with length boundary.</short>
+<descr>
+Adds <var>MaxLen</var> characters from <var>Source</var> to <var>Dest</var>, and adds a
+terminating null-character. Returns <var>Dest</var>.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="StrCat"/>
+</seealso>
+<example file="stringex/ex12"/>
+</element>
+
+
+<element name="StrLComp">
+<short>Compare limited number of characters of 2 null-terminated strings </short>
+<descr>
+<p>
+Compares maximum <var>L</var> characters of the null-terminated strings 
+<var>S1</var> and <var>S2</var>. 
+The result is 
+</p>
+<ul>
+<li> A negative <var>Longint</var> when <var>S1&lt;S2</var>.
+</li>
+<li> 0 when <var>S1=S2</var>.
+</li>
+<li> A positive <var>Longint</var> when <var>S1&gt;S2</var>.
+</li>
+</ul>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="StrComp"/>
+<link id="StrIComp"/>
+<link id="StrLIComp"/>
+</seealso>
+<example file="stringex/ex8"/>
+</element>
+
+
+<element name="StrLCopy">
+<short>Copy a null-terminated string, limited in length.</short>
+<descr>
+Copies <var>MaxLen</var> characters from <var>Source</var> to <var>Dest</var>, and makes
+<var>Dest</var> a null terminated string. 
+</descr>
+<errors>
+No length checking is performed.
+</errors>
+<seealso>
+<link id="StrCopy"/>
+<link id="StrECopy"/>
+</seealso>
+<example file="stringex/ex5"/>
+</element>
+
+
+<element name="StrLen">
+<short>Length of a null-terminated string.</short>
+<descr>
+Returns the length of the null-terminated string <var>P</var>.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="StrNew"/>
+</seealso>
+<example file="stringex/ex1"/>
+</element>
+
+
+<element name="StrLIComp">
+<short>Compare limited number of characters in 2 null-terminated strings,
+ignoring case.</short>
+<descr>
+<p>
+Compares maximum <var>L</var> characters of the null-terminated strings <var>S1</var> 
+and <var>S2</var>, ignoring case.
+The result is 
+</p>
+<ul>
+<li> A negative <var>Longint</var> when <var>S1&lt;S2</var>.
+</li>
+<li> 0 when <var>S1=S2</var>.
+</li>
+<li> A positive <var>Longint</var> when <var>S1&gt;S2</var>.
+</li>
+</ul>
+<p>
+For an example, see <link id="StrIComp"/>
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="StrLComp"/>
+<link id="StrComp"/>
+<link id="StrIComp"/>
+</seealso>
+</element>
+
+
+<element name="StrLower">
+<short>Convert null-terminated string to all-lowercase.</short>
+<descr>
+Converts <var>P</var> to an all-lowercase string. Returns <var>P</var>.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="StrUpper"/>
+</seealso>
+<example file="stringex/ex14"/>
+</element>
+
+
+<element name="StrMove">
+<short>Move a null-terminated string to new location.</short>
+<descr>
+Copies <var>MaxLen</var> characters from <var>Source</var> to <var>Dest</var>. No
+terminating null-character is copied.
+Returns <var>Dest</var>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="StrLCopy"/>
+<link id="StrCopy"/>
+</seealso>
+<example file="stringex/ex10"/>
+</element>
+
+
+<element name="StrNew">
+<short>Allocate room for new null-terminated string.</short>
+<descr>
+Copies <var>P</var> to the Heap, and returns a pointer to the copy.
+</descr>
+<errors>
+Returns <var>Nil</var> if no memory was available for the copy.
+</errors>
+<seealso>
+<link id="StrCopy"/>
+<link id="StrDispose"/>
+</seealso>
+<example file="stringex/ex16"/>
+</element>
+
+<element name="StrPas">
+<short>Convert a null-terminated string to a shortstring.</short>
+<descr>
+Converts a null terminated string in <var>P</var> to a Pascal string, and returns
+this string. The string is truncated at 255 characters.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="StrPCopy"/>
+</seealso>
+<example file="stringex/ex3"/>
+</element>
+
+
+<element name="StrPCopy">
+<short>Copy a pascal string to a null-terminated string</short>
+<descr>
+Converts the Pascal string in <var>Source</var> to a Null-terminated 
+string, and copies it to <var>Dest</var>. <var>Dest</var> needs enough room to contain
+the string <var>Source</var>, i.e. <var>Length(Source)+1</var> bytes.
+</descr>
+<errors>
+No length checking is performed.
+</errors>
+<seealso>
+<link id="StrPas"/>
+</seealso>
+<example file="stringex/ex2"/>
+</element>
+
+
+<element name="StrPos">
+<short>Search for a null-terminated substring in a null-terminated
+string</short>
+<descr>
+Returns a pointer to the first occurrence of <var>S2</var> in <var>S1</var>.
+If <var>S2</var> does not occur in <var>S1</var>, returns <var>Nil</var>.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="StrScan"/>
+<link id="StrRScan"/>
+</seealso>
+<example file="stringex/ex15"/>
+</element>
+
+<element name="StrRScan">
+<short>Find last occurrence of a character in a null-terminated string.</short>
+<descr>
+<p>
+Returns a pointer to the last occurrence of the character <var>C</var> in the
+null-terminated string <var>P</var>. If <var>C</var> does not occur, returns
+<var>Nil</var>.
+</p>
+<p>
+For an example, see <link id="StrScan"/>.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="StrScan"/>
+<link id="StrPos"/>
+</seealso>
+</element>
+
+
+
+
+<element name="StrScan">
+<short>Find first occurrence of a character in a null-terminated string.</short>
+<descr>
+Returns a pointer to the first occurrence of the character <var>C</var> in the
+null-terminated string <var>P</var>. If <var>C</var> does not occur, returns
+<var>Nil</var>.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="StrRScan"/>
+<link id="StrPos"/>
+</seealso>
+<example file="stringex/ex13"/>
+</element>
+
+
+<element name="StrUpper">
+<short>Convert null-terminated string to all-uppercase</short>
+<descr>
+<p>
+Converts <var>P</var> to an all-uppercase string. Returns <var>P</var>.
+</p>
+<p>
+For an example, see <link id="StrLower"/>
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="StrLower"/>
+</seealso>
+</element>
+
+</module>
+</package>
+</fpdoc-descriptions>
