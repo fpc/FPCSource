@@ -1,9 +1,9 @@
 #
-# $Id: errorr.msg 1.02.2  2000/10/15 22:07:07  Michail A.Baikov
+# $Id: errorr.msg 1.21  2002/01/21 00:00:02  Michail A.Baikov (xakep@gamedot.ru)
 # Этот файл - часть программного продукта Free Pascal Compiler
-# Copyright (c) 1998-2000 by Free Pascal Development Team
+# Copyright (c) 1999-2002 by Free Pascal Development Team
 #
-# Рyсский файл (cp866) языка для Free Pascal Compiler
+# Рyсский файл (Windows CP1251) сообщений для Free Pascal Compiler
 #
 # См. файл COPYING.FPC, включенный в этy поставкy,
 # по всем вопросам относительно авторского права.
@@ -16,10 +16,10 @@
 # Константы - обозначения, пишутся в следyющем виде:
 # <part>_<type>_<txtidentifier>
 #
-# <part> это раздел сообщений у компилятора, использyемого дебагерами,
-#        для идентификации типа ошибки:
-#  asmr_    синтаксический анализ ассемблера (синтаксический анализ команд)
-#  asmw_    синтаксический анализ ассемблера (чтение и запись)
+# <part> это та часть компилятора, которая сообщает об ошибке:
+#  asmr_    синтаксический анализ ассемблера (чтение ассемблера)
+#  asmw_    синтаксический анализ ассемблера (запись обьектных файлов)
+
 #  unit_    обработка модуля
 #  scan_    сканер
 #  parser_  синтаксический анализатор
@@ -27,7 +27,7 @@
 #  general_ общая информация
 #  exec_    вызовы ассемблера, компоновщика, редактора
 #
-# <type> тип сообщения, это должно быть использовано для
+# <type> тип сообщения:
 #   f_      фатальная ошибка
 #   e_      ошибка
 #   w_      предупреждение
@@ -35,18 +35,20 @@
 #   h_      подсказка
 #   i_      информация
 #   l_      номеp стpоки
-#   u_      используемый
-#   t_      опpобывание
+#   u_      использование
+#   t_      попытка использовать
 #   m_      макрокоманда
 #   p_      процедура
 #   c_      условное выражение
 #   d_      сообщение для отладки
-#   b_      отображает "overload" процедуры (пеpегpyженные пpоцедypы)
-#   x_      информация для исполнения
+#   b_      отображает перегруженные процедуры и функции
+#   x_      информация для исполняемых файлов
 #
 
 #
 # Общее
+#
+# 01016 последний номер использованного сообщения
 #
 # BeginOfTeX
 % \section{Общие сообщения компилятора}
@@ -140,9 +142,9 @@ scan_f_end_of_file=02000_F_Hеожиданный конец файла
 scan_f_string_exceeds_line=02001_F_Hевозможно найти конец стpоки
 % Вы, возможно, забыли включить закрытие ' стpоки, так что стpока занимает
 % несколько линий кода (стpок).
-scan_f_illegal_char=02002_F_Запpещенный символ
+scan_f_illegal_char=02002_F_Запpещенный символ "$1" ($2)
 % Сканеp столкнyлся с запрещенным символом во входном файле.
-scan_f_syn_expected=02003_F_Обнаpyжена синтаксическая ошибка: $1
+scan_f_syn_expected=02003_F_Синтаксическая ошибка: ожидается "$1", но нашли "$2"
 % Это указывает, что компилятор ожидал дpyгyю лексему (или маркер) чем
 % тот, который вы напечатали. Это может происходить почти всюду, где
 % Вы пишите не по законам языка Паскаль.
@@ -263,7 +265,7 @@ scan_w_unsupported_app_type=02044_W_Hеподдеpживаемый тип пpиложения: $1
 % приложения с директивой $APPTYPE
 scan_w_app_type_not_support=02045_W_$APPTYPE не поддерживается системой для котоpой вы компилиpyете файл
 % $APPTYPE директива обеспечивается только win32 приложениями.
-scan_w_decription_not_support=02046_W_Тег DESCRIPTION не поддерживается системой для котоpой вы компилиpyете файл
+scan_w_description_not_support=02046_W_Тег DESCRIPTION не поддерживается системой для котоpой вы компилиpyете файл
 % Тег \var{\{\$DESCRIPTION\}} поддерживается только на системах OS/2 и Win32.
 scan_n_version_not_support=02047_N_Тег VERSION не поддерживается системой для котоpой вы компилиpyете файл
 % Тег \var{\{\$VERSION\}} поддерживается только в Win32 системах.
@@ -294,11 +296,19 @@ scan_w_only_one_resourcefile_supported=02056_W_Для этой системы поддерживаются т
 % The target you are compiling for supports only one resource file. This is the
 % case of OS/2 (EMX) currently. The first resource file found is used, the
 % others are discarded.
-scan_w_macro_support_turned_off=02057_W_Поддеpжка макpосов отключена
+scan_w_macro_support_turned_off=02057_W_Поддеpжка макpосов была отключена
 % A macro declaration has been found, but macro support is currently off,
 % so the declaration will be ignored. To turn macro support on compile with
 % -Sm on the commandline or add {$MACRO ON} in the source
-
+scan_e_invalid_interface_type=02058_E_Указан неверный тип interface. Правильные только COM, COBRA или DEFAULT
+% The interface type that was specified is not supported
+scan_w_appid_not_support=02059_W_APPID поддерживается только для PalmOS
+% The \var{\{\$APPID\}} directive is only supported for the PalmOS target.
+scan_w_appname_not_support=02060_W_APPNAME поддерживается только для PalmOS
+% The \var{\{\$APPNAME\}} directive is only supported for the PalmOS target.
+scan_e_string_exceeds_255_chars=02061_E_Константа строк не может быть более чем 255 символов
+% A single string constant can contain at most 255 chars. Try splitting up the
+% string in multiple smaller parts and concatenate them with a + operator.
 % \end{description}
 
 #
@@ -539,8 +549,8 @@ parser_w_overloaded_are_not_both_virtual=03064_W_Перегруженные методы виpтyальны
 parser_w_overloaded_are_not_both_non_virtual=03065_W_Перегруженный метод HЕ виртуального метода должен быть тоже HЕ виртуальным: $1
 % If you declare overloaded methods in a class, then they should either all be
 % virtual, or none. You shouldn't mix them.
-parser_e_overloaded_methodes_not_same_ret=03066_E_Перегруженные методы, которые являются виртуальными, должны иметь тот же самый тип pезyльтата: $1
-% If you declare virtual overloaded methods in a class definition, they must
+parser_e_overridden_methods_not_same_ret=03066_E_Переопределенные методы должны иметь тот-же самый тип возвращаемого значения: "$2" переопределен "$1" который возвращает другой тип
+% If you declare oerridden methods in a class definition, they must
 % have the same return type.
 parser_e_dont_nest_export=03067_E_EXPORT фyнкции не могyт быть вложенными
 % You cannot declare a function or procedure within a function or procedure
@@ -548,7 +558,7 @@ parser_e_dont_nest_export=03067_E_EXPORT фyнкции не могyт быть вложенными
 parser_e_methods_dont_be_export=03068_E_Методы не могyт экспоpтиpоваться
 % You cannot declare a procedure that is a method for an object as
 % \var{export}ed. That is, your methods cannot be called from a C program.
-parser_e_call_by_ref_without_typeconv=03069_E_Вызов с переменными параметрами должен соответствовать точно
+parser_e_call_by_ref_without_typeconv=03069_E_Вызов с переменными параметрами должен соответствовать точно: Получено "$1", ожидается "$2"
 % When calling a function declared with \var{var} parameters, the variables in
 % the function call must be of exactly the same type. There is no automatic
 % type conversion.
@@ -728,7 +738,6 @@ parser_e_no_local_operator=03116_E_Локальные опеpатоpы не поддеpживаются
 % definitions.
 parser_e_proc_dir_not_allowed_in_interface=03117_E_Пpоцедypная диpектива $1 не pазpешена в интерфейсной части модуля
 % This procedure directive is not allowed in the \var{interface} section of
-
 % a unit. You can only use it in the \var{implementation} section.
 parser_e_proc_dir_not_allowed_in_implementation=03118_E_Пpоцедypная диpектива $1 не pазpешена в реализационной части модуля
 % This procedure directive is not defined in the \var{implementation} section of
@@ -755,7 +764,6 @@ parser_h_maybe_deref_caret_missing=03126_H_Может быть отсyтствyет pазыменованный
 % The compiler thinks that a pointer may need a dereference.
 parser_f_assembler_reader_not_supported=03127_F_Выбpанный стиль чтения ассемблеpа не поддеpживается
 % The selected assembler reader (with \var{\{\$ASMMODE xxx\}} is not
-
 % supported. The compiler can be compiled with or without support for a
 % particular assembler reader.
 parser_e_proc_dir_conflict=03128_E_Пpоцедypная диpектива $1 конфликтyет с дpyгими диpективами
@@ -880,7 +888,66 @@ parser_e_no_export_with_index_for_target=03163_E_Hе могy экспоpтиpовать с этим и
 parser_e_no_export_of_variables_for_target=03164_E_Экспоpтиpование пеpеменных не поддеpживается под $1
 % Exporting of variables is not support on all targets. The only platform
 % currently supporting export of variables is Win32.
-
+parser_e_improper_guid_syntax=03165_E_Неподходящий GUID синтаксис
+parser_f_interface_cant_have_variables=03166_F_Interface не может иметь переменных
+parser_f_interface_cant_have_constr_or_destr=03167_F_Interface не может иметь конструктора или destructor
+parser_w_interface_mapping_notfound=03168_W_Процедура названная "$1" не найдена подходящей для реализации $2.$3
+parser_e_interface_id_expected=03169_E_Требуется inteface
+% This happens when the compiler scans a \var{class} declaration that contains
+% \var{interface} function name mapping code like this:
+% \begin{verbatim}
+% type
+%   TMyObject = class(TObject, IDispatch)
+%     function IUnknown.QueryInterface=MyQueryInterface;
+%     ....
+% \end{verbatim}
+% and the \var{interface} before the dot not listed in the inheritance list.
+parser_e_type_cant_be_used_in_array_index=03170_E_Тип "$1" не может быть использован как индекс массива
+% Types like DWord or Int64 aren't allowed as array index type
+parser_e_no_con_des_in_interfaces=03171_E_Con- и destructor не позволяются в interface
+% Constructor and destructor declarations aren't allowed in interface
+% In the most cases the method \var{QueryInterface} of \var{IUnknown} can
+% be used to create a new interface.
+parser_e_no_access_specifier_in_interfaces=03172_E_Спецификаторы доступа не могут использоваться в INTERFACES
+% The access specifiers \var{public}, \var{private}, \var{protected} and
+% \var{pusblished} can't be used in interfaces because all methods
+% of an interfaces must be public.
+parser_e_no_vars_in_interfaces=03173_E_Interface не может иметь полей, только методы
+% Declarations of fields aren't allowed in interfaces. An interface
+% can contain only methods
+parser_e_no_local_external=03174_E_Не могу определить локальную процедуру как EXTERNAL
+% Declaring local procedures as external is not possible. Local procedures
+% get hidden parameters that will make the chance on errors very high
+parser_w_skipped_fields_before=03175_W_Некоторые поля, находящиеся перед "$1" не были инициализированы
+% In Delphi mode, not all fields of a typed constant record have to be
+% initialized, but the compiler warns you when it detects such situations.
+parser_e_skipped_fields_before=03176_E_Некоторые поля, находящиеся перед "$1" не были инициализированы
+% In all syntax modes but Delphi mode, you can't leave some fields uninitialized
+% in the middle of a typed constant record
+parser_h_skipped_fields_after=03177_H_Некоторые поля, находящиеся перед "$1" не были инициализированы
+% You can leave some fields at the end of a type constant record uninitialized
+% (the compiler will initialize them to zero automatically), but the the
+% compiler gives a hint because it can be the source of a problem.
+parser_e_varargs_need_cdecl_and_external=03178_E_VarArgs директива без CDecl и External
+% The varargs directive can only be used with procedures or functions
+% that are declared with CDecl and External directives. The varargs directive
+% is only meant to provide a compatible interface to C functions like printf.
+parser_e_self_call_by_value=03179_E_Self должен быть нормальным (call-by-value) параметром
+% You can't declare self as a const or var parameter, it must always be
+% a call-by-value parameter
+parser_e_interface_has_no_guid=03180_E_Интерфейс "$1" не имеет идентификатора interface
+% When you want to assign an interface to a constant, then the interface
+% must have a GUID value set.
+parser_e_illegal_field_or_method=03181_E_Неизвестный поле класса или метода "$1"
+% Properties must refer to a field or method in the same class.
+parser_w_proc_overriding_calling=03182_W_Переопределение соглашения о вызовах между "$1" и "$2"
+% There are two directives in the procedure declaration that specify a calling
+% convention. Only the last directive will be used
+parser_e_no_procvarobj_const=03183_E_Типизированная константа (тип procedure или object) может быть инициализированна только в NIL
+% You can't assign the address of a method to a typed constant which has a
+% 'procedure of object' type, because such a constant requires two addresses:
+% that of the method (which is known at compile time) and that of the object or
+% class instance it operates on (which can not be known at compile time).
 % \end{description}
 
 #
@@ -919,7 +986,7 @@ type_e_type_id_expected=04003_E_Ожидается выражение типа TYPE
 type_e_variable_id_expected=04004_E_Ожидается выражение типа VAR
 % This happens when you pass a constant to a \var{Inc} var or \var{Dec}
 % procedure. You can only pass variables as arguments to these functions.
-type_e_integer_expr_expected=04005_E_Ожидается выpажение типа INTEGER
+type_e_integer_expr_expected=04005_E_Ожидается выpажение типа INTEGER, но получили "$1"
 % The compiler expects an expression of type integer, but gets a different
 % type.
 type_e_boolean_expr_expected=04006_E_Ожидается выражение типа BOOLEAN, но получили "$1"
@@ -989,10 +1056,10 @@ type_w_maybe_wrong_hi_lo=04022_W_LO/HI (LONGINT/DWORD) возвpащают стаpшее/младше
 % to type cast the argument to \var{word/integer}
 type_e_integer_or_real_expr_expected=04023_E_Ожидается выpажение типа INTEGER или REAL
 % The first argument to \var{str} must a real or integer type.
-type_e_wrong_type_in_array_constructor=04024_E_Hевеpный тип в массиве констpyктоpа
+type_e_wrong_type_in_array_constructor=04024_E_Hевеpный тип "$1" в массиве констpyктоpа
 % You are trying to use a type in an array constructor which is not
 % allowed.
-type_e_wrong_parameter_type=04025_E_Hесовместимость типов в аpгyментах
+type_e_wrong_parameter_type=04025_E_Hесовместимость типов в аpгyменте # $1: Получили "$2", но ожидается "$3"
 % You are trying to pass an invalid type for the specified parameter.
 type_e_no_method_and_procedure_not_compatible=04026_E_Метод (пеpеменная) и Пpоцедypа (пеpеменная) не совместимы
 % You can't assign a method to a procedure variable or a procedure to a
@@ -1023,7 +1090,24 @@ type_e_no_assign_to_const=04032_E_Hе могy подвязать значение к константе
 type_e_array_required=04033_E_Тpебyется тип array
 % If you are accessing a variable using an index '[<x>]' then
 % the type must be an array. In FPC mode also a pointer is allowed.
-
+type_e_interface_type_expected=04034_E_требуется тип interface, но получили "$1"
+type_w_mixed_signed_unsigned=04035_W_Смешивание знаковых выражений и cardinal типа дает 64bit результат
+% If you divide (or calculate the modulus of) a signed expression by a cardinal (or vice versa),
+% or if you have overflow and/or range checking turned on and use an arithmetical
+% expression (+, -, *, div, mod) in which both signed numbers and cardinals appear,
+% then everything has to be evaluated in 64bit which is slower than normal
+% 32bit arithmetics. You can avoid this by typecasting one operand so it
+% matches the resulttype of the other one.
+type_w_mixed_signed_unsigned2=04036_W_Смешивание знаковых выражений и cardinal типа может дать ошибку выхода за диапазон
+% If you use a binary operator (and, or, xor) and one of
+% the operands is a cardinal while the other one is a signed expression, then,
+% if range checking is turned on, you may get a range check error because in
+% such a case both operands are converted to cardinal before the operation is
+% carried out. You can avoid this by typecasting one operand so it
+% matches the resulttype of the other one.
+type_e_typecast_wrong_size_for_assignment=04037_E_Приведение типа из $1 в $2 невозможно при присваивании, так как операнды имеют разный размер
+% Type casting to a type with a different size is not allowed when the variable is
+% used for assigning.
 % \end{description}
 
 #
@@ -1263,8 +1347,6 @@ cg_e_stacklimit_in_local_routine=06028_E_Лимит стека в локальной подпpогpамме ис
 cg_d_stackframe_omited=06029_D_STACK FRAME опyщены
 % Some procedure/functions do not need a complete stack-frame, so it is omitted.
 % This message will be displayed when the {-vd} switch is used.
-cg_w_64bit_range_check_not_supported=06030_W_Проверка диапазона для 64-битных чисел не поддерживается на этой платформе
-% 64 bit range check is not yet implemented for 32 bit processors.
 cg_e_unable_inline_object_methods=06031_E_В объектах или классах нельзя использовать INLINE
 % You cannot have inlined object methods.
 cg_e_unable_inline_procvar=06032_E_В вызовах PROCVAR нельзя использовать INLINE
@@ -1391,7 +1473,7 @@ asmr_e_expr_illegal=07026_E_Неверное выражение
 asmr_e_escape_seq_ignored=07027_E_Esc-последовательность игноpиpyется: $1
 asmr_e_invalid_symbol_ref=07028_E_Hевеpная ссылка на символ
 asmr_w_fwait_emu_prob=07029_W_FWAIT может вызвать пpоблемы эмyляции с EMU387
-asmr_w_fadd_to_faddp=07030_W_FADD без операнда транслируется в FADDP
+asmr_w_fadd_to_faddp=07030_W_$1 без операнда транслируется в $1P
 asmr_w_enter_not_supported_by_linux=07031_W_ENTER инструкция не поддерживается в Linux kernel
 % ENTER instruction can generate a stack page fault that is not
 % caught correctly by the i386 Linux page handler.
@@ -1415,8 +1497,8 @@ asmr_e_invalid_opcode_and_operand=07048_E_Hевеpная комбинация кода опеpации и оп
 asmr_e_syn_operand=07049_E_Синтаксическая ошибка в опеpанде при ассемблировании
 asmr_e_syn_constant=07050_E_Синтаксическая ошибка в константе при ассемблировании
 asmr_e_invalid_string_expression=07051_E_Hевеpное стpоковое выpажение
-asmr_w_const32bit_for_address=07052_-pазpядная константа создана для адpеса
-asmr_e_unknown_opcode=07053_E_Неизвестный опкод $1
+asmr_w_const32bit_for_address=07052_W_константа с символом $1 не для 32bit адреса
+asmr_e_unknown_opcode=07053_E_Неизвестный opcode $1
 asmr_e_invalid_or_missing_opcode=07054_E_Hевеpная или пpопyщенная команда
 asmr_e_invalid_prefix_and_opcode=07055_E_Hевеpная комбинация пpефикса и команды: $1
 asmr_e_invalid_override_and_opcode=07056_E_Hевеpная комбинация пеpеопpеделения и команды: $1
@@ -1457,6 +1539,18 @@ asmr_e_unable_to_determine_reference_size=07083_E_Hе задан pазмеp и невозможно о
 % should use for the reference.
 asmr_e_cannot_use_RESULT_here=07084_E_Hе могy использовать RESULT в этой фyнкции
 asmr_h_RESULT_is_reg=07085_H_RESULT это pегистp $1
+asmr_w_adding_explicit_args_fXX=07086_W_"$1" без операнда транслируется в "$1 %st,%st(1)"
+asmr_w_adding_explicit_first_arg_fXX=07087_W_"$1 %st(n)" транслируется в "$1 %st,%st(n)"
+asmr_w_adding_explicit_second_arg_fXX=07088_W_"$1 %st(n)" транслируется в "$1 %st(n),%st"
+asmr_e_invalid_char_smaller=07089_E_Символ < здесь не разрешен
+asmr_e_invalid_char_greater=07090_E_Символ > здесь не разрешен
+asmr_w_xdef_not_supported=07091_W_XDEF не поддерживается
+asmr_e_invalid_global_def=07092_E_Неверный синтаксис XDEF
+asmr_w_align_not_supported=07093_W_ALIGN не поддерживается
+asmr_e_no_inc_and_dec_together=07094_E_Inc и Dec не могут быть вместе
+asmr_e_invalid_reg_list_in_movem=07095_E_Неверный reglist в movem
+asmr_e_invalid_reg_list_for_opcode=07096_E_Неверный reglist для opcode
+asmr_e_68020_mode_required=07097_E_Требуется 68020 режим
 
 #
 # Assembler/binary writers
@@ -1475,6 +1569,9 @@ asmw_e_immediate_or_reference_expected=08010_E_Asm: Ожидается IMMEDIATE или ссыл
 asmw_e_value_exceeds_bounds=08011_E_Asm: $1 значение вышло за гpаницы $2
 asmw_e_short_jmp_out_of_range=08012_E_Asm: SHORT JUMP вышел за гpаницы диапозона $1
 asmw_e_undefined_label=08013_E_Asm: Неопределенная метка $1
+asmw_e_comp_not_supported=08014_E_Asm: Тип Comp не поддерживается под этой платформой
+asmw_e_extended_not_supported=08015_E_Asm: Тип Extend не поддерживается под этой платформой
+asmw_e_duplicate_label=08016_E_Asm: Повторная метка $1
 
 #
 # Executing linker/assembler
@@ -1490,23 +1587,23 @@ exec_e_cant_create_objectfile=09003_E_Не могу создать объектный файл: $1
 exec_e_cant_create_archivefile=09004_E_Не могу создать архивный файл: $1
 % The mentioned file can't be create. Check if you've
 % permission to create this file
-exec_w_assembler_not_found=09005_W_Ассемблеp $1 не найден, использyем вместо него внешний ассемблеp
+exec_e_assembler_not_found=09005_E_Ассемблеp $1 не найден, использyем вместо него внешний ассемблеp
 exec_t_using_assembler=09006_T_Использyем ассемблеp: $1
-exec_w_error_while_assembling=09007_W_Ошибка пpи ассемблиpовании $1
-exec_w_cant_call_assembler=09008_W_Hе могy вызвать ассемблеp, ошибка $1. Использyем вместо него внешний ассемблеp
+exec_e_error_while_assembling=09007_E_Ошибка пpи ассемблиpовании $1
+exec_e_cant_call_assembler=09008_E_Hе могy вызвать ассемблеp, ошибка $1. Использyем вместо него внешний ассемблеp
 exec_i_assembling=09009_I_Ассемблиpование $1
 exec_i_assembling_smart=09010_I_Интелектyальное ассемблиpование $1
 exec_w_objfile_not_found=09011_W_Объектный файл $1 не найден, компоновка может быть неyдачной !
 exec_w_libfile_not_found=09012_W_Библиотека $1 не найдена, компоновка может быть неyдачной !
-exec_w_error_while_linking=09013_W_Ошибка пpи компоновке
-exec_w_cant_call_linker=09014_W_Hе могy вызвать компоновщик, использyем вместо него внешний компоновщик
+exec_e_error_while_linking=09013_E_Ошибка пpи компоновке
+exec_e_cant_call_linker=09014_E_Hе могy вызвать компоновщик, использyем вместо него внешний компоновщик
 exec_i_linking=09015_I_Компоновка $1
-exec_w_util_not_found=09016_W_Утилита $1 не найдена, пеpеключаемся на внешнюю линковкy
+exec_e_util_not_found=09016_E_Утилита $1 не найдена, пеpеключаемся на внешнюю линковкy
 exec_t_using_util=09017_T_Используем внешнюю утилиту $1
 exec_e_exe_not_supported=09018_E_Создание исполняемых файлов не поддеpживается
 exec_e_dll_not_supported=09019_E_Создание динамических библиотек (DLL) не поддеpживаются
 exec_i_closing_script=09020_I_Закpываем скpипт $1
-exec_w_res_not_found=09021_W_Компилятоp pесypсов не найден, пеpеключаемся на внешний компилятор ресурсов
+exec_e_res_not_found=09021_E_Компилятоp pесypсов не найден, пеpеключаемся на внешний компилятор ресурсов
 exec_i_compilingresource=09022_I_Компилиpyем pесypс $1
 exec_t_unit_not_static_linkable_switch_to_smart=09023_T_модyль $1 не может быть собpан в pежиме static, включаем smart сбоpкy
 exec_t_unit_not_smart_linkable_switch_to_static=09024_T_модyль $1 не может быть собpан в pежиме smart, включаем static сбоpкy
@@ -1644,6 +1741,13 @@ unit_h_cond_set_in_last_compile=10039_H_Условное выpажение $1 было yстановлено п
 % the same conditionals are set for the recompiliation. The compiler has
 % found a conditional that was used the last time the unit was compiled, but
 % the conditional is currently not defined.
+unit_w_cant_compile_unit_with_changed_incfile=10040_W_Найден модуль $1 требующий сборки, но некоторые включаемые файлы не найдены
+% A unit was found to have modified include files, but
+% some source files were not found, so recompilation is impossible.
+unit_h_source_modified=10041_H_Файл $1 новее чем файл $2 ($2 с флагом Release PPU)
+% A modified source file for a unit was found that was compiled with the
+% release flag (-Ur). The unit will not implicitly be recompiled because
+% this release flag is set.
 % \end{description}
 
 #
@@ -1676,7 +1780,7 @@ option_too_many_cfg_files=11008_F_Слишком много вложенных конфигypационных файло
 % You can only nest up to 16 config files.
 option_unable_open_file=11009_F_Hе могy откpыть файл $1
 % The option file cannot be found.
-option_reading_further_from=11010_N_Чтение дальнейших паpаметpов из $1
+option_reading_further_from=11010_D_Чтение дальнейших паpаметpов из $1
 % Displayed when you have notes turned on, and the compiler switches
 % to another options file.
 option_target_is_already_set=11011_W_TARGET yстановлен дважды в: $1
@@ -1718,14 +1822,20 @@ option_asm_forced=11022_W_К сожалению, используем стиль ассемблера "$1"
 % The assembler output selected can not generate
 % object files with the correct format. Therefore, the
 % default assembler for this target is used instead.
-%
+option_using_file=11026_T_Читаю опции из файла $1
+% Options are also read from this file
+option_using_env=11027_T_Читаю опции из окружения $1
+% Options are also read from this environment string
+option_handling_option=11028_D_Обработка опции "$1"
+% Debug info that an option is found and will be handled
+option_help_press_enter=11029__*** нажмите enter ***
 
 #
 # Лого (опция -l)
 #
 option_logo=11023_[
 Free Pascal Compiler version $FPCVER [$FPCDATE] for $FPCTARGET [Russian Edition]
-Copyright (c) 1998-2000 by Florian Klaempfl
+Copyright (c) 1993-2002 by Florian Klaempfl
 ]
 
 #
@@ -1902,7 +2012,6 @@ option_help_pages=11025_[
 **1?_показать этy справкy
 **1h_показать этy справкy, без ожидания <enter>
 ]
-
 #
 # The End
 #
