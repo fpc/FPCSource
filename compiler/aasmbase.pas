@@ -153,7 +153,7 @@ interface
 
        TAsmObjectData = class(TLinkedListItem)
        private
-         FName      : string[80];
+         FName      : string{$ifndef VER1_9_4}[80]{$endif};
          FCurrSec   : TAsmSection;
          FSects     : TDictionary;
          FCAsmSection : TAsmSectionClass;
@@ -191,7 +191,7 @@ interface
          procedure afterwrite;virtual;
          procedure resetsections;
          procedure fixuprelocs;
-         property Name:string[80] read FName;
+         property Name:string{$ifndef VER1_9_4}[80]{$endif} read FName;
          property CurrSec:TAsmSection read FCurrSec;
          property Symbols:TindexArray read FSymbols;
          property Sects:TDictionary read FSects;
@@ -941,7 +941,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.24  2004-11-01 23:30:11  peter
+  Revision 1.25  2004-12-03 15:57:11  peter
+    * fix for 1.9.4 that IE'd when rebuilding fpc
+
+  Revision 1.24  2004/11/01 23:30:11  peter
     * support > 32bit accesses for x86_64
     * rewrote array size checking to support 64bit
 
