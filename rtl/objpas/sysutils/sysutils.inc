@@ -67,10 +67,10 @@
   { MCBS functions }
   {$i sysansi.inc}
 
-{$ifdef HASWIDESTRING}  
+{$ifndef VER1_0}  
   { wide string functions }
   {$i syswide.inc}
-{$endif}
+{$endif VER1_0}
 
   { CPU Specific code }
   {$i sysutilp.inc}

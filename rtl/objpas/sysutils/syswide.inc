@@ -42,8 +42,18 @@ function WideSameStr(const s1, s2 : WideString) : Boolean;
   	result:=widestringmanager.SameWideStringProc(s1,s2);
   end;
 
+
+function WideCompareText(const s1, s2 : WideString) : PtrInt;
+  begin
+  	result:=widestringmanager.CompareTextWideStringProc(s1,s2);
+  end;
+
 {
   $Log$
-  Revision 1.1  2005-02-01 20:22:50  florian
+  Revision 1.2  2005-02-03 18:40:02  florian
+    * compilation with 1.0.x fixed
+    + infrastructure for WideCompareText implemented
+
+  Revision 1.1  2005/02/01 20:22:50  florian
     * improved widestring infrastructure manager
 }

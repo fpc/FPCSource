@@ -23,9 +23,14 @@ function WideUpperCase(const s : WideString) : WideString;
 function WideLowerCase(const s : WideString) : WideString;
 function WideCompareStr(const s1, s2 : WideString) : PtrInt;
 function WideSameStr(const s1, s2 : WideString) : Boolean;
+function WideCompareText(const s1, s2 : WideString) : PtrInt;
 
 {
   $Log$
-  Revision 1.1  2005-02-01 20:22:50  florian
+  Revision 1.2  2005-02-03 18:40:02  florian
+    * compilation with 1.0.x fixed
+    + infrastructure for WideCompareText implemented
+
+  Revision 1.1  2005/02/01 20:22:50  florian
     * improved widestring infrastructure manager
 }

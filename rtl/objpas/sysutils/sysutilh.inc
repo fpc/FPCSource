@@ -206,10 +206,10 @@ Type
   { MCBS functions }
   {$i sysansih.inc}
 
-{$ifdef HASWIDESTRING}
+{$ifndef VER1_0}
   { wide string functions }
   {$i syswideh.inc}
-{$endif}
+{$endif VER1_0}
 
   { Read filename handling functions declaration }
   {$i finah.inc}
@@ -232,7 +232,11 @@ Type
 
 {
   $Log$
-  Revision 1.11  2005-02-03 16:21:59  peter
+  Revision 1.12  2005-02-03 18:40:02  florian
+    * compilation with 1.0.x fixed
+    + infrastructure for WideCompareText implemented
+
+  Revision 1.11  2005/02/03 16:21:59  peter
     * 1.0.x fix
 
   Revision 1.10  2005/02/01 20:22:50  florian
