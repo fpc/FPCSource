@@ -36,12 +36,16 @@ begin
   end;
 { give runtime error at the position where the signal was raised }
   if res<>0 then
-    HandleErrorAddrFrame(res,pointer(SigContext.uc.uc_mcontext.pt_regs^.nip),pointer(SigContext.uc.uc_mcontext.pt_regs^.gpr[1]));
+    HandleError(res);
+//    HandleErrorAddrFrame(res,pointer(SigContext.uc.uc_mcontext.pt_regs^.nip),pointer(SigContext.uc.uc_mcontext.pt_regs^.gpr[1]));
 end;
 
 {
   $Log$
-  Revision 1.1  2003-11-06 16:22:01  peter
+  Revision 1.2  2003-11-06 16:28:52  peter
+    * compile fix
+
+  Revision 1.1  2003/11/06 16:22:01  peter
     * sparc
 
   Revision 1.1  2003/11/02 14:53:06  jonas
@@ -55,4 +59,4 @@ end;
 
 
 }
- 
+
