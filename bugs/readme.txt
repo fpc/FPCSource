@@ -222,7 +222,7 @@ Fixed bugs:
   bug0194.pp   @procedure var returns value in it instead of address !! OK 0.99.11 (PM)
   bug0195.pp   Problem with Getimage, crash of DOS box, even with dpmiexcp!! (PFV)
                Not a bug, you must use p^.
-	       
+  bug0196.pp   "function a;" is accepted (should require result type) OK 0.99.1 (PM)
   bug0197.pp   should produce an error: problem with c1:=c2<c3 where c? is OK 0.99.11 (PM)
                a comp type
   bug0199.pp   bug in mul code                                OK 0.99.11  (FK)
@@ -261,6 +261,6 @@ bug0187.pp   constructor in a WIth statement isn't called correct.
 bug0190.pp   can't have typecast for var params ??
 bug0191.pp   missing vecn constant evaluation
 bug0193.pp   overflow checking for 8 and 16 bit operations wrong
-bug0196.pp   "function a;" is accepted (should require result type)
 bug0198.pp   calling specifications aren't allowed in class declarations,
              this should be allowed
+bug0200.pp   array of char overloading problem with strings
