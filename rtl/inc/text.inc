@@ -1,5 +1,6 @@
 {
     $Id$
+
     This file is part of the Free Pascal Run time library.
     Copyright (c) 1993,97 by the Free Pascal development team
 
@@ -774,7 +775,7 @@ Begin
      begin
        FileFunc(f.InOutFunc)(f);
        If f.BufPos>=f.BufEnd Then
-        break;
+         break;
      end;
     p:=@f.Bufptr^[f.BufPos];
     if SPos+f.BufEnd-f.BufPos>MaxLen then
@@ -828,12 +829,15 @@ var
   len : longint;
 Begin
 { Delete the string }
-  AnsiStr_Decr_ref (Pointer(S));
-  { We assign room for 1024 characters totally at random.... }
-  Pointer(s):=Pointer(NewAnsiString(1024));
-  len:=ReadPCharLen(f,pchar(s),1024);
-  pchar(pchar(s)+len)^:=#0;
-  PAnsiRec(Pointer(S)-FirstOff)^.Len:=len;
+  Setlength(S,0);
+  Repeat 
+    // SetLength will reallocate the length.
+    SetLength(S,Length(S)+255);
+    len:=ReadPCharLen(f,pchar(Pointer(S)+Length(S)-255),255);
+    If Len<255 then 
+      // Set actual length
+      SetLength(S,Length(S)-255+Len);
+  Until len<255;
 End;
 
 
@@ -1225,7 +1229,23 @@ end;
 
 {
   $Log$
-  Revision 1.46  1999-05-06 09:05:16  peter
+  Revision 1.46.2.1  1999-07-08 15:25:18  michael
+  + merged asistring fixes
+
+  Revision 1.50  1999/07/08 15:18:14  michael
+  * Now ansistring of arbitrary length can be read
+
+  Revision 1.49  1999/07/05 20:04:29  peter
+    * removed temp defines
+
+  Revision 1.48  1999/07/01 15:39:52  florian
+    + qword/int64 type released
+
+  Revision 1.47  1999/06/30 22:17:24  florian
+    + fpuint64 to system unit interface added: if it is true, the rtl
+      uses the fpu to do int64 operations, if possible
+
+  Revision 1.46  1999/05/06 09:05:16  peter
     * generic write_float str_float
 
   Revision 1.45  1999/04/26 18:27:26  peter
