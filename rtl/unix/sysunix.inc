@@ -785,7 +785,10 @@ End.
 
 {
   $Log$
-  Revision 1.27  2002-08-31 21:29:57  florian
+  Revision 1.28  2002-09-02 19:46:37  florian
+    * fixed line breaks
+
+  Revision 1.27  2002/08/31 21:29:57  florian
     * several PC related fixes
 
   Revision 1.26  2002/08/13 18:11:08  florian
