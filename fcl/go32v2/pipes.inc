@@ -21,8 +21,12 @@ Function CreatePipeHandles (Var Inhandle,OutHandle : Longint) : Boolean;
 begin
   Result := False;
 end;
+{
   $Log$
-  Revision 1.2  2000-07-13 11:32:58  michael
+  Revision 1.3  2000-07-22 12:27:48  jonas
+    * added missing "open comment braces" for the log section
+
+  Revision 1.2  2000/07/13 11:32:58  michael
   + removed logs
- 
+
 }
