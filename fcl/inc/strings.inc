@@ -471,9 +471,43 @@ end;
 
 
 Procedure TStrings.LoadFromStream(Stream: TStream); 
+{
+   Borlands method is no goed, since a pipe for 
+   Instance doesn't have a size. 
+   So we must do it the hard way.
+}
+Const BufSize = 1024;
+
+  Procedure ReallocMem (Var B : Pointer; OldSize :longint);
+  
+  Var NewB : Pointer;
+  
+  begin
+    GetMem(NewB,OldSIze+BufSize);
+    If OldSize>0 then // assume that if size=0, B also Nil
+      begin
+      System.Move (B^,NewB^,OldSize);
+      FreeMem (B,OldSize);
+      end;
+    B:=NewB;
+  end;
+
+
+Var Buffer            : Pointer;
+    BytesRead,BufLen  : Longint;
 
 begin
-  Text:=Stream.ReadAnsiString;
+  Buffer:=Nil;
+  BufLen:=0;
+  Repeat
+    ReAllocMem(Buffer,BufLen);
+    BytesRead:=Stream.Read((Buffer+BufLen)^,BufSize);
+    BufLen:=BufLen+BufSize;
+  Until BytesRead<>BufSize;
+  // Null-terminate !!
+  Pchar(Buffer)[BufLen-BufSize+BytesRead]:=#0;
+  Text:=PChar(Buffer);
+  FreeMem (Buffer,BufLen);
 end;
 
 
@@ -513,7 +547,7 @@ begin
   Stream.Write(Pointer(S)^,Length(S));
 end;
 
-Function GetNextLine (P : Pchar; Var S : String) : Boolean;
+Function GetNextLine (Var P : Pchar; Var S : String) : Boolean;
 
 Var PS : PChar;
 
@@ -534,9 +568,11 @@ end;
 Procedure TStrings.SetText(TheText: PChar); 
 
 Var S : String;
-
+    
 begin
-  While GetNextLine (TheText,S) do Add(S);
+  Clear;
+  While GetNextLine (TheText,S) do 
+    Add(S);
 end;
 
 
@@ -903,7 +939,10 @@ end;
 
 {
   $Log$
-  Revision 1.13  1999-02-04 21:41:12  michael
+  Revision 1.14  1999-02-06 08:21:00  michael
+  + Finally fixed loadfromstream
+
+  Revision 1.13  1999/02/04 21:41:12  michael
   + Fixed loadfromstream bug
 
   Revision 1.12  1999/02/04 17:19:14  michael
