@@ -33,12 +33,13 @@ interface
 
 
     uses
-{$IFDEF USE_SYSUTILS}
-      SysUtils,
-{$ELSE USE_SYSUTILS}
+{$ifdef Delphi}
+      sysutils,
+      dmisc,
+{$else Delphi}
       strings,
       dos,
-{$ENDIF USE_SYSUTILS}
+{$endif Delphi}
       systems,globtype,globals,aasmbase,aasmtai,ogbase;
 
     const
@@ -93,7 +94,7 @@ interface
 
         {# Actually does the call to the assembler file. Returns false
            if the assembling of the file failed.}
-        Function  CallAssembler(const command:string; const para:AnsiString):Boolean;
+        Function  CallAssembler(const command,para:string):Boolean;
 
         Function  DoAssemble:boolean;virtual;
         Procedure RemoveAsm;
@@ -283,45 +284,27 @@ Implementation
 
     procedure TExternalAssembler.CreateSmartLinkPath(const s:string);
       var
-{$IFDEF USE_SYSUTILS}
-        dir : TSearchRec;
-{$ELSE USE_SYSUTILS}
         dir : searchrec;
-{$ENDIF USE_SYSUTILS}
         hs  : string;
       begin
         if PathExists(s) then
          begin
            { the path exists, now we clean only all the .o and .s files }
            { .o files }
-{$IFDEF USE_SYSUTILS}
-           if findfirst(s+source_info.dirsep+'*'+target_info.objext,faAnyFile,dir) = 0
-           then repeat
-              RemoveFile(s+source_info.dirsep+dir.name);
-           until findnext(dir) <> 0;
-{$ELSE USE_SYSUTILS}
            findfirst(s+source_info.dirsep+'*'+target_info.objext,anyfile,dir);
            while (doserror=0) do
             begin
               RemoveFile(s+source_info.dirsep+dir.name);
               findnext(dir);
             end;
-{$ENDIF USE_SYSUTILS}
            findclose(dir);
            { .s files }
-{$IFDEF USE_SYSUTILS}
-           if findfirst(s+source_info.dirsep+'*'+target_info.asmext,faAnyFile,dir) = 0
-           then repeat
-             RemoveFile(s+source_info.dirsep+dir.name);
-           until findnext(dir) <> 0;
-{$ELSE USE_SYSUTILS}
            findfirst(s+source_info.dirsep+'*'+target_info.asmext,anyfile,dir);
            while (doserror=0) do
             begin
               RemoveFile(s+source_info.dirsep+dir.name);
               findnext(dir);
             end;
-{$ENDIF USE_SYSUTILS}
            findclose(dir);
          end
         else
@@ -375,30 +358,10 @@ Implementation
       end;
 
 
-    Function TExternalAssembler.CallAssembler(const command:string; const para:TCmdStr):Boolean;
-{$IFDEF USE_SYSUTILS}
-      var
-        DosExitCode:Integer;
-{$ENDIF USE_SYSUTILS}
+    Function TExternalAssembler.CallAssembler(const command,para:string):Boolean;
       begin
         callassembler:=true;
         if not(cs_asm_extern in aktglobalswitches) then
-{$IFDEF USE_SYSUTILS}
-        try
-          DosExitCode := ExecuteProcess(command,para);
-          if DosExitCode <>0
-          then begin
-            Message1(exec_e_error_while_assembling,tostr(dosexitcode));
-            callassembler:=false;
-          end;
-        except on E:EOSError do
-          begin
-            Message1(exec_e_cant_call_assembler,tostr(E.ErrorCode));
-            aktglobalswitches:=aktglobalswitches+[cs_asm_extern];
-            callassembler:=false;
-          end
-        end
-{$ELSE USE_SYSUTILS}
          begin
            swapvectors;
            exec(command,para);
@@ -416,9 +379,8 @@ Implementation
               callassembler:=false;
              end;
          end
-{$ENDIF USE_SYSUTILS}
         else
-          AsmRes.AddAsmCommand(command,para,name);
+         AsmRes.AddAsmCommand(command,para,name);
       end;
 
 
@@ -443,7 +405,7 @@ Implementation
 
     Function TExternalAssembler.DoAssemble:boolean;
       var
-        s : TCmdStr;
+        s : string;
       begin
         DoAssemble:=true;
         if DoPipe then
@@ -588,13 +550,13 @@ Implementation
          begin
            Assign(outfile,asmfile);
            {$I-}
-            Rewrite(outfile,1);
+           Rewrite(outfile,1);
            {$I+}
            if ioresult<>0 then
              begin
                ioerror:=true;
-            Message1(exec_d_cant_create_asmfile,asmfile);
-         end;
+               Message1(exec_d_cant_create_asmfile,asmfile);
+             end;
          end;
         outcnt:=0;
         AsmSize:=0;
@@ -605,7 +567,7 @@ Implementation
     procedure TExternalAssembler.AsmClose;
       var
         f : file;
-        FileAge : longint;
+        l : longint;
       begin
         AsmFlush;
 {$ifdef hasunix}
@@ -626,10 +588,10 @@ Implementation
               {$I+}
               if ioresult=0 then
                begin
-                 FileAge := FileGetDate(GetFileHandle(f));
+                 getftime(f,l);
                  close(f);
                  reset(outfile,1);
-                 FileSetDate(GetFileHandle(outFile),FileAge);
+                 setftime(outfile,l);
                end;
             end;
            close(outfile);
@@ -653,7 +615,7 @@ Implementation
         WriteAsmList;
         AsmClose;
         if not(ioerror) then
-        DoAssemble;
+          DoAssemble;
       end;
 
 
@@ -1676,14 +1638,17 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.78  2004-10-13 14:53:28  mazen
-  * Merge is complete for this file
+  Revision 1.79  2004-10-13 17:58:54  peter
+    * reverted USE_SYSUTILS patch until  ll patches are readyt
 
-  Revision 1.74.2.2  2004/09/28 15:45:34  mazen
-  - remove Dos unit dependency
+  Revision 1.77  2004/10/08 15:52:40  florian
+    + non writeable unit output directory produces a nice error message now
 
-  Revision 1.74.2.1  2004/09/22 15:06:41  mazen
-  * use SysUtils unit instead of Dos Unit
+  Revision 1.76  2004/10/04 18:26:51  peter
+    * debuginfo fixes
+
+  Revision 1.75  2004/10/04 15:48:11  peter
+    * AB_COMMON symbols need special relocation in stabs
 
   Revision 1.74  2004/08/27 20:53:52  peter
   don't lowercase filenames in stabs
