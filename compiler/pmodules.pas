@@ -753,7 +753,6 @@ implementation
     procedure gen_implicit_initfinal(list:taasmoutput;flag:word;st:tsymtable);
       var
         pd : tprocdef;
-        oldexitlabel : tasmlabel;
       begin
         { update module flags }
         current_module.flags:=current_module.flags or flag;
@@ -772,18 +771,14 @@ implementation
           else
             internalerror(200304253);
         end;
-        { save labels }
-        oldexitlabel:=aktexitlabel;
-        { generate a dummy function }
-        objectlibrary.getlabel(aktexitlabel);
         include(current_procinfo.flags,pi_do_call);
         gen_stackalloc_code(list,0);
-        genentrycode(list,false);
-        genexitcode(list,false);
+        gen_entry_code(list,false);
+        gen_initialize_code(list,false);
+        gen_finalize_code(list,false);
+        gen_exit_code(list,false);
         list.convert_registers;
         release_main_proc(pd);
-        { restore }
-        aktexitlabel:=oldexitlabel;
       end;
 
 
@@ -1461,7 +1456,12 @@ So, all parameters are passerd into registers in sparc architecture.}
 end.
 {
   $Log$
-  Revision 1.112  2003-06-07 20:26:32  peter
+  Revision 1.113  2003-06-09 12:23:30  peter
+    * init/final of procedure data splitted from genentrycode
+    * use asmnode getposition to insert final at the correct position
+      als for the implicit try...finally
+
+  Revision 1.112  2003/06/07 20:26:32  peter
     * re-resolving added instead of reloading from ppu
     * tderef object added to store deref info for resolving
 

@@ -63,12 +63,18 @@ interface
                               para_offset:longint;alignment : longint;
                               const locpara : tparalocation);
 
-    procedure genentrycode(list:TAAsmoutput;inlined:boolean);
-    procedure gen_stackalloc_code(list:Taasmoutput;stackframe:longint);
-    procedure genexitcode(list:Taasmoutput;inlined:boolean);
+    procedure gen_load_return_value(list:TAAsmoutput; var uses_acc,uses_acchi,uses_fpu : boolean);
+    procedure gen_initialize_code(list:TAAsmoutput;inlined:boolean);
+    procedure gen_finalize_code(list : TAAsmoutput;inlined:boolean);
 
+    procedure gen_entry_code(list:TAAsmoutput;inlined:boolean);
+    procedure gen_stackalloc_code(list:Taasmoutput;stackframe:longint);
+    procedure gen_exit_code(list:Taasmoutput;inlined:boolean);
+
+(*
     procedure geninlineentrycode(list : TAAsmoutput;stackframe:longint);
     procedure geninlineexitcode(list : TAAsmoutput;inlined:boolean);
+*)
 
    {#
       Allocate the buffers for exception management and setjmp environment.
@@ -993,7 +999,7 @@ implementation
 
 
 {****************************************************************************
-                                 Entry/Exit Code
+                            Init/Finalize Code
 ****************************************************************************}
 
     procedure copyvalueparas(p : tnamedindexitem;arg:pointer);
@@ -1147,6 +1153,7 @@ implementation
          end;
       end;
 
+
     { generates the code for decrementing the reference count of parameters }
     procedure final_paras(p : tnamedindexitem;arg:pointer);
       var
@@ -1256,40 +1263,103 @@ implementation
       end;
 
 
-    procedure load_return_value(list:TAAsmoutput; var uses_acc,uses_acchi,uses_fpu : boolean);
+    procedure gen_load_return_value(list:TAAsmoutput; var uses_acc,uses_acchi,uses_fpu : boolean);
       var
-        ressym: tvarsym;
-        resloc: tlocation;
+        ressym : tvarsym;
+        resloc : tlocation;
+        href   : treference;
         hreg,r,r2 : tregister;
       begin
-        if not is_void(current_procdef.rettype.def) then
-         begin
-           ressym := tvarsym(current_procdef.funcretsym);
-           if ressym.reg.enum <> R_NO then
-             begin
-               if paramanager.ret_in_param(current_procdef.rettype.def,current_procdef.proccalloption) then
-                 location_reset(resloc,LOC_CREGISTER,OS_ADDR)
-               else
-                 if ressym.vartype.def.deftype = floatdef then
-                   location_reset(resloc,LOC_CFPUREGISTER,def_cgsize(current_procdef.rettype.def))
-                 else
-                   location_reset(resloc,LOC_CREGISTER,def_cgsize(current_procdef.rettype.def));
-               resloc.register := ressym.reg;
-             end
-           else
-             begin
-               location_reset(resloc,LOC_REFERENCE,def_cgsize(current_procdef.rettype.def));
-               reference_reset_base(resloc.reference,current_procinfo.framepointer,tvarsym(current_procdef.funcretsym).adjusted_address);
-             end;
-           { Here, we return the function result. In most architectures, the value is
-             passed into the FUNCTION_RETURN_REG, but in a windowed architecure like sparc a
-             function returns in a register and the caller receives it in an other one }
-           case current_procdef.rettype.def.deftype of
-             orddef,
-             enumdef :
+        { Is the loading needed? }
+        if is_void(current_procdef.rettype.def) or
+           (
+            (po_assembler in current_procdef.procoptions) and
+            (not(assigned(current_procdef.funcretsym)) or
+             (tvarsym(current_procdef.funcretsym).refcount=0))
+           ) then
+          exit;
+
+        { Constructors need to return self }
+        if (current_procdef.proctypeoption=potype_constructor) then
+          begin
+            r.enum:=R_INTREGISTER;
+            r.number:=NR_FUNCTION_RETURN_REG;
+            cg.a_reg_alloc(list,r);
+            { return the self pointer }
+            ressym:=tvarsym(current_procdef.parast.search('self'));
+            if not assigned(ressym) then
+              internalerror(200305058);
+            reference_reset_base(href,current_procinfo.framepointer,tvarsym(ressym).adjusted_address);
+            cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,r);
+            cg.a_reg_dealloc(list,r);
+            uses_acc:=true;
+            exit;
+          end;
+
+        ressym := tvarsym(current_procdef.funcretsym);
+        if ressym.reg.enum <> R_NO then
+          begin
+            if paramanager.ret_in_param(current_procdef.rettype.def,current_procdef.proccalloption) then
+              location_reset(resloc,LOC_CREGISTER,OS_ADDR)
+            else
+              if ressym.vartype.def.deftype = floatdef then
+                location_reset(resloc,LOC_CFPUREGISTER,def_cgsize(current_procdef.rettype.def))
+              else
+                location_reset(resloc,LOC_CREGISTER,def_cgsize(current_procdef.rettype.def));
+            resloc.register := ressym.reg;
+          end
+        else
+          begin
+            location_reset(resloc,LOC_REFERENCE,def_cgsize(current_procdef.rettype.def));
+            reference_reset_base(resloc.reference,current_procinfo.framepointer,tvarsym(current_procdef.funcretsym).adjusted_address);
+          end;
+        { Here, we return the function result. In most architectures, the value is
+          passed into the FUNCTION_RETURN_REG, but in a windowed architecure like sparc a
+          function returns in a register and the caller receives it in an other one }
+        case current_procdef.rettype.def.deftype of
+          orddef,
+          enumdef :
+            begin
+              uses_acc:=true;
+{$ifndef cpu64bit}
+              if resloc.size in [OS_64,OS_S64] then
+               begin
+                 uses_acchi:=true;
+                 r.enum:=R_INTREGISTER;
+                 r.number:=NR_FUNCTION_RETURN64_LOW_REG;
+                 cg.a_reg_alloc(list,r);
+                 r2.enum:=R_INTREGISTER;
+                 r2.number:=NR_FUNCTION_RETURN64_HIGH_REG;
+                 cg.a_reg_alloc(list,r2);
+                 cg64.a_load64_loc_reg(list,resloc,joinreg64(r,r2){$ifdef newra},false{$endif});
+               end
+              else
+{$endif cpu64bit}
+               begin
+                 hreg.enum:=R_INTREGISTER;
+                 hreg.number:=NR_FUNCTION_RETURN_REG;
+                 hreg:=rg.makeregsize(hreg,resloc.size);
+                 cg.a_load_loc_reg(list,resloc.size,resloc,hreg);
+               end;
+            end;
+          floatdef :
+            begin
+              uses_fpu := true;
+{$ifdef cpufpemu}
+               if cs_fp_emulation in aktmoduleswitches then
+                 r.enum := FUNCTION_RETURN_REG
+              else
+{$endif cpufpemu}
+               r.enum:=FPU_RESULT_REG;
+              cg.a_loadfpu_loc_reg(list,resloc,r);
+            end;
+          else
+            begin
+              if not paramanager.ret_in_param(current_procdef.rettype.def,current_procdef.proccalloption) then
                begin
                  uses_acc:=true;
 {$ifndef cpu64bit}
+                 { Win32 can return records in EAX:EDX }
                  if resloc.size in [OS_64,OS_S64] then
                   begin
                     uses_acchi:=true;
@@ -1305,56 +1375,147 @@ implementation
 {$endif cpu64bit}
                   begin
                     hreg.enum:=R_INTREGISTER;
-                    hreg.number:=NR_FUNCTION_RETURN_REG;
-                    hreg:=rg.makeregsize(hreg,resloc.size);
+                    hreg.number:=(RS_FUNCTION_RETURN_REG shl 8) or cgsize2subreg(resloc.size);
                     cg.a_load_loc_reg(list,resloc.size,resloc,hreg);
                   end;
-               end;
-             floatdef :
-               begin
-                 uses_fpu := true;
-{$ifdef cpufpemu}
-                  if cs_fp_emulation in aktmoduleswitches then
-                    r.enum := FUNCTION_RETURN_REG
-                 else
-{$endif cpufpemu}
-                  r.enum:=FPU_RESULT_REG;
-                 cg.a_loadfpu_loc_reg(list,resloc,r);
-               end;
-             else
-               begin
-                 if not paramanager.ret_in_param(current_procdef.rettype.def,current_procdef.proccalloption) then
-                  begin
-                    uses_acc:=true;
-{$ifndef cpu64bit}
-                    { Win32 can return records in EAX:EDX }
-                    if resloc.size in [OS_64,OS_S64] then
-                     begin
-                       uses_acchi:=true;
-                       r.enum:=R_INTREGISTER;
-                       r.number:=NR_FUNCTION_RETURN64_LOW_REG;
-                       cg.a_reg_alloc(list,r);
-                       r2.enum:=R_INTREGISTER;
-                       r2.number:=NR_FUNCTION_RETURN64_HIGH_REG;
-                       cg.a_reg_alloc(list,r2);
-                       cg64.a_load64_loc_reg(list,resloc,joinreg64(r,r2){$ifdef newra},false{$endif});
-                     end
-                    else
-{$endif cpu64bit}
-                     begin
-                       hreg.enum:=R_INTREGISTER;
-                       hreg.number:=(RS_FUNCTION_RETURN_REG shl 8) or cgsize2subreg(resloc.size);
-                       cg.a_load_loc_reg(list,resloc.size,resloc,hreg);
-                     end;
-                   end
-               end;
-           end;
-         end;
+                end
+            end;
+        end;
       end;
 
 
+    procedure gen_initialize_code(list:TAAsmoutput;inlined:boolean);
+      var
+        href : treference;
+      begin
+        { the actual profile code can clobber some registers,
+          therefore if the context must be saved, do it before
+          the actual call to the profile code
+        }
+        if (cs_profile in aktmoduleswitches) and
+           not(po_assembler in current_procdef.procoptions) and
+           not(inlined) then
+          begin
+            { non-win32 can call mcout even in main }
+            if not (target_info.system in [system_i386_win32,system_i386_wdosx])  then
+              cg.g_profilecode(list)
+            else
+            { wdosx, and win32 should not call mcount before monstartup has been called }
+            if not (current_procdef.proctypeoption=potype_proginit) then
+              cg.g_profilecode(list);
+          end;
 
-    procedure genentrycode(list:TAAsmoutput;inlined:boolean);
+        { initialize return value }
+        initretvalue(list);
+
+        { initialize local data like ansistrings }
+        case current_procdef.proctypeoption of
+           potype_unitinit:
+             begin
+                { this is also used for initialization of variables in a
+                  program which does not have a globalsymtable }
+                if assigned(current_module.globalsymtable) then
+                  tsymtable(current_module.globalsymtable).foreach_static({$ifndef TP}@{$endif}initialize_data,list);
+                tsymtable(current_module.localsymtable).foreach_static({$ifndef TP}@{$endif}initialize_data,list);
+             end;
+           { units have seperate code for initilization and finalization }
+           potype_unitfinalize: ;
+           { program init/final is generated in separate procedure }
+           potype_proginit: ;
+           else
+             current_procdef.localst.foreach_static({$ifndef TP}@{$endif}initialize_data,list);
+        end;
+
+        { initialisizes temp. ansi/wide string data }
+        inittempvariables(list);
+
+        { generate copies of call by value parameters, must be done before
+          the initialization because the refcounts are incremented using
+          the local copies }
+        if not(po_assembler in current_procdef.procoptions) then
+          current_procdef.parast.foreach_static({$ifndef TP}@{$endif}copyvalueparas,list);
+
+        { initialize ansi/widesstring para's }
+        current_procdef.parast.foreach_static({$ifndef TP}@{$endif}init_paras,list);
+
+        if (not inlined) then
+         begin
+           { call startup helpers from main program }
+           if (current_procdef.proctypeoption=potype_proginit) then
+            begin
+              { initialize profiling for win32 }
+              if (target_info.system in [system_i386_win32,system_i386_wdosx]) and
+                 (cs_profile in aktmoduleswitches) then
+               begin
+                 reference_reset_symbol(href,objectlibrary.newasmsymboldata('etext'),0);
+                 cg.a_paramaddr_ref(list,href,paramanager.getintparaloc(list,2));
+                 reference_reset_symbol(href,objectlibrary.newasmsymboldata('__image_base__'),0);
+                 cg.a_paramaddr_ref(list,href,paramanager.getintparaloc(list,1));
+                 cg.a_call_name(list,'_monstartup');
+                 paramanager.freeintparaloc(list,2);
+                 paramanager.freeintparaloc(list,1);
+               end;
+
+              { initialize units }
+              cg.a_call_name(list,'FPC_INITIALIZEUNITS');
+            end;
+
+{$ifdef GDB}
+           if (cs_debuginfo in aktmoduleswitches) then
+            list.concat(Tai_force_line.Create);
+{$endif GDB}
+         end;
+
+        load_regvars(list,nil);
+      end;
+
+
+    procedure gen_finalize_code(list : TAAsmoutput;inlined:boolean);
+      begin
+        cg.a_label(list,current_procinfo.aktexitlabel);
+
+        cleanup_regvars(list);
+
+        { finalize temporary data }
+        finalizetempvariables(list);
+
+        { finalize local data like ansistrings}
+        case current_procdef.proctypeoption of
+           potype_unitfinalize:
+             begin
+                { this is also used for initialization of variables in a
+                  program which does not have a globalsymtable }
+                if assigned(current_module.globalsymtable) then
+                  tsymtable(current_module.globalsymtable).foreach_static({$ifndef TP}@{$endif}finalize_data,list);
+                tsymtable(current_module.localsymtable).foreach_static({$ifndef TP}@{$endif}finalize_data,list);
+             end;
+           { units/progs have separate code for initialization and finalization }
+           potype_unitinit: ;
+           { program init/final is generated in separate procedure }
+           potype_proginit: ;
+           else
+             current_procdef.localst.foreach_static({$ifndef TP}@{$endif}finalize_data,list);
+        end;
+
+        { finalize paras data }
+        if assigned(current_procdef.parast) then
+          current_procdef.parast.foreach_static({$ifndef TP}@{$endif}final_paras,list);
+
+        { call __EXIT for main program }
+        if (not DLLsource) and
+           (not inlined) and
+           (current_procdef.proctypeoption=potype_proginit) then
+          cg.a_call_name(list,'FPC_DO_EXIT');
+
+        cleanup_regvars(list);
+      end;
+
+
+{****************************************************************************
+                                Entry/Exit
+****************************************************************************}
+
+    procedure gen_entry_code(list:TAAsmoutput;inlined:boolean);
       var
         href : treference;
         hp : tparaitem;
@@ -1367,7 +1528,6 @@ implementation
 
         if assigned(current_procdef.parast) then
           begin
-
              if not (po_assembler in current_procdef.procoptions) then
                begin
                  { move register parameters which aren't regable into memory                               }
@@ -1423,7 +1583,6 @@ implementation
                end;
           end;
 
-
         { for the save all registers we can simply use a pusha,popa which
           push edi,esi,ebp,esp(ignored),ebx,edx,ecx,eax }
         if (po_saveregisters in current_procdef.procoptions) then
@@ -1444,90 +1603,8 @@ implementation
            rsp.number:=NR_STACK_POINTER_REG;
            cg.a_load_reg_ref(list,OS_ADDR,OS_ADDR,rsp,current_procinfo.save_stackptr_ref);
          end;
-
-        { the actual profile code can clobber some registers,
-          therefore if the context must be saved, do it before
-          the actual call to the profile code
-        }
-        if (cs_profile in aktmoduleswitches) and
-           not(po_assembler in current_procdef.procoptions) and
-           not(inlined) then
-          begin
-            { non-win32 can call mcout even in main }
-            if not (target_info.system in [system_i386_win32,system_i386_wdosx])  then
-              cg.g_profilecode(list)
-            else
-            { wdosx, and win32 should not call mcount before monstartup has been called }
-            if not (current_procdef.proctypeoption=potype_proginit) then
-              cg.g_profilecode(list);
-          end;
-
-        { initialize return value }
-        initretvalue(list);
-
-        { initialize local data like ansistrings }
-        case current_procdef.proctypeoption of
-           potype_unitinit:
-             begin
-                { this is also used for initialization of variables in a
-                  program which does not have a globalsymtable }
-                if assigned(current_module.globalsymtable) then
-                  tsymtable(current_module.globalsymtable).foreach_static({$ifndef TP}@{$endif}initialize_data,list);
-                tsymtable(current_module.localsymtable).foreach_static({$ifndef TP}@{$endif}initialize_data,list);
-             end;
-           { units have seperate code for initilization and finalization }
-           potype_unitfinalize: ;
-           { program init/final is generated in separate procedure }
-           potype_proginit: ;
-           else
-             current_procdef.localst.foreach_static({$ifndef TP}@{$endif}initialize_data,list);
-        end;
-
-        { initialisizes temp. ansi/wide string data }
-        inittempvariables(list);
-
-        { initialize ansi/widesstring para's }
-        if assigned(current_procdef.parast) then
-          begin
-             current_procdef.parast.foreach_static({$ifndef TP}@{$endif}init_paras,list);
-          end;
-
-        { generate copies of call by value parameters }
-        if not(po_assembler in current_procdef.procoptions) then
-          current_procdef.parast.foreach_static({$ifndef TP}@{$endif}copyvalueparas,list);
-
-        if (not inlined) then
-         begin
-           { call startup helpers from main program }
-           if (current_procdef.proctypeoption=potype_proginit) then
-            begin
-              { initialize profiling for win32 }
-              if (target_info.system in [system_i386_win32,system_i386_wdosx]) and
-                 (cs_profile in aktmoduleswitches) then
-               begin
-                 reference_reset_symbol(href,objectlibrary.newasmsymboldata('etext'),0);
-                 cg.a_paramaddr_ref(list,href,paramanager.getintparaloc(list,2));
-                 reference_reset_symbol(href,objectlibrary.newasmsymboldata('__image_base__'),0);
-                 cg.a_paramaddr_ref(list,href,paramanager.getintparaloc(list,1));
-                 cg.a_call_name(list,'_monstartup');
-                 paramanager.freeintparaloc(list,2);
-                 paramanager.freeintparaloc(list,1);
-               end;
-
-              { initialize units }
-              cg.a_call_name(list,'FPC_INITIALIZEUNITS');
-            end;
-
-{$ifdef GDB}
-           if (cs_debuginfo in aktmoduleswitches) then
-            list.concat(Tai_force_line.Create);
-{$endif GDB}
-         end;
-
-        if inlined then
-          load_regvars(list,nil);
-
       end;
+
 
     procedure gen_stackalloc_code(list:Taasmoutput;stackframe:longint);
 
@@ -1600,7 +1677,8 @@ implementation
         end;
     end;
 
-    procedure genexitcode(list : TAAsmoutput;inlined:boolean);
+
+    procedure gen_exit_code(list : TAAsmoutput;inlined:boolean);
 
       var
 {$ifdef GDB}
@@ -1608,82 +1686,18 @@ implementation
         mangled_length : longint;
         p : pchar;
 {$endif GDB}
-        okexitlabel : tasmlabel;
-        href : treference;
-        srsym : tsym;
         usesacc,
         usesacchi,
         usesfpu : boolean;
-        rsp,r : Tregister;
+        rsp : Tregister;
         retsize : longint;
       begin
-        if aktexitlabel.is_used then
-          cg.a_label(list,aktexitlabel);
-
-        cleanup_regvars(list);
-
-        { finalize temporary data }
-        finalizetempvariables(list);
-
-        { finalize local data like ansistrings}
-        case current_procdef.proctypeoption of
-           potype_unitfinalize:
-             begin
-                { this is also used for initialization of variables in a
-                  program which does not have a globalsymtable }
-                if assigned(current_module.globalsymtable) then
-                  tsymtable(current_module.globalsymtable).foreach_static({$ifndef TP}@{$endif}finalize_data,list);
-                tsymtable(current_module.localsymtable).foreach_static({$ifndef TP}@{$endif}finalize_data,list);
-             end;
-           { units/progs have separate code for initialization and finalization }
-           potype_unitinit: ;
-           { program init/final is generated in separate procedure }
-           potype_proginit: ;
-           else
-             current_procdef.localst.foreach_static({$ifndef TP}@{$endif}finalize_data,list);
-        end;
-
-        { finalize paras data }
-        if assigned(current_procdef.parast) then
-          current_procdef.parast.foreach_static({$ifndef TP}@{$endif}final_paras,list);
-
-        { call __EXIT for main program }
-        if (not DLLsource) and
-           (not inlined) and
-           (current_procdef.proctypeoption=potype_proginit) then
-         begin
-           cg.a_call_name(list,'FPC_DO_EXIT');
-         end;
-
         { handle return value, this is not done for assembler routines when
           they didn't reference the result variable }
         usesacc:=false;
+        usesfpu:=false;
         usesacchi:=false;
-        if not(po_assembler in current_procdef.procoptions) or
-           (assigned(current_procdef.funcretsym) and
-            (tvarsym(current_procdef.funcretsym).refcount>1)) then
-          begin
-            if (current_procdef.proctypeoption=potype_constructor) then
-              begin
-                objectlibrary.getlabel(okexitlabel);
-                cg.a_jmp_always(list,okexitlabel);
-                { Success exit }
-                cg.a_label(list,okexitlabel);
-                r.enum:=R_INTREGISTER;
-                r.number:=NR_FUNCTION_RETURN_REG;
-                cg.a_reg_alloc(list,r);
-                { return the self pointer }
-                srsym:=tvarsym(current_procdef.parast.search('self'));
-                if not assigned(srsym) then
-                  internalerror(200305058);
-                reference_reset_base(href,current_procinfo.framepointer,tvarsym(srsym).adjusted_address);
-                cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,r);
-                cg.a_reg_dealloc(list,r);
-                usesacc:=true;
-              end
-            else
-              load_return_value(list,usesacc,usesacchi,usesfpu)
-          end;
+        gen_load_return_value(list,usesacc,usesacchi,usesfpu);
 
 {$ifdef GDB}
         if ((cs_debuginfo in aktmoduleswitches) and not inlined) then
@@ -1812,9 +1826,6 @@ implementation
             freemem(p,2*mangled_length+50);
           end;
 {$endif GDB}
-
-        if inlined then
-         cleanup_regvars(list);
       end;
 
 
@@ -1822,6 +1833,7 @@ implementation
                                  Inlining
 ****************************************************************************}
 
+(*
     procedure load_inlined_return_value(list:TAAsmoutput);
       var
         ressym: tvarsym;
@@ -1959,11 +1971,17 @@ implementation
 
         cleanup_regvars(list);
       end;
+*)
 
 end.
 {
   $Log$
-  Revision 1.123  2003-06-07 18:57:04  jonas
+  Revision 1.124  2003-06-09 12:23:30  peter
+    * init/final of procedure data splitted from genentrycode
+    * use asmnode getposition to insert final at the correct position
+      als for the implicit try...finally
+
+  Revision 1.123  2003/06/07 18:57:04  jonas
     + added freeintparaloc
     * ppc get/freeintparaloc now check whether the parameter regs are
       properly allocated/deallocated (and get an extra list para)

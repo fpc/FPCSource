@@ -1040,10 +1040,10 @@ implementation
          oldprocinfo : tprocinfo;
          oldinlining_procedure : boolean;
          inlineentrycode,inlineexitcode : TAAsmoutput;
-         oldexitlabel:tasmlabel;
          oldregstate: pointer;
          old_local_fixup,
          old_para_fixup : longint;
+         usesacc,usesacchi,usesfpu : boolean;
          pararef,
          localsref : treference;
 {$ifdef GDB}
@@ -1056,10 +1056,8 @@ implementation
            internalerror(200305262);
 
          oldinlining_procedure:=inlining_procedure;
-         oldexitlabel:=aktexitlabel;
          oldprocdef:=current_procdef;
          oldprocinfo:=current_procinfo;
-         objectlibrary.getlabel(aktexitlabel);
          { we're inlining a procedure }
          inlining_procedure:=true;
 
@@ -1258,7 +1256,7 @@ implementation
          inlineentrycode:=TAAsmoutput.Create;
          inlineexitcode:=TAAsmoutput.Create;
 
-         geninlineentrycode(inlineentrycode,0);
+         gen_initialize_code(inlineentrycode,true);
          if po_assembler in current_procdef.procoptions then
            inlineentrycode.insert(Tai_marker.Create(asmblockstart));
          exprasmList.concatlist(inlineentrycode);
@@ -1279,7 +1277,8 @@ implementation
          testregisters32;
 {$endif TEMPREGDEBUG}
 
-         geninlineexitcode(inlineexitcode,true);
+         gen_finalize_code(inlineexitcode,true);
+         gen_load_return_value(inlineexitcode,usesacc,usesacchi,usesfpu);
          if po_assembler in current_procdef.procoptions then
            inlineexitcode.concat(Tai_marker.Create(asmblockend));
          exprasmList.concatlist(inlineexitcode);
@@ -1383,7 +1382,6 @@ implementation
 
          { restore }
          current_procdef:=oldprocdef;
-         aktexitlabel:=oldexitlabel;
          inlining_procedure:=oldinlining_procedure;
 
          { reallocate the registers used for the current procedure's regvars, }
@@ -1409,7 +1407,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.88  2003-06-08 20:01:53  jonas
+  Revision 1.89  2003-06-09 12:23:29  peter
+    * init/final of procedure data splitted from genentrycode
+    * use asmnode getposition to insert final at the correct position
+      als for the implicit try...finally
+
+  Revision 1.88  2003/06/08 20:01:53  jonas
     * optimized assignments with on the right side a function that returns
       an ansi- or widestring
 

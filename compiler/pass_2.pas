@@ -279,13 +279,13 @@ implementation
 
               { process register variable stuff (JM) }
               assign_regvars(p);
-              load_regvars(current_procinfo.aktentrycode,p);
+//              load_regvars(current_procinfo.aktentrycode,p);
 
               { for the i386 it must be done in genexitcode because it has  }
               { to add 'fstp' instructions when using fpu regvars and those }
               { must come after the "exitlabel" (JM)                        }
 {$ifndef i386}
-              cleanup_regvars(current_procinfo.aktexitcode);
+//              cleanup_regvars(current_procinfo.aktexitcode);
 {$endif i386}
 {$ifdef newra}
               if current_procinfo.framepointer.number=NR_EBP then
@@ -309,7 +309,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.54  2003-06-03 13:01:59  daniel
+  Revision 1.55  2003-06-09 12:23:30  peter
+    * init/final of procedure data splitted from genentrycode
+    * use asmnode getposition to insert final at the correct position
+      als for the implicit try...finally
+
+  Revision 1.54  2003/06/03 13:01:59  daniel
     * Register allocator finished
 
   Revision 1.53  2003/05/26 21:17:17  peter

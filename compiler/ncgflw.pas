@@ -719,7 +719,7 @@ implementation
          if assigned(left) then
            secondpass(left);
 
-         cg.a_jmp_always(exprasmlist,aktexitlabel);
+         cg.a_jmp_always(exprasmlist,current_procinfo.aktexitlabel);
        end;
 
 
@@ -935,7 +935,7 @@ implementation
          oldendexceptlabel:=endexceptlabel;
 
          { save the old labels for control flow statements }
-         oldaktexitlabel:=aktexitlabel;
+         oldaktexitlabel:=current_procinfo.aktexitlabel;
          if assigned(aktbreaklabel) then
            begin
               oldaktcontinuelabel:=aktcontinuelabel;
@@ -962,7 +962,7 @@ implementation
 
          { try block }
          { set control flow labels for the try block }
-         aktexitlabel:=exittrylabel;
+         current_procinfo.aktexitlabel:=exittrylabel;
          if assigned(oldaktbreaklabel) then
           begin
             aktcontinuelabel:=continuetrylabel;
@@ -983,7 +983,7 @@ implementation
 
          { set control flow labels for the except block }
          { and the on statements                        }
-         aktexitlabel:=exitexceptlabel;
+         current_procinfo.aktexitlabel:=exitexceptlabel;
          if assigned(oldaktbreaklabel) then
           begin
             aktcontinuelabel:=continueexceptlabel;
@@ -1108,7 +1108,7 @@ implementation
          endexceptlabel:=oldendexceptlabel;
 
          { restore the control flow labels }
-         aktexitlabel:=oldaktexitlabel;
+         current_procinfo.aktexitlabel:=oldaktexitlabel;
          if assigned(oldaktbreaklabel) then
           begin
             aktcontinuelabel:=oldaktcontinuelabel;
@@ -1173,9 +1173,9 @@ implementation
 
          if assigned(right) then
            begin
-              oldaktexitlabel:=aktexitlabel;
+              oldaktexitlabel:=current_procinfo.aktexitlabel;
               objectlibrary.getlabel(exitonlabel);
-              aktexitlabel:=exitonlabel;
+              current_procinfo.aktexitlabel:=exitonlabel;
               if assigned(aktbreaklabel) then
                begin
                  oldaktcontinuelabel:=aktcontinuelabel;
@@ -1231,7 +1231,7 @@ implementation
                    cg.a_jmp_always(exprasmlist,oldaktcontinuelabel);
                 end;
 
-              aktexitlabel:=oldaktexitlabel;
+              current_procinfo.aktexitlabel:=oldaktexitlabel;
               if assigned(oldaktbreaklabel) then
                begin
                  aktcontinuelabel:=oldaktcontinuelabel;
@@ -1284,12 +1284,12 @@ implementation
 
          { the finally block must catch break, continue and exit }
          { statements                                            }
-         oldaktexitlabel:=aktexitlabel;
+         oldaktexitlabel:=current_procinfo.aktexitlabel;
          if implicitframe then
            exitfinallylabel:=finallylabel
          else
            objectlibrary.getlabel(exitfinallylabel);
-         aktexitlabel:=exitfinallylabel;
+         current_procinfo.aktexitlabel:=exitfinallylabel;
          if assigned(aktbreaklabel) then
           begin
             oldaktcontinuelabel:=aktcontinuelabel;
@@ -1401,7 +1401,7 @@ implementation
            end;
          cg.a_label(exprasmlist,endfinallylabel);
 
-         aktexitlabel:=oldaktexitlabel;
+         current_procinfo.aktexitlabel:=oldaktexitlabel;
          if assigned(aktbreaklabel) then
           begin
             aktcontinuelabel:=oldaktcontinuelabel;
@@ -1427,7 +1427,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.69  2003-06-07 18:57:04  jonas
+  Revision 1.70  2003-06-09 12:23:30  peter
+    * init/final of procedure data splitted from genentrycode
+    * use asmnode getposition to insert final at the correct position
+      als for the implicit try...finally
+
+  Revision 1.69  2003/06/07 18:57:04  jonas
     + added freeintparaloc
     * ppc get/freeintparaloc now check whether the parameter regs are
       properly allocated/deallocated (and get an extra list para)

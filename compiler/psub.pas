@@ -35,6 +35,9 @@ interface
       tcgprocinfo=class(tprocinfo)
         { code for the subroutine as tree }
         code : tnode;
+        { positions in the tree for init/final }
+        initasmnode,
+        finalasmnode : tnode;
         { list to store the procinfo's of the nested procedures }
         nestedprocs : tlinkedlist;
         constructor create(aparent:tprocinfo);override;
@@ -254,6 +257,10 @@ implementation
       begin
         result:=internalstatements(newstatement,true);
 
+        { temp/para/locals initialize code will be inserted here }
+        tcgprocinfo(current_procinfo).initasmnode:=casmnode.create_get_position;
+        addstatement(newstatement,tcgprocinfo(current_procinfo).initasmnode);
+
         if assigned(current_procdef._class) then
           begin
             { a constructor needs a help procedure }
@@ -347,7 +354,9 @@ implementation
 
     function generate_finalize_block:tnode;
       begin
-        result:=cnothingnode.create;
+        { temp/para/locals finalize code will be inserted here }
+        tcgprocinfo(current_procinfo).finalasmnode:=casmnode.create_get_position;
+        result:=tcgprocinfo(current_procinfo).finalasmnode;
       end;
 
 
@@ -557,9 +566,9 @@ implementation
       var
         oldprocdef : tprocdef;
         oldprocinfo : tprocinfo;
-        oldexitlabel : tasmlabel;
         oldaktmaxfpuregisters : longint;
         oldfilepos : tfileposinfo;
+        templist,
         stackalloccode : Taasmoutput;
 
       begin
@@ -577,12 +586,10 @@ implementation
         current_procinfo:=self;
         current_procdef:=procdef;
 
-        { save old labels }
-        oldexitlabel:=aktexitlabel;
         { get new labels }
-        objectlibrary.getlabel(aktexitlabel);
         aktbreaklabel:=nil;
         aktcontinuelabel:=nil;
+        templist:=Taasmoutput.create;
 
         { add parast/localst to symtablestack }
         add_to_symtablestack;
@@ -597,25 +604,34 @@ implementation
       {$endif}
 
         { set the start offset to the start of the temp area in the stack }
-        tg.setfirsttemp(current_procinfo.firsttemp_offset);
+        tg.setfirsttemp(firsttemp_offset);
 
         generatecode(code);
 
-        { first generate entry code with the correct position and switches }
-        aktfilepos:=current_procinfo.entrypos;
-        aktlocalswitches:=current_procinfo.entryswitches;
-        genentrycode(current_procinfo.aktentrycode,false);
+        { first generate entry and initialize code with the correct
+          position and switches }
+        aktfilepos:=entrypos;
+        aktlocalswitches:=entryswitches;
+        gen_initialize_code(templist,false);
+        aktproccode.insertlistafter(tasmnode(initasmnode).currenttai,templist);
+        gen_entry_code(templist,false);
+        aktproccode.insertlist(templist);
 
-        { now generate exit code with the correct position and switches }
-        aktfilepos:=current_procinfo.exitpos;
-        aktlocalswitches:=current_procinfo.exitswitches;
-        genexitcode(current_procinfo.aktexitcode,false);
+        { now generate finalize and exit code with the correct position
+          and switches }
+        aktfilepos:=exitpos;
+        aktlocalswitches:=exitswitches;
+        gen_finalize_code(templist,false);
+        { the finalcode must be added if the was no position available,
+          using insertlistafter will result in an insert at the start
+          when currentai=nil }
+        if assigned(tasmnode(finalasmnode).currenttai) then
+          aktproccode.insertlistafter(tasmnode(finalasmnode).currenttai,templist)
+        else
+          aktproccode.concatlist(templist);
+        gen_exit_code(templist,false);
+        aktproccode.concatlist(templist);
 
-        { now all the registers used are known }
-{        current_procdef.usedintregisters:=rg.usedintinproc;
-        current_procdef.usedotherregisters:=rg.usedinproc;}
-        current_procinfo.aktproccode.insertlist(current_procinfo.aktentrycode);
-        current_procinfo.aktproccode.concatlist(current_procinfo.aktexitcode);
 {$ifdef newra}
 {                rg.writegraph;}
 {$endif}
@@ -627,16 +643,16 @@ implementation
               rg.prepare_colouring;
               rg.colour_registers;
               rg.epilogue_colouring;
-            until (rg.spillednodes='') or not rg.spill_registers(current_procinfo.aktproccode,rg.spillednodes);
-            current_procinfo.aktproccode.translate_registers(rg.colour);
-            current_procinfo.aktproccode.convert_registers;
+            until (rg.spillednodes='') or not rg.spill_registers(aktproccode,rg.spillednodes);
+            aktproccode.translate_registers(rg.colour);
+            aktproccode.convert_registers;
 {$else newra}
-            current_procinfo.aktproccode.convert_registers;
+            aktproccode.convert_registers;
 {$ifndef NoOpt}
             if (cs_optimize in aktglobalswitches) and
             { do not optimize pure assembler procedures }
                not(pi_is_assembler in current_procinfo.flags)  then
-              optimize(current_procinfo.aktproccode);
+              optimize(aktproccode);
 {$endif NoOpt}
 {$endif newra}
           end;
@@ -644,31 +660,31 @@ implementation
         stackalloccode:=Taasmoutput.create;
         gen_stackalloc_code(stackalloccode,0);
         stackalloccode.convert_registers;
-        current_procinfo.aktproccode.insertlist(stackalloccode);
+        aktproccode.insertlist(stackalloccode);
         stackalloccode.destroy;
 
         { now all the registers used are known }
         { Remove all imaginary registers from the used list.}
 {$ifdef newra}
-        current_procdef.usedintregisters:=rg.usedintinproc*ALL_INTREGISTERS-rg.savedbyproc;
+        procdef.usedintregisters:=rg.usedintinproc*ALL_INTREGISTERS-rg.savedbyproc;
 {$else}
-        current_procdef.usedintregisters:=rg.usedintinproc;
+        procdef.usedintregisters:=rg.usedintinproc;
 {$endif}
-        current_procdef.usedotherregisters:=rg.usedinproc;
+        procdef.usedotherregisters:=rg.usedinproc;
 
         { save local data (casetable) also in the same file }
-        if assigned(current_procinfo.aktlocaldata) and
-           (not current_procinfo.aktlocaldata.empty) then
+        if assigned(aktlocaldata) and
+           (not aktlocaldata.empty) then
          begin
-           current_procinfo.aktproccode.concat(Tai_section.Create(sec_data));
-           current_procinfo.aktproccode.concatlist(current_procinfo.aktlocaldata);
-           current_procinfo.aktproccode.concat(Tai_section.Create(sec_code));
+           aktproccode.concat(Tai_section.Create(sec_data));
+           aktproccode.concatlist(aktlocaldata);
+           aktproccode.concat(Tai_section.Create(sec_code));
         end;
 
         { add the procedure to the codesegment }
         if (cs_create_smart in aktmoduleswitches) then
-         codesegment.concat(Tai_cut.Create);
-        codesegment.concatlist(current_procinfo.aktproccode);
+          codesegment.concat(Tai_cut.Create);
+        codesegment.concatlist(aktproccode);
 
         { all registers can be used again }
         rg.resetusableregisters;
@@ -678,10 +694,8 @@ implementation
         { restore symtablestack }
         remove_from_symtablestack;
 
-        { restore labels }
-        aktexitlabel:=oldexitlabel;
-
         { restore }
+        templist.free;
         aktmaxfpuregisters:=oldaktmaxfpuregisters;
         aktfilepos:=oldfilepos;
         current_procdef:=oldprocdef;
@@ -770,7 +784,6 @@ implementation
     procedure tcgprocinfo.parse_body;
       var
          oldprocdef : tprocdef;
-         stackalloccode : Taasmoutput;
          oldprocinfo : tprocinfo;
       begin
          oldprocdef:=current_procdef;
@@ -922,9 +935,6 @@ implementation
 
 
     procedure check_init_paras(p:tnamedindexitem;arg:pointer);
-      var
-        vs : tvarsym;
-        pd : tprocdef;
       begin
         if tsym(p).typ<>varsym then
          exit;
@@ -1259,7 +1269,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.124  2003-06-07 19:37:43  jonas
+  Revision 1.125  2003-06-09 12:23:30  peter
+    * init/final of procedure data splitted from genentrycode
+    * use asmnode getposition to insert final at the correct position
+      als for the implicit try...finally
+
+  Revision 1.124  2003/06/07 19:37:43  jonas
     * pi_do_call must always be set for the main program, since it always
       ends with a call to FPC_DO_EXIT
 

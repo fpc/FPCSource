@@ -89,31 +89,6 @@ unit cgbase;
           {# register used as frame pointer }
           framepointer : tregister;
 
-          {# Holds the environment reference for default exceptions
-
-             The exception reference is created when ansistrings
-             or classes are used. It holds buffer for exception
-             frames. It is allocted by g_new_exception.
-          }
-          exception_env_ref : treference;
-          {# Holds the environment reference for default exceptions
-
-             The exception reference is created when ansistrings
-             or classes are used. It holds buffer for setjmp
-             It is allocted by g_new_exception.
-          }
-          exception_jmp_ref :treference;
-          {# Holds the environment reference for default exceptions
-
-             The exception reference is created when ansistrings
-             or classes are used. It holds the location where
-             temporary storage of the setjmp result is stored.
-
-             This reference can be unused, if the result is instead
-             saved on the stack.
-          }
-          exception_result_ref :treference;
-
           {# Holds the reference used to store the original stackpointer
              after all registers are saved
           }
@@ -125,16 +100,15 @@ unit cgbase;
              systems
           }
           save_regs_ref : treference;
+
+          { label to leave the sub routine }
+          aktexitlabel : tasmlabel;
+
           {# The code for the routine itself, excluding entry and
              exit code. This is a linked list of tai classes.
           }
           aktproccode : taasmoutput;
-          {# The code for the routine entry code.
-          }
-          aktentrycode: taasmoutput;
-          {# The code for the routine exit code.
-          }
-          aktexitcode: taasmoutput;
+          { Data (like jump tables) that belongs to this routine }
           aktlocaldata : taasmoutput;
 
           constructor create(aparent:tprocinfo);virtual;
@@ -182,9 +156,6 @@ unit cgbase;
 
        { label when the result is true or false }
        truelabel,falselabel : tasmlabel;
-
-       { label to leave the sub routine }
-       aktexitlabel : tasmlabel;
 
        {# true, if there was an error while code generation occurs }
        codegenerror : boolean;
@@ -349,25 +320,21 @@ implementation
         flags:=[];
         framepointer.enum:=R_INTREGISTER;
         framepointer.number:=NR_FRAME_POINTER_REG;
-
-        aktentrycode:=Taasmoutput.Create;
-        aktexitcode:=Taasmoutput.Create;
+        { asmlists }
         aktproccode:=Taasmoutput.Create;
         aktlocaldata:=Taasmoutput.Create;
-        reference_reset(exception_env_ref);
-        reference_reset(exception_jmp_ref);
-        reference_reset(exception_result_ref);
         reference_reset(save_stackptr_ref);
+        { labels }
+        objectlibrary.getlabel(aktexitlabel);
       end;
 
 
     destructor tprocinfo.destroy;
       begin
-         aktentrycode.free;
-         aktexitcode.free;
          aktproccode.free;
          aktlocaldata.free;
       end;
+
 
     procedure tprocinfo.allocate_interrupt_stackframe;
       begin
@@ -408,8 +375,6 @@ implementation
 
 
     procedure tprocinfo.after_header;
-      var
-        srsym : tvarsym;
       begin
       end;
 
@@ -531,6 +496,7 @@ implementation
         end;
       end;
 
+
     function int_cgsize(const a: aword): tcgsize;
       begin
         if a > 8 then
@@ -573,7 +539,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.53  2003-06-02 21:42:05  jonas
+  Revision 1.54  2003-06-09 12:23:29  peter
+    * init/final of procedure data splitted from genentrycode
+    * use asmnode getposition to insert final at the correct position
+      als for the implicit try...finally
+
+  Revision 1.53  2003/06/02 21:42:05  jonas
     * function results can now also be regvars
     - removed tprocinfo.return_offset, never use it again since it's invalid
       if the result is a regvar
