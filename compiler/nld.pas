@@ -79,6 +79,7 @@ interface
        end;
 
        ttypenode = class(tnode)
+          allowed : boolean;
           restype : ttype;
           constructor create(t : ttype);virtual;
           function pass_1 : tnode;override;
@@ -717,6 +718,7 @@ implementation
       begin
          inherited create(typen);
          restype:=t;
+         allowed:=false;
       end;
 
 
@@ -731,8 +733,11 @@ implementation
       begin
          result:=nil;
          { a typenode can't generate code, so we give here
-           an error. Else it'll be an abstract error in pass_2 }
-         Message(parser_e_no_type_not_allowed_here);
+           an error. Else it'll be an abstract error in pass_2.
+           Only when the allowed flag is set we don't generate
+           an error }
+         if not allowed then
+          Message(parser_e_no_type_not_allowed_here);
       end;
 
 
@@ -752,7 +757,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2001-05-09 19:57:51  peter
+  Revision 1.17  2001-05-19 21:19:57  peter
+    * remove unused typenode for procvars to prevent error
+    * typenode.allowed flag to allow a typenode
+
+  Revision 1.16  2001/05/09 19:57:51  peter
     * typenode doesn't generate code, give error in pass_1 instead of
       getting an abstract methode runtime error
 
