@@ -474,10 +474,6 @@ Function odd(l:QWord):Boolean;{$ifdef INTERNCONSTINTF}[internconst:fpc_in_const_
 { float math routines }
 {$I mathh.inc}
 
-operator ** (bas,expo : real) e: real;
-operator ** (bas,expo : int64) i: int64;
-
-
 {****************************************************************************
                          Addr/Pointer Handling
 ****************************************************************************}
@@ -772,7 +768,11 @@ const
 
 {
   $Log$
-  Revision 1.118  2005-02-06 20:37:31  florian
+  Revision 1.119  2005-02-08 20:25:28  florian
+    - killed power from system unit
+    * move operator ** to math unit
+
+  Revision 1.118  2005/02/06 20:37:31  florian
     * InitProc gets an inital value
 
   Revision 1.117  2005/02/06 20:35:54  florian

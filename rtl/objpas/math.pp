@@ -287,6 +287,9 @@ function power(base,exponent : float) : float;
 { base^exponent }
 function intpower(base : float;const exponent : Integer) : float;
 
+operator ** (bas,expo : float) e: float;
+operator ** (bas,expo : int64) i: float;
+
 { number converting }
 
 { rounds x towards positive infinity }
@@ -672,6 +675,19 @@ function intpower(base : float;const exponent : Integer) : float;
      if exponent<0 then
        intpower:=1.0/intpower;
   end;
+
+
+operator ** (bas,expo : float) e: float;
+  begin
+    e:=power(bas,expo);
+  end;
+
+
+operator ** (bas,expo : int64) i: float;
+  begin
+    i:=intpower(bas,expo);
+  end;
+
 
 function ceil(x : float) : integer;
 
@@ -1358,12 +1374,12 @@ end;
 {$endif}
 
 {$ifndef ver1_0} // default params
-function ifthen(val:boolean;const iftrue:integer; const iffalse:integer= 0) :integer; 
+function ifthen(val:boolean;const iftrue:integer; const iffalse:integer= 0) :integer;
 begin
   if val then result:=iftrue else result:=iffalse;
 end;
 
-function ifthen(val:boolean;const iftrue:int64  ; const iffalse:int64 = 0)  :int64; 
+function ifthen(val:boolean;const iftrue:int64  ; const iffalse:int64 = 0)  :int64;
 begin
   if val then result:=iftrue else result:=iffalse;
 end;
@@ -1377,7 +1393,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.29  2005-01-31 13:59:23  marco
+  Revision 1.30  2005-02-08 20:25:28  florian
+    - killed power from system unit
+    * move operator ** to math unit
+
+  Revision 1.29  2005/01/31 13:59:23  marco
    * fixed
 
   Revision 1.28  2005/01/12 20:17:39  florian

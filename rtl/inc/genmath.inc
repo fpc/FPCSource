@@ -1197,79 +1197,6 @@ type
     end;
 {$endif}
 
-{$ifndef FPC_SYSTEM_HAS_POWER}
-function intpower(base : real;const exponent: longint) : real;
-  var
-     i : longint;
-  begin
-     i:=abs(exponent);
-     intpower:=1.0;
-     while i>0 do
-       begin
-          while (i and 1)=0 do
-            begin
-               i:=i shr 1;
-               base:=sqr(base);
-            end;
-          dec(i);
-          intpower:=intpower*base;
-       end;
-     if exponent<0 then
-       intpower:=1.0/intpower;
-  end;
-
-
-    function power(bas,expo : real) : real;
-     var
-       sign: real;
-     begin
-        if bas=0.0 then
-          begin
-            if expo<>0.0 then
-              power:=0.0
-            else
-              HandleError(207);
-          end
-        else if expo=0.0 then
-         power:=1
-        else if (abs(expo)<=high(longint)) and (frac(expo)=0.0) then
-          power := intpower(bas,trunc(expo))
-        { bas < 0 is not allowed }
-        else if bas<0.0 then
-          HandleError(207)
-         else
-          power:=exp(ln(bas)*expo);
-     end;
-{$endif}
-
-
-{$ifndef FPC_SYSTEM_HAS_POWER_INT64}
-   function power(bas,expo : int64) : int64;
-     begin
-        if bas=0 then
-          begin
-            if expo<>0 then
-              power:=0
-            else
-              HandleError(207);
-          end
-        else if expo=0 then
-         power:=1
-        else
-         begin
-           if bas<0 then
-            begin
-              if odd(expo) then
-               power:=-round(exp(ln(-bas)*expo))
-              else
-               power:=round(exp(ln(-bas)*expo));
-            end
-           else
-            power:=round(exp(ln(bas)*expo));
-         end;
-     end;
-{$endif}
-
 
 {$ifdef FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE}
 
@@ -1331,7 +1258,11 @@ function fpc_int64_to_double(i : int64): double; compilerproc;
 
 {
   $Log$
-  Revision 1.30  2004-12-05 16:43:57  jonas
+  Revision 1.31  2005-02-08 20:25:28  florian
+    - killed power from system unit
+    * move operator ** to math unit
+
+  Revision 1.30  2004/12/05 16:43:57  jonas
     * fixed power() in genmath.inc (code duplication from math.pp for **
       support!)
     * fixed power() in math.pp to give an error from 0^0

@@ -245,17 +245,6 @@ end;
 {$I genmath.inc}
 
 
-operator ** (bas,expo : real) e: real;
-begin
-  e:=power(bas,expo);
-end;
-
-operator ** (bas,expo : int64) i: int64;
-begin
-  i:=power(bas,expo);
-end;
-
-
 {****************************************************************************
                   Subroutines for String handling
 ****************************************************************************}
@@ -1062,7 +1051,11 @@ end;
 
 {
   $Log$
-  Revision 1.75  2005-02-06 20:35:54  florian
+  Revision 1.76  2005-02-08 20:25:28  florian
+    - killed power from system unit
+    * move operator ** to math unit
+
+  Revision 1.75  2005/02/06 20:35:54  florian
     + InitProc
 
   Revision 1.74  2005/02/06 16:57:18  peter

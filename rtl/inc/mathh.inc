@@ -75,9 +75,6 @@
     function trunc(d : ValReal) : int64;
 {$endif internconstintf}
 
-    function power(bas,expo : ValReal) : ValReal;
-    function power(bas,expo : int64) : int64;
-
 {$ifdef FPC_CURRENCY_IS_INT64}
     function trunc(c : currency) : int64;
     function trunc(c : comp) : int64;
@@ -99,7 +96,11 @@
 
 {
   $Log$
-  Revision 1.20  2004-12-02 08:11:22  marco
+  Revision 1.21  2005-02-08 20:25:28  florian
+    - killed power from system unit
+    * move operator ** to math unit
+
+  Revision 1.20  2004/12/02 08:11:22  marco
    * patch from peter.
 
   Revision 1.19  2004/11/21 15:35:23  peter
