@@ -312,7 +312,7 @@ begin
       end;
    { At this point we're at an option ...}
      nextchar:=2;
-     if (longopts<>nil) and ((currentarg[2]='-') and 
+     if (longopts<>nil) and ((currentarg[2]='-') and
                              (currentArg[1]='-')) then
       inc(nextchar);
    { So, now nextchar points at the first character of an option }
@@ -453,10 +453,22 @@ begin
    end;
   Internal_getopt:=optstring[temp];
   if optstring[temp+1]=':' then
-   if currentarg[temp+2]=':' then
+   if optstring[temp+2]=':' then
     begin { optional argument }
-      optarg:=copy (currentarg,nextchar,length(currentarg)-nextchar+1);
-      nextchar:=0;
+      if nextchar>0 then
+       begin
+        optarg:=copy (currentarg,nextchar,length(currentarg)-nextchar+1);
+        inc(optind);
+        nextchar:=0;
+       end else if (optind<>nrargs) then
+       begin
+        optarg:=strpas(argv[optind]);
+        if optarg[1]='-' then
+          optarg:=''
+         else
+          inc(optind);
+        nextchar:=0;
+       end;
     end
    else
     begin { required argument }
@@ -510,7 +522,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:43  michael
+  Revision 1.3  2001-01-11 18:38:24  peter
+    * patch from bug repository
+
+  Revision 1.2  2000/07/13 11:33:43  michael
   + removed logs
- 
+
 }
