@@ -138,7 +138,7 @@ unit systems;
        tosinfo = packed record
           id           : tos;
           name         : string[30];
-          shortname    : string[8];
+          shortname    : string[9];
           sharedlibext : string[10];
           staticlibext,
           sourceext,
@@ -1599,7 +1599,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.102  2000-04-22 14:25:03  jonas
+  Revision 1.103  2000-05-11 09:07:45  pierre
+   * change tosinfo.shortname length, reported by Kovacs Attila Zoltan
+
+  Revision 1.102  2000/04/22 14:25:03  jonas
     * aasm.pas: pai_align instead of pai_align_abstract if cpu <> i386
     + systems.pas: info for macos/ppc
     * new/cgobj.pas: compiles again without newst define
