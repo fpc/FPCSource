@@ -1155,7 +1155,7 @@ that, it reads the specified number of items from the stream.
 Errors returned can be those of \seefl{GetItem}{TCollection.GetItem}.
 \SeeAlso
 \seepl{Init}{TCollection.Init}, \seefl{GetItem}{TCollection.GetItem},
-\seepl{TCollection.Done}.
+\seepl{Done}{TCollection.Done}.
 \end{procedure}
 
 
@@ -1209,7 +1209,7 @@ returns a pointer to this item.
 \Errors
 Possible errors are the ones from \seef{TStream.Get}.
 \SeeAlso
-\seef{TStream.get}, seepl{Store}{TCollection.Store}
+\seef{TStream.Get}, seepl{Store}{TCollection.Store}
 \end{function}
 
 
@@ -1379,7 +1379,7 @@ argument.
 \Errors
 None.
 \SeeAlso
-\seepl{FirstThat}{TCollection.FirstThat}, \seepl{LastThat}{TCollection.LastThat}
+\seefl{FirstThat}{TCollection.FirstThat}, \seefl{LastThat}{TCollection.LastThat}
 \end{procedure}
 
 
@@ -1470,6 +1470,24 @@ Errors are those returned by \seep{TStream.Put}.
 \section{TSortedCollection}
 \label{se:TSortedCollection}
 
+\var{TSortedCollection} is an abstract class, implementing a sorted
+collection. You should never use an instance of \var{TSortedCollection}
+directly, instead you should declare a descendent type, and override the
+\seefl{Compare}{TSortedCollection.Compare} method.
+
+Because the collection is ordered, \var{TSortedCollection} overrides some
+\var{TCollection} methods, to provide faster routines for lookup.
+
+The \seefl{Compare}{TSortedCollection.Compare} method decides how elements 
+in the collection should be ordered. Since \var{TCollection} has no way
+of knowing how to order pointers, you must override the compare method.
+
+Additionally, \var{TCollection} provides a means to filter out duplicates.
+if you set \var{Duplicates} to \var{False} (the default) then duplicates
+will not be allowed.
+
+Here is the complete declaration of \var{TSortedCollection}
+
 \begin{verbatim}
 TYPE
    TSortedCollection = OBJECT (TCollection)
@@ -1486,9 +1504,164 @@ TYPE
    PSortedCollection = ^TSortedCollection;
 \end{verbatim}
 
+\begin{procedure}{TSortedCollection.Init}
+\Declaration
+Constructor TSortedCollection.Init (ALimit, ADelta: Sw\_Integer);
+\Description
+\var{Init} calls the inherited constuctor (see \seep{TCollection.Init}) and
+sets the \var{Duplicates} flag to false.
+
+You should not call this method directly, since \var{TSortedCollection} is a
+abstract class. Instead, the descendent classes should call it via the
+\var{inherited} keyword.
+\Errors
+None.
+\SeeAlso 
+\seepl{Load}{TSortedCollection.Load}, \seepl{Done}{TCollection.Done}
+\end{procedure}
+
+\begin{procedure}{TSortedCollection.Load}
+\Declaration
+Constructor Load (Var S: TStream);
+\Description
+\var{Load} calls the inherited constuctor (see \seep{TCollection.Load}) and
+reads the \var{Duplicates} flag from the stream..
+
+You should not call this method directly, since \var{TSortedCollection} is a
+abstract class. Instead, the descendent classes should call it via the
+\var{inherited} keyword.
+\Errors
+None.
+\SeeAlso 
+\seepl{Init}{TSortedCollection.Init}, \seepl{Done}{TCollection.Done}
+\end{procedure}
+
+\begin{function}{TSortedCollection.KeyOf}
+\Declaration
+Function TSortedCollection.KeyOf (Item: Pointer): Pointer; Virtual;
+\Description
+\var{KeyOf} returns the key associated with \var{Item}.
+\var{TSortedCollection} returns the item itself as the key, descendent
+objects can override this method to calculate a (unique) key based on the
+item passed (such as hash values).
+
+\var{Keys} are used to sort the objects, they are used to search and sort
+the items in the collection. If descendent types override this method then
+it allows possibly for faster search/sort methods based on keys rather than
+on the objects themselves.
+\Errors
+None.
+\SeeAlso
+\seefl{IndexOf}{TSortedCollection.IndexOf},
+\seefl{Compare}{TSortedCollection.Compare}.
+\end{function}
+
+\begin{function}{TSortedCollection.IndexOf}
+\Declaration
+Function TSortedCollection.IndexOf (Item: Pointer): Sw\_Integer; Virtual;
+\Description
+\var{IndexOf} returns the index of \var{Item} in the collection. It searches
+for the object based on it's key. If duplicates are allowed, then it returns 
+the index of last object that matches \var{Item}.
+
+In case \var{Item} is not found in the collection, -1 is returned.
+\Errors
+None.
+\SeeAlso
+\seefl{Search}{TSortedCollection.Search},
+\seefl{Compare}{TSortedCollection.Compare}.
+\end{function}
+
+\begin{function}{TSortedCollection.Compare}
+\Declaration
+Function TSortedCollection.Compare (Key1, Key2: Pointer): Sw\_Integer; Virtual;
+\Description
+\var{Compare} is an abstract method that should be overridden by descendent
+objects in order to compare two items in the collection. This method is used
+in the \seefl{Search}{TSortedCollection.Search} method and in the
+\seepl{Insert}{TSortedCollection.Insert} method to determine the ordering of
+the objects.
+
+The function should compare the two keys of items and return the following
+function results:
+\begin{description}
+\item [Result < 0] If \var{Key1} is logically before \var{Key2}
+(\var{Key1<Key2})
+\item [Result = 0] If \var{Key1} and \var{Key2} are equal. (\var{Key1=Key2})
+\item [Result > 0] If \var{Key1} is logically after \var{Key2}
+(\var{Key1>Key2})
+\end{description}
+\Errors
+An 'abstract run-time error' will be generated if you call
+\var{TSortedCollection.Compare} directly.
+\SeeAlso
+\seefl{IndexOf}{TSortedCollection.IndexOf},
+\seefl{Search}{TSortedCollection.Search}
+\end{function}
+
+\begin{function}{TSortedCollection.Search}
+\Declaration
+Function TSortedCollection.Search (Key: Pointer; Var Index: Sw\_Integer): Boolean;Virtual;
+\Description
+\var{Search} looks for the item with key \var{Key} and returns the position 
+of the item (if present) in the collection in \var{Index}.
+
+Instead of a linear search as \var{TCollection} does, \var{TSortedCollection}
+uses a binary search based on the keys of the objects. It uses the
+\seefl{Compare}{TSortedCollection.Compare} function to implement this
+search. 
+
+If the item is found, \var{Search} returns \var{True}, otherwise \var{False}
+is returned.
+\Errors
+None.
+\SeeAlso
+\seefl{IndexOf}{TCollection.IndexOf}.
+\end{function}
+
+\begin{procedure}{TSortedCollection.Insert}
+\Declaration
+Procedure TSortedCollection.Insert (Item: Pointer); Virtual;
+\Description
+\var{Insert} inserts an item in the collection at the correct position, such
+that the collection is ordered at all times. You should never use
+\seepl{Atinsert}{TCollection.AtInsert}, since then the collection ordering
+is not guaranteed.
+
+If \var{Item} is already present in the collection, and \var{Duplicates} is
+\var{False}, the item will not be inserted.
+\Errors
+None.
+\SeeAlso
+\seepl{AtInsert}{TCollection.AtInsert}
+\end{procedure}
+
+\begin{procedure}{TSortedCollection.Store}
+\Declaration
+Procedure TSortedCollection.Store (Var S: TStream);
+\Description
+\var{Store} writes the collection to the stream \var{S}. It does this by
+calling the inherited \seep{TCollection.Store}, and then writing the
+\var{Duplicates} flag to the stream.
+
+After a \var{Store}, the collection can be loaded from the stream with the 
+constructor \seepl{Load}{TSortedCollection.Load}
+\Errors
+Errors can be those of \seep{TStream.Put}.
+\SeeAlso
+\seepl{Load}{TSortedCollection.Load}
+\end{procedure}
+
 \section{TStringCollection}
 \label{se:TStringCollection}
 
+The \var{TStringCollection} object manages a sorted collection of pascal 
+strings. 
+To this end, it overrides the \seefl{Compare}{TSortedCollection.Compare}
+method of \var{TSortedCollection}, and it introduces methods to read/write
+strings from a stream.
+
+Here is the full declaration of the \var{TStringCollection} object:
 \begin{verbatim}
 TYPE
    TStringCollection = OBJECT (TSortedCollection)
@@ -1500,8 +1673,79 @@ TYPE
    PStringCollection = ^TStringCollection;
 \end{verbatim}
 
+
+\begin{function}{TStringCollection.GetItem}
+\Declaration
+Function TStringCollection.GetItem (Var S: TStream): Pointer; Virtual;
+\Description
+\var{GetItem} reads a string from the stream \var{S} and returns a pointer 
+to it. It doesn't insert the string in the collection.
+
+This method is primarily introduced to be able to load and store the
+collection from and to a stream.
+\Errors
+The errors returned are those of \seef{TStream.ReadStr}.
+\SeeAlso
+\seepl{PutItem}{TStringCollection.PutItem}
+\end{function}
+
+\begin{function}{TStringCollection.Compare}
+\Declaration
+Function TStringCollection.Compare (Key1, Key2: Pointer): Sw\_Integer; Virtual;
+\Description
+\var{TStringCollection} overrides the \var{Compare} function so it compares 
+the two keys as if they were pointers to strings. The compare is done case
+sensitive. It returns the following results:
+\begin{description}
+\item[-1] if the first string is alphabetically earlier  than the second
+string.
+\item[0] if the two strings are equal.
+\item[1] if the first string is alphabetically later than the second string.
+\end{description}
+\Errors
+None.
+\SeeAlso
+\seef{TSortedCollection.Compare}
+\end{function}
+
+\begin{procedure}{TStringCollection.FreeItem}
+\Declaration
+Procedure TStringCollection.FreeItem (Item: Pointer); Virtual;
+\Description
+\var{TStringCollection} overrides \var{FreeItem} so that the string pointed
+to by \var{Item} is disposed from memory.
+\Errors
+None.
+\SeeAlso
+\seep{TCollection.FreeItem}
+\end{procedure}
+
+\begin{procedure}{TStringCollection.PutItem}
+\Declaration
+Procedure TStringCollection.PutItem (Var S: TStream; Item: Pointer); Virtual;
+\Description
+\var{PutItem} writes the string pointed to by \var{Item} to the stream
+\var{S}. 
+
+This method is primarily used in the \var{Load} and \var{Store} methods, 
+and should not be used directly.
+\Errors
+Errors are those of \seep{TStream.WriteStr}.
+\SeeAlso
+\seefl{GetItem}{TStringCollection.GetItem}
+\end{procedure}
+
+
 \section{TStrCollection}
 \label{se:TStrCollection}
+
+The \var{TStrCollection} object manages a sorted collection
+of null-terminated strings (pchar strings).  
+To this end, it overrides the \seefl{Compare}{TSortedCollection.Compare}
+method of \var{TSortedCollection}, and it introduces methods to read/write
+strings from a stream.
+
+Here is the full declaration of the \var{TStrCollection} object:
 
 \begin{verbatim}
 TYPE
@@ -1514,10 +1758,81 @@ TYPE
    PStrCollection = ^TStrCollection;
 \end{verbatim}
 
+\begin{function}{TStrCollection.GetItem}
+\Declaration
+Function TStrCollection.GetItem (Var S: TStream): Pointer; Virtual;
+\Description
+\var{GetItem} reads a null-terminated string from the stream \var{S} 
+and returns a pointer  to it. It doesn't insert the string in the 
+collection.
+
+This method is primarily introduced to be able to load and store the
+collection from and to a stream.
+\Errors
+The errors returned are those of \seef{TStream.StrRead}.
+\SeeAlso
+\seepl{PutItem}{TStrCollection.PutItem}
+\end{function}
+
+\begin{function}{TStrCollection.Compare}
+\Declaration
+Function TStrCollection.Compare (Key1, Key2: Pointer): Sw\_Integer; Virtual;
+\Description
+\var{TStrCollection} overrides the \var{Compare} function so it compares 
+the two keys as if they were pointers to strings. The compare is done case
+sensitive. It returns
+\begin{description}
+\item[-1] if the first string is alphabetically earlier  than the second
+string.
+\item[0] if the two strings are equal.
+\item[1] if the first string is alphabetically later than the second string.
+\end{description}
+\Errors
+None.
+\SeeAlso
+\seef{TSortedCollection.Compare}
+\end{function}
+
+\begin{procedure}{TStrCollection.FreeItem}
+\Declaration
+Procedure TStrCollection.FreeItem (Item: Pointer); Virtual;
+\Description
+\var{TStrCollection} overrides \var{FreeItem} so that the string pointed
+to by \var{Item} is disposed from memory.
+\Errors
+None.
+\SeeAlso
+\seep{TCollection.FreeItem}
+\end{procedure}
+
+\begin{procedure}{TStrCollection.PutItem}
+\Declaration
+Procedure TStrCollection.PutItem (Var S: TStream; Item: Pointer); Virtual;
+\Description
+\var{PutItem} writes the string pointed to by \var{Item} to the stream
+\var{S}. 
+
+This method is primarily used in the \var{Load} and \var{Store} methods, 
+and should not be used directly.
+\Errors
+Errors are those of \seep{TStream.StrWrite}.
+\SeeAlso
+\seefl{GetItem}{TStrCollection.GetItem}
+\end{procedure}
 
 \section{TUnSortedStrCollection}
 \label{se:TUnSortedStrCollection}
 
+The \var{TUnSortedStrCollection} object manages an unsorted list of objects.
+To this end, it overrides the \seepl{TStringCollection.Insert} method to add
+strings at the end of the collection, rather than in the alphabetically
+correct position.
+
+Take care, the \seefl{Search}{TStringCollection.Search} and
+\seepl{IndexOf}{TCollection.IndexOf} methods will not work on an unsorted
+string collection.
+
+Here is the full declaration of the {TUnsortedStrCollection} object:
 \begin{verbatim}
 TYPE
    TUnSortedStrCollection = OBJECT (TStringCollection)
@@ -1526,9 +1841,37 @@ TYPE
    PUnSortedStrCollection = ^TUnSortedStrCollection;
 \end{verbatim}
 
+\begin{procedure}{TUnSortedStrCollection.Insert}
+\Declaration
+Procedure TUnSortedStrCollection.Insert (Item: Pointer); Virtual;
+\Description
+\var{Insert} inserts a string at the end of the collection, instead
+of on it's alphabetical place, resulting in an unsorted collection of
+strings. 
+\Errors
+\SeeAlso
+\end{procedure}
+
 \section{TResourceCollection}
 \label{se:TResourceCollection}
 
+A \var{TResourceCollection} manages a collection of resource names. 
+It stores the position and the size of a resource, as well as the name of
+the resource. It stores these items in records that look like this:
+\begin{verbatim}
+TYPE
+   TResourceItem = packed RECORD
+      Posn: LongInt;
+      Size: LongInt;
+      Key : String;
+   End;
+   PResourceItem = ^TResourceItem;
+\end{verbatim}
+
+It overrides some methods of \var{TStringCollection} in order to accomplish
+this. 
+
+Here is the full declaration of the \var{TResourceCollection} object:
 \begin{verbatim}
 TYPE
    TResourceCollection = OBJECT (TStringCollection)
@@ -1539,6 +1882,39 @@ TYPE
    END;
    PResourceCollection = ^TResourceCollection;
 \end{verbatim}
+
+\begin{function}{}
+\Declaration
+Function TResourceCollection.KeyOf (Item: Pointer): Pointer; Virtual;
+\Description
+\Errors
+\SeeAlso
+\end{function}
+
+\begin{function}{}
+\Declaration
+Function TResourceCollection.GetItem (Var S: TStream): Pointer; Virtual;
+\Description
+\Errors
+\SeeAlso
+\end{function}
+
+\begin{procedure}{}
+\Declaration
+Procedure TResourceCollection.FreeItem (Item: Pointer); Virtual;
+\Description
+\Errors
+\SeeAlso
+\end{procedure}
+
+\begin{procedure}{}
+\Declaration
+Procedure TResourceCollection.PutItem (Var S: TStream; Item: Pointer); Virtual;
+\Description
+\Errors
+\SeeAlso
+\end{procedure}
+
 
 \section{TResourceFile}
 \label{se:TResourceFile}
