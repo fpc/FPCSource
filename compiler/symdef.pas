@@ -275,6 +275,7 @@ interface
           constructor ppuload(ppufile:tcompilerppufile);
           destructor  destroy;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+          function gettypename:string;override;
           procedure deref;override;
           function  getparentdef:tdef;override;
           function  size : longint;override;
@@ -4523,6 +4524,12 @@ implementation
       end;
 
 
+    function tobjectdef.gettypename:string;
+      begin
+        gettypename:=typename;
+      end;
+
+
     procedure tobjectdef.deref;
       var
          oldrecsyms : tsymtable;
@@ -5841,7 +5848,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.160  2003-09-03 15:55:01  peter
+  Revision 1.161  2003-09-06 22:27:09  florian
+    * fixed web bug 2669
+    * cosmetic fix in printnode
+    * tobjectdef.gettypename implemented
+
+  Revision 1.160  2003/09/03 15:55:01  peter
     * NEWRA branch merged
 
   Revision 1.159  2003/09/03 11:18:37  florian

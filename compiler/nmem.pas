@@ -382,7 +382,6 @@ implementation
          if not(left.expectloc in [LOC_CREFERENCE,LOC_REFERENCE]) then
            begin
              aktfilepos:=left.fileinfo;
-             printnode(output,left);
              CGMessage(cg_e_illegal_expression);
            end;
 
@@ -855,7 +854,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.61  2003-09-03 11:18:37  florian
+  Revision 1.62  2003-09-06 22:27:08  florian
+    * fixed web bug 2669
+    * cosmetic fix in printnode
+    * tobjectdef.gettypename implemented
+
+  Revision 1.61  2003/09/03 11:18:37  florian
     * fixed arm concatcopy
     + arm support in the common compiler sources added
     * moved some generic cg code around

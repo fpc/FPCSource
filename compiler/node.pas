@@ -609,9 +609,9 @@ implementation
       begin
         write(t,nodetype2str[nodetype]);
         if assigned(resulttype.def) then
-          write(t,' ,resulttype = "',resulttype.def.gettypename,'"')
+          write(t,', resulttype = "',resulttype.def.gettypename,'"')
         else
-          write(t,' ,resulttype = <nil>');
+          write(t,', resulttype = <nil>');
         writeln(t,', pos = (',fileinfo.line,',',fileinfo.column,')',
                   // ', loc = ',tcgloc2str[location.loc],
                   ', expectloc = ',tcgloc2str[expectloc],
@@ -975,7 +975,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.65  2003-09-03 15:55:01  peter
+  Revision 1.66  2003-09-06 22:27:08  florian
+    * fixed web bug 2669
+    * cosmetic fix in printnode
+    * tobjectdef.gettypename implemented
+
+  Revision 1.65  2003/09/03 15:55:01  peter
     * NEWRA branch merged
 
   Revision 1.64  2003/09/03 11:18:37  florian

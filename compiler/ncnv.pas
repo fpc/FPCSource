@@ -1173,7 +1173,16 @@ implementation
                         if (tcallnode(left).symtableprocentry.owner.symtabletype=objectsymtable) then
                          begin
                            if assigned(tcallnode(left).methodpointer) then
-                             tloadnode(hp).set_mp(tcallnode(left).methodpointer.getcopy)
+                             begin
+                               { Under certain circumstances the methodpointer is a loadvmtaddrn
+                                 which isn't possible if it is used as a method pointer, so
+                                 fix this.
+                                 If you change this, ensure that tests/tbs/tw2669.pp still works }
+                               if tcallnode(left).methodpointer.nodetype=loadvmtaddrn then
+                                 tloadnode(hp).set_mp(tloadvmtaddrnode(tcallnode(left).methodpointer).left.getcopy)
+                               else
+                                 tloadnode(hp).set_mp(tcallnode(left).methodpointer.getcopy);
+                             end
                            else
                              tloadnode(hp).set_mp(load_self_node);
                          end;
@@ -2093,7 +2102,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.117  2003-09-03 15:55:01  peter
+  Revision 1.118  2003-09-06 22:27:08  florian
+    * fixed web bug 2669
+    * cosmetic fix in printnode
+    * tobjectdef.gettypename implemented
+
+  Revision 1.117  2003/09/03 15:55:01  peter
     * NEWRA branch merged
 
   Revision 1.116  2003/08/10 17:25:23  peter

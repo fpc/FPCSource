@@ -1297,7 +1297,7 @@ implementation
                                   the type. For all other blocks we return
                                   a loadvmt node }
                                 if (block_type<>bt_type) then
-                                 p1:=cloadvmtaddrnode.create(p1);
+                                  p1:=cloadvmtaddrnode.create(p1);
                               end;
                            end
                           else
@@ -2419,7 +2419,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.127  2003-09-05 17:41:12  florian
+  Revision 1.128  2003-09-06 22:27:09  florian
+    * fixed web bug 2669
+    * cosmetic fix in printnode
+    * tobjectdef.gettypename implemented
+
+  Revision 1.127  2003/09/05 17:41:12  florian
     * merged Wiktor's Watcom patches in 1.1
 
   Revision 1.126  2003/08/23 22:29:51  peter

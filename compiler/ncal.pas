@@ -2218,10 +2218,10 @@ type
             if not assigned(methodpointer) then
               internalerror(200305063);
             if (methodpointer.resulttype.def.deftype<>classrefdef) then
-             begin
-               methodpointer:=cloadvmtaddrnode.create(methodpointer);
-               resulttypepass(methodpointer);
-             end;
+              begin
+                methodpointer:=cloadvmtaddrnode.create(methodpointer);
+                resulttypepass(methodpointer);
+              end;
           end
          else
           begin
@@ -2514,7 +2514,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.177  2003-09-03 15:55:00  peter
+  Revision 1.178  2003-09-06 22:27:08  florian
+    * fixed web bug 2669
+    * cosmetic fix in printnode
+    * tobjectdef.gettypename implemented
+
+  Revision 1.177  2003/09/03 15:55:00  peter
     * NEWRA branch merged
 
   Revision 1.176.2.3  2003/08/31 21:07:44  daniel
