@@ -130,7 +130,7 @@ var
 
 begin
   buf:=s;
-  nr:=0;
+  nr:=1;
   InQuote:=false;
   while (buf^<>#0) do			// count nr of args
    begin
