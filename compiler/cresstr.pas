@@ -94,7 +94,7 @@ unit cresstr;
     begin
       inc(resstrcount);
       New(R);
-      R^.Name:=NAme;
+      R^.Name:=Lower(Name);
       r^.Len:=Len;
       R^.Hash:=hash;
       GetMem(R^.Value,Len);
@@ -117,7 +117,7 @@ unit cresstr;
          if not(assigned(resourcestringlist)) then
            resourcestringlist:=new(paasmoutput,init);
 
-         AppendToResourceList(Name,P,Len,Hash);  
+         AppendToResourceList(current_module^.modulename^+'.'+Name,P,Len,Hash);  
          
          { an empty ansi string is nil! }
          if (p=nil) or (len=0) then
@@ -228,7 +228,10 @@ unit cresstr;
 end.
 {
   $Log$
-  Revision 1.4  1999-07-24 16:22:10  michael
+  Revision 1.5  1999-07-24 18:35:41  michael
+  * Forgot to add unitname to resourcestring data
+
+  Revision 1.4  1999/07/24 16:22:10  michael
   + Improved resourcestring handling
 
   Revision 1.3  1999/07/24 15:12:58  michael
