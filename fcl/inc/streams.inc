@@ -341,30 +341,52 @@ end;
 procedure TCustomMemoryStream.SetPointer(Ptr: Pointer; Size: Longint);
 
 begin
+  FMemory:=Ptr;
+  FSize:=Size;
 end;
 
 
 function TCustomMemoryStream.Read(var Buffer; Count: Longint): Longint;
 
 begin
+  Result:=0;
+  If FSize>0 and FPosition<Fsize then
+    begin
+    Result:=FSize-FPosition;
+    If Result>Count then Result:=Count;
+    Move ((FMemory+FPosition)^,Buffer,Result);
+    FPosition:=Fposition+Result;
+    end;
 end;
 
 
 function TCustomMemoryStream.Seek(Offset: Longint; Origin: Word): Longint;
 
 begin
+  Case Origin of
+    soFromBeginning : FPosition:=Offset;
+    soFromEnd       : FPosition:=FSize+Offset;
+    soFromCurrent   : FpoSition:=FPosition+Offset;
+  end;
+  Result:=FPosition;
 end;
 
 
 procedure TCustomMemoryStream.SaveToStream(Stream: TStream);
 
 begin
+  if FSize>0 then Stream.WriteBuffer (FMemory^,FSize);
 end;
 
 
 procedure TCustomMemoryStream.SaveToFile(const FileName: string);
 
+Var S : TFileStream;
+
 begin
+  S:=TFileStream.Create (FileName,fmCreate);
+  SaveToStream(S);
+  S.free;
 end;
 
 
@@ -373,51 +395,104 @@ end;
 {****************************************************************************}
 
 
+Const TMSGrow = 4096; { Use 4k blocks. }
+
 procedure TMemoryStream.SetCapacity(NewCapacity: Longint);
 
 begin
+  SetPointer (Realloc(NewCapacity),Fsize);
+  FCapacity:=NewCapacity;
 end;
 
 
 function TMemoryStream.Realloc(var NewCapacity: Longint): Pointer;
 
+Var MoveSize : Longint;
+
 begin
+  If NewCapacity>0 Then // round off to block size.
+    NewCapacity := (NewCapacity + (TMSGrow-1)) and not (TMSGROW-1);
+  // Only now check !
+  If NewCapacity<>FCapacity then
+    If NewCapacity=0 then
+      FreeMem (FMemory,Fcapacity)
+    else
+      begin
+      GetMem (Result,NewCapacity);
+      If FCapacity>0 then
+        begin
+        MoveSize:=FSize;
+        If MoveSize>NewCapacity then MoveSize:=NewCapacity;
+        Move (Fmemory^,Result^,MoveSize);
+        FreeMem (FMemory,FCapacity);
+        end;
+      end;
 end;
 
 
 destructor TMemoryStream.Destroy;
 
 begin
+  Clear;
+  Inherited Destroy;
 end;
 
 
 procedure TMemoryStream.Clear;
 
 begin
+  FSize:=0;
+  FPosition:=0;
+  SetCapacity (0);
 end;
 
 
 procedure TMemoryStream.LoadFromStream(Stream: TStream);
 
 begin
+  Stream.Position:=0;
+  SetSize(Stream.Size);
+  If FSize>0 then Stream.ReadBuffer(FMemory^,FSize);
 end;
 
 
 procedure TMemoryStream.LoadFromFile(const FileName: string);
 
+Var S : TFileStream;
+
 begin
+  S:=TFileStream.Create (FileName,fmOpenRead);
+  LoadFromStream(S);
+  S.free;
 end;
 
 
 procedure TMemoryStream.SetSize(NewSize: Longint);
 
 begin
+  SetCapacity (NewSize);
+  If FSize>NewSize then FSize:=NewSize;
+  IF FPosition>FSize then FPosition:=FSize;
 end;
 
 
 function TMemoryStream.Write(const Buffer; Count: Longint): Longint; 
 
+Var NewPos : Longint;
+
 begin
+  If Count=0 then
+    exit(0);
+  NewPos:=FPosition+Count;
+  If NewPos>Fsize then
+    begin
+    IF NewPos>FCapacity then
+      SetCapacity (NewPos);
+    FSize:=Newpos;
+    end;
+  System.Move (Buffer,(FMemory+FPosition)^,Count);
+  FPosition:=NewPos;
+  Result:=Count;
 end;
 
 
@@ -428,42 +503,71 @@ end;
 procedure TStringStream.SetSize(NewSize: Longint); 
 
 begin
+ //!! Setlength(FDataString,NewSize);
+ If FPosition>NewSize then FPosition:=NewSize;
 end;
 
 
 constructor TStringStream.Create(const AString: string);
 
 begin
+  Inherited create;
+  FDataString:=AString;
 end;
 
 
 function TStringStream.Read(var Buffer; Count: Longint): Longint; 
 
 begin
+  Result:=Length(FDataString)-FPosition;
+  If Result>Count then Result:=Count;
+  // This supposes FDataString to be of type AnsiString !
+  //!! Move (Pchar(FDataString)[FPosition],Buffer,Count);
+  FPosition:=FPosition+Count;
 end;
 
 
 function TStringStream.ReadString(Count: Longint): string;
 
+Var NewLen : Longint;
+
 begin
+  NewLen:=Length(FDataString)-FPosition;
+  If NewLen>Count then NewLen:=Count;
+  //!! SetLength(Result,NewLen);
+  //!! Read (Pointer(Result)^,NewLen);
 end;
 
 
 function TStringStream.Seek(Offset: Longint; Origin: Word): Longint; 
 
 begin
+  Case Origin of
+    soFromBeginning : FPosition:=Offset;
+    soFromEnd       : FPosition:=Length(FDataString)+Offset;
+    soFromCurrent   : FpoSition:=FPosition+Offset;
+  end;
+  If FPosition>Length(FDataString) then FPosition:=Length(FDataString);
+  If FPosition<0 then FPosition:=0;
+  Result:=FPosition;
 end;
 
 
 function TStringStream.Write(const Buffer; Count: Longint): Longint; 
 
 begin
+  Result:=Count;
+  SetSize(FPosition+Count);
+  // This supposes that FDataString is of type AnsiString)
+  //!! Move (Buffer,PCHar(FDataString)[Fposition],Count);
+  FPosition:=FPosition+Count;
 end;
 
 
 procedure TStringStream.WriteString(const AString: string);
 
 begin
+  //!! Write (PChar(Astring)[0],Length(AString));
 end;
 
 
@@ -504,7 +608,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  1998-06-11 13:46:33  michael
+  Revision 1.6  1998-06-11 21:15:28  michael
+  + Implemented (Custom)Memory and StringStream
+
+  Revision 1.5  1998/06/11 13:46:33  michael
   + Fixed some functions. TFileStream OK.
 
   Revision 1.4  1998/06/10 21:53:07  michael
