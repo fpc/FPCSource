@@ -393,3 +393,6 @@ Unfixed bugs:
 bug0262.pp   problems with virtual and overloaded methods
 bug0293.pp   no error with variable name = type name
 bug0299.pp   passing Array[0..1] of char by value to proc leads to problems
+bug0304.pp   Label redefined when inlining assembler
+bug0305.pp   Finally is not handled correctly after inputting 0
+bug0306.pp   Address is not popped with exit in try...except block
