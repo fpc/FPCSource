@@ -177,7 +177,7 @@ implementation
     function tdef.typename:string;
       begin
         if assigned(typesym) and
-           not(deftype=procvardef) and
+           not(deftype in [procvardef,procdef]) and
            assigned(typesym._realname) and
            (typesym._realname^[1]<>'$') then
          typename:=typesym._realname^
@@ -578,7 +578,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.23  2002-12-29 14:57:50  peter
+  Revision 1.24  2002-12-29 18:26:31  peter
+    * also use gettypename for procdef always
+
+  Revision 1.23  2002/12/29 14:57:50  peter
     * unit loading changed to first register units and load them
       afterwards. This is needed to support uses xxx in yyy correctly
     * unit dependency check fixed
