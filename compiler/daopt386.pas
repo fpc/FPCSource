@@ -255,12 +255,26 @@ Begin
   Until false;
 End;
 
+Procedure AddRegDeallocFor(asmL: paasmOutput; reg: TRegister; p: pai);
+var hp1: pai;
+begin
+  hp1 := nil;
+  While GetLastInstruction(p, p) And
+        Not(RegInInstruction(reg, p)) Do
+    hp1 := p;
+ If hp1 <> nil Then
+   Begin
+     p := New(PaiRegAlloc, DeAlloc(reg));
+     InsertLLItem(AsmL, hp1, hp1^.next, p);
+   End;
+end;
 
-Procedure BuildLabelTableAndFixRegAlloc(AsmL: PAasmOutput; Var LabelTable: PLabelTable; LowLabel: Longint;
+Procedure BuildLabelTableAndFixRegAlloc(asmL: PAasmOutput; Var LabelTable: PLabelTable; LowLabel: Longint;
             Var LabelDif: Longint; BlockStart, BlockEnd: Pai);
 {Builds a table with the locations of the labels in the paasmoutput.
  Also fixes some RegDeallocs like "# %eax released; push (%eax)"}
-Var p, hp1, hp2: Pai;
+Var p, hp1, hp2, lastP: Pai;
+    regCounter: TRegister;
     UsedRegs: TRegSet;
 Begin
   UsedRegs := [];
@@ -273,62 +287,58 @@ Begin
 {$EndIf TP}
             GetMem(LabelTable, LabelDif*SizeOf(TLabelTableItem));
             FillChar(LabelTable^, LabelDif*SizeOf(TLabelTableItem), 0);
-            p := BlockStart;
-            While (P <> BlockEnd) Do
-              Begin
-                Case p^.typ Of
-                  ait_Label:
-                    If Pai_Label(p)^.l^.is_used Then
-                      LabelTable^[Pai_Label(p)^.l^.labelnr-LowLabel].PaiObj := p;
-                  ait_regAlloc:
-                     begin
-                       if PairegAlloc(p)^.Allocation then
-                        Begin
-                          If Not(PaiRegAlloc(p)^.Reg in UsedRegs) Then
-                            UsedRegs := UsedRegs + [PaiRegAlloc(p)^.Reg]
-                          Else
-                            Begin
-                              hp1 := p;
-                              hp2 := nil;
-                              While GetLastInstruction(hp1, hp1) And
-                                    Not(RegInInstruction(PaiRegAlloc(p)^.Reg, hp1)) Do
-                                hp2 := hp1;
-                             If hp2 <> nil Then
-                               Begin
-                                 hp1 := New(PaiRegAlloc, DeAlloc(PaiRegAlloc(p)^.Reg));
-                                 InsertLLItem(AsmL, hp2, hp2^.next, hp1);
-                               End;
-                            End;
-                        End
-                       else
-                        Begin
-                          UsedRegs := UsedRegs - [PaiRegAlloc(p)^.Reg];
-                          hp1 := p;
-                          hp2 := nil;
-                          While Not(FindRegAlloc(PaiRegAlloc(p)^.Reg, Pai(hp1^.Next))) And
-                                GetNextInstruction(hp1, hp1) And
-                                RegInInstruction(PaiRegAlloc(p)^.Reg, hp1) Do
-                            hp2 := hp1;
-                          If hp2 <> nil Then
-                            Begin
-                              hp1 := Pai(p^.previous);
-                              AsmL^.Remove(p);
-                              InsertLLItem(AsmL, hp2, Pai(hp2^.Next), p);
-                              p := hp1;
-                            End;
-                        End;
-                     end;
-                End;
-                P := Pai(p^.Next);
-                While Assigned(p) And
-                      (p^.typ in (SkipInstr - [ait_regalloc])) Do
-                  P := Pai(P^.Next);
-              End;
 {$IfDef TP}
           End
         Else LabelDif := 0;
 {$EndIf TP}
     End;
+  p := BlockStart;
+  lastP := p;
+  While (P <> BlockEnd) Do
+    Begin
+      Case p^.typ Of
+        ait_Label:
+          If Pai_Label(p)^.l^.is_used Then
+            LabelTable^[Pai_Label(p)^.l^.labelnr-LowLabel].PaiObj := p;
+        ait_regAlloc:
+           begin
+             if PairegAlloc(p)^.Allocation then
+              Begin
+                If Not(paiRegAlloc(p)^.Reg in UsedRegs) Then
+                  UsedRegs := UsedRegs + [paiRegAlloc(p)^.Reg]
+                Else
+                  addRegDeallocFor(asmL, paiRegAlloc(p)^.reg, p);
+              End
+             else
+              Begin
+                UsedRegs := UsedRegs - [paiRegAlloc(p)^.Reg];
+                hp1 := p;
+                hp2 := nil;
+                While Not(FindRegAlloc(paiRegAlloc(p)^.Reg, Pai(hp1^.Next))) And
+                      GetNextInstruction(hp1, hp1) And
+                      RegInInstruction(paiRegAlloc(p)^.Reg, hp1) Do
+                  hp2 := hp1;
+                If hp2 <> nil Then
+                  Begin
+                    hp1 := Pai(p^.previous);
+                    AsmL^.Remove(p);
+                    InsertLLItem(AsmL, hp2, Pai(hp2^.Next), p);
+                    p := hp1;
+                  End;
+              End;
+           end;
+      End;
+      P := Pai(p^.Next);
+      While Assigned(p) And
+            (p^.typ in (SkipInstr - [ait_regalloc])) Do
+        begin
+          lastP := p;
+          P := Pai(P^.Next);
+        end;
+    End;
+  for regCounter := R_EAX to R_EDI do
+    if regCounter in usedRegs then
+      addRegDeallocFor(asmL,regCounter,lastP);
 End;
 
 {************************ Search the Label table ************************}
@@ -1931,7 +1941,11 @@ End.
 
 {
  $Log$
- Revision 1.71  1999-11-20 12:50:32  jonas
+ Revision 1.72  1999-11-21 13:06:30  jonas
+   * improved fixing of missing regallocs (they're almost all correct
+     now!)
+
+ Revision 1.71  1999/11/20 12:50:32  jonas
    * fixed small typo (C_M* -> Ch_M*) so -darithopt compiles again
 
  Revision 1.70  1999/11/14 11:25:38  jonas
