@@ -1,0 +1,42 @@
+a
+cdthis
+z
+#13
+$7F
+   $FF
+   +$33
+   -$7F
+127
+   255
+   +33
+   -127
+$7FFF
+   $FFFF
+   +$1234
+   -$7FFF
+12700
+   2550
+   +33200
+   -12700
+$7FFFFFFF
+   $FFFFFFFF
+   +$12341234
+   -$7FFFFFFF
+12700
+   2550
+   +2147483647
+   -2147483648
+   01234
+   1278.1278
+   121223.1278E00
+   121224.1278e2
+   121225.1278E02
+   121216.1278E+00
+   121227.1278e+2
+   121228.1278E+02
+   121233.1278E-00
+   121234.1278e-2
+Thisisaverylongstringwhichissupposedtohavemorethan255characters,itshouldbetruncatedsomewhere in the middle of the string, but i'm really not sure where it will be truncated exactly. Lets check this out and assume that GNU does not mean GNU, then what would it mean?
+Hello world!
+Verify what happens with the '' characters
+This is a null terminated string!
