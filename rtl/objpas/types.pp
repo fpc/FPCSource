@@ -77,9 +77,12 @@ type
       0: (Left,Top,Right,Bottom : Longint);
       1: (TopLeft,BottomRight : TPoint);
     end;
-{$endif}
+{$endif Win32}
   PRect = ^TRect;
 
+{$ifdef Win32}
+  TSize = Windows.TSize;
+{$else}
   TSize =
 {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
   packed
@@ -88,9 +91,11 @@ type
      cx : Longint;
      cy : Longint;
   end;
+{$endif Win32}
   PSize = ^TSize;
   tagSIZE = TSize;
   SIZE = TSize;
+
 
   TSmallPoint =
 {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
@@ -399,7 +404,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  2005-02-14 17:13:31  peter
+  Revision 1.10  2005-02-26 15:11:43  florian
+    * TSize is imported from the Windows unit on win32
+
+  Revision 1.9  2005/02/14 17:13:31  peter
     * truncate log
 
 }
