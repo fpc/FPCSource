@@ -23,9 +23,6 @@
        SIGNATURE   = '+';  { Signature of CHR file               }
 
     type
-(*       pbyte = ^byte;
-       pword = ^word;
-*)
       { Prefix header of Font file }
 {      PFHeader = ^TFHeader;}
       TFHeader = packed record
@@ -153,7 +150,11 @@ end;
        { Now get the X,Y coordinates        }
        { bit 0..7 only which are considered }
        { signed values.                     }
+{ disable range check mode }
+{$ifopt R+}
+{$define OPT_R_WAS_ON}
 {$R-}
+{$endif}
        b1:=b1 and $7f;
        b2:=b2 and $7f;
        { Now if the MSB of these values are set }
@@ -163,9 +164,10 @@ end;
        if (b2 and $40)<>0 then b2:=b2 or $80;
        x:=smallint(b1);
        y:=smallint(b2);
-{$ifdef debug}
+{ restore previous range check mode }
+{$ifdef OPT_R_WAS_ON}
 {$R+}
-{$endif debug}
+{$endif}
      end;
 
 
@@ -350,7 +352,7 @@ end;
     function TextWidth(const TextString : string) : word;
       var i,x : smallint;
           c   : byte;
-	  s   : String;
+    s   : String;
       begin
          x := 0;
          { if this is the default font ... }
@@ -358,7 +360,7 @@ end;
             TextWidth:=length(TextString)*8*CurrentTextInfo.CharSize
          { This is a stroked font ... }
             else begin
-	       s := ConvertString(TextString);
+         s := ConvertString(TextString);
                for i:=1 to length(s) do
                 begin
                    c:=byte(s[i]);
@@ -402,7 +404,7 @@ end;
          X:=X-XPos; Y:=Y+YPos;
          XPos:=X; YPos:=Y;
 
-	 ConvString := ConvertString(TextString);
+   ConvString := ConvertString(TextString);
          CharSize := CurrentTextInfo.Charsize;
          if Currenttextinfo.font=DefaultFont then
          begin
@@ -723,9 +725,14 @@ end;
          if (font>DefaultFont) and not assigned(fonts[font].instr) then
            begin
               assign(f,bgipath+fonts[font].name+'.CHR');
+{$ifopt I+}
+{$define IOCHECK_WAS_ON}
 {$i-}
+{$endif}
               reset(f,1);
+{$ifdef IOCHECK_WAS_ON}              
 {$i+}
+{$endif}
               if ioresult<>0 then
                 begin
                    _graphresult:=grFontNotFound;
@@ -784,7 +791,11 @@ end;
 
 {
   $Log$
-  Revision 1.3  2002-07-18 07:11:11  pierre
+  Revision 1.4  2002-09-07 12:36:15  carl
+    - unit cleanup (removed unused defines)
+    * compilation options are restored
+
+  Revision 1.3  2002/07/18 07:11:11  pierre
    merged from FIXES branch: DrawTextBackground support
 
   Revision 1.2  2000/07/13 11:33:47  michael
