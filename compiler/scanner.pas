@@ -1783,8 +1783,11 @@ implementation
       begin
         aktcommentstyle:=comment_oldtp;
         inc_comment_level;
-        readchar;
-      { this is currently not supported }
+        { only load a char if last already processed,
+          was cause of bug1634 PM }
+        if c=#0 then
+          readchar;
+      { this is now supported }
         if (c='$') then
          handledirectives;
       { skip comment }
@@ -2072,6 +2075,7 @@ implementation
                  case c of
                    '*' :
                      begin
+                       c:=#0;{Signal skipoldtpcomment to reload a char }
                        skipoldtpcomment;
                        readtoken;
                        exit;
@@ -2531,7 +2535,10 @@ exit_label:
                begin
                   readchar;
                   if c='*' then
-                   skipoldtpcomment
+                   begin
+                     c:=#0;{Signal skipoldtpcomment to reload a char }
+                     skipoldtpcomment;
+                   end
                   else
                    begin
                      asmgetchar:='(';
@@ -2598,7 +2605,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.23  2001-09-30 21:23:59  peter
+  Revision 1.24  2001-10-12 16:02:34  peter
+    * fix bug 1634 (merged)
+
+  Revision 1.23  2001/09/30 21:23:59  peter
     * merged delphi comment fix
 
   Revision 1.22  2001/09/18 11:30:48  michael
