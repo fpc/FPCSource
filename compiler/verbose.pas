@@ -300,8 +300,13 @@ begin
 { Fix replacements }
   UpdateReplacement(s);
 { show comment }
-  if do_comment(l,s) or dostop or (status.errorcount>=status.maxerrorcount) then
-   stop
+  if do_comment(l,s) or dostop then
+   stop;
+  if (status.errorcount>=status.maxerrorcount) then
+   begin
+     Message1(unit_f_errors_in_unit,tostr(status.errorcount));
+     stop;
+   end;
 end;
 
 
@@ -356,8 +361,13 @@ begin
 { Fix replacements }
   UpdateReplacement(s);
 { show comment }
-  if do_comment(v,s) or dostop or (status.errorcount>=status.maxerrorcount) then
+  if do_comment(v,s) or dostop then
    stop;
+  if (status.errorcount>=status.maxerrorcount) then
+   begin
+     Message1(unit_f_errors_in_unit,tostr(status.errorcount));
+     stop;
+   end;
 end;
 
 
@@ -403,7 +413,10 @@ end.
 
 {
   $Log$
-  Revision 1.21  1998-09-28 16:57:30  pierre
+  Revision 1.22  1998-10-05 13:51:36  peter
+    * if maxerrorcount is reached display a msg
+
+  Revision 1.21  1998/09/28 16:57:30  pierre
     * changed all length(p^.value_str^) into str_length(p)
       to get it work with and without ansistrings
     * changed sourcefiles field of tmodule to a pointer
