@@ -660,7 +660,7 @@ implementation
       var
         chartype : string[8];
       begin
-        if is_widechar(tarraydef(left.resulttype).elementtype.def) then
+        if is_widechar(tarraydef(left.resulttype.def).elementtype.def) then
           chartype:='widechar'
         else
           chartype:='char';
@@ -691,7 +691,7 @@ implementation
              result := nil;
              exit;
            end;
-        if is_widechar(tarraydef(resulttype).elementtype.def) then
+        if is_widechar(tarraydef(resulttype.def).elementtype.def) then
           chartype:='widechar'
         else
           chartype:='char';
@@ -1471,42 +1471,37 @@ implementation
                          (resulttype.def.deftype <> floatdef))  then
                        make_not_regable(left);
 
-                     { class to class or object to object, with checkobject support }
-                     if (resulttype.def.deftype=objectdef) and
-                        (left.resulttype.def.deftype=objectdef) then
+                     { class/interface to class/interface, with checkobject support }
+                     if is_class_or_interface(resulttype.def) and
+                        is_class_or_interface(left.resulttype.def) then
                        begin
+                         { check if the types are related }
+                         if not(nf_internal in flags) and
+                            (not(tobjectdef(left.resulttype.def).is_related(tobjectdef(resulttype.def)))) and
+                            (not(tobjectdef(resulttype.def).is_related(tobjectdef(left.resulttype.def)))) then
+                           begin
+                             { Give an error when typecasting class to interface, this is compatible
+                               with delphi }
+                             if is_interface(resulttype.def) and
+                                not is_interface(left.resulttype.def) then
+                               CGMessage2(type_e_classes_not_related,
+                                 FullTypeName(left.resulttype.def,resulttype.def),
+                                 FullTypeName(resulttype.def,left.resulttype.def))
+                             else
+                               CGMessage2(type_w_classes_not_related,
+                                 FullTypeName(left.resulttype.def,resulttype.def),
+                                 FullTypeName(resulttype.def,left.resulttype.def))
+                           end;
+
+                         { Add runtime check? }
                          if (cs_check_object in aktlocalswitches) then
-                          begin
-                            if is_class_or_interface(resulttype.def) then
-                             begin
-                               { we can translate the typeconvnode to 'as' when
-                                 typecasting to a class or interface }
-                               hp:=casnode.create(left,cloadvmtaddrnode.create(ctypenode.create(resulttype)));
-                               left:=nil;
-                               result:=hp;
-                               exit;
-                             end;
-                          end
-                         else
-                          begin
-                            { check if the types are related }
-                            if not(nf_internal in flags) and
-                               (not(tobjectdef(left.resulttype.def).is_related(tobjectdef(resulttype.def)))) and
-                               (not(tobjectdef(resulttype.def).is_related(tobjectdef(left.resulttype.def)))) then
-                              begin
-                                { Give an error when typecasting class to interface, this is compatible
-                                  with delphi }
-                                if is_interface(resulttype.def) and
-                                   not is_interface(left.resulttype.def) then
-                                  CGMessage2(type_e_classes_not_related,
-                                    FullTypeName(left.resulttype.def,resulttype.def),
-                                    FullTypeName(resulttype.def,left.resulttype.def))
-                                else
-                                  CGMessage2(type_w_classes_not_related,
-                                    FullTypeName(left.resulttype.def,resulttype.def),
-                                    FullTypeName(resulttype.def,left.resulttype.def))
-                              end;
-                          end;
+                           begin
+                             { we can translate the typeconvnode to 'as' when
+                               typecasting to a class or interface }
+                             hp:=casnode.create(left,cloadvmtaddrnode.create(ctypenode.create(resulttype)));
+                             left:=nil;
+                             result:=hp;
+                           end;
                        end
 
                       else
@@ -2551,7 +2546,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.171  2005-01-06 13:30:41  florian
+  Revision 1.172  2005-01-06 13:40:41  florian
+    * 1.0.10 starting patch from Peter
+
+  Revision 1.171  2005/01/06 13:30:41  florian
     * widechararray patch from Peter
 
   Revision 1.170  2005/01/03 17:55:57  florian

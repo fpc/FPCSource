@@ -78,7 +78,7 @@ interface
 
        treelogfilename = 'tree.log';
 
-{$if (defined(CPUARM) and defined(FPUFPA))}
+{$if defined(CPUARM) and defined(FPUFPA)}
        MathQNaN : tdoublearray = (0,0,252,255,0,0,0,0);
        MathInf : tdoublearray = (0,0,240,127,0,0,0,0);
        MathNegInf : tdoublearray = (0,0,240,255,0,0,0,0);
@@ -2180,7 +2180,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.158  2005-01-06 09:20:36  karoly
+  Revision 1.159  2005-01-06 13:40:41  florian
+    * 1.0.10 starting patch from Peter
+
+  Revision 1.158  2005/01/06 09:20:36  karoly
     * made Shell() work correctly on MorphOS
 
   Revision 1.157  2005/01/04 17:40:33  karoly
