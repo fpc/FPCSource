@@ -141,14 +141,14 @@ implementation
        make_const_global : boolean;
 
     { message calls with codegenerror support }
-    procedure cgmessage(t : tmsgconst);
-    procedure cgmessage1(t : tmsgconst;const s : string);
-    procedure cgmessage2(t : tmsgconst;const s1,s2 : string);
-    procedure cgmessage3(t : tmsgconst;const s1,s2,s3 : string);
-    procedure CGMessagePos(const pos:tfileposinfo;t:tmsgconst);
-    procedure CGMessagePos1(const pos:tfileposinfo;t:tmsgconst;const s1:string);
-    procedure CGMessagePos2(const pos:tfileposinfo;t:tmsgconst;const s1,s2:string);
-    procedure CGMessagePos3(const pos:tfileposinfo;t:tmsgconst;const s1,s2,s3:string);
+    procedure cgmessage(t : longint);
+    procedure cgmessage1(t : longint;const s : string);
+    procedure cgmessage2(t : longint;const s1,s2 : string);
+    procedure cgmessage3(t : longint;const s1,s2,s3 : string);
+    procedure CGMessagePos(const pos:tfileposinfo;t:longint);
+    procedure CGMessagePos1(const pos:tfileposinfo;t:longint;const s1:string);
+    procedure CGMessagePos2(const pos:tfileposinfo;t:longint;const s1,s2:string);
+    procedure CGMessagePos3(const pos:tfileposinfo;t:longint;const s1,s2,s3:string);
 
     { initialize respectively terminates the code generator }
     { for a new module or procedure                      }
@@ -176,7 +176,7 @@ implementation
             override the message calls to set codegenerror
 *****************************************************************************}
 
-    procedure cgmessage(t : tmsgconst);
+    procedure cgmessage(t : longint);
       var
          olderrorcount : longint;
       begin
@@ -188,7 +188,7 @@ implementation
            end;
       end;
 
-    procedure cgmessage1(t : tmsgconst;const s : string);
+    procedure cgmessage1(t : longint;const s : string);
       var
          olderrorcount : longint;
       begin
@@ -200,7 +200,7 @@ implementation
            end;
       end;
 
-    procedure cgmessage2(t : tmsgconst;const s1,s2 : string);
+    procedure cgmessage2(t : longint;const s1,s2 : string);
       var
          olderrorcount : longint;
       begin
@@ -212,7 +212,7 @@ implementation
            end;
       end;
 
-    procedure cgmessage3(t : tmsgconst;const s1,s2,s3 : string);
+    procedure cgmessage3(t : longint;const s1,s2,s3 : string);
       var
          olderrorcount : longint;
       begin
@@ -225,7 +225,7 @@ implementation
       end;
 
 
-    procedure cgmessagepos(const pos:tfileposinfo;t : tmsgconst);
+    procedure cgmessagepos(const pos:tfileposinfo;t : longint);
       var
          olderrorcount : longint;
       begin
@@ -237,7 +237,7 @@ implementation
            end;
       end;
 
-    procedure cgmessagepos1(const pos:tfileposinfo;t : tmsgconst;const s1 : string);
+    procedure cgmessagepos1(const pos:tfileposinfo;t : longint;const s1 : string);
       var
          olderrorcount : longint;
       begin
@@ -249,7 +249,7 @@ implementation
            end;
       end;
 
-    procedure cgmessagepos2(const pos:tfileposinfo;t : tmsgconst;const s1,s2 : string);
+    procedure cgmessagepos2(const pos:tfileposinfo;t : longint;const s1,s2 : string);
       var
          olderrorcount : longint;
       begin
@@ -261,7 +261,7 @@ implementation
            end;
       end;
 
-    procedure cgmessagepos3(const pos:tfileposinfo;t : tmsgconst;const s1,s2,s3 : string);
+    procedure cgmessagepos3(const pos:tfileposinfo;t : longint;const s1,s2,s3 : string);
       var
          olderrorcount : longint;
       begin
@@ -450,7 +450,11 @@ end.
 
 {
   $Log$
-  Revision 1.59  2000-06-01 19:09:57  peter
+  Revision 1.60  2000-06-30 20:23:36  peter
+    * new message files layout with msg numbers (but still no code to
+      show the number on the screen)
+
+  Revision 1.59  2000/06/01 19:09:57  peter
     * made resourcestrings OOP so it's easier to handle it per module
 
   Revision 1.58  2000/04/02 18:30:12  florian

@@ -23,51 +23,97 @@
 unit Messages;
 interface
 
+const
+  maxmsgidxparts = 20;
+
 type
   ppchar=^pchar;
+
+  TArrayOfPChar = array[0..1000] of pchar;
+  PArrayOfPChar = ^TArrayOfPChar;
 
   PMessage=^TMessage;
   TMessage=object
     msgfilename : string;
     msgallocsize,
     msgsize,
-    msgcrc,
+    msgparts,
     msgs        : longint;
     msgtxt      : pchar;
-    msgidx      : ppchar;
-    constructor Init(p:pointer;n:longint);
-    constructor InitExtern(const fn:string;n:longint);
-    destructor Done;
+    msgidx      : array[1..maxmsgidxparts] of PArrayOfPChar;
+    msgidxmax   : array[1..maxmsgidxparts] of longint;
+    constructor Init(n:longint;const idxmax:array of longint);
+    destructor  Done;
+    function  LoadIntern(p:pointer;n:longint):boolean;
+    function  LoadExtern(const fn:string):boolean;
     procedure CreateIdx;
-    function Get(nr:longint):string;
-    function Get3(nr:longint;const s1,s2,s3:string):string;
-    function Get2(nr:longint;const s1,s2:string):string;
-    function Get1(nr:longint;const s1:string):string;
+    function  GetPChar(nr:longint):pchar;
+    function  Get(nr:longint):string;
+    function  Get3(nr:longint;const s1,s2,s3:string):string;
+    function  Get2(nr:longint;const s1,s2:string):string;
+    function  Get1(nr:longint;const s1:string):string;
   end;
+
+{ this will read a line until #10 or #0 and also increase p }
+function GetMsgLine(var p:pchar):string;
+
 
 implementation
 
 uses
   globals,crc,
-  verbose,
 {$ifdef DELPHI}
   sysutils;
 {$else DELPHI}
   strings;
 {$endif DELPHI}
 
-constructor TMessage.Init(p:pointer;n:longint);
+constructor TMessage.Init(n:longint;const idxmax:array of longint);
+var
+  i : longint;
 begin
-  msgtxt:=pchar(p);
-  msgallocsize:=0;
+  msgtxt:=nil;
   msgsize:=0;
-  msgcrc:=MsgCrcValue;
-  msgs:=n;
-  CreateIdx;
+  msgparts:=n;
+  if n<>high(idxmax)+1 then
+   fail;
+  for i:=1to n do
+   begin
+     msgidxmax[i]:=idxmax[i-1];
+     getmem(msgidx[i],msgidxmax[i]*4);
+     fillchar(msgidx[i]^,msgidxmax[i]*4,0);
+   end;
 end;
 
 
-constructor TMessage.InitExtern(const fn:string;n:longint);
+destructor TMessage.Done;
+var
+  i : longint;
+begin
+  for i:=1to msgparts do
+   freemem(msgidx[i],msgidxmax[i]*4);
+  if msgallocsize>0 then
+   begin
+     freemem(msgtxt,msgsize);
+     msgallocsize:=0;
+   end;
+  msgtxt:=nil;
+  msgsize:=0;
+  msgparts:=0;
+end;
+
+
+function TMessage.LoadIntern(p:pointer;n:longint):boolean;
+begin
+  msgtxt:=pchar(p);
+  msgsize:=n;
+  msgallocsize:=0;
+  CreateIdx;
+  LoadIntern:=true;
+end;
+
+
+function TMessage.LoadExtern(const fn:string):boolean;
 
 {$ifndef FPC}
   procedure readln(var t:text;var s:string);
@@ -96,61 +142,99 @@ const
   bufsize=8192;
 var
   f       : text;
-{$ifdef DEBUGCRC}
-  f2 : text;
-{$endif DEBUGCRC}
-  msgsread,
-  line,i,crc  : longint;
+  error,multiline : boolean;
+  code : word;
+  numpart,numidx,
+  line,i,j,num : longint;
   ptxt    : pchar;
+  number,
   s,s1    : string;
   buf     : pointer;
+
+  procedure err(const msgstr:string);
+  begin
+    writeln('error in line ',line,': ',msgstr);
+    error:=true;
+  end;
+
 begin
-  crc:=longint($ffffffff);
+  LoadExtern:=false;
   getmem(buf,bufsize);
 {Read the message file}
   assign(f,fn);
-{$ifdef DEBUGCRC}
-  assign(f2,'crcmsg.tst');
-  rewrite(f2);
-  Writeln(f2,crc);
-{$endif DEBUGCRC}
   {$I-}
    reset(f);
   {$I+}
   if ioresult<>0 then
    begin
      WriteLn('*** message file '+fn+' not found ***');
-     fail;
+     exit;
    end;
   settextbuf(f,buf^,bufsize);
 { First parse the file and count bytes needed }
+  error:=false;
   line:=0;
-  msgs:=n;
+  multiline:=false;
   msgsize:=0;
-  msgsread:=0;
   while not eof(f) do
    begin
      readln(f,s);
      inc(line);
-     if (s<>'') and not(s[1] in ['#',';','%']) then
+     if multiline then
       begin
-        i:=pos('=',s);
-        if i>0 then
-         begin
-           inc(msgsize,length(s)-i+1);
-           inc(msgsread);
-         end
+        if s=']' then
+         multiline:=false
         else
-         writeln('error in line: ',line,' skipping');
+         inc(msgsize,length(s)+1); { +1 for linebreak }
+      end
+     else
+      begin
+        if (s<>'') and not(s[1] in ['#',';','%']) then
+         begin
+           i:=pos('=',s);
+           if i>0 then
+            begin
+              j:=i+1;
+              if not(s[j] in ['0'..'9']) then
+               err('no number found')
+              else
+               begin
+                 while (s[j] in ['0'..'9']) do
+                  inc(j);
+               end;
+              if j-i-1<>5 then
+               err('number length is not 5');
+              number:=Copy(s,i+1,j-i-1);
+              { update the max index }
+              val(number,num,code);
+              numpart:=num div 1000;
+              numidx:=num mod 1000;
+              { check range }
+              if numpart > msgparts then
+               err('number is to large')
+              else
+               if numidx >= msgidxmax[numpart] then
+                err('index is to large');
+              if s[j+1]='[' then
+               begin
+                 inc(msgsize,j-i);
+                 multiline:=true
+               end
+              else
+               inc(msgsize,length(s)-i+1);
+            end
+           else
+            err('no = found');
+         end;
       end;
    end;
-{ check amount of messages }
-  if msgsread<>msgs then
+  if multiline then
+   err('still in multiline mode');
+  if error then
    begin
-     WriteLn('*** message file '+fn+' is corrupt: read ',msgsread,' of ',msgs,' msgs ***');
-     close(f);
      freemem(buf,bufsize);
-     fail;
+     close(f);
+     exit;
    end;
 { now read the buffer in mem }
   msgallocsize:=msgsize;
@@ -160,84 +244,126 @@ begin
   while not eof(f) do
    begin
      readln(f,s);
-     if (s<>'') and not(s[1] in ['#',';','%']) then
+     if multiline then
       begin
-        i:=pos('=',s);
-        if i>0 then
+        if s=']' then
          begin
-           {txt}
-           s1:=Copy(s,i+1,255);
-           { support <lf> for empty lines }
-           if s1='<lf>' then
-            begin
-              s1:='';
-              { update the msgsize also! }
-              dec(msgsize,4);
-            end;
-           {txt}
-           move(s1[1],ptxt^,length(s1));
-           inc(ptxt,length(s1));
+           multiline:=false;
+           { overwrite last eol }
+           dec(ptxt);
            ptxt^:=#0;
            inc(ptxt);
-           s1:=upper(copy(s,1,i-1));
-           crc:=UpdateCRC32(crc,s1[1],length(s1));
-{$ifdef DEBUGCRC}
-           Writeln(f2,s1);
-           Writeln(f2,crc);
-{$endif DEBUGCRC}
+         end
+        else
+         begin
+           move(s[1],ptxt^,length(s));
+           inc(ptxt,length(s));
+           ptxt^:=#10;
+           inc(ptxt);
+         end;
+      end
+     else
+      begin
+        if (s<>'') and not(s[1] in ['#',';','%']) then
+         begin
+           i:=pos('=',s);
+           if i>0 then
+            begin
+              j:=i+1;
+              while (s[j] in ['0'..'9']) do
+               inc(j);
+              { multiline start then no txt }
+              if s[j+1]='[' then
+               begin
+                 s1:=Copy(s,i+1,j-i);
+                 move(s1[1],ptxt^,length(s1));
+                 inc(ptxt,length(s1));
+                 multiline:=true;
+               end
+              else
+               begin
+                 { txt including number }
+                 s1:=Copy(s,i+1,255);
+                 move(s1[1],ptxt^,length(s1));
+                 inc(ptxt,length(s1));
+                 ptxt^:=#0;
+                 inc(ptxt);
+               end;
+            end;
          end;
       end;
    end;
   close(f);
-{$ifdef DEBUGCRC}
-  close(f2);
-{$endif DEBUGCRC}
   freemem(buf,bufsize);
-{ check amount of messages }
-  if (MsgCrcValue<>0) and (crc<>MsgCrcValue) then
-   begin
-     WriteLn('*** message file '+fn+' is incompatible : wrong CRC value ***');
-     fail;
-   end;
 { now we can create the index }
   CreateIdx;
-end;
-
-
-
-destructor TMessage.Done;
-begin
-  if assigned(msgidx) then
-   begin
-     freemem(msgidx,msgs shl 2);
-     msgidx:=nil;
-   end;
-  if msgallocsize>0 then
-   begin
-     freemem(msgtxt,msgallocsize);
-     msgtxt:=nil;
-     msgallocsize:=0;
-   end;
+  LoadExtern:=true;
 end;
 
 
 procedure TMessage.CreateIdx;
 var
-  hp  : pchar;
-  hpl : ppchar;
-  n   : longint;
+  hp1,
+  hp,hpend : pchar;
+  code : word;
+  num  : longint;
+  number : string[5];
+  i   : longint;
+  numpart,numidx : longint;
 begin
-  getmem(msgidx,msgs shl 2);
-  hpl:=msgidx;
+  { clear }
+  for i:=1to msgparts do
+   fillchar(msgidx[i]^,msgidxmax[i]*4,0);
+  { process msgtxt buffer }
+  number:='00000';
   hp:=msgtxt;
-  n:=0;
-  while (n<msgs) do
+  hpend:=@msgtxt[msgsize];
+  while (hp<hpend) do
    begin
-     hpl^:=hp;
-     hpl:=pointer(longint(hpl)+4);
-     inc(n);
+     hp1:=hp;
+     for i:=1to 5 do
+      begin
+        number[i]:=hp1^;
+        inc(hp1);
+      end;
+     val(number,num,code);
+     numpart:=num div 1000;
+     numidx:=num mod 1000;
+     { skip _ }
+     inc(hp1);
+     { put the address in the idx, the numbers are already checked }
+     msgidx[numpart]^[numidx]:=hp1;
+     { next string }
      hp:=pchar(@hp[strlen(hp)+1]);
    end;
+end;
+
+
+function GetMsgLine(var p:pchar):string;
+var
+  i  : longint;
+begin
+  i:=0;
+  while not(p^ in [#0,#10]) and (i<255) do
+   begin
+     inc(i);
+     GetMsgLine[i]:=p^;
+     inc(p);
+   end;
+  { skip #10 }
+  if p^=#10 then
+   inc(p);
+  { if #0 then set p to nil }
+  if p^=#0 then
+   p:=nil;
+  { return string }
+  GetMsgLine[0]:=chr(i);
+end;
+
+
+function TMessage.GetPChar(nr:longint):pchar;
+begin
+  GetPChar:=msgidx[nr div 1000]^[nr mod 1000];
 end;
 
 
@@ -246,10 +372,7 @@ var
   s : string[16];
   hp : pchar;
 begin
-  if msgidx=nil then
-   hp:=nil
-  else
-   hp:=pchar(pointer(longint(msgidx)+nr shl 2)^);
+  hp:=msgidx[nr div 1000]^[nr mod 1000];
   if hp=nil then
    begin
      Str(nr,s);
@@ -306,7 +429,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.15  2000-06-18 18:14:21  peter
+  Revision 1.16  2000-06-30 20:23:36  peter
+    * new message files layout with msg numbers (but still no code to
+      show the number on the screen)
+
+  Revision 1.15  2000/06/18 18:14:21  peter
     * only replace the $1,$2,$3 once, so it doesn't loop when the
       value to replace with contains $1,$2 or $3
 

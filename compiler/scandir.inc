@@ -531,7 +531,7 @@ const
 
     procedure dir_message(t:tdirectivetoken);
       var
-        w   : tmsgconst;
+        w   : longint;
       begin
         case t of
        _DIR_STOP,
@@ -1419,7 +1419,11 @@ const
 
 {
   $Log$
-  Revision 1.82  2000-06-25 19:08:27  hajny
+  Revision 1.83  2000-06-30 20:23:38  peter
+    * new message files layout with msg numbers (but still no code to
+      show the number on the screen)
+
+  Revision 1.82  2000/06/25 19:08:27  hajny
     + $R support for OS/2 (EMX) added
 
   Revision 1.81  2000/05/23 20:18:25  pierre

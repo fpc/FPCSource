@@ -75,14 +75,15 @@ procedure SetErrorFlags(const s:string);
 procedure GenerateError;
 procedure Internalerror(i:longint);
 procedure Comment(l:longint;s:string);
-procedure Message(w:tmsgconst);
-procedure Message1(w:tmsgconst;const s1:string);
-procedure Message2(w:tmsgconst;const s1,s2:string);
-procedure Message3(w:tmsgconst;const s1,s2,s3:string);
-procedure MessagePos(const pos:tfileposinfo;w:tmsgconst);
-procedure MessagePos1(const pos:tfileposinfo;w:tmsgconst;const s1:string);
-procedure MessagePos2(const pos:tfileposinfo;w:tmsgconst;const s1,s2:string);
-procedure MessagePos3(const pos:tfileposinfo;w:tmsgconst;const s1,s2,s3:string);
+function  MessagePchar(w:longint):pchar;
+procedure Message(w:longint);
+procedure Message1(w:longint;const s1:string);
+procedure Message2(w:longint;const s1,s2:string);
+procedure Message3(w:longint;const s1,s2,s3:string);
+procedure MessagePos(const pos:tfileposinfo;w:longint);
+procedure MessagePos1(const pos:tfileposinfo;w:longint;const s1:string);
+procedure MessagePos2(const pos:tfileposinfo;w:longint;const s1,s2:string);
+procedure MessagePos3(const pos:tfileposinfo;w:longint;const s1,s2,s3:string);
 
 procedure InitVerbose;
 procedure DoneVerbose;
@@ -242,19 +243,15 @@ end;
 
 procedure LoadMsgFile(const fn:string);
 begin
-  if not(msg=nil) then
-   dispose(msg,Done);
-  msg:=new(pmessage,InitExtern(fn,ord(endmsgconst)));
+  if not msg^.LoadExtern(fn) then
+   begin
 {$IFDEF TP}
-  if msg=nil then
-    begin
-        writeln('Fatal: Cannot find error message file.');
-        halt(3);
-    end;
+     writeln('Fatal: Cannot find error message file.');
+     halt(3);
 {$ELSE}
-  if msg=nil then
-   msg:=new(pmessage,Init(@msgtxt,ord(endmsgconst)));
+     msg^.LoadIntern(@msgtxt,msgtxtsize);
 {$ENDIF TP}
+   end;
 end;
 
 
@@ -486,70 +483,76 @@ begin
 end;
 
 
-procedure Message(w:tmsgconst);
+function  MessagePchar(w:longint):pchar;
 begin
-  Msg2Comment(msg^.Get(ord(w)));
+  MessagePchar:=msg^.GetPchar(w)
 end;
 
 
-procedure Message1(w:tmsgconst;const s1:string);
+procedure Message(w:longint);
 begin
-  Msg2Comment(msg^.Get1(ord(w),s1));
+  Msg2Comment(msg^.Get(w));
 end;
 
 
-procedure Message2(w:tmsgconst;const s1,s2:string);
+procedure Message1(w:longint;const s1:string);
 begin
-  Msg2Comment(msg^.Get2(ord(w),s1,s2));
+  Msg2Comment(msg^.Get1(w,s1));
 end;
 
 
-procedure Message3(w:tmsgconst;const s1,s2,s3:string);
+procedure Message2(w:longint;const s1,s2:string);
 begin
-  Msg2Comment(msg^.Get3(ord(w),s1,s2,s3));
+  Msg2Comment(msg^.Get2(w,s1,s2));
 end;
 
 
-procedure MessagePos(const pos:tfileposinfo;w:tmsgconst);
+procedure Message3(w:longint;const s1,s2,s3:string);
+begin
+  Msg2Comment(msg^.Get3(w,s1,s2,s3));
+end;
+
+
+procedure MessagePos(const pos:tfileposinfo;w:longint);
 var
   oldpos : tfileposinfo;
 begin
   oldpos:=aktfilepos;
   aktfilepos:=pos;
-  Msg2Comment(msg^.Get(ord(w)));
+  Msg2Comment(msg^.Get(w));
   aktfilepos:=oldpos;
 end;
 
 
-procedure MessagePos1(const pos:tfileposinfo;w:tmsgconst;const s1:string);
+procedure MessagePos1(const pos:tfileposinfo;w:longint;const s1:string);
 var
   oldpos : tfileposinfo;
 begin
   oldpos:=aktfilepos;
   aktfilepos:=pos;
-  Msg2Comment(msg^.Get1(ord(w),s1));
+  Msg2Comment(msg^.Get1(w,s1));
   aktfilepos:=oldpos;
 end;
 
 
-procedure MessagePos2(const pos:tfileposinfo;w:tmsgconst;const s1,s2:string);
+procedure MessagePos2(const pos:tfileposinfo;w:longint;const s1,s2:string);
 var
   oldpos : tfileposinfo;
 begin
   oldpos:=aktfilepos;
   aktfilepos:=pos;
-  Msg2Comment(msg^.Get2(ord(w),s1,s2));
+  Msg2Comment(msg^.Get2(w,s1,s2));
   aktfilepos:=oldpos;
 end;
 
 
-procedure MessagePos3(const pos:tfileposinfo;w:tmsgconst;const s1,s2,s3:string);
+procedure MessagePos3(const pos:tfileposinfo;w:longint;const s1,s2,s3:string);
 var
   oldpos : tfileposinfo;
 begin
   oldpos:=aktfilepos;
   aktfilepos:=pos;
-  Msg2Comment(msg^.Get3(ord(w),s1,s2,s3));
+  Msg2Comment(msg^.Get3(w,s1,s2,s3));
   aktfilepos:=oldpos;
 end;
 
@@ -557,8 +560,14 @@ end;
 procedure InitVerbose;
 begin
 { Init }
+  msg:=new(pmessage,Init(20,msgidxmax));
+  if msg=nil then
+   begin
+     writeln('Fatal: MsgIdx Wrong');
+     halt(3);
+   end;
 {$ifndef EXTERN_MSG}
-  msg:=new(pmessage,Init(@msgtxt,ord(endmsgconst)));
+  msg^.LoadIntern(@msgtxt,msgtxtsize);
 {$else}
   LoadMsgFile(exepath+'errore.msg');
 {$endif}
@@ -566,6 +575,7 @@ begin
   status.verbosity:=V_Default;
   Status.MaxErrorCount:=50;
 end;
+
 
 procedure DoneVerbose;
 begin
@@ -580,7 +590,11 @@ end.
 
 {
   $Log$
-  Revision 1.54  2000-05-23 20:32:48  peter
+  Revision 1.55  2000-06-30 20:23:38  peter
+    * new message files layout with msg numbers (but still no code to
+      show the number on the screen)
+
+  Revision 1.54  2000/05/23 20:32:48  peter
     * removed dup msgcrcvalue
 
   Revision 1.53  2000/05/15 14:05:40  pierre

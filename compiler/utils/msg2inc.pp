@@ -16,16 +16,17 @@
  **********************************************************************}
 program msg2inc;
 uses
-  crc,
   strings;
 
 const
-  version='0.99.14';
+  version='0.99.15';
 {$ifdef linux}
   eollen=1;
 {$else}
   eollen=2;
 {$endif}
+  msgparts = 20;
+
 type
   TMode=(M_Char,M_Tex,M_Intel,M_String,M_Renumber);
 var
@@ -40,87 +41,27 @@ var
   enumsize,
   msgsize    : longint;
 
-function XlatString(Var S : String):boolean;
-{
-  replaces \xxx in string S with #x, and \\ with \ (escaped)
-  which can reduce size of string.
-  Returns false when an error in the line exists
-}
-  Function GetNumber(Position:longint):longint;
-  var
-    C,Value,i : longint;
-  begin
-    I:=0;
-    Value:=0;
-    while i<3 do
-     begin
-       C:=ord(S[Position+I]);
-       if (C>47) and (C<56) then
-        dec(C,48)
-       else
-        begin
-          GetNumber:=-1;
-          exit;
-        end;
-       if I=0 then
-        C:=C shl 6;
-       if I=1 then
-        C:=C SHL 3;
-       inc(Value,C);
-       inc(I);
-     end;
-    GetNumber:=Value;
-  end;
-
-var
-  S2 : String;
-  A,B,Value : longint;
-begin
-  A:=1;
-  B:=1;
-  while A<=Length(S) do
-   begin
-     if (S[A]='\') and (a<length(s)) then
-      begin
-        if S[A+1]='\' then
-         begin
-           S2[B]:='\';
-           Inc(A,2);
-           Inc(B);
-         end
-        else
-         begin
-           Value:=GetNumber(A+1);
-           if Value=-1 then
-            begin
-              XlatString:=false;
-              exit;
-            end;
-           S2[B]:=Chr(Value);
-           inc(B);
-           inc(A,4);
-         end;
-      end
-     else
-      begin
-        S2[B]:=S[A];
-        inc(A);
-        inc(B);
-      end;
-   end;
-  S2[0]:=Chr(B-1);
-  S:=S2;
-  XlatString:=true;
-end;
-
+  msgidxmax    : array[1..msgparts] of longint;
 
 procedure LoadMsgFile(const fn:string);
 var
   f       : text;
-  line,i  : longint;
+  error,
+  multiline : boolean;
+  code : word;
+  numpart,numidx,
+  line,i,j,num  : longint;
   ptxt,
   penum   : pchar;
+  number,
   s,s1    : string;
+
+  procedure err(const msgstr:string);
+  begin
+    writeln('error in line ',line,': ',msgstr);
+    error:=true;
+  end;
+
 begin
   Writeln('Loading messagefile ',fn);
 {Read the message file}
@@ -130,65 +71,142 @@ begin
   {$I+}
   if ioresult<>0 then
    begin
-     WriteLn('*** message file '+fn+' not found ***');
-     exit;
+     WriteLn('fatal error: '+fn+' not found');
+     halt(1);
    end;
 { First parse the file and count bytes needed }
+  fillchar(msgidxmax,sizeof(msgidxmax),0);
+  error:=false;
   line:=0;
+  multiline:=false;
   msgsize:=0;
   while not eof(f) do
    begin
      readln(f,s);
      inc(line);
-     if not XlatString(S) then
-      S:='';
-     if (s<>'') and not(s[1] in ['#',';','%']) then
+     if multiline then
       begin
-        i:=pos('=',s);
-        if i>0 then
-         begin
-           inc(msgsize,length(s)-i+1);
-           inc(enumsize,i);
-         end
+        if s=']' then
+         multiline:=false
         else
-         writeln('error in line: ',line,' skipping');
+         inc(msgsize,length(s)+1); { +1 for linebreak }
+      end
+     else
+      begin
+        if (s<>'') and not(s[1] in ['#',';','%']) then
+         begin
+           i:=pos('=',s);
+           if i>0 then
+            begin
+              j:=i+1;
+              if not(s[j] in ['0'..'9']) then
+               err('no number found')
+              else
+               begin
+                 while (s[j] in ['0'..'9']) do
+                  inc(j);
+               end;
+              if j-i-1<>5 then
+               err('number length is not 5');
+              number:=Copy(s,i+1,j-i-1);
+              { update the max index }
+              val(number,num,code);
+              numpart:=num div 1000;
+              numidx:=num mod 1000;
+              { check range }
+              if numpart > msgparts then
+               err('number is to large')
+              else
+               if numidx > msgidxmax[numpart] then
+                msgidxmax[numpart]:=numidx;
+              if s[j+1]='[' then
+               begin
+                 inc(msgsize,j-i);
+                 multiline:=true
+               end
+              else
+               inc(msgsize,length(s)-i+1);
+              inc(enumsize,j);
+            end
+           else
+            err('no = found');
+         end;
       end;
    end;
-{ now read the buffer in mem }
+  if multiline then
+   err('still in multiline mode');
+  if error then
+   begin
+     close(f);
+     writeln('aborting');
+     halt(1);
+   end;
+{ alloc memory }
   getmem(msgtxt,msgsize);
   ptxt:=msgtxt;
   getmem(enumtxt,enumsize);
   penum:=enumtxt;
+{ now read the buffer in mem }
   reset(f);
   while not eof(f) do
    begin
      readln(f,s);
-     inc(line);
-     if not XlatString(S) then
-      S[0]:=#0;
-     if (s<>'') and not(s[1] in ['#',';','%']) then
+     if multiline then
       begin
-        i:=pos('=',s);
-        if i>0 then
+        if s=']' then
          begin
-           {txt}
-           s1:=Copy(s,i+1,255);
-           { support <lf> for empty lines }
-           if s1='<lf>' then
-            begin
-              s1:='';
-              { update the msgsize also! }
-              dec(msgsize,4);
-            end;
-           move(s1[1],ptxt^,length(s1));
-           inc(ptxt,length(s1));
+           multiline:=false;
+           { overwrite last eol }
+           dec(ptxt);
            ptxt^:=#0;
            inc(ptxt);
-           {enum}
-           move(s[1],penum^,i-1);
-           inc(penum,i-1);
-           penum^:=#0;
-           inc(penum);
+         end
+        else
+         begin
+           move(s[1],ptxt^,length(s));
+           inc(ptxt,length(s));
+           ptxt^:=#10;
+           inc(ptxt);
+         end;
+      end
+     else
+      begin
+        if (s<>'') and not(s[1] in ['#',';','%']) then
+         begin
+           i:=pos('=',s);
+           if i>0 then
+            begin
+              j:=i+1;
+              while (s[j] in ['0'..'9']) do
+               inc(j);
+              {enum}
+              move(s[1],penum^,i-1);
+              inc(penum,i-1);
+              penum^:='=';
+              inc(penum);
+              number:=Copy(s,i+1,j-i-1);
+              move(number[1],penum^,length(number));
+              inc(penum,length(number));
+              penum^:=#0;
+              inc(penum);
+              { multiline start then no txt }
+              if s[j+1]='[' then
+               begin
+                 s1:=Copy(s,i+1,j-i);
+                 move(s1[1],ptxt^,length(s1));
+                 inc(ptxt,length(s1));
+                 multiline:=true;
+               end
+              else
+               begin
+                 { txt including number }
+                 s1:=Copy(s,i+1,255);
+                 move(s1[1],ptxt^,length(s1));
+                 inc(ptxt,length(s1));
+                 ptxt^:=#0;
+                 inc(ptxt);
+               end;
+            end;
          end;
       end;
    end;
@@ -203,25 +221,15 @@ end;
 procedure WriteEnumFile(const fn,typename:string);
 var
   t : text;
-{$ifdef DEBUGCRC}
-  t2 : text;
-{$endif DEBUGCRC}
-  i,crcvalue : longint;
+  i : longint;
   p : pchar;
-  s : string;
   start : boolean;
 begin
-  crcvalue:=longint($ffffffff);
   writeln('Writing enumfile '+fn);
 {Open textfile}
   assign(t,fn);
   rewrite(t);
-{$ifdef DEBUGCRC}
-  assign(t2,'crc.tst');
-  rewrite(t2);
-  Writeln(t2,crcvalue);
-{$endif DEBUGCRC}
-  writeln(t,'type t',typename,'=(');
+  writeln(t,'const');
 {Parse buffer in msgbuf and create indexs}
   p:=enumtxt;
   start:=true;
@@ -230,17 +238,11 @@ begin
      if start then
       begin
         write(t,'  ');
-        s:=UpCase(strpas(p));
-        crcvalue:=UpdateCRC32(crcvalue,s[1],length(s));
-{$ifdef DEBUGCRC}
-        Writeln(t2,s);
-        Writeln(t2,crcvalue);
-{$endif DEBUGCRC}
         start:=false;
       end;
      if p^=#0 then
       begin
-        writeln(t,',');
+        writeln(t,';');
         start:=true;
       end
      else
@@ -249,14 +251,27 @@ begin
       end;
      inc(p);
    end;
-  writeln(t,'end',typename);
-  writeln(t,');');
-  writeln(t,'const');
-  writeln(t,'  MsgCRCValue : longint = ',crcvalue,';');
+  writeln(t,'');
+  { msgtxt size }
+  writeln(t,'  MsgTxtSize = ',msgsize,';');
+  writeln(t,'');
+  { max msg idx table }
+  writeln(t,'  MsgIdxMax : array[1..20] of longint=(');
+  write(t,'    ');
+  for i:=1to 20 do
+   begin
+     write(t,msgidxmax[i]+1);
+     if i<20 then
+      write(t,',');
+     if i=10 then
+      begin
+        writeln(t,'');
+        write(t,'    ');
+      end;
+   end;
+  writeln(t,'');
+  writeln(t,'  );');
   close(t);
-{$ifdef DEBUGCRC}
-  close(t2);
-{$endif DEBUGCRC}
 end;
 
 
@@ -354,7 +369,7 @@ begin
         write(t,'#'+chr(ord(p^) div 100+48)+chr((ord(p^) mod 100) div 10+48)+chr(ord(p^) mod 10+48));
         inc(len,3);
       end;
-     if p^=#0 then
+     if p^ in [#0,#10] then
       start:=true;
      inc(slen);
      inc(p);
@@ -714,7 +729,7 @@ begin
          'C' : Mode:=M_Char;
          'R' : Mode:=M_Renumber;
          'V' : begin
-                 Writeln('Msg2Inc ',version,' for Free Pascal (C) 1998 Peter Vreman');
+                 Writeln('Msg2Inc ',version,' for Free Pascal (C) 1998-2000 Peter Vreman');
                  Writeln;
                  Halt;
                end;
@@ -772,7 +787,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2000-05-26 18:20:38  peter
+  Revision 1.8  2000-06-30 20:23:38  peter
+    * new message files layout with msg numbers (but still no code to
+      show the number on the screen)
+
+  Revision 1.7  2000/05/26 18:20:38  peter
     * fixed wrong var parameter with @
 
   Revision 1.6  2000/05/15 13:14:48  pierre

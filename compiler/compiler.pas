@@ -242,7 +242,7 @@ function Compile(const cmd:string):longint;
 {$maxfpuregisters 0}
 {$endif fpc}
 
-  procedure writepathlist(w:tmsgconst;l:TSearchPathList);
+  procedure writepathlist(w:longint;l:TSearchPathList);
   var
     hp : pstringqueueitem;
   begin
@@ -355,7 +355,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.50  2000-05-29 10:04:40  pierre
+  Revision 1.51  2000-06-30 20:23:33  peter
+    * new message files layout with msg numbers (but still no code to
+      show the number on the screen)
+
+  Revision 1.50  2000/05/29 10:04:40  pierre
     * New bunch of Gabor changes
 
   Revision 1.49  2000/05/03 16:31:22  pierre

@@ -176,21 +176,23 @@ end;
 
 procedure Toption.WriteLogo;
 var
-  i : tmsgconst;
+  p : pchar;
 begin
   MaybeLoadMessageFile;
-  for i:=option_logo_start to option_logo_end do
-   Message1(i,target_cpu_string);
+  p:=MessagePchar(option_logo);
+  while assigned(p) do
+   Comment(V_Normal,GetMsgLine(p));
 end;
 
 
 procedure Toption.WriteInfo;
 var
-  i : tmsgconst;
+  p : pchar;
 begin
   MaybeLoadMessageFile;
-  for i:=option_info_start to option_info_end do
-   Message(i);
+  p:=MessagePchar(option_info);
+  while assigned(p) do
+   Comment(V_Normal,GetMsgLine(p));
   StopOptions;
 end;
 
@@ -205,7 +207,6 @@ procedure Toption.WriteHelpPages;
   end;
 
 var
-  idx,
   lastident,
   j,outline,
   ident,
@@ -214,6 +215,7 @@ var
   opt   : string[32];
   input,
   s     : string;
+  p     : pchar;
 begin
   MaybeLoadMessageFile;
   Message1(option_usage,paramstr(0));
@@ -222,10 +224,11 @@ begin
    lines:=3
   else
    lines:=1;
-  for idx:=ord(ol_begin) to ord(ol_end) do
+  p:=MessagePChar(option_help_pages);
+  while assigned(p) do
    begin
    { get a line and reset }
-     s:=msg^.Get(idx);
+     s:=GetMsgLine(p);
      ident:=0;
      show:=false;
    { parse options }
@@ -1485,7 +1488,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.70  2000-06-19 19:57:19  pierre
+  Revision 1.71  2000-06-30 20:23:38  peter
+    * new message files layout with msg numbers (but still no code to
+      show the number on the screen)
+
+  Revision 1.70  2000/06/19 19:57:19  pierre
    * smart link is default on win32
 
   Revision 1.69  2000/05/23 21:28:22  pierre

@@ -108,7 +108,7 @@ unit scanner;
           procedure end_of_file;
           procedure checkpreprocstack;
           procedure poppreprocstack;
-          procedure addpreprocstack(atyp : preproctyp;a:boolean;const s:string;w:tmsgconst);
+          procedure addpreprocstack(atyp : preproctyp;a:boolean;const s:string;w:longint);
           procedure elsepreprocstack;
           procedure linebreak;
           procedure readchar;
@@ -634,7 +634,7 @@ implementation
       end;
 
 
-    procedure tscannerfile.addpreprocstack(atyp : preproctyp;a:boolean;const s:string;w:tmsgconst);
+    procedure tscannerfile.addpreprocstack(atyp : preproctyp;a:boolean;const s:string;w:longint);
       begin
         preprocstack:=new(ppreprocstack,init(atyp,((preprocstack=nil) or preprocstack^.accept) and a,preprocstack));
         preprocstack^.name:=s;
@@ -1835,7 +1835,11 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.113  2000-06-18 18:05:54  peter
+  Revision 1.114  2000-06-30 20:23:38  peter
+    * new message files layout with msg numbers (but still no code to
+      show the number on the screen)
+
+  Revision 1.113  2000/06/18 18:05:54  peter
     * no binary value reading with % if not fpc mode
     * extended illegal char message with the char itself (Delphi like)
 
