@@ -17,7 +17,7 @@
 unit WEditor;
 
 interface
-{$tes}
+{tes}
 uses
   Dos,Objects,Drivers,Views,Menus,Commands,
   WUtils;
@@ -25,7 +25,9 @@ uses
 
 { try to only do syntax on part of file until current position
   does not work correctly yet PM }
-{.$define TEST_PARTIAL_SYNTAX}
+{$ifdef DEBUG}
+  {$define TEST_PARTIAL_SYNTAX}
+{$endif DEBUG}
 
 const
       cmFileNameChanged      = 51234;
@@ -471,10 +473,6 @@ const
      DefaultTabSize     : integer = 8;
      EOL : String[2] = {$ifdef Linux}#10;{$else}#13#10;{$endif}
 
-     { used for ShiftDel and ShiftIns to avoid
-       GetShiftState to be considered for extending
-       selection (PM) }
-
      cmCopyWin = 240;
      cmPasteWin = 241;
 
@@ -485,7 +483,11 @@ const
      GotoID        = 107;
      TextGrepId    = 108;
 
+     { used for ShiftDel and ShiftIns to avoid
+       GetShiftState to be considered for extending
+       selection (PM) }
      DontConsiderShiftState: boolean  = false;
+
      ToClipCmds         : TCommandSet = ([cmCut,cmCopy,cmCopyWin]);
      FromClipCmds       : TCommandSet = ([cmPaste]);
      FromWinClipCmds    : TCommandSet = ([cmPasteWin]);
@@ -1604,6 +1606,15 @@ begin
         if DontClear=false then
           ClearEvent(Event);
       end;
+{$ifdef TEST_PARTIAL_SYNTAX}
+    evIdle :
+      begin
+        { Complete syntax by 20 lines increment }
+        { could already be quite lengthy on slow systems }
+        if not SyntaxComplete then
+          UpdateAttrsRange(LastSyntaxedLine,LastSyntaxedLine+20,AttrAll);
+      end;
+{$endif TEST_PARTIAL_SYNTAX}
     evBroadcast :
       begin
         CCAction:=ccDontCare;
@@ -4287,6 +4298,8 @@ begin
 {$ifdef TEST_PARTIAL_SYNTAX}
     LastSyntaxedLine:=GetLineCount;
     SyntaxComplete:=true;
+    { no Idle necessary }
+    EventMask:=EventMask and not evIdle;
 {$endif TEST_PARTIAL_SYNTAX}
     UpdateIndicator;
     Exit;
@@ -4354,7 +4367,7 @@ begin
          (OldLine^.EndsWithAsm=Line^.EndsWithAsm) and
          (OldLine^.EndsWithDirective=Line^.EndsWithDirective) and }
 {$ifdef TEST_PARTIAL_SYNTAX}
-         (CurLine>=FromLine) and
+         (CurLine>FromLine) and
 {$endif TEST_PARTIAL_SYNTAX}
          (NextLine^.BeginsWithAsm=Line^.EndsWithAsm) and
          (NextLine^.BeginsWithComment=Line^.EndsWithComment) and
@@ -4363,13 +4376,16 @@ begin
          (NextLine^.Format<>nil) then
        Break;
 {$ifdef TEST_PARTIAL_SYNTAX}
-    if (CurLine<GetLineCount ) and
+    if (CurLine<GetLineCount) and
+       (CurLine>FromLine) and
        ((Attrs and attrForceFull)=0) and
        (CurLine>Delta.Y+Size.Y) then
       begin
         If SyntaxComplete then
           begin
             SyntaxComplete:=false;
+            { no Idle necessary }
+            EventMask:=EventMask or evIdle;
             UpdateIndicator;
           end;
         LastSyntaxedLine:=CurLine-1;
@@ -4385,6 +4401,8 @@ begin
   if CurLine=GetLineCount then
     begin
       SyntaxComplete:=true;
+      { no Idle necessary }
+      EventMask:=EventMask and not evIdle;
       UpdateIndicator;
     end;
 {$endif TEST_PARTIAL_SYNTAX}
@@ -4757,6 +4775,8 @@ begin
       New(TS, Init(@S,S.GetPos,TSize));
 {$ifdef TEST_PARTIAL_SYNTAX}
       SyntaxComplete:=false;
+      { Idle necessary }
+      EventMask:=EventMask or evIdle;
 {$endif TEST_PARTIAL_SYNTAX}
       LoadFromStream(TS);
       Dispose(TS, Done);
@@ -4978,6 +4998,8 @@ begin
   OK:=Assigned(S);
 {$ifdef TEST_PARTIAL_SYNTAX}
   SyntaxComplete:=false;
+  { Idle necessary }
+  EventMask:=EventMask or evIdle;
 {$endif TEST_PARTIAL_SYNTAX}
   if OK then OK:=LoadFromStream(S);
   if Assigned(S) then Dispose(S, Done);
@@ -5496,7 +5518,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.72  2000-01-07 00:19:30  pierre
+  Revision 1.73  2000-01-10 13:25:46  pierre
+   + first partial syntax test
+
+  Revision 1.72  2000/01/07 00:19:30  pierre
     * forgot CommentLineType check to see if we need to update format
       on next line
     * some changes for TEST_PARTIAL_SYNTAX still does notwork :(
