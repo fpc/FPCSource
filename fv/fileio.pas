@@ -293,8 +293,12 @@ END;
 {$ENDIF}
 {$IFDEF OS_UNIX}                                     { LINUX CODE }
 BEGIN
-   {$ifdef ver1_0}fdClose{$else}fpclose{$endif}(Handle);                                   { Close the file }
-   FileClose := LinuxError <= 0
+   {$ifdef ver1_0}
+      fdClose(Handle);
+      FileClose := LinuxError <= 0
+   {$else}
+      FileClose:=fpclose(Handle)=0;
+   {$endif};                                   { Close the file }
 END;
 {$ENDIF}
 
@@ -704,7 +708,10 @@ END;
 END.
 {
  $Log$
- Revision 1.11  2003-10-01 16:20:27  marco
+ Revision 1.12  2003-11-12 22:31:17  marco
+  * linuxerror dependancy removed for 1.1
+
+ Revision 1.11  2003/10/01 16:20:27  marco
   * baseunix fixes for 1.1
 
  Revision 1.10  2002/10/13 20:52:09  hajny
