@@ -122,18 +122,15 @@ begin
       toInteger, toFloat:
         Error(SNumberExpected);
     else
-//      ErrorFmt(SCharExpected, [T]);
-        ErrorStr('"' + T + '"' + SCharExpected);
+      ErrorFmt(SCharExpected, [T]);
     end;
   end;
 end;
 
 procedure TParser.CheckTokenSymbol(const S: string);
 begin
-  if not TokenSymbolIs(S) then begin
-    // ErrorFmt(SSymbolExpected, [S]);
-    ErrorStr(S + SSymbolExpected);
-  end;
+  if not TokenSymbolIs(S) then 
+    ErrorFmt(SSymbolExpected, [S]);
 end;
 
 Procedure TParser.Error(const Ident: string);
@@ -141,17 +138,14 @@ begin
   ErrorStr(Ident);
 end;
 
-{!!!!!!
 Procedure TParser.ErrorFmt(const Ident: string; const Args: array of const);
 begin
   ErrorStr(Format(Ident, Args));
 end;
-!!!!!!}
 
 Procedure TParser.ErrorStr(const Message: string);
 begin
-//  raise EParserError.CreateFmt(SParseError, [Message, FSourceLine]);
-  raise EParserError.Create(Message + SParseError + IntToStr(FSourceLine));
+  raise EParserError.CreateFmt(SParseError, [Message, FSourceLine]);
 end;
 
 
@@ -322,7 +316,12 @@ begin
 end;
 {
   $Log$
-  Revision 1.3  1998-10-02 22:41:28  michael
+  Revision 1.4  1998-10-30 14:52:51  michael
+  + Added format in interface
+  + Some errors in parser fixed, it uses exceptions now
+  + Strings now has no more syntax errors.
+
+  Revision 1.3  1998/10/02 22:41:28  michael
   + Added exceptions for error handling
 
   Revision 1.2  1998/09/23 07:48:11  michael

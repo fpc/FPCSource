@@ -32,14 +32,6 @@
 { Utility routines }
 {$i util.inc}
 
-{!!!TSE 21.09.1998 reimplements exceptions classes}
-{$IFNDEF USE_EXCEPTIONS}
-constructor Exception.Create(Msg : String);
-begin
-  inherited Create;
-end;
-{$ENDIF}
-
 { TBits implementation }
 {$i bits.inc}
 
@@ -370,7 +362,12 @@ end;
 
 {
   $Log$
-  Revision 1.6  1998-10-29 12:47:14  michael
+  Revision 1.7  1998-10-30 14:52:48  michael
+  + Added format in interface
+  + Some errors in parser fixed, it uses exceptions now
+  + Strings now has no more syntax errors.
+
+  Revision 1.6  1998/10/29 12:47:14  michael
   + Implementation of tpoint by WYB
 
   Revision 1.5  1998/09/23 08:41:55  michael
@@ -415,7 +412,12 @@ end;
 
 {
   $Log$
-  Revision 1.6  1998-10-29 12:47:14  michael
+  Revision 1.7  1998-10-30 14:52:48  michael
+  + Added format in interface
+  + Some errors in parser fixed, it uses exceptions now
+  + Strings now has no more syntax errors.
+
+  Revision 1.6  1998/10/29 12:47:14  michael
   + Implementation of tpoint by WYB
 
   Revision 1.5  1998/09/23 08:41:55  michael

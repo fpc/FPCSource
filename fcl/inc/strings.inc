@@ -562,9 +562,9 @@ Var Extra : Longint;
 
 begin
   If FCapacity>64 then
-    Extra:=FCapacity Div 4;
+    Extra:=FCapacity Div 4
   Else If FCapacity>8 Then 
-    Extra:=16;
+    Extra:=16
   Else 
     Extra:=4;
   SetCapacity(FCapacity+Extra); 
@@ -574,7 +574,7 @@ end;
 
 Procedure TStringList.QuickSort(L, R: Integer);
 
-Var L,R,I,J : Longint;
+Var I,J : Longint;
     Pivot : String;
 
 begin
@@ -603,10 +603,10 @@ Procedure TStringList.InsertItem(Index: Integer; const S: string);
 
 begin
   Changing;
-  If FCount:=Fcapacity then Grow;
+  If FCount=Fcapacity then Grow;
   If Index<FCount then
     System.Move (FList^[Index],FList^[Index+1],SizeOf(TStringItem));
-  Pointer(Flist^[Index].Fstring:=Nil;  // Needed to initialize...
+  Pointer(Flist^[Index].Fstring):=Nil;  // Needed to initialize...
   Flist^[Index].FString:=S;
   Flist^[Index].Fobject:=Nil;
   Inc(FCount);
@@ -711,8 +711,8 @@ end;
 
 Procedure TStringList.SetCapacity(NewCapacity: Integer); 
 
-Var NewList : Pointer;
-
+Var NewList,ToFree : Pointer;
+    
 begin
   If (NewCapacity<0) then 
      Error (SListCapacityError,NewCapacity); 
@@ -725,7 +725,7 @@ begin
     If Assigned(FList) then
       begin
       System.Move (FList^,NewList^,FCapacity*Sizeof(Pointer));
-      FillWord (NewList^[FCapacity],(NewCapacity-FCapacity)*WordRatio, 0);
+      FillWord (Pchar(NewList)[FCapacity],(NewCapacity-FCapacity)*WordRatio, 0);
       FreeMem (Flist,FCapacity*SizeOf(Pointer));
       end;
     Flist:=NewList;
@@ -763,7 +763,7 @@ begin
   FOnChanging:=Nil;
   // This will force a dereference. Can be done better...
   For I:=0 to FCount-1 do 
-    FList^.[I].FString:='';
+    FList^[I].FString:='';
   FCount:=0;
   SetCapacity(0);  
   Inherited destroy;  
@@ -782,7 +782,6 @@ begin
         DupIgnore : Exit;
         DupError : Error(SDuplicateString,0)
       end;
-    end;
    InsertItem (Result,S);
 end;
 
@@ -880,13 +879,11 @@ begin
   If Sorted then
     Error (SSortedListError,0)
   else 
-    begin
     If (Index<0) or (Index>FCount) then
-      Error (SListIndexError,Index);
+      Error (SListIndexError,Index)
     else 
       InsertItem (Index,S);
 end;
-
 
 
 Procedure TStringList.Sort; 
@@ -894,7 +891,7 @@ Procedure TStringList.Sort;
 begin
   If Not Sorted and FCount>1 then
     begin
-    Changing
+    Changing;
     QuickSOrt(0,FCount-1);
     Changed;
     end;
@@ -902,7 +899,12 @@ end;
 
 {
   $Log$
-  Revision 1.4  1998-10-24 13:45:37  michael
+  Revision 1.5  1998-10-30 14:52:52  michael
+  + Added format in interface
+  + Some errors in parser fixed, it uses exceptions now
+  + Strings now has no more syntax errors.
+
+  Revision 1.4  1998/10/24 13:45:37  michael
   + Implemented stringlist. Untested, since classes broken.
 
   Revision 1.3  1998/05/07 14:16:51  michael

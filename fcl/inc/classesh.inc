@@ -776,9 +776,7 @@ type
     procedure CheckToken(T: Char);
     procedure CheckTokenSymbol(const S: string);
     procedure Error(const Ident: string);
-    {!!!!!!
     procedure ErrorFmt(const Ident: string; const Args: array of const);
-    }
     procedure ErrorStr(const Message: string);
     procedure HexToBinary(Stream: TStream);
     function NextToken: Char;
@@ -1051,7 +1049,12 @@ function LineStart(Buffer, BufPos: PChar): PChar;
 
 {
   $Log$
-  Revision 1.9  1998-10-24 13:45:35  michael
+  Revision 1.10  1998-10-30 14:52:49  michael
+  + Added format in interface
+  + Some errors in parser fixed, it uses exceptions now
+  + Strings now has no more syntax errors.
+
+  Revision 1.9  1998/10/24 13:45:35  michael
   + Implemented stringlist. Untested, since classes broken.
 
   Revision 1.8  1998/09/23 07:47:41  michael
