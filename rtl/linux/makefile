@@ -37,21 +37,20 @@ CPU=i386
 #CPU=m68k
 endif
 
-# Do you want smartlinking enabled (YES/NO) ?
-ifndef SMARTLINK
-SMARTLINK=YES
-endif
-
 # Name of library ?
 # If this is set, all units will be put in the same library.
 # If it is empty (default), the units will be left in separate files.
+ifndef LIBNAME
 LIBNAME=
+endif
 #LIBNAME=fpc
 
 # Should the library be shared or static (only if LIBNAME is set).
-# Set this to 'shared' or 'static'.
+# Set this to 'shared' or 'static' to create a librrary
 # Setting this to shared will disable smart linking.
-LIBTYPE=shared
+ifndef  LIBTYPE
+LIBTYPE=
+endif
 
 # What compiler to use ?
 ifndef PP
@@ -127,27 +126,6 @@ ifeq ($(LINK_TO_C),YES)
 override OPT:=$(OPT) -dCRTLIB
 endif
 
-
-# Smart linking requested ?
-ifeq ($(SMARTLINK),YES)
-# no use with shared libs.
-ifneq ($(LIBNAME),)
-ifneq ($(LIBTYPE),shared)
-override OPT:=$(OPT) -Xl
-endif
-else
-override OPT:=$(OPT) -Xl
-endif
-endif
-
-ifneq ($(LIBNAME),)
-override OPT:=$(OPT) -o$(LIBNAME)
-ifeq ($(LIBTYPE),shared)
-override OPT:=$(OPT) -CD
-else
-override OPT:=$(OPT) -CS
-endif
-endif
 
 # Define Linux Units
 SYSTEMPPU=syslinux$(PPUEXT)
@@ -332,7 +310,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.18  1998-08-16 10:22:57  michael
+# Revision 1.19  1998-08-17 09:30:00  peter
+#   * libtype/libname is by default off
+#
+# Revision 1.18  1998/08/16 10:22:57  michael
 # Added library support, and smartlinking
 #
 # Revision 1.17  1998/08/15 17:08:09  peter
