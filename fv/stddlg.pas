@@ -1120,7 +1120,7 @@ var
   Time: DateTime;
   Path: PathStr;
   FmtId: String;
-  Params: array[0..7] of LongInt;
+  Params: array[0..7] of PtrInt;
   Str: String[80];
 const
   sDirectoryLine = ' %-12s %-9s %3s %2d, %4d  %2d:%02d%cm';
@@ -1158,12 +1158,12 @@ begin
     Exit;
 
   { Display file }
-  Params[0] := LongInt(@S.Name);
+  Params[0] := PtrInt(@S.Name);
   if S.Attr and Directory <> 0 then
   begin
     FmtId := sDirectoryLine;
     D := Strings^.Get(sDirectory);
-    Params[1] := LongInt(@D);
+    Params[1] := PtrInt(@D);
   end else
   begin
     FmtId := sFileLine;
@@ -1171,7 +1171,7 @@ begin
   end;
   UnpackTime(S.Time, Time);
   M := Month[Time.Month];
-  Params[2] := LongInt(@M);
+  Params[2] := PtrInt(@M);
   Params[3] := Time.Day;
   Params[4] := Time.Year;
   PM := Time.Hour >= 12;
