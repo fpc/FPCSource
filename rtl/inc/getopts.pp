@@ -34,6 +34,9 @@ Type
 
   Orderings = (require_order,permute,return_in_order);
 
+Const
+  OptSpecifier : set of char=['-'];
+
 Var
   OptArg : String;
   OptInd : Longint;
@@ -140,12 +143,11 @@ begin
     inc(count);
   until false;
 { create argc }
-  argc:=count-1;
+  argc:=count;
 { create an nil entry }
   argsbuf[count]:=nil;
   inc(count);
 { create the argv }
-{  getmem(argv,count shl 2); }
   move(argsbuf,argv,count shl 2);
 end;
 
@@ -259,7 +261,7 @@ begin
         else
          if last_nonopt<>optind then
           first_nonopt:=optind;
-        while (optind<nrargs) and ((argv[optind][0]<>'-') or
+        while (optind<nrargs) and (not(argv[optind][0] in OptSpecifier) or
               (length(strpas(argv[optind]))=1)) do
          inc(optind);
         last_nonopt:=optind;
@@ -293,7 +295,7 @@ begin
      else
       currentarg:='';
    { Are we at a non-option ? }
-     if (currentarg[1]<>'-') or (currentarg='-') then
+     if not(currentarg[1] in OptSpecifier) or (length(currentarg)=1) then
       begin
         if ordering=require_order then
          begin
@@ -506,7 +508,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  1998-06-18 10:49:04  peter
+  Revision 1.4  1998-10-29 23:06:55  peter
+    + OptSpecifier
+
+  Revision 1.3  1998/06/18 10:49:04  peter
     * some fixes with indexes
     * bp7 compatible
 
