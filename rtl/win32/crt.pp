@@ -693,6 +693,22 @@ Begin
             WriteChar(f.bufptr^[f.bufpos]);
             inc(f.bufpos);
           end;
+          #28: begin                    // numpad enter
+                WriteChar(#13);
+                WriteChar(#10);
+                f.bufptr^[f.bufend]:=#13;
+                f.bufptr^[f.bufend+1]:=#10;
+                inc(f.bufend,2);
+                break;
+               end;
+          #53: begin
+                 ch:='/';
+                 if f.bufpos<f.bufsize-2 then begin
+                    f.buffer[f.bufpos]:=ch;
+                    inc(f.bufpos);
+                    WriteChar(ch);
+                 end;
+               end;
         end;
         ^S,
       #8 : BackSpace;
@@ -812,7 +828,10 @@ end. { unit Crt }
 
 {
   $Log$
-  Revision 1.21  2004-02-08 16:22:20  michael
+  Revision 1.22  2004-05-02 13:05:39  marco
+   * Fixes for numeric keypad enter and /
+
+  Revision 1.21  2004/02/08 16:22:20  michael
   + Moved CRT interface to common include file
 
   Revision 1.20  2003/11/03 09:42:28  marco
