@@ -64,7 +64,7 @@ RTLOPTS=$(OPT)
 endif
 
 # Message files
-MSGFILES=$(wildcard error*.msg)
+MSGFILES=$(wildcard msg/error*.msg)
 
 # ppcSUFFIX
 ifeq ($(CPU_TARGET),i386)
@@ -94,7 +94,7 @@ endif
 endif
 
 # Default message file
-MSGFILE=error$(FPCLANG).msg
+MSGFILE=msg/error$(FPCLANG).msg
 
 # set correct defines (-d$(CPU_TARGET) is automaticly added in makefile.fpc)
 override LOCALDEF+=-dGDB -dBROWSERLOG

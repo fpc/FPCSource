@@ -146,7 +146,7 @@ endif
 ifndef RTLOPTS
 RTLOPTS=$(OPT)
 endif
-MSGFILES=$(wildcard error*.msg)
+MSGFILES=$(wildcard msg/error*.msg)
 ifeq ($(CPU_TARGET),i386)
 CPUSUF=386
 endif
@@ -169,7 +169,7 @@ ifneq ($(findstring 1.0.,$(FPC_VERSION)),)
 override LOCALDEF+=-dUNIX
 endif
 endif
-MSGFILE=error$(FPCLANG).msg
+MSGFILE=msg/error$(FPCLANG).msg
 override LOCALDEF+=-dGDB -dBROWSERLOG
 ifeq ($(CPU_TARGET),i386)
 override LOCALDEF+=-dSUPPORT_MMX
