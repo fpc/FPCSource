@@ -875,16 +875,19 @@ begin
     GetEnvironmentVariable := StrPas (GetEnvPChar (EnvVar));
 end;
 
+
 Function GetEnvironmentVariableCount : Integer;
 
 begin
-  Result:=FPCCountEnvVar(EnvP);
+(*  Result:=FPCCountEnvVar(EnvP); - the amount is already known... *)
+  GetEnvironmentVariableCount := EnvC;
 end;
+
 
 Function GetEnvironmentString(Index : Integer) : String;
 
 begin
-  Result:=FPCGetEnvStrFromP(Envp,Index);
+  Result:=FPCGetEnvStrFromP (EnvP, Index);
 end;
 
 
@@ -1030,7 +1033,10 @@ end.
 
 {
   $Log$
-  Revision 1.47  2004-12-11 11:32:44  michael
+  Revision 1.48  2004-12-11 17:32:34  hajny
+    * GetEnvironmentVariableCount uses EnvC under OS/2 and EMX
+
+  Revision 1.47  2004/12/11 11:32:44  michael
   + Added GetEnvironmentVariableCount and GetEnvironmentString calls
 
   Revision 1.46  2004/12/06 22:11:47  hajny

@@ -1092,18 +1092,19 @@ begin
     GetEnvironmentVariable := StrPas (GetEnvPChar (EnvVar));
 end;
 
+
 Function GetEnvironmentVariableCount : Integer;
 
 begin
-  // Result:=FPCCountEnvVar(EnvP);
-  Result:=0;
+(*  Result:=FPCCountEnvVar(EnvP); - the amount is already known... *)
+  GetEnvironmentVariableCount := EnvC;
 end;
-  
+
+
 Function GetEnvironmentString(Index : Integer) : String;
-  
+
 begin
-  // Result:=FPCGetEnvStrFromP(Envp,Index);
-  Result:='';
+  Result:=FPCGetEnvStrFromP (EnvP, Index);
 end;
     
 
@@ -1143,7 +1144,7 @@ begin
    SD.Related := ssf_Related_Child;
    SD.PgmName := PChar (Path);
    SD.PgmInputs := PChar (ComLine);
-   Str (ProcessID, SPID);
+   Str (GetProcessID, SPID);
    Str (ThreadID, STID);
    QName := '\QUEUES\FPC_ExecuteProcess_p' + SPID + 't' + STID + '.QUE'#0;
    SD.TermQ := @QName [1];
@@ -1221,7 +1222,10 @@ end.
 
 {
   $Log$
-  Revision 1.17  2004-12-11 11:32:44  michael
+  Revision 1.18  2004-12-11 17:32:34  hajny
+    * GetEnvironmentVariableCount uses EnvC under OS/2 and EMX
+
+  Revision 1.17  2004/12/11 11:32:44  michael
   + Added GetEnvironmentVariableCount and GetEnvironmentString calls
 
   Revision 1.16  2004/02/22 15:01:49  hajny
