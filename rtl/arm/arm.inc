@@ -29,33 +29,27 @@ end;
 {$define FPC_SYSTEM_HAS_GET_FRAME}
 function get_frame:pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
-        mov    r0,fp
+  mov    r0,r11
 end ['R0'];
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
 function get_caller_addr(framebp:pointer):pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
-(*!!!!!!
-        movl    framebp,%eax
-        orl     %eax,%eax
-        jz      .Lg_a_null
-        movl    4(%eax),%eax
+  movs r0,r0
+  beq .Lg_a_null
+  ldr r0,[r0,#-4]
 .Lg_a_null:
-*)
 end ['R0'];
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_FRAME}
 function get_caller_frame(framebp:pointer):pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
-(*!!!!!
-        movl    framebp,%eax
-        orl     %eax,%eax
-        jz      .Lgnf_null
-        movl    (%eax),%eax
+  movs r0,r0
+  beq .Lgnf_null
+  ldr r0,[r0,#-12]
 .Lgnf_null:
-*)
 end ['R0'];
 
 
@@ -123,7 +117,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  2004-01-20 21:01:57  florian
+  Revision 1.5  2004-01-21 23:12:07  florian
+    + get_caller_addr/frame implemented
+
+  Revision 1.4  2004/01/20 21:01:57  florian
     * fixed setjump
     * fixed syscalls
 
