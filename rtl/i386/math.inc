@@ -22,67 +22,48 @@
                        Real/Double data type routines
  ****************************************************************************}
 
-    function pi : real;
-
-      begin
-         asm
+    function pi : real;assembler;
+      asm
             fldpi
             leave
             ret
-         end [];
-      end;
+      end [];
 
 
-    function abs(d : real) : real;
-
-      begin
-         asm
+    function abs(d : real) : real;assembler;
+      asm
             fldl 8(%ebp)
             fabs
-            leave
-            ret $8
-         end [];
-      end;
+      end [];
 
-    function sqr(d : real) : real;
 
-      begin
-         asm
+    function sqr(d : real) : real;assembler;
+      asm
             fldl 8(%ebp)
             fldl 8(%ebp)
             fmulp
-            leave
-            ret $8
-         end [];
-      end;
+      end [];
 
-    function sqrt(d : real) : real;
 
-      begin
-         asm
+    function sqrt(d : real) : real;assembler;
+      asm
             fldl 8(%ebp)
             fsqrt
             leave
             ret $8
-         end [];
-      end;
+      end [];
 
-    function arctan(d : real) : real;
 
-      begin
-         asm
+    function arctan(d : real) : real;assembler;
+      asm
             fldl 8(%ebp)
             fld1
             fpatan
-            leave
-            ret $8
-         end [];
-      end;
+      end [];
 
-    function cos(d : real) : real;
 
-      begin
-         asm
+    function cos(d : real) : real;assembler;
+      asm
             fldl 8(%ebp)
             fcos
             fstsw
@@ -90,18 +71,15 @@
             jnp .LCOS1
             fstp %st(0)
             fldl .LCOS0
-         .LCOS1:
-            leave
-            ret $8
+            jmp .LCOS1
          .LCOS0:
             .quad       0xffffffffffffffff
-         end ['EAX'];
-      end;
+         .LCOS1:
+      end ['EAX'];
 
-    function exp(d : real) : real;
 
-      begin
-         asm
+    function exp(d : real) : real;assembler;
+      asm
             // comes from DJ GPP
             fldl        8(%ebp)
             fldl2e
@@ -122,8 +100,7 @@
             faddp
             fscale
             fstp        %st(1)
-            leave
-            ret $8
+            jmp         .LCW3
 
             // store some help data in the data segment
             .data
@@ -132,12 +109,11 @@
     .LCW2:
             .word       0
             .text
-         end;
+    .LCW3:
       end;
 
-    function frac(d : real) : real;
 
-      begin
+    function frac(d : real) : real;assembler;
          asm
             subl $16,%esp
             fnstcw -4(%ebp)
@@ -154,15 +130,11 @@
             fstp %st(1)
             fclex
             fldcw -4(%ebp)
-            leave
-            ret $8
-         end ['ECX'];
-      end;
+       end ['ECX'];
 
-    function int(d : real) : real;
 
-      begin
-         asm
+    function int(d : real) : real;assembler;
+       asm
             subl $16,%esp
             fnstcw -4(%ebp)
             fwait
@@ -175,15 +147,11 @@
             frndint
             fclex
             fldcw -4(%ebp)
-            leave
-            ret $8
-         end ['ECX'];
-      end;
+      end ['ECX'];
 
-    function trunc(d : real) : longint;
 
-      begin
-         asm
+    function trunc(d : real) : longint;assembler;
+      asm
             subl $16,%esp
             fnstcw -4(%ebp)
             fwait
@@ -196,15 +164,11 @@
             fistpl -8(%ebp)
             movl -8(%ebp),%eax
             fldcw -4(%ebp)
-            leave
-            ret $8
-         end ['EAX','ECX'];
-      end;
+      end ['EAX','ECX'];
 
-    function round(d : real) : longint;
 
-      begin
-         asm
+    function round(d : real) : longint;assembler;
+      asm
             subl $8,%esp
             fnstcw -4(%ebp)
             fwait
@@ -215,27 +179,19 @@
             fistpl -8(%ebp)
             movl -8(%ebp),%eax
             fldcw -4(%ebp)
-            leave
-            ret $8
-         end ['EAX','ECX'];
-      end;
+      end ['EAX','ECX'];
 
-    function ln(d : real) : real;
 
-      begin
-         asm
+    function ln(d : real) : real;assembler;
+      asm
             fldln2
             fldl 8(%ebp)
             fyl2x
-            leave
-            ret $8
-         end [];
-      end;
+      end [];
 
-    function sin(d : real) : real;
 
-      begin
-         asm
+    function sin(d : real) : real;assembler;
+      asm
             fldl 8(%ebp)
             fsin
             fstsw
@@ -243,13 +199,12 @@
             jnp .LSIN1
             fstp %st(0)
             fldl .LSIN0
-         .LSIN1:
-            leave
-            ret $8
+            jmp .LSIN1
          .LSIN0:
             .quad       0xffffffffffffffff
-         end ['EAX'];
-      end;
+         .LSIN1:
+      end ['EAX'];
+
 
    function power(bas,expo : real) : real;
      begin
@@ -262,96 +217,73 @@
                        EXTENDED data type routines
  ****************************************************************************}
 
-    function pi : extended;{$ifdef MORECONST}[internconst:in_const_pi];{$endif}
-
-      begin
-         asm
+    function pi : extended;assembler;{$ifdef MORECONST}[internconst:in_const_pi];{$endif}
+      asm
             fldpi
-            leave
-            ret
-         end [];
-      end;
+      end [];
 
-    function abs(d : extended) : extended;[internconst:in_const_abs];
 
-      begin
-         asm
-            fldt 8(%ebp)
+    function abs(d : extended) : extended;assembler;[internconst:in_const_abs];
+      asm
+            fldt d
             fabs
-            leave
-            ret $10
-         end [];
-      end;
+      end [];
 
-    function sqr(d : extended) : extended;[internconst:in_const_sqr];
 
-      begin
-         asm
-            fldt 8(%ebp)
-            fldt 8(%ebp)
+    function sqr(d : extended) : extended;assembler;[internconst:in_const_sqr];
+      asm
+            fldt d
+            fldt d
             fmulp
-            leave
-            ret $10
-         end [];
-      end;
+      end [];
 
-    function sqrt(d : extended) : extended;{$ifdef MORECONST}[internconst:in_const_sqrt];{$endif}
 
-      begin
-         asm
-            fldt 8(%ebp)
+    function sqrt(d : extended) : extended;assembler;{$ifdef MORECONST}[internconst:in_const_sqrt];{$endif}
+      asm
+            fldt d
             fsqrt
-            leave
-            ret $10
-         end [];
-      end;
+      end [];
 
-    function arctan(d : extended) : extended;{$ifdef MORECONST}[internconst:in_const_arctan];{$endif}
 
-      begin
-         asm
-            fldt 8(%ebp)
+    function arctan(d : extended) : extended;assembler;{$ifdef MORECONST}[internconst:in_const_arctan];{$endif}
+      asm
+            fldt d
             fld1
             fpatan
-            leave
-            ret $10
-         end [];
-      end;
+      end [];
 
-    function cos(d : extended) : extended;{$ifdef MORECONST}[internconst:in_const_cos];{$endif}
 
-      begin
-         asm
-            fldt 8(%ebp)
+    function cos(d : extended) : extended;assembler;{$ifdef MORECONST}[internconst:in_const_cos];{$endif}
+      asm
+            fldt d
             fcos
             fstsw
             sahf
             jnp .LCOS1
             fstp %st(0)
             fldt .LCOS0
-         .LCOS1:
-            leave
-            ret $10
+            jmp .LCOS1
+         .data
          .LCOS0:
             .long       0xffffffff
             .long       0xffffffff
-            .word       0xffff
-         end ['EAX'];
-      end;
+            .long       0xffffffff
+         .text
+         .LCOS1:
+      end ['EAX'];
 
-    function exp(d : extended) : extended;{$ifdef MORECONST}[internconst:in_const_exp];{$endif}
 
-      begin
-         asm
+    function exp(d : extended) : extended;assembler;{$ifdef MORECONST}[internconst:in_const_exp];{$endif}
+       asm
             // comes from DJ GPP
-            fldt        8(%ebp)
+            fldt        d
             fldl2e
             fmulp
             fstcw      .LCW1
             fstcw      .LCW2
             fwait
             andw        $0xf3ff,.LCW2
-            orw $0x0400,.LCW2
+            orw         $0x0400,.LCW2
             fldcw      .LCW2
             fld         %st(0)
             frndint
@@ -363,23 +295,20 @@
             faddp
             fscale
             fstp        %st(1)
-            leave
-            ret $10
-
+            jmp         .LCW3
             // store some help data in the data segment
-            .data
-    .LCW1:
+        .data
+        .LCW1:
             .word       0
-    .LCW2:
+        .LCW2:
             .word       0
-            .text
-         end;
+        .text
+        .LCW3:
       end;
 
-    function frac(d : extended) : extended;[internconst:in_const_frac];
 
-      begin
-         asm
+    function frac(d : extended) : extended;assembler;[internconst:in_const_frac];
+      asm
             subl $16,%esp
             fnstcw -4(%ebp)
             fwait
@@ -388,22 +317,18 @@
             movw %cx,-8(%ebp)
             fldcw -8(%ebp)
             fwait
-            fldt 8(%ebp)
+            fldt d
             frndint
-            fldt 8(%ebp)
+            fldt d
             fsub %st(1)
             fstp %st(1)
             fclex
             fldcw -4(%ebp)
-            leave
-            ret $10
-         end ['ECX'];
-      end;
+      end ['ECX'];
 
-    function int(d : extended) : extended;[internconst:in_const_int];
 
-      begin
-         asm
+    function int(d : extended) : extended;assembler;[internconst:in_const_int];
+      asm
             subl $16,%esp
             fnstcw -4(%ebp)
             fwait
@@ -412,19 +337,15 @@
             movw %cx,-8(%ebp)
             fldcw -8(%ebp)
             fwait
-            fldt 8(%ebp)
+            fldt d
             frndint
             fclex
             fldcw -4(%ebp)
-            leave
-            ret $10
-         end ['ECX'];
-      end;
+      end ['ECX'];
 
-    function trunc(d : extended) : longint;[internconst:in_const_trunc];
 
-      begin
-         asm
+    function trunc(d : extended) : longint;assembler;[internconst:in_const_trunc];
+      asm
             subl $16,%esp
             fnstcw -4(%ebp)
             fwait
@@ -433,69 +354,57 @@
             movw %cx,-8(%ebp)
             fldcw -8(%ebp)
             fwait
-            fldt 8(%ebp)
+            fldt d
             fistpl -8(%ebp)
             movl -8(%ebp),%eax
             fldcw -4(%ebp)
-            leave
-            ret $10
-         end ['EAX','ECX'];
-      end;
+      end ['EAX','ECX'];
 
-    function round(d : extended) : longint;[internconst:in_const_round];
 
-      begin
-         asm
+    function round(d : extended) : longint;assembler;[internconst:in_const_round];
+      asm
             subl $8,%esp
             fnstcw -4(%ebp)
             fwait
             movw $0x1372,-8(%ebp)
             fldcw -8(%ebp)
             fwait
-            fldt 8(%ebp)
+            fldt d
             fistpl -8(%ebp)
             movl -8(%ebp),%eax
             fldcw -4(%ebp)
-            leave
-            ret $10
-         end ['EAX','ECX'];
-      end;
+      end ['EAX','ECX'];
 
-    function ln(d : extended) : extended;{$ifdef MORECONST}[internconst:in_const_ln];{$endif}
 
-      begin
-         asm
+    function ln(d : extended) : extended;assembler;{$ifdef MORECONST}[internconst:in_const_ln];{$endif}
+      asm
             fldln2
-            fldt 8(%ebp)
+            fldt d
             fyl2x
-            leave
-            ret $10
-         end [];
-      end;
+      end [];
 
-    function sin(d : extended) : extended;{$ifdef MORECONST}[internconst:in_const_sin];{$endif}
 
-      begin
-         asm
-            fldt 8(%ebp)
+    function sin(d : extended) : extended;assembler;{$ifdef MORECONST}[internconst:in_const_sin];{$endif}
+      asm
+            fldt d
             fsin
             fstsw
             sahf
             jnp .LSIN1
             fstp %st(0)
             fldt .LSIN0
-         .LSIN1:
-            leave
-            ret $10
+            jmp .LSIN1
+         .data
          .LSIN0:
             .long       0xffffffff
             .long       0xffffffff
-            .word       0xffff
-         end ['EAX'];
-      end;
+            .long       0xffffffff
+         .text
+         .LSIN1:
+      end ['EAX'];
+
 
    function power(bas,expo : extended) : extended;
-
      begin
         power:=exp(ln(bas)*expo);
      end;
@@ -634,7 +543,11 @@
 
 {
   $Log$
-  Revision 1.11  1998-11-16 14:26:03  pierre
+  Revision 1.12  1998-11-24 12:54:57  peter
+    * removed all explicit leave;ret commands and let them generate by
+      the compiler (needed for stack alignment)
+
+  Revision 1.11  1998/11/16 14:26:03  pierre
    * changed fsqrtl to fsqrt (needed by as v2.9.4 for win32)
 
   Revision 1.10  1998/10/02 09:25:29  peter
