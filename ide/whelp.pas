@@ -198,6 +198,9 @@ uses
 {$ifdef netwlibc}
   Libc,
 {$endif}
+{$ifdef netware_clib}
+  nwserv,
+{$endif}
   Strings,
   WConsts;
 
@@ -340,7 +343,12 @@ begin
   GetDosTicks:=((tv.tv_sec mod 86400) div 60)*1092+((tv.tv_Sec mod 60)*1000000+tv.tv_USec) div 549
 end;
 {$endif}
-	      
+{$ifdef netware_clib}
+begin
+  GetDosTicks := Nwserv.GetCurrentTicks;
+end;
+{$endif}
+
 
 procedure DisposeRecord(var R: TRecord);
 begin
@@ -970,7 +978,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.11  2004-09-16 22:08:13  armin
+  Revision 1.12  2004-11-06 19:56:14  armin
+  * support target netware
+
+  Revision 1.11  2004/09/16 22:08:13  armin
   * added target netwlibc
 
   Revision 1.10  2003/09/27 14:03:45  peter

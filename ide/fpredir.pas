@@ -46,6 +46,9 @@ Interface
 {$ifdef netwlibc}
 {$define implemented}
 {$endif}
+{$ifdef netware_clib}
+{$define implemented}
+{$endif}
 
 { be sure msdos is not set for FPC compiler }
 {$ifdef FPC}
@@ -91,6 +94,9 @@ Uses
 {$ifdef netwlibc}
   Libc,
 {$endif netwlibc}
+{$ifdef netware_clib}
+  nwserv,
+{$endif netware_clib}
 {$ifdef win32}
   windows,
 {$endif win32}
@@ -974,7 +980,10 @@ finalization
 End.
 {
   $Log$
-  Revision 1.8  2004-09-21 14:55:45  armin
+  Revision 1.9  2004-11-06 19:56:14  armin
+  * support target netware
+
+  Revision 1.8  2004/09/21 14:55:45  armin
   * added uses windows for win32 (deleted that with my last change)
 
   Revision 1.7  2004/09/19 14:51:03  armin

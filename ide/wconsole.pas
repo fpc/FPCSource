@@ -40,9 +40,9 @@ interface
 {$ifdef go32v2}
       longint
 {$endif go32v2}
-{$ifdef netwlibc}
+{$ifdef netware}
       longint
-{$endif netwlibc}
+{$endif netware}
     ;
 
 Procedure SaveConsoleMode(var ConsoleMode : TConsoleMode);
@@ -65,7 +65,7 @@ Begin
 {$ifdef go32v2}
   ConsoleMode:=0;
 {$endif go32v2}
-{$ifdef netwlibc}
+{$ifdef netware}
   ConsoleMode:=0;
 {$endif}
 End;
@@ -86,7 +86,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  2004-09-19 14:51:03  armin
+  Revision 1.8  2004-11-06 19:56:14  armin
+  * support target netware
+
+  Revision 1.7  2004/09/19 14:51:03  armin
   * added support for target netwlibc
 
   Revision 1.6  2003/11/19 17:11:40  marco
