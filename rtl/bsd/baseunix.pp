@@ -57,6 +57,12 @@ property errno : cint read fpgeterrno write fpseterrno;
 
 {$i bunxovlh.inc}
 
+{$ifdef FPC_USE_LIBC}
+function settimeofday(tp:ptimeval;tzp:ptimezone):cint; cdecl; external clib name 'settimeofday';
+{$else}
+function settimeofday(tp:ptimeval;tzp:ptimezone):cint;
+{$endif}
+
 implementation
 
 Uses Sysctl;
@@ -84,12 +90,15 @@ end;
 
 {$i bunxmain.inc}	{ implementation}
 {$i bunxovl.inc}	{ redefs and overloads implementation}
-
+{$i settimeo.inc}
 end.
 
 {
   $Log$
-  Revision 1.12  2004-11-19 13:15:14  marco
+  Revision 1.13  2004-12-02 15:11:42  marco
+   * initial settimeofday
+
+  Revision 1.12  2004/11/19 13:15:14  marco
    * external rework. Mostly done.
 
   Revision 1.11  2004/11/14 12:21:08  marco
