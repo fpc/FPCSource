@@ -324,7 +324,7 @@ end;
 {$ifndef FPC_SYSTEM_HAS_FPC_HELP_CONSTRUCTOR}
 { Note: _vmt will be reset to -1 when memory is allocated,
   this is needed for fpc_help_fail }
-procedure fpc_help_constructor;[public,alias:'FPC_HELP_CONSTRUCTOR'];{$ifdef hascompilerproc}compilerproc;{$endif}
+function fpc_help_constructor(_self:pointer;var _vmt:pointer;_vmt_pos:cardinal):pointer;[public,alias:'FPC_HELP_CONSTRUCTOR'];{$ifdef hascompilerproc}compilerproc;{$endif}
 type
   ppointer = ^pointer;
   pvmt = ^tvmt;
@@ -334,12 +334,11 @@ type
   end;
 var
   vmtcopy : pointer;
- _self:pointer;var _vmt:pointer;_vmt_pos:cardinal;result:pointer;
 begin
   { Inherited call? }
   if _vmt=nil then
     begin
-      result:=_self;
+      fpc_help_constructor:=_self;
       exit;
     end;
   vmtcopy:=_vmt;
@@ -355,14 +354,14 @@ begin
       fillchar(_self^,pvmt(vmtcopy)^.size,#0);
       ppointer(_self+_vmt_pos)^:=vmtcopy;
     end;
-  result:=_self;
+  fpc_help_constructor:=_self;
 end;
 {$endif FPC_SYSTEM_HAS_FPC_HELP_CONSTRUCTOR}
 
 
 {$ifndef FPC_SYSTEM_HAS_FPC_HELP_DESTRUCTOR}
 { Note: _self will not be reset, the compiler has to generate the reset }
-procedure fpc_help_destructor(var _self : pointer; vmt : pointer; vmt_pos : cardinal);[public,alias:'FPC_HELP_DESTRUCTOR'];  {$ifdef hascompilerproc} compilerproc; {$endif}
+procedure fpc_help_destructor(_self,_vmt:pointer;vmt_pos:cardinal);[public,alias:'FPC_HELP_DESTRUCTOR'];  {$ifdef hascompilerproc} compilerproc; {$endif}
 type
   ppointer = ^pointer;
   pvmt = ^tvmt;
@@ -378,9 +377,9 @@ begin
    if (pvmt(ppointer(_self+vmt_pos)^)^.size=0) or
       (pvmt(ppointer(_self+vmt_pos)^)^.size+pvmt(ppointer(_self+vmt_pos)^)^.msize<>0) then
      RunError(210);
-   if (vmt = nil) then
+   if (_vmt = nil) then
      exit;
-   objectsize:=pvmt(vmt)^.size;
+   objectsize:=pvmt(_vmt)^.size;
    { reset vmt to nil for protection }
    ppointer(_self+vmt_pos)^:=nil;
    freemem(_self,objectsize);
@@ -390,7 +389,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FPC_HELP_FAIL}
 { Note: _self will not be reset, the compiler has to generate the reset }
-procedure fpc_help_fail(var _self:pointer;var vmt:pointer;vmt_pos:cardinal);[public,alias:'FPC_HELP_FAIL'];compilerproc;
+procedure fpc_help_fail(_self:pointer;var _vmt:pointer;vmt_pos:cardinal);[public,alias:'FPC_HELP_FAIL'];compilerproc;
 type
   ppointer = ^pointer;
   pvmt = ^tvmt;
@@ -399,10 +398,10 @@ type
     parent : pointer;
   end;
 begin
-   if vmt=nil then
+   if _vmt=nil then
      exit;
    { vmt=-1 when memory was allocated }
-   if longint(vmt)=-1 then
+   if longint(_vmt)=-1 then
      begin
        if (_self=nil) or (ppointer(_self+vmt_pos)^=nil) then
          HandleError(210)
@@ -412,7 +411,7 @@ begin
            freemem(_self);
            { reset _vmt to 0 so it will not be freed a
              second time }
-           vmt:=0;
+           _vmt:=0;
          end;
      end
    else
@@ -422,7 +421,7 @@ end;
 
 
 {$ifndef FPC_SYSTEM_HAS_FPC_NEW_CLASS}
-function fpc_new_class(_vmt:pointer;_self:pointer):pointer;[public,alias:'FPC_NEW_CLASS']; {$ifdef hascompilerproc} compilerproc; {$endif}
+function fpc_new_class(_self,_vmt:pointer):pointer;[public,alias:'FPC_NEW_CLASS']; {$ifdef hascompilerproc} compilerproc; {$endif}
 begin
   { Inherited call? }
   if _vmt=nil then
@@ -437,7 +436,7 @@ end;
 
 
 {$ifndef FPC_SYSTEM_HAS_FPC_DISPOSE_CLASS}
-procedure fpc_dispose_class(_self: tobject; flag : longint);[public,alias:'FPC_DISPOSE_CLASS'];compilerproc;
+procedure fpc_dispose_class(_self: pointer; flag : longint);[public,alias:'FPC_DISPOSE_CLASS'];compilerproc;
 begin
   { inherited -> flag = 0 -> no destroy }
   { normal -> flag = 1 -> destroy }
@@ -963,9 +962,8 @@ end;
 
 {
   $Log$
-  Revision 1.52  2003-04-01 21:12:40  mazen
-  * making sparc compiling again by adapting compilerproc declarations after the
-    last change of compilerproc by i386 team.
+  Revision 1.53  2003-04-02 14:05:45  peter
+    * undo previous commit
 
   Revision 1.51  2003/03/26 00:17:34  peter
     * generic constructor/destructor fixes
