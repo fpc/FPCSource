@@ -69,7 +69,6 @@ end;
 
 
 procedure UnRegisterModuleClasses(Module: HMODULE);
-
 begin
 end;
 
@@ -105,6 +104,32 @@ begin
       ClassList.Unlocklist;
     end;
 end;
+
+
+procedure StartClassGroup(AClass: TPersistentClass);
+begin
+end;
+
+
+procedure GroupDescendentsWith(AClass, AClassGroup: TPersistentClass);
+begin
+end;
+
+
+function ActivateClassGroup(AClass: TPersistentClass): TPersistentClass;
+begin
+end;
+
+
+function ClassGroupOf(AClass: TPersistentClass): TPersistentClass;
+begin
+end;
+
+
+function ClassGroupOf(Instance: TPersistent): TPersistentClass;
+begin
+end;
+
 
 { Component registration routines }
 
@@ -197,7 +222,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  2003-10-06 21:01:06  peter
+  Revision 1.2  2005-02-02 19:39:59  florian
+    * empty class grouping functions
+
+  Revision 1.1  2003/10/06 21:01:06  peter
     * moved classes unit to rtl
 
   Revision 1.5  2003/04/19 14:29:25  michael
