@@ -387,10 +387,12 @@ implementation
 
     function tsuperregisterworklist.delete(s:tsuperregister):boolean;
 
-    var i:word;
+    var
+      i:longint;
 
     begin
       delete:=false;
+{$ifndef FPC}
       for i:=1 to length do
         if buf^[i-1]=s then
           begin
@@ -398,6 +400,14 @@ implementation
             delete:=true;
             break;
           end;
+{$else FPC}
+      i := indexword(buf^,length,s);
+      if i <> -1 then
+        begin
+          deleteidx(i);
+          delete := true;
+        end;
+{$endif FPC}
     end;
 
 
@@ -585,7 +595,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.91  2004-07-07 17:35:26  daniel
+  Revision 1.92  2004-07-18 15:14:59  jonas
+    * use indexword() in tsuperregisterworklist.delete, greatly speeds up
+      compilation of tw2242
+
+  Revision 1.91  2004/07/07 17:35:26  daniel
     * supregset_reset clears 8kb of memory. However, it is being called in
       inner loops, see for example colour_registers. According to profile data
       this causes fillchar to be the most time consuming procedure.
