@@ -14,17 +14,33 @@
 
  **********************************************************************}
 
-Function DiskFree (Drive : Byte) : Longint;
+{$IFDEF INT64}
+
+function DiskFree (Drive : Byte) : int64;
 
 begin
 end;
 
 
-Function DiskSize (Drive : Byte) : Longint;
+function DiskSize (Drive : Byte) : int64;
 
 begin
 end;
 
+{$ELSE}
+
+function DiskFree (Drive : Byte) : Longint;
+
+begin
+end;
+
+
+function DiskSize (Drive : Byte) : Longint;
+
+begin
+end;
+
+{$ENDIF}
 
 Function GetCurrentDir : String;
 
@@ -53,7 +69,10 @@ end;
 
 {
  $Log$
- Revision 1.3  2000-02-09 16:59:33  peter
+ Revision 1.4  2000-05-21 15:55:11  hajny
+   * int64 result for Disk* functions
+
+ Revision 1.3  2000/02/09 16:59:33  peter
    * truncated log
 
  Revision 1.2  2000/01/07 16:41:45  daniel
