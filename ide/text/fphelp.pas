@@ -144,7 +144,7 @@ begin
 
     hcCompileMenu   : S:='Compile, build & make';
     hcCompile       : S:='Compile the current source file';
-    hcMake          : S:='Rebuild soruce file and all other files that have been modified';
+    hcMake          : S:='Rebuild source file and all other files that have been modified';
     hcBuild         : S:='Rebuild program and all available source files';
     hcTarget        : S:='Select target platform to compile for';
     hcPrimaryFile   : S:='Define then file that is the focus of Make and Build';
@@ -410,7 +410,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.24  2000-01-03 11:38:33  michael
+  Revision 1.25  2000-01-05 17:25:26  pierre
+   * typo error corrected
+
+  Revision 1.24  2000/01/03 11:38:33  michael
   Changes from Gabor
 
   Revision 1.23  1999/09/09 16:31:45  pierre
