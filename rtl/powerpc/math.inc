@@ -102,12 +102,12 @@ const
         // store
         stfd     f4,temp
         // and load into r4
-        lwz      r3,temp+4
+        lwz      r3,4+temp
         // convert back to float
         lis      r0,0x4330
         stw      r0,temp
         xoris    r0,r3,0x8000
-        stw      r0,temp+4
+        stw      r0,4+temp
         {$ifndef macos}
         lis    r4,longint_to_real_helper@ha
         lfd    f0,longint_to_real_helper@l(r4)
@@ -143,7 +143,7 @@ const
         // next part same as conversion to signed integer word
         fctiwz f4,f4
         stfd   f4,temp
-        lwz    r4,temp+4
+        lwz    r4,4+temp
         // add 2^31 if value was >=2^31
         blt    cr1, .LTruncNoAdd
         xoris  r4,r4,0x8000
@@ -198,12 +198,12 @@ const
         // store
         stfd     f4,temp
         // and load into r4
-        lwz      r3,temp+4
+        lwz      r3,4+temp
         // convert back to float
         lis      r0,0x4330
         stw      r0,temp
         xoris    r0,r3,0x8000
-        stw      r0,temp+4
+        stw      r0,4+temp
         {$ifndef macos}
         lis    r4,longint_to_real_helper@ha
         lfd    f0,longint_to_real_helper@l(r4)
@@ -239,7 +239,7 @@ const
         // next part same as conversion to signed integer word
         fctiw  f4,f4
         stfd   f4,temp
-        lwz    r4,temp+4
+        lwz    r4,4+temp
         // add 2^31 if value was >=2^31
         blt    cr1, .LRoundNoAdd
         xoris  r4,r4,0x8000
@@ -357,7 +357,7 @@ asm
            lis    r0,0x4330
            stw    r0,temp
            xoris  r3,r3,0x8000
-           stw    r3,temp+4
+           stw    r3,4+temp
            {$ifndef macos}
            lis    r3,longint_to_real_helper@ha
            lfd    f1,longint_to_real_helper@l(r3)
@@ -366,7 +366,7 @@ asm
            lfd    f1,0(r3)
            {$endif}
            lfd    f0,temp
-           stw    r4,temp+4
+           stw    r4,4+temp
            fsub   f0,f0,f1
            {$ifndef macos}
            lis    r4,cardinal_to_real_helper@ha
@@ -400,7 +400,7 @@ var
 asm
            lis    r0,0x4330
            stw    r0,temp
-           stw    r3,temp+4
+           stw    r3,4+temp
            lfd    f0,temp
            {$ifndef macos}
            lis    r3,cardinal_to_real_helper@ha
@@ -409,7 +409,7 @@ asm
            lwz    r3,longint_to_real_helper[TC](r2)
            lfd    f1,0(r3)
            {$endif}
-           stw    r4,temp+4
+           stw    r4,4+temp
            fsub   f0,f0,f1
            lfd    f3,temp
            {$ifndef macos}
@@ -426,7 +426,10 @@ end;
 
 {
   $Log$
-  Revision 1.30  2003-11-15 19:01:27  florian
+  Revision 1.31  2003-12-07 17:54:53  olle
+    * changed in temp+4 to 4+temp, to be compatible with PPCAsm
+
+  Revision 1.30  2003/11/15 19:01:27  florian
     * fixed rtl to work with the integrated fpc ppc assembler reader
 
   Revision 1.29  2003/09/04 16:07:31  florian
