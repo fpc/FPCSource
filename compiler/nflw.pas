@@ -754,7 +754,6 @@ implementation
     function tfornode.pass_1 : tnode;
       var
          old_t_times : longint;
-         hp : Tnode;
      begin
          result:=nil;
          { Calc register weight }
@@ -872,9 +871,8 @@ implementation
                  pt:=cfuncretnode.create(aktprocdef.funcretsym);
                  left:=cassignmentnode.create(pt,left);
                  onlyassign:=true;
-               end
-              else
-               tfuncretsym(aktprocdef.funcretsym).funcretstate:=vs_assigned;
+               end;
+              tfuncretsym(aktprocdef.funcretsym).funcretstate:=vs_assigned;
             end;
          end;
         if assigned(left) then
@@ -1451,7 +1449,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.61  2003-01-03 12:15:56  daniel
+  Revision 1.62  2003-01-03 17:16:57  peter
+    * fixed warning about unset funcret
+
+  Revision 1.61  2003/01/03 12:15:56  daniel
     * Removed ifdefs around notifications
       ifdefs around for loop optimizations remain
 
