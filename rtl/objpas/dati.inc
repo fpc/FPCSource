@@ -352,7 +352,8 @@ var
          end
       else if (S[Current] = TimeSeparator) or (S[Current] = ' ') then
          Inc(Current)
-      else exit; // raise EConvertError.Create();
+      else 
+        raise EConvertError.Create('Invalid Time format');
       end ;
    end ;
 
@@ -488,7 +489,8 @@ var
                   if Hour < 12 then StoreStr('a', 1)
                   else StoreStr('p', 1);
                   end
-               else Raise Exception.Create('Illegal character in format string');
+               else 
+                 Raise EConvertError.Create('Illegal character in format string');
                end ;
             '/': StoreStr(@DateSeparator, 1);
             ':': StoreStr(@TimeSeparator, 1);
@@ -548,7 +550,8 @@ var
                      'C': StoreFormat(ShortDateFormat + ' ' + ShortTimeFormat);
                   end ;
                end ;
-            else Raise Exception.Create('Illegal character in format string');
+            else 
+              Raise EConvertError.Create('Illegal character in format string');
          end ;
       FormatCurrent := FormatCurrent + Count;
       end ;
@@ -603,7 +606,10 @@ end;
 
 {
   $Log$
-  Revision 1.9  1999-04-08 11:31:02  peter
+  Revision 1.10  1999-04-18 19:03:03  michael
+  + Now EConvertError is used everywhere in conversions
+
+  Revision 1.9  1999/04/08 11:31:02  peter
     * removed warnings
 
   Revision 1.8  1999/02/24 15:56:28  michael
