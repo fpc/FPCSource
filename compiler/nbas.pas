@@ -79,6 +79,7 @@ interface
 
        tblocknode = class(tunarynode)
           constructor create(l : tnode);virtual;
+          destructor destroy; override;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
 {$ifdef state_tracking}
@@ -348,6 +349,23 @@ implementation
 
       begin
          inherited create(blockn,l);
+      end;
+
+    destructor tblocknode.destroy;
+
+      var
+        hp, next: tstatementnode;
+      begin
+        hp := tstatementnode(left);
+        left := nil;
+        while assigned(hp) do
+          begin
+            next := tstatementnode(hp.right);
+            hp.right := nil;
+            hp.free;
+            hp := next;
+          end;
+        inherited destroy;
       end;
 
     function tblocknode.det_resulttype:tnode;
@@ -965,7 +983,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.73  2003-11-10 22:02:52  peter
+  Revision 1.74  2003-12-10 20:31:40  jonas
+    * override tblocknode.destroy so all statements are freed sequentially
+      instead of recusively.
+
+  Revision 1.73  2003/11/10 22:02:52  peter
     * cross unit inlining fixed
 
   Revision 1.72  2003/11/04 15:35:13  peter
