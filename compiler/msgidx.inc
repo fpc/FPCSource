@@ -426,6 +426,7 @@ type tmsgconst=(
   unit_f_cant_compile_unit,
   unit_w_switch_us_missed,
   unit_f_errors_in_unit,
+  unit_t_load_unit,
   option_usage,
   option_only_one_source_support,
   option_def_only_for_os2,
