@@ -1,4 +1,4 @@
-{ don't edit, this file is generated from insns.dat }
+{ don't edit, this file is generated from i386ins.dat }
 (
 (Ch: (Ch_None, Ch_None, Ch_None)),
 (Ch: (Ch_MEAX, Ch_WFlags, Ch_None)),

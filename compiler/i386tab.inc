@@ -1,4 +1,4 @@
-{ don't edit, this file is generated from insns.dat }
+{ don't edit, this file is generated from i386ins.dat }
 (
   (
     opcode  : A_NONE;

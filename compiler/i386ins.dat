@@ -1199,7 +1199,7 @@ mem,imm8              \300\1\xC6\200\21               8086,SM
 mem,imm16             \320\300\1\xC7\200\31           8086,SM
 mem,imm32             \321\300\1\xC7\200\41           386,SM
 
-[MOVD,movl]
+[MOVD,movd]
 (Ch_All, Ch_None, Ch_None)
 mmxreg,mem            \301\2\x0F\x6E\110              PENT,MMX,SD
 mmxreg,reg32          \2\x0F\x6E\110                  PENT,MMX

@@ -1,4 +1,4 @@
-{ don't edit, this file is generated from insns.dat }
+{ don't edit, this file is generated from i386ins.dat }
 (
 'none',
 'aaa',
@@ -195,7 +195,7 @@
 'lss',
 'ltr',
 'mov',
-'movl',
+'movd',
 'movq',
 'movsb',
 'movsl',
