@@ -757,7 +757,11 @@ implementation
                    p^.procdefinition:=procs^.data;
                    p^.resulttype:=procs^.data^.retdef;
                    { big error for with statements
-                   p^.symtableproc:=p^.procdefinition^.owner; }
+                   p^.symtableproc:=p^.procdefinition^.owner;
+                   but neede for overloaded operators !! }
+                   if p^.symtableproc=nil then
+                     p^.symtableproc:=p^.procdefinition^.owner;
+
                    p^.location.loc:=LOC_MEM;
 {$ifdef CHAINPROCSYMS}
                    { object with method read;
@@ -919,6 +923,12 @@ implementation
                 typen,hnewn : ;
                 else
                   begin
+                     { if ((p^.procdefinition^.options and (poconstructor or podestructor)) <> 0) and
+                        (assigned(p^.symtable) and (p^.symtable^.symtabletype=withsymtable) then
+                       begin
+                          CGmessage(cg_e_cannot_call_cons_dest_inside_with);
+                       end; Is accpeted by Delphi !! }
+
                      { R.Assign is not a constructor !!! }
                      { but for R^.Assign, R must be valid !! }
                      if ((p^.procdefinition^.options and poconstructor) <> 0) or
@@ -983,7 +993,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  1998-12-10 09:47:32  florian
+  Revision 1.16  1998-12-10 14:57:52  pierre
+   * fix for operators
+
+  Revision 1.15  1998/12/10 09:47:32  florian
     + basic operations with int64/qord (compiler with -dint64)
     + rtti of enumerations extended: names are now written
 
