@@ -34,8 +34,8 @@
 \begin{document}
 \title{Free Pascal \\ Programmers' manual}
 \docdescription{Programmers' manual for \fpc, version \fpcversion}
-\docversion{1.4}
-\date{July 1998}
+\docversion{1.5}
+\date{September 1998}
 \author{Micha\"el Van Canneyt}
 \maketitle
 \tableofcontents
@@ -3006,7 +3006,7 @@ implemented until version 0.99.6 of \fpc.
 
 \subsection{ Case optimization }
 
-When using the \var{-Oa} switch, case statements in certain cases will
+When using the \var{-O1} switch, case statements in certain cases will
 be decoded using a jump table, which in certain cases will make the
 case statement execute faster.
 
@@ -3057,7 +3057,7 @@ made between using shorter instructions (for size) such as \var{enter \$4},
 or longer instructions \var{subl \$4,\%esp} for speed. When smaller size is
 requested, things aren't aligned on 4-byte boundaries.  When speed is
 requested, things are aligned on 4-byte boundaries as much as possible.
-\item Simple optimization (\var{-Oa}) makes sure the peephole optimizer is
+\item Simple optimization (\var{-O1}) makes sure the peephole optimizer is
 used, as well as the reloading optimizer.
 \item Uncertain optimizations (\var{-Ou}): With this switch, the reloading
 optimizer can be forced into making uncertain
