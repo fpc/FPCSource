@@ -406,7 +406,6 @@ implementation
         sym:tsym;
         st : tsymtable;
         srsymtable : tsymtable;
-        pdl     : pprocdeflist;
         storepos,procstartfilepos : tfileposinfo;
         i: longint;
       begin
@@ -1142,7 +1141,7 @@ const
       mutexclpo     : [po_external,po_interrupt]
     ),(
       idtok:_EXTERNAL;
-      pd_flags : pd_implemen+pd_interface+pd_notobjintf;
+      pd_flags : pd_implemen+pd_interface+pd_notobject+pd_notobjintf;
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_external;
       pocall   : pocall_none;
       pooption : [po_external];
@@ -1151,7 +1150,7 @@ const
       mutexclpo     : [po_exports,po_interrupt,po_assembler]
     ),(
       idtok:_FAR;
-      pd_flags : pd_implemen+pd_body+pd_interface+pd_procvar+pd_notobjintf;
+      pd_flags : pd_implemen+pd_body+pd_interface+pd_procvar+pd_notobject+pd_notobjintf;
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_far;
       pocall   : pocall_none;
       pooption : [];
@@ -1160,7 +1159,7 @@ const
       mutexclpo     : []
     ),(
       idtok:_FAR16;
-      pd_flags : pd_interface+pd_implemen+pd_body+pd_procvar;
+      pd_flags : pd_interface+pd_implemen+pd_body+pd_procvar+pd_notobject;
       handler  : nil;
       pocall   : pocall_far16;
       pooption : [];
@@ -1169,7 +1168,7 @@ const
       mutexclpo     : [po_external,po_leftright]
     ),(
       idtok:_FORWARD;
-      pd_flags : pd_implemen+pd_notobjintf;
+      pd_flags : pd_implemen+pd_notobject+pd_notobjintf;
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_forward;
       pocall   : pocall_none;
       pooption : [];
@@ -1196,7 +1195,7 @@ const
       mutexclpo     : [po_exports,po_external,po_interrupt]
     ),(
       idtok:_INTERNCONST;
-      pd_flags : pd_implemen+pd_body+pd_notobjintf;
+      pd_flags : pd_implemen+pd_body+pd_notobject+pd_notobjintf;
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_intern;
       pocall   : pocall_none;
       pooption : [po_internconst];
@@ -1205,7 +1204,7 @@ const
       mutexclpo     : []
     ),(
       idtok:_INTERNPROC;
-      pd_flags : pd_implemen+pd_notobjintf;
+      pd_flags : pd_implemen+pd_notobject+pd_notobjintf;
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_intern;
       pocall   : pocall_internproc;
       pooption : [];
@@ -1214,7 +1213,7 @@ const
       mutexclpo     : [po_exports,po_external,po_interrupt,po_assembler,po_iocheck,po_leftright]
     ),(
       idtok:_INTERRUPT;
-      pd_flags : pd_implemen+pd_body+pd_notobjintf;
+      pd_flags : pd_implemen+pd_body+pd_notobject+pd_notobjintf;
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_interrupt;
       pocall   : pocall_none;
       pooption : [po_interrupt];
@@ -1359,7 +1358,7 @@ const
       mutexclpo     : [po_external,po_assembler,po_interrupt,po_exports]
     ),(
       idtok:_SYSTEM;
-      pd_flags : pd_implemen+pd_notobjintf;
+      pd_flags : pd_implemen+pd_notobject+pd_notobjintf;
       handler  : nil;
       pocall   : pocall_system;
       pooption : [];
@@ -1493,7 +1492,7 @@ const
           This needs to be checked also for procvars }
         if ((proc_direcdata[p].pd_flags and pd_notobject)<>0) and
            (aktprocdef.owner.symtabletype=objectsymtable) then
-         exit;
+           exit;
 
         if aktprocdef.deftype=procdef then
          begin
@@ -2079,7 +2078,10 @@ const
 end.
 {
   $Log$
-  Revision 1.88  2002-12-15 19:34:31  florian
+  Revision 1.89  2002-12-15 21:07:30  peter
+    * don't allow external in object declarations
+
+  Revision 1.88  2002/12/15 19:34:31  florian
     + some front end stuff for vs_hidden added
 
   Revision 1.87  2002/12/07 14:27:07  carl
