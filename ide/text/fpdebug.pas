@@ -17,7 +17,8 @@ unit FPDebug;
 interface
 
 uses
-  Views,Objects,GDBCon,GDBInt;
+  Views,FPViews,
+  Objects,GDBCon,GDBInt;
 
 type
   PDebugController=^TDebugController;
@@ -35,6 +36,7 @@ type
     procedure AnnotateError;
     procedure InsertBreakpoints;
     procedure RemoveBreakpoints;
+    procedure ResetBreakpointsValues;
     procedure DoDebuggerScreen;virtual;
     procedure DoUserScreen;virtual;
     procedure Reset;virtual;
@@ -52,7 +54,9 @@ type
      typ  : BreakpointType;
      state : BreakpointState;
      owner : PBreakpointCollection;
-     Name : PString;  { either function name or file name }
+     Name : PString;  { either function name or expr to watch }
+     FileName : PString;
+     OldValue,CurrentValue : Pstring;
      Line : Longint; { only used for bt_file_line type }
      Conditions : PString; { conditions relative to that breakpoint }
      IgnoreCount : Longint; { how many counts should be ignored }
@@ -61,20 +65,30 @@ type
      GDBState : BreakpointState;
      constructor Init_function(Const AFunc : String);
      constructor Init_file_line(AFile : String; ALine : longint);
-     constructor Init_type(atyp : BreakpointType;Const AFunc : String);
+     constructor Init_type(atyp : BreakpointType;Const AnExpr : String);
      procedure  Insert;
      procedure  Remove;
      procedure  Enable;
      procedure  Disable;
+     procedure  ResetValues;
      destructor Done;virtual;
   end;
 
   TBreakpointCollection=object(TCollection)
       function  At(Index: Integer): PBreakpoint;
+      function  GetGDB(index : longint) : PBreakpoint;
+      function  GetType(typ : BreakpointType;Const s : String) : PBreakpoint;
       function  ToggleFileLine(Const FileName: String;LineNr : Longint) : boolean;
       procedure Update;
       procedure FreeItem(Item: Pointer); virtual;
+      procedure ShowBreakpoints(W : PSourceWindow);
     end;
+
+const
+     BreakpointTypeStr : Array[BreakpointType] of String[9]
+       = ( 'function','file-line','watch','awatch','rwatch','invalid' );
+     BreakpointStateStr : Array[BreakpointState] of String[8]
+       = ( 'enabled','disabled','invalid' );
 
 var
   Debugger : PDebugController;
@@ -82,13 +96,15 @@ var
   
 procedure InitDebugger;
 procedure DoneDebugger;
+procedure InitBreakpoints;
+procedure DoneBreakpoints;
 
 implementation
 
 uses
   Dos,Mouse,Video,
   App,Strings,
-  FPViews,FPVars,FPUtils,FPConst,
+  FPVars,FPUtils,FPConst,
   FPIntf,FPCompile,FPIde;
 
 
@@ -127,6 +143,15 @@ begin
    BreakpointCollection^.ForEach(@DoDelete);
 end;
 
+procedure TDebugController.ResetBreakpointsValues;
+  procedure DoResetVal(PB : PBreakpoint);
+    begin
+      PB^.ResetValues;
+    end;
+begin
+   BreakpointCollection^.ForEach(@DoResetVal);
+end;
+
 destructor TDebugController.Done;
 begin
   { kill the program if running }
@@ -137,6 +162,7 @@ end;
 
 procedure TDebugController.Run;
 begin
+  ResetBreakpointsValues;
   inherited Run;
   MyApp.SetCmdState([cmResetDebugger],true);
 end;
@@ -174,8 +200,11 @@ procedure TDebugController.DoSelectSourceLine(const fn:string;line:longint);
 var
   W: PSourceWindow;
   Found : boolean;
-  
+  PB : PBreakpoint;
+  S : String;
+  BreakIndex : longint;
 begin
+  BreakIndex:=stop_breakpoint_number;
   Desktop^.Lock;
   if Line>0 then
     dec(Line);
@@ -229,6 +258,36 @@ begin
     end;
   LastFileName:=fn;
   Desktop^.UnLock;
+  if BreakIndex>0 then
+    begin
+      PB:=BreakpointCollection^.GetGDB(stop_breakpoint_number);
+      { For watch we should get old and new value !! }
+      If PB^.typ<>bt_file_line then
+        begin
+           Command('p '+GetStr(PB^.Name));
+           S:=StrPas(GetOutput);
+           If Pos('=',S)>0 then
+             S:=Copy(S,Pos('=',S)+1,255);
+           If S[Length(S)]=#10 then
+             Delete(S,Length(S),1);
+           if Assigned(PB^.OldValue) then
+             DisposeStr(PB^.OldValue);
+           PB^.OldValue:=PB^.CurrentValue;
+           PB^.CurrentValue:=NewStr(S);
+           If PB^.typ=bt_function then
+             WarningBox(#3'GDB stopped due to'#13+
+               #3+BreakpointTypeStr[PB^.typ]+' '+GetStr(PB^.Name),nil)
+           else if (GetStr(PB^.OldValue)<>S) then
+             WarningBox(#3'GDB stopped due to'#13+
+               #3+BreakpointTypeStr[PB^.typ]+' '+GetStr(PB^.Name)+#13+
+               #3+'Old value = '+GetStr(PB^.OldValue)+#13+
+               #3+'New value = '+GetStr(PB^.CurrentValue),nil)
+           else
+             WarningBox(#3'GDB stopped due to'#13+
+               #3+BreakpointTypeStr[PB^.typ]+' '+GetStr(PB^.Name)+#13+
+               #3+' value = '+GetStr(PB^.CurrentValue),nil);
+        end;
+    end;
 end;
 
 procedure TDebugController.DoEndSession(code:longint);
@@ -274,20 +333,26 @@ begin
   state:=bs_enabled;
   GDBState:=bs_deleted;
   Name:=NewStr(AFunc);
+  FileName:=nil;
+  Line:=0;
   IgnoreCount:=0;
   Commands:=nil;
   Conditions:=nil;
+  OldValue:=nil;
+  CurrentValue:=nil;
 end;
 
-constructor TBreakpoint.Init_type(atyp : BreakpointType;Const AFunc : String);
+constructor TBreakpoint.Init_type(atyp : BreakpointType;Const AnExpr : String);
 begin
   typ:=atyp;
   state:=bs_enabled;
   GDBState:=bs_deleted;
-  Name:=NewStr(AFunc);
+  Name:=NewStr(AnExpr);
   IgnoreCount:=0;
   Commands:=nil;
   Conditions:=nil;
+  OldValue:=nil;
+  CurrentValue:=nil;
 end;
 
 constructor TBreakpoint.Init_file_line(AFile : String; ALine : longint);
@@ -295,17 +360,19 @@ begin
   typ:=bt_file_line;
   state:=bs_enabled;
   GDBState:=bs_deleted;
-  AFile:=NameAndExtOf(AFile);
   { d:test.pas:12 does not work !! }
   { I do not know how to solve this if
   if (Length(AFile)>1) and (AFile[2]=':') then
     AFile:=Copy(AFile,3,255);
     Only use base name for now !! PM }
-  Name:=NewStr(AFile);
+  FileName:=NewStr(AFile);
+  Name:=nil;
   Line:=ALine;
   IgnoreCount:=0;
   Commands:=nil;
   Conditions:=nil;
+  OldValue:=nil;
+  CurrentValue:=nil;
 end;
 
 procedure TBreakpoint.Insert;
@@ -316,7 +383,7 @@ begin
   if (GDBState=bs_deleted) and (state=bs_enabled) then
     begin
       if (typ=bt_file_line) then
-        Debugger^.Command('break '+name^+':'+IntToStr(Line))
+        Debugger^.Command('break '+NameAndExtOf(FileName^)+':'+IntToStr(Line))
       else if typ=bt_function then
         Debugger^.Command('break '+name^)
       else if typ=bt_watch then
@@ -340,6 +407,8 @@ begin
       { Here there was a problem !! }
         begin
           GDBIndex:=0;
+          ErrorBox(#3'Could not set Breakpoint'#13+
+            #3+BreakpointTypeStr[typ]+' '+Name^,nil);
           state:=bs_disabled;
         end;
     end
@@ -362,7 +431,9 @@ procedure TBreakpoint.Enable;
 begin
   If not assigned(Debugger) then Exit;
   if GDBIndex>0 then
-    Debugger^.Command('enable '+IntToStr(GDBIndex));
+    Debugger^.Command('enable '+IntToStr(GDBIndex))
+  else
+    Insert;
   GDBState:=bs_enabled;
 end;
 
@@ -374,11 +445,24 @@ begin
   GDBState:=bs_disabled;
 end;
 
+procedure TBreakpoint.ResetValues;
+begin
+  if assigned(OldValue) then
+    DisposeStr(OldValue);
+  OldValue:=nil;
+  if assigned(CurrentValue) then
+    DisposeStr(CurrentValue);
+  CurrentValue:=nil;
+end;
+
 destructor TBreakpoint.Done;
 begin
   Remove;
+  ResetValues;
   if assigned(Name) then
     DisposeStr(Name);
+  if assigned(FileName) then
+    DisposeStr(FileName);
   if assigned(Conditions) then
     DisposeStr(Conditions);
   if assigned(Commands) then
@@ -410,13 +494,50 @@ begin
     end;
 end;
 
+function  TBreakpointCollection.GetGDB(index : longint) : PBreakpoint;
+
+  function IsNum(P : PBreakpoint) : boolean;
+  begin
+    IsNum:=P^.GDBIndex=index;
+  end;
+  
+begin
+  if index=0 then
+    GetGDB:=nil
+  else
+    GetGDB:=FirstThat(@IsNum);
+end;
+
+procedure TBreakpointCollection.ShowBreakpoints(W : PSourceWindow);
+
+  procedure SetInSource(P : PBreakpoint);
+  begin
+    If assigned(P^.FileName) and (P^.FileName^=W^.Editor^.FileName) then
+      W^.Editor^.SetLineBreakState(P^.Line,P^.state=bs_enabled);
+  end;
+  
+begin
+  ForEach(@SetInSource);
+end;
+
+function TBreakpointCollection.GetType(typ : BreakpointType;Const s : String) : PBreakpoint;
+
+  function IsThis(P : PBreakpoint) : boolean;
+  begin
+    IsThis:=(P^.typ=typ) and (P^.Name^=S);
+  end;
+  
+begin
+  GetType:=FirstThat(@IsThis);
+end;
+
 function TBreakpointCollection.ToggleFileLine(Const FileName: String;LineNr : Longint) : boolean;
 
 var PB : PBreakpoint;
 
   function IsThere(P : PBreakpoint) : boolean;
   begin
-    IsThere:=(P^.typ=bt_file_line) and (P^.Name^=FileName) and (P^.Line=LineNr);
+    IsThere:=(P^.typ=bt_file_line) and (P^.FileName^=FileName) and (P^.Line=LineNr);
   end;
 begin
     PB:=FirstThat(@IsThere);
@@ -477,13 +598,27 @@ begin
   Use_gdb_file:=false;
 end;
 
+procedure InitBreakpoints;
 begin
   New(BreakpointCollection,init(10,10));
+end;
+
+procedure DoneBreakpoints;
+begin
+  Dispose(BreakpointCollection,Done);
+  BreakpointCollection:=nil;
+end;
+
 end.
 
 {
   $Log$
-  Revision 1.9  1999-02-08 17:43:43  pierre
+  Revision 1.10  1999-02-10 09:55:07  pierre
+    + added OldValue and CurrentValue field for watchpoints
+    + InitBreakpoints and DoneBreakpoints
+    + MessageBox if GDB stops bacause of a watchpoint !
+
+  Revision 1.9  1999/02/08 17:43:43  pierre
     * RestDebugger or multiple running of debugged program now works
     + added DoContToCursor(F4)
     * Breakpoints are now inserted correctly (was mainlyy a problem
