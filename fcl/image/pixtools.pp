@@ -19,27 +19,47 @@ unit PixTools;
 
 interface
 
-uses classes, FPCanvas, clipping, FPimage;
+uses classes, FPCanvas, FPimage;
 
-//procedure DrawSolidPolyline (Canv : TFPCustomCanvas; points:array of TPoint; close:boolean; const color:TFPColor);
 procedure DrawSolidLine (Canv : TFPCustomCanvas; x1,y1, x2,y2:integer; const color:TFPColor);
+procedure DrawPatternLine (Canv:TFPCustomCanvas; x1,y1, x2,y2:integer; Pattern:TPenPattern; const color:TFPColor);
+procedure FillRectangleColor (Canv:TFPCustomCanvas; x1,y1, x2,y2:integer; const color:TFPColor);
+procedure FillRectanglePattern (Canv:TFPCustomCanvas; x1,y1, x2,y2:integer; const pattern:TBrushPattern; const color:TFPColor);
+procedure FillRectangleHashHorizontal (Canv:TFPCustomCanvas; const rect:TRect; width:integer; const c:TFPColor);
+procedure FillRectangleHashVertical (Canv:TFPCustomCanvas; const rect:TRect; width:integer; const c:TFPColor);
+procedure FillRectangleHashDiagonal (Canv:TFPCustomCanvas; const rect:TRect; width:integer; const c:TFPColor);
+procedure FillRectangleHashBackDiagonal (Canv:TFPCustomCanvas; const rect:TRect; width:integer; const c:TFPColor);
+
 procedure DrawSolidLine (Canv : TFPCustomCanvas; x1,y1, x2,y2:integer);
+procedure DrawPatternLine (Canv:TFPCustomCanvas; x1,y1, x2,y2:integer; Pattern:TPenPattern);
+procedure FillRectanglePattern (Canv:TFPCustomCanvas; x1,y1, x2,y2:integer; const pattern:TBrushPattern);
 procedure FillRectangleColor (Canv:TFPCustomCanvas; x1,y1, x2,y2:integer);
-procedure DrawPatternLine (Canv:TFPCustomCanvas; x1,y1, x2,y2:integer; pattern:longword);
+procedure FillRectangleHashHorizontal (Canv:TFPCustomCanvas; const rect:TRect; width:integer);
+procedure FillRectangleHashVertical (Canv:TFPCustomCanvas; const rect:TRect; width:integer);
+procedure FillRectangleHashDiagonal (Canv:TFPCustomCanvas; const rect:TRect; width:integer);
+procedure FillRectangleHashBackDiagonal (Canv:TFPCustomCanvas; const rect:TRect; width:integer);
+
+procedure FillRectangleImage (Canv:TFPCustomCanvas; x1,y1, x2,y2:integer; const Image:TFPCustomImage);
+procedure FillRectangleImageRel (Canv:TFPCustomCanvas; x1,y1, x2,y2:integer; const Image:TFPCustomImage);
 
 implementation
 
+uses clipping;
+
 procedure FillRectangleColor (Canv:TFPCustomCanvas; x1,y1, x2,y2:integer);
+begin
+  FillRectangleColor (Canv, x1,y1, x2,y2, canv.brush.color);
+end;
+
+procedure FillRectangleColor (Canv:TFPCustomCanvas; x1,y1, x2,y2:integer; const color:TFPColor);
 var x,y : integer;
-    c : TFPColor;
 begin
   SortRect (x1,y1, x2,y2);
   with Canv do
     begin
-    c := brush.color;
     for x := x1 to x2 do
       for y := y1 to y2 do
-        colors[x,y] := c;
+        colors[x,y] := color;
     end;
 end;
 
@@ -192,13 +212,11 @@ begin
     SlopedLine;
 end;
 
-const
-  PatternBitCount = sizeof(longword) * 8;
 type
   TLinePoints = array[0..PatternBitCount] of boolean;
   PLinePoints = ^TLinePoints;
 
-procedure PatternToPoints (const APattern:longword; LinePoints:PLinePoints);
+procedure PatternToPoints (const APattern:TPenPattern; LinePoints:PLinePoints);
 var r : integer;
     i : longword;
 begin
@@ -211,27 +229,28 @@ begin
   LinePoints^[0] := (APattern and i) <> 0;
 end;
 
-procedure DrawPatternLine (Canv:TFPCustomCanvas; x1,y1, x2,y2:integer; pattern:longword);
+procedure DrawPatternLine (Canv:TFPCustomCanvas; x1,y1, x2,y2:integer; Pattern:TPenPattern);
+begin
+  DrawPatternLine (Canv, x1,y1, x2,y2, pattern, canv.pen.color);
+end;
+
+procedure DrawPatternLine (Canv:TFPCustomCanvas; x1,y1, x2,y2:integer; Pattern:TPenPattern; const color:TFPColor);
 // Is copy of DrawSolidLine with paterns added. Not the same procedure for faster solid lines
 var LinePoints : TLinePoints;
     PutPixelProc : TPutPixelProc;
   procedure HorizontalLine (x1,x2,y:integer);
     var x : integer;
-        c : TFPColor;
     begin
-      c := Canv.pen.color;
       for x := x1 to x2 do
         if LinePoints[x mod PatternBitCount] then
-          PutPixelProc (Canv, x,y, c);
+          PutPixelProc (Canv, x,y, color);
     end;
   procedure VerticalLine (x,y1,y2:integer);
     var y : integer;
-        c : TFPColor;
     begin
-      c := Canv.pen.color;
       for y := y1 to y2 do
-        if LinePoints[x mod PatternBitCount] then
-          PutPixelProc (Canv, x,y, c);
+        if LinePoints[y mod PatternBitCount] then
+          PutPixelProc (Canv, x,y, color);
     end;
   procedure SlopedLine;
     var npixels,xinc1,yinc1,xinc2,yinc2,dx,dy,d,dinc1,dinc2 : integer;
@@ -274,16 +293,14 @@ var LinePoints : TLinePoints;
         end;
       end;
     var r,x,y : integer;
-        c : TFPColor;
     begin
     initialize;
     x := x1;
     y := y1;
-    c := canv.pen.color;
     for r := 1 to nPixels do
       begin
       if LinePoints[r mod PatternBitCount] then
-        PutPixelProc (Canv, x,y, c);
+        PutPixelProc (Canv, x,y, color);
       if d < 0 then
         begin
         d := d + dinc1;
@@ -320,6 +337,221 @@ begin
       HorizontalLine (x2, x1, y1)
   else  // sloped line
     SlopedLine;
+end;
+
+procedure FillRectangleHashHorizontal (Canv:TFPCustomCanvas; const rect:TRect; width:integer);
+begin
+  FillRectangleHashHorizontal (Canv, rect, width, canv.brush.color);
+end;
+
+procedure FillRectangleHashHorizontal (Canv:TFPCustomCanvas; const rect:TRect; width:integer; const c:TFPColor);
+var y : integer;
+begin
+  with rect do
+    begin
+    y := Width + top;
+    while y <= bottom do
+      begin
+      DrawSolidLine (Canv, left,y, right,y, c);
+      inc (y,Width);
+      end
+    end;
+end;
+
+procedure FillRectangleHashVertical (Canv:TFPCustomCanvas; const rect:TRect; width:integer);
+begin
+  FillRectangleHashVertical (Canv, rect, width, canv.brush.color);
+end;
+
+procedure FillRectangleHashVertical (Canv:TFPCustomCanvas; const rect:TRect; width:integer; const c:TFPColor);
+var x : integer;
+begin
+  with rect do
+    begin
+    x := Width + left;
+    while x <= right do
+      begin
+      DrawSolidLine (Canv, x,top, x,bottom, c);
+      inc (x, Width);
+      end;
+    end;
+end;
+
+procedure FillRectangleHashDiagonal (Canv:TFPCustomCanvas; const rect:TRect; width:integer);
+begin
+  FillRectangleHashDiagonal (Canv, rect, width, canv.brush.color);
+end;
+
+procedure FillRectangleHashDiagonal (Canv:TFPCustomCanvas; const rect:TRect; width:integer; const c:TFPColor);
+function CheckCorner (Current, max, start : integer) : integer;
+  begin
+    if Current > max then
+      result := Start + current - max
+    else
+      result := Start;
+  end;
+var r, rx, ry : integer;
+begin
+  with rect do
+    begin
+    // draw from bottom-left corner away
+    ry := top + Width;
+    rx := left + Width;
+    while (rx < right) and (ry < bottom) do
+      begin
+      DrawSolidLine (Canv, left,ry, rx,top, c);
+      inc (rx, Width);
+      inc (ry, Width);
+      end;
+    // check which turn need to be taken: left-bottom, right-top, or both
+    if (rx >= right) then
+      begin
+      if (ry >= bottom) then
+        begin // Both corners reached
+        r := CheckCorner (rx, right, top);
+        rx := CheckCorner (ry, bottom, left);
+        ry := r;
+        end
+      else
+        begin  // fill vertical
+        r := CheckCorner (rx, right, top);
+        while (ry < bottom) do
+          begin
+          DrawSolidLine (Canv, left,ry, right,r, c);
+          inc (r, Width);
+          inc (ry, Width);
+          end;
+        rx := CheckCorner (ry, bottom, left);
+        ry := r;
+        end
+      end
+    else
+      if (ry >= bottom) then
+        begin  // fill horizontal
+        r := checkCorner (ry, bottom, left);
+        while (rx <= right) do
+          begin
+          DrawSolidLine (Canv, r,bottom, rx,top, c);
+          inc (r, Width);
+          inc (rx, Width);
+          end;
+        ry := CheckCorner (rx, right, top);
+        rx := r;
+        end;
+    while (rx < right) do  // fill lower right corner
+      begin
+      DrawSolidLine (Canv, rx,bottom, right,ry, c);
+      inc (rx, Width);
+      inc (ry, Width);
+      end;
+    end;
+end;
+
+procedure FillRectangleHashBackDiagonal (Canv:TFPCustomCanvas; const rect:TRect; width:integer);
+begin
+  FillRectangleHashBackDiagonal (Canv, rect, width, canv.brush.color);
+end;
+
+procedure FillRectangleHashBackDiagonal (Canv:TFPCustomCanvas; const rect:TRect; width:integer; const c:TFPColor);
+  function CheckInversCorner (Current, min, start : integer) : integer;
+  begin
+    if Current < min then
+      result := Start - current + min
+    else
+      result := Start;
+  end;
+  function CheckCorner (Current, max, start : integer) : integer;
+  begin
+    if Current > max then
+      result := Start - current + max
+    else
+      result := Start;
+  end;
+var r, rx, ry : integer;
+begin
+  with rect do
+    begin
+    // draw from bottom-left corner away
+    ry := bottom - Width;
+    rx := left + Width;
+    while (rx < right) and (ry > top) do
+      begin
+      DrawSolidLine (Canv, left,ry, rx,bottom, c);
+      inc (rx, Width);
+      dec (ry, Width);
+      end;
+    // check which turn need to be taken: left-top, right-bottom, or both
+    if (rx >= right) then
+      begin
+      if (ry <= top) then
+        begin // Both corners reached
+        r := CheckCorner (rx, right, bottom);
+        rx := CheckInversCorner (ry, top, left);
+        ry := r;
+        end
+      else
+        begin  // fill vertical
+        r := CheckCorner (rx, right, bottom);
+        while (ry > top) do
+          begin
+          DrawSolidLine (Canv, left,ry, right,r, c);
+          dec (r, Width);
+          dec (ry, Width);
+          end;
+        rx := CheckInversCorner (ry, top, left);
+        ry := r;
+        end
+      end
+    else
+      if (ry <= top) then
+        begin  // fill horizontal
+        r := checkInversCorner (ry, top, left);
+        while (rx < right) do
+          begin
+          DrawSolidLine (Canv, r,top, rx,bottom, c);
+          inc (r, Width);
+          inc (rx, Width);
+          end;
+        ry := CheckCorner (rx, right, bottom);
+        rx := r;
+        end;
+    while (rx < right) do  // fill upper right corner
+      begin
+      DrawSolidLine (Canv, rx,top, right,ry, c);
+      inc (rx, Width);
+      dec (ry, Width);
+      end;
+    end;
+end;
+
+procedure FillRectanglePattern (Canv:TFPCustomCanvas; x1,y1, x2,y2:integer; const pattern:TBrushPattern);
+begin
+  FillRectanglePattern (Canv, x1,y1, x2,y2, pattern, canv.brush.color);
+end;
+
+procedure FillRectanglePattern (Canv:TFPCustomCanvas; x1,y1, x2,y2:integer; const pattern:TBrushPattern; const color:TFPColor);
+var r : integer;
+begin
+  for r := y1 to y2 do
+    DrawPatternLine (Canv, x1,r, x2,r, pattern[r mod PatternBitCount], color);
+end;
+
+procedure FillRectangleImage (Canv:TFPCustomCanvas; x1,y1, x2,y2:integer; const Image:TFPCustomImage);
+var x,y : integer;
+begin
+  with image do
+    for x := x1 to x2 do
+      for y := y1 to y2 do
+        Canv.colors[x,y] := colors[x mod width, y mod height];
+end;
+
+procedure FillRectangleImageRel (Canv:TFPCustomCanvas; x1,y1, x2,y2:integer; const Image:TFPCustomImage);
+var x,y : integer;
+begin
+  with image do
+    for x := x1 to x2 do
+      for y := y1 to y2 do
+        Canv.colors[x,y] := colors[(x-x1) mod width, (y-y1) mod height];
 end;
 
 end.
