@@ -948,7 +948,10 @@ procedure CreateBrowserCol;
                    SetVType(Symbol,GetDefinitionStr(definition));
                ProcessDefIfStruct(definition);
                MemInfo.Addr:=address;
-               MemInfo.LocalAddr:=localaddress;
+               if assigned(localvarsym) then
+                 MemInfo.LocalAddr:=localvarsym^.address
+               else
+                 MemInfo.LocalAddr:=0;
                MemInfo.Size:=getsize;
                MemInfo.PushSize:=getpushsize;
                Symbol^.SetMemInfo(MemInfo);
@@ -1094,7 +1097,7 @@ begin
         InsertSymbolCollection(P^.Items);
     end;
 end;
-function SearchObjectForSymbol(O: PSymbol): PObjectSymbol;
+function SearchObjectForSym(O: PSymbol): PObjectSymbol;
 var I,Idx: sw_integer;
     OS,P: PObjectSymbol;
 begin
@@ -1105,7 +1108,7 @@ begin
       if OS^.Symbol=O then
         begin P:=OS; Break; end;
     end;
-  SearchObjectForSymbol:=P;
+  SearchObjectForSym:=P;
 end;
 procedure BuildTree;
 var I: sw_integer;
@@ -1119,7 +1122,7 @@ begin
       if Symbol^.Ancestor=nil then
         Parent:=ObjectsSymbol
       else
-        Parent:=SearchObjectForSymbol(Symbol^.Ancestor);
+        Parent:=SearchObjectForSym(Symbol^.Ancestor);
       if Parent<>nil then
         begin
           New(OS, Init(Parent, Symbol));
@@ -1217,7 +1220,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  1999-04-08 10:17:42  peter
+  Revision 1.12  1999-04-10 16:15:00  peter
+    * fixed browcol
+    + -ar to show regalloc info in .s file
+
+  Revision 1.11  1999/04/08 10:17:42  peter
     + objects support
 
   Revision 1.8  1999/03/03 01:38:11  pierre

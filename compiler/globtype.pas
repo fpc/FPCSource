@@ -66,7 +66,7 @@ interface
          { debugger }
          cs_gdb_dbx,cs_gdb_gsym,cs_gdb_heaptrc,
          { assembling }
-         cs_asm_leave,cs_asm_extern,cs_asm_pipe,cs_asm_source,
+         cs_asm_leave,cs_asm_extern,cs_asm_pipe,cs_asm_source,cs_asm_regalloc,
          { linking }
          cs_link_extern,cs_link_shared,cs_link_static,cs_link_deffile
        );
@@ -108,7 +108,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  1999-03-26 00:05:30  peter
+  Revision 1.5  1999-04-10 16:15:01  peter
+    * fixed browcol
+    + -ar to show regalloc info in .s file
+
+  Revision 1.4  1999/03/26 00:05:30  peter
     * released valintern
     + deffile is now removed when compiling is finished
     * ^( compiles now correct

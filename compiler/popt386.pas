@@ -394,10 +394,7 @@ Begin
                     Then
                       Begin
                         New(TmpRef);
-                        TmpRef^.segment := R_DEFAULT_SEG;
-                        TmpRef^.symbol := nil;
-                        TmpRef^.is_immediate := false;
-                        TmpRef^.offset := 0;
+                        Reset_reference(TmpRef^);
                         Case Longint(Pai386(p)^.op1) Of
                           3: Begin
                              {imul 3, reg1, reg2 to
@@ -461,10 +458,7 @@ Begin
                                     hp1^.fileinfo := p^.fileinfo;
                                     InsertLLItem(AsmL,p, p^.next, hp1);
                                     New(TmpRef);
-                                    TmpRef^.segment := R_DEFAULT_SEG;
-                                    TmpRef^.symbol := nil;
-                                    TmpRef^.is_immediate := false;
-                                    TmpRef^.offset := 0;
+                                    Reset_reference(TmpRef^);
                                     TmpRef^.Index := TRegister(twowords(Pai386(p)^.op2).Word1);
                                     TmpRef^.ScaleFactor := 2;
                                     If (Pai386(p)^.op3t = Top_Reg)
@@ -567,10 +561,7 @@ Begin
                                      hp1^.fileinfo := p^.fileinfo;
                                      InsertLLItem(AsmL,p, p^.next, hp1);
                                      New(TmpRef);
-                                     TmpRef^.segment := R_DEFAULT_SEG;
-                                     TmpRef^.symbol := nil;
-                                     TmpRef^.is_immediate := false;
-                                     TmpRef^.offset := 0;
+                                     Reset_reference(TmpRef^);
                                      TmpRef^.Index := TRegister(twowords(Pai386(p)^.op2).Word1);
                                      If (Pai386(p)^.op3t = Top_Reg)
                                        Then
@@ -1120,13 +1111,8 @@ Begin
                          Pai386(p)^.op2 := Pai386(p)^.op1;
                          Pai386(p)^.opxt := top_ref + top_reg shl 4;
                          New(TmpRef);
-                         TmpRef^.segment := R_DEFAULT_SEG;
+                         Reset_reference(TmpRef^);
                          TmpRef^.base := R_ESP;
-                         TmpRef^.index := R_NO;
-                         TmpRef^.scalefactor := 1;
-                         TmpRef^.symbol := nil;
-                         TmpRef^.is_immediate := false;
-                         TmpRef^.offset := 0;
                          Pai386(p)^.op1 := Pointer(TmpRef);
                          hp1 := Pai(p^.next);
                          AsmL^.Remove(hp1);
@@ -1162,13 +1148,9 @@ Begin
                         TmpBool2 := False; {have we found an add/sub which could be
                                             integrated in the lea?}
                         New(TmpRef);
-                        TmpRef^.segment := R_DEFAULT_SEG;
-                        TmpRef^.base := R_NO;
+                        Reset_reference(TmpRef^);
                         TmpRef^.index := TRegister(Pai386(p)^.op2);
                         TmpRef^.scalefactor := 1 shl Longint(Pai386(p)^.op1);
-                        TmpRef^.symbol := nil;
-                        TmpRef^.is_immediate := false;
-                        TmpRef^.offset := 0;
                         While TmpBool1 And
                               GetNextInstruction(p, hp1) And
                               (Pai(hp1)^.typ = ait_instruction) And
@@ -1246,13 +1228,9 @@ Begin
                              "shl $3, %reg" to "lea (,%reg,8), %reg}
                                  Begin
                                    New(TmpRef);
-                                   TmpRef^.segment := R_DEFAULT_SEG;
-                                   TmpRef^.base := R_NO;
+                                   Reset_reference(TmpRef^);
                                    TmpRef^.index := TRegister(Pai386(p)^.op2);
                                    TmpRef^.scalefactor := 1 shl Longint(Pai386(p)^.op1);
-                                   TmpRef^.symbol := nil;
-                                   TmpRef^.is_immediate := false;
-                                   TmpRef^.offset := 0;
                                    hp1 := new(Pai386,op_ref_reg(A_LEA,S_L,TmpRef, TRegister(Pai386(p)^.op2)));
                                    hp1^.fileinfo := p^.fileinfo;
                                    InsertLLItem(AsmL,p^.previous, p^.next, hp1);
@@ -1613,7 +1591,11 @@ End.
 
 {
  $Log$
- Revision 1.41  1999-04-09 08:33:05  peter
+ Revision 1.42  1999-04-10 16:15:04  peter
+   * fixed browcol
+   + -ar to show regalloc info in .s file
+
+ Revision 1.41  1999/04/09 08:33:05  peter
    * fixed mov reg,treg;mov treg,x bug
 
  Revision 1.40  1999/03/29 16:02:50  peter
