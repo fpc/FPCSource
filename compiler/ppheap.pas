@@ -38,17 +38,34 @@ implementation
     uses
        globtype,globals,fmodule;
 
-    procedure ppextra_info(p : pointer);
-      var pl : plongint;
+    type
+      pextra_info = ^textra_info;
+      textra_info = record
+        line,
+        col,
+        fileindex : longint;
+      end;
+
+    procedure set_extra_info(p : pointer);
       begin
-         longint(p^):=aktfilepos.line;
-         pl:=plongint(cardinal(p)+4);
-         pl^:=aktfilepos.column;
-         pl:=plongint(cardinal(p)+8);
-         if assigned(current_module) then
-          pl^:=current_module.unit_index*100000+aktfilepos.fileindex
-         else
-          pl^:=aktfilepos.fileindex
+        with pextra_info(p)^ do
+         begin
+           line:=aktfilepos.line;
+           col:=aktfilepos.column;
+           if assigned(current_module) then
+            fileindex:=current_module.unit_index*100000+aktfilepos.fileindex
+           else
+            fileindex:=aktfilepos.fileindex;
+         end;
+      end;
+
+
+    procedure show_extra_info(var t : text;p : pointer);
+      begin
+        with pextra_info(p)^ do
+         begin
+           writeln(t,'fileinfo: (',line,',',col,') ',fileindex);
+         end;
       end;
 
   const
@@ -58,8 +75,10 @@ implementation
     begin
        if not pp_heap_inited then
          begin
-            setheaptraceoutput('heap.log');
-            SetExtraInfo(12,{$ifdef FPCPROCVAR}@{$endif}ppextra_info);
+            SetHeapTraceOutput('heap.log');
+            SetHeapExtraInfo(sizeof(textra_info),
+                             {$ifdef FPCPROCVAR}@{$endif}set_extra_info,
+                             {$ifdef FPCPROCVAR}@{$endif}show_extra_info);
          end;
        pp_heap_inited:=true;
     end;
@@ -70,7 +89,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2001-03-13 18:43:17  peter
+  Revision 1.6  2001-04-11 12:36:26  peter
+    * use new heaptrc version
+
+  Revision 1.5  2001/03/13 18:43:17  peter
     * made memdebug and heaptrc compilable again
 
   Revision 1.4  2000/10/14 21:52:56  peter
