@@ -324,7 +324,6 @@ begin
           FProcessHandle:=PID;
           FThreadHandle:=PID;
           FProcessId:=PID;
-          FHandle:=PID;
           //FThreadId:=PID;
           end
         else 
@@ -426,8 +425,3 @@ begin
   FShowWindow:=Value;
 end;
 
-Function TProcess.GetHandle : THandle;
-
-begin
-  Result:=FHandle;
-end;

@@ -50,7 +50,6 @@ Type
     FThreadID : Integer;
     FProcessHandle : Thandle;
     FThreadHandle : Thandle;
-    FHandle : THandle;
     FFillAttribute : Cardinal;
     FApplicationName : string;
     FConsoleTitle : String;
@@ -91,7 +90,6 @@ Type
     procedure SetEnvironment(const Value: TStrings);
     function  PeekExitStatus: Boolean;
     procedure CloseProcessHandles;
-    Function GetHandle : THandle;
   Public
     Constructor Create (AOwner : TComponent);override;
     Destructor Destroy; override;
@@ -101,7 +99,7 @@ Type
     Function Terminate (AExitCode : Integer): Boolean; virtual;
     Function WaitOnExit : DWord;
     Property WindowRect : Trect Read GetWindowRect Write SetWindowRect;
-    Property Handle : THandle Read GetHandle;
+    Property Handle : THandle Read FProcessHandle;
     Property ProcessHandle : THandle Read FProcessHandle;
     Property ThreadHandle : THandle Read FThreadHandle;
     Property Input  : TOutPutPipeStream Read FInPutStream;
@@ -309,7 +307,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.21  2004-08-12 14:33:55  michael
+  Revision 1.22  2004-09-08 18:17:23  michael
+  + Removed extra handle on process.
+
+  Revision 1.21  2004/08/12 14:33:55  michael
   + New split of process.pp
 
   Revision 1.20  2004/07/30 12:55:42  michael

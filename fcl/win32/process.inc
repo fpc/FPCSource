@@ -24,14 +24,6 @@ begin
   Result:=(FExitCode=Still_Active);
 end;
 
-Function TProcess.GetHandle : THandle;
-
-begin
-  If FHandle=0 Then
-    FHandle:=OpenProcess (PROCESS_ALL_ACCESS,True,FProcessId);
-  Result:=FHandle
-end;
-
 Function GetStartupFlags (P : TProcess): Cardinal;
 
 begin
