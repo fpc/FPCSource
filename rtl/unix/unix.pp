@@ -2134,6 +2134,7 @@ function FExpand (const Path: PathStr): PathStr;
 
 const
   LFNSupport = true;
+  FileNameCaseSensitive = true;
 
 {$I fexpand.inc}
 
@@ -2840,7 +2841,10 @@ End.
 
 {
   $Log$
-  Revision 1.3  2001-03-16 20:09:58  hajny
+  Revision 1.4  2001-03-17 16:04:37  hajny
+    * FExpand omission fixed
+
+  Revision 1.3  2001/03/16 20:09:58  hajny
     * universal FExpand
 
   Revision 1.2  2001/01/22 07:25:10  marco
