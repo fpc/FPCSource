@@ -640,6 +640,9 @@ var
   esign,sign : valreal;
   exponent,i : longint;
   flags      : byte;
+const
+  i10 = 10;
+
 begin
   d:=0;
   code:=1;
@@ -660,14 +663,14 @@ begin
    begin
    { Read integer part }
       flags:=flags or 1;
-      d:=d*10;
+      d:=d*i10;
       d:=d+(ord(s[code])-ord('0'));
       inc(code);
    end;
 { Decimal ? }
   if (s[code]='.') and (length(s)>=code) then
    begin
-      hd:=0.1;
+      hd:=extended(i1)/extended(i10);
       inc(code);
       { After dot, a number is required. }
       if not(s[code] in ['0'..'9']) or (length(s)<code) then
@@ -709,7 +712,7 @@ begin
         end;
       while (s[code] in ['0'..'9']) and (length(s)>=code) do
         begin
-           exponent:=exponent*10;
+           exponent:=exponent*i10;
            exponent:=exponent+ord(s[code])-ord('0');
            inc(code);
         end;
@@ -717,10 +720,10 @@ begin
 { Calculate Exponent }
   if esign>0 then
     for i:=1 to exponent do
-      d:=d*10
+      d:=d*i10
     else
       for i:=1 to exponent do
-        d:=d/10;
+        d:=d/i10;
 { Not all characters are read ? }
   if length(s)>=code then
    begin
@@ -977,7 +980,11 @@ end;
 
 {
   $Log$
-  Revision 1.20  1999-03-03 15:23:57  michael
+  Revision 1.21  1999-03-10 21:49:03  florian
+    * str and val for extended use now int constants to minimize
+      rounding error
+
+  Revision 1.20  1999/03/03 15:23:57  michael
   + Added setstring for Delphi compatibility
 
   Revision 1.19  1999/01/25 20:24:28  peter

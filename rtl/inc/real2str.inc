@@ -27,7 +27,11 @@ type
 {$else i386}
   bestreal = single;
 {$endif i386}
-
+const
+   { do not use real constants else you get rouding errors }
+   i10 = 10;
+   i2 = 2;
+   i1 = 1;
 Procedure str_real (len,f : longint; d : bestreal; real_type :treal_type; var s : string);
 {
   These numbers are for the double type...
@@ -113,40 +117,40 @@ begin
     end;
   { convert to standard form. }
   correct:=0;
-  if d>=10.0 then
-    while d>=10.0 do
+  if d>=i10 then
+    while d>=i10 do
       begin
-      d:=d/10.0;
+      d:=d/i10;
       inc(correct);
       end
   else if (d<1) and (d<>0) then
     while d<1 do
       begin
-      d:=d*10.0;
+      d:=d*i10;
       dec(correct);
       end;
   { RoundOff }
-  roundcorr:=0.5;
+  roundcorr:=extended(i1)/extended(i2);
   if f<0 then
-    for i:=1 to currprec do roundcorr:=roundcorr/10
+    for i:=1 to currprec do roundcorr:=roundcorr/i10
   else
     begin
       if correct+f<0 then
        begin
          for i:=1 to abs(correct+f) do
-          roundcorr:=roundcorr*10;
+          roundcorr:=roundcorr*i10;
        end
       else
        begin
          for i:=1 to correct+f do
-          roundcorr:=roundcorr/10;
+          roundcorr:=roundcorr/i10;
        end;
     end;
   d:=d+roundcorr;
   { 0.99 + 0.05 > 1.0 ! Fix this by dividing the results >=10 first (PV) }
   while (d>=10.0) do
    begin
-     d:=d/10.0;
+     d:=d/i10;
      inc(correct);
    end;
   { Now we have a standard expression : sign d *10^correct
@@ -161,7 +165,7 @@ begin
   { Start making the string }
   for i:=1 to currprec do
     begin
-    d:=d*10.0;
+    d:=d*i10;
     temp:=temp+chr(ord('0')+trunc(d));
     d:=d-int(d);
     end;
@@ -212,7 +216,11 @@ end;
 
 {
   $Log$
-  Revision 1.11  1999-02-16 00:49:20  peter
+  Revision 1.12  1999-03-10 21:49:02  florian
+    * str and val for extended use now int constants to minimize
+      rounding error
+
+  Revision 1.11  1999/02/16 00:49:20  peter
     * fixed rounding when correct+f < 0
 
   Revision 1.10  1998/08/11 21:39:06  peter
