@@ -193,6 +193,7 @@ endif
 ifeq ($(OS_TARGET),os2)
 override TARGET_PROGRAMS+=install
 endif
+override CLEAN_UNITS+=scroll
 ifeq ($(OS_TARGET),linux)
 override CLEAN_FILES+=installer.pas
 endif
@@ -1303,5 +1304,5 @@ override COMPILER+=-dFVISION
 endif
 installer.pas: install.pas
 	$(COPY) install.pas installer.pas
-install$(EXEEXT) : install.pas scroll$(PPUEXT)
-installer$(EXEEXT) : installer.pas scroll$(PPUEXT)
+install$(EXEEXT) : install.pas scroll.pas
+installer$(EXEEXT) : installer.pas scroll.pas

@@ -13,6 +13,7 @@ programs_os2=install
 programs_linux=installer
 
 [clean]
+units=scroll
 files_linux=installer.pas
 
 [require]
@@ -39,6 +40,6 @@ endif
 installer.pas: install.pas
         $(COPY) install.pas installer.pas
 
-install$(EXEEXT) : install.pas scroll$(PPUEXT)
+install$(EXEEXT) : install.pas scroll.pas
 
-installer$(EXEEXT) : installer.pas scroll$(PPUEXT)
+installer$(EXEEXT) : installer.pas scroll.pas
