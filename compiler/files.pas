@@ -185,7 +185,11 @@ unit files;
   implementation
 
   uses
-    dos,verbose,symtable,systems;
+    dos,verbose,systems
+{$ifndef VER0_99_8}
+    ,symtable
+{$endif}
+    ;
 
 {****************************************************************************
                                   TINPUTFILE
@@ -882,8 +886,10 @@ unit files;
         stringdispose(modulename);
         stringdispose(mainsource);
         stringdispose(asmprefix);
+{$ifndef VER0_99_8}
         if assigned(symtable) then
           dispose(punitsymtable(symtable),done);
+{$endif}
         inherited done;
       end;
 
@@ -927,7 +933,10 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.51  1998-10-06 17:16:47  pierre
+  Revision 1.52  1998-10-06 22:09:48  peter
+    * fixed for compiling with 0.99.8 due circular units
+
+  Revision 1.51  1998/10/06 17:16:47  pierre
     * some memory leaks fixed (thanks to Peter for heaptrc !)
 
   Revision 1.50  1998/09/30 16:43:34  peter
