@@ -14,7 +14,7 @@ type rec = record
 { this is really for tests but
   this should be coded with const r1 and r2 !! }
 
-function x(r1 : rec; r2 : rec; var r3 : rec) : integer; assembler;
+function x(r1 : rec; r2 : rec; var r3 : rec) : integer; assembler; {$ifndef ver1_0}oldfpccall;{$endif}
 asm
    movl r3, %edi
    movl r1, %ebx
