@@ -18,5 +18,4 @@ begin
   Require_Error(201);
   Go:=North;
   Go:=Pred(Go); { must give run-time error }
-  Go:=Pred(North); { must give compile time error }
 end.

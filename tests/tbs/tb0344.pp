@@ -20,7 +20,7 @@ begin
    end;
 {$ifdef fpc}
   str(high(qword),s);
-  if s<>'!!!unknown!!!' then
+  if s<>'18446744073709551615' then
    begin
      writeln('high(qword) error!: "',s,'"');
      error:=true;
