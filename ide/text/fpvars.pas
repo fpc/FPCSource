@@ -69,7 +69,8 @@ const ClipboardWindow  : PClipboardWindow = nil;
       LastExitCode     : integer = 0;
       ASCIIChart       : PFPASCIIChart = nil;
       DesktopPath      : string{$ifdef GABOR}[80]{$endif} = DesktopName;
-      DesktopFileFlags : longint = dfHistoryLists+dfOpenWindows;
+      DesktopFileFlags : longint = dfHistoryLists+dfOpenWindows+
+                                   dfCodeCompleteWords+dfCodeTemplates;
       DesktopLocation  : byte    = dlConfigFileDir;
       AutoSaveOptions  : longint = asEnvironment+asDesktop;
       MiscOptions      : longint = moChangeDirOnOpen+moCloseOnGotoSource;
@@ -90,7 +91,10 @@ implementation
 END.
 {
   $Log$
-  Revision 1.26  2000-02-04 00:08:35  pierre
+  Revision 1.27  2000-02-07 11:53:11  pierre
+   Gabor changes
+
+  Revision 1.26  2000/02/04 00:08:35  pierre
    + IniCenterDebuggerRow
 
   Revision 1.25  1999/09/16 14:34:59  pierre
