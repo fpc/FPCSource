@@ -625,6 +625,7 @@ end;
                          SystemUnit Initialization
 *****************************************************************************}
 
+{$ifndef newSignal}
 Procedure SignalToRunError(Sig:longint);
 begin
   case sig of
@@ -632,7 +633,6 @@ begin
    11 : HandleError(216);
   end;
 end;
-
 
 Procedure InstallSignals;
 var
@@ -646,6 +646,29 @@ begin
   sr.reg2:=8;
   syscall(syscall_nr_signal,sr);
 end;
+{$else newSignal}
+
+{$i i386/signal.inc}
+
+procedure SignalToRunerror(Sig: longint); cdecl;
+begin
+  case sig of
+    8 : HandleError(200);
+   11 : HandleError(216);
+  end;
+end;
+
+Procedure InstallSignals;
+const
+  act: SigActionRec = (handler:(Sh:@SignalToRunError);sa_mask:0;sa_flags:$40000000 or $10000000;
+                       Sa_restorer: NIL);
+  oldact: PSigActionRec = Nil;
+begin
+  SigAction(8,@act,oldact);
+  SigAction(11,@act,oldact);
+end;
+{$endif newSignal}
+
 
 
 procedure SetupCmdLine;
@@ -724,7 +747,11 @@ End.
 
 {
   $Log$
-  Revision 1.39  2000-03-25 12:28:37  peter
+  Revision 1.40  2000-03-31 13:24:28  jonas
+    * signal handling using sigaction when compiled with -dnewsignal
+      (allows multiple signals to be received in one run)
+
+  Revision 1.39  2000/03/25 12:28:37  peter
     * patch for getdir from Pierre
 
   Revision 1.38  2000/03/23 15:24:18  peter
