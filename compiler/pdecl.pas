@@ -316,10 +316,10 @@ unit pdecl;
                    Message(parser_e_absolute_only_one_var);
                   dispose(sc,done);
                   aktvarsym:=new(pvarsym,init_C(s,target_os.Cprefix+C_name,p));
-                  tokenpos:=storetokenpos;
                   aktvarsym^.var_options:=aktvarsym^.var_options or vo_is_external;
                   concat_external(aktvarsym^.mangledname,EXT_NEAR);
                   symtablestack^.insert(aktvarsym);
+                  tokenpos:=storetokenpos;
                   symdone:=true;
                end;
              { check for absolute }
@@ -345,8 +345,8 @@ unit pdecl;
                    abssym:=new(pabsolutesym,init(s,p));
                    abssym^.abstyp:=tovar;
                    abssym^.ref:=srsym;
-                   tokenpos:=storetokenpos;
                    symtablestack^.insert(abssym);
+                   tokenpos:=storetokenpos;
                  end
                 else
                  if (token=CSTRING) or (token=CCHAR) then
@@ -358,8 +358,8 @@ unit pdecl;
                     consume(token);
                     abssym^.abstyp:=toasm;
                     abssym^.asmname:=stringdup(s);
-                    tokenpos:=storetokenpos;
                     symtablestack^.insert(abssym);
+                    tokenpos:=storetokenpos;
                   end
                 else
                 { absolute address ?!? }
@@ -372,7 +372,6 @@ unit pdecl;
                        abssym:=new(pabsolutesym,init(s,p));
                        abssym^.abstyp:=toaddr;
                        abssym^.absseg:=false;
-                       tokenpos:=storetokenpos;
                        s:=pattern;
                        consume(INTCONST);
                        val(s,abssym^.address,code);
@@ -386,6 +385,7 @@ unit pdecl;
                           abssym^.absseg:=true;
                         end;
                        symtablestack^.insert(abssym);
+                       tokenpos:=storetokenpos;
                      end
                     else
                      Message(parser_e_absolute_only_to_var_or_const);
@@ -408,8 +408,8 @@ unit pdecl;
                   if not sc^.empty then
                     Message(parser_e_initialized_only_one_var);
                   pconstsym:=new(ptypedconstsym,init(s,p,false));
-                  tokenpos:=storetokenpos;
                   symtablestack^.insert(pconstsym);
+                  tokenpos:=storetokenpos;
                   consume(EQUAL);
                   readtypedconst(p,pconstsym,false);
                   symdone:=true;
@@ -489,7 +489,6 @@ unit pdecl;
                     aktvarsym:=new(pvarsym,init_dll(s,p))
                    else
                     aktvarsym:=new(pvarsym,init_C(s,C_name,p));
-                   tokenpos:=storetokenpos;
                    { set some vars options }
                    if export_aktvarsym then
                     inc(aktvarsym^.refs);
@@ -497,6 +496,7 @@ unit pdecl;
                       aktvarsym^.var_options:=aktvarsym^.var_options or vo_is_external;
                    { insert in the stack/datasegment }
                    symtablestack^.insert(aktvarsym);
+                   tokenpos:=storetokenpos;
                    { now we can insert it in the import lib if its a dll, or
                      add it to the externals }
                    if extern_aktvarsym then
@@ -2229,7 +2229,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.119  1999-05-19 12:41:56  florian
+  Revision 1.120  1999-05-20 22:19:52  pierre
+   * better stabs line info for vars
+
+  Revision 1.119  1999/05/19 12:41:56  florian
     * made source compilable with TP (too long line)
     * default values for set properties fixed
 
