@@ -124,6 +124,8 @@ function VioGetCurType(var CurData:TVioCursorInfo;VioHandle:word):word; cdecl;
 external 'EMXWRAP' index 127;
 {external 'VIOCALLS' index 27;}
 
+procedure syscall;external name '___SYSCALL';
+
 
 procedure setscreenmode(mode:word);
 
@@ -428,8 +430,8 @@ var row,left,right,bot:longint;
 
 begin
     row:=whereY;
-    left:=lo(windmin)+1;
-    right:=lo(windmax)+1;
+    left:=lo(windmin);
+    right:=lo(windmax);
     bot:=hi(windmax)+1;
     fil:=$20 or (textattr shl 8);
     scroll_up(row+1,left,bot,right,1,fil);
@@ -444,11 +446,11 @@ var row,left,right,bot:longint;
 
 begin
     row:=whereY;
-    left:=lo(windmin)+1;
-    right:=lo(windmax)+1;
+    left:=lo(windmin);
+    right:=lo(windmax);
     bot:=hi(windmax);
     fil:=$20 or (textattr shl 8);
-    scroll_dn(row,left,bot-1,right,1,fil);
+    scroll_dn(row,left,bot,right,1,fil);
 end;
 
 procedure textmode(mode:integer);
@@ -562,22 +564,20 @@ begin
     while i<=len-1 do
         begin
             case s[i] of
-                #8:
-                    x:=x-1;
-                #9:
-                    x:=(x-lo(windmin)) and $fff8+8+lo(windmin);
-                #10:
-                    ;
-                #13:
-                    begin
-                        x:=lo(windmin);
-                        inc(y);
+                #7: asm
+                     mov dl, 7
+                     mov ah, 2
+                     call syscall
                     end;
+                #8: if X > Succ (Lo (WindMin)) then Dec (X);
+         {      #9: x:=(x-lo(windmin)) and $fff8+8+lo(windmin);}
+                #10: inc(y);
+                #13: x:=lo(windmin);
                 else
                     begin
                         ca:=@s[i];
                         n:=1;
-                        while not(s[i+1] in [#8,#9,#10,#13]) and
+                        while not(s[i+1] in [#7,#8,#10,#13]) and
 {                         (x+n<=lo(windmax)+1) and (i<len-1) do}
                          (x+n<=lo(windmax)) and (i<len-1) do
                             begin
@@ -960,7 +960,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2005-02-14 17:13:22  peter
+  Revision 1.6  2005-03-30 23:11:35  hajny
+    * OS/2 fixes merged to EMX
+
+  Revision 1.5  2005/02/14 17:13:22  peter
     * truncate log
 
 }

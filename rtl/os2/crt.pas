@@ -276,7 +276,7 @@ begin
     right:=lo(windmax);
     bot:=hi(windmax)+1;
     fil:=$20 or (textattr shl 8);
-    scroll_up(row-1,left,bot,right,1,fil);
+    scroll_up(row+1,left,bot,right,1,fil);
 end;
 
 procedure insline;
@@ -290,9 +290,9 @@ begin
     row:=whereY;
     left:=lo(windmin);
     right:=lo(windmax);
-    bot:=hi(windmax)+1;
+    bot:=hi(windmax);
     fil:=$20 or (textattr shl 8);
-    scroll_dn(row,left,bot-1,right,1,fil);
+    scroll_dn(row,left,bot,right,1,fil);
 end;
 
 procedure textmode(mode:integer);
@@ -613,7 +613,10 @@ end.
 
 {
   $Log$
-  Revision 1.11  2005-03-30 22:42:49  hajny
+  Revision 1.12  2005-03-30 23:11:35  hajny
+    * OS/2 fixes merged to EMX
+
+  Revision 1.11  2005/03/30 22:42:49  hajny
     * fix for InsLine
 
   Revision 1.10  2005/03/30 22:40:25  hajny
