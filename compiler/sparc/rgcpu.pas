@@ -109,7 +109,7 @@ implementation
             reference_reset(tmpref);
 
             if getregtype(regs[regidx].tempreg)=R_INTREGISTER then
-              getregisterinline(helplist,pos,defaultsub,tmpreg)
+              getregisterinline(helplist,nil,defaultsub,tmpreg)
             else
               tmpreg:=cg.getintregister(helplist,OS_ADDR);
 
@@ -131,6 +131,7 @@ implementation
               list.insertlistafter(list.first,helplist)
             else
               list.insertlistafter(pos.next,helplist);
+            helplist.free;
 
             ungetregisterinline(list,helpins,regs[regidx].tempreg);
 
@@ -138,8 +139,6 @@ implementation
               ungetregisterinline(list,helpins,tmpreg);
 
             forward_allocation(tai(helpins.next),instr);
-
-            helplist.free;
           end
         else
           inherited do_spill_read(list,instr,pos,regidx,spilltemplist,regs);
@@ -179,15 +178,13 @@ implementation
             ref.offset:=0;
 
             helplist.concat(spilling_create_store(regs[regidx].tempreg,ref));
+            list.insertlistafter(instr,helplist);
+            helplist.free;
 
             ungetregisterinline(list,tai(helplist.last),regs[regidx].tempreg);
 
             if getregtype(regs[regidx].tempreg)=R_INTREGISTER then
               ungetregisterinline(list,tai(helplist.last),tmpreg);
-
-            list.insertlistafter(instr,helplist);
-
-            helplist.free;
           end
         else
           inherited do_spill_written(list,instr,pos,regidx,spilltemplist,regs);
@@ -209,7 +206,7 @@ implementation
             reference_reset(tmpref);
 
             if getregtype(regs[regidx].tempreg)=R_INTREGISTER then
-              getregisterinline(helplist,pos,defaultsub,tmpreg)
+              getregisterinline(helplist,nil,defaultsub,tmpreg)
             else
               tmpreg:=cg.getintregister(helplist,OS_ADDR);
 
@@ -231,6 +228,7 @@ implementation
               list.insertlistafter(list.first,helplist)
             else
               list.insertlistafter(pos.next,helplist);
+            helplist.free;
 
             helpins2:=spilling_create_store(regs[regidx].tempreg,ref);
             list.insertafter(helpins2,instr);
@@ -248,7 +246,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.24  2004-08-24 21:02:33  florian
+  Revision 1.25  2004-09-27 21:23:26  peter
+    * fixed spilling code
+
+  Revision 1.24  2004/08/24 21:02:33  florian
     * fixed longbool(<int64>) on sparc
 
   Revision 1.23  2004/06/20 08:55:32  florian
