@@ -141,7 +141,6 @@ implementation
                        objectlibrary.getlabel(endrelocatelab);
                        { make sure hregister can't allocate the register necessary for the parameter }
                        paraloc1:=paramanager.getintparaloc(pocall_default,1);
-                       paramanager.allocparaloc(exprasmlist,paraloc1);
                        hregister:=rg.getaddressregister(exprasmlist);
                        reference_reset_symbol(href,objectlibrary.newasmsymboldata('FPC_THREADVAR_RELOCATE'),0);
                        cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,hregister);
@@ -149,6 +148,7 @@ implementation
                        cg.a_cmp_const_reg_label(exprasmlist,OS_ADDR,OC_EQ,0,hregister,norelocatelab);
                        { don't save the allocated register else the result will be destroyed later }
                        reference_reset_symbol(href,objectlibrary.newasmsymboldata(tvarsym(symtableentry).mangledname),0);
+                       paramanager.allocparaloc(exprasmlist,paraloc1);
                        cg.a_param_ref(exprasmlist,OS_ADDR,href,paraloc1);
                        paramanager.freeparaloc(exprasmlist,paraloc1);
                        r:=rg.getabtregisterint(exprasmlist,OS_ADDR);
@@ -921,7 +921,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.86  2003-09-28 17:55:03  peter
+  Revision 1.87  2003-09-28 21:46:18  peter
+    * fix allocation of threadvar parameter
+
+  Revision 1.86  2003/09/28 17:55:03  peter
     * parent framepointer changed to hidden parameter
     * tloadparentfpnode added
 
