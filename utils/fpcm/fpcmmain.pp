@@ -61,7 +61,7 @@ interface
       TTarget=(
         t_linux,t_go32v2,t_win32,t_os2,t_freebsd,t_beos,t_netbsd,
         t_amiga,t_atari, t_sunos, t_qnx, t_netware, t_openbsd,t_wdosx,
-        t_palmos,t_macos,t_darwin,t_emx,t_watcom,t_morphos
+        t_palmos,t_macos,t_darwin,t_emx,t_watcom,t_morphos,t_netwlibc
       );
       TTargetSet=set of TTarget;
 
@@ -77,13 +77,13 @@ interface
       TargetStr : array[TTarget] of string=(
         'linux','go32v2','win32','os2','freebsd','beos','netbsd',
         'amiga','atari','sunos', 'qnx', 'netware','openbsd','wdosx',
-        'palmos','macos','darwin','emx','watcom','morphos'
+        'palmos','macos','darwin','emx','watcom','morphos','netwlibc'
       );
 
       TargetSuffix : array[TTarget] of string=(
         '_linux','_go32v2','_win32','_os2','_freebsd','_beos','_netbsd',
         '_amiga','_atari','_sunos', '_qnx', '_netware','_openbsd','_wdosx',
-        '_palmos','_macos','_darwin','_emx','_watcom','_morphos'
+        '_palmos','_macos','_darwin','_emx','_watcom','_morphos','_netwlibc'
       );
 
       TargetCpuPossible : array[TTarget,TCpu] of boolean = (
@@ -107,7 +107,8 @@ interface
         { darwin }  ( false, false, true,  false, false, false),
         { emx }     ( true,  false, false, false, false, false),
         { watcom }  ( true,  false, false, false ,false, false),
-        { morphos } ( false, false, true,  false ,false, false)
+        { morphos } ( false, false, true,  false ,false, false),
+	{ netwlibc }( true,  false, false, false, false, false)
       );
 
     type
@@ -1561,7 +1562,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.42  2004-07-11 18:58:19  peter
+  Revision 1.43  2004-09-04 21:24:43  armin
+  * added target netwlibc
+
+  Revision 1.42  2004/07/11 18:58:19  peter
     * support varaiable_cpu
 
   Revision 1.41  2004/06/29 19:20:49  marco
