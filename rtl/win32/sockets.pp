@@ -172,25 +172,23 @@ end;
 
 { mimic the linux fdWrite/fdRead calls for the file/text socket wrapper }
 function fdWrite(handle : longint;var bufptr;size : dword) : dword;
-
-  var
-     d : dword;
-
+begin
+  fdWrite := WinSock.send(handle, bufptr, size, 0);
+  if fdWrite = SOCKET_ERROR then
   begin
-     if not(Windows.WriteFile(handle,bufptr,size,d,nil)) then
-       SocketError:=Windows.GetLastError
-     else
-       SocketError:=0;
-     fdWrite:=d;
-  end;
+    SocketError := WSAGetLastError;
+    fdWrite := 0;
+  end
+  else
+    SocketError := 0;
+end;
 
 function fdRead(handle : longint;var bufptr;size : dword) : dword;
-
   var
      d : dword;
 
   begin
-     if ioctlsocket(handle,FIONREAD,@d)<>0 then
+     if ioctlsocket(handle,FIONREAD,@d) = SOCKET_ERROR then
        begin
          SocketError:=WSAGetLastError;
          fdRead:=0;
@@ -200,14 +198,16 @@ function fdRead(handle : longint;var bufptr;size : dword) : dword;
        begin
          if size>d then
            size:=d;
-         if not(Windows.ReadFile(handle,bufptr,size,d,nil)) then
-           SocketError:=Windows.GetLastError
-         else
+         fdRead := WinSock.recv(handle, bufptr, size, 0);
+         if fdRead = SOCKET_ERROR then
+         begin
+           SocketError:= WSAGetLastError;
+           fdRead := 0;
+         end else
            SocketError:=0;
        end
      else
        SocketError:=0;
-     fdRead:=d;
   end;
 
 
@@ -224,7 +224,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.3  2000-07-28 06:34:53  sg
+  Revision 1.4  2000-07-28 08:43:46  sg
+  * Applied patch by Markus Kaemmerer: Fixes fdRead and fdWrite
+
+  Revision 1.3  2000/07/28 06:34:53  sg
   * Applied patch to "Connect" by Markus Kaemmerer: WinSock.Connect returns
     zero when it succeeded, and not vice versa.
 
