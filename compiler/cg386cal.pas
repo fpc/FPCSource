@@ -728,6 +728,7 @@ implementation
             ((p^.procdefinition^.options and povirtualmethod)=0) then
            begin
               if ((p^.procdefinition^.options and poiocheck)<>0) and
+                 ((aktprocsym^.definition^.options and poiocheck)=0) and
                  (cs_check_io in aktlocalswitches) then
                 begin
                    getlabel(iolabel);
@@ -1514,7 +1515,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.37  1998-10-21 08:39:57  florian
+  Revision 1.38  1998-10-21 15:12:49  pierre
+    * bug fix for IOCHECK inside a procedure with iocheck modifier
+    * removed the GPF for unexistant overloading
+      (firstcall was called with procedinition=nil !)
+    * changed typen to what Florian proposed
+      gentypenode(p : pdef) sets the typenodetype field
+      and resulttype is only set if inside bt_type block !
+
+  Revision 1.37  1998/10/21 08:39:57  florian
     + ansistring operator +
     + $h and string[n] for n>255 added
     * small problem with TP fixed

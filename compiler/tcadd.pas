@@ -151,16 +151,22 @@ implementation
               end;
               { we have to convert p^.left and p^.right into
                callparanodes }
-              t^.left:=gencallparanode(p^.left,nil);
-              t^.left:=gencallparanode(p^.right,t^.left);
               if t^.symtableprocentry=nil then
-               CGMessage(parser_e_operator_not_overloaded);
-              if p^.treetype=unequaln then
-               t:=gensinglenode(notn,t);
-              firstpass(t);
-              putnode(p);
-              p:=t;
-              exit;
+                begin
+                   CGMessage(parser_e_operator_not_overloaded);
+                   putnode(t);
+                end
+              else
+                begin
+                   t^.left:=gencallparanode(p^.left,nil);
+                   t^.left:=gencallparanode(p^.right,t^.left);
+                   if p^.treetype=unequaln then
+                    t:=gensinglenode(notn,t);
+                   firstpass(t);
+                   putnode(p);
+                   p:=t;
+                   exit;
+                end;
            end;
          no_overload:
          { compact consts }
@@ -939,7 +945,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  1998-10-20 15:09:24  florian
+  Revision 1.7  1998-10-21 15:12:57  pierre
+    * bug fix for IOCHECK inside a procedure with iocheck modifier
+    * removed the GPF for unexistant overloading
+      (firstcall was called with procedinition=nil !)
+    * changed typen to what Florian proposed
+      gentypenode(p : pdef) sets the typenodetype field
+      and resulttype is only set if inside bt_type block !
+
+  Revision 1.6  1998/10/20 15:09:24  florian
     + binary operators for ansi strings
 
   Revision 1.5  1998/10/20 08:07:05  pierre

@@ -221,6 +221,7 @@ unit tree;
              stringconstn : (value_str : pstring; lab_str:plabel;stringtype : tstringtype);
 {$endif UseAnsiString}
              typeconvn : (convtyp : tconverttype;explizit : boolean);
+             typen : (typenodetype : pdef);
              inlinen : (inlinenumber : longint;inlineconst:boolean);
              procinlinen : (inlineprocdef : pprocdef;
                             retoffset,para_offset,para_size : longint);
@@ -242,6 +243,7 @@ unit tree;
     function genordinalconstnode(v : longint;def : pdef) : ptree;
     function genfixconstnode(v : longint;def : pdef) : ptree;
     function gentypeconvnode(node : ptree;t : pdef) : ptree;
+    function gentypenode(t : pdef) : ptree;
     function gencallparanode(expr,next : ptree) : ptree;
     function genrealconstnode(v : bestreal) : ptree;
     function gencallnode(v : pprocsym;st : psymtable) : ptree;
@@ -973,6 +975,27 @@ unit tree;
          gentypeconvnode:=p;
       end;
 
+    function gentypenode(t : pdef) : ptree;
+
+      var
+         p : ptree;
+
+      begin
+         p:=getnode;
+         p^.disposetyp:=dt_nothing;
+         p^.treetype:=typen;
+         p^.registers32:=0;
+{         p^.registers16:=0;
+         p^.registers8:=0; }
+         p^.registersfpu:=0;
+{$ifdef SUPPORT_MMX}
+         p^.registersmmx:=0;
+{$endif SUPPORT_MMX}
+         p^.resulttype:=generrordef;
+         p^.typenodetype:=t;
+         gentypenode:=p;
+      end;
+
     function gencallnode(v : pprocsym;st : psymtable) : ptree;
 
       var
@@ -1620,7 +1643,15 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.47  1998-10-20 08:07:07  pierre
+  Revision 1.48  1998-10-21 15:12:59  pierre
+    * bug fix for IOCHECK inside a procedure with iocheck modifier
+    * removed the GPF for unexistant overloading
+      (firstcall was called with procedinition=nil !)
+    * changed typen to what Florian proposed
+      gentypenode(p : pdef) sets the typenodetype field
+      and resulttype is only set if inside bt_type block !
+
+  Revision 1.47  1998/10/20 08:07:07  pierre
     * several memory corruptions due to double freemem solved
       => never use p^.loc.location:=p^.left^.loc.location;
     + finally I added now by default

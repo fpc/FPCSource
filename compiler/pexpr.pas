@@ -59,7 +59,7 @@ unit pexpr;
 {$endif}
        ;
 
-    const allow_type : boolean = false;
+    const allow_type : boolean = true;
     
     function parse_paras(_colon,in_prop_paras : boolean) : ptree;
 
@@ -148,34 +148,40 @@ unit pexpr;
             begin
               consume(LKLAMMER);
               in_args:=true;
-              allow_type:=true;
+              {allow_type:=true;}
               p1:=comp_expr(true);
-              allow_type:=false;
+              {allow_type:=false;}
               consume(RKLAMMER);
               pd:=voidpointerdef;
               if p1^.treetype=typen then
                begin
-                 if (p1^.resulttype=nil) then
+                 if (p1^.typenodetype=nil) then
                   begin
                     Message(type_e_mismatch);
                     statement_syssym:=genzeronode(errorn);
                   end
                  else
-                  if p1^.resulttype^.deftype=objectdef then
-                   statement_syssym:=geninlinenode(in_typeof_x,false,p1)
+                  if p1^.typenodetype^.deftype=objectdef then
+                   begin
+                      { we can use resulttype in pass_2 (PM) }
+                      p1^.resulttype:=p1^.typenodetype;
+                      statement_syssym:=geninlinenode(in_typeof_x,false,p1);
+                   end
                  else
                   begin
                     Message(type_e_mismatch);
+                    disposetree(p1);
                     statement_syssym:=genzeronode(errorn);
                   end;
                end
-              else
+              else { not a type node }
                begin
                  Must_be_valid:=false;
                  do_firstpass(p1);
                  if (p1^.resulttype=nil) then
                   begin
                     Message(type_e_mismatch);
+                    disposetree(p1);
                     statement_syssym:=genzeronode(errorn)
                   end
                  else
@@ -184,7 +190,8 @@ unit pexpr;
                  else
                   begin
                     Message(type_e_mismatch);
-                    statement_syssym:=genzeronode(errorn)
+                    statement_syssym:=genzeronode(errorn);
+                    disposetree(p1);
                   end;
                end;
             end;
@@ -193,14 +200,14 @@ unit pexpr;
             begin
               consume(LKLAMMER);
               in_args:=true;
-              allow_type:=true;
+              {allow_type:=true;}
               p1:=comp_expr(true);
-              allow_type:=false;
+              {allow_type:=false; }
               consume(RKLAMMER);
               pd:=s32bitdef;
               if p1^.treetype=typen then
                begin
-                 statement_syssym:=genordinalconstnode(p1^.resulttype^.size,pd);
+                 statement_syssym:=genordinalconstnode(p1^.typenodetype^.size,pd);
                  { p1 not needed !}
                  disposetree(p1);
                end
@@ -279,10 +286,12 @@ unit pexpr;
             begin
               consume(LKLAMMER);
               in_args:=true;
-              allow_type:=true;
+              {allow_type:=true;}
               p1:=comp_expr(true);
-              allow_type:=false;
+              {allow_type:=false;}
               do_firstpass(p1);
+              if p1^.treetype=typen then
+                p1^.resulttype:=p1^.typenodetype;
               Must_be_valid:=false;
               p2:=geninlinenode(l,false,p1);
               consume(RKLAMMER);
@@ -883,7 +892,8 @@ unit pexpr;
                               { nothing else                   }
                                if block_type=bt_type then
                                 begin
-                                  p1:=genzeronode(typen);
+                                  p1:=gentypenode(pd);
+                                  { here we can also set resulttype !! }
                                   p1^.resulttype:=pd;
                                   pd:=voiddef;
                                 end
@@ -907,7 +917,7 @@ unit pexpr;
                                        begin
                                          if procinfo._class^.isrelated(pobjectdef(pd)) then
                                           begin
-                                            p1:=genzeronode(typen);
+                                            p1:=gentypenode(pd);
                                             p1^.resulttype:=pd;
                                             srsymtable:=pobjectdef(pd)^.publicsyms;
                                             sym:=pvarsym(srsymtable^.search(pattern));
@@ -940,7 +950,9 @@ unit pexpr;
                                          { TP allows also @TMenu.Load if Load is only }
                                          { defined in an anchestor class              }
                                          sym:=pvarsym(search_class_member(pobjectdef(pd),pattern));
-                                         if not(getaddr) and ((sym^.properties and sp_static)=0) then
+                                         if not assigned(sym) then
+                                           Message1(sym_e_id_no_member,pattern)
+                                         else if not(getaddr) and ((sym^.properties and sp_static)=0) then
                                            Message(sym_e_only_static_in_static)
                                          else
                                           begin
@@ -955,7 +967,7 @@ unit pexpr;
                                        if (pd^.deftype=objectdef)
                                          and ((pobjectdef(pd)^.options and oo_is_class)<>0) then
                                          begin
-                                            p1:=genzeronode(typen);
+                                            p1:=gentypenode(pd);
                                             p1^.resulttype:=pd;
                                             pd:=new(pclassrefdef,init(pd));
                                             p1:=gensinglenode(loadvmtn,p1);
@@ -967,8 +979,9 @@ unit pexpr;
                                             { (for typeof etc)     }
                                             if allow_type then
                                               begin
-                                                 p1:=genzeronode(typen);
-                                                 p1^.resulttype:=pd;
+                                                 p1:=gentypenode(pd);
+                                                 { here we must use typenodetype explicitly !! PM
+                                                 p1^.resulttype:=pd; }
                                                  pd:=voiddef;
                                               end
                                             else
@@ -1394,17 +1407,19 @@ unit pexpr;
         _NEW : begin
                  consume(_NEW);
                  consume(LKLAMMER);
-                 allow_type:=true;
+                 {allow_type:=true;}
                  p1:=factor(false);
-                 allow_type:=false;
+                 {allow_type:=false;}
                  if p1^.treetype<>typen then
                   begin
                     Message(type_e_type_id_expected);
+                    disposetree(p1);
                     pd:=generrordef;
                   end
                  else
-                  pd:=p1^.resulttype;
+                  pd:=p1^.typenodetype;
                  pd2:=pd;
+                 
                  if (pd^.deftype<>pointerdef) or
                     (ppointerdef(pd)^.definition^.deftype<>objectdef) then
                   begin
@@ -1898,7 +1913,15 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.69  1998-10-20 15:10:19  pierre
+  Revision 1.70  1998-10-21 15:12:54  pierre
+    * bug fix for IOCHECK inside a procedure with iocheck modifier
+    * removed the GPF for unexistant overloading
+      (firstcall was called with procedinition=nil !)
+    * changed typen to what Florian proposed
+      gentypenode(p : pdef) sets the typenodetype field
+      and resulttype is only set if inside bt_type block !
+
+  Revision 1.69  1998/10/20 15:10:19  pierre
     * type ptree only allowed inside expression
       if following sizeof typeof low high or as first arg of new !!
 

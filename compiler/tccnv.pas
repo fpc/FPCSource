@@ -556,7 +556,11 @@ implementation
        { if explicite type cast, then run firstpass }
        if p^.explizit then
          firstpass(p^.left);
-
+       if (p^.left^.treetype=typen) and (p^.left^.resulttype=generrordef) then
+         begin
+            codegenerror:=true;
+            Message(parser_e_no_type_not_allowed_here);
+         end;
        if codegenerror then
          begin
            p^.resulttype:=generrordef;
@@ -903,7 +907,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  1998-10-07 10:38:55  peter
+  Revision 1.6  1998-10-21 15:12:58  pierre
+    * bug fix for IOCHECK inside a procedure with iocheck modifier
+    * removed the GPF for unexistant overloading
+      (firstcall was called with procedinition=nil !)
+    * changed typen to what Florian proposed
+      gentypenode(p : pdef) sets the typenodetype field
+      and resulttype is only set if inside bt_type block !
+
+  Revision 1.5  1998/10/07 10:38:55  peter
     * forgot a firstpass in arrayconstruct2set
 
   Revision 1.4  1998/10/05 21:33:32  peter

@@ -117,7 +117,8 @@ implementation
 
         begin
            { I/O check }
-           if cs_check_io in aktlocalswitches then
+           if (cs_check_io in aktlocalswitches) and
+              ((aktprocsym^.definition^.options and poiocheck)=0) then
              begin
                 getlabel(iolabel);
                 emitl(A_LABEL,iolabel);
@@ -897,7 +898,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  1998-10-16 13:12:47  pierre
+  Revision 1.12  1998-10-21 15:12:53  pierre
+    * bug fix for IOCHECK inside a procedure with iocheck modifier
+    * removed the GPF for unexistant overloading
+      (firstcall was called with procedinition=nil !)
+    * changed typen to what Florian proposed
+      gentypenode(p : pdef) sets the typenodetype field
+      and resulttype is only set if inside bt_type block !
+
+  Revision 1.11  1998/10/16 13:12:47  pierre
     * added vmt_offsets in destructors code also !!!
     * vmt_offset code for m68k
 
