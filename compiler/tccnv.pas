@@ -538,7 +538,6 @@ implementation
     var
       hp : ptree;
       aprocdef : pprocdef;
-      proctype : tdeftype;
     const
        firstconvert : array[tconverttype] of tfirstconvproc = (
          first_nothing, {equal}
@@ -651,7 +650,6 @@ implementation
               ) and
              ((is_procsym_load(p^.left) or is_procsym_call(p^.left))) then
              begin
-                { just a test: p^.explizit:=false; }
                 if is_procsym_call(p^.left) then
                   begin
                      if p^.left^.right=nil then
@@ -690,41 +688,21 @@ implementation
                   end
                 else
                   begin
-                     if p^.left^.treetype=addrn then
-                       begin
-                          hp:=p^.left;
-                          p^.left:=p^.left^.left;
-                          putnode(p^.left);
-                       end
-                     else
-                       aprocdef:=pprocsym(p^.left^.symtableentry)^.definition;
+                    if (p^.left^.treetype<>addrn) then
+                      aprocdef:=pprocsym(p^.left^.symtableentry)^.definition;
                   end;
 
                 p^.convtyp:=tc_proc_2_procvar;
                 { Now check if the procedure we are going to assign to
-                  the procvar,  is compatible with the procvar's type.
-                  Did the original procvar support do such a check?
-                  I can't find any.}
-                { answer : is_equal works for procvardefs !! }
-                { but both must be procvardefs, so we cheet  little }
+                  the procvar,  is compatible with the procvar's type }
                 if assigned(aprocdef) then
                   begin
-                    proctype:=aprocdef^.deftype;
-                    aprocdef^.deftype:=procvardef;
-
-                    { only methods can be assigned to method pointers }
-                    if (assigned(p^.left^.left) and
-                      ((pprocvardef(p^.resulttype)^.options and pomethodpointer)=0)) or
-                       not(is_equal(aprocdef,p^.resulttype)) then
-                      begin
-                        aprocdef^.deftype:=proctype;
-                        CGMessage(type_e_mismatch);
-                      end;
-                    aprocdef^.deftype:=proctype;
+                    if proc_to_procvar_equal(aprocdef,pprocvardef(p^.resulttype)) then
+                     CGMessage2(type_e_incompatible_types,aprocdef^.typename,p^.resulttype^.typename);
                     firstconvert[p^.convtyp](p);
                   end
                 else
-                  CGMessage(type_e_mismatch);
+                  CGMessage2(type_e_incompatible_types,p^.left^.resulttype^.typename,p^.resulttype^.typename);
                 exit;
              end
            else
@@ -935,13 +913,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.35  1999-06-02 22:44:24  pierre
+  Revision 1.35.2.1  1999-06-13 22:39:19  peter
+    * use proc_to_procvar_equal
+
+  Revision 1.35  1999/06/02 22:44:24  pierre
    * previous wrong log corrected
 
   Revision 1.34  1999/06/02 22:25:54  pierre
   * changed $ifdef FPC @ into $ifndef TP
   + debug note about longint to pointer conversion
-  
+
   Revision 1.33  1999/05/27 19:45:15  peter
     * removed oldasm
     * plabel -> pasmlabel
