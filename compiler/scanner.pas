@@ -415,8 +415,6 @@ implementation
             begin
               Freemem(inputbuffer,inputbufsize);
               is_macro:=false;
-              inputbuffer:=nil;
-              inputpointer:=nil;
               closed:=true;
               exit;
             end;
@@ -427,10 +425,13 @@ implementation
               {$I+}
               i:=ioresult;
               Freemem(inputbuffer,inputbufsize);
-              inputbuffer:=nil;
-              inputpointer:=nil;
               closed:=true;
             end;
+           inputbuffer:=nil;
+           inputpointer:=nil;
+           lastlinepos:=0;
+           lasttokenpos:=0;
+           bufstart:=0;
          end;
       end;
 
@@ -1622,7 +1623,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.47  1998-09-01 09:01:52  peter
+  Revision 1.48  1998-09-01 12:51:02  peter
+    * close also resets lastlinepos
+
+  Revision 1.47  1998/09/01 09:01:52  peter
     * initialize all object variables in .init
 
   Revision 1.46  1998/08/29 13:49:00  peter
