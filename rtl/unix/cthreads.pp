@@ -34,11 +34,11 @@ Procedure SetCThreadManager;
 
 implementation
 
-Uses 
+Uses
   systhrds,
   BaseUnix,
   unix
-{$ifdef dynpthreads}  
+{$ifdef dynpthreads}
   ,dl
 {$endif}
   ;
@@ -166,7 +166,7 @@ Uses
 
     function CBeginThread(sa : Pointer;stacksize : dword;
                          ThreadFunction : tthreadfunc;p : pointer;
-                         creationFlags : dword; var ThreadId : DWord) : DWord;
+                         creationFlags : dword; var ThreadId : THandle) : DWord;
       var
         ti : pthreadinfo;
         thread_attr : pthread_attr_t;
@@ -196,7 +196,7 @@ Uses
 {$endif DEBUG_MT}
         pthread_attr_init(@thread_attr);
         pthread_attr_setinheritsched(@thread_attr, PTHREAD_EXPLICIT_SCHED);
-        
+
         // will fail under linux -- apparently unimplemented
         pthread_attr_setscope(@thread_attr, PTHREAD_SCOPE_PROCESS);
 
@@ -276,10 +276,10 @@ Uses
 *****************************************************************************}
 
     procedure CInitCriticalSection(var CS);
-    
+
     Var
       P : PRTLCriticalSection;
-    
+
       begin
          P:=PRTLCriticalSection(@CS);
          With p^ do
@@ -354,9 +354,9 @@ Function CInitThreads : Boolean;
 
 begin
   Writeln('Entering InitThreads.');
-{$ifndef dynpthreads} 
+{$ifndef dynpthreads}
   Result:=True;
-{$else}  
+{$else}
   Result:=LoadPthreads;
 {$endif}
   ThreadID := SizeUInt (pthread_self);
@@ -368,14 +368,14 @@ Function CDoneThreads : Boolean;
 begin
 {$ifndef dynpthreads}
   Result:=True;
-{$else}  
+{$else}
   Result:=UnloadPthreads;
 {$endif}
 end;
 
 
 Var
-  CThreadManager : TThreadManager; 
+  CThreadManager : TThreadManager;
 
 Procedure SetCThreadManager;
 
@@ -403,7 +403,7 @@ begin
     RelocateThreadVar      :=@CRelocateThreadVar;
     AllocateThreadVars     :=@CAllocateThreadVars;
     ReleaseThreadVars      :=@CReleaseThreadVars;
-{$endif}    
+{$endif}
     end;
   SetThreadManager(CThreadManager);
   InitHeapMutexes;
@@ -414,7 +414,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.8  2004-02-15 16:33:32  marco
+  Revision 1.9  2004-02-22 16:48:39  florian
+    * several 64 bit issues fixed
+
+  Revision 1.8  2004/02/15 16:33:32  marco
    * linklibs fixed for new pthread mechanism on FreeBSD
 
   Revision 1.7  2004/01/20 23:13:53  hajny

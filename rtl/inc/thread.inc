@@ -41,18 +41,18 @@ Var
 {*****************************************************************************
                             Overloaded functions
 *****************************************************************************}
-
+{$ifndef CPU64}
     function BeginThread(sa : Pointer;stacksize : dword;
                          ThreadFunction : tthreadfunc;p : pointer;creationFlags : dword;
                          var ThreadId : Longint) : DWord;
       begin
-        BeginThread:=BeginThread(nil,StackSize,ThreadFunction,p,creationFlags,Dword(THreadId));
+        BeginThread:=BeginThread(nil,StackSize,ThreadFunction,p,creationFlags,THandle(THreadId));
       end;
-
+{$endif CPU64}
 
     function BeginThread(ThreadFunction : tthreadfunc) : DWord;
       var
-        dummy : dword;
+        dummy : THandle;
       begin
         BeginThread:=BeginThread(nil,DefaultStackSize,ThreadFunction,nil,0,dummy);
       end;
@@ -60,30 +60,31 @@ Var
 
     function BeginThread(ThreadFunction : tthreadfunc;p : pointer) : DWord;
       var
-        dummy : dword;
+        dummy : THandle;
       begin
         BeginThread:=BeginThread(nil,DefaultStackSize,ThreadFunction,p,0,dummy);
       end;
 
 
-    function BeginThread(ThreadFunction : tthreadfunc;p : pointer;var ThreadId : DWord) : DWord;
+    function BeginThread(ThreadFunction : tthreadfunc;p : pointer;var ThreadId : THandle) : DWord;
       begin
         BeginThread:=BeginThread(nil,DefaultStackSize,ThreadFunction,p,0,ThreadId);
       end;
 
 
+{$ifndef CPU64}
     function BeginThread(ThreadFunction : tthreadfunc;p : pointer;var ThreadId : Longint) : DWord;
       begin
-        BeginThread:=BeginThread(nil,DefaultStackSize,ThreadFunction,p,0,Dword(ThreadId));
+        BeginThread:=BeginThread(nil,DefaultStackSize,ThreadFunction,p,0,THandle(ThreadId));
       end;
-
+{$endif CPU64}
 
     procedure EndThread;
       begin
         EndThread(0);
       end;
 
-function BeginThread(sa : Pointer;stacksize : dword; ThreadFunction : tthreadfunc;p : pointer;creationFlags : dword;  var ThreadId : DWord) : DWord;
+function BeginThread(sa : Pointer;stacksize : dword; ThreadFunction : tthreadfunc;p : pointer;creationFlags : dword;  var ThreadId : THandle) : DWord;
 
 begin
   Result:=CurrentTM.BeginThread(sa,stacksize,threadfunction,P,creationflags,ThreadID);
@@ -187,17 +188,17 @@ begin
   If Assigned(CurrentTM.DoneManager) then
     Result:=CurrentTM.DoneManager();
   If Result then
-    begin  
-    CurrentTM:=NewTM;  
+    begin
+    CurrentTM:=NewTM;
     If Assigned(CurrentTM.InitManager) then
       Result:=CurrentTM.InitManager();
-    end;  
+    end;
 end;
 
 { ---------------------------------------------------------------------
     ThreadManager which gives run-time error. Use if no thread support.
   ---------------------------------------------------------------------}
-  
+
 
 Resourcestring
   SNoThreads = 'This binary has no thread support compiled in.';
@@ -211,12 +212,12 @@ begin
     Writeln(StdErr,SNoThreads);
     Writeln(StdErr,SRecompileWithThreads);
     end;
-  RunError(232)  
+  RunError(232)
 end;
 
 function NoBeginThread(sa : Pointer;stacksize : dword;
                      ThreadFunction : tthreadfunc;p : pointer;
-                     creationFlags : dword; var ThreadId : DWord) : DWord;
+                     creationFlags : dword; var ThreadId : THandle) : DWord;
 begin
   NoThreadError;
 end;
@@ -322,7 +323,10 @@ end;
 
 {
   $Log$
-  Revision 1.8  2004-01-21 20:11:06  peter
+  Revision 1.9  2004-02-22 16:48:39  florian
+    * several 64 bit issues fixed
+
+  Revision 1.8  2004/01/21 20:11:06  peter
     * fixed compile for unix
 
   Revision 1.7  2004/01/20 23:13:53  hajny

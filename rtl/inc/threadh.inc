@@ -21,14 +21,14 @@ const
 
 type
   TThreadFunc = function(parameter : pointer) : longint;
- 
+
   // Function prototypes for TThreadManager Record.
-  TBeginThreadHandler = Function (sa : Pointer;stacksize : dword; ThreadFunction : tthreadfunc;p : pointer;creationFlags : dword; var ThreadId : DWord) : DWord;
+  TBeginThreadHandler = Function (sa : Pointer;stacksize : dword; ThreadFunction : tthreadfunc;p : pointer;creationFlags : dword; var ThreadId : THandle) : DWord;
   TEndThreadHandler = Procedure (ExitCode : DWord);
   // Used for Suspend/Resume/Kill
   TThreadHandler = Function (threadHandle : dword) : dword;
   TThreadSwitchHandler = Procedure;
-  TWaitForThreadTerminateHandler = Function (threadHandle : dword; TimeoutMs : longint) : dword;  {0=no timeout} 
+  TWaitForThreadTerminateHandler = Function (threadHandle : dword; TimeoutMs : longint) : dword;  {0=no timeout}
   TThreadSetPriorityHandler = Function (threadHandle : dword; Prio: longint): boolean;            {-15..+15, 0=normal}
   TThreadGetPriorityHandler = Function (threadHandle : dword): Integer;
   TGetCurrentThreadIdHandler = Function : dword;
@@ -37,7 +37,7 @@ type
   TRelocateThreadVarHandler = Function(offset : dword) : pointer;
   TAllocateThreadVarsHandler = Procedure;
   TReleaseThreadVarsHandler = Procedure;
-  
+
   // TThreadManager interface.
   TThreadManager = Record
     InitManager            : Function : Boolean;
@@ -83,18 +83,22 @@ procedure InitThread(stklen:cardinal);
 
 function BeginThread(sa : Pointer;stacksize : dword;
   ThreadFunction : tthreadfunc;p : pointer;creationFlags : dword;
-  var ThreadId : DWord) : DWord;
+  var ThreadId : THandle) : DWord;
+{$ifndef CPU64}
 { Delphi uses a longint for threadid }
 function BeginThread(sa : Pointer;stacksize : dword;
   ThreadFunction : tthreadfunc;p : pointer;creationFlags : dword;
   var ThreadId : Longint) : DWord;
+{$endif CPU64}
 
 { add some simplfied forms which make lifer easier and porting }
 { to other OSes too ...                                        }
 function BeginThread(ThreadFunction : tthreadfunc) : DWord;
 function BeginThread(ThreadFunction : tthreadfunc;p : pointer) : DWord;
-function BeginThread(ThreadFunction : tthreadfunc;p : pointer; var ThreadId : DWord) : DWord;
+function BeginThread(ThreadFunction : tthreadfunc;p : pointer; var ThreadId : THandle) : DWord;
+{$ifndef CPU64}
 function BeginThread(ThreadFunction : tthreadfunc;p : pointer; var ThreadId : Longint) : DWord;
+{$endif CPU64}
 
 procedure EndThread(ExitCode : DWord);
 procedure EndThread;
@@ -120,7 +124,10 @@ procedure LeaveCriticalsection(var cs : TRTLCriticalSection);
 
 {
   $Log$
-  Revision 1.14  2003-11-29 17:29:32  michael
+  Revision 1.15  2004-02-22 16:48:39  florian
+    * several 64 bit issues fixed
+
+  Revision 1.14  2003/11/29 17:29:32  michael
   + Added overloaded version of SetThreadManager without old parameter
 
   Revision 1.13  2003/11/27 10:28:41  michael

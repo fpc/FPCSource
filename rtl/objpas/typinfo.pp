@@ -226,6 +226,7 @@ Procedure SetVariantProp(Instance: TObject; PropInfo : PPropInfo; const Value: V
 
 Function  GetObjectProp(Instance: TObject; const PropName: string): TObject;
 Function  GetObjectProp(Instance: TObject; const PropName: string; MinClass: TClass): TObject;
+Function  GetObjectProp(Instance: TObject; PropInfo: PPropInfo): TObject;
 Function  GetObjectProp(Instance: TObject; PropInfo: PPropInfo; MinClass: TClass): TObject;
 Procedure SetObjectProp(Instance: TObject; const PropName: string; Value: TObject);
 Procedure SetObjectProp(Instance: TObject; PropInfo: PPropInfo; Value: TObject);
@@ -786,6 +787,12 @@ begin
 end;
 
 
+Function GetObjectProp(Instance: TObject; PropInfo : PPropInfo): TObject;
+begin
+  Result:=GetObjectProp(Instance,PropInfo,Nil);
+end;
+
+
 Function GetObjectProp(Instance: TObject; PropInfo : PPropInfo; MinClass: TClass): TObject;
 begin
 {$ifdef cpu64}
@@ -1315,7 +1322,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.22  2004-02-21 22:53:49  florian
+  Revision 1.23  2004-02-22 16:48:39  florian
+    * several 64 bit issues fixed
+
+  Revision 1.22  2004/02/21 22:53:49  florian
     * several 64 bit/x86-64 fixes
 
   Revision 1.21  2004/02/20 15:55:26  peter
