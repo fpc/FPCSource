@@ -369,14 +369,10 @@ unit ag386bin;
            case hp^.typ of
              ait_align :
                begin
-                 if (objectalloc^.sectionsize mod pai_align(hp)^.aligntype)<>0 then
-                   begin
-                     pai_align(hp)^.fillsize:=pai_align(hp)^.aligntype-
-                       (objectalloc^.sectionsize mod pai_align(hp)^.aligntype);
-                     objectalloc^.sectionalloc(pai_align(hp)^.fillsize);
-                   end
-                 else
-                   pai_align(hp)^.fillsize:=0;
+                 { always use the maximum fillsize in this pass to avoid possible
+                   short jumps to become out of range }
+                 pai_align(hp)^.fillsize:=pai_align(hp)^.aligntype;
+                 objectalloc^.sectionalloc(pai_align(hp)^.fillsize);
                end;
              ait_datablock :
                begin
@@ -442,8 +438,6 @@ unit ag386bin;
                 end;
            end;
            hp:=pai(hp^.next);
-
-
          end;
         TreePass0:=hp;
       end;
@@ -471,14 +465,10 @@ unit ag386bin;
            case hp^.typ of
              ait_align :
                begin
-                 if (objectalloc^.sectionsize mod pai_align(hp)^.aligntype)<>0 then
-                   begin
-                     pai_align(hp)^.fillsize:=pai_align(hp)^.aligntype-
-                       (objectalloc^.sectionsize mod pai_align(hp)^.aligntype);
-                     objectalloc^.sectionalloc(pai_align(hp)^.fillsize);
-                   end
-                 else
-                   pai_align(hp)^.fillsize:=0;
+                 { always use the maximum fillsize in this pass to avoid possible
+                   short jumps to become out of range }
+                 pai_align(hp)^.fillsize:=pai_align(hp)^.aligntype;
+                 objectalloc^.sectionalloc(pai_align(hp)^.fillsize);
                end;
              ait_datablock :
                begin
@@ -905,7 +895,10 @@ unit ag386bin;
 end.
 {
   $Log$
-  Revision 1.24  1999-08-25 11:59:33  jonas
+  Revision 1.25  1999-09-26 21:13:40  peter
+    * short jmp with alignment problems fixed
+
+  Revision 1.24  1999/08/25 11:59:33  jonas
     * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
 
   Revision 1.23  1999/08/10 12:26:21  pierre
