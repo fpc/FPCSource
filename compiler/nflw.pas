@@ -718,9 +718,17 @@ implementation
          { we need a simple loadn, but the load must be in a global symtable or
            in the same lexlevel }
          if (hp.nodetype=funcretn) or
-            ((hp.nodetype=loadn) and
-             ((tloadnode(hp).symtable.symtablelevel<=1) or
-              (tloadnode(hp).symtable.symtablelevel=lexlevel))) then
+            (
+             (hp.nodetype=loadn) and
+             (
+              (tloadnode(hp).symtable.symtablelevel<=1) or
+              (tloadnode(hp).symtable.symtablelevel=lexlevel)
+             ) and
+             not(
+                 (tloadnode(hp).symtableentry.typ=varsym) and
+                 (vo_is_thread_var in tvarsym(tloadnode(hp).symtableentry).varoptions)
+                )
+            ) then
           begin
             if (hp.nodetype=loadn) and
                (tloadnode(hp).symtableentry.typ=varsym) then
@@ -1429,7 +1437,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.57  2002-11-28 11:17:02  florian
+  Revision 1.58  2002-12-27 15:25:40  peter
+    * do not allow threadvar as loop counter
+
+  Revision 1.57  2002/11/28 11:17:02  florian
     * loop node flags from node flags splitted
 
   Revision 1.56  2002/11/25 17:43:18  peter
