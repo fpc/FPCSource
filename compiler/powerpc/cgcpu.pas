@@ -365,8 +365,13 @@ const
            begin
              list.concat(taicpu.op_sym(A_BL,get_darwin_call_stub(s)));
            end;
+{
+       the compiler does not properly set this flag anymore in pass 1, and
+       for now we only need it after pass 2 (I hope) (JM)
          if not(pi_do_call in current_procinfo.flags) then
            internalerror(2003060703);
+}
+       include(current_procinfo.flags,pi_do_call);
       end;
 
     { calling a procedure by address }
@@ -396,8 +401,11 @@ const
         //if target_info.system=system_powerpc_macos then
         //  //NOP is not needed here.
         //  list.concat(taicpu.op_none(A_NOP));
+        include(current_procinfo.flags,pi_do_call);
+{
         if not(pi_do_call in current_procinfo.flags) then
           internalerror(2003060704);
+}
         //list.concat(tai_comment.create(strpnew('***** a_call_reg')));
       end;
 
@@ -2364,7 +2372,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.178  2004-09-25 14:23:54  peter
+  Revision 1.179  2004-10-11 07:13:14  jonas
+    * include pi_do_call if we generate a call instead of internalerroring
+      (workaround)
+
+  Revision 1.178  2004/09/25 14:23:54  peter
     * ungetregister is now only used for cpuregisters, renamed to
       ungetcpuregister
     * renamed (get|unget)explicitregister(s) to ..cpuregister
