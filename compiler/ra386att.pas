@@ -183,20 +183,20 @@ const
        A_FSUBR,A_FISUBR,A_FMUL,A_FIMUL,A_FMUL,A_FIMUL,A_FDIV,A_FIDIV,
        A_FDIV,A_FIDIV,A_FDIVR,A_FIDIVR,A_FDIVR,A_FIDIVR);
 
- const
+const
   newline = #10;
   firsttoken : boolean = TRUE;
   operandnum : byte = 0;
- charcount: byte = 0;
- var
- p : paasmoutput;
- actasmtoken: tinteltoken;
- actasmpattern: string;
- c: char;
- Instr: TInstruction;
- labellist: TAsmLabelList;
- line: string; { CHanged from const to var, there is a bug in 0.9.1 which
-                 doesn't allow 255-char constant strings. MVC}
+  charcount: byte = 0;
+var
+  inexpression  : boolean;
+  p             : paasmoutput;
+  actasmtoken   : tinteltoken;
+  actasmpattern : string;
+  c             : char;
+  Instr         : TInstruction;
+  labellist     : TAsmLabelList;
+
 
    Procedure SetupTables;
    { creates uppercased symbol tables. }
@@ -1149,19 +1149,18 @@ const
            { references.                                         }
            { Update: allow constant references under Go32v2, to  }
            { access data in the bios data segmement (JM)         }
-{$ifndef Go32v2}
-           if (operandtype = OPR_REFERENCE) and
-              (ref.base = R_NO) and
-              (ref.index = R_NO) and
-              (ref.symbol = nil) and
-              (ref.offset <> 0) then
-              Begin
-                ref.isintvalue := TRUE;
-                Message(assem_e_const_ref_not_allowed);
-              end;
-{$endif Go32v2}
-              opinfo := findtype(operands[i]);
-          end; { end with }
+           if (target_info.target<>target_i386_Go32v2) and
+              ((operandtype = OPR_REFERENCE) and
+               (ref.base = R_NO) and
+               (ref.index = R_NO) and
+               (ref.symbol = nil) and
+               (ref.offset <> 0)) then
+             Begin
+               ref.isintvalue := TRUE;
+               Message(assem_e_const_ref_not_allowed);
+             end;
+            opinfo := findtype(operands[i]);
+         end; { end with }
      end; {endfor}
 
 
@@ -2233,6 +2232,8 @@ const
        if t<>actasmtoken then
         Message(assem_e_syntax_error);
        actasmtoken:=gettoken;
+       { set the previous id flag }
+       previous_was_id:=(actasmtoken=AS_ID);
        { if the token must be ignored, then }
        { get another token to parse.        }
        if actasmtoken = AS_NONE then
@@ -2472,157 +2473,178 @@ Begin
 end;
 
 
-  Function BuildExpression: longint;
-  {*********************************************************************}
-  { FUNCTION BuildExpression: longint                                   }
-  { Description: This routine calculates a constant expression to      }
-  { a given value. The return value is the value calculated from       }
-  { the expression.                                                    }
-  { The following tokens (not strings) are recognized:                  }
-  {   (,),SHL,SHR,/,*,NOT,OR,XOR,AND,MOD,+/-,numbers,ID to constants.  }
-  {*********************************************************************}
-  { ENTRY: On entry the token should be any valid expression token.     }
-  { EXIT:  On Exit the token points to either COMMA or SEPARATOR        }
-  { ERROR RECOVERY: Tries to find COMMA or SEPARATOR token by consuming }
-  { invalid tokens.                                                    }
-  {*********************************************************************}
-  var expr: string;
-      tempstr: string;
-      l,k : longint;
-      errorflag: boolean;
-  Begin
-    errorflag := FALSE;
-    expr := '';
-    tempstr := '';
-    Repeat
-      Case actasmtoken of
-      AS_LPAREN: Begin
-                  Consume(AS_LPAREN);
-                  expr := expr + '(';
-                end;
-      AS_RPAREN: Begin
-                  Consume(AS_RPAREN);
-                  expr := expr + ')';
-                end;
-      AS_SHL:    Begin
-                  Consume(AS_SHL);
-                  expr := expr + '<';
-                end;
-      AS_SHR:    Begin
-                  Consume(AS_SHR);
-                  expr := expr + '>';
-                end;
-      AS_SLASH:  Begin
-                  Consume(AS_SLASH);
-                  expr := expr + '/';
-                end;
-      AS_MOD:    Begin
-                  Consume(AS_MOD);
-                  expr := expr + '%';
-                end;
-      AS_STAR:   Begin
-                  Consume(AS_STAR);
-                  expr := expr + '*';
-                end;
-      AS_PLUS:   Begin
-                  Consume(AS_PLUS);
-                  expr := expr + '+';
-                end;
-      AS_MINUS:  Begin
-                  Consume(AS_MINUS);
-                  expr := expr + '-';
-                end;
-      AS_AND:    Begin
-                  Consume(AS_AND);
-                  expr := expr + '&';
-                end;
-      AS_NOT:    Begin
-                  Consume(AS_NOT);
-                  expr := expr + '~';
-                end;
-      AS_XOR:    Begin
-                  Consume(AS_XOR);
-                  expr := expr + '^';
-                end;
-      AS_OR:     Begin
-                  Consume(AS_OR);
-                  expr := expr + '|';
-                end;
-      AS_ID:    Begin
-                  tempstr:=actasmpattern;
-                  previous_was_id:=TRUE;
-                  consume(AS_ID);
-                  if actasmtoken=AS_DOT then
-                   begin
-                     GetRecordOffsetSize(tempstr,l,k);
-                     str(l, tempstr);
-                     expr := expr + tempstr;
-                   end
-                  else
-                   begin
-                     if SearchIConstant(tempstr,l) then
-                      begin
-                        str(l, tempstr);
-                        expr := expr + tempstr;
-                      end
-                     else
-                      Message1(assem_e_invalid_const_symbol,actasmpattern);
-                   end;
-                  end;
-      AS_INTNUM:  Begin
-                   expr := expr + actasmpattern;
-                   Consume(AS_INTNUM);
-                 end;
-      AS_BINNUM:  Begin
-                      tempstr := BinaryToDec(actasmpattern);
-                      if tempstr = '' then
-                       Message(assem_f_error_converting_bin);
-                      expr:=expr+tempstr;
-                      Consume(AS_BINNUM);
-                 end;
-
-      AS_HEXNUM: Begin
-                    tempstr := HexToDec(actasmpattern);
-                    if tempstr = '' then
-                     Message(assem_f_error_converting_hex);
-                    expr:=expr+tempstr;
-                    Consume(AS_HEXNUM);
-                end;
-      AS_OCTALNUM: Begin
-                    tempstr := OctalToDec(actasmpattern);
-                    if tempstr = '' then
-                     Message(assem_f_error_converting_octal);
-                    expr:=expr+tempstr;
-                    Consume(AS_OCTALNUM);
-                  end;
-      { go to next term }
-      AS_COMMA: Begin
-                  if not ErrorFlag then
-                    BuildExpression := CalculateExpression(expr)
-                  else
-                    BuildExpression := 0;
-                  Exit;
-               end;
-      { go to next symbol }
-      AS_SEPARATOR: Begin
-                      if not ErrorFlag then
-                        BuildExpression := CalculateExpression(expr)
-                      else
-                        BuildExpression := 0;
-                      Exit;
-                   end;
-      else
+Function BuildConstExpression(allowref,betweenbracket:boolean): longint;
+{*********************************************************************}
+{ FUNCTION BuildConstExpression: longint                              }
+{  Description: This routine calculates a constant expression to      }
+{  a given value. The return value is the value calculated from       }
+{  the expression.                                                    }
+{ The following tokens (not strings) are recognized:                  }
+{    (,),SHL,SHR,/,*,NOT,OR,XOR,AND,MOD,+/-,numbers,ID to constants.  }
+{*********************************************************************}
+{ ENTRY: On entry the token should be any valid expression token.     }
+{ EXIT:  On Exit the token points to any token after the closing      }
+{         RBRACKET                                                    }
+{ ERROR RECOVERY: Tries to find COMMA or SEPARATOR token by consuming }
+{  invalid tokens.                                                    }
+{*********************************************************************}
+var
+  tempstr,expr : string;
+  parenlevel,l,k : longint;
+  errorflag : boolean;
+  prevtoken : tinteltoken;
+Begin
+  errorflag := FALSE;
+  tempstr := '';
+  expr := '';
+  inexpression := TRUE;
+  prevtoken := AS_NONE;
+  parenlevel := 0;
+  Repeat
+    if actasmtoken<>AS_LPAREN then
+     prevtoken:=actasmtoken;
+    Case actasmtoken of
+      AS_LPAREN:
         Begin
-          { only write error once. }
-          if not errorflag then
-           Message(assem_e_invalid_constant_expression);
-          { consume tokens until we find COMMA or SEPARATOR }
-          Consume(actasmtoken);
-          errorflag := TRUE;
-        End;
+          { Exit if ref? }
+          if allowref and (prevtoken in [AS_INTNUM,AS_BINNUM,AS_OCTALNUM,AS_ID,AS_HEXNUM]) then
+           break;
+          Consume(AS_LPAREN);
+          expr := expr + '(';
+          inc(parenlevel);
+        end;
+      AS_RPAREN:
+        Begin
+          { end of ref ? }
+          if (parenlevel=0) and betweenbracket then
+           break;
+          Consume(AS_RPAREN);
+          expr := expr + ')';
+          dec(parenlevel);
+        end;
+      AS_SHL:
+        Begin
+          Consume(AS_SHL);
+          expr := expr + '<';
+        end;
+      AS_SHR:
+        Begin
+          Consume(AS_SHR);
+          expr := expr + '>';
+        end;
+      AS_SLASH:
+        Begin
+          Consume(AS_SLASH);
+          expr := expr + '/';
+        end;
+      AS_MOD:
+        Begin
+          Consume(AS_MOD);
+          expr := expr + '%';
+        end;
+      AS_STAR:
+        Begin
+          Consume(AS_STAR);
+          expr := expr + '*';
+        end;
+      AS_PLUS:
+        Begin
+          Consume(AS_PLUS);
+          expr := expr + '+';
+        end;
+      AS_MINUS:
+        Begin
+          Consume(AS_MINUS);
+          expr := expr + '-';
+        end;
+      AS_AND:
+        Begin
+          Consume(AS_AND);
+          expr := expr + '&';
+        end;
+      AS_NOT:
+        Begin
+          Consume(AS_NOT);
+          expr := expr + '~';
+        end;
+      AS_XOR:
+        Begin
+          Consume(AS_XOR);
+          expr := expr + '^';
+        end;
+      AS_OR:
+        Begin
+          Consume(AS_OR);
+          expr := expr + '|';
+        end;
+      AS_INTNUM:
+        Begin
+          expr := expr + actasmpattern;
+          Consume(AS_INTNUM);
+        end;
+      AS_BINNUM:
+        Begin
+          expr:=expr+BinaryToDec(actasmpattern);
+          Consume(AS_BINNUM);
+        end;
+      AS_HEXNUM:
+        Begin
+          expr:=expr+HexToDec(actasmpattern);
+          Consume(AS_HEXNUM);
+        end;
+      AS_OCTALNUM:
+        Begin
+          expr:=expr+OctalToDec(actasmpattern);
+          Consume(AS_OCTALNUM);
+        end;
+      AS_ID:
+        Begin
+          tempstr:=actasmpattern;
+          consume(AS_ID);
+          if actasmtoken=AS_DOT then
+           begin
+             GetRecordOffsetSize(tempstr,l,k);
+             str(l, tempstr);
+             expr := expr + tempstr;
+           end
+          else
+           begin
+             if SearchIConstant(tempstr,l) then
+              begin
+                str(l, tempstr);
+                expr := expr + tempstr;
+              end
+             else
+              Message1(assem_e_invalid_const_symbol,tempstr);
+           end;
+        end;
+      AS_SEPARATOR,
+      AS_COMMA:
+        Begin
+          break;
+        end;
+    else
+      Begin
+        { write error only once. }
+        if not errorflag then
+          Message(assem_e_invalid_constant_expression);
+        BuildConstExpression := 0;
+        if actasmtoken in [AS_COMMA,AS_SEPARATOR] then
+          exit;
+        { consume tokens until we find COMMA or SEPARATOR }
+        Consume(actasmtoken);
+        errorflag := TRUE;
       end;
-    Until false;
-  end;
+    end;
+  Until false;
+  { calculate expression }
+  if not ErrorFlag then
+    BuildConstExpression := CalculateExpression(expr)
+  else
+    BuildConstExpression := 0;
+  { no longer in an expression }
+  inexpression := FALSE;
+end;
 
 
   Procedure BuildRealConstant(typ : tfloattype);
@@ -2728,456 +2750,183 @@ end;
 
 
 
-  Procedure BuildScaling(Var instr: TInstruction);
-  {*********************************************************************}
-  { Takes care of parsing expression starting from the scaling value   }
-  { up to and including possible field specifiers.                     }
-  { EXIT CONDITION:  On exit the routine should point to  AS_SEPARATOR  }
-  { or AS_COMMA. On entry should point to the AS_COMMA token.           }
-  {*********************************************************************}
-  var str:string;
-      l: longint;
-      code: integer;
-  Begin
-     Consume(AS_COMMA);
-     if (instr.operands[operandnum].ref.scalefactor <> 0)
-     and (instr.operands[operandnum].ref.scalefactor <> 1) then
-      Message(assem_f_internal_error_in_buildscale);
-     case actasmtoken of
-        AS_INTNUM: str := actasmpattern;
-        AS_HEXNUM: str := HexToDec(actasmpattern);
-        AS_BINNUM: str := BinaryToDec(actasmpattern);
-        AS_OCTALNUM: str := OctalToDec(actasmpattern);
-     else
-        Message(assem_e_syntax_error);
-     end;
-     val(str, l, code);
-     if code <> 0 then
-       Message(assem_e_invalid_scaling_factor);
-     if ((l = 2) or (l = 4) or (l = 8) or (l = 1)) and (code = 0) then
-     begin
-        instr.operands[operandnum].ref.scalefactor := l;
+Procedure BuildReference(var Instr: TInstruction);
+{*********************************************************************}
+{ PROCEDURE BuildReference                                            }
+{ Description: This routine builds up an expression after a LPAREN    }
+{ token is encountered.                                               }
+{  On entry actasmtoken should be equal to AS_LPAREN                  }
+{*********************************************************************}
+{ EXIT CONDITION:  On exit the routine should point to either the     }
+{      AS_COMMA or AS_SEPARATOR token.                                }
+{*********************************************************************}
+
+  procedure Consume_RParen;
+  begin
+    if actasmtoken <> AS_RPAREN then
+     Begin
+       Message(assem_e_invalid_reference);
+       while actasmtoken <> AS_SEPARATOR do
+        Consume(actasmtoken);
      end
-     else
-     Begin
-        Message(assem_e_invalid_scaling_value);
-        instr.operands[operandnum].ref.scalefactor := 0;
-     end;
-     if instr.operands[operandnum].ref.index = R_NO then
-     Begin
-        Message(assem_e_scaling_value_only_allowed_with_index);
-        instr.operands[operandnum].ref.scalefactor := 0;
-     end;
-    { Consume the scaling number }
-    Consume(actasmtoken);
-    if actasmtoken = AS_RPAREN then
-        Consume(AS_RPAREN)
     else
-       Message(assem_e_invalid_scaling_value);
-    { .Field.Field ... or separator/comma  }
-    if actasmtoken in [AS_COMMA,AS_SEPARATOR] then
-    Begin
-    end
-    else
-      Message(assem_e_syntax_error);
-  end;
-
-
-
-
-  Function BuildRefExpression(BetweenBrackets: Boolean): longint;
-  {*********************************************************************}
-  { FUNCTION BuildRefExpression: longint                                }
-  { Description: This routine calculates a constant offset expression  }
-  { to a given value. The return value is the value calculated from    }
-  { the expression.                                                    }
-  { If BetweenBrackets is false, it's an offset before the brackets of }
-  { a reference, such as 16(%ebp), otherwise it's one in between       }
-  { brackets, such as fs:(0x046c)                                      }
-  { The following tokens (not strings) are recognized:                  }
-  {   SHL,SHR,/,*,NOT,OR,XOR,AND,MOD,+/-,numbers,ID to constants.      }
-  {*********************************************************************}
-  { ENTRY: On entry the token should be any valid expression token.     }
-  { EXIT:  On Exit the token points to the LPAREN token.                }
-  { ERROR RECOVERY: Tries to find COMMA or SEPARATOR token by consuming }
-  { invalid tokens.                                                    }
-  {*********************************************************************}
-  var tempstr: string;
-      expr: string;
-    l,k : longint;
-    errorflag : boolean;
-  Begin
-    errorflag := FALSE;
-    tempstr := '';
-    expr := '';
-    Repeat
-      Case actasmtoken of
-      AS_RPAREN: Begin
-                   If Not(BetweenBrackets) Then
-                     Begin
-                       Message(assem_e_parenthesis_are_not_allowed);
-                       Consume(AS_RPAREN);
-                     End
-                   Else
-                     Begin
-                      { in this case a closing parenthesis denotes the end
-                        of the expression }
-                       If Not ErrorFlag Then
-                          BuildRefExpression := CalculateExpression(expr)
-                       else
-                         BuildRefExpression := 0;
-                     { no longer in an expression }
-                       exit;
-                     End
-                 end;
-      AS_SHL:    Begin
-                   Consume(AS_SHL);
-                   expr := expr + '<';
-                 end;
-      AS_SHR:    Begin
-                  Consume(AS_SHR);
-                  expr := expr + '>';
-                end;
-      AS_SLASH:  Begin
-                  Consume(AS_SLASH);
-                  expr := expr + '/';
-                end;
-      AS_MOD:    Begin
-                  Consume(AS_MOD);
-                  expr := expr + '%';
-                end;
-      AS_STAR:   Begin
-                  Consume(AS_STAR);
-                  expr := expr + '*';
-                end;
-      AS_PLUS:   Begin
-                  Consume(AS_PLUS);
-                  expr := expr + '+';
-                end;
-      AS_MINUS:  Begin
-                  Consume(AS_MINUS);
-                  expr := expr + '-';
-                end;
-      AS_AND:    Begin
-                  Consume(AS_AND);
-                  expr := expr + '&';
-                end;
-      AS_NOT:    Begin
-                  Consume(AS_NOT);
-                  expr := expr + '~';
-                end;
-      AS_XOR:    Begin
-                  Consume(AS_XOR);
-                  expr := expr + '^';
-                end;
-      AS_OR:     Begin
-                  Consume(AS_OR);
-                  expr := expr + '|';
-                end;
-      { End of reference }
-      AS_LPAREN: Begin
-                   If Not(BetweenBrackets) Then
-                     Begin
-                       if not ErrorFlag then
-                          BuildRefExpression := CalculateExpression(expr)
-                       else
-                          BuildRefExpression := 0;
-                     { no longer in an expression }
-                       exit;
-                     End
-                   Else
-                     Begin
-                       Message(assem_e_parenthesis_are_not_allowed);
-                       Consume(AS_RPAREN);
-                     End
-                  end;
-      AS_ID:
-                Begin
-                  tempstr:=actasmpattern;
-                  consume(AS_ID);
-                  if actasmtoken=AS_DOT then
-                   begin
-                     GetRecordOffsetSize(tempstr,l,k);
-                     str(l, tempstr);
-                     expr := expr + tempstr;
-                   end
-                  else
-                   begin
-                     if SearchIConstant(tempstr,l) then
-                      begin
-                        str(l, tempstr);
-                        expr := expr + tempstr;
-                      end
-                     else
-                      Message1(assem_e_invalid_const_symbol,tempstr);
-                   end;
-                end;
-      AS_INTNUM:  Begin
-                   expr := expr + actasmpattern;
-                   Consume(AS_INTNUM);
-                 end;
-      AS_BINNUM:  Begin
-                      tempstr := BinaryToDec(actasmpattern);
-                      if tempstr = '' then
-                       Message(assem_f_error_converting_bin);
-                      expr:=expr+tempstr;
-                      Consume(AS_BINNUM);
-                 end;
-
-      AS_HEXNUM: Begin
-                    tempstr := HexToDec(actasmpattern);
-                    if tempstr = '' then
-                     Message(assem_f_error_converting_hex);
-                    expr:=expr+tempstr;
-                    Consume(AS_HEXNUM);
-                end;
-      AS_OCTALNUM: Begin
-                    tempstr := OctalToDec(actasmpattern);
-                    if tempstr = '' then
-                     Message(assem_f_error_converting_octal);
-                    expr:=expr+tempstr;
-                    Consume(AS_OCTALNUM);
-                  end;
-      else
+     begin
+       Consume(AS_RPAREN);
+       if not (actasmtoken in [AS_COMMA,AS_SEPARATOR]) then
         Begin
-          { write error only once. }
-          if not errorflag then
-           Message(assem_e_invalid_constant_expression);
-          BuildRefExpression := 0;
-          if actasmtoken in [AS_COMMA,AS_SEPARATOR] then exit;
-          { consume tokens until we find COMMA or SEPARATOR }
-          Consume(actasmtoken);
-          errorflag := TRUE;
+          Message(assem_e_invalid_reference);
+          { error recovery ... }
+          while actasmtoken <> AS_SEPARATOR do
+           Consume(actasmtoken);
         end;
       end;
-    Until false;
-  end;
+   end;
 
-
-
-
-  Procedure BuildReference(var Instr: TInstruction);
-  {*********************************************************************}
-  { PROCEDURE BuildBracketExpression                                    }
-  { Description: This routine builds up an expression after a LPAREN   }
-  { token is encountered.                                              }
-  {  On entry actasmtoken should be equal to AS_LPAREN                 }
-  {*********************************************************************}
-  { EXIT CONDITION:  On exit the routine should point to either the     }
-  {      AS_COMMA or AS_SEPARATOR token.                               }
-  {*********************************************************************}
-  var
-    l:longint;
-    code: integer;
-    str: string;
-  Begin
-     Consume(AS_LPAREN);
-     initAsmRef(instr);
-     Case actasmtoken of
-        { absolute offset, such as fs:(0x046c) }
-        AS_HEXNUM,AS_INTNUM,AS_MINUS,
-        AS_BINNUM,AS_OCTALNUM,AS_PLUS:
-          Begin
-            If Instr.Operands[OperandNum].Ref.Offset <> 0 Then
-             { offset(offset) is invalid }
-              Begin
-                Message(assem_e_invalid_reference);
-                while actasmtoken <> AS_SEPARATOR do
-                  Consume(actasmtoken);
-              End
-            Else
-              Begin
-                Instr.Operands[OperandNum].Ref.Offset := BuildRefExpression(True);
-                if actasmtoken <> AS_RPAREN then
-                  Begin
-                    Message(assem_e_invalid_reference);
-                    while actasmtoken <> AS_SEPARATOR do
-                      Consume(actasmtoken);
-                  end
-                else
-                  Begin
-                    Consume(AS_RPAREN);
-                    if not (actasmtoken in [AS_COMMA, AS_SEPARATOR]) then
-                      Begin
-                        { error recovery ... }
-                        Message(assem_e_invalid_reference);
-                        while actasmtoken <> AS_SEPARATOR do
-                          Consume(actasmtoken);
-                      end;
-                   end;
-              End;
-            exit;
-          End;
-        { (reg ...  }
-        AS_REGISTER: Begin
-                       { Check if there is already a base (mostly ebp,esp) than this is
-                         not allowed,becuase it will give crashing code }
-                        if instr.operands[operandnum].ref.base<>R_NO then
-                         Message(assem_e_cannot_index_relative_var);
-                        instr.operands[operandnum].ref.base := findregister(actasmpattern);
-                        Consume(AS_REGISTER);
-                        { can either be a register or a right parenthesis }
-                         { (reg)        }
-                         if actasmtoken=AS_RPAREN then  Begin
-                                       Consume(AS_RPAREN);
-                                       if not (actasmtoken in [AS_COMMA,
-                                         AS_SEPARATOR]) then
-                                       Begin
-                                         Message(assem_e_invalid_reference);
-                                         { error recovery ... }
-                                         while actasmtoken <> AS_SEPARATOR do
-                                           Consume(actasmtoken);
-                                       end;
-                                         exit;
-                                     end;
-                       { (reg,reg ..  }
-                       { we need a comman here !! }
-                       { oops..                   }
-                        Consume(AS_COMMA);
-
-                        Case actasmtoken of
-                         AS_REGISTER: Begin
-                                        instr.operands[operandnum].ref.index :=
-                                           findregister(actasmpattern);
-                                        Consume(AS_REGISTER);
-                                        { check for scaling ... }
-                                        case actasmtoken of
-                                         AS_RPAREN:
-                                               Begin
-                                                 Consume(AS_RPAREN);
-                                                 if not (actasmtoken in [AS_COMMA,
-                                                    AS_SEPARATOR]) then
-                                                  Begin
-                                                    { error recovery ... }
-                                                    Message(assem_e_invalid_reference);
-                                                    while actasmtoken <> AS_SEPARATOR do
-                                                    Consume(actasmtoken);
-                                                  end;
-                                                   exit;
-                                               end;
-                                         AS_COMMA:
-                                               Begin
-                                                 BuildScaling(instr);
-                                               end;
-                                         else
-                                          Begin
-                                             Message(assem_e_invalid_reference_syntax);
-                                             while (actasmtoken <> AS_SEPARATOR) do
-                                             Consume(actasmtoken);
-                                          end;
-                                         end; { end case }
-                                        end;
-                         else
-                          Begin
-                            Message(assem_e_invalid_reference_syntax);
-                            while (actasmtoken <> AS_SEPARATOR) do
-                                Consume(actasmtoken);
-                          end;
-                         end; {end case }
-                     end;
-        { (, ...    }
-        AS_COMMA:  { can either be scaling, or index }
-                   Begin
-                     Consume(AS_COMMA);
-                     case actasmtoken of
-                       AS_REGISTER: Begin
-                                      instr.operands[operandnum].ref.index :=
-                                         findregister(actasmpattern);
-                                      Consume(AS_REGISTER);
-                                        { check for scaling ... }
-                                        case actasmtoken of
-                                         AS_RPAREN:
-                                               Begin
-                                                 Consume(AS_RPAREN);
-                                                 if not (actasmtoken in [AS_COMMA,
-                                                    AS_SEPARATOR]) then
-                                                  Begin
-                                                    { error recovery ... }
-                                                    Message(assem_e_invalid_reference);
-                                                    while actasmtoken <> AS_SEPARATOR do
-                                                    Consume(actasmtoken);
-                                                  end;
-                                                   exit;
-                                               end;
-                                         AS_COMMA:
-                                               Begin
-                                                 BuildScaling(instr);
-                                               end;
-                                         else
-                                          Begin
-                                             Message(assem_e_invalid_reference_syntax);
-                                             while (actasmtoken <> AS_SEPARATOR) do
-                                             Consume(actasmtoken);
-                                          end;
-                                         end; {end case }
-                                    end;
-                       AS_HEXNUM,AS_INTNUM,   { we have to process the scaling }
-                       AS_BINNUM,AS_OCTALNUM: { directly here...               }
-                                              Begin
-                                                  case actasmtoken of
-                                                    AS_INTNUM: str :=
-                                                       actasmpattern;
-                                                    AS_HEXNUM: str :=
-                                                       HexToDec(actasmpattern);
-                                                    AS_BINNUM: str :=
-                                                       BinaryToDec(actasmpattern);
-                                                    AS_OCTALNUM: str :=
-                                                       OctalToDec(actasmpattern);
-                                                  else
-                                                    Message(assem_e_syntax_error);
-                                                  end; { end case }
-                                                  val(str, l, code);
-                                                  if code <> 0 then
-                                                     Message(assem_e_invalid_scaling_factor);
-                                                  if ((l = 2) or (l = 4) or (l = 8) or (l = 1)) and (code = 0) then
-                                                  begin
-                                                    instr.operands[operandnum].
-                                                       ref.scalefactor := l;
-                                                  end
-                                                  else
-                                                  Begin
-                                                    Message(assem_e_invalid_scaling_value);
-                                                    instr.operands[operandnum].
-                                                       ref.scalefactor := 0;
-                                                  end;
-                                                  Consume(actasmtoken);
-                                                  if actasmtoken <> AS_RPAREN then
-                                                  Begin
-                                                    Message(assem_e_invalid_scaling_value);
-                                                    while actasmtoken <> AS_SEPARATOR do
-                                                      Consume(actasmtoken);
-                                                  end
-                                                  else
-                                                  Begin
-                                                    Consume(AS_RPAREN);
-                                                    if not (actasmtoken in [AS_COMMA,
-                                                       AS_SEPARATOR]) then
-                                                     Begin
-                                                      { error recovery ... }
-                                                      Message(assem_e_invalid_reference);
-                                                      while actasmtoken <> AS_SEPARATOR do
-                                                        Consume(actasmtoken);
-                                                     end;
-                                                    exit;
-                                                  end;
-                                              end;
-                     else
-                       Begin
-                          Message(assem_e_invalid_reference_syntax);
-                          while (actasmtoken <> AS_SEPARATOR) do
-                          Consume(actasmtoken);
-                       end;
-                     end; { end case }
-                   end;
-
-     else
+var
+  l:longint;
+Begin
+   Consume(AS_LPAREN);
+   initAsmRef(instr);
+   Case actasmtoken of
+     AS_HEXNUM,
+     AS_INTNUM,
+     AS_BINNUM,
+     AS_OCTALNUM,
+     AS_MINUS,
+     AS_PLUS: { absolute offset, such as fs:(0x046c) }
        Begin
-         Message(assem_e_invalid_reference_syntax);
-         while (actasmtoken <> AS_SEPARATOR) do
-           Consume(actasmtoken);
+         { offset(offset) is invalid }
+         If Instr.Operands[OperandNum].Ref.Offset <> 0 Then
+          Begin
+            Message(assem_e_invalid_reference);
+            while actasmtoken <> AS_SEPARATOR do
+             Consume(actasmtoken);
+          End
+         Else
+          Begin
+            Instr.Operands[OperandNum].Ref.Offset := BuildConstExpression(false,true);
+            Consume_RParen;
+          end;
+         exit;
+       End;
+     AS_REGISTER: { (reg ...  }
+       Begin
+         { Check if there is already a base (mostly ebp,esp) than this is
+           not allowed,becuase it will give crashing code }
+         if instr.operands[operandnum].ref.base<>R_NO then
+          Message(assem_e_cannot_index_relative_var);
+         instr.operands[operandnum].ref.base := findregister(actasmpattern);
+         Consume(AS_REGISTER);
+         { can either be a register or a right parenthesis }
+         { (reg)        }
+         if actasmtoken=AS_RPAREN then
+          Begin
+            Consume_RParen;
+            exit;
+          end;
+         { (reg,reg ..  }
+         Consume(AS_COMMA);
+         if actasmtoken=AS_REGISTER then
+          Begin
+            instr.operands[operandnum].ref.index := findregister(actasmpattern);
+            Consume(AS_REGISTER);
+            { check for scaling ... }
+            case actasmtoken of
+              AS_RPAREN:
+                Begin
+                  Consume_RParen;
+                  exit;
+                end;
+              AS_COMMA:
+                Begin
+                  Consume(AS_COMMA);
+                  { we have to process the scaling }
+                  l:=BuildConstExpression(false,true);
+                  if ((l = 2) or (l = 4) or (l = 8) or (l = 1)) then
+                   instr.operands[operandnum].ref.scalefactor := l
+                  else
+                   Begin
+                     Message(assem_e_invalid_scaling_value);
+                     instr.operands[operandnum].ref.scalefactor := 0;
+                   end;
+                  Consume_RParen;
+                end;
+            else
+              Begin
+                Message(assem_e_invalid_reference_syntax);
+                while (actasmtoken <> AS_SEPARATOR) do
+                 Consume(actasmtoken);
+              end;
+            end; { end case }
+          end
+         else
+          Begin
+            Message(assem_e_invalid_reference_syntax);
+            while (actasmtoken <> AS_SEPARATOR) do
+             Consume(actasmtoken);
+          end;
+       end; {end case }
+     AS_COMMA: { (, ...  can either be scaling, or index }
+       Begin
+         Consume(AS_COMMA);
+         { Index }
+         if (actasmtoken=AS_REGISTER) then
+          Begin
+            instr.operands[operandnum].ref.index := findregister(actasmpattern);
+            Consume(AS_REGISTER);
+            { check for scaling ... }
+            case actasmtoken of
+              AS_RPAREN:
+                Begin
+                  Consume_RParen;
+                  exit;
+                end;
+              AS_COMMA:
+                Begin
+                  Consume(AS_COMMA);
+                  { we have to process the scaling }
+                  l:=BuildConstExpression(false,true);
+                  if ((l = 2) or (l = 4) or (l = 8) or (l = 1)) then
+                   instr.operands[operandnum].ref.scalefactor := l
+                  else
+                   Begin
+                     Message(assem_e_invalid_scaling_value);
+                     instr.operands[operandnum].ref.scalefactor := 0;
+                   end;
+                  Consume_RParen;
+                end;
+            else
+              Begin
+                Message(assem_e_invalid_reference_syntax);
+                while (actasmtoken <> AS_SEPARATOR) do
+                 Consume(actasmtoken);
+              end;
+            end; {end case }
+          end
+         { Scaling }
+         else
+          Begin
+            l:=BuildConstExpression(false,true);
+            if ((l = 2) or (l = 4) or (l = 8) or (l = 1)) then
+              instr.operands[operandnum].ref.scalefactor := l
+            else
+              Begin
+                Message(assem_e_invalid_scaling_value);
+                instr.operands[operandnum].ref.scalefactor := 0;
+              end;
+            Consume_RParen;
+            exit;
+          end;
        end;
-     end; { end case }
-  end;
+
+   else
+     Begin
+       Message(assem_e_invalid_reference_syntax);
+       while (actasmtoken <> AS_SEPARATOR) do
+         Consume(actasmtoken);
+     end;
+   end; { end case }
+end;
 
 
 Procedure BuildOperand(var instr: TInstruction);
@@ -3196,7 +2945,7 @@ Begin
   tempstr := '';
   expr := '';
   case actasmtoken of
-    AS_LPAREN: { Memory reference  }
+    AS_LPAREN: { Memory reference or constant expression }
       Begin
         initAsmRef(instr);
         BuildReference(instr);
@@ -3209,17 +2958,22 @@ Begin
           Message(assem_e_invalid_operand_type);
         { identifiers are handled by BuildExpression }
         instr.operands[operandnum].operandtype := OPR_CONSTANT;
-        instr.operands[operandnum].val :=BuildExpression;
+        instr.operands[operandnum].val :=BuildConstExpression(False,False);
       end;
+
     AS_HEXNUM,AS_INTNUM,AS_MINUS,
     AS_BINNUM,AS_OCTALNUM,AS_PLUS:
       Begin
         { Constant memory offset }
         { This must absolutely be followed by (  }
         InitAsmRef(instr);
-        instr.operands[operandnum].ref.offset:=BuildRefExpression(False);
-        BuildReference(instr);
+        instr.operands[operandnum].ref.offset:=BuildConstExpression(True,False);
+        if actasmtoken<>AS_LPAREN then
+          Message(assem_e_invalid_reference_syntax)
+        else
+          BuildReference(instr);
       end;
+
     AS_STAR: { Call from memory address }
       Begin
         Consume(AS_STAR);
@@ -3227,6 +2981,7 @@ Begin
         if not CreateVarInstr(instr,actasmpattern,operandnum) then
           Message(assem_e_syn_opcode_operand);
       end;
+
     AS_ID: { A constant expression, or a Variable ref.  }
       Begin
         { Local label ? }
@@ -3284,7 +3039,6 @@ Begin
             { is it a normal variable ? }
              Begin
                { context for scanner }
-               previous_was_id:=TRUE;
                initAsmRef(instr);
                if not CreateVarInstr(instr,actasmpattern,operandnum) then
                 Begin
@@ -3333,17 +3087,17 @@ Begin
                { constant expression? }
                if (instr.operands[operandnum].operandtype=OPR_CONSTANT) then
                 begin
-                  instr.operands[operandnum].val := BuildRefExpression(false);
-                  previous_was_id:=FALSE;
+                  l:=BuildConstExpression(true,false);
                   { indexing? }
                   if actasmtoken=AS_LPAREN then
                    begin
-                     l:=instr.operands[operandnum].val;
                      instr.operands[operandnum].operandtype:=OPR_REFERENCE;
                      reset_reference(Instr.Operands[OperandNum].Ref);
                      Instr.Operands[OperandNum].Ref.Offset:=l;
                      BuildReference(instr);
-                   end;
+                   end
+                  else
+                   Instr.Operands[OperandNum].Val:=l;
                 end
                else
                 begin
@@ -3362,8 +3116,6 @@ Begin
                     Message(assem_e_syntax_error);
                   end; { end case }
                 end;
-               { restore normal context }
-               previous_was_id := FALSE;
              end; { end if }
           end; { end if }
       end;
@@ -3386,53 +3138,56 @@ Begin
              AS_HEXNUM,AS_INTNUM,AS_MINUS,
              AS_BINNUM,AS_OCTALNUM,AS_PLUS:
                Begin
-                 instr.operands[operandnum].
-                 ref.offset:=BuildRefExpression(False);
-                 BuildReference(instr);
+                 instr.operands[operandnum].ref.offset:=BuildConstExpression(True,False);
+                 if actasmtoken<>AS_LPAREN then
+                   Message(assem_e_invalid_reference_syntax)
+                 else
+                   BuildReference(instr);
                end;
-             AS_LPAREN: BuildReference(instr);
-             { only a variable is allowed ... }
-             AS_ID: Begin
-                      { is it a normal variable ? }
-                      if not CreateVarInstr(instr,actasmpattern,operandnum)
-                      then
-                      begin
-                       { check for direct symbolic names   }
-                        { only if compiling the system unit }
-                        if (cs_compilesystem in aktmoduleswitches) then
-                        begin
-                          if not SearchDirectVar(instr,actasmpattern,operandnum) then
-                             Message(assem_e_invalid_seg_override);
-                        end
-                        else
-                             Message(assem_e_invalid_seg_override);
-                      end;
-                      Consume(actasmtoken);
-                      case actasmtoken of
-                        AS_SEPARATOR,AS_COMMA: ;
-                        AS_LPAREN: BuildReference(instr);
-                      else
-                       Begin
-                        Message(assem_e_invalid_seg_override);
-                        Consume(actasmtoken);
-                       end;
-                      end; {end case }
-                    end;
-           else
+             AS_LPAREN:
+               BuildReference(instr);
+             AS_ID: { only a variable is allowed ... }
                Begin
-                 Message(assem_e_invalid_seg_override);
+                 { is it a normal variable ? }
+                 if not CreateVarInstr(instr,actasmpattern,operandnum) then
+                  begin
+                    { check for direct symbolic names   }
+                    { only if compiling the system unit }
+                    if (cs_compilesystem in aktmoduleswitches) then
+                     begin
+                       if not SearchDirectVar(instr,actasmpattern,operandnum) then
+                        Message(assem_e_invalid_seg_override);
+                     end
+                    else
+                     Message(assem_e_invalid_seg_override);
+                  end;
                  Consume(actasmtoken);
+                 case actasmtoken of
+                   AS_SEPARATOR,
+                   AS_COMMA: ;
+                   AS_LPAREN: BuildReference(instr);
+                 else
+                   Begin
+                     Message(assem_e_invalid_seg_override);
+                     Consume(actasmtoken);
+                   end;
+                 end; {end case }
                end;
+           else
+             Begin
+               Message(assem_e_invalid_seg_override);
+               Consume(actasmtoken);
+             end;
            end; { end case }
-        end
+         end
         { Simple register  }
-        else if (actasmtoken = AS_SEPARATOR) or (actasmtoken = AS_COMMA) then
-        Begin
-             if not (instr.operands[operandnum].operandtype in [OPR_NONE,OPR_REGISTER]) then
-              Message(assem_e_invalid_operand_type);
-             instr.operands[operandnum].operandtype := OPR_REGISTER;
-             instr.operands[operandnum].reg := findregister(tempstr);
-        end
+        else if (actasmtoken in [AS_SEPARATOR,AS_COMMA]) then
+         Begin
+           if not (instr.operands[operandnum].operandtype in [OPR_NONE,OPR_REGISTER]) then
+             Message(assem_e_invalid_operand_type);
+           instr.operands[operandnum].operandtype := OPR_REGISTER;
+           instr.operands[operandnum].reg := findregister(tempstr);
+         end
         else
          Message1(assem_e_syn_register,tempstr);
       end;
@@ -3448,455 +3203,473 @@ end;
 
 
 
-  Procedure BuildConstant(maxvalue: longint);
-  {*********************************************************************}
-  { PROCEDURE BuildConstant                                             }
-  { Description: This routine takes care of parsing a DB,DD,or DW      }
-  { line and adding those to the assembler node. Expressions, range-   }
-  { checking are fullly taken care of.                                 }
-  {  maxvalue: $ff -> indicates that this is a DB node.                }
-  {            $ffff -> indicates that this is a DW node.              }
-  {            $ffffffff -> indicates that this is a DD node.          }
-  {*********************************************************************}
-  { EXIT CONDITION:  On exit the routine should point to AS_SEPARATOR.  }
-  {*********************************************************************}
-  var
-   strlength: byte;
-   expr: string;
-   value : longint;
-  Begin
-      Repeat
-        Case actasmtoken of
-          AS_STRING: Begin
-                      if maxvalue = $ff then
-                         strlength := 1
-                      else
-                         Message(assem_e_string_not_allowed_as_const);
-                      expr := actasmpattern;
-                      if length(expr) > 1 then
-                       Message(assem_e_string_not_allowed_as_const);
-                      Consume(AS_STRING);
-                      Case actasmtoken of
-                       AS_COMMA: Consume(AS_COMMA);
-                       AS_SEPARATOR: ;
-                      else
-                         Message(assem_e_invalid_string_expression);
-                      end; { end case }
-                      ConcatString(p,expr);
-                    end;
-          AS_INTNUM,AS_BINNUM,
-          AS_OCTALNUM,AS_HEXNUM:
-                    Begin
-                      value:=BuildExpression;
-                      ConcatConstant(p,value,maxvalue);
-                    end;
-          AS_ID:
-                     Begin
-                      value:=BuildExpression;
-                      if value > maxvalue then
-                      Begin
-                         Message(assem_e_expression_out_of_bounds);
-                         { assuming a value of maxvalue }
-                         value := maxvalue;
-                      end;
-                      ConcatConstant(p,value,maxvalue);
-                  end;
-          { These terms can start an assembler expression }
-          AS_PLUS,AS_MINUS,AS_LPAREN,AS_NOT: Begin
-                                          value := BuildExpression;
-                                          ConcatConstant(p,value,maxvalue);
-                                         end;
-          AS_COMMA:  BEGIN
-                       Consume(AS_COMMA);
-                     END;
-          AS_SEPARATOR: ;
-
-        else
-         Begin
-           Message(assem_f_internal_error_in_buildconstant);
-         end;
-    end; { end case }
-   Until actasmtoken = AS_SEPARATOR;
-  end;
+Procedure BuildConstant(maxvalue: longint);
+{*********************************************************************}
+{ PROCEDURE BuildConstant                                             }
+{ Description: This routine takes care of parsing a DB,DD,or DW      }
+{ line and adding those to the assembler node. Expressions, range-   }
+{ checking are fullly taken care of.                                 }
+{  maxvalue: $ff -> indicates that this is a DB node.                }
+{            $ffff -> indicates that this is a DW node.              }
+{            $ffffffff -> indicates that this is a DD node.          }
+{*********************************************************************}
+{ EXIT CONDITION:  On exit the routine should point to AS_SEPARATOR.  }
+{*********************************************************************}
+var
+ strlength: byte;
+ expr: string;
+ value : longint;
+Begin
+  Repeat
+    Case actasmtoken of
+      AS_STRING:
+        Begin
+          if maxvalue = $ff then
+           strlength := 1
+          else
+           Message(assem_e_string_not_allowed_as_const);
+          expr := actasmpattern;
+          if length(expr) > 1 then
+           Message(assem_e_string_not_allowed_as_const);
+          Consume(AS_STRING);
+          Case actasmtoken of
+            AS_COMMA: Consume(AS_COMMA);
+            AS_SEPARATOR: ;
+          else
+            Message(assem_e_invalid_string_expression);
+          end; { end case }
+          ConcatString(p,expr);
+        end;
+      AS_INTNUM,
+      AS_BINNUM,
+      AS_OCTALNUM,
+      AS_HEXNUM,
+      AS_PLUS,
+      AS_MINUS,
+      AS_LPAREN,
+      AS_NOT:
+        Begin
+          value:=BuildConstExpression(false,false);
+          ConcatConstant(p,value,maxvalue);
+        end;
+      AS_COMMA:
+        Begin
+          Consume(AS_COMMA);
+        end;
+      AS_SEPARATOR:
+        begin
+          break;
+        end;
+   else
+     Begin
+       Message(assem_f_internal_error_in_buildconstant);
+     end;
+   end; { end case }
+ Until false;
+end;
 
 
-  Procedure BuildStringConstant(asciiz: boolean);
-  {*********************************************************************}
-  { PROCEDURE BuildStringConstant                                       }
-  { Description: Takes care of a ASCII, or ASCIIZ directive.           }
-  {  asciiz: boolean -> if true then string will be null terminated.   }
-  {*********************************************************************}
-  { EXIT CONDITION:  On exit the routine should point to AS_SEPARATOR.  }
-  { On ENTRY: Token should point to AS_STRING                           }
-  {*********************************************************************}
-  var
-   expr: string;
-   errorflag : boolean;
-  Begin
-      errorflag := FALSE;
-      Repeat
-        Case actasmtoken of
-          AS_STRING: Begin
-                      expr:=actasmpattern;
-                      if asciiz then
-                       expr:=expr+#0;
-                      ConcatPasString(p,expr);
-                      Consume(AS_STRING);
-                    end;
-          AS_COMMA:  BEGIN
-                       Consume(AS_COMMA);
-                     END;
-          AS_SEPARATOR: ;
-        else
-         Begin
-          Consume(actasmtoken);
-          if not errorflag then
-           Message(assem_e_invalid_string_expression);
-          errorflag := TRUE;
-         end;
-    end; { end case }
-   Until actasmtoken = AS_SEPARATOR;
-  end;
+Procedure BuildStringConstant(asciiz: boolean);
+{*********************************************************************}
+{ PROCEDURE BuildStringConstant                                       }
+{ Description: Takes care of a ASCII, or ASCIIZ directive.           }
+{  asciiz: boolean -> if true then string will be null terminated.   }
+{*********************************************************************}
+{ EXIT CONDITION:  On exit the routine should point to AS_SEPARATOR.  }
+{ On ENTRY: Token should point to AS_STRING                           }
+{*********************************************************************}
+var
+  expr: string;
+  errorflag : boolean;
+Begin
+  errorflag := FALSE;
+  Repeat
+    Case actasmtoken of
+      AS_STRING:
+        Begin
+          expr:=actasmpattern;
+          if asciiz then
+            expr:=expr+#0;
+          ConcatPasString(p,expr);
+          Consume(AS_STRING);
+        end;
+      AS_COMMA:
+        begin
+          Consume(AS_COMMA);
+        end;
+      AS_SEPARATOR:
+        begin
+          break;
+        end;
+   else
+     Begin
+       Consume(actasmtoken);
+       if not errorflag then
+        Message(assem_e_invalid_string_expression);
+       errorflag := TRUE;
+     end;
+   end;
+ Until false;
+end;
 
 
+Procedure BuildOpCode;
+{*********************************************************************}
+{ PROCEDURE BuildOpcode;                                              }
+{ Description: Parses the intel opcode and operands, and writes it   }
+{ in the TInstruction object.                                        }
+{*********************************************************************}
+{ EXIT CONDITION:  On exit the routine should point to AS_SEPARATOR.  }
+{ On ENTRY: Token should point to AS_OPCODE                           }
+{*********************************************************************}
+var
+  asmtok: tasmop;
+  op: tasmop;
+  expr: string;
+  segreg: tregister;
+Begin
+  expr := '';
+  asmtok := A_NONE; { assmume no prefix          }
+  segreg := R_NO;   { assume no segment override }
 
-
-  Procedure BuildOpCode;
-  {*********************************************************************}
-  { PROCEDURE BuildOpcode;                                              }
-  { Description: Parses the intel opcode and operands, and writes it   }
-  { in the TInstruction object.                                        }
-  {*********************************************************************}
-  { EXIT CONDITION:  On exit the routine should point to AS_SEPARATOR.  }
-  { On ENTRY: Token should point to AS_OPCODE                           }
-  {*********************************************************************}
-  var asmtok: tasmop;
-      op: tasmop;
-      expr: string;
-      segreg: tregister;
-  Begin
-    expr := '';
-    asmtok := A_NONE; { assmume no prefix          }
-    segreg := R_NO;   { assume no segment override }
-
-    {  prefix seg opcode                }
-    {  prefix opcode                    }
-    if findprefix(actasmpattern,asmtok) then
-    Begin
+  {  prefix seg opcode                }
+  {  prefix opcode                    }
+  if findprefix(actasmpattern,asmtok) then
+   Begin
      { standard opcode prefix }
      if asmtok <> A_NONE then
-       instr.addprefix(asmtok);
+      instr.addprefix(asmtok);
      Consume(AS_OPCODE);
-    end;
-    {  opcode                           }
-    { allow for newline as in gas styled syntax }
-    { under DOS you get two AS_SEPARATOR !! }
-    while actasmtoken=AS_SEPARATOR do
-      Consume(AS_SEPARATOR);
-    if (actasmtoken <> AS_OPCODE) then
-    Begin
-      Message(assem_e_invalid_or_missing_opcode);
-      { error recovery }
-      While not (actasmtoken in [AS_SEPARATOR,AS_COMMA,AS_END]) do
-         Consume(actasmtoken);
-      exit;
-    end
+   end;
+  { allow for newline as in gas styled syntax }
+  { under DOS you get two AS_SEPARATOR !! }
+  while actasmtoken=AS_SEPARATOR do
+    Consume(AS_SEPARATOR);
+  if (actasmtoken <> AS_OPCODE) then
+   Begin
+     Message(assem_e_invalid_or_missing_opcode);
+     { error recovery }
+     While not (actasmtoken in [AS_SEPARATOR,AS_COMMA,AS_END]) do
+      Consume(actasmtoken);
+     exit;
+   end
+  else
+   Begin
+     op := findopcode(actasmpattern);
+     instr.addinstr(op);
+     { Valid combination of prefix and instruction ?  }
+     if (asmtok <> A_NONE) and (NOT CheckPrefix(asmtok,op)) then
+      Message1(assem_e_invalid_prefix_and_opcode,actasmpattern);
+     Consume(AS_OPCODE);
+     { Zero operand opcode ?  }
+     if actasmtoken in [AS_SEPARATOR,AS_END] then
+      exit
+     else
+      operandnum := 1;
+   end;
+
+  repeat
+    case actasmtoken of
+      AS_COMMA: { Operand delimiter }
+        Begin
+          if operandnum > MaxOperands then
+           Message(assem_e_too_many_operands)
+          else
+           Inc(operandnum);
+          Consume(AS_COMMA);
+        end;
+      AS_SEPARATOR,
+      AS_END : { End of asm operands for this opcode  }
+        begin
+          break;
+        end;
     else
-    Begin
-      op := findopcode(actasmpattern);
-      instr.addinstr(op);
-      { Valid combination of prefix and instruction ?  }
-      if (asmtok <> A_NONE) and (NOT CheckPrefix(asmtok,op)) then
-        Message1(assem_e_invalid_prefix_and_opcode,actasmpattern);
-      Consume(AS_OPCODE);
-      { Zero operand opcode ?  }
-      if actasmtoken in [AS_SEPARATOR,AS_END] then
-        exit
-      else
-        operandnum := 1;
-    end;
-
-    repeat
-      case actasmtoken of
-         {  Operand delimiter  }
-         AS_COMMA: Begin
-                  if operandnum > MaxOperands then
-                    Message(assem_e_too_many_operands)
-                  else
-                    Inc(operandnum);
-                  Consume(AS_COMMA);
-                end;
-         { End of asm operands for this opcode  }
-         AS_SEPARATOR,
-         AS_END : break;
-       else
-         BuildOperand(instr);
-     end; { end case }
-    until false;
-  end;
+      BuildOperand(instr);
+    end; { end case }
+  until false;
+end;
 
 
+Function Assemble: Ptree;
+{*********************************************************************}
+{ PROCEDURE Assemble;                                                 }
+{ Description: Parses the att assembler syntax, parsing is done      }
+{ according to GAs rules.                                            }
+{*********************************************************************}
+Var
+  hl: plabel;
+  labelptr,nextlabel : pasmlabel;
+  commname : string;
+  store_p : paasmoutput;
+Begin
+  Message(assem_d_start_att);
+  firsttoken := TRUE;
+  operandnum := 0;
+  previous_was_id := FALSE;
+  if assigned(procinfo.retdef) and
+     (is_fpu(procinfo.retdef) or
+     ret_in_acc(procinfo.retdef)) then
+    procinfo.funcret_is_valid:=true;
+  { sets up all opcode and register tables in uppercase }
+  if not _asmsorted then
+   Begin
+     SetupTables;
+     _asmsorted := TRUE;
+   end;
+  p:=new(paasmoutput,init);
+  { save pointer code section }
+  store_p:=p;
+  { setup label linked list }
+  labellist.init;
+  c:=current_scanner^.asmgetchar;
+  actasmtoken:=gettoken;
 
-
-  Function Assemble: Ptree;
-  {*********************************************************************}
-  { PROCEDURE Assemble;                                                 }
-  { Description: Parses the att assembler syntax, parsing is done      }
-  { according to GAs rules.                                            }
-  {*********************************************************************}
-  Var
-   hl: plabel;
-   labelptr,nextlabel : pasmlabel;
-   commname : string;
-   store_p : paasmoutput;
-
-  Begin
-    Message(assem_d_start_att);
-    firsttoken := TRUE;
-    operandnum := 0;
-    if assigned(procinfo.retdef) and
-       (is_fpu(procinfo.retdef) or
-       ret_in_acc(procinfo.retdef)) then
-      procinfo.funcret_is_valid:=true;
-    { sets up all opcode and register tables in uppercase }
-    if not _asmsorted then
-    Begin
-      SetupTables;
-      _asmsorted := TRUE;
-    end;
-    p:=new(paasmoutput,init);
-    { save pointer code section }
-    store_p:=p;
-    { setup label linked list }
-    labellist.init;
-    c:=current_scanner^.asmgetchar;
-    actasmtoken:=gettoken;
-
-    repeat
-      case actasmtoken of
-        AS_LLABEL: Begin
-                    labelptr := labellist.search(actasmpattern);
-                    if not assigned(labelptr) then
-                    Begin
-                        getlabel(hl);
-                        labellist.insert(actasmpattern,hl,TRUE);
-                        ConcatLabel(p,A_LABEL,hl);
-                    end
-                    else
-                    { the label has already been inserted into the  }
-                    { label list, either as an instruction label (in}
-                    { this case it has not been emitted), or as a   }
-                    { duplicate local symbol (in this case it has   }
-                    { already been emitted).                        }
-                    Begin
-                       if labelptr^.emitted then
-                        Message1(assem_e_dup_local_sym,'.L'+labelptr^.name^)
-                       else
-                        Begin
-                          if assigned(labelptr^.lab) then
-                            ConcatLabel(p,A_LABEL,labelptr^.lab);
-                          labelptr^.emitted := TRUE;
-                        end;
-                    end;
-                    Consume(AS_LLABEL);
-                  end;
-        AS_LABEL: Begin
-                     { when looking for Pascal labels, these must }
-                     { be in uppercase.                           }
-                     if SearchLabel(upper(actasmpattern),hl) then
-                       ConcatLabel(p,A_LABEL, hl)
-                     else
-                     Begin
-                       if (cs_compilesystem in aktmoduleswitches) then
-                       begin
-                          Message1(assem_e_unknown_label_identifer,actasmpattern);
-                          { once again we don't know what it represents }
-                          { so we simply concatenate it                 }
-                          ConcatLocal(p,actasmpattern);
-                       end
-                       else
-                        Message1(assem_e_unknown_label_identifer,actasmpattern);
-                     end;
-                     Consume(AS_LABEL);
-                 end;
-        AS_DW:   Begin
-                   Consume(AS_DW);
-                   BuildConstant($ffff);
-                 end;
-        AS_DATA: Begin
-                 { -- this should only be allowed for system development -- }
-                 {   i think this should be fixed in the dos unit, and     }
-                 {   not here.                                             }
-                   if (cs_compilesystem in aktmoduleswitches) then
-                       p:=datasegment
-                   else
-                       Message(assem_e_switching_sections_not_allowed);
-                   Consume(AS_DATA);
-                 end;
-        AS_TEXT: Begin
-                 { -- this should only be allowed for system development -- }
-                 {   i think this should be fixed in the dos unit, and     }
-                 {   not here.                                             }
-                   if (cs_compilesystem in aktmoduleswitches) then
-                        p:=store_p
-                   else
-                       Message(assem_e_switching_sections_not_allowed);
-                   Consume(AS_TEXT);
-                 end;
-        AS_DB:   Begin
-                  Consume(AS_DB);
-                  BuildConstant($ff);
-                end;
-        AS_DD:   Begin
-                 Consume(AS_DD);
-                 BuildConstant($ffffffff);
-                end;
-        AS_DQ:  Begin
-                 Consume(AS_DQ);
-                 BuildRealConstant(s64bit);
-                end;
-        AS_SINGLE:   Begin
-                 Consume(AS_SINGLE);
-                 BuildRealConstant(s32real);
-                end;
-        AS_DOUBLE:   Begin
-                 Consume(AS_DOUBLE);
-                 BuildRealConstant(s64real);
-                end;
-        AS_EXTENDED:   Begin
-                 Consume(AS_EXTENDED);
-                 BuildRealConstant(s80real);
-                end;
-        AS_GLOBAL:
+  repeat
+    case actasmtoken of
+      AS_LLABEL:
+        Begin
+          labelptr := labellist.search(actasmpattern);
+          if not assigned(labelptr) then
+           Begin
+             getlabel(hl);
+             labellist.insert(actasmpattern,hl,TRUE);
+             ConcatLabel(p,A_LABEL,hl);
+           end
+          else
+           Begin
+             { the label has already been inserted into the  }
+             { label list, either as an instruction label (in}
+             { this case it has not been emitted), or as a   }
+             { duplicate local symbol (in this case it has   }
+             { already been emitted).                        }
+             if labelptr^.emitted then
+               Message1(assem_e_dup_local_sym,'.L'+labelptr^.name^)
+             else
+               Begin
+                 if assigned(labelptr^.lab) then
+                   ConcatLabel(p,A_LABEL,labelptr^.lab);
+                 labelptr^.emitted := TRUE;
+               end;
+           end;
+          Consume(AS_LLABEL);
+        end;
+      AS_LABEL:
+        Begin
+          { when looking for Pascal labels, these must }
+          { be in uppercase.                           }
+          if SearchLabel(upper(actasmpattern),hl) then
+           ConcatLabel(p,A_LABEL, hl)
+          else
+           Begin
+             if (cs_compilesystem in aktmoduleswitches) then
+              begin
+                 Message1(assem_e_unknown_label_identifer,actasmpattern);
+                 { once again we don't know what it represents }
+                 { so we simply concatenate it                 }
+                 ConcatLocal(p,actasmpattern);
+              end
+             else
+              Message1(assem_e_unknown_label_identifer,actasmpattern);
+           end;
+          Consume(AS_LABEL);
+        end;
+      AS_DW:
+        Begin
+          Consume(AS_DW);
+          BuildConstant($ffff);
+        end;
+      AS_DATA:
+        Begin
+          { -- this should only be allowed for system development -- }
+          {   i think this should be fixed in the dos unit, and     }
+          {   not here.                                             }
+          if (cs_compilesystem in aktmoduleswitches) then
+            p:=datasegment
+          else
+            Message(assem_e_switching_sections_not_allowed);
+          Consume(AS_DATA);
+        end;
+      AS_TEXT:
+        Begin
+          { -- this should only be allowed for system development -- }
+          {   i think this should be fixed in the dos unit, and     }
+          {   not here.                                             }
+          if (cs_compilesystem in aktmoduleswitches) then
+            p:=store_p
+          else
+            Message(assem_e_switching_sections_not_allowed);
+          Consume(AS_TEXT);
+        end;
+      AS_DB:
+        Begin
+          Consume(AS_DB);
+          BuildConstant($ff);
+        end;
+      AS_DD:
+        Begin
+          Consume(AS_DD);
+          BuildConstant($ffffffff);
+        end;
+      AS_DQ:
+        Begin
+          Consume(AS_DQ);
+          BuildRealConstant(s64bit);
+        end;
+      AS_SINGLE:
+        Begin
+          Consume(AS_SINGLE);
+          BuildRealConstant(s32real);
+        end;
+      AS_DOUBLE:
+        Begin
+          Consume(AS_DOUBLE);
+          BuildRealConstant(s64real);
+        end;
+      AS_EXTENDED:
+        Begin
+          Consume(AS_EXTENDED);
+          BuildRealConstant(s80real);
+        end;
+      AS_GLOBAL:
+        Begin
+          { normal units should not be able to declare }
+          { direct label names like this... anyhow     }
+          { procedural calls in asm blocks are         }
+          { supposedely replaced automatically         }
+          if (cs_compilesystem in aktmoduleswitches) then
+           begin
+             Consume(AS_GLOBAL);
+              if actasmtoken <> AS_ID then
+                Message(assem_e_invalid_global_def)
+              else
+                ConcatPublic(p,actasmpattern);
+              Consume(actasmtoken);
+              if actasmtoken <> AS_SEPARATOR then
+               Begin
+                 Message(assem_e_line_separator_expected);
+                 while actasmtoken <> AS_SEPARATOR do
+                  Consume(actasmtoken);
+               end;
+           end
+          else
+           begin
+             Message(assem_w_globl_not_supported);
+             while actasmtoken <> AS_SEPARATOR do
+               Consume(actasmtoken);
+           end;
+        end;
+      AS_ALIGN:
+        Begin
+          Message(assem_w_align_not_supported);
+          while actasmtoken <> AS_SEPARATOR do
+           Consume(actasmtoken);
+        end;
+      AS_ASCIIZ:
+        Begin
+          Consume(AS_ASCIIZ);
+          BuildStringConstant(TRUE);
+        end;
+      AS_ASCII:
+        Begin
+          Consume(AS_ASCII);
+          BuildStringConstant(FALSE);
+        end;
+      AS_LCOMM:
+        Begin
+          { -- this should only be allowed for system development -- }
+          { -- otherwise may mess up future enhancements we might -- }
+          { -- add.                                               -- }
+          if (cs_compilesystem in aktmoduleswitches) then
+           begin
+             Consume(AS_LCOMM);
+             if actasmtoken <> AS_ID then
+              begin
+                Message(assem_e_invalid_lcomm_def);
+                { error recovery }
+                while actasmtoken <> AS_SEPARATOR do
+                 Consume(actasmtoken);
+               end
+              else
+               begin
+                 commname:=actasmpattern;
+                 Consume(AS_COMMA);
+                 ConcatLocalBss(actasmpattern,BuildConstExpression(false,false));
+                 if actasmtoken <> AS_SEPARATOR then
                   Begin
-                   { normal units should not be able to declare }
-                   { direct label names like this... anyhow     }
-                   { procedural calls in asm blocks are         }
-                   { supposedely replaced automatically         }
-                   if (cs_compilesystem in aktmoduleswitches) then
-                   begin
-                     Consume(AS_GLOBAL);
-                      if actasmtoken <> AS_ID then
-                        Message(assem_e_invalid_global_def)
-                      else
-                        ConcatPublic(p,actasmpattern);
-                      Consume(actasmtoken);
-                      if actasmtoken <> AS_SEPARATOR then
-                      Begin
-                        Message(assem_e_line_separator_expected);
-                        while actasmtoken <> AS_SEPARATOR do
-                         Consume(actasmtoken);
-                      end;
-                   end
-                   else
-                   begin
-                     Message(assem_w_globl_not_supported);
-                     while actasmtoken <> AS_SEPARATOR do
-                       Consume(actasmtoken);
-                   end;
-                  end;
-        AS_ALIGN: Begin
-                    Message(assem_w_align_not_supported);
+                    Message(assem_e_line_separator_expected);
                     while actasmtoken <> AS_SEPARATOR do
                      Consume(actasmtoken);
                   end;
-        AS_ASCIIZ: Begin
-                     Consume(AS_ASCIIZ);
-                     BuildStringConstant(TRUE);
-                   end;
-        AS_ASCII: Begin
-                    Consume(AS_ASCII);
-                    BuildStringConstant(FALSE);
+               end;
+            end
+           else
+            begin
+              Message(assem_w_lcomm_not_supported);
+              while actasmtoken <> AS_SEPARATOR do
+               Consume(actasmtoken);
+            end;
+         end;
+      AS_COMM:
+         Begin
+           { -- this should only be allowed for system development -- }
+           { -- otherwise may mess up future enhancements we might -- }
+           { -- add.                                               -- }
+           if (cs_compilesystem in aktmoduleswitches) then
+            begin
+              Consume(AS_COMM);
+              if actasmtoken <> AS_ID then
+               begin
+                 Message(assem_e_invalid_comm_def);
+                 { error recovery }
+                 while actasmtoken <> AS_SEPARATOR do
+                  Consume(actasmtoken);
+               end
+              else
+               begin
+                 commname:=actasmpattern;
+                 Consume(AS_COMMA);
+                 ConcatGlobalBss(actasmpattern,BuildConstExpression(false,false));
+                 if actasmtoken <> AS_SEPARATOR then
+                  Begin
+                    Message(assem_e_line_separator_expected);
+                    while actasmtoken <> AS_SEPARATOR do
+                     Consume(actasmtoken);
                   end;
-        AS_LCOMM: Begin
-                 { -- this should only be allowed for system development -- }
-                 { -- otherwise may mess up future enhancements we might -- }
-                 { -- add.                                               -- }
-                   if (cs_compilesystem in aktmoduleswitches) then
-                   begin
-                     Consume(AS_LCOMM);
-                      if actasmtoken <> AS_ID then
-                        begin
-                           Message(assem_e_invalid_lcomm_def);
-                           { error recovery }
-                           while actasmtoken <> AS_SEPARATOR do
-                            Consume(actasmtoken);
-                        end
-                      else
-                        begin
-                           commname:=actasmpattern;
-                           Consume(AS_COMMA);
-                           ConcatLocalBss(actasmpattern,BuildExpression);
-                           if actasmtoken <> AS_SEPARATOR then
-                             Begin
-                                Message(assem_e_line_separator_expected);
-                                while actasmtoken <> AS_SEPARATOR do
-                                  Consume(actasmtoken);
-                             end;
-                        end;
-                   end
-                   else
-                   begin
-                        Message(assem_w_lcomm_not_supported);
-                        while actasmtoken <> AS_SEPARATOR do
-                          Consume(actasmtoken);
-                   end;
-                  end;
-        AS_COMM: Begin
-                 { -- this should only be allowed for system development -- }
-                 { -- otherwise may mess up future enhancements we might -- }
-                 { -- add.                                               -- }
-                   if (cs_compilesystem in aktmoduleswitches) then
-                   begin
-                     Consume(AS_COMM);
-                      if actasmtoken <> AS_ID then
-                        begin
-                           Message(assem_e_invalid_comm_def);
-                           { error recovery }
-                           while actasmtoken <> AS_SEPARATOR do
-                            Consume(actasmtoken);
-                        end
-                      else
-                        begin
-                           commname:=actasmpattern;
-                           Consume(AS_COMMA);
-                           ConcatGlobalBss(actasmpattern,BuildExpression);
-                           if actasmtoken <> AS_SEPARATOR then
-                           Begin
-                             Message(assem_e_line_separator_expected);
-                             while actasmtoken <> AS_SEPARATOR do
-                              Consume(actasmtoken);
-                           end;
-                        end;
-                   end
-                   else
-                   begin
-                      Message(assem_w_comm_not_supported);
-                      while actasmtoken <> AS_SEPARATOR do
-                       Consume(actasmtoken);
-                   end;
-                 end;
-        AS_OPCODE: Begin
-                   instr.init;
-                   BuildOpcode;
-                   instr.numops := operandnum;
-                   if instr.labeled then
-                     ConcatLabeledInstr(instr)
-                   else
-                     ConcatOpCode(instr);
-                   instr.done;
-                  end;
-        AS_SEPARATOR:Begin
-                     Consume(AS_SEPARATOR);
-                     { let us go back to the first operand }
-                     operandnum := 0;
-                    end;
-        AS_END: break; { end assembly block }
+               end;
+            end
+           else
+            begin
+              Message(assem_w_comm_not_supported);
+              while actasmtoken <> AS_SEPARATOR do
+               Consume(actasmtoken);
+            end;
+        end;
+      AS_OPCODE:
+        Begin
+          instr.init;
+          BuildOpcode;
+          instr.numops := operandnum;
+          if instr.labeled then
+            ConcatLabeledInstr(instr)
+          else
+            ConcatOpCode(instr);
+          instr.done;
+        end;
+      AS_SEPARATOR:
+        Begin
+          Consume(AS_SEPARATOR);
+          { let us go back to the first operand }
+          operandnum := 0;
+        end;
+      AS_END:
+        begin
+          break; { end assembly block }
+        end;
     else
       Begin
-         Message(assem_e_assemble_node_syntax_error);
-         { error recovery }
-         Consume(actasmtoken);
+        Message(assem_e_assemble_node_syntax_error);
+        { error recovery }
+        Consume(actasmtoken);
       end;
     end; { end case }
   until false;
@@ -3905,26 +3678,25 @@ end;
   { if so, then list each of those undefined }
   { labels.                                  }
   if assigned(labellist.First) then
-  Begin
-    labelptr := labellist.First;
-    While labelptr <> nil do
+   Begin
+     labelptr := labellist.First;
+     While labelptr <> nil do
       Begin
-         nextlabel:=labelptr^.next;
-         if not labelptr^.emitted  then
-          Message1(assem_e_local_sym_not_found_in_asm_statement,'.L'+labelptr^.name^);
-         labelptr:=nextlabel;
+        nextlabel:=labelptr^.next;
+        if not labelptr^.emitted  then
+         Message1(assem_e_local_sym_not_found_in_asm_statement,'.L'+labelptr^.name^);
+        labelptr:=nextlabel;
       end;
-  end;
+   end;
   if p<>store_p then
-    begin
-       Message(assem_e_assembler_code_not_returned_to_text);
-       p:=store_p;
-    end;
+   begin
+     Message(assem_e_assembler_code_not_returned_to_text);
+     p:=store_p;
+   end;
   assemble := genasmnode(p);
   labellist.done;
   Message(assem_d_finish_att);
 end;
-
 
 var
   old_exit: pointer;
@@ -3938,8 +3710,6 @@ end;
 
 
 Begin
-  previous_was_id := FALSE;
-  line:='';
   { you will get range problems here }
   if lastop_in_table > last_instruction_in_cache then
    Internalerror(2111);
@@ -3949,7 +3719,11 @@ end.
 
 {
   $Log$
-  Revision 1.27  1998-12-23 22:55:56  peter
+  Revision 1.28  1998-12-28 15:47:09  peter
+    * general constant solution. Constant expressions are now almost
+      everywhere allowed and correctly parsed
+
+  Revision 1.27  1998/12/23 22:55:56  peter
     + rec.field(%esi) support
     + [esi+rec.field] support
 
