@@ -574,6 +574,8 @@ implementation
     var oldloc:Tlocation;
 
       begin
+        if dst_size=OS_NO then
+          internalerror(200309144);
         oldloc:=l;
         location_force(list, l, dst_size, maybeconst);
         { release previous location before demanding a new register }
@@ -1765,7 +1767,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.143  2003-09-14 19:18:10  peter
+  Revision 1.144  2003-09-14 21:33:37  peter
+    * location_force_reg gives IE when size=OS_NO
+
+  Revision 1.143  2003/09/14 19:18:10  peter
     * remove obsolete code already in comments
 
   Revision 1.142  2003/09/11 11:54:59  florian
