@@ -1,0 +1,1205 @@
+<!--  -->
+<!--    $Id$ -->
+<!--    This file is part of the FPC documentation. -->
+<!--    Copyright (C) 2000 by Florian Klaempfl -->
+<!--  -->
+<!--    The FPC documentation is free text; you can redistribute it and/or -->
+<!--    modify it under the terms of the GNU Library General Public License as -->
+<!--    published by the Free Software Foundation; either version 2 of the -->
+<!--    License, or (at your option) any later version. -->
+<!--  -->
+<!--    The FPC Documentation is distributed in the hope that it will be useful, -->
+<!--    but WITHOUT ANY WARRANTY; without even the implied warranty of -->
+<!--    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU -->
+<!--    Library General Public License for more details. -->
+<!--  -->
+<!--    You should have received a copy of the GNU Library General Public -->
+<!--    License along with the FPC documentation; see the file COPYING.LIB.  If not, -->
+<!--    write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, -->
+<!--    Boston, MA 02111-1307, USA. -->
+<!--  -->
+<topic><short>The MATH unit</short>
+\FPCexampledir{mathex}
+
+This chapter describes the <file>math</file> unit. The <var>math</var> unit
+was initially written by Florian Kl\"ampfl. It provides mathematical
+functions which aren't covered by the system unit.
+
+This chapter starts out with a definition of all types and constants
+that are defined, after which an overview is presented of the available 
+functions, grouped by category, and the last part contains a 
+complete explanation of each function.
+
+The following things must be taken into account when using this unit:
+</p><ol>
+</li>
+<li> This unit is compiled in Object Pascal mode so all
+<var>integers</var> are 32 bit.
+</li>
+<li> Some overloaded functions exist for data arrays of integers and
+floats. When using the address operator (<var>@</var>) to pass an array of 
+data to such a function, make sure the address is typecasted to the 
+right type, or turn on the 'typed address operator' feature. failing to
+do so, will cause the compiler not be able to decide which function you 
+want to call.
+</li>
+</ol>
+<p>
+
+<topic><short>Constants and types</short>
+
+The following types are defined in the <file>math</file> unit:
+</p>
+<code>
+Type
+  Float = Extended;
+  PFloat = ^FLoat
+</code>
+<p>
+All calculations are done with the Float type. This allows to
+recompile the unit with a different float type to obtain a
+desired precision. The pointer type is used in functions that accept
+an array of values of arbitrary length.
+</p>
+<code>
+Type
+   TPaymentTime = (PTEndOfPeriod,PTStartOfPeriod);
+</code>
+<p>
+<var>TPaymentTime</var> is used in the financial calculations.
+</p>
+<code>
+Type
+   EInvalidArgument = Class(EMathError);
+</code>
+<p>
+The <var>EInvalidArgument</var> exception is used to report invalid arguments.
+
+<topic><short>Function list by category</short>
+What follows is a listing of the available functions, grouped by category.
+For each function there is a reference to the page where you can find the
+function.
+<topic><short>Min/max determination</short>
+Functions to determine the minimum or maximum of numbers:
+<table>
+<th><td>Name</td><td>Description</td></th>
+<tr><td><link id="max"/></td><td>Maximum of 2 values</td></tr>
+<tr><td><link id="maxIntValue"/></td><td>Maximum of an array of integer values</td></tr>
+<tr><td><link id="maxvalue"/></td><td>Maximum of an array of values</td></tr>
+<tr><td><link id="min"/></td><td>Minimum of 2 values</td></tr>
+<tr><td><link id="minIntValue"/></td><td>Minimum of an array of integer values</td></tr>
+<tr><td><link id="minvalue"/></td><td>Minimum of an array of values</td></tr>
+</table>
+<topic><short>Angle conversion</short>
+<table>
+<th><td>Name</td><td>Description</td></th>
+<tr><td><link id="cycletorad"/></td><td>convert cycles to radians</td></tr>
+<tr><td><link id="degtograd"/></td><td>convert degrees to grads</td></tr>
+<tr><td><link id="degtorad"/></td><td>convert degrees to radians</td></tr>
+<tr><td><link id="gradtodeg"/></td><td>convert grads to degrees</td></tr>
+<tr><td><link id="gradtorad"/></td><td>convert grads to radians</td></tr>
+<tr><td><link id="radtocycle"/></td><td>convert radians to cycles</td></tr>
+<tr><td><link id="radtodeg"/></td><td>convert radians to degrees</td></tr>
+<tr><td><link id="radtograd"/></td><td>convert radians to grads</td></tr>
+</table>
+<topic><short>Trigoniometric functions</short>
+<table>
+<th><td>Name</td><td>Description</td></th>
+<tr><td><link id="arccos"/></td><td>calculate reverse cosine</td></tr>
+<tr><td><link id="arcsin"/></td><td>calculate reverse sine</td></tr>
+<tr><td><link id="arctan2"/></td><td>calculate reverse tangent</td></tr>
+<tr><td><link id="cotan"/></td><td>calculate cotangent</td></tr>
+<tr><td><link id="sincos"/></td><td>calculate sine and cosine</td></tr>
+<tr><td><link id="tan"/></td><td>calculate tangent</td></tr>
+</table>
+<topic><short>Hyperbolic functions</short>
+<table>
+<th><td>Name</td><td>Description</td></th>
+<tr><td><link id="arcosh"/></td><td>caculate reverse hyperbolic cosine</td></tr>
+<tr><td><link id="arsinh"/></td><td>caculate reverse hyperbolic sine</td></tr>
+<tr><td><link id="artanh"/></td><td>caculate reverse hyperbolic tangent</td></tr>
+<tr><td><link id="cosh"/></td><td>calculate hyperbolic cosine</td></tr>
+<tr><td><link id="sinh"/></td><td>calculate hyperbolic sine</td></tr>
+<tr><td><link id="tanh"/></td><td>calculate hyperbolic tangent</td></tr>
+</table>
+<topic><short>Exponential and logarithmic functions</short>
+<table>
+<th><td>Name</td><td>Description</td></th>
+<tr><td><link id="intpower"/></td><td>Raise float to integer power</td></tr>
+<tr><td><link id="ldexp"/></td><td>Calculate $2^p x$</td></tr>
+<tr><td><link id="lnxp1"/></td><td>calculate <var>log(x+1)</td></tr></var>
+<tr><td><link id="log10"/></td><td>calculate 10-base log</td></tr>
+<tr><td><link id="log2"/></td><td>calculate 2-base log</td></tr>
+<tr><td><link id="logn"/></td><td>calculate N-base log</td></tr>
+<tr><td><link id="power"/></td><td>raise float to arbitrary power</td></tr>
+</table>
+<topic><short>Number converting</short>
+<table>
+<th><td>Name</td><td>Description</td></th>
+<tr><td><link id="ceil"/></td><td>Round to infinity</td></tr>
+<tr><td><link id="floor"/></td><td>Round to minus infinity</td></tr>
+<tr><td><link id="frexp"/></td><td>Return mantissa and exponent</td></tr>
+</table>
+<topic><short>Statistical functions</short>
+<table>
+<th><td>Name</td><td>Description</td></th>
+<tr><td><link id="mean"/></td><td>Mean of values</td></tr>
+<tr><td><link id="meanandstddev"/></td><td>Mean and standard deviation of values</td></tr>
+<tr><td><link id="momentskewkurtosis"/></td><td>Moments, skew and kurtosis</td></tr>
+<tr><td><link id="popnstddev"/></td><td>Population standarddeviation </td></tr>
+<tr><td><link id="popnvariance"/></td><td>Population variance</td></tr>
+<tr><td><link id="randg"/></td><td>Gaussian distributed randum value</td></tr>
+<tr><td><link id="stddev"/></td><td>Standard deviation</td></tr>
+<tr><td><link id="sum"/></td><td>Sum of values</td></tr>
+<tr><td><link id="sumofsquares"/></td><td>Sum of squared values</td></tr>
+<tr><td><link id="sumsandsquares"/></td><td>Sum of values and squared values</td></tr>
+<tr><td><link id="totalvariance"/></td><td>Total variance of values</td></tr>
+<tr><td><link id="variance"/></td><td>variance of values</td></tr>
+</table>
+<topic><short>Geometrical functions</short>
+<table>
+<th><td>Name</td><td>Description</td></th>
+<tr><td><link id="hypot"/></td><td>Hypotenuse of triangle</td></tr>
+<tr><td><link id="norm"/></td><td>Euclidian norm</td></tr>
+</table>
+
+<topic><short>Functions and Procedures</short>
+
+<element name="arccos">
+<short></short>
+<descr>
+<var>Arccos</var> returns the inverse cosine of its argument <var>x</var>. The
+argument <var>x</var> should lie between -1 and 1 (borders included). 
+</descr>
+<errors>
+If the argument <var>x</var> is not in the allowed range, an
+<var>EInvalidArgument</var> exception is raised.
+</errors>
+<seealso>
+<link id="arcsin"/>
+<link id="arcosh"/>
+<link id="arsinh"/>
+<link id="artanh"/>
+</seealso>
+</element>
+
+<example file="ex1"/>
+
+<element name="arcosh">
+<short></short>
+<descr>
+<var>Arcosh</var> returns the inverse hyperbolic cosine of its argument <var>x</var>. 
+The argument <var>x</var> should be larger than 1. 
+
+The <var>arccosh</var> variant of this function is supplied for Delphi 
+compatibility.
+</descr>
+<errors>
+If the argument <var>x</var> is not in the allowed range, an <var>EInvalidArgument</var>
+exception is raised.
+</errors>
+<seealso>
+<link id="cosh"/>
+<link id="sinh"/>
+<link id="arcsin"/>
+<link id="arsinh"/>
+<link id="artanh"/>,
+<link id="tanh"/>
+</seealso>
+</element>
+
+<example file="ex3"/>
+
+<element name="arcsin">
+<short></short>
+<descr>
+<var>Arcsin</var> returns the inverse sine of its argument <var>x</var>. The
+argument <var>x</var> should lie between -1 and 1. 
+</descr>
+<errors>
+If the argument <var>x</var> is not in the allowed range, an <var>EInvalidArgument</var>
+exception is raised.
+</errors>
+<seealso>
+<link id="arccos"/>
+<link id="arcosh"/>
+<link id="arsinh"/>
+<link id="artanh"/>
+</seealso>
+</element>
+
+<example file="ex2"/>
+
+
+<element name="arctan2">
+<short></short>
+<descr>
+<var>arctan2</var> calculates <var>arctan(y/x)</var>, and returns an angle in the
+correct quadrant. The returned angle will be in the range $-\pi$ to
+$\pi$ radians.
+The values of <var>x</var> and <var>y</var> must be between -2\^{}64 and 2\^{}64,
+moreover <var>x</var> should be different from zero.
+
+On Intel systems this function is implemented with the native intel
+<var>fpatan</var> instruction.
+</descr>
+<errors>
+If <var>x</var> is zero, an overflow error will occur.
+</errors>
+<seealso>
+<link id="arccos"/>
+<link id="arcosh"/>
+<link id="arsinh"/>
+<link id="artanh"/>
+</seealso>
+</element>
+
+<example file="ex6"/>
+
+<element name="arsinh">
+<short></short>
+<descr>
+<var>arsinh</var> returns the inverse hyperbolic sine of its argument <var>x</var>. 
+
+The <var>arscsinh</var> variant of this function is supplied for Delphi 
+compatibility.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="arcosh"/>
+<link id="arccos"/>
+<link id="arcsin"/>
+<link id="artanh"/>
+</seealso>
+</element>
+
+<example file="ex4"/>
+
+
+<element name="artanh">
+<short></short>
+<descr>
+<var>artanh</var> returns the inverse hyperbolic tangent of its argument <var>x</var>,
+where <var>x</var> should lie in the interval [-1,1], borders included.
+
+The <var>arctanh</var> variant of this function is supplied for Delphi compatibility.
+</descr>
+<errors>
+In case <var>x</var> is not in the interval [-1,1], an <var>EInvalidArgument</var>
+exception is raised.
+</errors>
+<seealso>
+<link id="arcosh"/>
+<link id="arccos"/>
+<link id="arcsin"/>
+<link id="artanh"/>
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<example file="ex5"/>
+
+
+<element name="ceil">
+<short></short>
+<descr>
+<var>Ceil</var> returns the lowest integer number greater than or equal to <var>x</var>.
+The absolute value of <var>x</var> should be less than <var>maxint</var>.
+</descr>
+<errors>
+If the asolute value of <var>x</var> is larger than maxint, an overflow error will
+occur.
+</errors>
+<seealso>
+<link id="floor"/>
+</seealso>
+</element>
+
+<example file="ex7"/>
+
+<element name="cosh">
+<short></short>
+<descr>
+<var>Cosh</var> returns the hyperbolic cosine of it's argument {x}.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="arcosh"/>
+<link id="sinh"/>
+<link id="arsinh"/>
+</seealso>
+</element>
+
+<example file="ex8"/>
+
+
+<element name="cotan">
+<short></short>
+<descr>
+<var>Cotan</var> returns the cotangent of it's argument <var>x</var>. <var>x</var> should
+be different from zero.
+</descr>
+<errors>
+If <var>x</var> is zero then a overflow error will occur.
+</errors>
+<seealso>
+<link id="tanh"/>
+</seealso>
+</element>
+
+<example file="ex9"/>
+
+
+<element name="cycletorad">
+<short></short>
+<descr>
+<var>Cycletorad</var> transforms it's argument <var>cycle</var>
+(an angle expressed in cycles) to radians.
+(1 cycle is $2 \pi$ radians).
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="degtograd"/>
+<link id="degtorad"/>
+<link id="radtodeg"/>,
+<link id="radtograd"/>
+<link id="radtocycle"/>
+</seealso>
+</element>
+
+<example file="ex10"/>
+
+
+<element name="degtograd">
+<short></short>
+<descr>
+<var>Degtograd</var> transforms it's argument <var>deg</var> (an angle in degrees)
+to grads.
+
+(90 degrees is 100 grad.)
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="cycletorad"/>
+<link id="degtorad"/>
+<link id="radtodeg"/>,
+<link id="radtograd"/>
+<link id="radtocycle"/>
+</seealso>
+</element>
+
+<example file="ex11"/>
+
+
+<element name="degtorad">
+<short></short>
+<descr>
+<var>Degtorad</var> converts it's argument <var>deg</var> (an angle in degrees) to
+radians.
+
+(pi radians is 180 degrees)
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="cycletorad"/>
+<link id="degtograd"/>
+<link id="radtodeg"/>,
+<link id="radtograd"/>
+<link id="radtocycle"/>
+</seealso>
+</element>
+
+<example file="ex12"/>
+
+
+<element name="floor">
+<short></short>
+<descr>
+<var>Floor</var> returns the largest integer smaller than or equal to <var>x</var>.
+The absolute value of <var>x</var> should be less than <var>maxint</var>.
+</descr>
+<errors>
+If <var>x</var> is larger than <var>maxint</var>, an overflow will occur.
+</errors>
+<seealso>
+<link id="ceil"/>
+</seealso>
+</element>
+
+<example file="ex13"/>
+
+
+<element name="frexp">
+<short></short>
+<descr>
+<var>Frexp</var> returns the mantissa and exponent of it's argument
+<var>x</var> in <var>mantissa</var> and <var>exponent</var>.
+</descr>
+<errors>
+None
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<example file="ex14"/>
+
+
+<element name="gradtodeg">
+<short></short>
+<descr>
+<var>Gradtodeg</var> converts its argument <var>grad</var> (an angle in grads)
+to degrees.
+
+(100 grad is 90 degrees)
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="cycletorad"/>
+<link id="degtograd"/>
+<link id="radtodeg"/>,
+<link id="radtograd"/>
+<link id="radtocycle"/>
+<link id="gradtorad"/>
+</seealso>
+</element>
+
+<example file="ex15"/>
+
+
+<element name="gradtorad">
+<short></short>
+<descr>
+<var>Gradtorad</var> converts its argument <var>grad</var> (an angle in grads)
+to radians.
+
+(200 grad is pi degrees).
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="cycletorad"/>
+<link id="degtograd"/>
+<link id="radtodeg"/>,
+<link id="radtograd"/>
+<link id="radtocycle"/>
+<link id="gradtodeg"/>
+</seealso>
+</element>
+
+<example file="ex16"/>
+
+
+<element name="hypot">
+<short></short>
+<descr>
+<var>Hypot</var> returns the hypotenuse of the triangle where the sides
+adjacent to the square angle have lengths <var>x</var> and <var>y</var>.
+
+The function uses Pythagoras' rule for this.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<example file="ex17"/>
+
+
+<element name="intpower">
+<short></short>
+<descr>
+<var>Intpower</var> returns <var>base</var> to the power <var>exponent</var>,
+where exponent is an integer value.
+</descr>
+<errors>
+If <var>base</var> is zero and the exponent is negative, then an
+overflow error will occur.
+</errors>
+<seealso>
+<link id="power"/>
+</seealso>
+</element>
+
+<example file="ex18"/>
+
+
+<element name="ldexp">
+<short></short>
+<descr>
+<var>Ldexp</var> returns $2^p x$.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="lnxp1"/>
+<link id="log10"/>
+<link id="log2"/>
+<link id="logn"/>
+</seealso>
+</element>
+
+<example file="ex19"/>
+
+
+<element name="lnxp1">
+<short></short>
+<descr>
+<var>Lnxp1</var> returns the natural logarithm of <var>1+X</var>. The result
+is more precise for small values of <var>x</var>. <var>x</var> should be larger
+than -1.
+</descr>
+<errors>
+If $x\leq -1$ then an <var>EInvalidArgument</var> exception will be raised.
+</errors>
+<seealso>
+<link id="ldexp"/>
+<link id="log10"/>
+<link id="log2"/>
+<link id="logn"/>
+</seealso>
+</element>
+
+<example file="ex20"/>
+
+<element name="log10">
+<short></short>
+<descr>
+<var>Log10</var> returns the 10-base logarithm of <var>X</var>.
+</descr>
+<errors>
+If <var>x</var> is less than or equal to 0 an 'invalid fpu operation' error
+will occur.
+</errors>
+<seealso>
+<link id="ldexp"/>
+<link id="lnxp1"/>
+<link id="log2"/>
+<link id="logn"/>
+</seealso>
+</element>
+
+<example file="ex21"/>
+
+
+<element name="log2">
+<short></short>
+<descr>
+<var>Log2</var> returns the 2-base logarithm of <var>X</var>.
+</descr>
+<errors>
+If <var>x</var> is less than or equal to 0 an 'invalid fpu operation' error
+will occur.
+</errors>
+<seealso>
+<link id="ldexp"/>
+<link id="lnxp1"/>
+<link id="log10"/>
+<link id="logn"/>
+</seealso>
+</element>
+
+<example file="ex22"/>
+
+
+<element name="logn">
+<short></short>
+<descr>
+<var>Logn</var> returns the n-base logarithm of <var>X</var>.
+</descr>
+<errors>
+If <var>x</var> is less than or equal to 0 an 'invalid fpu operation' error
+will occur.
+</errors>
+<seealso>
+<link id="ldexp"/>
+<link id="lnxp1"/>
+<link id="log10"/>
+<link id="log2"/>
+</seealso>
+</element>
+
+<example file="ex23"/>
+
+<element name="max">
+<short></short>
+<descr>
+<var>Max</var> returns the maximum of <var>Int1</var> and <var>Int2</var>.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="min"/>
+<link id="maxIntValue"/>
+<link id="maxvalue"/>
+</seealso>
+</element>
+
+<example file="ex24"/>
+
+<element name="maxIntValue">
+<short></short>
+<descr>
+<var>MaxIntValue</var> returns the largest integer out of the <var>Data</var>
+array.
+
+This function is provided for Delphi compatibility, use the <link id="maxvalue"/>
+function instead.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="maxvalue"/>
+<link id="minvalue"/>
+<link id="minIntValue"/>
+</seealso>
+</element>
+
+<example file="ex25"/>
+
+
+<element name="maxvalue">
+<short></short>
+<descr>
+<var>Maxvalue</var> returns the largest value in the <var>data</var> 
+array with integer or float values. The return value has 
+the same type as the elements of the array.
+
+The third and fourth forms accept a pointer to an array of <var>N</var> 
+integer or float values.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="maxIntValue"/>
+<link id="minvalue"/>
+<link id="minIntValue"/>
+</seealso>
+</element>
+
+<example file="ex26"/>
+
+<element name="mean">
+<short></short>
+<descr>
+<var>Mean</var> returns the average value of <var>data</var>.
+
+The second form accepts a pointer to an array of <var>N</var> values.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="meanandstddev"/>
+<link id="momentskewkurtosis"/>
+<link id="sum"/>
+</seealso>
+</element>
+
+<example file="ex27"/>
+
+<element name="meanandstddev">
+<short></short>
+<descr>
+<var>meanandstddev</var> calculates the mean and standard deviation of <var>data</var>
+and returns the result in <var>mean</var> and <var>stddev</var>, respectively.
+Stddev is zero if there is only one value.
+
+The second form accepts a pointer to an array of <var>N</var> values.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="mean"/>
+<link id="sum"/>
+<link id="sumofsquares"/>
+<link id="momentskewkurtosis"/>
+</seealso>
+</element>
+
+<example file="ex28"/>
+
+
+<element name="min">
+<short></short>
+<descr>
+<var>min</var> returns the smallest value of <var>Int1</var> and <var>Int2</var>;
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="max"/>
+</seealso>
+</element>
+
+<example file="ex29"/>
+
+<element name="minIntValue">
+<short></short>
+<descr>
+<var>MinIntvalue</var> returns the smallest value in the <var>Data</var> array.
+
+This function is provided for Delphi compatibility, use <var>minvalue</var>
+instead.
+</descr>
+<errors>
+None
+</errors>
+<seealso>
+<link id="minvalue"/>
+<link id="maxIntValue"/>
+<link id="maxvalue"/>
+</seealso>
+</element>
+
+<example file="ex30"/>
+
+
+<element name="minvalue">
+<short></short>
+<descr>
+<var>Minvalue</var> returns the smallest value in the <var>data</var> 
+array with integer or float values. The return value has 
+the same type as the elements of the array.
+
+The third and fourth forms accept a pointer to an array of <var>N</var> 
+integer or float values.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="maxIntValue"/>
+<link id="maxvalue"/>
+<link id="minIntValue"/>
+</seealso>
+</element>
+
+<example file="ex31"/>
+
+
+<element name="momentskewkurtosis">
+<short></short>
+<descr>
+<var>momentskewkurtosis</var> calculates the 4 first moments of the distribution
+of valuesin <var>data</var> and returns them in <var>m1</var>,<var>m2</var>,<var>m3</var> and
+<var>m4</var>, as well as the <var>skew</var> and <var>kurtosis</var>.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="mean"/>
+<link id="meanandstddev"/>
+</seealso>
+</element>
+
+<example file="ex32"/>
+
+<element name="norm">
+<short></short>
+<descr>
+<var>Norm</var> calculates the Euclidian norm of the array of data.
+This equals <var>sqrt(sumofsquares(data))</var>.
+
+The second form accepts a pointer to an array of <var>N</var> values.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="sumofsquares"/>
+</seealso>
+</element>
+
+<example file="ex33"/>
+
+
+<element name="popnstddev">
+<short></short>
+<descr>
+<var>Popnstddev</var> returns the square root of the population variance of
+the values in the  <var>Data</var> array. It returns zero if there is only one value.
+
+The second form of this function accepts a pointer to an array of <var>N</var>
+values.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="popnvariance"/>
+<link id="mean"/>
+<link id="meanandstddev"/>
+<link id="stddev"/>,
+<link id="momentskewkurtosis"/>
+</seealso>
+</element>
+
+<example file="ex35"/>
+
+
+<element name="popnvariance">
+<short></short>
+<descr>
+<var>Popnvariance</var> returns the square root of the population variance of
+the values in the  <var>Data</var> array. It returns zero if there is only one value.
+
+The second form of this function accepts a pointer to an array of <var>N</var>
+values.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="popnstddev"/>
+<link id="mean"/>
+<link id="meanandstddev"/>
+<link id="stddev"/>,
+<link id="momentskewkurtosis"/>
+</seealso>
+</element>
+
+<example file="ex36"/>
+
+
+<element name="power">
+<short></short>
+<descr>
+<var>power</var> raises <var>base</var> to the power <var>power</var>. This is equivalent
+to <var>exp(power*ln(base))</var>. Therefore <var>base</var> should be non-negative.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="intpower"/>
+</seealso>
+</element>
+
+<example file="ex34"/>
+
+
+<element name="radtocycle">
+<short></short>
+<descr>
+<var>Radtocycle</var> converts its argument <var>rad</var> (an angle expressed in
+radians) to an angle in cycles.
+
+(1 cycle equals 2 pi radians)
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="degtograd"/>
+<link id="degtorad"/>
+<link id="radtodeg"/>,
+<link id="radtograd"/>
+<link id="cycletorad"/>
+</seealso>
+</element>
+
+<example file="ex37"/>
+
+
+<element name="radtodeg">
+<short></short>
+<descr>
+<var>Radtodeg</var> converts its argument <var>rad</var> (an angle expressed in
+radians) to an angle in degrees.
+
+(180 degrees equals pi radians)
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="degtograd"/>
+<link id="degtorad"/>
+<link id="radtocycle"/>,
+<link id="radtograd"/>
+<link id="cycletorad"/>
+</seealso>
+</element>
+
+<example file="ex38"/>
+
+
+<element name="radtograd">
+<short></short>
+<descr>
+<var>Radtodeg</var> converts its argument <var>rad</var> (an angle expressed in
+radians) to an angle in grads.
+
+(200 grads equals pi radians)
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="degtograd"/>
+<link id="degtorad"/>
+<link id="radtocycle"/>,
+<link id="radtodeg"/>
+<link id="cycletorad"/>
+</seealso>
+</element>
+
+<example file="ex39"/>
+
+
+<element name="randg">
+<short></short>
+<descr>
+<var>randg</var> returns a random number which - when produced in large
+quantities - has a Gaussian distribution with mean <var>mean</var> and 
+standarddeviation <var>stddev</var>. 
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="mean"/>
+<link id="stddev"/>
+<link id="meanandstddev"/>
+</seealso>
+</element>
+
+<example file="ex40"/>
+
+
+<element name="sincos">
+<short></short>
+<descr>
+<var>Sincos</var> calculates the sine and cosine of the angle <var>theta</var>,
+and returns the result in <var>sinus</var> and <var>cosinus</var>.
+
+On Intel hardware, This calculation will be faster than making 2 calls
+to clculatet he sine and cosine separately.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="arcsin"/>
+<link id="arccos"/>.
+</seealso>
+</element>
+
+<example file="ex41"/>
+
+
+<element name="sinh">
+<short></short>
+<descr>
+<var>Sinh</var> returns the hyperbolic sine of its argument <var>x</var>.
+</descr>
+<errors>
+</errors>
+<seealso>
+<link id="cosh"/>
+<link id="arsinh"/>
+<link id="tanh"/>
+<link id="artanh"/>
+</seealso>
+</element>
+
+<example file="ex42"/>
+
+
+<element name="stddev">
+<short></short>
+<descr>
+<var>Stddev</var> returns the standard deviation of the values in <var>Data</var>.
+It returns zero if there is only one value.
+
+The second form of the function accepts a pointer to an array of <var>N</var>
+values.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="mean"/>
+<link id="meanandstddev"/>
+<link id="variance"/>
+<link id="totalvariance"/>
+</seealso>
+</element>
+
+<example file="ex43"/>
+
+
+<element name="sum">
+<short></short>
+<descr>
+<var>Sum</var> returns the sum of the values in the <var>data</var> array.
+
+The second form of the function accepts a pointer to an array of <var>N</var>
+values.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="sumofsquares"/>
+<link id="sumsandsquares"/>
+<link id="totalvariance"/>
+, <link id="variance"/>
+</seealso>
+</element>
+
+<example file="ex44"/>
+
+
+<element name="sumofsquares">
+<short></short>
+<descr>
+<var>Sumofsquares</var> returns the sum of the squares of the values in the <var>data</var> 
+array.
+
+The second form of the function accepts a pointer to an array of <var>N</var>
+values.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="sum"/>
+<link id="sumsandsquares"/>
+<link id="totalvariance"/>
+, <link id="variance"/>
+</seealso>
+</element>
+
+<example file="ex45"/>
+
+
+<element name="sumsandsquares">
+<short></short>
+<descr>
+<var>sumsandsquares</var> calculates the sum of the values and the sum of 
+the squares of the values in the <var>data</var> array and returns the
+results in <var>sum</var> and <var>sumofsquares</var>.
+
+The second form of the function accepts a pointer to an array of <var>N</var>
+values.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="sum"/>
+<link id="sumofsquares"/>
+<link id="totalvariance"/>
+, <link id="variance"/>
+</seealso>
+</element>
+
+<example file="ex46"/>
+
+
+<element name="tan">
+<short></short>
+<descr>
+<var>Tan</var> returns the tangent of <var>x</var>.
+</descr>
+<errors>
+If <var>x</var> (normalized) is pi/2 or 3pi/2 then an overflow will occur.
+</errors>
+<seealso>
+<link id="tanh"/>
+<link id="arcsin"/>
+<link id="sincos"/>
+<link id="arccos"/>
+</seealso>
+</element>
+
+<example file="ex47"/>
+
+
+<element name="tanh">
+<short></short>
+<descr>
+<var>Tanh</var> returns the hyperbolic tangent of <var>x</var>.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="arcsin"/>
+<link id="sincos"/>
+<link id="arccos"/>
+</seealso>
+</element>
+
+<example file="ex48"/>
+
+
+<element name="totalvariance">
+<short></short>
+<descr>
+<var>TotalVariance</var> returns the total variance of the values in the 
+<var>data</var> array. It returns zero if there is only one value.
+
+The second form of the function accepts a pointer to an array of <var>N</var>
+values.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="variance"/>
+<link id="stddev"/>
+<link id="mean"/>
+</seealso>
+</element>
+
+<example file="ex49"/>
+
+
+<element name="variance">
+<short></short>
+<descr>
+<var>Variance</var> returns the variance of the values in the 
+<var>data</var> array. It returns zero if there is only one value.
+
+The second form of the function accepts a pointer to an array of <var>N</var>
+values.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="totalvariance"/>
+<link id="stddev"/>
+<link id="mean"/>
+</seealso>
+</element>
+
+<example file="ex50"/>
