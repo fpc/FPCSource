@@ -76,6 +76,7 @@ interface
          line      : longint;
          column    : word;
          fileindex : word;
+         { moduleindex : word; }
        end;
 
        TSearchPathList = class(TStringList)
@@ -1452,7 +1453,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.49  2001-10-25 21:22:32  peter
+  Revision 1.50  2001-12-06 17:57:33  florian
+    + parasym to tparaitem added
+
+  Revision 1.49  2001/10/25 21:22:32  peter
     * calling convention rewrite
 
   Revision 1.48  2001/10/23 21:49:42  peter

@@ -41,7 +41,7 @@ type
 {$endif Test_Double_checksum}
 
 const
-  CurrentPPUVersion=22;
+  CurrentPPUVersion=25;
 
 { buffer sizes }
   maxentrysize = 1024;
@@ -986,7 +986,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.13  2001-09-22 04:51:58  carl
+  Revision 1.14  2001-12-06 17:57:37  florian
+    + parasym to tparaitem added
+
+  Revision 1.13  2001/09/22 04:51:58  carl
   * updated record size
 
   Revision 1.12  2001/08/30 20:13:53  peter

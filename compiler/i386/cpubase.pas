@@ -468,23 +468,43 @@ type
            top_symbol : (sym:tasmsymbol;symofs:longint);
         end;
 
+
+
+{*****************************************************************************
+                             Argument Classification
+*****************************************************************************}
+
+type
+  TArgClass = (
+     { the following classes should be defined by all processor implemnations }
+     AC_NOCLASS,
+     AC_MEMORY,
+     AC_INTEGER,
+     AC_FPU,
+     { the following argument classes are i386 specific }
+     AC_FPUUP,
+     AC_SSE,
+     AC_SSEUP);
+
 {*****************************************************************************
                                Generic Location
 *****************************************************************************}
 
 type
   TLoc=(
-    LOC_INVALID,     { added for tracking problems}
-    LOC_FPU,         { FPU stack }
-    LOC_REGISTER,    { in a processor register }
-    LOC_MEM,         { in memory }
-    LOC_REFERENCE,   { like LOC_MEM, but lvalue }
-    LOC_JUMP,        { boolean results only, jump to false or true label }
-    LOC_FLAGS,       { boolean results only, flags are set }
-    LOC_CREGISTER,   { Constant register which shouldn't be modified }
-    LOC_MMXREGISTER, { MMX register }
-    LOC_CMMXREGISTER,{ Constant MMX register }
-    LOC_CFPUREGISTER { if it is a FPU register variable on the fpu stack }
+    LOC_INVALID,      { added for tracking problems}
+    LOC_FPU,          { FPU stack }
+    LOC_REGISTER,     { in a processor register }
+    LOC_MEM,          { in memory }
+    LOC_REFERENCE,    { like LOC_MEM, but lvalue }
+    LOC_JUMP,         { boolean results only, jump to false or true label }
+    LOC_FLAGS,        { boolean results only, flags are set }
+    LOC_CREGISTER,    { Constant register which shouldn't be modified }
+    LOC_MMXREGISTER,  { MMX register }
+    LOC_CMMXREGISTER, { MMX register variable }
+    LOC_CFPUREGISTER, { if it is a FPU register variable on the fpu stack }
+    LOC_SSEREGISTER,
+    LOC_CSSEREGISTER
   );
 
   plocation = ^tlocation;
@@ -925,7 +945,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  2001-09-28 20:39:33  jonas
+  Revision 1.7  2001-12-06 17:57:40  florian
+    + parasym to tparaitem added
+
+  Revision 1.6  2001/09/28 20:39:33  jonas
     * changed all flow control structures (except for exception handling
       related things) to processor independent code (in new ncgflw unit)
     + generic cgobj unit which contains lots of code generator helpers with

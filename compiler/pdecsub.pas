@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl, Daniel Mantione
+    Copyright (c) 1998-2001 by Florian Klaempfl, Daniel Mantione
 
     Does the parsing of the procedures/functions
 
@@ -166,7 +166,9 @@ implementation
                { insert the sym in the parasymtable }
                  tprocdef(aktprocdef).parast.insert(vs);
                  inc(procinfo^.selfpointer_offset,vs.address);
-               end;
+               end
+              else
+               vs:=nil;
               { must also be included for procvars to allow the proc2procvar }
               { type conversions (po_containsself is in po_comp) (JM)        }
               include(aktprocdef.procoptions,po_containsself);
@@ -175,7 +177,7 @@ implementation
               single_type(tt,hs1,false);
               { this must be call-by-value, but we generate already an }
               { an error above if that's not the case (JM)             }
-              aktprocdef.concatpara(tt,varspez,nil);
+              aktprocdef.concatpara(tt,vs,varspez,nil);
               { check the types for procedures only }
               if not is_procvar then
                CheckTypes(tt.def,procinfo^._class);
@@ -275,7 +277,6 @@ implementation
                while not sc.empty do
                 begin
                   s:=sc.get(akttokenpos);
-                  aktprocdef.concatpara(tt,varspez,tdefaultvalue);
                   { For proc vars we only need the definitions }
                   if not is_procvar then
                    begin
@@ -312,7 +313,11 @@ implementation
                         tprocdef(aktprocdef).parast.insert(hvs);
                       end;
 
-                   end;
+                   end
+                  else
+                   vs:=nil;
+
+                  aktprocdef.concatpara(tt,vs,varspez,tdefaultvalue);
                 end;
 {$ifdef fixLeaksOnError}
                if PStringContainer(strContStack.pop) <> sc then
@@ -2004,7 +2009,10 @@ const
 end.
 {
   $Log$
-  Revision 1.41  2001-11-02 22:58:03  peter
+  Revision 1.42  2001-12-06 17:57:36  florian
+    + parasym to tparaitem added
+
+  Revision 1.41  2001/11/02 22:58:03  peter
     * procsym definition rewrite
 
   Revision 1.40  2001/10/25 21:22:37  peter

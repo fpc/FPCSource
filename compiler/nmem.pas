@@ -484,7 +484,7 @@ implementation
                  hp2:=TParaItem(hp3.Para.last);
                  while assigned(hp2) do
                    begin
-                      tprocvardef(resulttype.def).concatpara(hp2.paratype,hp2.paratyp,hp2.defaultvalue);
+                      tprocvardef(resulttype.def).concatpara(hp2.paratype,hp2.parasym,hp2.paratyp,hp2.defaultvalue);
                       hp2:=TParaItem(hp2.previous);
                    end;
               end
@@ -1034,7 +1034,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.24  2001-12-03 21:48:42  peter
+  Revision 1.25  2001-12-06 17:57:34  florian
+    + parasym to tparaitem added
+
+  Revision 1.24  2001/12/03 21:48:42  peter
     * freemem change to value parameter
     * torddef low/high range changed to int64
 

@@ -99,10 +99,10 @@ interface
 
        tparaitem = class(tlinkedlistitem)
           paratype     : ttype;
+          parasym      : tsym;
           paratyp      : tvarspez;
           argconvtyp   : targconvtyp;
           convertlevel : byte;
-          register     : tregister;
           defaultvalue : tsym; { tconstsym }
        end;
 
@@ -422,7 +422,7 @@ interface
           destructor destroy;override;
           procedure  write(ppufile:tcompilerppufile);override;
           procedure deref;override;
-          procedure concatpara(const tt:ttype;vsp : tvarspez;defval:tsym);
+          procedure concatpara(const tt:ttype;sym : tsym;vsp : tvarspez;defval:tsym);
           function  para_size(alignsize:longint) : longint;
           function  demangled_paras : string;
           procedure test_if_fpu_result;
@@ -1238,7 +1238,7 @@ implementation
          else
            ppufile.putlongint(len);
          case string_typ of
-           st_shortstring : ppufile.writeentry(ibshortstringdef);
+            st_shortstring : ppufile.writeentry(ibshortstringdef);
             st_longstring : ppufile.writeentry(iblongstringdef);
             st_ansistring : ppufile.writeentry(ibansistringdef);
             st_widestring : ppufile.writeentry(ibwidestringdef);
@@ -3041,14 +3041,14 @@ implementation
       end;
 
 
-    procedure tabstractprocdef.concatpara(const tt:ttype;vsp : tvarspez;defval:tsym);
+    procedure tabstractprocdef.concatpara(const tt:ttype;sym : tsym;vsp : tvarspez;defval:tsym);
       var
         hp : TParaItem;
       begin
         hp:=TParaItem.Create;
         hp.paratyp:=vsp;
+        hp.parasym:=sym;
         hp.paratype:=tt;
-        hp.register:=R_NO;
         hp.defaultvalue:=defval;
         Para.insert(hp);
         if not assigned(defval) then
@@ -3084,6 +3084,7 @@ implementation
           begin
             hp.paratype.resolve;
             resolvesym(tsym(hp.defaultvalue));
+            resolvesym(tsym(hp.parasym));
             hp:=TParaItem(hp.next);
           end;
       end;
@@ -3110,9 +3111,9 @@ implementation
             hp:=TParaItem.Create;
             hp.paratyp:=tvarspez(ppufile.getbyte);
             { hp.register:=tregister(ppufile.getbyte); }
-            hp.register:=R_NO;
             ppufile.gettype(hp.paratype);
             hp.defaultvalue:=tsym(ppufile.getderef);
+            hp.parasym:=tsym(ppufile.getderef);
             if not assigned(hp.defaultvalue) then
              inc(minparacount);
             inc(maxparacount);
@@ -3145,6 +3146,7 @@ implementation
             { ppufile.putbyte(byte(hp.register)); }
             ppufile.puttype(hp.paratype);
             ppufile.putderef(hp.defaultvalue);
+            ppufile.putderef(hp.parasym);
             hp:=TParaItem(hp.next);
           end;
       end;
@@ -5502,7 +5504,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.59  2001-12-03 21:48:42  peter
+  Revision 1.60  2001-12-06 17:57:39  florian
+    + parasym to tparaitem added
+
+  Revision 1.59  2001/12/03 21:48:42  peter
     * freemem change to value parameter
     * torddef low/high range changed to int64
 

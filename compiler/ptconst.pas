@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl
+    Copyright (c) 1998-2001 by Florian Klaempfl
 
     Reads typed constants
 
@@ -971,7 +971,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.38  2001-11-02 22:58:06  peter
+  Revision 1.39  2001-12-06 17:57:38  florian
+    + parasym to tparaitem added
+
+  Revision 1.38  2001/11/02 22:58:06  peter
     * procsym definition rewrite
 
   Revision 1.37  2001/10/29 14:59:48  jonas

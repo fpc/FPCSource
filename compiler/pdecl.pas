@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl
+    Copyright (c) 1998-2001 by Florian Klaempfl
 
     Does declaration (but not type) parsing for Free Pascal
 
@@ -605,7 +605,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.39  2001-10-25 21:22:35  peter
+  Revision 1.40  2001-12-06 17:57:35  florian
+    + parasym to tparaitem added
+
+  Revision 1.39  2001/10/25 21:22:35  peter
     * calling convention rewrite
 
   Revision 1.38  2001/10/24 10:26:53  marco

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 2000 by Florian Klaempfl
+    Copyright (c) 2000-2001 by Florian Klaempfl
 
     Type checking and register allocation for type converting nodes
 
@@ -1618,7 +1618,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.45  2001-12-03 21:48:41  peter
+  Revision 1.46  2001-12-06 17:57:34  florian
+    + parasym to tparaitem added
+
+  Revision 1.45  2001/12/03 21:48:41  peter
     * freemem change to value parameter
     * torddef low/high range changed to int64
 

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl
+    Copyright (c) 1998-2001 by Florian Klaempfl
 
     Does parsing of expression for Free Pascal
 
@@ -2508,7 +2508,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.51  2001-11-14 01:12:44  florian
+  Revision 1.52  2001-12-06 17:57:36  florian
+    + parasym to tparaitem added
+
+  Revision 1.51  2001/11/14 01:12:44  florian
     * variant paramter passing and functions results fixed
 
   Revision 1.50  2001/11/02 23:16:51  peter

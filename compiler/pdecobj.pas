@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl
+    Copyright (c) 1998-2001 by Florian Klaempfl
 
     Does object types for Free Pascal
 
@@ -1117,7 +1117,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.33  2001-11-02 22:58:02  peter
+  Revision 1.34  2001-12-06 17:57:35  florian
+    + parasym to tparaitem added
+
+  Revision 1.33  2001/11/02 22:58:02  peter
     * procsym definition rewrite
 
   Revision 1.32  2001/10/25 21:22:35  peter

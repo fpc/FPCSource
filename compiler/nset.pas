@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 2000 by Florian Klaempfl
+    Copyright (c) 2000-2001 by Florian Klaempfl
 
     Type checking and register allocation for set/case nodes
 
@@ -588,7 +588,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2001-10-12 13:51:51  jonas
+  Revision 1.17  2001-12-06 17:57:35  florian
+    + parasym to tparaitem added
+
+  Revision 1.16  2001/10/12 13:51:51  jonas
     * fixed internalerror(10) due to previous fpu overflow fixes ("merged")
     * fixed bug in n386add (introduced after compilerproc changes for string
       operations) where calcregisters wasn't called for shortstring addnodes
