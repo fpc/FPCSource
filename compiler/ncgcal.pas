@@ -429,19 +429,28 @@ implementation
           begin
             r.enum:=R_INTREGISTER;
             r.number:=NR_FUNCTION_RETURN_REG;
+{$ifdef newra}
+            { the FUNCTION_RESULT_REG is already allocated }
+            rg.ungetregisterint(exprasmlist,r);
+{$else}
             cg.a_reg_alloc(exprasmlist,r);
+{$endif}
             if not assigned(funcretnode) then
               begin
                 location_reset(location,LOC_CREFERENCE,OS_ADDR);
                 location.reference:=refcountedtemp;
                 cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,r,location.reference);
+{$ifndef newra}
                 cg.a_reg_dealloc(exprasmlist,r);
+{$endif newra}
               end
             else
               begin
                 tg.gettemp(exprasmlist,pointer_size,tt_normal,href);
                 cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,r,href);
+{$ifdef newra}
                 cg.a_reg_dealloc(exprasmlist,r);
+{$endif newra}
                 { in case of a regular funcretnode with ret_in_param, the }
                 { original funcretnode isn't touched -> make sure it's    }
                 { the same here (not sure if it's necessary)              }
@@ -498,8 +507,8 @@ implementation
                       hregister.enum:=R_INTREGISTER;
                       hregister.number:=NR_FUNCTION_RESULT64_HIGH_REG;
 {$ifdef newra}
-                      rg.getexplicitregisterint(exprasmlist,NR_FUNCTION_RESULT64_LOW_REG);
-                      rg.getexplicitregisterint(exprasmlist,NR_FUNCTION_RESULT64_HIGH_REG);
+                      { the FUNCTION_RESULT_LOW_REG/FUNCTION_RESULT_HIGH_REG
+                        are already allocated }
                       rg.ungetregisterint(exprasmlist,r);
                       rg.ungetregisterint(exprasmlist,hregister);
                       location.registerlow:=rg.getregisterint(exprasmlist,OS_INT);
@@ -530,12 +539,17 @@ implementation
                        FUNCTION_RESULT_REG, so no move is necessary.}
                       r.enum:=R_INTREGISTER;
                       r.number:=NR_FUNCTION_RESULT_REG;
-                      r:=rg.makeregsize(r,cgsize);
 {$ifdef newra}
-{                      rg.getexplicitregisterint(exprasmlist,nr);}
+                      { the FUNCTION_RESULT_REG is already allocated }
                       rg.ungetregisterint(exprasmlist,r);
+                      { change register size after the unget because the getregister
+                        was done for the full register }
+                      r:=rg.makeregsize(r,cgsize);
                       location.register:=rg.getregisterint(exprasmlist,cgsize);
 {$else newra}
+                      r.enum:=R_INTREGISTER;
+                      r.number:=NR_FUNCTION_RESULT_REG;
+                      r:=rg.makeregsize(r,cgsize);
                       cg.a_reg_alloc(exprasmlist,r);
                       if RS_FUNCTION_RESULT_REG in rg.unusedregsint then
                         begin
@@ -621,12 +635,12 @@ implementation
          iolabel : tasmlabel;
          { help reference pointer }
          href,helpref : treference;
-         hp : tnode;
-         pp : tcallparanode;
-         store_parast_fixup,
          para_alignment,
          pop_size : longint;
-         r,accreg,
+         r,
+{$ifdef x86}
+         accreg,
+{$endif x86}
          vmtreg,vmtreg2 : tregister;
          oldaktcallnode : tcallnode;
       begin
@@ -651,7 +665,7 @@ implementation
                  cg.g_decrrefcount(exprasmlist,resulttype.def,refcountedtemp,false);
                end;
            end;
- 
+
 
          if (procdefinition.proccalloption in [pocall_cdecl,pocall_cppdecl,pocall_stdcall]) then
           para_alignment:=4
@@ -675,6 +689,15 @@ implementation
 
 {$ifdef newra}
               regs_to_alloc:=Tprocdef(procdefinition).usedintregisters;
+{$ifndef cpu64bit}
+              if resulttype.def.size>sizeof(aword) then
+                begin
+                  include(regs_to_alloc,RS_FUNCTION_RESULT64_LOW_REG);
+                  include(regs_to_alloc,RS_FUNCTION_RESULT64_HIGH_REG);
+                end
+              else
+{$endif cpu64bit}
+                include(regs_to_alloc,RS_FUNCTION_RESULT_REG);
 {$else}
               { save all used registers and possible registers
                 used for the return value }
@@ -713,6 +736,15 @@ implementation
               {No procedure is allowed to destroy ebp.}
 {$ifdef newra}
               regs_to_alloc:=ALL_INTREGISTERS-[RS_FRAME_POINTER_REG];
+{$ifndef cpu64bit}
+              if resulttype.def.size>sizeof(aword) then
+                begin
+                  include(regs_to_alloc,RS_FUNCTION_RESULT64_LOW_REG);
+                  include(regs_to_alloc,RS_FUNCTION_RESULT64_HIGH_REG);
+                end
+              else
+{$endif cpu64bit}
+                include(regs_to_alloc,RS_FUNCTION_RESULT_REG);
 {$else}
               regs_to_push_int := all_intregisters-[RS_FRAME_POINTER_REG];
               rg.saveusedintregisters(exprasmlist,pushedint,regs_to_push_int);
@@ -963,17 +995,20 @@ implementation
          testregisters32;
 {$endif TEMPREGDEBUG}
 
-       {$ifdef newra}
+{$ifdef newra}
          regs_to_free:=regs_to_alloc;
-         exclude(regs_to_alloc,RS_STACK_POINTER_REG);
          if (not is_void(resulttype.def)) and
             (not paramanager.ret_in_param(resulttype.def,procdefinition.proccalloption)) then
            begin
-             exclude(regs_to_free,RS_FUNCTION_RESULT_REG);
-          {$ifndef cpu64bit}
+{$ifndef cpu64bit}
              if resulttype.def.size>sizeof(aword) then
-               exclude(regs_to_free,RS_FUNCTION_RESULT64_HIGH_REG);
-          {$endif cpu64bit}
+               begin
+                 exclude(regs_to_free,RS_FUNCTION_RESULT64_HIGH_REG);
+                 exclude(regs_to_free,RS_FUNCTION_RESULT64_LOW_REG);
+               end
+             else
+{$endif cpu64bit}
+               exclude(regs_to_free,RS_FUNCTION_RESULT_REG);
            end;
          r.enum:=R_INTREGISTER;
          for i:=first_supreg to last_supreg do
@@ -982,7 +1017,7 @@ implementation
                r.number:=i shl 8 or R_SUBWHOLE;
                rg.ungetregisterint(exprasmlist,r);
              end;
-       {$endif}
+{$endif}
          { handle function results }
          if (not is_void(resulttype.def)) then
            handle_return_value
@@ -1043,14 +1078,16 @@ implementation
          pushedother : tpushedsavedother;
       {$ifndef newra}
          pushedint : tpushedsavedint;
+         pushedregs : tmaybesave;
       {$endif}
          oldpushedparasize : longint;
          { adress returned from an I/O-error }
          iolabel : tasmlabel;
          { help reference pointer }
          href : treference;
-         pushedregs : tmaybesave;
+{$ifdef x86}
          accreg : tregister;
+{$endif x86}
          oldaktcallnode : tcallnode;
          oldprocdef : tprocdef;
          i : longint;
@@ -1424,7 +1461,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.91  2003-06-12 18:38:45  jonas
+  Revision 1.92  2003-06-12 21:10:50  peter
+    * newra fixes
+
+  Revision 1.91  2003/06/12 18:38:45  jonas
     * deallocate parameter registers in time for newra
     * for non-i386, procvars and methodpointers always have to be processed
       in advance, whether or not newra is defined
