@@ -10,8 +10,17 @@ var Hello : word;
     T : TRecord;
 
 function Func1(x,z : word;y : boolean): shortint;
+
+  procedure test_local(c,f : longint);
+   var
+      int_loc : longint;
+   begin
+      Writeln('dummy for browser');
+   end;
+
 begin
   if Hello=0 then X:=0 else X:=1;
+  test_local(0,2);
   Func1:=X;
 end;
 
