@@ -1935,7 +1935,10 @@ implementation
       begin
 {$ifndef NOAG386BIN}
         if assigned(instabcache) then
-         dispose(instabcache);
+        begin
+          dispose(instabcache);
+          instabcache:=nil;
+        end;
 {$endif NOAG386BIN}
       end;
 
@@ -1944,7 +1947,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  2003-03-08 08:59:07  daniel
+  Revision 1.15  2003-03-26 12:50:54  armin
+  * avoid problems with the ide in init/dome
+
+  Revision 1.14  2003/03/08 08:59:07  daniel
     + $define newra will enable new register allocator
     + getregisterint will return imaginary registers with $newra
     + -sr switch added, will skip register allocation so you can see

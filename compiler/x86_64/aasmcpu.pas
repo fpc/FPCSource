@@ -1796,7 +1796,10 @@ implementation
       begin
 {$ifndef NOAG386BIN}
         if assigned(instabcache) then
-         dispose(instabcache);
+	begin
+          dispose(instabcache);
+	  instabcache:=nil;
+	end;
 {$endif NOAG386BIN}
       end;
 
@@ -1805,7 +1808,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2003-01-05 13:36:53  florian
+  Revision 1.6  2003-03-26 12:50:54  armin
+  * avoid problems with the ide in init/dome
+
+  Revision 1.5  2003/01/05 13:36:53  florian
     * x86-64 compiles
     + very basic support for float128 type (x86-64 only)
 

@@ -484,22 +484,32 @@ end;
 
 procedure inittokens;
 begin
-  tokeninfo:=@arraytokeninfo;
-  new(tokenidx);
-  create_tokenidx;
+  if tokenidx = nil then
+  begin
+    tokeninfo:=@arraytokeninfo;
+    new(tokenidx);
+    create_tokenidx;
+  end;
 end;
 
 
 procedure donetokens;
 begin
-  tokeninfo:=nil;
-  dispose(tokenidx);
+  if tokenidx <> nil then
+  begin
+    tokeninfo:=nil;
+    dispose(tokenidx);
+    tokenidx:=nil;
+  end;
 end;
 
 end.
 {
   $Log$
-  Revision 1.20  2002-11-29 22:31:21  carl
+  Revision 1.21  2003-03-26 12:50:54  armin
+  * avoid problems with the ide in init/dome
+
+  Revision 1.20  2002/11/29 22:31:21  carl
     + unimplemented hint directive added
     * hint directive parsing implemented
     * warning on these directives
