@@ -267,7 +267,7 @@ begin
             tmpresult and
             (endp.typ <> ait_label) and
             ((not isInstruction) or
-             (taicpu(endp).opcode <> A_JMP));
+             (not taicpu(endp).is_jmp));
         end;
     end;
 
@@ -364,7 +364,10 @@ End.
 
 {
   $Log$
-  Revision 1.27  2004-06-20 08:55:31  florian
+  Revision 1.28  2004-08-17 16:34:58  jonas
+    * do not rename registers across conditional jumps
+
+  Revision 1.27  2004/06/20 08:55:31  florian
     * logs truncated
 
   Revision 1.26  2004/02/27 10:21:05  florian
