@@ -276,8 +276,6 @@
     destructor tlabelsym.done;
 
       begin
-         if not(defined) then
-          Message1(sym_w_label_not_defined,name);
          inherited done;
       end;
 
@@ -1735,7 +1733,10 @@
 
 {
   $Log$
-  Revision 1.59  1998-11-13 12:09:11  peter
+  Revision 1.60  1998-11-16 10:13:51  peter
+    * label defines are checked at the end of the proc
+
+  Revision 1.59  1998/11/13 12:09:11  peter
     * unused label is now a warning
 
   Revision 1.58  1998/11/10 10:50:57  pierre

@@ -81,8 +81,8 @@
           number : plabel;
           defined : boolean;
           constructor init(const n : string; l : plabel);
-          constructor load;
           destructor done;virtual;
+          constructor load;
           function mangledname : string;virtual;
           procedure write;virtual;
        end;
@@ -319,7 +319,10 @@
 
 {
   $Log$
-  Revision 1.6  1998-11-13 10:18:12  peter
+  Revision 1.7  1998-11-16 10:13:50  peter
+    * label defines are checked at the end of the proc
+
+  Revision 1.6  1998/11/13 10:18:12  peter
     + nil constants
 
   Revision 1.5  1998/11/05 23:39:32  peter
