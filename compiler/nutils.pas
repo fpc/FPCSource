@@ -285,6 +285,7 @@ implementation
         if assigned(srsym) then
           begin
             result:=cloadnode.create(srsym,srsymtable);
+            include(result.flags,nf_is_self);
             resulttypepass(result);
           end
         else
@@ -566,7 +567,10 @@ end.
 
 {
   $Log$
-  Revision 1.28  2004-12-26 16:22:01  peter
+  Revision 1.29  2005-01-04 16:39:46  peter
+    * set nf_is_self node flag when self is loaded
+
+  Revision 1.28  2004/12/26 16:22:01  peter
     * fix lineinfo for with blocks
 
   Revision 1.27  2004/12/15 16:00:16  peter

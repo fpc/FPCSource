@@ -217,6 +217,7 @@ interface
 
          { tloadnode }
          nf_absolute,
+         nf_is_self,
          nf_load_self_pointer,
 
          { taddnode }
@@ -1126,7 +1127,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.94  2005-01-03 17:55:57  florian
+  Revision 1.95  2005-01-04 16:39:46  peter
+    * set nf_is_self node flag when self is loaded
+
+  Revision 1.94  2005/01/03 17:55:57  florian
     + first batch of patches to support tdef.getcopy fully
 
   Revision 1.93  2004/12/26 16:22:01  peter
