@@ -19,7 +19,7 @@ Const
   {Max FileName Length for files}
   FileNameLen=255;
 
-  ExtStr  = String[FileNameLen];
+Type
 
   SearchRec =
 {$ifndef ARM}
@@ -722,14 +722,14 @@ End;
 {$ifdef cpui386}
 Procedure Intr (intno: byte; var regs: registers);
 Begin
-  {! No Linux equivalent !}
+  {! No Unix equivalent !}
 End;
 
 
 
 Procedure msdos(var regs : registers);
 Begin
-  {! No Linux equivalent !}
+  {! No Unix equivalent !}
 End;
 {$endif cpui386}
 
@@ -737,35 +737,35 @@ End;
 
 Procedure getintvec(intno : byte;var vector : pointer);
 Begin
-  {! No Linux equivalent !}
+  {! No Unix equivalent !}
 End;
 
 
 
 Procedure setintvec(intno : byte;vector : pointer);
 Begin
-  {! No Linux equivalent !}
+  {! No Unix equivalent !}
 End;
 
 
 
 Procedure SwapVectors;
 Begin
-  {! No Linux equivalent !}
+  {! No Unix equivalent !}
 End;
 
 
 
 Procedure keep(exitcode : word);
 Begin
-  {! No Linux equivalent !}
+  {! No Unix equivalent !}
 End;
 
 
 
 Procedure setfattr (var f;attr : word);
 Begin
-  {! No Linux equivalent !}
+  {! No Unix equivalent !}
   { Fail for setting VolumeId }
   if (attr and VolumeID)<>0 then
    doserror:=5;
@@ -775,7 +775,7 @@ End;
 
 Procedure GetCBreak(Var BreakValue: Boolean);
 Begin
-{! No Linux equivalent !}
+{! No Unix equivalent !}
   breakvalue:=true
 End;
 
@@ -783,14 +783,14 @@ End;
 
 Procedure SetCBreak(BreakValue: Boolean);
 Begin
-  {! No Linux equivalent !}
+  {! No Unix equivalent !}
 End;
 
 
 
 Procedure GetVerify(Var Verify: Boolean);
 Begin
-  {! No Linux equivalent !}
+  {! No Unix equivalent !}
   Verify:=true;
 End;
 
@@ -798,8 +798,22 @@ End;
 
 Procedure SetVerify(Verify: Boolean);
 Begin
-  {! No Linux equivalent !}
+  {! No Unix equivalent !}
 End;
+
+
+function  GetShortName(var p : String) : boolean;
+
+begin
+ { short=long under *nix}
+ GetShortName:=True;
+end;
+
+function  GetLongName(var p : String) : boolean;
+begin
+  { short=long under *nix}
+ GetLongName:=True;
+end;
 
 
 {******************************************************************************
@@ -810,7 +824,10 @@ End.
 
 {
   $Log$
-  Revision 1.24  2004-02-09 12:03:16  michael
+  Revision 1.25  2004-02-09 17:01:28  marco
+   * fixes to get it working under FreeBSD, and probably Linux too
+
+  Revision 1.24  2004/02/09 12:03:16  michael
   + Switched to single interface in dosh.inc
 
   Revision 1.23  2004/01/31 16:15:14  florian
