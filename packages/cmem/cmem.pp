@@ -56,7 +56,8 @@ end;
 Function CReAllocMem (var p:pointer;Size:longint):Pointer;
 
 begin
-  Result:=realloc(p,size);
+  p := realloc(p,size);
+  Result:=p;
 end;
 
 Function CMemSize (p:pointer): Longint;
@@ -111,7 +112,10 @@ end.
 
 {   
  $Log$
- Revision 1.4  2001-06-07 16:34:41  jonas
+ Revision 1.5  2001-10-23 12:14:36  jonas
+   * fixed CReAllocMem (web bug 1637)
+
+ Revision 1.4  2001/06/07 16:34:41  jonas
    * added ifdef fpc round @ for procvars
 
  Revision 1.3  2001/06/07 16:14:48  marco
