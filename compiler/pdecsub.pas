@@ -1420,7 +1420,7 @@ const
       mutexclpo     : [po_assembler,po_external]
     ),(
       idtok:_VARARGS;
-      pd_flags : pd_interface+pd_implemen;
+      pd_flags : pd_interface+pd_implemen+pd_procvar;
       handler  : nil;
       pocall   : [];
       pooption : [po_varargs];
@@ -1501,25 +1501,23 @@ const
            exit;
          end;
 
-      { Check if the directive is only for objects }
-        if ((proc_direcdata[p].pd_flags and pd_object)<>0) and
-           not assigned(aktprocsym.definition._class) then
-          begin
+        if aktprocsym.definition.deftype=procdef then
+         begin
+           { Check if the directive is only for objects }
+           if ((proc_direcdata[p].pd_flags and pd_object)<>0) and
+              not assigned(aktprocsym.definition._class) then
             exit;
-          end;
-      { check if method and directive not for object public }
-        if ((proc_direcdata[p].pd_flags and pd_notobject)<>0) and
-           assigned(aktprocsym.definition._class) then
-          begin
-            exit;
-          end;
 
-      { check if method and directive not for interface }
-        if ((proc_direcdata[p].pd_flags and pd_notobjintf)<>0) and
-           is_interface(aktprocsym.definition._class) then
-          begin
+           { check if method and directive not for object public }
+           if ((proc_direcdata[p].pd_flags and pd_notobject)<>0) and
+              assigned(aktprocsym.definition._class) then
             exit;
-          end;
+
+           { check if method and directive not for interface }
+           if ((proc_direcdata[p].pd_flags and pd_notobjintf)<>0) and
+              is_interface(aktprocsym.definition._class) then
+            exit;
+         end;
 
       { consume directive, and turn flag on }
         consume(token);
@@ -1890,7 +1888,12 @@ const
 end.
 {
   $Log$
-  Revision 1.26  2001-06-04 11:53:13  peter
+  Revision 1.27  2001-06-04 18:12:26  peter
+    * fixed crash with procvar directive parsing. Be carefull as the procvar
+      directive parsing uses aktprocsym.definition that is a tprocdef, but
+      for procvar the type is tprocvardef. So some fields are not available
+
+  Revision 1.26  2001/06/04 11:53:13  peter
     + varargs directive
 
   Revision 1.25  2001/06/03 21:57:36  peter
