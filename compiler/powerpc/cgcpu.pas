@@ -131,12 +131,6 @@ unit cgcpu;
 
 
 const
-{
-  TOpCG2AsmOp: Array[topcg] of TAsmOp = (A_NONE,A_ADD,A_AND,A_DIVWU,
-                 A_DIVW,A_MULLW, A_MULLW, A_NEG,A_NOT,A_OR,
-                 A_SRAW,A_SLW,A_SRW,A_SUB,A_XOR);
-}
-
   TOpCG2AsmOpConstLo: Array[topcg] of TAsmOp = (A_NONE,A_ADDI,A_ANDI_,A_DIVWU,
                         A_DIVW,A_MULLW, A_MULLW, A_NONE,A_NONE,A_ORI,
                         A_SRAWI,A_SLWI,A_SRWI,A_SUBI,A_XORI);
@@ -267,13 +261,13 @@ const
        begin
           if (longint(a) >= low(smallint)) and
              (longint(a) <= high(smallint)) then
-            list.concat(taicpu.op_reg_const(A_LI,reg,longint(a)))
+            list.concat(taicpu.op_reg_const(A_LI,reg,smallint(a)))
           else if ((a and $ffff) <> 0) then
             begin
               list.concat(taicpu.op_reg_const(A_LI,reg,smallint(a and $ffff)));
               if ((a shr 16) <> 0) then
                 list.concat(taicpu.op_reg_const(A_ADDIS,reg,
-                  (a shr 16)+ord(smallint(a and $ffff) < 0)))
+                  smallint((a shr 16)+ord(smallint(a and $ffff) < 0))))
             end
           else
             list.concat(taicpu.op_reg_const(A_LIS,reg,smallint(a shr 16)));
@@ -452,20 +446,33 @@ const
             result := false;
             if (smallint(a) > 0) then
               begin
-                list.concat(taicpu.op_reg_reg_const(oplo,dst,src,word(a)));
-                list.concat(taicpu.op_reg_reg_const(ophi,dst,dst,a shr 16));
+                list.concat(taicpu.op_reg_reg_const(oplo,dst,src,smallint(a)));
+                list.concat(taicpu.op_reg_reg_const(ophi,dst,dst,smallint(a shr 16)));
                 result := true;
               end;
           end;
 
       begin
+        if op = OP_SUB then
+          begin
+{$ifopt q+}
+{$q-}
+{$define overflowon}
+{$endif}
+            a_op_const_reg_reg(list,op,size,aword(-a),src,dst);
+{$ifdef overflowon}
+{$q+}
+{$undef overflowon}
+{$endif}
+            exit;
+          end;
         ophi := TOpCG2AsmOpConstHi[op];
         oplo := TOpCG2AsmOpConstLo[op];
         gotrlwi := get_rlwi_const(a,l1,l2);
         { constants in a PPC instruction are always interpreted as signed }
         { 16bit values, so if the value is between low(smallint) and      }
         { high(smallint), it's easy                                       }
-        if (op in [OP_ADD,OP_SUB,OP_AND,OP_OR,OP_XOR]) then
+        if (op in [OP_ADD,OP_AND,OP_OR,OP_XOR]) then
           begin
             if (a = 0) then
               begin
@@ -482,10 +489,10 @@ const
               end
             else if (longint(a) >= low(smallint)) and
                (longint(a) <= high(smallint)) and
-               (not(op = OP_AND) or
-                not gotrlwi) then
+               ((op <> OP_AND) or
+                 not gotrlwi) then
               begin
-                list.concat(taicpu.op_reg_reg_const(oplo,dst,src,a));
+                list.concat(taicpu.op_reg_reg_const(oplo,dst,src,smallint(a)));
                 exit;
               end;
             { all basic constant instructions also have a shifted form that }
@@ -495,7 +502,7 @@ const
                (not(op = OP_AND) or
                 not gotrlwi) then
               begin
-                list.concat(taicpu.op_reg_reg_const(ophi,dst,src,hi(a)));
+                list.concat(taicpu.op_reg_reg_const(ophi,dst,src,smallint(a shr 16)));
                 exit;
               end;
           end;
@@ -508,14 +515,14 @@ const
            OP_IMUL, OP_MUL:
              if (longint(a) >= low(smallint)) and
                 (longint(a) <= high(smallint)) then
-               list.concat(taicpu.op_reg_reg_const(A_MULLI,dst,src,a))
+               list.concat(taicpu.op_reg_reg_const(A_MULLI,dst,src,smallint(a)))
              else
                usereg := true;
-          OP_ADD,OP_SUB:
+          OP_ADD:
             begin
               list.concat(taicpu.op_reg_reg_const(oplo,dst,src,smallint(a)));
               list.concat(taicpu.op_reg_reg_const(ophi,dst,dst,
-                (a shr 16) + ord(smallint(a) < 0)));
+                smallint((a shr 16) + ord(smallint(a) < 0))));
             end;
           OP_OR:
             { try to use rlwimi }
@@ -1453,7 +1460,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.31  2002-07-30 20:50:44  florian
+  Revision 1.32  2002-08-02 11:10:42  jonas
+    * some misc constant fixes
+
+  Revision 1.31  2002/07/30 20:50:44  florian
     * the code generator knows now if parameters are in registers
 
   Revision 1.30  2002/07/29 21:23:44  florian
