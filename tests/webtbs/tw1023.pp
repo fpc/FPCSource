@@ -2,7 +2,7 @@
 { Submitted by "Denis Yarkovoy" on  2000-07-03 }
 { e-mail: gunky9@geocities.com }
  {$goto on}
- {$i386_intel}
+ {$asmmode intel}
  label l1;
 
 var

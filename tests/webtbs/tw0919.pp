@@ -1,5 +1,7 @@
- var i:integer;
-{$i386_intel}
+{ %cpu=i386 }
+
+var i:integer;
+{$asmmode intel}
 { "mov i,1"
    is like
   "mov word ptr [i],1"
