@@ -176,6 +176,9 @@ function IsFunctionKey(KeyEvent: TKeyEvent): Boolean;
 {$ifdef win32}
 var last_ir : INPUT_RECORD;
 {$endif win32}
+{$ifdef linux}
+Function RawReadKey:char;
+{$endif linux}
 {$endif DEBUG}
 
 implementation
@@ -231,7 +234,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:38  michael
+  Revision 1.2  2000-10-26 23:10:21  peter
+    * fixes merge
+
+  Revision 1.1  2000/07/13 06:29:38  michael
   + Initial import
 
   Revision 1.2  2000/02/29 11:43:16  pierre
