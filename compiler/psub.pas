@@ -364,11 +364,6 @@ implementation
 
               { the procedure is now defined }
               aktprocsym^.definition^.forwarddef:=false;
-{$ifdef newcg}
-              aktprocsym^.definition^.usedregisters:=tg.usedinproc;
-{$else newcg}
-              aktprocsym^.definition^.usedregisters:=usedinproc;
-{$endif newcg}
            end;
 
 {$ifdef newcg}
@@ -397,6 +392,12 @@ implementation
              cg^.g_exitcode(procinfo^.aktexitcode,parasize,nostackframe,false);
 {$else newcg}
              genexitcode(procinfo^.aktexitcode,parasize,nostackframe,false);
+{$endif newcg}
+             { now all the registers used are known }
+{$ifdef newcg}
+             aktprocsym^.definition^.usedregisters:=tg.usedinproc;
+{$else newcg}
+             aktprocsym^.definition^.usedregisters:=usedinproc;
 {$endif newcg}
              procinfo^.aktproccode^.insertlist(procinfo^.aktentrycode);
              procinfo^.aktproccode^.concatlist(procinfo^.aktexitcode);
@@ -831,7 +832,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.18  2000-10-21 18:16:12  florian
+  Revision 1.19  2000-10-24 22:21:25  peter
+    * set usedregisters after writing entry and exit code (merged)
+
+  Revision 1.18  2000/10/21 18:16:12  florian
     * a lot of changes:
        - basic dyn. array support
        - basic C++ support
