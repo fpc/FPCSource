@@ -18,11 +18,11 @@ unit FPWritePNG;
 
 interface
 
-uses classes, FPImage, FPImgCmn, PNGComn, ZStream, sysutils;
+uses sysutils, classes, FPImage, FPImgCmn, PNGComn, ZStream;
 
 type
 
-  TGetPixelFunc = function (x,y : integer) : TColorData of object;
+  TGetPixelFunc = function (x,y : LongWord) : TColorData of object;
 
   TFPWriterPNG = class (TFPCustomImageWriter)
     private
@@ -68,7 +68,7 @@ type
       procedure DetermineHeader (var AHeader : THeaderChunk); virtual;
       function DetermineFilter (Current, Previous:PByteArray; linelength:longword):byte; virtual;
       procedure FillScanLine (y : integer; ScanLine : pByteArray); virtual;
-      property ChunkDataBuffer : PByteArray read FChunk.data;
+      property ChunkDataBuffer : pByteArray read FChunk.data;
       property UsetRNS : boolean read FUsetRNS;
       property SingleTransparentColor : TFPColor read FTransparentColor;
       property ThePalette : TFPPalette read FPalette;
