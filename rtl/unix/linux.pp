@@ -290,8 +290,8 @@ Function  FStat(Fd:longint;Var Info:stat):Boolean;
 Function  FStat(var F:Text;Var Info:stat):Boolean;
 Function  FStat(var F:File;Var Info:stat):Boolean;
 Function  Lstat(Filename: PathStr;var Info:stat):Boolean;
-Function  FSStat(Path:Pathstr;Var Info:statfs):Boolean;
-Function  FSStat(Fd: Longint;Var Info:statfs):Boolean;
+Function  StatFS(Path:Pathstr;Var Info:tstatfs):Boolean;
+Function  StatFS(Fd: Longint;Var Info:tstatfs):Boolean;
 {$ifdef bsd}
 Function  Fcntl(Fd:longint;Cmd:longint):longint;
 Procedure Fcntl(Fd:longint;Cmd:longint;Arg:Longint);
@@ -2892,7 +2892,11 @@ End.
 
 {
   $Log$
-  Revision 1.9  2001-06-02 00:31:30  peter
+  Revision 1.10  2001-06-03 20:19:09  peter
+    * FSStat to StatFS
+    * StatFS structure to TStatFS
+
+  Revision 1.9  2001/06/02 00:31:30  peter
     * merge unix updates from the 1.0 branch, mostly related to the
       solaris target
 

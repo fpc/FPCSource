@@ -395,10 +395,10 @@ end;
 
 Function DiskFree(Drive: Byte): int64;
 var
-  fs : statfs;
+  fs : tstatfs;
 Begin
-  if ((Drive<4) and (not (fixdrivestr[Drive]=nil)) and fsstat(StrPas(fixdrivestr[drive]),fs)) or
-     ((not (drivestr[Drive]=nil)) and fsstat(StrPas(drivestr[drive]),fs)) then
+  if ((Drive<4) and (not (fixdrivestr[Drive]=nil)) and StatFS(StrPas(fixdrivestr[drive]),fs)) or
+     ((not (drivestr[Drive]=nil)) and StatFS(StrPas(drivestr[drive]),fs)) then
    Diskfree:=int64(fs.bavail)*int64(fs.bsize)
   else
    Diskfree:=-1;
@@ -408,10 +408,10 @@ End;
 
 Function DiskSize(Drive: Byte): int64;
 var
-  fs : statfs;
+  fs : tstatfs;
 Begin
-  if ((Drive<4) and (not (fixdrivestr[Drive]=nil)) and fsstat(StrPas(fixdrivestr[drive]),fs)) or
-     ((not (drivestr[Drive]=nil)) and fsstat(StrPas(drivestr[drive]),fs)) then
+  if ((Drive<4) and (not (fixdrivestr[Drive]=nil)) and StatFS(StrPas(fixdrivestr[drive]),fs)) or
+     ((not (drivestr[Drive]=nil)) and StatFS(StrPas(drivestr[drive]),fs)) then
    DiskSize:=int64(fs.blocks)*int64(fs.bsize)
   else
    DiskSize:=-1;
@@ -877,7 +877,11 @@ End.
 
 {
   $Log$
-  Revision 1.5  2001-06-02 00:31:30  peter
+  Revision 1.6  2001-06-03 20:19:09  peter
+    * FSStat to StatFS
+    * StatFS structure to TStatFS
+
+  Revision 1.5  2001/06/02 00:31:30  peter
     * merge unix updates from the 1.0 branch, mostly related to the
       solaris target
 

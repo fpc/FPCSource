@@ -498,7 +498,7 @@ end;
 
 
 
-Function FSStat(Path:Pathstr;Var Info:statfs):Boolean;
+Function StatFS(Path:Pathstr;Var Info:tstatfs):Boolean;
 {
   Get all information on a fileSystem, and return it in Info.
   Path is the name of a file/directory on the fileSystem you wish to
@@ -510,13 +510,13 @@ begin
   path:=path+#0;
   regs.reg2:=longint(@path[1]);
   regs.reg3:=longint(@Info);
-  FSStat:=(SysCall(SysCall_nr_statfs,regs)=0);
+  StatFS:=(SysCall(SysCall_nr_statfs,regs)=0);
   LinuxError:=errno;
 end;
 
 
 
-Function FSStat(Fd:Longint;Var Info:statfs):Boolean;
+Function StatFS(Fd:Longint;Var Info:tstatfs):Boolean;
 {
   Get all information on a fileSystem, and return it in Info.
   Fd is the file descriptor of a file/directory on the fileSystem
@@ -527,7 +527,7 @@ var
 begin
   regs.reg2:=Fd;
   regs.reg3:=longint(@Info);
-  FSStat:=(SysCall(SysCall_nr_fstatfs,regs)=0);
+  StatFS:=(SysCall(SysCall_nr_fstatfs,regs)=0);
   LinuxError:=errno;
 end;
 
@@ -927,7 +927,11 @@ end;
 
 {
   $Log$
-  Revision 1.2  2001-06-02 00:31:30  peter
+  Revision 1.3  2001-06-03 20:19:09  peter
+    * FSStat to StatFS
+    * StatFS structure to TStatFS
+
+  Revision 1.2  2001/06/02 00:31:30  peter
     * merge unix updates from the 1.0 branch, mostly related to the
       solaris target
 

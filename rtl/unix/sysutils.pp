@@ -330,10 +330,10 @@ end;
 
 Function DiskFree(Drive: Byte): int64;
 var
-  fs : statfs;
+  fs : tstatfs;
 Begin
-  if ((Drive<4) and (not (fixdrivestr[Drive]=nil)) and fsstat(StrPas(fixdrivestr[drive]),fs)) or
-     ((not (drivestr[Drive]=nil)) and fsstat(StrPas(drivestr[drive]),fs)) then
+  if ((Drive<4) and (not (fixdrivestr[Drive]=nil)) and statfs(StrPas(fixdrivestr[drive]),fs)) or
+     ((not (drivestr[Drive]=nil)) and statfs(StrPas(drivestr[drive]),fs)) then
    Diskfree:=int64(fs.bavail)*int64(fs.bsize)
   else
    Diskfree:=-1;
@@ -343,10 +343,10 @@ End;
 
 Function DiskSize(Drive: Byte): int64;
 var
-  fs : statfs;
+  fs : tstatfs;
 Begin
-  if ((Drive<4) and (not (fixdrivestr[Drive]=nil)) and fsstat(StrPas(fixdrivestr[drive]),fs)) or
-     ((not (drivestr[Drive]=nil)) and fsstat(StrPas(drivestr[drive]),fs)) then
+  if ((Drive<4) and (not (fixdrivestr[Drive]=nil)) and statfs(StrPas(fixdrivestr[drive]),fs)) or
+     ((not (drivestr[Drive]=nil)) and statfs(StrPas(drivestr[drive]),fs)) then
    DiskSize:=int64(fs.blocks)*int64(fs.bsize)
   else
    DiskSize:=-1;
@@ -465,7 +465,11 @@ end.
 {
 
   $Log$
-  Revision 1.9  2001-06-03 15:18:01  peter
+  Revision 1.10  2001-06-03 20:19:09  peter
+    * FSStat to StatFS
+    * StatFS structure to TStatFS
+
+  Revision 1.9  2001/06/03 15:18:01  peter
     * eoutofmemory and einvalidpointer fix
 
   Revision 1.8  2001/02/20 22:19:38  peter

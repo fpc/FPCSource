@@ -58,10 +58,10 @@ type
   end;
   PDir =^TDir;
 
-  dev_t	= word;
+  dev_t = word;
 
   Stat = packed record
-    dev     : dev_t;		
+    dev     : dev_t;
     pad1    : word;
     ino     : longint;
     mode,
@@ -85,7 +85,7 @@ type
   PStat=^Stat;
   TStat=Stat;
 
-  Statfs = packed record
+  TStatfs = packed record
     fstype,            { File system type }
     bsize,             { Optimal block trensfer size }
     blocks,            { Data blocks in system }
@@ -97,8 +97,7 @@ type
     namelen : longint; { Maximum name length in system }
     spare   : array [0..6] of longint; { For later use }
   end;
-  PStatFS=^StatFS;
-  TStatFS=StatFS;
+  PStatFS=^TStatFS;
 
   fdSet=array[0..7] of longint;{=256 bits}
   pfdset=^fdset;
@@ -133,7 +132,11 @@ type
 
 {
   $Log$
-  Revision 1.4  2001-06-02 00:31:30  peter
+  Revision 1.5  2001-06-03 20:19:09  peter
+    * FSStat to StatFS
+    * StatFS structure to TStatFS
+
+  Revision 1.4  2001/06/02 00:31:30  peter
     * merge unix updates from the 1.0 branch, mostly related to the
       solaris target
 
