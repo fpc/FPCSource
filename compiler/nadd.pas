@@ -93,7 +93,7 @@ implementation
          t,hp    : tnode;
          ot,
          lt,rt   : tnodetype;
-         rv,lv   : longint;
+         rv,lv   : tconstexprint;
          rvd,lvd : bestreal;
          resdef,
          rd,ld   : pdef;
@@ -1237,7 +1237,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2000-11-13 11:30:55  florian
+  Revision 1.17  2000-11-20 15:30:42  jonas
+    * changed types of values used for constant expression evaluation to
+      tconstexprint
+
+  Revision 1.16  2000/11/13 11:30:55  florian
     * some bugs with interfaces and NIL fixed
 
   Revision 1.15  2000/11/04 14:25:20  florian
