@@ -27,11 +27,12 @@ asm
 # decide what type it is
         movl    12(%ebp),%ebx
         movb    (%ebx),%al
-        subb    $10,%al
+# This is MANIFESTLY wrong
+        subb    $9,%al
         jz      .DoAnsiStringInit
         decb    %al
         jz      .DoAnsiStringInit
-        subb    $2,%al
+        subb    $3,%al
         jz      .DoArrayInit
         decb    %al
         jz      .DoRecordInit
@@ -386,7 +387,10 @@ end;
 
 {
   $Log$
-  Revision 1.11  1998-11-17 00:41:10  peter
+  Revision 1.12  1998-11-30 10:07:34  michael
+  + Adjusted typeinfo constants
+
+  Revision 1.11  1998/11/17 00:41:10  peter
     * renamed string functions
 
   Revision 1.10  1998/11/16 12:21:47  peter
