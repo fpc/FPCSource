@@ -38,6 +38,7 @@ var
 {$i signal.inc}
 {$i syscalls.inc }
 
+
 {*****************************************************************************
                        Misc. System Dependent Functions
 *****************************************************************************}
@@ -65,7 +66,11 @@ begin
   if l=0 then
    begin
      str(sys_getpid,hs);
-     hs:='/proc/'+hs+'/exe'#0;
+     {$ifdef FreeBSD}
+      hs:='/proc/'+hs+'/file'#0; 
+     {$else}
+      hs:='/proc/'+hs+'/exe'#0;
+     {$endif}
      i:=Sys_readlink(@hs[1],@link[1],high(link));
      { it must also be an absolute filename, linux 2.0 points to a memory
        location so this will skip that }
@@ -196,6 +201,7 @@ end;
 Procedure Do_Close(Handle:Longint);
 Begin
   sys_close(Handle);
+  {Errno2Inoutres;}
 End;
 
 
@@ -211,7 +217,6 @@ Begin
   sys_rename(p1,p2);
   Errno2Inoutres;
 End;
-
 
 Function Do_Write(Handle,Addr,Len:Longint):longint;
 Begin
@@ -284,6 +289,7 @@ Procedure Do_Open(var f;p:pchar;flags:longint);
 }
 var
   oflags : longint;
+
 Begin
 { close first if opened }
   if ((flags and $10000)=0) then
@@ -555,7 +561,7 @@ begin
 {$ifdef I386}
           fpustate:=0;
           res:=200;
-  {$ifndef BSD}
+  {$ifndef FreeBSD}
            if assigned(SigContext.fpstate) then
              fpuState:=SigContext.fpstate^.sw;
   {$else}
@@ -597,7 +603,7 @@ begin
   if res<>0 then
    begin
 {$ifdef I386}
-     {$ifdef BSD}
+     {$ifdef FreeBSD}
       HandleErrorAddrFrame(res,SigContext.sc_eip,SigContext.sc_ebp);
      {$else}
       HandleErrorAddrFrame(res,SigContext.eip,SigContext.ebp);
@@ -712,7 +718,10 @@ End.
 
 {
   $Log$
-  Revision 1.14  2001-07-15 11:57:16  peter
+  Revision 1.15  2001-07-16 19:51:36  marco
+   * A small note, copied from the Solaris patch. Do_close needs errnotoiores?
+
+  Revision 1.14  2001/07/15 11:57:16  peter
     * merged m68k updates
 
   Revision 1.13  2001/07/13 22:05:09  peter
