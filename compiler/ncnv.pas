@@ -1218,8 +1218,10 @@ implementation
                  convtype:=tc_equal;
 
                  { check if the result could be in a register }
-                 if not(tstoreddef(resulttype.def).is_intregable) and
-                    not(tstoreddef(resulttype.def).is_fpuregable) then
+                 if (not(tstoreddef(resulttype.def).is_intregable) and
+                     not(tstoreddef(resulttype.def).is_fpuregable)) or
+                    ((left.resulttype.def.deftype = floatdef) and
+                     (resulttype.def.deftype <> floatdef))  then
                    make_not_regable(left);
 
                  { class to class or object to object, with checkobject support }
@@ -2109,7 +2111,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.113  2003-06-04 17:29:01  jonas
+  Revision 1.114  2003-06-04 17:55:09  jonas
+    * disable fpuregable for fpu variables typecasted to non fpu-type
+
+  Revision 1.113  2003/06/04 17:29:01  jonas
     * fixed void_to_(int,pointer) typeconversion
 
   Revision 1.112  2003/06/03 21:05:48  peter
