@@ -677,18 +677,20 @@ var value      : Array[0..255] of char;
     p          : string;
     i          : Longint;
 begin
+  { if path is empty then return the current dir }
+  if path<>'' then
+   p:=path
+  else
+   p:='.';
   { allow slash as backslash }
-  p := path;
   for i:=1 to length(p) do
    if p[i]='/' then
     p[i]:='\';
   StringToPchar(p);
-  {getmem(value, 255); lets avoid slow getmem PM
-   getmem(tmp, 255); not necessary
-   tmp only points to the filename part at function exit }
+  tmp:=nil;
+  fillchar(value,sizeof(value),0);
   GetFullPathName(@p, 255, value, tmp);
   FExpand := strpas(value);
-  { freemem(value,255) this would be nice at least if we use getmem !! PM }
 end;
 
   function SearchPath(lpPath : PChar; lpFileName : PChar; lpExtension : PChar; nBufferLength : Longint; lpBuffer : PChar;
@@ -932,7 +934,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.33  2000-02-09 16:59:34  peter
+  Revision 1.34  2000-02-26 13:24:26  peter
+    * fixed fexpand with empty argument to return current dir
+
+  Revision 1.33  2000/02/09 16:59:34  peter
     * truncated log
 
   Revision 1.32  2000/02/02 17:32:59  pierre
