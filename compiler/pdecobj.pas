@@ -504,30 +504,44 @@ implementation
              begin
                 if not(is_ordinal(p.proptype.def) or
                        is_64bitint(p.proptype.def) or
+                       is_class(p.proptype.def) or
+                       (p.proptype.def.deftype in [classrefdef,pointerdef]) or
                        ((p.proptype.def.deftype=setdef) and
                         (tsetdef(p.proptype.def).settype=smallset))) or
                        ((p.proptype.def.deftype=arraydef) and
                         (ppo_indexed in p.propoptions)) or
                    (ppo_hasparameters in p.propoptions) then
-                  Message(parser_e_property_cant_have_a_default_value);
-                { Get the result of the default, the firstpass is
-                  needed to support values like -1 }
-                pt:=comp_expr(true);
-                if (p.proptype.def.deftype=setdef) and
-                   (pt.nodetype=arrayconstructorn) then
                   begin
-                    arrayconstructor_to_set(pt);
-                    do_resulttypepass(pt);
-                  end;
-                inserttypeconv(pt,p.proptype);
-                if not(is_constnode(pt)) then
-                  Message(parser_e_property_default_value_must_const);
-
-                if pt.nodetype=setconstn then
-                  p.default:=plongint(tsetconstnode(pt).value_set)^
+                    Message(parser_e_property_cant_have_a_default_value);
+                    { Error recovery }
+                    pt:=comp_expr(true);
+                    pt.free;
+                  end
                 else
-                  p.default:=tordconstnode(pt).value;
-                pt.free;
+                  begin
+                    { Get the result of the default, the firstpass is
+                      needed to support values like -1 }
+                    pt:=comp_expr(true);
+                    if (p.proptype.def.deftype=setdef) and
+                       (pt.nodetype=arrayconstructorn) then
+                      begin
+                        arrayconstructor_to_set(pt);
+                        do_resulttypepass(pt);
+                      end;
+                    inserttypeconv(pt,p.proptype);
+                    if not(is_constnode(pt)) then
+                      Message(parser_e_property_default_value_must_const);
+                    { Set default value }
+                    case pt.nodetype of
+                      setconstn :
+                        p.default:=plongint(tsetconstnode(pt).value_set)^;
+                      ordconstn :
+                        p.default:=tordconstnode(pt).value;
+                      niln :
+                        p.default:=0;
+                    end;
+                    pt.free;
+                  end;
              end
            else if try_to_consume(_NODEFAULT) then
              begin
@@ -1024,6 +1038,7 @@ implementation
                     if assigned(pd) then
                      begin
                        parse_object_proc_directives(pd);
+                       handle_calling_convention(pd);
                        calc_parast(pd);
 
                        { add definition to procsym }
@@ -1058,6 +1073,7 @@ implementation
                     parse_only:=true;
                     pd:=constructor_head;
                     parse_object_proc_directives(pd);
+                    handle_calling_convention(pd);
                     calc_parast(pd);
 
                     { add definition to procsym }
@@ -1089,6 +1105,7 @@ implementation
                     parse_only:=true;
                     pd:=destructor_head;
                     parse_object_proc_directives(pd);
+                    handle_calling_convention(pd);
                     calc_parast(pd);
 
                     { add definition to procsym }
@@ -1138,7 +1155,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.67  2003-06-13 21:19:30  peter
+  Revision 1.68  2003-10-02 21:15:12  peter
+    * support nil as default value
+    * when no default property is allowed don't check default value
+
+  Revision 1.67  2003/06/13 21:19:30  peter
     * current_procdef removed, use current_procinfo.procdef instead
 
   Revision 1.66  2003/05/23 14:27:35  peter
