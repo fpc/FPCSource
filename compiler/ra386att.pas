@@ -272,6 +272,7 @@ begin
            { local variables are case sensitive }
            actasmtoken:=AS_LLABEL;
            c:=current_scanner^.asmgetchar;
+           firsttoken:=true;
            exit;
          end
         { must be a directive }
@@ -297,6 +298,7 @@ begin
         actasmtoken:=AS_LABEL;
         { let us point to the next character }
         c:=current_scanner^.asmgetchar;
+        firsttoken:=true;
         exit;
       end;
      { Opcode ? }
@@ -1930,8 +1932,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.52  1999-06-14 17:48:03  peter
+  Revision 1.53  1999-06-21 16:45:01  peter
     * merged
+
+  Revision 1.52  1999/06/14 17:48:03  peter
+    * merged
+
+  Revision 1.50.2.2  1999/06/21 16:42:57  peter
+    * fixed label and opcode on the same line
 
   Revision 1.50.2.1  1999/06/14 17:30:44  peter
     * align fixes from pierre

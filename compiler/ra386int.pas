@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1997-98 by Carl Eric Codere
+    Copyright (c) 1997-99 by Carl Eric Codere and Peter Vreman
 
     Does the parsing process for the intel styled inline assembler.
 
@@ -254,6 +254,7 @@ begin
 { Local Label, Label, Directive, Prefix or Opcode }
   if firsttoken and not (c in [newline,#13,'{',';']) then
    begin
+     firsttoken:=FALSE;
      len:=0;
      while c in ['A'..'Z','a'..'z','0'..'9','_','@'] do
       begin
@@ -275,14 +276,13 @@ begin
           actasmtoken:=AS_LABEL;
         { let us point to the next character }
         c:=current_scanner^.asmgetchar;
+        firsttoken:=true;
         exit;
       end;
      { Are we trying to create an identifier with }
      { an at-sign...?                             }
      if forcelabel then
       Message(asmr_e_none_label_contain_at);
-     { we're not the first token anymore }
-     firsttoken:=FALSE;
      { opcode ? }
      If is_asmopcode(actasmpattern) then
       Begin
@@ -1640,7 +1640,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.37  1999-06-08 11:52:00  peter
+  Revision 1.38  1999-06-21 16:45:02  peter
+    * merged
+
+  Revision 1.37.2.1  1999/06/21 16:43:00  peter
+    * fixed label and opcode on the same line
+
+  Revision 1.37  1999/06/08 11:52:00  peter
     * fixed some intel bugs with scale parsing
     * end is now also a separator in many more cases
 
