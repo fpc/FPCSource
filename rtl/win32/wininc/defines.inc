@@ -447,7 +447,7 @@
      FILE_ATTRIBUTE_READONLY = 1;
      FILE_ATTRIBUTE_SYSTEM = 4;
      FILE_ATTRIBUTE_TEMPORARY = 256;
-     FILE_FLAG_WRITE_THROUGH = 2147483648;
+     FILE_FLAG_WRITE_THROUGH = $80000000;
      FILE_FLAG_OVERLAPPED = 1073741824;
      FILE_FLAG_NO_BUFFERING = 536870912;
      FILE_FLAG_RANDOM_ACCESS = 268435456;
@@ -5731,7 +5731,11 @@ const
 
 {
   $Log$
-  Revision 1.7  2002-10-06 20:00:22  peter
+  Revision 1.8  2002-10-08 17:13:31  jonas
+    * changed value of FILE_FLAG_WRITE_THROUGH to hex notation because it
+      was equal to MAX_LONGINT + 1 -> parsed as a float
+
+  Revision 1.7  2002/10/06 20:00:22  peter
     * Use Widechar in the Windows unit
 
   Revision 1.6  2002/09/07 16:01:30  peter
