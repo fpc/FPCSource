@@ -158,7 +158,7 @@ help:
         @echo
         @echo Packing targets are:
         @echo
-        @echo go32v2zip,win32zip,linuxzip,freebsdzip,sourcezip
+        @echo go32v2zip,win32zip,linuxzip,freebsdzip,sourcezip,os2zip
         @echo
         @exit
 
@@ -435,7 +435,7 @@ sourcezip: distclean
 # OS targets
 ##########################################################################
 
-.PHONY: go32v2 win32 linux freebsd go32v2zip win32zip linuxzip freebsdzip
+.PHONY: go32v2 win32 linux freebsd os2 go32v2zip win32zip linuxzip freebsdzip os2zip
 
 go32v2: checkfpcdir
         $(MAKE) install OS_TARGET=go32v2
@@ -449,6 +449,9 @@ linux: checkfpcdir
 freebsd: checkfpcdir
         $(MAKE) install OS_TARGET=freebsd
 
+os2: checkfpcdir
+        $(MAKE) install OS_TARGET=os2
+
 go32v2zip: checkfpcdir
         $(MAKE) zipinstall OS_TARGET=go32v2
 
@@ -461,6 +464,9 @@ linuxzip: checkfpcdir
 
 freebsdzip : checkfpcdir
         $(MAKE) zipinstall OS_TARGET=freebsd
+
+os2zip: checkfpcdir
+        $(MAKE) zipinstall OS_TARGET=os2
 
 ##########################################################################
 # Debian / RPM
