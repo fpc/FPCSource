@@ -7,7 +7,7 @@ name=postgres
 version=1.9.4
 
 [target]
-units=dllist postgres
+units=dllist postgres postgres3
 examples=testpg1 testpg2
 
 [require]
