@@ -23,11 +23,11 @@
        SIGNATURE   = '+';  { Signature of CHR file               }
 
     type
-       pbyte = ^byte;
+(*       pbyte = ^byte;
        pword = ^word;
-
+*)
       { Prefix header of Font file }
-      PFHeader = ^TFHeader;
+{      PFHeader = ^TFHeader;}
       TFHeader = packed record
          header_size: word;    {* Version 2.0 Header Format        *}
          font_name: array[1..4] of char;
@@ -40,7 +40,7 @@
 
 
       { Font record information }
-      PHeader = ^THeader;
+{      PHeader = ^THeader;}
       THeader = packed record
         Signature:  char;     { signature byte                        }
         Nr_chars:   smallint;  { number of characters in file          }
@@ -71,7 +71,7 @@
 
 
 
-      pStroke = ^TStroke;
+{      pStroke = ^TStroke;}
       TStroke = packed record
         opcode: byte;
         x: smallint;  { relative x offset character }
@@ -87,7 +87,7 @@
     var
        fonts : array[1..maxfonts] of tfontrec;
        Strokes: TStrokes; {* Stroke Data Base           *}
-       Stroke_count: Array[0..MaxChars] of smallint; {* Stroke Count Table *}
+{       Stroke_count: Array[0..MaxChars] of smallint;} {* Stroke Count Table *}
 
 {***************************************************************************}
 {                         Internal support routines                         }
@@ -497,7 +497,8 @@
               for i:=1 to length(textstring) do
                 begin
                    c:=byte(textstring[i]);
-                   Stroke_Count[c] := unpack( fonts[CurrentTextInfo.font].instr,
+{                   Stroke_Count[c] := }
+                   unpack( fonts[CurrentTextInfo.font].instr,
                      fonts[CurrentTextInfo.font].Offsets[c], Strokes );
                    counter:=0;
                    while true do
@@ -733,7 +734,10 @@
 
 {
 $Log$
-Revision 1.10  1999-12-23 16:48:13  jonas
+Revision 1.11  2000-01-02 19:02:39  jonas
+  * removed/commented out (inited but) unused vars and unused types
+
+Revision 1.10  1999/12/23 16:48:13  jonas
   * turn off IO checking when attempting to open a font file (to avoid RTE)
 
 Revision 1.9  1999/12/20 11:22:36  peter

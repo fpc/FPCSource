@@ -1342,7 +1342,7 @@ var
     TempTerm: graph_float;
     xtemp, ytemp, xp, yp, xm, ym, xnext, ynext,
       plxpyp, plxmyp, plxpym, plxmym: smallint;
-    BackupColor, DeltaAngle, TmpAngle, OldLineWidth: word;
+    BackupColor, TmpAngle, OldLineWidth: word;
   Begin
    If LineInfo.ThickNess = ThickWidth Then
     { first draw the two outer ellipses using normwidth and no filling (JM) }
@@ -1391,8 +1391,6 @@ var
        EndAngle:=StAngle;
        Stangle:=TmpAngle;
      end;
-   { calculate difference of angle now so we don't always have to calculate it }
-   DeltaAngle:= EndAngle-StAngle;
    { approximate the number of pixels required by using the circumference }
    { equation of an ellipse.                                              }
    { Changed this formula a it (trial and error), but the net result is that }
@@ -1958,7 +1956,7 @@ type
   ptw = array[0..2] of longint;
 var
   k: longint;
-  oldCurrentColor, color: word;
+  oldCurrentColor: word;
   oldCurrentWriteMode, i, j, y1, x1, deltaX, deltaX1, deltaY: smallint;
 Begin
 {$ifdef logging}
@@ -3048,7 +3046,10 @@ SetGraphBufSize
 
 {
   $Log$
-  Revision 1.52  1999-12-29 17:26:00  jonas
+  Revision 1.53  2000-01-02 19:02:39  jonas
+    * removed/commented out (inited but) unused vars and unused types
+
+  Revision 1.52  1999/12/29 17:26:00  jonas
     + by default, also attempt to install the fonts that come with TP7
 
   Revision 1.51  1999/12/26 10:33:06  jonas

@@ -71,7 +71,6 @@
   {   for reqdriver is returned (JM)                       }
   {********************************************************}
     var
-     lastDriver, lastMode: SmallInt;
      list, lastModeInfo: PModeInfo;
     begin
 {$ifdef logging}
@@ -363,7 +362,10 @@
 
 {
 $Log$
-Revision 1.16  1999-12-21 17:42:18  jonas
+Revision 1.17  2000-01-02 19:02:39  jonas
+  * removed/commented out (inited but) unused vars and unused types
+
+Revision 1.16  1999/12/21 17:42:18  jonas
   * changed vesa.inc do it doesn't try to use linear modes anymore (doesn't work
     yet!!)
   * fixed mode detection so the low modenumber of a driver doesn't have to be zero
