@@ -1614,9 +1614,22 @@ implementation
                            { two paras ? }
                           if assigned(tcallparanode(left).right) then
                            begin
-                             { insert a type conversion       }
-                             { the second param is always longint }
-                             inserttypeconv(tcallparanode(tcallparanode(left).right).left,s32bittype);
+                             if (aktlocalswitches *
+                                   [cs_check_overflow,cs_check_range] = []) then
+                               begin
+                                 { insert a type conversion       }
+                                 { the second param is always longint }
+                                 if is_64bitint(left.resulttype.def) then
+                                   if is_signed(left.resulttype.def) then
+                                     inserttypeconv(tcallparanode(tcallparanode(left).right).left,cs64bittype)
+                                   else
+                                     inserttypeconv(tcallparanode(tcallparanode(left).right).left,cu64bittype)
+                                 else
+                                   if is_signed(left.resulttype.def) then
+                                     inserttypeconv(tcallparanode(tcallparanode(left).right).left,s32bittype)
+                                   else
+                                     inserttypeconv(tcallparanode(tcallparanode(left).right).left,u32bittype);
+                               end;
 
                              if assigned(tcallparanode(tcallparanode(left).right).right) then
                               CGMessage(cg_e_illegal_expression);
@@ -2343,7 +2356,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.80  2002-07-25 18:00:19  carl
+  Revision 1.81  2002-07-26 12:28:50  jonas
+    * don't always convert the second argument of inc/dec to a longint, but
+      to a type based on the first argument
+
+  Revision 1.80  2002/07/25 18:00:19  carl
     + Resulttype for floats is now CPU independent (bestrealytype)
     + Generic version of some routines (call to RTL routines)
         : still untested.
