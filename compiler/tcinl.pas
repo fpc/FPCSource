@@ -782,7 +782,10 @@ implementation
                                               frac_para:=nil;
                                               hpp:=hp^.right;
                                            end;
-                                         isreal:=(hpp^.left^.resulttype^.deftype=floatdef);
+                                         { can be nil if you use "write(e:0:6)" while e is undeclared (JM) }
+                                         if assigned(hpp^.left^.resulttype) then
+                                           isreal:=(hpp^.left^.resulttype^.deftype=floatdef)
+                                         else exit;
                                          if (not is_integer(length_para^.left^.resulttype)) then
                                           CGMessage1(type_e_integer_expr_expected,length_para^.left^.resulttype^.typename)
                                         else
@@ -1292,7 +1295,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.67  2000-02-17 14:53:43  florian
+  Revision 1.68  2000-02-17 15:39:29  jonas
+    * fixed crashing bug when trying to write an undefined fp var with
+      formatting parameters
+
+  Revision 1.67  2000/02/17 14:53:43  florian
     * some updates for the newcg
 
   Revision 1.66  2000/02/13 14:21:51  jonas
