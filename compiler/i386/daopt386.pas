@@ -50,6 +50,16 @@ const
   { same, but for constants }
   con_noRemoveConst = 5;
 
+
+const
+  topsize2tcgsize: array[topsize] of tcgsize = (OS_NO,
+    OS_8,OS_16,OS_32,OS_64,OS_16,OS_32,OS_32,
+    OS_16,OS_32,OS_64,
+    OS_F32,OS_F64,OS_F80,OS_C64,OS_F128,
+    OS_M32,OS_ADDR,OS_NO,OS_NO);
+
+
+
 {********************************* Types *********************************}
 
 type
@@ -171,10 +181,10 @@ function instrWritesFlags(p: tai): boolean;
 function instrReadsFlags(p: tai): boolean;
 
 function writeToMemDestroysContents(regWritten: tsuperregister; const ref: treference;
-  supreg: tsuperregister; const c: tcontent; var invalsmemwrite: boolean): boolean;
+  supreg: tsuperregister; size: tcgsize; const c: tcontent; var invalsmemwrite: boolean): boolean;
 function writeToRegDestroysContents(destReg, supreg: tsuperregister;
   const c: tcontent): boolean;
-function writeDestroysContents(const op: toper; supreg: tsuperregister;
+function writeDestroysContents(const op: toper; supreg: tsuperregister; size: tcgsize;
   const c: tcontent; var memwritedestroyed: boolean): boolean;
 
 
@@ -258,7 +268,7 @@ Uses
    rgobj, procinfo;
 
 Type
-  TRefCompare = function(const r1, r2: TReference): Boolean;
+  TRefCompare = function(const r1, r2: treference; size: tcgsize): boolean;
 
 var
  {How many instructions are between the current instruction and the last one
@@ -670,6 +680,31 @@ begin
     (r1.symbol=r2.symbol) and (r1.refaddr = r2.refaddr) and
     (r1.relsymbol = r2.relsymbol);
 end;
+
+
+{$ifdef q+}
+{$q-}
+{$define overflowon}
+{$endif q+}
+
+// checks whether a write to r2 of size "size" contains address r1
+function refsoverlapping(const r1, r2: treference; size: tcgsize): boolean;
+var
+  realsize: aword;
+begin
+  realsize := tcgsize2size[size];
+  refsoverlapping :=
+    (aword(r1.offset-r2.offset) <= realsize) and
+    (r1.segment = r2.segment) and (r1.base = r2.base) and
+    (r1.index = r2.index) and (r1.scalefactor = r2.scalefactor) and
+    (r1.symbol=r2.symbol) and (r1.refaddr = r2.refaddr) and
+    (r1.relsymbol = r2.relsymbol);
+end;
+
+{$ifdef overflowon}
+{$q+}
+{$undef overflowon}
+{$endif overflowon}
 
 
 function isgp32reg(supreg: tsuperregister): boolean;
@@ -1601,31 +1636,32 @@ end;
 
 
 function RefInInstruction(const ref: TReference; p: tai;
-           RefsEq: TRefCompare): Boolean;
+           RefsEq: TRefCompare; size: tcgsize): Boolean;
 {checks whehter ref is used in p}
-var TmpResult: Boolean;
+var
+  TmpResult: Boolean;
 begin
   TmpResult := False;
   if (p.typ = ait_instruction) then
     begin
       if (taicpu(p).ops >= 1) and
          (taicpu(p).oper[0]^.typ = top_ref) then
-        TmpResult := RefsEq(ref, taicpu(p).oper[0]^.ref^);
+        TmpResult := RefsEq(taicpu(p).oper[0]^.ref^,ref,size);
       if not(TmpResult) and
          (taicpu(p).ops >= 2) and
          (taicpu(p).oper[1]^.typ = top_ref) then
-        TmpResult := RefsEq(ref, taicpu(p).oper[1]^.ref^);
+        TmpResult := RefsEq(taicpu(p).oper[1]^.ref^,ref,size);
       if not(TmpResult) and
          (taicpu(p).ops >= 3) and
          (taicpu(p).oper[2]^.typ = top_ref) then
-        TmpResult := RefsEq(ref, taicpu(p).oper[2]^.ref^);
+        TmpResult := RefsEq(taicpu(p).oper[2]^.ref^,ref,size);
     end;
   RefInInstruction := TmpResult;
 end;
 
 
 function RefInSequence(const ref: TReference; Content: TContent;
-           RefsEq: TRefCompare): Boolean;
+           RefsEq: TRefCompare; size: tcgsize): Boolean;
 {checks the whole sequence of Content (so StartMod and and the next NrOfMods
  tai objects) to see whether ref is used somewhere}
 var p: tai;
@@ -1639,7 +1675,7 @@ begin
         (Counter <= Content.NrOfMods) Do
     begin
       if (p.typ = ait_instruction) and
-         RefInInstruction(ref, p, RefsEq)
+         RefInInstruction(ref, p, RefsEq, size)
         then TmpResult := True;
       inc(Counter);
       GetNextInstruction(p,p)
@@ -1647,15 +1683,25 @@ begin
   RefInSequence := TmpResult
 end;
 
-
-function ArrayRefsEq(const r1, r2: TReference): Boolean;
+{$ifdef q+}
+{$q-}
+{$define overflowon}
+{$endif q+}
+// checks whether a write to r2 of size "size" contains address r1
+function ArrayRefsOverlapping(const r1, r2: treference; size: tcgsize): Boolean;
+var
+  realsize: aword;
 begin
-  ArrayRefsEq := (R1.Offset = R2.Offset) and
-                 (R1.Segment = R2.Segment) and
-                 (R1.Symbol=R2.Symbol) and
-                 (R1.base = R2.base)
+  realsize := tcgsize2size[size];
+  ArrayRefsOverlapping := (aword(r1.offset-r2.offset) <= realsize) and
+                 (r1.segment = r2.segment) and
+                 (r1.symbol=r2.symbol) and
+                 (r1.base = r2.base)
 end;
-
+{$ifdef overflowon}
+{$q+}
+{$undef overflowon}
+{$endif overflowon}
 
 function isSimpleRef(const ref: treference): boolean;
 { returns true if ref is reference to a local or global variable, to a  }
@@ -1715,7 +1761,7 @@ end;
 
 
 function writeToMemDestroysContents(regWritten: tsuperregister; const ref: treference;
-  supreg: tsuperregister; const c: tcontent; var invalsmemwrite: boolean): boolean;
+  supreg: tsuperregister; size: tcgsize; const c: tcontent; var invalsmemwrite: boolean): boolean;
 { returns whether the contents c of reg are invalid after regWritten is }
 { is written to ref                                                     }
 var
@@ -1727,15 +1773,15 @@ begin
          (assigned(ref.symbol) and
           (ref.base <> NR_NO)) then
         { local/global variable or parameter which is an array }
-        refsEq := {$ifdef fpc}@{$endif}arrayRefsEq
+        refsEq := {$ifdef fpc}@{$endif}arrayRefsOverlapping
       else
         { local/global variable or parameter which is not an array }
-        refsEq := {$ifdef fpc}@{$endif}refsEqual;
+        refsEq := {$ifdef fpc}@{$endif}refsOverlapping;
       invalsmemwrite :=
         assigned(c.memwrite) and
         ((not(cs_uncertainOpts in aktglobalswitches) and
           containsPointerRef(c.memwrite)) or
-         refsEq(c.memwrite.oper[1]^.ref^,ref));
+         refsEq(c.memwrite.oper[1]^.ref^,ref,size));
       if not(c.typ in [con_ref,con_noRemoveRef,con_invalid]) then
         begin
           writeToMemDestroysContents := false;
@@ -1757,12 +1803,12 @@ begin
           ((not(cs_uncertainOpts in aktglobalswitches) and
             containsPointerLoad(c)
            ) or
-           (refInSequence(ref,c,refsEq) and
+           (refInSequence(ref,c,refsEq,size) and
             ((supreg <> regWritten) or
              not((nrOfMods = 1) and
                  {StarMod is always of the type ait_instruction}
                  (taicpu(StartMod).oper[0]^.typ = top_ref) and
-                 refsEq(taicpu(StartMod).oper[0]^.ref^, ref)
+                 refsEq(taicpu(StartMod).oper[0]^.ref^, ref, size)
                 )
             )
            )
@@ -1809,7 +1855,7 @@ begin
 end;
 
 
-function writeDestroysContents(const op: toper; supreg: tsuperregister;
+function writeDestroysContents(const op: toper; supreg: tsuperregister; size: tcgsize;
   const c: tcontent; var memwritedestroyed: boolean): boolean;
 { returns whether the contents c of reg are invalid after regWritten is }
 { is written to op                                                      }
@@ -1821,14 +1867,14 @@ begin
         writeToRegDestroysContents(getsupreg(op.reg),supreg,c);
     top_ref:
       writeDestroysContents :=
-        writeToMemDestroysContents(RS_INVALID,op.ref^,supreg,c,memwritedestroyed);
+        writeToMemDestroysContents(RS_INVALID,op.ref^,supreg,size,c,memwritedestroyed);
   else
     writeDestroysContents := false;
   end;
 end;
 
 
-procedure destroyRefs(p: tai; const ref: treference; regwritten: tsuperregister);
+procedure destroyRefs(p: tai; const ref: treference; regwritten: tsuperregister; size: tcgsize);
 { destroys all registers which possibly contain a reference to ref, regWritten }
 { is the register whose contents are being written to memory (if this proc     }
 { is called because of a "mov?? %reg, (mem)" instruction)                      }
@@ -1838,7 +1884,7 @@ var
 begin
   for counter := RS_EAX to RS_EDI Do
     begin
-      if writeToMemDestroysContents(regwritten,ref,counter,
+      if writeToMemDestroysContents(regwritten,ref,counter,size,
            ptaiprop(p.optInfo)^.regs[counter],destroymemwrite) then
         destroyReg(ptaiprop(p.optInfo), counter, false)
       else if destroymemwrite then
@@ -1883,7 +1929,7 @@ begin
     top_ref:
       begin
         readref(ptaiprop(taiObj.OptInfo), o.ref);
-        DestroyRefs(taiObj, o.ref^, RS_INVALID);
+        DestroyRefs(taiObj, o.ref^, RS_INVALID,topsize2tcgsize[(taiobj as taicpu).opsize]);
       end;
   end;
 end;
@@ -2452,12 +2498,12 @@ begin
                             if taicpu(p).oper[0]^.typ = top_reg then
                               begin
                                 readreg(curprop, getsupreg(taicpu(p).oper[0]^.reg));
-                                DestroyRefs(p, taicpu(p).oper[1]^.ref^, getsupreg(taicpu(p).oper[0]^.reg));
+                                DestroyRefs(p, taicpu(p).oper[1]^.ref^, getsupreg(taicpu(p).oper[0]^.reg),topsize2tcgsize[taicpu(p).opsize]);
                                 ptaiprop(p.optinfo)^.regs[getsupreg(taicpu(p).oper[0]^.reg)].memwrite :=
                                   taicpu(p);
                               end
                             else
-                              DestroyRefs(p, taicpu(p).oper[1]^.ref^, RS_INVALID);
+                              DestroyRefs(p, taicpu(p).oper[1]^.ref^, RS_INVALID,topsize2tcgsize[taicpu(p).opsize]);
                           end;
                       end;
                     top_Const:
@@ -2480,7 +2526,7 @@ begin
                           top_ref:
                             begin
                               readref(curprop, taicpu(p).oper[1]^.ref);
-                              DestroyRefs(p, taicpu(p).oper[1]^.ref^, RS_INVALID);
+                              DestroyRefs(p, taicpu(p).oper[1]^.ref^, RS_INVALID,topsize2tcgsize[taicpu(p).opsize]);
                             end;
                         end;
                       end;
@@ -2623,7 +2669,7 @@ begin
                             fillchar(tmpref, SizeOf(tmpref), 0);
                             tmpref.base := NR_EDI;
                             tmpref.index := NR_EDI;
-                            DestroyRefs(p, tmpref,RS_INVALID)
+                            DestroyRefs(p, tmpref,RS_INVALID,OS_32)
                           end;
                         Ch_RFlags:
                           if assigned(LastFlagsChangeProp) then
@@ -2719,7 +2765,11 @@ end.
 
 {
   $Log$
-  Revision 1.71  2004-10-05 20:41:01  peter
+  Revision 1.72  2004-10-06 19:24:38  jonas
+    * take into account the size of a write to determine whether a write to
+      one reference influences the contents of another reference
+
+  Revision 1.71  2004/10/05 20:41:01  peter
     * more spilling rewrites
 
   Revision 1.70  2004/10/04 20:46:22  peter

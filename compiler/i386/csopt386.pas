@@ -89,7 +89,7 @@ begin
             if p.oper[0]^.typ<>top_reg then
                break;
             if writeToMemDestroysContents(getsupreg(p.oper[0]^.reg),p.oper[1]^.ref^,
-                 regCounter,c[regCounter],dummy) then
+                 regCounter,topsize2tcgsize[p.opsize],c[regCounter],dummy) then
               begin
                 exclude(regsStillValid,regCounter);
                 modifiesConflictingMemLocation := not(supreg in regsStillValid);
@@ -102,7 +102,7 @@ begin
         if not onlymem  then
           for regCounter := RS_EAX to RS_EDI do
             begin
-              if writeDestroysContents(p.oper[1]^,regCounter,c[regCounter],dummy) then
+              if writeDestroysContents(p.oper[1]^,regCounter,topsize2tcgsize[p.opsize],c[regCounter],dummy) then
                 begin
                   exclude(regsStillValid,regCounter);
                   modifiesConflictingMemLocation := not(supreg in regsStillValid);
@@ -132,7 +132,7 @@ begin
             { last operand is always destination }
             for regCounter := RS_EAX to RS_EDI do
               begin
-                if writeDestroysContents(p.oper[p.ops-1]^,regCounter,c[regCounter],dummy) then
+                if writeDestroysContents(p.oper[p.ops-1]^,regCounter,topsize2tcgsize[p.opsize],c[regCounter],dummy) then
                   begin
                     exclude(regsStillValid,regCounter);
                     modifiesConflictingMemLocation := not(supreg in regsStillValid);
@@ -149,7 +149,7 @@ begin
 {                 is_reg_var[getsupreg(p.oper[0]^.reg)]) then }
                 for regCounter := RS_EAX to RS_EDI do
                   begin
-                    if writeDestroysContents(p.oper[0]^,regCounter,c[regCounter],dummy) then
+                    if writeDestroysContents(p.oper[0]^,regCounter,topsize2tcgsize[p.opsize],c[regCounter],dummy) then
                       begin
                         exclude(regsStillValid,regCounter);
                         modifiesConflictingMemLocation := not(supreg in regsStillValid);
@@ -164,7 +164,7 @@ begin
 {                 is_reg_var[getsupreg(p.oper[1]^.reg)]) then }
                 for regCounter := RS_EAX to RS_EDI do
                   begin
-                    if writeDestroysContents(p.oper[1]^,regCounter,c[regCounter],dummy) then
+                    if writeDestroysContents(p.oper[1]^,regCounter,topsize2tcgsize[p.opsize],c[regCounter],dummy) then
                       begin
                         exclude(regsStillValid,regCounter);
                         modifiesConflictingMemLocation := not(supreg in regsStillValid);
@@ -179,7 +179,7 @@ begin
 {                 is_reg_var[getsupreg(p.oper[2]^.reg)]) then }
                 for regCounter := RS_EAX to RS_EDI do
                   begin
-                    if writeDestroysContents(p.oper[2]^,regCounter,c[regCounter],dummy) then
+                    if writeDestroysContents(p.oper[2]^,regCounter,topsize2tcgsize[p.opsize],c[regCounter],dummy) then
                       begin
                         exclude(regsStillValid,regCounter);
                         modifiesConflictingMemLocation := not(supreg in regsStillValid);
@@ -193,7 +193,7 @@ begin
               tmpRef.base := NR_EDI;
               tmpRef.index := NR_EDI;
               for regCounter := RS_EAX to RS_EDI do
-                if writeToMemDestroysContents(RS_INVALID,tmpRef,regCounter,c[regCounter],dummy) then
+                if writeToMemDestroysContents(RS_INVALID,tmpRef,regCounter,OS_32,c[regCounter],dummy) then
                   begin
                     exclude(regsStillValid,regCounter);
                     modifiesConflictingMemLocation := not(supreg in regsStillValid);
@@ -2109,7 +2109,11 @@ end.
 
 {
   $Log$
-  Revision 1.66  2004-10-04 20:46:22  peter
+  Revision 1.67  2004-10-06 19:24:38  jonas
+    * take into account the size of a write to determine whether a write to
+      one reference influences the contents of another reference
+
+  Revision 1.66  2004/10/04 20:46:22  peter
     * spilling code rewritten for x86. It now used the generic
       spilling routines. Special x86 optimization still needs
       to be added.
