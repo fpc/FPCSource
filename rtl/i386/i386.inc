@@ -1071,8 +1071,8 @@ begin
 end;
 
 
-{$define FPC_SYSTEM_HAS_INT_STR_CARDINAL}
-procedure int_str(c : cardinal;var s : string);
+{$define FPC_SYSTEM_HAS_INT_STR_LONGWORD}
+procedure int_str(c : longword;var s : string);
 var
   buffer : array[0..14] of byte;
 begin
@@ -1108,16 +1108,8 @@ end;
 
 {$ifndef NOBOUNDCHECK}
 
-{$define FPC_SYSTEM_HAS_FPC_BOUNDCHECK}
-
-{$ifdef SYSTEMDEBUG}
-{ we want the stack for debugging !! PM }
-procedure int_boundcheck;[public,alias: 'FPC_BOUNDCHECK'];
-begin
-{$else not SYSTEMDEBUG}
 procedure int_boundcheck;assembler;[public,alias: 'FPC_BOUNDCHECK'];
 var dummy_to_force_stackframe_generation_for_trace: Longint;
-{$endif not SYSTEMDEBUG}
 {
   called with:
     %ecx - value
@@ -1134,9 +1126,6 @@ asm
         call    HandleErrorFrame
 .Lbc_ok:
 end;
-{$ifdef SYSTEMDEBUG}
-end;
-{$endif def SYSTEMDEBUG}
 
 {$endif NOBOUNDCHECK}
 
@@ -1181,7 +1170,10 @@ procedure inclocked(var l : longint);assembler;
 
 {
   $Log$
-  Revision 1.29  2002-09-07 16:01:19  peter
+  Revision 1.30  2002-09-07 21:33:35  carl
+    - removed unused defines
+
+  Revision 1.29  2002/09/07 16:01:19  peter
     * old logs removed and tabs fixed
 
   Revision 1.28  2002/09/03 15:43:36  peter

@@ -928,11 +928,9 @@ begin
   syscopytodos(longint(p),strlen(p)+1);
   regs.realedx:=tb_offset;
   regs.realds:=tb_segment;
-{$ifndef RTLLITE}
   if LFNSupport then
    regs.realeax:=$7141
   else
-{$endif RTLLITE}
    regs.realeax:=$4100;
   regs.realesi:=0;
   regs.realecx:=0;
@@ -956,11 +954,9 @@ begin
   regs.realedx:=tb_offset + strlen(p2)+2;
   regs.realds:=tb_segment;
   regs.reales:=tb_segment;
-{$ifndef RTLLITE}
   if LFNSupport then
    regs.realeax:=$7156
   else
-{$endif RTLLITE}
    regs.realeax:=$5600;
   regs.realecx:=$ff;            { attribute problem here ! }
   sysrealintr($21,regs);
@@ -1119,7 +1115,6 @@ begin
    GetInOutRes(lo(regs.realeax));
 end;
 
-{$ifndef RTLLITE}
 const
   FileHandleCount : longint = 20;
 
@@ -1139,7 +1134,6 @@ begin
   else
     Increase_file_handle_count:=true;
 end;
-{$endif not RTLLITE}
 
 procedure do_open(var f;p:pchar;flags:longint);
 {
@@ -1197,11 +1191,9 @@ begin
    end;
 { real dos call }
   syscopytodos(longint(p),strlen(p)+1);
-{$ifndef RTLLITE}
   if LFNSupport then
    regs.realeax:=$716c
   else
-{$endif RTLLITE}
    regs.realeax:=$6c00;
   regs.realedx:=action;
   regs.realds:=tb_segment;
@@ -1209,7 +1201,6 @@ begin
   regs.realebx:=$2000+(flags and $ff);
   regs.realecx:=$20;
   sysrealintr($21,regs);
-{$ifndef RTLLITE}
   if (regs.realflags and carryflag) <> 0 then
     if lo(regs.realeax)=4 then
       if Increase_file_handle_count then
@@ -1226,7 +1217,6 @@ begin
           regs.realecx:=$20;
           sysrealintr($21,regs);
         end;
-{$endif RTLLITE}
   if (regs.realflags and carryflag) <> 0 then
     begin
       GetInOutRes(lo(regs.realeax));
@@ -1235,11 +1225,9 @@ begin
   else
     begin
       filerec(f).handle:=lo(regs.realeax);
-{$ifndef RTLLITE}
       { for systems that have more then 20 by default ! }
       if lo(regs.realeax)>FileHandleCount then
         FileHandleCount:=lo(regs.realeax);
-{$endif RTLLITE}
     end;
   if lo(regs.realeax)<max_files then
     begin
@@ -1329,11 +1317,9 @@ begin
   syscopytodos(longint(@buffer),length(s)+1);
   regs.realedx:=tb_offset;
   regs.realds:=tb_segment;
-{$ifndef RTLLITE}
   if LFNSupport then
    regs.realeax:=$7100+func
   else
-{$endif RTLLITE}
    regs.realeax:=func shl 8;
   sysrealintr($21,regs);
   if (regs.realflags and carryflag) <> 0 then
@@ -1397,11 +1383,9 @@ begin
   regs.realedx:=drivenr;
   regs.realesi:=tb_offset;
   regs.realds:=tb_segment;
-{$ifndef RTLLITE}
   if LFNSupport then
    regs.realeax:=$7147
   else
-{$endif RTLLITE}
    regs.realeax:=$4700;
   sysrealintr($21,regs);
   if (regs.realflags and carryflag) <> 0 then
@@ -1445,7 +1429,6 @@ end;
                          SystemUnit Initialization
 *****************************************************************************}
 
-{$ifndef RTLLITE}
 function CheckLFN:boolean;
 var
   regs     : TRealRegs;
@@ -1466,18 +1449,15 @@ begin
 { If carryflag=0 and LFN API bit in ebx is set then use Long file names }
   CheckLFN:=(regs.realflags and carryflag=0) and (regs.realebx and $4000=$4000);
 end;
-{$endif RTLLITE}
 
 {$ifdef MT}
 {$I thread.inc}
 {$endif MT}
 
-{$ifndef RTLLITE}
 {$ifdef  EXCEPTIONS_IN_SYSTEM}
 {$define IN_SYSTEM}
 {$i dpmiexcp.pp}
 {$endif  EXCEPTIONS_IN_SYSTEM}
-{$endif RTLLITE}
 
 var
   temp_int : tseginfo;
@@ -1520,16 +1500,17 @@ Begin
    FileNameCaseSensitive:=true;
 { Reset IO Error }
   InOutRes:=0;
-{$ifndef RTLLITE}
 {$ifdef  EXCEPTIONS_IN_SYSTEM}
   InitDPMIExcp;
   InstallDefaultHandlers;
 {$endif  EXCEPTIONS_IN_SYSTEM}
-{$endif RTLLITE}
 End.
 {
   $Log$
-  Revision 1.20  2002-09-07 16:01:19  peter
+  Revision 1.21  2002-09-07 21:32:08  carl
+    - removed unused defines
+
+  Revision 1.20  2002/09/07 16:01:19  peter
     * old logs removed and tabs fixed
 
   Revision 1.19  2002/07/01 16:29:05  peter

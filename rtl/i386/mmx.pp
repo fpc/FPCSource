@@ -22,9 +22,6 @@ unit mmx;
        tmmxbyte = array[0..7] of byte;
        tmmxword = array[0..3] of word;
        tmmxinteger = array[0..3] of integer;
-{$ifdef HASFIXED}
-       tmmxfixed = array[0..3] of fixed16;
-{$endif HASFIXED}
        tmmxlongint = array[0..1] of longint;
        tmmxcardinal = array[0..1] of cardinal;
        { for the AMD 3D }
@@ -252,7 +249,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2002-09-07 16:01:19  peter
+  Revision 1.7  2002-09-07 21:33:05  carl
+    - removed unused defines
+
+  Revision 1.6  2002/09/07 16:01:19  peter
     * old logs removed and tabs fixed
 
   Revision 1.5  2002/03/16 12:01:24  peter
