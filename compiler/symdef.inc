@@ -1457,9 +1457,9 @@
               { generates the data for range checking }
               getlabelnr(rangenr);
               if (cs_smartlink in aktmoduleswitches) then
-                datasegment^.concat(new(pai_symbol,init(getrangecheckstring)))
+                datasegment^.concat(new(pai_symbol,init_global(getrangecheckstring)))
               else
-                datasegment^.concat(new(pai_symbol,init_global(getrangecheckstring)));
+                datasegment^.concat(new(pai_symbol,init(getrangecheckstring)));
               datasegment^.concat(new(pai_const,init_32bit(lowrange)));
               datasegment^.concat(new(pai_const,init_32bit(highrange)));
            end;
@@ -3045,7 +3045,10 @@
 
 {
   $Log$
-  Revision 1.52  1998-10-02 07:20:38  florian
+  Revision 1.53  1998-10-05 12:48:39  pierre
+    * wrong handling of range check for arrays fixed
+
+  Revision 1.52  1998/10/02 07:20:38  florian
     * range checking in units doesn't work if the units are smartlinked, fixed
 
   Revision 1.51  1998/09/25 12:01:41  florian
