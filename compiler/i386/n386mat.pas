@@ -246,6 +246,8 @@ implementation
                    ungetregister32(R_EDI);
                    if nodetype=divn then
                      begin
+                        if not popedx and (hreg1 <> R_EDX) then
+                          ungetregister(R_EDX);
                         { if result register is busy then copy }
                         if popeax then
                           begin
@@ -261,14 +263,14 @@ implementation
                               { the div (JM)                                        }
                               hreg1 := R_EAX;
                             end;
-                        if not popedx and (hreg1 <> R_EDX) then
-                          ungetregister(R_EDX);
                      end
                    else
                      {if we did the mod by an "and", the result is in hreg1 and
                       EDX certainly hasn't been pushed (JM)}
                      if not(andmod) Then
                        begin
+                         if not popeax and (hreg1 <> R_EAX)then
+                           ungetregister(R_EAX);
                          if popedx then
                           {the mod was done by an (i)div (so the result is now in
                            edx), but edx was occupied prior to the division, so
@@ -280,8 +282,6 @@ implementation
                                ungetregister32(hreg1);
                              hreg1 := R_EDX
                            End;
-                         if not popeax and (hreg1 <> R_EAX)then
-                           ungetregister(R_EAX);
                        end;
                    if popeax then
                      emit_reg(A_POP,S_L,R_EAX);
@@ -1018,7 +1018,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  2001-12-04 15:57:28  jonas
+  Revision 1.19  2001-12-07 13:03:49  jonas
+    * fixed web bug 1716
+
+  Revision 1.18  2001/12/04 15:57:28  jonas
     * never generate any "shll/shrl $0,%reg" anymore
 
   Revision 1.17  2001/12/02 16:19:17  jonas
