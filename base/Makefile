@@ -66,7 +66,8 @@ RELEASE=1
 	$(addsuffix _clean,$(MODULES)) \
 	$(addsuffix _install,$(MODULES)) \
 	$(addsuffix _staticinstall,$(MODULES)) \
-	$(addsuffix _sharedinstall,$(MODULES))
+	$(addsuffix _sharedinstall,$(MODULES))\
+	ide_allzip ide_gdbzip ide_fullzip ide_fullgdbzip
 
 info:
 	@echo
@@ -349,15 +350,21 @@ endif
 export ZIPTARGET
 export PACKAGEDIR=$(BASEDIR)
 
-idezips: clean
+idezips: clean ide_allzip ide_gdbzip ide_fullzip ide_fullgdbzip
+
+ide_allzip:
+	$(MAKE) ide_clean
 	$(MAKE) ide_all
 	$(MAKE) -C $(IDEDIR)/text fpc_zipinstall ZIPNAME=ide-fake-$(PACKAGESUFFIX)
+ide_gdbzip:
 	$(MAKE) ide_clean
 	$(MAKE) ide_gdb
 	$(MAKE) -C $(IDEDIR)/text fpc_zipinstall ZIPNAME=ide-gdb-$(PACKAGESUFFIX)
+ide_fullzip:
 	$(MAKE) ide_clean
 	$(MAKE) ide_full
 	$(MAKE) -C $(IDEDIR)/text fpc_zipinstall ZIPNAME=ide-comp-$(PACKAGESUFFIX)
+ide_fullgdbzip:
 	$(MAKE) ide_clean
 	$(MAKE) ide_fullgdb
 	$(MAKE) -C $(IDEDIR)/text fpc_zipinstall ZIPNAME=ide-full-$(PACKAGESUFFIX)
@@ -383,7 +390,10 @@ compilerzip: compiler_clean rtl_clean
 
 #
 # $Log$
-# Revision 1.13  1999-04-19 12:53:02  peter
+# Revision 1.14  1999-04-21 10:25:39  michael
+# + Split idezips target
+#
+# Revision 1.13  1999/04/19 12:53:02  peter
 #   * fixed idezips target
 #
 # Revision 1.12  1999/04/16 20:15:41  michael
