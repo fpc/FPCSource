@@ -64,106 +64,98 @@ implementation
          DefString:='';
          InternalProcName:='';
          consume(_EXPORTS);
-         while true do
-           begin
-              hp:=texported_item.create;
-              if token=_ID then
-                begin
-                   orgs:=orgpattern;
-                   consume_sym(srsym,srsymtable);
-                   hp.sym:=srsym;
-                   InternalProcName:='';
-                   case srsym.typ of
-                     varsym :
-                       InternalProcName:=tvarsym(srsym).mangledname;
-                     typedconstsym :
-                       InternalProcName:=ttypedconstsym(srsym).mangledname;
-                     procsym :
-                       begin
-                         if assigned(tprocsym(srsym).defs^.next) or
-                            ((tf_need_export in target_info.flags) and
-                             not(po_exports in tprocsym(srsym).defs^.def.procoptions)) then
-                           Message(parser_e_illegal_symbol_exported)
-                         else
-                           InternalProcName:=tprocsym(srsym).defs^.def.mangledname;
-                       end;
-                     else
-                       Message(parser_e_illegal_symbol_exported)
-                   end;
-                   if InternalProcName<>'' then
+         repeat
+           hp:=texported_item.create;
+           if token=_ID then
+             begin
+                orgs:=orgpattern;
+                consume_sym(srsym,srsymtable);
+                hp.sym:=srsym;
+                InternalProcName:='';
+                case srsym.typ of
+                  varsym :
+                    InternalProcName:=tvarsym(srsym).mangledname;
+                  typedconstsym :
+                    InternalProcName:=ttypedconstsym(srsym).mangledname;
+                  procsym :
                     begin
-                      { This is wrong if the first is not
-                        an underline }
-                      if InternalProcName[1]='_' then
-                        delete(InternalProcName,1,1)
-                      else if (target_info.system in [system_i386_win32,system_i386_wdosx]) and UseDeffileForExport then
-                        begin
-                          Message(parser_e_dlltool_unit_var_problem);
-                          Message(parser_e_dlltool_unit_var_problem2);
-                        end;
-                      if length(InternalProcName)<2 then
-                       Message(parser_e_procname_to_short_for_export);
-                      DefString:=srsym.realname+'='+InternalProcName;
-                    end;
-                   if (idtoken=_INDEX) then
-                    begin
-                      consume(_INDEX);
-                      pt:=comp_expr(true);
-                      if pt.nodetype=ordconstn then
-                       hp.index:=tordconstnode(pt).value
+                      if (Tprocsym(srsym).procdef_count>1) or
+                         ((tf_need_export in target_info.flags) and
+                          not(po_exports in tprocsym(srsym).first_procdef.procoptions)) then
+                        Message(parser_e_illegal_symbol_exported)
                       else
-                       begin
-                         hp.index:=0;
-                         consume(_INTCONST);
-                       end;
-                      hp.options:=hp.options or eo_index;
-                      pt.free;
-                      if target_info.system in [system_i386_win32,system_i386_wdosx] then
-                       DefString:=srsym.realname+'='+InternalProcName+' @ '+tostr(hp.index)
-                      else
-                       DefString:=srsym.realname+'='+InternalProcName; {Index ignored!}
+                        InternalProcName:=tprocsym(srsym).first_procdef.mangledname;
                     end;
-                   if (idtoken=_NAME) then
-                    begin
-                      consume(_NAME);
-                      pt:=comp_expr(true);
-                      if pt.nodetype=stringconstn then
-                       hp.name:=stringdup(strpas(tstringconstnode(pt).value_str))
-                      else
-                       begin
-                         hp.name:=stringdup('');
-                         consume(_CSTRING);
-                       end;
-                      hp.options:=hp.options or eo_name;
-                      pt.free;
-                      DefString:=hp.name^+'='+InternalProcName;
-                    end;
-                   if (idtoken=_RESIDENT) then
-                    begin
-                      consume(_RESIDENT);
-                      hp.options:=hp.options or eo_resident;
-                      DefString:=srsym.realname+'='+InternalProcName;{Resident ignored!}
-                    end;
-                   if (DefString<>'') and UseDeffileForExport then
-                    DefFile.AddExport(DefString);
-                   { Default to generate a name entry with the provided name }
-                   if not assigned(hp.name) then
-                    begin
-                      hp.name:=stringdup(orgs);
-                      hp.options:=hp.options or eo_name;
-                    end;
-                   if hp.sym.typ=procsym then
-                    exportlib.exportprocedure(hp)
+                  else
+                    Message(parser_e_illegal_symbol_exported)
+                end;
+                if InternalProcName<>'' then
+                 begin
+                   { This is wrong if the first is not
+                     an underline }
+                   if InternalProcName[1]='_' then
+                     delete(InternalProcName,1,1)
+                   else if (target_info.system in [system_i386_win32,system_i386_wdosx]) and UseDeffileForExport then
+                     begin
+                       Message(parser_e_dlltool_unit_var_problem);
+                       Message(parser_e_dlltool_unit_var_problem2);
+                     end;
+                   if length(InternalProcName)<2 then
+                    Message(parser_e_procname_to_short_for_export);
+                   DefString:=srsym.realname+'='+InternalProcName;
+                 end;
+                if try_to_consume(_INDEX) then
+                 begin
+                   pt:=comp_expr(true);
+                   if pt.nodetype=ordconstn then
+                    hp.index:=tordconstnode(pt).value
                    else
-                    exportlib.exportvar(hp);
-                end
-              else
-                consume(_ID);
-              if token=_COMMA then
-                consume(_COMMA)
-              else
-                break;
-           end;
+                    begin
+                      hp.index:=0;
+                      consume(_INTCONST);
+                    end;
+                   hp.options:=hp.options or eo_index;
+                   pt.free;
+                   if target_info.system in [system_i386_win32,system_i386_wdosx] then
+                    DefString:=srsym.realname+'='+InternalProcName+' @ '+tostr(hp.index)
+                   else
+                    DefString:=srsym.realname+'='+InternalProcName; {Index ignored!}
+                 end;
+                if try_to_consume(_NAME) then
+                 begin
+                   pt:=comp_expr(true);
+                   if pt.nodetype=stringconstn then
+                    hp.name:=stringdup(strpas(tstringconstnode(pt).value_str))
+                   else
+                    begin
+                      hp.name:=stringdup('');
+                      consume(_CSTRING);
+                    end;
+                   hp.options:=hp.options or eo_name;
+                   pt.free;
+                   DefString:=hp.name^+'='+InternalProcName;
+                 end;
+                if try_to_consume(_RESIDENT) then
+                 begin
+                   hp.options:=hp.options or eo_resident;
+                   DefString:=srsym.realname+'='+InternalProcName;{Resident ignored!}
+                 end;
+                if (DefString<>'') and UseDeffileForExport then
+                 DefFile.AddExport(DefString);
+                { Default to generate a name entry with the provided name }
+                if not assigned(hp.name) then
+                 begin
+                   hp.name:=stringdup(orgs);
+                   hp.options:=hp.options or eo_name;
+                 end;
+                if hp.sym.typ=procsym then
+                 exportlib.exportprocedure(hp)
+                else
+                 exportlib.exportvar(hp);
+             end
+           else
+             consume(_ID);
+         until not try_to_consume(_COMMA);
          consume(_SEMICOLON);
         if not DefFile.empty then
          DefFile.writefile;
@@ -173,7 +165,10 @@ end.
 
 {
   $Log$
-  Revision 1.22  2002-07-26 21:15:41  florian
+  Revision 1.23  2002-09-03 16:26:27  daniel
+    * Make Tprocdef.defs protected
+
+  Revision 1.22  2002/07/26 21:15:41  florian
     * rewrote the system handling
 
   Revision 1.21  2002/05/18 13:34:12  peter

@@ -966,7 +966,7 @@ implementation
         repeat
             for i:=1 to srprocsym.procdef_count do
                 begin
-                    def:=srprocsym.procdef(i);
+                    def:=srprocsym.procdef[i];
                     { only when the # of parameters are supported by the procedure }
                     if (paralength>=def.minparacount) and
                        ((po_varargs in def.procoptions) or (paralength<=def.maxparacount)) then
@@ -2595,7 +2595,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.92  2002-09-01 13:28:37  daniel
+  Revision 1.93  2002-09-03 16:26:26  daniel
+    * Make Tprocdef.defs protected
+
+  Revision 1.92  2002/09/01 13:28:37  daniel
    - write_access fields removed in favor of a flag
 
   Revision 1.91  2002/09/01 12:14:15  peter

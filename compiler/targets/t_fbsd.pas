@@ -168,13 +168,13 @@ begin
       begin
         { the manglednames can already be the same when the procedure
           is declared with cdecl }
-        if tprocsym(hp2.sym).defs^.def.mangledname<>hp2.name^ then
+        if tprocsym(hp2.sym).first_procdef.mangledname<>hp2.name^ then
          begin
 {$ifdef i386}
            { place jump in codesegment }
            codesegment.concat(Tai_align.Create_op(4,$90));
            codeSegment.concat(Tai_symbol.Createname_global(hp2.name^,0));
-           codeSegment.concat(Taicpu.Op_sym(A_JMP,S_NO,objectlibrary.newasmsymbol(tprocsym(hp2.sym).defs^.def.mangledname)));
+           codeSegment.concat(Taicpu.Op_sym(A_JMP,S_NO,objectlibrary.newasmsymbol(tprocsym(hp2.sym).first_procdef.mangledname)));
            codeSegment.concat(Tai_symbol_end.Createname(hp2.name^));
 {$endif i386}
          end;
@@ -514,7 +514,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.28  2002-08-12 15:08:44  carl
+  Revision 1.29  2002-09-03 16:26:28  daniel
+    * Make Tprocdef.defs protected
+
+  Revision 1.28  2002/08/12 15:08:44  carl
     + stab register indexes for powerpc (moved from gdb to cpubase)
     + tprocessor enumeration moved to cpuinfo
     + linker in target_info is now a class

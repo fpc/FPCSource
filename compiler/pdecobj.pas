@@ -196,10 +196,10 @@ implementation
 
         var
            sym : tsym;
-           propertyparas : tlinkedlist;
+           propertyparas : tparalinkedlist;
 
         { returns the matching procedure to access a property }
-        function get_procdef : tprocdef;
+{        function get_procdef : tprocdef;
           var
              p : pprocdeflist;
           begin
@@ -215,7 +215,7 @@ implementation
                     end;
                   p:=p^.next;
                end;
-          end;
+          end;}
 
         var
            hp2,datacoll : tparaitem;
@@ -227,7 +227,7 @@ implementation
            s : string;
            tt : ttype;
            declarepos : tfileposinfo;
-           pp : pprocdeflist;
+           pp : Tprocdef;
            pd : tprocdef;
            pt : tnode;
            propname : stringid;
@@ -385,7 +385,7 @@ implementation
                       case sym.typ of
                         procsym :
                           begin
-                            pd:=get_procdef;
+                            pd:=Tprocsym(sym).search_procdef_bypara(propertyparas,true);
                             if not(assigned(pd)) or
                                not(is_equal(pd.rettype.def,p.proptype.def)) then
                               Message(parser_e_ill_property_access_sym);
@@ -420,7 +420,7 @@ implementation
                           begin
                             { insert data entry to check access method }
                             propertyparas.insert(datacoll);
-                            pd:=get_procdef;
+                            pd:=Tprocsym(sym).search_procdef_bypara(propertyparas,true);
                             { ... and remove it }
                             propertyparas.remove(datacoll);
                             if not(assigned(pd)) then
@@ -464,20 +464,11 @@ implementation
                                case sym.typ of
                                  procsym :
                                    begin
-                                     pp:=tprocsym(sym).defs;
-                                     while assigned(pp) do
-                                      begin
-                                        { the stored function shouldn't have any parameters }
-                                        if pp^.def.Para.empty then
-                                         break;
-                                        pp:=pp^.next;
-                                      end;
-                                     { found we a procedure and does it really return a bool? }
-                                     if assigned(pp) and
-                                        is_boolean(pp^.def.rettype.def) then
-                                       p.storedaccess.setdef(pp^.def)
-                                     else
-                                       Message(parser_e_ill_property_storage_sym);
+                                      pp:=Tprocsym(sym).search_procdef_nopara_boolret;
+                                      if assigned(pp) then
+                                        p.storedaccess.setdef(pp)
+                                      else
+                                        message(parser_e_ill_property_storage_sym);
                                    end;
                                  varsym :
                                    begin
@@ -536,9 +527,8 @@ implementation
                 symtablestack.insert(p);
                 { default property ? }
                 consume(_SEMICOLON);
-                if (idtoken=_DEFAULT) then
+                if try_to_consume(_DEFAULT) then
                   begin
-                     consume(_DEFAULT);
                      { overriding a default propertyp is allowed
                      p2:=search_default_property(aktclass);
                      if assigned(p2) then
@@ -1157,7 +1147,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.49  2002-08-17 09:23:38  florian
+  Revision 1.50  2002-09-03 16:26:26  daniel
+    * Make Tprocdef.defs protected
+
+  Revision 1.49  2002/08/17 09:23:38  florian
     * first part of procinfo rewrite
 
   Revision 1.48  2002/08/09 07:33:02  florian

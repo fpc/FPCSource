@@ -393,9 +393,9 @@ implementation
                         case srsym.typ of
                           procsym :
                             begin
-                              if assigned(tprocsym(srsym).defs^.next) then
+                              if Tprocsym(srsym).procdef_count>1 then
                                 Message(parser_e_no_overloaded_procvars);
-                              curconstSegment.concat(Tai_const_symbol.Createname_offset(tprocsym(srsym).defs^.def.mangledname,offset));
+                              curconstSegment.concat(Tai_const_symbol.Createname_offset(tprocsym(srsym).first_procdef.mangledname,offset));
                             end;
                           varsym :
                             curconstSegment.concat(Tai_const_symbol.Createname_offset(tvarsym(srsym).mangledname,offset));
@@ -733,7 +733,7 @@ implementation
                  (tloadnode(p).symtableentry.typ=procsym) then
                begin
                  curconstSegment.concat(Tai_const_symbol.createname(
-                   tprocsym(tloadnode(p).symtableentry).defs^.def.mangledname));
+                   tprocsym(tloadnode(p).symtableentry).first_procdef.mangledname));
                end
               else
                Message(cg_e_illegal_expression);
@@ -986,7 +986,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.55  2002-08-11 14:32:27  peter
+  Revision 1.56  2002-09-03 16:26:27  daniel
+    * Make Tprocdef.defs protected
+
+  Revision 1.55  2002/08/11 14:32:27  peter
     * renamed current_library to objectlibrary
 
   Revision 1.54  2002/08/11 13:24:13  peter

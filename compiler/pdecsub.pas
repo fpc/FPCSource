@@ -524,16 +524,8 @@ implementation
                  begin
                    { create the procsym with saving the original case }
                    aktprocsym:=tprocsym.create('$'+sp);
-                   { add already known overloaded defs }
                    if assigned(overloaded_operators[optoken]) then
-                    begin
-                      pdl:=overloaded_operators[optoken].defs;
-                      while assigned(pdl) do
-                       begin
-                         aktprocsym.addprocdef(pdl^.def);
-                         pdl:=pdl^.next;
-                       end;
-                    end;
+                     overloaded_operators[optoken].concat_procdefs_to(aktprocsym);
                  end;
              end
             else
@@ -1741,17 +1733,16 @@ const
       }
       var
         hd    : tprocdef;
-        pdl   : pprocdeflist;
         ad,fd : tsym;
         forwardfound : boolean;
+        i : cardinal;
       begin
         forwardfound:=false;
 
         { check overloaded functions if the same function already exists }
-        pdl:=aprocsym.defs;
-        while assigned(pdl) do
+        for i:=1 to aprocsym.procdef_count do
          begin
-           hd:=pdl^.def;
+           hd:=aprocsym.procdef[i];
 
            { check the parameters, for delphi/tp it is possible to
              leave the parameters away in the implementation (forwarddef=false).
@@ -1939,9 +1930,6 @@ const
                   end;
                end;
             end; { equal arguments }
-
-           { try next overloaded }
-           pdl:=pdl^.next;
          end;
 
         { if we didn't reuse a forwarddef then we add the procdef to the overloaded
@@ -1988,7 +1976,10 @@ const
 end.
 {
   $Log$
-  Revision 1.69  2002-09-01 12:11:33  peter
+  Revision 1.70  2002-09-03 16:26:27  daniel
+    * Make Tprocdef.defs protected
+
+  Revision 1.69  2002/09/01 12:11:33  peter
     * calc param_offset after parameters are read, because the calculation
       depends on po_containself
 

@@ -580,10 +580,10 @@ implementation
                 { Give a better error if there is a forward def in the interface and only
                   a single implementation }
                 if (not aktprocdef.forwarddef) and
-                   assigned(aktprocsym.defs^.next) and
-                   aktprocsym.defs^.def.forwarddef and
-                   aktprocsym.defs^.def.interfacedef and
-                   not(assigned(aktprocsym.defs^.next^.next)) then
+                   (aktprocsym.procdef_count>1) and
+                   aktprocsym.first_procdef.forwarddef and
+                   aktprocsym.first_procdef.interfacedef and
+                   not(aktprocsym.procdef_count>2) then
                  begin
                    Message1(parser_e_header_dont_match_forward,aktprocdef.fullprocname);
                    aktprocsym.write_parameter_lists(aktprocdef);
@@ -788,7 +788,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.69  2002-08-25 19:25:20  peter
+  Revision 1.70  2002-09-03 16:26:27  daniel
+    * Make Tprocdef.defs protected
+
+  Revision 1.69  2002/08/25 19:25:20  peter
     * sym.insert_in_data removed
     * symtable.insertvardata/insertconstdata added
     * removed insert_in_data call from symtable.insert, it needs to be

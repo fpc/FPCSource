@@ -985,11 +985,11 @@ Begin
       end;
     procsym :
       begin
-        if assigned(tprocsym(sym).defs^.next) then
+        if Tprocsym(sym).procdef_count>1 then
           Message(asmr_w_calling_overload_func);
         l:=opr.ref.offset;
         opr.typ:=OPR_SYMBOL;
-        opr.symbol:=objectlibrary.newasmsymbol(tprocsym(sym).defs^.def.mangledname);
+        opr.symbol:=objectlibrary.newasmsymbol(tprocsym(sym).first_procdef.mangledname);
         opr.symofs:=l;
         hasvar:=true;
         SetupVar:=TRUE;
@@ -1592,7 +1592,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.45  2002-08-25 19:25:20  peter
+  Revision 1.46  2002-09-03 16:26:27  daniel
+    * Make Tprocdef.defs protected
+
+  Revision 1.45  2002/08/25 19:25:20  peter
     * sym.insert_in_data removed
     * symtable.insertvardata/insertconstdata added
     * removed insert_in_data call from symtable.insert, it needs to be

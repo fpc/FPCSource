@@ -430,7 +430,7 @@ implementation
     function tunaryminusnode.det_resulttype : tnode;
       var
          t : tnode;
-         minusdef : pprocdeflist;
+         minusdef : Tprocdef;
       begin
          result:=nil;
          resulttypepass(left);
@@ -481,22 +481,16 @@ implementation
            end
          else
            begin
+              minusdef:=nil;
               if assigned(overloaded_operators[_minus]) then
-                minusdef:=overloaded_operators[_minus].defs
-              else
-                minusdef:=nil;
-              while assigned(minusdef) do
+                minusdef:=overloaded_operators[_minus].search_procdef_by1paradef(left.resulttype.def);
+              if minusdef<>nil then
                 begin
-                   if is_equal(tparaitem(minusdef^.def.para.first).paratype.def,left.resulttype.def) and
-                      (tparaitem(minusdef^.def.para.first).next=nil) then
-                     begin
-                        t:=ccallnode.create(ccallparanode.create(left,nil),
-                                            overloaded_operators[_minus],nil,nil);
-                        left:=nil;
-                        result:=t;
-                        exit;
-                     end;
-                   minusdef:=minusdef^.next;
+                  t:=ccallnode.create(ccallparanode.create(left,nil),
+                                      overloaded_operators[_minus],nil,nil);
+                  left:=nil;
+                  result:=t;
+                  exit;
                 end;
               CGMessage(type_e_mismatch);
            end;
@@ -567,7 +561,7 @@ implementation
     function tnotnode.det_resulttype : tnode;
       var
          t : tnode;
-         notdef : pprocdeflist;
+         notdef : Tprocdef;
          v : tconstexprint;
       begin
          result:=nil;
@@ -660,22 +654,16 @@ implementation
            end
          else
            begin
+              notdef:=nil;
               if assigned(overloaded_operators[_op_not]) then
-                notdef:=overloaded_operators[_op_not].defs
-              else
-                notdef:=nil;
-              while assigned(notdef) do
+                notdef:=overloaded_operators[_op_not].search_procdef_by1paradef(left.resulttype.def);
+              if notdef<>nil then
                 begin
-                   if is_equal(tparaitem(notdef^.def.para.first).paratype.def,left.resulttype.def) and
-                      (tparaitem(notdef^.def.para.first).next=nil) then
-                     begin
-                        t:=ccallnode.create(ccallparanode.create(left,nil),
-                                            overloaded_operators[_op_not],nil,nil);
-                        left:=nil;
-                        result:=t;
-                        exit;
-                     end;
-                   notdef:=notdef^.next;
+                  t:=ccallnode.create(ccallparanode.create(left,nil),
+                                      overloaded_operators[_op_not],nil,nil);
+                  left:=nil;
+                  result:=t;
+                  exit;
                 end;
               CGMessage(type_e_mismatch);
            end;
@@ -759,7 +747,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.40  2002-08-25 11:32:33  peter
+  Revision 1.41  2002-09-03 16:26:26  daniel
+    * Make Tprocdef.defs protected
+
+  Revision 1.40  2002/08/25 11:32:33  peter
     * don't optimize not([lten,gten]) for setdefs
 
   Revision 1.39  2002/08/25 09:10:58  peter

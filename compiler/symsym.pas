@@ -110,12 +110,15 @@ interface
        Tprocdefcallback = procedure(p:Tprocdef;arg:pointer);
 
        tprocsym = class(tstoredsym)
-{       protected}
-          defs      : pprocdeflist; { linked list of overloaded procdefs }
+       protected
+          defs : pprocdeflist; { linked list of overloaded procdefs }
+          function getprocdef(nr:cardinal):Tprocdef;
        public
+          procdef_count : cardinal;
           is_global : boolean;
           overloadchecked : boolean;
-          overloadcount   : longint; { amount of overloaded functions in this module }
+          overloadcount : longint; { amount of overloaded functions in this module }
+          property procdef[nr:cardinal]:Tprocdef read getprocdef;
           constructor create(const n : string);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor destroy;override;
@@ -128,18 +131,19 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure deref;override;
           procedure addprocdef(p:tprocdef);
-          function procdef_count:byte;
-          function procdef(nr:byte):Tprocdef;
           procedure add_para_match_to(Aprocsym:Tprocsym);
           procedure concat_procdefs_to(s:Tprocsym);
           procedure foreach_procdef_static(proc2call:Tprocdefcallback;arg:pointer);
           function first_procdef:Tprocdef;
           function last_procdef:Tprocdef;
+          function search_procdef_nopara_boolret:Tprocdef;
           function search_procdef_bytype(pt:Tproctypeoption):Tprocdef;
-          function search_procdef_bypara(params:Tparalinkedlist):Tprocdef;
+          function search_procdef_bypara(params:Tparalinkedlist;
+                                         allowconvert:boolean):Tprocdef;
           function search_procdef_byprocvardef(d:Tprocvardef):Tprocdef;
+          function search_procdef_by1paradef(firstpara:Tdef):Tprocdef;
           function search_procdef_byretdef_by1paradef(retdef,firstpara:Tdef;
-                                                              matchtype:Tdefmatch):Tprocdef;
+                                                      matchtype:Tdefmatch):Tprocdef;
           function  write_references(ppufile:tcompilerppufile;locals:boolean):boolean;override;
 {$ifdef GDB}
           function stabstring : pchar;override;
@@ -786,6 +790,7 @@ implementation
          is_global:=false;
          overloadchecked:=false;
          overloadcount:=0;
+         procdef_count:=0;
       end;
 
 
@@ -796,6 +801,7 @@ implementation
          inherited loadsym(ppufile);
          typ:=procsym;
          defs:=nil;
+         procdef_count:=0;
          repeat
            pd:=tprocdef(ppufile.getderef);
            if pd=nil then
@@ -877,32 +883,19 @@ implementation
         pd^.def:=p;
         pd^.next:=defs;
         defs:=pd;
+        inc(procdef_count);
       end;
 
-    function Tprocsym.procdef_count:byte;
+    function Tprocsym.getprocdef(nr:cardinal):Tprocdef;
 
-    var pd:Pprocdeflist;
-
-    begin
-        procdef_count:=0;
-        pd:=defs;
-        while assigned(pd) do
-            begin
-                inc(procdef_count);
-                pd:=pd^.next;
-            end;
-    end;
-
-    function Tprocsym.procdef(nr:byte):Tprocdef;
-
-    var i:byte;
-            pd:Pprocdeflist;
+    var i:cardinal;
+        pd:Pprocdeflist;
 
     begin
         pd:=defs;
         for i:=2 to nr do
             pd:=pd^.next;
-        procdef:=pd^.def;
+        getprocdef:=pd^.def;
     end;
 
     procedure Tprocsym.add_para_match_to(Aprocsym:Tprocsym);
@@ -913,7 +906,7 @@ implementation
         pd:=defs;
         while assigned(pd) do
             begin
-                if Aprocsym.search_procdef_bypara(pd^.def.para)=nil then
+                if Aprocsym.search_procdef_bypara(pd^.def.para,false)=nil then
                     Aprocsym.addprocdef(pd^.def);
                 pd:=pd^.next;
             end;
@@ -964,6 +957,24 @@ implementation
             end;
     end;
 
+    function Tprocsym.search_procdef_nopara_boolret:Tprocdef;
+
+    var p:Pprocdeflist;
+
+    begin
+      search_procdef_nopara_boolret:=nil;
+      p:=defs;
+      while p<>nil do
+        begin
+          if p^.def.para.empty and is_boolean(p^.def.rettype.def) then
+            begin
+              search_procdef_nopara_boolret:=p^.def;
+              break;
+            end;
+          p:=p^.next;
+        end;
+    end;
+
     function Tprocsym.search_procdef_bytype(pt:Tproctypeoption):Tprocdef;
 
     var p:Pprocdeflist;
@@ -982,7 +993,8 @@ implementation
             end;
     end;
 
-    function Tprocsym.search_procdef_bypara(params:Tparalinkedlist):Tprocdef;
+    function Tprocsym.search_procdef_bypara(params:Tparalinkedlist;
+                                            allowconvert:boolean):Tprocdef;
 
     var pd:Pprocdeflist;
 
@@ -991,7 +1003,9 @@ implementation
         pd:=defs;
         while assigned(pd) do
             begin
-                if equal_paras(pd^.def.para,params,cp_value_equal_const) then
+                if equal_paras(pd^.def.para,params,cp_value_equal_const) or 
+                   (allowconvert and convertable_paras(pd^.def.para,params,
+                                                       cp_value_equal_const)) then
                     begin
                         search_procdef_bypara:=pd^.def;
                         break;
@@ -1046,8 +1060,27 @@ implementation
             end;
     end;
 
+    function Tprocsym.search_procdef_by1paradef(firstpara:Tdef):Tprocdef;
+
+    var pd:Pprocdeflist;
+
+    begin
+        search_procdef_by1paradef:=nil;
+        pd:=defs;
+        while assigned(pd) do
+            begin
+                if is_equal(Tparaitem(pd^.def.para.first).paratype.def,firstpara) and
+                 (Tparaitem(pd^.def.para.first).next=nil) then
+                    begin
+                        search_procdef_by1paradef:=pd^.def;
+                        break;
+                    end;
+                pd:=pd^.next;
+            end;
+    end;
+
     function Tprocsym.search_procdef_byretdef_by1paradef(retdef,firstpara:Tdef;
-                      matchtype:Tdefmatch):Tprocdef;
+                                                         matchtype:Tdefmatch):Tprocdef;
 
     var pd:Pprocdeflist;
         convtyp:Tconverttype;
@@ -1152,6 +1185,7 @@ implementation
                 begin
                   { remove }
                   dispose(p);
+                  dec(procdef_count);
                 end;
               p:=hp;
            end;
@@ -2443,7 +2477,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.58  2002-09-01 08:01:16  daniel
+  Revision 1.59  2002-09-03 16:26:27  daniel
+    * Make Tprocdef.defs protected
+
+  Revision 1.58  2002/09/01 08:01:16  daniel
    * Removed sets from Tcallnode.det_resulttype
    + Added read/write notifications of variables. These will be usefull
      for providing information for several optimizations. For example

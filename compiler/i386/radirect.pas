@@ -177,7 +177,7 @@ interface
                                            if (sym.typ=procsym) and ((pos('CALL',upper(s))>0) or
                                               (pos('LEA',upper(s))>0)) then
                                              begin
-                                                hs:=tprocsym(sym).defs^.def.mangledname;
+                                                hs:=tprocsym(sym).first_procdef.mangledname;
                                              end;
                                         end
                                       else
@@ -225,10 +225,10 @@ interface
                                                      { procs can be called or the address can be loaded }
                                                      if ((pos('CALL',upper(s))>0) or (pos('LEA',upper(s))>0)) then
                                                       begin
-                                                        if assigned(tprocsym(sym).defs^.def) then
+                                                        if tprocsym(sym).procdef_count>1 then
                                                           Message1(asmr_w_direct_global_is_overloaded_func,hs);
-                                                        Message2(asmr_h_direct_global_to_mangled,hs,tprocsym(sym).defs^.def.mangledname);
-                                                        hs:=tprocsym(sym).defs^.def.mangledname;
+                                                        Message2(asmr_h_direct_global_to_mangled,hs,tprocsym(sym).first_procdef.mangledname);
+                                                        hs:=tprocsym(sym).first_procdef.mangledname;
                                                       end;
                                                    end;
                                                  else
@@ -304,7 +304,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.2  2002-08-17 09:23:47  florian
+  Revision 1.3  2002-09-03 16:26:28  daniel
+    * Make Tprocdef.defs protected
+
+  Revision 1.2  2002/08/17 09:23:47  florian
     * first part of procinfo rewrite
 
   Revision 1.1  2002/08/10 14:47:50  carl

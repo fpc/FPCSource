@@ -740,7 +740,7 @@ const
                 typedconstsym :
                   address_table.concat(Tai_const_symbol.Createname_rva(ttypedconstsym(hp.sym).mangledname));
                 procsym :
-                  address_table.concat(Tai_const_symbol.Createname_rva(tprocsym(hp.sym).defs^.def.mangledname));
+                  address_table.concat(Tai_const_symbol.Createname_rva(tprocsym(hp.sym).first_procdef.mangledname));
               end;
               inc(current_index);
               hp:=texported_item(hp.next);
@@ -773,7 +773,7 @@ const
                typedconstsym :
                  s:=ttypedconstsym(hp.sym).mangledname;
                procsym :
-                 s:=tprocsym(hp.sym).defs^.def.mangledname;
+                 s:=tprocsym(hp.sym).first_procdef.mangledname;
                else
                  s:='';
              end;
@@ -1553,7 +1553,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.39  2002-08-12 15:08:44  carl
+  Revision 1.40  2002-09-03 16:26:29  daniel
+    * Make Tprocdef.defs protected
+
+  Revision 1.39  2002/08/12 15:08:44  carl
     + stab register indexes for powerpc (moved from gdb to cpubase)
     + tprocessor enumeration moved to cpuinfo
     + linker in target_info is now a class

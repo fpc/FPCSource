@@ -904,9 +904,9 @@ Begin
                        hs:=ttypedconstsym(sym).mangledname;
                      procsym :
                        begin
-                         if assigned(tprocsym(sym).defs^.next) then
+                         if Tprocsym(sym).procdef_count>1 then
                           Message(asmr_w_calling_overload_func);
-                         hs:=tprocsym(sym).defs^.def.mangledname;
+                         hs:=tprocsym(sym).first_procdef.mangledname;
                        end;
                      typesym :
                        begin
@@ -1959,7 +1959,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.33  2002-08-17 09:23:47  florian
+  Revision 1.34  2002-09-03 16:26:28  daniel
+    * Make Tprocdef.defs protected
+
+  Revision 1.33  2002/08/17 09:23:47  florian
     * first part of procinfo rewrite
 
   Revision 1.32  2002/08/13 18:01:52  carl

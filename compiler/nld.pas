@@ -312,9 +312,9 @@ implementation
                 begin
                    if not assigned(procdef) then
                     begin
-                      if assigned(tprocsym(symtableentry).defs^.next) then
+                      if Tprocsym(symtableentry).procdef_count>1 then
                        CGMessage(parser_e_no_overloaded_procvars);
-                      resulttype.setdef(tprocsym(symtableentry).defs^.def);
+                      resulttype.setdef(tprocsym(symtableentry).first_procdef);
                     end
                    else
                     resulttype.setdef(procdef);
@@ -1143,7 +1143,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.56  2002-09-01 13:28:37  daniel
+  Revision 1.57  2002-09-03 16:26:26  daniel
+    * Make Tprocdef.defs protected
+
+  Revision 1.56  2002/09/01 13:28:37  daniel
    - write_access fields removed in favor of a flag
 
   Revision 1.55  2002/09/01 08:01:16  daniel

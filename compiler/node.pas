@@ -342,7 +342,7 @@ interface
 {$ifdef var_notification}
           { For a t1:=t2 tree, mark the part of the tree t1 that gets
             written to (normally the loadnode) as write access. }
-          procedure mark_write;virtual;
+          procedure mark_write;virtual;abstract;
 {$endif}
           procedure det_temp;virtual;abstract;
 
@@ -719,17 +719,6 @@ implementation
          fileinfo:=filepos;
       end;
 
-{$ifdef var_notification}
-          { For a t1:=t2 tree, mark the part of the tree t1 that gets
-            written to (normally the loadnode) as write access. }
-          procedure Tnode.mark_write;
-          begin
-             writenode(self);
-             runerror(211);
-          end;
-{$endif}
-
-
 {****************************************************************************
                                  TUNARYNODE
  ****************************************************************************}
@@ -989,7 +978,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.41  2002-09-01 13:28:38  daniel
+  Revision 1.42  2002-09-03 16:26:26  daniel
+    * Make Tprocdef.defs protected
+
+  Revision 1.41  2002/09/01 13:28:38  daniel
    - write_access fields removed in favor of a flag
 
   Revision 1.40  2002/09/01 08:01:16  daniel

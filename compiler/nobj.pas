@@ -224,50 +224,47 @@ implementation
     procedure tclassheader.insertmsgint(p : tnamedindexitem;arg:pointer);
 
       var
-         hp : pprocdeflist;
+         i  : cardinal;
+         def: Tprocdef;
          pt : pprocdeftree;
+
       begin
          if tsym(p).typ=procsym then
-           begin
-              hp:=tprocsym(p).defs;
-              while assigned(hp) do
-                begin
-                   if (po_msgint in hp^.def.procoptions) then
-                     begin
-                        new(pt);
-                        pt^.data:=hp^.def;
-                        pt^.l:=nil;
-                        pt^.r:=nil;
-                        insertint(pt,root);
-                     end;
-                   hp:=hp^.next;
-                end;
-           end;
+            for i:=1 to Tprocsym(p).procdef_count do
+              begin
+                def:=Tprocsym(p).procdef[i];
+                if po_msgint in def.procoptions then
+                  begin
+                    new(pt);
+                    pt^.data:=def;
+                    pt^.l:=nil;
+                    pt^.r:=nil;
+                    insertint(pt,root);
+                  end;
+              end;
       end;
 
     procedure tclassheader.insertmsgstr(p : tnamedindexitem;arg:pointer);
 
       var
-         hp : pprocdeflist;
+         i  : cardinal;
+         def: Tprocdef;
          pt : pprocdeftree;
 
       begin
          if tsym(p).typ=procsym then
-           begin
-              hp:=tprocsym(p).defs;
-              while assigned(hp) do
-                begin
-                   if (po_msgstr in hp^.def.procoptions) then
-                     begin
-                        new(pt);
-                        pt^.data:=hp^.def;
-                        pt^.l:=nil;
-                        pt^.r:=nil;
-                        insertstr(pt,root);
-                     end;
-                   hp:=hp^.next;
-                end;
-           end;
+            for i:=1 to Tprocsym(p).procdef_count do
+              begin
+                def:=Tprocsym(p).procdef[i];
+                if po_msgint in def.procoptions then
+                  begin
+                    new(pt);
+                    pt^.data:=def;
+                    pt^.l:=nil;
+                    pt^.r:=nil;
+                    insertstr(pt,root);
+                  end;
+              end;
       end;
 
     procedure tclassheader.writenames(p : pprocdeftree);
@@ -463,9 +460,9 @@ implementation
       begin
          if (tsym(p).typ=procsym) and (sp_published in tsym(p).symoptions) then
            begin
-              if assigned(tprocsym(p).defs^.next) then
+              if Tprocsym(p).procdef_count>1 then
                 internalerror(1209992);
-              hp:=tprocsym(p).defs^.def;
+              hp:=tprocsym(p).first_procdef;
               objectlibrary.getdatalabel(l);
 
               Consts.concat(Tai_label.Create(l));
@@ -539,6 +536,9 @@ implementation
 
       { creates a new entry in the procsym list }
       procedure newentry;
+
+        var i:cardinal;
+
         begin
            { if not, generate a new symbol item }
            new(symcoll);
@@ -548,18 +548,15 @@ implementation
            wurzel:=symcoll;
 
            { inserts all definitions }
-           hp:=tprocsym(sym).defs;
-           while assigned(hp) do
-             begin
-                newdefentry(hp^.def);
-                hp:=hp^.next;
-             end;
+           for i:=1 to Tprocsym(sym).procdef_count do
+              newdefentry(Tprocsym(sym).procdef[i]);
         end;
 
       label
          handlenextdef;
       var
          pd : tprocdef;
+         i : cardinal;
          is_visible,
          pdoverload : boolean;
       begin
@@ -584,10 +581,9 @@ implementation
                  if _name=symcoll^.name^ then
                   begin
                     { walk through all defs of the symbol }
-                    hp:=tprocsym(sym).defs;
-                    while assigned(hp) do
-                     begin
-                       pd:=hp^.def;
+                    for i:=1 to Tprocsym(sym).procdef_count do
+                      begin
+                       pd:=Tprocsym(sym).procdef[i];
                        if pd.procsym=sym then
                         begin
                           pdoverload:=(po_overload in pd.procoptions);
@@ -719,7 +715,6 @@ implementation
                           newdefentry(pd);
                         end;
                      handlenextdef:
-                       hp:=hp^.next;
                      end;
                     exit;
                   end;
@@ -998,24 +993,22 @@ implementation
     function tclassheader.gintfgetcprocdef(proc: tprocdef;const name: string): tprocdef;
       var
         sym: tprocsym;
-        implprocdef : pprocdeflist;
+        implprocdef : Tprocdef;
+        i: cardinal;
       begin
         gintfgetcprocdef:=nil;
         sym:=tprocsym(search_class_member(_class,name));
         if assigned(sym) and (sym.typ=procsym) then
-          begin
-            implprocdef:=sym.defs;
-            while assigned(implprocdef) do
-             begin
-               if equal_paras(proc.para,implprocdef^.def.para,cp_none) and
-                  (proc.proccalloption=implprocdef^.def.proccalloption) then
+          for i:=1 to sym.procdef_count do
+            begin
+              implprocdef:=sym.procdef[i];
+              if equal_paras(proc.para,implprocdef.para,cp_none) and
+                 (proc.proccalloption=implprocdef.proccalloption) then
                 begin
-                  gintfgetcprocdef:=implprocdef^.def;
+                  gintfgetcprocdef:=implprocdef;
                   exit;
                 end;
-               implprocdef:=implprocdef^.next;
-             end;
-          end;
+            end;
       end;
 
 
@@ -1308,7 +1301,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.26  2002-09-03 15:44:44  peter
+  Revision 1.27  2002-09-03 16:26:26  daniel
+    * Make Tprocdef.defs protected
+
+  Revision 1.26  2002/09/03 15:44:44  peter
     * fixed private methods hiding public virtual methods
 
   Revision 1.25  2002/08/11 14:32:27  peter

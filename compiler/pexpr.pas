@@ -897,7 +897,7 @@ implementation
                                    (assigned(getprocvardef) and
                                     ((block_type=bt_const) or
                                      ((m_tp_procvar in aktmodeswitches) and
-                                      proc_to_procvar_equal(tprocsym(sym).defs^.def,getprocvardef,false)
+                                      proc_to_procvar_equal(tprocsym(sym).first_procdef,getprocvardef,false)
                                      )
                                     )
                                    ),again,p1);
@@ -1232,7 +1232,7 @@ implementation
                                  (assigned(getprocvardef) and
                                   ((block_type=bt_const) or
                                    ((m_tp_procvar in aktmodeswitches) and
-                                    proc_to_procvar_equal(tprocsym(srsym).defs^.def,getprocvardef,false)
+                                    proc_to_procvar_equal(tprocsym(srsym).first_procdef,getprocvardef,false)
                                    )
                                   )
                                  ),again,p1);
@@ -2248,7 +2248,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.77  2002-08-18 20:06:24  peter
+  Revision 1.78  2002-09-03 16:26:27  daniel
+    * Make Tprocdef.defs protected
+
+  Revision 1.77  2002/08/18 20:06:24  peter
     * inlining is now also allowed in interface
     * renamed write/load to ppuwrite/ppuload
     * tnode storing in ppu

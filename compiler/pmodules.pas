@@ -617,7 +617,6 @@ implementation
     procedure gen_main_procsym(const name:string;options:tproctypeoption;st:tsymtable);
       var
         stt : tsymtable;
-        procdefs : pprocdeflist;
       begin
         {Generate a procsym for main}
         make_ref:=false;
@@ -628,10 +627,7 @@ implementation
         stt:=symtablestack;
         symtablestack:=st;
         aktprocdef:=tprocdef.create;
-        new(procdefs);
-        procdefs^.def:=aktprocdef;
-        procdefs^.next:=aktprocsym.defs;
-        aktprocsym.defs:=procdefs;
+        aktprocsym.addprocdef(aktprocdef);
         aktprocdef.procsym:=aktprocsym;
         symtablestack:=stt;
         aktprocdef.proctypeoption:=options;
@@ -1390,7 +1386,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.76  2002-09-02 18:46:26  peter
+  Revision 1.77  2002-09-03 16:26:27  daniel
+    * Make Tprocdef.defs protected
+
+  Revision 1.76  2002/09/02 18:46:26  peter
     * insert PASCALMAIN in library for Win32 only
 
   Revision 1.75  2002/08/31 15:59:30  florian
