@@ -62,7 +62,7 @@ interface
 {$I zconf.inc}
 
 uses
-  zutil, zlib;
+  zutil, zbase;
 
 
 function deflateInit_(strm : z_streamp;
@@ -180,6 +180,14 @@ function deflateEnd (var strm : z_stream) : int;
 
 { The following functions are needed only in some special applications. }
 
+function deflateInit2_(var strm : z_stream;
+                       level : int;
+                       method : int;
+                       windowBits : int;
+                       memLevel : int;
+                       strategy : int;
+                       const version : string;
+                       stream_size : int) : int;
 
 {EXPORT}
 function deflateInit2 (var strm : z_stream;

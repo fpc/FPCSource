@@ -20,7 +20,7 @@ uses
   {$IFDEF DEBUG}
   strutils,
   {$ENDIF}
-  zutil, zlib;
+  zutil, zbase;
 
 function inflate_blocks_new(var z : z_stream;
                             c : check_func;  { check function }
@@ -162,7 +162,7 @@ begin
   Inc(s^.zend, w);
   s^.checkfn := c;
   s^.mode := ZTYPE;
-  {$IFDEF DEBUG}  
+  {$IFDEF DEBUG}
   Tracev('inflate:   blocks allocated');
   {$ENDIF}
   inflate_blocks_reset(s^, z, Z_NULL);
@@ -299,7 +299,7 @@ begin
                 Tracev('inflate:     dynamic codes block (last)')
               else
                 Tracev('inflate:     dynamic codes block');
-              {$ENDIF}                
+              {$ENDIF}
               {DUMPBITS(3);}
               b := b shr 3;
               Dec(k, 3);
@@ -762,7 +762,7 @@ begin
           end;
           {$IFDEF DEBUG}
           Tracev('inflate:       trees ok');
-          {$ENDIF}          
+          {$ENDIF}
           { c renamed to cs }
           cs := inflate_codes_new(bl, bd, tl, td, z);
           if (cs = Z_NULL) then
@@ -926,7 +926,7 @@ begin
   ZFREE(z, s);
   {$IFDEF DEBUG}
   Trace('inflate:   blocks freed');
-  {$ENDIF}  
+  {$ENDIF}
   inflate_blocks_free := Z_OK;
 end;
 

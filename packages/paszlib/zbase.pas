@@ -1,4 +1,4 @@
-Unit Zlib;
+Unit Zbase;
 
 
 { Original:
@@ -168,7 +168,7 @@ type
   check_func = function(check : uLong;
                         buf : pBytef;
                         {const buf : array of byte;}
-	                len : uInt) : uLong;
+                        len : uInt) : uLong;
 type
   inflate_block_mode =
      (ZTYPE,    { get type bits (3, including end bit) }
@@ -288,10 +288,10 @@ type
     adler : uLong;        { adler32 value of the uncompressed data }
     reserved : uLong;     { reserved for future use }
   end;
-{$ifdef fpc}  
+{$ifdef fpc}
   TZStream = z_stream;
   PZStream = ^TZStream;
-{$endif}  
+{$endif}
 
 {  The application must update next_in and avail_in when avail_in has
    dropped to zero. It must update next_out and avail_out when avail_out

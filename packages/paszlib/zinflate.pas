@@ -13,7 +13,7 @@ interface
 {$I zconf.inc}
 
 uses
-  zutil, zlib, infblock, infutil;
+  zutil, zbase, infblock, infutil;
 
 function inflateInit(var z : z_stream) : int;
 
@@ -134,7 +134,7 @@ function inflate(var z : z_stream;
 
      If a preset dictionary is needed at this point (see inflateSetDictionary
   below), inflate sets strm-adler to the adler32 checksum of the
-  dictionary chosen by the compressor and returns Z_NEED_DICT; otherwise 
+  dictionary chosen by the compressor and returns Z_NEED_DICT; otherwise
   it sets strm->adler to the adler32 checksum of all output produced
   so far (that is, total_out bytes) and returns Z_OK, Z_STREAM_END or
   an error code as described below. At the end of the stream, inflate()
@@ -254,7 +254,7 @@ begin
   { initialize state }
   { SetLength(strm.msg, 255); }
   z.msg := '';
-{$ifdef fpc}  
+{$ifdef fpc}
   if not Assigned(z.zalloc) then
   begin
     z.zalloc := @zcalloc;
@@ -262,7 +262,7 @@ begin
   end;
   if not Assigned(z.zfree) then
     z.zfree := @zcfree;
-{$else}    
+{$else}
   if not Assigned(z.zalloc) then
   begin
     z.zalloc := zcalloc;
@@ -529,7 +529,7 @@ begin
         if ((b and PRESET_DICT) = 0) then
         begin
           z.state^.mode := BLOCKS;
-	  continue;      { break C-switch }
+          continue;      { break C-switch }
         end;
         z.state^.mode := DICT4;
         { falltrough }

@@ -19,7 +19,7 @@ uses
   {$ifdef DEBUG}
   strutils,
   {$ENDIF}
-  zutil, zlib;
+  zutil, zbase;
 
 function inflate_fast( bl : uInt;
                        bd : uInt;
@@ -244,7 +244,7 @@ begin
             Tracevv('inflate:         * literal '+char(t^.base))
           else
             Tracevv('inflate:         * literal '+IntToStr(t^.base));
-          {$ENDIF}            
+          {$ENDIF}
           q^ := Byte(t^.base);
           Inc(q);
           Dec(m);

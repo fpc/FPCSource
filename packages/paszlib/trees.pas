@@ -45,7 +45,7 @@ uses
   {$ifdef DEBUG}
   strutils,
   {$ENDIF}
-  zutil, zlib;
+  zutil, zbase;
 
 { ===========================================================================
   Internal compression state. }
@@ -319,7 +319,7 @@ function _tr_tally (var s : deflate_state;
 function _tr_flush_block (var s : deflate_state;
                           buf : pcharf;
                           stored_len : ulg;
-			  eof : boolean) : ulg;
+                          eof : boolean) : ulg;
 
 procedure _tr_align(var s : deflate_state);
 
@@ -508,7 +508,7 @@ const
 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 28
 );
 
-  
+
 { First normalized length for each code (0 = MIN_MATCH) }
   base_length : array[0..LENGTH_CODES-1] of int = (
 0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 14, 16, 20, 24, 28, 32, 40, 48, 56,
@@ -956,42 +956,42 @@ begin
   for i := 0 to L_CODES+2-1 do
   begin
     WriteLn(header, '((%3u),(%3u))%s', static_ltree[i].Code,
-		static_ltree[i].Len, SEPARATOR(i, L_CODES+1, 5));
+                static_ltree[i].Len, SEPARATOR(i, L_CODES+1, 5));
   end;
 
   WriteLn(header, 'local const ct_data static_dtree[D_CODES] := (');
   for i := 0 to D_CODES-1 do
   begin
     WriteLn(header, '((%2u),(%2u))%s', static_dtree[i].Code,
-		static_dtree[i].Len, SEPARATOR(i, D_CODES-1, 5));
+                static_dtree[i].Len, SEPARATOR(i, D_CODES-1, 5));
   end;
 
   WriteLn(header, 'const uch _dist_code[DIST_CODE_LEN] := (');
   for i := 0 to DIST_CODE_LEN-1 do
   begin
     WriteLn(header, '%2u%s', _dist_code[i],
-		SEPARATOR(i, DIST_CODE_LEN-1, 20));
+                SEPARATOR(i, DIST_CODE_LEN-1, 20));
   end;
 
   WriteLn(header, 'const uch _length_code[MAX_MATCH-MIN_MATCH+1]= (');
   for i := 0 to MAX_MATCH-MIN_MATCH+1-1 do
   begin
     WriteLn(header, '%2u%s', _length_code[i],
-		SEPARATOR(i, MAX_MATCH-MIN_MATCH, 20));
+                SEPARATOR(i, MAX_MATCH-MIN_MATCH, 20));
   end;
 
   WriteLn(header, 'local const int base_length[LENGTH_CODES] := (');
   for i := 0 to LENGTH_CODES-1 do
   begin
     WriteLn(header, '%1u%s', base_length[i],
-		SEPARATOR(i, LENGTH_CODES-1, 20));
+                SEPARATOR(i, LENGTH_CODES-1, 20));
   end;
 
   WriteLn(header, 'local const int base_dist[D_CODES] := (');
   for i := 0 to D_CODES-1 do
   begin
     WriteLn(header, '%5u%s', base_dist[i],
-		SEPARATOR(i, D_CODES-1, 10));
+                SEPARATOR(i, D_CODES-1, 10));
   end;
 
   close(header);
@@ -2064,8 +2064,8 @@ begin
 
     {$ifdef DEBUG}
     Tracev(^M'opt %lu(%lu) stat %lu(%lu) stored %lu lit %u '+
-	    '{opt_lenb, s.opt_len, static_lenb, s.static_len, stored_len,'+
-	    's.last_lit}');
+            '{opt_lenb, s.opt_len, static_lenb, s.static_len, stored_len,'+
+            's.last_lit}');
     {$ENDIF}
 
     if (static_lenb <= opt_lenb) then

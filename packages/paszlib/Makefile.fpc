@@ -3,11 +3,11 @@
 #
 
 [targets]
-units=adler crc crcasm gzio infblock infcodes inffast inftrees infutil strutils trees zcompres zdeflate zinflate zlib zuncompr zutil
+units=paszlib adler crc crcasm gzio infblock infcodes inffast inftrees infutil strutils trees zcompres zdeflate zinflate zbase zuncompr zutil
 examples=example minigzip
 
-[require]
-options=-Sm
+[install]
+unitsubdir=paszlib
 
 [dirs]
 fpcdir=../..

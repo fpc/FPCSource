@@ -14,7 +14,7 @@ interface
 {$I zconf.inc}
 
 uses
-  zutil, zlib;
+  zutil, zbase;
 
 
 function crc32(crc : uLong; buf : pBytef; len : uInt) : uLong;
@@ -38,7 +38,7 @@ function crc32(crc : uLong; buf : pBytef; len : uInt) : uLong;
 
 }
 
-function get_crc_table : puLong;  { can be used by asm versions of crc32() }
+function get_crc_table : pointer;  { can be used by asm versions of crc32() }
 
 
 implementation
@@ -175,13 +175,13 @@ const
 { =========================================================================
   This function can be used by asm versions of crc32() }
 
-function get_crc_table : {const} puLong;
+function get_crc_table : {const} pointer;
 begin
 {$ifdef DYNAMIC_CRC_TABLE}
   if (crc_table_empty) then
     make_crc_table;
 {$endif}
-  get_crc_table :=  {const} puLong(@crc_table);
+  get_crc_table :=  {const} pointer(@crc_table);
 end;
 
 { ========================================================================= }

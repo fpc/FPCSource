@@ -18,7 +18,7 @@ interface
 {$I zconf.inc}
 
 uses
-  zutil, zlib;
+  zutil, zbase;
 
 
 { Maximum size of dynamic tree.  The maximum found in a long but non-

@@ -17,7 +17,7 @@ interface
 {$I zconf.inc}
 
 uses
-  zutil, zlib;
+  zutil, zbase;
 
 { copy as much as possible from the sliding window to the output area }
 function inflate_flush(var s : inflate_blocks_state;

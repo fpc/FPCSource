@@ -16,7 +16,7 @@ uses
   {$IFDEF DEBUG}
   strutils,
   {$ENDIF}
-  zutil, zlib;
+  zutil, zbase;
 
 function inflate_codes_new (bl : uInt;
                             bd : uInt;
@@ -175,7 +175,7 @@ begin
           Tracevv('inflate:         literal '+char(t^.base))
         else
           Tracevv('inflate:         literal '+IntToStr(t^.base));
-        {$ENDIF}          
+        {$ENDIF}
         c^.mode := LIT;
         continue;  { break switch statement }
       end;
@@ -196,7 +196,7 @@ begin
       begin
         {$IFDEF DEBUG}
         Tracevv('inflate:         end of block');
-        {$ENDIF}        
+        {$ENDIF}
         c^.mode := WASH;
         continue;         { break C-switch statement }
       end;
@@ -568,7 +568,7 @@ procedure inflate_codes_free(c : pInflate_codes_state;
                              var z : z_stream);
 begin
   ZFREE(z, c);
-  {$IFDEF DEBUG}  
+  {$IFDEF DEBUG}
   Tracev('inflate:       codes free');
   {$ENDIF}
 end;

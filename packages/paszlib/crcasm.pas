@@ -24,7 +24,7 @@ interface
 {$ENDIF}
 
 uses
-  zutil, zlib;
+  zutil, zbase;
 
 function crc32(crc : uLong; buf : pBytef; len : uInt) : uLong;
 

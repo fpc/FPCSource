@@ -13,14 +13,14 @@ interface
 {$I zconf.inc}
 
 uses
-  zutil, zlib, zDeflate;
+  zutil, zbase, zDeflate;
 
                         { utility functions }
 
 {EXPORT}
 function compress (dest : pBytef;
                    var destLen : uLong;
-                   const source : array of Byte;
+                   source : pBytef;
                    sourceLen : uLong) : int;
 
  { Compresses the source buffer into the destination buffer.  sourceLen is
@@ -37,7 +37,7 @@ function compress (dest : pBytef;
 {EXPORT}
 function compress2 (dest : pBytef;
                     var destLen : uLong;
-                    const source : array of byte;
+                    source : pBytef;
                     sourceLen : uLong;
                     level : int) : int;
 {  Compresses the source buffer into the destination buffer. The level
@@ -56,14 +56,14 @@ implementation
 }
 function compress2 (dest : pBytef;
                     var destLen : uLong;
-                    const source : array of byte;
+                    source : pbytef;
                     sourceLen : uLong;
                     level : int) : int;
 var
   stream : z_stream;
   err : int;
 begin
-  stream.next_in := pBytef(@source);
+  stream.next_in := source;
   stream.avail_in := uInt(sourceLen);
 {$ifdef MAXSEG_64K}
   { Check for source > 64K on 16-bit machine: }
@@ -112,7 +112,7 @@ end;
  }
 function compress (dest : pBytef;
                    var destLen : uLong;
-                   const source : array of Byte;
+                   source : pBytef;
                    sourceLen : uLong) : int;
 begin
   compress := compress2(dest, destLen, source, sourceLen, Z_DEFAULT_COMPRESSION);
