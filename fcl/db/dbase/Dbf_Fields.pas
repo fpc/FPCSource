@@ -30,7 +30,6 @@ type
     FHasMin: Boolean;
     FHasMax: Boolean;
     FAllocSize: Integer;
-    FValueOffset: Integer;
     FCopyFrom: Integer;
     FOffset: Integer;
     FAutoInc: Cardinal;
@@ -58,7 +57,6 @@ type
     procedure AssignDb(DbSource: TFieldDef);
 
     procedure CheckSizePrecision;
-    procedure CalcValueOffset;
     procedure SetDefaultSize;
     procedure AllocBuffers;
     function  IsBlob: Boolean;
@@ -69,7 +67,6 @@ type
     property HasDefault: Boolean read FHasDefault write FHasDefault;
     property HasMin: Boolean read FHasMin write FHasMin;
     property HasMax: Boolean read FHasMax write FHasMax;
-    property ValueOffset: Integer read FValueOffset write FValueOffset;
     property Offset: Integer read FOffset write FOffset;
     property AutoInc: Cardinal read FAutoInc write FAutoInc;
     property IsLockField: Boolean read FIsLockField write FIsLockField;
@@ -233,7 +230,6 @@ begin
     FHasMin := DbfSource.HasMin;
     FHasMax := DbfSource.HasMax;
     // do we need offsets?
-    FValueOffset := DbfSource.ValueOffset;
     FOffset := DbfSource.Offset;
     FAutoInc := DbfSource.AutoInc;
 {$ifdef SUPPORT_FIELDDEF_TPERSISTENT}
@@ -265,7 +261,6 @@ begin
   FHasDefault := false;
   FHasMin := false;
   FHasMax := false;
-  FValueOffset := 0;
   FOffset := 0;
   FAutoInc := 0;
 end;
@@ -292,13 +287,6 @@ begin
   end else
 {$endif}
     inherited AssignTo(Dest);
-end;
-
-procedure TDbfFieldDef.CalcValueOffset;
-begin
-  // autoinc?
-  if FNativeFieldType = '+' then
-    FValueOffset := SizeOf(rDbfHdr)+SizeOf(rAfterHdrVII) + (Index-1)*SizeOf(rFieldDescVII) + FieldDescVII_AutoIncOffset;
 end;
 
 function TDbfFieldDef.GetDbfVersion: xBaseVersion;
@@ -389,6 +377,7 @@ end;
 
 procedure TDbfFieldDef.VCLToNative;
 begin
+  FNativeFieldType := #0;
   case FFieldType of
     ftAutoInc  : FNativeFieldType  := '+';
     ftDateTime :
@@ -418,13 +407,12 @@ begin
         FNativeFieldType := 'I'
       else
         FNativeFieldType := 'N';
-    ftBCD      : FNativeFieldType := 'Y';
-    ftCurrency : FNativeFieldType := 'Y';
-  else
-//    FFieldType := ftUnknown;
-    FNativeFieldType := #0;
+    ftBCD, ftCurrency: 
+      if DbfVersion = xFoxPro then
+        FNativeFieldType := 'Y';
+  end;
+  if FNativeFieldType = #0 then
     raise EDbfError.CreateFmt(STRING_INVALID_VCL_FIELD_TYPE, [GetDisplayName, Ord(FFieldType)]);
-  end; // Case
 end;
 
 procedure TDbfFieldDef.SetDefaultSize;

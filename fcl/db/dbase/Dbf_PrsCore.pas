@@ -43,18 +43,18 @@ type
     FExpResultPos: PChar;
     FExpResultSize: Integer;
 
-    function ParseString(AnExpression: string): TExprCollection;
-    function MakeTree(var Expr: TExprCollection): PExpressionRec;
-    function MakeRec: PExpressionRec;
-    procedure MakeLinkedList(ExprRec: PExpressionRec; Memory: PPChar;
+    procedure ParseString(AnExpression: string; DestCollection: TExprCollection);
+    function  MakeTree(Expr: TExprCollection; FirstItem, LastItem: Integer): PExpressionRec;
+    procedure MakeLinkedList(var ExprRec: PExpressionRec; Memory: PPChar;
         MemoryPos: PPChar; MemSize: PInteger);
     procedure Check(AnExprList: TExprCollection);
     procedure CheckArguments(ExprRec: PExpressionRec);
-    function RemoveConstants(ExprRec: PExpressionRec): PExpressionRec;
+    procedure RemoveConstants(var ExprRec: PExpressionRec);
     function ResultCanVary(ExprRec: PExpressionRec): Boolean;
   protected
     FWordsList: TSortedCollection;
 
+    function MakeRec: PExpressionRec; virtual;
     procedure FillExpressList; virtual; abstract;
     procedure HandleUnknownVariable(VarName: string); virtual; abstract;
 
@@ -149,19 +149,19 @@ var
   ExpColl: TExprCollection;
   ExprTree: PExpressionRec;
 begin
-  ExprTree := nil;
-  ExpColl := nil;
   if Length(AnExpression) > 0 then
   begin
+    ExprTree := nil;
+    ExpColl := TExprCollection.Create;
     try
       //    FCurrentExpression := anExpression;
-      ExpColl := ParseString(AnExpression);
+      ParseString(AnExpression, ExpColl);
       Check(ExpColl);
-      ExprTree := MakeTree(ExpColl);
+      ExprTree := MakeTree(ExpColl, 0, ExpColl.Count - 1);
       FCurrentRec := nil;
       CheckArguments(ExprTree);
       if Optimize then
-        ExprTree := RemoveConstants(ExprTree);
+        RemoveConstants(ExprTree);
       // all constant expressions are evaluated and replaced by variables
       FCurrentRec := nil;
       FExpResultPos := FExpResult;
@@ -170,9 +170,11 @@ begin
       on E: Exception do
       begin
         DisposeTree(ExprTree);
-	raise;
+        ExpColl.Free;
+        raise;
       end;
     end;
+    ExpColl.Free;
   end;
 end;
 
@@ -255,53 +257,52 @@ begin
   end;
 end;
 
-function TCustomExpressionParser.RemoveConstants(ExprRec: PExpressionRec): PExpressionRec;
+procedure TCustomExpressionParser.RemoveConstants(var ExprRec: PExpressionRec);
 var
   I: Integer;
 begin
-  Result := ExprRec;
-  with ExprRec^ do
+  if not ResultCanVary(ExprRec) then
   begin
-    if not ResultCanVary(ExprRec) then
+    if not ExprRec^.ExprWord.IsVariable then
     begin
-      if not ExprWord.IsVariable then
-      begin
-        // reset current record so that make list generates new
-        FCurrentRec := nil;
-        FExpResultPos := FExpResult;
-        MakeLinkedList(ExprRec, @FExpResult, @FExpResultPos, @FExpResultSize);
+      // reset current record so that make list generates new
+      FCurrentRec := nil;
+      FExpResultPos := FExpResult;
+      MakeLinkedList(ExprRec, @FExpResult, @FExpResultPos, @FExpResultSize);
 
-        try
-          // compute result
-          EvaluateCurrent;
+      try
+        // compute result
+        EvaluateCurrent;
 
-          // make new record to store constant in
-          Result := MakeRec;
+        // make new record to store constant in
+        ExprRec := MakeRec;
 
-          // check result type
+        // check result type
+        with ExprRec^ do
+        begin
           case ResultType of
-            etBoolean: Result.ExprWord := TBooleanConstant.Create(EmptyStr, PBoolean(FExpResult)^);
-            etFloat: Result.ExprWord := TFloatConstant.CreateAsDouble(EmptyStr, PDouble(FExpResult)^);
-            etString: Result.ExprWord := TStringConstant.Create(FExpResult);
+            etBoolean: ExprWord := TBooleanConstant.Create(EmptyStr, PBoolean(FExpResult)^);
+            etFloat: ExprWord := TFloatConstant.CreateAsDouble(EmptyStr, PDouble(FExpResult)^);
+            etString: ExprWord := TStringConstant.Create(FExpResult);
           end;
 
           // fill in structure
-          Result.Oper := Result.ExprWord.ExprFunc;
-          Result.Args[0] := Result.ExprWord.AsPointer;
-          FConstantsList.Add(Result.ExprWord);
-        finally
-          // only free list if succesfully evaluated expression
-          if (Result <> ExprRec) then
-            DisposeList(ExprRec);
-          FCurrentRec := nil;
+          Oper := ExprWord.ExprFunc;
+          Args[0] := ExprWord.AsPointer;
+          FConstantsList.Add(ExprWord);
         end;
+      finally
+        DisposeList(FCurrentRec);
+        FCurrentRec := nil;
       end;
-    end
-    else
+    end;
+  end else
+    with ExprRec^ do
+    begin
       for I := 0 to ExprWord.MaxFunctionArg - 1 do
         if ArgList[I] <> nil then
-          ArgList[I] := RemoveConstants(ArgList[I]);
-  end;
+          RemoveConstants(ArgList[I]);
+    end;
 end;
 
 procedure TCustomExpressionParser.DisposeTree(ExprRec: PExpressionRec);
@@ -343,7 +344,7 @@ begin
     until ARec = nil;
 end;
 
-procedure TCustomExpressionParser.MakeLinkedList(ExprRec: PExpressionRec;
+procedure TCustomExpressionParser.MakeLinkedList(var ExprRec: PExpressionRec;
   Memory: PPChar; MemoryPos: PPChar; MemSize: PInteger);
 var
   I: Integer;
@@ -365,6 +366,7 @@ begin
     end;
     // don't need this record anymore
     Dispose(ExprRec);
+    ExprRec := nil;
   end else begin
     // inc memory pointer so we know if we are first
     ExprRec^.ResetDest := MemoryPos^ = Memory^;
@@ -414,7 +416,8 @@ begin
   end;
 end;
 
-function TCustomExpressionParser.MakeTree(var Expr: TExprCollection): PExpressionRec;
+function TCustomExpressionParser.MakeTree(Expr: TExprCollection; 
+  FirstItem, LastItem: Integer): PExpressionRec;
 
 {
 - This is the most complex routine, it breaks down the expression and makes
@@ -423,138 +426,125 @@ function TCustomExpressionParser.MakeTree(var Expr: TExprCollection): PExpressio
 }
 
 var
-  I, IArg, IStart, IEnd, brCount: Integer;
-  FirstOper: TExprWord;
-  Expr2: TExprCollection;
-  Rec: PExpressionRec;
+  I, IArg, IStart, IEnd, lPrec, brCount: Integer;
+  redundantBrackets: boolean;
+  ExprWord: TExprWord;
 begin
-  FirstOper := nil;
-  IStart := 0;
-  try
+  // remove redundant brackets
+  repeat
+    redundantBrackets := false;
+    if (TExprWord(Expr.Items[FirstItem]).ResultType = etLeftBracket) and
+        (TExprWord(Expr.Items[LastItem]).ResultType = etRightBracket) then
+    begin
+      Inc(FirstItem);
+      Dec(LastItem);
+      redundantBrackets := true;
+    end;
+  until not redundantBrackets;
+
+  // check for empty range
+  if LastItem < FirstItem then
+  begin
     Result := nil;
-    repeat
-      // get new record
-      Rec := MakeRec;
-      if Result <> nil then
-      begin
-        // link operation lower down tree
-        IArg := 1;
-        Rec.ArgList[0] := Result;
-      end
-      else
-        IArg := 0;
-      Result := Rec;
-      Expr.EraseExtraBrackets;
-
-      // simple constant, variable or function?
-      if Expr.Count = 1 then
-      begin
-        Result.ExprWord := TExprWord(Expr.Items[0]);
-        Result.Oper := @Result.ExprWord.ExprFunc;
-        if Result.ExprWord.IsVariable then
-        begin
-          // copy pointer to variable
-          Result.Args[0] := Result.ExprWord.AsPointer;
-          // is this a fixed length string variable?
-          if Result.ExprWord.FixedLen >= 0 then
-          begin
-            // store length as second parameter
-            Result.Args[1] := PChar(Result.ExprWord.LenAsPointer);
-          end;
-        end;
-        exit;
-      end;
-
-      // no...with arguments, search function/operand
-      IEnd := Expr.NextOper(IStart);
-      // is this a function?
-      if (IEnd < Expr.Count) and TExprWord(Expr.Items[IEnd]).IsFunction then
-      begin
-        FirstOper := TExprWord(Expr.Items[IEnd]);
-        Result.ExprWord := FirstOper;
-        Result.Oper := FirstOper.ExprFunc;
-      end else
-        raise EParserException.Create('Operand/function missing');
-
-      if not FirstOper.IsOper then
-      begin
-        // parse function arguments
-        IArg := 0;
-        Inc(IEnd);
-        IStart := IEnd;
-        brCount := 0;
-        if TExprWord(Expr.Items[IEnd]).ResultType = etLeftBracket then
-        begin
-          Inc(brCount);
-          Inc(IStart);
-        end else
-          Inc(IEnd);
-        while (IEnd < Expr.Count - 1) and (brCount <> 0) do
-        begin
-          Inc(IEnd);
-          case TExprWord(Expr.Items[IEnd]).ResultType of
-            etLeftBracket: Inc(brCount);
-            etComma:
-              if brCount = 1 then
-              begin
-                // argument separation found, build tree of argument expression
-                Expr2 := TExprCollection.Create;
-                Expr2.Capacity := IEnd - IStart;
-                for I := IStart to IEnd - 1 do
-                  Expr2.Add(Expr.Items[I]);
-                Result.ArgList[IArg] := MakeTree(Expr2);
-                Inc(IArg);
-                IStart := IEnd + 1;
-              end;
-            etRightBracket: Dec(brCount);
-          end;
-        end;
-
-        // parse last argument
-        Expr2 := TExprCollection.Create;
-        Expr2.Capacity := IEnd - IStart + 1;
-        for I := IStart to IEnd - 1 do
-          Expr2.Add(Expr.Items[I]);
-        Result.ArgList[IArg] := MakeTree(Expr2);
-      end
-      else if IEnd - IStart > 0 then
-      begin
-        // parse expression before operand
-        Expr2 := TExprCollection.Create;
-        Expr2.Capacity := IEnd - IStart + 1;
-        for I := 0 to IEnd - 1 do
-          Expr2.Add(Expr.Items[I]);
-        Result.ArgList[IArg] := MakeTree(Expr2);
-        Inc(IArg);
-      end;
-
-      // now search next operand that is less or equal important
-      // this operand has to be higher up in tree
-      // operands in between are more important and thus lower in tree
-      // if we don't find a less or equal important operand we are done!
-      IStart := IEnd + 1;
-      IEnd := IStart - 1;
-      repeat
-        IEnd := Expr.NextOper(IEnd + 1);
-      until (IEnd >= Expr.Count) or (TFunction(Expr.Items[IEnd]).OperPrec >= TFunction(FirstOper).OperPrec);
-
-      // found operand?
-      if IEnd <> IStart then
-      begin
-        Expr2 := TExprCollection.Create;
-        Expr2.Capacity := IEnd;
-        for I := IStart to IEnd - 1 do
-          Expr2.Add(Expr.Items[I]);
-        Result.ArgList[IArg] := MakeTree(Expr2);
-      end;
-      IStart := IEnd;
-    until IEnd >= Expr.Count;
-  finally
-    FreeAndNil(Expr);
+    exit;
   end;
+
+  // get new record
+  Result := MakeRec;
+
+  // simple constant, variable or function?
+  if LastItem = FirstItem then
+  begin
+    Result.ExprWord := TExprWord(Expr.Items[FirstItem]);
+    Result.Oper := @Result.ExprWord.ExprFunc;
+    if Result.ExprWord.IsVariable then
+    begin
+      // copy pointer to variable
+      Result.Args[0] := Result.ExprWord.AsPointer;
+      // is this a fixed length string variable?
+      if Result.ExprWord.FixedLen >= 0 then
+      begin
+        // store length as second parameter
+        Result.Args[1] := PChar(Result.ExprWord.LenAsPointer);
+      end;
+    end;
+    exit;
+  end;
+
+  // no...more complex, find operator with lowest precedence
+  brCount := 0;
+  IArg := 0;
+  IEnd := FirstItem-1;
+  lPrec := -1;
+  for I := FirstItem to LastItem do
+  begin
+    ExprWord := TExprWord(Expr.Items[I]);
+    if (brCount = 0) and ExprWord.IsOperator and (TFunction(ExprWord).OperPrec > lPrec) then
+    begin
+      IEnd := I;
+      lPrec := TFunction(ExprWord).OperPrec;
+    end;
+    case ExprWord.ResultType of
+      etLeftBracket: Inc(brCount);
+      etRightBracket: Dec(brCount);
+    end;
+  end;
+
+  // operator found ?
+  if IEnd >= FirstItem then
+  begin
+    // save operator
+    Result.ExprWord := TExprWord(Expr.Items[IEnd]);
+    Result.Oper := Result.ExprWord.ExprFunc;
+    // recurse into left part if present
+    if IEnd > FirstItem then
+    begin
+      Result.ArgList[IArg] := MakeTree(Expr, FirstItem, IEnd-1);
+      Inc(IArg);
+    end;
+    // recurse into right part if present
+    if IEnd < LastItem then
+      Result.ArgList[IArg] := MakeTree(Expr, IEnd+1, LastItem);
+  end else 
+  if TExprWord(Expr.Items[FirstItem]).IsFunction then 
+  begin
+    // save function
+    Result.ExprWord := TExprWord(Expr.Items[FirstItem]);
+    Result.Oper := Result.ExprWord.ExprFunc;
+    // parse function arguments
+    IEnd := FirstItem + 1;
+    IStart := IEnd;
+    brCount := 0;
+    if TExprWord(Expr.Items[IEnd]).ResultType = etLeftBracket then
+    begin
+      // opening bracket found, first argument expression starts at next index
+      Inc(brCount);
+      Inc(IStart);
+      while (IEnd < LastItem) and (brCount <> 0) do
+      begin
+        Inc(IEnd);
+        case TExprWord(Expr.Items[IEnd]).ResultType of
+          etLeftBracket: Inc(brCount);
+          etComma:
+            if brCount = 1 then
+            begin
+              // argument separation found, build tree of argument expression
+              Result.ArgList[IArg] := MakeTree(Expr, IStart, IEnd-1);
+              Inc(IArg);
+              IStart := IEnd + 1;
+            end;
+          etRightBracket: Dec(brCount);
+        end;
+      end;
+
+      // parse last argument
+      Result.ArgList[IArg] := MakeTree(Expr, IStart, IEnd-1);
+    end;
+  end else
+    raise EParserException.Create('Operator/function missing');
 end;
 
-function TCustomExpressionParser.ParseString(AnExpression: string): TExprCollection;
+procedure TCustomExpressionParser.ParseString(AnExpression: string; DestCollection: TExprCollection);
 var
   isConstant: Boolean;
   I, I1, I2, Len, DecSep: Integer;
@@ -696,64 +686,55 @@ var
   end;
 
 begin
-  Result := TExprCollection.Create;
-  try
-    I2 := 1;
-    S := Trim(AnExpression);
-    Len := Length(S);
-    repeat
-      ReadWord(S);
-      W := Trim(Copy(S, I1, I2 - I1));
-      if isConstant then
-      begin
-	if W[1] = HexChar then
-	begin
-	  // convert hexadecimal to decimal
-	  W[1] := '$';
-	  W := IntToStr(StrToInt(W));
-	end;
-	if (W[1] = '''') or (W[1] = '"') then
-	  TempWord := TStringConstant.Create(W)
-	else begin
-	  DecSep := Pos(FDecimalSeparator, W);
-	  if (DecSep > 0) then
-	  begin
-{$IFDEF ENG_NUMBERS}
-	    // we'll have to convert FDecimalSeparator into DecimalSeparator
-	    // otherwise the OS will not understand what we mean
-	    W[DecSep] := DecimalSeparator;
-{$ENDIF}
-	    TempWord := TFloatConstant.Create(W, W)
-	  end else begin
-	    TempWord := TIntegerConstant.Create(StrToInt(W));
-	  end;
-	end;
-	Result.Add(TempWord);
-	FConstantsList.Add(TempWord);
-      end
-      else if Length(W) > 0 then
-	if FWordsList.Search(PChar(W), I) then
-	begin
-	  Result.Add(FWordsList.Items[I])
-	end else begin
-	  // unknown variable -> fire event
-	  HandleUnknownVariable(W);
-	  // try to search again
-	  if FWordsList.Search(PChar(W), I) then
-	  begin
-	    Result.Add(FWordsList.Items[I])
-	  end else begin
-	    raise EParserException.Create('Unknown variable '''+W+''' found.');
-	  end;
-	end;
-    until I2 > Len;
-  except
-    on E: Exception do
+  I2 := 1;
+  S := Trim(AnExpression);
+  Len := Length(S);
+  repeat
+    ReadWord(S);
+    W := Trim(Copy(S, I1, I2 - I1));
+    if isConstant then
     begin
-      Result.Free;
-      raise;
-    end;
-  end;
+      if W[1] = HexChar then
+      begin
+        // convert hexadecimal to decimal
+        W[1] := '$';
+        W := IntToStr(StrToInt(W));
+      end;
+      if (W[1] = '''') or (W[1] = '"') then
+        TempWord := TStringConstant.Create(W)
+      else begin
+        DecSep := Pos(FDecimalSeparator, W);
+        if (DecSep > 0) then
+        begin
+{$IFDEF ENG_NUMBERS}
+          // we'll have to convert FDecimalSeparator into DecimalSeparator
+          // otherwise the OS will not understand what we mean
+          W[DecSep] := DecimalSeparator;
+{$ENDIF}
+          TempWord := TFloatConstant.Create(W, W)
+        end else begin
+          TempWord := TIntegerConstant.Create(StrToInt(W));
+        end;
+      end;
+      DestCollection.Add(TempWord);
+      FConstantsList.Add(TempWord);
+    end
+    else if Length(W) > 0 then
+      if FWordsList.Search(PChar(W), I) then
+      begin
+        DestCollection.Add(FWordsList.Items[I])
+      end else begin
+        // unknown variable -> fire event
+        HandleUnknownVariable(W);
+        // try to search again
+        if FWordsList.Search(PChar(W), I) then
+        begin
+          DestCollection.Add(FWordsList.Items[I])
+        end else begin
+          raise EParserException.Create('Unknown variable '''+W+''' found.');
+        end;
+      end;
+  until I2 > Len;
 end;
 
 procedure TCustomExpressionParser.Check(AnExprList: TExprCollection);
@@ -772,7 +753,7 @@ begin
         and ((I = 0) or
         (TExprWord(Items[I - 1]).ResultType = etComma) or
         (TExprWord(Items[I - 1]).ResultType = etLeftBracket) or
-        (TExprWord(Items[I - 1]).IsOper and (TExprWord(Items[I - 1]).MaxFunctionArg
+        (TExprWord(Items[I - 1]).IsOperator and (TExprWord(Items[I - 1]).MaxFunctionArg
         = 2))) then
       begin
         {replace e.g. ----1 with +1}
@@ -785,7 +766,7 @@ begin
           or (TExprWord(Items[I + L]).Name = '+')) and ((I + L = 0) or
           (TExprWord(Items[I + L - 1]).ResultType = etComma) or
           (TExprWord(Items[I + L - 1]).ResultType = etLeftBracket) or
-          (TExprWord(Items[I + L - 1]).IsOper and (TExprWord(Items[I + L -
+          (TExprWord(Items[I + L - 1]).IsOperator and (TExprWord(Items[I + L -
           1]).MaxFunctionArg = 2))) do
         begin
           if TExprWord(Items[I + L]).Name = '-' then
@@ -811,7 +792,7 @@ begin
       if (TExprWord(Items[I]).Name = 'not')
         and ((I = 0) or
         (TExprWord(Items[I - 1]).ResultType = etLeftBracket) or
-        TExprWord(Items[I - 1]).IsOper) then
+        TExprWord(Items[I - 1]).IsOperator) then
       begin
         {replace e.g. not not 1 with 1}
         K := -1;
@@ -819,7 +800,7 @@ begin
         while (I + L < Count) and (TExprWord(Items[I + L]).Name = 'not') and ((I
           + L = 0) or
           (TExprWord(Items[I + L - 1]).ResultType = etLeftBracket) or
-          TExprWord(Items[I + L - 1]).IsOper) do
+          TExprWord(Items[I + L - 1]).IsOperator) do
         begin
           K := -K;
           Inc(L);
@@ -1005,6 +986,7 @@ var
 begin
   New(Result);
   Result.Oper := nil;
+  Result.AuxData := nil;
   for I := 0 to MaxArg - 1 do
   begin
     Result.Args[I] := nil;

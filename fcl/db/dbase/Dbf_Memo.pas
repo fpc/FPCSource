@@ -25,7 +25,7 @@ type
     procedure SetNextFreeBlock(BlockNo: Integer); virtual; abstract;
     procedure SetBlockLen(BlockLen: Integer); virtual; abstract;
   public
-    constructor Create(AFileName: string);
+    constructor Create;
     destructor Destroy; override;
 
     procedure Open;
@@ -79,7 +79,7 @@ type
     procedure SetBlockLen(BlockLen: Integer); override;
 
   public
-    constructor Create(AFileName: string);
+    constructor Create;
 
     procedure CloseFile; override;
     procedure OpenFile; override;
@@ -130,14 +130,14 @@ type
 //==========================================================
 //============ Dbtfile
 //==========================================================
-constructor TMemoFile.Create(AFileName: string);
+constructor TMemoFile.Create;
 begin
   // init vars
   FBuffer := nil;
   FOpened := false;
 
   // call inherited
-  inherited Create(AFileName);
+  inherited;
 end;
 
 destructor TMemoFile.Destroy;
@@ -241,6 +241,7 @@ begin
   if bytesLeft <> -1 then
   begin
     dataStart := 8;
+    DestStream.Size := bytesLeft;
     while bytesLeft > 0 do
     begin
       // get number of bytes to be read
@@ -477,7 +478,7 @@ end;
 // NULL file (no file) specific helper routines
 // ------------------------------------------------------------------
 
-constructor TNullMemoFile.Create(AFileName: string);
+constructor TNullMemoFile.Create;
 begin
   inherited;
 end;

@@ -8,7 +8,7 @@ const
   FieldPropType_Default     = $04;
   FieldPropType_Constraint  = $06;
 
-  FieldDescVII_AutoIncOffset = 40;
+  FieldDescVII_AutoIncOffset = 42;
 
 //====================================================================
 // File structures
@@ -65,9 +65,12 @@ type
     FieldPrecision : Byte;  // 34
     Reserved1      : Word;  // 35-36
     MDXFlag        : Byte;  // 37
-    Reserved2      : Cardinal; // 38-39
-    NextAutoInc    : Cardinal; // 40-43
-    Reserved3      : Word;  // 44-47
+    // NOTE: the docs say Reserved2 is 2 bytes, and Reserved3 is 4 bytes
+    //   but testing shows BDE has them the other way around
+    //   be BDE compatible :S
+    Reserved2      : Cardinal; // 38-41
+    NextAutoInc    : Cardinal; // 42-45
+    Reserved3      : Word; // 46-47
   end;
 //====================================================================
   PFieldPropsHdr = ^rFieldPropsHdr;

@@ -59,6 +59,7 @@ type
     Next: PExpressionRec;
     Res: TDynamicType;
     ExprWord: TExprWord;
+    AuxData: pointer;
     ResetDest: Boolean;
     Args: array[0..MaxArg-1] of PChar;
     ArgsPos: array[0..MaxArg-1] of PChar;
@@ -69,7 +70,6 @@ type
 
   TExprCollection = class(TNoOwnerCollection)
   public
-    function NextOper(IStart: Integer): Integer;
     procedure Check;
     procedure EraseExtraBrackets;
   end;
@@ -77,7 +77,7 @@ type
   TExprWordRec = record
     Name: PChar;
     ShortName: PChar;
-    IsOper: Boolean;
+    IsOperator: Boolean;
     IsVariable: Boolean;
     IsFunction: Boolean;
     NeedsCopy: Boolean;
@@ -98,7 +98,7 @@ type
   protected
     FRefCount: Cardinal;
 
-    function GetIsOper: Boolean; virtual;
+    function GetIsOperator: Boolean; virtual;
     function GetIsVariable: Boolean;
     function GetNeedsCopy: Boolean;
     function GetFixedLen: Integer; virtual;
@@ -117,7 +117,7 @@ type
     function IsFunction: Boolean; virtual;
 
     property ExprFunc: TExprFunc read FExprFunc;
-    property IsOper: Boolean read GetIsOper;
+    property IsOperator: Boolean read GetIsOperator;
     property CanVary: Boolean read GetCanVary;
     property IsVariable: Boolean read GetIsVariable;
     property NeedsCopy: Boolean read GetNeedsCopy;
@@ -302,7 +302,7 @@ type
 
   TFunction = class(TExprWord)
   private
-    FIsOper: Boolean;
+    FIsOperator: Boolean;
     FOperPrec: Integer;
     FMinFunctionArg: Integer;
     FMaxFunctionArg: Integer;
@@ -312,7 +312,7 @@ type
     FResultType: TExpressionType;
   protected
     function GetDescription: string; override;
-    function GetIsOper: Boolean; override;
+    function GetIsOperator: Boolean; override;
     function GetMinFunctionArg: Integer; override;
     function GetMaxFunctionArg: Integer; override;
     function GetResultType: TExpressionType; override;
@@ -320,7 +320,7 @@ type
     function GetShortName: string; override;
 
     procedure InternalCreate(AName, ATypeSpec: string; AMinFuncArg: Integer; AResultType: TExpressionType;
-      AExprFunc: TExprFunc; AIsOper: Boolean; AOperPrec: Integer);
+      AExprFunc: TExprFunc; AIsOperator: Boolean; AOperPrec: Integer);
   public
     constructor Create(AName, AShortName, ATypeSpec: string; AMinFuncArg: Integer; AResultType: TExpressionType; AExprFunc: TExprFunc; Descr: string);
     constructor CreateOper(AName, ATypeSpec: string; AResultType: TExpressionType; AExprFunc: TExprFunc; AOperPrec: Integer);
@@ -447,7 +447,7 @@ begin
   Result := EmptyStr;
 end;
 
-function TExprWord.GetIsOper: Boolean;
+function TExprWord.GetIsOperator: Boolean;
 begin
   Result := False;
 end;
@@ -793,7 +793,7 @@ begin
   { also add ShortName as reference }
   if Length(TExprWord(Item).ShortName) > 0 then
   begin
-    FShortList.Search(KeyOf(Item), I);
+    FShortList.Search(FShortList.KeyOf(Item), I);
     FShortList.Insert(I, Item);
   end;
 end;
@@ -889,22 +889,6 @@ begin
   end;
 end;
 
-function TExprCollection.NextOper(IStart: Integer): Integer;
-var
-  brCount: Integer;
-begin
-  brCount := 0;
-  Result := IStart;
-  while (Result < Count) and ((brCount > 0) or not (TExprWord(Items[Result]).IsFunction)) do
-  begin
-    case TExprWord(Items[Result]).ResultType of
-      etLeftBracket: Inc(brCount);
-      etRightBracket: Dec(brCount);
-    end;
-    Inc(Result);
-  end;
-end;
-
 { TFunction }
 
 constructor TFunction.Create(AName, AShortName, ATypeSpec: string; AMinFuncArg: Integer; AResultType: TExpressionType;
@@ -923,7 +907,7 @@ begin
 end;
 
 procedure TFunction.InternalCreate(AName, ATypeSpec: string; AMinFuncArg: Integer; AResultType: TExpressionType;
-  AExprFunc: TExprFunc; AIsOper: Boolean; AOperPrec: Integer);
+  AExprFunc: TExprFunc; AIsOperator: Boolean; AOperPrec: Integer);
 begin
   inherited Create(AName, AExprFunc);
 
@@ -931,7 +915,7 @@ begin
   FMinFunctionArg := AMinFuncArg;
   if AMinFuncArg = -1 then
     FMinFunctionArg := FMaxFunctionArg;
-  FIsOper := AIsOper;
+  FIsOperator := AIsOperator;
   FOperPrec := AOperPrec;
   FTypeSpec := ATypeSpec;
   FResultType := AResultType;
@@ -946,9 +930,9 @@ begin
   Result := FDescription;
 end;
 
-function TFunction.GetIsOper: Boolean;
+function TFunction.GetIsOperator: Boolean;
 begin
-  Result := FIsOper;
+  Result := FIsOperator;
 end;
 
 function TFunction.GetMinFunctionArg: Integer;

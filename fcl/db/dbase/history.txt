@@ -35,6 +35,37 @@ BUGS & WARNINGS
 
 
 ------------------------
+V6.3.7
+
+- fixed: numeric index data exponent (rep by rpoverdijk)
+- fixed: big-endian issues in dbf_idxfile
+- added: spanish (thx mauricio) and brazilian portuguese translation (thx adilson)
+- fixed: opening memory streams; more generic implementation
+- fixed: querying ExactRecordCount on open table causes AV (rep by sikorsky)
+- added: smarter Dbf_Parser initialization (thx emled)
+- fixed: copy languageid and autoinc values upon restructure/pack
+- added: TDbf.LanguageID to set language id of new table; set before CreateTable
+- fixed: remember autoinc value after restructure
+- fixed: do not try to create foxpro currency fields if creating dbase table
+- speed: when reading v4 memo field, set size of stream in advance
+- fixed: empty field really returns empty string in parser
+- fixed: rewritten token parser, tree construction to be much simpler
+- speed: reduce number of getrecordcount calls, cache recordcount if possible
+
+
+------------------------
+V6.3.6
+
+- fixed: crash when optimizing expression with constants
+- fixed: expression parser to use variable-length string variables for non-raw
+    fields
+- added: support for opening (memory) streams as file
+- fixed: numeric mdx compatibility bug; bytes instead of decimals (rep by rpoverdijk)
+- fixed: integer fields store numerics padded with zeroes; now it uses spaces
+- added: use new, faster assembler SwapInt64 from arioch
+
+
+------------------------
 V6.3.5
 
 - fixed: crash when finalizing Dbf_Parser unit

@@ -15,8 +15,8 @@ uses
 type
   EPagedFile = Exception;
 
-  TPagedFileMode = (pfNone, pfMemory, pfExclusiveCreate, pfExclusiveOpen,
-    pfReadWriteCreate, pfReadWriteOpen, pfReadOnly);
+  TPagedFileMode = (pfNone, pfMemoryCreate, pfMemoryOpen, pfExclusiveCreate, 
+    pfExclusiveOpen, pfReadWriteCreate, pfReadWriteOpen, pfReadOnly);
 
   // access levels:
   //
@@ -42,7 +42,9 @@ type
     FRecordCount: Integer;      { actually FPageCount, but we want to keep existing code }
     FPagesPerRecord: Integer;
     FCachedSize: Integer;
+    FCachedRecordCount: Integer;
     FHeader: PChar;
+    FActive: Boolean;
     FNeedRecalc: Boolean;
     FHeaderModified: Boolean;
     FPageOffsetByHeader: Boolean;   { do pages start after header or just at BOF? }
@@ -71,6 +73,8 @@ type
     procedure SetPageOffsetByHeader(NewValue: Boolean); virtual;
     procedure SetRecordCount(NewValue: Integer);
     procedure SetBufferAhead(NewValue: Boolean);
+    procedure SetFileName(NewName: string);
+    procedure SetStream(NewStream: TStream);
     function  LockSection(const Offset, Length: Cardinal; const Wait: Boolean): Boolean; virtual;
     function  UnlockSection(const Offset, Length: Cardinal): Boolean; virtual;
     procedure UpdateBufferSize;
@@ -88,13 +92,11 @@ type
     procedure WriteBlock(const BlockPtr: Pointer; const ASize, APosition: Integer);
     procedure SingleWriteRecord(IntRecNum: Integer; Buffer: Pointer);
     function  GetRecordCount: Integer;
-    function  IsSharedAccess: Boolean;
     procedure UpdateCachedSize(CurrPos: Integer);
 
     property VirtualLocks: Boolean read FVirtualLocks write FVirtualLocks;
-    property Stream: TStream read FStream;
   public
-    constructor Create(AFileName: string);
+    constructor Create;
     destructor Destroy; override;
 
     procedure CloseFile; virtual;
@@ -105,11 +107,12 @@ type
     procedure CheckExclusiveAccess;
     procedure DisableForceCreate;
     function  CalcPageOffset(const PageNo: Integer): Integer;
+    function  IsRecordPresent(IntRecNum: Integer): boolean;
     function  ReadRecord(IntRecNum: Integer; Buffer: Pointer): Integer; virtual;
     procedure WriteRecord(IntRecNum: Integer; Buffer: Pointer); virtual;
     procedure WriteHeader; virtual;
-    procedure WriteTo(DestFile: TPagedFile);
     function  FileCreated: Boolean;
+    function  IsSharedAccess: Boolean;
     procedure ResetError;
 
     function  LockPage(const PageNo: Integer; const Wait: Boolean): Boolean;
@@ -119,6 +122,7 @@ type
 
     procedure Flush; virtual;
 
+    property Active: Boolean read FActive;
     property AutoCreate: Boolean read FAutoCreate write FAutoCreate;   // only write when closed!
     property Mode: TPagedFileMode read FMode write FMode;              // only write when closed!
     property TempMode: TPagedFileMode read FTempMode;
@@ -129,10 +133,12 @@ type
     property PageSize: Integer read FPageSize write SetPageSize;
     property PagesPerRecord: Integer read FPagesPerRecord;
     property RecordCount: Integer read GetRecordCount write SetRecordCount;
+    property CachedRecordCount: Integer read FCachedRecordCount;
     property PageOffsetByHeader: Boolean read FPageOffsetbyHeader write SetPageOffsetByHeader;
     property FileLocked: Boolean read FFileLocked;
     property Header: PChar read FHeader;
-    property FileName: string read FFileName;
+    property FileName: string read FFileName write SetFileName;
+    property Stream: TStream read FStream write SetStream;
     property BufferAhead: Boolean read FBufferAhead write SetBufferAhead;
     property WriteError: Boolean read FWriteError;
   end;
@@ -153,15 +159,16 @@ uses
 //====================================================================
 // TPagedFile
 //====================================================================
-constructor TPagedFile.Create(AFileName: string);
+constructor TPagedFile.Create;
 begin
-  FFileName := AFileName;
+  FFileName := EmptyStr;
   FHeaderOffset := 0;
   FHeaderSize := 0;
   FRecordSize := 0;
   FRecordCount := 0;
   FPageSize := 0;
   FPagesPerRecord := 0;
+  FActive := false;
   FHeaderModified := false;
   FPageOffsetByHeader := true;
   FNeedLocks := false;
@@ -178,6 +185,8 @@ begin
   FBufferMaxSize := 0;
   FBufferOffset := 0;
   FWriteError := false;
+
+  inherited;
 end;
 
 destructor TPagedFile.Destroy;
@@ -185,6 +194,7 @@ begin
   // close physical file
   if FFileLocked then UnlockAllPages;
   CloseFile;
+  FFileLocked := false;
 
   // free mem
   if FHeader <> nil then
@@ -197,87 +207,101 @@ procedure TPagedFile.OpenFile;
 var
   fileOpenMode: Word;
 begin
-  if FStream = nil then
+  if FActive then exit;  
+
+  // store user specified mode
+  FUserMode := FMode;
+  if not (FMode in [pfMemoryCreate, pfMemoryOpen]) then
   begin
-    // store user specified mode
-    FUserMode := FMode;
-    if FMode <> pfMemory then
+    // test if file exists
+    if not FileExists(FFileName) then
     begin
-      // test if file exists
-      if not FileExists(FFileName) then
-      begin
-        // if auto-creating, adjust mode
-        if FAutoCreate then case FMode of
-          pfExclusiveOpen:             FMode := pfExclusiveCreate;
-          pfReadWriteOpen, pfReadOnly: FMode := pfReadWriteCreate;
-        end;
-        // it seems the VCL cannot share a file that is created?
-        // create file first, then open it in requested mode
-        // filecreated means 'to be created' in this context ;-)
-        if FileCreated then
-          FileClose(FileCreate(FFileName))
-        else
-          raise EPagedFile.CreateFmt(STRING_FILE_NOT_FOUND,[FFileName]);
+      // if auto-creating, adjust mode
+      if FAutoCreate then case FMode of
+        pfExclusiveOpen:             FMode := pfExclusiveCreate;
+        pfReadWriteOpen, pfReadOnly: FMode := pfReadWriteCreate;
       end;
-      // specify open mode
-      case FMode of
-        pfExclusiveCreate: fileOpenMode := fmOpenReadWrite or fmShareDenyWrite;
-        pfExclusiveOpen:   fileOpenMode := fmOpenReadWrite or fmShareDenyWrite;
-        pfReadWriteCreate: fileOpenMode := fmOpenReadWrite or fmShareDenyNone;
-        pfReadWriteOpen:   fileOpenMode := fmOpenReadWrite or fmShareDenyNone;
-      else    // => readonly
-                           fileOpenMode := fmOpenRead or fmShareDenyNone;
-      end;
-      // open file
-      FStream := TFileStream.Create(FFileName, fileOpenMode);
-      // if creating, then empty file
+      // it seems the VCL cannot share a file that is created?
+      // create file first, then open it in requested mode
+      // filecreated means 'to be created' in this context ;-)
       if FileCreated then
-        FStream.Size := 0;
-    end else begin
-      FStream := TMemoryStream.Create;
+        FileClose(FileCreate(FFileName))
+      else
+        raise EPagedFile.CreateFmt(STRING_FILE_NOT_FOUND,[FFileName]);
     end;
-    // init size var
-    FCachedSize := Stream.Size;
-    // update whether we need locking
-{$ifdef _DEBUG}
-    FNeedLocks := true;
-{$else}
-    FNeedLocks := IsSharedAccess;
-{$endif}
+    // specify open mode
+    case FMode of
+      pfExclusiveCreate: fileOpenMode := fmOpenReadWrite or fmShareDenyWrite;
+      pfExclusiveOpen:   fileOpenMode := fmOpenReadWrite or fmShareDenyWrite;
+      pfReadWriteCreate: fileOpenMode := fmOpenReadWrite or fmShareDenyNone;
+      pfReadWriteOpen:   fileOpenMode := fmOpenReadWrite or fmShareDenyNone;
+    else    // => readonly
+                         fileOpenMode := fmOpenRead or fmShareDenyNone;
+    end;
+    // open file
+    FStream := TFileStream.Create(FFileName, fileOpenMode);
+    // if creating, then empty file
+    if FileCreated then
+      FStream.Size := 0;
+  end else begin
+    if FStream = nil then
+    begin
+      FMode := pfMemoryCreate;
+      FStream := TMemoryStream.Create;
+    end else begin
+      FMode := pfMemoryOpen;
+    end;
   end;
+  // init size var
+  FCachedSize := Stream.Size;
+  // update whether we need locking
+{$ifdef _DEBUG}
+  FNeedLocks := true;
+{$else}
+  FNeedLocks := IsSharedAccess;
+{$endif}
+  FActive := true;
 end;
 
 procedure TPagedFile.CloseFile;
 begin
-  if FStream <> nil then
+  if FActive then
   begin
     FlushHeader;
-    FreeAndNil(FStream);
+    // don't free the user's stream
+    if FMode <> pfMemoryOpen then
+      FreeAndNil(FStream);
 
     // mode possibly overriden in case of auto-created file
     FMode := FUserMode;
+    FActive := false;
+    FCachedRecordCount := 0;
   end;
 end;
 
 procedure TPagedFile.DeleteFile;
 begin
   // opened -> we can not delete
-  if FStream = nil then
+  if not FActive then
     SysUtils.DeleteFile(FileName);
 end;
 
 function TPagedFile.FileCreated: Boolean;
 const
-  CreationModes: array [pfMemory..pfReadOnly] of Boolean =
-    (true, true, false, true, false, false);
-//    mem, excr, exopn, rwcr, rwopn, rdonly
+  CreationModes: array [pfNone..pfReadOnly] of Boolean =
+    (false, true, false, true, false, true, false, false);
+//   node, memcr, memop, excr, exopn, rwcr, rwopn, rdonly
 begin
   Result := CreationModes[FMode];
 end;
 
 function TPagedFile.IsSharedAccess: Boolean;
+const
+  SharedAccessModes: array [pfNone..pfReadOnly] of Boolean =
+    (false, false, false, false, false, true, true,  true);
+//   node,  memcr, memop, excr,  exopn, rwcr, rwopn, rdonly
 begin
-  Result := (Mode <> pfExclusiveOpen) and (Mode <> pfExclusiveCreate) and (Mode <> pfMemory);
+  Result := SharedAccessModes[FMode];
 end;
 
 procedure TPagedFile.CheckExclusiveAccess;
@@ -375,6 +399,15 @@ begin
   FBufferReadSize := ReadBlock(FBufferPtr, FBufferReadSize, FBufferOffset);
 end;
 
+function TPagedFile.IsRecordPresent(IntRecNum: Integer): boolean;
+begin
+  // if in shared mode, recordcount can only increase, check if recordno
+  // in range for cached recordcount
+  if not IsSharedAccess or (IntRecNum > FCachedRecordCount) then
+    FCachedRecordCount := RecordCount;
+  Result := (0 <= IntRecNum) and (IntRecNum <= FCachedRecordCount);
+end;
+
 function TPagedFile.ReadRecord(IntRecNum: Integer; Buffer: Pointer): Integer;
 var
   Offset: Integer;
@@ -449,6 +482,18 @@ begin
   end;
 end;
 
+procedure TPagedFile.SetStream(NewStream: TStream);
+begin
+  if not FActive then
+    FStream := NewStream;
+end;
+
+procedure TPagedFile.SetFileName(NewName: string);
+begin
+  if not FActive then
+    FFileName := NewName;
+end;
+
 procedure TPagedFile.UpdateBufferSize;
 begin
   if FBufferAhead then
@@ -492,18 +537,6 @@ begin
       FNeedRecalc := true;
     end;
     FHeaderModified := false;
-  end;
-end;
-
-procedure TPagedFile.WriteTo(DestFile: TPagedFile);
-begin
-  // if we are a memory file, then support is built into VCL
-  if FMode = pfMemory then
-  begin
-    FlushHeader;
-    DestFile.FStream.Position := 0;
-    DestFile.FStream.Size := 0;
-    TMemoryStream(FStream).SaveToStream(DestFile.FStream);
   end;
 end;
 
@@ -662,7 +695,7 @@ begin
   if FNeedRecalc then
   begin
     // no file? test flags
-    if (FPageSize = 0) or (FStream = nil) then
+    if (FPageSize = 0) or not FActive then
       FRecordCount := 0
     else
     if FPageOffsetByHeader then

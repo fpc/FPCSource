@@ -14,6 +14,7 @@ uses
   Dbf_Parser,
   Dbf_Cursor,
   Dbf_Fields,
+  Dbf_PgFile,
   Dbf_IdxFile;
 // If you got a compilation error here or asking for dsgnintf.pas, then just add
 // this file in your project:
@@ -143,6 +144,7 @@ type
     FMasterLink: TDbfMasterLink;
     FParser: TDbfParser;
     FBlobStreams: PDbfBlobList;
+    FUserStream: TStream;  // user stream to open
     FTableName: string;    // table path and file name
     FRelativePath: string;
     FAbsolutePath: string;
@@ -151,6 +153,7 @@ type
     FFilterBuffer: PChar;
     FTempBuffer: PChar;
     FEditingRecNo: Integer;
+    FLanguageID: Byte;
     FTableLevel: Integer;
     FExclusive: Boolean;
     FShowDeleted: Boolean;
@@ -177,7 +180,6 @@ type
     function GetIndexName: string;
     function GetVersion: string;
     function GetPhysicalRecNo: Integer;
-    function GetLanguageID: Integer;
     function GetLanguageStr: string;
     function GetCodePage: Cardinal;
     function GetExactRecordCount: Integer;
@@ -191,6 +193,7 @@ type
     procedure SetFilePath(const Value: string);
     procedure SetTableName(const S: string);
     procedure SetVersion(const S: string);
+    procedure SetLanguageID(NewID: Byte);
     procedure SetDataSource(Value: TDataSource);
     procedure SetMasterFields(const Value: string);
     procedure SetTableLevel(const NewLevel: Integer);
@@ -203,6 +206,7 @@ type
     procedure UpdateRange;
     procedure SetShowDeleted(Value: Boolean);
     procedure GetFieldDefsFromDbfFieldDefs;
+    procedure InitDbfFile(FileOpenMode: TPagedFileMode);
     function  ParseIndexName(const AIndexName: string): string;
     function  GetDbfFieldDefs: TDbfFieldDefs;
     function  SearchKeyBuffer(Buffer: PChar; SearchType: TSearchKeyType): Boolean;
@@ -351,13 +355,14 @@ type
     property AbsolutePath: string read FAbsolutePath;
     property DbfFieldDefs: TDbfFieldDefs read GetDbfFieldDefs;
     property PhysicalRecNo: Integer read GetPhysicalRecNo write SetPhysicalRecNo;
-    property LanguageID: Integer read GetLanguageID;
+    property LanguageID: Byte read FLanguageID write SetLanguageID;
     property LanguageStr: String read GetLanguageStr;
     property CodePage: Cardinal read GetCodePage;
     property ExactRecordCount: Integer read GetExactRecordCount;
     property PhysicalRecordCount: Integer read GetPhysicalRecordCount;
     property KeySize: Integer read GetKeySize;
     property DbfFile: TDbfFile read FDbfFile;
+    property UserStream: TStream read FUserStream write FUserStream;
     property DisableResyncOnPost: Boolean read FDisableResyncOnPost write FDisableResyncOnPost;
   published
     property DateTimeHandling: TDateTimeHandling
@@ -437,16 +442,21 @@ uses
   Libc,
 {$endif}  
   Types,
-{$endif}
   Dbf_Wtil,
+{$endif}
 {$ifdef DELPHI_6}
   Variants,
 {$endif}
-  Dbf_PgFile,
   Dbf_IdxCur,
   Dbf_Memo,
   Dbf_Str;
 
+{$ifdef FPC}
+const
+  // TODO: move these to DBConsts
+  SNotEditing = 'Dataset not in edit or insert mode';
+  SCircularDataLink = 'Circular datalinks are not allowed';
+{$endif}
 
 //==========================================================
 //============ TDbfBlobStream
@@ -740,11 +750,12 @@ var
   lPhysicalRecNo: Integer;
 //  s: string;
 begin
-  if (FDbfFile.RecordCount<1) or (FCursor=nil) then
+  if FCursor = nil then
   begin
     Result := grEOF;
     exit;
   end;
+
   pRecord := pDBFRecord(Buffer);
   acceptable := false;
   repeat
@@ -762,7 +773,6 @@ begin
           if Acceptable then begin
             Result := grOK;
           end else begin
-            //FCursor.Last;
             Result := grEOF
           end;
         end;
@@ -772,7 +782,6 @@ begin
           if Acceptable then begin
             Result := grOK;
           end else begin
-            //FCursor.First;
             Result := grBOF
           end;
         end;
@@ -781,7 +790,7 @@ begin
     if (Result = grOK) then
     begin
       lPhysicalRecNo := FCursor.PhysicalRecNo;
-      if (lPhysicalRecNo > FDbfFile.RecordCount) or (lPhysicalRecNo <= 0) then
+      if not FDbfFile.IsRecordPresent(lPhysicalRecNo) then
       begin
         Result := grError;
       end else begin
@@ -999,6 +1008,24 @@ begin
   InternalInitFieldDefs;
 end;
 
+procedure TDbf.InitDbfFile(FileOpenMode: TPagedFileMode);
+begin
+  FDbfFile := TDbfFile.Create;
+  if FStorage = stoMemory then
+  begin
+    FDbfFile.Stream := FUserStream;
+    FDbfFile.Mode := pfMemoryOpen;
+  end else begin
+    FDbfFile.FileName := FAbsolutePath + FTableName;
+    FDbfFile.Mode := FileOpenMode;
+  end;
+  FDbfFile.AutoCreate := false;
+  FDbfFile.UseFloatFields := FUseFloatFields;
+  FDbfFile.DateTimeHandling := FDateTimeHandling;
+  FDbfFile.OnLocaleError := FOnLocaleError;
+  FDbfFile.OnIndexMissing := FOnIndexMissing;
+end;
+
 procedure TDbf.InternalInitFieldDefs; {override virtual abstract from TDataset}
 var
   MustReleaseDbfFile: Boolean;
@@ -1009,13 +1036,7 @@ begin
     if FDbfFile = nil then
     begin
       // do not AutoCreate file
-      FDbfFile := TDbfFile.Create(FAbsolutePath + FTableName);
-      FDbfFile.Mode := pfReadOnly;
-      FDbfFile.AutoCreate := false;
-      FDbfFile.DateTimeHandling := FDateTimeHandling;
-      FDbfFile.OnLocaleError := FOnLocaleError;
-      FDbfFile.OnIndexMissing := FOnIndexMissing;
-      FDbfFile.UseFloatFields := FUseFloatFields;
+      InitDbfFile(pfReadOnly);
       FDbfFile.Open;
       MustReleaseDbfFile := true;
     end;
@@ -1074,7 +1095,10 @@ begin
   FreeAndNil(FDbfFile);
 
   // does file not exist? -> create
-  if not FileExists(FAbsolutePath + FTableName) and (FOpenMode in [omAutoCreate, omTemporary]) then
+  if ((FStorage = stoFile) and 
+        not FileExists(FAbsolutePath + FTableName) and 
+        (FOpenMode in [omAutoCreate, omTemporary])) or
+     ((FStorage = stoMemory) and (FUserStream = nil)) then
   begin
     doCreate := true;
     if Assigned(FBeforeAutoCreate) then
@@ -1086,13 +1110,7 @@ begin
   end;
 
   // now we know for sure the file exists
-  FDbfFile := TDbfFile.Create(FAbsolutePath + FTableName);
-  FDbfFile.Mode := DbfOpenMode[FReadOnly{ or (csDesigning in ComponentState)}, FExclusive];
-  FDbfFile.AutoCreate := false;
-  FDbfFile.UseFloatFields := FUseFloatFields;
-  FDbfFile.DateTimeHandling := FDateTimeHandling;
-  FDbfFile.OnLocaleError := FOnLocaleError;
-  FDbfFile.OnIndexMissing := FOnIndexMissing;
+  InitDbfFile(DbfOpenMode[FReadOnly, FExclusive]);
   FDbfFile.Open;
 
   // fail open?
@@ -1108,6 +1126,7 @@ begin
     xBaseVII: FTableLevel := 7;
     xFoxPro:  FTableLevel := TDBF_TABLELEVEL_FOXPRO;
   end;
+  FLanguageID := FDbfFile.LanguageID;
 
   // build VCL fielddef list from native DBF FieldDefs
 (*
@@ -1215,14 +1234,6 @@ begin
     Result := 0;
 end;
 
-function TDbf.GetLanguageID: Integer;
-begin
-  if FDbfFile <> nil then
-    Result := FDbfFile.LanguageID
-  else
-    Result := 0;
-end;
-
 function TDbf.GetLanguageStr: String;
 begin
   if FDbfFile <> nil then
@@ -1249,8 +1260,7 @@ begin
   // causing it to reread the memo contents
   for I := 0 to Pred(FieldCount) do
     if Assigned(FBlobStreams[I]) then
-      if not FBlobStreams[I].Modified then
-        FBlobStreams[I].Cancel;
+      FBlobStreams[I].Cancel;
   // try to lock this record
   FDbfFile.LockRecord(FEditingRecNo, @pDbfRecord(ActiveBuffer).DeletedFlag);
   // succeeded!
@@ -1385,13 +1395,8 @@ begin
         end;
       end;
 
-      FDbfFile := TDbfFile.Create(FAbsolutePath + FTableName);
-      FDbfFile.Mode := pfExclusiveCreate;
-      FDbfFile.AutoCreate := true;
+      InitDbfFile(pfExclusiveCreate);
       FDbfFile.CopyDateTimeAsString := FInCopyFrom and FCopyDateTimeAsString;
-      FDbfFile.OnLocaleError := FOnLocaleError;
-      FDbfFile.OnIndexMissing := FOnIndexMissing;
-      FDbfFile.UseFloatFields := FUseFloatFields;
       case FTableLevel of
         3:                      FDbfFile.DbfVersion := xBaseIII;
         7:                      FDbfFile.DbfVersion := xBaseVII;
@@ -1399,6 +1404,7 @@ begin
       else
         {4:} FDbfFile.DbfVersion := xBaseIV;
       end;
+      FDbfFile.FileLangID := FLanguageID;
       FDbfFile.Open;
       FDbfFile.FinishCreate(DbfFieldDefs, 512);
 
@@ -1446,12 +1452,7 @@ begin
   CheckDbfFieldDefs(DbfFieldDefs);
 
   // open dbf file
-  FDbfFile := TDbfFile.Create(FAbsolutePath + FTableName);
-  FDbfFile.Mode := pfExclusiveOpen;
-  FDbfFile.AutoCreate := false;
-  FDbfFile.UseFloatFields := FUseFloatFields;
-  FDbfFile.OnLocaleError := FOnLocaleError;
-  FDbfFile.OnIndexMissing := FOnIndexMissing;
+  InitDbfFile(pfExclusiveOpen);
   FDbfFile.Open;
 
   // do restructure
@@ -1749,7 +1750,7 @@ begin
     // already in exclusive mode?
     FDbfFile.TryExclusive;
     // update file mode
-    FExclusive := FDbfFile.Mode in [pfMemory..pfExclusiveOpen];
+    FExclusive := not FDbfFile.IsSharedAccess;
     FReadOnly := FDbfFile.Mode = pfReadOnly;
   end else begin
     // just set exclusive to true
@@ -1765,7 +1766,7 @@ begin
     // call file handler
     FDbfFile.EndExclusive;
     // update file mode
-    FExclusive := FDbfFile.Mode in [pfMemory..pfExclusiveOpen];
+    FExclusive := not FDbfFile.IsSharedAccess;
     FReadOnly := FDbfFile.Mode = pfReadOnly;
   end else begin
     // just set exclusive to false
@@ -1779,6 +1780,10 @@ var
   MemoFieldNo: Integer;
   lBlob: TDbfBlobStream;
 begin
+  // check if in editing mode if user wants to write
+  if (Mode = bmWrite) or (Mode = bmReadWrite) then
+    if not (State in [dsEdit, dsInsert]) then
+      DatabaseError(SNotEditing, Self);
   // already created a `placeholder' blob for this field?
   MemoFieldNo := Field.FieldNo - 1;
   if FBlobStreams[MemoFieldNo] = nil then
@@ -1963,6 +1968,11 @@ var
 begin
   // init vars
   Result := 0;
+
+  // check if FCursor open
+  if FCursor = nil then
+    exit; 
+
   // store current position
   prevRecNo := FCursor.SequentialRecNo;
   FCursor.First;
@@ -2099,6 +2109,13 @@ end;
 procedure TDbf.SetDbfIndexDefs(const Value: TDbfIndexDefs);
 begin
   FIndexDefs.Assign(Value);
+end;
+
+procedure TDbf.SetLanguageID(NewID: Byte);
+begin
+  CheckInactive;
+  
+  FLanguageID := NewID;
 end;
 
 procedure TDbf.SetTableLevel(const NewLevel: Integer);
@@ -2641,7 +2658,7 @@ end;
 
 procedure TDbf.SetDataSource(Value: TDataSource);
 begin
-{$ifndef FPC_VERSION}
+{$ifndef FPC}
   if IsLinkedTo(Value) then
   begin
 {$ifdef DELPHI_4}
@@ -2650,7 +2667,7 @@ begin
     DatabaseError(SCircularDataLink);
 {$endif}
   end;
-{$endif}
+{$endif}  
   FMasterLink.DataSource := Value;
 end;
 

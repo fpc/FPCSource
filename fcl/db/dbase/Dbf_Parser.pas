@@ -316,7 +316,7 @@ begin
   Len := FieldDef.Size;
   Move(Buffer[FieldDef.Offset], FFieldVal[0], Len);
   // trim right side spaces by null-termination
-  while (Len > 1) and (FFieldVal[Len-1] = ' ') do Dec(Len);
+  while (Len >= 1) and (FFieldVal[Len-1] = ' ') do Dec(Len);
   FFieldVal[Len] := #0;
   // translate to ANSI
   TranslateString(DbfFile.UseCodePage, GetACP, FFieldVal, FFieldVal, Len);
@@ -477,7 +477,7 @@ begin
     begin
       // convert to string
       width := PInteger(Args[1])^;
-      GetStrFromInt_Width(Val, width, Res.MemoryPos^);
+      GetStrFromInt_Width(Val, width, Res.MemoryPos^, #32);
       // advance pointer
       Inc(Res.MemoryPos^, width);
       // need to add decimal?
@@ -1046,7 +1046,7 @@ end;
 
 var
   DbfWordsSensList, DbfWordsInsensList: TExpressList;
-  DbfWordsAllList: TOCollection;
+  DbfWordsAllList: TExpressList;
 
 constructor TDbfParser.Create(ADbfFile: Pointer);
 begin
@@ -1127,10 +1127,15 @@ begin
     ftString, ftBoolean:
       begin
         if RawStringFields then
-          TempFieldVar := TRawStringFieldVar.Create(FieldInfo, TDbfFile(FDbfFile))
-        else
+        begin
+          { raw string fields have fixed length, not null-terminated }
+          TempFieldVar := TRawStringFieldVar.Create(FieldInfo, TDbfFile(FDbfFile));
+          DefineStringVariableFixedLen(VarName, TempFieldVar.FieldVal, FieldInfo.Size);
+        end else begin
+          { ansi string field function translates and null-terminates field value }
           TempFieldVar := TAnsiStringFieldVar.Create(FieldInfo, TDbfFile(FDbfFile));
-        DefineStringVariableFixedLen(VarName, TempFieldVar.FieldVal, FieldInfo.Size);
+          DefineStringVariable(VarName, TempFieldVar.FieldVal);
+        end;
       end;
     ftFloat:
       begin
@@ -1266,8 +1271,6 @@ begin
   end;
 end;
 
-var
-  GenCount, SensCount, AllCount: Integer;
 initialization
 
   DbfWordsSensList := TExpressList.Create;
@@ -1363,31 +1366,29 @@ initialization
     Add(TFunction.Create('SUBSTR',    'SUBS',  'SII', 3, etString, FuncSubString, ''));
     Add(TFunction.Create('UPPERCASE', 'UPPER', 'S',   1, etString, FuncUppercase, ''));
     Add(TFunction.Create('LOWERCASE', 'LOWER', 'S',   1, etString, FuncLowercase, ''));
+  end;
 
-    GenCount := Count;
-
-    Add(TFunction.CreateOper('=', 'SS', etBoolean, FuncStr_EQ , 80));
-    Add(TFunction.CreateOper('<', 'SS', etBoolean, FuncStr_LT , 80));
-    Add(TFunction.CreateOper('>', 'SS', etBoolean, FuncStr_GT , 80));
-    Add(TFunction.CreateOper('<=','SS', etBoolean, FuncStr_LTE, 80));
-    Add(TFunction.CreateOper('>=','SS', etBoolean, FuncStr_GTE, 80));
-    Add(TFunction.CreateOper('<>','SS', etBoolean, FuncStr_NEQ, 80));
-
-    SensCount := Count;
-
+  with DbfWordsInsensList do
+  begin
+    AddList(DbfWordsAllList, 0, DbfWordsAllList.Count - 1);
     Add(TFunction.CreateOper('=', 'SS', etBoolean, FuncStrI_EQ , 80));
     Add(TFunction.CreateOper('<', 'SS', etBoolean, FuncStrI_LT , 80));
     Add(TFunction.CreateOper('>', 'SS', etBoolean, FuncStrI_GT , 80));
     Add(TFunction.CreateOper('<=','SS', etBoolean, FuncStrI_LTE, 80));
     Add(TFunction.CreateOper('>=','SS', etBoolean, FuncStrI_GTE, 80));
     Add(TFunction.CreateOper('<>','SS', etBoolean, FuncStrI_NEQ, 80));
-
-    AllCount := Count;
   end;
 
-  DbfWordsInsensList.AddList(DbfWordsAllList, 0, GenCount - 1);
-  DbfWordsInsensList.AddList(DbfWordsAllList, SensCount, AllCount - 1);
-  DbfWordsSensList.AddList(DbfWordsAllList, 0, SensCount - 1);
+  with DbfWordsSensList do
+  begin
+    AddList(DbfWordsAllList, 0, DbfWordsAllList.Count - 1);
+    Add(TFunction.CreateOper('=', 'SS', etBoolean, FuncStr_EQ , 80));
+    Add(TFunction.CreateOper('<', 'SS', etBoolean, FuncStr_LT , 80));
+    Add(TFunction.CreateOper('>', 'SS', etBoolean, FuncStr_GT , 80));
+    Add(TFunction.CreateOper('<=','SS', etBoolean, FuncStr_LTE, 80));
+    Add(TFunction.CreateOper('>=','SS', etBoolean, FuncStr_GTE, 80));
+    Add(TFunction.CreateOper('<>','SS', etBoolean, FuncStr_NEQ, 80));
+  end;
 
 finalization
 

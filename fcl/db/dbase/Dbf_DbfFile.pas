@@ -16,12 +16,10 @@ uses
 {$endif}
   Db,
   Dbf_Common,
-  Dbf_Parser,
   Dbf_Cursor,
   Dbf_PgFile,
   Dbf_Fields,
   Dbf_Memo,
-  Dbf_IdxCur,
   Dbf_IdxFile;
 
 //====================================================================
@@ -56,12 +54,12 @@ type
     FLockUserLen: DWORD;
     FFileCodePage: Cardinal;
     FUseCodePage: Cardinal;
+    FFileLangId: Byte;
     FCountUse: Integer;
     FCurIndex: Integer;
     FForceClose: Boolean;
     FHasLockField: Boolean;
     FAutoIncPresent: Boolean;
-    FOpened: Boolean;
     FCopyDateTimeAsString: Boolean;
     FDateTimeHandling: TDateTimeHandling;
     FOnLocaleError: TDbfLocaleErrorEvent;
@@ -77,7 +75,7 @@ type
     function GetUseFloatFields: Boolean;
     procedure SetUseFloatFields(NewUse: Boolean);
   public
-    constructor Create(lFileName: string);
+    constructor Create;
     destructor Destroy; override;
 
     procedure Open;
@@ -121,6 +119,7 @@ type
     property LanguageStr: string read GetLanguageStr;
     property FileCodePage: Cardinal read FFileCodePage;
     property UseCodePage: Cardinal read FUseCodePage write FUseCodePage;
+    property FileLangId: Byte read FFileLangId write FFileLangId;
     property DbfVersion: xBaseVersion read FDbfVersion write FDbfVersion;
     property PrevBuffer: PChar read FPrevBuffer;
     property ForceClose: Boolean read FForceClose;
@@ -163,12 +162,12 @@ type
     FCodePages: TList;
     FCurrencyAsBCD: Boolean;
     FDefaultOpenCodePage: Integer;
-    FDefaultCreateCodePage: Integer;
-    FDefaultCreateLocale: LCID;
-//    FDefaultCreateFoxPro: Boolean;
+    FDefaultCreateLangId: Byte;
     FUserName: string;
     FUserNameLen: DWORD;
 	
+    function  GetDefaultCreateCodePage: Integer;
+    procedure SetDefaultCreateCodePage(NewCodePage: Integer);
     procedure InitUserName;
   public
     constructor Create;
@@ -178,9 +177,8 @@ type
 
     property CurrencyAsBCD: Boolean read FCurrencyAsBCD write FCurrencyAsBCD;
     property DefaultOpenCodePage: Integer read FDefaultOpenCodePage write FDefaultOpenCodePage;
-    property DefaultCreateCodePage: Integer read FDefaultCreateCodePage write FDefaultCreateCodePage;
-    property DefaultCreateLocale: LCID read FDefaultCreateLocale write FDefaultCreateLocale;
-//    property DefaultCreateFoxPro: Boolean read FDefaultCreateFoxPro;
+    property DefaultCreateCodePage: Integer read GetDefaultCreateCodePage write SetDefaultCreateCodePage;
+    property DefaultCreateLangId: Byte read FDefaultCreateLangId write FDefaultCreateLangId;
     property UserName: string read FUserName;
     property UserNameLen: DWORD read FUserNameLen;
   end;
@@ -284,7 +282,7 @@ end;
 //====================================================================
 // TDbfFile
 //====================================================================
-constructor TDbfFile.Create(lFileName: string);
+constructor TDbfFile.Create;
 begin
   // init variables first
   FFieldDefs := TDbfFieldDefs.Create(nil);
@@ -294,11 +292,10 @@ begin
   FOnIndexMissing := nil;
   FMdxFile := nil;
   FForceClose := false;
-  FOpened := false;
   FCopyDateTimeAsString := false;
 
-  // pass on parameters
-  inherited Create(lFileName);
+  // now initialize inherited
+  inherited;
 end;
 
 destructor TDbfFile.Destroy;
@@ -341,7 +338,7 @@ var
   LangStr: PChar;
 begin
   // check if not already opened
-  if not FOpened then
+  if not Active then
   begin
     // open requested file
     OpenFile;
@@ -438,9 +435,11 @@ begin
         end else begin
           FFileCodePage := 0;
         end;
+        FFileLangId := GetLangId_From_LangName(LanguageStr);
       end else begin
         // FDbfVersion <= xBaseV
-        FFileCodePage := LangId_To_CodePage[PDbfHdr(Header).Language];
+        FFileLangId := PDbfHdr(Header).Language;
+        FFileCodePage := LangId_To_CodePage[FFileLangId];
       end;
       // determine used codepage, if no codepage, then use default codepage
       FUseCodePage := FFileCodePage;
@@ -459,7 +458,8 @@ begin
           MemoFileClass := TFoxProMemoFile
         else
           MemoFileClass := TDbaseMemoFile;
-        FMemoFile := MemoFileClass.Create(lMemoFileName);
+        FMemoFile := MemoFileClass.Create;
+        FMemoFile.FileName := lMemoFileName;
         FMemoFile.Mode := Mode;
         FMemoFile.AutoCreate := false;
         FMemoFile.MemoRecordSize := 0;
@@ -477,7 +477,8 @@ begin
         if FileExists(lMdxFileName) then
         begin
           // open file
-          FMdxFile := TIndexFile.Create(Self, lMdxFileName);
+          FMdxFile := TIndexFile.Create(Self);
+          FMdxFile.FileName := lMdxFileName;
           FMdxFile.Mode := Mode;
           FMdxFile.AutoCreate := false;
           FMdxFile.OnLocaleError := FOnLocaleError;
@@ -510,9 +511,6 @@ begin
     // open indexes
     for I := 0 to FIndexFiles.Count - 1 do
       TIndexFile(FIndexFiles.Items[I]).Open;
-
-    // now opened
-    FOpened := true;
   end;
 end;
 
@@ -520,7 +518,7 @@ procedure TDbfFile.Close;
 var
   MdxIndex, I: Integer;
 begin
-  if FOpened then
+  if Active then
   begin
     // close index files first
     MdxIndex := -1;
@@ -553,8 +551,8 @@ begin
     if FPrevBuffer <> nil then
       FreeMemAndNil(Pointer(FPrevBuffer));
 
-    // flag closed
-    FOpened := false;
+    // reset variables
+    FFileLangId := 0;
   end;
 end;
 
@@ -567,12 +565,19 @@ var
   lMemoFileName: string;
   I, lFieldOffset, lSize, lPrec: Integer;
   lHasBlob: Boolean;
+  lLocaleID: LCID;
 
 begin
   try
     // first reset file
     RecordCount := 0;
     lHasBlob := false;
+    // determine codepage & locale
+    if FFileLangId = 0 then
+      FFileLangId := DbfGlobals.DefaultCreateLangId;
+    FFileCodePage := LangId_To_CodePage[FFileLangId];
+    lLocaleID := LangId_To_Locale[FFileLangId];
+    FUseCodePage := FFileCodePage;
     // prepare header size
     if FDbfVersion = xBaseVII then
     begin
@@ -584,10 +589,7 @@ begin
       // write language string
       StrPLCopy(
         @PAfterHdrVII(PChar(Header)+SizeOf(rDbfHdr)).LanguageDriverName[32],
-        ConstructLangName(
-          DbfGlobals.DefaultCreateCodePage,
-          DbfGlobals.DefaultCreateLocale,
-          FDbfVersion = xFoxPro),
+        ConstructLangName(FFileCodePage, lLocaleID, false), 
         63-32);
       lFieldDescPtr := @lFieldDescVII;
     end else begin
@@ -603,10 +605,7 @@ begin
       if FDbfVersion = xBaseIII then
         PDbfHdr(Header).Language := 0
       else
-        PDbfHdr(Header).Language := ConstructLangId(
-          DbfGlobals.DefaultCreateCodePage,
-          DbfGlobals.DefaultCreateLocale,
-          FDbfVersion = xFoxPro);
+        PDbfHdr(Header).Language := FFileLangId;
       // init field ptr
       lFieldDescPtr := @lFieldDescIII;
     end;
@@ -630,7 +629,6 @@ begin
       // update source
       lFieldDef.FieldName := AnsiUpperCase(lFieldDef.FieldName);
       lFieldDef.Offset := lFieldOffset;
-      lFieldDef.CalcValueOffset;
       lHasBlob := lHasBlob or lFieldDef.IsBlob;
 
       // apply field transformation tricks
@@ -650,6 +648,7 @@ begin
         lFieldDescVII.FieldType := lFieldDef.NativeFieldType;
         lFieldDescVII.FieldSize := lSize;
         lFieldDescVII.FieldPrecision := lPrec;
+        // TODO: bug-endianness
         lFieldDescVII.NextAutoInc := lFieldDef.AutoInc;
         //lFieldDescVII.MDXFlag := ???
       end else begin
@@ -666,7 +665,6 @@ begin
         Assign(lFieldDef);
         Offset := lFieldOffset;
         AutoInc := 0;
-        CalcValueOffset;
       end;
 
       // save field props
@@ -704,9 +702,10 @@ begin
   begin
     lMemoFileName := ChangeFileExt(FileName, GetMemoExt);
     if FDbfVersion = xFoxPro then
-      FMemoFile := TFoxProMemoFile.Create(lMemoFileName)
+      FMemoFile := TFoxProMemoFile.Create
     else
-      FMemoFile := TDbaseMemoFile.Create(lMemoFileName);
+      FMemoFile := TDbaseMemoFile.Create;
+    FMemoFile.FileName := lMemoFileName;
     FMemoFile.Mode := Mode;
     FMemoFile.AutoCreate := AutoCreate;
     FMemoFile.MemoRecordSize := MemoSize;
@@ -814,6 +813,7 @@ begin
         lSize := lFieldDescVII.FieldSize;
         lPrec := lFieldDescVII.FieldPrecision;
         lNativeFieldType := lFieldDescVII.FieldType;
+        // TODO: big-endianness
         lAutoInc := lFieldDescVII.NextAutoInc;
         if lNativeFieldType = '+' then
           FAutoIncPresent := true;
@@ -841,7 +841,6 @@ begin
         Precision := lPrec;
         AutoInc := lAutoInc;
         NativeFieldType := lNativeFieldType;
-        CalcValueOffset;
 
         // check valid field:
         //  1) non-empty field name
@@ -1060,18 +1059,29 @@ begin
 
   // select final field definition list
   if DbfFieldDefs = nil then
-    DestFieldDefs := FFieldDefs
-  else
+  begin
+    DestFieldDefs := FFieldDefs;
+  end else begin
     DestFieldDefs := DbfFieldDefs;
+    // copy autoinc values
+    for I := 0 to DbfFieldDefs.Count - 1 do
+    begin
+      lFieldNo := DbfFieldDefs.Items[I].CopyFrom;
+      if (lFieldNo >= 0) and (lFieldNo < FFieldDefs.Count) then
+        DbfFieldDefs.Items[I].AutoInc := FFieldDefs.Items[lFieldNo].AutoInc;
+    end;
+  end;
 
   // create temporary dbf
-  DestDbfFile := TDbfFile.Create(NewBaseName);
+  DestDbfFile := TDbfFile.Create;
+  DestDbfFile.FileName := NewBaseName;
   DestDbfFile.AutoCreate := true;
   DestDbfFile.Mode := pfExclusiveCreate;
   DestDbfFile.UseFloatFields := UseFloatFields;
   DestDbfFile.OnIndexMissing := FOnIndexMissing;
   DestDbfFile.OnLocaleError := FOnLocaleError;
   DestDbfFile.DbfVersion := FDbfVersion;
+  DestDbfFile.FileLangId := FileLangId;
   DestDbfFile.Open;
   // create dbf header
   if FMemoFile <> nil then
@@ -1116,9 +1126,8 @@ begin
     BufferAhead := true;
     DestDbfFile.BufferAhead := true;
 {$endif}
-    lRecNo := 1;
     lWRecNo := 1;
-    while lRecNo <= RecordCount do
+    for lRecNo := 1 to RecordCount do
     begin
       // read record from original dbf
       ReadRecord(lRecNo, pBuff);
@@ -1179,7 +1188,6 @@ begin
         // go to next record
         Inc(lWRecNo);
       end;
-      Inc(lRecNo);
     end;
 
 {$ifdef USE_CACHE}
@@ -1410,7 +1418,7 @@ begin
           case DataType of
             ftCurrency:
             begin
-              PDouble(Dst)^ := PInt64(Src)^ / 10000;
+              PDouble(Dst)^ := PInt64(Src)^ / 10000.0;
             end;
             ftBCD:
             begin
@@ -1507,6 +1515,8 @@ begin
 end;
 
 procedure TDbfFile.SetFieldData(Column: Integer; DataType: TFieldType; Src, Dst: Pointer);
+const
+  IsBlobFieldToPadChar: array[Boolean] of Char = (#32, '0');
 var
   FieldSize,FieldPrec: Integer;
   TempFieldDef: TDbfFieldDef;
@@ -1622,32 +1632,33 @@ begin
               PChar(Dst)^ := 'F';
           end;
         ftSmallInt:
-          GetStrFromInt_Width(PSmallInt(Src)^, FieldSize, PChar(Dst));
+          GetStrFromInt_Width(PSmallInt(Src)^, FieldSize, PChar(Dst), #32);
 {$ifdef SUPPORT_INT64}
         ftLargeInt:
-          GetStrFromInt64_Width(PLargeInt(Src)^, FieldSize, PChar(Dst));
+          GetStrFromInt64_Width(PLargeInt(Src)^, FieldSize, PChar(Dst), #32);
 {$endif}
         ftFloat, ftCurrency:
           FloatToDbfStr(PDouble(Src)^, FieldSize, FieldPrec, PChar(Dst));
         ftInteger:
-          GetStrFromInt_Width(PInteger(Src)^, FieldSize, PChar(Dst));
+          GetStrFromInt_Width(PInteger(Src)^, FieldSize, PChar(Dst),
+            IsBlobFieldToPadChar[TempFieldDef.IsBlob]);
         ftDate, ftDateTime:
           begin
             LoadDateFromSrc;
             // decode
             DecodeDate(date, year, month, day);
             // format is yyyymmdd
-            GetStrFromInt_Width(year,  4, PChar(Dst));
-            GetStrFromInt_Width(month, 2, PChar(Dst)+4);
-            GetStrFromInt_Width(day,   2, PChar(Dst)+6);
+            GetStrFromInt_Width(year,  4, PChar(Dst),   '0');
+            GetStrFromInt_Width(month, 2, PChar(Dst)+4, '0');
+            GetStrFromInt_Width(day,   2, PChar(Dst)+6, '0');
             // do time too if datetime
             if DataType = ftDateTime then
             begin
               DecodeTime(date, hour, minute, sec, msec);
               // format is hhmmss
-              GetStrFromInt_Width(hour,   2, PChar(Dst)+8);
-              GetStrFromInt_Width(minute, 2, PChar(Dst)+10);
-              GetStrFromInt_Width(sec,    2, PChar(Dst)+12);
+              GetStrFromInt_Width(hour,   2, PChar(Dst)+8,  '0');
+              GetStrFromInt_Width(minute, 2, PChar(Dst)+10, '0');
+              GetStrFromInt_Width(sec,    2, PChar(Dst)+12, '0');
             end;
           end;
         ftString:
@@ -1688,7 +1699,7 @@ end;
 procedure TDbfFile.ApplyAutoIncToBuffer(DestBuf: PChar);
 var
   TempFieldDef: TDbfFieldDef;
-  I, NextVal: {LongWord} Cardinal;    {Delphi 3 does not know LongWord?}
+  I, NextVal, lAutoIncOffset: {LongWord} Cardinal;    {Delphi 3 does not know LongWord?}
 begin
   if FAutoIncPresent then
   begin
@@ -1706,17 +1717,20 @@ begin
       if (TempFieldDef.NativeFieldType = '+') then
       begin
         // read current auto inc, from header or field, depending on sharing
+        lAutoIncOffset := sizeof(rDbfHdr) + sizeof(rAfterHdrVII) + 
+          FieldDescVII_AutoIncOffset + I * sizeof(rFieldDescVII);
+        // TODO: big-endianness
         if NeedLocks then
-          ReadBlock(@NextVal, 4, TempFieldDef.ValueOffset)
+          ReadBlock(@NextVal, 4, lAutoIncOffset)
         else
           NextVal := TempFieldDef.AutoInc;
         // store to buffer, positive = high bit on, so flip it
-        PCardinal(DestBuf+TempFieldDef.Offset)^ := SwapInt(NextVal xor $80000000);
+        PCardinal(DestBuf+TempFieldDef.Offset)^ := SwapInt(NextVal or $80000000);
         // increase
         Inc(NextVal);
         TempFieldDef.AutoInc := NextVal;
         // write new value to header buffer
-        PCardinal(FHeader+TempFieldDef.ValueOffset)^ := NextVal;
+        PCardinal(FHeader+lAutoIncOffset)^ := NextVal;
       end;
     end;
 
@@ -1736,7 +1750,7 @@ begin
   inherited;
 
   // exclusive succeeded? open index & memo exclusive too
-  if Mode in [pfMemory..pfExclusiveOpen] then
+  if Mode in [pfMemoryCreate..pfExclusiveOpen] then
   begin
     // indexes
     for I := 0 to FIndexFiles.Count - 1 do
@@ -1766,9 +1780,9 @@ procedure TDbfFile.OpenIndex(IndexName, IndexField: string; CreateIndex: Boolean
   // assumes IndexName is not empty
   //
 const
-  // mem, excr, exopen, rwcr, rwopen, rdonly
-  IndexOpenMode: array[pfMemory..pfReadOnly] of TPagedFileMode =
-    (pfMemory, pfExclusiveOpen, pfExclusiveOpen, pfReadWriteOpen, pfReadWriteOpen,
+  // memcr, memop, excr, exopen, rwcr, rwopen, rdonly
+  IndexOpenMode: array[pfMemoryCreate..pfReadOnly] of TPagedFileMode =
+    (pfMemoryCreate, pfMemoryCreate, pfExclusiveOpen, pfExclusiveOpen, pfReadWriteOpen, pfReadWriteOpen,
      pfReadOnly);
 var
   lIndexFile: TIndexFile;
@@ -1812,7 +1826,8 @@ begin
     if lIndexFileName <> EmptyStr then
     begin
       // try to open / create the file
-      lIndexFile := TIndexFile.Create(Self, lIndexFileName);
+      lIndexFile := TIndexFile.Create(Self);
+      lIndexFile.FileName := lIndexFileName;
       lIndexFile.Mode := IndexOpenMode[Mode];
       lIndexFile.AutoCreate := CreateIndex or (Length(IndexField) > 0);
       lIndexFile.CodePage := UseCodePage;
@@ -2315,15 +2330,15 @@ begin
 end;
 
 function TDbfCursor.Next: Boolean;
-var
-  max: Integer;
 begin
-  max := TDbfFile(PagedFile).RecordCount;
-  if FPhysicalRecNo <= max then
-    inc(FPhysicalRecNo)
-  else
-    FPhysicalRecNo := max + 1;
-  Result := (FPhysicalRecNo <= max);
+  if TDbfFile(PagedFile).IsRecordPresent(FPhysicalRecNo) then
+  begin
+    inc(FPhysicalRecNo);
+    Result := TDbfFile(PagedFile).IsRecordPresent(FPhysicalRecNo);
+  end else begin
+    FPhysicalRecNo := TDbfFile(PagedFile).CachedRecordCount + 1;
+    Result := false;
+  end;
 end;
 
 function TDbfCursor.Prev: Boolean;
@@ -2332,7 +2347,7 @@ begin
     dec(FPhysicalRecNo)
   else
     FPhysicalRecNo := 0;
-  Result := (FPhysicalRecNo > 0);
+  Result := FPhysicalRecNo > 0;
 end;
 
 procedure TDbfCursor.First;
@@ -2417,12 +2432,10 @@ end;
 constructor TDbfGlobals.Create;
 begin
   FCodePages := TList.Create;
-//  FDefaultOpenCodePage := GetOEMCP;
   FDefaultOpenCodePage := GetACP;
-  FDefaultCreateCodePage := GetACP;
-  FDefaultCreateLocale := GetUserDefaultLCID;
+  // the following sets FDefaultCreateLangId
+  DefaultCreateCodePage := GetACP;
   FCurrencyAsBCD := true;
-//  FDefaultCreateFoxPro := false;
   // determine which code pages are installed
   TempCodePageList := FCodePages;
   EnumSystemCodePages(@CodePagesProc, {CP_SUPPORTED} CP_INSTALLED);
@@ -2432,7 +2445,7 @@ end;
 
 procedure TDbfGlobals.InitUserName;
 {$ifdef FPC}
-{$ifndef win32}
+{$ifndef WIN32}
 var
   TempName: UTSName;
 {$endif}
@@ -2456,6 +2469,16 @@ end;
 destructor TDbfGlobals.Destroy; {override;}
 begin
   FCodePages.Free;
+end;
+
+function TDbfGlobals.GetDefaultCreateCodePage: Integer;
+begin
+  Result := LangId_To_CodePage[FDefaultCreateLangId];
+end;
+
+procedure TDbfGlobals.SetDefaultCreateCodePage(NewCodePage: Integer);
+begin
+  FDefaultCreateLangId := ConstructLangId(NewCodePage, GetUserDefaultLCID, false);
 end;
 
 function TDbfGlobals.CodePageInstalled(ACodePage: Integer): Boolean;

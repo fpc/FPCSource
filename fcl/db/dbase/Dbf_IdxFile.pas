@@ -261,7 +261,7 @@ type
 
     function  GetNewPageNo: Integer;
     procedure TouchHeader(AHeader: Pointer);
-    function  CreateTempMemFile(BaseName: string): TPagedFile;
+    function  CreateTempFile(BaseName: string): TPagedFile;
     procedure WriteIndexHeader(AIndex: Integer);
     procedure SelectIndexVars(AIndex: Integer);
     procedure CalcKeyProperties;
@@ -306,7 +306,7 @@ type
     property InternalLocaleID: LCID read FLocaleID write SetLocaleID;
 
   public
-    constructor Create(ADbfFile: Pointer; AFileName: string);
+    constructor Create(ADbfFile: Pointer);
     destructor Destroy; override;
 
     procedure Open;
@@ -1696,11 +1696,11 @@ end;
 //==============================================================================
 //============ TIndexFile
 //==============================================================================
-constructor TIndexFile.Create(ADbfFile: Pointer; AFileName: string);
+constructor TIndexFile.Create(ADbfFile: Pointer);
 var
   I: Integer;
 begin
-  inherited Create(AFileName);
+  inherited Create;
 
   // clear variables
   FOpened := false;
@@ -2384,14 +2384,15 @@ begin
   PMdxHdr(AHeader).UpdDay := day;
 end;
 
-function TIndexFile.CreateTempMemFile(BaseName: string): TPagedFile;
+function TIndexFile.CreateTempFile(BaseName: string): TPagedFile;
 var
   lModifier: Integer;
 begin
   // create temporary in-memory index file
   lModifier := 0;
   FindNextName(BaseName, BaseName, lModifier);
-  Result := TPagedFile.Create(BaseName);
+  Result := TPagedFile.Create;
+  Result.FileName := BaseName;
   Result.Mode := pfExclusiveCreate;
   Result.AutoCreate := true;
   Result.OpenFile;
@@ -2484,7 +2485,7 @@ begin
 
   prevIndex := FSelectedIndex;
   newPageNo := HeaderSize div PageSize;
-  TempFile := CreateTempMemFile(FileName);
+  TempFile := CreateTempFile(FileName);
   if FIndexVersion >= xBaseIV then
   begin
     // copy header
@@ -2651,7 +2652,7 @@ begin
 
   prevIndex := FSelectedIndex;
   newPageNo := HeaderSize div PageSize;
-  TempFile := CreateTempMemFile(FileName);
+  TempFile := CreateTempFile(FileName);
   if FIndexVersion >= xBaseIV then
   begin
     // copy header
@@ -2812,22 +2813,20 @@ begin
     end else begin
       // DB4 MDX
       NumDecimals := 0;
-      IntSrc := 0;
       case ResultType of
-        etInteger: IntSrc := PInteger(Result)^;
+        etInteger: 
+          begin
+            IntSrc := PInteger(Result)^;
+            // handle zero differently: no decimals
+            NumDecimals := GetStrFromInt(IntSrc, @FloatRec.Digits[0]);
+            FloatRec.Negative := IntSrc < 0;
+          end;
 {$ifdef SUPPORT_INT64}
         etLargeInt:
           begin
             Int64Src := PLargeInt(Result)^;
-            // handle zero differently: no decimals
-            if Int64Src = 0 then
-              NumDecimals := 0
-            else
-              NumDecimals := GetStrFromInt64(Int64Src, @FloatRec.Digits[0]);
-            FloatRec.Exponent := NumDecimals;
+            NumDecimals := GetStrFromInt64(Int64Src, @FloatRec.Digits[0]);
             FloatRec.Negative := Int64Src < 0;
-            // null-terminate string
-            FloatRec.Digits[NumDecimals] := #0;
           end;
 {$endif}
         etFloat:
@@ -2841,17 +2840,13 @@ begin
           end;
       end;
 
-      // parse integers to string
       case ResultType of
-        etInteger:
+        etInteger {$ifdef SUPPORT_INT64}, etLargeInt{$endif}:
           begin
-            // handle zero differently: no decimals
-            if IntSrc = 0 then
-              NumDecimals := 0
-            else
-              NumDecimals := GetStrFromInt(IntSrc, @FloatRec.Digits[0]);
             FloatRec.Exponent := NumDecimals;
-            FloatRec.Negative := IntSrc < 0;
+            // MDX-BCD does not count ending zeroes as `data' space length
+            while (NumDecimals > 0) and (FloatRec.Digits[NumDecimals-1] = '0') do
+              Dec(NumDecimals);
             // null-terminate string
             FloatRec.Digits[NumDecimals] := #0;
           end;
@@ -2862,7 +2857,7 @@ begin
       // clear rest of BCD
       FillChar(FUserBCD[1], SizeOf(FUserBCD)-1, 0);
       // store number of bytes used (in number of bits + 1)
-      FUserBCD[1] := NumDecimals * 8 - 1;
+      FUserBCD[1] := (((NumDecimals+1) div 2) * 8) + 1;
       // where to store decimal dot position? now implicitly in first byte
       // store negative sign
       if FloatRec.Negative then
@@ -3284,8 +3279,10 @@ begin
 end;
 
 procedure TIndexFile.SetLocaleID(const NewID: LCID);
+{$ifdef WIN32}
 var
   InfoStr: array[0..7] of Char;
+{$endif}
 begin
   FLocaleID := NewID;
   if NewID = lcidBinary then
@@ -3589,11 +3586,10 @@ begin
       Result := MemComp(Key1+2, Key2+2, 10-2);
     end else begin
       // greater 10-power implies bigger number except for zero
-      // NOTE: little-endian code!
-      if PSmallInt(Key1)^ = $0134 then
+      if (Byte(Key1[0]) = $01) and (Byte(Key1[1]) = $34) then
         Result := -1
       else
-      if PSmallInt(Key2)^ = $0134 then
+      if (Byte(Key2[0]) = $01) and (Byte(Key2[1]) = $34) then
         Result := 1
       else
         Result := Byte(Key1[0]) - Byte(Key2[0]);

@@ -9,9 +9,7 @@ interface
 uses
   SysUtils,
   Classes,
-  Db,
   Dbf_Cursor,
-  Dbf_PgFile,
   Dbf_IdxFile,
   Dbf_PrsDef,
   Dbf_Common;

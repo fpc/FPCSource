@@ -17,7 +17,7 @@ uses
 
 const
   TDBF_MAJOR_VERSION      = 6;
-  TDBF_MINOR_VERSION      = 35;
+  TDBF_MINOR_VERSION      = 37;
   TDBF_SUB_MINOR_VERSION  = 0;
 
   TDBF_TABLELEVEL_FOXPRO = 25;
@@ -86,13 +86,15 @@ function IncludeTrailingPathDelimiter(const Path: string): string;
 function GetCompletePath(const Base, Path: string): string;
 function GetCompleteFileName(const Base, FileName: string): string;
 function IsFullFilePath(const Path: string): Boolean; // full means not relative
+{$ifndef SUPPORT_NEW_FIELDDATA}
 function DateTimeToBDETimeStamp(aDT: TDateTime): double;
 function BDETimeStampToDateTime(aBT: double): TDateTime;
+{$endif}
 function  GetStrFromInt(Val: Integer; const Dst: PChar): Integer;
-procedure GetStrFromInt_Width(Val: Integer; const Width: Integer; const Dst: PChar);
+procedure GetStrFromInt_Width(Val: Integer; const Width: Integer; const Dst: PChar; const PadChar: Char);
 {$ifdef SUPPORT_INT64}
 function  GetStrFromInt64(Val: Int64; const Dst: PChar): Integer;
-procedure GetStrFromInt64_Width(Val: Int64; const Width: Integer; const Dst: PChar);
+procedure GetStrFromInt64_Width(Val: Int64; const Width: Integer; const Dst: PChar; const PadChar: Char);
 {$endif}
 procedure FindNextName(BaseName: string; var OutName: string; var Modifier: Integer);
 {$ifdef USE_CACHE}
@@ -101,7 +103,7 @@ function GetFreeMemory: Integer;
 
 // OH 2000-11-15 dBase7 support. Swap Byte order for 4 and 8 Byte Integer
 function SwapInt(const Value: Cardinal): Cardinal;
-procedure SwapInt64(Value, Result: Pointer); {$ifdef USE_ASSEMBLER_486_UP}pascal;{$endif}
+procedure SwapInt64(Value, Result: Pointer); register;
 
 function TranslateString(FromCP, ToCP: Cardinal; Src, Dest: PChar; Length: Integer): Integer;
 
@@ -165,7 +167,7 @@ end;
 
 // it seems there is no pascal function to convert an integer into a PChar???
 
-procedure GetStrFromInt_Width(Val: Integer; const Width: Integer; const Dst: PChar);
+procedure GetStrFromInt_Width(Val: Integer; const Width: Integer; const Dst: PChar; const PadChar: Char);
 var
   Temp: array[0..10] of Char;
   I, J, K, Sign: Integer;
@@ -189,7 +191,7 @@ begin
   // add spaces
   for K := 0 to Width - I - J - 1 do
   begin
-    Dst[J] := '0';
+    Dst[J] := PadChar;
     Inc(J);
   end;
   // if field too long, cut off
@@ -206,7 +208,7 @@ end;
 
 {$ifdef SUPPORT_INT64}
 
-procedure GetStrFromInt64_Width(Val: Int64; const Width: Integer; const Dst: PChar);
+procedure GetStrFromInt64_Width(Val: Int64; const Width: Integer; const Dst: PChar; const PadChar: Char);
 var
   Temp: array[0..19] of Char;
   I, J, K: Integer;
@@ -231,7 +233,7 @@ begin
   // add spaces
   for K := 0 to Width - I - J - 1 do
   begin
-    Dst[J] := '0';
+    Dst[J] := PadChar;
     inc(J);
   end;
   // if field too long, cut off
@@ -303,9 +305,12 @@ begin
   until I = 0;
   // done!
 end;
+
 {$endif}
 
-function DateTimeToBDETimeStamp(aDT: TDateTime): Double;
+{$ifndef SUPPORT_NEW_FIELDDATA}
+
+function DateTimeToBDETimeStamp(aDT: TDateTime): double;
 var
   aTS: TTimeStamp;
 begin
@@ -313,13 +318,15 @@ begin
   Result := TimeStampToMSecs(aTS);
 end;
 
-function BDETimeStampToDateTime(aBT: Double): TDateTime;
+function BDETimeStampToDateTime(aBT: double): TDateTime;
 var
   aTS: TTimeStamp;
 begin
   aTS := MSecsToTimeStamp(aBT);
   Result := TimeStampToDateTime(aTS);
 end;
+
+{$endif}
 
 //====================================================================
 
@@ -400,19 +407,21 @@ asm
   BSWAP EAX;
 end;
 
-procedure SwapInt64(Value, Result: Pointer); pascal;
-begin
-  asm MOV   EAX, dword ptr [Value + 0]
-      MOV   EDX, dword ptr [Value + 4]
+procedure SwapInt64(Value {EAX}, Result {EDX}: Pointer); register;
+asm
+  XCHG EAX, ECX
+{ 
+        single byte, on Pentium+ is not to be data move, but just renaming
+        registers, so i expect even faster than MOV  :-) 
+}
 
-      BSWAP EAX
-      BSWAP EDX
+  MOV EAX, dword ptr [ECX]
+  BSWAP EAX
+  MOV dword ptr [EDX+4], EAX
 
-{$ifndef FPC_VERSION}
-      MOV   dword ptr [Result + 0], EDX
-      MOV   dword ptr [Result + 4], EAX
-{$endif}
-  end;
+  MOV EAX, dword ptr [ECX+4]
+  BSWAP EAX
+  MOV dword ptr [EDX], EAX
 end;
 
 {$else}
@@ -425,7 +434,7 @@ begin
   PByteArray(@Result)[3] := PByteArray(@Value)[0];
 end;
 
-procedure SwapInt64(Value, Result: Pointer); 
+procedure SwapInt64(Value, Result: Pointer); register;
 var
   PtrResult: PByteArray;
   PtrSource: PByteArray;

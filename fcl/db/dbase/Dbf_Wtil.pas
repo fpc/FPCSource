@@ -407,7 +407,6 @@ const
 const
 
 {$IFDEF FPC}
-{$IFNDEF VER1_9_4}
    F_RDLCK = 0;
    F_WRLCK = 1;
    F_UNLCK = 2;
@@ -423,7 +422,6 @@ const
    LOCK_READ = 64;
    LOCK_WRITE = 128;
    LOCK_RW = 192;
-{$ENDIF}
 
    EACCES = ESysEACCES;
    EAGAIN = ESysEAGAIN;

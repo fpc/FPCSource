@@ -5,9 +5,7 @@
 
 // enables assembler routines, 486+ only
 
-{$ifdef cpui386}
-  {$define USE_ASSEMBLER_486_UP}
-{$endif cpui386}  
+{$define USE_ASSEMBLER_486_UP}
 
 // test compatibility
 
@@ -156,6 +154,14 @@
 
   {$mode delphi}
   {$h+}
+
+{$ifndef CPUI386}
+  {$undef USE_ASSEMBLER_486_UP}
+{$endif}
+
+{$ifdef USE_ASSEMBLER_486_UP}
+  {$asmmode intel}
+{$endif}
 
   {$define SUPPORT_INT64}
   {$define SUPPORT_DEFAULT_PARAMS}
