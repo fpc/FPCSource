@@ -929,6 +929,8 @@ end;
 var tib:Pthreadinfoblock;
 
 begin
+    IsConsole := TRUE;
+    IsLibrary := FALSE;
     {Determine the operating system we are running on.}
 {$ASMMODE INTEL}
     asm
@@ -1019,7 +1021,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  2002-04-12 17:42:16  carl
+  Revision 1.21  2002-04-21 15:54:20  carl
+  + initialize some global variables
+
+  Revision 1.20  2002/04/12 17:42:16  carl
   + generic stack checking
 
   Revision 1.19  2002/03/11 19:10:33  peter

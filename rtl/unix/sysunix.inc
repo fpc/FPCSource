@@ -746,6 +746,8 @@ end;
 
 
 Begin
+  IsConsole := TRUE;
+  IsLibrary := FALSE;
   StackBottom := Sptr - StackLength;
 { Set up signals handlers }
    InstallSignals;
@@ -765,7 +767,10 @@ End.
 
 {
   $Log$
-  Revision 1.20  2002-04-12 17:43:28  carl
+  Revision 1.21  2002-04-21 15:55:00  carl
+  + initialize some global variables
+
+  Revision 1.20  2002/04/12 17:43:28  carl
   + generic stack checking
 
   Revision 1.19  2002/03/11 19:10:33  peter

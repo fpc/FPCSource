@@ -1483,6 +1483,10 @@ var
   temp_int : tseginfo;
 Begin
   StackBottom := __stkbottom; 
+  { To be set if this is a GUI or console application }
+  IsConsole := TRUE;
+  { To be set if this is a library and not a program  }
+  IsLibrary := FALSE;
 { save old int 0 and 75 }
   get_pm_interrupt($00,old_int00);
   get_pm_interrupt($75,old_int75);
@@ -1525,7 +1529,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.16  2002-04-12 17:34:05  carl
+  Revision 1.17  2002-04-21 15:52:58  carl
+  + initialize some global variables
+
+  Revision 1.16  2002/04/12 17:34:05  carl
   + generic stack checking
 
   Revision 1.15  2002/03/11 19:10:33  peter

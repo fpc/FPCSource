@@ -73,20 +73,6 @@ Procedure system_exit;
 begin
 end;
 
-{*****************************************************************************
-                         Stack check code
-*****************************************************************************}
-procedure int_stackcheck(stack_size:longint);[public,alias:'FPC_STACKCHECK'];
-{
-  called when trying to get local stack if the compiler directive $S
-  is set this function must preserve esi !!!! because esi is set by
-  the calling proc for methods it must preserve all registers !!
-
-  With a 2048 byte safe area used to write to StdIo without crossing
-  the stack boundary
-}
-begin
-end;
 
 {*****************************************************************************
                               ParamStr/Randomize
@@ -284,6 +270,12 @@ end;
 *****************************************************************************}
 
 Begin
+  { To be set if this is a GUI or console application }
+  IsConsole := TRUE;
+  { To be set if this is a library and not a program  }
+  IsLibrary := FALSE;
+  StackBottom := SPtr - StackLength;
+  ExitCode := 0;
 { Setup heap }
   InitHeap;
 { Setup stdin, stdout and stderr }
@@ -299,7 +291,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.6  2001-06-19 20:46:56  hajny
+  Revision 1.7  2002-04-21 15:55:14  carl
+  + initialize some global variables
+
+  Revision 1.6  2001/06/19 20:46:56  hajny
     * platform specific constants moved after systemh.inc, BeOS omission corrected
 
   Revision 1.5  2001/06/13 22:21:53  hajny
