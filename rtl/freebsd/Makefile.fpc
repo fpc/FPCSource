@@ -9,7 +9,7 @@ main=rtl
 fpcpackage=y
 
 [target]
-loaders=prt0 cprt0
+loaders=prt0 cprt0 gprt0
 units=$(SYSTEMUNIT) objpas strings baseunix syscall unixutil \
       $(LINUXUNIT) unix initc  \
       dos crt objects printer \
@@ -58,6 +58,7 @@ SYSTEMUNIT=system
 LINUXUNIT=
 PRT0=prt0
 override FPCOPT+=-dNOMOUSE
+loaders+=gprt0
 else
 SYSTEMUNIT=sysbsd
 LINUXUNIT=linux
@@ -112,6 +113,9 @@ prt0$(OEXT) : $(CPU_TARGET)/$(PRT0).as
 
 cprt0$(OEXT) : $(CPU_TARGET)/cprt0.as
         $(AS) -o cprt0$(OEXT) $(CPU_TARGET)/cprt0.as
+
+gprt0$(OEXT) : $(CPU_TARGET)/gprt0.as
+        $(AS) -o gprt0$(OEXT) $(CPU_TARGET)/gprt0.as
 
 #
 # System Units (System, Objpas, Strings)
