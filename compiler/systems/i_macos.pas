@@ -65,7 +65,7 @@ unit i_macos;
             link         : nil;
             linkextern   : nil;
             ar           : ar_mpw_ar;
-            res          : res_mpw_res;
+            res          : res_powerpc_mpw;
             script       : script_unix;
             endian       : endian_big;
             alignment    :
@@ -102,7 +102,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.5  2002-10-20 17:54:32  olle
+  Revision 1.6  2003-01-13 13:03:56  florian
+    - fixed res entry for MacOS, I don't understand why it worked before :/
+
+  Revision 1.5  2002/10/20 17:54:32  olle
     * changed newline char, asm file ending and case sensitivity
 
   Revision 1.4  2002/10/02 21:50:19  florian
