@@ -18,7 +18,7 @@ program FPDoc;
 
 uses
   SysUtils, Classes, Gettext, DOM, XMLWrite,
-  dGlobals, PasTree, PParser, dw_XML, dw_HTML, dw_LaTeX;
+  dGlobals, PasTree, PParser, dw_XML, dw_HTML, dw_LaTeX, dw_ipf;
 
 resourcestring
   STitle = 'FPDoc - Free Pascal Documentation Tool';
@@ -33,7 +33,7 @@ resourcestring
 
 type
   TCmdLineAction = (actionHelp, actionConvert);
-  TOutputFormat = (fmtHTM, fmtHTML, fmtXHTML, fmtLaTeX, fmtXMLStruct);
+  TOutputFormat = (fmtHTM, fmtHTML, fmtXHTML, fmtLaTeX, fmtXMLStruct, fmtIPF);
 
 const
   CmdLineAction: TCmdLineAction = actionConvert;
@@ -84,7 +84,7 @@ procedure ParseOption(const s: String);
       while not EOF(f) do
       begin
         ReadLn(f, s);
-	List.Add(s);
+        List.Add(s);
       end;
       Close(f);
     end else
@@ -126,6 +126,8 @@ begin
         OutputFormat := fmtXHTML
       else if Arg = 'LATEX' then
         OutputFormat := fmtLaTeX
+      else if Arg = 'IPF' then
+        OutputFormat := fmtIPF
       else if Arg = 'XML-STRUCT' then
         OutputFormat := fmtXMLStruct
       else
@@ -209,8 +211,8 @@ begin
         ParseSource(Engine, InputFiles[i], OSTarget, CPUTarget);
       except
         on e: EParserError do
-	  WriteLn(StdErr, Format('%s(%d,%d): %s',
-	    [e.Filename, e.Row, e.Column, e.Message]));
+          WriteLn(StdErr, Format('%s(%d,%d): %s',
+            [e.Filename, e.Row, e.Column, e.Message]));
       end;
 
     // Translate internal documentation strings
@@ -220,66 +222,73 @@ begin
     case OutputFormat of
       fmtHTM:
         begin
-	  Allocator := TShortNameFileAllocator.Create('.htm');
-	  try
-	    HTMLWriter := THTMLWriter.Create(Engine, Allocator, Engine.Package);
-	    try
-	      HTMLWriter.SearchPage := SearchPage;
-	      WriteLn(Format(SWritingPages, [HTMLWriter.PageCount]));
-	      HTMLWriter.WriteHTMLPages;
-	    finally
-	      HTMLWriter.Free;
-	    end;
-	  finally
-	    Allocator.Free;
-	  end;
-	end;
+          Allocator := TShortNameFileAllocator.Create('.htm');
+          try
+            HTMLWriter := THTMLWriter.Create(Engine, Allocator, Engine.Package);
+            try
+              HTMLWriter.SearchPage := SearchPage;
+              WriteLn(Format(SWritingPages, [HTMLWriter.PageCount]));
+              HTMLWriter.WriteHTMLPages;
+            finally
+              HTMLWriter.Free;
+            end;
+          finally
+            Allocator.Free;
+          end;
+        end;
       fmtHTML:
         begin
-	  Allocator := TLongNameFileAllocator.Create('.html');
-	  try
-	    HTMLWriter := THTMLWriter.Create(Engine, Allocator, Engine.Package);
-	    try
-	      HTMLWriter.SearchPage := SearchPage;
-	      WriteLn(Format(SWritingPages, [HTMLWriter.PageCount]));
-	      HTMLWriter.WriteHTMLPages;
-	    finally
-	      HTMLWriter.Free;
-	    end;
-	  finally
-	    Allocator.Free;
-	  end;
-	end;
+          Allocator := TLongNameFileAllocator.Create('.html');
+          try
+            HTMLWriter := THTMLWriter.Create(Engine, Allocator, Engine.Package);
+            try
+              HTMLWriter.SearchPage := SearchPage;
+              WriteLn(Format(SWritingPages, [HTMLWriter.PageCount]));
+              HTMLWriter.WriteHTMLPages;
+            finally
+              HTMLWriter.Free;
+            end;
+          finally
+            Allocator.Free;
+          end;
+        end;
 {      fmtXHTML:
         begin
-	  Allocator := TLongNameFileAllocator.Create('.xml');
-	  try
-	    BeginXHTMLDocForPackage(Engine, XHTMLOptions, Allocator);
+          Allocator := TLongNameFileAllocator.Create('.xml');
+          try
+            BeginXHTMLDocForPackage(Engine, XHTMLOptions, Allocator);
             for i := 0 to InputFiles.Count - 1 do
-	      CreateXHTMLDocFromModule(Engine, XHTMLOptions, Allocator,
-	        ParseSource(Engine, InputFiles[i]));
-	    EndXHTMLDocForPackage(Engine, XHTMLOptions, Allocator);
-	  finally
-	    Allocator.Free;
-	  end;
-	end;}
+              CreateXHTMLDocFromModule(Engine, XHTMLOptions, Allocator,
+                ParseSource(Engine, InputFiles[i]));
+            EndXHTMLDocForPackage(Engine, XHTMLOptions, Allocator);
+          finally
+            Allocator.Free;
+          end;
+        end;}
       fmtLaTeX:
         begin
-	  if Length(Engine.Output) = 0 then
-	    WriteLn(SCmdLineOutputOptionMissing)
-	  else
-	    CreateLaTeXDocForPackage(Engine.Package, Engine);
-	end;
+          if Length(Engine.Output) = 0 then
+            WriteLn(SCmdLineOutputOptionMissing)
+          else
+            CreateLaTeXDocForPackage(Engine.Package, Engine);
+        end;
+      fmtIPF:
+        begin
+          if Length(Engine.Output) = 0 then
+            WriteLn(SCmdLineOutputOptionMissing)
+          else
+            CreateIPFDocForPackage(Engine.Package, Engine);
+        end;
 {      fmtXMLStruct:
         for i := 0 to InputFiles.Count - 1 do
-	begin
+        begin
           XMLDoc := ModuleToXMLStruct(Module);
-    	  try
+          try
            WriteXMLFile(XMLDoc, StdOut);
-	  finally
-	    XMLDoc.Free;
-	  end;
-	end;}
+          finally
+            XMLDoc.Free;
+          end;
+        end;}
     end;
 
     if Length(ContentFile) > 0 then
@@ -296,7 +305,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2003-03-27 17:14:13  sg
+  Revision 1.4  2003-10-08 11:41:54  yuri
+  + Initial OS/2 IPF support added
+
+  Revision 1.3  2003/03/27 17:14:13  sg
   * Added --ostarget and --cputarget
 
   Revision 1.2  2003/03/18 19:28:44  michael
