@@ -431,7 +431,8 @@ implementation
             end;
          end;
         calcregisters(p,0,0,0);
-        p^.resulttype:=new(parraydef,init(0,len-1,pd));
+        p^.resulttype:=new(parraydef,init(0,len-1,s32bitdef));
+        parraydef(p^.resulttype)^.definition:=pd;
         parraydef(p^.resulttype)^.IsConstructor:=true;
         parraydef(p^.resulttype)^.IsVariant:=varia;
         p^.location.loc:=LOC_REFERENCE;
@@ -452,7 +453,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.16  1999-02-22 02:15:52  peter
+  Revision 1.17  1999-03-10 13:24:23  pierre
+   * array of const type to definition field
+
+  Revision 1.16  1999/02/22 02:15:52  peter
     * updates for ag386bin
 
   Revision 1.15  1999/02/15 13:13:19  pierre
