@@ -1547,9 +1547,16 @@ procedure CloseGraph;
          exit
        end;
      if UseChildWindow then
-       PostMessage(ParentWindow,wm_destroy,0,0)
+       begin
+          { if the child window isn't destroyed }
+          { the main window can't be closed     }
+          { I don't know any other way (FK)     }
+          PostMessage(GraphWindow,wm_destroy,0,0);
+          PostMessage(ParentWindow,wm_destroy,0,0)
+       end
      else
        PostMessage(GraphWindow,wm_destroy,0,0);
+
      PostThreadMessage(MessageThreadHandle,wm_quit,0,0);
      WaitForSingleObject(MessageThreadHandle,Infinite);
      CloseHandle(MessageThreadHandle);
@@ -2215,7 +2222,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2000-10-21 18:20:17  florian
+  Revision 1.4  2000-11-14 19:45:08  florian
+    * child window destruction fixed
+
+  Revision 1.3  2000/10/21 18:20:17  florian
     * a lot of small changes:
        - setlength is internal
        - win32 graph unit extended
