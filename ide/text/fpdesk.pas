@@ -330,6 +330,7 @@ var
   size : sw_word;
   test : boolean;
 begin
+  size:=SizeOf(TVideoMode);
   test:=F^.ReadResourceEntry(resVideo,langDefault,NewScreenMode,
     size);
   if not test then
@@ -448,7 +449,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.16  1999-12-10 13:02:05  pierre
+  Revision 1.17  1999-12-20 00:30:56  pierre
+   * problem with VideoMode storing solved
+
+  Revision 1.16  1999/12/10 13:02:05  pierre
   + VideoMode save/restore
 
   Revision 1.15  1999/11/26 17:09:51  pierre
