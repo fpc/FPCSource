@@ -342,10 +342,16 @@ end;
 
   procedure SetBankIndex(win: byte; BankNr: Integer); assembler;
    asm
+{$IFDEF REGCALL}
+     mov  bl, al
+{$ELSE REGCALL}
+     mov  bl,[Win]
+{$ENDIF REGCALL}
      mov  ax,4f05h
      mov  bh,00h
-     mov  bl,[Win]
+{$IFNDEF REGCALL}
      mov  dx,[BankNr]
+{$ENDIF REGCALL}
 {$ifdef fpc}
      push ebp
 {$endif fpc}
@@ -2737,7 +2743,10 @@ Const
 
 {
   $Log$
-  Revision 1.10  2004-06-20 09:24:40  peter
+  Revision 1.11  2005-02-02 11:57:19  jonas
+    * fix from Tomas for calling conventions
+
+  Revision 1.10  2004/06/20 09:24:40  peter
   fixed go32v2 compile
 
   Revision 1.9  2002/09/07 16:01:19  peter
