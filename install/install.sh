@@ -45,7 +45,18 @@ unztarfromtar ()
 {
  tar -xOf $HERE/$1 $2 | tar --directory $3 -xzf -
 }
-
+# Get file list from tar archive ($1) in variable ($2)
+# optionally filter result through sed ($3)
+listtarfiles ()
+{
+  askvar=$2
+  if [ ! -z $3 ]; then
+    list=`tar tvf $1 | awk '{ print $(NF) }' | sed -n /$3/p`
+  else
+     list=`tar tvf $1 | awk '{ print $(NF) }'`
+  fi
+  eval $askvar='$list'
+}
 # Make all the necessary directories to get $1
 makedirhierarch ()
 {
@@ -94,6 +105,10 @@ if checkpath /usr/local/bin; then
 else
     PREFIX=/usr
 fi
+# If we can't write on prefix, select subdir of home dir
+if [ ! -w $PREFIX ]; then
+  PREFIX=$HOME/fpc-$VERSION
+fi
 ask "Install prefix (/usr or /usr/local) " PREFIX
 makedirhierarch $PREFIX
 
@@ -131,7 +146,7 @@ if yesno "Install FCL"; then
     unztarfromtar binary.tar unitsfcl${OSNAME}.tar.gz $PREFIX
 fi
 if yesno "Install packages"; then
-  packages=`tar -tvf binary.tar "units*" | awk '{ print $6 }'`
+  listtarfiles binary.tar packages units
   for f in $packages 
   do
     if [ $f != unitsfcl${OSNAME}.tar.gz ]; then
@@ -166,7 +181,7 @@ if yesno "Install sources"; then
     unztarfromtar sources.tar installersrc.tar.gz $PREFIX
   fi    
   if yesno "Install Packages source"; then
-    packages=`tar -tvf sources.tar "units*" | awk '{ print $6 }'`
+    listtarfiles sources.tar packages units
     for f in $packages
     do
       basename $f .tar.gz |\
