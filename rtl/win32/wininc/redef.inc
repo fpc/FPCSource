@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999-2000 by the Free Pascal development team
+    Copyright (c) 1999-2001 by the Free Pascal development team
 
     This file defines type names as they are used by Delphi
 
@@ -65,6 +65,13 @@ type
   TWinCertificate = _WIN_CERTIFICATE;
   PWinCertificate = ^TWinCertificate;
 
+  TMaxLogPalette = Packed Record
+     palVersion    : Word;
+     palNumEntries : Word;
+     palPalEntry   : array[Byte] of TPaletteEntry;
+  end;
+  PMaxLogPalette = ^TMaxLogPalette;
+
 const
   { dll names }
   advapi32 = 'advapi32.dll';
@@ -85,67 +92,21 @@ const
   fmShareDenyNone  = $40;
 
   { HRESULT codes, delphilike }
-  S_OK    = $00000000;
-  S_FALSE = $00000001;
   NOERROR = 0;
-  E_UNEXPECTED = DWORD($8000FFFF);
-  E_NOTIMPL = DWORD($80004001);
-  E_OUTOFMEMORY = DWORD($8007000E);
-  E_INVALIDARG = DWORD($80070057);
-  E_NOINTERFACE = DWORD($80004002);
-  E_POINTER = DWORD($80004003);
-  E_HANDLE = DWORD($80070006);
-  E_ABORT = DWORD($80004004);
-  E_FAIL = DWORD($80004005);
-  E_ACCESSDENIED = DWORD($80070005);
-  E_PENDING = DWORD($8000000A);
-  CO_E_INIT_TLS = DWORD($80004006);
 
-  CO_E_INIT_MEMORY_ALLOCATOR = DWORD($80004008);
-  CO_E_INIT_CLASS_CACHE = DWORD($80004009);
-  CO_E_INIT_RPC_CHANNEL = DWORD($8000400A);
-  CO_E_INIT_TLS_SET_CHANNEL_CONTROL = DWORD($8000400B);
-  CO_E_INIT_TLS_CHANNEL_CONTROL = DWORD($8000400C);
-  CO_E_INIT_UNACCEPTED_USER_ALLOCATOR = DWORD($8000400D);
-  CO_E_INIT_SCM_MUTEX_EXISTS = DWORD($8000400E);
-  CO_E_INIT_SCM_FILE_MAPPING_EXISTS = DWORD($8000400F);
-  CO_E_INIT_SCM_MAP_VIEW_OF_FILE = DWORD($80004010);
-  CO_E_INIT_SCM_EXEC_FAILURE = DWORD($80004011);
-  CO_E_INIT_ONLY_SINGLE_THREADED = DWORD($80004012);
-  CO_E_CANT_REMOTE = DWORD($80004013);
-  CO_E_BAD_SERVER_NAME = DWORD($80004014);
-  CO_E_WRONG_SERVER_IDENTITY = DWORD($80004015);
-  CO_E_OLE1DDE_DISABLED = DWORD($80004016);
-  CO_E_RUNAS_SYNTAX = DWORD($80004017);
-  CO_E_CREATEPROCESS_FAILURE = DWORD($80004018);
-  CO_E_RUNAS_CREATEPROCESS_FAILURE = DWORD($80004019);
-  CO_E_RUNAS_LOGON_FAILURE = DWORD($8000401A);
-  CO_E_LAUNCH_PERMSSION_DENIED = DWORD($8000401B);
-  CO_E_START_SERVICE_FAILURE = DWORD($8000401C);
-  CO_E_REMOTE_COMMUNICATION_FAILURE = DWORD($8000401D);
-  CO_E_SERVER_START_TIMEOUT = DWORD($8000401E);
-  CO_E_CLSREG_INCONSISTENT = DWORD($8000401F);
-  CO_E_IIDREG_INCONSISTENT = DWORD($80004020);
-  CO_E_NOT_SUPPORTED = DWORD($80004021);
-  CO_E_FIRST = DWORD($800401F0);
-  CO_E_LAST  = DWORD($800401FF);
-  CO_S_FIRST = $401F0;
-  CO_E_NOTINITIALIZED = DWORD($800401F0);
-  CO_E_ALREADYINITIALIZED = DWORD($800401F1);
-  CO_E_CANTDETERMINECLASS = DWORD($800401F2);
-  CO_E_CLASSSTRING = DWORD($800401F3);
-  CO_E_IIDSTRING = DWORD($800401F4);
-  CO_E_APPNOTFOUND = DWORD($800401F5);
-  CO_E_APPSINGLEUSE = DWORD($800401F6);
-  CO_E_ERRORINAPP = DWORD($800401F7);
-  CO_E_DLLNOTFOUND = DWORD($800401F8);
-  CO_E_ERRORINDLL = DWORD($800401F9);
-  CO_E_WRONGOSFORAPP = DWORD($800401FA);
-  CO_E_OBJNOTREG = DWORD($800401FB);
-  CO_E_OBJISREG = DWORD($800401FC);
-  CO_E_OBJNOTCONNECTED = DWORD($800401FD);
-  CO_E_APPDIDNTREG = DWORD($800401FE);
-  CO_E_RELEASED = DWORD($800401FF);
+const
+  { Severity values }
+  FACILITY_NT_BIT = $10000000;
+
+function Succeeded(Status : HRESULT) : BOOL;
+function Failed(Status : HRESULT) : BOOL;
+function IsError(Status : HRESULT) : BOOL;
+function HResultCode(hr : HRESULT) : Longint;
+function HResultFacility(hr : HRESULT) : Longint;
+function HResultSeverity(hr : HRESULT) : Longint;
+function MakeResult(p1,p2,mask : Longint) : HRESULT;
+function HResultFromWin32(x : Longint) : HRESULT;
+function HResultFromNT(x : Longint) : HRESULT;
 
 procedure InitializeCriticalSection(var CriticalSection : TRTLCriticalSection); external 'kernel32' name 'InitializeCriticalSection';
 procedure EnterCriticalSection(var CriticalSection : TRTLCriticalSection); external 'kernel32' name 'EnterCriticalSection';
@@ -889,11 +850,62 @@ function WriteProcessMemory(hProcess: THandle; const lpBaseAddress: Pointer; lpB
 
 {$ifdef read_implementation}
 
+function Succeeded(Status : HRESULT) : BOOL;
+  begin
+     Succeeded:=Status and HRESULT($80000000)=0;
+  end;
+
+function Failed(Status : HRESULT) : BOOL;
+  begin
+     Failed:=Status and HRESULT($80000000)<>0;
+  end;
+
+function IsError(Status : HRESULT) : BOOL;
+  begin
+     IsError:=(Status shr 31)=SEVERITY_ERROR;
+  end;
+
+function HResultCode(hr : HRESULT) : Longint;
+  begin
+     HResultCode:=hr and $0000ffff;
+  end;
+
+function HResultFacility(hr : HRESULT) : Longint;
+  begin
+     HResultFacility:=(hr shr 16) and $00001fff;
+  end;
+
+function HResultSeverity(hr : HRESULT) : Longint;
+  begin
+     HResultSeverity:=(hr shr 31) and $00000001;
+  end;
+
+function MakeResult(p1,p2,mask : Longint): HRESULT;
+  begin
+     MakeResult:=(p1 shl 31) or (p2 shl 16) or mask;
+  end;
+
+function HResultFromWin32(x : Longint) : HRESULT;
+  begin
+     HResultFromWin32:=x;
+     if HResultFromWin32<>0 then
+       HResultFromWin32:=((HResultFromWin32 and $0000ffff) or
+         (FACILITY_WIN32 shl 16) or HRESULT($80000000));
+  end;
+
+function HResultFromNT(x : Longint) : HRESULT;
+  begin
+     HResultFromNT:=x or FACILITY_NT_BIT;
+  end;
+
 {$endif read_implementation}
 
 {
   $Log$
-  Revision 1.4  2001-07-30 21:06:06  peter
+  Revision 1.5  2001-08-19 09:27:52  florian
+    + a lot of constants added
+
+  Revision 1.4  2001/07/30 21:06:06  peter
     * added SetWaitableTimer
 
   Revision 1.3  2001/07/30 12:02:51  marco
@@ -901,5 +913,4 @@ function WriteProcessMemory(hProcess: THandle; const lpBaseAddress: Pointer; lpB
 
   Revision 1.2  2000/07/13 11:34:00  michael
   + removed logs
-
 }

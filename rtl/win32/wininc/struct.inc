@@ -6449,8 +6449,9 @@
      TIMAGEDOSHEADER = IMAGE_DOS_HEADER;
      PIMAGEDOSHEADER = ^IMAGE_DOS_HEADER;
 
+{$ifndef HASVARIANT}
+  { This causes trouble with a compiler which has real variant support FK }
   { Variant support }
-
   TVarType = Word;
   PVariant = ^TVariant;
 
@@ -6484,6 +6485,7 @@
   end;
 
  VARIANT = TVariant;
+{$endif HASVARIANT}
 
  MMRESULT = Longint;
 
@@ -6968,7 +6970,10 @@ type
 
 {
   $Log$
-  Revision 1.9  2001-08-04 10:25:46  peter
+  Revision 1.10  2001-08-19 09:27:52  florian
+    + a lot of constants added
+
+  Revision 1.9  2001/08/04 10:25:46  peter
     * fixed input_record to be more delphi compatible
 
   Revision 1.8  2001/07/30 14:23:15  marco
