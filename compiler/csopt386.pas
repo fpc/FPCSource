@@ -61,7 +61,7 @@ Function CheckSequence(p: Pai; Reg: TRegister; Var Found: Longint; Var RegInfo: 
  instructions that match is stored in Found and true is returned, otherwise
  Found holds the number of instructions between StartMod and EndMod and false
  is returned}
-Var hp2, hp3, EndMod: Pai;
+Var hp2, hp3{, EndMod}: Pai;
     PrevNonRemovablePai: Pai;
     OrgRegInfo, HighRegInfo: TRegInfo;
     HighFound, OrgRegFound: Byte;
@@ -564,7 +564,10 @@ End.
 
 {
  $Log$
- Revision 1.11  1998-10-07 16:24:52  jonas
+ Revision 1.12  1998-10-20 09:32:54  peter
+   * removed some unused vars
+
+ Revision 1.11  1998/10/07 16:24:52  jonas
    * changed state to WState (WriteState), added RState for future use in
       instruction scheduling
 

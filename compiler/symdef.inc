@@ -2474,8 +2474,6 @@
       var
          nss : pchar;
          i : word;
-         vartyp : char;
-         pst : pchar;
          param : pdefcoll;
       begin
         i := 0;
@@ -2603,7 +2601,7 @@
           end;
         savesize := publicsyms^.datasize;
       end;
-      
+
     constructor tobjectdef.load;
       var
          oldread_member : boolean;
@@ -2656,7 +2654,7 @@
              options:=options or oo_hasvmt;
           end;
      end;
-     
+
    procedure tobjectdef.check_forwards;
      begin
         publicsyms^.check_forwards;
@@ -3181,7 +3179,10 @@
 
 {
   $Log$
-  Revision 1.62  1998-10-20 08:06:58  pierre
+  Revision 1.63  1998-10-20 09:32:56  peter
+    * removed some unused vars
+
+  Revision 1.62  1998/10/20 08:06:58  pierre
     * several memory corruptions due to double freemem solved
       => never use p^.loc.location:=p^.left^.loc.location;
     + finally I added now by default
