@@ -40,7 +40,7 @@
       begin
       end;
 
-    procedure fpc_intf_incr_ref(const i: pointer);saveregisters;[public,alias: 'FPC_INTF_INCR_REF']; {$ifdef hascompilerproc} compilerproc; {$endif}
+    procedure fpc_intf_incr_ref(i: pointer);saveregisters;[public,alias: 'FPC_INTF_INCR_REF']; {$ifdef hascompilerproc} compilerproc; {$endif}
       begin
       end;
 
@@ -48,7 +48,11 @@
       begin
       end;
 
-    procedure fpc_intf_as(var D: pointer; const S: pointer; const iid: TGUID);[public,alias: 'FPC_INTF_AS']; {$ifdef hascompilerproc} compilerproc; {$endif}
+    function fpc_intf_as(const S: pointer; const iid: TGUID): pointer;[public,alias: 'FPC_INTF_AS']; {$ifdef hascompilerproc} compilerproc; {$endif}
+      begin
+      end;
+
+    function fpc_class_as_intf(const S: pointer; const iid: TGUID): pointer;[public,alias: 'FPC_CLASS_AS_INTF']; {$ifdef hascompilerproc} compilerproc; {$endif}
       begin
       end;
 
@@ -713,7 +717,10 @@
 
 {
   $Log$
-  Revision 1.24  2002-08-20 18:24:06  jonas
+  Revision 1.25  2002-08-31 13:11:11  florian
+    * several fixes for Linux/PPC compilation
+
+  Revision 1.24  2002/08/20 18:24:06  jonas
     * interface "as" helpers converted from procedures to functions
 
   Revision 1.23  2002/07/30 17:29:19  florian

@@ -119,7 +119,7 @@ end;
 
 {$define FPC_SYSTEM_HAS_MOVE}
 
-procedure Move(var source;var dest;count:longint);assembler;
+procedure Move(const source;var dest;count:longint);assembler;
 asm
           {  count <= 0 ?  }
           cmpwi   cr0,r5,0
@@ -433,7 +433,7 @@ end ['R3','R4','R5','CTR'];
 
 
 {$define FPC_SYSTEM_HAS_INDEXBYTE}
-function IndexByte(var buf;len:longint;b:byte):longint; assembler;
+function IndexByte(const buf;len:longint;b:byte):longint; assembler;
 { input: r3 = buf, r4 = len, r5 = b                   }
 { output: r3 = position of b in buf (-1 if not found) }
 asm
@@ -458,7 +458,7 @@ end ['R0','R3','R9','R10','CR0','CTR'];
 
 
 {$define FPC_SYSTEM_HAS_INDEXWORD}
-function IndexWord(var buf;len:longint;b:word):longint; assembler;
+function IndexWord(const buf;len:longint;b:word):longint; assembler;
 { input: r3 = buf, r4 = len, r5 = b                   }
 { output: r3 = position of b in buf (-1 if not found) }
 asm
@@ -483,7 +483,7 @@ end ['R0','R3','R9','R10','CR0','CTR'];
 
 
 {$define FPC_SYSTEM_HAS_INDEXDWORD}
-function IndexDWord(var buf;len:longint;b:DWord):longint; assembler;
+function IndexDWord(const buf;len:longint;b:DWord):longint; assembler;
 { input: r3 = buf, r4 = len, r5 = b                   }
 { output: r3 = position of b in buf (-1 if not found) }
 asm
@@ -507,7 +507,7 @@ LIndexDWordDone:
 end ['R0','R3','R9','R10','CR0','CTR'];
 
 {$define FPC_SYSTEM_HAS_COMPAREBYTE}
-function CompareByte(var buf1,buf2;len:longint):longint; assembler;
+function CompareByte(const buf1,buf2;len:longint):longint; assembler;
 { input: r3 = buf1, r4 = buf2, r5 = len                           }
 { output: r3 = 0 if equal, < 0 if buf1 < str2, > 0 if buf1 > str2 }
 { note: almost direct copy of strlcomp() from strings.inc         }
@@ -533,7 +533,7 @@ LCompByteDone:
 end ['R0','R3','R4','R9','R10','R11','CR0','CTR'];
 
 {$define FPC_SYSTEM_HAS_COMPAREWORD}
-function CompareWord(var buf1,buf2;len:longint):longint; assembler;
+function CompareWord(const buf1,buf2;len:longint):longint; assembler;
 { input: r3 = buf1, r4 = buf2, r5 = len                           }
 { output: r3 = 0 if equal, < 0 if buf1 < str2, > 0 if buf1 > str2 }
 { note: almost direct copy of strlcomp() from strings.inc         }
@@ -560,7 +560,7 @@ end ['R0','R3','R4','R9','R10','R11','CR0','CTR'];
 
 
 {$define FPC_SYSTEM_HAS_COMPAREDWORD}
-function CompareDWord(var buf1,buf2;len:longint):longint; assembler;
+function CompareDWord(const buf1,buf2;len:longint):longint; assembler;
 { input: r3 = buf1, r4 = buf2, r5 = len                           }
 { output: r3 = 0 if equal, < 0 if buf1 < str2, > 0 if buf1 > str2 }
 { note: almost direct copy of strlcomp() from strings.inc         }
@@ -586,7 +586,7 @@ LCompDWordDone:
 end ['R0','R3','R4','R9','R10','R11','CR0','CTR'];
 
 {$define FPC_SYSTEM_HAS_INDEXCHAR0}
-function IndexChar0(var buf;len:longint;b:Char):longint; assembler;
+function IndexChar0(const buf;len:longint;b:Char):longint; assembler;
 { input: r3 = buf, r4 = len, r5 = b                         }
 { output: r3 = position of found position (-1 if not found) }
 asm
@@ -950,7 +950,10 @@ end ['R3','R10'];
 
 {
   $Log$
-  Revision 1.14  2002-08-18 22:11:10  florian
+  Revision 1.15  2002-08-31 13:11:11  florian
+    * several fixes for Linux/PPC compilation
+
+  Revision 1.14  2002/08/18 22:11:10  florian
     * fixed remaining assembler errors
 
   Revision 1.13  2002/08/18 21:37:48  florian
