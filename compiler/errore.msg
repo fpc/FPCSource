@@ -569,6 +569,9 @@ parser_e_operator_not_overloaded=E_Operator is not overloaded
 parser_e_no_such_assignment=E_Impossible to overload assignment for equal types
 % You can not overload assignment for types
 % that the compiler considers as equal.
+parser_e_overload_impossible=E_Impossible operator overload
+% The combination of operator, arguments and return type are
+% incompatible.
 parser_e_no_reraise_possible=E_Re-raise isn't possible there
 % You are trying to raise an exception where it isn't allowed. You can only
 % raise exceptions in an \var{except} block.

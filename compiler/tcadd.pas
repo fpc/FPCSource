@@ -58,39 +58,7 @@ implementation
         { load easier access variables }
         rd:=p^.right^.resulttype;
         ld:=p^.left^.resulttype;
-        if (p^.treetype=starstarn) or
-           (ld^.deftype=recorddef) or
-           (rd^.deftype=recorddef) or
-           { array def, but not mmx or chararray+[char,string,chararray] }
-           ((ld^.deftype=arraydef) and
-            not((cs_mmx in aktlocalswitches) and
-                is_mmx_able_array(ld)) and
-            not(is_chararray(ld) and
-                (is_char(rd) or
-		 is_pchar(rd) or
-                 (rd^.deftype=stringdef) or
-                 is_chararray(rd)))
-           ) or
-           ((rd^.deftype=arraydef) and
-            not((cs_mmx in aktlocalswitches) and
-                is_mmx_able_array(rd)) and
-            not(is_chararray(rd) and
-                (is_char(ld) or
-		 is_pchar(ld) or
-                 (ld^.deftype=stringdef) or
-                 is_chararray(ld)))
-           ) or
-           { <> and = are defined for classes }
-           ((ld^.deftype=objectdef) and
-            (not(pobjectdef(ld)^.is_class) or
-             not(p^.treetype in [equaln,unequaln])
-            )
-           ) or
-           ((rd^.deftype=objectdef) and
-            (not(pobjectdef(rd)^.is_class) or
-             not(p^.treetype in [equaln,unequaln])
-            )
-           ) then
+        if isbinaryoperatoroverloadable(ld,rd,voiddef,p^.treetype) then
           begin
              isbinaryoverloaded:=true;
              {!!!!!!!!! handle paras }
@@ -1312,7 +1280,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.78  2000-05-31 06:58:41  florian
+  Revision 1.79  2000-06-02 21:24:48  pierre
+    * operator overloading now uses isbinaryoperatoracceptable
+      and is unaryoperatoracceptable
+
+  Revision 1.78  2000/05/31 06:58:41  florian
     * forgot to commit a fix for the enumeration subrange problem, yesterday
 
   Revision 1.77  2000/05/11 17:53:40  peter

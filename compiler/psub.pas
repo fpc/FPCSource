@@ -51,7 +51,7 @@ uses
   globtype,systems,
   strings,globals,verbose,files,
   scanner,aasm,tree,types,
-  import,gendef,
+  import,gendef,htypechk,
 {$ifdef newcg}
   cgbase,
 {$else newcg}
@@ -477,7 +477,9 @@ begin
                        if (optoken=_ASSIGNMENT) and
                           is_equal(aktprocsym^.definition^.rettype.def,
                              pvarsym(aktprocsym^.definition^.parast^.symindex^.first)^.vartype.def) then
-                         message(parser_e_no_such_assignment);
+                         message(parser_e_no_such_assignment)
+                       else if not isoperatoracceptable(aktprocsym^.definition,optoken) then
+                         Message(parser_e_overload_impossible);
                      end;
                  end;
   end;
@@ -2040,7 +2042,11 @@ end.
 
 {
   $Log$
-  Revision 1.61  2000-05-10 19:22:51  pierre
+  Revision 1.62  2000-06-02 21:24:48  pierre
+    * operator overloading now uses isbinaryoperatoracceptable
+      and is unaryoperatoracceptable
+
+  Revision 1.61  2000/05/10 19:22:51  pierre
     * Delphi defines TP so that code compiles
       sent by Kovacs Attila Zoltan
 
