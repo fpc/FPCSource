@@ -218,7 +218,8 @@ unit i_linux;
             stacksize    : 32*1024*1024;
             DllScanSupported:false;
             use_function_relative_addresses : true;
-            abi : abi_powerpc_sysv;
+            { abi_powerpc_sysv doesn't work yet }
+            abi : abi_powerpc_aix;
           );
 
        system_alpha_linux_info : tsysteminfo =
@@ -521,7 +522,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.12  2003-09-06 10:46:56  olle
+  Revision 1.13  2003-09-07 09:08:26  olle
+    * reverted last change, linux on powerpc still uses aix abi
+
+  Revision 1.12  2003/09/06 10:46:56  olle
     * linux on powerpc now uses sysv abi
 
   Revision 1.11  2003/09/03 11:18:37  florian
