@@ -489,7 +489,7 @@ parser_e_methode_id_expected=03047_E_Methode verwacht
 % This happens when the compiler scans a procedure declaration that contains
 % a dot, i.e., a object or class method, but the procedure name is not a
 % procedure of this type.
-parser_e_header_dont_match_any_member=03048_E_Proceduredeclaratie komt niet overeen met een methode van deze klasse
+parser_e_header_dont_match_any_member=03048_E_Proceduredeclaratie komt niet overeen met een methode van deze klasse $1
 % This identifier is not a method.
 % This happens when the compiler scans a procedure declaration that contains
 % a dot, i.e., a object or class method, but the procedure name is not a

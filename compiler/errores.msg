@@ -3,7 +3,7 @@
 #   This file is part of the Free Pascal Compiler
 #   Copyright (c) 1998-2000 by the Free Pascal Development team
 #
-#   English (default) Language File for Free Pascal
+#   Spanish Language File for Free Pascal
 #
 #   See the file COPYING.FPC, included in this distribution,
 #   for details about the copyright.
@@ -454,7 +454,7 @@ parser_e_methode_id_expected=03047_E_identificador de m‚todo esperado
 % This happens when the compiler scans a procedure declaration that contains
 % a dot, i.e., a object or class method, but the procedure name is not a
 % procedure of this type.
-parser_e_header_dont_match_any_member=03048_E_la cabecera de la funcion no concuerda con ning£n m‚todo de esta clase
+parser_e_header_dont_match_any_member=03048_E_la cabecera de la funcion no concuerda con ning£n m‚todo de esta clase $1
 % This identifier is not a method.
 % This happens when the compiler scans a procedure declaration that contains
 % a dot, i.e., a object or class method, but the procedure name is not a

@@ -381,21 +381,21 @@
         demangledname:=name+definition^.demangled_paras;
       end;
 
-    procedure tprocsym.write_parameter_lists;
 
+    procedure tprocsym.write_parameter_lists(skipdef:pprocdef);
       var
          p : pprocdef;
-
       begin
          p:=definition;
          while assigned(p) do
            begin
-              { force the error to be printed }
-              Verbose.Message1(sym_b_param_list,name+p^.demangled_paras);
+              if p<>skipdef then
+                MessagePos1(p^.fileinfo,sym_b_param_list,name+p^.demangled_paras);
               p:=p^.nextoverloaded;
            end;
       end;
 
+      
     procedure tprocsym.check_forward;
       var
          pd : pprocdef;
@@ -2157,7 +2157,13 @@
 
 {
   $Log$
-  Revision 1.3  2000-07-13 12:08:27  michael
+  Revision 1.4  2000-08-13 12:54:56  peter
+    * class member decl wrong then no other error after it
+    * -vb has now also line numbering
+    * -vb is also used for interface/implementation different decls and
+      doesn't list the current function (merged)
+
+  Revision 1.3  2000/07/13 12:08:27  michael
   + patched to 1.1.0 with former 1.09patch from peter
 
   Revision 1.2  2000/07/13 11:32:49  michael

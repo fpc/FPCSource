@@ -649,7 +649,7 @@ implementation
                           if assigned(p^.left) then
                            aktfilepos:=p^.left^.fileinfo;
                           CGMessage(parser_e_wrong_parameter_size);
-                          aktcallprocsym^.write_parameter_lists;
+                          aktcallprocsym^.write_parameter_lists(nil);
                         end;
                       goto errorexit;
                     end;
@@ -773,7 +773,7 @@ implementation
                           CGMessage3(type_e_wrong_parameter_type,tostr(lastpara),
                             pt^.resulttype^.typename,lastparatype^.typename);
                         end;
-                      aktcallprocsym^.write_parameter_lists;
+                      aktcallprocsym^.write_parameter_lists(nil);
                       goto errorexit;
                     end;
 
@@ -960,7 +960,7 @@ implementation
                    if not(assigned(procs)) or assigned(procs^.next) then
                      begin
                         CGMessage(cg_e_cant_choose_overload_function);
-                        aktcallprocsym^.write_parameter_lists;
+                        aktcallprocsym^.write_parameter_lists(nil);
                         goto errorexit;
                      end;
 {$ifdef TEST_PROCSYMS}
@@ -1253,7 +1253,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2000-08-08 19:23:28  peter
+  Revision 1.6  2000-08-13 12:54:56  peter
+    * class member decl wrong then no other error after it
+    * -vb has now also line numbering
+    * -vb is also used for interface/implementation different decls and
+      doesn't list the current function (merged)
+
+  Revision 1.5  2000/08/08 19:23:28  peter
     * crash fix for default para when all parameters were omitted
 
   Revision 1.4  2000/08/06 19:39:28  peter

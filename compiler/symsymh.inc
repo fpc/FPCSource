@@ -112,7 +112,7 @@
           function mangledname : string;virtual;
           function demangledname:string;
           { writes all declarations }
-          procedure write_parameter_lists;
+          procedure write_parameter_lists(skipdef:pprocdef);
           { tests, if all procedures definitions are defined and not }
           { only forward                                             }
           procedure check_forward;
@@ -319,7 +319,13 @@
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:50  michael
+  Revision 1.3  2000-08-13 12:54:56  peter
+    * class member decl wrong then no other error after it
+    * -vb has now also line numbering
+    * -vb is also used for interface/implementation different decls and
+      doesn't list the current function (merged)
+
+  Revision 1.2  2000/07/13 11:32:50  michael
   + removed logs
  
 }

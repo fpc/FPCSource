@@ -1979,21 +1979,30 @@ begin
      begin
      { A method must be forward defined (in the object declaration) }
        if assigned(procinfo^._class) and (not assigned(oldprocinfo^._class)) then
-         Message(parser_e_header_dont_match_any_member);
-     { Give a better error if there is a forward def in the interface and only
-       a single implementation }
-       if (not aktprocsym^.definition^.forwarddef) and
-          assigned(aktprocsym^.definition^.nextoverloaded) and
-          aktprocsym^.definition^.nextoverloaded^.forwarddef and
-          aktprocsym^.definition^.nextoverloaded^.interfacedef and
-          not(assigned(aktprocsym^.definition^.nextoverloaded^.nextoverloaded)) then
-         Message1(parser_e_header_dont_match_forward,aktprocsym^.demangledName)
+        begin
+          Message1(parser_e_header_dont_match_any_member,aktprocsym^.demangledName);
+          aktprocsym^.write_parameter_lists(aktprocsym^.definition);
+        end
        else
         begin
-        { check the global flag }
-          if (procinfo^.flags and pi_is_global)<>0 then
-            Message(parser_e_overloaded_must_be_all_global);
-        end
+          { Give a better error if there is a forward def in the interface and only
+            a single implementation }
+          if (not aktprocsym^.definition^.forwarddef) and
+             assigned(aktprocsym^.definition^.nextoverloaded) and
+             aktprocsym^.definition^.nextoverloaded^.forwarddef and
+             aktprocsym^.definition^.nextoverloaded^.interfacedef and
+             not(assigned(aktprocsym^.definition^.nextoverloaded^.nextoverloaded)) then
+           begin
+             Message1(parser_e_header_dont_match_forward,aktprocsym^.demangledName);
+             aktprocsym^.write_parameter_lists(aktprocsym^.definition);
+           end
+          else
+           begin
+           { check the global flag }
+             if (procinfo^.flags and pi_is_global)<>0 then
+               Message(parser_e_overloaded_must_be_all_global);
+           end;
+        end;
      end;
 
    { set return type here, becuase the aktprocsym^.definition can be
@@ -2078,7 +2087,13 @@ end.
 
 {
   $Log$
-  Revision 1.7  2000-08-08 19:28:57  peter
+  Revision 1.8  2000-08-13 12:54:56  peter
+    * class member decl wrong then no other error after it
+    * -vb has now also line numbering
+    * -vb is also used for interface/implementation different decls and
+      doesn't list the current function (merged)
+
+  Revision 1.7  2000/08/08 19:28:57  peter
     * memdebug/memory patches (merged)
     * only once illegal directive (merged)
 

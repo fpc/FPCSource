@@ -49,13 +49,13 @@ Const
   V_Procedure    = $200;
   V_Conditional  = $400;
   V_Assem        = $800;
+  V_Declarations = $1000;
   V_Info         = $10000;
   V_Status       = $20000;
   V_Used         = $40000;
   V_Tried        = $80000;
   V_Debug        = $100000;
-  V_Declarations = $200000;
-  V_Executable   = $400000;
+  V_Executable   = $200000;
   V_ShowFile     = $ffff;
   V_All          = $ffffffff;
   V_Default      = V_Fatal + V_Error + V_Normal;
@@ -590,7 +590,13 @@ end.
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:54  michael
+  Revision 1.3  2000-08-13 12:54:55  peter
+    * class member decl wrong then no other error after it
+    * -vb has now also line numbering
+    * -vb is also used for interface/implementation different decls and
+      doesn't list the current function (merged)
+
+  Revision 1.2  2000/07/13 11:32:54  michael
   + removed logs
 
 }
