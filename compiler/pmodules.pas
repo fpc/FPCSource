@@ -1100,7 +1100,8 @@ implementation
          if is_assembler_generated then
            insertobjectfile
          else
-           current_module.flags:=current_module.flags or uf_no_link;
+           if not (current_module.uses_imports) then
+             current_module.flags:=current_module.flags or uf_no_link;
 
          if cs_local_browser in aktmoduleswitches then
            current_module.localsymtable:=refsymtable;
@@ -1437,7 +1438,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.92  2003-01-08 18:43:56  daniel
+  Revision 1.93  2003-01-11 11:19:54  hajny
+    * correction from rev. 1.88 put back
+
+  Revision 1.92  2003/01/08 18:43:56  daniel
    * Tregister changed into a record
 
   Revision 1.91  2003/01/05 13:36:53  florian
@@ -1451,6 +1455,9 @@ end.
     * unit loading changed to first register units and load them
       afterwards. This is needed to support uses xxx in yyy correctly
     * unit dependency check fixed
+
+  Revision 1.88  2002/12/27 19:09:33  hajny
+    * another (hopefully final ;-) ) fix for not linked import libraries for units with no code
 
   Revision 1.87  2002/12/24 23:32:56  peter
     * Use FixFilename for specified unit sourcefile in uses
