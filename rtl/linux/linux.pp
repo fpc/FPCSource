@@ -1,17 +1,18 @@
 {
-    $Id$
-    This file is part of the Free Pascal run time library.
-    Copyright (c) 1999-2000 by Michael Van Canneyt,
-    member of the Free Pascal development team.
+   $Id$
+   This file is part of the Free Pascal run time library.
+   Copyright (c) 1999-2000 by Michael Van Canneyt,
+   BSD parts (c) 2000 by Marco van de Voort
+   members of the Free Pascal development team.
 
-    See the file COPYING.FPC, included in this distribution,
-    for details about the copyright.
+   See the file COPYING.FPC, included in this distribution,
+   for details about the copyright.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY;without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY;without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
- **********************************************************************}
+**********************************************************************}
 Unit Linux;
 Interface
 
@@ -31,7 +32,7 @@ var
 {********************
       Process
 ********************}
-
+{$ifndef BSD} {BSD doesn't know signals}
 const
   { cloning flags }
   CSIGNAL       = $000000ff; // signal mask to be sent at exit
@@ -42,6 +43,7 @@ const
   CLONE_PID     = $00001000; // set if pid shared
 type
   TCloneFunc=function(args:pointer):longint;cdecl;
+{$endif}
 
 const
   { For getting/setting priority }
@@ -167,14 +169,20 @@ Type
   SignalRestorer  = Procedure;cdecl;
   PSignalRestorer = ^SignalRestorer;
 
+ {$ifdef BSD}
+  SigSet  = Array[0..31] of byte;
+ {$else}
   SigSet  = Longint;
+ {$endif}
   PSigSet = ^SigSet;
 
   SigActionRec = packed record
     Sa_Handler  : SignalHandler;
     Sa_Mask     : SigSet;
     Sa_Flags    : Longint;
+    {$ifndef BSD}
     Sa_restorer : SignalRestorer; { Obsolete - Don't use }
+    {$endif}
   end;
   PSigActionRec = ^SigActionRec;
 
@@ -447,8 +455,19 @@ const
 ********************}
 
 Type
-  UTimBuf = packed record
-    actime,modtime : Longint;
+
+  UTimBuf = packed record{in BSD array[0..1] of timeval, but this is
+                                backwards compatible with linux version}
+    actime,
+    {$ifdef BSD}
+    uactime,            {BSD Micro seconds}
+    {$endif}
+    modtime
+    {$ifdef BSD}
+         ,
+    umodtime             {BSD Micro seconds}
+    {$endif}
+         : longint;
   end;
   UTimeBuf=UTimBuf;
   TUTimeBuf=UTimeBuf;
@@ -472,7 +491,17 @@ Type
                             Procedure/Functions
 ******************************************************************************}
 
+{$ifdef bsd}
+function Do_SysCall(sysnr,param1:LONGINT):longint;
+function Do_SysCall(sysnr,param1,param2:LONGINT):longint;
+function Do_SysCall(sysnr,param1,param2,param3:LONGINT):longint;
+function Do_SysCall(sysnr,param1,param2,param3,param4:LONGINT):longint;
+function Do_SysCall(sysnr,param1,param2,param3,param4,param5:LONGINT):longint;
+function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6:LONGINT):longint;
+function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6,param7:LONGINT):longint;
+{$else}
 Function SysCall(callnr:longint;var regs:SysCallregs):longint;
+{$endif}
 
 {**************************
      Time/Date Handling
@@ -491,7 +520,9 @@ function  GetTimezoneFile:string;
 
 Procedure GetTimeOfDay(var tv:timeval);
 Function  GetTimeOfDay:longint;
+{$ifndef bsd}
 Function  GetEpochTime: longint;
+{$endif}
 Procedure EpochToLocal(epoch:longint;var year,month,day,hour,minute,second:Word);
 Function  LocalToEpoch(year,month,day,hour,minute,second:Word):Longint;
 procedure GetTime(var hour,min,sec,msec,usec:word);
@@ -520,8 +551,14 @@ function  Clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint;
 Procedure ExitProcess(val:longint);
 Function  WaitPid(Pid:longint;Status:pointer;Options:Integer):Longint;
 Procedure Nice(N:integer);
+{$ifdef bsd}
+Function  GetPriority(Which,Who:longint):longint;
+procedure SetPriority(Which,Who,What:longint);
+{$else}
 Function  GetPriority(Which,Who:Integer):integer;
 Procedure SetPriority(Which:Integer;Who:Integer;What:Integer);
+{$endif}
+
 Function  GetPid:LongInt;
 Function  GetPPid:LongInt;
 Function  GetUid:Longint;
@@ -545,8 +582,10 @@ Function  fdSeek (fd,pos,seektype :longint): longint;
 Function  fdFlush (fd : Longint) : Boolean;
 Function  Link(OldPath,NewPath:pathstr):boolean;
 Function  SymLink(OldPath,NewPath:pathstr):boolean;
+{$ifndef bsd}
 Function  ReadLink(name,linkname:pchar;maxlen:longint):longint;
 Function  ReadLink(name:pathstr):pathstr;
+{$endif}
 Function  UnLink(Path:pathstr):boolean;
 Function  UnLink(Path:pchar):Boolean;
 Function  FReName (OldName,NewName : Pchar) : Boolean;
@@ -554,7 +593,11 @@ Function  FReName (OldName,NewName : String) : Boolean;
 Function  Chown(path:pathstr;NewUid,NewGid:longint):boolean;
 Function  Chmod(path:pathstr;Newmode:longint):boolean;
 Function  Utime(path:pathstr;utim:utimebuf):boolean;
+{$ifdef BSD}
+Function  Access(Path:Pathstr ;mode:longint):boolean;
+{$else}
 Function  Access(Path:Pathstr ;mode:integer):boolean;
+{$endif}
 Function  Umask(Mask:Integer):integer;
 Function  Flock (fd,mode : longint) : boolean;
 Function  Flock (var T : text;mode : longint) : boolean;
@@ -566,10 +609,17 @@ Function  FStat(var F:File;Var Info:stat):Boolean;
 Function  Lstat(Filename: PathStr;var Info:stat):Boolean;
 Function  FSStat(Path:Pathstr;Var Info:statfs):Boolean;
 Function  FSStat(Fd: Longint;Var Info:statfs):Boolean;
+{$ifdef bsd}
+Function  Fcntl(Fd:longint;Cmd:longint):longint;
+Procedure Fcntl(Fd:longint;Cmd:longint;Arg:Longint);
+Function  Fcntl(var Fd:Text;Cmd:longint):longint;
+Procedure Fcntl(var Fd:Text;Cmd:longint;Arg:Longint);
+{$else}
 Function  Fcntl(Fd:longint;Cmd:Integer):integer;
 Procedure Fcntl(Fd:longint;Cmd:Integer;Arg:Longint);
 Function  Fcntl(var Fd:Text;Cmd:Integer):integer;
 Procedure Fcntl(var Fd:Text;Cmd:Integer;Arg:Longint);
+{$endif}
 Function  Dup(oldfile:longint;var newfile:longint):Boolean;
 Function  Dup(var oldfile,newfile:text):Boolean;
 Function  Dup(var oldfile,newfile:file):Boolean;
@@ -614,7 +664,9 @@ function AssignStream(var StreamIn, StreamOut, StreamErr: Text; const prog: Stri
 
 Function  GetDomainName:String;
 Function  GetHostName:String;
+{$ifndef BSD}
 Function  GetEnv(P:string):Pchar;
+{$endif}
 Function  Sysinfo(var Info:TSysinfo):Boolean;
 Function  Uname(var unamerec:utsname):Boolean;
 
@@ -626,11 +678,15 @@ Procedure SigAction(Signum:Integer;Var Act,OldAct:PSigActionRec );
 Procedure SigProcMask (How:Integer;SSet,OldSSet:PSigSet);
 Function  SigPending:SigSet;
 Procedure SigSuspend(Mask:Sigset);
+{$ifndef BSD}
 Function  Signal(Signum:Integer;Handler:SignalHandler):SignalHandler;
+{$endif}
 Function  Kill(Pid:longint;Sig:integer):integer;
 Procedure SigRaise(Sig:integer);
+{$ifndef BSD}
 Function  Alarm(Sec : Longint) : longint;
 Procedure Pause;
+{$endif}
 
 {**************************
   IOCtl/Termios Functions
@@ -692,6 +748,7 @@ function MMap(const m:tmmapargs):longint;
      Port IO functions
 ***************************}
 
+{$ifndef BSD}
 Function  IOperm (From,Num : Cardinal; Value : Longint) : boolean;
 {$IFDEF I386}
 Procedure WritePort (Port : Longint; Value : Byte);
@@ -712,7 +769,8 @@ function  ReadPortL (Port : Longint): LongInt;
 Procedure ReadPortL (Port : Longint; Var Buf; Count: longint);
 Procedure ReadPortW (Port : Longint; Var Buf; Count: longint);
 Procedure ReadPortB (Port : Longint; Var Buf; Count: longint);
-{$ENDIF}
+{$endif}
+{$endif}
 
 {**************************
     Utility functions
@@ -761,7 +819,11 @@ Uses Strings;
 
 { Raw System calls are in Syscalls.inc}
 {$i syscalls.inc}
-
+{$ifdef BSD}
+ {$i bsdsysca.inc}
+{$else}
+ {$i linsysca.inc}
+{$endif}
 
 
 {******************************************************************************
@@ -812,101 +874,6 @@ begin
   CreateShellArgV:=pp;
 end;
 
-
-Function Fork:longint;
-{
-  This function issues the 'fork' System call. the program is duplicated in memory
-  and Execution continues in parent and child process.
-  In the parent process, fork returns the PID of the child. In the child process,
-  zero is returned.
-  A negative value indicates that an error has occurred, the error is returned in
-  LinuxError.
-}
-var
-  regs:SysCallregs;
-begin
-  Fork:=SysCall(SysCall_nr_fork,regs);
-  LinuxError:=Errno;
-End;
-
-
-function clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint;
-begin
-  if (pointer(func)=nil) or (sp=nil) then
-   begin
-     LinuxError:=Sys_EInval;
-     exit;
-   end;
-  asm
-        { Insert the argument onto the new stack. }
-        movl    sp,%ecx
-        subl    $8,%ecx
-        movl    args,%eax
-        movl    %eax,4(%ecx)
-
-        { Save the function pointer as the zeroth argument.
-          It will be popped off in the child in the ebx frobbing below. }
-        movl    func,%eax
-        movl    %eax,0(%ecx)
-
-        { Do the system call }
-        pushl   %ebx
-        movl    flags,%ebx
-        movl    SysCall_nr_clone,%eax
-        int     $0x80
-        popl    %ebx
-        test    %eax,%eax
-        jnz     .Lclone_end
-
-        { We're in the new thread }
-        subl    %ebp,%ebp       { terminate the stack frame }
-        call    *%ebx
-        { exit process }
-        movl    %eax,%ebx
-        movl    $1,%eax
-        int     $0x80
-
-.Lclone_end:
-        movl    %eax,__RESULT
-  end;
-end;
-
-
-Procedure Execve(path:pathstr;args:ppchar;ep:ppchar);
-{
-  Replaces the current program by the program specified in path,
-  arguments in args are passed to Execve.
-  environment specified in ep is passed on.
-}
-var
-  regs:SysCallregs;
-begin
-  path:=path+#0;
-  regs.reg2:=longint(@path[1]);
-  regs.reg3:=longint(args);
-  regs.reg4:=longint(ep);
-  SysCall(SysCall_nr_Execve,regs);
-{ This only gets set when the call fails, otherwise we don't get here ! }
-  Linuxerror:=errno;
-end;
-
-
-Procedure Execve(path:pchar;args:ppchar;ep:ppchar);
-{
-  Replaces the current program by the program specified in path,
-  arguments in args are passed to Execve.
-  environment specified in ep is passed on.
-}
-var
-  regs:SysCallregs;
-begin
-  regs.reg2:=longint(path);
-  regs.reg3:=longint(args);
-  regs.reg4:=longint(ep);
-  SysCall(SysCall_nr_Execve,regs);
-{ This only gets set when the call fails, otherwise we don't get here ! }
-  Linuxerror:=errno;
-end;
 
 
 Procedure Execv(const path:pathstr;args:ppchar);
@@ -1000,35 +967,6 @@ begin
   ExecVP(StrPas(p^),p,EP);
 end;
 
-
-Procedure ExitProcess(val:longint);
-var
-  regs : SysCallregs;
-begin
-  regs.reg2:=val;
-  SysCall(SysCall_nr_exit,regs);
-end;
-
-
-Function WaitPid(Pid:longint;Status:pointer;Options:Integer):Longint;
-{
-  Waits until a child with PID Pid exits, or returns if it is exited already.
-  Any resources used by the child are freed.
-  The exit status is reported in the adress referred to by Status. It should
-  be a longint.
-}
-var
-  regs : SysCallregs;
-begin
-  regs.reg2:=pid;
-  regs.reg3:=longint(status);
-  regs.reg4:=options;
-  WaitPid:=SysCall(SysCall_nr_waitpid,regs);
-  LinuxError:=errno;
-end;
-
-
-
 Function Shell(const Command:String):Longint;
 {
   Executes the shell, and passes it the string Command. (Through /bin/sh -c)
@@ -1080,166 +1018,6 @@ begin
   Shell:=temp;{ Return exit status }
 end;
 
-
-Function GetPriority(Which,Who:Integer):integer;
-{
-  Get Priority of process, process group, or user.
-   Which : selects what kind of priority is used.
-           can be one of the following predefined Constants :
-              Prio_User.
-              Prio_PGrp.
-              Prio_Process.
-   Who : depending on which, this is , respectively :
-              Uid
-              Pid
-              Process Group id
-   Errors are reported in linuxerror _only_. (priority can be negative)
-}
-var
-  sr : Syscallregs;
-begin
-  errno:=0;
-  if (which<prio_process) or (which>prio_user) then
-   begin
-     { We can save an interrupt here }
-     getpriority:=0;
-     linuxerror:=Sys_einval;
-   end
-  else
-   begin
-     sr.reg2:=which;
-     sr.reg3:=who;
-     getpriority:=SysCall(Syscall_nr_getpriority,sr);
-     linuxerror:=errno;
-   end;
-end;
-
-
-
-Procedure SetPriority(Which:Integer;Who:Integer;What:Integer);
-{
- Set Priority of process, process group, or user.
-   Which : selects what kind of priority is used.
-           can be one of the following predefined Constants :
-              Prio_User.
-              Prio_PGrp.
-              Prio_Process.
-   Who : depending on value of which, this is, respectively :
-              Uid
-              Pid
-              Process Group id
-   what : A number between -20 and 20. -20 is most favorable, 20 least.
-          0 is the default.
-}
-var
-  sr : Syscallregs;
-begin
-  errno:=0;
-  if ((which<prio_process) or (which>prio_user)) or ((what<-20) or (what>20)) then
-   linuxerror:=Sys_einval  { We can save an interrupt here }
-  else
-   begin
-     sr.reg2:=which;
-     sr.reg3:=who;
-     sr.reg4:=what;
-     SysCall(Syscall_nr_setpriority,sr);
-     linuxerror:=errno;
-   end;
-end;
-
-
-Procedure Nice(N:integer);
-{
-  Set process priority. A positive N means a lower priority.
-  A negative N decreases priority.
-}
-var
-  sr : Syscallregs;
-begin
-  sr.reg2:=n;
-  SysCall(Syscall_nr_nice,sr);
-  linuxerror:=errno;
-end;
-
-
-
-Function GetPid:LongInt;
-{
-  Get Process ID.
-}
-var
-  regs : SysCallregs;
-begin
-  GetPid:=SysCall(SysCall_nr_getpid,regs);
-  linuxerror:=errno;
-end;
-
-
-
-Function GetPPid:LongInt;
-{
-  Get Process ID of parent process.
-}
-var
-  regs : SysCallregs;
-begin
-  GetPpid:=SysCall(SysCall_nr_getppid,regs);
-  linuxerror:=errno;
-end;
-
-
-
-Function GetUid:Longint;
-{
-  Get User ID.
-}
-var
-  regs : SysCallregs;
-begin
-  GetUid:=SysCall(SysCall_nr_getuid,regs);
-  Linuxerror:=errno;
-end;
-
-
-
-Function GetEUid:Longint;
-{
-  Get _effective_ User ID.
-}
-var
-  regs : SysCallregs;
-begin
-  GetEuid:=SysCall(SysCall_nr_geteuid,regs);
-  Linuxerror:=errno;
-end;
-
-
-
-Function GetGid:Longint;
-{
-  Get Group ID.
-}
-var
-  regs : SysCallregs;
-begin
-  Getgid:=SysCall(SysCall_nr_getgid,regs);
-  Linuxerror:=errno;
-end;
-
-
-
-Function GetEGid:Longint;
-{
-  Get _effective_ Group ID.
-}
-var
-  regs : SysCallregs;
-begin
-  GetEgid:=SysCall(SysCall_nr_getegid,regs);
-  Linuxerror:=errno;
-end;
-
-
 {******************************************************************************
                        Date and Time related calls
 ******************************************************************************}
@@ -1288,40 +1066,6 @@ Begin
   Month := TempMonth;
   Year:=YYear+(JulianDN*100);
 end;
-
-
-
-Procedure GetTimeOfDay(var tv:timeval);
-{
-  Get the number of seconds since 00:00, January 1 1970, GMT
-  the time NOT corrected any way
-}
-var
-  regs : SysCallregs;
-begin
-  regs.reg2:=longint(@tv);
-  regs.reg3:=0;
-  SysCall(SysCall_nr_gettimeofday,regs);
-  LinuxError:=Errno;
-end;
-
-
-Function GetTimeOfDay: longint;
-{
-  Get the number of seconds since 00:00, January 1 1970, GMT
-  the time NOT corrected any way
-}
-var
-  regs : SysCallregs;
-  tv   : timeval;
-begin
-  regs.reg2:=longint(@tv);
-  regs.reg3:=0;
-  SysCall(SysCall_nr_gettimeofday,regs);
-  LinuxError:=Errno;
-  GetTimeOfDay:=tv.sec;
-end;
-
 
 Function GetEpochTime: longint;
 {
@@ -1435,7 +1179,6 @@ begin
 end;
 
 
-
 Function fdOpen(pathname:string;flags,mode:longint):longint;
 begin
   pathname:=pathname+#0;
@@ -1485,17 +1228,6 @@ end;
 
 
 
-Function fdTruncate(fd,size:longint):boolean;
-var
-  Regs : SysCallRegs;
-begin
-  Regs.reg2:=fd;
-  Regs.reg3:=size;
-  fdTruncate:=(SysCall(Syscall_nr_ftruncate,regs)=0);
-  LinuxError:=Errno;
-end;
-
-
 
 Function  fdSeek (fd,pos,seektype :longint): longint;
 {
@@ -1509,78 +1241,6 @@ end;
 
 
 
-Function  fdFlush (fd : Longint) : Boolean;
-var
-  SR: SysCallRegs;
-begin
-  SR.reg2 := fd;
-  fdFlush := (SysCall(syscall_nr_fsync, SR)=0);
-  LinuxError:=Errno;
-end;
-
-
-
-Function Fcntl(Fd:longint;Cmd:integer):integer;
-{
-  Read or manipulate a file.(See also fcntl (2) )
-  Possible values for Cmd are :
-    F_GetFd,F_GetFl,F_GetOwn
-  Errors are reported in Linuxerror;
-  If Cmd is different from the allowed values, linuxerror=Sys_eninval.
-}
-var
-  sr : Syscallregs;
-begin
-  if (cmd in [F_GetFd,F_GetFl,F_GetOwn]) then
-   begin
-     sr.reg2:=Fd;
-     sr.reg3:=cmd;
-     Linuxerror:=SysCall(Syscall_nr_fcntl,sr);
-     if linuxerror=-1 then
-      begin
-        linuxerror:=errno;
-        fcntl:=0;
-      end
-     else
-      begin
-        fcntl:=linuxerror;
-        linuxerror:=0;
-      end;
-   end
-  else
-   begin
-     linuxerror:=Sys_einval;
-     Fcntl:=0;
-   end;
-end;
-
-
-
-Procedure Fcntl(Fd:longint;Cmd:Integer;Arg:Longint);
-{
-  Read or manipulate a file. (See also fcntl (2) )
-  Possible values for Cmd are :
-    F_setFd,F_SetFl,F_GetLk,F_SetLk,F_SetLkW,F_SetOwn;
-  Errors are reported in Linuxerror;
-  If Cmd is different from the allowed values, linuxerror=Sys_eninval.
-  F_DupFD is not allowed, due to the structure of Files in Pascal.
-}
-var
-  sr : Syscallregs;
-begin
-  if (cmd in [F_SetFd,F_SetFl,F_GetLk,F_SetLk,F_SetLkw,F_SetOwn]) then
-   begin
-     sr.reg2:=Fd;
-     sr.reg3:=cmd;
-     sr.reg4:=arg;
-     SysCall(Syscall_nr_fcntl,sr);
-     linuxerror:=errno;
-   end
-  else
-   linuxerror:=Sys_einval;
-end;
-
-
 Function Fcntl(var Fd:Text;Cmd:integer):integer;
 begin
   Fcntl := Fcntl(textrec(Fd).handle, Cmd);
@@ -1589,65 +1249,6 @@ end;
 Procedure Fcntl(var Fd:Text;Cmd:Integer;Arg:Longint);
 begin
   Fcntl(textrec(Fd).handle, Cmd, Arg);
-end;
-
-
-Function Chmod(path:pathstr;Newmode:longint):Boolean;
-{
-  Changes the permissions of a file.
-}
-var
-  sr : Syscallregs;
-begin
-  path:=path+#0;
-  sr.reg2:=longint(@(path[1]));
-  sr.reg3:=newmode;
-  Chmod:=(SysCall(Syscall_nr_chmod,sr)=0);
-  linuxerror:=errno;
-end;
-
-
-
-Function Chown(path:pathstr;NewUid,NewGid:longint):boolean;
-{
-  Change the owner and group of a file.
-  A user can only change the group to a group of which he is a member.
-  The super-user can change uid and gid of any file.
-}
-var
-  sr : Syscallregs;
-begin
-  path:=path+#0;
-  sr.reg2:=longint(@(path[1]));
-  sr.reg3:=newuid;
-  sr.reg4:=newgid;
-  ChOwn:=(Syscall(Syscall_nr_chown,sr)=0);
-  linuxerror:=errno;
-end;
-
-
-
-Function Utime(path:pathstr;utim:utimebuf):boolean;
-var
-  sr : Syscallregs;
-begin
-  path:=path+#0;
-  sr.reg2:=longint(@(path[1]));
-  sr.reg3:=longint(@utim);
-  Utime:=SysCall(Syscall_nr_utime,sr)=0;
-  linuxerror:=errno;
-end;
-
-
-
-Function  Flock (fd,mode : longint) : boolean;
-var
-  sr : Syscallregs;
-begin
-  sr.reg2:=fd;
-  sr.reg3:=mode;
-  flock:=Syscall(Syscall_nr_flock,sr)=0;
-  LinuxError:=errno;
 end;
 
 
@@ -1678,20 +1279,6 @@ end;
 
 
 
-Function Fstat(Fd:Longint;var Info:stat):Boolean;
-{
-  Get all information on a file descriptor, and return it in info.
-}
-var
- regs : SysCallregs;
-begin
-  regs.reg2:=Fd;
-  regs.reg3:=longint(@Info);
-  FStat:=(SysCall(SysCall_nr_fstat,regs)=0);
-  LinuxError:=Errno;
-end;
-
-
 
 Function  FStat(var F:Text;Var Info:stat):Boolean;
 {
@@ -1709,76 +1296,6 @@ Function  FStat(var F:File;Var Info:stat):Boolean;
 }
 begin
   FStat:=Fstat(FileRec(F).Handle,Info);
-end;
-
-
-
-
-Function Lstat(Filename: PathStr;var Info:stat):Boolean;
-{
-  Get all information on a link (the link itself), and return it in info.
-}
-var
-  regs : SysCallregs;
-begin
-  FileName:=FileName+#0;
-  regs.reg2:=longint(@filename[1]);
-  regs.reg3:=longint(@Info);
-  LStat:=(SysCall(SysCall_nr_lstat,regs)=0);
-  LinuxError:=Errno;
-end;
-
-
-
-Function FSStat(Path:Pathstr;Var Info:statfs):Boolean;
-{
-  Get all information on a fileSystem, and return it in Info.
-  Path is the name of a file/directory on the fileSystem you wish to
-  investigate.
-}
-var
-  regs : SysCallregs;
-begin
-  path:=path+#0;
-  regs.reg2:=longint(@path[1]);
-  regs.reg3:=longint(@Info);
-  FSStat:=(SysCall(SysCall_nr_statfs,regs)=0);
-  LinuxError:=errno;
-end;
-
-
-
-Function FSStat(Fd:Longint;Var Info:statfs):Boolean;
-{
-  Get all information on a fileSystem, and return it in Info.
-  Fd is the file descriptor of a file/directory on the fileSystem
-  you wish to investigate.
-}
-var
-  regs : SysCallregs;
-begin
-  regs.reg2:=Fd;
-  regs.reg3:=longint(@Info);
-  FSStat:=(SysCall(SysCall_nr_fstatfs,regs)=0);
-  LinuxError:=errno;
-end;
-
-
-
-Function Link(OldPath,NewPath:pathstr):boolean;
-{
-  Proceduces a hard link from new to old.
-  In effect, new will be the same file as old.
-}
-var
-  regs : SysCallregs;
-begin
-  oldpath:=oldpath+#0;
-  newpath:=newpath+#0;
-  regs.reg2:=longint(@oldpath[1]);
-  regs.reg3:=longint(@newpath[1]);
-  Link:=SysCall(SysCall_nr_link,regs)=0;
-  linuxerror:=errno;
 end;
 
 
@@ -1862,57 +1379,6 @@ begin
   FRename:=FRename (@OldName[1],@NewName[1]);
 end;
 
-Function Umask(Mask:Integer):integer;
-{
-  Sets file creation mask to (Mask and 0777 (octal) ), and returns the
-  previous value.
-}
-var
-  sr : Syscallregs;
-begin
-  sr.reg2:=mask;
-  Umask:=SysCall(Syscall_nr_umask,sr);
-  linuxerror:=0;
-end;
-
-
-
-Function Access(Path:Pathstr ;mode:integer):boolean;
-{
-  Test users access rights on the specified file.
-  Mode is a mask xosisting of one or more of R_OK, W_OK, X_OK, F_OK.
-  R,W,X stand for read,write and Execute access, simultaneously.
-  F_OK checks whether the test would be allowed on the file.
-  i.e. It checks the search permissions in all directory components
-  of the path.
-  The test is done with the real user-ID, instead of the effective.
-  If access is denied, or an error occurred, false is returned.
-  If access is granted, true is returned.
-  Errors other than no access,are reported in linuxerror.
-}
-var
-  sr : Syscallregs;
-begin
-  path:=path+#0;
-  sr.reg2:=longint(@(path[1]));
-  sr.reg3:=mode;
-  access:=(SysCall(Syscall_nr_access,sr)=0);
-  linuxerror:=errno;
-end;
-
-
-Function  Dup(oldfile:longint;var newfile:longint):Boolean;
-{
-  Copies the filedescriptor oldfile to newfile
-}
-var
-  sr : Syscallregs;
-begin
-  sr.reg2:=oldfile;
-  newfile:=Syscall(Syscall_nr_dup,sr);
-  linuxerror:=errno;
-  Dup:=(LinuxError=0);
-end;
 
 
 Function Dup(var oldfile,newfile:text):Boolean;
@@ -1940,20 +1406,6 @@ begin
   Dup:=Dup(filerec(oldfile).handle,filerec(newfile).handle);
 end;
 
-
-Function Dup2(oldfile,newfile:longint):Boolean;
-{
-  Copies the filedescriptor oldfile to newfile
-}
-var
-  sr : Syscallregs;
-begin
-  sr.reg2:=oldfile;
-  sr.reg3:=newfile;
-  SysCall(Syscall_nr_dup2,sr);
-  linuxerror:=errno;
-  Dup2:=(LinuxError=0);
-end;
 
 
 Function Dup2(var oldfile,newfile:text):Boolean;
@@ -1990,26 +1442,6 @@ Function Dup2(var oldfile,newfile:file):Boolean;
 begin
   filerec(newfile):=filerec(oldfile);
   Dup2:=Dup2(filerec(oldfile).handle,filerec(newfile).handle);
-end;
-
-
-Function Select(N:longint;readfds,writefds,exceptfds:PFDSet;TimeOut:PTimeVal):longint;
-{
-  Select checks whether the file descriptor sets in readfs/writefs/exceptfs
-  have changed.
-}
-Var
-  SelectArray : Array[1..5] of longint;
-  Sr : Syscallregs;
-begin
-  SelectArray[1]:=n;
-  SelectArray[2]:=longint(Readfds);
-  Selectarray[3]:=longint(Writefds);
-  selectarray[4]:=longint(exceptfds);
-  Selectarray[5]:=longint(TimeOut);
-  sr.reg2:=longint(@selectarray);
-  Select:=SysCall(Syscall_nr_select,sr);
-  LinuxError:=Errno;
 end;
 
 
@@ -2155,27 +1587,6 @@ begin
 end;
 
 
-
-Function AssignPipe(var pipe_in,pipe_out:longint):boolean;
-{
-  Sets up a pair of file variables, which act as a pipe. The first one can
-  be read from, the second one can be written to.
-  If the operation was unsuccesful, linuxerror is set.
-}
-var
-  pip  : tpipe;
-  regs : SysCallregs;
-begin
-  regs.reg2:=longint(@pip);
-  SysCall(SysCall_nr_pipe,regs);
-  pipe_in:=pip[1];
-  pipe_out:=pip[2];
-  linuxerror:=errno;
-  AssignPipe:=(LinuxError=0);
-end;
-
-
-
 Function AssignPipe(var pipe_in,pipe_out:text):boolean;
 {
   Sets up a pair of file variables, which act as a pipe. The first one can
@@ -2240,37 +1651,6 @@ begin
   Filerec(Pipe_out).userdata[1]:=P_OUT;
   AssignPipe:=true;
 end;
-
-
-Function PClose(Var F:text) :longint;
-var
-  sr  : syscallregs;
-  pl  : ^longint;
-  res : longint;
-begin
-  sr.reg2:=Textrec(F).Handle;
-  SysCall (syscall_nr_close,sr);
-{ closed our side, Now wait for the other - this appears to be needed ?? }
-  pl:=@(textrec(f).userdata[2]);
-  waitpid(pl^,@res,0);
-  pclose:=res shr 8;
-end;
-
-
-Function PClose(Var F:file) : longint;
-var
-  sr : syscallregs;
-  pl : ^longint;
-  res : longint;
-begin
-  sr.reg2:=FileRec(F).Handle;
-  SysCall (Syscall_nr_close,sr);
-{ closed our side, Now wait for the other - this appears to be needed ?? }
-  pl:=@(filerec(f).userdata[2]);
-  waitpid(pl^,@res,0);
-  pclose:=res shr 8;
-end;
-
 
 Procedure PCloseText(Var F:text);
 {
@@ -2445,17 +1825,6 @@ begin
 end;
 
 
-Function mkFifo(pathname:string;mode:longint):boolean;
-var
-  regs : SysCallRegs;
-begin
-  pathname:=pathname+#0;
-  regs.reg2:=longint(@pathname[1]);
-  regs.reg3:=mode or STAT_IFIFO;
-  regs.reg4:=0;
-  mkFifo:=(SysCall(syscall_nr_mknod,regs)=0);
-end;
-
 
 Procedure AssignStream(Var StreamIn,Streamout:text;Const Prog:String);
 {
@@ -2623,32 +1992,6 @@ end;
                         General information calls
 ******************************************************************************}
 
-Function Sysinfo(var Info:TSysinfo):Boolean;
-{
-  Get system info
-}
-var
-  regs : SysCallregs;
-Begin
-  regs.reg2:=longint(@info);
-  Sysinfo:=SysCall(SysCall_nr_Sysinfo,regs)=0;
-End;
-
-
-
-Function Uname(var unamerec:utsname):Boolean;
-{
-  Get machine's names
-}
-var
-  regs : SysCallregs;
-Begin
-  regs.reg2:=longint(@unamerec);
-  Uname:=SysCall(SysCall_nr_uname,regs)=0;
-  LinuxError:=Errno;
-End;
-
-
 
 Function GetEnv(P:string):Pchar;
 {
@@ -2718,168 +2061,16 @@ end;
                           Signal handling calls
 ******************************************************************************}
 
-Function Kill(Pid:longint;Sig:integer):integer;
-{
-  Send signal 'sig' to a process, or a group of processes.
-  If Pid >  0 then the signal is sent to pid
-     pid=-1                         to all processes except process 1
-     pid < -1                         to process group -pid
-  Return value is zero, except for case three, where the return value
-  is the number of processes to which the signal was sent.
-}
-var
-  regs : Syscallregs;
-begin
-  regs.reg2:=Pid;
-  regs.reg3:=Sig;
-  kill:=SysCall(Syscall_nr_kill,regs);
-  if kill<0 then
-   Kill:=0;
-  linuxerror:=errno;
-end;
-
-
-
-Procedure SigAction(Signum:Integer;Var Act,OldAct:PSigActionRec );
-{
-  Change action of process upon receipt of a signal.
-  Signum specifies the signal (all except SigKill and SigStop).
-  If Act is non-nil, it is used to specify the new action.
-  If OldAct is non-nil the previous action is saved there.
-}
-Var
-  sr : Syscallregs;
-begin
-  sr.reg2:=Signum;
-  sr.reg3:=Longint(act);
-  sr.reg4:=Longint(oldact);
-  SysCall(Syscall_nr_sigaction,sr);
-  linuxerror:=errno;
-end;
-
-
-
-Procedure SigProcMask(How:Integer;SSet,OldSSet:PSigSet);
-{
-  Change the list of currently blocked signals.
-  How determines which signals will be blocked :
-   SigBlock   : Add SSet to the current list of blocked signals
-   SigUnBlock : Remove the signals in SSet from the list of blocked signals.
-   SigSetMask : Set the list of blocked signals to SSet
-  if OldSSet is non-null, the old set will be saved there.
-}
-Var
-  sr : SyscallRegs;
-begin
-  sr.reg2:=how;
-  sr.reg3:=longint(SSet);
-  sr.reg4:=longint(OldSSet);
-  SysCall(Syscall_nr_sigprocmask,sr);
-  linuxerror:=errno;
-end;
-
-
-
-Function SigPending:SigSet;
-{
-  Allows examination of pending signals. The signal mask of pending
-  signals is set in SSet
-}
-Var
-  sr    : SyscallRegs;
-  dummy : Sigset;
-begin
-  sr.reg2:=longint(@dummy);
-  SysCall(Syscall_nr_sigpending,sr);
-  linuxerror:=errno;
-  Sigpending:=dummy;
-end;
-
-
-
-Procedure SigSuspend(Mask:Sigset);
-{
- Set the signal mask with Mask, and suspend the program until a signal
- is received.
-}
-Var
-  sr : SyscallRegs;
-begin
-  sr.reg2:=mask;
-  SysCall(Syscall_nr_sigsuspend,sr);
-  linuxerror:=errno;
-end;
-
-
-
-Function Signal(Signum:Integer;Handler:SignalHandler):SignalHandler;
-{
-  Install a new handler for signal Signum.
-  The old signal handler is returned.
-  This call does, in fact, the same as SigAction.
-}
-var
-  sr : Syscallregs;
-begin
-  sr.reg2:=signum;
-  sr.reg3:=longint(handler);
-  Linuxerror:=SysCall(Syscall_nr_signal,sr);
-  If linuxerror=Sig_Err then
-   begin
-     Signal:=nil;
-     Linuxerror:=errno;
-   end
-  else
-   begin
-     Signal:=signalhandler(Linuxerror);
-     linuxerror:=0;
-   end;
-end;
-
-
 procedure SigRaise(sig:integer);
 begin
   Kill(GetPid,Sig);
 end;
 
-Function  Alarm(Sec : Longint) : longint;
-
-Var Sr : Syscallregs;
-
-begin
-  sr.reg2:=Sec;
-  Alarm:=Syscall(syscall_nr_alarm,sr);
-end;
-
-Procedure Pause;
-
-Var Sr : Syscallregs;
-
-begin
-  syscall(syscall_nr_pause,sr);
-end;
 
 {******************************************************************************
                          IOCtl and Termios calls
 ******************************************************************************}
 
-Function IOCtl(Handle,Ndx: Longint;Data: Pointer):boolean;
-{
-  Interface to Unix ioctl call.
-  Performs various operations on the filedescriptor Handle.
-  Ndx describes the operation to perform.
-  Data points to data needed for the Ndx function. The structure of this
-  data is function-dependent.
-}
-var
-  sr: SysCallRegs;
-begin
-  sr.reg2:=Handle;
-  sr.reg3:=Ndx;
-  sr.reg4:=Longint(Data);
-  IOCtl:=(SysCall(Syscall_nr_ioctl,sr)=0);
-  LinuxError:=Errno;
-end;
 
 
 
@@ -3616,303 +2807,6 @@ end;
       Memory functions
 --------------------------------}
 
-function MMap(const m:tmmapargs):longint;
-Var
-  Sr : Syscallregs;
-begin
-  Sr.reg2:=longint(@m);
-  MMap:=syscall(syscall_nr_mmap,sr);
-  LinuxError:=Errno;
-end;
-
-
-{--------------------------------
-      Port IO functions
---------------------------------}
-
-Function  IOperm (From,Num : Cardinal; Value : Longint) : boolean;
-{
-  Set permissions on NUM ports starting with port FROM to VALUE
-  this works ONLY as root.
-}
-
-Var
-  Sr : Syscallregs;
-begin
-  Sr.Reg2:=From;
-  Sr.Reg3:=Num;
-  Sr.Reg4:=Value;
-  IOPerm:=Syscall(Syscall_nr_ioperm,sr)=0;
-  LinuxError:=Errno;
-end;
-
-
-{$IFDEF I386}
-
-Procedure WritePort (Port : Longint; Value : Byte);
-{
-  Writes 'Value' to port 'Port'
-}
-begin
-        asm
-        movl port,%edx
-        movb value,%al
-        outb %al,%dx
-        end ['EAX','EDX'];
-end;
-
-Procedure WritePort (Port : Longint; Value : Word);
-{
-  Writes 'Value' to port 'Port'
-}
-
-begin
-        asm
-        movl port,%edx
-        movw value,%ax
-        outw %ax,%dx
-        end ['EAX','EDX'];
-end;
-
-
-
-Procedure WritePort (Port : Longint; Value : Longint);
-{
-  Writes 'Value' to port 'Port'
-}
-
-begin
-        asm
-        movl port,%edx
-        movl value,%eax
-        outl %eax,%dx
-        end ['EAX','EDX'];
-end;
-
-
-Procedure WritePortB (Port : Longint; Value : Byte);
-{
-  Writes 'Value' to port 'Port'
-}
-begin
-        asm
-        movl port,%edx
-        movb value,%al
-        outb %al,%dx
-        end ['EAX','EDX'];
-end;
-
-Procedure WritePortW (Port : Longint; Value : Word);
-{
-  Writes 'Value' to port 'Port'
-}
-
-begin
-        asm
-        movl port,%edx
-        movw value,%ax
-        outw %ax,%dx
-        end ['EAX','EDX'];
-end;
-
-
-
-Procedure WritePortL (Port : Longint; Value : Longint);
-{
-  Writes 'Value' to port 'Port'
-}
-
-begin
-        asm
-        movl port,%edx
-        movl value,%eax
-        outl %eax,%dx
-        end ['EAX','EDX'];
-end;
-
-
-
-Procedure WritePortl (Port : Longint; Var Buf; Count: longint);
-{
-  Writes 'Count' longints from 'Buf' to Port
-}
-begin
-  asm
-        movl count,%ecx
-        movl buf,%esi
-        movl port,%edx
-        cld
-        rep
-        outsl
-  end ['ECX','ESI','EDX'];
-end;
-
-
-
-Procedure WritePortW (Port : Longint; Var Buf; Count: longint);
-{
-  Writes 'Count' words from 'Buf' to Port
-}
-begin
-  asm
-        movl count,%ecx
-        movl buf,%esi
-        movl port,%edx
-        cld
-        rep
-        outsw
-  end ['ECX','ESI','EDX'];
-end;
-
-
-
-Procedure WritePortB (Port : Longint; Var Buf; Count: longint);
-{
-  Writes 'Count' bytes from 'Buf' to Port
-}
-begin
-  asm
-        movl count,%ecx
-        movl buf,%esi
-        movl port,%edx
-        cld
-        rep
-        outsb
-  end ['ECX','ESI','EDX'];
-end;
-
-
-
-Procedure ReadPort (Port : Longint; Var Value : Byte);
-{
-  Reads 'Value' from port 'Port'
-}
-begin
-        asm
-        movl port,%edx
-        inb %dx,%al
-        movl value,%edx
-        movb %al,(%edx)
-        end ['EAX','EDX'];
-end;
-
-
-
-Procedure ReadPort (Port : Longint; Var Value : Word);
-{
-  Reads 'Value' from port 'Port'
-}
-begin
-        asm
-        movl port,%edx
-        inw %dx,%ax
-        movl value,%edx
-        movw %ax,(%edx)
-        end ['EAX','EDX'];
-end;
-
-
-
-Procedure ReadPort (Port : Longint; Var Value : Longint);
-{
-  Reads 'Value' from port 'Port'
-}
-begin
-        asm
-        movl port,%edx
-        inl %dx,%eax
-        movl value,%edx
-        movl %eax,(%edx)
-        end ['EAX','EDX'];
-end;
-
-
-
-function ReadPortB (Port : Longint): Byte; assembler;
-{
-  Reads a byte from port 'Port'
-}
-
-asm
-  xorl %eax,%eax
-  movl port,%edx
-  inb %dx,%al
-end ['EAX','EDX'];
-
-
-
-function ReadPortW (Port : Longint): Word; assembler;
-{
-  Reads a word from port 'Port'
-}
-asm
-  xorl %eax,%eax
-  movl port,%edx
-  inw %dx,%ax
-end ['EAX','EDX'];
-
-
-
-function ReadPortL (Port : Longint): LongInt; assembler;
-{
-  Reads a LongInt from port 'Port'
-}
-asm
-  movl port,%edx
-  inl %dx,%eax
-end ['EAX','EDX'];
-
-
-
-Procedure ReadPortL (Port : Longint; Var Buf; Count: longint);
-{
-  Reads 'Count' longints from port 'Port' to 'Buf'.
-}
-begin
-  asm
-        movl count,%ecx
-        movl buf,%edi
-        movl port,%edx
-        cld
-        rep
-        insl
-  end ['ECX','EDI','EDX'];
-end;
-
-
-
-Procedure ReadPortW (Port : Longint; Var Buf; Count: longint);
-{
-  Reads 'Count' words from port 'Port' to 'Buf'.
-}
-begin
-  asm
-        movl count,%ecx
-        movl buf,%edi
-        movl port,%edx
-        cld
-        rep
-        insw
-  end ['ECX','EDI','EDX'];
-end;
-
-
-
-Procedure ReadPortB (Port : Longint; Var Buf; Count: longint);
-{
-  Reads 'Count' bytes from port 'Port' to 'Buf'.
-}
-begin
-  asm
-        movl count,%ecx
-        movl buf,%edi
-        movl port,%edx
-        cld
-        rep
-        insb
-  end ['ECX','EDI','EDX'];
-end;
-{$ENDIF}
 
 
 Initialization
@@ -3925,7 +2819,11 @@ End.
 
 {
   $Log$
-  Revision 1.66  2000-03-27 13:25:48  jonas
+  Revision 1.67  2000-04-14 16:07:06  marco
+   * Splitted linux into linux.pp and linsysca.inc, and merged BSD diffs
+      into header
+
+  Revision 1.66  2000/03/27 13:25:48  jonas
     * fixed readport* functions (thanks Florian ;)
 
   Revision 1.65  2000/03/23 17:10:32  jonas
@@ -4009,3 +2907,4 @@ End.
   + Added assignstream with rerouting of stderr, by Sebastian Guenther
 
 }
+
