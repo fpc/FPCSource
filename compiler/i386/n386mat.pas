@@ -494,9 +494,7 @@ implementation
           else
             begin
               { load right operators in a register }
-              rg.getexplicitregisterint(exprasmlist,NR_ECX);
-              hregister2.enum:=R_INTREGISTER;
-              hregister2.number:=NR_ECX;
+              hregister2:=rg.getexplicitregisterint(exprasmlist,NR_ECX);
               cg.a_load_loc_reg(exprasmlist,right.location,hregister2);
               if right.location.loc<>LOC_CREGISTER then
                 location_release(exprasmlist,right.location);
@@ -666,7 +664,10 @@ implementation
                      begin
                        if right.location.loc<>LOC_CREGISTER then
                         location_release(exprasmlist,right.location);
-                       hregister2:=rg.getexplicitregisterint(exprasmlist,NR_ECX);
+                       if (RS_ECX in rg.unusedregsint) then
+                        hregister2:=rg.getexplicitregisterint(exprasmlist,NR_ECX)
+                       else
+                        hregister2:=rg.getregisterint(exprasmlist,OS_INT);
                        cg.a_load_loc_reg(exprasmlist,right.location,hregister2);
                      end
                    else
@@ -1171,7 +1172,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.49  2003-04-17 10:02:48  daniel
+  Revision 1.50  2003-04-21 19:15:26  peter
+    * when ecx is not available allocated another register
+
+  Revision 1.49  2003/04/17 10:02:48  daniel
     * Tweaked register allocate/deallocate positition to less interferences
       are generated.
 
