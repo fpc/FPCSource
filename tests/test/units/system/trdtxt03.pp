@@ -1,6 +1,12 @@
 Program trdtxt03;
 
-uses strings;
+{$ifdef fpc}
+uses
+  strings;
+{$else}
+uses
+  SysUtils;
+{$endif}
 
 procedure test(b: boolean);
 begin
