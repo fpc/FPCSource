@@ -148,15 +148,16 @@ implementation
             if NextIntReg<=RS_O5-ord(is_64bit) then
               begin
                 paraloc.loc:=LOC_REGISTER;
-                paraloc.registerlow.enum:=R_INTREGISTER;
-                paraloc.registerlow.number:=NextIntReg shl 8;
-                inc(NextIntReg);
+                { big endian }
                 if is_64bit then
                   begin
                     paraloc.registerhigh.enum:=R_INTREGISTER;
                     paraloc.registerhigh.number:=nextintreg shl 8;
                     inc(nextintreg);
                   end;
+                paraloc.registerlow.enum:=R_INTREGISTER;
+                paraloc.registerlow.number:=NextIntReg shl 8;
+                inc(NextIntReg);
               end
             else
               begin
@@ -187,9 +188,10 @@ implementation
                 hp.calleeparaloc:=paraloc;
                 if hp.calleeparaloc.loc=LOC_REGISTER then
                   begin
-                   inc(hp.calleeparaloc.registerlow.number,(RS_I0-RS_O0) shl 8);
-                   if is_64bit then
-                     inc(hp.calleeparaloc.registerhigh.number,(RS_I0-RS_O0) shl 8);
+                    { big endian }
+                    if is_64bit then
+                      inc(hp.calleeparaloc.registerhigh.number,(RS_I0-RS_O0) shl 8);
+                    inc(hp.calleeparaloc.registerlow.number,(RS_I0-RS_O0) shl 8);
                   end
                 else
                   begin
@@ -276,7 +278,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.24  2003-07-06 17:58:22  peter
+  Revision 1.25  2003-07-06 22:10:56  peter
+    * big endian first allocates high
+
+  Revision 1.24  2003/07/06 17:58:22  peter
     * framepointer fixes for sparc
     * parent framepointer code more generic
 
