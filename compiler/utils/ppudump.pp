@@ -32,7 +32,7 @@ uses
 const
   Version   = 'Version 1.10';
   Title     = 'PPU-Analyser';
-  Copyright = 'Copyright (c) 1998-2000 by the Free Pascal Development Team';
+  Copyright = 'Copyright (c) 1998-2001 by the Free Pascal Development Team';
 
 { verbosity }
   v_none           = $0;
@@ -64,16 +64,53 @@ End;
 
 Function Target2Str(w:longint):string;
 type
-  ttarget = (target_none
-     ,target_i386_GO32V1,target_i386_GO32V2,target_i386_linux,
-      target_i386_OS2,target_i386_Win32
-     ,target_m68k_Amiga,target_m68k_Atari,target_m68k_Mac,
-      target_m68k_linux,target_m68k_PalmOS
-  );
+       { taken from systems.pas }
+       ttarget =
+       (
+             target_none,               { 0 }
+             target_i386_GO32V1,        { 1 }
+             target_i386_GO32V2,        { 2 }
+             target_i386_linux,         { 3 }
+             target_i386_OS2,           { 4 }
+             target_i386_Win32,         { 5 }
+             target_i386_freebsd,       { 6 }
+             target_m68k_Amiga,         { 7 }
+             target_m68k_Atari,         { 8 }
+             target_m68k_Mac,           { 9 }
+             target_m68k_linux,         { 10 }
+             target_m68k_PalmOS,        { 11 }
+             target_alpha_linux,        { 12 }
+             target_powerpc_linux,      { 13 }
+             target_powerpc_macos,      { 14 }
+             target_i386_sunos,         { 15 }
+             target_i386_beos,          { 16 }
+             target_i386_netbsd,        { 17 }
+             target_m68k_netbsd,        { 18 }
+             target_i386_Netware        { 19 }
+       );
 const
-  Targets : array[ttarget] of string[10]=('none',
-     'GO32V1','GO32V2','Linux-i386','OS/2','Win32',
-     'Amiga','Mac68k','Atari','Linux-m68k','PalmOs');
+  Targets : array[ttarget] of string[12]=(
+  { 0 }   'none',
+  { 1 }   'GO32V1',
+  { 2 }   'GO32V2',
+  { 3 }   'Linux-i386',
+  { 4 }   'OS/2',
+  { 5 }   'Win32',
+  { 6 }   'FreeBSD-i386',
+  { 7 }   'Amiga',
+  { 8 }   'Atari',
+  { 9 }   'MacOS-m68k',
+  { 10 }  'Linux-m68k',
+  { 11 }  'PalmOS-m68k',
+  { 12 }  'Linux-alpha',
+  { 13 }  'Linux-ppc',
+  { 14 }  'MacOS-ppc',
+  { 15 }  'Solaris-i386',
+  { 16 }  'BeOS-i386',
+  { 17 }  'NetBSD-i386',
+  { 18 }  'NetBSD-m68k',
+  { 19 }  'Netware'
+  );
 begin
   if w<=ord(high(ttarget)) then
     Target2Str:=Targets[ttarget(w)]
@@ -84,12 +121,18 @@ end;
 
 Function Cpu2Str(w:longint):string;
 type
-  ttargetcpu=(no_cpu
-       ,i386,m68k,alpha
-  );
+       { Copied from systems.pas }
+       ttargetcpu=
+       (
+             no_cpu,                   { 0 }
+             i386,                     { 1 }
+             m68k,                     { 2 }
+             alpha,                    { 3 }
+             powerpc                   { 4 }
+       );
 const
-  CpuTxt : array[ttargetcpu] of string[5]=
-    ('none','i386','m68k','alpha');
+  CpuTxt : array[ttargetcpu] of string[7]=
+    ('none','i386','m68k','alpha','powerpc');
 begin
   if w<=ord(high(ttargetcpu)) then
     Cpu2Str:=CpuTxt[ttargetcpu(w)]
@@ -1584,7 +1627,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2001-08-30 20:55:02  peter
+  Revision 1.8  2001-09-22 04:52:27  carl
+  * updated targets
+
+  Revision 1.7  2001/08/30 20:55:02  peter
     * rttisym support
 
   Revision 1.6  2001/08/19 09:39:29  peter
