@@ -58,8 +58,8 @@ implementation
         begin
            { open array ? }
            { defcoll^.data can be nil for read/write }
-           if assigned(defcoll^.data) and
-              push_high_param(defcoll^.data) then
+           if assigned(defcoll^.paratype.def) and
+              push_high_param(defcoll^.paratype.def) then
              begin
                if assigned(p^.hightree) then
                 begin
@@ -94,8 +94,8 @@ implementation
              { nothing, everything is already pushed }
            end
          { in codegen.handleread.. defcoll^.data is set to nil }
-         else if assigned(defcoll^.data) and
-           (defcoll^.data^.deftype=formaldef) then
+         else if assigned(defcoll^.paratype.def) and
+           (defcoll^.paratype.def^.deftype=formaldef) then
            begin
               { allow @var }
               inc(pushedparasize,4);
@@ -157,8 +157,8 @@ implementation
               { open array must always push the address, this is needed to
                 also push addr of small arrays (PFV) }
 
-              if (assigned(defcoll^.data) and
-                  is_open_array(defcoll^.data)) or
+              if (assigned(defcoll^.paratype.def) and
+                  is_open_array(defcoll^.paratype.def)) or
                  push_addr_param(p^.resulttype) then
                 begin
                    maybe_push_high;
@@ -364,11 +364,11 @@ implementation
                 if inlined then
                   begin
                      reset_reference(funcretref);
-                     funcretref.offset:=gettempofsizepersistant(p^.procdefinition^.retdef^.size);
+                     funcretref.offset:=gettempofsizepersistant(p^.procdefinition^.rettype.def^.size);
                      funcretref.base:=procinfo^.framepointer;
                   end
                 else
-                  gettempofsizereference(p^.procdefinition^.retdef^.size,funcretref);
+                  gettempofsizereference(p^.procdefinition^.rettype.def^.size,funcretref);
            end;
          if assigned(p^.left) then
            begin
@@ -1173,8 +1173,8 @@ implementation
           oldprocinfo:=procinfo;
           { set the return value }
           aktprocsym:=p^.inlineprocsym;
-          procinfo^.retdef:=aktprocsym^.definition^.retdef;
-          procinfo^.retoffset:=p^.retoffset;
+          procinfo^.returntype:=aktprocsym^.definition^.rettype;
+          procinfo^.return_offset:=p^.retoffset;
           { arg space has been filled by the parent secondcall }
           st:=aktprocsym^.definition^.localst;
           { set it to the same lexical level }
@@ -1225,7 +1225,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.110  1999-11-06 14:34:17  peter
+  Revision 1.111  1999-11-30 10:40:42  peter
+    + ttype, tsymlist
+
+  Revision 1.110  1999/11/06 14:34:17  peter
     * truncated log to 20 revs
 
   Revision 1.109  1999/11/04 00:23:58  pierre

@@ -77,7 +77,7 @@ implementation
            begin
               p1:=genzeronode(funcretn);
               p1^.funcretprocinfo:=pprocinfo(pfuncretsym(p^.symtableentry)^.funcretprocinfo);
-              p1^.retdef:=pfuncretsym(p^.symtableentry)^.funcretdef;
+              p1^.rettype:=pfuncretsym(p^.symtableentry)^.rettype;
               firstpass(p1);
               putnode(p);
               p:=p1;
@@ -85,7 +85,7 @@ implementation
            end;
          if p^.symtableentry^.typ=absolutesym then
            begin
-              p^.resulttype:=pabsolutesym(p^.symtableentry)^.definition;
+              p^.resulttype:=pabsolutesym(p^.symtableentry)^.vartype.def;
               if pabsolutesym(p^.symtableentry)^.abstyp=tovar then
                 p^.symtableentry:=pabsolutesym(p^.symtableentry)^.ref;
               p^.symtable:=p^.symtableentry^.owner;
@@ -95,7 +95,7 @@ implementation
             absolutesym :;
             constsym:
               begin
-                 if pconstsym(p^.symtableentry)^.consttype=constresourcestring then
+                 if pconstsym(p^.symtableentry)^.consttyp=constresourcestring then
                    begin
                       p^.resulttype:=cansistringdef;
                       p^.location.loc:=LOC_MEM;
@@ -106,7 +106,7 @@ implementation
             varsym :
                 begin
                    if not(p^.is_absolute) and (p^.resulttype=nil) then
-                     p^.resulttype:=pvarsym(p^.symtableentry)^.definition;
+                     p^.resulttype:=pvarsym(p^.symtableentry)^.vartype.def;
                    if (p^.symtable^.symtabletype in [parasymtable,localsymtable]) and
                       (lexlevel>p^.symtable^.symtablelevel) then
                      begin
@@ -128,9 +128,9 @@ implementation
                    { we need a register for call by reference parameters }
                    if (pvarsym(p^.symtableentry)^.varspez=vs_var) or
                       ((pvarsym(p^.symtableentry)^.varspez=vs_const) and
-                      push_addr_param(pvarsym(p^.symtableentry)^.definition)) or
+                      push_addr_param(pvarsym(p^.symtableentry)^.vartype.def)) or
                       { call by value open arrays are also indirect addressed }
-                      is_open_array(pvarsym(p^.symtableentry)^.definition) then
+                      is_open_array(pvarsym(p^.symtableentry)^.vartype.def) then
                      p^.registers32:=1;
                    if p^.symtable^.symtabletype=withsymtable then
                      inc(p^.registers32);
@@ -160,7 +160,7 @@ implementation
                 end;
             typedconstsym :
                 if not p^.is_absolute then
-                  p^.resulttype:=ptypedconstsym(p^.symtableentry)^.definition;
+                  p^.resulttype:=ptypedconstsym(p^.symtableentry)^.typedconsttype.def;
             procsym :
                 begin
                    if assigned(pprocsym(p^.symtableentry)^.definition^.nextoverloaded) then
@@ -312,9 +312,9 @@ implementation
 
     procedure firstfuncret(var p : ptree);
       begin
-         p^.resulttype:=p^.retdef;
+         p^.resulttype:=p^.rettype.def;
          p^.location.loc:=LOC_REFERENCE;
-         if ret_in_param(p^.retdef) or
+         if ret_in_param(p^.rettype.def) or
             (procinfo<>pprocinfo(p^.funcretprocinfo)) then
            p^.registers32:=1;
       end;
@@ -446,7 +446,7 @@ implementation
            (parraydef(p^.resulttype)^.lowrange<>0) or
            (parraydef(p^.resulttype)^.highrange<>len-1) then
           p^.resulttype:=new(parraydef,init(0,len-1,s32bitdef));
-        parraydef(p^.resulttype)^.definition:=pd;
+        parraydef(p^.resulttype)^.elementtype.def:=pd;
         parraydef(p^.resulttype)^.IsConstructor:=true;
         parraydef(p^.resulttype)^.IsVariant:=varia;
         p^.location.loc:=LOC_MEM;
@@ -467,7 +467,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.51  1999-11-18 15:34:50  pierre
+  Revision 1.52  1999-11-30 10:40:58  peter
+    + ttype, tsymlist
+
+  Revision 1.51  1999/11/18 15:34:50  pierre
     * Notes/Hints for local syms changed to
       Set_varstate function
 

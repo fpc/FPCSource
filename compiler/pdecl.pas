@@ -73,7 +73,7 @@ unit pdecl;
         sc      : Pstringcontainer;
         s       : string;
         storetokenpos : tfileposinfo;
-        p       : Pdef;
+        tt      : ttype;
         hsym    : psym;
         hvs,
         vs      : Pvarsym;
@@ -94,7 +94,7 @@ unit pdecl;
             else
               varspez:=vs_value;
           inserthigh:=false;
-          readtypesym:=nil;
+          tt.reset;
           if idtoken=_SELF then
             begin
                { only allowed in procvars and class methods }
@@ -108,7 +108,7 @@ unit pdecl;
 {$else UseNiceNames}
                      hs2:=hs2+tostr(length('self'))+'self';
 {$endif UseNiceNames}
-                     vs:=new(Pvarsym,init('@',procinfo^._class));
+                     vs:=new(Pvarsym,initdef('@',procinfo^._class));
                      vs^.varspez:=vs_var;
                    { insert the sym in the parasymtable }
                      pprocdef(aktprocdef)^.parast^.insert(vs);
@@ -121,14 +121,11 @@ unit pdecl;
                    end;
                   consume(idtoken);
                   consume(_COLON);
-                  p:=single_type(hs1,false);
-                  if assigned(readtypesym) then
-                   aktprocdef^.concattypesym(readtypesym,vs_value)
-                  else
-                   aktprocdef^.concatdef(p,vs_value);
+                  single_type(tt,hs1,false);
+                  aktprocdef^.concatpara(tt,vs_value);
                   { check the types for procedures only }
                   if not is_procvar then
-                   CheckTypes(p,procinfo^._class);
+                   CheckTypes(tt.def,procinfo^._class);
                 end
                else
                 consume(_ID);
@@ -147,7 +144,7 @@ unit pdecl;
                      consume(_ARRAY);
                      consume(_OF);
                    { define range and type of range }
-                     p:=new(Parraydef,init(0,-1,s32bitdef));
+                     tt.setdef(new(Parraydef,init(0,-1,s32bitdef)));
                    { array of const ? }
                      if (token=_CONST) and (m_objpas in aktmodeswitches) then
                       begin
@@ -156,17 +153,15 @@ unit pdecl;
                         getsymonlyin(systemunit,'TVARREC');
                         if not assigned(srsym) then
                          InternalError(1234124);
-                        Parraydef(p)^.definition:=ptypesym(srsym)^.definition;
-                        Parraydef(p)^.IsArrayOfConst:=true;
+                        Parraydef(tt.def)^.elementtype:=ptypesym(srsym)^.restype;
+                        Parraydef(tt.def)^.IsArrayOfConst:=true;
                         hs1:='array_of_const';
                       end
                      else
                       begin
-                      { define field type }
-                        Parraydef(p)^.definition:=single_type(hs1,false);
+                        { define field type }
+                        single_type(parraydef(tt.def)^.elementtype,hs1,false);
                         hs1:='array_of_'+hs1;
-                        { we don't need the typesym anymore }
-                        readtypesym:=nil;
                       end;
                      inserthigh:=true;
                    end
@@ -181,13 +176,13 @@ unit pdecl;
                           (idtoken=_OPENSTRING)) then
                    begin
                      consume(token);
-                     p:=openshortstringdef;
+                     tt.setdef(openshortstringdef);
                      hs1:='openstring';
                      inserthigh:=true;
                    end
                   { everything else }
                   else
-                   p:=single_type(hs1,false);
+                   single_type(tt,hs1,false);
                 end
                else
                 begin
@@ -196,7 +191,7 @@ unit pdecl;
 {$else UseNiceNames}
                   hs1:='var';
 {$endif UseNiceNames}
-                  p:=cformaldef;
+                  tt.setdef(cformaldef);
                 end;
                if not is_procvar then
                 hs2:=pprocdef(aktprocdef)^.mangledname;
@@ -204,10 +199,7 @@ unit pdecl;
                while not sc^.empty do
                 begin
                   s:=sc^.get_with_tokeninfo(tokenpos);
-                  if assigned(readtypesym) then
-                   aktprocdef^.concattypesym(readtypesym,varspez)
-                  else
-                   aktprocdef^.concatdef(p,varspez);
+                  aktprocdef^.concatpara(tt,varspez);
                   { For proc vars we only need the definitions }
                   if not is_procvar then
                    begin
@@ -216,13 +208,10 @@ unit pdecl;
 {$else UseNiceNames}
                      hs2:=hs2+tostr(length(hs1))+hs1;
 {$endif UseNiceNames}
-                     if assigned(readtypesym) then
-                      vs:=new(Pvarsym,initsym(s,readtypesym))
-                     else
-                      vs:=new(Pvarsym,init(s,p));
+                     vs:=new(pvarsym,init(s,tt));
                      vs^.varspez:=varspez;
                    { we have to add this to avoid var param to be in registers !!!}
-                     if (varspez in [vs_var,vs_const]) and push_addr_param(p) then
+                     if (varspez in [vs_var,vs_const]) and push_addr_param(tt.def) then
 {$ifdef INCLUDEOK}
                        include(vs^.varoptions,vo_regable);
 {$else}
@@ -242,8 +231,8 @@ unit pdecl;
 
                    { do we need a local copy? }
                      if (varspez=vs_value) and
-                        push_addr_param(p) and
-                        not(is_open_array(p) or is_array_of_const(p)) then
+                        push_addr_param(tt.def) and
+                        not(is_open_array(tt.def) or is_array_of_const(tt.def)) then
                        vs^.setname('val'+vs^.name);
 
                    { insert the sym in the parasymtable }
@@ -252,7 +241,7 @@ unit pdecl;
                    { also need to push a high value? }
                      if inserthigh then
                       begin
-                        hvs:=new(Pvarsym,init('high'+s,s32bitdef));
+                        hvs:=new(Pvarsym,initdef('high'+s,s32bitdef));
                         hvs^.varspez:=vs_const;
                         pprocdef(aktprocdef)^.parast^.insert(hvs);
                       end;
@@ -288,24 +277,18 @@ unit pdecl;
     { => the procedure is also used to read     }
     { a sequence of variable declaration        }
 
-      procedure insert_syms(st : psymtable;sc : pstringcontainer;def : pdef;sym:ptypesym;is_threadvar : boolean);
+      procedure insert_syms(st : psymtable;sc : pstringcontainer;tt : ttype;is_threadvar : boolean);
       { inserts the symbols of sc in st with def as definition or sym as ptypesym, sc is disposed }
         var
            s : string;
            filepos : tfileposinfo;
            ss : pvarsym;
         begin
-           { can't have a definition and ttypesym }
-           if assigned(def) and assigned(sym) then
-            internalerror(5438257);
            filepos:=tokenpos;
            while not sc^.empty do
              begin
                 s:=sc^.get_with_tokeninfo(tokenpos);
-                if assigned(sym) then
-                 ss:=new(pvarsym,initsym(s,sym))
-                else
-                 ss:=new(pvarsym,init(s,def));
+                ss:=new(pvarsym,init(s,tt));
                 if is_threadvar then
 {$ifdef INCLUDEOK}
                   include(ss^.varoptions,vo_is_thread_var);
@@ -318,7 +301,7 @@ unit pdecl;
                    (sp_static in current_object_option) then
                   begin
                      s:=lower(st^.name^)+'_'+s;
-                     st^.defowner^.owner^.insert(new(pvarsym,init(s,def)));
+                     st^.defowner^.owner^.insert(new(pvarsym,init(s,tt)));
                   end;
              end;
            dispose(sc,done);
@@ -341,8 +324,7 @@ unit pdecl;
          is_gpc_name,is_cdecl,extern_aktvarsym,export_aktvarsym : boolean;
          dll_name,
          C_name : string;
-         { case }
-         p,casedef : pdef;
+         tt,casetype : ttype;
          { Delphi initialized vars }
          pconstsym : ptypedconstsym;
          { maxsize contains the max. size of a variant }
@@ -378,8 +360,8 @@ unit pdecl;
              { this is needed for Delphi mode at least
                but should be OK for all modes !! (PM) }
              ignore_equal:=true;
-             p:=read_type('');
-             if (variantrecordlevel>0) and p^.needs_inittable then
+             read_type(tt,'');
+             if (variantrecordlevel>0) and tt.def^.needs_inittable then
                Message(parser_e_cant_use_inittable_here);
              ignore_equal:=false;
              symdone:=false;
@@ -390,7 +372,7 @@ unit pdecl;
                   if not sc^.empty then
                    Message(parser_e_absolute_only_one_var);
                   dispose(sc,done);
-                  aktvarsym:=new(pvarsym,init_C(s,target_os.Cprefix+C_name,p));
+                  aktvarsym:=new(pvarsym,init_C(s,target_os.Cprefix+C_name,tt));
 {$ifdef INCLUDEOK}
                   include(aktvarsym^.varoptions,vo_is_external);
 {$else}
@@ -427,7 +409,7 @@ unit pdecl;
                      Message(parser_e_absolute_only_to_var_or_const);
                    storetokenpos:=tokenpos;
                    tokenpos:=declarepos;
-                   abssym:=new(pabsolutesym,init(s,p));
+                   abssym:=new(pabsolutesym,init(s,tt));
                    abssym^.abstyp:=tovar;
                    abssym^.ref:=srsym;
                    symtablestack^.insert(abssym);
@@ -438,7 +420,7 @@ unit pdecl;
                   begin
                     storetokenpos:=tokenpos;
                     tokenpos:=declarepos;
-                    abssym:=new(pabsolutesym,init(s,p));
+                    abssym:=new(pabsolutesym,init(s,tt));
                     s:=pattern;
                     consume(token);
                     abssym^.abstyp:=toasm;
@@ -454,7 +436,7 @@ unit pdecl;
                      begin
                        storetokenpos:=tokenpos;
                        tokenpos:=declarepos;
-                       abssym:=new(pabsolutesym,init(s,p));
+                       abssym:=new(pabsolutesym,init(s,tt));
                        abssym^.abstyp:=toaddr;
                        abssym^.absseg:=false;
                        s:=pattern;
@@ -492,26 +474,23 @@ unit pdecl;
                   s:=sc^.get_with_tokeninfo(tokenpos);
                   if not sc^.empty then
                     Message(parser_e_initialized_only_one_var);
-                  if assigned(readtypesym) then
-                   pconstsym:=new(ptypedconstsym,initsym(s,readtypesym,false))
-                  else
-                   pconstsym:=new(ptypedconstsym,init(s,p,false));
+                  pconstsym:=new(ptypedconstsym,inittype(s,tt,false));
                   symtablestack^.insert(pconstsym);
                   tokenpos:=storetokenpos;
                   consume(_EQUAL);
-                  readtypedconst(p,pconstsym,false);
+                  readtypedconst(tt.def,pconstsym,false);
                   symdone:=true;
                end;
              { for a record there doesn't need to be a ; before the END or ) }
              if not((is_record or is_object) and (token in [_END,_RKLAMMER])) then
                consume(_SEMICOLON);
              { procvar handling }
-             if (p^.deftype=procvardef) and (p^.sym=nil) then
+             if (tt.def^.deftype=procvardef) and (tt.def^.typesym=nil) then
                begin
-                  newtype:=new(ptypesym,init('unnamed',p));
+                  newtype:=new(ptypesym,init('unnamed',tt));
                   parse_var_proc_directives(psym(newtype));
-                  newtype^.definition:=nil;
-                  p^.sym:=nil;
+                  newtype^.restype.def:=nil;
+                  tt.def^.typesym:=nil;
                   dispose(newtype,done);
                end;
              { Check for variable directives }
@@ -574,19 +553,9 @@ unit pdecl;
                    storetokenpos:=tokenpos;
                    tokenpos:=declarepos;
                    if is_dll then
-                    begin
-                      if assigned(readtypesym) then
-                       aktvarsym:=new(pvarsym,initsym_dll(s,readtypesym))
-                      else
-                       aktvarsym:=new(pvarsym,init_dll(s,p))
-                    end
+                    aktvarsym:=new(pvarsym,init_dll(s,tt))
                    else
-                    begin
-                      if assigned(readtypesym) then
-                       aktvarsym:=new(pvarsym,initsym_C(s,C_name,readtypesym))
-                      else
-                       aktvarsym:=new(pvarsym,init_C(s,C_name,p));
-                    end;
+                    aktvarsym:=new(pvarsym,init_C(s,C_name,tt));
                    { set some vars options }
                    if export_aktvarsym then
                     inc(aktvarsym^.refs);
@@ -623,10 +592,7 @@ unit pdecl;
 {$else}
                     current_object_option:=current_object_option+[sp_static];
 {$endif}
-                    if assigned(readtypesym) then
-                     insert_syms(symtablestack,sc,nil,readtypesym,false)
-                    else
-                     insert_syms(symtablestack,sc,p,nil,false);
+                    insert_syms(symtablestack,sc,tt,false);
 {$ifdef INCLUDEOK}
                     exclude(current_object_option,sp_static);
 {$else}
@@ -641,16 +607,13 @@ unit pdecl;
              if not symdone then
                begin
                   if (sp_published in current_object_option) and
-                    (not((p^.deftype=objectdef) and (pobjectdef(p)^.is_class))) then
+                    (not((tt.def^.deftype=objectdef) and (pobjectdef(tt.def)^.is_class))) then
                     Message(parser_e_cant_publish_that)
                   else if (sp_published in current_object_option) and
-                    not(oo_can_have_published in pobjectdef(p)^.objectoptions) then
+                    not(oo_can_have_published in pobjectdef(tt.def)^.objectoptions) then
                     Message(parser_e_only_publishable_classes_can__be_published);
 
-                  if assigned(readtypesym) then
-                   insert_syms(symtablestack,sc,nil,readtypesym,is_threadvar)
-                  else
-                   insert_syms(symtablestack,sc,p,nil,is_threadvar);
+                  insert_syms(symtablestack,sc,tt,is_threadvar)
                end;
            end;
          { Check for Case }
@@ -662,15 +625,15 @@ unit pdecl;
               getsym(s,false);
               { may be only a type: }
               if assigned(srsym) and (srsym^.typ in [typesym,unitsym]) then
-                casedef:=read_type('')
+                read_type(casetype,'')
               else
                 begin
                   consume(_ID);
                   consume(_COLON);
-                  casedef:=read_type('');
-                  symtablestack^.insert(new(pvarsym,init(s,casedef)));
+                  read_type(casetype,'');
+                  symtablestack^.insert(new(pvarsym,init(s,casetype)));
                 end;
-              if not(is_ordinal(casedef)) or is_64bitint(casedef)  then
+              if not(is_ordinal(casetype.def)) or is_64bitint(casetype.def)  then
                Message(type_e_ordinal_expr_expected);
               consume(_OF);
               startvarrec:=symtablestack^.datasize;
@@ -714,7 +677,7 @@ unit pdecl;
       var
          name : stringid;
          p : ptree;
-         def : pdef;
+         tt  : ttype;
          sym : psym;
          storetokenpos,filepos : tfileposinfo;
          old_block_type : tblock_type;
@@ -795,7 +758,7 @@ unit pdecl;
                    block_type:=bt_type;
                    consume(_COLON);
                    ignore_equal:=true;
-                   def:=read_type('');
+                   read_type(tt,'');
                    ignore_equal:=false;
                    block_type:=bt_const;
                    skipequal:=false;
@@ -813,15 +776,12 @@ unit pdecl;
                    else
 {$endif DELPHI_CONST_IN_RODATA}
                      begin
-                       if assigned(readtypesym) then
-                        sym:=new(ptypedconstsym,initsym(name,readtypesym,false))
-                       else
-                        sym:=new(ptypedconstsym,init(name,def,false))
+                       sym:=new(ptypedconstsym,inittype(name,tt,false))
                      end;
                    tokenpos:=storetokenpos;
                    symtablestack^.insert(sym);
                    { procvar can have proc directives }
-                   if (def^.deftype=procvardef) then
+                   if (tt.def^.deftype=procvardef) then
                     begin
                       { support p : procedure;stdcall=nil; }
                       if (token=_SEMICOLON) then
@@ -848,10 +808,10 @@ unit pdecl;
                       consume(_EQUAL);
 {$ifdef DELPHI_CONST_IN_RODATA}
                       if m_delphi in aktmodeswitches then
-                       readtypedconst(def,ptypedconstsym(sym),true)
+                       readtypedconst(tt.def,ptypedconstsym(sym),true)
                       else
 {$endif DELPHI_CONST_IN_RODATA}
-                       readtypedconst(def,ptypedconstsym(sym),false);
+                       readtypedconst(tt.def,ptypedconstsym(sym),false);
                       consume(_SEMICOLON);
                     end;
                 end;
@@ -897,10 +857,10 @@ unit pdecl;
          { Check only typesyms or record/object fields }
          case psym(p)^.typ of
            typesym :
-             pd:=ptypesym(p)^.definition;
+             pd:=ptypesym(p)^.restype.def;
            varsym :
              if (psym(p)^.owner^.symtabletype in [objectsymtable,recordsymtable]) then
-               pd:=pvarsym(p)^.definition
+               pd:=pvarsym(p)^.vartype.def
              else
                exit;
            else
@@ -911,7 +871,7 @@ unit pdecl;
            classrefdef :
              begin
                { classrefdef inherits from pointerdef }
-               hpd:=ppointerdef(pd)^.definition;
+               hpd:=ppointerdef(pd)^.pointertype.def;
                { still a forward def ? }
                if hpd^.deftype=forwarddef then
                 begin
@@ -929,7 +889,7 @@ unit pdecl;
                   if assigned(srsym) and
                      (srsym^.typ=typesym) then
                    begin
-                     ppointerdef(pd)^.definition:=ptypesym(srsym)^.definition;
+                     ppointerdef(pd)^.pointertype.def:=ptypesym(srsym)^.restype.def;
 {$ifdef GDB}
                      if (cs_debuginfo in aktmoduleswitches) and assigned(debuglist) and
                         (psym(p)^.owner^.symtabletype in [globalsymtable,staticsymtable]) then
@@ -940,15 +900,15 @@ unit pdecl;
 {$endif GDB}
                      { we need a class type for classrefdef }
                      if (pd^.deftype=classrefdef) and
-                        not((ptypesym(srsym)^.definition^.deftype=objectdef) and
-                            pobjectdef(ptypesym(srsym)^.definition)^.is_class) then
-                       Message1(type_e_class_type_expected,ptypesym(srsym)^.definition^.typename);
+                        not((ptypesym(srsym)^.restype.def^.deftype=objectdef) and
+                            pobjectdef(ptypesym(srsym)^.restype.def)^.is_class) then
+                       Message1(type_e_class_type_expected,ptypesym(srsym)^.restype.def^.typename);
                    end
                   else
                    begin
                      MessagePos1(psym(p)^.fileinfo,sym_e_forward_type_not_resolved,p^.name);
                      { try to recover }
-                     ppointerdef(pd)^.definition:=generrordef;
+                     ppointerdef(pd)^.pointertype.def:=generrordef;
                    end;
                 end;
              end;
@@ -969,7 +929,7 @@ unit pdecl;
          typename : stringid;
          newtype  : ptypesym;
          sym      : psym;
-         typedef  : pdef;
+         tt       : ttype;
          defpos,storetokenpos : tfileposinfo;
          old_block_type : tblock_type;
       begin
@@ -995,14 +955,14 @@ unit pdecl;
               if (sym^.typ=typesym) then
                begin
                  if (token=_CLASS) and
-                    (assigned(ptypesym(sym)^.definition)) and
-                    (ptypesym(sym)^.definition^.deftype=objectdef) and
-                    pobjectdef(ptypesym(sym)^.definition)^.is_class and
-                    (oo_is_forward in pobjectdef(ptypesym(sym)^.definition)^.objectoptions) then
+                    (assigned(ptypesym(sym)^.restype.def)) and
+                    (ptypesym(sym)^.restype.def^.deftype=objectdef) and
+                    pobjectdef(ptypesym(sym)^.restype.def)^.is_class and
+                    (oo_is_forward in pobjectdef(ptypesym(sym)^.restype.def)^.objectoptions) then
                   begin
                     { we can ignore the result   }
                     { the definition is modified }
-                    object_dec(typename,pobjectdef(ptypesym(sym)^.definition));
+                    object_dec(typename,pobjectdef(ptypesym(sym)^.restype.def));
                     newtype:=ptypesym(sym);
                   end;
                end;
@@ -1010,16 +970,16 @@ unit pdecl;
            { no old type reused ? Then insert this new type }
            if not assigned(newtype) then
             begin
-              typedef:=read_type(typename);
+              read_type(tt,typename);
               storetokenpos:=tokenpos;
               tokenpos:=defpos;
-              newtype:=new(ptypesym,init(typename,typedef));
+              newtype:=new(ptypesym,init(typename,tt));
               newtype:=ptypesym(symtablestack^.insert(newtype));
               tokenpos:=storetokenpos;
             end;
            consume(_SEMICOLON);
-           if assigned(newtype^.definition) and
-              (newtype^.definition^.deftype=procvardef) then
+           if assigned(newtype^.restype.def) and
+              (newtype^.restype.def^.deftype=procvardef) then
              parse_var_proc_directives(psym(newtype));
          until token<>_ID;
          typecanbeforward:=false;
@@ -1200,7 +1160,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.172  1999-11-29 15:18:27  pierre
+  Revision 1.173  1999-11-30 10:40:44  peter
+    + ttype, tsymlist
+
+  Revision 1.172  1999/11/29 15:18:27  pierre
    + allow exports in win32 executables
 
   Revision 1.171  1999/11/09 23:43:08  pierre

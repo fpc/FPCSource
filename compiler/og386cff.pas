@@ -437,7 +437,6 @@ unit og386cff;
       var
         pos : longint;
         sym : tsymbol;
-        c   : char;
         s   : string;
       begin
         { already written ? }
@@ -448,7 +447,6 @@ unit og386cff;
           createsection(p^.section);
         { symbolname }
         pos:=strs^.usedsize+4;
-        c:=#0;
         s:=p^.name;
         if length(s)>8 then
          begin
@@ -978,7 +976,10 @@ unit og386cff;
 end.
 {
   $Log$
-  Revision 1.14  1999-11-06 14:34:21  peter
+  Revision 1.15  1999-11-30 10:40:43  peter
+    + ttype, tsymlist
+
+  Revision 1.14  1999/11/06 14:34:21  peter
     * truncated log to 20 revs
 
   Revision 1.13  1999/11/02 15:06:57  peter

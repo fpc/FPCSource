@@ -423,7 +423,7 @@ implementation
               else
                 internalerror(2001);
               end;
-              case procinfo^.retdef^.deftype of
+              case procinfo^.returntype.def^.deftype of
            pointerdef,
            procvardef : begin
                           if is_mem then
@@ -434,7 +434,7 @@ implementation
                               p^.left^.location.register,R_EAX);
                         end;
              floatdef : begin
-                          if pfloatdef(procinfo^.retdef)^.typ=f32bit then
+                          if pfloatdef(procinfo^.returntype.def)^.typ=f32bit then
                            begin
                              if is_mem then
                                emit_ref_reg(A_MOV,S_L,
@@ -444,7 +444,7 @@ implementation
                            end
                           else
                            if is_mem then
-                            floatload(pfloatdef(procinfo^.retdef)^.typ,p^.left^.location.reference);
+                            floatload(pfloatdef(procinfo^.returntype.def)^.typ,p^.left^.location.reference);
                         end;
               { orddef,
               enumdef : }
@@ -452,7 +452,7 @@ implementation
               { it can be anything shorter than 4 bytes PM
               this caused form bug 711 }
                        begin
-                          case procinfo^.retdef^.size of
+                          case procinfo^.returntype.def^.size of
                           { if its 3 bytes only we can still
                             copy one of garbage ! PM }
                            4,3 : if is_mem then
@@ -776,7 +776,10 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.58  1999-11-28 23:15:23  pierre
+  Revision 1.59  1999-11-30 10:40:42  peter
+    + ttype, tsymlist
+
+  Revision 1.58  1999/11/28 23:15:23  pierre
    * fix for form bug 721
 
   Revision 1.57  1999/11/15 21:49:09  peter

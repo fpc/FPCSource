@@ -79,74 +79,73 @@ var
   vmtsymtable : psymtable;
 begin
 { Internal types }
-  p^.insert(new(ptypesym,init('formal',cformaldef)));
-  p^.insert(new(ptypesym,init('void',voiddef)));
-  p^.insert(new(ptypesym,init('byte',u8bitdef)));
-  p^.insert(new(ptypesym,init('word',u16bitdef)));
-  p^.insert(new(ptypesym,init('ulong',u32bitdef)));
-  p^.insert(new(ptypesym,init('longint',s32bitdef)));
-  p^.insert(new(ptypesym,init('qword',cu64bitdef)));
-  p^.insert(new(ptypesym,init('int64',cs64bitdef)));
-  p^.insert(new(ptypesym,init('char',cchardef)));
-  p^.insert(new(ptypesym,init('shortstring',cshortstringdef)));
-  p^.insert(new(ptypesym,init('longstring',clongstringdef)));
-  p^.insert(new(ptypesym,init('ansistring',cansistringdef)));
-  p^.insert(new(ptypesym,init('widestring',cwidestringdef)));
-  p^.insert(new(ptypesym,init('openshortstring',openshortstringdef)));
-  p^.insert(new(ptypesym,init('boolean',booldef)));
-  p^.insert(new(ptypesym,init('void_pointer',voidpointerdef)));
-  p^.insert(new(ptypesym,init('char_pointer',charpointerdef)));
-  p^.insert(new(ptypesym,init('void_farpointer',voidfarpointerdef)));
-  p^.insert(new(ptypesym,init('openchararray',openchararraydef)));
-  p^.insert(new(ptypesym,init('file',cfiledef)));
-  p^.insert(new(ptypesym,init('s32real',s32floatdef)));
-  p^.insert(new(ptypesym,init('s64real',s64floatdef)));
-  p^.insert(new(ptypesym,init('s80real',s80floatdef)));
-  p^.insert(new(ptypesym,init('s32fixed',s32fixeddef)));
+  p^.insert(new(ptypesym,initdef('formal',cformaldef)));
+  p^.insert(new(ptypesym,initdef('void',voiddef)));
+  p^.insert(new(ptypesym,initdef('byte',u8bitdef)));
+  p^.insert(new(ptypesym,initdef('word',u16bitdef)));
+  p^.insert(new(ptypesym,initdef('ulong',u32bitdef)));
+  p^.insert(new(ptypesym,initdef('longint',s32bitdef)));
+  p^.insert(new(ptypesym,initdef('qword',cu64bitdef)));
+  p^.insert(new(ptypesym,initdef('int64',cs64bitdef)));
+  p^.insert(new(ptypesym,initdef('char',cchardef)));
+  p^.insert(new(ptypesym,initdef('shortstring',cshortstringdef)));
+  p^.insert(new(ptypesym,initdef('longstring',clongstringdef)));
+  p^.insert(new(ptypesym,initdef('ansistring',cansistringdef)));
+  p^.insert(new(ptypesym,initdef('widestring',cwidestringdef)));
+  p^.insert(new(ptypesym,initdef('openshortstring',openshortstringdef)));
+  p^.insert(new(ptypesym,initdef('boolean',booldef)));
+  p^.insert(new(ptypesym,initdef('void_pointer',voidpointerdef)));
+  p^.insert(new(ptypesym,initdef('char_pointer',charpointerdef)));
+  p^.insert(new(ptypesym,initdef('void_farpointer',voidfarpointerdef)));
+  p^.insert(new(ptypesym,initdef('openchararray',openchararraydef)));
+  p^.insert(new(ptypesym,initdef('file',cfiledef)));
+  p^.insert(new(ptypesym,initdef('s32real',s32floatdef)));
+  p^.insert(new(ptypesym,initdef('s64real',s64floatdef)));
+  p^.insert(new(ptypesym,initdef('s80real',s80floatdef)));
+  p^.insert(new(ptypesym,initdef('s32fixed',s32fixeddef)));
   { Add a type for virtual method tables in lowercase }
   { so it isn't reachable!                            }
   vmtsymtable:=new(psymtable,init(recordsymtable));
   vmtdef:=new(precorddef,init(vmtsymtable));
-  pvmtdef:=new(ppointerdef,init(vmtdef));
-  vmtsymtable^.insert(new(pvarsym,init('parent',pvmtdef)));
-  vmtsymtable^.insert(new(pvarsym,init('length',globaldef('longint'))));
-  vmtsymtable^.insert(new(pvarsym,init('mlength',globaldef('longint'))));
+  pvmtdef:=new(ppointerdef,initdef(vmtdef));
+  vmtsymtable^.insert(new(pvarsym,initdef('parent',pvmtdef)));
+  vmtsymtable^.insert(new(pvarsym,initdef('length',globaldef('longint'))));
+  vmtsymtable^.insert(new(pvarsym,initdef('mlength',globaldef('longint'))));
   vmtarraydef:=new(parraydef,init(0,1,s32bitdef));
-  vmtarraydef^.definition := voidpointerdef;
-  vmtsymtable^.insert(new(pvarsym,init('__pfn',vmtarraydef)));
-  p^.insert(new(ptypesym,init('__vtbl_ptr_type',vmtdef)));
-  p^.insert(new(ptypesym,init('pvmt',pvmtdef)));
+  vmtarraydef^.elementtype.setdef(voidpointerdef);
+  vmtsymtable^.insert(new(pvarsym,initdef('__pfn',vmtarraydef)));
+  p^.insert(new(ptypesym,initdef('__vtbl_ptr_type',vmtdef)));
+  p^.insert(new(ptypesym,initdef('pvmt',pvmtdef)));
   vmtarraydef:=new(parraydef,init(0,1,s32bitdef));
-  vmtarraydef^.definition := pvmtdef;
-  p^.insert(new(ptypesym,init('vtblarray',vmtarraydef)));
+  vmtarraydef^.elementtype.setdef(pvmtdef);
+  p^.insert(new(ptypesym,initdef('vtblarray',vmtarraydef)));
   insertinternsyms(p);
 { Normal types }
-  p^.insert(new(ptypesym,init('SINGLE',s32floatdef)));
-  p^.insert(new(ptypesym,init('DOUBLE',s64floatdef)));
-  p^.insert(new(ptypesym,init('EXTENDED',s80floatdef)));
-  p^.insert(new(ptypesym,init('REAL',s64floatdef)));
+  p^.insert(new(ptypesym,initdef('SINGLE',s32floatdef)));
+  p^.insert(new(ptypesym,initdef('DOUBLE',s64floatdef)));
+  p^.insert(new(ptypesym,initdef('EXTENDED',s80floatdef)));
+  p^.insert(new(ptypesym,initdef('REAL',s64floatdef)));
 {$ifdef i386}
-  p^.insert(new(ptypesym,init('COMP',new(pfloatdef,init(s64comp)))));
+  p^.insert(new(ptypesym,initdef('COMP',new(pfloatdef,init(s64comp)))));
 {$endif}
-  p^.insert(new(ptypesym,init('POINTER',voidpointerdef)));
-  p^.insert(new(ptypesym,init('FARPOINTER',voidfarpointerdef)));
-{  p^.insert(new(ptypesym,init('STRING',cshortstringdef))); }
-  p^.insert(new(ptypesym,init('SHORTSTRING',cshortstringdef)));
-  p^.insert(new(ptypesym,init('LONGSTRING',clongstringdef)));
-  p^.insert(new(ptypesym,init('ANSISTRING',cansistringdef)));
-  p^.insert(new(ptypesym,init('WIDESTRING',cwidestringdef)));
-  p^.insert(new(ptypesym,init('BOOLEAN',booldef)));
-  p^.insert(new(ptypesym,init('BYTEBOOL',booldef)));
-  p^.insert(new(ptypesym,init('WORDBOOL',new(porddef,init(bool16bit,0,1)))));
-  p^.insert(new(ptypesym,init('LONGBOOL',new(porddef,init(bool32bit,0,1)))));
-  p^.insert(new(ptypesym,init('CHAR',cchardef)));
-  p^.insert(new(ptypesym,init('TEXT',new(pfiledef,init(ft_text,nil)))));
-  p^.insert(new(ptypesym,init('CARDINAL',u32bitdef)));
-  p^.insert(new(ptypesym,init('FIXED',new(pfloatdef,init(f32bit)))));
-  p^.insert(new(ptypesym,init('FIXED16',new(pfloatdef,init(f16bit)))));
-  p^.insert(new(ptypesym,init('QWORD',cu64bitdef)));
-  p^.insert(new(ptypesym,init('INT64',cs64bitdef)));
-  p^.insert(new(ptypesym,init('TYPEDFILE',new(pfiledef,init(ft_typed,voiddef)))));
+  p^.insert(new(ptypesym,initdef('POINTER',voidpointerdef)));
+  p^.insert(new(ptypesym,initdef('FARPOINTER',voidfarpointerdef)));
+  p^.insert(new(ptypesym,initdef('SHORTSTRING',cshortstringdef)));
+  p^.insert(new(ptypesym,initdef('LONGSTRING',clongstringdef)));
+  p^.insert(new(ptypesym,initdef('ANSISTRING',cansistringdef)));
+  p^.insert(new(ptypesym,initdef('WIDESTRING',cwidestringdef)));
+  p^.insert(new(ptypesym,initdef('BOOLEAN',booldef)));
+  p^.insert(new(ptypesym,initdef('BYTEBOOL',booldef)));
+  p^.insert(new(ptypesym,initdef('WORDBOOL',new(porddef,init(bool16bit,0,1)))));
+  p^.insert(new(ptypesym,initdef('LONGBOOL',new(porddef,init(bool32bit,0,1)))));
+  p^.insert(new(ptypesym,initdef('CHAR',cchardef)));
+  p^.insert(new(ptypesym,initdef('TEXT',new(pfiledef,inittext))));
+  p^.insert(new(ptypesym,initdef('CARDINAL',u32bitdef)));
+  p^.insert(new(ptypesym,initdef('FIXED',new(pfloatdef,init(f32bit)))));
+  p^.insert(new(ptypesym,initdef('FIXED16',new(pfloatdef,init(f16bit)))));
+  p^.insert(new(ptypesym,initdef('QWORD',cu64bitdef)));
+  p^.insert(new(ptypesym,initdef('INT64',cs64bitdef)));
+  p^.insert(new(ptypesym,initdef('TYPEDFILE',new(pfiledef,inittypeddef(voiddef)))));
 end;
 
 
@@ -211,7 +210,7 @@ begin
   { length=0 for shortstring is open string (needed for readln(string) }
   openshortstringdef:=new(pstringdef,shortinit(0));
   openchararraydef:=new(parraydef,init(0,-1,s32bitdef));
-  parraydef(openchararraydef)^.definition:=cchardef;
+  parraydef(openchararraydef)^.elementtype.setdef(cchardef);
 {$ifdef i386}
   s32floatdef:=new(pfloatdef,init(s32real));
   s64floatdef:=new(pfloatdef,init(s64real));
@@ -227,10 +226,10 @@ begin
 {$endif}
   s32fixeddef:=new(pfloatdef,init(f32bit));
   { some other definitions }
-  voidpointerdef:=new(ppointerdef,init(voiddef));
-  charpointerdef:=new(ppointerdef,init(cchardef));
-  voidfarpointerdef:=new(ppointerdef,initfar(voiddef));
-  cfiledef:=new(pfiledef,init(ft_untyped,nil));
+  voidpointerdef:=new(ppointerdef,initdef(voiddef));
+  charpointerdef:=new(ppointerdef,initdef(cchardef));
+  voidfarpointerdef:=new(ppointerdef,initfardef(voiddef));
+  cfiledef:=new(pfiledef,inituntyped);
   registerdef:=oldregisterdef;
 end;
 
@@ -238,7 +237,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.29  1999-11-06 14:34:23  peter
+  Revision 1.30  1999-11-30 10:40:51  peter
+    + ttype, tsymlist
+
+  Revision 1.29  1999/11/06 14:34:23  peter
     * truncated log to 20 revs
 
   Revision 1.28  1999/09/16 23:05:55  florian

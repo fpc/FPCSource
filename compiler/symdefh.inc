@@ -24,10 +24,9 @@
                     TDef
 ************************************************}
 
-       pdef = ^tdef;
        tdef = object(tsymtableentry)
-          deftype   : tdeftype;
-          sym       : ptypesym;  { which type the definition was generated this def }
+          deftype    : tdeftype;
+          typesym    : ptypesym;  { which type the definition was generated this def }
 
           has_inittable : boolean;
           { adress of init informations }
@@ -92,21 +91,23 @@
 
        pparaitem = ^tparaitem;
        tparaitem = object(tlinkedlist_item)
-          data         : pdef;
-          datasym      : ptypesym;
+          paratype     : ttype;
           paratyp      : tvarspez;
           argconvtyp   : targconvtyp;
           convertlevel : byte;
           register     : tregister;
        end;
 
-       tfiletype = (ft_text,ft_typed,ft_untyped);
+       tfiletyp = (ft_text,ft_typed,ft_untyped);
 
        pfiledef = ^tfiledef;
        tfiledef = object(tdef)
-          filetype : tfiletype;
-          typed_as : pdef;
-          constructor init(ft : tfiletype;tas : pdef);
+          filetyp : tfiletyp;
+          typedfiletype : ttype;
+          constructor inittext;
+          constructor inituntyped;
+          constructor inittyped(const tt : ttype);
+          constructor inittypeddef(p : pdef);
           constructor load;
           procedure write;virtual;
           procedure deref;virtual;
@@ -156,11 +157,12 @@
 
        ppointerdef = ^tpointerdef;
        tpointerdef = object(tdef)
-          definition : pdef;
-          defsym : ptypesym;
+          pointertype : ttype;
           is_far : boolean;
-          constructor init(def : pdef);
-          constructor initfar(def : pdef);
+          constructor init(const tt : ttype);
+          constructor initfar(const tt : ttype);
+          constructor initdef(p : pdef);
+          constructor initfardef(p : pdef);
           constructor load;
           destructor  done;virtual;
           procedure write;virtual;
@@ -234,8 +236,8 @@
        public
           lowrange,
           highrange  : longint;
-          definition : pdef;
-          rangedef   : pdef;
+          elementtype,
+          rangetype  : ttype;
           IsVariant,
           IsConstructor,
           IsArrayOfConst : boolean;
@@ -289,8 +291,10 @@
 
        porddef = ^torddef;
        torddef = object(tdef)
-          low,high : longint;
+        private
           rangenr  : longint;
+        public
+          low,high : longint;
           typ      : tbasetype;
           constructor init(t : tbasetype;v,b : longint);
           constructor load;
@@ -330,7 +334,7 @@
        pabstractprocdef = ^tabstractprocdef;
        tabstractprocdef = object(tdef)
           { saves a definition to the return type }
-          retdef          : pdef;
+          rettype         : ttype;
           proctypeoption  : tproctypeoption;
           proccalloptions : tproccalloptions;
           procoptions     : tprocoptions;
@@ -342,8 +346,7 @@
           destructor done;virtual;
           procedure  write;virtual;
           procedure deref;virtual;
-          procedure concatdef(p : pdef;vsp : tvarspez);
-          procedure concattypesym(p : ptypesym;vsp : tvarspez);
+          procedure concatpara(tt:ttype;vsp : tvarspez);
           function  para_size : longint;
           function  demangled_paras : string;
           function  proccalloption2str : string;
@@ -505,10 +508,11 @@
 
        psetdef = ^tsetdef;
        tsetdef = object(tdef)
-          setof   : pdef;
+          elementtype : ttype;
           settype : tsettype;
           constructor init(s : pdef;high : longint);
           constructor load;
+          destructor  done;virtual;
           procedure write;virtual;
           procedure deref;virtual;
           function  gettypename:string;virtual;
@@ -525,7 +529,10 @@
 
 {
   $Log$
-  Revision 1.47  1999-11-17 17:05:04  pierre
+  Revision 1.48  1999-11-30 10:40:55  peter
+    + ttype, tsymlist
+
+  Revision 1.47  1999/11/17 17:05:04  pierre
    * Notes/hints changes
 
   Revision 1.46  1999/11/09 23:35:50  pierre

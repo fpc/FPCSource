@@ -177,8 +177,8 @@ implementation
                 it here before the arrayconstructor node breaks the tree
                 with its conversions of enum->ord }
               if (p^.left^.treetype=arrayconstructn) and
-                 (defcoll^.data^.deftype=setdef) then
-                p^.left:=gentypeconvnode(p^.left,defcoll^.data);
+                 (defcoll^.paratype.def^.deftype=setdef) then
+                p^.left:=gentypeconvnode(p^.left,defcoll^.paratype.def);
 
               if do_count then
                begin
@@ -207,59 +207,59 @@ implementation
                end;
               { check if local proc/func is assigned to procvar }
               if p^.left^.resulttype^.deftype=procvardef then
-                test_local_to_procvar(pprocvardef(p^.left^.resulttype),defcoll^.data);
+                test_local_to_procvar(pprocvardef(p^.left^.resulttype),defcoll^.paratype.def);
               { property is not allowed as var parameter }
               if (defcoll^.paratyp=vs_var) and
                  (p^.left^.isproperty) then
                 CGMessagePos(p^.left^.fileinfo,type_e_argument_cant_be_assigned);
               { generate the high() value tree }
-              if push_high_param(defcoll^.data) then
-                gen_high_tree(p,is_open_string(defcoll^.data));
+              if push_high_param(defcoll^.paratype.def) then
+                gen_high_tree(p,is_open_string(defcoll^.paratype.def));
               if not(is_shortstring(p^.left^.resulttype) and
-                     is_shortstring(defcoll^.data)) and
-                     (defcoll^.data^.deftype<>formaldef) then
+                     is_shortstring(defcoll^.paratype.def)) and
+                     (defcoll^.paratype.def^.deftype<>formaldef) then
                 begin
                    if (defcoll^.paratyp=vs_var) and
                    { allows conversion from word to integer and
                      byte to shortint }
                      (not(
                         (p^.left^.resulttype^.deftype=orddef) and
-                        (defcoll^.data^.deftype=orddef) and
-                        (p^.left^.resulttype^.size=defcoll^.data^.size)
+                        (defcoll^.paratype.def^.deftype=orddef) and
+                        (p^.left^.resulttype^.size=defcoll^.paratype.def^.size)
                          ) and
                    { an implicit pointer conversion is allowed }
                      not(
                         (p^.left^.resulttype^.deftype=pointerdef) and
-                        (defcoll^.data^.deftype=pointerdef)
+                        (defcoll^.paratype.def^.deftype=pointerdef)
                          ) and
                    { child classes can be also passed }
                      not(
                         (p^.left^.resulttype^.deftype=objectdef) and
-                        (defcoll^.data^.deftype=objectdef) and
-                        pobjectdef(p^.left^.resulttype)^.is_related(pobjectdef(defcoll^.data))
+                        (defcoll^.paratype.def^.deftype=objectdef) and
+                        pobjectdef(p^.left^.resulttype)^.is_related(pobjectdef(defcoll^.paratype.def))
                         ) and
                    { passing a single element to a openarray of the same type }
                      not(
-                        (is_open_array(defcoll^.data) and
-                        is_equal(parraydef(defcoll^.data)^.definition,p^.left^.resulttype))
+                        (is_open_array(defcoll^.paratype.def) and
+                        is_equal(parraydef(defcoll^.paratype.def)^.elementtype.def,p^.left^.resulttype))
                         ) and
                    { an implicit file conversion is also allowed }
                    { from a typed file to an untyped one           }
                      not(
                         (p^.left^.resulttype^.deftype=filedef) and
-                        (defcoll^.data^.deftype=filedef) and
-                        (pfiledef(defcoll^.data)^.filetype = ft_untyped) and
-                        (pfiledef(p^.left^.resulttype)^.filetype = ft_typed)
+                        (defcoll^.paratype.def^.deftype=filedef) and
+                        (pfiledef(defcoll^.paratype.def)^.filetyp = ft_untyped) and
+                        (pfiledef(p^.left^.resulttype)^.filetyp = ft_typed)
                          ) and
-                     not(is_equal(p^.left^.resulttype,defcoll^.data))) then
+                     not(is_equal(p^.left^.resulttype,defcoll^.paratype.def))) then
                        begin
                           CGMessagePos2(p^.left^.fileinfo,parser_e_call_by_ref_without_typeconv,
-                            p^.left^.resulttype^.typename,defcoll^.data^.typename);
+                            p^.left^.resulttype^.typename,defcoll^.paratype.def^.typename);
                        end;
                    { process cargs arrayconstructor }
                    if is_array_constructor(p^.left^.resulttype) then
                     begin
-                      if is_array_of_const(defcoll^.data) then
+                      if is_array_of_const(defcoll^.paratype.def) then
                        begin
                          if assigned(aktcallprocsym) and
                             (pocall_cdecl in aktcallprocsym^.definition^.proccalloptions) and
@@ -271,7 +271,7 @@ implementation
                       else
                        begin
                          p^.left^.novariaallowed:=true;
-                         p^.left^.constructdef:=parraydef(defcoll^.data)^.definition;
+                         p^.left^.constructdef:=parraydef(defcoll^.paratype.def)^.elementtype.def;
                        end;
                       old_array_constructor:=allow_array_constructor;
                       allow_array_constructor:=true;
@@ -279,17 +279,17 @@ implementation
                       allow_array_constructor:=old_array_constructor;
                     end;
                    { process open parameters }
-                   if push_high_param(defcoll^.data) then
+                   if push_high_param(defcoll^.paratype.def) then
                     begin
                       { insert type conv but hold the ranges of the array }
                       oldtype:=p^.left^.resulttype;
-                      p^.left:=gentypeconvnode(p^.left,defcoll^.data);
+                      p^.left:=gentypeconvnode(p^.left,defcoll^.paratype.def);
                       firstpass(p^.left);
                       p^.left^.resulttype:=oldtype;
                     end
                    else
                     begin
-                      p^.left:=gentypeconvnode(p^.left,defcoll^.data);
+                      p^.left:=gentypeconvnode(p^.left,defcoll^.paratype.def);
                       firstpass(p^.left);
                     end;
                    if codegenerror then
@@ -301,10 +301,10 @@ implementation
               { check var strings }
               if (cs_strict_var_strings in aktlocalswitches) and
                  is_shortstring(p^.left^.resulttype) and
-                 is_shortstring(defcoll^.data) and
+                 is_shortstring(defcoll^.paratype.def) and
                  (defcoll^.paratyp=vs_var) and
-                 not(is_open_string(defcoll^.data)) and
-                 not(is_equal(p^.left^.resulttype,defcoll^.data)) then
+                 not(is_open_string(defcoll^.paratype.def)) and
+                 not(is_equal(p^.left^.resulttype,defcoll^.paratype.def)) then
                  begin
                     aktfilepos:=p^.left^.fileinfo;
                     CGMessage(type_e_strict_var_string_violation);
@@ -314,7 +314,7 @@ implementation
               { into a register }
               { is this usefull here ? }
               { this was missing in formal parameter list   }
-              if (defcoll^.data=pdef(cformaldef)) then
+              if (defcoll^.paratype.def=pdef(cformaldef)) then
                 begin
                   if defcoll^.paratyp=vs_var then
                     begin
@@ -340,7 +340,7 @@ implementation
                    make_not_regable(p^.left);
                 end;
 
-              p^.resulttype:=defcoll^.data;
+              p^.resulttype:=defcoll^.paratype.def;
            end;
          if p^.left^.registers32>p^.registers32 then
            p^.registers32:=p^.left^.registers32;
@@ -529,7 +529,7 @@ implementation
                    if codegenerror then
                      goto errorexit;
                 end;
-              p^.resulttype:=pprocvardef(p^.right^.resulttype)^.retdef;
+              p^.resulttype:=pprocvardef(p^.right^.resulttype)^.rettype.def;
 
               { this was missing, leads to a bug below if
                 the procvar is a function }
@@ -653,9 +653,9 @@ implementation
                         hp:=procs;
                         while assigned(hp) do
                           begin
-                             if is_equal(pt,hp^.nextpara^.data) then
+                             if is_equal(pt,hp^.nextpara^.paratype.def) then
                                begin
-                                  if hp^.nextpara^.data=pt^.resulttype then
+                                  if hp^.nextpara^.paratype.def=pt^.resulttype then
                                     begin
                                        pt^.exact_match_found:=true;
                                        hp^.nextpara^.argconvtyp:=act_exact;
@@ -667,7 +667,7 @@ implementation
                              else
                                begin
                                  hp^.nextpara^.argconvtyp:=act_convertable;
-                                 hp^.nextpara^.convertlevel:=isconvertable(pt^.resulttype,hp^.nextpara^.data,
+                                 hp^.nextpara^.convertlevel:=isconvertable(pt^.resulttype,hp^.nextpara^.paratype.def,
                                      hcvt,pt^.left^.treetype,false);
                                  case hp^.nextpara^.convertlevel of
                                   1 : pt^.convlevel1found:=true;
@@ -715,7 +715,7 @@ implementation
                                  else
                                   begin
                                     { save the type for nice error message }
-                                    lastparatype:=hp^.nextpara^.data;
+                                    lastparatype:=hp^.nextpara^.paratype.def;
                                     dispose(hp);
                                   end;
                                  hp:=hp2;
@@ -780,9 +780,9 @@ implementation
                              hp:=procs;
                              while assigned(hp) do
                                begin
-                                  if not is_equal(pt,hp^.nextpara^.data) then
+                                  if not is_equal(pt,hp^.nextpara^.paratype.def) then
                                     begin
-                                       def_to:=hp^.nextpara^.data;
+                                       def_to:=hp^.nextpara^.paratype.def;
                                        if ((def_from^.deftype=orddef) and (def_to^.deftype=orddef)) and
                                          (is_in_limit(def_from,def_to) or
                                          ((hp^.nextpara^.paratyp=vs_var) and
@@ -799,7 +799,7 @@ implementation
                              if exactmatch then
                                begin
                                   { the first .... }
-                                  while (assigned(procs)) and not(is_in_limit(def_from,procs^.nextpara^.data)) do
+                                  while (assigned(procs)) and not(is_in_limit(def_from,procs^.nextpara^.paratype.def)) do
                                     begin
                                        hp:=procs^.next;
                                        dispose(procs);
@@ -809,7 +809,7 @@ implementation
                                   hp:=procs;
                                   while (assigned(hp)) and assigned(hp^.next) do
                                     begin
-                                       if not(is_in_limit(def_from,hp^.next^.nextpara^.data)) then
+                                       if not(is_in_limit(def_from,hp^.next^.nextpara^.paratype.def)) then
                                          begin
                                             hp2:=hp^.next^.next;
                                             dispose(hp^.next);
@@ -817,7 +817,7 @@ implementation
                                          end
                                        else
                                          begin
-                                           def_to:=hp^.next^.nextpara^.data;
+                                           def_to:=hp^.next^.nextpara^.paratype.def;
                                            if (conv_to^.size>def_to^.size) or
                                               ((porddef(conv_to)^.low<porddef(def_to)^.low) and
                                               (porddef(conv_to)^.high>porddef(def_to)^.high)) then
@@ -958,7 +958,7 @@ implementation
                      end;
 
                    p^.procdefinition:=procs^.data;
-                   p^.resulttype:=procs^.data^.retdef;
+                   p^.resulttype:=procs^.data^.rettype.def;
                    { big error for with statements
                    p^.symtableproc:=p^.procdefinition^.owner;
                    but neede for overloaded operators !! }
@@ -1066,7 +1066,7 @@ implementation
 {$endif}
            end;
          { ensure that the result type is set }
-         p^.resulttype:=p^.procdefinition^.retdef;
+         p^.resulttype:=p^.procdefinition^.rettype.def;
          { get a register for the return value }
          if (p^.resulttype<>pdef(voiddef)) then
            begin
@@ -1080,7 +1080,7 @@ implementation
                         p^.location.loc:=LOC_REGISTER;
                         p^.registers32:=1;
                         { the result type depends on the classref }
-                        p^.resulttype:=pclassrefdef(p^.methodpointer^.resulttype)^.definition;
+                        p^.resulttype:=pclassrefdef(p^.methodpointer^.resulttype)^.pointertype.def;
                      end
                   { a object constructor returns the result with the flags }
                    else
@@ -1221,7 +1221,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.73  1999-11-18 15:34:49  pierre
+  Revision 1.74  1999-11-30 10:40:57  peter
+    + ttype, tsymlist
+
+  Revision 1.73  1999/11/18 15:34:49  pierre
     * Notes/Hints for local syms changed to
       Set_varstate function
 

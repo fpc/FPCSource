@@ -798,7 +798,7 @@ Begin
                   typedconstsym :
                     l:=ptypedconstsym(srsym)^.getsize;
                   typesym :
-                    l:=ptypesym(srsym)^.definition^.size;
+                    l:=ptypesym(srsym)^.restype.def^.size;
                   else
                     Message(asmr_e_wrong_sym_type);
                 end;
@@ -1653,9 +1653,9 @@ Begin
   Message1(asmr_d_start_reading,'intel');
   inexpression:=FALSE;
   firsttoken:=TRUE;
-  if assigned(procinfo^.retdef) and
-     (is_fpu(procinfo^.retdef) or
-     ret_in_acc(procinfo^.retdef)) then
+  if assigned(procinfo^.returntype.def) and
+     (is_fpu(procinfo^.returntype.def) or
+     ret_in_acc(procinfo^.returntype.def)) then
     procinfo^.funcret_state:=vs_assigned;
  { sets up all opcode and register tables in uppercase }
   if not _asmsorted then
@@ -1772,7 +1772,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.53  1999-11-17 17:05:03  pierre
+  Revision 1.54  1999-11-30 10:40:53  peter
+    + ttype, tsymlist
+
+  Revision 1.53  1999/11/17 17:05:03  pierre
    * Notes/hints changes
 
   Revision 1.52  1999/11/09 23:06:46  peter

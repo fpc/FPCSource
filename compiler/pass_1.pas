@@ -122,7 +122,7 @@ implementation
                    { Funktionsresultate an exit anh„ngen }
                    { this is wrong for string or other complex
                      result types !!! }
-                   if ret_in_acc(procinfo^.retdef) and
+                   if ret_in_acc(procinfo^.returntype.def) and
                       assigned(hp^.left) and
                       (hp^.left^.right^.treetype=exitn) and
                       (hp^.right^.treetype=assignn) and
@@ -371,7 +371,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.109  1999-11-18 15:34:47  pierre
+  Revision 1.110  1999-11-30 10:40:44  peter
+    + ttype, tsymlist
+
+  Revision 1.109  1999/11/18 15:34:47  pierre
     * Notes/Hints for local syms changed to
       Set_varstate function
 

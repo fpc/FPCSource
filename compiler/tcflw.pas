@@ -344,7 +344,7 @@ implementation
               if ret_in_param(p^.resulttype) then
                 begin
                   pt:=genzeronode(funcretn);
-                  pt^.retdef:=p^.resulttype;
+                  pt^.rettype.setdef(p^.resulttype);
                   pt^.funcretprocinfo:=procinfo;
                   p^.left:=gennode(assignn,pt,p^.left);
                   firstpass(p^.left);
@@ -514,7 +514,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.26  1999-11-18 15:34:49  pierre
+  Revision 1.27  1999-11-30 10:40:58  peter
+    + ttype, tsymlist
+
+  Revision 1.26  1999/11/18 15:34:49  pierre
     * Notes/Hints for local syms changed to
       Set_varstate function
 

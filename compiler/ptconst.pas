@@ -200,11 +200,11 @@ unit ptconst;
               case p^.treetype of
                  loadvmtn:
                    begin
-                      if not(pobjectdef(pclassrefdef(p^.resulttype)^.definition)^.is_related(
-                        pobjectdef(pclassrefdef(def)^.definition))) then
+                      if not(pobjectdef(pclassrefdef(p^.resulttype)^.pointertype.def)^.is_related(
+                        pobjectdef(pclassrefdef(def)^.pointertype.def))) then
                         Message(cg_e_illegal_expression);
                       curconstsegment^.concat(new(pai_const_symbol,init(newasmsymbol(pobjectdef(
-                        pclassrefdef(p^.resulttype)^.definition)^.vmt_mangledname))));
+                        pclassrefdef(p^.resulttype)^.pointertype.def)^.vmt_mangledname))));
                    end;
                  niln:
                    curconstsegment^.concat(new(pai_const,init_32bit(0)));
@@ -237,8 +237,7 @@ unit ptconst;
                 curconstsegment^.concat(new(pai_const,init_32bit(0)))
               { maybe pchar ? }
               else
-                if (ppointerdef(def)^.definition^.deftype=orddef) and
-                   (porddef(ppointerdef(def)^.definition)^.typ=uchar) and
+                if is_char(ppointerdef(def)^.pointertype.def) and
                    (p^.treetype<>addrn) then
                   begin
                     getdatalabel(ll);
@@ -262,9 +261,9 @@ unit ptconst;
                     hp:=p^.left;
                     while assigned(hp) and (hp^.treetype in [subscriptn,vecn]) do
                       hp:=hp^.left;
-                    if (is_equal(ppointerdef(p^.resulttype)^.definition,ppointerdef(def)^.definition) or
-                       (is_equal(ppointerdef(p^.resulttype)^.definition,voiddef)) or
-                       (is_equal(ppointerdef(def)^.definition,voiddef))) and
+                    if (is_equal(ppointerdef(p^.resulttype)^.pointertype.def,ppointerdef(def)^.pointertype.def) or
+                       (is_equal(ppointerdef(p^.resulttype)^.pointertype.def,voiddef)) or
+                       (is_equal(ppointerdef(def)^.pointertype.def,voiddef))) and
                        (hp^.treetype=loadn) then
                       begin
                         do_firstpass(p^.left);
@@ -312,7 +311,7 @@ unit ptconst;
                                begin
                                   consume(_POINT);
                                   lsym:=pvarsym(precdef(
-                                        ppointerdef(p^.resulttype)^.definition)^.symtable^.search(pattern));
+                                        ppointerdef(p^.resulttype)^.pointertype.def)^.symtable^.search(pattern));
                                   if assigned(sym) then
                                     offset:=offset+lsym^.address
                                   else
@@ -510,15 +509,15 @@ unit ptconst;
                     consume(_LKLAMMER);
                     for l:=parraydef(def)^.lowrange to parraydef(def)^.highrange-1 do
                       begin
-                         readtypedconst(parraydef(def)^.definition,nil,no_change_allowed);
+                         readtypedconst(parraydef(def)^.elementtype.def,nil,no_change_allowed);
                          consume(_COMMA);
                       end;
-                    readtypedconst(parraydef(def)^.definition,nil,no_change_allowed);
+                    readtypedconst(parraydef(def)^.elementtype.def,nil,no_change_allowed);
                     consume(_RKLAMMER);
                  end
               else
               { if array of char then we allow also a string }
-               if is_char(parraydef(def)^.definition) then
+               if is_char(parraydef(def)^.elementtype.def) then
                 begin
                    p:=comp_expr(true);
                    do_firstpass(p);
@@ -673,10 +672,10 @@ unit ptconst;
                             curconstsegment^.concat(new(pai_const,init_8bit(0)));
 
                         { new position }
-                        aktpos:=pvarsym(srsym)^.address+pvarsym(srsym)^.definition^.size;
+                        aktpos:=pvarsym(srsym)^.address+pvarsym(srsym)^.vartype.def^.size;
 
                         { read the data }
-                        readtypedconst(pvarsym(srsym)^.definition,nil,no_change_allowed);
+                        readtypedconst(pvarsym(srsym)^.vartype.def,nil,no_change_allowed);
 
                         if token=_SEMICOLON then
                           consume(_SEMICOLON)
@@ -735,10 +734,10 @@ unit ptconst;
                                  curconstsegment^.concat(new(pai_const,init_8bit(0)));
 
                              { new position }
-                             aktpos:=pvarsym(srsym)^.address+pvarsym(srsym)^.definition^.size;
+                             aktpos:=pvarsym(srsym)^.address+pvarsym(srsym)^.vartype.def^.size;
 
                              { read the data }
-                             readtypedconst(pvarsym(srsym)^.definition,nil,no_change_allowed);
+                             readtypedconst(pvarsym(srsym)^.vartype.def,nil,no_change_allowed);
 
                              if token=_SEMICOLON then
                                consume(_SEMICOLON)
@@ -765,7 +764,10 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.58  1999-11-08 18:50:11  florian
+  Revision 1.59  1999-11-30 10:40:51  peter
+    + ttype, tsymlist
+
+  Revision 1.58  1999/11/08 18:50:11  florian
     * disposetree for classrefdef added
 
   Revision 1.57  1999/11/08 16:24:28  pierre

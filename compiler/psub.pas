@@ -134,7 +134,7 @@ begin
      procstartfilepos:=tokenpos;
      { qualifier is class name ? }
      if (sym^.typ<>typesym) or
-        (ptypesym(sym)^.definition^.deftype<>objectdef) then
+        (ptypesym(sym)^.restype.def^.deftype<>objectdef) then
        begin
           Message(parser_e_class_id_expected);
           aktprocsym:=nil;
@@ -143,8 +143,8 @@ begin
      else
        begin
           { used to allow private syms to be seen }
-          aktobjectdef:=pobjectdef(ptypesym(sym)^.definition);
-          procinfo^._class:=pobjectdef(ptypesym(sym)^.definition);
+          aktobjectdef:=pobjectdef(ptypesym(sym)^.restype.def);
+          procinfo^._class:=pobjectdef(ptypesym(sym)^.restype.def);
           aktprocsym:=pprocsym(procinfo^._class^.symtable^.search(sp));
           consume(_ID);
           {The procedure has been found. So it is
@@ -392,7 +392,7 @@ begin
                     begin
                       consume(_COLON);
                       inc(testcurobject);
-                      aktprocsym^.definition^.retdef:=single_type(hs,false);
+                      single_type(aktprocsym^.definition^.rettype,hs,false);
                       aktprocsym^.definition^.test_if_fpu_result;
                       dec(testcurobject);
                     end;
@@ -400,7 +400,7 @@ begin
     _PROCEDURE : begin
                    consume(_PROCEDURE);
                    parse_proc_head(potype_none);
-                   aktprocsym^.definition^.retdef:=voiddef;
+                   aktprocsym^.definition^.rettype.def:=voiddef;
                  end;
   _CONSTRUCTOR : begin
                    consume(_CONSTRUCTOR);
@@ -409,23 +409,23 @@ begin
                       procinfo^._class^.is_class then
                     begin
                       { CLASS constructors return the created instance }
-                      aktprocsym^.definition^.retdef:=procinfo^._class;
+                      aktprocsym^.definition^.rettype.def:=procinfo^._class;
                     end
                    else
                     begin
                       { OBJECT constructors return a boolean }
 {$IfDef GDB}
                       { GDB doesn't like unnamed types !}
-                      aktprocsym^.definition^.retdef:=globaldef('boolean');
+                      aktprocsym^.definition^.rettype.def:=globaldef('boolean');
 {$else GDB}
-                      aktprocsym^.definition^.retdef:=new(porddef,init(bool8bit,0,1));
+                      aktprocsym^.definition^.rettype.def:=new(porddef,init(bool8bit,0,1));
 {$Endif GDB}
                     end;
                  end;
    _DESTRUCTOR : begin
                    consume(_DESTRUCTOR);
                    parse_proc_head(potype_destructor);
-                   aktprocsym^.definition^.retdef:=voiddef;
+                   aktprocsym^.definition^.rettype.def:=voiddef;
                  end;
      _OPERATOR : begin
                    if lexlevel>normal_function_level then
@@ -445,27 +445,26 @@ begin
                      end
                    else
                      begin
-                       opsym:=new(pvarsym,init(pattern,voiddef));
+                       opsym:=new(pvarsym,initdef(pattern,voiddef));
                        consume(_ID);
                      end;
                    if not try_to_consume(_COLON) then
                      begin
                        consume(_COLON);
-                       aktprocsym^.definition^.retdef:=generrordef;
+                       aktprocsym^.definition^.rettype.def:=generrordef;
                        consume_all_until(_SEMICOLON);
                      end
                    else
                     begin
-                      aktprocsym^.definition^.retdef:=
-                       single_type(hs,false);
+                      single_type(aktprocsym^.definition^.rettype,hs,false);
                       aktprocsym^.definition^.test_if_fpu_result;
                       if (optoken in [_EQUAL,_GT,_LT,_GTE,_LTE]) and
-                         ((aktprocsym^.definition^.retdef^.deftype<>
+                         ((aktprocsym^.definition^.rettype.def^.deftype<>
                          orddef) or (porddef(aktprocsym^.definition^.
-                         retdef)^.typ<>bool8bit)) then
+                         rettype.def)^.typ<>bool8bit)) then
                         Message(parser_e_comparative_operator_return_boolean);
                        if assigned(opsym) then
-                         opsym^.definition:=aktprocsym^.definition^.retdef;
+                         opsym^.vartype.def:=aktprocsym^.definition^.rettype.def;
                        { We need to add the retrun type in the mangledname
                          to allow overloading with just different results !! (PM) }
                        aktprocsym^.definition^.setmangledname(
@@ -1196,7 +1195,7 @@ begin
               (equal_paras(aktprocsym^.definition^.para,pd^.nextoverloaded^.para,false) and
               { for operators equal_paras is not enough !! }
               ((aktprocsym^.definition^.proctypeoption<>potype_operator) or (optoken<>_ASSIGNMENT) or
-               is_equal(pd^.nextoverloaded^.retdef,aktprocsym^.definition^.retdef))) then
+               is_equal(pd^.nextoverloaded^.rettype.def,aktprocsym^.definition^.rettype.def))) then
              begin
                if pd^.nextoverloaded^.forwarddef then
                { remove the forward definition  but don't delete it,      }
@@ -1205,7 +1204,7 @@ begin
                    hd:=pd^.nextoverloaded;
                  { Check if the procedure type and return type are correct }
                    if (hd^.proctypeoption<>aktprocsym^.definition^.proctypeoption) or
-                      (not(is_equal(hd^.retdef,aktprocsym^.definition^.retdef)) and
+                      (not(is_equal(hd^.rettype.def,aktprocsym^.definition^.rettype.def)) and
                       (m_repeat_forward in aktmodeswitches)) then
                      begin
                        Message1(parser_e_header_dont_match_forward,aktprocsym^.demangledName);
@@ -1342,7 +1341,7 @@ begin
   if ((procinfo^.flags and pi_operator)<>0) and assigned(opsym)
      and not parse_only then
     begin
-      if ret_in_param(aktprocsym^.definition^.retdef) then
+      if ret_in_param(aktprocsym^.definition^.rettype.def) then
         begin
           pprocdef(aktprocsym^.definition)^.parast^.insert(opsym);
         { this increases the data size }
@@ -1492,9 +1491,9 @@ begin
    { but only if the are no local variables           }
    { already done in assembler_block }
 {$ifdef newcg}
-   tg.setfirsttemp(procinfo^.firsttemp);
+   tg.setfirsttemp(procinfo^.firsttemp_offset);
 {$else newcg}
-   setfirsttemp(procinfo^.firsttemp);
+   setfirsttemp(procinfo^.firsttemp_offset);
 {$endif newcg}
 
    { ... and generate assembler }
@@ -1711,11 +1710,11 @@ begin
   aktprocsym:=new(pprocsym,init(sym^.name));
   case sym^.typ of
     varsym :
-      pd:=pabstractprocdef(pvarsym(sym)^.definition);
+      pd:=pabstractprocdef(pvarsym(sym)^.vartype.def);
     typedconstsym :
-      pd:=pabstractprocdef(ptypedconstsym(sym)^.definition);
+      pd:=pabstractprocdef(ptypedconstsym(sym)^.typedconsttype.def);
     typesym :
-      pd:=pabstractprocdef(ptypesym(sym)^.definition);
+      pd:=pabstractprocdef(ptypesym(sym)^.restype.def);
     else
       internalerror(994932432);
   end;
@@ -1760,11 +1759,15 @@ begin
         s:=Copy(name,4,255);
         if not(po_assembler in aktprocsym^.definition^.procoptions) then
          begin
-           vs:=new(Pvarsym,init(s,definition));
+           vs:=new(Pvarsym,initdef(s,vartype.def));
            vs^.fileinfo:=fileinfo;
            vs^.varspez:=varspez;
            aktprocsym^.definition^.localst^.insert(vs);
-           vs^.islocalcopy:=true;
+{$ifdef INCLUDEOK}
+           include(vs^.varoptions,vo_is_local_copy);
+{$else}
+           vs^.varoptions:=vs^.varoptions+[vo_is_local_copy];
+{$endif}
            vs^.varstate:=vs_assigned;
            localvarsym:=vs;
            inc(refs); { the para was used to set the local copy ! }
@@ -1872,12 +1875,12 @@ begin
 
 { set return type here, becuase the aktprocsym^.definition can be
   changed by check_identical (PFV) }
-   procinfo^.retdef:=aktprocsym^.definition^.retdef;
+   procinfo^.returntype.def:=aktprocsym^.definition^.rettype.def;
 
    { pointer to the return value ? }
-   if ret_in_param(procinfo^.retdef) then
+   if ret_in_param(procinfo^.returntype.def) then
     begin
-      procinfo^.retoffset:=procinfo^.call_offset;
+      procinfo^.return_offset:=procinfo^.call_offset;
       inc(procinfo^.call_offset,target_os.size_of_pointer);
     end;
    { allows to access the parameters of main functions in nested functions }
@@ -1938,7 +1941,10 @@ end.
 
 {
   $Log$
-  Revision 1.36  1999-11-22 00:23:09  pierre
+  Revision 1.37  1999-11-30 10:40:48  peter
+    + ttype, tsymlist
+
+  Revision 1.36  1999/11/22 00:23:09  pierre
    * also complain about unused functions in program
 
   Revision 1.35  1999/11/17 17:05:02  pierre

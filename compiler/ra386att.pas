@@ -85,10 +85,8 @@ const
 const
   newline = #10;
   firsttoken : boolean = TRUE;
-{  charcount  : byte = 0;}
 var
-  _asmsorted,
-  inexpression   : boolean;
+  _asmsorted     : boolean;
   curlist        : paasmoutput;
   c              : char;
   actasmtoken    : tasmtoken;
@@ -236,16 +234,12 @@ end;
 
 Procedure GetToken;
 var
-  forcelabel: boolean;
-  errorflag : boolean;
   len : longint;
 begin
   { save old token and reset new token }
   prevasmtoken:=actasmtoken;
   actasmtoken:=AS_NONE;
   { reset }
-  errorflag:=FALSE;
-  forcelabel:=FALSE;
   actasmpattern:='';
   { while space and tab , continue scan... }
   while c in [' ',#9] do
@@ -778,7 +772,6 @@ Begin
   errorflag:=FALSE;
   tempstr:='';
   expr:='';
-  inexpression:=TRUE;
   parenlevel:=0;
   Repeat
     Case actasmtoken of
@@ -985,8 +978,6 @@ Begin
     value:=CalculateExpression(expr)
   else
     value:=0;
-  { no longer in an expression }
-  inexpression:=FALSE;
 end;
 
 
@@ -1274,12 +1265,10 @@ var
   end;
 
 var
-  tempstr : string;
   tempreg : tregister;
   hl      : PAsmLabel;
   l       : longint;
 Begin
-  tempstr:='';
   expr:='';
   case actasmtoken of
     AS_LPAREN: { Memory reference or constant expression }
@@ -1481,9 +1470,7 @@ Procedure T386AttInstruction.BuildOpCode;
 var
   operandnum : longint;
   PrefixOp,OverrideOp: tasmop;
-  expr : string;
 Begin
-  expr:='';
   PrefixOp:=A_None;
   OverrideOp:=A_None;
   { prefix seg opcode / prefix opcode }
@@ -1565,7 +1552,6 @@ end;
 
 Procedure BuildConstant(maxvalue: longint);
 var
- strlength: byte;
  asmsym,
  expr: string;
  value : longint;
@@ -1574,10 +1560,6 @@ Begin
     Case actasmtoken of
       AS_STRING:
         Begin
-          if maxvalue = $ff then
-           strlength:=1
-          else
-           Message(asmr_e_string_not_allowed_as_const);
           expr:=actasmpattern;
           if length(expr) > 1 then
            Message(asmr_e_string_not_allowed_as_const);
@@ -1745,9 +1727,9 @@ Var
 Begin
   Message1(asmr_d_start_reading,'AT&T');
   firsttoken:=TRUE;
-  if assigned(procinfo^.retdef) and
-     (is_fpu(procinfo^.retdef) or
-     ret_in_acc(procinfo^.retdef)) then
+  if assigned(procinfo^.returntype.def) and
+     (is_fpu(procinfo^.returntype.def) or
+     ret_in_acc(procinfo^.returntype.def)) then
     procinfo^.funcret_state:=vs_assigned;
   { sets up all opcode and register tables in uppercase }
   if not _asmsorted then
@@ -1992,7 +1974,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.63  1999-11-17 17:05:03  pierre
+  Revision 1.64  1999-11-30 10:40:52  peter
+    + ttype, tsymlist
+
+  Revision 1.63  1999/11/17 17:05:03  pierre
    * Notes/hints changes
 
   Revision 1.62  1999/11/09 23:06:46  peter

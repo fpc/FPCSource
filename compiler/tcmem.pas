@@ -122,7 +122,7 @@ implementation
          if p^.left^.location.loc=LOC_CREGISTER then
            inc(p^.registers32);
          p^.location.loc:=LOC_REFERENCE;
-         p^.resulttype:=ppointerdef(p^.left^.resulttype)^.definition;
+         p^.resulttype:=ppointerdef(p^.left^.resulttype)^.pointertype.def;
       end;
 
 
@@ -251,14 +251,14 @@ implementation
 
                     { it could also be a procvar, not only pprocsym ! }
                        if p^.left^.symtableprocentry^.typ=varsym then
-                        hp3:=pabstractprocdef(pvarsym(p^.left^.symtableentry)^.definition)
+                        hp3:=pabstractprocdef(pvarsym(p^.left^.symtableentry)^.vartype.def)
                        else
                         hp3:=pabstractprocdef(pprocsym(p^.left^.symtableprocentry)^.definition);
 
                        pprocvardef(p^.resulttype)^.proctypeoption:=hp3^.proctypeoption;
                        pprocvardef(p^.resulttype)^.proccalloptions:=hp3^.proccalloptions;
                        pprocvardef(p^.resulttype)^.procoptions:=hp3^.procoptions;
-                       pprocvardef(p^.resulttype)^.retdef:=hp3^.retdef;
+                       pprocvardef(p^.resulttype)^.rettype:=hp3^.rettype;
                        pprocvardef(p^.resulttype)^.symtablelevel:=hp3^.symtablelevel;
 
                      { method ? then set the methodpointer flag }
@@ -274,7 +274,7 @@ implementation
                        hp2:=pparaitem(hp3^.para^.last);
                        while assigned(hp2) do
                          begin
-                            pprocvardef(p^.resulttype)^.concatdef(hp2^.data,hp2^.paratyp);
+                            pprocvardef(p^.resulttype)^.concatpara(hp2^.paratype,hp2^.paratyp);
                             hp2:=pparaitem(hp2^.previous);
                          end;
                     end
@@ -297,14 +297,14 @@ implementation
                      if not(cs_typed_addresses in aktlocalswitches) then
                        p^.resulttype:=voidfarpointerdef
                      else
-                       p^.resulttype:=new(ppointerdef,initfar(p^.left^.resulttype));
+                       p^.resulttype:=new(ppointerdef,initfardef(p^.left^.resulttype));
                    end
                   else
                    begin
                      if not(cs_typed_addresses in aktlocalswitches) then
                        p^.resulttype:=voidpointerdef
                      else
-                       p^.resulttype:=new(ppointerdef,init(p^.left^.resulttype));
+                       p^.resulttype:=new(ppointerdef,initdef(p^.left^.resulttype));
                    end;
                 end;
            end;
@@ -400,7 +400,7 @@ implementation
          if p^.left^.resulttype^.deftype<>pointerdef then
           CGMessage(cg_e_invalid_qualifier);
 
-         p^.resulttype:=ppointerdef(p^.left^.resulttype)^.definition;
+         p^.resulttype:=ppointerdef(p^.left^.resulttype)^.pointertype.def;
          p^.location.loc:=LOC_REFERENCE;
       end;
 
@@ -417,7 +417,7 @@ implementation
              p^.resulttype:=generrordef;
              exit;
            end;
-         p^.resulttype:=p^.vs^.definition;
+         p^.resulttype:=p^.vs^.vartype.def;
 
          p^.registers32:=p^.left^.registers32;
          p^.registersfpu:=p^.left^.registersfpu;
@@ -462,9 +462,9 @@ implementation
          { range check only for arrays }
          if (p^.left^.resulttype^.deftype=arraydef) then
            begin
-              if (isconvertable(p^.right^.resulttype,parraydef(p^.left^.resulttype)^.rangedef,
+              if (isconvertable(p^.right^.resulttype,parraydef(p^.left^.resulttype)^.rangetype.def,
                     ct,ordconstn,false)=0) and
-                 not(is_equal(p^.right^.resulttype,parraydef(p^.left^.resulttype)^.rangedef)) then
+                 not(is_equal(p^.right^.resulttype,parraydef(p^.left^.resulttype)^.rangetype.def)) then
                 CGMessage(type_e_mismatch);
            end;
          { Never convert a boolean or a char !}
@@ -482,12 +482,12 @@ implementation
          { determine return type }
          if not assigned(p^.resulttype) then
            if p^.left^.resulttype^.deftype=arraydef then
-             p^.resulttype:=parraydef(p^.left^.resulttype)^.definition
+             p^.resulttype:=parraydef(p^.left^.resulttype)^.elementtype.def
            else if (p^.left^.resulttype^.deftype=pointerdef) then
              begin
                 { convert pointer to array }
                 harr:=new(parraydef,init(0,$7fffffff,s32bitdef));
-                parraydef(harr)^.definition:=ppointerdef(p^.left^.resulttype)^.definition;
+                parraydef(harr)^.elementtype.def:=ppointerdef(p^.left^.resulttype)^.pointertype.def;
                 p^.left:=gentypeconvnode(p^.left,harr);
 
                 firstpass(p^.left);
@@ -496,7 +496,7 @@ implementation
                   begin
                     exit;
                   end;
-                p^.resulttype:=parraydef(harr)^.definition
+                p^.resulttype:=parraydef(harr)^.elementtype.def
              end
            else if p^.left^.resulttype^.deftype=stringdef then
              begin
@@ -640,7 +640,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.35  1999-11-29 22:36:48  florian
+  Revision 1.36  1999-11-30 10:40:58  peter
+    + ttype, tsymlist
+
+  Revision 1.35  1999/11/29 22:36:48  florian
     * problem with taking the address of abstract procedures fixed
 
   Revision 1.34  1999/11/18 15:34:51  pierre

@@ -2488,10 +2488,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 
     begin
        if (psym(p)^.typ=varsym) and
-          assigned(pvarsym(p)^.definition) and
-          not((pvarsym(p)^.definition^.deftype=objectdef) and
-            pobjectdef(pvarsym(p)^.definition)^.is_class) and
-          pvarsym(p)^.definition^.needs_inittable then
+          assigned(pvarsym(p)^.vartype.def) and
+          not((pvarsym(p)^.vartype.def^.deftype=objectdef) and
+            pobjectdef(pvarsym(p)^.vartype.def)^.is_class) and
+          pvarsym(p)^.vartype.def^.needs_inittable then
          begin
             procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
             reset_reference(hr);
@@ -2504,7 +2504,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
               begin
                  hr.symbol:=newasmsymbol(pvarsym(p)^.mangledname);
               end;
-            initialize(pvarsym(p)^.definition,hr,false);
+            initialize(pvarsym(p)^.vartype.def,hr,false);
          end;
     end;
 
@@ -2516,16 +2516,16 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 
     begin
        if (psym(p)^.typ=varsym) and
-          not((pvarsym(p)^.definition^.deftype=objectdef) and
-            pobjectdef(pvarsym(p)^.definition)^.is_class) and
-          pvarsym(p)^.definition^.needs_inittable and
+          not((pvarsym(p)^.vartype.def^.deftype=objectdef) and
+            pobjectdef(pvarsym(p)^.vartype.def)^.is_class) and
+          pvarsym(p)^.vartype.def^.needs_inittable and
           ((pvarsym(p)^.varspez=vs_value) {or
            (pvarsym(p)^.varspez=vs_const) and
            not(dont_copy_const_param(pvarsym(p)^.definition))}) then
          begin
             procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
             reset_reference(hr);
-            hr.symbol:=pvarsym(p)^.definition^.get_inittable_label;
+            hr.symbol:=pvarsym(p)^.vartype.def^.get_inittable_label;
             emitpushreferenceaddr(hr);
             reset_reference(hr);
             hr.base:=procinfo^.framepointer;
@@ -2546,10 +2546,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 
     begin
        if (psym(p)^.typ=varsym) and
-          assigned(pvarsym(p)^.definition) and
-          not((pvarsym(p)^.definition^.deftype=objectdef) and
-          pobjectdef(pvarsym(p)^.definition)^.is_class) and
-          pvarsym(p)^.definition^.needs_inittable then
+          assigned(pvarsym(p)^.vartype.def) and
+          not((pvarsym(p)^.vartype.def^.deftype=objectdef) and
+          pobjectdef(pvarsym(p)^.vartype.def)^.is_class) and
+          pvarsym(p)^.vartype.def^.needs_inittable then
          begin
             { not all kind of parameters need to be finalized  }
             if (psym(p)^.owner^.symtabletype=parasymtable) and
@@ -2573,7 +2573,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                else
                  hr.symbol:=newasmsymbol(pvarsym(p)^.mangledname);
             end;
-            finalize(pvarsym(p)^.definition,hr,false);
+            finalize(pvarsym(p)^.vartype.def,hr,false);
          end;
     end;
 
@@ -2589,10 +2589,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
     begin
        if (psym(p)^.typ=varsym) and
           (pvarsym(p)^.varspez=vs_value) and
-          (push_addr_param(pvarsym(p)^.definition)) then
+          (push_addr_param(pvarsym(p)^.vartype.def)) then
         begin
-          if is_open_array(pvarsym(p)^.definition) or
-             is_array_of_const(pvarsym(p)^.definition) then
+          if is_open_array(pvarsym(p)^.vartype.def) or
+             is_array_of_const(pvarsym(p)^.vartype.def) then
            begin
               { get stack space }
               new(r);
@@ -2607,7 +2607,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 
               exprasmlist^.concat(new(paicpu,
                 op_const_reg(A_IMUL,S_L,
-                parraydef(pvarsym(p)^.definition)^.definition^.size,R_EDI)));
+                parraydef(pvarsym(p)^.vartype.def)^.elementtype.def^.size,R_EDI)));
 {$ifndef NOTARGETWIN32}
               { windows guards only a few pages for stack growing, }
               { so we have to access every page first              }
@@ -2643,7 +2643,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 
                    exprasmlist^.concat(new(paicpu,
                      op_const_reg(A_IMUL,S_L,
-                     parraydef(pvarsym(p)^.definition)^.definition^.size,R_EDI)));
+                     parraydef(pvarsym(p)^.vartype.def)^.elementtype.def^.size,R_EDI)));
                 end
               else
 {$endif NOTARGETWIN32}
@@ -2682,7 +2682,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                 op_reg(A_INC,S_L,R_ECX)));
 
               { calculate size }
-              len:=parraydef(pvarsym(p)^.definition)^.definition^.size;
+              len:=parraydef(pvarsym(p)^.vartype.def)^.elementtype.def^.size;
               opsize:=S_B;
               if (len and 3)=0 then
                begin
@@ -2719,7 +2719,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                 op_reg_ref(A_MOV,S_L,R_ESP,r)));
            end
           else
-           if is_shortstring(pvarsym(p)^.definition) then
+           if is_shortstring(pvarsym(p)^.vartype.def) then
             begin
               reset_reference(href1);
               href1.base:=procinfo^.framepointer;
@@ -2727,7 +2727,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
               reset_reference(href2);
               href2.base:=procinfo^.framepointer;
               href2.offset:=-pvarsym(p)^.localvarsym^.address;
-              copyshortstring(href2,href1,pstringdef(pvarsym(p)^.definition)^.len,true);
+              copyshortstring(href2,href1,pstringdef(pvarsym(p)^.vartype.def)^.len,true);
             end
            else
             begin
@@ -2737,7 +2737,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
               reset_reference(href2);
               href2.base:=procinfo^.framepointer;
               href2.offset:=-pvarsym(p)^.localvarsym^.address;
-              concatcopy(href1,href2,pvarsym(p)^.definition^.size,true,true);
+              concatcopy(href1,href2,pvarsym(p)^.vartype.def^.size,true,true);
             end;
         end;
     end;
@@ -3020,16 +3020,16 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
           generate_interrupt_stackframe_entry;
 
       { initialize return value }
-      if (procinfo^.retdef<>pdef(voiddef)) and
-        (procinfo^.retdef^.needs_inittable) and
-        ((procinfo^.retdef^.deftype<>objectdef) or
-        not(pobjectdef(procinfo^.retdef)^.is_class)) then
+      if (procinfo^.returntype.def<>pdef(voiddef)) and
+        (procinfo^.returntype.def^.needs_inittable) and
+        ((procinfo^.returntype.def^.deftype<>objectdef) or
+        not(pobjectdef(procinfo^.returntype.def)^.is_class)) then
         begin
            procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
            reset_reference(r);
-           r.offset:=procinfo^.retoffset;
+           r.offset:=procinfo^.return_offset;
            r.base:=procinfo^.framepointer;
-           initialize(procinfo^.retdef,r,ret_in_param(procinfo^.retdef));
+           initialize(procinfo^.returntype.def,r,ret_in_param(procinfo^.returntype.def));
         end;
 
       { generate copies of call by value parameters }
@@ -3062,14 +3062,13 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
             emitjmp(C_NE,aktexitlabel);
         end;
 
-
-      if (cs_profile in aktmoduleswitches) or
-         (aktprocsym^.definition^.owner^.symtabletype=globalsymtable) or
-         (assigned(procinfo^._class) and (procinfo^._class^.owner^.symtabletype=globalsymtable)) then
-           make_global:=true;
-
       if not inlined then
        begin
+         if (cs_profile in aktmoduleswitches) or
+            (aktprocsym^.definition^.owner^.symtabletype=globalsymtable) or
+            (assigned(procinfo^._class) and (procinfo^._class^.owner^.symtabletype=globalsymtable)) then
+              make_global:=true;
+
          hs:=proc_names.get;
 
 {$ifdef GDB}
@@ -3095,24 +3094,21 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 
             hs:=proc_names.get;
           end;
-       end;
+
+         if make_global or ((procinfo^.flags and pi_is_global) <> 0) then
+          aktprocsym^.is_global := True;
 
 {$ifdef GDB}
-      if (not inlined) and (cs_debuginfo in aktmoduleswitches) then
-       begin
-         if target_os.use_function_relative_addresses then
-           exprasmlist^.insert(stab_function_name);
-         if make_global or ((procinfo^.flags and pi_is_global) <> 0) then
-           aktprocsym^.is_global := True;
-         exprasmlist^.insert(new(pai_stabs,init(aktprocsym^.stabstring)));
-         aktprocsym^.isstabwritten:=true;
-       end;
+         if (cs_debuginfo in aktmoduleswitches) then
+          begin
+            if target_os.use_function_relative_addresses then
+             exprasmlist^.insert(stab_function_name);
+            exprasmlist^.insert(new(pai_stabs,init(aktprocsym^.stabstring)));
+            aktprocsym^.isstabwritten:=true;
+          end;
 {$endif GDB}
 
-   { Align }
-      if (not inlined) then
-       begin
-       { gprof uses 16 byte granularity !! }
+       { Align, gprof uses 16 byte granularity }
          if (cs_profile in aktmoduleswitches) then
           exprasmlist^.insert(new(pai_align,init_op(16,$90)))
          else
@@ -3129,7 +3125,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
        op : Tasmop;
        s : Topsize;
   begin
-      if procinfo^.retdef<>pdef(voiddef) then
+      if procinfo^.returntype.def<>pdef(voiddef) then
           begin
               {if ((procinfo^.flags and pi_operator)<>0) and
                  assigned(opsym) then
@@ -3138,14 +3134,14 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
               if (procinfo^.funcret_state<>vs_assigned) and not inlined { and
                 ((procinfo^.flags and pi_uses_asm)=0)} then
                CGMessage(sym_w_function_result_not_set);
-              hr:=new_reference(procinfo^.framepointer,procinfo^.retoffset);
-              if (procinfo^.retdef^.deftype in [orddef,enumdef]) then
+              hr:=new_reference(procinfo^.framepointer,procinfo^.return_offset);
+              if (procinfo^.returntype.def^.deftype in [orddef,enumdef]) then
                 begin
-                  case procinfo^.retdef^.size of
+                  case procinfo^.returntype.def^.size of
                    8:
                      begin
                         emit_ref_reg(A_MOV,S_L,hr,R_EAX);
-                        hr:=new_reference(procinfo^.framepointer,procinfo^.retoffset+4);
+                        hr:=new_reference(procinfo^.framepointer,procinfo^.return_offset+4);
                         emit_ref_reg(A_MOV,S_L,hr,R_EDX);
                      end;
 
@@ -3160,12 +3156,12 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                   end;
                 end
               else
-                if ret_in_acc(procinfo^.retdef) then
+                if ret_in_acc(procinfo^.returntype.def) then
                   emit_ref_reg(A_MOV,S_L,hr,R_EAX)
               else
-                 if (procinfo^.retdef^.deftype=floatdef) then
+                 if (procinfo^.returntype.def^.deftype=floatdef) then
                    begin
-                      floatloadops(pfloatdef(procinfo^.retdef)^.typ,op,s);
+                      floatloadops(pfloatdef(procinfo^.returntype.def)^.typ,op,s);
                       exprasmlist^.concat(new(paicpu,op_ref(op,s,hr)))
                    end
               else
@@ -3245,15 +3241,15 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
              op_reg_reg(A_TEST,S_L,R_EAX,R_EAX)));
            emitjmp(C_E,noreraiselabel);
            { must be the return value finalized before reraising the exception? }
-           if (procinfo^.retdef<>pdef(voiddef)) and
-             (procinfo^.retdef^.needs_inittable) and
-             ((procinfo^.retdef^.deftype<>objectdef) or
-             not(pobjectdef(procinfo^.retdef)^.is_class)) then
+           if (procinfo^.returntype.def<>pdef(voiddef)) and
+             (procinfo^.returntype.def^.needs_inittable) and
+             ((procinfo^.returntype.def^.deftype<>objectdef) or
+             not(pobjectdef(procinfo^.returntype.def)^.is_class)) then
              begin
                 reset_reference(hr);
-                hr.offset:=procinfo^.retoffset;
+                hr.offset:=procinfo^.return_offset;
                 hr.base:=procinfo^.framepointer;
-                finalize(procinfo^.retdef,hr,ret_in_param(procinfo^.retdef));
+                finalize(procinfo^.returntype.def,hr,ret_in_param(procinfo^.returntype.def));
              end;
 
            emitcall('FPC_RERAISE');
@@ -3355,7 +3351,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
            begin
 {$ifndef OLD_C_STACK}
              { complex return values are removed from stack in C code PM }
-             if ret_in_param(aktprocsym^.definition^.retdef) then
+             if ret_in_param(aktprocsym^.definition^.rettype.def) then
                exprasmlist^.concat(new(paicpu,op_const(A_RET,S_NO,4)))
              else
 {$endif not OLD_C_STACK}
@@ -3384,25 +3380,25 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                    '"$t:r*'+procinfo^._class^.numberstring+'",'+
                    tostr(N_RSYM)+',0,0,'+tostr(GDB_i386index[R_ESI])))));
 
-              if (pdef(aktprocsym^.definition^.retdef) <> pdef(voiddef)) then
+              if (pdef(aktprocsym^.definition^.rettype.def) <> pdef(voiddef)) then
                 begin
-                  if ret_in_param(aktprocsym^.definition^.retdef) then
+                  if ret_in_param(aktprocsym^.definition^.rettype.def) then
                     exprasmlist^.concat(new(pai_stabs,init(strpnew(
-                     '"'+aktprocsym^.name+':X*'+aktprocsym^.definition^.retdef^.numberstring+'",'+
-                     tostr(N_PSYM)+',0,0,'+tostr(procinfo^.retoffset)))))
+                     '"'+aktprocsym^.name+':X*'+aktprocsym^.definition^.rettype.def^.numberstring+'",'+
+                     tostr(N_PSYM)+',0,0,'+tostr(procinfo^.return_offset)))))
                   else
                     exprasmlist^.concat(new(pai_stabs,init(strpnew(
-                     '"'+aktprocsym^.name+':X'+aktprocsym^.definition^.retdef^.numberstring+'",'+
-                     tostr(N_PSYM)+',0,0,'+tostr(procinfo^.retoffset)))));
+                     '"'+aktprocsym^.name+':X'+aktprocsym^.definition^.rettype.def^.numberstring+'",'+
+                     tostr(N_PSYM)+',0,0,'+tostr(procinfo^.return_offset)))));
                   if (m_result in aktmodeswitches) then
-                    if ret_in_param(aktprocsym^.definition^.retdef) then
+                    if ret_in_param(aktprocsym^.definition^.rettype.def) then
                       exprasmlist^.concat(new(pai_stabs,init(strpnew(
-                       '"RESULT:X*'+aktprocsym^.definition^.retdef^.numberstring+'",'+
-                       tostr(N_PSYM)+',0,0,'+tostr(procinfo^.retoffset)))))
+                       '"RESULT:X*'+aktprocsym^.definition^.rettype.def^.numberstring+'",'+
+                       tostr(N_PSYM)+',0,0,'+tostr(procinfo^.return_offset)))))
                     else
                       exprasmlist^.concat(new(pai_stabs,init(strpnew(
-                       '"RESULT:X'+aktprocsym^.definition^.retdef^.numberstring+'",'+
-                       tostr(N_PSYM)+',0,0,'+tostr(procinfo^.retoffset)))));
+                       '"RESULT:X'+aktprocsym^.definition^.rettype.def^.numberstring+'",'+
+                       tostr(N_PSYM)+',0,0,'+tostr(procinfo^.return_offset)))));
                 end;
               mangled_length:=length(aktprocsym^.definition^.mangledname);
               getmem(p,mangled_length+50);
@@ -3451,7 +3447,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.61  1999-11-20 01:22:18  pierre
+  Revision 1.62  1999-11-30 10:40:43  peter
+    + ttype, tsymlist
+
+  Revision 1.61  1999/11/20 01:22:18  pierre
     + cond FPC_USE_CPREFIX (needs also some RTL changes)
       this allows to use unit global vars as DLL exports
       (the underline prefix seems needed by dlltool)

@@ -30,7 +30,6 @@ CPU_TARGET=i386
 endif
 
 # RTL
-RTLDIR=../rtl/$(OS_TARGET)
 UTILSDIR=../utils
 
 # Utils used by compiler development/installation

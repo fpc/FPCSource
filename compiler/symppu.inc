@@ -132,6 +132,10 @@
                   globalsymtable,
                   unitsymtable :
                     begin
+                      { check if the unit is available in the uses
+                        clause, else it's an error }
+                      if p^.owner^.unitid=$ffff then
+                       internalerror(55665566);
                       current_ppu^.putbyte(ord(derefunit));
                       current_ppu^.putword(p^.owner^.unitid);
                       break;
@@ -178,7 +182,6 @@
       begin
         writederef(p);
       end;
-
 
     procedure writesourcefiles;
       var
@@ -455,7 +458,6 @@
       end;
 
 
-{$ifndef OLDDEREF}
     function readderef : pderef;
       var
         hp,p : pderef;
@@ -499,27 +501,6 @@
       begin
         readsymref:=psym(readderef);
       end;
-{$else}
-    function readdefref : pdef;
-      var
-        hd : pdef;
-      begin
-        longint(hd):=current_ppu^.getword;
-        longint(hd):=longint(hd) or (longint(current_ppu^.getword) shl 16);
-        readdefref:=hd;
-      end;
-
-
-    function readsymref : psym;
-      var
-        hd : psym;
-      begin
-        longint(hd):=current_ppu^.getword;
-        longint(hd):=longint(hd) or (longint(current_ppu^.getword) shl 16);
-        readsymref:=hd;
-      end;
-{$endif}
-
 
     procedure readusedmacros;
       var
@@ -753,7 +734,10 @@
 
 {
   $Log$
-  Revision 1.56  1999-11-21 01:42:37  pierre
+  Revision 1.57  1999-11-30 10:40:55  peter
+    + ttype, tsymlist
+
+  Revision 1.56  1999/11/21 01:42:37  pierre
    * Nextoverloading ordering fix
 
   Revision 1.55  1999/11/17 17:05:04  pierre

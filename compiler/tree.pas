@@ -226,7 +226,7 @@ unit tree;
              ordconstn : (value : longint);
              realconstn : (value_real : bestreal;lab_real : pasmlabel);
              fixconstn : (value_fix: longint);
-             funcretn : (funcretprocinfo : pointer;retdef : pdef;
+             funcretn : (funcretprocinfo : pointer;rettype : ttype;
                        is_first_funcret : boolean);
              subscriptn : (vs : pvarsym);
              vecn : (memindex,memseg:boolean;callunique : boolean);
@@ -992,7 +992,7 @@ unit tree;
          p^.registersmmx:=0;
 {$endif SUPPORT_MMX}
          p^.treetype:=loadn;
-         p^.resulttype:=v^.definition;
+         p^.resulttype:=v^.vartype.def;
          p^.symtableentry:=v;
          p^.symtable:=st;
          p^.is_first := False;
@@ -1066,7 +1066,7 @@ unit tree;
 {$endif SUPPORT_MMX}
          p^.treetype:=loadn;
          p^.left:=nil;
-         p^.resulttype:=sym^.definition;
+         p^.resulttype:=sym^.typedconsttype.def;
          p^.symtableentry:=sym;
          p^.symtable:=st;
          p^.disposetyp:=dt_nothing;
@@ -1294,7 +1294,7 @@ unit tree;
          p^.retoffset:=-4; { less dangerous as zero (PM) }
          p^.para_offset:=0;
          p^.para_size:=p^.inlineprocsym^.definition^.para_size;
-         if ret_in_param(p^.inlineprocsym^.definition^.retdef) then
+         if ret_in_param(p^.inlineprocsym^.definition^.rettype.def) then
            p^.para_size:=p^.para_size+target_os.size_of_pointer;
          { copy args }
          p^.inlinetree:=code;
@@ -1303,7 +1303,7 @@ unit tree;
 {$ifdef SUPPORT_MMX}
          p^.registersmmx:=0;
 {$endif SUPPORT_MMX}
-         p^.resulttype:=p^.inlineprocsym^.definition^.retdef;
+         p^.resulttype:=p^.inlineprocsym^.definition^.rettype.def;
          genprocinlinenode:=p;
       end;
 
@@ -1897,7 +1897,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.103  1999-11-18 15:34:51  pierre
+  Revision 1.104  1999-11-30 10:40:59  peter
+    + ttype, tsymlist
+
+  Revision 1.103  1999/11/18 15:34:51  pierre
     * Notes/Hints for local syms changed to
       Set_varstate function
 

@@ -464,12 +464,13 @@ implementation
                                          end;
 
                                        { error, if the return types aren't equal }
-                                       if not(is_equal(procdefcoll^.data^.retdef,hp^.retdef)) and
-                                         not((procdefcoll^.data^.retdef^.deftype=objectdef) and
-                                           (hp^.retdef^.deftype=objectdef) and
-                                           (pobjectdef(procdefcoll^.data^.retdef)^.is_class) and
-                                           (pobjectdef(hp^.retdef)^.is_class) and
-                                           (pobjectdef(hp^.retdef)^.is_related(pobjectdef(procdefcoll^.data^.retdef)))) then
+                                       if not(is_equal(procdefcoll^.data^.rettype.def,hp^.rettype.def)) and
+                                         not((procdefcoll^.data^.rettype.def^.deftype=objectdef) and
+                                           (hp^.rettype.def^.deftype=objectdef) and
+                                           (pobjectdef(procdefcoll^.data^.rettype.def)^.is_class) and
+                                           (pobjectdef(hp^.rettype.def)^.is_class) and
+                                           (pobjectdef(hp^.rettype.def)^.is_related(
+                                               pobjectdef(procdefcoll^.data^.rettype.def)))) then
                                          Message1(parser_e_overloaded_methodes_not_same_ret,_c^.objname^+'.'+_name);
 
 
@@ -614,7 +615,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.19  1999-11-29 23:42:49  pierre
+  Revision 1.20  1999-11-30 10:40:43  peter
+    + ttype, tsymlist
+
+  Revision 1.19  1999/11/29 23:42:49  pierre
    * fix for form bug 555
 
   Revision 1.18  1999/10/26 12:30:41  peter

@@ -189,7 +189,7 @@ implementation
            begin
               if value_equal_const then
                 begin
-                   if not(is_equal(def1^.data,def2^.data)) or
+                   if not(is_equal(def1^.paratype.def,def2^.paratype.def)) or
                      ((def1^.paratyp<>def2^.paratyp) and
                       ((def1^.paratyp=vs_var) or
                        (def1^.paratyp=vs_var)
@@ -202,7 +202,7 @@ implementation
                 end
               else
                 begin
-                   if not(is_equal(def1^.data,def2^.data)) or
+                   if not(is_equal(def1^.paratype.def,def2^.paratype.def)) or
                      (def1^.paratyp<>def2^.paratyp) then
                      begin
                         equal_paras:=false;
@@ -229,7 +229,7 @@ implementation
            begin
               if value_equal_const then
                 begin
-                   if (isconvertable(def1^.data,def2^.data,doconv,callparan,false)=0) or
+                   if (isconvertable(def1^.paratype.def,def2^.paratype.def,doconv,callparan,false)=0) or
                      ((def1^.paratyp<>def2^.paratyp) and
                       ((def1^.paratyp=vs_var) or
                        (def1^.paratyp=vs_var)
@@ -242,7 +242,7 @@ implementation
                 end
               else
                 begin
-                   if (isconvertable(def1^.data,def2^.data,doconv,callparan,false)=0) or
+                   if (isconvertable(def1^.paratype.def,def2^.paratype.def,doconv,callparan,false)=0) or
                      (def1^.paratyp<>def2^.paratyp) then
                      begin
                         convertable_paras:=false;
@@ -285,7 +285,7 @@ implementation
           end;
          { check return value and para's and options, methodpointer is already checked
            parameters may also be convertable }
-         if is_equal(def1^.retdef,def2^.retdef) and
+         if is_equal(def1^.rettype.def,def2^.rettype.def) and
             (equal_paras(def1^.para,def2^.para,false) or
              convertable_paras(def1^.para,def2^.para,false)) and
             ((po_comp * def1^.procoptions)= (po_comp * def2^.procoptions)) then
@@ -405,7 +405,7 @@ implementation
          { check for s32bitdef is needed, because for u32bit the high
            range is also -1 ! (PFV) }
          is_open_array:=(p^.deftype=arraydef) and
-                        (parraydef(p)^.rangedef=pdef(s32bitdef)) and
+                        (parraydef(p)^.rangetype.def=pdef(s32bitdef)) and
                         (parraydef(p)^.lowrange=0) and
                         (parraydef(p)^.highrange=-1) and
                         not(parraydef(p)^.IsConstructor) and
@@ -481,7 +481,7 @@ implementation
     function is_chararray(p : pdef) : boolean;
       begin
         is_chararray:=(p^.deftype=arraydef) and
-                      is_equal(parraydef(p)^.definition,cchardef) and
+                      is_equal(parraydef(p)^.elementtype.def,cchardef) and
                       not(is_special_array(p));
       end;
 
@@ -490,7 +490,7 @@ implementation
     function is_pchar(p : pdef) : boolean;
       begin
         is_pchar:=(p^.deftype=pointerdef) and
-                  is_equal(Ppointerdef(p)^.definition,cchardef);
+                  is_equal(Ppointerdef(p)^.pointertype.def,cchardef);
       end;
 
 
@@ -664,15 +664,15 @@ implementation
          mmx_type:=mmxno;
          if is_mmx_able_array(p) then
            begin
-              if parraydef(p)^.definition^.deftype=floatdef then
-                case pfloatdef(parraydef(p)^.definition)^.typ of
+              if parraydef(p)^.elementtype.def^.deftype=floatdef then
+                case pfloatdef(parraydef(p)^.elementtype.def)^.typ of
                   s32real:
                     mmx_type:=mmxsingle;
                   f16bit:
                     mmx_type:=mmxfixed16
                 end
               else
-                case porddef(parraydef(p)^.definition)^.typ of
+                case porddef(parraydef(p)^.elementtype.def)^.typ of
                    u8bit:
                      mmx_type:=mmxu8bit;
                    s8bit:
@@ -699,34 +699,34 @@ implementation
                 not(is_special_array(p)) and
                 (
                  (
-                  (parraydef(p)^.definition^.deftype=orddef) and
+                  (parraydef(p)^.elementtype.def^.deftype=orddef) and
                   (
                    (
                     (parraydef(p)^.lowrange=0) and
                     (parraydef(p)^.highrange=1) and
-                    (porddef(parraydef(p)^.definition)^.typ in [u32bit,s32bit])
+                    (porddef(parraydef(p)^.elementtype.def)^.typ in [u32bit,s32bit])
                    )
                    or
                    (
                     (parraydef(p)^.lowrange=0) and
                     (parraydef(p)^.highrange=3) and
-                    (porddef(parraydef(p)^.definition)^.typ in [u16bit,s16bit])
+                    (porddef(parraydef(p)^.elementtype.def)^.typ in [u16bit,s16bit])
                    )
                   )
                  )
                  or
                 (
                  (
-                  (parraydef(p)^.definition^.deftype=floatdef) and
+                  (parraydef(p)^.elementtype.def^.deftype=floatdef) and
                   (
                    (parraydef(p)^.lowrange=0) and
                    (parraydef(p)^.highrange=3) and
-                   (pfloatdef(parraydef(p)^.definition)^.typ=f16bit)
+                   (pfloatdef(parraydef(p)^.elementtype.def)^.typ=f16bit)
                   ) or
                   (
                    (parraydef(p)^.lowrange=0) and
                    (parraydef(p)^.highrange=1) and
-                   (pfloatdef(parraydef(p)^.definition)^.typ=s32real)
+                   (pfloatdef(parraydef(p)^.elementtype.def)^.typ=s32real)
                   )
                  )
                 )
@@ -737,41 +737,41 @@ implementation
               is_mmx_able_array:=(p^.deftype=arraydef) and
                 (
                  (
-                  (parraydef(p)^.definition^.deftype=orddef) and
+                  (parraydef(p)^.elementtype.def^.deftype=orddef) and
                   (
                    (
                     (parraydef(p)^.lowrange=0) and
                     (parraydef(p)^.highrange=1) and
-                    (porddef(parraydef(p)^.definition)^.typ in [u32bit,s32bit])
+                    (porddef(parraydef(p)^.elementtype.def)^.typ in [u32bit,s32bit])
                    )
                    or
                    (
                     (parraydef(p)^.lowrange=0) and
                     (parraydef(p)^.highrange=3) and
-                    (porddef(parraydef(p)^.definition)^.typ in [u16bit,s16bit])
+                    (porddef(parraydef(p)^.elementtype.def)^.typ in [u16bit,s16bit])
                    )
                    or
                    (
                     (parraydef(p)^.lowrange=0) and
                     (parraydef(p)^.highrange=7) and
-                    (porddef(parraydef(p)^.definition)^.typ in [u8bit,s8bit])
+                    (porddef(parraydef(p)^.elementtype.def)^.typ in [u8bit,s8bit])
                    )
                   )
                  )
                  or
                  (
-                  (parraydef(p)^.definition^.deftype=floatdef) and
+                  (parraydef(p)^.elementtype.def^.deftype=floatdef) and
                   (
                    (
                     (parraydef(p)^.lowrange=0) and
                     (parraydef(p)^.highrange=3) and
-                    (pfloatdef(parraydef(p)^.definition)^.typ=f32bit)
+                    (pfloatdef(parraydef(p)^.elementtype.def)^.typ=f32bit)
                    )
                    or
                    (
                     (parraydef(p)^.lowrange=0) and
                     (parraydef(p)^.highrange=1) and
-                    (pfloatdef(parraydef(p)^.definition)^.typ=s32real)
+                    (pfloatdef(parraydef(p)^.elementtype.def)^.typ=s32real)
                    )
                   )
                  )
@@ -813,10 +813,10 @@ implementation
              begin
                 { here a problem detected in tabsolutesym }
                 { the types can be forward type !!        }
-                if assigned(def1^.sym) and (ppointerdef(def1)^.definition^.deftype=forwarddef) then
-                  b:=(def1^.sym=def2^.sym)
+                if assigned(def1^.typesym) and (ppointerdef(def1)^.pointertype.def^.deftype=forwarddef) then
+                  b:=(def1^.typesym=def2^.typesym)
                 else
-                  b:=ppointerdef(def1)^.definition=ppointerdef(def2)^.definition;
+                  b:=ppointerdef(def1)^.pointertype.def=ppointerdef(def2)^.pointertype.def;
              end
          else
          { ordinals are equal only when the ordinal type is equal }
@@ -855,25 +855,25 @@ implementation
          { but must NOT match for text file !!!                 }
          else
             if (def1^.deftype=filedef) and (def2^.deftype=filedef) then
-              b:=(pfiledef(def1)^.filetype=pfiledef(def2)^.filetype) and
+              b:=(pfiledef(def1)^.filetyp=pfiledef(def2)^.filetyp) and
                  ((
-                 ((pfiledef(def1)^.typed_as=nil) and
-                  (pfiledef(def2)^.typed_as=nil)) or
+                 ((pfiledef(def1)^.typedfiletype.def=nil) and
+                  (pfiledef(def2)^.typedfiletype.def=nil)) or
                  (
-                  (pfiledef(def1)^.typed_as<>nil) and
-                  (pfiledef(def2)^.typed_as<>nil) and
-                  is_equal(pfiledef(def1)^.typed_as,pfiledef(def2)^.typed_as)
+                  (pfiledef(def1)^.typedfiletype.def<>nil) and
+                  (pfiledef(def2)^.typedfiletype.def<>nil) and
+                  is_equal(pfiledef(def1)^.typedfiletype.def,pfiledef(def2)^.typedfiletype.def)
                  ) or
-                 ( (pfiledef(def1)^.typed_as=pdef(voiddef)) or
-                   (pfiledef(def2)^.typed_as=pdef(voiddef))
+                 ( (pfiledef(def1)^.typedfiletype.def=pdef(voiddef)) or
+                   (pfiledef(def2)^.typedfiletype.def=pdef(voiddef))
                  )))
          { sets with the same element type are equal }
          else
            if (def1^.deftype=setdef) and (def2^.deftype=setdef) then
              begin
-                if assigned(psetdef(def1)^.setof) and
-                   assigned(psetdef(def2)^.setof) then
-                  b:=(psetdef(def1)^.setof^.deftype=psetdef(def2)^.setof^.deftype)
+                if assigned(psetdef(def1)^.elementtype.def) and
+                   assigned(psetdef(def2)^.elementtype.def) then
+                  b:=(psetdef(def1)^.elementtype.def^.deftype=psetdef(def2)^.elementtype.def^.deftype)
                 else
                   b:=true;
              end
@@ -887,7 +887,7 @@ implementation
                    (pprocvardef(def1)^.proccalloptions=pprocvardef(def2)^.proccalloptions) and
                    ((pprocvardef(def1)^.procoptions * po_compatibility_options)=
                     (pprocvardef(def2)^.procoptions * po_compatibility_options)) and
-                   is_equal(pprocvardef(def1)^.retdef,pprocvardef(def2)^.retdef) and
+                   is_equal(pprocvardef(def1)^.rettype.def,pprocvardef(def2)^.rettype.def) and
                    equal_paras(pprocvardef(def1)^.para,pprocvardef(def2)^.para,false);
              end
          else
@@ -899,7 +899,7 @@ implementation
                   if parraydef(def1)^.IsArrayOfConst or parraydef(def2)^.IsArrayOfConst then
                    b:=true
                   else
-                   b:=is_equal(parraydef(def1)^.definition,parraydef(def2)^.definition);
+                   b:=is_equal(parraydef(def1)^.elementtype.def,parraydef(def2)^.elementtype.def);
                 end
                else
                 begin
@@ -907,18 +907,18 @@ implementation
                      not(m_delphi in aktmodeswitches) and
                      (parraydef(def1)^.lowrange=parraydef(def2)^.lowrange) and
                      (parraydef(def1)^.highrange=parraydef(def2)^.highrange) and
-                     is_equal(parraydef(def1)^.definition,parraydef(def2)^.definition) and
-                     is_equal(parraydef(def1)^.rangedef,parraydef(def2)^.rangedef);
+                     is_equal(parraydef(def1)^.elementtype.def,parraydef(def2)^.elementtype.def) and
+                     is_equal(parraydef(def1)^.rangetype.def,parraydef(def2)^.rangetype.def);
                 end;
              end
          else
            if (def1^.deftype=classrefdef) and (def2^.deftype=classrefdef) then
              begin
                 { similar to pointerdef: }
-                if assigned(def1^.sym) and (pclassrefdef(def1)^.definition^.deftype=forwarddef) then
-                  b:=(def1^.sym=def2^.sym)
+                if assigned(def1^.typesym) and (pclassrefdef(def1)^.pointertype.def^.deftype=forwarddef) then
+                  b:=(def1^.typesym=def2^.typesym)
                 else
-                  b:=is_equal(pclassrefdef(def1)^.definition,pclassrefdef(def2)^.definition);
+                  b:=is_equal(pclassrefdef(def1)^.pointertype.def,pclassrefdef(def2)^.pointertype.def);
              end;
          is_equal:=b;
       end;
@@ -985,7 +985,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.91  1999-11-06 14:34:31  peter
+  Revision 1.92  1999-11-30 10:40:59  peter
+    + ttype, tsymlist
+
+  Revision 1.91  1999/11/06 14:34:31  peter
     * truncated log to 20 revs
 
   Revision 1.90  1999/10/26 12:30:46  peter

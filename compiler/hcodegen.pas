@@ -49,34 +49,29 @@ implementation
                                         { needs to be finalized              }
     type
        pprocinfo = ^tprocinfo;
-       tprocinfo = record
+       tprocinfo = object
           { pointer to parent in nested procedures }
           parent : pprocinfo;
           { current class, if we are in a method }
           _class : pobjectdef;
           { return type }
-          retdef : pdef;
-          { return type }
-          sym : pprocsym;
+          returntype : ttype;
           { symbol of the function, and the sym for result variable }
           resultfuncretsym,
           funcretsym : pfuncretsym;
+          funcret_state : tvarstate;
           { the definition of the proc itself }
-          { why was this a pdef only ?? PM    }
           def : pprocdef;
+          sym : pprocsym;
+
           { frame pointer offset }
           framepointer_offset : longint;
           { self pointer offset }
           selfpointer_offset : longint;
           { result value offset }
-          retoffset : longint;
-
+          return_offset : longint;
           { firsttemp position }
-          firsttemp : longint;
-
-          { funcret_is_valid : boolean; }
-          funcret_state : tvarstate;
-
+          firsttemp_offset : longint;
           { parameter offset }
           call_offset : longint;
 
@@ -97,6 +92,9 @@ implementation
           aktproccode,aktentrycode,
           aktexitcode,aktlocaldata : paasmoutput;
           { local data is used for smartlink }
+
+          constructor init;
+          destructor done;
        end;
 
        { some kind of temp. types needs to be destructed }
@@ -267,6 +265,41 @@ implementation
       end;
 
 
+{****************************************************************************
+                                 TProcInfo
+****************************************************************************}
+
+    constructor tprocinfo.init;
+      begin
+        parent:=nil;
+        _class:=nil;
+        returntype.reset;
+        resultfuncretsym:=nil;
+        funcretsym:=nil;
+        funcret_state:=vs_none;
+        def:=nil;
+        sym:=nil;
+        framepointer_offset:=0;
+        selfpointer_offset:=0;
+        return_offset:=0;
+        firsttemp_offset:=0;
+        call_offset:=0;
+        flags:=0;
+        framepointer:=R_NO;
+        globalsymbol:=false;
+        exported:=false;
+        aktproccode:=nil;
+        aktentrycode:=nil;
+        aktexitcode:=nil;
+        aktlocaldata:=nil;
+      end;
+
+
+    destructor tprocinfo.done;
+      begin
+      end;
+
+
 {*****************************************************************************
          initialize/terminate the codegen for procedure and modules
 *****************************************************************************}
@@ -278,8 +311,7 @@ implementation
          { aktexitlabel:=0; is store in oldaktexitlabel
            so it must not be reset to zero before this storage !}
          { new procinfo }
-         new(procinfo);
-         fillchar(procinfo^,sizeof(tprocinfo),0);
+         new(procinfo,init);
          { the type of this lists isn't important }
          { because the code of this lists is      }
          { copied to the code segment        }
@@ -297,7 +329,7 @@ implementation
          dispose(procinfo^.aktexitcode,done);
          dispose(procinfo^.aktproccode,done);
          dispose(procinfo^.aktlocaldata,done);
-         dispose(procinfo);
+         dispose(procinfo,done);
          procinfo:=nil;
       end;
 
@@ -375,7 +407,10 @@ end.
 
 {
   $Log$
-  Revision 1.49  1999-11-17 17:04:59  pierre
+  Revision 1.50  1999-11-30 10:40:43  peter
+    + ttype, tsymlist
+
+  Revision 1.49  1999/11/17 17:04:59  pierre
    * Notes/hints changes
 
   Revision 1.48  1999/11/09 23:06:45  peter

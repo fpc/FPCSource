@@ -910,7 +910,7 @@ unit pmodules;
         { set some informations about the main program }
         with procinfo^ do
          begin
-           retdef:=voiddef;
+           returntype.setdef(voiddef);
            _class:=nil;
            call_offset:=8;
            framepointer:=frame_pointer;
@@ -1557,7 +1557,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.174  1999-11-29 16:24:52  pierre
+  Revision 1.175  1999-11-30 10:40:44  peter
+    + ttype, tsymlist
+
+  Revision 1.174  1999/11/29 16:24:52  pierre
    * bug in previous commit corrected
 
   Revision 1.173  1999/11/29 15:18:27  pierre

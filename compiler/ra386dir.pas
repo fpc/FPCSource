@@ -70,7 +70,7 @@ unit Ra386dir;
            if s<>'' then
             code^.concat(new(pai_direct,init(strpnew(s))));
             { consider it set function set if the offset was loaded }
-           if assigned(procinfo^.retdef) and
+           if assigned(procinfo^.returntype.def) and
               (pos(retstr,upper(s))>0) then
               procinfo^.funcret_state:=vs_assigned;
            s:='';
@@ -79,12 +79,12 @@ unit Ra386dir;
      begin
        ende:=false;
        s:='';
-       if assigned(procinfo^.retdef) and
-          is_fpu(procinfo^.retdef) then
+       if assigned(procinfo^.returntype.def) and
+          is_fpu(procinfo^.returntype.def) then
          procinfo^.funcret_state:=vs_assigned;
-       if assigned(procinfo^.retdef) and
-          (procinfo^.retdef<>pdef(voiddef)) then
-         retstr:=upper(tostr(procinfo^.retoffset)+'('+att_reg2str[procinfo^.framepointer]+')')
+       if assigned(procinfo^.returntype.def) and
+          (procinfo^.returntype.def<>pdef(voiddef)) then
+         retstr:=upper(tostr(procinfo^.return_offset)+'('+att_reg2str[procinfo^.framepointer]+')')
        else
          retstr:='';
          c:=current_scanner^.asmgetchar;
@@ -141,7 +141,7 @@ unit Ra386dir;
                                  { is the last written character an special }
                                  { char ?                                   }
                                  if (s[length(s)]='%') and
-                                    ret_in_acc(procinfo^.retdef) and
+                                    ret_in_acc(procinfo^.returntype.def) and
                                     ((pos('AX',upper(hs))>0) or
                                     (pos('AL',upper(hs))>0)) then
                                    procinfo^.funcret_state:=vs_assigned;
@@ -172,7 +172,8 @@ unit Ra386dir;
                                              if (vo_is_external in pvarsym(sym)^.varoptions) then
                                                hs:=pvarsym(sym)^.mangledname
                                              else
-                                               hs:='-'+tostr(pvarsym(sym)^.address)+'('+att_reg2str[procinfo^.framepointer]+')';
+                                               hs:='-'+tostr(pvarsym(sym)^.address)+
+                                                   '('+att_reg2str[procinfo^.framepointer]+')';
                                              end
                                            else
                                            { call to local function }
@@ -235,14 +236,15 @@ unit Ra386dir;
                                            if upper(hs)='__SELF' then
                                              begin
                                                 if assigned(procinfo^._class) then
-                                                  hs:=tostr(procinfo^.selfpointer_offset)+'('+att_reg2str[procinfo^.framepointer]+')'
+                                                  hs:=tostr(procinfo^.selfpointer_offset)+
+                                                      '('+att_reg2str[procinfo^.framepointer]+')'
                                                 else
                                                  Message(asmr_e_cannot_use_SELF_outside_a_method);
                                              end
                                            else if upper(hs)='__RESULT' then
                                              begin
-                                                if assigned(procinfo^.retdef) and
-                                                  (procinfo^.retdef<>pdef(voiddef)) then
+                                                if assigned(procinfo^.returntype.def) and
+                                                  (procinfo^.returntype.def<>pdef(voiddef)) then
                                                   hs:=retstr
                                                 else
                                                   Message(asmr_e_void_function);
@@ -295,7 +297,10 @@ unit Ra386dir;
 end.
 {
   $Log$
-  Revision 1.27  1999-11-17 17:05:03  pierre
+  Revision 1.28  1999-11-30 10:40:53  peter
+    + ttype, tsymlist
+
+  Revision 1.27  1999/11/17 17:05:03  pierre
    * Notes/hints changes
 
   Revision 1.26  1999/11/09 23:06:46  peter

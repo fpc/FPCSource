@@ -581,7 +581,7 @@ implementation
                  begin
                    if (rt=setelementn) then
                     begin
-                      if not(is_equal(psetdef(ld)^.setof,rd)) then
+                      if not(is_equal(psetdef(ld)^.elementtype.def,rd)) then
                        CGMessage(type_e_set_element_are_not_comp);
                     end
                    else
@@ -606,7 +606,7 @@ implementation
                    assigned(p^.right^.right) then
                  begin
                    { generate a temporary normset def }
-                   tempdef:=new(psetdef,init(psetdef(ld)^.setof,255));
+                   tempdef:=new(psetdef,init(psetdef(ld)^.elementtype.def,255));
                    p^.left:=gentypeconvnode(p^.left,tempdef);
                    firstpass(p^.left);
                    dispose(tempdef,done);
@@ -905,8 +905,8 @@ implementation
            if (rd^.deftype=classrefdef) and (ld^.deftype=classrefdef) then
             begin
               p^.location.loc:=LOC_REGISTER;
-              if pobjectdef(pclassrefdef(rd)^.definition)^.is_related(pobjectdef(
-                pclassrefdef(ld)^.definition)) then
+              if pobjectdef(pclassrefdef(rd)^.pointertype.def)^.is_related(pobjectdef(
+                pclassrefdef(ld)^.pointertype.def)) then
                 p^.right:=gentypeconvnode(p^.right,ld)
               else
                 p^.left:=gentypeconvnode(p^.left,rd);
@@ -999,7 +999,7 @@ implementation
             begin
               if is_zero_based_array(rd) then
                 begin
-                   p^.resulttype:=new(ppointerdef,init(parraydef(rd)^.definition));
+                   p^.resulttype:=new(ppointerdef,init(parraydef(rd)^.elementtype));
                    p^.right:=gentypeconvnode(p^.right,p^.resulttype);
                    firstpass(p^.right);
                 end;
@@ -1015,9 +1015,9 @@ implementation
                   { Dirty hack, to support multiple firstpasses (PFV) }
                   if (p^.resulttype=nil) and
                      (rd^.deftype=pointerdef) and
-                     (ppointerdef(rd)^.definition^.size>1) then
+                     (ppointerdef(rd)^.pointertype.def^.size>1) then
                    begin
-                     p^.left:=gennode(muln,p^.left,genordinalconstnode(ppointerdef(rd)^.definition^.size,s32bitdef));
+                     p^.left:=gennode(muln,p^.left,genordinalconstnode(ppointerdef(rd)^.pointertype.def^.size,s32bitdef));
                      firstpass(p^.left);
                    end;
                 end
@@ -1032,7 +1032,7 @@ implementation
             begin
               if is_zero_based_array(ld) then
                 begin
-                   p^.resulttype:=new(ppointerdef,init(parraydef(ld)^.definition));
+                   p^.resulttype:=new(ppointerdef,init(parraydef(ld)^.elementtype));
                    p^.left:=gentypeconvnode(p^.left,p^.resulttype);
                    firstpass(p^.left);
                 end;
@@ -1048,10 +1048,10 @@ implementation
                               { Dirty hack, to support multiple firstpasses (PFV) }
                               if (p^.resulttype=nil) and
                                  (ld^.deftype=pointerdef) and
-                                 (ppointerdef(ld)^.definition^.size>1) then
+                                 (ppointerdef(ld)^.pointertype.def^.size>1) then
                                begin
                                  p^.right:=gennode(muln,p^.right,
-                                   genordinalconstnode(ppointerdef(ld)^.definition^.size,s32bitdef));
+                                   genordinalconstnode(ppointerdef(ld)^.pointertype.def^.size,s32bitdef));
                                  firstpass(p^.right);
                                end;
                             end;
@@ -1187,7 +1187,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.57  1999-11-26 13:51:29  pierre
+  Revision 1.58  1999-11-30 10:40:56  peter
+    + ttype, tsymlist
+
+  Revision 1.57  1999/11/26 13:51:29  pierre
    * fix for overloading of shr shl mod and div
 
   Revision 1.56  1999/11/18 15:34:48  pierre

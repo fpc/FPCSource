@@ -58,7 +58,7 @@ implementation
       begin
          p^.location.register:=getregister32;
          emit_sym_ofs_reg(A_MOV,
-            S_L,newasmsymbol(pobjectdef(pclassrefdef(p^.resulttype)^.definition)^.vmt_mangledname),0,
+            S_L,newasmsymbol(pobjectdef(pclassrefdef(p^.resulttype)^.pointertype.def)^.vmt_mangledname),0,
             p^.location.register);
       end;
 
@@ -93,15 +93,15 @@ implementation
               gettempofsizereference(target_os.size_of_pointer,p^.location.reference);
 
               { determines the size of the mem block }
-              push_int(ppointerdef(p^.resulttype)^.definition^.size);
+              push_int(ppointerdef(p^.resulttype)^.pointertype.def^.size);
               emit_push_lea_loc(p^.location,false);
               emitcall('FPC_GETMEM');
 
-              if ppointerdef(p^.resulttype)^.definition^.needs_inittable then
+              if ppointerdef(p^.resulttype)^.pointertype.def^.needs_inittable then
                 begin
                    new(r);
                    reset_reference(r^);
-                   r^.symbol:=ppointerdef(p^.left^.resulttype)^.definition^.get_inittable_label;
+                   r^.symbol:=ppointerdef(p^.left^.resulttype)^.pointertype.def^.get_inittable_label;
                    emitpushreferenceaddr(r^);
                    dispose(r);
                    { push pointer we just allocated, we need to initialize the
@@ -170,11 +170,11 @@ implementation
          case p^.treetype of
            simpledisposen:
              begin
-                if ppointerdef(p^.left^.resulttype)^.definition^.needs_inittable then
+                if ppointerdef(p^.left^.resulttype)^.pointertype.def^.needs_inittable then
                   begin
                      new(r);
                      reset_reference(r^);
-                     r^.symbol:=ppointerdef(p^.left^.resulttype)^.definition^.get_inittable_label;
+                     r^.symbol:=ppointerdef(p^.left^.resulttype)^.pointertype.def^.get_inittable_label;
                      emitpushreferenceaddr(r^);
                      dispose(r);
                      { push pointer adress }
@@ -187,14 +187,14 @@ implementation
            simplenewn:
              begin
                 { determines the size of the mem block }
-                push_int(ppointerdef(p^.left^.resulttype)^.definition^.size);
+                push_int(ppointerdef(p^.left^.resulttype)^.pointertype.def^.size);
                 emit_push_lea_loc(p^.left^.location,true);
                 emitcall('FPC_GETMEM');
-                if ppointerdef(p^.left^.resulttype)^.definition^.needs_inittable then
+                if ppointerdef(p^.left^.resulttype)^.pointertype.def^.needs_inittable then
                   begin
                      new(r);
                      reset_reference(r^);
-                     r^.symbol:=ppointerdef(p^.left^.resulttype)^.definition^.get_inittable_label;
+                     r^.symbol:=ppointerdef(p^.left^.resulttype)^.pointertype.def^.get_inittable_label;
                      emitpushreferenceaddr(r^);
                      dispose(r);
                      emit_push_loc(p^.left^.location);
@@ -236,7 +236,7 @@ implementation
            (p^.left^.treetype=loadn) and
            assigned(p^.left^.symtableentry) and
            (p^.left^.symtableentry^.typ=varsym) and
-           (pvarsym(p^.left^.symtableentry)^.definition^.deftype=procvardef) then
+           (pvarsym(p^.left^.symtableentry)^.vartype.def^.deftype=procvardef) then
            emit_ref_reg(A_MOV,S_L,
              newreference(p^.left^.location.reference),
              p^.location.register)
@@ -883,7 +883,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.61  1999-11-15 21:54:38  peter
+  Revision 1.62  1999-11-30 10:40:43  peter
+    + ttype, tsymlist
+
+  Revision 1.61  1999/11/15 21:54:38  peter
     * LOC_JUMP support for vecn
 
   Revision 1.60  1999/11/06 14:34:18  peter

@@ -90,10 +90,10 @@ implementation
         i : longint;
       begin
         new(pcs);
-        case psd^.setof^.deftype of
+        case psd^.elementtype.def^.deftype of
           enumdef :
             begin
-              pes:=penumdef(psd^.setof)^.firstenum;
+              pes:=penumdef(psd^.elementtype.def)^.firstenum;
               while assigned(pes) do
                 begin
                   pcs^[pes^.value div 8]:=pcs^[pes^.value div 8] or (1 shl (pes^.value mod 8));
@@ -102,7 +102,7 @@ implementation
             end;
           orddef :
             begin
-              for i:=porddef(psd^.setof)^.low to porddef(psd^.setof)^.high do
+              for i:=porddef(psd^.elementtype.def)^.low to porddef(psd^.elementtype.def)^.high do
                 begin
                   pcs^[i div 8]:=pcs^[i div 8] or (1 shl (i mod 8));
                 end;
@@ -155,7 +155,7 @@ implementation
            exit;
 
          { empty set then return false }
-         if not assigned(psetdef(p^.right^.resulttype)^.setof) then
+         if not assigned(psetdef(p^.right^.resulttype)^.elementtype.def) then
           begin
             t:=genordinalconstnode(0,booldef);
             disposetree(p);
@@ -165,7 +165,7 @@ implementation
           end;
 
          { type conversion/check }
-         p^.left:=gentypeconvnode(p^.left,psetdef(p^.right^.resulttype)^.setof);
+         p^.left:=gentypeconvnode(p^.left,psetdef(p^.right^.resulttype)^.elementtype.def);
          firstpass(p^.left);
          if codegenerror then
            exit;
@@ -306,7 +306,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  1999-11-18 15:34:51  pierre
+  Revision 1.16  1999-11-30 10:40:59  peter
+    + ttype, tsymlist
+
+  Revision 1.15  1999/11/18 15:34:51  pierre
     * Notes/Hints for local syms changed to
       Set_varstate function
 

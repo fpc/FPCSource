@@ -334,9 +334,7 @@
          typ:=procsym;
          definition:=nil;
          owner:=nil;
-{$ifdef GDB}
          is_global := false;
-{$endif GDB}
       end;
 
     constructor tprocsym.load;
@@ -345,9 +343,7 @@
          tsym.load;
          typ:=procsym;
          definition:=pprocdef(readdefref);
-{$ifdef GDB}
          is_global := false;
-{$endif GDB}
       end;
 
     destructor tprocsym.done;
@@ -562,7 +558,7 @@
      stabsstr:=definition^.mangledname;
      getmem(p,length(stabsstr)+255);
      strpcopy(p,'"'+obj+':'+RetType
-           +definition^.retdef^.numberstring+info+'",'+tostr(n_function)
+           +definition^.rettype.def^.numberstring+info+'",'+tostr(n_function)
            +',0,'+
            tostr(aktfilepos.line)
            +',');
@@ -615,155 +611,111 @@
          inherited init(n);
          typ:=propertysym;
          propoptions:=[];
-         proptype:=nil;
-         proptypesym:=nil;
-         readaccessdef:=nil;
-         writeaccessdef:=nil;
-         readaccesssym:=nil;
-         writeaccesssym:=nil;
-         storedsym:=nil;
-         storeddef:=nil;
-         indexdef:=nil;
-
          index:=0;
          default:=0;
+         proptype.reset;
+         indextype.reset;
+         new(readaccess,init);
+         new(writeaccess,init);
+         new(storedaccess,init);
       end;
 
-    destructor tpropertysym.done;
-
-        procedure disposepropsymlist(p:ppropsymlist);
-        var
-          hp : ppropsymlist;
-        begin
-          while assigned(p) do
-           begin
-             hp:=p;
-             p:=p^.next;
-             dispose(hp);
-           end;
-        end;
-
-      begin
-         disposepropsymlist(readaccesssym);
-         disposepropsymlist(writeaccesssym);
-         disposepropsymlist(storedsym);
-         inherited done;
-      end;
 
     constructor tpropertysym.load;
-
-        function readpropsymlist:ppropsymlist;
-        var
-          root,last,p : ppropsymlist;
-          sym : psym;
-        begin
-          root:=nil;
-          last:=nil;
-          repeat
-            sym:=readsymref;
-            if sym=nil then
-             break;
-            new(p);
-            p^.sym:=sym;
-            p^.next:=nil;
-            if assigned(last) then
-             last^.next:=p
-            else
-             root:=p;
-            last:=p;
-          until false;
-          readpropsymlist:=root;
-        end;
-
       begin
          inherited load;
          typ:=propertysym;
-         proptype:=readdefref;
-         proptypesym:=ppropertysym(readsymref);
          readsmallset(propoptions);
-         index:=readlong;
-         default:=readlong;
-         { the syms }
-         readaccesssym:=readpropsymlist;
-         writeaccesssym:=readpropsymlist;
-         storedsym:=readpropsymlist;
-         { now the defs }
-         readaccessdef:=readdefref;
-         writeaccessdef:=readdefref;
-         storeddef:=readdefref;
-         indexdef:=readdefref;
-      end;
-
-    procedure tpropertysym.deref;
-
-        procedure resolvepropsymlist(p:ppropsymlist);
-        begin
-          while assigned(p) do
-           begin
-             resolvesym(p^.sym);
-             p:=p^.next;
-           end;
-        end;
-
-      begin
-         if assigned(proptypesym) then
+         if (ppo_is_override in propoptions) then
           begin
-            resolvesym(psym(proptypesym));
-            proptype:=proptypesym^.proptype;
+            propoverriden:=ppropertysym(readsymref);
+            { we need to have these objects initialized }
+            new(readaccess,init);
+            new(writeaccess,init);
+            new(storedaccess,init);
           end
          else
-          resolvedef(proptype);
-         resolvedef(readaccessdef);
-         resolvedef(writeaccessdef);
-         resolvedef(storeddef);
-         resolvedef(indexdef);
-         resolvepropsymlist(readaccesssym);
-         resolvepropsymlist(writeaccesssym);
-         resolvepropsymlist(storedsym);
+          begin
+            proptype.load;
+            index:=readlong;
+            default:=readlong;
+            indextype.load;
+            new(readaccess,load);
+            new(writeaccess,load);
+            new(storedaccess,load);
+          end;
       end;
 
-    function tpropertysym.getsize : longint;
 
+    destructor tpropertysym.done;
+      begin
+         dispose(readaccess,done);
+         dispose(writeaccess,done);
+         dispose(storedaccess,done);
+         inherited done;
+      end;
+
+
+    procedure tpropertysym.deref;
+      begin
+        if (ppo_is_override in propoptions) then
+         begin
+           resolvesym(propoverriden);
+           dooverride(propoverriden);
+         end
+        else
+         begin
+           proptype.resolve;
+           indextype.resolve;
+           readaccess^.resolve;
+           writeaccess^.resolve;
+           storedaccess^.resolve;
+         end;
+      end;
+
+
+    function tpropertysym.getsize : longint;
       begin
          getsize:=0;
       end;
 
+
     procedure tpropertysym.write;
-
-        procedure writepropsymlist(p:ppropsymlist);
-        begin
-          while assigned(p) do
-           begin
-             writesymref(p^.sym);
-             p:=p^.next;
-           end;
-          writesymref(nil);
-        end;
-
       begin
-         tsym.write;
-         if assigned(proptypesym) then
-          begin
-            writedefref(nil);
-            writesymref(proptypesym);
-          end
-         else
-          begin
-            writedefref(proptype);
-            writesymref(nil);
-          end;
-         writesmallset(propoptions);
-         writelong(index);
-         writelong(default);
-         writepropsymlist(readaccesssym);
-         writepropsymlist(writeaccesssym);
-         writepropsymlist(storedsym);
-         writedefref(readaccessdef);
-         writedefref(writeaccessdef);
-         writedefref(storeddef);
-         writedefref(indexdef);
-         current_ppu^.writeentry(ibpropertysym);
+        tsym.write;
+        writesmallset(propoptions);
+        if (ppo_is_override in propoptions) then
+         writesymref(propoverriden)
+        else
+         begin
+           proptype.write;
+           writelong(index);
+           writelong(default);
+           indextype.write;
+           readaccess^.write;
+           writeaccess^.write;
+           storedaccess^.write;
+         end;
+        current_ppu^.writeentry(ibpropertysym);
       end;
+
+
+    procedure tpropertysym.dooverride(overriden:ppropertysym);
+      begin
+        propoverriden:=overriden;
+        proptype:=overriden^.proptype;
+        propoptions:=overriden^.propoptions+[ppo_is_override];
+        index:=overriden^.index;
+        default:=overriden^.default;
+        indextype:=overriden^.indextype;
+        readaccess^.clear;
+        readaccess:=overriden^.readaccess^.getcopy;
+        writeaccess^.clear;
+        writeaccess:=overriden^.writeaccess^.getcopy;
+        storedaccess^.clear;
+        storedaccess:=overriden^.storedaccess^.getcopy;
+      end;
+
 
 {$ifdef GDB}
     function tpropertysym.stabstring : pchar;
@@ -788,32 +740,37 @@
          tsym.init(n);
          typ:=funcretsym;
          funcretprocinfo:=approcinfo;
-         funcretdef:=pprocinfo(approcinfo)^.retdef;
+         rettype:=pprocinfo(approcinfo)^.returntype;
          { address valid for ret in param only }
          { otherwise set by insert             }
-         address:=pprocinfo(approcinfo)^.retoffset;
+         address:=pprocinfo(approcinfo)^.return_offset;
       end;
 
     constructor tfuncretsym.load;
       begin
          tsym.load;
-         funcretdef:=readdefref;
+         rettype.load;
          address:=readlong;
          funcretprocinfo:=nil;
          typ:=funcretsym;
       end;
 
+    destructor tfuncretsym.done;
+      begin
+        inherited done;
+      end;
+
     procedure tfuncretsym.write;
       begin
          tsym.write;
-         writedefref(funcretdef);
+         rettype.write;
          writelong(address);
          current_ppu^.writeentry(ibfuncretsym);
       end;
 
     procedure tfuncretsym.deref;
       begin
-         resolvedef(funcretdef);
+         rettype.resolve;
       end;
 
 {$ifdef GDB}
@@ -829,14 +786,14 @@
       begin
         { if retoffset is already set then reuse it, this is needed
           when inserting the result variable }
-        if procinfo^.retoffset<>0 then
-         address:=procinfo^.retoffset
+        if procinfo^.return_offset<>0 then
+         address:=procinfo^.return_offset
         else
          begin
            { allocate space in local if ret in acc or in fpu }
-           if ret_in_acc(procinfo^.retdef) or (procinfo^.retdef^.deftype=floatdef) then
+           if ret_in_acc(procinfo^.returntype.def) or (procinfo^.returntype.def^.deftype=floatdef) then
             begin
-              l:=funcretdef^.size;
+              l:=rettype.def^.size;
               inc(owner^.datasize,l);
 {$ifdef m68k}
               { word alignment required for motorola }
@@ -849,7 +806,7 @@
               else if (l>=2) and ((owner^.datasize and 1)<>0) then
                 inc(owner^.datasize,2-(owner^.datasize and 1));
               address:=owner^.datasize;
-              procinfo^.retoffset:=-owner^.datasize;
+              procinfo^.return_offset:=-owner^.datasize;
             end;
          end;
       end;
@@ -859,10 +816,19 @@
                                   TABSOLUTESYM
 ****************************************************************************}
 
-    constructor tabsolutesym.init(const n : string;p : pdef);
+    constructor tabsolutesym.init(const n : string;const tt : ttype);
       begin
-        inherited init(n,p);
+        inherited init(n,tt);
         typ:=absolutesym;
+      end;
+
+
+    constructor tabsolutesym.initdef(const n : string;p : pdef);
+      var
+        t : ttype;
+      begin
+        t.setdef(p);
+        tabsolutesym.init(n,t);
       end;
 
 
@@ -902,16 +868,7 @@
          if read_member then
            writelong(address);
          { write only definition or definitionsym }
-         if assigned(definitionsym) then
-          begin
-            writedefref(nil);
-            writesymref(definitionsym);
-          end
-         else
-          begin
-            writedefref(definition);
-            writesymref(nil);
-          end;
+         vartype.write;
          hvo:=varoptions-[vo_regable];
          writesmallset(hvo);
          writebyte(byte(abstyp));
@@ -979,23 +936,20 @@
                                   TVARSYM
 ****************************************************************************}
 
-    constructor tvarsym.init(const n : string;p : pdef);
+    constructor tvarsym.init(const n : string;const tt : ttype);
       begin
          tsym.init(n);
          typ:=varsym;
-         definition:=p;
-         definitionsym:=nil;
+         vartype:=tt;
          _mangledname:=nil;
          varspez:=vs_value;
          address:=0;
-         islocalcopy:=false;
          localvarsym:=nil;
          refs:=0;
          varstate:=vs_used;
          varoptions:=[];
          { can we load the value into a register ? }
-         if p^.is_intregable then
-
+         if tt.def^.is_intregable then
 {$ifdef INCLUDEOK}
            include(varoptions,vo_regable)
 {$else}
@@ -1008,7 +962,7 @@
            varoptions:=varoptions-[vo_regable];
 {$endif}
 
-         if p^.is_fpuregable then
+         if tt.def^.is_fpuregable then
 {$ifdef INCLUDEOK}
            include(varoptions,vo_fpuregable)
 {$else}
@@ -1024,10 +978,9 @@
       end;
 
 
-    constructor tvarsym.init_dll(const n : string;p : pdef);
+    constructor tvarsym.init_dll(const n : string;const tt : ttype);
       begin
-      { The tvarsym is necessary for 0.99.5 (PFV) }
-         tvarsym.init(n,p);
+         tvarsym.init(n,tt);
 {$ifdef INCLUDEOK}
          include(varoptions,vo_is_dll_var);
 {$else}
@@ -1036,10 +989,9 @@
       end;
 
 
-    constructor tvarsym.init_C(const n,mangled : string;p : pdef);
+    constructor tvarsym.init_C(const n,mangled : string;const tt : ttype);
       begin
-      { The tvarsym is necessary for 0.99.5 (PFV) }
-         tvarsym.init(n,p);
+         tvarsym.init(n,tt);
 {$ifdef INCLUDEOK}
          include(varoptions,vo_is_C_var);
 {$else}
@@ -1049,24 +1001,12 @@
       end;
 
 
-    constructor tvarsym.initsym(const n : string;p : ptypesym);
+    constructor tvarsym.initdef(const n : string;p : pdef);
+      var
+        t : ttype;
       begin
-        tvarsym.init(n,p^.definition);
-        definitionsym:=p;
-      end;
-
-
-    constructor tvarsym.initsym_dll(const n : string;p : ptypesym);
-      begin
-        tvarsym.init_dll(n,p^.definition);
-        definitionsym:=p;
-      end;
-
-
-    constructor tvarsym.initsym_C(const n,mangled : string;p : ptypesym);
-      begin
-        tvarsym.init_C(n,mangled,p^.definition);
-        definitionsym:=p;
+        t.setdef(p);
+        tvarsym.init(n,t);
       end;
 
 
@@ -1083,10 +1023,8 @@
            address:=readlong
          else
            address:=0;
-         islocalcopy:=false;
          localvarsym:=nil;
-         definition:=readdefref;
-         definitionsym:=ptypesym(readsymref);
+         vartype.load;
          readsmallset(varoptions);
          if (vo_is_C_var in varoptions) then
            setmangledname(readstring);
@@ -1102,13 +1040,7 @@
 
     procedure tvarsym.deref;
       begin
-         if assigned(definitionsym) then
-          begin
-            resolvesym(psym(definitionsym));
-            definition:=definitionsym^.definition;
-          end
-         else
-          resolvedef(definition);
+        vartype.resolve;
       end;
 
 
@@ -1120,17 +1052,7 @@
          writebyte(byte(varspez));
          if read_member then
           writelong(address);
-         { write only definition or definitionsym }
-         if assigned(definitionsym) then
-          begin
-            writedefref(nil);
-            writesymref(definitionsym);
-          end
-         else
-          begin
-            writedefref(definition);
-            writesymref(nil);
-          end;
+         vartype.write;
          { symbols which are load are never candidates for a register,
            turn off the regable }
          hvo:=varoptions-[vo_regable];
@@ -1178,18 +1100,19 @@
 
     function tvarsym.getsize : longint;
       begin
-        if assigned(definition) and (varspez=vs_value) and
-          ((definition^.deftype<>arraydef) or (Parraydef(definition)^.highrange>=
-          Parraydef(definition)^.lowrange)) then
-              getsize:=definition^.size
-          else
-              getsize:=0;
+        if assigned(vartype.def) and
+           (varspez=vs_value) and
+           ((vartype.def^.deftype<>arraydef) or
+            (Parraydef(vartype.def)^.highrange>=Parraydef(vartype.def)^.lowrange)) then
+          getsize:=vartype.def^.size
+        else
+          getsize:=0;
       end;
 
 
     function tvarsym.getpushsize : longint;
       begin
-         if assigned(definition) then
+         if assigned(vartype.def) then
            begin
               case varspez of
                 vs_var :
@@ -1197,10 +1120,10 @@
                 vs_value,
                 vs_const :
                   begin
-                      if push_addr_param(definition) then
+                      if push_addr_param(vartype.def) then
                         getpushsize:=target_os.size_of_pointer
                       else
-                        getpushsize:=definition^.size;
+                        getpushsize:=vartype.def^.size;
                   end;
               end;
            end
@@ -1369,7 +1292,7 @@
                  { get the alignment size }
                    if (aktpackrecords=packrecord_C) then
                     begin
-                      varalign:=definition^.alignment;
+                      varalign:=vartype.def^.alignment;
                       if varalign=0 then
                        begin
                          if (owner^.dataalignment<4) then
@@ -1456,8 +1379,8 @@
      var
        st : string[2];
      begin
-       if (definition^.deftype=objectdef) and
-          pobjectdef(definition)^.is_class then
+       if (vartype.def^.deftype=objectdef) and
+          pobjectdef(vartype.def)^.is_class then
          st:='*'
        else
          st:='';
@@ -1467,7 +1390,7 @@
             if (cs_gdb_gsym in aktglobalswitches) then st := 'G'+st else st := 'S'+st;
 {$ifndef Delphi}
             stabstring := strpnew('"'+owner^.name^+'__'+name+':'+st+
-                     +definition^.numberstring+'",'+
+                     +vartype.def^.numberstring+'",'+
                      tostr(N_LCSYM)+',0,'+tostr(fileinfo.line)+','+mangledname);
 {$endif}
          end
@@ -1480,13 +1403,13 @@
               but these names don't exist in pascal !}
             if (cs_gdb_gsym in aktglobalswitches) then st := 'G'+st else st := 'S'+st;
             stabstring := strpnew('"'+name+':'+st
-                     +definition^.numberstring+'",'+
+                     +vartype.def^.numberstring+'",'+
                      tostr(N_LCSYM)+',0,'+tostr(fileinfo.line)+','+mangledname);
          end
        else if owner^.symtabletype = staticsymtable then
          begin
             stabstring := strpnew('"'+name+':S'+st
-                  +definition^.numberstring+'",'+
+                  +vartype.def^.numberstring+'",'+
                   tostr(N_LCSYM)+',0,'+tostr(fileinfo.line)+','+mangledname);
          end
        else if (owner^.symtabletype=parasymtable) then
@@ -1494,13 +1417,13 @@
             case varspez of
                vs_var   : st := 'v'+st;
                vs_value,
-               vs_const : if push_addr_param(definition) then
+               vs_const : if push_addr_param(vartype.def) then
                             st := 'v'+st { should be 'i' but 'i' doesn't work }
                           else
                             st := 'p'+st;
               end;
             stabstring := strpnew('"'+name+':'+st
-                  +definition^.numberstring+'",'+
+                  +vartype.def^.numberstring+'",'+
                   tostr(N_PSYM)+',0,'+tostr(fileinfo.line)+','+
                   tostr(address+owner^.address_fixup));
                   {offset to ebp => will not work if the framepointer is esp
@@ -1513,7 +1436,7 @@
               { "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi", "eip", "ps", "cs", "ss", "ds", "es", "fs", "gs", }
               { this is the register order for GDB}
               stabstring:=strpnew('"'+name+':r'+st
-                        +definition^.numberstring+'",'+
+                        +vartype.def^.numberstring+'",'+
                         tostr(N_RSYM)+',0,'+
                         tostr(fileinfo.line)+','+tostr(GDB_i386index[reg]));
            end
@@ -1522,11 +1445,11 @@
            { I don't know if this will work (PM) }
            if (vo_is_C_var in varoptions) then
             stabstring := strpnew('"'+name+':S'+st
-                  +definition^.numberstring+'",'+
+                  +vartype.def^.numberstring+'",'+
                   tostr(N_LCSYM)+',0,'+tostr(fileinfo.line)+','+mangledname)
            else
            stabstring := strpnew('"'+name+':'+st
-                  +definition^.numberstring+'",'+
+                  +vartype.def^.numberstring+'",'+
                   tostr(N_LSYM)+',0,'+tostr(fileinfo.line)+',-'+tostr(address))
        else
          stabstring := inherited stabstring;
@@ -1545,7 +1468,7 @@
            { "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi", "eip", "ps", "cs", "ss", "ds", "es", "fs", "gs", }
            { this is the register order for GDB}
               stab_str:=strpnew('"'+name+':r'
-                     +definition^.numberstring+'",'+
+                     +vartype.def^.numberstring+'",'+
                      tostr(N_RSYM)+',0,'+
                      tostr(fileinfo.line)+','+tostr(GDB_i386index[reg]));
               asmlist^.concat(new(pai_stabs,init(stab_str)));
@@ -1563,17 +1486,16 @@
       begin
          tsym.init(n);
          typ:=typedconstsym;
-         definition:=p;
-         definitionsym:=nil;
+         typedconsttype.setdef(p);
          is_really_const:=really_const;
          prefix:=stringdup(procprefix);
       end;
 
 
-    constructor ttypedconstsym.initsym(const n : string;p : ptypesym;really_const : boolean);
+    constructor ttypedconstsym.inittype(const n : string;const tt : ttype;really_const : boolean);
       begin
-         ttypedconstsym.init(n,p^.definition,really_const);
-         definitionsym:=p;
+         ttypedconstsym.init(n,nil,really_const);
+         typedconsttype:=tt;
       end;
 
 
@@ -1581,8 +1503,7 @@
       begin
          tsym.load;
          typ:=typedconstsym;
-         definition:=readdefref;
-         definitionsym:=ptypesym(readsymref);
+         typedconsttype.load;
          prefix:=stringdup(readstring);
          is_really_const:=boolean(readbyte);
       end;
@@ -1603,8 +1524,8 @@
 
     function ttypedconstsym.getsize : longint;
       begin
-        if assigned(definition) then
-         getsize:=definition^.size
+        if assigned(typedconsttype.def) then
+         getsize:=typedconsttype.def^.size
         else
          getsize:=0;
       end;
@@ -1612,30 +1533,14 @@
 
     procedure ttypedconstsym.deref;
       begin
-         if assigned(definitionsym) then
-          begin
-            resolvesym(psym(definitionsym));
-            definition:=definitionsym^.definition;
-          end
-         else
-          resolvedef(definition);
+        typedconsttype.resolve;
       end;
 
 
     procedure ttypedconstsym.write;
       begin
          tsym.write;
-         { write only definition or definitionsym }
-         if assigned(definitionsym) then
-          begin
-            writedefref(nil);
-            writesymref(definitionsym);
-          end
-         else
-          begin
-            writedefref(definition);
-            writesymref(nil);
-          end;
+         typedconsttype.write;
          writestring(prefix^);
          writebyte(byte(is_really_const));
          current_ppu^.writeentry(ibtypedconstsym);
@@ -1697,45 +1602,46 @@
     else
       st := 'S';
     stabstring := strpnew('"'+name+':'+st+
-            definition^.numberstring+'",'+tostr(n_STSYM)+',0,'+
+            typedconsttype.def^.numberstring+'",'+tostr(n_STSYM)+',0,'+
             tostr(fileinfo.line)+','+mangledname);
     end;
 {$endif GDB}
+
 
 {****************************************************************************
                                   TCONSTSYM
 ****************************************************************************}
 
-    constructor tconstsym.init(const n : string;t : tconsttype;v : longint);
+    constructor tconstsym.init(const n : string;t : tconsttyp;v : longint);
       begin
          inherited init(n);
          typ:=constsym;
-         consttype:=t;
+         consttyp:=t;
          value:=v;
          ResStrIndex:=0;
-         definition:=nil;
+         consttype.reset;
          len:=0;
       end;
 
 
-    constructor tconstsym.init_def(const n : string;t : tconsttype;v : longint;def : pdef);
+    constructor tconstsym.init_def(const n : string;t : tconsttyp;v : longint;def : pdef);
       begin
          inherited init(n);
          typ:=constsym;
-         consttype:=t;
+         consttyp:=t;
          value:=v;
-         definition:=def;
+         consttype.setdef(def);
          len:=0;
       end;
 
 
-    constructor tconstsym.init_string(const n : string;t : tconsttype;str:pchar;l:longint);
+    constructor tconstsym.init_string(const n : string;t : tconsttyp;str:pchar;l:longint);
       begin
          inherited init(n);
          typ:=constsym;
-         consttype:=t;
+         consttyp:=t;
          value:=longint(str);
-         definition:=nil;
+         consttype.reset;
          len:=l;
          if t=constresourcestring then
            ResStrIndex:=registerresourcestring(name,pchar(value),len);
@@ -1748,8 +1654,9 @@
       begin
          tsym.load;
          typ:=constsym;
-         consttype:=tconsttype(readbyte);
-         case consttype of
+         consttype.reset;
+         consttyp:=tconsttyp(readbyte);
+         case consttyp of
            constint,
            constbool,
            constchar :
@@ -1757,7 +1664,7 @@
            constpointer,
            constord :
              begin
-               definition:=readdefref;
+               consttype.load;
                value:=readlong;
              end;
            conststring,constresourcestring :
@@ -1765,7 +1672,7 @@
                len:=readlong;
                getmem(pchar(value),len+1);
                current_ppu^.getdata(pchar(value)^,len);
-               if consttype=constresourcestring then
+               if consttyp=constresourcestring then
                  ResStrIndex:=readlong;
              end;
            constreal :
@@ -1776,21 +1683,21 @@
              end;
            constset :
              begin
-               definition:=readdefref;
+               consttype.load;
                new(ps);
                readnormalset(ps^);
                value:=longint(ps);
              end;
            constnil : ;
            else
-             Message1(unit_f_ppu_invalid_entry,tostr(ord(consttype)));
+             Message1(unit_f_ppu_invalid_entry,tostr(ord(consttyp)));
          end;
       end;
 
 
     destructor tconstsym.done;
       begin
-        case consttype of
+        case consttyp of
           conststring :
             freemem(pchar(value),len+1);
           constreal :
@@ -1810,16 +1717,16 @@
 
     procedure tconstsym.deref;
       begin
-        if consttype in [constord,constpointer,constset] then
-         resolvedef(pdef(definition));
+        if consttyp in [constord,constpointer,constset] then
+         consttype.resolve;
       end;
 
 
     procedure tconstsym.write;
       begin
          tsym.write;
-         writebyte(byte(consttype));
-         case consttype of
+         writebyte(byte(consttyp));
+         case consttyp of
            constnil : ;
            constint,
            constbool,
@@ -1828,21 +1735,21 @@
            constpointer,
            constord :
              begin
-               writedefref(definition);
+               consttype.write;
                writelong(value);
              end;
            conststring,constresourcestring :
              begin
                writelong(len);
                current_ppu^.putdata(pchar(value)^,len);
-               if consttype=constresourcestring then
+               if consttyp=constresourcestring then
                  writelong(ResStrIndex);
              end;
            constreal :
              writereal(pbestreal(value)^);
            constset :
              begin
-               writedefref(definition);
+               consttype.write;
                writenormalset(pointer(value)^);
              end;
          else
@@ -1856,7 +1763,7 @@
     var st : string;
     begin
          {even GDB v4.16 only now 'i' 'r' and 'e' !!!}
-         case consttype of
+         case consttyp of
             conststring : begin
                           { I had to remove ibm2ascii !! }
                           st := pstring(value)^;
@@ -1885,7 +1792,7 @@
 
     procedure tconstsym.concatstabto(asmlist : paasmoutput);
       begin
-        if consttype <> conststring then
+        if consttyp <> conststring then
           inherited concatstabto(asmlist);
       end;
 {$endif GDB}
@@ -1974,20 +1881,20 @@
                                   TTYPESYM
 ****************************************************************************}
 
-    constructor ttypesym.init(const n : string;d : pdef);
+    constructor ttypesym.init(const n : string;const tt : ttype);
 
       begin
          tsym.init(n);
          typ:=typesym;
-         definition:=d;
+         restype:=tt;
 {$ifdef GDB}
          isusedinstab := false;
 {$endif GDB}
-         if assigned(definition) then
+         if assigned(restype.def) then
           begin
-             if not(assigned(definition^.sym)) then
+             if not(assigned(restype.def^.typesym)) then
                begin
-                  definition^.sym:=@self;
+                  restype.def^.typesym:=@self;
                   synonym:=nil;
 {$ifdef INCLUDEOK}
                   include(symoptions,sp_primary_typesym);
@@ -1997,12 +1904,19 @@
                end
              else
                begin
-                  synonym:=definition^.sym^.synonym;
-                  definition^.sym^.synonym:=@self;
+                  synonym:=restype.def^.typesym^.synonym;
+                  restype.def^.typesym^.synonym:=@self;
                end;
           end;
       end;
 
+    constructor ttypesym.initdef(const n : string;d : pdef);
+      var
+        t : ttype;
+      begin
+        t.setdef(d);
+        ttypesym.init(n,t);
+      end;
 
     constructor ttypesym.load;
       begin
@@ -2012,18 +1926,18 @@
 {$ifdef GDB}
          isusedinstab := false;
 {$endif GDB}
-         definition:=readdefref;
+         restype.load;
       end;
 
     destructor ttypesym.done;
-      var prevsym : ptypesym;
-
+      var
+        prevsym : ptypesym;
       begin
-         if assigned(definition) then
+         if assigned(restype.def) then
            begin
-              prevsym:=definition^.sym;
+              prevsym:=restype.def^.typesym;
               if prevsym=@self then
-                definition^.sym:=synonym;
+                restype.def^.typesym:=synonym;
               while assigned(prevsym) do
                 begin
                    if (prevsym^.synonym=@self) then
@@ -2035,7 +1949,6 @@
                 end;
            end;
          synonym:=nil;
-         definition:=nil;
          inherited done;
       end;
 
@@ -2043,29 +1956,29 @@
     procedure ttypesym.deref;
 
       begin
-         resolvedef(definition);
-         if assigned(definition) then
+         restype.resolve;
+         if assigned(restype.def) then
           begin
             if (sp_primary_typesym in symoptions) then
               begin
-                 if definition^.sym<>@self then
-                   synonym:=definition^.sym;
-                 definition^.sym:=@self;
+                 if restype.def^.typesym<>@self then
+                   synonym:=restype.def^.typesym;
+                 restype.def^.typesym:=@self;
               end
             else
               begin
-                 if assigned(definition^.sym) then
+                 if assigned(restype.def^.typesym) then
                    begin
-                      synonym:=definition^.sym^.synonym;
-                      if definition^.sym<>@self then
-                        definition^.sym^.synonym:=@self;
+                      synonym:=restype.def^.typesym^.synonym;
+                      if restype.def^.typesym<>@self then
+                        restype.def^.typesym^.synonym:=@self;
                    end
                  else
-                   definition^.sym:=@self;
+                   restype.def^.typesym:=@self;
               end;
-            if (definition^.deftype=recorddef) and assigned(precorddef(definition)^.symtable) and
-               (definition^.sym=@self) then
-              precorddef(definition)^.symtable^.name:=stringdup('record '+name);
+            if (restype.def^.deftype=recorddef) and assigned(precorddef(restype.def)^.symtable) and
+               (restype.def^.typesym=@self) then
+              precorddef(restype.def)^.symtable^.name:=stringdup('record '+name);
           end;
       end;
 
@@ -2074,7 +1987,7 @@
 
       begin
          tsym.write;
-         writedefref(definition);
+         restype.write;
          current_ppu^.writeentry(ibtypesym);
       end;
 
@@ -2082,10 +1995,10 @@
     procedure ttypesym.load_references;
       begin
          inherited load_references;
-         if (definition^.deftype=recorddef) then
-           precorddef(definition)^.symtable^.load_browser;
-         if (definition^.deftype=objectdef) then
-           pobjectdef(definition)^.symtable^.load_browser;
+         if (restype.def^.deftype=recorddef) then
+           precorddef(restype.def)^.symtable^.load_browser;
+         if (restype.def^.deftype=objectdef) then
+           pobjectdef(restype.def)^.symtable^.load_browser;
       end;
 
 
@@ -2095,17 +2008,17 @@
          { write address of this symbol if record or object
            even if no real refs are there
            because we need it for the symtable }
-         if (definition^.deftype=recorddef) or
-            (definition^.deftype=objectdef) then
+         if (restype.def^.deftype=recorddef) or
+            (restype.def^.deftype=objectdef) then
           begin
-             writesymref(@self);
-             current_ppu^.writeentry(ibsymref);
+            writesymref(@self);
+            current_ppu^.writeentry(ibsymref);
           end;
          write_references:=true;
-         if (definition^.deftype=recorddef) then
-           precorddef(definition)^.symtable^.write_browser;
-         if (definition^.deftype=objectdef) then
-           pobjectdef(definition)^.symtable^.write_browser;
+         if (restype.def^.deftype=recorddef) then
+           precorddef(restype.def)^.symtable^.write_browser;
+         if (restype.def^.deftype=objectdef) then
+           pobjectdef(restype.def)^.symtable^.write_browser;
       end;
 
 
@@ -2113,24 +2026,25 @@
     procedure ttypesym.add_to_browserlog;
       begin
          inherited add_to_browserlog;
-         if (definition^.deftype=recorddef) then
-            precorddef(definition)^.symtable^.writebrowserlog;
-         if (definition^.deftype=objectdef) then
-             pobjectdef(definition)^.symtable^.writebrowserlog;
+         if (restype.def^.deftype=recorddef) then
+           precorddef(restype.def)^.symtable^.writebrowserlog;
+         if (restype.def^.deftype=objectdef) then
+           pobjectdef(restype.def)^.symtable^.writebrowserlog;
       end;
 {$endif BrowserLog}
 
 
 {$ifdef GDB}
     function ttypesym.stabstring : pchar;
-    var stabchar : string[2];
-        short : string;
+    var
+      stabchar : string[2];
+      short : string;
     begin
-      if definition^.deftype in tagtypes then
+      if restype.def^.deftype in tagtypes then
         stabchar := 'Tt'
       else
         stabchar := 't';
-      short := '"'+name+':'+stabchar+definition^.numberstring
+      short := '"'+name+':'+stabchar+restype.def^.numberstring
                +'",'+tostr(N_LSYM)+',0,'+tostr(fileinfo.line)+',0';
       stabstring := strpnew(short);
     end;
@@ -2138,9 +2052,9 @@
     procedure ttypesym.concatstabto(asmlist : paasmoutput);
       begin
       {not stabs for forward defs }
-      if assigned(definition) then
-        if (definition^.sym = @self) then
-          definition^.concatstabto(asmlist)
+      if assigned(restype.def) then
+        if (restype.def^.typesym = @self) then
+          restype.def^.concatstabto(asmlist)
         else
           inherited concatstabto(asmlist);
       end;
@@ -2209,7 +2123,10 @@
 
 {
   $Log$
-  Revision 1.130  1999-11-26 00:19:12  peter
+  Revision 1.131  1999-11-30 10:40:55  peter
+    + ttype, tsymlist
+
+  Revision 1.130  1999/11/26 00:19:12  peter
     * property overriding dereference fix, but it need a bigger redesign
       which i'll do tomorrow. This quick hack is for the lazarus ppl so
       they can hack on mwcustomedit.

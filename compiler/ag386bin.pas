@@ -773,7 +773,7 @@ unit ag386bin;
 
     procedure ti386binasmlist.writetreesmart;
       var
-        hp,hp1 : pai;
+        hp : pai;
       begin
         objectalloc^.setsection(sec_code);
         objectoutput^.defaultsection(sec_code);
@@ -788,7 +788,7 @@ unit ag386bin;
 {$ifdef GDB}
            StartFileLineInfo;
 {$endif GDB}
-           hp1:=TreePass1(hp);
+           TreePass1(hp);
 
          { set section sizes }
            objectoutput^.setsectionsizes(objectalloc^.secsize);
@@ -907,7 +907,10 @@ unit ag386bin;
 end.
 {
   $Log$
-  Revision 1.27  1999-11-06 14:34:16  peter
+  Revision 1.28  1999-11-30 10:40:42  peter
+    + ttype, tsymlist
+
+  Revision 1.27  1999/11/06 14:34:16  peter
     * truncated log to 20 revs
 
   Revision 1.26  1999/11/02 15:06:56  peter

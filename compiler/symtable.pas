@@ -20,7 +20,7 @@
  ****************************************************************************
 }
 {$ifdef TP}
-  {$N+,E+,F+}
+  {$N+,E+,F+,L-}
 {$endif}
 unit symtable;
 
@@ -66,6 +66,8 @@ unit symtable;
        punitsymtable = ^tunitsymtable;
 
        { needed for names by the definitions }
+       psym = ^tsym;
+       pdef = ^tdef;
        ptypesym = ^ttypesym;
        penumsym = ^tenumsym;
        pprocsym = ^tprocsym;
@@ -92,6 +94,40 @@ unit symtable;
         next      : pderef;
         constructor init(typ:tdereftype;i:word);
         destructor  done;
+      end;
+
+      ttype = object
+        def : pdef;
+        sym : psym;
+        procedure reset;
+        procedure setdef(p:pdef);
+        procedure setsym(p:psym);
+        procedure load;
+        procedure write;
+        procedure resolve;
+      end;
+
+      psymlistitem = ^tsymlistitem;
+      tsymlistitem = record
+        sym  : psym;
+        next : psymlistitem;
+      end;
+
+      psymlist = ^tsymlist;
+      tsymlist = object
+        def      : pdef;
+        firstsym,
+        lastsym  : psymlistitem;
+        constructor init;
+        constructor load;
+        destructor  done;
+        function  empty:boolean;
+        procedure setdef(p:pdef);
+        procedure addsym(p:psym);
+        procedure clear;
+        function  getcopy:psymlist;
+        procedure resolve;
+        procedure write;
       end;
 
       psymtableentry = ^tsymtableentry;
@@ -624,34 +660,11 @@ implementation
        end;
 
 
-{****************************************************************************
-                               TRef
-****************************************************************************}
+{*****************************************************************************
+                               PPU Reading Writing
+*****************************************************************************}
 
-    constructor tref.init(ref :pref;pos : pfileposinfo);
-      begin
-        nextref:=nil;
-        if pos<>nil then
-          posinfo:=pos^;
-        if assigned(current_module) then
-          moduleindex:=current_module^.unit_index;
-        if assigned(ref) then
-          ref^.nextref:=@self;
-        is_written:=false;
-      end;
-
-
-    destructor tref.done;
-      var
-         inputfile : pinputfile;
-      begin
-         inputfile:=get_source_file(moduleindex,posinfo.fileindex);
-         if inputfile<>nil then
-           dec(inputfile^.ref_count);
-         if assigned(nextref) then
-          dispose(nextref,done);
-         nextref:=nil;
-      end;
+{$I symppu.inc}
 
 
 {****************************************************************************
@@ -670,48 +683,6 @@ implementation
       begin
       end;
 
-
-{*****************************************************************************
-                           PPU Reading Writing
-*****************************************************************************}
-
-{$I symppu.inc}
-
-
-{*****************************************************************************
-                            Definition Helpers
-*****************************************************************************}
-
-    function globaldef(const s : string) : pdef;
-
-      var st : string;
-          symt : psymtable;
-      begin
-         srsym := nil;
-         if pos('.',s) > 0 then
-           begin
-           st := copy(s,1,pos('.',s)-1);
-           getsym(st,false);
-           st := copy(s,pos('.',s)+1,255);
-           if assigned(srsym) then
-             begin
-             if srsym^.typ = unitsym then
-               begin
-               symt := punitsym(srsym)^.unitsymtable;
-               srsym := symt^.search(st);
-               end else srsym := nil;
-             end;
-           end else st := s;
-         if srsym = nil then getsym(st,false);
-         if srsym = nil then
-           getsymonlyin(systemunit,st);
-         if srsym^.typ<>typesym then
-           begin
-             Message(type_e_type_id_expected);
-             exit;
-           end;
-         globaldef := ptypesym(srsym)^.definition;
-      end;
 
 {*****************************************************************************
                         Symbol / Definition Resolving
@@ -821,6 +792,263 @@ implementation
       end;
 
 
+
+{****************************************************************************
+                               TRef
+****************************************************************************}
+
+    constructor tref.init(ref :pref;pos : pfileposinfo);
+      begin
+        nextref:=nil;
+        if pos<>nil then
+          posinfo:=pos^;
+        if assigned(current_module) then
+          moduleindex:=current_module^.unit_index;
+        if assigned(ref) then
+          ref^.nextref:=@self;
+        is_written:=false;
+      end;
+
+
+    destructor tref.done;
+      var
+         inputfile : pinputfile;
+      begin
+         inputfile:=get_source_file(moduleindex,posinfo.fileindex);
+         if inputfile<>nil then
+           dec(inputfile^.ref_count);
+         if assigned(nextref) then
+          dispose(nextref,done);
+         nextref:=nil;
+      end;
+
+
+{****************************************************************************
+                                   TType
+****************************************************************************}
+
+    procedure ttype.reset;
+      begin
+        def:=nil;
+        sym:=nil;
+      end;
+
+
+    procedure ttype.setdef(p:pdef);
+      begin
+        def:=p;
+        sym:=nil;
+      end;
+
+
+    procedure ttype.setsym(p:psym);
+      begin
+        sym:=p;
+        case p^.typ of
+          typesym :
+            def:=ptypesym(p)^.restype.def;
+          propertysym :
+            def:=ppropertysym(p)^.proptype.def;
+          else
+            internalerror(1234005);
+        end;
+      end;
+
+
+    procedure ttype.load;
+      begin
+        def:=pdef(readderef);
+        sym:=psym(readderef);
+      end;
+
+
+    procedure ttype.write;
+      begin
+        if assigned(sym) then
+         begin
+           writederef(nil);
+           writederef(sym);
+         end
+        else
+         begin
+           writederef(def);
+           writederef(nil);
+         end;
+      end;
+
+
+    procedure ttype.resolve;
+      begin
+        if assigned(sym) then
+         begin
+           resolvesym(sym);
+           setsym(sym);
+         end
+        else
+         resolvedef(def);
+      end;
+
+
+{****************************************************************************
+                                    TSymList
+****************************************************************************}
+
+    constructor tsymlist.init;
+      begin
+        def:=nil; { needed for procedures }
+        firstsym:=nil;
+        lastsym:=nil;
+      end;
+
+
+    constructor tsymlist.load;
+      var
+        sym : psym;
+      begin
+        def:=readdefref;
+        firstsym:=nil;
+        lastsym:=nil;
+        repeat
+          sym:=readsymref;
+          if sym=nil then
+           break;
+          addsym(sym);
+        until false;
+      end;
+
+
+    destructor tsymlist.done;
+      begin
+        clear;
+      end;
+
+
+    function tsymlist.empty:boolean;
+      begin
+        empty:=(firstsym=nil);
+      end;
+
+
+    procedure tsymlist.clear;
+      var
+        hp : psymlistitem;
+      begin
+        while assigned(firstsym) do
+         begin
+           hp:=firstsym;
+           firstsym:=firstsym^.next;
+           dispose(hp);
+         end;
+        firstsym:=nil;
+        lastsym:=nil;
+        def:=nil;
+      end;
+
+
+    procedure tsymlist.setdef(p:pdef);
+      begin
+        def:=p;
+      end;
+
+
+    procedure tsymlist.addsym(p:psym);
+      var
+        hp : psymlistitem;
+      begin
+        if not assigned(p) then
+         exit;
+        new(hp);
+        hp^.sym:=p;
+        hp^.next:=nil;
+        if assigned(lastsym) then
+         lastsym^.next:=hp
+        else
+         firstsym:=hp;
+        lastsym:=hp;
+      end;
+
+
+    function tsymlist.getcopy:psymlist;
+      var
+        hp : psymlist;
+        hp2 : psymlistitem;
+      begin
+        new(hp,init);
+        hp^.def:=def;
+        hp2:=firstsym;
+        while assigned(hp2) do
+         begin
+           hp^.addsym(hp2^.sym);
+           hp2:=hp2^.next;
+         end;
+        getcopy:=hp;
+      end;
+
+
+    procedure tsymlist.write;
+      var
+        hp : psymlistitem;
+      begin
+        writederef(def);
+        hp:=firstsym;
+        while assigned(hp) do
+         begin
+           writederef(hp^.sym);
+           hp:=hp^.next;
+         end;
+        writederef(nil);
+      end;
+
+
+    procedure tsymlist.resolve;
+      var
+        hp : psymlistitem;
+      begin
+        resolvedef(def);
+        hp:=firstsym;
+        while assigned(hp) do
+         begin
+           resolvesym(hp^.sym);
+           hp:=hp^.next;
+         end;
+      end;
+
+
+{*****************************************************************************
+                            Definition Helpers
+*****************************************************************************}
+
+    function globaldef(const s : string) : pdef;
+
+      var st : string;
+          symt : psymtable;
+      begin
+         srsym := nil;
+         if pos('.',s) > 0 then
+           begin
+           st := copy(s,1,pos('.',s)-1);
+           getsym(st,false);
+           st := copy(s,pos('.',s)+1,255);
+           if assigned(srsym) then
+             begin
+             if srsym^.typ = unitsym then
+               begin
+               symt := punitsym(srsym)^.unitsymtable;
+               srsym := symt^.search(st);
+               end else srsym := nil;
+             end;
+           end else st := s;
+         if srsym = nil then getsym(st,false);
+         if srsym = nil then
+           getsymonlyin(systemunit,st);
+         if srsym^.typ<>typesym then
+           begin
+             Message(type_e_type_id_expected);
+             exit;
+           end;
+         globaldef := ptypesym(srsym)^.restype.def;
+      end;
+
 {*****************************************************************************
                         Symbol Call Back Functions
 *****************************************************************************}
@@ -845,9 +1073,9 @@ implementation
          { because each object has to have a type sym }
          else
           if (psym(sym)^.typ=typesym) and
-             assigned(ptypesym(sym)^.definition) and
-             (ptypesym(sym)^.definition^.deftype=objectdef) then
-           pobjectdef(ptypesym(sym)^.definition)^.check_forwards;
+             assigned(ptypesym(sym)^.restype.def) and
+             (ptypesym(sym)^.restype.def^.deftype=objectdef) then
+           pobjectdef(ptypesym(sym)^.restype.def)^.check_forwards;
       end;
 
     procedure labeldefined(p : pnamedindexobject);
@@ -886,7 +1114,7 @@ implementation
              exit;
            if (pvarsym(p)^.refs=0) then
              begin
-                if (psym(p)^.owner^.symtabletype=parasymtable) or pvarsym(p)^.islocalcopy then
+                if (psym(p)^.owner^.symtabletype=parasymtable) or (vo_is_local_copy in pvarsym(p)^.varoptions) then
                   begin
                     MessagePos1(psym(p)^.fileinfo,sym_h_para_identifier_not_used,p^.name);
                   end
@@ -902,7 +1130,7 @@ implementation
                     if (pvarsym(p)^.varspez<>vs_var)  then
                       MessagePos1(psym(p)^.fileinfo,sym_h_para_identifier_only_set,p^.name)
                   end
-                else if pvarsym(p)^.islocalcopy then
+                else if (vo_is_local_copy in pvarsym(p)^.varoptions) then
                   begin
                     if (pvarsym(p)^.varspez<>vs_var) then
                       MessagePos1(psym(p)^.fileinfo,sym_h_para_identifier_only_set,p^.name);
@@ -940,8 +1168,8 @@ implementation
     procedure objectprivatesymbolused(p : pnamedindexobject);
       begin
          if (psym(p)^.typ=typesym) and
-            (ptypesym(p)^.definition^.deftype=objectdef) then
-           pobjectdef(ptypesym(p)^.definition)^.symtable^.foreach(
+            (ptypesym(p)^.restype.def^.deftype=objectdef) then
+           pobjectdef(ptypesym(p)^.restype.def)^.symtable^.foreach(
              {$ifndef TP}@{$endif}TestPrivate);
       end;
 
@@ -965,8 +1193,8 @@ implementation
       begin
         if not pd^.is_def_stab_written then
          begin
-           if assigned(pd^.sym) then
-            pd^.sym^.isusedinstab := true;
+           if assigned(pd^.typesym) then
+            pd^.typesym^.isusedinstab := true;
            pd^.concatstabto(asmlist);
          end;
       end;
@@ -1619,11 +1847,11 @@ implementation
            end;
          { register definition of typesym }
          if (sym^.typ = typesym) and
-            assigned(ptypesym(sym)^.definition) then
+            assigned(ptypesym(sym)^.restype.def) then
           begin
-            if not(assigned(ptypesym(sym)^.definition^.owner)) and
-               (ptypesym(sym)^.definition^.deftype<>errordef) then
-              registerdef(ptypesym(sym)^.definition);
+            if not(assigned(ptypesym(sym)^.restype.def^.owner)) and
+               (ptypesym(sym)^.restype.def^.deftype<>errordef) then
+              registerdef(ptypesym(sym)^.restype.def);
 {$ifdef GDB}
             if (cs_debuginfo in aktmoduleswitches) and assigned(debuglist) and
                (symtabletype in [globalsymtable,staticsymtable]) then
@@ -1809,8 +2037,8 @@ implementation
            else
              begin
                 if (symtabletype=recordsymtable) and
-                  assigned(defowner^.sym) then
-                  Browserlog.AddLog('---Symtable '+defowner^.sym^.name)
+                  assigned(defowner^.typesym) then
+                  Browserlog.AddLog('---Symtable '+defowner^.typesym^.name)
                 else
                   Browserlog.AddLog('---Symtable with no name');
              end;
@@ -2244,7 +2472,7 @@ implementation
              Message(type_e_type_id_expected);
              exit;
            end;
-         typeglobalnumber := ptypesym(srsym)^.definition^.numberstring;
+         typeglobalnumber := ptypesym(srsym)^.restype.def^.numberstring;
          make_ref:=old_make_ref;
       end;
 {$endif GDB}
@@ -2271,8 +2499,8 @@ implementation
         while assigned(def) do
           begin
 {$ifdef GDB}
-            if assigned(def^.sym) then
-              def^.sym^.isusedinstab:=false;
+            if assigned(def^.typesym) then
+              def^.typesym^.isusedinstab:=false;
             def^.is_def_stab_written:=false;
 {$endif GDB}
             {if not current_module^.in_implementation then}
@@ -2566,7 +2794,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.67  1999-11-24 11:41:05  pierre
+  Revision 1.68  1999-11-30 10:40:56  peter
+    + ttype, tsymlist
+
+  Revision 1.67  1999/11/24 11:41:05  pierre
    * defaultsymtablestack is now restored after parser.compile
 
   Revision 1.66  1999/11/22 00:23:09  pierre

@@ -76,7 +76,7 @@ implementation
                  end;
               constsym:
                 begin
-                   if pconstsym(p^.symtableentry)^.consttype=constresourcestring then
+                   if pconstsym(p^.symtableentry)^.consttyp=constresourcestring then
                      begin
                          pushusedregisters(pushed,$ff);
                          emit_const(A_PUSH,S_L,
@@ -252,10 +252,10 @@ implementation
                          { in case call by reference, then calculate. Open array
                            is always an reference! }
                          if (pvarsym(p^.symtableentry)^.varspez=vs_var) or
-                            is_open_array(pvarsym(p^.symtableentry)^.definition) or
-                            is_array_of_const(pvarsym(p^.symtableentry)^.definition) or
+                            is_open_array(pvarsym(p^.symtableentry)^.vartype.def) or
+                            is_array_of_const(pvarsym(p^.symtableentry)^.vartype.def) or
                             ((pvarsym(p^.symtableentry)^.varspez=vs_const) and
-                             push_addr_param(pvarsym(p^.symtableentry)^.definition)) then
+                             push_addr_param(pvarsym(p^.symtableentry)^.vartype.def)) then
                            begin
                               simple_loadn:=false;
                               if hregister=R_NO then
@@ -808,14 +808,14 @@ implementation
                    pp:=pp^.parent;
                 end;
               p^.location.reference.base:=hr;
-              p^.location.reference.offset:=pp^.retoffset;
+              p^.location.reference.offset:=pp^.return_offset;
            end
          else
            begin
              p^.location.reference.base:=procinfo^.framepointer;
-             p^.location.reference.offset:=procinfo^.retoffset;
+             p^.location.reference.offset:=procinfo^.return_offset;
            end;
-         if ret_in_param(p^.retdef) then
+         if ret_in_param(p^.rettype.def) then
            begin
               if not hr_valid then
                 hr:=getregister32;
@@ -997,7 +997,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.90  1999-11-06 14:34:18  peter
+  Revision 1.91  1999-11-30 10:40:43  peter
+    + ttype, tsymlist
+
+  Revision 1.90  1999/11/06 14:34:18  peter
     * truncated log to 20 revs
 
   Revision 1.89  1999/10/12 22:35:48  florian

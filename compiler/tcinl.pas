@@ -648,7 +648,7 @@ implementation
                        if assigned(hp) and assigned(hp^.resulttype) then
                          Begin
                            if (hp^.resulttype^.deftype=filedef) and
-                              (pfiledef(hp^.resulttype)^.filetype=ft_typed) then
+                              (pfiledef(hp^.resulttype)^.filetyp=ft_typed) then
                             begin
                               file_is_typed:=true;
                               { test the type }
@@ -657,7 +657,7 @@ implementation
                                begin
                                  if (hpp^.left^.treetype=typen) then
                                    CGMessage(type_e_cant_read_write_type);
-                                 if not is_equal(hpp^.resulttype,pfiledef(hp^.resulttype)^.typed_as) then
+                                 if not is_equal(hpp^.resulttype,pfiledef(hp^.resulttype)^.typedfiletype.def) then
                                    CGMessage(type_e_mismatch);
                                  { generate the high() value for the shortstring }
                                  if ((not dowrite) and is_shortstring(hpp^.left^.resulttype)) or
@@ -684,7 +684,7 @@ implementation
                                      begin
                                        p1:=gencallnode(nil,nil);
                                        p1^.right:=hp^.left;
-                                       p1^.resulttype:=pprocvardef(hp^.left^.resulttype)^.retdef;
+                                       p1^.resulttype:=pprocvardef(hp^.left^.resulttype)^.rettype.def;
                                        firstpass(p1);
                                        hp^.left:=p1;
                                      end;
@@ -1036,7 +1036,7 @@ implementation
                                 { to the type of the set elements  }
                                 p^.left^.right^.left:=gentypeconvnode(
                                   p^.left^.right^.left,
-                                  psetdef(p^.left^.resulttype)^.setof);
+                                  psetdef(p^.left^.resulttype)^.elementtype.def);
                                 { check the type conversion }
                                 firstpass(p^.left^.right^.left);
                                 { only three parameters are allowed }
@@ -1065,7 +1065,7 @@ implementation
                             end;
                           setdef:
                             begin
-                               do_lowhigh(Psetdef(p^.left^.resulttype)^.setof);
+                               do_lowhigh(Psetdef(p^.left^.resulttype)^.elementtype.def);
                                firstpass(p);
                             end;
                          arraydef:
@@ -1073,7 +1073,7 @@ implementation
                               if p^.inlinenumber=in_low_x then
                                begin
                                  hp:=genordinalconstnode(Parraydef(p^.left^.resulttype)^.lowrange,
-                                   Parraydef(p^.left^.resulttype)^.rangedef);
+                                   Parraydef(p^.left^.resulttype)^.rangetype.def);
                                  disposetree(p);
                                  p:=hp;
                                  firstpass(p);
@@ -1092,7 +1092,7 @@ implementation
                                  else
                                   begin
                                     hp:=genordinalconstnode(Parraydef(p^.left^.resulttype)^.highrange,
-                                      Parraydef(p^.left^.resulttype)^.rangedef);
+                                      Parraydef(p^.left^.resulttype)^.rangetype.def);
                                     disposetree(p);
                                     p:=hp;
                                     firstpass(p);
@@ -1272,7 +1272,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.60  1999-11-18 15:34:49  pierre
+  Revision 1.61  1999-11-30 10:40:58  peter
+    + ttype, tsymlist
+
+  Revision 1.60  1999/11/18 15:34:49  pierre
     * Notes/Hints for local syms changed to
       Set_varstate function
 

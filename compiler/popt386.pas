@@ -492,7 +492,7 @@ Begin
                            ((Paicpu(hp2)^.opcode = A_LEAVE) Or
                             (Paicpu(hp2)^.opcode = A_RET)) And
                            (Paicpu(p)^.oper[0].ref^.Base = procinfo^.FramePointer) And
-                           (Paicpu(p)^.oper[0].ref^.Offset >= procinfo^.RetOffset) And
+                           (Paicpu(p)^.oper[0].ref^.Offset >= procinfo^.Return_Offset) And
                            (Paicpu(p)^.oper[0].ref^.Index = R_NO)
                           Then
                             Begin
@@ -883,7 +883,7 @@ Begin
                                   (Paicpu(hp1)^.opcode = A_RET)) And
                                  (Paicpu(p)^.oper[1].typ = top_ref) And
                                  (Paicpu(p)^.oper[1].ref^.base = procinfo^.FramePointer) And
-                                 (Paicpu(p)^.oper[1].ref^.offset >= procinfo^.RetOffset) And
+                                 (Paicpu(p)^.oper[1].ref^.offset >= procinfo^.Return_Offset) And
                                  (Paicpu(p)^.oper[1].ref^.index = R_NO) And
                                  (Paicpu(p)^.oper[0].typ = top_reg)
                                 Then
@@ -1439,7 +1439,7 @@ Begin
                       (Paicpu(hp2)^.opcode = A_RET)) And
                      (Paicpu(p)^.oper[0].ref^.Base = procinfo^.FramePointer) And
                      (Paicpu(p)^.oper[0].ref^.Index = R_NO) And
-                     (Paicpu(p)^.oper[0].ref^.Offset >= procinfo^.RetOffset) And
+                     (Paicpu(p)^.oper[0].ref^.Offset >= procinfo^.Return_Offset) And
                      (hp1^.typ = ait_instruction) And
                      (Paicpu(hp1)^.opcode = A_MOV) And
                      (Paicpu(hp1)^.opsize = S_B) And
@@ -1728,7 +1728,10 @@ End.
 
 {
  $Log$
- Revision 1.71  1999-11-27 23:47:55  jonas
+ Revision 1.72  1999-11-30 10:40:45  peter
+   + ttype, tsymlist
+
+ Revision 1.71  1999/11/27 23:47:55  jonas
    + change "mov var,reg; add/shr/... x,reg; mov reg,var" to
      "add/shr/... x,var" (if x is a const or reg, suggestion from Peter)
      Enable with -dfoldArithOps

@@ -25,7 +25,6 @@
 ************************************************}
 
        { this object is the base for all symbol objects }
-       psym = ^tsym;
        tsym = object(tsymtableentry)
           typ        : tsymtyp;
           symoptions : tsymoptions;
@@ -103,9 +102,7 @@
 {$ifdef CHAINPROCSYMS}
           nextprocsym : pprocsym;
 {$endif CHAINPROCSYMS}
-{$ifdef GDB}
-          is_global   : boolean; { necessary for stab }
-{$endif GDB}
+          is_global   : boolean;
           constructor init(const n : string);
           constructor load;
           destructor done;virtual;
@@ -131,12 +128,13 @@
        end;
 
        ttypesym = object(tsym)
-          definition : pdef;
+          restype    : ttype;
           synonym    : ptypesym;
 {$ifdef GDB}
           isusedinstab : boolean;
 {$endif GDB}
-          constructor init(const n : string;d : pdef);
+          constructor init(const n : string;const tt : ttype);
+          constructor initdef(const n : string;d : pdef);
           constructor load;
           destructor done;virtual;
           procedure write;virtual;
@@ -156,19 +154,15 @@
        tvarsym = object(tsym)
           address       : longint;
           localvarsym   : pvarsym;
-          islocalcopy   : boolean;
-          definition    : pdef;
-          definitionsym : ptypesym;
+          vartype       : ttype;
           varoptions    : tvaroptions;
           reg           : tregister; { if reg<>R_NO, then the variable is an register variable }
           varspez       : tvarspez;  { sets the type of access }
           varstate      : tvarstate;
-          constructor init(const n : string;p : pdef);
-          constructor init_dll(const n : string;p : pdef);
-          constructor init_C(const n,mangled : string;p : pdef);
-          constructor initsym(const n : string;p : ptypesym);
-          constructor initsym_dll(const n : string;p : ptypesym);
-          constructor initsym_C(const n,mangled : string;p : ptypesym);
+          constructor init(const n : string;const tt : ttype);
+          constructor init_dll(const n : string;const tt : ttype);
+          constructor init_C(const n,mangled : string;const tt : ttype);
+          constructor initdef(const n : string;p : pdef);
           constructor load;
           destructor  done;virtual;
           procedure write;virtual;
@@ -186,26 +180,24 @@
           _mangledname  : pchar;
        end;
 
-       ppropsymlist = ^tpropsymlist;
-       tpropsymlist = record
-         sym  : psym;
-         next : ppropsymlist;
-       end;
-
        ppropertysym = ^tpropertysym;
        tpropertysym = object(tsym)
-          propoptions : tpropertyoptions;
-          proptype    : pdef;
-          proptypesym : ppropertysym;
-          readaccesssym,writeaccesssym,storedsym : ppropsymlist;
-          readaccessdef,writeaccessdef,storeddef,indexdef : pdef;
-          index,default : longint;
+          propoptions   : tpropertyoptions;
+          proptype      : ttype;
+          propoverriden : ppropertysym;
+          indextype     : ttype;
+          index,
+          default       : longint;
+          readaccess,
+          writeaccess,
+          storedaccess  : psymlist;
           constructor init(const n : string);
           destructor  done;virtual;
           constructor load;
           function  getsize : longint;virtual;
           procedure write;virtual;
           procedure deref;virtual;
+          procedure dooverride(overriden:ppropertysym);
 {$ifdef GDB}
           function  stabstring : pchar;virtual;
           procedure concatstabto(asmlist : paasmoutput);virtual;
@@ -215,10 +207,11 @@
        pfuncretsym = ^tfuncretsym;
        tfuncretsym = object(tsym)
           funcretprocinfo : pointer{ should be pprocinfo};
-          funcretdef : pdef;
-          address    : longint;
+          rettype  : ttype;
+          address  : longint;
           constructor init(const n : string;approcinfo : pointer{pprocinfo});
           constructor load;
+          destructor  done;virtual;
           procedure write;virtual;
           procedure deref;virtual;
           procedure insert_in_data;virtual;
@@ -227,15 +220,14 @@
 {$endif GDB}
        end;
 
-       absolutetyp = (tovar,toasm,toaddr);
-
        pabsolutesym = ^tabsolutesym;
        tabsolutesym = object(tvarsym)
           abstyp  : absolutetyp;
           absseg  : boolean;
           ref     : psym;
           asmname : pstring;
-          constructor init(const n : string;p : pdef);
+          constructor init(const n : string;const tt : ttype);
+          constructor initdef(const n : string;p : pdef);
           constructor load;
           procedure deref;virtual;
           function  mangledname : string;virtual;
@@ -249,11 +241,10 @@
        ptypedconstsym = ^ttypedconstsym;
        ttypedconstsym = object(tsym)
           prefix          : pstring;
-          definition      : pdef;
-          definitionsym   : ptypesym;
+          typedconsttype  : ttype;
           is_really_const : boolean;
           constructor init(const n : string;p : pdef;really_const : boolean);
-          constructor initsym(const n : string;p : ptypesym;really_const : boolean);
+          constructor inittype(const n : string;const tt : ttype;really_const : boolean);
           constructor load;
           destructor done;virtual;
           function  mangledname : string;virtual;
@@ -266,20 +257,16 @@
 {$endif GDB}
        end;
 
-       tconsttype = (constord,conststring,constreal,constbool,
-                     constint,constchar,constset,constpointer,constnil,
-                     constresourcestring);
-
        pconstsym = ^tconstsym;
        tconstsym = object(tsym)
-          definition : pdef;
-          consttype  : tconsttype;
+          consttype  : ttype;
+          consttyp : tconsttyp;
           resstrindex,    { needed for resource strings }
           value,
           len        : longint; { len is needed for string length }
-          constructor init(const n : string;t : tconsttype;v : longint);
-          constructor init_def(const n : string;t : tconsttype;v : longint;def : pdef);
-          constructor init_string(const n : string;t : tconsttype;str:pchar;l:longint);
+          constructor init(const n : string;t : tconsttyp;v : longint);
+          constructor init_def(const n : string;t : tconsttyp;v : longint;def : pdef);
+          constructor init_string(const n : string;t : tconsttyp;str:pchar;l:longint);
           constructor load;
           destructor  done;virtual;
           function  mangledname : string;virtual;
@@ -324,7 +311,10 @@
 
 {
   $Log$
-  Revision 1.41  1999-11-26 00:19:12  peter
+  Revision 1.42  1999-11-30 10:40:56  peter
+    + ttype, tsymlist
+
+  Revision 1.41  1999/11/26 00:19:12  peter
     * property overriding dereference fix, but it need a bigger redesign
       which i'll do tomorrow. This quick hack is for the lazarus ppl so
       they can hack on mwcustomedit.
@@ -389,8 +379,8 @@
     * NEWLAB for label as symbol
 
   Revision 1.24  1999/05/20 22:22:45  pierre
-    + added synonym filed for ttypesym
-      allows a clean disposal of tdefs and related ttypesyms
+    + added synonym filed for ptypesym
+      allows a clean disposal of tdefs and related ptypesyms
 
   Revision 1.23  1999/05/13 21:59:47  peter
     * removed oldppu code

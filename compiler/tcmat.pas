@@ -314,7 +314,7 @@ implementation
                 minusdef:=nil;
               while assigned(minusdef) do
                 begin
-                   if (pparaitem(minusdef^.para^.first)^.data=p^.left^.resulttype) and
+                   if (pparaitem(minusdef^.para^.first)^.paratype.def=p^.left^.resulttype) and
                       (pparaitem(minusdef^.para^.first)^.next=nil) then
                      begin
                         t:=gencallnode(overloaded_operators[_minus],nil);
@@ -422,7 +422,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.24  1999-11-26 13:51:29  pierre
+  Revision 1.25  1999-11-30 10:40:58  peter
+    + ttype, tsymlist
+
+  Revision 1.24  1999/11/26 13:51:29  pierre
    * fix for overloading of shr shl mod and div
 
   Revision 1.23  1999/11/18 15:34:50  pierre

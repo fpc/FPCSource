@@ -121,7 +121,7 @@ implementation
             (def_from^.deftype=procvardef) and
             (fromtreetype=loadn) then
           begin
-            def_from:=pprocvardef(def_from)^.retdef;
+            def_from:=pprocvardef(def_from)^.rettype.def;
           end;
 
        { we walk the wanted (def_to) types and check then the def_from
@@ -254,7 +254,7 @@ implementation
              begin
              { open array is also compatible with a single element of its base type }
                if is_open_array(def_to) and
-                  is_equal(parraydef(def_to)^.definition,def_from) then
+                  is_equal(parraydef(def_to)^.elementtype.def,def_from) then
                 begin
                   doconv:=tc_equal;
                   b:=1;
@@ -268,14 +268,14 @@ implementation
                         if is_open_array(def_to) and
                            is_array_constructor(def_from) then
                          begin
-                           if is_equal(parraydef(def_to)^.definition,parraydef(def_from)^.definition) then
+                           if is_equal(parraydef(def_to)^.elementtype.def,parraydef(def_from)^.elementtype.def) then
                             begin
                               doconv:=tc_equal;
                               b:=1;
                             end
                            else
-                            if isconvertable(parraydef(def_to)^.definition,
-                                             parraydef(def_from)^.definition,hct,nothingn,false)<>0 then
+                            if isconvertable(parraydef(def_to)^.elementtype.def,
+                                             parraydef(def_from)^.elementtype.def,hct,nothingn,false)<>0 then
                              begin
                                doconv:=hct;
                                b:=2;
@@ -285,7 +285,7 @@ implementation
                     pointerdef :
                       begin
                         if is_zero_based_array(def_to) and
-                           is_equal(ppointerdef(def_from)^.definition,parraydef(def_to)^.definition) then
+                           is_equal(ppointerdef(def_from)^.pointertype.def,parraydef(def_to)^.elementtype.def) then
                          begin
                            doconv:=tc_pointer_2_array;
                            b:=1;
@@ -295,7 +295,7 @@ implementation
                       begin
                         { string to array of char}
                         if (not(is_special_array(def_to)) or is_open_array(def_to)) and
-                          is_equal(parraydef(def_to)^.definition,cchardef) then
+                          is_equal(parraydef(def_to)^.elementtype.def,cchardef) then
                          begin
                            doconv:=tc_string_2_chararray;
                            b:=1;
@@ -341,7 +341,7 @@ implementation
                    begin
                      { chararray to pointer }
                      if is_zero_based_array(def_from) and
-                        is_equal(parraydef(def_from)^.definition,ppointerdef(def_to)^.definition) then
+                        is_equal(parraydef(def_from)^.elementtype.def,ppointerdef(def_to)^.pointertype.def) then
                       begin
                         doconv:=tc_array_2_pointer;
                         b:=1;
@@ -351,16 +351,16 @@ implementation
                    begin
                      { child class pointer can be assigned to anchestor pointers }
                      if (
-                         (ppointerdef(def_from)^.definition^.deftype=objectdef) and
-                         (ppointerdef(def_to)^.definition^.deftype=objectdef) and
-                         pobjectdef(ppointerdef(def_from)^.definition)^.is_related(
-                           pobjectdef(ppointerdef(def_to)^.definition))
+                         (ppointerdef(def_from)^.pointertype.def^.deftype=objectdef) and
+                         (ppointerdef(def_to)^.pointertype.def^.deftype=objectdef) and
+                         pobjectdef(ppointerdef(def_from)^.pointertype.def)^.is_related(
+                           pobjectdef(ppointerdef(def_to)^.pointertype.def))
                         ) or
                         { all pointers can be assigned to void-pointer }
-                        is_equal(ppointerdef(def_to)^.definition,voiddef) or
+                        is_equal(ppointerdef(def_to)^.pointertype.def,voiddef) or
                         { in my opnion, is this not clean pascal }
                         { well, but it's handy to use, it isn't ? (FK) }
-                        is_equal(ppointerdef(def_from)^.definition,voiddef) then
+                        is_equal(ppointerdef(def_from)^.pointertype.def,voiddef) then
                        begin
                          doconv:=tc_equal;
                          b:=1;
@@ -371,8 +371,8 @@ implementation
                      { procedure variable can be assigned to an void pointer }
                      { Not anymore. Use the @ operator now.}
                      if not(m_tp_procvar in aktmodeswitches) and
-                        (ppointerdef(def_to)^.definition^.deftype=orddef) and
-                        (porddef(ppointerdef(def_to)^.definition)^.typ=uvoid) then
+                        (ppointerdef(def_to)^.pointertype.def^.deftype=orddef) and
+                        (porddef(ppointerdef(def_to)^.pointertype.def)^.typ=uvoid) then
                       begin
                         doconv:=tc_equal;
                         b:=1;
@@ -387,8 +387,8 @@ implementation
                          ((def_from^.deftype=objectdef) and pobjectdef(def_from)^.is_class) or
                          (def_from^.deftype=classrefdef)
                         ) and
-                        (ppointerdef(def_to)^.definition^.deftype=orddef) and
-                        (porddef(ppointerdef(def_to)^.definition)^.typ=uvoid) then
+                        (ppointerdef(def_to)^.pointertype.def^.deftype=orddef) and
+                        (porddef(ppointerdef(def_to)^.pointertype.def)^.typ=uvoid) then
                        begin
                          doconv:=tc_equal;
                          b:=1;
@@ -421,8 +421,8 @@ implementation
                 { to procedure variables                                  }
                 if (m_pointer_2_procedure in aktmodeswitches) and
                   (def_from^.deftype=pointerdef) and
-                  (ppointerdef(def_from)^.definition^.deftype=orddef) and
-                  (porddef(ppointerdef(def_from)^.definition)^.typ=uvoid) then
+                  (ppointerdef(def_from)^.pointertype.def^.deftype=orddef) and
+                  (porddef(ppointerdef(def_from)^.pointertype.def)^.typ=uvoid) then
                 begin
                    doconv:=tc_equal;
                    b:=1;
@@ -461,8 +461,8 @@ implementation
                if (def_from^.deftype=classrefdef) then
                 begin
                   doconv:=tc_equal;
-                  if pobjectdef(pclassrefdef(def_from)^.definition)^.is_related(
-                       pobjectdef(pclassrefdef(def_to)^.definition)) then
+                  if pobjectdef(pclassrefdef(def_from)^.pointertype.def)^.is_related(
+                       pobjectdef(pclassrefdef(def_to)^.pointertype.def)) then
                    b:=1;
                 end
                else
@@ -486,21 +486,21 @@ implementation
                if (def_from^.deftype=filedef) and
                   (
                    (
-                    (pfiledef(def_from)^.filetype = ft_typed) and
-                    (pfiledef(def_to)^.filetype = ft_typed) and
+                    (pfiledef(def_from)^.filetyp = ft_typed) and
+                    (pfiledef(def_to)^.filetyp = ft_typed) and
                     (
-                     (pfiledef(def_from)^.typed_as = pdef(voiddef)) or
-                     (pfiledef(def_to)^.typed_as = pdef(voiddef))
+                     (pfiledef(def_from)^.typedfiletype.def = pdef(voiddef)) or
+                     (pfiledef(def_to)^.typedfiletype.def = pdef(voiddef))
                     )
                    ) or
                    (
                     (
-                     (pfiledef(def_from)^.filetype = ft_untyped) and
-                     (pfiledef(def_to)^.filetype = ft_typed)
+                     (pfiledef(def_from)^.filetyp = ft_untyped) and
+                     (pfiledef(def_to)^.filetyp = ft_typed)
                     ) or
                     (
-                     (pfiledef(def_from)^.filetype = ft_typed) and
-                     (pfiledef(def_to)^.filetype = ft_untyped)
+                     (pfiledef(def_from)^.filetyp = ft_typed) and
+                     (pfiledef(def_to)^.filetyp = ft_untyped)
                     )
                    )
                   ) then
@@ -701,9 +701,9 @@ implementation
             exit;
           while passproc<>nil do
             begin
-              if is_equal(passproc^.retdef,to_def) and
-                 (is_equal(pparaitem(passproc^.para^.first)^.data,from_def) or
-                 (isconvertable(from_def,pparaitem(passproc^.para^.first)^.data,convtyp,ordconstn,false)=1)) then
+              if is_equal(passproc^.rettype.def,to_def) and
+                 (is_equal(pparaitem(passproc^.para^.first)^.paratype.def,from_def) or
+                 (isconvertable(from_def,pparaitem(passproc^.para^.first)^.paratype.def,convtyp,ordconstn,false)=1)) then
                 begin
                    assignment_overloaded:=passproc;
                    break;
@@ -842,7 +842,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.49  1999-11-18 15:34:45  pierre
+  Revision 1.50  1999-11-30 10:40:43  peter
+    + ttype, tsymlist
+
+  Revision 1.49  1999/11/18 15:34:45  pierre
     * Notes/Hints for local syms changed to
       Set_varstate function
 

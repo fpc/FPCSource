@@ -143,7 +143,8 @@ type
     ppo_indexed,
     ppo_defaultproperty,
     ppo_stored,
-    ppo_hasparameters
+    ppo_hasparameters,
+    ppo_is_override
   );
   tpropertyoptions=set of tpropertyoption;
 
@@ -155,6 +156,7 @@ type
     vo_is_dll_var,
     vo_is_thread_var,
     vo_fpuregable,
+    vo_is_local_copy,
     vo_is_const  { variable is declared as const (parameter) and can't be written to }
   );
   tvaroptions=set of tvaroption;
@@ -176,6 +178,15 @@ type
     vs_declared,vs_declared_and_first_found,
     vs_set_but_first_not_passed,vs_assigned,vs_used
   );
+
+  absolutetyp = (tovar,toasm,toaddr);
+
+  tconsttyp = (constnone,
+    constord,conststring,constreal,constbool,
+    constint,constchar,constset,constpointer,constnil,
+    constresourcestring
+  );
+
 
 const
   { relevant options for assigning a proc or a procvar to a procvar }
@@ -201,7 +212,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  1999-11-17 17:05:04  pierre
+  Revision 1.7  1999-11-30 10:40:54  peter
+    + ttype, tsymlist
+
+  Revision 1.6  1999/11/17 17:05:04  pierre
    * Notes/hints changes
 
   Revision 1.5  1999/11/07 23:16:49  florian

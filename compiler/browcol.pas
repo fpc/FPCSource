@@ -28,6 +28,9 @@ interface
 uses
   cobjects,objects,symconst,symtable;
 
+  type
+    sw_integer = integer;
+
 const
   SymbolTypLen : integer = 6;
 
@@ -197,7 +200,7 @@ procedure RegisterSymbols;
 implementation
 
 uses
-  Dos,Drivers,Views,App,
+  Dos,Drivers,{Views,App,}
   aasm,globtype,globals,files,comphook;
 
 const
@@ -916,18 +919,18 @@ end;
   var Name: string;
   begin
     Name:='array ['+IntToStr(def^.lowrange)+'..'+IntToStr(def^.highrange)+'] of ';
-    if assigned(def^.definition) then
-      Name:=Name+GetDefinitionStr(def^.definition);
+    if assigned(def^.elementtype.def) then
+      Name:=Name+GetDefinitionStr(def^.elementtype.def);
     GetArrayDefStr:=Name;
   end;
   function GetFileDefStr(def: pfiledef): string;
   var Name: string;
   begin
     Name:='';
-    case def^.filetype of
+    case def^.filetyp of
       ft_text    : Name:='text';
       ft_untyped : Name:='file';
-      ft_typed   : Name:='file of '+GetDefinitionStr(def^.typed_as);
+      ft_typed   : Name:='file of '+GetDefinitionStr(def^.typedfiletype.def);
     end;
     GetFileDefStr:=Name;
   end;
@@ -955,8 +958,8 @@ end;
   var OK: boolean;
   begin
     OK:=false;
-    if assigned(def^.retdef) then
-      if UpcaseStr(GetDefinitionStr(def^.retdef))<>'VOID' then
+    if assigned(def^.rettype.def) then
+      if UpcaseStr(GetDefinitionStr(def^.rettype.def))<>'VOID' then
         OK:=true;
     retdefassigned:=OK;
   end;
@@ -977,12 +980,13 @@ end;
          vs_Const : CurName:=CurName+'const ';
          vs_Var   : CurName:=CurName+'var ';
        end;
-       if assigned(dc^.data) then
-         CurName:=CurName+GetDefinitionStr(dc^.data);
+       if assigned(dc^.paratype.def) then
+         CurName:=CurName+GetDefinitionStr(dc^.paratype.def);
        if dc^.next<>nil then
          CurName:=', '+CurName;
        Name:=CurName+Name;
-       dc:=pparaitem(dc^.next); Inc(Count);
+       dc:=pparaitem(dc^.next);
+       Inc(Count);
      end;
     GetAbsProcParmDefStr:=Name;
   end;
@@ -992,7 +996,7 @@ end;
     Name:=GetAbsProcParmDefStr(def);
     if Name<>'' then Name:='('+Name+')';
     if retdefassigned(def) then
-      Name:='function'+Name+': '+GetDefinitionStr(def^.retdef)
+      Name:='function'+Name+': '+GetDefinitionStr(def^.rettype.def)
     else
       Name:='procedure'+Name;
     GetAbsProcDefStr:=Name;
@@ -1033,7 +1037,7 @@ end;
       varset   : Name:='varset';
     end;
     Name:=Name+' of ';
-    Name:=Name+GetDefinitionStr(def^.setof);
+    Name:=Name+GetDefinitionStr(def^.elementtype.def);
     GetSetDefStr:=Name;
   end;
   function GetDefinitionStr(def: pdef): string;
@@ -1043,8 +1047,8 @@ end;
     Name:='';
     if def<>nil then
     begin
-      if assigned(def^.sym) then
-        Name:=def^.sym^.name;
+      if assigned(def^.typesym) then
+        Name:=def^.typesym^.name;
       if Name='' then
       case def^.deftype of
         arraydef :
@@ -1071,14 +1075,14 @@ end;
   begin
     Name:='';
     if assigned(sym) and assigned(sym^.definition) then
-      if assigned(sym^.definition^.sym) then
+      if assigned(sym^.definition^.typesym) then
       begin
 {        ES:=sym^.definition^.First;
         while (ES<>nil) and (ES^.Value<>sym^.Value) do
           ES:=ES^.next;
         if assigned(es) and (es^.value=sym^.value) then
           Name:=}
-        Name:=sym^.definition^.sym^.name;
+        Name:=sym^.definition^.typesym^.name;
         if Name<>'' then
           Name:=Name+'('+IntToStr(sym^.value)+')';
       end;
@@ -1092,9 +1096,10 @@ end;
      if assigned(sym^.definition^.sym) then
        Name:=sym^.definition^.sym^.name;}
     if Name='' then
-    case sym^.consttype of
+    case sym^.consttyp of
       constord :
-        Name:=sym^.definition^.sym^.name+'('+IntToStr(sym^.value)+')';
+        Name:=sym^.consttype.def^.typesym^.name+'('+IntToStr(sym^.value)+')';
+      constresourcestring,
       conststring :
         Name:=''''+GetStr(PString(sym^.Value))+'''';
       constreal:
@@ -1119,7 +1124,7 @@ end;
   begin
     { still led to infinite recursions
       only usefull for unamed types PM }
-    if assigned(definition) and not assigned(definition^.sym) then
+    if assigned(definition) and not assigned(definition^.typesym) then
     begin
       case definition^.deftype of
         recorddef :
@@ -1153,12 +1158,12 @@ end;
           varsym :
              with pvarsym(sym)^ do
              begin
-               if assigned(definition) then
-                 if assigned(definition^.sym) then
-                   SetVType(Symbol,definition^.sym^.name)
+               if assigned(vartype.def) then
+                 if assigned(vartype.def^.typesym) then
+                   SetVType(Symbol,vartype.def^.typesym^.name)
                  else
-                   SetVType(Symbol,GetDefinitionStr(definition));
-               ProcessDefIfStruct(definition);
+                   SetVType(Symbol,GetDefinitionStr(vartype.def));
+               ProcessDefIfStruct(vartype.def);
                MemInfo.Addr:=address;
                if assigned(localvarsym) then
                  MemInfo.LocalAddr:=localvarsym^.address
@@ -1186,9 +1191,9 @@ end;
           funcretsym :
             if Assigned(OwnerSym) then
             with pfuncretsym(sym)^ do
-              if assigned(funcretdef) then
-                if assigned(funcretdef^.sym) then
-                   SetVType(OwnerSym,funcretdef^.sym^.name);
+              if assigned(rettype.def) then
+                if assigned(rettype.def^.typesym) then
+                   SetVType(OwnerSym,rettype.def^.typesym^.name);
           procsym :
             begin
               with pprocsym(sym)^ do
@@ -1217,37 +1222,37 @@ end;
           typesym :
             begin
             with ptypesym(sym)^ do
-              if assigned(definition) then
-                case definition^.deftype of
+              if assigned(restype.def) then
+                case restype.def^.deftype of
                   arraydef :
-                    SetDType(Symbol,GetArrayDefStr(parraydef(definition)));
+                    SetDType(Symbol,GetArrayDefStr(parraydef(restype.def)));
                   enumdef :
-                    SetDType(Symbol,GetEnumDefStr(penumdef(definition)));
+                    SetDType(Symbol,GetEnumDefStr(penumdef(restype.def)));
                   procdef :
-                    SetDType(Symbol,GetProcDefStr(pprocdef(definition)));
+                    SetDType(Symbol,GetProcDefStr(pprocdef(restype.def)));
                   procvardef :
-                    SetDType(Symbol,GetProcVarDefStr(pprocvardef(definition)));
+                    SetDType(Symbol,GetProcVarDefStr(pprocvardef(restype.def)));
                   objectdef :
-                    with pobjectdef(definition)^ do
+                    with pobjectdef(restype.def)^ do
                     begin
                       ObjDef:=childof;
-                      Symbol^.ObjectID:=longint(definition);
+                      Symbol^.ObjectID:=longint(restype.def);
                       if ObjDef<>nil then
                         Symbol^.AncestorID:=longint(ObjDef);{TypeNames^.Add(S);}
                       Symbol^.Flags:=(Symbol^.Flags or sfObject);
                       if is_class then
                         Symbol^.Flags:=(Symbol^.Flags or sfClass);
-                      ProcessSymTable(Symbol,Symbol^.Items,pobjectdef(definition)^.symtable);
+                      ProcessSymTable(Symbol,Symbol^.Items,pobjectdef(restype.def)^.symtable);
                     end;
                   recorddef :
                     begin
                       Symbol^.Flags:=(Symbol^.Flags or sfRecord);
-                      ProcessSymTable(Symbol,Symbol^.Items,precorddef(definition)^.symtable);
+                      ProcessSymTable(Symbol,Symbol^.Items,precorddef(restype.def)^.symtable);
                     end;
                   filedef :
-                    SetDType(Symbol,GetFileDefStr(pfiledef(definition)));
+                    SetDType(Symbol,GetFileDefStr(pfiledef(restype.def)));
                   setdef :
-                    SetDType(Symbol,GetSetDefStr(psetdef(definition)));
+                    SetDType(Symbol,GetSetDefStr(psetdef(restype.def)));
                 end;
             end;
         end;
@@ -1699,7 +1704,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.27  1999-11-10 00:42:42  pierre
+  Revision 1.28  1999-11-30 10:40:42  peter
+    + ttype, tsymlist
+
+  Revision 1.27  1999/11/10 00:42:42  pierre
     * LookUp function now returns the complete name in browcol
       and fpsymbol only yakes a part of LoopUpStr
 

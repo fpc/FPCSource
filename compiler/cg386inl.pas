@@ -168,7 +168,7 @@ implementation
          addsubop:array[in_inc_x..in_dec_x] of tasmop=(A_ADD,A_SUB);
        var
          aktfile : treference;
-         ft : tfiletype;
+         ft : tfiletyp;
          opsize : topsize;
          op,
          asmop : tasmop;
@@ -250,9 +250,9 @@ implementation
                 { is first parameter a file type ? }
                 if node^.left^.resulttype^.deftype=filedef then
                   begin
-                     ft:=pfiledef(node^.left^.resulttype)^.filetype;
+                     ft:=pfiledef(node^.left^.resulttype)^.filetyp;
                      if ft=ft_typed then
-                       typedtyp:=pfiledef(node^.left^.resulttype)^.typed_as;
+                       typedtyp:=pfiledef(node^.left^.resulttype)^.typedfiletype.def;
                      secondpass(node^.left);
                      if codegenerror then
                        exit;
@@ -288,10 +288,10 @@ implementation
                 if ft=ft_typed then
                   { this is to avoid copy of simple const parameters }
                   {dummycoll.data:=new(pformaldef,init)}
-                  dummycoll.data:=cformaldef
+                  dummycoll.paratype.setdef(cformaldef)
                 else
                   { I think, this isn't a good solution (FK) }
-                  dummycoll.data:=nil;
+                  dummycoll.paratype.reset;
 
                 while assigned(node) do
                   begin
@@ -324,13 +324,13 @@ implementation
                         if ft=ft_typed then
                           never_copy_const_param:=true;
                         { reset data type }
-                        dummycoll.data:=nil;
+                        dummycoll.paratype.reset;
                         { create temporary defs for high tree generation }
                         if doread and (is_shortstring(hp^.resulttype)) then
-                          dummycoll.data:=openshortstringdef
+                          dummycoll.paratype.setdef(openshortstringdef)
                         else
                           if (is_chararray(hp^.resulttype)) then
-                            dummycoll.data:=openchararraydef;
+                            dummycoll.paratype.setdef(openchararraydef);
                         secondcallparan(hp,@dummycoll,false,false,false,0);
                         if ft=ft_typed then
                           never_copy_const_param:=false;
@@ -373,7 +373,7 @@ implementation
                                    hp:=node;
                                    node:=node^.right;
                                    hp^.right:=nil;
-                                   dummycoll.data:=hp^.resulttype;
+                                   dummycoll.paratype.setdef(hp^.resulttype);
                                    dummycoll.paratyp:=vs_value;
                                    secondcallparan(hp,@dummycoll,false,false,false,0);
                                    hp^.right:=node;
@@ -392,7 +392,7 @@ implementation
                                    hp:=node;
                                    node:=node^.right;
                                    hp^.right:=nil;
-                                   dummycoll.data:=hp^.resulttype;
+                                   dummycoll.paratype.setdef(hp^.resulttype);
                                    dummycoll.paratyp:=vs_value;
                                    secondcallparan(hp,@dummycoll,false,false,false,0);
                                    hp^.right:=node;
@@ -553,9 +553,9 @@ implementation
            hp^.right:=nil;
            dummycoll.paratyp:=vs_var;
            if is_shortstring(hp^.resulttype) then
-             dummycoll.data:=openshortstringdef
+             dummycoll.paratype.setdef(openshortstringdef)
            else
-             dummycoll.data:=hp^.resulttype;
+             dummycoll.paratype.setdef(hp^.resulttype);
            procedureprefix:='FPC_'+pstringdef(hp^.resulttype)^.stringtypname+'_';
            secondcallparan(hp,@dummycoll,false,false,false,0);
            if codegenerror then
@@ -577,7 +577,7 @@ implementation
            if hp^.is_colon_para and assigned(node) and
               node^.is_colon_para then
              begin
-                dummycoll.data:=hp^.resulttype;
+                dummycoll.paratype.setdef(hp^.resulttype);
                 dummycoll.paratyp:=vs_value;
                 secondcallparan(hp,@dummycoll,false
                   ,false,false,0
@@ -597,7 +597,7 @@ implementation
            { third arg, length only if is_real }
            if hp^.is_colon_para then
              begin
-                dummycoll.data:=hp^.resulttype;
+                dummycoll.paratype.setdef(hp^.resulttype);
                 dummycoll.paratyp:=vs_value;
                 secondcallparan(hp,@dummycoll,false
                   ,false,false,0
@@ -623,7 +623,7 @@ implementation
             end;
 
            { last arg longint or real }
-           dummycoll.data:=hp^.resulttype;
+           dummycoll.paratype.setdef(hp^.resulttype);
            dummycoll.paratyp:=vs_value;
            secondcallparan(hp,@dummycoll,false
              ,false,false,0
@@ -696,7 +696,7 @@ implementation
 
           {load and push the address of the destination}
            dummycoll.paratyp:=vs_var;
-           dummycoll.data:=dest_para^.resulttype;
+           dummycoll.paratype.setdef(dest_para^.resulttype);
            secondcallparan(dest_para,@dummycoll,false,false,false,0);
            if codegenerror then
              exit;
@@ -710,7 +710,7 @@ implementation
            If has_32bit_code Then
              Begin
                dummycoll.paratyp:=vs_var;
-               dummycoll.data:=code_para^.resulttype;
+               dummycoll.paratype.setdef(code_para^.resulttype);
                secondcallparan(code_para,@dummycoll,false,false,false,0);
                if codegenerror then
                  exit;
@@ -725,7 +725,7 @@ implementation
 
           {node = first parameter = string}
            dummycoll.paratyp:=vs_const;
-           dummycoll.data:=node^.resulttype;
+           dummycoll.paratype.setdef(node^.resulttype);
            secondcallparan(node,@dummycoll,false,false,false,0);
            if codegenerror then
              exit;
@@ -1133,10 +1133,10 @@ implementation
                            end;
               pointerdef : begin
                              opsize:=S_L;
-                             if porddef(ppointerdef(p^.left^.left^.resulttype)^.definition)=voiddef then
+                             if porddef(ppointerdef(p^.left^.left^.resulttype)^.pointertype.def)=voiddef then
                               addvalue:=1
                              else
-                              addvalue:=ppointerdef(p^.left^.left^.resulttype)^.definition^.size;
+                              addvalue:=ppointerdef(p^.left^.left^.resulttype)^.pointertype.def^.size;
                            end;
                 else
                  internalerror(10081);
@@ -1244,7 +1244,7 @@ implementation
              in_reset_typedfile,in_rewrite_typedfile :
                begin
                   pushusedregisters(pushed,$ff);
-                  emit_const(A_PUSH,S_L,pfiledef(p^.left^.resulttype)^.typed_as^.size);
+                  emit_const(A_PUSH,S_L,pfiledef(p^.left^.resulttype)^.typedfiletype.def^.size);
                   secondpass(p^.left);
                   emitpushreferenceaddr(p^.left^.location.reference);
                   if p^.inlinenumber=in_reset_typedfile then
@@ -1440,7 +1440,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.80  1999-11-29 00:30:06  pierre
+  Revision 1.81  1999-11-30 10:40:42  peter
+    + ttype, tsymlist
+
+  Revision 1.80  1999/11/29 00:30:06  pierre
    * fix for form bug 699
 
   Revision 1.79  1999/11/20 01:22:18  pierre

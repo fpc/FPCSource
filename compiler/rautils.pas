@@ -677,10 +677,10 @@ Function TOperand.SetupResult:boolean;
 Begin
   SetupResult:=false;
   { replace by correct offset. }
-  if assigned(procinfo^.retdef) and
-     (procinfo^.retdef<>pdef(voiddef)) then
+  if assigned(procinfo^.returntype.def) and
+     (procinfo^.returntype.def<>pdef(voiddef)) then
    begin
-     opr.ref.offset:=procinfo^.retoffset;
+     opr.ref.offset:=procinfo^.return_offset;
      opr.ref.base:= procinfo^.framepointer;
      { always assume that the result is valid. }
      procinfo^.funcret_state:=vs_assigned;
@@ -779,7 +779,7 @@ Begin
                 end;
             end;
         end;
-        case pvarsym(sym)^.definition^.deftype of
+        case pvarsym(sym)^.vartype.def^.deftype of
           orddef,
           enumdef,
           pointerdef,
@@ -789,10 +789,10 @@ Begin
             begin
               { for arrays try to get the element size, take care of
                 multiple indexes }
-              harrdef:=Parraydef(PVarsym(sym)^.definition);
-              while assigned(harrdef^.definition) and
-                    (harrdef^.definition^.deftype=arraydef) do
-               harrdef:=parraydef(harrdef^.definition);
+              harrdef:=Parraydef(PVarsym(sym)^.vartype.def);
+              while assigned(harrdef^.elementtype.def) and
+                    (harrdef^.elementtype.def^.deftype=arraydef) do
+               harrdef:=parraydef(harrdef^.elementtype.def);
               SetSize(harrdef^.elesize);
             end;
         end;
@@ -803,7 +803,7 @@ Begin
     typedconstsym :
       begin
         opr.ref.symbol:=newasmsymbol(ptypedconstsym(sym)^.mangledname);
-        case ptypedconstsym(sym)^.definition^.deftype of
+        case ptypedconstsym(sym)^.typedconsttype.def^.deftype of
           orddef,
           enumdef,
           pointerdef,
@@ -813,10 +813,10 @@ Begin
             begin
               { for arrays try to get the element size, take care of
                 multiple indexes }
-              harrdef:=Parraydef(PTypedConstSym(sym)^.definition);
-              while assigned(harrdef^.definition) and
-                    (harrdef^.definition^.deftype=arraydef) do
-               harrdef:=parraydef(harrdef^.definition);
+              harrdef:=Parraydef(PTypedConstSym(sym)^.typedconsttype.def);
+              while assigned(harrdef^.elementtype.def) and
+                    (harrdef^.elementtype.def^.deftype=arraydef) do
+               harrdef:=parraydef(harrdef^.elementtype.def);
               SetSize(harrdef^.elesize);
             end;
         end;
@@ -826,7 +826,7 @@ Begin
       end;
     constsym :
       begin
-        if pconstsym(sym)^.consttype in [constint,constchar,constbool] then
+        if pconstsym(sym)^.consttyp in [constint,constchar,constbool] then
          begin
            opr.typ:=OPR_CONSTANT;
            opr.val:=pconstsym(sym)^.value;
@@ -837,7 +837,7 @@ Begin
       end;
     typesym :
       begin
-        if ptypesym(sym)^.definition^.deftype in [recorddef,objectdef] then
+        if ptypesym(sym)^.restype.def^.deftype in [recorddef,objectdef] then
          begin
            opr.typ:=OPR_CONSTANT;
            opr.val:=0;
@@ -1084,7 +1084,7 @@ Begin
      case srsym^.typ of
        typesym :
          begin
-           if ptypesym(srsym)^.definition^.deftype in [recorddef,objectdef] then
+           if ptypesym(srsym)^.restype.def^.deftype in [recorddef,objectdef] then
             begin
               SearchRecordType:=true;
               exit;
@@ -1126,7 +1126,7 @@ Begin
      case srsym^.typ of
        constsym :
          begin
-           if (pconstsym(srsym)^.consttype in [constord,constint,constchar,constbool]) then
+           if (pconstsym(srsym)^.consttyp in [constord,constint,constchar,constbool]) then
             Begin
               l:=pconstsym(srsym)^.value;
               SearchIConstant:=TRUE;
@@ -1175,29 +1175,29 @@ Begin
      case sym^.typ of
        varsym :
          begin
-           case pvarsym(sym)^.definition^.deftype of
+           case pvarsym(sym)^.vartype.def^.deftype of
              recorddef :
-               st:=precorddef(pvarsym(sym)^.definition)^.symtable;
+               st:=precorddef(pvarsym(sym)^.vartype.def)^.symtable;
              objectdef :
-               st:=pobjectdef(pvarsym(sym)^.definition)^.symtable;
+               st:=pobjectdef(pvarsym(sym)^.vartype.def)^.symtable;
            end;
          end;
        typesym :
          begin
-           case ptypesym(sym)^.definition^.deftype of
+           case ptypesym(sym)^.restype.def^.deftype of
              recorddef :
-               st:=precorddef(ptypesym(sym)^.definition)^.symtable;
+               st:=precorddef(ptypesym(sym)^.restype.def)^.symtable;
              objectdef :
-               st:=pobjectdef(ptypesym(sym)^.definition)^.symtable;
+               st:=pobjectdef(ptypesym(sym)^.restype.def)^.symtable;
            end;
          end;
        typedconstsym :
          begin
-           case pvarsym(sym)^.definition^.deftype of
+           case ptypedconstsym(sym)^.typedconsttype.def^.deftype of
              recorddef :
-               st:=precorddef(ptypedconstsym(sym)^.definition)^.symtable;
+               st:=precorddef(ptypedconstsym(sym)^.typedconsttype.def)^.symtable;
              objectdef :
-               st:=pobjectdef(ptypedconstsym(sym)^.definition)^.symtable;
+               st:=pobjectdef(ptypedconstsym(sym)^.typedconsttype.def)^.symtable;
            end;
          end;
      end;
@@ -1223,21 +1223,21 @@ Begin
          begin
            inc(Offset,pvarsym(sym)^.address);
            Size:=PVarsym(sym)^.getsize;
-           case pvarsym(sym)^.definition^.deftype of
+           case pvarsym(sym)^.vartype.def^.deftype of
              arraydef :
                begin
                  { for arrays try to get the element size, take care of
                    multiple indexes }
-                 harrdef:=Parraydef(PVarsym(sym)^.definition);
-                 while assigned(harrdef^.definition) and
-                       (harrdef^.definition^.deftype=arraydef) do
-                  harrdef:=parraydef(harrdef^.definition);
+                 harrdef:=Parraydef(PVarsym(sym)^.vartype.def);
+                 while assigned(harrdef^.elementtype.def) and
+                       (harrdef^.elementtype.def^.deftype=arraydef) do
+                  harrdef:=parraydef(harrdef^.elementtype.def);
                  size:=harrdef^.elesize;
                end;
              recorddef :
-               st:=precorddef(pvarsym(sym)^.definition)^.symtable;
+               st:=precorddef(pvarsym(sym)^.vartype.def)^.symtable;
              objectdef :
-               st:=pobjectdef(pvarsym(sym)^.definition)^.symtable;
+               st:=pobjectdef(pvarsym(sym)^.vartype.def)^.symtable;
            end;
          end;
      end;
@@ -1438,7 +1438,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.30  1999-11-17 17:05:04  pierre
+  Revision 1.31  1999-11-30 10:40:54  peter
+    + ttype, tsymlist
+
+  Revision 1.30  1999/11/17 17:05:04  pierre
    * Notes/hints changes
 
   Revision 1.29  1999/11/09 23:06:46  peter

@@ -343,12 +343,12 @@ implementation
               case sym^.typ of
                 typesym :
                   begin
-                     if ptypesym(sym)^.definition^.deftype in [recorddef,objectdef] then
+                     if ptypesym(sym)^.restype.def^.deftype in [recorddef,objectdef] then
                        begin
-                          if ptypesym(sym)^.definition^.deftype=recorddef then
-                            symt:=precorddef(ptypesym(sym)^.definition)^.symtable
+                          if ptypesym(sym)^.restype.def^.deftype=recorddef then
+                            symt:=precorddef(ptypesym(sym)^.restype.def)^.symtable
                           else
-                            symt:=pobjectdef(ptypesym(sym)^.definition)^.symtable;
+                            symt:=pobjectdef(ptypesym(sym)^.restype.def)^.symtable;
                           sym:=symt^.search(ss);
                           if sym=nil then
                             sym:=symt^.search(upper(ss));
@@ -356,12 +356,12 @@ implementation
                   end;
                 varsym :
                   begin
-                     if pvarsym(sym)^.definition^.deftype in [recorddef,objectdef] then
+                     if pvarsym(sym)^.vartype.def^.deftype in [recorddef,objectdef] then
                        begin
-                          if pvarsym(sym)^.definition^.deftype=recorddef then
-                            symt:=precorddef(pvarsym(sym)^.definition)^.symtable
+                          if pvarsym(sym)^.vartype.def^.deftype=recorddef then
+                            symt:=precorddef(pvarsym(sym)^.vartype.def)^.symtable
                           else
-                            symt:=pobjectdef(pvarsym(sym)^.definition)^.symtable;
+                            symt:=pobjectdef(pvarsym(sym)^.vartype.def)^.symtable;
                           sym:=symt^.search(ss);
                           if sym=nil then
                             sym:=symt^.search(upper(ss));
@@ -448,7 +448,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  1999-11-17 17:04:58  pierre
+  Revision 1.4  1999-11-30 10:40:42  peter
+    + ttype, tsymlist
+
+  Revision 1.3  1999/11/17 17:04:58  pierre
    * Notes/hints changes
 
   Revision 1.2  1999/08/03 22:02:30  peter

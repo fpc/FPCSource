@@ -132,7 +132,7 @@ unit pexpr;
                  begin
                     p1:=gencallnode(nil,nil);
                     p1^.right:=p;
-                    p1^.resulttype:=pprocvardef(p^.resulttype)^.retdef;
+                    p1^.resulttype:=pprocvardef(p^.resulttype)^.rettype.def;
                     firstpass(p1);
                     p:=p1;
                  end;
@@ -607,7 +607,7 @@ unit pexpr;
       var
          paras : ptree;
          p2 : ptree;
-         plist : ppropsymlist;
+         plist : psymlistitem;
 
       begin
          paras:=nil;
@@ -624,7 +624,7 @@ unit pexpr;
               { indexed property }
               if (ppo_indexed in ppropertysym(sym)^.propoptions) then
                 begin
-                   p2:=genordinalconstnode(ppropertysym(sym)^.index,ppropertysym(sym)^.indexdef);
+                   p2:=genordinalconstnode(ppropertysym(sym)^.index,ppropertysym(sym)^.indextype.def);
                    paras:=gencallparanode(p2,paras);
                 end;
            end;
@@ -635,23 +635,23 @@ unit pexpr;
               { write property: }
               { no result }
               pd:=voiddef;
-              if assigned(ppropertysym(sym)^.writeaccesssym) then
+              if not ppropertysym(sym)^.writeaccess^.empty then
                 begin
-                   case ppropertysym(sym)^.writeaccesssym^.sym^.typ of
+                   case ppropertysym(sym)^.writeaccess^.firstsym^.sym^.typ of
                      procsym :
                        begin
                          { generate the method call }
-                         p1:=genmethodcallnode(pprocsym(ppropertysym(sym)^.writeaccesssym^.sym),st,p1);
+                         p1:=genmethodcallnode(pprocsym(ppropertysym(sym)^.writeaccess^.firstsym^.sym),st,p1);
                          { we know the procedure to call, so
                            force the usage of that procedure }
-                         p1^.procdefinition:=pprocdef(ppropertysym(sym)^.writeaccessdef);
+                         p1^.procdefinition:=pprocdef(ppropertysym(sym)^.writeaccess^.def);
                          p1^.left:=paras;
                          consume(_ASSIGNMENT);
                          { read the expression }
-                         getprocvar:=ppropertysym(sym)^.proptype^.deftype=procvardef;
+                         getprocvar:=ppropertysym(sym)^.proptype.def^.deftype=procvardef;
                          p2:=comp_expr(true);
                          if getprocvar then
-                           handle_procvar(pprocvardef(ppropertysym(sym)^.proptype),p2);
+                           handle_procvar(pprocvardef(ppropertysym(sym)^.proptype.def),p2);
                          p1^.left:=gencallparanode(p2,p1^.left);
                          p1^.isproperty:=true;
                          getprocvar:=false;
@@ -661,7 +661,7 @@ unit pexpr;
                          if assigned(paras) then
                            message(parser_e_no_paras_allowed);
                          { subscribed access? }
-                         plist:=ppropertysym(sym)^.writeaccesssym;
+                         plist:=ppropertysym(sym)^.writeaccess^.firstsym;
                          while assigned(plist) do
                           begin
                             if p1=nil then
@@ -692,16 +692,16 @@ unit pexpr;
          else
            begin
               { read property: }
-              pd:=ppropertysym(sym)^.proptype;
-              if assigned(ppropertysym(sym)^.readaccesssym) then
+              pd:=ppropertysym(sym)^.proptype.def;
+              if not ppropertysym(sym)^.readaccess^.empty then
                 begin
-                   case ppropertysym(sym)^.readaccesssym^.sym^.typ of
+                   case ppropertysym(sym)^.readaccess^.firstsym^.sym^.typ of
                      varsym :
                        begin
                           if assigned(paras) then
                             message(parser_e_no_paras_allowed);
                           { subscribed access? }
-                          plist:=ppropertysym(sym)^.readaccesssym;
+                          plist:=ppropertysym(sym)^.readaccess^.firstsym;
                           while assigned(plist) do
                            begin
                              if p1=nil then
@@ -715,10 +715,10 @@ unit pexpr;
                      procsym :
                        begin
                           { generate the method call }
-                          p1:=genmethodcallnode(pprocsym(ppropertysym(sym)^.readaccesssym^.sym),st,p1);
+                          p1:=genmethodcallnode(pprocsym(ppropertysym(sym)^.readaccess^.firstsym^.sym),st,p1);
                           { we know the procedure to call, so
                             force the usage of that procedure }
-                          p1^.procdefinition:=pprocdef(ppropertysym(sym)^.readaccessdef);
+//                          p1^.procdefinition:=pprocdef(ppropertysym(sym)^.readaccess^.def);
                           { insert paras }
                           p1^.left:=paras;
                           p1^.isproperty:=true;
@@ -822,7 +822,7 @@ unit pexpr;
                         end
                       else
                         p1:=gensubscriptnode(pvarsym(sym),p1);
-                      pd:=pvarsym(sym)^.definition;
+                      pd:=pvarsym(sym)^.vartype.def;
                    end;
                  propertysym:
                    begin
@@ -880,7 +880,7 @@ unit pexpr;
                   ((pfuncretsym(sym)=p^.resultfuncretsym) or
                    ((pfuncretsym(sym)=p^.funcretsym) or
                     ((pvarsym(sym)=opsym) and ((p^.flags and pi_operator)<>0))) and
-                   (p^.retdef<>pdef(voiddef)) and
+                   (p^.returntype.def<>pdef(voiddef)) and
                    (token<>_LKLAMMER) and
                    (not ((m_tp in aktmodeswitches) and (afterassignment or in_args)))
                   ) then
@@ -889,9 +889,9 @@ unit pexpr;
                        ((p^.flags and pi_operator)<>0)) then
                        inc(opsym^.refs);
                     p1:=genzeronode(funcretn);
-                    pd:=p^.retdef;
+                    pd:=p^.returntype.def;
                     p1^.funcretprocinfo:=p;
-                    p1^.retdef:=pd;
+                    p1^.rettype.def:=pd;
                     is_func_ret:=true;
                     if p^.funcret_state=vs_declared then
                       begin
@@ -967,7 +967,7 @@ unit pexpr;
                      case srsym^.typ of
               absolutesym : begin
                               p1:=genloadnode(pvarsym(srsym),srsymtable);
-                              pd:=pabsolutesym(srsym)^.definition;
+                              pd:=pabsolutesym(srsym)^.vartype.def;
                             end;
                    varsym : begin
                               { are we in a class method ? }
@@ -987,15 +987,15 @@ unit pexpr;
                                  { set special between first loaded until checked in firstpass }
                                  pvarsym(srsym)^.varstate:=vs_declared_and_first_found;
                                end;
-                              pd:=pvarsym(srsym)^.definition;
+                              pd:=pvarsym(srsym)^.vartype.def;
                             end;
             typedconstsym : begin
                               p1:=gentypedconstloadnode(ptypedconstsym(srsym),srsymtable);
-                              pd:=ptypedconstsym(srsym)^.definition;
+                              pd:=ptypedconstsym(srsym)^.typedconsttype.def;
                             end;
                    syssym : p1:=statement_syssym(psyssym(srsym)^.number,pd);
                   typesym : begin
-                              pd:=ptypesym(srsym)^.definition;
+                              pd:=ptypesym(srsym)^.restype.def;
                               if not assigned(pd) then
                                begin
                                  pd:=generrordef;
@@ -1118,7 +1118,7 @@ unit pexpr;
                               pd:=p1^.resulttype;
                             end;
                  constsym : begin
-                              case pconstsym(srsym)^.consttype of
+                              case pconstsym(srsym)^.consttyp of
                                 constint :
                                   p1:=genordinalconstnode(pconstsym(srsym)^.value,s32bitdef);
                                 conststring :
@@ -1139,13 +1139,13 @@ unit pexpr;
                                   p1:=genordinalconstnode(pconstsym(srsym)^.value,booldef);
                                 constset :
                                   p1:=gensetconstnode(pconstset(pconstsym(srsym)^.value),
-                                        psetdef(pconstsym(srsym)^.definition));
+                                        psetdef(pconstsym(srsym)^.consttype.def));
                                 constord :
                                   p1:=genordinalconstnode(pconstsym(srsym)^.value,
-                                        pconstsym(srsym)^.definition);
+                                        pconstsym(srsym)^.consttype.def);
                                 constpointer :
                                   p1:=genpointerconstnode(pconstsym(srsym)^.value,
-                                        pconstsym(srsym)^.definition);
+                                        pconstsym(srsym)^.consttype.def);
                                 constnil :
                                   p1:=genzeronode(niln);
                                 constresourcestring:
@@ -1333,7 +1333,7 @@ unit pexpr;
                     else
                       begin
                          p1:=gensinglenode(derefn,p1);
-                         pd:=ppointerdef(pd)^.definition;
+                         pd:=ppointerdef(pd)^.pointertype.def;
                       end;
                   end;
 
@@ -1362,7 +1362,7 @@ unit pexpr;
                                 begin
                                    p2:=comp_expr(true);
                                    p1:=gennode(vecn,p1,p2);
-                                   pd:=ppointerdef(pd)^.definition;
+                                   pd:=ppointerdef(pd)^.pointertype.def;
                                  end;
 
                      stringdef : begin
@@ -1400,7 +1400,7 @@ unit pexpr;
                                      end
                                    else
                                      p1:=gennode(vecn,p1,p2);
-                                   pd:=parraydef(pd)^.definition;
+                                   pd:=parraydef(pd)^.elementtype.def;
                                  end;
                           else
                             begin
@@ -1424,7 +1424,7 @@ unit pexpr;
                       (m_autoderef in aktmodeswitches) then
                       begin
                          p1:=gensinglenode(derefn,p1);
-                         pd:=ppointerdef(pd)^.definition;
+                         pd:=ppointerdef(pd)^.pointertype.def;
                       end;
                     case pd^.deftype of
                        recorddef:
@@ -1439,14 +1439,14 @@ unit pexpr;
                             else
                               begin
                                 p1:=gensubscriptnode(sym,p1);
-                                pd:=sym^.definition;
+                                pd:=sym^.vartype.def;
                               end;
                             consume(_ID);
                           end;
 
                         classrefdef:
                           begin
-                             classh:=pobjectdef(pclassrefdef(pd)^.definition);
+                             classh:=pobjectdef(pclassrefdef(pd)^.pointertype.def);
                              sym:=nil;
                              while assigned(classh) do
                               begin
@@ -1482,7 +1482,7 @@ unit pexpr;
                          pointerdef:
                            begin
                              Message(cg_e_invalid_qualifier);
-                             if ppointerdef(pd)^.definition^.deftype in [recorddef,objectdef,classrefdef] then
+                             if ppointerdef(pd)^.pointertype.def^.deftype in [recorddef,objectdef,classrefdef] then
                               Message(parser_h_maybe_deref_caret_missing);
                            end;
                     else
@@ -1522,7 +1522,7 @@ unit pexpr;
                                    p1^.left:=parse_paras(false,false);
                                    consume(_RKLAMMER);
                                 end;
-                              pd:=pprocvardef(pd)^.retdef;
+                              pd:=pprocvardef(pd)^.rettype.def;
                            { proc():= is never possible }
                               if token=_ASSIGNMENT then
                                begin
@@ -1585,8 +1585,8 @@ unit pexpr;
                  else
                   if token=_RKLAMMER then
                    begin
-                     if (ppointerdef(pd)^.definition^.deftype=objectdef) and
-                        (oo_has_vmt in pobjectdef(ppointerdef(pd)^.definition)^.objectoptions)  then
+                     if (ppointerdef(pd)^.pointertype.def^.deftype=objectdef) and
+                        (oo_has_vmt in pobjectdef(ppointerdef(pd)^.pointertype.def)^.objectoptions)  then
                       Message(parser_w_use_extended_syntax_for_objects);
                      p1:=gensinglenode(newn,nil);
                      p1^.resulttype:=pd2;
@@ -1596,11 +1596,11 @@ unit pexpr;
                    begin
                      disposetree(p1);
                      p1:=genzeronode(hnewn);
-                     p1^.resulttype:=ppointerdef(pd)^.definition;
+                     p1^.resulttype:=ppointerdef(pd)^.pointertype.def;
                      consume(_COMMA);
                      afterassignment:=false;
                      { determines the current object defintion }
-                     classh:=pobjectdef(ppointerdef(pd)^.definition);
+                     classh:=pobjectdef(ppointerdef(pd)^.pointertype.def);
                      if classh^.deftype<>objectdef then
                       Message(parser_e_pointer_to_class_expected)
                      else
@@ -2098,7 +2098,10 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.161  1999-11-18 15:34:47  pierre
+  Revision 1.162  1999-11-30 10:40:44  peter
+    + ttype, tsymlist
+
+  Revision 1.161  1999/11/18 15:34:47  pierre
     * Notes/Hints for local syms changed to
       Set_varstate function
 

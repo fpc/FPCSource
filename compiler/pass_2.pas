@@ -519,14 +519,14 @@ implementation
                                   { call by reference/const ? }
                                   if (regvars[i]^.varspez=vs_var) or
                                      ((regvars[i]^.varspez=vs_const) and
-                                       push_addr_param(regvars[i]^.definition)) then
+                                       push_addr_param(regvars[i]^.vartype.def)) then
                                     begin
                                        regvars[i]^.reg:=varregs[i];
                                        regsize:=S_L;
                                     end
                                   else
-                                   if (regvars[i]^.definition^.deftype=orddef) and
-                                      (porddef(regvars[i]^.definition)^.size=1) then
+                                   if (regvars[i]^.vartype.def^.deftype=orddef) and
+                                      (porddef(regvars[i]^.vartype.def)^.size=1) then
                                     begin
 {$ifdef i386}
                                        regvars[i]^.reg:=reg32toreg8(varregs[i]);
@@ -534,8 +534,8 @@ implementation
                                        regsize:=S_B;
                                     end
                                   else
-                                   if (regvars[i]^.definition^.deftype=orddef) and
-                                      (porddef(regvars[i]^.definition)^.size=2) then
+                                   if (regvars[i]^.vartype.def^.deftype=orddef) and
+                                      (porddef(regvars[i]^.vartype.def)^.size=2) then
                                     begin
 {$ifdef i386}
                                        regvars[i]^.reg:=reg32toreg16(varregs[i]);
@@ -697,7 +697,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.43  1999-11-18 15:34:47  pierre
+  Revision 1.44  1999-11-30 10:40:44  peter
+    + ttype, tsymlist
+
+  Revision 1.43  1999/11/18 15:34:47  pierre
     * Notes/Hints for local syms changed to
       Set_varstate function
 

@@ -801,7 +801,7 @@ end;
 
 function taicpu.Pass1(offset:longint):longint;
 var
-  m,i,size_prob : longint;
+  m,i : longint;
 begin
   Pass1:=0;
 { Save the old offset and set the new offset }
@@ -835,7 +835,6 @@ begin
    end;
 { Lookup opcode in the table }
   InsSize:=-1;
-  size_prob:=0;
   i:=instabcache^[opcode];
   if i=-1 then
    begin
@@ -1528,7 +1527,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  1999-11-06 14:34:20  peter
+  Revision 1.6  1999-11-30 10:40:43  peter
+    + ttype, tsymlist
+
+  Revision 1.5  1999/11/06 14:34:20  peter
     * truncated log to 20 revs
 
   Revision 1.4  1999/11/05 16:01:46  jonas

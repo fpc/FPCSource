@@ -291,14 +291,14 @@ procedure timportlibos2.importprocedure(const func,module:string;index:longint;c
  index      = Index of function in DLL. Use 0 to import by name.
  name       = Name of function in DLL. Ignored when index=0;}
 var tmp1,tmp2,tmp3:string;
-    sym_mcount,sym_entry,sym_import:longint;
+    sym_mcount,sym_import:longint;
     fixup_mcount,fixup_import:longint;
 begin
     aout_init;
     tmp2:=func;
     if profile_flag and not (copy(func,1,4)='_16_') then
         begin
-            sym_entry:=aout_sym(func,n_text+n_ext,0,0,aout_text_size);
+            {sym_entry:=aout_sym(func,n_text+n_ext,0,0,aout_text_size);}
             sym_mcount:=aout_sym('__mcount',n_ext,0,0,0);
             {Use, say, "_$U_DosRead" for "DosRead" to import the
              non-profiled function.}
@@ -485,7 +485,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  1999-11-29 20:15:29  hajny
+  Revision 1.6  1999-11-30 10:40:56  peter
+    + ttype, tsymlist
+
+  Revision 1.5  1999/11/29 20:15:29  hajny
     * missing space in EMXBIND params
 
   Revision 1.4  1999/11/16 23:39:04  peter

@@ -45,9 +45,9 @@ const
 {$endif ORDERSOURCES}
 {$else newcg}
 {$ifdef ORDERSOURCES}
-  CurrentPPUVersion=18;
+  CurrentPPUVersion=19;
 {$else ORDERSOURCES}
-  CurrentPPUVersion=17;
+  CurrentPPUVersion=18;
 {$endif ORDERSOURCES}
 {$endif newcg}
 
@@ -994,7 +994,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.51  1999-11-23 09:42:38  peter
+  Revision 1.52  1999-11-30 10:40:45  peter
+    + ttype, tsymlist
+
+  Revision 1.51  1999/11/23 09:42:38  peter
     * makefile updates to work with new fpcmake
 
   Revision 1.50  1999/11/21 01:42:37  pierre

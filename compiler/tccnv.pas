@@ -913,8 +913,8 @@ implementation
 
          { the operands must be related }
          if (not(pobjectdef(p^.left^.resulttype)^.is_related(
-           pobjectdef(pclassrefdef(p^.right^.resulttype)^.definition)))) and
-           (not(pobjectdef(pclassrefdef(p^.right^.resulttype)^.definition)^.is_related(
+           pobjectdef(pclassrefdef(p^.right^.resulttype)^.pointertype.def)))) and
+           (not(pobjectdef(pclassrefdef(p^.right^.resulttype)^.pointertype.def)^.is_related(
            pobjectdef(p^.left^.resulttype)))) then
            CGMessage(type_e_mismatch);
 
@@ -948,20 +948,23 @@ implementation
 
          { the operands must be related }
          if (not(pobjectdef(p^.left^.resulttype)^.is_related(
-           pobjectdef(pclassrefdef(p^.right^.resulttype)^.definition)))) and
-           (not(pobjectdef(pclassrefdef(p^.right^.resulttype)^.definition)^.is_related(
+           pobjectdef(pclassrefdef(p^.right^.resulttype)^.pointertype.def)))) and
+           (not(pobjectdef(pclassrefdef(p^.right^.resulttype)^.pointertype.def)^.is_related(
            pobjectdef(p^.left^.resulttype)))) then
            CGMessage(type_e_mismatch);
 
          set_location(p^.location,p^.left^.location);
-         p^.resulttype:=pclassrefdef(p^.right^.resulttype)^.definition;
+         p^.resulttype:=pclassrefdef(p^.right^.resulttype)^.pointertype.def;
       end;
 
 
 end.
 {
   $Log$
-  Revision 1.53  1999-11-18 15:34:49  pierre
+  Revision 1.54  1999-11-30 10:40:57  peter
+    + ttype, tsymlist
+
+  Revision 1.53  1999/11/18 15:34:49  pierre
     * Notes/Hints for local syms changed to
       Set_varstate function
 

@@ -370,7 +370,7 @@ unit pstatmnt;
     function _with_statement : ptree;
 
       var
-         right,hp,p : ptree;
+         right,p,hp : ptree;
          i,levelcount : longint;
          withsymtable,symtab : psymtable;
          obj : pobjectdef;
@@ -432,11 +432,7 @@ unit pstatmnt;
             if token=_COMMA then
              begin
                consume(_COMMA);
-             {$ifdef tp}
-               right:=_with_statement;
-             {$else}
-               right:=_with_statement();
-             {$endif}
+               right:=_with_statement{$ifndef tp}(){$endif};
              end
             else
              begin
@@ -457,11 +453,7 @@ unit pstatmnt;
             if token=_COMMA then
              begin
                consume(_COMMA);
-             {$ifdef tp}
-               hp:=_with_statement;
-             {$else}
-               hp:=_with_statement();
-             {$endif}
+               hp:=_with_statement{$ifndef tp}(){$endif};
              end
             else
              begin
@@ -585,18 +577,18 @@ unit pstatmnt;
                                     consume(_ID);
                                  end;
                                if (srsym^.typ=typesym) and
-                                 (ptypesym(srsym)^.definition^.deftype=objectdef) and
-                                 pobjectdef(ptypesym(srsym)^.definition)^.is_class then
-                                 ot:=pobjectdef(ptypesym(srsym)^.definition)
+                                 (ptypesym(srsym)^.restype.def^.deftype=objectdef) and
+                                 pobjectdef(ptypesym(srsym)^.restype.def)^.is_class then
+                                 ot:=pobjectdef(ptypesym(srsym)^.restype.def)
                                else
                                  begin
                                     ot:=pobjectdef(generrordef);
                                     if (srsym^.typ=typesym) then
-                                      Message1(type_e_class_type_expected,ptypesym(srsym)^.definition^.typename)
+                                      Message1(type_e_class_type_expected,ptypesym(srsym)^.restype.def^.typename)
                                     else
                                       Message1(type_e_class_type_expected,ot^.typename);
                                  end;
-                               sym:=new(pvarsym,init(objname,ot));
+                               sym:=new(pvarsym,initdef(objname,ot));
                                exceptsymtable:=new(psymtable,init(stt_exceptsymtable));
                                exceptsymtable^.insert(sym);
                                { insert the exception symtable stack }
@@ -613,14 +605,14 @@ unit pstatmnt;
                                     consume(_ID);
                                  end;
                                if (srsym^.typ=typesym) and
-                                 (ptypesym(srsym)^.definition^.deftype=objectdef) and
-                                 pobjectdef(ptypesym(srsym)^.definition)^.is_class then
-                                 ot:=pobjectdef(ptypesym(srsym)^.definition)
+                                 (ptypesym(srsym)^.restype.def^.deftype=objectdef) and
+                                 pobjectdef(ptypesym(srsym)^.restype.def)^.is_class then
+                                 ot:=pobjectdef(ptypesym(srsym)^.restype.def)
                                else
                                  begin
                                     ot:=pobjectdef(generrordef);
                                     if (srsym^.typ=typesym) then
-                                      Message1(type_e_class_type_expected,ptypesym(srsym)^.definition^.typename)
+                                      Message1(type_e_class_type_expected,ptypesym(srsym)^.restype.def^.typename)
                                     else
                                       Message1(type_e_class_type_expected,ot^.typename);
                                  end;
@@ -692,13 +684,13 @@ unit pstatmnt;
               consume(_RKLAMMER);
               if (block_type=bt_except) then
                 Message(parser_e_exit_with_argument_not__possible);
-              if procinfo^.retdef=pdef(voiddef) then
+              if procinfo^.returntype.def=pdef(voiddef) then
                 Message(parser_e_void_function);
            end
          else
            p:=nil;
          p:=gensinglenode(exitn,p);
-         p^.resulttype:=procinfo^.retdef;
+         p^.resulttype:=procinfo^.returntype.def;
          exit_statement:=p;
       end;
 
@@ -874,7 +866,7 @@ unit pstatmnt;
                         exit;
                      end;
                    { first parameter must be an object or class }
-                   if ppointerdef(pd)^.definition^.deftype<>objectdef then
+                   if ppointerdef(pd)^.pointertype.def^.deftype<>objectdef then
                      begin
                         Message(parser_e_pointer_to_class_expected);
                         new_dispose_statement:=factor(false);
@@ -883,7 +875,7 @@ unit pstatmnt;
                         exit;
                      end;
                    { check, if the first parameter is a pointer to a _class_ }
-                   classh:=pobjectdef(ppointerdef(pd)^.definition);
+                   classh:=pobjectdef(ppointerdef(pd)^.pointertype.def);
                    if classh^.is_class then
                      begin
                         Message(parser_e_no_new_or_dispose_for_classes);
@@ -911,7 +903,7 @@ unit pstatmnt;
                            if ht=_NEW then
                                  begin
                                     { Constructors can take parameters.}
-                                    p2^.resulttype:=ppointerdef(pd)^.definition;
+                                    p2^.resulttype:=ppointerdef(pd)^.pointertype.def;
                                     do_member_read(false,sym,p2,pd,again);
                                  end
                            else
@@ -949,11 +941,11 @@ unit pstatmnt;
                  end
                else
                  begin
-                    if (ppointerdef(p^.resulttype)^.definition^.deftype=objectdef) and
-                       (oo_has_vmt in pobjectdef(ppointerdef(p^.resulttype)^.definition)^.objectoptions) then
+                    if (ppointerdef(p^.resulttype)^.pointertype.def^.deftype=objectdef) and
+                       (oo_has_vmt in pobjectdef(ppointerdef(p^.resulttype)^.pointertype.def)^.objectoptions) then
                       Message(parser_w_use_extended_syntax_for_objects);
-                    if (ppointerdef(p^.resulttype)^.definition^.deftype=orddef) and
-                       (porddef(ppointerdef(p^.resulttype)^.definition)^.typ=uvoid) then
+                    if (ppointerdef(p^.resulttype)^.pointertype.def^.deftype=orddef) and
+                       (porddef(ppointerdef(p^.resulttype)^.pointertype.def)^.typ=uvoid) then
                       if (m_tp in aktmodeswitches) or
                          (m_delphi in aktmodeswitches) then
                        Message(parser_w_no_new_dispose_on_void_pointers)
@@ -1151,7 +1143,7 @@ unit pstatmnt;
          storepos : tfileposinfo;
 
       begin
-         if procinfo^.retdef<>pdef(voiddef) then
+         if procinfo^.returntype.def<>pdef(voiddef) then
            begin
               { if the current is a function aktprocsym is non nil }
               { and there is a local symtable set }
@@ -1161,8 +1153,8 @@ unit pstatmnt;
               { insert in local symtable }
               symtablestack^.insert(funcretsym);
               tokenpos:=storepos;
-              if ret_in_acc(procinfo^.retdef) or (procinfo^.retdef^.deftype=floatdef) then
-                procinfo^.retoffset:=-funcretsym^.address;
+              if ret_in_acc(procinfo^.returntype.def) or (procinfo^.returntype.def^.deftype=floatdef) then
+                procinfo^.return_offset:=-funcretsym^.address;
               procinfo^.funcretsym:=funcretsym;
               { insert result also if support is on }
               if (m_result in aktmodeswitches) then
@@ -1175,16 +1167,17 @@ unit pstatmnt;
 
          { temporary space is set, while the BEGIN of the procedure }
          if (symtablestack^.symtabletype=localsymtable) then
-           procinfo^.firsttemp := -symtablestack^.datasize
-         else procinfo^.firsttemp := 0;
+           procinfo^.firsttemp_offset := -symtablestack^.datasize
+         else
+           procinfo^.firsttemp_offset := 0;
 
          { space for the return value }
          { !!!!!   this means that we can not set the return value
          in a subfunction !!!!! }
          { because we don't know yet where the address is }
-         if procinfo^.retdef<>pdef(voiddef) then
+         if procinfo^.returntype.def<>pdef(voiddef) then
            begin
-              if ret_in_acc(procinfo^.retdef) or (procinfo^.retdef^.deftype=floatdef) then
+              if ret_in_acc(procinfo^.returntype.def) or (procinfo^.returntype.def^.deftype=floatdef) then
               { if (procinfo^.retdef^.deftype=orddef) or
                  (procinfo^.retdef^.deftype=pointerdef) or
                  (procinfo^.retdef^.deftype=enumdef) or
@@ -1196,17 +1189,17 @@ unit pstatmnt;
                  ) then  }
                 begin
                    { the space has been set in the local symtable }
-                   procinfo^.retoffset:=-funcretsym^.address;
+                   procinfo^.return_offset:=-funcretsym^.address;
                    if ((procinfo^.flags and pi_operator)<>0) and
                      assigned(opsym) then
                      {opsym^.address:=procinfo^.call_offset; is wrong PM }
-                     opsym^.address:=-procinfo^.retoffset;
+                     opsym^.address:=-procinfo^.return_offset;
                    { eax is modified by a function }
 {$ifndef newcg}
 {$ifdef i386}
                    usedinproc:=usedinproc or ($80 shr byte(R_EAX));
 
-                   if is_64bitint(procinfo^.retdef) then
+                   if is_64bitint(procinfo^.returntype.def) then
                      usedinproc:=usedinproc or ($80 shr byte(R_EDX))
 {$endif}
 {$ifdef m68k}
@@ -1264,15 +1257,15 @@ unit pstatmnt;
          read_declarations(false);
          { temporary space is set, while the BEGIN of the procedure }
          if symtablestack^.symtabletype=localsymtable then
-           procinfo^.firsttemp := -symtablestack^.datasize
+           procinfo^.firsttemp_offset := -symtablestack^.datasize
          else
-           procinfo^.firsttemp := 0;
+           procinfo^.firsttemp_offset := 0;
 
          { assembler code does not allocate }
          { space for the return value       }
-          if procinfo^.retdef<>pdef(voiddef) then
+          if procinfo^.returntype.def<>pdef(voiddef) then
            begin
-              if ret_in_acc(procinfo^.retdef) then
+              if ret_in_acc(procinfo^.returntype.def) then
                 begin
                    { in assembler code the result should be directly in %eax
                    procinfo^.retoffset:=procinfo^.firsttemp-procinfo^.retdef^.size;
@@ -1303,7 +1296,7 @@ unit pstatmnt;
               (po_assembler in aktprocsym^.definition^.procoptions) and
               (aktprocsym^.definition^.localst^.datasize=0) and
               (aktprocsym^.definition^.parast^.datasize=0) and
-              not(ret_in_param(aktprocsym^.definition^.retdef)) then
+              not(ret_in_param(aktprocsym^.definition^.rettype.def)) then
              begin
                procinfo^.framepointer:=stack_pointer;
                { set the right value for parameters }
@@ -1323,7 +1316,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.112  1999-11-20 01:19:10  pierre
+  Revision 1.113  1999-11-30 10:40:45  peter
+    + ttype, tsymlist
+
+  Revision 1.112  1999/11/20 01:19:10  pierre
     * DLL index used for win32 target with DEF file
     + DLL initialization/finalization support
 
