@@ -98,13 +98,16 @@ Const
 
   {Constansts Termios/Ioctl (used in Do_IsDevice) }
   {$ifdef PowerPC}
-  IOCtl_TCGETS=$403c7413;
+  IOCtl_TCGETS=$402c7413;
   {$else}
   IOCtl_TCGETS=$5401; // TCGETS is also in termios.inc, but the sysunix needs only this
   {$endif}
 {
   $Log$
-  Revision 1.9  2004-02-21 15:14:56  marco
+  Revision 1.10  2004-02-21 16:27:29  marco
+   * hmprf, Linux has different ioctls kernel<->libc
+
+  Revision 1.9  2004/02/21 15:14:56  marco
    * ppc ioctl nr fixed
 
   Revision 1.8  2003/11/19 10:56:15  marco
