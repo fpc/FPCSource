@@ -259,8 +259,7 @@ BEGIN
    end;
    P1 := PChar(HistoryBlock)+1;                     { First history record }
    P2 := P1+Length(Str)+3;                          { History record after }
-   Move(P1^, P2^, HistoryUsed -
-     LongInt(HistoryBlock) - 1);                    { Shuffle history data }
+   Move(P1^, P2^, HistoryUsed - 1);                 { Shuffle history data }
    PHistRec(P1)^.Zero := 0;                         { Set marker byte }
    PHistRec(P1)^.Id := Id;                          { Set history id }
    {$IFDEF PPC_DELPHI3}                             { DELPHI3+ COMPILER }
@@ -414,7 +413,10 @@ END.
 
 {
  $Log$
- Revision 1.4  2001-11-07 21:50:40  pierre
+ Revision 1.5  2001-11-07 22:07:55  pierre
+  * removed another bug in InsertString
+
+ Revision 1.4  2001/11/07 21:50:40  pierre
   * copied from fvnew the changed that I made toremove runerror(199)
 
  Revision 1.3  2001/08/04 19:14:33  peter
