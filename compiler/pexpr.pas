@@ -514,6 +514,23 @@ implementation
               statement_syssym := p1;
             end;
 
+          in_setlength_x:
+            begin
+              if token=_LKLAMMER then
+               begin
+                 consume(_LKLAMMER);
+                 in_args:=true;
+                 paras:=parse_paras(false,false);
+                 consume(_RKLAMMER);
+               end
+              else
+               paras:=nil;
+              pd:=voiddef;
+              p1:=geninlinenode(l,false,paras);
+              do_firstpass(p1);
+              statement_syssym := p1;
+            end;
+
           in_write_x,
           in_writeln_x :
             begin
@@ -2357,7 +2374,14 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.11  2000-10-14 10:14:51  peter
+  Revision 1.12  2000-10-21 18:16:12  florian
+    * a lot of changes:
+       - basic dyn. array support
+       - basic C++ support
+       - some work for interfaces done
+       ....
+
+  Revision 1.11  2000/10/14 10:14:51  peter
     * moehrendorf oct 2000 rewrite
 
   Revision 1.10  2000/10/01 19:48:25  peter

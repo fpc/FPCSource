@@ -36,6 +36,7 @@ interface
           constructor create(tt : tnodetype;l,r,_t1,_t2 : tnode);virtual;
           destructor destroy;override;
           function getcopy : tnode;override;
+          procedure insertintolist(l : tnodelist);override;
 {$ifdef extdebug}
           procedure dowrite;override;
 {$endif extdebug}
@@ -91,6 +92,7 @@ interface
           frametree : tnode;
           constructor create(l,taddr,tframe:tnode);virtual;
           function getcopy : tnode;override;
+          procedure insertintolist(l : tnodelist);override;
           function pass_1 : tnode;override;
        end;
 
@@ -217,6 +219,10 @@ implementation
          getcopy:=p;
       end;
 
+    procedure tloopnode.insertintolist(l : tnodelist);
+
+      begin
+      end;
 {$ifdef extdebug}
     procedure tloopnode.dowrite;
       begin
@@ -725,6 +731,11 @@ implementation
          getcopy:=n;
       end;
 
+    procedure traisenode.insertintolist(l : tnodelist);
+
+      begin
+      end;
+
     function traisenode.pass_1 : tnode;
       begin
          pass_1:=nil;
@@ -982,7 +993,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2000-10-14 21:52:55  peter
+  Revision 1.8  2000-10-21 18:16:11  florian
+    * a lot of changes:
+       - basic dyn. array support
+       - basic C++ support
+       - some work for interfaces done
+       ....
+
+  Revision 1.7  2000/10/14 21:52:55  peter
     * fixed memory leaks
 
   Revision 1.6  2000/10/14 10:14:50  peter

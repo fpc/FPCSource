@@ -394,9 +394,9 @@
       end;
 
 
-    function tprocsym.declarationstr:string;
+    function tprocsym.declarationstr(p : pprocdef):string;
       begin
-        declarationstr:=realname+definition^.demangled_paras;
+        declarationstr:=realname+p^.demangled_paras;
       end;
 
 
@@ -424,9 +424,9 @@
               if pd^.forwarddef then
                 begin
                    if assigned(pd^._class) then
-                     MessagePos1(fileinfo,sym_e_forward_not_resolved,pd^._class^.objname^+'.'+declarationstr)
+                     MessagePos1(fileinfo,sym_e_forward_not_resolved,pd^._class^.objname^+'.'+declarationstr(pd))
                    else
-                     MessagePos1(fileinfo,sym_e_forward_not_resolved,declarationstr);
+                     MessagePos1(fileinfo,sym_e_forward_not_resolved,declarationstr(pd));
                    { Turn futher error messages off }
                    pd^.forwarddef:=false;
                 end;
@@ -2208,7 +2208,14 @@
 
 {
   $Log$
-  Revision 1.10  2000-10-15 07:47:53  peter
+  Revision 1.11  2000-10-21 18:16:12  florian
+    * a lot of changes:
+       - basic dyn. array support
+       - basic C++ support
+       - some work for interfaces done
+       ....
+
+  Revision 1.10  2000/10/15 07:47:53  peter
     * unit names and procedure names are stored mixed case
 
   Revision 1.9  2000/09/24 21:19:52  peter

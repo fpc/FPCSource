@@ -100,9 +100,10 @@ implementation
 {$endif fpc}
     function tinlinenode.pass_1 : tnode;
       var
-         vl,vl2  : longint;
+         vl,vl2,counter  : longint;
          vr      : bestreal;
          p1,hp,hpp  :  tnode;
+         ppn : tcallparanode;
 {$ifndef NOCOLONCHECK}
          frac_para,length_para : tnode;
 {$endif ndef NOCOLONCHECK}
@@ -656,6 +657,43 @@ implementation
                            result:=hp;
                          end;
                     end;
+               end;
+
+             in_setlength_x:
+               begin
+                  resulttype:=voiddef;
+                  if assigned(left) then
+                    begin
+                       ppn:=tcallparanode(left);
+                       counter:=0;
+                       { check type }
+                       while assigned(ppn.right) do
+                         begin
+                            ppn.left:=gentypeconvnode(ppn.left,s32bitdef);
+                            firstpass(ppn.left);
+                            if codegenerror then
+                              exit;
+                            inc(counter);
+                            ppn:=tcallparanode(ppn.right);
+                         end;
+                       firstpass(ppn.left);
+                       if codegenerror then
+                        exit;
+                       { last param must be var }
+                       valid_for_assign(ppn.left,false);
+                       set_varstate(ppn.left,true);
+                       { first param must be a string or dynamic array ...}
+                       if not((ppn.left.resulttype^.deftype=stringdef) or
+                          (is_dynamic_array(ppn.left.resulttype))) then
+                         CGMessage(type_e_mismatch);
+
+                       { only dynamic arrays accept more dimensions }
+                       if (counter>1) and
+                         (not(is_dynamic_array(left.resulttype))) then
+                         CGMessage(type_e_mismatch);
+                    end
+                  else
+                    CGMessage(type_e_mismatch);
                end;
 
              in_inc_x,
@@ -1293,7 +1331,6 @@ implementation
                   else
                     handleextendedfunction;
                end;
-
              in_pi:
                if block_type=bt_const then
                  setconstrealvalue(pi)
@@ -1412,7 +1449,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2000-10-15 08:38:46  jonas
+  Revision 1.10  2000-10-21 18:16:11  florian
+    * a lot of changes:
+       - basic dyn. array support
+       - basic C++ support
+       - some work for interfaces done
+       ....
+
+  Revision 1.9  2000/10/15 08:38:46  jonas
     * added missing getcopy for previous addition
 
   Revision 1.8  2000/10/14 18:27:53  jonas

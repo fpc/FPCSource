@@ -53,6 +53,7 @@ const
   tkBool     = 18;
   tkInt64    = 19;
   tkQWord    = 20;
+  tkDynArray = 21;
 
   otSByte    = 0;
   otUByte    = 1;
@@ -281,7 +282,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  2000-10-15 07:47:52  peter
+  Revision 1.10  2000-10-21 18:16:12  florian
+    * a lot of changes:
+       - basic dyn. array support
+       - basic C++ support
+       - some work for interfaces done
+       ....
+
+  Revision 1.9  2000/10/15 07:47:52  peter
     * unit names and procedure names are stored mixed case
 
   Revision 1.8  2000/10/14 10:14:52  peter

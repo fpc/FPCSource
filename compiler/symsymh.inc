@@ -112,7 +112,7 @@
           constructor load;
           destructor done;virtual;
           function mangledname : string;virtual;
-          function declarationstr:string;
+          function declarationstr(p : pprocdef):string;
           { writes all declarations }
           procedure write_parameter_lists(skipdef:pprocdef);
           { tests, if all procedures definitions are defined and not }
@@ -316,7 +316,14 @@
 
 {
   $Log$
-  Revision 1.6  2000-10-15 07:47:53  peter
+  Revision 1.7  2000-10-21 18:16:12  florian
+    * a lot of changes:
+       - basic dyn. array support
+       - basic C++ support
+       - some work for interfaces done
+       ....
+
+  Revision 1.6  2000/10/15 07:47:53  peter
     * unit names and procedure names are stored mixed case
 
   Revision 1.5  2000/08/27 20:19:40  peter

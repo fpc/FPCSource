@@ -626,7 +626,8 @@ implementation
            { A method must be forward defined (in the object declaration) }
              if assigned(procinfo^._class) and (not assigned(oldprocinfo^._class)) then
               begin
-                Message1(parser_e_header_dont_match_any_member,aktprocsym^.declarationstr);
+                Message1(parser_e_header_dont_match_any_member,
+                  aktprocsym^.declarationstr(aktprocsym^.definition));
                 aktprocsym^.write_parameter_lists(aktprocsym^.definition);
               end
              else
@@ -639,7 +640,8 @@ implementation
                    aktprocsym^.definition^.nextoverloaded^.interfacedef and
                    not(assigned(aktprocsym^.definition^.nextoverloaded^.nextoverloaded)) then
                  begin
-                   Message1(parser_e_header_dont_match_forward,aktprocsym^.declarationstr);
+                   Message1(parser_e_header_dont_match_forward,
+                     aktprocsym^.declarationstr(aktprocsym^.definition));
                    aktprocsym^.write_parameter_lists(aktprocsym^.definition);
                  end
                 else
@@ -686,7 +688,8 @@ implementation
       { compile procedure when a body is needed }
          if (pdflags and pd_body)<>0 then
            begin
-             Message1(parser_p_procedure_start,aktprocsym^.declarationstr);
+             Message1(parser_p_procedure_start,
+               aktprocsym^.declarationstr(aktprocsym^.definition));
              names^.insert(aktprocsym^.definition^.mangledname);
             { set _FAIL as keyword if constructor }
             if (aktprocsym^.definition^.proctypeoption=potype_constructor) then
@@ -828,7 +831,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.17  2000-10-15 07:47:51  peter
+  Revision 1.18  2000-10-21 18:16:12  florian
+    * a lot of changes:
+       - basic dyn. array support
+       - basic C++ support
+       - some work for interfaces done
+       ....
+
+  Revision 1.17  2000/10/15 07:47:51  peter
     * unit names and procedure names are stored mixed case
 
   Revision 1.16  2000/10/14 10:14:52  peter

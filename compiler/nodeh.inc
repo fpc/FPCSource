@@ -178,6 +178,9 @@
        flagsequal : tnodeflagset = [nf_error,nf_static_call,nf_backward];
 
     type
+       tnodelist = class
+       end;
+
        { later (for the newcg) tnode will inherit from tlinkedlist_item }
        tnode = class
           nodetype : tnodetype;
@@ -230,6 +233,7 @@
           { gets a copy of the node }
           function getcopy : tnode;virtual;
 
+          procedure insertintolist(l : tnodelist);virtual;
 {$ifdef EXTDEBUG}
           { writes a node for debugging purpose, shouldn't be called }
           { direct, because there is no test for nil, use writenode  }
@@ -265,6 +269,7 @@
           procedure det_temp;override;
           function docompare(p : tnode) : boolean;override;
           function getcopy : tnode;override;
+          procedure insertintolist(l : tnodelist);override;
           procedure left_max;
 {$ifdef extdebug}
           procedure dowrite;override;
@@ -283,6 +288,7 @@
           function docompare(p : tnode) : boolean;override;
           procedure swapleftright;
           function getcopy : tnode;override;
+          procedure insertintolist(l : tnodelist);override;
           procedure left_right_max;
 {$ifdef extdebug}
           procedure dowrite;override;
@@ -304,7 +310,14 @@
 
 {
   $Log$
-  Revision 1.13  2000-10-14 21:52:55  peter
+  Revision 1.14  2000-10-21 18:16:11  florian
+    * a lot of changes:
+       - basic dyn. array support
+       - basic C++ support
+       - some work for interfaces done
+       ....
+
+  Revision 1.13  2000/10/14 21:52:55  peter
     * fixed memory leaks
 
   Revision 1.12  2000/10/14 10:14:51  peter

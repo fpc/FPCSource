@@ -53,6 +53,7 @@ const
    in_assert_x_y        = 41;
    in_addr_x            = 42;
    in_typeinfo_x        = 43;
+   in_setlength_x       = 44;
 
 { Internal constant functions }
    in_const_trunc      = 100;
@@ -100,7 +101,14 @@ const
 
 {
   $Log$
-  Revision 1.3  2000-08-16 13:06:06  florian
+  Revision 1.4  2000-10-21 18:16:11  florian
+    * a lot of changes:
+       - basic dyn. array support
+       - basic C++ support
+       - some work for interfaces done
+       ....
+
+  Revision 1.3  2000/08/16 13:06:06  florian
     + support of 64 bit integer constants
 
   Revision 1.2  2000/07/13 11:32:43  michael

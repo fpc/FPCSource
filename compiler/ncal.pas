@@ -2,6 +2,8 @@
     $Id$
     Copyright (c) 1998-2000 by Florian Klaempfl
 
+    This file implements the node for sub procedure calling
+
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -43,6 +45,7 @@ interface
           constructor create(v : pprocsym;st : psymtable; mp : tnode);virtual;
           destructor destroy;override;
           function getcopy : tnode;override;
+          procedure insertintolist(l : tnodelist);override;
           function pass_1 : tnode;override;
        end;
 
@@ -62,6 +65,7 @@ interface
           constructor create(expr,next : tnode);virtual;
           destructor destroy;override;
           function getcopy : tnode;override;
+          procedure insertintolist(l : tnodelist);override;
           procedure gen_high_tree(openstring:boolean);
           { tcallparanode doesn't use pass_1 }
           { tcallnode takes care of this     }
@@ -78,6 +82,7 @@ interface
           constructor create(callp,code : tnode);virtual;
           destructor destroy;override;
           function getcopy : tnode;override;
+          procedure insertintolist(l : tnodelist);override;
           function pass_1 : tnode;override;
        end;
 
@@ -169,6 +174,11 @@ interface
          else
            n.hightree:=nil;
          result:=n;
+      end;
+
+    procedure tcallparanode.insertintolist(l : tnodelist);
+
+      begin
       end;
 
     procedure tcallparanode.firstcallparan(defcoll : pparaitem;do_count : boolean);
@@ -520,6 +530,10 @@ interface
         result:=n;
       end;
 
+    procedure tcallnode.insertintolist(l : tnodelist);
+
+      begin
+      end;
     function tcallnode.pass_1 : tnode;
       type
          pprocdefcoll = ^tprocdefcoll;
@@ -1514,6 +1528,11 @@ interface
          getcopy:=n;
       end;
 
+    procedure tprocinlinenode.insertintolist(l : tnodelist);
+
+      begin
+      end;
+
     function tprocinlinenode.pass_1 : tnode;
       begin
         pass_1:=nil;
@@ -1530,7 +1549,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2000-10-21 14:35:27  peter
+  Revision 1.12  2000-10-21 18:16:11  florian
+    * a lot of changes:
+       - basic dyn. array support
+       - basic C++ support
+       - some work for interfaces done
+       ....
+
+  Revision 1.11  2000/10/21 14:35:27  peter
     * readd to many remove p. for tcallnode.is_equal()
 
   Revision 1.10  2000/10/14 21:52:55  peter

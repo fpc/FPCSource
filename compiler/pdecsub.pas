@@ -897,7 +897,7 @@ procedure pd_cppdecl(const procnames:Tstringcontainer);
 begin
   if aktprocsym^.definition^.deftype<>procvardef then
     aktprocsym^.definition^.setmangledname(
-      target_os.Cprefix+aktprocsym^.definition^.cplusplusmangledname(aktprocsym^.realname));
+      target_os.Cprefix+aktprocsym^.definition^.cplusplusmangledname);
   { do not copy on local !! }
   if (aktprocsym^.definition^.deftype=procdef) and
      assigned(aktprocsym^.definition^.parast) then
@@ -1580,7 +1580,7 @@ begin
                    (aktprocsym^.definition^.maxparacount>0)) then
                  begin
                     MessagePos1(aktprocsym^.definition^.fileinfo,parser_e_header_dont_match_forward,
-                                aktprocsym^.declarationstr);
+                                aktprocsym^.declarationstr(aktprocsym^.definition));
                     exit;
                  end;
                if hd^.forwarddef then
@@ -1593,7 +1593,7 @@ begin
                       (m_repeat_forward in aktmodeswitches)) then
                      begin
                        MessagePos1(aktprocsym^.definition^.fileinfo,parser_e_header_dont_match_forward,
-                                   aktprocsym^.declarationstr);
+                                   aktprocsym^.declarationstr(aktprocsym^.definition));
                        exit;
                      end;
                    { Check calling convention, no check for internconst,internproc which
@@ -1648,7 +1648,8 @@ begin
                          if hd^.forwarddef and aktprocsym^.definition^.forwarddef then
                            begin
                              MessagePos1(aktprocsym^.definition^.fileinfo,
-                                         parser_e_function_already_declared_public_forward,aktprocsym^.declarationstr);
+                                         parser_e_function_already_declared_public_forward,
+                                         aktprocsym^.declarationstr(aktprocsym^.definition));
                              check_identical_proc:=true;
                            { Remove other forward from the list to reduce errors }
                              pd^.nextoverloaded:=pd^.nextoverloaded^.nextoverloaded;
@@ -1814,7 +1815,14 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2000-10-15 07:47:51  peter
+  Revision 1.3  2000-10-21 18:16:11  florian
+    * a lot of changes:
+       - basic dyn. array support
+       - basic C++ support
+       - some work for interfaces done
+       ....
+
+  Revision 1.2  2000/10/15 07:47:51  peter
     * unit names and procedure names are stored mixed case
 
   Revision 1.1  2000/10/14 10:14:51  peter

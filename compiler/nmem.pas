@@ -744,7 +744,9 @@ implementation
 
               { for ansi/wide strings, we need at least one register }
               if is_ansistring(left.resulttype) or
-                is_widestring(left.resulttype) then
+                is_widestring(left.resulttype) or
+              { ... as well as for dynamic arrays }
+                is_dynamic_array(left.resulttype) then
                 registers32:=max(registers32,1);
            end
          else
@@ -755,7 +757,9 @@ implementation
 
               { for ansi/wide strings, we need at least one register }
               if is_ansistring(left.resulttype) or
-                is_widestring(left.resulttype) then
+                is_widestring(left.resulttype) or
+              { ... as well as for dynamic arrays }
+                is_dynamic_array(left.resulttype) then
                 registers32:=max(registers32,1);
 
               { need we an extra register when doing the restore ? }
@@ -904,7 +908,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  2000-10-14 21:52:55  peter
+  Revision 1.8  2000-10-21 18:16:11  florian
+    * a lot of changes:
+       - basic dyn. array support
+       - basic C++ support
+       - some work for interfaces done
+       ....
+
+  Revision 1.7  2000/10/14 21:52:55  peter
     * fixed memory leaks
 
   Revision 1.6  2000/10/14 10:14:51  peter

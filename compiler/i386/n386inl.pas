@@ -194,6 +194,7 @@ implementation
          {inc/dec}
          addconstant : boolean;
          addvalue : longint;
+         hp : tnode;
 
 
       procedure handlereadwrite(doread,doln : boolean);
@@ -681,6 +682,7 @@ implementation
            dummycoll : tparaitem;
            has_code, has_32bit_code, oldregisterdef: boolean;
            r : preference;
+           l : longint;
 
           begin
            dummycoll.init;
@@ -907,6 +909,8 @@ implementation
          hregister : tregister;
          otlabel,oflabel{,l1}   : pasmlabel;
          oldpushedparasize : longint;
+         def : pdef;
+         hr,hr2 : treference;
 
       begin
       { save & reset pushedparasize }
@@ -1341,6 +1345,67 @@ implementation
                     emitcall('FPC_REWRITE_TYPED');
                   popusedregisters(pushed);
                end;
+            in_setlength_x:
+               begin
+                  pushusedregisters(pushed,$ff);
+                  l:=0;
+                  { push dimensions }
+                  hp:=left;
+                  while assigned(tcallparanode(hp).right) do
+                    begin
+                       inc(l);
+                       hp:=tcallparanode(hp).right;
+                    end;
+                  def:=tcallparanode(hp).left.resulttype;
+                  hp:=left;
+                  if is_dynamic_array(def) then
+                    begin
+                       { get temp. space }
+                       gettempofsizereference(l*4,hr);
+                       { copy dimensions }
+                       hp:=left;
+                       while assigned(tcallparanode(hp).right) do
+                         begin
+                            secondpass(tcallparanode(hp).left);
+                            emit_mov_loc_ref(tcallparanode(hp).left.location,hr,
+                              S_L,true);
+                            inc(hr.offset,4);
+                            hp:=tcallparanode(hp).right;
+                         end;
+                    end
+                  else
+                    begin
+                       secondpass(tcallparanode(hp).left);
+                       emit_push_loc(tcallparanode(hp).left.location);
+                       hp:=tcallparanode(hp).right;
+                    end;
+                  secondpass(tcallparanode(hp).left);
+                  if is_dynamic_array(def) then
+                    begin
+                       emitpushreferenceaddr(hr);
+                       push_int(l);
+                       reset_reference(hr2);
+                       hr2.symbol:=def^.get_inittable_label;
+                       emitpushreferenceaddr(hr2);
+                       emitpushreferenceaddr(tcallparanode(hp).left.location.reference);
+                       emitcall('FPC_DYNARR_SETLENGTH');
+                       ungetiftemp(hr);
+                    end
+                  else
+                    { must be string }
+                    begin
+                       emitpushreferenceaddr(tcallparanode(hp).left.location.reference);
+                       case pstringdef(def)^.string_typ of
+                          st_widestring:
+                            emitcall('FPC_WIDESTR_SETLENGTH');
+                          st_ansistring:
+                            emitcall('FPC_ANSISTR_SETLENGTH');
+                          st_shortstring:
+                            emitcall('FPC_SHORTSTR_SETLENGTH');
+                       end;
+                    end;
+                  popusedregisters(pushed);
+               end;
             in_write_x :
               handlereadwrite(false,false);
             in_writeln_x :
@@ -1547,7 +1612,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-10-15 09:33:31  peter
+  Revision 1.2  2000-10-21 18:16:13  florian
+    * a lot of changes:
+       - basic dyn. array support
+       - basic C++ support
+       - some work for interfaces done
+       ....
+
+  Revision 1.1  2000/10/15 09:33:31  peter
     * moved n386*.pas to i386/ cpu_target dir
 
   Revision 1.2  2000/10/15 09:08:58  peter

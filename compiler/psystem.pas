@@ -42,7 +42,7 @@ uses
 
 procedure insertinternsyms(p : psymtable);
 {
-  all intern procedures for system unit
+  all intern procedures for the system unit
 }
 begin
   p^.insert(new(psyssym,init('Concat',in_concat_x)));
@@ -71,6 +71,7 @@ begin
   p^.insert(new(psyssym,init('Val',in_val_x)));
   p^.insert(new(psyssym,init('Addr',in_addr_x)));
   p^.insert(new(psyssym,init('TypeInfo',in_typeinfo_x)));
+  p^.insert(new(psyssym,init('SetLength',in_setlength_x)));
 end;
 
 
@@ -255,7 +256,14 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  2000-10-14 10:14:52  peter
+  Revision 1.7  2000-10-21 18:16:12  florian
+    * a lot of changes:
+       - basic dyn. array support
+       - basic C++ support
+       - some work for interfaces done
+       ....
+
+  Revision 1.6  2000/10/14 10:14:52  peter
     * moehrendorf oct 2000 rewrite
 
   Revision 1.5  2000/09/24 15:06:24  peter

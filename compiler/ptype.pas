@@ -347,70 +347,80 @@ implementation
 
         begin
            consume(_ARRAY);
-           consume(_LECKKLAMMER);
-           { defaults }
-           arraytype:=generrordef;
-           lowval:=$80000000;
-           highval:=$7fffffff;
-           tt.reset;
-           repeat
-             { read the expression and check it, check apart if the
-               declaration is an enum declaration because that needs to
-               be parsed by readtype (PFV) }
-             if token=_LKLAMMER then
-              begin
-                read_type(ht,'');
-                setdefdecl(ht.def);
-              end
-             else
-              begin
-                pt:=expr;
-                if pt.nodetype=typen then
-                 setdefdecl(pt.resulttype)
-                else
-                  begin
-                     do_firstpass(pt);
-                     if (pt.nodetype=rangen) then
-                      begin
-                        if (trangenode(pt).left.nodetype=ordconstn) and
-                           (trangenode(pt).right.nodetype=ordconstn) then
-                         begin
-                           lowval:=tordconstnode(trangenode(pt).left).value;
-                           highval:=tordconstnode(trangenode(pt).right).value;
-                           if highval<lowval then
-                            begin
-                              Message(parser_e_array_lower_less_than_upper_bound);
-                              highval:=lowval;
-                            end;
-                           arraytype:=trangenode(pt).right.resulttype;
-                         end
-                        else
-                         Message(type_e_cant_eval_constant_expr);
-                      end
+           { open array? }
+           if token=_LECKKLAMMER then
+             begin
+                consume(_LECKKLAMMER);
+                { defaults }
+                arraytype:=generrordef;
+                lowval:=$80000000;
+                highval:=$7fffffff;
+                tt.reset;
+                repeat
+                  { read the expression and check it, check apart if the
+                    declaration is an enum declaration because that needs to
+                    be parsed by readtype (PFV) }
+                  if token=_LKLAMMER then
+                   begin
+                     read_type(ht,'');
+                     setdefdecl(ht.def);
+                   end
+                  else
+                   begin
+                     pt:=expr;
+                     if pt.nodetype=typen then
+                      setdefdecl(pt.resulttype)
                      else
-                      Message(sym_e_error_in_type_def)
-                  end;
-                pt.free;
-              end;
+                       begin
+                          do_firstpass(pt);
+                          if (pt.nodetype=rangen) then
+                           begin
+                             if (trangenode(pt).left.nodetype=ordconstn) and
+                                (trangenode(pt).right.nodetype=ordconstn) then
+                              begin
+                                lowval:=tordconstnode(trangenode(pt).left).value;
+                                highval:=tordconstnode(trangenode(pt).right).value;
+                                if highval<lowval then
+                                 begin
+                                   Message(parser_e_array_lower_less_than_upper_bound);
+                                   highval:=lowval;
+                                 end;
+                                arraytype:=trangenode(pt).right.resulttype;
+                              end
+                             else
+                              Message(type_e_cant_eval_constant_expr);
+                           end
+                          else
+                           Message(sym_e_error_in_type_def)
+                       end;
+                     pt.free;
+                   end;
 
-           { create arraydef }
-             if not assigned(tt.def) then
-              begin
-                ap:=new(parraydef,init(lowval,highval,arraytype));
+                { create arraydef }
+                  if not assigned(tt.def) then
+                   begin
+                     ap:=new(parraydef,init(lowval,highval,arraytype));
+                     tt.setdef(ap);
+                   end
+                  else
+                   begin
+                     ap^.elementtype.setdef(new(parraydef,init(lowval,highval,arraytype)));
+                     ap:=parraydef(ap^.elementtype.def);
+                   end;
+
+                  if token=_COMMA then
+                    consume(_COMMA)
+                  else
+                    break;
+                until false;
+                consume(_RECKKLAMMER);
+             end
+           else
+             begin
+                ap:=new(parraydef,init(0,-1,s32bitdef));
+                ap^.IsDynamicArray:=true;
                 tt.setdef(ap);
-              end
-             else
-              begin
-                ap^.elementtype.setdef(new(parraydef,init(lowval,highval,arraytype)));
-                ap:=parraydef(ap^.elementtype.def);
-              end;
-
-             if token=_COMMA then
-               consume(_COMMA)
-             else
-               break;
-           until false;
-           consume(_RECKKLAMMER);
+             end;
            consume(_OF);
            read_type(tt2,'');
            { if no error, set element type }
@@ -572,7 +582,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  2000-10-14 10:14:52  peter
+  Revision 1.11  2000-10-21 18:16:12  florian
+    * a lot of changes:
+       - basic dyn. array support
+       - basic C++ support
+       - some work for interfaces done
+       ....
+
+  Revision 1.10  2000/10/14 10:14:52  peter
     * moehrendorf oct 2000 rewrite
 
   Revision 1.9  2000/09/24 15:06:25  peter

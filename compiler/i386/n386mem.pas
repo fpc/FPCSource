@@ -524,11 +524,45 @@ implementation
               { if a constant array index occurs, subject to change (FK) }
               set_location(left.location,location);
            end
+         else if is_dynamic_array(left.resulttype) then
+         { ... also a dynamic string }
+           begin
+              reset_reference(location.reference);
+
+              if left.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
+                begin
+                   location.reference.base:=left.location.register;
+                end
+              else
+                begin
+                   del_reference(left.location.reference);
+                   location.reference.base:=getregister32;
+                   emit_ref_reg(A_MOV,S_L,
+                     newreference(left.location.reference),
+                     location.reference.base);
+                end;
+{$warning FIXME}
+              { check for a zero length string,
+                we can use the ansistring routine here }
+              if (cs_check_range in aktlocalswitches) then
+                begin
+                   pushusedregisters(pushed,$ff);
+                   emit_reg(A_PUSH,S_L,location.reference.base);
+                   emitcall('FPC_ANSISTR_CHECKZERO');
+                   maybe_loadesi;
+                   popusedregisters(pushed);
+                end;
+
+              { we've also to keep left up-to-date, because it is used   }
+              { if a constant array index occurs, subject to change (FK) }
+              set_location(left.location,location);
+           end
          else
            set_location(location,left.location);
 
          { offset can only differ from 0 if arraydef }
-         if left.resulttype^.deftype=arraydef then
+         if (left.resulttype^.deftype=arraydef) and
+           not(is_dynamic_array(left.resulttype)) then
            dec(location.reference.offset,
                get_mul_size*parraydef(left.resulttype)^.lowrange);
          if right.nodetype=ordconstn then
@@ -537,7 +571,8 @@ implementation
               if (left.resulttype^.deftype=arraydef) then
                 begin
                    if not(is_open_array(left.resulttype)) and
-                      not(is_array_of_const(left.resulttype)) then
+                      not(is_array_of_const(left.resulttype)) and
+                      not(is_dynamic_array(left.resulttype)) then
                      begin
                         if (tordconstnode(right).value>parraydef(left.resulttype)^.highrange) or
                            (tordconstnode(right).value<parraydef(left.resulttype)^.lowrange) then
@@ -552,7 +587,8 @@ implementation
                      end
                    else
                      begin
-                        { range checking for open arrays !!!! }
+                        { range checking for open and dynamic arrays !!!! }
+{$warning FIXME}
                         {!!!!!!!!!!!!!!!!!}
                      end;
                 end
@@ -1017,7 +1053,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-10-15 09:33:32  peter
+  Revision 1.2  2000-10-21 18:16:13  florian
+    * a lot of changes:
+       - basic dyn. array support
+       - basic C++ support
+       - some work for interfaces done
+       ....
+
+  Revision 1.1  2000/10/15 09:33:32  peter
     * moved n386*.pas to i386/ cpu_target dir
 
   Revision 1.2  2000/10/14 21:52:54  peter

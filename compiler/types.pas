@@ -80,6 +80,9 @@ interface
     { true if p points to an open array def }
     function is_open_array(p : pdef) : boolean;
 
+    { true if p points to a dynamic array def }
+    function is_dynamic_array(p : pdef) : boolean;
+
     { true, if p points to an array of const def }
     function is_array_constructor(p : pdef) : boolean;
 
@@ -564,6 +567,14 @@ implementation
                               not(is_special_array(p));
       end;
 
+    { true if p points to a dynamic array def }
+    function is_dynamic_array(p : pdef) : boolean;
+      begin
+         is_dynamic_array:=(p^.deftype=arraydef) and
+           parraydef(p)^.IsDynamicArray;
+      end;
+
+
     { true, if p points to an open array def }
     function is_open_array(p : pdef) : boolean;
       begin
@@ -575,7 +586,8 @@ implementation
                         (parraydef(p)^.highrange=-1) and
                         not(parraydef(p)^.IsConstructor) and
                         not(parraydef(p)^.IsVariant) and
-                        not(parraydef(p)^.IsArrayOfConst);
+                        not(parraydef(p)^.IsArrayOfConst) and
+                        not(parraydef(p)^.IsDynamicArray);
 
       end;
 
@@ -1070,12 +1082,15 @@ implementation
          else
            if (def1^.deftype=arraydef) and (def2^.deftype=arraydef) then
              begin
-               if is_array_of_const(def1) or is_array_of_const(def2) then
-                begin
+               if is_dynamic_array(def1) and is_dynamic_array(def2) then
+                 b:=is_equal(parraydef(def1)^.elementtype.def,parraydef(def2)^.elementtype.def)
+               else
+                if is_array_of_const(def1) or is_array_of_const(def2) then
+                 begin
                   b:=(is_array_of_const(def1) and is_array_of_const(def2)) or
                      (is_array_of_const(def1) and is_array_constructor(def2)) or
                      (is_array_of_const(def2) and is_array_constructor(def1));
-                end
+                 end
                else
                 if is_open_array(def1) or is_open_array(def2) then
                  begin
@@ -1669,7 +1684,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  2000-10-14 10:14:56  peter
+  Revision 1.15  2000-10-21 18:16:12  florian
+    * a lot of changes:
+       - basic dyn. array support
+       - basic C++ support
+       - some work for interfaces done
+       ....
+
+  Revision 1.14  2000/10/14 10:14:56  peter
     * moehrendorf oct 2000 rewrite
 
   Revision 1.13  2000/10/01 19:48:26  peter

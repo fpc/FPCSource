@@ -883,11 +883,9 @@ unit pdecobj;
         begin
            if aktclass^.is_cppclass then
              begin
-                {
                 include(aktprocsym^.definition^.proccalloptions,pocall_cppdecl);
                 aktprocsym^.definition^.setmangledname(
-                  target_os.Cprefix+aktprocsym^.definition^.cplusplusmangledname(realname));
-                }
+                  target_os.Cprefix+aktprocsym^.definition^.cplusplusmangledname);
              end;
         end;
 
@@ -1079,7 +1077,14 @@ unit pdecobj;
 end.
 {
   $Log$
-  Revision 1.1  2000-10-14 10:14:51  peter
+  Revision 1.2  2000-10-21 18:16:11  florian
+    * a lot of changes:
+       - basic dyn. array support
+       - basic C++ support
+       - some work for interfaces done
+       ....
+
+  Revision 1.1  2000/10/14 10:14:51  peter
     * moehrendorf oct 2000 rewrite
 
 }

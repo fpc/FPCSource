@@ -1832,6 +1832,7 @@
          IsVariant:=false;
          IsConstructor:=false;
          IsArrayOfConst:=false;
+         IsDynamicArray:=false;
          rangenr:=0;
       end;
 
@@ -1848,6 +1849,8 @@
          IsArrayOfConst:=boolean(readbyte);
          IsVariant:=false;
          IsConstructor:=false;
+{$warning FIXME!!!!!}
+         IsDynamicArray:=false;
          rangenr:=0;
       end;
 
@@ -1949,6 +1952,11 @@
     function tarraydef.size : longint;
       begin
         {Tarraydef.size may never be called for an open array!}
+        if IsDynamicArray then
+          begin
+             size:=4;
+             exit;
+          end;
         if highrange<lowrange then
             internalerror(99080501);
         If (elesize>0) and
@@ -1978,7 +1986,7 @@
 
     function tarraydef.needs_inittable : boolean;
       begin
-         needs_inittable:=elementtype.def^.needs_inittable;
+         needs_inittable:=IsDynamicArray or elementtype.def^.needs_inittable;
       end;
 
 
@@ -1990,14 +1998,20 @@
 
     procedure tarraydef.write_rtti_data;
       begin
-         rttilist^.concat(new(pai_const,init_8bit(tkarray)));
+         if IsDynamicArray then
+           rttilist^.concat(new(pai_const,init_8bit(tkdynarray)))
+         else
+           rttilist^.concat(new(pai_const,init_8bit(tkarray)));
          write_rtti_name;
          { size of elements }
          rttilist^.concat(new(pai_const,init_32bit(elesize)));
          { count of elements }
-         rttilist^.concat(new(pai_const,init_32bit(highrange-lowrange+1)));
+         if not(IsDynamicArray) then
+           rttilist^.concat(new(pai_const,init_32bit(highrange-lowrange+1)));
          { element type }
          rttilist^.concat(new(pai_const_symbol,initname(elementtype.def^.get_rtti_label)));
+         { variant type }
+         // !!!!!!!!!!!!!!!!
       end;
 
     function tarraydef.gettypename : string;
@@ -2010,7 +2024,7 @@
              else
                gettypename:='Array Of '+elementtype.def^.typename;
            end
-         else if is_open_array(@self) then
+         else if is_open_array(@self) or IsDynamicArray then
            gettypename:='Array Of '+elementtype.def^.typename
          else
            begin
@@ -3085,7 +3099,7 @@ Const local_symtable_index : longint = $8001;
       end;
 {$endif}
 
-    function tprocdef.cplusplusmangledname(const rn : string) : string;
+    function tprocdef.cplusplusmangledname : string;
 
       function getcppparaname(p : pdef) : string;
 
@@ -3117,7 +3131,7 @@ Const local_symtable_index : longint = $8001;
          param : pparaitem;
 
       begin
-         s := rn;
+         s := procsym^.realname;
          if procsym^.owner^.symtabletype=objectsymtable then
            begin
               s2:=upper(pobjectdef(procsym^.owner^.defowner)^.typesym^.realname);
@@ -3624,7 +3638,7 @@ Const local_symtable_index : longint = $8001;
 
     function tobjectdef.vmt_mangledname : string;
     {DM: I get a nil pointer on the owner name. I don't know if this
-     mayhappen, and I have therefore fixed the problem by doing nil pointer
+     may happen, and I have therefore fixed the problem by doing nil pointer
      checks.}
     var
       s1,s2:string;
@@ -4339,7 +4353,14 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.23  2000-10-15 07:47:52  peter
+  Revision 1.24  2000-10-21 18:16:12  florian
+    * a lot of changes:
+       - basic dyn. array support
+       - basic C++ support
+       - some work for interfaces done
+       ....
+
+  Revision 1.23  2000/10/15 07:47:52  peter
     * unit names and procedure names are stored mixed case
 
   Revision 1.22  2000/10/14 10:14:52  peter

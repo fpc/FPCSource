@@ -240,6 +240,11 @@
          getcopy:=p;
       end;
 
+    procedure tnode.insertintolist(l : tnodelist);
+
+      begin
+      end;
+
     procedure tnode.set_file_line(from : tnode);
 
       begin
@@ -290,6 +295,11 @@
          else
            p.left:=nil;
          getcopy:=p;
+      end;
+
+    procedure tunarynode.insertintolist(l : tnodelist);
+
+      begin
       end;
 
 {$ifdef extdebug}
@@ -411,6 +421,10 @@
          getcopy:=p;
       end;
 
+    procedure tbinarynode.insertintolist(l : tnodelist);
+
+      begin
+      end;
 
     procedure tbinarynode.swapleftright;
 
@@ -502,7 +516,14 @@
 
 {
   $Log$
-  Revision 1.10  2000-10-14 21:52:55  peter
+  Revision 1.11  2000-10-21 18:16:11  florian
+    * a lot of changes:
+       - basic dyn. array support
+       - basic C++ support
+       - some work for interfaces done
+       ....
+
+  Revision 1.10  2000/10/14 21:52:55  peter
     * fixed memory leaks
 
   Revision 1.9  2000/10/14 10:14:51  peter

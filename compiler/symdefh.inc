@@ -261,6 +261,7 @@
           highrange  : longint;
           elementtype,
           rangetype  : ttype;
+          IsDynamicArray,
           IsVariant,
           IsConstructor,
           IsArrayOfConst : boolean;
@@ -464,7 +465,7 @@
 {$ifdef dummy}
           function  procname: string;
 {$endif dummy}
-          function  cplusplusmangledname(const rn : string) : string;
+          function  cplusplusmangledname : string;
           { debug }
 {$ifdef GDB}
           function  stabstring : pchar;virtual;
@@ -559,7 +560,14 @@
 
 {
   $Log$
-  Revision 1.12  2000-10-15 07:47:52  peter
+  Revision 1.13  2000-10-21 18:16:12  florian
+    * a lot of changes:
+       - basic dyn. array support
+       - basic C++ support
+       - some work for interfaces done
+       ....
+
+  Revision 1.12  2000/10/15 07:47:52  peter
     * unit names and procedure names are stored mixed case
 
   Revision 1.11  2000/10/14 10:14:53  peter

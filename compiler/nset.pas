@@ -70,6 +70,7 @@ interface
           constructor create(l,r : tnode;n : pcaserecord);virtual;
           destructor destroy;override;
           function getcopy : tnode;override;
+          procedure insertintolist(l : tnodelist);override;
           function pass_1 : tnode;override;
        end;
 
@@ -511,6 +512,11 @@ implementation
          getcopy:=p;
       end;
 
+    procedure tcasenode.insertintolist(l : tnodelist);
+
+      begin
+      end;
+
 begin
    csetelementnode:=tsetelementnode;
    cinnode:=tinnode;
@@ -519,7 +525,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2000-10-14 10:14:51  peter
+  Revision 1.6  2000-10-21 18:16:11  florian
+    * a lot of changes:
+       - basic dyn. array support
+       - basic C++ support
+       - some work for interfaces done
+       ....
+
+  Revision 1.5  2000/10/14 10:14:51  peter
     * moehrendorf oct 2000 rewrite
 
   Revision 1.4  2000/10/01 19:48:25  peter
