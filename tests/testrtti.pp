@@ -1,6 +1,12 @@
 Program testrtti;
 
-Uses Typinfo,classes;
+{$M+}
+
+Uses
+{$ifdef go32v2}
+dpmiexcp,
+{$endif}
+Typinfo;
 
 Const TypeNames : Array [TTYpeKind] of string[15] = 
                     ('Unknown','Integer','Char','Enumeration',
@@ -13,7 +19,7 @@ Const OrdinalTypes = [tkInteger,tkChar,tkENumeration,tkbool];
 Type
       TMyEnum = (meFirst,meSecond,meThird);
 
-Type TMyTestObject = Class(TPersistent)
+Type TMyTestObject = Class
        Private
        FBoolean  : Boolean;
        FByte     : Byte;
