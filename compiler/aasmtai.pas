@@ -2002,12 +2002,13 @@ implementation
         inherited InsertAfter(Item,Loc);
       end;
 
-begin
-  writeln(sizeof(toper));
 end.
 {
   $Log$
-  Revision 1.73  2004-02-27 10:21:04  florian
+  Revision 1.74  2004-02-27 12:13:15  daniel
+    - Removed troublesome writeln statement
+
+  Revision 1.73  2004/02/27 10:21:04  florian
     * top_symbol killed
     + refaddr to treference added
     + refsymbol to treference added
