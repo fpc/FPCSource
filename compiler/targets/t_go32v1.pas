@@ -200,6 +200,7 @@ end;
             flags        : [];
             cpu          : i386;
             unit_env     : 'GO32V1UNITS';
+            extradefines : '';
             sharedlibext : '.dll';
             staticlibext : '.a';
             sourceext    : '.pp';
@@ -243,7 +244,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.3  2001-04-18 22:02:04  peter
+  Revision 1.4  2001-06-02 19:22:44  peter
+    * extradefines field added
+
+  Revision 1.3  2001/04/18 22:02:04  peter
     * registration of targets and assemblers
 
   Revision 1.2  2001/04/13 01:22:21  peter

@@ -1402,6 +1402,7 @@ function tDLLScannerWin32.scan(const binname:string):longbool;
             flags        : [];
             cpu          : i386;
             unit_env     : 'WIN32UNITS';
+            extradefines : '';
             sharedlibext : '.dll';
             staticlibext : '.aw';
             sourceext    : '.pp';
@@ -1450,7 +1451,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.7  2001-04-21 13:33:16  peter
+  Revision 1.8  2001-06-02 19:22:44  peter
+    * extradefines field added
+
+  Revision 1.7  2001/04/21 13:33:16  peter
     * move winstackpagesize const to cgai386 to remove uses t_win32
 
   Revision 1.6  2001/04/18 22:02:04  peter

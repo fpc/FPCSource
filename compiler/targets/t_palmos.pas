@@ -50,6 +50,7 @@ implementation
             cpu          : m68k;
             short_name   : 'PALMOS';
             unit_env     : 'PALMUNITS';
+            extradefines : '';
             sharedlibext : '.so';
             staticlibext : '.a';
             sourceext    : '.pp';
@@ -94,7 +95,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.1  2001-04-18 22:02:04  peter
+  Revision 1.2  2001-06-02 19:22:44  peter
+    * extradefines field added
+
+  Revision 1.1  2001/04/18 22:02:04  peter
     * registration of targets and assemblers
 
 }

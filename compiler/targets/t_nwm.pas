@@ -464,6 +464,7 @@ end;
             flags        : [];
             cpu          : i386;
             unit_env     : 'NETWAREUNITS';
+            extradefines : '';
             sharedlibext : '.nlm';
             staticlibext : '.a';
             sourceext    : '.pp';
@@ -509,7 +510,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.4  2001-05-30 21:35:49  peter
+  Revision 1.5  2001-06-02 19:22:44  peter
+    * extradefines field added
+
+  Revision 1.4  2001/05/30 21:35:49  peter
     * netware patches for copyright, screenname, threadname directives
 
   Revision 1.3  2001/04/18 22:02:04  peter

@@ -522,6 +522,7 @@ end;
             flags        : [tf_need_export];
             cpu          : i386;
             unit_env     : 'OS2UNITS';
+            extradefines : '';
             sharedlibext : '.ao2';
             staticlibext : '.ao2';
             sourceext    : '.pas';
@@ -567,7 +568,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.4  2001-04-18 22:02:04  peter
+  Revision 1.5  2001-06-02 19:22:44  peter
+    * extradefines field added
+
+  Revision 1.4  2001/04/18 22:02:04  peter
     * registration of targets and assemblers
 
   Revision 1.3  2001/04/13 01:22:22  peter

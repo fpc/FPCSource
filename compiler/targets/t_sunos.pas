@@ -487,6 +487,7 @@ end;
             flags        : [];
             cpu          : i386;
             unit_env     : 'SUNOSUNITS';
+            extradefines : 'UNIX;SOLARIS;LIBC';
             sharedlibext : '.so';
             staticlibext : '.a';
             sourceext    : '.pp';
@@ -532,7 +533,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.4  2001-04-21 15:34:01  peter
+  Revision 1.5  2001-06-02 19:22:44  peter
+    * extradefines field added
+
+  Revision 1.4  2001/04/21 15:34:01  peter
     * fixed writing of end objects to not output an empty INPUT()
 
   Revision 1.3  2001/04/18 22:02:04  peter
