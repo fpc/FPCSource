@@ -646,7 +646,8 @@ TYPE
       PROCEDURE Zoom; Virtual;
       PROCEDURE Close; Virtual;
       PROCEDURE InitFrame; Virtual;
-      PROCEDURE DrawBorder;                                          Virtual;
+      PROCEDURE DrawBorder; Virtual;
+      PROCEDURE ReDraw; Virtual;
       PROCEDURE SetState (AState: Word; Enable: Boolean); Virtual;
       PROCEDURE Store (Var S: TStream);
       PROCEDURE HandleEvent (Var Event: TEvent); Virtual;
@@ -1407,7 +1408,6 @@ BEGIN
             { OR Assigned(LimitsLocked) }
          Then Begin                                   { Treat as a full redraw }
            DrawBackGround;                            { Draw background }
-           Draw;                                      { Draw interior }
            If (GOptions AND goDrawFocus <> 0) Then
              DrawFocus;                               { Draw focus }
            If (Options AND ofFramed <> 0) OR
@@ -1416,17 +1416,13 @@ BEGIN
            If ((State AND sfShadow) <> 0) AND
               (GOptions And goNoShadow = 0) Then
              DrawShadow;
+           Draw;                                      { Draw interior }
          End Else Begin                               { Masked draws only  }
            If (DrawMask AND vdBackGnd <> 0) Then      { Chk background mask }
              Begin
                DrawMask := DrawMask and Not vdBackGnd;
                DrawBackGround;                          { Draw background }
              end;
-           If (DrawMask AND vdInner <> 0) Then        { Check Inner mask }
-             Begin
-               DrawMask := DrawMask and Not vdInner;
-               Draw;                                    { Draw interior }
-             End;
            If (DrawMask AND vdFocus <> 0)
            AND (GOptions AND goDrawFocus <> 0) then
              Begin
@@ -1437,6 +1433,11 @@ BEGIN
              Begin
                DrawMask := DrawMask and Not vdBorder;
                DrawBorder;                              { Draw border }
+             End;
+           If (DrawMask AND vdInner <> 0) Then        { Check Inner mask }
+             Begin
+               DrawMask := DrawMask and Not vdInner;
+               Draw;                                    { Draw interior }
              End;
            If ((State AND sfShadow) <> 0) AND
               (DrawMask AND vdShadow <> 0) AND
@@ -5126,6 +5127,13 @@ BEGIN
 END;
 
 
+PROCEDURE TWindow.Redraw;
+BEGIN
+  DrawView;
+  inherited Redraw;
+END;
+
+
 {***************************************************************************}
 {                            INTERFACE ROUTINES                             }
 {***************************************************************************}
@@ -5216,7 +5224,10 @@ END.
 
 {
  $Log$
- Revision 1.45  2004-11-03 20:51:36  florian
+ Revision 1.46  2004-11-04 23:58:39  peter
+ redraw of twindow fixed
+
+ Revision 1.45  2004/11/03 20:51:36  florian
    * fixed problems on targets requiring proper alignment
 
  Revision 1.44  2004/11/03 20:33:05  peter
