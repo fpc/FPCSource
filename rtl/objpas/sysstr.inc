@@ -244,6 +244,7 @@ begin
     begin
     If S2=Nil Then Exit;
     result:=-1;
+    exit;
     end;
   If S2=Nil then
     begin
@@ -265,6 +266,7 @@ begin
     begin
     If S2=Nil Then Exit;
     result:=-1;
+    exit;
     end;
   If S2=Nil then
     begin
@@ -289,6 +291,7 @@ begin
     begin
     If S2=Nil Then Exit;
     result:=-1;
+    exit;
     end;
   If S2=Nil then
     begin
@@ -315,6 +318,7 @@ begin
     begin
     If S2=Nil Then Exit;
     result:=-1;
+    exit;
     end;
   If S2=Nil then
     begin
@@ -1337,7 +1341,10 @@ const
 
 {
   $Log$
-  Revision 1.19  2002-09-07 16:01:22  peter
+  Revision 1.20  2002-09-15 17:50:35  peter
+    * Fixed AnsiStrComp crashes
+
+  Revision 1.19  2002/09/07 16:01:22  peter
     * old logs removed and tabs fixed
 
   Revision 1.18  2002/09/02 06:07:16  michael
