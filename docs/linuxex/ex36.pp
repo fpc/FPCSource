@@ -9,9 +9,8 @@ Var pipi,pipo : Text;
     
 begin
   Writeln ('Assigning Pipes.');
-  assignpipe(pipi,pipo);
-  if linuxerror<>0 then 
-    Writeln('Error assigning pipes !');
+  If Not assignpipe(pipi,pipo) then
+    Writeln('Error assigning pipes !',LinuxError);
   Writeln ('Writing to pipe, and flushing.');
   Writeln (pipo,'This is a textstring');close(pipo);
   Writeln ('Reading from pipe.');

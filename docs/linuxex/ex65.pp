@@ -1,12 +1,6 @@
-Program example57;
+Program example64;
 
-{ Program to demonstrate the SigAction function.}
-
-{ 
-do a kill -USR1 pid from another terminal to see what happens.
-replace pid with the real pid of this program. 
-You can get this pid by running 'ps'.
-}
+{ Program to demonstrate the SigRaise function.}
 
 uses Linux;
 
@@ -22,7 +16,7 @@ end;
 begin
    new(na);
    new(oa);
-   na^.Handler.sh:=@DoSig;
+   na^.handler.sh:=@DoSig;
    na^.Sa_Mask:=0;
    na^.Sa_Flags:=0;
    na^.Sa_Restorer:=Nil;
@@ -32,6 +26,6 @@ begin
      writeln('Error: ',linuxerror,'.');
      halt(1);
      end;
-   Writeln ('Send USR1 signal or press <ENTER> to exit'); 
-   readln;
+   Writeln('Sending USR1 (',sigusr1,') signal to self.');
+   SigRaise(sigusr1);
 end.

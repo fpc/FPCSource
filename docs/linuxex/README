@@ -65,3 +65,5 @@ serial.pp contains an example of serial port programming in FPC.
 ex61.pp contains an example of the CreateShellArgV function.
 ex62.pp contains an example of the ReadLink function.
 ex63.pp contains an example of the FRename function.
+ex64.pp contains an example of the SysInfo function.
+ex64.pp contains an example of the SigRaise function.
