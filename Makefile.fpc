@@ -29,7 +29,6 @@ PPNEW=$(BASEDIR)/compiler/ppc386$(SRCEXEEXT)
 # Check if there is already a ppc386 binary in compiler, then
 # we will use that version for target and version info
 ifneq ($(wildcard $(PPNEW)),)
-override FPC:=$(PPNEW)
 override FPC_VERSION:=$(shell $(PPNEW) -iV)
 override OS_TARGET:=$(shell $(PPNEW) -iTO)
 override CPU_TARGET:=$(shell $(PPNEW) -iTP)
@@ -478,7 +477,7 @@ ifneq ($(wildcard $(CVSINSTALL)/fpc.spec),)
 
 .PHONY: rpmcopy rpm
 
-RPMFPCVERSION:=$(shell grep 'define fpcversion' $(CVSINSTALL)/fpc.spec | awk '{ print $$3 }')
+RPMFPCVERSION:=$(shell grep 'define fpcversion' $(CVSINSTALL)/fpc.spec | awk '{ print $$2 }')
 
 REDHATDIR=/usr/src/redhat
 RPMSOURCESDIR:=$(REDHATDIR)/SOURCES
