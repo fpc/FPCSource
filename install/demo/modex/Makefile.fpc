@@ -1,9 +1,0 @@
-#
-#   Makefile.fpc for FPC modex demos (part of FPC demo paackage)
-#
-
-[target]
-programs_go32v2=voxel
-
-[default]
-fpcdir=../..
