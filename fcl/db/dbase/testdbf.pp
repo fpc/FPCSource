@@ -2,7 +2,7 @@ program dumpdb;
 
 {$i+}
 
-uses db,dbf,sysutils;
+uses DB,Dbf,SysUtils;
 
 Procedure DumpTable (Const TN,FN : String);
 

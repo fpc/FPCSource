@@ -1,0 +1,11 @@
+Help on packages:
+
+TDbf_<< (D)elphi | (C)++Builder | (K)ylix | (L)azarus >> << Version >> << (D)esign | <R>untime >>
+
+eg:
+
+TDbf_c5d    = C++ Builder 5 design time package
+TDbf_d6r    = Delphi 6 runtime package
+TDbf_l      = Lazarus design/runtime package
+
+NOTE: Version 4 and earlier don't have designtime/runtime separated packages

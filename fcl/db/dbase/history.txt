@@ -1,0 +1,914 @@
+History of TDBF:
+
+------------------------
+Authors:
+
+- Pascal Ganaye - upto V5.002
+- Micha Nelissen - from there
+
+thanks to various people helping on details
+
+------------------------
+BUGS & WARNINGS
+  (not complete)
+
+- Multi-user support
+  - not tested well...
+  - ranges are not fully multi-user 'aware' (yet) because range is cached
+    -> race conditions can occur
+- use FIXED LENGTH index expressions: an expression which will always return
+  a string which is the same length. When returning a float you don't have to
+  worry about this of course (always fixed #bytes). String fields also return
+  fixed length expression, complete field with spaces.
+- BCB4/D4 and lower:
+    - restructure probably does not work correctly, because the field defs
+      don't know the index of the field they have to copy from (Dbf_Fields)
+- BCB3/D3 compatibility:
+    - you will NOT be able to use Int64 features:
+      - large numeric fields with zero precision (set UseFloatFields to true)
+      - datetime fields '@'
+      - double fields 'O'
+      - maybe more...look in source where Int64 is used
+    - no codepage conversion available other than oem<->ansi
+    - storedefs is not updated automatically when fielddefs are changed
+
+
+
+------------------------
+V6.3.5
+
+- fixed: crash when finalizing Dbf_Parser unit
+
+
+------------------------
+V6.3.4
+
+- fixed: improved exception handling in expression parser
+- fixed: remove temporary indexdefs at close, fixes CreateTable index creation
+- added: NULLFLAGS field recognition (foxpro field)
+- fixed: date field retrieval parser (rep by luchop)
+- fixed: BCB5 installation needs Pascal switch to link dsgnintf unit
+- fixed: avoid dependency on libc unit for freepascal target
+- fixed: index open after packtable forgot tempmode; so endexclusive did not
+    work properly (rep by sysklop)
+- chang: make TDbf.GetCurrentBuffer public
+- chang: rename TVarType to TExpressionType
+- chang: remove all SmallInt constructs from parser
+- added: export expression functions from Dbf_Parser
+- added: FFieldName to TFieldVar, to prevent need for TFieldDef to exist to get name for deletion from expression words list
+- added: "<>", not equal, expression functions
+- added: reference counting for TExprWord
+- added: shortname functionality for each function, function can be referenced by name and shortname
+- fixed: memory leak in parser upon encountering unknown variable
+- fixed: when adding record write new autoinc value to header, to file
+
+
+------------------------
+V6.3.3
+
+- fixed: compiles with freepascal, usable in lazarus
+- fixed: index delete record bug (deleting not-last entry in full page)
+- fixed: index delete record bug (deleting the only entry on a page)
+- fixed: lazarus registration issues
+- fixed: scan for $1A, not RecordSize (rep by avink)
+
+
+------------------------
+V6.3.2
+
+- fixed: use default codepage if file codepage not installed
+- fixed: range check error using swapint
+- fixed: flush index header when index flushed, ie. when creating index
+- fixed: update TDbf.IndexDefs when index added or deleted
+- fixed: update internal index names and files list when mdx index deleted
+- fixed: remove max 4000 character record length requirement
+    TDbf.GetExactRecordCount (rep by dpproj)
+- fixed: accept russian 'C' too as string field (rep by dpproj)
+- fixed: datetime native fieldtype 'T' handling, size (rep by kjteng)
+- added: support for currency field type, type 'Y' in foxpro tables
+    - nativeformat handling is re-enabled due to much easier implementation
+    - delphi 4 and higher only
+- fixed: close,open files reset indexnames,files list (rep by paez)
+- fixed: reselect index after repage, compact (rep by paez)
+- added: support for foxpro datetime fields
+- fixed: support for foxpro integer fields
+- fixed: tdbf doesn't use default codepage when opening file with langid #0
+- added: OnLanguageWarning can now specify to use default codepage (see above)
+- fixed: MDX float index with decimals (rep by emled)
+- fixed: removal of mdx flag in foxpro file; means cdx index
+
+
+------------------------
+V6.3.1
+
+- added: freepascal support, needs 1.9 (or higher)
+- fixed: strange bugs due to fparser not initialized correctly, for example
+    with expression of different index (rep by sysklop)
+- added: findrecord implemented -> find{first,next,prior,last} should now work
+- fixed: index deletion bug corner case, no records left (rep by sysklop)
+- fixed: repagefile creating empty index file (rep by paez)
+
+
+------------------------
+V6.3.0
+
+- fixed: tdbf.physicalrecno not in sync with tdataset
+- added: loPartialKey functionality on index search
+- fixed: mdx file presence not written to dbf header; index does not work (rep by paez)
+- fixed: searchkey on deleted row returns true (rep by sysklop)
+- fixed: primary index creation throws "list index out of bounds(0)" (rep by sysklop)
+
+
+------------------------
+V6.2.9
+
+- fixed: checkkeyviolation bug; should solve locking problem
+- fixed: packed structures
+- fixed: delphi 3 compatibility tdbf.translate, compile prob (rep by ferdok)
+- fixed: numeric MDX compare, translate bugs (rep by rpoverdijk)
+- fixed: GetIndexNames returns open (available) indexes
+- added: TDbf.GetAllIndexFiles returns index files present in dbf directory
+- added: TDbf.PhysicalRecordCount returns physical number of records present
+- added: TDbf.IndexDefs ( = TDbf.Indexes) for VCL compatibility
+- added: TDbfIndexDef.(Name and Expression) for VCL compatibility where
+    Name = IndexFile and Expression = SortField
+- fixed: memory leak expression tree
+- fixed: index cache flush problem causing index corruption; triggered by,
+    for example, regenerateindexes (rep by smokexjc)
+
+
+------------------------
+V6.2.8
+
+- fixed: character fields support upto 65534 characters now
+- fixed: detect, allow visual foxpro file
+- chngd: getfielddata clears user field buffer is string field empty
+- fixed: tdbf version number in delphi 7 package
+- fixed: index update on record insert (thx kirill)
+- fixed: selecting index when cursor is bof,eof; cursor moves (thx kirill)
+- fixed: create first index in mdx file fails AV, file not deleted (rep by pyostrike)
+
+
+------------------------
+V6.2.7
+
+- added: TDbf.GetKeySize, if index is active retrieves key size
+- added: TDbf.ExtractKey, extracts key for current record and index
+- fixed: TDbf.GetRecordCount AV when no dbf file open
+- fixed: memory leak not releasing fmdxfile
+- fixed: index using field datetime has time encode error (rep by paez)
+- fixed: end-of-memo not found, packtable creates large files (rep by stayathome)
+- fixed: distinct index, keys added while duplicate error (rep by sysklop)
+- fixed: when packing a table, no files are left behind
+- fixed: AV when packing while index active (rep by ltolean)
+
+
+------------------------
+V6.2.6
+
+- fixed: fcanedit is false causing indexes not to update (rep dvdneg)
+- fixed: autoinc when packing/restructuring table (rep aerceg)
+- fixed: allow creation of tablelevel 25 tables (rep cherednichenko)
+- fixed: delete last entry from index page caused overflowerror (rep by tekkan)
+
+
+------------------------
+V6.2.5
+
+- fixed: foxpro memo data size is w/o record header size
+- fixed: index search on extended ASCII values
+- added: filter options; caseinsensitive works; partialmatch does not
+    filter expressions never have partial matching
+- fixed: filter field strings compare with extended ASCII values
+- added: TDbf.GetFileNames, retrieves file names in use with current dbf
+- fixed: open exclusive, close, open exclusive triggers 'can not open'
+    happens ie. when calling PackTable (rep by tekkan)
+- added: getfilenamesstring function to retrieve filenames in a string
+- fixed: Blank memo returns data (thx aerceg)
+- fixed: no inherited call on indexdef assign (thx kirill)
+- fixed: international issue with locate (thx kirill)
+
+
+------------------------
+V6.2.4
+
+- fixed: setting memo contents overwrites only first x bytes, not all (rep by avink)
+- fixed: possible corruption in writememo, wrong offset (thx aerceg)
+- fixed: indexname truncated causing inability to select index v7 (thx delphiguru)
+- fixed: (includetrailingpathdelimiter) delphi 4 compatibility (thx bobmitch)
+- fixed: (dbffile.openindex) open NDX file fails due to empty field (thx wschenk)
+- fixed: codepage problems with dbase3 (thx arioch)
+- fixed: result of boolean fields is string type (rep by delphiguru)
+- fixed: blobstreams delphi 3 compatibility
+- fixed: remove automatically detected indexdefs of previous file at design time
+- fixed: index MDX numeric search (rep by arioch)
+- fixed: index navigation when having a lot of records with the same key
+    (rep by ledoux)
+- fixed: try harder to find a matching locale / codepage combination; any
+    codepage will do if no specific codepage is found
+
+
+------------------------
+V6.2.3
+
+- added: new assembler implementation for swapint, swapint64 (thx arioch)
+    - NOTE: 486+ if you need old, remove USE_ASSEMBLER_486_UP define
+- fixed: datetime handling in index, eg. DTOS(DATE_FIELD)
+- added: FilePathFull, this is path where the dbf is going to be opened (arioch)
+    - is not stored, only relative path is stored
+    - when set, overwrites relative path too, and relative path sets full path
+- fixed: possible AV when executing (get|set)fielddata with nil buffer
+- fixed: reading dbase 7 index tags, new structure, long index names supported
+- fixed: bug storedefs = true after .open; indirect fielddefs.update
+- fixed: index version bug causing AV; caused by new DB7 support (rep by arioch)
+- fixed: SearchKey in Edit without Post -> record twice (thx ralf)
+- fixed: TDataSet.(InsertRecord | AppendRecord) now really work instead of doing
+   nothing. NOTE: they do the same thing, as you cannot insert a record in DBF,
+   only append.
+- fixed: index bug; insert in wrong page sometimes causing various assert fails
+- added: a bunch of freeandnil instead of [x.Free; x := nil;]; should be safer
+- added: more language / locale combinations; now combinations using windows
+    codepages (1250,1251,1253,...) and (russian, greek, etc) should be possible
+- fixed: delphi 3 compatibility
+- fixed: cancel memo bug; when memo modified, release focus, cancel record then
+    memo has already written contents to file
+- chngd: absolute/relativepath properties use same handler (thx arioch)
+- fixed: AV when SearchKey called with NULL variant
+- fixed: when creating dbf, tablelevel = 25 indicates foxpro
+    NOTE: dbfglobals.defaultcreatefoxpro removed
+- added: SetIndexName throws exception when try to select non-existing index
+- fixed: index needs to convert strings OEM->ANSI before comparing; I think
+    the sorting works very nicely now, eg.: e, E, e-accent-grave, etc all same
+    NOTE: you need to rebuild all indexes because of this change
+- fixed: when creating dbf: also foxpro langids will be used and the
+    other way around...increases number of combinations
+- fixed: index bugs; first record insert in distinct index, EOF insert caused
+    AV on closing app (report thx germain)
+- fixed: memo bug; memo files with large pages (>512) had incorrect calculation
+    of position, reading false data (rep by kjteng)
+
+
+------------------------
+V6.2.2
+
+- added: IndexFieldNames property to set current index by fieldname
+- added: foxpro memo files (.fpt) support
+- fixed: indexing bug, when inserting same key at end
+- fixed: more indexing bugs...
+    - NOTE: non-leaf keys assume searchkey < nodekey
+        - this is default B+ tree
+        - previously tdbf assumed searchkey <= nodekey
+        - you may have to recreate indexes
+- chngd: FinishCreate does not need memo extension anymore
+- chngd: PackTable uses different filename now abc_1.dbf etc
+- chngd: Dbf_PgFile.pas: renamed LockFile to LockAllPages;
+    -> Kylix users should be able to compile with LockFile from Dbf_Wtil.pas
+- chngd: default locale now retrieved from GetUserDefaultLCID
+- fixed: when closing/opening dbf file, reopens indexes too (thx oleg)
+    -> fixed an AV when packtable is done and you try access an index
+- fixed: (caused by above index bug) does not find last record in index
+    -> caused dbgrid to display records twice or not at all
+- fixed: packindex now properly selects single index, so that it can be edited
+    -> previously no expression was parsed creating empty indexes (thx oleg)
+- fixed: insert/modify/delete/find records while index range active (thx paul)
+    -> findnearest function rewritten
+- fixed: foxpro table level less than dBase7 table level, now reads fields
+    correctly in dBaseIII alike format
+- fixed: when reading memo, negative blockno return empty memo instead of crash
+- fixed: using AnsiUppercase instead of Uppercase, better internalization
+- fixed: ignore addindex calls with empty index names / fields
+- fixed: Get/SetFieldData NativeFormat issue with DB7:datetime fields (thx tophet)
+- fixed: tdbfindexdef; name and field now stored uppercase to prevent
+    differences in case (thx arioch)
+- chngd: tablename property editor starts in project directory not delphi/bin
+    directory when no filepath given; if you want filepath to be current path
+    at startup of app: use '.' or '.\' as filepath (current dir)
+- chngd: dbf_globals.defaultopencode changed to getacp, seems to be more
+    compatible, especially when your codepage is not supported by dbase
+- fixed: fix for empty path in IncludeTrailingPathDelim
+
+
+------------------------
+V6.2.1
+
+- added: BeforeAutoCreate event: set DoCreate to false to prevent autocreate
+- added: polish + french message strings up to date, thx tophet+lecho
+- added: fielddefs, storedefs published property alike ttable
+    WARNING: ALPHA feature, not tested well
+- added: error handling for dbf creation, fields now checked before creating dbf
+- added: fieldtypestr in error invalid_field_type, better error string
+- fixed: preparing numeric index search, Move function had parameters wrong
+    way around....arrggh
+- fixed: error message invalid field type had invalid format type
+- fixed: index out of bounds checking better (SetEntryNo, RecurPrev)
+- fixed: lost designtime MDX indexes when opening
+- fixed: numeric indexes changes to database were not detected well causing
+    index corruption (thx ralf)
+
+
+------------------------
+V6.2
+
+- added: table level locking (TDbf.LockTable / TDbf.UnlockTable)
+    NOTE: if you're still editing a record, then LockTable will fail. Post or
+      cancel changes before trying to lock table.
+- added: filter expressions (thx paul)
+    - WARNING: feature is currently in ALPHA state !
+    - TDbf.Filter := 'your dbase expression';
+    - index functions available for filter too
+- added: expressions operators implemented: '=,<,>,<=,>=,and,or,not'
+    - you can use these for filter (but for index too)
+- added: more types for operator '+'
+- added: GetIndexNames, retrieves indexes from MDX or NDX's in dbf directory
+- added: TDbf.RegenerateIndexes, recreates all indexes active for table
+- added: index expression length checking in parser
+    new error message: STRING_INDEX_EXPRESSION_TOO_LONG
+- added: polish error messages in Dbf_Str_PL.pas
+- fixed: pass index options from object inspector to createindex (thx germain)
+- fixed: now when closing dbf file, at runtime MDX indexes are removed from
+  indexes list, but not at design time, to keep indexes from disappearing from
+  list. You should always add/remove NDX indexes yourself! (because the dbf
+  file does not know about them).
+- fixed: bug '0.0 is not valid timestamp' is fixed (thx felipe)
+    - I now understand VCL TDataSet..NativeFormat better -> TDbf retrieves in
+      native format, then VCL translates to destination format
+    - it'll be a little slower, but more compatible
+    - get/setfielddata override in TDbf removed
+
+
+
+------------------------
+V6.1.4
+
+- fixed: it now compiles (shame on me)
+- note:  experimental new index insert order to check first before
+    inserting record into database
+
+
+------------------------
+V6.1.3
+
+- chnge: same functionality, clearer implementation of autocreate in
+    TDbf.InternalOpen
+- fixed: automagic creation of MDX indexes in TDbf.Indexes property if not exist
+- added: on creation of MDX indexes now automagically tries exclusive mode
+    itself, if fails, then same as old behaviour (exception)
+- fixed: order autoinc assignment to new record and updating index, previously
+    empty index. Now first autoinc is assigned, then indexes updated.
+- fixed: auto-detect non-present index in MDX file and create it
+- fixed: crash on master/detail range when no index or no field selected
+- fixed: try exclusive when creating, reopened creating causing filesize = 0
+    now it reopens non-create, ie normally
+- added: checking whether field type okay for specified table level;
+    new error string: 'STRING_INVALID_FIELD_TYPE'
+- fixed: searchkey (using variants) on numeric MDX index; code inserted to
+    convert to bcd
+
+
+------------------------
+V6.1.2
+
+- fixed: delphi 3 compatibility issues
+- fixed: bug in check exclusive access (thx martin)
+- fixed: correct dbf version when creating dbf from fielddefs (thx martin)
+- fixed: correct dbf version when creating memo file along with dbf ( " )
+- added: set method for physicalrecno
+- fixed: when using masterlink on non-string field, proper field conversion
+- fixed: master/detail bug, empty range at start of file
+
+
+------------------------
+V6.1.1
+
+- fixed: bug when opening dbf file with index in indexes property that does
+  not yet exist. Now it will create index.
+- fixed: delphi 4 compatibility (thx dayman)
+- fixed: readonly mode now also shared access, bug not showing new records
+- fixed: bug when reading past EOF in memo results in crash or garbage
+- fixed: bug when index somewhat corrupt ( = record duplicate in index),
+  - bug caused repeats of the same record
+  - now skips records which are the same; based on recno
+- fixed: bug in IDE, when table open, clicking on IndexName caused table to
+  close, (internal exception was generated)
+
+
+------------------------
+V6.1
+
+- added: project file for BCB6 (tdbf_c6*)
+- added: polish mazovia support (db4 id $69, codepage 620, locale LANG_POLISH,
+    dbase7 id: 'DB620PO1')
+- added: Locate uses index search if simple index
+- fixed: bug 'divide by zero', in 1024b memo (thx ltolean)
+- fixed: bug in decimal separator, read & not write field (thx michaelbelling)
+- fixed: bug in indexing: extracting string field values from database
+- NOTE: index function UPPERCASE/LOWERCASE introduced, but you should use
+    UPPER/LOWER for dbase compatibility
+- fixed: dbase 7 files, if no extra properties present, don't read them
+- added: buffering & caching
+  - disabled by default, see Dbf_Common.Inc 'USE_CACHE'
+  - you will need to add 'dbf_avl.pas' and 'dbf_pgcfile.pas' to tdbf project
+    to be able to use them (already done in tdbf_c5r.bpk)
+  - buffering: read & write ahead for files
+  - caching: of index pages in memory
+  - can improve indexing speed over network connections A LOT, especially
+    if you have some memory to spare, to save the new index in
+
+
+------------------------
+V6.0.3
+
+- fixed: bug in pagefile, writerecord not increasing recordcount well (arghh)
+- fixed: bug in SetRange (empty range) (thx jenswahl)
+- fixed: bug when appending records, header record count not updated (thx ron)
+- fixed: bug when translating empty memo, AV (thx vern baker)
+- fixed: bug when indexing empty table, unusable index (thx nogueira)
+- fixed: bugs in RegenerateIndexes, index header 'lost'
+- chang: handling of making valid key in SearchKey -> could solve bug stefano?
+    - now use StringOfChar, instead of manual fill with spaces
+- added: zap, emptytable (you can guess what it does ;-))
+- added: dutch error messages (Dbf_Str_NL.pas)
+
+
+------------------------
+V6.0.2
+
+- fixed: bug in TryExclusive
+- fixed: bug in SearchKey, wrong array index causing searches to fail
+- fixed: bug in TPageFile, chopping file size on multipage record (MDX indexes)
+- fixed: bug in RepageFile, crashes when deleting/reindexing MDX index
+- chang: speed optimisation in TPagedFile.WriteRecord, calc new record count
+- fixed: specifying indexname for MDX longer than 10 characters, now truncates
+
+
+------------------------
+V6.0.1
+
+- added: french strings in Dbf_Str_FR.pas
+- added: index functions uppercase and lowercase
+- fixed: index bug using dbase III files
+- fixed: re-indexing existing (NDX) file fails
+- fixed: index bug (NDX) concerning expression index
+- chnge: TPagedFile.GetRecordCount now only retrieves file size if not in
+    multi-user share mode, to speed up things a little bit
+- fixed: index bug splitting pages
+- fixed: page file set record count, now using pageoffset next page
+- fixed: reading of type III memos
+- added: translation of memo text fields (transliterate = true). Handling of
+    translation should now be consistent between memo fields and char fields.
+
+
+------------------------
+V6.0
+
+- fixed: ftDateTime handling field size
+- fixed: writing memo version byte
+- added: VCL ftFixedChar will be converted to 'C' (character) field
+- added: property DateTimeHandling (dtDateTime, dtBDETimeStamp)
+
+  Up to now TDbf used to store values in '@' (ftDateTime) fields as Delphi
+  type TDateTime. To be compatible with the BDE, however, datetimes need to be
+  stored as BDE type TimeStamp (which is milliseconds elapsed since 01/01/0001
+  plus one day). To provide backward compatibility you can use this property
+  to determine whether TDbf will read and write datetime values as TDateTime
+  or as BDE TimeStamp. Default now is dtBDETimeStamp but in order to read
+  values in existing TDbf tables you need to choose dtDateTime. If you want to
+  convert your data to be BDE compatible have a look at the new procedure
+  CopyFrom.
+
+- added: procedure CopyFrom(DataSet: TDataSet; FileName: string;
+            DateTimeAsString: boolean; Level: Integer);
+
+  Use this procedure to copy the contents of a given DataSet into a new TDbf
+  table. DataSet is the TDataSet you want to copy from, FileName is the
+  complete (including path and extension) filename of the new table.
+  DateTimeAsString determines whether datetime fields should be converted to
+  string fields in the target table. This is especially useful if you want to
+  use TDbf to create mailing sources for a text processor for example. If this
+  parameter is set True an event OnCopyDateTimeAsString is triggered where you
+  can override the default datetime-to-string conversion which is based on
+  your current local settings. Level determines the TableLevel of the target
+  table.
+
+  In order to convert existing datetime values into a BDE compatible format
+  use this procedure as follows: drop two instances of TDbf on a form, set
+  DateTimeHandling of TDbf1 to dtDateTime and connect it with the existing
+  table. Make sure TDbf2 is set to dtBDETimeStamp and call CopyFrom with
+  DataSet = TDbf1 and DateTimeAsString = False. You can then replace the old
+  table with the new one and use TDbf in dtBDETimeStamp mode in your
+  application.
+
+
+------------------------
+V5.9.9
+
+- added: TryExclusive method to 'try go exclusive' eg.:
+    ...
+    Dbf1.TryExclusive;
+    if Dbf1.Exclusive then
+    begin
+      Dbf1.AddIndex(....);
+      Dbf1.EndExclusive;
+    end else begin
+      ShowMessage('somebody else is using file');
+    end;
+    ...
+- fixed bug: adding records while string index active don't show up
+- fixed bug: clear field when backspace hit
+- fixed bug: not saving memo byte in version data correctly
+- fixed bug: sometimes crash when opening empty database
+- fixed bug: DB desktop writes index type 'F' instead of 'N'
+- fixed bug: writing negative integer values to fields
+- fixed bug: assertion failure when adding a lot of the same data in index
+- changed: default open mode is now normal instead of autocreate
+
+
+------------------------
+V5.9.8
+
+- added integer and smallint support to STR() in expression indexes
+- fixed bug: creating dbf files, index field not found, due to uppercase names
+- fixed bug: float conversion in STR() more alike dbase
+- fixed bug: parser crashes while removing constants in optional parameters
+
+
+------------------------
+V5.9.7
+
+- added Variant support to SearchKey & SetRange
+- fixed bug: NDX index split
+- fixed bug: DeleteIndex could not find index
+- fixed bug: MDX with dBaseIII locale problem
+- fixed bug: descending sort index
+- demo app v1.3 will compile with this package
+- much thanks to Paul v.H. for help on this release
+
+
+------------------------
+V5.9.6
+
+- added Int64 support for index expressions
+- updates to support for Kylix (dbf_wtil.pas)
+- fixed bug: Parser.GetResultType for single field indexes
+- fixed bug: IndexFile.ExtractKeyFromBuffer integer -> numeric conversion
+- fixed bug: creating NDX index crashes
+- fixed bug: creating NDX index wrong locale
+- fixed bug: while filtering wrong memo contents retrieved
+
+
+------------------------
+V5.9.5
+
+- added: beta support for Kylix (2)
+- fixed: last field missing (reported by wimb and many others)
+- fixed: Delphi 3 compatibility problem in Dbf_Fields.pas
+- fixed: calculated fields bug (sometimes not show data)
+
+
+------------------------
+V5.9.4
+
+- added: beta support for numeric indexes in MDX
+- changes Delphi 3 compatible (as reported by crest)
+- change Delphi 4 compatible: .Items[I].Free instead of .Delete(I)
+- fixed store that an index is an expression index -> indexes read from
+  file are 'always' tagged as expression index...will keep you updated
+- change TDbf_D6*.dpk -> they work now...dbf.dcr problem resolved
+- fixed bug: detect end of header, invalid dbf
+
+
+------------------------
+V5.9.3
+
+- added IndexName property list...listing MDX / NDX indexes
+- added distinct index support
+  - use ixPrimary in IndexOptions to create
+  - checks key violations
+- removed RES file requirement from CB packages
+- fixed NDX index bug: opening index fails (out of bounds) (report by thx)
+- fixed MDX open dBase VII index bug...language id mismatch
+- fixed MDX multiple index bug: key was calculated before selection
+  instead of after, oops :-(
+
+
+------------------------
+V5.9.2
+
+- added support for creating tables in different locales/codepages
+  - default is ANSI / Western European (= ENGLISH_UK currently)
+  - eg. to create table in US locale
+      DbfGlobals.CodePage := 437;
+      DbfGlobals.Locale := LANG_ENGLISH or (SUBLANG_ENGLISH_US shl 10);
+- changed structure: Mdx & Ndx implemented as descendants of TIndexPage
+- new (public) DisableResyncOnPost property, if enabled, will suppress resync
+  after post -> will increase speed. Use it if you are editing all records.
+- removed global variable FDbfExePath
+- fixed memory leak: expression record
+- fixed setfielddata.string bug (reported by atilla)
+
+
+------------------------
+V5.9.1
+
+- added duplicate field name handling
+- fixed index close bug
+- added TDbfIndexDef.Assign
+- added TDbf.TableLevel property, indicates table level like TTable
+- added support for creating dBase7 databases
+  - set TTable.TableLevel to 7 before calling CreateTable
+- added fieldlist copy feature VCL->DBF
+  - eg.:
+    FieldDefs: TFieldDefs;
+    DbfFieldDefs: TDbfFieldDefs;
+    ...
+    DbfFieldDefs.Assign(FieldDefs);
+  - float/integer fields will get a default size / precision
+  - CopyFrom will get index of field that is assigned
+- added restructure procedure
+  - probably still buggy -> TEST WELL before using
+  - table needs to be closed before calling restructuretable
+  - create TDbfFieldDefs list
+  - TDbfFieldDef.CopyFrom
+    - is index of current table field to copy
+    - CopyFrom = -1 means add
+  - eg.:
+    NewFieldDefs: TDbfFieldDefs;
+    NewFieldDef: TDbfFieldDef;
+    Dbf1: TDbf;
+    ...
+    // create new field list
+    NewFieldDefs := TDbfFieldDefs.Create(Self);
+    // assign current list
+    NewFieldDefs.Assign(Dbf1.DbfFieldDefs);
+    // assume first field is string, 20 wide, make larger to 40
+    NewFieldDefs.Items[0].Size := 40;
+    // rename second field to 'RENAMED'
+    NewFieldDefs.Items[1].FieldName := 'RENAMED';
+    // add a float field
+    NewFieldDef := NewFieldDefs.AddFieldDef;
+    NewFieldDef.FieldName := 'NEW_FLOAT';
+    NewFieldDef.FieldType := ftFloat;
+    NewFieldDef.Size := 10;
+    NewFieldDef.Precision := 3;
+    // restructure table and pack
+    Dbf1.Restructure(NewFieldDefs, true);
+    // restructure table and not pack
+    //Dbf1.Restructure(NewFieldDefs, false);
+    // free mem
+    NewFieldDefs.Free;
+
+
+------------------------
+V5.9
+
+- Master / detail supported!
+  - NOTE: TDbf can only have another TDbf as master!
+  - MasterFields is an expression
+- TableName / FilePath handling changed...bug fixed
+  if FilePath is non-empty then a file assigned to TableName without path
+  will not clear FilePath -> bug fixed reading from DFM
+- expression with variables: 'function/operand has too many arguments' fixed
+- memory leaks fixed
+- index repaging fixed
+- index cursor move next fixed (possible problem at EOF)
+
+
+------------------------
+V5.8.2
+
+- SetTableName simplified, extract full path
+- IsDeleted fixed
+- PackTable fixed
+- Grouping of files in TDbfDatabase removed
+  -> each TDbf has it's own TDbfFile, no sharing -> some bugs fixed
+- Renamed global DbfDefaultDatabase to DbfGlobals
+- Renamed files to Dbf_* to distinguish a little from others, note:
+  - FieldDef -> Dbf_Fields
+  - Index* -> Dbf_Idx*
+  - Parse* -> Dbf_Prs*; except Parser -> Dbf_Parser
+- AutoInc field bugs fixed:
+  - generate value at post
+  - multi-user share aware
+- IncludeTrailingBackslash added for D4 and earlier
+
+
+------------------------
+V5.8.1
+
+- field types: size=1..4, prec=0 is always smallint
+
+
+------------------------
+V5.8
+
+- MAJOR COOL: field default values are supported!
+  - you can't create table with default values yet, (dBase 7 only)
+  - if table is made with DB2K, dBase 7, default values are read from header
+- exclusive access is required for PackTable to avoid corruption
+- automatically add last backslash in FilePath, now really works
+- sorry, 5.7.7 didn't compile
+- renamed MSWINDOWS defs to WIN32, which is more standard
+- DBF locking is now BDE compatible, not sure about index & memo
+- Added TDbf.UseFloatFields, when dbffieldtype = 'N', then UseFloatFields
+  will force ftFloat fields, otherwise when precision is zero an integer field
+  will be used, NOTE: UseFloatFields is default true
+- structure change: passing data via constructor to assigning through
+  properties (cleaner)
+
+
+------------------------
+V5.7.7
+
+- Italian message strings in Strings_ITA.pas (thanks delphiguru)
+- D7 project files
+- automatically add last backslash in FilePath
+- deleted records are now checked with (= '*') instead of (<> ' ')
+  -> slightly different runtime behaviour if another character is present
+
+
+------------------------
+V5.7.6
+
+- _DBASELOCK field can now be in any position
+- locking bug fixed
+- ShowDeleted bug fixed
+- Delete method bug fixed
+- Inserting a record will return physical recno: -1
+
+
+------------------------
+V5.7.5
+
+- _DBASELOCK field is hidden from normal view
+- changes from Paul van Helden applied:
+  - assigning Filtered property
+  - default size/precision float field
+- Int64 support enabled for Delphi 4
+- AutoInc fields enabled for Delphi 4
+
+
+------------------------
+V5.7.4
+
+- Delphi 4 date field bug, worked on, untested, I hope it works now
+- Delphi 7: dbf_reg needs ExptIntf as unit
+- constructing field list bug fixed...more dbase 7 compatible
+  now reads until field termination character found
+- various memory leaks fixed
+- when last field is named _DBASELOCK it will update it when start edit:
+  - first 2 bytes: change count is incremented
+  - next  3 bytes: current time hour,minute,second
+  - next  3 bytes: current date year,month,day
+  - next  0..16 bytes: name of user who locked the record
+
+
+------------------------
+V5.7.3
+
+- unique indexes supported
+- descending indexes supported
+- parser bugs fixed:
+  - clearing expression
+  - resulting length from simple field
+
+
+------------------------
+V5.7.2
+
+- striving for delphi 4 and older compatibility.... (thanks don)
+  - TDbf.GetFieldData/SetFieldData seems D5 only
+
+
+------------------------
+V5.7.1
+
+- parser core bugs fixed:
+  - multiple arguments
+  - integer arguments
+- float fields bug fixed: storing data
+- index bugs fixed:
+  - auto detecting float result from expression
+  - updating index when record edited
+- parser will now only accept a dot as decimal separator whatever your
+  DecimalSeparator character is. A comma will always be the argument separator.
+
+
+------------------------
+V5.7.0
+
+- Dbf.dcr added
+- Packages added
+  - all named tdbf_..., see package.txt
+  - I hope they all work...I haven't been able to test them
+- GetFieldData method: boolean field type widened to Word length
+- Index Expression Support !!!
+  - used FWS expression parser from torry.net
+  - still adding functions but basic STR() and DTOS() and '+' are implemented
+- Languages replaced by own LCID list so that it can compile under D4/C4 and older
+
+
+------------------------
+V5.6.5
+
+- fixed indexing bugs
+  - locale mismatch
+  - opening ndx files corrupted them
+- demo works again!
+- some help on new events:
+  - OnLanguageWarning: when a specified codepage in dbf file is not present
+    on computer, then this event is fired, you can force a different codepage
+    or just OEM or ANSI
+  - OnLocaleError: when locale used in index is not present on computer this
+    event is fired. When using wrong locale, you can mess up the index!!!
+    Again, you can force to use the index, default is to close.
+  - OnIndexMissing: when dbf file has flag that there is a MDX index attached
+    to this dbf file, then when this MDX file is not present, this event is fired.
+    You need to override it if you want to copy another MDX index to this database,
+    default is to break link to MDX file.
+
+
+------------------------
+V5.6.4
+
+- fixed 'CloseDbf' bug (thanks Paul, Eugeny) when opening / closing tables many times
+- Delphi 3 supported again (removed Int64 reference & recoding) (test compile D3, anyone?)
+
+
+------------------------
+V5.6.3
+
+- fixed CreateTable bug (thanks Eugeny)
+  - there seemed heavy need for this fix :-)
+- fixed Memo bug (thanks Christian)
+
+
+------------------------
+V5.6.2
+
+- fixed stupid Undelete bug (thanks Gvido)
+- fixed NDX index list bugs
+- fixed indexing bugs
+- included dbflang.inc in package
+
+
+------------------------
+V5.6.1
+
+- language support...continued (locale support added). index sorting is now
+  done using locale-dependent CompareString from Windows. However, it seems
+  to be always case insensitive.
+- FIndexes bug fixed, indexfile always created as NDX index, now it is created
+  based only as NDX if .NDX added, otherwise in MDX file. (thanks thiaux for pointing it out)
+- new FOnIndexMissing event, when an MDX index is missing, it will notify you asking to delete
+  the link or close file
+- new ExactRecordCount property, it will give #records you are viewing:
+    RecordCount - #deleted records - #records not in filter
+  warning: this will visit the whole dataset each time you request the property,
+  so it will be very slow on larger tables
+
+
+------------------------
+V5.6
+
+- language support (codepages)
+  - NOTE: this is Win32 compatible only, whole project is now Win32 compatible only for sure
+    can anyone translate the codepages to linux? to make it linux compatible again
+- TTranslateEvent changed, you have to return an Integer with length of Dest, or -1 to let it be calculated automatically
+
+
+------------------------
+V5.5
+
+- Parser now in separate class: potential to parse more complex expressions, including multi-field indexes and such
+- Linux compatible support...test anyone...I don't have Kylix...
+- Bugfixes in InternalDelete and PackTable, thanks jimcampbel
+
+
+------------------------
+V5.4
+
+- Multi-user support
+- Some indexing bugs resolved
+
+
+------------------------
+V5.3.1
+
+- TIndexPage.FindNearest uses binary search instead of linear
+
+
+------------------------
+V5.3
+
+- SearchKey method searches on index for a given key
+    SearchKeyType: stEqual, stGreaterEqual, stGreater
+- MDX index support: index names with no extension now create a MDX index
+    belonging to dbf file
+- SetRange method instead of BracketLow/BracketHigh, rewritten range support
+- Index.SetPhysicalRecNo much faster, using Find instead of searching recno
+
+
+------------------------
+V5.002 and older
+
+- see original TDbf website?
