@@ -1346,19 +1346,16 @@ begin
   def_symbol('VER'+version_nr);
   def_symbol('VER'+version_nr+'_'+release_nr);
   def_symbol('VER'+version_nr+'_'+release_nr+'_'+patch_nr);
-{$ifdef newcg}
-  def_symbol('WITHNEWCG');
-{$endif}
 
 { Temporary defines, until things settle down }
   def_symbol('HASWIDECHAR');
   def_symbol('HASWIDESTRING');
   def_symbol('HASOUT');
   { for now, the PowerPC doesn't support variants and interfaces }
-{$ifndef POWERPC}
+{$ifdef i386}
   def_symbol('HASINTF');
   def_symbol('HASVARIANT');
-{$endif POWERPC}
+{$endif i386}
   def_symbol('INTERNSETLENGTH');
   def_symbol('INTERNLENGTH');
   def_symbol('INT64FUNCRESOK');
@@ -1680,7 +1677,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.79  2002-07-26 22:22:10  florian
+  Revision 1.80  2002-08-09 19:15:41  carl
+     - removed newcg define
+
+  Revision 1.79  2002/07/26 22:22:10  florian
     * several PowerPC related fixes to get forward with system unit compilation
 
   Revision 1.78  2002/07/26 21:15:39  florian

@@ -290,9 +290,6 @@ implementation
          oldrecoverpos : pjmp_buf;
 {$endif Delphi}
 {$endif useexcept}
-{$ifdef newcg}
-         oldcg         : pcg;
-{$endif newcg}
 {$ifdef GDB}
          store_dbx : plongint;
 {$endif GDB}
@@ -358,9 +355,6 @@ implementation
          oldaktmodeswitches:=aktmodeswitches;
          oldstatement_level:=statement_level;
 {         oldexceptblockcounter:=exceptblockcounter; }
-{$ifdef newcg}
-         oldcg:=cg;
-{$endif newcg}
 {$ifdef GDB}
          store_dbx:=dbx_counter;
          dbx_counter:=nil;
@@ -432,17 +426,6 @@ implementation
 
        { init code generator for a new module }
          codegen_newmodule;
-{$ifdef newcg}
-{$ifdef i386}
-         cg:=new(pcg386,init);
-{$endif i386}
-{$ifdef alpha}
-         cg:=new(pcgalpha,init);
-{$endif alpha}
-{$ifdef powerpc}
-         cg:=new(pcgppc,init);
-{$endif powerpc}
-{$endif newcg}
 
          { If the compile level > 1 we get a nice "unit expected" error
            message if we are trying to use a program as unit.}
@@ -635,7 +618,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.35  2002-07-20 17:16:03  florian
+  Revision 1.36  2002-08-09 19:15:41  carl
+     - removed newcg define
+
+  Revision 1.35  2002/07/20 17:16:03  florian
     + source code page support
 
   Revision 1.34  2002/07/01 18:46:24  peter

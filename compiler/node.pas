@@ -100,8 +100,8 @@ interface
           continuen,       {A continue statement.}
 (*          repeatn,       {A repeat until block.}
           whilen,         {A while do statement.}*)
-	  whilerepeatn,     {A while or repeat statement.}
-          forn,     	    {A for loop.}
+      whilerepeatn,     {A while or repeat statement.}
+          forn,             {A for loop.}
           exitn,            {An exit statement.}
           withn,            {A with statement.}
           casen,            {A case statement.}
@@ -126,7 +126,7 @@ interface
           nothingn,
           loadvmtn,
           guidconstn,
-          rttin		    {Rtti information so they can be accessed in result/firstpass.}
+          rttin         {Rtti information so they can be accessed in result/firstpass.}
        );
 
       const
@@ -186,7 +186,7 @@ interface
           'continuen',
 (*          'repeatn',
           'whilen',*)
-	  'whilerepeatn',
+      'whilerepeatn',
           'forn',
           'exitn',
           'withn',
@@ -229,10 +229,10 @@ interface
          nf_varargs_para,  { belongs this para to varargs }
 
          { flags used by loop nodes }
-         nf_backward,	{ set if it is a for ... downto ... do loop }
+         nf_backward,   { set if it is a for ... downto ... do loop }
          nf_varstate,   { do we need to parse childs to set var state }
-	 nf_testatbegin,{ Do a test at the begin of the loop?}
-	 nf_checknegate,{ Negate the loop test?}
+     nf_testatbegin,{ Do a test at the begin of the loop?}
+     nf_checknegate,{ Negate the loop test?}
 
          { taddrnode }
          nf_procvarload,
@@ -338,9 +338,9 @@ interface
           { dermines the number of necessary temp. locations to evaluate
             the node }
 {$ifdef state_tracking}
-	  { Does optimizations by keeping track of the variable states
-	    in a procedure }
-	  function track_state_pass(exec_known:boolean):boolean;virtual;
+      { Does optimizations by keeping track of the variable states
+        in a procedure }
+      function track_state_pass(exec_known:boolean):boolean;virtual;
 {$endif}
           procedure det_temp;virtual;abstract;
 
@@ -371,9 +371,6 @@ interface
        { one child, you have to use it if you want to use         }
        { true- and falselabel                                     }
        tparentnode = class(tnode)
-{$ifdef newcg}
-          falselabel,truelabel : tasmlabel;
-{$endif newcg}
        end;
 
        tnodeclass = class of tnode;
@@ -491,10 +488,6 @@ implementation
     procedure tnode.concattolist(l : tlinkedlist);
 
       begin
-{$ifdef newcg}
-         //!!!!!!! l^.concat(self);
-         {$warning fixme}
-{$endif newcg}
       end;
 
     function tnode.ischild(p : tnode) : boolean;
@@ -533,7 +526,7 @@ implementation
     function Tnode.track_state_pass(exec_known:boolean):boolean;
     
     begin
-	track_state_pass:=false;
+    track_state_pass:=false;
     end;
 {$endif state_tracking}
 
@@ -827,7 +820,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.33  2002-07-23 12:34:30  daniel
+  Revision 1.34  2002-08-09 19:15:41  carl
+     - removed newcg define
+
+  Revision 1.33  2002/07/23 12:34:30  daniel
   * Readded old set code. To use it define 'oldset'. Activated by default
     for ppc.
 

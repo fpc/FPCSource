@@ -34,11 +34,7 @@ interface
        version_nr = '1';
        release_nr = '1';
        patch_nr   = '0';
-{$ifdef newcg}
-       minorpatch = ' NCG';
-{$else newcg}
        minorpatch = '';
-{$endif newcg}
 
        { date string }
 {$ifdef FPC}
@@ -117,7 +113,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.13  2002-07-04 20:43:02  florian
+  Revision 1.14  2002-08-09 19:15:41  carl
+     - removed newcg define
+
+  Revision 1.13  2002/07/04 20:43:02  florian
     * first x86-64 patches
 
   Revision 1.12  2002/05/18 13:34:21  peter
