@@ -174,7 +174,7 @@ varutils$(PPUEXT) : varutils.pp $(OBJPASDIR)/cvarutil.inc \
         $(COMPILER) -I$(OBJPASDIR) varutils.pp
 
 utf8bidi$(PPUEXT) : $(OBJPASDIR)/utf8bidi.pp
-        $(COMPILER) $(OBJPASDIR)/utf8bidi.pp
+        $(COMPILER) -Sc $(OBJPASDIR)/utf8bidi.pp
 
 
 variants$(PPUEXT) : $(INC)/variants.pp varutils$(PPUEXT)
