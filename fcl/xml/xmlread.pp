@@ -221,9 +221,9 @@ end;
 
 {$IFDEF UsesFPCWidestrings}
 
-procedure SimpleWide2AnsiMove(source:pwidechar;dest:pchar;len:longint);
+procedure SimpleWide2AnsiMove(source:pwidechar;dest:pchar;len:sizeint);
 var
-  i : longint;
+  i : sizeint;
 begin
   for i:=1 to len do
    begin
@@ -236,9 +236,9 @@ begin
    end;
 end;
 
-procedure SimpleAnsi2WideMove(source:pchar;dest:pwidechar;len:longint);
+procedure SimpleAnsi2WideMove(source:pchar;dest:pwidechar;len:sizeint);
 var
-  i : longint;
+  i : sizeint;
 begin
   for i:=1 to len do
    begin
@@ -1295,7 +1295,10 @@ end.
 
 {
   $Log$
-  Revision 1.10  2003-12-01 23:59:12  sg
+  Revision 1.11  2004-05-02 20:17:52  peter
+    * use sizeint
+
+  Revision 1.10  2003/12/01 23:59:12  sg
   * Added support for main branch to be able to read and write at least
     ISO8859-1 encoded files correctly. A much improved solution will be
     provided when the mainbranch RTL fully supports Unicode/WideStrings.

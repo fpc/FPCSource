@@ -377,9 +377,9 @@ end;
 
 {$IFDEF UsesFPCWidestrings}
 
-procedure SimpleWide2AnsiMove(source:pwidechar;dest:pchar;len:longint);
+procedure SimpleWide2AnsiMove(source:pwidechar;dest:pchar;len:sizeint);
 var
-  i : longint;
+  i : sizeint;
 begin
   for i:=1 to len do
    begin
@@ -392,9 +392,9 @@ begin
    end;
 end;
 
-procedure SimpleAnsi2WideMove(source:pchar;dest:pwidechar;len:longint);
+procedure SimpleAnsi2WideMove(source:pchar;dest:pwidechar;len:sizeint);
 var
-  i : longint;
+  i : sizeint;
 begin
   for i:=1 to len do
    begin
@@ -550,7 +550,10 @@ end.
 
 {
   $Log$
-  Revision 1.13  2004-01-20 12:27:19  sg
+  Revision 1.14  2004-05-02 20:17:53  peter
+    * use sizeint
+
+  Revision 1.13  2004/01/20 12:27:19  sg
   * "<" and ">" are now written as "&lt;" and "&gt;"
 
   Revision 1.12  2003/12/01 23:59:12  sg
