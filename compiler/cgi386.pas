@@ -20,27 +20,14 @@
 
  ****************************************************************************
 }
-
-{$ifdef tp}
-{$E+,F+,N+,D+,L-,Y+}
+{$ifdef TP}
+  {$E+,F+,N+,D+,L-,Y+}
 {$endif}
 unit cgi386;
-
-
-{***************************************************************************}
 interface
-{***************************************************************************}
 
-uses    verbose,cobjects,systems,globals,tree,
-        symtable,types,strings,pass_1,hcodegen,
-        aasm,i386,tgeni386,files,cgai386
-{$ifdef GDB}
-        ,gdb
-{$endif GDB}
-{$ifdef TP}
-        ,cgi3862
-{$endif TP}
-        ;
+uses
+  tree;
 
 { produces assembler for the expression in variable p }
 { and produces an assembler node at the end           }
@@ -48,27 +35,38 @@ procedure generatecode(var p : ptree);
 
 { produces the actual code }
 function do_secondpass(var p : ptree) : boolean;
-
 procedure secondpass(var p : ptree);
 
-{$ifdef test_dest_loc}
-const   { used to avoid temporary assignments }
-        dest_loc_known : boolean = false;
-        in_dest_loc : boolean = false;
-        dest_loc_tree : ptree = nil;
 
-var dest_loc : tlocation;
+{$ifdef test_dest_loc}
+
+const
+  { used to avoid temporary assignments }
+  dest_loc_known : boolean = false;
+  in_dest_loc    : boolean = false;
+  dest_loc_tree  : ptree = nil;
+
+var
+  dest_loc : tlocation;
 
 procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 
 {$endif test_dest_loc}
 
 
-
-
-{***************************************************************************}
 implementation
-{***************************************************************************}
+
+   uses
+     verbose,cobjects,systems,globals,files,
+     symtable,types,aasm,i386,
+     pass_1,hcodegen,tgeni386,cgai386
+{$ifdef GDB}
+     ,gdb
+{$endif}
+{$ifdef TP}
+     ,cgi3862
+{$endif}
+     ;
 
     const
        never_copy_const_param : boolean = false;
@@ -610,7 +608,6 @@ implementation
          hp1 : pai;
          lastlabel : plabel;
          found : boolean;
-
       begin
          clear_reference(p^.location.reference);
          lastlabel:=nil;
@@ -628,17 +625,9 @@ implementation
                      begin
                         if (hp1^.typ=p^.realtyp) and (lastlabel<>nil) then
                           begin
-                             { Florian this caused a internalerror(10)=> no free reg !! }
-                             {if ((p^.realtyp=ait_real_64bit) and (pai_double(hp1)^.value=p^.valued)) or
-                               ((p^.realtyp=ait_real_80bit) and (pai_extended(hp1)^.value=p^.valued)) or
-                               ((p^.realtyp=ait_real_32bit) and (pai_single(hp1)^.value=p^.valued)) then }
-                             if ((p^.realtyp=ait_real_64bit) and (pai_double(hp1)^.value=p^.valued)) then
-                               found:=true;
-                             if ((p^.realtyp=ait_real_extended) and (pai_extended(hp1)^.value=p^.valued)) then
-                               found:=true;
-                             if ((p^.realtyp=ait_real_32bit) and (pai_single(hp1)^.value=p^.valued)) then
-                               found:=true;
-                             if found then
+                             if ((p^.realtyp=ait_real_64bit) and (pai_double(hp1)^.value=p^.valued)) or
+                               ((p^.realtyp=ait_real_extended) and (pai_extended(hp1)^.value=p^.valued)) or
+                               ((p^.realtyp=ait_real_32bit) and (pai_single(hp1)^.value=p^.valued)) then
                                begin
                                   { found! }
                                   p^.labnumber:=lastlabel^.nb;
@@ -654,35 +643,18 @@ implementation
                 begin
                    getlabel(lastlabel);
                    p^.labnumber:=lastlabel^.nb;
+                   concat_constlabel(lastlabel,constreal);
                    case p^.realtyp of
-                     ait_real_64bit : consts^.insert(new(pai_double,init(p^.valued)));
-                     ait_real_32bit : consts^.insert(new(pai_single,init(p^.valued)));
-                     ait_real_extended : consts^.insert(new(pai_extended,init(p^.valued)));
-                     else
-                       internalerror(10120);
-                   end;
-                   if smartlink then
-                    begin
-                      consts^.insert(new(pai_symbol,init_global('_$'+current_module^.unitname^
-                        +'$real_const'+tostr(p^.labnumber))));
-                      consts^.insert(new(pai_cut,init));
-                    end
-                   else if current_module^.output_format in [of_nasm,of_obj] then
-                     consts^.insert(new(pai_symbol,init('$real_const'+tostr(p^.labnumber))))
+                     ait_real_64bit : consts^.concat(new(pai_double,init(p^.valued)));
+                     ait_real_32bit : consts^.concat(new(pai_single,init(p^.valued)));
+                  ait_real_extended : consts^.concat(new(pai_extended,init(p^.valued)));
                    else
-                     consts^.insert(new(pai_label,init(lastlabel)));
+                     internalerror(10120);
+                   end;
                 end;
            end;
          stringdispose(p^.location.reference.symbol);
-         if smartlink then
-          begin
-            p^.location.reference.symbol:=stringdup('_$'+current_module^.unitname^
-                +'$real_const'+tostr(p^.labnumber));
-          end
-         else if current_module^.output_format in [of_nasm,of_obj] then
-           p^.location.reference.symbol:=stringdup('$real_const'+tostr(p^.labnumber))
-         else
-           p^.location.reference.symbol:=stringdup(lab2str(lastlabel));
+         p^.location.reference.symbol:=stringdup(constlabel2str(lastlabel,constreal));
       end;
 
     procedure secondfixconst(var p : ptree);
@@ -773,44 +745,25 @@ implementation
                    pc:=getpcharcopy(p);
 {$endif UseAnsiString}
 
-                   { we still will have a problem if there is a #0 inside the pchar }
-{$ifndef UseAnsiString}
-                   consts^.insert(new(pai_string,init_length_pchar(pc,length(p^.values^)+2)));
+                   concat_constlabel(lastlabel,conststring);
+{$ifdef UseAnsiString}
+  {$ifdef debug}
+                   consts^.concat(new(pai_asm_comment,init('Header of ansistring')));
+  {$endif debug}
+                   consts^.concat(new(pai_const,init_32bit(p^.length)));
+                   consts^.concat(new(pai_const,init_32bit(p^.length)));
+                   consts^.concat(new(pai_const,init_32bit(-1)));
                    { to overcome this problem we set the length explicitly }
                    { with the ending null char }
+                   consts^.concat(new(pai_string,init_length_pchar(pc,p^.length+1)));
 {$else UseAnsiString}
-                   consts^.insert(new(pai_string,init_length_pchar(pc,p^.length+1)));
-{$endif UseAnsiString}
-                   if smartlink then
-                    begin
-                      consts^.insert(new(pai_symbol,init_global('_$'+current_module^.unitname^
-                        +'$string_const'+tostr(p^.labstrnumber))));
-                      consts^.insert(new(pai_cut,init));
-                    end
-                   else
-                    begin
-                       consts^.insert(new(pai_label,init(lastlabel)));
-                       if current_module^.output_format in [of_nasm,of_obj] then
-                         consts^.insert(new(pai_symbol,init('$string_const'+tostr(p^.labstrnumber))));
-                    end;
-{$ifdef UseAnsiString}
-                   consts^.insert(new(pai_const,init_32bit(-1)));
-                   consts^.insert(new(pai_const,init_32bit(p^.length)));
-                   consts^.insert(new(pai_const,init_32bit(p^.length)));
-{$ifdef debug}
-                   consts^.insert(new(pai_asm_comment,init('Header of ansistring')));
-{$endif debug}
+                   { we still will have a problem if there is a #0 inside the pchar }
+                   consts^.concat(new(pai_string,init_length_pchar(pc,length(p^.values^)+2)));
 {$endif UseAnsiString}
                 end;
            end;
          stringdispose(p^.location.reference.symbol);
-         if smartlink then
-           p^.location.reference.symbol:=stringdup('_$'+current_module^.unitname^
-                     +'$string_const'+tostr(p^.labstrnumber))
-         else if current_module^.output_format in [of_nasm,of_obj] then
-           p^.location.reference.symbol:=stringdup('$string_const'+tostr(p^.labstrnumber))
-         else
-           p^.location.reference.symbol:=stringdup(lab2str(lastlabel));
+         p^.location.reference.symbol:=stringdup(constlabel2str(lastlabel,conststring));
          p^.location.loc := LOC_MEM;
       end;
 
@@ -1614,9 +1567,6 @@ implementation
 
     procedure second_string_string(p,hp : ptree;convtyp : tconverttype);
 
-      var
-         pushedregs : tpushed;
-
       begin
 {$ifdef UseAnsiString}
          if is_ansistring(p^.resulttype) and not is_ansistring(p^.left^.resulttype) then
@@ -2207,7 +2157,6 @@ implementation
          opsize : topsize;
          otlabel,hlabel,oflabel : plabel;
          hregister : tregister;
-         use_strconcat : boolean;
          loc : tloc;
 
       begin
@@ -3446,7 +3395,6 @@ implementation
          opsize : topsize;
          asmop : tasmop;
          pushed : tpushed;
-         dummycoll : tdefcoll;
 
       { produces code for READ(LN) and WRITE(LN) }
 
@@ -3767,10 +3715,9 @@ implementation
       procedure handle_str;
 
         var
-           hp,node,lentree,paratree : ptree;
+           hp,node : ptree;
            dummycoll : tdefcoll;
            is_real,has_length : boolean;
-           real_type : byte;
 
           begin
            pushusedregisters(pushed,$ff);
@@ -4339,7 +4286,7 @@ implementation
 
       var
          l : plabel;
-         i,smallsetvalue : longint;
+         i : longint;
          hp : ptree;
          href,sref : treference;
 
@@ -4351,21 +4298,13 @@ implementation
          clear_reference(href);
          getlabel(l);
          stringdispose(p^.location.reference.symbol);
-         if not (current_module^.output_format in [of_nasm,of_obj]) then
-           begin
-              href.symbol:=stringdup(lab2str(l));
-              datasegment^.concat(new(pai_label,init(l)));
-           end
-         else
-           begin
-              href.symbol:=stringdup('$set_const'+tostr(l^.nb));
-              datasegment^.concat(new(pai_symbol,init('$set_const'+tostr(l^.nb))));
-           end;
+         href.symbol:=stringdup(constlabel2str(l,constseta));
+         concat_constlabel(l,constseta);
            {if psetdef(p^.resulttype)=smallset then
            begin
               smallsetvalue:=(p^.constset^[3]*256)+p^.constset^[2];
               smallsetvalue:=((smallset*256+p^.constset^[1])*256+p^.constset^[1];
-              datasegment^.concat(new(pai_const,init_32bit(smallsetvalue)));
+              consts^.concat(new(pai_const,init_32bit(smallsetvalue)));
               hp:=p^.left;
               if assigned(hp) then
                 begin
@@ -4391,7 +4330,7 @@ implementation
          else    }
            begin
            for i:=0 to 31 do
-             datasegment^.concat(new(pai_const,init_8bit(p^.constset^[i])));
+             consts^.concat(new(pai_const,init_8bit(p^.constset^[i])));
          hp:=p^.left;
          if assigned(hp) then
            begin
@@ -6043,7 +5982,14 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.21  1998-05-06 08:38:36  pierre
+  Revision 1.22  1998-05-07 00:17:00  peter
+    * smartlinking for sets
+    + consts labels are now concated/generated in hcodegen
+    * moved some cpu code to cga and some none cpu depended code from cga
+      to tree and hcodegen and cleanup of hcodegen
+    * assembling .. output reduced for smartlinking ;)
+
+  Revision 1.21  1998/05/06 08:38:36  pierre
     * better position info with UseTokenInfo
       UseTokenInfo greatly simplified
     + added check for changed tree after first time firstpass
@@ -6130,304 +6076,4 @@ end.
       in MEM parsing for go32v2
       better external symbol creation
       support for rhgdb.exe (lowercase file names)
-
-  Revision 1.3  1998/03/28 23:09:55  florian
-    * secondin bugfix (m68k and i386)
-    * overflow checking bugfix (m68k and i386) -- pretty useless in
-      secondadd, since everything is done using 32-bit
-    * loading pointer to routines hopefully fixed (m68k)
-    * flags problem with calls to RTL internal routines fixed (still strcmp
-      to fix) (m68k)
-    * #ELSE was still incorrect (didn't take care of the previous level)
-    * problem with filenames in the command line solved
-    * problem with mangledname solved
-    * linking name problem solved (was case insensitive)
-    * double id problem and potential crash solved
-    * stop after first error
-    * and=>test problem removed
-    * correct read for all float types
-    * 2 sigsegv fixes and a cosmetic fix for Internal Error
-    * push/pop is now correct optimized (=> mov (%esp),reg)
-
-  Revision 1.2  1998/03/26 11:18:30  florian
-    - switch -Sa removed
-    - support of a:=b:=0 removed
-
-  Revision 1.1.1.1  1998/03/25 11:18:13  root
-  * Restored version
-
-  Revision 1.58  1998/03/24 21:48:30  florian
-    * just a couple of fixes applied:
-         - problem with fixed16 solved
-         - internalerror 10005 problem fixed
-         - patch for assembler reading
-         - small optimizer fix
-         - mem is now supported
-
-  Revision 1.57  1998/03/16 22:42:19  florian
-    * some fixes of Peter applied:
-      ofs problem, profiler support
-
-  Revision 1.56  1998/03/13 22:45:57  florian
-    * small bug fixes applied
-
-  Revision 1.55  1998/03/11 22:22:51  florian
-    * Fixed circular unit uses, when the units are not in the current dir (from Peter)
-    * -i shows correct info, not <lf> anymore (from Peter)
-    * linking with shared libs works again (from Peter)
-
-  Revision 1.54  1998/03/10 23:48:35  florian
-    * a couple of bug fixes to get the compiler with -OGaxz compiler, sadly
-      enough, it doesn't run
-
-  Revision 1.53  1998/03/10 16:27:37  pierre
-    * better line info in stabs debug
-    * symtabletype and lexlevel separated into two fields of tsymtable
-    + ifdef MAKELIB for direct library output, not complete
-    + ifdef CHAINPROCSYMS for overloaded seach across units, not fully
-      working
-    + ifdef TESTFUNCRET for setting func result in underfunction, not
-      working
-
-  Revision 1.52  1998/03/10 01:17:16  peter
-    * all files have the same header
-    * messages are fully implemented, EXTDEBUG uses Comment()
-    + AG... files for the Assembler generation
-
-  Revision 1.51  1998/03/09 10:44:37  peter
-    + string='', string<>'', string:='', string:=char optimizes (the first 2
-      were already in cg68k2)
-
-  Revision 1.50  1998/03/06 00:52:10  peter
-    * replaced all old messages from errore.msg, only ExtDebug and some
-      Comment() calls are left
-    * fixed options.pas
-
-  Revision 1.49  1998/03/04 01:34:56  peter
-    * messages for unit-handling and assembler/linker
-    * the compiler compiles without -dGDB, but doesn't work yet
-    + -vh for Hint
-
-  Revision 1.48  1998/03/03 20:36:51  florian
-    * bug in second_smaller fixed
-
-  Revision 1.47  1998/03/03 01:08:24  florian
-    * bug0105 and bug0106 problem solved
-
-  Revision 1.46  1998/03/02 01:48:24  peter
-    * renamed target_DOS to target_GO32V1
-    + new verbose system, merged old errors and verbose units into one new
-      verbose.pas, so errors.pas is obsolete
-
-  Revision 1.45  1998/03/01 22:46:06  florian
-    + some win95 linking stuff
-    * a couple of bugs fixed:
-      bug0055,bug0058,bug0059,bug0064,bug0072,bug0093,bug0095,bug0098
-
-  Revision 1.44  1998/02/24 16:49:57  peter
-    * stackframe ommiting generated 'ret $-4'
-    + timer.pp bp7 version
-    * innr.inc are now the same files
-
-  Revision 1.43  1998/02/22 23:03:12  peter
-    * renamed msource->mainsource and name->unitname
-    * optimized filename handling, filename is not seperate anymore with
-      path+name+ext, this saves stackspace and a lot of fsplit()'s
-    * recompiling of some units in libraries fixed
-    * shared libraries are working again
-    + $LINKLIB <lib> to support automatic linking to libraries
-    + libraries are saved/read from the ppufile, also allows more libraries
-      per ppufile
-
-  Revision 1.42  1998/02/21 04:09:13  carl
-    * stupid syntax error fix
-
-  Revision 1.41  1998/02/20 20:35:14  carl
-    * Fixed entry and exit code which was ALL messed up
-
-  Revision 1.40  1998/02/19 12:15:08  daniel
-  * Optimized a statement that did pain to my eyes.
-
-  Revision 1.39  1998/02/17 21:20:40  peter
-    + Script unit
-    + __EXIT is called again to exit a program
-    - target_info.link/assembler calls
-    * linking works again for dos
-    * optimized a few filehandling functions
-    * fixed stabs generation for procedures
-
-  Revision 1.38  1998/02/15 21:16:12  peter
-    * all assembler outputs supported by assemblerobject
-    * cleanup with assembleroutputs, better .ascii generation
-    * help_constructor/destructor are now added to the externals
-    - generation of asmresponse is not outputformat depended
-
-  Revision 1.37  1998/02/14 01:45:15  peter
-    * more fixes
-    - pmode target is removed
-    - search_as_ld is removed, this is done in the link.pas/assemble.pas
-    + findexe() to search for an executable (linker,assembler,binder)
-
-  Revision 1.36  1998/02/13 22:26:19  peter
-    * fixed a few SigSegv's
-    * INIT$$ was not written for linux!
-    * assembling and linking works again for linux and dos
-    + assembler object, only attasmi3 supported yet
-    * restore pp.pas with AddPath etc.
-
-  Revision 1.35  1998/02/13 10:34:50  daniel
-  * Made Motorola version compilable.
-  * Fixed optimizer
-
-  Revision 1.34  1998/02/12 17:18:57  florian
-    * fixed to get remake3 work, but needs additional fixes (output, I don't like
-      also that aktswitches isn't a pointer)
-
-  Revision 1.33  1998/02/12 11:49:56  daniel
-  Yes! Finally! After three retries, my patch!
-
-  Changes:
-
-  Complete rewrite of psub.pas.
-  Added support for DLL's.
-  Compiler requires less memory.
-  Platform units for each platform.
-
-  Revision 1.23  1998/02/01 19:39:50  florian
-    * clean up
-    * bug0029 fixed
-
-  Revision 1.22  1998/01/27 22:02:29  florian
-    * small bug fix to the compiler work, I forgot a not(...):(
-
-  Revision 1.21  1998/01/27 10:49:15  florian
-  *** empty log message ***
-
-  Revision 1.20  1998/01/26 17:29:14  florian
-    * Peter's fix for bug0046 applied
-
-  Revision 1.19  1998/01/25 22:28:55  florian
-    * a lot bug fixes on the DOM
-
-  Revision 1.18  1998/01/21 21:29:50  florian
-    * some fixes for Delphi classes
-
-  Revision 1.17  1998/01/20 23:53:04  carl
-    * bugfix 74 (FINAL, the one from Pierre was incomplete under BP)
-
-  Revision 1.16  1998/01/19 10:25:14  pierre
-    * bug in object function call in main program or unit init fixed
-
-  Revision 1.15  1998/01/16 22:34:29  michael
-  * Changed 'conversation' to 'conversion'. Waayyy too much chatting going on
-    in this compiler :)
-
-  Revision 1.14  1998/01/16 18:03:11  florian
-    * small bug fixes, some stuff of delphi styled constructores added
-
-  Revision 1.13  1998/01/13 23:11:05  florian
-    + class methods
-
-  Revision 1.12  1998/01/07 00:16:44  michael
-  Restored released version (plus fixes) as current
-
-  Revision 1.10  1997/12/13 18:59:42  florian
-  + I/O streams are now also declared as external, if neccessary
-  * -Aobj generates now a correct obj file via nasm
-
-  Revision 1.9  1997/12/10 23:07:16  florian
-  * bugs fixed: 12,38 (also m68k),39,40,41
-  + warning if a system unit is without -Us compiled
-  + warning if a method is virtual and private (was an error)
-  * some indentions changed
-  + factor does a better error recovering (omit some crashes)
-  + problem with @type(x) removed (crashed the compiler)
-
-  Revision 1.8  1997/12/09 13:35:47  carl
-  + renamed pai_labeled386 to pai_labeled
-  + renamed S_T to S_X
-
-  Revision 1.7  1997/12/04 10:39:11  pierre
-    + secondadd separated in file cgi386ad.inc
-
-  Revision 1.5  1997/11/29 15:41:45  florian
-  only small changes
-
-  Revision 1.3  1997/11/28 15:43:15  florian
-  Fixed stack ajustment bug, 0.9.8 compiles now 0.9.8 without problems.
-
-  Revision 1.2  1997/11/28 14:26:19  florian
-  Fixed some bugs
-
-  Revision 1.1.1.1  1997/11/27 08:32:54  michael
-  FPC Compiler CVS start
-
-
-  Pre-CVS log:
-
-  FK     Florian Klaempfl
-  PM     Pierre Muller
-  +      feature added
-  -      removed
-  *      bug fixed or changed
-
-  History (started with version 0.9.0):
-      23th october 1996:
-           + some emit calls replaced (FK)
-      24th october 1996:
-         * for bug fixed (FK)
-      26th october 1996:
-         * english comments (FK)
-       5th november 1996:
-         * new init and terminate code (FK)
-
-      ...... some items missed
-
-      19th september 1997:
-         * a call to a function procedure a;[ C ]; doesn't crash the stack
-           furthermore (FK)
-         * bug in var_reg assignment fixed
-           did not keep p^.register32 registers free ! (PM)
-      22th september 1997:
-         * stack layout for nested procedures in methods modified:
-           ESI is no more pushed (must be loaded via framepointer) (FK)
-      24th september 1997:
-         + strings constants in consts list to check for existing strings (PM)
-      24th september 1997:
-         * constructor bug removed (FK)
-         * source splitted (into cgi386 and cgi3862 for FPC) (FK)
-         * line_no and inputfile are now in secondpass saved (FK)
-         * patching error removed (the switch -Ox was always used
-           because of a misplaced end) (FK)
-         + strings constants in consts list to check for existing strings (PM)
-      25th september 1997:
-         + secondload provides now the informations for open arrays (FK)
-         + support of high for open arrays (FK)
-         + the high parameter is now pushed for open arrays (FK)
-      3th october 1997:
-         + function second_bool_to_byte for ord(boolean) (PM)
-      4th october 1997:
-         + code for in_pred_x in_succ_x no bound check (PM)
-      13th october 1997:
-         + added code for static modifier for objects variables and methods (PM)
-      14th october 1997:
-         + second_bool_to_byte handles now also LOC_JUMP (FK)
-      28th october 1997:
-         * in secondcallparan bug with param from read/write while nil defcoll^.data
-           fixed (PM)
-      3rd november 1997:
-         + added code for symdif for sets (PM)
-      28th october 1997:
-         * in secondcallparan bug with param from read/write while nil defcoll^.data
-           fixed (PM)
-      3rd november 1997:
-         + added code for symdif for sets (PM)
-      12th november 1997:
-         + added text write for boolean (PM)
-         * bug in secondcallparan for LOC_FPU (assumed that the type was double) (PM)
-      13th november 1997:
-         + added partial code for u32bit support (PM)
-      22th november 1997:
-         * bug in stack alignment found (PM)
-
 }

@@ -276,6 +276,7 @@ unit tree;
 
     function equal_trees(t1,t2 : ptree) : boolean;
 
+    procedure swaptree(p:Ptree);
     procedure disposetree(p : ptree);
     procedure putnode(p : ptree);
     function getnode : ptree;
@@ -463,6 +464,19 @@ unit tree;
            deletecaselabels(p^.less);
          dispose(p);
       end;
+
+    procedure swaptree(p:Ptree);
+
+    var swapp:Ptree;
+
+    begin
+        swapp:=p^.right;
+        p^.right:=p^.left;
+        p^.left:=swapp;
+        p^.swaped:=not(p^.swaped);
+    end;
+
+
 
     procedure disposetree(p : ptree);
 
@@ -1522,7 +1536,14 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.7  1998-05-06 15:04:21  pierre
+  Revision 1.8  1998-05-07 00:17:01  peter
+    * smartlinking for sets
+    + consts labels are now concated/generated in hcodegen
+    * moved some cpu code to cga and some none cpu depended code from cga
+      to tree and hcodegen and cleanup of hcodegen
+    * assembling .. output reduced for smartlinking ;)
+
+  Revision 1.7  1998/05/06 15:04:21  pierre
     + when trying to find source files of a ppufile
       check the includepathlist for included files
       the main file must still be in the same directory
@@ -1557,95 +1578,5 @@ end.
   Revision 1.2  1998/04/07 22:45:05  florian
     * bug0092, bug0115 and bug0121 fixed
     + packed object/class/array
-
-  Revision 1.1.1.1  1998/03/25 11:18:13  root
-  * Restored version
-
-  Revision 1.15  1998/03/24 21:48:36  florian
-    * just a couple of fixes applied:
-         - problem with fixed16 solved
-         - internalerror 10005 problem fixed
-         - patch for assembler reading
-         - small optimizer fix
-         - mem is now supported
-
-  Revision 1.14  1998/03/10 16:27:46  pierre
-    * better line info in stabs debug
-    * symtabletype and lexlevel separated into two fields of tsymtable
-    + ifdef MAKELIB for direct library output, not complete
-    + ifdef CHAINPROCSYMS for overloaded seach across units, not fully
-      working
-    + ifdef TESTFUNCRET for setting func result in underfunction, not
-      working
-
-  Revision 1.13  1998/03/10 01:17:30  peter
-    * all files have the same header
-    * messages are fully implemented, EXTDEBUG uses Comment()
-    + AG... files for the Assembler generation
-
-  Revision 1.12  1998/03/02 01:49:37  peter
-    * renamed target_DOS to target_GO32V1
-    + new verbose system, merged old errors and verbose units into one new
-      verbose.pas, so errors.pas is obsolete
-
-  Revision 1.11  1998/02/27 09:26:18  daniel
-  * Changed symtable handling so no junk symtable is put on the symtablestack.
-
-  Revision 1.10  1998/02/13 10:35:54  daniel
-  * Made Motorola version compilable.
-  * Fixed optimizer
-
-  Revision 1.9  1998/02/12 11:50:51  daniel
-  Yes! Finally! After three retries, my patch!
-
-  Changes:
-
-  Complete rewrite of psub.pas.
-  Added support for DLL's.
-  Compiler requires less memory.
-  Platform units for each platform.
-
-  Revision 1.8  1998/02/04 14:39:31  florian
-    * small clean up
-
-  Revision 1.7  1998/01/13 23:11:16  florian
-    + class methods
-
-  Revision 1.6  1998/01/11 04:16:36  carl
-  + correct floating point support for m68k
-
-  Revision 1.5  1998/01/07 00:17:11  michael
-  Restored released version (plus fixes) as current
-
-  Revision 1.3  1997/12/04 12:02:15  pierre
-     + added a counter of max firstpass's for a ptree
-       for debugging only in ifdef extdebug
-
-  Revision 1.2  1997/11/29 15:43:08  florian
-  * some minor changes
-
-  Revision 1.1.1.1  1997/11/27 08:33:03  michael
-  FPC Compiler CVS start
-
-  Pre-CVS log:
-
-    CEC    Carl-Eric Codere
-    FK     Florian Klaempfl
-    PM     Pierre Muller
-    +      feature added
-    -      removed
-    *      bug fixed or changed
-
-    History:
-        19th october 1996:
-            + adapted to version 0.9.0
-         6th september 1997:
-            + added support for MC68000 (CEC)
-         3rd october 1997:
-            + added tc_bool_2_u8bit for in_ord_x (PM)
-         3rd november1997:
-            + added symdifn for sets (PM)
-         13th november 1997:
-            + added partial code for u32bit support (PM)
 }
 

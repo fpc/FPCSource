@@ -175,8 +175,8 @@ begin
   DoAssemble:=true;
   if DoPipe then
    exit;
-  if not externasm then
-   Message1(exec_i_assembling,asmfile);
+  if (smartcnt<=1) and (not externasm) then
+   Message1(exec_i_assembling,name);
   s:=target_asm.asmcmd;
   Replace(s,'$ASM',AsmFile);
   Replace(s,'$OBJ',ObjFile);
@@ -400,7 +400,14 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  1998-05-04 17:54:24  peter
+  Revision 1.7  1998-05-07 00:17:00  peter
+    * smartlinking for sets
+    + consts labels are now concated/generated in hcodegen
+    * moved some cpu code to cga and some none cpu depended code from cga
+      to tree and hcodegen and cleanup of hcodegen
+    * assembling .. output reduced for smartlinking ;)
+
+  Revision 1.6  1998/05/04 17:54:24  peter
     + smartlinking works (only case jumptable left todo)
     * redesign of systems.pas to support assemblers and linkers
     + Unitname is now also in the PPU-file, increased version to 14
@@ -425,7 +432,4 @@ end.
 
   Revision 1.2  1998/04/08 11:34:18  peter
     * nasm works (linux only tested)
-
-  Revision 1.1.1.1  1998/03/25 11:18:16  root
-  * Restored version
 }

@@ -24,32 +24,25 @@ unit hcodegen;
 
   interface
 
-     uses
-        cobjects,systems,globals,tree,symtable,types,strings,aasm
+    uses
+      aasm,tree,symtable
 {$ifdef i386}
-       ,i386
+      ,i386
 {$endif}
 {$ifdef m68k}
-       ,m68k
+      ,m68k
 {$endif}
-       ;
+      ;
 
     const
-       { set, if the procedure uses asm }
-       pi_uses_asm = $1;
-       { set, if the procedure is exported by an unit }
-       pi_is_global = $2;
-       { set, if the procedure does a call }
-       { this is for the optimizer         }
-       pi_do_call = $4;
-       { if the procedure is an operator   }
-       pi_operator = $8;
-       { set, if the procedure is an external C function }
-       pi_C_import = $10;
+       pi_uses_asm  = $1;       { set, if the procedure uses asm }
+       pi_is_global = $2;       { set, if the procedure is exported by an unit }
+       pi_do_call   = $4;       { set, if the procedure does a call }
+       pi_operator  = $8;       { set, if the procedure is an operator   }
+       pi_C_import  = $10;      { set, if the procedure is an external C function }
 
     type
        pprocinfo = ^tprocinfo;
-
        tprocinfo = record
           { pointer to parent in nested procedures }
           parent : pprocinfo;
@@ -79,10 +72,8 @@ unit hcodegen;
           { register used as frame pointer }
           framepointer : tregister;
 
-{$ifdef GDB}
           { true, if the procedure is exported by an unit }
           globalsymbol : boolean;
-{$endif * GDB *}
 
           { true, if the procedure should be exported (only OS/2) }
           exported : boolean;
@@ -97,152 +88,198 @@ unit hcodegen;
        { info about the current sub routine }
        procinfo : tprocinfo;
 
-       { Die Nummer der Label die bei BREAK bzw CONTINUE }
-       { angesprungen werden sollen }
+       { labels for BREAK and CONTINUE }
        aktbreaklabel,aktcontinuelabel : plabel;
 
-       { truelabel wird angesprungen, wenn ein Ausdruck true ist, falselabel }
-       { entsprechend                                                        }
+       { label when the result is true or false }
        truelabel,falselabel : plabel;
 
-       { Nr des Labels welches zum Verlassen eines Unterprogramm }
-       { angesprungen wird                                       }
+       { label to leave the sub routine }
        aktexitlabel : plabel;
 
-       { also an exit label, only used we need to clear only the }
-       { stack                                                   }
+       { also an exit label, only used we need to clear only the stack }
        aktexit2label : plabel;
 
        { only used in constructor for fail or if getmem fails }
        quickexitlabel : plabel;
 
-       { this asm list contains the debug info }
-       {debuginfos : paasmoutput;  debuglist is enough }
-
        { Boolean, wenn eine loadn kein Assembler erzeugt hat }
        simple_loadn : boolean;
 
-       { enth„lt die gesch„tzte Durchlaufanzahl*100 fr den }
-       { momentan bearbeiteten Baum                         }
+       { tries to hold the amount of times which the current tree is processed  }
        t_times : longint;
 
        { true, if an error while code generation occurs }
        codegenerror : boolean;
 
-    { some support routines for the case instruction }
+    { initialize respectively terminates the code generator }
+    { for a new module or procedure                         }
+    procedure codegen_doneprocedure;
+    procedure codegen_donemodule;
+    procedure codegen_newmodule;
+    procedure codegen_newprocedure;
+
+
 
     { counts the labels }
     function case_count_labels(root : pcaserecord) : longint;
-
     { searches the highest label }
     function case_get_max(root : pcaserecord) : longint;
-
     { searches the lowest label }
     function case_get_min(root : pcaserecord) : longint;
 
-    { concates the ASCII string to the data segment }
-    procedure generate_ascii(hs : string);
 
-    { inserts the ASCII string to the data segment }
-    procedure generate_ascii_insert(hs : string);
-
-    { concates the ASCII string from pchar to the data  segment }
+    { concates/inserts the ASCII string to the data segment }
+    procedure generate_ascii(const hs : string);
+    procedure generate_ascii_insert(const hs : string);
+    { concates/inserts the ASCII string from pchar to the data  segment }
     { WARNING : if hs has no #0 and strlen(hs)=length           }
     { the terminal zero is not written                          }
     procedure generate_pascii(hs : pchar;length : longint);
-
-
-    { inserts the ASCII string from pchar to the data segment }
-    { see WARNING above                                       }
     procedure generate_pascii_insert(hs : pchar;length : longint);
 
-    procedure generate_interrupt_stackframe_entry;
-    procedure generate_interrupt_stackframe_exit;
 
-  implementation
+    { convert/concats a label for constants in the consts section }
+    function constlabel2str(p:plabel;ctype:tconsttype):string;
+    procedure concat_constlabel(p:plabel;ctype:tconsttype);
 
-{$ifdef i386}
-    procedure generate_interrupt_stackframe_entry;
 
+implementation
+
+     uses
+        cobjects,globals,files,strings;
+
+{*****************************************************************************
+         initialize/terminate the codegen for procedure and modules
+*****************************************************************************}
+
+    procedure codegen_newprocedure;
       begin
-         { save the registers of an interrupt procedure }
-         procinfo.aktentrycode^.insert(new(pai386,op_reg(A_PUSH,S_L,R_EAX)));
-         procinfo.aktentrycode^.insert(new(pai386,op_reg(A_PUSH,S_L,R_EBX)));
-         procinfo.aktentrycode^.insert(new(pai386,op_reg(A_PUSH,S_L,R_ECX)));
-         procinfo.aktentrycode^.insert(new(pai386,op_reg(A_PUSH,S_L,R_EDX)));
-         procinfo.aktentrycode^.insert(new(pai386,op_reg(A_PUSH,S_L,R_ESI)));
-         procinfo.aktentrycode^.insert(new(pai386,op_reg(A_PUSH,S_L,R_EDI)));
-
-         { .... also the segment registers }
-         procinfo.aktentrycode^.insert(new(pai386,op_reg(A_PUSH,S_W,R_DS)));
-         procinfo.aktentrycode^.insert(new(pai386,op_reg(A_PUSH,S_W,R_ES)));
-         procinfo.aktentrycode^.insert(new(pai386,op_reg(A_PUSH,S_W,R_FS)));
-         procinfo.aktentrycode^.insert(new(pai386,op_reg(A_PUSH,S_W,R_GS)));
+         aktbreaklabel:=nil;
+         aktcontinuelabel:=nil;
+         { aktexitlabel:=0; is store in oldaktexitlabel
+           so it must not be reset to zero before this storage !}
+         { the type of this lists isn't important }
+         { because the code of this lists is      }
+         { copied to the code segment             }
+         procinfo.aktentrycode:=new(paasmoutput,init);
+         procinfo.aktexitcode:=new(paasmoutput,init);
+         procinfo.aktproccode:=new(paasmoutput,init);
+         procinfo.aktlocaldata:=new(paasmoutput,init);
       end;
 
-    procedure generate_interrupt_stackframe_exit;
 
+
+    procedure codegen_doneprocedure;
       begin
-         { restore the registers of an interrupt procedure }
-         { this was all with entrycode instead of exitcode !!}
-         procinfo.aktexitcode^.concat(new(pai386,op_reg(A_POP,S_L,R_EAX)));
-         procinfo.aktexitcode^.concat(new(pai386,op_reg(A_POP,S_L,R_EBX)));
-         procinfo.aktexitcode^.concat(new(pai386,op_reg(A_POP,S_L,R_ECX)));
-         procinfo.aktexitcode^.concat(new(pai386,op_reg(A_POP,S_L,R_EDX)));
-         procinfo.aktexitcode^.concat(new(pai386,op_reg(A_POP,S_L,R_ESI)));
-         procinfo.aktexitcode^.concat(new(pai386,op_reg(A_POP,S_L,R_EDI)));
-
-         { .... also the segment registers }
-         procinfo.aktexitcode^.concat(new(pai386,op_reg(A_POP,S_W,R_DS)));
-         procinfo.aktexitcode^.concat(new(pai386,op_reg(A_POP,S_W,R_ES)));
-         procinfo.aktexitcode^.concat(new(pai386,op_reg(A_POP,S_W,R_FS)));
-         procinfo.aktexitcode^.concat(new(pai386,op_reg(A_POP,S_W,R_GS)));
-
-        { this restores the flags }
-         procinfo.aktexitcode^.concat(new(pai386,op_none(A_IRET,S_NO)));
-      end;
-{$endif}
-{$ifdef m68k}
-    procedure generate_interrupt_stackframe_entry;
-      begin
-         { save the registers of an interrupt procedure }
-
-         { .... also the segment registers }
+         dispose(procinfo.aktentrycode,done);
+         dispose(procinfo.aktexitcode,done);
+         dispose(procinfo.aktproccode,done);
+         dispose(procinfo.aktlocaldata,done);
       end;
 
-    procedure generate_interrupt_stackframe_exit;
 
+
+    procedure codegen_newmodule;
       begin
-         { restore the registers of an interrupt procedure }
+         exprasmlist:=new(paasmoutput,init);
+         datasegment:=new(paasmoutput,init);
+         codesegment:=new(paasmoutput,init);
+         bsssegment:=new(paasmoutput,init);
+         debuglist:=new(paasmoutput,init);
+         externals:=new(paasmoutput,init);
+         internals:=new(paasmoutput,init);
+         consts:=new(paasmoutput,init);
+         rttilist:=new(paasmoutput,init);
+         importssection:=nil;
+         exportssection:=nil;
+         resourcesection:=nil;
       end;
-{$endif}
 
-    procedure generate_ascii(hs : string);
+
+
+    procedure codegen_donemodule;
+      begin
+         dispose(exprasmlist,done);
+         dispose(codesegment,done);
+         dispose(bsssegment,done);
+         dispose(datasegment,done);
+         dispose(debuglist,done);
+         dispose(externals,done);
+         dispose(consts,done);
+         dispose(rttilist,done);
+         if assigned(importssection) then
+          dispose(importssection,done);
+         if assigned(exportssection) then
+          dispose(exportssection,done);
+         if assigned(resourcesection) then
+          dispose(resourcesection,done);
+      end;
+
+        
+{*****************************************************************************
+                              Case Helpers
+*****************************************************************************}
+
+    function case_count_labels(root : pcaserecord) : longint;
+      var
+         _l : longint;
+
+      procedure count(p : pcaserecord);
+        begin
+           inc(_l);
+           if assigned(p^.less) then
+             count(p^.less);
+           if assigned(p^.greater) then
+             count(p^.greater);
+        end;
 
       begin
-         while length(hs)>32 do
-           begin
-              datasegment^.concat(new(pai_string,init(copy(hs,1,32))));
-              delete(hs,1,32);
-           end;
+         _l:=0;
+         count(root);
+         case_count_labels:=_l;
+      end;
+
+
+    function case_get_max(root : pcaserecord) : longint;
+      var
+         hp : pcaserecord;
+      begin
+         hp:=root;
+         while assigned(hp^.greater) do
+           hp:=hp^.greater;
+         case_get_max:=hp^._high;
+      end;
+
+
+    function case_get_min(root : pcaserecord) : longint;
+      var
+         hp : pcaserecord;
+      begin
+         hp:=root;
+         while assigned(hp^.less) do
+           hp:=hp^.less;
+         case_get_min:=hp^._low;
+      end;
+
+
+{*****************************************************************************
+                              String Helpers
+*****************************************************************************}
+
+    procedure generate_ascii(const hs : string);
+      begin
          datasegment^.concat(new(pai_string,init(hs)))
       end;
 
-    procedure generate_ascii_insert(hs : string);
 
-
+    procedure generate_ascii_insert(const hs : string);
       begin
-         while length(hs)>32 do
-           begin
-              datasegment^.insert(new(pai_string,init(copy(hs,length(hs)-32+1,length(hs)))));
-              { should be avoid very slow }
-              delete(hs,length(hs)-32+1,length(hs));
-           end;
          datasegment^.insert(new(pai_string,init(hs)));
       end;
 
-    function strnew(p : pchar;length : longint) : pchar;
 
+    function strnew(p : pchar;length : longint) : pchar;
       var
          pc : pchar;
       begin
@@ -251,12 +288,13 @@ unit hcodegen;
          strnew:=pc;
       end;
 
+
+
     { concates the ASCII string from pchar to the const segment }
     procedure generate_pascii(hs : pchar;length : longint);
       var
          real_end,current_begin,current_end : pchar;
          c :char;
-
       begin
          if assigned(hs) then
            begin
@@ -284,7 +322,6 @@ unit hcodegen;
       var
          real_end,current_begin,current_end : pchar;
          c :char;
-
       begin
          if assigned(hs) then
            begin
@@ -308,56 +345,54 @@ unit hcodegen;
       end;
 
 
-    function case_count_labels(root : pcaserecord) : longint;
+{*****************************************************************************
+                              Const Helpers
+*****************************************************************************}
 
-      var
-         _l : longint;
+    const
+      consttypestr : array[tconsttype] of string[6]=
+        ('ord','string','real','bool','int','char','set');
 
-      procedure count(p : pcaserecord);
-
-        begin
-           inc(_l);
-           if assigned(p^.less) then
-             count(p^.less);
-           if assigned(p^.greater) then
-             count(p^.greater);
-        end;
-
+    function constlabel2str(p:plabel;ctype:tconsttype):string;
       begin
-         _l:=0;
-         count(root);
-         case_count_labels:=_l;
+        if smartlink or (current_module^.output_format in [of_nasm,of_obj]) then
+         constlabel2str:='_$'+current_module^.unitname^+'$'+consttypestr[ctype]+'_const_'+tostr(p^.nb)
+        else
+         constlabel2str:=lab2str(p);
       end;
 
-    function case_get_max(root : pcaserecord) : longint;
 
+    procedure concat_constlabel(p:plabel;ctype:tconsttype);
       var
-         hp : pcaserecord;
-
+        s : string;
       begin
-         hp:=root;
-         while assigned(hp^.greater) do
-           hp:=hp^.greater;
-         case_get_max:=hp^._high;
-      end;
-
-    function case_get_min(root : pcaserecord) : longint;
-
-      var
-         hp : pcaserecord;
-
-      begin
-         hp:=root;
-         while assigned(hp^.less) do
-           hp:=hp^.less;
-         case_get_min:=hp^._low;
+        if smartlink or (current_module^.output_format in [of_nasm,of_obj]) then
+         begin
+           s:='_$'+current_module^.unitname^+'$'+consttypestr[ctype]+'_const_'+tostr(p^.nb);
+           if smartlink then
+            begin
+              consts^.concat(new(pai_cut,init));
+              consts^.concat(new(pai_symbol,init_global(s)))
+            end
+           else
+            consts^.concat(new(pai_symbol,init_global(s)));
+         end
+        else
+         consts^.concat(new(pai_label,init(p)));
       end;
 
 end.
 
 {
   $Log$
-  Revision 1.3  1998-05-06 08:38:40  pierre
+  Revision 1.4  1998-05-07 00:17:01  peter
+    * smartlinking for sets
+    + consts labels are now concated/generated in hcodegen
+    * moved some cpu code to cga and some none cpu depended code from cga
+      to tree and hcodegen and cleanup of hcodegen
+    * assembling .. output reduced for smartlinking ;)
+
+  Revision 1.3  1998/05/06 08:38:40  pierre
     * better position info with UseTokenInfo
       UseTokenInfo greatly simplified
     + added check for changed tree after first time firstpass
@@ -372,51 +407,4 @@ end.
     + started inline procedures
     + added starstarn : use ** for exponentiation (^ gave problems)
     + started UseTokenInfo cond to get accurate positions
-
-  Revision 1.1.1.1  1998/03/25 11:18:13  root
-  * Restored version
-
-  Revision 1.6  1998/03/10 16:27:38  pierre
-    * better line info in stabs debug
-    * symtabletype and lexlevel separated into two fields of tsymtable
-    + ifdef MAKELIB for direct library output, not complete
-    + ifdef CHAINPROCSYMS for overloaded seach across units, not fully
-      working
-    + ifdef TESTFUNCRET for setting func result in underfunction, not
-      working
-
-  Revision 1.5  1998/03/10 01:17:19  peter
-    * all files have the same header
-    * messages are fully implemented, EXTDEBUG uses Comment()
-    + AG... files for the Assembler generation
-
-  Revision 1.4  1998/03/02 01:48:37  peter
-    * renamed target_DOS to target_GO32V1
-    + new verbose system, merged old errors and verbose units into one new
-      verbose.pas, so errors.pas is obsolete
-
-  Revision 1.3  1998/02/13 10:35:03  daniel
-  * Made Motorola version compilable.
-  * Fixed optimizer
-
-  Revision 1.2  1998/01/16 18:03:15  florian
-    * small bug fixes, some stuff of delphi styled constructores added
-
-  Revision 1.1.1.1  1997/11/27 08:32:56  michael
-  FPC Compiler CVS start
-
-  Pre-CVS log:
-
-  CEC   Carl-Eric Codere
-  FK    Florian Klaempfl
-  PM    Pierre Muller
-  +     feature added
-  -     removed
-  *     bug fixed or changed
-
-  History:
-       5th september 1997:
-         + added support for MC68000 (CEC)
-      22th september 1997:
-         + added tprocinfo member parent (FK)
 }

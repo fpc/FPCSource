@@ -73,10 +73,9 @@ unit aasm;
      type
        { the short name makes typing easier }
        pai = ^tai;
-
        tai = object(tlinkedlist_item)
-          typ : tait;
-          line : longint;
+          typ    : tait;
+          line   : longint;
           infile : pinputfile;
           constructor init;
        end;
@@ -93,9 +92,8 @@ unit aasm;
           destructor done;virtual;
        end;
 
-       pai_symbol = ^tai_symbol;
-
        { generates a common label }
+       pai_symbol = ^tai_symbol;
        tai_symbol = object(tai)
           name : pchar;
           is_global : boolean;
@@ -107,12 +105,11 @@ unit aasm;
        { external types defined for TASM }
        { EXT_ANY for search purposes     }
        texternal_typ = (EXT_ANY,EXT_NEAR, EXT_FAR, EXT_PROC, EXT_BYTE,
-                       EXT_WORD, EXT_DWORD, EXT_CODEPTR, EXT_DATAPTR,
-                       EXT_FWORD, EXT_PWORD, EXT_QWORD, EXT_TBYTE, EXT_ABS);
-
-       pai_external = ^tai_external;
+                        EXT_WORD, EXT_DWORD, EXT_CODEPTR, EXT_DATAPTR,
+                        EXT_FWORD, EXT_PWORD, EXT_QWORD, EXT_TBYTE, EXT_ABS);
 
        { generates an symbol which is marked as external }
+       pai_external = ^tai_external;
        tai_external = object(tai)
           name : pchar;
           exttyp : texternal_typ;
@@ -120,11 +117,9 @@ unit aasm;
           destructor done; virtual;
        end;
 
-       { simple temporary label }
-       pai_label = ^tai_label;
-
        { type for a temporary label }
        { test if used for dispose of unnecessary labels }
+       pai_label = ^tai_label;
        tlabel = record
                 nb : longint;
                 is_used : boolean;
@@ -133,7 +128,6 @@ unit aasm;
                 end;
 
        plabel = ^tlabel;
-
        tai_label = object(tai)
           l : plabel;
           constructor init(_l : plabel);
@@ -147,8 +141,8 @@ unit aasm;
           destructor done; virtual;
        end;
 
-       { to insert a comment into the generated assembler file }
 
+       { to insert a comment into the generated assembler file }
        pai_asm_comment = ^tai_asm_comment;
        tai_asm_comment = object(tai)
           str : pchar;
@@ -156,9 +150,8 @@ unit aasm;
           destructor done; virtual;
        end;
 
+
        { alignment for operator }
-
-
        pai_align = ^tai_align;
        tai_align = object(tai)
           aligntype: byte;   { 1 = no align, 2 = word align, 4 = dword align }
@@ -168,11 +161,10 @@ unit aasm;
           destructor done;virtual;
        end;
 
-       { Insert a section/segment directive }
 
        tsection=(sec_none,sec_code,sec_data,sec_bss,sec_idata);
 
-
+       { Insert a section/segment directive }
        pai_section = ^tai_section;
        tai_section = object(tai)
           sec      : tsection;
@@ -182,9 +174,9 @@ unit aasm;
           destructor done;virtual;
        end;
 
-       pai_datablock = ^tai_datablock;
 
-       { generates an uninitilizised data block }
+       { generates an uninitializised data block }
+       pai_datablock = ^tai_datablock;
        tai_datablock = object(tai)
           size : longint;
           name : pchar;
@@ -194,9 +186,9 @@ unit aasm;
           destructor done; virtual;
        end;
 
-       pai_const = ^tai_const;
 
        { generates a long integer (32 bit) }
+       pai_const = ^tai_const;
        tai_const = object(tai)
           value : longint;
           constructor init_32bit(_value : longint);
@@ -207,17 +199,17 @@ unit aasm;
           destructor done;virtual;
        end;
 
-       pai_double = ^tai_double;
 
        { generates a double (64 bit real) }
+       pai_double = ^tai_double;
        tai_double = object(tai)
           value : double;
           constructor init(_value : double);
        end;
 
-       pai_comp = ^tai_comp;
 
        { generates an comp (integer over 64 bits) }
+       pai_comp = ^tai_comp;
        tai_comp = object(tai)
           value : bestreal;
           constructor init(_value : bestreal);
@@ -225,24 +217,24 @@ unit aasm;
           constructor init_comp(_value : comp);
        end;
 
-       pai_single = ^tai_single;
 
        { generates a single (32 bit real) }
+       pai_single = ^tai_single;
        tai_single = object(tai)
           value : single;
           constructor init(_value : single);
        end;
 
-       pai_extended = ^tai_extended;
 
        { generates an extended (80 bit real) }
-       { for version above v0_9_8            }
-       { creates a double otherwise          }
+       pai_extended = ^tai_extended;
        tai_extended = object(tai)
           value : bestreal;
           constructor init(_value : bestreal);
        end;
 
+
+       { insert a cut to split into several smaller files }
        pai_cut = ^tai_cut;
        tai_cut = object(tai)
           constructor init;
@@ -251,19 +243,11 @@ unit aasm;
 { for each processor define the best precision }
 { bestreal is defined in globals }
 {$ifdef i386}
-{$ifdef ver_above0_9_8}
 const
        ait_bestreal = ait_real_extended;
 type
        pai_bestreal = pai_extended;
        tai_bestreal = tai_extended;
-{$else ver_above0_9_8}
-const
-       ait_bestreal = ait_real_64bit;
-type
-       pai_bestreal = pai_double;
-       tai_bestreal = tai_double;
-{$endif ver_above0_9_8}
 {$endif i386}
 {$ifdef m68k}
 const
@@ -273,29 +257,31 @@ type
        tai_bestreal = tai_single;
 {$endif m68k}
 
+
        paasmoutput = ^taasmoutput;
        taasmoutput = tlinkedlist;
 
     var
       datasegment,codesegment,bsssegment,
-      internals,externals,debuglist,consts,importssection,
-      exportssection,resourcesection,rttilist : paasmoutput;
+      internals,externals,debuglist,consts,
+      importssection,exportssection,
+      resourcesection,rttilist         : paasmoutput;
 
-   { external symbols without repetition }
+  { external symbols without repetition }
     function search_assembler_symbol(pl : paasmoutput;const _name : string;exttype : texternal_typ) : pai_external;
     procedure concat_external(const _name : string;exttype : texternal_typ);
     procedure concat_internal(const _name : string;exttype : texternal_typ);
 
   implementation
 
-  uses strings,verbose;
+  uses
+    strings,verbose;
 
 {****************************************************************************
                              TAI
  ****************************************************************************}
 
     constructor tai.init;
-
       begin
 {$ifdef GDB}
          infile:=pointer(current_module^.current_inputfile);
@@ -303,6 +289,7 @@ type
            line:=current_module^.current_inputfile^.line_no;
 {$endif GDB}
       end;
+
 {****************************************************************************
                              TAI_SECTION
  ****************************************************************************}
@@ -737,7 +724,14 @@ type
 end.
 {
   $Log$
-  Revision 1.6  1998-05-06 18:36:53  peter
+  Revision 1.7  1998-05-07 00:16:59  peter
+    * smartlinking for sets
+    + consts labels are now concated/generated in hcodegen
+    * moved some cpu code to cga and some none cpu depended code from cga
+      to tree and hcodegen and cleanup of hcodegen
+    * assembling .. output reduced for smartlinking ;)
+
+  Revision 1.6  1998/05/06 18:36:53  peter
     * tai_section extended with code,data,bss sections and enumerated type
     * ident 'compiled by FPC' moved to pmodules
     * small fix for smartlink

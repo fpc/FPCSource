@@ -25,8 +25,7 @@ unit cga68k;
   interface
 
     uses
-       objects,cobjects,verbose,systems,globals,tree,symtable,types,strings,
-       pass_1,hcodegen,aasm,m68k,tgen68k,files,gdb;
+       cobjects,tree,m68k,aasm,symtable;
 
     procedure emitl(op : tasmop;var l : plabel);
     procedure emit_reg_reg(i : tasmop;s : topsize;reg1,reg2 : tregister);
@@ -41,7 +40,6 @@ unit cga68k;
     procedure restore(p : ptree);
     procedure emit_push_mem(const ref : treference);
     procedure emitpushreferenceaddr(const ref : treference);
-    procedure swaptree(p: ptree);
     procedure copystring(const dref,sref : treference;len : byte);
     procedure concatcopy(source,dest : treference;size : longint;delsource : boolean);
     { see implementation }
@@ -60,13 +58,9 @@ unit cga68k;
     procedure firstcomplex(p : ptree);
     procedure secondfuncret(var p : ptree);
 
-    { initialize respectively terminates the code generator }
-    { for a new module or procedure                         }
-    procedure codegen_doneprocedure;
-    procedure codegen_donemodule;
-    procedure codegen_newmodule;
-    procedure codegen_newprocedure;
-
+    { generate stackframe for interrupt procedures }
+    procedure generate_interrupt_stackframe_entry;
+    procedure generate_interrupt_stackframe_exit;
     { generate entry code for a procedure.}
     procedure genentrycode(const proc_names:Tstringcontainer;make_global:boolean;
                            stackframe:longint;
@@ -76,6 +70,16 @@ unit cga68k;
 
 
   implementation
+
+    uses
+       systems,globals,verbose,files,types,pbase,
+       tgenm68k,hcodegen
+{$ifdef GDB}
+       ,gdb
+{$endif}
+       ;
+
+
 
     {
     procedure genconstadd(size : topsize;l : longint;const str : string);
@@ -426,17 +430,18 @@ unit cga68k;
            end;
         end;
 
-    procedure swaptree(p:Ptree);
+    procedure generate_interrupt_stackframe_entry;
+      begin
+         { save the registers of an interrupt procedure }
 
-    var swapp:Ptree;
+         { .... also the segment registers }
+      end;
 
-    begin
-        swapp:=p^.right;
-        p^.right:=p^.left;
-        p^.left:=swapp;
-        p^.swaped:=not(p^.swaped);
-    end;
+    procedure generate_interrupt_stackframe_exit;
 
+      begin
+         { restore the registers of an interrupt procedure }
+      end;
 
 procedure genentrycode(const proc_names:Tstringcontainer;make_global:boolean;
                        stackframe:longint;
@@ -1209,161 +1214,21 @@ end;
            end;
       end;
 
-    procedure codegen_newprocedure;
-
-      begin
-         aktbreaklabel:=nil;
-         aktcontinuelabel:=nil;
-         { aktexitlabel:=0; is store in oldaktexitlabel
-           so it must not be reset to zero before this storage !}
-
-         { the type of this lists isn't important }
-         { because the code of this lists is      }
-         { copied to the code segment             }
-         procinfo.aktentrycode:=new(paasmoutput,init);
-         procinfo.aktexitcode:=new(paasmoutput,init);
-         procinfo.aktproccode:=new(paasmoutput,init);
-      end;
-
-    procedure codegen_doneprocedure;
-
-      begin
-         dispose(procinfo.aktentrycode,done);
-         dispose(procinfo.aktexitcode,done);
-         dispose(procinfo.aktproccode,done);
-      end;
-
-    procedure codegen_newmodule;
-
-      begin
-         exprasmlist:=new(paasmoutput,init);
-      end;
-
-    procedure codegen_donemodule;
-
-      begin
-         dispose(exprasmlist,done);
-         dispose(codesegment,done);
-         dispose(bsssegment,done);
-         dispose(datasegment,done);
-         dispose(debuglist,done);
-         dispose(externals,done);
-         dispose(consts,done);
-      end;
-
   end.
 {
   $Log$
-  Revision 1.3  1998-04-29 10:33:46  pierre
+  Revision 1.4  1998-05-07 00:17:00  peter
+    * smartlinking for sets
+    + consts labels are now concated/generated in hcodegen
+    * moved some cpu code to cga and some none cpu depended code from cga
+      to tree and hcodegen and cleanup of hcodegen
+    * assembling .. output reduced for smartlinking ;)
+
+  Revision 1.3  1998/04/29 10:33:46  pierre
     + added some code for ansistring (not complete nor working yet)
     * corrected operator overloading
     * corrected nasm output
     + started inline procedures
     + added starstarn : use ** for exponentiation (^ gave problems)
     + started UseTokenInfo cond to get accurate positions
-
-  Revision 1.2  1998/03/28 23:09:54  florian
-    * secondin bugfix (m68k and i386)
-    * overflow checking bugfix (m68k and i386) -- pretty useless in
-      secondadd, since everything is done using 32-bit
-    * loading pointer to routines hopefully fixed (m68k)
-    * flags problem with calls to RTL internal routines fixed (still strcmp
-      to fix) (m68k)
-    * #ELSE was still incorrect (didn't take care of the previous level)
-    * problem with filenames in the command line solved
-    * problem with mangledname solved
-    * linking name problem solved (was case insensitive)
-    * double id problem and potential crash solved
-    * stop after first error
-    * and=>test problem removed
-    * correct read for all float types
-    * 2 sigsegv fixes and a cosmetic fix for Internal Error
-    * push/pop is now correct optimized (=> mov (%esp),reg)
-
-  Revision 1.1.1.1  1998/03/25 11:18:13  root
-  * Restored version
-
-  Revision 1.15  1998/03/22 12:45:38  florian
-    * changes of Carl-Eric to m68k target commit:
-      - wrong nodes because of the new string cg in intel, I had to create
-        this under m68k also ... had to work it out to fix potential alignment
-        problems --> this removes the crash of the m68k compiler.
-      - added absolute addressing in m68k assembler (required for Amiga startup)
-      - fixed alignment problems (because of byte return values, alignment
-        would not be always valid) -- is this ok if i change the offset if odd in
-        setfirsttemp ?? -- it seems ok...
-
-  Revision 1.14  1998/03/10 04:20:37  carl
-    * extdebug problems
-    - removed loadstring as it is not required for the m68k
-
-  Revision 1.13  1998/03/10 01:17:16  peter
-    * all files have the same header
-    * messages are fully implemented, EXTDEBUG uses Comment()
-    + AG... files for the Assembler generation
-
-  Revision 1.12  1998/03/09 10:44:35  peter
-    + string='', string<>'', string:='', string:=char optimizes (the first 2
-      were already in cg68k2)
-
-  Revision 1.11  1998/03/06 00:52:03  peter
-    * replaced all old messages from errore.msg, only ExtDebug and some
-      Comment() calls are left
-    * fixed options.pas
-
-  Revision 1.10  1998/03/03 04:12:04  carl
-    * moved generate routines to this unit
-
-  Revision 1.9  1998/03/02 01:48:17  peter
-    * renamed target_DOS to target_GO32V1
-    + new verbose system, merged old errors and verbose units into one new
-      verbose.pas, so errors.pas is obsolete
-
-  Revision 1.8  1998/02/13 10:34:45  daniel
-  * Made Motorola version compilable.
-  * Fixed optimizer
-
-  Revision 1.7  1998/02/12 11:49:50  daniel
-  Yes! Finally! After three retries, my patch!
-
-  Changes:
-
-  Complete rewrite of psub.pas.
-  Added support for DLL's.
-  Compiler requires less memory.
-  Platform units for each platform.
-
-  Revision 1.6  1998/01/11 03:39:02  carl
-  * bugfix of concatcopy , was using wrong reference
-  * bugfix of MOVEQ
-
-  Revision 1.3  1997/12/09 13:30:05  carl
-  + renamed some stuff
-
-  Revision 1.2  1997/12/03 13:59:01  carl
-  + added emitcall as in i386 version.
-
-  Revision 1.1.1.1  1997/11/27 08:32:53  michael
-  FPC Compiler CVS start
-
-
-  Pre-CVS log:
-
-  CEC   Carl-Eric Codere
-  FK    Florian Klaempfl
-  PM    Pierre Muller
-  +     feature added
-  -     removed
-  *     bug fixed or changed
-
-  History:
-  27th september 1997:
-    + first version for MC68000 (using v093 template) (CEC)
-  9th october 1997:
-    * fixed a bug in push_int as well as other routines which used
-      getregister32 while they are not supposed to (because of how
-      the allocation of registers work in parser.pas) (CEC)
-    * Fixed some bugs in the concatcopy routine, was allocating
-      registers which were not supposed to be allocated. (CEC)
-
 }
