@@ -1043,14 +1043,19 @@ begin
   for i:=1 to length(path) do
     if path[i]='\' then path[i]:='/';
   I := Length(Path);
-  while (I > 0) and not ((Path[I] = '/') or (Path[I] = ':')) do Dec(I);
+  while (I > 0) and not ((Path[I] = '/') or (Path[I] = ':'))
+     do Dec(I);
   if Path[I] = '/' then
      dir := Copy(Path, 0, I-1)
   else dir := Copy(Path,0,I);
 
   if Length(Path) > Length(dir) then
-     name := Copy(Path, I + 1, Length(Path)-I)
-     else name := '';
+      name := Copy(Path, I + 1, Length(Path)-I)
+  else
+      name := '';
+  { Remove extension }
+  if pos('.',name) <> 0 then
+     delete(name,pos('.',name),length(name));
 
   I := Pos('.',Path);
   if I > 0 then
@@ -1061,7 +1066,7 @@ end;
 Function FExpand(Path: PathStr): PathStr;
 var
     FLock  : BPTR;
-    buffer : PathStr;
+    buffer : array[0..255] of char;
     i :integer;
 begin
    { allow backslash as slash }
@@ -1069,10 +1074,9 @@ begin
        if path[i]='\' then path[i]:='/';
     FLock := Lock(Path,-2);
     if FLock <> 0 then begin
-       if NameFromLock(FLock,PasToC(buffer),255) then begin
-          buffer:=StrPas(Pchar(@buffer));
+       if NameFromLock(FLock,buffer,255) then begin
           Unlock(FLock);
-          FExpand := buffer;
+          FExpand := strpas(buffer);
        end else begin
           Unlock(FLock);
           FExpand := '';
@@ -1295,9 +1299,8 @@ End.
 
 {
   $Log$
-  Revision 1.3  1998-07-14 12:09:59  carl
-    + added log at the end
-    * exec now works correctly
+  Revision 1.4  1998-07-21 12:08:06  carl
+    * FExpand bugfix was returning a pchar!
 
 
 }
