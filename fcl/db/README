@@ -1,0 +1,48 @@
+This is the Database directory of the Free Component Library.
+
+At the moment, there is a read-only implementation of TDataset.
+Also, there is no (tested) blob support yet.
+
+Compiling:
+
+Just run 'make' and all should go fine, provided
+1) The mysql unit is in the compiler path
+2) the mysqlclient library is in /usr/lib
+if these conditions are not satisfied, you should edit the makefile
+and add -Fl/path/to/libmysqlclient to NEEDOPTS as well as
+the -Fu/path/to/mysql/unit option.
+
+
+there are 2 descendents to demonstrate/test the TDataset:
+
+TddgDataset : 
+
+  Implemented in ddg_ds and ddg_rec. The dataset as
+  implemented in the Delphi 4 Developers Guide.
+  To test it, do a 
+   createds filename
+   testds filename
+  the first creates a flat file, filled with 100 records;
+  the second tests the methods of TDataset on this file.
+
+TMySQLdataset :
+  Implemented in mysqldb. You need the mysql units for this.
+  This is a temporary implementation based on the code from
+     Rangel Gustavo Reale (hitnrun@geocities.com) 
+  it will be used as a base for the DBdataset scalable dataset
+  implemntation.
+  To test it, do a 
+     mtest db user pwd SQL
+  this will run the query SQL on the database db with user
+  'user' and password 'pwd', and dump the result. Take care
+  that you don't specify blob fields.
+  To test it on the table created by the mkdb shell script
+  that comes with the Free Pascal mysql unit, I did a
+      mtest test michael pwd 'select * from FPdev'
+
+  I haven't tested Date or time fields yes, just string,float and
+  integer fields.
+
+Enjoy !
+
+Michael.              

@@ -1,0 +1,25 @@
+Const
+  SUnknownFieldType = 'Unknown field type : %s';
+  SUnknownField = 'No field named "%s" was found in dataset "%s"';
+  SNeedFieldName = 'Field needs a name';  
+  SInvalidTypeConversion = 'Invalid type conversion to %s in field %s';
+  SReadOnlyField = 'Field %s cannot be modified, it is read-only.';
+  SInvalidFieldSize = 'Invalid field size : %d';
+  SNoDataset = 'No dataset asssigned for field : "%s"';
+  SDuplicateFieldName = 'Duplicate fieldname : "%s"';
+  SFieldNotFound = 'Field not found : "%s"';
+  SInvalidFieldKind = '%s : invalid field kind : ';
+  SRangeError = '%f is not between %f and %f for %s';
+  SNotAninteger = '"%s" is not a valid integer';
+  SCantSetAutoIncFields = 'AutoInc Fields are read-only';
+  SNotAFloat = '"%s" is not a valid float';
+  SInvalidDisplayValues = '"%s" are not valid boolean displayvalues';
+  SNotABoolean = '"%s" is not a valid boolean';
+  SInactiveDataset = 'Operation cannot be performed on an inactive dataset';
+  SActiveDataset = 'Operation cannot be performed on an active dataset';
+  SNoDatasets = 'No datasets are attached to the database';
+  SDatasetRegistered = 'Dataset already registered : "%s"';
+  SNoDatasetRegistered = 'No such dataset registered : "%s"';
+  SNotConnected = 'Operation cannot be performed on an disconnected database';
+  SConnected = 'Operation cannot be performed on an connected database';
+  SNoSuchRecord = 'Could not find the requested record.';  
