@@ -164,7 +164,7 @@ uses
   {$endif gdb}
   {$ifdef i386}
         {$O opts386}
-        {$O i386}
+        {$O i386base}
         {$O cgai386}
         {$O tgeni386}
         {$O cg386add}
@@ -267,7 +267,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.40  1999-01-27 13:05:41  pierre
+  Revision 1.41  1999-05-02 09:35:45  florian
+    + method message handlers which contain an explicit self can't be called
+      directly anymore
+    + self is now loaded at the start of the an message handler with an explicit
+      self
+    + $useoverlay fixed: i386 was renamed to i386base
+
+  Revision 1.40  1999/01/27 13:05:41  pierre
    * give include file name on error
 
   Revision 1.39  1999/01/22 12:19:30  pierre

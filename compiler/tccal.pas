@@ -426,6 +426,10 @@ implementation
                 end;
               p^.right:=nil;
            end;
+         if assigned(p^.procdefinition) and
+            ((p^.procdefinition^.options and pocontainsself)<>0) then
+           message(cg_e_cannot_call_message_direct);
+
          { procedure variable ? }
          if assigned(p^.right) then
            begin
@@ -1149,7 +1153,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.38  1999-05-01 13:24:47  peter
+  Revision 1.39  1999-05-02 09:35:46  florian
+    + method message handlers which contain an explicit self can't be called
+      directly anymore
+    + self is now loaded at the start of the an message handler with an explicit
+      self
+    + $useoverlay fixed: i386 was renamed to i386base
+
+  Revision 1.38  1999/05/01 13:24:47  peter
     * merged nasm compiler
     * old asm moved to oldasm/
 

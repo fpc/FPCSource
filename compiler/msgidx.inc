@@ -284,6 +284,7 @@ type tmsgconst=(
   cg_e_include_not_implemented,
   cg_w_may_wrong_math_argument,
   cg_e_cannot_call_cons_dest_inside_with,
+  cg_e_cannot_call_message_direct,
   assem_f_ev_zero_divide,
   assem_f_ev_stack_overflow,
   assem_f_ev_stack_underflow,
