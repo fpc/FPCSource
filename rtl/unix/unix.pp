@@ -242,8 +242,8 @@ begin
   repeat
     r:=fpWaitPid(Pid,@s,0);
     if (r=-1) and (fpgeterrno=ESysEIntr) Then
-     r:=0;
-  until (r<>-1);
+      r:=0;
+  until (r<>0);
   if (r=-1) or (r=0) then // 0 is not a valid return and should never occur (it means status invalid when using WNOHANG)
     WaitProcess:=-1 // return -1 to indicate an error.  fpwaitpid updated it.
   else
@@ -800,6 +800,7 @@ begin
   textrec(f).mode:=fmclosed;
   ClosePipe:=fpclose(textrec(f).handle);
 end;
+
 
 Function AssignPipe(var pipe_in,pipe_out:text):cint;
 {
@@ -1407,7 +1408,10 @@ End.
 
 {
   $Log$
-  Revision 1.55  2003-12-31 20:24:25  marco
+  Revision 1.56  2004-01-04 16:24:05  jonas
+    * fixed WaitProcess in case of SysEintr
+
+  Revision 1.55  2003/12/31 20:24:25  marco
    * export statfs(pchar)
 
   Revision 1.54  2003/12/30 15:43:20  marco
