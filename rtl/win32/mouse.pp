@@ -17,9 +17,6 @@
 unit Mouse;
 interface
 
-const
-  MouseEventBufSize = 255;
-
 {$i mouseh.inc}
 
 implementation
@@ -27,10 +24,10 @@ implementation
 uses
    windows,dos,Winevent;
 
+{$i mouse.inc}
+
 var
    ChangeMouseEvents : TCriticalSection;
-Const
-  MouseEventActive : Boolean = false;
 
 procedure MouseEventHandler(var ir:INPUT_RECORD);
 
@@ -67,14 +64,12 @@ procedure MouseEventHandler(var ir:INPUT_RECORD);
           LeaveCriticalSection(ChangeMouseEvents);
   end;
 
-procedure InitMouse;
+procedure SysInitMouse;
 
 var
    mode : dword;
 
 begin
-  if MouseEventActive then
-    exit;
   // enable mouse events
   GetConsoleMode(StdInputHandle,@mode);
   mode:=mode or ENABLE_MOUSE_INPUT;
@@ -87,16 +82,13 @@ begin
   InitializeCriticalSection(ChangeMouseEvents);
   SetMouseEventHandler(@MouseEventHandler);
   ShowMouse;
-  MouseEventActive:=true;
 end;
 
 
-procedure DoneMouse;
+procedure SysDoneMouse;
 var
    mode : dword;
 begin
-  if not MouseEventActive then
-    exit;
   HideMouse;
   // disable mouse events
   GetConsoleMode(StdInputHandle,@mode);
@@ -105,53 +97,19 @@ begin
 
   SetMouseEventHandler(nil);
   DeleteCriticalSection(ChangeMouseEvents);
-  MouseEventActive:=false;
 end;
 
 
-function DetectMouse:byte;
+function SysDetectMouse:byte;
 var
   num : dword;
 begin
   GetNumberOfConsoleMouseButtons(@num);
-  DetectMouse:=num;
+  SysDetectMouse:=num;
 end;
 
 
-procedure ShowMouse;
-begin
-end;
-
-
-procedure HideMouse;
-begin
-end;
-
-
-function GetMouseX:word;
-begin
-  GetMouseX:=0;
-end;
-
-
-function GetMouseY:word;
-begin
-  GetMouseY:=0;
-end;
-
-
-function GetMouseButtons:word;
-begin
-  GetMouseButtons:=0;
-end;
-
-
-procedure SetMouseXY(x,y:word);
-begin
-end;
-
-
-procedure GetMouseEvent(var MouseEvent: TMouseEvent);
+procedure SysGetMouseEvent(var MouseEvent: TMouseEvent);
 
 var
    b : byte;
@@ -186,21 +144,21 @@ begin
 end;
 
 
-function PollMouseEvent(var MouseEvent: TMouseEvent):boolean;
+function SysPollMouseEvent(var MouseEvent: TMouseEvent):boolean;
 begin
   EnterCriticalSection(ChangeMouseEvents);
   if PendingMouseEvents>0 then
    begin
      MouseEvent:=PendingMouseHead^;
-     PollMouseEvent:=true;
+     SysPollMouseEvent:=true;
    end
   else
-   PollMouseEvent:=false;
+   SysPollMouseEvent:=false;
   LeaveCriticalSection(ChangeMouseEvents);
 end;
 
 
-procedure PutMouseEvent(const MouseEvent: TMouseEvent);
+procedure SysPutMouseEvent(const MouseEvent: TMouseEvent);
 begin
   if PendingMouseEvents<MouseEventBufSize then
    begin
@@ -214,14 +172,48 @@ begin
    end;
 end;
 
+Const
+  SysMouseDriver : TMouseDriver = (
+    UseDefaultQueue : False;
+    InitDriver      : @SysInitMouse;
+    DoneDriver      : @SysDoneMouse;
+    DetectMouse     : @SysDetectMouse;
+    ShowMouse       : Nil;
+    HideMouse       : Nil;
+    GetMouseX       : Nil;
+    GetMouseY       : Nil;
+    GetMouseButtons : Nil;
+    SetMouseXY      : Nil;
+    GetMouseEvent   : @SysGetMouseEvent;
+    PollMouseEvent  : @SysPollMouseEvent;
+    PutMouseEvent   : @SysPutMouseEvent;
+  );
+
+Begin
+  SetMouseDriver(SysMouseDriver);  
 end.
 {
   $Log$
-  Revision 1.4  2001-08-05 12:23:57  peter
+  Revision 1.5  2001-09-22 00:01:43  michael
+  + Merged driver support for mouse from fixbranch
+
+  Revision 1.4  2001/08/05 12:23:57  peter
     * fixed for new input_record
 
   Revision 1.3  2001/04/10 21:28:36  peter
     * removed warnigns
+
+  Revision 1.2.2.4  2001/09/21 23:53:48  michael
+  + Added mouse driver support.
+
+  Revision 1.2.2.3  2001/08/05 12:24:37  peter
+    * fixed for new input_record
+
+  Revision 1.2.2.2  2001/04/10 20:33:04  peter
+    * remove some warnings
+
+  Revision 1.2.2.1  2001/01/30 21:52:03  peter
+    * moved api utils to rtl
 
   Revision 1.2  2001/01/14 22:20:00  peter
     * slightly optimized event handling (merged)

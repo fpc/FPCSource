@@ -17,9 +17,6 @@
 unit Mouse;
 interface
 
-const
-  MouseEventBufSize = 16;
-
 {$i mouseh.inc}
 
 { tells the mouse unit to draw the mouse cursor itself }
@@ -30,6 +27,9 @@ implementation
 
 uses
   video,go32;
+
+{$i mouse.inc}
+
 
 var
   RealSeg : Word;                                    { Real mode segment }
@@ -425,7 +425,7 @@ begin
   RunningUnderWINNT:=(r.bx=$3205);
 end;
 
-procedure InitMouse;
+procedure SysInitMouse;
 begin
   UnderNT:=RunningUnderWINNT;
   if not MousePresent then
@@ -438,11 +438,6 @@ begin
       else
         MousePresent:=true;
     end;
-  PendingMouseHead:=@PendingMouseEvent;
-  PendingMouseTail:=@PendingMouseEvent;
-  PendingMouseEvents:=0;
-  FillChar(LastMouseEvent,sizeof(TMouseEvent),0);
-
   { don't do this twice !! PM }
 
   If not FirstMouseInitDone then
@@ -491,7 +486,7 @@ begin
 end;
 
 
-procedure DoneMouse;
+procedure SysDoneMouse;
 begin
   HideMouse;
   If (MouseCallBack <> Nil) Then
@@ -499,7 +494,7 @@ begin
 end;
 
 
-function DetectMouse:byte;assembler;
+function SysDetectMouse:byte;assembler;
 asm
         movl    $0x200,%eax
         movl    $0x33,%ebx
@@ -518,7 +513,7 @@ asm
 end;
 
 
-procedure ShowMouse;
+procedure SysShowMouse;
 
 begin
    if drawmousecursor then
@@ -547,7 +542,7 @@ begin
 end;
 
 
-procedure HideMouse;
+procedure SysHideMouse;
 
 begin
    if drawmousecursor then
@@ -576,7 +571,7 @@ begin
 end;
 
 
-function GetMouseX:word;assembler;
+function SysGetMouseX:word;assembler;
 asm
         cmpb    $1,MousePresent
         jne     .LGetMouseXError
@@ -593,7 +588,7 @@ asm
 end;
 
 
-function GetMouseY:word;assembler;
+function SysGetMouseY:word;assembler;
 asm
         cmpb    $1,MousePresent
         jne     .LGetMouseYError
@@ -610,7 +605,7 @@ asm
 end;
 
 
-function GetMouseButtons:word;assembler;
+function SysGetMouseButtons:word;assembler;
 asm
         cmpb    $1,MousePresent
         jne     .LGetMouseButtonsError
@@ -625,7 +620,7 @@ asm
 end;
 
 
-procedure SetMouseXY(x,y:word);assembler;
+procedure SysSetMouseXY(x,y:word);assembler;
 asm
         cmpb    $1,MousePresent
         jne     .LSetMouseXYExit
@@ -686,7 +681,7 @@ procedure DoCustomMouse(b : boolean);
 const
   LastCallcounter : longint = 0;
 
-procedure GetMouseEvent(var MouseEvent: TMouseEvent);
+procedure SysGetMouseEvent(var MouseEvent: TMouseEvent);
 begin
   if not MousePresent then
     begin
@@ -720,36 +715,38 @@ begin
 end;
 
 
-function PollMouseEvent(var MouseEvent: TMouseEvent):boolean;
-begin
-  if PendingMouseEvents>0 then
-   begin
-     MouseEvent:=PendingMouseHead^;
-     PollMouseEvent:=true;
-   end
-  else
-   PollMouseEvent:=false;
-end;
-
-procedure PutMouseEvent(const MouseEvent: TMouseEvent);
-begin
-  if PendingMouseEvents<MouseEventBufSize then
-   begin
-     PendingMouseTail^:=MouseEvent;
-     inc(PendingMouseTail);
-     if longint(PendingMouseTail)=longint(@PendingMouseEvent)+sizeof(PendingMouseEvent) then
-      PendingMouseTail:=@PendingMouseEvent;
-      { why isn't this done here ?
-        so the win32 version do this by hand:}
-       inc(PendingMouseEvents);
-   end
-  else
-end;
-
+Const
+  SysMouseDriver : TMouseDriver = (
+    useDefaultQueue : true;
+    InitDriver      : @SysInitMouse;
+    DoneDriver      : @SysDoneMouse;
+    DetectMouse     : @SysDetectMouse;
+    ShowMouse       : @SysShowMouse;
+    HideMouse       : @SysHideMouse;
+    GetMouseX       : @SysGetMouseX;
+    GetMouseY       : @SysGetMouseY;
+    GetMouseButtons : @SysGetMouseButtons;
+    SetMouseXY      : @SysSetMouseXY;
+    GetMouseEvent   : @SysGetMouseEvent;
+    PollMouseEvent  : Nil;
+    PutMouseEvent  : Nil;
+  );
+  
+Begin
+  SetMouseDriver(SysMouseDriver);  
 end.
 {
   $Log$
-  Revision 1.1  2001-01-13 11:03:58  peter
+  Revision 1.2  2001-09-22 00:01:42  michael
+  + Merged driver support for mouse from fixbranch
+
+  Revision 1.1.2.2  2001/09/21 23:53:48  michael
+  + Added mouse driver support.
+
+  Revision 1.1.2.1  2001/01/30 21:52:01  peter
+    * moved api utils to rtl
+
+  Revision 1.1  2001/01/13 11:03:58  peter
     * API 2 RTL commit
 
 }

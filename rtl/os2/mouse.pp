@@ -17,9 +17,6 @@
 unit Mouse;
 interface
 
-const
-  MouseEventBufSize = 16;
-
 {$i mouseh.inc}
 
 implementation
@@ -28,6 +25,7 @@ uses
  Video,
  MouCalls, DosCalls;
 
+{$i mouse.inc}
 
 var
  PendingMouseEventOrder: array [0..MouseEventBufSize-1] of cardinal;
@@ -40,7 +38,7 @@ const
  HideCounter: cardinal = 0;
  OldEventMask: longint = -1;
 
-procedure InitMouse;
+procedure SysInitMouse;
 var
  Loc: TPtrLoc;
  SetPrev: boolean;
@@ -50,10 +48,6 @@ var
 begin
  SetPrev := MouGetPtrPos (Loc, DefaultMouse) = 0;
  if MouGetEventMask (W, DefaultMouse) = 0 then OldEventMask := W;
- PendingMouseHead := @PendingMouseEvent;
- PendingMouseTail := @PendingMouseEvent;
- PendingMouseEvents := 0;
- FillChar (LastMouseEvent, SizeOf (TMouseEvent), 0);
  MouseEventOrderTail := 0;
  MouseEventOrderHead := 0;
  HideCounter := 0;
@@ -78,7 +72,7 @@ begin
  end;
 end;
 
-procedure DoneMouse;
+procedure SysDoneMouse;
 var
  W: word;
 begin
@@ -101,19 +95,21 @@ begin
  end;
 end;
 
-function DetectMouse:byte;
+function SysDetectMouse:byte;
 var
  Buttons: word;
  RC: longint;
  TempHandle: word;
 begin
  MouOpen (nil, TempHandle);
- if MouGetNumButtons (Buttons, TempHandle) = 0 then DetectMouse := Buttons
-                                                         else DetectMouse := 0;
+ if MouGetNumButtons (Buttons, TempHandle) = 0 then 
+   SysDetectMouse := Buttons
+ else 
+   SysDetectMouse := 0;
  MouClose (TempHandle);
 end;
 
-procedure ShowMouse;
+procedure SysShowMouse;
 begin
  if Handle <> NoMouse then
  begin
@@ -125,7 +121,7 @@ begin
  end;
 end;
 
-procedure HideMouse;
+procedure SysHideMouse;
 var
  PtrRect: TNoPtrRect;
 begin
@@ -145,29 +141,33 @@ begin
  end;
 end;
 
-function GetMouseX: word;
+function SysGetMouseX: word;
 var
  Event: TMouseEvent;
 begin
- if Handle = NoMouse then GetMouseX := 0 else
- begin
-  PollMouseEvent (Event);
-  GetMouseX := Event.X;
- end;
+ if Handle = NoMouse then 
+   SysGetMouseX := 0 
+ else
+   begin
+   PollMouseEvent (Event);
+   SysGetMouseX := Event.X;
+   end;
 end;
 
-function GetMouseY: word;
+function SysGetMouseY: word;
 var
  Event: TMouseEvent;
 begin
- if Handle = NoMouse then GetMouseY := 0 else
- begin
-  PollMouseEvent (Event);
-  GetMouseY := Event.Y;
- end;
+ if Handle = NoMouse then 
+   SysGetMouseY := 0 
+ else
+   begin
+   PollMouseEvent (Event);
+   SysGetMouseY := Event.Y;
+   end;
 end;
 
-procedure GetMouseXY (var X: word; var Y: word);
+procedure SysGetMouseXY (var X: word; var Y: word);
 var
  Loc: TPtrLoc;
 begin
@@ -186,7 +186,7 @@ begin
  end;
 end;
 
-procedure SetMouseXY (X, Y: word);
+procedure SysSetMouseXY (X, Y: word);
 var
  Loc: TPtrLoc;
 begin
@@ -258,7 +258,7 @@ begin
  end;
 end;
 
-function PollMouseEvent (var MouseEvent: TMouseEvent) :boolean;
+function SysPollMouseEvent (var MouseEvent: TMouseEvent) :boolean;
 var
  SysEvent: TMouEventInfo;
  P, Q: PMouseEvent;
@@ -330,24 +330,24 @@ begin
  begin
   MouseEvent := PendingMouseHead^;
   LastMouseEvent := MouseEvent;
-  PollMouseEvent := true;
+  SysPollMouseEvent := true;
  end else
  begin
-  PollMouseEvent := false;
+  SysPollMouseEvent := false;
   MouseEvent := LastMouseEvent;
   MouseEvent.Action := 0;
  end;
 end;
 
-function GetMouseButtons: word;
+function SysGetMouseButtons: word;
 var
  Event: TMouseEvent;
 begin
  PollMouseEvent (Event);
- GetMouseButtons := Event.Buttons;
+ SysGetMouseButtons := Event.Buttons;
 end;
 
-procedure GetMouseEvent (var MouseEvent: TMouseEvent);
+procedure SysGetMouseEvent (var MouseEvent: TMouseEvent);
 var
  Event: TMouEventInfo;
 begin
@@ -370,7 +370,7 @@ begin
  Dec (PendingMouseEvents);
 end;
 
-procedure PutMouseEvent (const MouseEvent: TMouseEvent);
+procedure SysPutMouseEvent (const MouseEvent: TMouseEvent);
 var
  QI: TMouQueInfo;
 begin
@@ -388,10 +388,38 @@ begin
  end;
 end;
 
+Const
+  SysMouseDriver : TMouseDriver = (
+    UseDefaultQueue : False;
+    InitDriver      : @SysInitMouse;
+    DoneDriver      : @SysDoneMouse;
+    DetectMouse     : @SysDetectMouse;
+    ShowMouse       : @SysShowMouse;
+    HideMouse       : @SysHideMouse;
+    GetMouseX       : @SysGetMouseX;
+    GetMouseY       : @SysGetMouseY;
+    GetMouseButtons : @SysGetMouseButtons;
+    SetMouseXY      : @SysSetMouseXY;
+    GetMouseEvent   : @SysGetMouseEvent;
+    PollMouseEvent  : @SysPollMouseEvent;
+    PutMouseEvent   : @SysPutMouseEvent;
+  );
+
+Begin
+  SetMouseDriver(SysMouseDriver);  
 end.
 {
   $Log$
-  Revision 1.1  2001-01-13 11:03:58  peter
+  Revision 1.2  2001-09-22 00:01:42  michael
+  + Merged driver support for mouse from fixbranch
+
+  Revision 1.1.2.2  2001/09/21 23:53:48  michael
+  + Added mouse driver support.
+
+  Revision 1.1.2.1  2001/01/30 21:52:02  peter
+    * moved api utils to rtl
+
+  Revision 1.1  2001/01/13 11:03:58  peter
     * API 2 RTL commit
 
 }

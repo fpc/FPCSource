@@ -1,0 +1,209 @@
+{
+    $Id$
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 1999-2000 by the Free Pascal development team
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
+
+Var
+  CurrentMouseDriver : TMouseDriver;
+  MouseInitialized : Boolean;
+  
+  // Mouse queue event mechanism
+  PendingMouseEvent  : array[0..MouseEventBufSize-1] of TMouseEvent;
+  PendingMouseHead,
+  PendingMouseTail   : PMouseEvent;
+  PendingMouseEvents : byte;
+  LastMouseEvent : TMouseEvent;
+
+Procedure ClearMouseEventQueue;
+
+begin
+  PendingMouseHead:=@PendingMouseEvent;
+  PendingMouseTail:=@PendingMouseEvent;
+  PendingMouseEvents:=0;
+  FillChar(LastMouseEvent,sizeof(TMouseEvent),0);
+end;
+
+  
+procedure InitMouse;
+
+begin
+ If Not MouseInitialized then
+   begin
+   If Assigned(CurrentMouseDriver.InitDriver) Then
+     CurrentMouseDriver.InitDriver();
+   ClearMouseEventQueue;
+   MouseInitialized:=True;  
+   end; 
+end;
+
+procedure DoneMouse;
+
+begin
+ If MouseInitialized then
+   begin
+   If Assigned(CurrentMouseDriver.DoneDriver) Then
+     CurrentMouseDriver.DoneDriver();
+   ClearMouseEventQueue;
+   MouseInitialized:=False;  
+   end; 
+end;
+
+function DetectMouse:byte;
+
+begin
+  If Assigned(CurrentMouseDriver.DetectMouse) Then
+    DetectMouse:=CurrentMouseDriver.DetectMouse()
+  else
+    DetectMouse:=0;  
+end;
+
+procedure ShowMouse;
+
+begin
+  If Assigned(CurrentMouseDriver.ShowMouse) Then
+    CurrentMouseDriver.ShowMouse();
+end;
+
+procedure HideMouse;
+
+begin
+  If Assigned(CurrentMouseDriver.HideMouse) Then
+    CurrentMouseDriver.HideMouse();
+end;
+
+function GetMouseX:word;
+
+begin
+  If Assigned(CurrentMouseDriver.GetMouseX) Then
+    GetMouseX:=CurrentMouseDriver.GetMouseX()
+  else
+    GetMouseX:=0;  
+end;
+
+function GetMouseY:word;
+
+begin
+  If Assigned(CurrentMouseDriver.GetMouseY) Then
+    GetMouseY:=CurrentMouseDriver.GetMouseY()
+  else
+    GetMouseY:=0;  
+end;
+
+function GetMouseButtons:word;
+
+begin
+  If Assigned(CurrentMouseDriver.GetMouseButtons) Then
+    GetMouseButtons:=CurrentMouseDriver.GetMouseButtons()
+  else
+    GetMouseButtons:=0;  
+end;
+
+procedure SetMouseXY(x,y:word);
+
+begin
+  If Assigned(CurrentMouseDriver.SetMouseXY) Then
+    CurrentMouseDriver.SetMouseXY(X,Y)
+end;
+
+Procedure GetPendingEvent(Var MouseEvent:TMouseEvent);
+
+begin
+  MouseEvent:=PendingMouseHead^;
+  inc(PendingMouseHead);
+  if longint(PendingMouseHead)=longint(@PendingMouseEvent)+sizeof(PendingMouseEvent) then
+   PendingMouseHead:=@PendingMouseEvent;
+  dec(PendingMouseEvents);
+  if (LastMouseEvent.x<>MouseEvent.x) or 
+     (LastMouseEvent.y<>MouseEvent.y) then
+    MouseEvent.Action:=MouseActionMove;
+  if (LastMouseEvent.Buttons<>MouseEvent.Buttons) then
+     begin
+     if (LastMouseEvent.Buttons=0) then
+       MouseEvent.Action:=MouseActionDown
+       else
+        MouseEvent.Action:=MouseActionUp;
+     end;
+  LastMouseEvent:=MouseEvent;
+end;
+
+procedure GetMouseEvent(var MouseEvent:TMouseEvent);
+
+begin
+  if CurrentMouseDriver.UseDefaultQueue then
+    begin
+    if (PendingMouseEvents>0) then
+      GetPendingEvent(MouseEvent)
+    end
+  else
+    If Assigned(CurrentMouseDriver.GetMouseEvent) Then
+      begin
+      CurrentMouseDriver.GetMouseEvent(MouseEvent);
+      LastMouseEvent:=MouseEvent;
+      end;
+end;
+
+procedure PutMouseEvent(const MouseEvent: TMouseEvent);
+begin
+  if CurrentMouseDriver.UseDefaultQueue then
+    begin
+    PendingMouseTail^:=MouseEvent;
+    inc(PendingMouseTail);
+    if longint(PendingMouseTail)=longint(@PendingMouseEvent)+sizeof(PendingMouseEvent) then
+      PendingMouseTail:=@PendingMouseEvent;
+    inc(PendingMouseEvents);
+    end
+  else
+    If Assigned(CurrentMouseDriver.PutMouseEvent) then
+      CurrentMouseDriver.PutMouseEvent(MouseEvent);
+end;
+      
+function PollMouseEvent(var MouseEvent: TMouseEvent):boolean;
+
+begin
+  if (CurrentMouseDriver.UseDefaultQueue) and
+     (PendingMouseEvents>0) then
+    begin
+    MouseEvent:=PendingMouseHead^;
+    PollMouseEvent:=true;
+    end
+  else
+    If Assigned(CurrentMouseDriver.PollMouseEvent) Then
+      begin
+      PollMouseEvent:=CurrentMouseDriver.PollMouseEvent(MouseEvent);
+      // Put it in queue, so next poll/get will be faster.
+      PutMouseEvent(MouseEvent);
+      end;
+end;
+
+Procedure SetMouseDriver(Const Driver : TMouseDriver);
+
+begin
+  If Not MouseInitialized then
+    CurrentMouseDriver:=Driver;
+end;
+
+
+Procedure GetMouseDriver(Var Driver : TMouseDriver);
+
+begin
+  Driver:=CurrentMouseDriver;
+end;
+
+{
+  $Log$
+  Revision 1.2  2001-09-22 00:01:42  michael
+  + Merged driver support for mouse from fixbranch
+
+  Revision 1.1.2.1  2001/09/21 23:53:48  michael
+  + Added mouse driver support.
+
+}

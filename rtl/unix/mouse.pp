@@ -21,9 +21,6 @@ interface
 {$DEFINE NOGPM}
 {$ENDIF}
 
-const
-  MouseEventBufSize = 16;
-
 {$i mouseh.inc}
 
 implementation
@@ -35,6 +32,10 @@ uses
 {$endif ndef NOGPM}
   ;
 
+{$i mouse.inc}
+
+{$ifndef NOMOUSE}
+
 const
   mousecur    : boolean = false;
   mousecurofs : longint = -1;
@@ -42,18 +43,15 @@ const
 var
   mousecurcell : TVideoCell;
 
-
 const
   gpm_fs : longint = -1;
 
-
 procedure PlaceMouseCur(ofs:longint);
-{$ifndef NOMOUSE}
+
 var
   upd : boolean;
-{$endif ndef NOMOUSE}
+
 begin
-{$ifndef NOMOUSE}
   if VideoBuf=nil then
    exit;
   upd:=false;
@@ -71,21 +69,14 @@ begin
    end;
   if upd then
    Updatescreen(false);
-{$endif ndef NOMOUSE}
 end;
 
-
-procedure InitMouse;
+procedure SysInitMouse;
 {$ifndef NOGPM}
 var
   connect : TGPMConnect;
 {$endif ndef NOGPM}
 begin
-{$ifndef NOMOUSE}
-  PendingMouseHead:=@PendingMouseEvent;
-  PendingMouseTail:=@PendingMouseEvent;
-  PendingMouseEvents:=0;
-  FillChar(LastMouseEvent,sizeof(TMouseEvent),0);
 {$ifndef NOGPM}
   if gpm_fs=-1 then
     begin
@@ -112,13 +103,11 @@ begin
           Write(#27'[?1000h'); { enable mouse tracking }
         end;
 {$endif NOGPM}
-{$endif ndef NOMOUSE}
 end;
 
 
-procedure DoneMouse;
+procedure SysDoneMouse;
 begin
-{$ifndef NOMOUSE}
   If gpm_fs<>-1 then
     begin
       HideMouse;
@@ -130,11 +119,10 @@ begin
 {$endif ifdef NOGPM}
       gpm_fs:=-1;
     end;
-{$endif ndef NOMOUSE}
 end;
 
 
-function DetectMouse:byte;
+function SysDetectMouse:byte;
 {$ifndef NOGPM}
 var
   x : longint;
@@ -142,9 +130,6 @@ var
   connect : TGPMConnect;
 {$endif ndef NOGPM}
 begin
-{$ifdef NOMOUSE}
-  DetectMouse:=0;
-{$else ndef NOMOUSE}
 {$ifndef NOGPM}
   if gpm_fs=-1 then
     begin
@@ -164,128 +149,88 @@ begin
     begin
       x:=Gpm_GetSnapshot(e);
       if x<>-1 then
-        DetectMouse:=x
+        SysDetectMouse:=x
       else
-        DetectMouse:=2;
+        SysDetectMouse:=2;
     end
   else
-    DetectMouse:=0;
+    SysDetectMouse:=0;
 {$else ifdef NOGPM}
   if (getenv('TERM')='xterm') then
-    DetectMouse:=2;
+    SysDetectMouse:=2;
 {$endif NOGPM}
-{$endif ndef NOMOUSE}
 end;
 
 
-procedure ShowMouse;
+procedure SysShowMouse;
 begin
   PlaceMouseCur(MouseCurOfs);
   mousecur:=true;
 end;
 
 
-procedure HideMouse;
+procedure SysHideMouse;
 begin
   PlaceMouseCur(-1);
   mousecur:=false;
 end;
 
 
-function GetMouseX:word;
+function SysGetMouseX:word;
 {$ifndef NOGPM}
 var
   e : TGPMEvent;
 {$endif ndef NOGPM}
 begin
-{$ifdef NOMOUSE}
-  GetMouseX:=0;
-{$else ndef NOMOUSE}
   if gpm_fs<0 then
    exit(0);
 {$ifndef NOGPM}
   Gpm_GetSnapshot(e);
-  GetMouseX:=e.x-1;
+  SysGetMouseX:=e.x-1;
 {$endif ndef NOGPM}
-{$endif ndef NOMOUSE}
 end;
 
 
-function GetMouseY:word;
+function SysGetMouseY:word;
 {$ifndef NOGPM}
 var
   e : TGPMEvent;
 {$endif ndef NOGPM}
 begin
-{$ifdef NOMOUSE}
-  GetMouseY:=0;
-{$else ndef NOMOUSE}
   if gpm_fs<0 then
    exit(0);
 {$ifndef NOGPM}
   Gpm_GetSnapshot(e);
   if e.y>0 then
-   GetMouseY:=e.y-1
+   SysGetMouseY:=e.y-1
   else
-   GetMouseY:=0;
+   SysGetMouseY:=0;
 {$endif ndef NOGPM}
-{$endif ndef NOMOUSE}
 end;
 
 
-function GetMouseButtons:word;
+function SysGetMouseButtons:word;
 {$ifndef NOGPM}
 var
   e : TGPMEvent;
 {$endif ndef NOGPM}
 begin
-{$ifdef NOMOUSE}
-  GetMouseButtons:=0;
-{$else ndef NOMOUSE}
   if gpm_fs<0 then
    exit(0);
 {$ifndef NOGPM}
   Gpm_GetSnapshot(e);
-  GetMouseButtons:=e.buttons;
+  SysGetMouseButtons:=e.buttons;
 {$endif ndef NOGPM}
-{$endif ndef NOMOUSE}
 end;
 
 
-procedure SetMouseXY(x,y:word);
-begin
-end;
-
-
-procedure GetMouseEvent(var MouseEvent: TMouseEvent);
+procedure SysGetMouseEvent(var MouseEvent: TMouseEvent);
 {$ifndef NOGPM}
 var
   e : TGPMEvent;
 {$endif ndef NOGPM}
 begin
-{$ifdef NOMOUSE}
   fillchar(MouseEvent,SizeOf(TMouseEvent),#0);
-{$else ndef NOMOUSE}
-  fillchar(MouseEvent,SizeOf(TMouseEvent),#0);
-  if PendingMouseEvents>0 then
-    begin
-      MouseEvent:=PendingMouseHead^;
-      inc(PendingMouseHead);
-      if longint(PendingMouseHead)=longint(@PendingMouseEvent)+sizeof(PendingMouseEvent) then
-       PendingMouseHead:=@PendingMouseEvent;
-      dec(PendingMouseEvents);
-      if (LastMouseEvent.x<>MouseEvent.x) or (LastMouseEvent.y<>MouseEvent.y) then
-       MouseEvent.Action:=MouseActionMove;
-      if (LastMouseEvent.Buttons<>MouseEvent.Buttons) then
-       begin
-         if (LastMouseEvent.Buttons=0) then
-          MouseEvent.Action:=MouseActionDown
-         else
-          MouseEvent.Action:=MouseActionUp;
-       end;
-      LastMouseEvent:=MouseEvent;
-      exit;
-    end;
   if gpm_fs<0 then
    exit;
 {$ifndef NOGPM}
@@ -313,53 +258,26 @@ begin
   else
    MouseEvent.Action:=0;
   end;
-  LastMouseEvent:=MouseEvent;
 { update mouse cursor }
   if mousecur then
    PlaceMouseCur(MouseEvent.y*ScreenWidth+MouseEvent.x);
 {$endif ndef NOGPM}
-{$endif ndef NOMOUSE}
 end;
 
 
-procedure PutMouseEvent(const MouseEvent: TMouseEvent);
-begin
-{$ifndef NOMOUSE}
-  if PendingMouseEvents<MouseEventBufSize then
-   begin
-     PendingMouseTail^:=MouseEvent;
-     inc(PendingMouseTail);
-     if longint(PendingMouseTail)=longint(@PendingMouseEvent)+sizeof(PendingMouseEvent) then
-      PendingMouseTail:=@PendingMouseEvent;
-      { why isn't this done here ?
-        so the win32 version do this by hand:}
-       inc(PendingMouseEvents);
-   end;
-{$endif ndef NOMOUSE}
-end;
 
+function SysPollMouseEvent(var MouseEvent: TMouseEvent):boolean;
 
-function PollMouseEvent(var MouseEvent: TMouseEvent):boolean;
 {$ifndef NOGPM}
 var
   e : TGPMEvent;
   fds : FDSet;
 {$endif ndef NOGPM}
 begin
-{$ifdef NOMOUSE}
   fillchar(MouseEvent,SizeOf(TMouseEvent),#0);
-  exit(false);
-{$else ndef NOMOUSE}
-  fillchar(MouseEvent,SizeOf(TMouseEvent),#0);
-  if PendingMouseEvents>0 then
-   begin
-     MouseEvent:=PendingMouseHead^;
-     PollMouseEvent:=true;
-     exit;
-   end
-  else if gpm_fs<0 then
-   exit(false);
 {$ifndef NOGPM}
+  if gpm_fs<0 then
+   exit(false);
   if gpm_fs>0 then
     begin
       FD_Zero(fds);
@@ -392,21 +310,79 @@ begin
       MouseEvent.Action:=0;
      end;
      if (gpm_fs<>-2) or (MouseEvent.Action<>0) then
-       PollMouseEvent:=true
+       SysPollMouseEvent:=true
      else
-       PollMouseEvent:=false;
+       SysPollMouseEvent:=false;
    end
   else
-   PollMouseEvent:=false;
+   SysPollMouseEvent:=false;
 {$endif ndef NOGPM}
-{$endif ndef NOMOUSE}
 end;
 
+Const
+  SysMouseDriver : TMouseDriver = (
+    UseDefaultQueue : true;
+    InitDriver      : @SysInitMouse;
+    DoneDriver      : @SysDoneMouse;
+    DetectMouse     : @SysDetectMouse;
+    ShowMouse       : @SysShowMouse;
+    HideMouse       : @SysHideMouse;
+    GetMouseX       : @SysGetMouseX;
+    GetMouseY       : @SysGetMouseY;
+    GetMouseButtons : @SysGetMouseButtons;
+    SetMouseXY      : Nil;
+    GetMouseEvent   : @SysGetMouseEvent;
+    PollMouseEvent  : @SysPollMouseEvent;
+    PutMouseEvent   : Nil;
+  );
+
+{$else ifndef NOMOUSE}
+
+Const
+  SysMouseDriver : TMouseDriver = (
+    UseDefaultQueue : true;
+    InitDriver      : Nil;
+    DoneDriver      : Nil;
+    DetectMouse     : Nil;
+    ShowMouse       : Nil;
+    HideMouse       : Nil;
+    GetMouseX       : Nil;
+    GetMouseY       : Nil;
+    GetMouseButtons : Nil;
+    SetMouseXY      : Nil;
+    GetMouseEvent   : Nil;
+    PollMouseEvent  : Nil;
+    PutMouseEvent   : Nil;
+  );
+
+{$endif}
+  
+Begin
+  SetMouseDriver(SysMouseDriver);  
 end.
+
 {
   $Log$
-  Revision 1.4  2001-09-17 21:36:31  peter
+  Revision 1.5  2001-09-22 00:01:43  michael
+  + Merged driver support for mouse from fixbranch
+
+  Revision 1.4  2001/09/17 21:36:31  peter
     * merged fixes
+
+  Revision 1.2.2.6  2001/09/21 23:53:48  michael
+  + Added mouse driver support.
+
+  Revision 1.2.2.5  2001/09/06 09:05:08  pierre
+   * fix NOGPM code
+
+  Revision 1.2.2.4  2001/09/06 08:33:34  pierre
+   * fix NOGPM cond to not include gpm unit
+
+  Revision 1.2.2.3  2001/08/05 12:25:55  peter
+    * fix possible range check errors
+
+  Revision 1.2.2.2  2001/01/30 22:23:44  peter
+    * unix back to linux
 
   Revision 1.3  2001/08/05 12:24:20  peter
     * m68k merges

@@ -35,19 +35,30 @@ const
   MouseRightButton  = $02;                         { Right mouse button }
   MouseMiddleButton = $04;                         { Middle mouse button }
 
+  MouseEventBufSize = 16;                { Size of event queue }
+  
 var
-  PendingMouseEvent  : array[0..MouseEventBufSize-1] of TMouseEvent;
-  PendingMouseHead,
-  PendingMouseTail   : PMouseEvent;
-  PendingMouseEvents : byte;
-
-  LastMouseEvent : TMouseEvent;
-
   MouseIntFlag : Byte;                                { Mouse in int flag }
   MouseButtons : Byte;                                { Mouse button state }
   MouseWhereX,
   MouseWhereY  : Word;                                { Mouse position }
 
+Type 
+  TMouseDriver = Record 
+    UseDefaultQueue : Boolean;
+    InitDriver : Procedure;
+    DoneDriver : Procedure;
+    DetectMouse : Function : Byte;
+    ShowMouse : Procedure;
+    HideMouse : Procedure;
+    GetMouseX : Function : Word;
+    GetMouseY : Function : Word;
+    GetMouseButtons : Function : Word;
+    SetMouseXY : procedure (x,y:word);
+    GetMouseEvent : procedure (var MouseEvent:TMouseEvent);
+    PollMouseEvent : function (var MouseEvent: TMouseEvent):boolean;
+    PutMouseEvent : procedure (Const MouseEvent:TMouseEvent); 
+  end;
 
 procedure InitMouse;
 { Initialize the mouse interface }
@@ -88,9 +99,24 @@ function PollMouseEvent(var MouseEvent: TMouseEvent):boolean;
 { Checks if a Mouseevent is available, and returns it if one is found. If no
   event is pending, it returns 0 }
 
+Procedure SetMouseDriver(Const Driver : TMouseDriver);
+{ Sets the mouse driver. }
+
+Procedure GetMouseDriver(Var Driver : TMouseDriver);
+{ Returns the currently active mouse driver }
+
 {
   $Log$
-  Revision 1.1  2001-01-13 11:13:12  peter
+  Revision 1.2  2001-09-22 00:01:42  michael
+  + Merged driver support for mouse from fixbranch
+
+  Revision 1.1.2.2  2001/09/21 23:53:48  michael
+  + Added mouse driver support.
+
+  Revision 1.1.2.1  2001/01/30 22:21:22  peter
+    * move api to rtl
+
+  Revision 1.1  2001/01/13 11:13:12  peter
     * API 2 RTL
 
 }
