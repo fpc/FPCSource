@@ -3,6 +3,8 @@
 #
 
 [target]
+# this will be undefined when the fake compiler is used
+dirs=compiler
 programs=fp
 rst=fpstrings
 
@@ -12,12 +14,16 @@ datadir=$(INSTALL_BASEDIR)/ide
 [compiler]
 options=-Sg
 targetdir=.
+unitdir=$(COMPILERDIR)
 
 [require]
 packages=fv gdbint
 
 [libs]
 libgcc=1
+
+[default]
+fpcdir=../..
 
 [prerules]
 ifeq ($(OS_TARGET),linux)
@@ -32,12 +38,11 @@ override FPCOPT+=-dUNIX
 endif
 endif
 
-# when making a full version include the compiler
-ifeq ($(FULL),1)
-override UNITDIR+=../../compiler ../../compiler/$(CPU_TARGET)
-override INCDIR+=../../compiler ../../compiler/$(CPU_TARGET)
+# Compiler dir
+ifdef FAKE
+COMPILERDIR=../fake/compiler
 else
-override UNITDIR+=../fake/compiler
+COMPILERDIR=compiler
 endif
 
 # when including debugger include the gdbinterface
@@ -45,12 +50,23 @@ ifndef GDBINT
 GDBINT=gdbint
 endif
 
+# Try to find GDB library
 ifeq ($(GDB),1)
-override GDBLIBDIR+=$(PACKAGESDIR)/$(GDBINT)/libgdb/$(OS_TARGET)
-override GDBOBJDIR+=$(PACKAGESDIR)/$(GDBINT)/libgdb/$(OS_TARGET)
+ifeq ($(DEBUG),1)
+# First test if a debug version exists in a specific dir
+ifneq ($(strip $(wildcard $(PACKAGESDIR)/$(GDBINT)/libgdb/d$(OS_TARGET)/libgdb.a)),)
+OSGDBDIR=d$(OS_TARGET)
+else
+OSGDBDIR=$(OS_TARGET)
+endif
+else
+OSGDBDIR=$(OS_TARGET)
+endif
+GDBLIBDIR+=$(wildcard $(addsuffix /$(GDBINT)/libgdb/$(OSGDBDIR),$(PACKAGESDIR)))
+GDBOBJDIR+=$(wildcard $(addsuffix /$(GDBINT)/libgdb/$(OSGDBDIR),$(PACKAGESDIR)))
 ifeq ($(OS_TARGET),go32v2)
 ifneq ($(DJDIR),)
-override GDBLIBDIR+=$(DJDIR)/lib
+GDBLIBDIR+=$(DJDIR)/lib
 endif
 endif
 ifeq ($(strip $(wildcard $(addsuffix /libgdb.a,$(GDBLIBDIR)))),)
@@ -70,48 +86,67 @@ else
 override UNITDIR+=../fake/gdb
 endif
 
-ifeq ($(FULL),1)
-override OPT+=-dBrowserCol -dGDB
-ifeq ($(CPU_TARGET),i386)
-override OPT+=-dSUPPORT_MMX
-endif
-endif
-
 
 [rules]
-.PHONY: gdb full fullgdb clean_compiler clean testgdb postgdbinfo
+.PHONY: compilerunits compilerclean \
+        fake fakegdb gdb full fullgdb \
+        clean_compiler clean testgdb postgdbinfo
 
 clean: fpc_cleanall
 
-distclean: clean
+distclean: clean compilerclean
 
 fp$(EXEEXT): $(wildcard *.pas) $(wildcard *.inc)
 
 testgdb:
 ifneq ($(GDBFOUND),0)
-        $(ECHO) LibGDB found in $(LIBGDB)
+        @$(ECHO) LibGDB found in $(LIBGDB)
 else
-        $(ECHO) LibGDB not found
-        $(ECHO) LIBGDB=$(LIBGDB)
-        $(ECHO) GDBLIBDIR=$(GDBLIBDIR)
-        $(ECHO) $(wildcard $(addsuffix /libgdb.a,$(GDBLIBDIR)))
+        @$(ECHO) LibGDB not found
+        @$(ECHO) LIBGDB=$(LIBGDB)
+        @$(ECHO) GDBLIBDIR=$(GDBLIBDIR)
+        @$(ECHO) $(wildcard $(addsuffix /libgdb.a,$(GDBLIBDIR)))
 endif
 
 postgdbinfo:
 ifeq ($(GDBFOUND),0)
-        $(ECHO) LibGDB was not found, IDE has no Debugger support
-else
-        $(ECHO) LibGDB found in $(LIBGDB)
+        @$(ECHO) LibGDB was not found, IDE has no Debugger support
 endif
+
+#
+# Compiler
+#
+
+compilerunits : $(COMPILERDIR)/$(FPCMADE)
+$(COMPILERDIR)/$(FPCMADE):
+        $(MAKE) -C $(COMPILERDIR) all
+
+compilerclean :
+        $(MAKE) -C $(COMPILERDIR) clean
+
+#
+# Default targets
+#
+all: compilerunits fpc_all
 
 gdb:
         $(MAKE) testgdb all GDB=1 postgdbinfo
 
-full:
-        $(MAKE) all FULL=1
+#
+# Fake targets
+#
+fakegdb:
+        $(MAKE) testgdb all FAKE=1 GDB=1 postgdbinfo
 
-fullgdb:
-        $(MAKE) testgdb all FULL=1 GDB=1 postgdbinfo
+fake:
+        $(MAKE) all FAKE=1
+
+#
+# Compatibility targets
+#
+full: all
+
+fullgdb: gdb
 
 # This is necessary because we don't have all units separate in the
 # units targets

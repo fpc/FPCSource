@@ -8,6 +8,11 @@ unit GDBInt;
 interface
 
 type
+  CORE_ADDR = cardinal; { might be target dependent PM }
+  streamtype = (afile,astring);
+  C_FILE     = longint; { at least under DJGPP }
+  P_C_FILE   = ^C_FILE;
+
   psyminfo=^tsyminfo;
   tsyminfo=record
     address  : longint;
@@ -71,6 +76,7 @@ type
     file_end,
     line_start,
     line_end : longint;
+    current_pc      : CORE_ADDR;
     { breakpoint }
     last_breakpoint_number,
     last_breakpoint_address,
@@ -298,7 +304,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 09:48:34  michael
+  Revision 1.2  2001-04-25 22:38:38  peter
+    * updates from fixes branch so fpcmake for Makefiles works
+
+  Revision 1.1  2000/07/13 09:48:34  michael
   + Initial import
 
   Revision 1.9  2000/03/07 10:39:59  pierre

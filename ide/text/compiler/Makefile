@@ -91,6 +91,14 @@ else
 override FPCDIR=wrong
 endif
 ifeq ($(FPCDIR),wrong)
+override FPCDIR=../../..
+ifeq ($(wildcard $(FPCDIR)/rtl),)
+ifeq ($(wildcard $(FPCDIR)/units),)
+override FPCDIR=wrong
+endif
+endif
+endif
+ifeq ($(FPCDIR),wrong)
 ifdef inUnix
 override FPCDIR=/usr/local/lib/fpc/$(FPC_VERSION)
 ifeq ($(wildcard $(FPCDIR)/units),)
@@ -109,7 +117,11 @@ endif
 endif
 UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages)
-override TARGET_DIRS+=compiler gdb
+override TARGET_UNITS+=compunit
+override COMPILER_OPTIONS+=-Ca
+override COMPILER_INCLUDEDIR+=$(FPCDIR)/compiler $(FPCDIR)/compiler/$(CPU_TARGET)
+override COMPILER_UNITDIR+=$(FPCDIR)/compiler $(FPCDIR)/compiler/$(CPU_TARGET) $(FPCDIR)/compiler/targets
+override COMPILER_TARGETDIR+=.
 ifndef ECHO
 ECHO:=$(strip $(wildcard $(addsuffix /gecho$(EXEEXT),$(SEARCHPATH))))
 ifeq ($(ECHO),)
@@ -409,6 +421,81 @@ endif
 ifndef INSTALL_DATADIR
 INSTALL_DATADIR=$(INSTALL_BASEDIR)
 endif
+ifeq ($(OS_TARGET),linux)
+REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_FV=1
+endif
+ifeq ($(OS_TARGET),go32v2)
+REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_FV=1
+endif
+ifeq ($(OS_TARGET),win32)
+REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_FV=1
+endif
+ifeq ($(OS_TARGET),os2)
+REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_FV=1
+endif
+ifeq ($(OS_TARGET),freebsd)
+REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_FV=1
+endif
+ifdef REQUIRE_PACKAGES_RTL
+PACKAGEDIR_RTL:=$(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /rtl/Makefile.fpc,$(PACKAGESDIR)))))
+ifneq ($(PACKAGEDIR_RTL),)
+PACKAGEDIR_RTL:=$(firstword $(PACKAGEDIR_RTL))
+ifeq ($(wildcard $(PACKAGEDIR_RTL)/$(FPCMADE)),)
+override COMPILEPACKAGES+=package_rtl
+package_rtl:
+	$(MAKE) -C $(PACKAGEDIR_RTL) all
+endif
+ifneq ($(wildcard $(PACKAGEDIR_RTL)/$(OS_TARGET)),)
+UNITDIR_RTL=$(PACKAGEDIR_RTL)/$(OS_TARGET)
+else
+UNITDIR_RTL=$(PACKAGEDIR_RTL)
+endif
+else
+PACKAGEDIR_RTL=
+UNITDIR_RTL:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /rtl/Package.fpc,$(UNITSDIR)))))
+ifneq ($(UNITDIR_RTL),)
+UNITDIR_RTL:=$(firstword $(UNITDIR_RTL))
+else
+UNITDIR_RTL=
+endif
+endif
+ifdef UNITDIR_RTL
+override COMPILER_UNITDIR+=$(UNITDIR_RTL)
+endif
+endif
+ifdef REQUIRE_PACKAGES_FV
+PACKAGEDIR_FV:=$(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /fv/Makefile.fpc,$(PACKAGESDIR)))))
+ifneq ($(PACKAGEDIR_FV),)
+PACKAGEDIR_FV:=$(firstword $(PACKAGEDIR_FV))
+ifeq ($(wildcard $(PACKAGEDIR_FV)/$(FPCMADE)),)
+override COMPILEPACKAGES+=package_fv
+package_fv:
+	$(MAKE) -C $(PACKAGEDIR_FV) all
+endif
+ifneq ($(wildcard $(PACKAGEDIR_FV)/$(OS_TARGET)),)
+UNITDIR_FV=$(PACKAGEDIR_FV)/$(OS_TARGET)
+else
+UNITDIR_FV=$(PACKAGEDIR_FV)
+endif
+else
+PACKAGEDIR_FV=
+UNITDIR_FV:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /fv/Package.fpc,$(UNITSDIR)))))
+ifneq ($(UNITDIR_FV),)
+UNITDIR_FV:=$(firstword $(UNITDIR_FV))
+else
+UNITDIR_FV=
+endif
+endif
+ifdef UNITDIR_FV
+override COMPILER_UNITDIR+=$(UNITDIR_FV)
+endif
+endif
+.PHONY: package_rtl package_fv
 override FPCOPTDEF=$(CPU_TARGET)
 ifneq ($(OS_TARGET),$(OS_SOURCE))
 override FPCOPT+=-T$(OS_TARGET)
@@ -509,6 +596,14 @@ ifeq ($(OS_SOURCE),$(OS_TARGET))
 EXECPPAS:=@$(PPAS)
 endif
 endif
+.PHONY: fpc_units
+ifdef TARGET_UNITS
+override ALLTARGET+=fpc_units
+override UNITPPUFILES=$(addsuffix $(PPUEXT),$(TARGET_UNITS))
+override INSTALLPPUFILES+=$(UNITPPUFILES)
+override CLEANPPUFILES+=$(UNITPPUFILES)
+endif
+fpc_units: $(UNITPPUFILES)
 .PHONY: fpc_packages fpc_all fpc_smart fpc_debug
 $(FPCMADE): $(ALLTARGET)
 	@$(ECHO) Compiled > $(FPCMADE)
@@ -709,104 +804,28 @@ fpc_info:
 	@$(ECHO)  DIST_DESTDIR......... $(DIST_DESTDIR)
 	@$(ECHO)  DIST_ZIPNAME......... $(DIST_ZIPNAME)
 	@$(ECHO)
-TARGET_DIRS_COMPILER=1
-TARGET_DIRS_GDB=1
-ifdef TARGET_DIRS_COMPILER
-compiler_all:
-	$(MAKE) -C compiler all
-compiler_debug:
-	$(MAKE) -C compiler debug
-compiler_examples:
-	$(MAKE) -C compiler examples
-compiler_smart:
-	$(MAKE) -C compiler smart
-compiler_shared:
-	$(MAKE) -C compiler shared
-compiler_install:
-	$(MAKE) -C compiler install
-compiler_sourceinstall:
-	$(MAKE) -C compiler sourceinstall
-compiler_exampleinstall:
-	$(MAKE) -C compiler exampleinstall
-compiler_distinstall:
-	$(MAKE) -C compiler distinstall
-compiler_zipinstall:
-	$(MAKE) -C compiler zipinstall
-compiler_zipsourceinstall:
-	$(MAKE) -C compiler zipsourceinstall
-compiler_zipexampleinstall:
-	$(MAKE) -C compiler zipexampleinstall
-compiler_zipdistinstall:
-	$(MAKE) -C compiler zipdistinstall
-compiler_clean:
-	$(MAKE) -C compiler clean
-compiler_distclean:
-	$(MAKE) -C compiler distclean
-compiler_cleanall:
-	$(MAKE) -C compiler cleanall
-compiler_info:
-	$(MAKE) -C compiler info
-compiler:
-	$(MAKE) -C compiler all
-.PHONY: compiler_all compiler_debug compiler_examples compiler_smart compiler_shared compiler_install compiler_sourceinstall compiler_exampleinstall compiler_distinstall compiler_zipinstall compiler_zipsourceinstall compiler_zipexampleinstall compiler_zipdistinstall compiler_clean compiler_distclean compiler_cleanall compiler_info compiler
-endif
-ifdef TARGET_DIRS_GDB
-gdb_all:
-	$(MAKE) -C gdb all
-gdb_debug:
-	$(MAKE) -C gdb debug
-gdb_examples:
-	$(MAKE) -C gdb examples
-gdb_smart:
-	$(MAKE) -C gdb smart
-gdb_shared:
-	$(MAKE) -C gdb shared
-gdb_install:
-	$(MAKE) -C gdb install
-gdb_sourceinstall:
-	$(MAKE) -C gdb sourceinstall
-gdb_exampleinstall:
-	$(MAKE) -C gdb exampleinstall
-gdb_distinstall:
-	$(MAKE) -C gdb distinstall
-gdb_zipinstall:
-	$(MAKE) -C gdb zipinstall
-gdb_zipsourceinstall:
-	$(MAKE) -C gdb zipsourceinstall
-gdb_zipexampleinstall:
-	$(MAKE) -C gdb zipexampleinstall
-gdb_zipdistinstall:
-	$(MAKE) -C gdb zipdistinstall
-gdb_clean:
-	$(MAKE) -C gdb clean
-gdb_distclean:
-	$(MAKE) -C gdb distclean
-gdb_cleanall:
-	$(MAKE) -C gdb cleanall
-gdb_info:
-	$(MAKE) -C gdb info
-gdb:
-	$(MAKE) -C gdb all
-.PHONY: gdb_all gdb_debug gdb_examples gdb_smart gdb_shared gdb_install gdb_sourceinstall gdb_exampleinstall gdb_distinstall gdb_zipinstall gdb_zipsourceinstall gdb_zipexampleinstall gdb_zipdistinstall gdb_clean gdb_distclean gdb_cleanall gdb_info gdb
-endif
-all: fpc_all $(addsuffix _all,$(TARGET_DIRS))
-debug: fpc_debug $(addsuffix _debug,$(TARGET_DIRS))
-examples: fpc_examples $(addsuffix _examples,$(TARGET_DIRS))
-smart: fpc_smart $(addsuffix _smart,$(TARGET_DIRS))
-shared: fpc_shared $(addsuffix _shared,$(TARGET_DIRS))
-install: fpc_install $(addsuffix _install,$(TARGET_DIRS))
-sourceinstall: fpc_sourceinstall $(addsuffix _sourceinstall,$(TARGET_DIRS))
-exampleinstall: fpc_exampleinstall $(addsuffix _exampleinstall,$(TARGET_DIRS))
-distinstall: fpc_distinstall $(addsuffix _distinstall,$(TARGET_DIRS))
-zipinstall: $(addsuffix _zipinstall,$(TARGET_DIRS))
-zipsourceinstall: $(addsuffix _zipsourceinstall,$(TARGET_DIRS))
-zipexampleinstall: $(addsuffix _zipexampleinstall,$(TARGET_DIRS))
-zipdistinstall: $(addsuffix _zipdistinstall,$(TARGET_DIRS))
-clean: fpc_clean $(addsuffix _clean,$(TARGET_DIRS))
-distclean: fpc_distclean $(addsuffix _distclean,$(TARGET_DIRS))
-cleanall: fpc_cleanall $(addsuffix _cleanall,$(TARGET_DIRS))
-info: fpc_info $(addsuffix _info,$(TARGET_DIRS))
-.PHONY: all debug examples smart shared install sourceinstall exampleinstall distinstall zipinstall zipsourceinstall zipexampleinstall zipdistinstall clean distclean cleanall info
+debug: fpc_debug
+examples: fpc_examples
+smart: fpc_smart
+shared: fpc_shared
+install: fpc_install
+sourceinstall: fpc_sourceinstall
+exampleinstall: fpc_exampleinstall
+distinstall: fpc_distinstall
+zipinstall:
+zipsourceinstall:
+zipexampleinstall:
+zipdistinstall:
+distclean: fpc_distclean
+cleanall: fpc_cleanall
+info: fpc_info
+.PHONY: debug examples smart shared install sourceinstall exampleinstall distinstall zipinstall zipsourceinstall zipexampleinstall zipdistinstall distclean cleanall info
 ifneq ($(wildcard fpcmake.loc),)
 include fpcmake.loc
 endif
+override COMPILER+=-dBrowserCol -dGDB -Fu.. -Fi..
+ifeq ($(CPU_TARGET),i386)
+override COMPILER+=-dSUPPORT_MMX
+endif
+all: fpc_all
+clean: cleanall

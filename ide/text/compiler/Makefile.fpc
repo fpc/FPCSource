@@ -1,0 +1,28 @@
+#
+#   Makefile.fpc for Compiler units for IDE inclusion
+#
+
+[target]
+units=compunit
+
+[require]
+packages=fv
+
+[compiler]
+options=-Ca
+targetdir=.
+unitdir=$(FPCDIR)/compiler $(FPCDIR)/compiler/$(CPU_TARGET) $(FPCDIR)/compiler/targets
+includedir=$(FPCDIR)/compiler $(FPCDIR)/compiler/$(CPU_TARGET)
+
+[default]
+fpcdir=../../..
+
+[rules]
+override COMPILER+=-dBrowserCol -dGDB -Fu.. -Fi..
+ifeq ($(CPU_TARGET),i386)
+override COMPILER+=-dSUPPORT_MMX
+endif
+
+all: fpc_all
+
+clean: cleanall

@@ -26,6 +26,8 @@ type
     procedure Run;virtual;
     procedure TraceStep;virtual;
     procedure TraceNext;virtual;
+    procedure TraceStepI;virtual;
+    procedure TraceNextI;virtual;
     procedure Continue;virtual;
     { needed for dos because newlines are only #10 (PM) }
     procedure WriteErrorBuf;
@@ -115,6 +117,16 @@ begin
 end;
 
 
+procedure TGDBController.TraceStepI;
+begin
+end;
+
+
+procedure TGDBController.TraceNextI;
+begin
+end;
+
+
 procedure TGDBController.Continue;
 begin
 end;
@@ -149,7 +161,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 09:48:34  michael
+  Revision 1.2  2001-04-25 22:38:38  peter
+    * updates from fixes branch so fpcmake for Makefiles works
+
+  Revision 1.1  2000/07/13 09:48:34  michael
   + Initial import
 
   Revision 1.11  1999/02/19 16:54:41  peter
