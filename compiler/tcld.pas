@@ -106,7 +106,8 @@ implementation
                    begin
                       p^.resulttype:=cansistringdef;
                       { we use ansistrings so no fast exit here }
-                      procinfo^.no_fast_exit:=true;
+		      if assigned(procinfo) then
+                        procinfo^.no_fast_exit:=true;
                       p^.location.loc:=LOC_MEM;
                    end
                  else
@@ -497,7 +498,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.65  2000-05-14 18:48:24  florian
+  Revision 1.66  2000-05-15 19:29:50  peter
+    * fixed crash with resourcestring in const
+
+  Revision 1.65  2000/05/14 18:48:24  florian
     + Int64/QWord stuff for array of const added
 
   Revision 1.64  2000/04/25 14:43:36  jonas
