@@ -112,7 +112,7 @@ function get_crc_table:pointer;
 implementation
 
 uses
-  zutil,zdeflate,zinflate,zcompres,zuncompr,gzio,adler,crc;
+  zutil,zdeflate,zinflate,zcompres,zuncompr,gzio,adler,gzcrc;
 
 function zlibVersion:string;
 begin
@@ -271,7 +271,7 @@ end;
 
 function crc32(thecrc:uLong;buf : pchar; len:uInt):uLong;
 begin
-  crc32:=crc.crc32(thecrc,pbytef(buf),len);
+  crc32:=gzcrc.crc32(thecrc,pbytef(buf),len);
 end;
 
 function deflateInit_(var strm:TZStream; level:longint; version:pchar; stream_size:longint):longint;
@@ -326,7 +326,7 @@ end;
 
 function get_crc_table:pointer;
 begin
-  get_crc_table:=crc.get_crc_table;
+  get_crc_table:=gzcrc.get_crc_table;
 end;
 
 end.

@@ -1,4 +1,4 @@
-Unit CrcAsm;
+Unit GZCrcAsm;
 
 {
   crc32.c -- compute the CRC-32 of a data stream
