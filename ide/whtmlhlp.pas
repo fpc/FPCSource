@@ -166,8 +166,8 @@ uses Views,WConsts,WUtils,WViews,WHTMLScn;
 
 procedure THTMLAnsiConsole.GotoXY(X,Y : integer);
 begin
-  if X>MaxX then MaxX:=X;
-  if Y>MaxY then MaxY:=Y;
+  if X>MaxX then MaxX:=X-1;
+  if Y>MaxY then MaxY:=Y-1;
   inherited GotoXY(X,Y);
 end;
 
@@ -196,6 +196,7 @@ end;
 procedure THTMLAnsiView.CopyToHTML;
 var
   Attr,NewAttr : byte;
+  c : char;
   X,Y,Pos : longint;
 begin
    Attr:=(Buffer^[1] shr 8);
@@ -203,7 +204,7 @@ begin
    HTMLOwner^.AddText(hscTextAttr+chr(Attr));
    for Y:=0 to HTMLConsole^.MaxY-1 do
      begin
-       for X:=1 to HTMLConsole^.MaxX-1 do
+       for X:=0 to HTMLConsole^.MaxX-1 do
          begin
            Pos:=(Delta.Y*MaxViewWidth)+X+Y*MaxViewWidth;
            NewAttr:=(Buffer^[Pos] shr 8);
@@ -212,8 +213,16 @@ begin
                Attr:=NewAttr;
                HTMLOwner^.AddText(hscTextAttr+chr(Attr));
              end;
-           HTMLOwner^.AddChar(chr(Buffer^[Pos] and $ff));
+           c:= chr(Buffer^[Pos] and $ff);
+           if ord(c)>16 then
+             HTMLOwner^.AddChar(c)
+           else
+             HTMLOwner^.AddChar('*');
          end;
+       { Write start of next line in normal color, for correct alignment }
+       HTMLOwner^.AddChar(hscNormText);
+       { Force to set attr again at start of next line }
+       Attr:=0;
        HTMLOwner^.AddChar(hscLineBreak);
      end;
 end;
@@ -910,7 +919,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.2  2001-09-18 11:33:53  pierre
+  Revision 1.3  2002-03-20 17:16:11  pierre
+   * correct some ansii file conversion problems
+
+  Revision 1.2  2001/09/18 11:33:53  pierre
    * fix Previous Help Topic
 
   Revision 1.1  2001/08/04 11:30:25  peter
