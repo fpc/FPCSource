@@ -63,6 +63,7 @@ Function GetLastInstruction(Current: Pai; Var Last: Pai): Boolean;
 Procedure UpdateUsedRegs(Var UsedRegs: TRegSet; p: Pai);
 Function RegsEquivalent(OldReg, NewReg: TRegister; Var RegInfo: TRegInfo): Boolean;
 Function InstructionsEquivalent(p1, p2: Pai; Var RegInfo: TRegInfo): Boolean;
+Function OpsEqual(typ: Longint; op1, op2: Pointer): Boolean;
 
 Procedure DFAPass1(AsmL: PAasmOutput);
 Function DFAPass2(AsmL: PAasmOutput): Pai;
@@ -1277,7 +1278,7 @@ Begin {checks whether the two ops are equivalent}
 End;
 
 
-(*Function OpsEqual(typ: Longint; op1, op2: Pointer): Boolean;
+Function OpsEqual(typ: Longint; op1, op2: Pointer): Boolean;
 Begin {checks whether the two ops are equal}
   Case typ Of
     Top_Reg, Top_Const: OpsEqual := op1 = op2;
@@ -1285,7 +1286,7 @@ Begin {checks whether the two ops are equal}
     Top_None: OpsEqual := True
     Else OpsEqual := False
   End;
-End; *)
+End;
 
 Function InstructionsEquivalent(p1, p2: Pai; Var RegInfo: TRegInfo): Boolean;
 Begin {checks whether two Pai386 instructions are equal}
@@ -2083,7 +2084,10 @@ End.
 
 {
  $Log$
- Revision 1.31  1998-12-11 00:03:13  peter
+ Revision 1.32  1998-12-15 19:33:58  jonas
+   * uncommented OpsEqual & added to interface because popt386 uses it now
+
+ Revision 1.31  1998/12/11 00:03:13  peter
    + globtype,tokens,version unit splitted from globals
 
  Revision 1.30  1998/12/02 16:23:39  jonas
