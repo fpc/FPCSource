@@ -64,7 +64,7 @@ unit globals;
 
        delphimodeswitches : tmodeswitches=
          [m_delphi,m_tp,m_all,m_class,m_objpas,m_result,m_string_pchar,
-          m_pointer_2_procedure,m_autoderef,m_tp_procvar,m_initfinal];
+          m_pointer_2_procedure,m_autoderef,m_tp_procvar,m_initfinal,m_default_ansistring];
        fpcmodeswitches    : tmodeswitches=
          [m_fpc,m_all,m_string_pchar,m_nested_comment,m_repeat_forward,
           m_cvar_support,m_initfinal,m_add_pointer];
@@ -1568,7 +1568,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.59  2000-05-03 14:36:57  pierre
+  Revision 1.60  2000-05-04 20:46:17  peter
+    * ansistrings are now default on for delphi mode, as most ppl expect
+      this
+
+  Revision 1.59  2000/05/03 14:36:57  pierre
    * fix for tests/test/testrang.pp bug
 
   Revision 1.58  2000/04/14 12:27:57  pierre
