@@ -193,13 +193,26 @@ implementation
          { only calculate reference }
          cleartempgen;
          secondpass(p^.t2);
-{$ifdef TEST_FORBUG}
+{$ifndef OLDFORVER}
          hs:=p^.t2^.resulttype^.size;
+         cmp32:=getregister32;
+             case hs of
+            1 : begin
+                   opsize:=S_B;
+                   cmpreg:=reg32toreg8(cmp32);
+                end;
+            2 : begin
+                   opsize:=S_W;
+                   cmpreg:=reg32toreg16(cmp32);
+                end;
+            4 : begin
+                   opsize:=S_L;
+                   cmpreg:=cmp32;
+                end;
+         end;
          (*
-{$endif TEST_FORBUG}
          if not(simple_loadn) then
           CGMessage(cg_e_illegal_count_var);
-{$ifdef TEST_FORBUG}
          already done in firstfor !! *)
          
          { first set the to value
@@ -223,15 +236,14 @@ implementation
                  concatcopy(p^.right^.location.reference,temp1,hs,false,false);
            end
          else temptovalue:=false;
-{$endif TEST_FORBUG}
+{$endif OLDFORVER}
 
          { produce start assignment }
          cleartempgen;
          secondpass(p^.left);
          count_var_is_signed:=is_signed(porddef(p^.t2^.resulttype));
-{$ifndef TEST_FORBUG}
-             hs:=p^.t2^.resulttype^.size;
-{$endif not TEST_FORBUG}
+{$ifdef OLDFORVER}
+         hs:=p^.t2^.resulttype^.size;
          cmp32:=getregister32;
              case hs of
             1 : begin
@@ -247,9 +259,8 @@ implementation
                    cmpreg:=cmp32;
                 end;
          end;
-{$ifndef TEST_FORBUG}
          cleartempgen;
-             secondpass(p^.right);
+         secondpass(p^.right);
          { calculate pointer value and check if changeable and if so }
          { load into temporary variable                              }
          if p^.right^.treetype<>ordconstn then
@@ -268,7 +279,7 @@ implementation
            end
          else temptovalue:=false;
 
-{$endif not TEST_FORBUG}
+{$endif OLDFORVER}
          if temptovalue then
              begin
               if p^.t2^.location.loc=LOC_CREGISTER then
@@ -777,7 +788,10 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.26  1998-12-19 00:23:44  florian
+  Revision 1.27  1999-01-26 11:26:21  pierre
+   * bug0152 for i:=1 to i-5 do (i-5) evaluated first
+
+  Revision 1.26  1998/12/19 00:23:44  florian
     * ansistring memory leaks fixed
 
   Revision 1.25  1998/11/30 09:43:03  pierre
