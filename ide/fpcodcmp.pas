@@ -146,8 +146,10 @@ begin
 
   if ShowOnlyUnique and (Index<>-1) and (CIndex<>-1) then
     begin
-      St:=PString(CodeCompleteWords^.At(CIndex+1))^;
-      {if UpCase(st[Length(UpWordS)+1])<>Upcase(Text[Length(UpWordS)+1]) then}
+      {St:=PString(CodeCompleteWords^.At(CIndex+1))^;
+       Was wrong, CIndex+1 could be above count => collection.error
+       generated RTE 213
+      if UpCase(st[Length(UpWordS)+1])<>Upcase(Text[Length(UpWordS)+1]) then}
         begin
           Text:='';
           FPCompleteCodeWord:=false;
@@ -636,7 +638,10 @@ END.
 
 {
  $Log$
- Revision 1.10  2002-09-11 13:12:42  pierre
+ Revision 1.11  2002-09-26 13:00:41  pierre
+  * avoid RTE 213
+
+ Revision 1.10  2002/09/11 13:12:42  pierre
   * fix CodeComplete loading and use a unit for standard units code complete
 
  Revision 1.9  2002/09/09 06:53:54  pierre
