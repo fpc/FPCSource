@@ -245,7 +245,8 @@ type
     vo_fpuregable,
     vo_is_local_copy,
     vo_is_const,  { variable is declared as const (parameter) and can't be written to }
-    vo_is_exported
+    vo_is_exported,
+    vo_is_high_value
   );
   tvaroptions=set of tvaroption;
 
@@ -338,7 +339,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.40  2002-12-29 14:57:50  peter
+  Revision 1.41  2003-01-01 22:51:03  peter
+    * high value insertion changed so it works also when 2 parameters
+      are passed
+
+  Revision 1.40  2002/12/29 14:57:50  peter
     * unit loading changed to first register units and load them
       afterwards. This is needed to support uses xxx in yyy correctly
     * unit dependency check fixed

@@ -106,50 +106,48 @@ implementation
 
 
     procedure checkparatype(p:tnamedindexitem;arg:pointer);
-      var
-        highname : string;
       begin
-        if tsym(p).typ<>varsym then
+        if (tsym(p).typ<>varsym) then
          exit;
         with tvarsym(p) do
          begin
-           if assigned(vartype.def) and
-              (vartype.def.deftype=arraydef) and
-              {not is_array_constructor(vartype.def) and}
-              not is_variant_array(vartype.def) and
-              not is_array_of_const(vartype.def) then
-            begin
-              if (varspez<>vs_var) then
-                Message(parser_h_c_arrays_are_references);
-            end;
-           if assigned(vartype.def) and
-              (is_array_of_const(vartype.def) or
-               is_open_array(vartype.def) or
-               is_shortstring(vartype.def)) then
-            begin
-              if is_open_string(vartype.def) then
-                begin
-                  { change type to normal short string }
-                  Message(parser_w_cdecl_no_openstring);
-                end;
-              if assigned(indexnext) and
-                 (tsym(indexnext).typ=varsym) and
-                 (copy(tvarsym(indexnext).name,1,4)='high') then
+           case vartype.def.deftype of
+             arraydef :
                begin
-                 { removing it is too complicated,
-                   we just hide it PM }
-                 highname:='hidden'+copy(tvarsym(indexnext).name,5,high(name));
-                 Message(parser_w_cdecl_has_no_high);
-                 owner.rename(tvarsym(indexnext).name,highname);
+                 if not is_variant_array(vartype.def) and
+                    not is_array_of_const(vartype.def) then
+                  begin
+                    if (varspez<>vs_var) then
+                      Message(parser_h_c_arrays_are_references);
+                  end;
+                 if is_array_of_const(vartype.def) or
+                    is_open_array(vartype.def) then
+                  begin
+                    if assigned(highvarsym) then
+                     begin
+                       Message(parser_w_cdecl_has_no_high);
+                       { removing it is too complicated, we just hide it PM }
+                       owner.rename(highvarsym.name,'hidden'+copy(highvarsym.name,5,high(name)));
+                     end;
+                  end;
                  if is_array_of_const(vartype.def) and
-                    assigned(indexnext.indexnext) then
+                    assigned(indexnext) and
+                    (tsym(indexnext).typ=varsym) and
+                    not(vo_is_high_value in tvarsym(indexnext).varoptions) then
                    Message(parser_e_C_array_of_const_must_be_last);
-               end
-              else
+               end;
+             stringdef :
                begin
-                 if is_array_of_const(vartype.def) and
-                    assigned(indexnext) then
-                   Message(parser_e_C_array_of_const_must_be_last);
+                 if is_open_string(vartype.def) then
+                  begin
+                    Message(parser_w_cdecl_no_openstring);
+                    if assigned(highvarsym) then
+                     begin
+                       Message(parser_w_cdecl_has_no_high);
+                       { removing it is too complicated, we just hide it PM }
+                       owner.rename(highvarsym.name,'hidden'+copy(highvarsym.name,5,high(name)));
+                     end;
+                  end;
                end;
             end;
          end;
@@ -366,10 +364,12 @@ implementation
                       begin
                         hvs:=tvarsym.create('$high'+vs.name,s32bittype);
                         hvs.varspez:=vs_const;
+                        include(hvs.varoptions,vo_is_high_value);
 {$ifdef vs_hidden}
                         aktprocdef.concatpara(s32bittype,hvs,vs_hidden,nil);
 {$endif vs_hidden}
                         currparast.insert(hvs);
+                        vs.highvarsym:=hvs;
                       end;
                      aktprocdef.concatpara(tt,vs,varspez,tdefaultvalue);
                      vs:=tvarsym(vs.listnext);
@@ -1697,14 +1697,13 @@ const
     procedure calc_parasymtable_addresses(def:tprocdef);
       var
         lastps,
-        highps,ps : tsym;
+        ps : tsym;
         st : tsymtable;
       begin
         st:=def.parast;
         if po_leftright in def.procoptions then
          begin
            { pushed in reversed order, left to right }
-           highps:=nil;
            lastps:=nil;
            while assigned(st.symindex.first) and (lastps<>tsym(st.symindex.first)) do
             begin
@@ -1712,27 +1711,14 @@ const
               while assigned(ps.indexnext) and (tsym(ps.indexnext)<>lastps) do
                 ps:=tsym(ps.indexnext);
               if (ps.typ=varsym) and
-                 (copy(ps.name,1,6)<>'hidden') then
+                 not(vo_is_high_value in tvarsym(ps).varoptions) then
                begin
-                 { Wait with inserting the high value, it needs to be inserted
-                   after the corresponding parameter }
-                 if Copy(ps.name,1,4)='high' then
-                  highps:=ps
-                 else
-                  begin
-                    st.insertvardata(ps);
-                    { add also the high tree if it was saved }
-                    if assigned(highps) then
-                     begin
-                       st.insertvardata(highps);
-                       highps:=nil;
-                     end;
-                  end;
+                 st.insertvardata(ps);
+                 if assigned(tvarsym(ps).highvarsym) then
+                   st.insertvardata(tvarsym(ps).highvarsym);
                end;
               lastps:=ps;
             end;
-           if assigned(highps) then
-            internalerror(200208257);
          end
         else
          begin
@@ -1740,8 +1726,13 @@ const
            ps:=tsym(st.symindex.first);
            while assigned(ps) do
             begin
-              if ps.typ=varsym then
-               st.insertvardata(ps);
+              if (ps.typ=varsym) and
+                 not(vo_is_high_value in tvarsym(ps).varoptions) then
+               begin
+                 st.insertvardata(ps);
+                 if assigned(tvarsym(ps).highvarsym) then
+                   st.insertvardata(tvarsym(ps).highvarsym);
+               end;
               ps:=tsym(ps.indexnext);
             end;
          end;
@@ -2129,7 +2120,11 @@ const
 end.
 {
   $Log$
-  Revision 1.98  2003-01-01 14:35:33  peter
+  Revision 1.99  2003-01-01 22:51:03  peter
+    * high value insertion changed so it works also when 2 parameters
+      are passed
+
+  Revision 1.98  2003/01/01 14:35:33  peter
     * don't check for export directive repeat
 
   Revision 1.97  2002/12/29 18:16:06  peter

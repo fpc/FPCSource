@@ -174,6 +174,7 @@ interface
        tvarsym = class(tstoredsym)
           address       : longint;
           localvarsym   : tvarsym;
+          highvarsym    : tvarsym;
           vartype       : ttype;
           varoptions    : tvaroptions;
           reg           : tregister; { if reg<>R_NO, then the variable is an register variable }
@@ -1596,6 +1597,7 @@ implementation
          varspez:=vs_value;
          address:=0;
          localvarsym:=nil;
+         highvarsym:=nil;
          refs:=0;
          varstate:=vs_used;
          varoptions:=[];
@@ -1638,6 +1640,7 @@ implementation
          varspez:=tvarspez(ppufile.getbyte);
          address:=ppufile.getlongint;
          localvarsym:=nil;
+         highvarsym:=nil;
          ppufile.gettype(vartype);
          ppufile.getsmallset(varoptions);
          if (vo_is_C_var in varoptions) then
@@ -1716,9 +1719,9 @@ implementation
 
 {$ifdef var_notification}
     procedure Tvarsym.trigger_notifications(what:Tnotification_flag);
-    
+
     var n:Tnotification;
-    
+
     begin
         if assigned(notifications) then
           begin
@@ -1731,7 +1734,7 @@ implementation
               end;
           end;
     end;
-    
+
     function Tvarsym.register_notification(flags:Tnotification_flags;callback:
                                            Tnotification_callback):cardinal;
 
@@ -1746,7 +1749,7 @@ implementation
     end;
 
     procedure Tvarsym.unregister_notification(id:cardinal);
-    
+
     var n:Tnotification;
 
     begin
@@ -2563,7 +2566,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.87  2002-12-31 09:55:58  daniel
+  Revision 1.88  2003-01-01 22:51:03  peter
+    * high value insertion changed so it works also when 2 parameters
+      are passed
+
+  Revision 1.87  2002/12/31 09:55:58  daniel
    + Notification implementation complete
    + Add for loop code optimization using notifications
      results in 1.5-1.9% speed improvement in nestloop benchmark
