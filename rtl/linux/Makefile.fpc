@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 loaders=prt0 dllprt0 cprt0 gprt0 cprt21 gprt21
-units=$(SYSTEMUNIT) threads objpas strings \
+units=$(SYSTEMUNIT) systhrds objpas strings \
       heaptrc lineinfo \
       $(LINUXUNIT) unix initc $(CPU_UNITS) \
       dos crt objects printer ggigraph \
@@ -138,7 +138,7 @@ gprt21$(OEXT) : $(CPU_TARGET)/gprt0.as
 $(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp sysconst.inc systypes.inc syscalls.inc $(SYSDEPS)
         $(COMPILER) -Us -Sg $(SYSTEMUNIT).pp
 
-threads$(PPUEXT): threads.pp $(INC)/threadh.inc $(SYSTEMUNIT)$(PPUEXT)
+systhrds$(PPUEXT): systhrds.pp $(INC)/threadh.inc $(SYSTEMUNIT)$(PPUEXT)
 
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
