@@ -786,7 +786,8 @@ implementation
                  arraydef :
                    begin
                      { chararray to pointer }
-                     if is_zero_based_array(def_from) and
+                     if (is_zero_based_array(def_from) or
+                         is_open_array(def_from)) and
                         equal_defs(tarraydef(def_from).elementtype.def,tpointerdef(def_to).pointertype.def) then
                       begin
                         doconv:=tc_array_2_pointer;
@@ -1401,7 +1402,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.72  2005-03-28 15:19:18  peter
+  Revision 1.73  2005-04-04 16:30:07  peter
+    * support open array to pointer
+
+  Revision 1.72  2005/03/28 15:19:18  peter
   support (wide)char to pwidechar
 
   Revision 1.71  2005/03/13 11:42:48  florian
