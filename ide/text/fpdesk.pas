@@ -21,6 +21,7 @@ const
      DesktopVersion     = $0007; { <- if you change any Load&Store methods,
                                       default object properties (Options,State)
                                       then you should also change this }
+     HTMLIndexVersion   = DesktopVersion;
 
      ResDesktopFlags    = 'FLAGS';
      ResVideo           = 'VIDEOMODE';
@@ -792,7 +793,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.26  2000-04-18 11:42:36  pierre
+  Revision 1.27  2000-04-25 08:42:33  pierre
+   * New Gabor changes : see fixes.txt
+
+  Revision 1.26  2000/04/18 11:42:36  pierre
    lot of Gabor changes : see fixes.txt
 
   Revision 1.25  2000/03/21 23:32:05  pierre

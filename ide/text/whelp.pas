@@ -207,8 +207,9 @@ type
         HelpFiles: PHelpFileCollection;
         IndexTabSize: sw_integer;
         constructor Init;
-        function    AddOAHelpFile(FileName: string): boolean;
-        function    AddHTMLHelpFile(FileName, TOCEntry: string): boolean;
+        function    AddOAHelpFile(const FileName: string): boolean;
+        function    AddHTMLHelpFile(const FileName, TOCEntry: string): boolean;
+        function    AddHTMLIndexHelpFile(const FileName: string): boolean;
         function    LoadTopic(SourceFileID: word; Context: THelpCtx): PTopic; virtual;
         function    TopicSearch(Keyword: string; var FileID: word; var Context: THelpCtx): boolean; virtual;
         function    BuildIndexTopic: PTopic; virtual;
@@ -224,7 +225,7 @@ type
 const TopicCacheSize    : sw_integer = 10;
       HelpStreamBufSize : sw_integer = 4096;
       HelpFacility      : PHelpFacility = nil;
-      MaxHelpTopicSize  : sw_word = MaxBytes;
+      MaxHelpTopicSize  : sw_word = {$ifdef FPC}3*65520{$else}65520{$endif};
 
 function  NewTopic(FileID: byte; HelpCtx: THelpCtx; Pos: longint; Param: string): PTopic;
 procedure DisposeTopic(P: PTopic);
@@ -773,18 +774,25 @@ begin
 end;
 
 
-function THelpFacility.AddOAHelpFile(FileName: string): boolean;
+function THelpFacility.AddOAHelpFile(const FileName: string): boolean;
 var H: PHelpFile;
 begin
   H:=New(POAHelpFile, Init(FileName, LastID+1));
   AddOAHelpFile:=AddFile(H);
 end;
 
-function THelpFacility.AddHTMLHelpFile(FileName, TOCEntry: string): boolean;
+function THelpFacility.AddHTMLHelpFile(const FileName, TOCEntry: string): boolean;
 var H: PHelpFile;
 begin
   H:=New(PHTMLHelpFile, Init(FileName, LastID+1, TOCEntry));
   AddHTMLHelpFile:=AddFile(H);;
+end;
+
+function THelpFacility.AddHTMLIndexHelpFile(const FileName: string): boolean;
+var H: PHelpFile;
+begin
+  H:=New(PHTMLIndexHelpFile, Init(FileName, LastID+1));
+  AddHTMLIndexHelpFile:=AddFile(H);;
 end;
 
 function THelpFacility.AddFile(H: PHelpFile): boolean;
@@ -977,7 +985,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.18  2000-04-18 11:42:38  pierre
+  Revision 1.19  2000-04-25 08:42:35  pierre
+   * New Gabor changes : see fixes.txt
+
+  Revision 1.18  2000/04/18 11:42:38  pierre
    lot of Gabor changes : see fixes.txt
 
   Revision 1.17  2000/02/07 11:47:25  pierre

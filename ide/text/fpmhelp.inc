@@ -110,6 +110,9 @@ var I: integer;
     FileName: string;
     Re: word;
     S: string;
+    LS: PFPHTMLFileLinkScanner;
+    BS: PBufStream;
+{    Version: word;}
 begin
   case Event.What of
     evKeyDown :
@@ -135,8 +138,64 @@ begin
             if Re<>cmCancel then
             begin
               D^.GetFileName(FileName);
+              if UpcaseStr(ExtOf(FileName))='.HTX' then
+                begin
+                  S:='HTML Index';
+                end
+              else
               if UpcaseStr(copy(ExtOf(FileName),1,4))='.HTM' then
-                Re:=InputBox('Topic title','Title',S,40);
+              begin
+                Re:=ConfirmBox('Create keyword index from help file?',nil,true);
+                if Re<>cmCancel then
+                if Re=cmNo then
+                  Re:=InputBox('Topic title','Title',S,40)
+                else
+                  begin
+                    ShowMessage('Please wait while creating index...');
+                    S:='HTML Index';
+                    PushStatus('Building index file '+FileName);
+                    New(LS, Init);
+                    LS^.ProcessDocument(FileName,[soSubDocsOnly]);
+                    if LS^.GetDocumentCount=0 then
+                      begin
+                        ErrorBox(FileName+' doesn''t contain any links, thus it isn''t suitable for indexing.',nil);
+                        Re:=cmCancel;
+                      end
+                    else
+                      begin
+                        FileName:=DirAndNameOf(FileName)+HTMLIndexExt;
+                        if ExistsFile(FileName) then
+                          if ConfirmBox('Index file '+FileName+' already exists. Overwrite?',nil,true)<>cmYes then
+                            Re:=cmCancel;
+                        if Re<>cmCancel then
+                        begin
+                          PushStatus('Storing HTML index in '+FileName);
+                          New(BS, Init(FileName, stCreate, 4096));
+                          if Assigned(BS)=false then
+                            begin
+                              ErrorBox('Can''t create '+FileName,nil);
+                              Re:=cmCancel;
+                            end
+                          else
+                            begin
+{                              Version:=HTMLIndexVersion;
+                              BS^.Write(Version,sizeof(Version));}
+                              LS^.StoreDocuments(BS^);
+                              if BS^.Status<>stOK then
+                                begin
+                                  ErrorBox('Error storing index data',nil);
+                                  Re:=cmCancel;
+                                end;
+                              Dispose(BS, Done);
+                            end;
+                          PopStatus;
+                        end;
+                      end;
+                    Dispose(LS, Done);
+                    PopStatus;
+                    HideMessage;
+                  end;
+              end;
             end;
             if Re<>cmCancel then
             begin
@@ -190,7 +249,10 @@ end;
 
 {
   $Log$
-  Revision 1.8  2000-02-07 08:29:13  michael
+  Revision 1.9  2000-04-25 08:42:33  pierre
+   * New Gabor changes : see fixes.txt
+
+  Revision 1.8  2000/02/07 08:29:13  michael
   [*] the fake (!) TOKENS.PAS still contained the typo bug
        FSplit(,n,d,e) (correctly FSplit(,d,n,e))
   [*] CodeComplete had a very ugly bug - coordinates were document-relative

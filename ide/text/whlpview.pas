@@ -90,6 +90,7 @@ type
         Lines: PUnsortedStringCollection;
         Links: PLinkCollection;
         ColorAreas: PColorAreaCollection;
+      public
         constructor Init(ATopic: PTopic);
         procedure   SetParams(AMargin, AWidth: sw_integer); virtual;
         function    GetLineCount: sw_integer; virtual;
@@ -128,6 +129,7 @@ type
         procedure   SetCurPtr(X,Y: sw_integer); virtual;
         function    GetLineCount: sw_integer; virtual;
         function    GetLineText(Line: sw_integer): string; virtual;
+        function    GetDisplayText(I: sw_integer): string; virtual;
         function    GetLinkCount: sw_integer; virtual;
         procedure   GetLinkBounds(Index: sw_integer; var R: TRect); virtual;
         function    GetLinkFileID(Index: sw_integer): word; virtual;
@@ -605,6 +607,11 @@ var Count: sw_integer;
 begin
   if HelpTopic=nil then Count:=0 else Count:=HelpTopic^.GetLineCount;
   GetLineCount:=Count;
+end;
+
+function THelpViewer.GetDisplayText(I: sw_integer): string;
+begin
+  GetDisplayText:=ExtractTabs(GetLineText(I),DefaultTabSize);
 end;
 
 function THelpViewer.GetLineText(Line: sw_integer): string;
@@ -1147,7 +1154,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.13  2000-04-18 11:42:39  pierre
+  Revision 1.14  2000-04-25 08:42:35  pierre
+   * New Gabor changes : see fixes.txt
+
+  Revision 1.13  2000/04/18 11:42:39  pierre
    lot of Gabor changes : see fixes.txt
 
   Revision 1.12  2000/03/21 23:21:38  pierre

@@ -28,7 +28,7 @@ interface
 uses
   Objects,
   Drivers,Views,Dialogs,
-  WViews,
+  WUtils,WViews,
   FPSymbol,
   FPViews;
 
@@ -85,7 +85,6 @@ procedure ParseUserScreen;
 
 procedure RegisterFPCompile;
 
-
 implementation
 
 uses
@@ -94,8 +93,8 @@ uses
 {$endif}
   Dos,Video,
   App,Commands,tokens,
-  CompHook, Compiler, systems, browcol,
-  WUtils,WEditor,
+  CompHook, Compiler, systems, browcol, switches,
+  WEditor,
   FPRedir,FPDesk,FPUsrScr,FPHelp,
   FPIde,FPConst,FPVars,FPUtils,FPIntf,FPSwitch;
 
@@ -636,6 +635,8 @@ var
   ErrFile : Text;
   Error,LinkErrorCount : longint;
   E : TEvent;
+  DummyView: PView;
+  R: TRect;
 const
   PpasFile = 'ppas';
 
@@ -793,6 +794,17 @@ begin
   releasetempheap;
   unsplit_heap;
 {$endif TEMPHEAP}
+  DummyView:=Desktop^.First;
+  while (DummyView<>nil) and (DummyView^.GetState(sfVisible)=false) do
+  begin
+    DummyView:=DummyView^.NextView;
+  end;
+  with DummyView^ do
+   if GetState(sfVisible) then
+    begin
+      SetState(sfSelected,false);
+      SetState(sfSelected,true);
+    end;
   if Assigned(CompilerMessageWindow) then
     with CompilerMessageWindow^ do
       begin
@@ -873,7 +885,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.55  2000-04-18 11:42:36  pierre
+  Revision 1.56  2000-04-25 08:42:32  pierre
+   * New Gabor changes : see fixes.txt
+
+  Revision 1.55  2000/04/18 11:42:36  pierre
    lot of Gabor changes : see fixes.txt
 
   Revision 1.54  2000/03/23 22:23:21  pierre

@@ -167,6 +167,15 @@ begin
      RemoveRecentFile(RecentIndex);
 end;
 
+function TIDEApp.AskSaveAll: boolean;
+function CanClose(P: PView): boolean; {$ifndef FPC}far;{$endif}
+begin
+  CanClose:=not P^.Valid(cmQuit);
+end;
+begin
+  AskSaveAll:=Desktop^.FirstThat(@CanClose)=nil;
+end;
+
 function TIDEApp.SaveAll: boolean;
 
   procedure SendSave(P: PView); {$ifndef FPC}far;{$endif}
@@ -189,7 +198,10 @@ end;
 
 {
   $Log$
-  Revision 1.18  2000-03-21 23:29:52  pierre
+  Revision 1.19  2000-04-25 08:42:33  pierre
+   * New Gabor changes : see fixes.txt
+
+  Revision 1.18  2000/03/21 23:29:52  pierre
    + Use TrimEndSlash by Gabor
 
   Revision 1.17  1999/12/01 16:48:09  pierre

@@ -40,6 +40,19 @@ const
       cmResetDebuggerRow     = 51248;
       cmAddChar              = 51249;
       cmExpandCodeTemplate   = 51250;
+      cmUpperCase            = 51251;
+      cmLowerCase            = 51252;
+      cmWindowStart          = 51253;
+      cmWindowEnd            = 51254;
+      cmFindMatchingDelimiter= 51255;
+      cmFindMatchingDelimiterBack=51256;
+      cmActivateMenu         = 51257;
+      cmWordLowerCase        = 51258;
+      cmWordUpperCase        = 51259;
+      cmOpenAtCursor         = 51260;
+      cmBrowseAtCursor       = 51261;
+      cmInsertOptions        = 51262;
+      cmToggleCase           = 51263;
 
       EditorTextBufSize = {$ifdef FPC}32768{$else} 4096{$endif};
       MaxLineLength     = {$ifdef FPC}  255{$else}  255{$endif};
@@ -376,6 +389,8 @@ type
       procedure   UpdateUndoRedo(cm : word; action : byte);virtual;
     end;
 
+    TCaseAction = (caToLowerCase,caToUpperCase,caToggleCase);
+
     TCustomCodeEditor = object(TScroller)
       SelStart   : TPoint;
       SelEnd     : TPoint;
@@ -418,8 +433,10 @@ type
    {a}function    GetInsertMode: boolean; virtual;
    {a}procedure   SetInsertMode(InsertMode: boolean); virtual;
       procedure   SetCurPtr(X,Y: sw_integer); virtual;
+      procedure   GetSelectionArea(var StartP,EndP: TPoint); virtual;
       procedure   SetSelection(A, B: TPoint); virtual;
       procedure   SetHighlight(A, B: TPoint); virtual;
+      procedure   ChangeCaseArea(StartP,EndP: TPoint; CaseAction: TCaseAction); virtual;
       procedure   SetLineFlagState(LineNo: sw_integer; Flags: longint; ASet: boolean);
       procedure   SetLineFlagExclusive(Flags: longint; LineNo: sw_integer);
       procedure   Update; virtual;
@@ -535,11 +552,20 @@ type
       procedure PageDown; virtual;
       procedure TextStart; virtual;
       procedure TextEnd; virtual;
+      procedure WindowStart; virtual;
+      procedure WindowEnd; virtual;
       procedure JumpSelStart; virtual;
       procedure JumpSelEnd; virtual;
       procedure JumpMark(MarkIdx: integer); virtual;
       procedure DefineMark(MarkIdx: integer); virtual;
       procedure JumpToLastCursorPos; virtual;
+      procedure FindMatchingDelimiter(ScanForward: boolean); virtual;
+      procedure UpperCase; virtual;
+      procedure LowerCase; virtual;
+      procedure WordLowerCase; virtual;
+      procedure WordUpperCase; virtual;
+      procedure InsertOptions; virtual;
+      procedure ToggleCase; virtual;
       function  InsertNewLine: Sw_integer; virtual;
       procedure BreakLine; virtual;
       procedure BackSpace; virtual;
@@ -572,6 +598,7 @@ type
       procedure ClipCut; virtual;
       procedure ClipPaste; virtual;
       function  GetCurrentWord : string;
+      function  GetCurrentWordArea(var StartP,EndP: TPoint): boolean;
       procedure Undo; virtual;
       procedure Redo; virtual;
       procedure Find; virtual;
@@ -670,7 +697,7 @@ const
      kbShift = kbLeftShift+kbRightShift;
 
 const
-  FirstKeyCount = 40;
+  FirstKeyCount = 41;
   FirstKeys: array[0..FirstKeyCount * 2] of Word = (FirstKeyCount,
     Ord(^A), cmWordLeft, Ord(^B), cmJumpLine, Ord(^C), cmPageDown,
     Ord(^D), cmCharRight, Ord(^E), cmLineUp,
@@ -678,6 +705,7 @@ const
     Ord(^H), cmBackSpace, Ord(^J), cmExpandCodeTemplate,
     Ord(^K), $FF02, Ord(^L), cmSearchAgain,
     Ord(^M), cmNewLine, Ord(^N), cmBreakLine,
+    Ord(^O), $FF03,
     Ord(^P), cmASCIIChar, Ord(^Q), $FF01,
     Ord(^R), cmPageUp, Ord(^S), cmCharLeft,
     Ord(^T), cmDelWord, Ord(^U), cmUndo,
@@ -692,7 +720,7 @@ const
     kbDel, cmDelChar, kbShiftIns, cmPaste,
     kbShiftDel, cmCut, kbCtrlIns, cmCopy,
     kbCtrlDel, cmClear);
-  QuickKeyCount = 23;
+  QuickKeyCount = 29;
   QuickKeys: array[0..QuickKeyCount * 2] of Word = (QuickKeyCount,
     Ord('A'), cmReplace, Ord('C'), cmTextEnd,
     Ord('D'), cmLineEnd, Ord('F'), cmFind,
@@ -701,11 +729,14 @@ const
     Ord('G'), cmJumpLine, Ord('A'), cmReplace,
     Ord('B'), cmSelStart, Ord('K'), cmSelEnd,
     Ord('P'), cmLastCursorPos,
+    Ord('E'), cmWindowStart, Ord('T'), cmWindowStart,
+    Ord('U'), cmWindowEnd, Ord('X'), cmWindowEnd,
+    Ord('['), cmFindMatchingDelimiter, Ord(']'), cmFindMatchingDelimiterBack,
     Ord('0'), cmJumpMark0, Ord('1'), cmJumpMark1, Ord('2'), cmJumpMark2,
     Ord('3'), cmJumpMark3, Ord('4'), cmJumpMark4, Ord('5'), cmJumpMark5,
     Ord('6'), cmJumpMark6, Ord('7'), cmJumpMark7, Ord('8'), cmJumpMark8,
     Ord('9'), cmJumpMark9);
-  BlockKeyCount = 23;
+  BlockKeyCount = 29;
   BlockKeys: array[0..BlockKeyCount * 2] of Word = (BlockKeyCount,
     Ord('B'), cmStartSelect, Ord('C'), cmCopyBlock,
     Ord('H'), cmHideSelect, Ord('K'), cmEndSelect,
@@ -714,11 +745,20 @@ const
     Ord('T'), cmSelectWord, Ord('L'), cmSelectLine,
     Ord('W'), cmWriteBlock, Ord('R'), cmReadBlock,
     Ord('P'), cmPrintBlock,
+    Ord('N'), cmUpperCase, Ord('O'), cmLowerCase,
+    Ord('D'), cmActivateMenu,
+    Ord('E'), cmWordLowerCase, Ord('F'), cmWordUpperCase,
+    Ord('S'), cmSave,
     Ord('0'), cmSetMark0, Ord('1'), cmSetMark1, Ord('2'), cmSetMark2,
     Ord('3'), cmSetMark3, Ord('4'), cmSetMark4, Ord('5'), cmSetMark5,
     Ord('6'), cmSetMark6, Ord('7'), cmSetMark7, Ord('8'), cmSetMark8,
     Ord('9'), cmSetMark9);
-  KeyMap: array[0..2] of Pointer = (@FirstKeys, @QuickKeys, @BlockKeys);
+  MiscKeyCount = 6;
+  MiscKeys: array[0..MiscKeyCount * 2] of Word = (MiscKeyCount,
+    Ord('A'), cmOpenAtCursor, Ord('B'), cmBrowseAtCursor,
+    Ord('G'), cmJumpLine, Ord('O'), cmInsertOptions,
+    Ord('U'), cmToggleCase, Ord('L'), cmSelectLine);
+  KeyMap: array[0..3] of Pointer = (@FirstKeys, @QuickKeys, @BlockKeys, @MiscKeys);
 
 function ScanKeyMap(KeyMap: Pointer; KeyCode: Word): Word;
 type
@@ -750,10 +790,10 @@ begin
   IsWordSeparator:=C in[' ',#0,#255,':','=','''','"','.',',','/',';','$','#','(',')','<','>','^','*','+','-','?','&','[',']'];
 end;
 
-function IsSpace(C: char): boolean;
+{function IsSpace(C: char): boolean;
 begin
   IsSpace:=C in[' ',#0,#255];
-end;
+end;}
 
 function LTrim(S: string): string;
 begin
@@ -837,13 +877,6 @@ begin
   upper[0]:=s[0];
 end;
 
-function DirAndNameOf(const Path: string): string;
-var D: DirStr; N: NameStr; E: ExtStr;
-begin
-  FSplit(Path,D,N,E);
-  DirAndNameOf:=D+N;
-end;
-
 type TPosOfs = {$ifdef TP}longint{$endif}{$ifdef FPC}comp{$endif};
 
 function PosToOfs(const X,Y: sw_integer): TPosOfs;
@@ -906,7 +939,7 @@ begin
   ExtractTabs:=S;
 end;
 
-function CompressUsingTabs(S: string; TabSize: byte): string;
+{function CompressUsingTabs(S: string; TabSize: byte): string;
 var TabS: string;
     P: byte;
 begin
@@ -917,7 +950,7 @@ begin
       S:=copy(S,1,P-1)+TAB+copy(S,P+TabSize,255);
   until P=0;
   CompressUsingTabs:=S;
-end;
+end;}
 
 
 {*****************************************************************************
@@ -2086,14 +2119,14 @@ begin
     NextLine:=GetLine(CurLine);
     if Assigned(NextLine) then NextLI:=NextLine^.GetEditorInfo(Editor) else NextLI:=nil;
     if ((Attrs and attrForceFull)=0) then
-      if {  Why should we go
-         (InAsm=false) and (NextLine^.BeginsWithAsm=false) and
-         (InComment=false) and (NextLine^.BeginsWithComment=false) and
-         (InDirective=false) and (NextLine^.BeginsWithDirective=false) and
-          OldLine = Line so this is nonsense
-         (OldLine^.EndsWithComment=Line^.EndsWithComment) and
-         (OldLine^.EndsWithAsm=Line^.EndsWithAsm) and
-         (OldLine^.EndsWithDirective=Line^.EndsWithDirective) and }
+      if (*  Why should we go
+         (InAsm=false) and (NextLI^.BeginsWithAsm=false) and
+         (InComment=false) and (NextLI^.BeginsWithComment=false) and
+         (InDirective=false) and (NextLI^.BeginsWithDirective=false) and
+{          OldLine = Line so this is nonsense}
+         (PrevLI^.EndsWithComment=LI^.EndsWithComment) and
+         (PrevLI^.EndsWithAsm=LI^.EndsWithAsm) and
+         (PrevLI^.EndsWithDirective=LI^.EndsWithDirective) and *)
 {$ifdef TEST_PARTIAL_SYNTAX}
          (CurLine>FromLine) and
 {$endif TEST_PARTIAL_SYNTAX}
@@ -2936,6 +2969,8 @@ begin
           cmPageDown    : PageDown;
           cmTextStart   : TextStart;
           cmTextEnd     : TextEnd;
+          cmWindowStart : WindowStart;
+          cmWindowEnd   : WindowEnd;
           cmNewLine     : InsertNewLine;
           cmBreakLine   : BreakLine;
           cmBackSpace   : BackSpace;
@@ -2957,6 +2992,14 @@ begin
           cmSelStart    : JumpSelStart;
           cmSelEnd      : JumpSelEnd;
           cmLastCursorPos : JumpToLastCursorPos;
+          cmFindMatchingDelimiter : FindMatchingDelimiter(true);
+          cmFindMatchingDelimiterBack : FindMatchingDelimiter(false);
+          cmUpperCase     : UpperCase;
+          cmLowerCase     : LowerCase;
+          cmWordLowerCase : WordLowerCase;
+          cmWordUpperCase : WordUpperCase;
+          cmInsertOptions : InsertOptions;
+          cmToggleCase    : ToggleCase;
           cmJumpMark0..cmJumpMark9 : JumpMark(Event.Command-cmJumpMark0);
           cmSetMark0..cmSetMark9 : DefineMark(Event.Command-cmSetMark0);
           cmSelectWord  : SelectWord;
@@ -2986,6 +3029,8 @@ begin
               P:=CurPos; Inc(P.X); Inc(P.Y);
               LocalMenu(P);
             end;
+          cmActivateMenu :
+            Message(Application,evCommand,cmMenu,nil);
         else
           begin
             DontClear:=true;
@@ -3542,6 +3587,16 @@ begin
   SetCurPtr(i,GetLineCount-1);
 end;
 
+procedure TCustomCodeEditor.WindowStart;
+begin
+  SetCurPtr(CurPos.X,Delta.Y);
+end;
+
+procedure TCustomCodeEditor.WindowEnd;
+begin
+  SetCurPtr(CurPos.X,Delta.Y+Size.Y-1);
+end;
+
 procedure TCustomCodeEditor.JumpSelStart;
 begin
   if ValidBlock then
@@ -3585,6 +3640,163 @@ begin
   NotImplemented;
 end;
 
+procedure TCustomCodeEditor.UpperCase;
+var StartP,EndP: TPoint;
+begin
+  if ValidBlock=false then Exit;
+  GetSelectionArea(StartP,EndP);
+  ChangeCaseArea(StartP,EndP,caToUpperCase);
+end;
+
+procedure TCustomCodeEditor.LowerCase;
+var StartP,EndP: TPoint;
+begin
+  if ValidBlock=false then Exit;
+  GetSelectionArea(StartP,EndP);
+  ChangeCaseArea(StartP,EndP,caToLowerCase);
+end;
+
+procedure TCustomCodeEditor.ToggleCase;
+var StartP,EndP: TPoint;
+begin
+  if ValidBlock=false then Exit;
+  GetSelectionArea(StartP,EndP);
+  ChangeCaseArea(StartP,EndP,caToggleCase);
+end;
+
+procedure TCustomCodeEditor.WordLowerCase;
+var StartP,EndP: TPoint;
+begin
+  if GetCurrentWordArea(StartP,EndP)=false then Exit;
+  ChangeCaseArea(StartP,EndP,caToLowerCase);
+end;
+
+procedure TCustomCodeEditor.WordUpperCase;
+var StartP,EndP: TPoint;
+begin
+  if GetCurrentWordArea(StartP,EndP)=false then Exit;
+  ChangeCaseArea(StartP,EndP,caToUpperCase);
+end;
+
+procedure TCustomCodeEditor.ChangeCaseArea(StartP,EndP: TPoint; CaseAction: TCaseAction);
+var Y,X: sw_integer;
+    X1,X2: sw_integer;
+    S: string;
+    C: char;
+begin
+  Lock;
+  for Y:=StartP.Y to EndP.Y do
+  begin
+    S:=GetDisplayText(Y);
+    { Pierre, please implement undo here! Gabor }
+    X1:=0; X2:=length(S)-1;
+    if Y=StartP.Y then X1:=StartP.X;
+    if Y=EndP.Y then X2:=EndP.X;
+    for X:=X1 to X2 do
+    begin
+      C:=S[X+1];
+      case CaseAction of
+        caToLowerCase : C:=LowCase(C);
+        caToUpperCase : C:=UpCase(C);
+        caToggleCase  : if C in['a'..'z'] then
+                          C:=Upcase(C)
+                        else
+                         C:=LowCase(C);
+       end;
+      S[X+1]:=C;
+    end;
+    SetDisplayText(Y,S);
+  end;
+  UpdateAttrsRange(StartP.Y,EndP.Y,attrAll);
+  DrawLines(CurPos.Y);
+  SetModified(true);
+  UnLock;
+end;
+
+procedure TCustomCodeEditor.InsertOptions;
+begin
+  { Abstract }
+  NotImplemented;
+end;
+
+procedure TCustomCodeEditor.FindMatchingDelimiter(ScanForward: boolean);
+const OpenSymbols  : string[6] = '[{(<''"';
+      CloseSymbols : string[6] = ']})>''"';
+var SymIdx: integer;
+    LineText,LineAttr: string;
+    CurChar: char;
+    X,Y: sw_integer;
+    P,LineCount: sw_integer;
+    JumpPos: TPoint;
+    BracketLevel: integer;
+begin
+  JumpPos.X:=-1; JumpPos.Y:=-1;
+  LineText:=GetDisplayText(CurPos.Y);
+  LineText:=copy(LineText,CurPos.X+1,1);
+  if LineText='' then Exit;
+  CurChar:=LineText[1];
+  Y:=CurPos.Y; X:=CurPos.X; LineCount:=0;
+  BracketLevel:=1;
+  if ScanForward then
+    begin
+      SymIdx:=Pos(CurChar,OpenSymbols);
+      if SymIdx=0 then Exit;
+      repeat
+        Inc(LineCount);
+        GetDisplayTextFormat(Y,LineText,LineAttr);
+        if LineCount<>1 then X:=-1;
+        repeat
+          Inc(X);
+          if X<length(LineText) then
+           if copy(LineAttr,X+1,1)<>chr(attrComment) then
+             if (LineText[X+1]=CloseSymbols[SymIdx]) and (BracketLevel=1) then
+               begin
+                 JumpPos.X:=X; JumpPos.Y:=Y;
+               end
+             else
+               if LineText[X+1]=OpenSymbols[SymIdx] then
+                 Inc(BracketLevel)
+               else
+               if LineText[X+1]=CloseSymbols[SymIdx] then
+                 if BracketLevel>1 then
+                   Dec(BracketLevel);
+        until (X>=length(LineText)) or (JumpPos.X<>-1);
+        Inc(Y);
+      until (Y>=GetLineCount) or (JumpPos.X<>-1);
+    end
+  else
+    begin
+      SymIdx:=Pos(CurChar,CloseSymbols);
+      if SymIdx=0 then Exit;
+      repeat
+        Inc(LineCount);
+        GetDisplayTextFormat(Y,LineText,LineAttr);
+        if LineCount<>1 then X:=length(LineText);
+        repeat
+          Dec(X);
+          if X>0 then
+           if copy(LineAttr,X+1,1)<>chr(attrComment) then
+             if (LineText[X+1]=OpenSymbols[SymIdx]) and (BracketLevel=1) then
+               begin
+                 JumpPos.X:=X; JumpPos.Y:=Y;
+               end
+             else
+               if LineText[X+1]=CloseSymbols[SymIdx] then
+                 Inc(BracketLevel)
+               else
+               if LineText[X+1]=OpenSymbols[SymIdx] then
+                 if BracketLevel>1 then
+                   Dec(BracketLevel);
+        until (X<0) or (JumpPos.X<>-1);
+        Dec(Y);
+      until (Y<0) or (JumpPos.X<>-1);
+    end;
+  if JumpPos.X<>-1 then
+  begin
+    SetCurPtr(JumpPos.X,JumpPos.Y);
+    TrackCursor(true);
+  end;
+end;
 
 function TCustomCodeEditor.InsertNewLine: Sw_integer;
 var Ind: Sw_integer;
@@ -3885,26 +4097,42 @@ begin
   SetInsertMode(Overwrite);
 end;
 
-function  TCustomCodeEditor.GetCurrentWord : string;
+function TCustomCodeEditor.GetCurrentWordArea(var StartP,EndP: TPoint): boolean;
 const WordChars = ['A'..'Z','a'..'z','0'..'9','_'];
 var P : TPoint;
     S : String;
     StartPos,EndPos : byte;
+    OK: boolean;
 begin
   P:=CurPos;
   S:=GetLineText(P.Y);
   StartPos:=P.X+1;
   EndPos:=StartPos;
-  if not (S[StartPos] in WordChars) then
-    GetCurrentWord:=''
-  else
+  OK:=(S[StartPos] in WordChars);
+  if OK then
     begin
        While (StartPos>0) and (S[StartPos-1] in WordChars) do
-    Dec(StartPos);
+         Dec(StartPos);
        While (EndPos<Length(S)) and (S[EndPos+1] in WordChars) do
-    Inc(EndPos);
-       GetCurrentWord:=Copy(S,StartPos,EndPos-StartPos+1);
+         Inc(EndPos);
+       StartP.X:=StartPos-1; StartP.Y:=CurPos.Y;
+       EndP.X:=EndPos-1; EndP.Y:=CurPos.Y;
     end;
+  GetCurrentWordArea:=OK;
+end;
+
+function  TCustomCodeEditor.GetCurrentWord : string;
+var S: string;
+    StartP,EndP: TPoint;
+begin
+  if GetCurrentWordArea(StartP,EndP)=false then
+    S:=''
+  else
+    begin
+      S:=GetLineText(StartP.Y);
+      S:=copy(S,StartP.X+1,EndP.X-StartP.X+1);
+    end;
+  GetCurrentWord:=S;
 end;
 
 procedure TCustomCodeEditor.StartSelect;
@@ -5039,6 +5267,18 @@ begin
   SetHighlight(CurPos,CurPos);
 end;
 
+procedure TCustomCodeEditor.GetSelectionArea(var StartP,EndP: TPoint);
+begin
+  StartP:=SelStart; EndP:=SelEnd;
+  if EndP.X=0 then
+    begin
+      Dec(EndP.Y);
+      EndP.X:=length(GetDisplayText(EndP.Y))-1;
+    end
+  else
+   Dec(EndP.X);
+end;
+
 function TCustomCodeEditor.ValidBlock: boolean;
 begin
   ValidBlock:=(SelStart.X<>SelEnd.X) or (SelStart.Y<>SelEnd.Y);
@@ -5600,7 +5840,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.87  2000-04-18 11:42:38  pierre
+  Revision 1.88  2000-04-25 08:42:34  pierre
+   * New Gabor changes : see fixes.txt
+
+  Revision 1.87  2000/04/18 11:42:38  pierre
    lot of Gabor changes : see fixes.txt
 
   Revision 1.86  2000/03/23 21:36:19  pierre

@@ -25,13 +25,21 @@ uses
 {$else}
   WEditor,WCEdit,
 {$endif}
-  WViews,FPViews;
+  WViews,WHTMLScn,
+  FPViews;
 
 type
     PIDEStatusLine = ^TIDEStatusLine;
     TIDEStatusLine = object(TAdvancedStatusLine)
       function  Hint(AHelpCtx: Word): String; virtual;
       procedure HandleEvent(var Event: TEvent); virtual;
+    end;
+
+    PFPHTMLFileLinkScanner = ^TFPHTMLFileLinkScanner;
+    TFPHTMLFileLinkScanner = object(THTMLFileLinkScanner)
+       function    CheckURL(const URL: string): boolean; virtual;
+       function    CheckText(const Text: string): boolean; virtual;
+       procedure   ProcessDoc(Doc: PHTMLLinkScanFile); virtual;
     end;
 
 procedure Help(FileID, Context: THelpCtx; Modal: boolean);
@@ -58,7 +66,7 @@ const
 implementation
 
 uses Objects,Views,App,MsgBox,Commands,
-     WHTMLHlp,
+     WUtils,WHTMLHlp,
      FPConst,FPVars,FPUtils;
 
 const
@@ -225,6 +233,35 @@ begin
   Hint:=S;
 end;
 
+procedure TFPHTMLFileLinkScanner.ProcessDoc(Doc: PHTMLLinkScanFile);
+begin
+  PushStatus('Indexing file '+Doc^.GetDocumentURL);
+  inherited ProcessDoc(Doc);
+  PopStatus;
+end;
+
+function TFPHTMLFileLinkScanner.CheckURL(const URL: string): boolean;
+var OK: boolean;
+const HTTPPrefix = 'http:';
+      FTPPrefix  = 'ftp:';
+begin
+  OK:=inherited CheckURL(URL);
+  if OK then OK:=DirAndNameOf(URL)<>'';
+  if OK then OK:=CompareText(copy(ExtOf(URL),1,4),'.HTM')=0;
+  if OK then OK:=CompareText(copy(URL,1,length(HTTPPrefix)),HTTPPrefix)<>0;
+  if OK then OK:=CompareText(copy(URL,1,length(FTPPrefix)),FTPPrefix)<>0;
+  CheckURL:=OK;
+end;
+
+function TFPHTMLFileLinkScanner.CheckText(const Text: string): boolean;
+var OK: boolean;
+    S: string;
+begin
+  S:=Trim(Text);
+  OK:=(S<>'') and (copy(S,1,1)<>'[');
+  CheckText:=OK;
+end;
+
 procedure InitHelpSystem;
 
   procedure AddOAFile(HelpFile: string);
@@ -238,6 +275,13 @@ procedure InitHelpSystem;
   begin
     {$IFDEF DEBUG}SetStatus(strLoadingHelp+' ('+SmartPath(HelpFile)+')');{$ENDIF}
     HelpFacility^.AddHTMLHelpFile(HelpFile, TOCEntry);
+    {$IFDEF DEBUG}SetStatus(strLoadingHelp);{$ENDIF}
+  end;
+
+  procedure AddHTMLIndexFile(HelpFile: string);
+  begin
+    {$IFDEF DEBUG}SetStatus(strLoadingHelp+' ('+SmartPath(HelpFile)+')');{$ENDIF}
+    HelpFacility^.AddHTMLIndexHelpFile(HelpFile);
     {$IFDEF DEBUG}SetStatus(strLoadingHelp);{$ENDIF}
   end;
 
@@ -256,8 +300,9 @@ begin
         begin TopicTitle:=copy(S,P+1,255); S:=copy(S,1,P-1); end;
       if TopicTitle='' then TopicTitle:=S;
       if copy(UpcaseStr(ExtOf(S)),1,4)='.HTM' then { this recognizes both .htm and .html }
-          AddHTMLFile(TopicTitle,S)
-      else
+          AddHTMLFile(TopicTitle,S) else
+      if UpcaseStr(ExtOf(S))='.HTX' then
+          AddHTMLIndexFile(S) else
         AddOAFile(S);
     end;
   PopStatus;
@@ -409,11 +454,13 @@ begin
   Desktop^.ForEach(@CloseIfHelpWindow);
 end;
 
-
 END.
 {
   $Log$
-  Revision 1.28  2000-03-21 23:31:14  pierre
+  Revision 1.29  2000-04-25 08:42:33  pierre
+   * New Gabor changes : see fixes.txt
+
+  Revision 1.28  2000/03/21 23:31:14  pierre
    adapted to wcedit addition by Gabor
 
   Revision 1.27  2000/02/07 11:58:01  pierre

@@ -18,7 +18,7 @@ unit FPConst;
 interface
 
 uses Views,App,Commands,
-     WViews;
+     WViews,WEditor;
 
 const
      VersionStr           = '0.9';
@@ -44,7 +44,8 @@ const
      GDBOutPutFileName    = 'gdb___.txt';
      DesktopTempName      = 'fp___.dsk';
 
-     HelpFileExts         = '*.tph;*.htm*';
+     HTMLIndexExt         = '.htx';
+     HelpFileExts         = '*.tph;*.htm*;*'+HTMLIndexExt;
 
      EnterSign            = #17#196#217;
 
@@ -188,8 +189,6 @@ const
      cmHelpFiles         = 2105;
      cmAbout             = 2106;
 
-     cmOpenAtCursor      = 2200;
-     cmBrowseAtCursor    = 2201;
      cmEditorOptions     = 2202;
      cmBrowserOptions    = 2203;
 
@@ -396,7 +395,10 @@ implementation
 END.
 {
   $Log$
-  Revision 1.36  2000-04-18 11:42:36  pierre
+  Revision 1.37  2000-04-25 08:42:33  pierre
+   * New Gabor changes : see fixes.txt
+
+  Revision 1.36  2000/04/18 11:42:36  pierre
    lot of Gabor changes : see fixes.txt
 
   Revision 1.35  2000/03/14 14:16:13  pierre

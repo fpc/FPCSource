@@ -20,7 +20,7 @@ unit FPVars;
 interface
 
 uses Objects,Views,App,
-     WUtils,
+     WUtils,WEditor,
      FPConst,
      FPDebug,
      FPUtils,FPViews,FPCalc;
@@ -100,7 +100,10 @@ implementation
 END.
 {
   $Log$
-  Revision 1.31  2000-04-18 11:42:37  pierre
+  Revision 1.32  2000-04-25 08:42:33  pierre
+   * New Gabor changes : see fixes.txt
+
+  Revision 1.31  2000/04/18 11:42:37  pierre
    lot of Gabor changes : see fixes.txt
 
   Revision 1.30  2000/03/13 20:35:36  pierre

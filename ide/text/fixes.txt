@@ -1,3 +1,5 @@
+Gabor's log 25/4/2000 commits
+
 ========================= Fixes to apply ==============================
 
 The GO32 mouse.inc (API) displays a message ("No mouse driver found!") when
@@ -43,3 +45,34 @@ it doesn't find a mouse driver. This message should be removed.
 
 =========================== Todo ========================================
 
+Gabor's log for 18/4/2000 commits
+
+========================= Already fixed ================================
+
+ [*] THTMLTopicRenderer didn't handle table tags (<TABLE>,<TR>,<TH>,<TD>)
+ [*] the IDE didn't prompt the user for saving modified files at exit, when
+     there were multiple editor windows open for the same file
+ [*] the IDE didn't respond to some hotkeys (for ex. Alt+F3) after a success-
+     ful compilation
+
+========================== Other improvements ============================
+
+ [+] HTML index generation added. This enables users to index any collection
+     of HTML files, for ex. the HTML version of the FPC docs.
+     This way we can finally get a WinAPI help for the IDE. The user simply
+     has to download a .chm version of the WinAPI help, decompile it with the
+     M$ HTML Help Workshop, and install it as a help file...
+     (however this will only work in a DOS box under W9X, or with the win32
+     version of IDE, as these HTML files use long filenames)
+ [+] TCodeEditor acts now on several additional keys, like
+     Ctrl+O+A - Open at cursor      , Ctrl+O+B - Browse at cursor      ,
+     Ctrl+O+G - Go to line number   , Ctrl+O+O - Insert options        ,
+     Ctrl+O+U - Toggle case of char , Ctrl+O+L - Select line           ,
+     Ctrl+K+S - Save file           , Ctrl+K+D - Activate menubar      ,
+     Ctrl+K+N - Block to uppercase  , Ctrl+K+O - Block to lowercase    ,
+     Ctrl+K+E - Word to lowercase   , Ctrl+K+F - Word to uppercase     ,
+     Ctrl+Q+E - Jump to top of wnd  , Ctrl+Q+T - Jump to top of wnd    ,
+     Ctrl+Q+U - Jump to bottom of wnd,Ctrl+Q+X - Jump to bottom of wnd ,
+     Ctrl+Q+[ - find delimiter-match, Ctrl+Q+] - find delimited match (backw)
+
+=========================== Todo ========================================

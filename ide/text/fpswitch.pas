@@ -20,6 +20,7 @@ interface
 uses
   Objects,
   Systems,
+  WUtils,
   FPConst;
 
 const
@@ -27,6 +28,15 @@ const
      MaxMemSize      = 67107840; { max. local heap and stack size }
 
 type
+    TParamID =
+      (idNone,idAlign,idRangeChecks,idStackChecks,idIOChecks,
+       idOverflowChecks,idAsmDirect,idAsmATT,idAsmIntel,
+       idSymInfNone,idSymInfGlobalOnly,idSymInfGlobalLocal,
+       idStackSize,idHeapSize,idStrictVarStrings,idExtendedSyntax,
+       idMMXOps,idTypedAddress,idPackRecords,idPackEnum,idStackFrames,
+       idReferenceInfo,idDebugInfo,idBoolEval,
+       idLongString,idTypeInfo);
+
     TSwitchMode = (om_Normal,om_Debug,om_Release);
 
     TSwitchItemTyp = (ot_Select,ot_Boolean,ot_String,ot_Longint);
@@ -36,30 +46,37 @@ type
       Typ       : TSwitchItemTyp;
       Name      : string[50];
       Param     : string[10];
-      constructor Init(const n,p:string);
+      ParamID   : TParamID;
+      constructor Init(const n,p:string; AID: TParamID);
       function  NeedParam:boolean;virtual;
       function  ParamValue:string;virtual;
+      function  ParamValueBool(SM: TSwitchMode):boolean;virtual;
+      function  GetSwitchStr(SM: TSwitchMode): string; virtual;
+      function  GetNumberStr(SM: TSwitchMode): string; virtual;
+      function  GetOptionStr(SM: TSwitchMode): string; virtual;
       procedure Reset;virtual;
     end;
 
     PSelectItem = ^TSelectItem;
     TSelectItem = object(TSwitchItem)
-      constructor Init(const n,p:string);
+      constructor Init(const n,p:string; AID: TParamID);
     end;
 
     PBooleanItem = ^TBooleanItem;
     TBooleanItem = object(TSwitchItem)
       IsSet : array[TSwitchMode] of boolean;
-      constructor Init(const n,p:string);
+      constructor Init(const n,p:string; AID: TParamID);
       function  NeedParam:boolean;virtual;
       procedure Reset;virtual;
+      function  GetSwitchStr(SM: TSwitchMode): string; virtual;
+      function  ParamValueBool(SM: TSwitchMode):boolean;virtual;
     end;
 
     PStringItem = ^TStringItem;
     TStringItem = object(TSwitchItem)
       Str : array[TSwitchMode] of string;
       multiple : boolean;
-      constructor Init(const n,p:string;mult:boolean);
+      constructor Init(const n,p:string;AID: TParamID; mult:boolean);
       function  NeedParam:boolean;virtual;
       function  ParamValue:string;virtual;
       procedure Reset;virtual;
@@ -68,9 +85,10 @@ type
     PLongintItem = ^TLongintItem;
     TLongintItem = object(TSwitchItem)
       Val : array[TSwitchMode] of longint;
-      constructor Init(const n,p:string);
+      constructor Init(const n,p:string; AID: TParamID);
       function  NeedParam:boolean;virtual;
       function  ParamValue:string;virtual;
+      function  GetNumberStr(SM: TSwitchMode): string; virtual;
       procedure Reset;virtual;
     end;
 
@@ -84,10 +102,10 @@ type
       function  ItemName(index:integer):string;
       function  ItemParam(index:integer):string;
       { type specific }
-      procedure AddSelectItem(const name,param:string);
-      procedure AddBooleanItem(const name,param:string);
-      procedure AddLongintItem(const name,param:string);
-      procedure AddStringItem(const name,param:string;mult:boolean);
+      procedure AddSelectItem(const name,param:string; AID: TParamID);
+      procedure AddBooleanItem(const name,param:string; AID: TParamID);
+      procedure AddLongintItem(const name,param:string; AID: TParamID);
+      procedure AddStringItem(const name,param:string;AID: TParamID;mult:boolean);
       function  GetCurrSel:integer;
       function  GetCurrSelParam : String;
       function  GetBooleanItem(index:integer):boolean;
@@ -148,6 +166,7 @@ procedure SetDefaultSwitches;
 procedure DoneSwitches;
 function  GetSourceDirectories : string;
 
+procedure GetCompilerOptionLines(C: PUnsortedStringCollection);
 
 implementation
 
@@ -163,11 +182,12 @@ var
             TSwitchItem
 *****************************************************************************}
 
-constructor TSwitchItem.Init(const n,p:string);
+constructor TSwitchItem.Init(const n,p:string; AID: TParamID);
 begin
   Inherited Init;
   Name:=n;
   Param:=p;
+  ParamID:=AID;
 end;
 
 
@@ -182,6 +202,29 @@ begin
   ParamValue:='';
 end;
 
+function TSwitchItem.ParamValueBool(SM: TSwitchMode):boolean;
+begin
+  Abstract;
+  ParamValueBool:=false;
+end;
+
+function TSwitchItem.GetSwitchStr(SM: TSwitchMode): string;
+begin
+  Abstract;
+  GetSwitchStr:='';
+end;
+
+function TSwitchItem.GetNumberStr(SM: TSwitchMode): string;
+begin
+  Abstract;
+  GetNumberStr:='';
+end;
+
+function TSwitchItem.GetOptionStr(SM: TSwitchMode): string;
+begin
+  Abstract;
+  GetOptionStr:='';
+end;
 
 procedure TSwitchItem.Reset;
 begin
@@ -192,9 +235,9 @@ end;
             TSelectItem
 *****************************************************************************}
 
-constructor TSelectItem.Init(const n,p:string);
+constructor TSelectItem.Init(const n,p:string; AID: TParamID);
 begin
-  Inherited Init(n,p);
+  Inherited Init(n,p,AID);
   Typ:=ot_Select;
 end;
 
@@ -203,9 +246,9 @@ end;
                 TBooleanItem
 *****************************************************************************}
 
-constructor TBooleanItem.Init(const n,p:string);
+constructor TBooleanItem.Init(const n,p:string; AID: TParamID);
 begin
-  Inherited Init(n,p);
+  Inherited Init(n,p,AID);
   Typ:=ot_Boolean;
   Reset;
 end;
@@ -222,14 +265,24 @@ begin
   FillChar(IsSet,sizeof(IsSet),0);
 end;
 
+function TBooleanItem.ParamValueBool(SM: TSwitchMode):boolean;
+begin
+  ParamValueBool:=IsSet[SM];
+end;
+
+function TBooleanItem.GetSwitchStr(SM: TSwitchMode): string;
+begin
+  GetSwitchStr:=BoolToStr(IsSet[SM],'+','-');
+end;
+
 
 {*****************************************************************************
             TStringItem
 *****************************************************************************}
 
-constructor TStringItem.Init(const n,p:string;mult:boolean);
+constructor TStringItem.Init(const n,p:string; AID: TParamID; mult:boolean);
 begin
-  Inherited Init(n,p);
+  Inherited Init(n,p,AID);
   Typ:=ot_String;
   Multiple:=mult;
   Reset;
@@ -258,9 +311,9 @@ end;
                 TLongintItem
 *****************************************************************************}
 
-constructor TLongintItem.Init(const n,p:string);
+constructor TLongintItem.Init(const n,p:string; AID: TParamID);
 begin
-  Inherited Init(n,p);
+  Inherited Init(n,p,AID);
   Typ:=ot_Longint;
   Reset;
 end;
@@ -280,10 +333,14 @@ begin
   ParamValue:=s;
 end;
 
-
 procedure TLongintItem.Reset;
 begin
   FillChar(Val,sizeof(Val),0);
+end;
+
+function TLongintItem.GetNumberStr(SM: TSwitchMode): string;
+begin
+  GetNumberStr:=IntToStr(Val[SM]);
 end;
 
 
@@ -315,27 +372,27 @@ begin
 end;
 
 
-procedure TSwitches.AddSelectItem(const name,param:string);
+procedure TSwitches.AddSelectItem(const name,param:string; AID: TParamID);
 begin
-  Items^.Insert(New(PSelectItem,Init(name,Param)));
+  Items^.Insert(New(PSelectItem,Init(name,Param,AID)));
 end;
 
 
-procedure TSwitches.AddBooleanItem(const name,param:string);
+procedure TSwitches.AddBooleanItem(const name,param:string; AID: TParamID);
 begin
-  Items^.Insert(New(PBooleanItem,Init(name,Param)));
+  Items^.Insert(New(PBooleanItem,Init(name,Param,AID)));
 end;
 
 
-procedure TSwitches.AddLongintItem(const name,param:string);
+procedure TSwitches.AddLongintItem(const name,param:string; AID: TParamID);
 begin
-  Items^.Insert(New(PLongintItem,Init(name,Param)));
+  Items^.Insert(New(PLongintItem,Init(name,Param,AID)));
 end;
 
 
-procedure TSwitches.AddStringItem(const name,param:string;mult:boolean);
+procedure TSwitches.AddStringItem(const name,param:string;AID: TParamID;mult:boolean);
 begin
-  Items^.Insert(New(PStringItem,Init(name,Param,mult)));
+  Items^.Insert(New(PStringItem,Init(name,Param,AID,mult)));
 end;
 
 
@@ -731,139 +788,142 @@ begin
   New(SyntaxSwitches,Init('S'));
   with SyntaxSwitches^ do
    begin
-     AddBooleanItem('~D~elphi 2 extensions on','2');
-     AddBooleanItem('~C~-like operators','c');
-     AddBooleanItem('S~t~op after first error','e');
-     AddBooleanItem('Allo~w~ LABEL and GOTO','g');
-     AddBooleanItem('C++ styled ~i~nline','i');
-     AddBooleanItem('Global C ~m~acros','m');
-     AddBooleanItem('TP/BP ~7~.0 compatibility','o');
-     AddBooleanItem('Del~p~hi compatibility','d');
-     AddBooleanItem('A~l~low STATIC in objects','s');
+     AddBooleanItem('~D~elphi 2 extensions on','2',idNone);
+     AddBooleanItem('~C~-like operators','c',idNone);
+     AddBooleanItem('S~t~op after first error','e',idNone);
+     AddBooleanItem('Allo~w~ LABEL and GOTO','g',idNone);
+     AddBooleanItem('C++ styled ~i~nline','i',idNone);
+     AddBooleanItem('Global C ~m~acros','m',idNone);
+     AddBooleanItem('TP/BP ~7~.0 compatibility','o',idNone);
+     AddBooleanItem('Del~p~hi compatibility','d',idNone);
+     AddBooleanItem('A~l~low STATIC in objects','s',idNone);
+     AddBooleanItem('Strict ~v~ar-strings','',idStrictVarStrings);
+     AddBooleanItem('E~x~tended syntax','',idExtendedSyntax);
+     AddBooleanItem('Allow MMX op~e~rations','',idMMXOps);
    end;
   New(VerboseSwitches,Init('v'));
   with VerboseSwitches^ do
    begin
-     AddBooleanItem('~W~arnings','w');
-     AddBooleanItem('N~o~tes','n');
-     AddBooleanItem('~H~ints','h');
-     AddBooleanItem('General ~I~nfo','i');
-     AddBooleanItem('~U~sed,tried info','ut');
-     AddBooleanItem('~A~ll','a');
-     AddBooleanItem('Show all ~P~rocedures if error','b');
+     AddBooleanItem('~W~arnings','w',idNone);
+     AddBooleanItem('N~o~tes','n',idNone);
+     AddBooleanItem('~H~ints','h',idNone);
+     AddBooleanItem('General ~I~nfo','i',idNone);
+     AddBooleanItem('~U~sed,tried info','ut',idNone);
+     AddBooleanItem('~A~ll','a',idNone);
+     AddBooleanItem('Show all ~P~rocedures if error','b',idNone);
    end;
   New(CodegenSwitches,Init('C'));
   with CodegenSwitches^ do
    begin
-     AddBooleanItem('~R~ange checking','r');
-     AddBooleanItem('~S~tack checking','t');
-     AddBooleanItem('~I~/O checking','i');
-     AddBooleanItem('Integer ~o~verflow checking','o');
+     AddBooleanItem('~R~ange checking','r',idRangeChecks);
+     AddBooleanItem('~S~tack checking','t',idStackChecks);
+     AddBooleanItem('~I~/O checking','i',idIOChecks);
+     AddBooleanItem('Integer ~o~verflow checking','o',idOverflowChecks);
    end;
   New(OptimizingGoalSwitches,InitSelect('O'));
   with OptimizingGoalSwitches^ do
     begin
-       AddSelectItem('Generate ~f~aster code','G');
-       AddSelectItem('Generate s~m~aller code','g');
+       AddSelectItem('Generate ~f~aster code','G',idNone);
+       AddSelectItem('Generate s~m~aller code','g',idNone);
     end;
   New(OptimizationSwitches,Init('O'));
   with OptimizationSwitches^ do
    begin
-     AddBooleanItem('Use regis~t~er-variables','r');
-     AddBooleanItem('~U~ncertain optimizations','u');
-     AddBooleanItem('Level ~1~ optimizations','1');
-     AddBooleanItem('Level ~2~ optimizations','2');
+     AddBooleanItem('Use regis~t~er-variables','r',idNone);
+     AddBooleanItem('~U~ncertain optimizations','u',idNone);
+     AddBooleanItem('Level ~1~ optimizations','1',idNone);
+     AddBooleanItem('Level ~2~ optimizations','2',idNone);
    end;
   New(ProcessorSwitches,InitSelect('O'));
   with ProcessorSwitches^ do
    begin
-     AddSelectItem('i~3~86/i486','p1');
-     AddSelectItem('Pentium/PentiumMM~X~ (tm)','p2');
-     AddSelectItem('P~P~ro/PII/c6x86/K6 (tm)','p3');
+     AddSelectItem('i~3~86/i486','p1',idNone);
+     AddSelectItem('Pentium/PentiumMM~X~ (tm)','p2',idNone);
+     AddSelectItem('P~P~ro/PII/c6x86/K6 (tm)','p3',idNone);
    end;
   New(TargetSwitches,InitSelect('T'));
   with TargetSwitches^ do
    begin
-     AddSelectItem('DOS (GO32V~1~)','go32v1');
-     AddSelectItem('~D~OS (GO32V2)','go32v2');
-     AddSelectItem('~L~inux','linux');
-     AddSelectItem('~O~S/2','os2');
-     AddSelectItem('~W~IN32','win32');
+     AddSelectItem('DOS (GO32V~1~)','go32v1',idNone);
+     AddSelectItem('~D~OS (GO32V2)','go32v2',idNone);
+     AddSelectItem('~L~inux','linux',idNone);
+     AddSelectItem('~O~S/2','os2',idNone);
+     AddSelectItem('~W~IN32','win32',idNone);
    end;
   New(AsmReaderSwitches,InitSelect('R'));
   with AsmReaderSwitches^ do
    begin
-     AddSelectItem('~D~irect assembler','direct');
-     AddSelectItem('~A~T&T style assembler','att');
-     AddSelectItem('~I~ntel style assembler','intel');
+     AddSelectItem('~D~irect assembler','direct',idAsmDirect);
+     AddSelectItem('~A~T&T style assembler','att',idAsmATT);
+     AddSelectItem('~I~ntel style assembler','intel',idAsmIntel);
    end;
   New(AsmInfoSwitches,Init('a'));
   with AsmInfoSwitches^ do
    begin
-     AddBooleanItem('~L~ist source','l');
-     AddBooleanItem('list ~r~egister allocation','r');
-     AddBooleanItem('list ~t~emp allocation','t');
+     AddBooleanItem('~L~ist source','l',idNone);
+     AddBooleanItem('list ~r~egister allocation','r',idNone);
+     AddBooleanItem('list ~t~emp allocation','t',idNone);
    end;
   New(AsmOutputSwitches,InitSelect('A'));
   with AsmOutputSwitches^ do
    begin
-     AddSelectItem('Use ~G~NU as','as');
-     AddSelectItem('Use ~N~ASM coff','nasmcoff');
-     AddSelectItem('Use NASM ~e~lf','nasmelf');
-     AddSelectItem('Use NASM ~o~bj','nasmobj');
-     AddSelectItem('Use ~M~ASM','masm');
-     AddSelectItem('Use ~T~ASM','tasm');
-     AddSelectItem('Use ~c~off','coff');
-     AddSelectItem('Use ~p~ecoff','pecoff');
+     AddSelectItem('Use ~G~NU as','as',idNone);
+     AddSelectItem('Use ~N~ASM coff','nasmcoff',idNone);
+     AddSelectItem('Use NASM ~e~lf','nasmelf',idNone);
+     AddSelectItem('Use NASM ~o~bj','nasmobj',idNone);
+     AddSelectItem('Use ~M~ASM','masm',idNone);
+     AddSelectItem('Use ~T~ASM','tasm',idNone);
+     AddSelectItem('Use ~c~off','coff',idNone);
+     AddSelectItem('Use ~p~ecoff','pecoff',idNone);
    end;
   New(BrowserSwitches,InitSelect('b'));
   with BrowserSwitches^ do
    begin
-     AddSelectItem('N~o~ browser','-');
-     AddSelectItem('Only Glob~a~l browser','+');
-     AddSelectItem('~L~ocal and global browser','l');
+     AddSelectItem('N~o~ browser','-',idSymInfNone);
+     AddSelectItem('Only Glob~a~l browser','+',idSymInfGlobalOnly);
+     AddSelectItem('~L~ocal and global browser','l',idSymInfGlobalLocal);
    end;
   New(ConditionalSwitches,Init('d'));
   with ConditionalSwitches^ do
    begin
-     AddStringItem('Conditio~n~al defines','',true);
+     AddStringItem('Conditio~n~al defines','',idNone,true);
    end;
   New(MemorySwitches,Init('C'));
   with MemorySwitches^ do
    begin
-     AddLongintItem('~S~tack size','s');
-     AddLongintItem('~H~eap size','h');
+     AddLongintItem('~S~tack size','s',idStackSize);
+     AddLongintItem('~H~eap size','h',idHeapSize);
    end;
   New(DirectorySwitches,Init('F'));
   with DirectorySwitches^ do
    begin
-     AddStringItem('~U~nit directories','u',true);
-     AddStringItem('~I~nclude directories','i',true);
-     AddStringItem('~L~ibrary directories','l',true);
-     AddStringItem('~O~bject directories','o',true);
-     AddStringItem('~E~XE & PPU directories','E',true);
+     AddStringItem('~U~nit directories','u',idNone,true);
+     AddStringItem('~I~nclude directories','i',idNone,true);
+     AddStringItem('~L~ibrary directories','l',idNone,true);
+     AddStringItem('~O~bject directories','o',idNone,true);
+     AddStringItem('~E~XE & PPU directories','E',idNone,true);
    end;
 
   New(LibLinkerSwitches,InitSelect('X'));
   with LibLinkerSwitches^ do
    begin
-     AddSelectItem('~D~ynamic libraries','D');
-     AddSelectItem('~S~tatic libraries','S');
+     AddSelectItem('~D~ynamic libraries','D',idNone);
+     AddSelectItem('~S~tatic libraries','S',idNone);
    end;
   New(DebugInfoSwitches,InitSelect('g'));
   with DebugInfoSwitches^ do
    begin
-     AddSelectItem('~S~trip all debug symbols from executable','-');
-     AddSelectItem('Generate ~d~ebug symbol information','');
-     AddSelectItem('Generate also backtrace ~l~ine information','l');
+     AddSelectItem('~S~trip all debug symbols from executable','-',idNone);
+     AddSelectItem('Generate ~d~ebug symbol information','',idNone);
+     AddSelectItem('Generate also backtrace ~l~ine information','l',idNone);
      { AddSelectItem('Generate ~d~bx symbol information','d');
        does not work anyhow (PM) }
    end;
   New(ProfileInfoSwitches,InitSelect('p'));
   with ProfileInfoSwitches^ do
    begin
-     AddSelectItem('~N~o profile information','-');
-     AddSelectItem('Generate profile code for g~p~rof','g');
+     AddSelectItem('~N~o profile information','-',idNone);
+     AddSelectItem('Generate profile code for g~p~rof','g',idNone);
    end;
   {New(MemorySizeSwitches,Init('C'));
   with MemorySizeSwitches^ do
@@ -875,7 +935,6 @@ begin
   if SwitchesPath='' then
     SwitchesPath:=SwitchesName;
   SwitchesPath:=FExpand(SwitchesPath);
-
 end;
 
 procedure SetDefaultSwitches;
@@ -958,11 +1017,106 @@ begin
 
 end;
 
+procedure GetCompilerOptionLines(C: PUnsortedStringCollection);
+procedure AddLine(const S: string);
+begin
+  C^.Insert(NewStr(S));
+end;
+procedure ConstructSwitchModeDirectives(SM: TSwitchMode; const IfDefSym: string);
+var SwitchParams: PStringCollection;
+    MiscParams  : PStringCollection;
+procedure AddSwitch(const S: string);
+begin
+  SwitchParams^.Insert(NewStr(S));
+end;
+procedure AddParam(const S: string);
+begin
+  MiscParams^.Insert(NewStr(S));
+end;
+procedure EnumSwitches(P: PSwitches);
+procedure HandleSwitch(P: PSwitchItem); {$ifndef FPC}far;{$endif}
+begin
+  case P^.ParamID of
+{    idAlign :}
+    idRangeChecks    : AddSwitch('R'+P^.GetSwitchStr(SM));
+    idStackChecks    : AddSwitch('S'+P^.GetSwitchStr(SM));
+    idIOChecks       : AddSwitch('I'+P^.GetSwitchStr(SM));
+    idOverflowChecks : AddSwitch('Q'+P^.GetSwitchStr(SM));
+{    idAsmDirect      : if P^.GetParamValueBool[SM] then AddParam('ASMMODE DIRECT');
+    idAsmATT         : if P^.GetParamValueBool[SM] then AddParam('ASMMODE ATT');
+    idAsmIntel       : if P^.GetParamValueBool[SM] then AddParam('ASMMODE INTEL');}
+{    idSymInfNone     : ;
+    idSymInfGlobalOnly:;
+    idSymInfGlobalLocal:if P^.ParamValueBool(SM) then AddSwitch('L+');}
+{    idStackSize
+    idHeapSize}
+    idStrictVarStrings: AddSwitch('V'+P^.GetSwitchStr(SM));
+    idExtendedSyntax  : AddSwitch('X'+P^.GetSwitchStr(SM));
+    idMMXOps          : if P^.ParamValueBool(SM) then AddParam('MMX');
+    idTypedAddress    : AddSwitch('T'+P^.GetSwitchStr(SM));
+{    idPackRecords
+    idPackEnum}
+    idStackFrames     : AddSwitch('W'+P^.GetSwitchStr(SM));
+    idReferenceInfo   : AddSwitch('Y'+P^.GetSwitchStr(SM));
+    idDebugInfo       : AddSwitch('D'+P^.GetSwitchStr(SM));
+    idBoolEval        : AddSwitch('B'+P^.GetSwitchStr(SM));
+    idLongString      : AddSwitch('H'+P^.GetSwitchStr(SM));
+    idTypeInfo        : AddSwitch('M'+P^.GetSwitchStr(SM));
+   end;
+end;
+begin
+  P^.Items^.ForEach(@HandleSwitch);
+end;
+var I: integer;
+    S: string;
+begin
+  AddLine('{$IFDEF '+IfDefSym+'}');
+  New(SwitchParams, Init(10,10));
+  New(MiscParams, Init(10,10));
+  EnumSwitches(LibLinkerSwitches);
+  EnumSwitches(DebugInfoSwitches);
+  EnumSwitches(ProfileInfoSwitches);
+  EnumSwitches(SyntaxSwitches);
+  EnumSwitches(VerboseSwitches);
+  EnumSwitches(CodegenSwitches);
+  EnumSwitches(OptimizationSwitches);
+  EnumSwitches(OptimizingGoalSwitches);
+  EnumSwitches(ProcessorSwitches);
+  EnumSwitches(AsmReaderSwitches);
+  EnumSwitches(AsmInfoSwitches);
+  EnumSwitches(AsmOutputSwitches);
+  EnumSwitches(TargetSwitches);
+  EnumSwitches(ConditionalSwitches);
+  EnumSwitches(MemorySwitches);
+  EnumSwitches(BrowserSwitches);
+  EnumSwitches(DirectorySwitches);
+  S:='';
+  for I:=0 to SwitchParams^.Count-1 do
+  begin
+    if I=0 then S:='{$' else S:=S+',';
+    S:=S+PString(SwitchParams^.At(I))^;
+  end;
+  if S<>'' then S:=S+'}';
+  if S<>'' then AddLine('  '+S);
+  for I:=0 to MiscParams^.Count-1 do
+    AddLine('  {$'+PString(MiscParams^.At(I))^+'}');
+  Dispose(SwitchParams, Done); Dispose(MiscParams, Done);
+  AddLine('{$ENDIF '+IfDefSym+'}');
+end;
+var SM: TSwitchMode;
+begin
+  for SM:=Low(TSwitchMode) to High(TSwitchMode) do
+    ConstructSwitchModeDirectives(SM,SwitchesModeStr[SM]);
+end;
+
 
 end.
 {
   $Log$
-  Revision 1.20  2000-03-08 16:51:50  pierre
+  Revision 1.21  2000-04-25 08:42:33  pierre
+   * New Gabor changes : see fixes.txt
+
+  Revision 1.20  2000/03/08 16:51:50  pierre
    + -gl option support
 
   Revision 1.19  2000/03/07 22:52:50  pierre

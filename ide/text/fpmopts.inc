@@ -89,8 +89,8 @@ begin
     Count:=SyntaxSwitches^.ItemCount;
     R.Copy(TabIR);
     R2.Copy(R);
-    R2.B.X:=(R2.A.X+(R2.B.X-R2.A.X) div 2)-2;
-    R2.B.Y:=R2.A.Y+Count;
+{    R2.B.X:=(R2.A.X+(R2.B.X-R2.A.X) div 2)-2;} R2.B.X:=R2.B.X-4;
+    R2.B.Y:=R2.A.Y+((Count+1) div 2);
     Items:=nil;
     for I:=Count-1 downto 0 do
       Items:=NewSItem(SyntaxSwitches^.ItemName(I), Items);
@@ -1212,7 +1212,10 @@ end;
 
 {
   $Log$
-  Revision 1.31  2000-03-21 23:28:13  pierre
+  Revision 1.32  2000-04-25 08:42:33  pierre
+   * New Gabor changes : see fixes.txt
+
+  Revision 1.31  2000/03/21 23:28:13  pierre
    adapted to wcedit addition by Gabor
 
   Revision 1.30  2000/03/13 20:34:07  pierre

@@ -151,6 +151,7 @@ type
       function    GetCommandTarget: PView; virtual;
       function    CreateLocalMenuView(var Bounds: TRect; M: PMenu): PMenuPopup; virtual;
       procedure   ModifiedChanged; virtual;
+      procedure   InsertOptions; virtual;
     end;
 
     PSourceWindow = ^TSourceWindow;
@@ -965,6 +966,30 @@ begin
     EditorModified:=true;
 end;
 
+procedure TSourceEditor.InsertOptions;
+var C: PUnsortedStringCollection;
+    Y: sw_integer;
+    S: string;
+begin
+  Lock;
+  New(C, Init(10,10));
+  GetCompilerOptionLines(C);
+  if C^.Count>0 then
+  begin
+    for Y:=0 to C^.Count-1 do
+    begin
+      S:=C^.At(Y)^;
+      InsertLine(Y,S);
+    end;
+    AdjustSelectionPos(0,0,0,C^.Count);
+    UpdateAttrs(0,attrAll);
+    DrawLines(0);
+    SetModified(true);
+  end;
+  Dispose(C, Done);
+  UnLock;
+end;
+
 function TSourceEditor.GetLocalMenu: PMenu;
 var M: PMenu;
 begin
@@ -1047,6 +1072,19 @@ var DontClear: boolean;
 begin
   TranslateMouseClick(@Self,Event);
   case Event.What of
+    evKeyDown :
+      begin
+        DontClear:=false;
+        case Event.KeyCode of
+          kbCtrlEnter :
+            Message(@Self,evCommand,cmOpenAtCursor,nil);
+        else DontClear:=true;
+        end;
+        if not DontClear then ClearEvent(Event);
+      end;
+  end;
+  inherited HandleEvent(Event);
+  case Event.What of
     evCommand :
       begin
         DontClear:=false;
@@ -1079,18 +1117,7 @@ begin
         end;
         if not DontClear then ClearEvent(Event);
       end;
-    evKeyDown :
-      begin
-        DontClear:=false;
-        case Event.KeyCode of
-          kbCtrlEnter :
-            Message(@Self,evCommand,cmOpenAtCursor,nil);
-        else DontClear:=true;
-        end;
-        if not DontClear then ClearEvent(Event);
-      end;
   end;
-  inherited HandleEvent(Event);
 end;
 
 constructor TFPHeapView.Init(var Bounds: TRect);
@@ -2953,7 +2980,7 @@ begin
 {$ifdef os2}
   OSStr:='OS/2';
 {$endif}
-  R.Assign(0,0,38,13);
+  R.Assign(0,0,38,14{$ifdef NODEBUG}-1{$endif});
   inherited Init(R, 'About');
 
   GetExtent(R); R.Grow(-3,-2);
@@ -3342,7 +3369,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.67  2000-04-18 11:42:37  pierre
+  Revision 1.68  2000-04-25 08:42:34  pierre
+   * New Gabor changes : see fixes.txt
+
+  Revision 1.67  2000/04/18 11:42:37  pierre
    lot of Gabor changes : see fixes.txt
 
   Revision 1.66  2000/03/23 22:22:25  pierre

@@ -1206,7 +1206,7 @@ begin
               begin
                 I:=I+ReplacePart(LastWordStart,I-1,'')-1;
                 if W<>nil then
-                  if W^.Editor^.SaveAsk=false then
+                  if W^.Editor^.SaveAsk(true)=false then
                     Err:=-1;
               end;
           end else
@@ -1507,7 +1507,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.17  2000-04-18 11:42:37  pierre
+  Revision 1.18  2000-04-25 08:42:33  pierre
+   * New Gabor changes : see fixes.txt
+
+  Revision 1.17  2000/04/18 11:42:37  pierre
    lot of Gabor changes : see fixes.txt
 
   Revision 1.16  2000/03/13 20:31:54  pierre

@@ -38,7 +38,7 @@ uses
   Drivers,Views,App,Dialogs,ColorSel,Menus,StdDlg,Validate,
   {$ifdef EDITORS}Editors{$else}WEditor,WCEdit{$endif},
   ASCIITab,Calc,
-  WUtils,WViews,
+  WUtils,WViews,WHTMLScn,
   FPIDE,FPCalc,FPCompile,
   FPIni,FPViews,FPConst,FPVars,FPUtils,FPHelp,FPSwitch,FPUsrScr,
   FPTools,{$ifndef NODEBUG}FPDebug,{$endif}FPTemplt,FPCatch,FPRedir,FPDesk,
@@ -147,6 +147,7 @@ begin
   RegisterValidate;
   RegisterViews;
 
+  RegisterWHTMLScan;
   RegisterWUtils;
   RegisterWViews;
 end;
@@ -205,7 +206,7 @@ BEGIN
   repeat
     IDEApp.Run;
     if (AutoSaveOptions and asEditorFiles)=0 then
-      CanExit:=true
+      CanExit:=IDEApp.AskSaveAll
     else
       CanExit:=IDEApp.SaveAll;
   until CanExit;
@@ -237,7 +238,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.43  2000-04-18 11:42:36  pierre
+  Revision 1.44  2000-04-25 08:42:32  pierre
+   * New Gabor changes : see fixes.txt
+
+  Revision 1.43  2000/04/18 11:42:36  pierre
    lot of Gabor changes : see fixes.txt
 
   Revision 1.42  2000/03/21 23:34:10  pierre

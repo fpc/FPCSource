@@ -8,7 +8,7 @@ const
      ListIndent = 2;
      DefIndent  = 4;
 
-     MaxTopicLinks = 500;
+     MaxTopicLinks = 500; { maximum link on a single HTML page }
 
 type
     PTopicLinkCollection = ^TTopicLinkCollection;
@@ -54,6 +54,9 @@ type
       procedure DocDefList(Entered: boolean); virtual;
       procedure DocDefTerm; virtual;
       procedure DocDefExp; virtual;
+      procedure DocTable(Entered: boolean); virtual;
+      procedure DocTableRow(Entered: boolean); virtual;
+      procedure DocTableItem(Entered: boolean); virtual;
       procedure DocHorizontalRuler; virtual;
     private
       URL: string;
@@ -78,84 +81,41 @@ type
       procedure AddChar(C: char);
     end;
 
-    PHTMLHelpFile = ^THTMLHelpFile;
-    THTMLHelpFile = object(THelpFile)
-      constructor Init(AFileName: string; AID: word; ATOCEntry: string);
+    PCustomHTMLHelpFile = ^TCustomHTMLHelpFile;
+    TCustomHTMLHelpFile = object(THelpFile)
+      constructor Init(AID: word);
       destructor  Done; virtual;
     public
-      function    LoadIndex: boolean; virtual;
       function    SearchTopic(HelpCtx: THelpCtx): PTopic; virtual;
       function    ReadTopic(T: PTopic): boolean; virtual;
     private
       Renderer: PHTMLTopicRenderer;
-      FileName: string;
+      DefaultFileName: string;
       CurFileName: string;
-      TOCEntry: string;
       TopicLinks: PTopicLinkCollection;
+    end;
+
+    PHTMLHelpFile = ^THTMLHelpFile;
+    THTMLHelpFile = object(TCustomHTMLHelpFile)
+      constructor Init(AFileName: string; AID: word; ATOCEntry: string);
+    public
+      function    LoadIndex: boolean; virtual;
+    private
+      TOCEntry: string;
+    end;
+
+    PHTMLIndexHelpFile = ^THTMLIndexHelpFile;
+    THTMLIndexHelpFile = object(TCustomHTMLHelpFile)
+      constructor Init(AFileName: string; AID: word);
+      function    LoadIndex: boolean; virtual;
+    private
+      IndexFileName: string;
     end;
 
 implementation
 
-uses WUtils,
+uses WUtils,WHTMLScn,
      Dos;
-
-const
-{$ifdef LINUX}
-  dirsep = '/';
-{$else}
-  dirsep = '\';
-{$endif}
-
-function FormatPath(Path: string): string;
-var P: sw_integer;
-    SC: char;
-begin
-  if ord(DirSep)=ord('/') then
-    SC:='\'
-  else
-    SC:='/';
-
-  repeat
-    P:=Pos(SC,Path);
-    if P>0 then Path[P]:=DirSep;
-  until P=0;
-  FormatPath:=Path;
-end;
-
-function CompletePath(const Base, InComplete: string): string;
-var Drv,BDrv: string[40]; D,BD: DirStr; N,BN: NameStr; E,BE: ExtStr;
-    P: sw_integer;
-    Complete: string;
-begin
-  Complete:=FormatPath(InComplete);
-  FSplit(FormatPath(InComplete),D,N,E);
-  P:=Pos(':',D); if P=0 then Drv:='' else begin Drv:=copy(D,1,P); Delete(D,1,P); end;
-  FSplit(FormatPath(Base),BD,BN,BE);
-  P:=Pos(':',BD); if P=0 then BDrv:='' else begin BDrv:=copy(BD,1,P); Delete(BD,1,P); end;
-  if copy(D,1,1)<>'\' then
-    Complete:=BD+D+N+E;
-  if Drv='' then
-    Complete:=BDrv+Complete;
-  Complete:=FExpand(Complete);
-  CompletePath:=Complete;
-end;
-
-function CompleteURL(const Base, URLRef: string): string;
-var P: integer;
-    Drive: string[20];
-    IsComplete: boolean;
-    S: string;
-begin
-  IsComplete:=false;
-  P:=Pos(':',URLRef);
-  if P=0 then Drive:='' else Drive:=UpcaseStr(copy(URLRef,1,P-1));
-  if Drive<>'' then
-  if (Drive='MAILTO') or (Drive='FTP') or (Drive='HTTP') or (Drive='GOPHER') then
-    IsComplete:=true;
-  if IsComplete then S:=URLRef else
-    S:=CompletePath(Base,URLRef);
-  CompleteURL:=S;
-end;
 
 function EncodeHTMLCtx(FileID: integer; LinkNo: word): longint;
 var Ctx: longint;
@@ -377,6 +337,9 @@ end;
 
 procedure THTMLTopicRenderer.DocCode(Entered: boolean);
 begin
+  if AnyCharsInLine then DocBreak;
+  AddText(hscCode);
+  DocBreak;
 end;
 
 procedure THTMLTopicRenderer.DocEmphasized(Entered: boolean);
@@ -394,6 +357,7 @@ end;
 procedure THTMLTopicRenderer.DocPreformatted(Entered: boolean);
 begin
   if AnyCharsInLine then DocBreak;
+  AddText(hscCode);
   DocBreak;
   InPreformatted:=Entered;
 end;
@@ -464,6 +428,26 @@ begin
   Dec(Indent,DefIndent);
 end;
 
+procedure THTMLTopicRenderer.DocTable(Entered: boolean);
+begin
+  if AnyCharsInLine then
+    DocBreak;
+  if Entered then
+    DocBreak;
+end;
+
+procedure THTMLTopicRenderer.DocTableRow(Entered: boolean);
+begin
+  if AnyCharsInLine then
+    DocBreak;
+end;
+
+procedure THTMLTopicRenderer.DocTableItem(Entered: boolean);
+begin
+  if Entered then
+    AddText(' - ');
+end;
+
 procedure THTMLTopicRenderer.DocHorizontalRuler;
 var OAlign: TParagraphAlign;
 begin
@@ -530,7 +514,8 @@ begin
             end;
           Topic^.LinkCount:=LinkPtr{TopicLinks^.Count}; { <- eeeeeek! }
           GetMem(Topic^.Links,Topic^.LinkSize);
-          for I:=0 to Topic^.LinkCount-1 do
+          if Topic^.LinkCount>0 then { FP causes numeric RTE 215 without this }
+          for I:=0 to Min(Topic^.LinkCount-1,High(LinkIndexes)-1) do
             begin
               Topic^.Links^[I].FileID:=Topic^.FileID;
               Topic^.Links^[I].Context:=EncodeHTMLCtx(Topic^.FileID,LinkIndexes[I]+1);
@@ -550,22 +535,14 @@ begin
   BuildTopic:=OK;
 end;
 
-constructor THTMLHelpFile.Init(AFileName: string; AID: word; ATOCEntry: string);
+constructor TCustomHTMLHelpFile.Init(AID: word);
 begin
   inherited Init(AID);
-  FileName:=AFileName; TOCEntry:=ATOCEntry;
-  if FileName='' then Fail;
   New(Renderer, Init);
   New(TopicLinks, Init(50,500));
 end;
 
-function THTMLHelpFile.LoadIndex: boolean;
-begin
-  IndexEntries^.Insert(NewIndexEntry(TOCEntry,ID,0));
-  LoadIndex:=true;
-end;
-
-function THTMLHelpFile.SearchTopic(HelpCtx: THelpCtx): PTopic;
+function TCustomHTMLHelpFile.SearchTopic(HelpCtx: THelpCtx): PTopic;
 function MatchCtx(P: PTopic): boolean; {$ifndef FPC}far;{$endif}
 begin
   MatchCtx:=P^.HelpCtx=HelpCtx;
@@ -582,7 +559,7 @@ begin
       if P=nil then
         begin
           if LinkNo=0 then
-            FName:=FileName
+            FName:=DefaultFileName
           else
             FName:=TopicLinks^.At(LinkNo-1)^;
           P:=NewTopic(ID,HelpCtx,0,FName);
@@ -592,7 +569,7 @@ begin
   SearchTopic:=P;
 end;
 
-function THTMLHelpFile.ReadTopic(T: PTopic): boolean;
+function TCustomHTMLHelpFile.ReadTopic(T: PTopic): boolean;
 var OK: boolean;
     HTMLFile: PMemoryTextFile;
     Name: string;
@@ -602,7 +579,7 @@ begin
   OK:=T<>nil;
   if OK then
     begin
-      if T^.HelpCtx=0 then Name:=FileName else
+      if T^.HelpCtx=0 then Name:=DefaultFileName else
         begin
           Link:=TopicLinks^.At((T^.HelpCtx and $ffff)-1)^;
           Link:=FormatPath(Link);
@@ -628,11 +605,73 @@ begin
   ReadTopic:=OK;
 end;
 
-destructor THTMLHelpFile.Done;
+destructor TCustomHTMLHelpFile.Done;
 begin
   inherited Done;
   if Renderer<>nil then Dispose(Renderer, Done);
   if TopicLinks<>nil then Dispose(TopicLinks, Done);
+end;
+
+constructor THTMLHelpFile.Init(AFileName: string; AID: word; ATOCEntry: string);
+begin
+  if inherited Init(AID)=false then Fail;
+  DefaultFileName:=AFileName; TOCEntry:=ATOCEntry;
+  if DefaultFileName='' then
+  begin
+    Done;
+    Fail;
+  end;
+end;
+
+function THTMLHelpFile.LoadIndex: boolean;
+begin
+  IndexEntries^.Insert(NewIndexEntry(TOCEntry,ID,0));
+  LoadIndex:=true;
+end;
+
+constructor THTMLIndexHelpFile.Init(AFileName: string; AID: word);
+begin
+  inherited Init(AID);
+  IndexFileName:=AFileName;
+end;
+
+function THTMLIndexHelpFile.LoadIndex: boolean;
+function FormatAlias(Alias: string): string;
+begin
+  if Assigned(HelpFacility) then
+    if length(Alias)>HelpFacility^.IndexTabSize-4 then
+      Alias:=Trim(copy(Alias,1,HelpFacility^.IndexTabSize-4-2))+'..';
+  FormatAlias:=Alias;
+end;
+procedure AddDoc(P: PHTMLLinkScanDocument); {$ifndef FPC}far;{$endif}
+var I: sw_integer;
+    TLI: THelpCtx;
+begin
+  for I:=1 to P^.GetAliasCount do
+  begin
+    TLI:=TopicLinks^.AddItem(P^.GetName);
+    TLI:=EncodeHTMLCtx(ID,TLI+1);
+    IndexEntries^.Insert(NewIndexEntry(FormatAlias(P^.GetAlias(I-1)),ID,TLI));
+  end;
+end;
+var S: PBufStream;
+    DC: PHTMLLinkScanDocumentCollection;
+    OK: boolean;
+begin
+  New(S, Init(IndexFileName,stOpenRead,4096));
+  OK:=Assigned(S);
+  if OK then
+  begin
+    New(DC, Load(S^));
+    OK:=Assigned(DC);
+    if OK then
+    begin
+      DC^.ForEach(@AddDoc);
+      Dispose(DC, Done);
+    end;
+    Dispose(S, Done);
+  end;
+  LoadIndex:=OK;
 end;
 
 END.

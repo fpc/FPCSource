@@ -98,6 +98,10 @@ type
       procedure   DocDefList(Entered: boolean); virtual;
       procedure   DocDefTerm; virtual;
       procedure   DocDefExp; virtual;
+      procedure   DocTable(Entered: boolean); virtual;
+      procedure   DocTableRow(Entered: boolean); virtual;
+      procedure   DocTableHeaderItem(Entered: boolean); virtual;
+      procedure   DocTableItem(Entered: boolean); virtual;
       procedure   DocHorizontalRuler; virtual;
     end;
 
@@ -168,6 +172,7 @@ var f: text;
     S: string;
 begin
   inherited Init;
+  if AFileName='' then Fail;
 {$I-}
   Assign(f,AFileName);
   Reset(f);
@@ -501,6 +506,11 @@ begin
   if (ETagName='DL') then DocDefList(NotEndTag) else
   if (UTagName='DT') then DocDefTerm else
   if (UTagName='DD') then DocDefExp else
+  { Table }
+  if (ETagName='TABLE') then DocTable(NotEndTag) else
+  if (UTagName='TR') then DocTableRow(NotEndTag) else
+  if (UTagName='TH') then DocTableHeaderItem(NotEndTag) else
+  if (UTagName='TD') then DocTableItem(NotEndTag) else
   { Misc. tags }
   if (UTagName='META') then DocMETA else
   if (UTagName='IMG') then DocImage else
@@ -676,6 +686,22 @@ procedure THTMLParser.DocDefExp;
 begin
 end;
 
+procedure THTMLParser.DocTable(Entered: boolean);
+begin
+end;
+
+procedure THTMLParser.DocTableRow(Entered: boolean);
+begin
+end;
+
+procedure THTMLParser.DocTableHeaderItem(Entered: boolean);
+begin
+end;
+
+procedure THTMLParser.DocTableItem(Entered: boolean);
+begin
+end;
+
 procedure THTMLParser.DocHorizontalRuler;
 begin
 end;
@@ -685,7 +711,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.5  2000-03-21 23:20:47  pierre
+  Revision 1.6  2000-04-25 08:42:35  pierre
+   * New Gabor changes : see fixes.txt
+
+  Revision 1.5  2000/03/21 23:20:47  pierre
    suppress some warnings by Gabor
 
   Revision 1.4  1999/04/07 21:56:03  peter

@@ -34,10 +34,12 @@ implementation
 {$ifdef WinClipSupported}
 {$ifdef DOS}
   uses
+    pmode,
 {$ifdef go32v2}
-    go32,{ sorry Gabor, but its still not compiling without that ! }
+    {go32   sorry Gabor, but its still not compiling without that ! }
+    {now it works. btw. you don't have to sorry - just to tell me... ;)) Gabor }
 {$endif go32v2}
-    strings,dos,pmode;
+    strings,dos;
 {$endif DOS}
 
 {$ifdef win32}
@@ -140,8 +142,7 @@ function GetTextWinClipBoardData(var p : pchar;var l : longint) : boolean;
 var
 {$ifdef DOS}
   r : Registers;
-  tb_all : longint;
-  tb_seg,tb_ofs,tb_sel : word;
+  M : MemPtr;
 {$endif DOS}
 {$ifdef win32}
   h : HGlobal;
@@ -152,43 +153,23 @@ begin
   GetTextWinClipBoardData:=False;
   if not OpenWinClipBoard then
     exit;
-{$ifdef go32v2}
+{$ifdef DOS}
   l:=InternGetDataSize;
-  if (l=0) or (l>100000) then
+  if (l=0) or (l>65520) then
     begin
       l:=0;
       CloseWinClipBoard;
       exit;
     end;
   GetMem(p,l);
-  if l>tb_size then
-    begin
-      tb_all:=global_dos_alloc(l);
-      { zero means allocation failure }
-      if tb_all=0 then
-        begin
-          FreeMem(p,l);
-          p:=nil;
-          l:=0;
-          CloseWinClipBoard;
-          exit;
-        end;
-      tb_seg:=tb_all shr 16;
-      tb_sel:=tb_all and $ffff;
-    end
-  else
-    begin
-      tb_seg:=tb_segment;
-      tb_ofs:=tb_offset;
-      tb_sel:=0;
-    end;
+  GetDosMem(M,l);
   r.ax:=$1705;
   r.dx:=7{ OEM Text rather then 1 : Text };
-  r.es:=tb_seg;
-  r.bx:=tb_ofs;
+  r.es:=M.DosSeg;
+  r.bx:=M.DosOfs;
   RealIntr($2F,r);
   GetTextWinClipBoardData:=(r.ax<>0);
-{$endif go32v2}
+{$endif DOS}
 {$ifdef win32}
   h:=GetClipboardData(CF_OEMTEXT);
   if h<>0 then
@@ -202,19 +183,17 @@ begin
   GetTextWinClipBoardData:=h<>0;
 {$endif win32}
   CloseWinClipBoard;
-{$ifdef go32v2}
-  DosMemGet(tb_seg,tb_ofs,p^,l);
-  if tb_sel<>0 then
-    global_dos_free(tb_sel);
-{$endif go32v2}
+{$ifdef DOS}
+  M.MoveDataFrom(l,P^);
+  FreeDosMem(M);
+{$endif DOS}
 end;
 
 function SetTextWinClipBoardData(p : pchar;l : longint) : boolean;
 var
 {$ifdef DOS}
   r : Registers;
-  tb_all : longint;
-  tb_seg,tb_ofs,tb_sel : word;
+  M : MemPtr;
 {$endif DOS}
 {$ifdef win32}
   h : HGlobal;
@@ -222,42 +201,24 @@ var
 {$endif win32}
 begin
   SetTextWinClipBoardData:=False;
-  if (l=0) or (l>100000) then
+  if (l=0) or (l>65520) then
     exit;
   if not OpenWinClipBoard then
     exit;
   EmptyWinClipBoard;
-{$ifdef go32v2}
-  if l>tb_size then
-    begin
-      tb_all:=global_dos_alloc(l);
-      { zero means allocation failure }
-      if tb_all=0 then
-        begin
-          CloseWinClipBoard;
-          exit;
-        end;
-      tb_seg:=tb_all shr 16;
-      tb_sel:=tb_all and $ffff;
-    end
-  else
-    begin
-      tb_seg:=tb_segment;
-      tb_ofs:=tb_offset;
-      tb_sel:=0;
-    end;
-  DosMemPut(tb_seg,tb_ofs,p^,l);
+{$ifdef DOS}
+  GetDosMem(M,l);
+  M.MoveDataTo(P^,l);
   r.ax:=$1703;
   r.dx:=7{ OEM Text rather then 1 : Text };
-  r.es:=tb_seg;
-  r.bx:=tb_ofs;
+  r.es:=M.DosSeg;
+  r.bx:=M.DosOfs;
   r.si:=l shr 16;
   r.cx:=l and $ffff;
   RealIntr($2F,r);
   SetTextWinClipBoardData:=(r.ax<>0);
-  if tb_sel<>0 then
-    global_dos_free(tb_sel);
-{$endif go32v2}
+  FreeDosMem(M);
+{$endif DOS}
 {$ifdef win32}
   h:=GlobalAlloc(GMEM_MOVEABLE or GMEM_DDESHARE,l);
   pp:=pchar(GlobalLock(h));
@@ -273,7 +234,10 @@ end.
 
 {
  $Log$
- Revision 1.5  2000-04-18 11:42:39  pierre
+ Revision 1.6  2000-04-25 08:42:35  pierre
+  * New Gabor changes : see fixes.txt
+
+ Revision 1.5  2000/04/18 11:42:39  pierre
   lot of Gabor changes : see fixes.txt
 
  Revision 1.4  1999/11/05 13:46:26  pierre

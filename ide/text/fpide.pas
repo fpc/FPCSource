@@ -22,6 +22,7 @@ uses
   Objects,Drivers,Views,App,Gadgets,MsgBox,
   {$ifdef EDITORS}Editors,{$else}WEditor,WCEdit,{$endif}
   Comphook,Browcol,
+  WHTMLScn,
   FPViews,FPSymbol,fpstring;
 
 type
@@ -34,6 +35,7 @@ type
       procedure   InitStatusLine; virtual;
       procedure   Open(FileName: string);
       function    OpenSearch(FileName: string) : boolean;
+      function    AskSaveAll: boolean;
       function    SaveAll: boolean;
       function    AutoSave: boolean;
       procedure   Idle; virtual;
@@ -989,7 +991,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.57  2000-04-18 11:42:37  pierre
+  Revision 1.58  2000-04-25 08:42:33  pierre
+   * New Gabor changes : see fixes.txt
+
+  Revision 1.57  2000/04/18 11:42:37  pierre
    lot of Gabor changes : see fixes.txt
 
   Revision 1.56  2000/03/21 23:30:49  pierre

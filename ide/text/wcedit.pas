@@ -213,7 +213,7 @@ type
           PScrollBar; AIndicator: PIndicator; ACore: PCodeEditorCore; const AFileName: string);
       function    Save: Boolean; virtual;
       function    SaveAs: Boolean; virtual;
-      function    SaveAsk: Boolean; virtual;
+      function    SaveAsk(Force: boolean): Boolean; virtual;
       function    LoadFile: boolean; virtual;
       function    SaveFile: boolean; virtual;
       function    Valid(Command: Word): Boolean; virtual;
@@ -1624,13 +1624,14 @@ begin
   end;
 end;
 
-function TFileEditor.SaveAsk: boolean;
+function TFileEditor.SaveAsk(Force: boolean): boolean;
 var OK: boolean;
     D: Sw_integer;
 begin
   OK:=GetModified=false;
-  if (OK=false) and (Core^.GetBindingCount>1) then
-    OK:=true;
+  if Force=false then
+    if (OK=false) and (Core^.GetBindingCount>1) then
+      OK:=true;
   if OK=false then
   begin
     if FileName = '' then D := edSaveUntitled else D := edSaveModify;
@@ -1681,7 +1682,7 @@ begin
   OK:=inherited Valid(Command);
   if OK and ((Command=cmClose) or (Command=cmQuit)) then
      if IsClipboard=false then
-    OK:=SaveAsk;
+    OK:=SaveAsk(Command=cmQuit);
   Valid:=OK;
 end;
 
