@@ -22,7 +22,7 @@ unit db;
 
 interface
 
-uses Classes,Sysutils;
+uses Classes,Sysutils,Variants;
 
 const
 
@@ -1387,6 +1387,139 @@ type
     destructor Destroy; override;
   end;
 
+  { TParam }
+
+  TBlobData = string;
+
+  TParamType = (ptUnknown, ptInput, ptOutput, ptInputOutput, ptResult);
+  TParamTypes = set of TParamType;
+
+  TParams = class;
+
+  TParam = class(TCollectionItem)
+  private
+    FNativeStr: string;
+    FValue: Variant;
+    FPrecision: Integer;
+    FNumericScale: Integer;
+    FNull: Boolean;
+    FName: string;
+    FDataType: TFieldType;
+    FBound: Boolean;
+    FParamType: TParamType;
+    FSize: Integer;
+    Function GetDataSet: TDataSet;
+    Function IsParamStored: Boolean;
+  protected
+    Procedure AssignParam(Param: TParam);
+    Procedure AssignTo(Dest: TPersistent); override;
+    Function GetAsBoolean: Boolean;
+    Function GetAsCurrency: Currency;
+    Function GetAsDateTime: TDateTime;
+    Function GetAsFloat: Double;
+    Function GetAsInteger: Longint;
+    Function GetAsMemo: string;
+    Function GetAsString: string;
+    Function GetAsVariant: Variant;
+    Function GetDisplayName: string; override;
+    Function GetIsNull: Boolean;
+    Function IsEqual(AValue: TParam): Boolean;
+    Procedure SetAsBlob(const AValue: TBlobData);
+    Procedure SetAsBoolean(AValue: Boolean);
+    Procedure SetAsCurrency(const AValue: Currency);
+    Procedure SetAsDate(const AValue: TDateTime);
+    Procedure SetAsDateTime(const AValue: TDateTime);
+    Procedure SetAsFloat(const AValue: Double);
+    Procedure SetAsInteger(AValue: Longint);
+    Procedure SetAsMemo(const AValue: string);
+    Procedure SetAsSmallInt(AValue: LongInt);
+    Procedure SetAsString(const AValue: string);
+    Procedure SetAsTime(const AValue: TDateTime);
+    Procedure SetAsVariant(const AValue: Variant);
+    Procedure SetAsWord(AValue: LongInt);
+    Procedure SetDataType(AValue: TFieldType);
+    Procedure SetText(const AValue: string);
+  public
+    constructor Create(ACollection: TCollection); overload; override;
+    constructor Create(AParams: TParams; AParamType: TParamType); reintroduce; overload;
+    Procedure Assign(Source: TPersistent); override;
+    Procedure AssignField(Field: TField);
+    Procedure AssignToField(Field: TField);
+    Procedure AssignFieldValue(Field: TField; const AValue: Variant);
+    Procedure Clear;
+    Procedure GetData(Buffer: Pointer);
+    Function  GetDataSize: Integer;
+    Procedure LoadFromFile(const FileName: string; BlobType: TBlobType);
+    Procedure LoadFromStream(Stream: TStream; BlobType: TBlobType);
+    Procedure SetBlobData(Buffer: Pointer; Size: Integer);
+    Procedure SetData(Buffer: Pointer);
+    Property AsBlob : TBlobData read GetAsString write SetAsBlob;
+    Property AsBoolean : Boolean read GetAsBoolean write SetAsBoolean;
+    Property AsCurrency : Currency read GetAsCurrency write SetAsCurrency;
+    Property AsDate : TDateTime read GetAsDateTime write SetAsDate;
+    Property AsDateTime : TDateTime read GetAsDateTime write SetAsDateTime;
+    Property AsFloat : Double read GetAsFloat write SetAsFloat;
+    Property AsInteger : LongInt read GetAsInteger write SetAsInteger;
+    Property AsMemo : string read GetAsMemo write SetAsMemo;
+    Property AsSmallInt : LongInt read GetAsInteger write SetAsSmallInt;
+    Property AsString : string read GetAsString write SetAsString;
+    Property AsTime : TDateTime read GetAsDateTime write SetAsTime;
+    Property AsWord : LongInt read GetAsInteger write SetAsWord;
+    Property Bound : Boolean read FBound write FBound;
+    Property Dataset : TDataset Read GetDataset;
+    Property IsNull : Boolean read GetIsNull;
+    Property NativeStr : string read FNativeStr write FNativeStr;
+    Property Text : string read GetAsString write SetText;
+    Property Value : Variant read GetAsVariant write SetAsVariant stored IsParamStored;
+  published
+    Property DataType : TFieldType read FDataType write SetDataType;
+    Property Name : string read FName write FName;
+    Property NumericScale : Integer read FNumericScale write FNumericScale default 0;
+    Property ParamType : TParamType read FParamType write FParamType;
+    Property Precision : Integer read FPrecision write FPrecision default 0;
+    Property Size : Integer read FSize write FSize default 0;
+  end;
+  
+
+  { TParams }
+
+  TParams = class(TCollection)
+  private
+    FOwner: TPersistent;
+    Function  GetItem(Index: Integer): TParam;
+    Function  GetParamValue(const ParamName: string): Variant;
+    Procedure SetItem(Index: Integer; Value: TParam);
+    Procedure SetParamValue(const ParamName: string; const Value: Variant);
+  protected
+    Procedure AssignTo(Dest: TPersistent); override;
+    Function  GetDataSet: TDataSet;
+    Function  GetOwner: TPersistent; override;
+  public
+    Constructor Create(AOwner: TPersistent); overload;
+    Constructor Create; overload;
+    Procedure AddParam(Value: TParam);
+    Procedure AssignValues(Value: TParams);
+    Function  CreateParam(FldType: TFieldType; const ParamName: string; ParamType: TParamType): TParam;
+    Function  FindParam(const Value: string): TParam;
+    Procedure GetParamList(List: TList; const ParamNames: string);
+    Function  IsEqual(Value: TParams): Boolean;
+    Function  ParamByName(const Value: string): TParam;
+    Function  ParseSQL(SQL: String; DoCreate: Boolean): String;
+    Procedure RemoveParam(Value: TParam);
+    Property Dataset : TDataset Read GetDataset;
+    Property Items[Index: Integer] : TParam read GetItem write SetItem; default;
+    Property ParamValues[const ParamName: string] : Variant read GetParamValue write SetParamValue;
+  end;
+
+const
+  FieldTypetoVariantMap : array[TFieldType] of Integer = (varError, varOleStr, varSmallint,
+    varInteger, varSmallint, varBoolean, varDouble, varCurrency, varCurrency,
+    varDate, varDate, varDate, varOleStr, varOleStr, varInteger, varOleStr,
+    varOleStr, varOleStr, varOleStr, varOleStr, varOleStr, varOleStr, varError,
+    varOleStr, varOleStr, varError, varError, varError, varError, varError,
+    varOleStr, varOleStr, varVariant, varUnknown, varDispatch, varOleStr, varOleStr,varOleStr);
+
+
 Const
   Fieldtypenames : Array [TFieldType] of String[15] =
     (
@@ -1641,12 +1774,16 @@ end;
 {$i datasource.inc}
 {$i database.inc}
 {$i BufDataset.inc}
+{$i dsparams.inc}
 
 end.
 
 {
   $Log$
-  Revision 1.31  2004-12-13 19:20:12  michael
+  Revision 1.32  2004-12-13 20:19:49  michael
+  + Initial implementation of params
+
+  Revision 1.31  2004/12/13 19:20:12  michael
     * Patch from Joost van der Sluis
     - moved IsCursorOpen from TSQLQuery to tbufdataset
     - moved SetFieldData from TSQLQuery to TBufDataset

@@ -21,6 +21,7 @@ Interface
 
 Const
   SActiveDataset           = 'Operation cannot be performed on an active dataset';
+  SBadParamFieldType       = 'Bad fieldtype for parameter "%s".';
   SCantSetAutoIncFields    = 'AutoInc Fields are read-only';
   SConnected               = 'Operation cannot be performed on an connected database';
   SDatasetReadOnly         = 'Dataset is read-only.';
@@ -55,12 +56,14 @@ Const
   SNotAninteger            = '"%s" is not a valid integer';
   SNotConnected            = 'Operation cannot be performed on an disconnected database';
   SNotInEditState          = 'Operation not allowed, dataset "%s" is not in an edit state.';
+  SParameterNotFound       = 'Parameter "%s" not found';
   SRangeError              = '%f is not between %f and %f for %s';
   SReadOnlyField           = 'Field %s cannot be modified, it is read-only.';
   STransactionRegistered   = 'Transaction already registered : "%s"';
   SUniDirectional          = 'Operation cannot be performed on an unidirectional dataset';
   SUnknownField            = 'No field named "%s" was found in dataset "%s"';
   SUnknownFieldType        = 'Unknown field type : %s';
+  SUnknownParamFieldType   = 'Unknown fieldtype for parameter "%s".';
 
 Implementation
 
@@ -68,7 +71,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2004-11-05 08:32:02  michael
+  Revision 1.5  2004-12-13 20:19:49  michael
+  + Initial implementation of params
+
+  Revision 1.4  2004/11/05 08:32:02  michael
   TBufDataset.inc:
     - replaced Freemem by Reallocmem, Free by FreeAndNil
 
