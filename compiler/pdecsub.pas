@@ -111,6 +111,14 @@ implementation
         { parsing a proc or procvar ? }
         is_procvar:=(aktprocdef^.deftype=procvardef);
         consume(_LKLAMMER);
+        { Delphi/Kylix supports nonsense like }
+        { procedure p();                      }
+        if (token=_RKLAMMER) and
+          (m_delphi in aktmodeswitches) then
+          begin
+             consume(_RKLAMMER);
+             exit;
+          end;
         inc(testcurobject);
         repeat
           if try_to_consume(_VAR) then
@@ -1887,7 +1895,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.13  2001-03-11 22:58:50  peter
+  Revision 1.14  2001-03-22 22:35:42  florian
+    + support for type a = (a=1); in Delphi mode added
+    + procedure p(); in Delphi mode supported
+    + on isn't keyword anymore, it can be used as
+      id etc. now
+
+  Revision 1.13  2001/03/11 22:58:50  peter
     * getsym redesign, removed the globals srsym,srsymtable
 
   Revision 1.12  2001/03/06 18:28:02  peter

@@ -109,9 +109,9 @@ implementation
                  srsym:=searchsymonlyin(punitsym(srsym)^.unitsymtable,pattern);
                  pos:=akttokenpos;
                  s:=pattern;
-               end  
+               end
               else
-               srsym:=nil; 
+               srsym:=nil;
               consume(_ID);
            end;
          { are we parsing a possible forward def ? }
@@ -461,6 +461,17 @@ implementation
                         Message(parser_n_duplicate_enum);
                        l:=v;
                     end
+                  else if (m_delphi in aktmodeswitches) and
+                     (token=_EQUAL) then
+                    begin
+                       consume(_EQUAL);
+                       v:=get_intconst;
+                       { please leave that a note, allows type save }
+                       { declarations in the win32 units !       }
+                       if v<=l then
+                        Message(parser_n_duplicate_enum);
+                       l:=v;
+                    end
                   else
                     inc(l);
                   storepos:=akttokenpos;
@@ -584,7 +595,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.19  2001-03-12 12:49:01  michael
+  Revision 1.20  2001-03-22 22:35:42  florian
+    + support for type a = (a=1); in Delphi mode added
+    + procedure p(); in Delphi mode supported
+    + on isn't keyword anymore, it can be used as
+      id etc. now
+
+  Revision 1.19  2001/03/12 12:49:01  michael
   + Patches from peter
 
   Revision 1.18  2001/03/11 22:58:50  peter

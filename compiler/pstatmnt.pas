@@ -570,11 +570,11 @@ implementation
               block_type:=bt_except;
               ot:=pobjectdef(generrordef);
               p_specific:=nil;
-              if token=_ON then
+              if (token=_ID) and (idtoken=_ON) then
                 { catch specific exceptions }
                 begin
                    repeat
-                     consume(_ON);
+                     consume(_ID);
                      if token=_ID then
                        begin
                           objname:=pattern;
@@ -1240,7 +1240,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.20  2001-03-11 22:58:50  peter
+  Revision 1.21  2001-03-22 22:35:42  florian
+    + support for type a = (a=1); in Delphi mode added
+    + procedure p(); in Delphi mode supported
+    + on isn't keyword anymore, it can be used as
+      id etc. now
+
+  Revision 1.20  2001/03/11 22:58:50  peter
     * getsym redesign, removed the globals srsym,srsymtable
 
   Revision 1.19  2000/12/25 00:07:27  peter

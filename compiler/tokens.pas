@@ -309,7 +309,7 @@ const
       (str:'IN'            ;special:false;keyword:m_all;op:_OP_IN),
       (str:'IS'            ;special:false;keyword:m_class;op:_OP_IS),
       (str:'OF'            ;special:false;keyword:m_all;op:NOTOKEN),
-      (str:'ON'            ;special:false;keyword:m_class;op:NOTOKEN),
+      (str:'ON'            ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'OR'            ;special:false;keyword:m_all;op:_OP_OR),
       (str:'TO'            ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'AND'           ;special:false;keyword:m_all;op:_OP_AND),
@@ -478,7 +478,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  2000-11-29 00:30:42  florian
+  Revision 1.8  2001-03-22 22:35:43  florian
+    + support for type a = (a=1); in Delphi mode added
+    + procedure p(); in Delphi mode supported
+    + on isn't keyword anymore, it can be used as
+      id etc. now
+
+  Revision 1.7  2000/11/29 00:30:42  florian
     * unused units removed from uses clause
     * some changes for widestrings
 
