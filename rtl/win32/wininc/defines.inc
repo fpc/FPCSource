@@ -4774,6 +4774,8 @@
      TMPF_VECTOR = $2;
      TMPF_TRUETYPE = $4;
      TMPF_DEVICE = $8;
+     WM_CTLCOLOR = 25;
+
   { --------------------- old stuff, need to organize! ---------------  }
   { BEGINNING of windowsx.h stuff from old headers:  }
   {  Not convertable by H2PAS
@@ -5721,10 +5723,13 @@ const
 
 {
   $Log$
-  Revision 1.3  2000-12-30 22:40:45  peter
+  Revision 1.4  2001-02-09 23:08:31  peter
+    * fixed bugs 1398,1399,1400
+
+  Revision 1.3  2000/12/30 22:40:45  peter
     * added cds_fullscreen
 
   Revision 1.2  2000/07/13 11:33:59  michael
   + removed logs
- 
+
 }

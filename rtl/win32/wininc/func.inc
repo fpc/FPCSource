@@ -616,6 +616,7 @@ function SetParent(hWndChild:HWND; hWndNewParent:HWND):HWND; external 'user32' n
 function EnumChildWindows(hWndParent:HWND; lpEnumFunc:ENUMWINDOWSPROC; lParam:LPARAM):WINBOOL; external 'user32' name 'EnumChildWindows';
 function EnumWindows(lpEnumFunc:ENUMWINDOWSPROC; lParam:LPARAM):WINBOOL; external 'user32' name 'EnumWindows';
 function EnumThreadWindows(dwThreadId:DWORD; lpfn:ENUMWINDOWSPROC; lParam:LPARAM):WINBOOL; external 'user32' name 'EnumThreadWindows';
+function EnumTaskWindows(hTask:HWND; lpfn:FARPROC; lParam: LPARAM): BOOL;external 'user32' name 'EnumTaskWindows';
 function GetTopWindow(hWnd:HWND):HWND; external 'user32' name 'GetTopWindow';
 function GetWindowThreadProcessId(hWnd:HWND; lpdwProcessId:LPDWORD):DWORD; external 'user32' name 'GetWindowThreadProcessId';
 function GetLastActivePopup(hWnd:HWND):HWND; external 'user32' name 'GetLastActivePopup';
@@ -1196,6 +1197,13 @@ function CommDlg_OpenSave_SetControlText(_hdlg:HWND;_id : longint;_text : LPSTR)
 function CommDlg_OpenSave_HideControl(_hdlg:HWND;_id : longint) : LRESULT;
 function CommDlg_OpenSave_SetDefExt(_hdlg:HWND;_pszext : LPSTR) : LRESULT;
 
+function GlobalAllocPtr(flags,cb:DWord):Pointer;
+function GlobalFreePtr(lp:Pointer):Pointer;
+function GlobalUnlockPtr(lp:pointer):Pointer;
+function GlobalLockPtr(lp:pointer):Pointer;
+function GlobalReAllocPtr(lp:Pointer;cbNew,flags:DWord):Pointer;
+function GlobalPtrHandle(lp:pointer):Pointer;
+
 {$endif read_interface}
 
 
@@ -1234,6 +1242,43 @@ end;
 procedure ZeroMemory(Destination:PVOID; Length:DWORD);
 begin
   FillChar(Destination^,Length,#0);
+end;
+
+
+function GlobalAllocPtr(flags,cb:DWord):Pointer;
+begin
+  GlobalAllocPtr:=GlobalLock(GlobalAlloc(flags,cb));
+end;
+
+
+function GlobalFreePtr(lp:Pointer):Pointer;
+begin
+  GlobalFreePtr:=Pointer(GlobalFree(HWND(GlobalUnlockPtr(lp))));
+end;
+
+
+function GlobalUnlockPtr(lp:pointer):Pointer;
+begin
+  GlobalUnlock(GlobalHandle(lp));
+  GlobalUnlockPtr:=lp;
+end;
+
+
+function GlobalLockPtr(lp:pointer):Pointer;
+begin
+  GlobalLockPtr:=GlobalLock(GlobalHandle(lp));
+end;
+
+
+function GlobalReAllocPtr(lp:Pointer;cbNew,flags:DWord):Pointer;
+begin
+  GlobalReAllocPtr:=GlobalLock(GlobalReAlloc(HWND(GlobalUnlockPtr(lp)),cbNew,flags));
+end;
+
+
+function GlobalPtrHandle(lp:pointer):Pointer;
+begin
+  GlobalPtrHandle:=Pointer(GlobalHandle(lp));
 end;
 
 
@@ -2181,10 +2226,13 @@ end;
 
 {
   $Log$
-  Revision 1.3  2001-02-02 20:53:18  peter
+  Revision 1.4  2001-02-09 23:08:31  peter
+    * fixed bugs 1398,1399,1400
+
+  Revision 1.3  2001/02/02 20:53:18  peter
     * merged fix for bug 1375
 
   Revision 1.2  2000/07/13 11:33:59  michael
   + removed logs
- 
+
 }
