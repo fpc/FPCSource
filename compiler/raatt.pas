@@ -1366,9 +1366,7 @@ unit raatt;
             AS_END,
             AS_SEPARATOR,
             AS_COMMA:
-              Begin
-                break;
-              end;
+              break;
           else
             Begin
               { write error only once. }
@@ -1423,7 +1421,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2003-11-12 16:05:39  florian
+  Revision 1.2  2003-11-15 19:00:10  florian
+    * fixed ppc assembler reader
+
+  Revision 1.1  2003/11/12 16:05:39  florian
     * assembler readers OOPed
     + typed currency constants
     + typed 128 bit float constants if the CPU supports it

@@ -61,7 +61,7 @@ implementation
 
     function findreg_by_number_table(r:Tregister;const regnumber_index:TRegisterIndexTable):tregisterindex;
       var
-        i,p,q : tregisterindex;
+        i,p,q : longint;
       begin
         p:=Low(tregisterindex);
         q:=high(tregisterindex);
@@ -81,7 +81,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2003-10-30 17:13:18  peter
+  Revision 1.2  2003-11-15 19:00:10  florian
+    * fixed ppc assembler reader
+
+  Revision 1.1  2003/10/30 17:13:18  peter
     * fixed findreg_by_number
     * renamed rghelper to rgbase
 

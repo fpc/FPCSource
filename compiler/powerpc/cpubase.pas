@@ -61,7 +61,7 @@ uses
         a_lhau, a_lhaux, a_lhax, a_hbrx, a_lhz, a_lhzu, a_lhzux, a_lhzx, a_lmw,
         a_lswi, a_lswx, a_lwarx, a_lwbrx, a_lwz, a_lwzu, a_lwzux, a_lwzx, a_mcrf,
         a_mcrfs, a_mcrxr, a_lcrxe, a_mfcr, a_mffs, a_maffs_, a_mfmsr, a_mfspr, a_mfsr,
-        a_mfsrin, a_mftb, a_mtfcrf, a_a_mtfd0, a_mtfsb1, a_mtfsf, a_mtfsf_,
+        a_mfsrin, a_mftb, a_mtcrf, a_a_mtfd0, a_mtfsb1, a_mtfsf, a_mtfsf_,
         a_mtfsfi, a_mtfsfi_, a_mtmsr, a_mtspr, a_mtsr, a_mtsrin, a_mulhw,
         a_mulhw_, a_mulhwu, a_mulhwu_, a_mulli, a_mullw, a_mullw_, a_mullwo,
         a_mullwo_, a_nand, a_nand_, a_neg, a_neg_, a_nego, a_nego_, a_nor, a_nor_,
@@ -183,6 +183,9 @@ uses
       AsmCondFlag2BO: Array[C_T..C_DZF] of Byte =
         (12,4,16,8,0,18,10,2);
 
+      AsmCondFlag2BOLT_NU: Array[C_LT..C_NU] of Byte =
+        (12,4,12,4,12,4,4,4,12,4,12,4);
+
       AsmCondFlag2BI: Array[C_LT..C_NU] of Byte =
         (0,1,2,0,1,0,2,1,3,3,3,3);
 
@@ -199,6 +202,7 @@ uses
         { conditions when not using ctr decrement etc}
         'LT','LE','EQ','GE','GT','NL','NE','NG','SO','NS','UN','NU',
         'T','F','DNZ','DNZT','DNZF','DZ','DZT','DZF');
+
 
     const
       CondAsmOps=3;
@@ -553,7 +557,7 @@ uses
     function findreg_by_number(r:Tregister):tregisterindex;
     function std_regnum_search(const s:string):Tregister;
     function std_regname(r:Tregister):string;
-    function gas_regname(r:Tregister):string;
+    function is_condreg(r : tregister):boolean;
 
 
 implementation
@@ -564,10 +568,6 @@ implementation
     const
       std_regname_table : array[tregisterindex] of string[7] = (
         {$i rppcstd.inc}
-      );
-
-      gas_regname_table : array[tregisterindex] of string[7] = (
-        {$i rppcgas.inc}
       );
 
       regnumber_index : array[tregisterindex] of tregisterindex = (
@@ -645,10 +645,12 @@ implementation
         end;
       end;
 
+
     function is_condreg(r : tregister):boolean;
       begin
         result:=(r>=NR_CR0) and (r<=NR_CR0);
       end;
+
 
     function cgsize2subreg(s:Tcgsize):Tsubregister;
       begin
@@ -658,7 +660,7 @@ implementation
 
     function findreg_by_number(r:Tregister):tregisterindex;
       begin
-        rgBase.findreg_by_number_table(r,regnumber_index);
+        result:=rgBase.findreg_by_number_table(r,regnumber_index);
       end;
 
 
@@ -680,21 +682,13 @@ implementation
       end;
 
 
-    function gas_regname(r:Tregister):string;
-      var
-        p : tregisterindex;
-      begin
-        p:=findreg_by_number_table(r,regnumber_index);
-        if p<>0 then
-          result:=gas_regname_table[p]
-        else
-          result:=generic_regname(r);
-      end;
-
 end.
 {
   $Log$
-  Revision 1.76  2003-11-12 16:05:40  florian
+  Revision 1.77  2003-11-15 19:00:10  florian
+    * fixed ppc assembler reader
+
+  Revision 1.76  2003/11/12 16:05:40  florian
     * assembler readers OOPed
     + typed currency constants
     + typed 128 bit float constants if the CPU supports it

@@ -53,7 +53,7 @@ interface
         'lhau','lhaux','lhax','hbrx','lhz','lhzu','lhzux','lhzx','lmw',
         'lswi','lswx','lwarx','lwbrx','lwz','lwzu','lwzux','lwzx','mcrf',
         'mcrfs','mcrxr','lcrxe','mfcr','mffs','maffs.','mfmsr','mfspr','mfsr',
-        'mfsrin','mftb','mtfcrf','mtfd0','mtfsb1','mtfsf','mtfsf.',
+        'mfsrin','mftb','mtcrf','mtfd0','mtfsb1','mtfsf','mtfsf.',
         'mtfsfi','mtfsfi.','mtmsr','mtspr','mtsr','mtsrin','mulhw',
         'mulhw.','mulhwu','mulhwu.','mulli','mullw','mullw.','mullwo',
         'mullwo.','nand','nand.','neg','neg.','nego','nego.','nor','nor.',
@@ -123,7 +123,7 @@ implementation
 
     function gas_regname(r:Tregister):string;
       var
-        p : tregisterindex;
+        p : longint;
       begin
         p:=findreg_by_number(r);
         if p<>0 then
@@ -135,7 +135,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2003-11-12 16:05:40  florian
+  Revision 1.2  2003-11-15 19:00:10  florian
+    * fixed ppc assembler reader
+
+  Revision 1.1  2003/11/12 16:05:40  florian
     * assembler readers OOPed
     + typed currency constants
     + typed 128 bit float constants if the CPU supports it

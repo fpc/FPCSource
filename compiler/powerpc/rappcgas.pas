@@ -36,6 +36,9 @@ Unit rappcgas;
         procedure BuildReference(oper : tppcoperand);
         procedure BuildOperand(oper : tppcoperand);
         procedure BuildOpCode(instr : tppcinstruction);
+        procedure ReadAt(oper : tppcoperand);
+        procedure ReadSym(oper : tppcoperand);
+        procedure ConvertCalljmp(instr : tppcinstruction);
       end;
 
 
@@ -59,6 +62,60 @@ Unit rappcgas;
       cgbase,cgobj
       ;
 
+    procedure tppcattreader.ReadSym(oper : tppcoperand);
+      var
+         tempstr : string;
+         typesize,l,k : longint;
+      begin
+        tempstr:=actasmpattern;
+        Consume(AS_ID);
+        { typecasting? }
+        if (actasmtoken=AS_LPAREN) and
+           SearchType(tempstr,typesize) then
+         begin
+           oper.hastype:=true;
+           Consume(AS_LPAREN);
+           BuildOperand(oper);
+           Consume(AS_RPAREN);
+           if oper.opr.typ in [OPR_REFERENCE,OPR_LOCAL] then
+             oper.SetSize(typesize,true);
+         end
+        else
+         if not oper.SetupVar(tempstr,false) then
+          Message1(sym_e_unknown_id,tempstr);
+        { record.field ? }
+        if actasmtoken=AS_DOT then
+         begin
+           BuildRecordOffsetSize(tempstr,l,k);
+           inc(oper.opr.ref.offset,l);
+         end;
+      end;
+
+
+    procedure tppcattreader.ReadAt(oper : tppcoperand);
+      begin
+        { check for ...@ }
+        if actasmtoken=AS_AT then
+          begin
+            if oper.opr.ref.symbol=nil then
+              Message(asmr_e_invalid_reference_syntax);
+            Consume(AS_AT);
+            if actasmtoken=AS_ID then
+              begin
+                if upper(actasmpattern)='L' then
+                  oper.opr.ref.symaddr:=refs_l
+                else if upper(actasmpattern)='HA' then
+                  oper.opr.ref.symaddr:=refs_ha
+                else
+                  Message(asmr_e_invalid_reference_syntax);
+                Consume(AS_ID);
+              end
+            else
+              Message(asmr_e_invalid_reference_syntax);
+          end;
+      end;
+
+
     Procedure tppcattreader.BuildReference(oper : tppcoperand);
 
       procedure Consume_RParen;
@@ -79,14 +136,15 @@ Unit rappcgas;
            end;
         end;
 
+      var
+        l : longint;
 
       begin
-        oper.InitRef;
         Consume(AS_LPAREN);
         Case actasmtoken of
           AS_INTNUM,
           AS_MINUS,
-          AS_PLUS: { absolute offset, such as fs:(0x046c) }
+          AS_PLUS:
             Begin
               { offset(offset) is invalid }
               If oper.opr.Ref.Offset <> 0 Then
@@ -103,8 +161,6 @@ Unit rappcgas;
             End;
           AS_REGISTER: { (reg ...  }
             Begin
-              { Check if there is already a base (mostly ebp,esp) than this is
-                not allowed, because it will give crashing code }
               if ((oper.opr.typ=OPR_REFERENCE) and (oper.opr.ref.base<>NR_NO)) or
                  ((oper.opr.typ=OPR_LOCAL) and (oper.opr.localsym.localloc.loc<>LOC_REGISTER)) then
                 message(asmr_e_cannot_index_relative_var);
@@ -131,6 +187,28 @@ Unit rappcgas;
                  RecoverConsume(false);
                end;
             end; {end case }
+          AS_ID:
+            Begin
+              ReadSym(oper);
+              { add a constant expression? }
+              if (actasmtoken=AS_PLUS) then
+               begin
+                 l:=BuildConstExpression(true,true);
+                 case oper.opr.typ of
+                   OPR_CONSTANT :
+                     inc(oper.opr.val,l);
+                   OPR_LOCAL :
+                     inc(oper.opr.localsymofs,l);
+                   OPR_REFERENCE :
+                     inc(oper.opr.ref.offset,l);
+                   else
+                     internalerror(200309202);
+                 end;
+               end;
+              Consume(AS_RPAREN);
+              if actasmtoken=AS_AT then
+                ReadAt(oper);
+            End;
           AS_COMMA: { (, ...  can either be scaling, or index }
             Begin
               Consume(AS_COMMA);
@@ -159,10 +237,8 @@ Unit rappcgas;
 
     Procedure tppcattreader.BuildOperand(oper : tppcoperand);
       var
-        tempstr,
         expr : string;
-        typesize,
-        l,k : longint;
+        typesize,l : longint;
 
 
         procedure AddLabelOperand(hl:tasmlabel);
@@ -245,28 +321,7 @@ Unit rappcgas;
                 BuildReference(oper);
               AS_ID: { only a variable is allowed ... }
                 Begin
-                  tempstr:=actasmpattern;
-                  Consume(AS_ID);
-                  { typecasting? }
-                  if (actasmtoken=AS_LPAREN) and
-                     SearchType(tempstr,typesize) then
-                   begin
-                     oper.hastype:=true;
-                     Consume(AS_LPAREN);
-                     BuildOperand(oper);
-                     Consume(AS_RPAREN);
-                     if oper.opr.typ in [OPR_REFERENCE,OPR_LOCAL] then
-                       oper.SetSize(typesize,true);
-                   end
-                  else
-                   if not oper.SetupVar(tempstr,false) then
-                    Message1(sym_e_unknown_id,tempstr);
-                  { record.field ? }
-                  if actasmtoken=AS_DOT then
-                   begin
-                     BuildRecordOffsetSize(tempstr,l,k);
-                     inc(oper.opr.ref.offset,l);
-                   end;
+                  ReadSym(oper);
                   case actasmtoken of
                     AS_END,
                     AS_SEPARATOR,
@@ -288,7 +343,8 @@ Unit rappcgas;
 
       var
         tempreg : tregister;
-        hl      : tasmlabel;
+        hl : tasmlabel;
+        ofs : longint;
       Begin
         expr:='';
         case actasmtoken of
@@ -296,12 +352,6 @@ Unit rappcgas;
             Begin
               oper.InitRef;
               BuildReference(oper);
-            end;
-
-          AS_DOLLAR: { Constant expression  }
-            Begin
-              Consume(AS_DOLLAR);
-              BuildConstantOperand(oper);
             end;
 
           AS_INTNUM,
@@ -313,7 +363,11 @@ Unit rappcgas;
               oper.InitRef;
               oper.opr.ref.offset:=BuildConstExpression(True,False);
               if actasmtoken<>AS_LPAREN then
-                BuildConstantOperand(oper)
+                begin
+                  ofs:=oper.opr.ref.offset;
+                  BuildConstantOperand(oper);
+                  inc(oper.opr.val,ofs);
+                end
               else
                 BuildReference(oper);
             end;
@@ -363,27 +417,7 @@ Unit rappcgas;
                     else
                      begin
                        if oper.SetupVar(expr,false) then
-                        begin
-                          { check for ...@ }
-                          if actasmtoken=AS_AT then
-                            begin
-                              if oper.opr.ref.symbol=nil then
-                                Message(asmr_e_invalid_reference_syntax);
-                              Consume(AS_AT);
-                              if actasmtoken=AS_ID then
-                                begin
-                                  if upper(actasmpattern)='L' then
-                                    oper.opr.ref.symaddr:=refs_l
-                                  else if upper(actasmpattern)='HA' then
-                                    oper.opr.ref.symaddr:=refs_ha
-                                  else
-                                    Message(asmr_e_invalid_reference_syntax);
-                                  Consume(AS_ID);
-                                end
-                              else
-                                Message(asmr_e_invalid_reference_syntax);
-                            end;
-                        end
+                         ReadAt(oper)
                        else
                         Begin
                           { look for special symbols ... }
@@ -459,11 +493,37 @@ Unit rappcgas;
                 end
               else if is_condreg(tempreg) then
                 begin
+                  if not(actcondition.cond in [C_T..C_DZF]) then
+                    Message(asmr_e_syn_operand);
                   if actasmtoken=AS_STAR then
                     begin
                       consume(AS_STAR);
-                      if (actasmtoken=AS_INTNUM) and (actasmpattern='4') then
+                      if (actasmtoken=AS_INTNUM) then
                         begin
+                          consume(AS_INTNUM);
+                          if actasmtoken=AS_PLUS then
+                            begin
+                              consume(AS_PLUS);
+                              if (actasmtoken=AS_ID) then
+                                begin
+                                  oper.opr.typ:=OPR_NONE;
+                                  if actasmpattern='LT' then
+                                    actcondition.crbit:=(ord(tempreg)-ord(NR_CR0))*4
+                                  else if actasmpattern='GT' then
+                                    actcondition.crbit:=(ord(tempreg)-ord(NR_CR0))*4+1
+                                  else if actasmpattern='EQ' then
+                                    actcondition.crbit:=(ord(tempreg)-ord(NR_CR0))*4+2
+                                  else if actasmpattern='SO' then
+                                    actcondition.crbit:=(ord(tempreg)-ord(NR_CR0))*4+3
+                                  else
+                                    Message(asmr_e_syn_operand);
+                                  consume(AS_ID);
+                                end
+                              else
+                                Message(asmr_e_syn_operand);
+                            end
+                          else
+                            Message(asmr_e_syn_operand);
                         end
                       else
                         Message(asmr_e_syn_operand);
@@ -522,10 +582,16 @@ Unit rappcgas;
           case actasmtoken of
             AS_COMMA: { Operand delimiter }
               Begin
-                if operandnum > Max_Operands then
+                if operandnum>Max_Operands then
                   Message(asmr_e_too_many_operands)
                 else
-                  Inc(operandnum);
+                  begin
+                    { condition operands doesn't set the operand but write to the
+                      condition field of the instruction
+                    }
+                    if instr.Operands[operandnum].opr.typ<>OPR_NONE then
+                      Inc(operandnum);
+                  end;
                 Consume(AS_COMMA);
               end;
             AS_SEPARATOR,
@@ -537,6 +603,8 @@ Unit rappcgas;
             BuildOperand(instr.Operands[operandnum] as tppcoperand);
           end; { end case }
         until false;
+        if (operandnum=1) and (instr.Operands[operandnum].opr.typ=OPR_NONE) then
+          dec(operandnum);
         instr.Ops:=operandnum;
       end;
 
@@ -555,8 +623,10 @@ Unit rappcgas;
         hs:=s;
         is_asmopcode:=false;
 
+        { clear op code }
         actopcode:=A_None;
-        actcondition.cond:=C_None;
+        { clear condition }
+        fillchar(actcondition,sizeof(actcondition),0);
 
         { check for direction hint }
         if hs[length(s)]='-' then
@@ -582,15 +652,44 @@ Unit rappcgas;
             for cond:=low(TAsmCondFlag) to high(TAsmCondFlag) do
               if copy(hs,2,length(s)-1)=UpperAsmCondFlag2Str[cond] then
                 begin
-                  actopcode:=A_B;
+                  actopcode:=A_BC;
                   actcondition.simple:=true;
                   actcondition.cond:=cond;
                   actasmtoken:=AS_OPCODE;
                   is_asmopcode:=true;
                   exit;
                 end;
+            if copy(hs,length(s)-1,2)='LR' then
+              for cond:=C_LT to C_NU do
+                if copy(hs,2,length(s)-3)=UpperAsmCondFlag2Str[cond] then
+                  begin
+                    actopcode:=A_BCLR;
+                    actcondition.simple:=false;
+                    actcondition.bo:=AsmCondFlag2BOLT_NU[cond];
+                    actcondition.bo:=AsmCondFlag2BI[cond];
+                    actasmtoken:=AS_OPCODE;
+                    is_asmopcode:=true;
+                    exit;
+                  end;
           end;
+      end;
 
+
+    procedure tppcattreader.ConvertCalljmp(instr : tppcinstruction);
+      var
+        newopr : toprrec;
+      begin
+        if instr.Operands[1].opr.typ=OPR_REFERENCE then
+          begin
+            newopr.typ:=OPR_SYMBOL;
+            newopr.symbol:=instr.Operands[1].opr.ref.symbol;
+            newopr.symofs:=instr.Operands[1].opr.ref.offset;
+            if (instr.Operands[1].opr.ref.base<>NR_NO) or
+              (instr.Operands[1].opr.ref.index<>NR_NO) or
+              (instr.Operands[1].opr.ref.symaddr<>refs_full) then
+              Message(asmr_e_syn_operand);
+            instr.Operands[1].opr:=newopr;
+          end;
       end;
 
 
@@ -600,6 +699,8 @@ Unit rappcgas;
       begin
         instr:=TPPCInstruction.Create(TPPCOperand);
         BuildOpcode(instr);
+        if is_calljmp(instr.opcode) then
+          ConvertCalljmp(instr);
         {
         instr.AddReferenceSizes;
         instr.SetInstructionOpsize;
@@ -635,7 +736,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.2  2003-11-12 16:05:40  florian
+  Revision 1.3  2003-11-15 19:00:10  florian
+    * fixed ppc assembler reader
+
+  Revision 1.2  2003/11/12 16:05:40  florian
     * assembler readers OOPed
     + typed currency constants
     + typed 128 bit float constants if the CPU supports it

@@ -269,7 +269,7 @@ unit agppcgas;
                s:=cond2str(op,taicpu(hp).condition)+',';
           end;
 
-          if (taicpu(hp).oper[0]^.typ <> top_none) then
+          if (taicpu(hp).ops>0) and (taicpu(hp).oper[0]^.typ<>top_none) then
             s:=s+getopstr_jmp(taicpu(hp).oper[0]^);
         end
       else
@@ -302,7 +302,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.33  2003-11-12 16:05:40  florian
+  Revision 1.34  2003-11-15 19:00:10  florian
+    * fixed ppc assembler reader
+
+  Revision 1.33  2003/11/12 16:05:40  florian
     * assembler readers OOPed
     + typed currency constants
     + typed 128 bit float constants if the CPU supports it
