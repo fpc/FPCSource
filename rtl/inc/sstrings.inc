@@ -13,14 +13,14 @@
  **********************************************************************}
 
 {****************************************************************************
-                    subroutines for string handling  
+                    subroutines for string handling
 ****************************************************************************}
 
 {$I real2str.inc}
 
 function copy(const s : string;index : integer;count : integer): string;
 
-begin 
+begin
   if count<0 then
    count:=0;
   if index>1 then
@@ -136,7 +136,7 @@ var i : longint;
 
 begin
   upcase[0]:=s[0];
-  for i := 1 to length (s) do 
+  for i := 1 to length (s) do
     upcase[i] := upcase (s[i]);
 end;
 
@@ -168,7 +168,7 @@ var i : longint;
 
 begin
   lowercase [0] := s[0];
-  for i := 1 to length (s) do 
+  for i := 1 to length (s) do
      lowercase[i] := lowercase (s[i]);
 end;
 
@@ -265,7 +265,7 @@ end;
 
 
 {*****************************************************************************
-                           Val() Functions 
+                           Val() Functions
 *****************************************************************************}
 
 Function InitVal(const s:string;var negativ:boolean;var base:byte):Word;
@@ -633,7 +633,7 @@ var
   e : double;
 begin
   val(s,e,code);
-  d:=e;
+  d:=comp(e);
 end;
 
 
@@ -642,7 +642,7 @@ var
   e : double;
 begin
   val(s,e,word(code));
-  d:=e;
+  d:=comp(e);
 end;
 
 
@@ -652,7 +652,7 @@ var
   e    : double;
 begin
   val(s,e,code);
-  d:=e;
+  d:=comp(e);
 end;
 
 
@@ -703,7 +703,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  1998-05-12 10:42:45  peter
+  Revision 1.4  1998-05-31 14:14:52  peter
+    * removed warnings using comp()
+
+  Revision 1.3  1998/05/12 10:42:45  peter
     * moved getopts to inc/, all supported OS's need argc,argv exported
     + strpas, strlen are now exported in the systemunit
     * removed logs

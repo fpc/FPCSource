@@ -916,7 +916,7 @@ var
   hs   : String;
   code : Word;
 Begin
-  d:=0.0;
+  d:=comp(0.0);
   hs:='';
   if not OpenInput(f) then
    exit;
@@ -948,7 +948,10 @@ Begin
 End;
 {
   $Log$
-  Revision 1.7  1998-05-27 00:19:21  peter
+  Revision 1.8  1998-05-31 14:14:54  peter
+    * removed warnings using comp()
+
+  Revision 1.7  1998/05/27 00:19:21  peter
     * fixed crt input
 
   Revision 1.6  1998/05/21 19:31:01  peter
