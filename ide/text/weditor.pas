@@ -2397,7 +2397,7 @@ begin
         DeleteLine(CurPos.Y+1);
         LimitsChanged;
         SDX:=0; SDY:=-1;
-      end;
+       end;
    end
   else
    begin
@@ -4069,8 +4069,11 @@ begin
       pa:=UndoList^.At(UndoList^.count-1);
       if (pa^.action=AAction) and
          (pa^.EndPos.X=AStartPos.X) and
-         (pa^.EndPos.Y=AStartPos.Y) {and
-         (AAction in []) should we restrict here PM ?? }
+         (pa^.EndPos.Y=AStartPos.Y) and
+         { do not group InsertLine and DeleteLine !! }
+         ((AAction=eaMoveCursor) or
+          (AAction=eaInsertText) or
+          (AAction=eaDeleteText))
          then
         begin
           pa^.EndPos:=AEndPos;
@@ -4915,7 +4918,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.56  1999-10-27 13:32:58  pierre
+  Revision 1.57  1999-10-28 11:15:50  pierre
+   * do not agregate Insert/DeleteLine Undos
+
+  Revision 1.56  1999/10/27 13:32:58  pierre
    * some more Undo Fixes
 
   Revision 1.55  1999/10/27 10:46:19  pierre
