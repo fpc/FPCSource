@@ -39,7 +39,7 @@ OBJECTS=ex1 ex2 ex3 ex4 ex5 ex6 ex7 ex8 ex9 ex10 ex11 ex12\
         ex48 ex49 ex50 ex51 ex52 ex53 ex54 ex55 ex56 ex57 ex58\
         ex59 ex60 ex61 ex62 ex63 ex64 ex65 ex66 ex67 ex68 ex69 ex70\
         ex71 ex72 ex73 ex74 ex75 ex76 ex77 ex78 ex79 ex80 \
-        ex81 ex82 ex83 ex84 ex85 ex86 ex87 ex88
+        ex81 ex82 ex83 ex84 ex85 ex86 ex87 ex88 ex89 ex90 ex91
         
 # This might not be the same list as objects, since some of the
 # tests might be interactive.
@@ -50,7 +50,7 @@ TOTEST=ex1 ex2 ex3 ex4 ex5 ex6 ex7 ex8 ex9 ex10 ex11 ex12\
         ex48 ex49 ex50 ex51 ex52 ex53 ex54 ex55 ex56 ex57 ex58\
         ex59 ex60 ex61 ex62 ex63 ex64 ex65 ex66 ex67 ex68 ex69 ex70\
         ex72 ex73 ex74 ex75 ex76 ex77 ex78 ex79 ex80 \
-        ex81 ex82 ex83 ex84 ex85 ex86 ex87 ex88
+        ex81 ex82 ex83 ex84 ex85 ex86 ex87 ex88 ex89 ex90 ex91
 
 LOGFILE=$(addsuffix .log, $(TOTEST))
         
