@@ -1311,21 +1311,23 @@ END;
 {---------------------------------------------------------------------------}
 {  FormatStr -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 13Jul99 LdB         }
 {---------------------------------------------------------------------------}
-PROCEDURE FormatStr (Var Result: String; CONST Format: String; Var Params);
-TYPE TLongArray = Array[0..0] Of LongInt;
-VAR ResultLength, FormatIndex, Justify, Wth: Byte; Fill: Char; S: String;
+procedure FormatStr (Var Result: String; CONST Format: String; Var Params);
+TYPE TLongArray = Array[0..0] Of PtrInt;
+VAR W, ResultLength : integer;
+    FormatIndex, Justify, Wth: Byte;
+    Fill: Char; S: String;
 
    FUNCTION LongToStr (L: Longint; Radix: Byte): String;
    CONST HexChars: Array[0..15] Of Char =
     ('0', '1', '2', '3', '4', '5', '6', '7',
      '8', '9', 'A', 'B', 'C', 'D', 'E', 'F');
    VAR I: LongInt; S: String; Sign: String[1];
-   BEGIN
+   begin
      LongToStr := '';                                 { Preset empty return }
-     If (L < 0) Then Begin                            { If L is negative }
+     If (L < 0) Then begin                            { If L is negative }
        Sign := '-';                                   { Sign is negative }
        L := Abs(L);                                   { Convert to positive }
-     End Else Sign := '';                             { Sign is empty }
+     end Else Sign := '';                             { Sign is empty }
      S := '';                                         { Preset empty string }
      Repeat
        I := L MOD Radix;                              { Radix mod of value }
@@ -1333,87 +1335,91 @@ VAR ResultLength, FormatIndex, Justify, Wth: Byte; Fill: Char; S: String;
        L := L DIV Radix;                              { Divid by radix }
      Until (L = 0);                                   { Until no remainder }
      LongToStr := Sign + S;                           { Return result }
-   END;
+   end;
 
-   PROCEDURE HandleParameter (I : LongInt);
-   BEGIN
-     While (FormatIndex <= Length(Format)) Do Begin   { While length valid }
-       While (FormatIndex <= Length(Format)) and
-             (Format[FormatIndex] <> '%')          { Param char not found }
-       Do Begin       { Length still valid }
+   procedure HandleParameter (I : LongInt);
+   begin
+     While (FormatIndex <= Length(Format)) Do begin   { While length valid }
+       if ResultLength>=High(Result) then
+         exit;
+       While (Format[FormatIndex] <> '%') and         { Param char not found }
+       (FormatIndex <= Length(Format)) Do begin       { Length still valid }
          Result[ResultLength+1] := Format[FormatIndex]; { Transfer character }
          Inc(ResultLength);                           { One character added }
          Inc(FormatIndex);                            { Next param char }
-       End;
-       If (FormatIndex < Length(Format)) AND          { Not last char and }
-       (Format[FormatIndex] = '%') Then Begin         { '%' char found }
+       end;
+       If (FormatIndex < Length(Format)) and          { Not last char and }
+       (Format[FormatIndex] = '%') Then begin         { '%' char found }
          Fill := ' ';                                 { Default fill char }
          Justify := 0;                                { Default justify }
          Wth := 0;                                    { Default 0=no width }
          Inc(FormatIndex);                            { Next character }
          If (Format[FormatIndex] = '0') Then
            Fill := '0';                               { Fill char to zero }
-         If (Format[FormatIndex] = '-') Then Begin    { Optional just char }
+         If (Format[FormatIndex] = '-') Then begin    { Optional just char }
            Justify := 1;                              { Right justify }
            Inc(FormatIndex);                          { Next character }
-         End;
-         While ((FormatIndex <= Length(Format)) AND   { Length still valid }
-         (Format[FormatIndex] >= '0') AND
-         (Format[FormatIndex] <= '9')) Do Begin       { Numeric character }
+         end;
+         While ((FormatIndex <= Length(Format)) and   { Length still valid }
+         (Format[FormatIndex] >= '0') and
+         (Format[FormatIndex] <= '9')) Do begin       { Numeric character }
            Wth := Wth * 10;                           { Multiply x10 }
            Wth := Wth + Ord(Format[FormatIndex])-$30; { Add numeric value }
            Inc(FormatIndex);                          { Next character }
-         End;
-         If ((FormatIndex <= Length(Format)) AND      { Length still valid }
-         (Format[FormatIndex] = '#')) Then Begin      { Parameter marker }
+         end;
+         If ((FormatIndex <= Length(Format)) and      { Length still valid }
+         (Format[FormatIndex] = '#')) Then begin      { Parameter marker }
            Inc(FormatIndex);                          { Next character }
            HandleParameter(Wth);                      { Width is param idx }
-         End;
-         If (FormatIndex <= Length(Format)) Then Begin{ Length still valid }
+         end;
+         If (FormatIndex <= Length(Format)) Then begin{ Length still valid }
            Case Format[FormatIndex] Of
-             'c': S := Char(TLongArray(Params)[I]);  { Character parameter }
+           '%': begin                               { Literal % }
+             S := '%';
+             Inc(FormatIndex);
+             Move(S[1], Result[ResultLength+1], 1);
+             Inc(ResultLength,Length(S));
+             Continue;
+           end;
+           'c': S := Char(TLongArray(Params)[I]);  { Character parameter }
              'd': S := LongToStr(TLongArray(Params)[I],
                10);                                   { Decimal parameter }
              's': S := PString(TLongArray(Params)[I])^;{ String parameter }
              'x': S := LongToStr(TLongArray(Params)[I],
                16);                                   { Hex parameter }
-             '%': Begin                               { Literal % }
-               S := '%';                              { Set string }
-               Inc(FormatIndex);                      { Next character }
-               Move(S[1], Result[ResultLength+1], 1); { '%' char to result }
-               Inc(ResultLength, Length(S));          { Inc result length }
-               Continue;                              { Now continue }
-             End;
-           End;
-           Inc(I);                                    { Next parameter }
+           end;
            Inc(FormatIndex);                          { Next character }
-           If (Wth > 0) Then Begin                    { Width control active }
-             If (Length(S) > Wth) Then Begin          { We must shorten S }
+           If (Wth > 0) Then begin                    { Width control active }
+             If (Length(S) > Wth) Then begin          { We must shorten S }
                If (Justify=1) Then                    { Check right justify }
                  S := Copy(S, Length(S)-Wth+1, Wth)   { Take right side data }
                  Else S := Copy(S, 1, Wth);           { Take left side data }
-             End Else Begin                           { We must pad out S }
+             end Else begin                           { We must pad out S }
                If (Justify=1) Then                    { Right justify }
                  While (Length(S) < Wth) Do
                    S := S+Fill Else                   { Right justify fill }
                  While (Length(S) < Wth) Do
                    S := Fill + S;                     { Left justify fill }
-             End;
-           End;
+             end;
+           end;
+           W:=Length(S);
+           if W+ResultLength+1>High(Result) then
+             W:=High(Result)-ResultLength;
            Move(S[1], Result[ResultLength+1],
-             Length(S));                              { Move data to result }
-           ResultLength := ResultLength + Length(S);  { Adj result length }
-         End;
-       End;
-     End;
-   END;
+             W);                                      { Move data to result }
+           Inc(ResultLength,W);                       { Adj result length }
+           Inc(I);
+         end;
+       end;
+     end;
+   end;
 
-BEGIN
+begin
    ResultLength := 0;                                 { Zero result length }
    FormatIndex := 1;                                  { Format index to 1 }
    HandleParameter(0);                                { Handle parameter }
-   SetLength(Result, ResultLength);                   { Set string length }
-END;
+   Result[0] := Chr(ResultLength);                    { Set string length }
+end;
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 {                    NEW QUEUED EVENT HANDLER ROUTINES                      }
@@ -1465,7 +1471,10 @@ BEGIN
 END.
 {
  $Log$
- Revision 1.45  2004-11-24 21:03:05  florian
+ Revision 1.46  2004-12-04 18:40:47  peter
+   * FormatStr fixed to prevent buffer overflows
+
+ Revision 1.45  2004/11/24 21:03:05  florian
    * increased max. possible screen/view width to 255
 
  Revision 1.44  2004/11/06 19:19:30  armin
