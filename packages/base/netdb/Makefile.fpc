@@ -12,10 +12,12 @@ units_linux=netdb
 units_freebsd=netdb
 units_openbsd=netdb
 units_netbsd=netdb
+units_darwin=netdb
 examples_linux=testdns testhst testsvc testnet
 examples_freebsd=testdns testhst testsvc testnet
 examples_openbsd=testdns testhst testsvc testnet
 examples_netbsd=testdns testhst testsvc testnet
+examples_darwin=testdns testhst testsvc testnet
 examples=testuri
 
 [require]
