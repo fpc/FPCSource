@@ -22,7 +22,7 @@ begin
             end;
         end
       else
-        if (s <> '1.0000000000001') then
+        if (s <> '1'+DecimalSeparator+'0000000000001') then
           begin
             writeln('error');
             halt(1);

@@ -4,6 +4,7 @@
 program AssertFormatBug;
   { Illustrates bug with using Format in Assert }
 
+{$mode objfpc}
 {$assertions on}
 
 uses

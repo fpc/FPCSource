@@ -1,4 +1,5 @@
 {$mode delphi}
+{$inline on}
 
 unit ub0489;
 
