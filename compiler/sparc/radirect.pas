@@ -148,7 +148,7 @@ end;
                                  { is the last written character an special }
                                  { char ?                                   }
                                  if (s[length(s)]='%') and
-                                    paramanager.ret_in_acc(aktprocdef.rettype.def) and
+                                    paramanager.ret_in_acc(aktprocdef.rettype.def,aktprocdef.proccalloption) and
                                     ((pos('AX',upper(hs))>0) or
                                     (pos('AL',upper(hs))>0)) then
                                    tfuncretsym(aktprocdef.funcretsym).funcretstate:=vs_assigned;
@@ -314,7 +314,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.2  2002-09-19 20:24:47  mazen
+  Revision 1.3  2002-11-18 17:32:01  peter
+    * pass proccalloption to ret_in_xxx and push_xxx functions
+
+  Revision 1.2  2002/09/19 20:24:47  mazen
   + call support
 
   Revision 1.1  2002/08/23 10:08:28  mazen

@@ -332,13 +332,13 @@ implementation
                      vs.vartype:=tt;
                      vs.varspez:=varspez;
                      if (varspez in [vs_var,vs_const,vs_out]) and
-                        paramanager.push_addr_param(tt.def,false) then
+                        paramanager.push_addr_param(tt.def,aktprocdef.proccalloption) then
                        include(vs.varoptions,vo_regable);
 
                      { do we need a local copy? Then rename the varsym, do this after the
                        insert so the dup id checking is done correctly }
                      if (varspez=vs_value) and
-                        paramanager.push_addr_param(tt.def,aktprocdef.proccalloption in [pocall_cdecl,pocall_cppdecl]) and
+                        paramanager.push_addr_param(tt.def,aktprocdef.proccalloption) and
                         not(is_open_array(tt.def) or is_array_of_const(tt.def)) then
                        currparast.rename(vs.name,'val'+vs.name);
 
@@ -2027,7 +2027,7 @@ const
          begin
            if not parse_only then
             begin
-              if paramanager.ret_in_param(aprocdef.rettype.def) then
+              if paramanager.ret_in_param(aprocdef.rettype.def,aprocdef.proccalloption) then
                begin
                  aprocdef.parast.insert(otsym);
                  { this allows to read the funcretoffset }
@@ -2054,7 +2054,10 @@ const
 end.
 {
   $Log$
-  Revision 1.80  2002-11-17 16:31:56  carl
+  Revision 1.81  2002-11-18 17:31:58  peter
+    * pass proccalloption to ret_in_xxx and push_xxx functions
+
+  Revision 1.80  2002/11/17 16:31:56  carl
     * memory optimization (3-4%) : cleanup of tai fields,
        cleanup of tdef and tsym fields.
     * make it work for m68k

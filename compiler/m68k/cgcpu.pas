@@ -227,15 +227,15 @@ Implementation
         fixref(list,href);
         list.concat(taicpu.op_ref(A_JSR,S_NO,href));
       end;
-      
+
     procedure tcg68k.a_call_reg(list : taasmoutput;reg : tregister);
      var
-       href : treference; 
+       href : treference;
      begin
        reference_reset_base(href, reg, 0);
        a_call_ref(list,href);
      end;
-      
+
 
 
     procedure tcg68k.a_load_const_reg(list : taasmoutput;size : tcgsize;a : aword;register : tregister);
@@ -1000,7 +1000,7 @@ Implementation
          if (po_clearstack in aktprocdef.procoptions) then
            begin
              { complex return values are removed from stack in C code PM }
-             if paramanager.ret_in_param(aktprocdef.rettype.def) then
+             if paramanager.ret_in_param(aktprocdef.rettype.def,aktprocdef.proccalloption) then
                list.concat(taicpu.op_const(A_RTD,S_NO,4))
              else
                list.concat(taicpu.op_none(A_RTS,S_NO));
@@ -1250,7 +1250,10 @@ end.
 
 {
   $Log$
-  Revision 1.10  2002-09-22 14:15:31  carl
+  Revision 1.11  2002-11-18 17:32:00  peter
+    * pass proccalloption to ret_in_xxx and push_xxx functions
+
+  Revision 1.10  2002/09/22 14:15:31  carl
     + a_call_reg
 
   Revision 1.9  2002/09/17 18:54:05  jonas

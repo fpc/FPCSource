@@ -826,7 +826,7 @@ implementation
            if assigned(left) then
             begin
               inserttypeconv(left,aktprocdef.rettype);
-              if paramanager.ret_in_param(aktprocdef.rettype.def) or
+              if paramanager.ret_in_param(aktprocdef.rettype.def,aktprocdef.proccalloption) or
                  (procinfo.no_fast_exit) or
                  ((procinfo.flags and pi_uses_exceptions)<>0) then
                begin
@@ -1412,7 +1412,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.54  2002-10-20 15:31:49  peter
+  Revision 1.55  2002-11-18 17:31:56  peter
+    * pass proccalloption to ret_in_xxx and push_xxx functions
+
+  Revision 1.54  2002/10/20 15:31:49  peter
     * set funcret state for exit(0)
 
   Revision 1.53  2002/10/05 12:43:25  carl

@@ -421,7 +421,7 @@ implementation
          { because we don't know yet where the address is }
          if not is_void(aktprocdef.rettype.def) then
            begin
-              if paramanager.ret_in_reg(aktprocdef.rettype.def) then
+              if paramanager.ret_in_reg(aktprocdef.rettype.def,aktprocdef.proccalloption) then
                 begin
                    { the space has been set in the local symtable }
                    procinfo.return_offset:=tg.direction*tfuncretsym(aktprocdef.funcretsym).address;
@@ -430,7 +430,7 @@ implementation
                      otsym.address:=tfuncretsym(aktprocdef.funcretsym).address;
 
                    rg.usedinproc := rg.usedinproc +
-                      getfuncretusedregisters(aktprocdef.rettype.def);
+                      getfuncretusedregisters(aktprocdef.rettype.def,aktprocdef.proccalloption);
                 end;
            end;
       end;
@@ -438,16 +438,16 @@ implementation
     { updates usedinproc depending on the resulttype }
     procedure tprocinfo.update_usedinproc_result;
       begin
-         if paramanager.ret_in_reg(procdef.rettype.def) then
+         if paramanager.ret_in_reg(procdef.rettype.def,procdef.proccalloption) then
            begin
               rg.usedinproc := rg.usedinproc +
-              getfuncretusedregisters(procdef.rettype.def);
+              getfuncretusedregisters(procdef.rettype.def,procdef.proccalloption);
            end;
       end;
 
     procedure tprocinfo.set_result_offset;
       begin
-         if paramanager.ret_in_reg(aktprocdef) then
+         if paramanager.ret_in_reg(aktprocdef,procdef.proccalloption) then
            procinfo.return_offset:=-tfuncretsym(procdef.funcretsym).address;
       end;
 
@@ -658,7 +658,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.32  2002-10-05 12:43:23  carl
+  Revision 1.33  2002-11-18 17:31:54  peter
+    * pass proccalloption to ret_in_xxx and push_xxx functions
+
+  Revision 1.32  2002/10/05 12:43:23  carl
     * fixes for Delphi 6 compilation
      (warning : Some features do not work under Delphi)
 

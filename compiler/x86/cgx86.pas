@@ -1510,7 +1510,7 @@ unit cgx86;
         if (po_clearstack in aktprocdef.procoptions) then
          begin
            { complex return values are removed from stack in C code PM }
-           if paramanager.ret_in_param(aktprocdef.rettype.def) then
+           if paramanager.ret_in_param(aktprocdef.rettype.def,aktprocdef.proccalloption) then
              list.concat(Taicpu.Op_const(A_RET,S_NO,4))
            else
              list.concat(Taicpu.Op_none(A_RET,S_NO));
@@ -1682,7 +1682,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.20  2002-11-09 21:18:31  carl
+  Revision 1.21  2002-11-18 17:32:01  peter
+    * pass proccalloption to ret_in_xxx and push_xxx functions
+
+  Revision 1.20  2002/11/09 21:18:31  carl
     * flags2reg() was not extending the byte register to the correct result size
 
   Revision 1.19  2002/10/16 19:01:43  peter

@@ -710,7 +710,7 @@ implementation
       var
         asmstat : tasmnode;
         Marker  : tai;
-        r,r2    : tregister;
+        r       : tregister;
         found   : boolean;
         hs      : string;
       begin
@@ -1121,7 +1121,7 @@ implementation
             (aktprocdef.owner.symtabletype<>objectsymtable) and
             (not assigned(aktprocdef.funcretsym) or
              (tfuncretsym(aktprocdef.funcretsym).refcount<=1)) and
-            not(paramanager.ret_in_param(aktprocdef.rettype.def)) and
+            not(paramanager.ret_in_param(aktprocdef.rettype.def,aktprocdef.proccalloption)) and
             (target_cpu in [cpu_i386,cpu_m68k,cpu_vm])
 {$ifdef CHECKFORPUSH}
             and not(UsesPush(tasmnode(p)))
@@ -1133,7 +1133,7 @@ implementation
           register.
         }
         if assigned(aktprocdef.funcretsym) and
-           paramanager.ret_in_reg(aktprocdef.rettype.def) then
+           paramanager.ret_in_reg(aktprocdef.rettype.def,aktprocdef.proccalloption) then
           tfuncretsym(aktprocdef.funcretsym).funcretstate:=vs_assigned;
 
         { because the END is already read we need to get the
@@ -1146,7 +1146,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.78  2002-09-07 19:34:08  florian
+  Revision 1.79  2002-11-18 17:31:58  peter
+    * pass proccalloption to ret_in_xxx and push_xxx functions
+
+  Revision 1.78  2002/09/07 19:34:08  florian
     + tcg.direction is used now
 
   Revision 1.77  2002/09/07 15:25:07  peter

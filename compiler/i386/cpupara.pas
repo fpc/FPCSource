@@ -30,6 +30,7 @@ unit cpupara;
 
     uses
        cpubase,
+       globtype,
        symtype,symdef,paramgr;
 
     type
@@ -39,8 +40,8 @@ unit cpupara;
          rtl are used.
        }
        ti386paramanager = class(tparamanager)
-          function ret_in_acc(def : tdef) : boolean;override;
-          function ret_in_param(def : tdef) : boolean;override;
+          function ret_in_acc(def : tdef;calloption : tproccalloption) : boolean;override;
+          function ret_in_param(def : tdef;calloption : tproccalloption) : boolean;override;
           function getintparaloc(nr : longint) : tparalocation;override;
           procedure create_param_loc_info(p : tabstractprocdef);override;
           function getselflocation(p : tabstractprocdef) : tparalocation;override;
@@ -49,30 +50,30 @@ unit cpupara;
   implementation
 
     uses
+       systems,
+       symconst,
        verbose;
 
-    function ti386paramanager.ret_in_acc(def : tdef) : boolean;
+    function ti386paramanager.ret_in_acc(def : tdef;calloption : tproccalloption) : boolean;
       begin
-{$ifdef TEST_WIN32_RECORDS}
         { Win32 returns small records in the accumulator }
         if ((target_info.system=system_i386_win32) and
+            (calloption=pocall_stdcall) and
             (def.deftype=recorddef) and (def.size<=8)) then
           result:=true
         else
-{$endif TEST_WIN32_RECORDS}
-          result:=inherited ret_in_acc(def);
+          result:=inherited ret_in_acc(def,calloption);
       end;
 
-    function ti386paramanager.ret_in_param(def : tdef) : boolean;
+    function ti386paramanager.ret_in_param(def : tdef;calloption : tproccalloption) : boolean;
       begin
-{$ifdef TEST_WIN32_RECORDS}
         { Win32 returns small records in the accumulator }
         if ((target_info.system=system_i386_win32) and
+            (calloption=pocall_stdcall) and
             (def.deftype=recorddef) and (def.size<=8)) then
           result:=false
         else
-{$endif TEST_WIN32_RECORDS}
-          result:=inherited ret_in_param(def);
+          result:=inherited ret_in_param(def,calloption);
       end;
 
     function ti386paramanager.getintparaloc(nr : longint) : tparalocation;
@@ -99,7 +100,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2002-11-15 01:58:56  peter
+  Revision 1.5  2002-11-18 17:32:00  peter
+    * pass proccalloption to ret_in_xxx and push_xxx functions
+
+  Revision 1.4  2002/11/15 01:58:56  peter
     * merged changes from 1.0.7 up to 04-11
       - -V option for generating bug report tracing
       - more tracing for option parsing

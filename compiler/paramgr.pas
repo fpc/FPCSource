@@ -30,6 +30,7 @@ unit paramgr;
 
     uses
        cpubase,
+       globtype,
        symtype,symdef;
 
     type
@@ -38,25 +39,25 @@ unit paramgr;
        }
        tparamanager = class
           {# Returns true if the return value can be put in accumulator }
-          function ret_in_acc(def : tdef) : boolean;virtual;
+          function ret_in_acc(def : tdef;calloption : tproccalloption) : boolean;virtual;
           {# Returns true if the return value is put in a register
 
              Either a floating point register, or a general purpose
              register.
           }
-          function ret_in_reg(def : tdef) : boolean;virtual;
+          function ret_in_reg(def : tdef;calloption : tproccalloption) : boolean;virtual;
 
           {# Returns true if the return value is actually a parameter
              pointer.
           }
-          function ret_in_param(def : tdef) : boolean;virtual;
+          function ret_in_param(def : tdef;calloption : tproccalloption) : boolean;virtual;
 
-          function push_high_param(def : tdef) : boolean;virtual;
+          function push_high_param(def : tdef;calloption : tproccalloption) : boolean;virtual;
 
           {# Returns true if a parameter is too large to copy and only
             the address is pushed
           }
-          function push_addr_param(def : tdef;is_cdecl:boolean) : boolean;virtual;
+          function push_addr_param(def : tdef;calloption : tproccalloption) : boolean;virtual;
           {# Returns a structure giving the information on
              the storage of the parameter (which must be
              an integer parameter)
@@ -91,11 +92,11 @@ unit paramgr;
 
             @param(def The definition of the result type of the function)
           }
-          function getfuncresultloc(def : tdef): tparalocation; virtual;
+          function getfuncresultloc(def : tdef;calloption:tproccalloption): tparalocation; virtual;
        end;
 
     procedure setparalocs(p : tprocdef);
-    function getfuncretusedregisters(def : tdef): tregisterset;
+    function getfuncretusedregisters(def : tdef;calloption:tproccalloption): tregisterset;
 
     var
        paralocdummy : tparalocation;
@@ -104,13 +105,13 @@ unit paramgr;
   implementation
 
     uses
-       cpuinfo,globals,globtype,systems,
+       cpuinfo,globals,systems,
        symconst,symbase,symsym,
        rgobj,
        defbase,cgbase,cginfo,verbose;
 
     { true if the return value is in accumulator (EAX for i386), D0 for 68k }
-    function tparamanager.ret_in_acc(def : tdef) : boolean;
+    function tparamanager.ret_in_acc(def : tdef;calloption : tproccalloption) : boolean;
       begin
          ret_in_acc:=(def.deftype in [orddef,pointerdef,enumdef,classrefdef]) or
                      ((def.deftype=stringdef) and (tstringdef(def).string_typ in [st_ansistring,st_widestring])) or
@@ -119,13 +120,13 @@ unit paramgr;
                      ((def.deftype=setdef) and (tsetdef(def).settype=smallset));
       end;
 
-    function tparamanager.ret_in_reg(def : tdef) : boolean;
+    function tparamanager.ret_in_reg(def : tdef;calloption : tproccalloption) : boolean;
       begin
-        ret_in_reg:=ret_in_acc(def) or (def.deftype=floatdef);
+        ret_in_reg:=ret_in_acc(def,calloption) or (def.deftype=floatdef);
       end;
 
     { true if uses a parameter as return value }
-    function tparamanager.ret_in_param(def : tdef) : boolean;
+    function tparamanager.ret_in_param(def : tdef;calloption : tproccalloption) : boolean;
       begin
          ret_in_param:=(def.deftype in [arraydef,recorddef]) or
            ((def.deftype=stringdef) and (tstringdef(def).string_typ in [st_shortstring,st_longstring])) or
@@ -136,7 +137,7 @@ unit paramgr;
       end;
 
 
-    function tparamanager.push_high_param(def : tdef) : boolean;
+    function tparamanager.push_high_param(def : tdef;calloption : tproccalloption) : boolean;
       begin
          push_high_param:=is_open_array(def) or
                           is_open_string(def) or
@@ -145,7 +146,7 @@ unit paramgr;
 
 
     { true if a parameter is too large to copy and only the address is pushed }
-    function tparamanager.push_addr_param(def : tdef;is_cdecl:boolean) : boolean;
+    function tparamanager.push_addr_param(def : tdef;calloption : tproccalloption) : boolean;
       begin
         push_addr_param:=false;
         if never_copy_const_param then
@@ -157,14 +158,14 @@ unit paramgr;
              formaldef :
                push_addr_param:=true;
              recorddef :
-               push_addr_param:=(not is_cdecl) and (def.size>pointer_size);
+               push_addr_param:=not(calloption in [pocall_cdecl,pocall_cppdecl]) and (def.size>pointer_size);
              arraydef :
                push_addr_param:=(
                                  (tarraydef(def).highrange>=tarraydef(def).lowrange) and
                                   (
                                    not(target_info.system=system_i386_win32) or
                                    ((def.size>pointer_size) and
-                                    (not is_cdecl))
+                                    not(calloption in [pocall_cdecl,pocall_cppdecl]))
                                   )
                                 ) or
                                 is_open_array(def) or
@@ -175,9 +176,9 @@ unit paramgr;
              stringdef :
                push_addr_param:=tstringdef(def).string_typ in [st_shortstring,st_longstring];
              procvardef :
-               push_addr_param:=(not is_cdecl) and (po_methodpointer in tprocvardef(def).procoptions);
+               push_addr_param:=not(calloption in [pocall_cdecl,pocall_cppdecl]) and (po_methodpointer in tprocvardef(def).procoptions);
              setdef :
-               push_addr_param:=(not is_cdecl) and (tsetdef(def).settype<>smallset);
+               push_addr_param:=not(calloption in [pocall_cdecl,pocall_cppdecl]) and (tsetdef(def).settype<>smallset);
            end;
          end;
       end;
@@ -203,7 +204,7 @@ unit paramgr;
       end;
 
 
-    function tparamanager.getfuncresultloc(def : tdef): tparalocation;
+    function tparamanager.getfuncresultloc(def : tdef;calloption:tproccalloption): tparalocation;
       begin
          fillchar(result,sizeof(tparalocation),0);
          if is_void(def) then exit;
@@ -234,7 +235,7 @@ unit paramgr;
              end;
           else
              begin
-                if ret_in_reg(def) then
+                if ret_in_reg(def,calloption) then
                   begin
                     result.loc := LOC_REGISTER;
                     result.register := accumulator;
@@ -261,7 +262,7 @@ unit paramgr;
       end;
 
 
-    function getfuncretusedregisters(def : tdef): tregisterset;
+    function getfuncretusedregisters(def : tdef;calloption:tproccalloption): tregisterset;
       var
         paramloc : tparalocation;
         regset : tregisterset;
@@ -272,9 +273,9 @@ unit paramgr;
           its useless to continue on in this
           routine
         }
-        if not paramanager.ret_in_reg(def) then
+        if not paramanager.ret_in_reg(def,calloption) then
           exit;
-        paramloc := paramanager.getfuncresultloc(def);
+        paramloc := paramanager.getfuncresultloc(def,calloption);
         case paramloc.loc of
           LOC_FPUREGISTER,
           LOC_CFPUREGISTER,
@@ -310,7 +311,7 @@ unit paramgr;
                  (
                   (vo_regable in tvarsym(hp.parasym).varoptions) or
                   (vo_fpuregable in tvarsym(hp.parasym).varoptions) or
-                   paramanager.push_addr_param(hp.paratype.def,p.proccalloption in [pocall_cdecl,pocall_cppdecl]) or
+                   paramanager.push_addr_param(hp.paratype.def,p.proccalloption) or
                    (hp.paratyp in [vs_var,vs_out])
                  ) then
                 begin
@@ -338,7 +339,10 @@ end.
 
 {
    $Log$
-   Revision 1.22  2002-11-16 18:00:04  peter
+   Revision 1.23  2002-11-18 17:31:58  peter
+     * pass proccalloption to ret_in_xxx and push_xxx functions
+
+   Revision 1.22  2002/11/16 18:00:04  peter
      * only push small arrays on the stack for win32
 
    Revision 1.21  2002/10/05 12:43:25  carl

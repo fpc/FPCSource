@@ -412,7 +412,7 @@ implementation
                    { we need a register for call by reference parameters }
                    if (tvarsym(symtableentry).varspez in [vs_var,vs_out]) or
                       ((tvarsym(symtableentry).varspez=vs_const) and
-                      paramanager.push_addr_param(tvarsym(symtableentry).vartype.def,false)) or
+                      paramanager.push_addr_param(tvarsym(symtableentry).vartype.def,pocall_none)) or
                       { call by value open arrays are also indirect addressed }
                       is_open_array(tvarsym(symtableentry).vartype.def) then
                      registers32:=1;
@@ -778,7 +778,7 @@ implementation
       begin
          result:=nil;
          location.loc:=LOC_REFERENCE;
-         if paramanager.ret_in_param(resulttype.def) or
+         if paramanager.ret_in_param(resulttype.def,tprocdef(funcretsym.owner.defowner).proccalloption) or
             (lexlevel<>funcretsym.owner.symtablelevel) then
            registers32:=1;
       end;
@@ -1181,7 +1181,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.64  2002-11-15 01:58:52  peter
+  Revision 1.65  2002-11-18 17:31:57  peter
+    * pass proccalloption to ret_in_xxx and push_xxx functions
+
+  Revision 1.64  2002/11/15 01:58:52  peter
     * merged changes from 1.0.7 up to 04-11
       - -V option for generating bug report tracing
       - more tracing for option parsing

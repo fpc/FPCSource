@@ -71,7 +71,7 @@ unit cpupi;
               procinfo.framepointer_offset:=procdef.parast.address_fixup;
               inc(procdef.parast.address_fixup,4);
            end;
-         if paramanager.ret_in_param(procdef.rettype.def) then
+         if paramanager.ret_in_param(procdef.rettype.def,procdef.proccalloption) then
            begin
               procinfo.return_offset:=procdef.parast.address_fixup;
               inc(procdef.parast.address_fixup,4);
@@ -84,7 +84,7 @@ unit cpupi;
          { this value is necessary for nested procedures }
          procdef.localst.address_fixup:=align(procdef.parast.address_fixup+procdef.parast.datasize,16);
          if assigned(aktprocdef.funcretsym) and
-           not(paramanager.ret_in_param(procdef.rettype.def)) then
+           not(paramanager.ret_in_param(procdef.rettype.def,procdef.proccalloption)) then
            procinfo.return_offset:=tg.direction*tfuncretsym(aktprocdef.funcretsym).address+procdef.localst.address_fixup;
      end;
 
@@ -103,7 +103,7 @@ unit cpupi;
          procdef.localst.address_fixup:=align(procdef.parast.address_fixup+procdef.parast.datasize,16);
 
          if assigned(aktprocdef.funcretsym) and
-           not(paramanager.ret_in_param(procdef.rettype.def)) then
+           not(paramanager.ret_in_param(procdef.rettype.def,procdef.proccalloption)) then
            procinfo.return_offset:=tg.direction*tfuncretsym(aktprocdef.funcretsym).address+procdef.localst.address_fixup;
 
          if cs_asm_source in aktglobalswitches then
@@ -123,7 +123,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2002-09-10 20:30:42  florian
+  Revision 1.5  2002-11-18 17:32:01  peter
+    * pass proccalloption to ret_in_xxx and push_xxx functions
+
+  Revision 1.4  2002/09/10 20:30:42  florian
     * fixed offset calculation for symtables etc.
 
   Revision 1.3  2002/09/07 17:54:59  florian

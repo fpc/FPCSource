@@ -137,7 +137,7 @@ unit cpupara;
          { pointer for structured results ? }
          if not is_void(p.rettype.def) then
            begin
-              if not(ret_in_reg(p.rettype.def)) then
+              if not(ret_in_reg(p.rettype.def,p.proccalloption)) then
                 inc(nextintreg);
            end;
 
@@ -216,7 +216,7 @@ unit cpupara;
                  LOC_REFERENCE:
                    begin
                       hp.paraloc.size:=OS_ADDR;
-                      if push_addr_param(hp.paratype.def,p.proccalloption in [pocall_cdecl,pocall_cppdecl]) or (hp.paratyp in [vs_var,vs_out]) then
+                      if push_addr_param(hp.paratype.def,p.proccalloption) or (hp.paratyp in [vs_var,vs_out]) then
                         begin
                            if nextintreg<=R_10 then
                              begin
@@ -295,7 +295,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2002-10-02 13:33:36  jonas
+  Revision 1.16  2002-11-18 17:32:01  peter
+    * pass proccalloption to ret_in_xxx and push_xxx functions
+
+  Revision 1.15  2002/10/02 13:33:36  jonas
     + set, variant support in getfuncretparaloc
 
   Revision 1.14  2002/09/28 21:27:16  florian

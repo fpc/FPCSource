@@ -708,7 +708,7 @@ Begin
             new_one.next := foll;
             prev.next := new_one;
             foll.previous := new_one;
-            Tai(new_one).fileinfo := Tai(foll).fileinfo
+            Tailineinfo(new_one).fileinfo := Tailineinfo(foll).fileinfo
           End
       End
     Else AsmL.Concat(new_one)
@@ -788,7 +788,10 @@ End.
 
 {
  $Log$
- Revision 1.7  2002-08-18 18:16:55  florian
+ Revision 1.8  2002-11-18 17:31:54  peter
+   * pass proccalloption to ret_in_xxx and push_xxx functions
+
+ Revision 1.7  2002/08/18 18:16:55  florian
    * fixed compilation error
 
  Revision 1.6  2002/07/07 09:52:32  florian

@@ -178,7 +178,7 @@ implementation
                       { call by reference/const ? }
                       if (regvarinfo^.regvars[i].varspez in [vs_var,vs_out]) or
                          ((regvarinfo^.regvars[i].varspez=vs_const) and
-                           paramanager.push_addr_param(regvarinfo^.regvars[i].vartype.def,false)) then
+                           paramanager.push_addr_param(regvarinfo^.regvars[i].vartype.def,aktprocdef.proccalloption)) then
                         begin
                            regvarinfo^.regvars[i].reg:=varregs[i];
                         end
@@ -316,7 +316,7 @@ implementation
           hr.base:=procinfo.framepointer;
           if (vsym.varspez in [vs_var,vs_out]) or
              ((vsym.varspez=vs_const) and
-               paramanager.push_addr_param(vsym.vartype.def,false)) then
+               paramanager.push_addr_param(vsym.vartype.def,aktprocdef.proccalloption)) then
             opsize := OS_ADDR
           else
             opsize := def_cgsize(vsym.vartype.def);
@@ -469,7 +469,10 @@ end.
 
 {
   $Log$
-  Revision 1.41  2002-08-25 19:25:20  peter
+  Revision 1.42  2002-11-18 17:31:59  peter
+    * pass proccalloption to ret_in_xxx and push_xxx functions
+
+  Revision 1.41  2002/08/25 19:25:20  peter
     * sym.insert_in_data removed
     * symtable.insertvardata/insertconstdata added
     * removed insert_in_data call from symtable.insert, it needs to be

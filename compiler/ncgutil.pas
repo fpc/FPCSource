@@ -28,6 +28,7 @@ interface
 
     uses
       node,cpuinfo,
+      globtype,
       cpubase,cpupara,
       aasmbase,aasmtai,aasmcpu,
       cginfo,symbase,symdef,symtype,
@@ -55,7 +56,7 @@ interface
     procedure maybe_restore(list:taasmoutput;var l:tlocation;const s:tmaybesave);
     function  maybe_pushfpu(list:taasmoutput;needed : byte;var l:tlocation) : boolean;
 
-    procedure push_value_para(p:tnode;inlined,is_cdecl:boolean;
+    procedure push_value_para(p:tnode;calloption:tproccalloption;
                               para_offset:longint;alignment : longint;
                               const locpara : tparalocation);
 
@@ -96,7 +97,8 @@ implementation
 {$else}
     strings,
 {$endif}
-    cutils,cclasses,globtype,globals,systems,verbose,
+    cutils,cclasses,
+    globals,systems,verbose,
     symconst,symsym,symtable,defbase,paramgr,
     fmodule,
     cgbase,regvars,
@@ -688,7 +690,7 @@ implementation
                                 Push Value Para
 *****************************************************************************}
 
-    procedure push_value_para(p:tnode;inlined,is_cdecl:boolean;
+    procedure push_value_para(p:tnode;calloption:tproccalloption;
                               para_offset:longint;alignment : longint;
                               const locpara : tparalocation);
       var
@@ -716,7 +718,7 @@ implementation
                begin
                   size:=align(tfloatdef(p.resulttype.def).size,alignment);
                   inc(pushedparasize,size);
-                  if not inlined then
+                  if calloption<>pocall_inline then
                    cg.a_op_const_reg(exprasmlist,OP_SUB,size,STACK_POINTER_REG);
 {$ifdef GDB}
                   if (cs_debuginfo in aktmoduleswitches) and
@@ -725,7 +727,7 @@ implementation
 {$endif GDB}
 
                   { this is the easiest case for inlined !! }
-                  if inlined then
+                  if calloption=pocall_inline then
                    reference_reset_base(href,procinfo.framepointer,para_offset-pushedparasize)
                   else
                    reference_reset_base(href,stack_pointer_reg,0);
@@ -755,7 +757,7 @@ implementation
                        dec(tempreference.offset,2);
                        dec(sizetopush,2);
                      end;
-                    if inlined then
+                    if calloption=pocall_inline then
                      begin
                        reference_reset_base(href,procinfo.framepointer,para_offset-pushedparasize);
                        cg.a_load_ref_ref(exprasmlist,cgsize,tempreference,href);
@@ -771,8 +773,8 @@ implementation
         else
          begin
            { call by value open array ? }
-           if is_cdecl and
-              paramanager.push_addr_param(p.resulttype.def,false) then
+           if (calloption in [pocall_cdecl,pocall_cppdecl]) and
+              paramanager.push_addr_param(p.resulttype.def,calloption) then
             begin
               if not (p.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
                 internalerror(200204241);
@@ -796,7 +798,7 @@ implementation
                     if cgsize in [OS_64,OS_S64] then
                      begin
                        inc(pushedparasize,8);
-                       if inlined then
+                       if calloption=pocall_inline then
                         begin
                           reference_reset_base(href,procinfo.framepointer,para_offset-pushedparasize);
                           if p.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
@@ -833,7 +835,7 @@ implementation
                           p.location.register:=rg.makeregsize(p.location.register,cgsize);
                         end;
                        inc(pushedparasize,alignment);
-                       if inlined then
+                       if calloption=pocall_inline then
                         begin
                           reference_reset_base(href,procinfo.framepointer,para_offset-pushedparasize);
                           if p.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
@@ -857,7 +859,7 @@ implementation
                 LOC_CMMXREGISTER:
                   begin
                      inc(pushedparasize,8);
-                     if inlined then
+                     if calloption=pocall_inline then
                        begin
                           reference_reset_base(href,procinfo.framepointer,para_offset-pushedparasize);
                           cg.a_loadmm_reg_ref(exprasmlist,p.location.register,href);
@@ -886,7 +888,7 @@ implementation
         list:=taasmoutput(arg);
         if (tsym(p).typ=varsym) and
            (tvarsym(p).varspez=vs_value) and
-           (paramanager.push_addr_param(tvarsym(p).vartype.def,false)) then
+           (paramanager.push_addr_param(tvarsym(p).vartype.def,procinfo.procdef.proccalloption)) then
          begin
            reference_reset_base(href1,procinfo.framepointer,tvarsym(p).address+procinfo.para_offset);
            if is_open_array(tvarsym(p).vartype.def) or
@@ -914,7 +916,7 @@ implementation
            (tvarsym(p).varspez=vs_value) and
            (is_open_array(tvarsym(p).vartype.def) or
             is_array_of_const(tvarsym(p).vartype.def)) and
-           (paramanager.push_addr_param(tvarsym(p).vartype.def,false)) then
+           (paramanager.push_addr_param(tvarsym(p).vartype.def,procinfo.procdef.proccalloption)) then
          begin
            reference_reset_base(href1,procinfo.framepointer,tvarsym(p).address+procinfo.para_offset);
            cg.g_removevaluepara_openarray(list,href1,tarraydef(tvarsym(p).vartype.def).elesize);
@@ -1151,7 +1153,7 @@ function returns in a register and the caller receives it in an other one}
                end;
              else
                begin
-                 if paramanager.ret_in_acc(aktprocdef.rettype.def) then
+                 if paramanager.ret_in_acc(aktprocdef.rettype.def,aktprocdef.proccalloption) then
                   begin
                     uses_acc:=true;
                     cg.a_reg_alloc(list,accumulator);
@@ -1203,7 +1205,7 @@ function returns in a register and the caller receives it in an other one}
                end;
              else
                begin
-                 if paramanager.ret_in_acc(aktprocdef.rettype.def) then
+                 if paramanager.ret_in_acc(aktprocdef.rettype.def,aktprocdef.proccalloption) then
                   cg.a_load_reg_ref(list,cgsize,accumulator,href);
                end;
            end;
@@ -1219,7 +1221,6 @@ function returns in a register and the caller receives it in an other one}
       var
         hs : string;
         href : treference;
-        p : tsymtable;
         stackalloclist : taasmoutput;
         hp : tparaitem;
         paraloc : tparalocation;
@@ -1271,7 +1272,7 @@ function returns in a register and the caller receives it in an other one}
         if not is_void(aktprocdef.rettype.def) then
           begin
              { for now the pointer to the result can't be a register }
-             if not(paramanager.ret_in_reg(aktprocdef.rettype.def)) then
+             if not(paramanager.ret_in_reg(aktprocdef.rettype.def,aktprocdef.proccalloption)) then
                begin
                   paraloc:=paramanager.getfuncretparaloc(aktprocdef);
                   reference_reset_base(href,procinfo.framepointer,procinfo.return_offset);
@@ -1297,7 +1298,7 @@ function returns in a register and the caller receives it in an other one}
                   if (cs_implicit_exceptions in aktmoduleswitches) then
                     procinfo.flags:=procinfo.flags or pi_needs_implicit_finally;
                   reference_reset_base(href,procinfo.framepointer,procinfo.return_offset);
-                  cg.g_initialize(list,aktprocdef.rettype.def,href,paramanager.ret_in_param(aktprocdef.rettype.def));
+                  cg.g_initialize(list,aktprocdef.rettype.def,href,paramanager.ret_in_param(aktprocdef.rettype.def,aktprocdef.proccalloption));
                end;
           end;
 
@@ -1629,7 +1630,7 @@ function returns in a register and the caller receives it in an other one}
                     not is_class(aktprocdef.rettype.def)) then
                   begin
                      reference_reset_base(href,procinfo.framepointer,procinfo.return_offset);
-                     cg.g_finalize(list,aktprocdef.rettype.def,href,paramanager.ret_in_param(aktprocdef.rettype.def));
+                     cg.g_finalize(list,aktprocdef.rettype.def,href,paramanager.ret_in_param(aktprocdef.rettype.def,aktprocdef.proccalloption));
                   end;
               end;
 
@@ -1784,7 +1785,7 @@ function returns in a register and the caller receives it in an other one}
 
             if (not is_void(aktprocdef.rettype.def)) then
               begin
-                if paramanager.ret_in_param(aktprocdef.rettype.def) then
+                if paramanager.ret_in_param(aktprocdef.rettype.def,aktprocdef.proccalloption) then
                   list.concat(Tai_stabs.Create(strpnew(
                    '"'+aktprocsym.name+':X*'+tstoreddef(aktprocdef.rettype.def).numberstring+'",'+
                    tostr(N_tsym)+',0,0,'+tostr(procinfo.return_offset))))
@@ -1793,7 +1794,7 @@ function returns in a register and the caller receives it in an other one}
                    '"'+aktprocsym.name+':X'+tstoreddef(aktprocdef.rettype.def).numberstring+'",'+
                    tostr(N_tsym)+',0,0,'+tostr(procinfo.return_offset))));
                 if (m_result in aktmodeswitches) then
-                  if paramanager.ret_in_param(aktprocdef.rettype.def) then
+                  if paramanager.ret_in_param(aktprocdef.rettype.def,aktprocdef.proccalloption) then
                     list.concat(Tai_stabs.Create(strpnew(
                      '"RESULT:X*'+tstoreddef(aktprocdef.rettype.def).numberstring+'",'+
                      tostr(N_tsym)+',0,0,'+tostr(procinfo.return_offset))))
@@ -1875,7 +1876,10 @@ function returns in a register and the caller receives it in an other one}
 end.
 {
   $Log$
-  Revision 1.61  2002-11-17 17:49:08  mazen
+  Revision 1.62  2002-11-18 17:31:55  peter
+    * pass proccalloption to ret_in_xxx and push_xxx functions
+
+  Revision 1.61  2002/11/17 17:49:08  mazen
   + return_result_reg and function_result_reg are now used, in all plateforms, to pass functions result between called function and its caller. See the explanation of each one
 
   Revision 1.60  2002/11/17 16:31:56  carl

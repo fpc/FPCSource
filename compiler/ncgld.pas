@@ -276,8 +276,7 @@ implementation
                       if (tvarsym(symtableentry).varspez in [vs_var,vs_out]) or
                          is_open_array(tvarsym(symtableentry).vartype.def) or
                          is_array_of_const(tvarsym(symtableentry).vartype.def) or
-                         paramanager.push_addr_param(tvarsym(symtableentry).vartype.def,
-                             (tprocdef(symtable.defowner).proccalloption in [pocall_cdecl,pocall_cppdecl])) then
+                         paramanager.push_addr_param(tvarsym(symtableentry).vartype.def,tprocdef(symtable.defowner).proccalloption) then
                         begin
                            if hregister=R_NO then
                              hregister:=rg.getaddressregister(exprasmlist);
@@ -738,7 +737,8 @@ implementation
              location.reference.base:=procinfo.framepointer;
              location.reference.offset:=procinfo.return_offset;
            end;
-         if paramanager.ret_in_param(funcretsym.returntype.def) then
+         if paramanager.ret_in_param(funcretsym.returntype.def,
+                                     tprocdef(funcretsym.owner.defowner).proccalloption) then
            begin
               { the parameter is actual a pointer to the value }
               if not hr_valid then
@@ -915,7 +915,7 @@ implementation
                      end
                     else
                       if vtype in [vtInt64,vtQword,vtExtended] then
-                        push_value_para(hp.left,false,true,0,4,paralocdummy)
+                        push_value_para(hp.left,pocall_cdecl,0,4,paralocdummy)
                     else
                       begin
                         cg.a_param_loc(exprasmlist,hp.left.location,paralocdummy);
@@ -989,7 +989,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.37  2002-11-15 21:16:39  jonas
+  Revision 1.38  2002-11-18 17:31:54  peter
+    * pass proccalloption to ret_in_xxx and push_xxx functions
+
+  Revision 1.37  2002/11/15 21:16:39  jonas
     * proper fix for tw2110, also fixes tb0416 (funcretnode of parent
       function was handled wrong inside nested functions/procedures)
 

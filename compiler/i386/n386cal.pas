@@ -29,13 +29,15 @@ interface
 { $define AnsiStrRef}
 
     uses
-      symdef,node,ncal,ncgcal;
+      globtype,
+      symdef,
+      node,ncal,ncgcal;
 
     type
        ti386callparanode = class(tcallparanode)
           procedure secondcallparan(defcoll : TParaItem;
-                   push_from_left_to_right,inlined,is_cdecl : boolean;
-                   para_alignment,para_offset : longint);override;
+                push_from_left_to_right:boolean;calloption:tproccalloption;
+                para_alignment,para_offset : longint);override;
        end;
 
        ti386callnode = class(tcgcallnode)
@@ -46,7 +48,7 @@ interface
 implementation
 
     uses
-      globtype,systems,
+      systems,
       cutils,verbose,globals,
       symconst,symbase,symsym,symtable,defbase,
 {$ifdef GDB}
@@ -68,7 +70,7 @@ implementation
 *****************************************************************************}
 
     procedure ti386callparanode.secondcallparan(defcoll : TParaItem;
-                push_from_left_to_right,inlined,is_cdecl : boolean;para_alignment,para_offset : longint);
+                push_from_left_to_right:boolean;calloption:tproccalloption;para_alignment,para_offset : longint);
 
       procedure maybe_push_high;
         begin
@@ -79,7 +81,7 @@ implementation
             begin
               secondpass(hightree);
               { this is a longint anyway ! }
-              push_value_para(hightree,inlined,false,para_offset,4,paralocdummy);
+              push_value_para(hightree,calloption,para_offset,4,paralocdummy);
             end;
         end;
 
@@ -100,10 +102,10 @@ implementation
           begin
             if (nf_varargs_para in flags) then
               tcallparanode(right).secondcallparan(defcoll,push_from_left_to_right,
-                                                   inlined,is_cdecl,para_alignment,para_offset)
+                                                   calloption,para_alignment,para_offset)
             else
               tcallparanode(right).secondcallparan(TParaItem(defcoll.next),push_from_left_to_right,
-                                                   inlined,is_cdecl,para_alignment,para_offset);
+                                                   calloption,para_alignment,para_offset);
           end;
 
          otlabel:=truelabel;
@@ -114,14 +116,14 @@ implementation
          { handle varargs first, because defcoll is not valid }
          if (nf_varargs_para in flags) then
            begin
-             if paramanager.push_addr_param(left.resulttype.def,is_cdecl) then
+             if paramanager.push_addr_param(left.resulttype.def,calloption) then
                begin
                  inc(pushedparasize,4);
                  cg.a_paramaddr_ref(exprasmlist,left.location.reference,paralocdummy);
                  location_release(exprasmlist,left.location);
                end
              else
-               push_value_para(left,inlined,is_cdecl,para_offset,para_alignment,paralocdummy);
+               push_value_para(left,calloption,para_offset,para_alignment,paralocdummy);
            end
          { filter array constructor with c styled args }
          else if is_array_constructor(left.resulttype.def) and (nf_cargs in left.flags) then
@@ -142,7 +144,7 @@ implementation
               if (left.nodetype=addrn) and
                  (not(nf_procvarload in left.flags)) then
                 begin
-                  if inlined then
+                  if calloption=pocall_inline then
                     begin
                        reference_reset_base(href,procinfo.framepointer,para_offset-pushedparasize);
                        cg.a_load_loc_ref(exprasmlist,left.location,href);
@@ -157,7 +159,7 @@ implementation
                      CGMessage(type_e_mismatch)
                    else
                      begin
-                       if inlined then
+                       if calloption=pocall_inline then
                          begin
                            tmpreg:=cg.get_scratch_reg_address(exprasmlist);
                            cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,tmpreg);
@@ -190,7 +192,7 @@ implementation
                  defcoll.paratype.def.needs_inittable then
                 cg.g_finalize(exprasmlist,defcoll.paratype.def,left.location.reference,false);
               inc(pushedparasize,4);
-              if inlined then
+              if calloption=pocall_inline then
                 begin
                    tmpreg:=cg.get_scratch_reg_address(exprasmlist);
                    cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,tmpreg);
@@ -217,7 +219,7 @@ implementation
                    is_array_of_const(defcoll.paratype.def))
                  ) or
                  (
-                  paramanager.push_addr_param(resulttype.def,is_cdecl)
+                  paramanager.push_addr_param(resulttype.def,calloption)
                  ) then
                 begin
                    if not(left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
@@ -239,7 +241,7 @@ implementation
                    if not push_from_left_to_right then
                      maybe_push_high;
                    inc(pushedparasize,4);
-                   if inlined then
+                   if calloption=pocall_inline then
                      begin
                         tmpreg:=cg.get_scratch_reg_address(exprasmlist);
                         cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,tmpreg);
@@ -255,7 +257,7 @@ implementation
                 end
               else
                 begin
-                   push_value_para(left,inlined,is_cdecl,
+                   push_value_para(left,calloption,
                      para_offset,para_alignment,paralocdummy);
                 end;
            end;
@@ -266,10 +268,10 @@ implementation
           begin
             if (nf_varargs_para in flags) then
               tcallparanode(right).secondcallparan(defcoll,push_from_left_to_right,
-                                                   inlined,is_cdecl,para_alignment,para_offset)
+                                                   calloption,para_alignment,para_offset)
             else
               tcallparanode(right).secondcallparan(TParaItem(defcoll.next),push_from_left_to_right,
-                                                   inlined,is_cdecl,para_alignment,para_offset);
+                                                   calloption,para_alignment,para_offset);
           end;
       end;
 
@@ -412,7 +414,7 @@ implementation
                 used for the return value }
               regs_to_push := tprocdef(procdefinition).usedregisters;
               if (not is_void(resulttype.def)) and
-                 (not paramanager.ret_in_param(resulttype.def)) then
+                 (not paramanager.ret_in_param(resulttype.def,procdefinition.proccalloption)) then
                begin
                  include(regs_to_push,accumulator);
                  if resulttype.def.size>sizeof(aword) then
@@ -505,13 +507,11 @@ implementation
               if not(inlined) and
                  assigned(right) then
                 tcallparanode(params).secondcallparan(TParaItem(tabstractprocdef(right.resulttype.def).Para.first),
-                  (po_leftright in procdefinition.procoptions),inlined,
-                  (procdefinition.proccalloption in [pocall_cdecl,pocall_cppdecl]),
+                  (po_leftright in procdefinition.procoptions),procdefinition.proccalloption,
                   para_alignment,para_offset)
               else
                 tcallparanode(params).secondcallparan(TParaItem(procdefinition.Para.first),
-                  (po_leftright in procdefinition.procoptions),inlined,
-                  (procdefinition.proccalloption in [pocall_cdecl,pocall_cppdecl]),
+                  (po_leftright in procdefinition.procoptions),procdefinition.proccalloption,
                   para_alignment,para_offset);
            end;
 
@@ -524,7 +524,7 @@ implementation
           end;
 
          { Allocate return value when returned in argument }
-         if paramanager.ret_in_param(resulttype.def) then
+         if paramanager.ret_in_param(resulttype.def,procdefinition.proccalloption) then
            begin
              if assigned(funcretrefnode) then
               begin
@@ -1210,7 +1210,7 @@ implementation
            params.free;
 
          { from now on the result can be freed normally }
-         if inlined and paramanager.ret_in_param(resulttype.def) then
+         if inlined and paramanager.ret_in_param(resulttype.def,procdefinition.proccalloption) then
            tg.ChangeTempType(exprasmlist,funcretref,tt_normal);
 
          { if return value is not used }
@@ -1242,7 +1242,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.74  2002-11-15 01:58:57  peter
+  Revision 1.75  2002-11-18 17:32:00  peter
+    * pass proccalloption to ret_in_xxx and push_xxx functions
+
+  Revision 1.74  2002/11/15 01:58:57  peter
     * merged changes from 1.0.7 up to 04-11
       - -V option for generating bug report tracing
       - more tracing for option parsing

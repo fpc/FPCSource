@@ -736,7 +736,7 @@ Begin
   if (not is_void(aktprocdef.rettype.def)) then
    begin
      if (m_tp7 in aktmodeswitches) and
-        paramanager.ret_in_reg(aktprocdef.rettype.def) then
+        paramanager.ret_in_reg(aktprocdef.rettype.def,aktprocdef.proccalloption) then
        begin
          Message(asmr_e_cannot_use_RESULT_here);
          exit;
@@ -874,7 +874,7 @@ Begin
                 end;
               if (tvarsym(sym).varspez=vs_var) or
                  ((tvarsym(sym).varspez=vs_const) and
-                  paramanager.push_addr_param(tvarsym(sym).vartype.def,false)) then
+                  paramanager.push_addr_param(tvarsym(sym).vartype.def,aktprocdef.proccalloption)) then
                 SetSize(pointer_size,false);
             end;
           localsymtable :
@@ -914,7 +914,7 @@ Begin
                 end;
               if (tvarsym(sym).varspez in [vs_var,vs_out]) or
                  ((tvarsym(sym).varspez=vs_const) and
-                  paramanager.push_addr_param(tvarsym(sym).vartype.def,false)) then
+                  paramanager.push_addr_param(tvarsym(sym).vartype.def,aktprocdef.proccalloption)) then
                 SetSize(pointer_size,false);
             end;
         end;
@@ -1592,7 +1592,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.47  2002-11-15 16:29:31  peter
+  Revision 1.48  2002-11-18 17:31:59  peter
+    * pass proccalloption to ret_in_xxx and push_xxx functions
+
+  Revision 1.47  2002/11/15 16:29:31  peter
     * made tasmsymbol.refs private (merged)
 
   Revision 1.46  2002/09/03 16:26:27  daniel

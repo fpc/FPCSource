@@ -611,6 +611,10 @@ implementation
       begin
          prevafterassn:=afterassignment;
          afterassignment:=false;
+{$ifdef EXTDEBUG}
+         if p1.nodetype<>calln then
+           internalerror(20021118);
+{$endif EXTDEBUG}
          { want we only determine the address of }
          { a subroutine ?                       }
          if not(getaddr) then
@@ -2263,7 +2267,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.86  2002-10-05 00:48:57  peter
+  Revision 1.87  2002-11-18 17:31:58  peter
+    * pass proccalloption to ret_in_xxx and push_xxx functions
+
+  Revision 1.86  2002/10/05 00:48:57  peter
     * support inherited; support for overload as it is handled by
       delphi. This is only for delphi mode as it is working is
       undocumented and hard to predict what is done

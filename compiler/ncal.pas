@@ -28,13 +28,8 @@ unit ncal;
 
 interface
 
-{$ifdef DEBUG}
- {$ifdef i386}
-  {$define TEST_WIN32_RECORDS}
- {$endif i386}
-{$endif DEBUG}
-
     uses
+       globtype,
        node,
        {$ifdef state_tracking}
        nstate,
@@ -115,9 +110,9 @@ interface
           procedure insert_typeconv(defcoll : tparaitem;do_count : boolean);
           procedure det_registers;
           procedure firstcallparan(defcoll : tparaitem;do_count : boolean);
-          procedure secondcallparan(defcoll : tparaitem;
-                   push_from_left_to_right,inlined,is_cdecl : boolean;
-                   para_alignment,para_offset : longint);virtual;abstract;
+          procedure secondcallparan(defcoll : TParaItem;
+                push_from_left_to_right:boolean;calloption:tproccalloption;
+                para_alignment,para_offset : longint);virtual;abstract;
           function docompare(p: tnode): boolean; override;
        end;
        tcallparanodeclass = class of tcallparanode;
@@ -150,7 +145,7 @@ interface
 implementation
 
     uses
-      cutils,globtype,systems,
+      cutils,systems,
       verbose,globals,
       symconst,paramgr,defbase,
       htypechk,pass_1,cpuinfo,cpubase,
@@ -457,7 +452,7 @@ implementation
          if not(assigned(aktcallprocdef) and
                 (aktcallprocdef.proccalloption in [pocall_cppdecl,pocall_cdecl]) and
                 (po_external in aktcallprocdef.procoptions)) and
-            paramanager.push_high_param(defcoll.paratype.def) then
+            paramanager.push_high_param(defcoll.paratype.def,aktcallprocdef.proccalloption) then
            gen_high_tree(is_open_string(defcoll.paratype.def));
 
          { test conversions }
@@ -472,7 +467,7 @@ implementation
                        left.resulttype.def.typename,defcoll.paratype.def.typename);
                   end;
               { Process open parameters }
-              if paramanager.push_high_param(defcoll.paratype.def) then
+              if paramanager.push_high_param(defcoll.paratype.def,aktcallprocdef.proccalloption) then
                begin
                  { insert type conv but hold the ranges of the array }
                  oldtype:=left.resulttype;
@@ -739,7 +734,8 @@ implementation
         restypeset := true;
         { both the normal and specified resulttype either have to be returned via a }
         { parameter or not, but no mixing (JM)                                      }
-        if paramanager.ret_in_param(restype.def) xor paramanager.ret_in_param(symtableprocentry.first_procdef.rettype.def) then
+        if paramanager.ret_in_param(restype.def,pocall_compilerproc) xor
+           paramanager.ret_in_param(symtableprocentry.first_procdef.rettype.def,symtableprocentry.first_procdef.proccalloption) then
           internalerror(200108291);
       end;
 
@@ -748,7 +744,7 @@ implementation
       begin
         self.createintern(name,params);
         funcretrefnode:=returnnode;
-        if not paramanager.ret_in_param(symtableprocentry.first_procdef.rettype.def) then
+        if not paramanager.ret_in_param(symtableprocentry.first_procdef.rettype.def,symtableprocentry.first_procdef.proccalloption) then
           internalerror(200204247);
       end;
 
@@ -2212,7 +2208,7 @@ implementation
          { modify the exit code, in case of special cases }
          if (not is_void(resulttype.def)) then
           begin
-            if paramanager.ret_in_reg(resulttype.def) then
+            if paramanager.ret_in_reg(resulttype.def,procdefinition.proccalloption) then
              begin
                { wide- and ansistrings are returned in EAX    }
                { but they are imm. moved to a memory location }
@@ -2350,17 +2346,14 @@ implementation
          { get a register for the return value }
          if (not is_void(resulttype.def)) then
            begin
-{$ifdef TEST_WIN32_RECORDS}
-             if (target_info.system=system_i386_win32) and
-                (resulttype.def.deftype=recorddef) then
+             { for win32 records returned in EDX:EAX, we
+               move them to memory after ... }
+             if (resulttype.def.deftype=recorddef) then
               begin
-                { for win32 records returned in EDX:EAX, we
-                  move them to memory after ... }
                 location.loc:=LOC_CREFERENCE;
               end
              else
-{$endif TEST_WIN32_RECORDS}
-              if paramanager.ret_in_param(resulttype.def) then
+              if paramanager.ret_in_param(resulttype.def,procdefinition.proccalloption) then
                begin
                  location.loc:=LOC_CREFERENCE;
                end
@@ -2629,7 +2622,7 @@ implementation
          retoffset:=-POINTER_SIZE; { less dangerous as zero (PM) }
          para_offset:=0;
          para_size:=inlineprocdef.para_size(target_info.alignment.paraalign);
-         if paramanager.ret_in_param(inlineprocdef.rettype.def) then
+         if paramanager.ret_in_param(inlineprocdef.rettype.def,inlineprocdef.proccalloption) then
            inc(para_size,POINTER_SIZE);
          result:=nil;
       end;
@@ -2662,7 +2655,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.107  2002-11-15 01:58:50  peter
+  Revision 1.108  2002-11-18 17:31:54  peter
+    * pass proccalloption to ret_in_xxx and push_xxx functions
+
+  Revision 1.107  2002/11/15 01:58:50  peter
     * merged changes from 1.0.7 up to 04-11
       - -V option for generating bug report tracing
       - more tracing for option parsing

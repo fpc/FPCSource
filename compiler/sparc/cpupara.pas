@@ -206,7 +206,7 @@ WriteLn('***********************************************');
                  LOC_REFERENCE:
                    begin
                       hp.paraloc.size:=OS_ADDR;
-                      if push_addr_param(hp.paratype.def,p.proccalloption in [pocall_cdecl,pocall_cppdecl]) or (hp.paratyp in [vs_var,vs_out]) then
+                      if push_addr_param(hp.paratype.def,p.proccalloption) or (hp.paratyp in [vs_var,vs_out]) then
                         begin
                            if nextintreg<=R_O5 then
                              begin
@@ -283,7 +283,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2002-11-03 20:22:40  mazen
+  Revision 1.10  2002-11-18 17:32:01  peter
+    * pass proccalloption to ret_in_xxx and push_xxx functions
+
+  Revision 1.9  2002/11/03 20:22:40  mazen
   * parameter handling updated
 
   Revision 1.8  2002/10/13 21:46:07  mazen
@@ -297,10 +300,10 @@ end.
 
   Revision 1.5  2002/10/09 13:52:19  mazen
   just incase some one wolud help me debugging that\!
-  
+
   Revision 1.4  2002/10/08 21:02:22  mazen
   * debugging register allocation
-  
+
   Revision 1.3  2002/10/07 20:33:05  mazen
   word alignement modified in g_stack_frame
 

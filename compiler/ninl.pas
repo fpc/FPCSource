@@ -2022,7 +2022,7 @@ implementation
             end;
           in_sizeof_x:
             begin
-              if paramanager.push_high_param(left.resulttype.def) then
+              if paramanager.push_high_param(left.resulttype.def,aktprocdef.proccalloption) then
                begin
                  srsym:=searchsymonlyin(tloadnode(left).symtable,'high'+tvarsym(tloadnode(left).symtableentry).name);
                  hp:=caddnode.create(addn,cloadnode.create(srsym,tloadnode(left).symtable),
@@ -2401,7 +2401,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.95  2002-11-16 17:59:31  peter
+  Revision 1.96  2002-11-18 17:31:57  peter
+    * pass proccalloption to ret_in_xxx and push_xxx functions
+
+  Revision 1.95  2002/11/16 17:59:31  peter
     * load threadvar input/output variable in temp
 
   Revision 1.94  2002/11/15 01:58:52  peter

@@ -3143,10 +3143,8 @@ implementation
       var
          pdc : TParaItem;
          l : longint;
-         is_cdecl : boolean;
       begin
          l:=0;
-         is_cdecl:=(proccalloption in [pocall_cdecl,pocall_cppdecl]);
          pdc:=TParaItem(Para.first);
          while assigned(pdc) do
           begin
@@ -3157,7 +3155,7 @@ implementation
               vs_value,
               vs_const :
                 begin
-                  if paramanager.push_addr_param(pdc.paratype.def,is_cdecl) then
+                  if paramanager.push_addr_param(pdc.paratype.def,proccalloption) then
                     inc(l,POINTER_SIZE)
                   else
                     inc(l,pdc.paratype.def.size);
@@ -4129,7 +4127,7 @@ implementation
          iidstr:=nil;
          if objecttype in [odt_interfacecom,odt_interfacecorba] then
            begin
-              new(iidguid); 
+              new(iidguid);
               ppufile.getguid(iidguid^);
               iidstr:=stringdup(ppufile.getstring);
               lastvtableindex:=ppufile.getlongint;
@@ -4244,7 +4242,7 @@ implementation
            implementedinterfaces.deref;
       end;
 
-    
+
     procedure tobjectdef.prepareguid;
       begin
         { set up guid }
@@ -5520,7 +5518,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.105  2002-11-17 16:31:57  carl
+  Revision 1.106  2002-11-18 17:31:59  peter
+    * pass proccalloption to ret_in_xxx and push_xxx functions
+
+  Revision 1.105  2002/11/17 16:31:57  carl
     * memory optimization (3-4%) : cleanup of tai fields,
        cleanup of tdef and tsym fields.
     * make it work for m68k

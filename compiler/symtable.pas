@@ -1324,7 +1324,8 @@ implementation
               else
                begin
                  { allocate space in local if ret in register }
-                 if paramanager.ret_in_reg(tfuncretsym(sym).returntype.def) then
+                 if paramanager.ret_in_reg(tfuncretsym(sym).returntype.def,
+                                           tprocdef(sym.owner.defowner).proccalloption) then
                   begin
                     l:=tfuncretsym(sym).returntype.def.size;
                     varalign:=size_2_align(l);
@@ -1432,17 +1433,15 @@ implementation
     procedure tparasymtable.insertvardata(sym : tsymentry);
       var
         l,varalign : longint;
-        is_cdecl : boolean;
       begin
         if sym.typ<>varsym then
           internalerror(200208253);
         { retrieve cdecl status }
         if defowner.deftype<>procdef then
           internalerror(200208256);
-        is_cdecl:=(tprocdef(defowner).proccalloption in [pocall_cdecl,pocall_cppdecl]);
         { here we need the size of a push instead of the
           size of the data }
-        l:=tvarsym(sym).getpushsize(is_cdecl);
+        l:=tvarsym(sym).getpushsize(tprocdef(defowner).proccalloption);
         varalign:=size_2_align(l);
         tvarsym(sym).varstate:=vs_assigned;
         { we need the new datasize already aligned so we can't
@@ -2343,7 +2342,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.77  2002-11-15 01:58:54  peter
+  Revision 1.78  2002-11-18 17:32:00  peter
+    * pass proccalloption to ret_in_xxx and push_xxx functions
+
+  Revision 1.77  2002/11/15 01:58:54  peter
     * merged changes from 1.0.7 up to 04-11
       - -V option for generating bug report tracing
       - more tracing for option parsing

@@ -29,7 +29,7 @@ interface
        { common }
        cutils,
        { target }
-       cpuinfo,
+       cpuinfo,globtype,
        { symtable }
        symconst,symbase,symtype,symdef,
        { ppu }
@@ -193,7 +193,7 @@ interface
           procedure set_mangledname(const s:string);
           function  getsize : longint;
           function  getvaluesize : longint;
-          function  getpushsize(is_cdecl:boolean): longint;
+          function  getpushsize(calloption:tproccalloption): longint;
 {$ifdef var_notification}
           function register_notification(flags:Tnotification_flags;
                                          callback:Tnotification_callback):cardinal;
@@ -378,7 +378,7 @@ implementation
        strings,
 {$endif Delphi}
        { global }
-       globtype,verbose,
+       verbose,
        { target }
        systems,
        { symtable }
@@ -1665,7 +1665,7 @@ implementation
       end;
 
 
-    function tvarsym.getpushsize(is_cdecl:boolean) : longint;
+    function tvarsym.getpushsize(calloption:tproccalloption) : longint;
       begin
          getpushsize:=-1;
          if assigned(vartype.def) then
@@ -1677,7 +1677,7 @@ implementation
                 vs_value,
                 vs_const :
                   begin
-                      if paramanager.push_addr_param(vartype.def,is_cdecl) then
+                      if paramanager.push_addr_param(vartype.def,calloption) then
                         getpushsize:=pointer_size
                       else
                         getpushsize:=vartype.def.size;
@@ -1705,7 +1705,6 @@ implementation
     function tvarsym.stabstring : pchar;
      var
        st : string;
-       is_cdecl : boolean;
      begin
        st:=tstoreddef(vartype.def).numberstring;
        if (owner.symtabletype = objectsymtable) and
@@ -1733,12 +1732,11 @@ implementation
          end
        else if (owner.symtabletype in [parasymtable,inlineparasymtable]) then
          begin
-            is_cdecl:=(tprocdef(owner.defowner).proccalloption in [pocall_cdecl,pocall_cppdecl]);
             case varspez of
                vs_out,
                vs_var   : st := 'v'+st;
                vs_value,
-               vs_const : if paramanager.push_addr_param(vartype.def,is_cdecl) then
+               vs_const : if paramanager.push_addr_param(vartype.def,tprocdef(owner.defowner).proccalloption) then
                             st := 'v'+st { should be 'i' but 'i' doesn't work }
                           else
                             st := 'p'+st;
@@ -2506,7 +2504,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.72  2002-11-17 16:31:57  carl
+  Revision 1.73  2002-11-18 17:31:59  peter
+    * pass proccalloption to ret_in_xxx and push_xxx functions
+
+  Revision 1.72  2002/11/17 16:31:57  carl
     * memory optimization (3-4%) : cleanup of tai fields,
        cleanup of tdef and tsym fields.
     * make it work for m68k
