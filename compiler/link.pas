@@ -314,7 +314,7 @@ end;
 
 Procedure TLinker.AddObject(const S,unitpath : String);
 begin
-  ObjectFiles.Insert(FindObjectFile(s,unitpath));
+  ObjectFiles.Concat(FindObjectFile(s,unitpath));
 end;
 
 
@@ -328,8 +328,8 @@ begin
 { remove extension if any }
   if Copy(s,length(s)-length(target_info.sharedlibext)+1,length(target_info.sharedlibext))=target_info.sharedlibext then
    Delete(s,length(s)-length(target_info.sharedlibext)+1,length(target_info.sharedlibext)+1);
-{ ready to be inserted }
-  SharedLibFiles.Insert (S);
+{ ready to be added }
+  SharedLibFiles.Concat(S);
 end;
 
 
@@ -343,7 +343,7 @@ begin
   ns:=FindLibraryFile(s,target_info.staticlibext,found);
   if not(cs_link_extern in aktglobalswitches) and (not found) then
    Message1(exec_w_libfile_not_found,s);
-  StaticLibFiles.Insert(ns);
+  StaticLibFiles.Concat(ns);
 end;
 
 
@@ -482,7 +482,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.19  2001-08-07 18:47:12  peter
+  Revision 1.20  2001-08-13 19:26:03  peter
+    * fixed ordering of object and libraries
+
+  Revision 1.19  2001/08/07 18:47:12  peter
     * merged netbsd start
     * profile for win32
 
