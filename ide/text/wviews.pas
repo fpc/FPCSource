@@ -193,7 +193,7 @@ function  GetMenuItemBefore(Menu:PMenu; BeforeOf: PMenuItem): PMenuItem;
 
 procedure NotImplemented;
 
-procedure RegistersWViews;
+procedure RegisterWViews;
 
 implementation
 
@@ -2065,7 +2065,7 @@ begin
   S.Write(Default,SizeOf(Default));
 end;
 
-procedure RegistersWViews;
+procedure RegisterWViews;
 begin
 {$ifndef NOOBJREG}
   RegisterType(RAdvancedListBox);
@@ -2079,7 +2079,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.10  1999-08-03 20:22:46  peter
+  Revision 1.11  2000-01-10 15:53:37  pierre
+  * WViews objects were not registered
+
+  Revision 1.10  1999/08/03 20:22:46  peter
     + TTab acts now on Ctrl+Tab and Ctrl+Shift+Tab...
     + Desktop saving should work now
        - History saved

@@ -122,6 +122,7 @@ begin
   RegisterObjects;
   RegisterValidate;
   RegisterViews;
+  RegisterWViews;
 end;
 
 var CanExit : boolean;
@@ -206,7 +207,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.35  2000-01-03 11:38:33  michael
+  Revision 1.36  2000-01-10 15:53:37  pierre
+  * WViews objects were not registered
+
+  Revision 1.35  2000/01/03 11:38:33  michael
   Changes from Gabor
 
   Revision 1.34  1999/12/20 14:23:16  pierre
