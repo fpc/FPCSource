@@ -688,8 +688,8 @@ implementation
                                            if (procdefcoll^.data.proccalloption<>pd.proccalloption) or
                                                (procdefcoll^.data.proctypeoption<>pd.proctypeoption) or
                                                ((procdefcoll^.data.procoptions-
-                                                   [po_abstractmethod,po_overridingmethod,po_assembler,po_overload,po_public])<>
-                                                (pd.procoptions-[po_abstractmethod,po_overridingmethod,po_assembler,po_overload,po_public])) then
+                                                   [po_abstractmethod,po_overridingmethod,po_assembler,po_overload,po_public,po_reintroduce])<>
+                                                (pd.procoptions-[po_abstractmethod,po_overridingmethod,po_assembler,po_overload,po_public,po_reintroduce])) then
                                               begin
                                                 MessagePos1(pd.fileinfo,parser_e_header_dont_match_forward,pd.fullprocname(false));
                                                 tprocsym(procdefcoll^.data.procsym).write_parameter_lists(pd);
@@ -1367,7 +1367,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.59  2004-01-28 20:30:18  peter
+  Revision 1.60  2004-02-08 23:30:43  florian
+    * web bug 2942 fixed: reintroduce isn't necessary in methods of child classes of course
+
+  Revision 1.59  2004/01/28 20:30:18  peter
     * record alignment splitted in fieldalignment and recordalignment,
       the latter is used when this record is inserted in another record.
 
