@@ -462,8 +462,8 @@ Begin
    end;
   p:=pchar(@s);
   ArrayLen:=StrLen(p);
-  if ArrayLen>high(s) then
-   ArrayLen:=high(s);
+  if ArrayLen>sizeof(s) then
+   ArrayLen:=sizeof(s);
   If Len>ArrayLen Then
    WriteBlanks(f,Len-ArrayLen);
   WriteBuffer(f,p^,ArrayLen);
@@ -945,7 +945,10 @@ end;
 
 {
   $Log$
-  Revision 1.53  1999-08-19 11:16:14  peter
+  Revision 1.54  1999-09-07 07:44:58  peter
+    * fixed array of char writing which didn't write the last char
+
+  Revision 1.53  1999/08/19 11:16:14  peter
     * settextbuf size is now longint
 
   Revision 1.52  1999/08/03 21:58:45  peter
