@@ -760,6 +760,7 @@ unit pexpr;
       var
          static_name : string;
          isclassref : boolean;
+         objdef : pobjectdef;
 
       begin
          if sym=nil then
@@ -775,21 +776,22 @@ unit pexpr;
            end
          else
            begin
-              isclassref:=pd^.deftype=classrefdef;
+              objdef:=pobjectdef(sym^.owner^.defowner);
+              isclassref:=(pd^.deftype=classrefdef);
 
               { check protected and private members        }
               { please leave this code as it is,           }
               { it has now the same behaviaor as TP/Delphi }
               if (sp_private in sym^.symoptions) and
-                 (pobjectdef(pd)^.owner^.symtabletype=unitsymtable) then
+                 (objdef^.owner^.symtabletype=unitsymtable) then
                Message(parser_e_cant_access_private_member);
 
               if (sp_protected in sym^.symoptions) and
-                 (pobjectdef(pd)^.owner^.symtabletype=unitsymtable) then
+                 (objdef^.owner^.symtabletype=unitsymtable) then
                 begin
                   if assigned(aktprocsym^.definition^._class) then
                     begin
-                       if not aktprocsym^.definition^._class^.is_related(pobjectdef(sym^.owner^.defowner)) then
+                       if not aktprocsym^.definition^._class^.is_related(objdef) then
                          Message(parser_e_cant_access_protected_member);
                     end
                   else
@@ -2139,7 +2141,10 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.171  2000-03-16 15:13:03  pierre
+  Revision 1.172  2000-03-19 11:22:21  peter
+    * protected member check for classes works
+
+  Revision 1.171  2000/03/16 15:13:03  pierre
    + oppower
 
   Revision 1.170  2000/03/14 15:50:19  pierre
