@@ -90,6 +90,10 @@ interface
        psearchhasharray = ^tsearchhasharray;
 
        tsymtable = class
+{$ifdef EXTDEBUG}
+       private
+          procedure dumpsym(p : TNamedIndexItem;arg:pointer);
+{$endif EXTDEBUG}
        public
           name      : pstring;
           realname  : pstring;
@@ -122,6 +126,9 @@ interface
           function  search(const s : stringid) : tsymentry;
           function  speedsearch(const s : stringid;speedvalue : cardinal) : tsymentry;virtual;
           procedure registerdef(p : tdefentry);
+{$ifdef EXTDEBUG}
+          procedure dump;
+{$endif EXTDEBUG}
           function  getdefnr(l : longint) : tdefentry;
           function  getsymnr(l : longint) : tsymentry;
 {$ifdef GDB}
@@ -201,6 +208,24 @@ implementation
            symsearch:=nil;
          end;
       end;
+
+
+{$ifdef EXTDEBUG}
+    procedure tsymtable.dumpsym(p : TNamedIndexItem;arg:pointer);
+      begin
+        writeln(p.name);
+      end;
+
+
+    procedure tsymtable.dump;
+      begin
+        if assigned(name) then
+          writeln('Symtable ',name^)
+        else
+          writeln('Symtable <not named>');
+        symsearch.foreach({$ifdef FPCPROCVAR}@{$endif}dumpsym,nil);
+      end;
+{$endif EXTDEBUG}
 
 
     procedure tsymtable.registerdef(p : tdefentry);
@@ -323,7 +348,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  2002-09-09 17:34:15  peter
+  Revision 1.9  2002-10-02 20:51:59  peter
+    * tsymtable.dump to dump the names in a symtable to stdout
+
+  Revision 1.8  2002/09/09 17:34:15  peter
     * tdicationary.replace added to replace and item in a dictionary. This
       is only allowed for the same name
     * varsyms are inserted in symtable before the types are parsed. This
