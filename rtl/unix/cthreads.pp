@@ -85,7 +85,7 @@ Uses
         { exceptions which use threadvars but       }
         { these aren't allocated yet ...            }
         { allocate room on the heap for the thread vars }
-        DataIndex:=Pointer(Fpmmap(0,threadvarblocksize,3,MAP_PRIVATE+MAP_ANONYMOUS,-1,0));
+        DataIndex:=Pointer(Fpmmap(nil,threadvarblocksize,3,MAP_PRIVATE+MAP_ANONYMOUS,-1,0));
         FillChar(DataIndex^,threadvarblocksize,0);
         pthread_setspecific(tlskey,dataindex);
       end;
@@ -289,10 +289,10 @@ Uses
            begin
            m_spinlock:=0;
            m_count:=0;
-           m_owner:=0;
+           m_owner:=nil;
            m_kind:=1;
-           m_waiting.head:=0;
-           m_waiting.tail:=0;
+           m_waiting.head:=nil;
+           m_waiting.tail:=nil;
            end;
          pthread_mutex_init(P,NIL);
       end;
@@ -416,7 +416,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.4  2003-11-29 17:34:14  michael
+  Revision 1.5  2003-12-16 09:43:04  daniel
+    * Use of 0 instead of nil fixed
+
+  Revision 1.4  2003/11/29 17:34:14  michael
   + Removed dummy variable from SetCthreadManager
 
   Revision 1.3  2003/11/27 20:24:53  michael

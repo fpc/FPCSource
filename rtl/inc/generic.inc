@@ -408,9 +408,9 @@ begin
          begin
            ppointer(_self+vmt_pos)^:=nil;
            freemem(_self);
-           { reset _vmt to 0 so it will not be freed a
+           { reset _vmt to nil so it will not be freed a
              second time }
-           _vmt:=0;
+           _vmt:=nil;
          end;
      end
    else
@@ -1014,7 +1014,10 @@ end;
 
 {
   $Log$
-  Revision 1.62  2003-12-06 13:25:30  jonas
+  Revision 1.63  2003-12-16 09:43:04  daniel
+    * Use of 0 instead of nil fixed
+
+  Revision 1.62  2003/12/06 13:25:30  jonas
     * fixed longint/cardinal comparison in int_str
 
   Revision 1.61  2003/09/03 14:09:37  florian

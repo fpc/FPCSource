@@ -382,7 +382,7 @@ end;
 
 Function sbrk(size : longint) : pointer;
 begin
-  sbrk:=Fpmmap(0,Size,3,MAP_PRIVATE+MAP_ANONYMOUS,-1,0);
+  sbrk:=Fpmmap(nil,Size,3,MAP_PRIVATE+MAP_ANONYMOUS,-1,0);
   if sbrk=pointer(-1) then
     sbrk:=nil
   else
@@ -454,7 +454,10 @@ end;
 
 {
  $Log$
- Revision 1.9  2003-10-17 20:56:24  olle
+ Revision 1.10  2003-12-16 09:43:04  daniel
+   * Use of 0 instead of nil fixed
+
+ Revision 1.9  2003/10/17 20:56:24  olle
    * Changed m68k to cpum68k, i386 to cpui386
 
  Revision 1.8  2003/09/27 13:45:58  peter
