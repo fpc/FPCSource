@@ -1445,14 +1445,14 @@ var
                { at least that is what it seems in the tasm 2.0 manual.      }
            OPR_CONSTANT:  p^.concat(new(pai386,op_const(instruc,
                              S_NO, instr.operands[1].val)));
-               { the size of the operand can be determined by the as,nasm and }
-               { tasm.                                                        }
-               { Even though normally gas should not be trusted, v2.8.1       }
-               { has been *extensively* tested to assure that the output      }
-               { is indeed correct with the following opcodes: push,pop,inc,dec}
-               { neg and not.                                                   }
-           OPR_REGISTER:  p^.concat(new(pai386,op_reg(instruc,
-                            S_NO,instr.operands[1].reg)));
+           OPR_REGISTER: if instruc in [A_INC,A_DEC, A_NEG,A_NOT] then
+                         Begin
+                           p^.concat(new(pai386,op_reg(instruc,
+                               instr.operands[1].size,instr.operands[1].reg)));
+                         end
+                         else
+                           p^.concat(new(pai386,op_reg(instruc,
+                               S_NO,instr.operands[1].reg)));
                { this is where it gets a bit more complicated...              }
            OPR_REFERENCE:
                           if instr.operands[1].size <> S_NO then
@@ -3369,7 +3369,10 @@ Begin
 end.
 {
   $Log$
-  Revision 1.6  1998-05-23 01:21:26  peter
+  Revision 1.7  1998-05-28 16:32:05  carl
+    * bugfix with operands main branch version (patched manually)
+
+  Revision 1.6  1998/05/23 01:21:26  peter
     + aktasmmode, aktoptprocessor, aktoutputformat
     + smartlink per module $SMARTLINK-/+ (like MMX) and moved to aktswitches
     + $LIBNAME to set the library name where the unit will be put in
