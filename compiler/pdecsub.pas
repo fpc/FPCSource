@@ -2099,10 +2099,10 @@ const
               if ((po_overload in pd.procoptions) or
                   (po_overload in hd.procoptions)) then
                begin
-                 { check if all procs have overloading, but not if the proc was
-                   already declared forward or abstract, then the check is already done }
+                 { check if all procs have overloading, but not if the proc is a method or
+                   already declared forward, then the check is already done }
                  if not(hd.hasforward or
-                        (po_abstractmethod in hd.procoptions) or
+                        assigned(pd._class) or
                         (pd.forwarddef<>hd.forwarddef) or
                         ((po_overload in pd.procoptions) and
                          (po_overload in hd.procoptions))) then
@@ -2139,7 +2139,11 @@ const
 end.
 {
   $Log$
-  Revision 1.161  2004-02-05 14:13:53  daniel
+  Revision 1.162  2004-02-13 15:41:24  peter
+    * overload directive checking for methods is now done
+      when the vmt is generated
+
+  Revision 1.161  2004/02/05 14:13:53  daniel
     *  Tvarsym.highvarsym removed
 
   Revision 1.160  2004/02/04 22:54:57  daniel

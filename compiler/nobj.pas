@@ -623,6 +623,18 @@ implementation
                                { compare only if the definition is not hidden }
                                if not procdefcoll^.hidden then
                                 begin
+                                  { check that all methods have overload directive } 
+                                  if not(m_fpc in aktmodeswitches) and
+                                     (_class=pd._class) and
+                                     (procdefcoll^.data._class=pd._class) and
+                                     ((po_overload in pd.procoptions)<>(po_overload in procdefcoll^.data.procoptions)) then
+                                    begin
+                                      MessagePos1(pd.fileinfo,parser_e_no_overload_for_all_procs,pd.procsym.realname);
+                                      { recover }
+                                      include(procdefcoll^.data.procoptions,po_overload);
+                                      include(pd.procoptions,po_overload);
+                                    end;
+                                    
                                   { check if one of the two methods has virtual }
                                   if (po_virtualmethod in procdefcoll^.data.procoptions) or
                                      (po_virtualmethod in pd.procoptions) then
@@ -1367,7 +1379,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.60  2004-02-08 23:30:43  florian
+  Revision 1.61  2004-02-13 15:41:24  peter
+    * overload directive checking for methods is now done
+      when the vmt is generated
+
+  Revision 1.60  2004/02/08 23:30:43  florian
     * web bug 2942 fixed: reintroduce isn't necessary in methods of child classes of course
 
   Revision 1.59  2004/01/28 20:30:18  peter
