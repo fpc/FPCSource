@@ -36,9 +36,13 @@ program fpc;
     {$ifdef MORPHOS}
       exeext='';
     {$else}
+      {$ifdef NETWARE}
+      exeext='.nlm';
+      {$else}
       exeext='.exe';
-    {$endif}
-  {$endif}
+      {$endif NETWARE}
+    {$endif MORPHOS}
+  {$endif AMIGA}
 {$endif UNIX}
 
 
@@ -204,7 +208,10 @@ program fpc;
   end.
 {
   $Log$
-  Revision 1.17  2004-09-10 21:00:53  jonas
+  Revision 1.18  2005-01-14 21:04:44  armin
+  * added .nlm extension for netware
+
+  Revision 1.17  2004/09/10 21:00:53  jonas
     * fixed wrong error message
 
   Revision 1.16  2004/06/16 20:07:11  florian
