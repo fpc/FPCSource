@@ -19,7 +19,7 @@ uses
   strings;
 
 const
-  version='0.99.15';
+  version='1.00';
 {$ifdef linux}
   eollen=1;
 {$else}
@@ -787,7 +787,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2000-06-30 20:23:38  peter
+  Revision 1.9  2000-07-04 19:05:53  peter
+    * be optimistic: version 1.00 for some utils
+
+  Revision 1.8  2000/06/30 20:23:38  peter
     * new message files layout with msg numbers (but still no code to
       show the number on the screen)
 

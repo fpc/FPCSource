@@ -33,7 +33,7 @@ uses
   getopts;
 
 const
-  Version   = 'Version 0.99.15';
+  Version   = 'Version 1.00';
   Title     = 'PPU-Mover';
   Copyright = 'Copyright (c) 1998-2000 by the Free Pascal Development Team';
 
@@ -610,7 +610,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2000-05-17 18:30:57  peter
+  Revision 1.11  2000-07-04 19:05:54  peter
+    * be optimistic: version 1.00 for some utils
+
+  Revision 1.10  2000/05/17 18:30:57  peter
     * libname fixes for linux
 
   Revision 1.9  2000/02/09 16:44:15  peter

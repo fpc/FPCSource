@@ -30,7 +30,7 @@ uses
   ppu;
 
 const
-  Version   = 'Version 0.99.13';
+  Version   = 'Version 1.00';
   Title     = 'PPU-Analyser';
   Copyright = 'Copyright (c) 1998-2000 by the Free Pascal Development Team';
 
@@ -1453,7 +1453,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2000-02-09 16:44:14  peter
+  Revision 1.15  2000-07-04 19:05:54  peter
+    * be optimistic: version 1.00 for some utils
+
+  Revision 1.14  2000/02/09 16:44:14  peter
     * log truncated
 
   Revision 1.13  2000/01/23 16:34:36  peter

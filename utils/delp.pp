@@ -24,7 +24,7 @@ uses
   dos,getopts;
 
 const
-  Version   = 'Version 0.99.14';
+  Version   = 'Version 1.00';
   Title     = 'DelPascal';
   Copyright = 'Copyright (c) 1999-2000 by the Free Pascal Development Team';
 
@@ -264,7 +264,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2000-01-26 21:15:00  peter
+  Revision 1.11  2000-07-04 19:05:54  peter
+    * be optimistic: version 1.00 for some utils
+
+  Revision 1.10  2000/01/26 21:15:00  peter
     * Fixed dir separator for linux
 
   Revision 1.9  2000/01/24 16:31:12  michael

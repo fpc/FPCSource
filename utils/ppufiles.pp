@@ -26,7 +26,7 @@ uses
   ppu;
 
 const
-  Version   = 'Version 0.99.14';
+  Version   = 'Version 1.00';
   Title     = 'PPU-Files';
   Copyright = 'Copyright (c) 1999-2000 by the Free Pascal Development Team';
 
@@ -260,7 +260,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2000-01-24 12:32:22  daniel
+  Revision 1.4  2000-07-04 19:05:54  peter
+    * be optimistic: version 1.00 for some utils
+
+  Revision 1.3  2000/01/24 12:32:22  daniel
     * use a linkedlist instead of ansistring
 
   Revision 1.2  2000/01/07 16:46:04  daniel

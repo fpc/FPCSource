@@ -26,10 +26,10 @@ Uses Dos;
 
 Const bufferlimit=10000;
 
-Type 
+Type
    Array12type = ARRAY [1..12] Of longint;
 
-Const 
+Const
    MonthCumm : Array12type = (0,31,59,90,120,151,181,212,243,273,304,334);
 
 Function LeapYr( Year : longint) : boolean;
@@ -41,7 +41,7 @@ Function DayNr( Day,Month,Year: longint) : longint;
 {Modified version. A daynr function that returns daynr since 1-1-1980.
 Leapyears ok till 2100.}
 
-Var 
+Var
    i : longint;
 Begin
    i := MonthCumm[Month]+Day;
@@ -243,7 +243,10 @@ End.
 
 {
   $Log$
-  Revision 1.3  2000-02-20 13:05:41  marco
+  Revision 1.4  2000-07-04 19:05:54  peter
+    * be optimistic: version 1.00 for some utils
+
+  Revision 1.3  2000/02/20 13:05:41  marco
    * No parameters show last modification in dir + small bugfix
 
   Revision 1.2  2000/01/16 13:24:48  marco

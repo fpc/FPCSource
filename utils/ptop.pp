@@ -3,7 +3,7 @@ Program PtoP;
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999-2000 by Michael Van Canneyt, member of 
+    Copyright (c) 1999-2000 by Michael Van Canneyt, member of
     the Free Pascal development team
 
     Pascal pretty print program
@@ -19,7 +19,7 @@ Program PtoP;
 
 Uses PtoPu,Objects,getopts;
 
-Var 
+Var
   Infilename,OutFileName,ConfigFile : String;
   BeVerbose : Boolean;
   TheIndent,TheBufSize,TheLineSize : Integer;
@@ -34,7 +34,7 @@ begin
   StrToInt := int;
   If Code<>0 then StrToInt:=0;
 end;
-  
+
 Procedure Usage;
 
 begin
@@ -73,14 +73,14 @@ begin
   { Set defaults }
   Infilename:='';
   OutFileName:='';
-  ConfigFile:=''; 
+  ConfigFile:='';
   TheIndent:=2;
   TheBufSize:=255;
   TheLineSize:=MaxLineSize;
   BeVerbose:=False;
   Repeat
     c:=getopt('i:c:g:b:hv');
-    case c of 
+    case c of
       'i' : begin
             TheIndent:=StrToInt(OptArg);
             If TheIndent=0 then TheIndent:=2;
@@ -150,7 +150,7 @@ begin
     DiagS:=Nil;
   If ConfigFile<>'' then
     CfgS:=New(PBufStream,Init(ConfigFile,StOpenRead,TheBufSize))
-  else 
+  else
     CfgS:=Nil;
   PPrinter.Create;
   PPrinter.Indent:=TheIndent;
@@ -175,7 +175,7 @@ begin
 {$endif}
     DiagS^.Done;
     end;
-  If Assigned(CfgS) then 
+  If Assigned(CfgS) then
     CfgS^.Done;
   Ins^.Done;
   OutS^.Done;
@@ -183,7 +183,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  2000-02-09 16:44:15  peter
+  Revision 1.7  2000-07-04 19:05:55  peter
+    * be optimistic: version 1.00 for some utils
+
+  Revision 1.6  2000/02/09 16:44:15  peter
     * log truncated
 
   Revision 1.5  2000/02/07 13:41:51  peter

@@ -23,7 +23,7 @@ uses
   sysutils,classes,makeini;
 
 const
-  Version='v0.99.15';
+  Version='v1.00';
   Title='fpcmake '+Version;
   TitleDate=Title+' ['+{$i %DATE}+']';
 
@@ -1350,7 +1350,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.37  2000-07-01 23:03:32  peter
+  Revision 1.38  2000-07-04 19:05:54  peter
+    * be optimistic: version 1.00 for some utils
+
+  Revision 1.37  2000/07/01 23:03:32  peter
     * exampleinstall target added
 
   Revision 1.36  2000/06/01 12:35:04  peter

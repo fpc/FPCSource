@@ -37,7 +37,7 @@ program data2inc;
 uses strings;
 
 CONST
-  version='0.99.13';
+  version='1.00';
 
   maxbufsize = 1024*1024;  { 1 mb buffer }
 
@@ -892,7 +892,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2000-01-18 20:54:56  peter
+  Revision 1.6  2000-07-04 19:05:54  peter
+    * be optimistic: version 1.00 for some utils
+
+  Revision 1.5  2000/01/18 20:54:56  peter
     * fixed array calc when size is multiple of maxlen
 
   Revision 1.4  2000/01/07 16:46:01  daniel

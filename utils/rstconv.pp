@@ -4,7 +4,7 @@
     Copyright (c) 1999-2000 by Sebastian Guenther
 
     .rst resource string table file converter.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -60,7 +60,7 @@ begin
 
   while not eof(f) do begin
     ReadLn(f, s);
-    If (Length(S)=0) or (S[1]='#') then 
+    If (Length(S)=0) or (S[1]='#') then
       continue;
     item := TConstItem(ConstItems.Add);
 
@@ -76,18 +76,18 @@ begin
     while i <= Length(s) do begin
       if s[i] = '''' then begin
         Inc(i);
-	j := i;
-	while s[i] <> '''' do Inc(i);
-	item.Value := item.Value + Copy(s, j, i - j);
-	Inc(i);
+        j := i;
+        while s[i] <> '''' do Inc(i);
+        item.Value := item.Value + Copy(s, j, i - j);
+        Inc(i);
       end else if s[i] = '#' then begin
         Inc(i);
-	j := i;
-	while s[i] in ['0'..'9'] do Inc(i);
-	item.Value := item.Value + Chr(StrToInt(Copy(s, j, i - j)));
+        j := i;
+        while s[i] in ['0'..'9'] do Inc(i);
+        item.Value := item.Value + Chr(StrToInt(Copy(s, j, i - j)));
       end else if s[i] = '+' then begin
         ReadLn(f, s);
-	i := 1;
+        i := 1;
       end else
         Inc(i);
     end;
@@ -118,14 +118,14 @@ begin
       c := item.Value[j];
       case c of
         #9:  s := s + '\t';
-	#10: s := s + '\n';
+        #10: s := s + '\n';
         #1..#8, #11..#31, #128..#255:
-	  s := s + '\' +
-	    Chr(Ord(c) shr 6 + 48) +
-	    Chr((Ord(c) shr 3) and 7 + 48) +
-	    Chr(Ord(c) and 7 + 48);
-	'\': s := s + '\\';
-	'"': s := s + '\"';
+          s := s + '\' +
+            Chr(Ord(c) shr 6 + 48) +
+            Chr((Ord(c) shr 3) and 7 + 48) +
+            Chr(Ord(c) and 7 + 48);
+        '\': s := s + '\\';
+        '"': s := s + '\"';
       else s := s + c;
       end;
     end;
@@ -162,26 +162,26 @@ begin
     if ParamStr(i) = '-i' then begin
       if InFilename <> '' then begin
         WriteLn(StdErr, OptionAlreadySpecified, '-i');
-	Halt(1);
+        Halt(1);
       end;
       InFilename := ParamStr(i + 1);
       Inc(i, 2);
     end else if ParamStr(i) = '-o' then begin
       if OutFilename <> '' then begin
         WriteLn(StdErr, OptionAlreadySpecified, '-o');
-	Halt(1);
+        Halt(1);
       end;
       OutFilename := ParamStr(i + 1);
       Inc(i, 2);
     end else if ParamStr(i) = '-f' then begin
       if OutFilename <> '' then begin
         WriteLn(StdErr, OptionAlreadySpecified, '-f');
-	Halt(1);
+        Halt(1);
       end;
       if ParamStr(i + 1) = 'po' then
       else begin
         WriteLn(StdErr, InvalidOutputFormat, ParamStr(i + 1));
-	Halt(1);
+        Halt(1);
       end;
       Inc(i, 2);
     end else begin
@@ -205,7 +205,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2000-02-07 13:42:39  peter
+  Revision 1.6  2000-07-04 19:05:55  peter
+    * be optimistic: version 1.00 for some utils
+
+  Revision 1.5  2000/02/07 13:42:39  peter
     * fixed notes
 
   Revision 1.4  2000/01/07 16:46:04  daniel

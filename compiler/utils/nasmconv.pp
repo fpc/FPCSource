@@ -16,7 +16,7 @@
 program nasmconv;
 
 const
-  Version = '0.99.13';
+  Version = '1.00';
 
 var
    s : string;
@@ -429,7 +429,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2000-05-09 06:39:17  pierre
+  Revision 1.11  2000-07-04 19:05:54  peter
+    * be optimistic: version 1.00 for some utils
+
+  Revision 1.10  2000/05/09 06:39:17  pierre
    + generate also i386nop.inc containing the number of opcodes
 
   Revision 1.9  2000/04/04 13:44:03  pierre

@@ -2,11 +2,11 @@ program bin2obj;
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999-2000 by Michael Van Canneyt, member of the 
+    Copyright (c) 1999-2000 by Michael Van Canneyt, member of the
     Free Pascal development team
 
     Binary file to include file converter.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -26,7 +26,7 @@ uses classes,getopts, iostream,zstream,idea,sysutils
 {$endif}
 ;
 
-var 
+var
   ConstName,
   OutFileName,
   UnitName : String;
@@ -39,7 +39,7 @@ var
   MemStream,
   CryptStream,
   CompStream : TStream;
-  
+
 Procedure Usage;
 
 begin
@@ -53,13 +53,13 @@ begin
   Writeln ('   -U [name] same as -u, and compile the unit. (requires outfile)');
   Halt(1);
 end;
-  
+
 Procedure ProcessCommandLine;
 
 Var C : Char;
     I : longint;
     NeedUnitName : Boolean;
-    
+
 begin
   OptErr:=False;
   ConstName:='';
@@ -72,7 +72,7 @@ begin
   Repeat
     c:=GetOpt('ac:e:o:zhu::U::');
     Case C of
-      'a' : WriteAsciiData:=True; 
+      'a' : WriteAsciiData:=True;
       'c' : ConstName:=OptArg;
       'h','?' : usage;
       'z' : CompressData := True;
@@ -83,19 +83,19 @@ begin
             For I:=0 to 7 do
               CryptKey[i]:=Ord(OptArg[I+1]);
             end;
-      'o' : OutFileName:=optArg;       
+      'o' : OutFileName:=optArg;
       'u','U':
             begin
             UnitName:=OptArg;
             If Length(UnitName)=0 then
               NeedUnitName:=True;
-            If C='U' then 
+            If C='U' then
               CompileUnit:=True;
             end;
     end;
-  until C=EndOfOptions;  
-  if ConstName='' then 
-    usage;  
+  until C=EndOfOptions;
+  if ConstName='' then
+    usage;
   If NeedUnitName then
     If Length (OutFileName)=0 then
       begin
@@ -104,18 +104,18 @@ begin
       end
     else
       UnitName:=ExtractFileName(OutFileName);
-  if CompileUnit and (Length(OutFileName)=0) then 
+  if CompileUnit and (Length(OutFileName)=0) then
     usage;
 end;
 
 Function SetupInput : TStream;
 
 begin
-  if OptInd=ParamCount then 
+  if OptInd=ParamCount then
     InStream:=TFileStream.Create(Paramstr(Optind),fmOpenRead)
   else
     InStream:=TIOStream(iosInput);
-  Result:=InStream;  
+  Result:=InStream;
 end;
 
 Function SetupOutput : TStream;
@@ -144,7 +144,7 @@ Const BufSize = 1024;
 
 Var Buffer : Array[1..BufSize] of byte;
     Count : longint;
-    
+
 begin
   repeat
      Count:=Ins.Read(Buffer,SizeOf(Buffer));
@@ -157,7 +157,7 @@ begin
   }
   CryptStream.Free;
   CompStream.Free;
-  // Now Out stream has all data. 
+  // Now Out stream has all data.
 end;
 
 Procedure WriteMemStream;
@@ -165,20 +165,20 @@ Procedure WriteMemStream;
 Var OutStream : TStream;
 
   Procedure WriteStr(Const St : String);
-  
+
   begin
     OutStream.Write(St[1],Length(St));
   end;
 
   Procedure WriteStrLn(Const St : String);
-  
+
   Const
   {$ifdef linux}
      Eoln : String = #10;
   {$else}
      Eoln : String = #13#10;
   {$endif}
-  
+
   begin
     OutStream.Write(St[1],Length(St));
     OutStream.Write(Eoln[1],Length(Eoln));
@@ -186,19 +186,19 @@ Var OutStream : TStream;
 
 Const Prefix = '     ';
       MaxLineLength = 72;
-      
+
 Var I,Count  : longint;
     b    : byte;
     Line,ToAdd : String;
 
 begin
-  If Length(OutFileName)=0 Then 
+  If Length(OutFileName)=0 Then
     OutStream:=TIOStream.Create(iosOutput)
   else
     OutStream:=TFileStream.Create(OutFileName,fmCreate);
   If UnitName<>'' then
     begin
-    WriteStrLn(Format('Unit %s;',[UnitName]));  
+    WriteStrLn(Format('Unit %s;',[UnitName]));
     WriteStrLn('');
     WriteStrLn('Interface');
     WriteStrLn('');
@@ -209,7 +209,7 @@ begin
   Count:=MemStream.Size;
   If WriteAsciidata then
     WriteStrLn(Format('  %s : Array[0..%d] of char = (',[ConstName,Count-1]))
-  else  
+  else
     WriteStrLn(Format('  %s : Array[0..%d] of byte = (',[ConstName,Count-1]));
   Line:=Prefix;
   For I:=1 to Count do
@@ -220,19 +220,19 @@ begin
     else
       If (B in [32..127]) and not (B in [10,13,39]) then
         ToAdd:=''''+Chr(b)+''''
-      else  
+      else
 //        ToAdd:=Format('''%s''',[Chr(b)]);
         ToAdd:=Format('#%d',[B]);
-    If I<Count then 
+    If I<Count then
       ToAdd:=ToAdd+',';
-    Line:=Line+ToAdd;  
+    Line:=Line+ToAdd;
     If Length(Line)>=MaxLineLength Then
       begin
       WriteStrLn(Line);
       Line:=PreFix;
       end;
     end;
-  WriteStrln(Line+');');    
+  WriteStrln(Line+');');
   If Length(UnitName)<>0 then
     begin
     WriteStrLn('');
@@ -240,7 +240,7 @@ begin
     WriteStrln('');
     WriteStrLn('end.')
     end;
-  MemStream.Free;  
+  MemStream.Free;
 end;
 
 Procedure CompileTheUNit;
@@ -257,13 +257,16 @@ begin
   ProcessCommandline;
   CopyStreams(SetupInput,SetupOutPut);
   WriteMemStream;
-  If CompileUNit then 
+  If CompileUNit then
     CompileTheUnit;
 end.
 
 {
   $Log$
-  Revision 1.3  2000-02-07 13:42:39  peter
+  Revision 1.4  2000-07-04 19:05:54  peter
+    * be optimistic: version 1.00 for some utils
+
+  Revision 1.3  2000/02/07 13:42:39  peter
     * fixed notes
 
   Revision 1.2  2000/01/07 16:46:01  daniel
