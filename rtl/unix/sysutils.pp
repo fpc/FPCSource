@@ -241,7 +241,7 @@ begin
   New(GlobSearchRec);
   GlobSearchRec^.Path:=ExpandFileName(ExtractFilePath(Path));
   GlobSearchRec^.GlobHandle:=Glob(Path);
-  Rslt.ExcludeAttr:=Not Attr; //!! Not correct !!
+  Rslt.ExcludeAttr:=Not Attr and (faHidden or faSysFile or faVolumeID or faDirectory); //!! Not correct !!
   Rslt.FindHandle:=GlobSearchRec;
   Result:=DoFind (Rslt);
 end;
@@ -635,7 +635,10 @@ end.
 {
 
   $Log$
-  Revision 1.40  2004-04-28 20:48:20  peter
+  Revision 1.41  2004-05-22 14:25:03  michael
+  + Fixed FindFirst/FindNext so it treats the attributes correctly
+
+  Revision 1.40  2004/04/28 20:48:20  peter
     * ordinal-pointer conversions fixed
 
   Revision 1.39  2004/04/26 14:50:19  peter
