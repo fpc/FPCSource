@@ -278,6 +278,7 @@ Var
   DataNode : TDomNode;
   ND : Integer;
   Dt : TDataType;
+  S : AnsiString;
   
 begin
   Node:=FindValueKey(Name);
@@ -299,9 +300,10 @@ begin
                     DataSize:=SizeOf(Cardinal);
                     end;
           dtString : begin
-                     DataSize:=Length(DataNode.NodeValue);
+                     S:=DataNode.NodeValue; // Convert to ansistring 
+                     DataSize:=Length(S);
                      If (DataSize>0) then
-                       Move(DataNode.NodeValue[1],Data,DataSize);
+                       Move(S[1],Data,DataSize);
                      end;  
           dtBinary : begin
                      DataSize:=Length(DataNode.NodeValue);
