@@ -192,19 +192,18 @@ compiler distribution.  The distribution zip file contains an
 installation program \file{INSTALL.EXE}. You must run this program to install
 the compiler. 
 
-\html{
+\begin{htmlonly}
 The screen of the installation program looks like this:
-
 \htmladdimg{../pics/install.gif}
-}
-\latex{
+\end{htmlonly}
+\begin{latexonly}
 The screen of the installation program looks like figure \ref{fig:install}.
 \begin{figure}
 \caption{The \dos install program screen.}
 \label{fig:install}
 \epsfig{file=pics/install.eps,width=\textwidth}
 \end{figure}
-}
+\end{latexonly}
 
 The program allows you to select:
 \begin{itemize}
@@ -422,7 +421,7 @@ files. In this section we discuss this, and we indicate how to influence
 this.
 
 {\em Remark:}
-The use of slashes (/) and backslahses ($\backslash$) as directory separators 
+The use of slashes (/) and backslashes (\verb+\+) as directory separators 
 is irrelevant, the compiler will convert to whatever character is used on
 the current operating system. Examples will be given using slashes, since
 this avoids problems on \linux. 
@@ -1255,9 +1254,9 @@ Example:
     #INCLUDE c:\pp\bin\ppc386.cfg
   #ENDIF
 #ENDIF
-\end{erbatim}
+\end{verbatim}
 This will include \file{/etc/ppc386.cfg} if you're on a linux machine,
-and will include \file{c:\backslash pp\backslash bin\backslash ppc386.cfg}
+and will include \verb+c:\pp\bin\ppc386.cfg+
 on a dos machine.
 
 \subsection{\#SECTION}
@@ -2316,101 +2315,14 @@ Processor specific options:
 
 \chapter{Alphabetical list of reserved words}
 \label{ch:reserved}
-\latex{\begin{multicols}{3}}% \texttt
-\begin{verbatim}
-absolute
-abstract
-and
-array
-as
-asm
-assembler
-begin
-break
-case
-cdecl
-class
-const
-constructor
-continue
-destructor
-dispose
-div
-do
-downto
-else
-end
-except 
-exit
-export
-exports
-external
-fail
-false
-far
-file
-finally 
-for
-forward
-function
-goto
-if
-implementation
-in
-index
-inherited
-initialization 
-inline
-interface
-interrupt
-is
-label
-library
-mod
-name
-near
-new
-nil
-not
-object
-of
-on
-operator
-or
-otherwise
-packed
-popstack
-private
-procedure
-program
-property 
-protected
-public
-raise
-record
-repeat
-self
-set
-shl
-shr
-stdcall
-string
-then
-to
-true
-try
-type
-unit
-until
-uses
-var
-virtual
-while
-with
-xor
-\end{verbatim}
-\latex{\end{multicols}}
-
+\begin{latexonly}
+\begin{multicols}{3}
+\input{reserved.tex}
+\end{multicols}
+\end{latexonly}
+\begin{htmlonly}
+\input{reserved.tex}
+\end{htmlonly}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % APPENDIX C.
