@@ -32,6 +32,8 @@
 ****************************************************************************}
 
 Type
+{$Q-}
+{ $8000000 creates a longint overfow !! }
   Longint  = $80000000..$7fffffff;
   Integer  = -32768..32767;
   shortint = -128..127;
@@ -403,7 +405,10 @@ const
 
 {
   $Log$
-  Revision 1.35  1998-10-05 12:32:52  peter
+  Revision 1.36  1998-10-05 17:22:54  pierre
+   * avoid overflow on $8000000 with $Q-
+
+  Revision 1.35  1998/10/05 12:32:52  peter
     + assert() support
 
   Revision 1.34  1998/10/01 14:54:48  peter
