@@ -293,6 +293,7 @@ interface
     Function  RemoveDir(d:string):boolean;
     Function  GetFileTime ( Var F : File) : Longint;
     Function  GetNamedFileTime ( Const F : String) : Longint;
+    {Extracts the path without its filename, from a path.}
     Function  SplitPath(const s:string):string;
     Function  SplitFileName(const s:string):string;
     Function  SplitName(const s:string):string;
@@ -679,8 +680,13 @@ implementation
         i : longint;
       begin
         i:=Length(s);
+{$ifdef macos}
+        while (i>0) and not(s[i] in [':']) do
+         dec(i);
+{$else macos}
         while (i>0) and not(s[i] in ['/','\']) do
          dec(i);
+{$endif macos}
         SplitPath:=Copy(s,1,i);
       end;
 
@@ -1933,6 +1939,9 @@ implementation
 {$ifdef os2}
   {$define need_path_search}
 {$endif os2}
+{$ifdef macos}
+  {$define need_path_search}
+{$endif macos}
 
    procedure get_exepath;
      var
@@ -1965,7 +1974,11 @@ implementation
           if pos(source_info.exeext,hs1) <>
                (length(hs1) - length(source_info.exeext)+1) then
             hs1 := hs1 + source_info.exeext;
+{$ifdef macos}
+          p:=GetEnvPchar('Commands');
+{$else macos}
           p:=GetEnvPchar('PATH');
+{$endif macos}
           FindFilePChar(hs1,p,exepath);
           FreeEnvPChar(p);
           exepath:=SplitPath(exepath);
@@ -2118,7 +2131,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.145  2004-10-15 09:14:16  mazen
+  Revision 1.146  2004-10-16 13:03:13  olle
+    + added more support for macos
+
+  Revision 1.145  2004/10/15 09:14:16  mazen
   - remove $IFDEF DELPHI and related code
   - remove $IFDEF FPCPROCVAR and related code
 
