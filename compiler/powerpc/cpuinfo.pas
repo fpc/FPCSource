@@ -54,7 +54,9 @@ Const
      { the difference to stdcall is only the name mangling }
      pocall_cdecl,
      { the difference to stdcall is only the name mangling }
-     pocall_cppdecl
+     pocall_cppdecl,
+     { pass all const records by reference }
+     pocall_mwpascal
    ];
 
    processorsstr : array[tprocessors] of string[10] = ('',
@@ -72,7 +74,16 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.23  2005-03-25 21:55:43  jonas
+  Revision 1.24  2005-03-27 14:10:53  jonas
+    * const record parameters > 8 bytes are now passed by reference for non
+      cdecl/cppdecl procedures on Mac OS/Mac OS X to fix compatibility with
+      GPC (slightly more efficient than Metrowerks behaviour below, but
+      less efficient in most cases than our previous scheme)
+    + "mwpascal" procedure directive to support the const record parameter
+      behaviour of Metrowerks Pascal, which passes all const records by
+      reference
+
+  Revision 1.23  2005/03/25 21:55:43  jonas
     * removed some unused variables
 
   Revision 1.22  2005/02/14 17:13:10  peter

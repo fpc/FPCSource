@@ -185,7 +185,15 @@ unit cpupara;
           formaldef :
             result:=true;
           recorddef:
-            result :=(target_info.abi<>abi_powerpc_aix);
+            result :=
+              (target_info.abi<>abi_powerpc_aix) or
+              ((varspez = vs_const) and
+               ((calloption = pocall_mwpascal) or
+                (not (calloption in [pocall_cdecl,pocall_cppdecl]) and
+                 (def.size > 8)
+                )
+               )
+              );
           arraydef:
             result:=(tarraydef(def).highrange>=tarraydef(def).lowrange) or
                              is_open_array(def) or
@@ -652,7 +660,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.90  2005-02-19 14:04:14  jonas
+  Revision 1.91  2005-03-27 14:10:53  jonas
+    * const record parameters > 8 bytes are now passed by reference for non
+      cdecl/cppdecl procedures on Mac OS/Mac OS X to fix compatibility with
+      GPC (slightly more efficient than Metrowerks behaviour below, but
+      less efficient in most cases than our previous scheme)
+    + "mwpascal" procedure directive to support the const record parameter
+      behaviour of Metrowerks Pascal, which passes all const records by
+      reference
+
+  Revision 1.90  2005/02/19 14:04:14  jonas
     * don't lose sign of ord types for register parameters
 
   Revision 1.89  2005/02/14 17:13:10  peter

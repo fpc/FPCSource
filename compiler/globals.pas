@@ -1902,7 +1902,8 @@ end;
          'REGISTER',
          'SAFECALL',
          'STDCALL',
-         'SOFTFLOAT'
+         'SOFTFLOAT',
+         'MWPASCAL'
         );
       var
         t : tproccalloption;
@@ -2294,7 +2295,16 @@ end;
 end.
 {
   $Log$
-  Revision 1.174  2005-03-20 22:36:45  olle
+  Revision 1.175  2005-03-27 14:10:52  jonas
+    * const record parameters > 8 bytes are now passed by reference for non
+      cdecl/cppdecl procedures on Mac OS/Mac OS X to fix compatibility with
+      GPC (slightly more efficient than Metrowerks behaviour below, but
+      less efficient in most cases than our previous scheme)
+    + "mwpascal" procedure directive to support the const record parameter
+      behaviour of Metrowerks Pascal, which passes all const records by
+      reference
+
+  Revision 1.174  2005/03/20 22:36:45  olle
     * Cleaned up handling of source file extension.
     + Added support for .p extension for macos and darwin
 

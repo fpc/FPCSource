@@ -793,7 +793,10 @@ type
       available calling conventions available for the cpu
       this replaces either pocall_fastcall or pocall_stdcall.
     }
-    pocall_softfloat
+    pocall_softfloat,
+    { Metrowerks Pascal. Special case on Mac OS (X): passes all }
+    { constant records by reference.                            }
+    pocall_mwpascal    
   );
   tproccalloptions=set of tproccalloption;
   tproctypeoption=(potype_none,
@@ -869,7 +872,8 @@ const
      'Register',
      'SafeCall',
      'StdCall',
-     'SoftFloat'
+     'SoftFloat',
+     'MWPascal'
    );
   proctypeopts=6;
   proctypeopt : array[1..proctypeopts] of tproctypeopt=(
@@ -2151,7 +2155,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.67  2005-03-07 18:38:46  peter
+  Revision 1.68  2005-03-27 14:10:53  jonas
+    * const record parameters > 8 bytes are now passed by reference for non
+      cdecl/cppdecl procedures on Mac OS/Mac OS X to fix compatibility with
+      GPC (slightly more efficient than Metrowerks behaviour below, but
+      less efficient in most cases than our previous scheme)
+    + "mwpascal" procedure directive to support the const record parameter
+      behaviour of Metrowerks Pascal, which passes all const records by
+      reference
+
+  Revision 1.67  2005/03/07 18:38:46  peter
     * explicit paraloc for funcret
     * libsym for powerpc ppu's
 

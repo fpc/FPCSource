@@ -411,7 +411,7 @@ const
      pocall_cdecl,pocall_cppdecl,pocall_syscall
    ];
 
-   pushleftright_pocalls : tproccalloptions = [pocall_register,pocall_pascal];
+   pushleftright_pocalls : tproccalloptions = [pocall_register,pocall_pascal,pocall_mwpascal];
 
      SymTypeName : array[tsymtyp] of string[12] = (
        'abstractsym','globalvar','localvar','paravar','fieldvar',
@@ -441,7 +441,16 @@ initialization
 end.
 {
   $Log$
-  Revision 1.102  2005-02-14 17:13:07  peter
+  Revision 1.103  2005-03-27 14:10:52  jonas
+    * const record parameters > 8 bytes are now passed by reference for non
+      cdecl/cppdecl procedures on Mac OS/Mac OS X to fix compatibility with
+      GPC (slightly more efficient than Metrowerks behaviour below, but
+      less efficient in most cases than our previous scheme)
+    + "mwpascal" procedure directive to support the const record parameter
+      behaviour of Metrowerks Pascal, which passes all const records by
+      reference
+
+  Revision 1.102  2005/02/14 17:13:07  peter
     * truncate log
 
   Revision 1.101  2005/01/30 11:26:40  peter

@@ -1399,7 +1399,7 @@ type
    end;
 const
   {Should contain the number of procedure directives we support.}
-  num_proc_directives=36;
+  num_proc_directives=37;
   proc_direcdata:array[1..num_proc_directives] of proc_dir_rec=
    (
     (
@@ -1575,6 +1575,15 @@ const
       mutexclpotype : [potype_constructor,potype_destructor,potype_operator];
       mutexclpo     : [po_interrupt,po_external]
     ),(
+      idtok:_MWPASCAL;
+      pd_flags : [pd_interface,pd_implemen,pd_body,pd_procvar];
+      handler  : nil;
+      pocall   : pocall_mwpascal;
+      pooption : [];
+      mutexclpocall : [];
+      mutexclpotype : [];
+      mutexclpo     : []
+    ),(
       idtok:_NEAR;
       pd_flags : [pd_implemen,pd_body,pd_procvar,pd_notobjintf];
       handler  : @pd_near;
@@ -1718,7 +1727,7 @@ const
       pocall   : pocall_none;
       pooption : [po_varargs];
       mutexclpocall : [pocall_internproc,pocall_stdcall,pocall_register,
-                       pocall_inline,pocall_far16,pocall_oldfpccall];
+                       pocall_inline,pocall_far16,pocall_oldfpccall,pocall_mwpascal];
       mutexclpotype : [];
       mutexclpo     : [po_assembler,po_interrupt]
     ),(
@@ -2449,7 +2458,16 @@ const
 end.
 {
   $Log$
-  Revision 1.230  2005-02-14 17:13:07  peter
+  Revision 1.231  2005-03-27 14:10:52  jonas
+    * const record parameters > 8 bytes are now passed by reference for non
+      cdecl/cppdecl procedures on Mac OS/Mac OS X to fix compatibility with
+      GPC (slightly more efficient than Metrowerks behaviour below, but
+      less efficient in most cases than our previous scheme)
+    + "mwpascal" procedure directive to support the const record parameter
+      behaviour of Metrowerks Pascal, which passes all const records by
+      reference
+
+  Revision 1.230  2005/02/14 17:13:07  peter
     * truncate log
 
   Revision 1.229  2005/02/03 17:11:40  peter

@@ -195,6 +195,7 @@ type
     _EXTERNAL,
     _FUNCTION,
     _LOCATION,
+    _MWPASCAL,
     _OPERATOR,
     _OVERLOAD,
     _OVERRIDE,
@@ -430,6 +431,7 @@ const
       (str:'EXTERNAL'      ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'FUNCTION'      ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'LOCATION'      ;special:false;keyword:m_none;op:NOTOKEN),
+      (str:'MWPASCAL'      ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'OPERATOR'      ;special:false;keyword:m_fpc;op:NOTOKEN),
       (str:'OVERLOAD'      ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'OVERRIDE'      ;special:false;keyword:m_none;op:NOTOKEN),
@@ -529,7 +531,16 @@ end;
 end.
 {
   $Log$
-  Revision 1.36  2005-02-14 17:13:09  peter
+  Revision 1.37  2005-03-27 14:10:53  jonas
+    * const record parameters > 8 bytes are now passed by reference for non
+      cdecl/cppdecl procedures on Mac OS/Mac OS X to fix compatibility with
+      GPC (slightly more efficient than Metrowerks behaviour below, but
+      less efficient in most cases than our previous scheme)
+    + "mwpascal" procedure directive to support the const record parameter
+      behaviour of Metrowerks Pascal, which passes all const records by
+      reference
+
+  Revision 1.36  2005/02/14 17:13:09  peter
     * truncate log
 
   Revision 1.35  2005/01/06 02:13:03  karoly
