@@ -277,6 +277,8 @@ cvstest:
 # Installation
 #####################################################################
 
+.PHONY: quickinstall install installsym
+
 MSGINSTALLDIR=$(BASEINSTALLDIR)/msg
 
 # This will only install the ppc386.exe, not the message files etc.
@@ -292,7 +294,7 @@ endif
         $(INSTALLEXE) $(EXENAME) $(BININSTALLDIR)
 endif
 
-installlib: quickinstall
+install: quickinstall
 ifdef inlinux
         $(INSTALLEXE) $(COMPILERUTILSDIR)/samplecfg $(BASEINSTALLDIR)/samplecfg
 endif
@@ -300,7 +302,7 @@ endif
         $(INSTALL) $(MSGFILES) $(MSGINSTALLDIR)
 
 # this also installs the link /usr/bin/ppc386. The .deb does that later
-install: installlib
+installsymlink: install
 ifdef inlinux
         $(MKDIR) $(BININSTALLDIR)
         ln -sf $(BASEINSTALLDIR)/ppc386 $(BININSTALLDIR)/ppc386
