@@ -237,7 +237,7 @@ Begin
  proc := @testroutine;
  func := @testroutineresult;
  obj.init;
- cla.create;
+ cla:=tsimpleclass.create;
  
  {****************************************************************************************************}  
 
@@ -601,7 +601,10 @@ end.
 
 {
    $Log$
-   Revision 1.2  2002-04-13 21:04:10  carl
+   Revision 1.3  2002-04-15 14:40:45  carl
+   +fixed class creation problem
+
+   Revision 1.2  2002/04/13 21:04:10  carl
    * fixed stupid typo
 
    Revision 1.1  2002/04/13 11:04:40  carl
