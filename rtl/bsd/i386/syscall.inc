@@ -44,14 +44,14 @@ procedure actualsyscall; assembler; {inline requires a dummy push IIRC}
        mov $-1,%eax
    end;
 
-function FpSysCall(sysnr:TSysParam):TSysResult; assembler; [public,alias:'FPC_DOSYS0'];
+function FpSysCall(sysnr:TSysParam):TSysResult; {$ifndef VER1_0} oldfpccall;{$endif} assembler; [public,alias:'FPC_DOSYS0'];
 
 asm
   movl  sysnr,%eax
   call  actualsyscall
 end;
 
-function FpSysCall(sysnr,param1:TSysParam):TSysResult; assembler;[public,alias:'FPC_DOSYS1'];
+function FpSysCall(sysnr,param1:TSysParam):TSysResult; {$ifndef VER1_0} oldfpccall;{$endif} assembler;[public,alias:'FPC_DOSYS1'];
 
  asm
   movl  sysnr,%eax
@@ -60,7 +60,7 @@ function FpSysCall(sysnr,param1:TSysParam):TSysResult; assembler;[public,alias:'
   addl  $4,%esp
  end;
 
-function FpSysCall(sysnr,param1:integer):TSysResult; assembler;[public,alias:'FPC_DOSYS1w'];
+function FpSysCall(sysnr,param1:integer):TSysResult; {$ifndef VER1_0} oldfpccall;{$endif}assembler;[public,alias:'FPC_DOSYS1w'];
 
  asm
   movl  sysnr,%eax
@@ -69,7 +69,7 @@ function FpSysCall(sysnr,param1:integer):TSysResult; assembler;[public,alias:'FP
   add   $2,%esp
  end;
 
-function FpSysCall(sysnr,param1,param2:TSysParam):TSysResult; assembler; [public,alias:'FPC_DOSYS2'];
+function FpSysCall(sysnr,param1,param2:TSysParam):TSysResult; {$ifndef VER1_0} oldfpccall;{$endif}assembler; [public,alias:'FPC_DOSYS2'];
 
  asm
    movl  sysnr,%eax
@@ -79,7 +79,7 @@ function FpSysCall(sysnr,param1,param2:TSysParam):TSysResult; assembler; [public
    addl  $8,%esp
  end;
 
-function FpSysCall(sysnr,param1,param2,param3:TSysParam):TSysResult; assembler;[public,alias:'FPC_DOSYS3'];
+function FpSysCall(sysnr,param1,param2,param3:TSysParam):TSysResult; {$ifndef VER1_0} oldfpccall;{$endif}assembler;[public,alias:'FPC_DOSYS3'];
 
  asm
    movl  sysnr,%eax
@@ -90,7 +90,7 @@ function FpSysCall(sysnr,param1,param2,param3:TSysParam):TSysResult; assembler;[
    addl  $12,%esp
 end;
 
-function FpSysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult; assembler;[public,alias:'FPC_DOSYS4'];
+function FpSysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult;{$ifndef VER1_0} oldfpccall;{$endif} assembler;[public,alias:'FPC_DOSYS4'];
 
 asm
    movl  sysnr,%eax
@@ -103,7 +103,7 @@ asm
 end;
 
 
-function FpSysCall(sysnr,param1,param2,param3,param4,param5:TSysParam):TSysResult;  assembler;[public,alias:'FPC_DOSYS5'];
+function FpSysCall(sysnr,param1,param2,param3,param4,param5:TSysParam):TSysResult;{$ifndef VER1_0} oldfpccall;{$endif}  assembler;[public,alias:'FPC_DOSYS5'];
 
  asm
    movl  sysnr,%eax
@@ -116,7 +116,7 @@ function FpSysCall(sysnr,param1,param2,param3,param4,param5:TSysParam):TSysResul
    addl  $20,%esp
 end;
 
-function FpSysCall(sysnr,param1,param2,param3,param4,param5,param6:TSysParam):int64;  assembler;[public,alias:'FPC_DOSYS6'];
+function FpSysCall(sysnr,param1,param2,param3,param4,param5,param6:TSysParam):int64; {$ifndef VER1_0} oldfpccall;{$endif} assembler;[public,alias:'FPC_DOSYS6'];
 
 asm
    movl  sysnr,%eax
@@ -130,7 +130,7 @@ asm
    addl  $24,%esp
 end;
 
-function FpSysCall(sysnr,param1,param2,param3,param4,param5,param6,param7:TSysParam):int64;  assembler; [public,alias:'FPC_DOSYS7'];
+function FpSysCall(sysnr,param1,param2,param3,param4,param5,param6,param7:TSysParam):int64;{$ifndef VER1_0} oldfpccall;{$endif}  assembler; [public,alias:'FPC_DOSYS7'];
 
 asm
    movl  sysnr,%eax

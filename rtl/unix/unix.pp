@@ -727,7 +727,7 @@ var
   year,day,month:Word;
   tz:timeval;
 begin
-  gettimeofday(@tz,nil);
+  fpgettimeofday(@tz,nil);
   EpochToLocal(tz.tv_sec,year,month,day,hour,min,sec);
   msec:=tz.tv_usec div 1000;
   usec:=tz.tv_usec mod 1000;
@@ -2155,7 +2155,10 @@ End.
 
 {
   $Log$
-  Revision 1.31  2003-09-14 20:15:01  marco
+  Revision 1.32  2003-09-15 20:08:49  marco
+   * small fixes. FreeBSD now cycles
+
+  Revision 1.31  2003/09/14 20:15:01  marco
    * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
 
   Revision 1.30  2003/07/08 21:23:24  peter

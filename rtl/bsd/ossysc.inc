@@ -100,7 +100,7 @@ Begin
  Fpopen:=do_syscall(syscall_nr_open,TSysParam(path),TSysParam(flags),TSysParam(mode));
 End;
 
-function Fpclose(fd : cint): cint;
+function Fpclose(fd : cint): cint; [public, alias : 'FPC_SYSC_CLOSE'];
 
 begin
  Fpclose:=do_syscall(syscall_nr_close,fd);
@@ -525,10 +525,10 @@ begin
  FpGetPID:=do_syscall(syscall_nr_getpid);
 end;
 
-function gettimeofday(tp: ptimeval;tzp:ptimezone):cint; [public, alias: 'FPC_SYSC_GETTIMEOFDAY'];
+function fpgettimeofday(tp: ptimeval;tzp:ptimezone):cint; [public, alias: 'FPC_SYSC_GETTIMEOFDAY'];
 
 begin
- gettimeofday:=do_syscall(syscall_nr_gettimeofday,TSysParam(tp),TSysParam(tzp));
+ fpgettimeofday:=do_syscall(syscall_nr_gettimeofday,TSysParam(tp),TSysParam(tzp));
 end;
 
 Function FpNanoSleep(const req : timespec;var rem : timespec) : longint; [public, alias : 'FPC_SYSC_NANOSLEEP'];
@@ -598,7 +598,10 @@ end;
 
 {
  $Log$
- Revision 1.6  2003-09-14 20:15:01  marco
+ Revision 1.7  2003-09-15 20:08:49  marco
+  * small fixes. FreeBSD now cycles
+
+ Revision 1.6  2003/09/14 20:15:01  marco
   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
 
  Revision 1.5  2003/08/21 22:23:34  olle

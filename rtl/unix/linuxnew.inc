@@ -20,13 +20,45 @@ unit Linux;
 
 interface
 
+Type
+  TSysinfo = packed record
+    uptime    : longint;
+    loads     : array[1..3] of longint;
+    totalram,
+    freeram,
+    sharedram,
+    bufferram,
+    totalswap,
+    freeswap  : longint;
+    procs     : integer;
+    s         : string[18];
+  end;
+  PSysInfo = ^TSysInfo;
+
+
+Function Sysinfo(var Info:TSysinfo):Boolean;
+
 implementation
+
+Uses Syscall;
+
+Function Sysinfo(var Info:TSysinfo):Boolean;
+{
+  Get system info
+}
+Begin
+  Sysinfo:=do_SysCall(SysCall_nr_Sysinfo,longint(@info))=0;
+End;
+
 
 end.
 
 {
    $Log$
-   Revision 1.1  2003-09-15 14:12:17  marco
+   Revision 1.2  2003-09-15 20:08:49  marco
+    * small fixes. FreeBSD now cycles
+
+   Revision 1.1  2003/09/15 14:12:17  marco
     * moved linux.pp contents to linuxold etc
 
 

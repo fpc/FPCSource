@@ -90,6 +90,7 @@ begin
  LinuxError:=FpGetErrno;
 end;
 
+
 Function StatFS(Path:Pathstr;Var Info:Tstatfs):Boolean;
 
 {
@@ -116,7 +117,7 @@ begin
  LinuxError:=FpGetErrno;
 end;
 
-Function AssignPipe(var pipe_in,pipe_out:longint):boolean;
+Function AssignPipe(var pipe_in,pipe_out:longint):boolean; [public, alias : 'FPC_SYSC_ASSIGNPIPE'];
 {
   Sets up a pair of file variables, which act as a pipe. The first one can
   be read from, the second one can be written to.
@@ -213,7 +214,10 @@ end;
 
 {
   $Log$
-  Revision 1.9  2003-09-15 07:09:58  marco
+  Revision 1.10  2003-09-15 20:08:49  marco
+   * small fixes. FreeBSD now cycles
+
+  Revision 1.9  2003/09/15 07:09:58  marco
    * small fixes, round 1
 
   Revision 1.8  2003/09/14 20:15:01  marco

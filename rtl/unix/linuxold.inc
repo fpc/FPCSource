@@ -28,11 +28,11 @@ unit oldlinux;
 
 Interface
 
-Uses BaseUnix;
+Uses BaseUnix,Unix;
 
 { Get Types and Constants }
 {$i sysconst.inc}
-{$i systypes.inc}
+//{$i systypes.inc}
 
 {$i ptypes.inc}
 {$i ostypes.inc}
@@ -142,7 +142,7 @@ const
 ********************}
 
 Type
-
+{
   UTimBuf = packed record{in BSD array[0..1] of timeval, but this is
                                 backwards compatible with linux version}
     actime,
@@ -156,23 +156,11 @@ Type
     {$endif}
          : longint;
   end;
+}
   UTimeBuf=UTimBuf;
   TUTimeBuf=UTimeBuf;
   PUTimeBuf=^UTimeBuf;
 
-  TSysinfo = packed record
-    uptime    : longint;
-    loads     : array[1..3] of longint;
-    totalram,
-    freeram,
-    sharedram,
-    bufferram,
-    totalswap,
-    freeswap  : longint;
-    procs     : integer;
-    s         : string[18];
-  end;
-  PSysInfo = ^TSysInfo;
 
 {******************************************************************************
                             Procedure/Functions
@@ -231,7 +219,7 @@ Function  Shell(const Command:String):Longint;
 Function  Shell(const Command:AnsiString):Longint;
 Function  Fork:longint;
 {Clone for FreeBSD is copied from the LinuxThread port, and rfork based}
-function  Clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint;
+//function  Clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint;
 Procedure ExitProcess(val:longint);
 Function  WaitPid(Pid:longint;Status:pointer;Options:Longint):Longint;  {=>PID (Status Valid), 0 (No Status), -1: Error, special case errno=EINTR }
 Function  WaitProcess(Pid:longint):Longint; { like WaitPid(PID,@result,0) Handling of Signal interrupts (errno=EINTR), returning the Exitcode of Process (>=0) or -Status if terminated}
@@ -357,7 +345,6 @@ Function  GetEnv(P:string):Pchar;
 {$ifndef BSD}
 Function  GetDomainName:String;
 Function  GetHostName:String;
-Function  Sysinfo(var Info:TSysinfo):Boolean;
 Function  Uname(var unamerec:utsname):Boolean;
 {$endif}
 {**************************
@@ -437,7 +424,7 @@ function MUnMap (P : Pointer; Size : Longint) : Boolean;
      Port IO functions
 ***************************}
 
-Function  IOperm (From,Num : Cardinal; Value : Longint) : boolean;
+//Function  IOperm (From,Num : Cardinal; Value : Longint) : boolean;
 {$ifndef BSD}
 Function  IoPL(Level : longint) : Boolean;
 {$endif}
@@ -502,7 +489,9 @@ Function S_ISSOCK(m:word):boolean;
 
 Implementation
 
-Uses Strings, Unix;
+Uses Strings;
+
+{$i ossysch.inc}
 
 
 { Get the definitions of textrec and filerec }
@@ -968,7 +957,7 @@ end;
 {$endif}
 {$endif}
 
-{$ifdef BSD}
+{$ifdef bsd}
 Function stime (t : longint) : Boolean;
 begin
 
@@ -1006,8 +995,6 @@ Procedure Execl(const Todo:Ansistring);
 begin
   ExecLE(ToDo,EnvP);
 end;
-
-
 
 { Include timezone handling routines which use /usr/share/timezone info }
 {$i timezone.inc}
@@ -1192,7 +1179,7 @@ begin
    linuxerror:=fpgeterrno;
 end;
 
-{$ifdef BSD}
+{$ifdef xBSD}
 Function Fcntl(Fd:longint;Cmd:longint):longint;
 {
   Read or manipulate a file.(See also fcntl (2) )
@@ -3143,7 +3130,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.1  2003-09-15 14:12:17  marco
+  Revision 1.2  2003-09-15 20:08:49  marco
+   * small fixes. FreeBSD now cycles
+
+  Revision 1.1  2003/09/15 14:12:17  marco
    * moved linux.pp contents to linuxold etc
 
   Revision 1.31  2003/09/14 20:15:01  marco

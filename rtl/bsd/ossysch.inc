@@ -21,7 +21,7 @@ Function FpIOCtl(Handle:cint;Ndx: culong;Data: Pointer):cint;  external name  'F
 Function FpGetPid:LongInt;   external name  'FPC_SYSC_GETPID';
 //Function FpReadLink(name,linkname:pchar;maxlen:longint):longint;  external name  'FPC_SYSC_READLINK';
 
-function gettimeofday(tp: ptimeval;tzp:ptimezone):cint; external name 'FPC_SYSC_GETTIMEOFDAY';
+function fpgettimeofday(tp: ptimeval;tzp:ptimezone):cint; external name 'FPC_SYSC_GETTIMEOFDAY';
 { Needed in both POSIX (for implementation of sleep()) as POSIX realtime extensions or  Unix/freebsd}
 Function FpNanoSleep (const req : timespec;var rem : timespec) : longint; external name 'FPC_SYSC_NANOSLEEP';
 
@@ -30,7 +30,10 @@ Function Fpgetcwd (path:pchar; siz:size_t):pchar; external name 'FPC_SYSC_GETCWD
 
 {
   $Log$
-  Revision 1.2  2003-09-14 20:15:01  marco
+  Revision 1.3  2003-09-15 20:08:49  marco
+   * small fixes. FreeBSD now cycles
+
+  Revision 1.2  2003/09/14 20:15:01  marco
    * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
 
   Revision 1.1  2003/01/05 19:01:28  marco

@@ -209,7 +209,11 @@ CONST
 	{$ifdef ver1_0}
         Fpmunmap(longint(pthread_getspecific(tlskey)),threadvarblocksize);
 	{$else}
+	{$ifdef BSD} // don't ask :-) 
+        Fpmunmap(longint(pthread_getspecific(tlskey)),threadvarblocksize);
+	{$else}
         Fpmunmap(pointer(pthread_getspecific(tlskey)),threadvarblocksize);
+	{$endif}
 	{$endif}
       end;
 
@@ -432,7 +436,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.9  2003-09-14 20:15:01  marco
+  Revision 1.10  2003-09-15 20:08:49  marco
+   * small fixes. FreeBSD now cycles
+
+  Revision 1.9  2003/09/14 20:15:01  marco
    * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
 
   Revision 1.8  2003/03/27 17:14:27  armin
