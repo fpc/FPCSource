@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1993,97 by the Free Pascal development team
+    Copyright (c) 1998 by the Free Pascal development team
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -14,12 +14,16 @@
 
 unit Classes;
 
-
 interface
 
 uses
-  objpas; 
+  objpas;
 
+type
+   { extra types to compile with FPC }
+   Exception = class(TObject);
+   EOutOfMemory = class(Exception);
+   TRTLCriticalSection = class(TObject);
 
 const
 
@@ -50,16 +54,18 @@ type
 { Text alignment types }
 
   TAlignment = (taLeftJustify, taRightJustify, taCenter);
-  TLeftRight = taLeftJustify..taRightJustify;
+
+  { TLeftRight = taLeftJustify..taRightJustify; }
 
 { Types used by standard events }
 
   TShiftState = set of (ssShift, ssAlt, ssCtrl,
     ssLeft, ssRight, ssMiddle, ssDouble);
 
-  THelpContext = -MaxLongint..MaxLongint;
+  { THelpContext = -MaxLongint..MaxLongint; }
 
 { Standard events }
+
 
   TNotifyEvent = procedure(Sender: TObject) of object;
   THelpEvent = function (Command: Word; Data: Longint;
@@ -259,11 +265,14 @@ type
 { IStringsAdapter interface }
 { Maintains link between TStrings and IStrings implementations }
 
+  { !!!! Interfaces aren't supported by FPC
   IStringsAdapter = interface
     ['{739C2F34-52EC-11D0-9EA6-0020AF3D82DA}']
     procedure ReferenceStrings(S: TStrings);
     procedure ReleaseStrings;
   end;
+  }
+  IStringsAdapter = class(TObject);
 
 { TStrings class }
 
@@ -1003,7 +1012,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  1998-04-27 12:55:57  florian
+  Revision 1.4  1998-04-28 11:47:00  florian
+    * more adaptions to FPC
+
+  Revision 1.3  1998/04/27 12:55:57  florian
     + uses objpas added
 
   Revision 1.2  1998/04/27 09:09:49  michael
