@@ -50,6 +50,16 @@
 \item [Error: Writing Resource String Table file: arg1]
  This message is shown when the compiler encountered an error when writing
  the Resource String Table file
+\item [Info: Fatal:]
+ Prefix for Fatal Errors
+\item [Info: Error:]
+ Prefix for Errors
+\item [Info: Warning:]
+ Prefix for Warnings
+\item [Info: Note:]
+ Prefix for Notes
+\item [Info: Hint:]
+ Prefix for Hints
  \end{description}
  \section{Scanner messages.}
  This section lists the messages that the scanner emits. The scanner takes
@@ -223,6 +233,10 @@
  The target you are compiling for supports only one resource file. This is the
  case of OS/2 (EMX) currently. The first resource file found is used, the
  others are discarded.
+\item [Warning: Macro support has been turned off]
+ A macro declaration has been found, but macro support is currently off,
+ so the declaration will be ignored. To turn macro support on compile with
+ -Sm on the commandline or add \var{\{\$MACRO ON\}} in the source
  \end{description}
  \section{Parser messages}
  This section lists all parser messages. The parser takes care of the
@@ -265,7 +279,7 @@
  You are declaring a constructor with a name which isn't \var{init}, and the
  \var{-Ss} switch is in effect. See the \var{-Ss} switch (\seeo{Ss}).
 \item [Error: Destructor name must be DONE]
- You are declaring a constructor with a name which isn't \var{done}, and the
+ You are declaring a destructor with a name which isn't \var{done}, and the
  \var{-Ss} switch is in effect. See the \var{-Ss} switch (\seeo{Ss}).
 \item [Error: Illegal open parameter]
  You are trying to use the wrong type for an open parameter.
@@ -378,7 +392,7 @@
  This happens when the compiler scans a procedure declaration that contains
  a dot, i.e., a object or class method, but the procedure name is not a
  procedure of this type.
-\item [Error: function header doesn't match any method of this class]
+\item [Error: function header doesn't match any method of this class arg1]
  This identifier is not a method.
  This happens when the compiler scans a procedure declaration that contains
  a dot, i.e., a object or class method, but the procedure name is not a
@@ -670,7 +684,7 @@
 \item [Info: Writing Browser log arg1]
  When information messages are on, the compiler warns you when it
  writes the browser log (generated with the \var{\{\$Y+ \}} switch).
-\item [Hint: may be pointer dereference is missing]
+\item [Hint: Maybe pointer dereference is missing]
  The compiler thinks that a pointer may need a dereference.
 \item [Fatal: Selected assembler reader not supported]
  The selected assembler reader (with \var{\{\$ASMMODE xxx\}} is not
@@ -741,7 +755,7 @@
 \item [Fatal: Direct assembler not supported for binary output format]
  You can't use direct assembler when using a binary writer, choose an
  other outputformat or use an other assembler reader
-\item [Warning: Don't load OBJPAS unit manual, use {\$mode objfpc} or {\$mode delphi} instead]
+\item [Warning: Don't load OBJPAS unit manual, use mode switch instead]
  You're trying to load the ObjPas unit manual from a uses clause. This is
  not a good idea to do, you can better use the \var{\{\$mode objfpc\}} or
  \var{\{\$mode delphi\}}
@@ -788,6 +802,20 @@
  file correct with a name of length 1.
 \item [Error: No DEFFILE entry can be generated for unit global vars]
 \item [Error: Compile without -WD option]
+ You need to compile this file without the -WD switch on the
+ commandline
+\item [Fatal: You need ObjFpc (-S2) or Delphi (-Sd) mode to compile this module]
+ You need to use \var{\{\$mode objfpc\}} or \var{\{\$mode delphi\}} to compile this file.
+ Or use the equivalent commandline switches -S2 or -Sd.
+\item [Error: Can't export with index under arg1]
+ Exporting of functions or procedures with a specified index is not
+ support on all targets. The only platforms currently supporting
+ export with index are OS/2 and Win32.
+\item [Error: Exporting of variables is not supported under arg1]
+ Exporting of variables is not support on all targets. The only platform
+ currently supporting export of variables is Win32.
+\item [Error: Type "arg1" can't be used as array index type]
+ Types like DWord or Int64 aren't allowed as array index type
  \end{description}
  \section{Type checking errors}
  This section lists all errors that can occur when type checking is
@@ -916,13 +944,21 @@
  procedure variable, because the calling of local procedure/function is
  different. You can only assign local procedure/function to a void pointer.
 \item [Error: Can't assign values to an address]
- It's not allowed to assign a value to an address of a variable,constant,
+ It's not allowed to assign a value to an address of a variable, constant,
  procedure or function. You can try compiling with -So if the identifier
  is a procedure variable.
 \item [Error: Can't assign values to const variable]
  It's not allowed to assign a value to a variable which is declared
  as a const. This is normally a parameter declared as const, to allow
  changing make the parameter value or var.
+\item [Error: Array type required]
+ If you are accessing a variable using an index '[<x>]' then
+ the type must be an array. In FPC mode also a pointer is allowed.
+\item [Hint: Mixing signed expressions and cardinals results in a (slower) 64bit evaluation]
+ If you divide/multiply a signed number by a cardinal (or vice versa),
+ or if you have overflow and/or range checking turned on and use an arithmetical
+ expression in which both signed numbers and cardinals appear, then everything has
+ to be evaluated in 64bit which is slower than normal 32bit arithmetics.
  \end{description}
  \section{Symbol handling}
  This section lists all the messages that concern the handling of symbols.
@@ -1151,8 +1187,6 @@
 \item [Stack frame is omitted]
  Some procedure/functions do not need a complete stack-frame, so it is omitted.
  This message will be displayed when the {-vd} switch is used.
-\item [Warning: Range check for 64 bit integers is not supported on this target]
- 64 bit range check is not yet implemented for 32 bit processors.
 \item [Error: Object or class methods can't be inline.]
  You cannot have inlined object methods.
 \item [Error: Procvar calls can't be inline.]
@@ -1243,6 +1277,11 @@
 \item [Info: Closing script arg1]
 \item [Warning: resource compiler not found, switching to external mode]
 \item [Info: Compiling resource arg1]
+\item [unit arg1 can't be static linked, switching to smart linking]
+\item [unit arg1 can't be smart linked, switching to static linking]
+\item [unit arg1 can't be shared linked, switching to static linking]
+\item [Error: unit arg1 can't be smart or static linked]
+\item [Error: unit arg1 can't be shared or static linked]
 \end{description}
  \section{Unit loading messages.}
  This section lists all messages that can occur when the compiler is
@@ -1351,6 +1390,16 @@
 \item [PPU Check file arg1 time arg2]
  When you use the \var{-vu} flag, the compiler show the filename and
  date and time of the file which a recompile depends on
+\item [Hint: Conditional arg1 was not set at startup in last compilation of arg2]
+ when recompilation of an unit is required the compiler will check that
+ the same conditionals are set for the recompiliation. The compiler has
+ found a conditional that currently is defined, but was not used the last
+ time the unit was compiled.
+\item [Hint: Conditional arg1 was set at startup in last compilation of arg2]
+ when recompilation of an unit is required the compiler will check that
+ the same conditionals are set for the recompiliation. The compiler has
+ found a conditional that was used the last time the unit was compiled, but
+ the conditional is currently not defined.
  \end{description}
 
  \section{Command-line handling errors}
