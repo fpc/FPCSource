@@ -19,7 +19,6 @@
 {$I real2str.inc}
 
 function copy(const s : string;index : StrLenInt;count : StrLenInt): string;
-
 begin
   if count<0 then
    count:=0;
@@ -36,26 +35,26 @@ begin
   Move(s[Index+1],Copy[1],Count);
 end;
 
-procedure delete(var s : string;index : StrLenInt;count : StrLenInt);
 
+procedure delete(var s : string;index : StrLenInt;count : StrLenInt);
 begin
   if index<=0 then
-    begin
-    count:=count+index-1;
-    index:=1;
-    end;
+   begin
+     inc(count,index-1);
+     index:=1;
+   end;
   if (Index<=Length(s)) and (Count>0) then
-    begin
-    if Count+Index>length(s) then
+   begin
+     if Count+Index>length(s) then
       Count:=length(s)-Index+1;
-    s[0]:=Chr(length(s)-Count);
-    if Index<=Length(s) then
+     s[0]:=Chr(length(s)-Count);
+     if Index<=Length(s) then
       Move(s[Index+Count],s[Index],Length(s)-Index+1);
    end;
 end;
 
-procedure insert(const source : string;var s : string;index : StrLenInt);
 
+procedure insert(const source : string;var s : string;index : StrLenInt);
 begin
   if index>1 then
    dec(index)
@@ -64,42 +63,42 @@ begin
   s:=Copy(s,1,Index)+source+Copy(s,Index+1,length(s));
 end;
 
+
 function pos(const substr : string;const s : string): byte;
-
-var i,j : longint;
-    e : boolean;
-
+var
+  i,j : longint;
+  e   : boolean;
 begin
-   i := 0;
-   j := 0;
-   e:=(length(SubStr)>0);
-   while e and (i<=Length(s)-Length(SubStr)) do
-    begin
-      inc(i);
-      if (SubStr[1]=s[i]) and (Substr=Copy(s,i,Length(SubStr))) then
-       begin
-         j:=i;
-         e:=false;
-       end;
-    end;
-   Pos:=j;
+  i := 0;
+  j := 0;
+  e:=(length(SubStr)>0);
+  while e and (i<=Length(s)-Length(SubStr)) do
+   begin
+     inc(i);
+     if (SubStr[1]=s[i]) and (Substr=Copy(s,i,Length(SubStr))) then
+      begin
+        j:=i;
+        e:=false;
+      end;
+   end;
+  Pos:=j;
 end;
+
 
 {Faster when looking for a single char...}
-
 function pos(c:char;const s:string):byte;
-
-var i:longint;
-
+var
+  i : longint;
 begin
-    for i:=1 to length(s) do
-        if s[i]=c then
-            begin
-                pos:=i;
-                exit;
-            end;
-    pos:=0;
+  for i:=1 to length(s) do
+   if s[i]=c then
+    begin
+      pos:=i;
+      exit;
+    end;
+  pos:=0;
 end;
+
 
 {$ifdef IBM_CHAR_SET}
 const
@@ -108,7 +107,6 @@ const
 {$endif}
 
 function upcase(c : char) : char;
-
 {$IFDEF IBM_CHAR_SET}
 var
   i : longint;
@@ -128,17 +126,18 @@ begin
 {$ELSE}
    upcase:=c;
 {$ENDIF}
-    end;
+end;
+
 
 function upcase(const s : string) : string;
-
-var i : longint;
-
+var
+  i : longint;
 begin
   upcase[0]:=s[0];
   for i := 1 to length (s) do
     upcase[i] := upcase (s[i]);
 end;
+
 
 {$ifndef RTLLITE}
 
@@ -164,18 +163,18 @@ begin
  {$ENDIF}
 end;
 
+
 function lowercase(const s : string) : string;
-
-var i : longint;
-
+var
+  i : longint;
 begin
-  lowercase [0] := s[0];
-  for i := 1 to length (s) do
-     lowercase[i] := lowercase (s[i]);
+  lowercase [0]:=s[0];
+  for i:=1 to length(s) do
+   lowercase[i]:=lowercase (s[i]);
 end;
 
-function hexstr(val : longint;cnt : byte) : string;
 
+function hexstr(val : longint;cnt : byte) : string;
 const
   HexTbl : array[0..15] of char='0123456789ABCDEF';
 var
@@ -190,9 +189,7 @@ begin
 end;
 
 
-
- function binstr(val : longint;cnt : byte) : string;
-
+function binstr(val : longint;cnt : byte) : string;
 var
   i : longint;
 begin
@@ -206,12 +203,13 @@ end;
 
 {$endif RTLLITE}
 
- function space (b : byte): string;
 
- begin
-    space[0] := chr(b);
-    FillChar (Space[1],b,' ');
- end;
+function space (b : byte): string;
+begin
+  space[0] := chr(b);
+  FillChar (Space[1],b,' ');
+end;
+
 
 {*****************************************************************************
                               Str() Helpers
@@ -225,6 +223,7 @@ begin
    str_real(len,fr,d,rt_s32real,s);
 {$endif}
 end;
+
 
 {$ifdef SUPPORT_SINGLE}
 procedure int_str_single(d : single;len,fr : longint;var s : string);[public, alias : {$ifdef FPCNAMES}'FPC_STR_SINGLE'{$else}'STR_SINGLE'{$endif}];
@@ -360,7 +359,16 @@ end;
 
 procedure val(const s : string;var l : longint;var code : integer);
 begin
-  val(s,l,word(code));
+  val(s,l,integer(code));
+end;
+
+
+procedure val(const s : string;var l : longint;var code : longint);
+var
+  cw : word;
+begin
+  val (s,l,cw);
+  code:=cw;
 end;
 
 
@@ -368,7 +376,7 @@ procedure val(const s : string;var l : longint);
 var
   code : word;
 begin
-   val (s,l,code);
+  val (s,l,code);
 end;
 
 
@@ -396,6 +404,15 @@ begin
 end;
 
 
+procedure val(const s : string;var b : byte;var code : longint);
+var
+  l : longint;
+begin
+  val(s,l,code);
+  b:=l;
+end;
+
+
 procedure val(const s : string;var b : shortint);
 var
   l : longint;
@@ -417,6 +434,15 @@ end;
 procedure val(const s : string;var b : shortint;var code : Integer);
 begin
   val(s,b,word(code));
+end;
+
+
+procedure val(const s : string;var b : shortint;var code : longint);
+var
+  l : longint;
+begin
+  val(s,l,code);
+  b:=l;
 end;
 
 
@@ -444,9 +470,18 @@ begin
 end;
 
 
+procedure val(const s : string;var b : word;var code : longint);
+var
+  l : longint;
+begin
+  val(s,l,code);
+  b:=l;
+end;
+
+
 procedure val(const s : string;var b : integer);
 var
-   l : longint;
+  l : longint;
 begin
    val(s,l);
    b:=l;
@@ -455,7 +490,7 @@ end;
 
 procedure val(const s : string;var b : integer;var code : word);
 var
-   l : longint;
+  l : longint;
 begin
    val(s,l,code);
    b:=l;
@@ -466,6 +501,71 @@ procedure val(const s : string;var b : integer;var code : Integer);
 begin
   val(s,b,word(code));
 end;
+
+
+procedure val(const s : string;var b : integer;var code : longint);
+var
+  l : longint;
+begin
+  val(s,l,code);
+  b:=l;
+end;
+
+
+procedure val(const s : string;var v : cardinal;var code : word);
+var
+  negativ : boolean;
+  base,u  : byte;
+begin
+  v:=0;
+  code:=InitVal(s,negativ,base);
+  if (Code>length(s)) or negativ then
+   exit;
+  while Code<=Length(s) do
+   begin
+     u:=ord(s[code]);
+     case u of
+       48..57 : u:=u-48;
+       65..70 : u:=u-55;
+      97..104 : u:=u-87;
+     else
+      u:=16;
+     end;
+     cardinal(v):=cardinal(v)*cardinal(longint(base));
+     if (u>base) or (cardinal($ffffffff)-cardinal(v)>cardinal(longint(u))) then
+      begin
+        v:=0;
+        exit;
+      end;
+     v:=v+u;
+     inc(code);
+   end;
+  code:=0;
+end;
+
+
+procedure val(const s : string;var v : cardinal);
+var
+  code : word;
+begin
+  val(s,v,code);
+end;
+
+
+procedure val(const s : string;var v : cardinal;var code : integer);
+begin
+  val(s,v,word(code));
+end;
+
+
+procedure val(const s : string;var v : cardinal;var code : longint);
+var
+  cw : word;
+begin
+  val(s,v,cw);
+  code:=cw;
+end;
+
 
 procedure val(const s : string;var d : valreal;var code : word);
 var
@@ -566,9 +666,19 @@ begin
   code:=0;
 end;
 
+
 procedure val(const s : string;var d : valreal;var code : integer);
 begin
   val(s,d,word(code));
+end;
+
+
+procedure val(const s : string;var d : valreal;var code : longint);
+var
+  cw : word;
+begin
+  val(s,d,cw);
+  code:=cw;
 end;
 
 
@@ -599,15 +709,27 @@ begin
 end;
 
 
+procedure val(const s : string;var d : single;var code : longint);
+var
+  cw : word;
+  e  : valreal;
+begin
+  val(s,e,cw);
+  d:=e;
+  code:=cw;
+end;
+
+
 procedure val(const s : string;var d : single);
 var
   code : word;
-  e    : double;
+  e    : valreal;
 begin
   val(s,e,code);
   d:=e;
 end;
 {$endif SUPPORT_SINGLE}
+
 
 {$ifdef DEFAULT_EXTENDED}
 
@@ -625,10 +747,21 @@ end;
 
   procedure val(const s : string;var d : real;var code : integer);
   var
-     e : valreal;
+    e : valreal;
   begin
     val(s,e,word(code));
     d:=e;
+  end;
+
+
+  procedure val(const s : string;var d : real;var code : longint);
+  var
+    cw : word;
+    e  : valreal;
+  begin
+    val(s,e,cw);
+    d:=e;
+    code:=cw;
   end;
 
 
@@ -657,10 +790,20 @@ end;
 
   procedure val(const s : string;var d : extended;var code : integer);
   var
-     e : valreal;
+    e : valreal;
   begin
     val(s,e,word(code));
     d:=e;
+  end;
+
+  procedure val(const s : string;var d : extended;var code : longint);
+  var
+    cw : word;
+    e  : valreal;
+  begin
+    val(s,e,cw);
+    d:=e;
+    code:=cw;
   end;
 
   procedure val(const s : string;var d : extended);
@@ -696,6 +839,17 @@ begin
 end;
 
 
+procedure val(const s : string;var d : comp;var code : longint);
+var
+  cw : word;
+  e  : valreal;
+begin
+  val(s,e,cw);
+  d:=comp(e);
+  code:=cw;
+end;
+
+
 procedure val(const s : string;var d : comp);
 var
   code : word;
@@ -706,54 +860,56 @@ begin
 end;
 {$endif SUPPORT_COMP}
 
-procedure val(const s : string;var v : cardinal;var code : word);
+
+{$ifdef SUPPORT_FIXED}
+procedure val(const s : string;var d : fixed;var code : word);
 var
-  negativ : boolean;
-  base,u  : byte;
+  e : valreal;
 begin
-  v:=0;
-  code:=InitVal(s,negativ,base);
-  if (Code>length(s)) or negativ then
-   exit;
-  while Code<=Length(s) do
-   begin
-     u:=ord(s[code]);
-     case u of
-       48..57 : u:=u-48;
-       65..70 : u:=u-55;
-      97..104 : u:=u-87;
-     else
-      u:=16;
-     end;
-     cardinal(v):=cardinal(v)*cardinal(longint(base));
-     if (u>base) or (cardinal($ffffffff)-cardinal(v)>cardinal(longint(u))) then
-      begin
-        v:=0;
-        exit;
-      end;
-     v:=v+u;
-     inc(code);
-   end;
-  code:=0;
+  val(s,e,code);
+  d:=fixed(e);
 end;
 
 
-procedure val(const s : string;var v : cardinal);
+procedure val(const s : string;var d : fixed;var code : integer);
+var
+  e : valreal;
+begin
+  val(s,e,word(code));
+  d:=fixed(e);
+end;
+
+
+procedure val(const s : string;var d : fixed;var code : longint);
+var
+  cw : word;
+  e  : valreal;
+begin
+  val(s,e,cw);
+  d:=fixed(e);
+  code:=cw;
+end;
+
+
+procedure val(const s : string;var d : fixed);
 var
   code : word;
+  e    : valreal;
 begin
-  val(s,v,code);
+  val(s,e,code);
+  d:=fixed(e);
 end;
+{$endif SUPPORT_FIXED}
 
-
-procedure val(const s : string;var v : cardinal;var code : integer);
-begin
-  val(s,v,word(code));
-end;
 
 {
   $Log$
-  Revision 1.12  1998-09-14 10:48:19  peter
+  Revision 1.13  1998-10-10 15:28:46  peter
+    + read single,fixed
+    + val with code:longint
+    + val for fixed
+
+  Revision 1.12  1998/09/14 10:48:19  peter
     * FPC_ names
     * Heap manager is now system independent
 

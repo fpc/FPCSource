@@ -1075,13 +1075,11 @@ Begin
    HandleError(106);
 End;
 
-
-Procedure Read_Real(var f : TextRec;var d : Real);[Public,Alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'READ_TEXT_REAL'];
+function ReadRealStr(var f:TextRec):string;
 var
-  hs   : String;
-  code : Word;
-Begin
-  d:=0.0;
+  hs : string;
+begin
+  ReadRealStr:='';
 { Leave if error or not open file, else check for empty buf }
   If (InOutRes<>0) then
    exit;
@@ -1115,53 +1113,38 @@ Begin
          ReadNumeric(f,hs,10);
       end;
    end;
-  val(hs,d,code);
+  ReadRealStr:=hs;
+end;
+
+
+Procedure Read_Real(var f : TextRec;var d : Real);[Public,Alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'READ_TEXT_REAL'];
+var
+  code : Word;
+Begin
+  val(ReadRealStr(f),d,code);
   If code<>0 Then
    HandleError(106);
 End;
 
 
+{$ifdef SUPPORT_SINGLE}
+Procedure Read_Single(var f : TextRec;var d : single);[Public,Alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'READ_TEXT_SINGLE'];
+var
+  code : Word;
+Begin
+  val(ReadRealStr(f),d,code);
+  If code<>0 Then
+   HandleError(106);
+End;
+{$endif SUPPORT_SINGLE}
+
+
 {$ifdef SUPPORT_EXTENDED}
 Procedure Read_Extended(var f : TextRec;var d : extended);[Public,Alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'READ_TEXT_EXTENDED'];
 var
-  hs   : String;
   code : Word;
 Begin
-  d:=0.0;
-{ Leave if error or not open file, else check for empty buf }
-  If (InOutRes<>0) then
-   exit;
-  if (f.mode<>fmInput) Then
-   begin
-     InOutRes:=104;
-     exit;
-   end;
-  If f.BufPos>=f.BufEnd Then
-   FileFunc(f.InOutFunc)(f);
-  hs:='';
-  if IgnoreSpaces(f) and ReadSign(f,hs) and ReadNumeric(f,hs,10) then
-   begin
-   { First check for a . }
-     if (f.Bufptr^[f.BufPos]='.') and (f.BufPos<f.BufEnd) Then
-      begin
-        hs:=hs+'.';
-        Inc(f.BufPos);
-        If f.BufPos>=f.BufEnd Then
-         FileFunc(f.InOutFunc)(f);
-        ReadNumeric(f,hs,10);
-      end;
-   { Also when a point is found check for a E }
-     if (f.Bufptr^[f.BufPos] in ['e','E']) and (f.BufPos<f.BufEnd) Then
-      begin
-        hs:=hs+'E';
-        Inc(f.BufPos);
-        If f.BufPos>=f.BufEnd Then
-         FileFunc(f.InOutFunc)(f);
-        if ReadSign(f,hs) then
-         ReadNumeric(f,hs,10);
-      end;
-   end;
-  val(hs,d,code);
+  val(ReadRealStr(f),d,code);
   If code<>0 Then
    HandleError(106);
 End;
@@ -1171,48 +1154,25 @@ End;
 {$ifdef SUPPORT_COMP}
 Procedure Read_Comp(var f : TextRec;var d : comp);[Public,Alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'READ_TEXT_COMP'];
 var
-  hs   : String;
   code : Word;
 Begin
-  d:=comp(0.0);
-{ Leave if error or not open file, else check for empty buf }
-  If (InOutRes<>0) then
-   exit;
-  if (f.mode<>fmInput) Then
-   begin
-     InOutRes:=104;
-     exit;
-   end;
-  If f.BufPos>=f.BufEnd Then
-   FileFunc(f.InOutFunc)(f);
-  hs:='';
-  if IgnoreSpaces(f) and ReadSign(f,hs) and ReadNumeric(f,hs,10) then
-   begin
-   { First check for a . }
-     if (f.Bufptr^[f.BufPos]='.') and (f.BufPos<f.BufEnd) Then
-      begin
-        hs:=hs+'.';
-        Inc(f.BufPos);
-        If f.BufPos>=f.BufEnd Then
-         FileFunc(f.InOutFunc)(f);
-        ReadNumeric(f,hs,10);
-      end;
-   { Also when a point is found check for a E }
-     if (f.Bufptr^[f.BufPos] in ['e','E']) and (f.BufPos<f.BufEnd) Then
-      begin
-        hs:=hs+'E';
-        Inc(f.BufPos);
-        If f.BufPos>=f.BufEnd Then
-         FileFunc(f.InOutFunc)(f);
-        if ReadSign(f,hs) then
-         ReadNumeric(f,hs,10);
-      end;
-   end;
-  val(hs,d,code);
+  val(ReadRealStr(f),d,code);
   If code<>0 Then
    HandleError(106);
 End;
 {$endif SUPPORT_COMP}
+
+
+{$ifdef SUPPORT_FIXED}
+Procedure Read_Fixed(var f : TextRec;var d : fixed);[Public,Alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'READ_TEXT_FIXED'];
+var
+  code : Word;
+Begin
+  val(ReadRealStr(f),d,code);
+  If code<>0 Then
+   HandleError(106);
+End;
+{$endif SUPPORT_FIXED}
 
 
 {*****************************************************************************
@@ -1239,7 +1199,12 @@ end;
 
 {
   $Log$
-  Revision 1.30  1998-09-29 08:39:07  michael
+  Revision 1.31  1998-10-10 15:28:48  peter
+    + read single,fixed
+    + val with code:longint
+    + val for fixed
+
+  Revision 1.30  1998/09/29 08:39:07  michael
   + Ansistring write now gets pointer.
 
   Revision 1.29  1998/09/28 14:27:08  michael

@@ -201,43 +201,60 @@ Function  binStr(Val:Longint;cnt:byte):string;
 Function  Space(b:byte):string;
 Procedure Val(const s:string;Var l:Longint;Var code:Word);
 Procedure Val(const s:string;Var l:Longint;Var code:Integer);
+Procedure Val(const s:string;Var l:Longint;Var code:Longint);
 Procedure Val(const s:string;Var l:Longint);
 Procedure Val(const s:string;Var b:byte;Var code:Word);
 Procedure Val(const s:string;Var b:byte;Var code:Integer);
+Procedure Val(const s:string;Var b:byte;Var code:Longint);
 Procedure Val(const s:string;Var b:byte);
 Procedure Val(const s:string;Var b:shortint;Var code:Word);
 Procedure Val(const s:string;Var b:shortint;Var code:Integer);
+Procedure Val(const s:string;Var b:shortint;Var code:Longint);
 Procedure Val(const s:string;Var b:shortint);
 Procedure Val(const s:string;Var b:Word;Var code:Word);
 Procedure Val(const s:string;Var b:Word;Var code:Integer);
+Procedure Val(const s:string;Var b:Word;Var code:Longint);
 Procedure Val(const s:string;Var b:Word);
 Procedure Val(const s:string;Var b:Integer;Var code:Word);
 Procedure Val(const s:string;Var b:Integer;Var code:Integer);
+Procedure Val(const s:string;Var b:Integer;Var code:Longint);
 Procedure Val(const s:string;Var b:Integer);
 Procedure Val(const s:string;Var v:cardinal;Var code:Word);
 Procedure Val(const s:string;Var v:cardinal;Var code:Integer);
+Procedure Val(const s:string;Var v:cardinal;Var code:Longint);
 Procedure Val(const s:string;Var v:cardinal);
 Procedure Val(const s:string;Var d:ValReal;Var code:Word);
 Procedure Val(const s:string;Var d:ValReal;Var code:Integer);
+Procedure Val(const s:string;Var d:ValReal;Var code:Longint);
 Procedure Val(const s:string;Var d:ValReal);
 {$ifdef SUPPORT_SINGLE}
   Procedure Val(const s:string;Var d:single;Var code:Word);
   Procedure Val(const s:string;Var d:single;Var code:Integer);
+  Procedure Val(const s:string;Var d:single;Var code:Longint);
   Procedure Val(const s:string;Var d:single);
 {$endif SUPPORT_SINGLE}
 {$ifdef SUPPORT_COMP}
   Procedure Val(const s:string;Var d:comp;Var code:Word);
   Procedure Val(const s:string;Var d:comp;Var code:Integer);
+  Procedure Val(const s:string;Var d:comp;Var code:Longint);
   Procedure Val(const s:string;Var d:comp);
 {$endif SUPPORT_COMP}
+{$ifdef SUPPORT_FIXED}
+  Procedure Val(const s:string;Var d:fixed;Var code:Word);
+  Procedure Val(const s:string;Var d:fixed;Var code:Integer);
+  Procedure Val(const s:string;Var d:fixed;Var code:Longint);
+  Procedure Val(const s:string;Var d:fixed);
+{$endif SUPPORT_FIXED}
 {$ifdef DEFAULT_EXTENDED}
   Procedure Val(const s:string;Var d:Real;Var code:Word);
   Procedure Val(const s:string;Var d:Real;Var code:Integer);
+  Procedure Val(const s:string;Var d:Real;Var code:Longint);
   Procedure Val(const s:string;Var d:Real);
 {$else DEFAULT_EXTENDED}
   {$ifdef SUPPORT_EXTENDED}
     Procedure Val(const s:string;Var d:Extended;Var code:Word);
     Procedure Val(const s:string;Var d:Extended;Var code:Integer);
+    Procedure Val(const s:string;Var d:Extended;Var code:Longint);
     Procedure Val(const s:string;Var d:Extended);
   {$endif}
 {$endif DEFAULT_EXTENDED}
@@ -405,7 +422,12 @@ const
 
 {
   $Log$
-  Revision 1.36  1998-10-05 17:22:54  pierre
+  Revision 1.37  1998-10-10 15:28:47  peter
+    + read single,fixed
+    + val with code:longint
+    + val for fixed
+
+  Revision 1.36  1998/10/05 17:22:54  pierre
    * avoid overflow on $8000000 with $Q-
 
   Revision 1.35  1998/10/05 12:32:52  peter
