@@ -4,7 +4,7 @@ var
   q : cardinal;
 begin
   l:=1;
-{$if sizeof(l)=3}
+{$if sizeof(l)=2}
   l:=2;
 {$endif}
   if l<>2 then
