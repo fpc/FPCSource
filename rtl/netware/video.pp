@@ -14,7 +14,8 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-{ 2001/04/16 armin: first version for netware }
+{ 2001/04/16 armin: first version for netware 
+  2002/02/26 armin: changes for current fpc }
 unit Video;
 interface
 
@@ -29,12 +30,11 @@ uses
 {$i nwsys.inc}
 
 var
-  OldVideoBuf : PVideoBuf;
   MaxVideoBufSize : DWord;
   VideoBufAllocated: boolean;
 
 
-procedure InitVideo;
+procedure SysInitVideo;
 VAR height,width : WORD;
     startline, endline : BYTE;
 begin
@@ -74,7 +74,7 @@ begin
 end;
 
 
-procedure DoneVideo;
+procedure SysDoneVideo;
 begin
   { ClearScreen; also not needed PM }
   SetCursorType(crUnderLine);
@@ -89,33 +89,33 @@ begin
 end;
 
 
-function GetCapabilities: Word;
+function SysGetCapabilities: Word;
 begin
-  GetCapabilities:=cpColor or cpChangeCursor;
+  SysGetCapabilities:=cpColor or cpChangeCursor;
 end;
 
 
-procedure SetCursorPos(NewCursorX, NewCursorY: Word);
+procedure SysSetCursorPos(NewCursorX, NewCursorY: Word);
 begin
   _GotoXY (NewCursorX, NewCursorY);
 end;
 
 
-function GetCursorType: Word;
+function SysGetCursorType: Word;
 var startline, endline : byte;
 begin
   _GetCursorShape (startline, endline);
   CASE startline of
-    1 : GetCursorType := crBlock;
-    5 : GetCursorType := crHalfBlock
+    1 : SysGetCursorType := crBlock;
+    5 : SysGetCursorType := crHalfBlock
     ELSE
-       GetCursorType := crUnderline;
+       SysGetCursorType := crUnderline;
   END;
   {crHidden ?}
 end;
 
 
-procedure SetCursorType(NewType: Word);
+procedure SysSetCursorType(NewType: Word);
 begin
    if newType=crHidden then
      _HideInputCursor
@@ -134,20 +134,14 @@ begin
 end;
 
 
-function DefaultVideoModeSelector(const VideoMode: TVideoMode; Params: Longint): Boolean;
-begin
-  DefaultVideoModeSelector:=true;
-end;
-
-
-procedure ClearScreen;
+{procedure ClearScreen;
 begin
   FillWord(VideoBuf^,VideoBufSize div 2,$0720);
   UpdateScreen(true);
-end;
+end;}
 
 
-procedure UpdateScreen(Force: Boolean);
+procedure SysUpdateScreen(Force: Boolean);
 begin
   if (LockUpdateScreen<>0) or (VideoBufSize = 0) then
    exit;
@@ -167,19 +161,50 @@ begin
     _CopyToScreenMemory (ScreenHeight, ScreenWidth, VideoBuf, 0, 0);
 end;
 
-procedure RegisterVideoModes;
+
+Const
+  SysVideoModeCount = 1;
+  SysVMD : Array[0..SysVideoModeCount-1] of TVideoMode = (
+       (Col: 80; Row : 25;  Color : True));
+
+Function SysSetVideoMode (Const Mode : TVideoMode) : Boolean;
 begin
-  { don't know what to do for netware }
-  RegisterVideoMode(80, 25, True, @DefaultVideoModeSelector, $00000003);
+  SysSetVideoMode := ((Mode.Col = 80) AND (Mode.Row = 25) AND (Mode.Color));
 end;
+
+Function SysGetVideoModeData (Index : Word; Var Data : TVideoMode) : boolean;
+begin
+  SysGetVideoModeData:=(Index<=SysVideoModeCount);
+  If SysGetVideoModeData then
+    Data:=SysVMD[Index];
+end;
+
+Function SysGetVideoModeCount : Word;
+
+begin
+  SysGetVideoModeCount:=SysVideoModeCount;
+end;
+
+Const
+  SysVideoDriver : TVideoDriver = (
+  InitDriver        : @SysInitVideo;
+  DoneDriver        : @SysDoneVideo;
+  UpdateScreen      : @SysUpdateScreen;
+  ClearScreen       : Nil;
+  SetVideoMode      : @SysSetVideoMode;
+  GetVideoModeCount : @SysGetVideoModeCount;
+  GetVideoModeData  : @SysGetVideoModedata;
+  SetCursorPos      : @SysSetCursorPos;
+  GetCursorType     : @SysGetCursorType;
+  SetCursorType     : @SysSetCursorType;
+  GetCapabilities   : @SysGetCapabilities
+);
+						
 
 
 initialization
   VideoBufAllocated := false;
   VideoBufSize := 0;
-  RegisterVideoModes;
-
-finalization
-  UnRegisterVideoModes;
+  SetVideoDriver (SysVideoDriver);
 end.
 
