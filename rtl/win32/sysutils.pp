@@ -132,7 +132,7 @@ var
   lft : TFileTime;
 begin
   DosToWinTime:=DosDateTimeToFileTime(longrec(dtime).hi,longrec(dtime).lo,@lft) and
-                LocalFileTimeToFileTime(lft,@Wtime);
+                LocalFileTimeToFileTime(lft,Wtime);
 end;
 
 
@@ -140,8 +140,8 @@ Function WinToDosTime (Var Wtime : TFileTime;var DTime:longint):longbool;
 var
   lft : FileTime;
 begin
-  WinToDosTime:=FileTimeToLocalFileTime(WTime,@lft) and
-                FileTimeToDosDateTime(lft,@Longrec(Dtime).Hi,@LongRec(DTIME).lo);
+  WinToDosTime:=FileTimeToLocalFileTime(WTime,lft) and
+                FileTimeToDosDateTime(lft,Longrec(Dtime).Hi,LongRec(DTIME).lo);
 end;
 
 
@@ -658,7 +658,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.16  2002-10-02 21:17:03  florian
+  Revision 1.17  2002-12-15 20:24:17  peter
+    * some more C style functions
+
+  Revision 1.16  2002/10/02 21:17:03  florian
     * we've to reimport TSystemTime time from the windows unit
 
   Revision 1.15  2002/09/07 16:01:29  peter

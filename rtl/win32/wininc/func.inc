@@ -77,7 +77,6 @@ procedure GlobalUnfix(hMem:HGLOBAL); external 'kernel32' name 'GlobalUnfix';
 function GlobalWire(hMem:HGLOBAL):LPVOID; external 'kernel32' name 'GlobalWire';
 function GlobalUnWire(hMem:HGLOBAL):WINBOOL; external 'kernel32' name 'GlobalUnWire';
 procedure GlobalMemoryStatus(lpBuffer:LPMEMORYSTATUS); external 'kernel32' name 'GlobalMemoryStatus';
-procedure GlobalMemoryStatus(var Buffer: MEMORYSTATUS); external 'kernel32' name 'GlobalMemoryStatus';
 function LocalAlloc(uFlags:UINT; uBytes:UINT):HLOCAL; external 'kernel32' name 'LocalAlloc';
 function LocalDiscard(hlocMem:HLOCAL):HLOCAL;
 function LocalReAlloc(hMem:HLOCAL; uBytes:UINT; uFlags:UINT):HLOCAL; external 'kernel32' name 'LocalReAlloc';
@@ -120,8 +119,8 @@ procedure ExitProcess(uExitCode:UINT);external 'kernel32' name 'ExitProcess';
 function TerminateProcess(hProcess:HANDLE; uExitCode:UINT):WINBOOL; external 'kernel32' name 'TerminateProcess';
 function GetExitCodeProcess(hProcess:HANDLE; lpExitCode:LPDWORD):WINBOOL; external 'kernel32' name 'GetExitCodeProcess';
 procedure FatalExit(ExitCode:longint); external 'kernel32' name 'FatalExit';
-procedure RaiseException(dwExceptionCode:DWORD; dwExceptionFlags:DWORD; nNumberOfArguments:DWORD; var lpArguments:DWORD); external 'kernel32' name 'RaiseException';
-function UnhandledExceptionFilter(var ExceptionInfo:emptyrecord):LONG; external 'kernel32' name 'UnhandledExceptionFilter';
+procedure RaiseException(dwExceptionCode:DWORD; dwExceptionFlags:DWORD; nNumberOfArguments:DWORD; lpArguments:LPDWORD); external 'kernel32' name 'RaiseException';
+function UnhandledExceptionFilter(ExceptionInfo:lpemptyrecord):LONG; external 'kernel32' name 'UnhandledExceptionFilter';
 function CreateRemoteThread(hProcess:HANDLE; lpThreadAttributes:LPSECURITY_ATTRIBUTES; dwStackSize:DWORD; lpStartAddress:LPTHREAD_START_ROUTINE; lpParameter:LPVOID;
   dwCreationFlags:DWORD; lpThreadId:LPDWORD):HANDLE; external 'kernel32' name 'CreateRemoteThread';
 function GetCurrentThread:HANDLE; external 'kernel32' name 'GetCurrentThread';
@@ -181,7 +180,7 @@ function SetEndOfFile(hFile:HANDLE):WINBOOL; external 'kernel32' name 'SetEndOfF
 function SetFilePointer(hFile:HANDLE; lDistanceToMove:LONG; lpDistanceToMoveHigh:PLONG; dwMoveMethod:DWORD):DWORD; external 'kernel32' name 'SetFilePointer';
 function FindClose(hFindFile:HANDLE):WINBOOL; external 'kernel32' name 'FindClose';
 function GetFileTime(hFile:HANDLE; lpCreationTime:LPFILETIME; lpLastAccessTime:LPFILETIME; lpLastWriteTime:LPFILETIME):WINBOOL; external 'kernel32' name 'GetFileTime';
-function SetFileTime(hFile:HANDLE; var lpCreationTime:FILETIME; var lpLastAccessTime:FILETIME; var lpLastWriteTime:FILETIME):WINBOOL; external 'kernel32' name 'SetFileTime';
+function SetFileTime(hFile:HANDLE; lpCreationTime:LPFILETIME; lpLastAccessTime:LPFILETIME; lpLastWriteTime:LPFILETIME):WINBOOL; external 'kernel32' name 'SetFileTime';
 function CloseHandle(hObject:HANDLE):WINBOOL; external 'kernel32' name 'CloseHandle';
 function DuplicateHandle(hSourceProcessHandle:HANDLE; hSourceHandle:HANDLE; hTargetProcessHandle:HANDLE; lpTargetHandle:LPHANDLE; dwDesiredAccess:DWORD;bInheritHandle:WINBOOL; dwOptions:DWORD):WINBOOL; external 'kernel32' name 'DuplicateHandle';
 function GetHandleInformation(hObject:HANDLE; lpdwFlags:LPDWORD):WINBOOL; external 'kernel32' name 'GetHandleInformation';
@@ -201,8 +200,8 @@ function PurgeComm(hFile:HANDLE; dwFlags:DWORD):WINBOOL; external 'kernel32' nam
 function SetCommBreak(hFile:HANDLE):WINBOOL; external 'kernel32' name 'SetCommBreak';
 function SetCommConfig(hCommDev:HANDLE; lpCC:LPCOMMCONFIG; dwSize:DWORD):WINBOOL; external 'kernel32' name 'SetCommConfig';
 function SetCommMask(hFile:HANDLE; dwEvtMask:DWORD):WINBOOL; external 'kernel32' name 'SetCommMask';
-function SetCommState(hFile:HANDLE; var lpDCB:TDCB):WINBOOL; external 'kernel32' name 'SetCommState';
-function SetCommTimeouts(hFile:HANDLE; var lpCommTimeouts:TCOMMTIMEOUTS):WINBOOL; external 'kernel32' name 'SetCommTimeouts';
+function SetCommState(hFile:HANDLE; lpDCB:LPDCB):WINBOOL; external 'kernel32' name 'SetCommState';
+function SetCommTimeouts(hFile:HANDLE; lpCommTimeouts:LPCOMMTIMEOUTS):WINBOOL; external 'kernel32' name 'SetCommTimeouts';
 function TransmitCommChar(hFile:HANDLE; cChar:char):WINBOOL; external 'kernel32' name 'TransmitCommChar';
 function WaitCommEvent(hFile:HANDLE; lpEvtMask:LPDWORD; lpOverlapped:LPOVERLAPPED):WINBOOL; external 'kernel32' name 'WaitCommEvent';
 function SetTapePosition(hDevice:HANDLE; dwPositionMethod:DWORD; dwPartition:DWORD; dwOffsetLow:DWORD; dwOffsetHigh:DWORD;bImmediate:WINBOOL):DWORD; external 'kernel32' name 'SetTapePosition';
@@ -236,22 +235,19 @@ function SetVoiceThreshold(nVoice:DWORD; nNotes:DWORD):DWORD; external External_
 {$endif Unknown_functions}
 function MulDiv(nNumber:longint; nNumerator:longint; nDenominator:longint):longint; external 'kernel32' name 'MulDiv';
 procedure GetSystemTime(lpSystemTime:LPSYSTEMTIME); external 'kernel32' name 'GetSystemTime';
-procedure GetSystemTime(var lpSystemTime:SYSTEMTIME); external 'kernel32' name 'GetSystemTime';
-function SetSystemTime(var lpSystemTime:SYSTEMTIME):WINBOOL; external 'kernel32' name 'SetSystemTime';
+function SetSystemTime(lpSystemTime:LPSYSTEMTIME):WINBOOL; external 'kernel32' name 'SetSystemTime';
 procedure GetLocalTime(lpSystemTime:LPSYSTEMTIME); external 'kernel32' name 'GetLocalTime';
-procedure GetLocalTime(var SystemTime: SYSTEMTIME); external 'kernel32' name 'GetLocalTime';
-function SetLocalTime(var lpSystemTime:SYSTEMTIME):WINBOOL; external 'kernel32' name 'SetLocalTime';
+function SetLocalTime(lpSystemTime:LPSYSTEMTIME):WINBOOL; external 'kernel32' name 'SetLocalTime';
 procedure GetSystemInfo(lpSystemInfo:LPSYSTEM_INFO); external 'kernel32' name 'GetSystemInfo';
-procedure GetSystemInfo(var SystemInfo:SYSTEM_INFO); external 'kernel32' name 'GetSystemInfo';
 function SystemTimeToTzSpecificLocalTime(lpTimeZoneInformation:LPTIME_ZONE_INFORMATION; lpUniversalTime:LPSYSTEMTIME; lpLocalTime:LPSYSTEMTIME):WINBOOL; external 'kernel32' name 'SystemTimeToTzSpecificLocalTime';
 function GetTimeZoneInformation(lpTimeZoneInformation:LPTIME_ZONE_INFORMATION):DWORD; external 'kernel32' name 'GetTimeZoneInformation';
-function SetTimeZoneInformation(var lpTimeZoneInformation:TIME_ZONE_INFORMATION):WINBOOL; external 'kernel32' name 'SetTimeZoneInformation';
-function SystemTimeToFileTime(var lpSystemTime:SYSTEMTIME; lpFileTime:LPFILETIME):WINBOOL; external 'kernel32' name 'SystemTimeToFileTime';
-function FileTimeToLocalFileTime(var lpFileTime:FILETIME; lpLocalFileTime:LPFILETIME):WINBOOL; external 'kernel32' name 'FileTimeToLocalFileTime';
-function LocalFileTimeToFileTime(var lpLocalFileTime:FILETIME; lpFileTime:LPFILETIME):WINBOOL; external 'kernel32' name 'LocalFileTimeToFileTime';
-function FileTimeToSystemTime(var lpFileTime:FILETIME; lpSystemTime:LPSYSTEMTIME):WINBOOL; external 'kernel32' name 'FileTimeToSystemTime';
-function CompareFileTime(var lpFileTime1:FILETIME; var lpFileTime2:FILETIME):LONG; external 'kernel32' name 'CompareFileTime';
-function FileTimeToDosDateTime(var lpFileTime:FILETIME; lpFatDate:LPWORD; lpFatTime:LPWORD):WINBOOL; external 'kernel32' name 'FileTimeToDosDateTime';
+function SetTimeZoneInformation(lpTimeZoneInformation:LPTIME_ZONE_INFORMATION):WINBOOL; external 'kernel32' name 'SetTimeZoneInformation';
+function SystemTimeToFileTime(lpSystemTime:LPSYSTEMTIME; lpFileTime:LPFILETIME):WINBOOL; external 'kernel32' name 'SystemTimeToFileTime';
+function FileTimeToLocalFileTime(lpFileTime:LPFILETIME; lpLocalFileTime:LPFILETIME):WINBOOL; external 'kernel32' name 'FileTimeToLocalFileTime';
+function LocalFileTimeToFileTime(lpLocalFileTime:LPFILETIME; lpFileTime:LPFILETIME):WINBOOL; external 'kernel32' name 'LocalFileTimeToFileTime';
+function FileTimeToSystemTime(lpFileTime:LPFILETIME; lpSystemTime:LPSYSTEMTIME):WINBOOL; external 'kernel32' name 'FileTimeToSystemTime';
+function CompareFileTime(lpFileTime1:LPFILETIME; lpFileTime2:LPFILETIME):LONG; external 'kernel32' name 'CompareFileTime';
+function FileTimeToDosDateTime(lpFileTime:LPFILETIME; lpFatDate:LPWORD; lpFatTime:LPWORD):WINBOOL; external 'kernel32' name 'FileTimeToDosDateTime';
 function DosDateTimeToFileTime(wFatDate:WORD; wFatTime:WORD; lpFileTime:LPFILETIME):WINBOOL; external 'kernel32' name 'DosDateTimeToFileTime';
 function GetTickCount:DWORD; external 'kernel32' name 'GetTickCount';
 function SetSystemTimeAdjustment(dwTimeAdjustment:DWORD; bTimeAdjustmentDisabled:WINBOOL):WINBOOL; external 'kernel32' name 'SetSystemTimeAdjustment';
@@ -284,7 +280,7 @@ function TlsSetValue(dwTlsIndex:DWORD; lpTlsValue:LPVOID):WINBOOL; external 'ker
 function TlsFree(dwTlsIndex:DWORD):WINBOOL; external 'kernel32' name 'TlsFree';
 function SleepEx(dwMilliseconds:DWORD; bAlertable:WINBOOL):DWORD; external 'kernel32' name 'SleepEx';
 function WaitForSingleObjectEx(hHandle:HANDLE; dwMilliseconds:DWORD; bAlertable:WINBOOL):DWORD; external 'kernel32' name 'WaitForSingleObjectEx';
-function WaitForMultipleObjectsEx(nCount:DWORD; var lpHandles:HANDLE; bWaitAll:WINBOOL; dwMilliseconds:DWORD; bAlertable:WINBOOL):DWORD; external 'kernel32' name 'WaitForMultipleObjectsEx';
+function WaitForMultipleObjectsEx(nCount:DWORD; lpHandles:LPHANDLE; bWaitAll:WINBOOL; dwMilliseconds:DWORD; bAlertable:WINBOOL):DWORD; external 'kernel32' name 'WaitForMultipleObjectsEx';
 function ReadFileEx(hFile:HANDLE; lpBuffer:LPVOID; nNumberOfBytesToRead:DWORD; lpOverlapped:LPOVERLAPPED; lpCompletionRoutine:LPOVERLAPPED_COMPLETION_ROUTINE):WINBOOL; external 'kernel32' name 'ReadFileEx';
 function WriteFileEx(hFile:HANDLE; lpBuffer:LPCVOID; nNumberOfBytesToWrite:DWORD; lpOverlapped:LPOVERLAPPED; lpCompletionRoutine:LPOVERLAPPED_COMPLETION_ROUTINE):WINBOOL; external 'kernel32' name 'WriteFileEx';
 function BackupRead(hFile:HANDLE; lpBuffer:LPBYTE; nNumberOfBytesToRead:DWORD; lpNumberOfBytesRead:LPDWORD; bAbort:WINBOOL;bProcessSecurity:WINBOOL; var lpContext:LPVOID):WINBOOL; external 'kernel32' name 'BackupRead';
@@ -610,6 +606,7 @@ function OffsetRect(lprc:LPRECT; dx:longint; dy:longint):WINBOOL; external 'user
 function IsRectEmpty(var lprc:RECT):WINBOOL; external 'user32' name 'IsRectEmpty';
 function EqualRect(var lprc1:RECT; var lprc2:RECT):WINBOOL; external 'user32' name 'EqualRect';
 function PtInRect(var lprc:RECT; pt:POINT):WINBOOL; {external 'user32' name 'PtInRect';bug 1807 }
+function PtInRect(lprc:LPRECT; pt:POINT):WINBOOL;
 function GetWindowWord(hWnd:HWND; nIndex:longint):WORD; external 'user32' name 'GetWindowWord';
 function SetWindowWord(hWnd:HWND; nIndex:longint; wNewWord:WORD):WORD; external 'user32' name 'SetWindowWord';
 function GetClassWord(hWnd:HWND; nIndex:longint):WORD; external 'user32' name 'GetClassWord';
@@ -853,11 +850,11 @@ function MoveToEx(_para1:HDC; _para2:longint; _para3:longint; _para4:LPPOINT):WI
 function CreatePolygonRgn(var _para1:POINT; _para2:longint; _para3:longint):HRGN; external 'gdi32' name 'CreatePolygonRgn';
 function DPtoLP(_para1:HDC; _para2:LPPOINT; _para3:longint):WINBOOL; external 'gdi32' name 'DPtoLP';
 function LPtoDP(_para1:HDC; _para2:LPPOINT; _para3:longint):WINBOOL; external 'gdi32' name 'LPtoDP';
-function Polygon(_para1:HDC; var _para2:POINT; _para3:longint):WINBOOL; external 'gdi32' name 'Polygon';
-function Polyline(_para1:HDC; var _para2:POINT; _para3:longint):WINBOOL; external 'gdi32' name 'Polyline';
-function PolyBezier(_para1:HDC; var _para2:POINT; _para3:DWORD):WINBOOL; external 'gdi32' name 'PolyBezier';
-function PolyBezierTo(_para1:HDC; var _para2:POINT; _para3:DWORD):WINBOOL; external 'gdi32' name 'PolyBezierTo';
-function PolylineTo(_para1:HDC; var _para2:POINT; _para3:DWORD):WINBOOL; external 'gdi32' name 'PolylineTo';
+function Polygon(_para1:HDC; _para2:LPPOINT; _para3:longint):WINBOOL; external 'gdi32' name 'Polygon';
+function Polyline(_para1:HDC; _para2:LPPOINT; _para3:longint):WINBOOL; external 'gdi32' name 'Polyline';
+function PolyBezier(_para1:HDC; _para2:LPPOINT; _para3:DWORD):WINBOOL; external 'gdi32' name 'PolyBezier';
+function PolyBezierTo(_para1:HDC; _para2:POINT; _para3:DWORD):WINBOOL; external 'gdi32' name 'PolyBezierTo';
+function PolylineTo(_para1:HDC; _para2:LPPOINT; _para3:DWORD):WINBOOL; external 'gdi32' name 'PolylineTo';
 function SetViewportExtEx(_para1:HDC; _para2:longint; _para3:longint; _para4:LPSIZE):WINBOOL; external 'gdi32' name 'SetViewportExtEx';
 function SetViewportOrgEx(_para1:HDC; _para2:longint; _para3:longint; _para4:LPPOINT):WINBOOL; external 'gdi32' name 'SetViewportOrgEx';
 function SetWindowExtEx(_para1:HDC; _para2:longint; _para3:longint; _para4:LPSIZE):WINBOOL; external 'gdi32' name 'SetWindowExtEx';
@@ -907,7 +904,7 @@ function ImageList_DragLeave(hwndLock:HWND):WINBOOL; external 'comctl32' name 'I
 function ImageList_DragMove(x:longint; y:longint):WINBOOL; external 'comctl32' name 'ImageList_DragMove';
 function ImageList_SetDragCursorImage(himlDrag:HIMAGELIST; iDrag:longint; dxHotspot:longint; dyHotspot:longint):WINBOOL; external 'comctl32' name 'ImageList_SetDragCursorImage';
 function ImageList_DragShowNolock(fShow:WINBOOL):WINBOOL; external 'comctl32' name 'ImageList_DragShowNolock';
-function ImageList_GetDragImage(var ppt:POINT; var pptHotspot:POINT):HIMAGELIST; external 'comctl32' name 'ImageList_GetDragImage';
+function ImageList_GetDragImage(ppt:LPPOINT; pptHotspot:LPPOINT):HIMAGELIST; external 'comctl32' name 'ImageList_GetDragImage';
 function ImageList_GetIconSize(himl:HIMAGELIST; var cx:longint; var cy:longint):WINBOOL; external 'comctl32' name 'ImageList_GetIconSize';
 function ImageList_SetIconSize(himl:HIMAGELIST; cx:longint; cy:longint):WINBOOL; external 'comctl32' name 'ImageList_SetIconSize';
 function ImageList_GetImageInfo(himl:HIMAGELIST; i:longint; var pImageInfo:IMAGEINFO):WINBOOL; external 'comctl32' name 'ImageList_GetImageInfo';
@@ -1284,6 +1281,11 @@ function Internal_PtInRect(var lprc:RECT; ptX,ptY : LONG):WINBOOL; external 'use
 function PtInRect(var lprc:RECT; pt:POINT):WINBOOL;
 begin
   PtInRect:=Internal_PtInRect(lprc,pt.X,pt.Y);
+end;
+
+function PtInRect(lprc:LPRECT; pt:POINT):WINBOOL;
+begin
+  PtInRect:=Internal_PtInRect(lprc^,pt.X,pt.Y);
 end;
 
 function Internal_ChildWindowFromPointEx(_para1:HWND; _para2X,_Para2Y : LONG; _para3:UINT):HWND; external 'user32' name 'ChildWindowFromPointEx';
@@ -2329,7 +2331,10 @@ end;
 
 {
   $Log$
-  Revision 1.15  2002-11-29 16:40:49  sg
+  Revision 1.16  2002-12-15 20:24:17  peter
+    * some more C style functions
+
+  Revision 1.15  2002/11/29 16:40:49  sg
   * Added wgl* functions (moved from opengl32 unit, to get more compatible
     to Delphi)
 

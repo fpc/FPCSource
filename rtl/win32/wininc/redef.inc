@@ -419,6 +419,11 @@ function GetKerningPairs(DC: HDC; Count: DWORD; var KerningPairs): DWORD;externa
 function GetKeyboardLayoutList(nBuff: Integer; var List): UINT; external 'user32' name 'GetKeyboardLayoutList';
 //function GetKeyboardState(var KeyState: TKeyboardState): BOOL; external 'user32' name 'GetKeyboardState';
 //function GetLastInputInfo(var plii: TLastInputInfo): BOOL;external 'user32' name 'GetLastInputInfo';
+procedure GetSystemTime(var lpSystemTime:SYSTEMTIME); external 'kernel32' name 'GetSystemTime';
+procedure GetLocalTime(var SystemTime: SYSTEMTIME); external 'kernel32' name 'GetLocalTime';
+procedure GetSystemInfo(var SystemInfo:SYSTEM_INFO); external 'kernel32' name 'GetSystemInfo';
+function SetSystemTime(var lpSystemTime:SYSTEMTIME):WINBOOL; external 'kernel32' name 'SetSystemTime';
+function SetLocalTime(var lpSystemTime:SYSTEMTIME):WINBOOL; external 'kernel32' name 'SetLocalTime';
 function GetLogColorSpace(p1: HCOLORSPACE; var ColorSpace: TLogColorSpace; Size: DWORD): BOOL;external 'gdi32' name 'GetLogColorSpaceA';
 function GetLogColorSpaceA(p1: HCOLORSPACE; var ColorSpace: TLogColorSpaceA; Size: DWORD): BOOL; external 'gdi32' name 'GetLogColorSpaceA';
 //function GetLogColorSpaceW(p1: HCOLORSPACE; var ColorSpace: TLogColorSpaceW; Size: DWORD): BOOL; external 'gdi32' name 'GetLogColorSpaceW';
@@ -524,7 +529,9 @@ function GetWindowOrgEx(DC: HDC; var Point: TPoint): BOOL; external 'gdi32' name
 function GetWindowRect(hWnd: HWND; var lpRect: TRect): BOOL; external 'user32' name 'GetWindowRect';
 function GetWorldTransform(DC: HDC; var p2: TXForm): BOOL; external 'gdi32' name 'GetWorldTransform';
 //function GradientFill(DC: HDC; var p2: TTriVertex; p3: ULONG; p4: Pointer; p5, p6: ULONG): BOOL;external 'gdi32' name 'GradientFill';
+procedure GlobalMemoryStatus(var Buffer: MEMORYSTATUS); external 'kernel32' name 'GlobalMemoryStatus';
 function HeapWalk(hHeap: THandle; var lpEntry: TProcessHeapEntry): BOOL; external 'kernel32' name 'HeapWalk';
+function ImageList_GetDragImage(var ppt:POINT; var pptHotspot:POINT):HIMAGELIST; external 'comctl32' name 'ImageList_GetDragImage';
 function InflateRect(var lprc: TRect; dx, dy: Integer): BOOL; external 'user32' name 'InflateRect';
 function InitializeAcl(var pAcl: TACL; nAclLength, dwAclRevision: DWORD): BOOL; external 'advapi32' name 'InitializeAcl';
 {$ifdef support_smartlink}
@@ -629,6 +636,8 @@ function QueryPerformanceFrequency(var lpFrequency: TLargeInteger): BOOL; extern
 //function QueryRecoveryAgents(p1: PChar; var p2: Pointer; var p3: TRecoveryAgentInformation): DWORD;external 'kernel32' name 'QueryRecoveryAgentsA';
 //function QueryRecoveryAgentsA(p1: LPCSTR; var p2: Pointer; var p3: TRecoveryAgentInformationA): DWORD;external 'kernel32' name 'QueryRecoveryAgentsA';
 //function QueryRecoveryAgentsW(p1: LPWSTR; var p2: Pointer; var p3: TRecoveryAgentInformationW): DWORD;external 'kernel32' name 'QueryRecoveryAgentsW';
+procedure RaiseException(dwExceptionCode:DWORD; dwExceptionFlags:DWORD; nNumberOfArguments:DWORD; var lpArguments:DWORD); external 'kernel32' name 'RaiseException';
+function UnhandledExceptionFilter(var ExceptionInfo:emptyrecord):LONG; external 'kernel32' name 'UnhandledExceptionFilter';
 function ReadConsole(hConsoleInput: THandle; lpBuffer: Pointer; nNumberOfCharsToRead: DWORD; var lpNumberOfCharsRead: DWORD; lpReserved: Pointer): BOOL;external 'kernel32' name 'ReadConsoleA';
 function ReadConsoleA(hConsoleInput: THandle; lpBuffer: Pointer; nNumberOfCharsToRead: DWORD; var lpNumberOfCharsRead: DWORD; lpReserved: Pointer): BOOL; external 'kernel32' name 'ReadConsoleA';
 function ReadConsoleInput(hConsoleInput: THandle; var lpBuffer: TInputRecord; nLength: DWORD; var lpNumberOfEventsRead: DWORD): BOOL;external 'kernel32' name 'ReadConsoleInputA';
@@ -715,6 +724,7 @@ function SetDeviceGammaRamp(DC: HDC; var Ramp): BOOL; external 'gdi32' name 'Set
 function SetDIBColorTable(DC: HDC; p2, p3: UINT; var RGBQuadSTructs): UINT; external 'gdi32' name 'SetDIBColorTable';
 function SetDIBits(DC: HDC; Bitmap: HBITMAP; StartScan, NumScans: UINT; Bits: Pointer; var BitsInfo: TBitmapInfo; Usage: UINT): Integer; external 'gdi32' name 'SetDIBits';
 function SetDIBitsToDevice(DC: HDC; DestX, DestY: Integer; Width, Height: DWORD; SrcX, SrcY: Integer; nStartScan, NumScans: UINT; Bits: Pointer; var BitsInfo: TBitmapInfo; Usage: UINT): Integer; external 'gdi32' name 'SetDIBitsToDevice';
+function SetFileTime(hFile:HANDLE; var lpCreationTime:FILETIME; var lpLastAccessTime:FILETIME; var lpLastWriteTime:FILETIME):WINBOOL; external 'kernel32' name 'SetFileTime';
 //function SetKeyboardState(var KeyState: TKeyboardState): BOOL; external 'user32' name 'SetKeyboardState';
 //function SetLocalTime(const lpSystemTime: TSystemTime): BOOL; external 'kernel32' name 'SetLocalTime';
 //function SetMenuInfo(hMenu: HMENU; const lpcmi: TMenuInfo): BOOL;external 'user32' name 'SetMenuInfo';
@@ -915,7 +925,10 @@ function HResultFromNT(x : Longint) : HRESULT;
 
 {
   $Log$
-  Revision 1.9  2002-10-14 17:18:44  florian
+  Revision 1.10  2002-12-15 20:24:17  peter
+    * some more C style functions
+
+  Revision 1.9  2002/10/14 17:18:44  florian
     + some critical section related stuff added
 
   Revision 1.8  2002/09/07 16:01:31  peter

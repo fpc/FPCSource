@@ -5007,6 +5007,7 @@
 
      emptyrecord = record
        end;
+     lpemptyrecord = ^emptyrecord;
      HPROPSHEETPAGE = ^emptyrecord;
 
      PROPSHEETHEADER = record
@@ -7014,7 +7015,10 @@ type
 
 {
   $Log$
-  Revision 1.18  2002-12-12 17:34:35  peter
+  Revision 1.19  2002-12-15 20:24:17  peter
+    * some more C style functions
+
+  Revision 1.18  2002/12/12 17:34:35  peter
     * Renaming INT type to WINT
 
   Revision 1.17  2002/11/04 12:19:01  marco
