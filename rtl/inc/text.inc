@@ -69,6 +69,8 @@ Begin
   TextRec(t).Handle:=UnusedHandle;
   TextRec(t).mode:=fmClosed;
   TextRec(t).BufSize:=128;
+  TextRec(t).Bufpos:=0;
+  TextRec(T).Bufend:=0;
   TextRec(t).Bufptr:=@TextRec(t).Buffer;
   TextRec(t).OpenFunc:=@FileOpenFunc;
   Move(s[1],TextRec(t).Name,Length(s));
@@ -214,6 +216,7 @@ Begin
   {No data in buffer ? Fill it }
   If TR^.BufPos>=TR^.BufEnd Then
    FileFunc(TR^.InOutFunc)(TR^);
+
   Temp:=TR^.BufPos;
   while (TR^.BufPos<TR^.BufEnd) Do
    Begin
@@ -903,7 +906,10 @@ End;
 
 {
   $Log$
-  Revision 1.2  1998-03-26 14:41:22  michael
+  Revision 1.3  1998-04-04 17:06:17  michael
+  * fixed initialization bug in assign.
+
+  Revision 1.2  1998/03/26 14:41:22  michael
   + Added comp support for val and read(ln)
 
   Revision 1.1.1.1  1998/03/25 11:18:43  root
