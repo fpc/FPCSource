@@ -41,7 +41,7 @@ var
  ErrPath: array [0..259] of char;
  Handle: longint;
 begin
- if DosLoadModule (@ErrPath, SizeOf (ErrPath), PChar (Name), Handle) <> 0)
+ if DosLoadModule (@ErrPath, SizeOf (ErrPath), PChar (Name), Handle) <> 0
                                 then Result := Handle else Result := NilHandle;
 end;
 
@@ -49,7 +49,7 @@ function GetProcedureAddress (Lib: TLibHandle; ProcName: AnsiString): pointer;
 var
  P: pointer;
 begin
- if DosQueryProcAddr (Lib, 0, PChar (ProcName), @P) = 0 then Result := P
+ if DosQueryProcAddr (Lib, 0, PChar (ProcName), P) = 0 then Result := P
                                                             else Result := nil;
 end;
 
@@ -62,7 +62,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  2000-08-23 21:04:55  hajny
+  Revision 1.2  2000-09-29 21:51:00  jonas
+    * fixed compiling error
+
+  Revision 1.1  2000/08/23 21:04:55  hajny
     + OS/2 implementation
 
   Revision 1.1  2000/08/18 19:15:34  michael
