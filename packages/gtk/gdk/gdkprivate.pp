@@ -37,7 +37,7 @@
           resize_count : guint8;
           window_type : guint8;
           ref_count : guint;
-          flag0 : word;
+          flag0 : {$ifdef win32}longint{$else}word{$endif};
           extension_events : gint;
           filters : PGList;
           colormap : PGdkColormap;
@@ -315,7 +315,43 @@ function  GDK_font_lookup(xid : longint) : PGdkFont;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:19  michael
-  + removed logs
- 
+  Revision 1.1.2.1  2000-09-09 18:42:52  peter
+    * gtk win32 fixes
+
+  Revision 1.1  2000/07/13 06:34:02  michael
+  + Initial import
+
+  Revision 1.2  2000/02/20 14:02:45  sg
+  * Removed the following functions which don't exist anymore:
+      gdk_debug_level, gdk_show_events, gdk_stack_trace
+
+  Revision 1.1  1999/11/24 23:36:33  peter
+    * moved to packages dir
+
+  Revision 1.8  1999/10/21 14:35:23  peter
+    * removed glibdll constant
+
+  Revision 1.7  1999/10/06 17:42:47  peter
+    * external is now only in the interface
+    * removed gtk 1.0 support
+
+  Revision 1.6  1999/10/05 09:28:26  peter
+    * patches from Frank Loemker
+
+  Revision 1.5  1999/07/23 16:11:44  peter
+    * use packrecords C
+
+  Revision 1.4  1999/05/11 00:37:51  peter
+    * win32 fixes
+
+  Revision 1.3  1999/05/10 09:02:37  peter
+    * gtk 1.2 port working
+
+  Revision 1.2  1999/05/07 15:09:42  peter
+    * more fixes
+
+  Revision 1.1  1999/05/07 10:40:20  peter
+    * first things for 1.2
+
 }
+

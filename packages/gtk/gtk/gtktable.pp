@@ -22,7 +22,7 @@
           ncols : guint16;
           column_spacing : guint16;
           row_spacing : guint16;
-          flag0 : word;
+          flag0 : {$ifdef win32}longint{$else}word{$endif};
        end;
 
      TGtkTableClass = record
@@ -37,14 +37,14 @@
           bottom_attach : guint16;
           xpadding : guint16;
           ypadding : guint16;
-          flag0 : word;
+          flag0 : {$ifdef win32}longint{$else}word{$endif};
        end;
 
      TGtkTableRowCol = record
           requisition : guint16;
           allocation : guint16;
           spacing : guint16;
-          flag0 : word;
+          flag0 : {$ifdef win32}longint{$else}word{$endif};
        end;
 
   const
@@ -265,7 +265,38 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:24  michael
-  + removed logs
- 
+  Revision 1.1.2.1  2000-09-09 18:42:53  peter
+    * gtk win32 fixes
+
+  Revision 1.1  2000/07/13 06:34:06  michael
+  + Initial import
+
+  Revision 1.1  1999/11/24 23:36:36  peter
+    * moved to packages dir
+
+  Revision 1.9  1999/10/06 17:42:50  peter
+    * external is now only in the interface
+    * removed gtk 1.0 support
+
+  Revision 1.8  1999/07/23 16:13:12  peter
+    * use packrecords C
+
+  Revision 1.7  1999/05/11 00:39:30  peter
+    * win32 fixes
+
+  Revision 1.6  1999/05/10 15:20:28  peter
+    * cdecl fixes
+
+  Revision 1.5  1999/05/10 09:04:02  peter
+    * gtk 1.2 port working
+
+  Revision 1.4  1998/11/09 10:10:34  peter
+    + C type casts are now correctly handled
+
+  Revision 1.3  1998/10/21 20:23:16  peter
+    * cdecl, packrecord fixes (from the gtk.tar.gz)
+    * win32 support
+    * gtk.pp,gdk.pp for an all in one unit
+
 }
+

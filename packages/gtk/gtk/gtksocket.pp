@@ -17,7 +17,7 @@
           current_width : guint16;
           current_height : guint16;
           plug_window : PGdkWindow;
-          flag0 : word;
+          flag0 : {$ifdef win32}longint{$else}word{$endif};
        end;
 
   const
@@ -108,7 +108,30 @@ procedure set_need_map(var a : TGtkSocket; __need_map : guint);
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:24  michael
-  + removed logs
- 
+  Revision 1.1.2.1  2000-09-09 18:42:53  peter
+    * gtk win32 fixes
+
+  Revision 1.1  2000/07/13 06:34:06  michael
+  + Initial import
+
+  Revision 1.1  1999/11/24 23:36:36  peter
+    * moved to packages dir
+
+  Revision 1.5  1999/10/06 17:42:50  peter
+    * external is now only in the interface
+    * removed gtk 1.0 support
+
+  Revision 1.4  1999/07/23 16:13:08  peter
+    * use packrecords C
+
+  Revision 1.3  1999/05/11 00:39:26  peter
+    * win32 fixes
+
+  Revision 1.2  1999/05/10 15:20:24  peter
+    * cdecl fixes
+
+  Revision 1.1  1999/05/10 09:14:00  peter
+    + new gtk 1.2 files
+
 }
+

@@ -42,7 +42,7 @@
           tree_indent : gint;
           tree_spacing : gint;
           tree_column : gint;
-          flag0 : word;
+          flag0 : {$ifdef win32}longint{$else}word{$endif};
           drag_compare : TGtkCTreeCompareDragFunc;
        end;
 
@@ -60,7 +60,7 @@
           pixmap_opened : PGdkPixmap;
           mask_opened : PGdkBitmap;
           level : guint16;
-          flag0 : word;
+          flag0 : {$ifdef win32}longint{$else}word{$endif};
        end;
 
      TGtkCTreeClass = record
@@ -267,7 +267,33 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:21  michael
-  + removed logs
- 
+  Revision 1.1.2.1  2000-09-09 18:42:52  peter
+    * gtk win32 fixes
+
+  Revision 1.1  2000/07/13 06:34:03  michael
+  + Initial import
+
+  Revision 1.1  1999/11/24 23:36:35  peter
+    * moved to packages dir
+
+  Revision 1.6  1999/10/06 17:42:48  peter
+    * external is now only in the interface
+    * removed gtk 1.0 support
+
+  Revision 1.5  1999/07/23 16:12:10  peter
+    * use packrecords C
+
+  Revision 1.4  1999/05/11 00:38:22  peter
+    * win32 fixes
+
+  Revision 1.3  1999/05/10 15:19:09  peter
+    * cdecl fixes
+
+  Revision 1.2  1999/05/10 09:03:05  peter
+    * gtk 1.2 port working
+
+  Revision 1.1  1999/05/07 17:40:18  peter
+    * more updates
+
 }
+

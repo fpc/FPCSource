@@ -185,7 +185,7 @@ endif
 # Targets
 
 override DIROBJECTS+=$(wildcard tutorial)
-override EXEOBJECTS+=entry notebook scribble-simple clist ttt_test pixmap list progressbar filesel
+override EXEOBJECTS+=entry notebook scribble clist ttt_test pixmap list progressbar filesel
 
 # Clean
 

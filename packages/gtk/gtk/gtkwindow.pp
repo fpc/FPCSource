@@ -21,7 +21,7 @@
             default_widget : PGtkWidget;
             transient_parent : PGtkWindow;
             resize_count : gushort;
-            flag0 : word;
+            flag0 : {$ifdef win32}longint{$else}word{$endif};
          end;
 
     const
@@ -183,7 +183,10 @@ end;
 
 {
   $Log$
-  Revision 1.1.2.2  2000-09-06 21:13:35  peter
+  Revision 1.1.2.3  2000-09-09 18:42:53  peter
+    * gtk win32 fixes
+
+  Revision 1.1.2.2  2000/09/06 21:13:35  peter
     * packrecords 4 for win32, packrecords c for linux
 
   Revision 1.1.2.1  2000/09/06 20:46:25  peter

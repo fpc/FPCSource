@@ -38,7 +38,7 @@ uses
     gmoduledll='gmodule-1.3';
   {$define gtkwin}
 
-  {$packrecords 4}
+  {$packrecords C}
 {$else}
   const
     gmoduledll='gmodule';
@@ -76,7 +76,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1.2.2  2000-09-06 21:13:35  peter
+  Revision 1.1.2.3  2000-09-09 18:42:52  peter
+    * gtk win32 fixes
+
+  Revision 1.1.2.2  2000/09/06 21:13:35  peter
     * packrecords 4 for win32, packrecords c for linux
 
   Revision 1.1.2.1  2000/08/06 10:33:10  peter

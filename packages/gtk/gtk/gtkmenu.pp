@@ -23,7 +23,7 @@
           position_func_data : gpointer;
           toplevel : PGtkWidget;
           tearoff_window : PGtkWidget;
-          flag0 : word;
+          flag0 : {$ifdef win32}longint{$else}word{$endif};
        end;
 
   const
@@ -101,7 +101,44 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:22  michael
-  + removed logs
- 
+  Revision 1.1.2.1  2000-09-09 18:42:52  peter
+    * gtk win32 fixes
+
+  Revision 1.1  2000/07/13 06:34:05  michael
+  + Initial import
+
+  Revision 1.2  2000/06/23 20:23:13  peter
+    * removed gtkwin checks
+
+  Revision 1.1  1999/11/24 23:36:36  peter
+    * moved to packages dir
+
+  Revision 1.10  1999/10/06 17:42:49  peter
+    * external is now only in the interface
+    * removed gtk 1.0 support
+
+  Revision 1.9  1999/07/23 16:12:41  peter
+    * use packrecords C
+
+  Revision 1.8  1999/05/11 00:38:57  peter
+    * win32 fixes
+
+  Revision 1.7  1999/05/10 15:19:49  peter
+    * cdecl fixes
+
+  Revision 1.6  1999/05/10 09:03:23  peter
+    * gtk 1.2 port working
+
+  Revision 1.5  1998/11/09 10:10:10  peter
+    + C type casts are now correctly handled
+
+  Revision 1.4  1998/10/22 11:37:42  peter
+    * fixes for win32
+
+  Revision 1.3  1998/10/21 20:22:48  peter
+    * cdecl, packrecord fixes (from the gtk.tar.gz)
+    * win32 support
+    * gtk.pp,gdk.pp for an all in one unit
+
 }
+

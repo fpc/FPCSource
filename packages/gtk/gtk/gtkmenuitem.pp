@@ -16,7 +16,7 @@
             accelerator_signal : guint;
             toggle_size : guint16;
             accelerator_width : guint16;
-            flag0 : word;
+            flag0 : {$ifdef win32}longint{$else}word{$endif};
             timer : guint;
          end;
 
@@ -47,7 +47,7 @@ procedure set_right_justify(var a : TGtkMenuItem; __right_justify : guint);
        TGtkMenuItemClass = record
           parent_class : TGtkItemClass;
           toggle_size : guint;
-          flag0 : word;
+          flag0 : {$ifdef win32}longint{$else}word{$endif};
           activate : procedure (menu_item:PGtkMenuItem);cdecl;
           activate_item : procedure (menu_item:PGtkMenuItem);cdecl;
         end;
@@ -146,7 +146,62 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:22  michael
-  + removed logs
- 
+  Revision 1.1.2.1  2000-09-09 18:42:52  peter
+    * gtk win32 fixes
+
+  Revision 1.1  2000/07/13 06:34:05  michael
+  + Initial import
+
+  Revision 1.1  1999/11/24 23:36:36  peter
+    * moved to packages dir
+
+  Revision 1.13  1999/10/21 08:42:01  florian
+    * some changes to get it work with gtk 1.3 under Windows 98:
+      - removed some trailing space after the import name
+      - In gtkbindings.h is
+        #define  gtk_binding_entry_add          gtk_binding_entry_clear
+        so in the pascal headers the import name of gtk_bindings_entry_add should be
+        gtk_binding_entry_clear!
+      - removed the declaration of
+        gtk_drag_source_unset in gtkdnd.pp it isn't in gtk-1.3.dll!
+      - in gdk.pp glibdll must be set to gdk-1.3:
+        const
+           gdkdll='gdk-1.3';
+           glibdll='gdk-1.3';
+        else the whole gdk_* calls are imported from glib-1.3.dll which is wrong!
+
+  Revision 1.12  1999/10/06 17:42:49  peter
+    * external is now only in the interface
+    * removed gtk 1.0 support
+
+  Revision 1.11  1999/10/05 09:28:27  peter
+    * patches from Frank Loemker
+
+  Revision 1.10  1999/07/23 16:12:44  peter
+    * use packrecords C
+
+  Revision 1.9  1999/05/11 00:39:00  peter
+    * win32 fixes
+
+  Revision 1.8  1999/05/10 15:19:52  peter
+    * cdecl fixes
+
+  Revision 1.7  1999/05/07 17:40:30  peter
+    * more updates
+
+  Revision 1.6  1998/11/24 12:59:02  peter
+    * fixed uses clause (from mailinglist)
+
+  Revision 1.5  1998/11/09 10:10:12  peter
+    + C type casts are now correctly handled
+
+  Revision 1.4  1998/10/22 11:37:43  peter
+    * fixes for win32
+
+  Revision 1.3  1998/10/21 20:22:51  peter
+    * cdecl, packrecord fixes (from the gtk.tar.gz)
+    * win32 support
+    * gtk.pp,gdk.pp for an all in one unit
+
 }
+

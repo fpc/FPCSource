@@ -4,7 +4,7 @@
 
 [targets]
 dirs=tutorial
-programs=entry notebook scribble-simple clist ttt_test pixmap list progressbar filesel
+programs=entry notebook scribble clist ttt_test pixmap list progressbar filesel
 
 [require]
 packages=gtk

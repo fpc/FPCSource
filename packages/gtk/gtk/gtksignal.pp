@@ -19,7 +19,7 @@
             object_type : TGtkType;
             signal_id : guint;
             signal_name : Pgchar;
-            flag0 : word;
+            flag0 : {$ifdef win32}longint{$else}word{$endif};
             signal_flags : TGtkSignalRunType;
             return_val : TGtkType;
             nparams : guint;
@@ -97,7 +97,59 @@ procedure set_is_user_signal(var a : TGtkSignalQuery; __is_user_signal : guint);
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:24  michael
-  + removed logs
- 
+  Revision 1.1.2.1  2000-09-09 18:42:53  peter
+    * gtk win32 fixes
+
+  Revision 1.1  2000/07/13 06:34:06  michael
+  + Initial import
+
+  Revision 1.2  2000/05/26 16:23:30  peter
+    * update for new win32 dll's
+
+  Revision 1.1  1999/11/24 23:36:36  peter
+    * moved to packages dir
+
+  Revision 1.15  1999/10/06 17:42:50  peter
+    * external is now only in the interface
+    * removed gtk 1.0 support
+
+  Revision 1.14  1999/07/23 16:13:07  peter
+    * use packrecords C
+
+  Revision 1.13  1999/06/10 20:00:20  peter
+    * fixed tictactoe
+
+  Revision 1.12  1999/05/11 00:39:24  peter
+    * win32 fixes
+
+  Revision 1.11  1999/05/10 19:18:32  peter
+    * more fixes for the examples to work
+
+  Revision 1.10  1999/05/10 15:20:23  peter
+    * cdecl fixes
+
+  Revision 1.9  1999/05/10 09:03:55  peter
+    * gtk 1.2 port working
+
+  Revision 1.8  1999/05/07 15:10:13  peter
+    * more fixes
+
+  Revision 1.7  1999/02/01 09:58:48  michael
+  + Patch from Frank Loemker
+
+  Revision 1.6  1999/01/28 19:40:38  peter
+    * gtk compiles again and now uses only one makefile
+
+  Revision 1.5  1999/01/26 12:42:24  michael
+  *** empty log message ***
+
+  Revision 1.4  1998/11/12 11:35:53  peter
+    + array of const
+
+  Revision 1.3  1998/10/21 20:23:12  peter
+    * cdecl, packrecord fixes(from the gtk.tar.gz)
+    * win32 support
+    * gtk.pp,gdk.pp for an all in one unit
+
 }
+
