@@ -754,8 +754,9 @@ implementation
                       if is_64bitint(left.resulttype) or
                          { range/overflow checking doesn't work properly }
                          { with the inc/dec code that's generated (JM)   }
-                         (aktlocalswitches *
-                           [cs_check_overflow,cs_check_range] <> []) then
+                         ((left.resulttype^.deftype = orddef) and
+                          (aktlocalswitches *
+                           [cs_check_overflow,cs_check_range] <> [])) then
                         { convert to simple add (JM) }
                         begin
                           { extra parameter? }
@@ -1495,7 +1496,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2000-11-11 16:18:35  peter
+  Revision 1.17  2000-11-11 21:08:13  jonas
+    * don't do inc/dec to add/sub conversion for enums
+
+  Revision 1.16  2000/11/11 16:18:35  peter
     * ptr returns farpointer
 
   Revision 1.15  2000/11/11 15:59:07  jonas
