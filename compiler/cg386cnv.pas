@@ -456,10 +456,10 @@ implementation
                       push_int(p^.resulttype^.size-1);
                       gettempofsizereference(p^.resulttype^.size,p^.location.reference);
                       emitpushreferenceaddr(exprasmlist,p^.location.reference);
-                      case p^.right^.location.loc of
+                      case p^.left^.location.loc of
                          LOC_REGISTER,LOC_CREGISTER:
                            begin
-                              exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,p^.right^.location.register)));
+                              exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,p^.left^.location.register)));
                               ungetregister32(p^.left^.location.register);
                            end;
                          LOC_REFERENCE,LOC_MEM:
@@ -1078,11 +1078,39 @@ implementation
          emitl(A_LABEL,l2);
       end;
 
-    procedure second_pchar_to_ansistring(p,hp : ptree;convtyp : tconverttype);
 
+    procedure second_pchar_to_string(p,hp : ptree;convtyp : tconverttype);
+      var
+        pushed : tpushed;
       begin
-         p^.location.loc:=LOC_REGISTER;
-         internalerror(12121);
+         case pstringdef(p^.resulttype)^.string_typ of
+           st_shortstring : begin
+                              pushusedregisters(pushed,$ff);
+                              stringdispose(p^.location.reference.symbol);
+                              gettempofsizereference(p^.resulttype^.size,p^.location.reference);
+                              case p^.left^.location.loc of
+                                 LOC_REGISTER,LOC_CREGISTER:
+                                   begin
+                                      exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,p^.left^.location.register)));
+                                      ungetregister32(p^.left^.location.register);
+                                   end;
+                                 LOC_REFERENCE,LOC_MEM:
+                                   begin
+                                      emit_push_mem(p^.left^.location.reference);
+                                      del_reference(p^.left^.location.reference);
+                                   end;
+                              end;
+                              emitpushreferenceaddr(exprasmlist,p^.location.reference);
+                              emitcall('FPC_PCHAR_TO_STR',true);
+                              maybe_loadesi;
+                              popusedregisters(pushed);
+                            end;
+         else
+          begin
+            p^.location.loc:=LOC_REGISTER;
+            internalerror(12121);
+          end;
+         end;
       end;
 
     procedure second_nothing(p,hp : ptree;convtyp : tconverttype);
@@ -1123,7 +1151,7 @@ implementation
            second_nothing,
            second_load_smallset,
            second_ansistring_to_pchar,
-           second_pchar_to_ansistring);
+           second_pchar_to_string);
 
       begin
          { this isn't good coding, I think tc_bool_2_int, shouldn't be }
@@ -1253,7 +1281,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.21  1998-09-20 17:46:47  florian
+  Revision 1.22  1998-09-22 15:34:09  peter
+    + pchar -> string conversion
+
+  Revision 1.21  1998/09/20 17:46:47  florian
     * some things regarding ansistrings fixed
 
   Revision 1.20  1998/09/17 09:42:12  peter

@@ -147,7 +147,7 @@ unit tree;
                       tc_fix_2_real,tc_int_2_fix,tc_real_2_real,
                       tc_chararray_2_string,
                       tc_proc2procvar,tc_cchar_charpointer,tc_load_smallset,
-                      tc_ansistring_2_pchar,tc_pchar_2_ansistring);
+                      tc_ansistring_2_pchar,tc_pchar_2_string);
 
        { allows to determine which elementes are to be replaced }
        tdisposetyp = (dt_nothing,dt_leftright,dt_left,
@@ -1567,7 +1567,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.39  1998-09-21 08:45:27  pierre
+  Revision 1.40  1998-09-22 15:34:07  peter
+    + pchar -> string conversion
+
+  Revision 1.39  1998/09/21 08:45:27  pierre
     + added vmt_offset in tobjectdef.write for fututre use
       (first steps to have objects without vmt if no virtual !!)
     + added fpu_used field for tabstractprocdef  :

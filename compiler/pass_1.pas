@@ -527,14 +527,18 @@ unit pass_1;
              end
          else
            }
-           { pchar can be assigned to ansistrings }
-           if ((def_from^.deftype=pointerdef) and
-             (ppointerdef(def_from)^.definition^.deftype=orddef) and
-             (porddef(ppointerdef(def_from)^.definition)^.typ=uchar)) and
-             is_ansistring(def_to) then
+
+           { pchar can be assigned to short/ansistrings }
+           if (def_to^.deftype=stringdef) and
+              ((def_from^.deftype=pointerdef) and
+              (ppointerdef(def_from)^.definition^.deftype=orddef) and
+              (porddef(ppointerdef(def_from)^.definition)^.typ=uchar)) then
              begin
-                doconv:=tc_pchar_2_ansistring;
-                b:=true;
+                if (pstringdef(def_to)^.string_typ in [st_shortstring,st_ansistring]) then
+                 begin
+                   doconv:=tc_pchar_2_string;
+                   b:=true;
+                 end;
              end
          else
 
@@ -5512,7 +5516,10 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.88  1998-09-21 08:45:14  pierre
+  Revision 1.89  1998-09-22 15:34:10  peter
+    + pchar -> string conversion
+
+  Revision 1.88  1998/09/21 08:45:14  pierre
     + added vmt_offset in tobjectdef.write for fututre use
       (first steps to have objects without vmt if no virtual !!)
     + added fpu_used field for tabstractprocdef  :
