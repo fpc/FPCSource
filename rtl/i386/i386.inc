@@ -89,7 +89,7 @@ begin
 end;
 
 
-Procedure FillChar(var x;count:longint;value:byte);[alias: 'FPC_FILL_OBJECT'];
+Procedure FillChar(var x;count:longint;value:byte);{[alias: 'FPC_FILL_OBJECT'];}
 begin
         asm
         cld
@@ -199,10 +199,20 @@ asm
 .LHC_7:
       { set zero inside the object }
         pushal
-        pushw   $0
-        pushl   (%eax)
-        pushl   %esi
-        call    FPC_FILL_OBJECT
+        cld
+        movl    (%eax),%ecx
+        movl    %esi,%edi
+        xorl    %eax,%eax
+        shrl    $1,%ecx
+        jnc     .LHCFill1
+        stosb
+.LHCFill1:
+        shrl    $1,%ecx
+        jnc     .LHCFill2
+        stosw
+.LHCFill2:
+        rep
+        stosl
         popal
       { set the VMT address for the new created object }
 {$ifdef OBJECTVMTOFFSET}
@@ -696,7 +706,11 @@ end;
 
 {
   $Log$
-  Revision 1.26  1998-10-15 11:35:02  pierre
+  Revision 1.27  1998-10-16 08:53:50  peter
+    * fill_object in constructor changed to 'inline' code to overcome
+      pushw/pushl problem
+
+  Revision 1.26  1998/10/15 11:35:02  pierre
    + first step of variable vmt offset
      offset is stored in R_EDI (R_D0)
      if objectvmtoffset is defined
