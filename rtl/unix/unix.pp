@@ -211,6 +211,10 @@ procedure GetTime(var hour,min,sec,sec100:word);
 procedure GetTime(var hour,min,sec:word);
 Procedure GetDate(Var Year,Month,Day:Word);
 Procedure GetDateTime(Var Year,Month,Day,hour,minute,second:Word);
+function SetTime(Hour,Min,Sec:word) : Boolean;
+function SetDate(Year,Month,Day:Word) : Boolean;
+function SetDateTime(Year,Month,Day,hour,minute,second:Word) : Boolean;
+
 
 {**************************
      Process Handling
@@ -870,6 +874,46 @@ Procedure GetDateTime(Var Year,Month,Day,hour,minute,second:Word);
 Begin
   EpochToLocal(GetTimeOfDay,year,month,day,hour,minute,second);
 End;
+
+{$ifdef linux}
+Function stime (t : longint) : Boolean;
+var
+  sr : Syscallregs;
+begin
+  sr.reg2:=longint(@t);
+  SysCall(Syscall_nr_stime,sr);
+  linuxerror:=errno;
+   stime:=linuxerror=0;
+end;
+{$endif}
+
+{$ifdef BSD}
+Function stime (t : longint) : Boolean;
+begin
+end;
+{$endif}
+
+Function SetTime(Hour,Min,Sec:word) : boolean;
+var
+  Year, Month, Day : Word;
+begin
+  GetDate (Year, Month, Day);
+  SetTime:=stime ( LocalToEpoch ( Year, Month, Day, Hour, Min, Sec ) );
+end;
+
+Function SetDate(Year,Month,Day:Word) : boolean;
+var
+  Hour, Minute, Second, Sec100 : Word;
+begin
+  GetTime ( Hour, Minute, Second, Sec100 );
+  SetDate:=stime ( LocalToEpoch ( Year, Month, Day, Hour, Minute, Second ) );
+end;
+
+Function SetDateTime(Year,Month,Day,hour,minute,second:Word) : Boolean;
+
+begin
+  SetDateTime:=stime ( LocalToEpoch ( Year, Month, Day, Hour, Minute, Second ) );
+end;
 
 { Include timezone handling routines which use /usr/share/timezone info }
 {$i timezone.inc}
@@ -2887,7 +2931,10 @@ End.
 
 {
   $Log$
-  Revision 1.12  2001-06-20 15:24:47  marco
+  Revision 1.13  2001-07-12 07:20:05  michael
+  + Added setdate/time/datetime functions
+
+  Revision 1.12  2001/06/20 15:24:47  marco
    * readlink for Unix fix.
 
   Revision 1.11  2001/06/19 17:19:50  marco

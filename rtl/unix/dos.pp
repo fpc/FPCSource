@@ -258,7 +258,7 @@ end;
 
 Procedure SetDate(Year, Month, Day: Word);
 Begin
-  {!!}
+  Linux.SetDate ( Year, Month, Day );
 End;
 
 
@@ -272,7 +272,7 @@ end;
 
 Procedure SetTime(Hour, Minute, Second, Sec100: Word);
 Begin
-  {!!}
+  Linux.SetTime ( Hour, Minute, Second );
 End;
 
 
@@ -877,7 +877,10 @@ End.
 
 {
   $Log$
-  Revision 1.6  2001-06-03 20:19:09  peter
+  Revision 1.7  2001-07-12 07:20:05  michael
+  + Added setdate/time/datetime functions
+
+  Revision 1.6  2001/06/03 20:19:09  peter
     * FSStat to StatFS
     * StatFS structure to TStatFS
 
