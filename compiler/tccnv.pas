@@ -336,7 +336,10 @@ implementation
            as LOC_MEM, could also become LOC_REGISTER }
          if pstringdef(p^.resulttype)^.string_typ in [st_ansistring,st_widestring] then
            { we may use ansistrings so no fast exit here }
-           procinfo^.no_fast_exit:=true;
+           begin
+             procinfo^.no_fast_exit:=true;
+             inc(p^.registers32);
+           end;
          p^.location.loc:=LOC_MEM;
       end;
 
@@ -1024,7 +1027,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:51  michael
+  Revision 1.3  2000-07-21 09:23:47  jonas
+    * merged from fixes branch
+
+  Revision 1.2  2000/07/13 11:32:51  michael
   + removed logs
 
 }
