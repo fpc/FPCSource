@@ -290,13 +290,6 @@ begin
 end;
 
 
-Function FileSearch (Const Name, DirList : String) : String;
-
-begin
-  FileSearch:=Unix.FSearch(Name,Dirlist);
-end;
-
-
 {****************************************************************************
                               Disk Functions
 ****************************************************************************}
@@ -473,7 +466,10 @@ end.
 {
 
   $Log$
-  Revision 1.11  2001-10-25 21:23:49  peter
+  Revision 1.12  2002-01-25 16:23:03  peter
+    * merged filesearch() fix
+
+  Revision 1.11  2001/10/25 21:23:49  peter
     * added 64bit fileseek
 
   Revision 1.10  2001/06/03 20:19:09  peter

@@ -71,6 +71,7 @@ const
 
    { Thread count for DLL }
    Thread_count : longint = 0;
+   System_exception_frame : PEXCEPTION_FRAME =nil;
 
 type
   TStartupInfo=packed record
@@ -92,6 +93,12 @@ type
     hStdInput : longint;
     hStdOutput : longint;
     hStdError : longint;
+  end;
+
+  PEXCEPTION_FRAME = ^TEXCEPTION_FRAME;
+  TEXCEPTION_FRAME = record
+    next : PEXCEPTION_FRAME;
+    handler : pointer;
   end;
 
 var
@@ -976,6 +983,15 @@ procedure Exe_entry;[public, alias : '_FPC_EXE_Entry'];
      { This strange construction is needed to solve the _SS problem
        with a smartlinked syswin32 (PFV) }
      asm
+         { allocate space for an excption frame }
+        pushl $0
+        pushl %fs:(0)
+        { movl  %esp,%fs:(0)
+          but don't insert it as it doesn't
+          point to anything yet
+          this will be used in signals unit }
+        movl %esp,%eax
+        movl %eax,System_exception_frame
         pushl %ebp
         xorl %ebp,%ebp
         movl %esp,%eax
@@ -1567,7 +1583,10 @@ end.
 
 {
   $Log$
-  Revision 1.22  2001-12-02 17:21:25  peter
+  Revision 1.23  2002-01-25 16:23:03  peter
+    * merged filesearch() fix
+
+  Revision 1.22  2001/12/02 17:21:25  peter
     * merged fixes from 1.0
 
   Revision 1.21  2001/11/08 16:16:54  florian

@@ -28,7 +28,36 @@
   { Read filename handling functions implementation }
   {$i fina.inc}
 
-  { Read String Handling functions implementation }
+    Function FileSearch (Const Name, DirList : String) : String;
+    Var
+      I : longint;
+      Temp : String;
+    begin
+      Result:='';
+      temp:=Dirlist;
+      repeat
+        While (Length(Temp)>0) and (Temp[1]=PathSeparator) do
+          Delete(Temp,1,1);
+        I:=pos(PathSep,Temp);
+        If I<>0 then
+          begin
+            Result:=Copy (Temp,1,i-1);
+            system.Delete(Temp,1,I);
+          end
+        else
+          begin
+            Result:=Temp;
+            Temp:='';
+          end;
+        If (Length(Result)>0) and (result[length(result)]<>DirectorySeparator) then
+          Result:=Result+DirectorySeparator;
+        Result:=Result+name;
+        If not FileExists(Result) Then
+         Result:='';
+      until (length(temp)=0) or (length(result)<>0);
+    end;
+
+      { Read String Handling functions implementation }
   {$i sysstr.inc}
 
   { Read date & Time function implementations }
@@ -330,7 +359,10 @@ end;
 
 {
   $Log$
-  Revision 1.7  2001-10-22 21:40:55  peter
+  Revision 1.8  2002-01-25 16:23:03  peter
+    * merged filesearch() fix
+
+  Revision 1.7  2001/10/22 21:40:55  peter
     * InterLocked routines added
 
   Revision 1.6  2001/08/19 21:02:02  florian

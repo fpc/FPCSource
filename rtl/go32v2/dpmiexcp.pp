@@ -1262,7 +1262,7 @@ end;
 
 
 procedure djgpp_exception_setup;
-[alias : '___djgpp_exception_setup'];
+[public,alias : '___djgpp_exception_setup'];
 var
   temp_kbd,
   temp_npx    : pointer;
@@ -1495,7 +1495,10 @@ end;
 {$endif IN_SYSTEM}
 {
   $Log$
-  Revision 1.7  2001-11-24 14:42:19  carl
+  Revision 1.8  2002-01-25 16:23:03  peter
+    * merged filesearch() fix
+
+  Revision 1.7  2001/11/24 14:42:19  carl
   * completely moerged (except for smartlink option) from fixes branch
 
 

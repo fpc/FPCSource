@@ -684,12 +684,6 @@ end;
 end;
 
 
-function FileSearch (const Name, DirList: string): string;
-begin
-    Result := Dos.FSearch (Name, DirList);
-end;
-
-
 {****************************************************************************
                               Disk Functions
 ****************************************************************************}
@@ -950,7 +944,10 @@ end.
 
 {
   $Log$
-  Revision 1.14  2001-12-16 19:08:20  hajny
+  Revision 1.15  2002-01-25 16:23:03  peter
+    * merged filesearch() fix
+
+  Revision 1.14  2001/12/16 19:08:20  hajny
     * uses DosCalls replaced with direct declarations
 
   Revision 1.13  2001/10/25 21:23:49  peter

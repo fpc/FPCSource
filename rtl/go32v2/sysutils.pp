@@ -429,12 +429,6 @@ begin
 end;
 
 
-Function FileSearch (Const Name, DirList : String) : String;
-begin
-  result := DOS.FSearch(Name, DirList);
-end;
-
-
 {****************************************************************************
                               Disk Functions
 ****************************************************************************}
@@ -714,7 +708,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.7  2002-01-19 11:57:55  peter
+  Revision 1.8  2002-01-25 16:23:03  peter
+    * merged filesearch() fix
+
+  Revision 1.7  2002/01/19 11:57:55  peter
     * merged fixes
 
   Revision 1.6  2001/10/25 21:23:49  peter

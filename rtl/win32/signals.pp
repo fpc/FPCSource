@@ -1,6 +1,11 @@
+{
+  $Id$
+}
 unit signals;
 
 interface
+
+{$PACKRECORDS C}
 
   { Signals }
   const
@@ -112,7 +117,6 @@ interface
      end;
 
 
-
 implementation
 
 
@@ -169,20 +173,19 @@ var
   except_signal : array[0..Max_level-1] of longint;
   reset_fpu    : array[0..max_level-1] of boolean;
 
-
   procedure JumpToHandleSignal;
     var
-      res, eip, ebp, sigtype : longint;
+      res, eip, _ebp, sigtype : longint;
     begin
       asm
-        pushal
         movl (%ebp),%eax
-        movl %eax,ebp
+        movl %eax,_ebp
       end;
+      Writeln('In start of JumpToHandleSignal');
       if except_level>0 then
         dec(except_level)
       else
-        exit;
+        RunError(216);
       eip:=except_eip[except_level];
 
       sigtype:=except_signal[except_level];
@@ -190,6 +193,12 @@ var
         asm
           fninit
           fldcw   fpucw
+        end;
+      if assigned(System_exception_frame) then
+        { get the handler in front again }
+        asm
+          movl  System_exception_frame,%eax
+          movl  %eax,%fs:(0)
         end;
       if (sigtype>=SIGABRT) and (sigtype<=SIGMAX) and
          (signal_list[sigtype]<>@SIG_DFL) then
@@ -200,56 +209,68 @@ var
         res:=0;
 
       if res=0 then
-        RunError(sigtype)
+        Begin
+          Writeln('In JumpToHandleSignal');
+          RunError(sigtype);
+        end
       else
         { jump back to old code }
         asm
-          popal
           movl eip,%eax
-          movl %eax,4(%ebp)
+          push %eax
+          movl _ebp,%eax
+          push %eax
+          leave
           ret
         end;
     end;
 
 
 
-  function Signals_exception_handler(excep :PEXCEPTION_POINTERS) : longint;stdcall;
+  function Signals_exception_handler
+    (excep_exceptionrecord :PEXCEPTION_RECORD;
+     excep_frame : PEXCEPTION_FRAME;
+     excep_contextrecord : PCONTEXT;
+     dispatch : pointer) : longint;stdcall;
     var frame,res  : longint;
         function CallSignal(sigtype,frame : longint;must_reset_fpu : boolean) : longint;
           begin
-            if frame=0 then
-              CallSignal:=Exception_Continue_Search
-            else
+            writeln(stderr,'CallSignal called');
+            {if frame=0 then
+              begin
+                CallSignal:=1;
+                writeln(stderr,'CallSignal frame is zero');
+              end
+            else    }
               begin
                  if except_level >= Max_level then
                    exit;
-                 except_eip[except_level]:=excep^.ContextRecord^.Eip;
+                 except_eip[except_level]:=excep_ContextRecord^.Eip;
                  except_signal[except_level]:=sigtype;
                  reset_fpu[except_level]:=must_reset_fpu;
                  inc(except_level);
-                 dec(excep^.ContextRecord^.Esp,4);
-                 plongint (excep^.ContextRecord^.Esp)^ := excep^.ContextRecord^.Eip;
-                 excep^.ContextRecord^.Eip:=longint(@JumpToHandleSignal);
-                 CallSignal:=Exception_Continue_Execution;
-
+                 {dec(excep^.ContextRecord^.Esp,4);
+                 plongint (excep^.ContextRecord^.Esp)^ := longint(excep^.ContextRecord^.Eip);}
+                 excep_ContextRecord^.Eip:=longint(@JumpToHandleSignal);
+                 excep_ExceptionRecord^.ExceptionCode:=0;
+                 CallSignal:=0;
+                 writeln(stderr,'Exception_Continue_Execution  set');
               end;
           end;
 
     begin
-{$ifdef i386}
-       if excep^.ContextRecord^.SegSs=_SS then
-         frame:=excep^.ContextRecord^.Ebp
+       if excep_ContextRecord^.SegSs=_SS then
+         frame:=excep_ContextRecord^.Ebp
        else
-{$endif i386}
          frame:=0;
        { default : unhandled !}
-       res:=Exception_Continue_Search;
+       res:=1;
 {$ifdef SYSTEMEXCEPTIONDEBUG}
        if IsConsole then
-         writeln(stderr,'Exception  ',
-           hexstr(excep^.ExceptionRecord^.ExceptionCode,8));
+         writeln(stderr,'Signals exception  ',
+           hexstr(excep_ExceptionRecord^.ExceptionCode,8));
 {$endif SYSTEMEXCEPTIONDEBUG}
-       case excep^.ExceptionRecord^.ExceptionCode of
+       case excep_ExceptionRecord^.ExceptionCode of
          EXCEPTION_ACCESS_VIOLATION :
            res:=CallSignal(SIGSEGV,frame,false);
          { EXCEPTION_BREAKPOINT = $80000003;
@@ -303,6 +324,21 @@ var
     end;
 
 
+    function API_signals_exception_handler(except : PEXCEPTION_POINTERS) : longint;
+    begin
+      API_signals_exception_handler:=Signals_exception_handler(
+        @except^.ExceptionRecord,
+        nil,
+        @except^.ContextRecord,
+        nil);
+    end;
+
+
+const
+  PreviousHandler : LPTOP_LEVEL_EXCEPTION_FILTER = nil;
+  Prev_Handler : pointer = nil;
+  Prev_fpc_handler : pointer = nil;
+
   procedure install_exception_handler;
 {$ifdef SYSTEMEXCEPTIONDEBUG}
     var
@@ -311,6 +347,20 @@ var
     begin
       if Exception_handler_installed then
         exit;
+      if assigned(System_exception_frame) then
+        begin
+          prev_fpc_handler:=System_exception_frame^.handler;
+          System_exception_frame^.handler:=@Signals_exception_handler;
+          { get the handler in front again }
+          asm
+            movl  %fs:(0),%eax
+            movl  %eax,prev_handler
+            movl  System_exception_frame,%eax
+            movl  %eax,%fs:(0)
+          end;
+          Exception_handler_installed:=true;
+          exit;
+        end;
 {$ifdef SYSTEMEXCEPTIONDEBUG}
       asm
         movl $0,%eax
@@ -318,7 +368,7 @@ var
         movl %eax,oldexceptaddr
       end;
 {$endif SYSTEMEXCEPTIONDEBUG}
-      SetUnhandledExceptionFilter(@Signals_exception_handler);
+      PreviousHandler:=SetUnhandledExceptionFilter(@API_signals_exception_handler);
 {$ifdef SYSTEMEXCEPTIONDEBUG}
       asm
         movl $0,%eax
@@ -326,8 +376,11 @@ var
         movl %eax,newexceptaddr
       end;
       if IsConsole then
-        writeln(stderr,'Old exception  ',hexstr(oldexceptaddr,8),
-          ' new exception  ',hexstr(newexceptaddr,8));
+        begin
+          writeln(stderr,'Old exception  ',hexstr(oldexceptaddr,8),
+            ' new exception  ',hexstr(newexceptaddr,8));
+          writeln('SetUnhandledExceptionFilter returned ',hexstr(longint(PreviousHandler),8));
+        end;
 {$endif SYSTEMEXCEPTIONDEBUG}
       Exception_handler_installed := true;
     end;
@@ -336,7 +389,24 @@ var
     begin
       if not Exception_handler_installed then
         exit;
-      SetUnhandledExceptionFilter(nil);
+      if assigned(System_exception_frame) then
+        begin
+          if assigned(prev_fpc_handler) then
+            System_exception_frame^.handler:=prev_fpc_handler;
+          prev_fpc_handler:=nil;
+          { restore old handler order again }
+          if assigned(prev_handler) then
+            asm
+            movl  prev_handler,%eax
+            movl  %eax,%fs:(0)
+            end;
+          prev_handler:=nil;
+          Exception_handler_installed:=false;
+          exit;
+        end;
+      SetUnhandledExceptionFilter(PreviousHandler);
+      PreviousHandler:=nil;
+      Exception_handler_installed:=false;
     end;
 
 
@@ -378,22 +448,26 @@ var
   i : longint;
 initialization
 
-{$ifdef i386}
   asm
     xorl %eax,%eax
     movw %ss,%ax
     movl %eax,_SS
   end;
-{$endif i386}
 
   for i:=SIGABRT to SIGMAX do
     signal_list[i]:=@SIG_DFL;
 
-  { install_exception_handler;
-  delay this to first use
+  {install_exception_handler;
+   delay this to first use
   as other units also might install their handlers PM }
 
 finalization
 
   remove_exception_handler;
 end.
+{
+  $Log$
+  Revision 1.4  2002-01-25 16:23:03  peter
+    * merged filesearch() fix
+
+}

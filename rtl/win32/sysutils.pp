@@ -273,40 +273,6 @@ begin
 end;
 
 
-Function FileSearch (Const Name, DirList : String) : String;
-Var
-  I : longint;
-  Temp : String;
-begin
-  { check if the file specified exists }
-  If FileExists(Name) Then
-   begin
-     Result:=Name;
-     exit;
-   end;
-  Result:='';
-  temp:=Dirlist;
-  repeat
-    I:=pos(';',Temp);
-    If I<>0 then
-      begin
-        Result:=Copy (Temp,1,i-1);
-        system.Delete(Temp,1,I);
-      end
-    else
-      begin
-        Result:=Temp;
-        Temp:='';
-      end;
-    If (result<>'') and (result[length(result)]<>'\') then
-      Result:=Result+'\';
-    Result:=Result+name;
-    If not FileExists(Result) Then
-     Result:='';
-  until (Temp='') or (Result<>'');
-end;
-
-
 {****************************************************************************
                               Disk Functions
 ****************************************************************************}
@@ -686,7 +652,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.11  2001-12-11 23:10:18  carl
+  Revision 1.12  2002-01-25 16:23:04  peter
+    * merged filesearch() fix
+
+  Revision 1.11  2001/12/11 23:10:18  carl
   * Range check error fix
 
   Revision 1.10  2001/10/25 21:23:49  peter
