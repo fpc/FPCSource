@@ -544,7 +544,7 @@ begin
   pthread_mutex_unlock(@p^.mutex);
 end;
 
-type 
+type
 	tthreadmethod = procedure of object;
 
 
@@ -616,7 +616,6 @@ begin
     rtlEventSetEvent       :=@intrtlEventSetEvent;
     rtlEventStartWait      :=@intrtlEventStartWait;
     rtleventWaitFor        :=@intrtleventWaitFor;
-    rtleventsync           :=trtleventsynchandler(@intrtleventsync);
     end;
   SetThreadManager(CThreadManager);
   InitHeapMutexes;
@@ -629,7 +628,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.23  2005-02-25 22:02:48  florian
+  Revision 1.24  2005-02-25 22:10:27  florian
+    * final fix for linux (hopefully)
+
+  Revision 1.23  2005/02/25 22:02:48  florian
     * another "transfer to linux"-commit
 
   Revision 1.22  2005/02/25 21:52:07  florian
