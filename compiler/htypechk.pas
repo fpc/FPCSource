@@ -148,8 +148,8 @@ implementation
                                end;
                             end;
                  arraydef : begin
-                            { string to array of char, the length check is done by the firstpass of this node }
-                              if is_equal(parraydef(def_from)^.definition,cchardef) then
+                            { array of char to string, the length check is done by the firstpass of this node }
+                              if is_chararray(def_from) then
                                begin
                                  doconv:=tc_chararray_2_string;
                                  if (not(cs_ansistrings in aktlocalswitches) and
@@ -233,7 +233,7 @@ implementation
                 begin
                   case def_from^.deftype of
                    pointerdef : begin
-                                  if (parraydef(def_to)^.lowrange=0) and
+                                  if is_zero_based_array(def_to) and
                                      is_equal(ppointerdef(def_from)^.definition,parraydef(def_to)^.definition) then
                                    begin
                                      doconv:=tc_pointer_2_array;
@@ -241,8 +241,9 @@ implementation
                                    end;
                                 end;
                     stringdef : begin
-                                  { array of char to string }
-                                  if is_equal(parraydef(def_to)^.definition,cchardef) then
+                                  { string to array of char}
+                                  if (not(is_special_array(def_to)) or is_open_array(def_to)) and
+                                    is_equal(parraydef(def_to)^.definition,cchardef) then
                                    begin
                                      doconv:=tc_string_2_chararray;
                                      b:=1;
@@ -275,7 +276,7 @@ implementation
                            end;
                 arraydef : begin
                              { chararray to pointer }
-                             if (parraydef(def_from)^.lowrange=0) and
+                             if is_zero_based_array(def_from) and
                                 is_equal(parraydef(def_from)^.definition,ppointerdef(def_to)^.definition) then
                               begin
                                 doconv:=tc_array_2_pointer;
@@ -648,7 +649,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.24  1999-05-06 10:10:02  peter
+  Revision 1.25  1999-05-19 20:40:12  florian
+    * fixed a couple of array related bugs:
+      - var a : array[0..1] of char;   p : pchar;  p:=a+123; works now
+      - open arrays with an odd size doesn't work: movsb wasn't generated
+      - introduced some new array type helper routines (is_special_array) etc.
+      - made the array type checking in isconvertable more strict, often
+        open array can be used where is wasn't allowed etc...
+
+  Revision 1.24  1999/05/06 10:10:02  peter
     * overloaded conversion has lower priority
 
   Revision 1.23  1999/04/26 09:30:47  peter

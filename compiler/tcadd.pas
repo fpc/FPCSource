@@ -921,15 +921,23 @@ implementation
            end
          else
 
-           if (rd^.deftype=pointerdef) then
+           if (rd^.deftype=pointerdef) or
+             is_zero_based_array(rd) then
             begin
+              if is_zero_based_array(rd) then
+                begin
+                   p^.resulttype:=new(ppointerdef,init(parraydef(rd)^.definition));
+                   p^.right:=gentypeconvnode(p^.right,p^.resulttype);
+                   firstpass(p^.right);
+                end;
               p^.location.loc:=LOC_REGISTER;
               p^.left:=gentypeconvnode(p^.left,s32bitdef);
               firstpass(p^.left);
               calcregisters(p,1,0,0);
               if p^.treetype=addn then
                 begin
-                  if not(cs_extsyntax in aktmoduleswitches) then
+                  if not(cs_extsyntax in aktmoduleswitches) or
+                    (not(is_pchar(ld)) and (m_tp in aktmodeswitches)) then
                     CGMessage(type_e_mismatch);
                 end
               else
@@ -938,8 +946,15 @@ implementation
             end
          else
 
-           if (ld^.deftype=pointerdef) then
+           if (ld^.deftype=pointerdef) or
+             is_zero_based_array(ld) then
             begin
+              if is_zero_based_array(ld) then
+                begin
+                   p^.resulttype:=new(ppointerdef,init(parraydef(ld)^.definition));
+                   p^.left:=gentypeconvnode(p^.left,p^.resulttype);
+                   firstpass(p^.left);
+                end;
               p^.location.loc:=LOC_REGISTER;
               p^.right:=gentypeconvnode(p^.right,s32bitdef);
               firstpass(p^.right);
@@ -1082,7 +1097,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.30  1999-05-11 00:47:02  peter
+  Revision 1.31  1999-05-19 20:40:14  florian
+    * fixed a couple of array related bugs:
+      - var a : array[0..1] of char;   p : pchar;  p:=a+123; works now
+      - open arrays with an odd size doesn't work: movsb wasn't generated
+      - introduced some new array type helper routines (is_special_array) etc.
+      - made the array type checking in isconvertable more strict, often
+        open array can be used where is wasn't allowed etc...
+
+  Revision 1.30  1999/05/11 00:47:02  peter
     + constant operations on enums, only in fpc mode
 
   Revision 1.29  1999/05/06 09:05:32  peter

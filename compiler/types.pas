@@ -34,6 +34,9 @@ interface
        { true if we must never copy this parameter }
        never_copy_const_param : boolean = false;
 
+{*****************************************************************************
+                          Basic type functions
+ *****************************************************************************}
 
     { returns true, if def defines an ordinal type }
     function is_ordinal(def : pdef) : boolean;
@@ -50,14 +53,45 @@ interface
     { true if p is a char }
     function is_char(def : pdef) : boolean;
 
-    { true if p points to an open string def }
-    function is_open_string(p : pdef) : boolean;
+    { true if p is a smallset def }
+    function is_smallset(p : pdef) : boolean;
+
+    { returns true, if def defines a signed data type (only for ordinal types) }
+    function is_signed(def : pdef) : boolean;
+
+{*****************************************************************************
+                              Array helper functions
+ *****************************************************************************}
+
+    { true, if p points to a zero based (non special like open or
+      dynamic array def, mainly this is used to see if the array
+      is convertable to a pointer }
+    function is_zero_based_array(p : pdef) : boolean;
 
     { true if p points to an open array def }
     function is_open_array(p : pdef) : boolean;
 
     { true, if p points to an array of const def }
     function is_array_constructor(p : pdef) : boolean;
+
+    { true, if p points to a variant array }
+    function is_variant_array(p : pdef) : boolean;
+
+    { true, if p points to an array of const }
+    function is_array_of_const(p : pdef) : boolean;
+
+    { true, if p points any kind of special array }
+    function is_special_array(p : pdef) : boolean;
+
+    { true if p is a char array def }
+    function is_chararray(p : pdef) : boolean;
+
+{*****************************************************************************
+                          String helper functions
+ *****************************************************************************}
+
+    { true if p points to an open string def }
+    function is_open_string(p : pdef) : boolean;
 
     { true if p is an ansi string def }
     function is_ansistring(p : pdef) : boolean;
@@ -71,17 +105,8 @@ interface
     { true if p is a short string def }
     function is_shortstring(p : pdef) : boolean;
 
-    { true if p is a char array def }
-    function is_chararray(p : pdef) : boolean;
-
     { true if p is a pchar def }
     function is_pchar(p : pdef) : boolean;
-
-    { true if p is a smallset def }
-    function is_smallset(p : pdef) : boolean;
-
-    { returns true, if def defines a signed data type (only for ordinal types) }
-    function is_signed(def : pdef) : boolean;
 
     { returns true, if def uses FPU }
     function is_fpu(def : pdef) : boolean;
@@ -281,15 +306,25 @@ implementation
       end;
 
 
+    { true, if p points to a zero based array def }
+    function is_zero_based_array(p : pdef) : boolean;
+      begin
+         is_zero_based_array:=(p^.deftype=arraydef) and
+                        (parraydef(p)^.lowrange=0) and
+                        not(is_special_array(p));
+      end;
+
     { true, if p points to an open array def }
     function is_open_array(p : pdef) : boolean;
       begin
          is_open_array:=(p^.deftype=arraydef) and
                         (parraydef(p)^.lowrange=0) and
                         (parraydef(p)^.highrange=-1) and
-                        not(is_array_constructor(p));
-      end;
+                        not(parraydef(p)^.IsConstructor) and
+                        not(parraydef(p)^.IsVariant) and
+                        not(parraydef(p)^.IsArrayOfConst);
 
+      end;
 
     { true, if p points to an array of const def }
     function is_array_constructor(p : pdef) : boolean;
@@ -298,6 +333,30 @@ implementation
                         (parraydef(p)^.IsConstructor);
       end;
 
+    { true, if p points to a variant array }
+    function is_variant_array(p : pdef) : boolean;
+      begin
+         is_variant_array:=(p^.deftype=arraydef) and
+                        (parraydef(p)^.IsVariant);
+      end;
+
+    { true, if p points to an array of const }
+    function is_array_of_const(p : pdef) : boolean;
+      begin
+         is_array_of_const:=(p^.deftype=arraydef) and
+                        (parraydef(p)^.IsArrayOfConst);
+      end;
+
+    { true, if p points to a special array }
+    function is_special_array(p : pdef) : boolean;
+      begin
+         is_special_array:=(p^.deftype=arraydef) and
+                        ((parraydef(p)^.IsVariant) or
+                         (parraydef(p)^.IsArrayOfConst) or
+                         (parraydef(p)^.IsConstructor) or
+                         is_open_array(p)
+                        );
+      end;
 
     { true if p is an ansi string def }
     function is_ansistring(p : pdef) : boolean;
@@ -334,7 +393,8 @@ implementation
     function is_chararray(p : pdef) : boolean;
       begin
         is_chararray:=(p^.deftype=arraydef) and
-                      is_equal(parraydef(p)^.definition,cchardef);
+                      is_equal(parraydef(p)^.definition,cchardef) and
+                      not(is_special_array(p));
       end;
 
 
@@ -528,6 +588,7 @@ implementation
          if (cs_mmx_saturation in aktlocalswitches) then
            begin
               is_mmx_able_array:=(p^.deftype=arraydef) and
+                not(is_special_array(p) and
                 (
                  (
                   (parraydef(p)^.definition^.deftype=orddef) and
@@ -822,7 +883,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.62  1999-05-19 16:48:29  florian
+  Revision 1.63  1999-05-19 20:40:15  florian
+    * fixed a couple of array related bugs:
+      - var a : array[0..1] of char;   p : pchar;  p:=a+123; works now
+      - open arrays with an odd size doesn't work: movsb wasn't generated
+      - introduced some new array type helper routines (is_special_array) etc.
+      - made the array type checking in isconvertable more strict, often
+        open array can be used where is wasn't allowed etc...
+
+  Revision 1.62  1999/05/19 16:48:29  florian
     * tdef.typename: returns a now a proper type name for the most types
 
   Revision 1.61  1999/05/19 10:31:56  florian
