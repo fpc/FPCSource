@@ -1291,7 +1291,8 @@ begin
               ((aktprocsym^.definition^.proctypeoption<>potype_operator) or (optoken<>_ASSIGNMENT) or
                is_equal(pd^.nextoverloaded^.rettype.def,aktprocsym^.definition^.rettype.def))) then
              begin
-               if not equal_paras(aktprocsym^.definition^.para,hd^.para,cp_all) then
+               if not equal_paras(aktprocsym^.definition^.para,hd^.para,cp_all) and
+                 (m_repeat_forward in aktmodeswitches) then
                  begin
                     Message1(parser_e_header_dont_match_forward,aktprocsym^.demangledName);
                     exit;
@@ -2079,7 +2080,11 @@ end.
 
 {
   $Log$
-  Revision 1.64  2000-06-20 12:47:52  pierre
+  Revision 1.65  2000-06-25 20:13:51  florian
+    * fixed a problem with forward declarations in TP mode, probably introduced by
+      Pierre's last changes
+
+  Revision 1.64  2000/06/20 12:47:52  pierre
     * equal_paras and convertable_paras changed by transforming third parameter
       into an enum with three possible values:
       cp_none, cp_value_equal_const and cp_all.
