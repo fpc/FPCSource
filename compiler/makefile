@@ -118,9 +118,9 @@ endif
 # Where to install the _real_executable and support files
 ifndef LIBINSTALLDIR
 ifdef inlinux
-LIBINSTALLDIR=/usr/lib/fpc/0.99.7
+LIBINSTALLDIR=/usr/lib/fpc/0.99.8
 # for a.out
-# LIBINSTALLDIR=/usr/lib/ppc/aout/0.99.7
+# LIBINSTALLDIR=/usr/lib/ppc/aout/0.99.8
 else
 LIBINSTALLDIR=$(PROGINSTALLDIR)
 endif
@@ -330,7 +330,7 @@ endif
 #####################################################################
 
 msgtxt.inc: $(MSGFILE)
-	msg2inc $(MSGFILE) msg msg
+        $(RTLDIR)/utils/msg2inc $(MSGFILE) msg msg
 
 msg: msgtxt.inc
 
@@ -506,7 +506,10 @@ test:
 # Test of log at the end
 # does CVS add # at start of each line ??
 # $Log$
-# Revision 1.29  1998-09-02 08:51:30  pierre
+# Revision 1.30  1998-09-09 18:17:15  florian
+#   * version number changed to 0.99.8
+#
+# Revision 1.29  1998/09/02 08:51:30  pierre
 #   + added -s support must be defined as LOCALOPT
 #     because it does not work for rtl building
 #   + added some compilation time info
