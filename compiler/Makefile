@@ -280,7 +280,7 @@ ifdef inlinux
 	$(MKDIR) $(LIBINSTALLDIR)
 	$(INSTALLEXE) ppc386 $(LIBINSTALLDIR)
 	chmod 755 makecfg
-	makecfg $(LIBINSTALLDIR)/samplecfg $(UNITINSTALLDIR) $(MSGINSTALLDIR) $(GCCLIBPATH)
+	makecfg $(LIBINSTALLDIR)/samplecfg
 else
 	$(MKDIR) $(BININSTALLDIR)
 	$(INSTALLEXE) ppc386$(EXEEXT) $(BININSTALLDIR)
@@ -341,7 +341,10 @@ $(M68KEXENAME): $(PASFILES) $(INCFILES)
 
 #
 # $Log$
-# Revision 1.16  1998-11-16 15:30:19  pierre
+# Revision 1.17  1998-12-21 13:13:08  peter
+#   * makecfg updated
+#
+# Revision 1.16  1998/11/16 15:30:19  pierre
 #  + shorter cycle for win32 with cygnus b20
 #
 # Revision 1.15  1998/11/13 15:40:12  pierre
