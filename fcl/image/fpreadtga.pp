@@ -156,6 +156,8 @@ begin
     begin
     SetLength(Identification,Header.IDLen);
     Stream.Read(Identification[1],Header.Idlen);
+    If Length(Identification)<>0 then
+      Img.Extra[KeyIdentification]:=Identification;
     end;
   If Toword(Header.MapLength)>0 then
     ReadPalette(Stream);
