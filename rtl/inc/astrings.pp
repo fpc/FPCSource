@@ -45,6 +45,7 @@ Function Ansi_String_Concat (S1,S2 : Pointer): Pointer; forward;
 Procedure Ansi_ShortString_Concat (Var S1: AnsiString; Var S2 : ShortString); forward;
 Procedure Ansi_To_ShortString (Var S1 : ShortString; S2 : Pointer; maxlen : longint); forward;
 Procedure Short_To_AnsiString (Var S1 : Pointer; Const S2 : ShortString); forward;
+Procedure Char_To_Ansi(var S1 : Pointer; c : Char); forward;
 Function  AnsiCompare (S1,S2 : Pointer): Longint; forward;
 Function  AnsiCompare (var S1 : Pointer; Var S2 : ShortString): Longint; forward;
 Procedure SetCharAtIndex (Var S : AnsiString; Index : Longint; C : CHar); forward;
@@ -229,6 +230,7 @@ begin
   PByte( Pointer(S1)+length(S1) )^:=0; { Terminating Zero }
 end;
 
+
 Procedure Ansi_To_ShortString (Var S1 : ShortString;S2 : Pointer; Maxlen : Longint);
   [Public, alias: 'FPC_ANSI2SHORT'];
 {
@@ -242,7 +244,6 @@ begin
   Move (S2^,S1[1],Size);
   byte(S1[0]):=Size;
 end;
-
 
 
 Procedure Short_To_AnsiString (Var S1 : Pointer; Const S2 : ShortString);
@@ -261,6 +262,17 @@ begin
   PByte(Pointer(S1)+Size)^:=0;
 end;
 
+
+Procedure Char_To_Ansi(var S1 : Pointer; c : Char);[Public, alias: 'FPC_CHAR2ANSI'];
+{
+ Converts a ShortString to a AnsiString;
+}
+begin
+  Setlength (AnsiString(S1),1);
+  PByte(Pointer(S1))^:=byte(c);
+  { Terminating Zero }
+  PByte(Pointer(S1)+1)^:=0;
+end;
 
 Procedure PChar2Ansi(var a : ansistring;p : pchar);[Public,Alias : 'FPC_PCHAR_TO_ANSISTRING'];
 
@@ -657,7 +669,7 @@ begin
     Size:=Size+index-1;
     index:=1;
     end;
-  LS:=PAnsiRec(Pointer(S)-FirstOff)^.Len;  
+  LS:=PAnsiRec(Pointer(S)-FirstOff)^.Len;
   if (Index<=LS) and (Size>0) then
     begin
     UniqueAnsiString (S);
@@ -677,7 +689,7 @@ Procedure Insert (Const Source : AnsiString; Var S : AnsiString; Index : Longint
 
 var Temp : AnsiString;
     LS : Longint;
-    
+
 begin
   If Length(Source)=0 then exit;
   if index <= 0 then index := 1;
@@ -689,7 +701,7 @@ begin
   If Index>0 then
     move (Pointer(S)^,Pointer(Temp)^,Index);
   Move (Pointer(Source)^,PByte(Temp)[Index],Length(Source));
-  If (LS-Index)>1 then  
+  If (LS-Index)>1 then
     Move(PByte(Pointer(S))[Index],PByte(temp)[Length(Source)+index],LS-Index);
   S:=Temp;
 end;
@@ -697,7 +709,10 @@ end;
 
 {
   $Log$
-  Revision 1.32  1998-11-16 11:11:47  michael
+  Revision 1.33  1998-11-16 15:42:04  peter
+    + char2ansi
+
+  Revision 1.32  1998/11/16 11:11:47  michael
   + Fix for Insert and Delete functions
 
   Revision 1.31  1998/11/13 14:37:11  michael
