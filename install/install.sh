@@ -95,6 +95,7 @@ makedirhierarch $PREFIX
 LIBDIR=$PREFIX/lib/fpc/$VERSION
 SRCDIR=$PREFIX/src/fpc-$VERSION
 DOCDIR=$PREFIX/doc/fpc-$VERSION
+MANDIR=$PREFIX/man
 DEMODIR=$DOCDIR/examples
 EXECDIR=$PREFIX/bin
 
@@ -165,6 +166,14 @@ echo
 if yesno "Install documentation"; then
   echo Installing documentation in $DOCDIR ...
   unztar docs.tar.gz $PREFIX
+  echo Done.
+fi
+echo
+
+# Install the documentation. Optional.
+if yesno "Install manual pages"; then
+  echo Installing documentation in $MANDIR ...
+  unztar man.tar.gz $PREFIX
   echo Done.
 fi
 echo

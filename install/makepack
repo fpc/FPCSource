@@ -21,12 +21,14 @@ make demozip
 
 SOURCES=`/bin/ls *src.tar.gz`
 FILES=`/bin/ls *linux.tar.gz *exm.tar.gz`
-RELFILES="binary.tar sources.tar demo.tar.gz docs.tar.gz install.sh"
+RELFILES="binary.tar sources.tar demo.tar.gz docs.tar.gz man.tar.gz install.sh"
 
 echo Creating binary.tar
 tar cf binary.tar $FILES
 echo Creating sources.tar
 tar cf sources.tar $SOURCES
+echo Creating man.tar.gz
+(cd install; tar czf ../man.tar.gz man/man1/*.1 man/man5/*.5)
 echo Copying install.sh
 cp install/install.sh .
 chmod 755 install.sh
