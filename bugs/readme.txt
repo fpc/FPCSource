@@ -319,3 +319,4 @@ bug0232.pp   const. procedure variables need a special syntax
              if they use calling specification modifiers
 bug0234.pp   New with void pointer
 bug0235.pp   Val(cardinal) bug
+bug0236.pp   Problem with range check of subsets !! compile with -Cr
