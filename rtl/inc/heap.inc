@@ -85,6 +85,10 @@ const
 type
   pmemchunk_fixed  = ^tmemchunk_fixed;
   tmemchunk_fixed = record
+{$ifdef cpusparc}
+    { Sparc needs to alloc aligned on 8 bytes, to allow doubles }
+    _dummy : ptrint;
+{$endif cpusparc}
     size  : ptrint;
     next_fixed,
     prev_fixed : pmemchunk_fixed;
@@ -1286,7 +1290,10 @@ end;
 
 {
   $Log$
-  Revision 1.33  2004-06-27 11:57:18  florian
+  Revision 1.34  2004-06-27 19:47:27  florian
+    * fixed heap corruption on sparc
+
+  Revision 1.33  2004/06/27 11:57:18  florian
     * finally (hopefully) fixed sysalloc trouble
 
   Revision 1.32  2004/06/18 14:40:55  peter
