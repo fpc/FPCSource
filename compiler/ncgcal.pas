@@ -1019,6 +1019,7 @@ implementation
          current_procinfo:=cprocinfo.create(nil);
          current_procinfo.procdef:=tprocdef(procdefinition);
          current_procinfo.flags:=oldprocinfo.flags;
+         current_procinfo.aktlocaldata:=oldprocinfo.aktlocaldata;
 
          { when the oldprocinfo is also being inlined reuse the
            inlining_procinfo }
@@ -1140,6 +1141,7 @@ implementation
 {$endif GDB}
 
          { restore }
+         current_procinfo.aktlocaldata:=nil;
          current_procinfo.free;
          current_procinfo:=oldprocinfo;
          inlining_procedure:=oldinlining_procedure;
@@ -1161,7 +1163,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.150  2004-01-12 16:39:40  peter
+  Revision 1.151  2004-01-26 17:34:14  florian
+    * set aktlocaldata for inlined procedures correctly
+
+  Revision 1.150  2004/01/12 16:39:40  peter
     * sparc updates, mostly float related
 
   Revision 1.149  2003/12/28 22:09:12  florian
