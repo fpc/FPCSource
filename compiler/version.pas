@@ -35,7 +35,11 @@ interface
 {$ifdef newcg}
        minorpatch = ' NCG';
 {$else newcg}
+  {$ifdef newoptimizations}
+       minorpatch = ' OPT';
+  {$else}
        minorpatch = '';
+  {$endif}
 {$endif newcg}
        version_string = version_nr+'.'+release_nr+'.'+patch_nr;
        full_version_string = version_nr+'.'+release_nr+'.'+patch_nr+minorpatch;
@@ -76,7 +80,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2000-02-09 13:23:09  peter
+  Revision 1.17  2000-03-21 21:35:27  peter
+    * add OPT for optimizing compiler
+
+  Revision 1.16  2000/02/09 13:23:09  peter
     * log truncated
 
   Revision 1.15  2000/01/28 20:47:26  michael
