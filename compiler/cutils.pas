@@ -529,7 +529,8 @@ uses
       begin
         GetToken:='';
         s:=TrimSpace(s);
-        if s[1]='''' then
+        if (length(s)>0) and
+           (s[1]='''') then
          begin
            i:=1;
            while (i<length(s)) do
@@ -1239,7 +1240,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.50  2005-03-04 16:49:22  peter
+  Revision 1.51  2005-04-06 11:49:37  michael
+  * Fix methodpointer copy from callnode to loadnode
+
+  Revision 1.50  2005/03/04 16:49:22  peter
     * getheapstatus fixes
 
   Revision 1.49  2005/02/14 17:13:06  peter

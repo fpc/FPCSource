@@ -1509,16 +1509,7 @@ implementation
                             if (tcallnode(left).symtableprocentry.owner.symtabletype=objectsymtable) then
                              begin
                                if assigned(tcallnode(left).methodpointer) then
-                                 begin
-                                   { Under certain circumstances the methodpointer is a loadvmtaddrn
-                                     which isn't possible if it is used as a method pointer, so
-                                     fix this.
-                                     If you change this, ensure that tests/tbs/tw2669.pp still works }
-                                   if tcallnode(left).methodpointer.nodetype=loadvmtaddrn then
-                                     tloadnode(hp).set_mp(tloadvmtaddrnode(tcallnode(left).methodpointer).left.getcopy)
-                                   else
-                                     tloadnode(hp).set_mp(tcallnode(left).methodpointer.getcopy);
-                                 end
+                                 tloadnode(hp).set_mp(tcallnode(left).get_load_methodpointer)
                                else
                                  tloadnode(hp).set_mp(load_self_node);
                              end;
@@ -2654,7 +2645,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.180  2005-03-25 22:20:18  peter
+  Revision 1.181  2005-04-06 11:49:37  michael
+  * Fix methodpointer copy from callnode to loadnode
+
+  Revision 1.180  2005/03/25 22:20:18  peter
     * add hint when passing an uninitialized variable to a var parameter
 
   Revision 1.179  2005/03/11 21:55:43  florian

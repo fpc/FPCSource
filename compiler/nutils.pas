@@ -213,10 +213,7 @@ implementation
               method without a self pointer }
             if assigned(tcallnode(p1).methodpointer) and
                (tcallnode(p1).methodpointer.nodetype<>typen) then
-             begin
-               tloadnode(p2).set_mp(tcallnode(p1).methodpointer);
-               tcallnode(p1).methodpointer:=nil;
-             end;
+              tloadnode(p2).set_mp(tcallnode(p1).get_load_methodpointer);
           end;
         resulttypepass(p2);
         p1.free;
@@ -567,7 +564,10 @@ end.
 
 {
   $Log$
-  Revision 1.30  2005-02-14 17:13:06  peter
+  Revision 1.31  2005-04-06 11:49:37  michael
+  * Fix methodpointer copy from callnode to loadnode
+
+  Revision 1.30  2005/02/14 17:13:06  peter
     * truncate log
 
   Revision 1.29  2005/01/04 16:39:46  peter

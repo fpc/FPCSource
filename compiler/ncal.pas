@@ -134,6 +134,7 @@ interface
           function  docompare(p: tnode): boolean; override;
           procedure printnodedata(var t:text);override;
           function  para_count:longint;
+          function  get_load_methodpointer:tnode;
        private
           AbstractMethodsList : TStringList;
        end;
@@ -286,8 +287,17 @@ type
                 loadp));
             { new tree is only a temp reference }
             p:=refp;
-            { temp release }
-            addstatement(newdonestatement,ctempdeletenode.create(ptemp));
+            { temp release. We need to return a reference to the methodpointer
+              otherwise the conversion from callnode to loadnode can't be done
+              for the methodpointer unless the loadnode will also get a methodpointerinit and
+              methodpointerdone node. For the moment we use register as temp and therefor
+              don't create a temp-leak in the stackframe (PFV) }
+            { the last statement should return the value as
+              location and type, this is done be referencing the
+              temp and converting it first from a persistent temp to
+              normal temp }
+            addstatement(newdonestatement,ctempdeletenode.create_normal_temp(ptemp));
+            addstatement(newdonestatement,ctemprefnode.create(ptemp));
             { call resulttypepass for new nodes }
             resulttypepass(p);
             resulttypepass(aktcallnode.methodpointerinit);
@@ -1650,7 +1660,7 @@ type
                             begin
                               hpt:=cloadnode.create(tprocsym(symtableprocentry),symtableproc);
                               if assigned(methodpointer) then
-                                tloadnode(hpt).set_mp(methodpointer.getcopy);
+                                tloadnode(hpt).set_mp(get_load_methodpointer);
                               resulttypepass(hpt);
                               result:=hpt;
                             end
@@ -2510,6 +2520,28 @@ type
       end;
 
 
+    function tcallnode.get_load_methodpointer:tnode;
+      var
+        newstatement : tstatementnode;
+      begin
+        if assigned(methodpointerinit) then
+          begin
+            result:=internalstatements(newstatement);
+            addstatement(newstatement,methodpointerinit);
+            addstatement(newstatement,methodpointer);
+            addstatement(newstatement,methodpointerdone);
+            methodpointerinit:=nil;
+            methodpointer:=nil;
+            methodpointerdone:=nil;
+          end
+        else
+          begin
+            result:=methodpointer;
+            methodpointer:=nil;
+          end;
+      end;
+
+
     function tcallnode.docompare(p: tnode): boolean;
       begin
         docompare :=
@@ -2547,7 +2579,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.283  2005-04-05 21:07:43  peter
+  Revision 1.284  2005-04-06 11:49:37  michael
+  * Fix methodpointer copy from callnode to loadnode
+
+  Revision 1.283  2005/04/05 21:07:43  peter
     * load all complex loads of parameters that are needed multiple times
       to a temp to prevent calling functions twice
 

@@ -946,7 +946,7 @@ implementation
                begin
                  hp2:=cloadnode.create_procvar(tprocsym(tcallnode(hp).symtableprocentry),currprocdef,tcallnode(hp).symtableproc);
                  if (po_methodpointer in pv.procoptions) then
-                   tloadnode(hp2).set_mp(tnode(tcallnode(hp).methodpointer).getcopy);
+                   tloadnode(hp2).set_mp(tcallnode(hp).get_load_methodpointer);
                  hp.destroy;
                  { replace the old callnode with the new loadnode }
                  hpp^:=hp2;
@@ -2619,7 +2619,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.188  2005-03-28 14:14:52  florian
+  Revision 1.189  2005-04-06 11:49:37  michael
+  * Fix methodpointer copy from callnode to loadnode
+
+  Revision 1.188  2005/03/28 14:14:52  florian
     * fpc_variant_get call fixed
 
   Revision 1.187  2005/03/27 20:19:21  florian
