@@ -13,7 +13,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-
+{$mode objfpc}
 {
   Many thanks to Ken Wright for his patches !
 }
@@ -263,13 +263,13 @@ Var
     Function meta(_para1:pWINDOW; _para2:bool):longint; cdecl;external;
     Function mvcur(_para1:longint; _para2:longint; _para3:longint; _para4:longint):longint; cdecl;external;
     Function mvderwin(_para1:pWINDOW; _para2:longint; _para3:longint):longint; cdecl;external;
+    function mvprintw(_para1:longint;_para2:longint;_para3:pchar;_para4:array of const):longint; cdecl;external;
     {
-    extern int mvprintw(int,int,const char  ,...)
-                GCC_PRINTFLIKE(3,4);
     extern int mvscanw(int,int,const char  ,...)
                 GCC_SCANFLIKE(3,4);
     }
     Function mvwin(_para1:pWINDOW; _para2:longint; _para3:longint):longint; cdecl;external;
+    Function mvwprintw(_para1:pWINDOW;_para2,_para3:longint;_para4:pchar;_para5:array of const):longint; cdecl;external;
     {
     extern int mvwprintw(WINDOW ,int,int,const char  ,...)
                 GCC_PRINTFLIKE(4,5);
@@ -1687,7 +1687,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  2003-02-09 19:10:13  marco
+  Revision 1.6  2003-10-15 17:04:40  florian
+    + some print functions added
+
+  Revision 1.5  2003/02/09 19:10:13  marco
    OpenBSD links curses, not ncurses
 
   Revision 1.4  2003/02/09 19:05:05  marco
