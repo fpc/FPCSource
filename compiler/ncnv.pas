@@ -1215,12 +1215,14 @@ implementation
           loadn :
             begin
               { tp7 procvar support, when right is not a procvardef and we got a
-                loadn of a procvar then convert to a calln, the check for the
-                result is already done in is_convertible, also no conflict with
-                @procvar is here because that has an extra addrn }
+                loadn of a procvar (ignore procedures as void can not be converted)
+                then convert to a calln, the check for the result is already done
+                in is_convertible, also no conflict with @procvar is here because
+                that has an extra addrn }
               if (m_tp_procvar in aktmodeswitches) and
                  (resulttype.def.deftype<>procvardef) and
-                 (left.resulttype.def.deftype=procvardef) then
+                 (left.resulttype.def.deftype=procvardef) and
+                 (not is_void(tprocvardef(left.resulttype.def).rettype.def)) then
                begin
                  hp:=ccallnode.create(nil,nil,nil,nil);
                  tcallnode(hp).set_procvar(left);
@@ -2031,7 +2033,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.103  2003-03-17 18:54:23  peter
+  Revision 1.104  2003-04-22 09:52:30  peter
+    * do not convert procvars with void return to callnode
+
+  Revision 1.103  2003/03/17 18:54:23  peter
     * fix missing self setting for method to procvar conversion in
       tp_procvar mode
 
