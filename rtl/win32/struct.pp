@@ -4420,10 +4420,19 @@ unit struct;
      PSERVICEADDRESSES = ^SERVICE_ADDRESSES;
 
      GUID = record
-          Data1 : cardinal;
-          Data2 : word;
-          Data3 : word;
-          Data4 : array[0..7] of byte;
+          case integer of
+             1 : (
+                  Data1 : cardinal;
+                  Data2 : word;
+                  Data3 : word;
+                  Data4 : array[0..7] of byte;
+                 );
+             2 : (
+                  D1 : cardinal;
+                  D2 : word;
+                  D3 : word;
+                  D4 : array[0..7] of byte;
+                 );
        end;
      LPGUID = ^GUID;
      _GUID = GUID;
@@ -6925,7 +6934,11 @@ end.
 {$endif not windows_include_files}
 {
   $Log$
-  Revision 1.6  1998-11-12 11:41:06  peter
+  Revision 1.7  1999-03-22 22:12:52  florian
+    + addition and changes to compile the direct draw unit
+      of Erik Ungerer (with -dv2com and indirect disabled)
+
+  Revision 1.6  1998/11/12 11:41:06  peter
     + pascal type aliases
 
   Revision 1.5  1998/10/27 11:17:17  peter

@@ -57,7 +57,7 @@ LOADEROBJECTS=wprt0 wdllprt0
 UNITOBJECTS=$(SYSTEMUNIT) strings windows \
 	    dos objects \
 	    objpas sysutils typinfo math \
-	    cpu mmx getopts heaptrc
+            cpu mmx getopts heaptrc ole2
 
 # Files used by windows.pp
 WINDOWS_FILES=base errors defines \
@@ -203,7 +203,9 @@ messages$(PPUEXT) : messages.pp $(SYSTEMPPU)
 
 defines$(PPUEXT) : defines.pp $(SYSTEMPPU)
 
-windows$(PPUEXT) : windows.pp $(WINDOWS_SOURCE_FILES) $(SYSTEMPPU)
+windows$(PPUEXT) : windows.pp redef.inc $(WINDOWS_SOURCE_FILES) $(SYSTEMPPU)
+
+ole2$(PPUEXT) : ole2.pp windows$(PPUEXT) $(SYSTEMPPU)
 
 #
 # TP7 Compatible RTL Units
@@ -358,7 +360,11 @@ endif
 
 #
 # $Log$
-# Revision 1.23  1999-03-16 00:47:10  peter
+# Revision 1.24  1999-03-22 22:12:50  florian
+#   + addition and changes to compile the direct draw unit
+#     of Erik Ungerer (with -dv2com and indirect disabled)
+#
+# Revision 1.23  1999/03/16 00:47:10  peter
 #   * makefile.fpc targets start with fpc_
 #   * small updates for install scripts
 #
