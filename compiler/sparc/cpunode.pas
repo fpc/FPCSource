@@ -38,7 +38,7 @@ IMPLEMENTATION
 USES
   ncgbas,ncgflw,ncgcnv,ncgld,ncgmem,ncgcon,{ncgset,}
   naddcpu,{n386cal,n386con,n386cnv,n386flw,n386mat,n386mem,}
-  {n386set,n386inl,n386opt,}
+  {n386set,n386inl,n386opt,}ncpucnv,
   { this not really a node }
-  {nSPARCobj,} rgcpu;
+  {nSPARCobj,}rgcpu;
 END.
