@@ -174,8 +174,6 @@ interface
        end;
        tprocinlinenodeclass = class of tprocinlinenode;
 
-    function initialize_data_node(p:tnode):tnode;
-    function finalize_data_node(p:tnode):tnode;
     function reverseparameters(p: tcallparanode): tcallparanode;
 
 
@@ -222,36 +220,6 @@ type
              hp1:=hp2;
           end;
         reverseparameters:=hp1;
-      end;
-
-
-    function initialize_data_node(p:tnode):tnode;
-      begin
-        result:=ccallnode.createintern('fpc_initialize',
-              ccallparanode.create(
-                  caddrnode.create(
-                      crttinode.create(
-                          tstoreddef(tpointerdef(p.resulttype.def).pointertype.def),initrtti)),
-              ccallparanode.create(
-                  p,
-              nil)));
-      end;
-
-
-    function finalize_data_node(p:tnode):tnode;
-      begin
-        if not assigned(p.resulttype.def) then
-          resulttypepass(p);
-        if p.resulttype.def.deftype<>pointerdef then
-          internalerror(2003051010);
-        result:=ccallnode.createintern('fpc_finalize',
-              ccallparanode.create(
-                  caddrnode.create(
-                      crttinode.create(
-                          tstoreddef(tpointerdef(p.resulttype.def).pointertype.def),initrtti)),
-              ccallparanode.create(
-                  p,
-              nil)));
       end;
 
 
@@ -2744,7 +2712,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.154  2003-05-14 19:35:50  jonas
+  Revision 1.155  2003-05-16 14:33:31  peter
+    * regvar fixes
+
+  Revision 1.154  2003/05/14 19:35:50  jonas
     * fixed callparatemp so it works with vs_var, vs_out and formal const
       parameters
 

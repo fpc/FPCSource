@@ -55,7 +55,7 @@ implementation
        symconst,symdef,symsym,symtable,defutil,
        { pass 1 }
        pass_1,htypechk,
-       nmat,nadd,ncal,nmem,nset,ncnv,ninl,ncon,nld,nflw,nbas,
+       nmat,nadd,ncal,nmem,nset,ncnv,ninl,ncon,nld,nflw,nbas,nutils,
        { parser }
        scanner,
        pbase,pexpr,
@@ -243,13 +243,7 @@ implementation
 
                      { create call to fpc_initialize }
                      if tpointerdef(p.resulttype.def).pointertype.def.needs_inittable then
-                      begin
-                        para := ccallparanode.create(caddrnode.create(crttinode.create(
-                                   tstoreddef(tpointerdef(p.resulttype.def).pointertype.def),initrtti)),
-                                ccallparanode.create(ctemprefnode.create
-                                   (temp),nil));
-                        addstatement(newstatement,ccallnode.createintern('fpc_initialize',para));
-                      end;
+                       addstatement(newstatement,initialize_data_node(ctemprefnode.create(temp)));
 
                      { copy the temp to the destination }
                      addstatement(newstatement,cassignmentnode.create(
@@ -263,13 +257,7 @@ implementation
                    begin
                      { create call to fpc_finalize }
                      if tpointerdef(p.resulttype.def).pointertype.def.needs_inittable then
-                      begin
-                        { we need to use a copy of p here }
-                        para := ccallparanode.create(caddrnode.create(crttinode.create
-                                   (tstoreddef(tpointerdef(p.resulttype.def).pointertype.def),initrtti)),
-                                ccallparanode.create(p.getcopy,nil));
-                        addstatement(newstatement,ccallnode.createintern('fpc_finalize',para));
-                      end;
+                       addstatement(newstatement,finalize_data_node(cderefnode.create(p.getcopy)));
 
                      { create call to fpc_freemem }
                      para := ccallparanode.create(p,nil);
@@ -578,12 +566,7 @@ implementation
          end
         else
          begin
-           { create call to fpc_finalize }
-           npara:=ccallparanode.create(caddrnode.create
-                     (crttinode.create(tstoreddef(ppn.left.resulttype.def),initrtti)),
-                  ccallparanode.create(caddrnode.create
-                     (ppn.left),nil));
-           newblock:=ccallnode.createintern('fpc_finalize',npara);
+           newblock:=finalize_data_node(ppn.left);
            ppn.left:=nil;
          end;
         paras.free;
@@ -699,7 +682,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  2003-05-09 17:47:03  peter
+  Revision 1.14  2003-05-16 14:33:31  peter
+    * regvar fixes
+
+  Revision 1.13  2003/05/09 17:47:03  peter
     * self moved to hidden parameter
     * removed hdisposen,hnewn,selfn
 

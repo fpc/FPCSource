@@ -1697,6 +1697,8 @@ unit cgx86;
              r.number:=NR_EDX;
              list.concat(Taicpu.Op_reg(A_POP,S_L,r));
           end;
+        r.number:=NR_ESI;
+        list.concat(Taicpu.Op_reg(A_POP,S_L,r));
         r.number:=NR_EDI;
         list.concat(Taicpu.Op_reg(A_POP,S_L,r));
         { .... also the segment registers }
@@ -1939,7 +1941,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.45  2003-05-15 18:58:54  peter
+  Revision 1.46  2003-05-16 14:33:31  peter
+    * regvar fixes
+
+  Revision 1.45  2003/05/15 18:58:54  peter
     * removed selfpointer_offset, vmtpointer_offset
     * tvarsym.adjusted_address
     * address in localsymtable is now in the real direction

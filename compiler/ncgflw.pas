@@ -180,9 +180,12 @@ implementation
 
       var
          hl,otlabel,oflabel : tasmlabel;
-         org_regvar_loaded,
-         then_regvar_loaded,
-         else_regvar_loaded : regvar_booleanarray;
+         org_regvar_loaded_other,
+         then_regvar_loaded_other,
+         else_regvar_loaded_other : regvarother_booleanarray;
+         org_regvar_loaded_int,
+         then_regvar_loaded_int,
+         else_regvar_loaded_int : Tsupregset;
          org_list,
          then_list,
          else_list : taasmoutput;
@@ -210,7 +213,10 @@ implementation
          maketojumpbool(exprasmlist,left,lr_dont_load_regvars);
 
          if cs_regalloc in aktglobalswitches then
-           org_regvar_loaded := rg.regvar_loaded;
+           begin
+             org_regvar_loaded_int := rg.regvar_loaded_int;
+             org_regvar_loaded_other := rg.regvar_loaded_other;
+           end;
 
          if assigned(right) then
            begin
@@ -225,8 +231,10 @@ implementation
          { loaded regvar state and create new clean ones                 }
          if cs_regalloc in aktglobalswitches then
            begin
-             then_regvar_loaded := rg.regvar_loaded;
-             rg.regvar_loaded := org_regvar_loaded;
+             then_regvar_loaded_int := rg.regvar_loaded_int;
+             then_regvar_loaded_other := rg.regvar_loaded_other;
+             rg.regvar_loaded_int := org_regvar_loaded_int;
+             rg.regvar_loaded_other := org_regvar_loaded_other;
              then_list := exprasmlist;
              exprasmlist := taasmoutput.create;
            end;
@@ -252,7 +260,8 @@ implementation
               { and loaded regvar state and create a new clean list       }
               if cs_regalloc in aktglobalswitches then
                 begin
-                  else_regvar_loaded := rg.regvar_loaded;
+                  else_regvar_loaded_int := rg.regvar_loaded_int;
+                  else_regvar_loaded_other := rg.regvar_loaded_other;
                   else_list := exprasmlist;
                   exprasmlist := taasmoutput.create;
                 end;
@@ -263,7 +272,8 @@ implementation
            begin
               if cs_regalloc in aktglobalswitches then
                 begin
-                  else_regvar_loaded := rg.regvar_loaded;
+                  else_regvar_loaded_int := rg.regvar_loaded_int;
+                  else_regvar_loaded_other := rg.regvar_loaded_other;
                   else_list := exprasmlist;
                   exprasmlist := taasmoutput.create;
                 end;
@@ -281,16 +291,22 @@ implementation
 
              { no else block? }
              if not assigned(t1) then
-               sync_regvars(org_list,then_list,org_regvar_loaded,
-                 then_regvar_loaded)
+               begin
+                 sync_regvars_int(org_list,then_list,org_regvar_loaded_int,then_regvar_loaded_int);
+                 sync_regvars_other(org_list,then_list,org_regvar_loaded_other,then_regvar_loaded_other);
+               end
              { no then block? }
              else if not assigned(right) then
-               sync_regvars(org_list,else_list,org_regvar_loaded,
-                 else_regvar_loaded)
+               begin
+                 sync_regvars_int(org_list,else_list,org_regvar_loaded_int,else_regvar_loaded_int);
+                 sync_regvars_other(org_list,else_list,org_regvar_loaded_other,else_regvar_loaded_other);
+               end
              { both else and then blocks }
              else
-               sync_regvars(then_list,else_list,then_regvar_loaded,
-                 else_regvar_loaded);
+               begin
+                 sync_regvars_int(then_list,else_list,then_regvar_loaded_int,else_regvar_loaded_int);
+                 sync_regvars_other(then_list,else_list,then_regvar_loaded_other,else_regvar_loaded_other);
+               end;
              { add all lists together }
              org_list.concatlist(then_list);
              then_list.free;
@@ -1538,7 +1554,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.60  2003-05-13 19:14:41  peter
+  Revision 1.61  2003-05-16 14:33:31  peter
+    * regvar fixes
+
+  Revision 1.60  2003/05/13 19:14:41  peter
     * failn removed
     * inherited result code check moven to pexpr
 

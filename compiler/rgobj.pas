@@ -89,10 +89,10 @@ unit rgobj;
     type
 
 
-       regvar_longintarray = array[firstreg..lastreg] of longint;
+       regvarother_longintarray = array[firstreg..lastreg] of longint;
+       regvarother_booleanarray = array[firstreg..lastreg] of boolean;
        regvarint_longintarray = array[first_supreg..last_supreg] of longint;
-       regvar_booleanarray = array[firstreg..lastreg] of boolean;
-       regvar_ptreearray = array[firstreg..lastreg] of tnode;
+       regvarint_ptreearray = array[first_supreg..last_supreg] of tnode;
 
        tpushedsavedloc = record
          case byte of
@@ -100,7 +100,7 @@ unit rgobj;
            1: (ofs: longint);
        end;
 
-       tpushedsaved = array[firstreg..lastreg] of tpushedsavedloc;
+       tpushedsavedother = array[firstreg..lastreg] of tpushedsavedloc;
        Tpushedsavedint = array[first_supreg..last_supreg] of Tpushedsavedloc;
 
       Tinterferencebitmap=array[Tsuperregister] of set of Tsuperregister;
@@ -173,11 +173,11 @@ unit rgobj;
           usedintinproc,
           usedaddrinproc:Tsupregset;
 
-          reg_pushes : regvar_longintarray;
+          reg_pushes_other : regvarother_longintarray;
           reg_pushes_int : regvarint_longintarray;
-          is_reg_var : regvar_booleanarray;
+          is_reg_var_other : regvarother_booleanarray;
           is_reg_var_int:Tsupregset;
-          regvar_loaded: regvar_booleanarray;
+          regvar_loaded_other: regvarother_booleanarray;
           regvar_loaded_int: Tsupregset;
 {$ifdef newra}
           colour:array[Tsuperregister] of Tsuperregister;
@@ -297,7 +297,7 @@ unit rgobj;
                                          var saved:Tpushedsavedint;
                                          const s:Tsupregset);virtual;
           procedure saveusedotherregisters(list:Taasmoutput;
-                                           var saved:Tpushedsaved;
+                                           var saved:Tpushedsavedother;
                                            const s:Tregisterset);virtual;
           {# Restores the registers which were saved with a call
              to @var(saveusedregisters).
@@ -308,7 +308,7 @@ unit rgobj;
           procedure restoreusedintregisters(list:Taasmoutput;
                                             const saved:Tpushedsavedint);virtual;
           procedure restoreusedotherregisters(list:Taasmoutput;
-                                              const saved:Tpushedsaved);virtual;
+                                              const saved:Tpushedsavedother);virtual;
 
           { used when deciding which registers to use for regvars }
           procedure incrementintregisterpushed(const s:Tsupregset);
@@ -316,7 +316,7 @@ unit rgobj;
           procedure clearregistercount;
           procedure resetusableregisters;virtual;
 
-          procedure makeregvarint(reg:Tnewregister);
+          procedure makeregvarint(reg:Tsuperregister);
           procedure makeregvarother(reg:Tregister);
 
           procedure saveStateForInline(var state: pointer);virtual;
@@ -443,10 +443,11 @@ unit rgobj;
         { contains the registers which are really used by the proc itself }
         usedbyproc,
         usedinproc : tregisterset;
-        reg_pushes : regvar_longintarray;
-        is_reg_var : regvar_booleanarray;
+        reg_pushes_other : regvarother_longintarray;
+        reg_pushes_int : regvarint_longintarray;
+        is_reg_var_other : regvarother_booleanarray;
         is_reg_var_int : Tsupregset;
-        regvar_loaded: regvar_booleanarray;
+        regvar_loaded_other: regvarother_booleanarray;
         regvar_loaded_int: Tsupregset;
 {$ifdef TEMPREGDEBUG}
          reg_user   : regvar_ptreearray;
@@ -787,6 +788,7 @@ unit rgobj;
 
     function trgobj.isaddressregister(reg: tregister): boolean;
       begin
+        if reg.number<>0 then; { remove warning }
         result := true;
       end;
 
@@ -860,14 +862,18 @@ unit rgobj;
     procedure trgobj.saveintregvars(list:Taasmoutput;const s:Tsupregset);
 
     var r:Tsuperregister;
-
+        hr: tregister;
     begin
       if not(cs_regalloc in aktglobalswitches) then
         exit;
       for r:=firstsaveintreg to lastsaveintreg do
         if (r in is_reg_var_int) and
            (r in s) then
-          store_regvar_int(list,r);
+          begin
+            hr.number:=r shl 8;
+            hr.enum:=R_INTREGISTER;
+            store_regvar(list,hr);
+          end;
     end;
 
     procedure trgobj.saveotherregvars(list: taasmoutput; const s: tregisterset);
@@ -878,12 +884,12 @@ unit rgobj;
           exit;
         if firstsavefpureg <> R_NO then
           for r.enum := firstsavefpureg to lastsavefpureg do
-            if is_reg_var[r.enum] and
+            if is_reg_var_other[r.enum] and
                (r.enum in s) then
               store_regvar(list,r);
         if firstsavemmreg <> R_NO then
           for r.enum := firstsavemmreg to lastsavemmreg do
-            if is_reg_var[r.enum] and
+            if is_reg_var_other[r.enum] and
                (r.enum in s) then
               store_regvar(list,r);
       end;
@@ -928,7 +934,7 @@ unit rgobj;
     end;
 
     procedure trgobj.saveusedotherregisters(list: taasmoutput;
-        var saved : tpushedsaved; const s: tregisterset);
+        var saved : tpushedsavedother; const s: tregisterset);
 
       var
          r : tregister;
@@ -945,7 +951,7 @@ unit rgobj;
               saved[r.enum].ofs:=reg_not_saved;
               { if the register is used by the calling subroutine and if }
               { it's not a regvar (those are handled separately)         }
-              if not is_reg_var[r.enum] and
+              if not is_reg_var_other[r.enum] and
                  (r.enum in s) and
                  { and is present in use }
                  not(r.enum in unusedregsfpu) then
@@ -967,7 +973,7 @@ unit rgobj;
               saved[r.enum].ofs:=reg_not_saved;
               { if the register is in use and if it's not a regvar (those }
               { are handled separately), save it                          }
-              if not is_reg_var[r.enum] and
+              if not is_reg_var_other[r.enum] and
                  (r.enum in s) and
                  { and is present in use }
                  not(r.enum in unusedregsmm) then
@@ -1027,7 +1033,7 @@ unit rgobj;
       end;
 
     procedure trgobj.restoreusedotherregisters(list : taasmoutput;
-        const saved : tpushedsaved);
+        const saved : tpushedsavedother);
 
       var
          r,r2 : tregister;
@@ -1109,13 +1115,13 @@ unit rgobj;
            for regi:=firstsavefpureg to lastsavefpureg do
              begin
                 if (regi in s) then
-                  inc(reg_pushes[regi],t_times*2);
+                  inc(reg_pushes_other[regi],t_times*2);
              end;
          if firstsavemmreg <> R_NO then
            for regi:=firstsavemmreg to lastsavemmreg do
              begin
                 if (regi in s) then
-                  inc(reg_pushes[regi],t_times*2);
+                  inc(reg_pushes_other[regi],t_times*2);
              end;
       end;
 
@@ -1123,10 +1129,11 @@ unit rgobj;
     procedure trgobj.clearregistercount;
 
       begin
-        fillchar(reg_pushes,sizeof(reg_pushes),0);
-        fillchar(is_reg_var,sizeof(is_reg_var),false);
+        fillchar(reg_pushes_int,sizeof(reg_pushes_int),0);
+        fillchar(reg_pushes_other,sizeof(reg_pushes_other),0);
+        fillchar(is_reg_var_other,sizeof(is_reg_var_other),false);
         is_reg_var_int:=[];
-        fillchar(regvar_loaded,sizeof(regvar_loaded),false);
+        fillchar(regvar_loaded_other,sizeof(regvar_loaded_other),false);
         regvar_loaded_int:=[];
       end;
 
@@ -1145,19 +1152,15 @@ unit rgobj;
       end;
 
 
-    procedure trgobj.makeregvarint(reg:Tnewregister);
-
-    var supreg:Tsuperregister;
-
+    procedure trgobj.makeregvarint(reg:Tsuperregister);
     begin
-      supreg:=reg shr 8;
       dec(countusableregsint);
     {$ifndef newra}
       dec(countunusedregsint);
     {$endif}
-      exclude(usableregsint,reg);
-      exclude(unusedregsint,reg);
-      include(is_reg_var_int,supreg);
+      exclude(usableregsint,reg shl 8);
+      exclude(unusedregsint,reg shl 8);
+      include(is_reg_var_int,reg);
     end;
 
     procedure trgobj.makeregvarother(reg: tregister);
@@ -1180,7 +1183,7 @@ unit rgobj;
              exclude(usableregsmm,reg.enum);
              exclude(unusedregsmm,reg.enum);
           end;
-        is_reg_var[reg.enum]:=true;
+        is_reg_var_other[reg.enum]:=true;
       end;
 
 
@@ -1218,11 +1221,12 @@ unit rgobj;
         psavedstate(state)^.countusableregsmm := countusableregsmm;
         psavedstate(state)^.usedinproc := usedinproc;
         psavedstate(state)^.usedbyproc := usedbyproc;
-        psavedstate(state)^.reg_pushes := reg_pushes;
-        psavedstate(state)^.is_reg_var := is_reg_var;
+        psavedstate(state)^.reg_pushes_int := reg_pushes_int;
+        psavedstate(state)^.reg_pushes_other := reg_pushes_other;
         psavedstate(state)^.is_reg_var_int := is_reg_var_int;
-        psavedstate(state)^.regvar_loaded := regvar_loaded;
+        psavedstate(state)^.is_reg_var_other := is_reg_var_other;
         psavedstate(state)^.regvar_loaded_int := regvar_loaded_int;
+        psavedstate(state)^.regvar_loaded_other := regvar_loaded_other;
 {$ifdef TEMPREGDEBUG}
         psavedstate(state)^.reg_user := reg_user;
         psavedstate(state)^.reg_releaser := reg_releaser;
@@ -1248,10 +1252,11 @@ unit rgobj;
         countusableregsmm := psavedstate(state)^.countusableregsmm;
         usedinproc := psavedstate(state)^.usedinproc;
         usedbyproc := psavedstate(state)^.usedbyproc;
-        reg_pushes := psavedstate(state)^.reg_pushes;
-        is_reg_var := psavedstate(state)^.is_reg_var;
+        reg_pushes_int := psavedstate(state)^.reg_pushes_int;
+        reg_pushes_other := psavedstate(state)^.reg_pushes_other;
         is_reg_var_int := psavedstate(state)^.is_reg_var_int;
-        regvar_loaded := psavedstate(state)^.regvar_loaded;
+        is_reg_var_other := psavedstate(state)^.is_reg_var_other;
+        regvar_loaded_other := psavedstate(state)^.regvar_loaded_other;
         regvar_loaded_int := psavedstate(state)^.regvar_loaded_int;
 {$ifdef TEMPREGDEBUG}
         reg_user := psavedstate(state)^.reg_user;
@@ -2022,7 +2027,10 @@ end.
 
 {
   $Log$
-  Revision 1.42  2003-04-26 20:03:49  daniel
+  Revision 1.43  2003-05-16 14:33:31  peter
+    * regvar fixes
+
+  Revision 1.42  2003/04/26 20:03:49  daniel
     * Bug fix in simplify
 
   Revision 1.41  2003/04/25 20:59:35  peter

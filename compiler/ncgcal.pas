@@ -539,7 +539,7 @@ implementation
          regs_to_push_int : Tsupregset;
          regs_to_push_other : tregisterset;
          unusedstate: pointer;
-         pushed : tpushedsaved;
+         pushedother : tpushedsavedother;
          pushedint : tpushedsavedint;
          oldpushedparasize : longint;
          { adress returned from an I/O-error }
@@ -642,7 +642,7 @@ implementation
 {$endif cpu64bit}
                end;
               rg.saveusedintregisters(exprasmlist,pushedint,regs_to_push_int);
-              rg.saveusedotherregisters(exprasmlist,pushed,regs_to_push_other);
+              rg.saveusedotherregisters(exprasmlist,pushedother,regs_to_push_other);
 
               { give used registers through }
               rg.usedintinproc:=rg.usedintinproc + tprocdef(procdefinition).usedintregisters;
@@ -653,7 +653,7 @@ implementation
               regs_to_push_int := all_intregisters;
               regs_to_push_other := all_registers;
               rg.saveusedintregisters(exprasmlist,pushedint,regs_to_push_int);
-              rg.saveusedotherregisters(exprasmlist,pushed,regs_to_push_other);
+              rg.saveusedotherregisters(exprasmlist,pushedother,regs_to_push_other);
               rg.usedinproc:=all_registers;
               { no IO check for methods and procedure variables }
               iolabel:=nil;
@@ -871,7 +871,7 @@ implementation
            end;
 
          { restore registers }
-         rg.restoreusedotherregisters(exprasmlist,pushed);
+         rg.restoreusedotherregisters(exprasmlist,pushedother);
          rg.restoreusedintregisters(exprasmlist,pushedint);
 
          { Release temps from parameters }
@@ -1128,7 +1128,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.65  2003-05-15 18:58:53  peter
+  Revision 1.66  2003-05-16 14:33:31  peter
+    * regvar fixes
+
+  Revision 1.65  2003/05/15 18:58:53  peter
     * removed selfpointer_offset, vmtpointer_offset
     * tvarsym.adjusted_address
     * address in localsymtable is now in the real direction

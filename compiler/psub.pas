@@ -396,6 +396,9 @@ implementation
                 else
                   if is_object(current_procdef._class) then
                     begin
+                      { finalize object data }
+                      if current_procdef._class.needs_inittable then
+                        addstatement(newstatement,finalize_data_node(load_self_node));
                       { parameter 3 : vmt_offset }
                       { parameter 2 : pointer to vmt }
                       { parameter 1 : self pointer }
@@ -451,7 +454,7 @@ implementation
             if (not is_void(current_procdef.rettype.def)) and
                (current_procdef.rettype.def.needs_inittable) and
                (not is_class(current_procdef.rettype.def)) then
-              finalize_data_node(caddrnode.create(load_result_node));
+              finalize_data_node(load_result_node);
           end;
       end;
 
@@ -1127,7 +1130,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.112  2003-05-13 21:26:38  peter
+  Revision 1.113  2003-05-16 14:33:31  peter
+    * regvar fixes
+
+  Revision 1.112  2003/05/13 21:26:38  peter
     * only call destructor in except block when there is a destructor
       available
 

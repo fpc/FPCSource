@@ -64,7 +64,7 @@ unit rgcpu;
                                          const s:Tsupregset);
 {$ifdef SUPPORT_MMX}
           procedure pushusedotherregisters(list:Taasmoutput;
-                                           var pushed:Tpushedsaved;
+                                           var pushed:Tpushedsavedother;
                                            const s:Tregisterset);
 {$endif SUPPORT_MMX}
 
@@ -72,19 +72,19 @@ unit rgcpu;
                                         const pushed:Tpushedsavedint);
 {$ifdef SUPPORT_MMX}
           procedure popusedotherregisters(list:Taasmoutput;
-                                          const pushed:Tpushedsaved);
+                                          const pushed:Tpushedsavedother);
 {$endif SUPPORT_MMX}
 
           procedure saveusedintregisters(list:Taasmoutput;
                                          var saved:Tpushedsavedint;
                                          const s:Tsupregset);override;
           procedure saveusedotherregisters(list:Taasmoutput;
-                                           var saved:Tpushedsaved;
+                                           var saved:Tpushedsavedother;
                                            const s:Tregisterset);override;
           procedure restoreusedintregisters(list:Taasmoutput;
                                             const saved:Tpushedsavedint);override;
           procedure restoreusedotherregisters(list:Taasmoutput;
-                                              const saved:Tpushedsaved);override;
+                                              const saved:Tpushedsavedother);override;
 
           procedure resetusableregisters;override;
 
@@ -386,7 +386,7 @@ unit rgcpu;
 
 {$ifdef SUPPORT_MMX}
     procedure trgcpu.pushusedotherregisters(list:Taasmoutput;
-                                            var pushed:Tpushedsaved;
+                                            var pushed:Tpushedsavedother;
                                             const s:Tregisterset);
 
     var r:Toldregister;
@@ -399,7 +399,7 @@ unit rgcpu;
         begin
           pushed[r].pushed:=false;
           { if the register is used by the calling subroutine    }
-          if not is_reg_var[r] and
+          if not is_reg_var_other[r] and
              (r in s) and
              { and is present in use }
              not(r in unusedregsmm) then
@@ -451,7 +451,7 @@ unit rgcpu;
 
 {$ifdef SUPPORT_MMX}
     procedure trgcpu.popusedotherregisters(list:Taasmoutput;
-                                           const pushed:Tpushedsaved);
+                                           const pushed:Tpushedsavedother);
 
     var r:Toldregister;
         r2,r3:Tregister;
@@ -495,7 +495,7 @@ unit rgcpu;
     end;
 
 
-    procedure trgcpu.saveusedotherregisters(list:Taasmoutput;var saved:Tpushedsaved;
+    procedure trgcpu.saveusedotherregisters(list:Taasmoutput;var saved:Tpushedsavedother;
                                             const s:tregisterset);
 
     begin
@@ -521,7 +521,7 @@ unit rgcpu;
     end;
 
     procedure trgcpu.restoreusedotherregisters(list:Taasmoutput;
-                                               const saved:tpushedsaved);
+                                               const saved:tpushedsavedother);
 
     begin
 {$ifdef SUPPORT_MMX}
@@ -581,7 +581,10 @@ end.
 
 {
   $Log$
-  Revision 1.21  2003-04-25 08:25:26  daniel
+  Revision 1.22  2003-05-16 14:33:31  peter
+    * regvar fixes
+
+  Revision 1.21  2003/04/25 08:25:26  daniel
     * Ifdefs around a lot of calls to cleartempgen
     * Fixed registers that are allocated but not freed in several nodes
     * Tweak to register allocator to cause less spills

@@ -63,6 +63,10 @@
         'xmm0','xmm1','xmm2','xmm3','xmm4','xmm5','xmm6','xmm7'
       );
 
+{*****************************************************************************
+                                 Constants
+*****************************************************************************}
+
       firstsaveintreg = RS_EAX;
       lastsaveintreg  = RS_EDX;
       firstsavefpureg = R_NO;
@@ -70,6 +74,34 @@
       firstsavemmreg  = R_MM0;
       lastsavemmreg   = R_MM7;
 
+      general_registers = [R_EAX,R_EBX,R_ECX,R_EDX];
+      general_superregisters = [RS_EAX,RS_EBX,RS_ECX,RS_EDX];
+
+{$ifdef newra}
+      usableregsint = [first_imreg..last_imreg];
+{$else}
+      usableregsint = [RS_EAX,RS_EBX,RS_ECX,RS_EDX];
+{$endif}
+      c_countusableregsint = 4;
+
+      maxaddrregs = 1;
+      addrregs    = [R_ESI];
+      usableregsaddr = [RS_ESI];
+      c_countusableregsaddr = 1;
+
+      maxvarregs = 4;
+      varregs : array[1..maxvarregs] of tnewregister =
+         (RS_EBX,RS_EDX,RS_ECX,RS_EAX);
+
+      maxfpuvarregs = 8;
+
+      {# Registers which are defined as scratch and no need to save across
+         routine calls or in assembler blocks.
+      }
+{$ifndef newra}
+      max_scratch_regs = 1;
+      scratch_regs : array[1..max_scratch_regs] of Tsuperregister = (RS_EDI);
+{$endif}
 {*****************************************************************************
                                GDB Information
 *****************************************************************************}
@@ -170,7 +202,13 @@
 
 {
   $Log$
-  Revision 1.1  2003-04-25 11:12:09  florian
+  Revision 1.3  2003-05-16 14:33:31  peter
+    * regvar fixes
+
+  Revision 1.2  2002/04/25 16:12:09  florian
+    * fixed more problems with cpubase and x86-64
+
+  Revision 1.1  2003/04/25 11:12:09  florian
     * merged i386/cpubase and x86_64/cpubase to x86/cpubase;
       different stuff went to cpubase.inc
 }

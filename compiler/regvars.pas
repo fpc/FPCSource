@@ -35,14 +35,15 @@ interface
     procedure assign_regvars(p: tnode);
     procedure load_regvars(asml: TAAsmoutput; p: tnode);
     procedure cleanup_regvars(asml: TAAsmoutput);
-    procedure store_regvar_int(asml:Taasmoutput;reg:Tsuperregister);
     procedure store_regvar(asml: TAAsmoutput; reg: tregister);
     procedure load_regvar(asml: TAAsmoutput; vsym: tvarsym);
     procedure load_regvar_reg(asml: TAAsmoutput; reg: tregister);
     procedure load_all_regvars(asml: TAAsmoutput);
 
-    procedure sync_regvars(list1, list2: taasmoutput; const regvarsloaded1,
-      regvarsloaded2: regvar_booleanarray);
+    procedure sync_regvars_other(list1, list2: taasmoutput; const regvarsloaded1,
+      regvarsloaded2: regvarother_booleanarray);
+    procedure sync_regvars_int(list1, list2: taasmoutput; const regvarsloaded1,
+      regvarsloaded2: Tsupregset);
 
 implementation
 
@@ -141,6 +142,7 @@ implementation
       i: longint;
       parasym : boolean;
       r : Tregister;
+      siz : tcgsize;
     begin
       { max. optimizations     }
       { only if no asm is used }
@@ -169,48 +171,34 @@ implementation
               for i:=1 to maxvarregs-p.registers32 do
                 begin
                   if assigned(regvarinfo^.regvars[i]) and
-                    (rg.reg_pushes[varregs[i]] < regvarinfo^.regvars[i].refs) then
+                     (rg.reg_pushes_int[varregs[i]] < regvarinfo^.regvars[i].refs) then
                     begin
                       { register is no longer available for }
                       { expressions                          }
                       { search the register which is the most }
                       { unused                                }
-                      r.enum:=varregs[i];
-                      if r.enum=R_INTREGISTER then
-                        rg.makeregvarint(r.number)
-                      else
-                        rg.makeregvarother(r);
+                      rg.makeregvarint(varregs[i]);
 
-                      { possibly no 32 bit register are needed }
                       { call by reference/const ? }
                       if (regvarinfo^.regvars[i].varspez in [vs_var,vs_out]) or
                          ((regvarinfo^.regvars[i].varspez=vs_const) and
                            paramanager.push_addr_param(regvarinfo^.regvars[i].vartype.def,current_procdef.proccalloption)) then
-                        begin
-                           r.enum:=varregs[i];
-                           regvarinfo^.regvars[i].reg:=r;
-                        end
+                        siz:=OS_32
                       else
                        if (regvarinfo^.regvars[i].vartype.def.deftype in [orddef,enumdef]) and
                           (regvarinfo^.regvars[i].vartype.def.size=1) then
-                        begin
-                          r.enum:=varregs[i];
-                          regvarinfo^.regvars[i].reg:=rg.makeregsize(r,OS_8);
-                        end
+                        siz:=OS_8
                       else
                        if (regvarinfo^.regvars[i].vartype.def.deftype in [orddef,enumdef]) and
                           (regvarinfo^.regvars[i].vartype.def.size=2) then
-                         begin
-                           r.enum:=varregs[i];
-                           regvarinfo^.regvars[i].reg:=rg.makeregsize(r,OS_16);
-                         end
+                        siz:=OS_16
                       else
-                        begin
-                          r.enum:=varregs[i];
-                          regvarinfo^.regvars[i].reg:=r;
-                        end;
+                        siz:=OS_32;
+
+                      regvarinfo^.regvars[i].reg.enum:=R_INTREGISTER;
+                      regvarinfo^.regvars[i].reg.number:=(varregs[i] shl 8) or cgsize2subreg(siz);
                       { procedure uses this register }
-                      include(rg.usedinproc,varregs[i]);
+                      include(rg.usedintinproc,varregs[i]);
                     end
                   else
                     begin
@@ -274,66 +262,107 @@ implementation
      end;
 
 
-    procedure store_regvar_int(asml:Taasmoutput;reg:Tsuperregister);
-
-    begin
-      internalerror(200301104);
-    end;
 
     procedure store_regvar(asml: TAAsmoutput; reg: tregister);
     var
       i: longint;
+      r : tregister;
       hr: treference;
       regvarinfo: pregvarinfo;
       vsym: tvarsym;
     begin
-      if reg.enum>lastreg then
-        internalerror(200301081);
       regvarinfo := pregvarinfo(current_procdef.regvarinfo);
       if not assigned(regvarinfo) then
         exit;
-      for i := 1 to maxvarregs do
-        if assigned(regvarinfo^.regvars[i]) and
-           (rg.makeregsize(regvarinfo^.regvars[i].reg,OS_INT).enum = reg.enum) then
-          begin
-            if rg.regvar_loaded[rg.makeregsize(reg,OS_INT).enum] then
+      if reg.enum=R_INTREGISTER then
+        begin
+          for i := 1 to maxvarregs do
+            if assigned(regvarinfo^.regvars[i]) and
+               (regvarinfo^.regvars[i].reg.number shr 8 = reg.number shr 8) then
               begin
-                vsym := tvarsym(regvarinfo^.regvars[i]);
-                { we only have to store the regvar back to memory if it's }
-                { possible that it's been modified  (JM)                  }
-                if not(vsym.varspez in [vs_const,vs_var,vs_out]) then
+                if (reg.number shr 8) in rg.regvar_loaded_int then
                   begin
-                    reference_reset_base(hr,current_procinfo.framepointer,vsym.adjusted_address);
-                    cg.a_load_reg_ref(asml,def_cgsize(vsym.vartype.def),vsym.reg,hr);
+                    vsym := tvarsym(regvarinfo^.regvars[i]);
+                    { we only have to store the regvar back to memory if it's }
+                    { possible that it's been modified  (JM)                  }
+                    if not(vsym.varspez in [vs_const,vs_var,vs_out]) then
+                      begin
+                        reference_reset_base(hr,current_procinfo.framepointer,vsym.adjusted_address);
+                        cg.a_load_reg_ref(asml,def_cgsize(vsym.vartype.def),vsym.reg,hr);
+                      end;
+                    asml.concat(tai_regalloc.dealloc(vsym.reg));
+                    exclude(rg.regvar_loaded_int,reg.number shr 8);
                   end;
-                asml.concat(tai_regalloc.dealloc(rg.makeregsize(reg,OS_INT)));
-                rg.regvar_loaded[rg.makeregsize(reg,OS_INT).enum] := false;
+                break;
               end;
-            break;
-          end;
+        end
+      else
+        begin
+          for i := 1 to maxvarregs do
+            if assigned(regvarinfo^.regvars[i]) then
+              begin
+                r:=rg.makeregsize(regvarinfo^.regvars[i].reg,OS_INT);
+                if (r.enum = reg.enum) then
+                  begin
+                    if rg.regvar_loaded_other[r.enum] then
+                      begin
+                        vsym := tvarsym(regvarinfo^.regvars[i]);
+                        { we only have to store the regvar back to memory if it's }
+                        { possible that it's been modified  (JM)                  }
+                        if not(vsym.varspez in [vs_const,vs_var,vs_out]) then
+                          begin
+                            reference_reset_base(hr,current_procinfo.framepointer,vsym.adjusted_address);
+                            cg.a_load_reg_ref(asml,def_cgsize(vsym.vartype.def),vsym.reg,hr);
+                          end;
+                        asml.concat(tai_regalloc.dealloc(vsym.reg));
+                        rg.regvar_loaded_other[r.enum] := false;
+                      end;
+                    break;
+                  end;
+              end;
+        end;
     end;
 
     procedure load_regvar(asml: TAAsmoutput; vsym: tvarsym);
     var
       hr: treference;
       opsize: tcgsize;
+      r,
       reg : tregister;
     begin
-      reg:=rg.makeregsize(vsym.reg,OS_INT);
-      if reg.enum>lastreg then
-        internalerror(200301081);
-      if not rg.regvar_loaded[reg.enum] then
+      reg:=vsym.reg;
+      if reg.enum=R_INTREGISTER then
         begin
-          asml.concat(tai_regalloc.alloc(reg));
-          reference_reset_base(hr,current_procinfo.framepointer,vsym.adjusted_address);
-          if (vsym.varspez in [vs_var,vs_out]) or
-             ((vsym.varspez=vs_const) and
-               paramanager.push_addr_param(vsym.vartype.def,current_procdef.proccalloption)) then
-            opsize := OS_ADDR
-          else
-            opsize := def_cgsize(vsym.vartype.def);
-          cg.a_load_ref_reg(asml,opsize,hr,reg);
-          rg.regvar_loaded[reg.enum] := true;
+          if not((reg.number shr 8) in rg.regvar_loaded_int) then
+            begin
+              asml.concat(tai_regalloc.alloc(reg));
+              reference_reset_base(hr,current_procinfo.framepointer,vsym.adjusted_address);
+              if (vsym.varspez in [vs_var,vs_out]) or
+                 ((vsym.varspez=vs_const) and
+                   paramanager.push_addr_param(vsym.vartype.def,current_procdef.proccalloption)) then
+                opsize := OS_ADDR
+              else
+                opsize := def_cgsize(vsym.vartype.def);
+              cg.a_load_ref_reg(asml,opsize,hr,reg);
+              include(rg.regvar_loaded_int,reg.number shr 8);
+            end;
+        end
+      else
+        begin
+          r:=rg.makeregsize(reg,OS_INT);
+          if not rg.regvar_loaded_other[r.enum] then
+            begin
+              asml.concat(tai_regalloc.alloc(reg));
+              reference_reset_base(hr,current_procinfo.framepointer,vsym.adjusted_address);
+              if (vsym.varspez in [vs_var,vs_out]) or
+                 ((vsym.varspez=vs_const) and
+                   paramanager.push_addr_param(vsym.vartype.def,current_procdef.proccalloption)) then
+                opsize := OS_ADDR
+              else
+                opsize := def_cgsize(vsym.vartype.def);
+              cg.a_load_ref_reg(asml,opsize,hr,reg);
+              rg.regvar_loaded_other[r.enum] := true;
+            end;
         end;
     end;
 
@@ -346,13 +375,23 @@ implementation
       regvarinfo := pregvarinfo(current_procdef.regvarinfo);
       if not assigned(regvarinfo) then
         exit;
-      reg_spare := rg.makeregsize(reg,OS_INT);
-      if reg_spare.enum>lastreg then
-        internalerror(2003010801);
-      for i := 1 to maxvarregs do
-        if assigned(regvarinfo^.regvars[i]) and
-           (rg.makeregsize(regvarinfo^.regvars[i].reg,OS_INT).enum = reg_spare.enum) then
-          load_regvar(asml,tvarsym(regvarinfo^.regvars[i]))
+      if reg.enum=R_INTREGISTER then
+        begin
+          for i := 1 to maxvarregs do
+            if assigned(regvarinfo^.regvars[i]) and
+               (regvarinfo^.regvars[i].reg.number shr 8 = reg.number shr 8) then
+              load_regvar(asml,tvarsym(regvarinfo^.regvars[i]))
+        end
+      else
+        begin
+          reg_spare := rg.makeregsize(reg,OS_INT);
+          if reg_spare.enum>lastreg then
+            internalerror(2003010801);
+          for i := 1 to maxvarregs do
+            if assigned(regvarinfo^.regvars[i]) and
+               (rg.makeregsize(regvarinfo^.regvars[i].reg,OS_INT).enum = reg_spare.enum) then
+              load_regvar(asml,tvarsym(regvarinfo^.regvars[i]))
+        end;
     end;
 
     procedure load_all_regvars(asml: TAAsmoutput);
@@ -364,8 +403,7 @@ implementation
       if not assigned(regvarinfo) then
         exit;
       for i := 1 to maxvarregs do
-        if assigned(regvarinfo^.regvars[i]) {and
-           (makereg32(regvarinfo^.regvars[i].reg) in [R_EAX,R_EBX,R_ECX,R_EDX])} then
+        if assigned(regvarinfo^.regvars[i]) then
           load_regvar(asml,tvarsym(regvarinfo^.regvars[i]))
     end;
 
@@ -388,12 +426,13 @@ implementation
             begin
              if assigned(regvarinfo^.regvars[i]) then
                begin
+                r:=regvarinfo^.regvars[i].reg;
+                convert_register_to_enum(r);
                 if cs_asm_source in aktglobalswitches then
                  asml.insert(tai_comment.Create(strpnew(regvarinfo^.regvars[i].name+
                   ' with weight '+tostr(regvarinfo^.regvars[i].refs)+' assigned to register '+
-                  std_reg2str[regvarinfo^.regvars[i].reg.enum])));
-                if (status.verbosity and v_debug)=v_debug then
-                 Message3(cg_d_register_weight,std_reg2str[regvarinfo^.regvars[i].reg.enum],
+                  std_reg2str[r.enum])));
+                Message3(cg_d_register_weight,std_reg2str[r.enum],
                   tostr(regvarinfo^.regvars[i].refs),regvarinfo^.regvars[i].name);
                end;
             end;
@@ -434,20 +473,41 @@ implementation
     end;
 
 
-    procedure sync_regvars(list1, list2: taasmoutput; const regvarsloaded1,
-      regvarsloaded2: regvar_booleanarray);
+    procedure sync_regvars_other(list1, list2: taasmoutput; const regvarsloaded1,
+      regvarsloaded2: regvarother_booleanarray);
     var
       counter: tregister;
     begin
-      for counter.enum := low(rg.regvar_loaded) to high(rg.regvar_loaded) do
+      for counter.enum := low(rg.regvar_loaded_other) to high(rg.regvar_loaded_other) do
         begin
-           rg.regvar_loaded[counter.enum] := regvarsloaded1[counter.enum] and
+           rg.regvar_loaded_other[counter.enum] := regvarsloaded1[counter.enum] and
              regvarsloaded2[counter.enum];
            if regvarsloaded1[counter.enum] xor regvarsloaded2[counter.enum] then
              if regvarsloaded1[counter.enum] then
                load_regvar_reg(list2,counter)
              else
                load_regvar_reg(list1,counter);
+        end;
+    end;
+
+
+    procedure sync_regvars_int(list1, list2: taasmoutput; const regvarsloaded1,
+      regvarsloaded2: Tsupregset);
+    var
+      i : longint;
+      r : tregister;
+    begin
+      for i:=1 to maxvarregs do
+        begin
+          r.enum:=R_INTREGISTER;
+          r.number:=varregs[i] shl 8;
+          if (varregs[i] in regvarsloaded1) and
+             not(varregs[i] in regvarsloaded2) then
+            load_regvar_reg(list2,r)
+          else
+            if (varregs[i] in regvarsloaded2) and
+               not(varregs[i] in regvarsloaded1) then
+              load_regvar_reg(list1,r);
         end;
     end;
 
@@ -476,11 +536,22 @@ implementation
              begin
                if assigned(regvars[i]) then
                 begin
-                  reg:=rg.makeregsize(regvars[i].reg,OS_INT);
-                  if reg.enum>lastreg then
-                    internalerror(200201081);
-                  if (rg.regvar_loaded[reg.enum]) then
-                   asml.concat(tai_regalloc.dealloc(reg));
+                  reg:=regvars[i].reg;
+                  if reg.enum=R_INTREGISTER then
+                    begin
+                      if (reg.number shr 8 in rg.regvar_loaded_int) then
+                       asml.concat(tai_regalloc.dealloc(reg));
+                    end
+                  else
+                    begin
+                      reg.number:=(r.number and not $ff) or cgsize2subreg(OS_INT);
+                      r:=reg;
+                      convert_register_to_enum(r);
+                      if r.enum>lastreg then
+                        internalerror(200201081);
+                      if (rg.regvar_loaded_other[r.enum]) then
+                       asml.concat(tai_regalloc.dealloc(reg));
+                    end;
                 end;
              end;
           end;
@@ -490,7 +561,10 @@ end.
 
 {
   $Log$
-  Revision 1.49  2003-05-15 18:58:53  peter
+  Revision 1.50  2003-05-16 14:33:31  peter
+    * regvar fixes
+
+  Revision 1.49  2003/05/15 18:58:53  peter
     * removed selfpointer_offset, vmtpointer_offset
     * tvarsym.adjusted_address
     * address in localsymtable is now in the real direction

@@ -51,6 +51,8 @@ interface
     function foreachnodestatic(var n: tnode; f: staticforeachnodefunction): boolean;
 
     function call_fail_node:tnode;
+    function initialize_data_node(p:tnode):tnode;
+    function finalize_data_node(p:tnode):tnode;
 
 
 implementation
@@ -58,7 +60,8 @@ implementation
     uses
       verbose,
       symconst,symsym,symtype,symdef,symtable,
-      nbas,ncon,ncnv,nld,nflw,nset,ncal,nadd;
+      nbas,ncon,ncnv,nld,nflw,nset,ncal,nadd,nmem,
+      pass_1;
 
   function foreachnode(var n: tnode; f: foreachnodefunction): boolean;
     begin
@@ -213,12 +216,44 @@ implementation
       end;
 
 
+    function initialize_data_node(p:tnode):tnode;
+      begin
+        if not assigned(p.resulttype.def) then
+          resulttypepass(p);
+        result:=ccallnode.createintern('fpc_initialize',
+              ccallparanode.create(
+                  caddrnode.create(
+                      crttinode.create(
+                          tstoreddef(p.resulttype.def),initrtti)),
+              ccallparanode.create(
+                  caddrnode.create(p),
+              nil)));
+      end;
+
+
+    function finalize_data_node(p:tnode):tnode;
+      begin
+        if not assigned(p.resulttype.def) then
+          resulttypepass(p);
+        result:=ccallnode.createintern('fpc_finalize',
+              ccallparanode.create(
+                  caddrnode.create(
+                      crttinode.create(
+                          tstoreddef(p.resulttype.def),initrtti)),
+              ccallparanode.create(
+                  caddrnode.create(p),
+              nil)));
+      end;
+
 
 end.
 
 {
   $Log$
-  Revision 1.3  2003-05-13 20:54:06  peter
+  Revision 1.4  2003-05-16 14:33:31  peter
+    * regvar fixes
+
+  Revision 1.3  2003/05/13 20:54:06  peter
     * fail checks vmt value before calling dispose
 
   Revision 1.2  2003/05/13 19:14:41  peter

@@ -105,7 +105,7 @@ begin
         if (p.ops = 1) then
           begin
             r.enum:=R_EDX;
-            if rg.is_reg_var[R_EDX] and
+            if (RS_EDX in rg.is_reg_var_int) and
                (not getNextInstruction(p,hp) or
                 not((hp.typ = ait_instruction) and
                     (hp.opcode = A_MOV) and
@@ -125,7 +125,7 @@ begin
         else
           { only possible for imul }
           { last operand is always destination }
-          if rg.is_reg_var[reg32(p.oper[p.ops-1].reg).enum] then
+          if ((p.oper[p.ops-1].reg.number shr 8) in rg.is_reg_var_int) then
             for regCounter.enum := R_EAX to R_EDI do
               begin
                 if writeDestroysContents(p.oper[p.ops-1],regCounter,c[regCounter.enum]) then
@@ -1997,7 +1997,10 @@ End.
 
 {
   $Log$
-  Revision 1.44  2003-04-27 11:21:35  peter
+  Revision 1.45  2003-05-16 14:33:31  peter
+    * regvar fixes
+
+  Revision 1.44  2003/04/27 11:21:35  peter
     * aktprocdef renamed to current_procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be
