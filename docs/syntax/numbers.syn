@@ -6,6 +6,12 @@
 \end{rep} 
 \end{mysyntdiag} 
 \begin{mysyntdiag}
+\synt{octal\ digit\ sequence} 
+\begin{rep}[b] 
+ \synt{octal\ digit} \\ 
+\end{rep} 
+\end{mysyntdiag} 
+\begin{mysyntdiag}
 \synt{bin\ digit\ sequence} 
 \begin{rep}[b] 
  \begin{stack}
