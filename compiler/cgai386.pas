@@ -2122,7 +2122,8 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                begin
                  exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,R_ECX)));
                  popecx:=true;
-               end;
+               end
+                 else exprasmlist^.concat(new(pairegalloc,alloc(R_ECX)));
               if is_reg then
                emit_reg_reg(op,opsize,p^.location.register,R_ECX)
               else
@@ -2160,7 +2161,8 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
               emitlab(poslabel);
             end;
            if popecx then
-            exprasmlist^.concat(new(paicpu,op_reg(A_POP,S_L,R_ECX)));
+            exprasmlist^.concat(new(paicpu,op_reg(A_POP,S_L,R_ECX)))
+           else exprasmlist^.concat(new(pairegalloc,dealloc(R_ECX)));
          end
         else
          begin
@@ -3738,7 +3740,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.79  2000-02-09 13:22:50  peter
+  Revision 1.80  2000-02-09 17:36:10  jonas
+    * added missing regalloc for ecx in range check code
+
+  Revision 1.79  2000/02/09 13:22:50  peter
     * log truncated
 
   Revision 1.78  2000/02/04 21:00:31  florian
@@ -3820,5 +3825,4 @@ end.
 
   Revision 1.59  1999/11/15 14:04:00  pierre
    * self pointer stabs for local function was wrong
-
 }
