@@ -62,8 +62,8 @@ begin
     TE:=OpenEditorWindow(nil,'',0,0);
     if TE<>nil then
     begin
-      StartTemplate(LB^.Focused,TE^.Editor);
       TE^.Editor^.SetModified(false); { if nothing changes, we don't need to save it }
+      StartTemplate(LB^.Focused,TE^.Editor);
 (*      TE^.Hide; { we need this trick to get the editor updated }
       TE^.Show;*)
     end;
@@ -221,7 +221,12 @@ end;
 
 {
   $Log$
-  Revision 1.3  2002-04-10 22:38:11  pierre
+  Revision 1.4  2002-08-29 09:31:53  pierre
+  CVS Enter log comment for commit
+   * set modified flag to false before prompt
+     dialog are executed in NewFromTemplate
+
+  Revision 1.3  2002/04/10 22:38:11  pierre
    * allow to open non existant file
 
   Revision 1.2  2001/09/12 09:49:35  pierre
