@@ -20,6 +20,7 @@ Free Pascal is currently available for the following platforms:
 - Win32 (Win32s, Win95/98 and WinNT)
 - Sun Solaris i386
 - BeOS i386
+- QNX i386
 
 Older version of the compiler (0.99.5) is also available on:
 - Commodore Amiga
@@ -69,16 +70,19 @@ DOS (extender GO32v2):
  - DOS 3.3
  - 4 MB RAM (8+ MB recommended)
  - hard disk with free space of 8 MB
- - DMPI server (CWSDPMI is delivered in the go32v2 distribution)
+ - DPMI server (CWSDPMI is delivered in the go32v2 distribution)
 Win32:
- - Win95/98 or WinNT
+ - Win95/98/Me/2000/XP or WinNT
  - 8 MB RAM (16+ MB recommended)
 OS/2 and DOS (extender EMX):
  - either DOS 5.0 and above
- or OS/2 v2.x and above
+  or OS/2 v2.x and above
  - 3 MB RAM (8+ MB recommended) for DOS
- or 8 MB (12 or more MB recommended depending on OS version) for OS/2
+  or 8 MB (12 or more MB recommended depending on OS version) for OS/2
  - EMX or RSX (for DPMI) runtime package (part of OS/2 distribution)
+BeOS:
+ - GNU Utilities and development tools pre-installed (as and ld)
+ - BeOS 4.5 or later
 
 
 ****************************************************************************
