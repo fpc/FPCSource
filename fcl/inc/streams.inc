@@ -99,7 +99,7 @@
       if (Offset<Low(longint)) or
          (Offset>High(longint)) then
         raise ERangeError.Create(SRangeError);
-      Seek(longint(Offset),ord(Origin));
+      Result:=Seek(longint(Offset),ord(Origin));
     end;
 
 {$else seek64bit}
@@ -784,7 +784,10 @@ end;
 
 {
   $Log$
-  Revision 1.10  2002-12-18 16:35:59  peter
+  Revision 1.11  2002-12-18 16:45:33  peter
+    * set function result in TStream.Seek(int64) found by Mattias Gaertner
+
+  Revision 1.10  2002/12/18 16:35:59  peter
     * fix crash in Seek()
 
   Revision 1.9  2002/12/18 15:51:52  michael
