@@ -317,18 +317,30 @@ uses
 
     type
       TLoc=(
-        LOC_INVALID,     { added for tracking problems}
-        LOC_CONSTANT,    { ordinal constant }
-        LOC_REGISTER,    { in a processor register }
-        LOC_CREGISTER,   { Constant register which shouldn't be modified }
-        LOC_FPUREGISTER, { FPU register}
-        LOC_CFPUREGISTER,{ Constant FPU register which shouldn't be modified }
-        LOC_MMREGISTER,  { multimedia register }
-        LOC_CMMREGISTER, { Constant multimedia reg which shouldn't be modified }
-        LOC_REFERENCE,   { in memory }
-        LOC_CREFERENCE,  { in memory (constant) }
-        LOC_JUMP,        { boolean results only, jump to false or true label }
-        LOC_FLAGS        { boolean results only, flags are set }
+        { added for tracking problems}
+        LOC_INVALID,
+        { ordinal constant }
+        LOC_CONSTANT,
+        { in a processor register }
+        LOC_REGISTER,
+        { Constant register which shouldn't be modified }
+        LOC_CREGISTER,
+        { FPU register}
+        LOC_FPUREGISTER,
+        { Constant FPU register which shouldn't be modified }
+        LOC_CFPUREGISTER,
+        { multimedia register }
+        LOC_MMREGISTER,
+        { Constant multimedia reg which shouldn't be modified }
+        LOC_CMMREGISTER,
+        { in memory }
+        LOC_REFERENCE,
+        { in memory (constant) }
+        LOC_CREFERENCE,
+        { boolean results only, jump to false or true label }
+        LOC_JUMP,
+        { boolean results only, flags are set }
+        LOC_FLAGS
       );
 
       { tparamlocation describes where a parameter for a procedure is stored.
@@ -336,11 +348,19 @@ uses
         TLocation isn't used, because contains a lot of unnessary fields.
       }
       tparalocation = packed record
+         { The location type where the parameter is passed, usually
+           LOC_REFERENCE,LOC_REGISTER or LOC_FPUREGISTER
+         }
          loc  : TLoc;
+         { The stack pointer must be decreased by this value before
+           the parameter is copied to the given destination.
+           This allows to "encode" pushes with tparalocation.
+           On the PowerPC, this field is unsed but it is there
+           because several generic code accesses it.
+         }
          sp_fixup : longint;
          case TLoc of
             LOC_REFERENCE : (reference : tparareference);
-            { segment in reference at the same place as in loc_register }
             LOC_FPUREGISTER, LOC_CFPUREGISTER, LOC_MMREGISTER, LOC_CMMREGISTER,
               LOC_REGISTER,LOC_CREGISTER : (
               case longint of
@@ -627,7 +647,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.18  2002-07-11 14:41:34  florian
+  Revision 1.19  2002-07-13 19:38:44  florian
+    * some more generic calling stuff fixed
+
+  Revision 1.18  2002/07/11 14:41:34  florian
     * start of the new generic parameter handling
 
   Revision 1.17  2002/07/11 07:35:36  jonas

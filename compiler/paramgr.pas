@@ -132,10 +132,12 @@ end.
 
 {
    $Log$
-   Revision 1.2  2002-07-13 07:17:15  jonas
+   Revision 1.3  2002-07-13 19:38:43  florian
+     * some more generic calling stuff fixed
+
+   Revision 1.2  2002/07/13 07:17:15  jonas
      * fixed memory leak reported by  Sergey Korshunoff
 
    Revision 1.1  2002/07/11 14:41:28  florian
      * start of the new generic parameter handling
-
 }

@@ -61,7 +61,7 @@ implementation
       gdb,
 {$endif GDB}
       cginfo,cgbase,pass_2,
-      cpubase,aasmbase,aasmtai,aasmcpu,
+      cpuinfo,cpubase,aasmbase,aasmtai,aasmcpu,
       nmem,nld,ncnv,
       ncgutil,cga,cgobj,tgobj,regvars,rgobj,rgcpu,cg64f32,cgcpu;
 
@@ -1112,7 +1112,6 @@ implementation
          testregisters32;
 {$endif TEMPREGDEBUG}
 
-{$ifdef dummy}
          { a constructor could be a function with boolean result }
          { if calling constructor called fail we
            must jump directly to quickexitlabel  PM
@@ -1124,7 +1123,7 @@ implementation
             (methodpointer.nodetype=typen) and
             (aktprocdef.proctypeoption=potype_constructor) then
            begin
-             emitjmp(C_Z,faillabel);
+              cg.a_cmp_const_reg_label(exprasmlist,OS_ADDR,OC_EQ,0,accumulator,faillabel);
            end;
 
          { call to AfterConstruction? }
@@ -1136,12 +1135,12 @@ implementation
            (methodpointer.nodetype<>typen) then
            begin
               getlabel(constructorfailed);
-              emitjmp(C_Z,constructorfailed);
-              cg.a_param_reg(exprasmlist,OS_ADDR,self_pointer_reg,1);
+              cg.a_cmp_const_reg_label(exprasmlist,OS_ADDR,OC_EQ,0,self_pointer_reg,constructorfailed);
+              cg.a_param_reg(exprasmlist,OS_ADDR,accumulator,paramanager.getintparaloc(1));
               reference_reset_base(href,self_pointer_reg,0);
               tmpreg:=cg.get_scratch_reg_address(exprasmlist);
               cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,tmpreg);
-              reference_reset_base(href,tmpreg,68);
+              reference_reset_base(href,tmpreg,17*pointer_size);
               cg.a_call_ref(exprasmlist,href);
               cg.free_scratch_reg(exprasmlist,tmpreg);
               exprasmList.concat(tai_regalloc.Alloc(accumulator));
@@ -1149,7 +1148,6 @@ implementation
               cg.a_load_reg_reg(exprasmlist,OS_ADDR,self_pointer_reg,accumulator);
            end;
 
-{$endif dummy}
          { handle function results }
          if (not is_void(resulttype.def)) then
           begin
@@ -1501,7 +1499,9 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2002-07-11 14:41:28  florian
-    * start of the new generic parameter handling
+  Revision 1.2  2002-07-13 19:38:43  florian
+    * some more generic calling stuff fixed
 
+  Revision 1.1  2002/07/11 14:41:28  florian
+    * start of the new generic parameter handling
 }
