@@ -454,6 +454,10 @@ implementation
                 location.register.enum:=FPU_RESULT_REG;
 {$ifdef x86}
                 inc(trgcpu(rg).fpuvaroffset);
+{$else x86}
+                hregister := rg.getregisterfpu(exprasmlist);
+                cg.a_loadfpu_reg_reg(exprasmlist,location.register,hregister);
+                location.register := hregister;
 {$endif x86}
               end
             else
@@ -1128,7 +1132,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.71  2003-05-23 19:35:50  jonas
+  Revision 1.72  2003-05-24 13:36:54  jonas
+    * save fpu results in a normal fpu register on non-x86 processors
+
+  Revision 1.71  2003/05/23 19:35:50  jonas
     - undid previous commit, it was wrong
 
   Revision 1.70  2003/05/23 19:11:58  jonas
