@@ -21,6 +21,7 @@
 Const
   { Type of exception. Currently only one. }
   FPC_EXCEPTION   = 1;
+
   { types of frames for the exception address stack }
   cExceptionFrame = 1;
   cFinalizeFrame  = 2;
@@ -28,46 +29,46 @@ Const
 Type
   PExceptAddr = ^TExceptAddr;
   TExceptAddr = record
-    buf : pjmp_buf;
+    buf       : pjmp_buf;
     frametype : Longint;
-    next : PExceptAddr;
-    end;
+    next      : PExceptAddr;
+  end;
 
   PExceptObject = ^TExceptObject;
   TExceptObject = record
     FObject : TObject;
-    addr : pointer;
-    Next : PExceptObject;
-    end;
+    Addr    : pointer;
+    Next    : PExceptObject;
+  end;
 
   TExceptObjectClass = Class of TObject;
 
 Const
   CatchAllExceptions = -1;
 
-Var ExceptAddrStack : PExceptAddr;
-    ExceptObjectStack : PExceptObject;
+Var
+  ExceptAddrStack   : PExceptAddr;
+  ExceptObjectStack : PExceptObject;
 
 
 Function PushExceptAddr (Ft: Longint): PJmp_buf ;[Public, Alias : 'FPC_PUSHEXCEPTADDR'];
-
-var Buf : PJmp_buf;
-    NewAddr : PExceptAddr;
-
+var
+  Buf : PJmp_buf;
+  NewAddr : PExceptAddr;
 begin
 {$ifdef excdebug}
   writeln ('In PushExceptAddr');
 {$endif}
   If ExceptAddrstack=Nil then
     begin
-    New(ExceptAddrStack);
-    ExceptAddrStack^.Next:=Nil;
+      New(ExceptAddrStack);
+      ExceptAddrStack^.Next:=Nil;
     end
   else
     begin
-    New(NewAddr);
-    NewAddr^.Next:=ExceptAddrStack;
-    ExceptAddrStack:=NewAddr;
+      New(NewAddr);
+      NewAddr^.Next:=ExceptAddrStack;
+      ExceptAddrStack:=NewAddr;
     end;
   new(buf);
   ExceptAddrStack^.Buf:=Buf;
@@ -76,41 +77,39 @@ begin
 end;
 
 
-Procedure PushExceptObj (Obj : TObject; AnAddr : Pointer);
-
+Procedure PushExceptObj (Obj : TObject; AnAddr : Pointer); [Public, Alias : 'FPC_PUSHEXCEPTOBJECT'];
 var
-    Newobj : PExceptObject;
-
+  Newobj : PExceptObject;
 begin
 {$ifdef excdebug}
   writeln ('In PushExceptObject');
 {$endif}
   If ExceptObjectStack=Nil then
     begin
-    New(ExceptObjectStack);
-    ExceptObjectStack^.Next:=Nil;
+      New(ExceptObjectStack);
+      ExceptObjectStack^.Next:=Nil;
     end
   else
     begin
-    New(NewObj);
-    NewObj^.Next:=ExceptObjectStack;
-    ExceptObjectStack:=NewObj;
+      New(NewObj);
+      NewObj^.Next:=ExceptObjectStack;
+      ExceptObjectStack:=NewObj;
     end;
   ExceptObjectStack^.FObject:=Obj;
   ExceptObjectStack^.Addr:=AnAddr;
 end;
 
-Procedure DoUnHandledException (Var Obj : TObject; AnAddr : Pointer);
 
+Procedure DoUnHandledException;
 begin
   If ExceptProc<>Nil then
     If ExceptObjectStack<>Nil then
-      TExceptPRoc(ExceptProc)(Obj,AnAddr);
+      TExceptPRoc(ExceptProc)(ExceptObjectStack^.FObject,ExceptObjectStack^.Addr);
   RunError(217);
 end;
 
-Function Raiseexcept (Obj : TObject; AnAddr : Pointer) : TObject;[Public, Alias : 'FPC_RAISEEXCEPTION'];
 
+Function Raiseexcept (Obj : TObject; AnAddr : Pointer) : TObject;[Public, Alias : 'FPC_RAISEEXCEPTION'];
 begin
 {$ifdef excdebug}
   writeln ('In RaiseException');
@@ -118,38 +117,36 @@ begin
   Raiseexcept:=nil;
   PushExceptObj(Obj,AnAddr);
   If ExceptAddrStack=Nil then
-    DoUnhandledException (Obj,AnAddr);
+    DoUnhandledException;
   longjmp(ExceptAddrStack^.Buf^,FPC_Exception);
 end;
 
+
 Procedure PopAddrStack;[Public, Alias : 'FPC_POPADDRSTACK'];
-
 var
-   hp : PExceptAddr;
-
+  hp : PExceptAddr;
 begin
 {$ifdef excdebug}
   writeln ('In Popaddrstack');
 {$endif}
   If ExceptAddrStack=nil then
     begin
-    writeln ('At end of ExceptionAddresStack');
-    halt (1);
+      writeln ('At end of ExceptionAddresStack');
+      halt (255);
     end
   else
-    begin       
-       hp:=ExceptAddrStack;
-       ExceptAddrStack:=ExceptAddrStack^.Next;
-       dispose(hp^.buf);
-       dispose(hp);       
+    begin
+      hp:=ExceptAddrStack;
+      ExceptAddrStack:=ExceptAddrStack^.Next;
+      dispose(hp^.buf);
+      dispose(hp);
     end;
 end;
 
-Procedure PopObjectStack;
 
+Procedure PopObjectStack;[Public, Alias : 'FPC_POPOBJECTSTACK'];
 var
-   hp : PExceptObject;
-
+  hp : PExceptObject;
 begin
 {$ifdef excdebug}
   writeln ('In PopObjectstack');
@@ -169,43 +166,42 @@ end;
 
 
 Procedure ReRaise;[Public, Alias : 'FPC_RERAISE'];
-
 begin
 {$ifdef excdebug}
   writeln ('In reraise');
 {$endif}
   PopAddrStack;
   If ExceptAddrStack=Nil then
-    DoUnHandledException (ExceptObjectStack^.FObject,
-                          ExceptObjectStack^.Addr);
+    DoUnHandledException;
   longjmp(ExceptAddrStack^.Buf^,FPC_Exception);
 end;
 
-Function Catches(Objtype : TExceptObjectClass) : TObject;[Public, Alias : 'FPC_CATCHES'];
 
+Function Catches(Objtype : TExceptObjectClass) : TObject;[Public, Alias : 'FPC_CATCHES'];
 begin
   If ExceptObjectStack=Nil then
-    begin
-    Writeln ('Internal error.');
-    halt (255);
-    end;
+   begin
+     Writeln ('Internal error.');
+     halt (255);
+   end;
   if Not ((Objtype = TExceptObjectClass(CatchAllExceptions)) or
-      (ExceptObjectStack^.FObject is ObjType)) then
+         (ExceptObjectStack^.FObject is ObjType)) then
     Catches:=Nil
   else
     begin
-    // catch !
-    Catches:=ExceptObjectStack^.FObject;
-    PopObjectStack;
-    PopAddrStack;
+      // catch !
+      Catches:=ExceptObjectStack^.FObject;
+      { this can't be done, because there could be a reraise (PFV)
+       PopObjectStack; }
+      PopAddrStack;
     end;
 end;
 
 Procedure DestroyException(o : TObject);[Public, Alias : 'FPC_DESTROYEXCEPTION'];
+begin
+  o.Destroy;
+end;
 
-  begin
-     o.Destroy;
-  end;
 
 Procedure InitExceptions;
 {
@@ -217,7 +213,10 @@ begin
 end;
 {
   $Log$
-  Revision 1.10  1999-05-13 18:38:26  florian
+  Revision 1.10.2.1  1999-06-14 00:38:18  peter
+    * don't pop object stack in catches, because it's needed for reraise
+
+  Revision 1.10  1999/05/13 18:38:26  florian
     * more memory leaks fixed:
          - exceptaddrobject is now properly disposed
          - after the end of the on ... do block the exception
