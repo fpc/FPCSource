@@ -1550,6 +1550,9 @@ begin
    exclude(initmoduleswitches,cs_fp_emulation)
   else
    def_symbol('M68K_FPU_EMULATED');
+   
+  if initoptprocessor=MC68020 then
+    def_symbol('CPUM68020');
 {$endif m68k}
 
 { write logo if set }
@@ -1677,7 +1680,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.82  2002-08-12 15:08:40  carl
+  Revision 1.83  2002-09-22 14:02:35  carl
+    * stack checking cannot be called before system unit is initialized
+    * MC68020 define
+
+  Revision 1.82  2002/08/12 15:08:40  carl
     + stab register indexes for powerpc (moved from gdb to cpubase)
     + tprocessor enumeration moved to cpuinfo
     + linker in target_info is now a class

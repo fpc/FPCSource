@@ -1457,7 +1457,10 @@ implementation
 
               cg.g_stackframe_entry(stackalloclist,stackframe);
 
-              if (cs_check_stack in aktlocalswitches) then
+              { never call stack checking before the standard system unit
+                has not been initialized
+              }  
+              if (cs_check_stack in aktlocalswitches) and (aktprocdef.proctypeoption<>potype_proginit) then
                 cg.g_stackcheck(stackalloclist,stackframe);
             end;
             list.insertlist(stackalloclist);
@@ -1831,7 +1834,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.50  2002-09-17 18:54:03  jonas
+  Revision 1.51  2002-09-22 14:02:35  carl
+    * stack checking cannot be called before system unit is initialized
+    * MC68020 define
+
+  Revision 1.50  2002/09/17 18:54:03  jonas
     * a_load_reg_reg() now has two size parameters: source and dest. This
       allows some optimizations on architectures that don't encode the
       register size in the register name.

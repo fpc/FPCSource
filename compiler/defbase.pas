@@ -238,6 +238,10 @@ interface
       if acp is cp_value_equal_const call by value
       and call by const parameter are assumed as
       equal
+      allowdefaults indicates if default value parameters
+      are allowed (in this case, the search order will first
+      search for a routine with default parameters, before
+      searching for the same definition with no parameters)
     }
     function equal_paras(paralist1,paralist2 : TLinkedList; acp : compare_type;allowdefaults:boolean) : boolean;
 
@@ -1956,7 +1960,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  2002-09-16 14:11:12  peter
+  Revision 1.13  2002-09-22 14:02:34  carl
+    * stack checking cannot be called before system unit is initialized
+    * MC68020 define
+
+  Revision 1.12  2002/09/16 14:11:12  peter
     * add argument to equal_paras() to support default values or not
 
   Revision 1.11  2002/09/15 17:54:46  peter
