@@ -1149,6 +1149,7 @@ unit pdecl;
                         Message(type_e_class_type_expected);
                         object_dec:=new(perrordef,init);
                      end;
+                   typecanbeforward:=storetypeforwardsallowed;
                    exit;
                 end
               { forward class }
@@ -1172,6 +1173,7 @@ unit pdecl;
                      aktclass^.insertvmt;
 
                    object_dec:=aktclass;
+                   typecanbeforward:=storetypeforwardsallowed;
                    exit;
                 end;
            end;
@@ -2216,7 +2218,11 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.102  1999-03-05 01:14:26  pierre
+  Revision 1.103  1999-03-22 22:10:25  florian
+    * typecanbeforward wasn't always restored in object_dec which
+      sometimes caused strange effects
+
+  Revision 1.102  1999/03/05 01:14:26  pierre
     * bug0198 : call conventions for methods
       not yet implemented is the control of same calling convention
       for virtual and child's virtual
