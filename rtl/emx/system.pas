@@ -352,7 +352,7 @@ begin
         if p[i]='/' then p[i]:='\';
 end;
 
-procedure do_close(h:longint);
+procedure do_close (H: THandle);
 
 begin
 { Only three standard handles under real OS/2 }
@@ -402,7 +402,7 @@ begin
     end ['eax', 'edx', 'edi'];
 end;
 
-function do_read(h:longint;addr:pointer;len:longint):longint; assembler;
+function do_read (H: THandle; Addr: pointer; Len: longint): longint; assembler;
 asm
     pushl %ebx
 {$IFNDEF REGCALL}
@@ -421,7 +421,8 @@ asm
     popl %ebx
 end {['eax', 'ebx', 'ecx', 'edx']};
 
-function do_write(h:longint;addr:pointer;len:longint) : longint; assembler;
+function do_write (H: THandle; Addr: pointer; Len: longint): longint;
+                                                                     assembler;
 asm
     pushl %ebx
 {$IFDEF REGCALL}
@@ -443,7 +444,7 @@ asm
     popl %ebx
 end {['eax', 'ebx', 'ecx', 'edx']};
 
-function do_filepos(handle:longint): longint; assembler;
+function do_filepos (Handle: THandle): longint; assembler;
 asm
     pushl %ebx
 {$IFDEF REGCALL}
@@ -461,7 +462,7 @@ asm
     popl %ebx
 end {['eax', 'ebx', 'ecx', 'edx']};
 
-procedure do_seek(handle,pos:longint); assembler;
+procedure do_seek (Handle: THandle; Pos: longint); assembler;
 asm
     pushl %ebx
 {$IFDEF REGCALL}
@@ -478,7 +479,7 @@ asm
     popl %ebx
 end {['eax', 'ebx', 'ecx', 'edx']};
 
-function do_seekend(handle:longint):longint; assembler;
+function do_seekend (Handle: THandle): longint; assembler;
 asm
     pushl %ebx
 {$IFDEF REGCALL}
@@ -496,7 +497,7 @@ asm
     popl %ebx
 end {['eax', 'ebx', 'ecx', 'edx']};
 
-function do_filesize(handle:longint):longint;
+function do_filesize (Handle: THandle): longint;
 
 var aktfilepos:longint;
 
@@ -506,7 +507,7 @@ begin
     do_seek(handle,aktfilepos);
 end;
 
-procedure do_truncate(handle,pos:longint); assembler;
+procedure do_truncate (Handle: THandle; Pos: longint); assembler;
 asm
     pushl %ebx
 (* DOS function 40h isn't safe for this according to EMX documentation *)
@@ -1318,7 +1319,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.24  2004-04-22 21:10:56  peter
+  Revision 1.25  2004-05-16 20:39:59  hajny
+    * handle in do_* changed to THandle
+
+  Revision 1.24  2004/04/22 21:10:56  peter
     * do_read/do_write addr argument changed to pointer
 
   Revision 1.23  2004/01/20 23:05:31  hajny
