@@ -14,8 +14,14 @@ uses
 
 {$PACKRECORDS C}
 
-const
-  pqlib = 'libpq.so';
+{$IFDEF Unix}
+  const
+    pqlib = 'libpq.so';
+{$ENDIF}
+{$IFDEF Win32}
+  const
+    pqlib = 'libpq.dll';
+{$ENDIF}
 
 {$i dllisttypes.inc}
 
