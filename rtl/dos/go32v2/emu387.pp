@@ -29,7 +29,7 @@ unit emu387;
 
   implementation
 
-    uses dos, dxeload, dpmiexcp;
+    uses dxeload, dpmiexcp, strings;
 
   type
      emu_entry_type = function(exc : pexception_state) : longint;
@@ -116,13 +116,38 @@ unit emu387;
 
 {$L fpu.o }
 
+
+  function getenv(const envvar:string):string;
+  { Copied here, preserves uses Dos (PFV) }
+    var
+      hp      : ppchar;
+      hs,
+      _envvar : string;
+      eqpos,i : longint;
+    begin
+      _envvar:=upcase(envvar);
+      hp:=environ;
+      getenv:='';
+      while assigned(hp^) do
+       begin
+         hs:=strpas(hp^);
+         eqpos:=pos('=',hs);
+         if copy(hs,1,eqpos-1)=_envvar then
+          begin
+            getenv:=copy(hs,eqpos+1,255);
+            exit;
+          end;
+         hp:=hp+4;
+       end;
+    end;
+
   procedure npxsetup(prog_name : string);
 
     var
        cp : string;
        i : byte;
        have_80387 : boolean;
-       emu_p : pointer;	
+       emu_p : pointer; 
     const
        veryfirst : boolean = True;
 
@@ -192,8 +217,12 @@ end.
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:42  root
-  Initial revision
+  Revision 1.2  1998-03-26 12:23:17  peter
+    * emu387 doesn't uses dos anymore (getenv copied local)
+    * makefile compilation order changed
+
+  Revision 1.1.1.1  1998/03/25 11:18:42  root
+  * Restored version
 
   Revision 1.6  1998/03/18 15:34:46  pierre
     + fpu state is restaured in excep_exit
@@ -222,8 +251,12 @@ end.
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:42  root
-  Initial revision
+  Revision 1.2  1998-03-26 12:23:17  peter
+    * emu387 doesn't uses dos anymore (getenv copied local)
+    * makefile compilation order changed
+
+  Revision 1.1.1.1  1998/03/25 11:18:42  root
+  * Restored version
 
   Revision 1.6  1998/03/18 15:34:46  pierre
     + fpu state is restaured in excep_exit
@@ -240,7 +273,7 @@ end.
   + Added log at the end
 
 
-  
+
   Working file: rtl/dos/go32v2/emu387.pp
   description:
   ----------------------------

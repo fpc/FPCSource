@@ -114,7 +114,7 @@ endif
 
 # to be sure to be able to compile with an older
 # compiler version
-OPT:=$(OPT) -dFPC 
+OPT:=$(OPT) -dFPC
 
 # diff program
 ifndef REFPATH
@@ -131,7 +131,7 @@ endif
 SYSTEMDEPS=$(INC)/system.inc $(INC)/systemh.inc $(INC)/mathh.inc $(INC)/real2str.inc \
 	$(INC)/heaph.inc $(INC)/innr.inc $(INC)/sstrings.inc $(INC)/file.inc \
 	$(INC)/text.inc $(INC)/typefile.inc $(INC)/version.inc $(INC)/filerec.inc \
-        $(INC)/textrec.inc \
+	$(INC)/textrec.inc $(INC)/objpas.inc $(INC)/objpash.inc \
 	$(PROCINC)/math.inc $(PROCINC)/set.inc $(PROCINC)/heap.inc $(PROCINC)/$(CPU).inc
 
 PPUEXT=.ppu
@@ -144,17 +144,18 @@ OEXT=.o
 
 .PHONY: all clean install diffs diffclean
 
-all : system$(PPUEXT) prt0$(OEXT) crt$(PPUEXT) go32$(PPUEXT) strings$(PPUEXT) \
-	dos$(PPUEXT) printer$(PPUEXT) objects$(PPUEXT) \
-	mouse$(PPUEXT) fmouse$(PPUEXT) getopts$(PPUEXT) graph$(PPUEXT) \
-	dpmiexcp$(PPUEXT) exceptn$(OEXT) profile$(PPUEXT) \
-	dxeload$(PPUEXT) fpu$(OEXT) emu387$(PPUEXT) mmx$(PPUEXT) cpu$(PPUEXT) \
-        objpas$(PPUEXT)
+all : system$(PPUEXT) prt0$(OEXT) go32$(PPUEXT) strings$(PPUEXT) \
+      objpas$(PPUEXT) dpmiexcp$(PPUEXT) exceptn$(OEXT) profile$(PPUEXT) \
+      dxeload$(PPUEXT) fpu$(OEXT) emu387$(PPUEXT) \
+      dos$(PPUEXT) crt$(PPUEXT) printer$(PPUEXT) objects$(PPUEXT) \
+      mmx$(PPUEXT) cpu$(PPUEXT) \
+      mouse$(PPUEXT) getopts$(PPUEXT) graph$(PPUEXT) \
+
 
 dxeload$(PPUEXT) : system$(PPUEXT)
 	$(PP) $(OPT) dxeload $(REDIR)
 
-emu387$(PPUEXT) : system$(PPUEXT) fpu$(OEXT) dxeload$(PPUEXT) dpmiexcp$(PPUEXT)
+emu387$(PPUEXT) : system$(PPUEXT) fpu$(OEXT) strings$(PPUEXT) dxeload$(PPUEXT) dpmiexcp$(PPUEXT)
 	$(PP) $(OPT) emu387 $(REDIR)
 
 fpu$(OEXT) : fpu.as
@@ -206,8 +207,8 @@ system$(PPUEXT) : system.pp $(SYSTEMDEPS)
 	$(COPY) $(INC)/*.inc $(PROCINC)/*.inc .
 	$(PP) $(OPT) -dI386 -Us -Sg system $(REDIR)
 	$(DEL) systemh.inc system.inc real2str.inc version.inc $(CPU).inc sstrings.inc
-	$(DEL) mathh.inc math.inc set.inc innr.inc heap.inc heaph.inc
-	$(DEL) filerec.inc textrec.inc file.inc typefile.inc text.inc
+	$(DEL) mathh.inc math.inc set.inc innr.inc heap.inc heaph.inc objpash.inc
+	$(DEL) filerec.inc textrec.inc file.inc typefile.inc text.inc objpas.inc
 
 prt0$(OEXT) : v2prt0.as
 	as -o prt0$(OEXT) v2prt0.as
@@ -234,6 +235,11 @@ cpu$(PPUEXT) : ../../i386/cpu.pp system$(PPUEXT)
 	$(PP) $(OPT) cpu $(REDIR)
 	$(DEL) cpu.pp
 
+objpas$(PPUEXT) : ../../objpas/objpas.pp system$(PPUEXT)
+	$(COPY) ../../objpas/objpas.pp .
+	$(PP) $(OPT) objpas $(REDIR)
+	$(DEL) objpas.pp
+
 objects$(PPUEXT) : ../objects.pp system$(PPUEXT)
 	$(COPY) ../objects.pp .
 	$(PP) $(OPT) objects $(REDIR)
@@ -243,17 +249,6 @@ mouse$(PPUEXT) : ../mouse.pp system$(PPUEXT)
 	$(COPY) ../mouse.pp .
 	$(PP) $(OPT) mouse $(REDIR)
 	$(DEL) mouse.pp
-
-objpas$(PPUEXT) : ../../objpas/objpas.pp system$(PPUEXT)
-	$(COPY) ../../objpas/objpas.pp .
-	$(PP) $(OPT) objpas $(REDIR)
-	$(DEL) objpas.pp
-
-
-fmouse$(PPUEXT) : ../fmouse.pp system$(PPUEXT)
-	$(COPY) ../fmouse.pp .
-	$(PP) $(OPT) fmouse $(REDIR)
-	$(DEL) fmouse.pp
 
 libs: libfpc$(LIBEXT)
 
