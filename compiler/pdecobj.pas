@@ -643,7 +643,14 @@ implementation
                 begin
                    classtype:=odt_class;
                    consume(_CLASS);
-                   if not(assigned(fd)) and (token=_OF) then
+                   if not(assigned(fd)) and
+                      (token=_OF) and
+                      { Delphi only allows class of in type blocks.
+                        Note that when parsing the type of a variable declaration
+                        the blocktype is bt_type so the check for typecanbeforward
+                        is also necessary (PFV) }
+                      (((block_type=bt_type) and typecanbeforward) or
+                       not(m_delphi in aktmodeswitches)) then
                      begin
                         { a hack, but it's easy to handle }
                         { class reference type }
@@ -1032,7 +1039,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.23  2001-04-21 13:37:16  peter
+  Revision 1.24  2001-04-21 15:36:00  peter
+    * check for type block when parsing class of
+
+  Revision 1.23  2001/04/21 13:37:16  peter
     * made tclassheader using class of to implement cpu dependent code
 
   Revision 1.22  2001/04/18 22:01:54  peter
