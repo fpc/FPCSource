@@ -87,8 +87,6 @@ unit pexpr;
                 begin
                    consume(COLON);
                    p1:=comp_expr(true);
-                   if not is_constintnode(p1) then
-                    Message(type_e_integer_expr_expected);
                    p2:=gencallparanode(p1,p2);
                    p2^.is_colon_para:=true;
                    if token=COLON then
@@ -1857,7 +1855,11 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.47  1998-09-07 18:46:10  peter
+  Revision 1.48  1998-09-07 22:25:53  peter
+    * fixed str(boolean,string) which was allowed
+    * fixed write(' ':<int expression>) only constants where allowed :(
+
+  Revision 1.47  1998/09/07 18:46:10  peter
     * update smartlinking, uses getdatalabel
     * renamed ptree.value vars to value_str,value_real,value_set
 

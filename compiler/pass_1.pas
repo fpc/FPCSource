@@ -4072,41 +4072,30 @@ unit pass_1;
                        if assigned(hp) and assigned(hp^.resulttype) then
                          Begin
                            if (hp^.resulttype^.deftype=filedef) and
-                            (pfiledef(hp^.resulttype)^.filetype=ft_typed) then
-                           begin
+                              (pfiledef(hp^.resulttype)^.filetype=ft_typed) then
+                            begin
                               file_is_typed:=true;
-                              { test the type here
-                                so we can use a trick in cgi386 (PM) }
+                              { test the type }
                               hpp:=p^.left;
                               while (hpp<>hp) do
-                                begin
-                                   { should we allow type conversion ? (PM)
-                                   if not isconvertable(hpp^.resulttype,
-                                     pfiledef(hp^.resulttype)^.typed_as,convtyp,hpp^.treetype) then
-                                     Message(type_e_mismatch);
-                                   if not(is_equal(hpp^.resulttype,pfiledef(hp^.resulttype)^.typed_as)) then
-                                     begin
-                                        hpp^.left:=gentypeconvnode(hpp^.left,pfiledef(hp^.resulttype)^.typed_as);
-                                     end; }
-                                   if not is_equal(hpp^.resulttype,pfiledef(hp^.resulttype)^.typed_as) then
-                                     Message(type_e_mismatch);
-                                   hpp:=hpp^.right;
-                                end;
-                              { once again for typeconversions }
-                              firstcallparan(p^.left,nil);
-                           end;
+                               begin
+                                 if not is_equal(hpp^.resulttype,pfiledef(hp^.resulttype)^.typed_as) then
+                                   Message(type_e_mismatch);
+                                 hpp:=hpp^.right;
+                               end;
+                            end;
                          end; { endif assigned(hp) }
 
                        { insert type conversions for write(ln) }
-                       if (not file_is_typed) and
-                          ((p^.inlinenumber in [in_write_x,in_writeln_x,in_read_x,in_readln_x])) then
+                       if (not file_is_typed) then
                          begin
-                            hp:=p^.left;
                             dowrite:=(p^.inlinenumber in [in_write_x,in_writeln_x]);
+                            hp:=p^.left;
                             while assigned(hp) do
                               begin
                                 if assigned(hp^.left^.resulttype) then
                                   begin
+                                    isreal:=false;
                                     case hp^.left^.resulttype^.deftype of
                                       filedef : begin
                                                 { only allowed as first parameter }
@@ -4152,17 +4141,43 @@ unit pass_1;
                                                        Message(type_e_cant_read_write_type);
                                                    end;
                                                 end;
-                                     else
-                                       Message(type_e_cant_read_write_type);
-                                     end
+                                    else
+                                      Message(type_e_cant_read_write_type);
+                                    end;
+
+                                    { some format options ? }
+                                    hpp:=hp^.right;
+                                    if assigned(hpp) and hpp^.is_colon_para then
+                                      begin
+                                        if (not is_integer(hpp^.resulttype)) then
+                                          Message(type_e_integer_expr_expected)
+                                        else
+                                          hpp^.left:=gentypeconvnode(hpp^.left,s32bitdef);
+                                        hpp:=hpp^.right;
+                                        if assigned(hpp) and hpp^.is_colon_para then
+                                          begin
+                                            if isreal then
+                                             begin
+                                               if (not is_integer(hpp^.resulttype)) then
+                                                 Message(type_e_integer_expr_expected)
+                                               else
+                                                 hpp^.left:=gentypeconvnode(hpp^.left,s32bitdef);
+                                             end
+                                            else
+                                             Message(parser_e_illegal_colon_qualifier);
+                                          end;
+                                      end;
+
                                   end;
                                  hp:=hp^.right;
                               end;
                          end;
-                       { pass all parameters again }
+                       { pass all parameters again for the typeconversions }
+                       if codegenerror then
+                         exit;
+                       must_be_valid:=true;
                        firstcallparan(p^.left,nil);
-                       { this was missing to get the right
-                         registers32 value at first pass PM }
+                       { calc registers }
                        left_right_max(p);
                     end;
                end;
@@ -4208,7 +4223,6 @@ unit pass_1;
                        p^.left^.right:=hp;
                        firstcallparan(p^.left^.right,nil);
                        hp:=p^.left;
-                       isreal:=false;
                        { valid string ? }
                        if not assigned(hp) or
                           (hp^.left^.resulttype^.deftype<>stringdef) or
@@ -4217,52 +4231,66 @@ unit pass_1;
                          Message(cg_e_illegal_expression);
                        { !!!! check length of string }
 
-                       while assigned(hp^.right) do hp:=hp^.right;
-
+                       while assigned(hp^.right) do
+                         hp:=hp^.right;
                        { check and convert the first param }
                        if hp^.is_colon_para then
-                         Message(cg_e_illegal_expression)
-                       else if hp^.resulttype^.deftype=orddef then
-                         case porddef(hp^.left^.resulttype)^.typ of
-                           u8bit,s8bit,
-                           u16bit,s16bit :
-                             hp^.left:=gentypeconvnode(hp^.left,s32bitdef);
-                         end
-                       else if hp^.resulttype^.deftype=floatdef then
-                         begin
-                            isreal:=true;
-                         end
-                       else Message(cg_e_illegal_expression);
+                         Message(cg_e_illegal_expression);
+
+                       isreal:=false;
+                       case hp^.resulttype^.deftype of
+                        orddef : begin
+                                   case porddef(hp^.left^.resulttype)^.typ of
+                              u32bit,s32bit : ;
+                                u8bit,s8bit,
+                              u16bit,s16bit : hp^.left:=gentypeconvnode(hp^.left,s32bitdef);
+                                   else
+                                     Message(type_e_integer_or_real_expr_expected);
+                                   end;
+                                 end;
+                      floatdef : begin
+                                   isreal:=true;
+                                 end;
+                       else
+                         Message(type_e_integer_or_real_expr_expected);
+                       end;
 
                        { some format options ? }
-                       hp:=p^.left^.right;
-                       if assigned(hp) and hp^.is_colon_para then
+                       hpp:=p^.left^.right;
+                       if assigned(hpp) and hpp^.is_colon_para then
                          begin
-                            hp^.left:=gentypeconvnode(hp^.left,s32bitdef);
-                            hp:=hp^.right;
-                         end;
-                       if assigned(hp) and hp^.is_colon_para then
-                         begin
-                            if isreal then
-                              hp^.left:=gentypeconvnode(hp^.left,s32bitdef)
-                            else
-                              Message(parser_e_illegal_colon_qualifier);
-                            hp:=hp^.right;
+                           if (not is_integer(hpp^.resulttype)) then
+                             Message(type_e_integer_expr_expected)
+                           else
+                             hpp^.left:=gentypeconvnode(hpp^.left,s32bitdef);
+                           hpp:=hpp^.right;
+                           if assigned(hpp) and hpp^.is_colon_para then
+                             begin
+                               if isreal then
+                                begin
+                                  if (not is_integer(hpp^.resulttype)) then
+                                    Message(type_e_integer_expr_expected)
+                                  else
+                                    hpp^.left:=gentypeconvnode(hpp^.left,s32bitdef);
+                                end
+                               else
+                                Message(parser_e_illegal_colon_qualifier);
+                             end;
                          end;
 
                        { for first local use }
                        must_be_valid:=false;
                        count_ref:=true;
-                       if assigned(hp) then
-                         firstcallparan(hp,nil);
                     end
                   else
                     Message(parser_e_illegal_parameter_list);
-                  { check params once more }
+                  { pass all parameters again for the typeconversions }
                   if codegenerror then
                     exit;
                   must_be_valid:=true;
                   firstcallparan(p^.left,nil);
+                  { calc registers }
+                  left_right_max(p);
                end;
             in_include_x_y,
             in_exclude_x_y:
@@ -5456,7 +5484,11 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.76  1998-09-07 18:46:05  peter
+  Revision 1.77  1998-09-07 22:25:52  peter
+    * fixed str(boolean,string) which was allowed
+    * fixed write(' ':<int expression>) only constants where allowed :(
+
+  Revision 1.76  1998/09/07 18:46:05  peter
     * update smartlinking, uses getdatalabel
     * renamed ptree.value vars to value_str,value_real,value_set
 
