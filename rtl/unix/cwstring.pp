@@ -54,7 +54,12 @@ function SameWideString(const s1, s2 : WideString) : Boolean;
   begin
   end;
   
+  
+function CompareTextWideString(const s1, s2 : WideString): PtrInt;
+  begin
+  end;
 
+  
 Var
   CWideStringManager : TWideStringManager;
 
@@ -63,6 +68,7 @@ Procedure SetCWideStringManager;
 begin
   With CWideStringManager do
     begin
+      // CompareWideStringTextProc
     end;
   SetWideStringManager(CWideStringManager);
   InitHeapMutexes;
@@ -75,7 +81,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.1  2005-02-01 20:22:50  florian
+  Revision 1.2  2005-02-03 18:40:57  florian
+    + infrastructure for WideCompareText implemented
+
+  Revision 1.1  2005/02/01 20:22:50  florian
     * improved widestring infrastructure manager
 }
 
