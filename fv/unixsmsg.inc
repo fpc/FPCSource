@@ -34,12 +34,6 @@ uses
 Const
   SystemEventActive : Boolean = false;
 
-type
-  TWinSize = record
-    ws_row, ws_col, ws_xpixel, ws_ypixel : smallint;
-  end;
-
-
 var
   lastxsize,lastysize : longint;
 
@@ -125,7 +119,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2002-06-07 14:15:10  pierre
+  Revision 1.3  2003-06-18 09:54:13  pierre
+   * use termios.inc TwinSize definition
+
+  Revision 1.2  2002/06/07 14:15:10  pierre
    * add window resizing support for unix
 
   Revision 1.1  2002/05/21 11:59:57  pierre
