@@ -1,4 +1,3 @@
-
 {
     $Id$
     Copyright (C) 1995,97 by Florian Klaempfl
@@ -564,17 +563,17 @@ implementation
 {$ifdef i386}
           (
             arbin : 'ar';
-            arcmd : 'rs $LIB $FILES'
+            arcmd : 'rcs $LIB $FILES'
           ),
           (
             arbin : 'arw';
-            arcmd : 'rs $LIB $FILES'
+            arcmd : 'rcs $LIB $FILES'
           )
 {$endif i386}
 {$ifdef m68k}
           (
             arbin : 'ar';
-            arcmd : 'rs $LIB $FILES'
+            arcmd : 'rcs $LIB $FILES'
           )
 {$endif m68k}
           );
@@ -908,7 +907,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.31  1998-09-01 09:07:13  peter
+  Revision 1.32  1998-09-10 13:52:40  peter
+    * 'ar rs' -> 'ar rcs' which is more common
+
+  Revision 1.31  1998/09/01 09:07:13  peter
     * m68k fixes, splitted cg68k like cgi386
 
   Revision 1.30  1998/08/31 12:26:34  peter
