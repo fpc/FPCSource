@@ -124,6 +124,52 @@ type
 Const
   AnsiResemblesProc: TCompareTextProc = @SoundexProc;
 
+{ ---------------------------------------------------------------------
+    Other functions, based on RxStrUtils.
+  ---------------------------------------------------------------------}
+  
+function IsEmptyStr(const S: string; const EmptyChars: TSysCharSet): Boolean;
+function DelSpace(const S: string): string;
+function DelChars(const S: string; Chr: Char): string;
+function DelSpace1(const S: string): string;
+function Tab2Space(const S: string; Numb: Byte): string;
+function NPos(const C: string; S: string; N: Integer): Integer;
+function AddChar(C: Char; const S: string; N: Integer): string;
+function AddCharR(C: Char; const S: string; N: Integer): string;
+function PadLeft(const S: string; N: Integer): string;
+function PadRight(const S: string; N: Integer): string;
+function PadCenter(const S: string; Len: Integer): string;
+function Copy2Symb(const S: string; Symb: Char): string;
+function Copy2SymbDel(var S: string; Symb: Char): string;
+function Copy2Space(const S: string): string;
+function Copy2SpaceDel(var S: string): string;
+function AnsiProperCase(const S: string; const WordDelims: TSysCharSet): string;
+function WordCount(const S: string; const WordDelims: TSysCharSet): Integer;
+function WordPosition(const N: Integer; const S: string; const WordDelims: TSysCharSet): Integer;
+function ExtractWord(N: Integer; const S: string;  const WordDelims: TSysCharSet): string;
+function ExtractWordPos(N: Integer; const S: string; const WordDelims: TSysCharSet; var Pos: Integer): string;
+function ExtractDelimited(N: Integer; const S: string;  const Delims: TSysCharSet): string;
+function ExtractSubstr(const S: string; var Pos: Integer;  const Delims: TSysCharSet): string;
+function IsWordPresent(const W, S: string; const WordDelims: TSysCharSet): Boolean;
+function FindPart(const HelpWilds, InputStr: string): Integer;
+function IsWild(InputStr, Wilds: string; IgnoreCase: Boolean): Boolean;
+function XorString(const Key, Src: ShortString): ShortString;
+function XorEncode(const Key, Source: string): string;
+function XorDecode(const Key, Source: string): string;
+function GetCmdLineArg(const Switch: string; SwitchChars: TSysCharSet): string;
+function Numb2USA(const S: string): string;
+function Hex2Dec(const S: string): Longint;
+function Dec2Numb(N: Longint; Len, Base: Byte): string;
+function Numb2Dec(S: string; Base: Byte): Longint;
+function IntToBin(Value: Longint; Digits, Spaces: Integer): string;
+function IntToRoman(Value: Longint): string;
+function RomanToInt(const S: string): Longint;
+
+const
+  DigitChars = ['0'..'9'];
+  Brackets = ['(',')','[',']','{','}'];
+  StdWordDelims = [#0..' ',',','.',';','/','\',':','''','"','`'] + Brackets;
+
 implementation
 
 { ---------------------------------------------------------------------
@@ -684,11 +730,685 @@ begin
   NotYetImplemented(' SoundexProc');
 end;
 
+{ ---------------------------------------------------------------------
+    RxStrUtils-like functions.
+  ---------------------------------------------------------------------}
+  
+
+function IsEmptyStr(const S: string; const EmptyChars: TSysCharSet): Boolean;
+
+var
+  i,l: Integer;
+
+begin
+  l:=Length(S);
+  i:=1;
+  Result:=True;
+  while Result and (i<=l) do 
+    begin
+    Result:=Not (S[i] in EmptyChars);
+    Inc(i);
+    end;
+end;
+
+function DelSpace(const S: String): string;
+
+begin
+  Result:=DelChars(S,' ');
+end;
+
+function DelChars(const S: string; Chr: Char): string;
+
+var
+  I,J: Integer;
+
+begin
+  Result:=S;
+  I:=Length(Result);
+  While I>0 do
+    begin
+    if Result[I]=Chr then 
+      begin
+      J:=I-1;
+      While (J>0) and (Result[J]=Chr) do
+        Dec(j);
+      Delete(Result,J+1,I-J);
+      I:=J+1;
+      end;
+    dec(I);
+    end;  
+end;      
+
+function DelSpace1(const S: string): string;
+
+var
+  i: Integer;
+  
+begin
+  Result:=S;
+  for i:=Length(Result) downto 2 do 
+    if (Result[i]=' ') and (Result[I-1]=' ') then
+      Delete(Result,I,1);
+end;
+
+function Tab2Space(const S: string; Numb: Byte): string;
+
+var
+  I: Integer;
+  
+begin
+  I:=1;
+  Result:=S;
+  while I <= Length(Result) do 
+    if Result[I]<>Chr(9) then 
+      inc(I)
+    else  
+      begin
+      Result[I]:=' ';
+      If (Numb>1) then
+        Insert(StringOfChar('0',Numb-1),Result,I);
+      Inc(I,Numb);
+      end;
+end;
+
+function NPos(const C: string; S: string; N: Integer): Integer;
+
+var
+  i,p,k: Integer;
+  
+begin
+  Result:=0;
+  if N<1 then
+    Exit;
+  k:=0;
+  i:=1;
+  Repeat 
+    p:=pos(C,S);
+    Inc(k,p);
+    if p>0 then 
+      delete(S,1,p);
+    Inc(i);
+  Until (i>n) or (p=0);  
+  If (P>0) then
+    Result:=K; 
+end;
+
+function AddChar(C: Char; const S: string; N: Integer): string;
+
+Var
+  l : Integer;
+
+begin
+  Result:=S;
+  l:=Length(Result);
+  if l<N then
+    Result:=StringOfChar(C,N-l)+Result;
+end;
+
+function AddCharR(C: Char; const S: string; N: Integer): string;
+
+Var
+  l : Integer;
+
+begin
+  Result:=S;
+  l:=Length(Result);
+  if l<N then
+    Result:=Result+StringOfChar(C,N-l);
+end;
+
+function PadRight(const S: string; N: Integer): string;
+begin
+  Result:=AddCharR(' ',S,N);
+end;
+
+function PadLeft(const S: string; N: Integer): string;
+begin
+  Result:=AddChar(' ',S,N);
+end;
+
+function Copy2Symb(const S: string; Symb: Char): string;
+
+var
+  p: Integer;
+  
+begin
+  p:=Pos(Symb,S);
+  if p=0 then 
+    p:=Length(S)+1;
+  Result:=Copy(S,1,p-1);
+end;
+
+function Copy2SymbDel(var S: string; Symb: Char): string;
+
+begin
+  Result:=Copy2Symb(S,Symb);
+  S:=TrimRight(Copy(S,Length(Result)+1,Length(S)));
+end;
+
+function Copy2Space(const S: string): string;
+begin
+  Result:=Copy2Symb(S,' ');
+end;
+
+function Copy2SpaceDel(var S: string): string;
+begin
+  Result:=Copy2SymbDel(S,' ');
+end;
+
+function AnsiProperCase(const S: string; const WordDelims: TSysCharSet): string;
+
+var
+  l :  Integer;
+  P,PE : PChar;
+
+begin
+  Result:=AnsiLowerCase(S);
+  P:=PChar(Result);
+  PE:=P+Length(Result);
+  while (P<PE) do
+    begin
+    while (P<PE) and (P^ in WordDelims) do
+      inc(P);
+    if (P<PE) then
+      P^:=UpCase(P^);
+    while (P<PE) and not (P^ in WordDelims) do
+      inc(P);
+    end;
+end;
+                                                    
+function WordCount(const S: string; const WordDelims: TSysCharSet): Integer;
+
+var
+  P,PE : PChar;
+
+begin
+  Result:=0;
+  P:=Pchar(S);
+  PE:=P+Length(S);
+  while (P<PE) do
+    begin
+    while (P<PE) and (P^ in WordDelims) do
+      Inc(P);
+    if (P<PE) then
+      inc(Result);
+    while (P<PE) and not (P^ in WordDelims) do
+      inc(P);
+    end;
+end;
+                                                  
+function WordPosition(const N: Integer; const S: string; const WordDelims: TSysCharSet): Integer;
+
+var
+  PS,P,PE : PChar;
+  Count: Integer;
+
+begin
+  Result:=0;
+  Count:=0;
+  PS:=PChar(S);
+  PE:=PS+Length(S);
+  P:=PS;
+  while (P<PE) and (Count<>N) do
+    begin
+    while (P<PE) and (P^ in WordDelims) do
+      inc(P);
+    if (P<PE) then
+      inc(Count);
+    if (Count<>N) then
+      while (P<PE) and not (P^ in WordDelims) do
+        inc(P)
+    else
+      Result:=(P-PS)+1;
+    end;
+end;
+
+function ExtractWord(N: Integer; const S: string; const WordDelims: TSysCharSet): string;
+
+var
+  i: Integer;
+  
+begin
+  Result:=ExtractWordPos(N,S,WordDelims,i);
+end;
+
+function ExtractWordPos(N: Integer; const S: string; const WordDelims: TSysCharSet; var Pos: Integer): string;
+var
+  i,j,l: Integer;
+begin
+  j:=0;
+  i:=WordPosition(N, S, WordDelims);
+  Pos:=i;
+  if (i<>0) then
+    begin
+    j:=i;
+    l:=Length(S);
+    while (j<=L) and not (S[j] in WordDelims) do 
+      inc(j);
+    end;  
+  SetLength(Result,j-i);
+  If ((j-i)>0) then
+    Move(S[i],Result[1],j-i);
+end;
+
+function ExtractDelimited(N: Integer; const S: string; const Delims: TSysCharSet): string;
+var
+  w,i,l,len: Integer;
+begin
+  w:=0;
+  i:=1;
+  l:=0;
+  len:=Length(S);
+  SetLength(Result, 0);
+  while (i<=len) and (w<>N) do 
+    begin
+    if s[i] in Delims then 
+      inc(w)
+    else 
+      begin
+      if (N-1)=w then 
+        begin
+        inc(l);
+        SetLength(Result,l);
+        Result[Len]:=S[i];
+        end;
+      end;
+    inc(i);
+    end;
+end;
+
+function ExtractSubstr(const S: string; var Pos: Integer; const Delims: TSysCharSet): string;
+
+var
+  i,l: Integer;
+
+begin
+  i:=Pos;
+  l:=Length(S);
+  while (i<=l) and not (S[i] in Delims) do 
+    inc(i);
+  Result:=Copy(S,Pos,i-Pos);
+  if (i<=l) and (S[i] in Delims) then 
+    inc(i);
+  Pos:=i;
+end;
+
+function isWordPresent(const W, S: string; const WordDelims: TSysCharSet): Boolean;
+
+var
+  i,Count : Integer;
+  
+begin
+  Result:=False;
+  Count:=WordCount(S, WordDelims);
+  I:=1;
+  While (Not Result) and (I<=Count) do
+    Result:=ExtractWord(i,S,WordDelims)=W;
+end;
+
+
+function Numb2USA(const S: string): string;
+var
+  i, NA: Integer;
+begin
+  i:=Length(S);
+  Result:=S;
+  NA:=0;
+  while (i > 0) do begin
+    if ((Length(Result) - i + 1 - NA) mod 3 = 0) and (i <> 1) then
+    begin
+      insert(',', Result, i);
+      inc(NA);
+    end;
+    Dec(i);
+  end;
+end;
+
+function PadCenter(const S: string; Len: Integer): string;
+begin
+  if Length(S)<Len then 
+    begin
+    Result:=StringOfChar(' ',(Len div 2) -(Length(S) div 2))+S;
+    Result:=Result+StringOfChar(' ',Len-Length(Result));
+    end
+  else 
+    Result:=S;
+end;
+
+function Hex2Dec(const S: string): Longint;
+var
+  HexStr: string;
+begin
+  if Pos('$',S)=0 then 
+    HexStr:='$'+ S
+  else 
+    HexStr:=S;
+  Result:=StrTointDef(HexStr,0);
+end;
+
+function Dec2Numb(N: Longint; Len, Base: Byte): string;
+
+var
+  C: Integer;
+  Number: Longint;
+  
+begin
+  if N=0 then 
+    Result:='0'
+  else 
+    begin
+    Number:=N;
+    Result:='';
+    while Number>0 do 
+      begin
+      C:=Number mod Base;
+      if C>9 then 
+        C:=C+55
+      else 
+        C:=C+48;
+      Result:=Chr(C)+Result;
+      Number:=Number div Base;
+      end;
+    end;
+  if (Result<>'') then 
+    Result:=AddChar('0',Result,Len);
+end;
+
+function Numb2Dec(S: string; Base: Byte): Longint;
+
+var
+  i, P: Longint;
+  
+begin
+  i:=Length(S);
+  Result:=0;
+  S:=UpperCase(S);
+  P:=1;
+  while (i>=1) do 
+    begin
+    if (S[i]>'@') then 
+      Result:=Result+(Ord(S[i])-55)*P
+    else 
+      Result:=Result+(Ord(S[i])-48)*P;
+    Dec(i);
+    P:=P*Base;
+    end;
+end;
+
+function RomanToint(const S: string): Longint;
+
+const
+  RomanChars  = ['C','D','i','L','M','V','X'];
+  RomanValues : array['C'..'X'] of Word 
+              = (100,500,0,0,0,0,1,0,0,50,1000,0,0,0,0,0,0,0,0,5,0,10);
+
+var
+  index, Next: Char;
+  i,l: Integer;
+  Negative: Boolean;
+
+begin
+  Result:=0;
+  i:=0;
+  Negative:=(Length(S)>0) and (S[1]='-');
+  if Negative then 
+    inc(i);
+  l:=Length(S);  
+  while (i<l) do 
+    begin
+    inc(i);
+    index:=UpCase(S[i]);
+    if index in RomanChars then 
+      begin
+      if Succ(i)<=l then 
+        Next:=UpCase(S[i+1])
+      else 
+        Next:=#0;
+      if (Next in RomanChars) and (RomanValues[index]<RomanValues[Next]) then
+        begin
+        inc(Result, RomanValues[Next]);
+        Dec(Result, RomanValues[index]);
+        inc(i);
+        end
+      else 
+        inc(Result, RomanValues[index]);
+      end
+    else 
+      begin
+      Result:=0;
+      Exit;
+      end;
+    end;
+  if Negative then 
+    Result:=-Result;
+end;
+
+function intToRoman(Value: Longint): string;
+
+const
+  Arabics : Array[1..13] of Integer 
+          = (1,4,5,9,10,40,50,90,100,400,500,900,1000);
+  Romans  :  Array[1..13] of String 
+          = ('i','iV','V','iX','X','XL','L','XC','C','CD','D','CM','M');
+          
+var
+  i: Integer;
+  
+begin
+  for i:=13 downto 1 do
+    while (Value >= Arabics[i]) do 
+      begin
+      Value:=Value-Arabics[i];
+      Result:=Result+Romans[i];
+      end;
+end;
+
+function intToBin(Value: Longint; Digits, Spaces: Integer): string;
+begin
+  Result:='';
+  if (Digits>32) then 
+    Digits:=32;
+  while (Digits>0) do 
+    begin
+    if (Digits mod Spaces)=0 then 
+      Result:=Result+' ';
+    Dec(Digits);
+    Result:=Result+intToStr((Value shr Digits) and 1);
+    end;
+end;
+
+function FindPart(const HelpWilds, inputStr: string): Integer;
+var
+  i, J: Integer;
+  Diff: Integer;
+begin
+  Result:=0;
+  i:=Pos('?',HelpWilds);
+  if (i=0) then 
+    Result:=Pos(HelpWilds, inputStr)
+  else
+    begin  
+    Diff:=Length(inputStr) - Length(HelpWilds);
+    for i:=0 to Diff do 
+      begin
+      for J:=1 to Length(HelpWilds) do 
+        if (inputStr[i + J] = HelpWilds[J]) or (HelpWilds[J] = '?') then
+          begin
+          if (J=Length(HelpWilds)) then 
+            begin
+            Result:=i+1;
+            Exit;
+            end;
+          end
+        else 
+          Break;
+      end;    
+    end;
+end;
+
+function isWild(inputStr, Wilds: string; ignoreCase: Boolean): Boolean;
+
+ function SearchNext(var Wilds: string): Integer;
+
+ begin
+   Result:=Pos('*', Wilds);
+   if Result>0 then 
+     Wilds:=Copy(Wilds,1,Result - 1);
+ end;
+
+var
+  CWild, CinputWord: Integer; { counter for positions }
+  i, LenHelpWilds: Integer;
+  MaxinputWord, MaxWilds: Integer; { Length of inputStr and Wilds }
+  HelpWilds: string;
+begin
+  if Wilds = inputStr then begin
+    Result:=True;
+    Exit;
+  end;
+  repeat { delete '**', because '**' = '*' }
+    i:=Pos('**', Wilds);
+    if i > 0 then
+      Wilds:=Copy(Wilds, 1, i - 1) + '*' + Copy(Wilds, i + 2, Maxint);
+  until i = 0;
+  if Wilds = '*' then begin { for fast end, if Wilds only '*' }
+    Result:=True;
+    Exit;
+  end;
+  MaxinputWord:=Length(inputStr);
+  MaxWilds:=Length(Wilds);
+  if ignoreCase then begin { upcase all letters }
+    inputStr:=AnsiUpperCase(inputStr);
+    Wilds:=AnsiUpperCase(Wilds);
+  end;
+  if (MaxWilds = 0) or (MaxinputWord = 0) then begin
+    Result:=False;
+    Exit;
+  end;
+  CinputWord:=1;
+  CWild:=1;
+  Result:=True;
+  repeat
+    if inputStr[CinputWord] = Wilds[CWild] then begin { equal letters }
+      { goto next letter }
+      inc(CWild);
+      inc(CinputWord);
+      Continue;
+    end;
+    if Wilds[CWild] = '?' then begin { equal to '?' }
+      { goto next letter }
+      inc(CWild);
+      inc(CinputWord);
+      Continue;
+    end;
+    if Wilds[CWild] = '*' then begin { handling of '*' }
+      HelpWilds:=Copy(Wilds, CWild + 1, MaxWilds);
+      i:=SearchNext(HelpWilds);
+      LenHelpWilds:=Length(HelpWilds);
+      if i = 0 then begin
+        { no '*' in the rest, compare the ends }
+        if HelpWilds = '' then Exit; { '*' is the last letter }
+        { check the rest for equal Length and no '?' }
+        for i:=0 to LenHelpWilds - 1 do begin
+          if (HelpWilds[LenHelpWilds - i] <> inputStr[MaxinputWord - i]) and
+            (HelpWilds[LenHelpWilds - i]<> '?') then
+          begin
+            Result:=False;
+            Exit;
+          end;
+        end;
+        Exit;
+      end;
+      { handle all to the next '*' }
+      inc(CWild, 1 + LenHelpWilds);
+      i:=FindPart(HelpWilds, Copy(inputStr, CinputWord, Maxint));
+      if i= 0 then begin
+        Result:=False;
+        Exit;
+      end;
+      CinputWord:=i + LenHelpWilds;
+      Continue;
+    end;
+    Result:=False;
+    Exit;
+  until (CinputWord > MaxinputWord) or (CWild > MaxWilds);
+  { no completed evaluation }
+  if CinputWord <= MaxinputWord then Result:=False;
+  if (CWild <= MaxWilds) and (Wilds[MaxWilds] <> '*') then Result:=False;
+end;
+
+function XorString(const Key, Src: ShortString): ShortString;
+var
+  i: Integer;
+begin
+  Result:=Src;
+  if Length(Key) > 0 then
+    for i:=1 to Length(Src) do
+      Result[i]:=Chr(Byte(Key[1 + ((i - 1) mod Length(Key))]) xor Ord(Src[i]));
+end;
+
+function XorEncode(const Key, Source: string): string;
+
+var
+  i: Integer;
+  C: Byte;
+  
+begin
+  Result:='';
+  for i:=1 to Length(Source) do 
+    begin
+    if Length(Key) > 0 then
+      C:=Byte(Key[1 + ((i - 1) mod Length(Key))]) xor Byte(Source[i])
+    else
+      C:=Byte(Source[i]);
+    Result:=Result+AnsiLowerCase(intToHex(C, 2));
+    end;
+end;
+
+function XorDecode(const Key, Source: string): string;
+var
+  i: Integer;
+  C: Char;
+begin
+  Result:='';
+  for i:=0 to Length(Source) div 2 - 1 do 
+    begin
+    C:=Chr(StrTointDef('$' + Copy(Source, (i * 2) + 1, 2), Ord(' ')));
+    if Length(Key) > 0 then
+      C:=Chr(Byte(Key[1 + (i mod Length(Key))]) xor Byte(C));
+    Result:=Result + C;
+    end;
+end;
+
+function GetCmdLineArg(const Switch: string; SwitchChars: TSysCharSet): string;
+var
+  i: Integer;
+  S: string;
+begin
+  i:=1;
+  Result:='';
+  while (Result='') and (i<=ParamCount) do 
+    begin
+    S:=ParamStr(i);
+    if (SwitchChars=[]) or ((S[1] in SwitchChars) and (Length(S) > 1)) and
+       (AnsiCompareText(Copy(S,2,Length(S)-1),Switch)=0) then 
+      begin
+      inc(i);
+      if i<=ParamCount then 
+        Result:=ParamStr(i);
+      end;
+    inc(i);
+    end;
+end;
+
 end.
 
 {
   $Log$
-  Revision 1.7  2004-07-01 15:42:18  peter
+  Revision 1.8  2004-07-13 18:42:39  michael
+  + Added some RxStrUtils functions for Rx compatibility
+
+  Revision 1.7  2004/07/01 15:42:18  peter
     * fix 1.0.x compile
 
   Revision 1.6  2004/06/29 19:37:17  marco
