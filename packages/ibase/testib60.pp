@@ -1,4 +1,11 @@
+{
+  $Id$
+}
 program testib;
+
+{$IFDEF Unix}
+{$LINKLIB dl}
+{$ENDIF}
 
 uses Ibase60, strings;
 
@@ -69,7 +76,7 @@ begin
     DoError(Status)
   else
     Writeln ('OK.');
-  getmem (sqlda,XSQLDA_Length*3);
+  getmem (sqlda,XSQLDA_Length(3));
   sqlda^.sqln:=3;
   sqlda^.sqld:=3;
   sqlda^.version:=1;
@@ -144,8 +151,10 @@ begin
     Writeln ('OK.')
   else
     doerror(status);
-end.  $Log$
-end.  Revision 1.2  2000-07-13 11:33:25  michael
-end.  + removed logs
-end. 
+end.
+{
+  $Log$
+  Revision 1.3  2001-04-10 23:30:04  peter
+    * regenerated
+
 }

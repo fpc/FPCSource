@@ -559,7 +559,7 @@ Procedure nFWrite(col,row,attrib : integer; clear : integer; s : string);
  Function nEdit(x,y,att,z,CursPos:Integer;es:String;Var ch : Char) : String;
  Function nEdit(x,y,att,z,CursPos:Integer;es:LongInt;Var ch : Char) : LongInt;
  Function nEdit(x,y,att,z,CursPos:Integer;es:Real;Var ch : Char) : Real;
- Function nEdit(win : pwindow; x,y,att,z,CursPos:Integer;es:String;Var ch : integer) : String;
+ Function nEdit(win : pwindow; x,y,att,z,CursPos:Integer;es:String;Var chv : integer) : String;
  Function nEdit(win : pwindow; x,y,att,z,CursPos:Integer;es:LongInt;Var ch : integer) : LongInt;
  Function nEdit(win : pwindow; x,y,att,z,CursPos:Integer;es:Real;Var ch : integer) : Real;
  Function nEdit(x,y,att,z,CursPos:Integer;es:String;Var ch : integer) : String;
@@ -2398,7 +2398,7 @@ Function nEditDate(
          x,           { edit field start column }
          y,           { edit field start row }
        att : integer; { edit field color attribute }
-      init : string;     { initial value }
+     initv : string;     { initial value }
    var esc : boolean     { if Esc key pressed = true, else = false }
 ) : string;
 
@@ -2424,8 +2424,8 @@ Begin
          s := 'dd/mm/yyyy';
       End;
    End;
-   If nCheckPxPicture(init,nEC.Picture,i) <> 0 Then
-      system.move(init[1],s[1],Length(init));
+   If nCheckPxPicture(initv,nEC.Picture,i) <> 0 Then
+      system.move(initv[1],s[1],Length(initv));
    nEC.AddChMap(#7#0#0+Char(nKeyLeft));
    nEC.AddChMap(#8#0#0+Char(nKeyLeft));
    nEC.AddChMap(#0+Char(nKeyDel)+#0+Char(nKeyLeft));
@@ -3266,7 +3266,10 @@ End. { of Unit oCrt }
 
 {
   $Log$
-  Revision 1.6  2001-04-08 12:27:55  peter
+  Revision 1.7  2001-04-10 23:30:04  peter
+    * regenerated
+
+  Revision 1.6  2001/04/08 12:27:55  peter
     * made it compilable with both 1.0.x and 1.1
 
   Revision 1.5  2001/01/21 21:38:52  marco
