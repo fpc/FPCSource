@@ -47,13 +47,13 @@
     end;
 
   {$ifndef OS_FILEISREADONLY}
-  Function FileIsReadOnly(const FileName: String): Boolean; 
-  
+  Function FileIsReadOnly(const FileName: String): Boolean;
+
   begin
     Result := (FileGetAttr(FileName) and faReadOnly) <> 0;
-  end;  
+  end;
   {$endif OS_FILEISREADONLY}
-  
+
 
   { Read String Handling functions implementation }
   {$i sysstr.inc}
@@ -72,7 +72,7 @@
 
   { OS utility code }
   {$i osutil.inc}
-   
+
     procedure FreeAndNil(var obj);
       var
         temp: tobject;
@@ -168,7 +168,7 @@
 {$define STACKCHECK_WAS_ON}
 {$S-}
 {$endif OPT S }
-Procedure CatchUnhandledException (Obj : TObject; Addr,Frame: Pointer);
+Procedure CatchUnhandledException (Obj : TObject; Addr,Frame: Pointer);[public,alias:'FPC_BREAK_UNHANDLED_EXCEPTION'];
 Var
   Message : String;
   {$IFDEF VIRTUALPASCAL}
@@ -266,7 +266,7 @@ Procedure RaiseLastOSError;
 var
   ECode: Cardinal;
   E : EOSError;
-  
+
 begin
   ECode := GetLastOSError;
   If (ECode<>0) then
