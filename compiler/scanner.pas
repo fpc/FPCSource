@@ -36,7 +36,7 @@ unit scanner;
        InputFileBufSize=75;
 {$else}
        maxmacrolen=16*1024;
-       InputFileBufSize=32*1024;
+       InputFileBufSize=1024;
 {$endif}
 
        id_len = 14;
@@ -182,10 +182,7 @@ unit scanner;
           procedure nextfile;
           procedure addfile(hp:pinputfile);
           procedure reload;
-{          function  fixbuf:boolean; }
           procedure setbuf(p:pchar;l:longint);
-{          function  setbufidx(idx:longint):longint;
-          function  setlinebreak(idx:longint):longint; }
         { Scanner things }
           procedure gettokenpos;
           procedure inc_comment_level;
@@ -402,7 +399,6 @@ implementation
       { load block }
         if not open then
          Message(scan_f_cannot_open_input);
-{        status.currentsource:=inputfile^.name^; }
         reload;
       end;
 
@@ -458,8 +454,6 @@ implementation
         if ioresult<>0 then
          exit;
       { file }
-
-
         closed:=false;
         filenotatend:=true;
         Getmem(inputbuffer,inputbufsize);
@@ -566,75 +560,47 @@ implementation
 
     procedure tscannerfile.reload;
       begin
-      { still more to read, then we have an illegal char }
-        if (inputpointer-inputbuffer)<bufsize then
-         Message(scan_f_illegal_char);
       { safety check }
         if closed then
          exit;
-      { can we read more from this file ? }
-        if filenotatend then
-         begin
-           readbuf;
-{           fixbuf; }
-           if line_no=0 then
-            line_no:=1;
-           inputpointer:=inputbuffer;
-         end
-        else
-         begin
-           close;
-         { no next module, than EOF }
-           if not assigned(inputfile^.next) then
-            begin
-              c:=#26;
-              exit;
-            end;
-         { load next file and reopen it }
-           nextfile;
-           reopen;
-         { status }
-{           status.currentsource:=inputfile^.name^; }
-           Comment(V_Debug,'back in '+inputfile^.name^);
-         { load some current_module fields }
-           current_module^.current_index:=inputfile^.ref_index;
-         end;
-      { load next char }
-        c:=inputpointer^;
-        inc(longint(inputpointer));
-      end;
-
-
-{    function tscannerfile.fixbuf:boolean;
-      var
-        i : longint;
-        p : pchar;
-        c : char;
-      begin
-        fixbuf:=false;
-        p:=inputbuffer;
-        i:=0;
-        while i<bufsize do
-         begin
-           c:=p^;
-           case c of
-              #0 : p^:=' ';
-         #10,#13 : begin
-                     if (byte(c)+byte(p[1])=23) then
-                      begin
-                        inc(longint(p));
-                        inc(i);
-                      end;
-                   end;
+        repeat
+        { still more to read, then we have an illegal char }
+          if (bufsize>0) and (inputpointer-inputbuffer<bufsize) then
+           begin
+             gettokenpos;
+             Message(scan_f_illegal_char);
            end;
-           inc(i);
-           inc(longint(p));
-         end;
-        if line_no=0 then
-         line_no:=1;
-        fixbuf:=true;
-
-      end; }
+        { can we read more from this file ? }
+          if filenotatend then
+           begin
+             readbuf;
+  {           fixbuf; }
+             if line_no=0 then
+              line_no:=1;
+             inputpointer:=inputbuffer;
+           end
+          else
+           begin
+             close;
+           { no next module, than EOF }
+             if not assigned(inputfile^.next) then
+              begin
+                c:=#26;
+                exit;
+              end;
+           { load next file and reopen it }
+             nextfile;
+             reopen;
+           { status }
+             Comment(V_Debug,'back in '+inputfile^.name^);
+           { load some current_module fields }
+             current_module^.current_index:=inputfile^.ref_index;
+           end;
+        { load next char }
+          c:=inputpointer^;
+          inc(longint(inputpointer));
+        until c<>#0; { if also end, then reload again }
+      end;
 
 
     procedure tscannerfile.setbuf(p:pchar;l:longint);
@@ -645,28 +611,14 @@ implementation
       end;
 
 
-{    function tscannerfile.setbufidx(idx:longint):longint;
-      begin
-        bufidx:=idx;
-        setbufidx:=bufstart+idx;
-      end; }
-
-
-{    function tscannerfile.setlinebreak(idx:longint):longint;
-      begin
-        inc(line_no);
-        bufidx:=idx;
-        setlinebreak:=bufstart+idx;
-      end; }
-
-
     procedure tscannerfile.gettokenpos;
     { load the values of tokenpos and lasttokenpos }
       begin
         lasttokenpos:=bufstart+(inputpointer-inputbuffer);
         tokenpos.line:=line_no;
-        tokenpos.column:=lasttokenpos-lastlinepos;
+        tokenpos.column:=lasttokenpos-lastlinepos+1;
         tokenpos.fileindex:=current_module^.current_index;
+        aktfilepos:=tokenpos;
       end;
 
 
@@ -1163,12 +1115,12 @@ implementation
 
     function {$ifdef NEWINPUT}tscannerfile.{$endif}yylex : ttoken;
       var
-        y    : ttoken;
-        code : word;
-        l    : longint;
-        mac  : pmacrosym;
-        hp   : pinputfile;
-        hp2  : pchar;
+        y       : ttoken;
+        code    : word;
+        l       : longint;
+        mac     : pmacrosym;
+        hp      : pinputfile;
+        macbuf  : pchar;
         asciinr : string[3];
       label
          exit_label;
@@ -1201,11 +1153,8 @@ implementation
         until false;
 
       { Save current token position }
-{$ifdef NEWINPUT}
         gettokenpos;
-        aktfilepos:=tokenpos;
-{$else}
-        gettokenpos;
+{$ifndef NEWINPUT}
         lastlinepos:=currlinepos;
         lasttokenpos:=inputpointer;
 {$endif}
@@ -1229,8 +1178,8 @@ implementation
 {$ifdef NEWINPUT}
                     hp:=new(pinputfile,init('Macro '+pattern));
                     addfile(hp);
-                    getmem(hp2,mac^.buflen+1);
-                    setbuf(hp2,mac^.buflen+1);
+                    getmem(macbuf,mac^.buflen+1);
+                    setbuf(macbuf,mac^.buflen+1);
 {$else}
                     current_module^.current_inputfile^.bufpos:=inputpointer-inputbuffer;
                     hp:=new(pinputfile,init('','Macro '+pattern,''));
@@ -1244,8 +1193,8 @@ implementation
                     current_module^.sourcefiles.register_file(hp);
                     current_module^.current_index:=hp^.ref_index;
                   { set an own buffer }
-                    getmem(hp2,mac^.buflen+1);
-                    current_module^.current_inputfile^.setbuf(hp2,mac^.buflen+1);
+                    getmem(macbuf,mac^.buflen+1);
+                    current_module^.current_inputfile^.setbuf(macbuf,mac^.buflen+1);
                     inputbuffer:=current_module^.current_inputfile^.buf;
 {$endif NEWINPUT}
                   { copy text }
@@ -1804,7 +1753,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.30  1998-07-07 12:32:55  peter
+  Revision 1.31  1998-07-07 17:39:38  peter
+    * fixed {$I } with following eof
+
+  Revision 1.30  1998/07/07 12:32:55  peter
     * status.currentsource is now calculated in verbose (more accurated)
 
   Revision 1.29  1998/07/07 11:20:11  peter
