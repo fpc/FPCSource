@@ -74,7 +74,14 @@ unit i_palmos;
             use_function_relative_addresses : false
           );
 
-  implementation
+       res_m68k_palmos_info : tresinfo =
+          (
+            id     : res_m68k_palmos;
+            resbin : 'pilrc';
+            rescmd : '-I $INC $RES'
+          );
+
+implementation
 
 initialization
 {$ifdef cpu68}
@@ -85,7 +92,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.1  2002-09-06 15:03:51  carl
+  Revision 1.2  2003-01-12 15:42:23  peter
+    * m68k pathexist update from 1.0.x
+    * palmos res update from 1.0.x
+
+  Revision 1.1  2002/09/06 15:03:51  carl
     * moved files to systems directory
 
   Revision 1.3  2002/08/13 18:01:51  carl

@@ -74,7 +74,8 @@ var
   s,
   resobj,
   resbin   : string;
-  resfound : boolean;
+  resfound,
+  objused  : boolean;
 begin
   resbin:='';
   if utilsdirectory<>'' then
@@ -90,6 +91,7 @@ begin
    end;
   resobj:=ForceExtension(current_module.objfilename^,target_info.resobjext);
   s:=target_res.rescmd;
+  ObjUsed:=(pos('$OBJ',s)>0);
   Replace(s,'$OBJ',resobj);
   Replace(s,'$RES',fname);
   Replace(s,'$INC',respath);
@@ -115,7 +117,8 @@ begin
   { Update asmres when externmode is set }
   if cs_link_extern in aktglobalswitches then
     AsmRes.AddLinkCommand(resbin,s,'');
-  current_module.linkotherofiles.add(resobj,link_allways);
+  if ObjUsed then
+    current_module.linkotherofiles.add(resobj,link_allways);
 end;
 
 
@@ -123,12 +126,14 @@ procedure CompileResourceFiles;
 var
   hr : presourcefile;
 begin
-(* OS/2 (EMX) must be processed elsewhere (in the linking/binding stage). *)
+  { OS/2 (EMX) must be processed elsewhere (in the linking/binding stage). }
   if target_info.system<>system_i386_os2 then
    While not current_module.ResourceFiles.Empty do
     begin
       case target_info.system of
-        system_i386_win32,system_i386_wdosx:
+        system_m68k_palmos,
+        system_i386_win32,
+        system_i386_wdosx :
           hr:=new(presourcefile,init(current_module.ResourceFiles.getfirst));
         else
           Message(scan_e_resourcefiles_not_supported);
@@ -142,7 +147,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.15  2002-07-26 21:15:37  florian
+  Revision 1.16  2003-01-12 15:42:23  peter
+    * m68k pathexist update from 1.0.x
+    * palmos res update from 1.0.x
+
+  Revision 1.15  2002/07/26 21:15:37  florian
     * rewrote the system handling
 
   Revision 1.14  2002/05/18 13:34:06  peter

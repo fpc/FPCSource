@@ -208,11 +208,16 @@ end;
 initialization
 {$ifdef m68k}
   RegisterTarget(target_m68k_palmos_info);
+  RegisterRes(res_m68k_palmos_info);
 {$endif m68k}
 end.
 {
   $Log$
-  Revision 1.1  2002-09-06 15:03:50  carl
+  Revision 1.2  2003-01-12 15:42:23  peter
+    * m68k pathexist update from 1.0.x
+    * palmos res update from 1.0.x
+
+  Revision 1.1  2002/09/06 15:03:50  carl
     * moved files to systems directory
 
   Revision 1.14  2002/07/26 21:15:46  florian

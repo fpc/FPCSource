@@ -492,26 +492,27 @@ implementation
     Function PathExists ( F : String) : Boolean;
       Var
         Info : SearchRec;
-{$ifdef i386}
         disk : byte;
-{$endif i386}
       begin
-{$ifdef i386}
-        if (Length(f)=3) and (F[2]=':') and (F[3] in ['/','\']) then
-          begin
-            if F[1] in ['A'..'Z'] then
-              disk:=ord(F[1])-ord('A')+1
-            else if F[1] in ['a'..'z'] then
-              disk:=ord(F[1])-ord('a')+1
-            else
-              disk:=255;
-            if disk=255 then
-              PathExists:=false
-            else
-              PathExists:=(DiskSize(disk)<>-1);
-            exit;
-          end;
-{$endif i386}
+        { these operating systems have dos type drives }
+        if source_info.system in [system_m68k_atari,system_i386_go32v2,
+                                  system_i386_win32,system_i386_os2] then
+        Begin
+          if (Length(f)=3) and (F[2]=':') and (F[3] in ['/','\']) then
+            begin
+              if F[1] in ['A'..'Z'] then
+                disk:=ord(F[1])-ord('A')+1
+              else if F[1] in ['a'..'z'] then
+                disk:=ord(F[1])-ord('a')+1
+              else
+                disk:=255;
+              if disk=255 then
+                PathExists:=false
+              else
+                PathExists:=(DiskSize(disk)<>-1);
+              exit;
+            end;
+        end;
         if F[Length(f)] in ['/','\'] then
          Delete(f,length(f),1);
         findfirst(F,readonly+archive+hidden+directory,info);
@@ -1525,7 +1526,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.81  2003-01-10 21:49:00  marco
+  Revision 1.82  2003-01-12 15:42:23  peter
+    * m68k pathexist update from 1.0.x
+    * palmos res update from 1.0.x
+
+  Revision 1.81  2003/01/10 21:49:00  marco
    * more hasunix fixes
 
   Revision 1.80  2003/01/04 16:20:44  hajny

@@ -137,7 +137,9 @@ interface
        );
 
        tres = (res_none
-            ,res_gnu_windres,res_emxbind,res_mpw_res
+            ,res_gnu_windres,res_emxbind
+            ,res_m68k_palmos,res_m68k_mpw
+            ,res_powerpc_mpw
        );
 
        tscripttype = (script_none
@@ -676,7 +678,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.58  2003-01-05 13:36:53  florian
+  Revision 1.59  2003-01-12 15:42:23  peter
+    * m68k pathexist update from 1.0.x
+    * palmos res update from 1.0.x
+
+  Revision 1.58  2003/01/05 13:36:53  florian
     * x86-64 compiles
     + very basic support for float128 type (x86-64 only)
 

@@ -128,7 +128,7 @@ implementation
                      begin
                        Message(parser_w_cdecl_has_no_high);
                        { removing it is too complicated, we just hide it PM }
-                       owner.rename(highvarsym.name,'hidden'+copy(highvarsym.name,5,high(name)));
+                       owner.rename(highvarsym.name,'hidden'+copy(highvarsym.name,5,length(name)));
                      end;
                   end;
                  if is_array_of_const(vartype.def) and
@@ -2116,7 +2116,11 @@ const
 end.
 {
   $Log$
-  Revision 1.103  2003-01-07 19:16:38  peter
+  Revision 1.104  2003-01-12 15:42:23  peter
+    * m68k pathexist update from 1.0.x
+    * palmos res update from 1.0.x
+
+  Revision 1.103  2003/01/07 19:16:38  peter
     * removed some duplicate code when creating aktprocsym
 
   Revision 1.102  2003/01/05 18:17:45  peter
