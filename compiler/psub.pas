@@ -573,7 +573,8 @@ begin
   _CONSTRUCTOR : begin
                    consume(_CONSTRUCTOR);
                    parse_proc_head(potype_constructor);
-                   if procinfo._class^.is_class then
+                   if assigned(procinfo._class) and
+                      procinfo._class^.is_class then
                     begin
                       { CLASS constructors return the created instance }
                       aktprocsym^.definition^.retdef:=procinfo._class;
@@ -584,7 +585,7 @@ begin
 {$IfDef GDB}
                       { GDB doesn't like unnamed types !}
                       aktprocsym^.definition^.retdef:=globaldef('boolean');
-{$Else GDB}
+{$else GDB}
                       aktprocsym^.definition^.retdef:=new(porddef,init(bool8bit,0,1));
 {$Endif GDB}
                     end;
@@ -2051,7 +2052,12 @@ end.
 
 {
   $Log$
-  Revision 1.16  1999-08-27 10:41:46  pierre
+  Revision 1.17  1999-08-30 10:17:57  peter
+    * fixed crash in psub
+    * ansistringcompare fixed
+    * support for #$0b8
+
+  Revision 1.16  1999/08/27 10:41:46  pierre
     * pi_is_global was missing for global methods
     + code to restore overloaded list order
       (necessary to get same CRC values after interface and after

@@ -177,7 +177,7 @@ unit globals;
          this should dramatically decrease the number of
          recompilations needed PM }
        simplify_ppu : boolean = false;
-       
+
        { should we allow non static members ? }
        allow_only_static : boolean = false;
 
@@ -633,19 +633,22 @@ unit globals;
       begin
          compareansistrings:=0;
          j:=min(length1,length2);
-         for i:=1  to j do
-           begin
-              if p1[i]>p2[i] then
-                begin
-                   compareansistrings:=1;
-                   exit;
-                end
-              else if p1[i]<p2[i] then
-                begin
-                   compareansistrings:=-1;
-                   exit;
-                end;
-           end;
+         i:=0;
+         while (i<j) do
+          begin
+            if p1[i]>p2[i] then
+             begin
+               compareansistrings:=1;
+               exit;
+             end
+            else
+             if p1[i]<p2[i] then
+              begin
+                compareansistrings:=-1;
+                exit;
+              end;
+            inc(i);
+          end;
          if length1>length2 then
           compareansistrings:=1
          else
@@ -1247,7 +1250,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.21  1999-08-27 10:45:00  pierre
+  Revision 1.22  1999-08-30 10:17:56  peter
+    * fixed crash in psub
+    * ansistringcompare fixed
+    * support for #$0b8
+
+  Revision 1.21  1999/08/27 10:45:00  pierre
    options -Ca sets simply_ppu to true
 
   Revision 1.20  1999/08/19 13:02:12  pierre

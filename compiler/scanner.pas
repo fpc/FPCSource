@@ -1064,7 +1064,7 @@ implementation
         low,high,mid : longint;
         m       : longint;
         mac     : pmacrosym;
-        asciinr : string[3];
+        asciinr : string[6];
       label
          exit_label;
       begin
@@ -1436,7 +1436,7 @@ implementation
                            begin
                               readchar; { read leading $ }
                               asciinr:='$';
-                              while (upcase(c) in ['A'..'F','0'..'9']) and (length(asciinr)<3) do
+                              while (upcase(c) in ['A'..'F','0'..'9']) and (length(asciinr)<6) do
                                begin
                                  asciinr:=asciinr+c;
                                  readchar;
@@ -1445,7 +1445,7 @@ implementation
                          else
                            begin
                               asciinr:='';
-                              while (c in ['0'..'9']) and (length(asciinr)<3) do
+                              while (c in ['0'..'9']) and (length(asciinr)<6) do
                                begin
                                  asciinr:=asciinr+c;
                                  readchar;
@@ -1697,7 +1697,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.92  1999-08-06 13:11:44  michael
+  Revision 1.93  1999-08-30 10:17:58  peter
+    * fixed crash in psub
+    * ansistringcompare fixed
+    * support for #$0b8
+
+  Revision 1.92  1999/08/06 13:11:44  michael
   * Removed C style comments.
 
   Revision 1.91  1999/08/05 16:53:11  peter
