@@ -2341,6 +2341,9 @@ implementation
          (([pocall_cdecl,pocall_cppdecl]*aktprocsym^.definition^.proccalloptions)=[]) then
         aktprocsym^.definition^.parast^.foreach({$ifndef TP}@{$endif}copyvalueparas);
 
+      if assigned( aktprocsym^.definition^.parast) then
+        aktprocsym^.definition^.parast^.foreach({$ifndef TP}@{$endif}init_paras);
+
       { do we need an exception frame because of ansi/widestrings/interfaces ? }
       if not inlined and
          ((procinfo^.flags and pi_needs_implicit_finally)<>0) and
@@ -2928,7 +2931,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  2000-11-06 23:15:01  peter
+  Revision 1.9  2000-11-06 23:49:20  florian
+    * fixed init_paras call
+
+  Revision 1.8  2000/11/06 23:15:01  peter
     * added copyvaluepara call again
 
   Revision 1.7  2000/11/04 14:25:23  florian
