@@ -23,6 +23,14 @@
     function Get8087CW:word;
 {$endif cpui386}
 
+{$ifdef cpux86_64}
+    const
+      Default8087CW : word = $1332;
+
+    procedure Set8087CW(cw:word);
+    function Get8087CW:word;
+{$endif cpux86_64}
+
    { declarations of the math routines }
 
     function abs(d : extended) : extended;
@@ -62,7 +70,11 @@
 
 {
   $Log$
-  Revision 1.14  2004-01-02 17:19:04  jonas
+  Revision 1.15  2004-02-08 15:33:50  florian
+    * linking problems fixed
+    + abi tag added
+
+  Revision 1.14  2004/01/02 17:19:04  jonas
     * if currency = int64, FPC_CURRENCY_IS_INT64 is defined
     + round and trunc for currency and comp if FPC_CURRENCY_IS_INT64 is
       defined

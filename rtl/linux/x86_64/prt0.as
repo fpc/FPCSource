@@ -65,9 +65,27 @@ __data_start:
 	.long 0
 	.weak data_start
         data_start = __data_start
+
+/* We need this stuff to make gdb behave itself, otherwise
+   gdb will chokes with SIGILL when trying to debug apps.
+*/
+        .section ".note.ABI-tag", "a"
+        .align 4
+        .long 1f - 0f
+        .long 3f - 2f
+        .long  1
+0:      .asciz "GNU"
+1:      .align 4
+2:      .long 0
+        .long 2,4,0
+3:      .align 4
 #
 # $Log$
-# Revision 1.2  2004-02-02 21:02:38  peter
+# Revision 1.3  2004-02-08 15:33:50  florian
+#   * linking problems fixed
+#   + abi tag added
+#
+# Revision 1.2  2004/02/02 21:02:38  peter
 #   * fixed syntax errors
 #
 # Revision 1.1  2003/01/06 19:33:10  florian
