@@ -46,6 +46,7 @@ end;
 procedure TIDEApp.ExecuteTool(Idx: integer);
 var Title,ProgramPath,Params: string;
     W: PSourceWindow;
+    ToFocus : sw_integer;
     Wo: word;
     Err: integer;
     CaptureFile: string;
@@ -72,8 +73,12 @@ begin
   EraseFile(FilterCaptureName);
 
   if CaptureToolTo=capMessageWindow then
-    AddToolCommand(ProgramPath+' '+Params);
-
+    begin
+      AddToolCommand(ProgramPath+' '+Params);
+      ToFocus:=ToolMessages^.count-1;
+    end
+  else
+    ToFocus:=-1;
   if CaptureToolTo<>capNone then
     ShowMessage('Executing tool '+KillTilde(Title)+'...');
 
@@ -111,6 +116,9 @@ begin
             if DosExitCode<>0 then
               ErrorBox('Filter execution successful. Exit code '+IntToStr(DosExitCode),nil);
           UpdateToolMessages;
+          if (ToFocus<>-1) then
+            if Assigned(MessagesWindow) then
+              MessagesWindow^.FocusItem(ToFocus);
           if DosError=0 then
             Messages;
         end;
@@ -139,6 +147,7 @@ var
   p,lineNb : longint;
   error : word;
   showmsg : boolean;
+  ToFocus : sw_integer;
   searchword,
   GrepExe,GrepArgs,Line,ModuleName : String;
   GrepOut : text;
@@ -199,6 +208,8 @@ begin
          GrepArgs:=IL2^.Data^;
          ReplaceStr(GrepArgs,'$TEXT',SearchWord);
          { Linux ? }
+         AddToolCommand(GrepExe+' '+GrepArgs);
+         ToFocus:=ToolMessages^.count-1;
          if not ExecuteRedir(GrepExe,GrepArgs,'',GrepOutName,GrepErrName) then
            Begin
               { 2 as exit code just means that
@@ -239,6 +250,9 @@ begin
     end;
   Dispose(PGrepDialog, Done);
   UpdateToolMessages;
+  if (ToFocus<>-1) then
+    if Assigned(MessagesWindow) then
+      MessagesWindow^.FocusItem(ToFocus);
   if showmsg then
     Messages;
 end;
@@ -246,7 +260,12 @@ end;
 
 {
   $Log$
-  Revision 1.11  1999-03-02 13:48:30  peter
+  Revision 1.12  1999-07-12 13:14:20  pierre
+    * LineEnd bug corrected, now goes end of text even if selected
+    + Until Return for debugger
+    + Code for Quit inside GDB Window
+
+  Revision 1.11  1999/03/02 13:48:30  peter
     * fixed far problem is fpdebug
     * tile/cascading with message window
     * grep fixes

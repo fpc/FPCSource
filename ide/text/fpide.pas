@@ -60,6 +60,7 @@ type
       procedure DoRun;
       procedure DoResetDebugger;
       procedure DoContToCursor;
+      procedure DoContUntilReturn; 
       procedure Target;
       procedure DoCompilerMessages;
       procedure DoPrimaryFile;
@@ -230,9 +231,10 @@ begin
       NewItem('~S~tep over','F8', kbF8, cmStepOver, hcRun,
       NewItem('~T~race into','F7', kbF7, cmTraceInto, hcRun,
       NewItem('~G~oto Cursor','F4', kbF4, cmContToCursor, hcContToCursor,
+      NewItem('~U~ntil return','', kbNoKey,cmUntilReturn,hcUntilReturn,
       NewItem('P~a~rameters...','', kbNoKey, cmParameters, hcParameters,
       NewItem('~P~rogram reset','Ctrl+F2', kbCtrlF2, cmResetDebugger, hcResetDebugger,
-      nil))))))),
+      nil)))))))),
     NewSubMenu('~C~ompile',hcCompileMenu, NewMenu(
       NewItem('~C~ompile','Alt+F9', kbAltF9, cmCompile, hcCompile,
       NewItem('~M~ake','F9', kbF9, cmMake, hcMake,
@@ -413,6 +415,7 @@ begin
              cmRun           : DoRun;
              cmResetDebugger : DoResetDebugger;
              cmContToCursor  : DoContToCursor;
+             cmUntilReturn   : DoContUntilReturn;
            { -- Compile menu -- }
              cmCompile       : DoCompile(cCompile);
              cmBuild         : DoCompile(cBuild);
@@ -582,7 +585,7 @@ begin
   SetCmdState([cmCloseAll,cmTile,cmCascade,cmWindowList],IsThereAnyWindow);
   SetCmdState([cmFindProcedure,cmObjects,cmModules,cmGlobals,cmSymbol{,cmInformation}],IsSymbolInfoAvailable);
 {$ifndef NODEBUG}
-  SetCmdState([cmResetDebugger],assigned(debugger) and debugger^.debugger_started);
+  SetCmdState([cmResetDebugger,cmUntilReturn],assigned(debugger) and debugger^.debuggee_started);
 {$endif}
   SetCmdState([cmToolsMsgNext,cmToolsMsgPrev],MessagesWindow<>nil);
   UpdateTools;
@@ -766,7 +769,12 @@ end;
 END.
 {
   $Log$
-  Revision 1.32  1999-07-10 01:24:17  pierre
+  Revision 1.33  1999-07-12 13:14:18  pierre
+    * LineEnd bug corrected, now goes end of text even if selected
+    + Until Return for debugger
+    + Code for Quit inside GDB Window
+
+  Revision 1.32  1999/07/10 01:24:17  pierre
    + First implementation of watches window
 
   Revision 1.31  1999/06/29 22:50:14  peter

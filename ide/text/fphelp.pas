@@ -135,6 +135,7 @@ begin
     hcParameters    : S:='Set command-line parameters passed to program at execution';
     hcResetDebugger : S:='Reset Program';
     hcContToCursor  : S:='Go on until Cursor position';
+    hcUntilReturn   : S:='Go on until end of current function';
     hcUserScreen    : S:='Switch to the full-screen user output';
 
     hcCompileMenu   : S:='Compile, build & make';
@@ -386,7 +387,12 @@ end;
 END.
 {
   $Log$
-  Revision 1.18  1999-07-10 01:24:16  pierre
+  Revision 1.19  1999-07-12 13:14:17  pierre
+    * LineEnd bug corrected, now goes end of text even if selected
+    + Until Return for debugger
+    + Code for Quit inside GDB Window
+
+  Revision 1.18  1999/07/10 01:24:16  pierre
    + First implementation of watches window
 
   Revision 1.17  1999/06/30 23:58:14  pierre

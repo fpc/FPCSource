@@ -560,7 +560,10 @@ begin
        Shell(PpasFile+source_os.scriptext);
 {$else}
        Dos.Exec(GetEnv('COMSPEC'),'/C '+PpasFile+source_os.scriptext);
+       if DosError<>0 then
+         Inc(status.errorCount);
 {$endif}
+
     end;
 {$ifdef TEMPHEAP}
   switch_to_base_heap;
@@ -610,7 +613,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.31  1999-06-28 19:32:17  peter
+  Revision 1.32  1999-07-12 13:14:13  pierre
+    * LineEnd bug corrected, now goes end of text even if selected
+    + Until Return for debugger
+    + Code for Quit inside GDB Window
+
+  Revision 1.31  1999/06/28 19:32:17  peter
     * fixes from gabor
 
   Revision 1.30  1999/06/28 15:59:04  pierre

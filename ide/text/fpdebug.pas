@@ -45,8 +45,10 @@ type
     procedure Reset;virtual;
     procedure Run;virtual;
     procedure Continue;virtual;
+    procedure UntilReturn;virtual;
     procedure CommandBegin(const s:string);virtual;
     procedure CommandEnd(const s:string);virtual;
+    function  AllowQuit : boolean;virtual;
   end;
 
   BreakpointType = (bt_function,bt_file_line,bt_watch,bt_awatch,bt_rwatch,bt_invalid);
@@ -313,11 +315,19 @@ end;
 
 procedure TDebugController.Continue;
 begin
-  if not debugger_started then
+  if not debuggee_started then
     Run
   else
     inherited Continue;
 end;
+
+procedure TDebugController.UntilReturn;
+begin
+  Command('finish');
+  { We could try to get the return value !
+    Not done yet }
+end;
+
 
 procedure TDebugController.CommandBegin(const s:string);
 begin
@@ -344,6 +354,15 @@ begin
     end;
 end;
 
+function  TDebugController.AllowQuit : boolean;
+begin
+  if ConfirmBox('Really quit editor ?',nil,true)=cmOK then
+    begin
+      Message(@MyApp,evCommand,cmQuit,nil);
+    end
+  else
+    AllowQuit:=false;
+end;
 
 procedure TDebugController.Reset;
 var
@@ -1929,7 +1948,12 @@ end.
 
 {
   $Log$
-  Revision 1.21  1999-07-11 00:35:14  pierre
+  Revision 1.22  1999-07-12 13:14:15  pierre
+    * LineEnd bug corrected, now goes end of text even if selected
+    + Until Return for debugger
+    + Code for Quit inside GDB Window
+
+  Revision 1.21  1999/07/11 00:35:14  pierre
    * fix problems for wrong watches
 
   Revision 1.20  1999/07/10 01:24:14  pierre

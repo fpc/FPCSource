@@ -119,6 +119,7 @@ const
      cmStack             = 236;
      cmBreakpointList    = 237;
      cmWatches           = 238;
+     cmUntilReturn       = 239;
 
      cmNotImplemented    = 1000;
      cmNewFromTemplate   = 1001;
@@ -255,6 +256,7 @@ const
      hcParameters        = hcShift+cmParameters;
      hcResetDebugger     = hcShift+cmResetDebugger;
      hcContToCursor      = hcShift+cmContToCursor;
+     hcUntilReturn       = hcShift+cmUntilReturn;
      hcOpenGDBWindow     = hcShift+cmOpenGDBWindow;
      hcToolsMsgNext      = hcShift+cmToolsMsgNext;
      hcToolsMsgPrev      = hcShift+cmToolsMsgPrev;
@@ -335,7 +337,12 @@ implementation
 END.
 {
   $Log$
-  Revision 1.21  1999-07-10 01:24:13  pierre
+  Revision 1.22  1999-07-12 13:14:14  pierre
+    * LineEnd bug corrected, now goes end of text even if selected
+    + Until Return for debugger
+    + Code for Quit inside GDB Window
+
+  Revision 1.21  1999/07/10 01:24:13  pierre
    + First implementation of watches window
 
   Revision 1.20  1999/06/30 23:58:11  pierre

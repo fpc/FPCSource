@@ -1988,9 +1988,18 @@ begin
 end;
 
 procedure TCodeEditor.LineEnd;
+var
+  s : string;
+  i : longint;
 begin
   if CurPos.Y<GetLineCount then
-    SetCurPtr(length(GetDisplayText(CurPos.Y)),CurPos.Y)
+    begin
+      s:=GetDisplayText(CurPos.Y);
+      i:=length(s);
+      while (i>0) and (s[i]=' ') do
+        dec(i);
+      SetCurPtr(i,CurPos.Y);
+    end
   else
     SetCurPtr(0,CurPos.Y);
 end;
@@ -2025,8 +2034,14 @@ begin
 end;
 
 procedure TCodeEditor.TextEnd;
+var s : string;
+    i : longint;
 begin
-  SetCurPtr(length(GetDisplayText(GetLineCount-1)),GetLineCount-1);
+  s:=GetDisplayText(GetLineCount-1);
+  i:=length(s);
+  while (i>0) and (s[i]=' ') do
+    dec(i);
+  SetCurPtr(i,GetLineCount-1);
 end;
 
 procedure TCodeEditor.JumpSelStart;
@@ -3934,7 +3949,12 @@ end;
 END.
 {
   $Log$
-  Revision 1.37  1999-06-29 22:50:16  peter
+  Revision 1.38  1999-07-12 13:14:24  pierre
+    * LineEnd bug corrected, now goes end of text even if selected
+    + Until Return for debugger
+    + Code for Quit inside GDB Window
+
+  Revision 1.37  1999/06/29 22:50:16  peter
     * more fixes from gabor
 
   Revision 1.36  1999/06/29 08:51:34  pierre

@@ -349,6 +349,9 @@ implementation
 uses
   Video,Strings,Keyboard,Memory,MsgBox,Validate,
   Tokens,Version,
+{$ifndef NODEBUG}
+  gdbint,
+{$endif NODEBUG}
   {$ifdef VESA}Vesa,{$endif}
   FPSwitch,FPSymbol,FPDebug,FPVars,FPUtils,FPCompile,FPHelp;
 
@@ -2452,7 +2455,18 @@ begin
   Insert(New(PStaticText, Init(R2, ^C' Version '+VersionStr)));
   R2.Move(0,1);
   Insert(New(PStaticText, Init(R2, ^C'(Compiler Version '+Version_String+')')));
+{$ifndef NODEBUG}
+  if pos('Fake',GDBVersion)=0 then
+    begin
+      R2.Move(0,1);
+      Insert(New(PStaticText, Init(R2, ^C'(Debugging based on '+GDBVersion+')')));
+      R2.Move(0,1);
+    end
+  else
+    R2.Move(0,2);
+{$else NODEBUG}
   R2.Move(0,2);
+{$endif NODEBUG}
   Insert(New(PStaticText, Init(R2, ^C'Copyright (C) 1998-99 by')));
   R2.Move(0,2);
   Insert(New(PStaticText, Init(R2, ^C'B‚rczi G bor')));
@@ -2460,7 +2474,6 @@ begin
   Insert(New(PStaticText, Init(R2, ^C'and')));
   R2.Move(0,1);
   Insert(New(PStaticText, Init(R2, ^C'Peter Vreman')));
-
   New(C, Init(50,10));
   for I:=1 to 7 do
   AddLine('');
@@ -2611,7 +2624,12 @@ end;
 END.
 {
   $Log$
-  Revision 1.34  1999-06-30 23:58:20  pierre
+  Revision 1.35  1999-07-12 13:14:22  pierre
+    * LineEnd bug corrected, now goes end of text even if selected
+    + Until Return for debugger
+    + Code for Quit inside GDB Window
+
+  Revision 1.34  1999/06/30 23:58:20  pierre
     + BreakpointsList Window implemented
       with Edit/New/Delete functions
     + Individual breakpoint dialog with support for all types
