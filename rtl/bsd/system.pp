@@ -54,6 +54,10 @@ function geterrnolocation: Plibcint; cdecl;external clib name '__error';
 {$ifdef NetBSD} // from a sparc dump.
 function geterrnolocation: Plibcint; cdecl;external clib name '__errno';
 {$else} 
+{$ifdef Darwin}
+function geterrnolocation: Plibcint; cdecl;external clib name '__error';
+{$else}
+{$endif}
 {$endif}
 {$endif}
 
@@ -122,6 +126,28 @@ begin
   OpenStdIO(StdErr,fmOutput,StdErrorHandle);
 end;
 
+
+{$ifdef FPC_USE_LIBC}
+
+{ can also be used with other BSD's if they use the system's crtX instead of prtX }
+
+{$ifdef Darwin}
+procedure pascalmain; external name 'PASCALMAIN';
+
+{ Main entry point in C style, needed to capture program parameters. }
+procedure main(argcparam: Longint; argvparam: ppchar; envpparam: ppchar); cdecl; [public];
+
+begin
+  argc:= argcparam;
+  argv:= argvparam;
+  envp:= envpparam;
+  pascalmain;  {run the pascal main program}
+end;
+{$endif Darwin}
+{$endif FPC_USE_LIBC}
+
+
+
 Begin
   IsConsole := TRUE;
   IsLibrary := FALSE;
@@ -144,7 +170,11 @@ End.
 
 {
   $Log$
-  Revision 1.11  2003-12-30 12:26:21  marco
+  Revision 1.12  2004-01-04 20:32:05  jonas
+    + geterrnolocation for Darwin
+    + C-style main for Darwin (generic, can be used for anything)
+
+  Revision 1.11  2003/12/30 12:26:21  marco
    * FPC_USE_LIBC
 
   Revision 1.10  2003/10/26 17:01:04  marco
