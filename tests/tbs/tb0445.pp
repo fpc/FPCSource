@@ -1,7 +1,7 @@
 type
-  tproc = procedure(self:longint);
+  tproc = procedure(self,l2:longint);
 
-procedure p(l:longint);
+procedure p(l1,l2:longint);
 begin
 end;
 
