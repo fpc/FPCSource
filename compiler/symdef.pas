@@ -879,6 +879,10 @@ implementation
           result:=result+'_'+prefix;
         if suffix<>'' then
           result:=result+'_'+suffix;
+        { the Darwin assembler assumes that all symbols starting with 'L' are local }
+        if (target_info.system = system_powerpc_darwin) and
+           (result[1] = 'L') then
+          result := '_' + result;
       end;
 
 
@@ -6152,7 +6156,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.196  2003-12-24 20:51:11  peter
+  Revision 1.197  2004-01-04 21:10:04  jonas
+    * Darwin's assembler assumes that all labels starting with 'L' are local
+      -> rename symbols starting with 'L'
+
+  Revision 1.196  2003/12/24 20:51:11  peter
     * don't lowercase enumnames
 
   Revision 1.195  2003/12/24 01:47:22  florian
