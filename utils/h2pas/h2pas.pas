@@ -1015,6 +1015,7 @@ program h2pas;
               end;
             t_uniondef :
               begin
+                 inc(typedef_level);
                  if (typedef_level>1) and (p^.p1=nil) and
                     (p^.p2^.typ=t_id) then
                    begin
@@ -1056,6 +1057,7 @@ program h2pas;
                       flush(outfile);
                       dec(typedef_level);
                    end;
+                 dec(typedef_level);
               end;
             else
               internalerror(3);
@@ -1789,12 +1791,12 @@ begin
        end;
   41 : begin
          
-         yyval:=new(presobject,init_two(t_uniondef,nil,yyv[yysp-0]));
+         yyval:=yyv[yysp-0];
          
        end;
   42 : begin
          
-         yyval:=new(presobject,init_two(t_structdef,nil,yyv[yysp-0]));
+         yyval:=yyv[yysp-0];
          
        end;
   43 : begin
@@ -1804,7 +1806,7 @@ begin
        end;
   44 : begin
          
-         yyval:=new(presobject,init_two(t_enumdef,nil,yyv[yysp-0]));
+         yyval:=yyv[yysp-0];
          
        end;
   45 : begin
@@ -7857,9 +7859,9 @@ end.
 
 {
   $Log$
-  Revision 1.4  2001-08-17 22:47:30  florian
-    * C contant size specifiers can be lower cased as well:
-      0x12341234u is allowed
+  Revision 1.5  2001-12-17 23:34:58  florian
+    * support for enum enumtype enumvar; fixed
+      same for unions done
 
   Revision 1.3  2001/04/10 21:22:38  peter
     * more fixes that were still laying around
@@ -7870,5 +7872,5 @@ end.
       (you need to run h2paspp manual)
 
   Revision 1.1  2000/07/13 10:16:23  michael
-  + Initial import
+    + Initial import
 }

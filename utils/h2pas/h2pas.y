@@ -1011,6 +1011,7 @@ program h2pas;
               end;
             t_uniondef :
               begin
+                 inc(typedef_level);
                  if (typedef_level>1) and (p^.p1=nil) and
                     (p^.p2^.typ=t_id) then
                    begin
@@ -1052,6 +1053,7 @@ program h2pas;
                       flush(outfile);
                       dec(typedef_level);
                    end;
+                 dec(typedef_level);
               end;
             else
               internalerror(3);
@@ -1710,11 +1712,11 @@ special_type_specifier :
      } |
      UNION dname
      {
-       $$:=new(presobject,init_two(t_uniondef,nil,$2));
+       $$:=$2;
      } |
      STRUCT dname
      {
-       $$:=new(presobject,init_two(t_structdef,nil,$2));
+       $$:=$2;
      } |
      ENUM dname closed_enum_list
      {
@@ -1722,7 +1724,7 @@ special_type_specifier :
      } |
      ENUM dname
      {
-       $$:=new(presobject,init_two(t_enumdef,nil,$2));
+       $$:=$2;
      };
 
 type_specifier :
@@ -2441,7 +2443,11 @@ end.
 
 {
   $Log$
-  Revision 1.3  2001-04-10 21:22:38  peter
+  Revision 1.4  2001-12-17 23:34:59  florian
+    * support for enum enumtype enumvar; fixed
+      same for unions done
+
+  Revision 1.3  2001/04/10 21:22:38  peter
     * more fixes that were still laying around
 
   Revision 1.2  2000/12/27 21:59:59  peter
@@ -2450,5 +2456,5 @@ end.
       (you need to run h2paspp manual)
 
   Revision 1.1  2000/07/13 10:16:23  michael
-  + Initial import
+    + Initial import
 }

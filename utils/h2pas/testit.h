@@ -21,6 +21,22 @@ struct _test
   int y;
 };
 
+struct XML_cp {
+  enum XML_Content_Type         type;
+  enum XML_Content_Quant        quant;
+  struct _test                  test;
+  union _test2                  test2;
+  XML_Char *                    name;
+  unsigned int                  numchildren;
+  XML_Content *                 children;
+};
+
+typedef void (*XML_AttlistDeclHandler) (void           *userData,
+                                        const XML_Char *elname,
+                                        const XML_Char *attname,
+                                        const XML_Char *att_type,
+                                        const XML_Char *dflt,
+                                        int             isrequired);
 void proc(int *,int);
 void proc(int *p,int i);
 
