@@ -4,7 +4,7 @@
 	Copyright (c) 1999-2000 by the Free Pascal development team.
 
 	Includefile for objects.pp implementing OS-dependent file routines
-	for Go32V1
+	for EMX (OS/2 & DOS)
 
 	See the file COPYING.FPC, included in this distribution,
 	for details about the copyright.
@@ -130,11 +130,23 @@ asm
     movl Handle, %ebx
     movl FileSize,%edx
     call syscall
+    jc .LSetFSize1
+    movl $0x4202, %eax
+    movl Handle, %ebx
+    movl $0, %edx
+    call syscall
+    movl $0, %eax
+    jnc .LSetFSize1
+    dec eax
+.LSetFSize1:
 end;
 
 {
   $Log$
-  Revision 1.6  2000-06-05 18:55:54  hajny
+  Revision 1.7  2000-06-06 17:10:36  hajny
+    * moving file ptr to the end in SetFileSize
+
+  Revision 1.6  2000/06/05 18:55:54  hajny
     * another SetFileSize correction
 
   Revision 1.5  2000/06/04 14:17:28  hajny
