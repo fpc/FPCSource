@@ -1186,7 +1186,7 @@ implementation
                  handle_str;
                  maybe_loadesi;
               end;
-{$IfnDef ODLVAL}
+{$IfnDef OLDVAL}
             in_val_x :
               Begin
                 handle_val;
@@ -1276,7 +1276,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.34  1999-03-31 17:13:09  jonas
+  Revision 1.35  1999-03-31 20:30:49  michael
+  * fixed typo: odlval to oldval
+
+  Revision 1.34  1999/03/31 17:13:09  jonas
     * bugfix for -Ox with internal val code
     * internal val code now requires less free registers
     * internal val code no longer needs a temp var for range checking
