@@ -78,11 +78,15 @@ interface
 
        treelogfilename = 'tree.log';
 
-       { I don't know if this endian dependend }
-       MathQNaN : array[0..7] of byte = (0,0,0,0,0,0,252,255);
-       MathInf : array[0..7] of byte = (0,0,0,0,0,0,240,127);
-       MathNegInf : array[0..7] of byte = (0,0,0,0,0,0,240,255);
-
+{$if (defined(CPUARM) and defined(FPUFPA))}
+       MathQNaN : tdoublearray = (0,0,252,255,0,0,0,0);
+       MathInf : tdoublearray = (0,0,240,127,0,0,0,0);
+       MathNegInf : tdoublearray = (0,0,240,255,0,0,0,0);
+{$else}
+       MathQNaN : tdoublearray = (0,0,0,0,0,0,252,255);
+       MathInf : tdoublearray = (0,0,0,0,0,0,240,127);
+       MathNegInf : tdoublearray = (0,0,0,0,0,0,240,255);
+{$endif}
 
     type
        TFPUException = (exInvalidOp, exDenormalized, exZeroDivide,
@@ -1673,6 +1677,23 @@ end;
         end;
 
 
+    function convertdoublearray(d : tdoublearray) : tdoublearray;{$ifdef USEINLINE}inline;{$endif}
+{$ifdef CPUARM}
+      var
+        i : longint;
+      begin
+        for i:=0 to 3 do
+          begin
+            result[i+4]:=d[i];
+            result[i]:=d[i+4];
+          end;
+{$else CPUARM}
+      begin
+        result:=d;
+{$endif CPUARM}
+      end;
+
+
       Function SetCompileMode(const s:string; changeInit: boolean):boolean;
       var
         b : boolean;
@@ -2148,7 +2169,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.155  2004-12-28 20:43:01  hajny
+  Revision 1.156  2005-01-04 16:20:51  florian
+    * fixed nan et al. handling on arm
+
+  Revision 1.155  2004/12/28 20:43:01  hajny
     * 8.3 fixes (short target name in paths)
 
   Revision 1.154  2004/12/15 16:06:47  marco

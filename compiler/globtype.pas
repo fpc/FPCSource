@@ -74,6 +74,8 @@ than 255 characters. That's why using Ansi Strings}
          int64 constants internally (JM) }
        TConstPtrUInt = AWord;
 
+       tdoublearray = array[0..7] of byte;
+
        { Switches which can be changed locally }
        tlocalswitch = (cs_localnone,
          { codegen }
@@ -316,7 +318,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.66  2004-12-27 16:35:48  peter
+  Revision 1.67  2005-01-04 16:20:51  florian
+    * fixed nan et al. handling on arm
+
+  Revision 1.66  2004/12/27 16:35:48  peter
     * set flag if a procedure references a symbol in staticsymtable
 
   Revision 1.65  2004/12/15 21:08:15  peter
