@@ -1248,7 +1248,7 @@ implementation
             current_module.flags:=current_module.flags or uf_has_resources;
             { only write if no errors found }
             if (Errorcount=0) then
-             ResourceStrings.WriteResourceFile(current_module.ModuleName^);
+             ResourceStrings.WriteResourceFile(ForceExtension(current_module.ppufilename^,'.rst'));
           end;
 
          { avoid self recursive destructor call !! PM }
@@ -1524,7 +1524,7 @@ implementation
             ResourceStrings.CreateResourceStringList;
             { only write if no errors found }
             if (Errorcount=0) then
-             ResourceStrings.WriteResourceFile(current_module.ModuleName^);
+             ResourceStrings.WriteResourceFile(ForceExtension(current_module.ppufilename^,'.rst'));
           end;
 
          codegen_doneprocedure;
@@ -1627,7 +1627,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.22  2001-02-21 19:37:19  peter
+  Revision 1.23  2001-02-24 10:44:56  peter
+    * generate .rst from ppufilename instead of modulename
+
+  Revision 1.22  2001/02/21 19:37:19  peter
     * moved deref to be done after loading of implementation units. prederef
       is still done directly after loading of symbols and definitions.
 

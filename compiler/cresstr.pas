@@ -50,7 +50,7 @@ Type
     destructor  Destroy;override;
     function  Register(Const name : string;p : pchar;len : longint) : longint;
     procedure CreateResourceStringList;
-    Procedure WriteResourceFile(FileName : String);
+    Procedure WriteResourceFile(const FileName : String);
   end;
 
 var
@@ -212,7 +212,7 @@ begin
 end;
 
 
-Procedure TResourceStrings.WriteResourceFile(Filename : String);
+Procedure TResourceStrings.WriteResourceFile(const FileName : String);
 Type
   TMode = (quoted,unquoted);
 Var
@@ -231,8 +231,7 @@ Var
 begin
   If List.Empty then
     exit;
-  FileName:=current_module.outputpath^+FixFileName(ForceExtension(FileName,'.rst'));
-  message1 (general_i_writingresourcefile,filename);
+  message1 (general_i_writingresourcefile,SplitFileName(filename));
   Assign(F,Filename);
   {$i-}
   Rewrite(f);
@@ -293,7 +292,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  2000-12-25 00:07:25  peter
+  Revision 1.9  2001-02-24 10:44:55  peter
+    * generate .rst from ppufilename instead of modulename
+
+  Revision 1.8  2000/12/25 00:07:25  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 
