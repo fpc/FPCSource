@@ -2140,6 +2140,50 @@ begin
 end;
 {$endif GDB_V5}
 
+{$ifdef cpui386}
+type
+  tfpustate = word;
+
+const
+  MaskAllExceptions = $ff;
+{$else}
+type
+  tfpustate : longint;
+
+const
+  MaskAllExceptions = 0;
+{$endif}
+
+procedure SaveFPUState(var control :TFPUState);
+begin
+{$ifdef cpui386}
+  asm
+    movl control, %edi
+    fstcw (%edi)
+  end;
+{$else}
+  control:=0;
+{$endif}
+end;
+
+procedure SetFPUState(control : TFPUState);
+begin
+{$ifdef cpui386}
+  asm
+    fnclex
+    fldcw control
+  end;
+{$else}
+{$endif}
+end;
+
+function MaskAllFPUExceptions(control : TFPUState) : TFPUState;
+begin
+{$ifdef cpui386}
+  MaskAllFPUExceptions := control or MaskAllExceptions;
+{$endif}
+end;
+
 procedure tgdbinterface.gdb_command(const s:string);
 var
   command          : array[0..256] of char;
@@ -2149,8 +2193,11 @@ var
   s2 : string;
   old_quit_return,
   old_error_return : jmp_buf;
+  control : TFPUState;
 begin
   inc(command_level);
+  SaveFPUState(control);
+  SetFPUState(MaskAllFPUExceptions(control));
   move(s[1],command,length(s));
   command[length(s)]:=#0;
   old_quit_return:=quit_return;
@@ -2208,6 +2255,7 @@ begin
   quit_return:=old_quit_return;
   error_return:=old_error_return;
   dec(command_level);
+  SetFPUState(control);
 end;
 
 
@@ -2571,7 +2619,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2002-09-07 15:42:52  peter
+  Revision 1.9  2002-09-17 20:20:05  pierre
+   * mask all fpu exceptions in GDB commands as GDB relies on that
+
+  Revision 1.8  2002/09/07 15:42:52  peter
     * old logs removed and tabs fixed
 
   Revision 1.7  2002/07/30 16:40:41  marco
