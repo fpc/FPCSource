@@ -89,7 +89,7 @@ unit i_win32;
                 localalignmin   : 4;
                 localalignmax   : 4;
                 recordalignmin  : 0;
-                recordalignmax  : 2;
+                recordalignmax  : 4;
                 maxCrecordalign : 16
               );
             first_parm_offset : 8;
@@ -112,7 +112,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.6  2004-01-12 22:11:39  peter
+  Revision 1.7  2004-03-14 20:09:27  peter
+    * max record aligment changed to 4
+
+  Revision 1.6  2004/01/12 22:11:39  peter
     * use localalign info for alignment for locals and temps
     * sparc fpu flags branching added
     * moved powerpc copy_valye_openarray to generic
