@@ -20,19 +20,33 @@
 
  ****************************************************************************
 }
-unit agas;
+unit agaxpgas;
+
+  {$i fpcdefs.inc}
 
   interface
 
     uses
-       globals,systems,cobjects,aasm,strings,files
-       agatt,cpubase;
+       globals,systems,aasmbase,aasmtai,
+       aggas,cpubase;
 
     type
-      palphaattasmlist=^talphaattasmlist;
-      talphaattasmlist=object(tattasmlist)
-        procedure WriteInstruction(P : PAI);virtual;
+      TAXPGNUAssembler=class(TGNUAssembler)
+        procedure WriteInstruction(hp : tai);override;
       end;
+
+    const
+       gas_reg2str : array[tregister] of string[4] = (
+         '',
+         '','','','','','','','','','',
+         '','','','','','','','','','',
+         '','','','','','','','','','',
+         '','',
+         '','','','','','','','','','',
+         '','','','','','','','','','',
+         '','','','','','','','','','',
+         '',''
+       );
 
   implementation
 
@@ -70,9 +84,10 @@ unit agas;
           'sts','stl','stl_c','stq','stq_c','stq_u',
           'stt','stw','subf','subg','subl',
           'subq','subs','subt','trapb','umulh','unpkbl',
-          'unpkbw','wh64','wmb','xor','zap','zapnot');
+          'unpkbw','wh64','wmb','xor','zap','zapnot',
+          'ldgp');
 
-      procedure tAlphaattasmlist.WriteInstruction (P : PAi);
+      procedure TAXPGNUAssembler.WriteInstruction (hp : tai);
         begin
 (*
                op:=paicpu(hp)^.opcode;
@@ -113,7 +128,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2002-09-07 15:25:10  peter
+  Revision 1.1  2002-09-29 23:42:45  florian
+    * several fixes to get forward with alpha compilation
+
+  Revision 1.2  2002/09/07 15:25:10  peter
     * old logs removed and tabs fixed
 
   Revision 1.1  2002/08/18 09:06:54  florian

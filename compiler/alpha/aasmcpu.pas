@@ -2,7 +2,7 @@
     $Id$
     Copyright (c) 1998-2000 by Florian Klaempfl
 
-    Contains the assembler object for the Alpha
+    Implements the assembler classes specific for the Alpha
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,32 +20,33 @@
 
  ****************************************************************************
 }
-unit cpuasm;
+{
+  Implements the assembler classes specific for the Alpha.
+}
+unit aasmcpu;
+
+{$i fpcdefs.inc}
 
 interface
 
 uses
-  cobjects,
-  aasm,globals,verbose,
-  cpubase,tainst;
+  aasmbase,globals,verbose,
+  cpubase,aasmtai;
 
 type
-  paiframe = ^taiframe;
-  taiframe = object(tai)
+  tai_frame = class(tai)
      G,R : TRegister;
      LS,LU : longint;
-    Constructor init (GP : Tregister; Localsize : Longint; RA : TRegister; L : longint);
+    Constructor Create (GP : Tregister; Localsize : Longint; RA : TRegister; L : longint);
     end;
 
-  paient = ^taient;
-  taient = object(tai)
+  tai_ent = class(tai)
     Name : string;
-    Constructor Init (ProcName : String);
+    Constructor Create (const ProcName : String);
     end;
 
 
-  paicpu = ^taicpu;
-  taicpu = object(tainstruction)
+  taicpu = class(taicpu_abstract)
      constructor op_none(op : tasmop);
 
      constructor op_reg(op : tasmop;_op1 : tregister);
@@ -72,18 +73,17 @@ type
      constructor op_reg_ref_const(op : tasmop;_op1 : tregister;_op2 : preference;_op3 : longint);
 
      { this is for Jmp instructions }
-     constructor op_cond_sym(op : tasmop;cond:TAsmCond;_op1 : pasmsymbol);
+     constructor op_cond_sym(op : tasmop;cond:TAsmCond;_op1 : tasmsymbol);
 
-     constructor op_sym(op : tasmop;_op1 : pasmsymbol);
-     constructor op_sym_ofs(op : tasmop;_op1 : pasmsymbol;_op1ofs:longint);
-     constructor op_sym_ofs_reg(op : tasmop;_op1 : pasmsymbol;_op1ofs:longint;_op2 : tregister);
-     constructor op_sym_ofs_ref(op : tasmop;_op1 : pasmsymbol;_op1ofs:longint;_op2 : preference);
-
-     function  getcopy:plinkedlist_item;virtual;
-  private
-     segprefix : tregister;
+     constructor op_sym(op : tasmop;_op1 : tasmsymbol);
+     constructor op_sym_ofs(op : tasmop;_op1 : tasmsymbol;_op1ofs:longint);
+     constructor op_sym_ofs_reg(op : tasmop;_op1 : tasmsymbol;_op1ofs:longint;_op2 : tregister);
+     constructor op_sym_ofs_ref(op : tasmop;_op1 : tasmsymbol;_op1ofs:longint;_op2 : preference);
   end;
 
+  tai_align = class(tai_align_abstract)
+    { nothing to add }
+  end;
 
 implementation
 
@@ -95,178 +95,162 @@ implementation
 
     constructor taicpu.op_none(op : tasmop);
       begin
-         inherited init(op);
+         inherited create(op);
       end;
 
 
     constructor taicpu.op_reg(op : tasmop;_op1 : tregister);
       begin
-         inherited init(op);
+         inherited create(op);
          ops:=1;
       end;
 
 
     constructor taicpu.op_const(op : tasmop;_op1 : longint);
       begin
-         inherited init(op);
+         inherited create(op);
          ops:=1;
       end;
 
 
     constructor taicpu.op_ref(op : tasmop;_op1 : preference);
       begin
-         inherited init(op);
+         inherited create(op);
          ops:=1;
       end;
 
 
     constructor taicpu.op_reg_reg(op : tasmop;_op1,_op2 : tregister);
       begin
-         inherited init(op);
+         inherited create(op);
          ops:=2;
       end;
 
 
     constructor taicpu.op_reg_const(op:tasmop; _op1: tregister; _op2: longint);
       begin
-         inherited init(op);
+         inherited create(op);
          ops:=2;
       end;
 
 
     constructor taicpu.op_reg_ref(op : tasmop;_op1 : tregister;_op2 : preference);
       begin
-         inherited init(op);
+         inherited create(op);
          ops:=2;
       end;
 
 
     constructor taicpu.op_const_reg(op : tasmop;_op1 : longint;_op2 : tregister);
       begin
-         inherited init(op);
+         inherited create(op);
          ops:=2;
       end;
 
 
     constructor taicpu.op_const_const(op : tasmop;_op1,_op2 : longint);
       begin
-         inherited init(op);
+         inherited create(op);
          ops:=2;
       end;
 
 
     constructor taicpu.op_const_ref(op : tasmop;_op1 : longint;_op2 : preference);
       begin
-         inherited init(op);
+         inherited create(op);
          ops:=2;
       end;
 
     constructor taicpu.op_ref_reg(op : tasmop;_op1 : preference;_op2 : tregister);
       begin
-         inherited init(op);
+         inherited create(op);
          ops:=2;
       end;
 
 
     constructor taicpu.op_ref_ref(op : tasmop;_op1,_op2 : preference);
       begin
-         inherited init(op);
+         inherited create(op);
          ops:=2;
       end;
 
 
     constructor taicpu.op_reg_reg_reg(op : tasmop;_op1,_op2,_op3 : tregister);
       begin
-         inherited init(op);
+         inherited create(op);
          ops:=3;
       end;
 
     constructor taicpu.op_reg_const_reg(op : tasmop;_op1 : tregister;_op2 : longint;_op3 : tregister);
       begin
-         inherited init(op);
+         inherited create(op);
          ops:=3;
       end;
 
      constructor taicpu.op_reg_reg_ref(op : tasmop;_op1,_op2 : tregister;_op3 : preference);
       begin
-         inherited init(op);
+         inherited create(op);
          ops:=3;
       end;
 
      constructor taicpu.op_const_ref_reg(op : tasmop;_op1 : longint;_op2 : preference;_op3 : tregister);
       begin
-         inherited init(op);
+         inherited create(op);
          ops:=3;
       end;
 
      constructor taicpu.op_const_reg_ref(op : tasmop;_op1 : longint;_op2 : tregister;_op3 : preference);
       begin
-         inherited init(op);
+         inherited create(op);
          ops:=3;
       end;
 
      constructor taicpu.op_reg_ref_const(op : tasmop;_op1 : tregister;_op2 : preference;_op3 : longint);
       begin
-         inherited init(op);
+         inherited create(op);
          ops:=3;
       end;
 
 
-    constructor taicpu.op_cond_sym(op : tasmop;cond:TAsmCond;_op1 : pasmsymbol);
+    constructor taicpu.op_cond_sym(op : tasmop;cond:TAsmCond;_op1 : tasmsymbol);
       begin
-         inherited init(op);
+         inherited create(op);
          condition:=cond;
          ops:=1;
       end;
 
 
-    constructor taicpu.op_sym(op : tasmop;_op1 : pasmsymbol);
+    constructor taicpu.op_sym(op : tasmop;_op1 : tasmsymbol);
       begin
-         inherited init(op);
+         inherited create(op);
          ops:=1;
       end;
 
 
-    constructor taicpu.op_sym_ofs(op : tasmop;_op1 : pasmsymbol;_op1ofs:longint);
+    constructor taicpu.op_sym_ofs(op : tasmop;_op1 : tasmsymbol;_op1ofs:longint);
       begin
-         inherited init(op);
+         inherited create(op);
          ops:=1;
       end;
 
 
-    constructor taicpu.op_sym_ofs_reg(op : tasmop;_op1 : pasmsymbol;_op1ofs:longint;_op2 : tregister);
+    constructor taicpu.op_sym_ofs_reg(op : tasmop;_op1 : tasmsymbol;_op1ofs:longint;_op2 : tregister);
       begin
-         inherited init(op);
+         inherited create(op);
          ops:=2;
       end;
 
 
-    constructor taicpu.op_sym_ofs_ref(op : tasmop;_op1 : pasmsymbol;_op1ofs:longint;_op2 : preference);
+    constructor taicpu.op_sym_ofs_ref(op : tasmop;_op1 : tasmsymbol;_op1ofs:longint;_op2 : preference);
       begin
-         inherited init(op);
+         inherited create(op);
          ops:=2;
       end;
 
-    function taicpu.getcopy:plinkedlist_item;
-      var
-        i : longint;
-        p : plinkedlist_item;
-      begin
-        p:=inherited getcopy;
-        { make a copy of the references }
-        for i:=1 to ops do
-         if (paicpu(p)^.oper[i-1].typ=top_ref) then
-          begin
-            new(paicpu(p)^.oper[i-1].ref);
-            paicpu(p)^.oper[i-1].ref^:=oper[i-1].ref^;
-          end;
-        getcopy:=p;
-      end;
-
-    Constructor taiframe.init (GP : Tregister; Localsize : Longint; RA : TRegister; L : longint);
+    Constructor tai_frame.create (GP : Tregister; Localsize : Longint; RA : TRegister; L : longint);
 
     begin
-      Inherited Init;
+      Inherited Create;
       typ:=ait_frame;
       G:=GP;
       R:=RA;
@@ -274,10 +258,10 @@ implementation
       LU:=L;
     end;
 
-    Constructor taient.Init (ProcName : String);
+    Constructor tai_ent.Create (const ProcName : String);
 
     begin
-      Inherited init;
+      Inherited Create;
       typ:=ait_ent;
       Name:=ProcName;
     end;
@@ -285,7 +269,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2002-09-29 22:34:17  florian
+  Revision 1.2  2002-09-29 23:42:45  florian
+    * several fixes to get forward with alpha compilation
+
+  Revision 1.1  2002/09/29 22:34:17  florian
     * cpuasm renamed to aasmcpu
 
   Revision 1.2  2002/09/07 15:25:10  peter

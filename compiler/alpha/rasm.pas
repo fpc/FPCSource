@@ -1,8 +1,8 @@
 {
     $Id$
-    Copyright (C) 1998-2000 by Florian Klaempfl
+    Copyright (c) 1998-2002 by The Free Pascal Team
 
-    This unit handles the temporary variables stuff for Alpha
+    This unit does the parsing process for the inline assembler
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,35 +21,51 @@
  ****************************************************************************
 }
 {
-  This unit handles the temporary variables stuff for Alpha.
+  This unit does the parsing process for the inline assembler.
 }
-unit tgcpu;
+Unit Rasm;
 
 {$i fpcdefs.inc}
 
-  interface
+Interface
+
+uses
+  node;
+
+   {
+     This routine is called to parse the instructions in assembler
+     blocks. It returns a complete list of directive and instructions
+   }
+   function assemble: tnode;
+
+
+Implementation
 
     uses
-       tgobj;
+       { common }
+       cutils,cclasses,
+       { global }
+       globtype,globals,verbose,
+       systems,
+       { aasm }
+       cpubase,aasmbase,aasmtai,aasmcpu,
+       { symtable }
+       symconst,symbase,symtype,symsym,symtable,
+       { pass 1 }
+       nbas,
+       { parser }
+       scanner
+       // ,rautils
+       ;
 
-    type
-       ttgalpha = class(ttgobj)
-       end;
+    function assemble : tnode;
+     begin
+     end;
 
-implementation
-
-begin
-  tg:=ttgalpha.create;
+Begin
 end.
 {
   $Log$
-  Revision 1.3  2002-09-29 23:42:46  florian
+  Revision 1.1  2002-09-29 23:42:45  florian
     * several fixes to get forward with alpha compilation
-
-  Revision 1.2  2002/09/07 15:25:10  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.1  2002/08/18 09:06:54  florian
-    * alpha files moved compiler/alpha
-
 }
