@@ -108,6 +108,18 @@ CONST
     MFSNAMELEN = 15;
     MNAMELEN   = 90;
 
+
+  DWORDS_IN_PTHREAD_T = sizeof(pointer) div sizeof(dword);
+  DWORDS_IN_PTHREAD_ATTR_T = (36+sizeof(clong)) div sizeof(dword);
+  DWORDS_IN_PTHREAD_MUTEXATTR_T = (8+sizeof(clong)) div sizeof(dword);
+  DWORDS_IN_PTHREAD_MUTEX_T = (40+sizeof(clong)) div sizeof(dword);
+  DWORDS_IN_PTHREAD_COND_ATTR_T = (4+sizeof(clong)) div sizeof(dword);
+  DWORDS_IN_PTHREAD_COND_T = (24+sizeof(clong)) div sizeof(dword);
+  DWORDS_IN_PTHREAD_ONCE_T = (4+sizeof(clong)) div sizeof(dword);
+  DWORDS_IN_PTHREAD_RWLOCK_T = (124+sizeof(clong)) div sizeof(dword);
+  DWORDS_IN_PTHREAD_RWLOCK_ATTR_T = (12+sizeof(clong)) div sizeof(dword);
+
+
   type
      fsid_t = record
           val: array[0..1] of cint32;
@@ -135,11 +147,15 @@ CONST
        end;
     pstatfs = ^tstatfs;
 
+   pthread_key_t = clong;
 
 
 {
   $Log$
-  Revision 1.6  2004-03-04 22:28:08  marco
+  Revision 1.7  2004-08-25 21:42:11  jonas
+    * fixed pthread type definitions for darwin and made them generic
+
+  Revision 1.6  2004/03/04 22:28:08  marco
    * Darwin specific unixtype fixes.
 
   Revision 1.5  2004/03/01 19:50:40  jonas

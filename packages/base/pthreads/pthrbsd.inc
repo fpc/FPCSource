@@ -117,35 +117,6 @@ const
     }
 
   type
-     pthread = record
-       end;
-    
-     pthread_attr = record
-       end;
-
-     pthread_cond = record
-       end;
-
-     pthread_cond_attr = record
-       end;
-
-     pthread_mutex = record
-       end;
-
-  
-     pthread_mutex_attr = record
-       end;
-
-{
-     pthread_once = record
-       end;
-}
-     pthread_rwlock = record
-       end;
-
-     pthread_rwlockattr = record
-       end;
-
 { from semaphore.h }
 
      sem 		= record end;
@@ -162,22 +133,23 @@ const
      pthread_condattr_t, pthread_mutex_t, pthread_mutexattr_t.
     }
 
-     pthread_t 			= ^pthread;
-     pthread_attr_t 		= ^pthread_attr;
-     pthread_mutex_t 		= ^pthread_mutex;
-     pthread_mutexattr_t 	= ^pthread_mutex_attr;
-     pthread_cond_t 		= ^pthread_cond;
-     pthread_condattr_t 	= ^pthread_cond_attr;
-     pthread_key_t 		= cint;
-     pthread_rwlock_t 		= ^pthread_rwlock;
-     pthread_rwlockattr_t 	= ^pthread_rwlockattr;
+     pthread_t 			= record a: array[0..DWORDS_IN_PTHREAD_T-1] of dword; end;
+     pthread_attr_t 		= record a: array[0..DWORDS_IN_PTHREAD_ATTR_T-1] of dword; end;
+     pthread_mutex_t 		= record a: array[0..DWORDS_IN_PTHREAD_MUTEX_T-1] of dword; end;
+     pthread_mutexattr_t 	= record a: array[0..DWORDS_IN_PTHREAD_MUTEXATTR_T-1] of dword; end;
+     pthread_cond_t 		= record a: array[0..DWORDS_IN_PTHREAD_COND_T-1] of dword; end;
+     pthread_condattr_t 	= record a: array[0..DWORDS_IN_PTHREAD_COND_ATTR_T-1] of dword; end;
+{    moved to ptypes.inc because not the same on all systems }
+{     pthread_key_t 		= cint; }
+     pthread_rwlock_t 		= record a: array[0..DWORDS_IN_PTHREAD_RWLOCK_T-1] of dword; end;
+     pthread_rwlockattr_t 	= record a: array[0..DWORDS_IN_PTHREAD_RWLOCK_ATTR_T-1] of dword; end;
 
      TThreadID = pthread_t;
      PThreadID = ^TThreadID;
      TThreadAttr = pthread_attr_t;
      PThreadAttr = ^TThreadAttr;
      TPthreadMutex = pthread_mutex_t;
-     PTpthreadmutex= ^pthread_mutex;
+     PTpthreadmutex= ^TPthreadMutex;
      TMutexAttribute = pthread_mutexattr_t;
      PMutexAttribute = ^TMutexAttribute;
      TPthreadCondattr = pthread_condattr_t;
@@ -423,7 +395,10 @@ function pthread_attr_getfloatstate(_para1:Ppthread_attr_t; _para2:Pcint):cint;c
 
 {  
    $Log$
-   Revision 1.4  2004-02-15 19:59:20  marco
+   Revision 1.5  2004-08-25 21:42:11  jonas
+     * fixed pthread type definitions for darwin and made them generic
+
+   Revision 1.4  2004/02/15 19:59:20  marco
     * linklib pthread from now on
 
    Revision 1.3  2003/11/16 21:30:24  marco

@@ -24,7 +24,7 @@ interface
 {$ifdef BSD}
 
 {$ifndef ver1_0}
-Uses BaseUnix;
+Uses BaseUnix, unixtype;
 {$endif}
 
 {$i pthrbsd.inc}

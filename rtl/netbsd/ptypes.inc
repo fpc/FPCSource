@@ -91,6 +91,8 @@ type
   ptimespec= ^timespec;
   Ttimespec= timespec;
 
+  pthread_key_t = cint;
+
 CONST
    { System limits, POSIX value in parentheses, used for buffer and stack allocation }
     ARG_MAX  = 256*1024;   {4096}  { Maximum number of argument size     }
@@ -101,10 +103,22 @@ CONST
 
     SIG_MAXSIG      = 128;	// highest signal version
 
+    DWORDS_IN_PTHREAD_T = sizeof(pointer) div sizeof(dword);
+    DWORDS_IN_PTHREAD_ATTR_T = sizeof(pointer) div sizeof(dword);
+    DWORDS_IN_PTHREAD_MUTEXATTR_T = sizeof(pointer) div sizeof(dword);
+    DWORDS_IN_PTHREAD_MUTEX_T = sizeof(pointer) div sizeof(dword);
+    DWORDS_IN_PTHREAD_COND_ATTR_T = sizeof(pointer) div sizeof(dword);
+    DWORDS_IN_PTHREAD_COND_T = sizeof(pointer) div sizeof(dword);
+    DWORDS_IN_PTHREAD_ONCE_T = sizeof(pointer) div sizeof(dword);
+    DWORDS_IN_PTHREAD_RWLOCK_T = sizeof(pointer) div sizeof(dword);
+    DWORDS_IN_PTHREAD_RWLOCK_ATTR_T = sizeof(pointer) div sizeof(dword);
 
 {
   $Log$
-  Revision 1.6  2004-05-16 13:03:27  peter
+  Revision 1.7  2004-08-25 21:42:11  jonas
+    * fixed pthread type definitions for darwin and made them generic
+
+  Revision 1.6  2004/05/16 13:03:27  peter
     * remove duplicate wordsinsigset
 
   Revision 1.5  2004/01/04 20:08:45  jonas
