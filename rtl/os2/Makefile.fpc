@@ -126,7 +126,7 @@ pmdev$(PPUEXT) : pmdev.pas os2def$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 pmspl$(PPUEXT) : pmspl.pas os2def$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
-pmshl$(PPUEXT) : pmspl.pas os2def$(PPUEXT) pmwin$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+pmshl$(PPUEXT) : pmshl.pas os2def$(PPUEXT) pmwin$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 dynlibs$(PPUEXT) : $(INC)/dynlibs.pp doscalls$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
