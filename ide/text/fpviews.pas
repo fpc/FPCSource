@@ -687,9 +687,9 @@ function SearchFreeWindowNo: integer;
 var No: integer;
 begin
   No:=1;
-  while (No<10) and (SearchWindowWithNo(No)<>nil) do
+  while (No<100) and (SearchWindowWithNo(No)<>nil) do
     Inc(No);
-  if No=10 then No:=0;
+  if No=100 then No:=0;
   SearchFreeWindowNo:=No;
 end;
 
@@ -2445,17 +2445,20 @@ var D : DirStr;
   end;
 
   function SearchOnDesktop: PSourceWindow;
-  var W: PWindow;
+  var
+      V: PView;
+      W: PWindow;
       I: integer;
       DS : DirStr;
       NS : NameStr;
       ES : ExtStr;
       Found : boolean;
       SName : string;
-  begin
-    for I:=1 to 100 do
+
+  function IsSearchedFile(W : PSourceWindow) : boolean;
+    var Found: boolean;
     begin
-      W:=SearchWindowWithNo(I);
+      Found:=false;
       if (W<>nil) and (W^.HelpCtx=hcSourceWindow) then
         begin
           if (D='') then
@@ -2478,11 +2481,20 @@ var D : DirStr;
               if Found=false then
                 Found:=SName=UpcaseStr(N+'.pas');
             end;
-          if Found then Break;
         end;
+      IsSearchedFile:=found;
     end;
-    if Found=false then W:=nil;
-    SearchOnDesktop:=PSourceWindow(W);
+  function IsSearchedSource(P: PView) : boolean; {$ifndef FPC}far;{$endif}
+  begin
+    if assigned(P) and
+       (TypeOf(P^)=TypeOf(TSourceWindow)) then
+         IsSearchedSource:=IsSearchedFile(PSourceWindow(P))
+       else
+         IsSearchedSource:=false;
+  end;
+
+  begin
+    SearchOnDesktop:=PSourceWindow(Desktop^.FirstThat(@IsSearchedSource));
   end;
 
 var
@@ -2838,7 +2850,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.47  1999-11-18 13:39:24  pierre
+  Revision 1.48  1999-11-22 16:02:12  pierre
+   * TryToOpenFile failed tofind a sourcewindow if it has no number
+
+  Revision 1.47  1999/11/18 13:39:24  pierre
    * Better info for Undo debugging
 
   Revision 1.46  1999/11/10 00:44:12  pierre
