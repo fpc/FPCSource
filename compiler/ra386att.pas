@@ -329,6 +329,7 @@ begin
         actasmtoken:=AS_END;
         exit;
       end;
+     message1(asmr_e_unknown_opcode,actasmpattern);
      actasmtoken:=AS_NONE;
    end
   else { else firsttoken }
@@ -1994,7 +1995,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.75  2000-05-08 13:23:03  peter
+  Revision 1.76  2000-05-09 11:56:25  pierre
+   * Issue an error if opcode is not found
+
+  Revision 1.75  2000/05/08 13:23:03  peter
     * fixed reference parsing
 
   Revision 1.74  2000/04/29 12:51:33  peter

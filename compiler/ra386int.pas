@@ -297,6 +297,7 @@ begin
       end;
      if is_asmdirective(actasmpattern) then
       exit;
+     message1(asmr_e_unknown_opcode,actasmpattern);
      actasmtoken:=AS_NONE;
      exit;
    end
@@ -1825,7 +1826,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.65  2000-05-08 13:23:04  peter
+  Revision 1.66  2000-05-09 11:56:26  pierre
+   * Issue an error if opcode is not found
+
+  Revision 1.65  2000/05/08 13:23:04  peter
     * fixed reference parsing
 
   Revision 1.64  2000/04/29 12:51:34  peter
