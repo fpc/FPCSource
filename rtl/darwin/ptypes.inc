@@ -105,7 +105,6 @@ CONST
 
     SIG_MAXSIG      = 32;	// highest signal version
     wordsinsigset   = 1;	// words in sigset_t
-    wordsinfdset    = 1024 div 32;	// words in fdset_t
 
 
     MFSNAMELEN = 15;
@@ -142,7 +141,10 @@ CONST
 
 {
   $Log$
-  Revision 1.4  2004-02-22 23:18:24  jonas
+  Revision 1.5  2004-03-01 19:50:40  jonas
+    - removed wordsinfdset again, because now it's defined in a common file
+
+  Revision 1.4  2004/02/22 23:18:24  jonas
     + added wordsinfdset constant
 
   Revision 1.3  2004/01/04 20:05:38  jonas
