@@ -1743,10 +1743,12 @@ installbase: build-stamp.$(OS_TARGET)
 ifndef SNAPSHOT
 	$(COPY) $(CVSINSTALL)/doc/*.txt $(CVSINSTALL)/doc/copying* $(CVSINSTALL)/doc/faq.* $(INSTALL_DOCDIR)
 ifeq ($(OS_TARGET),go32v2)
-	$(COPY) $(CVSINSTALL)/bingo32/* $(INSTALL_BINDIR)
+	$(COPY) $(CVSINSTALL)/bingo32/*.dxe $(INSTALL_BINDIR)
+	$(COPY) $(CVSINSTALL)/bingo32/*.exe $(INSTALL_BINDIR)
 endif
 ifeq ($(OS_TARGET),win32)
-	$(COPY) $(CVSINSTALL)/binw32/* $(INSTALL_BINDIR)
+	$(COPY) $(CVSINSTALL)/binw32/*.ico $(INSTALL_BINDIR)
+	$(COPY) $(CVSINSTALL)/binw32/*.dll $(INSTALL_BINDIR)
 endif
 ifeq ($(OS_TARGET),linux)
 	$(MAKE) -C $(CVSINSTALL)/man installman

@@ -309,11 +309,13 @@ ifndef SNAPSHOT
         $(COPY) $(CVSINSTALL)/doc/*.txt $(CVSINSTALL)/doc/copying* $(CVSINSTALL)/doc/faq.* $(INSTALL_DOCDIR)
 # bingo32 (cwsdpmi,wmemu387.dxe)
 ifeq ($(OS_TARGET),go32v2)
-        $(COPY) $(CVSINSTALL)/bingo32/* $(INSTALL_BINDIR)
+        $(COPY) $(CVSINSTALL)/bingo32/*.dxe $(INSTALL_BINDIR)
+        $(COPY) $(CVSINSTALL)/bingo32/*.exe $(INSTALL_BINDIR)
 endif
-# binw32 (cygwin1.dll)
+# binw32 (cygwin1.dll,*.ico)
 ifeq ($(OS_TARGET),win32)
-        $(COPY) $(CVSINSTALL)/binw32/* $(INSTALL_BINDIR)
+        $(COPY) $(CVSINSTALL)/binw32/*.ico $(INSTALL_BINDIR)
+        $(COPY) $(CVSINSTALL)/binw32/*.dll $(INSTALL_BINDIR)
 endif
 # manpages for UNIX systems
 ifeq ($(OS_TARGET),linux)
