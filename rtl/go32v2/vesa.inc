@@ -1834,11 +1834,21 @@ end;
      FrameBufferLinearAddress:=Get_linear_addr(VESAModeInfo.PhysAddress and $FFFF0000,
        VESAInfo.TotalMem shl 16);
      if int31error<>0 then
-       writeln(stderr,'Unable to get linear address for ',hexstr(VESAModeInfo.PhysAddress,8));
+       begin
+         writeln(stderr,'Unable to get linear address for ',hexstr(VESAModeInfo.PhysAddress,8));
+         exit;
+       end;
+     WinWriteSeg:=allocate_ldt_descriptors(1);
+     WinReadSeg:=allocate_ldt_descriptors(1);
      set_segment_base_address(WinWriteSeg,FrameBufferLinearAddress);
      set_segment_limit(WinWriteSeg,(VESAInfo.TotalMem shl 16)-1);
      set_segment_base_address(WinReadSeg,FrameBufferLinearAddress);
      set_segment_limit(WinReadSeg,(VESAInfo.TotalMem shl 16)-1);
+     if int31error<>0 then
+       begin
+         writeln(stderr,'Error in linear memory selectors creation');
+         exit;
+       end;
      InLinear:=true;
      SetUpLinear:=true;
      { WinSize:=(VGAInfo.TotalMem shl 16);
@@ -2010,7 +2020,7 @@ end;
 
      { VBE 2.0 and higher supports >= non VGA linear buffer types...}
      { this is backward compatible.                                 }
-     if ((VESAModeInfo.Attr and ModeNoWindowed) <> 0) and
+     if (((VESAModeInfo.Attr and ModeNoWindowed) <> 0) or ForceVesa) and
           ((VESAModeInfo.Attr and ModeLinearBuffer) <> 0) then
         begin
           if not SetupLinear(VESAModeInfo,mode) then
@@ -2499,7 +2509,10 @@ end;
 
 (*
 $Log$
-Revision 1.19  2000-02-12 13:39:19  jonas
+Revision 1.20  2000-03-09 22:32:22  pierre
+ * fixes for LFB mode
+
+Revision 1.19  2000/02/12 13:39:19  jonas
   + new, faster fillpoly from Thomas Schatzl
   * some logging commands in vesa.inc disabled
 

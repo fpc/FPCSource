@@ -96,7 +96,10 @@ var
                           { initialized in QueryAdapterInfo in graph.inc }
 {
   $Log$
-  Revision 1.4  2000-01-07 16:41:32  daniel
+  Revision 1.5  2000-03-09 22:32:30  pierre
+   * fixes for LFB mode
+
+  Revision 1.4  2000/01/07 16:41:32  daniel
     * copyright 2000
 
   Revision 1.3  2000/01/07 16:32:24  daniel
