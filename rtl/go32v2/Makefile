@@ -67,7 +67,7 @@ UNITOBJECTS=$(SYSTEMUNIT) objpas strings \
           dos crt objects printer graph \
           sysutils math typinfo \
           cpu mmx getopts heaptrc \
-          msmouse
+          msmouse ports
 
 
 #####################################################################
@@ -189,7 +189,7 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
 # System Dependent Units
 #
 
-go32$(PPUEXT) : go32.pp objpas$(PPUEXT) $(SYSTEMPPU)
+go32$(PPUEXT) : go32.pp $(SYSTEMPPU)
 
 dpmiexcp$(PPUEXT) : dpmiexcp.pp exceptn$(OEXT) $(SYSTEMPPU)
 	$(COMPILER) -Sg dpmiexcp.pp $(REDIR)
@@ -247,15 +247,15 @@ getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMPPU)
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMPPU)
 	$(COMPILER) -Sg $(INC)/heaptrc.pp $(REDIR)
 
-#
-# Other system-dependent RTL Units
-#
-
 msmouse$(PPUEXT) : msmouse.pp $(SYSTEMPPU)
 
+ports$(PPUEXT) : ports.pp $(SYSTEMPPU)
 #
 # $Log$
-# Revision 1.16  1999-06-01 13:23:13  peter
+# Revision 1.17  1999-09-08 14:22:54  pierre
+#  + ports unit
+#
+# Revision 1.16  1999/06/01 13:23:13  peter
 #   * fixes to work with the new makefile
 #   * os2 compiles now correct under linux
 #
