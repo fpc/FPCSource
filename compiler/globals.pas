@@ -271,6 +271,10 @@ interface
        palmos_applicationid : string[4] = 'FPCA';
 {$endif m68k}
 
+{$ifdef powerpc}
+       { default calling convention used on MorphOS }
+       syscall_convention : string = 'LEGACY';
+{$endif powerpc}
 
     procedure abstract;
 
@@ -2169,7 +2173,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.156  2005-01-04 16:20:51  florian
+  Revision 1.157  2005-01-04 17:40:33  karoly
+    + sysv style syscalls added for MorphOS
+
+  Revision 1.156  2005/01/04 16:20:51  florian
     * fixed nan et al. handling on arm
 
   Revision 1.155  2004/12/28 20:43:01  hajny

@@ -249,7 +249,10 @@ type
     po_has_public_name,
     po_forward,
     po_global,
-    po_has_inlininginfo
+    po_has_inlininginfo,
+    { The two different kind of syscalls on MorphOS }
+    po_syscall_legacy,
+    po_syscall_sysv  
   );
   tprocoptions=set of tprocoption;
 
@@ -429,7 +432,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.96  2004-12-05 12:28:11  peter
+  Revision 1.97  2005-01-04 17:40:33  karoly
+    + sysv style syscalls added for MorphOS
+
+  Revision 1.96  2004/12/05 12:28:11  peter
     * procvar handling for tp procvar mode fixed
     * proc to procvar moved from addrnode to typeconvnode
     * inlininginfo is now allocated only for inline routines that

@@ -226,7 +226,9 @@ type
     _UNIMPLEMENTED,
     _IMPLEMENTATION,
     _INITIALIZATION,
-    _RESOURCESTRING
+    _RESOURCESTRING,
+    _LEGACY,
+    _SYSV
   );
 
 const
@@ -455,7 +457,9 @@ const
       (str:'UNIMPLEMENTED' ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'IMPLEMENTATION';special:false;keyword:m_all;op:NOTOKEN),
       (str:'INITIALIZATION';special:false;keyword:m_initfinal;op:NOTOKEN),
-      (str:'RESOURCESTRING';special:false;keyword:m_class;op:NOTOKEN)
+      (str:'RESOURCESTRING';special:false;keyword:m_class;op:NOTOKEN),
+      (str:'LEGACY'        ;special:false;keyword:m_none;op:NOTOKEN),
+      (str:'SYSV'          ;special:false;keyword:m_none;op:NOTOKEN)
   );
 
 var
@@ -516,7 +520,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.32  2004-10-24 20:01:08  peter
+  Revision 1.33  2005-01-04 17:40:33  karoly
+    + sysv style syscalls added for MorphOS
+
+  Revision 1.32  2004/10/24 20:01:08  peter
     * remove saveregister calling convention
 
   Revision 1.31  2004/07/05 23:25:34  olle

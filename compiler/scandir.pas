@@ -876,6 +876,23 @@ implementation
         do_message(scan_f_user_defined);
       end;
 
+{$ifdef powerpc}
+    procedure dir_syscall;
+      var
+        sctype : string;
+      begin
+        if not (target_info.system in [system_powerpc_morphos]) then
+          comment (V_Warning,'Syscall directive is useless on this target.');
+        current_scanner.skipspace;
+        
+        sctype:=current_scanner.readid;
+        if (sctype='LEGACY') or (sctype='SYSV') then
+          syscall_convention:=sctype
+        else
+          comment (V_Warning,'Invalid Syscall directive ignored.');
+      end;
+{$endif}
+
     procedure dir_threading;
       var
         mac : tmacro;
@@ -1128,6 +1145,9 @@ implementation
         AddDirective('STACKFRAMES',directive_all, @dir_stackframes);
         AddDirective('STATIC',directive_all, @dir_static);
         AddDirective('STOP',directive_all, @dir_stop);
+{$ifdef powerpc}
+        AddDirective('SYSCALL',directive_all, @dir_syscall);
+{$endif powerpc}
         AddDirective('THREADING',directive_all, @dir_threading);
         AddDirective('THREADNAME',directive_all, @dir_threadname);
         AddDirective('TYPEDADDRESS',directive_all, @dir_typedaddress);
@@ -1149,7 +1169,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.48  2005-01-04 16:18:57  florian
+  Revision 1.49  2005-01-04 17:40:33  karoly
+    + sysv style syscalls added for MorphOS
+
+  Revision 1.48  2005/01/04 16:18:57  florian
     * prepared for fpu mode depended define
 
   Revision 1.47  2004/11/06 17:58:10  peter

@@ -1208,6 +1208,24 @@ begin
 {$ifdef powerpc}
    if target_info.system in [system_powerpc_morphos,system_m68k_amiga] then
     begin
+      if idtoken=_LEGACY then
+        begin
+          consume(_LEGACY);
+          include(pd.procoptions,po_syscall_legacy);
+        end 
+      else if idtoken=_SYSV then
+        begin
+          consume(_SYSV);
+          include(pd.procoptions,po_syscall_sysv);
+        end
+      else 
+        if syscall_convention='LEGACY' then 
+          include(pd.procoptions,po_syscall_legacy)
+        else if syscall_convention='SYSV' then
+          include(pd.procoptions,po_syscall_sysv)
+        else
+          internalerror(2005010404);
+      
       if consume_sym(sym,symtable) then
         begin
           if (sym.typ=globalvarsym) and
@@ -1217,13 +1235,16 @@ begin
              ) then
             begin
               tprocdef(pd).libsym:=sym;
-              vs:=tparavarsym.create('$syscalllib',paranr_syscall,vs_value,tabstractvarsym(sym).vartype,[vo_is_syscall_lib,vo_is_hidden_para,vo_has_explicit_paraloc]);
-              paramanager.parseparaloc(vs,'A6');
-              pd.parast.insert(vs);
+              if po_syscall_legacy in tprocdef(pd).procoptions then
+                begin
+                  vs:=tparavarsym.create('$syscalllib',paranr_syscall,vs_value,tabstractvarsym(sym).vartype,[vo_is_syscall_lib,vo_is_hidden_para,vo_has_explicit_paraloc]);
+                  paramanager.parseparaloc(vs,'A6');
+                  pd.parast.insert(vs);
+                end;
             end
           else
             Message(parser_e_32bitint_or_pointer_variable_expected);
-         end;
+        end;
       (paramanager as tppcparamanager).create_funcretloc_info(pd,calleeside);
       (paramanager as tppcparamanager).create_funcretloc_info(pd,callerside);
     end;
@@ -2344,7 +2365,10 @@ const
 end.
 {
   $Log$
-  Revision 1.222  2004-12-27 17:32:06  peter
+  Revision 1.223  2005-01-04 17:40:33  karoly
+    + sysv style syscalls added for MorphOS
+
+  Revision 1.222  2004/12/27 17:32:06  peter
     * don't parse public,private,protected as procdirectives, leave
       procdirective parsing before any other check is done
 

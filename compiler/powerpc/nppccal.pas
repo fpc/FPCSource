@@ -67,6 +67,7 @@ implementation
           end;
       end;
 
+
     procedure tppccallnode.do_syscall;
       var
         tmpref: treference;
@@ -74,32 +75,61 @@ implementation
         case target_info.system of
           system_powerpc_morphos:
             begin
-              cg.getcpuregister(exprasmlist,NR_R0);
-              cg.getcpuregister(exprasmlist,NR_R3);
+              if po_syscall_sysv in tprocdef(procdefinition).procoptions then
+                begin
+                  cg.getcpuregister(exprasmlist,NR_R0);
+                  cg.getcpuregister(exprasmlist,NR_R31);
+ 
+                  reference_reset(tmpref);
+                  tmpref.symbol := objectlibrary.newasmsymbol(tglobalvarsym(tprocdef(procdefinition).libsym).mangledname,AB_EXTERNAL,AT_DATA);
+                  tmpref.refaddr := addr_hi;
+                  exprasmlist.concat(taicpu.op_reg_ref(A_LIS,NR_R31,tmpref));
+                  tmpref.base := NR_R31;
+                  tmpref.refaddr := addr_lo;
+                  exprasmlist.concat(taicpu.op_reg_ref(A_LWZ,NR_R31,tmpref));
+                    
+                  exprasmlist.concat(taicpu.op_reg_reg_const(A_ADDI,NR_R0,NR_R31,-tprocdef(procdefinition).extnumber));
+                  exprasmlist.concat(taicpu.op_reg(A_MTCTR,NR_R0));
+                  exprasmlist.concat(taicpu.op_none(A_BCTRL));
 
-              { store call offset into R3 }
-              exprasmlist.concat(taicpu.op_reg_const(A_LI,NR_R3,-tprocdef(procdefinition).extnumber));
+                  cg.ungetcpuregister(exprasmlist,NR_R31);
+                  cg.ungetcpuregister(exprasmlist,NR_R0);
+                end
+              else if po_syscall_legacy in tprocdef(procdefinition).procoptions then
+                begin
+                  cg.getcpuregister(exprasmlist,NR_R0);
+                  cg.getcpuregister(exprasmlist,NR_R3);
 
-              { prepare LR, and call function }
-              reference_reset_base(tmpref,NR_R2,100); { 100 ($64) is EmulDirectCallOS offset }
-              exprasmlist.concat(taicpu.op_reg_ref(A_LWZ,NR_R0,tmpref));
-              exprasmlist.concat(taicpu.op_reg(A_MTLR,NR_R0));
-              exprasmlist.concat(taicpu.op_none(A_BLRL));
+                  { store call offset into R3 }
+                  exprasmlist.concat(taicpu.op_reg_const(A_LI,NR_R3,-tprocdef(procdefinition).extnumber));
 
-              cg.ungetcpuregister(exprasmlist,NR_R0);
-              cg.ungetcpuregister(exprasmlist,NR_R3);
+                  { prepare LR, and call function }
+                  reference_reset_base(tmpref,NR_R2,100); { 100 ($64) is EmulDirectCallOS offset }
+                  exprasmlist.concat(taicpu.op_reg_ref(A_LWZ,NR_R0,tmpref));
+                  exprasmlist.concat(taicpu.op_reg(A_MTLR,NR_R0));
+                  exprasmlist.concat(taicpu.op_none(A_BLRL));
+
+                  cg.ungetcpuregister(exprasmlist,NR_R0);
+                  cg.ungetcpuregister(exprasmlist,NR_R3);
+                end
+              else 
+                internalerror(2005010403);
             end;
           else
             internalerror(2004042901);
         end;
       end;
 
+
 begin
    ccallnode:=tppccallnode;
 end.
 {
   $Log$
-  Revision 1.31  2004-12-06 18:06:37  jonas
+  Revision 1.32  2005-01-04 17:40:33  karoly
+    + sysv style syscalls added for MorphOS
+
+  Revision 1.31  2004/12/06 18:06:37  jonas
     * only set/clear bit 6 of cr in case of varargs for the sysv abi
 
   Revision 1.30  2004/10/15 09:30:13  mazen
