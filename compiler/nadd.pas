@@ -102,6 +102,7 @@ implementation
          rd,ld   : tdef;
          htype   : ttype;
          ot      : tnodetype;
+         hsym    : tfieldvarsym;
          concatstrings : boolean;
          resultset : Tconstset;
          i       : longint;
@@ -1267,10 +1268,25 @@ implementation
           begin
             if (nodetype in [equaln,unequaln]) then
               begin
-                { convert both to voidpointer, because methodpointers are 8 bytes }
-                { even though only the first 4 bytes must be compared (JM)        }
-                inserttypeconv_internal(left,voidpointertype);
-                inserttypeconv_internal(right,voidpointertype);
+                if tprocvardef(rd).is_addressonly then
+                  begin
+                    inserttypeconv_internal(right,voidpointertype);
+                    inserttypeconv_internal(left,voidpointertype);
+                  end
+                else
+                  begin
+                    { find proc field in methodpointer record }
+                    hsym:=tfieldvarsym(trecorddef(methodpointertype.def).symtable.search('proc'));
+                    if not assigned(hsym) then
+                      internalerror(200412043);
+                    { Compare tmehodpointer(left).proc }
+                    right:=csubscriptnode.create(
+                                 hsym,
+                                 ctypeconvnode.create_internal(right,methodpointertype));
+                    left:=csubscriptnode.create(
+                                 hsym,
+                                 ctypeconvnode.create_internal(left,methodpointertype));
+                  end;
               end
             else
               CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
@@ -2032,7 +2048,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.131  2004-11-02 12:55:16  peter
+  Revision 1.132  2004-12-06 15:57:22  peter
+  * fix methodpointer compare, compare only the proc field
+
+  Revision 1.131  2004/11/02 12:55:16  peter
     * nf_internal flag for internal inserted typeconvs. This will
       supress the generation of warning/hints
 
