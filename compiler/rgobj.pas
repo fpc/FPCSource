@@ -1077,40 +1077,46 @@ implementation
        items at a time. Therefore, we split the movelist into a sorted
        and an unsorted part and search through both. If the unsorted part
        becomes too large, we sort.}
-
-      {We have to weigh the cost of sorting the list against searching
-       the cost of the unsorted part. I use factor of 8 here; if the
-       number of items is less than 8 times the numer of unsorted items,
-       we'll sort the list.}
-      with reginfo[u].movelist^ do
-        if count<8*(count-sorted_until) then
-          sort_movelist(reginfo[u].movelist);
-      for n:=0 to reginfo[v].movelist^.count-1 do
+      if assigned(reginfo[u].movelist) then
         begin
-          {Binary search the sorted part of the list.}
-          searched:=reginfo[v].movelist^.data[n];
-          p:=0;
-          q:=reginfo[u].movelist^.sorted_until;
-          i:=0;
-          if q<>0 then
-            repeat
-              i:=(p+q) shr 1;
-              if ptrint(searched)>ptrint(reginfo[u].movelist^.data[i]) then
-                p:=i+1
-              else
-                q:=i;
-            until p=q;
+          {We have to weigh the cost of sorting the list against searching
+           the cost of the unsorted part. I use factor of 8 here; if the
+           number of items is less than 8 times the numer of unsorted items,
+           we'll sort the list.}
           with reginfo[u].movelist^ do
-            if searched<>data[i] then
-              begin
-                {Linear search the unsorted part of the list.}
-                for i:=sorted_until+1 to count-1 do
-                  if searched=data[i] then
-                    goto l1;
-                {Not found -> add}
-                add_to_movelist(u,searched);
-              l1:
-              end;
+            if count<8*(count-sorted_until) then
+              sort_movelist(reginfo[u].movelist);
+
+          if assigned(reginfo[v].movelist) then
+            begin
+              for n:=0 to reginfo[v].movelist^.count-1 do
+                begin
+                  {Binary search the sorted part of the list.}
+                  searched:=reginfo[v].movelist^.data[n];
+                  p:=0;
+                  q:=reginfo[u].movelist^.sorted_until;
+                  i:=0;
+                  if q<>0 then
+                    repeat
+                      i:=(p+q) shr 1;
+                      if ptrint(searched)>ptrint(reginfo[u].movelist^.data[i]) then
+                        p:=i+1
+                      else
+                        q:=i;
+                    until p=q;
+                  with reginfo[u].movelist^ do
+                    if searched<>data[i] then
+                      begin
+                        {Linear search the unsorted part of the list.}
+                        for i:=sorted_until+1 to count-1 do
+                          if searched=data[i] then
+                            goto l1;
+                        {Not found -> add}
+                        add_to_movelist(u,searched);
+                      l1:
+                      end;
+                end;
+            end;
         end;
 
       enable_moves(v);
@@ -2009,7 +2015,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.122  2004-02-12 15:54:03  peter
+  Revision 1.123  2004-03-14 20:06:17  peter
+    * check if movelist is valid
+
+  Revision 1.122  2004/02/12 15:54:03  peter
     * make extcycle is working again
 
   Revision 1.121  2004/02/09 20:12:23  olle
