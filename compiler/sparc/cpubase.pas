@@ -3,7 +3,7 @@
 { Author                 : Mazen NEIFER                                       }
 { Project                : Free Pascal Compiler (FPC)                         }
 { Creation date          : 2002\04\26                                         }
-{ Last modification date : 2002\08\20                                         }
+{ Last modification date : 2002\08\22                                         }
 { Licence                : GPL                                                }
 { Bug report             : mazen.neifer.01@supaero.org                        }
 {*****************************************************************************}

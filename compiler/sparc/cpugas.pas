@@ -3,7 +3,7 @@
 { Author                 : Mazen NEIFER                                       }
 { Project                : Free Pascal Compiler (FPC)                         }
 { Creation date          : 2002\05\01                                         }
-{ Last modification date : 2002\08\20                                         }
+{ Last modification date : 2002\08\22                                         }
 { Licence                : GPL                                                }
 { Bug report             : mazen.neifer.01@supaero.org                        }
 {*****************************************************************************}
@@ -28,7 +28,7 @@
 
  ****************************************************************************}
 UNIT CpuGas;
-{$INCLUDE fpcdefs.inc}
+{$MACRO ON}{$INCLUDE fpcdefs.inc}
 INTERFACE
 USES
   cclasses,cpubase,
@@ -46,6 +46,7 @@ USES
   fmodule,finput,
   cutils,systems,
   verbose;
+{$DEFINE gas_reg2str:=std_reg2str}
 CONST
   line_length = 70;
 VAR
@@ -128,7 +129,7 @@ VAR
        { should be replaced by coding the segment override  }
        { directly! - DJGPP FAQ                              }
          if segment<>R_NO then
-          s:=std_reg2str[segment]+':'
+          s:=gas_reg2str[segment]+':'
          else
           s:='';
          if assigned(symbol) then
@@ -147,7 +148,7 @@ VAR
            s:=s+'0';
          if (index<>R_NO) and (base=R_NO) then
           begin
-            s:=s+'(,'+std_reg2str[index];
+            s:=s+'(,'+gas_reg2str[index];
             if scalefactor<>0 then
              s:=s+','+tostr(scalefactor)+')'
             else
@@ -155,11 +156,11 @@ VAR
           end
          else
           if (index=R_NO) and (base<>R_NO) then
-           s:=s+'('+std_reg2str[base]+')'
+           s:=s+'('+gas_reg2str[base]+')'
           else
            if (index<>R_NO) and (base<>R_NO) then
             begin
-              s:=s+'('+std_reg2str[base]+','+std_reg2str[index];
+              s:=s+'('+gas_reg2str[base]+','+gas_reg2str[index];
               if scalefactor<>0 then
                s:=s+','+tostr(scalefactor)+')'
               else
@@ -175,7 +176,7 @@ VAR
     begin
       case o.typ of
         top_reg :
-          getopstr:=std_reg2str[o.reg];
+          getopstr:=gas_reg2str[o.reg];
         top_ref :
           getopstr:=getreferencestring(o.ref^);
         top_const :
@@ -207,7 +208,7 @@ VAR
     begin
       case o.typ of
         top_reg :
-          getopstr_jmp:='*'+std_reg2str[o.reg];
+          getopstr_jmp:='*'+gas_reg2str[o.reg];
         top_ref :
           getopstr_jmp:='*'+getreferencestring(o.ref^);
         top_const :
