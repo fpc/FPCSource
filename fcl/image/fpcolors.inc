@@ -30,6 +30,7 @@ const
   colWhite      : TFPColor = (Red: $ffff; Green: $ffff; Blue: $ffff; Alpha: alphaOpaque);
   colGray       : TFPColor = (Red: $8000; Green: $8000; Blue: $8000; Alpha: alphaOpaque);
   colLtGray     : TFPColor = (Red: $c000; Green: $c000; Blue: $c000; Alpha: alphaOpaque);
+  colDkGray     : TFPColor = (Red: $4000; Green: $4000; Blue: $4000; Alpha: alphaOpaque);
   colDkBlue     : TFPColor = (Red: $0000; Green: $0000; Blue: $8000; Alpha: alphaOpaque);
   colDkGreen    : TFPColor = (Red: $0000; Green: $8000; Blue: $0000; Alpha: alphaOpaque);
   colDkCyan     : TFPColor = (Red: $0000; Green: $8000; Blue: $8000; Alpha: alphaOpaque);
