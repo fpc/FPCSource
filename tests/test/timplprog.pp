@@ -1,4 +1,4 @@
-{ %RECOMPILE}
+{ %FAIL }
 uses uimpluni1;
 
     Type
