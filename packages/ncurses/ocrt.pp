@@ -2070,8 +2070,12 @@ Begin
    ExitProc := @nExit;
 
 End. { of Unit nCrt }
+{
   $Log$
-  Revision 1.2  2000-07-13 11:33:27  michael
+  Revision 1.3  2000-08-20 10:11:41  jonas
+    * added missing open comment at start of log section
+
+  Revision 1.2  2000/07/13 11:33:27  michael
   + removed logs
- 
+
 }

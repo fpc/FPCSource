@@ -7,7 +7,7 @@ unit panel;
   Programmer: Ken J. Wright
   Date......: 12/08/1999
 
-  Purpose - Link to the Linux 'panel' library for ncurses windowing 
+  Purpose - Link to the Linux 'panel' library for ncurses windowing
             functions. The panel library handles overlapping windows,
             whereas, native ncurses windowing is only tiled.
 
@@ -80,8 +80,12 @@ const External_library='';
   function panel_hidden(_para1:pPANEL):longint;cdecl;External;
 
 end.
+{
   $Log$
-  Revision 1.2  2000-07-13 11:33:27  michael
+  Revision 1.3  2000-08-20 10:11:41  jonas
+    * added missing open comment at start of log section
+
+  Revision 1.2  2000/07/13 11:33:27  michael
   + removed logs
- 
+
 }
