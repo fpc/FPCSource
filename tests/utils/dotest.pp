@@ -469,7 +469,7 @@ begin
      AddLog(FailLogFile,TestName);
      if Note<>'' then
       AddLog(FailLogFile,Note);
-     AddLog(ResLogFile,failed_to_compile+PPFileInfo);
+     AddLog(ResLogFile,failed_to_compile+PPFileInfo+' internalerror generated');
      AddLog(LongLogFile,line_separation);
      AddLog(LongLogFile,failed_to_compile+PPFileInfo);
      if Note<>'' then
@@ -744,7 +744,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  2002-11-13 15:26:24  pierre
+  Revision 1.18  2002-11-14 10:36:12  pierre
+   * add internalerror info to log file
+
+  Revision 1.17  2002/11/13 15:26:24  pierre
    + digest program added
 
   Revision 1.16  2002/11/13 15:19:44  pierre
