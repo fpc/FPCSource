@@ -353,7 +353,7 @@ unit i_bsd;
             system       : system_powerpc_netbsd;
             name         : 'NetBSD for PowerPC';
             shortname    : 'NetBSD';
-            flags        : [];
+            flags        : [tf_under_development];
             cpu          : cpu_powerpc;
             unit_env     : '';
             extradefines : 'UNIX;BSD;HASUNIX';
@@ -419,7 +419,7 @@ unit i_bsd;
             system       : system_powerpc_darwin;
             name         : 'Darwin for PowerPC';
             shortname    : 'Darwin';
-            flags        : [tf_under_development];
+            flags        : [];
             cpu          : cpu_powerpc;
             unit_env     : 'BSDUNITS';
             extradefines : 'UNIX;BSD;HASUNIX';
@@ -513,7 +513,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.12  2004-06-20 08:55:32  florian
+  Revision 1.13  2004-09-12 20:33:21  olle
+    * Updated compiler status
+
+  Revision 1.12  2004/06/20 08:55:32  florian
     * logs truncated
 
   Revision 1.11  2004/06/16 20:07:11  florian

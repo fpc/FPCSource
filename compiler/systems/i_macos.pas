@@ -30,7 +30,7 @@ unit i_macos;
        system_powerpc_macos_info : tsysteminfo =
           (
             system       : system_powerpc_MACOS;
-            name         : 'MacOS (PowerPC)';
+            name         : 'Mac OS for PowerPC';
             shortname    : 'MacOS';
             flags        : [];
             cpu          : cpu_powerpc;
@@ -102,7 +102,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.16  2004-07-05 21:26:35  olle
+  Revision 1.17  2004-09-12 20:33:21  olle
+    * Updated compiler status
+
+  Revision 1.16  2004/07/05 21:26:35  olle
     + allow fileextension .p, in mode macpas
 
   Revision 1.15  2004/06/20 08:55:32  florian
