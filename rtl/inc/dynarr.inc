@@ -33,7 +33,7 @@ type
       elesize : sizeint;
       eletype : pdynarraytypeinfo;
    end;
-   
+
 function aligntoptr(p : pointer) : pointer;
   begin
 {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
@@ -42,7 +42,7 @@ function aligntoptr(p : pointer) : pointer;
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
     result:=p;
   end;
-      
+
 
 procedure fpc_dynarray_rangecheck(p : pointer;i : tdynarrayindex);[Public,Alias:'FPC_DYNARRAY_RANGECHECK']; {$ifdef hascompilerproc} compilerproc; {$endif}
   begin
@@ -178,7 +178,7 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
 
   begin
      ti:=pdynarraytypeinfo(pti);
-     
+
      { skip kind and name }
      inc(pointer(ti),ord(pdynarraytypeinfo(ti)^.namelen)+2);
 
@@ -318,15 +318,14 @@ procedure fpc_dynarray_copy(var pdest : pointer;psrc : pointer;ti : pointer;
        exit;
      realpsrc:=pdynarray(psrc-sizeof(tdynarray));
      { skip kind and name }
-     inc(pointer(ti),ord(pdynarraytypeinfo(ti)^.namelen));
+     inc(pointer(ti),ord(pdynarraytypeinfo(ti)^.namelen)+2);
 
-{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
-     move(pdynarraytypeinfo(ti)^.elesize,elesize,sizeof(elesize));
-     move(pdynarraytypeinfo(ti)^.eletype,eletype,sizeof(eletype));
-{$else FPC_REQUIRES_PROPER_ALIGNMENT}
-     elesize:=pdynarraytypeinfo(ti)^.elesize;
-     eletype:=pdynarraytypeinfo(ti)^.eletype;
-{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+{$ifdef FPC_ALIGNSRTTI}
+     ti:=aligntoptr(ti);
+{$endif FPC_ALIGNSRTTI}
+
+     elesize:=psizeint(ti)^;
+     eletype:=pdynarraytypeinfo(ti+sizeof(sizeint));
 
      { -1, -1 (highidx=lowidx-1-1=-3) is used to copy the whole array like a:=copy(b);, so
        update the lowidx and highidx with the values from psrc }
@@ -356,7 +355,10 @@ procedure fpc_dynarray_copy(var pdest : pointer;psrc : pointer;ti : pointer;
 
 {
   $Log$
-  Revision 1.31  2004-11-03 10:54:36  florian
+  Revision 1.32  2004-11-06 15:29:19  florian
+    * fixed fpc_dynarry_copy for arm/sparc
+
+  Revision 1.31  2004/11/03 10:54:36  florian
     * fixed dyn. array handling for 32 bit architectures requiering proper alignment
 
   Revision 1.30  2004/10/24 20:01:41  peter
