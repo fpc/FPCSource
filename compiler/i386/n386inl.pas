@@ -587,7 +587,10 @@ implementation
            procedureprefix:='FPC_'+pstringdef(hp.resulttype)^.stringtypname+'_';
            tcallparanode(hp).secondcallparan(dummycoll,false,false,false,0,0);
            if codegenerror then
-             exit;
+             begin
+               dummycoll.free;
+               exit;
+             end;
 
            dummycoll.paratyp:=vs_const;
            left.free;
@@ -609,7 +612,10 @@ implementation
                 dummycoll.paratyp:=vs_value;
                 tcallparanode(hp).secondcallparan(dummycoll,false,false,false,0,0);
                 if codegenerror then
-                  exit;
+                  begin  
+                    dummycoll.free;   
+                    exit;
+                  end;
                 hp.free;
                 hp:=node;
                 node:=tcallparanode(node.right);
@@ -626,7 +632,10 @@ implementation
                 dummycoll.paratyp:=vs_value;
                 tcallparanode(hp).secondcallparan(dummycoll,false,false,false,0,0);
                 if codegenerror then
-                  exit;
+                  begin  
+                    dummycoll.free;   
+                    exit;
+                  end;
                 hp.free;
                 hp:=node;
                 node:=tcallparanode(node.right);
@@ -650,7 +659,10 @@ implementation
            dummycoll.paratyp:=vs_value;
            tcallparanode(hp).secondcallparan(dummycoll,false,false,false,0,0);
            if codegenerror then
-             exit;
+             begin  
+               dummycoll.free;   
+               exit;
+             end;
 
            saveregvars($ff);
            if is_real then
@@ -670,7 +682,7 @@ implementation
                   emitcall(procedureprefix+'LONGINT');
              end;
            hp.free;
-
+           dummycoll.free;
            popusedregisters(pushed);
         end;
 
@@ -722,7 +734,10 @@ implementation
            dummycoll.paratype.setdef(dest_para.resulttype);
            dest_para.secondcallparan(dummycoll,false,false,false,0,0);
            if codegenerror then
+           begin
+             dummycoll.free;
              exit;
+           end;
 
           {save the regvars}
            pushusedregisters(pushed,$ff);
@@ -736,7 +751,10 @@ implementation
                dummycoll.paratype.setdef(code_para.resulttype);
                code_para.secondcallparan(dummycoll,false,false,false,0,0);
                if codegenerror then
-                 exit;
+                 begin
+                   dummycoll.free;
+                   exit;
+                 end;
                code_para.free;
              End
            Else
@@ -751,7 +769,10 @@ implementation
            dummycoll.paratype.setdef(node.resulttype);
            node.secondcallparan(dummycoll,false,false,false,0,0);
            if codegenerror then
-             exit;
+             begin
+               dummycoll.free;
+               exit;
+             end;
 
            Case dest_para.resulttype^.deftype of
              floatdef:
@@ -902,6 +923,7 @@ implementation
              End;
           {dest_para.right is already nil}
            dest_para.free;
+           dummycoll.free;
            UnGetIfTemp(hr);
         end;
 
@@ -1682,7 +1704,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2000-12-25 00:07:33  peter
+  Revision 1.12  2001-03-13 11:52:48  jonas
+    * fixed some memory leaks
+
+  Revision 1.11  2000/12/25 00:07:33  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 
