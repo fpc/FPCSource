@@ -885,7 +885,7 @@ implementation
                        end
                      else if (lexlevel>(tprocdef(procdefinition).parast.symtablelevel)) then
                        begin
-                          hregister:=getregister32;
+                          hregister:=getregisterint;
                           new(r);
                           reset_reference(r^);
                           r^.offset:=procinfo^.framepointer_offset;
@@ -1593,7 +1593,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.39  2001-12-29 15:32:13  jonas
+  Revision 1.40  2001-12-31 09:53:15  jonas
+    * changed remaining "getregister32" calls to "getregisterint"
+
+  Revision 1.39  2001/12/29 15:32:13  jonas
     * powerpc/cgcpu.pas compiles :)
     * several powerpc-related fixes
     * cpuasm unit is now based on common tainst unit

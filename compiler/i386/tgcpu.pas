@@ -55,7 +55,7 @@ interface
 {$ifdef TEMPREGDEBUG}
     procedure testregisters32;
 {$endif TEMPREGDEBUG}
-    function getregister32 : tregister;
+    function getregisterint : tregister;
     function getaddressregister: tregister;
     procedure ungetregister32(r : tregister);
     { tries to allocate the passed register, if possible }
@@ -539,7 +539,7 @@ implementation
        end;
 {$endif TEMPREGDEBUG}
 
-    function getregister32 : tregister;
+    function getregisterint : tregister;
       begin
          if usablereg32=0 then
            internalerror(10);
@@ -556,7 +556,7 @@ implementation
            begin
               unused:=unused-[R_EAX];
               usedinproc:=usedinproc or ($80 shr byte(R_EAX));
-              getregister32:=R_EAX;
+              getregisterint:=R_EAX;
 {$ifdef TEMPREGDEBUG}
               reg_user[R_EAX]:=curptree^;
 {$endif TEMPREGDEBUG}
@@ -566,7 +566,7 @@ implementation
            begin
               unused:=unused-[R_EDX];
               usedinproc:=usedinproc or ($80 shr byte(R_EDX));
-              getregister32:=R_EDX;
+              getregisterint:=R_EDX;
 {$ifdef TEMPREGDEBUG}
               reg_user[R_EDX]:=curptree^;
 {$endif TEMPREGDEBUG}
@@ -576,7 +576,7 @@ implementation
            begin
               unused:=unused-[R_EBX];
               usedinproc:=usedinproc or ($80 shr byte(R_EBX));
-              getregister32:=R_EBX;
+              getregisterint:=R_EBX;
 {$ifdef TEMPREGDEBUG}
               reg_user[R_EBX]:=curptree^;
 {$endif TEMPREGDEBUG}
@@ -586,7 +586,7 @@ implementation
            begin
               unused:=unused-[R_ECX];
               usedinproc:=usedinproc or ($80 shr byte(R_ECX));
-              getregister32:=R_ECX;
+              getregisterint:=R_ECX;
 {$ifdef TEMPREGDEBUG}
               reg_user[R_ECX]:=curptree^;
 {$endif TEMPREGDEBUG}
@@ -602,7 +602,7 @@ implementation
     function getaddressregister: tregister;
 
       begin
-        getaddressregister := getregister32;
+        getaddressregister := getregisterint;
       end;
 
     function getexplicitregister32(r : tregister) : tregister;
@@ -631,7 +631,7 @@ implementation
 {$endif TEMPREGDEBUG}
            end
          else
-           getexplicitregister32:=getregister32;
+           getexplicitregister32:=getregisterint;
       end;
 
     procedure cleartempgen;
@@ -690,7 +690,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2001-12-29 15:29:59  jonas
+  Revision 1.8  2001-12-31 09:53:16  jonas
+    * changed remaining "getregister32" calls to "getregisterint"
+
+  Revision 1.7  2001/12/29 15:29:59  jonas
     * powerpc/cgcpu.pas compiles :)
     * several powerpc-related fixes
     * cpuasm unit is now based on common tainst unit

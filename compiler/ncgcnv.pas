@@ -76,7 +76,7 @@ interface
              begin
                inc(left.location.reference.offset);
                del_reference(left.location.reference);
-               location.register:=getregister32;
+               location.register:=getregisterint;
                cg.a_loadaddress_ref_reg(exprasmlist,left.location.reference,
                  location.register);
              end;
@@ -87,13 +87,13 @@ interface
                 begin
                   reset_reference(hr);
                   hr.symbol:=newasmsymbol('FPC_EMPTYCHAR');
-                  location.register:=getregister32;
+                  location.register:=getregisterint;
                   cg.a_loadaddress_ref_reg(exprasmlist,hr,location.register);
                 end
                else
                 begin
                   del_reference(left.location.reference);
-                  location.register:=getregister32;
+                  location.register:=getregisterint;
                   cg.a_load_ref_reg(exprasmlist,OS_32,left.location.reference,
                     location.register);
                 end;
@@ -110,13 +110,13 @@ interface
                 begin
                   reset_reference(hr);
                   hr.symbol:=newasmsymbol('FPC_EMPTYCHAR');
-                  location.register:=getregister32;
+                  location.register:=getregisterint;
                   cg.a_loadaddress_ref_reg(exprasmlist,hr,location.register);
                 end
                else
                 begin
                   del_reference(left.location.reference);
-                  location.register:=getregister32;
+                  location.register:=getregisterint;
 {$warning Todo: convert widestrings to ascii when typecasting them to pchars}
                   cg.a_load_ref_reg(exprasmlist,OS_32,left.location.reference,
                     location.register);
@@ -154,7 +154,7 @@ interface
          del_reference(left.location.reference);
          clear_location(location);
          location.loc:=LOC_REGISTER;
-         location.register:=getregister32;
+         location.register:=getregisterint;
          cg.a_loadaddress_ref_reg(exprasmlist,left.location.reference,
            location.register);
       end;
@@ -171,14 +171,14 @@ interface
             location.reference.base:=left.location.register;
           LOC_CREGISTER :
             begin
-              location.reference.base:=getregister32;
+              location.reference.base:=getregisterint;
               cg.a_load_reg_reg(exprasmlist,OS_32,left.location.register,
                 location.reference.base);
             end
          else
             begin
               del_reference(left.location.reference);
-              location.reference.base:=getregister32;
+              location.reference.base:=getregisterint;
               cg.a_load_ref_reg(exprasmlist,OS_32,left.location.reference,
                 location.reference.base);
             end;
@@ -248,7 +248,7 @@ interface
              clear_location(location);
              location.loc:=LOC_REGISTER;
              del_reference(left.location.reference);
-             location.register:=getregister32;
+             location.register:=getregisterint;
              cg.a_loadaddress_ref_reg(exprasmlist,left.location.reference,
                location.register);
           end;
@@ -282,7 +282,7 @@ interface
          clear_location(location);
          location.loc:=LOC_REGISTER;
          del_location(left.location);
-         location.register:=getregister32;
+         location.register:=getregisterint;
          { size of the boolean we're converting }
          opsize := def_cgsize(left.resulttype.def);
          { size of the destination }
@@ -359,7 +359,7 @@ interface
             LOC_MEM,LOC_REFERENCE:
               begin
                 del_reference(left.location.reference);
-                location.register:=getregister32;
+                location.register:=getregisterint;
                 cg.a_load_ref_reg(exprasmlist,OS_32,left.location.reference,
                   location.register);
               end;
@@ -383,13 +383,13 @@ interface
             LOC_REFERENCE:
               begin
                  del_reference(left.location.reference);
-                 hreg:=getregister32;
+                 hreg:=getregisterint;
                  cg.a_load_ref_reg(exprasmlist,OS_32,left.location.reference,
                    hreg);
               end;
             LOC_CREGISTER:
               begin
-                 hreg:=getregister32;
+                 hreg:=getregisterint;
                  cg.a_load_reg_reg(exprasmlist,OS_32,left.location.register,
                    hreg);
               end;
@@ -422,7 +422,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2001-10-04 14:33:28  jonas
+  Revision 1.4  2001-12-31 09:53:15  jonas
+    * changed remaining "getregister32" calls to "getregisterint"
+
+  Revision 1.3  2001/10/04 14:33:28  jonas
     * fixed range check errors
 
   Revision 1.2  2001/09/30 16:16:28  jonas

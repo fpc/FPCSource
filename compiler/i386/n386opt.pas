@@ -119,7 +119,7 @@ begin
         { free the registers of right }
         del_reference(right.location.reference);
         { get register for the char }
-        hreg := reg32toreg8(getregister32);
+        hreg := reg32toreg8(getregisterint);
         emit_ref_reg(A_MOV,S_B,
           newreference(right.location.reference),hreg);
        { I don't think a temp char exists, but it won't hurt (JM) }
@@ -128,7 +128,7 @@ begin
     else hreg := right.location.register;
 
   { load the current string length }
-  lengthreg := getregister32;
+  lengthreg := getregisterint;
   emit_ref_reg(A_MOVZX,S_BL,newreference(left.location.reference),lengthreg);
 
   { do we have to check the length ? }
@@ -248,7 +248,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2001-08-26 13:37:00  florian
+  Revision 1.6  2001-12-31 09:53:15  jonas
+    * changed remaining "getregister32" calls to "getregisterint"
+
+  Revision 1.5  2001/08/26 13:37:00  florian
     * some cg reorganisation
     * some PPC updates
 

@@ -93,7 +93,7 @@ implementation
     procedure tcgloadvmtnode.pass_2;
 
       begin
-         location.register:=getregister32;
+         location.register:=getregisterint;
          cg.a_load_sym_ofs_reg(exprasmlist,
            newasmsymbol(tobjectdef(tclassrefdef(resulttype.def).pointertype.def).vmt_mangledname),
            0,location.register);
@@ -444,7 +444,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2001-11-02 22:58:02  peter
+  Revision 1.3  2001-12-31 09:53:15  jonas
+    * changed remaining "getregister32" calls to "getregisterint"
+
+  Revision 1.2  2001/11/02 22:58:02  peter
     * procsym definition rewrite
 
   Revision 1.1  2001/09/30 16:17:17  jonas

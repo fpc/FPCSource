@@ -408,7 +408,7 @@ implementation
                        begin
                        { We have to load the value into a register because
                          btl does not accept values only refs or regs (PFV) }
-                         hr2:=getregister32;
+                         hr2:=getregisterint;
                          emit_const_reg(A_MOV,S_L,
                            right.location.reference.offset,hr2);
                          emit_reg_reg(A_BT,S_L,hr,hr2);
@@ -436,7 +436,7 @@ implementation
                   { Is this treated in firstpass ?? }
                   if left.nodetype=ordconstn then
                     begin
-                      hr:=getregister32;
+                      hr:=getregisterint;
                       left.location.loc:=LOC_REGISTER;
                       left.location.register:=hr;
                       emit_const_reg(A_MOV,S_L,
@@ -456,7 +456,7 @@ implementation
                           emitlab(l);
                         { We have to load the value into a register because
                           btl does not accept values only refs or regs (PFV) }
-                          hr2:=getregister32;
+                          hr2:=getregisterint;
                           emit_const_reg(A_MOV,S_L,right.location.reference.offset,hr2);
                           emit_reg_reg(A_BT,S_L,hr,hr2);
                           ungetregister32(hr2);
@@ -483,12 +483,12 @@ implementation
                        emitjmp(C_NONE,l2);
                        emitlab(l);
                        del_reference(left.location.reference);
-                       hr:=getregister32;
+                       hr:=getregisterint;
                        emit_ref_reg(A_MOV,S_L,
                          newreference(left.location.reference),hr);
                      { We have to load the value into a register because
                        btl does not accept values only refs or regs (PFV) }
-                       hr2:=getregister32;
+                       hr2:=getregisterint;
                        emit_const_reg(A_MOV,S_L,
                          right.location.reference.offset,hr2);
                        emit_reg_reg(A_BT,S_L,hr,hr2);
@@ -922,7 +922,7 @@ implementation
               end;
             LOC_CREGISTER:
               begin
-                 hregister:=getregister32;
+                 hregister:=getregisterint;
                  case opsize of
                     S_B:
                       hregister:=reg32toreg8(hregister);
@@ -945,7 +945,7 @@ implementation
             LOC_MEM,LOC_REFERENCE:
               begin
                  del_reference(left.location.reference);
-                 hregister:=getregister32;
+                 hregister:=getregisterint;
                  case opsize of
                     S_B:
                       hregister:=reg32toreg8(hregister);
@@ -1092,7 +1092,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  2001-12-03 21:48:43  peter
+  Revision 1.19  2001-12-31 09:53:15  jonas
+    * changed remaining "getregister32" calls to "getregisterint"
+
+  Revision 1.18  2001/12/03 21:48:43  peter
     * freemem change to value parameter
     * torddef low/high range changed to int64
 
