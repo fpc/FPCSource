@@ -133,8 +133,7 @@ begin
   end['EAX','EBX'];
   RunError(202);
 end;
-{$ASMMODE ATT}
-
+{$I386_ATT}
 
 procedure halt(errnum : byte);
 begin
@@ -163,13 +162,15 @@ begin
 end;
 
 
-procedure randomize;assembler;
-asm
+procedure randomize;
+Begin
+ asm
         movb    $0x2c,%ah
         int     $0x21
         shll    $16,%ecx
         movw    %dx,%cx
         movl    %ecx,randseed
+ end;
 end;
 
 
@@ -429,7 +430,7 @@ begin
   asm
         movl    $0xff02,%eax
         movl    oflags,%ecx
-        movl    flags,%ebx
+        movl    p,%ebx
         int     $0x21
         jnc     .LOPEN1
         movw    %ax,inoutres
@@ -450,13 +451,13 @@ asm
         pushl   %ebp
         int     $0x21
         popl    %ebp
-        jnc     .LDOSSEEK1
+        jnc     .LDOSDEVICE
         movw    %ax,inoutres
-	xorl	%edx,%edx
-.LDOSSEEK1:
-	movl	%edx,%eax
-	shrl	$7,%eax
-	andl	$1,%eax
+	     xorl	%edx,%edx
+  .LDOSDEVICE:
+        movl	%edx,%eax
+	     shrl	$7,%eax
+        andl	$1,%eax
 end;
 
 
@@ -503,20 +504,23 @@ begin
 end;
 
 
-procedure mkdir(const s : string);
+procedure mkdir(const s : string);[IOCheck];
 begin
+  If InOutRes <> 0 then exit;
   DosDir($39,s);
 end;
 
 
-procedure rmdir(const s : string);
+procedure rmdir(const s : string);[IOCheck];
 begin
+  If InOutRes <> 0 then exit;
   DosDir($3a,s);
 end;
 
 
-procedure chdir(const s : string);
+procedure chdir(const s : string);[IOCheck];
 begin
+  If InOutRes <> 0 then exit;
   DosDir($3b,s);
 end;
 
@@ -588,7 +592,13 @@ Begin
 End.
 {
   $Log$
-  Revision 1.5  1998-07-01 15:29:56  peter
+  Revision 1.6  1998-07-02 12:26:55  carl
+    * do_open was WRONG! Fixed!
+    * do_isdevice small fix with ATT parser
+    * I386_ATT put back , otherwise would NOT link!
+    * IoCheck for rmdir,chdir,mkdir
+
+  Revision 1.5  1998/07/01 15:29:56  peter
     * better readln/writeln
 
   Revision 1.4  1998/05/31 14:18:19  peter
