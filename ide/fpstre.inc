@@ -772,10 +772,13 @@ const
       opt_i386486 = 'i~3~86/i486';
       opt_pentiumandmmx = 'Pentium/PentiumMM~X~ (tm)';
       opt_pentiumpro = 'P~P~ro/PII/c6x86/K6 (tm)';
+      opt_m68000 = 'm~6~8000';
+      opt_m68020 = 'm680~2~0';
       { Assembler options }
       opt_directassembler = '~D~irect assembler';
       opt_attassembler = '~A~T&T style assembler';
       opt_intelassembler = '~I~ntel style assembler';
+      opt_motassembler = '~M~otorola style assembler';
       opt_listsource = '~L~ist source';
       opt_listregisterallocation = 'list ~r~egister allocation';
       opt_listtempallocation = 'list ~t~emp allocation';
@@ -1004,7 +1007,10 @@ const
 
 {
   $Log$
-  Revision 1.1  2001-08-04 11:30:23  peter
+  Revision 1.2  2001-08-29 23:31:27  pierre
+   * fix some m68k specific options
+
+  Revision 1.1  2001/08/04 11:30:23  peter
     * ide works now with both compiler versions
 
   Revision 1.1.2.21  2001/03/12 17:34:56  pierre

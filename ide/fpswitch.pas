@@ -30,7 +30,7 @@ const
 type
     TParamID =
       (idNone,idAlign,idRangeChecks,idStackChecks,idIOChecks,
-       idOverflowChecks,idAsmDirect,idAsmATT,idAsmIntel,
+       idOverflowChecks,idAsmDirect,idAsmATT,idAsmIntel,idAsmMot,
        idSymInfNone,idSymInfGlobalOnly,idSymInfGlobalLocal,
        idStackSize,idHeapSize,idStrictVarStrings,idExtendedSyntax,
        idMMXOps,idTypedAddress,idPackRecords,idPackEnum,idStackFrames,
@@ -886,10 +886,17 @@ begin
   New(OptimizationSwitches,Init('O'));
   with OptimizationSwitches^ do
    begin
+{$ifdef I386}
      AddBooleanItem(opt_useregistervariables,'r',idNone);
      AddBooleanItem(opt_uncertainoptimizations,'u',idNone);
      AddBooleanItem(opt_level1optimizations,'1',idNone);
      AddBooleanItem(opt_level2optimizations,'2',idNone);
+{$else not I386}
+ {$ifdef m68k}
+     AddBooleanItem(opt_level1optimizations,'a',idNone);
+     AddBooleanItem(opt_useregistervariables,'x',idNone);
+ {$endif m68k}
+{$endif I386}
    end;
   New(ProcessorSwitches,InitSelect('O'));
   with ProcessorSwitches^ do
@@ -899,17 +906,21 @@ begin
      AddSelectItem(opt_pentiumandmmx,'p2',idNone);
      AddSelectItem(opt_pentiumpro,'p3',idNone);
 {$else not I386}
-     AddSelectItem(opt_i386486,'',idNone);
+ {$ifdef m68k}
+     AddSelectItem(opt_m68000,'',idNone);
+     AddSelectItem(opt_m68020,'2',idNone);
+ {$endif m68k}
 {$endif not I386}
    end;
   New(TargetSwitches,InitSelect('T'));
   with TargetSwitches^ do
    begin
 {$ifdef I386}
-     AddSelectItem('DOS (GO32V~1~)','go32v1',idNone);
+     {AddSelectItem('DOS (GO32V~1~)','go32v1',idNone);}
      AddSelectItem('~D~OS (GO32V2)','go32v2',idNone);
-     AddSelectItem('~F~reebsd','freebsd',idNone);
+     AddSelectItem('~F~reeBSD','freebsd',idNone);
      AddSelectItem('~L~inux','linux',idNone);
+     AddSelectItem('~N~etBSD','netbsd',idNone);
      AddSelectItem('~O~S/2','os2',idNone);
      AddSelectItem('~W~IN32','win32',idNone);
 {$endif I386}
@@ -917,9 +928,9 @@ begin
      AddSelectItem('~A~miga','amiga',idNone);
      AddSelectItem('A~t~ari','atari',idNone);
      AddSelectItem('~L~inux','linux',idNone);
-     {
-     AddSelectItem('~P~alm OS','plamos',idNone);
-     AddSelectItem('~M~ac OS','macos',idNone); }
+     AddSelectItem('~N~etBSD','netbsd',idNone);
+     AddSelectItem('~P~alm OS','palmos',idNone);
+     {AddSelectItem('~M~ac OS','macos',idNone); }
 {$endif M68K}
    end;
   New(AsmReaderSwitches,InitSelect('R'));
@@ -931,7 +942,7 @@ begin
      AddSelectItem(opt_intelassembler,'intel',idAsmIntel);
 {$endif I386}
 {$ifdef M68K}
-     AddSelectItem(opt_directassembler,'mot',idAsmDirect);
+     AddSelectItem(opt_motassembler,'mot',idAsmDirect);
 {$endif M68K}
    end;
   New(AsmInfoSwitches,Init('a'));
@@ -1147,7 +1158,8 @@ begin
     idOverflowChecks : AddSwitch('Q'+P^.GetSwitchStr(SM));
 {    idAsmDirect      : if P^.GetParamValueBool[SM] then AddParam('ASMMODE DIRECT');
     idAsmATT         : if P^.GetParamValueBool[SM] then AddParam('ASMMODE ATT');
-    idAsmIntel       : if P^.GetParamValueBool[SM] then AddParam('ASMMODE INTEL');}
+    idAsmIntel       : if P^.GetParamValueBool[SM] then AddParam('ASMMODE INTEL');
+    idAsmMot         : if P^.GetParamValueBool[SM] then AddParam('ASMMODE MOT');}
 {    idSymInfNone     : ;
     idSymInfGlobalOnly:;
     idSymInfGlobalLocal:if P^.ParamValueBool(SM) then AddSwitch('L+');}
@@ -1217,7 +1229,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2001-08-07 21:27:34  pierre
+  Revision 1.3  2001-08-29 23:31:27  pierre
+   * fix some m68k specific options
+
+  Revision 1.2  2001/08/07 21:27:34  pierre
    * avoid RTE 211 on At method with wrong index
 
   Revision 1.1  2001/08/04 11:30:24  peter
