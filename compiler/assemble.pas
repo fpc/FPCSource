@@ -149,6 +149,9 @@ Implementation
   {$endif}
 {$endif}
       cutils,script,finput,fmodule,verbose,
+{$ifdef memdebug}
+      cclasses,
+{$endif memdebug}
 {$ifdef GDB}
       gdb,
 {$endif GDB}
@@ -563,7 +566,7 @@ Implementation
 {$endif}
       begin
 {$ifdef MEMDEBUG}
-         d.init('agbin');
+         d := tmemdebug.create('agbin');
 {$endif}
         objectoutput.free;
         objectalloc.free;
@@ -1550,7 +1553,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.28  2001-09-18 11:30:47  michael
+  Revision 1.29  2001-11-06 14:53:48  jonas
+    * compiles again with -dmemdebug
+
+  Revision 1.28  2001/09/18 11:30:47  michael
   * Fixes win32 linking problems with import libraries
   * LINKLIB Libraries are now looked for using C file extensions
   * get_exepath fix

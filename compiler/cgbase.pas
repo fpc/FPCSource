@@ -409,7 +409,7 @@ implementation
 {$endif}
       begin
 {$ifdef MEMDEBUG}
-         d.init('asmlist');
+         d:=tmemdebug.create('asmlist');
 {$endif}
          exprasmlist.free;
          codesegment.free;
@@ -432,7 +432,7 @@ implementation
 {$endif}
          { assembler symbols }
 {$ifdef MEMDEBUG}
-         d.init('asmsymbol');
+         d:=tmemdebug.create('asmsymbol');
 {$endif}
          asmsymbollist.free;
 {$ifdef MEMDEBUG}
@@ -501,7 +501,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2001-09-29 21:33:47  jonas
+  Revision 1.4  2001-11-06 14:53:48  jonas
+    * compiles again with -dmemdebug
+
+  Revision 1.3  2001/09/29 21:33:47  jonas
     * support 64bit operands in def_cgsize()
 
   Revision 1.2  2001/09/28 20:39:33  jonas

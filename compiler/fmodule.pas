@@ -462,7 +462,7 @@ uses
         localincludesearchpath.free;
         locallibrarysearchpath.free;
 {$ifdef MEMDEBUG}
-        d.init('symtable');
+        d:=tmemdebug.create('symtable');
 {$endif}
         if assigned(globalsymtable) then
           globalsymtable.free;
@@ -587,7 +587,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.18  2001-08-04 10:23:54  peter
+  Revision 1.19  2001-11-06 14:53:48  jonas
+    * compiles again with -dmemdebug
+
+  Revision 1.18  2001/08/04 10:23:54  peter
     * updates so it works with the ide
 
   Revision 1.17  2001/06/04 11:49:08  peter
