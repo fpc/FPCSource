@@ -1035,7 +1035,7 @@ unit pexpr;
                                 end;
                               pd:=pprocvardef(pd)^.retdef;
                            { proc():= is never possible }
-                              if token in [ASSIGNMENT,UNEQUAL,EQUAL] then
+                              if token=ASSIGNMENT then
                                begin
                                  Message(cg_e_illegal_expression);
                                  p1:=genzeronode(errorn);
@@ -1829,7 +1829,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.35  1998-08-14 18:18:46  peter
+  Revision 1.36  1998-08-15 16:50:29  peter
+    * fixed proc()=expr which was not allowed anymore by my previous fix
+
+  Revision 1.35  1998/08/14 18:18:46  peter
     + dynamic set contruction
     * smallsets are now working (always longint size)
 
