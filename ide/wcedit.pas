@@ -742,6 +742,7 @@ begin
   dec(UndoList^.GroupLevel);
   if UndoList^.GroupLevel=0 then
     begin
+      UndoList^.CurrentGroupedAction^.TimeStamp:=now;
       UndoList^.Insert(UndoList^.CurrentGroupedAction);
       UndoList^.CurrentGroupedAction:=nil;
       UpdateUndoRedo(cmUndo,AAction);
@@ -2046,7 +2047,10 @@ end;
 END.
 {
  $Log$
- Revision 1.9  2002-04-20 20:27:44  pierre
+ Revision 1.10  2002-08-26 13:01:39  pierre
+  + fill the Now field for Editor actions
+
+ Revision 1.9  2002/04/20 20:27:44  pierre
   * avoid considering grouped action if StoreUnfo is false
 
  Revision 1.8  2002/04/16 08:27:01  pierre

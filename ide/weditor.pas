@@ -977,7 +977,7 @@ begin
   upper[0]:=s[0];
 end;
 
-type TPosOfs = {$ifdef TP}longint{$endif}{$ifdef FPC}comp{$endif};
+type TPosOfs = {$ifdef TP}longint{$endif}{$ifdef FPC}int64{$endif};
 
 function PosToOfs(const X,Y: sw_integer): TPosOfs;
 type TPosRec = record LoI, HiI: sw_integer; end;
@@ -6693,6 +6693,7 @@ begin
   Text:=NewStr(txt);
   ActionCount:=0;
   Flags:=AFlags;
+  TimeStamp:=Now;
   IsGrouped:=false;
 end;
 
@@ -7103,7 +7104,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.22  2002-06-13 14:50:35  pierre
+  Revision 1.23  2002-08-26 13:01:38  pierre
+   + fill the Now field for Editor actions
+
+  Revision 1.22  2002/06/13 14:50:35  pierre
    * try to improove tabs handling in DelChar and InsertLine methods
 
   Revision 1.21  2002/06/06 07:04:00  pierre
