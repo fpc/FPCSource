@@ -37,6 +37,10 @@
 {$define TestFreeLists}
 {$endif SYSTEMDEBUG}
 
+{$ifdef MT}
+var
+   cs_systemheap : TCriticalSection;
+{$endif MT}
 
 const
   blocksize    = 16;  { at least size of freerecord }
@@ -212,13 +216,31 @@ end;
 
 function SysHeapsize : longint;
 begin
+{$ifdef MT}
+  try
+    EnterCriticalSection(cs_systemheap);
+{$endif MT}    
   Sysheapsize:=internal_heapsize;
+{$ifdef MT}
+  finally
+    LeaveCriticalSection(cs_systemheap);
+  end;
+{$endif MT}
 end;
 
 
 function SysMemavail : longint;
 begin
+{$ifdef MT}
+  try
+    EnterCriticalSection(cs_systemheap);
+{$endif MT}    
   Sysmemavail:=internal_memavail;
+{$ifdef MT}
+  finally
+    LeaveCriticalSection(cs_systemheap);
+  end;
+{$endif MT}
 end;
 
 
@@ -226,6 +248,10 @@ function SysMaxavail : longint;
 var
   hp : pfreerecord;
 begin
+{$ifdef MT}
+  try
+    EnterCriticalSection(cs_systemheap);
+{$endif MT}    
   Sysmaxavail:=heapend-heapptr;
   hp:=freelists[0];
   while assigned(hp) do
@@ -234,6 +260,11 @@ begin
        Sysmaxavail:=hp^.size;
      hp:=hp^.next;
    end;
+{$ifdef MT}
+  finally
+    LeaveCriticalSection(cs_systemheap);
+  end;
+{$endif MT}
 end;
 
 
@@ -243,6 +274,10 @@ var
   s,i,j : longint;
   hp  : pfreerecord;
 begin
+{$ifdef MT}
+  try
+    EnterCriticalSection(cs_systemheap);
+{$endif MT}    
   for i:=1 to maxblock do
    begin
      hp:=freelists[i];
@@ -266,6 +301,11 @@ begin
      hp:=hp^.next;
    end;
   writeln('Main: ',j,' maxsize: ',s);
+{$ifdef MT}
+  finally
+    LeaveCriticalSection(cs_systemheap);
+  end;
+{$endif MT}
 end;
 {$endif}
 
@@ -276,6 +316,10 @@ var
   i,j : longint;
   hp  : pfreerecord;
 begin
+{$ifdef MT}
+  try
+    EnterCriticalSection(cs_systemheap);
+{$endif MT}    
   for i:=0 to maxblock do
    begin
      j:=0;
@@ -290,6 +334,11 @@ begin
       if j<>freecount[i] then
         RunError(204);
     end;
+{$ifdef MT}
+  finally
+    LeaveCriticalSection(cs_systemheap);
+  end;
+{$endif MT}
 end;
 {$endif TestFreeLists}
 
@@ -311,6 +360,10 @@ var
   pbest : pfreerecord;
 {$endif}
 begin
+{$ifdef MT}
+  try
+    EnterCriticalSection(cs_systemheap);
+{$endif MT}    
 { Something to allocate ? }
   if size<=0 then
    begin
@@ -507,6 +560,11 @@ begin
   if test_each then
     TestFreeLists;
 {$endif TestFreeLists}
+{$ifdef MT}
+  finally
+    LeaveCriticalSection(cs_systemheap);
+  end;
+{$endif MT}
 end;
 
 
@@ -586,6 +644,10 @@ var
   pcurrsize,s : longint;
   pcurr : pfreerecord;
 begin
+{$ifdef MT}
+  try
+    EnterCriticalSection(cs_systemheap);
+{$endif MT}    
   if p=nil then
    HandleError(204);
 { fix p to point to the heaprecord }
@@ -618,6 +680,11 @@ begin
   if test_each then
     TestFreeLists;
 {$endif TestFreeLists}
+{$ifdef MT}
+  finally
+    LeaveCriticalSection(cs_systemheap);
+  end;
+{$endif MT}
 end;
 
 
@@ -630,6 +697,10 @@ var
   pcurrsize,s : longint;
   pcurr : pfreerecord;
 begin
+{$ifdef MT}
+  try
+    EnterCriticalSection(cs_systemheap);
+{$endif MT}    
   SysFreeMemSize:=0;
   if size<=0 then
    begin
@@ -675,6 +746,11 @@ begin
   if test_each then
     TestFreeLists;
 {$endif TestFreeLists}
+{$ifdef MT}
+  finally
+    LeaveCriticalSection(cs_systemheap);
+  end;
+{$endif MT}
 end;
 
 
@@ -684,7 +760,16 @@ end;
 
 function SysMemSize(p:pointer):longint;
 begin
+{$ifdef MT}
+  try
+    EnterCriticalSection(cs_systemheap);
+{$endif MT}    
   SysMemSize:=(pheaprecord(pointer(p)-sizeof(theaprecord))^.size and sizemask)-sizeof(theaprecord);
+{$ifdef MT}
+  finally
+    LeaveCriticalSection(cs_systemheap);
+  end;
+{$endif MT}
 end;
 
 
@@ -716,6 +801,10 @@ var
   pnew,
   pcurr : pfreerecord;
 begin
+{$ifdef MT}
+  try
+    EnterCriticalSection(cs_systemheap);
+{$endif MT}    
 { fix needed size }
   size:=(size+sizeof(theaprecord)+(blocksize-1)) and (not (blocksize-1));
 { fix p to point to the heaprecord }
@@ -847,6 +936,11 @@ begin
   if test_each then
     TestFreeLists;
 {$endif TestFreeLists}
+{$ifdef MT}
+  finally
+    LeaveCriticalSection(cs_systemheap);
+  end;
+{$endif MT}
 end;
 
 
@@ -859,6 +953,10 @@ var
   oldsize : longint;
   p2 : pointer;
 begin
+{$ifdef MT}
+  try
+    EnterCriticalSection(cs_systemheap);
+{$endif MT}    
   { Free block? }
   if size=0 then
    begin
@@ -883,6 +981,11 @@ begin
       p:=p2;
     end;
   SysReAllocMem:=p;
+{$ifdef MT}
+  finally
+    LeaveCriticalSection(cs_systemheap);
+  end;
+{$endif MT}
 end;
 
 
@@ -910,6 +1013,10 @@ var
   NewPos    : longint;
   pcurr     : pfreerecord;
 begin
+{$ifdef MT}
+  try
+    EnterCriticalSection(cs_systemheap);
+{$endif MT}    
 {$ifdef DUMPGROW}
   writeln('grow ',size);
   DumpBlocks;
@@ -985,6 +1092,11 @@ begin
 {$ifdef TestFreeLists}
   TestFreeLists;
 {$endif TestFreeLists}
+{$ifdef MT}
+  finally
+    LeaveCriticalSection(cs_systemheap);
+  end;
+{$endif MT}
 end;
 
 
@@ -1006,11 +1118,17 @@ begin
   HeapPtr:=HeapOrg;
   HeapEnd:=HeapOrg+internal_memavail;
   HeapError:=@GrowHeap;
+{$ifdef MT}
+  InitCriticalSection(cs_systemheap);
+{$endif MT}
 end;
 
 {
   $Log$
-  Revision 1.4  2000-08-08 19:22:46  peter
+  Revision 1.5  2001-01-24 21:47:18  florian
+    + more MT stuff added
+
+  Revision 1.4  2000/08/08 19:22:46  peter
     * smallatheapptr undef and other cleanup (merged)
 
   Revision 1.3  2000/07/14 10:33:10  michael
@@ -1018,5 +1136,5 @@ end;
 
   Revision 1.2  2000/07/13 11:33:43  michael
   + removed logs
-
 }
+

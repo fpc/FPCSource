@@ -173,14 +173,18 @@ var
   Input,
   StdOut,
   StdErr      : Text;
-  ExitCode,
-  InOutRes    : Word;
+  ExitCode    : Word;
   StackBottom,
   LowestStack,
   RandSeed    : Cardinal;
 { Delphi compatible }
   IsLibrary,IsMultiThreaded,IsConsole : boolean;
-
+{$ifdef MT}
+ThreadVar
+{$else MT}
+Var
+{$endif MT}
+  InOutRes    : Word;
 
 {****************************************************************************
                         Processor specific routines
@@ -484,7 +488,10 @@ const
 
 {
   $Log$
-  Revision 1.15  2000-12-16 15:56:19  jonas
+  Revision 1.16  2001-01-24 21:47:18  florian
+    + more MT stuff added
+
+  Revision 1.15  2000/12/16 15:56:19  jonas
     - removed all ifdef cardinalmulfix code
 
   Revision 1.14  2000/12/08 14:04:43  jonas

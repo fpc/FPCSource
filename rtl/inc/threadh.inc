@@ -15,7 +15,7 @@
 
  **********************************************************************}
 
-
+{$ifdef MT}
 {*****************************************************************************
                          Multithread Handling
 *****************************************************************************}
@@ -41,11 +41,16 @@ procedure DoneCriticalsection(var cs : tcriticalsection);
 procedure EnterCriticalsection(var cs : tcriticalsection);
 procedure LeaveCriticalsection(var cs : tcriticalsection);
 
+{$endif MT}
+
 {
   $Log$
-  Revision 1.2  2001-01-05 17:35:50  florian
-  * the info about exception frames is stored now on the stack
-  instead on the heap
+  Revision 1.3  2001-01-24 21:47:18  florian
+    + more MT stuff added
+
+  Revision 1.2  2001/01/05 17:35:50  florian
+    * the info about exception frames is stored now on the stack
+      instead on the heap
 
   Revision 1.1  2001/01/01 19:06:59  florian
     + initial release

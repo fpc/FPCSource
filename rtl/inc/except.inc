@@ -39,8 +39,11 @@ Type
 
 Const
   CatchAllExceptions = -1;
-
+{$ifdef MT}
+ThreadVar
+{$else MT}
 Var
+{$endif MT}
   ExceptAddrStack   : PExceptAddr;
   ExceptObjectStack : PExceptObject;
 
@@ -53,7 +56,7 @@ end;
 {$ifndef HAS_ADDR_STACK_ON_STACK}
 Function PushExceptAddr (Ft: Longint): PJmp_buf ;
   [Public, Alias : 'FPC_PUSHEXCEPTADDR'];saveregisters;
-{$else ADDR_STACK_ON_HEAP}
+{$else HAS_ADDR_STACK_ON_HEAP}
 Function PushExceptAddr (Ft: Longint;_buf,_newaddr : pointer): PJmp_buf ;
   [Public, Alias : 'FPC_PUSHEXCEPTADDR'];saveregisters;
 {$endif HAS_ADDR_STACK_ON_STACK}
@@ -266,7 +269,10 @@ begin
 end;
 {
   $Log$
-  Revision 1.4  2001-01-05 17:35:50  florian
+  Revision 1.5  2001-01-24 21:47:18  florian
+    + more MT stuff added
+
+  Revision 1.4  2001/01/05 17:35:50  florian
   * the info about exception frames is stored now on the stack
   instead on the heap
 
@@ -276,5 +282,4 @@ end;
 
   Revision 1.2  2000/07/13 11:33:42  michael
   + removed logs
-
 }

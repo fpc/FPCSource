@@ -28,6 +28,9 @@ interface
 { include system-independent routine headers }
 {$I systemh.inc}
 
+{ include threading stuff }
+{$i threadh.inc}
+
 { include heap support headers }
 {$I heaph.inc}
 
@@ -279,6 +282,9 @@ begin
 {$endif}
   sbrk:=l;
 end;
+
+{ include threading stuff, this is os independend part }
+{$I thread.inc}
 
 { include standard heap management }
 {$I heap.inc}
@@ -1387,7 +1393,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2001-01-05 15:44:35  florian
+  Revision 1.4  2001-01-24 21:47:38  florian
+    + more MT stuff added
+
+  Revision 1.3  2001/01/05 15:44:35  florian
     * some stuff for MT
 
   Revision 1.2  2000/12/18 17:28:58  jonas

@@ -13,6 +13,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$ifdef MT}
 const
    threadvarblocksize : dword = 0;
 
@@ -82,7 +83,7 @@ procedure InitThread;
      { so every thread has its on exception handling capabilities }
      InitExceptions;
      InOutRes:=0;
-     ErrNo:=0;
+     // ErrNo:=0;
   end;
 
 procedure DoneThread;
@@ -214,9 +215,14 @@ procedure EnterCriticalSection(var cs : tcriticalsection);
 procedure LeaveCriticalSection(var cs : tcriticalsection);
   external 'kernel32' name 'LeaveCriticalSection';
 }
+
+{$endif MT}
+
 {
   $Log$
-  Revision 1.1  2001-01-01 19:06:36  florian
-    + initial release
+  Revision 1.2  2001-01-24 21:47:38  florian
+    + more MT stuff added
 
+  Revision 1.1  2001/01/01 19:06:36  florian
+    + initial release
 }
