@@ -620,6 +620,11 @@ CONST EventQSize = 16;                                { Default int bufsize }
 {---------------------------------------------------------------------------}
 CONST QueueMax = 64;                                  { Max new queue size }
 
+{---------------------------------------------------------------------------}
+{   MAX WIEW WIDTH to avoid TDrawBuffer overrun in views unit               }
+{---------------------------------------------------------------------------}
+CONST MaxViewWidth = 132;                                { Max view width }
+
 {***************************************************************************}
 {                          PRIVATE INTERNAL TYPES                           }
 {***************************************************************************}
@@ -1300,6 +1305,7 @@ if Not TextmodeGFV then
 {$ifdef win32}
     I := VESA;
     J := mLargestWindow16;
+    DefFontHeight:=8;
 {$else not win32}
     I := Detect;                                   { Detect video card }
     J := 0;                                        { Zero select mode }
@@ -1319,6 +1325,8 @@ if Not TextmodeGFV then
     SysFontHeight := TextHeight('H')+4;            { Transfer font height }
     ScreenWidth := (Graph.GetMaxX+1) DIV
       SysFontWidth;                                { Calc screen width }
+    if ScreenWidth > MaxViewWidth then
+      ScreenWidth := MaxViewWidth;
     ScreenHeight := (Graph.GetMaxY+1) DIV
       SysFontHeight;                               { Calc screen height }
     UseFixedFont:=true;
@@ -1340,6 +1348,7 @@ if Not TextmodeGFV then
     GfvGraph.SysFontHeight:=SysFontHeight;
     GfvGraph.TextScreenWidth:=ScreenWidth;
     GfvGraph.TextScreenHeight:=ScreenHeight;
+    SetupExtraInfo;
 {$endif USE_VIDEO_API}
 {$ifdef win32}
     SetGraphHooks;
@@ -1349,6 +1358,8 @@ else
 {$endif GRAPH_API}
   begin
     Video.InitVideo;
+    if ScreenWidth > MaxViewWidth then
+      ScreenWidth := MaxViewWidth;
     ScreenWidth:=Video.ScreenWidth;
     ScreenHeight:=Video.ScreenHeight;
     SetViewPort(0,0,ScreenWidth,ScreenHeight,true,true);
@@ -1629,7 +1640,10 @@ BEGIN
 END.
 {
  $Log$
- Revision 1.24  2002-06-04 11:12:41  marco
+ Revision 1.25  2002-06-06 06:43:29  pierre
+  * avoid more than 132 columns, to avoid TDrawBuffer overrun
+
+ Revision 1.24  2002/06/04 11:12:41  marco
   * Renamefest
 
  Revision 1.23  2002/05/31 12:38:37  pierre
