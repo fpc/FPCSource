@@ -83,6 +83,7 @@ uses
 {$ifdef linux}
   ,linux
 {$endif}
+  ,gendef
   ;
 
 {$ifndef linux}
@@ -606,7 +607,8 @@ begin
   success:=DoExec(FindLinker,s,true,false);
 {Bind}
   if (target_link.bindbin[1]<>'') and
-     ((target_info.target<>target_i386_win32) or bind_win32_dll) then
+     ((target_info.target<>target_i386_win32) or
+     (RelocSection and not Deffile.empty)) then
    for ii:=1 to target_link.binders do
    begin
      s:=target_link.bindcmd[ii];
@@ -733,7 +735,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.64  1999-07-30 23:19:45  peter
+  Revision 1.65  1999-08-10 12:51:16  pierre
+    * bind_win32_dll removed (Relocsection used instead)
+    * now relocsection is true by default ! (needs dlltool
+      for DLL generation)
+
+  Revision 1.64  1999/07/30 23:19:45  peter
     * fixed placing of dynamiclinker in link.res (should be the last after
       all other libraries)
 

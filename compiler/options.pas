@@ -664,7 +664,8 @@ begin
               'W' : begin
                       for j:=1 to length(More) do
                        case More[j]of
-                        'B': bind_win32_dll:=true;
+                        'B': {bind_win32_dll:=true}
+                             RelocSection:=true;
                         'C': apptype:=at_cui;
                         'G': apptype:=at_gui;
                         'N': RelocSection:=false;
@@ -1162,7 +1163,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.11  1999-08-09 22:19:52  peter
+  Revision 1.12  1999-08-10 12:51:17  pierre
+    * bind_win32_dll removed (Relocsection used instead)
+    * now relocsection is true by default ! (needs dlltool
+      for DLL generation)
+
+  Revision 1.11  1999/08/09 22:19:52  peter
     * classes vmt changed to only positive addresses
     * sharedlib creation is working
 

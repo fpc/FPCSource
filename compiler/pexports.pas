@@ -81,6 +81,7 @@ unit pexports;
                              val(pattern,hp^.index,code);
                              consume(_INTCONST);
                              DefString:=ProcName+'='+InternalProcName;{Index ignored!}
+                             (* DefString:=ProcName+'@'+pattern+'='+InternalProcName;{Index ignored!} *)
                           end;
                         if (idtoken=_NAME) then
                           begin
@@ -101,7 +102,9 @@ unit pexports;
                         if srsym^.typ=procsym then
                           exportlib^.exportprocedure(hp)
                         else
-                          exportlib^.exportvar(hp);
+                          begin
+                             exportlib^.exportvar(hp);
+                          end;
                      end;
                 end
               else
@@ -120,7 +123,12 @@ end.
 
 {
   $Log$
-  Revision 1.11  1999-08-04 13:02:54  jonas
+  Revision 1.12  1999-08-10 12:51:19  pierre
+    * bind_win32_dll removed (Relocsection used instead)
+    * now relocsection is true by default ! (needs dlltool
+      for DLL generation)
+
+  Revision 1.11  1999/08/04 13:02:54  jonas
     * all tokens now start with an underscore
     * PowerPC compiles!!
 

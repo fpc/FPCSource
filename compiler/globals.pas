@@ -163,11 +163,19 @@ unit globals;
        apptype : tapptype;
 
     const
-       RelocSection : boolean = false;
+       RelocSection : boolean = true;
        DLLsource : boolean = false;
        { no binding needed for win32
-         .edata written directly !! PM }
-       bind_win32_dll : boolean = false;
+         .edata written directly !! PM
+         so use RelocSection here also
+       bind_win32_dll : boolean = false;}
+       {  WARNING !!!!!
+         without relocation a DLL cannot beloaded at any
+         address but the base address written into the
+         PE header !!!
+         So DLL's should allways be compiled with relocation (PM)
+         Thanks to Pavel Ozerski for explaining me that
+       }
 
        { should we allow non static members ? }
        allow_only_static : boolean = false;
@@ -1231,7 +1239,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  1999-08-05 20:54:19  daniel
+  Revision 1.17  1999-08-10 12:51:14  pierre
+    * bind_win32_dll removed (Relocsection used instead)
+    * now relocsection is true by default ! (needs dlltool
+      for DLL generation)
+
+  Revision 1.16  1999/08/05 20:54:19  daniel
   * Changes for new symtable.
 
   Revision 1.15  1999/08/03 17:09:35  florian
