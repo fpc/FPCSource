@@ -6,6 +6,6 @@ digitmin=0
 digitmax=0
 
 [Paths]
-filelist=c:\pp\doc\search\filelist.txt
-stopwords=c:\pp\doc\search\stopwords.txt
+filelist=DOCDIR/search/filelist.txt
+stopwords=DOCDIR/search/stopwords.txt
 database=fpchelp

@@ -335,6 +335,18 @@ install:
 	install -d -m 755 $(DOCINSTALLDIR)
 	cp fpctoc.html $(DOCINSTALLDIR)
 	cp -R buttons $(DOCINSTALLDIR)
+	cp -R search $(DOCINSTALLDIR)
+	sed s/DOCDIR/"$(subst /,\/,$(DOCINSTALLDIR))"/ $(DOCINSTALLDIR)/search/fpchelp.idksm.linux > $(DOCINSTALLDIR)/search/fpchelp.idksm
+	cp -f $(DOCINSTALLDIR)/search/filelist.txt.linux $(DOCINSTALLDIR)/search/filelist.txt
+	rm -f $(DOCINSTALLDIR)/search/*.linux
+	cp -R $(HTML) $(DOCINSTALLDIR)
+
+dosinstall:
+	install -d -m 755 $(DOCINSTALLDIR)
+	cp fpctoc.html $(DOCINSTALLDIR)
+	cp -R buttons $(DOCINSTALLDIR)
+	cp -R search $(DOCINSTALLDIR)
+	rm -f $(DOCINSTALLDIR)/search/*.linux
 	cp -R $(HTML) $(DOCINSTALLDIR)
 
 www-install: psdist htmldist htm
@@ -355,21 +367,35 @@ pdfdist: pdf
 dvidist: dvi
 	zip docs-dvi $(DVI)
 
-htmldist: html
-	find . -name '*.html' -or -name '*.gif' -or -name '*.css' >htmllist
-	find . -name '*.class' >>htmllist
-	tar -czf fpcdoc.tar.gz --files-from=htmllist
-	rm -f htmllist
-
-htm: html
-	makehtm `find . -name '*.html'`
-	zip -q docs-htm `find . -name '*.htm' -or -name '*.gif' -or -name '*.css'`
-	rm `find -name '*.htm'`
-
-htmdist: htm
-
 txtdist: txt
 	zip docs-txt $(TXT)
+
+#####################################################################
+# Zips of htmls
+#####################################################################
+
+DOCPREFIX=doc
+BASEDIR=$(shell pwd)
+
+htmltar: 
+	$(MAKE) install DOCINSTALLDIR=$(DOCPREFIX)
+	cd $(DOCPREFIX) ; tar cz * > $(BASEDIR)/fpcdoc.tar.gz ; cd $(BASEDIR)
+	rm -rf $(DOCPREFIX)
+
+htmlzip:
+	$(MAKE) dosinstall DOCINSTALLDIR=$(DOCPREFIX)
+	zip -D9rq doc-html $(DOCPREFIX)/*
+	rm -rf $(DOCPREFIX)
+
+htmzip:
+	$(MAKE) dosinstall DOCINSTALLDIR=$(DOCPREFIX)
+	makehtm `find $(DOCPREFIX) -name '*.html'`
+	zip -D9rq doc-htm `find $(DOCPREFIX) -name '*.htm' -or -name '*.gif' -or -name '*.css'`
+	rm -rf $(DOCPREFIX)
+
+htmldist: htmlzip htmltar
+
+htmdist: htmzip
 
 alldist: dvidist psdist txtdist pdfdist htmldist htmdist
 
@@ -402,7 +428,12 @@ linuxexamples: examples
 
 #
 # $Log$
-# Revision 1.26  1999-06-08 22:11:28  peter
+# Revision 1.27  1999-06-15 13:53:16  peter
+#   * htmlzip,htmzip,htmltar updates
+#   * include search/ in distro
+#   * fix paths under linux automaticly
+#
+# Revision 1.26  1999/06/08 22:11:28  peter
 #   * debian updates
 #
 # Revision 1.25  1999/06/08 18:28:13  peter
