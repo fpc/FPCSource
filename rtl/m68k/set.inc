@@ -34,7 +34,7 @@
   procedure do_set;assembler;
   asm
     XDEF SET_SET_BYTE
-          move.b  d0,d6
+          move.l  d0,d6
           { correct long position: }
           {   -> (value div 32)*4 = longint }
           {       (value shr 5)*shl 2       }
@@ -69,7 +69,7 @@
   {         (D0)                                                 }
   asm
        XDEF SET_IN_BYTE
-          move.b  d0,d6
+          move.l  d0,d6
           { correct long position: }
           {   -> (value div 32)*4 = longint }
           {       (value shr 5)*shl 2       }
@@ -427,7 +427,11 @@
 
 {
   $Log$
-  Revision 1.3  1998-06-05 12:32:07  carl
+  Revision 1.4  1998-06-17 13:59:08  carl
+    * bugfix of set_in_byte, long must be used at start, same is true for
+  another routine
+
+  Revision 1.3  1998/06/05 12:32:07  carl
     * calculating sets is COMPLETELY different from the intel in
   determining the bit number
     * new passing parameters conventions
