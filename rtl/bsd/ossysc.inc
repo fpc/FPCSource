@@ -47,7 +47,7 @@
     function Fpfstat(fd : cint; var sb : stat): cint; cdecl; external name 'fstat';
     function Fpfork : pid_t; cdecl; external name 'fork';
     function Fpexecve(const path : pchar; const argv : ppchar; const envp: ppchar): cint; cdecl; external name 'execve';
-    function Fpwaitpid(pid : pid_t; var stat_loc : cint; options: cint): pid_t; cdecl; external name 'waitpid';
+    function Fpwaitpid(pid : pid_t; tat_loc : pcint; options: cint): pid_t; cdecl; external name 'waitpid';
     function Fpaccess(const pathname : pchar; amode : cint): cint; cdecl; external name 'access';
 
     function Fpuname(var name: utsname): cint; cdecl; external name 'uname';
@@ -403,7 +403,7 @@ Begin
   do_syscall(syscall_nr_Execve,TSysParam(path),TSysParam(Argv),TSysParam(envp));
 End;
 }
-function Fpwaitpid(pid : pid_t; var stat_loc : cint; options: cint): pid_t; [public, alias : 'FPC_SYSC_WAITPID'];
+function Fpwaitpid(pid : pid_t; stat_loc : pcint; options: cint): pid_t; [public, alias : 'FPC_SYSC_WAITPID'];
 {
   Waits until a child with PID Pid exits, or returns if it is exited already.
   Any resources used by the child are freed.
@@ -412,7 +412,7 @@ function Fpwaitpid(pid : pid_t; var stat_loc : cint; options: cint): pid_t; [pub
 }
 
 begin // actually a wait4() call with 4th arg 0.
- FpWaitPID:=do_syscall(syscall_nr_WaitPID,PID,TSysParam(@Stat_loc),options,0);
+ FpWaitPID:=do_syscall(syscall_nr_WaitPID,PID,TSysParam(Stat_loc),options,0);
 end;
 
 function Fpaccess(const pathname : pchar; amode : cint): cint; [public, alias : 'FPC_SYSC_ACCESS'];
@@ -598,7 +598,10 @@ end;
 
 {
  $Log$
- Revision 1.9  2003-09-17 16:02:31  marco
+ Revision 1.10  2003-09-20 12:38:29  marco
+  * FCL now compiles for FreeBSD with new 1.1. Now Linux.
+
+ Revision 1.9  2003/09/17 16:02:31  marco
   * ostype include moved to top
 
  Revision 1.8  2003/09/16 12:45:49  marco

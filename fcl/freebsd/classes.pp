@@ -35,7 +35,7 @@ uses
 {$ifdef ver1_0}
   linux
 {$else}
-  unix
+  baseunix,unix
 {$endif}
   ;
 
@@ -55,7 +55,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.5  2002-09-07 15:15:24  peter
+  Revision 1.6  2003-09-20 12:38:29  marco
+   * FCL now compiles for FreeBSD with new 1.1. Now Linux.
+
+  Revision 1.5  2002/09/07 15:15:24  peter
     * old logs removed and tabs fixed
 
 }

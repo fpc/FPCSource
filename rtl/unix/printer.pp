@@ -109,7 +109,7 @@ begin
   else
    begin
    { We're in the parent. }
-     fpwaitpid (i,j,0);
+     fpwaitpid (i,@j,0);
      if j<>0 then
       exit;
    { Erase the file }
@@ -254,7 +254,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2003-09-14 20:15:01  marco
+  Revision 1.6  2003-09-20 12:38:29  marco
+   * FCL now compiles for FreeBSD with new 1.1. Now Linux.
+
+  Revision 1.5  2003/09/14 20:15:01  marco
    * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
 
   Revision 1.4  2002/09/07 16:01:27  peter

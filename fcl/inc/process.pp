@@ -24,7 +24,7 @@ Uses Classes,
 {$ifdef ver1_0}
      Linux,
 {$else}
-     unix,
+     Baseunix,unix,
 {$endif}
 {$else}
      Windows,
@@ -324,7 +324,7 @@ end;
 Function TProcess.PeekLinuxExitStatus : Boolean;
 
 begin
-  Result:=WaitPID(Handle,@FExitCode,WNOHANG)=Handle;
+  Result:={$ifdef VER1_0}WaitPID{$else}fpWaitPid{$endif}(Handle,@FExitCode,WNOHANG)=Handle;
   If Result then
     FExitCode:=wexitstatus(FExitCode)
   else
@@ -616,8 +616,8 @@ begin
   Result:=True;
   Argv:=MakeCommand(Pname,PCommandLine,StartupOptions,ProcessOptions,FStartupInfo);
   if (pos('/',PName)<>1) then
-    PName:=FileSearch(Pname,GetEnv('PATH'));
-  Pid:=fork;
+    PName:=FileSearch(Pname,{$ifdef ver1_0}GetEnv{$else}fpgetenv{$endif}('PATH'));
+  Pid:={$ifdef ver1_0}fork;{$else}fpfork;{$endif}
   if Pid=0 then
    begin
    { We're in the child }
@@ -625,23 +625,23 @@ begin
      ChDir(PDir);
    if PoUsePipes in ProcessOptions then
      begin
-     dup2(FStartupInfo.hStdInput,0);
-     dup2(FStartupInfo.hStdOutput,1);
-     dup2(FStartupInfo.hStdError,2);
+     {$ifdef ver1_0}dup2{$else}fpdup2{$endif}(FStartupInfo.hStdInput,0);
+     {$ifdef ver1_0}dup2{$else}fpdup2{$endif}(FStartupInfo.hStdOutput,1);
+     {$ifdef ver1_0}dup2{$else}fpdup2{$endif}(FStartupInfo.hStdError,2);
      end
    else if poNoConsole in ProcessOptions then
      begin
      fd:=FileOpen('/dev/null',fmOpenReadWrite);
-     dup2(fd,0);
-     dup2(fd,1);
-     dup2(fd,2);
+     {$ifdef ver1_0}dup2{$else}fpdup2{$endif}(fd,0);
+     {$ifdef ver1_0}dup2{$else}fpdup2{$endif}(fd,1);
+     {$ifdef ver1_0}dup2{$else}fpdup2{$endif}(fd,2);
      end;
    if (poRunSuspended in ProcessOptions) then
      sigraise(SIGSTOP);
    if FEnv<>Nil then
-     Execve(PChar(PName),Argv,Fenv)
+     {$ifdef ver1_0}execve{$else}fpexecve{$endif}(PChar(PName),Argv,Fenv)
    else
-     Execv(Pchar(PName),argv);
+     {$ifdef ver1_0}execv{$else}fpexecv{$endif}(Pchar(PName),argv);
    Halt(127);
    end
  else
@@ -728,7 +728,7 @@ Function TProcess.WaitOnExit : Dword;
 
 begin
 {$ifdef unix}
-  Result:=Dword(WaitPid(Handle,@FExitCode,0));
+  Result:=Dword({$ifdef ver1_0}WaitPid{$else}fpWaitPid{$endif}(Handle,@FExitCode,0));
   If Result=Handle then
     FExitCode:=WexitStatus(FExitCode);
 {$else}
@@ -743,7 +743,7 @@ Function TProcess.Suspend : Longint;
 
 begin
 {$ifdef unix}
-  If kill(Handle,SIGSTOP)<>0 then
+  If {$ifdef ver1_0}kill{$else}fpkill{$endif}(Handle,SIGSTOP)<>0 then
     Result:=-1
   else
     Result:=1;
@@ -756,7 +756,7 @@ Function TProcess.Resume : LongInt;
 
 begin
 {$ifdef unix}
-  If kill(Handle,SIGCONT)<>0 then
+  If {$ifdef ver1_0}kill{$else}fpkill{$endif}(Handle,SIGCONT)<>0 then
     Result:=-1
   else
     Result:=0;
@@ -770,11 +770,11 @@ Function TProcess.Terminate(AExitCode : Integer) : Boolean;
 begin
   Result:=False;
 {$ifdef unix}
-  Result:=kill(Handle,SIGTERM)=0;
+  Result:={$ifdef ver1_0}kill{$else}fpkill{$endif}(Handle,SIGTERM)=0;
   If Result then
     begin
     If Running then
-      Result:=Kill(Handle,SIGKILL)=0;
+      Result:={$ifdef ver1_0}kill{$else}fpkill{$endif}(Handle,SIGKILL)=0;
     end;
   GetExitStatus;
 {$else}
@@ -919,7 +919,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.16  2003-08-12 13:49:42  michael
+  Revision 1.17  2003-09-20 12:38:29  marco
+   * FCL now compiles for FreeBSD with new 1.1. Now Linux.
+
+  Revision 1.16  2003/08/12 13:49:42  michael
   + Freed streams were not closed correctly
 
   Revision 1.15  2003/05/08 20:04:16  armin

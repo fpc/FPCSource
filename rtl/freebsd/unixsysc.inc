@@ -144,7 +144,7 @@ begin
   do_syscall(syscall_nr_close,Textrec(F).Handle);
 { closed our side, Now wait for the other - this appears to be needed ?? }
   pl:=@(textrec(f).userdata[2]);
-  fpwaitpid(pl^,res,0);
+  fpwaitpid(pl^,@res,0);
   pclose:=res shr 8;
 end;
 
@@ -157,7 +157,7 @@ begin
   do_syscall(syscall_nr_close,filerec(F).Handle);
 { closed our side, Now wait for the other - this appears to be needed ?? }
   pl:=@(filerec(f).userdata[2]);
-  fpwaitpid(pl^,res,0);
+  fpwaitpid(pl^,@res,0);
   pclose:=res shr 8;
 end;
 
@@ -214,7 +214,10 @@ end;
 
 {
   $Log$
-  Revision 1.10  2003-09-15 20:08:49  marco
+  Revision 1.11  2003-09-20 12:38:29  marco
+   * FCL now compiles for FreeBSD with new 1.1. Now Linux.
+
+  Revision 1.10  2003/09/15 20:08:49  marco
    * small fixes. FreeBSD now cycles
 
   Revision 1.9  2003/09/15 07:09:58  marco

@@ -36,7 +36,7 @@ function fpftruncate	(fd : cint; flength : TOff): cint; external name 'FPC_SYSC_
 function fpfstat	(fd : cint; var sb : stat): cint; external name 'FPC_SYSC_FSTAT';
 function fpfork       : pid_t; external name 'FPC_SYSC_FORK';
 // function fpexecve	(path : pchar; argv : ppchar;envp: ppchar): cint; external name 'FPC_SYSC_EXECVE';
-function fpwaitpid	(pid : pid_t; var stat_loc : cint; options: cint): pid_t; external name 'FPC_SYSC_WAITPID';
+function fpwaitpid	(pid : pid_t;  stat_loc : pcint; options: cint): pid_t; external name 'FPC_SYSC_WAITPID';
 function fpaccess	(pathname : pchar; amode : cint): cint;external name 'FPC_SYSC_ACCESS';
 function fpDup		(fildes:cint):cint;  external name 'FPC_SYSC_DUP';
 function fpDup2		(fildes:cint;fildes2:cint):cint; external name 'FPC_SYSC_DUP2';
@@ -45,7 +45,10 @@ procedure seterrno 	(i:cint); external name  'FPC_SYS_SETERRNO';
 
 {
   $Log$
-  Revision 1.1  2003-06-01 15:25:14  marco
+  Revision 1.2  2003-09-20 12:38:29  marco
+   * FCL now compiles for FreeBSD with new 1.1. Now Linux.
+
+  Revision 1.1  2003/06/01 15:25:14  marco
    * now generic
 
 

@@ -45,14 +45,13 @@ interface
 
 implementation
 
-Uses BaseUnix;
+Uses BaseUnix,unix;
 
 {*****************************************************************************
                              Generic overloaded
 *****************************************************************************}
 {$i ostypes.inc}
 {$i ossysch.inc}
-
 { Include generic overloaded routines }
 {$i thread.inc}
 
@@ -385,7 +384,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.12  2003-09-16 13:17:03  marco
+  Revision 1.13  2003-09-20 12:38:29  marco
+   * FCL now compiles for FreeBSD with new 1.1. Now Linux.
+
+  Revision 1.12  2003/09/16 13:17:03  marco
    * Wat cleanup, ouwe syscalls nu via baseunix e.d.
 
   Revision 1.11  2003/09/16 13:00:02  marco

@@ -167,7 +167,7 @@ uses
   {$ifdef ver1_0}
     Linux,
   {$else}
-    Unix,
+    BaseUnix, Unix,
   {$endif}
  {$endif}
   resolve
@@ -370,7 +370,7 @@ Procedure TSocketServer.SetNonBlocking;
 
 begin
 {$ifndef notUnix}
-  fcntl(FSocket,F_SETFL,OPEN_NONBLOCK);
+  {$ifdef ver1_0}fcntl{$else}fpfcntl{$endif}(FSocket,F_SETFL,{$ifdef ver1_0}OPEN_NONBLOCK{$else}O_NONBLOCK{$endif});
 {$endif}
   FNonBlocking:=True;
 end;
@@ -568,7 +568,10 @@ end.
 
 {
   $Log$
-  Revision 1.19  2003-03-25 17:47:06  armin
+  Revision 1.20  2003-09-20 12:38:29  marco
+   * FCL now compiles for FreeBSD with new 1.1. Now Linux.
+
+  Revision 1.19  2003/03/25 17:47:06  armin
   * use closesocket and not fdClose for netware
 
   Revision 1.18  2003/03/21 23:10:24  armin

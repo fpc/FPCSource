@@ -259,7 +259,7 @@ Function  Glob(Const path:pathstr):pglob;
 Procedure Globfree(var p:pglob);
 {Filedescriptorsets}
 {Stat.Mode Types}
-
+procedure SigRaise(sig:integer);
 {******************************************************************************
                             Implementation
 ******************************************************************************}
@@ -271,8 +271,9 @@ Implementation
 Uses Strings;
 
 {$i syscallh.inc}
-{$i unxsysc.inc}
 {$i ossysch.inc}
+
+{$i unxsysc.inc}
 
 { Get the definitions of textrec and filerec }
 {$i textrec.inc}
@@ -296,7 +297,7 @@ var     r,s     : LongInt;
 begin
   repeat
     s:=$7F00;
-    r:=fpWaitPid(Pid,s,0);
+    r:=fpWaitPid(Pid,@s,0);
   until (r<>-1) or (LinuxError<>ESysEINTR);
   if (r=-1) or (r=0) then // 0 is not a valid return and should never occur (it means status invalid when using WNOHANG)
     WaitProcess:=-1 // return -1 to indicate an error
@@ -1713,7 +1714,10 @@ End.
 
 {
   $Log$
-  Revision 1.37  2003-09-17 19:07:44  marco
+  Revision 1.38  2003-09-20 12:38:29  marco
+   * FCL now compiles for FreeBSD with new 1.1. Now Linux.
+
+  Revision 1.37  2003/09/17 19:07:44  marco
    * more fixes for Unix<->unixutil
 
   Revision 1.36  2003/09/17 17:30:46  marco

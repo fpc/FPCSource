@@ -17,7 +17,7 @@ Uses
 {$ifdef ver1_0}
   Linux
 {$else}
-  Unix
+  baseUnix
 {$endif}
   ;
 
@@ -29,7 +29,7 @@ Var P : Pchar;
 
 begin
    // Linux version returns pchar.
-   p:={$ifdef ver1_0}Linux{$else}Unix{$endif}.getenv(EnvVar);
+   p:={$ifdef ver1_0}Linux{$else}BaseUnix{$endif}.fpgetenv(EnvVar);
    if P<>nil then
      getenv:=strpas(p)
    else
@@ -38,7 +38,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  2002-09-07 15:15:29  peter
+  Revision 1.6  2003-09-20 12:38:29  marco
+   * FCL now compiles for FreeBSD with new 1.1. Now Linux.
+
+  Revision 1.5  2002/09/07 15:15:29  peter
     * old logs removed and tabs fixed
 
 }

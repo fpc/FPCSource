@@ -71,7 +71,7 @@ Type TGrpArr = Array [0..0] of TGid;		{ C style array workarounds}
     Function  FpFork : TPid;
     Function  FpExecve	   (path : pChar; argv : ppChar; envp: ppChar): cInt;
     Function  FpExecv	   (path : pChar; argv : ppChar): cInt;
-    Function  FpWaitpid	   (pid : TPid; var stat_loc : cInt; options: cInt): TPid;
+    Function  FpWaitpid	   (pid : TPid; stat_loc : pcInt; options: cInt): TPid;
     Function  FpWait	   (var stat_loc : cInt): TPid;
     Procedure FpExit	   (Status : cInt);
     Function  FpKill	   (pid : TPid; sig: cInt): cInt;
@@ -122,7 +122,10 @@ Type TGrpArr = Array [0..0] of TGid;		{ C style array workarounds}
 
 {
   $Log$
-  Revision 1.7  2003-09-17 11:24:46  marco
+  Revision 1.8  2003-09-20 12:38:29  marco
+   * FCL now compiles for FreeBSD with new 1.1. Now Linux.
+
+  Revision 1.7  2003/09/17 11:24:46  marco
    * fixes for new macro's
 
   Revision 1.6  2003/09/17 11:14:25  marco
