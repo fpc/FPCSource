@@ -53,7 +53,8 @@ implementation
 {$else Delphi}
      dos, 
 {$endif Delphi}
-     globtype,strings,globals,link,files;
+     globtype,strings,comphook,
+     globals,link,files;
 
 const   profile_flag:boolean=false;
 
@@ -179,9 +180,9 @@ function aout_sym(const name:string;typ,other:byte;desc:word;
 
 begin
     if aout_str_size+length(name)+1>sizeof(aout_str_tab) then
-        runerror($da);
+        Do_halt($da);
     if aout_sym_count>=sizeof(aout_sym_tab) div sizeof(aout_sym_tab[0]) then
-        runerror($da);
+        Do_halt($da);
     aout_sym_tab[aout_sym_count].strofs:=aout_str_size;
     aout_sym_tab[aout_sym_count].typ:=typ;
     aout_sym_tab[aout_sym_count].other:=other;
@@ -197,7 +198,7 @@ procedure aout_text_byte(b:byte);
 
 begin
     if aout_text_size>=sizeof(aout_text) then
-        runerror($da);
+        Do_halt($da);
     aout_text[aout_text_size]:=b;
     inc(aout_text_size);
 end;
@@ -217,7 +218,7 @@ procedure aout_treloc(address,symbolnum,pcrel,len,ext:longint);
 
 begin
     if aout_treloc_count>=sizeof(aout_treloc_tab) div sizeof(reloc) then
-        runerror($da);
+        Do_halt($da);
     aout_treloc_tab[aout_treloc_count].address:=address;
     aout_treloc_tab[aout_treloc_count].remaining:=symbolnum+pcrel shl 24+
      len shl 25+ext shl 27;
@@ -335,7 +336,10 @@ end.
 
 {
   $Log$
-  Revision 1.9  1999-07-18 10:19:58  florian
+  Revision 1.10  1999-09-07 15:05:19  pierre
+  * use do_halt instead of runerror
+
+  Revision 1.9  1999/07/18 10:19:58  florian
     * made it compilable with Dlephi 4 again
     + fixed problem with large stack allocations on win32
 
