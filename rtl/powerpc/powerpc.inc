@@ -1037,15 +1037,28 @@ asm
   mr r3, r1
 end;
 
+{NOTE: On MACOS, 68000 code might call powerpc code, through the MixedMode manager,
+(even in the OS in system 9). The pointer to the switching stack frame is
+indicated by the first bit set to 1. This is checked below.}
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
 function get_caller_addr(framebp:pointer):pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif} nostackframe;
 asm
    cmplwi  r3,0
    beq     .Lcaller_addr_frame_null
+{$ifdef MACOS}
+   rlwinm	r4,r3,0,31,31
+   cmpwi	r4,0
+   bne	cr0,.Lcaller_addr_frame_null
+{$endif MACOS}
    lwz r3,0(r3)
    cmplwi  r3,0
    beq     .Lcaller_addr_frame_null
+{$ifdef MACOS}
+   rlwinm	r4,r3,0,31,31
+   cmpwi	r4,0
+   bne	cr0,.Lcaller_addr_frame_null
+{$endif MACOS}
 {$ifdef FPC_ABI_AIX}
    lwz r3,8(r3)
 {$else FPC_ABI_AIX}
@@ -1060,6 +1073,11 @@ function get_caller_frame(framebp:pointer):pointer;assembler;{$ifdef SYSTEMINLIN
 asm
     cmplwi  r3,0
     beq     .Lcaller_frame_null
+{$ifdef MACOS}
+    rlwinm	r4,r3,0,31,31
+    cmpwi	r4,0
+    bne	cr0,.Lcaller_frame_null
+{$endif MACOS}
     lwz  r3,0(r3)
 .Lcaller_frame_null:
 end;
@@ -1138,7 +1156,10 @@ end;
 
 {
   $Log$
-  Revision 1.73  2004-11-20 15:49:21  jonas
+  Revision 1.74  2005-01-31 20:57:41  olle
+    * Fixed stack frame access for macos
+
+  Revision 1.73  2004/11/20 15:49:21  jonas
     * some compilation fixes for powerpc after all the internconst and
       internproc changes, still crashes with internalerror(88) for ppc1
       on real2str.inc(193,39)
