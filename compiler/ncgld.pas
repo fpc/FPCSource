@@ -50,7 +50,7 @@ implementation
       systems,
       verbose,globtype,globals,
       symconst,symtype,symdef,symsym,symtable,defutil,paramgr,
-      ncnv,ncon,nmem,
+      ncnv,ncon,nmem,nbas,
       aasmbase,aasmtai,aasmcpu,regvars,
       cginfo,cgbase,pass_2,
       cpubase,cpuinfo,
@@ -481,8 +481,25 @@ implementation
 
         releaseright:=true;
 
+        { optimize temp to temp copies }
+        if (left.nodetype = temprefn) and
+{$ifdef newra}
+           { we may store certain temps in registers in the future, then this }
+           { optimization will have to be adapted                             }
+           (left.location.loc = LOC_REFERENCE) and
+{$endif newra}
+           (right.location.loc = LOC_REFERENCE) and
+           tg.istemp(right.location.reference) and
+           (tg.sizeoftemp(exprasmlist,right.location.reference) = tg.sizeoftemp(exprasmlist,left.location.reference)) then
+          begin
+            { in theory, we should also make sure the left temp type is   }
+            { already more or less of the same kind (ie. we must not      }
+            { assign an ansistring to a normaltemp). In practice, the     }
+            { assignment node will have already taken care of this for us }
+            ttemprefnode(left).changelocation(right.location.reference);
+          end
         { shortstring assignments are handled separately }
-        if is_shortstring(left.resulttype.def) then
+        else if is_shortstring(left.resulttype.def) then
           begin
             {
               we can get here only in the following situations
@@ -935,7 +952,19 @@ begin
 end.
 {
   $Log$
-  Revision 1.67  2003-06-07 18:57:04  jonas
+  Revision 1.68  2003-06-08 18:27:15  jonas
+    + ability to change the location of a ttempref node with changelocation()
+      method. Useful to use instead of copying the contents from one temp to
+      another
+    + some shortstring optimizations in tassignmentnode that avoid some
+      copying (required some shortstring optimizations to be moved from
+      resulttype to firstpass, because they work on callnodes and string
+      addnodes are only changed to callnodes in the firstpass)
+    * allow setting/changing the funcretnode of callnodes after the
+      resulttypepass has been done, funcretnode is now a property
+    (all of the above should have a quite big effect on callparatemp)
+
+  Revision 1.67  2003/06/07 18:57:04  jonas
     + added freeintparaloc
     * ppc get/freeintparaloc now check whether the parameter regs are
       properly allocated/deallocated (and get an extra list para)

@@ -127,6 +127,11 @@ interface
           function det_resulttype : tnode; override;
           procedure mark_write;override;
           function docompare(p: tnode): boolean; override;
+          { Changes the location of this temp to ref. Useful when assigning }
+          { another temp to this one. The current location will be freed.   }
+          { Can only be called in pass 2 (since earlier, the temp location  }
+          { isn't known yet)                                                }
+          procedure changelocation(const ref: treference);
          protected
           tempinfo: ptempinfo;
           offset : longint;
@@ -715,6 +720,22 @@ implementation
     end;
 
 
+    procedure ttemprefnode.changelocation(const ref: treference);
+      begin
+        { check if the temp is valid }
+        if not tempinfo^.valid then
+          internalerror(200306081);
+        if (tempinfo^.temptype = tt_persistent) then
+          tg.ChangeTempType(exprasmlist,tempinfo^.ref,tt_normal);
+        tg.ungettemp(exprasmlist,tempinfo^.ref);
+        tempinfo^.ref := ref;
+        tg.ChangeTempType(exprasmlist,tempinfo^.ref,tempinfo^.temptype);
+        { adapt location }
+        location.reference := ref;
+        inc(location.reference.offset,offset);
+      end;
+
+
 {*****************************************************************************
                              TEMPDELETENODE
 *****************************************************************************}
@@ -802,7 +823,19 @@ begin
 end.
 {
   $Log$
-  Revision 1.53  2003-05-30 21:01:44  jonas
+  Revision 1.54  2003-06-08 18:27:15  jonas
+    + ability to change the location of a ttempref node with changelocation()
+      method. Useful to use instead of copying the contents from one temp to
+      another
+    + some shortstring optimizations in tassignmentnode that avoid some
+      copying (required some shortstring optimizations to be moved from
+      resulttype to firstpass, because they work on callnodes and string
+      addnodes are only changed to callnodes in the firstpass)
+    * allow setting/changing the funcretnode of callnodes after the
+      resulttypepass has been done, funcretnode is now a property
+    (all of the above should have a quite big effect on callparatemp)
+
+  Revision 1.53  2003/05/30 21:01:44  jonas
     - disabled "result := value; exit;" -> exit(value) optimization because
       a) it was wrong
       b) exit(value) works now exactly the same as that

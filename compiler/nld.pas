@@ -698,32 +698,6 @@ implementation
           so treat them separatly }
         if (is_shortstring(left.resulttype.def)) then
          begin
-            { test for s:=s+anything ... }
-            { the problem is for
-              s:=s+s+s;
-              this is broken here !! }
-{$ifdef newoptimizations2}
-            { the above is fixed now, but still problem with s := s + f(); if }
-            { f modifies s (bad programming, so only enable if uncertain      }
-            { optimizations are on) (JM)                                      }
-            if (cs_UncertainOpts in aktglobalswitches) then
-              begin
-                hp := right;
-                while hp.treetype=addn do
-                  hp:=hp.left;
-                if left.docompare(hp) then
-                  begin
-                    concat_string:=true;
-                    hp:=right;
-                    while hp.treetype=addn do
-                      begin
-                        hp.use_strconcat:=true;
-                        hp:=hp.left;
-                      end;
-                  end;
-              end;
-{$endif newoptimizations2}
-
            { insert typeconv, except for chars that are handled in
              secondpass and except for ansi/wide string that can
              be converted immediatly }
@@ -737,30 +711,22 @@ implementation
                 skip empty constant strings, that will be handled
                 in secondpass }
               if (right.nodetype=stringconstn) then
-               begin
-                 { verify if range fits within shortstring }
-                 { just emit a warning, delphi gives an    }
-                 { error, only if the type definition of   }
-                 { of the string is less  < 255 characters }
-                 if not is_open_string(left.resulttype.def) and
-                    (tstringconstnode(right).len > tstringdef(left.resulttype.def).len) then
-                    cgmessage(type_w_string_too_long);
-                 inserttypeconv(right,left.resulttype);
-                 if (tstringconstnode(right).len=0) then
-                  useshelper:=false;
-               end;
-              if useshelper then
-               begin
-                 hp:=ccallparanode.create
-                         (right,
-                     ccallparanode.create(cinlinenode.create
-                         (in_high_x,false,left.getcopy),nil));
-                 result:=ccallnode.createinternreturn('fpc_'+tstringdef(right.resulttype.def).stringtypname+'_to_shortstr',hp,left);
-                 left:=nil;
-                 right:=nil;
-                 exit;
-               end;
-            end;
+                begin
+                  { verify if range fits within shortstring }
+                  { just emit a warning, delphi gives an    }
+                  { error, only if the type definition of   }
+                  { of the string is less  < 255 characters }
+                  if not is_open_string(left.resulttype.def) and
+                     (tstringconstnode(right).len > tstringdef(left.resulttype.def).len) then
+                     cgmessage(type_w_string_too_long);
+                  inserttypeconv(right,left.resulttype);
+                  if (tstringconstnode(right).len=0) then
+                    useshelper:=false;
+                end;
+             { rest is done in pass 1 (JM) }
+             if useshelper then
+               exit;
+            end
          end
         else
           begin
@@ -809,6 +775,8 @@ implementation
 
 
     function tassignmentnode.pass_1 : tnode;
+      var
+        hp: tnode;
       begin
          result:=nil;
          expectloc:=LOC_VOID;
@@ -822,6 +790,68 @@ implementation
 
          if codegenerror then
            exit;
+
+         
+        if (is_shortstring(left.resulttype.def)) then
+          begin
+           if right.resulttype.def.deftype=stringdef then
+            begin
+              if (right.nodetype<>stringconstn) or
+                 (tstringconstnode(right).len<>0) then
+               begin
+                 if (cs_optimize in aktglobalswitches) and
+                    (right.nodetype in [calln,blockn]) and
+                    (left.nodetype = temprefn) and
+                    is_shortstring(right.resulttype.def) and
+                    not is_open_string(left.resulttype.def) and
+                    (tstringdef(left.resulttype.def).len = 255) then
+                   begin
+                     { the blocknode case is handled in pass_2 at the temp }
+                     { reference level (mainly for callparatemp)  (JM)     }
+                     if (right.nodetype = calln) then
+                       begin
+                         tcallnode(right).funcretnode := left;
+                         result := right;
+                       end
+                     else
+                       exit;
+                   end
+                 else
+                   begin
+                     hp:=ccallparanode.create
+                           (right,
+                      ccallparanode.create(cinlinenode.create
+                           (in_high_x,false,left.getcopy),nil));
+                     result:=ccallnode.createinternreturn('fpc_'+tstringdef(right.resulttype.def).stringtypname+'_to_shortstr',hp,left);
+                     firstpass(result);
+                   end;
+                 left:=nil;
+                 right:=nil;
+                 exit;
+               end;
+            end;
+           end;
+
+         if (cs_optimize in aktglobalswitches) and
+            (right.nodetype = calln) and
+            { left must be a temp, since otherwise as soon as you modify the }
+            { result, the current left node is modified and that one may     }
+            { still be an argument to the function or even accessed in the   }
+            { function                                                       }
+            (left.nodetype = temprefn) and
+            { doesn't work correctlyfor refcounted things }
+            not(not is_class(right.resulttype.def) and
+                right.resulttype.def.needs_inittable) and
+            paramanager.ret_in_param(right.resulttype.def,
+             tcallnode(right).procdefinition.proccalloption) then
+           begin
+             tcallnode(right).funcretnode := left;
+             result := right;
+             left := nil;
+             right := nil;
+             exit;
+           end;
+
 
          registers32:=left.registers32+right.registers32;
          registersfpu:=max(left.registersfpu,right.registersfpu);
@@ -1256,7 +1286,19 @@ begin
 end.
 {
   $Log$
-  Revision 1.99  2003-06-07 20:26:32  peter
+  Revision 1.100  2003-06-08 18:27:15  jonas
+    + ability to change the location of a ttempref node with changelocation()
+      method. Useful to use instead of copying the contents from one temp to
+      another
+    + some shortstring optimizations in tassignmentnode that avoid some
+      copying (required some shortstring optimizations to be moved from
+      resulttype to firstpass, because they work on callnodes and string
+      addnodes are only changed to callnodes in the firstpass)
+    * allow setting/changing the funcretnode of callnodes after the
+      resulttypepass has been done, funcretnode is now a property
+    (all of the above should have a quite big effect on callparatemp)
+
+  Revision 1.99  2003/06/07 20:26:32  peter
     * re-resolving added instead of reloading from ppu
     * tderef object added to store deref info for resolving
 

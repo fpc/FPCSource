@@ -69,6 +69,11 @@ interface
           function  gen_self_tree:tnode;
           function  gen_vmt_tree:tnode;
           procedure bind_paraitem;
+
+          { function return node, this is used to pass the data for a
+            ret_in_param return value }
+          _funcretnode    : tnode;
+          procedure setfuncretnode(const returnnode: tnode);
        public
           { the symbol containing the definition of the procedure }
           { to call                                               }
@@ -81,11 +86,12 @@ interface
           procdefinitionderef : tderef;
           { tree that contains the pointer to the object for this method }
           methodpointer  : tnode;
-          { function return node, this is used to pass the data for a
-            ret_in_param return value }
-          funcretnode    : tnode;
           { inline function body }
           inlinecode : tnode;
+          { node that specifies where the result should be put for calls }
+          { that return their result in a parameter                      }
+          property funcretnode: tnode read _funcretnode write setfuncretnode;
+          
 
           { separately specified resulttype for some compilerprocs (e.g. }
           { you can't have a function with an "array of char" resulttype }
@@ -874,7 +880,7 @@ type
          methodpointer:=mp;
          procdefinition:=nil;
          restypeset:=false;
-         funcretnode:=nil;
+         _funcretnode:=nil;
          inlinecode:=nil;
          paralength:=-1;
       end;
@@ -889,7 +895,7 @@ type
          methodpointer:=mp;
          procdefinition:=def;
          restypeset:=false;
-         funcretnode:=nil;
+         _funcretnode:=nil;
          inlinecode:=nil;
          paralength:=-1;
       end;
@@ -904,7 +910,7 @@ type
          methodpointer:=nil;
          procdefinition:=nil;
          restypeset:=false;
-         funcretnode:=nil;
+         _funcretnode:=nil;
          inlinecode:=nil;
          paralength:=-1;
       end;
@@ -954,16 +960,45 @@ type
     constructor tcallnode.createinternreturn(const name: string; params: tnode; returnnode : tnode);
       begin
         self.createintern(name,params);
-        funcretnode:=returnnode;
+        _funcretnode:=returnnode;
         if not paramanager.ret_in_param(symtableprocentry.first_procdef.rettype.def,symtableprocentry.first_procdef.proccalloption) then
           internalerror(200204247);
+      end;
+
+
+    procedure tcallnode.setfuncretnode(const returnnode: tnode);
+      var
+        para: tcallparanode;
+      begin
+        if assigned(_funcretnode) then
+          _funcretnode.free;
+        _funcretnode := returnnode;
+        { if the resulttype pass hasn't occurred yet, that one will do }
+        { everything                                                   }
+        if assigned(resulttype.def) then
+          begin
+            para := tcallparanode(left);
+            while assigned(para) do
+              begin
+                if para.paraitem.is_hidden and
+                   (vo_is_funcret in tvarsym(para.paraitem.parasym).varoptions) then
+                 begin
+                   para.left.free;
+                   para.left := _funcretnode.getcopy;
+                   exit;
+                 end;
+                 para := tcallparanode(para.right);
+              end;
+            { no hidden resultpara found, error! }
+            internalerror(200306087);
+          end;
       end;
 
 
     destructor tcallnode.destroy;
       begin
          methodpointer.free;
-         funcretnode.free;
+         _funcretnode.free;
          inlinecode.free;
          inherited destroy;
       end;
@@ -980,7 +1015,7 @@ type
         ppufile.getderef(procdefinitionderef);
         restypeset:=boolean(ppufile.getbyte);
         methodpointer:=ppuloadnode(ppufile);
-        funcretnode:=ppuloadnode(ppufile);
+        _funcretnode:=ppuloadnode(ppufile);
         inlinecode:=ppuloadnode(ppufile);
       end;
 
@@ -992,7 +1027,7 @@ type
         ppufile.putderef(procdefinition,procdefinitionderef);
         ppufile.putbyte(byte(restypeset));
         ppuwritenode(ppufile,methodpointer);
-        ppuwritenode(ppufile,funcretnode);
+        ppuwritenode(ppufile,_funcretnode);
         ppuwritenode(ppufile,inlinecode);
       end;
 
@@ -1005,8 +1040,8 @@ type
         procdefinition:=tprocdef(procdefinitionderef.resolve);
         if assigned(methodpointer) then
           methodpointer.derefimpl;
-        if assigned(funcretnode) then
-          funcretnode.derefimpl;
+        if assigned(_funcretnode) then
+          _funcretnode.derefimpl;
         if assigned(inlinecode) then
           inlinecode.derefimpl;
       end;
@@ -1026,10 +1061,10 @@ type
          n.methodpointer:=methodpointer.getcopy
         else
          n.methodpointer:=nil;
-        if assigned(funcretnode) then
-         n.funcretnode:=funcretnode.getcopy
+        if assigned(_funcretnode) then
+         n._funcretnode:=_funcretnode.getcopy
         else
-         n.funcretnode:=nil;
+         n._funcretnode:=nil;
         if assigned(inlinecode) then
          n.inlinecode:=inlinecode.getcopy
         else
@@ -2296,8 +2331,8 @@ type
 {$endif callparatemp}
 
          { function result node }
-         if assigned(funcretnode) then
-           firstpass(funcretnode);
+         if assigned(_funcretnode) then
+           firstpass(_funcretnode);
 
          { procedure variable ? }
          if assigned(right) then
@@ -2592,7 +2627,19 @@ begin
 end.
 {
   $Log$
-  Revision 1.166  2003-06-08 11:42:33  peter
+  Revision 1.167  2003-06-08 18:27:15  jonas
+    + ability to change the location of a ttempref node with changelocation()
+      method. Useful to use instead of copying the contents from one temp to
+      another
+    + some shortstring optimizations in tassignmentnode that avoid some
+      copying (required some shortstring optimizations to be moved from
+      resulttype to firstpass, because they work on callnodes and string
+      addnodes are only changed to callnodes in the firstpass)
+    * allow setting/changing the funcretnode of callnodes after the
+      resulttypepass has been done, funcretnode is now a property
+    (all of the above should have a quite big effect on callparatemp)
+
+  Revision 1.166  2003/06/08 11:42:33  peter
     * creating class with abstract call checking fixed
     * there will be only one warning for each class, the methods
       are listed as hint
