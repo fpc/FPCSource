@@ -126,7 +126,6 @@ type
    end;
 
    tvariantmanager = record
-
       vartoint : function(const v : variant) : longint;
       vartoint64 : function(const v : variant) : int64;
       vartoword64 : function(const v : variant) : qword;
@@ -165,7 +164,6 @@ type
       varcopy : procedure(var dest : variant;const source : variant);
       varcast : procedure(var dest : variant;const source : variant;vartype : longint);
    end;
-
    pvariantmanager = ^tvariantmanager;
 
 procedure GetVariantManager(var VarMgr: TVariantManager);
@@ -249,6 +247,97 @@ operator :=(const source : variant) dest : double;
 operator :=(const source : variant) dest : extended;
 operator :=(const source : variant) dest : comp;
 
+{**********************************************************************
+                              or operator
+ **********************************************************************}
+
+operator or(const op1,op2 : variant) dest : variant;
+
+operator or(const op1 : byte;const op2 : variant) dest : variant;
+operator or(const op1 : variant;const op2 : byte) dest : variant;
+operator or(const op1 : shortint;const op2 : variant) dest : variant;
+operator or(const op1 : variant;const op2 : shortint) dest : variant;
+operator or(const op1 : word;const op2 : variant) dest : variant;
+operator or(const op1 : variant;const op2 : word) dest : variant;
+operator or(const op1 : integer;const op2 : variant) dest : variant;
+operator or(const op1 : variant;const op2 : integer) dest : variant;
+operator or(const op1 : longint;const op2 : variant) dest : variant;
+operator or(const op1 : variant;const op2 : longint) dest : variant;
+operator or(const op1 : cardinal;const op2 : variant) dest : variant;
+operator or(const op1 : variant;const op2 : cardinal) dest : variant;
+operator or(const op1 : int64;const op2 : variant) dest : variant;
+operator or(const op1 : variant;const op2 : int64) dest : variant;
+operator or(const op1 : qword;const op2 : variant) dest : variant;
+operator or(const op1 : variant;const op2 : qword) dest : variant;
+
+operator or(const op1 : boolean;const op2 : variant) dest : variant;
+operator or(const op1 : variant;const op2 : boolean) dest : variant;
+operator or(const op1 : wordbool;const op2 : variant) dest : variant;
+operator or(const op1 : variant;const op2 : wordbool) dest : variant;
+operator or(const op1 : longbool;const op2 : variant) dest : variant;
+operator or(const op1 : variant;const op2 : longbool) dest : variant;
+
+{**********************************************************************
+                              and-operator
+ **********************************************************************}
+
+operator and(const op1,op2 : variant) dest : variant;
+
+operator and(const op1 : byte;const op2 : variant) dest : variant;
+operator and(const op1 : variant;const op2 : byte) dest : variant;
+operator and(const op1 : shortint;const op2 : variant) dest : variant;
+operator and(const op1 : variant;const op2 : shortint) dest : variant;
+operator and(const op1 : word;const op2 : variant) dest : variant;
+operator and(const op1 : variant;const op2 : word) dest : variant;
+operator and(const op1 : integer;const op2 : variant) dest : variant;
+operator and(const op1 : variant;const op2 : integer) dest : variant;
+operator and(const op1 : longint;const op2 : variant) dest : variant;
+operator and(const op1 : variant;const op2 : longint) dest : variant;
+operator and(const op1 : cardinal;const op2 : variant) dest : variant;
+operator and(const op1 : variant;const op2 : cardinal) dest : variant;
+operator and(const op1 : int64;const op2 : variant) dest : variant;
+operator and(const op1 : variant;const op2 : int64) dest : variant;
+operator and(const op1 : qword;const op2 : variant) dest : variant;
+operator and(const op1 : variant;const op2 : qword) dest : variant;
+
+operator and(const op1 : boolean;const op2 : variant) dest : variant;
+operator and(const op1 : variant;const op2 : boolean) dest : variant;
+operator and(const op1 : wordbool;const op2 : variant) dest : variant;
+operator and(const op1 : variant;const op2 : wordbool) dest : variant;
+operator and(const op1 : longbool;const op2 : variant) dest : variant;
+operator and(const op1 : variant;const op2 : longbool) dest : variant;
+
+{**********************************************************************
+                              xor operator
+ **********************************************************************}
+
+operator xor(const op1,op2 : variant) dest : variant;
+
+operator xor(const op1 : byte;const op2 : variant) dest : variant;
+operator xor(const op1 : variant;const op2 : byte) dest : variant;
+operator xor(const op1 : shortint;const op2 : variant) dest : variant;
+operator xor(const op1 : variant;const op2 : shortint) dest : variant;
+operator xor(const op1 : word;const op2 : variant) dest : variant;
+operator xor(const op1 : variant;const op2 : word) dest : variant;
+operator xor(const op1 : integer;const op2 : variant) dest : variant;
+operator xor(const op1 : variant;const op2 : integer) dest : variant;
+operator xor(const op1 : longint;const op2 : variant) dest : variant;
+operator xor(const op1 : variant;const op2 : longint) dest : variant;
+operator xor(const op1 : cardinal;const op2 : variant) dest : variant;
+operator xor(const op1 : variant;const op2 : cardinal) dest : variant;
+operator xor(const op1 : int64;const op2 : variant) dest : variant;
+operator xor(const op1 : variant;const op2 : int64) dest : variant;
+operator xor(const op1 : qword;const op2 : variant) dest : variant;
+operator xor(const op1 : variant;const op2 : qword) dest : variant;
+
+operator xor(const op1 : boolean;const op2 : variant) dest : variant;
+operator xor(const op1 : variant;const op2 : boolean) dest : variant;
+operator xor(const op1 : wordbool;const op2 : variant) dest : variant;
+operator xor(const op1 : variant;const op2 : wordbool) dest : variant;
+operator xor(const op1 : longbool;const op2 : variant) dest : variant;
+operator xor(const op1 : variant;const op2 : longbool) dest : variant;
+
+
 { Misc. }
 { Fixme!!!!
 operator :=(const source : variant) dest : currency;
@@ -256,11 +345,13 @@ operator :=(const source : variant) dest : tdatetime;
 }
 {
   $Log$
-  Revision 1.6  2002-09-07 15:07:46  peter
+  Revision 1.7  2002-10-06 22:13:55  florian
+    * wrappers for xor, or and and operator with variants added
+
+  Revision 1.6  2002/09/07 15:07:46  peter
     * old logs removed and tabs fixed
 
   Revision 1.5  2002/06/12 15:45:42  jonas
     * fixed bug in tvariantmanager declaration (string -> ansistring, this
       file is compiled in non-objpas mode!)
-
 }
