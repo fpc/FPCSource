@@ -615,6 +615,9 @@ implementation
                  push_int(pto^.resulttype^.size-1)
                else
                  push_int(l);
+               { we've also to release the registers ... }
+               del_reference(pfrom^.location.reference);
+               { ... here only the temp. location is released }
                emit_push_lea_loc(pfrom^.location,true);
                emitpushreferenceaddr(pto^.location.reference);
                emitcall('FPC_CHARARRAY_TO_SHORTSTR');
@@ -1533,7 +1536,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.102  2000-02-09 13:22:46  peter
+  Revision 1.103  2000-02-19 10:12:47  florian
+    * fixed one more internalerror 10
+
+  Revision 1.102  2000/02/09 13:22:46  peter
     * log truncated
 
   Revision 1.101  2000/01/13 16:52:48  jonas

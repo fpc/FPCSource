@@ -416,8 +416,8 @@ implementation
                   andn,
                   orn:
                     begin
-                      calcregisters(p,0,0,0);
                       make_bool_equal_size(p);
+                      calcregisters(p,0,0,0);
                       p^.location.loc:=LOC_JUMP;
                     end;
                   xorn,ltn,lten,gtn,gten:
@@ -1260,7 +1260,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.69  2000-02-17 14:53:42  florian
+  Revision 1.70  2000-02-19 10:12:48  florian
+    * fixed one more internalerror 10
+
+  Revision 1.69  2000/02/17 14:53:42  florian
     * some updates for the newcg
 
   Revision 1.68  2000/02/14 22:34:28  florian
