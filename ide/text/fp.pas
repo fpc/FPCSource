@@ -36,7 +36,7 @@ uses
 {$endif debug}
   Dos,Objects,
   BrowCol,
-  Views,App,Dialogs,ColorSel,Menus,StdDlg,Validate,
+  Drivers,Views,App,Dialogs,ColorSel,Menus,StdDlg,Validate,
   {$ifdef EDITORS}Editors{$else}WEditor{$endif},
   ASCIITab,Calc,
   WUtils,WViews,
@@ -70,7 +70,7 @@ begin
             begin
               if (length(Param)>=1) and (Param[1] in['=',':']) then
                 Delete(Param,1,1); { eat separator }
-              INIPath:=copy(Param,2,255);
+              IniFileName:=Param;
             end;
 {$ifdef go32v2}
           'N' :
@@ -86,6 +86,12 @@ begin
               if (Param='-') then
                 StartupOptions:=StartupOptions and (not soReturnToLastDir);
             end;
+          'S' :
+             if Length(Param)=1 then
+               begin
+                 UseMouse:=false;
+                 ButtonCount:=0;
+               end;
         end;
       end
     else
@@ -230,7 +236,11 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.40  2000-03-07 21:58:58  pierre
+  Revision 1.41  2000-03-13 20:41:34  pierre
+    + option -S to disable the mouse
+    * adapted to changes in fpusrscr for DOS
+
+  Revision 1.40  2000/03/07 21:58:58  pierre
    + uses ParseUserScreen and UpdateMode
 
   Revision 1.39  2000/02/12 23:58:26  carl

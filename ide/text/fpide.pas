@@ -623,8 +623,13 @@ procedure TIDEApp.ShowUserScreen;
 begin
   DoneSysError;
   DoneEvents;
-  DoneMouse;
+  If UseMouse then
+    DoneMouse
+  else
+    ButtonCount:=0;
+{$ifndef go32v2}
   DoneScreen; { this is available in FV app.pas (PFV) }
+{$endif go32v2}
   DoneDosMem;
 
   if Assigned(UserScreen) then
@@ -638,13 +643,20 @@ begin
     UserScreen^.SwitchBack;
 
   InitDosMem;
+{$ifndef go32v2}
   InitScreen;
-  InitMouse;
+{$endif go32v2}
+  If UseMouse then
+    InitMouse
+  else
+    ButtonCount:=0;
   InitEvents;
   InitSysError;
   CurDirChanged;
   Message(Application,evBroadcast,cmUpdate,nil);
+{$ifndef go32v2}
   UpdateScreen(true);
+{$endif go32v2}
 end;
 
 function TIDEApp.AutoSave: boolean;
@@ -756,7 +768,7 @@ end;
 
 procedure TIDEApp.UpdateINIFile;
 begin
-  SetMenuItemParam(SearchMenuItem(MenuBar^.Menu,cmSaveINI),SmartPath(INIPath));
+  SetMenuItemParam(SearchMenuItem(MenuBar^.Menu,cmSaveINI),SmartPath(IniFileName));
 end;
 
 procedure TIDEApp.UpdateRecentFileList;
@@ -915,7 +927,11 @@ end;
 END.
 {
   $Log$
-  Revision 1.54  2000-03-07 21:57:59  pierre
+  Revision 1.55  2000-03-13 20:41:35  pierre
+    + option -S to disable the mouse
+    * adapted to changes in fpusrscr for DOS
+
+  Revision 1.54  2000/03/07 21:57:59  pierre
     + CtrlC handling
     + UpdateMode method
 
