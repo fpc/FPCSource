@@ -157,6 +157,7 @@ function fpc_set_set_range(const orgset: fpc_normal_set; l,h : byte): fpc_normal
   adds the range [l..h] to the set pointed to by p
 }
 var
+  saveh : byte;
   saveesi,saveedi,saveebx : longint;
 asm
         movl    %edi,saveedi
@@ -166,6 +167,7 @@ asm
         movl   orgset, %esi         // source set address in esi
         movzbl l,%eax               // lowest bit to be set in eax
         movzbl h,%ebx               // highest in ebx
+	movb   %bl,saveh
         movl   $8,%ecx              // we have to copy 32 bytes
         cmpl   %eax,%ebx            // high < low?
         rep                         // copy source to dest (it's possible to do the range
@@ -195,7 +197,7 @@ asm
         subl   $4,%ebx
         jnz    .Lset_range_loop
 .Lset_range_hi:
-        movb   h,%cl                // this is ok, h is on the stack
+        movb   saveh,%cl                // this is ok, h is on the stack
         movl   %edx,%ebx            // save current bitmask
         andb   $31,%cl
         subb   $31,%cl              // cl := (31 - (hi and 31)) = shift count to
@@ -684,7 +686,10 @@ end;
 
 {
   $Log$
-  Revision 1.16  2003-12-04 21:42:07  peter
+  Revision 1.17  2003-12-24 22:38:24  peter
+    * fix set_set_range
+
+  Revision 1.16  2003/12/04 21:42:07  peter
     * register calling updates
 
   Revision 1.15  2003/12/03 23:06:35  peter
