@@ -383,104 +383,122 @@ end;
 
 Function TOrderedList.AtLeast(ACount: Integer): Boolean;
 begin
-
+  Result:=(FList.Count>=Acount)
 end;
 
 Function TOrderedList.Count: Integer;
 begin
-
+  Result:=FList.Count;
 end;
 
 constructor TOrderedList.Create;
 begin
-
+  FList:=Tlist.Create;
 end;
 
 destructor TOrderedList.Destroy;
 begin
-  inherited;
-
+  FList.Free;
 end;
 
 Function TOrderedList.Peek: Pointer;
 begin
-
+  If AtLeast(1) then
+    Result:=PeekItem;
+  else
+    Result:=Nil;
 end;
 
 Function TOrderedList.PeekItem: Pointer;
 begin
-
+  With Flist do
+    Result:=Items[Count-1]
 end;
 
 Function TOrderedList.Pop: Pointer;
 begin
-
+  If Atleast(1) then
+    Result:=PopItem;
+  else
+    Result:=Nil;
 end;
 
 Function TOrderedList.PopItem: Pointer;
 begin
-
+  With FList do
+    If Count>0 then
+      begin
+      Result:=Items[Count-1];
+      Delete(Count-1);
+      end;
+    else
+      Result:=Nil;
 end;
 
 Function TOrderedList.Push(AItem: Pointer): Pointer;
 begin
-
+  PushItem(Aitem);
+  Result:=AItem;
 end;
 
 { TStack }
 
 Procedure TStack.PushItem(AItem: Pointer);
 begin
-
+  FList.Add(Aitem);
 end;
 
 { TObjectStack }
 
 Function TObjectStack.Peek: TObject;
 begin
-
+  Result:=TObject(Inherited Peek);
 end;
 
 Function TObjectStack.Pop: TObject;
 begin
-
+  Result:=TObject(Inherited Pop);
 end;
 
 Function TObjectStack.Push(AObject: TObject): TObject;
 begin
-
+  Result:=TObject(Inherited Push(Pointer(AObject)));
 end;
 
 { TQueue }
 
 Procedure TQueue.PushItem(AItem: Pointer);
 begin
-
+  With Flist Do
+    Insert(0,AItem);
 end;
 
 { TObjectQueue }
 
 Function TObjectQueue.Peek: TObject;
 begin
-
+  Result:=TObject(Inherited Peek);
 end;
 
 Function TObjectQueue.Pop: TObject;
 begin
-
+  Result:=TObject(Inherited Pop);
 end;
 
 Function TObjectQueue.Push(AObject: TObject): TObject;
 begin
-
+  Result:=TObject(Inherited Push(Pointer(Aobject)));
 end;
-
 
 end.
 
+
 {
   $Log$
-  Revision 1.3  2002-07-26 11:26:26  michael
+  Revision 1.4  2002-08-09 09:44:33  michael
+    + Implemented stack and queue (untested)
+
+  Revision 1.3  2002/07/26 11:26:26  michael
   + Initial implementation. Untested
 
   Revision 1.2  2002/07/21 12:04:49  michael
