@@ -1097,6 +1097,12 @@ unit pdecl;
             until false;
             dec(testcurobject);
             consume(RKLAMMER);
+            if token=_OF then
+              begin
+                 consume(_OF);
+                 consume(_OBJECT);
+                 procvardef^.options:=procvardef^.options or pomethodpointer;
+              end;
          end;
        handle_procvar:=procvardef;
     end;
@@ -1730,7 +1736,11 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.8  1998-04-10 15:39:48  florian
+  Revision 1.9  1998-04-10 21:36:56  florian
+    + some stuff to support method pointers (procedure of object) added
+      (declaration, parameter handling)
+
+  Revision 1.8  1998/04/10 15:39:48  florian
     * more fixes to get classes.pas compiled
 
   Revision 1.7  1998/04/09 23:02:15  florian

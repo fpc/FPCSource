@@ -2668,9 +2668,10 @@ implementation
               emitpushreferenceaddr(funcretref);
               inc(pushedparasize,4);
            end;
-         { overloaded operator have no symtable }
+         { procedure variable ? }
          if (p^.right=nil) then
            begin
+              { overloaded operator have no symtable }
               { push self }
               if assigned(p^.symtable) and
                 (p^.symtable^.symtabletype=withsymtable) then
@@ -3044,8 +3045,17 @@ implementation
                    must_pop:=false;
                    pop_size:=0;
                 end;
-
               secondpass(p^.right);
+              { method pointer ? }
+              if (p^.procdefinition^.options and pomethodpointer)<>0 then
+                begin
+                   { method pointer can't be in a register }
+                   inc(p^.right^.location.reference^.offset,4);
+                   { push self pointer }
+                   exprasmlist^.concat(new(pai386,op_ref(A_PUSH,S_L,newreference(p^.right^.location.reference))));
+                   del_reference(p^.right^.location.reference);
+                   dec(p^.right^.location.reference^.offset,4);
+                end;
               case p^.right^.location.loc of
                  LOC_REGISTER,LOC_CREGISTER:
                     begin
@@ -5715,7 +5725,11 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.8  1998-04-09 22:16:33  florian
+  Revision 1.9  1998-04-10 21:36:55  florian
+    + some stuff to support method pointers (procedure of object) added
+      (declaration, parameter handling)
+
+  Revision 1.8  1998/04/09 22:16:33  florian
     * problem with previous REGALLOC solved
     * improved property support
 

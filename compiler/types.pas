@@ -225,10 +225,11 @@ unit types;
          ret_in_acc:=(def^.deftype=orddef) or
                      (def^.deftype=pointerdef) or
                      (def^.deftype=enumdef) or
-                     (def^.deftype=procvardef) or
+                     ((def^.deftype=procvardef) and
+                      ((pprocvardef(def)^.options and pomethodpointer)=0)) or
                      (def^.deftype=classrefdef) or
                      ((def^.deftype=objectdef) and
-                      ((pobjectdef(def)^.options and oois_class)<>0)
+                      pobjectdef(def)^.isclass
                      ) or
                      ((def^.deftype=setdef) and
                       (psetdef(def)^.settype=smallset)) or
@@ -242,6 +243,8 @@ unit types;
       begin
          ret_in_param:=(def^.deftype=arraydef) or
                        (def^.deftype=stringdef) or
+                       ((def^.deftype=procvardef) and
+                        ((pprocvardef(def)^.options and pomethodpointer)<>0)) or
                        ((def^.deftype=objectdef) and
                         ((pobjectdef(def)^.options and oois_class)=0)
                        ) or
@@ -259,7 +262,8 @@ unit types;
                        (def^.deftype=objectdef) or
                        (def^.deftype=formaldef) or
                        (def^.deftype=recorddef) or
-                       (def^.deftype=formaldef) or
+                       ((def^.deftype=procvardef) and
+                        ((pprocvardef(def)^.options and pomethodpointer)<>0)) or
                        ((def^.deftype=setdef) and
                         (psetdef(def)^.settype<>smallset));
       end;
@@ -896,7 +900,11 @@ unit types;
 end.
 {
   $Log$
-  Revision 1.6  1998-04-10 15:39:49  florian
+  Revision 1.7  1998-04-10 21:36:56  florian
+    + some stuff to support method pointers (procedure of object) added
+      (declaration, parameter handling)
+
+  Revision 1.6  1998/04/10 15:39:49  florian
     * more fixes to get classes.pas compiled
 
   Revision 1.5  1998/04/09 23:02:16  florian
