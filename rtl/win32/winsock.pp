@@ -135,7 +135,7 @@ unit winsock;
           s_proto : ^char;
        end;
        TServEnt = servent;
-       PServEnt = TServEnt;
+       PServEnt = ^TServEnt;
       
        protoent = record
           { official protocol name  }
@@ -929,7 +929,10 @@ unit winsock;
 end.
 {
   $Log$
-  Revision 1.2  1999-06-21 12:41:34  florian
+  Revision 1.3  1999-06-30 07:50:39  michael
+  + Fixed PServEnt
+
+  Revision 1.2  1999/06/21 12:41:34  florian
     * minor typos in winsock.pp fixed
     + makefile for sockets.pp updated
 
