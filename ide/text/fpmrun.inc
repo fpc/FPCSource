@@ -22,14 +22,18 @@ begin
      InitDebugger;
      if not assigned(Debugger) then
       exit;
-     Debugger^.StartTrace;
-   end
+   end;
+  if not debugger^.debugger_started then
+    Debugger^.StartTrace
   else
-   Debugger^.TraceNext;
+    Debugger^.TraceNext;
   While (Debugger^.InvalidSourceLine and
-    Debugger^.Debugger_started and
-    not Debugger^.error) do
-   Debugger^.TraceNext;
+         Debugger^.Debugger_started and
+         not Debugger^.error) do
+    begin
+      Inc(Debugger^.HiddenStepsCount);
+      Debugger^.TraceNext;
+    end;
   Debugger^.AnnotateError;
 end;
 
@@ -40,17 +44,21 @@ begin
    begin
      InitDebugger;
      if not assigned(Debugger) then
-      exit;
-     Debugger^.StartTrace;
-   end
+       exit;
+   end;
+  if not debugger^.debugger_started then
+    Debugger^.StartTrace
   else
    Debugger^.TraceStep;
   { I think we should not try to go deeper !
     if the source is not found PM }
   While (Debugger^.InvalidSourceLine and
-        Debugger^.Debugger_started and
-        not Debugger^.error) do
-   Debugger^.TraceStep;
+         Debugger^.Debugger_started and
+         not Debugger^.error) do
+    begin
+      Inc(Debugger^.HiddenStepsCount);
+      Debugger^.TraceNext;
+    end;
   Debugger^.AnnotateError;
 end;
 
@@ -113,6 +121,32 @@ procedure TIDEApp.DoResetDebugger;
 begin
   if assigned(Debugger) then
      DoneDebugger;
+  UpdateScreen(true);
+end;
+
+procedure TIDEApp.DoContToCursor;
+var
+  W : PSourceWindow;
+  FileName : string;
+  LineNr : longint;
+begin
+  if not assigned(DeskTop^.First) or
+     (TypeOf(DeskTop^.First^)<>TypeOf(TSourceWindow)) then
+    Begin
+       ErrorBox('Impossible to reach current cursor',nil);
+       Exit;
+    End;
+    
+  W:=PSourceWindow(DeskTop^.First);
+  If assigned(W) then
+    begin
+      FileName:=W^.Editor^.FileName;
+      LineNr:=W^.Editor^.CurPos.Y+1;
+      If not assigned(Debugger) then
+        InitDebugger;
+      Debugger^.Command('tbreak '+NameAndExtOf(FileName)+':'+IntToStr(LineNr));
+      Debugger^.Continue;
+    end;
 end;
 
 procedure TIDEApp.DoToggleBreak;
@@ -149,7 +183,13 @@ end;
 
 {
   $Log$
-  Revision 1.9  1999-02-05 17:21:53  pierre
+  Revision 1.10  1999-02-08 17:43:45  pierre
+    * RestDebugger or multiple running of debugged program now works
+    + added DoContToCursor(F4)
+    * Breakpoints are now inserted correctly (was mainlyy a problem
+      of directories)
+
+  Revision 1.9  1999/02/05 17:21:53  pierre
     Invalid_line renamed InvalidSourceLine
 
   Revision 1.8  1999/02/04 17:56:17  pierre

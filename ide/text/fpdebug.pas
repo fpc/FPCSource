@@ -25,6 +25,7 @@ type
      InvalidSourceLine : boolean;
      LastFileName : string;
      LastSource   : PView; {PsourceWindow !! }
+     HiddenStepsCount : longint;
     constructor Init(const exefn:string);
     destructor  Done;
     procedure DoSelectSourceline(const fn:string;line:longint);virtual;
@@ -36,6 +37,9 @@ type
     procedure RemoveBreakpoints;
     procedure DoDebuggerScreen;virtual;
     procedure DoUserScreen;virtual;
+    procedure Reset;virtual;
+    procedure Run;virtual;
+    procedure Continue;virtual;
   end;
 
   BreakpointType = (bt_function,bt_file_line,bt_watch,bt_awatch,bt_rwatch,bt_invalid);
@@ -56,7 +60,7 @@ type
      GDBIndex : longint;
      GDBState : BreakpointState;
      constructor Init_function(Const AFunc : String);
-     constructor Init_file_line(Const AFile : String; ALine : longint);
+     constructor Init_file_line(AFile : String; ALine : longint);
      constructor Init_type(atyp : BreakpointType;Const AFunc : String);
      procedure  Insert;
      procedure  Remove;
@@ -68,6 +72,7 @@ type
   TBreakpointCollection=object(TCollection)
       function  At(Index: Integer): PBreakpoint;
       function  ToggleFileLine(Const FileName: String;LineNr : Longint) : boolean;
+      procedure Update;
       procedure FreeItem(Item: Pointer); virtual;
     end;
 
@@ -83,8 +88,8 @@ implementation
 uses
   Dos,Mouse,Video,
   App,Strings,
-  FPViews,FPVars,FPUtils,FPIntf,
-  FPCompile,FPIde;
+  FPViews,FPVars,FPUtils,FPConst,
+  FPIntf,FPCompile,FPIde;
 
 
 {****************************************************************************
@@ -97,6 +102,8 @@ begin
   inherited Init;
   f := exefn;
   LoadFile(f);
+  SetArgs(GetRunParameters);
+  Debugger:=@self;
   InsertBreakpoints;
 end;
 
@@ -126,6 +133,30 @@ begin
   Reset;
   RemoveBreakpoints;
   inherited Done;
+end;
+
+procedure TDebugController.Run;
+begin
+  inherited Run;
+  MyApp.SetCmdState([cmResetDebugger],true);
+end;
+
+procedure TDebugController.Continue;
+begin
+  if not debugger_started then
+    Run;
+  inherited Continue;
+end;
+
+procedure TDebugController.Reset;
+var
+  W : PSourceWindow;
+begin
+  inherited Reset;
+  MyApp.SetCmdState([cmResetDebugger],false);
+  W:=PSourceWindow(LastSource);
+  if assigned(W) then
+     W^.Editor^.SetHighlightRow(-1);
 end;
 
 procedure TDebugController.AnnotateError;
@@ -201,8 +232,23 @@ begin
 end;
 
 procedure TDebugController.DoEndSession(code:longint);
+var P :Array[1..2] of longint;
+    W : PSourceWindow;
 begin
-   InformationBox(#3'Program exited with '#13#3'exitcode = %d',@code);
+   MyApp.SetCmdState([cmResetDebugger],false);
+   W:=PSourceWindow(LastSource);
+   if assigned(W) then
+     W^.Editor^.SetHighlightRow(-1);
+   If HiddenStepsCount=0 then
+     InformationBox(#3'Program exited with '#13#3'exitcode = %d',@code)
+   else
+     begin
+        P[1]:=code;
+        P[2]:=HiddenStepsCount;
+        WarningBox(#3'Program exited with '#13+
+                   #3'exitcode = %d'#13+
+                   #3'hidden steps = %d',@P);
+     end;
 end;
 
 
@@ -244,11 +290,17 @@ begin
   Conditions:=nil;
 end;
 
-constructor TBreakpoint.Init_file_line(Const AFile : String; ALine : longint);
+constructor TBreakpoint.Init_file_line(AFile : String; ALine : longint);
 begin
   typ:=bt_file_line;
   state:=bs_enabled;
   GDBState:=bs_deleted;
+  AFile:=NameAndExtOf(AFile);
+  { d:test.pas:12 does not work !! }
+  { I do not know how to solve this if
+  if (Length(AFile)>1) and (AFile[2]=':') then
+    AFile:=Copy(AFile,3,255);
+    Only use base name for now !! PM }
   Name:=NewStr(AFile);
   Line:=ALine;
   IgnoreCount:=0;
@@ -259,7 +311,7 @@ end;
 procedure TBreakpoint.Insert;
 begin
   If not assigned(Debugger) then Exit;
-  
+  Remove;
   Debugger^.last_breakpoint_number:=0;
   if (GDBState=bs_deleted) and (state=bs_enabled) then
     begin
@@ -324,6 +376,7 @@ end;
 
 destructor TBreakpoint.Done;
 begin
+  Remove;
   if assigned(Name) then
     DisposeStr(Name);
   if assigned(Conditions) then
@@ -344,7 +397,17 @@ end;
 
 procedure TBreakpointCollection.FreeItem(Item: Pointer);
 begin
-  if Item<>nil then Dispose(PBreakpoint(Item),Done);
+  if Item<>nil then
+    Dispose(PBreakpoint(Item),Done);
+end;
+
+procedure TBreakpointCollection.Update;
+begin
+  if assigned(Debugger) then
+    begin
+      Debugger^.RemoveBreakpoints;
+      Debugger^.InsertBreakpoints;
+    end;
 end;
 
 function TBreakpointCollection.ToggleFileLine(Const FileName: String;LineNr : Longint) : boolean;
@@ -375,7 +438,9 @@ begin
             ToggleFileLine:=true;
           End;
       end;
+    Update;
 end;
+
 
 {****************************************************************************
                                  Initialize
@@ -406,9 +471,10 @@ procedure DoneDebugger;
 begin
   if assigned(Debugger) then
    dispose(Debugger,Done);
-   If Use_gdb_file then
-     Close(GDB_file);
-   Use_gdb_file:=false;
+  Debugger:=nil;
+  If Use_gdb_file then
+    Close(GDB_file);
+  Use_gdb_file:=false;
 end;
 
 begin
@@ -417,7 +483,13 @@ end.
 
 {
   $Log$
-  Revision 1.8  1999-02-05 17:21:52  pierre
+  Revision 1.9  1999-02-08 17:43:43  pierre
+    * RestDebugger or multiple running of debugged program now works
+    + added DoContToCursor(F4)
+    * Breakpoints are now inserted correctly (was mainlyy a problem
+      of directories)
+
+  Revision 1.8  1999/02/05 17:21:52  pierre
     Invalid_line renamed InvalidSourceLine
 
   Revision 1.7  1999/02/05 13:08:41  pierre

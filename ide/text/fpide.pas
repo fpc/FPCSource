@@ -51,6 +51,7 @@ type
       procedure DoTraceInto;
       procedure DoRun;
       procedure DoResetDebugger;
+      procedure DoContToCursor;
       procedure Target;
       procedure PrimaryFile_;
       procedure ClearPrimary;
@@ -184,9 +185,10 @@ begin
       NewItem('~R~un','Ctrl+F9', kbCtrlF9, cmRun, hcRun,
       NewItem('~S~tep over','F8', kbF8, cmStepOver, hcRun,
       NewItem('~T~race into','F7', kbF7, cmTraceInto, hcRun,
+      NewItem('~G~oto Cursor','F4', kbF4, cmContToCursor, hcContToCursor,
       NewItem('P~a~rameters...','', kbNoKey, cmParameters, hcParameters,
       NewItem('~P~rogram reset','Ctrl+F2', kbCtrlF2, cmResetDebugger, hcResetDebugger,
-      nil)))))),
+      nil))))))),
     NewSubMenu('~C~ompile',hcCompileMenu, NewMenu(
       NewItem('~C~ompile','Alt+F9', kbAltF9, cmCompile, hcCompile,
       NewItem('~M~ake','F9', kbF9, cmMake, hcMake,
@@ -338,7 +340,7 @@ begin
              cmTraceInto     : DoTraceInto;
              cmRun           : DoRun;
              cmResetDebugger : DoResetDebugger;
-
+             cmContToCursor  : DoContToCursor;
            { -- Compile menu -- }
              cmCompile       : DoCompile(cCompile);
              cmBuild         : DoCompile(cBuild);
@@ -451,7 +453,7 @@ begin
     WriteShellMsg;
 
   SwapVectors;
-  Exec(GetEnv('COMSPEC'),'/C '+ProgramPath+' '+Params);
+  Dos.Exec(GetEnv('COMSPEC'),'/C '+ProgramPath+' '+Params);
   SwapVectors;
 
   ShowIDEScreen;
@@ -463,6 +465,7 @@ begin
   SetCmdState([cmSaveAll],IsThereAnyEditor);
   SetCmdState([cmCloseAll,cmTile,cmCascade,cmWindowList],IsThereAnyWindow);
   SetCmdState([cmFindProcedure,cmObjects,cmModules,cmGlobals{,cmInformation}],IsSymbolInfoAvailable);
+  SetCmdState([cmResetDebugger],assigned(debugger) and debugger^.debugger_started);
   UpdatePrimaryFile;
   UpdateINIFile;
   Message(MenuBar,evBroadcast,cmUpdate,nil);
@@ -644,7 +647,13 @@ end;
 END.
 {
   $Log$
-  Revision 1.11  1999-02-08 10:37:44  peter
+  Revision 1.12  1999-02-08 17:43:44  pierre
+    * RestDebugger or multiple running of debugged program now works
+    + added DoContToCursor(F4)
+    * Breakpoints are now inserted correctly (was mainlyy a problem
+      of directories)
+
+  Revision 1.11  1999/02/08 10:37:44  peter
     + html helpviewer
 
   Revision 1.7  1999/02/04 13:32:03  pierre
