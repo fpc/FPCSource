@@ -1,0 +1,157 @@
+\chapter{Using the IDE}
+
+The IDE (\textbf{I}ntegrated \textbf{D}evelopment \textbf{E}nvironment) 
+provides a comfortable user interface to the compiler. The IDE is a textmode
+application this allows the same look and feel for all supported
+operating systems. Furthermore, it will be very familiar to all
+Turbo Pascal users.
+Currently is the IDE available for DOS, Win32 and Linux.
+
+\section{First steps with the IDE}
+
+The IDE is started by entering the command:
+\begin{verbatim}
+fp
+\end{verbatim}
+at the command line. Of course, you can also start the IDE
+from a graphical user interface (under the Windows enviroment, you
+can switch between windowed mode and full screen mode by pressing
+Alt-Enter).
+
+You can exit from the IDE by selecting \var{File|Exit} or by pressing
+Alt-X.
+
+\subsection{IDE Command line options}
+
+When starting the IDE, command line options can be passed:
+\begin{verbatim}
+fp [-option] [-option] ... <file name> ...
+\end{verbatim}
+
+Option is one of the following switches (the option letters
+aren't case sensitive):
+
+\begin{description}
+\item [-N] Only DOS: Don't use long file names. Since Win95 an interface
+is provided to DOS applications to access long file names. The IDE uses
+this interface by default to access files. Under certain circumstances, this
+can lead to problems.
+\item [-Cfilename] This option followed by (without spaces)
+a filename uses the given file to read the options
+\item [-R] After starting the IDE, it changes automatically to the directory
+which was active when you left the IDE the last time.
+\end{description}
+
+Under DOS/Win32, \var{/} can be used instead of \var{\-} to pass a 
+command line switch to the IDE
+
+Furthermore, the files given at the command line are loaded into edit
+windows automatically.
+
+\section{Debugging programs with the IDE}
+
+\section{Trouble shooting}
+
+\section{Keyboard shortcuts}
+
+A lot of keyboard shortcuts used by the IDE are compatible with the
+good old WordStar and should be well known to Turbo Pascal users.
+
+\begin{FPCltable}{lll}{Key shortcuts in the IDE}{shortcuts}
+\hline \\
+Command & Key shortcut & Alternative \\
+\hline \\
+Help & F1 & \\
+Goto last help topic & Alt-F1 & \\
+Search word at cursor position in help & Ctrl-F1 & \\
+Help index & Shift-F1 & \\
+Save file & F2 & Ctrl-K-S\\
+Close active window & Alt-F3 & \\
+Reset debugger/program & Ctrl-F2 & \\
+Open file & F3 & \\
+Display call stack & Ctrl-F3 & \\
+Run til cursor & F4 & \\
+Zomm/Unzoom window & F5 & \\
+Switch to user screen & Alt-F5 & \\
+Move/Zoom active window & Ctrl-F5 & \\
+Switch to next window & F6 & \\
+Switch to last window & Shift-F6 & \\
+Trace into & F7 & \\
+Add watch & Ctrl-F7 & \\
+Step over & F8 & \\
+Set breakpoint at current line & Ctrl-F8 & \\
+Make & F9 & \\
+Run & Ctrl-F9 & \\
+Compile the active source file & Alt-F9 & \\
+Menu & F10 & \\
+Message & F11 & \\
+Compiler messages & F12 & \\
+List of windows & Alt-0 & \\
+Exit IDE & Alt-X & \\
+\hline \\
+Char left & Arrow left & Ctrl-S \\
+Char right & Arrow right & Ctrl-D \\
+Line up & Arrow up & Ctrl-E \\
+Line down & Arrow down & Ctrl-X \\
+Word left & Ctrl-Arrow left & Ctrl-A \\
+Word right & Ctrl-Arror right & Ctrl-F \\
+Scroll one line up & Ctrl-W & \\
+Scroll one line down & Ctrl-Z & \\
+Page up & PageUp & Ctrl-R \\
+Page down & PageDown & \\
+Beginning of Line & Pos1 & Ctrl-Q-S \\
+End of Line & End & Ctrl-Q-D \\
+First line of window & Ctrl-Pos1 & Ctrl-Q-E \\
+Last line of window & Ctrl-End & Ctrl-Q-X \\
+First line of file & Ctrl-PageUp & Ctrl-Q-R \\
+Last line of file & Ctrl-PageDown & Ctrl-Q-C \\
+Last cursor position & Ctrl-Q-P & \\
+\hline \\
+Delete char & Del & Ctrl-G \\
+Delete left char & Backspace & Ctrl-H \\
+Delete line & Ctrl-Y & \\
+Delete til end of line & Ctrl-Q-Y & \\
+Delete word & Ctrl-T & \\
+Insert line & Ctrl-N & \\
+Toggle insert mode & Insert & Ctrl-V \\
+\hline \\
+Goto Beginning of selected text & Ctrl-Q-B & \\
+Goto end of selected text & Ctrl-Q-K & \\
+Mark beginning of selected text & Ctrl-K-B & \\
+Mark end of selected text& Ctrl-K-K & \\
+Remove selection & Ctrl-K-H & \\
+Select current line & Ctrl-K-L & \\
+Print selected text & Ctrl-K-P & \\
+Select current word & Ctrl-K-T & \\
+Delete selected text & Ctrl-Del & Ctrl-K-Y \\
+Copy selected text to cursor position & Ctrl-K-C & \\
+Move selected text to cursor position & Ctrl-K-V & \\
+Copy selected text to clipboard & Ctrl-Ins & \\
+Move selected text to the clipboard & Shift-Del & \\
+Indent block one coloumn & Ctrl-K-I & \\
+Unindent block one coloumn & Ctrl-K-U & \\
+Insert text from clipboard & Shift-Insert & \\
+Insert file & Ctrl-K-R & \\
+Write selected text to file & Ctrl-K-W & \\
+Extend selection one char to the left & Shift-Arrow left & \\
+Extend selection one char to the right & Shift-Arrow right & \\
+Extend selection to the beginning of the line & Shift-Pos1 & \\
+Extend selection to the end of the line & Shift-End & \\
+Extend selection to the same coloumn in the last row & Shift-Arrow up & \\
+Extend selection to the same coloumn in the next row & Shift-Arrow down & \\
+Extend selection to the end of the line & Shift-End & \\
+Extend selection one word to the left & Ctrl-Shift-Arrow left & \\
+Extend selection one word to the right & Ctrl-Shift-Arrow right & \\
+Extend selection one page up & Shift-PageUp & \\
+Extend selection one page down & Shift-PageDown & \\
+Extend selection to the beginning of the file & Ctrl-Shift-Pos1 & Ctrl-Shift-PageUp \\
+Extend selection to the end of the file & Ctrl-Shift-End & Ctrl-Shift-PageUp \\
+\hline \\
+Search & Ctrl-Q-F & \\
+Search again & Ctrl-L & \\
+Search and replace & Ctrl-Q-A & \\
+Set mark & Ctrl-K-n (where n can be 0..9) & \\
+Goto mark & Ctrl-Q-n (where n can be 0..9) & \\
+Undo & Alt-Backspace & \\
+\hline \\
+\end{FPCltable}
