@@ -219,6 +219,16 @@ implementation
           end;
        end;
 
+{$ifdef logsecondpass}
+     procedure logsecond(const s: string; entry: boolean);
+     var p: pchar;
+     begin
+       if entry then
+         p := strpnew(s+' (entry)')
+       else p := strpnew(s+' (exit)');
+       exprasmlist^.concat(new(pai_asm_comment,init(p)));
+     end;
+{$endif logsecondpass}
 
      procedure secondpass(var p : ptree);
        const
@@ -840,7 +850,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.51  2000-01-21 12:16:53  jonas
+  Revision 1.52  2000-01-22 15:58:12  jonas
+    * forgot to commit a procedure for -dlogsecondpass the last time
+
+  Revision 1.51  2000/01/21 12:16:53  jonas
     + add info on entry/exit of secondpass procedure in assembler files, between
       -dlogsecondpass
 
