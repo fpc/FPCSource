@@ -378,30 +378,30 @@ begin
   GetProgramName:='';
   FillChar(s1,255,#0);
   if GetProgramName(@s1[1],255) then begin
+    { now check out and assign the length of the string }
+    counter := 1;
+    while (s1[counter]<>#0) and (counter<>0) do Inc(counter);
+    s1[0]:=Char(counter-1);
 
-      { now check out and assign the length of the string }
-      counter := 1;
-      while (s1[counter]<>#0) and (counter<>0) do Inc(counter);
-      s1[0]:=Char(counter-1);
+    { now remove any component path which should not be there }
+    for counter:=length(s1) downto 1 do
+      if (s1[counter] = '/') or (s1[counter] = ':') then break;
+    { readjust counterv to point to character }
+    if counter<>1 then Inc(counter);
 
-      { now remove any component path which should not be there }
-      for counter:=length(s1) downto 1 do
-          if (s1[counter] = '/') or (s1[counter] = ':') then break;
-      { readjust counterv to point to character }
-      if counter<>1 then Inc(counter);
-
-      GetProgramName:=copy(s1,counter,length(s1));
+    GetProgramName:=copy(s1,counter,length(s1));
   end;
 end;
 
 { Converts an Unix-like path to Amiga-like path }
-function PathConv(path: string): string;
+function PathConv(path: string): string; alias: 'PATHCONV'; [public];
 var tmppos: longint;
 begin
   { check for short paths }
   if length(path)<=2 then begin
-    if (path='.') or (path='./') then path:='';
-    if path='..' then path:='/'; 
+    if (path='.') or (path='./') then begin path:=''; exit; end;
+    if path='..' then begin path:='/'; exit; end;
+    if path='*' then begin path:='#?'; exit; end;
   end else begin
     { convert parent directories }
     tmppos:=pos('../',path);
@@ -416,7 +416,14 @@ begin
       { delete ./ since we doesn't need to sign current directory }
       delete(path,tmppos,2);
       tmppos:=pos('./',path);
-    end;  
+    end;
+    { convert wildstart to #? }
+    tmppos:=pos('*',path);
+    while tmppos<>0 do begin
+      delete(path,tmppos,1);
+      insert('#?',path,tmppos);
+      tmppos:=pos('*',path);
+    end;
   end;
   PathConv:=path;
 end;
@@ -862,7 +869,10 @@ end.
 
 {
   $Log$
-  Revision 1.23  2004-12-05 14:36:37  hajny
+  Revision 1.24  2004-12-06 20:09:55  karoly
+    * added a public alias to PathConv for use in DOS unit
+
+  Revision 1.23  2004/12/05 14:36:37  hajny
     + GetProcessID added
 
   Revision 1.22  2004/11/15 23:18:16  karoly
