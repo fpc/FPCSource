@@ -708,7 +708,8 @@ begin
     begin
     FileClose(FStartupInfo.hStdInput);
     FileClose(FStartupInfo.hStdOutput);
-    FileClose(FStartupInfo.hStdError);
+    if Not (poStdErrToOutPut in FProcessOptions) then
+      FileClose(FStartupInfo.hStdError);
     end;
 {$ifdef unix}
   Fhandle:=fprocessinformation.hProcess;
@@ -917,7 +918,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.14  2003-04-27 21:21:42  sg
+  Revision 1.15  2003-05-08 20:04:16  armin
+  * Dont close FStartupInfo.hStdError if options include poStdErrToOutPut
+
+  Revision 1.14  2003/04/27 21:21:42  sg
   * Added typecast to prevent range check error in TProcess.WaitOnExit
 
   Revision 1.13  2002/09/07 15:15:25  peter
