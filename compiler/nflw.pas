@@ -319,13 +319,15 @@ implementation
 
     procedure tloopnode.printnodetree(var t:text);
       begin
-        printnodeinfo(t);
+        write(t,printnodeindention,'(');
         printnodeindent;
+        printnodeinfo(t);
         printnode(t,left);
         printnode(t,right);
         printnode(t,t1);
         printnode(t,t2);
         printnodeunindent;
+        writeln(t,printnodeindention,')');
       end;
 
 
@@ -1429,7 +1431,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.80  2003-10-01 20:34:48  peter
+  Revision 1.81  2003-10-05 11:53:57  florian
+    * writing of loop nodes fixed
+
+  Revision 1.80  2003/10/01 20:34:48  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose
