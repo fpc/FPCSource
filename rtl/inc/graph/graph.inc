@@ -1152,10 +1152,10 @@ Begin
   GetLineSettings(LineSets);
   { reset to normal line style...}
   SetLineStyle(SolidLn, 0, NormWidth);
-
   { routines are relative here...}
-  for J:=0 to ViewHeight - 1 do
-       HLine(0, ViewWidth - 1, J);
+  { ViewHeight is Height-1 !     }
+  for J:=0 to ViewHeight do
+       HLine(0, ViewWidth , J);
 
   { restore old settings...}
   SetLineStyle(LineSets.LineStyle, LineSets.Pattern, LineSets.Thickness);
@@ -2314,7 +2314,10 @@ begin
 end;
 {
   $Log$
-  Revision 1.28  2000-03-19 11:20:13  peter
+  Revision 1.29  2000-03-24 13:01:15  florian
+    * ClearViewPort fixed
+
+  Revision 1.28  2000/03/19 11:20:13  peter
     * graph unit include is now independent and the dependent part
       is now in graph.pp
     * ggigraph unit for linux added

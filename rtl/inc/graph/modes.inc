@@ -362,7 +362,10 @@
 
 {
 $Log$
-Revision 1.19  2000-01-07 16:41:39  daniel
+Revision 1.20  2000-03-24 13:01:15  florian
+  * ClearViewPort fixed
+
+Revision 1.19  2000/01/07 16:41:39  daniel
   * copyright 2000
 
 Revision 1.18  2000/01/07 16:32:26  daniel
