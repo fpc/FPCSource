@@ -338,6 +338,8 @@ unit ag386att;
       procedure ti386attasmlist.WriteFileEndInfo;
 
         begin
+          if not (cs_debuginfo in aktmoduleswitches) then
+            exit;
           AsmLn;
           AsmWriteLn(ait_section2str(sec_code));
           AsmWriteLn(#9'.stabs "",'+tostr(n_sourcefile)+',0,0,Letext');
@@ -884,7 +886,10 @@ unit ag386att;
 end.
 {
   $Log$
-  Revision 1.27  2000-02-18 12:31:07  pierre
+  Revision 1.28  2000-02-18 21:54:07  pierre
+   * avoid LeText if no stabs info
+
+  Revision 1.27  2000/02/18 12:31:07  pierre
    * Reset file name to empty at end of code section
 
   Revision 1.26  2000/02/09 13:22:42  peter

@@ -344,6 +344,8 @@ unit ag386bin;
       var
         hp : pasmsymbol;
       begin
+        if not (cs_debuginfo in aktmoduleswitches) then
+          exit;
         objectalloc^.setsection(sec_code);
         hp:=newasmsymbol('Letext');
         if currpass=1 then
@@ -961,7 +963,10 @@ unit ag386bin;
 end.
 {
   $Log$
-  Revision 1.37  2000-02-18 12:31:07  pierre
+  Revision 1.38  2000-02-18 21:54:07  pierre
+   * avoid LeText if no stabs info
+
+  Revision 1.37  2000/02/18 12:31:07  pierre
    * Reset file name to empty at end of code section
 
   Revision 1.36  2000/02/09 13:22:43  peter
