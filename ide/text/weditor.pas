@@ -4563,7 +4563,7 @@ begin
     if P^.Text=nil then S:='' else
       begin
         S:=P^.Text^;
-        if Line=EndP.Y then S:=copy(S,1,EndP.Y+1);
+        if Line=EndP.Y then S:=copy(S,1,EndP.X+1);
         if Line=StartP.Y then S:=copy(S,StartP.Y+1,255);
       end;
     { Remove all traling spaces PM }
@@ -5152,7 +5152,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.64  1999-12-01 17:25:00  pierre
+  Revision 1.65  1999-12-08 16:02:46  pierre
+   * fix for bugs 746,748 and 750
+
+  Revision 1.64  1999/12/01 17:25:00  pierre
    + check if file on disk was changed since load before overwriting
 
   Revision 1.63  1999/11/22 17:34:08  pierre
