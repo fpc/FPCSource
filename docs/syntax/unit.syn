@@ -1,0 +1,41 @@
+\begin{diagram}{Units}{units}
+\begin{mysyntdiag}
+\synt{unit}
+\synt{unit\ header}
+\synt{interface\ part}
+\synt{implementation\ part}
+\[ \synt{initialization\ part} \]
+\lit*{end} \lit* .
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{unit\ header} 
+\lit*{unit}
+\synt{unit\ identifier}
+\lit* ;
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{interface\ part} 
+\<[b]
+  \[  \synt{constant\ declaration\ part} \\
+      \synt{type\ declaration\ part}\\
+      \synt{procedure\ headers\ part}
+  \]
+\>
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{procedure\ headers\ part}
+\( \synt{procedure\ header} \\ \synt{function\ header}\) \lit* ;
+\[ \synt{call\ modifiers} \lit* ; \]
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{implementation\ part}
+\lit*{implementation}
+\[ \synt{uses\ clause} \]
+\synt{declaration\ part}
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{initialization\ part}
+  \lit*{begin} 
+  \<[b] \synt{statement} \\ \lit* ; \>
+\end{mysyntdiag}
+\end{diagram}

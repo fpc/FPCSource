@@ -1,0 +1,65 @@
+\begin{diagram}{Blocks}{blocks}
+\begin{mysyntdiag}
+\synt{block} \synt{declaration\ part} \synt{statement\ part}
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{declaration\ part}
+\<[b]
+\[
+\synt{label\ declaration\ part}\\
+\synt{constant\ declaration\ part}\\
+\synt{type\ declaration\ part}\\
+\synt{variable\ declaration\ part}\\
+\synt{procedure/function\ declaration\ part}
+\]
+\>
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{label\ declaration\ part}
+\lit*{label}
+\<[b]
+\synt{label}\\
+\lit* ,
+\>
+\lit* ;
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{constant\ declaration\ part}
+\lit*{const}
+\<[b]
+  \(
+    \synt{constant\ declaration}\\
+    \synt{typed\ constant\ declaration}
+  \)
+\>
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{type\ declaration\ part}
+\lit*{type}
+\<[b]
+    \synt{type\ declaration}\\
+\>
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{variable\ declaration\ part}
+\lit*{var}
+\<[b]
+    \synt{variable\ declaration}\\
+\>
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{procedure/function\ declaration\ part}
+\<[b]
+\(
+    \synt{procedure\ declaration}\\
+    \synt{function\ declaration}\\
+    \synt{constructor\ declaration}\\
+    \synt{destructor\ declaration}\\
+\)
+\>
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{statement\ part}
+\synt{compound\ statement}
+\end{mysyntdiag}
+\end{diagram}

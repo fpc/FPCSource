@@ -1,0 +1,27 @@
+\begin{diagram}{Function declaration}{proceduredeclaration}
+\begin{mysyntdiag}
+\synt{function\ declaration}
+\synt{function\ header} \lit* ;
+\synt{subroutine\ block} \lit *;
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{function\ header}
+\lit*{function} 
+\(
+\synt{identifier}\\
+\synt{qualified\ method\ identifier}
+\)
+\synt{formal\ parameter\ list}
+\lit* : \( \synt{result\ type} \\ \lit*{string} \)
+\[ \synt{modifiers} \]
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{subroutine\ block}
+\(
+\synt{block}\\
+\synt{external\ directive}\\
+\synt{asm\ block}\\
+\lit*{forward}
+\)
+\end{mysyntdiag}
+\end{diagram}

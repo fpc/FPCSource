@@ -1,0 +1,26 @@
+\begin{diagram}{Procedure declaration}{proceduredeclaration}
+\begin{mysyntdiag}
+\synt{procedure\ declaration}
+\synt{procedure\ header} \lit* ;
+\synt{subroutine\ block} \lit *;
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{procedure\ header}
+\lit*{procedure} 
+\(
+\synt{identifier}\\
+\synt{qualified\ method\ identifier}
+\)
+\synt{formal\ parameter\ list}
+\[ \synt{modifiers} \]
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{subroutine\ block}
+\(
+\synt{block}\\
+\synt{external\ directive}\\
+\synt{asm\ block}\\
+\lit*{forward}
+\)
+\end{mysyntdiag}
+\end{diagram}

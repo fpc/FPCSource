@@ -1,0 +1,24 @@
+\begin{diagram}{Modifiers}{modifiers}
+\begin{mysyntdiag}
+\synt{modifiers}
+\<[b]
+; 
+ \( 
+ \lit*{public} \\
+ \lit*{alias} \synt{string\ constant}\\
+ \lit*{interrupt} \\
+ \lit*{call\ modifiers}
+\)
+\>
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{call\ modifiers}
+\(
+\lit*{register}\\
+\lit*{pascal}\\
+\lit*{cdecl}\\
+\lit*{stdcall}\\
+\lit*{popstack}
+\)
+\end{mysyntdiag}
+\end{diagram}
