@@ -872,6 +872,7 @@ End;
     if (attr and VolumeID) <> 0 then
       begin
         Doserror := 5;
+				Exit;
       end;
 
     DosError := PathArgToFSSpec(StrPas(filerec(f).name), spec);
