@@ -5320,6 +5320,9 @@ const
   FACILITY_DISPATCH                    = 2;
   FACILITY_CERT                        = 11;
 
+{ Manually added, bug 2672}
+  ICON_SMALL			       = 0;
+  ICON_BIG  			       = 1;
 
 {$endif read_interface}
 
@@ -5909,7 +5912,10 @@ const
 
 {
   $Log$
-  Revision 1.12  2003-10-03 20:55:12  florian
+  Revision 1.13  2003-10-23 09:39:39  marco
+   * fix for 2672
+
+  Revision 1.12  2003/10/03 20:55:12  florian
     + added some language related stuff
 
   Revision 1.11  2003/06/15 14:34:35  michael
