@@ -36,10 +36,21 @@ unit rgx86;
 
     type
        trgx86 = class(trgobj)
+{$ifdef OLDRGX86}
          function instr_spill_register(list:Taasmoutput;
                                        instr:taicpu;
                                        const r:Tsuperregisterset;
                                        const spilltemplist:Tspill_temp_list): boolean;override;
+{$endif OLDRGX86}
+        function  get_spill_subreg(r : tregister) : tsubregister;override;
+{
+        procedure do_spill_read(list : taasmoutput;instr : taicpu;pos: tai; regidx: word;
+                                const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);override;
+        procedure do_spill_written(list : taasmoutput;instr : taicpu;pos: tai; regidx: word;
+                                   const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);override;
+        procedure do_spill_readwritten(list : taasmoutput;instr : taicpu;pos: tai; regidx: word;
+                                       const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);override;
+}
        end;
 
        tpushedsavedloc = record
@@ -107,6 +118,7 @@ implementation
                                     Trgcpu
 ******************************************************************************}
 
+{$ifdef OLDRGX86}
     function trgx86.instr_spill_register(list:Taasmoutput;
                                          instr:taicpu;
                                          const r:Tsuperregisterset;
@@ -485,7 +497,66 @@ implementation
          end;
        end;
     end;
+{$endif OLDRGX86}
 
+
+    function trgx86.get_spill_subreg(r : tregister) : tsubregister;
+      begin
+        result:=getsubreg(r);
+      end;
+
+
+      (*
+    procedure trgx86.do_spill_read(list : taasmoutput;instr : taicpu;pos: tai; regidx: word;
+                                   const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);
+      var
+        helpins: tai;
+        tmpref,ref : treference;
+        helplist : taasmoutput;
+        tmpreg : tregister;
+      begin
+{        ref:=spilltemplist[regs[regidx].orgreg];
+        if abs(ref.offset)>4095 then
+          begin
+          end
+        else }
+          inherited do_spill_read(list,instr,pos,regidx,spilltemplist,regs);
+      end;
+
+
+    procedure trgx86.do_spill_written(list : taasmoutput;instr : taicpu;pos: tai; regidx: word;
+                                      const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);
+      var
+        helpins: tai;
+        ref,tmpref : treference;
+        helplist : taasmoutput;
+        tmpreg : tregister;
+      begin
+{        ref:=spilltemplist[regs[regidx].orgreg];
+        if abs(ref.offset)>4095 then
+          begin
+          end
+        else }
+          inherited do_spill_written(list,instr,pos,regidx,spilltemplist,regs);
+      end;
+
+
+    procedure trgx86.do_spill_readwritten(list : taasmoutput;instr : taicpu;pos: tai; regidx: word;
+                                          const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);
+      var
+        helpins1, helpins2: tai;
+        tmpref,ref : treference;
+        helplist : taasmoutput;
+         tmpreg : tregister;
+      begin
+{        ref:=spilltemplist[regs[regidx].orgreg];
+        if abs(ref.offset)>4095 then
+          begin
+          end
+        else  }
+          inherited do_spill_readwritten(list,instr,pos,regidx,spilltemplist,regs);
+      end;
+*)
 
 {******************************************************************************
                                   Trgx86fpu
@@ -619,7 +690,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  2004-09-27 14:49:45  peter
+  Revision 1.7  2004-10-04 20:46:22  peter
+    * spilling code rewritten for x86. It now used the generic
+      spilling routines. Special x86 optimization still needs
+      to be added.
+    * Spilling fixed when both operands needed to be spilled
+    * Cleanup of spilling routine, do_spill_readwritten removed
+
+  Revision 1.6  2004/09/27 14:49:45  peter
     * handle 3 operand opcodes the same as 2 operand opcodes, the
       third operand can only be a const or register CL, so it doesn't
       affect spilling

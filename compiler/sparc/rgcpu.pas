@@ -36,12 +36,8 @@ unit rgcpu;
       trgcpu=class(trgobj)
         procedure add_constraints(reg:tregister);override;
         function get_spill_subreg(r : tregister) : tsubregister;override;
-        procedure do_spill_read(list : taasmoutput;instr : taicpu;pos: tai; regidx: word;
-                                const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);override;
-        procedure do_spill_written(list : taasmoutput;instr : taicpu;pos: tai; regidx: word;
-                                   const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);override;
-        procedure do_spill_readwritten(list : taasmoutput;instr : taicpu;pos: tai; regidx: word;
-                                       const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);override;
+        procedure do_spill_read(list:Taasmoutput;instr:taicpu;const spilltemp:treference;const tempreg:tregister);override;
+        procedure do_spill_written(list:Taasmoutput;instr:taicpu;const spilltemp:treference;const tempreg:tregister);override;
       end;
 
 
@@ -91,159 +87,89 @@ implementation
       end;
 
 
-    procedure trgcpu.do_spill_read(list : taasmoutput;instr : taicpu;pos: tai; regidx: word;
-                                   const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);
+    procedure trgcpu.do_spill_read(list:Taasmoutput;instr:taicpu;const spilltemp:treference;const tempreg:tregister);
       var
-        helpins: tai;
-        tmpref,ref : treference;
+        helpins  : tai;
+        tmpref   : treference;
         helplist : taasmoutput;
-        tmpreg : tregister;
+        hreg     : tregister;
       begin
-        ref:=spilltemplist[regs[regidx].orgreg];
-        if abs(ref.offset)>4095 then
+        if abs(spilltemp.offset)>4095 then
           begin
             helplist:=taasmoutput.create;
-            reference_reset(tmpref);
 
-            if getregtype(regs[regidx].tempreg)=R_INTREGISTER then
-              getregisterinline(helplist,nil,defaultsub,tmpreg)
+            if getregtype(tempreg)=R_INTREGISTER then
+              hreg:=tempreg
             else
-              tmpreg:=cg.getintregister(helplist,OS_ADDR);
+              hreg:=cg.getintregister(helplist,OS_ADDR);
 
-            tmpref.offset:=ref.offset;
+            reference_reset(tmpref);
+            tmpref.offset:=spilltemp.offset;
             tmpref.refaddr:=addr_hi;
-            helplist.concat(taicpu.op_ref_reg(A_SETHI,tmpref,tmpreg));
+            helplist.concat(taicpu.op_ref_reg(A_SETHI,tmpref,hreg));
 
             tmpref.refaddr:=addr_lo;
-            helplist.concat(taicpu.op_reg_ref_reg(A_OR,tmpreg,tmpref,tmpreg));
+            helplist.concat(taicpu.op_reg_ref_reg(A_OR,hreg,tmpref,hreg));
 
-            if ref.index<>NR_NO then
-              internalerror(200401263);
-            ref.index:=tmpreg;
-            ref.offset:=0;
+            reference_reset_base(tmpref,hreg,0);
 
-            helpins:=spilling_create_load(ref,regs[regidx].tempreg);
+            helpins:=spilling_create_load(spilltemp,tempreg);
             helplist.concat(helpins);
-            if pos=nil then
-              list.insertlistafter(list.first,helplist)
-            else
-              list.insertlistafter(pos.next,helplist);
-            helplist.free;
-
-            ungetregisterinline(list,helpins,regs[regidx].tempreg);
-
-            if getregtype(regs[regidx].tempreg)=R_INTREGISTER then
-              ungetregisterinline(list,helpins,tmpreg);
-
-            forward_allocation(tai(helpins.next),instr);
+            list.insertlistbefore(instr,helplist)
           end
         else
-          inherited do_spill_read(list,instr,pos,regidx,spilltemplist,regs);
+          inherited do_spill_read(list,instr,spilltemp,tempreg);
       end;
 
 
-    procedure trgcpu.do_spill_written(list : taasmoutput;instr : taicpu;pos: tai; regidx: word;
-                                      const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);
+    procedure trgcpu.do_spill_written(list:Taasmoutput;instr:taicpu;const spilltemp:treference;const tempreg:tregister);
       var
-        helpins: tai;
-        ref,tmpref : treference;
+        helpins  : tai;
+        tmpref   : treference;
         helplist : taasmoutput;
-        tmpreg : tregister;
+        hreg     : tregister;
       begin
-        ref:=spilltemplist[regs[regidx].orgreg];
-        if abs(ref.offset)>4095 then
+        if abs(spilltemp.offset)>4095 then
           begin
             helplist:=taasmoutput.create;
-            reference_reset(tmpref);
 
-            if getregtype(regs[regidx].tempreg)=R_INTREGISTER then
-              getregisterinline(helplist,pos,defaultsub,tmpreg)
+            if getregtype(tempreg)=R_INTREGISTER then
+              getregisterinline(helplist,tai(helplist.first),R_SUBWHOLE,hreg)
             else
-              tmpreg:=cg.getintregister(helplist,OS_ADDR);
+              hreg:=cg.getintregister(helplist,OS_ADDR);
 
-            tmpref.offset:=ref.offset;
+            reference_reset(tmpref);
+            tmpref.offset:=spilltemp.offset;
             tmpref.refaddr:=addr_hi;
-            helplist.concat(taicpu.op_ref_reg(A_SETHI,tmpref,tmpreg));
+            helplist.concat(taicpu.op_ref_reg(A_SETHI,tmpref,hreg));
 
             tmpref.refaddr:=addr_lo;
-            helplist.concat(taicpu.op_reg_ref_reg(A_OR,tmpreg,tmpref,tmpreg));
+            helplist.concat(taicpu.op_reg_ref_reg(A_OR,hreg,tmpref,hreg));
 
-            if ref.index<>NR_NO then
-              internalerror(200401263);
-            ref.index:=tmpreg;
-            ref.offset:=0;
+            reference_reset_base(tmpref,hreg,0);
 
-            helpins:=spilling_create_store(regs[regidx].tempreg,ref);
+            helpins:=spilling_create_store(tempreg,spilltemp);
             helplist.concat(helpins);
-            list.insertlistafter(instr,helplist);
-            helplist.free;
+            if getregtype(tempreg)=R_INTREGISTER then
+              ungetregisterinline(helplist,tai(helplist.last),hreg);
 
-            ungetregisterinline(list,helpins,regs[regidx].tempreg);
-
-            if getregtype(regs[regidx].tempreg)=R_INTREGISTER then
-              ungetregisterinline(list,helpins,tmpreg);
+            list.insertlistafter(instr,helplist)
           end
         else
-          inherited do_spill_written(list,instr,pos,regidx,spilltemplist,regs);
-      end;
-
-
-    procedure trgcpu.do_spill_readwritten(list : taasmoutput;instr : taicpu;pos: tai; regidx: word;
-                                          const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);
-      var
-        helpins1, helpins2: tai;
-        tmpref,ref : treference;
-        helplist : taasmoutput;
-         tmpreg : tregister;
-      begin
-        ref:=spilltemplist[regs[regidx].orgreg];
-        if abs(ref.offset)>4095 then
-          begin
-            helplist:=taasmoutput.create;
-            reference_reset(tmpref);
-
-            if getregtype(regs[regidx].tempreg)=R_INTREGISTER then
-              getregisterinline(helplist,nil,defaultsub,tmpreg)
-            else
-              tmpreg:=cg.getintregister(helplist,OS_ADDR);
-
-            tmpref.offset:=ref.offset;
-            tmpref.refaddr:=addr_hi;
-            helplist.concat(taicpu.op_ref_reg(A_SETHI,tmpref,tmpreg));
-
-            tmpref.refaddr:=addr_lo;
-            helplist.concat(taicpu.op_reg_ref_reg(A_OR,tmpreg,tmpref,tmpreg));
-
-            if ref.index<>NR_NO then
-              internalerror(200401263);
-            ref.index:=tmpreg;
-            ref.offset:=0;
-
-            helpins1:=spilling_create_load(ref,regs[regidx].tempreg);
-            helplist.concat(helpins1);
-            if pos=nil then
-              list.insertlistafter(list.first,helplist)
-            else
-              list.insertlistafter(pos.next,helplist);
-            helplist.free;
-
-            helpins2:=spilling_create_store(regs[regidx].tempreg,ref);
-            list.insertafter(helpins2,instr);
-            ungetregisterinline(list,helpins2,regs[regidx].tempreg);
-
-            if getregtype(regs[regidx].tempreg)=R_INTREGISTER then
-              ungetregisterinline(list,helpins2,tmpreg);
-
-            forward_allocation(tai(helpins1.next),instr);
-          end
-        else
-          inherited do_spill_readwritten(list,instr,pos,regidx,spilltemplist,regs);
-      end;
+          inherited do_spill_written(list,instr,spilltemp,tempreg);
+    end;
 
 end.
 {
   $Log$
-  Revision 1.27  2004-10-01 17:33:47  peter
+  Revision 1.28  2004-10-04 20:46:22  peter
+    * spilling code rewritten for x86. It now used the generic
+      spilling routines. Special x86 optimization still needs
+      to be added.
+    * Spilling fixed when both operands needed to be spilled
+    * Cleanup of spilling routine, do_spill_readwritten removed
+
+  Revision 1.27  2004/10/01 17:33:47  peter
     * indents
 
   Revision 1.26  2004/09/28 20:19:36  peter

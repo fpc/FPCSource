@@ -551,11 +551,14 @@ unit cgx86;
         if s in [S_BL,S_WL,S_L] then
           reg2:=makeregsize(list,reg2,OS_32);
 {$endif x86_64}
-        instr:=taicpu.op_reg_reg(op,s,reg1,reg2);
-        { Notify the register allocator that we have written a move instruction so
-          it can try to eliminate it. }
-        add_move_instruction(instr);
-        list.concat(instr);
+        if (reg1<>reg2) then
+          begin
+            instr:=taicpu.op_reg_reg(op,s,reg1,reg2);
+            { Notify the register allocator that we have written a move instruction so
+              it can try to eliminate it. }
+            add_move_instruction(instr);
+            list.concat(instr);
+          end;
       end;
 
 
@@ -1672,7 +1675,14 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.126  2004-10-03 12:42:22  florian
+  Revision 1.127  2004-10-04 20:46:22  peter
+    * spilling code rewritten for x86. It now used the generic
+      spilling routines. Special x86 optimization still needs
+      to be added.
+    * Spilling fixed when both operands needed to be spilled
+    * Cleanup of spilling routine, do_spill_readwritten removed
+
+  Revision 1.126  2004/10/03 12:42:22  florian
     * made sqrt, sqr and abs internal for the sparc
 
   Revision 1.125  2004/09/25 14:23:55  peter

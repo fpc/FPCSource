@@ -130,6 +130,36 @@ interface
       instabentries = {$i i386nop.inc}
 {$endif x86_64}
       maxinfolen    = 8;
+      MaxInsChanges = 3; { Max things a instruction can change }
+
+    type
+      { What an instruction can change. Needed for optimizer and spilling code }
+      TInsChange = (Ch_None,
+        {Read from a register}
+        Ch_REAX, Ch_RECX, Ch_REDX, Ch_REBX, Ch_RESP, Ch_REBP, Ch_RESI, Ch_REDI,
+        {write from a register}
+        Ch_WEAX, Ch_WECX, Ch_WEDX, Ch_WEBX, Ch_WESP, Ch_WEBP, Ch_WESI, Ch_WEDI,
+        {read and write from/to a register}
+        Ch_RWEAX, Ch_RWECX, Ch_RWEDX, Ch_RWEBX, Ch_RWESP, Ch_RWEBP, Ch_RWESI, Ch_RWEDI,
+        {modify the contents of a register with the purpose of using
+         this changed content afterwards (add/sub/..., but e.g. not rep
+         or movsd)}
+        Ch_MEAX, Ch_MECX, Ch_MEDX, Ch_MEBX, Ch_MESP, Ch_MEBP, Ch_MESI, Ch_MEDI,
+        Ch_CDirFlag {clear direction flag}, Ch_SDirFlag {set dir flag},
+        Ch_RFlags, Ch_WFlags, Ch_RWFlags, Ch_FPU,
+        Ch_Rop1, Ch_Wop1, Ch_RWop1,Ch_Mop1,
+        Ch_Rop2, Ch_Wop2, Ch_RWop2,Ch_Mop2,
+        Ch_Rop3, Ch_WOp3, Ch_RWOp3,Ch_Mop3,
+        Ch_WMemEDI,
+        Ch_All
+      );
+
+      TInsProp = packed record
+        Ch : Array[1..MaxInsChanges] of TInsChange;
+      end;
+
+    const
+      InsProp : array[tasmop] of TInsProp = {$i i386prop.inc}
 
     type
       TOperandOrder = (op_intel,op_att);
@@ -201,6 +231,8 @@ interface
          procedure Pass2(objdata:TAsmObjectdata);virtual;
          procedure SetOperandOrder(order:TOperandOrder);
          function is_same_reg_move(regtype: Tregistertype):boolean;override;
+         { register spilling code }
+         function spilling_get_operation_type(opnr: longint): topertype;override;
       protected
          procedure ppuloadoper(ppufile:tcompilerppufile;var o:toper);override;
          procedure ppuwriteoper(ppufile:tcompilerppufile;const o:toper);override;
@@ -365,6 +397,12 @@ implementation
         {$i r386ot.inc}
       );
 {$endif x86_64}
+
+    { Operation type for spilling code }
+    type
+      toperation_type_table=array[tasmop,0..Max_Operands] of topertype;
+    var
+      operation_type_table : ^toperation_type_table;
 
 
 {****************************************************************************
@@ -1932,15 +1970,74 @@ implementation
       end;
 
 
+    procedure build_spilling_operation_type_table;
+      var
+        opcode : tasmop;
+        i      : integer;
+      begin
+        new(operation_type_table);
+        fillchar(operation_type_table^,sizeof(toperation_type_table),byte(operand_read));
+        for opcode:=low(tasmop) to high(tasmop) do
+          begin
+            for i:=1 to MaxInsChanges do
+              begin
+                case InsProp[opcode].Ch[i] of
+                  Ch_Rop1 :
+                    operation_type_table^[opcode,0]:=operand_read;
+                  Ch_Wop1 :
+                    operation_type_table^[opcode,0]:=operand_write;
+                  Ch_RWop1,
+                  Ch_Mop1 :
+                    operation_type_table^[opcode,0]:=operand_readwrite;
+                  Ch_Rop2 :
+                    operation_type_table^[opcode,1]:=operand_read;
+                  Ch_Wop2 :
+                    operation_type_table^[opcode,1]:=operand_write;
+                  Ch_RWop2,
+                  Ch_Mop2 :
+                    operation_type_table^[opcode,1]:=operand_readwrite;
+                  Ch_Rop3 :
+                    operation_type_table^[opcode,2]:=operand_read;
+                  Ch_Wop3 :
+                    operation_type_table^[opcode,2]:=operand_write;
+                  Ch_RWop3,
+                  Ch_Mop3 :
+                    operation_type_table^[opcode,2]:=operand_readwrite;
+                end;
+              end;
+          end;
+      end;
+
+
+    function taicpu.spilling_get_operation_type(opnr: longint): topertype;
+      begin
+        result:=operation_type_table^[opcode,opnr];
+      end;
+
+
     function spilling_create_load(const ref:treference;r:tregister): tai;
       begin
-        internalerror(200406131);
+        case getregtype(r) of
+          R_INTREGISTER :
+            result:=taicpu.op_ref_reg(A_MOV,reg2opsize(r),ref,r);
+          R_MMREGISTER :
+            result:=taicpu.op_ref_reg(A_MOVSD,reg2opsize(r),ref,r);
+          else
+            internalerror(200401041);
+        end;
       end;
 
 
     function spilling_create_store(r:tregister; const ref:treference): tai;
       begin
-        internalerror(200406132);
+        case getregtype(r) of
+          R_INTREGISTER :
+            result:=taicpu.op_reg_ref(A_MOV,reg2opsize(r),r,ref);
+          R_MMREGISTER :
+            result:=taicpu.op_reg_ref(A_MOVSD,reg2opsize(r),r,ref);
+          else
+            internalerror(200401041);
+        end;
       end;
 
 
@@ -1970,6 +2067,7 @@ implementation
 
     procedure InitAsm;
       begin
+        build_spilling_operation_type_table;
 {$ifndef NOAG386BIN}
         if not assigned(instabcache) then
           BuildInsTabCache;
@@ -1979,12 +2077,17 @@ implementation
 
     procedure DoneAsm;
       begin
+        if assigned(operation_type_table) then
+          begin
+            dispose(operation_type_table);
+            operation_type_table:=nil;
+          end;
 {$ifndef NOAG386BIN}
         if assigned(instabcache) then
-        begin
-          dispose(instabcache);
-          instabcache:=nil;
-        end;
+          begin
+            dispose(instabcache);
+            instabcache:=nil;
+          end;
 {$endif NOAG386BIN}
       end;
 
@@ -1995,7 +2098,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.58  2004-09-27 15:12:47  peter
+  Revision 1.59  2004-10-04 20:46:22  peter
+    * spilling code rewritten for x86. It now used the generic
+      spilling routines. Special x86 optimization still needs
+      to be added.
+    * Spilling fixed when both operands needed to be spilled
+    * Cleanup of spilling routine, do_spill_readwritten removed
+
+  Revision 1.58  2004/09/27 15:12:47  peter
     * IE when expecting top_ref
 
   Revision 1.57  2004/06/20 08:55:32  florian

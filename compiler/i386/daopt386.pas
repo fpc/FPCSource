@@ -725,7 +725,7 @@ begin
               RegReadByInstruction := true;
               exit
             end;
-        for opcount := 1 to maxch do
+        for opcount := 1 to maxinschanges do
           case insprop[p.opcode].ch[opcount] of
             CH_REAX..CH_REDI,CH_RWEAX..CH_MEDI:
               if supreg = tch2reg(insprop[p.opcode].ch[opcount]) then
@@ -791,7 +791,7 @@ begin
          (supreg in [RS_EAX,RS_EDX])
     else
       begin
-        for opcount := 1 to MaxCh do
+        for opcount := 1 to maxinschanges do
           case insprop[p.opcode].Ch[opCount] of
             CH_REAX..CH_MEDI:
               if tch2reg(InsProp[p.opcode].Ch[opCount]) = supreg then
@@ -866,7 +866,7 @@ begin
         begin
           Cnt := 1;
           InstrProp := InsProp[taicpu(p1).OpCode];
-          while (Cnt <= MaxCh) and
+          while (Cnt <= maxinschanges) and
                 (InstrProp.Ch[Cnt] <> Ch_None) and
                 not(TmpResult) Do
             begin
@@ -901,7 +901,7 @@ begin
   case p.typ of
     ait_instruction:
       begin
-        for l := 1 to MaxCh do
+        for l := 1 to maxinschanges do
           if InsProp[taicpu(p).opcode].Ch[l] in [Ch_WFlags,Ch_RWFlags,Ch_All] then
             exit;
       end;
@@ -920,7 +920,7 @@ begin
   case p.typ of
     ait_instruction:
       begin
-        for l := 1 to MaxCh do
+        for l := 1 to maxinschanges do
           if InsProp[taicpu(p).opcode].Ch[l] in [Ch_RFlags,Ch_RWFlags,Ch_All] then
             exit;
       end;
@@ -2555,7 +2555,7 @@ begin
               else
                 begin
                   Cnt := 1;
-                  while (Cnt <= MaxCh) and
+                  while (Cnt <= maxinschanges) and
                         (InstrProp.Ch[Cnt] <> Ch_None) Do
                     begin
                       case InstrProp.Ch[Cnt] Of
@@ -2719,7 +2719,14 @@ end.
 
 {
   $Log$
-  Revision 1.69  2004-09-26 17:45:30  peter
+  Revision 1.70  2004-10-04 20:46:22  peter
+    * spilling code rewritten for x86. It now used the generic
+      spilling routines. Special x86 optimization still needs
+      to be added.
+    * Spilling fixed when both operands needed to be spilled
+    * Cleanup of spilling routine, do_spill_readwritten removed
+
+  Revision 1.69  2004/09/26 17:45:30  peter
     * simple regvar support, not yet finished
 
   Revision 1.68  2004/06/20 08:55:31  florian

@@ -140,7 +140,7 @@ begin
               end
       end;
     else
-      for opCount := 1 to MaxCh do
+      for opCount := 1 to maxinschanges do
         case InsProp[p.opcode].Ch[opCount] of
           Ch_MOp1,CH_WOp1,CH_RWOp1:
               if not(onlymem) or
@@ -904,7 +904,7 @@ begin
       begin
         NoHardCodedRegs := true;
         with InsProp[p.opcode] do
-          for chCount := 1 to MaxCh do
+          for chCount := 1 to maxinschanges do
             if Ch[chCount] in ([Ch_REAX..Ch_MEDI,Ch_WMemEDI,Ch_All]-[Ch_RESP,Ch_WESP,Ch_RWESP]) then
               begin
                 NoHardCodedRegs := false;
@@ -1058,7 +1058,7 @@ begin
 {                updateStates(orgReg,newReg,p,false);}
                 doReplaceReadReg := true;
               end;
-        for opCount := 1 to MaxCh do
+        for opCount := 1 to maxinschanges do
           case InsProp[p.opcode].Ch[opCount] of
             Ch_ROp1:
               if p.oper[0]^.typ = top_reg then
@@ -1901,7 +1901,7 @@ begin
                         ptaiprop(tai(p).optinfo)^.CanBeRemoved := True;
               else
                 begin
-                  for cnt := 1 to maxch do
+                  for cnt := 1 to maxinschanges do
                     begin
                       case InsProp[taicpu(p).opcode].Ch[cnt] of
                         Ch_ROp1:
@@ -2109,7 +2109,14 @@ end.
 
 {
   $Log$
-  Revision 1.65  2004-09-21 17:25:12  peter
+  Revision 1.66  2004-10-04 20:46:22  peter
+    * spilling code rewritten for x86. It now used the generic
+      spilling routines. Special x86 optimization still needs
+      to be added.
+    * Spilling fixed when both operands needed to be spilled
+    * Cleanup of spilling routine, do_spill_readwritten removed
+
+  Revision 1.65  2004/09/21 17:25:12  peter
     * paraloc branch merged
 
   Revision 1.64.4.1  2004/09/20 19:28:23  peter
