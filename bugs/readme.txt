@@ -287,6 +287,7 @@ Fixed bugs:
   bug0234.pp   New with void pointer                                OK 0.99.11 (PM) 
   bug0235.pp   Val(cardinal) bug                                    OK 0.99.11 (JM)
   bug0236.pp   Problem with range check of subsets !! compile with -Cr OK 0.99.11 (PFV)
+  bug0238.pp   Internal error 432645 (from Frank MCCormick, mailinglist 24/2) OK 0.99.11 (PM)
   bug0239.pp   No warning for uninitialized class in IS statements  OK 0.99.11 (PM)
   bug0240.pp   Problems with larges value is case statements        OK 0.99.11 (FK)
   bug0241.pp   Problem with importing function from a DLL with .drv suffix ! OK 0.99.11 (PM)
@@ -323,4 +324,3 @@ bug0230.pp   several strange happen on the ln function: ln(0): no
 bug0232.pp   const. procedure variables need a special syntax
              if they use calling specification modifiers
 bug0237.pp   Can't have sub procedures with names defined in interface
-bug0238.pp   Internal error 432645 (from Frank MCCormick, mailinglist 24/2)
