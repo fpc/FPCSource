@@ -409,16 +409,11 @@ extern Status XGetZoomHints(
     Window              { w },
     XSizeHints*         { zhints_return }
 #endif
-);
+); *)
 
-extern XIntersectRegion(
-#if NeedFunctionPrototypes
-    Region              { sra },
-    Region              { srb },
-    Region              { dr_return }
-#endif
-);
+function XIntersectRegion(sra, srb, dr_return: TRegion): LongInt; cdecl; external;
 
+(*
 extern void XConvertCase(
 #if NeedFunctionPrototypes
     KeySym              { sym },
@@ -428,8 +423,8 @@ extern void XConvertCase(
 ); *)
 
 function XLookupString(event_struct: PXKeyEvent; buffer_return: PChar;
-  bytes_buffer: Integer; keysym_return: PKeySym;
-  status_in_out: PXComposeStatus): Integer; cdecl; external;
+  bytes_buffer: LongInt; keysym_return: PKeySym;
+  status_in_out: PXComposeStatus): LongInt; cdecl; external;
 
 (*
 extern Status XMatchVisualInfo(
@@ -527,7 +522,7 @@ extern XSetSizeHints(
 
 function XSetStandardProperties(display: PDisplay; w: TWindow;
   const window_name, icon_name: PChar; icon_pixmap: TPixmap;
-  argv: PPChar; argc: Integer; hints: PXSizeHints): Integer;
+  argv: PPChar; argc: LongInt; hints: PXSizeHints): LongInt;
   cdecl; external;
 
 procedure XSetTextProperty(display: PDisplay; w: TWindow;
@@ -537,7 +532,7 @@ procedure XSetWMClientMachine(display: PDisplay; w: TWindow;
   text_prop: PXTextProperty); cdecl; external;
 
 function XSetWMHints(display: PDisplay; w: TWindow;
-  wm_hints: PXWMHints): Integer; cdecl; external;
+  wm_hints: PXWMHints): LongInt; cdecl; external;
 
 procedure XSetWMIconName(display: PDisplay; w: TWindow;
   text_prop: PXTextProperty); cdecl; external;
@@ -584,16 +579,11 @@ extern void XSetWMSizeHints(
     XSizeHints*         { hints },
     Atom                { property }
 #endif
-);
+); *)
 
-extern XSetRegion(
-#if NeedFunctionPrototypes
-    Display*            { display },
-    GC                  { gc },
-    Region              { r }
-#endif
-);
+function XSetRegion(display: PDisplay; gc: TGC; r: TRegion): LongInt; cdecl; external;
 
+(*
 extern void XSetStandardColormap(
 #if NeedFunctionPrototypes
     Display*            { display },
@@ -609,32 +599,22 @@ extern XSetZoomHints(
     Window              { w },
     XSizeHints*         { zhints }
 #endif
-);
+); *)
 
-extern XShrinkRegion(
-#if NeedFunctionPrototypes
-    Region              { r },
-    int                 { dx },
-    int                 { dy }
-#endif
-);
+function XShrinkRegion(r: TRegion; dx, dy: LongInt): LongInt; cdecl; external;
 
+(*
 extern Status XStringListToTextProperty(
 #if NeedFunctionPrototypes
     char**              { list },
     int                 { count },
     XTextProperty*      { text_prop_return }
 #endif
-);
+); *)
 
-extern XSubtractRegion(
-#if NeedFunctionPrototypes
-    Region              { sra },
-    Region              { srb },
-    Region              { dr_return }
-#endif
-);
+function XSubtractRegion(sra, srb, dr_return: TRegion): LongInt; cdecl; external;
 
+(*
 extern longint XmbTextListToTextProperty(
 #if NeedFunctionPrototypes
     Display*            { display },
@@ -685,24 +665,14 @@ extern longint XwcTextPropertyToTextList(
     wchar_t***          { list_return },
     int*                { count_return }
 #endif
-);
+);*)
 
-extern XUnionRectWithRegion(
-#if NeedFunctionPrototypes
-    XRectangle*         { rectangle },
-    Region              { src_region },
-    Region              { dest_region_return }
-#endif
-);
+function XUnionRectWithRegion(rectangle: PXRectangle;
+  src_region, dest_region_return: TRegion): LongInt; cdecl; external;
 
-extern XUnionRegion(
-#if NeedFunctionPrototypes
-    Region              { sra },
-    Region              { srb },
-    Region              { dr_return }
-#endif
-);
+function XUnionRegion(sra, srb, dr_return: TRegion): LongInt; cdecl; external;
 
+(*
 extern longint XWMGeometry(
 #if NeedFunctionPrototypes
     Display*            { display },
@@ -717,27 +687,20 @@ extern longint XWMGeometry(
     int*                { height_return },
     int*                { gravity_return }
 #endif
-);
+); *)
 
-extern XXorRegion(
-#if NeedFunctionPrototypes
-    Region              { sra },
-    Region              { srb },
-    Region              { dr_return }
-#endif
-);
+function XXorRegion(sra, srb, dr_return: TRegion): LongInt; cdecl; external;
 
-_XFUNCPROTOEND
-
-#endif { _XUTIL_H_ }
-*)
 
 Implementation
 
 end.
 {
   $Log$
-  Revision 1.8  2000-05-26 14:28:13  sg
+  Revision 1.9  2000-05-28 21:16:18  sg
+  * More additions...
+
+  Revision 1.8  2000/05/26 14:28:13  sg
   * More functions added
 
   Revision 1.7  2000/05/24 09:37:29  sg
