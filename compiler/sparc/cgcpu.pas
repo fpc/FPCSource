@@ -84,9 +84,7 @@ interface
         procedure g_overflowCheck_loc(List:TAasmOutput;const Loc:TLocation;def:TDef;ovloc : tlocation);override;
         procedure g_proc_entry(list : taasmoutput;localsize : longint;nostackframe:boolean);override;
         procedure g_proc_exit(list : taasmoutput;parasize:longint;nostackframe:boolean);override;
-        procedure g_restore_all_registers(list:TAasmOutput;const funcretparaloc:TCGPara);override;
         procedure g_restore_standard_registers(list:taasmoutput);override;
-        procedure g_save_all_registers(list : taasmoutput);override;
         procedure g_save_standard_registers(list : taasmoutput);override;
         procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aint);override;
         procedure g_concatcopy_unaligned(list : taasmoutput;const source,dest : treference;len : aint);override;
@@ -945,12 +943,6 @@ implementation
       end;
 
 
-    procedure TCgSparc.g_restore_all_registers(list:TaasmOutput;const funcretparaloc:TCGPara);
-      begin
-        { The sparc port uses the sparc standard calling convetions so this function has no used }
-      end;
-
-
     procedure TCgSparc.g_restore_standard_registers(list:taasmoutput);
       begin
         { The sparc port uses the sparc standard calling convetions so this function has no used }
@@ -972,12 +964,6 @@ implementation
             list.concat(Taicpu.op_none(A_RET));
             list.concat(Taicpu.op_none(A_RESTORE));
           end;
-      end;
-
-
-    procedure TCgSparc.g_save_all_registers(list : taasmoutput);
-      begin
-        { The sparc port uses the sparc standard calling convetions so this function has no used }
       end;
 
 
@@ -1259,7 +1245,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.96  2004-10-24 11:53:45  peter
+  Revision 1.97  2004-10-24 20:01:08  peter
+    * remove saveregister calling convention
+
+  Revision 1.96  2004/10/24 11:53:45  peter
     * fixed compilation with removed loadref
 
   Revision 1.95  2004/10/10 20:51:46  peter

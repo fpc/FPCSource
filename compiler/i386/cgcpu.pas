@@ -43,8 +43,6 @@ unit cgcpu;
         procedure a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;const cgpara : tcgpara);override;
         procedure a_paramaddr_ref(list : taasmoutput;const r : treference;const cgpara : tcgpara);override;
 
-        procedure g_save_all_registers(list : taasmoutput);override;
-        procedure g_restore_all_registers(list : taasmoutput;const funcretparaloc:tcgpara);override;
         procedure g_proc_exit(list : taasmoutput;parasize:longint;nostackframe:boolean);override;
         procedure g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;const lenloc:tlocation;elesize:aint;destreg:tregister);override;
 
@@ -181,42 +179,6 @@ unit cgcpu;
               else
                 inherited a_paramaddr_ref(list,r,cgpara);
         end;
-      end;
-
-
-    procedure tcg386.g_save_all_registers(list : taasmoutput);
-      begin
-        list.concat(Taicpu.Op_none(A_PUSHA,S_L));
-        tg.GetTemp(list,sizeof(aint),tt_noreuse,current_procinfo.save_regs_ref);
-        a_load_reg_ref(list,OS_ADDR,OS_ADDR,NR_STACK_POINTER_REG,current_procinfo.save_regs_ref);
-      end;
-
-
-    procedure tcg386.g_restore_all_registers(list : taasmoutput;const funcretparaloc:tcgpara);
-      var
-        href : treference;
-      begin
-        a_load_ref_reg(list,OS_ADDR,OS_ADDR,current_procinfo.save_regs_ref,NR_STACK_POINTER_REG);
-        tg.UnGetTemp(list,current_procinfo.save_regs_ref);
-        if assigned(funcretparaloc.location) and
-           (funcretparaloc.location^.loc=LOC_REGISTER) then
-          begin
-            if funcretparaloc.size in [OS_64,OS_S64] then
-              begin
-                reference_reset_base(href,NR_STACK_POINTER_REG,20);
-                a_load_reg_ref(list,OS_32,OS_32,NR_FUNCTION_RETURN64_HIGH_REG,href);
-                reference_reset_base(href,NR_STACK_POINTER_REG,28);
-                a_load_reg_ref(list,OS_32,OS_32,NR_FUNCTION_RETURN64_LOW_REG,href);
-              end
-            else
-              begin
-                reference_reset_base(href,NR_STACK_POINTER_REG,28);
-                a_load_reg_ref(list,OS_32,OS_32,NR_FUNCTION_RETURN_REG,href);
-              end;
-          end;
-        list.concat(Taicpu.Op_none(A_POPA,S_L));
-        { We add a NOP because of the 386DX CPU bugs with POPAD }
-        list.concat(taicpu.op_none(A_NOP,S_L));
       end;
 
 
@@ -558,7 +520,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.58  2004-10-24 11:44:28  peter
+  Revision 1.59  2004-10-24 20:01:08  peter
+    * remove saveregister calling convention
+
+  Revision 1.58  2004/10/24 11:44:28  peter
     * small regvar fixes
     * loadref parameter removed from concatcopy,incrrefcount,etc
 

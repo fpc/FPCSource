@@ -1746,6 +1746,7 @@ begin
   def_symbol('DECRREFNOTNIL');
   def_symbol('HAS_INTERNAL_INTTYPES');
   def_symbol('STR_USES_VALINT');
+  def_symbol('NOSAVEREGISTERS');
 
 { using a case is pretty useless here (FK) }
 { some stuff for TP compatibility }
@@ -2112,7 +2113,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.147  2004-10-15 09:14:17  mazen
+  Revision 1.148  2004-10-24 20:01:08  peter
+    * remove saveregister calling convention
+
+  Revision 1.147  2004/10/15 09:14:17  mazen
   - remove $IFDEF DELPHI and related code
   - remove $IFDEF FPCPROCVAR and related code
 

@@ -223,7 +223,6 @@ type
     _FINALIZATION,
     _NOSTACKFRAME,
     _DISPINTERFACE,
-    _SAVEREGISTERS,
     _UNIMPLEMENTED,
     _IMPLEMENTATION,
     _INITIALIZATION,
@@ -453,7 +452,6 @@ const
       (str:'FINALIZATION'  ;special:false;keyword:m_initfinal;op:NOTOKEN),
       (str:'NOSTACKFRAME'  ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'DISPINTERFACE' ;special:false;keyword:m_class;op:NOTOKEN),
-      (str:'SAVEREGISTERS' ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'UNIMPLEMENTED' ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'IMPLEMENTATION';special:false;keyword:m_all;op:NOTOKEN),
       (str:'INITIALIZATION';special:false;keyword:m_initfinal;op:NOTOKEN),
@@ -518,7 +516,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.31  2004-07-05 23:25:34  olle
+  Revision 1.32  2004-10-24 20:01:08  peter
+    * remove saveregister calling convention
+
+  Revision 1.31  2004/07/05 23:25:34  olle
     + adding operators "|" and "&" for macpas
 
   Revision 1.30  2004/06/20 08:55:30  florian

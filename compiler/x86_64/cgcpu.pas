@@ -35,8 +35,6 @@ unit cgcpu;
     type
       tcgx86_64 = class(tcgx86)
         procedure init_register_allocators;override;
-        procedure g_save_all_registers(list : taasmoutput);override;
-        procedure g_restore_all_registers(list : taasmoutput;const funcretparaloc:tcgpara);override;
         procedure g_proc_exit(list : taasmoutput;parasize:longint;nostackframe:boolean);override;
       end;
 
@@ -61,18 +59,6 @@ unit cgcpu;
         rg[R_MMREGISTER]:=trgcpu.create(R_MMREGISTER,R_SUBNONE,[RS_XMM0,RS_XMM1,RS_XMM2,RS_XMM3,RS_XMM4,RS_XMM5,RS_XMM6,RS_XMM7,
           RS_XMM8,RS_XMM9,RS_XMM10,RS_XMM11,RS_XMM12,RS_XMM13,RS_XMM14,RS_XMM15],first_mm_imreg,[]);
         rgfpu:=Trgx86fpu.create;
-      end;
-
-
-    procedure tcgx86_64.g_save_all_registers(list : taasmoutput);
-      begin
-        {$warning todo tcgx86_64.g_save_all_registers}
-      end;
-
-
-    procedure tcgx86_64.g_restore_all_registers(list : taasmoutput;const funcretparaloc:tcgpara);
-      begin
-        {$warning todo tcgx86_64.g_restore_all_registers}
       end;
 
 
@@ -109,7 +95,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  2004-10-05 20:41:02  peter
+  Revision 1.18  2004-10-24 20:01:08  peter
+    * remove saveregister calling convention
+
+  Revision 1.17  2004/10/05 20:41:02  peter
     * more spilling rewrites
 
   Revision 1.16  2004/09/21 17:25:13  peter

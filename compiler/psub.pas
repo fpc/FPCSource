@@ -43,6 +43,7 @@ interface
         entry_asmnode,
         loadpara_asmnode,
         exitlabel_asmnode,
+        stackcheck_asmnode,
         init_asmnode,
         final_asmnode : tasmnode;
         { list to store the procinfo's of the nested procedures }
@@ -534,6 +535,7 @@ implementation
         aktfilepos:=entrypos;
         entry_asmnode:=casmnode.create_get_position;
         loadpara_asmnode:=casmnode.create_get_position;
+        stackcheck_asmnode:=casmnode.create_get_position;
         init_asmnode:=casmnode.create_get_position;
         bodyentrycode:=generate_bodyentry_block;
         { Generate code/locations used at end of proc }
@@ -561,6 +563,7 @@ implementation
             addstatement(codestatement,final_asmnode);
             { Initialize before try...finally...end frame }
             addstatement(newstatement,loadpara_asmnode);
+            addstatement(newstatement,stackcheck_asmnode);
             addstatement(newstatement,entry_asmnode);
             addstatement(newstatement,init_asmnode);
             addstatement(newstatement,bodyentrycode);
@@ -576,6 +579,7 @@ implementation
         else
           begin
             addstatement(newstatement,loadpara_asmnode);
+            addstatement(newstatement,stackcheck_asmnode);
             addstatement(newstatement,entry_asmnode);
             addstatement(newstatement,init_asmnode);
             addstatement(newstatement,bodyentrycode);
@@ -678,8 +682,8 @@ implementation
 
             { Allocate space in temp/registers for parast and localst }
             aktfilepos:=entrypos;
-            gen_alloc_symtable(aktproccode,tparasymtable(procdef.parast));
-            gen_alloc_symtable(aktproccode,tlocalsymtable(procdef.localst));
+            gen_alloc_symtable(aktproccode,procdef.parast);
+            gen_alloc_symtable(aktproccode,procdef.localst);
 
             { Store temp offset for information about 'real' temps }
             tempstart:=tg.lasttemp;
@@ -786,6 +790,15 @@ implementation
             aktproccode.insertlistafter(headertai,templist);
             aktfilepos:=exitpos;
             gen_restore_used_regs(aktproccode,procdef.funcret_paraloc[calleeside]);
+            { Add stack checking code }
+            if (cs_check_stack in entryswitches) and
+               not(po_assembler in procdef.procoptions) and
+               (current_procinfo.procdef.proctypeoption<>potype_proginit) then
+              begin
+                aktfilepos:=entrypos;
+                gen_stack_check_code(templist);
+                aktproccode.insertlistafter(stackcheck_asmnode.currenttai,templist)
+              end;
             { Add entry code (stack allocation) after header }
             aktfilepos:=entrypos;
             gen_proc_entry_code(templist);
@@ -1391,7 +1404,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.209  2004-10-15 09:14:17  mazen
+  Revision 1.210  2004-10-24 20:01:08  peter
+    * remove saveregister calling convention
+
+  Revision 1.209  2004/10/15 09:14:17  mazen
   - remove $IFDEF DELPHI and related code
   - remove $IFDEF FPCPROCVAR and related code
 

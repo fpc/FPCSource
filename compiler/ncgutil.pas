@@ -59,6 +59,7 @@ interface
     procedure gen_proc_symbol_end(list:Taasmoutput);
     procedure gen_proc_entry_code(list:Taasmoutput);
     procedure gen_proc_exit_code(list:Taasmoutput);
+    procedure gen_stack_check_code(list:Taasmoutput);
     procedure gen_save_used_regs(list:TAAsmoutput);
     procedure gen_restore_used_regs(list:TAAsmoutput;const funcretparaloc:tcgpara);
     procedure gen_initialize_code(list:TAAsmoutput);
@@ -1677,31 +1678,10 @@ implementation
     procedure gen_proc_entry_code(list:Taasmoutput);
       var
         hitemp,
-        lotemp,
-        stackframe : longint;
-        check      : boolean;
-        paraloc1   : tcgpara;
-        href       : treference;
+        lotemp : longint;
       begin
-        paraloc1.init;
-
         { generate call frame marker for dwarf call frame info }
         dwarfcfi.start_frame(list);
-
-        { allocate temp for saving the argument used when
-          stack checking uses a register for pushing the stackframe size }
-        check:=(cs_check_stack in aktlocalswitches) and (current_procinfo.procdef.proctypeoption<>potype_proginit);
-        if check then
-          begin
-            { Allocate tempspace to store register parameter than
-              is destroyed when calling stackchecking code }
-            paramanager.getintparaloc(pocall_default,1,paraloc1);
-            if paraloc1.location^.loc=LOC_REGISTER then
-              tg.GetTemp(list,sizeof(aint),tt_normal,href);
-          end;
-
-        { Calculate size of stackframe }
-        stackframe:=current_procinfo.calc_stackframe_size;
 
         { All temps are know, write offsets used for information }
         if (cs_asm_source in aktglobalswitches) then
@@ -1721,29 +1701,7 @@ implementation
           end;
 
          { generate target specific proc entry code }
-         cg.g_proc_entry(list,stackframe,(po_nostackframe in current_procinfo.procdef.procoptions));
-
-         { Add stack checking code? }
-         if check then
-           begin
-             { The tempspace to store original register is already
-               allocated above before the stackframe size is calculated. }
-             if paraloc1.location^.loc=LOC_REGISTER then
-               cg.a_load_reg_ref(list,OS_INT,OS_INT,paraloc1.location^.register,href);
-             paramanager.allocparaloc(list,paraloc1);
-             cg.a_param_const(list,OS_INT,stackframe,paraloc1);
-             paramanager.freeparaloc(list,paraloc1);
-             cg.alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-             cg.a_call_name(list,'FPC_STACKCHECK');
-             cg.dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-             if paraloc1.location^.loc=LOC_REGISTER then
-               begin
-                 cg.a_load_ref_reg(list,OS_INT,OS_INT,href,paraloc1.location^.register);
-                 tg.UnGetTemp(list,href);
-               end;
-           end;
-
-        paraloc1.done;
+         cg.g_proc_entry(list,current_procinfo.calc_stackframe_size,(po_nostackframe in current_procinfo.procdef.procoptions));
       end;
 
 
@@ -1773,19 +1731,31 @@ implementation
       end;
 
 
+    procedure gen_stack_check_code(list:Taasmoutput);
+      var
+        paraloc1   : tcgpara;
+      begin
+        paraloc1.init;
+        paramanager.getintparaloc(pocall_default,1,paraloc1);
+        paramanager.allocparaloc(list,paraloc1);
+        cg.a_param_const(list,OS_INT,current_procinfo.calc_stackframe_size,paraloc1);
+        paramanager.freeparaloc(list,paraloc1);
+        cg.alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+        cg.a_call_name(list,'FPC_STACKCHECK');
+        cg.dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+        paraloc1.done;
+      end;
+
+
     procedure gen_save_used_regs(list:TAAsmoutput);
       begin
         { Pure assembler routines need to save the registers themselves }
         if (po_assembler in current_procinfo.procdef.procoptions) then
           exit;
 
-        { for the save all registers we can simply use a pusha,popa which
-          push edi,esi,ebp,esp(ignored),ebx,edx,ecx,eax }
-        if (po_saveregisters in current_procinfo.procdef.procoptions) then
-          cg.g_save_all_registers(list)
-        else
-          if current_procinfo.procdef.proccalloption in savestdregs_pocalls then
-            cg.g_save_standard_registers(list);
+        { oldfpccall expects all registers to be destroyed }
+        if current_procinfo.procdef.proccalloption<>pocall_oldfpccall then
+          cg.g_save_standard_registers(list);
       end;
 
 
@@ -1795,13 +1765,9 @@ implementation
         if (po_assembler in current_procinfo.procdef.procoptions) then
           exit;
 
-        { for the save all registers we can simply use a pusha,popa which
-          push edi,esi,ebp,esp(ignored),ebx,edx,ecx,eax }
-        if (po_saveregisters in current_procinfo.procdef.procoptions) then
-          cg.g_restore_all_registers(list,funcretparaloc)
-        else
-          if current_procinfo.procdef.proccalloption in savestdregs_pocalls then
-            cg.g_restore_standard_registers(list);
+        { oldfpccall expects all registers to be destroyed }
+        if current_procinfo.procdef.proccalloption<>pocall_oldfpccall then
+          cg.g_restore_standard_registers(list);
       end;
 
 
@@ -2237,7 +2203,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.230  2004-10-24 11:44:28  peter
+  Revision 1.231  2004-10-24 20:01:08  peter
+    * remove saveregister calling convention
+
+  Revision 1.230  2004/10/24 11:44:28  peter
     * small regvar fixes
     * loadref parameter removed from concatcopy,incrrefcount,etc
 

@@ -47,9 +47,9 @@ uses
 
 {
 possible calling conventions:
-              default stdcall cdecl pascal register saveregisters
-default(0):      OK     OK    OK(1)  OK       OK          OK
-virtual(2):      OK     OK    OK(3)  OK       OK          OK(4)
+              default stdcall cdecl pascal register
+default(0):      OK     OK    OK(1)  OK       OK
+virtual(2):      OK     OK    OK(3)  OK       OK
 
 (0):
     set self parameter to correct value
@@ -196,8 +196,7 @@ begin
     end
   else if po_virtualmethod in procdef.procoptions then
     begin
-      if (procdef.proccalloption=pocall_register) or
-         (po_saveregisters in procdef.procoptions) then
+      if (procdef.proccalloption=pocall_register) then
         begin
           { case 4 }
           emit_reg(A_PUSH,S_L,NR_EBX); { allocate space for address}
@@ -239,7 +238,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.34  2004-06-20 08:55:31  florian
+  Revision 1.35  2004-10-24 20:01:08  peter
+    * remove saveregister calling convention
+
+  Revision 1.34  2004/06/20 08:55:31  florian
     * logs truncated
 
   Revision 1.33  2004/06/16 20:07:10  florian

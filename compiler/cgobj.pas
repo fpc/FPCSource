@@ -417,8 +417,6 @@ unit cgobj;
              @param(usedinproc Registers which are used in the code of this routine)
           }
           procedure g_restore_standard_registers(list:Taasmoutput);virtual;abstract;
-          procedure g_save_all_registers(list : taasmoutput);virtual;abstract;
-          procedure g_restore_all_registers(list : taasmoutput;const funcretparaloc:TCGPara);virtual;abstract;
        end;
 
 {$ifndef cpu64bit}
@@ -1417,8 +1415,6 @@ implementation
          paraloc2.init;
          paramanager.getintparaloc(pocall_default,1,paraloc1);
          paramanager.getintparaloc(pocall_default,2,paraloc2);
-         { These functions should not change the registers (they use
-           the saveregister proc directive }
          if is_interfacecom(t) then
           incrfunc:='FPC_INTF_INCR_REF'
          else if is_ansistring(t) then
@@ -2031,7 +2027,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.180  2004-10-24 11:44:28  peter
+  Revision 1.181  2004-10-24 20:01:08  peter
+    * remove saveregister calling convention
+
+  Revision 1.180  2004/10/24 11:44:28  peter
     * small regvar fixes
     * loadref parameter removed from concatcopy,incrrefcount,etc
 

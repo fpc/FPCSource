@@ -883,10 +883,11 @@ implementation
                    { Load parameters that are in temporary registers in the
                      correct parameter register }
                    if assigned(left) then
-                     pushparas;
-
-                   { free the resources allocated for the parameters }
-                   freeparas;
+                     begin
+                       pushparas;
+                       { free the resources allocated for the parameters }
+                       freeparas;
+                     end;
 
                    cg.alloccpuregisters(exprasmlist,R_INTREGISTER,regs_to_save_int);
                    if cg.uses_registers(R_FPUREGISTER) then
@@ -903,10 +904,11 @@ implementation
                   { Load parameters that are in temporary registers in the
                     correct parameter register }
                   if assigned(left) then
-                    pushparas;
-
-                  { free the resources allocated for the parameters }
-                  freeparas;
+                    begin
+                      pushparas;
+                      { free the resources allocated for the parameters }
+                      freeparas;
+                    end;
 
                   cg.alloccpuregisters(exprasmlist,R_INTREGISTER,regs_to_save_int);
                   if cg.uses_registers(R_FPUREGISTER) then
@@ -943,10 +945,11 @@ implementation
               { Load parameters that are in temporary registers in the
                 correct parameter register }
               if assigned(left) then
-                pushparas;
-
-              { free the resources allocated for the parameters }
-              freeparas;
+                begin
+                  pushparas;
+                  { free the resources allocated for the parameters }
+                  freeparas;
+                end;
 
               cg.alloccpuregisters(exprasmlist,R_INTREGISTER,regs_to_save_int);
               if cg.uses_registers(R_FPUREGISTER) then
@@ -1062,7 +1065,7 @@ implementation
          { Allocate parameters and locals }
          gen_alloc_inline_parast(exprasmlist,tprocdef(procdefinition));
          gen_alloc_inline_funcret(exprasmlist,tprocdef(procdefinition));
-         gen_alloc_symtable(exprasmlist,tlocalsymtable(tprocdef(procdefinition).localst));
+         gen_alloc_symtable(exprasmlist,tprocdef(procdefinition).localst);
 
          { if we allocate the temp. location for ansi- or widestrings }
          { already here, we avoid later a push/pop                    }
@@ -1128,7 +1131,8 @@ implementation
 
          gen_load_para_value(inlineentrycode);
          { now that we've loaded the para's, free them }
-         freeparas;
+         if assigned(left) then
+           freeparas;
          gen_initialize_code(inlineentrycode);
          if po_assembler in current_procinfo.procdef.procoptions then
            inlineentrycode.insert(Tai_marker.Create(asmblockstart));
@@ -1243,7 +1247,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.180  2004-10-24 11:53:45  peter
+  Revision 1.181  2004-10-24 20:01:08  peter
+    * remove saveregister calling convention
+
+  Revision 1.180  2004/10/24 11:53:45  peter
     * fixed compilation with removed loadref
 
   Revision 1.179  2004/10/24 11:44:28  peter

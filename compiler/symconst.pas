@@ -219,7 +219,6 @@ type
     po_msgint,            { method for int message handling }
     po_exports,           { Procedure has export directive (needed for OS/2) }
     po_external,          { Procedure is external (in other object or lib)}
-    po_saveregisters,     { save all registers }
     po_overload,          { procedure is declared with overload directive }
     po_varargs,           { printf like arguments }
     po_internconst,       { procedure has constant evaluator intern }
@@ -376,12 +375,6 @@ const
 
 
 const
-   savestdregs_pocalls = [
-     pocall_cdecl,pocall_cppdecl,pocall_syscall,
-     pocall_stdcall,pocall_safecall,pocall_compilerproc,
-     pocall_register,pocall_softfloat
-   ];
-
    clearstack_pocalls = [
      pocall_cdecl,pocall_cppdecl,pocall_syscall
    ];
@@ -415,7 +408,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.89  2004-10-08 17:09:43  peter
+  Revision 1.90  2004-10-24 20:01:08  peter
+    * remove saveregister calling convention
+
+  Revision 1.89  2004/10/08 17:09:43  peter
     * tvarsym.varregable added, split vo_regable from varoptions
 
   Revision 1.88  2004/09/13 20:30:22  peter

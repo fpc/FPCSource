@@ -1276,7 +1276,7 @@ type
    end;
 const
   {Should contain the number of procedure directives we support.}
-  num_proc_directives=37;
+  num_proc_directives=36;
   proc_direcdata:array[1..num_proc_directives] of proc_dir_rec=
    (
     (
@@ -1530,15 +1530,6 @@ const
       pocall   : pocall_safecall;
       pooption : [];
       mutexclpocall : [];
-      mutexclpotype : [potype_constructor,potype_destructor];
-      mutexclpo     : [po_external]
-    ),(
-      idtok:_SAVEREGISTERS;
-      pd_flags : [pd_interface,pd_implemen,pd_body,pd_procvar,pd_notobjintf];
-      handler  : nil;
-      pocall   : pocall_none;
-      pooption : [po_saveregisters];
-      mutexclpocall : [pocall_internproc];
       mutexclpotype : [potype_constructor,potype_destructor];
       mutexclpo     : [po_external]
     ),(
@@ -2268,7 +2259,10 @@ const
 end.
 {
   $Log$
-  Revision 1.196  2004-10-24 13:48:50  peter
+  Revision 1.197  2004-10-24 20:01:08  peter
+    * remove saveregister calling convention
+
+  Revision 1.196  2004/10/24 13:48:50  peter
     * don't give warning for property as unknwon proc directive
 
   Revision 1.195  2004/10/24 11:44:28  peter

@@ -93,11 +93,6 @@ unit cgcpu;
         { that's the case, we can use rlwinm to do an AND operation        }
         function get_rlwi_const(a: aint; var l1, l2: longint): boolean;
 
-        procedure g_save_standard_registers(list:Taasmoutput);override;
-        procedure g_restore_standard_registers(list:Taasmoutput);override;
-        procedure g_save_all_registers(list : taasmoutput);override;
-        procedure g_restore_all_registers(list : taasmoutput;const funcretparaloc:tcgpara);override;
-
         procedure a_jmp_cond(list : taasmoutput;cond : TOpCmp;l: tasmlabel);
 
       private
@@ -851,26 +846,6 @@ const
           a_jmp(list,A_BC,TOpCmp2AsmCond[cmp_op],0,l);
         end;
 
-
-     procedure tcgppc.g_save_standard_registers(list:Taasmoutput);
-       begin
-         {$warning FIX ME}
-       end;
-
-     procedure tcgppc.g_restore_standard_registers(list:Taasmoutput);
-       begin
-         {$warning FIX ME}
-       end;
-
-     procedure tcgppc.g_save_all_registers(list : taasmoutput);
-       begin
-         {$warning FIX ME}
-       end;
-
-     procedure tcgppc.g_restore_all_registers(list : taasmoutput;const funcretparaloc:tcgpara);
-       begin
-         {$warning FIX ME}
-       end;
 
      procedure tcgppc.a_jmp_cond(list : taasmoutput;cond : TOpCmp;l: tasmlabel);
 
@@ -2366,7 +2341,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.181  2004-10-24 11:53:45  peter
+  Revision 1.182  2004-10-24 20:01:08  peter
+    * remove saveregister calling convention
+
+  Revision 1.181  2004/10/24 11:53:45  peter
     * fixed compilation with removed loadref
 
   Revision 1.180  2004/10/20 07:32:42  jonas
