@@ -346,15 +346,12 @@ implementation
                 begin
                    codegenerror:=false;
                    resulttypepass(hp.left);
-                   if (not (cs_extsyntax in aktmoduleswitches)) and
-                      assigned(hp.left.resulttype.def) and
-                      not((hp.left.nodetype=calln) and
-                          { don't complain when funcretnode is set, because then the
-                            value is already used. And also not for constructors }
-                          (assigned(tcallnode(hp.left).funcretnode) or
-                           (tcallnode(hp.left).procdefinition.proctypeoption=potype_constructor))) and
-                      not(is_void(hp.left.resulttype.def)) then
-                        CGMessagePos(hp.left.fileinfo,cg_e_illegal_expression);
+                   if not(codegenerror) and
+                      not(cs_extsyntax in aktmoduleswitches) and
+                      (hp.left.nodetype=calln) and
+                      not(is_void(hp.left.resulttype.def)) and
+                      not(nf_return_value_used in tcallnode(hp.left).flags) then
+                     CGMessagePos(hp.left.fileinfo,cg_e_illegal_expression);
                    { the resulttype of the block is the last type that is
                      returned. Normally this is a voidtype. But when the
                      compiler inserts a block of multiple statements then the
@@ -833,7 +830,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.66  2003-10-19 01:34:30  florian
+  Revision 1.67  2003-10-21 18:15:16  peter
+    * fixed check for $X- result usage
+
+  Revision 1.66  2003/10/19 01:34:30  florian
     * some ppc stuff fixed
     * memory leak fixed
 
