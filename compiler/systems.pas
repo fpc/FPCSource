@@ -88,7 +88,7 @@ interface
              target_i386_linux,         { 3 }
              target_i386_OS2,           { 4 }
              target_i386_Win32,         { 5 }
-             arget_i386_freebsd,        { 6 }
+             target_i386_freebsd,       { 6 }
              target_m68k_Amiga,         { 7 }
              target_m68k_Atari,         { 8 }
              target_m68k_Mac,           { 9 }
@@ -688,7 +688,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.28  2001-09-22 00:03:53  carl
+  Revision 1.29  2001-09-24 10:57:22  jonas
+    * fixed typo in Carl's patch
+
+  Revision 1.28  2001/09/22 00:03:53  carl
   + added warning for targets - use same target values as fixes branch
 
   Revision 1.27  2001/09/18 11:30:48  michael
