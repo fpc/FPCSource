@@ -45,17 +45,9 @@ const
   {$define ASMDEBUG}
 {$endif}
 
-{ We Don't need the intel style opcodes if we don't have a intel
-  reader or generator }
-{$ifndef ASMDEBUG}
-{$ifdef NORA386INT}
-  {$ifdef NOAG386NSM}
-    {$ifdef NOAG386INT}
-      {$undef INTELOP}
-    {$endif}
-  {$endif}
-{$endif}
-{$endif}
+{ We Don't need the intel style opcodes if we don't have a intel }
+{ reader or generator                                            }
+{$undef INTELOP}
 
 { We Don't need the AT&T style opcodes if we don't have a AT&T
   reader or generator }
@@ -99,14 +91,14 @@ type
     a_mullwo_, a_nand, a_nand_, a_neg, a_neg_, a_nego, a_nego_, a_nor, a_nor_,
     a_or, a_or_, a_orc, a_orc_, a_ori, a_oris, a_rfi, a_rlwimi, a_rlwimi_,
     a_rlwinm, a_tlwinm_, a_rlwnm, a_sc, a_slw, a_slw_, a_sraw, a_sraw_,
-    a_srawi, a_srawi_,a_srw, a_srw_, a_stb, a_stbu, a_stbux, a_a_stbx, a_stfd,
+    a_srawi, a_srawi_,a_srw, a_srw_, a_stb, a_stbu, a_stbux, a_stbx, a_stfd,
     a_stfdu, a_stfdux, a_stfdx, a_stfiwx, a_stfs, a_stfsu, a_stfsux, a_stfsx,
     a_sth, a_sthbrx, a_sthu, a_sthux, a_sthx, a_stmw, a_stswi, a_stswx, a_stw,
     a_stwbrx, a_stwx_, a_stwu, a_stwux, a_stwx, a_subf, a_subf_, a_subfo,
     a_subfo_, a_subfc, a_subfc_, a_subfco, a_subfco_, a_subfe, a_subfe_,
     a_subfeo, a_subfeo_, a_subfic, a_subfme, a_subfme_, a_subfmeo, a_subfmeo_,
     a_subfze, a_subfze_, a_subfzeo, a_subfzeo_, a_sync, a_tlbia, a_tlbie,
-    a_tlbsync, a_tw, twi, a_xor, a_xor_, a_xori, a_xoris,
+    a_tlbsync, a_tw, a_twi, a_xor, a_xor_, a_xori, a_xoris,
     { simplified mnemonics }
     a_subi, a_subis, a_subic, a_subic_, a_sub, a_sub_, a_subo, a_subo_,
     a_subc, a_subc_, a_subco, _subco_, a_cmpwi, a_cmpw, a_cmplwi, a_cmplw,
@@ -127,67 +119,15 @@ const
   lastop  = high(tasmop);
 
 
-{*****************************************************************************
-                                Conditions
-*****************************************************************************}
 
-type
-  TAsmCond=(C_None,
-    C_LT,C_LE,C_EQ,C_GE,C_GT,C_NL,C_NE,C_NG,C_SO,C_NS,C_UN,C_NU
-  );
-
-const
-  AsmCond2BO: Array[TAsmCond] of Byte =
-    (0,12,4,12,4,12,4,4,4,12,4,12,4);
-  AsmCond2BI: Array[TAsmCond] of Byte =
-    (0,0,1,2,0,1,0,2,1,3,3,3,3);
-
-(*
-  TAsmCondBO = (B_T,B_F,B_DNZ,B_DNZT,B_DNZF,B_DZ,B_DZT,B_DZF);
-  TasmCondSuffix = (SU_NO,SU_A,SU_LR,SU_CTR,SU_L,SU_LA,SU_LRL,SU_CTRL);
-
-const
-  cond2str:array[TAsmCond] of string[2]=('',
-    'lt','le','eq','ge','gt','nl','ne','ng','so','ns','un','nu'
-  );
-
-  condbo2str:array[TasmCondBO] of String[4] = (
-    't','f','dnz','dnzt','dnzf','dz','dzt','dzf'
-  );
-
-  condsuffix2str:array[TAsmCondSuffix] of String[4] = (
-    '','a','lr','ctr','l','la','lrl','ctrl'
-  );
-
-  inverse_cond:array[TAsmCond] of TAsmCond=(C_None,
-    C_GE,C_GT,C_NE,C_LT,C_LE,C_LT,C_EQ,C_GT,C_NS,C_SO,C_NU,C_UN
-  );
-
-  AllowedCond = Array[TAsmCondBO,TAsmCondSuffix] of Boolean = (
-{t}      (
-{f}
-{dnz}
-{dnzt}
-{dnzf}
-{dz}
-{dzt}
-{dzf}
-const
-  CondAsmOps=3;
-  CondAsmOp:array[0..CondAsmOps-1] of TasmOp=(
-     A_BC, A_TW, A_TWI
-  );
-*)
 
 {*****************************************************************************
                                   Registers
 *****************************************************************************}
 
 type
-  { enumeration for registers, don't change the order }
-  { it's used by the register size conversions        }
   tregister = (R_NO,
-    R_0,R_1,R_2,R_3,R_4,R_5,R_6,R_7, R_9,R_10,R_11,R_12,R_13,R_14,R_15,R_16,
+    R_0,R_1,R_2,R_3,R_4,R_5,R_6,R_7,R_8,R_9,R_10,R_11,R_12,R_13,R_14,R_15,R_16,
     R_17,R_18,R_19,R_20,R_21,R_22,R_23,R_24,R_25,R_26,R_27,R_28,R_29,R_30,R_31,
     R_F0,R_F1,R_F2,R_F3,R_F4,R_F5,R_F6,R_F7,R_F8,R_F9,R_F10,R_F11,R_F12,
     R_F13,R_F14,R_F15,R_F16,R_F17, R_F18,R_F19,R_F20,R_F21,R_F22, R_F23,R_F24,
@@ -200,12 +140,17 @@ type
     R_XER,R_LR,R_CTR,R_FPSCR
   );
 
+  tregisterset = set of tregister;
+
+  reg2strtable = array[tregister] of string[5];
+
+
 Const
    R_SPR1 = R_XER;
    R_SPR8 = R_LR;
    R_SPR9 = R_CTR;
    R_TOC = R_2;
-   CR0 = 0;
+{   CR0 = 0;
    CR1 = 4;
    CR2 = 8;
    CR3 = 12;
@@ -220,20 +165,13 @@ Const
    FX = 4;
    FEX = 5;
    VX = 6;
-   OX = 7;
+   OX = 7;}
 
-
-Type
-  tregisterset = set of tregister;
-
-  reg2strtable = array[tregister] of string[5];
-
-const
   firstreg = low(tregister);
   lastreg  = high(tregister);
 
-  gnu_reg2str : reg2strtable = ('',
-    '0','1','2','3','4','5','6','7', '9','10','11','12','13','14','15','16',
+  att_reg2str : reg2strtable = ('',
+    '0','1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16',
     '17','18','19','20','21','22','23','24','25','26','27','28','29','30','31',
     'F0','F1','F2','F3','F4','F5','F6','F7', 'F8','F9','F10','F11','F12',
     'F13','F14','F15','F16','F17', 'F18','F19','F20','F21','F22', 'F23','F24',
@@ -246,9 +184,9 @@ const
   );
 
   mot_reg2str : reg2strtable = ('',
-    'R0','R1','R2','R3','R4','R5','R6','R7', 'R9','R10','R11','R12','R13',
-    'R14','R15','R16','R17','R18','R19','R20','R21','R22','R23','R24','R25',
-    'R26','R27','R28','R29','R30','R31',
+    'r0','r1','r2','r3','r4','r5','r6','r7','r8','r9','r10','r11','r12','r13',
+    'r14','r15','r16','r17','r18','r19','r20','r21','r22','r23','r24','r25',
+    'r26','r27','r28','r29','r30','r31',
     'F0','F1','F2','F3','F4','F5','F6','F7', 'F8','F9','F10','F11','F12',
     'F13','F14','F15','F16','F17', 'F18','F19','F20','F21','F22', 'F23','F24',
     'F25','F26','F27','F28','F29','F30','F31',
@@ -260,6 +198,58 @@ const
   );
 
 
+{*****************************************************************************
+                                Conditions
+*****************************************************************************}
+
+type
+{$ifndef tp}
+{$minenumsize 1}
+{$endif tp}
+  TAsmCondFlags = (CF_None { unconditional junps },
+    { conditions when not using ctr decrement etc }
+    CF_LT,CF_LE,CF_EQ,CF_GE,CF_GT,CF_NL,CF_NE,CF_NG,CF_SO,CF_NS,CF_UN,CF_NU,
+    { conditions when using ctr decrement etc }
+    CF_T,CF_F,CF_DNZ,CF_DNZT,CF_DNZF,CF_DZ,CF_DZT,CF_DZF);
+
+{$ifndef tp}
+{$minenumsize default}
+{$endif tp}
+  TAsmCond = packed record
+               case simple: boolean of
+                 false: (BO, BI: byte);
+                 true: (
+                   case cond: TAsmCondFlags of
+                     CF_None: ();
+                     { specifies in which part of the cr the bit has to be }
+                     { tested for blt,bgt,beq etc.                         }
+                     CF_LT,CF_LE,CF_EQ,CF_GE,CF_GT,CF_NL,CF_NE,CF_NG,CF_SO,
+                       CF_NS,CF_UN,CF_NU: (cr: R_CR0..R_CR7);
+                     { specifies the bit to test for bt,bf,bdz etc. }
+                     CF_T,CF_F,CF_DNZ,CF_DNZT,CF_DNZF,CF_DZ,CF_DZT,CF_DZF:
+                       (crbit: byte)
+                   );
+             end;
+
+const
+{  AsmCondFlag2BO: Array[TAsmCondFlags] of Byte =
+    (0,12,4,12,4,12,4,4,4,12,4,12,4,
+    );
+  AsmCondFlag2BI: Array[TAsmCondFlags] of Byte =
+    (0,0,1,2,0,1,0,2,1,3,3,3,3);}
+
+  AsmCondFlag2Str: Array[tasmcondflags] of string[2] = ({cf_none}'',
+     { conditions when not using ctr decrement etc}
+     'lt','le','eq','ge','gt','nl','ne','ng','so','ns','un','nu',
+     't','f','dnz','dzt','dnzf','dz','dzt','dzf');
+
+
+
+const
+  CondAsmOps=3;
+  CondAsmOp:array[0..CondAsmOps-1] of TasmOp=(
+     A_BC, A_TW, A_TWI
+  );
 {*****************************************************************************
                                    Flags
 *****************************************************************************}
@@ -280,16 +270,23 @@ const
 type
   trefoptions=(ref_none,ref_parafixup,ref_localfixup);
 
+  { since we have only 16 offsets, we need to be able to specify the high }
+  { and low 16 bits of the address of a symbol                            }
+  trefsymaddr = (refs_full,refs_ha,_refs_l);
+
   { immediate/reference record }
   preference = ^treference;
   treference = packed record
-     is_immediate : boolean; { is this used as reference or immediate }
-     base, index: tregister;
+     is_immediate: boolean; { is this used as reference or immediate }
+     base, index : tregister;
      offset      : longint;
      symbol      : pasmsymbol;
+     symaddr     : trefsymaddr;
      offsetfixup : longint;
      options     : trefoptions;
   end;
+
+const symaddr2str: array[trefsymaddr] of string[3] = ('','@ha','@l');
 
 
 {*****************************************************************************
@@ -371,6 +368,16 @@ const
             (R_13,R_14,R_15,R_16,R_17,R_18,R_19,R_20,R_21,R_22,R_23,R_24,R_25,
              R_26,R_27,R_28,R_29,R_30);
 
+  max_param_regs_int = 8;
+  param_regs_int: Array[1..max_param_regs_int] of tregister =
+    (R_3,R_4,R_5,R_6,R_7,R_8,R_9,R_10);
+
+  max_param_regs_fpu = 13;
+  param_regs_fpu: Array[1..max_param_regs_fpu] of tregister =
+    (R_F1,R_F2,R_F3,R_F4,R_F5,R_F6,R_F7,R_F8,R_F9,R_F10,R_F11,R_F12,R_F13);
+
+
+
   intregs = [R_0..R_31];
   fpuregs = [R_F0..R_F31];
   mmregs = [R_M0..R_M31];
@@ -381,7 +388,7 @@ const
 
   { generic register names }
   stack_pointer = R_1;
-  R_RTOC          = R_2;
+  R_RTOC        = R_2;
   frame_pointer = R_NO;
   self_pointer  = R_9;
   accumulator   = R_3;
@@ -421,13 +428,17 @@ const
 
     function is_calljmp(o:tasmop):boolean;
 
+    function inverse_cond(c: TAsmCond): TAsmCond;
+    function create_cond_imm(BO,BI:byte): TAsmCond;
+    function create_cond_norm(cond: TAsmCondFlags; cr: byte): TasmCond;
+
 {*****************************************************************************
                                   Init/Done
 *****************************************************************************}
 
   procedure InitCpu;
   procedure DoneCpu;
-  
+
 
 implementation
 
@@ -448,18 +459,12 @@ implementation
 
     function is_calljmp(o:tasmop):boolean;
       begin
+       is_calljmp:=false;
         case o of
-          A_B,
-          A_BA,
-          A_BLR,
-          A_BCTR,
-          A_BC:
-            is_calljmp:=true;
-          else
-            is_calljmp:=false;
+          A_B,A_BA,A_BL,A_BLA,A_BC,A_BCA,A_BCL,A_BCLA,A_BCCTR,A_BCCTRL,A_BCLR,
+            A_BCLRL,A_TW,A_TWI: is_calljmp:=true;
         end;
       end;
-
 
     procedure disposereference(var r : preference);
       begin
@@ -477,21 +482,56 @@ implementation
          newreference:=p;
       end;
 
-procedure reset_reference(var ref : treference);
-begin
-  FillChar(ref,sizeof(treference),0);
-end;
+    procedure reset_reference(var ref : treference);
+      begin
+        FillChar(ref,sizeof(treference),0)
+      end;
 
-function new_reference(base : tregister;offset : longint) : preference;
-var
-  r : preference;
-begin
-  new(r);
-  FillChar(r^,sizeof(treference),0);
-  r^.base:=base;
-  r^.offset:=offset;
-  new_reference:=r;
-end;
+    function new_reference(base : tregister;offset : longint) : preference;
+    var
+      r : preference;
+    begin
+      new(r);
+      FillChar(r^,sizeof(treference),0);
+      r^.base:=base;
+      r^.offset:=offset;
+      new_reference:=r;
+    end;
+
+
+    function inverse_cond(c: TAsmCond): TAsmCond;
+    const
+      inv_condflags:array[TAsmCondFlags] of TAsmCondFlags=(CF_None,
+        CF_GE,CF_GT,CF_NE,CF_LT,CF_LE,CF_LT,CF_EQ,CF_GT,CF_NS,CF_SO,CF_NU,CF_UN,
+        CF_F,CF_T,CF_DNZ,CF_DNZF,CF_DNZT,CF_DZ,CF_DZF,CF_DZT);
+    begin
+      c.cond := inv_condflags[c.cond];
+      inverse_cond := c;
+    end;
+
+    function create_cond_imm(BO,BI:byte): TAsmCond;
+    var c: tasmcond;
+    begin
+      c.simple := false;
+      c.bo := bo;
+      c.bi := bi;
+      create_cond_imm := c
+    end;
+
+    function create_cond_norm(cond: TAsmCondFlags; cr: byte): TasmCond;
+    const cr2reg: array[0..7] of tregister =
+            (R_CR0,R_CR1,R_CR2,R_CR3,R_CR4,R_CR5,R_CR6,R_CR7);
+    var c: tasmcond;
+    begin
+      c.simple := true;
+      c.cond := cond;
+      case cond of
+        CF_NONE:;
+        CF_T..CF_DZF: c.crbit := cr
+        else c.cr := cr2reg[cr];
+      end;
+      create_cond_norm := c;
+    end;
 
 {*****************************************************************************
                                   Init/Done
@@ -500,15 +540,18 @@ end;
   procedure InitCpu;
     begin
     end;
-    
+
   procedure DoneCpu;
     begin
     end;
-  
+
 end.
 {
   $Log$
-  Revision 1.5  1999-08-23 23:27:54  pierre
+  Revision 1.6  1999-09-03 13:11:59  jonas
+    * several changes to the way conditional branches are handled\n  * some typos fixed
+
+  Revision 1.5  1999/08/23 23:27:54  pierre
    + dummy InitCpu/DoneCpu
 
   Revision 1.4  1999/08/06 16:41:12  jonas
