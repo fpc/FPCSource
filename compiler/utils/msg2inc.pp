@@ -18,7 +18,7 @@ program msg2inc;
 uses strings;
 
 const
-  version='0.99.12';
+  version='0.99.14';
 {$ifdef linux}
   eollen=1;
 {$else}
@@ -752,7 +752,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2000-01-07 01:15:00  peter
+  Revision 1.4  2000-01-27 11:29:15  peter
+    * version 0.99.14
+
+  Revision 1.3  2000/01/07 01:15:00  peter
     * updated copyright to 2000
 
   Revision 1.2  1999/07/13 12:25:07  michael
