@@ -80,7 +80,7 @@ begin
        exit;
    end;
   if not debugger^.debuggee_started then
-    Debugger^.StartTrace
+    Debugger^.Run
   else
    Debugger^.UntilReturn;
   Debugger^.AnnotateError;
@@ -123,7 +123,7 @@ begin
             InitDebugger;
           if assigned(Debugger) then
             begin
-              Debugger^.StartTrace;
+              Debugger^.Run;
               RunDirect:=false;
             end;
         end;
@@ -197,14 +197,14 @@ var
   LineNr : longint;
 begin
 {$ifndef NODEBUG}
-  if (DeskTop^.First=nil) or
-     (TypeOf(DeskTop^.First^)<>TypeOf(TSourceWindow)) then
+  if (DeskTop^.Current=nil) or
+     (TypeOf(DeskTop^.Current^)<>TypeOf(TSourceWindow)) then
     Begin
        ErrorBox('Impossible to reach current cursor',nil);
        Exit;
     End;
 
-  W:=PSourceWindow(DeskTop^.First);
+  W:=PSourceWindow(DeskTop^.Current);
   If assigned(W) then
     begin
       FileName:=W^.Editor^.FileName;
@@ -264,7 +264,11 @@ end;
 
 {
   $Log$
-  Revision 1.26  2000-01-31 16:02:08  pierre
+  Revision 1.27  2000-02-02 22:48:25  pierre
+    * Use desktop^.current instead of desktop^.first
+    * Avoid stopping at main if debugger started with CrtlF9
+
+  Revision 1.26  2000/01/31 16:02:08  pierre
    * avoid the Impossible to set breakpoints here
 
   Revision 1.25  2000/01/28 22:38:21  pierre
