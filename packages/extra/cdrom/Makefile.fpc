@@ -8,6 +8,7 @@ version=1.0.8
 
 [target]
 units=cdrom discid
+implicitunits_linux=major lincd
 examples=showcds getdiscid
 
 [install]
