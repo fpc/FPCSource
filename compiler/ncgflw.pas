@@ -860,15 +860,27 @@ implementation
                 exit;
 {$endif not callparatemp}
               cg.a_param_loc(exprasmlist,left.location,paramanager.getintparaloc(exprasmlist,1));
-              cg.a_call_name(exprasmlist,'FPC_RAISEEXCEPTION');
               paramanager.freeintparaloc(exprasmlist,3);
               paramanager.freeintparaloc(exprasmlist,2);
               paramanager.freeintparaloc(exprasmlist,1);
+{$ifdef newra}
+              rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+{$endif newra}
+              cg.a_call_name(exprasmlist,'FPC_RAISEEXCEPTION');
+{$ifdef newra}
+              rg.deallocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+{$endif newra}
            end
          else
            begin
+{$ifdef newra}
+              rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+{$endif newra}
               cg.a_call_name(exprasmlist,'FPC_POPADDRSTACK');
               cg.a_call_name(exprasmlist,'FPC_RERAISE');
+{$ifdef newra}
+              rg.deallocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+{$endif newra}
            end;
        end;
 
@@ -909,12 +921,24 @@ implementation
     var r:Tregister;
 
       begin
+{$ifdef newra}
+         rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+{$endif newra}
          cg.a_call_name(exprasmlist,'FPC_POPOBJECTSTACK');
+{$ifdef newra}
+         rg.deallocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+{$endif newra}
          r.enum:=R_INTREGISTER;
          r.number:=NR_FUNCTION_RESULT_REG;
          cg.a_param_reg(exprasmlist,OS_ADDR,r,paramanager.getintparaloc(exprasmlist,1));
-         cg.a_call_name(exprasmlist,'FPC_DESTROYEXCEPTION');
          paramanager.freeintparaloc(exprasmlist,1);
+{$ifdef newra}
+         rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+{$endif newra}
+         cg.a_call_name(exprasmlist,'FPC_DESTROYEXCEPTION');
+{$ifdef newra}
+         rg.deallocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+{$endif newra}
       end;
 
 
@@ -1019,8 +1043,14 @@ implementation
                 'default handler' flag (=-1)
               }
               cg.a_param_const(exprasmlist,OS_ADDR,aword(-1),paramanager.getintparaloc(exprasmlist,1));
-              cg.a_call_name(exprasmlist,'FPC_CATCHES');
               paramanager.freeintparaloc(exprasmlist,1);
+{$ifdef newra}
+              rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+{$endif newra}
+              cg.a_call_name(exprasmlist,'FPC_CATCHES');
+{$ifdef newra}
+              rg.deallocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+{$endif newra}
 
               { the destruction of the exception object must be also }
               { guarded by an exception frame                        }
@@ -1038,13 +1068,25 @@ implementation
 
               try_free_exception(exprasmlist,tempbuf,tempaddr,href,0,doobjectdestroy,false);
 
+{$ifdef newra}
+              rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+{$endif newra}
               cg.a_call_name(exprasmlist,'FPC_POPSECONDOBJECTSTACK');
+{$ifdef newra}
+              rg.deallocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+{$endif newra}
 
               r.enum:=R_INTREGISTER;
               r.number:=NR_FUNCTION_RESULT_REG;
               cg.a_param_reg(exprasmlist, OS_ADDR, r, paramanager.getintparaloc(exprasmlist,1));
-              cg.a_call_name(exprasmlist,'FPC_DESTROYEXCEPTION');
               paramanager.freeintparaloc(exprasmlist,1);
+{$ifdef newra}
+              rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+{$endif newra}
+              cg.a_call_name(exprasmlist,'FPC_DESTROYEXCEPTION');
+{$ifdef newra}
+              rg.deallocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+{$endif newra}
               { we don't need to restore esi here because reraise never }
               { returns                                                 }
               cg.a_call_name(exprasmlist,'FPC_RERAISE');
@@ -1065,7 +1107,13 @@ implementation
               cg.a_label(exprasmlist,exitexceptlabel);
               { we must also destroy the address frame which guards }
               { exception object                                    }
+{$ifdef newra}
+              rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+{$endif newra}
               cg.a_call_name(exprasmlist,'FPC_POPADDRSTACK');
+{$ifdef newra}
+              rg.deallocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+{$endif newra}
               cg.g_exception_reason_load(exprasmlist,href);
               cleanupobjectstack;
               cg.a_jmp_always(exprasmlist,oldaktexitlabel);
@@ -1076,7 +1124,13 @@ implementation
               cg.a_label(exprasmlist,breakexceptlabel);
               { we must also destroy the address frame which guards }
               { exception object                                    }
+{$ifdef newra}
+              rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+{$endif newra}
               cg.a_call_name(exprasmlist,'FPC_POPADDRSTACK');
+{$ifdef newra}
+              rg.deallocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+{$endif newra}
               cg.g_exception_reason_load(exprasmlist,href);
               cleanupobjectstack;
               cg.a_jmp_always(exprasmlist,oldaktbreaklabel);
@@ -1087,7 +1141,13 @@ implementation
               cg.a_label(exprasmlist,continueexceptlabel);
               { we must also destroy the address frame which guards }
               { exception object                                    }
+{$ifdef newra}
+              rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+{$endif newra}
               cg.a_call_name(exprasmlist,'FPC_POPADDRSTACK');
+{$ifdef newra}
+              rg.deallocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+{$endif newra}
               cg.g_exception_reason_load(exprasmlist,href);
               cleanupobjectstack;
               cg.a_jmp_always(exprasmlist,oldaktcontinuelabel);
@@ -1097,7 +1157,13 @@ implementation
            begin
               { do some magic for exit in the try block }
               cg.a_label(exprasmlist,exittrylabel);
+{$ifdef newra}
+              rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+{$endif newra}
               cg.a_call_name(exprasmlist,'FPC_POPADDRSTACK');
+{$ifdef newra}
+              rg.deallocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+{$endif newra}
               cg.g_exception_reason_load(exprasmlist,href);
               cg.a_jmp_always(exprasmlist,oldaktexitlabel);
            end;
@@ -1105,7 +1171,13 @@ implementation
          if fc_break in tryflowcontrol then
            begin
               cg.a_label(exprasmlist,breaktrylabel);
+{$ifdef newra}
+              rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+{$endif newra}
               cg.a_call_name(exprasmlist,'FPC_POPADDRSTACK');
+{$ifdef newra}
+              rg.deallocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+{$endif newra}
               cg.g_exception_reason_load(exprasmlist,href);
               cg.a_jmp_always(exprasmlist,oldaktbreaklabel);
            end;
@@ -1113,7 +1185,13 @@ implementation
          if fc_continue in tryflowcontrol then
            begin
               cg.a_label(exprasmlist,continuetrylabel);
+{$ifdef newra}
+              rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+{$endif newra}
               cg.a_call_name(exprasmlist,'FPC_POPADDRSTACK');
+{$ifdef newra}
+              rg.deallocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+{$endif newra}
               cg.g_exception_reason_load(exprasmlist,href);
               cg.a_jmp_always(exprasmlist,oldaktcontinuelabel);
            end;
@@ -1165,8 +1243,14 @@ implementation
          { send the vmt parameter }
          reference_reset_symbol(href2,objectlibrary.newasmsymboldata(excepttype.vmt_mangledname),0);
          cg.a_paramaddr_ref(exprasmlist,href2,paramanager.getintparaloc(exprasmlist,1));
-         cg.a_call_name(exprasmlist,'FPC_CATCHES');
          paramanager.freeintparaloc(exprasmlist,1);
+{$ifdef newra}
+         rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+{$endif newra}
+         cg.a_call_name(exprasmlist,'FPC_CATCHES');
+{$ifdef newra}
+         rg.deallocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+{$endif newra}
 
          { is it this catch? No. go to next onlabel }
          r.enum:=R_INTREGISTER;
@@ -1209,10 +1293,22 @@ implementation
 
          try_free_exception(exprasmlist,tempbuf,tempaddr,href,0,doobjectdestroy,false);
 
+{$ifdef newra}
+         rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+{$endif newra}
          cg.a_call_name(exprasmlist,'FPC_POPSECONDOBJECTSTACK');
+{$ifdef newra}
+         rg.deallocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+{$endif newra}
          cg.a_param_reg(exprasmlist, OS_ADDR, r, paramanager.getintparaloc(exprasmlist,1));
-         cg.a_call_name(exprasmlist,'FPC_DESTROYEXCEPTION');
          paramanager.freeintparaloc(exprasmlist,1);
+{$ifdef newra}
+         rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+{$endif newra}
+         cg.a_call_name(exprasmlist,'FPC_DESTROYEXCEPTION');
+{$ifdef newra}
+         rg.deallocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+{$endif newra}
          { we don't need to restore esi here because reraise never }
          { returns                                                 }
          cg.a_call_name(exprasmlist,'FPC_RERAISE');
@@ -1443,7 +1539,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.72  2003-06-13 21:19:30  peter
+  Revision 1.73  2003-07-23 11:01:14  jonas
+    * several rg.allocexplicitregistersint/rg.deallocexplicitregistersint
+      pairs round calls to helpers
+
+  Revision 1.72  2003/06/13 21:19:30  peter
     * current_procdef removed, use current_procinfo.procdef instead
 
   Revision 1.71  2003/06/09 14:38:52  jonas

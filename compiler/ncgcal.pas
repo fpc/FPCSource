@@ -1092,8 +1092,14 @@ implementation
            begin
               reference_reset_symbol(href,iolabel,0);
               cg.a_paramaddr_ref(exprasmlist,href,paramanager.getintparaloc(exprasmlist,1));
-              cg.a_call_name(exprasmlist,'FPC_IOCHECK');
               paramanager.freeintparaloc(exprasmlist,1);
+{$ifdef newra}
+              rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+{$endif newra}
+              cg.a_call_name(exprasmlist,'FPC_IOCHECK');
+{$ifdef newra}
+              rg.deallocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+{$endif newra}
            end;
 
          { restore registers }
@@ -1446,8 +1452,14 @@ implementation
            begin
               reference_reset_symbol(href,iolabel,0);
               cg.a_paramaddr_ref(exprasmlist,href,paramanager.getintparaloc(exprasmlist,1));
-              cg.a_call_name(exprasmlist,'FPC_IOCHECK');
               paramanager.freeintparaloc(exprasmlist,1);
+{$ifdef newra}
+              rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+{$endif newra}
+              cg.a_call_name(exprasmlist,'FPC_IOCHECK');
+{$ifdef newra}
+              rg.deallocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+{$endif newra}
            end;
 
          { restore registers }
@@ -1531,7 +1543,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.102  2003-07-21 13:51:50  jonas
+  Revision 1.103  2003-07-23 11:01:14  jonas
+    * several rg.allocexplicitregistersint/rg.deallocexplicitregistersint
+      pairs round calls to helpers
+
+  Revision 1.102  2003/07/21 13:51:50  jonas
     * fixed 64bit int results with -dnewra (you can't free both registers and
       then allocate two new ones, because then the registers could be reversed
       afterwards -> you get something like "movl %eax, %edx; movl %edx,%eax")

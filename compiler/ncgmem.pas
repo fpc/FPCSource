@@ -259,8 +259,14 @@ implementation
             (not tpointerdef(left.resulttype.def).is_far) then
           begin
             cg.a_param_reg(exprasmlist, OS_ADDR,location.reference.base,paramanager.getintparaloc(exprasmlist,1));
-            cg.a_call_name(exprasmlist,'FPC_CHECKPOINTER');
             paramanager.freeintparaloc(exprasmlist,1);
+{$ifdef newra}
+            rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+{$endif newra}
+            cg.a_call_name(exprasmlist,'FPC_CHECKPOINTER');
+{$ifdef newra}
+            rg.deallocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+{$endif newra}
           end;
       end;
 
@@ -307,8 +313,14 @@ implementation
                 not(cs_compilesystem in aktmoduleswitches) then
               begin
                 cg.a_param_reg(exprasmlist, OS_ADDR,location.reference.base,paramanager.getintparaloc(exprasmlist,1));
-                cg.a_call_name(exprasmlist,'FPC_CHECKPOINTER');
                 paramanager.freeintparaloc(exprasmlist,1);
+{$ifdef newra}
+                rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+{$endif newra}
+                cg.a_call_name(exprasmlist,'FPC_CHECKPOINTER');
+{$ifdef newra}
+                rg.deallocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+{$endif newra}
               end;
            end
          else if is_interfacecom(left.resulttype.def) then
@@ -321,8 +333,14 @@ implementation
                 not(cs_compilesystem in aktmoduleswitches) then
               begin
                 cg.a_param_reg(exprasmlist, OS_ADDR,location.reference.base,paramanager.getintparaloc(exprasmlist,1));
-                cg.a_call_name(exprasmlist,'FPC_CHECKPOINTER');
                 paramanager.freeintparaloc(exprasmlist,1);
+{$ifdef newra}
+                rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+{$endif newra}
+                cg.a_call_name(exprasmlist,'FPC_CHECKPOINTER');
+{$ifdef newra}
+                rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+{$endif newra}
               end;
 
            end
@@ -522,7 +540,6 @@ implementation
                cg.a_param_loc(exprasmlist,left.location,paramanager.getintparaloc(exprasmlist,1));
             {$ifdef newra}
                rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
-
             {$else}
                rg.saveintregvars(exprasmlist,VOLATILE_INTREGISTERS);
             {$endif}
@@ -881,7 +898,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.66  2003-07-06 21:50:33  jonas
+  Revision 1.67  2003-07-23 11:01:14  jonas
+    * several rg.allocexplicitregistersint/rg.deallocexplicitregistersint
+      pairs round calls to helpers
+
+  Revision 1.66  2003/07/06 21:50:33  jonas
     * fixed ppc compilation problems and changed VOLATILE_REGISTERS for x86
       so that it doesn't include ebp and esp anymore
 

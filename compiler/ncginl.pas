@@ -207,11 +207,17 @@ implementation
        secondpass(tcallparanode(tcallparanode(left).right).left);
        cg.a_paramaddr_ref(exprasmlist,tcallparanode(tcallparanode(left).right).left.location.reference,paramanager.getintparaloc(exprasmlist,1));
        { call }
-       cg.a_call_name(exprasmlist,'FPC_ASSERT');
        paramanager.freeintparaloc(exprasmlist,4);
        paramanager.freeintparaloc(exprasmlist,3);
        paramanager.freeintparaloc(exprasmlist,2);
        paramanager.freeintparaloc(exprasmlist,1);
+{$ifdef newra}
+       rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+{$endif newra}
+       cg.a_call_name(exprasmlist,'FPC_ASSERT');
+{$ifdef newra}
+       rg.deallocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
+{$endif newra}
        cg.a_label(exprasmlist,truelabel);
        truelabel:=otlabel;
        falselabel:=oflabel;
@@ -686,7 +692,11 @@ end.
 
 {
   $Log$
-  Revision 1.38  2003-07-05 20:07:24  jonas
+  Revision 1.39  2003-07-23 11:01:14  jonas
+    * several rg.allocexplicitregistersint/rg.deallocexplicitregistersint
+      pairs round calls to helpers
+
+  Revision 1.38  2003/07/05 20:07:24  jonas
     * fixed range check errors
 
   Revision 1.37  2003/06/13 21:19:30  peter

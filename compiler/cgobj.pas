@@ -1394,10 +1394,16 @@ unit cgobj;
         if delsource then
          reference_release(list,source);
         a_param_const(list,OS_INT,len,paramanager.getintparaloc(list,1));
-        a_call_name(list,'FPC_SHORTSTR_ASSIGN');
         paramanager.freeintparaloc(list,3);
         paramanager.freeintparaloc(list,2);
         paramanager.freeintparaloc(list,1);
+{$ifdef newra}
+        rg.allocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+{$endif newra}
+        a_call_name(list,'FPC_SHORTSTR_ASSIGN');
+{$ifdef newra}
+        rg.deallocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+{$endif newra}
       end;
 
 
@@ -1423,7 +1429,14 @@ unit cgobj;
           begin
             { these functions get the pointer by value }
             a_param_ref(list,OS_ADDR,ref,paramanager.getintparaloc(list,1));
+            paramanager.freeintparaloc(list,1);
+{$ifdef newra}
+            rg.allocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+{$endif newra}
             a_call_name(list,incrfunc);
+{$ifdef newra}
+            rg.deallocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+{$endif newra}
           end
          else
           begin
@@ -1433,10 +1446,16 @@ unit cgobj;
               a_param_ref(list,OS_ADDR,ref,paramanager.getintparaloc(list,1))
             else
               a_paramaddr_ref(list,ref,paramanager.getintparaloc(list,1));
-            a_call_name(list,'FPC_ADDREF');
+            paramanager.freeintparaloc(list,1);
             paramanager.freeintparaloc(list,2);
+{$ifdef newra}
+            rg.allocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+{$endif newra}
+            a_call_name(list,'FPC_ADDREF');
+{$ifdef newra}
+            rg.deallocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+{$endif newra}
          end;
-        paramanager.freeintparaloc(list,1);
       end;
 
 
@@ -1472,7 +1491,14 @@ unit cgobj;
               a_param_ref(list,OS_ADDR,ref,paramanager.getintparaloc(list,1))
             else
               a_paramaddr_ref(list,ref,paramanager.getintparaloc(list,1));
+            paramanager.freeintparaloc(list,1);
+{$ifdef newra}
+            rg.allocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+{$endif newra}
             a_call_name(list,decrfunc);
+{$ifdef newra}
+            rg.deallocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+{$endif newra}
             if needrtti then
               paramanager.freeintparaloc(list,2);
           end
@@ -1484,10 +1510,16 @@ unit cgobj;
               a_param_ref(list,OS_ADDR,ref,paramanager.getintparaloc(list,1))
             else
               a_paramaddr_ref(list,ref,paramanager.getintparaloc(list,1));
-            a_call_name(list,'FPC_DECREF');
+            paramanager.freeintparaloc(list,1);
             paramanager.freeintparaloc(list,2);
+{$ifdef newra}
+            rg.allocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+{$endif newra}
+            a_call_name(list,'FPC_DECREF');
+{$ifdef newra}
+            rg.deallocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+{$endif newra}
          end;
-        paramanager.freeintparaloc(list,1);
       end;
 
 
@@ -1507,9 +1539,15 @@ unit cgobj;
                 a_param_ref(list,OS_ADDR,ref,paramanager.getintparaloc(list,1))
               else
                 a_paramaddr_ref(list,ref,paramanager.getintparaloc(list,1));
-              a_call_name(list,'FPC_INITIALIZE');
               paramanager.freeintparaloc(list,1);
               paramanager.freeintparaloc(list,2);
+{$ifdef newra}
+              rg.allocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+{$endif newra}
+              a_call_name(list,'FPC_INITIALIZE');
+{$ifdef newra}
+              rg.deallocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+{$endif newra}
            end;
       end;
 
@@ -1530,9 +1568,15 @@ unit cgobj;
                 a_param_ref(list,OS_ADDR,ref,paramanager.getintparaloc(list,1))
               else
                 a_paramaddr_ref(list,ref,paramanager.getintparaloc(list,1));
-              a_call_name(list,'FPC_FINALIZE');
               paramanager.freeintparaloc(list,1);
               paramanager.freeintparaloc(list,2);
+{$ifdef newra}
+              rg.allocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+{$endif newra}
+              a_call_name(list,'FPC_FINALIZE');
+{$ifdef newra}
+              rg.deallocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+{$endif newra}
            end;
       end;
 
@@ -1710,16 +1754,28 @@ unit cgobj;
            reference_reset_symbol(hrefvmt,objectlibrary.newasmsymboldata(objdef.vmt_mangledname),0);
            a_paramaddr_ref(list,hrefvmt,paramanager.getintparaloc(list,2));
            a_param_reg(list,OS_ADDR,reg,paramanager.getintparaloc(list,1));
-           a_call_name(list,'FPC_CHECK_OBJECT_EXT');
            paramanager.freeintparaloc(list,2);
            paramanager.freeintparaloc(list,1);
+{$ifdef newra}
+           rg.allocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+{$endif newra}
+           a_call_name(list,'FPC_CHECK_OBJECT_EXT');
+{$ifdef newra}
+           rg.deallocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+{$endif newra}
          end
         else
          if (cs_check_range in aktlocalswitches) then
           begin
             a_param_reg(list,OS_ADDR,reg,paramanager.getintparaloc(list,1));
-            a_call_name(list,'FPC_CHECK_OBJECT');
             paramanager.freeintparaloc(list,1);
+{$ifdef newra}
+            rg.allocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+{$endif newra}
+            a_call_name(list,'FPC_CHECK_OBJECT');
+{$ifdef newra}
+            rg.deallocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+{$endif newra}
           end;
       end;
 
@@ -1795,7 +1851,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.114  2003-07-06 17:58:22  peter
+  Revision 1.115  2003-07-23 11:01:14  jonas
+    * several rg.allocexplicitregistersint/rg.deallocexplicitregistersint
+      pairs round calls to helpers
+
+  Revision 1.114  2003/07/06 17:58:22  peter
     * framepointer fixes for sparc
     * parent framepointer code more generic
 
