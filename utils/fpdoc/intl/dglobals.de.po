@@ -158,3 +158,16 @@ msgstr "Erklärung"
 msgid "Enumeration values for type %s"
 msgstr "Aufzählungswerte für Typ %s"
 
+#: dglobals.sdocup
+msgid "Up"
+msgstr "Hoch"
+
+#: dglobals.sdocnext
+msgid "Next"
+msgstr "Nächste"
+
+#: dglobals.sdocprevious
+msgid "Previous"
+msgstr "Vorherige"
+
+
