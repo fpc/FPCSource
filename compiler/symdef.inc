@@ -2540,7 +2540,9 @@
           param := param^.next;
           end;
         getmem(nss,1024);
-        strpcopy(nss,'f'+retdef^.numberstring{+','+tostr(i)}+';');
+        { it is not a function but a function pointer !! (PM) }
+
+        strpcopy(nss,'*f'+retdef^.numberstring{+','+tostr(i)}+';');
         param := para1;
         i := 0;
         { this confuses gdb !!
@@ -3260,7 +3262,10 @@
 
 {
   $Log$
-  Revision 1.82  1998-12-19 00:23:52  florian
+  Revision 1.83  1998-12-21 14:03:08  pierre
+   * procvar stabs correction
+
+  Revision 1.82  1998/12/19 00:23:52  florian
     * ansistring memory leaks fixed
 
   Revision 1.81  1998/12/11 08:57:22  pierre
