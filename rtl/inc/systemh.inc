@@ -312,6 +312,7 @@ Procedure UniqueString (Var S : AnsiString);
 Function  Length (Const S : AnsiString) : Longint;
 Function  Copy (Const S : AnsiString; Index,Size : Longint) : AnsiString;
 Function  Pos (Const Substr : AnsiString; Const Source : AnsiString) : Longint;
+Function  Pos (c : Char; Const s : AnsiString) : Longint;
 Procedure Insert (Const Source : AnsiString; Var S : AnsiString; Index : Longint);
 Procedure Delete (Var S : AnsiString; Index,Size: Longint);
 Function StringOfChar(c : char;l : longint) : AnsiString;
@@ -485,7 +486,13 @@ const
 
 {
   $Log$
-  Revision 1.13  2000-12-07 17:19:47  jonas
+  Revision 1.14  2000-12-08 14:04:43  jonas
+    + added pos(char,ansistring), because there is also a pos(char,shortstring)
+      and without the ansistring version, the shortstring version is always
+      called when calling pos(char,pchar), even when using $h+ (because the
+      first parameter matches exactly) (merged)
+
+  Revision 1.13  2000/12/07 17:19:47  jonas
     * new constant handling: from now on, hex constants >$7fffffff are
       parsed as unsigned constants (otherwise, $80000000 got sign extended
       and became $ffffffff80000000), all constants in the longint range

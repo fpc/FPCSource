@@ -520,6 +520,24 @@ begin
 end;
 
 
+{ Faster version for a char alone. Must be implemented because   }
+{ pos(c: char; const s: shortstring) also exists, so otherwise   }
+{ using pos(char,pchar) will always call the shortstring version }
+{ (exact match for first argument), also with $h+ (JM)           }
+Function Pos (c : Char; Const s : AnsiString) : Longint;
+var
+  i: longint;
+begin
+  for i:=1 to length(s) do
+   if s[i]=c then
+    begin
+      pos:=i;
+      exit;
+    end;
+  pos:=0;
+end;
+
+
 Function ValAnsiFloat(Const S : AnsiString; Var Code : ValSInt): ValReal; [public, alias:'FPC_VAL_REAL_ANSISTR'];
 Var
   SS : String;
@@ -668,7 +686,13 @@ end;
 
 {
   $Log$
-  Revision 1.7  2000-11-06 20:34:24  peter
+  Revision 1.8  2000-12-08 14:04:43  jonas
+    + added pos(char,ansistring), because there is also a pos(char,shortstring)
+      and without the ansistring version, the shortstring version is always
+      called when calling pos(char,pchar), even when using $h+ (because the
+      first parameter matches exactly) (merged)
+
+  Revision 1.7  2000/11/06 20:34:24  peter
     * changed ver1_0 defines to temporary defs
 
   Revision 1.6  2000/10/21 18:20:17  florian
