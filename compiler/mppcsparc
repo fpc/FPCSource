@@ -1,0 +1,2 @@
+#!/bin/bash
+fpc pp -g -oppcsparc -dExtDebug -Fusparc -Futargets -dSPARC -dNoOpt -dGDB

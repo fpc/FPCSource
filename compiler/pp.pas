@@ -129,7 +129,7 @@ uses
     catch,
   {$endif}
 {$endif FPC}
-  globals,compiler;
+  globals,compiler,gdb;
 
 var
   oldexit : pointer;
@@ -177,7 +177,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2002-07-04 20:43:01  florian
+  Revision 1.16  2002-08-23 13:17:59  mazen
+  *** empty log message ***
+
+  Revision 1.15  2002/07/04 20:43:01  florian
     * first x86-64 patches
 
   Revision 1.14  2002/05/22 19:02:16  carl

@@ -35,10 +35,15 @@
 {$ifdef x86_64}
   {$define x86}
 {$endif x86_64}
-
+{$ifdef sparc}
+  {$undef win32}
+{$endif sparc}
 {
   $Log$
-  Revision 1.6  2002-08-19 18:17:48  carl
+  Revision 1.7  2002-08-23 13:17:59  mazen
+  *** empty log message ***
+
+  Revision 1.6  2002/08/19 18:17:48  carl
     + optimize64_op_const_reg implemented (optimizes 64-bit constant opcodes)
     * more fixes to m68k for 64-bit operations
 
