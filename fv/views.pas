@@ -396,7 +396,8 @@ TYPE
       FUNCTION GetColor (Color: Word): Word;
       FUNCTION Valid (Command: Word): Boolean; Virtual;
       FUNCTION GetState (AState: Word): Boolean;
-      FUNCTION TextWidth (Txt: String): Sw_Integer;
+      FUNCTION TextWidth (const Txt: String): Sw_Integer;
+      FUNCTION CTextWidth (const Txt: String): Sw_Integer;
       FUNCTION MouseInView (Point: TPoint): Boolean;
       FUNCTION CommandEnabled (Command: Word): Boolean;
       FUNCTION OverLapsArea (X1, Y1, X2, Y2: Sw_Integer): Boolean;
@@ -1195,7 +1196,12 @@ END;
 {--TView--------------------------------------------------------------------}
 {  TextWidth -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 25Nov99 LdB         }
 {---------------------------------------------------------------------------}
-FUNCTION TView.TextWidth (Txt: String): Sw_Integer;
+FUNCTION TView.TextWidth (const Txt: String): Sw_Integer;
+BEGIN
+   TextWidth := Length(Txt) * SysFontWidth;             { Calc text length }
+END;
+
+FUNCTION TView.CTextWidth (const Txt: String): Sw_Integer;
 VAR I: Sw_Integer; S: String;
 BEGIN
    S := Txt;                                          { Transfer text }
@@ -1203,7 +1209,7 @@ BEGIN
      I := Pos('~', S);                                { Check for tilde }
       If (I <> 0) Then System.Delete(S, I, 1);        { Remove the tilde }
    Until (I = 0);                                     { Remove all tildes }
-   TextWidth := Length(S) * SysFontWidth;             { Calc text length }
+   CTextWidth := Length(S) * SysFontWidth;             { Calc text length }
 END;
 
 {--TView--------------------------------------------------------------------}
@@ -5860,7 +5866,10 @@ END.
 
 {
  $Log$
- Revision 1.42  2004-11-03 10:37:24  peter
+ Revision 1.43  2004-11-03 12:09:08  peter
+   * textwidth doesn't support ~ anymore, added CTextWidth with ~ support
+
+ Revision 1.42  2004/11/03 10:37:24  peter
    * cursor probs fixed
 
  Revision 1.41  2004/11/02 23:53:19  peter

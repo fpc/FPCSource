@@ -1891,7 +1891,7 @@ BEGIN
      End;
    If (Title <> Nil) Then Begin                       { We have a title }
      If (Flags AND bfLeftJust = 0) Then Begin         { Not left set title }
-       I := TextWidth(Title^);                        { Fetch title width }
+       I := CTextWidth(Title^);                        { Fetch title width }
        I := (RawSize.X - I) DIV 2;                    { Centre in button }
      End Else I := FontWidth;                         { Left edge of button }
      If not TextModeGFV then Begin
@@ -4229,7 +4229,10 @@ END;
 END.
 {
  $Log$
- Revision 1.24  2004-11-03 10:37:24  peter
+ Revision 1.25  2004-11-03 12:09:08  peter
+   * textwidth doesn't support ~ anymore, added CTextWidth with ~ support
+
+ Revision 1.24  2004/11/03 10:37:24  peter
    * cursor probs fixed
 
  Revision 1.23  2004/11/02 23:53:19  peter

@@ -955,7 +955,7 @@ BEGIN
            MoveCStr(B, ' '+P^.Name^+' ', Color);      { Name to buffer }
            WriteBuf(I, 0, J, 1, B);                   { Write the string }
            K := I*FontWidth;                          { X start position }
-           L := K + TextWidth(' '+P^.Name^+' ');      { X end position }
+           L := K + CTextWidth(' '+P^.Name^+' ');      { X end position }
            If AdvancedMenus Then Begin
              GraphLine(K, 0, L, 0, White);            { Redraw top line }
              GraphLine(K, FontHeight-1, L,
@@ -1017,7 +1017,7 @@ BEGIN
    While (P <> Nil) Do Begin                          { While valid item }
      R.A.X := I*FontWidth;                            { Move area along }
      If (P^.Name <> Nil) Then Begin                   { Valid name }
-       R.B.X := R.A.X+TextWidth(' ' + P^.Name^ + ' ');{ Add text width  }
+       R.B.X := R.A.X+CTextWidth(' ' + P^.Name^ + ' ');{ Add text width  }
        I := I + CStrLen(P^.Name^) + 2;                { Add item length }
      End Else R.B.X := R.A.X;
      If (P = Item) Then break;                        { Requested item found }
@@ -1046,7 +1046,7 @@ BEGIN
          If (P^.Command <> 0) AND (P^.Param <> Nil)
            Then S := S + ' - ' + P^.Param^;           { Add any parameter }
        End;
-       L := TextWidth(S);                             { Width of string }
+       L := CTextWidth(S);                             { Width of string }
        If (L > W) Then W := L;                        { Hold maximum }
        Inc(H);                                        { Inc count of items }
        P := P^.Next;                                  { Move to next item }
@@ -1155,7 +1155,7 @@ BEGIN
            If (P = Current) Then Begin                { Selected item }
              Tx := 2 * FontWidth;                     { X offset }
              Ty := Y * FontHeight;                    { Y offset }
-             BicolorRectangle(Tx, Ty, Tx + TextWidth(S)
+             BicolorRectangle(Tx, Ty, Tx + CTextWidth(S)
                - 1, Ty + FontHeight - 1, White,
                DarkGray, False);                      { Draw higlight box }
            End;
@@ -1476,7 +1476,7 @@ VAR Mouse: TPoint; T, Tt: PStatusItem;
      While (T <> Nil) Do Begin                        { While item valid }
        If (T^.Text <> Nil) Then Begin                 { Check valid text }
          Xi := X;                                     { Hold initial x value }
-         X := Xi + TextWidth(' ' + T^.Text^ + ' ');   { Add text width }
+         X := Xi + CTextWidth(' ' + T^.Text^ + ' ');   { Add text width }
          If (Mouse.X >= Xi) AND (Mouse.X < X)
          Then Begin
            ItemMouseIsIn := T;                        { Selected item }
@@ -1759,7 +1759,10 @@ END;
 END.
 {
  $Log$
- Revision 1.17  2004-11-02 23:53:19  peter
+ Revision 1.18  2004-11-03 12:09:08  peter
+   * textwidth doesn't support ~ anymore, added CTextWidth with ~ support
+
+ Revision 1.17  2004/11/02 23:53:19  peter
    * fixed crashes with ide and 1.9.x
 
  Revision 1.16  2002/10/17 11:24:17  pierre
