@@ -31,14 +31,13 @@ interface
 
     type
        ti386addnode = class(tx86addnode)
-          procedure second_addboolean;override;
-          procedure second_addsmallset;override;
-          procedure second_addmmxset;override;
-          procedure second_mul;override;
 {$ifdef SUPPORT_MMX}
+          procedure second_addmmxset;override;
           procedure second_addmmx;override;
 {$endif SUPPORT_MMX}
           procedure second_add64bit;override;
+          procedure second_cmp64bit;override;
+          procedure second_mul;override;
        end;
 
   implementation
@@ -47,260 +46,16 @@ interface
       globtype,systems,
       cutils,verbose,globals,
       symconst,symdef,paramgr,
-      aasmbase,aasmtai,aasmcpu,defutil,htypechk,
-      cgbase,pass_2,regvars,
+      aasmbase,aasmtai,aasmcpu,
+      cgbase,
       ncon,nset,
-      cga,cgx86,ncgutil,cgobj,cg64f32;
-
-{*****************************************************************************
-                                AddBoolean
-*****************************************************************************}
-
-    procedure ti386addnode.second_addboolean;
-      var
-        op      : TAsmOp;
-        opsize  : TCGSize;
-        cmpop,
-        isjump  : boolean;
-        otl,ofl : tasmlabel;
-      begin
-        { calculate the operator which is more difficult }
-        firstcomplex(self);
-
-        cmpop:=false;
-        if (torddef(left.resulttype.def).typ=bool8bit) or
-           (torddef(right.resulttype.def).typ=bool8bit) then
-         opsize:=OS_8
-        else
-          if (torddef(left.resulttype.def).typ=bool16bit) or
-             (torddef(right.resulttype.def).typ=bool16bit) then
-           opsize:=OS_16
-        else
-           opsize:=OS_32;
-
-        if (cs_full_boolean_eval in aktlocalswitches) or
-           (nodetype in [unequaln,ltn,lten,gtn,gten,equaln,xorn]) then
-          begin
-            if left.nodetype in [ordconstn,realconstn] then
-             swapleftright;
-
-            isjump:=(left.expectloc=LOC_JUMP);
-            if isjump then
-              begin
-                 otl:=truelabel;
-                 objectlibrary.getlabel(truelabel);
-                 ofl:=falselabel;
-                 objectlibrary.getlabel(falselabel);
-              end;
-            secondpass(left);
-            if left.location.loc in [LOC_FLAGS,LOC_JUMP] then
-             location_force_reg(exprasmlist,left.location,opsize,false);
-            if isjump then
-             begin
-               truelabel:=otl;
-               falselabel:=ofl;
-             end
-            else if left.location.loc=LOC_JUMP then
-              internalerror(200310081);
-
-            isjump:=(right.expectloc=LOC_JUMP);
-            if isjump then
-              begin
-                 otl:=truelabel;
-                 objectlibrary.getlabel(truelabel);
-                 ofl:=falselabel;
-                 objectlibrary.getlabel(falselabel);
-              end;
-            secondpass(right);
-            if right.location.loc in [LOC_FLAGS,LOC_JUMP] then
-             location_force_reg(exprasmlist,right.location,opsize,false);
-            if isjump then
-             begin
-               truelabel:=otl;
-               falselabel:=ofl;
-             end
-            else if left.location.loc=LOC_JUMP then
-              internalerror(200310082);
-
-            { left must be a register }
-            left_must_be_reg(opsize,false);
-            { compare the }
-            case nodetype of
-              ltn,lten,gtn,gten,
-              equaln,unequaln :
-                begin
-                  op:=A_CMP;
-                  cmpop:=true;
-                end;
-              xorn :
-                op:=A_XOR;
-              orn :
-                op:=A_OR;
-              andn :
-                op:=A_AND;
-              else
-                internalerror(200203247);
-            end;
-            emit_op_right_left(op,TCGSize2Opsize[opsize]);
-            location_freetemp(exprasmlist,right.location);
-            location_release(exprasmlist,right.location);
-            if cmpop then
-             begin
-               location_freetemp(exprasmlist,left.location);
-               location_release(exprasmlist,left.location);
-             end;
-            set_result_location(cmpop,true);
-         end
-        else
-         begin
-           case nodetype of
-             andn,
-             orn :
-               begin
-                 location_reset(location,LOC_JUMP,OS_NO);
-                 case nodetype of
-                   andn :
-                     begin
-                        otl:=truelabel;
-                        objectlibrary.getlabel(truelabel);
-                        secondpass(left);
-                        maketojumpbool(exprasmlist,left,lr_load_regvars);
-                        cg.a_label(exprasmlist,truelabel);
-                        truelabel:=otl;
-                     end;
-                   orn :
-                     begin
-                        ofl:=falselabel;
-                        objectlibrary.getlabel(falselabel);
-                        secondpass(left);
-                        maketojumpbool(exprasmlist,left,lr_load_regvars);
-                        cg.a_label(exprasmlist,falselabel);
-                        falselabel:=ofl;
-                     end;
-                   else
-                     internalerror(2003042212);
-                 end;
-                 secondpass(right);
-                 maketojumpbool(exprasmlist,right,lr_load_regvars);
-               end;
-             else
-               internalerror(2003042213);
-           end;
-         end;
-      end;
-
-
-{*****************************************************************************
-                                AddSmallSet
-*****************************************************************************}
-
-    procedure ti386addnode.second_addsmallset;
-      var
-        opsize : TCGSize;
-        op     : TAsmOp;
-        cmpop,
-        pushedfpu,
-        extra_not,
-        noswap : boolean;
-      begin
-        pass_left_and_right(pushedfpu);
-
-        { when a setdef is passed, it has to be a smallset }
-        if ((left.resulttype.def.deftype=setdef) and
-            (tsetdef(left.resulttype.def).settype<>smallset)) or
-           ((right.resulttype.def.deftype=setdef) and
-            (tsetdef(right.resulttype.def).settype<>smallset)) then
-         internalerror(200203301);
-
-        cmpop:=false;
-        noswap:=false;
-        extra_not:=false;
-        opsize:=OS_32;
-        case nodetype of
-          addn :
-            begin
-              { this is a really ugly hack!!!!!!!!!! }
-              { this could be done later using EDI   }
-              { as it is done for subn               }
-              { instead of two registers!!!!         }
-              { adding elements is not commutative }
-              if (nf_swaped in flags) and (left.nodetype=setelementn) then
-               swapleftright;
-              { are we adding set elements ? }
-              if right.nodetype=setelementn then
-               begin
-                 { no range support for smallsets! }
-                 if assigned(tsetelementnode(right).right) then
-                  internalerror(43244);
-                 { bts requires both elements to be registers }
-                 location_force_reg(exprasmlist,left.location,opsize,false);
-                 location_force_reg(exprasmlist,right.location,opsize,true);
-                 op:=A_BTS;
-                 noswap:=true;
-               end
-              else
-               op:=A_OR;
-            end;
-          symdifn :
-            op:=A_XOR;
-          muln :
-            op:=A_AND;
-          subn :
-            begin
-              op:=A_AND;
-              if (not(nf_swaped in flags)) and
-                 (right.location.loc=LOC_CONSTANT) then
-                right.location.value := not(right.location.value)
-              else if (nf_swaped in flags) and
-                      (left.location.loc=LOC_CONSTANT) then
-                left.location.value := not(left.location.value)
-              else
-                extra_not:=true;
-            end;
-          equaln,
-          unequaln :
-            begin
-              op:=A_CMP;
-              cmpop:=true;
-            end;
-          lten,gten:
-            begin
-              if (not(nf_swaped in flags) and (nodetype = lten)) or
-                 ((nf_swaped in flags) and (nodetype = gten)) then
-                swapleftright;
-              location_force_reg(exprasmlist,left.location,opsize,true);
-              emit_op_right_left(A_AND,TCGSize2Opsize[opsize]);
-              op:=A_CMP;
-              cmpop:=true;
-              { warning: ugly hack, we need a JE so change the node to equaln }
-              nodetype:=equaln;
-            end;
-          xorn :
-            op:=A_XOR;
-          orn :
-            op:=A_OR;
-          andn :
-            op:=A_AND;
-          else
-            internalerror(2003042215);
-        end;
-        { left must be a register }
-        left_must_be_reg(opsize,noswap);
-        emit_generic_code(op,opsize,true,extra_not,false);
-        location_freetemp(exprasmlist,right.location);
-        location_release(exprasmlist,right.location);
-        if cmpop then
-         begin
-           location_freetemp(exprasmlist,left.location);
-           location_release(exprasmlist,left.location);
-         end;
-        set_result_location(cmpop,true);
-      end;
+      cga,ncgutil,cgobj,cg64f32;
 
 {*****************************************************************************
                                    addmmxset
 *****************************************************************************}
 
+{$ifdef SUPPORT_MMX}
     procedure ti386addnode.second_addmmxset;
 
     var opsize : TCGSize;
@@ -377,6 +132,7 @@ interface
          end;
         set_result_location(cmpop,true);
       end;
+{$endif SUPPORT_MMX}
 
 
 {*****************************************************************************
@@ -390,13 +146,148 @@ interface
         opsize     : TOpSize;
         hregister,
         hregister2 : tregister;
-        href       : treference;
         hl4        : tasmlabel;
-        pushedfpu,
         mboverflow,
-        cmpop,
         unsigned:boolean;
         r:Tregister;
+      begin
+        firstcomplex(self);
+        pass_left_right;
+
+        op1:=A_NONE;
+        op2:=A_NONE;
+        mboverflow:=false;
+        opsize:=S_L;
+        unsigned:=((left.resulttype.def.deftype=orddef) and
+                   (torddef(left.resulttype.def).typ=u64bit)) or
+                  ((right.resulttype.def.deftype=orddef) and
+                   (torddef(right.resulttype.def).typ=u64bit));
+        case nodetype of
+          addn :
+            begin
+              op:=OP_ADD;
+              mboverflow:=true;
+            end;
+          subn :
+            begin
+              op:=OP_SUB;
+              op1:=A_SUB;
+              op2:=A_SBB;
+              mboverflow:=true;
+            end;
+          xorn:
+            op:=OP_XOR;
+          orn:
+            op:=OP_OR;
+          andn:
+            op:=OP_AND;
+          else
+            begin
+              { everything should be handled in pass_1 (JM) }
+              internalerror(200109051);
+            end;
+        end;
+
+        { left and right no register?  }
+        { then one must be demanded    }
+        if (left.location.loc<>LOC_REGISTER) then
+         begin
+           if (right.location.loc<>LOC_REGISTER) then
+            begin
+              hregister:=cg.getintregister(exprasmlist,OS_INT);
+              hregister2:=cg.getintregister(exprasmlist,OS_INT);
+              cg64.a_load64_loc_reg(exprasmlist,left.location,joinreg64(hregister,hregister2));
+              location_reset(left.location,LOC_REGISTER,OS_64);
+              left.location.registerlow:=hregister;
+              left.location.registerhigh:=hregister2;
+            end
+           else
+            begin
+              location_swap(left.location,right.location);
+              toggleflag(nf_swaped);
+            end;
+         end;
+
+        { at this point, left.location.loc should be LOC_REGISTER }
+        if right.location.loc=LOC_REGISTER then
+         begin
+           { when swapped another result register }
+           if (nodetype=subn) and (nf_swaped in flags) then
+            begin
+              cg64.a_op64_reg_reg(exprasmlist,op,
+                left.location.register64,
+                right.location.register64);
+              location_swap(left.location,right.location);
+              toggleflag(nf_swaped);
+            end
+           else
+            begin
+              cg64.a_op64_reg_reg(exprasmlist,op,
+                right.location.register64,
+                left.location.register64);
+            end;
+           location_release(exprasmlist,right.location);
+         end
+        else
+         begin
+           { right.location<>LOC_REGISTER }
+           if (nodetype=subn) and (nf_swaped in flags) then
+            begin
+              r:=cg.getintregister(exprasmlist,OS_INT);
+              cg64.a_load64low_loc_reg(exprasmlist,right.location,r);
+              emit_reg_reg(op1,opsize,left.location.registerlow,r);
+              emit_reg_reg(A_MOV,opsize,r,left.location.registerlow);
+              cg64.a_load64high_loc_reg(exprasmlist,right.location,r);
+              { the carry flag is still ok }
+              emit_reg_reg(op2,opsize,left.location.registerhigh,r);
+              emit_reg_reg(A_MOV,opsize,r,left.location.registerhigh);
+              cg.ungetregister(exprasmlist,r);
+              if right.location.loc<>LOC_CREGISTER then
+               begin
+                 location_freetemp(exprasmlist,right.location);
+                 location_release(exprasmlist,right.location);
+               end;
+            end
+           else
+            begin
+              cg64.a_op64_loc_reg(exprasmlist,op,right.location,
+                left.location.register64);
+              if (right.location.loc<>LOC_CREGISTER) then
+               begin
+                 location_freetemp(exprasmlist,right.location);
+                 location_release(exprasmlist,right.location);
+               end;
+            end;
+         end;
+
+        { only in case of overflow operations }
+        { produce overflow code }
+        { we must put it here directly, because sign of operation }
+        { is in unsigned VAR!!                              }
+        if mboverflow then
+         begin
+           if cs_check_overflow in aktlocalswitches  then
+            begin
+              objectlibrary.getlabel(hl4);
+              if unsigned then
+                cg.a_jmp_flags(exprasmlist,F_AE,hl4)
+              else
+                cg.a_jmp_flags(exprasmlist,F_NO,hl4);
+              cg.a_call_name(exprasmlist,'FPC_OVERFLOW');
+              cg.a_label(exprasmlist,hl4);
+            end;
+         end;
+
+        location_copy(location,left.location);
+      end;
+
+
+    procedure ti386addnode.second_cmp64bit;
+      var
+        hregister,
+        hregister2 : tregister;
+        href       : treference;
+        unsigned   : boolean;
 
       procedure firstjmp64bitcmp;
 
@@ -468,49 +359,12 @@ interface
       begin
         firstcomplex(self);
 
-        pass_left_and_right(pushedfpu);
+        pass_left_right;
 
-        op1:=A_NONE;
-        op2:=A_NONE;
-        mboverflow:=false;
-        cmpop:=false;
-        opsize:=S_L;
         unsigned:=((left.resulttype.def.deftype=orddef) and
                    (torddef(left.resulttype.def).typ=u64bit)) or
                   ((right.resulttype.def.deftype=orddef) and
                    (torddef(right.resulttype.def).typ=u64bit));
-        case nodetype of
-          addn :
-            begin
-              op:=OP_ADD;
-              mboverflow:=true;
-            end;
-          subn :
-            begin
-              op:=OP_SUB;
-              op1:=A_SUB;
-              op2:=A_SBB;
-              mboverflow:=true;
-            end;
-          ltn,lten,
-          gtn,gten,
-          equaln,unequaln:
-            begin
-              op:=OP_NONE;
-              cmpop:=true;
-            end;
-          xorn:
-            op:=OP_XOR;
-          orn:
-            op:=OP_OR;
-          andn:
-            op:=OP_AND;
-          else
-            begin
-              { everything should be handled in pass_1 (JM) }
-              internalerror(200109051);
-            end;
-        end;
 
         { left and right no register?  }
         { then one must be demanded    }
@@ -519,7 +373,7 @@ interface
            if (right.location.loc<>LOC_REGISTER) then
             begin
               { we can reuse a CREGISTER for comparison }
-              if not((left.location.loc=LOC_CREGISTER) and cmpop) then
+              if (left.location.loc<>LOC_CREGISTER) then
                begin
                  hregister:=cg.getintregister(exprasmlist,OS_INT);
                  hregister2:=cg.getintregister(exprasmlist,OS_INT);
@@ -539,126 +393,55 @@ interface
         { at this point, left.location.loc should be LOC_REGISTER }
         if right.location.loc=LOC_REGISTER then
          begin
-           { when swapped another result register }
-           if (nodetype=subn) and (nf_swaped in flags) then
-            begin
-              cg64.a_op64_reg_reg(exprasmlist,op,
-                left.location.register64,
-                right.location.register64);
-              location_swap(left.location,right.location);
-              toggleflag(nf_swaped);
-            end
-           else if cmpop then
-            begin
-              emit_reg_reg(A_CMP,S_L,right.location.registerhigh,left.location.registerhigh);
-              firstjmp64bitcmp;
-              emit_reg_reg(A_CMP,S_L,right.location.registerlow,left.location.registerlow);
-              secondjmp64bitcmp;
-            end
-           else
-            begin
-              cg64.a_op64_reg_reg(exprasmlist,op,
-                right.location.register64,
-                left.location.register64);
-            end;
+           emit_reg_reg(A_CMP,S_L,right.location.registerhigh,left.location.registerhigh);
+           firstjmp64bitcmp;
+           emit_reg_reg(A_CMP,S_L,right.location.registerlow,left.location.registerlow);
+           secondjmp64bitcmp;
            location_release(exprasmlist,right.location);
          end
         else
          begin
-           { right.location<>LOC_REGISTER }
-           if (nodetype=subn) and (nf_swaped in flags) then
-            begin
-              r:=cg.getintregister(exprasmlist,OS_INT);
-              cg64.a_load64low_loc_reg(exprasmlist,right.location,r);
-              emit_reg_reg(op1,opsize,left.location.registerlow,r);
-              emit_reg_reg(A_MOV,opsize,r,left.location.registerlow);
-              cg64.a_load64high_loc_reg(exprasmlist,right.location,r);
-              { the carry flag is still ok }
-              emit_reg_reg(op2,opsize,left.location.registerhigh,r);
-              emit_reg_reg(A_MOV,opsize,r,left.location.registerhigh);
-              cg.ungetregister(exprasmlist,r);
-              if right.location.loc<>LOC_CREGISTER then
+           case right.location.loc of
+             LOC_CREGISTER :
                begin
+                 emit_reg_reg(A_CMP,S_L,right.location.registerhigh,left.location.registerhigh);
+                 firstjmp64bitcmp;
+                 emit_reg_reg(A_CMP,S_L,right.location.registerlow,left.location.registerlow);
+                 secondjmp64bitcmp;
+               end;
+             LOC_CREFERENCE,
+             LOC_REFERENCE :
+               begin
+                 href:=right.location.reference;
+                 inc(href.offset,4);
+                 emit_ref_reg(A_CMP,S_L,href,left.location.registerhigh);
+                 firstjmp64bitcmp;
+                 emit_ref_reg(A_CMP,S_L,right.location.reference,left.location.registerlow);
+                 secondjmp64bitcmp;
+                 cg.a_jmp_always(exprasmlist,falselabel);
                  location_freetemp(exprasmlist,right.location);
                  location_release(exprasmlist,right.location);
                end;
-            end
-           else if cmpop then
-            begin
-              case right.location.loc of
-                LOC_CREGISTER :
-                  begin
-                    emit_reg_reg(A_CMP,S_L,right.location.registerhigh,left.location.registerhigh);
-                    firstjmp64bitcmp;
-                    emit_reg_reg(A_CMP,S_L,right.location.registerlow,left.location.registerlow);
-                    secondjmp64bitcmp;
-                  end;
-                LOC_CREFERENCE,
-                LOC_REFERENCE :
-                  begin
-                    href:=right.location.reference;
-                    inc(href.offset,4);
-                    emit_ref_reg(A_CMP,S_L,href,left.location.registerhigh);
-                    firstjmp64bitcmp;
-                    emit_ref_reg(A_CMP,S_L,right.location.reference,left.location.registerlow);
-                    secondjmp64bitcmp;
-                    cg.a_jmp_always(exprasmlist,falselabel);
-                    location_freetemp(exprasmlist,right.location);
-                    location_release(exprasmlist,right.location);
-                  end;
-                LOC_CONSTANT :
-                  begin
-                    exprasmlist.concat(taicpu.op_const_reg(A_CMP,S_L,hi(right.location.valueqword),left.location.registerhigh));
-                    firstjmp64bitcmp;
-                    exprasmlist.concat(taicpu.op_const_reg(A_CMP,S_L,lo(right.location.valueqword),left.location.registerlow));
-                    secondjmp64bitcmp;
-                  end;
-                else
-                  internalerror(200203282);
-              end;
-            end
-
-           else
-            begin
-              cg64.a_op64_loc_reg(exprasmlist,op,right.location,
-                left.location.register64);
-              if (right.location.loc<>LOC_CREGISTER) then
+             LOC_CONSTANT :
                begin
-                 location_freetemp(exprasmlist,right.location);
-                 location_release(exprasmlist,right.location);
+                 exprasmlist.concat(taicpu.op_const_reg(A_CMP,S_L,hi(right.location.valueqword),left.location.registerhigh));
+                 firstjmp64bitcmp;
+                 exprasmlist.concat(taicpu.op_const_reg(A_CMP,S_L,lo(right.location.valueqword),left.location.registerlow));
+                 secondjmp64bitcmp;
                end;
-            end;
+             else
+               internalerror(200203282);
+           end;
          end;
 
-        if (left.location.loc<>LOC_CREGISTER) and cmpop then
+        if (left.location.loc<>LOC_CREGISTER) then
          begin
            location_freetemp(exprasmlist,left.location);
            location_release(exprasmlist,left.location);
          end;
 
-        { only in case of overflow operations }
-        { produce overflow code }
-        { we must put it here directly, because sign of operation }
-        { is in unsigned VAR!!                              }
-        if mboverflow then
-         begin
-           if cs_check_overflow in aktlocalswitches  then
-            begin
-              objectlibrary.getlabel(hl4);
-              if unsigned then
-               cg.a_jmp_flags(exprasmlist,F_AE,hl4)
-              else
-               cg.a_jmp_flags(exprasmlist,F_NO,hl4);
-              cg.a_call_name(exprasmlist,'FPC_OVERFLOW');
-              cg.a_label(exprasmlist,hl4);
-            end;
-         end;
-
         { we have LOC_JUMP as result }
-        if cmpop then
-         location_reset(location,LOC_JUMP,OS_NO)
-        else
-         location_copy(location,left.location);
+        location_reset(location,LOC_JUMP,OS_NO)
       end;
 
 
@@ -851,8 +634,9 @@ interface
       end;
 {$endif SUPPORT_MMX}
 
+
 {*****************************************************************************
-                                MUL
+                                x86 MUL
 *****************************************************************************}
 
     procedure ti386addnode.second_mul;
@@ -902,292 +686,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.94  2004-01-20 12:59:37  florian
+  Revision 1.95  2004-02-04 19:22:27  peter
+  *** empty log message ***
+
+  Revision 1.94  2004/01/20 12:59:37  florian
     * common addnode code for x86-64 and i386
 
   Revision 1.93  2004/01/14 17:19:04  peter
     * disable addmmxset
-
-  Revision 1.92  2003/12/25 01:07:09  florian
-    + $fputype directive support
-    + single data type operations with sse unit
-    * fixed more x86-64 stuff
-
-  Revision 1.91  2003/12/24 00:10:02  florian
-    - delete parameter in cg64 methods removed
-
-  Revision 1.90  2003/12/23 22:13:41  peter
-    * overlfow support in second_mul
-
-  Revision 1.89  2003/12/21 11:28:41  daniel
-    * Some work to allow mmx instructions to be used for 32 byte sets
-
-  Revision 1.88  2003/12/06 01:15:23  florian
-    * reverted Peter's alloctemp patch; hopefully properly
-
-  Revision 1.87  2003/12/03 23:13:20  peter
-    * delayed paraloc allocation, a_param_*() gets extra parameter
-      if it needs to allocate temp or real paralocation
-    * optimized/simplified int-real loading
-
-  Revision 1.86  2003/10/17 14:38:32  peter
-    * 64k registers supported
-    * fixed some memory leaks
-
-  Revision 1.85  2003/10/13 09:38:22  florian
-    * fixed forgotten commit
-
-  Revision 1.84  2003/10/13 01:58:03  florian
-    * some ideas for mm support implemented
-
-  Revision 1.83  2003/10/10 17:48:14  peter
-    * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
-    * tregisteralloctor renamed to trgobj
-    * removed rgobj from a lot of units
-    * moved location_* and reference_* to cgobj
-    * first things for mmx register allocation
-
-  Revision 1.82  2003/10/09 21:31:37  daniel
-    * Register allocator splitted, ans abstract now
-
-  Revision 1.81  2003/10/08 09:13:16  florian
-    * fixed full bool evalution and bool xor, if the left or right side have LOC_JUMP
-
-  Revision 1.80  2003/10/01 20:34:49  peter
-    * procinfo unit contains tprocinfo
-    * cginfo renamed to cgbase
-    * moved cgmessage to verbose
-    * fixed ppc and sparc compiles
-
-  Revision 1.79  2003/09/28 21:48:20  peter
-    * fix register leaks
-
-  Revision 1.78  2003/09/28 13:35:40  peter
-    * shortstr compare updated for different calling conventions
-
-  Revision 1.77  2003/09/10 08:31:48  marco
-   * Patch from Peter for paraloc
-
-  Revision 1.76  2003/09/03 15:55:01  peter
-    * NEWRA branch merged
-
-  Revision 1.75.2.2  2003/08/31 13:50:16  daniel
-    * Remove sorting and use pregenerated indexes
-    * Some work on making things compile
-
-  Revision 1.75.2.1  2003/08/29 17:29:00  peter
-    * next batch of updates
-
-  Revision 1.75  2003/08/03 20:38:00  daniel
-    * Made code generator reverse or/add/and/xor/imul instructions when
-      possible to reduce the slowdown of spills.
-
-  Revision 1.74  2003/08/03 20:19:43  daniel
-    - Removed cmpop from Ti386addnode.second_addstring
-
-  Revision 1.73  2003/07/06 15:31:21  daniel
-    * Fixed register allocator. *Lots* of fixes.
-
-  Revision 1.72  2003/06/17 16:51:30  peter
-    * cycle fixes
-
-  Revision 1.71  2003/06/07 18:57:04  jonas
-    + added freeintparaloc
-    * ppc get/freeintparaloc now check whether the parameter regs are
-      properly allocated/deallocated (and get an extra list para)
-    * ppc a_call_* now internalerrors if pi_do_call is not yet set
-    * fixed lot of missing pi_do_call's
-
-  Revision 1.70  2003/06/03 13:01:59  daniel
-    * Register allocator finished
-
-  Revision 1.69  2003/05/30 23:49:18  jonas
-    * a_load_loc_reg now has an extra size parameter for the destination
-      register (properly fixes what I worked around in revision 1.106 of
-      ncgutil.pas)
-
-  Revision 1.68  2003/05/26 19:38:28  peter
-    * generic fpc_shorstr_concat
-    + fpc_shortstr_append_shortstr optimization
-
-  Revision 1.67  2003/05/22 21:32:29  peter
-    * removed some unit dependencies
-
-  Revision 1.66  2003/04/26 09:12:55  peter
-    * add string returns in LOC_REFERENCE
-
-  Revision 1.65  2003/04/23 20:16:04  peter
-    + added currency support based on int64
-    + is_64bit for use in cg units instead of is_64bitint
-    * removed cgmessage from n386add, replace with internalerrors
-
-  Revision 1.64  2003/04/23 09:51:16  daniel
-    * Removed usage of edi in a lot of places when new register allocator used
-    + Added newra versions of g_concatcopy and secondadd_float
-
-  Revision 1.63  2003/04/22 23:50:23  peter
-    * firstpass uses expectloc
-    * checks if there are differences between the expectloc and
-      location.loc from secondpass in EXTDEBUG
-
-  Revision 1.62  2003/04/22 10:09:35  daniel
-    + Implemented the actual register allocator
-    + Scratch registers unavailable when new register allocator used
-    + maybe_save/maybe_restore unavailable when new register allocator used
-
-  Revision 1.61  2003/04/17 10:02:48  daniel
-    * Tweaked register allocate/deallocate positition to less interferences
-      are generated.
-
-  Revision 1.60  2003/03/28 19:16:57  peter
-    * generic constructor working for i386
-    * remove fixed self register
-    * esi added as address register for i386
-
-  Revision 1.59  2003/03/13 19:52:23  jonas
-    * and more new register allocator fixes (in the i386 code generator this
-      time). At least now the ppc cross compiler can compile the linux
-      system unit again, but I haven't tested it.
-
-  Revision 1.58  2003/03/08 20:36:41  daniel
-    + Added newra version of Ti386shlshrnode
-    + Added interference graph construction code
-
-  Revision 1.57  2003/03/08 13:59:17  daniel
-    * Work to handle new register notation in ag386nsm
-    + Added newra version of Ti386moddivnode
-
-  Revision 1.56  2003/03/08 10:53:48  daniel
-    * Created newra version of secondmul in n386add.pas
-
-  Revision 1.55  2003/02/19 22:00:15  daniel
-    * Code generator converted to new register notation
-    - Horribily outdated todo.txt removed
-
-  Revision 1.54  2003/01/13 18:37:44  daniel
-    * Work on register conversion
-
-  Revision 1.53  2003/01/08 18:43:57  daniel
-   * Tregister changed into a record
-
-  Revision 1.52  2002/11/25 17:43:26  peter
-    * splitted defbase in defutil,symutil,defcmp
-    * merged isconvertable and is_equal into compare_defs(_ext)
-    * made operator search faster by walking the list only once
-
-  Revision 1.51  2002/11/15 01:58:56  peter
-    * merged changes from 1.0.7 up to 04-11
-      - -V option for generating bug report tracing
-      - more tracing for option parsing
-      - errors for cdecl and high()
-      - win32 import stabs
-      - win32 records<=8 are returned in eax:edx (turned off by default)
-      - heaptrc update
-      - more info for temp management in .s file with EXTDEBUG
-
-  Revision 1.50  2002/10/20 13:11:27  jonas
-    * re-enabled optimized version of comparisons with the empty string that
-      I accidentally disabled in revision 1.26
-
-  Revision 1.49  2002/08/23 16:14:49  peter
-    * tempgen cleanup
-    * tt_noreuse temp type added that will be used in genentrycode
-
-  Revision 1.48  2002/08/14 18:41:48  jonas
-    - remove valuelow/valuehigh fields from tlocation, because they depend
-      on the endianess of the host operating system -> difficult to get
-      right. Use lo/hi(location.valueqword) instead (remember to use
-      valueqword and not value!!)
-
-  Revision 1.47  2002/08/11 14:32:29  peter
-    * renamed current_library to objectlibrary
-
-  Revision 1.46  2002/08/11 13:24:16  peter
-    * saving of asmsymbols in ppu supported
-    * asmsymbollist global is removed and moved into a new class
-      tasmlibrarydata that will hold the info of a .a file which
-      corresponds with a single module. Added librarydata to tmodule
-      to keep the library info stored for the module. In the future the
-      objectfiles will also be stored to the tasmlibrarydata class
-    * all getlabel/newasmsymbol and friends are moved to the new class
-
-  Revision 1.45  2002/07/26 11:17:52  jonas
-    * the optimization of converting a multiplication with a power of two to
-      a shl is moved from n386add/secondpass to nadd/resulttypepass
-
-  Revision 1.44  2002/07/20 11:58:00  florian
-    * types.pas renamed to defbase.pas because D6 contains a types
-      unit so this would conflicts if D6 programms are compiled
-    + Willamette/SSE2 instructions to assembler added
-
-  Revision 1.43  2002/07/11 14:41:32  florian
-    * start of the new generic parameter handling
-
-  Revision 1.42  2002/07/07 09:52:33  florian
-    * powerpc target fixed, very simple units can be compiled
-    * some basic stuff for better callparanode handling, far from being finished
-
-  Revision 1.41  2002/07/01 18:46:31  peter
-    * internal linker
-    * reorganized aasm layer
-
-  Revision 1.40  2002/07/01 16:23:55  peter
-    * cg64 patch
-    * basics for currency
-    * asnode updates for class and interface (not finished)
-
-  Revision 1.39  2002/05/18 13:34:22  peter
-    * readded missing revisions
-
-  Revision 1.38  2002/05/16 19:46:51  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
-
-  Revision 1.36  2002/05/13 19:54:37  peter
-    * removed n386ld and n386util units
-    * maybe_save/maybe_restore added instead of the old maybe_push
-
-  Revision 1.35  2002/05/12 16:53:17  peter
-    * moved entry and exitcode to ncgutil and cgobj
-    * foreach gets extra argument for passing local data to the
-      iterator function
-    * -CR checks also class typecasts at runtime by changing them
-      into as
-    * fixed compiler to cycle with the -CR option
-    * fixed stabs with elf writer, finally the global variables can
-      be watched
-    * removed a lot of routines from cga unit and replaced them by
-      calls to cgobj
-    * u32bit-s32bit updates for and,or,xor nodes. When one element is
-      u32bit then the other is typecasted also to u32bit without giving
-      a rangecheck warning/error.
-    * fixed pascal calling method with reversing also the high tree in
-      the parast, detected by tcalcst3 test
-
-  Revision 1.34  2002/04/25 20:16:40  peter
-    * moved more routines from cga/n386util
-
-  Revision 1.33  2002/04/05 15:09:13  jonas
-    * fixed web bug 1915
-
-  Revision 1.32  2002/04/04 19:06:10  peter
-    * removed unused units
-    * use tlocation.size in cg.a_*loc*() routines
-
-  Revision 1.31  2002/04/02 17:11:35  peter
-    * tlocation,treference update
-    * LOC_CONSTANT added for better constant handling
-    * secondadd splitted in multiple routines
-    * location_force_reg added for loading a location to a register
-      of a specified size
-    * secondassignment parses now first the right and then the left node
-      (this is compatible with Kylix). This saves a lot of push/pop especially
-      with string operations
-    * adapted some routines to use the new cg methods
-
-  Revision 1.29  2002/03/04 19:10:13  peter
-    * removed compiler warnings
-
 }

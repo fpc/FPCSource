@@ -34,9 +34,11 @@ interface
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
          protected
+{$ifndef cpu64bit}
           { override the following if you want to implement }
           { parts explicitely in the code generator (JM)    }
           function first_moddiv64bitint: tnode; virtual;
+{$endif cpu64bit}
           function firstoptimize: tnode; virtual;
           function first_moddivint: tnode; virtual;
        end;
@@ -45,12 +47,14 @@ interface
        tshlshrnode = class(tbinopnode)
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
+{$ifndef cpu64bit}
           { override the following if you want to implement }
           { parts explicitely in the code generator (CEC)
             Should return nil, if everything will be handled
             in the code generator
           }
           function first_shlshr64bitint: tnode; virtual;
+{$endif cpu64bit}
        end;
        tshlshrnodeclass = class of tshlshrnode;
 
@@ -66,8 +70,8 @@ interface
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
        {$ifdef state_tracking}
-    function track_state_pass(exec_known:boolean):boolean;override;
-  {$endif}
+          function track_state_pass(exec_known:boolean):boolean;override;
+       {$endif}
        end;
        tnotnodeclass = class of tnotnode;
 
@@ -279,6 +283,7 @@ implementation
 {$endif cpuneedsdiv32helper}
 
 
+{$ifndef cpu64bit}
     function tmoddivnode.first_moddiv64bitint: tnode;
       var
         procname: string[31];
@@ -311,6 +316,7 @@ implementation
         right := nil;
         firstpass(result);
       end;
+{$endif cpu64bit}
 
 
     function tmoddivnode.firstoptimize: tnode;
@@ -379,9 +385,11 @@ implementation
          if codegenerror then
            exit;
 
+         { Try to optimize mod/div }
          result := firstoptimize;
          if assigned(result) then
            exit;
+
 {$ifndef cpu64bit}
          { 64bit }
          if (left.resulttype.def.deftype=orddef) and
@@ -412,32 +420,6 @@ implementation
 {****************************************************************************
                               TSHLSHRNODE
  ****************************************************************************}
-
-
-    function tshlshrnode.first_shlshr64bitint: tnode;
-      var
-        procname: string[31];
-      begin
-        result := nil;
-        { otherwise create a call to a helper }
-        if nodetype = shln then
-          procname := 'fpc_shl_int64'
-        else
-          procname := 'fpc_shr_int64';
-{        if is_signed(resulttype.def) then
-          procname := procname + 'int64'
-        else
-          procname := procname + 'qword';
-}
-        { this order of parameters works at least for the arm,
-          however it should work for any calling conventions (FK) }
-        result := ccallnode.createintern(procname,ccallparanode.create(right,
-          ccallparanode.create(left,nil)));
-        left := nil;
-        right := nil;
-        firstpass(result);
-      end;
-
 
     function tshlshrnode.det_resulttype:tnode;
       var
@@ -474,17 +456,39 @@ implementation
 
 {$ifndef cpu64bit}
          { 64 bit ints have their own shift handling }
-         if not(is_64bitint(left.resulttype.def)) then
+         if not is_64bit(left.resulttype.def) then
+{$endif cpu64bit}
            begin
              if torddef(left.resulttype.def).typ<>torddef(uinttype.def).typ then
                inserttypeconv(left,sinttype);
            end;
-{$endif cpu64bit}
 
          inserttypeconv(right,sinttype);
 
          resulttype:=left.resulttype;
       end;
+
+
+{$ifndef cpu64bit}
+    function tshlshrnode.first_shlshr64bitint: tnode;
+      var
+        procname: string[31];
+      begin
+        result := nil;
+        { otherwise create a call to a helper }
+        if nodetype = shln then
+          procname := 'fpc_shl_int64'
+        else
+          procname := 'fpc_shr_int64';
+        { this order of parameters works at least for the arm,
+          however it should work for any calling conventions (FK) }
+        result := ccallnode.createintern(procname,ccallparanode.create(right,
+          ccallparanode.create(left,nil)));
+        left := nil;
+        right := nil;
+        firstpass(result);
+      end;
+{$endif cpu64bit}
 
 
     function tshlshrnode.pass_1 : tnode;
@@ -504,7 +508,7 @@ implementation
              result := first_shlshr64bitint;
              if assigned(result) then
                exit;
-              regs:=2;
+             regs:=2;
            end
          else
 {$endif cpu64bit}
@@ -513,7 +517,7 @@ implementation
            end;
 
          if (right.nodetype<>ordconstn) then
-          inc(regs);
+           inc(regs);
          expectloc:=LOC_REGISTER;
          calcregisters(self,regs,0,0);
       end;
@@ -844,15 +848,14 @@ implementation
 
 {$ifdef state_tracking}
     function Tnotnode.track_state_pass(exec_known:boolean):boolean;
-
-    begin
-  track_state_pass:=true;
-  if left.track_state_pass(exec_known) then
       begin
-    left.resulttype.def:=nil;
-    do_resulttypepass(left);
+        track_state_pass:=true;
+        if left.track_state_pass(exec_known) then
+          begin
+            left.resulttype.def:=nil;
+            do_resulttypepass(left);
+          end;
       end;
-    end;
 {$endif}
 
 begin
@@ -863,7 +866,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.56  2004-02-03 22:32:54  peter
+  Revision 1.57  2004-02-04 19:22:27  peter
+  *** empty log message ***
+
+  Revision 1.56  2004/02/03 22:32:54  peter
     * renamed xNNbittype to xNNinttype
     * renamed registers32 to registersint
     * replace some s32bit,u32bit with torddef([su]inttype).def.typ

@@ -36,12 +36,11 @@ interface
 
       tx8664shlshrnode = class(tshlshrnode)
          procedure pass_2;override;
-         { everything will be handled in pass_2 }
-         function first_shlshr64bitint: tnode; override;
       end;
 
       tx8664unaryminusnode = class(tx86unaryminusnode)
       end;
+
 
 implementation
 
@@ -62,7 +61,6 @@ implementation
       var
         hreg1,hreg2:Tregister;
         power:longint;
-        hl:Tasmlabel;
         op:Tasmop;
       begin
         secondpass(left);
@@ -161,16 +159,9 @@ implementation
 *****************************************************************************}
 
 
-    function tx8664shlshrnode.first_shlshr64bitint: tnode;
-      begin
-        result:=nil;
-      end;
-
-
     procedure tx8664shlshrnode.pass_2;
-      var hregisterhigh,hregisterlow:Tregister;
-          op:Tasmop;
-          l1,l2,l3:Tasmlabel;
+      var
+        op : Tasmop;
       begin
         secondpass(left);
         secondpass(right);
@@ -211,6 +202,9 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2004-01-20 12:59:37  florian
+  Revision 1.2  2004-02-04 19:22:27  peter
+  *** empty log message ***
+
+  Revision 1.1  2004/01/20 12:59:37  florian
     * common addnode code for x86-64 and i386
 }

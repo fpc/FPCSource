@@ -281,7 +281,8 @@ unit cgx86;
            OS_8,OS_S8 :
              if S1 in [OS_8,OS_S8] then
                s3 := S_B
-             else internalerror(200109221);
+             else
+               internalerror(200109221);
            OS_16,OS_S16:
              case s1 of
                OS_8,OS_S8:
@@ -1888,7 +1889,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.104  2004-02-03 19:46:48  jonas
+  Revision 1.105  2004-02-04 19:22:27  peter
+  *** empty log message ***
+
+  Revision 1.104  2004/02/03 19:46:48  jonas
     - removed "mov reg,reg" optimization (those instructions are removed by
       the register allocator, and may be necessary to indicate a register
       may not be released before some point)

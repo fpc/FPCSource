@@ -36,19 +36,26 @@ unit nx86add;
 
     type
       tx86addnode = class(tcgaddnode)
+      protected
         function  getresflags(unsigned : boolean) : tresflags;
-        procedure set_result_location(cmpop,unsigned:boolean);
         procedure left_must_be_reg(opsize:TCGSize;noswap:boolean);
+        procedure left_and_right_must_be_fpureg;
         procedure emit_op_right_left(op:TAsmOp;opsize:TOpSize);
         procedure emit_generic_code(op:TAsmOp;opsize:TCgSize;unsigned,extra_not,mboverflow:boolean);
 
-        function  first_addstring : tnode; override;
-        procedure pass_2;override;
-        procedure second_addfloat;override;
         procedure second_addfloatsse;
-        procedure second_addstring;
         procedure second_mul;virtual;abstract;
-        procedure pass_left_and_right(var pushedfpu:boolean);
+      public
+        function  first_addstring : tnode; override;
+        procedure second_addstring;override;
+        procedure second_addfloat;override;
+        procedure second_addsmallset;override;
+        procedure second_add64bit;override;
+        procedure second_addordinal;override;
+        procedure second_cmpfloat;override;
+        procedure second_cmpsmallset;override;
+        procedure second_cmp64bit;override;
+        procedure second_cmpordinal;override;
       end;
 
 
@@ -59,13 +66,12 @@ unit nx86add;
       verbose,
       cutils,
       aasmbase,aasmtai,aasmcpu,
-      cpuinfo,
       symconst,symdef,
       cgobj,cgx86,cga,
       paramgr,
       htypechk,
       pass_2,ncgutil,
-      ncon,
+      ncon,nset,
       defutil;
 
 
@@ -186,6 +192,7 @@ unit nx86add;
          end;
       end;
 
+
     procedure tx86addnode.left_must_be_reg(opsize:TCGSize;noswap:boolean);
       begin
         { left location is not a register? }
@@ -209,6 +216,43 @@ unit nx86add;
        end;
 
 
+    procedure tx86addnode.left_and_right_must_be_fpureg;
+      begin
+        if (right.location.loc<>LOC_FPUREGISTER) then
+         begin
+           cg.a_loadfpu_loc_reg(exprasmlist,right.location,NR_ST);
+           if (right.location.loc <> LOC_CFPUREGISTER) then
+             location_freetemp(exprasmlist,left.location);
+           if (left.location.loc<>LOC_FPUREGISTER) then
+            begin
+              cg.a_loadfpu_loc_reg(exprasmlist,left.location,NR_ST);
+              if (left.location.loc <> LOC_CFPUREGISTER) then
+                location_freetemp(exprasmlist,left.location);
+            end
+           else
+            begin
+              { left was on the stack => swap }
+              toggleflag(nf_swaped);
+            end;
+
+           { releases the right reference }
+           location_release(exprasmlist,right.location);
+         end
+        { the nominator in st0 }
+        else if (left.location.loc<>LOC_FPUREGISTER) then
+         begin
+           cg.a_loadfpu_loc_reg(exprasmlist,left.location,NR_ST);
+           if (left.location.loc <> LOC_CFPUREGISTER) then
+             location_freetemp(exprasmlist,left.location);
+         end
+        else
+         begin
+           { fpu operands are always in the wrong order on the stack }
+           toggleflag(nf_swaped);
+         end;
+      end;
+
+
     procedure tx86addnode.emit_op_right_left(op:TAsmOp;opsize:TOpsize);
       begin
         { left must be a register }
@@ -224,18 +268,6 @@ unit nx86add;
           else
             internalerror(200203232);
         end;
-      end;
-
-
-    procedure tx86addnode.set_result_location(cmpop,unsigned:boolean);
-      begin
-        if cmpop then
-         begin
-           location_reset(location,LOC_FLAGS,OS_NO);
-           location.resflags:=getresflags(unsigned);
-         end
-        else
-         location_copy(location,left.location);
       end;
 
 
@@ -284,167 +316,122 @@ unit nx86add;
 
 
 {*****************************************************************************
-                                AddFloat
+                                AddSmallSet
 *****************************************************************************}
 
-    procedure tx86addnode.pass_left_and_right(var pushedfpu:boolean);
-      begin
-        { calculate the operator which is more difficult }
-        firstcomplex(self);
-
-        { in case of constant put it to the left }
-        if (left.nodetype=ordconstn) then
-         swapleftright;
-        secondpass(left);
-
-        { are too few registers free? }
-        if location.loc=LOC_FPUREGISTER then
-          pushedfpu:=maybe_pushfpu(exprasmlist,right.registersfpu,left.location)
-        else
-          pushedfpu:=false;
-        secondpass(right);
-      end;
-
-
-    procedure tx86addnode.second_addfloat;
+    procedure tx86addnode.second_addsmallset;
       var
-        op         : TAsmOp;
-        resflags   : tresflags;
-        pushedfpu,
-        cmpop      : boolean;
+        opsize : TCGSize;
+        op     : TAsmOp;
+        extra_not,
+        noswap : boolean;
       begin
-        if use_sse(resulttype.def) then
-          begin
-            second_addfloatsse;
-            exit;
-          end;
-        pass_left_and_right(pushedfpu);
+        pass_left_right;
 
-        cmpop:=false;
+        noswap:=false;
+        extra_not:=false;
+        opsize:=OS_32;
         case nodetype of
           addn :
-            op:=A_FADDP;
+            begin
+              { this is a really ugly hack!!!!!!!!!! }
+              { this could be done later using EDI   }
+              { as it is done for subn               }
+              { instead of two registers!!!!         }
+              { adding elements is not commutative }
+              if (nf_swaped in flags) and (left.nodetype=setelementn) then
+               swapleftright;
+              { are we adding set elements ? }
+              if right.nodetype=setelementn then
+               begin
+                 { no range support for smallsets! }
+                 if assigned(tsetelementnode(right).right) then
+                  internalerror(43244);
+                 { bts requires both elements to be registers }
+                 location_force_reg(exprasmlist,left.location,opsize,false);
+                 location_force_reg(exprasmlist,right.location,opsize,true);
+                 op:=A_BTS;
+                 noswap:=true;
+               end
+              else
+               op:=A_OR;
+            end;
+          symdifn :
+            op:=A_XOR;
           muln :
-            op:=A_FMULP;
+            op:=A_AND;
           subn :
-            op:=A_FSUBP;
-          slashn :
-            op:=A_FDIVP;
-          ltn,lten,gtn,gten,
-          equaln,unequaln :
             begin
-              op:=A_FCOMPP;
-              cmpop:=true;
+              op:=A_AND;
+              if (not(nf_swaped in flags)) and
+                 (right.location.loc=LOC_CONSTANT) then
+                right.location.value := not(right.location.value)
+              else if (nf_swaped in flags) and
+                      (left.location.loc=LOC_CONSTANT) then
+                left.location.value := not(left.location.value)
+              else
+                extra_not:=true;
             end;
+          xorn :
+            op:=A_XOR;
+          orn :
+            op:=A_OR;
+          andn :
+            op:=A_AND;
           else
-            internalerror(2003042214);
+            internalerror(2003042215);
         end;
+        { left must be a register }
+        left_must_be_reg(opsize,noswap);
+        emit_generic_code(op,opsize,true,extra_not,false);
+        location_freetemp(exprasmlist,right.location);
+        location_release(exprasmlist,right.location);
 
-        if (right.location.loc<>LOC_FPUREGISTER) then
-         begin
-           cg.a_loadfpu_loc_reg(exprasmlist,right.location,NR_ST);
-           if (right.location.loc <> LOC_CFPUREGISTER) and
-              pushedfpu then
-             location_freetemp(exprasmlist,left.location);
-           if (left.location.loc<>LOC_FPUREGISTER) then
-            begin
-              cg.a_loadfpu_loc_reg(exprasmlist,left.location,NR_ST);
-              if (left.location.loc <> LOC_CFPUREGISTER) and
-                 pushedfpu then
-                location_freetemp(exprasmlist,left.location);
-            end
-           else
-            begin
-              { left was on the stack => swap }
-              toggleflag(nf_swaped);
-            end;
-
-           { releases the right reference }
-           location_release(exprasmlist,right.location);
-         end
-        { the nominator in st0 }
-        else if (left.location.loc<>LOC_FPUREGISTER) then
-         begin
-           cg.a_loadfpu_loc_reg(exprasmlist,left.location,NR_ST);
-           if (left.location.loc <> LOC_CFPUREGISTER) and
-              pushedfpu then
-             location_freetemp(exprasmlist,left.location);
-         end
-        else
-         begin
-           { fpu operands are always in the wrong order on the stack }
-           toggleflag(nf_swaped);
-         end;
-
-        { releases the left reference }
-        if (left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
-          location_release(exprasmlist,left.location);
-
-        { if we swaped the tree nodes, then use the reverse operator }
-        if nf_swaped in flags then
-          begin
-             if (nodetype=slashn) then
-               op:=A_FDIVRP
-             else if (nodetype=subn) then
-               op:=A_FSUBRP;
-          end;
-        { to avoid the pentium bug
-        if (op=FDIVP) and (opt_processors=pentium) then
-          cg.a_call_name(exprasmlist,'EMUL_FDIVP')
-        else
-        }
-        { the Intel assemblers want operands }
-        if op<>A_FCOMPP then
-          begin
-             emit_reg_reg(op,S_NO,NR_ST,NR_ST1);
-             tcgx86(cg).dec_fpu_stack;
-          end
-        else
-          begin
-             emit_none(op,S_NO);
-             tcgx86(cg).dec_fpu_stack;
-             tcgx86(cg).dec_fpu_stack;
-          end;
-
-        { on comparison load flags }
-        if cmpop then
-         begin
-           cg.getexplicitregister(exprasmlist,NR_AX);
-           emit_reg(A_FNSTSW,S_NO,NR_AX);
-           emit_none(A_SAHF,S_NO);
-           cg.ungetregister(exprasmlist,NR_AX);
-           if nf_swaped in flags then
-            begin
-              case nodetype of
-                  equaln : resflags:=F_E;
-                unequaln : resflags:=F_NE;
-                     ltn : resflags:=F_A;
-                    lten : resflags:=F_AE;
-                     gtn : resflags:=F_B;
-                    gten : resflags:=F_BE;
-              end;
-            end
-           else
-            begin
-              case nodetype of
-                  equaln : resflags:=F_E;
-                unequaln : resflags:=F_NE;
-                     ltn : resflags:=F_B;
-                    lten : resflags:=F_BE;
-                     gtn : resflags:=F_A;
-                    gten : resflags:=F_AE;
-              end;
-            end;
-           location_reset(location,LOC_FLAGS,OS_NO);
-           location.resflags:=resflags;
-         end
-        else
-         begin
-           location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
-           location.register:=NR_ST;
-         end;
+        set_result_location_reg;
       end;
 
+
+    procedure tx86addnode.second_cmpsmallset;
+      var
+        opsize : TCGSize;
+        op     : TAsmOp;
+      begin
+        pass_left_right;
+        opsize:=OS_32;
+        case nodetype of
+          equaln,
+          unequaln :
+            op:=A_CMP;
+          lten,gten:
+            begin
+              if (not(nf_swaped in flags) and (nodetype = lten)) or
+                 ((nf_swaped in flags) and (nodetype = gten)) then
+                swapleftright;
+              location_force_reg(exprasmlist,left.location,opsize,true);
+              emit_op_right_left(A_AND,TCGSize2Opsize[opsize]);
+              op:=A_CMP;
+              { warning: ugly hack, we need a JE so change the node to equaln }
+              nodetype:=equaln;
+            end;
+          else
+            internalerror(2003042215);
+        end;
+        { left must be a register }
+        left_must_be_reg(opsize,false);
+        emit_generic_code(op,opsize,true,false,false);
+        location_freetemp(exprasmlist,right.location);
+        location_release(exprasmlist,right.location);
+        location_freetemp(exprasmlist,left.location);
+        location_release(exprasmlist,left.location);
+
+        location_reset(location,LOC_FLAGS,OS_NO);
+        location.resflags:=getresflags(true);
+      end;
+
+
+{*****************************************************************************
+                                AddFloat
+*****************************************************************************}
 
     procedure tx86addnode.second_addfloatsse;
       var
@@ -498,6 +485,108 @@ unit nx86add;
           end;
       end;
 
+
+    procedure tx86addnode.second_addfloat;
+      var
+        op : TAsmOp;
+      begin
+        if use_sse(resulttype.def) then
+          begin
+            second_addfloatsse;
+            exit;
+          end;
+
+        pass_left_right;
+
+        case nodetype of
+          addn :
+            op:=A_FADDP;
+          muln :
+            op:=A_FMULP;
+          subn :
+            op:=A_FSUBP;
+          slashn :
+            op:=A_FDIVP;
+          else
+            internalerror(2003042214);
+        end;
+
+        left_and_right_must_be_fpureg;
+
+        { releases the left reference }
+        if (left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
+          location_release(exprasmlist,left.location);
+
+        { if we swaped the tree nodes, then use the reverse operator }
+        if nf_swaped in flags then
+          begin
+             if (nodetype=slashn) then
+               op:=A_FDIVRP
+             else if (nodetype=subn) then
+               op:=A_FSUBRP;
+          end;
+
+        emit_reg_reg(op,S_NO,NR_ST,NR_ST1);
+        tcgx86(cg).dec_fpu_stack;
+
+        location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
+        location.register:=NR_ST;
+      end;
+
+
+    procedure tx86addnode.second_cmpfloat;
+      var
+        resflags   : tresflags;
+      begin
+        if use_sse(resulttype.def) then
+          begin
+            second_addfloatsse;
+            exit;
+          end;
+
+        pass_left_right;
+        left_and_right_must_be_fpureg;
+
+        { releases the left reference }
+        if (left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
+          location_release(exprasmlist,left.location);
+
+        emit_none(A_FCOMPP,S_NO);
+        tcgx86(cg).dec_fpu_stack;
+        tcgx86(cg).dec_fpu_stack;
+
+        { load fpu flags }
+        cg.getexplicitregister(exprasmlist,NR_AX);
+        emit_reg(A_FNSTSW,S_NO,NR_AX);
+        emit_none(A_SAHF,S_NO);
+        cg.ungetregister(exprasmlist,NR_AX);
+        if nf_swaped in flags then
+         begin
+           case nodetype of
+               equaln : resflags:=F_E;
+             unequaln : resflags:=F_NE;
+                  ltn : resflags:=F_A;
+                 lten : resflags:=F_AE;
+                  gtn : resflags:=F_B;
+                 gten : resflags:=F_BE;
+           end;
+         end
+        else
+         begin
+           case nodetype of
+               equaln : resflags:=F_E;
+             unequaln : resflags:=F_NE;
+                  ltn : resflags:=F_B;
+                 lten : resflags:=F_BE;
+                  gtn : resflags:=F_A;
+                 gten : resflags:=F_AE;
+           end;
+         end;
+        location_reset(location,LOC_FLAGS,OS_NO);
+        location.resflags:=resflags;
+      end;
+
+
 {*****************************************************************************
                                 Addstring
 *****************************************************************************}
@@ -507,7 +596,6 @@ unit nx86add;
     { ti386addnode.first_string and implement the shortstring concat    }
     { manually! The generic routine is different from the i386 one (JM) }
     function tx86addnode.first_addstring : tnode;
-
       begin
         { special cases for shortstrings, handled in pass_2 (JM) }
         { can't handle fpc_shortstr_compare with compilerproc either because it }
@@ -592,7 +680,8 @@ unit nx86add;
                        location_freetemp(exprasmlist,right.location);
                      end;
                 end;
-                set_result_location(true,true);
+                location_reset(location,LOC_FLAGS,OS_NO);
+                location.resflags:=getresflags(true);
              end;
            else
              { rest should be handled in first pass (JM) }
@@ -600,218 +689,122 @@ unit nx86add;
        end;
      end;
 
-
 {*****************************************************************************
-                                pass_2
+                                  Add64bit
 *****************************************************************************}
 
-    procedure tx86addnode.pass_2;
-    { is also being used for xor, and "mul", "sub, or and comparative }
-    { operators                                                }
+    procedure tx86addnode.second_add64bit;
+      begin
+{$ifdef cpu64bit}
+        second_addordinal;
+{$else cpu64bit}
+        { must be implemented separate }
+        internalerror(200402042);
+{$endif cpu64bit}
+      end;
+
+
+    procedure tx86addnode.second_cmp64bit;
+      begin
+{$ifdef cpu64bit}
+        second_cmpordinal;
+{$else cpu64bit}
+        { must be implemented separate }
+        internalerror(200402043);
+{$endif cpu64bit}
+      end;
+
+
+{*****************************************************************************
+                                  AddOrdinal
+*****************************************************************************}
+
+    procedure tx86addnode.second_addordinal;
       var
-         pushedfpu,
-         mboverflow,cmpop : boolean;
+         mboverflow : boolean;
          op : tasmop;
          opsize : tcgsize;
-
          { true, if unsigned types are compared }
          unsigned : boolean;
-         { is_in_dest if the result is put directly into }
-         { the resulting refernce or varregister }
-         {is_in_dest : boolean;}
          { true, if for sets subtractions the extra not should generated }
          extra_not : boolean;
-
       begin
-         { to make it more readable, string and set have their own procedures }
-         case left.resulttype.def.deftype of
-           orddef :
-             begin
-               { handling boolean expressions }
-               if is_boolean(left.resulttype.def) and
-                  is_boolean(right.resulttype.def) then
-                 begin
-                   second_addboolean;
-                   exit;
-                 end
-{$ifndef x86_64}
-               { 64bit operations }
-               else if is_64bit(left.resulttype.def) then
-                 begin
-                   second_add64bit;
-                   exit;
-                 end
-{$endif x86_64}
-               ;
-             end;
-           stringdef :
-             begin
-               second_addstring;
-               exit;
-             end;
-           setdef :
-             begin
-              {Normalsets are already handled in pass1 if mmx
-               should not be used.}
-              if (tsetdef(left.resulttype.def).settype<>smallset) then
-                begin
-{$ifdef MMXSET}
-                  if cs_mmx in aktlocalswitches then
-                    second_addmmxset
-                  else
-{$endif MMXSET}
-                    internalerror(200109041);
-                end
-              else
-                second_addsmallset;
-              exit;
-             end;
-           arraydef :
-             begin
-{$ifdef SUPPORT_MMX}
-               if is_mmx_able_array(left.resulttype.def) then
-                begin
-                  second_addmmx;
-                  exit;
-                end;
-{$endif SUPPORT_MMX}
-             end;
-           floatdef :
-             begin
-               second_addfloat;
-               exit;
-             end;
-         end;
-
          { defaults }
-         {is_in_dest:=false;}
          extra_not:=false;
          mboverflow:=false;
-         cmpop:=false;
          unsigned:=not(is_signed(left.resulttype.def)) or
                    not(is_signed(right.resulttype.def));
          opsize:=def_cgsize(left.resulttype.def);
 
-         pass_left_and_right(pushedfpu);
+         pass_left_right;
 
-         if (left.resulttype.def.deftype=pointerdef) or
-            (right.resulttype.def.deftype=pointerdef) or
-
-            (is_class_or_interface(right.resulttype.def) and is_class_or_interface(left.resulttype.def)) or
-
-            (left.resulttype.def.deftype=classrefdef) or
-
-            (left.resulttype.def.deftype=procvardef) or
-
-{$ifdef x86_64}
-            ((left.resulttype.def.deftype=enumdef) and
-             (left.resulttype.def.size in [4,8])) or
-
-            ((left.resulttype.def.deftype=orddef) and
-             (torddef(left.resulttype.def).typ in [s32bit,u32bit,s64bit,u64bit])) or
-            ((right.resulttype.def.deftype=orddef) and
-             (torddef(right.resulttype.def).typ in [s32bit,u32bit,s64bit,u64bit])) then
-{$else x86_64}
-
-            ((left.resulttype.def.deftype=enumdef) and
-             (left.resulttype.def.size=4)) or
-
-            ((left.resulttype.def.deftype=orddef) and
-             (torddef(left.resulttype.def).typ in [s32bit,u32bit])) or
-            ((right.resulttype.def.deftype=orddef) and
-             (torddef(right.resulttype.def).typ in [s32bit,u32bit])) then
-{$endif x86_64}
-          begin
-            case nodetype of
-              addn :
-                begin
-                  op:=A_ADD;
-                  mboverflow:=true;
-                end;
-              muln :
-                begin
-                  if unsigned then
-                    op:=A_MUL
-                  else
-                    op:=A_IMUL;
-                  mboverflow:=true;
-                end;
-              subn :
-                begin
-                  op:=A_SUB;
-                  mboverflow:=true;
-                end;
-              ltn,lten,
-              gtn,gten,
-              equaln,unequaln :
-                begin
-                  op:=A_CMP;
-                  cmpop:=true;
-                end;
-              xorn :
-                op:=A_XOR;
-              orn :
-                op:=A_OR;
-              andn :
-                op:=A_AND;
-              else
-                internalerror(200304229);
-            end;
-
-            { filter MUL, which requires special handling }
-            if op=A_MUL then
+         case nodetype of
+           addn :
              begin
-               second_mul;
-               exit;
+               op:=A_ADD;
+               mboverflow:=true;
              end;
-
-            { Convert flags to register first }
-            if (left.location.loc=LOC_FLAGS) then
-             location_force_reg(exprasmlist,left.location,opsize,false);
-            if (right.location.loc=LOC_FLAGS) then
-             location_force_reg(exprasmlist,right.location,opsize,false);
-
-            left_must_be_reg(opsize,false);
-            emit_generic_code(op,opsize,unsigned,extra_not,mboverflow);
-            location_freetemp(exprasmlist,right.location);
-            location_release(exprasmlist,right.location);
-            if cmpop and
-               (left.location.loc<>LOC_CREGISTER) then
+           muln :
              begin
-               location_freetemp(exprasmlist,left.location);
-               location_release(exprasmlist,left.location);
-             end;
-            set_result_location(cmpop,unsigned);
-          end
-
-         { 8/16 bit enum,char,wchar types }
-         else
-          if ((left.resulttype.def.deftype=orddef) and
-              (torddef(left.resulttype.def).typ in [uchar,uwidechar])) or
-             ((left.resulttype.def.deftype=enumdef) and
-              ((left.resulttype.def.size=1) or
-               (left.resulttype.def.size=2))) then
-           begin
-             case nodetype of
-               ltn,lten,gtn,gten,
-               equaln,unequaln :
-                 cmpop:=true;
+               if unsigned then
+                 op:=A_MUL
                else
-                 internalerror(2003042210);
+                 op:=A_IMUL;
+               mboverflow:=true;
              end;
-             left_must_be_reg(opsize,false);
-             emit_op_right_left(A_CMP,TCGSize2Opsize[opsize]);
-             location_freetemp(exprasmlist,right.location);
-             location_release(exprasmlist,right.location);
-             if left.location.loc<>LOC_CREGISTER then
-              begin
-                location_freetemp(exprasmlist,left.location);
-                location_release(exprasmlist,left.location);
-              end;
-             set_result_location(true,true);
-           end
-         else
-           internalerror(2003042211);
+           subn :
+             begin
+               op:=A_SUB;
+               mboverflow:=true;
+             end;
+           xorn :
+             op:=A_XOR;
+           orn :
+             op:=A_OR;
+           andn :
+             op:=A_AND;
+           else
+             internalerror(200304229);
+         end;
+
+         { filter MUL, which requires special handling }
+         if op=A_MUL then
+           begin
+             second_mul;
+             exit;
+           end;
+
+         left_must_be_reg(opsize,false);
+         emit_generic_code(op,opsize,unsigned,extra_not,mboverflow);
+         location_freetemp(exprasmlist,right.location);
+         location_release(exprasmlist,right.location);
+
+         set_result_location_reg;
+      end;
+
+
+    procedure tx86addnode.second_cmpordinal;
+      var
+         opsize : tcgsize;
+         unsigned : boolean;
+      begin
+         unsigned:=not(is_signed(left.resulttype.def)) or
+                   not(is_signed(right.resulttype.def));
+         opsize:=def_cgsize(left.resulttype.def);
+
+         pass_left_right;
+
+         left_must_be_reg(opsize,false);
+         emit_generic_code(A_CMP,opsize,unsigned,false,false);
+         location_freetemp(exprasmlist,right.location);
+         location_release(exprasmlist,right.location);
+         if (left.location.loc<>LOC_CREGISTER) then
+           begin
+             location_freetemp(exprasmlist,left.location);
+             location_release(exprasmlist,left.location);
+           end;
+         location_reset(location,LOC_FLAGS,OS_NO);
+         location.resflags:=getresflags(unsigned);
       end;
 
 begin
@@ -819,7 +812,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2004-01-20 12:59:37  florian
+  Revision 1.7  2004-02-04 19:22:27  peter
+  *** empty log message ***
+
+  Revision 1.6  2004/01/20 12:59:37  florian
     * common addnode code for x86-64 and i386
 
   Revision 1.5  2003/12/26 13:19:16  florian

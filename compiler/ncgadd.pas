@@ -49,12 +49,16 @@ interface
           procedure second_op64bit;
           procedure second_opordinal;
 
+          procedure second_addstring;virtual;
           procedure second_addfloat;virtual;abstract;
           procedure second_addboolean;virtual;
           procedure second_addsmallset;virtual;
-        {$ifdef i386}
+{$ifdef i386}
+{$ifdef SUPPORT_MMX}
           procedure second_addmmxset;virtual;abstract;
-        {$endif}
+          procedure second_addmmx;virtual;abstract;
+{$endif SUPPORT_MMX}
+{$endif}
           procedure second_add64bit;virtual;
           procedure second_addordinal;virtual;
           procedure second_cmpfloat;virtual;abstract;
@@ -70,14 +74,9 @@ interface
       globtype,systems,
       cutils,verbose,globals,
       symconst,symdef,paramgr,
-      aasmbase,aasmtai,aasmcpu,defutil,htypechk,
-      cgbase,cpuinfo,pass_1,pass_2,regvars,
-      ncon,nset,ncgutil,tgobj,cgobj,
-{$ifdef cpu64bit}
-      cg64f64
-{$else cpu64bit}
-      cg64f32
-{$endif cpu64bit}
+      aasmbase,aasmtai,defutil,
+      cgbase,cpuinfo,pass_2,
+      ncon,nset,ncgutil,cgobj
       ;
 
 
@@ -558,6 +557,17 @@ interface
 
 
 {*****************************************************************************
+                                Strings
+*****************************************************************************}
+
+    procedure tcgaddnode.second_addstring;
+      begin
+        { this should already be handled in pass1 }
+        internalerror(2002072402);
+      end;
+
+
+{*****************************************************************************
                                 Floats
 *****************************************************************************}
 
@@ -707,8 +717,7 @@ interface
             end;
           stringdef :
             begin
-              { this should already be handled in pass1 }
-              internalerror(2002072402);
+              second_addstring;
             end;
           setdef :
             begin
@@ -749,7 +758,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.27  2004-01-31 17:45:17  peter
+  Revision 1.28  2004-02-04 19:22:27  peter
+  *** empty log message ***
+
+  Revision 1.27  2004/01/31 17:45:17  peter
     * Change several $ifdef i386 to x86
     * Change several OS_32 to OS_INT/OS_ADDR
 
