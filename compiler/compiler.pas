@@ -285,7 +285,10 @@ begin
 {$endif TP}
 {$endif USEEXCEPT}
      starttime:=getrealtime;
-     parser.compile(inputdir+inputfile+inputextension,false);
+     if parapreprocess then
+      parser.preprocess(inputdir+inputfile+inputextension)
+     else
+      parser.compile(inputdir+inputfile+inputextension,false);
      if status.errorcount=0 then
       begin
         starttime:=getrealtime-starttime;
@@ -326,7 +329,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.40  1999-11-18 13:43:48  pierre
+  Revision 1.41  1999-12-02 17:34:34  peter
+    * preprocessor support. But it fails on the caret in type blocks
+
+  Revision 1.40  1999/11/18 13:43:48  pierre
    + IsExe global var needed for IDE
 
   Revision 1.39  1999/11/12 11:03:50  peter

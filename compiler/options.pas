@@ -598,6 +598,7 @@ begin
                       DoWriteLogo:=true
                     else
                       IllegalPara(opt);
+              'm' : parapreprocess:=true;
               'n' : if More='' then
                      read_configfile:=false
                     else
@@ -1276,7 +1277,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.37  1999-11-20 01:22:19  pierre
+  Revision 1.38  1999-12-02 17:34:34  peter
+    * preprocessor support. But it fails on the caret in type blocks
+
+  Revision 1.37  1999/11/20 01:22:19  pierre
     + cond FPC_USE_CPREFIX (needs also some RTL changes)
       this allows to use unit global vars as DLL exports
       (the underline prefix seems needed by dlltool)

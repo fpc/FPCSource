@@ -94,6 +94,7 @@ unit globals;
        { things specified with parameters }
        paralinkoptions,
        paradynamiclinker : string;
+       parapreprocess    : boolean;
 
        { directory where the utils can be found (options -FD) }
        utilsdirectory : dirstr;
@@ -1357,7 +1358,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.36  1999-11-18 15:34:45  pierre
+  Revision 1.37  1999-12-02 17:34:34  peter
+    * preprocessor support. But it fails on the caret in type blocks
+
+  Revision 1.36  1999/11/18 15:34:45  pierre
     * Notes/Hints for local syms changed to
       Set_varstate function
 

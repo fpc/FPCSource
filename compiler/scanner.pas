@@ -37,8 +37,10 @@ unit scanner;
     const
 {$ifdef TP}
        maxmacrolen=1024;
+       preprocbufsize=1024;
 {$else}
        maxmacrolen=16*1024;
+       preprocbufsize=32*1024;
 {$endif}
        Newline = #10;
 
@@ -122,12 +124,28 @@ unit scanner;
           function  asmgetchar:char;
        end;
 
+       ppreprocfile=^tpreprocfile;
+       tpreprocfile=object
+         f   : text;
+         buf : pointer;
+         spacefound,
+         eolfound : boolean;
+         constructor init(const fn:string);
+         destructor  done;
+         procedure Add(const s:string);
+         procedure AddSpace;
+       end;
+
+
     var
         c              : char;
         orgpattern,
         pattern        : string;
         current_scanner : pscannerfile;
         aktcommentstyle : tcommentstyle; { needed to use read_comment from directives }
+
+        preprocfile : ppreprocfile; { used with only preprocessing }
+
 
 implementation
 
@@ -168,6 +186,56 @@ implementation
          end;
         is_keyword:=(pattern=tokeninfo^[ttoken(high)].str) and
                     (tokeninfo^[ttoken(high)].keyword in aktmodeswitches);
+      end;
+
+
+{*****************************************************************************
+                            Preprocessor writting
+*****************************************************************************}
+
+    constructor tpreprocfile.init(const fn:string);
+      begin
+      { open outputfile }
+        assign(f,fn);
+        {$I-}
+         rewrite(f);
+        {$I+}
+        if ioresult<>0 then
+         Comment(V_Fatal,'can''t create file '+fn);
+        getmem(buf,preprocbufsize);
+        settextbuf(f,buf^,preprocbufsize);
+      { reset }
+        eolfound:=false;
+        spacefound:=false;
+      end;
+
+
+    destructor tpreprocfile.done;
+      begin
+        close(f);
+        freemem(buf,preprocbufsize);
+      end;
+
+
+    procedure tpreprocfile.add(const s:string);
+      begin
+        write(f,s);
+      end;
+
+    procedure tpreprocfile.addspace;
+      begin
+        if eolfound then
+         begin
+           writeln(f,'');
+           eolfound:=false;
+           spacefound:=false;
+         end
+        else
+         if spacefound then
+          begin
+            write(f,' ');
+            spacefound:=false;
+          end;
       end;
 
 
@@ -815,9 +883,11 @@ implementation
            else
             inc(longint(inputpointer));
            case c of
-            #26 : reload;
+            #26 :
+              reload;
             #10,
-            #13 : linebreak;
+            #13 :
+              linebreak;
            end;
          end;
       end;
@@ -1075,7 +1145,16 @@ implementation
             '{' :
               skipcomment;
             ' ',#9..#13 :
-              skipspace;
+              begin
+                if parapreprocess then
+                 begin
+                   if c=#10 then
+                    preprocfile^.eolfound:=true
+                   else
+                    preprocfile^.spacefound:=true;
+                 end;
+                skipspace;
+              end
             else
               break;
           end;
@@ -1698,7 +1777,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.101  1999-11-15 17:52:59  pierre
+  Revision 1.102  1999-12-02 17:34:34  peter
+    * preprocessor support. But it fails on the caret in type blocks
+
+  Revision 1.101  1999/11/15 17:52:59  pierre
     + one field added for ttoken record for operator
       linking the id to the corresponding operator token that
       can now now all be overloaded

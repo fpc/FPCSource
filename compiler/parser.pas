@@ -38,6 +38,7 @@ unit parser;
 
   interface
 
+    procedure preprocess(const filename:string);
     procedure compile(const filename:string;compile_system:boolean);
     procedure initparser;
     procedure doneparser;
@@ -145,6 +146,76 @@ unit parser;
         set_macro('FPC_VERSION',version_nr);
         set_macro('FPC_RELEASE',release_nr);
         set_macro('FPC_PATCH',patch_nr);
+      end;
+
+
+    procedure preprocess(const filename:string);
+      var
+        i : longint;
+      begin
+         new(preprocfile,init('pre'));
+       { default macros }
+         macros:=new(psymtable,init(macrosymtable));
+         macros^.name:=stringdup('Conditionals for '+filename);
+         default_macros;
+       { initialize a module }
+         current_module:=new(pmodule,init(filename,false));
+         main_module:=current_module;
+       { startup scanner, and save in current_module }
+         current_scanner:=new(pscannerfile,Init(filename));
+         current_module^.scanner:=current_scanner;
+       { loop until EOF is found }
+         repeat
+           current_scanner^.readtoken;
+           preprocfile^.AddSpace;
+           case token of
+             _ID :
+               begin
+                 preprocfile^.Add(orgpattern);
+               end;
+             _REALNUMBER,
+             _INTCONST :
+               preprocfile^.Add(pattern);
+             _CSTRING :
+               begin
+                 i:=0;
+                 while (i<length(pattern)) do
+                  begin
+                    inc(i);
+                    if pattern[i]='''' then
+                     begin
+                       insert('''',pattern,i);
+                       inc(i);
+                     end;
+                  end;
+                 preprocfile^.Add(''''+pattern+'''');
+               end;
+             _CCHAR :
+               begin
+                 case pattern[1] of
+                   #39 :
+                     pattern:='''''''';
+                   #0..#31,
+                   #128..#255 :
+                     begin
+                       str(ord(pattern[1]),pattern);
+                       pattern:='#'+pattern;
+                     end;
+                   else
+                     pattern:=''''+pattern[1]+'''';
+                 end;
+                 preprocfile^.Add(pattern);
+               end;
+             _EOF :
+               break;
+             else
+               preprocfile^.Add(tokeninfo^[token].str)
+           end;
+         until false;
+       { free scanner }
+         dispose(current_scanner,done);
+       { close }
+         dispose(preprocfile,done);
       end;
 
 
@@ -504,7 +575,10 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.93  1999-11-24 11:41:03  pierre
+  Revision 1.94  1999-12-02 17:34:34  peter
+    * preprocessor support. But it fails on the caret in type blocks
+
+  Revision 1.93  1999/11/24 11:41:03  pierre
    * defaultsymtablestack is now restored after parser.compile
 
   Revision 1.92  1999/11/18 15:34:46  pierre

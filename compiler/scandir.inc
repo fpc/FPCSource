@@ -1100,6 +1100,16 @@ const
          current_scanner^.gettokenpos;
          current_scanner^.readchar; {Remove the $}
          hs:=current_scanner^.readid;
+         if parapreprocess then
+          begin
+            t:=Get_Directive(hs);
+            if not(is_conditional(t) or (t=_DIR_DEFINE) or (t=_DIR_UNDEF)) then
+             begin
+               preprocfile^.AddSpace;
+               preprocfile^.Add('{$'+hs+current_scanner^.readcomment+'}');
+               exit;
+             end;
+          end;
          Message1(scan_d_handling_switch,'$'+hs);
          if hs='' then
           Message1(scan_w_illegal_switch,'$'+hs);
@@ -1155,7 +1165,10 @@ const
 
 {
   $Log$
-  Revision 1.68  1999-11-24 11:39:53  pierre
+  Revision 1.69  1999-12-02 17:34:34  peter
+    * preprocessor support. But it fails on the caret in type blocks
+
+  Revision 1.68  1999/11/24 11:39:53  pierre
    * asmmode message was placed too early
 
   Revision 1.67  1999/11/12 11:03:50  peter
