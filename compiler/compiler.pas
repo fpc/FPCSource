@@ -40,18 +40,33 @@
 }
 
 {$ifdef FPC}
-   { but I386 or M68K must be defined }
-   { and only one of the two }
-   {$ifndef I386}
-      {$ifndef M68K}
-        {$fatal One of the switches I386 or M68K must be defined}
-      {$endif M68K}
-   {$endif I386}
+   { One of Alpha, I386 or M68K must be defined }
+   {$UNDEFINE CPUOK}
+   
    {$ifdef I386}
-      {$ifdef M68K}
-        {$fatal ONLY one of the switches I386 or M68K must be defined}
-      {$endif M68K}
-   {$endif I386}
+   {$define CPUOK}
+   {$endif}
+   
+   {$ifdef M68K}
+   {$ifndef CPUOK}
+   {$DEFINE CPUOK}
+   {$else}
+     {$fatal cannot define two CPU switches}
+   {$endif}
+   {$endif}
+
+   {$ifdef alpha}
+   {$ifndef CPUOK}
+   {$DEFINE CPUOK}
+   {$else}
+     {$fatal cannot define two CPU switches}
+   {$endif}
+   {$endif}
+   
+   {$ifndef CPUOK}
+   {$fatal One of the switches I386,Alpha or M68K must be defined}
+   {$endif}
+   
    {$ifdef support_mmx}
      {$ifndef i386}
        {$fatal I386 switch must be on for MMX support}
@@ -275,7 +290,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.25  1999-07-18 14:47:22  florian
+  Revision 1.26  1999-08-02 20:46:57  michael
+  * Alpha aware switch detection
+
+  Revision 1.25  1999/07/18 14:47:22  florian
     * bug 487 fixed, (inc(<property>) isn't allowed)
     * more fixes to compile with Delphi
 
