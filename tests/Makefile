@@ -1077,7 +1077,7 @@ DIRS=webtbs webtbf tbs tbf test test/cg test/units/system test/units/objects
 allpreps: allpreps-stamp.$(OS_TARGET)
 allpreps-stamp.$(OS_TARGET):
 	$(COPY) test/cg/obj/$(OS_TARGET)/$(CPU_TARGET)/ctest.o test/cg
-	$(ECHO) $(DATE) > preps.timestamp
+	$(ECHO) $(DATE) > allpreps-stamp.$(OS_TARGET)
 .PHONY: alltbs alltbf allwebtbs allwebtbf alltest alltests
 alltbs : testcheck $(patsubst %.pp,%.log,$(wildcard tbs/t*.pp))
 alltbf : testcheck $(patsubst %.pp,%.log,$(wildcard tbf/t*.pp))
