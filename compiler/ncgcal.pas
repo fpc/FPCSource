@@ -215,7 +215,7 @@ implementation
                    end;
                end;
              else
-               internalerror(200204243);
+               internalerror(2002042430);
            end;
 {$else i386}
            case left.location.loc of
@@ -253,10 +253,10 @@ implementation
                  LOC_CFPUREGISTER:
                    cg.a_paramfpu_ref(exprasmlist,def_cgsize(left.resulttype.def),left.location.reference,tempparaloc);
                  else
-                   internalerror(200204243);
+                   internalerror(2002042431);
                end;
              else
-               internalerror(200204243);
+               internalerror(2002042432);
            end;
 {$endif i386}
          end
@@ -1242,7 +1242,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.160  2004-02-27 10:21:05  florian
+  Revision 1.161  2004-03-09 13:04:12  mazen
+  + difference between three similar internal errors
+
+  Revision 1.160  2004/02/27 10:21:05  florian
     * top_symbol killed
     + refaddr to treference added
     + refsymbol to treference added
