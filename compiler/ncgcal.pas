@@ -545,7 +545,17 @@ implementation
                begin
                  { don't release the funcret temp }
                  if not(vo_is_funcret in tvarsym(ppn.paraitem.parasym).varoptions) then
-                   location_freetemp(exprasmlist,ppn.left.location);
+                   begin
+{$ifdef callparatemp}
+                     { free call-by-reference temps }
+                     if (ppn.left.nodetype = typeconvn) and
+                        (ttypeconvnode(ppn.left).left.nodetype = derefn) and
+                        (tderefnode(ttypeconvnode(ppn.left).left).left.nodetype = temprefn) then
+                       location_freetemp(exprasmlist,tderefnode(ttypeconvnode(ppn.left).left).left.location)
+                     else
+{$endif callparatemp}
+                       location_freetemp(exprasmlist,ppn.left.location);
+                   end;
                  { process also all nodes of an array of const }
                  if ppn.left.nodetype=arrayconstructorn then
                    begin
@@ -1222,7 +1232,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.76  2003-05-28 23:58:18  jonas
+  Revision 1.77  2003-05-29 10:05:40  jonas
+    * free callparatemps created for call-by-reference parameters
+
+  Revision 1.76  2003/05/28 23:58:18  jonas
     * added missing initialization of rg.usedint{in,by}proc
     * ppc now also saves/restores used fpu registers
     * ncgcal doesn't add used registers to usedby/inproc anymore, except for
