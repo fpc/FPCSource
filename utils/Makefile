@@ -7,7 +7,7 @@ BSDs = freebsd netbsd openbsd darwin
 UNIXs = linux $(BSDs) sunos qnx
 FORCE:
 .PHONY: FORCE
-override PATH:=$(subst \,/,$(PATH))
+override PATH:=$(patsubst %/,%,$(subst \,/,$(PATH)))
 ifneq ($(findstring darwin,$(OSTYPE)),)
 inUnix=1 #darwin
 SEARCHPATH:=$(filter-out .,$(subst :, ,$(PATH)))
@@ -373,7 +373,7 @@ ifdef BSDhier
 INSTALL_EXAMPLEDIR:=$(INSTALL_PREFIX)/share/examples/fpc-$(FPC_VERSION)/$(PACKAGE_NAME)
 else
 ifdef linuxHier
-INSTALL_EXAMPLEDIR:=$(INSTALL_DOCDIR)/examples/fpc-$(FPC_VERSION)/$(PACKAGE_NAME)
+INSTALL_EXAMPLEDIR:=$(INSTALL_DOCDIR)/examples
 else
 INSTALL_EXAMPLEDIR:=$(INSTALL_PREFIX)/doc/fpc-$(FPC_VERSION)/examples/$(PACKAGE_NAME)
 endif
@@ -1713,7 +1713,7 @@ EXECPPAS:=@$(PPAS)
 endif
 endif
 .PHONY: fpc_exes
-ifdef TARGET_PROGRAMS
+ifneq ($(TARGET_PROGRAMS),)
 override EXEFILES=$(addsuffix $(EXEEXT),$(TARGET_PROGRAMS))
 override EXEOFILES:=$(addsuffix $(OEXT),$(TARGET_PROGRAMS)) $(addprefix $(STATICLIBPREFIX),$(addsuffix $(STATICLIBEXT),$(TARGET_PROGRAMS)))
 override ALLTARGET+=fpc_exes
