@@ -647,7 +647,7 @@ implementation
             for i := 1 to maxvarregs do
               if assigned(regvars[i]) then
                 begin
-                  reg:=cg.makeregsize(tvarsym(regvars[i]).localloc.register,OS_INT);
+                  reg:=cg.makeregsize(list,tvarsym(regvars[i]).localloc.register,OS_INT);
                   cg.a_load_reg_reg(list,OS_INT,OS_INT,reg,reg);
                   cg.ungetregister(list,tvarsym(regvars[i]).localloc.register);
                 end;
@@ -670,7 +670,10 @@ end.
 
 {
   $Log$
-  Revision 1.74  2004-02-08 20:15:42  jonas
+  Revision 1.75  2004-05-30 15:36:55  jonas
+    * fixed regvars compilation
+
+  Revision 1.74  2004/02/08 20:15:42  jonas
     - removed taicpu.is_reg_move because it's not used anymore
     + support tracking fpu register moves by rgobj for the ppc
 
