@@ -641,7 +641,7 @@ implementation
                end;
              floatdef :
                begin
-                 cg.a_loadfpu_ref_reg(list,cgsize,href,R_ST);
+                 cg.a_loadfpu_ref_reg(list,cgsize,href,fpuresultreg);
                end;
              else
                begin
@@ -681,7 +681,7 @@ implementation
                end;
              floatdef :
                begin
-                 cg.a_loadfpu_reg_ref(list,cgsize,R_ST,href);
+                 cg.a_loadfpu_reg_ref(list,cgsize,fpuresultreg,href);
                end;
              else
                begin
@@ -1248,7 +1248,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  2002-05-12 16:53:07  peter
+  Revision 1.12  2002-05-12 19:58:36  carl
+  * some small portability fixes
+
+  Revision 1.11  2002/05/12 16:53:07  peter
     * moved entry and exitcode to ncgutil and cgobj
     * foreach gets extra argument for passing local data to the
       iterator function

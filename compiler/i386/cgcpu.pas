@@ -98,7 +98,6 @@ unit cgcpu;
         procedure a_op64_const_ref(list : taasmoutput;op:TOpCG;valuelosrc,valuehisrc:AWord;const ref : treference);override;
 
         procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aword; delsource,loadref : boolean);override;
-        procedure g_maybe_loadself(list : taasmoutput); override;
 
         procedure g_push_exception(list : taasmoutput;const exceptbuf:treference;l:AWord; exceptlabel:TAsmLabel);override;
         procedure g_pop_exception(list : taasmoutput;endexceptlabel:tasmlabel);override;
@@ -1315,38 +1314,6 @@ unit cgcpu;
       end;
 
 
-    procedure tcg386.g_maybe_loadself(list : taasmoutput);
-      var
-         hp : treference;
-         p : pprocinfo;
-         i : longint;
-      begin
-         if assigned(procinfo^._class) then
-           begin
-              list.concat(Tairegalloc.Alloc(R_ESI));
-              if lexlevel>normal_function_level then
-                begin
-                   reference_reset_base(hp,procinfo^.framepointer,procinfo^.framepointer_offset);
-                   a_load_ref_reg(list,OS_ADDR,hp,R_ESI);
-                   p:=procinfo^.parent;
-                   for i:=3 to lexlevel-1 do
-                     begin
-                        reference_reset_base(hp,R_ESI,p^.framepointer_offset);
-                        a_load_ref_reg(list,OS_ADDR,hp,R_ESI);
-                        p:=p^.parent;
-                     end;
-                   reference_reset_base(hp,R_ESI,p^.selfpointer_offset);
-                   a_load_ref_reg(list,OS_ADDR,hp,R_ESI);
-                end
-              else
-                begin
-                   reference_reset_base(hp,procinfo^.framepointer,procinfo^.selfpointer_offset);
-                   a_load_ref_reg(list,OS_ADDR,hp,R_ESI);
-                end;
-           end;
-      end;
-
-
     procedure tcg386.g_push_exception(list : taasmoutput;const exceptbuf:treference;l:AWord; exceptlabel:TAsmLabel);
       var
         tempaddr,tempbuf : treference;
@@ -1771,7 +1738,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2002-05-12 16:53:16  peter
+  Revision 1.16  2002-05-12 19:59:05  carl
+  * some small portability fixes
+
+  Revision 1.15  2002/05/12 16:53:16  peter
     * moved entry and exitcode to ncgutil and cgobj
     * foreach gets extra argument for passing local data to the
       iterator function
