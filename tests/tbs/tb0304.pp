@@ -1,3 +1,4 @@
+{ %NORUN }
 {$ifdef win32}
 library test;
 
