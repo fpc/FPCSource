@@ -355,30 +355,30 @@ var
 asm
            lis    r0,0x4330
            stw    r0,temp
-           xoris  r4,r4,0x8000
-           stw    r4,4+temp
+           xoris  r3,r3,0x8000
+           stw    r3,4+temp
            {$ifndef macos}
-           lis    r4,longint_to_real_helper@ha
-           lfd    f1,longint_to_real_helper@l(r4)
+           lis    r3,longint_to_real_helper@ha
+           lfd    f1,longint_to_real_helper@l(r3)
            {$else}
-           lwz    r4,longint_to_real_helper[TC](r2)
-           lfd    f1,0(r4)
+           lwz    r3,longint_to_real_helper[TC](r2)
+           lfd    f1,0(r3)
            {$endif}
            lfd    f0,temp
-           stw    r3,4+temp
+           stw    r4,4+temp
            fsub   f0,f0,f1
            {$ifndef macos}
-           lis    r3,cardinal_to_real_helper@ha
-           lfd    f1,cardinal_to_real_helper@l(r3)
-           lis    r3,int_to_real_factor@ha
+           lis    r4,cardinal_to_real_helper@ha
+           lfd    f1,cardinal_to_real_helper@l(r4)
+           lis    r4,int_to_real_factor@ha
            lfd    f3,temp
-           lfd    f2,int_to_real_factor@l(r3)
+           lfd    f2,int_to_real_factor@l(r4)
            {$else}
-           lwz    r3,cardinal_to_real_helper[TC](r2)
-           lwz    r4,int_to_real_factor[TC](r2)
+           lwz    r4,cardinal_to_real_helper[TC](r2)
+           lwz    r3,int_to_real_factor[TC](r2)
            lfd    f3,temp
-           lfd    f1,0(r3)
-           lfd    f2,0(r4)
+           lfd    f1,0(r4)
+           lfd    f2,0(r3)
            {$endif}
            fsub   f3,f3,f1
            fmadd  f1,f0,f2,f3
@@ -398,33 +398,36 @@ var
 asm
            lis    r0,0x4330
            stw    r0,temp
-           stw    r4,4+temp
+           stw    r3,4+temp
            lfd    f0,temp
            {$ifndef macos}
-           lis    r4,cardinal_to_real_helper@ha
-           lfd    f1,cardinal_to_real_helper@l(r4)
+           lis    r3,cardinal_to_real_helper@ha
+           lfd    f1,cardinal_to_real_helper@l(r3)
            {$else}
-           lwz    r4,longint_to_real_helper[TC](r2)
-           lfd    f1,0(r4)
+           lwz    r3,longint_to_real_helper[TC](r2)
+           lfd    f1,0(r3)
            {$endif}
-           stw    r3,4+temp
+           stw    r4,4+temp
            fsub   f0,f0,f1
            lfd    f3,temp
            {$ifndef macos}
-           lis    r3,int_to_real_factor@ha
-           lfd    f2,int_to_real_factor@l(r3)
+           lis    r4,int_to_real_factor@ha
+           lfd    f2,int_to_real_factor@l(r4)
            {$else}
-           lwz    r3,int_to_real_factor[TC](r2)
-           lfd    f2,0(r3)
+           lwz    r4,int_to_real_factor[TC](r2)
+           lfd    f2,0(r4)
            {$endif}
            fsub   f3,f3,f1
            fmadd  f1,f0,f2,f3
-end ['R0','R3','F0','F1','F2','F3'];
+end ['R0','R3','R4','F0','F1','F2','F3'];
 
 
 {
   $Log$
-  Revision 1.23  2003-05-24 13:39:32  jonas
+  Revision 1.24  2003-05-30 23:56:41  florian
+    * fixed parameter passing for int64
+
+  Revision 1.23  2003/05/24 13:39:32  jonas
     * fsqrt is an optional instruction in the ppc architecture and isn't
       implemented by any current ppc afaik, so use the generic sqrt routine
       instead (adapted so it works with compilerproc)
