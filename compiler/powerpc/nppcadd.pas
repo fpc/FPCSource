@@ -34,7 +34,7 @@ interface
           procedure pass_2;override;
          private
           procedure pass_left_and_right;
-          procedure load_left_right(cmpop: boolean);
+          procedure load_left_right(cmpop, load_constants: boolean);
           procedure clear_left_right(cmpop: boolean);
           function  getresflags : tresflags;
           procedure emit_compare(unsigned : boolean);
@@ -44,7 +44,7 @@ interface
 {$ifdef SUPPORT_MMX}
           procedure second_addmmx;
 {$endif SUPPORT_MMX}
-          procedure second_add64bit; virtual; abstract;
+          procedure second_add64bit;
        end;
 
   implementation
@@ -95,30 +95,43 @@ interface
       end;
 
 
-    procedure tppcaddnode.load_left_right(cmpop: boolean);
+    procedure tppcaddnode.load_left_right(cmpop, load_constants: boolean);
+
+      procedure load_node(var n: tnode);
+        begin
+          case n.location.loc of
+            LOC_REGISTER:
+              if not cmpop then
+                begin
+                  location.register := n.location.register;
+                  if is_64bitint(n.resulttype.def) then
+                    location.registerhigh := n.location.registerhigh;
+                end;
+            LOC_REFERENCE,LOC_CREFERENCE:
+              begin
+                location_force_reg(exprasmlist,n.location,def_cgsize(n.resulttype.def),false);
+                if not cmpop then
+                  location.register := n.location.register;
+                  if is_64bitint(n.resulttype.def) then
+                    location.registerhigh := n.location.registerhigh;
+              end;
+            LOC_CONSTANT:
+              begin
+                if load_constants then
+                  begin
+                    location_force_reg(exprasmlist,n.location,def_cgsize(n.resulttype.def),false);
+                    if not cmpop then
+                      location.register := n.location.register;
+                      if is_64bitint(n.resulttype.def) then
+                        location.registerhigh := n.location.registerhigh;
+                  end;
+              end;
+          end;
+        end;
+
       begin
-        case left.location.loc of
-          LOC_REGISTER:
-            if not cmpop then
-              location.register := left.location.register;
-          LOC_REFERENCE,LOC_CREFERENCE:
-            begin
-              location_force_reg(exprasmlist,left.location,def_cgsize(left.resulttype.def),false);
-              if not cmpop then
-                location.register := left.location.register;
-            end;
-        end;
-        case right.location.loc of
-          LOC_REGISTER:
-            if not cmpop then
-              location.register := right.location.register;
-          LOC_REFERENCE,LOC_CREFERENCE:
-            begin
-              location_force_reg(exprasmlist,right.location,def_cgsize(right.resulttype.def),false);
-              if not cmpop then
-                location.register := right.location.register;
-            end;
-        end;
+        load_node(left);
+        load_node(right);
       end;
 
 
@@ -127,11 +140,19 @@ interface
         if (right.location.loc in [LOC_REGISTER,LOC_FPUREGISTER]) and
            (cmpop or
             (location.register <> right.location.register)) then
-          rg.ungetregister(exprasmlist,right.location.register);
+          begin
+            rg.ungetregister(exprasmlist,right.location.register);
+            if is_64bitint(right.resulttype.def) then
+              rg.ungetregister(exprasmlist,right.location.registerhigh);
+          end;
         if (left.location.loc in [LOC_REGISTER,LOC_FPUREGISTER]) and
            (cmpop or
             (location.register <> left.location.register)) then
-          rg.ungetregister(exprasmlist,left.location.register);
+          begin
+            rg.ungetregister(exprasmlist,left.location.register);
+            if is_64bitint(left.resulttype.def) then
+              rg.ungetregister(exprasmlist,left.location.registerhigh);
+          end;
       end;
 
 
@@ -162,6 +183,7 @@ interface
         end
       end;
 
+
     procedure tppcaddnode.emit_compare(unsigned: boolean);
       var
         op : tasmop;
@@ -177,13 +199,12 @@ interface
           begin
             if (nodetype in [equaln,unequaln]) then
               if (unsigned and
-                  (right.location.value > high(aword))) or
+                  (right.location.value > high(word))) or
                  (not unsigned and
                   ((longint(right.location.value) < low(smallint)) or
                    (longint(right.location.value) > high(smallint)))) then
-                // we can then maybe use a constant in if we use a constant
-                // for the 'othersigned' case and the sign doesn't matter in
-                // this case
+                // we can then maybe use a constant in the 'othersigned' case
+                // (the sign doesn't matter for // equal/unequal)
                 unsigned := not unsigned;
 
             if (unsigned and
@@ -308,7 +329,7 @@ interface
              else
               location_reset(location,LOC_FLAGS,OS_NO);
 
-            load_left_right(cmpop);
+            load_left_right(cmpop,false);
 
             if (left.location.loc = LOC_CONSTANT) then
               swapleftright;
@@ -507,7 +528,7 @@ interface
          else
           location_reset(location,LOC_FLAGS,OS_NO);
 
-        load_left_right(cmpop);
+        load_left_right(cmpop,false);
 
         if not(cmpop) and
            (location.register = R_NO) then
@@ -559,14 +580,13 @@ interface
                   right.location.value := not(right.location.value)
                 else
                   opdone := true
+              else if (left.location.loc=LOC_CONSTANT) then
+                left.location.value := not(left.location.value)
               else
-                if (left.location.loc=LOC_CONSTANT) then
-                  left.location.value := not(left.location.value)
-                else
-                   begin
-                     swapleftright;
-                     opdone := true;
-                   end;
+                 begin
+                   swapleftright;
+                   opdone := true;
+                 end;
               if opdone then
                 begin
                   if left.location.loc = LOC_CONSTANT then
@@ -650,35 +670,60 @@ interface
                                 Add64bit
 *****************************************************************************}
 
-(*
-    procedure ti386addnode.second_add64bit;
+    procedure tppcaddnode.second_add64bit;
       var
         op         : TOpCG;
         op1,op2    : TAsmOp;
-        opsize     : TOpSize;
-        hregister,
-        hregister2 : tregister;
-        href       : treference;
         hl4        : tasmlabel;
-        mboverflow,
         cmpop,
         unsigned   : boolean;
+
+
+      procedure emit_cmp64_hi;
+
+        var
+          oldleft, oldright: tlocation;
+        begin
+          // put the high part of the location in the low part
+          location_copy(oldleft,left.location);
+          location_copy(oldright,right.location);
+          if left.location.loc = LOC_CONSTANT then
+            left.location.value := left.location.value shr 32
+          else
+            left.location.registerlow := left.location.registerhigh;
+          if right.location.loc = LOC_CONSTANT then
+            right.location.value := right.location.value shr 32
+          else
+            right.location.registerlow := right.location.registerhigh;
+
+          // and call the normal emit_compare
+          emit_compare(unsigned);
+          location_copy(left.location,oldleft);
+          location_copy(right.location,oldright);
+        end;
+
+
+      procedure emit_cmp64_lo;
+
+        begin
+          emit_compare(true);
+        end;
+
 
       procedure firstjmp64bitcmp;
 
         var
-           oldnodetype : tnodetype;
-
+          oldnodetype: tnodetype;
         begin
            load_all_regvars(exprasmlist);
            { the jump the sequence is a little bit hairy }
            case nodetype of
               ltn,gtn:
                 begin
-                   emitjmp(flags_to_cond(getresflags(unsigned)),truelabel);
+                   cg.a_jmp_flags(exprasmlist,getresflags,truelabel);
                    { cheat a little bit for the negative test }
                    toggleflag(nf_swaped);
-                   emitjmp(flags_to_cond(getresflags(unsigned)),falselabel);
+                   cg.a_jmp_flags(exprasmlist,getresflags,falselabel);
                    toggleflag(nf_swaped);
                 end;
               lten,gten:
@@ -688,19 +733,27 @@ interface
                      nodetype:=ltn
                    else
                      nodetype:=gtn;
-                   emitjmp(flags_to_cond(getresflags(unsigned)),truelabel);
+                   cg.a_jmp_flags(exprasmlist,getresflags,truelabel);
                    { cheat for the negative test }
                    if nodetype=ltn then
                      nodetype:=gtn
                    else
                      nodetype:=ltn;
-                   emitjmp(flags_to_cond(getresflags(unsigned)),falselabel);
+                   cg.a_jmp_flags(exprasmlist,getresflags,falselabel);
                    nodetype:=oldnodetype;
                 end;
               equaln:
-                emitjmp(C_NE,falselabel);
+                begin
+                  nodetype := unequaln;
+                  cg.a_jmp_flags(exprasmlist,getresflags,falselabel);
+                  nodetype := equaln;
+                end;
               unequaln:
-                emitjmp(C_NE,truelabel);
+                begin
+                  nodetype := equaln;
+                  cg.a_jmp_flags(exprasmlist,getresflags,truelabel);
+                  nodetype := unequaln;
+                end;
            end;
         end;
 
@@ -714,17 +767,19 @@ interface
                 begin
                    { the comparisaion of the low dword have to be }
                    {  always unsigned!                            }
-                   emitjmp(flags_to_cond(getresflags(true)),truelabel);
+                   cg.a_jmp_flags(exprasmlist,getresflags,truelabel);
                    cg.a_jmp_always(exprasmlist,falselabel);
                 end;
               equaln:
                 begin
-                   emitjmp(C_NE,falselabel);
+                   nodetype := unequaln;
+                   cg.a_jmp_flags(exprasmlist,getresflags,falselabel);
                    cg.a_jmp_always(exprasmlist,truelabel);
+                   nodetype := equaln;
                 end;
               unequaln:
                 begin
-                   emitjmp(C_NE,truelabel);
+                   cg.a_jmp_flags(exprasmlist,getresflags,truelabel);
                    cg.a_jmp_always(exprasmlist,falselabel);
                 end;
            end;
@@ -735,11 +790,7 @@ interface
 
         pass_left_and_right;
 
-        op1:=A_NONE;
-        op2:=A_NONE;
-        mboverflow:=false;
         cmpop:=false;
-        opsize:=S_L;
         unsigned:=((left.resulttype.def.deftype=orddef) and
                    (torddef(left.resulttype.def).typ=u64bit)) or
                   ((right.resulttype.def.deftype=orddef) and
@@ -748,14 +799,10 @@ interface
           addn :
             begin
               op:=OP_ADD;
-              mboverflow:=true;
             end;
           subn :
             begin
               op:=OP_SUB;
-              op1:=A_SUB;
-              op2:=A_SBB;
-              mboverflow:=true;
             end;
           ltn,lten,
           gtn,gten,
@@ -776,163 +823,86 @@ interface
               internalerror(200109051);
             end;
           else
-            CGMessage(type_e_mismatch);
+            internalerror(2002072705);
         end;
 
-        { left and right no register?  }
-        { then one must be demanded    }
-        if (left.location.loc<>LOC_REGISTER) then
-         begin
-           if (right.location.loc<>LOC_REGISTER) then
-            begin
-              { we can reuse a CREGISTER for comparison }
-              if not((left.location.loc=LOC_CREGISTER) and cmpop) then
-               begin
-                 if (left.location.loc<>LOC_CREGISTER) then
-                  begin
-                    location_freetemp(exprasmlist,left.location);
-                    location_release(exprasmlist,left.location);
-                  end;
-                 hregister:=rg.getregisterint(exprasmlist);
-                 hregister2:=rg.getregisterint(exprasmlist);
-                 cg64.a_load64_loc_reg(exprasmlist,left.location,joinreg64(hregister,hregister2));
-                 location_reset(left.location,LOC_REGISTER,OS_64);
-                 left.location.registerlow:=hregister;
-                 left.location.registerhigh:=hregister2;
-               end;
-            end
-           else
-            begin
-              location_swap(left.location,right.location);
-              toggleflag(nf_swaped);
-            end;
-         end;
+        { set result location }
+        if not cmpop then
+          location_reset(location,LOC_REGISTER,def_cgsize(resulttype.def))
+         else
+          location_reset(location,LOC_JUMP,OS_NO);
 
-        { at this point, left.location.loc should be LOC_REGISTER }
-        if right.location.loc=LOC_REGISTER then
-         begin
-           { when swapped another result register }
-           if (nodetype=subn) and (nf_swaped in flags) then
-            begin
-              cg64.a_op64_reg_reg(exprasmlist,op,
-                left.location.register64,
-                right.location.register64);
-              location_swap(left.location,right.location);
-              toggleflag(nf_swaped);
-            end
-           else if cmpop then
-            begin
-              emit_reg_reg(A_CMP,S_L,right.location.registerhigh,left.location.registerhigh);
-              firstjmp64bitcmp;
-              emit_reg_reg(A_CMP,S_L,right.location.registerlow,left.location.registerlow);
-              secondjmp64bitcmp;
-            end
-           else
-            begin
-              cg64.a_op64_reg_reg(exprasmlist,op,
-                right.location.register64,
-                left.location.register64);
-            end;
-           location_release(exprasmlist,right.location);
-         end
-        else
-         begin
-           { right.location<>LOC_REGISTER }
-           if (nodetype=subn) and (nf_swaped in flags) then
-            begin
-              rg.getexplicitregisterint(exprasmlist,R_EDI);
-              cg64.a_load64low_loc_reg(exprasmlist,right.location,R_EDI);
-              emit_reg_reg(op1,opsize,left.location.registerlow,R_EDI);
-              emit_reg_reg(A_MOV,opsize,R_EDI,left.location.registerlow);
-              cg64.a_load64high_loc_reg(exprasmlist,right.location,R_EDI);
-              { the carry flag is still ok }
-              emit_reg_reg(op2,opsize,left.location.registerhigh,R_EDI);
-              emit_reg_reg(A_MOV,opsize,R_EDI,left.location.registerhigh);
-              rg.ungetregisterint(exprasmlist,R_EDI);
-              if right.location.loc<>LOC_CREGISTER then
-               begin
-                 location_freetemp(exprasmlist,right.location);
-                 location_release(exprasmlist,right.location);
-               end;
-            end
-           else if cmpop then
-            begin
-              case right.location.loc of
-                LOC_CREGISTER :
-                  begin
-                    emit_reg_reg(A_CMP,S_L,right.location.registerhigh,left.location.registerhigh);
-                    firstjmp64bitcmp;
-                    emit_reg_reg(A_CMP,S_L,right.location.registerlow,left.location.registerlow);
-                    secondjmp64bitcmp;
-                  end;
-                LOC_CREFERENCE,
-                LOC_REFERENCE :
-                  begin
-                    href:=right.location.reference;
-                    inc(href.offset,4);
-                    emit_ref_reg(A_CMP,S_L,href,left.location.registerhigh);
-                    firstjmp64bitcmp;
-                    emit_ref_reg(A_CMP,S_L,right.location.reference,left.location.registerlow);
-                    secondjmp64bitcmp;
-                    cg.a_jmp_always(exprasmlist,falselabel);
-                    location_freetemp(exprasmlist,right.location);
-                    location_release(exprasmlist,right.location);
-                  end;
-                LOC_CONSTANT :
-                  begin
-                    exprasmlist.concat(taicpu.op_const_reg(A_CMP,S_L,right.location.valuehigh,left.location.registerhigh));
-                    firstjmp64bitcmp;
-                    exprasmlist.concat(taicpu.op_const_reg(A_CMP,S_L,right.location.valuelow,left.location.registerlow));
-                    secondjmp64bitcmp;
-                  end;
-                else
-                  internalerror(200203282);
+
+        load_left_right(cmpop,(cs_check_overflow in aktlocalswitches) and
+            (nodetype in [addn,subn]));
+
+        // can't do much with a constant on the left side here
+        if (nodetype = subn) then
+          begin
+            if (nf_swaped in flags) then
+              swapleftright;
+            if left.location.loc = LOC_CONSTANT then
+              begin
+                location_force_reg(exprasmlist,left.location,
+                  def_cgsize(left.resulttype.def),false);
+                location.register64 := left.location.register64;
               end;
-            end
+           end;
 
-           else
-            begin
-              cg64.a_op64_loc_reg(exprasmlist,op,right.location,
-                left.location.register64);
-              if (right.location.loc<>LOC_CREGISTER) then
-               begin
-                 location_freetemp(exprasmlist,right.location);
-                 location_release(exprasmlist,right.location);
-               end;
-            end;
-         end;
-
-        if (left.location.loc<>LOC_CREGISTER) and cmpop then
-         begin
-           location_freetemp(exprasmlist,left.location);
-           location_release(exprasmlist,left.location);
-         end;
-
-        { only in case of overflow operations }
-        { produce overflow code }
-        { we must put it here directly, because sign of operation }
-        { is in unsigned VAR!!                              }
-        if mboverflow then
-         begin
-           if cs_check_overflow in aktlocalswitches  then
-            begin
-              getlabel(hl4);
-              if unsigned then
-               emitjmp(C_NB,hl4)
+        if not(cs_check_overflow in aktlocalswitches) or
+           not(nodetype in [addn,subn]) then
+          begin
+            case nodetype of
+              ltn,lten,
+              gtn,gten,
+              equaln,unequaln:
+                begin
+                  emit_cmp64_hi;
+                  firstjmp64bitcmp;
+                  emit_cmp64_lo;
+                  secondjmp64bitcmp;
+                end;
+              xorn,orn,andn,addn,subn:
+                begin
+                  if left.location.loc = LOC_CONSTANT then
+                    swapleftright;
+                  if (right.location.loc = LOC_CONSTANT) then
+                    cg64.a_op64_const_reg_reg(exprasmlist,op,right.location.value,
+                      left.location.register64,location.register64)
+                  else
+                    cg64.a_op64_reg_reg_reg(exprasmlist,op,right.location.register64,
+                      left.location.register64,location.register64);
+                end;
               else
-               emitjmp(C_NO,hl4);
-              cg.a_call_name(exprasmlist,'FPC_OVERFLOW');
-              cg.a_label(exprasmlist,hl4);
+                internalerror(2002072803);
             end;
-         end;
-
-        { we have LOC_JUMP as result }
-        if cmpop then
-         location_reset(location,LOC_JUMP,OS_NO)
+          end
         else
-         location_copy(location,left.location);
+          begin
+            case nodetype of
+              addn:
+                begin
+                  op1 := A_ADDC;
+                  op2 := A_ADDZEO;
+                end;
+              subn:
+                begin
+                  op1 := A_SUBC;
+                  op2 := A_SUBFMEO;
+                end;
+              else
+                internalerror(2002072806);
+            end;
+            exprasmlist.concat(taicpu.op_reg_reg_reg(op1,location.registerlow,
+              left.location.registerlow,right.location.registerlow));
+            exprasmlist.concat(taicpu.op_reg_reg_reg(op2,location.registerhigh,
+              right.location.registerhigh,left.location.registerhigh));
+            cg.g_overflowcheck(exprasmlist,self);
+          end;
+
+        clear_left_right(cmpop);
+
       end;
-*)
 
 
 {*****************************************************************************
@@ -1209,28 +1179,8 @@ interface
           else
            location_reset(location,LOC_FLAGS,OS_NO);
 
-         load_left_right(cmpop);
-
-         // when overflow checking is on, all operands have to be in
-         // a register
-         if (cs_check_overflow in aktlocalswitches) and
-            not cmpop and
-            not (nodetype in [orn,andn,xorn]) then
-           begin
-             { left and right can't be both constants }
-             if (left.location.loc = LOC_CONSTANT) then
-               begin
-                 location_force_reg(exprasmlist,left.location,
-                   def_cgsize(left.resulttype.def),false);
-                  location.register := left.location.register;
-                end
-             else if (right.location.loc = LOC_CONSTANT) then
-               begin
-                 location_force_reg(exprasmlist,right.location,
-                   def_cgsize(right.resulttype.def),false);
-                 location.register := right.location.register;
-               end;
-           end;
+         load_left_right(cmpop, (cs_check_overflow in aktlocalswitches) and
+            (nodetype in [addn,subn,muln]));
 
          if (location.register = R_NO) and
             not(cmpop) then
@@ -1321,6 +1271,7 @@ interface
              end;
              exprasmlist.concat(taicpu.op_reg_reg_reg(op,location.register,
                left.location.register,right.location.register));
+             cg.g_overflowcheck(exprasmlist,self);
            end;
 
          clear_left_right(cmpop);
@@ -1331,7 +1282,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2002-07-27 20:00:59  jonas
+  Revision 1.3  2002-07-28 16:02:49  jonas
+    + 64 bit operations (badly tested), everything is implemented now!
+    * some small fixes
+
+  Revision 1.2  2002/07/27 20:00:59  jonas
     + second_addboolean(), second_addfloat() and second_addsmallset()
       (64bit stuff is all that's left to do)
 
