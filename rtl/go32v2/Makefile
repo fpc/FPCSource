@@ -34,10 +34,12 @@ INC=$(RTL)/inc
 PROCINC=$(RTL)/$(CPU)
 
 # Needed options
+ifneq ("$(FPC_VERSION)","0.99.10")
 ifndef BROWSER
 NEEDOPT=-b-
 endif
- 
+endif 
+
 # Where to place the result files
 TARGETDIR=.
 
@@ -133,7 +135,6 @@ else
 include $(FPCMAKE)
 testfpcmake:
 endif
-
 
 #####################################################################
 # Include system unit dependencies
@@ -253,7 +254,10 @@ msmouse$(PPUEXT) : msmouse.pp $(SYSTEMPPU)
 
 #
 # $Log$
-# Revision 1.13  1999-05-04 11:59:42  peter
+# Revision 1.14  1999-05-04 23:23:53  pierre
+#  * uses FPC_VERSION to get it to work undder v09910
+#
+# Revision 1.13  1999/05/04 11:59:42  peter
 #   * browser off by default
 #
 # Revision 1.12  1999/04/22 10:56:31  peter
