@@ -139,51 +139,51 @@ CONST
        if (Y < StartYViewPort) or (Y > (StartYViewPort + ViewHeight)) then
          exit;
      end;
-    asm
-      mov  es, [SegA000]
-      { enable the set / reset function and load the color }
-      mov  dx, 3ceh
-      mov  ax, 0f01h
-      out  dx, ax
-      { setup set/reset register }
-      mov  ax, [Pixel]
-      shl  ax, 8
-      out  dx, ax
-      { setup the bit mask register }
-      mov  al, 8
-      out  dx, al
-      inc  dx
-      { load the bitmask register }
-      mov  cx, [X]
-      and  cx, 0007h
-      mov  al, 80h
-      shr  al, cl
-      out  dx, ax
-      { get the x index and divide by 8 for 16-color }
-      mov  ax,[X]
-      shr  ax,3
-      push ax
-      { determine the address }
-      mov  ax,80
-      mov  bx,[Y]
-      mul  bx
-      pop  cx
-      add  ax,cx
-      mov  di,ax
-      add  di, [VideoOfs]
-      { send the data through the display memory through set/reset }
-      mov  bl,es:[di]
-      mov  es:[di],bl
+      asm
+        mov  es, [SegA000]
+        { enable the set / reset function and load the color }
+        mov  dx, 3ceh
+        mov  ax, 0f01h
+        out  dx, ax
+        { setup set/reset register }
+        mov  ax, [Pixel]
+        shl  ax, 8
+        out  dx, ax
+        { setup the bit mask register }
+        mov  al, 8
+        out  dx, al
+        inc  dx
+        { load the bitmask register }
+        mov  cx, [X]
+        and  cx, 0007h
+        mov  al, 80h
+        shr  al, cl
+        out  dx, ax
+        { get the x index and divide by 8 for 16-color }
+        mov  ax,[X]
+        shr  ax,3
+        push ax
+        { determine the address }
+        mov  ax,80
+        mov  bx,[Y]
+        mul  bx
+        pop  cx
+        add  ax,cx
+        mov  di,ax
+        add  di, [VideoOfs]
+        { send the data through the display memory through set/reset }
+        mov  bl,es:[di]
+        mov  es:[di],bl
 
-      { reset for formal vga operation }
-      mov  dx,3ceh
-      mov  ax,0ff08h
-      out  dx,ax
+        { reset for formal vga operation }
+        mov  dx,3ceh
+        mov  ax,0ff08h
+        out  dx,ax
 
-      { restore enable set/reset register }
-      mov  ax,0001h
-      out  dx,ax
-    end;
+        { restore enable set/reset register }
+        mov  ax,0001h
+        out  dx,ax
+      end;
    end;
 
 
