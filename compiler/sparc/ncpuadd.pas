@@ -183,19 +183,14 @@ interface
 
 
     procedure tsparcaddnode.second_cmpboolean;
-      var
-        zeroreg : tregister;
       begin
         pass_left_right;
         force_reg_left_right(true,true);
 
-        zeroreg.enum:=R_INTREGISTER;
-        zeroreg.number:=NR_G0;
-
         if right.location.loc = LOC_CONSTANT then
-          tcgsparc(cg).handle_reg_const_reg(exprasmlist,A_SUBcc,left.location.register,right.location.value,zeroreg)
+          tcgsparc(cg).handle_reg_const_reg(exprasmlist,A_SUBcc,left.location.register,right.location.value,NR_G0)
         else
-          exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUBcc,left.location.register,right.location.register,zeroreg));
+          exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUBcc,left.location.register,right.location.register,NR_G0));
 
         location_reset(location,LOC_FLAGS,OS_NO);
         location.resflags:=getresflags(true);
@@ -205,19 +200,14 @@ interface
 
 
     procedure tsparcaddnode.second_cmpsmallset;
-      var
-        zeroreg : tregister;
       begin
         pass_left_right;
         force_reg_left_right(true,true);
 
-        zeroreg.enum:=R_INTREGISTER;
-        zeroreg.number:=NR_G0;
-
         if right.location.loc = LOC_CONSTANT then
-          tcgsparc(cg).handle_reg_const_reg(exprasmlist,A_SUBcc,left.location.register,right.location.value,zeroreg)
+          tcgsparc(cg).handle_reg_const_reg(exprasmlist,A_SUBcc,left.location.register,right.location.value,NR_G0)
         else
-          exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUBcc,left.location.register,right.location.register,zeroreg));
+          exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUBcc,left.location.register,right.location.register,NR_G0));
 
         location_reset(location,LOC_FLAGS,OS_NO);
         location.resflags:=getresflags(true);
@@ -243,7 +233,6 @@ interface
 
     procedure tsparcaddnode.second_cmpordinal;
       var
-        zeroreg : tregister;
         unsigned : boolean;
       begin
         pass_left_right;
@@ -252,13 +241,10 @@ interface
         unsigned:=not(is_signed(left.resulttype.def)) or
                   not(is_signed(right.resulttype.def));
 
-        zeroreg.enum:=R_INTREGISTER;
-        zeroreg.number:=NR_G0;
-
         if right.location.loc = LOC_CONSTANT then
-          tcgsparc(cg).handle_reg_const_reg(exprasmlist,A_SUBcc,left.location.register,right.location.value,zeroreg)
+          tcgsparc(cg).handle_reg_const_reg(exprasmlist,A_SUBcc,left.location.register,right.location.value,NR_G0)
         else
-          exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUBcc,left.location.register,right.location.register,zeroreg));
+          exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUBcc,left.location.register,right.location.register,NR_G0));
 
         location_reset(location,LOC_FLAGS,OS_NO);
         location.resflags:=getresflags(unsigned);
@@ -271,7 +257,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  2003-07-08 21:25:00  peter
+  Revision 1.19  2003-09-03 15:55:01  peter
+    * NEWRA branch merged
+
+  Revision 1.18.2.1  2003/09/01 21:02:55  peter
+    * sparc updates for new tregister
+
+  Revision 1.18  2003/07/08 21:25:00  peter
     * sparc fixes
 
   Revision 1.17  2003/07/06 22:09:50  peter

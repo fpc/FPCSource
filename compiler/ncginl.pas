@@ -177,7 +177,6 @@ implementation
      var
          hp2 : tstringconstnode;
          otlabel,oflabel{,l1}   : tasmlabel;
-         r: Tregister;
      begin
        { the node should be removed in the firstpass }
        if not (cs_do_assertion in aktlocalswitches) then
@@ -190,9 +189,7 @@ implementation
        maketojumpbool(exprasmlist,tcallparanode(left).left,lr_load_regvars);
        cg.a_label(exprasmlist,falselabel);
        { erroraddr }
-       r.enum:=R_INTREGISTER;
-       r.number:=NR_FRAME_POINTER_REG;
-       cg.a_param_reg(exprasmlist,OS_ADDR,r,paramanager.getintparaloc(exprasmlist,4));
+       cg.a_param_reg(exprasmlist,OS_ADDR,NR_FRAME_POINTER_REG,paramanager.getintparaloc(exprasmlist,4));
        { lineno }
        cg.a_param_const(exprasmlist,OS_INT,aktfilepos.line,paramanager.getintparaloc(exprasmlist,3));
        { filename string }
@@ -211,13 +208,9 @@ implementation
        paramanager.freeintparaloc(exprasmlist,3);
        paramanager.freeintparaloc(exprasmlist,2);
        paramanager.freeintparaloc(exprasmlist,1);
-{$ifdef newra}
        rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
-{$endif newra}
        cg.a_call_name(exprasmlist,'FPC_ASSERT');
-{$ifdef newra}
        rg.deallocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
-{$endif newra}
        cg.a_label(exprasmlist,truelabel);
        truelabel:=otlabel;
        falselabel:=oflabel;
@@ -375,7 +368,6 @@ implementation
          hregisterhi,
          hregister : tregister;
          cgsize : tcgsize;
-         pushedregs : tmaybesave;
         begin
           { set defaults }
           addconstant:=true;
@@ -400,14 +392,7 @@ implementation
           { second_ argument specified?, must be a s32bit in register }
           if assigned(tcallparanode(left).right) then
             begin
-            {$ifndef newra}
-              maybe_save(exprasmlist,tcallparanode(tcallparanode(left).right).left.registers32,
-                 tcallparanode(left).left.location,pushedregs);
-            {$endif}
               secondpass(tcallparanode(tcallparanode(left).right).left);
-            {$ifndef newra}
-              maybe_restore(exprasmlist,tcallparanode(left).left.location,pushedregs);
-            {$endif}
               { when constant, just multiply the addvalue }
               if is_constintnode(tcallparanode(tcallparanode(left).right).left) then
                  addvalue:=addvalue*get_ordinal_value(tcallparanode(tcallparanode(left).right).left)
@@ -472,7 +457,6 @@ implementation
         var
          hregister : tregister;
          L : longint;
-         pushedregs : TMaybesave;
          cgop : topcg;
          addrreg, hregister2: tregister;
          use_small : boolean;
@@ -519,21 +503,10 @@ implementation
                    (tenumdef(tcallparanode(tcallparanode(left).right).left.resulttype.def).max<=32));
 
               { generate code for the element to set }
-            {$ifndef newra}
-              maybe_save(exprasmlist,tcallparanode(tcallparanode(left).right).left.registers32,
-                        tcallparanode(left).left.location,pushedregs);
-            {$endif newra}
               secondpass(tcallparanode(tcallparanode(left).right).left);
-            {$ifndef newra}
-              maybe_restore(exprasmlist,tcallparanode(left).left.location,pushedregs);
-            {$endif newra}
 
               { bitnumber - which must be loaded into register }
-            {$ifdef newra}
               hregister:=rg.getregisterint(exprasmlist,OS_INT);
-            {$else}
-              hregister := cg.get_scratch_reg_int(exprasmlist,OS_INT);
-            {$endif}
               hregister2 := rg.getregisterint(exprasmlist,OS_INT);
 
               case tcallparanode(tcallparanode(left).right).left.location.loc of
@@ -596,11 +569,7 @@ implementation
 
                   cg.a_op_const_reg_reg(exprasmlist, OP_SHR, OS_32, 5, hregister,hregister2);
                   cg.a_op_const_reg(exprasmlist, OP_SHL, OS_32, 2, hregister2);
-              {$ifdef newra}
                   addrreg:=rg.getaddressregister(exprasmlist);
-              {$else}
-                  addrreg := cg.get_scratch_reg_address(exprasmlist);
-              {$endif}
                   { calculate the correct address of the operand }
                   cg.a_loadaddr_ref_reg(exprasmlist, tcallparanode(left).left.location.reference,addrreg);
                   cg.a_op_reg_reg(exprasmlist, OP_ADD, OS_INT, hregister2, addrreg);
@@ -622,17 +591,9 @@ implementation
                          cg.a_op_reg_reg(exprasmlist, OP_NOT, OS_32, hregister2, hregister2);
                          cg.a_op_reg_ref(exprasmlist, OP_AND, OS_32, hregister2, href);
                        end;
-                {$ifdef newra}
                   rg.ungetregisterint(exprasmlist,addrreg);
-                {$else}
-                  cg.free_scratch_reg(exprasmlist, addrreg);
-                {$endif}
                 end;
-              {$ifdef newra}
                 rg.ungetregisterint(exprasmlist,hregister);
-              {$else}
-                cg.free_scratch_reg(exprasmlist,hregister);
-              {$endif}
                 rg.ungetregisterint(exprasmlist,hregister2);
             end;
         end;
@@ -692,7 +653,13 @@ end.
 
 {
   $Log$
-  Revision 1.39  2003-07-23 11:01:14  jonas
+  Revision 1.40  2003-09-03 15:55:00  peter
+    * NEWRA branch merged
+
+  Revision 1.39.2.1  2003/08/29 17:28:59  peter
+    * next batch of updates
+
+  Revision 1.39  2003/07/23 11:01:14  jonas
     * several rg.allocexplicitregistersint/rg.deallocexplicitregistersint
       pairs round calls to helpers
 

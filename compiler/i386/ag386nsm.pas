@@ -52,29 +52,33 @@ interface
       sysutils,
 {$endif}
       cutils,globtype,globals,systems,cclasses,
-      fmodule,finput,verbose,cpuinfo,ag386int
+      fmodule,finput,verbose,cpuinfo,cginfo
       ;
 
     const
       line_length = 64;
 
-    int_nasmreg2str : reg2strtable = ('',
-     'eax','ecx','edx','ebx','esp','ebp','esi','edi',
-     'ax','cx','dx','bx','sp','bp','si','di',
-     'al','cl','dl','bl','ah','ch','bh','dh',
-     'cs','ds','es','ss','fs','gs',
-     'st0','st0','st1','st2','st3','st4','st5','st6','st7',
-     'dr0','dr1','dr2','dr3','dr6','dr7',
-     'cr0','cr2','cr3','cr4',
-     'tr3','tr4','tr5','tr6','tr7',
-     'mm0','mm1','mm2','mm3','mm4','mm5','mm6','mm7',
-     'xmm0','xmm1','xmm2','xmm3','xmm4','xmm5','xmm6','xmm7'
-   );
+      nasm_regname_table : array[tregisterindex] of string[7] = (
+        {r386nasm.inc contains the Nasm name of each register.}
+        {$i r386nasm.inc}
+      );
 
     var
       lastfileinfo : tfileposinfo;
       infile,
       lastinfile   : tinputfile;
+
+    function nasm_regname(r:Tregister):string;
+      var
+        p : tregisterindex;
+      begin
+        p:=findreg_by_number(r);
+        if p<>0 then
+          result:=nasm_regname_table[p]
+        else
+          result:=generic_regname(r);
+      end;
+
 
    function fixline(s:string):string;
    {
@@ -217,48 +221,36 @@ interface
 
     procedure T386NasmAssembler.WriteReference(var ref : treference);
       var
-        first,no_s,no_b,no_i : boolean;
+        first : boolean;
       begin
         with ref do
          begin
-           no_s:=(segment.enum=R_NO) or ((segment.enum=R_INTREGISTER) and (segment.number=NR_NO));
-           no_b:=(base.enum=R_NO) or ((base.enum=R_INTREGISTER) and (base.number=NR_NO));
-           no_i:=(index.enum=R_NO) or ((index.enum=R_INTREGISTER) and (index.number=NR_NO));
            AsmWrite('[');
            first:=true;
            inc(offset,offsetfixup);
            offsetfixup:=0;
-           if not no_s then
-            if segment.enum=R_INTREGISTER then
-              asmwrite(intel_regname(segment.number))
-            else
-              asmwrite(std_reg2str[segment.enum]+':');
+           if (segment<>NR_NO) then
+             AsmWrite(nasm_regname(segment)+':');
            if assigned(symbol) then
             begin
               AsmWrite(symbol.name);
               first:=false;
             end;
-           if not no_b then
+           if (base<>NR_NO) then
             begin
               if not(first) then
                AsmWrite('+')
               else
                first:=false;
-            if base.enum=R_INTREGISTER then
-              asmwrite(intel_regname(base.number))
-            else
-              asmwrite(int_nasmreg2str[base.enum]);
+              AsmWrite(nasm_regname(base))
             end;
-           if not no_i then
+           if (index<>NR_NO) then
              begin
                if not(first) then
                  AsmWrite('+')
                else
                  first:=false;
-              if index.enum=R_INTREGISTER then
-                asmwrite(intel_regname(index.number))
-              else
-               AsmWrite(int_nasmreg2str[index.enum]);
+               AsmWrite(nasm_regname(index));
                if scalefactor<>0 then
                  AsmWrite('*'+tostr(scalefactor));
              end;
@@ -283,16 +275,7 @@ interface
       begin
         case o.typ of
           top_reg :
-            begin
-              if o.reg.enum=R_INTREGISTER then
-                asmwrite(intel_regname(o.reg.number))
-              else
-                begin
-                  if o.reg.enum>high(Toldregister) then
-                    internalerror(01010101);
-                  asmwrite(int_nasmreg2str[o.reg.enum]);
-                end;
-            end;
+            AsmWrite(nasm_regname(o.reg));
           top_const :
             begin
               if (ops=1) and (opcode<>A_RET) then
@@ -333,12 +316,7 @@ interface
       begin
         case o.typ of
           top_reg :
-            begin
-              if o.reg.enum=R_INTREGISTER then
-                asmwrite(intel_regname(o.reg.number))
-              else
-                asmwrite(int_nasmreg2str[o.reg.enum]);
-            end;
+            AsmWrite(nasm_regname(o.reg));
           top_ref :
             WriteReference(o.ref^);
           top_const :
@@ -387,7 +365,6 @@ interface
       found,
       do_line,
       quoted   : boolean;
-      regstr:string[6];
     begin
       if not assigned(p) then
        exit;
@@ -458,12 +435,8 @@ interface
 
            ait_regalloc :
              begin
-               if tai_regalloc(hp).reg.enum=R_INTREGISTER then
-                regstr:=intel_regname(tai_regalloc(hp).reg.number)
-               else
-                regstr:=std_reg2str[tai_regalloc(hp).reg.enum];
                if (cs_asm_regalloc in aktglobalswitches) then
-                 AsmWriteLn(#9#9+target_asm.comment+'Register '+regstr+
+                 AsmWriteLn(#9#9+target_asm.comment+'Register '+nasm_regname(tai_regalloc(hp).reg)+
                    allocstr[tai_regalloc(hp).allocation]);
              end;
 
@@ -678,9 +651,9 @@ interface
                  begin
                    taicpu(hp).ops:=2;
                    taicpu(hp).oper[0].typ:=top_reg;
-                   taicpu(hp).oper[0].reg.enum:=R_ST1;
+                   taicpu(hp).oper[0].reg:=NR_ST1;
                    taicpu(hp).oper[1].typ:=top_reg;
-                   taicpu(hp).oper[1].reg.enum:=R_ST;
+                   taicpu(hp).oper[1].reg:=NR_ST;
                  end;
                if taicpu(hp).opcode=A_FWAIT then
                 AsmWriteln(#9#9'DB'#9'09bh')
@@ -693,7 +666,7 @@ interface
                      ((taicpu(hp).opcode=A_PUSH) or
                       (taicpu(hp).opcode=A_POP)) and
                       (taicpu(hp).oper[0].typ=top_reg) and
-                      ((taicpu(hp).oper[0].reg.enum in [firstsreg..lastsreg])) then
+                      (is_segment_reg(taicpu(hp).oper[0].reg)) then
                     AsmWriteln(#9#9'DB'#9'066h');
                   AsmWrite(#9#9+std_op2str[taicpu(hp).opcode]+cond2str[taicpu(hp).condition]);
                   if taicpu(hp).ops<>0 then
@@ -929,7 +902,13 @@ initialization
 end.
 {
   $Log$
-  Revision 1.37  2003-08-09 18:56:54  daniel
+  Revision 1.38  2003-09-03 15:55:01  peter
+    * NEWRA branch merged
+
+  Revision 1.37.2.1  2003/08/31 15:46:26  peter
+    * more updates for tregister
+
+  Revision 1.37  2003/08/09 18:56:54  daniel
     * cs_regalloc renamed to cs_regvars to avoid confusion with register
       allocator
     * Some preventive changes to i386 spillinh code

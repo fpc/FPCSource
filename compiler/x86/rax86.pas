@@ -310,8 +310,6 @@ begin
                so:=operands[i].opr.symofs;
                operands[i].opr.typ:=OPR_REFERENCE;
                Fillchar(operands[i].opr.ref,sizeof(treference),0);
-               operands[i].opr.ref.index.enum:=R_INTREGISTER;
-               operands[i].opr.ref.base.enum:=R_INTREGISTER;
                operands[i].opr.ref.symbol:=s;
                operands[i].opr.ref.offset:=so;
              end;
@@ -332,17 +330,16 @@ begin
   case ops of
     0 : ;
     1 :
-      { "push es" must be stored as a long PM }
-      if ((opcode=A_PUSH) or
-          (opcode=A_POP)) and
-         (operands[1].opr.typ=OPR_REGISTER) and
-         ((operands[1].opr.reg.enum in [firstsreg..lastsreg]) or
-          ((operands[1].opr.reg.enum=R_INTREGISTER) and
-           (operands[1].opr.reg.number>=nfirstsreg) and
-           (operands[1].opr.reg.number<=nlastsreg))) then
-        opsize:=S_L
-      else
-        opsize:=t386operand(operands[1]).opsize;
+      begin
+        { "push es" must be stored as a long PM }
+        if ((opcode=A_PUSH) or
+            (opcode=A_POP)) and
+           (operands[1].opr.typ=OPR_REGISTER) and
+           is_segment_reg(operands[1].opr.reg) then
+          opsize:=S_L
+        else
+          opsize:=t386operand(operands[1]).opsize;
+      end;
     2 :
       begin
         case opcode of
@@ -398,14 +395,9 @@ begin
   { special push/pop selector case }
   if ((opcode=A_PUSH) or
       (opcode=A_POP)) and
-     (operands[1].opr.typ=OPR_REGISTER) then
-    begin
-      if (operands[1].opr.reg.enum in [firstsreg..lastsreg]) or
-         ((operands[1].opr.reg.enum=R_INTREGISTER) and
-          (operands[1].opr.reg.number>=nfirstsreg) and
-          (operands[1].opr.reg.number<=nlastsreg)) then
-     exit;
-    end;
+     (operands[1].opr.typ=OPR_REGISTER) and
+     is_segment_reg(operands[1].opr.reg) then
+    exit;
   if opsize in [S_BW,S_BL,S_WL] then
    begin
      if ops<>2 then
@@ -451,13 +443,16 @@ procedure T386Instruction.CheckNonCommutativeOpcodes;
 begin
   if (OpOrder=op_intel) then
     SwapOperands;
-  if ((ops=2) and
-     (operands[1].opr.typ=OPR_REGISTER) and
-     (operands[2].opr.typ=OPR_REGISTER) and
-     { if the first is ST and the second is also a register
-       it is necessarily ST1 .. ST7 }
-     (operands[1].opr.reg.enum in [R_ST..R_ST0])) or
-      (ops=0)  then
+  if (
+      (ops=2) and
+      (operands[1].opr.typ=OPR_REGISTER) and
+      (operands[2].opr.typ=OPR_REGISTER) and
+      { if the first is ST and the second is also a register
+        it is necessarily ST1 .. ST7 }
+      ((operands[1].opr.reg=NR_ST) or
+       (operands[1].opr.reg=NR_ST0))
+     ) or
+     (ops=0) then
       if opcode=A_FSUBR then
         opcode:=A_FSUB
       else if opcode=A_FSUB then
@@ -474,9 +469,13 @@ begin
         opcode:=A_FDIVP
       else if opcode=A_FDIVP then
         opcode:=A_FDIVRP;
-  if  ((ops=1) and
-      (operands[1].opr.typ=OPR_REGISTER) and
-      (operands[1].opr.reg.enum in [R_ST1..R_ST7])) then
+  if  (
+       (ops=1) and
+       (operands[1].opr.typ=OPR_REGISTER) and
+       (getregtype(operands[1].opr.reg)=R_FPUREGISTER) and
+       (operands[1].opr.reg<>NR_ST) and
+       (operands[1].opr.reg<>NR_ST0)
+      ) then
       if opcode=A_FSUBRP then
         opcode:=A_FSUBP
       else if opcode=A_FSUBP then
@@ -582,18 +581,24 @@ begin
        ops:=2;
        operands[1].opr.typ:=OPR_REGISTER;
        operands[2].opr.typ:=OPR_REGISTER;
-       operands[1].opr.reg.enum:=R_ST;
-       operands[2].opr.reg.enum:=R_ST1;
+       operands[1].opr.reg:=NR_ST0;
+       operands[2].opr.reg:=NR_ST1;
      end;
   if (ops=1) and
-      ((operands[1].opr.typ=OPR_REGISTER) and
-      (operands[1].opr.reg.enum in [R_ST1..R_ST7])) and
-      ((opcode=A_FSUBP) or
+     (
+      (operands[1].opr.typ=OPR_REGISTER) and
+      (getregtype(operands[1].opr.reg)=R_FPUREGISTER) and
+      (operands[1].opr.reg<>NR_ST) and
+      (operands[1].opr.reg<>NR_ST0)
+     ) and
+     (
+      (opcode=A_FSUBP) or
       (opcode=A_FSUBRP) or
       (opcode=A_FDIVP) or
       (opcode=A_FDIVRP) or
       (opcode=A_FADDP) or
-      (opcode=A_FMULP)) then
+      (opcode=A_FMULP)
+     ) then
      begin
 {$ifdef ATTOP}
        message1(asmr_w_adding_explicit_first_arg_fXX,gas_op2str[opcode]);
@@ -607,18 +612,24 @@ begin
        ops:=2;
        operands[2].opr.typ:=OPR_REGISTER;
        operands[2].opr.reg:=operands[1].opr.reg;
-       operands[1].opr.reg.enum:=R_ST;
+       operands[1].opr.reg:=NR_ST0;
      end;
 
   if (ops=1) and
-      ((operands[1].opr.typ=OPR_REGISTER) and
-      (operands[1].opr.reg.enum in [R_ST1..R_ST7])) and
-      ((opcode=A_FSUB) or
+     (
+      (operands[1].opr.typ=OPR_REGISTER) and
+      (getregtype(operands[1].opr.reg)=R_FPUREGISTER) and
+      (operands[1].opr.reg<>NR_ST) and
+      (operands[1].opr.reg<>NR_ST0)
+     ) and
+     (
+      (opcode=A_FSUB) or
       (opcode=A_FSUBR) or
       (opcode=A_FDIV) or
       (opcode=A_FDIVR) or
       (opcode=A_FADD) or
-      (opcode=A_FMUL)) then
+      (opcode=A_FMUL)
+     ) then
      begin
 {$ifdef ATTOP}
        message1(asmr_w_adding_explicit_second_arg_fXX,gas_op2str[opcode]);
@@ -631,7 +642,7 @@ begin
 {$endif ATTOP}
        ops:=2;
        operands[2].opr.typ:=OPR_REGISTER;
-       operands[2].opr.reg.enum:=R_ST;
+       operands[2].opr.reg:=NR_ST0;
      end;
 
    { I tried to convince Linus Torvalds to add
@@ -642,9 +653,9 @@ begin
      So I think its at least a good idea to add a warning
      if someone uses this in assembler code
      FPC itself does not use it at all PM }
-   if (opcode=A_ENTER) and ((target_info.system=system_i386_linux) or
-        (target_info.system=system_i386_FreeBSD)) then
-       message(asmr_w_enter_not_supported_by_linux);
+   if (opcode=A_ENTER) and
+      (target_info.system in [system_i386_linux,system_i386_FreeBSD]) then
+     Message(asmr_w_enter_not_supported_by_linux);
 
   ai:=taicpu.op_none(opcode,siz);
   ai.SetOperandOrder(OpOrder);
@@ -718,7 +729,22 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  2003-08-26 12:42:45  peter
+  Revision 1.8  2003-09-03 15:55:02  peter
+    * NEWRA branch merged
+
+  Revision 1.7.2.4  2003/08/31 16:18:05  peter
+    * more fixes
+
+  Revision 1.7.2.3  2003/08/29 17:29:00  peter
+    * next batch of updates
+
+  Revision 1.7.2.2  2003/08/28 18:35:08  peter
+    * tregister changed to cardinal
+
+  Revision 1.7.2.1  2003/08/27 21:06:34  peter
+    * more updates
+
+  Revision 1.7  2003/08/26 12:42:45  peter
     * fix wrong registers in reference
 
   Revision 1.6  2003/06/20 12:57:15  pierre

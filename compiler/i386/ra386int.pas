@@ -50,7 +50,7 @@ Implementation
        rgobj,
        { register allocator }
        scanner,
-       rautils,rax86,ag386int,
+       rautils,rax86,itx86int,
        { codegen }
        cginfo,cgbase,cgobj
        ;
@@ -117,14 +117,12 @@ var
   actopsize      : topsize;
   actcondition   : tasmcond;
   iasmops        : tdictionary;
-  iasmregs       : ^reg2strtable;
 
 
 Procedure SetupTables;
 { creates uppercased symbol tables for speed access }
 var
   i : tasmop;
-  j : Toldregister;
   str2opentry: tstr2opentry;
 Begin
   { opcodes }
@@ -136,10 +134,6 @@ Begin
       str2opentry.op:=i;
       iasmops.insert(str2opentry);
     end;
-  { registers }
-  new(iasmregs);
-  for j:=firstreg to lastreg do
-   iasmregs^[j] := upper(std_reg2str[j]);
 end;
 
 
@@ -223,26 +217,12 @@ Begin
   is_asmdirective:=false;
 end;
 
+
 function is_register(const s:string):boolean;
-
-var i:Toldregister;
-
 begin
-  actasmregister.enum:=R_INTREGISTER;
-  actasmregister.number:=intel_regnum_search(s);
-  if actasmregister.number=NR_NO then
-    begin
-      for i:=firstreg to lastreg do
-       if s=iasmregs^[i] then
-        begin
-          actasmtoken:=AS_REGISTER;
-          actasmregister.enum:=i;
-          is_register:=true;
-          exit;
-        end;
-      is_register:=false;
-    end
-  else
+  is_register:=false;
+  actasmregister:=masm_regnum_search(lower(s));
+  if actasmregister<>NR_NO then
     begin
       is_register:=true;
       actasmtoken:=AS_REGISTER;
@@ -1082,8 +1062,7 @@ Begin
              if negative then
                Message(asmr_e_only_add_relocatable_symbol);
              oldbase:=opr.ref.base;
-             opr.ref.base.enum:=R_INTREGISTER;
-             opr.ref.base.number:=NR_NO;
+             opr.ref.base:=NR_NO;
              tempstr:=actasmpattern;
              Consume(AS_ID);
              { typecasting? }
@@ -1109,10 +1088,9 @@ Begin
               end;
              if GotOffset then
               begin
-                if hasvar and (opr.ref.base.number=current_procinfo.framepointer.number) then
+                if hasvar and (opr.ref.base=current_procinfo.framepointer) then
                  begin
-                   opr.ref.base.enum:=R_INTREGISTER;
-                   opr.ref.base.number:=NR_NO;
+                   opr.ref.base:=NR_NO;
                    hasvar:=hadvar;
                  end
                 else
@@ -1123,10 +1101,10 @@ Begin
                  end;
               end;
              { is the base register loaded by the var ? }
-             if (opr.ref.base.number<>NR_NO) then
+             if (opr.ref.base<>NR_NO) then
               begin
                 { check if we can move the old base to the index register }
-                if (opr.ref.index.number<>NR_NO) then
+                if (opr.ref.index<>NR_NO) then
                  Message(asmr_e_wrong_base_index)
                 else
                  opr.ref.index:=oldbase;
@@ -1214,9 +1192,9 @@ Begin
              3. base register is already used }
           if (GotStar) or
              (actasmtoken=AS_STAR) or
-             (opr.ref.base.number<>NR_NO) then
+             (opr.ref.base<>NR_NO) then
            begin
-             if (opr.ref.index.number<>NR_NO) then
+             if (opr.ref.index<>NR_NO) then
               Message(asmr_e_multiple_index);
              opr.ref.index:=hreg;
              if scale<>0 then
@@ -1941,13 +1919,20 @@ initialization
 finalization
   if assigned(iasmops) then
     iasmops.Free;
-  if assigned(iasmregs) then
-    dispose(iasmregs);
 
 end.
 {
   $Log$
-  Revision 1.49  2003-06-06 14:41:59  peter
+  Revision 1.50  2003-09-03 15:55:01  peter
+    * NEWRA branch merged
+
+  Revision 1.49.2.2  2003/08/31 15:46:26  peter
+    * more updates for tregister
+
+  Revision 1.49.2.1  2003/08/28 18:35:08  peter
+    * tregister changed to cardinal
+
+  Revision 1.49  2003/06/06 14:41:59  peter
     * use setsize for size specifier
 
   Revision 1.48  2003/05/30 23:57:08  peter

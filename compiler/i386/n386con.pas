@@ -65,14 +65,14 @@ implementation
            begin
               emit_none(A_FLD1,S_NO);
               location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
-              location.register.enum:=R_ST;
+              location.register:=NR_ST;
               inc(trgcpu(rg).fpuvaroffset);
            end
          else if (value_real=0.0) then
            begin
               emit_none(A_FLDZ,S_NO);
               location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
-              location.register.enum:=R_ST;
+              location.register:=NR_ST;
               inc(trgcpu(rg).fpuvaroffset);
            end
          else
@@ -85,7 +85,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  2003-04-22 23:50:23  peter
+  Revision 1.20  2003-09-03 15:55:01  peter
+    * NEWRA branch merged
+
+  Revision 1.19.2.1  2003/08/29 17:29:00  peter
+    * next batch of updates
+
+  Revision 1.19  2003/04/22 23:50:23  peter
     * firstpass uses expectloc
     * checks if there are differences between the expectloc and
       location.loc from secondpass in EXTDEBUG

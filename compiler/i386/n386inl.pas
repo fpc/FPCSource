@@ -164,35 +164,35 @@ implementation
          location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
          emit_none(A_FLDPI,S_NO);
          inc(trgcpu(rg).fpuvaroffset);
-         location.register.enum:=FPU_RESULT_REG;
-
+         location.register:=NR_FPU_RESULT_REG;
        end;
 
-       { load the FPU into the an fpu register }
-       procedure ti386inlinenode.load_fpu_location;
-         begin
-           location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
-           location.register.enum:=FPU_RESULT_REG;
-           secondpass(left);
-           case left.location.loc of
-             LOC_FPUREGISTER:
-                      ;
-             LOC_CFPUREGISTER:
-               begin
-                 cg.a_loadfpu_reg_reg(exprasmlist,left.location.size,
-                   left.location.register,location.register);
-               end;
-             LOC_REFERENCE,LOC_CREFERENCE:
-               begin
-                 cg.a_loadfpu_ref_reg(exprasmlist,
-                    def_cgsize(left.resulttype.def),
-                    left.location.reference,location.register);
-                 location_release(exprasmlist,left.location);
-               end
-           else
-              internalerror(309991);
-           end;
+     { load the FPU into the an fpu register }
+     procedure ti386inlinenode.load_fpu_location;
+       begin
+         location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
+         location.register:=NR_FPU_RESULT_REG;
+         secondpass(left);
+         case left.location.loc of
+           LOC_FPUREGISTER:
+                    ;
+           LOC_CFPUREGISTER:
+             begin
+               cg.a_loadfpu_reg_reg(exprasmlist,left.location.size,
+                 left.location.register,location.register);
+             end;
+           LOC_REFERENCE,LOC_CREFERENCE:
+             begin
+               cg.a_loadfpu_ref_reg(exprasmlist,
+                  def_cgsize(left.resulttype.def),
+                  left.location.reference,location.register);
+               location_release(exprasmlist,left.location);
+             end
+         else
+            internalerror(309991);
          end;
+       end;
+
 
      procedure ti386inlinenode.second_arctan_real;
        begin
@@ -207,14 +207,12 @@ implementation
          emit_none(A_FABS,S_NO);
        end;
 
-     procedure ti386inlinenode.second_sqr_real;
 
-     var r:Tregister;
+     procedure ti386inlinenode.second_sqr_real;
 
        begin
          load_fpu_location;
-         r.enum:=R_ST0;
-         emit_reg_reg(A_FMUL,S_NO,r,r);
+         emit_reg_reg(A_FMUL,S_NO,NR_ST0,NR_ST0);
        end;
 
      procedure ti386inlinenode.second_sqrt_real;
@@ -249,11 +247,9 @@ implementation
 
       procedure ti386inlinenode.second_IncludeExclude;
         var
-         scratch_reg : boolean;
          hregister : tregister;
          asmop : tasmop;
          L : cardinal;
-         pushedregs : TMaybesave;
          cgop : topcg;
         begin
           secondpass(tcallparanode(left).left);
@@ -287,14 +283,7 @@ implementation
           else
             begin
               { generate code for the element to set }
-            {$ifndef newra}
-              maybe_save(exprasmlist,tcallparanode(tcallparanode(left).right).left.registers32,
-                        tcallparanode(left).left.location,pushedregs);
-            {$endif}
               secondpass(tcallparanode(tcallparanode(left).right).left);
-            {$ifndef newra}
-              maybe_restore(exprasmlist,tcallparanode(left).left.location,pushedregs);
-            {$endif}
               { determine asm operator }
               if inlinenumber=in_include_x_y then
                  asmop:=A_BTS
@@ -311,33 +300,20 @@ implementation
                 { need a cmp and jmp, but this should be done by the         }
                 { type cast code which does range checking if necessary (FK) }
                 begin
-                  scratch_reg := FALSE;
-                  hregister.enum:=R_INTREGISTER;
-                  hregister.number:=(Tcallparanode(Tcallparanode(left).right).left.location.register.number and not $ff)
-                    or R_SUBWHOLE;
+                  hregister:=Tcallparanode(Tcallparanode(left).right).left.location.register;
+                  setsubreg(hregister,R_SUBWHOLE);
                 end
               else
                 begin
-                  scratch_reg := TRUE;
-                {$ifdef newra}
                   hregister:=rg.getregisterint(exprasmlist,OS_INT);
-                {$else}
-                  hregister:=cg.get_scratch_reg_int(exprasmlist,OS_INT);
-                {$endif newra}
                 end;
               cg.a_load_loc_reg(exprasmlist,OS_INT,tcallparanode(tcallparanode(left).right).left.location,hregister);
               if (tcallparanode(left).left.location.loc=LOC_REFERENCE) then
                 emit_reg_ref(asmop,S_L,hregister,tcallparanode(left).left.location.reference)
               else
                 emit_reg_reg(asmop,S_L,hregister,tcallparanode(left).left.location.register);
-            {$ifdef newra}
-{              if scratch_reg then}
-                rg.ungetregisterint(exprasmlist,hregister);
+              rg.ungetregisterint(exprasmlist,hregister);
               location_release(exprasmlist,Tcallparanode(left).left.location);
-            {$else}
-              if scratch_reg then
-                cg.free_scratch_reg(exprasmlist,hregister);
-            {$endif newra}
             end;
         end;
 
@@ -347,7 +323,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.64  2003-07-02 22:18:04  peter
+  Revision 1.65  2003-09-03 15:55:01  peter
+    * NEWRA branch merged
+
+  Revision 1.64.2.2  2003/08/31 15:46:26  peter
+    * more updates for tregister
+
+  Revision 1.64.2.1  2003/08/29 17:29:00  peter
+    * next batch of updates
+
+  Revision 1.64  2003/07/02 22:18:04  peter
     * paraloc splitted in callerparaloc,calleeparaloc
     * sparc calling convention updates
 

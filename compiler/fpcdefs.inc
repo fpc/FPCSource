@@ -38,60 +38,66 @@
 
 {$ifdef i386}
   {$ifdef delphi}
-  {$define oldset}
+    {$define oldset}
   {$endif}
   {$define x86}
   {$define cpuextended}
-{$else}
-  {$define oldset}
 {$endif i386}
 
 {$ifdef x86_64}
   {$define x86}
   {$define cpu64bit}
   {$define cpuextended}
-  {$define callparatemp}
 {$endif x86_64}
 
 {$ifdef alpha}
   {$define cpu64bit}
   {$undef cpuflags}
-  {$define callparatemp}
+  {$define noopt}
+  {$define oldset}
 {$endif alpha}
 
 {$ifdef sparc}
-  {$define usetempparaloc}
-  { define callparatemp}
+  {$define noopt}
+  {$define oldset}
 {$endif sparc}
 
 {$ifdef powerpc}
-  {$define callparatemp}
+  {$define noopt}
+  {$define oldset}
 {$endif powerpc}
 
 {$ifdef arm}
-  {$define callparatemp}
   {$define cpuneedsdiv32helper}
+  {$define noopt}
+  {$define oldset}
 {$endif arm}
 
-{ FPU Emulator support }
 {$ifdef m68k}
   {$define cpufpemu}
-{$endif m68k}
-
-{ Optimizer is x86 only }
-{$ifndef i386}
   {$define noopt}
-{$endif i386}
+  {$define oldset}
+{$endif m68k}
 
 {
   $Log$
-  Revision 1.23  2003-09-03 11:18:36  florian
+  Revision 1.24  2003-09-03 15:55:00  peter
+    * NEWRA branch merged
+
+  Revision 1.23  2003/09/03 11:18:36  florian
     * fixed arm concatcopy
     + arm support in the common compiler sources added
     * moved some generic cg code around
     + tfputype added
     * ...
 
+  Revision 1.22.2.2  2003/08/31 21:07:44  daniel
+    * callparatemp ripped
+
+  Revision 1.22.2.1  2003/08/27 20:11:29  peter
+    * newra default
+
+>>>>>>> 1.22.2.2
   Revision 1.22  2003/08/11 21:18:20  peter
     * start of sparc support for newra
 

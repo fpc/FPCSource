@@ -114,7 +114,8 @@ unit tgobj;
 
     uses
        systems,
-       verbose,cutils,rgobj;
+       verbose,cutils,
+       cginfo,rgobj;
 
 
     const
@@ -433,23 +434,17 @@ unit tgobj;
          { ref.index = R_NO was missing
            led to problems with local arrays
            with lower bound > 0 (PM) }
-         if (ref.base.enum<>R_NO) and (ref.base.enum<>R_INTREGISTER) then
-           internalerror(200301225);
-         if (ref.index.enum<>R_NO) and (ref.index.enum<>R_INTREGISTER) then
-           internalerror(200301225);
-         if current_procinfo.framepointer.enum<>R_INTREGISTER then
-           internalerror(200301225);
          if direction = 1 then
            begin
-             istemp:=((ref.base.number=current_procinfo.framepointer.number) and
-                     (ref.index.number=NR_NO) and
-                      (ref.offset>=firsttemp));
+             istemp:=(ref.base=current_procinfo.framepointer) and
+                     (ref.index=NR_NO) and
+                     (ref.offset>=firsttemp);
            end
         else
            begin
-             istemp:=((ref.base.number=current_procinfo.framepointer.number) and
-                     (ref.index.number=NR_NO) and
-                      (ref.offset<firsttemp));
+             istemp:=(ref.base=current_procinfo.framepointer) and
+                     (ref.index=NR_NO) and
+                     (ref.offset<firsttemp);
            end;
       end;
 
@@ -537,7 +532,16 @@ finalization
 end.
 {
   $Log$
-  Revision 1.37  2003-08-20 17:48:49  peter
+  Revision 1.38  2003-09-03 15:55:01  peter
+    * NEWRA branch merged
+
+  Revision 1.37.2.2  2003/08/31 15:46:26  peter
+    * more updates for tregister
+
+  Revision 1.37.2.1  2003/08/29 17:28:59  peter
+    * next batch of updates
+
+  Revision 1.37  2003/08/20 17:48:49  peter
     * fixed stackalloc to not allocate localst.datasize twice
     * order of stackalloc code fixed for implicit init/final
 

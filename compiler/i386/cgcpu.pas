@@ -115,8 +115,8 @@ unit cgcpu;
         case op of
           OP_NEG :
             begin
-              if (regsrc.reglo.number<>regdst.reglo.number) then
-                a_load64_reg_reg(list,regsrc,regdst{$ifdef newra},false{$endif});
+              if (regsrc.reglo<>regdst.reglo) then
+                a_load64_reg_reg(list,regsrc,regdst,false);
               list.concat(taicpu.op_reg(A_NOT,S_L,regdst.reghi));
               list.concat(taicpu.op_reg(A_NEG,S_L,regdst.reglo));
               list.concat(taicpu.op_const_reg(A_SBB,S_L,aword(-1),regdst.reghi));
@@ -124,8 +124,8 @@ unit cgcpu;
             end;
           OP_NOT :
             begin
-              if (regsrc.reglo.number<>regdst.reglo.number) then
-                a_load64_reg_reg(list,regsrc,regdst{$ifdef newra},false{$endif});
+              if (regsrc.reglo<>regdst.reglo) then
+                a_load64_reg_reg(list,regsrc,regdst,false);
               list.concat(taicpu.op_reg(A_NOT,S_L,regdst.reghi));
               list.concat(taicpu.op_reg(A_NOT,S_L,regdst.reglo));
               exit;
@@ -193,7 +193,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.36  2003-06-12 18:31:18  peter
+  Revision 1.37  2003-09-03 15:55:01  peter
+    * NEWRA branch merged
+
+  Revision 1.36.2.1  2003/08/29 17:28:59  peter
+    * next batch of updates
+
+  Revision 1.36  2003/06/12 18:31:18  peter
     * fix newra cycle for i386
 
   Revision 1.35  2003/06/03 21:11:09  peter

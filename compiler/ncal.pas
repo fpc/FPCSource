@@ -130,9 +130,6 @@ interface
           procedure printnodedata(var t:text);override;
           function  para_count:longint;
        private
-{$ifdef callparatemp}
-          function extract_functioncall_paras: tblocknode;
-{$endif callparatemp}
           AbstractMethodsList : TStringList;
        end;
        tcallnodeclass = class of tcallnode;
@@ -2242,104 +2239,11 @@ type
       end;
 
 
-{$ifdef callparatemp}
-    function tree_contains_function_call(var n: tnode): foreachnoderesult;
-      begin
-        result := fen_false;
-        if (n.nodetype = calln) or
-           ((n.nodetype = loadn) and
-            (tloadnode(n).symtableentry.typ = varsym) and
-            (vo_is_thread_var in tvarsym(tloadnode(n).symtableentry).varoptions)) then
-          { stop when we encounter a call node }
-          result := fen_norecurse_true;
-      end;
-
-
-    function tcallnode.extract_functioncall_paras: tblocknode;
-      var
-        curpara: tcallparanode;
-        newblock: tblocknode;
-        newstatement: tstatementnode;
-        temp: ttempcreatenode;
-        curparaitem: tparaitem;
-        orgtype: ^ttype;
-        temptype: ttemptype;
-        foundcall: boolean;
-        take_addr: boolean;
-      begin
-        foundcall := false;
-        curpara := tcallparanode(left);
-        curparaitem:=tparaitem(procdefinition.Para.last);
-        if assigned(curpara) then
-          begin
-            curpara := tcallparanode(curpara.right);
-            curparaitem:=tparaitem(curparaitem.previous);
-          end;
-        newblock := nil;
-        while assigned(curpara) do
-          begin
-            if foreachnodestatic(curpara.left,@tree_contains_function_call) then
-              begin
-                if (not foundcall) then
-                  begin
-                    foundcall := true;
-                    newblock := internalstatements(newstatement,false);
-                  end;
-                take_addr := (curparaitem.paratyp in [vs_var,vs_out]) or
-                             ((curparaitem.paratype.def.deftype = formaldef));
-                if not(take_addr) then
-                  begin
-                    if is_ansistring(curpara.left.resulttype.def) then
-                      temptype := tt_ansistring
-                    else if is_widestring(curpara.left.resulttype.def) then
-                      temptype := tt_widestring
-                    else if is_interfacecom(curpara.left.resulttype.def) then
-                      temptype := tt_interfacecom
-                    else
-                      temptype := tt_persistent;
-                    temp := ctempcreatenode.create(curpara.left.resulttype,curpara.left.resulttype.def.size,temptype)
-                  end
-                else
-                  begin
-                    temptype := tt_persistent;
-                    temp := ctempcreatenode.create(voidpointertype,pointer_size,tt_persistent);
-                    orgtype := @curpara.left.resulttype;
-                  end;
-                addstatement(newstatement,temp);
-                if take_addr then
-                  curpara.left := caddrnode.create(curpara.left);
-                addstatement(newstatement,
-                  cassignmentnode.create(ctemprefnode.create(temp),curpara.left));
-                { after the assignment, turn the temp into a non-persistent one, so }
-                { that it will be freed once it's used as parameter                 }
-                if (temptype = tt_persistent) then
-                  addstatement(newstatement,ctempdeletenode.create_normal_temp(temp));
-                curpara.left := ctemprefnode.create(temp);
-                if take_addr then
-                  curpara.left := ctypeconvnode.create_explicit(cderefnode.create(curpara.left),orgtype^);
-                firstpass(curpara.left);
-              end;
-            curpara := tcallparanode(curpara.right);
-            curparaitem := tparaitem(curparaitem.previous);
-          end;
-        if assigned(newblock) then
-          firstpass(newblock);
-        result := newblock;
-      end;
-{$endif callparatemp}
-
-
     function tcallnode.pass_1 : tnode;
 {$ifdef m68k}
       var
          regi : tregister;
 {$endif}
-{$ifdef callparatemp}
-      var
-         callparatemps, newblock: tblocknode;
-         statement: tstatementnode;
-         paras, oldright, newcall: tnode;
-{$endif callparatemp}
       label
         errorexit;
       begin
@@ -2348,10 +2252,6 @@ type
          { work trough all parameters to get the register requirements }
          if assigned(left) then
            tcallparanode(left).det_registers;
-
-{$ifdef callparatemp}
-         callparatemps := extract_functioncall_paras;
-{$endif callparatemp}
 
          { function result node }
          if assigned(_funcretnode) then
@@ -2365,10 +2265,7 @@ type
               { procedure does a call }
               if not (block_type in [bt_const,bt_type]) then
                 include(current_procinfo.flags,pi_do_call);
-            {$ifndef newra}
-              rg.incrementintregisterpushed(VOLATILE_INTREGISTERS);
-            {$endif}
-              rg.incrementotherregisterpushed(all_registers);
+              rg.incrementotherregisterpushed(all_otherregisters);
            end
          else
          { not a procedure variable }
@@ -2402,9 +2299,6 @@ type
                 end;
 
              { It doesn't hurt to calculate it already though :) (JM) }
-          {$ifndef newra}
-             rg.incrementintregisterpushed(tprocdef(procdefinition).usedintregisters);
-          {$endif}
              rg.incrementotherregisterpushed(tprocdef(procdefinition).usedotherregisters);
            end;
 
@@ -2532,39 +2426,9 @@ type
               registersmmx:=max(left.registersmmx,registersmmx);
 {$endif SUPPORT_MMX}
            end;
-{$ifdef callparatemp}
-         if (callparatemps <> nil) then
-           begin
-             { we have to replace the callnode with a blocknode. firstpass will }
-             { free the original call node. Avoid copying all subnodes though   }
-             paras := left;
-             oldright := right;
-             left := nil;
-             right := nil;
-             newcall := self.getcopy;
-             tcallnode(newcall).left := paras;
-             tcallnode(newcall).right := oldright;
-
-             newblock := internalstatements(statement,false);
-             addstatement(statement,callparatemps);
-             { add the copy of the call node after the callparatemps block    }
-             { and return that. The last statement of a bocknode determines   }
-             { the resulttype & location of the block -> ok. Working with a   }
-             { new block is easier than going to the end of the callparatemps }
-             { block (JM)                                                     }
-             addstatement(statement,newcall);
-             result := newblock;
-             { set to nil so we can free this one in case of an errorexit }
-             callparatemps := nil;
-           end;
-{$endif callparatemp}
       errorexit:
          if assigned(inlinecode) then
            procdefinition.proccalloption:=pocall_inline;
-{$ifdef callparatemp}
-         if assigned(callparatemps) then
-           callparatemps.free;
-{$endif callparatemp}
       end;
 
 {$ifdef state_tracking}
@@ -2650,7 +2514,19 @@ begin
 end.
 {
   $Log$
-  Revision 1.176  2003-08-23 18:42:57  peter
+  Revision 1.177  2003-09-03 15:55:00  peter
+    * NEWRA branch merged
+
+  Revision 1.176.2.3  2003/08/31 21:07:44  daniel
+    * callparatemp ripped
+
+  Revision 1.176.2.2  2003/08/27 20:23:55  peter
+    * remove old ra code
+
+  Revision 1.176.2.1  2003/08/27 19:55:54  peter
+    * first tregister patch
+
+  Revision 1.176  2003/08/23 18:42:57  peter
     * only check for size matches when parameter is enum,ord,float
 
   Revision 1.175  2003/08/10 17:25:23  peter

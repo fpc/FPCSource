@@ -46,64 +46,34 @@
       }
       std_op2str:op2strtable={$i i386int.inc}
 
-      {# Standard register table (for each tregister enumeration). The
-         register strings should conform to the the names as defined
-         by the processor manufacturer
-      }
-      std_reg2str : reg2strtable = ('',
-        'eax','ecx','edx','ebx','esp','ebp','esi','edi',
-        'ax','cx','dx','bx','sp','bp','si','di',
-        'al','cl','dl','bl','ah','ch','bh','dh',
-        'cs','ds','es','ss','fs','gs',
-        'st','st(0)','st(1)','st(2)','st(3)','st(4)','st(5)','st(6)','st(7)',
-        'dr0','dr1','dr2','dr3','dr6','dr7',
-        'cr0','cr2','cr3','cr4',
-        'tr3','tr4','tr5','tr6','tr7',
-        'mm0','mm1','mm2','mm3','mm4','mm5','mm6','mm7',
-        'xmm0','xmm1','xmm2','xmm3','xmm4','xmm5','xmm6','xmm7'
-      );
-
 {*****************************************************************************
                                  Constants
 *****************************************************************************}
 
       firstsaveintreg = RS_EAX;
       lastsaveintreg  = RS_EDX;
-      firstsavefpureg = R_NO;
-      lastsavefpureg  = R_NO;
-      firstsavemmreg  = R_MM0;
-      lastsavemmreg   = R_MM7;
+      firstsavefpureg = RS_INVALID;
+      lastsavefpureg  = RS_INVALID;
+      firstsavemmreg  = RS_MM0;
+      lastsavemmreg   = RS_MM7;
 
-      general_registers = [R_EAX,R_EBX,R_ECX,R_EDX];
       general_superregisters = [RS_EAX,RS_EBX,RS_ECX,RS_EDX];
 
-{$ifdef newra}
-      usableregsint = [first_imreg..last_imreg];
-{$else}
-      usableregsint = [RS_EAX,RS_EBX,RS_ECX,RS_EDX];
-{$endif}
+      usableregsint = [first_int_imreg..last_int_imreg];
       c_countusableregsint = 4;
 
       maxaddrregs = 1;
-      addrregs    = [R_ESI];
       usableregsaddr = [RS_ESI];
       c_countusableregsaddr = 1;
 
       maxvarregs = 4;
-      varregs : array[1..maxvarregs] of tnewregister =
+      varregs : array[1..maxvarregs] of tsuperregister =
          (RS_EBX,RS_EDX,RS_ECX,RS_EAX);
 
       maxfpuvarregs = 8;
 
       maxmmvarregs = 8;
 
-      {# Registers which are defined as scratch and no need to save across
-         routine calls or in assembler blocks.
-      }
-{$ifndef newra}
-      max_scratch_regs = 1;
-      scratch_regs : array[1..max_scratch_regs] of Tsuperregister = (RS_EDI);
-{$endif}
 
 {*****************************************************************************
                                GDB Information
@@ -116,19 +86,10 @@
           (FIXED_REGISTERS) from GCC 3.x source code
 
       }
-      stab_regindex : array[firstreg..lastreg] of shortint =
-        (-1,
-        0,1,2,3,4,5,6,7,
-        0,1,2,3,4,5,6,7,
-        0,1,2,3,0,1,2,3,
-        -1,-1,-1,-1,-1,-1,
-        12,12,13,14,15,16,17,18,19,
-        -1,-1,-1,-1,-1,-1,
-        -1,-1,-1,-1,
-        -1,-1,-1,-1,-1,
-        29,30,31,32,33,34,35,36,
-        21,22,23,24,25,26,27,28
+      reg_stab_table : array[tregisterindex] of shortint = (
+        {$i r386stab.inc}
       );
+
 
 {*****************************************************************************
                           Default generic sizes
@@ -151,7 +112,6 @@
       NR_STACK_POINTER_REG = NR_ESP;
       RS_STACK_POINTER_REG = RS_ESP;
       {# Frame pointer register }
-      frame_pointer_reg = R_EBP;
       RS_FRAME_POINTER_REG = RS_EBP;
       NR_FRAME_POINTER_REG = NR_EBP;
       {# Register for addressing absolute data in a position independant way,
@@ -180,8 +140,8 @@
 
       { WARNING: don't change to R_ST0!! See comments above implementation of }
       { a_loadfpu* methods in rgcpu (JM)                                      }
-      fpu_result_reg = R_ST;
-      mmresultreg = R_MM0;
+      NR_fpu_result_reg = NR_ST;
+      NR_mm_result_reg = NR_MM0;
 
       { Offset where the parent framepointer is pushed }
       PARENT_FRAMEPOINTER_OFFSET = 8;
@@ -198,7 +158,7 @@
          This value can be deduced from the CALLED_USED_REGISTERS array in the
          GCC source.
       }
-      std_saved_registers = [R_ESI,R_EDI,R_EBX];
+      std_saved_registers = [RS_ESI,RS_EDI,RS_EBX];
       {# Required parameter alignment when calling a routine declared as
          stdcall and cdecl. The alignment value should be the one defined
          by GCC or the target ABI.
@@ -210,12 +170,24 @@
 
 {
   $Log$
-  Revision 1.8  2003-09-03 11:18:37  florian
+  Revision 1.9  2003-09-03 15:55:01  peter
+    * NEWRA branch merged
+
+  Revision 1.8  2003/09/03 11:18:37  florian
     * fixed arm concatcopy
     + arm support in the common compiler sources added
     * moved some generic cg code around
     + tfputype added
     * ...
+
+  Revision 1.7.2.3  2003/08/29 17:29:00  peter
+    * next batch of updates
+
+  Revision 1.7.2.2  2003/08/28 18:35:08  peter
+    * tregister changed to cardinal
+
+  Revision 1.7.2.1  2003/08/27 20:05:04  peter
+    * forgotten
 
   Revision 1.7  2003/07/06 17:58:22  peter
     * framepointer fixes for sparc

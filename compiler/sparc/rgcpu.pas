@@ -36,13 +36,6 @@ interface
 
     type
       trgcpu=class(trgobj)
-{$ifndef NEWRA}
-      private
-        UsedParaRegs: TSupRegSet;
-      public
-        function GetExplicitRegisterInt(list:taasmoutput;Reg:Tnewregister):tregister;override;
-        procedure UngetregisterInt(list:taasmoutput;Reg:tregister);override;
-{$endif NEWRA}
         function GetRegisterFpu(list:TAasmOutput;size:Tcgsize):TRegister;override;
         procedure UngetRegisterFpu(list:taasmoutput;reg:tregister;size:TCGsize);override;
         procedure ClearTempGen;override;
@@ -55,45 +48,9 @@ implementation
       cgobj,verbose;
 
 
-{$ifndef NEWRA}
-    function TRgCpu.GetExplicitRegisterInt(list:TAasmOutput;reg:TNewRegister):TRegister;
-      begin
-        if ((reg shr 8) in [RS_O0..RS_O7,RS_I0..RS_I7]) then
-          begin
-            if (reg shr 8) in UsedParaRegs then
-              InternalError(2003060701)
-              ;
-            include(UsedParaRegs,reg shr 8);
-            result.enum:=R_INTREGISTER;
-            result.number:=reg;
-            cg.a_reg_alloc(list,result);
-          end
-        else
-          result:=inherited GetExplicitRegisterInt(list,reg);
-      end;
-
-
-    procedure trgcpu.UngetRegisterInt(list:taasmoutput;reg:tregister);
-      begin
-        if reg.enum<>R_INTREGISTER then
-          internalerror(200302191);
-        if ((reg.number shr 8) in [RS_O0..RS_O7,RS_I0..RS_I7]) then
-          begin
-            if not((reg.number shr 8) in usedpararegs) then
-              internalerror(2003060702)
-              ;
-            exclude(usedpararegs,reg.number shr 8);
-            cg.a_reg_dealloc(list,reg);
-          end
-        else
-          inherited ungetregisterint(list,reg);
-      end;
-{$endif NEWRA}
-
-
     function TRgCpu.GetRegisterFpu(list:TAasmOutput;size:Tcgsize):TRegister;
       var
-        i: Toldregister;
+        i: Tsuperregister;
         r: Tregister;
       begin
         for i:=firstsavefpureg to lastsavefpureg do
@@ -101,19 +58,19 @@ implementation
             if (i in unusedregsfpu) and
                (
                 (size=OS_F32) or
-                (not odd(ord(i)-ord(R_F0)))
+                (not odd(i-RS_F0))
                ) then
               begin
                  exclude(unusedregsfpu,i);
                  dec(countunusedregsfpu);
-                 r.enum:=i;
+                 r:=newreg(R_FPUREGISTER,i,R_SUBNONE);
                  list.concat(tai_regalloc.alloc(r));
                  result := r;
                  { double need 2 FPU registers }
                  if size=OS_F64 then
                    begin
-                     r.enum:=succ(i);
-                     exclude(unusedregsfpu,r.enum);
+                     r:=newreg(R_FPUREGISTER,i+1,R_SUBNONE);
+                     exclude(unusedregsfpu,i+1);
                      dec(countunusedregsfpu);
                      list.concat(tai_regalloc.alloc(r));
                    end;
@@ -127,21 +84,22 @@ implementation
     procedure trgcpu.UngetRegisterFpu(list:taasmoutput;reg:tregister;size:TCGsize);
       var
         r : tregister;
+        supreg : tsuperregister;
       begin
+        supreg:=getsupreg(reg);
         { double need 2 FPU registers }
         if (size=OS_F64) then
           begin
             { Only even FP registers are allowed }
-            if (odd(ord(reg.enum)-ord(R_F0))) then
+            if odd(supreg-RS_F0) then
               internalerror(200306101);
-            r:=reg;
-            r.enum:=succ(r.enum);
+            r:=newreg(R_FPUREGISTER,supreg+1,R_SUBNONE);
             inc(countunusedregsfpu);
-            include(unusedregsfpu,r.enum);
+            include(unusedregsfpu,getsupreg(r));
             list.concat(tai_regalloc.dealloc(r));
           end;
         inc(countunusedregsfpu);
-        include(unusedregsfpu,reg.enum);
+        include(unusedregsfpu,supreg);
         list.concat(tai_regalloc.dealloc(reg));
       end;
 
@@ -149,17 +107,24 @@ implementation
     procedure trgcpu.cleartempgen;
       begin
         inherited cleartempgen;
-{$ifndef NEWRA}
-        usedpararegs:=[];
-{$endif NEWRA}
       end;
 
 begin
-  rg := trgcpu.create(24); {24 registers.}
+  { Only use %o and %l }
+  rg := trgcpu.create(16);
 end.
 {
   $Log$
-  Revision 1.16  2003-08-11 21:18:20  peter
+  Revision 1.17  2003-09-03 15:55:01  peter
+    * NEWRA branch merged
+
+  Revision 1.16.2.2  2003/09/02 17:49:17  peter
+    * newra updates
+
+  Revision 1.16.2.1  2003/09/01 21:02:55  peter
+    * sparc updates for new tregister
+
+  Revision 1.16  2003/08/11 21:18:20  peter
     * start of sparc support for newra
 
   Revision 1.15  2003/07/02 22:18:04  peter

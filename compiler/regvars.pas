@@ -39,16 +39,14 @@ interface
     procedure load_regvar(asml: TAAsmoutput; vsym: tvarsym);
     procedure load_regvar_reg(asml: TAAsmoutput; reg: tregister);
     procedure load_all_regvars(asml: TAAsmoutput);
-{$ifdef newra}
    procedure free_regvars(list: taasmoutput);
    procedure translate_regvars(list: taasmoutput; const table:Ttranstable);
-{$endif newra}
 
 {$ifdef i386}
     procedure sync_regvars_other(list1, list2: taasmoutput; const regvarsloaded1,
       regvarsloaded2: regvarother_booleanarray);
     procedure sync_regvars_int(list1, list2: taasmoutput; const regvarsloaded1,
-      regvarsloaded2: Tsupregset);
+      regvarsloaded2: Tsuperregisterset);
 {$endif i386}
 
 implementation
@@ -151,7 +149,6 @@ implementation
       regvarinfo: pregvarinfo;
       i: longint;
       parasym : boolean;
-      r : Tregister;
       siz : tcgsize;
     begin
       { max. optimizations     }
@@ -174,69 +171,27 @@ implementation
               symtablestack.foreach_static({$ifdef FPCPROCVAR}@{$endif}searchregvars,@parasym);
               { copy parameter into a register ? }
               parasym:=true;
-{$ifndef newra}
-{$ifndef i386}
-              if (pi_do_call in current_procinfo.flags) then
-{$endif not i386}
-{$endif not newra}
-                begin
-                  symtablestack.next.foreach_static({$ifdef FPCPROCVAR}@{$endif}searchregvars,@parasym);
-                end
-{$ifndef newra}
-{$ifndef i386}
-              else
-                begin
-                  hp:=tparaitem(current_procinfo.procdef.para.first);
-                  while assigned(hp) do
-                    begin
-                      if (hp.paraloc[calleeside].loc in [LOC_REGISTER,LOC_FPUREGISTER,
-                            LOC_CREGISTER,LOC_CFPUREGISTER]) and
-                         (TCGSize2Size[hp.paraloc[calleeside].size] <= sizeof(aword)) then
-                        begin
-                          tvarsym(hp.parasym).reg := hp.paraloc[calleeside].register;
-                          if (hp.paraloc[calleeside].loc in [LOC_REGISTER,LOC_CREGISTER]) then
-                            rg.makeregvarint(hp.paraloc[calleeside].register.number shr 8)
-                          else
-                            rg.makeregvarother(hp.paraloc[calleeside].register);
-                        end
-                      else
-                        begin
-                          searchregvars(hp.parasym,@parasym);
-                          searchfpuregvars(hp.parasym,@parasym);
-                        end;
-                    hp := tparaitem(hp.next);
-                  end;
-                end
-{$endif not i386}
-{$endif not newra}
-              ;
+              symtablestack.next.foreach_static({$ifdef FPCPROCVAR}@{$endif}searchregvars,@parasym);
               { hold needed registers free }
-              for i:=maxvarregs downto maxvarregs-p.registers32+1{$ifdef newra}-maxintscratchregs{$endif newra} do
+              for i:=maxvarregs downto maxvarregs-p.registers32+1-maxintscratchregs do
                 begin
                   regvarinfo^.regvars[i]:=nil;
                   regvarinfo^.regvars_para[i] := false;
                 end;
               { now assign register }
-              for i:=1 to maxvarregs-p.registers32{$ifdef newra}-maxintscratchregs{$endif newra} do
+              for i:=1 to maxvarregs-p.registers32-maxintscratchregs do
                 begin
                   if assigned(regvarinfo^.regvars[i]) and
-{$ifdef newra}
                     { currently we assume we can use volatile registers for all }
                     { regvars if procedure does no call                         }
                      (not(pi_do_call in current_procinfo.flags) or
                     { otherwise, demand some (arbitrary) minimum usage }
                       (regvarinfo^.regvars[i].refs > 100)) then
-{$else newra}
-                     (rg.reg_pushes_int[varregs[i]] < regvarinfo^.regvars[i].refs) then
-{$endif newra}
                     begin
                       { register is no longer available for }
                       { expressions                          }
                       { search the register which is the most }
                       { unused                                }
-{$ifndef newra}
-                      rg.makeregvarint(varregs[i]);
-{$endif newra}
 
                       { call by reference/const ? }
                       if (regvarinfo^.regvars[i].varspez in [vs_var,vs_out]) or
@@ -254,19 +209,10 @@ implementation
                       else
                         siz:=OS_32;
 
-{$ifdef newra}
                       { allocate a register for this regvar }
                       regvarinfo^.regvars[i].reg:=rg.getregisterint(exprasmlist,siz);
                       { and make sure it can't be freed }
-                      rg.makeregvarint(regvarinfo^.regvars[i].reg.number shr 8);
-{$else newra}
-                      regvarinfo^.regvars[i].reg.enum:=R_INTREGISTER;
-                      regvarinfo^.regvars[i].reg.number:=(varregs[i] shl 8) or cgsize2subreg(siz);
-{$ifdef i386}
-                      { procedure uses this register }
-                      include(rg.used_in_proc_int,varregs[i]);
-{$endif i386}
-{$endif newra}
+                      rg.makeregvarint(getsupreg(regvarinfo^.regvars[i].reg));
                     end
                   else
                     begin
@@ -318,10 +264,9 @@ implementation
                      begin
 {$ifdef i386}
                        { reserve place on the FPU stack }
-                       r.enum:=R_ST0;
-                       regvarinfo^.fpuregvars[i].reg:=trgcpu(rg).correct_fpuregister(r,i);
+                       regvarinfo^.fpuregvars[i].reg:=trgcpu(rg).correct_fpuregister(NR_ST0,i);
 {$else i386}
-                       regvarinfo^.fpuregvars[i].reg.enum:=fpuvarregs[i];
+                       regvarinfo^.fpuregvars[i].reg:=fpuvarregs[i];
                        rg.makeregvarother(regvarinfo^.fpuregvars[i].reg);
 {$endif i386}
                      end;
@@ -340,18 +285,21 @@ implementation
       hr: treference;
       regvarinfo: pregvarinfo;
       vsym: tvarsym;
+      regidx : tregisterindex;
+      supreg : tsuperregister;
     begin
 {$ifdef i386}
       regvarinfo := pregvarinfo(current_procinfo.procdef.regvarinfo);
       if not assigned(regvarinfo) then
         exit;
-      if reg.enum=R_INTREGISTER then
+      if getregtype(reg)=R_INTREGISTER then
         begin
+          supreg:=getsupreg(reg);
           for i := 1 to maxvarregs do
             if assigned(regvarinfo^.regvars[i]) and
-               (regvarinfo^.regvars[i].reg.number shr 8 = reg.number shr 8) then
+               (getsupreg(regvarinfo^.regvars[i].reg)=supreg) then
               begin
-                if (reg.number shr 8) in rg.regvar_loaded_int then
+                if supreg in rg.regvar_loaded_int then
                   begin
                     vsym := tvarsym(regvarinfo^.regvars[i]);
                     { we only have to store the regvar back to memory if it's }
@@ -363,7 +311,7 @@ implementation
                         cg.a_load_reg_ref(asml,cgsize,cgsize,vsym.reg,hr);
                       end;
                     asml.concat(tai_regalloc.dealloc(vsym.reg));
-                    exclude(rg.regvar_loaded_int,reg.number shr 8);
+                    exclude(rg.regvar_loaded_int,supreg);
                   end;
                 break;
               end;
@@ -374,9 +322,10 @@ implementation
             if assigned(regvarinfo^.regvars[i]) then
               begin
                 r:=rg.makeregsize(regvarinfo^.regvars[i].reg,OS_INT);
-                if (r.enum = reg.enum) then
+                if (r = reg) then
                   begin
-                    if rg.regvar_loaded_other[r.enum] then
+                    regidx:=findreg_by_number(r);
+                    if rg.regvar_loaded_other[regidx] then
                       begin
                         vsym := tvarsym(regvarinfo^.regvars[i]);
                         { we only have to store the regvar back to memory if it's }
@@ -388,7 +337,7 @@ implementation
                             cg.a_load_reg_ref(asml,cgsize,cgsize,vsym.reg,hr);
                           end;
                         asml.concat(tai_regalloc.dealloc(vsym.reg));
-                        rg.regvar_loaded_other[r.enum] := false;
+                        rg.regvar_loaded_other[regidx] := false;
                       end;
                     break;
                   end;
@@ -403,14 +352,15 @@ implementation
       opsize: tcgsize;
       r,
       reg : tregister;
+      regidx : tregisterindex;
     begin
 {$ifndef i386}
       exit;
 {$endif i386}
       reg:=vsym.reg;
-      if reg.enum=R_INTREGISTER then
+      if getregtype(reg)=R_INTREGISTER then
         begin
-          if not((reg.number shr 8) in rg.regvar_loaded_int) then
+          if not(getsupreg(reg) in rg.regvar_loaded_int) then
             begin
               asml.concat(tai_regalloc.alloc(reg));
               reference_reset_base(hr,current_procinfo.framepointer,vsym.adjusted_address);
@@ -421,13 +371,14 @@ implementation
               else
                 opsize := def_cgsize(vsym.vartype.def);
               cg.a_load_ref_reg(asml,opsize,opsize,hr,reg);
-              include(rg.regvar_loaded_int,reg.number shr 8);
+              include(rg.regvar_loaded_int,getsupreg(reg));
             end;
         end
       else
         begin
           r:=rg.makeregsize(reg,OS_INT);
-          if not rg.regvar_loaded_other[r.enum] then
+          regidx:=findreg_by_number(r);
+          if not rg.regvar_loaded_other[regidx] then
             begin
               asml.concat(tai_regalloc.alloc(reg));
               reference_reset_base(hr,current_procinfo.framepointer,vsym.adjusted_address);
@@ -438,7 +389,7 @@ implementation
               else
                 opsize := def_cgsize(vsym.vartype.def);
               cg.a_load_ref_reg(asml,opsize,opsize,hr,reg);
-              rg.regvar_loaded_other[r.enum] := true;
+              rg.regvar_loaded_other[regidx] := true;
             end;
         end;
     end;
@@ -448,25 +399,25 @@ implementation
       i: longint;
       regvarinfo: pregvarinfo;
       reg_spare : tregister;
+      supreg : tsuperregister;
     begin
       regvarinfo := pregvarinfo(current_procinfo.procdef.regvarinfo);
       if not assigned(regvarinfo) then
         exit;
-      if reg.enum=R_INTREGISTER then
+      if getregtype(reg)=R_INTREGISTER then
         begin
+          supreg:=getsupreg(reg);
           for i := 1 to maxvarregs do
             if assigned(regvarinfo^.regvars[i]) and
-               (regvarinfo^.regvars[i].reg.number shr 8 = reg.number shr 8) then
+               (getsupreg(regvarinfo^.regvars[i].reg) = supreg) then
               load_regvar(asml,tvarsym(regvarinfo^.regvars[i]))
         end
       else
         begin
           reg_spare := rg.makeregsize(reg,OS_INT);
-          if reg_spare.enum>lastreg then
-            internalerror(2003010801);
           for i := 1 to maxvarregs do
             if assigned(regvarinfo^.regvars[i]) and
-               (rg.makeregsize(regvarinfo^.regvars[i].reg,OS_INT).enum = reg_spare.enum) then
+               (rg.makeregsize(regvarinfo^.regvars[i].reg,OS_INT) = reg_spare) then
               load_regvar(asml,tvarsym(regvarinfo^.regvars[i]))
         end;
     end;
@@ -489,7 +440,6 @@ implementation
     var
       i: longint;
       regvarinfo: pregvarinfo;
-      r:Tregister;
     begin
       if (cs_regvars in aktglobalswitches) and
          not(pi_uses_asm in current_procinfo.flags) and
@@ -499,30 +449,13 @@ implementation
           { can happen when inlining assembler procedures (JM) }
           if not assigned(regvarinfo) then
             exit;
-{$ifndef newra}
-          for i:=1 to maxvarregs do
-            begin
-             if assigned(regvarinfo^.regvars[i]) then
-               begin
-                r:=regvarinfo^.regvars[i].reg;
-                convert_register_to_enum(r);
-                if cs_asm_source in aktglobalswitches then
-                 asml.insert(tai_comment.Create(strpnew(regvarinfo^.regvars[i].name+
-                  ' with weight '+tostr(regvarinfo^.regvars[i].refs)+' assigned to register '+
-                  std_reg2str[r.enum])));
-                Message3(cg_d_register_weight,std_reg2str[r.enum],
-                  tostr(regvarinfo^.regvars[i].refs),regvarinfo^.regvars[i].name);
-               end;
-            end;
-{$endif newra}
           for i:=1 to maxfpuvarregs do
             begin
               if assigned(regvarinfo^.fpuregvars[i]) then
                 begin
 {$ifdef i386}
-                  r.enum:=R_ST0;
                   { reserve place on the FPU stack }
-                  regvarinfo^.fpuregvars[i].reg:=trgcpu(rg).correct_fpuregister(r,i-1);
+                  regvarinfo^.fpuregvars[i].reg:=trgcpu(rg).correct_fpuregister(NR_ST0,i-1);
                   asml.concat(Taicpu.op_none(A_FLDZ,S_NO));
 {$endif i386}
                 end;
@@ -540,9 +473,9 @@ implementation
                     if cs_asm_source in aktglobalswitches then
                       asml.insert(tai_comment.Create(strpnew(regvarinfo^.fpuregvars[i].name+
                         ' with weight '+tostr(regvarinfo^.fpuregvars[i].refs)+' assigned to register '+
-                        std_reg2str[regvarinfo^.fpuregvars[i].reg.enum])));
+                        std_regname(regvarinfo^.fpuregvars[i].reg))));
                     if (status.verbosity and v_debug)=v_debug then
-                      Message3(cg_d_register_weight,std_reg2str[regvarinfo^.fpuregvars[i].reg.enum],
+                      Message3(cg_d_register_weight,std_regname(regvarinfo^.fpuregvars[i].reg),
                         tostr(regvarinfo^.fpuregvars[i].refs),regvarinfo^.fpuregvars[i].name);
                  end;
             end;
@@ -555,14 +488,14 @@ implementation
     procedure sync_regvars_other(list1, list2: taasmoutput; const regvarsloaded1,
       regvarsloaded2: regvarother_booleanarray);
     var
-      counter: tregister;
+      counter: tregisterindex;
     begin
-      for counter.enum := low(rg.regvar_loaded_other) to high(rg.regvar_loaded_other) do
+      for counter := low(rg.regvar_loaded_other) to high(rg.regvar_loaded_other) do
         begin
-           rg.regvar_loaded_other[counter.enum] := regvarsloaded1[counter.enum] and
-             regvarsloaded2[counter.enum];
-           if regvarsloaded1[counter.enum] xor regvarsloaded2[counter.enum] then
-             if regvarsloaded1[counter.enum] then
+           rg.regvar_loaded_other[counter] := regvarsloaded1[counter] and
+             regvarsloaded2[counter];
+           if regvarsloaded1[counter] xor regvarsloaded2[counter] then
+             if regvarsloaded1[counter] then
                load_regvar_reg(list2,counter)
              else
                load_regvar_reg(list1,counter);
@@ -571,15 +504,14 @@ implementation
 
 
     procedure sync_regvars_int(list1, list2: taasmoutput; const regvarsloaded1,
-      regvarsloaded2: Tsupregset);
+      regvarsloaded2: Tsuperregisterset);
     var
       i : longint;
       r : tregister;
     begin
       for i:=1 to maxvarregs do
         begin
-          r.enum:=R_INTREGISTER;
-          r.number:=varregs[i] shl 8;
+          r:=newreg(R_INTREGISTER,varregs[i],R_SUBWHOLE);
           if (varregs[i] in regvarsloaded1) and
              not(varregs[i] in regvarsloaded2) then
             load_regvar_reg(list2,r)
@@ -595,7 +527,8 @@ implementation
     procedure cleanup_regvars(asml: TAAsmoutput);
     var
       i: longint;
-      r,reg : tregister;
+      reg : tregister;
+      regidx : tregisterindex;
     begin
       { can happen when inlining assembler procedures (JM) }
       if not assigned(current_procinfo.procdef.regvarinfo) then
@@ -606,32 +539,24 @@ implementation
         with pregvarinfo(current_procinfo.procdef.regvarinfo)^ do
           begin
 {$ifdef i386}
-            r.enum:=R_ST0;
             for i:=1 to maxfpuvarregs do
               if assigned(fpuregvars[i]) then
                 { ... and clean it up }
-                asml.concat(Taicpu.op_reg(A_FSTP,S_NO,r));
+                asml.concat(Taicpu.op_reg(A_FSTP,S_NO,NR_ST0));
 {$endif i386}
             for i := 1 to maxvarregs do
              begin
                if assigned(regvars[i]) then
                 begin
                   reg:=regvars[i].reg;
-                  if reg.enum=R_INTREGISTER then
+                  if getregtype(reg)=R_INTREGISTER then
                     begin
-{$ifndef newra}
-                      if (reg.number shr 8 in rg.regvar_loaded_int) then
-                       asml.concat(tai_regalloc.dealloc(reg));
-{$endif newra}
                     end
                   else
                     begin
-                      reg.number:=(reg.number and not $ff) or cgsize2subreg(OS_INT);
-                      r:=reg;
-                      convert_register_to_enum(r);
-                      if r.enum>lastreg then
-                        internalerror(200201081);
-                      if (rg.regvar_loaded_other[r.enum]) then
+                      setsubreg(reg,cgsize2subreg(OS_INT));
+                      regidx:=findreg_by_number(reg);
+                      if (rg.regvar_loaded_other[regidx]) then
                        asml.concat(tai_regalloc.dealloc(reg));
                     end;
                 end;
@@ -640,7 +565,6 @@ implementation
     end;
 
 
-{$ifdef newra}
     procedure free_regvars(list: taasmoutput);
       var
         i: longint;
@@ -653,7 +577,7 @@ implementation
               (regvars[i] <> tvarsym(current_procinfo.procdef.funcretsym))} then
               begin
                 { make sure the unget isn't just a nop }
-                exclude(rg.is_reg_var_int,regvars[i].reg.number shr 8);
+                exclude(rg.is_reg_var_int,getsupreg(regvars[i].reg));
                 rg.ungetregisterint(list,regvars[i].reg);
               end;
       end;
@@ -671,26 +595,31 @@ implementation
             if assigned(regvars[i]) { and
               (regvars[i] <> tvarsym(current_procinfo.procdef.funcretsym))} then
               begin
-                regvars[i].reg.number :=
-                  (regvars[i].reg.number and $ff) or
-                  (table[regvars[i].reg.number shr 8] shl 8);
+                setsupreg(regvars[i].reg,getsupreg(table[getsupreg(regvars[i].reg)]));
                 r:=regvars[i].reg;
-                convert_register_to_enum(r);
                 if cs_asm_source in aktglobalswitches then
                  list.insert(tai_comment.Create(strpnew(regvars[i].name+
                   ' with weight '+tostr(regvars[i].refs)+' assigned to register '+
-                  std_reg2str[r.enum])));
-                Message3(cg_d_register_weight,std_reg2str[r.enum],
+                  std_regname(r))));
+                Message3(cg_d_register_weight,std_regname(r),
                   tostr(regvars[i].refs),regvars[i].name);
               end;
       end;
-{$endif newra}
 
 end.
 
 {
   $Log$
-  Revision 1.62  2003-08-17 20:47:47  daniel
+  Revision 1.63  2003-09-03 15:55:01  peter
+    * NEWRA branch merged
+
+  Revision 1.62.2.2  2003/08/29 17:28:59  peter
+    * next batch of updates
+
+  Revision 1.62.2.1  2003/08/28 18:35:08  peter
+    * tregister changed to cardinal
+
+  Revision 1.62  2003/08/17 20:47:47  daniel
     * Notranslation changed into -sr functionality
 
   Revision 1.61  2003/08/17 16:59:20  jonas

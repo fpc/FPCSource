@@ -49,7 +49,7 @@ interface
        scanner,
        rax86,
        { codegen }
-       cgbase,
+       cginfo,cgbase,
        { constants }
        itx86att,
        cpubase
@@ -92,9 +92,8 @@ interface
           is_fpu(current_procinfo.procdef.rettype.def) then
          tvarsym(current_procinfo.procdef.funcretsym).varstate:=vs_assigned;
        framereg:=current_procinfo.framepointer;
-       convert_register_to_enum(framereg);
        if (not is_void(current_procinfo.procdef.rettype.def)) then
-         retstr:=upper(tostr(tvarsym(current_procinfo.procdef.funcretsym).adjusted_address)+'('+gas_reg2str[framereg.enum]+')')
+         retstr:=upper(tostr(tvarsym(current_procinfo.procdef.funcretsym).adjusted_address)+'('+gas_regname(framereg)+')')
        else
          retstr:='';
        c:=current_scanner.asmgetchar;
@@ -176,7 +175,7 @@ interface
                                              hs:=tvarsym(sym).mangledname
                                            else
                                              hs:='-'+tostr(tvarsym(sym).address)+
-                                                 '('+gas_reg2str[framereg.enum]+')';
+                                                 '('+gas_regname(framereg)+')';
                                            end
                                          else
                                          { call to local function }
@@ -199,7 +198,7 @@ interface
                                                    l:=tvarsym(sym).address;
                                                    { set offset }
                                                    inc(l,current_procinfo.procdef.parast.address_fixup);
-                                                   hs:=tostr(l)+'('+gas_reg2str[framereg.enum]+')';
+                                                   hs:=tostr(l)+'('+gas_regname(framereg)+')';
                                                    if pos(',',s) > 0 then
                                                      tvarsym(sym).varstate:=vs_used;
                                                 end;
@@ -289,7 +288,7 @@ interface
                                                     varsym :
                                                       begin
                                                         hs:=tostr(tvarsym(sym).adjusted_address)+
-                                                            '('+gas_reg2str[framereg.enum]+')';
+                                                            '('+gas_regname(framereg)+')';
                                                         inc(tvarsym(sym).refs);
                                                       end;
                                                     typedconstsym :
@@ -361,7 +360,13 @@ initialization
 end.
 {
   $Log$
-  Revision 1.7  2003-06-13 21:19:33  peter
+  Revision 1.8  2003-09-03 15:55:02  peter
+    * NEWRA branch merged
+
+  Revision 1.7.2.1  2003/08/27 21:06:34  peter
+    * more updates
+
+  Revision 1.7  2003/06/13 21:19:33  peter
     * current_procdef removed, use current_procinfo.procdef instead
 
   Revision 1.6  2003/06/02 21:42:05  jonas

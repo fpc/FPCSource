@@ -30,7 +30,7 @@ unit ncgmem;
 interface
 
     uses
-      cpuinfo,cpubase,
+      cginfo,cpuinfo,cpubase,
       node,nmem;
 
     type
@@ -87,7 +87,7 @@ implementation
       cutils,verbose,globals,
       symconst,symdef,symsym,symtable,defutil,paramgr,
       aasmbase,aasmtai,
-      cginfo,cgbase,pass_2,
+      cgbase,pass_2,
       pass_1,nld,ncon,nadd,
       cgobj,tgobj,rgobj,ncgutil,symbase
       ;
@@ -232,13 +232,9 @@ implementation
           begin
             cg.a_param_reg(exprasmlist, OS_ADDR,location.reference.base,paramanager.getintparaloc(exprasmlist,1));
             paramanager.freeintparaloc(exprasmlist,1);
-{$ifdef newra}
             rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
-{$endif newra}
             cg.a_call_name(exprasmlist,'FPC_CHECKPOINTER');
-{$ifdef newra}
             rg.deallocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
-{$endif newra}
           end;
       end;
 
@@ -286,13 +282,9 @@ implementation
               begin
                 cg.a_param_reg(exprasmlist, OS_ADDR,location.reference.base,paramanager.getintparaloc(exprasmlist,1));
                 paramanager.freeintparaloc(exprasmlist,1);
-{$ifdef newra}
                 rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
-{$endif newra}
                 cg.a_call_name(exprasmlist,'FPC_CHECKPOINTER');
-{$ifdef newra}
                 rg.deallocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
-{$endif newra}
               end;
            end
          else if is_interfacecom(left.resulttype.def) then
@@ -306,13 +298,9 @@ implementation
               begin
                 cg.a_param_reg(exprasmlist, OS_ADDR,location.reference.base,paramanager.getintparaloc(exprasmlist,1));
                 paramanager.freeintparaloc(exprasmlist,1);
-{$ifdef newra}
                 rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
-{$endif newra}
                 cg.a_call_name(exprasmlist,'FPC_CHECKPOINTER');
-{$ifdef newra}
                 rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
-{$endif newra}
               end;
 
            end
@@ -412,12 +400,12 @@ implementation
        var
          hreg: tregister;
        begin
-         if location.reference.base.number=NR_NO then
+         if location.reference.base=NR_NO then
           begin
             cg.a_op_const_reg(exprasmlist,OP_IMUL,OS_ADDR,l,reg);
             location.reference.base:=reg;
           end
-         else if location.reference.index.number=NR_NO then
+         else if location.reference.index=NR_NO then
           begin
             cg.a_op_const_reg(exprasmlist,OP_IMUL,OS_ADDR,l,reg);
             location.reference.index:=reg;
@@ -451,9 +439,6 @@ implementation
          poslabel,
          neglabel : tasmlabel;
          hreg : tregister;
-      {$ifndef newra}
-         pushed : tpushedsavedint;
-      {$endif}
        begin
          if is_open_array(left.resulttype.def) or
             is_array_of_const(left.resulttype.def) then
@@ -474,11 +459,7 @@ implementation
                  hreg:=right.location.register
                else
                  begin
-                 {$ifdef newra}
                    hreg:=rg.getregisterint(exprasmlist,OS_INT);
-                 {$else}
-                   hreg := cg.get_scratch_reg_int(exprasmlist,OS_INT);
-                 {$endif}
                    freereg:=true;
                    cg.a_load_loc_reg(exprasmlist,OS_INT,right.location,hreg);
                  end;
@@ -486,13 +467,8 @@ implementation
                objectlibrary.getlabel(poslabel);
                cg.a_cmp_const_reg_label(exprasmlist,OS_INT,OC_LT,0,hreg,poslabel);
                cg.a_cmp_loc_reg_label(exprasmlist,OS_INT,OC_BE,hightree.location,hreg,neglabel);
-             {$ifdef newra}
                if freereg then
                  rg.ungetregisterint(exprasmlist,hreg);
-             {$else}
-               if freereg then
-                 cg.free_scratch_reg(exprasmlist,hreg);
-             {$endif}
                cg.a_label(exprasmlist,poslabel);
                cg.a_call_name(exprasmlist,'FPC_RANGEERROR');
                cg.a_label(exprasmlist,neglabel);
@@ -504,24 +480,13 @@ implementation
          else
           if is_dynamic_array(left.resulttype.def) then
             begin
-            {$ifndef newra}
-               rg.saveusedintregisters(exprasmlist,pushed,VOLATILE_INTREGISTERS);
-            {$endif}
                cg.a_param_loc(exprasmlist,right.location,paramanager.getintparaloc(exprasmlist,2));
                cg.a_param_loc(exprasmlist,left.location,paramanager.getintparaloc(exprasmlist,1));
-            {$ifdef newra}
                rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
-            {$else}
-               rg.saveintregvars(exprasmlist,VOLATILE_INTREGISTERS);
-            {$endif}
                cg.a_call_name(exprasmlist,'FPC_DYNARRAY_RANGECHECK');
                paramanager.freeintparaloc(exprasmlist,2);
                paramanager.freeintparaloc(exprasmlist,1);
-            {$ifdef newra}
                rg.deallocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
-            {$else}
-               rg.restoreusedintregisters(exprasmlist,pushed);
-            {$endif}
             end
          else
            cg.g_rangecheck(exprasmlist,right.location,right.resulttype.def,left.resulttype.def);
@@ -534,15 +499,8 @@ implementation
          extraoffset : longint;
          t : tnode;
          href : treference;
-      {$ifdef newra}
-         hreg:Tregister;
-         i:Tsuperregister;
-      {$else}
-         pushed : tpushedsavedint;
-      {$endif}
          otl,ofl : tasmlabel;
          newsize : tcgsize;
-         pushedregs : tmaybesave;
          mulsize: longint;
          isjump  : boolean;
       begin
@@ -581,22 +539,11 @@ implementation
                 we can use the ansistring routine here }
               if (cs_check_range in aktlocalswitches) then
                 begin
-                {$ifndef newra}
-                   rg.saveusedintregisters(exprasmlist,pushed,VOLATILE_INTREGISTERS);
-                {$endif}
                    cg.a_param_reg(exprasmlist,OS_ADDR,location.reference.base,paramanager.getintparaloc(exprasmlist,1));
-                {$ifdef newra}
                    rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
-                {$else}
-                   rg.saveintregvars(exprasmlist,VOLATILE_INTREGISTERS);
-                {$endif}
                    cg.a_call_name(exprasmlist,'FPC_'+upper(tstringdef(left.resulttype.def).stringtypname)+'_CHECKZERO');
                    paramanager.freeintparaloc(exprasmlist,1);
-                {$ifdef newra}
                    rg.deallocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
-                {$else}
-                   rg.restoreusedintregisters(exprasmlist,pushed);
-                {$endif}
                 end;
 
               { in ansistrings/widestrings S[1] is p<w>char(S)[0] !! }
@@ -669,26 +616,15 @@ implementation
                          st_widestring,
                          st_ansistring:
                            begin
-                            {$ifndef newra}
-                              rg.saveusedintregisters(exprasmlist,pushed,VOLATILE_INTREGISTERS);
-                            {$endif}
                               cg.a_param_const(exprasmlist,OS_INT,tordconstnode(right).value,paramanager.getintparaloc(exprasmlist,2));
                               href:=location.reference;
                               dec(href.offset,7);
                               cg.a_param_ref(exprasmlist,OS_INT,href,paramanager.getintparaloc(exprasmlist,1));
-                            {$ifdef newra}
                               rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
-                            {$else}
-                              rg.saveintregvars(exprasmlist,VOLATILE_INTREGISTERS);
-                            {$endif}
                               cg.a_call_name(exprasmlist,'FPC_'+upper(tstringdef(left.resulttype.def).stringtypname)+'_RANGECHECK');
                               paramanager.freeintparaloc(exprasmlist,2);
                               paramanager.freeintparaloc(exprasmlist,1);
-                            {$ifdef newra}
                               rg.deallocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
-                            {$else}
-                              rg.restoreusedintregisters(exprasmlist,pushed);
-                            {$endif}
                            end;
 
                          st_shortstring:
@@ -779,13 +715,7 @@ implementation
                  ofl:=falselabel;
                  objectlibrary.getlabel(falselabel);
                end;
-            {$ifndef newra}
-              maybe_save(exprasmlist,right.registers32,location,pushedregs);
-            {$endif}
               secondpass(right);
-            {$ifndef newra}
-              maybe_restore(exprasmlist,location,pushedregs);
-            {$endif}
 
               if cs_check_range in aktlocalswitches then
                begin
@@ -816,26 +746,15 @@ implementation
                          st_widestring,
                          st_ansistring:
                            begin
-                            {$ifndef newra}
-                              rg.saveusedintregisters(exprasmlist,pushed,VOLATILE_INTREGISTERS);
-                            {$endif}
                               cg.a_param_reg(exprasmlist,OS_INT,right.location.register,paramanager.getintparaloc(exprasmlist,2));
                               href:=location.reference;
                               dec(href.offset,7);
                               cg.a_param_ref(exprasmlist,OS_INT,href,paramanager.getintparaloc(exprasmlist,1));
-                            {$ifdef newra}
                               rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
-                            {$else}
-                              rg.saveintregvars(exprasmlist,VOLATILE_INTREGISTERS);
-                            {$endif}
                               cg.a_call_name(exprasmlist,'FPC_'+upper(tstringdef(left.resulttype.def).stringtypname)+'_RANGECHECK');
                               paramanager.freeintparaloc(exprasmlist,2);
                               paramanager.freeintparaloc(exprasmlist,1);
-                            {$ifdef newra}
                               rg.deallocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
-                            {$else}
-                              rg.restoreusedintregisters(exprasmlist,pushed);
-                            {$endif}
                            end;
                          st_shortstring:
                            begin
@@ -868,7 +787,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.69  2003-08-10 17:25:23  peter
+  Revision 1.70  2003-09-03 15:55:00  peter
+    * NEWRA branch merged
+
+  Revision 1.69.2.1  2003/08/29 17:28:59  peter
+    * next batch of updates
+
+  Revision 1.69  2003/08/10 17:25:23  peter
     * fixed some reported bugs
 
   Revision 1.68  2003/08/09 18:56:54  daniel

@@ -101,14 +101,12 @@ var
   actopsize      : topsize;
   actcondition   : tasmcond;
   iasmops        : tdictionary;
-  iasmregs       : ^reg2strtable;
 
 
 Procedure SetupTables;
 { creates uppercased symbol tables for speed access }
 var
   i : tasmop;
-  j : Toldregister;
   str2opentry: tstr2opentry;
 Begin
   { opcodes }
@@ -120,10 +118,6 @@ Begin
       str2opentry.op:=i;
       iasmops.insert(str2opentry);
     end;
-  { registers }
-  new(iasmregs);
-  for j:=firstreg to lastreg do
-   iasmregs^[j] := upper(gas_reg2str[j]);
 end;
 
 
@@ -236,25 +230,10 @@ end;
 
 
 function is_register(const s:string):boolean;
-
-var i:Toldregister;
-
 begin
-  actasmregister.enum:=R_INTREGISTER;
-  actasmregister.number:=gas_regnum_search(s);
-  if actasmregister.number=NR_NO then
-    begin
-      for i:=firstreg to lastreg do
-       if s=iasmregs^[i] then
-        begin
-          actasmtoken:=AS_REGISTER;
-          actasmregister.enum:=i;
-          is_register:=true;
-          exit;
-        end;
-      is_register:=false;
-    end
-  else
+  is_register:=false;
+  actasmregister:=gas_regnum_search(lower(s));
+  if actasmregister<>NR_NO then
     begin
       is_register:=true;
       actasmtoken:=AS_REGISTER;
@@ -1180,8 +1159,7 @@ Begin
       Begin
         { Check if there is already a base (mostly ebp,esp) than this is
           not allowed,becuase it will give crashing code }
-        if not((opr.ref.base.enum=R_NO) or
-               ((opr.ref.base.enum=R_INTREGISTER) and (opr.ref.base.number=NR_NO))) then
+        if (opr.ref.base<>NR_NO) then
           message(asmr_e_cannot_index_relative_var);
         opr.ref.base:=actasmregister;
         Consume(AS_REGISTER);
@@ -2131,13 +2109,20 @@ initialization
 finalization
   if assigned(iasmops) then
     iasmops.Free;
-  if assigned(iasmregs) then
-    dispose(iasmregs);
 
 end.
 {
   $Log$
-  Revision 1.45  2003-05-30 23:57:08  peter
+  Revision 1.46  2003-09-03 15:55:01  peter
+    * NEWRA branch merged
+
+  Revision 1.45.2.2  2003/08/31 15:46:26  peter
+    * more updates for tregister
+
+  Revision 1.45.2.1  2003/08/28 18:35:08  peter
+    * tregister changed to cardinal
+
+  Revision 1.45  2003/05/30 23:57:08  peter
     * more sparc cleanup
     * accumulator removed, splitted in function_return_reg (called) and
       function_result_reg (caller)

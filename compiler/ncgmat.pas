@@ -266,18 +266,11 @@ implementation
          hdenom : tregister;
          power : longint;
          hl : tasmlabel;
-         pushedregs : tmaybesave;
       begin
          secondpass(left);
          if codegenerror then
           exit;
-        {$ifndef newra}
-         maybe_save(exprasmlist,right.registers32,left.location,pushedregs);
-        {$endif}
          secondpass(right);
-        {$ifndef newra}
-         maybe_restore(exprasmlist,left.location,pushedregs);
-        {$endif newra}
          if codegenerror then
           exit;
          location_copy(location,left.location);
@@ -362,6 +355,9 @@ implementation
          op : topcg;
       begin
 {$ifdef cpu64bit}
+         freescratch:=false;
+         secondpass(left);
+         secondpass(right);
          { determine operator }
          case nodetype of
            shln: op:=OP_SHL;
@@ -383,27 +379,13 @@ implementation
            begin
              { this should be handled in pass_1 }
              internalerror(2002081501);
-
-              if right.location.loc<>LOC_REGISTER then
-                begin
-                  if right.location.loc<>LOC_CREGISTER then
-                   location_release(exprasmlist,right.location);
-                  hcountreg:=cg.get_scratch_reg_int(exprasmlist);
-                  cg.a_load_loc_reg(exprasmlist,right.location.size,right.location,hcountreg);
-                  freescratch := true;
-                end
-              else
-                 hcountreg:=right.location.register;
-              cg64.a_op64_reg_reg(exprasmlist,op,hcountreg,
-                joinreg64(location.registerlow,location.registerhigh));
-              if freescratch then
-                 cg.free_scratch_reg(exprasmlist,hcountreg);
            end;
 {$else cpu64bit}
          { already hanled in 1st pass }
          internalerror(2002081501);
 {$endif cpu64bit}
       end;
+
 
     procedure tcgshlshrnode.second_integer;
       var
@@ -445,26 +427,18 @@ implementation
                 begin
                   if right.location.loc<>LOC_CREGISTER then
                    location_release(exprasmlist,right.location);
-                {$ifdef newra}
                   hcountreg:=rg.getregisterint(exprasmlist,OS_INT);
-                {$else}
-                  hcountreg:=cg.get_scratch_reg_int(exprasmlist,OS_INT);
-                {$endif}
                   freescratch := true;
                   cg.a_load_loc_reg(exprasmlist,right.location.size,right.location,hcountreg);
                 end
               else
                 hcountreg:=right.location.register;
               cg.a_op_reg_reg(exprasmlist,op,OS_INT,hcountreg,location.register);
-            {$ifdef newra}
               if freescratch then
                 rg.ungetregisterint(exprasmlist,hcountreg);
-            {$else}
-              if freescratch then
-                cg.free_scratch_reg(exprasmlist,hcountreg);
-            {$endif}
            end;
       end;
+
 
     procedure tcgshlshrnode.pass_2;
       begin
@@ -524,12 +498,22 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2003-09-03 11:18:37  florian
+  Revision 1.17  2003-09-03 15:55:00  peter
+    * NEWRA branch merged
+
+  Revision 1.16  2003/09/03 11:18:37  florian
     * fixed arm concatcopy
     + arm support in the common compiler sources added
     * moved some generic cg code around
     + tfputype added
     * ...
+
+  Revision 1.15.2.2  2003/08/31 15:46:26  peter
+    * more updates for tregister
+
+  Revision 1.15.2.1  2003/08/31 13:50:15  daniel
+    * Remove sorting and use pregenerated indexes
+    * Some work on making things compile
 
   Revision 1.15  2003/07/02 22:18:04  peter
     * paraloc splitted in callerparaloc,calleeparaloc

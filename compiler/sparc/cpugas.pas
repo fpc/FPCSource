@@ -48,7 +48,7 @@ unit cpugas;
           begin
             inc(offset,offsetfixup);
             offsetfixup:=0;
-            if (base.number=NR_NO) and (index.number=NR_NO) then
+            if (base=NR_NO) and (index=NR_NO) then
               begin
                  if assigned(symbol) then
                    GetReferenceString:=symbol.name;
@@ -68,9 +68,9 @@ unit cpugas;
                 if assigned(symbol) then
                   internalerror(2003052601);
                 GetReferenceString:='[';
-                if base.number<>NR_NO then
-                  GetReferenceString:=GetReferenceString+std_reg2str[base.enum];
-                if index.number=NR_NO then
+                if base<>NR_NO then
+                  GetReferenceString:=GetReferenceString+gas_regname(base);
+                if index=NR_NO then
                   begin
                     if (Offset<simm13lo) or (Offset>simm13hi) then
                       internalerror(2003053008);
@@ -83,7 +83,7 @@ unit cpugas;
                   begin
                     if Offset<>0 then
                       internalerror(2003052603);
-                    GetReferenceString:=GetReferenceString+'+'+std_reg2str[index.enum];
+                    GetReferenceString:=GetReferenceString+'+'+gas_regname(index);
                   end;
                 GetReferenceString:=GetReferenceString+']';
               end;
@@ -93,12 +93,12 @@ unit cpugas;
 
     function getopstr(const Oper:TOper):string;
       var
-        hs:string;
+        hs : string;
       begin
         with Oper do
           case typ of
             top_reg:
-              getopstr:=std_reg2str[reg.enum];
+              getopstr:=gas_regname(reg);
             top_ref:
               getopstr:=getreferencestring(ref^);
             top_const:
@@ -205,7 +205,13 @@ begin
 end.
 {
     $Log$
-    Revision 1.21  2003-07-08 21:25:00  peter
+    Revision 1.22  2003-09-03 15:55:01  peter
+      * NEWRA branch merged
+
+    Revision 1.21.2.1  2003/09/01 21:02:55  peter
+      * sparc updates for new tregister
+
+    Revision 1.21  2003/07/08 21:25:00  peter
       * sparc fixes
 
     Revision 1.20  2003/07/02 22:18:04  peter

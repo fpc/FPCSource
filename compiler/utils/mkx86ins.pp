@@ -13,7 +13,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-program nasmconv;
+program mkx86ins;
 
 const
   Version = '1.00';
@@ -181,7 +181,7 @@ begin
   writeln('creating ',fn);
   assign(f,fn);
   rewrite(f);
-  writeln(f,'{ don''t edit, this file is generated from i386ins.dat }');
+  writeln(f,'{ don''t edit, this file is generated from x86ins.dat }');
   writeln(f,'(');
 end;
 
@@ -227,7 +227,7 @@ begin
    openinc(opfile,'i386op.inc');
    assign(nopfile,'i386nop.inc');
    rewrite(nopfile);
-   writeln(nopfile,'{ don''t edit, this file is generated from i386ins.dat }');
+   writeln(nopfile,'{ don''t edit, this file is generated from x86ins.dat }');
    openinc(attfile,'i386att.inc');
    openinc(attsuffile,'i386atts.inc');
    openinc(intfile,'i386int.inc');
@@ -429,7 +429,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2002-05-18 13:34:27  peter
+  Revision 1.2  2003-09-03 15:55:02  peter
+    * NEWRA branch merged
+
+  Revision 1.1.2.1  2003/08/27 19:13:10  peter
+    * new tools
+
+  Revision 1.5  2002/05/18 13:34:27  peter
     * readded missing revisions
 
   Revision 1.4  2002/05/16 19:46:54  carl

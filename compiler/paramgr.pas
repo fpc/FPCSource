@@ -254,15 +254,15 @@ implementation
 {$ifndef cpu64bit}
               if (loc.size in [OS_64,OS_S64,OS_F64]) then
                 begin
-                  rg.getexplicitregisterint(list,loc.registerhigh.number);
-                  rg.getexplicitregisterint(list,loc.registerlow.number);
+                  rg.getexplicitregisterint(list,loc.registerhigh);
+                  rg.getexplicitregisterint(list,loc.registerlow);
                 end
               else
 {$endif cpu64bit}
-                rg.getexplicitregisterint(list,loc.register.number);
+                rg.getexplicitregisterint(list,loc.register);
             end;
           LOC_FPUREGISTER, LOC_CFPUREGISTER:
-            rg.getexplicitregisterfpu(list,loc.register.enum);
+            rg.getexplicitregisterfpu(list,loc.register);
           LOC_REFERENCE,LOC_CREFERENCE:
             { do nothing by default, most of the time it's the framepointer }
           else
@@ -352,7 +352,13 @@ end.
 
 {
    $Log$
-   Revision 1.50  2003-08-11 21:18:20  peter
+   Revision 1.51  2003-09-03 15:55:01  peter
+     * NEWRA branch merged
+
+   Revision 1.50.2.1  2003/08/29 17:28:59  peter
+     * next batch of updates
+
+   Revision 1.50  2003/08/11 21:18:20  peter
      * start of sparc support for newra
 
    Revision 1.49  2003/07/08 21:24:59  peter

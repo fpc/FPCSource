@@ -115,7 +115,7 @@ unit cpupara;
     function ti386paramanager.getintparaloc(list: taasmoutput; nr : longint) : tparalocation;
       begin
          getintparaloc.loc:=LOC_REFERENCE;
-         getintparaloc.reference.index.enum:=R_EBP;
+         getintparaloc.reference.index:=NR_EBP;
          getintparaloc.reference.offset:=4*nr;
       end;
 
@@ -148,10 +148,7 @@ unit cpupara;
             if assigned(current_procinfo) then
               paraloc.reference.index:=current_procinfo.framepointer
             else
-              begin
-                paraloc.reference.index.enum:=R_INTREGISTER;
-                paraloc.reference.index.number:=NR_FRAME_POINTER_REG;
-              end;
+              paraloc.reference.index:=NR_FRAME_POINTER_REG;
             paraloc.reference.offset:=tvarsym(hp.parasym).adjusted_address;
             hp.paraloc[side]:=paraloc;
 {$warning callerparaloc shall not be the same as calleeparaloc}
@@ -165,7 +162,7 @@ unit cpupara;
         if p.rettype.def.deftype=floatdef then
           begin
             paraloc.loc:=LOC_FPUREGISTER;
-            paraloc.register.enum:=FPU_RESULT_REG;
+            paraloc.register:=NR_FPU_RESULT_REG;
           end
         else
          { Return in register? }
@@ -175,16 +172,13 @@ unit cpupara;
 {$ifndef cpu64bit}
             if paraloc.size in [OS_64,OS_S64] then
              begin
-               paraloc.register64.reglo.enum:=R_INTREGISTER;
-               paraloc.register64.reglo.number:=NR_FUNCTION_RETURN64_LOW_REG;
-               paraloc.register64.reghi.enum:=R_INTREGISTER;
-               paraloc.register64.reghi.number:=NR_FUNCTION_RETURN64_HIGH_REG;
+               paraloc.register64.reglo:=NR_FUNCTION_RETURN64_LOW_REG;
+               paraloc.register64.reghi:=NR_FUNCTION_RETURN64_HIGH_REG;
              end
             else
 {$endif cpu64bit}
              begin
-               paraloc.register.enum:=R_INTREGISTER;
-               paraloc.register.number:=NR_FUNCTION_RETURN_REG;
+               paraloc.register:=NR_FUNCTION_RETURN_REG;
              end;
           end
         else
@@ -204,8 +198,7 @@ unit cpupara;
            internalerror(200305251);
          getselflocation.loc:=LOC_REFERENCE;
          getselflocation.sp_fixup:=POINTER_SIZE;
-         getselflocation.reference.index.enum:=R_INTREGISTER;
-         getselflocation.reference.index.number:=NR_STACK_POINTER_REG;
+         getselflocation.reference.index:=NR_STACK_POINTER_REG;
          getselflocation.reference.offset:=hsym.adjusted_address;
       end;
 
@@ -214,7 +207,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  2003-08-11 21:18:20  peter
+  Revision 1.23  2003-09-03 15:55:01  peter
+    * NEWRA branch merged
+
+  Revision 1.22.2.2  2003/08/28 18:35:08  peter
+    * tregister changed to cardinal
+
+  Revision 1.22.2.1  2003/08/27 19:55:54  peter
+    * first tregister patch
+
+  Revision 1.22  2003/08/11 21:18:20  peter
     * start of sparc support for newra
 
   Revision 1.21  2003/07/05 20:11:41  jonas

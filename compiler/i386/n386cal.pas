@@ -67,12 +67,9 @@ implementation
 
 
     procedure ti386callnode.extra_interrupt_code;
-      var
-        r : Tregister;
       begin
         emit_none(A_PUSHF,S_L);
-        r.enum:=R_CS;
-        emit_reg(A_PUSH,S_L,r);
+        emit_reg(A_PUSH,S_L,NR_CS);
       end;
 
 
@@ -84,7 +81,6 @@ implementation
          push_size : longint;
 {$endif OPTALIGN}
          i : integer;
-         rsp : tregister;
       begin
         pop_size:=0;
         { This parasize aligned on 4 ? }
@@ -97,9 +93,7 @@ implementation
         if pop_size>0 then
          begin
            inc(pushedparasize,pop_size);
-           rsp.enum:=R_INTREGISTER;
-           rsp.number:=NR_ESP;
-           exprasmlist.concat(taicpu.op_const_reg(A_SUB,S_L,pop_size,rsp));
+           exprasmlist.concat(taicpu.op_const_reg(A_SUB,S_L,pop_size,NR_ESP));
 {$ifdef GDB}
            if (cs_debuginfo in aktmoduleswitches) and
               (exprasmList.first=exprasmList.last) then
@@ -142,52 +136,31 @@ implementation
         { better than an add on all processors }
         if pop_size=4 then
           begin
-          {$ifdef newra}
             hreg:=rg.getregisterint(exprasmlist,OS_INT);
-          {$else}
-            hreg:=cg.get_scratch_reg_int(exprasmlist,OS_INT);
-          {$endif}
             exprasmlist.concat(taicpu.op_reg(A_POP,S_L,hreg));
-          {$ifdef newra}
             rg.ungetregisterint(exprasmlist,hreg);
-          {$else}
-            cg.free_scratch_reg(exprasmlist,hreg);
-          {$endif newra}
           end
         { the pentium has two pipes and pop reg is pairable }
         { but the registers must be different!        }
         else
           if (pop_size=8) and
              not(cs_littlesize in aktglobalswitches) and
-             (aktoptprocessor=ClassP5)
-             {$ifndef newra} and (rg.countunusedregsint>0){$endif} then
+             (aktoptprocessor=ClassP5) then
             begin
-            {$ifdef newra}
                hreg:=rg.getregisterint(exprasmlist,OS_INT);
-            {$else}
-               hreg:=cg.get_scratch_reg_int(exprasmlist,OS_INT);
-            {$endif}
                exprasmlist.concat(taicpu.op_reg(A_POP,S_L,hreg));
-            {$ifdef newra}
                rg.ungetregisterint(exprasmlist,hreg);
-            {$else}
-               cg.free_scratch_reg(exprasmlist,hreg);
-            {$endif}
                hreg:=rg.getregisterint(exprasmlist,OS_INT);
                exprasmlist.concat(taicpu.op_reg(A_POP,S_L,hreg));
                rg.ungetregisterint(exprasmlist,hreg);
             end
         else
           if pop_size<>0 then
-            begin
-              hreg.enum:=R_INTREGISTER;
-              hreg.number:=NR_ESP;
-              exprasmlist.concat(taicpu.op_const_reg(A_ADD,S_L,pop_size,hreg));
-            end;
+            exprasmlist.concat(taicpu.op_const_reg(A_ADD,S_L,pop_size,NR_ESP));
 
 {$ifdef OPTALIGN}
         if pop_esp then
-          emit_reg(A_POP,S_L,rsp);
+          emit_reg(A_POP,S_L,NR_ESP);
 {$endif OPTALIGN}
       end;
 
@@ -197,7 +170,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.93  2003-05-30 23:57:08  peter
+  Revision 1.94  2003-09-03 15:55:01  peter
+    * NEWRA branch merged
+
+  Revision 1.93.2.1  2003/08/29 17:29:00  peter
+    * next batch of updates
+
+  Revision 1.93  2003/05/30 23:57:08  peter
     * more sparc cleanup
     * accumulator removed, splitted in function_return_reg (called) and
       function_result_reg (caller)

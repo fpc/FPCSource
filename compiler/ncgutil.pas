@@ -40,23 +40,14 @@ interface
     type
       tloadregvars = (lr_dont_load_regvars, lr_load_regvars);
 
-      tmaybesave = record
-        saved : boolean;
-        ref   : treference;
-      end;
-
     procedure firstcomplex(p : tbinarynode);
     procedure maketojumpbool(list:TAAsmoutput; p : tnode; loadregvars: tloadregvars);
-    procedure remove_non_regvars_from_loc(const t: tlocation; var regs:Tsupregset);
+    procedure remove_non_regvars_from_loc(const t: tlocation; var regs:Tsuperregisterset);
 
     procedure location_force_reg(list: TAAsmoutput;var l:tlocation;dst_size:TCGSize;maybeconst:boolean);
     procedure location_force_fpureg(list: TAAsmoutput;var l: tlocation;maybeconst:boolean);
     procedure location_force_mem(list: TAAsmoutput;var l:tlocation);
 
-{$ifndef newra}
-    procedure maybe_save(list:taasmoutput;needed:integer;var l:tlocation;var s:tmaybesave);
-    procedure maybe_restore(list:taasmoutput;var l:tlocation;const s:tmaybesave);
-{$endif}
     function  maybe_pushfpu(list:taasmoutput;needed : byte;var l:tlocation) : boolean;
 
     procedure push_value_para(list:taasmoutput;p:tnode;calloption:tproccalloption;
@@ -235,32 +226,24 @@ implementation
       end;
 
 
-    procedure remove_non_regvars_from_loc(const t: tlocation; var regs:Tsupregset);
+    procedure remove_non_regvars_from_loc(const t: tlocation; var regs:Tsuperregisterset);
       begin
         case t.loc of
           LOC_REGISTER:
             begin
               { can't be a regvar, since it would be LOC_CREGISTER then }
-              if t.register.enum<>R_INTREGISTER then
-                internalerror(200301154);
-              if t.registerhigh.enum<>R_INTREGISTER then
-                internalerror(200301154);
-              exclude(regs,t.register.number shr 8);
-              if t.registerhigh.enum <> R_NO then
-                exclude(regs,t.registerhigh.number shr 8);
+              exclude(regs,getsupreg(t.register));
+              if t.registerhigh<>NR_NO then
+                exclude(regs,getsupreg(t.registerhigh));
             end;
           LOC_CREFERENCE,LOC_REFERENCE:
             begin
-              if t.reference.base.enum<>R_INTREGISTER then
-                internalerror(200301154);
-              if t.reference.index.enum<>R_INTREGISTER then
-                internalerror(200301154);
               if not(cs_regvars in aktglobalswitches) or
-                 ((t.reference.base.number shr 8) in rg.usableregsint) then
-                exclude(regs,t.reference.base.number shr 8);
+                 (getsupreg(t.reference.base) in rg.usableregsint) then
+                exclude(regs,getsupreg(t.reference.base));
               if not(cs_regvars in aktglobalswitches) or
-                 ((t.reference.index.number shr 8) in rg.usableregsint) then
-                exclude(regs,t.reference.index.number shr 8);
+                 (getsupreg(t.reference.index) in rg.usableregsint) then
+                exclude(regs,getsupreg(t.reference.index));
             end;
         end;
       end;
@@ -272,8 +255,6 @@ implementation
     procedure new_exception(list : taasmoutput;const jmpbuf,envbuf, href : treference;
       a : aword; exceptlabel : tasmlabel);
 
-    var r:Tregister;
-
      begin
        cg.a_paramaddr_ref(list,envbuf,paramanager.getintparaloc(list,3));
        cg.a_paramaddr_ref(list,jmpbuf,paramanager.getintparaloc(list,2));
@@ -282,51 +263,33 @@ implementation
        paramanager.freeintparaloc(list,3);
        paramanager.freeintparaloc(list,2);
        paramanager.freeintparaloc(list,1);
-{$ifdef newra}
        rg.allocexplicitregistersint(list,VOLATILE_INTREGISTERS);
-{$endif newra}
        cg.a_call_name(list,'FPC_PUSHEXCEPTADDR');
-{$ifdef newra}
        rg.deallocexplicitregistersint(list,VOLATILE_INTREGISTERS);
-{$endif newra}
 
-       r.enum:=R_INTREGISTER;
-       r.number:=NR_FUNCTION_RESULT_REG;
-       cg.a_param_reg(list,OS_ADDR,r,paramanager.getintparaloc(list,1));
+       cg.a_param_reg(list,OS_ADDR,NR_FUNCTION_RESULT_REG,paramanager.getintparaloc(list,1));
        paramanager.freeintparaloc(list,1);
-{$ifdef newra}
        rg.allocexplicitregistersint(list,VOLATILE_INTREGISTERS);
-{$endif newra}
        cg.a_call_name(list,'FPC_SETJMP');
-{$ifdef newra}
        rg.deallocexplicitregistersint(list,VOLATILE_INTREGISTERS);
-{$endif newra}
 
        cg.g_exception_reason_save(list, href);
-       cg.a_cmp_const_reg_label(list,OS_S32,OC_NE,0,r,exceptlabel);
+       cg.a_cmp_const_reg_label(list,OS_S32,OC_NE,0,NR_FUNCTION_RESULT_REG,exceptlabel);
      end;
 
 
     procedure free_exception(list : taasmoutput;const jmpbuf, envbuf, href : treference;
      a : aword ; endexceptlabel : tasmlabel; onlyfree : boolean);
 
-    var r:Tregister;
-
      begin
-{$ifdef newra}
          rg.allocexplicitregistersint(list,VOLATILE_INTREGISTERS);
-{$endif newra}
          cg.a_call_name(list,'FPC_POPADDRSTACK');
-{$ifdef newra}
          rg.deallocexplicitregistersint(list,VOLATILE_INTREGISTERS);
-{$endif newra}
 
          if not onlyfree then
           begin
             cg.g_exception_reason_load(list, href);
-            r.enum:=R_INTREGISTER;
-            r.number:=NR_FUNCTION_RESULT_REG;
-            cg.a_cmp_const_reg_label(list,OS_S32,OC_EQ,a,r,endexceptlabel);
+            cg.a_cmp_const_reg_label(list,OS_S32,OC_EQ,a,NR_FUNCTION_RESULT_REG,endexceptlabel);
           end;
      end;
 
@@ -352,8 +315,8 @@ implementation
               { load a smaller size to OS_64 }
               if l.loc=LOC_REGISTER then
                begin
-                 hregister.enum:=R_INTREGISTER;
-                 hregister.number:=(l.registerlow.number and not $ff) or R_SUBWHOLE;
+                 hregister:=l.registerlow;
+                 setsubreg(hregister,R_SUBWHOLE);
                  cg.a_load_reg_reg(list,l.size,OS_32,l.registerlow,hregister);
                end
               else
@@ -416,7 +379,7 @@ implementation
               hreg64.reglo:=hregister;
               hreg64.reghi:=hregisterhi;
               { load value in new register }
-              cg64.a_load64_loc_reg(list,l,hreg64{$ifdef newra},false{$endif});
+              cg64.a_load64_loc_reg(list,l,hreg64,false);
               location_reset(l,LOC_REGISTER,dst_size);
               l.registerlow:=hregister;
               l.registerhigh:=hregisterhi;
@@ -424,14 +387,12 @@ implementation
          end
         else
          begin
-         {$ifdef newra}
            { transformations to 32bit or smaller }
            if (l.loc=LOC_REGISTER) and (l.size in [OS_64,OS_S64]) then
              { if the previous was 64bit release the high register }
              begin
                rg.ungetregisterint(list,l.registerhigh);
-               l.registerhigh.enum:=R_INTREGISTER;
-               l.registerhigh.number:=NR_NO;
+               l.registerhigh:=NR_NO;
              end;
             if l.loc=LOC_REGISTER then
               rg.ungetregisterint(list,l.register);
@@ -440,49 +401,6 @@ implementation
             and trying to recycle registers can cause problems because
             the registers changes size and may need aditional constraints.}
            hregister:=rg.getregisterint(list,dst_size);
-         {$else}
-           { transformations to 32bit or smaller }
-           if l.loc=LOC_REGISTER then
-            begin
-              { if the previous was 64bit release the high register }
-              if l.size in [OS_64,OS_S64] then
-               begin
-                 rg.ungetregisterint(list,l.registerhigh);
-                 l.registerhigh.enum:=R_INTREGISTER;
-                 l.registerhigh.number:=NR_NO;
-               end;
-              hregister:=l.register;
-            end
-           else
-            begin
-              { get new register }
-              if (l.loc=LOC_CREGISTER) and
-                 maybeconst and
-                 (TCGSize2Size[dst_size]=TCGSize2Size[l.size]) then
-               hregister:=l.register
-              else
-               begin
-                 hregister.enum:=R_INTREGISTER;
-                 hregister.number:=NR_NO;
-               end;
-            end;
-           if hregister.enum<>R_INTREGISTER then
-            internalerror(200302022);
-           { need to load into address register? }
-           if (dst_size=OS_ADDR) then
-             begin
-               if (hregister.number=NR_NO) or
-                  (not rg.isaddressregister(hregister)) then
-                 hregister:=rg.getaddressregister(list);
-             end
-           else
-             begin
-               if (hregister.number=NR_NO) {or
-                  rg.isaddressregister(hregister)} then
-                 hregister:=rg.getregisterint(list,dst_size);
-             end;
-           hregister:=rg.makeregsize(hregister,dst_size);
-        {$endif}
            { load value in new register }
            case l.loc of
              LOC_FLAGS :
@@ -522,17 +440,6 @@ implementation
                  if (TCGSize2Size[dst_size]<TCGSize2Size[l.size]) then
                    l.size:=dst_size;
 {$endif not i386}
-{$ifndef newra}
-                 { Release old register when the superregister is changed }
-                 if (l.loc=LOC_REGISTER) and
-                    (l.register.number shr 8<>hregister.number shr 8) then
-                   begin
-                     if rg.isaddressregister(l.register) then
-                       rg.ungetaddressregister(list,l.register)
-                     else
-                       rg.ungetregisterint(list,l.register);
-                   end;
-{$endif}
                end;
            end;
            if (l.loc <> LOC_CREGISTER) or
@@ -651,7 +558,7 @@ implementation
      end;
 {$endif cpu64bit}
 
-{$ifdef newra}
+
     procedure location_force_reg(list: TAAsmoutput;var l:tlocation;dst_size:TCGSize;maybeconst:boolean);
 
     var oldloc:Tlocation;
@@ -666,18 +573,7 @@ implementation
            location_release(list,oldloc);
          end;
       end;
-{$else}
-    procedure location_force_reg(list: TAAsmoutput;var l:tlocation;dst_size:TCGSize;maybeconst:boolean);
-      begin
-        { release previous location before demanding a new register }
-        if (l.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
-         begin
-           location_freetemp(list,l);
-           location_release(list,l);
-         end;
-        location_force(list, l, dst_size, maybeconst)
-      end;
-{$endif}
+
 
     procedure location_force_fpureg(list: TAAsmoutput;var l: tlocation;maybeconst:boolean);
       var
@@ -736,110 +632,6 @@ implementation
                                   Maybe_Save
 *****************************************************************************}
 
-{$ifndef newra}
-    procedure maybe_save(list:taasmoutput;needed:integer;var l:tlocation;var s:tmaybesave);
-      begin
-        s.saved:=false;
-        if l.loc=LOC_CREGISTER then
-         begin
-           s.saved:=true;
-           exit;
-         end;
-        if needed>rg.countunusedregsint then
-         begin
-           case l.loc of
-             LOC_REGISTER :
-               begin
-{$ifndef cpu64bit}
-                 if l.size in [OS_64,OS_S64] then
-                  begin
-                    tg.GetTemp(list,8,tt_normal,s.ref);
-                    cg64.a_load64_reg_ref(list,joinreg64(l.registerlow,l.registerhigh),s.ref);
-                  end
-                 else
-{$endif cpu64bit}
-                  begin
-                    tg.GetTemp(list,TCGSize2Size[l.size],tt_normal,s.ref);
-                    cg.a_load_reg_ref(list,l.size,l.size,l.register,s.ref);
-                  end;
-                 location_release(list,l);
-                 s.saved:=true;
-               end;
-             LOC_REFERENCE,
-             LOC_CREFERENCE :
-               begin
-                 if l.reference.base.enum<>R_INTREGISTER then
-                   internalerror(200302101);
-                 if l.reference.index.enum<>R_INTREGISTER then
-                   internalerror(200302101);
-                 if ((l.reference.base.number<>NR_NO) or
-                     (l.reference.index.number<>NR_NO)) then
-                  begin
-                    { load address into a single base register }
-                    if l.reference.index.number<>NR_NO then
-                     begin
-                       cg.a_loadaddr_ref_reg(list,l.reference,l.reference.index);
-                       rg.ungetregisterint(list,l.reference.base);
-                       reference_reset_base(l.reference,l.reference.index,0);
-                     end
-                    else
-                     begin
-                       cg.a_loadaddr_ref_reg(list,l.reference,l.reference.base);
-                       rg.ungetregisterint(list,l.reference.index);
-                       reference_reset_base(l.reference,l.reference.base,0);
-                     end;
-                    { save base register }
-                    tg.GetTemp(list,TCGSize2Size[OS_ADDR],tt_normal,s.ref);
-                    cg.a_load_reg_ref(list,OS_ADDR,OS_ADDR,l.reference.base,s.ref);
-                    { release }
-                    location_release(list,l);
-                    s.saved:=true;
-                  end;
-               end;
-           end;
-         end;
-      end;
-
-
-    procedure maybe_restore(list:taasmoutput;var l:tlocation;const s:tmaybesave);
-      begin
-        if not s.saved then
-         exit;
-        if l.loc=LOC_CREGISTER then
-         begin
-           load_regvar_reg(list,l.register);
-           exit;
-         end;
-        case l.loc of
-          LOC_REGISTER :
-            begin
-{$ifndef cpu64bit}
-              if l.size in [OS_64,OS_S64] then
-               begin
-                 l.registerlow:=rg.getregisterint(list,OS_INT);
-                 l.registerhigh:=rg.getregisterint(list,OS_INT);
-                 cg64.a_load64_ref_reg(list,s.ref,joinreg64(l.registerlow,l.registerhigh));
-               end
-              else
-{$endif cpu64bit}
-               begin
-                 l.register:=rg.getregisterint(list,OS_INT);
-                 cg.a_load_ref_reg(list,OS_INT,OS_INT,s.ref,l.register);
-               end;
-            end;
-          LOC_CREFERENCE,
-          LOC_REFERENCE :
-            begin
-              reference_reset(l.reference);
-              l.reference.base:=rg.getaddressregister(list);
-              cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,s.ref,l.reference.base);
-            end;
-        end;
-        tg.ungetiftemp(list,s.ref);
-      end;
-{$endif newra}
-
-
     function maybe_pushfpu(list:taasmoutput;needed : byte;var l:tlocation) : boolean;
       begin
         if (needed>=maxfpuregs) and
@@ -864,7 +656,6 @@ implementation
         href : treference;
 {$ifdef i386}
         tempreference : treference;
-        hreg : tregister;
         sizetopush : longint;
 {$endif i386}
         size : longint;
@@ -907,11 +698,8 @@ implementation
                       size:=align(tfloatdef(p.resulttype.def).size,alignment);
                       inc(pushedparasize,size);
                       cg.g_stackpointer_alloc(list,size);
-                      hreg.enum:=R_INTREGISTER;
-                      hreg.number:=NR_STACK_POINTER_REG;
-                      reference_reset_base(href,hreg,0);
+                      reference_reset_base(href,NR_STACK_POINTER_REG,0);
                       cg.a_loadfpu_reg_ref(list,def_cgsize(p.resulttype.def),p.location.register,href);
-
                    end;
                  LOC_REFERENCE,
                  LOC_CREFERENCE :
@@ -968,9 +756,7 @@ implementation
               size:=align(p.resulttype.def.size,alignment);
               inc(pushedparasize,size);
               cg.g_stackpointer_alloc(list,size);
-              hreg.enum:=R_INTREGISTER;
-              hreg.number:=NR_STACK_POINTER_REG;
-              reference_reset_base(href,hreg,0);
+              reference_reset_base(href,NR_STACK_POINTER_REG,0);
               cg.g_concatcopy(list,p.location.reference,href,size,false,false);
 {$else i386}
               cg.a_param_copy_ref(list,p.resulttype.def.size,p.location.reference,locpara);
@@ -1060,7 +846,7 @@ implementation
            (tvarsym(p).varspez=vs_value) and
            (paramanager.push_addr_param(tvarsym(p).vartype.def,current_procinfo.procdef.proccalloption)) then
          begin
-           loadref := (tvarsym(p).reg.enum=R_NO) or ((Tvarsym(p).reg.enum=R_INTREGISTER) and (Tvarsym(p).reg.number=NR_NO));
+           loadref := (tvarsym(p).reg=NR_NO);
            if (loadref) then
              reference_reset_base(href1,current_procinfo.framepointer,tvarsym(p).adjusted_address)
            else
@@ -1181,19 +967,11 @@ implementation
              vs_out :
                begin
                  reference_reset_base(href,current_procinfo.framepointer,tvarsym(p).adjusted_address);
-               {$ifdef newra}
                  tmpreg:=rg.getaddressregister(list);
-               {$else}
-                 tmpreg:=cg.get_scratch_reg_address(list);
-               {$endif}
                  cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,tmpreg);
                  reference_reset_base(href,tmpreg,0);
                  cg.g_initialize(list,tvarsym(p).vartype.def,href,false);
-               {$ifdef newra}
                  rg.ungetregisterint(list,tmpreg);
-               {$else}
-                 cg.free_scratch_reg(list,tmpreg);
-               {$endif newra}
                end;
            end;
          end;
@@ -1261,13 +1039,9 @@ implementation
                  reference_reset_base(href,current_procinfo.framepointer,hp^.pos);
                  cg.a_paramaddr_ref(list,href,paramanager.getintparaloc(list,1));
                  paramanager.freeintparaloc(list,1);
-{$ifdef newra}
                  rg.allocexplicitregistersint(list,VOLATILE_INTREGISTERS);
-{$endif newra}
                  cg.a_call_name(list,'FPC_ANSISTR_DECR_REF');
-{$ifdef newra}
                  rg.deallocexplicitregistersint(list,VOLATILE_INTREGISTERS);
-{$endif newra}
                end;
              tt_widestring,
              tt_freewidestring :
@@ -1275,26 +1049,18 @@ implementation
                  reference_reset_base(href,current_procinfo.framepointer,hp^.pos);
                  cg.a_paramaddr_ref(list,href,paramanager.getintparaloc(list,1));
                  paramanager.freeintparaloc(list,1);
-{$ifdef newra}
                  rg.allocexplicitregistersint(list,VOLATILE_INTREGISTERS);
-{$endif newra}
                  cg.a_call_name(list,'FPC_WIDESTR_DECR_REF');
-{$ifdef newra}
                  rg.deallocexplicitregistersint(list,VOLATILE_INTREGISTERS);
-{$endif newra}
                end;
              tt_interfacecom :
                begin
                  reference_reset_base(href,current_procinfo.framepointer,hp^.pos);
                  cg.a_paramaddr_ref(list,href,paramanager.getintparaloc(list,1));
                  paramanager.freeintparaloc(list,1);
-{$ifdef newra}
                  rg.allocexplicitregistersint(list,VOLATILE_INTREGISTERS);
-{$endif newra}
                  cg.a_call_name(list,'FPC_INTF_DECR_REF');
-{$ifdef newra}
                  rg.deallocexplicitregistersint(list,VOLATILE_INTREGISTERS);
-{$endif newra}
                end;
            end;
            hp:=hp^.next;
@@ -1320,7 +1086,7 @@ implementation
                   reference_reset_base(href,current_procinfo.framepointer,tvarsym(current_procinfo.procdef.funcretsym).adjusted_address);
                   cg.g_initialize(list,current_procinfo.procdef.rettype.def,href,paramanager.ret_in_param(current_procinfo.procdef.rettype.def,current_procinfo.procdef.proccalloption));
                   { load the pointer to the initialized retvalue in te register }
-                  if (tvarsym(current_procinfo.procdef.funcretsym).reg.enum <> R_NO) then
+                  if (tvarsym(current_procinfo.procdef.funcretsym).reg<>NR_NO) then
                     cg.a_load_ref_reg(list,OS_ADDR,def_cgsize(current_procinfo.procdef.rettype.def),href,tvarsym(current_procinfo.procdef.funcretsym).reg);
                end;
           end;
@@ -1346,28 +1112,20 @@ implementation
         { Constructors need to return self }
         if (current_procinfo.procdef.proctypeoption=potype_constructor) then
           begin
-{$ifdef newra}
             r:=rg.getexplicitregisterint(list,NR_FUNCTION_RETURN_REG);
-{$else}
-            r.enum:=R_INTREGISTER;
-            r.number:=NR_FUNCTION_RETURN_REG;
-            cg.a_reg_alloc(list,r);
-{$endif}
             { return the self pointer }
             ressym:=tvarsym(current_procinfo.procdef.parast.search('self'));
             if not assigned(ressym) then
               internalerror(200305058);
             reference_reset_base(href,current_procinfo.framepointer,tvarsym(ressym).adjusted_address);
-{$ifdef newra}
             rg.ungetregisterint(list,r);
-{$endif newra}
             cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,r);
             uses_acc:=true;
             exit;
           end;
 
         ressym := tvarsym(current_procinfo.procdef.funcretsym);
-        if ressym.reg.enum <> R_NO then
+        if ressym.reg<>NR_NO then
           begin
             if paramanager.ret_in_param(current_procinfo.procdef.rettype.def,current_procinfo.procdef.proccalloption) then
               location_reset(resloc,LOC_CREGISTER,OS_ADDR)
@@ -1395,37 +1153,18 @@ implementation
               if resloc.size in [OS_64,OS_S64] then
                begin
                  uses_acchi:=true;
-{$ifdef newra}
                  r:=rg.getexplicitregisterint(list,NR_FUNCTION_RETURN64_LOW_REG);
                  r2:=rg.getexplicitregisterint(list,NR_FUNCTION_RETURN64_HIGH_REG);
-{$else}
-                 r.enum:=R_INTREGISTER;
-                 r.number:=NR_FUNCTION_RETURN64_LOW_REG;
-                 cg.a_reg_alloc(list,r);
-                 r2.enum:=R_INTREGISTER;
-                 r2.number:=NR_FUNCTION_RETURN64_HIGH_REG;
-                 cg.a_reg_alloc(list,r2);
-{$endif}
-{$ifdef newra}
                  rg.ungetregisterint(list,r);
                  rg.ungetregisterint(list,r2);
-{$endif newra}
-                 cg64.a_load64_loc_reg(list,resloc,joinreg64(r,r2){$ifdef newra},false{$endif});
+                 cg64.a_load64_loc_reg(list,resloc,joinreg64(r,r2),false);
                end
               else
 {$endif cpu64bit}
                begin
-{$ifdef newra}
                  hreg:=rg.getexplicitregisterint(list,NR_FUNCTION_RETURN_REG);
-{$else}
-                 hreg.enum:=R_INTREGISTER;
-                 hreg.number:=NR_FUNCTION_RETURN_REG;
-                 cg.a_reg_alloc(list,hreg);
-{$endif}
                  hreg:=rg.makeregsize(hreg,resloc.size);
-{$ifdef newra}
                  rg.ungetregisterint(list,hreg);
-{$endif newra}
                  cg.a_load_loc_reg(list,resloc.size,resloc,hreg);
                end;
             end;
@@ -1433,11 +1172,11 @@ implementation
             begin
               uses_fpu := true;
 {$ifdef cpufpemu}
-               if cs_fp_emulation in aktmoduleswitches then
-                 r.enum := FUNCTION_RETURN_REG
+              if cs_fp_emulation in aktmoduleswitches then
+                r:=NR_FUNCTION_RETURN_REG
               else
 {$endif cpufpemu}
-               r.enum:=FPU_RESULT_REG;
+                r:=NR_FPU_RESULT_REG;
               cg.a_loadfpu_loc_reg(list,resloc,r);
             end;
           else
@@ -1450,37 +1189,18 @@ implementation
                  if resloc.size in [OS_64,OS_S64] then
                   begin
                     uses_acchi:=true;
-{$ifdef newra}
                     r:=rg.getexplicitregisterint(list,NR_FUNCTION_RETURN64_LOW_REG);
                     r2:=rg.getexplicitregisterint(list,NR_FUNCTION_RETURN64_HIGH_REG);
-{$else}
-                    r.enum:=R_INTREGISTER;
-                    r.number:=NR_FUNCTION_RETURN64_LOW_REG;
-                    cg.a_reg_alloc(list,r);
-                    r2.enum:=R_INTREGISTER;
-                    r2.number:=NR_FUNCTION_RETURN64_HIGH_REG;
-                    cg.a_reg_alloc(list,r2);
-{$endif}
-{$ifdef newra}
                     rg.ungetregisterint(list,r);
                     rg.ungetregisterint(list,r2);
-{$endif newra}
-                    cg64.a_load64_loc_reg(list,resloc,joinreg64(r,r2){$ifdef newra},false{$endif});
+                    cg64.a_load64_loc_reg(list,resloc,joinreg64(r,r2),false);
                   end
                  else
 {$endif cpu64bit}
                   begin
-{$ifdef newra}
                     hreg:=rg.getexplicitregisterint(list,NR_FUNCTION_RETURN_REG);
-{$else}
-                    hreg.enum:=R_INTREGISTER;
-                    hreg.number:=NR_FUNCTION_RETURN_REG;
-                    cg.a_reg_alloc(list,hreg);
-{$endif}
                     hreg:=rg.makeregsize(hreg,resloc.size);
-{$ifdef newra}
                     rg.ungetregisterint(list,hreg);
-{$endif newra}
                     cg.a_load_loc_reg(list,resloc.size,resloc,hreg);
                   end;
                 end
@@ -1558,23 +1278,15 @@ implementation
                  cg.a_paramaddr_ref(list,href,paramanager.getintparaloc(list,1));
                  paramanager.freeintparaloc(list,2);
                  paramanager.freeintparaloc(list,1);
-{$ifdef newra}
                  rg.allocexplicitregistersint(list,VOLATILE_INTREGISTERS);
-{$endif newra}
                  cg.a_call_name(list,'_monstartup');
-{$ifdef newra}
                  rg.deallocexplicitregistersint(list,VOLATILE_INTREGISTERS);
-{$endif newra}
                end;
 
               { initialize units }
-{$ifdef newra}
               rg.allocexplicitregistersint(list,VOLATILE_INTREGISTERS);
-{$endif newra}
               cg.a_call_name(list,'FPC_INITIALIZEUNITS');
-{$ifdef newra}
               rg.deallocexplicitregistersint(list,VOLATILE_INTREGISTERS);
-{$endif newra}
             end;
 
 {$ifdef GDB}
@@ -1683,7 +1395,7 @@ implementation
 {$ifndef powerpc}
         { at least for the ppc this applies always, so this code isn't usable (FK) }
         { omit stack frame ? }
-        if (current_procinfo.framepointer.number=NR_STACK_POINTER_REG) then
+        if (current_procinfo.framepointer=NR_STACK_POINTER_REG) then
           begin
             CGmessage(cg_d_stackframe_omited);
             if stackframe<>0 then
@@ -1709,10 +1421,7 @@ implementation
       var
         href : treference;
         hp : tparaitem;
-        rsp : tregister;
-{$ifdef newra}
         gotregvarparas: boolean;
-{$endif newra}
       begin
         { the actual stack allocation code, symbol entry point and
           gdb stabs information is generated AFTER the rest of this
@@ -1729,45 +1438,37 @@ implementation
             { we do this before init_paras because that one calls routines which may overwrite these  }
             { registers and it also expects the values to be in memory                                }
             hp:=tparaitem(current_procinfo.procdef.para.first);
-{$ifdef newra}
             gotregvarparas := false;
-{$endif newra}
             while assigned(hp) do
               begin
-                if Tvarsym(hp.parasym).reg.enum>R_INTREGISTER then
-                  internalerror(200301081);
-                if (tvarsym(hp.parasym).reg.enum<>R_NO) then
+                if (tvarsym(hp.parasym).reg<>NR_NO) then
                   begin
-{$ifdef newra}
                     gotregvarparas := true;
                     { cg.a_load_param_reg will first allocate and then deallocate paraloc }
                     { register (if the parameter resides in a register) and then allocate }
                     { the regvar (which is currently not allocated)                       }
-{$endif newra}
                     cg.a_load_param_reg(list,hp.paraloc[calleeside],tvarsym(hp.parasym).reg);
                   end
                 else if (hp.paraloc[calleeside].loc in [LOC_REGISTER,LOC_FPUREGISTER,LOC_MMREGISTER,
                                             LOC_CREGISTER,LOC_CFPUREGISTER,LOC_CMMREGISTER]) and
-                        (tvarsym(hp.parasym).reg.enum=R_NO) then
+                        (tvarsym(hp.parasym).reg=NR_NO) then
                   begin
                     reference_reset_base(href,current_procinfo.framepointer,tvarsym(hp.parasym).adjusted_address);
                     cg.a_load_param_ref(list,hp.paraloc[calleeside],href);
                   end;
                 hp:=tparaitem(hp.next);
               end;
-{$ifdef newra}
             if gotregvarparas then
               begin
                 { deallocate all register variables again }
                 hp:=tparaitem(current_procinfo.procdef.para.first);
                 while assigned(hp) do
                   begin
-                    if (tvarsym(hp.parasym).reg.enum<>R_NO) then
+                    if (tvarsym(hp.parasym).reg<>NR_NO) then
                       rg.ungetregisterint(list,tvarsym(hp.parasym).reg);
                     hp:=tparaitem(hp.next);
                   end;
               end;
-{$endif newra}
           end;
 
         { for the save all registers we can simply use a pusha,popa which
@@ -1781,14 +1482,12 @@ implementation
 
         { Save stackpointer value }
         if not inlined and
-           (current_procinfo.framepointer.number<>NR_STACK_POINTER_REG) and
+           (current_procinfo.framepointer<>NR_STACK_POINTER_REG) and
            ((po_savestdregs in current_procinfo.procdef.procoptions) or
             (po_saveregisters in current_procinfo.procdef.procoptions)) then
          begin
            tg.GetTemp(list,POINTER_SIZE,tt_noreuse,current_procinfo.save_stackptr_ref);
-           rsp.enum:=R_INTREGISTER;
-           rsp.number:=NR_STACK_POINTER_REG;
-           cg.a_load_reg_ref(list,OS_ADDR,OS_ADDR,rsp,current_procinfo.save_stackptr_ref);
+           cg.a_load_reg_ref(list,OS_ADDR,OS_ADDR,NR_STACK_POINTER_REG,current_procinfo.save_stackptr_ref);
          end;
       end;
 
@@ -1800,7 +1499,6 @@ implementation
         mangled_length : longint;
         p : pchar;
 {$endif GDB}
-        rsp : Tregister;
         stacksize,
         retsize : longint;
       begin
@@ -1815,13 +1513,11 @@ implementation
 
         { Restore stackpointer if it was saved }
         if not inlined and
-           (current_procinfo.framepointer.number<>NR_STACK_POINTER_REG) and
+           (current_procinfo.framepointer<>NR_STACK_POINTER_REG) and
            ((po_savestdregs in current_procinfo.procdef.procoptions) or
             (po_saveregisters in current_procinfo.procdef.procoptions)) then
          begin
-           rsp.enum:=R_INTREGISTER;
-           rsp.number:=NR_STACK_POINTER_REG;
-           cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,current_procinfo.save_stackptr_ref,rsp);
+           cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,current_procinfo.save_stackptr_ref,NR_STACK_POINTER_REG);
            tg.UngetTemp(list,current_procinfo.save_stackptr_ref);
          end;
 
@@ -1838,7 +1534,7 @@ implementation
         { remove stackframe }
         if not inlined then
          begin
-           if (current_procinfo.framepointer.number=NR_STACK_POINTER_REG) then
+           if (current_procinfo.framepointer=NR_STACK_POINTER_REG) then
             begin
               stacksize:=current_procinfo.calc_stackframe_size;
               if (stacksize<>0) then
@@ -1978,7 +1674,7 @@ implementation
                   begin
                     r:=rg.getregisterint(list,OS_INT);
                     r2:=rg.getregisterint(list,OS_INT);
-                    cg64.a_load64_loc_reg(list,resloc,joinreg64(r,r2){$ifdef newra},false{$endif});
+                    cg64.a_load64_loc_reg(list,resloc,joinreg64(r,r2),false);
                   end
                  else
 {$endif cpu64bit}
@@ -2007,7 +1703,7 @@ implementation
                      begin
                        r:=rg.getregisterint(list,OS_INT);
                        r2:=rg.getregisterint(list,OS_INT);
-                       cg64.a_load64_loc_reg(list,resloc,joinreg64(r,r2){$ifdef newra},false{$endif});
+                       cg64.a_load64_loc_reg(list,resloc,joinreg64(r,r2),false);
                      end
                     else
 {$endif cpu64bit}
@@ -2083,13 +1779,29 @@ implementation
 end.
 {
   $Log$
-  Revision 1.138  2003-09-03 11:18:37  florian
+  Revision 1.139  2003-09-03 15:55:01  peter
+    * NEWRA branch merged
+
+  Revision 1.138  2003/09/03 11:18:37  florian
     * fixed arm concatcopy
     + arm support in the common compiler sources added
     * moved some generic cg code around
     + tfputype added
     * ...
 
+  Revision 1.137.2.4  2003/08/31 15:46:26  peter
+    * more updates for tregister
+
+  Revision 1.137.2.3  2003/08/29 17:28:59  peter
+    * next batch of updates
+
+  Revision 1.137.2.2  2003/08/28 18:35:08  peter
+    * tregister changed to cardinal
+
+  Revision 1.137.2.1  2003/08/27 19:55:54  peter
+    * first tregister patch
+
+>>>>>>> 1.137.2.4
   Revision 1.137  2003/08/20 20:29:06  daniel
     * Some more R_NO changes
     * Preventive code to loadref added

@@ -182,10 +182,6 @@ implementation
 
     function tinnode.det_resulttype:tnode;
 
-{$ifdef oldset}
-      type
-        byteset = set of byte;
-{$endif}
       var
         t : tnode;
         pst : pconstset;
@@ -203,22 +199,14 @@ implementation
                 pes:=tenumsym(tenumdef(psd.elementtype.def).firstenum);
                 while assigned(pes) do
                   begin
-                {$ifdef oldset}
-                    pcs^[pes.value div 8]:=pcs^[pes.value div 8] or (1 shl (pes.value mod 8));
-                {$else}
                     include(pcs^,pes.value);
-                {$endif}
                     pes:=pes.nextenum;
                   end;
               end;
             orddef :
               begin
                 for i:=torddef(psd.elementtype.def).low to torddef(psd.elementtype.def).high do
-                {$ifdef oldset}
-                    pcs^[i div 8]:=pcs^[i div 8] or (1 shl (i mod 8));
-                {$else}
-                    include(pcs^,i);
-                {$endif}
+                  include(pcs^,i);
               end;
           end;
           createsetconst:=pcs;
@@ -285,11 +273,7 @@ implementation
          { empty set then return false }
          if not assigned(tsetdef(right.resulttype.def).elementtype.def) or
             ((right.nodetype = setconstn) and
-{$ifdef oldset}
-             (byteset(tsetconstnode(right).value_set^) = [])) then
-{$else oldset}
-             (tsetconstnode(right).value_set^ = [])) then
-{$endif oldset}
+             (tnormalset(tsetconstnode(right).value_set^) = [])) then
           begin
             t:=cordconstnode.create(0,booltype,false);
             resulttypepass(t);
@@ -300,13 +284,8 @@ implementation
          { constant evaluation }
          if (left.nodetype=ordconstn) and (right.nodetype=setconstn) then
           begin
-        {$ifdef oldset}
-            t:=cordconstnode.create(byte(tordconstnode(left).value in byteset(tsetconstnode(right).value_set^)),
-              booltype,true);
-        {$else}
             t:=cordconstnode.create(byte(tordconstnode(left).value in Tsetconstnode(right).value_set^),
-              booltype,true);
-        {$endif}
+               booltype,true);
             resulttypepass(t);
             result:=t;
             exit;
@@ -707,7 +686,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.43  2003-06-12 22:09:54  jonas
+  Revision 1.44  2003-09-03 15:55:01  peter
+    * NEWRA branch merged
+
+  Revision 1.43  2003/06/12 22:09:54  jonas
     * tcginnode.pass_2 doesn't call a helper anymore in any case
     * fixed ungetregisterfpu compilation problems
 

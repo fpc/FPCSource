@@ -3320,7 +3320,13 @@ xmmreg,mem              \301\3\x66\x0F\x57\110          WILLAMETTE,SSE2,SM
 
 ;
 ; $Log$
-; Revision 1.7  2003-01-05 13:36:53  florian
+; Revision 1.2  2003-09-03 15:55:02  peter
+;   * NEWRA branch merged
+;
+; Revision 1.1.2.1  2003/08/27 19:55:54  peter
+;   * first tregister patch
+;
+; Revision 1.7  2003/01/05 13:36:53  florian
 ;   * x86-64 compiles
 ;   + very basic support for float128 type (x86-64 only)
 ;

@@ -32,7 +32,7 @@ interface
 
     uses
       cclasses,globals,verbose,
-      cpuinfo,cpubase,
+      cginfo,cpuinfo,cpubase,
       symppu,
       aasmbase,aasmtai;
 
@@ -75,9 +75,7 @@ interface
       OT_REG8      = $00201001;
       OT_REG16     = $00201002;
       OT_REG32     = $00201004;
-{$ifdef x86_64}
       OT_REG64     = $00201008;
-{$endif x86_64}
       OT_MMXREG    = $00201008;  { MMX registers  }
       OT_XMMREG    = $00201010;  { Katmai registers  }
       OT_MEMORY    = $00204000;  { register number in 'basereg'  }
@@ -201,14 +199,12 @@ interface
          procedure SetOperandOrder(order:TOperandOrder);
          function is_nop:boolean;override;
          function is_move:boolean;override;
-{$ifdef NEWRA}
          function spill_registers(list:Taasmoutput;
                                   rgget:Trggetproc;
                                   rgunget:Trgungetproc;
-                                  r:Tsupregset;
-                                  var unusedregsint:Tsupregset;
+                                  r:Tsuperregisterset;
+                                  var unusedregsint:Tsuperregisterset;
                                   const spilltemplist:Tspill_temp_list):boolean;override;
-{$endif}
       protected
          procedure ppuloadoper(ppufile:tcompilerppufile;var o:toper);override;
          procedure ppuwriteoper(ppufile:tcompilerppufile;const o:toper);override;
@@ -324,31 +320,9 @@ implementation
          )
        );
 
-       { Convert reg to operand type }
-       reg2type : array[firstreg..lastreg] of longint = (OT_NONE,
-         OT_REG_RAX,OT_REG_RCX,OT_REG64,OT_REG64,OT_REG64,OT_REG64,OT_REG64,OT_REG64,
-         OT_REG64,OT_REG64,OT_REG64,OT_REG64,OT_REG64,OT_REG64,OT_REG64,OT_REG64,OT_REG64,
-         OT_REG_EAX,OT_REG_ECX,OT_REG32,OT_REG32,OT_REG32,OT_REG32,OT_REG32,OT_REG32,
-         OT_REG32,OT_REG32,OT_REG32,OT_REG32,OT_REG32,OT_REG32,OT_REG32,OT_REG32,
-         OT_REG_AX,OT_REG_CX,OT_REG_DX,OT_REG16,OT_REG16,OT_REG16,OT_REG16,OT_REG16,
-         OT_REG16,OT_REG16,OT_REG16,OT_REG16,OT_REG16,OT_REG16,OT_REG16,OT_REG16,
-         OT_REG_AL,OT_REG_CL,OT_REG8,OT_REG8,OT_REG8,OT_REG8,OT_REG8,OT_REG8,
-         OT_REG8,OT_REG8,OT_REG8,OT_REG8,OT_REG8,OT_REG8,OT_REG8,OT_REG8,
-         OT_REG8,OT_REG8,OT_REG8,OT_REG8,
-         OT_REG_CS,OT_REG_DESS,OT_REG_DESS,OT_REG_DESS,OT_REG_FSGS,OT_REG_FSGS,
-         OT_FPU0,OT_FPU0,OT_FPUREG,OT_FPUREG,OT_FPUREG,OT_FPUREG,OT_FPUREG,OT_FPUREG,OT_FPUREG,
-         OT_REG_DREG,OT_REG_DREG,OT_REG_DREG,OT_REG_DREG,OT_REG_DREG,OT_REG_DREG,
-         OT_REG_CREG,OT_REG_CREG,OT_REG_CREG,OT_REG_CR4,
-         OT_REG_TREG,OT_REG_TREG,OT_REG_TREG,OT_REG_TREG,OT_REG_TREG,
-         OT_MMXREG,OT_MMXREG,OT_MMXREG,OT_MMXREG,OT_MMXREG,OT_MMXREG,OT_MMXREG,OT_MMXREG,
-         OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG,
-         OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG
-       );
-
-      subreg2type:array[R_SUBL..R_SUBQ] of longint = (
-        OT_REG8,OT_REG8,OT_REG16,OT_REG32,OT_REG64
+      reg_ot_table : array[0..regnumber_count-1] of longint = (
+        {$i rx86_64ot.inc}
       );
-
 {$else x86_64}
        { Intel style operands ! }
        opsize_2_type:array[0..2,topsize] of longint=(
@@ -372,24 +346,14 @@ implementation
          )
       );
 
-      subreg2type:array[R_SUBL..R_SUBD] of longint = (
-        OT_REG8,OT_REG8,OT_REG16,OT_REG32
-      );
-
-      { Convert reg to operand type }
-      reg2type : array[firstreg..lastreg] of longint = (OT_NONE,
-        OT_REG_EAX,OT_REG_ECX,OT_REG32,OT_REG32,OT_REG32,OT_REG32,OT_REG32,OT_REG32,
-        OT_REG_AX,OT_REG_CX,OT_REG_DX,OT_REG16,OT_REG16,OT_REG16,OT_REG16,OT_REG16,
-        OT_REG_AL,OT_REG_CL,OT_REG8,OT_REG8,OT_REG8,OT_REG8,OT_REG8,OT_REG8,
-        OT_REG_CS,OT_REG_DESS,OT_REG_DESS,OT_REG_DESS,OT_REG_FSGS,OT_REG_FSGS,
-        OT_FPU0,OT_FPU0,OT_FPUREG,OT_FPUREG,OT_FPUREG,OT_FPUREG,OT_FPUREG,OT_FPUREG,OT_FPUREG,
-        OT_REG_DREG,OT_REG_DREG,OT_REG_DREG,OT_REG_DREG,OT_REG_DREG,OT_REG_DREG,
-        OT_REG_CREG,OT_REG_CREG,OT_REG_CREG,OT_REG_CR4,
-        OT_REG_TREG,OT_REG_TREG,OT_REG_TREG,OT_REG_TREG,OT_REG_TREG,
-        OT_MMXREG,OT_MMXREG,OT_MMXREG,OT_MMXREG,OT_MMXREG,OT_MMXREG,OT_MMXREG,OT_MMXREG,
-        OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG
+      reg_ot_table : array[tregisterindex] of longint = (
+        {$i r386ot.inc}
       );
 {$endif x86_64}
+
+      subreg2type:array[tsubregister] of longint = (
+        OT_NONE,OT_REG8,OT_REG8,OT_REG16,OT_REG32,OT_REG64
+      );
 
 {****************************************************************************
                               TAI_ALIGN
@@ -398,14 +362,14 @@ implementation
     constructor tai_align.create(b: byte);
       begin
         inherited create(b);
-        reg.enum := R_ECX;
+        reg:=NR_ECX;
       end;
 
 
     constructor tai_align.create_op(b: byte; _op: byte);
       begin
         inherited create_op(b,_op);
-        reg.enum := R_NO;
+        reg:=NR_NO;
       end;
 
 
@@ -455,7 +419,7 @@ implementation
       begin
          { default order is att }
          FOperandOrder:=op_att;
-         segprefix.enum:=R_NO;
+         segprefix:=NR_NO;
          opsize:=_size;
 {$ifndef NOAG386BIN}
          insentry:=nil;
@@ -848,16 +812,20 @@ implementation
         { we need ATT order }
         SetOperandOrder(op_att);
 
-        if ((ops=2) and
-           (oper[0].typ=top_reg) and
-           (oper[1].typ=top_reg) and
+        if (
+            (ops=2) and
+            (oper[0].typ=top_reg) and
+            (oper[1].typ=top_reg) and
            { if the first is ST and the second is also a register
              it is necessarily ST1 .. ST7 }
-           (oper[0].reg.enum in [R_ST..R_ST0])) or
+            ((oper[0].reg=NR_ST) or
+             (oper[0].reg=NR_ST0))
+           ) or
            { ((ops=1) and
             (oper[0].typ=top_reg) and
             (oper[0].reg in [R_ST1..R_ST7]))  or}
            (ops=0) then
+          begin
             if opcode=A_FSUBR then
               opcode:=A_FSUB
             else if opcode=A_FSUB then
@@ -874,17 +842,23 @@ implementation
               opcode:=A_FDIVP
             else if opcode=A_FDIVP then
               opcode:=A_FDIVRP;
-         if  ((ops=1) and
+          end;
+        if (
+            (ops=1) and
             (oper[0].typ=top_reg) and
-            (oper[0].reg.enum in [R_ST1..R_ST7])) then
-            if opcode=A_FSUBRP then
-              opcode:=A_FSUBP
-            else if opcode=A_FSUBP then
-              opcode:=A_FSUBRP
-            else if opcode=A_FDIVRP then
-              opcode:=A_FDIVP
-            else if opcode=A_FDIVP then
-              opcode:=A_FDIVRP;
+            (getregtype(oper[0].reg)=R_FPUREGISTER) and
+            (oper[0].reg<>NR_ST)
+           ) then
+         begin
+           if opcode=A_FSUBRP then
+             opcode:=A_FSUBP
+           else if opcode=A_FSUBP then
+             opcode:=A_FSUBRP
+           else if opcode=A_FDIVRP then
+             opcode:=A_FDIVP
+           else if opcode=A_FDIVP then
+             opcode:=A_FDIVRP;
+         end;
       end;
 
 
@@ -920,49 +894,13 @@ implementation
             case typ of
               top_reg :
                 begin
-                  if reg.enum=R_INTREGISTER then
-                    case reg.number of
-                      NR_AL:
-                        ot:=OT_REG_AL;
-                      NR_AX:
-                        ot:=OT_REG_AX;
-                      NR_EAX:
-                        ot:=OT_REG_EAX;
-                      NR_CL:
-                        ot:=OT_REG_CL;
-                      NR_CX:
-                        ot:=OT_REG_CX;
-                      NR_ECX:
-                        ot:=OT_REG_ECX;
-                      NR_DX:
-                        ot:=OT_REG_DX;
-                      NR_CS:
-                        ot:=OT_REG_CS;
-                      NR_DS,NR_ES,NR_SS:
-                        ot:=OT_REG_DESS;
-                      NR_FS,NR_GS:
-                        ot:=OT_REG_FSGS;
-                      NR_DR0..NR_DR7:
-                        ot:=OT_REG_DREG;
-                      NR_CR0..NR_CR3:
-                        ot:=OT_REG_CREG;
-                      NR_CR4:
-                        ot:=OT_REG_CR4;
-                      NR_TR3..NR_TR7:
-                        ot:=OT_REG_TREG;
-                      else
-                        ot:=subreg2type[reg.number and $ff];
-                    end
-                  else
-                    ot:=reg2type[reg.enum];
+                  ot:=reg_ot_table[findreg_by_number(reg)];
                 end;
               top_ref :
                 begin
-                  nb:=(ref^.base.enum=R_NO) or
-                     ((ref^.base.enum=R_INTREGISTER) and (ref^.base.number=NR_NO));
-                  ni:=(ref^.index.enum=R_NO) or
-                     ((ref^.index.enum=R_INTREGISTER) and (ref^.index.number=NR_NO));
-                { create ot field }
+                  nb:=(ref^.base=NR_NO);
+                  ni:=(ref^.index=NR_NO);
+                  { create ot field }
                   if (ot and OT_SIZE_MASK)=0 then
                     ot:=OT_MEMORY or opsize_2_type[i,opsize]
                   else
@@ -1198,7 +1136,7 @@ implementation
            if m=100 then
             begin
               InsSize:=calcsize(insentry);
-              if not((segprefix.enum=R_NO) or ((segprefix.enum=R_INTREGISTER) and (segprefix.number=NR_NO))) then
+              if segprefix<>NR_NO then
                inc(InsSize);
               { For opsize if size if forced }
               if (insentry^.flags and (IF_SB or IF_SW or IF_SD))<>0 then
@@ -1285,171 +1223,67 @@ implementation
          exit;
         aktfilepos:=fileinfo;
         { Segment override }
-        if segprefix.enum=R_INTREGISTER then
-          begin
-            if segprefix.number<>NR_NO then
-              begin
-                case segprefix.number of
-                  NR_CS: c:=$2e;
-                  NR_DS: c:=$3e;
-                  NR_ES: c:=$26;
-                  NR_FS: c:=$64;
-                  NR_GS: c:=$65;
-                  NR_SS: c:=$36;
-                end;
-                sec.writebytes(c,1);
-                { fix the offset for GenNode }
-                inc(InsOffset);
-              end;
-          end
-        else
-          if (segprefix.number<>NR_NO) then
-           begin
-             case segprefix.number of
-               NR_CS : c:=$2e;
-               NR_DS : c:=$3e;
-               NR_ES : c:=$26;
-               NR_FS : c:=$64;
-               NR_GS : c:=$65;
-               NR_SS : c:=$36;
-             end;
-             sec.writebytes(c,1);
-             { fix the offset for GenNode }
-             inc(InsOffset);
+        if (segprefix<>NR_NO) then
+         begin
+           case segprefix of
+             NR_CS : c:=$2e;
+             NR_DS : c:=$3e;
+             NR_ES : c:=$26;
+             NR_FS : c:=$64;
+             NR_GS : c:=$65;
+             NR_SS : c:=$36;
            end;
+           sec.writebytes(c,1);
+           { fix the offset for GenNode }
+           inc(InsOffset);
+         end;
         { Generate the instruction }
         GenCode(sec);
       end;
 
 
     function taicpu.needaddrprefix(opidx:byte):boolean;
-
-    var i,b:Tnewregister;
-        ia,ba:boolean;
-
-    begin
-      needaddrprefix:=false;
-      if (OT_MEMORY and (not oper[opidx].ot))=0 then
-        begin
-          if oper[opidx].ref^.index.enum=R_INTREGISTER then
-            begin
-              i:=oper[opidx].ref^.index.number;
-              ia:=(i<>NR_NO) and (i and $ff<>R_SUBD);
-            end
-          else
-            internalerror(200308191);
-          if oper[opidx].ref^.base.enum=R_INTREGISTER then
-            begin
-              b:=oper[opidx].ref^.base.number;
-              ba:=(b<>NR_NO) and (b and $ff<>R_SUBD);
-            end
-          else
-            internalerror(200308191);
-          if ia or ba then
-            needaddrprefix:=true;
-        end;
-    end;
-
-
-    function regval(r:Toldregister):byte;
       begin
-        case r of
-          R_EAX,R_AX,R_AL,R_ES,R_CR0,R_DR0,R_ST,R_ST0,R_MM0,R_XMM0 :
-            regval:=0;
-          R_ECX,R_CX,R_CL,R_CS,R_DR1,R_ST1,R_MM1,R_XMM1 :
-            regval:=1;
-          R_EDX,R_DX,R_DL,R_SS,R_CR2,R_DR2,R_ST2,R_MM2,R_XMM2 :
-            regval:=2;
-          R_EBX,R_BX,R_BL,R_DS,R_CR3,R_DR3,R_TR3,R_ST3,R_MM3,R_XMM3 :
-            regval:=3;
-          R_ESP,R_SP,R_AH,R_FS,R_CR4,R_TR4,R_ST4,R_MM4,R_XMM4 :
-            regval:=4;
-          R_EBP,R_BP,R_CH,R_GS,R_TR5,R_ST5,R_MM5,R_XMM5 :
-            regval:=5;
-          R_ESI,R_SI,R_DH,R_DR6,R_TR6,R_ST6,R_MM6,R_XMM6 :
-            regval:=6;
-          R_EDI,R_DI,R_BH,R_DR7,R_TR7,R_ST7,R_MM7,R_XMM7 :
-            regval:=7;
-          else
-            begin
-              internalerror(777001);
-              regval:=0;
-            end;
-        end;
+        needaddrprefix:=false;
+        if (OT_MEMORY and (not oper[opidx].ot))=0 then
+          begin
+            if (
+                (oper[opidx].ref^.index<>NR_NO) and
+                (getsubreg(oper[opidx].ref^.index)<>R_SUBD)
+               ) or
+               (
+                (oper[opidx].ref^.base<>NR_NO) and
+                (getsubreg(oper[opidx].ref^.base)<>R_SUBD)
+               ) then
+              needaddrprefix:=true;
+          end;
       end;
 
 
-    function regval_new(r:Tnewregister):byte;
-
-    const count=45;
-          bsstart=32;
-
-          registers:array[0..count-1] of Tnewregister=(
-              NR_CS,  NR_DS,  NR_ES,  NR_SS,
-              NR_FS,  NR_GS,  NR_DR0, NR_DR1,
-              NR_DR2, NR_DR3, NR_DR6, NR_DR7,
-              NR_CR0, NR_CR2, NR_CR3, NR_CR4,
-              NR_TR3, NR_TR4, NR_TR5, NR_TR6,
-              NR_TR7, NR_AL,  NR_AH,  NR_AX,
-              NR_EAX, NR_BL,  NR_BH,  NR_BX,
-              NR_EBX, NR_CL,  NR_CH,  NR_CX,
-              NR_ECX, NR_DL,  NR_DH,  NR_DX,
-              NR_EDX, NR_SI,  NR_ESI, NR_DI,
-              NR_EDI, NR_BP,  NR_EBP, NR_SP,
-              NR_ESP);
-
-          register_values:array[0..count-1] of byte=(
-              1,      3,      0,      2,
-              4,      5,      0,      1,
-              2,      3,      6,      7,
-              0,      2,      3,      4,
-              3,      4,      5,      6,
-              7,      0,      4,      0,
-              0,      3,      7,      3,
-              3,      1,      5,      1,
-              1,      2,      6,      2,
-              2,      6,      6,      7,
-              7,      5,      5,      4,
-              4);
-
-
-     var i,p:byte;
-
-     begin
-        {Binary search.}
-        p:=0;
-        i:=bsstart;
-        while i<>0 do
-          begin
-            if (p+i<count) and (registers[p+i]<=r) then
-              p:=p+i;
-            i:=i shr 1;
-          end;
-        if registers[p]=r then
-          regval_new:=register_values[p]
-        else
-          internalerror(777001);
-    end;
+    function regval(r:Tregister):byte;
+      const
+        opcode_table:array[tregisterindex] of tregisterindex = (
+          {$i r386op.inc}
+        );
+      begin
+        result:=opcode_table[findreg_by_number(r)];
+      end;
 
 
     function process_ea(const input:toper;var output:ea;rfield:longint):boolean;
-
       var
-        j     : longint;
         sym   : tasmsymbol;
         md,s,rv  : byte;
         base,index,scalefactor,
         o     : longint;
-        ir,br : Tnewregister;
+        ir,br : Tregister;
+        isub,bsub : tsubregister;
       begin
         process_ea:=false;
         {Register ?}
         if (input.typ=top_reg) then
           begin
-            if input.reg.enum=R_INTREGISTER then
-              rv:=regval_new(input.reg.number)
-            else
-              rv:=regval(input.reg.enum);
+            rv:=regval(input.reg);
             output.sib_present:=false;
             output.bytes:=0;
             output.modrm:=$c0 or (rfield shl 3) or rv;
@@ -1458,10 +1292,13 @@ implementation
             exit;
          end;
         {No register, so memory reference.}
-        if (input.ref^.index.enum<>R_INTREGISTER) or (input.ref^.base.enum<>R_INTREGISTER) then
+        if ((input.ref^.index<>NR_NO) and (getregtype(input.ref^.index)<>R_INTREGISTER)) or
+           ((input.ref^.base<>NR_NO) and (getregtype(input.ref^.base)<>R_INTREGISTER)) then
           internalerror(200301081);
-        ir:=input.ref^.index.number;
-        br:=input.ref^.base.number;
+        ir:=input.ref^.index;
+        br:=input.ref^.base;
+        isub:=getsubreg(input.ref^.index);
+        bsub:=getsubreg(input.ref^.base);
         s:=input.ref^.scalefactor;
         o:=input.ref^.offset+input.ref^.offsetfixup;
         sym:=input.ref^.symbol;
@@ -1477,7 +1314,8 @@ implementation
         { it's an indirection }
          begin
            { 16 bit address? }
-           if ((ir<>NR_NO) and (ir and $ff<>R_SUBD)) or ((br<>NR_NO) and (br and $ff<>R_SUBD)) then
+           if ((ir<>NR_NO) and (isub<>R_SUBD)) or
+              ((br<>NR_NO) and (bsub<>R_SUBD)) then
              message(asmw_e_16bit_not_supported);
 {$ifdef OPTEA}
            { make single reg base }
@@ -1772,7 +1610,7 @@ implementation
               end;
             4,6 :
               begin
-                case oper[0].reg.number of
+                case oper[0].reg of
                   NR_CS:
                     bytes[0]:=$e;
                   NR_NO,
@@ -1791,7 +1629,7 @@ implementation
               end;
             5,7 :
               begin
-                case oper[0].reg.number of
+                case oper[0].reg of
                   NR_FS:
                     bytes[0]:=$a0;
                   NR_GS:
@@ -1805,10 +1643,7 @@ implementation
               end;
             8,9,10 :
               begin
-                if oper[c-8].reg.enum=R_INTREGISTER then
-                  bytes[0]:=ord(codes^)+regval_new(oper[c-8].reg.number)
-                else
-                  bytes[0]:=ord(codes^)+regval(oper[c-8].reg.enum);
+                bytes[0]:=ord(codes^)+regval(oper[c-8].reg);
                 inc(codes);
                 sec.writebytes(bytes,1);
               end;
@@ -1945,15 +1780,9 @@ implementation
                    if (c<127) then
                     begin
                       if (oper[c and 7].typ=top_reg) then
-                        if oper[c and 7].reg.enum=R_INTREGISTER then
-                          rfield:=regval_new(oper[c and 7].reg.number)
-                        else
-                          rfield:=regval(oper[c and 7].reg.enum)
+                        rfield:=regval(oper[c and 7].reg)
                       else
-                        if oper[c and 7].ref^.base.enum=R_INTREGISTER then
-                          rfield:=regval_new(oper[c and 7].ref^.base.number)
-                        else
-                          rfield:=regval(oper[c and 7].ref^.base.enum);
+                        rfield:=regval(oper[c and 7].ref^.base);
                     end
                    else
                     rfield:=c and 7;
@@ -2008,8 +1837,8 @@ implementation
       {We do not check the number of operands; we assume that nobody constructs
        a mov or xchg instruction with less than 2 operands. (DM)}
       is_nop:=(opcode=A_NOP) or
-              (opcode=A_MOV) and (oper[0].typ=top_reg) and (oper[1].typ=top_reg) and (oper[0].reg.number=oper[1].reg.number) or
-              (opcode=A_XCHG) and (oper[0].typ=top_reg) and (oper[1].typ=top_reg) and (oper[0].reg.number=oper[1].reg.number);
+              (opcode=A_MOV) and (oper[0].typ=top_reg) and (oper[1].typ=top_reg) and (oper[0].reg=oper[1].reg) or
+              (opcode=A_XCHG) and (oper[0].typ=top_reg) and (oper[1].typ=top_reg) and (oper[0].reg=oper[1].reg);
     end;
 
     function Taicpu.is_move:boolean;
@@ -2025,12 +1854,11 @@ implementation
     end;
 
 
-{$ifdef NEWRA}
     function Taicpu.spill_registers(list:Taasmoutput;
                                     rgget:Trggetproc;
                                     rgunget:Trgungetproc;
-                                    r:Tsupregset;
-                                    var unusedregsint:Tsupregset;
+                                    r:Tsuperregisterset;
+                                    var unusedregsint:Tsuperregisterset;
                                     const spilltemplist:Tspill_temp_list):boolean;
 
     {Spill the registers in r in this instruction. Returns true if any help
@@ -2058,9 +1886,10 @@ implementation
       case ops of
         1:
           begin
-            if (oper[0].typ=top_reg) and (oper[0].reg.enum=R_INTREGISTER) then
+            if (oper[0].typ=top_reg) and
+               (getregtype(oper[0].reg)=R_INTREGISTER) then
               begin
-                supreg:=oper[0].reg.number shr 8;
+                supreg:=getsupreg(oper[0].reg);
                 if supreg in r then
                   begin
                     {Situation example:
@@ -2077,7 +1906,7 @@ implementation
               end;
             if oper[0].typ=top_ref then
               begin
-                supreg:=oper[0].ref^.base.number shr 8;
+                supreg:=getsupreg(oper[0].ref^.base);
                 if supreg in r then
                   begin
                     {Situation example:
@@ -2087,11 +1916,11 @@ implementation
 
                      mov r23d,[ebp-12]         ; Use a help register
                      push [r23d+4*r22d]        ; Replace register by helpregister }
-                    subreg:=oper[0].ref^.base.number and $ff;
-                    if oper[0].ref^.index.number=NR_NO then
+                    subreg:=getsubreg(oper[0].ref^.base);
+                    if oper[0].ref^.index=NR_NO then
                       pos:=Tai(previous)
                     else
-                      pos:=get_insert_pos(Tai(previous),oper[0].ref^.index.number shr 8,0,0,unusedregsint);
+                      pos:=get_insert_pos(Tai(previous),getsupreg(oper[0].ref^.index),0,0,unusedregsint);
                     rgget(list,pos,subreg,helpreg);
                     spill_registers:=true;
                     helpins:=Taicpu.op_ref_reg(A_MOV,reg2opsize(oper[0].ref^.base),spilltemplist[supreg],helpreg);
@@ -2103,7 +1932,7 @@ implementation
                     forward_allocation(Tai(helpins.next),unusedregsint);
                     oper[0].ref^.base:=helpreg;
                   end;
-                supreg:=oper[0].ref^.index.number shr 8;
+                supreg:=getsupreg(oper[0].ref^.index);
                 if supreg in r then
                   begin
                     {Situation example:
@@ -2113,11 +1942,11 @@ implementation
 
                      mov r23d,[ebp-12]         ; Use a help register
                      push [r21d+4*r23d]        ; Replace register by helpregister }
-                    subreg:=oper[0].ref^.index.number and $ff;
-                    if oper[0].ref^.base.number=NR_NO then
+                    subreg:=getsubreg(oper[0].ref^.index);
+                    if oper[0].ref^.base=NR_NO then
                       pos:=Tai(previous)
                     else
-                      pos:=get_insert_pos(Tai(previous),oper[0].ref^.base.number shr 8,0,0,unusedregsint);
+                      pos:=get_insert_pos(Tai(previous),getsupreg(oper[0].ref^.base),0,0,unusedregsint);
                     rgget(list,pos,subreg,helpreg);
                     spill_registers:=true;
                     helpins:=Taicpu.op_ref_reg(A_MOV,reg2opsize(oper[0].ref^.index),spilltemplist[supreg],helpreg);
@@ -2139,7 +1968,7 @@ implementation
             for i:=0 to 1 do
               if oper[i].typ=top_ref then
                 begin
-                  supreg:=oper[i].ref^.base.number shr 8;
+                  supreg:=getsupreg(oper[i].ref^.base);
                   if supreg in r then
                     begin
                       {Situation example:
@@ -2149,12 +1978,12 @@ implementation
 
                        mov r23d,[ebp-12]         ; Use a help register
                        add r20d,[r23d+4*r22d]    ; Replace register by helpregister }
-                      subreg:=oper[i].ref^.base.number and $ff;
+                      subreg:=getsubreg(oper[i].ref^.base);
                       if i=1 then
-                        pos:=get_insert_pos(Tai(previous),oper[i].ref^.index.number shr 8,oper[0].reg.number shr 8,
+                        pos:=get_insert_pos(Tai(previous),getsupreg(oper[i].ref^.index),getsupreg(oper[0].reg),
                                             0,unusedregsint)
                       else
-                        pos:=get_insert_pos(Tai(previous),oper[i].ref^.index.number shr 8,0,0,unusedregsint);
+                        pos:=get_insert_pos(Tai(previous),getsupreg(oper[i].ref^.index),0,0,unusedregsint);
                       rgget(list,pos,subreg,helpreg);
                       spill_registers:=true;
                       helpins:=Taicpu.op_ref_reg(A_MOV,reg2opsize(oper[i].ref^.base),spilltemplist[supreg],helpreg);
@@ -2166,7 +1995,7 @@ implementation
                       rgunget(list,helpins,helpreg);
                       forward_allocation(Tai(helpins.next),unusedregsint);
                   end;
-                  supreg:=oper[i].ref^.index.number shr 8;
+                  supreg:=getsupreg(oper[i].ref^.index);
                   if supreg in r then
                     begin
                       {Situation example:
@@ -2176,12 +2005,12 @@ implementation
 
                        mov r23d,[ebp-12]         ; Use a help register
                        add r20d,[r21d+4*r23d]    ; Replace register by helpregister }
-                      subreg:=oper[i].ref^.index.number and $ff;
+                      subreg:=getsubreg(oper[i].ref^.index);
                       if i=1 then
-                        pos:=get_insert_pos(Tai(previous),oper[i].ref^.base.number shr 8,oper[0].reg.number shr 8,
+                        pos:=get_insert_pos(Tai(previous),getsupreg(oper[i].ref^.base),getsupreg(oper[0].reg),
                                             0,unusedregsint)
                       else
-                        pos:=get_insert_pos(Tai(previous),oper[i].ref^.base.number shr 8,0,0,unusedregsint);
+                        pos:=get_insert_pos(Tai(previous),getsupreg(oper[i].ref^.base),0,0,unusedregsint);
                       rgget(list,pos,subreg,helpreg);
                       spill_registers:=true;
                       helpins:=Taicpu.op_ref_reg(A_MOV,reg2opsize(oper[i].ref^.index),spilltemplist[supreg],helpreg);
@@ -2194,10 +2023,11 @@ implementation
                       forward_allocation(Tai(helpins.next),unusedregsint);
                     end;
                 end;
-            if (oper[0].typ=top_reg) and (oper[0].reg.enum=R_INTREGISTER) then
+            if (oper[0].typ=top_reg) and
+               (getregtype(oper[0].reg)=R_INTREGISTER) then
               begin
-                supreg:=oper[0].reg.number shr 8;
-                subreg:=oper[0].reg.number and $ff;
+                supreg:=getsupreg(oper[0].reg);
+                subreg:=getsubreg(oper[0].reg);
                 if supreg in r then
                   if oper[1].typ=top_ref then
                     begin
@@ -2208,8 +2038,8 @@ implementation
 
                        mov r22d,[ebp-12]    ; Use a help register
                        add [r20d],r22d      ; Replace register by helpregister }
-                      pos:=get_insert_pos(Tai(previous),oper[0].reg.number shr 8,
-                                          oper[1].ref^.base.number shr 8,oper[1].ref^.index.number shr 8,
+                      pos:=get_insert_pos(Tai(previous),getsupreg(oper[0].reg),
+                                          getsupreg(oper[1].ref^.base),getsupreg(oper[1].ref^.index),
                                           unusedregsint);
                       rgget(list,pos,subreg,helpreg);
                       spill_registers:=true;
@@ -2235,10 +2065,11 @@ implementation
                       oper[0].ref^:=spilltemplist[supreg];
                     end;
               end;
-            if (oper[1].typ=top_reg) and (oper[1].reg.enum=R_INTREGISTER) then
+            if (oper[1].typ=top_reg) and
+               (getregtype(oper[1].reg)=R_INTREGISTER) then
               begin
-                supreg:=oper[1].reg.number shr 8;
-                subreg:=oper[1].reg.number and $ff;
+                supreg:=getsupreg(oper[1].reg);
+                subreg:=getsubreg(oper[1].reg);
                 if supreg in r then
                   begin
                     if oper[0].typ=top_ref then
@@ -2250,8 +2081,8 @@ implementation
 
                          mov r22d,[r21d]      ; Use a help register
                          add [ebp-12],r22d    ; Replace register by helpregister }
-                        pos:=get_insert_pos(Tai(previous),oper[0].ref^.base.number shr 8,
-                                            oper[0].ref^.index.number shr 8,0,unusedregsint);
+                        pos:=get_insert_pos(Tai(previous),getsupreg(oper[0].ref^.base),
+                                            getsupreg(oper[0].ref^.index),0,unusedregsint);
                         rgget(list,pos,subreg,helpreg);
                         spill_registers:=true;
                         op:=A_MOV;
@@ -2292,7 +2123,7 @@ implementation
                             op:=opcode;
                             opcode:=A_MOV;
                             opsize:=reg2opsize(oper[1].reg);
-                            pos:=get_insert_pos(Tai(previous),oper[0].reg.number shr 8,0,0,unusedregsint);
+                            pos:=get_insert_pos(Tai(previous),getsupreg(oper[0].reg),0,0,unusedregsint);
                             rgget(list,pos,subreg,helpreg);
                             helpins:=Taicpu.op_reg_reg(op,hopsize,oper[0].reg,helpreg);
                             if pos=nil then
@@ -2346,7 +2177,6 @@ implementation
           end;
       end;
     end;
-{$endif NEWRA}
 
 
 {*****************************************************************************
@@ -2398,7 +2228,22 @@ implementation
 end.
 {
   $Log$
-  Revision 1.16  2003-08-21 17:20:19  peter
+  Revision 1.17  2003-09-03 15:55:02  peter
+    * NEWRA branch merged
+
+  Revision 1.16.2.4  2003/08/31 15:46:26  peter
+    * more updates for tregister
+
+  Revision 1.16.2.3  2003/08/29 17:29:00  peter
+    * next batch of updates
+
+  Revision 1.16.2.2  2003/08/28 18:35:08  peter
+    * tregister changed to cardinal
+
+  Revision 1.16.2.1  2003/08/27 19:55:54  peter
+    * first tregister patch
+
+  Revision 1.16  2003/08/21 17:20:19  peter
     * first spill the registers of top_ref before spilling top_reg
 
   Revision 1.15  2003/08/21 14:48:36  peter

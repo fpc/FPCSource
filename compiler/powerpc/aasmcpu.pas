@@ -82,14 +82,12 @@ uses
 
          function is_nop: boolean; override;
          function is_move:boolean; override;
-{$ifdef newra}
          function spill_registers(list:Taasmoutput;
                                   rgget:Trggetproc;
                                   rgunget:Trgungetproc;
                                   r:Tsupregset;
                                   var unusedregsint:Tsupregset;
                                   const spilltemplist:Tspill_temp_list):boolean; override;
-{$endif}
 
 
       end;
@@ -435,7 +433,6 @@ uses cutils,rgobj;
       end;
 
 
-{$ifdef newra}
     function taicpu.spill_registers(list:Taasmoutput;
                              rgget:Trggetproc;
                              rgunget:Trgungetproc;
@@ -707,8 +704,6 @@ uses cutils,rgobj;
                 end;
             end;
       end;
-{$endif newra}
-
 
 
     procedure InitAsm;
@@ -723,7 +718,13 @@ uses cutils,rgobj;
 end.
 {
   $Log$
-  Revision 1.15  2003-08-18 21:27:00  jonas
+  Revision 1.16  2003-09-03 15:55:01  peter
+    * NEWRA branch merged
+
+  Revision 1.15.2.1  2003/08/31 21:08:16  peter
+    * first batch of sparc fixes
+
+  Revision 1.15  2003/08/18 21:27:00  jonas
     * some newra optimizations (eliminate lots of moves between registers)
 
   Revision 1.14  2003/08/17 16:53:19  jonas

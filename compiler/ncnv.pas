@@ -279,12 +279,6 @@ implementation
         end;
 
         procedure do_set(pos : longint);
-
-  {$ifdef oldset}
-        var
-          mask,l : longint;
-  {$endif}
-
         begin
           if (pos and not $ff)<>0 then
            Message(parser_e_illegal_set_expr);
@@ -292,19 +286,9 @@ implementation
            constsethi:=pos;
           if pos<constsetlo then
            constsetlo:=pos;
-  {$ifdef oldset}
-          { to do this correctly we use the 32bit array }
-          l:=pos shr 5;
-          mask:=1 shl (pos mod 32);
-          { do we allow the same twice }
-          if (pconst32bitset(constset)^[l] and mask)<>0 then
-           Message(parser_e_illegal_set_expr);
-          pconst32bitset(constset)^[l]:=pconst32bitset(constset)^[l] or mask;
-  {$else}
           if pos in constset^ then
             Message(parser_e_illegal_set_expr);
           include(constset^,pos);
-  {$endif}
         end;
 
       var
@@ -315,11 +299,7 @@ implementation
         if p.nodetype<>arrayconstructorn then
           internalerror(200205105);
         new(constset);
-      {$ifdef oldset}
-        FillChar(constset^,sizeof(constset^),0);
-      {$else}
         constset^:=[];
-      {$endif}
         htype.reset;
         constsetlo:=0;
         constsethi:=0;
@@ -2113,7 +2093,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.116  2003-08-10 17:25:23  peter
+  Revision 1.117  2003-09-03 15:55:01  peter
+    * NEWRA branch merged
+
+  Revision 1.116  2003/08/10 17:25:23  peter
     * fixed some reported bugs
 
   Revision 1.115  2003/06/05 20:05:55  peter

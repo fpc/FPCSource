@@ -37,7 +37,7 @@ interface
        { node }
        node,
        { aasm }
-       aasmbase,aasmtai,cpubase,cpuinfo
+       aasmbase,aasmtai,cginfo,cpubase,cpuinfo
 {$ifdef Delphi}
        ,dmisc
 {$endif}
@@ -527,8 +527,8 @@ interface
           { check the problems of manglednames }
           has_mangledname : boolean;
           { small set which contains the modified registers }
-          usedintregisters:Tsupregset;
-          usedotherregisters:Tregisterset;
+          usedintregisters:Tsuperregisterset;
+          usedotherregisters:Totherregisterset;
           constructor create(level:byte);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor  destroy;override;
@@ -3419,7 +3419,7 @@ implementation
          lastref:=defref;
        { first, we assume that all registers are used }
          usedintregisters:=VOLATILE_INTREGISTERS;
-         usedotherregisters:=ALL_REGISTERS;
+         usedotherregisters:=ALL_OTHERREGISTERS;
          forwarddef:=true;
          interfacedef:=false;
          hasforward:=false;
@@ -3561,7 +3561,7 @@ implementation
          if simplify_ppu then
            begin
              usedintregisters:=VOLATILE_INTREGISTERS;
-             usedotherregisters:=ALL_REGISTERS;
+             usedotherregisters:=ALL_OTHERREGISTERS;
            end;
 
          ppufile.putnormalset(usedintregisters);
@@ -5841,12 +5841,21 @@ implementation
 end.
 {
   $Log$
-  Revision 1.159  2003-09-03 11:18:37  florian
+  Revision 1.160  2003-09-03 15:55:01  peter
+    * NEWRA branch merged
+
+  Revision 1.159  2003/09/03 11:18:37  florian
     * fixed arm concatcopy
     + arm support in the common compiler sources added
     * moved some generic cg code around
     + tfputype added
     * ...
+
+  Revision 1.158.2.2  2003/08/29 17:28:59  peter
+    * next batch of updates
+
+  Revision 1.158.2.1  2003/08/27 19:55:54  peter
+    * first tregister patch
 
   Revision 1.158  2003/08/11 21:18:20  peter
     * start of sparc support for newra

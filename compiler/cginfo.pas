@@ -103,6 +103,64 @@ interface
                   OS_M8,OS_M16,OS_M32,OS_M64,OS_M128,OS_MS8,OS_MS16,OS_MS32,
                   OS_MS64,OS_MS128);
 
+      { Register types }
+      TRegisterType = (
+        R_INVALIDREGISTER, { = 0 }
+        R_INTREGISTER,     { = 1 }
+        R_FPUREGISTER,     { = 2 }
+        R_MMXREGISTER,     { = 3 }
+        R_KNIREGISTER,     { = 4 }
+        R_SPECIALREGISTER, { = 5 }
+        R_ADDRESSREGISTER  { = 6 }
+      );
+
+      { Sub registers }
+      TSubRegister = (
+        R_SUBNONE, { = 0; no sub register possible }
+        R_SUBL,    { = 1; 8 bits, Like AL }
+        R_SUBH,    { = 2; 8 bits, Like AH }
+        R_SUBW,    { = 3; 16 bits, Like AX }
+        R_SUBD,    { = 4; 32 bits, Like EAX }
+        R_SUBQ     { = 5; 64 bits, Like RAX }
+      );
+
+      TSuperRegister = type byte;
+
+      {
+        The new register coding:
+
+        SuperRegister   (bits 0..7)
+        Unused          (bits 8..15)
+        Subregister     (bits 16..23)
+        Register type   (bits 24..31)
+      }
+      TRegister = type cardinal;
+      TRegisterRec=packed record
+{$ifdef FPC_ENDIAN_BIG}
+         regtype : Tregistertype;
+         subreg  : Tsubregister;
+         unused  : byte;
+         supreg  : Tsuperregister;
+{$else FPC_ENDIAN_BIG}
+         supreg  : Tsuperregister;
+         unused  : byte;
+         subreg  : Tsubregister;
+         regtype : Tregistertype;
+{$endif FPC_ENDIAN_BIG}
+      end;
+
+      { A type to store register locations for 64 Bit values. }
+{$ifdef cpu64bit}
+      tregister64 = tregister;
+{$else cpu64bit}
+      tregister64 = packed record
+         reglo,reghi : tregister;
+      end;
+{$endif cpu64bit}
+
+      { Set type definition for registers }
+      tsuperregisterset = set of tsuperregister;
+
     const
        tcgsize2size : Array[tcgsize] of integer =
          { integer values }
@@ -145,12 +203,118 @@ interface
             'LOC_MMREG',
             'LOC_CMMREG');
 
+    function newreg(rt:tregistertype;sr:tsuperregister;sb:tsubregister):tregister;{$ifdef USEINLINE}inline;{$endif}
+    function getsubreg(r:tregister):tsubregister;{$ifdef USEINLINE}inline;{$endif}
+    function getsupreg(r:tregister):tsuperregister;{$ifdef USEINLINE}inline;{$endif}
+    function getregtype(r:tregister):tregistertype;{$ifdef USEINLINE}inline;{$endif}
+    procedure setsubreg(var r:tregister;sr:tsubregister);{$ifdef USEINLINE}inline;{$endif}
+    procedure setsupreg(var r:tregister;sr:tsuperregister);{$ifdef USEINLINE}inline;{$endif}
+    function generic_regname(r:tregister):string;
+
+
 implementation
+
+    uses
+      verbose;
+
+    function newreg(rt:tregistertype;sr:tsuperregister;sb:tsubregister):tregister;{$ifdef USEINLINE}inline;{$endif}
+      begin
+        tregisterrec(result).regtype:=rt;
+        tregisterrec(result).unused:=0;
+        tregisterrec(result).supreg:=sr;
+        tregisterrec(result).subreg:=sb;
+      end;
+
+
+    function getsubreg(r:tregister):tsubregister;{$ifdef USEINLINE}inline;{$endif}
+      begin
+        result:=tregisterrec(r).subreg;
+      end;
+
+
+    function getsupreg(r:tregister):tsuperregister;{$ifdef USEINLINE}inline;{$endif}
+      begin
+        result:=tregisterrec(r).supreg;
+      end;
+
+
+    function getregtype(r:tregister):tregistertype;{$ifdef USEINLINE}inline;{$endif}
+      begin
+        result:=tregisterrec(r).regtype;
+      end;
+
+
+    procedure setsubreg(var r:tregister;sr:tsubregister);{$ifdef USEINLINE}inline;{$endif}
+      begin
+        tregisterrec(r).subreg:=sr;
+      end;
+
+
+    procedure setsupreg(var r:tregister;sr:tsuperregister);{$ifdef USEINLINE}inline;{$endif}
+      begin
+        tregisterrec(r).supreg:=sr;
+      end;
+
+
+    function generic_regname(r:tregister):string;
+      var
+        t,sub : char;
+        nr    : string[12];
+      begin
+        case getregtype(r) of
+          R_INTREGISTER:
+            t:='i';
+          R_FPUREGISTER:
+            t:='f';
+          R_MMXREGISTER:
+            t:='m';
+          R_KNIREGISTER:
+            t:='k';
+          else
+            internalerror(200308251);
+        end;
+        str(getsupreg(r),nr);
+        case getsubreg(r) of
+          R_SUBNONE:
+            sub:=' ';
+          R_SUBL:
+            sub:='l';
+          R_SUBH:
+            sub:='h';
+          R_SUBW:
+            sub:='w';
+          R_SUBD:
+            sub:='d';
+          R_SUBQ:
+            sub:='q';
+          else
+            internalerror(200308252);
+        end;
+        if sub<>' ' then
+          result:=t+'reg'+nr+sub
+        else
+          result:=t+'reg'+nr;
+      end;
 
 end.
 {
   $Log$
-  Revision 1.21  2003-04-25 20:59:33  peter
+  Revision 1.22  2003-09-03 15:55:00  peter
+    * NEWRA branch merged
+
+  Revision 1.21.2.4  2003/09/01 21:02:55  peter
+    * sparc updates for new tregister
+
+  Revision 1.21.2.3  2003/08/29 17:28:59  peter
+    * next batch of updates
+
+  Revision 1.21.2.2  2003/08/28 18:35:07  peter
+    * tregister changed to cardinal
+
+  Revision 1.21.2.1  2003/08/27 19:55:54  peter
+    * first tregister patch
+
+  Revision 1.21  2003/04/25 20:59:33  peter
     * removed funcretn,funcretsym, function result is now in varsym
       and aliases for result and function name are added using absolutesym
     * vs_hidden parameter for funcret passed in parameter

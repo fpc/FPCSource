@@ -96,9 +96,6 @@ interface
           begin
             if assigned(hp.left) then
              begin
-             {$ifndef newra}
-               rg.cleartempgen;
-             {$endif newra}
                secondpass(hp.left);
                { Compiler inserted blocks can return values }
                location_copy(hp.location,hp.left.location);
@@ -244,10 +241,6 @@ interface
             begin
               if assigned(hp.left) then
                begin
-               {$ifndef newra}
-                 if nf_releasetemps in flags then
-                   rg.cleartempgen;
-               {$endif newra}
                  secondpass(hp.left);
                  location_copy(hp.location,hp.left.location);
                end;
@@ -316,7 +309,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.37  2003-06-13 21:19:30  peter
+  Revision 1.38  2003-09-03 15:55:00  peter
+    * NEWRA branch merged
+
+  Revision 1.37.2.1  2003/08/27 20:23:55  peter
+    * remove old ra code
+
+  Revision 1.37  2003/06/13 21:19:30  peter
     * current_procdef removed, use current_procinfo.procdef instead
 
   Revision 1.36  2003/06/09 18:26:46  peter

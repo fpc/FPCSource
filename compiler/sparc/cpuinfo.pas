@@ -42,6 +42,9 @@ TYPE
   { possible supported processors for this target }
   tprocessors=(no_processor,SPARC_V8,SPARC_V9);
 
+  tfputype =(fpu_soft,fpu_hard);
+
+
 const
 {# Size of native extended floating point type }
 {SPARC architecture uses IEEE double floating point numbers}
@@ -63,7 +66,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  2003-06-17 16:35:42  peter
+  Revision 1.9  2003-09-03 15:55:01  peter
+    * NEWRA branch merged
+
+  Revision 1.8  2003/06/17 16:35:42  peter
     * JMP_BUF_SIZE changed to 4 to remove Alloctemp warnings
 
   Revision 1.7  2003/05/23 22:33:48  florian

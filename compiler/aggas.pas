@@ -71,7 +71,7 @@ implementation
       dos,
 {$endif Delphi}
       cutils,globtype,systems,
-      fmodule,finput,verbose,cpubase
+      fmodule,finput,verbose,cpubase,cginfo
 {$ifdef GDB}
   {$ifdef delphi}
       ,sysutils
@@ -314,11 +314,10 @@ var
       co       : comp;
       sin      : single;
       d        : double;
+{$ifdef cpuextended}
       e        : extended;
+{$endif cpuextended}
       do_line  : boolean;
-{$ifdef delphi}
-      _64bitarray : t64bitarray;
-{$endif}
     begin
       if not assigned(p) then
        exit;
@@ -399,14 +398,8 @@ var
            ait_regalloc :
              begin
                if (cs_asm_regalloc in aktglobalswitches) then
-                 begin
-                   if Tai_Regalloc(hp).reg.enum=R_INTREGISTER then
-                     AsmWriteLn(#9+target_asm.comment+'Register '+gas_regname(Tai_regalloc(hp).reg.number)+
-                       allocstr[tai_regalloc(hp).allocation])
-                   else
-                     AsmWriteLn(#9+target_asm.comment+'Register '+std_reg2str[tai_regalloc(hp).reg.enum]+
-                       allocstr[tai_regalloc(hp).allocation]);
-                 end;
+                 AsmWriteLn(#9+target_asm.comment+'Register '+gas_regname(Tai_regalloc(hp).reg)+
+                            allocstr[tai_regalloc(hp).allocation]);
              end;
 
            ait_tempalloc :
@@ -835,12 +828,21 @@ var
 end.
 {
   $Log$
-  Revision 1.30  2003-09-03 11:18:36  florian
+  Revision 1.31  2003-09-03 15:55:00  peter
+    * NEWRA branch merged
+
+  Revision 1.30  2003/09/03 11:18:36  florian
     * fixed arm concatcopy
     + arm support in the common compiler sources added
     * moved some generic cg code around
     + tfputype added
     * ...
+
+  Revision 1.29.2.2  2003/09/01 21:02:55  peter
+    * sparc updates for new tregister
+
+  Revision 1.29.2.1  2003/08/31 15:46:26  peter
+    * more updates for tregister
 
   Revision 1.29  2003/08/19 11:53:03  daniel
     * Fixed PowerPC compilation

@@ -193,18 +193,10 @@ const
                reference_reset(ref);
                ref.base:=locpara.reference.index;
                ref.offset:=locpara.reference.offset;
-{$ifndef newra}
-               tmpreg := get_scratch_reg_int(list,size);
-{$else newra}
                tmpreg := rg.getregisterint(list,size);
-{$endif newra}
                a_load_ref_reg(list,size,size,r,tmpreg);
                a_load_reg_ref(list,size,size,tmpreg,ref);
-{$ifndef newra}
-               free_scratch_reg(list,tmpreg);
-{$else newra}
                rg.ungetregisterint(list,tmpreg);
-{$endif newra}
             end;
           LOC_FPUREGISTER,LOC_CFPUREGISTER:
             case size of
@@ -235,18 +227,10 @@ const
                 reference_reset(ref);
                 ref.base := locpara.reference.index;
                 ref.offset := locpara.reference.offset;
-{$ifndef newra}
-                tmpreg := get_scratch_reg_address(list);
-{$else newra}
                 tmpreg := rg.getregisterint(list,OS_ADDR);
-{$endif newra}
                 a_loadaddr_ref_reg(list,r,tmpreg);
                 a_load_reg_ref(list,OS_ADDR,OS_ADDR,tmpreg,ref);
-{$ifndef newra}
-                free_scratch_reg(list,tmpreg);
-{$else newra}
                 rg.ungetregisterint(list,tmpreg);
-{$endif newra}
               end;
             else
               internalerror(2002080701);
@@ -282,22 +266,14 @@ const
             {Generate instruction to load the procedure address from
             the transition vector.}
             //TODO: Support cross-TOC calls.
-{$ifndef newra}
-            tmpreg := get_scratch_reg_int(list,OS_INT);
-{$else newra}
             tmpreg := rg.getregisterint(list,OS_INT);
-{$endif newra}
             reference_reset(tmpref);
             tmpref.offset := 0;
             //tmpref.symaddr := refs_full;
             tmpref.base:= reg;
             list.concat(taicpu.op_reg_ref(A_LWZ,tmpreg,tmpref));
             list.concat(taicpu.op_reg(A_MTCTR,tmpreg));
-{$ifndef newra}
-            free_scratch_reg(list,tmpreg);
-{$else newra}
             rg.ungetregisterint(list,tmpreg);
-{$endif newra}
           end
         else
           list.concat(taicpu.op_reg(A_MTCTR,reg));
@@ -319,11 +295,7 @@ const
         tmpref : treference;
 
       begin
-{$ifndef newra}
-        tmpreg := get_scratch_reg_int(list,OS_ADDR);
-{$else newra}
         tmpreg := rg.getregisterint(list,OS_ADDR);
-{$endif newra}
         a_load_ref_reg(list,OS_ADDR,OS_ADDR,ref,tmpreg);
         if target_info.system=system_powerpc_macos then
           begin
@@ -337,11 +309,7 @@ const
             list.concat(taicpu.op_reg_ref(A_LWZ,tmpreg,tmpref));
           end;
         list.concat(taicpu.op_reg(A_MTCTR,tmpreg));
-{$ifndef newra}
-        free_scratch_reg(list,tmpreg);
-{$else newra}
         rg.ungetregisterint(list,tmpreg);
-{$endif newra}
         list.concat(taicpu.op_none(A_BCTRL));
         //if target_info.system=system_powerpc_macos then
         //  //NOP is not needed here.
@@ -395,14 +363,10 @@ const
          { 64 bit stuff should be handled separately }
          if tosize in [OS_64,OS_S64] then
            internalerror(200109236);
-         op := storeinstr[tcgsize2unsigned[tosize],ref2.index.number<>NR_NO,false];
+         op := storeinstr[tcgsize2unsigned[tosize],ref2.index<>NR_NO,false];
          a_load_store(list,op,reg,ref2);
          if freereg then
-{$ifndef newra}
-           cg.free_scratch_reg(list,ref2.base);
-{$else newra}
-            rg.ungetregisterint(list,ref2.base);
-{$endif newra}
+           rg.ungetregisterint(list,ref2.base);
        End;
 
 
@@ -433,14 +397,10 @@ const
             internalerror(2002090902);
           ref2 := ref;
           freereg := fixref(list,ref2);
-          op := loadinstr[fromsize,ref2.index.number<>NR_NO,false];
+          op := loadinstr[fromsize,ref2.index<>NR_NO,false];
           a_load_store(list,op,reg,ref2);
           if freereg then
-{$ifndef newra}
-            free_scratch_reg(list,ref2.base);
-{$else newra}
             rg.ungetregisterint(list,ref2.base);
-{$endif newra}
           { sign extend shortint if necessary, since there is no }
           { load instruction that does that automatically (JM)   }
           if fromsize = OS_S8 then
@@ -453,11 +413,7 @@ const
        var
          instr: taicpu;
        begin
-         if (reg1.enum<>R_INTREGISTER) or (reg1.number = 0) then
-           internalerror(200303101);
-         if (reg2.enum<>R_INTREGISTER) or (reg2.number = 0) then
-           internalerror(200303102);
-         if (reg1.number<>reg2.number) or
+         if (reg1<>reg2) or
             (tcgsize2size[tosize] < tcgsize2size[fromsize]) or
             ((tcgsize2size[tosize] = tcgsize2size[fromsize]) and
              (tosize <> fromsize) and
@@ -479,9 +435,7 @@ const
                else internalerror(2002090901);
              end;
              list.concat(instr);
-{$ifdef newra}
              rg.add_move_instruction(instr);
-{$endif newra}
            end;
        end;
 
@@ -518,14 +472,10 @@ const
           end;
          ref2 := ref;
          freereg := fixref(list,ref2);
-         op := fpuloadinstr[size,ref2.index.number <> NR_NO,false];
+         op := fpuloadinstr[size,ref2.index <> NR_NO,false];
          a_load_store(list,op,reg,ref2);
          if freereg then
-{$ifndef newra}
-           cg.free_scratch_reg(list,ref2.base);
-{$else newra}
            rg.ungetregisterint(list,ref2.base);
-{$endif newra}
        end;
 
 
@@ -546,14 +496,10 @@ const
            internalerror(200201122);
          ref2 := ref;
          freereg := fixref(list,ref2);
-         op := fpustoreinstr[size,ref2.index.number <> NR_NO,false];
+         op := fpustoreinstr[size,ref2.index <> NR_NO,false];
          a_load_store(list,op,reg,ref2);
          if freereg then
-{$ifndef newra}
-           cg.free_scratch_reg(list,ref2.base);
-{$else newra}
            rg.ungetregisterint(list,ref2.base);
-{$endif newra}
        end;
 
 
@@ -709,21 +655,13 @@ const
           OP_OR:
             { try to use rlwimi }
             if gotrlwi and
-               (src.number = dst.number) then
+               (src = dst) then
               begin
-{$ifndef newra}
-                scratchreg := get_scratch_reg_int(list,OS_INT);
-{$else newra}
                 scratchreg := rg.getregisterint(list,OS_INT);
-{$endif newra}
                 list.concat(taicpu.op_reg_const(A_LI,scratchreg,-1));
                 list.concat(taicpu.op_reg_reg_const_const_const(A_RLWIMI,dst,
                   scratchreg,0,l1,l2));
-{$ifndef newra}
-                free_scratch_reg(list,scratchreg);
-{$else newra}
                 rg.ungetregisterint(list,scratchreg);
-{$endif newra}
               end
             else
               do_lo_hi;
@@ -753,18 +691,10 @@ const
         { perform the operation                                        }
         if useReg then
           begin
-{$ifndef newra}
-            scratchreg := get_scratch_reg_int(list,OS_INT);
-{$else newra}
             scratchreg := rg.getregisterint(list,OS_INT);
-{$endif newra}
             a_load_const_reg(list,OS_32,a,scratchreg);
             a_op_reg_reg_reg(list,op,OS_32,scratchreg,src,dst);
-{$ifndef newra}
-            free_scratch_reg(list,scratchreg);
-{$else newra}
             rg.ungetregisterint(list,scratchreg);
-{$endif newra}
           end;
       end;
 
@@ -811,36 +741,20 @@ const
               list.concat(taicpu.op_reg_reg_const(A_CMPWI,r,reg,longint(a)))
             else
               begin
-{$ifndef newra}
-                scratch_register := get_scratch_reg_int(list,OS_INT);
-{$else newra}
                 scratch_register := rg.getregisterint(list,OS_INT);
-{$endif newra}
                 a_load_const_reg(list,OS_32,a,scratch_register);
                 list.concat(taicpu.op_reg_reg_reg(A_CMPW,r,reg,scratch_register));
-{$ifndef newra}
-                free_scratch_reg(list,scratch_register);
-{$else newra}
                 rg.ungetregisterint(list,scratch_register);
-{$endif newra}
               end
           else
             if (a <= $ffff) then
               list.concat(taicpu.op_reg_reg_const(A_CMPLWI,r,reg,a))
             else
               begin
-{$ifndef newra}
-                scratch_register := get_scratch_reg_int(list,OS_32);
-{$else newra}
                 scratch_register := rg.getregisterint(list,OS_INT);
-{$endif newra}
                 a_load_const_reg(list,OS_32,a,scratch_register);
                 list.concat(taicpu.op_reg_reg_reg(A_CMPLW,r,reg,scratch_register));
-{$ifndef newra}
-                free_scratch_reg(list,scratch_register);
-{$else newra}
                 rg.ungetregisterint(list,scratch_register);
-{$endif newra}
               end;
           a_jmp(list,A_BC,TOpCmp2AsmCond[cmp_op],0,l);
         end;
@@ -1025,20 +939,11 @@ const
         { procedure, but currently this isn't checked, so save them always         }
         { following is the entry code as described in "Altivec Programming }
         { Interface Manual", bar the saving of AltiVec registers           }
-        rsp.enum:=R_INTREGISTER;
-        rsp.number:=NR_STACK_POINTER_REG;
-        a_reg_alloc(list,rsp);
-        r.enum:=R_INTREGISTER;
-        r.number:=NR_R0;
-        a_reg_alloc(list,r);
+        a_reg_alloc(list,NR_STACK_POINTER_REG);
+        a_reg_alloc(list,NR_R0);
 
         if current_procinfo.procdef.parast.symtablelevel>1 then
-          begin
-             r.enum:=R_INTREGISTER;
-             r.number:=NR_R11;
-             a_reg_alloc(list,r);
-          end;
-
+          a_reg_alloc(list,NR_R11);
 
         usesfpr:=false;
         if not (po_assembler in current_procinfo.procdef.procoptions) then
@@ -1059,8 +964,7 @@ const
               if regcounter2 in rg.used_in_proc_int then
                 begin
                    usesgpr:=true;
-                   firstreggpr.enum := R_INTREGISTER;
-                   firstreggpr.number := regcounter2 shl 8;
+                   firstreggpr:=newreg(R_INTREGISTER,regcounter2,R_SUBNONE);
                    break;
                 end;
             end;
@@ -1070,9 +974,7 @@ const
           if (pi_do_call in current_procinfo.flags) then
             begin
                { save return address... }
-               r.enum:=R_INTREGISTER;
-               r.number:=NR_R0;
-               list.concat(taicpu.op_reg(A_MFLR,r));
+               list.concat(taicpu.op_reg(A_MFLR,NR_R0));
                { ... in caller's frame }
                case target_info.abi of
                  abi_powerpc_aix:
@@ -1081,7 +983,7 @@ const
                    reference_reset_base(href,rsp,LA_LR_SYSV);
                end;
                list.concat(taicpu.op_reg_ref(A_STW,r,href));
-               a_reg_dealloc(list,r);
+               a_reg_dealloc(list,NR_R0);
             end;
 
         { save the CR if necessary in callers frame. }
@@ -1089,55 +991,46 @@ const
           if target_info.abi = abi_powerpc_aix then
             if false then { Not needed at the moment. }
               begin
-                r.enum:=R_INTREGISTER;
-                r.number:=NR_R0;
-                a_reg_alloc(list,r);
-                r2.enum:=R_CR;
-                list.concat(taicpu.op_reg_reg(A_MFSPR,r,r2));
+                a_reg_alloc(list,NR_R0);
+                list.concat(taicpu.op_reg_reg(A_MFSPR,NR_R0,NR_CR));
                 reference_reset_base(href,rsp,LA_CR_AIX);
                 list.concat(taicpu.op_reg_ref(A_STW,r,href));
-                a_reg_dealloc(list,r);
+                a_reg_dealloc(list,NR_R0);
               end;
 
         { !!! always allocate space for all registers for now !!! }
         if not (po_assembler in current_procinfo.procdef.procoptions) then
 {        if usesfpr or usesgpr then }
           begin
-             r.enum:=R_INTREGISTER;
-             r.number:=NR_R12;
-             a_reg_alloc(list,r);
+             a_reg_alloc(list,NR_R12);
              { save end of fpr save area }
-             list.concat(taicpu.op_reg_reg(A_MR,r,rsp));
+             list.concat(taicpu.op_reg_reg(A_MR,NR_R12,NR_STACK_POINTER_REG));
           end;
 
 
         if (localsize <> 0) then
           begin
-            r.enum:=R_INTREGISTER;
-            r.number:=NR_STACK_POINTER_REG;
             if (localsize <= high(smallint)) then
               begin
-                reference_reset_base(href,r,-localsize);
-                a_load_store(list,A_STWU,r,href);
+                reference_reset_base(href,NR_STACK_POINTER_REG,-localsize);
+                a_load_store(list,A_STWU,NR_STACK_POINTER_REG,href);
               end
             else
               begin
-                reference_reset_base(href,r,0);
+                reference_reset_base(href,NR_STACK_POINTER_REG,0);
                 { can't use getregisterint here, the register colouring }
                 { is already done when we get here                      }
-                href.index.enum := R_INTREGISTER;
-                href.index.number := NR_R11;
+                href.index := NR_R11;
                 a_reg_alloc(list,href.index);
                 a_load_const_reg(list,OS_S32,-localsize,href.index);
-                a_load_store(list,A_STWUX,r,href);
+                a_load_store(list,A_STWUX,NR_STACK_POINTER_REG,href);
                 a_reg_dealloc(list,href.index);
               end;
           end;
 
         { no GOT pointer loaded yet }
         gotgot:=false;
-        r.enum := R_INTREGISTER;
-        r.NUMBER := NR_R12;
+        r := NR_R12;
         if usesfpr then
           begin
              { save floating-point registers
@@ -1179,8 +1072,7 @@ const
                 if regcounter2 in rg.used_in_proc_int then
                   begin
                      usesgpr:=true;
-                     r.enum := R_INTREGISTER;
-                     r.number := regcounter2 shl 8;
+                     r:=newreg(R_INTREGISTER,regcounter2,R_SUBNONE);
                      a_load_reg_ref(list,OS_INT,OS_INT,r,href);
                      dec(href.offset,4);
                   end;
@@ -1198,8 +1090,7 @@ const
             if not (po_assembler in current_procinfo.procdef.procoptions) then
               begin
                 { copy memory parameters to local parast }
-                r.enum:=R_INTREGISTER;
-                r.number:=NR_R12;
+                r:=NR_R12;
                 hp:=tparaitem(current_procinfo.procdef.para.first);
                 while assigned(hp) do
                   begin
@@ -1212,7 +1103,7 @@ const
 {$ifdef newra2}
                     else if (hp.calleeparaloc.loc in [LOC_REGISTER,LOC_CREGISTER]) then
                       begin
-                        rg.getexplicitregisterint(list,hp.calleeparaloc.register.number);
+                        rg.getexplicitregisterint(list,hp.calleeparaloc.register);
                       end
 {$endif newra}
                       ;
@@ -1221,10 +1112,8 @@ const
               end;
           end;
 
-        r.enum:=R_INTREGISTER;
-        r.number:=NR_R12;
         if usesfpr or usesgpr then
-          a_reg_dealloc(list,r);
+          a_reg_dealloc(list,NR_R12);
 
         { PIC code support, }
         if cs_create_pic in aktmoduleswitches then
@@ -1234,12 +1123,9 @@ const
                begin
                   {!!!!!!!!!!!!!}
                end;
-             r.enum:=R_INTREGISTER;
-             r.number:=NR_R31;
-             r2.enum:=R_LR;
-             a_reg_alloc(list,r);
+             a_reg_alloc(list,NR_R31);
              { place GOT ptr in r31 }
-             list.concat(taicpu.op_reg_reg(A_MFSPR,r,r2));
+             list.concat(taicpu.op_reg_reg(A_MFSPR,NR_R31,NR_LR));
           end;
         { save the CR if necessary ( !!! always done currently ) }
         { still need to find out where this has to be done for SystemV
@@ -1253,10 +1139,8 @@ const
         { if we're in a nested procedure, we've to save R11 }
         if current_procinfo.procdef.parast.symtablelevel>2 then
           begin
-             r.enum:=R_INTREGISTER;
-             r.number:=NR_R11;
              reference_reset_base(href,rsp,PARENT_FRAMEPOINTER_OFFSET);
-             list.concat(taicpu.op_reg_ref(A_STW,r,href));
+             list.concat(taicpu.op_reg_ref(A_STW,NR_R11,href));
           end;
 
       end;
@@ -1293,8 +1177,7 @@ const
               if regcounter2 in rg.used_in_proc_int then
                 begin
                   usesgpr:=true;
-                  firstreggpr.enum:=R_INTREGISTER;
-                  firstreggpr.number:=regcounter2 shl 8;
+                  firstreggpr:=newreg(R_INTREGISTER,regcounter2,R_SUBNONE);
                   break;
                 end;
             end;
@@ -1306,14 +1189,10 @@ const
         if usesgpr or usesfpr then
           begin
              { address of gpr save area to r11 }
-             r.enum:=R_INTREGISTER;
-             r.number:=NR_STACK_POINTER_REG;
-             r2.enum:=R_INTREGISTER;
-             r2.number:=NR_R12;
-             a_op_const_reg_reg(list,OP_ADD,OS_ADDR,localsize,r,r2);
+             a_op_const_reg_reg(list,OP_ADD,OS_ADDR,localsize,NR_STACK_POINTER_REG,NR_R12);
              if usesfpr then
                begin
-                 reference_reset_base(href,r2,-8);
+                 reference_reset_base(href,NR_R12,-8);
                  for regcounter.enum := firstregfpu.enum to R_F31 do
                    if (regcounter.enum in rg.used_in_proc_other) then
                      begin
@@ -1323,15 +1202,14 @@ const
                  inc(href.offset,4);
                end
              else
-               reference_reset_base(href,r2,-4);
+               reference_reset_base(href,NR_R12,-4);
 
             for regcounter2:=firstsaveintreg to RS_R31 do
               begin
                 if regcounter2 in rg.used_in_proc_int then
                   begin
                      usesgpr:=true;
-                     r.enum := R_INTREGISTER;
-                     r.number := regcounter2 shl 8;
+                     r:=newreg(R_INTREGISTER,regcounter2,R_SUBNONE);
                      a_load_ref_reg(list,OS_INT,OS_INT,href,r);
                      dec(href.offset,4);
                   end;
@@ -1369,41 +1247,30 @@ const
         if genret then
           begin
              { adjust r1 }
-             r.enum:=R_INTREGISTER;
-             r.number:=NR_R1;
-             a_op_const_reg(list,OP_ADD,OS_ADDR,localsize,r);
+             a_op_const_reg(list,OP_ADD,OS_ADDR,localsize,NR_R1);
              { load link register? }
              if not (po_assembler in current_procinfo.procdef.procoptions) then
                begin
                  if (pi_do_call in current_procinfo.flags) then
                    begin
-                      r.enum:=R_INTREGISTER;
-                      r.number:=NR_STACK_POINTER_REG;
                       case target_info.abi of
                         abi_powerpc_aix:
-                          reference_reset_base(href,r,LA_LR_AIX);
+                          reference_reset_base(href,NR_STACK_POINTER_REG,LA_LR_AIX);
                         abi_powerpc_sysv:
-                          reference_reset_base(href,r,LA_LR_SYSV);
+                          reference_reset_base(href,NR_STACK_POINTER_REG,LA_LR_SYSV);
                       end;
-                      r.enum:=R_INTREGISTER;
-                      r.number:=NR_R0;
-                      list.concat(taicpu.op_reg_ref(A_LWZ,r,href));
-                      list.concat(taicpu.op_reg(A_MTLR,r));
+                      list.concat(taicpu.op_reg_ref(A_LWZ,NR_R0,href));
+                      list.concat(taicpu.op_reg(A_MTLR,NR_R0));
                    end;
 
                  { restore the CR if necessary from callers frame}
                  if target_info.abi = abi_powerpc_aix then
                    if false then { Not needed at the moment. }
                      begin
-                      r.enum:=R_INTREGISTER;
-                      r.number:=NR_STACK_POINTER_REG;
-                      reference_reset_base(href,r,LA_CR_AIX);
-                      r.enum:=R_INTREGISTER;
-                      r.number:=NR_R0;
-                      list.concat(taicpu.op_reg_ref(A_LWZ,r,href));
-                      r2.enum:=R_CR;
-                      list.concat(taicpu.op_reg_reg(A_MTSPR,r,r2));
-                      a_reg_dealloc(list,r);
+                      reference_reset_base(href,NR_STACK_POINTER_REG,LA_CR_AIX);
+                      list.concat(taicpu.op_reg_ref(A_LWZ,NR_R0,href));
+                      list.concat(taicpu.op_reg_reg(A_MTSPR,NR_R0,NR_CR));
+                      a_reg_dealloc(list,NR_R0);
                      end;
                end;
 
@@ -1441,8 +1308,7 @@ const
             if regcounter2 in rg.used_in_proc_int then
               begin
                  usesgpr:=true;
-                 firstreggpr.enum:=R_INTREGISTER;
-                 firstreggpr.number:=regcounter2 shl 8;
+                 firstreggpr:=newreg(R_INTREGISTER,regcounter2,R_SUBNONE);
                  break;
               end;
           end;
@@ -1465,22 +1331,18 @@ const
         if firstreggpr.enum < R_30 then
           begin
             offset:= offset - 4 * (ord(R_31) - ord(firstreggpr.enum) + 1);
-            r.enum:=R_INTREGISTER;
-            r.number:=NR_STACK_POINTER_REG;
-            reference_reset_base(href,r,offset);
+            reference_reset_base(href,NR_STACK_POINTER_REG,offset);
             list.concat(taicpu.op_reg_ref(A_STMW,firstreggpr,href));
               {STMW stores multiple registers}
           end
         else
           begin
-            r.enum:=R_INTREGISTER;
-            r.number:=NR_STACK_POINTER_REG;
             r2 := firstreggpr;
             convert_register_to_enum(firstreggpr);
             for regcounter.enum := firstreggpr.enum to R_31 do
               begin
                 offset:= offset - 4;
-                reference_reset_base(href, r, offset);
+                reference_reset_base(href, NR_STACK_POINTER_REG, offset);
                 list.concat(taicpu.op_reg_ref(A_STW, r2, href));
                 inc(r2.number,NR_R1-NR_R0);
               end;
@@ -1796,11 +1658,7 @@ const
                        ref2.base,tmpref));
                      if freereg then
                        begin
-{$ifndef newra}
-                         cg.free_scratch_reg(list,ref2.base);
-{$else newra}
                          rg.ungetregisterint(list,ref2.base);
-{$endif newra}
                          freereg := false;
                        end;
                    end
@@ -1826,11 +1684,7 @@ const
                  (r.number <> ref2.base.number) then
            list.concat(taicpu.op_reg_reg(A_MR,r,ref2.base));
          if freereg then
-{$ifndef newra}
-           cg.free_scratch_reg(list,ref2.base);
-{$else newra}
            rg.ungetregisterint(list,ref2.base);
-{$endif newra}
        end;
 
 { ************* concatcopy ************ }
@@ -1898,24 +1752,16 @@ const
         { load the address of source into src.base }
         if loadref then
           begin
-{$ifndef newra}
-            src.base := get_scratch_reg_address(list);
-{$else newra}
-           src.base := rg.getregisterint(list,OS_ADDR);
-{$endif newra}
+            src.base := rg.getregisterint(list,OS_ADDR);
             a_load_ref_reg(list,OS_32,OS_32,source,src.base);
             orgsrc := false;
           end
         else if (count > 4) or
                 not issimpleref(source) or
-                ((source.index.number <> NR_NO) and
+                ((source.index <> NR_NO) and
                  ((source.offset + longint(len)) > high(smallint))) then
           begin
-{$ifndef newra}
-            src.base := get_scratch_reg_address(list);
-{$else newra}
             src.base := rg.getregisterint(list,OS_ADDR);
-{$endif newra}
             a_loadaddr_ref_reg(list,source,src.base);
             orgsrc := false;
           end
@@ -1929,14 +1775,10 @@ const
         { load the address of dest into dst.base }
         if (count > 4) or
            not issimpleref(dest) or
-           ((dest.index.number <> NR_NO) and
+           ((dest.index <> NR_NO) and
             ((dest.offset + longint(len)) > high(smallint))) then
           begin
-{$ifndef newra}
-            dst.base := get_scratch_reg_address(list);
-{$else newra}
             dst.base := rg.getregisterint(list,OS_ADDR);
-{$endif newra}
             a_loadaddr_ref_reg(list,dest,dst.base);
             orgdst := false;
           end
@@ -1958,11 +1800,7 @@ const
             inc(src.offset,8);
             list.concat(taicpu.op_reg_reg_const(A_SUBI,src.base,src.base,8));
             list.concat(taicpu.op_reg_reg_const(A_SUBI,dst.base,dst.base,8));
-{$ifndef newra}
-            countreg := get_scratch_reg_int(list,OS_INT);
-{$else newra}
             countreg := rg.getregisterint(list,OS_INT);
-{$endif newra}
             a_load_const_reg(list,OS_32,count,countreg);
             { explicitely allocate R_0 since it can be used safely here }
             { (for holding date that's being copied)                    }
@@ -1975,11 +1813,7 @@ const
             list.concat(taicpu.op_reg_ref(A_LFDU,r,src));
             list.concat(taicpu.op_reg_ref(A_STFDU,r,dst));
             a_jmp(list,A_BC,C_NE,0,lab);
-{$ifndef newra}
-            free_scratch_reg(list,countreg);
-{$else newra}
-           rg.ungetregisterint(list,countreg);
-{$endif newra}
+            rg.ungetregisterint(list,countreg);
             a_reg_dealloc(list,r);
             len := len mod 8;
           end;
@@ -2003,14 +1837,12 @@ const
 
         if (len and 4) <> 0 then
           begin
-            r.enum:=R_INTREGISTER;
-            r.number:=NR_R0;
-            a_reg_alloc(list,r);
-            a_load_ref_reg(list,OS_32,OS_32,src,r);
-            a_load_reg_ref(list,OS_32,OS_32,r,dst);
+            a_reg_alloc(list,NR_R0);
+            a_load_ref_reg(list,OS_32,OS_32,src,NR_R0);
+            a_load_reg_ref(list,OS_32,OS_32,NR_R0,dst);
             inc(src.offset,4);
             inc(dst.offset,4);
-            a_reg_dealloc(list,r);
+            a_reg_dealloc(list,NR_R0);
           end;
 {$else not ppc603}
         if count > 4 then
@@ -2024,29 +1856,19 @@ const
             inc(src.offset,4);
             list.concat(taicpu.op_reg_reg_const(A_SUBI,src.base,src.base,4));
             list.concat(taicpu.op_reg_reg_const(A_SUBI,dst.base,dst.base,4));
-{$ifndef newra}
-            countreg := get_scratch_reg_int(list,OS_INT);
-{$else newra}
             countreg := rg.getregisterint(list,OS_INT);
-{$endif newra}
             a_load_const_reg(list,OS_32,count,countreg);
             { explicitely allocate R_0 since it can be used safely here }
             { (for holding date that's being copied)                    }
-            r.enum:=R_INTREGISTER;
-            r.number:=NR_R0;
-            a_reg_alloc(list,r);
+            a_reg_alloc(list,NR_R0);
             objectlibrary.getlabel(lab);
             a_label(list, lab);
             list.concat(taicpu.op_reg_reg_const(A_SUBIC_,countreg,countreg,1));
-            list.concat(taicpu.op_reg_ref(A_LWZU,r,src));
-            list.concat(taicpu.op_reg_ref(A_STWU,r,dst));
+            list.concat(taicpu.op_reg_ref(A_LWZU,NR_R0,src));
+            list.concat(taicpu.op_reg_ref(A_STWU,NR_R0,dst));
             a_jmp(list,A_BC,C_NE,0,lab);
-{$ifndef newra}
-            free_scratch_reg(list,countreg);
-{$else newra}
-           rg.ungetregisterint(list,countreg);
-{$endif newra}
-            a_reg_dealloc(list,r);
+            rg.ungetregisterint(list,countreg);
+            a_reg_dealloc(list,NR_R0);
             len := len mod 4;
           end;
 
@@ -2054,13 +1876,11 @@ const
         if count > 0 then
           { unrolled loop }
           begin
-            r.enum:=R_INTREGISTER;
-            r.number:=NR_R0;
-            a_reg_alloc(list,r);
+            a_reg_alloc(list,NR_R0);
             for count2 := 1 to count do
               begin
-                a_load_ref_reg(list,OS_32,OS_32,src,r);
-                a_load_reg_ref(list,OS_32,OS_32,r,dst);
+                a_load_ref_reg(list,OS_32,OS_32,src,NR_R0);
+                a_load_reg_ref(list,OS_32,OS_32,NR_R0,dst);
                 inc(src.offset,4);
                 inc(dst.offset,4);
               end;
@@ -2071,23 +1891,19 @@ const
        { copy the leftovers }
        if (len and 2) <> 0 then
          begin
-           r.enum:=R_INTREGISTER;
-           r.number:=NR_R0;
-           a_reg_alloc(list,r);
-           a_load_ref_reg(list,OS_16,OS_16,src,r);
-           a_load_reg_ref(list,OS_16,OS_16,r,dst);
+           a_reg_alloc(list,NR_R0);
+           a_load_ref_reg(list,OS_16,OS_16,src,NR_R0);
+           a_load_reg_ref(list,OS_16,OS_16,NR_R0,dst);
            inc(src.offset,2);
            inc(dst.offset,2);
-           a_reg_dealloc(list,r);
+           a_reg_dealloc(list,NR_R0);
          end;
        if (len and 1) <> 0 then
          begin
-           r.enum:=R_INTREGISTER;
-           r.number:=NR_R0;
-           a_reg_alloc(list,r);
-           a_load_ref_reg(list,OS_8,OS_8,src,r);
-           a_load_reg_ref(list,OS_8,OS_8,r,dst);
-           a_reg_dealloc(list,r);
+           a_reg_alloc(list,NR_R0);
+           a_load_ref_reg(list,OS_8,OS_8,src,NR_R0);
+           a_load_reg_ref(list,OS_8,OS_8,NR_R0,dst);
+           a_reg_dealloc(list,NR_R0);
          end;
        if orgsrc then
          begin
@@ -2095,17 +1911,9 @@ const
              reference_release(list,source);
          end
        else
-{$ifndef newra}
-         free_scratch_reg(list,src.base);
-{$else newra}
          rg.ungetregisterint(list,src.base);
-{$endif newra}
        if not orgdst then
-{$ifndef newra}
-         free_scratch_reg(list,dst.base);
-{$else newra}
          rg.ungetregisterint(list,dst.base);
-{$endif newra}
        if delsource then
          tg.ungetiftemp(list,source);
       end;
@@ -2120,7 +1928,7 @@ const
       begin
          {$warning !!!! FIX ME !!!!}
          internalerror(200305231);
-{!!!!
+(* !!!!
         lenref:=ref;
         inc(lenref.offset,4);
         { get stack space }
@@ -2230,7 +2038,7 @@ const
 
         { patch the new address }
         a_load_reg_ref(list,OS_INT,rsp,ref);
-!!!!}
+!!!! *)
       end;
 
     procedure tcgppc.g_overflowcheck(list: taasmoutput; const l: tlocation; def: tdef);
@@ -2263,15 +2071,15 @@ const
     function tcgppc.issimpleref(const ref: treference): boolean;
 
       begin
-        if (ref.base.number = NR_NO) and
-           (ref.index.number <> NR_NO) then
+        if (ref.base = NR_NO) and
+           (ref.index <> NR_NO) then
           internalerror(200208101);
         result :=
           not(assigned(ref.symbol)) and
-          (((ref.index.number = NR_NO) and
+          (((ref.index = NR_NO) and
             (ref.offset >= low(smallint)) and
             (ref.offset <= high(smallint))) or
-           ((ref.index.number <> NR_NO) and
+           ((ref.index <> NR_NO) and
             (ref.offset = 0)));
       end;
 
@@ -2280,34 +2088,29 @@ const
 
        var
          tmpreg: tregister;
-{$ifdef newra}
          orgindex: tregister;
          freeindex: boolean;
-{$endif newra}
        begin
          result := false;
-         if (ref.base.number = NR_NO) then
+         if (ref.base = NR_NO) then
            begin
              ref.base := ref.index;
-             ref.base.number := NR_NO;
+             ref.base := NR_NO;
            end;
-         if (ref.base.number <> NR_NO) then
+         if (ref.base <> NR_NO) then
            begin
-             if (ref.index.number <> NR_NO) and
+             if (ref.index <> NR_NO) and
                 ((ref.offset <> 0) or assigned(ref.symbol)) then
                begin
                  result := true;
-{$ifndef newra}
-                 tmpreg := cg.get_scratch_reg_int(list,OS_INT);
-{$else newra}
                  { references are often freed before they are used. Since we allocate  }
                  { a register here, we must first reallocate the index register, since }
                  { otherwise it may be overwritten (and it's still used afterwards)    }
                  freeindex := false;
-                 if ((ref.index.number shr 8) >= first_supreg) and
-                    ((ref.index.number shr 8) in rg.unusedregsint) then
+                 if (getsupreg(ref.index) >= first_supreg) and
+                    (getsupreg(ref.index) in rg.unusedregsint) then
                    begin
-                     rg.getexplicitregisterint(list,ref.index.number);
+                     rg.getexplicitregisterint(list,ref.index);
                      orgindex := ref.index;
                      freeindex := true;
                    end;
@@ -2325,19 +2128,15 @@ const
                    begin
                      list.concat(taicpu.op_reg_reg_reg(
                        A_ADD,tmpreg,ref.base,ref.index));
-                     ref.index.number := NR_NO;
+                     ref.index := NR_NO;
                    end;
                  ref.base := tmpreg;
-{$ifdef newra}
                  if freeindex then
-                   begin
-                     rg.ungetregisterint(list,orgindex);
-                   end;
-{$endif newra}
+                   rg.ungetregisterint(list,orgindex);
                end
            end
          else
-           if ref.index.number <> NR_NO then
+           if ref.index <> NR_NO then
              internalerror(200208102);
        end;
 
@@ -2420,26 +2219,21 @@ const
         largeOffset: Boolean;
 
       begin
-        tmpreg.number := NR_NO;
+        tmpreg := NR_NO;
 
         if target_info.system = system_powerpc_macos then
           begin
             largeOffset:= (cardinal(ref.offset-low(smallint)) >
                   high(smallint)-low(smallint));
 
-{$ifndef newra}
-            tmpreg := get_scratch_reg_address(list);
-{$else newra}
             tmpreg := rg.getregisterint(list,OS_ADDR);
-{$endif newra}
             tmpregUsed:= false;
 
             if assigned(ref.symbol) then
               begin //Load symbol's value
                 reference_reset(tmpref);
                 tmpref.symbol := ref.symbol;
-                tmpref.base.enum:= R_INTREGISTER;
-                tmpref.base.number:= NR_RTOC;
+                tmpref.base := NR_RTOC;
                 if macos_direct_globals then
                   list.concat(taicpu.op_reg_ref(A_LA,tmpreg,tmpref))
                 else
@@ -2462,7 +2256,7 @@ const
             if tmpregUsed then
               begin
                 //Add content of base register
-                if ref.base.number <> NR_NO then
+                if ref.base <> NR_NO then
                   list.concat(taicpu.op_reg_reg_reg(A_ADD,tmpreg,
                     ref.base,tmpreg));
 
@@ -2483,16 +2277,12 @@ const
                (cardinal(ref.offset-low(smallint)) >
                 high(smallint)-low(smallint)) then
               begin
-{$ifndef newra}
-                tmpreg := get_scratch_reg_address(list);
-{$else newra}
                 tmpreg := rg.getregisterint(list,OS_ADDR);
-{$endif newra}
                 reference_reset(tmpref);
                 tmpref.symbol := ref.symbol;
                 tmpref.offset := ref.offset;
                 tmpref.symaddr := refs_ha;
-                if ref.base.number <> NR_NO then
+                if ref.base <> NR_NO then
                   list.concat(taicpu.op_reg_reg_ref(A_ADDIS,tmpreg,
                     ref.base,tmpref))
                 else
@@ -2505,13 +2295,8 @@ const
               list.concat(taicpu.op_reg_ref(op,reg,ref));
           end;
 
-
-        if (tmpreg.number <> NR_NO) then
-{$ifndef newra}
-          free_scratch_reg(list,tmpreg);
-{$else newra}
+        if (tmpreg <> NR_NO) then
           rg.ungetregisterint(list,tmpreg);
-{$endif newra}
       end;
 
 
@@ -2606,40 +2391,22 @@ const
                     end
                   else if ((value shr 32) = 0) then
                     begin
-{$ifndef newra}
-                      tmpreg := cg.get_scratch_reg_int(list,OS_32);
-{$else newra}
                       tmpreg := rg.getregisterint(list,OS_32);
-{$endif newra}
                       cg.a_load_const_reg(list,OS_32,cardinal(value),tmpreg);
                       list.concat(taicpu.op_reg_reg_reg(ops[issub,2],
                         regdst.reglo,regsrc.reglo,tmpreg));
-{$ifndef newra}
-                      cg.free_scratch_reg(list,tmpreg);
-{$else newra}
                       rg.ungetregisterint(list,tmpreg);
-{$endif newra}
                       list.concat(taicpu.op_reg_reg(ops[issub,3],
                         regdst.reghi,regsrc.reghi));
                     end
                   else
                     begin
-{$ifndef newra}
-                      tmpreg64.reglo := cg.get_scratch_reg_int(list,OS_32);
-                      tmpreg64.reghi := cg.get_scratch_reg_int(list,OS_32);
-{$else newra}
                       tmpreg64.reglo := rg.getregisterint(list,OS_32);
                       tmpreg64.reghi := rg.getregisterint(list,OS_32);
-{$endif newra}
                       a_load64_const_reg(list,value,tmpreg64);
                       a_op64_reg_reg_reg(list,op,tmpreg64,regsrc,regdst);
-{$ifndef newra}
-                      cg.free_scratch_reg(list,tmpreg64.reghi);
-                      cg.free_scratch_reg(list,tmpreg64.reglo);
-{$else newra}
                       rg.ungetregisterint(list,tmpreg64.reglo);
                       rg.ungetregisterint(list,tmpreg64.reghi);
-{$endif newra}
                     end
                 end
               else
@@ -2661,7 +2428,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.122  2003-08-18 21:27:00  jonas
+  Revision 1.123  2003-09-03 15:55:01  peter
+    * NEWRA branch merged
+
+  Revision 1.122.2.1  2003/08/31 21:08:16  peter
+    * first batch of sparc fixes
+
+  Revision 1.122  2003/08/18 21:27:00  jonas
     * some newra optimizations (eliminate lots of moves between registers)
 
   Revision 1.121  2003/08/18 11:50:55  olle

@@ -58,13 +58,20 @@ Implementation
 
     function assemble : tnode;
      begin
+       result:=nil;
      end;
 
 Begin
 end.
 {
   $Log$
-  Revision 1.1  2002-08-23 10:08:28  mazen
+  Revision 1.2  2003-09-03 15:55:01  peter
+    * NEWRA branch merged
+
+  Revision 1.1.2.1  2003/09/01 21:02:55  peter
+    * sparc updates for new tregister
+
+  Revision 1.1  2002/08/23 10:08:28  mazen
   *** empty log message ***
 
   Revision 1.2  2002/08/11 06:14:41  florian

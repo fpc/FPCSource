@@ -93,16 +93,14 @@ implementation
            if nr<6 then
             begin
               loc:=LOC_REGISTER;
-              register.enum:=R_INTREGISTER;
-              register.number:=(RS_O0+nr) shl 8;
-              rg.getexplicitregisterint(list,register.number);
+              register:=newreg(R_INTREGISTER,(RS_O0+nr),R_SUBWHOLE);
+              rg.getexplicitregisterint(list,register);
             end
            else
            { The other parameters are passed on the stack }
             begin
               loc:=LOC_REFERENCE;
-              reference.index.enum:=R_INTREGISTER;
-              reference.index.number:=NR_STACK_POINTER_REG;
+              reference.index:=NR_STACK_POINTER_REG;
               reference.offset:=92+(nr-6)*4;
             end;
            size:=OS_INT;
@@ -113,7 +111,7 @@ implementation
     procedure tsparcparamanager.freeintparaloc(list: taasmoutput; nr : longint);
 
       var
-        r: tregister;
+        hreg : tregister;
 
       begin
         if nr<1 then
@@ -121,9 +119,8 @@ implementation
         Dec(nr);
         if nr<6 then
           begin
-            r.enum:=R_INTREGISTER;
-            r.number:=(RS_O0+nr) shl 8;
-            rg.ungetregisterint(list,r);
+            hreg:=newreg(R_INTREGISTER,RS_O0+nr,R_SUBWHOLE);
+            rg.ungetregisterint(list,hreg);
           end;
       end;
 
@@ -132,7 +129,7 @@ implementation
       begin
         if (loc.loc=LOC_REFERENCE) and
            (loc.low_in_reg) then
-          rg.getexplicitregisterint(list,loc.lowreg.number);
+          rg.getexplicitregisterint(list,loc.lowreg);
         inherited allocparaloc(list,loc);
       end;
 
@@ -178,12 +175,10 @@ implementation
                 { big endian }
                 if is_64bit then
                   begin
-                    paraloc.registerhigh.enum:=R_INTREGISTER;
-                    paraloc.registerhigh.number:=nextintreg shl 8;
+                    paraloc.registerhigh:=newreg(R_INTREGISTER,nextintreg,R_SUBWHOLE);
                     inc(nextintreg);
                   end;
-                paraloc.registerlow.enum:=R_INTREGISTER;
-                paraloc.registerlow.number:=NextIntReg shl 8;
+                paraloc.registerlow:=newreg(R_INTREGISTER,nextintreg,R_SUBWHOLE);
                 inc(NextIntReg);
               end
             else
@@ -193,12 +188,10 @@ implementation
                 if NextIntReg<=RS_O5 then
                   begin
                     paraloc.low_in_reg:=true;
-                    paraloc.lowreg.enum:=R_INTREGISTER;
-                    paraloc.lowreg.number:=nextintreg shl 8;
+                    paraloc.lowreg:=newreg(R_INTREGISTER,nextintreg,R_SUBWHOLE);
                   end;
                 nextintreg:=RS_O6;
-                paraloc.reference.index.enum:=R_INTREGISTER;
-                paraloc.reference.index.number:=NR_STACK_POINTER_REG;
+                paraloc.reference.index:=NR_STACK_POINTER_REG;
                 paraloc.reference.offset:=stack_offset;
                 if is_64bit and
                    (not paraloc.low_in_reg) then
@@ -215,14 +208,14 @@ implementation
                   begin
                     { big endian }
                     if is_64bit then
-                      inc(hp.paraloc[calleeside].registerhigh.number,(RS_I0-RS_O0) shl 8);
-                    inc(hp.paraloc[calleeside].registerlow.number,(RS_I0-RS_O0) shl 8);
+                      setsupreg(hp.paraloc[calleeside].registerhigh,getsupreg(hp.paraloc[calleeside].registerhigh)+(RS_I0-RS_O0));
+                    setsupreg(hp.paraloc[calleeside].registerlow,getsupreg(hp.paraloc[calleeside].registerlow)+(RS_I0-RS_O0));
                   end
                 else
                   begin
                     if hp.paraloc[calleeside].low_in_reg then
-                      inc(hp.paraloc[calleeside].lowreg.number,(RS_I0-RS_O0) shl 8);
-                    inc(hp.paraloc[calleeside].reference.index.number,(RS_I0-RS_O0) shl 8);
+                      setsupreg(hp.paraloc[calleeside].lowreg,getsupreg(hp.paraloc[calleeside].lowreg)+(RS_I0-RS_O0));
+                    setsupreg(hp.paraloc[calleeside].reference.index,getsupreg(hp.paraloc[calleeside].reference.index)+(RS_I0-RS_O0));
                   end;
               end;
             hp:=TParaItem(hp.Next);
@@ -235,7 +228,7 @@ implementation
         if p.rettype.def.deftype=floatdef then
           begin
             paraloc.loc:=LOC_FPUREGISTER;
-            paraloc.register.enum:=FPU_RESULT_REG;
+            paraloc.register:=NR_FPU_RESULT_REG;
           end
         else
          { Return in register? }
@@ -245,25 +238,22 @@ implementation
 {$ifndef cpu64bit}
             if paraloc.size in [OS_64,OS_S64] then
              begin
-               paraloc.register64.reglo.enum:=R_INTREGISTER;
                if side=callerside then
-                 paraloc.register64.reglo.number:=NR_FUNCTION_RESULT64_LOW_REG
+                 paraloc.register64.reglo:=NR_FUNCTION_RESULT64_LOW_REG
                else
-                 paraloc.register64.reglo.number:=NR_FUNCTION_RETURN64_LOW_REG;
-               paraloc.register64.reghi.enum:=R_INTREGISTER;
+                 paraloc.register64.reglo:=NR_FUNCTION_RETURN64_LOW_REG;
                if side=callerside then
-                 paraloc.register64.reghi.number:=NR_FUNCTION_RESULT64_HIGH_REG
+                 paraloc.register64.reghi:=NR_FUNCTION_RESULT64_HIGH_REG
                else
-                 paraloc.register64.reghi.number:=NR_FUNCTION_RETURN64_HIGH_REG;
+                 paraloc.register64.reghi:=NR_FUNCTION_RETURN64_HIGH_REG;
              end
             else
 {$endif cpu64bit}
              begin
-               paraloc.register.enum:=R_INTREGISTER;
                if side=callerside then
-                 paraloc.register.number:=NR_FUNCTION_RESULT_REG
+                 paraloc.register:=NR_FUNCTION_RESULT_REG
                else
-                 paraloc.register.number:=NR_FUNCTION_RETURN_REG;
+                 paraloc.register:=NR_FUNCTION_RETURN_REG;
              end;
           end
         else
@@ -301,7 +291,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.27  2003-08-11 21:18:20  peter
+  Revision 1.28  2003-09-03 15:55:01  peter
+    * NEWRA branch merged
+
+  Revision 1.27.2.1  2003/08/31 21:08:16  peter
+    * first batch of sparc fixes
+
+  Revision 1.27  2003/08/11 21:18:20  peter
     * start of sparc support for newra
 
   Revision 1.26  2003/07/08 21:25:00  peter

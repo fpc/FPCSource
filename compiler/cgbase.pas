@@ -320,8 +320,7 @@ implementation
         parent_framepointer_offset:=0;
         firsttemp_offset:=0;
         flags:=[];
-        framepointer.enum:=R_INTREGISTER;
-        framepointer.number:=NR_FRAME_POINTER_REG;
+        framepointer:=NR_FRAME_POINTER_REG;
         { asmlists }
         aktproccode:=Taasmoutput.Create;
         aktlocaldata:=Taasmoutput.Create;
@@ -376,6 +375,7 @@ implementation
     procedure tprocinfo.handle_body_start;
       var
         paramloc : tparalocation;
+        regidx : tregisterindex;
       begin
          { generate callee paraloc register info }
          paramanager.create_paraloc_info(current_procinfo.procdef,calleeside);
@@ -396,18 +396,19 @@ implementation
                LOC_MMREGISTER,
                LOC_CMMREGISTER :
                  begin
-                   include(rg.used_in_proc_other,paramloc.register.enum);
+                   regidx:=findreg_by_number(paramloc.register);
+                   include(rg.used_in_proc_other,regidx);
                  end;
                LOC_REGISTER,LOC_CREGISTER :
                  begin
                    if ((paramloc.size in [OS_S64,OS_64]) and
                       (sizeof(aword) < 8)) then
                      begin
-                       include(rg.used_in_proc_int,paramloc.registerhigh.number shr 8);
-                       include(rg.used_in_proc_int,paramloc.registerlow.number shr 8);
+                       include(rg.used_in_proc_int,getsupreg(paramloc.registerhigh));
+                       include(rg.used_in_proc_int,getsupreg(paramloc.registerlow));
                      end
                    else
-                     include(rg.used_in_proc_int,paramloc.register.number shr 8);
+                     include(rg.used_in_proc_int,getsupreg(paramloc.register));
                  end;
              end;
            end;
@@ -581,7 +582,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.60  2003-08-26 12:43:02  peter
+  Revision 1.61  2003-09-03 15:55:00  peter
+    * NEWRA branch merged
+
+  Revision 1.60.2.1  2003/08/29 17:28:59  peter
+    * next batch of updates
+
+  Revision 1.60  2003/08/26 12:43:02  peter
     * methodpointer fixes
 
   Revision 1.59  2003/08/20 17:48:49  peter

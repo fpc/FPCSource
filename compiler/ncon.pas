@@ -279,28 +279,11 @@ implementation
          str_length:=tstringconstnode(p).len;
       end;
 
-{$ifdef oldset}
     function is_emptyset(p : tnode):boolean;
-
-      var
-        i : longint;
       begin
-        i:=0;
-        if p.nodetype=setconstn then
-         begin
-           while (i<32) and (tsetconstnode(p).value_set^[i]=0) do
-            inc(i);
-         end;
-        is_emptyset:=(i=32);
-      end;
-{$else}
-    function is_emptyset(p : tnode):boolean;
-
-    begin
         is_emptyset:=(p.nodetype=setconstn) and
-         (Tsetconstnode(p).value_set^=[]);
-    end;
-{$endif}
+                     (Tsetconstnode(p).value_set^=[]);
+      end;
 
 
     function genconstsymtree(p : tconstsym) : tnode;
@@ -822,32 +805,13 @@ implementation
           expectloc:=LOC_CREFERENCE;
       end;
 
-{$ifdef oldset}
-    function tsetconstnode.docompare(p: tnode): boolean;
-      var
-        i: 0..31;
-      begin
-        if inherited docompare(p) then
-          begin
-            for i := 0 to 31 do
-              if (value_set^[i] <> tsetconstnode(p).value_set^[i]) then
-                begin
-                  docompare := false;
-                  exit
-                end;
-            docompare := true;
-          end
-        else
-          docompare := false;
-      end;
-{$else}
-    function tsetconstnode.docompare(p: tnode): boolean;
 
-    begin
-        docompare:=(inherited docompare(p))
-         and (value_set^=Tsetconstnode(p).value_set^);
-    end;
-{$endif}
+    function tsetconstnode.docompare(p: tnode): boolean;
+      begin
+        docompare:=(inherited docompare(p)) and
+                   (value_set^=Tsetconstnode(p).value_set^);
+      end;
+
 
 {*****************************************************************************
                                TNILNODE
@@ -938,7 +902,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.49  2003-04-25 20:59:33  peter
+  Revision 1.50  2003-09-03 15:55:01  peter
+    * NEWRA branch merged
+
+  Revision 1.49  2003/04/25 20:59:33  peter
     * removed funcretn,funcretsym, function result is now in varsym
       and aliases for result and function name are added using absolutesym
     * vs_hidden parameter for funcret passed in parameter

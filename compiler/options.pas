@@ -876,10 +876,8 @@ begin
                      initglobalswitches:=initglobalswitches-[cs_link_on_target]
                    else if more='t' then
                      initglobalswitches:=initglobalswitches+[cs_link_on_target]
-{$ifdef newra}
                    else if more='r' then
-                     initglobalswitches:=initglobalswitches+[cs_no_regalloc]
-{$endif newra}
+                     initglobalswitches:=initglobalswitches+[cs_asm_leave,cs_no_regalloc]
                    else if more<>'' then
                      IllegalPara(opt);
                  end;
@@ -1716,6 +1714,9 @@ begin
   def_symbol('CPUSPARC');
   def_symbol('CPUSPARC32');
   def_symbol('CPU32');
+  def_symbol('FPC_HAS_TYPE_DOUBLE');
+  def_symbol('FPC_HAS_TYPE_SINGLE');
+  def_symbol('FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE');
 {$endif}
 {$ifdef vis}
   def_symbol('CPUVIS');
@@ -1952,12 +1953,28 @@ finalization
 end.
 {
   $Log$
-  Revision 1.100  2003-09-03 11:18:37  florian
+  Revision 1.101  2003-09-03 15:55:01  peter
+    * NEWRA branch merged
+
+  Revision 1.100  2003/09/03 11:18:37  florian
     * fixed arm concatcopy
     + arm support in the common compiler sources added
     * moved some generic cg code around
     + tfputype added
     * ...
+
+  Revision 1.99.2.4  2003/09/02 17:48:42  peter
+    * sparc need software int64 to double
+
+  Revision 1.99.2.3  2003/09/01 21:02:55  peter
+    * sparc updates for new tregister
+
+  Revision 1.99.2.2  2003/08/31 16:18:05  peter
+    * more fixes
+
+  Revision 1.99.2.1  2003/08/31 13:50:15  daniel
+    * Remove sorting and use pregenerated indexes
+    * Some work on making things compile
 
   Revision 1.99  2003/05/13 19:14:41  peter
     * failn removed

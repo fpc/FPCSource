@@ -100,7 +100,6 @@ implementation
          setparts   : array[1..8] of Tsetpart;
          i,numparts : byte;
          adjustment : longint;
-         pushedregs : tmaybesave;
          l,l2       : tasmlabel;
          r          : Tregister;
 {$ifdef CORRECT_SET_IN_FPC}
@@ -108,8 +107,6 @@ implementation
 {$endif CORRECT_SET_IN_FPC}
 
          function analizeset(Aset:pconstset;is_small:boolean):boolean;
-           type
-             byteset=set of byte;
            var
              compares,maxcompares:word;
              i:byte;
@@ -194,13 +191,7 @@ implementation
          { Only process the right if we are not generating jumps }
          if not genjumps then
           begin
-          {$ifndef newra}
-            maybe_save(exprasmlist,right.registers32,left.location,pushedregs);
-          {$endif}
             secondpass(right);
-          {$ifndef newra}
-            maybe_restore(exprasmlist,left.location,pushedregs);
-          {$endif newra}
           end;
          if codegenerror then
           exit;
@@ -221,10 +212,10 @@ implementation
              begin
                { for ranges we always need a 32bit register, because then we }
                { use the register as base in a reference (JM)                }
-               pleftreg.enum:=R_INTREGISTER;
                if ranges then
                  begin
-                   pleftreg.number:=(left.location.register.number and not $ff) or R_SUBWHOLE;
+                   pleftreg:=left.location.register;
+                   setsubreg(pleftreg,R_SUBWHOLE);
                    cg.a_load_reg_reg(exprasmlist,left.location.size,OS_INT,left.location.register,pleftreg);
                    if opsize <> S_L then
                      emit_const_reg(A_AND,S_L,255,pleftreg);
@@ -234,18 +225,15 @@ implementation
                  { otherwise simply use the lower 8 bits (no "and" }
                  { necessary this way) (JM)                        }
                  begin
-                   pleftreg.number:=(left.location.register.number and not $ff) or R_SUBL;
+                   pleftreg:=left.location.register;
+                   setsubreg(pleftreg,R_SUBL);
                    opsize := S_B;
                  end;
              end
             else
              begin
                { load the value in a register }
-             {$ifdef newra}
                pleftreg:=rg.getregisterint(exprasmlist,OS_INT);
-             {$else}
-               pleftreg := rg.getexplicitregisterint(exprasmlist,NR_EDI);
-             {$endif}
                opsize := S_L;
                emit_ref_reg(A_MOVZX,S_BL,left.location.reference,pleftreg);
                location_release(exprasmlist,left.location);
@@ -267,7 +255,7 @@ implementation
             { "x in [y..z]" expression                               }
             adjustment := 0;
 
-            r.enum:=R_NO;
+            r:=NR_NO;
             for i:=1 to numparts do
              if setparts[i].range then
               { use fact that a <= x <= b <=> cardinal(x-a) <= cardinal(b-a) }
@@ -281,17 +269,10 @@ implementation
                       { so in case of a LOC_CREGISTER first move the value }
                       { to edi (not done before because now we can do the  }
                       { move and substract in one instruction with LEA)    }
-                      if {$ifndef newra}(pleftreg.number <> NR_EDI) and{$endif}
-                         (left.location.loc = LOC_CREGISTER) then
+                      if (left.location.loc = LOC_CREGISTER) then
                         begin
                           rg.ungetregister(exprasmlist,pleftreg);
-                        {$ifdef newra}
                           r:=rg.getregisterint(exprasmlist,OS_INT);
-                        {$else}
-                          r.enum:=R_INTREGISTER;
-                          r.number:=NR_EDI;
-                          rg.getexplicitregisterint(exprasmlist,NR_EDI);
-                        {$endif}
                           reference_reset_base(href,pleftreg,-setparts[i].start);
                           emit_ref_reg(A_LEA,S_L,href,r);
                           { only now change pleftreg since previous value is }
@@ -352,24 +333,9 @@ implementation
              right.location.reference.symbol:=nil;
              { Now place the end label }
              cg.a_label(exprasmlist,l);
-          {$ifdef newra}
              rg.ungetregisterint(exprasmlist,pleftreg);
-             if r.enum=R_INTREGISTER then
+             if r<>NR_NO then
               rg.ungetregisterint(exprasmlist,r);
-          {$else}
-             case left.location.loc of
-               LOC_REGISTER,
-               LOC_CREGISTER :
-                 rg.ungetregisterint(exprasmlist,pleftreg);
-               else
-                 begin
-                   reference_release(exprasmlist,left.location.reference);
-                   r.enum:=R_INTREGISTER;
-                   r.number:=NR_EDI;
-                   rg.ungetregisterint(exprasmlist,r);
-                 end;
-             end;
-          {$endif}
           end
          else
           begin
@@ -414,11 +380,8 @@ implementation
                       { the set element isn't never samller than a byte  }
                       { and because it's a small set we need only 5 bits }
                       { but 8 bits are easier to load               }
-                      r.enum:=R_INTREGISTER;
-                      r.number:=NR_EDI;
-                      rg.getexplicitregisterint(exprasmlist,NR_EDI);
-                      emit_ref_reg(A_MOVZX,S_BL,left.location.reference,r);
-                      hr:=r;
+                      hr:=rg.getregisterint(exprasmlist,OS_INT);
+                      emit_ref_reg(A_MOVZX,S_BL,left.location.reference,hr);
                       location_release(exprasmlist,left.location);
                     end;
                   end;
@@ -532,15 +495,11 @@ implementation
                 begin
                   if (left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
                     begin
-                      pleftreg.enum:=R_INTREGISTER;
-                      pleftreg.number:=(left.location.register.number and not $ff) or R_SUBWHOLE;
+                      pleftreg:=left.location.register;
+                      setsubreg(pleftreg,R_SUBWHOLE);
                     end
                   else
-                  {$ifdef newra}
                     pleftreg:=rg.getregisterint(exprasmlist,OS_INT);
-                  {$else}
-                    pleftreg:=rg.getexplicitregisterint(exprasmlist,NR_EDI);
-                  {$endif}
                   cg.a_load_loc_reg(exprasmlist,OS_INT,left.location,pleftreg);
                   location_freetemp(exprasmlist,left.location);
                   location_release(exprasmlist,left.location);
@@ -730,7 +689,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.62  2003-06-12 22:10:44  jonas
+  Revision 1.63  2003-09-03 15:55:01  peter
+    * NEWRA branch merged
+
+  Revision 1.62.2.1  2003/08/29 17:29:00  peter
+    * next batch of updates
+
+  Revision 1.62  2003/06/12 22:10:44  jonas
     * t386innode.pass_2 already doesn't call a helper anymore since a long
       time
 

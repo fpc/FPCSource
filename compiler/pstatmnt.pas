@@ -44,7 +44,7 @@ implementation
        globtype,globals,verbose,
        systems,cpuinfo,
        { aasm }
-       cpubase,aasmbase,aasmtai,aasmcpu,
+       cginfo,cpubase,aasmbase,aasmtai,aasmcpu,
        { symtable }
        symconst,symbase,symtype,symdef,symsym,symtable,defutil,defcmp,
        paramgr,
@@ -186,10 +186,7 @@ implementation
       begin
          consume(_CASE);
          caseexpr:=comp_expr(true);
-       { determines result type }
-       {$ifndef newra}
-         rg.cleartempgen;
-       {$endif}
+         { determines result type }
          do_resulttypepass(caseexpr);
          casedeferror:=false;
          casedef:=caseexpr.resulttype.def;
@@ -776,9 +773,7 @@ implementation
       var
         asmstat : tasmnode;
         Marker  : tai;
-        reg     : tsuperregister;
-        found   : boolean;
-        hs      : string;
+        reg     : tregister;
       begin
          Inside_asm_statement:=true;
          case aktasmmode of
@@ -824,16 +819,13 @@ implementation
               begin
                 repeat
                   { it's possible to specify the modified registers }
-                  hs:=upper(pattern);
-                  found:=false;
-                  for reg:=first_supreg to last_supreg do
-                   if hs=upper(supreg_name(reg)) then
+                  reg:=std_regnum_search(lower(pattern));
+                  if reg<>NR_NO then
                     begin
-                      include(rg.used_in_proc_int,reg);
-                      found:=true;
-                      break;
-                    end;
-                  if not(found) then
+                      if getregtype(reg)=R_INTREGISTER then
+                        include(rg.used_in_proc_int,getsupreg(reg));
+                    end
+                  else
                     Message(asmr_e_invalid_register);
                   consume(_CSTRING);
                   if not try_to_consume(_COMMA) then
@@ -1072,8 +1064,7 @@ implementation
         i : longint;
       begin
         { replace framepointer with stackpointer }
-        current_procinfo.framepointer.enum:=R_INTREGISTER;
-        current_procinfo.framepointer.number:=NR_STACK_POINTER_REG;
+        current_procinfo.framepointer:=NR_STACK_POINTER_REG;
         { set the right value for parameters }
         dec(current_procinfo.procdef.parast.address_fixup,pointer_size);
         { replace all references to parameters in the instructions,
@@ -1096,8 +1087,7 @@ implementation
                        ref_parafixup :
                          begin
                            ref^.offsetfixup:=parafixup;
-                           ref^.base.enum:=R_INTREGISTER;
-                           ref^.base.number:=NR_STACK_POINTER_REG;
+                           ref^.base:=NR_STACK_POINTER_REG;
                          end;
                      end;
                    end;
@@ -1191,7 +1181,19 @@ implementation
 end.
 {
   $Log$
-  Revision 1.106  2003-07-08 21:24:59  peter
+  Revision 1.107  2003-09-03 15:55:01  peter
+    * NEWRA branch merged
+
+  Revision 1.106.2.3  2003/08/31 15:46:26  peter
+    * more updates for tregister
+
+  Revision 1.106.2.2  2003/08/29 17:28:59  peter
+    * next batch of updates
+
+  Revision 1.106.2.1  2003/08/28 18:35:08  peter
+    * tregister changed to cardinal
+
+  Revision 1.106  2003/07/08 21:24:59  peter
     * sparc fixes
 
   Revision 1.105  2003/06/17 16:34:44  jonas

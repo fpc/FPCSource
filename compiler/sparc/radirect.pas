@@ -46,7 +46,7 @@ interface
        scanner,
        rautils,
        { codegen }
-       cgbase,
+       cginfo,cgbase,
        { constants }
        aggas,cpubase,globtype
        ;
@@ -88,9 +88,8 @@ interface
           is_fpu(current_procinfo.procdef.rettype.def) then
          tvarsym(current_procinfo.procdef.funcretsym).varstate:=vs_assigned;
        framereg:=current_procinfo.framepointer;
-       convert_register_to_enum(framereg);
        if (not is_void(current_procinfo.procdef.rettype.def)) then
-         retstr:=upper(tostr(tvarsym(current_procinfo.procdef.funcretsym).adjusted_address)+'('+std_reg2str[framereg.enum]+')')
+         retstr:=upper(tostr(tvarsym(current_procinfo.procdef.funcretsym).adjusted_address)+'('+std_regname(framereg)+')')
        else
          retstr:='';
 
@@ -172,7 +171,7 @@ interface
                                             hs:=tvarsym(sym).mangledname
                                           else
                                             hs:='-'+tostr(tvarsym(sym).address)+
-                                                '('+std_reg2str[current_procinfo.framepointer.enum]+')';
+                                                '('+std_regname(current_procinfo.framepointer)+')';
                                           end
                                         else
                                         { call to local function }
@@ -195,7 +194,7 @@ interface
                                                   l:=tvarsym(sym).address;
                                                   { set offset }
                                                   inc(l,current_procinfo.procdef.parast.address_fixup);
-                                                  hs:=tostr(l)+'('+std_reg2str[current_procinfo.framepointer.enum]+')';
+                                                  hs:=tostr(l)+'('+std_regname(current_procinfo.framepointer)+')';
                                                   if pos(',',s) > 0 then
                                                     tvarsym(sym).varstate:=vs_used;
                                                end;
@@ -283,7 +282,7 @@ interface
                                                 varsym :
                                                   begin
                                                     hs:=tostr(tvarsym(sym).adjusted_address)+
-                                                        '('+std_reg2str[framereg.enum]+')';
+                                                        '('+std_regname(framereg)+')';
                                                     inc(tvarsym(sym).refs);
                                                   end;
                                                 typedconstsym :
@@ -340,7 +339,13 @@ initialization
 end.
 {
   $Log$
-  Revision 1.13  2003-08-11 09:15:53  mazen
+  Revision 1.14  2003-09-03 15:55:01  peter
+    * NEWRA branch merged
+
+  Revision 1.13.2.1  2003/09/01 21:02:55  peter
+    * sparc updates for new tregister
+
+  Revision 1.13  2003/08/11 09:15:53  mazen
   - removed uncommon file header!
 
   Revision 1.12  2003/06/13 21:19:32  peter

@@ -29,7 +29,7 @@ interface
        { common }
        cutils,
        { target }
-       cpuinfo,globtype,
+       cginfo,cpuinfo,globtype,
        { symtable }
        symconst,symbase,symtype,symdef,
        { ppu }
@@ -1666,8 +1666,7 @@ implementation
       begin
          inherited loadsym(ppufile);
          typ:=varsym;
-         reg.enum:=R_INTREGISTER;
-         reg.number:=NR_NO;
+         reg:=NR_NO;
          refs := 0;
          varstate:=vs_used;
          varspez:=tvarspez(ppufile.getbyte);
@@ -1814,6 +1813,7 @@ implementation
      var
        st : string;
        threadvaroffset : string;
+       regidx : tregisterindex;
      begin
        st:=tstoreddef(vartype.def).numberstring;
       if (vo_is_thread_var in varoptions) then
@@ -1865,15 +1865,14 @@ implementation
                   so some optimizing will make things harder to debug }
          end
        else if (owner.symtabletype in [localsymtable,inlinelocalsymtable]) then
-         if reg.enum<>R_NO then
+         if reg<>NR_NO then
            begin
-              if reg.enum>lastreg then
-                internalerror(200201081);
+              regidx:=findreg_by_number(reg);
               { "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi", "eip", "ps", "cs", "ss", "ds", "es", "fs", "gs", }
               { this is the register order for GDB}
               stabstring:=strpnew('"'+name+':r'+st+'",'+
                         tostr(N_RSYM)+',0,'+
-                        tostr(fileinfo.line)+','+tostr(stab_regindex[reg.enum]));
+                        tostr(fileinfo.line)+','+tostr(regstabs_table[regidx]));
            end
          else
            { I don't know if this will work (PM) }
@@ -1889,7 +1888,7 @@ implementation
 
     procedure tvarsym.concatstabto(asmlist : taasmoutput);
       var
-        tempreg: tregister;
+        regidx : tregisterindex;
         stab_str : pchar;
         c : char;
       begin
@@ -1917,23 +1916,15 @@ implementation
                end;
            end
          else
-           if (reg.enum<>R_NO) then
+           if (reg<>NR_NO) then
              begin
-                if reg.enum = R_INTREGISTER then
-                  begin
-                    tempreg := reg;
-                    convert_register_to_enum(tempreg);
-                  end
-                else
-                  tempreg := reg;
-                if tempreg.enum>lastreg then
-                  internalerror(2003010801);
+                regidx:=findreg_by_number(reg);
                 { "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi", "eip", "ps", "cs", "ss", "ds", "es", "fs", "gs", }
                 { this is the register order for GDB}
                 stab_str:=strpnew('"'+name+':r'
                        +tstoreddef(vartype.def).numberstring+'",'+
                        tostr(N_RSYM)+',0,'+
-                       tostr(fileinfo.line)+','+tostr(stab_regindex[tempreg.enum]));
+                       tostr(fileinfo.line)+','+tostr(regstabs_table[regidx]));
                 asmList.concat(Tai_stabs.Create(stab_str));
              end
          else
@@ -1957,7 +1948,7 @@ implementation
               include(varoptions,vo_fpuregable)
             else
               exclude(varoptions,vo_fpuregable);
-            reg.enum:=R_NO;
+            reg:=NR_NO;
           end;
       end;
 
@@ -2669,12 +2660,21 @@ implementation
 end.
 {
   $Log$
-  Revision 1.114  2003-09-03 11:18:37  florian
+  Revision 1.115  2003-09-03 15:55:01  peter
+    * NEWRA branch merged
+
+  Revision 1.114  2003/09/03 11:18:37  florian
     * fixed arm concatcopy
     + arm support in the common compiler sources added
     * moved some generic cg code around
     + tfputype added
     * ...
+
+  Revision 1.113.2.2  2003/08/29 17:28:59  peter
+    * next batch of updates
+
+  Revision 1.113.2.1  2003/08/27 19:55:54  peter
+    * first tregister patch
 
   Revision 1.113  2003/08/20 20:29:06  daniel
     * Some more R_NO changes

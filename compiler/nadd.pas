@@ -26,10 +26,6 @@ unit nadd;
 
 { define addstringopt}
 
-{$ifdef callparatemp}
-  {$undef addstringopt}
-{$endif}
-
 interface
 
     uses
@@ -547,124 +543,48 @@ implementation
                  left:=nil;
                  exit;
                end;
-{$ifdef oldset}
-          case nodetype of
-        addn :
-           begin
-              for i:=0 to 31 do
-                resultset[i]:=tsetconstnode(right).value_set^[i] or tsetconstnode(left).value_set^[i];
-              t:=csetconstnode.create(@resultset,left.resulttype);
-           end;
-        muln :
-           begin
-              for i:=0 to 31 do
-                resultset[i]:=tsetconstnode(right).value_set^[i] and tsetconstnode(left).value_set^[i];
-              t:=csetconstnode.create(@resultset,left.resulttype);
-           end;
-        subn :
-           begin
-              for i:=0 to 31 do
-                resultset[i]:=tsetconstnode(left).value_set^[i] and not(tsetconstnode(right).value_set^[i]);
-              t:=csetconstnode.create(@resultset,left.resulttype);
-           end;
-        symdifn :
-           begin
-              for i:=0 to 31 do
-                resultset[i]:=tsetconstnode(left).value_set^[i] xor tsetconstnode(right).value_set^[i];
-              t:=csetconstnode.create(@resultset,left.resulttype);
-           end;
-        unequaln :
-           begin
-              b:=true;
-              for i:=0 to 31 do
-               if tsetconstnode(right).value_set^[i]=tsetconstnode(left).value_set^[i] then
-                begin
-                  b:=false;
-                  break;
-                end;
-              t:=cordconstnode.create(ord(b),booltype,true);
-           end;
-        equaln :
-           begin
-              b:=true;
-              for i:=0 to 31 do
-               if tsetconstnode(right).value_set^[i]<>tsetconstnode(left).value_set^[i] then
-                begin
-                  b:=false;
-                  break;
-                end;
-              t:=cordconstnode.create(ord(b),booltype,true);
-           end;
-        lten :
-           begin
-             b := true;
-             for i := 0 to 31 Do
-               if (tsetconstnode(right).value_set^[i] And tsetconstnode(left).value_set^[i]) <>
-                   tsetconstnode(left).value_set^[i] Then
-                 begin
-                   b := false;
-                   break
-                 end;
-             t := cordconstnode.create(ord(b),booltype,true);
-           end;
-            gten :
+              case nodetype of
+                addn :
+                  begin
+                       resultset:=tsetconstnode(right).value_set^ + tsetconstnode(left).value_set^;
+                             t:=csetconstnode.create(@resultset,left.resulttype);
+                  end;
+                 muln :
                    begin
-                    b := true;
-                    for i := 0 to 31 Do
-                       If (tsetconstnode(left).value_set^[i] And tsetconstnode(right).value_set^[i]) <>
-                       tsetconstnode(right).value_set^[i] Then
-                         begin
-                          b := false;
-                          break
-                         end;
-                     t := cordconstnode.create(ord(b),booltype,true);
+                 resultset:=tsetconstnode(right).value_set^ * tsetconstnode(left).value_set^;
+                             t:=csetconstnode.create(@resultset,left.resulttype);
+                   end;
+                subn :
+                   begin
+                     resultset:=tsetconstnode(left).value_set^ - tsetconstnode(right).value_set^;
+                             t:=csetconstnode.create(@resultset,left.resulttype);
+                   end;
+                symdifn :
+                   begin
+                     resultset:=tsetconstnode(right).value_set^ >< tsetconstnode(left).value_set^;
+                         t:=csetconstnode.create(@resultset,left.resulttype);
+                   end;
+                unequaln :
+                   begin
+                     b:=tsetconstnode(right).value_set^ <> tsetconstnode(left).value_set^;
+                     t:=cordconstnode.create(byte(b),booltype,true);
+                   end;
+                equaln :
+                   begin
+                     b:=tsetconstnode(right).value_set^ = tsetconstnode(left).value_set^;
+                     t:=cordconstnode.create(byte(b),booltype,true);
+                   end;
+                lten :
+                   begin
+                     b:=tsetconstnode(left).value_set^ <= tsetconstnode(right).value_set^;
+                     t:=cordconstnode.create(byte(b),booltype,true);
+                   end;
+                gten :
+                   begin
+                     b:=tsetconstnode(left).value_set^ >= tsetconstnode(right).value_set^;
+                     t:=cordconstnode.create(byte(b),booltype,true);
                    end;
               end;
-
-{$else}
-           case nodetype of
-           addn :
-             begin
-                  resultset:=tsetconstnode(right).value_set^ + tsetconstnode(left).value_set^;
-                        t:=csetconstnode.create(@resultset,left.resulttype);
-             end;
-            muln :
-              begin
-            resultset:=tsetconstnode(right).value_set^ * tsetconstnode(left).value_set^;
-                        t:=csetconstnode.create(@resultset,left.resulttype);
-              end;
-           subn :
-              begin
-                resultset:=tsetconstnode(left).value_set^ - tsetconstnode(right).value_set^;
-                        t:=csetconstnode.create(@resultset,left.resulttype);
-              end;
-           symdifn :
-              begin
-                resultset:=tsetconstnode(right).value_set^ >< tsetconstnode(left).value_set^;
-                    t:=csetconstnode.create(@resultset,left.resulttype);
-              end;
-           unequaln :
-              begin
-                b:=tsetconstnode(right).value_set^ <> tsetconstnode(left).value_set^;
-                t:=cordconstnode.create(byte(b),booltype,true);
-              end;
-           equaln :
-              begin
-                b:=tsetconstnode(right).value_set^ = tsetconstnode(left).value_set^;
-                t:=cordconstnode.create(byte(b),booltype,true);
-              end;
-           lten :
-              begin
-                b:=tsetconstnode(left).value_set^ <= tsetconstnode(right).value_set^;
-                t:=cordconstnode.create(byte(b),booltype,true);
-              end;
-           gten :
-              begin
-                b:=tsetconstnode(left).value_set^ >= tsetconstnode(right).value_set^;
-                t:=cordconstnode.create(byte(b),booltype,true);
-              end;
-           end;
-{$endif}
               result:=t;
               exit;
            end;
@@ -1953,7 +1873,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.93  2003-06-05 20:05:55  peter
+  Revision 1.94  2003-09-03 15:55:00  peter
+    * NEWRA branch merged
+
+  Revision 1.93.2.1  2003/08/31 21:07:44  daniel
+    * callparatemp ripped
+
+  Revision 1.93  2003/06/05 20:05:55  peter
     * removed changesettype because that will change the definition
       of the setdef forever and can result in a different between
       original interface and current implementation definition

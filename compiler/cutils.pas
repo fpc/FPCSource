@@ -363,12 +363,18 @@ uses
     {
       return string of value i, but for cardinals
     }
-       var
-         hs : string;
-       begin
-         str(i,hs);
-         tostru:=hs;
-       end;
+      begin
+        str(i,result);
+      end;
+
+
+   function tostr(i : longint) : string;
+   {
+     return string of value i
+   }
+     begin
+       str(i,result);
+     end;
 
 
     function DStr(l:longint):string;
@@ -493,15 +499,6 @@ uses
             end;
          end;
       end;
-
-
-   function tostr(i : longint) : string;
-   {
-     return string of value i
-   }
-     begin
-        str(i,result);
-     end;
 
 
    function realtostr(e:extended):string;
@@ -866,7 +863,16 @@ initialization
 end.
 {
   $Log$
-  Revision 1.27  2003-07-05 20:06:28  jonas
+  Revision 1.28  2003-09-03 15:55:00  peter
+    * NEWRA branch merged
+
+  Revision 1.27.2.2  2003/08/29 17:28:59  peter
+    * next batch of updates
+
+  Revision 1.27.2.1  2003/08/29 09:41:25  daniel
+    * Further mkx86reg development
+
+  Revision 1.27  2003/07/05 20:06:28  jonas
     * fixed some range check errors that occurred on big endian systems
     * slightly optimized the swap*() functions
 

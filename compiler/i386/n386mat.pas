@@ -71,14 +71,12 @@ implementation
                              TI386MODDIVNODE
 *****************************************************************************}
 
-{$ifdef newra}
     procedure ti386moddivnode.pass_2;
 
-    var  r,r2,hreg1,hreg2:Tregister;
+    var  hreg1,hreg2:Tregister;
          power:longint;
          hl:Tasmlabel;
          op:Tasmop;
-         pushedregs:Tmaybesave;
 
     begin
       secondpass(left);
@@ -146,15 +144,11 @@ implementation
           {Bring denominator to a register.}
           rg.ungetregisterint(exprasmlist,hreg1);
           rg.getexplicitregisterint(exprasmlist,NR_EAX);
-          r.enum:=R_INTREGISTER;
-          r.number:=NR_EAX;
-          r2.enum:=R_INTREGISTER;
-          r2.number:=NR_EDX;
-          emit_reg_reg(A_MOV,S_L,hreg1,r);
+          emit_reg_reg(A_MOV,S_L,hreg1,NR_EAX);
           rg.getexplicitregisterint(exprasmlist,NR_EDX);
           {Sign extension depends on the left type.}
           if torddef(left.resulttype.def).typ=u32bit then
-            emit_reg_reg(A_XOR,S_L,r2,r2)
+            emit_reg_reg(A_XOR,S_L,NR_EDX,NR_EDX)
           else
             emit_none(A_CDQ,S_NO);
 
@@ -180,239 +174,20 @@ implementation
           {Copy the result into a new register. Release EAX & EDX.}
           if nodetype=divn then
             begin
-              rg.ungetregisterint(exprasmlist,r2);
-              rg.ungetregisterint(exprasmlist,r);
+              rg.ungetregisterint(exprasmlist,NR_EDX);
+              rg.ungetregisterint(exprasmlist,NR_EAX);
               location.register:=rg.getregisterint(exprasmlist,OS_INT);
-              emit_reg_reg(A_MOV,S_L,r,location.register);
+              emit_reg_reg(A_MOV,S_L,NR_EAX,location.register);
             end
           else
             begin
-              rg.ungetregisterint(exprasmlist,r);
-              rg.ungetregisterint(exprasmlist,r2);
+              rg.ungetregisterint(exprasmlist,NR_EAX);
+              rg.ungetregisterint(exprasmlist,NR_EDX);
               location.register:=rg.getregisterint(exprasmlist,OS_INT);
-              emit_reg_reg(A_MOV,S_L,r2,location.register);
+              emit_reg_reg(A_MOV,S_L,NR_EDX,location.register);
             end;
         end;
     end;
-{$else}
-    procedure ti386moddivnode.pass_2;
-      var
-         hreg1 : tregister;
-         hreg2 : tregister;
-         r,r2  : Tregister;
-         shrdiv,popeax,popedx : boolean;
-         power : longint;
-         hl : tasmlabel;
-         pushedregs : tmaybesave;
-      begin
-         shrdiv := false;
-         secondpass(left);
-         if codegenerror then
-          exit;
-         maybe_save(exprasmlist,right.registers32,left.location,pushedregs);
-         secondpass(right);
-         maybe_restore(exprasmlist,left.location,pushedregs);
-         if codegenerror then
-          exit;
-         location_copy(location,left.location);
-
-         if is_64bitint(resulttype.def) then
-           begin
-             { should be handled in pass_1 (JM) }
-             internalerror(200109052);
-           end
-         else
-           begin
-              { put numerator in register }
-              location_force_reg(exprasmlist,left.location,OS_INT,false);
-              hreg1:=left.location.register;
-              if hreg1.enum<>R_INTREGISTER then
-                internalerror(200302042);
-
-              if (nodetype=divn) and (right.nodetype=ordconstn) and
-                 ispowerof2(tordconstnode(right).value,power) then
-                begin
-                  shrdiv := true;
-                  { for signed numbers, the numerator must be adjusted before the
-                    shift instruction, but not wih unsigned numbers! Otherwise,
-                    "Cardinal($ffffffff) div 16" overflows! (JM) }
-                  if is_signed(left.resulttype.def) Then
-                    begin
-                      if (aktOptProcessor <> class386) and
-                         not(CS_LittleSize in aktglobalswitches) then
-                         { use a sequence without jumps, saw this in
-                           comp.compilers (JM) }
-                        begin
-                          { no jumps, but more operations }
-                          if (hreg1.number = NR_EAX) and
-                             (RS_EDX in rg.unusedregsint) then
-                            begin
-                              hreg2 := rg.getexplicitregisterint(exprasmlist,NR_EDX);
-                              emit_none(A_CDQ,S_NO);
-                            end
-                          else
-                            begin
-                              rg.getexplicitregisterint(exprasmlist,NR_EDI);
-                              hreg2.enum := R_INTREGISTER;
-                              hreg2.number := NR_EDI;
-                              emit_reg_reg(A_MOV,S_L,hreg1,hreg2);
-                              { if the left value is signed, R_EDI := $ffffffff,
-                                otherwise 0 }
-                              emit_const_reg(A_SAR,S_L,31,hreg2);
-                              { if signed, R_EDI := right value-1, otherwise 0 }
-                            end;
-                          emit_const_reg(A_AND,S_L,tordconstnode(right).value-1,hreg2);
-                          { add to the left value }
-                          emit_reg_reg(A_ADD,S_L,hreg2,hreg1);
-                          { release EDX if we used it }
-                          { also releas EDI }
-                          rg.ungetregisterint(exprasmlist,hreg2);
-                          { do the shift }
-                          emit_const_reg(A_SAR,S_L,power,hreg1);
-                        end
-                      else
-                        begin
-                          { a jump, but less operations }
-                          emit_reg_reg(A_TEST,S_L,hreg1,hreg1);
-                          objectlibrary.getlabel(hl);
-                          emitjmp(C_NS,hl);
-                          if power=1 then
-                            emit_reg(A_INC,S_L,hreg1)
-                          else
-                            emit_const_reg(A_ADD,S_L,tordconstnode(right).value-1,hreg1);
-                          cg.a_label(exprasmlist,hl);
-                          emit_const_reg(A_SAR,S_L,power,hreg1);
-                        end
-                    end
-                  else
-                    emit_const_reg(A_SHR,S_L,power,hreg1);
-                end
-              else
-                begin
-                  { bring denominator to EDI }
-                  { EDI is always free, it's }
-                  { only used for temporary  }
-                  { purposes              }
-                  rg.getexplicitregisterint(exprasmlist,NR_EDI);
-                  if right.location.loc<>LOC_CREGISTER then
-                   location_release(exprasmlist,right.location);
-                  r.enum:=R_INTREGISTER;
-                  r.number:=NR_EDI;
-                  cg.a_load_loc_reg(exprasmlist,OS_INT,right.location,r);
-                  popedx:=false;
-                  popeax:=false;
-                  r.number:=NR_EAX;
-                  r2.enum:=R_INTREGISTER;
-                  r2.number:=NR_EDX;
-                  if hreg1.number=NR_EDX then
-                    begin
-                      if not(RS_EAX in rg.unusedregsint) then
-                         begin
-                            emit_reg(A_PUSH,S_L,r);
-                            popeax:=true;
-                         end
-                       else
-                         rg.getexplicitregisterint(exprasmlist,NR_EAX);
-                      emit_reg_reg(A_MOV,S_L,r2,r);
-                    end
-                  else
-                    begin
-                       if not(RS_EDX in rg.unusedregsint) then
-                         begin
-                            emit_reg(A_PUSH,S_L,r2);
-                            popedx:=true;
-                         end
-                       else
-                         rg.getexplicitregisterint(exprasmlist,NR_EDX);
-                       if hreg1.number<>NR_EAX then
-                         begin
-                            if not(RS_EAX in rg.unusedregsint) then
-                              begin
-                                 emit_reg(A_PUSH,S_L,r);
-                                 popeax:=true;
-                              end
-                            else
-                              rg.getexplicitregisterint(exprasmlist,NR_EAX);
-                            emit_reg_reg(A_MOV,S_L,hreg1,r);
-                         end;
-                    end;
-                  { sign extension depends on the left type }
-                  if torddef(left.resulttype.def).typ=u32bit then
-                     emit_reg_reg(A_XOR,S_L,r2,r2)
-                  else
-                     emit_none(A_CDQ,S_NO);
-
-                  { division depends on the right type }
-                  r.enum:=R_INTREGISTER;
-                  r.number:=NR_EDI;
-                  if torddef(right.resulttype.def).typ=u32bit then
-                    emit_reg(A_DIV,S_L,r)
-                  else
-                    emit_reg(A_IDIV,S_L,r);
-                  rg.ungetregisterint(exprasmlist,r);
-                  r.enum:=R_INTREGISTER;
-                  r.number:=NR_EAX;
-                  if nodetype=divn then
-                    begin
-                       if not popedx and (hreg1.number <> NR_EDX) then
-                        begin
-                           r2.enum:=R_INTREGISTER;
-                           r2.number:=NR_EDX;
-                           rg.ungetregisterint(exprasmlist,r2);
-                        end;
-                       { if result register is busy then copy }
-                       if popeax then
-                         begin
-                            if hreg1.number=NR_EAX then
-                              internalerror(112);
-                            emit_reg_reg(A_MOV,S_L,r,hreg1)
-                         end
-                       else
-                         if hreg1.number<>NR_EAX then
-                           begin
-                             rg.ungetregisterint(exprasmlist,hreg1);
-                             { no need to allocate eax, that's already done before }
-                             { the div (JM)                                        }
-                             hreg1.number:=NR_EAX;
-                           end;
-                    end
-                  else
-                    begin
-                      if not popeax and (hreg1.number <> NR_EAX)then
-                        begin
-                          r.number:=NR_EAX;
-                          rg.ungetregisterint(exprasmlist,r);
-                        end;
-                      if popedx then
-                       {the mod was done by an (i)div (so the result is now in
-                        edx), but edx was occupied prior to the division, so
-                        move the result into a safe place (JM)}
-                        emit_reg_reg(A_MOV,S_L,r2,hreg1)
-                      else
-                        begin
-                          if hreg1.number <> NR_EDX then
-                            rg.ungetregisterint(exprasmlist,hreg1);
-                          hreg1.number:=NR_EDX
-                        end;
-                    end;
-                  if popeax then
-                    emit_reg(A_POP,S_L,r);
-                  if popedx then
-                    emit_reg(A_POP,S_L,r2);
-                end;
-              If not(shrdiv) then
-               { shrdiv only use hreg1 (which is already in usedinproc,   }
-               { since it was acquired with getregister), the others also }
-               { use both EAX and EDX (JM)                                }
-                begin
-                  include(rg.used_in_proc_int,RS_EAX);
-                  include(rg.used_in_proc_int,RS_EDX);
-                end;
-              location_reset(location,LOC_REGISTER,OS_INT);
-              location.register:=hreg1;
-           end;
-      end;
-{$endif}
 
 
 {*****************************************************************************
@@ -426,14 +201,11 @@ implementation
       result := nil;
     end;
 
-{$ifdef newra}
     procedure ti386shlshrnode.pass_2;
 
     var hregister2,hregisterhigh,hregisterlow:Tregister;
-        r,r2:Tregister;
         op:Tasmop;
         l1,l2,l3:Tasmlabel;
-        pushedregs:Tmaybesave;
 
     begin
       secondpass(left);
@@ -508,10 +280,6 @@ implementation
               { left operator is already in a register }
               { hence are both in a register }
               { is it in the case ECX ? }
-              r.enum:=R_INTREGISTER;
-              r.number:=NR_ECX;
-              r2.enum:=R_INTREGISTER;
-              r2.number:=NR_CL;
 
               { the damned shift instructions work only til a count of 32 }
               { so we've to do some tricks here                           }
@@ -529,23 +297,23 @@ implementation
               emit_const_reg(A_SUB,S_L,32,hregister2);
               if nodetype=shln then
                 begin
-                  emit_reg_reg(A_SHL,S_L,r2,hregisterlow);
+                  emit_reg_reg(A_SHL,S_L,NR_CL,hregisterlow);
                   emit_reg_reg(A_MOV,S_L,hregisterlow,hregisterhigh);
                   emit_reg_reg(A_XOR,S_L,hregisterlow,hregisterlow);
                   cg.a_jmp_always(exprasmlist,l3);
                   cg.a_label(exprasmlist,l2);
-                  emit_reg_reg_reg(A_SHLD,S_L,r2,hregisterlow,hregisterhigh);
-                  emit_reg_reg(A_SHL,S_L,r2,hregisterlow);
+                  emit_reg_reg_reg(A_SHLD,S_L,NR_CL,hregisterlow,hregisterhigh);
+                  emit_reg_reg(A_SHL,S_L,NR_CL,hregisterlow);
                 end
               else
                 begin
-                  emit_reg_reg(A_SHR,S_L,r2,hregisterhigh);
+                  emit_reg_reg(A_SHR,S_L,NR_CL,hregisterhigh);
                   emit_reg_reg(A_MOV,S_L,hregisterhigh,hregisterlow);
                   emit_reg_reg(A_XOR,S_L,hregisterhigh,hregisterhigh);
                   cg.a_jmp_always(exprasmlist,l3);
                   cg.a_label(exprasmlist,l2);
-                  emit_reg_reg_reg(A_SHRD,S_L,r2,hregisterhigh,hregisterlow);
-                  emit_reg_reg(A_SHR,S_L,r2,hregisterhigh);
+                  emit_reg_reg_reg(A_SHRD,S_L,NR_CL,hregisterhigh,hregisterlow);
+                  emit_reg_reg(A_SHR,S_L,NR_CL,hregisterhigh);
                 end;
               cg.a_label(exprasmlist,l3);
 
@@ -560,9 +328,6 @@ implementation
           location_copy(location,left.location);
           location_force_reg(exprasmlist,location,OS_INT,false);
 
-          r2.enum:=R_INTREGISTER;
-          r2.number:=NR_CL;
-
           { shifting by a constant directly coded: }
           if (right.nodetype=ordconstn) then
             { l shl 32 should 0 imho, but neither TP nor Delphi do it in this way (FK)}
@@ -576,290 +341,11 @@ implementation
               cg.a_load_loc_reg(exprasmlist,OS_32,right.location,hregister2);
 
               { right operand is in ECX }
-              emit_reg_reg(op,S_L,r2,location.register);
+              emit_reg_reg(op,S_L,NR_CL,location.register);
               rg.ungetregisterint(exprasmlist,hregister2);
             end;
         end;
     end;
-{$else}
-    procedure ti386shlshrnode.pass_2;
-      var
-         hregister2,hregister3,
-         hregisterhigh,hregisterlow : tregister;
-         popecx : boolean;
-         op : tasmop;
-         l1,l2,l3 : tasmlabel;
-         pushedregs : tmaybesave;
-         r,r2:Tregister;
-      begin
-         popecx:=false;
-
-         secondpass(left);
-         maybe_save(exprasmlist,right.registers32,left.location,pushedregs);
-         secondpass(right);
-         maybe_restore(exprasmlist,left.location,pushedregs);
-
-         { determine operator }
-         case nodetype of
-           shln: op:=A_SHL;
-           shrn: op:=A_SHR;
-         end;
-
-         if is_64bitint(left.resulttype.def) then
-           begin
-              location_reset(location,LOC_REGISTER,OS_64);
-
-              { load left operator in a register }
-              location_force_reg(exprasmlist,left.location,OS_64,false);
-              hregisterhigh:=left.location.registerhigh;
-              hregisterlow:=left.location.registerlow;
-              if hregisterhigh.enum<>R_INTREGISTER then
-                internalerror(200302056);
-              if hregisterlow.enum<>R_INTREGISTER then
-                internalerror(200302056);
-
-              { shifting by a constant directly coded: }
-              if (right.nodetype=ordconstn) then
-                begin
-                   { shrd/shl works only for values <=31 !! }
-                   if tordconstnode(right).value>31 then
-                     begin
-                        if nodetype=shln then
-                          begin
-                             emit_reg_reg(A_XOR,S_L,hregisterhigh,
-                               hregisterhigh);
-                             if ((tordconstnode(right).value and 31) <> 0) then
-                               emit_const_reg(A_SHL,S_L,tordconstnode(right).value and 31,
-                                 hregisterlow);
-                          end
-                        else
-                          begin
-                             emit_reg_reg(A_XOR,S_L,hregisterlow,
-                               hregisterlow);
-                             if ((tordconstnode(right).value and 31) <> 0) then
-                               emit_const_reg(A_SHR,S_L,tordconstnode(right).value and 31,
-                                 hregisterhigh);
-                          end;
-                        location.registerhigh:=hregisterlow;
-                        location.registerlow:=hregisterhigh;
-                     end
-                   else
-                     begin
-                        if nodetype=shln then
-                          begin
-                             emit_const_reg_reg(A_SHLD,S_L,tordconstnode(right).value and 31,
-                               hregisterlow,hregisterhigh);
-                             emit_const_reg(A_SHL,S_L,tordconstnode(right).value and 31,
-                               hregisterlow);
-                          end
-                        else
-                          begin
-                             emit_const_reg_reg(A_SHRD,S_L,tordconstnode(right).value and 31,
-                               hregisterhigh,hregisterlow);
-                             emit_const_reg(A_SHR,S_L,tordconstnode(right).value and 31,
-                               hregisterhigh);
-                          end;
-                        location.registerlow:=hregisterlow;
-                        location.registerhigh:=hregisterhigh;
-                     end;
-                end
-              else
-                begin
-                   { load right operators in a register }
-                   if right.location.loc<>LOC_REGISTER then
-                     begin
-                       if right.location.loc<>LOC_CREGISTER then
-                        location_release(exprasmlist,right.location);
-                       if (RS_ECX in rg.unusedregsint) then
-                        hregister2:=rg.getexplicitregisterint(exprasmlist,NR_ECX)
-                       else
-                        hregister2:=rg.getregisterint(exprasmlist,OS_INT);
-                       cg.a_load_loc_reg(exprasmlist,OS_INT,right.location,hregister2);
-                     end
-                   else
-                     hregister2:=right.location.register;
-
-                   { left operator is already in a register }
-                   { hence are both in a register }
-                   { is it in the case ECX ? }
-                   r.enum:=R_INTREGISTER;
-                   r.number:=NR_ECX;
-                   r2.enum:=R_INTREGISTER;
-                   r2.number:=NR_CL;
-                   if (hregisterlow.number=NR_ECX) then
-                     begin
-                        { then only swap }
-                        emit_reg_reg(A_XCHG,S_L,hregisterlow,hregister2);
-                        hregister3:=hregisterlow;
-                        hregisterlow:=hregister2;
-                        hregister2:=hregister3;
-                     end
-                   else if (hregisterhigh.number=NR_ECX) then
-                     begin
-                        { then only swap }
-                        emit_reg_reg(A_XCHG,S_L,hregisterhigh,hregister2);
-                        hregister3:=hregisterhigh;
-                        hregisterhigh:=hregister2;
-                        hregister2:=hregister3;
-                     end
-
-                   { if second operator not in ECX ? }
-                   else if (hregister2.number<>NR_ECX) then
-                     begin
-                        { ECX occupied then push it }
-                        if not (RS_ECX in rg.unusedregsint) then
-                         begin
-                           popecx:=true;
-                           emit_reg(A_PUSH,S_L,r);
-                         end
-                        else
-                          rg.getexplicitregisterint(exprasmlist,NR_ECX);
-                        emit_reg_reg(A_MOV,S_L,hregister2,r);
-                     end;
-
-                   if hregister2.number <> NR_ECX then
-                     rg.ungetregisterint(exprasmlist,hregister2);
-
-                   { the damned shift instructions work only til a count of 32 }
-                   { so we've to do some tricks here                           }
-                   if nodetype=shln then
-                     begin
-                        objectlibrary.getlabel(l1);
-                        objectlibrary.getlabel(l2);
-                        objectlibrary.getlabel(l3);
-                        emit_const_reg(A_CMP,S_L,64,r);
-                        emitjmp(C_L,l1);
-                        emit_reg_reg(A_XOR,S_L,hregisterlow,hregisterlow);
-                        emit_reg_reg(A_XOR,S_L,hregisterhigh,hregisterhigh);
-                        cg.a_jmp_always(exprasmlist,l3);
-                        cg.a_label(exprasmlist,l1);
-                        emit_const_reg(A_CMP,S_L,32,r);
-                        emitjmp(C_L,l2);
-                        emit_const_reg(A_SUB,S_L,32,r);
-                        emit_reg_reg(A_SHL,S_L,r2,
-                          hregisterlow);
-                        emit_reg_reg(A_MOV,S_L,hregisterlow,hregisterhigh);
-                        emit_reg_reg(A_XOR,S_L,hregisterlow,hregisterlow);
-                        cg.a_jmp_always(exprasmlist,l3);
-                        cg.a_label(exprasmlist,l2);
-                        emit_reg_reg_reg(A_SHLD,S_L,r2,
-                          hregisterlow,hregisterhigh);
-                        emit_reg_reg(A_SHL,S_L,r2,
-                          hregisterlow);
-                        cg.a_label(exprasmlist,l3);
-                     end
-                   else
-                     begin
-                        objectlibrary.getlabel(l1);
-                        objectlibrary.getlabel(l2);
-                        objectlibrary.getlabel(l3);
-                        emit_const_reg(A_CMP,S_L,64,r);
-                        emitjmp(C_L,l1);
-                        emit_reg_reg(A_XOR,S_L,hregisterlow,hregisterlow);
-                        emit_reg_reg(A_XOR,S_L,hregisterhigh,hregisterhigh);
-                        cg.a_jmp_always(exprasmlist,l3);
-                        cg.a_label(exprasmlist,l1);
-                        emit_const_reg(A_CMP,S_L,32,r);
-                        emitjmp(C_L,l2);
-                        emit_const_reg(A_SUB,S_L,32,r);
-                        emit_reg_reg(A_SHR,S_L,r2,
-                          hregisterhigh);
-                        emit_reg_reg(A_MOV,S_L,hregisterhigh,hregisterlow);
-                        emit_reg_reg(A_XOR,S_L,hregisterhigh,hregisterhigh);
-                        cg.a_jmp_always(exprasmlist,l3);
-                        cg.a_label(exprasmlist,l2);
-                        emit_reg_reg_reg(A_SHRD,S_L,r2,
-                          hregisterhigh,hregisterlow);
-                        emit_reg_reg(A_SHR,S_L,r2,
-                          hregisterhigh);
-                        cg.a_label(exprasmlist,l3);
-
-                     end;
-
-                   { maybe put ECX back }
-                   if popecx then
-                     emit_reg(A_POP,S_L,r)
-                   else
-                     rg.ungetregisterint(exprasmlist,r);
-
-                   location.registerlow:=hregisterlow;
-                   location.registerhigh:=hregisterhigh;
-                end;
-           end
-         else
-           begin
-              { load left operators in a register }
-              location_copy(location,left.location);
-              location_force_reg(exprasmlist,location,OS_INT,false);
-
-              r.enum:=R_INTREGISTER;
-              r.number:=NR_ECX;
-              r2.enum:=R_INTREGISTER;
-              r2.number:=NR_CL;
-
-              { shifting by a constant directly coded: }
-              if (right.nodetype=ordconstn) then
-                begin
-                   { l shl 32 should 0 imho, but neither TP nor Delphi do it in this way (FK)
-                   if right.value<=31 then
-                   }
-                   emit_const_reg(op,S_L,tordconstnode(right).value and 31,
-                     location.register);
-                   {
-                   else
-                     emit_reg_reg(A_XOR,S_L,hregister1,
-                       hregister1);
-                   }
-                end
-              else
-                begin
-                   { load right operators in a register }
-                   if right.location.loc<>LOC_REGISTER then
-                     begin
-                       if right.location.loc<>LOC_CREGISTER then
-                        location_release(exprasmlist,right.location);
-                       hregister2:=rg.getexplicitregisterint(exprasmlist,NR_ECX);
-                       cg.a_load_loc_reg(exprasmlist,OS_INT,right.location,hregister2);
-                     end
-                   else
-                     hregister2:=right.location.register;
-
-                   { left operator is already in a register }
-                   { hence are both in a register }
-                   { is it in the case ECX ? }
-                   if (location.register.number=NR_ECX) then
-                     begin
-                        { then only swap }
-                        emit_reg_reg(A_XCHG,S_L,location.register,hregister2);
-                        hregister3:=location.register;
-                        location.register:=hregister2;
-                        hregister2:=hregister3;
-                     end
-                   { if second operator not in ECX ? }
-                   else if (hregister2.number<>NR_ECX) then
-                     begin
-                        { ECX occupied then push it }
-                        if not (RS_ECX in rg.unusedregsint) then
-                         begin
-                           popecx:=true;
-                           emit_reg(A_PUSH,S_L,r);
-                         end
-                        else
-                          rg.getexplicitregisterint(exprasmlist,NR_ECX);
-                        emit_reg_reg(A_MOV,S_L,hregister2,r);
-                     end;
-                   rg.ungetregisterint(exprasmlist,hregister2);
-                   { right operand is in ECX }
-                   emit_reg_reg(op,S_L,r2,location.register);
-                   { maybe ECX back }
-                   if popecx then
-                     emit_reg(A_POP,S_L,r)
-                   else
-                     rg.ungetregisterint(exprasmlist,r);
-                end;
-           end;
-      end;
-{$endif}
 
 
 {*****************************************************************************
@@ -900,7 +386,6 @@ implementation
 {$ifdef SUPPORT_MMX}
     procedure ti386unaryminusnode.second_mmx;
       var
-        r : Tregister;
         op : tasmop;
       begin
         secondpass(left);
@@ -909,23 +394,20 @@ implementation
           LOC_MMXREGISTER:
             begin
                location.register:=left.location.register;
-               r.enum:=R_MM7;
-               emit_reg_reg(A_PXOR,S_NO,r,r);
+               emit_reg_reg(A_PXOR,S_NO,NR_MM7,NR_MM7);
             end;
           LOC_CMMXREGISTER:
             begin
                location.register:=rg.getregistermm(exprasmlist);
-               r.enum:=R_MM7;
-               emit_reg_reg(A_PXOR,S_NO,r,r);
+               emit_reg_reg(A_PXOR,S_NO,NR_MM7,NR_MM7);
                emit_reg_reg(A_MOVQ,S_NO,left.location.register,location.register);
             end;
           LOC_REFERENCE,
           LOC_CREFERENCE:
             begin
                reference_release(exprasmlist,left.location.reference);
-               r.enum:=R_MM7;
                location.register:=rg.getregistermm(exprasmlist);
-               emit_reg_reg(A_PXOR,S_NO,r,r);
+               emit_reg_reg(A_PXOR,S_NO,NR_MM7,NR_MM7);
                emit_ref_reg(A_MOVQ,S_NO,left.location.reference,location.register);
             end;
           else
@@ -951,16 +433,13 @@ implementation
              mmxs32bit,mmxu32bit:
                op:=A_PSUBD;
           end;
-        r.enum:=R_MM7;
-        emit_reg_reg(op,S_NO,location.register,r);
-        emit_reg_reg(A_MOVQ,S_NO,r,location.register);
+        emit_reg_reg(op,S_NO,location.register,NR_MM7);
+        emit_reg_reg(A_MOVQ,S_NO,NR_MM7,location.register);
       end;
 {$endif SUPPORT_MMX}
 
 
     procedure ti386unaryminusnode.second_float;
-      var
-        r : tregister;
       begin
         secondpass(left);
         location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
@@ -969,7 +448,7 @@ implementation
           LOC_CREFERENCE:
             begin
               reference_release(exprasmlist,left.location.reference);
-              location.register.enum:=R_ST;
+              location.register:=NR_ST;
               cg.a_loadfpu_ref_reg(exprasmlist,
                  def_cgsize(left.resulttype.def),
                  left.location.reference,location.register);
@@ -979,9 +458,8 @@ implementation
           LOC_CFPUREGISTER:
             begin
                { "load st,st" is ignored by the code generator }
-               r.enum:=R_ST;
-               cg.a_loadfpu_reg_reg(exprasmlist,left.location.size,left.location.register,r);
-               location.register.enum:=R_ST;
+               cg.a_loadfpu_reg_reg(exprasmlist,left.location.size,left.location.register,NR_ST);
+               location.register:=NR_ST;
                emit_none(A_FCHS,S_NO);
             end;
         end;
@@ -1046,44 +524,41 @@ implementation
 
 {$ifdef SUPPORT_MMX}
     procedure ti386notnode.second_mmx;
-      var
-         r,r2 : tregister;
-      begin
-        secondpass(left);
-        location_reset(location,LOC_MMXREGISTER,OS_NO);
-        { prepare EDI }
-        r.enum:=R_INTREGISTER;
-        r.number:=NR_EDI;
-        r2.enum:=R_MM7;
-        rg.getexplicitregisterint(exprasmlist,NR_EDI);
-        emit_const_reg(A_MOV,S_L,longint($ffffffff),r);
-        { load operand }
-        case left.location.loc of
-          LOC_MMXREGISTER:
-            location_copy(location,left.location);
-          LOC_CMMXREGISTER:
-            begin
-              location.register:=rg.getregistermm(exprasmlist);
-              emit_reg_reg(A_MOVQ,S_NO,left.location.register,location.register);
-            end;
-          LOC_REFERENCE,
-          LOC_CREFERENCE:
-            begin
-              location_release(exprasmlist,left.location);
-              location.register:=rg.getregistermm(exprasmlist);
-              emit_ref_reg(A_MOVQ,S_NO,left.location.reference,location.register);
-            end;
-        end;
-        { load mask }
-        emit_reg_reg(A_MOVD,S_NO,r,r2);
-        rg.ungetregisterint(exprasmlist,r);
-        { lower 32 bit }
-        emit_reg_reg(A_PXOR,S_D,r2,location.register);
-        { shift mask }
-        emit_const_reg(A_PSLLQ,S_NO,32,r2);
-        { higher 32 bit }
-        emit_reg_reg(A_PXOR,S_D,r2,location.register);
+
+    var r:Tregister;
+
+    begin
+      secondpass(left);
+      location_reset(location,LOC_MMXREGISTER,OS_NO);
+      r:=rg.getregisterint(exprasmlist,OS_INT);
+      emit_const_reg(A_MOV,S_L,longint($ffffffff),r);
+      { load operand }
+      case left.location.loc of
+        LOC_MMXREGISTER:
+          location_copy(location,left.location);
+        LOC_CMMXREGISTER:
+          begin
+            location.register:=rg.getregistermm(exprasmlist);
+            emit_reg_reg(A_MOVQ,S_NO,left.location.register,location.register);
+          end;
+        LOC_REFERENCE,
+        LOC_CREFERENCE:
+          begin
+            location_release(exprasmlist,left.location);
+            location.register:=rg.getregistermm(exprasmlist);
+            emit_ref_reg(A_MOVQ,S_NO,left.location.reference,location.register);
+          end;
       end;
+      { load mask }
+      emit_reg_reg(A_MOVD,S_NO,r,NR_MM7);
+      rg.ungetregisterint(exprasmlist,r);
+      { lower 32 bit }
+      emit_reg_reg(A_PXOR,S_D,NR_MM7,location.register);
+      { shift mask }
+      emit_const_reg(A_PSLLQ,S_NO,32,NR_MM7);
+      { higher 32 bit }
+      emit_reg_reg(A_PXOR,S_D,NR_MM7,location.register);
+    end;
 {$endif SUPPORT_MMX}
 
 begin
@@ -1094,7 +569,17 @@ begin
 end.
 {
   $Log$
-  Revision 1.59  2003-07-02 22:18:04  peter
+  Revision 1.60  2003-09-03 15:55:01  peter
+    * NEWRA branch merged
+
+  Revision 1.59.2.2  2003/08/31 13:50:16  daniel
+    * Remove sorting and use pregenerated indexes
+    * Some work on making things compile
+
+  Revision 1.59.2.1  2003/08/29 17:29:00  peter
+    * next batch of updates
+
+  Revision 1.59  2003/07/02 22:18:04  peter
     * paraloc splitted in callerparaloc,calleeparaloc
     * sparc calling convention updates
 

@@ -54,7 +54,7 @@ unit cpupi;
 
     procedure ti386procinfo.allocate_framepointer_reg;
       begin
-        if framepointer.number=NR_EBP then
+        if framepointer=NR_EBP then
           begin
             { Make sure the register allocator won't allocate registers
               into ebp }
@@ -69,7 +69,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2003-07-06 17:58:22  peter
+  Revision 1.10  2003-09-03 15:55:01  peter
+    * NEWRA branch merged
+
+  Revision 1.9.2.1  2003/08/31 15:46:26  peter
+    * more updates for tregister
+
+  Revision 1.9  2003/07/06 17:58:22  peter
     * framepointer fixes for sparc
     * parent framepointer code more generic
 

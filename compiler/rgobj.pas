@@ -97,13 +97,13 @@ unit rgobj;
 
 
     const
-      ALL_OTHERREGISTERS=[firstreg..lastreg];
+      ALL_OTHERREGISTERS=[low(tregisterindex)..high(tregisterindex)];
 
     type
-       regvarother_longintarray = array[firstreg..lastreg] of longint;
-       regvarother_booleanarray = array[firstreg..lastreg] of boolean;
-       regvarint_longintarray = array[first_supreg..last_supreg] of longint;
-       regvarint_ptreearray = array[first_supreg..last_supreg] of tnode;
+       regvarother_longintarray = array[tregisterindex] of longint;
+       regvarother_booleanarray = array[tregisterindex] of boolean;
+       regvarint_longintarray = array[first_int_supreg..last_int_supreg] of longint;
+       regvarint_ptreearray = array[first_int_supreg..last_int_supreg] of tnode;
 
        tpushedsavedloc = record
          case byte of
@@ -111,10 +111,7 @@ unit rgobj;
            1: (ofs: longint);
        end;
 
-      tpushedsavedother = array[firstreg..lastreg] of tpushedsavedloc;
-{$ifndef newra}
-      Tpushedsavedint = array[first_supreg..last_supreg] of Tpushedsavedloc;
-{$endif}
+      tpushedsavedother = array[tregisterindex] of tpushedsavedloc;
 
       Tinterferencebitmap=array[Tsuperregister] of set of Tsuperregister;
       Tinterferenceadjlist=array[Tsuperregister] of Pstring;
@@ -162,16 +159,12 @@ unit rgobj;
           { contain all registers of type "xxx" that aren't currently    }
           { allocated                                                    }
           lastintreg,maxintreg:Tsuperregister;
-          unusedregsint,usableregsint:Tsupregset;
-          unusedregsaddr,usableregsaddr:Tsupregset;
-          unusedregsfpu,usableregsfpu : tregisterset;
-          unusedregsmm,usableregsmm : tregisterset;
+          unusedregsint,usableregsint:Tsuperregisterset;
+          unusedregsaddr,usableregsaddr:Tsuperregisterset;
+          unusedregsfpu,usableregsfpu : Tsuperregisterset;
+          unusedregsmm,usableregsmm : Tsuperregisterset;
           { these counters contain the number of elements in the }
           { unusedregsxxx/usableregsxxx sets                     }
-{$ifndef newra}
-          countunusedregsint,
-          countunusedregsaddr,
-{$endif}
           countunusedregsfpu,
           countunusedregsmm : byte;
           countusableregsint,
@@ -182,25 +175,18 @@ unit rgobj;
           { Contains the registers which are really used by the proc itself.
             It doesn't take care of registers used by called procedures
           }
-{$ifdef newra}
           savedintbyproc,
-{$endif}
           used_in_proc_int,
-          usedaddrinproc : tsupregset;
-          used_in_proc_other : tregisterset;
+          usedaddrinproc : Tsuperregisterset;
+          used_in_proc_other : totherregisterset;
 
           reg_pushes_other : regvarother_longintarray;
-{$ifndef newra}
-          reg_pushes_int : regvarint_longintarray;
-{$endif}
           is_reg_var_other : regvarother_booleanarray;
-          is_reg_var_int   : Tsupregset;
+          is_reg_var_int   : Tsuperregisterset;
           regvar_loaded_other : regvarother_booleanarray;
-          regvar_loaded_int   : Tsupregset;
-{$ifdef newra}
+          regvar_loaded_int   : Tsuperregisterset;
           colour : array[Tsuperregister] of Tsuperregister;
           spillednodes : string;
-{$endif}
 
           { tries to hold the amount of times which the current tree is processed  }
           t_times: longint;
@@ -212,9 +198,8 @@ unit rgobj;
              An internalerror will be generated if there
              is no more free registers which can be allocated
           }
-          function getregisterint(list:Taasmoutput;size:Tcgsize):Tregister;{$ifndef newra}virtual;{$endif}
-{$ifdef newra}
-          procedure add_constraints(reg:Tnewregister);virtual;
+          function getregisterint(list:Taasmoutput;size:Tcgsize):Tregister;
+          procedure add_constraints(reg:Tregister);virtual;
 
           {# Allocate an ABT register
 
@@ -224,7 +209,6 @@ unit rgobj;
              An explanantion of abt registers can be found near the implementation.
           }
           function getabtregisterint(list:Taasmoutput;size:Tcgsize):Tregister;
-{$endif}
 
           {# Free a general purpose register
 
@@ -278,17 +262,15 @@ unit rgobj;
 
              @param(r specific register to allocate)
           }
-          function getexplicitregisterint(list:Taasmoutput;r:Tnewregister):Tregister;virtual;
+          function getexplicitregisterint(list:Taasmoutput;r:Tregister):Tregister;virtual;
           {# Tries to allocate the passed fpu register, if possible
 
              @param(r specific register to allocate)
           }
-          function getexplicitregisterfpu(list : taasmoutput; r : Toldregister) : tregister;virtual;
+          function getexplicitregisterfpu(list : taasmoutput; r : Tregister) : tregister;virtual;
 
-{$ifdef newra}
-          procedure allocexplicitregistersint(list:Taasmoutput;r:Tsupregset);
-          procedure deallocexplicitregistersint(list:Taasmoutput;r:Tsupregset);
-{$endif}
+          procedure allocexplicitregistersint(list:Taasmoutput;r:Tsuperregisterset);
+          procedure deallocexplicitregistersint(list:Taasmoutput;r:Tsuperregisterset);
 
           {# Deallocate any kind of register }
           procedure ungetregister(list: taasmoutput; r : tregister); virtual;
@@ -315,10 +297,7 @@ unit rgobj;
 
 
           {# saves register variables (restoring happens automatically) }
-{$ifndef newra}
-          procedure saveintregvars(list:Taasmoutput;const s:Tsupregset);
-{$endif}
-          procedure saveotherregvars(list:Taasmoutput;const s:Tregisterset);
+          procedure saveotherregvars(list:Taasmoutput;const s:Totherregisterset);
 
           {# Saves in temporary references (allocated via the temp. allocator)
              the registers defined in @var(s). The registers are only saved
@@ -331,32 +310,20 @@ unit rgobj;
              @param(saved)  Array of saved register information
              @param(s)      Registers which might require saving
           }
-{$ifndef newra}
-          procedure saveusedintregisters(list:Taasmoutput;
-                                         var saved:Tpushedsavedint;
-                                         const s:Tsupregset);virtual;
-{$endif}
           procedure saveusedotherregisters(list:Taasmoutput;
                                            var saved:Tpushedsavedother;
-                                           const s:Tregisterset);virtual;
+                                           const s:Totherregisterset);virtual;
           {# Restores the registers which were saved with a call
              to @var(saveusedregisters).
 
              On processors which have instructions which manipulate the stack,
              this routine should be overriden for performance reasons.
           }
-{$ifndef newra}
-          procedure restoreusedintregisters(list:Taasmoutput;
-                                            const saved:Tpushedsavedint);virtual;
-{$endif}
           procedure restoreusedotherregisters(list:Taasmoutput;
                                               const saved:Tpushedsavedother);virtual;
 
           { used when deciding which registers to use for regvars }
-{$ifndef newra}
-          procedure incrementintregisterpushed(const s:Tsupregset);
-{$endif}
-          procedure incrementotherregisterpushed(const s: tregisterset);
+          procedure incrementotherregisterpushed(const s: totherregisterset);
           procedure clearregistercount;
           procedure resetusableregisters;virtual;
 
@@ -368,19 +335,16 @@ unit rgobj;
 
           procedure saveUnusedState(var state: pointer);virtual;
           procedure restoreUnusedState(var state: pointer);virtual;
-{$ifdef newra}
 {$ifdef ra_debug2}
           procedure writegraph;
-{$endif}
+{$endif ra_debug2}
           procedure add_move_instruction(instr:Taicpu);
           procedure prepare_colouring;
           procedure epilogue_colouring;
           procedure colour_registers;
           function spill_registers(list:Taasmoutput;const regs_to_spill:string):boolean;
-{$endif newra}
        protected
           cpu_registers:byte;
-{$ifdef newra}
           igraph:Tinterferencegraph;
           degree:array[0..255] of byte;
           alias:array[Tsuperregister] of Tsuperregister;
@@ -391,34 +355,21 @@ unit rgobj;
           movelist:array[Tsuperregister] of Pmovelist;
           worklist_moves,active_moves,frozen_moves,
           coalesced_moves,constrained_moves:Tlinkedlist;
-{$endif}
           { the following two contain the common (generic) code for all }
           { get- and ungetregisterxxx functions/procedures              }
-          function getregistergenother(list: taasmoutput; const lowreg, highreg: Toldregister;
-              var unusedregs:Tregisterset;var countunusedregs:byte): tregister;
+          function getregistergenother(list: taasmoutput; const lowreg, highreg: Tregisterindex;
+              var unusedregs:Totherregisterset;var countunusedregs:byte): tregister;
           function getregistergenint(list:Taasmoutput;subreg:Tsubregister;
                                      const lowreg,highreg:Tsuperregister;
-                                     var fusedinproc,unusedregs:Tsupregset
-                                     {$ifndef newra};var countunusedregs:byte{$endif}):Tregister;
-          procedure ungetregistergen(list: taasmoutput; const r: tregister;
-              const usableregs:tregisterset;var unusedregs: tregisterset; var countunusedregs: byte);
-          procedure ungetregistergenint(list:taasmoutput;const r:Tregister;
-                                        const usableregs:Tsupregset;
-                                        var unusedregs:Tsupregset
-                                        {$ifndef newra};var countunusedregs:byte{$endif});
-{$ifdef newra}
+                                     var fusedinproc,unusedregs:Tsuperregisterset):Tregister;
+          procedure ungetregistergen(list: taasmoutput; r: tregister;
+              const usableregs:totherregisterset;var unusedregs: totherregisterset; var countunusedregs: byte);
+          procedure ungetregistergenint(list:taasmoutput;r:Tregister;
+                                        const usableregs:Tsuperregisterset;
+                                        var unusedregs:Tsuperregisterset);
           procedure getregisterintinline(list:Taasmoutput;position:Tai;subreg:Tsubregister;var result:Tregister);
-          procedure ungetregisterintinline(list:Taasmoutput;position:Tai;const r:Tregister);
-{$endif}
-{$ifdef TEMPREGDEBUG}
-         reg_user   : regvar_ptreearray;
-         reg_releaser : regvar_ptreearray;
-{$endif TEMPREGDEBUG}
+          procedure ungetregisterintinline(list:Taasmoutput;position:Tai;r:Tregister);
 
-{$ifdef TEMPREGDEBUG}
-          procedure testregisters;
-{$endif TEMPREGDEBUGx}
-{$ifdef newra}
          procedure add_edge(u,v:Tsuperregister);
          procedure add_edges_used(u:Tsuperregister);
          procedure add_to_movelist(u:Tsuperregister;data:Tlinkedlistitem);
@@ -439,7 +390,6 @@ unit rgobj;
          procedure select_spill;
          procedure assign_colours;
          procedure clear_interferences(u:Tsuperregister);
-{$endif}
        end;
 
      const
@@ -456,7 +406,6 @@ unit rgobj;
 
      {# Clear to zero a treference }
      procedure reference_reset(var ref : treference);
-     procedure reference_reset_old(var ref : treference);
      {# Clear to zero a treference, and set is base address
         to base register.
      }
@@ -478,46 +427,31 @@ unit rgobj;
     type
       psavedstate = ^tsavedstate;
       tsavedstate = record
-        unusedregsint,usableregsint : Tsupregset;
-        unusedregsaddr,usableregsaddr : Tsupregset;
-        unusedregsfpu,usableregsfpu : tregisterset;
-        unusedregsmm,usableregsmm : tregisterset;
-{$ifndef newra}
-        countunusedregsint,
-        countunusedregsaddr,
-{$endif}
+        unusedregsint,usableregsint : Tsuperregisterset;
+        unusedregsaddr,usableregsaddr : Tsuperregisterset;
+        unusedregsfpu,usableregsfpu : totherregisterset;
+        unusedregsmm,usableregsmm : totherregisterset;
         countunusedregsfpu,
         countunusedregsmm : byte;
         countusableregsint,
         countusableregsfpu,
         countusableregsmm : byte;
         { contains the registers which are really used by the proc itself }
-        used_in_proc_int   : tsupregset;
-        used_in_proc_other : tregisterset;
+        used_in_proc_int   : Tsuperregisterset;
+        used_in_proc_other : totherregisterset;
         reg_pushes_other : regvarother_longintarray;
         reg_pushes_int : regvarint_longintarray;
         is_reg_var_other : regvarother_booleanarray;
-        is_reg_var_int : Tsupregset;
+        is_reg_var_int : Tsuperregisterset;
         regvar_loaded_other: regvarother_booleanarray;
-        regvar_loaded_int: Tsupregset;
-{$ifdef TEMPREGDEBUG}
-         reg_user   : regvar_ptreearray;
-         reg_releaser : regvar_ptreearray;
-{$endif TEMPREGDEBUG}
+        regvar_loaded_int: Tsuperregisterset;
       end;
 
       punusedstate = ^tunusedstate;
       tunusedstate = record
-{$ifndef newra}
-        unusedregsint : Tsupregset;
-{$endif}
-        unusedregsaddr : Tsupregset;
-        unusedregsfpu : tregisterset;
-        unusedregsmm : tregisterset;
-{$ifndef newra}
-        countunusedregsint,
-        countunusedregsaddr,
-{$endif}
+        unusedregsaddr : Tsuperregisterset;
+        unusedregsfpu : totherregisterset;
+        unusedregsmm : totherregisterset;
         countunusedregsfpu,
         countunusedregsmm : byte;
       end;
@@ -537,18 +471,13 @@ unit rgobj;
        t_times := 0;
        resetusableregisters;
        lastintreg:=0;
-       maxintreg:=first_imreg;
+       maxintreg:=first_int_imreg;
        {What madman decided to change the code like this: (??)
-       cpu_registers:=last_supreg-first_supreg+1;
+       cpu_registers:=last_int_supreg-first_int_supreg+1;
        The amount of registers available for register allocation is
        allmost allways smaller than the amount of registers that exists!
        Therefore: }
        cpu_registers:=Acpu_registers;
-{$ifdef TEMPREGDEBUG}
-       fillchar(reg_user,sizeof(reg_user),0);
-       fillchar(reg_releaser,sizeof(reg_releaser),0);
-{$endif TEMPREGDEBUG}
-{$ifdef newra}
        fillchar(igraph,sizeof(igraph),0);
        fillchar(degree,sizeof(degree),0);
        {Precoloured nodes should have an infinite degree, which we can approach
@@ -556,24 +485,23 @@ unit rgobj;
        fillchar(movelist,sizeof(movelist),0);
        worklist_moves:=Tlinkedlist.create;
        abtlist:='';
-{$endif}
      end;
 
 
-    function trgobj.getregistergenother(list: taasmoutput; const lowreg, highreg: Toldregister;
-        var unusedregs: tregisterset; var countunusedregs: byte): tregister;
+    function trgobj.getregistergenother(list: taasmoutput; const lowreg, highreg: Tregisterindex;
+        var unusedregs: totherregisterset; var countunusedregs: byte): tregister;
       var
-        i: Toldregister;
+        i: tregisterindex;
         r: Tregister;
       begin
-         for i:=lowreg to highreg do
+         for i:=low(tregisterindex) to high(tregisterindex) do
            begin
               if i in unusedregs then
                 begin
                    exclude(unusedregs,i);
                    include(used_in_proc_other,i);
                    dec(countunusedregs);
-                   r.enum:=i;
+                   r:=regnumber_table[i];
                    list.concat(tai_regalloc.alloc(r));
                    result := r;
                    exit;
@@ -585,49 +513,30 @@ unit rgobj;
     function Trgobj.getregistergenint(list:Taasmoutput;
                                       subreg:Tsubregister;
                                       const lowreg,highreg:Tsuperregister;
-                                      var fusedinproc,unusedregs:Tsupregset
-                                      {$ifndef newra};var countunusedregs:byte{$endif}):Tregister;
-
-{$ifdef powerpc}
-{$ifndef newra}
-{$define reuseregs}
-{$endif newra}
-{$endif powerpc}
-
+                                      var fusedinproc,unusedregs:Tsuperregisterset):Tregister;
     var i:Tsuperregister;
         r:Tregister;
 
     begin
-{$ifdef reuseregs}
-      i := lowreg;
-      lastintreg := highreg;
-{$else reuseregs}
       if not (lastintreg in [lowreg..highreg]) then
         lastintreg:=lowreg;
       i:=lastintreg;
-{$endif reuseregs}
       repeat
         if i=highreg then
           i:=lowreg
         else
           inc(i);
-        if (i in unusedregs) {$ifdef newra} and (pos(char(i),abtlist)=0) {$endif} then
+        if (i in unusedregs) and (pos(char(i),abtlist)=0) then
           begin
             exclude(unusedregs,i);
             include(fusedinproc,i);
-          {$ifndef newra}
-            dec(countunusedregs);
-          {$endif}
-            r.enum:=R_INTREGISTER;
-            r.number:=i shl 8 or subreg;
+            r:=newreg(R_INTREGISTER,i,subreg);
             list.concat(Tai_regalloc.alloc(r));
             result:=r;
             lastintreg:=i;
             if i>maxintreg then
               maxintreg:=i;
-          {$ifdef newra}
             add_edges_used(i);
-          {$endif}
             exit;
           end;
       until i=lastintreg;
@@ -635,70 +544,39 @@ unit rgobj;
     end;
 
 
-    procedure trgobj.ungetregistergen(list: taasmoutput; const r: tregister;
-        const usableregs: tregisterset; var unusedregs: tregisterset; var countunusedregs: byte);
+    procedure trgobj.ungetregistergen(list: taasmoutput; r: tregister;
+        const usableregs: totherregisterset; var unusedregs: totherregisterset; var countunusedregs: byte);
+      var
+        regidx : tregisterindex;
       begin
-         if r.enum>lastreg then
-            internalerror(2003010801);
+         regidx:=findreg_by_number(r);
          { takes much time }
-         if not(r.enum in usableregs) then
+         if not(regidx in usableregs) then
            exit;
-{$ifdef TEMPREGDEBUG}
-         if (r.enum in unusedregs) then
-{$ifdef EXTTEMPREGDEBUG}
-           begin
-             Comment(V_Debug,'register freed twice '+std_reg2str[r.enum]);
-             testregisters32;
-             exit;
-           end
-{$else EXTTEMPREGDEBUG}
+         if (regidx in unusedregs) then
            exit
-{$endif EXTTEMPREGDEBUG}
          else
-{$endif TEMPREGDEBUG}
           inc(countunusedregs);
-        include(unusedregs,r.enum);
+        include(unusedregs,regidx);
         list.concat(tai_regalloc.dealloc(r));
       end;
 
-    procedure trgobj.ungetregistergenint(list:taasmoutput;const r:Tregister;
-                                         const usableregs:Tsupregset;
-                                         var unusedregs:Tsupregset
-                                         {$ifndef newra};var countunusedregs:byte{$endif});
+    procedure trgobj.ungetregistergenint(list:taasmoutput;r:Tregister;
+                                         const usableregs:Tsuperregisterset;
+                                         var unusedregs:Tsuperregisterset);
 
-    var supreg:Tsuperregister;
-
-    begin
-      if r.enum<=lastreg then
-        internalerror(2003010803);
-      supreg:=r.number shr 8;
-      { takes much time }
-{$ifndef newra}
-      if not(supreg in usableregs) then
-        exit;
-{$else}
-      if supreg in is_reg_var_int then
-        exit;
-{$endif}
-{$ifdef TEMPREGDEBUG}
-         if (supreg in unusedregs) then
-{$ifdef EXTTEMPREGDEBUG}
-           begin
-             comment(v_debug,'register freed twice '+supreg_name(supreg));
-             testregisters32
-             exit;
-           end
-{$else EXTTEMPREGDEBUG}
-           exit
-{$endif EXTTEMPREGDEBUG}
-         else
-{$endif TEMPREGDEBUG}
-          {$ifndef newra}inc(countunusedregs){$endif};
+      var
+        supreg:Tsuperregister;
+      begin
+        supreg:=getsupreg(r);
+        { takes much time }
+        if supreg in is_reg_var_int then
+          exit;
+        if (supreg in unusedregs) then
+          exit;
         include(unusedregs,supreg);
         list.concat(tai_regalloc.dealloc(r));
-{$ifdef newra}
         add_edges_used(supreg);
-{$endif newra}
       end;
 
 
@@ -707,94 +585,50 @@ unit rgobj;
     var subreg:Tsubregister;
 
     begin
-{$ifndef newra}
-      if countunusedregsint=0 then
-        internalerror(10);
-  {$ifdef TEMPREGDEBUG}
-      if curptree^^.usableregs-countunusedregsint>curptree^^.registers32 then
-        internalerror(10);
-  {$endif TEMPREGDEBUG}
-  {$ifdef EXTTEMPREGDEBUG}
-      if curptree^^.usableregs-countunusedregsint>curptree^^.reallyusedregs then
-        curptree^^.reallyusedregs:=curptree^^.usableregs-countunusedregsint;
-  {$endif EXTTEMPREGDEBUG}
-{$endif}
       subreg:=cgsize2subreg(size);
       result:=getregistergenint(list,
                                 subreg,
-{$ifdef newra}
-                                first_imreg,
-                                last_imreg,
-{$else}
-                                first_supreg,
-                                last_supreg,
-{$endif}
+                                first_int_imreg,
+                                last_int_imreg,
                                 used_in_proc_int,
-                                unusedregsint{$ifndef newra},
-                                countunusedregsint{$endif});
-{$ifdef TEMPREGDEBUG}
-      reg_user[result]:=curptree^;
-      testregisters32;
-{$endif TEMPREGDEBUG}
-{$ifdef newra}
-      add_constraints(getregisterint.number);
-{$endif}
+                                unusedregsint);
+      add_constraints(getregisterint);
     end;
 
-{$ifdef newra}
-    procedure Trgobj.add_constraints(reg:Tnewregister);
 
+    procedure Trgobj.add_constraints(reg:Tregister);
     begin
     end;
-{$endif}
+
 
     procedure trgobj.ungetregisterint(list : taasmoutput; r : tregister);
 
       begin
-         ungetregistergenint(list,r,usableregsint,unusedregsint{$ifndef newra},
-           countunusedregsint{$endif});
-{$ifdef TEMPREGDEBUG}
-        reg_releaser[r]:=curptree^;
-        testregisters32;
-{$endif TEMPREGDEBUG}
+         ungetregistergenint(list,r,usableregsint,unusedregsint);
       end;
 
 
     { tries to allocate the passed register, if possible }
-    function trgobj.getexplicitregisterint(list:Taasmoutput;r:Tnewregister):Tregister;
+    function trgobj.getexplicitregisterint(list:Taasmoutput;r:Tregister):Tregister;
 
-    var r2:Tregister;
+    var supreg : tsuperregister;
 
     begin
-      if (r shr 8) in unusedregsint then
+      supreg:=getsupreg(r);
+      if supreg in unusedregsint then
         begin
-{$ifndef newra}
-          dec(countunusedregsint);
-{$ifdef TEMPREGDEBUG}
-          if curptree^^.usableregs-countunusedregsint>curptree^^.registers32 then
-            internalerror(10);
-          reg_user[r shr 8]:=curptree^;
-{$endif TEMPREGDEBUG}
-{$endif newra}
-          exclude(unusedregsint,r shr 8);
-          include(used_in_proc_int,r shr 8);
-          r2.enum:=R_INTREGISTER;
-          r2.number:=r;
-          list.concat(tai_regalloc.alloc(r2));
-{$ifdef newra}
-          add_edges_used(r shr 8);
-{$endif}
-{$ifdef TEMPREGDEBUG}
-          testregisters32;
-{$endif TEMPREGDEBUG}
+          exclude(unusedregsint,supreg);
+          include(used_in_proc_int,supreg);
+          list.concat(tai_regalloc.alloc(r));
+          add_edges_used(supreg);
          end
        else
          internalerror(200301103);
-       getexplicitregisterint:=r2;
+       getexplicitregisterint:=r;
     end;
 
-{$ifdef newra}
-    procedure Trgobj.allocexplicitregistersint(list:Taasmoutput;r:Tsupregset);
+
+    procedure Trgobj.allocexplicitregistersint(list:Taasmoutput;r:Tsuperregisterset);
 
     var reg:Tregister;
         i:Tsuperregister;
@@ -804,12 +638,11 @@ unit rgobj;
         begin
           unusedregsint:=unusedregsint-r;
           used_in_proc_int:=used_in_proc_int+r;
-          for i:=first_supreg to last_supreg do
+          for i:=first_int_supreg to last_int_supreg do
             if i in r then
               begin
                 add_edges_used(i);
-                reg.enum:=R_INTREGISTER;
-                reg.number:=i shl 8 or R_SUBWHOLE;
+                reg:=newreg(R_INTREGISTER,i,R_SUBWHOLE);
                 list.concat(Tai_regalloc.alloc(reg));
               end;
          end
@@ -817,7 +650,7 @@ unit rgobj;
          internalerror(200305061);
     end;
 
-    procedure Trgobj.deallocexplicitregistersint(list:Taasmoutput;r:Tsupregset);
+    procedure Trgobj.deallocexplicitregistersint(list:Taasmoutput;r:Tsuperregisterset);
 
     var reg:Tregister;
         i:Tsuperregister;
@@ -826,42 +659,32 @@ unit rgobj;
       if unusedregsint*r=[] then
         begin
           unusedregsint:=unusedregsint+r;
-          for i:=last_supreg downto first_supreg do
+          for i:=last_int_supreg downto first_int_supreg do
             if i in r then
               begin
-                reg.enum:=R_INTREGISTER;
-                reg.number:=i shl 8 or R_SUBWHOLE;
+                reg:=newreg(R_INTREGISTER,i,R_SUBWHOLE);
                 list.concat(Tai_regalloc.dealloc(reg));
               end;
          end
        else
          internalerror(200305062);
     end;
-{$endif}
 
 
     { tries to allocate the passed register, if possible }
-    function trgobj.getexplicitregisterfpu(list : taasmoutput; r : Toldregister) : tregister;
+    function trgobj.getexplicitregisterfpu(list : taasmoutput; r : Tregister) : tregister;
 
-    var r2:Tregister;
+      var regidx : tregisterindex;
 
       begin
-         if r in unusedregsfpu then
+         regidx:=findreg_by_number(r);
+         if regidx in unusedregsfpu then
            begin
               dec(countunusedregsfpu);
-{$ifdef TEMPREGDEBUG}
-              if curptree^^.usableregs-countunusedregsint>curptree^^.registers32 then
-                internalerror(10);
-              reg_user[r]:=curptree^;
-{$endif TEMPREGDEBUG}
-              exclude(unusedregsfpu,r);
-              include(used_in_proc_other,r);
-              r2.enum:=r;
-              list.concat(tai_regalloc.alloc(r2));
-              getexplicitregisterfpu:=r2;
-{$ifdef TEMPREGDEBUG}
-              testregisters32;
-{$endif TEMPREGDEBUG}
+              exclude(unusedregsfpu,regidx);
+              include(used_in_proc_other,regidx);
+              list.concat(tai_regalloc.alloc(r));
+              getexplicitregisterfpu:=r;
            end
          else
 {$warning Size for FPU reg is maybe not correct}
@@ -873,7 +696,8 @@ unit rgobj;
       begin
         if countunusedregsfpu=0 then
           internalerror(10);
-        result := getregistergenother(list,firstsavefpureg,lastsavefpureg,
+{$warning TODO firstsavefpureg}
+        result := getregistergenother(list,{firstsavefpureg,lastsavefpureg,}0,0,
           unusedregsfpu,countunusedregsfpu);
       end;
 
@@ -890,7 +714,8 @@ unit rgobj;
       begin
         if countunusedregsmm=0 then
            internalerror(10);
-       result := getregistergenother(list,firstsavemmreg,lastsavemmreg,
+{$warning TODO firstsavemmreg}
+       result := getregistergenother(list,{firstsavemmreg,lastsavemmreg,}0,0,
                    unusedregsmm,countunusedregsmm);
       end;
 
@@ -917,7 +742,6 @@ unit rgobj;
 
     function trgobj.isaddressregister(reg: tregister): boolean;
       begin
-        if reg.number<>0 then; { remove warning }
         result := true;
       end;
 
@@ -925,15 +749,13 @@ unit rgobj;
     procedure trgobj.ungetregister(list: taasmoutput; r : tregister);
 
       begin
-         if r.enum=R_NO then
+         if r=NR_NO then
            exit;
-         if r.enum>lastreg then
-          internalerror(200301081);
-         if r.enum in fpuregs then
+         if getregtype(r)=R_FPUREGISTER then
            ungetregisterfpu(list,r,OS_NO)
-         else if r.enum in mmregs then
+         else if getregtype(r)=R_MMXREGISTER then
            ungetregistermm(list,r)
-         else if r.enum in addrregs then
+         else if getregtype(r)=R_ADDRESSREGISTER then
            ungetaddressregister(list,r)
          else internalerror(2002070602);
       end;
@@ -941,26 +763,16 @@ unit rgobj;
 
     procedure Trgobj.cleartempgen;
 
-   {$ifdef newra}
     var i:Tsuperregister;
-   {$endif newra}
 
     begin
-    {$ifndef newra}
-      countunusedregsint:=countusableregsint;
-    {$endif}
       countunusedregsfpu:=countusableregsfpu;
       countunusedregsmm:=countusableregsmm;
       lastintreg:=0;
-      maxintreg:=first_imreg;
-   {$ifdef newra}
+      maxintreg:=first_int_imreg;
       unusedregsint:=[0..255];
-   {$else}
-      unusedregsint:=usableregsint;
-   {$endif}
       unusedregsfpu:=usableregsfpu;
       unusedregsmm:=usableregsmm;
-   {$ifdef newra}
 {$ifdef powerpc}
       savedintbyproc:=[RS_R13..RS_R31];
 {$else powerpc}
@@ -978,49 +790,32 @@ unit rgobj;
       fillchar(degree,sizeof(degree),0);
       {Precoloured nodes should have an infinite degree, which we can approach
        by 255.}
-      for i:=first_supreg to last_supreg do
+      for i:=first_int_supreg to last_int_supreg do
         degree[i]:=255;
       worklist_moves.clear;
       abtlist:='';
-   {$endif}
     end;
 
 
     procedure trgobj.ungetreference(list : taasmoutput; const ref : treference);
 
       begin
-         if (ref.base.number<>NR_NO) and (ref.base.number<>NR_FRAME_POINTER_REG) then
+         if (ref.base<>NR_NO) and (ref.base<>NR_FRAME_POINTER_REG) then
            ungetregisterint(list,ref.base);
-         if (ref.index.number<>NR_NO) and (ref.index.number<>NR_FRAME_POINTER_REG) then
+         if (ref.index<>NR_NO) and (ref.index<>NR_FRAME_POINTER_REG) then
            ungetregisterint(list,ref.index);
       end;
 
-{$ifndef newra}
-    procedure trgobj.saveintregvars(list:Taasmoutput;const s:Tsupregset);
 
-    var r:Tsuperregister;
-        hr: tregister;
-    begin
-      if not(cs_regvars in aktglobalswitches) then
-        exit;
-      for r:=firstsaveintreg to lastsaveintreg do
-        if (r in is_reg_var_int) and
-           (r in s) then
-          begin
-            hr.number:=r shl 8;
-            hr.enum:=R_INTREGISTER;
-            store_regvar(list,hr);
-          end;
-    end;
-{$endif}
-
-    procedure trgobj.saveotherregvars(list: taasmoutput; const s: tregisterset);
+    procedure trgobj.saveotherregvars(list: taasmoutput; const s: totherregisterset);
       var
         r: Tregister;
       begin
         if not(cs_regvars in aktglobalswitches) then
           exit;
-        if firstsavefpureg <> R_NO then
+{$warning TODO firstsavefpureg}
+{
+        if firstsavefpureg <> NR_NO then
           for r.enum := firstsavefpureg to lastsavefpureg do
             if is_reg_var_other[r.enum] and
                (r.enum in s) then
@@ -1030,48 +825,12 @@ unit rgobj;
             if is_reg_var_other[r.enum] and
                (r.enum in s) then
               store_regvar(list,r);
+}
       end;
 
-{$ifndef newra}
-    procedure trgobj.saveusedintregisters(list:Taasmoutput;
-                                          var saved:Tpushedsavedint;
-                                          const s:Tsupregset);
-
-    var r:Tsuperregister;
-        r2:Tregister;
-        hr : treference;
-
-    begin
-      used_in_proc_int:=used_in_proc_int+s;
-      for r:=firstsaveintreg to lastsaveintreg do
-        begin
-          saved[r].ofs:=reg_not_saved;
-          { if the register is used by the calling subroutine and if }
-          { it's not a regvar (those are handled separately)         }
-          if not (r in is_reg_var_int) and
-             (r in s) and
-             { and is present in use }
-             not(r in unusedregsint) then
-            begin
-              { then save it }
-              tg.GetTemp(list,sizeof(aword),tt_persistent,hr);
-              saved[r].ofs:=hr.offset;
-              r2.enum:=R_INTREGISTER;
-              r2.number:=r shl 8 or R_SUBWHOLE;
-              cg.a_load_reg_ref(list,OS_INT,OS_INT,r2,hr);
-              cg.a_reg_dealloc(list,r2);
-              include(unusedregsint,r);
-              inc(countunusedregsint);
-            end;
-        end;
-{$ifdef TEMPREGDEBUG}
-      testregisters32;
-{$endif TEMPREGDEBUG}
-    end;
-{$endif}
 
     procedure trgobj.saveusedotherregisters(list: taasmoutput;
-        var saved : tpushedsavedother; const s: tregisterset);
+        var saved : tpushedsavedother; const s: totherregisterset);
 
       var
          r : tregister;
@@ -1080,6 +839,8 @@ unit rgobj;
       begin
         used_in_proc_other:=used_in_proc_other + s;
 
+{$warning TODO firstsavefpureg}
+(*
         { don't try to save the fpu registers if not desired (e.g. for }
         { the 80x86)                                                   }
         if firstsavefpureg <> R_NO then
@@ -1124,49 +885,9 @@ unit rgobj;
                   inc(countunusedregsmm);
                end;
             end;
-{$ifdef TEMPREGDEBUG}
-        testregisters32;
-{$endif TEMPREGDEBUG}
+*)
       end;
 
-{$ifndef newra}
-    procedure trgobj.restoreusedintregisters(list:Taasmoutput;
-                                             const saved:Tpushedsavedint);
-
-    var r:Tsuperregister;
-        r2:Tregister;
-        hr:Treference;
-
-      begin
-        for r:=lastsaveintreg downto firstsaveintreg do
-          begin
-            if saved[r].ofs <> reg_not_saved then
-              begin
-                r2.enum:=R_INTREGISTER;
-                r2.number:=NR_FRAME_POINTER_REG;
-                reference_reset_base(hr,r2,saved[r].ofs);
-                r2.enum:=R_INTREGISTER;
-                r2.number:=r shl 8 or R_SUBWHOLE;
-                cg.a_reg_alloc(list,r2);
-                cg.a_load_ref_reg(list,OS_INT,OS_INT,hr,r2);
-                if not (r in unusedregsint) then
-                  { internalerror(10)
-                    in n386cal we always save/restore the reg *state*
-                    using save/restoreunusedstate -> the current state
-                    may not be real (JM) }
-                else
-                  begin
-                    dec(countunusedregsint);
-                    exclude(unusedregsint,r);
-                  end;
-                tg.UnGetTemp(list,hr);
-              end;
-          end;
-{$ifdef TEMPREGDEBUG}
-        testregisters32;
-{$endif TEMPREGDEBUG}
-      end;
-{$endif}
 
     procedure trgobj.restoreusedotherregisters(list : taasmoutput;
         const saved : tpushedsavedother);
@@ -1176,6 +897,8 @@ unit rgobj;
          hr : treference;
 
       begin
+{$warning TODO firstsavefpureg}
+(*
         if firstsavemmreg <> R_NO then
           for r.enum:=lastsavemmreg downto firstsavemmreg do
             begin
@@ -1223,38 +946,20 @@ unit rgobj;
                   tg.UnGetTemp(list,hr);
                 end;
             end;
-{$ifdef TEMPREGDEBUG}
-        testregisters32;
-{$endif TEMPREGDEBUG}
+*)
       end;
 
-{$ifndef newra}
-    procedure trgobj.incrementintregisterpushed(const s:Tsupregset);
 
-{$ifdef i386}
-    var
-      regi:Tsuperregister;
-{$endif i386}
-
-    begin
-{$ifdef i386}
-      for regi:=firstsaveintreg to lastsaveintreg do
-        begin
-          if (regi in s) then
-            inc(reg_pushes_int[regi],t_times*2);
-        end;
-{$endif i386}
-    end;
-{$endif}
-
-    procedure trgobj.incrementotherregisterpushed(const s:Tregisterset);
+    procedure trgobj.incrementotherregisterpushed(const s:Totherregisterset);
 
 {$ifdef i386}
       var
-         regi : Toldregister;
+         regi : Tregister;
 {$endif i386}
 
       begin
+{$warning TODO firstsavefpureg}
+(*
 {$ifdef i386}
          if firstsavefpureg <> R_NO then
            for regi:=firstsavefpureg to lastsavefpureg do
@@ -1269,25 +974,23 @@ unit rgobj;
                   inc(reg_pushes_other[regi],t_times*2);
              end;
 {$endif i386}
+*)
       end;
 
 
     procedure trgobj.clearregistercount;
 
       begin
-      {$ifndef newra}
-        fillchar(reg_pushes_int,sizeof(reg_pushes_int),0);
-      {$endif}
         fillchar(reg_pushes_other,sizeof(reg_pushes_other),0);
 {ifndef i386}
         { all used registers will have to be saved at the start and restored }
         { at the end, but otoh regpara's do not have to be saved to memory   }
         { at the start (there is a move from regpara to regvar most of the   }
         { time though) -> set cost to 100+20                                 }
-      {$ifndef newra}
-        filldword(reg_pushes_int[firstsaveintreg],lastsaveintreg-firstsaveintreg+1,120);
-      {$endif}
+{$warning TODO firstsavefpureg}
+(*
         filldword(reg_pushes_other[firstsavefpureg],ord(lastsavefpureg)-ord(firstsavefpureg)+1,120);
+*)
 {endif not i386}
         fillchar(is_reg_var_other,sizeof(is_reg_var_other),false);
         is_reg_var_int:=[];
@@ -1314,16 +1017,11 @@ unit rgobj;
       begin
         dec(countusableregsint);
         include(is_reg_var_int,reg);
-      {$ifndef newra}
-        dec(countunusedregsint);
-        exclude(usableregsint,reg);
-        exclude(unusedregsint,reg);
-        include(used_in_proc_int,reg);
-      {$endif}
       end;
 
     procedure trgobj.makeregvarother(reg: tregister);
       begin
+(*
         if reg.enum>lastreg then
           internalerror(200301081);
         if reg.enum in intregs then
@@ -1345,22 +1043,8 @@ unit rgobj;
              include(used_in_proc_other,reg.enum);
           end;
         is_reg_var_other[reg.enum]:=true;
+*)
       end;
-
-
-{$ifdef TEMPREGDEBUG}
-    procedure trgobj.testregisters;
-      var
-        r: tregister;
-        test : byte;
-      begin
-        test:=0;
-        for r := firstsaveintreg to lastsaveintreg do
-          inc(test,ord(r in unusedregsint));
-        if test<>countunusedregsint then
-          internalerror(10);
-      end;
-{$endif TEMPREGDEBUG}
 
 
     procedure trgobj.saveStateForInline(var state: pointer);
@@ -1372,9 +1056,6 @@ unit rgobj;
         psavedstate(state)^.usableregsfpu := usableregsfpu;
         psavedstate(state)^.unusedregsmm := unusedregsmm;
         psavedstate(state)^.usableregsmm := usableregsmm;
-      {$ifndef newra}
-        psavedstate(state)^.countunusedregsint := countunusedregsint;
-      {$endif}
         psavedstate(state)^.countunusedregsfpu := countunusedregsfpu;
         psavedstate(state)^.countunusedregsmm := countunusedregsmm;
         psavedstate(state)^.countusableregsint := countusableregsint;
@@ -1382,18 +1063,11 @@ unit rgobj;
         psavedstate(state)^.countusableregsmm := countusableregsmm;
         psavedstate(state)^.used_in_proc_int := used_in_proc_int;
         psavedstate(state)^.used_in_proc_other := used_in_proc_other;
-      {$ifndef newra}
-        psavedstate(state)^.reg_pushes_int := reg_pushes_int;
-      {$endif}
         psavedstate(state)^.reg_pushes_other := reg_pushes_other;
         psavedstate(state)^.is_reg_var_int := is_reg_var_int;
         psavedstate(state)^.is_reg_var_other := is_reg_var_other;
         psavedstate(state)^.regvar_loaded_int := regvar_loaded_int;
         psavedstate(state)^.regvar_loaded_other := regvar_loaded_other;
-{$ifdef TEMPREGDEBUG}
-        psavedstate(state)^.reg_user := reg_user;
-        psavedstate(state)^.reg_releaser := reg_releaser;
-{$endif TEMPREGDEBUG}
       end;
 
 
@@ -1405,9 +1079,6 @@ unit rgobj;
         usableregsfpu := psavedstate(state)^.usableregsfpu;
         unusedregsmm := psavedstate(state)^.unusedregsmm;
         usableregsmm := psavedstate(state)^.usableregsmm;
-      {$ifndef newra}
-        countunusedregsint := psavedstate(state)^.countunusedregsint;
-      {$endif}
         countunusedregsfpu := psavedstate(state)^.countunusedregsfpu;
         countunusedregsmm := psavedstate(state)^.countunusedregsmm;
         countusableregsint := psavedstate(state)^.countusableregsint;
@@ -1415,18 +1086,11 @@ unit rgobj;
         countusableregsmm := psavedstate(state)^.countusableregsmm;
         used_in_proc_int := psavedstate(state)^.used_in_proc_int;
         used_in_proc_other := psavedstate(state)^.used_in_proc_other;
-      {$ifndef newra}
-        reg_pushes_int := psavedstate(state)^.reg_pushes_int;
-      {$endif}
         reg_pushes_other := psavedstate(state)^.reg_pushes_other;
         is_reg_var_int := psavedstate(state)^.is_reg_var_int;
         is_reg_var_other := psavedstate(state)^.is_reg_var_other;
         regvar_loaded_other := psavedstate(state)^.regvar_loaded_other;
         regvar_loaded_int := psavedstate(state)^.regvar_loaded_int;
-{$ifdef TEMPREGDEBUG}
-        reg_user := psavedstate(state)^.reg_user;
-        reg_releaser := psavedstate(state)^.reg_releaser;
-{$endif TEMPREGDEBUG}
         dispose(psavedstate(state));
         state := nil;
       end;
@@ -1435,14 +1099,8 @@ unit rgobj;
     procedure trgobj.saveUnusedState(var state: pointer);
       begin
         new(punusedstate(state));
-      {$ifndef newra}
-        punusedstate(state)^.unusedregsint := unusedregsint;
-      {$endif}
         punusedstate(state)^.unusedregsfpu := unusedregsfpu;
         punusedstate(state)^.unusedregsmm := unusedregsmm;
-      {$ifndef newra}
-        punusedstate(state)^.countunusedregsint := countunusedregsint;
-      {$endif}
         punusedstate(state)^.countunusedregsfpu := countunusedregsfpu;
         punusedstate(state)^.countunusedregsmm := countunusedregsmm;
       end;
@@ -1450,21 +1108,15 @@ unit rgobj;
 
     procedure trgobj.restoreUnusedState(var state: pointer);
       begin
-      {$ifndef newra}
-        unusedregsint := punusedstate(state)^.unusedregsint;
-      {$endif}
         unusedregsfpu := punusedstate(state)^.unusedregsfpu;
         unusedregsmm := punusedstate(state)^.unusedregsmm;
-      {$ifndef newra}
-        countunusedregsint := punusedstate(state)^.countunusedregsint;
-      {$endif}
         countunusedregsfpu := punusedstate(state)^.countunusedregsfpu;
         countunusedregsmm := punusedstate(state)^.countunusedregsmm;
         dispose(punusedstate(state));
         state := nil;
       end;
 
-{$ifdef newra}
+
     procedure Trgobj.add_edge(u,v:Tsuperregister);
 
     {This procedure will add an edge to the virtual interference graph.}
@@ -1488,12 +1140,12 @@ unit rgobj;
           include(igraph.bitmap[u],v);
           include(igraph.bitmap[v],u);
           {Precoloured nodes are not stored in the interference graph.}
-          if not(u in [first_supreg..last_supreg]) then
+          if not(u in [first_int_supreg..last_int_supreg]) then
             begin
               addadj(u,v);
               inc(degree[u]);
             end;
-          if not(v in [first_supreg..last_supreg]) then
+          if not(v in [first_int_supreg..last_int_supreg]) then
             begin
               addadj(v,u);
               inc(degree[v]);
@@ -1506,7 +1158,7 @@ unit rgobj;
     var i:Tsuperregister;
 
     begin
-      for i:=1 to maxintreg do
+      for i:=0 to maxintreg do
         if not(i in unusedregsint) then
           add_edge(u,i);
     end;
@@ -1547,7 +1199,7 @@ unit rgobj;
         end;
       close(f);
     end;
-{$endif}
+{$endif ra_debug2}
 
     procedure Trgobj.add_to_movelist(u:Tsuperregister;data:Tlinkedlistitem);
 
@@ -1576,9 +1228,9 @@ unit rgobj;
       i.moveset:=ms_worklist_moves;
       i.instruction:=instr;
       worklist_moves.insert(i);
-      ssupreg:=instr.oper[O_MOV_SOURCE].reg.number shr 8;
+      ssupreg:=getsupreg(instr.oper[O_MOV_SOURCE].reg);
       add_to_movelist(ssupreg,i);
-      dsupreg:=instr.oper[O_MOV_DEST].reg.number shr 8;
+      dsupreg:=getsupreg(instr.oper[O_MOV_DEST].reg);
       if ssupreg<>dsupreg then
         {Avoid adding the same move instruction twice to a single register.}
         add_to_movelist(dsupreg,i);
@@ -1611,7 +1263,7 @@ unit rgobj;
     begin
       {If we have 7 cpu registers, and the degree of a node is 7, we cannot
        assign it to any of the registers, thus it is significant.}
-      for n:=first_imreg to maxintreg do
+      for n:=first_int_imreg to maxintreg do
         if degree[n]>=cpu_registers then
           spillworklist:=spillworklist+char(n)
         else if move_related(n) then
@@ -1737,7 +1389,7 @@ unit rgobj;
           begin
             m:=adj^[i];
             if ((pos(m,selectstack) or pos(m,coalescednodes))=0) and
-                not (Tsuperregister(m) in [first_supreg..last_supreg]) then
+                not (Tsuperregister(m) in [first_int_supreg..last_int_supreg]) then
               decrement_degree(Tsuperregister(m));
           end;
     end;
@@ -1755,7 +1407,7 @@ unit rgobj;
     var p:byte;
 
     begin
-      if not(u in [first_supreg..last_supreg]) and not move_related(u) and
+      if not(u in [first_int_supreg..last_int_supreg]) and not move_related(u) and
          (degree[u]<cpu_registers) then
         begin
           p:=pos(char(u),freezeworklist);
@@ -1777,7 +1429,7 @@ unit rgobj;
 
       begin
         ok:=(degree[t]<cpu_registers) or
-            (t in [first_supreg..last_supreg]) or
+            (t in [first_int_supreg..last_int_supreg]) or
             (r in igraph.bitmap[t]);
       end;
 
@@ -1883,7 +1535,7 @@ unit rgobj;
                  lists while the degree does not change (add_edge will increase it).
                  Instead, we will decrement manually. (Only if the degree has been
                  increased.)}
-                if decrement and not (Tsuperregister(t) in [first_supreg..last_supreg])
+                if decrement and not (Tsuperregister(t) in [first_int_supreg..last_int_supreg])
                    and (degree[Tsuperregister(t)]>0) then
                   dec(degree[Tsuperregister(t)]);
               end;
@@ -1903,9 +1555,9 @@ unit rgobj;
 
     begin
       m:=Tmoveins(worklist_moves.getfirst);
-      x:=get_alias(m.instruction.oper[0].reg.number shr 8);
-      y:=get_alias(m.instruction.oper[1].reg.number shr 8);
-      if y in [first_supreg..last_supreg] then
+      x:=get_alias(getsupreg(m.instruction.oper[0].reg));
+      y:=get_alias(getsupreg(m.instruction.oper[1].reg));
+      if y in [first_int_supreg..last_int_supreg] then
         begin
           u:=y;
           v:=x;
@@ -1924,7 +1576,7 @@ unit rgobj;
       {Do u and v interfere? In that case the move is constrained. Two
        precoloured nodes interfere allways. If v is precoloured, by the above
        code u is precoloured, thus interference...}
-      else if (v in [first_supreg..last_supreg]) or (u in igraph.bitmap[v]) then
+      else if (v in [first_int_supreg..last_int_supreg]) or (u in igraph.bitmap[v]) then
         begin
           m.moveset:=ms_constrained_moves;  {Cannot coalesce yet...}
           constrained_moves.insert(m);
@@ -1932,8 +1584,8 @@ unit rgobj;
           add_worklist(v);
         end
       {Next test: is it possible and a good idea to coalesce??}
-      else if ((u in [first_supreg..last_supreg]) and adjacent_ok(u,v)) or
-              (not(u in [first_supreg..last_supreg]) and conservative(u,v)) then
+      else if ((u in [first_int_supreg..last_int_supreg]) and adjacent_ok(u,v)) or
+              (not(u in [first_int_supreg..last_int_supreg]) and conservative(u,v)) then
         begin
           m.moveset:=ms_coalesced_moves;  {Move coalesced!}
           coalesced_moves.insert(m);
@@ -1960,8 +1612,8 @@ unit rgobj;
             m:=movelist[u]^.data[i];
             if Tmoveins(m).moveset in [ms_worklist_moves,ms_active_moves] then
               begin
-                x:=Tmoveins(m).instruction.oper[0].reg.number shr 8;
-                y:=Tmoveins(m).instruction.oper[1].reg.number shr 8;
+                x:=getsupreg(Tmoveins(m).instruction.oper[0].reg);
+                y:=getsupreg(Tmoveins(m).instruction.oper[1].reg);
                 if get_alias(y)=get_alias(u) then
                   v:=get_alias(x)
                 else
@@ -2023,8 +1675,8 @@ unit rgobj;
     begin
       spillednodes:='';
       {Colour the cpu registers...}
-      colourednodes:=[first_supreg..last_supreg];
-      for i:=first_supreg to last_supreg do
+      colourednodes:=[first_int_supreg..last_int_supreg];
+      for i:=first_int_supreg to last_int_supreg do
         colour[i]:=i;
       {Now colour the imaginary registers on the select-stack.}
       for i:=length(selectstack) downto 1 do
@@ -2045,7 +1697,7 @@ unit rgobj;
           {Assume a spill by default...}
           spillednodes:=spillednodes+char(n);
           {Search for a colour not in this list.}
-          for k:=first_supreg to last_supreg do
+          for k:=first_int_supreg to last_int_supreg do
             if not(k in adj_colours) then
               begin
                 colour[n]:=k;
@@ -2067,12 +1719,12 @@ unit rgobj;
         end;
       { registers which aren't available to the register allocator must }
       { retain their value                                              }
-      for i := 1 to first_supreg-1 do
-        colour[i] := i;
-    {$ifdef ra_debug}
-      for i:=first_imreg to maxintreg do
+{      for i := 1 to first_int_supreg-1 do
+        colour[i] := i;}
+{$ifdef ra_debug}
+      for i:=first_int_imreg to maxintreg do
         writeln(i:4,'   ',colour[i]:4)
-    {$endif}
+{$endif ra_debug}
     end;
 
     procedure Trgobj.colour_registers;
@@ -2123,7 +1775,7 @@ unit rgobj;
       move_to_worklist_moves(frozen_moves);
       move_to_worklist_moves(coalesced_moves);
       move_to_worklist_moves(constrained_moves);
-{$endif}
+{$endif Principle_wrong_by_definition}
       active_moves.destroy;
       active_moves:=nil;
       frozen_moves.destroy;
@@ -2231,7 +1883,7 @@ unit rgobj;
           dispose(movelist[u]);
           movelist[u]:=nil;
         end;
-{$endif}
+{$endif Principle_wrong_by_definition}
     end;
 
     procedure Trgobj.getregisterintinline(list:Taasmoutput;position:Tai;subreg:Tsubregister;var result:Tregister);
@@ -2240,20 +1892,19 @@ unit rgobj;
         r:Tregister;
 
     begin
-      if not (lastintreg in [first_imreg..last_imreg]) then
-        lastintreg:=first_imreg;
+      if not (lastintreg in [first_int_imreg..last_int_imreg]) then
+        lastintreg:=first_int_imreg;
       i:=lastintreg;
       repeat
-        if i=last_imreg then
-          i:=first_imreg
+        if i=last_int_imreg then
+          i:=first_int_imreg
         else
           inc(i);
         if (i in unusedregsint) and (pos(char(i),abtlist)=0) then
           begin
             exclude(unusedregsint,i);
             include(used_in_proc_int,i);
-            r.enum:=R_INTREGISTER;
-            r.number:=i shl 8 or subreg;
+            r:=newreg(R_INTREGISTER,i,subreg);
             if position=nil then
               list.insert(Tai_regalloc.alloc(r))
             else
@@ -2263,7 +1914,7 @@ unit rgobj;
             if i>maxintreg then
               maxintreg:=i;
             add_edges_used(i);
-            add_constraints(result.number);
+            add_constraints(result);
             exit;
           end;
       until i=lastintreg;
@@ -2299,8 +1950,8 @@ unit rgobj;
         found:boolean;
 
     begin
-      if not (lastintreg in [first_imreg..last_imreg]) then
-        lastintreg:=first_imreg;
+      if not (lastintreg in [first_int_imreg..last_int_imreg]) then
+        lastintreg:=first_int_imreg;
       found:=false;
       for i:=1 to length(abtlist) do
         if Tsuperregister(abtlist[i]) in unusedregsint then
@@ -2310,8 +1961,8 @@ unit rgobj;
           end;
       i:=lastintreg;
       repeat
-        if i=last_imreg then
-          i:=first_imreg
+        if i=last_int_imreg then
+          i:=first_int_imreg
         else
           inc(i);
         if (i in unusedregsint) and ((igraph.adjlist[i]=nil) or (length(igraph.adjlist[i]^)<cpu_registers)) then
@@ -2324,8 +1975,7 @@ unit rgobj;
         begin
           exclude(unusedregsint,i);
           include(used_in_proc_int,i);
-          r.enum:=R_INTREGISTER;
-          r.number:=i shl 8 or cgsize2subreg(size);
+          r:=newreg(R_INTREGISTER,i,cgsize2subreg(size));
           list.concat(Tai_regalloc.alloc(r));
           getabtregisterint:=r;
           lastintreg:=i;
@@ -2337,19 +1987,15 @@ unit rgobj;
         end
       else
         internalerror(10);
-{$ifdef newra}
-      add_constraints(getabtregisterint.number);
-{$endif}
+      add_constraints(getabtregisterint);
     end;
 
-    procedure Trgobj.ungetregisterintinline(list:Taasmoutput;position:Tai;const r:Tregister);
+    procedure Trgobj.ungetregisterintinline(list:Taasmoutput;position:Tai;r:Tregister);
 
     var supreg:Tsuperregister;
 
     begin
-      if r.enum<=lastreg then
-        internalerror(200301083);
-      supreg:=r.number shr 8;
+      supreg:=getsupreg(r);
       include(unusedregsint,supreg);
       if position=nil then
         list.insert(Tai_regalloc.dealloc(r))
@@ -2365,8 +2011,9 @@ unit rgobj;
     var i:byte;
         r:Tsuperregister;
         p,q:Tai;
-        regs_to_spill_set:Tsupregset;
+        regs_to_spill_set:Tsuperregisterset;
         spill_temps:^Tspill_temp_list;
+        supreg : tsuperregister;
 
     begin
       spill_registers:=false;
@@ -2374,10 +2021,10 @@ unit rgobj;
       fillchar(degree,sizeof(degree),0);
       {Precoloured nodes should have an infinite degree, which we can approach
        by 255.}
-      for i:=first_supreg to last_supreg do
+      for i:=first_int_supreg to last_int_supreg do
         degree[i]:=255;
 {      exclude(unusedregsint,RS_STACK_POINTER_REG);}
-      if current_procinfo.framepointer.number=NR_FRAME_POINTER_REG then
+      if current_procinfo.framepointer=NR_FRAME_POINTER_REG then
         {Make sure the register allocator won't allocate registers into ebp.}
         exclude(unusedregsint,RS_FRAME_POINTER_REG);
       new(spill_temps);
@@ -2399,7 +2046,8 @@ unit rgobj;
             ait_regalloc:
               begin
                 {A register allocation of a spilled register can be removed.}
-                if (Tai_regalloc(p).reg.number shr 8) in regs_to_spill_set then
+                supreg:=getsupreg(Tai_regalloc(p).reg);
+                if supreg in regs_to_spill_set then
                   begin
                     q:=p;
                     p:=Tai(p.next);
@@ -2408,9 +2056,9 @@ unit rgobj;
                   end
                 else
                   if Tai_regalloc(p).allocation then
-                    exclude(unusedregsint,Tai_regalloc(p).reg.number shr 8)
+                    exclude(unusedregsint,supreg)
                   else
-                    include(unusedregsint,Tai_regalloc(p).reg.number shr 8);
+                    include(unusedregsint,supreg);
               end;
             ait_instruction:
               begin
@@ -2432,7 +2080,7 @@ unit rgobj;
         end;
       dispose(spill_temps);
     end;
-{$endif newra}
+
 
 {****************************************************************************
                                   TReference
@@ -2441,15 +2089,11 @@ unit rgobj;
     procedure reference_reset(var ref : treference);
       begin
         FillChar(ref,sizeof(treference),0);
-        ref.base.enum:=R_INTREGISTER;
-        ref.index.enum:=R_INTREGISTER;
-      {$ifdef i386}
-        ref.segment.enum:=R_INTREGISTER;
-      {$endif i386}
-      {$ifdef arm}
+{$ifdef arm}
         ref.signindex:=1;
-      {$endif arm}
+{$endif arm}
       end;
+
 
     procedure reference_reset_old(var ref : treference);
       begin
@@ -2501,24 +2145,10 @@ unit rgobj;
         FillChar(l,sizeof(tlocation),0);
         l.loc:=lt;
         l.size:=lsize;
-        case l.loc of
-          LOC_REGISTER,LOC_CREGISTER:
-            begin
-              l.register.enum:=R_INTREGISTER;
-              l.registerhigh.enum:=R_INTREGISTER;
-            end;
-          LOC_REFERENCE,LOC_CREFERENCE:
-            begin
-              l.reference.base.enum:=R_INTREGISTER;
-              l.reference.index.enum:=R_INTREGISTER;
-            {$ifdef i386}
-              l.reference.segment.enum:=R_INTREGISTER;
-            {$endif}
-            {$ifdef arm}
-              l.reference.signindex:=1;
-            {$endif arm}
-            end;
-        end;
+{$ifdef arm}
+        if l.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
+          l.reference.signindex:=1;
+{$endif arm}
       end;
 
 
@@ -2570,12 +2200,30 @@ end.
 
 {
   $Log$
-  Revision 1.68  2003-09-03 11:18:37  florian
+  Revision 1.69  2003-09-03 15:55:01  peter
+    * NEWRA branch merged
+
+  Revision 1.68  2003/09/03 11:18:37  florian
     * fixed arm concatcopy
     + arm support in the common compiler sources added
     * moved some generic cg code around
     + tfputype added
     * ...
+
+  Revision 1.67.2.5  2003/08/31 20:44:07  peter
+    * fixed getexplicitregisterint tregister value
+
+  Revision 1.67.2.4  2003/08/31 20:40:50  daniel
+    * Fixed add_edges_used
+
+  Revision 1.67.2.3  2003/08/29 17:28:59  peter
+    * next batch of updates
+
+  Revision 1.67.2.2  2003/08/28 18:35:08  peter
+    * tregister changed to cardinal
+
+  Revision 1.67.2.1  2003/08/27 19:55:54  peter
+    * first tregister patch
 
   Revision 1.67  2003/08/23 10:46:21  daniel
     * Register allocator bugfix for h2pas
@@ -2618,12 +2266,12 @@ end.
 
   Revision 1.59  2003/07/06 15:00:47  jonas
     * fixed my previous completely broken commit. It's not perfect though,
-      registers > last_supreg and < max_intreg may still be "translated"
+      registers > last_int_supreg and < max_intreg may still be "translated"
 
   Revision 1.58  2003/07/06 14:45:05  jonas
     * support integer registers that are not managed by newra (ie. don't
       translate register numbers that fall outside the range
-      first_supreg..last_supreg)
+      first_int_supreg..last_int_supreg)
 
   Revision 1.57  2003/07/02 22:18:04  peter
     * paraloc splitted in callerparaloc,calleeparaloc

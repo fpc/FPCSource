@@ -27,7 +27,7 @@ unit n386mem;
 interface
 
     uses
-      cpuinfo,cpubase,
+      cginfo,cpuinfo,cpubase,
       node,nmem,ncgmem;
 
     type
@@ -54,7 +54,6 @@ implementation
       cutils,verbose,
       symdef,paramgr,
       aasmtai,
-      cginfo,
       nld,ncon,nadd,
       cgobj,tgobj,rgobj;
 
@@ -67,7 +66,7 @@ implementation
       begin
         inherited pass_2;
         { for use of other segments }
-        if left.location.reference.segment.enum<>R_NO then
+        if left.location.reference.segment<>NR_NO then
           location.segment:=left.location.reference.segment;
       end;
 
@@ -80,10 +79,7 @@ implementation
       begin
          inherited pass_2;
          if tpointerdef(left.resulttype.def).is_far then
-          begin
-            location.reference.segment.enum:=R_INTREGISTER;
-            location.reference.segment.number:=NR_FS;
-          end;
+           location.reference.segment:=NR_FS;
       end;
 
 
@@ -95,16 +91,12 @@ implementation
        var
          l2 : integer;
        begin
-         if location.reference.base.enum<>R_INTREGISTER then
-          internalerror(200302055);
-         if location.reference.index.enum<>R_INTREGISTER then
-          internalerror(200302055);
          { Optimized for x86 to use the index register and scalefactor }
-         if location.reference.index.number=NR_NO then
+         if location.reference.index=NR_NO then
           begin
             { no preparations needed }
           end
-         else if location.reference.base.number=NR_NO then
+         else if location.reference.base=NR_NO then
           begin
             case location.reference.scalefactor of
              2 : cg.a_op_const_reg(exprasmlist,OP_SHL,OS_ADDR,1,location.reference.index);
@@ -138,12 +130,8 @@ implementation
     procedure ti386vecnode.pass_2;
       begin
         inherited pass_2;
-
         if nf_memseg in flags then
-          begin
-            location.reference.segment.enum:=R_INTREGISTER;
-            location.reference.segment.number:=NR_FS;
-          end;
+          location.reference.segment:=NR_FS;
       end;
 
 
@@ -154,7 +142,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.53  2003-06-01 21:38:06  peter
+  Revision 1.54  2003-09-03 15:55:01  peter
+    * NEWRA branch merged
+
+  Revision 1.53.2.2  2003/08/31 15:46:26  peter
+    * more updates for tregister
+
+  Revision 1.53.2.1  2003/08/29 17:29:00  peter
+    * next batch of updates
+
+  Revision 1.53  2003/06/01 21:38:06  peter
     * getregisterfpu size parameter added
     * op_const_reg size parameter added
     * sparc updates

@@ -1018,7 +1018,12 @@ Implementation
     function TInternalAssembler.TreePass1(hp:Tai):Tai;
       var
         InlineLevel,
-        i,l : longint;
+        l : longint;
+{$ifdef i386}
+{$ifndef NOAG386BIN}
+        i : longint;
+{$endif NOAG386BIN}
+{$endif i386}
       begin
         inlinelevel:=0;
         while assigned(hp) do
@@ -1635,7 +1640,13 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.53  2003-07-04 22:40:58  pierre
+  Revision 1.54  2003-09-03 15:55:00  peter
+    * NEWRA branch merged
+
+  Revision 1.53.2.1  2003/09/01 21:02:55  peter
+    * sparc updates for new tregister
+
+  Revision 1.53  2003/07/04 22:40:58  pierre
    * add support for constant offset in stabs address, needed by threadvar debugging support
 
   Revision 1.52  2003/04/23 13:48:07  peter

@@ -332,10 +332,6 @@ implementation
 
       begin
          inherited create(blockn,l);
-    {$ifndef newra}
-         if releasetemp then
-           include(flags,nf_releasetemps);
-    {$endif newra}
       end;
 
     function tblocknode.det_resulttype:tnode;
@@ -852,7 +848,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.59  2003-08-09 18:56:54  daniel
+  Revision 1.60  2003-09-03 15:55:00  peter
+    * NEWRA branch merged
+
+  Revision 1.59.2.1  2003/08/27 20:23:55  peter
+    * remove old ra code
+
+  Revision 1.59  2003/08/09 18:56:54  daniel
     * cs_regalloc renamed to cs_regvars to avoid confusion with register
       allocator
     * Some preventive changes to i386 spillinh code

@@ -77,7 +77,7 @@ implementation
             <register window save area for calling>
           %sp
         }
-        result:=Align(lasttemp+savearea,4);
+        result:=Align(tg.lasttemp+savearea,4);
       end;
 
 
@@ -86,7 +86,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  2003-08-20 17:48:49  peter
+  Revision 1.20  2003-09-03 15:55:01  peter
+    * NEWRA branch merged
+
+  Revision 1.19.2.1  2003/09/01 21:02:55  peter
+    * sparc updates for new tregister
+
+  Revision 1.19  2003/08/20 17:48:49  peter
     * fixed stackalloc to not allocate localst.datasize twice
     * order of stackalloc code fixed for implicit init/final
 

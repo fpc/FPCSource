@@ -65,12 +65,8 @@ implementation
         r,hregister : tregister;
         supreg:Tsuperregister;
         symtabletype : tsymtabletype;
-        i : longint;
         href : treference;
         newsize : tcgsize;
-      {$ifndef newra}
-        pushed : tpushedsavedint;
-      {$endif}
         dorelocatelab,
         norelocatelab : tasmlabel;
         paraloc: tparalocation;
@@ -86,7 +82,7 @@ implementation
                    begin
 {$ifdef i386}
                      if tabsolutesym(symtableentry).absseg then
-                      location.reference.segment.enum:=R_FS;
+                      location.reference.segment:=NR_FS;
 {$endif i386}
                      location.reference.offset:=tabsolutesym(symtableentry).address;
                    end
@@ -109,8 +105,7 @@ implementation
                   if (tvarsym(symtableentry).varspez=vs_const) then
                     location_reset(location,LOC_CREFERENCE,newsize);
                   symtabletype:=symtable.symtabletype;
-                  hregister.enum:=R_INTREGISTER;
-                  hregister.number:=NR_NO;
+                  hregister:=NR_NO;
                   { C variable }
                   if (vo_is_C_var in tvarsym(symtableentry).varoptions) then
                     begin
@@ -150,26 +145,15 @@ implementation
                        cg.a_jmp_always(exprasmlist,norelocatelab);
                        cg.a_label(exprasmlist,dorelocatelab);
                        { don't save the allocated register else the result will be destroyed later }
-                    {$ifndef newra}
-                       rg.saveusedintregisters(exprasmlist,pushed,[RS_FUNCTION_RESULT_REG]-[hregister.number shr 8]);
-                    {$endif}
                        reference_reset_symbol(href,objectlibrary.newasmsymboldata(tvarsym(symtableentry).mangledname),0);
                        cg.a_param_ref(exprasmlist,OS_ADDR,href,paraloc);
                        { the called procedure isn't allowed to change }
                        { any register except EAX                    }
                        cg.a_call_reg(exprasmlist,hregister);
                        paramanager.freeintparaloc(exprasmlist,1);
-                    {$ifdef newra}
                        r:=rg.getexplicitregisterint(exprasmlist,NR_FUNCTION_RESULT_REG);
                        rg.ungetregisterint(exprasmlist,r);
-                    {$else}
-                       r.enum:=R_INTREGISTER;
-                       r.number:=NR_FUNCTION_RESULT_REG;
-                    {$endif}
                        cg.a_load_reg_reg(exprasmlist,OS_INT,OS_ADDR,r,hregister);
-                    {$ifndef newra}
-                       rg.restoreusedintregisters(exprasmlist,pushed);
-                    {$endif}
                        cg.a_label(exprasmlist,norelocatelab);
                        location.reference.base:=hregister;
                     end
@@ -177,26 +161,28 @@ implementation
                   else
                     begin
                        { in case it is a register variable: }
-                       if tvarsym(symtableentry).reg.number<>NR_NO then
+                       if tvarsym(symtableentry).reg<>NR_NO then
                          begin
-                            if tvarsym(symtableentry).reg.enum in fpuregs then
-                              begin
-                                 location_reset(location,LOC_CFPUREGISTER,def_cgsize(resulttype.def));
-                                 location.register:=tvarsym(symtableentry).reg;
-                              end
-                            else if Tvarsym(symtableentry).reg.enum=R_INTREGISTER then
-                             begin
-                               supreg:=Tvarsym(symtableentry).reg.number shr 8;
-                               if (supreg in general_superregisters) and
-                                  not (supreg in rg.regvar_loaded_int) then
-                                 load_regvar(exprasmlist,tvarsym(symtableentry));
-                               location_reset(location,LOC_CREGISTER,def_cgsize(resulttype.def));
-                               location.register:=tvarsym(symtableentry).reg;
-                               exclude(rg.unusedregsint,supreg);
-                               hregister := location.register;
-                             end
-                           else
-                             internalerror(200301172);
+                            case getregtype(tvarsym(symtableentry).reg) of
+                              R_FPUREGISTER :
+                                begin
+                                   location_reset(location,LOC_CFPUREGISTER,def_cgsize(resulttype.def));
+                                   location.register:=tvarsym(symtableentry).reg;
+                                end;
+                              R_INTREGISTER :
+                                begin
+                                  supreg:=getsupreg(Tvarsym(symtableentry).reg);
+                                  if (supreg in general_superregisters) and
+                                     not (supreg in rg.regvar_loaded_int) then
+                                    load_regvar(exprasmlist,tvarsym(symtableentry));
+                                  location_reset(location,LOC_CREGISTER,def_cgsize(resulttype.def));
+                                  location.register:=tvarsym(symtableentry).reg;
+                                  exclude(rg.unusedregsint,supreg);
+                                  hregister := location.register;
+                                end;
+                              else
+                                internalerror(200301172);
+                            end;
                          end
                        else
                          begin
@@ -241,7 +227,7 @@ implementation
                       paramanager.push_addr_param(tvarsym(symtableentry).vartype.def,tprocdef(symtable.defowner).proccalloption)
                      ) then
                     begin
-                      if hregister.number=NR_NO then
+                      if hregister=NR_NO then
                         hregister:=rg.getaddressregister(exprasmlist);
                       { we need to load only an address }
                       location.size:=OS_ADDR;
@@ -327,18 +313,10 @@ implementation
                           rg.ungetregisterint(exprasmlist,hregister);
                           { load address of the function }
                           reference_reset_symbol(href,objectlibrary.newasmsymbol(procdef.mangledname),0);
-                        {$ifdef newra}
                           hregister:=rg.getaddressregister(exprasmlist);
-                        {$else}
-                          hregister:=cg.get_scratch_reg_address(exprasmlist);
-                        {$endif}
                           cg.a_loadaddr_ref_reg(exprasmlist,href,hregister);
                           cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,hregister,location.reference);
-                        {$ifdef newra}
                           rg.ungetregisterint(exprasmlist,hregister);
-                        {$else newra}
-                          cg.free_scratch_reg(exprasmlist,hregister);
-                        {$endif}
                         end;
                     end
                   else
@@ -367,7 +345,6 @@ implementation
          href : treference;
          old_allow_multi_pass2,
          releaseright : boolean;
-         pushedregs : tmaybesave;
          cgsize : tcgsize;
          r:Tregister;
 
@@ -418,16 +395,10 @@ implementation
             begin
               { left can't be never a 64 bit LOC_REGISTER, so the 3. arg }
               { can be false                                             }
-            {$ifndef newra}
-              maybe_save(exprasmlist,left.registers32,right.location,pushedregs);
-            {$endif}
               secondpass(left);
               { decrement destination reference counter }
               if (left.resulttype.def.needs_inittable) then
                cg.g_decrrefcount(exprasmlist,left.resulttype.def,left.location.reference,false);
-            {$ifndef newra}
-              maybe_restore(exprasmlist,right.location,pushedregs);
-            {$endif newra}
               if codegenerror then
                 exit;
             end;
@@ -448,18 +419,12 @@ implementation
 
            { left can't be never a 64 bit LOC_REGISTER, so the 3. arg }
            { can be false                                             }
-          {$ifndef newra}
-           maybe_save(exprasmlist,right.registers32,left.location,pushedregs);
-          {$endif newra}
            secondpass(right);
            { increment source reference counter, this is
              useless for string constants}
            if (right.resulttype.def.needs_inittable) and
               (right.nodetype<>stringconstn) then
             cg.g_incrrefcount(exprasmlist,right.resulttype.def,right.location.reference,false);
-          {$ifndef newra}
-           maybe_restore(exprasmlist,left.location,pushedregs);
-          {$endif}
 
            if codegenerror then
              exit;
@@ -469,11 +434,9 @@ implementation
 
         { optimize temp to temp copies }
         if (left.nodetype = temprefn) and
-{$ifdef newra}
            { we may store certain temps in registers in the future, then this }
            { optimization will have to be adapted                             }
            (left.location.loc = LOC_REFERENCE) and
-{$endif newra}
            (right.location.loc = LOC_REFERENCE) and
            tg.istemp(right.location.reference) and
            (tg.sizeoftemp(exprasmlist,right.location.reference) = tg.sizeoftemp(exprasmlist,left.location.reference)) then
@@ -555,7 +518,7 @@ implementation
                         cgsize:=def_cgsize(left.resulttype.def);
                         if cgsize in [OS_64,OS_S64] then
                          cg64.a_load64_ref_reg(exprasmlist,
-                             right.location.reference,left.location.register64{$ifdef newra},false{$endif})
+                             right.location.reference,left.location.register64,false)
                         else
                          cg.a_load_ref_reg(exprasmlist,cgsize,cgsize,
                              right.location.reference,left.location.register);
@@ -624,13 +587,7 @@ implementation
                   { generate the leftnode for the true case, and
                     release the location }
                   cg.a_label(exprasmlist,truelabel);
-                {$ifndef newra}
-                  maybe_save(exprasmlist,left.registers32,right.location,pushedregs);
-                {$endif newra}
                   secondpass(left);
-                {$ifndef newra}
-                  maybe_restore(exprasmlist,right.location,pushedregs);
-                {$endif newra}
                   if codegenerror then
                     exit;
                   cg.a_load_const_loc(exprasmlist,1,left.location);
@@ -638,16 +595,10 @@ implementation
                   cg.a_jmp_always(exprasmlist,hlabel);
                   { generate the leftnode for the false case }
                   cg.a_label(exprasmlist,falselabel);
-                {$ifndef newra}
-                  maybe_save(exprasmlist,left.registers32,right.location,pushedregs);
-                {$endif}
                   old_allow_multi_pass2:=allow_multi_pass2;
                   allow_multi_pass2:=true;
                   secondpass(left);
                   allow_multi_pass2:=old_allow_multi_pass2;
-                {$ifndef newra}
-                  maybe_restore(exprasmlist,right.location,pushedregs);
-                {$endif newra}
                   if codegenerror then
                     exit;
                   cg.a_load_const_loc(exprasmlist,0,left.location);
@@ -867,18 +818,10 @@ implementation
                     if vaddr then
                      begin
                        location_force_mem(exprasmlist,hp.left.location);
-                     {$ifdef newra}
                        tmpreg:=rg.getaddressregister(exprasmlist);
-                     {$else}
-                       tmpreg:=cg.get_scratch_reg_address(exprasmlist);
-                     {$endif}
                        cg.a_loadaddr_ref_reg(exprasmlist,hp.left.location.reference,tmpreg);
                        cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,tmpreg,href);
-                     {$ifdef newra}
                        rg.ungetregisterint(exprasmlist,tmpreg);
-                     {$else}
-                       cg.free_scratch_reg(exprasmlist,tmpreg);
-                     {$endif}
                        location_release(exprasmlist,hp.left.location);
                        if freetemp then
                          location_freetemp(exprasmlist,hp.left.location);
@@ -938,12 +881,21 @@ begin
 end.
 {
   $Log$
-  Revision 1.78  2003-09-03 11:18:37  florian
+  Revision 1.79  2003-09-03 15:55:00  peter
+    * NEWRA branch merged
+
+  Revision 1.78  2003/09/03 11:18:37  florian
     * fixed arm concatcopy
     + arm support in the common compiler sources added
     * moved some generic cg code around
     + tfputype added
     * ...
+
+  Revision 1.77.2.2  2003/08/31 15:46:26  peter
+    * more updates for tregister
+
+  Revision 1.77.2.1  2003/08/29 17:28:59  peter
+    * next batch of updates
 
   Revision 1.77  2003/08/20 20:13:08  daniel
     * Fixed the fixed trouble

@@ -135,9 +135,6 @@ implementation
 
          aktcontinuelabel:=lcont;
          aktbreaklabel:=lbreak;
-      {$ifndef newra}
-         rg.cleartempgen;
-      {$endif}
          if assigned(right) then
            secondpass(right);
 
@@ -156,9 +153,6 @@ implementation
             truelabel:=lloop;
             falselabel:=lbreak;
           end;
-      {$ifndef newra}
-         rg.cleartempgen;
-      {$endif}
          secondpass(left);
 
          maketojumpbool(exprasmlist,left,lr_load_regvars);
@@ -187,7 +181,7 @@ implementation
          else_regvar_loaded_other : regvarother_booleanarray;
          org_regvar_loaded_int,
          then_regvar_loaded_int,
-         else_regvar_loaded_int : Tsupregset;
+         else_regvar_loaded_int : Tsuperregisterset;
          org_list,
          then_list,
          else_list : taasmoutput;
@@ -200,9 +194,6 @@ implementation
          oflabel:=falselabel;
          objectlibrary.getlabel(truelabel);
          objectlibrary.getlabel(falselabel);
-      {$ifndef newra}
-         rg.cleartempgen;
-      {$endif}
          secondpass(left);
 
 {$ifdef i386}
@@ -227,9 +218,6 @@ implementation
          if assigned(right) then
            begin
               cg.a_label(exprasmlist,truelabel);
-           {$ifndef newra}
-              rg.cleartempgen;
-           {$endif}
               secondpass(right);
            end;
 
@@ -265,9 +253,6 @@ implementation
                    cg.a_jmp_always(exprasmlist,hl);
                 end;
               cg.a_label(exprasmlist,falselabel);
-            {$ifndef newra}
-              rg.cleartempgen;
-            {$endif}
               secondpass(t1);
 {$ifdef i386}
               { save current asmlist (previous instructions + else-block) }
@@ -367,19 +352,12 @@ implementation
          objectlibrary.getlabel(l3);
 
          { only calculate reference }
-      {$ifndef newra}
-         rg.cleartempgen;
-      {$endif}
          secondpass(t2);
          hs := t2.resulttype.def.size;
          opsize := def_cgsize(t2.resulttype.def);
 
          { first set the to value
            because the count var can be in the expression !! }
-      {$ifndef newra}
-         rg.cleartempgen;
-      {$endif}
-
          do_loopvar_at_end:=lnf_dont_mind_loopvar_on_exit in loopflags;
 
          secondpass(right);
@@ -404,9 +382,6 @@ implementation
            temptovalue:=false;
 
          { produce start assignment }
-      {$ifndef newra}
-         rg.cleartempgen;
-      {$endif}
          secondpass(left);
          count_var_is_signed:=is_signed(t2.resulttype.def);
 
@@ -468,9 +443,6 @@ implementation
             end;
 
          { help register must not be in instruction block }
-      {$ifndef newra}
-         rg.cleartempgen;
-      {$endif}
          if assigned(t1) then
            begin
              secondpass(t1);
@@ -490,11 +462,6 @@ implementation
             end;
 
          cg.a_label(exprasmlist,aktcontinuelabel);
-
-         { makes no problems there }
-      {$ifndef newra}
-         rg.cleartempgen;
-      {$endif}
 
          if do_loopvar_at_end then
            if lnf_backward in loopflags then
@@ -787,9 +754,6 @@ implementation
 
          load_all_regvars(exprasmlist);
          cg.a_label(exprasmlist,labelnr);
-      {$ifndef newra}
-         rg.cleartempgen;
-      {$endif newra}
          secondpass(left);
       end;
 
@@ -803,43 +767,34 @@ implementation
       var
          a : tasmlabel;
          href2: treference;
-         r:Tregister;
       begin
          location_reset(location,LOC_VOID,OS_NO);
 
          if assigned(left) then
            begin
-{$ifdef callparatemp}
-              { process object (may contain a call) }
-              secondpass(left);
-              if codegenerror then
-                exit;
-{$endif callparatemp}
               { multiple parameters? }
               if assigned(right) then
                 begin
-{$ifdef callparatemp}
-                  { process address (in case it contains a call) }
+                  if assigned(frametree) then
+                    secondpass(frametree);
                   secondpass(right);
-                  if codegenerror then
-                    exit;
-{$endif callparatemp}
-                  { push frame }
+                end;
+              secondpass(left);
+              if codegenerror then
+                exit;
+
+              { Push parameters }
+              if assigned(right) then
+                begin
                   if assigned(frametree) then
                     begin
-                      secondpass(frametree);
-                      if codegenerror then
-                        exit;
-                      cg.a_param_loc(exprasmlist,frametree.location,paramanager.getintparaloc(exprasmlist,3));
+                      location_release(exprasmlist,frametree.location);
+                      cg.a_param_loc(exprasmlist,frametree.location,paramanager.getintparaloc(exprasmlist,3))
                     end
                   else
                     cg.a_param_const(exprasmlist,OS_INT,0,paramanager.getintparaloc(exprasmlist,3));
-{$ifndef callparatemp}
                   { push address }
-                  secondpass(right);
-                  if codegenerror then
-                    exit;
-{$endif not callparatemp}
+                  location_release(exprasmlist,right.location);
                   cg.a_param_loc(exprasmlist,right.location,paramanager.getintparaloc(exprasmlist,2));
                 end
               else
@@ -849,43 +804,28 @@ implementation
                    cg.a_label(exprasmlist,a);
                    reference_reset_symbol(href2,a,0);
                    { push current frame }
-                   r.enum:=R_INTREGISTER;
-                   r.number:=NR_FRAME_POINTER_REG;
-                   cg.a_param_reg(exprasmlist,OS_ADDR,r,paramanager.getintparaloc(exprasmlist,3));
+                   cg.a_param_reg(exprasmlist,OS_ADDR,NR_FRAME_POINTER_REG,paramanager.getintparaloc(exprasmlist,3));
                    { push current address }
                    if target_info.system <> system_powerpc_macos then
                      cg.a_paramaddr_ref(exprasmlist,href2,paramanager.getintparaloc(exprasmlist,2))
                    else
                      cg.a_param_const(exprasmlist,OS_INT,0,paramanager.getintparaloc(exprasmlist,2));
                 end;
-{$ifndef callparatemp}
-              { push object }
-              secondpass(left);
-              if codegenerror then
-                exit;
-{$endif not callparatemp}
+              location_release(exprasmlist,left.location);
               cg.a_param_loc(exprasmlist,left.location,paramanager.getintparaloc(exprasmlist,1));
               paramanager.freeintparaloc(exprasmlist,3);
               paramanager.freeintparaloc(exprasmlist,2);
               paramanager.freeintparaloc(exprasmlist,1);
-{$ifdef newra}
               rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
-{$endif newra}
               cg.a_call_name(exprasmlist,'FPC_RAISEEXCEPTION');
-{$ifdef newra}
               rg.deallocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
-{$endif newra}
            end
          else
            begin
-{$ifdef newra}
               rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
-{$endif newra}
               cg.a_call_name(exprasmlist,'FPC_POPADDRSTACK');
               cg.a_call_name(exprasmlist,'FPC_RERAISE');
-{$ifdef newra}
               rg.deallocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
-{$endif newra}
            end;
        end;
 
@@ -922,27 +862,15 @@ implementation
     { in the except block                                    }
     procedure cleanupobjectstack;
 
-    var r:Tregister;
-
       begin
-{$ifdef newra}
          rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
-{$endif newra}
          cg.a_call_name(exprasmlist,'FPC_POPOBJECTSTACK');
-{$ifdef newra}
          rg.deallocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
-{$endif newra}
-         r.enum:=R_INTREGISTER;
-         r.number:=NR_FUNCTION_RESULT_REG;
-         cg.a_param_reg(exprasmlist,OS_ADDR,r,paramanager.getintparaloc(exprasmlist,1));
+         cg.a_param_reg(exprasmlist,OS_ADDR,NR_FUNCTION_RESULT_REG,paramanager.getintparaloc(exprasmlist,1));
          paramanager.freeintparaloc(exprasmlist,1);
-{$ifdef newra}
          rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
-{$endif newra}
          cg.a_call_name(exprasmlist,'FPC_DESTROYEXCEPTION');
-{$ifdef newra}
          rg.deallocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
-{$endif newra}
       end;
 
 
@@ -966,7 +894,6 @@ implementation
          exceptflowcontrol : tflowcontrol;
          tempbuf,tempaddr : treference;
          href : treference;
-         r:Tregister;
 
       label
          errorexit;
@@ -1048,13 +975,9 @@ implementation
               }
               cg.a_param_const(exprasmlist,OS_ADDR,aword(-1),paramanager.getintparaloc(exprasmlist,1));
               paramanager.freeintparaloc(exprasmlist,1);
-{$ifdef newra}
               rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
-{$endif newra}
               cg.a_call_name(exprasmlist,'FPC_CATCHES');
-{$ifdef newra}
               rg.deallocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
-{$endif newra}
 
               { the destruction of the exception object must be also }
               { guarded by an exception frame                        }
@@ -1072,25 +995,15 @@ implementation
 
               try_free_exception(exprasmlist,tempbuf,tempaddr,href,0,doobjectdestroy,false);
 
-{$ifdef newra}
               rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
-{$endif newra}
               cg.a_call_name(exprasmlist,'FPC_POPSECONDOBJECTSTACK');
-{$ifdef newra}
               rg.deallocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
-{$endif newra}
 
-              r.enum:=R_INTREGISTER;
-              r.number:=NR_FUNCTION_RESULT_REG;
-              cg.a_param_reg(exprasmlist, OS_ADDR, r, paramanager.getintparaloc(exprasmlist,1));
+              cg.a_param_reg(exprasmlist, OS_ADDR, NR_FUNCTION_RESULT_REG, paramanager.getintparaloc(exprasmlist,1));
               paramanager.freeintparaloc(exprasmlist,1);
-{$ifdef newra}
               rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
-{$endif newra}
               cg.a_call_name(exprasmlist,'FPC_DESTROYEXCEPTION');
-{$ifdef newra}
               rg.deallocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
-{$endif newra}
               { we don't need to restore esi here because reraise never }
               { returns                                                 }
               cg.a_call_name(exprasmlist,'FPC_RERAISE');
@@ -1111,13 +1024,9 @@ implementation
               cg.a_label(exprasmlist,exitexceptlabel);
               { we must also destroy the address frame which guards }
               { exception object                                    }
-{$ifdef newra}
               rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
-{$endif newra}
               cg.a_call_name(exprasmlist,'FPC_POPADDRSTACK');
-{$ifdef newra}
               rg.deallocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
-{$endif newra}
               cg.g_exception_reason_load(exprasmlist,href);
               cleanupobjectstack;
               cg.a_jmp_always(exprasmlist,oldaktexitlabel);
@@ -1128,13 +1037,9 @@ implementation
               cg.a_label(exprasmlist,breakexceptlabel);
               { we must also destroy the address frame which guards }
               { exception object                                    }
-{$ifdef newra}
               rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
-{$endif newra}
               cg.a_call_name(exprasmlist,'FPC_POPADDRSTACK');
-{$ifdef newra}
               rg.deallocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
-{$endif newra}
               cg.g_exception_reason_load(exprasmlist,href);
               cleanupobjectstack;
               cg.a_jmp_always(exprasmlist,oldaktbreaklabel);
@@ -1145,13 +1050,9 @@ implementation
               cg.a_label(exprasmlist,continueexceptlabel);
               { we must also destroy the address frame which guards }
               { exception object                                    }
-{$ifdef newra}
               rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
-{$endif newra}
               cg.a_call_name(exprasmlist,'FPC_POPADDRSTACK');
-{$ifdef newra}
               rg.deallocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
-{$endif newra}
               cg.g_exception_reason_load(exprasmlist,href);
               cleanupobjectstack;
               cg.a_jmp_always(exprasmlist,oldaktcontinuelabel);
@@ -1161,13 +1062,9 @@ implementation
            begin
               { do some magic for exit in the try block }
               cg.a_label(exprasmlist,exittrylabel);
-{$ifdef newra}
               rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
-{$endif newra}
               cg.a_call_name(exprasmlist,'FPC_POPADDRSTACK');
-{$ifdef newra}
               rg.deallocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
-{$endif newra}
               cg.g_exception_reason_load(exprasmlist,href);
               cg.a_jmp_always(exprasmlist,oldaktexitlabel);
            end;
@@ -1175,13 +1072,9 @@ implementation
          if fc_break in tryflowcontrol then
            begin
               cg.a_label(exprasmlist,breaktrylabel);
-{$ifdef newra}
               rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
-{$endif newra}
               cg.a_call_name(exprasmlist,'FPC_POPADDRSTACK');
-{$ifdef newra}
               rg.deallocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
-{$endif newra}
               cg.g_exception_reason_load(exprasmlist,href);
               cg.a_jmp_always(exprasmlist,oldaktbreaklabel);
            end;
@@ -1189,13 +1082,9 @@ implementation
          if fc_continue in tryflowcontrol then
            begin
               cg.a_label(exprasmlist,continuetrylabel);
-{$ifdef newra}
               rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
-{$endif newra}
               cg.a_call_name(exprasmlist,'FPC_POPADDRSTACK');
-{$ifdef newra}
               rg.deallocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
-{$endif newra}
               cg.g_exception_reason_load(exprasmlist,href);
               cg.a_jmp_always(exprasmlist,oldaktcontinuelabel);
            end;
@@ -1235,7 +1124,6 @@ implementation
          tempbuf,tempaddr : treference;
          href : treference;
          href2: treference;
-         r:Tregister;
 
       begin
          location_reset(location,LOC_VOID,OS_NO);
@@ -1248,25 +1136,19 @@ implementation
          reference_reset_symbol(href2,objectlibrary.newasmsymboldata(excepttype.vmt_mangledname),0);
          cg.a_paramaddr_ref(exprasmlist,href2,paramanager.getintparaloc(exprasmlist,1));
          paramanager.freeintparaloc(exprasmlist,1);
-{$ifdef newra}
          rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
-{$endif newra}
          cg.a_call_name(exprasmlist,'FPC_CATCHES');
-{$ifdef newra}
          rg.deallocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
-{$endif newra}
 
          { is it this catch? No. go to next onlabel }
-         r.enum:=R_INTREGISTER;
-         r.number:=NR_FUNCTION_RESULT_REG;
-         cg.a_cmp_const_reg_label(exprasmlist,OS_ADDR,OC_EQ,0,r,nextonlabel);
+         cg.a_cmp_const_reg_label(exprasmlist,OS_ADDR,OC_EQ,0,NR_FUNCTION_RESULT_REG,nextonlabel);
          ref.symbol:=nil;
          tg.GetTemp(exprasmlist,pointer_size,tt_normal,ref);
 
          { what a hack ! }
          if assigned(exceptsymtable) then
            tvarsym(exceptsymtable.symindex.first).address:=ref.offset;
-         cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,r,ref);
+         cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,NR_FUNCTION_RESULT_REG,ref);
 
          { in the case that another exception is risen }
          { we've to destroy the old one                }
@@ -1297,22 +1179,14 @@ implementation
 
          try_free_exception(exprasmlist,tempbuf,tempaddr,href,0,doobjectdestroy,false);
 
-{$ifdef newra}
          rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
-{$endif newra}
          cg.a_call_name(exprasmlist,'FPC_POPSECONDOBJECTSTACK');
-{$ifdef newra}
          rg.deallocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
-{$endif newra}
-         cg.a_param_reg(exprasmlist, OS_ADDR, r, paramanager.getintparaloc(exprasmlist,1));
+         cg.a_param_reg(exprasmlist, OS_ADDR, NR_FUNCTION_RESULT_REG, paramanager.getintparaloc(exprasmlist,1));
          paramanager.freeintparaloc(exprasmlist,1);
-{$ifdef newra}
          rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
-{$endif newra}
          cg.a_call_name(exprasmlist,'FPC_DESTROYEXCEPTION');
-{$ifdef newra}
          rg.deallocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
-{$endif newra}
          { we don't need to restore esi here because reraise never }
          { returns                                                 }
          cg.a_call_name(exprasmlist,'FPC_RERAISE');
@@ -1359,12 +1233,7 @@ implementation
          flowcontrol:=oldflowcontrol+flowcontrol;
          { next on node }
          if assigned(left) then
-           begin
-            {$ifndef newra}
-              rg.cleartempgen;
-            {$endif newra}
-              secondpass(left);
-           end;
+           secondpass(left);
       end;
 
 {*****************************************************************************
@@ -1386,7 +1255,6 @@ implementation
          decconst : longint;
          tempbuf,tempaddr : treference;
          href : treference;
-         r:Tregister;
 
       begin
          location_reset(location,LOC_VOID,OS_NO);
@@ -1450,11 +1318,9 @@ implementation
 
          { the value should now be in the exception handler }
          cg.g_exception_reason_load(exprasmlist,href);
-         r.enum:=R_INTREGISTER;
-         r.number:=NR_FUNCTION_RESULT_REG;
          if implicitframe then
            begin
-             cg.a_cmp_const_reg_label(exprasmlist,OS_S32,OC_EQ,0,r,endfinallylabel);
+             cg.a_cmp_const_reg_label(exprasmlist,OS_S32,OC_EQ,0,NR_FUNCTION_RESULT_REG,endfinallylabel);
              { finally code only needed to be executed on exception }
              flowcontrol:=[];
              secondpass(t1);
@@ -1466,29 +1332,29 @@ implementation
            end
          else
            begin
-             cg.a_cmp_const_reg_label(exprasmlist,OS_S32,OC_EQ,0,r,endfinallylabel);
-             cg.a_op_const_reg(exprasmlist,OP_SUB,OS_32,1,r);
-             cg.a_cmp_const_reg_label(exprasmlist,OS_S32,OC_EQ,0,r,reraiselabel);
+             cg.a_cmp_const_reg_label(exprasmlist,OS_S32,OC_EQ,0,NR_FUNCTION_RESULT_REG,endfinallylabel);
+             cg.a_op_const_reg(exprasmlist,OP_SUB,OS_32,1,NR_FUNCTION_RESULT_REG);
+             cg.a_cmp_const_reg_label(exprasmlist,OS_S32,OC_EQ,0,NR_FUNCTION_RESULT_REG,reraiselabel);
              if fc_exit in tryflowcontrol then
                begin
-                  cg.a_op_const_reg(exprasmlist,OP_SUB,OS_32,1,r);
-                  cg.a_cmp_const_reg_label(exprasmlist,OS_S32,OC_EQ,0,r,oldaktexitlabel);
+                  cg.a_op_const_reg(exprasmlist,OP_SUB,OS_32,1,NR_FUNCTION_RESULT_REG);
+                  cg.a_cmp_const_reg_label(exprasmlist,OS_S32,OC_EQ,0,NR_FUNCTION_RESULT_REG,oldaktexitlabel);
                   decconst:=1;
                end
              else
                decconst:=2;
              if fc_break in tryflowcontrol then
                begin
-                  cg.a_op_const_reg(exprasmlist,OP_SUB,OS_32,decconst,r);
-                  cg.a_cmp_const_reg_label(exprasmlist,OS_S32,OC_EQ,0,r,oldaktbreaklabel);
+                  cg.a_op_const_reg(exprasmlist,OP_SUB,OS_32,decconst,NR_FUNCTION_RESULT_REG);
+                  cg.a_cmp_const_reg_label(exprasmlist,OS_S32,OC_EQ,0,NR_FUNCTION_RESULT_REG,oldaktbreaklabel);
                   decconst:=1;
                end
              else
                inc(decconst);
              if fc_continue in tryflowcontrol then
                begin
-                  cg.a_op_const_reg(exprasmlist,OP_SUB,OS_32,decconst,r);
-                  cg.a_cmp_const_reg_label(exprasmlist,OS_S32,OC_EQ,0,r,oldaktcontinuelabel);
+                  cg.a_op_const_reg(exprasmlist,OP_SUB,OS_32,decconst,NR_FUNCTION_RESULT_REG);
+                  cg.a_cmp_const_reg_label(exprasmlist,OS_S32,OC_EQ,0,NR_FUNCTION_RESULT_REG,oldaktcontinuelabel);
                end;
              cg.a_label(exprasmlist,reraiselabel);
              cg.a_call_name(exprasmlist,'FPC_RERAISE');
@@ -1543,12 +1409,27 @@ begin
 end.
 {
   $Log$
-  Revision 1.77  2003-09-03 11:18:36  florian
+  Revision 1.78  2003-09-03 15:55:00  peter
+    * NEWRA branch merged
+
+  Revision 1.77  2003/09/03 11:18:36  florian
     * fixed arm concatcopy
     + arm support in the common compiler sources added
     * moved some generic cg code around
     + tfputype added
     * ...
+
+  Revision 1.76.2.4  2003/09/02 17:48:28  peter
+    * first process all parameters for raise before pushing the values
+
+  Revision 1.76.2.3  2003/08/31 21:07:44  daniel
+    * callparatemp ripped
+
+  Revision 1.76.2.2  2003/08/29 17:28:59  peter
+    * next batch of updates
+
+  Revision 1.76.2.1  2003/08/27 20:23:55  peter
+    * remove old ra code
 
   Revision 1.76  2003/08/24 21:38:43  olle
     * made FPC_RAISEEXCEPTION compatible with MacOS

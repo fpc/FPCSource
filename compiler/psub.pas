@@ -646,7 +646,6 @@ implementation
         else
           aktproccode.concatlist(templist);
 
-{$ifdef newra}
         { note: this must be done only after as much code as possible has  }
         {   been generated. The result is that when you ungetregister() a  }
         {   regvar, it will actually free the regvar (and alse free the    }
@@ -657,7 +656,6 @@ implementation
         {   gen_entry_code (that one has to be able to allocate the        }
         {   regvars again) (JM)                                            }
         free_regvars(aktproccode);
-{$endif newra}
 
         { add code that will load the return value, this is not done
           for assembler routines when they didn't reference the result
@@ -678,14 +676,11 @@ implementation
 
         { The procedure body is finished, we can now
           allocate the registers }
-{$ifdef newra}
 {$ifdef ra_debug2}
         rg.writegraph;
 {$endif}
-{$endif}
         if not(cs_no_regalloc in aktglobalswitches) then
           begin
-{$ifdef newra}
             {Do register allocation.}
             repeat
               rg.prepare_colouring;
@@ -693,19 +688,17 @@ implementation
               rg.epilogue_colouring;
             until (rg.spillednodes='') or not rg.spill_registers(aktproccode,rg.spillednodes);
             aktproccode.translate_registers(rg.colour);
-{$else newra}
+(*
 {$ifndef NoOpt}
             if (cs_optimize in aktglobalswitches) and
             { do not optimize pure assembler procedures }
                not(pi_is_assembler in current_procinfo.flags)  then
               optimize(aktproccode);
 {$endif NoOpt}
-{$endif newra}
+*)
           end;
 
-{$ifdef newra}
         translate_regvars(aktproccode,rg.colour);
-{$endif newra}
         { Add stack allocation code after header }
         gen_stackalloc_code(templist);
         aktproccode.insertlistafter(headertai,templist);
@@ -715,11 +708,7 @@ implementation
 
         { now all the registers used are known }
         { Remove all imaginary registers from the used list.}
-{$ifdef newra}
         procdef.usedintregisters:=rg.used_in_proc_int*VOLATILE_INTREGISTERS-rg.savedintbyproc;
-{$else}
-        procdef.usedintregisters:=rg.used_in_proc_int;
-{$endif}
         procdef.usedotherregisters:=rg.used_in_proc_other;
 
         { save local data (casetable) also in the same file }
@@ -1312,12 +1301,19 @@ begin
 end.
 {
   $Log$
-  Revision 1.139  2003-09-03 11:18:37  florian
+  Revision 1.140  2003-09-03 15:55:01  peter
+    * NEWRA branch merged
+
+  Revision 1.139  2003/09/03 11:18:37  florian
     * fixed arm concatcopy
     + arm support in the common compiler sources added
     * moved some generic cg code around
     + tfputype added
     * ...
+
+  Revision 1.138.2.1  2003/08/31 13:50:16  daniel
+    * Remove sorting and use pregenerated indexes
+    * Some work on making things compile
 
   Revision 1.138  2003/08/20 17:48:49  peter
     * fixed stackalloc to not allocate localst.datasize twice

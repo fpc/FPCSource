@@ -442,12 +442,8 @@ implementation
                              i:=0;
                              while assigned(hp1) and (i<32) do
                               begin
-                            {$ifdef oldset}
-                                if tai_const(hp1).value<>value_set^[i xor indexadjust] then
-                            {$else}
                                 if tai_const(hp1).value<>Psetbytes(value_set)^[i xor indexadjust] then
-                            {$endif}
-                                 break;
+                                  break;
                                 inc(i);
                                 hp1:=tai(hp1.next);
                               end;
@@ -549,7 +545,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.28  2003-05-01 12:24:22  jonas
+  Revision 1.29  2003-09-03 15:55:00  peter
+    * NEWRA branch merged
+
+  Revision 1.28  2003/05/01 12:24:22  jonas
     * fixed endian issues when writing out set constants
 
   Revision 1.27  2003/04/24 22:29:57  florian

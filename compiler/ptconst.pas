@@ -451,11 +451,7 @@ implementation
                         if source_info.endian = target_info.endian then
                           begin
                             for l:=0 to p.resulttype.def.size-1 do
-                            {$ifdef oldset}
-                               curconstsegment.concat(tai_const.create_8bit(tsetconstnode(p).value_set^[l]));
-                            {$else}
-                               curconstsegment.concat(tai_const.create_8bit(Psetbytes(tsetconstnode(p).value_set)^[l]));
-                            {$endif}
+                              curconstsegment.concat(tai_const.create_8bit(Psetbytes(tsetconstnode(p).value_set)^[l]));
                           end
                         else
                           begin
@@ -463,17 +459,10 @@ implementation
                             j:=0;
                             for l:=0 to ((p.resulttype.def.size-1) div 4) do
                               begin
-                        {$ifdef oldset}
-                                curconstsegment.concat(tai_const.create_8bit(tsetconstnode(p).value_set^[j+3]));
-                                curconstsegment.concat(tai_const.create_8bit(tsetconstnode(p).value_set^[j+2]));
-                                curconstsegment.concat(tai_const.create_8bit(tsetconstnode(p).value_set^[j+1]));
-                                curconstsegment.concat(tai_const.create_8bit(tsetconstnode(p).value_set^[j]));
-                        {$else}
                                 curconstsegment.concat(tai_const.create_8bit(Psetbytes(tsetconstnode(p).value_set)^[j+3]));
                                 curconstsegment.concat(tai_const.create_8bit(Psetbytes(tsetconstnode(p).value_set)^[j+2]));
                                 curconstsegment.concat(tai_const.create_8bit(Psetbytes(tsetconstnode(p).value_set)^[j+1]));
                                 curconstsegment.concat(tai_const.create_8bit(Psetbytes(tsetconstnode(p).value_set)^[j]));
-                        {$endif}
                                 Inc(j,4);
                               end;
                           end;
@@ -1004,7 +993,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.69  2003-05-09 17:47:03  peter
+  Revision 1.70  2003-09-03 15:55:01  peter
+    * NEWRA branch merged
+
+  Revision 1.69  2003/05/09 17:47:03  peter
     * self moved to hidden parameter
     * removed hdisposen,hnewn,selfn
 

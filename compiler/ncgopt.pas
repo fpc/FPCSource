@@ -107,8 +107,7 @@ begin
     end;
   secondpass(right);
   { special case for string := string + char (JM) }
-  hreg.enum:=R_INTREGISTER;
-  hreg.number:=NR_NO;
+  hreg:=NR_NO;
 
   { we have to load the char before checking the length, because we }
   { may need registers from the reference                           }
@@ -154,8 +153,8 @@ begin
   { we need a new reference to store the character }
   { at the end of the string. Check if the base or }
   { index register is still free                   }
-  if (href2.base.number <> NR_NO) and
-     (href2.index.number <> NR_NO) then
+  if (href2.base <> NR_NO) and
+     (href2.index <> NR_NO) then
     begin
       { they're not free, so add the base reg to       }
       { the string length (since the index can         }
@@ -165,7 +164,7 @@ begin
     end
   else
     { at least one is still free, so put EDI there }
-    if href2.base.number = NR_NO then
+    if href2.base = NR_NO then
       href2.base := lengthreg
     else
       begin
@@ -186,7 +185,7 @@ begin
     end
   else
     cg.a_load_const_ref(exprasmlist,OS_8,tordconstnode(right).value,href2);
-  lengthreg.number:=(lengthreg.number and not $ff) or R_SUBL;
+  setsubreg(lengthreg,R_SUBL);
   { increase the string length }
   cg.a_op_const_reg(exprasmlist,OP_ADD,OS_8,1,lengthreg);
   cg.a_load_reg_ref(exprasmlist,OS_8,OS_8,lengthreg,left.location.reference);
@@ -202,7 +201,13 @@ end.
 
 {
   $Log$
-  Revision 1.6  2003-06-03 21:11:09  peter
+  Revision 1.7  2003-09-03 15:55:00  peter
+    * NEWRA branch merged
+
+  Revision 1.6.2.1  2003/08/29 17:28:59  peter
+    * next batch of updates
+
+  Revision 1.6  2003/06/03 21:11:09  peter
     * cg.a_load_* get a from and to size specifier
     * makeregsize only accepts newregister
     * i386 uses generic tcgnotnode,tcgunaryminus

@@ -74,17 +74,10 @@ implementation
          numerator,
          divider,
          resultreg  : tregister;
-         saved      : tmaybesave;
 
       begin
          secondpass(left);
-{$ifndef newra}
-         maybe_save(exprasmlist,right.registers32,left.location,saved);
-{$endif}
          secondpass(right);
-{$ifndef newra}
-         maybe_restore(exprasmlist,left.location,saved);
-{$endif}
          location_copy(location,left.location);
 
          { put numerator in register }
@@ -99,33 +92,19 @@ implementation
              resultreg := location.register;
            end;
          if (nodetype = modn) then
-           begin
-{$ifdef newra}
-             resultreg := rg.getregisterint(exprasmlist,OS_INT);
-{$else}
-             resultreg := cg.get_scratch_reg_int(exprasmlist,OS_INT);
-{$endif}
-           end;
+           resultreg := rg.getregisterint(exprasmlist,OS_INT);
 
          if (nodetype = divn) and
             (right.nodetype = ordconstn) and
             ispowerof2(tordconstnode(right).value,power) then
            begin
-{$ifdef newra}
              tmpreg:=rg.getregisterint(exprasmlist,OS_INT);
-{$else}
-             tmpreg:=cg.get_scratch_reg_int(exprasmlist,OS_INT);
-{$endif}
              cg.a_op_const_reg_reg(exprasmlist,OP_SAR,OS_INT,31,numerator,tmpreg);
              { if signed, tmpreg=right value-1, otherwise 0 }
              cg.a_op_const_reg(exprasmlist,OP_AND,OS_INT,tordconstnode(right).value-1,tmpreg);
              { add to the left value }
              cg.a_op_reg_reg(exprasmlist,OP_ADD,OS_INT,tmpreg,numerator);
-{$ifdef newra}
              rg.ungetregisterint(exprasmlist,tmpreg);
-{$else}
-             cg.free_scratch_reg(exprasmlist,tmpreg);
-{$endif}
              cg.a_op_const_reg_reg(exprasmlist,OP_SAR,OS_INT,aword(power),numerator,resultreg);
            end
          else
@@ -147,18 +126,14 @@ implementation
                  exprasmlist.concat(taicpu.op_reg_reg_reg(A_SMUL,resultreg,divider,resultreg));
                  rg.UnGetRegisterInt(exprasmlist,divider);
                  exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUB,location.register,numerator,resultreg));
-  {$ifdef newra}
                  rg.ungetregisterint(exprasmlist,resultreg);
-  {$else}
-                 cg.free_scratch_reg(exprasmlist,resultreg);
-  {$endif}
                  resultreg := location.register;
                end
              else
                rg.UnGetRegisterInt(exprasmlist,divider);
            end;
         { free used registers }
-        if numerator.number <> resultreg.number then
+        if numerator<>resultreg then
           rg.ungetregisterint(exprasmlist,numerator);
         { set result location }
         location.loc:=LOC_REGISTER;
@@ -183,17 +158,10 @@ procedure tSparcshlshrnode.pass_2;
     op : topcg;
     asmop1, asmop2: tasmop;
     shiftval: aword;
-    saved : tmaybesave;
     r:Tregister;
   begin
     secondpass(left);
-{$ifndef newra}
-    maybe_save(exprasmlist,right.registers32,left.location,saved);
-{$endif}
     secondpass(right);
-{$ifndef newra}
-    maybe_restore(exprasmlist,left.location,saved);
-{$endif}
     if is_64bitint(left.resulttype.def)
     then
       begin
@@ -303,7 +271,6 @@ procedure tSparcshlshrnode.pass_2;
     procedure tsparcnotnode.second_boolean;
       var
         hl : tasmlabel;
-        zeroreg : tregister;
       begin
         { if the location is LOC_JUMP, we do the secondpass after the
           labels are allocated
@@ -332,9 +299,7 @@ procedure tSparcshlshrnode.pass_2;
               LOC_REGISTER, LOC_CREGISTER, LOC_REFERENCE, LOC_CREFERENCE :
                 begin
                   location_force_reg(exprasmlist,left.location,def_cgsize(left.resulttype.def),true);
-                  zeroreg.enum:=R_INTREGISTER;
-                  zeroreg.number:=NR_G0;
-                  exprasmlist.concat(taicpu.op_reg_const_reg(A_SUBcc,left.location.register,0,zeroreg));
+                  exprasmlist.concat(taicpu.op_reg_const_reg(A_SUBcc,left.location.register,0,NR_G0));
                   location_release(exprasmlist,left.location);
                   location_reset(location,LOC_FLAGS,OS_NO);
                   location.resflags:=F_E;
@@ -353,12 +318,18 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2003-09-03 11:18:37  florian
+  Revision 1.14  2003-09-03 15:55:01  peter
+    * NEWRA branch merged
+
+  Revision 1.13  2003/09/03 11:18:37  florian
     * fixed arm concatcopy
     + arm support in the common compiler sources added
     * moved some generic cg code around
     + tfputype added
     * ...
+
+  Revision 1.12.2.1  2003/09/01 21:02:55  peter
+    * sparc updates for new tregister
 
   Revision 1.12  2003/07/06 22:09:32  peter
     * shr and div fixed

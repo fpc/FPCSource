@@ -97,8 +97,6 @@ implementation
 *****************************************************************************}
 
     procedure tcgsetelementnode.pass_2;
-       var
-         pushedregs : tmaybesave;
        begin
        { load first value in 32bit register }
          secondpass(left);
@@ -108,15 +106,9 @@ implementation
        { also a second value ? }
          if assigned(right) then
            begin
-           {$ifndef newra}
-             maybe_save(exprasmlist,right.registers32,left.location,pushedregs);
-           {$endif}
              secondpass(right);
              if codegenerror then
                exit;
-           {$ifndef newra}
-             maybe_restore(exprasmlist,left.location,pushedregs);
-           {$endif newra}
              if right.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
               location_force_reg(exprasmlist,right.location,OS_32,false);
            end;
@@ -162,24 +154,16 @@ implementation
          l,l2,l3       : tasmlabel;
          adjustment : longint;
          href : treference;
-         r:Tregister;
          hr,hr2,hr3,
          pleftreg   : tregister;
          setparts   : array[1..8] of Tsetpart;
-         pushedregs : tmaybesave;
          opsize     : tcgsize;
          genjumps,
          use_small,
          ranges     : boolean;
          i,numparts : byte;
 
-{$ifdef oldset}
-         function analizeset(Aset:Pconstset;is_small:boolean):boolean;
-       type
-             byteset=set of byte;
-{$else}
          function analizeset(const Aset:Tconstset;is_small:boolean):boolean;
-{$endif}
            var
              compares,maxcompares:word;
              i:byte;
@@ -200,11 +184,7 @@ implementation
              if is_small then
               maxcompares:=3;
              for i:=0 to 255 do
-         {$ifdef oldset}
-              if i in byteset(Aset^) then
-         {$else}
               if i in Aset then
-         {$endif}
                begin
                  if (numparts=0) or (i<>setparts[numparts].stop+1) then
                   begin
@@ -252,30 +232,18 @@ implementation
                      (left.resulttype.def.deftype=enumdef) and (tenumdef(left.resulttype.def).max<=32));
 
          { Can we generate jumps? Possible for all types of sets }
-{$ifdef oldset}
-         genjumps:=(right.nodetype=setconstn) and
-                   analizeset(Tsetconstnode(right).value_set,use_small);
-{$else}
          genjumps:=(right.nodetype=setconstn) and
                    analizeset(Tsetconstnode(right).value_set^,use_small);
-{$endif}
+
          { calculate both operators }
          { the complex one first }
          firstcomplex(self);
          secondpass(left);
          { Only process the right if we are not generating jumps }
          if not genjumps then
-          begin
-          {$ifndef newra}
-            maybe_save(exprasmlist,right.registers32,left.location,pushedregs);
-          {$endif}
-            secondpass(right);
-          {$ifndef newra}
-            maybe_restore(exprasmlist,left.location,pushedregs);
-          {$endif}
-          end;
+           secondpass(right);
          if codegenerror then
-          exit;
+           exit;
 
          { ofcourse not commutative }
          if nf_swaped in flags then
@@ -319,11 +287,7 @@ implementation
              begin
                { load the value in a register }
                opsize := OS_INT;
-             {$ifdef newra}
                pleftreg:=rg.getregisterint(exprasmlist,opsize);
-             {$else}
-               pleftreg := cg.get_scratch_reg_int(exprasmlist,opsize);
-             {$endif}
                cg.a_load_ref_reg(exprasmlist,def_cgsize(left.resulttype.def),opsize,left.location.reference,pleftreg);
              end;
 
@@ -332,8 +296,7 @@ implementation
             { how much have we already substracted from the x in the }
             { "x in [y..z]" expression                               }
             adjustment := 0;
-            hr.enum:=R_INTREGISTER;
-            hr.number:=NR_NO;
+            hr:=NR_NO;
 
             for i:=1 to numparts do
              if setparts[i].range then
@@ -349,13 +312,9 @@ implementation
                       { to edi (not done before because now we can do the  }
                       { move and substract in one instruction with LEA)    }
                       if (left.location.loc = LOC_CREGISTER) and
-                         (hr.enum <> pleftreg.enum) then
+                         (hr<>pleftreg) then
                         begin
-                        {$ifdef newra}
                           hr:=rg.getregisterint(exprasmlist,OS_INT);
-                        {$else}
-                          hr:=cg.get_scratch_reg_int(exprasmlist,OS_INT);
-                        {$endif}
                           cg.a_op_const_reg_reg(exprasmlist,OP_SUB,opsize,setparts[i].start,pleftreg,hr);
                           pleftreg:=hr;
                           opsize := OS_INT;
@@ -403,21 +362,13 @@ implementation
              cg.a_label(exprasmlist,l3);
              case left.location.loc of
                LOC_CREGISTER :
-                {$ifdef newra}
                  rg.ungetregisterint(exprasmlist,pleftreg);
-                {$else}
-                 cg.free_scratch_reg(exprasmlist,pleftreg);
-                {$endif}
                LOC_REGISTER :
                  rg.ungetregisterint(exprasmlist,pleftreg);
                else
                  begin
                    reference_release(exprasmlist,left.location.reference);
-                  {$ifdef newra}
                    rg.ungetregisterint(exprasmlist,pleftreg);
-                  {$else}
-                   cg.free_scratch_reg(exprasmlist,pleftreg);
-                  {$endif}
                  end;
              end;
           end
@@ -449,20 +400,12 @@ implementation
                        begin
                           hr3:=rg.makeregsize(left.location.register,OS_INT);
                           cg.a_load_reg_reg(exprasmlist,left.location.size,OS_INT,left.location.register,hr3);
-                        {$ifdef newra}
                           hr:=rg.getregisterint(exprasmlist,OS_INT);
-                        {$else}
-                          hr:=cg.get_scratch_reg_int(exprasmlist,OS_INT);
-                        {$endif}
                           cg.a_load_reg_reg(exprasmlist,OS_INT,OS_INT,hr3,hr);
                        end;
                   else
                     begin
-                    {$ifdef newra}
                       hr:=rg.getregisterint(exprasmlist,OS_INT);
-                    {$else}
-                      hr:=cg.get_scratch_reg_int(exprasmlist,OS_INT);
-                    {$endif}
                       cg.a_load_ref_reg(exprasmlist,def_cgsize(left.resulttype.def),OS_INT,
                          left.location.reference,hr);
                       location_release(exprasmlist,left.location);
@@ -475,11 +418,7 @@ implementation
                   { free the resources }
                   rg.ungetregisterint(exprasmlist,right.location.register);
                   { free bitnumber register }
-                {$ifdef newra}
                   rg.ungetregisterint(exprasmlist,hr);
-                {$else}
-                  cg.free_scratch_reg(exprasmlist,hr);
-                {$endif}
                 end;
              end
             else
@@ -559,9 +498,9 @@ implementation
                   cg.a_op_const_reg(exprasmlist,OP_SHL,OS_32,2,hr);
 
                   href := right.location.reference;
-                  if (href.base.number = NR_NO) then
+                  if (href.base = NR_NO) then
                     href.base := hr
-                  else if (right.location.reference.index.number = NR_NO) then
+                  else if (right.location.reference.index = NR_NO) then
                     href.index := hr
                   else
                     begin
@@ -682,17 +621,9 @@ implementation
            begin
               last:=0;
               first:=true;
-            {$ifdef newra}
               scratch_reg:=rg.getregisterint(exprasmlist,opsize);
-            {$else newra}
-              scratch_reg := cg.get_scratch_reg_int(exprasmlist,opsize);
-            {$endif}
               genitem(hp);
-            {$ifdef newra}
               rg.ungetregisterint(exprasmlist,scratch_reg);
-            {$else}
-              cg.free_scratch_reg(exprasmlist,scratch_reg);
-            {$endif}
               cg.a_jmp_always(exprasmlist,elselabel);
            end;
       end;
@@ -905,9 +836,6 @@ implementation
               jmp_lt:=OC_B;
               jmp_le:=OC_BE;
            end;
-        {$ifndef newra}
-         rg.cleartempgen;
-        {$endif}
          { save current truelabel and falselabel }
          isjump:=false;
          if left.location.loc=LOC_JUMP then
@@ -1034,9 +962,6 @@ implementation
          hp:=tstatementnode(right);
          while assigned(hp) do
            begin
-            {$ifndef newra}
-              rg.cleartempgen;
-            {$endif}
               { relabel when inlining }
               if inlining_procedure then
                 begin
@@ -1055,9 +980,6 @@ implementation
          { ...and the else block }
          if assigned(elseblock) then
            begin
-            {$ifndef newra}
-              rg.cleartempgen;
-            {$endif}
               secondpass(elseblock);
               load_all_regvars(exprasmlist);
            end;
@@ -1081,7 +1003,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.47  2003-08-20 20:29:06  daniel
+  Revision 1.48  2003-09-03 15:55:01  peter
+    * NEWRA branch merged
+
+  Revision 1.47.2.1  2003/08/29 17:28:59  peter
+    * next batch of updates
+
+  Revision 1.47  2003/08/20 20:29:06  daniel
     * Some more R_NO changes
     * Preventive code to loadref added
 

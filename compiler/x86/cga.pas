@@ -160,15 +160,12 @@ implementation
     var instr:Taicpu;
 
     begin
-      if not ((reg1.enum=R_INTREGISTER) and (reg2.enum=R_INTREGISTER) and
-              (reg1.number=reg2.number) and (i=A_MOV)) then
+      if not ((reg1=reg2) and (i=A_MOV)) then
         begin
           instr:=Taicpu.op_reg_reg(i,s,reg1,reg2);
           exprasmlist.concat(instr);
-{$ifdef newra}
           if i=A_MOV then
             rg.add_move_instruction(instr);
-{$endif newra}
         end;
     end;
 
@@ -190,7 +187,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2003-05-22 21:33:31  peter
+  Revision 1.3  2003-09-03 15:55:02  peter
+    * NEWRA branch merged
+
+  Revision 1.2.2.1  2003/08/29 17:29:00  peter
+    * next batch of updates
+
+  Revision 1.2  2003/05/22 21:33:31  peter
     * removed some unit dependencies
 
   Revision 1.1  2003/04/30 20:53:32  florian

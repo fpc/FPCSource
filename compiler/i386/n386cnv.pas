@@ -87,11 +87,10 @@ implementation
          hregister : tregister;
          l1,l2 : tasmlabel;
          freereg : boolean;
-         r:Tregister;
 
       begin
          location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
-         hregister.enum:=R_NO;
+         hregister:=NR_NO;
          freereg:=false;
 
          { for u32bit a solution is to push $0 and to load a comp }
@@ -113,11 +112,7 @@ implementation
                    hregister:=left.location.register;
                  else
                    begin
-                    {$ifdef newra}
                      hregister:=rg.getregisterint(exprasmlist,OS_32);
-                    {$else}
-                     hregister:=cg.get_scratch_reg_int(exprasmlist,OS_32);
-                    {$endif}
                      freereg:=true;
                      cg.a_load_reg_reg(exprasmlist,left.location.size,OS_32,left.location.register,hregister);
                    end;
@@ -126,11 +121,7 @@ implementation
            LOC_REFERENCE,
            LOC_CREFERENCE :
              begin
-              {$ifdef newra}
                hregister:=rg.getregisterint(exprasmlist,OS_INT);
-              {$else}
-               hregister:=cg.get_scratch_reg_int(exprasmlist,OS_INT);
-              {$endif newra}
                freereg:=true;
                if left.location.size in [OS_64,OS_S64] then
                 begin
@@ -151,27 +142,20 @@ implementation
 
          { for 64 bit integers, the high dword is already pushed }
          exprasmlist.concat(taicpu.op_reg(A_PUSH,S_L,hregister));
-        {$ifdef newra}
          if freereg then
            rg.ungetregisterint(exprasmlist,hregister);
-        {$else}
-         if freereg then
-           cg.free_scratch_reg(exprasmlist,hregister);
-        {$endif}
-         r.enum:=R_INTREGISTER;
-         r.number:=NR_ESP;
-         reference_reset_base(href,r,0);
+         reference_reset_base(href,NR_ESP,0);
          case torddef(left.resulttype.def).typ of
            u32bit:
              begin
                 emit_ref(A_FILD,S_IQ,href);
-                emit_const_reg(A_ADD,S_L,8,r);
+                emit_const_reg(A_ADD,S_L,8,NR_ESP);
              end;
            scurrency,
            s64bit:
              begin
                 emit_ref(A_FILD,S_IQ,href);
-                emit_const_reg(A_ADD,S_L,8,r);
+                emit_const_reg(A_ADD,S_L,8,NR_ESP);
              end;
            u64bit:
              begin
@@ -179,22 +163,14 @@ implementation
                 { we load bits 0..62 and then check bit 63:  }
                 { if it is 1 then we add $80000000 000000000 }
                 { as double                                  }
-                r.enum:=R_INTREGISTER;
-                r.number:=NR_EDI;
                 inc(href.offset,4);
-                rg.getexplicitregisterint(exprasmlist,NR_EDI);
-                emit_ref_reg(A_MOV,S_L,href,r);
-                r.enum:=R_INTREGISTER;
-                r.number:=NR_ESP;
-                reference_reset_base(href,r,4);
+                hregister:=rg.getregisterint(exprasmlist,OS_32);
+                emit_ref_reg(A_MOV,S_L,href,hregister);
+                reference_reset_base(href,NR_ESP,4);
                 emit_const_ref(A_AND,S_L,$7fffffff,href);
-                r.enum:=R_INTREGISTER;
-                r.number:=NR_EDI;
-                emit_const_reg(A_TEST,S_L,longint($80000000),r);
-                rg.ungetregisterint(exprasmlist,r);
-                r.enum:=R_INTREGISTER;
-                r.number:=NR_ESP;
-                reference_reset_base(href,r,0);
+                emit_const_reg(A_TEST,S_L,longint($80000000),hregister);
+                rg.ungetregisterint(exprasmlist,hregister);
+                reference_reset_base(href,NR_ESP,0);
                 emit_ref(A_FILD,S_IQ,href);
                 objectlibrary.getdatalabel(l1);
                 objectlibrary.getlabel(l2);
@@ -206,20 +182,18 @@ implementation
                 reference_reset_symbol(href,l1,0);
                 emit_ref(A_FADD,S_FL,href);
                 cg.a_label(exprasmlist,l2);
-                emit_const_reg(A_ADD,S_L,8,r);
+                emit_const_reg(A_ADD,S_L,8,NR_ESP);
              end
            else
              begin
                 emit_ref(A_FILD,S_IL,href);
-                rg.getexplicitregisterint(exprasmlist,NR_EDI);
-                r.enum:=R_INTREGISTER;
-                r.number:=NR_EDI;
-                emit_reg(A_POP,S_L,r);
-                rg.ungetregisterint(exprasmlist,r);
+                hregister:=rg.getregisterint(exprasmlist,OS_32);
+                emit_reg(A_POP,S_L,hregister);
+                rg.ungetregisterint(exprasmlist,hregister);
              end;
          end;
          inc(trgcpu(rg).fpuvaroffset);
-         location.register.enum:=R_ST;
+         location.register:=NR_ST;
       end;
 
 
@@ -358,7 +332,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.62  2003-06-03 21:11:09  peter
+  Revision 1.63  2003-09-03 15:55:01  peter
+    * NEWRA branch merged
+
+  Revision 1.62.2.2  2003/08/31 15:46:26  peter
+    * more updates for tregister
+
+  Revision 1.62.2.1  2003/08/31 13:58:46  daniel
+    * Some more work to make things compile
+
+  Revision 1.62  2003/06/03 21:11:09  peter
     * cg.a_load_* get a from and to size specifier
     * makeregsize only accepts newregister
     * i386 uses generic tcgnotnode,tcgunaryminus

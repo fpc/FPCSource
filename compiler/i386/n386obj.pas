@@ -36,7 +36,7 @@ uses
   symconst,symtype,symdef,symsym,
   fmodule,
   nobj,
-  cpubase,
+  cpubase,cginfo,
   cga,tgobj,rgobj,cgobj;
 
    type
@@ -110,51 +110,38 @@ procedure ti386classheader.cgintfwrapper(asmlist: TAAsmoutput; procdef: tprocdef
   procedure getselftoeax(offs: longint);
   var
     href : treference;
-    r:Tregister;
   begin
     { mov offset(%esp),%eax }
-    r.enum:=R_INTREGISTER;
-    r.number:=NR_ESP;
-    reference_reset_base(href,r,getselfoffsetfromsp(procdef));
-    r.number:=NR_EAX;
-    cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,r);
+    reference_reset_base(href,NR_ESP,getselfoffsetfromsp(procdef));
+    cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,NR_EAX);
   end;
 
   procedure loadvmttoeax;
   var
     href : treference;
-    r:Tregister;
   begin
     checkvirtual;
     { mov  0(%eax),%eax ; load vmt}
-    r.enum:=R_INTREGISTER;
-    r.number:=NR_EAX;
-    reference_reset_base(href,r,0);
-    emit_ref_reg(A_MOV,S_L,href,r);
+    reference_reset_base(href,NR_EAX,0);
+    emit_ref_reg(A_MOV,S_L,href,NR_EAX);
   end;
 
   procedure op_oneaxmethodaddr(op: TAsmOp);
   var
     href : treference;
-    r:Tregister;
   begin
     { call/jmp  vmtoffs(%eax) ; method offs }
-    r.enum:=R_INTREGISTER;
-    r.number:=NR_EAX;
-    reference_reset_base(href,r,procdef._class.vmtmethodoffset(procdef.extnumber));
+    reference_reset_base(href,NR_EAX,procdef._class.vmtmethodoffset(procdef.extnumber));
     emit_ref(op,S_L,href);
   end;
 
   procedure loadmethodoffstoeax;
   var
     href : treference;
-    r:Tregister;
   begin
     { mov  vmtoffs(%eax),%eax ; method offs }
-    r.enum:=R_INTREGISTER;
-    r.number:=NR_EAX;
-    reference_reset_base(href,r,procdef._class.vmtmethodoffset(procdef.extnumber));
-    emit_ref_reg(A_MOV,S_L,href,r);
+    reference_reset_base(href,NR_EAX,procdef._class.vmtmethodoffset(procdef.extnumber));
+    emit_ref_reg(A_MOV,S_L,href,NR_EAX);
   end;
 
 var
@@ -162,7 +149,6 @@ var
   lab : tasmsymbol;
   make_global : boolean;
   href : treference;
-  r:Tregister;
 begin
   if procdef.proctypeoption<>potype_none then
     Internalerror(200006137);
@@ -207,21 +193,16 @@ begin
   { case 3 }
   else if [po_virtualmethod,po_saveregisters]*procdef.procoptions=[po_virtualmethod,po_saveregisters] then
     begin
-      r.enum:=R_INTREGISTER;
-      r.number:=NR_EBX;
-      emit_reg(A_PUSH,S_L,r); { allocate space for address}
-      r.number:=NR_EAX;
-      emit_reg(A_PUSH,S_L,r);
+      emit_reg(A_PUSH,S_L,NR_EBX); { allocate space for address}
+      emit_reg(A_PUSH,S_L,NR_EAX);
       getselftoeax(8);
       loadvmttoeax;
       loadmethodoffstoeax;
       { mov %eax,4(%esp) }
-      r.number:=NR_ESP;
-      reference_reset_base(href,r,4);
-      r.number:=NR_EAX;
-      emit_reg_ref(A_MOV,S_L,r,href);
+      reference_reset_base(href,NR_ESP,4);
+      emit_reg_ref(A_MOV,S_L,NR_EAX,href);
       { pop  %eax }
-      emit_reg(A_POP,S_L,r);
+      emit_reg(A_POP,S_L,NR_EAX);
       { ret  ; jump to the address }
       emit_none(A_RET,S_L);
     end
@@ -247,7 +228,13 @@ initialization
 end.
 {
   $Log$
-  Revision 1.20  2003-06-03 21:11:09  peter
+  Revision 1.21  2003-09-03 15:55:01  peter
+    * NEWRA branch merged
+
+  Revision 1.20.2.1  2003/08/29 17:29:00  peter
+    * next batch of updates
+
+  Revision 1.20  2003/06/03 21:11:09  peter
     * cg.a_load_* get a from and to size specifier
     * makeregsize only accepts newregister
     * i386 uses generic tcgnotnode,tcgunaryminus

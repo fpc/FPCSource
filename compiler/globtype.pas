@@ -165,8 +165,6 @@ interface
        tnormalset = set of byte; { 256 elements set }
        pnormalset = ^tnormalset;
 
-
-
        pboolean   = ^boolean;
        pdouble    = ^double;
        pbyte      = ^byte;
@@ -208,7 +206,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.39  2003-08-09 18:56:54  daniel
+  Revision 1.40  2003-09-03 15:55:00  peter
+    * NEWRA branch merged
+
+  Revision 1.39  2003/08/09 18:56:54  daniel
     * cs_regalloc renamed to cs_regvars to avoid confusion with register
       allocator
     * Some preventive changes to i386 spillinh code

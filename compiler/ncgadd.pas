@@ -84,7 +84,6 @@ interface
 
     procedure tcgaddnode.pass_left_right;
       var
-        pushedregs : tmaybesave;
         tmpreg     : tregister;
         isjump,
         pushedfpu  : boolean;
@@ -115,9 +114,6 @@ interface
           end;
 
         { are too few registers free? }
-{$ifndef newra}
-        maybe_save(exprasmlist,right.registers32,left.location,pushedregs);
-{$endif}
         if left.location.loc=LOC_FPUREGISTER then
           pushedfpu:=maybe_pushfpu(exprasmlist,right.registersfpu,left.location)
         else
@@ -138,9 +134,6 @@ interface
             truelabel:=otl;
             falselabel:=ofl;
           end;
-{$ifndef newra}
-        maybe_restore(exprasmlist,left.location,pushedregs);
-{$endif}
         if pushedfpu then
           begin
             tmpreg := rg.getregisterfpu(exprasmlist,left.location.size);
@@ -230,15 +223,13 @@ interface
         if (right.location.loc in [LOC_REGISTER,LOC_FPUREGISTER]) and
            not(
                (location.loc=LOC_REGISTER) and
-               (location.register.enum=right.location.register.enum) and
-               (location.register.number=right.location.register.number)
+               (location.register=right.location.register)
               ) then
           location_release(exprasmlist,right.location);
         if (left.location.loc in [LOC_REGISTER,LOC_FPUREGISTER]) and
            not(
                (location.loc=LOC_REGISTER) and
-               (location.register.enum=left.location.register.enum) and
-               (location.register.number=left.location.register.number)
+               (location.register=left.location.register)
               ) then
           location_release(exprasmlist,left.location);
       end;
@@ -295,11 +286,7 @@ interface
                       left.location.register,location.register)
                   else
                     begin
-{$ifdef newra}
                       tmpreg := rg.getregisterint(exprasmlist,location.size);
-{$else}
-                      tmpreg := cg.get_scratch_reg_int(exprasmlist,location.size);
-{$endif}
                       cg.a_load_const_reg(exprasmlist,location.size,1,tmpreg);
                       cg.a_op_reg_reg(exprasmlist,OP_SHL,location.size,
                         right.location.register,tmpreg);
@@ -309,11 +296,7 @@ interface
                       else
                         cg.a_op_const_reg_reg(exprasmlist,OP_OR,location.size,
                             aword(left.location.value),tmpreg,location.register);
-{$ifdef newra}
                       rg.ungetregisterint(exprasmlist,tmpreg);
-{$else}
-                      cg.free_scratch_reg(exprasmlist,tmpreg);
-{$endif}
                     end;
                   opdone := true;
                 end
@@ -343,21 +326,13 @@ interface
                 begin
                   if left.location.loc = LOC_CONSTANT then
                     begin
-{$ifdef newra}
                       tmpreg := rg.getregisterint(exprasmlist,location.size);
-{$else}
-                      tmpreg := cg.get_scratch_reg_int(exprasmlist,location.size);
-{$endif}
                       cg.a_load_const_reg(exprasmlist,location.size,
                         aword(left.location.value),tmpreg);
                       cg.a_op_reg_reg(exprasmlist,OP_NOT,location.size,right.location.register,right.location.register);
                       cg.a_op_reg_reg(exprasmlist,OP_AND,location.size,right.location.register,tmpreg);
                       cg.a_load_reg_reg(exprasmlist,OS_INT,location.size,tmpreg,location.register);
-{$ifdef newra}
                       rg.ungetregisterint(exprasmlist,tmpreg);
-{$else}
-                      cg.free_scratch_reg(exprasmlist,tmpreg);
-{$endif}
                     end
                   else
                     begin
@@ -677,20 +652,12 @@ interface
             end
           else
             begin
-{$ifdef newra}
               tmpreg := rg.getregisterint(exprasmlist,location.size);
-{$else}
-              tmpreg := cg.get_scratch_reg_int(exprasmlist,location.size);
-{$endif}
               cg.a_load_const_reg(exprasmlist,location.size,
                 aword(left.location.value),tmpreg);
               cg.a_op_reg_reg_reg(exprasmlist,OP_SUB,location.size,
                 right.location.register,tmpreg,location.register);
-{$ifdef newra}
               rg.ungetregisterint(exprasmlist,tmpreg);
-{$else}
-              cg.free_scratch_reg(exprasmlist,tmpreg);
-{$endif}
             end;
         end;
 
@@ -760,12 +727,21 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2003-09-03 11:18:36  florian
+  Revision 1.17  2003-09-03 15:55:00  peter
+    * NEWRA branch merged
+
+  Revision 1.16  2003/09/03 11:18:36  florian
     * fixed arm concatcopy
     + arm support in the common compiler sources added
     * moved some generic cg code around
     + tfputype added
     * ...
+
+  Revision 1.15.2.2  2003/09/01 21:02:55  peter
+    * sparc updates for new tregister
+
+  Revision 1.15.2.1  2003/08/27 20:23:55  peter
+    * remove old ra code
 
   Revision 1.15  2003/07/08 21:24:59  peter
     * sparc fixes

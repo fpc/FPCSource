@@ -164,9 +164,6 @@ implementation
          prevp : pptree;
 {$endif TEMPREGDEBUG}
 {$ifdef EXTDEBUG}
-{$ifndef newra}
-         i : longint;
-{$endif newra}
 {$endif EXTDEBUG}
       begin
          if not assigned(p) then
@@ -206,21 +203,11 @@ implementation
                  Comment(V_Warning,'Location is different in secondpass: '+nodetype2str[p.nodetype]);
              end;
 
-{$ifdef newra}
-  {$ifdef i386}
-            if rg.unusedregsint*([first_supreg..last_supreg] - [RS_FRAME_POINTER_REG,RS_STACK_POINTER_REG])<>
-                                ([first_supreg..last_supreg] - [RS_FRAME_POINTER_REG,RS_STACK_POINTER_REG]) then
+{$ifdef i386}
+            if rg.unusedregsint*([first_int_supreg..last_int_supreg] - [RS_FRAME_POINTER_REG,RS_STACK_POINTER_REG])<>
+                                ([first_int_supreg..last_int_supreg] - [RS_FRAME_POINTER_REG,RS_STACK_POINTER_REG]) then
               internalerror(200306171);
-  {$endif}
-{$else}
-            { check if all scratch registers are freed }
-            for i:=1 to max_scratch_regs do
-              if not(scratch_regs[i] in cg.unusedscratchregisters) then
-                begin
-                   printnode(stdout,p);
-                   internalerror(2003042201);
-                end;
-{$endif newra}
+{$endif i386}
 {$endif EXTDEBUG}
             if codegenerror then
               include(p.flags,nf_error);
@@ -262,9 +249,6 @@ implementation
 
     procedure generatecode(var p : tnode);
       begin
-       {$ifndef newra}
-         rg.cleartempgen;
-       {$endif}
          flowcontrol:=[];
          { when size optimization only count occurrence }
          if cs_littlesize in aktglobalswitches then
@@ -317,7 +301,20 @@ implementation
 end.
 {
   $Log$
-  Revision 1.63  2003-08-11 21:18:20  peter
+  Revision 1.64  2003-09-03 15:55:01  peter
+    * NEWRA branch merged
+
+  Revision 1.63.2.3  2003/08/31 15:46:26  peter
+    * more updates for tregister
+
+  Revision 1.63.2.2  2003/08/31 13:50:16  daniel
+    * Remove sorting and use pregenerated indexes
+    * Some work on making things compile
+
+  Revision 1.63.2.1  2003/08/29 17:28:59  peter
+    * next batch of updates
+
+  Revision 1.63  2003/08/11 21:18:20  peter
     * start of sparc support for newra
 
   Revision 1.62  2003/08/10 17:25:23  peter

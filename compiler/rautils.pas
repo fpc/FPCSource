@@ -1002,11 +1002,6 @@ Begin
   end;
   opr.typ := OPR_REFERENCE;
   Fillchar(opr.ref,sizeof(treference),0);
-{$ifdef i386}
-  opr.ref.segment.enum:=R_INTREGISTER;
-{$endif}
-  opr.ref.index.enum:=R_INTREGISTER;
-  opr.ref.base.enum:=R_INTREGISTER;
 end;
 
 
@@ -1560,7 +1555,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.64  2003-06-13 21:19:31  peter
+  Revision 1.65  2003-09-03 15:55:01  peter
+    * NEWRA branch merged
+
+  Revision 1.64.2.1  2003/08/27 19:55:54  peter
+    * first tregister patch
+
+  Revision 1.64  2003/06/13 21:19:31  peter
     * current_procdef removed, use current_procinfo.procdef instead
 
   Revision 1.63  2003/06/06 14:43:29  peter

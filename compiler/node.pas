@@ -35,13 +35,7 @@ interface
 
     type
        pconstset = ^tconstset;
-{$ifdef oldset}
-       tconstset = array[0..31] of byte;
-       pconst32bitset = ^tconst32bitset;
-       tconst32bitset = array[0..7] of longint;
-{$else}
        tconstset = set of 0..255;
-{$endif}
 
        tnodetype = (
           emptynode,        {No node (returns nil when loading from ppu)}
@@ -981,7 +975,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.64  2003-09-03 11:18:37  florian
+  Revision 1.65  2003-09-03 15:55:01  peter
+    * NEWRA branch merged
+
+  Revision 1.64  2003/09/03 11:18:37  florian
     * fixed arm concatcopy
     + arm support in the common compiler sources added
     * moved some generic cg code around

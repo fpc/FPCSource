@@ -124,18 +124,10 @@ implementation
 {$ifdef i386}
                 if left.location.size in [OS_64,OS_S64] then
                  begin
-                 {$ifdef newra}
                    hregister:=rg.getregisterint(exprasmlist,OS_32);
-                 {$else}
-                   hregister:=cg.get_scratch_reg_int(exprasmlist,OS_32);
-                 {$endif}
                    cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,left.location.registerlow,hregister);
                    cg.a_op_reg_reg(exprasmlist,OP_OR,OS_32,left.location.registerhigh,hregister);
-                 {$ifdef newra}
                    rg.ungetregisterint(exprasmlist,hregister);
-                 {$else}
-                   cg.free_scratch_reg(exprasmlist,hregister);
-                 {$endif}
                  end
                 else
 {$endif i386}
@@ -167,7 +159,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2003-05-22 21:33:31  peter
+  Revision 1.3  2003-09-03 15:55:02  peter
+    * NEWRA branch merged
+
+  Revision 1.2.2.1  2003/08/31 15:46:26  peter
+    * more updates for tregister
+
+  Revision 1.2  2003/05/22 21:33:31  peter
     * removed some unit dependencies
 
   Revision 1.1  2003/05/01 08:02:42  florian

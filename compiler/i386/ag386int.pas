@@ -46,70 +46,16 @@ interface
         procedure WriteExternals;
       end;
 
-    const
-      regname_count=45;
-      regname_count_bsstart=32;   {Largest power of 2 out of regname_count.}
-     
-      intel_regname2regnum:array[0..regname_count-1] of regname2regnumrec=(
-        (name:'ah';     number:NR_AH),
-        (name:'al';     number:NR_AL),
-        (name:'ax';     number:NR_AX),
-        (name:'bh';     number:NR_BH),
-        (name:'bl';     number:NR_BL),
-        (name:'bp';     number:NR_BP),
-        (name:'bx';     number:NR_BX),
-        (name:'ch';     number:NR_CH),
-        (name:'cl';     number:NR_CL),
-        (name:'cs';     number:NR_CS),
-        (name:'cr0';    number:NR_CR0),
-        (name:'cr2';    number:NR_CR2),
-        (name:'cr3';    number:NR_CR3),
-        (name:'cr4';    number:NR_CR4),
-        (name:'cx';     number:NR_CX),
-        (name:'dh';     number:NR_DH),
-        (name:'dl';     number:NR_DL),
-        (name:'di';     number:NR_DI),
-        (name:'dr0';    number:NR_DR0),
-        (name:'dr1';    number:NR_DR1),
-        (name:'dr2';    number:NR_DR2),
-        (name:'dr3';    number:NR_DR3),
-        (name:'dr6';    number:NR_DR6),
-        (name:'dr7';    number:NR_DR7),
-        (name:'ds';     number:NR_DS),
-        (name:'dx';     number:NR_DX),
-        (name:'eax';    number:NR_EAX),
-        (name:'ebp';    number:NR_EBP),
-        (name:'ebx';    number:NR_EBX),
-        (name:'ecx';    number:NR_ECX),
-        (name:'edi';    number:NR_EDI),
-        (name:'edx';    number:NR_EDX),
-        (name:'es';     number:NR_ES),
-        (name:'esi';    number:NR_ESI),
-        (name:'esp';    number:NR_ESP),
-        (name:'fs';     number:NR_FS),
-        (name:'gs';     number:NR_GS),
-        (name:'si';     number:NR_SI),
-        (name:'sp';     number:NR_SP),
-        (name:'ss';     number:NR_SS),
-        (name:'tr3';    number:NR_DR0),
-        (name:'tr4';    number:NR_DR1),
-        (name:'tr5';    number:NR_DR2),
-        (name:'tr6';    number:NR_DR6),
-        (name:'tr7';    number:NR_DR7)
-      );
 
-     function intel_regnum_search(const s:string):Tnewregister;
-     function intel_regname(const r:Tnewregister):string;
-
-
-  implementation
+implementation
 
     uses
 {$ifdef delphi}
       sysutils,
 {$endif}
       cutils,globtype,globals,systems,cclasses,
-      verbose,finput,fmodule,script,cpuinfo
+      verbose,finput,fmodule,script,cpuinfo,
+      itx86int
       ;
 
     const
@@ -211,17 +157,11 @@ interface
       begin
         with ref do
          begin
-           if segment.enum>lastreg then
-             internalerror(200301081);
-           if base.enum>lastreg then
-             internalerror(200301081);
-           if index.enum>lastreg then
-             internalerror(200301081);
            first:=true;
            inc(offset,offsetfixup);
            offsetfixup:=0;
-           if segment.enum<>R_NO then
-            AsmWrite(std_reg2str[segment.enum]+':[')
+           if segment<>NR_NO then
+            AsmWrite(masm_regname(segment)+':[')
            else
             AsmWrite('[');
            if assigned(symbol) then
@@ -231,21 +171,21 @@ interface
               AsmWrite(symbol.name);
               first:=false;
             end;
-           if (base.enum<>R_NO) then
+           if (base<>NR_NO) then
             begin
               if not(first) then
                AsmWrite('+')
               else
                first:=false;
-               AsmWrite(std_reg2str[base.enum]);
+               AsmWrite(masm_regname(base));
             end;
-           if (index.enum<>R_NO) then
+           if (index<>NR_NO) then
             begin
               if not(first) then
                AsmWrite('+')
               else
                first:=false;
-              AsmWrite(std_reg2str[index.enum]);
+              AsmWrite(masm_regname(index));
               if scalefactor<>0 then
                AsmWrite('*'+tostr(scalefactor));
             end;
@@ -270,11 +210,7 @@ interface
       begin
         case o.typ of
           top_reg :
-            begin
-              if o.reg.enum>lastreg then
-                internalerror(200301081);
-              AsmWrite(std_reg2str[o.reg.enum]);
-            end;
+            AsmWrite(masm_regname(o.reg));
           top_const :
             AsmWrite(tostr(longint(o.val)));
           top_symbol :
@@ -333,11 +269,7 @@ interface
     begin
       case o.typ of
         top_reg :
-          begin
-            if o.reg.enum>lastreg then
-              internalerror(200301081);
-            AsmWrite(std_reg2str[o.reg.enum]);
-          end;
+          AsmWrite(masm_regname(o.reg));
         top_const :
           AsmWrite(tostr(longint(o.val)));
         top_symbol :
@@ -481,7 +413,7 @@ interface
            ait_regalloc :
              begin
                if (cs_asm_regalloc in aktglobalswitches) then
-                 AsmWriteLn(target_asm.comment+'Register '+std_reg2str[tai_regalloc(hp).reg.enum]+
+                 AsmWriteLn(target_asm.comment+'Register '+masm_regname(tai_regalloc(hp).reg)+
                    allocstr[tai_regalloc(hp).allocation]);
              end;
 
@@ -669,15 +601,21 @@ interface
                          word prefix to get selectors
                          to be pushed in 2 bytes  PM }
                        if (taicpu(hp).opsize=S_W) and
-                          ((taicpu(hp).opcode=A_PUSH) or
-                           (taicpu(hp).opcode=A_POP)) and
-                           (taicpu(hp).oper[0].typ=top_reg) and
-                           ((taicpu(hp).oper[0].reg.enum in [firstsreg..lastsreg])) then
+                          (
+                           (
+                            (
+                             (taicpu(hp).opcode=A_PUSH) or
+                             (taicpu(hp).opcode=A_POP)
+                            ) and
+                            (taicpu(hp).oper[0].typ=top_reg) and
+                            is_segment_reg(taicpu(hp).oper[0].reg)
+                           ) or
+                           (
+                            (taicpu(hp).opcode=A_PUSH) and
+                            (taicpu(hp).oper[0].typ=top_const)
+                           )
+                          ) then
                          AsmWriteln(#9#9'DB'#9'066h');
-                       if (taicpu(hp).opsize=S_W) and
-                           (taicpu(hp).opcode=A_PUSH) and
-                           (taicpu(hp).oper[0].typ=top_const) then
-                        AsmWriteln(#9#9'DB'#9'066h');
 
                        { added prefix instructions, must be on same line as opcode }
                        if (taicpu(hp).ops = 0) and
@@ -866,61 +804,6 @@ ait_stab_function_name : ;
 {$endif EXTDEBUG}
    end;
 
-     function intel_regnum_search(const s:string):Tnewregister;
-     
-     {Searches the register number that belongs to the register in s.
-      s must be in uppercase!.}
-     
-     var i,p:byte;
-     
-     begin
-        {Binary search.}
-        p:=0;
-        i:=regname_count_bsstart;
-        while i<>0 do
-          begin
-            if (p+i<regname_count) and (upper(intel_regname2regnum[p+i].name)<=s) then
-              p:=p+i;
-            i:=i shr 1;
-          end;
-        if upper(intel_regname2regnum[p].name)=s then
-          intel_regnum_search:=intel_regname2regnum[p].number
-        else
-          intel_regnum_search:=NR_NO;
-     end;
-
-    function intel_regname(const r:Tnewregister):string;
-
-    var i:byte;
-        nr:string[3];
-        sub:char;
-
-    begin
-      intel_regname:='';
-      for i:=0 to regname_count-1 do
-        if r=intel_regname2regnum[i].number then
-            intel_regname:=intel_regname2regnum[i].name;
-      {If not found, generate a systematic name.}
-      if intel_regname='' then
-        begin
-          str(r shr 8,nr);
-          case r and $ff of
-            R_SUBL:
-              sub:='l';
-            R_SUBH:
-              sub:='h';
-            R_SUBW:
-              sub:='w';
-            R_SUBD:
-              sub:='d';
-            R_SUBQ:
-              sub:='q';
-          else
-            internalerror(200303081);
-          end;
-          intel_regname:='reg'+nr+sub;
-        end;
-    end;
 
 {*****************************************************************************
                                   Initialize
@@ -971,7 +854,19 @@ initialization
 end.
 {
   $Log$
-  Revision 1.36  2003-08-18 11:52:57  marco
+  Revision 1.37  2003-09-03 15:55:01  peter
+    * NEWRA branch merged
+
+  Revision 1.36.2.3  2003/08/31 15:46:26  peter
+    * more updates for tregister
+
+  Revision 1.36.2.2  2003/08/27 21:07:03  peter
+    * more updates
+
+  Revision 1.36.2.1  2003/08/27 19:55:54  peter
+    * first tregister patch
+
+  Revision 1.36  2003/08/18 11:52:57  marco
    * fix for 2592, pushw imm
 
   Revision 1.35  2003/08/09 18:56:54  daniel

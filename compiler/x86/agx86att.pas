@@ -50,6 +50,7 @@ interface
       cutils,systems,
       verbose,
       itx86att,
+      cginfo,
       aasmcpu;
 
 
@@ -58,31 +59,22 @@ interface
  ****************************************************************************}
 
     procedure Tx86AttAssembler.WriteReference(var ref : treference);
-
-    var i,b,s:boolean;
-
       begin
         with ref do
          begin
            inc(offset,offsetfixup);
            offsetfixup:=0;
-           s:=(segment.enum=R_NO) or ((segment.enum=R_INTREGISTER) and (segment.number=NR_NO));
-           b:=(base.enum=R_NO) or ((base.enum=R_INTREGISTER) and (base.number=NR_NO));
-           i:=(index.enum=R_NO) or ((index.enum=R_INTREGISTER) and (index.number=NR_NO));
 
            { have we a segment prefix ? }
            { These are probably not correctly handled under GAS }
            { should be replaced by coding the segment override  }
            { directly! - DJGPP FAQ                              }
-           if not s then
-            if segment.enum=R_INTREGISTER then
-              asmwrite(gas_regname(segment.number)+':')
-            else
-              AsmWrite(gas_reg2str[segment.enum]+':');
+           if segment<>NR_NO then
+             AsmWrite(gas_regname(segment)+':');
            if assigned(symbol) then
              AsmWrite(symbol.name);
            if offset<0 then
-            AsmWrite(tostr(offset))
+             AsmWrite(tostr(offset))
            else
             if (offset>0) then
              begin
@@ -91,33 +83,23 @@ interface
                else
                 AsmWrite(tostr(offset));
              end
-           else if i and b and not assigned(symbol) then
+           else if (index=NR_NO) and (base=NR_NO) and (not assigned(symbol)) then
              AsmWrite('0');
-           if (not i) and (b) then
+           if (index<>NR_NO) and (base=NR_NO) then
             begin
-              if index.enum=R_INTREGISTER then
-                AsmWrite('(,'+gas_regname(index.number))
-              else
-                AsmWrite('(,'+gas_reg2str[index.enum]);
+              AsmWrite('(,'+gas_regname(index));
               if scalefactor<>0 then
                AsmWrite(','+tostr(scalefactor)+')')
               else
                AsmWrite(')');
             end
            else
-            if i and not b then
-             if base.enum=R_INTREGISTER then
-               AsmWrite('('+gas_regname(base.number)+')')
-             else
-               AsmWrite('('+gas_reg2str[base.enum]+')')
+            if (index=NR_NO) and (base<>NR_NO) then
+              AsmWrite('('+gas_regname(base)+')')
             else
-             if (not i) and (not b) then
+             if (index<>NR_NO) and (base<>NR_NO) then
               begin
-                if base.enum=R_INTREGISTER then
-                  {Assume if base is new notation, index is also.}
-                  AsmWrite('('+gas_regname(base.number)+','+gas_regname(index.number))
-                else
-                  AsmWrite('('+gas_reg2str[base.enum]+','+gas_reg2str[index.enum]);
+                AsmWrite('('+gas_regname(base)+','+gas_regname(index));
                 if scalefactor<>0 then
                  AsmWrite(','+tostr(scalefactor));
                 AsmWrite(')');
@@ -130,12 +112,7 @@ interface
       begin
         case o.typ of
           top_reg :
-            begin
-              if o.reg.enum=R_INTREGISTER then
-                AsmWrite(gas_regname(o.reg.number))
-              else
-                AsmWrite(gas_reg2str[o.reg.enum]);
-            end;
+            AsmWrite(gas_regname(o.reg));
           top_ref :
             WriteReference(o.ref^);
           top_const :
@@ -164,12 +141,7 @@ interface
       begin
         case o.typ of
           top_reg :
-            begin
-              if o.reg.enum=R_INTREGISTER then
-                AsmWrite('*'+gas_regname(o.reg.number))
-              else
-                AsmWrite('*'+gas_reg2str[o.reg.enum]);
-            end;
+            AsmWrite('*'+gas_regname(o.reg));
           top_ref :
             begin
               AsmWrite('*');
@@ -217,7 +189,7 @@ interface
             (op<>A_FNSTCW) and (op<>A_FSTCW) and
             (op<>A_FLDCW) and not(
             (taicpu(hp).oper[0].typ=top_reg) and
-            (taicpu(hp).oper[0].reg.enum in [R_ST..R_ST7])
+            (getregtype(taicpu(hp).oper[0].reg)=R_FPUREGISTER)
            ) then
           AsmWrite(gas_opsize2str[taicpu(hp).opsize]);
         { process operands }
@@ -339,7 +311,13 @@ initialization
 end.
 {
   $Log$
-  Revision 1.4  2003-08-18 11:49:47  daniel
+  Revision 1.5  2003-09-03 15:55:02  peter
+    * NEWRA branch merged
+
+  Revision 1.4.2.1  2003/08/31 15:46:26  peter
+    * more updates for tregister
+
+  Revision 1.4  2003/08/18 11:49:47  daniel
     * Made ATT asm writer work with -sr
 
   Revision 1.3  2003/05/28 23:18:31  florian
