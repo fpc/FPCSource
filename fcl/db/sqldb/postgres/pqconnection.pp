@@ -5,7 +5,7 @@ unit pqconnection;
 interface
 
 uses
-  Classes, SysUtils, postgres3, sqldb, db;
+  Classes, SysUtils, sqldb, db,postgres3;
   
 type
   TPQTrans = Class(TSQLHandle)
@@ -36,19 +36,18 @@ type
     Function AllocateTransactionHandle : TSQLHandle; override;
 
     procedure FreeStatement(cursor : TSQLHandle); override;
-    procedure FreeSelect(cursor : TSQLHandle); override;
     procedure PrepareStatement(cursor: TSQLHandle;ATransaction : TSQLTransaction;buf : string); override;
-    procedure PrepareSelect(cursor : TSQLHandle); override;
     procedure FreeFldBuffers(cursor : TSQLHandle); override;
     procedure Execute(cursor: TSQLHandle;atransaction:tSQLtransaction); override;
     procedure AddFieldDefs(cursor: TSQLHandle; FieldDefs : TfieldDefs); override;
     function GetFieldSizes(cursor : TSQLHandle) : integer; override;
     function Fetch(cursor : TSQLHandle) : boolean; override;
     procedure LoadFieldsFromBuffer(cursor : TSQLHandle;buffer: pchar); override;
-    function GetFieldData(cursor : TSQLHandle; Field: TField; Buffer: Pointer;currbuff:pchar): Boolean; override;
-    function GetStatementType(cursor : TSQLHandle) : tStatementType; override;
+    function GetFieldData(Cursor : TSQLHandle;Field: TField; FieldDefs : TfieldDefs; Buffer: Pointer;currbuff : pchar): Boolean; override;
     function GetTransactionHandle(trans : TSQLHandle): pointer; override;
     function RollBack(trans : TSQLHandle) : boolean; override;
+    function Commit(trans : TSQLHandle) : boolean; override;
+    procedure CommitRetaining(trans : TSQLHandle); override;
     function StartTransaction(trans : TSQLHandle) : boolean; override;
     procedure RollBackRetaining(trans : TSQLHandle); override;
   published
@@ -63,6 +62,7 @@ implementation
 
 ResourceString
   SErrRollbackFailed = 'Rollback transaction failed';
+  SErrCommitFailed = 'Commit transaction failed';
   SErrConnectionFailed = 'Connection to database failed';
   SErrTransactionFailed = 'Start of transacion failed';
   SErrClearSelection = 'Clear of selection failed';
@@ -79,21 +79,6 @@ const Oid_Text    = 25;
       Oid_Float8  = 701;
       Oid_bpchar  = 1042;
       Oid_varchar = 1043;
-
-type
-  TTm = packed record
-    tm_sec : longint;
-    tm_min : longint;
-    tm_hour : longint;
-    tm_mday : longint;
-    tm_mon : longint;
-    tm_year : longint;
-    tm_wday : longint;
-    tm_yday : longint;
-    tm_isdst : longint;
-    __tm_gmtoff : longint;
-    __tm_zone : Pchar;
-  end;
 
 function TPQConnection.GetTransactionHandle(trans : TSQLHandle): pointer;
 begin
@@ -123,6 +108,31 @@ begin
     result := true;
     end;
 end;
+
+function TPQConnection.Commit(trans : TSQLHandle) : boolean;
+var
+  res : PPGresult;
+  tr  : TPQTrans;
+begin
+  result := false;
+
+  tr := trans as TPQTrans;
+
+  res := PQexec(tr.TransactionHandle, 'COMMIT');
+  if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
+    begin
+    PQclear(res);
+    result := false;
+    DatabaseError(SErrCommitFailed + ' (PostgreSQL: ' + PQerrorMessage(tr.transactionhandle) + ')',self);
+    end
+  else
+    begin
+    PQclear(res);
+    PQFinish(tr.TransactionHandle);
+    result := true;
+    end;
+end;
+
 
 function TPQConnection.StartTransaction(trans : TSQLHandle) : boolean;
 var
@@ -190,6 +200,36 @@ begin
     end;
 end;
 
+procedure TPQConnection.CommitRetaining(trans : TSQLHandle);
+var
+  res : PPGresult;
+  tr  : TPQTrans;
+  msg : string;
+begin
+  tr := trans as TPQTrans;
+  res := PQexec(tr.TransactionHandle, 'COMMIT');
+  if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
+    begin
+    PQclear(res);
+    DatabaseError(SErrCommitFailed + ' (PostgreSQL: ' + PQerrorMessage(tr.transactionhandle) + ')',self);
+    end
+  else
+    begin
+    PQclear(res);
+    res := PQexec(tr.TransactionHandle, 'BEGIN');
+    if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
+      begin
+      PQclear(res);
+      msg := PQerrorMessage(tr.transactionhandle);
+      PQFinish(tr.TransactionHandle);
+      DatabaseError(sErrTransactionFailed + ' (PostgreSQL: ' + msg + ')',self);
+      end
+    else
+      PQclear(res);
+    end;
+end;
+
+
 procedure TPQConnection.DoInternalConnect;
 
 var msg : string;
@@ -249,30 +289,11 @@ end;
 procedure TPQConnection.PrepareStatement(cursor: TSQLHandle;ATransaction : TSQLTransaction;buf : string);
 
 begin
-  (cursor as TPQCursor).statement := buf;
-end;
-
-procedure TPQConnection.PrepareSelect(cursor : TSQLHandle);
-
-begin
   with (cursor as TPQCursor) do
-   statement := 'DECLARE selectst' + name + '  BINARY CURSOR FOR ' + statement;
-end;
-
-procedure TPQConnection.FreeSelect(cursor : TSQLHandle);
-
-var st : string;
-
-begin
-  with cursor as TPQCursor do
     begin
-    st := 'CLOSE selectst' + name;
-    Res := pqexec(tr,pchar(st));
-    if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
-      begin
-      pqclear(res);
-      DatabaseError(SErrClearSelection + ' (PostgreSQL: ' + PQerrorMessage(tr) + ')',self);
-      end
+    (cursor as TPQCursor).statement := buf;
+    if StatementType = stselect then
+      statement := 'DECLARE selectst' + name + '  BINARY CURSOR FOR ' + statement;
     end;
 end;
 
@@ -281,6 +302,15 @@ procedure TPQConnection.FreeStatement(cursor : TSQLHandle);
 begin
   with cursor as TPQCursor do
     begin
+    if StatementType = stselect then
+      begin
+      Res := pqexec(tr,pchar('CLOSE selectst' + name));
+      if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
+        begin
+        pqclear(res);
+        DatabaseError(SErrClearSelection + ' (PostgreSQL: ' + PQerrorMessage(tr) + ')',self);
+        end
+      end;
     pqclear(baseres);
     pqclear(res);
     end;
@@ -292,15 +322,17 @@ begin
 // Do nothing
 end;
 
-
 procedure TPQConnection.Execute(cursor: TSQLHandle;atransaction:tSQLtransaction);
+
+var st : string;
 
 begin
   with cursor as TPQCursor do
     begin
     tr := aTransaction.Handle;
 //    res := pqexecParams(tr,pchar(statement),0,nil,nil,nil,nil,1);
-    res := pqexec(tr,pchar(statement));
+    st := statement;
+    res := pqexec(tr,pchar(st));
     if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
       begin
       pqclear(res);
@@ -381,7 +413,7 @@ begin
       pqclear(Res);
       DatabaseError(SErrfetchFailed + ' (PostgreSQL: ' + PQerrorMessage(tr) + ')',self)
       end;
-    Result := (PQntuples(res)=0);
+    Result := (PQntuples(res)<>0);
     end;
 end;
 
@@ -417,7 +449,7 @@ begin
   {$R+}
 end;
 
-function TPQConnection.GetFieldData(Cursor : TSQLHandle;Field: TField; Buffer: Pointer;currbuff : pchar): Boolean;
+function TPQConnection.GetFieldData(Cursor : TSQLHandle;Field: TField; FieldDefs : TfieldDefs; Buffer: Pointer;currbuff : pchar): Boolean;
 var
   x    : longint;
   size : integer;
@@ -461,10 +493,6 @@ begin
     end;
 end;
 
-function TPQConnection.GetStatementType(cursor : TSQLhandle) : TStatementType;
-begin
-  result := stselect;
-end;
 
 end.
 

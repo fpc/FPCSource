@@ -58,17 +58,14 @@ type
     Function AllocateTransactionHandle : TSQLHandle; override;
 
     procedure FreeStatement(cursor : TSQLHandle); override;
-    procedure FreeSelect(cursor : TSQLHandle); override;
     procedure PrepareStatement(cursor: TSQLHandle;ATransaction : TSQLTransaction;buf : string); override;
-    procedure PrepareSelect(cursor : TSQLHandle); override;
     procedure FreeFldBuffers(cursor : TSQLHandle); override;
     procedure Execute(cursor: TSQLHandle;atransaction:tSQLtransaction); override;
     procedure AddFieldDefs(cursor: TSQLHandle; FieldDefs : TfieldDefs); override;
     function GetFieldSizes(cursor : TSQLHandle) : integer; override;
     function Fetch(cursor : TSQLHandle) : boolean; override;
     procedure LoadFieldsFromBuffer(cursor : TSQLHandle;buffer: pchar); override;
-    function GetFieldData(cursor : TSQLHandle; Field: TField; Buffer: Pointer;currbuff:pchar): Boolean; override;
-    function GetStatementType(cursor : TSQLHandle) : tStatementType; override;
+    function GetFieldData(Cursor : TSQLHandle;Field: TField; FieldDefs : TfieldDefs; Buffer: Pointer;currbuff : pchar): Boolean; override;
     function GetTransactionHandle(trans : TSQLHandle): pointer; override;
     function Commit(trans : TSQLHandle) : boolean; override;
     function RollBack(trans : TSQLHandle) : boolean; override;
@@ -376,11 +373,6 @@ begin
   result := TIBTrans.create;
 end;
 
-procedure TIBConnection.FreeSelect(cursor : TSQLHandle);
-
-begin
-end;
-
 procedure TIBConnection.FreeStatement(cursor : TSQLHandle);
 begin
   with cursor as TIBcursor do
@@ -392,9 +384,10 @@ begin
 end;
 
 procedure TIBConnection.PrepareStatement(cursor: TSQLHandle;ATransaction : TSQLTransaction;buf : string);
-var
-  dh    : pointer;
-  tr : pointer;
+
+var dh    : pointer;
+    tr    : pointer;
+    x     : shortint;
 
 begin
   with cursor as TIBcursor do
@@ -405,30 +398,24 @@ begin
     tr := aTransaction.Handle;
     if isc_dsql_prepare(@Status, @tr, @Statement, 0, @Buf[1], Dialect, nil) <> 0 then
       CheckError('PrepareStatement', Status);
-    end;
-end;
-
-procedure TIBConnection.PrepareSelect(cursor : TSQLHandle);
-var
-  x  : shortint;
-begin
-  with cursor as TIBCursor do
-    begin
-    if isc_dsql_describe(@Status, @Statement, 1, SQLDA) <> 0 then
-      CheckError('PrepareSelect', Status);
-    if SQLDA^.SQLD > SQLDA^.SQLN then
+    if StatementType = stselect then
       begin
-      AllocSQLDA((cursor as TIBCursor),SQLDA^.SQLD);
       if isc_dsql_describe(@Status, @Statement, 1, SQLDA) <> 0 then
         CheckError('PrepareSelect', Status);
+      if SQLDA^.SQLD > SQLDA^.SQLN then
+        begin
+        AllocSQLDA((cursor as TIBCursor),SQLDA^.SQLD);
+        if isc_dsql_describe(@Status, @Statement, 1, SQLDA) <> 0 then
+          CheckError('PrepareSelect', Status);
+        end;
+      {$R-}
+      for x := 0 to SQLDA^.SQLD - 1 do
+        begin
+        SQLDA^.SQLVar[x].SQLData := AllocMem(SQLDA^.SQLVar[x].SQLLen);
+        SQLDA^.SQLVar[x].SQLInd  := @FFieldFlag[x];
+        end;
+      {$R+}
       end;
-    {$R-}
-    for x := 0 to SQLDA^.SQLD - 1 do
-      begin
-      SQLDA^.SQLVar[x].SQLData := AllocMem(SQLDA^.SQLVar[x].SQLLen);
-      SQLDA^.SQLVar[x].SQLInd  := @FFieldFlag[x];
-      end;
-    {$R+}
     end;
 end;
 
@@ -509,7 +496,7 @@ begin
     if (retcode <> 0) and (retcode <> 100) then
       CheckError('Fetch', Status);
     end;
-  Result := (retcode = 100);
+  Result := (retcode <> 100);
 end;
 
 procedure TIBConnection.LoadFieldsFromBuffer(cursor : TSQLHandle;buffer : pchar);
@@ -535,7 +522,7 @@ begin
   {$R+}
 end;
 
-function TIBConnection.GetFieldData(Cursor : TSQLHandle;Field: TField; Buffer: Pointer;currbuff : pchar): Boolean;
+function TIBConnection.GetFieldData(Cursor : TSQLHandle;Field: TField; FieldDefs : TfieldDefs; Buffer: Pointer;currbuff : pchar): Boolean;
 var
   x : longint;
   b : longint;
@@ -610,36 +597,19 @@ begin
     4 :
       begin
         Move(CurrBuff^, Sin, 4);
-        Ext := Sin;
+        Dbl := Sin;
       end;
     8 :
       begin
         Move(CurrBuff^, Dbl, 8);
-        Ext := Dbl;
       end;
-    10: Move(CurrBuff^, Ext, 10);
-  end;
-  Move(Ext, Buffer^, 10);
-end;
-
-function TIBConnection.GetStatementType(cursor : TSQLhandle) : TStatementType;
-var
-  x : integer;
-  ResBuf : array [0..7] of char;
-begin
-  Result := stNone;
-  with cursor as TIBCursor do
-    begin
-    x := isc_info_sql_stmt_type;
-    if isc_dsql_sql_info(@Status, @Statement, SizeOf(X),
-      @x, SizeOf(ResBuf), @ResBuf) <> 0 then
-      CheckError('GetStatementType', Status);
-    if Ord(ResBuf[0]) = isc_info_sql_stmt_type then
+    10:
       begin
-      x := isc_vax_integer(@ResBuf[1], 2);
-      Result := TStatementType(isc_vax_integer(@ResBuf[3], x));
+        Move(CurrBuff^, Ext, 10);
+        Dbl := Ext;
       end;
-    end;
+  end;
+  Move(Dbl, Buffer^, 8);
 end;
 
 end.

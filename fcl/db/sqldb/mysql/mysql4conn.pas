@@ -26,7 +26,6 @@ Type
   private
     FDialect: integer;
     FHostInfo: String;
-    FHostName: string;
     FServerInfo: String;
     FMySQL : PMySQL;
     function GetClientInfo: string;
@@ -46,17 +45,14 @@ Type
     Function AllocateTransactionHandle : TSQLHandle; override;
 
     procedure FreeStatement(cursor : TSQLHandle); override;
-    procedure FreeSelect(cursor : TSQLHandle); override;
     procedure PrepareStatement(cursor: TSQLHandle;ATransaction : TSQLTransaction;buf : string); override;
-    procedure PrepareSelect(cursor : TSQLHandle); override;
     procedure FreeFldBuffers(cursor : TSQLHandle); override;
     procedure Execute(cursor: TSQLHandle;atransaction:tSQLtransaction); override;
     procedure AddFieldDefs(cursor: TSQLHandle; FieldDefs : TfieldDefs); override;
     function GetFieldSizes(cursor : TSQLHandle) : integer; override;
     function Fetch(cursor : TSQLHandle) : boolean; override;
     procedure LoadFieldsFromBuffer(cursor : TSQLHandle;buffer: pchar); override;
-    function GetFieldData(cursor : TSQLHandle; Field: TField; Buffer: Pointer;currbuff:pchar): Boolean; override;
-    function GetStatementType(cursor : TSQLHandle) : tStatementType; override;
+    function GetFieldData(Cursor : TSQLHandle;Field: TField; FieldDefs : TfieldDefs; Buffer: Pointer;currbuff : pchar): Boolean; override;
     function GetTransactionHandle(trans : TSQLHandle): pointer; override;
     function Commit(trans : TSQLHandle) : boolean; override;
     function RollBack(trans : TSQLHandle) : boolean; override;
@@ -71,7 +67,7 @@ Type
   published
     property Dialect  : integer read FDialect write FDialect;
     property DatabaseName;
-    property HostName : string Read FHostName Write FHostName;
+    property HostName;
     property KeepConnection;
     property LoginPrompt;
     property Params;
@@ -182,34 +178,23 @@ Var
 
 begin
   C:=Cursor as TMysqlCursor;
+  if c.StatementType=stSelect then
+    c.FNeedData:=False;
   If (C.FRes<>Nil) then
     begin
     C.FRes:=Nil;
     end;
 end;
 
-procedure TMySQLConnection.FreeSelect(cursor: TSQLHandle);
-
-Var
-  C : TMySQLCursor;
-
-begin
-  C:=Cursor as TMysqlCursor;
-  C.FNeedData:=False;
-end;
-
 procedure TMySQLConnection.PrepareStatement(cursor: TSQLHandle;
   ATransaction: TSQLTransaction; buf: string);
 begin
   With Cursor as TMysqlCursor do
+    begin
     FStatement:=Buf;
-end;
-
-procedure TMySQLConnection.PrepareSelect(cursor: TSQLHandle);
-begin
-  // Do nothing.
-  with (Cursor as TMySQLCursor) do
-    FNeedData:=True;
+    if StatementType=stSelect then
+      FNeedData:=True;
+    end
 end;
 
 procedure TMySQLConnection.FreeFldBuffers(cursor: TSQLHandle);
@@ -373,7 +358,7 @@ Var
 begin
   C:=Cursor as TMySQLCursor;
   C.Row:=MySQL_Fetch_row(C.FRes);
-  Result:=(C.Row=Nil);
+  Result:=(C.Row<>Nil);
 end;
 
 procedure TMySQLConnection.LoadFieldsFromBuffer(cursor: TSQLHandle;
@@ -495,10 +480,8 @@ var
   VI: Integer;
   VF: Double;
   VD: TDateTime;
-  l : Integer;
   Src : String;
-  P : Pchar;
-  
+
 begin
   Result := 0;
   If (Source<>Nil) Then
@@ -581,8 +564,7 @@ begin
   end;
 end;
 
-function TMySQLConnection.GetFieldData(cursor: TSQLHandle; Field: TField;
-  Buffer: Pointer; currbuff: pchar): Boolean;
+function TMySQLConnection.GetFieldData(Cursor : TSQLHandle;Field: TField; FieldDefs : TfieldDefs; Buffer: Pointer;currbuff : pchar): Boolean;
   
 var
   I, FC: Integer;
@@ -614,25 +596,10 @@ begin
     end;
 end;
 
-{
-  TStatementType = (stNone, stSelect, stInsert, stUpdate, stDelete,
-    stDDL, stGetSegment, stPutSegment, stExecProcedure,
-    stStartTrans, stCommit, stRollback, stSelectForUpd);
-}
-
-const
- StatementTokens : Array[TStatementType] of string = ('(none)', 'select',
-                  'insert', 'update', 'delete',
-                  'create', 'get', 'put', 'execute',
-                  'start','commit','rollback', '?'
-                 );
-
 Function GetSQLStatementType(SQL : String) : TStatementType;
 
-
-
 Var
-  I,L : Integer;
+  L : Integer;
   cmt : boolean;
   P,PE,PP : PChar;
   S : string;
@@ -678,7 +645,7 @@ begin
       Exit(t);
 end;
 
-function TMySQLConnection.GetStatementType(cursor: TSQLHandle): tStatementType;
+{function TMySQLConnection.GetStatementType(cursor: TSQLHandle): tStatementType;
 
 Var
   C : TMySQLCursor;
@@ -686,7 +653,7 @@ Var
 begin
   C:=Cursor as TMySQLCursor;
   Result:=GetSQLStatementType(C.FStatement);
-end;
+end;}
 
 function TMySQLConnection.GetTransactionHandle(trans: TSQLHandle): pointer;
 begin
