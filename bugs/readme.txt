@@ -177,4 +177,6 @@ bug0124.pp   problem with -Rintel switch and indexing (whatever the order)
 bug0125.pp   wrong colors with DOS CRT unit
 bug0127.pp   problem with cdecl in implementation part
 bug0130.pp   in [..#255] problem
-
+bug0131.pp   internal error 10 with highdimension arrays
+bug0132.pp   segmentation fault with type loop
+bug0133.pp   object type declaration not 100% compatibile with TP7
