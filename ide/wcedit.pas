@@ -815,7 +815,7 @@ begin
 {$endif debug}
      L[0] := Location.Y + 1;
      L[1] := Location.X + 1;
-     FormatStr(S, '%d:%d ', L);
+     FormatStr(S, ' %d:%d ', L);
      MoveStr(B[8 - Pos(':', S)], S, Color);
    end;
   WriteBuf(0, 0, Size.X, 1, B);
@@ -2050,7 +2050,10 @@ end;
 END.
 {
  $Log$
- Revision 1.11  2002-08-26 13:40:15  pierre
+ Revision 1.12  2002-09-03 11:50:08  pierre
+  * Indicator like in BP, web bug 1945
+
+ Revision 1.11  2002/08/26 13:40:15  pierre
   * fix for bug report 2000
 
  Revision 1.10  2002/08/26 13:01:39  pierre
