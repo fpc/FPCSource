@@ -191,7 +191,9 @@ implementation
                    else
                       begin
                         { generate a methodcallnode or proccallnode }
-                        if (p^.left^.symtableprocentry^.owner^.symtabletype=objectsymtable) then
+                        { we shouldn't convert things like @tcollection.load }
+                        if (p^.left^.symtableprocentry^.owner^.symtabletype=objectsymtable) and
+                          not(assigned(p^.left^.methodpointer) and (p^.left^.methodpointer^.treetype=typen)) then
                          begin
                            hp:=genloadmethodcallnode(pprocsym(p^.left^.symtableprocentry),p^.left^.symtableproc,
                              getcopy(p^.left^.methodpointer));
@@ -593,7 +595,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.26  1999-09-11 09:08:34  florian
+  Revision 1.27  1999-09-11 11:10:39  florian
+    * fix of my previous commit, make cycle was broken
+
+  Revision 1.26  1999/09/11 09:08:34  florian
     * fixed bug 596
     * fixed some problems with procedure variables and procedures of object,
       especially in TP mode. Procedure of object doesn't apply only to classes,
