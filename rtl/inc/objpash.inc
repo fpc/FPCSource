@@ -155,6 +155,7 @@
          function _AddRef : longint;stdcall;
          function _Release : longint;stdcall;
        end;
+       IInterface = IUnknown;
 
        { for native dispinterface support }
        IDispatch = interface(IUnknown)
@@ -279,7 +280,10 @@
        end;
 {
   $Log$
-  Revision 1.11  2001-04-13 23:49:48  peter
+  Revision 1.12  2001-08-12 22:11:48  peter
+    * freeandnil added
+
+  Revision 1.11  2001/04/13 23:49:48  peter
     * fixes for the stricter compiler
 
   Revision 1.10  2001/04/04 17:56:45  florian

@@ -38,6 +38,16 @@
   {$i syspch.inc}
 
 
+    procedure FreeAndNil(var obj);
+      var
+        temp: tobject;
+      begin
+        temp:=tobject(obj);
+        pointer(obj):=nil;
+        temp.free;
+      end;
+
+
     constructor Exception.Create(const msg : string);
 
       begin
@@ -308,7 +318,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  2001-06-03 15:18:01  peter
+  Revision 1.5  2001-08-12 22:11:48  peter
+    * freeandnil added
+
+  Revision 1.4  2001/06/03 15:18:01  peter
     * eoutofmemory and einvalidpointer fix
 
   Revision 1.3  2000/11/23 11:04:26  sg

@@ -141,13 +141,16 @@ Type
   {$i filutilh.inc}
 
   { Read disk function declarations }
-
-
   {$i diskh.inc}
+
+    procedure FreeAndNil(var obj);
 
 {
   $Log$
-  Revision 1.9  2001-06-03 15:18:01  peter
+  Revision 1.10  2001-08-12 22:11:48  peter
+    * freeandnil added
+
+  Revision 1.9  2001/06/03 15:18:01  peter
     * eoutofmemory and einvalidpointer fix
 
   Revision 1.8  2001/02/20 22:14:19  peter
