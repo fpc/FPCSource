@@ -29,11 +29,8 @@ const
 
 {Platform specific information}
 type
-{$ifdef CPU64}
-  THandle = Int64;
-{$else CPU64}
+  { fd are int in C also for 64bit targets (x86_64) }
   THandle = Longint;
-{$endif CPU64}
 
 const
  LineEnding = #10;
@@ -62,7 +59,11 @@ var
 
 {
   $Log$
-  Revision 1.18  2003-10-17 20:49:02  olle
+  Revision 1.19  2004-05-18 20:16:23  peter
+    * unix thandle is always 32bit
+    * textrec fixed for 64bit
+
+  Revision 1.18  2003/10/17 20:49:02  olle
     * Changed m68k to cpum68k
 
   Revision 1.17  2003/10/16 15:43:13  peter

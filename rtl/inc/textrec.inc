@@ -28,7 +28,7 @@ type
   TextBuf = array[0..TextRecBufSize-1] of char;
   TextRec = Packed Record
     Handle    : THandle;
-    Mode,
+    Mode      : longint;
     bufsize,
     _private,
     bufpos,
@@ -45,7 +45,11 @@ type
 
 {
   $Log$
-  Revision 1.5  2004-02-05 01:16:12  florian
+  Revision 1.6  2004-05-18 20:16:23  peter
+    * unix thandle is always 32bit
+    * textrec fixed for 64bit
+
+  Revision 1.5  2004/02/05 01:16:12  florian
     + completed x86-64/linux system unit
 
   Revision 1.4  2003/11/03 09:42:28  marco
