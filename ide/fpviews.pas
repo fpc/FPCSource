@@ -4197,9 +4197,7 @@ begin
   RegisterType(RFPDesktop);
   RegisterType(RGDBSourceEditor);
   RegisterType(RGDBWindow);
-{$ifndef FVISION}
   RegisterType(RFPASCIIChart);
-{$endif FVISION}
   RegisterType(RProgramInfoWindow);
   RegisterType(RFPDlgWindow);
 end;
@@ -4208,7 +4206,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.18  2002-05-30 15:02:39  pierre
+  Revision 1.19  2002-05-31 12:37:10  pierre
+   + register asciitable char
+
+  Revision 1.18  2002/05/30 15:02:39  pierre
    * avoid ugly border draw on windows without owners in fvision
 
   Revision 1.17  2002/05/29 22:38:13  pierre
