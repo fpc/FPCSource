@@ -666,7 +666,10 @@ const
 
 {
   $Log$
-  Revision 1.66  2003-04-23 22:46:41  florian
+  Revision 1.67  2003-04-25 21:09:44  peter
+    * remove dos lf
+
+  Revision 1.66  2003/04/23 22:46:41  florian
     + powerpc defines now pcomp as well
 
   Revision 1.65  2003/04/01 15:36:31  peter
