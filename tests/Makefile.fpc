@@ -40,16 +40,16 @@ setdate :
 .PHONY : setdate
 
 getret$(EXEEXT) : getret.pp
-        $(FPC) getret
+	$(FPC) getret
 
 getreturncode : getret$(EXEEXT)
 ifndef inlinux
-        redir -ea $(FILE).log -oa $(FILE).log getret $(COMMAND)
-        cp retcode $(FILE).$(RESEXT)
+	redir -ea $(FILE).log -oa $(FILE).log getret $(COMMAND)
+	cp retcode $(FILE).$(RESEXT)
 else
-        getret $(COMMAND) > $(FILE).log 2>$(FILE).log
-        cp retcode $(FILE).$(RESEXT)
-#       @echo "Return code of $(FILE) is $(cat retcode)"
+	getret $(COMMAND) > $(FILE).log 2>$(FILE).log
+	cp retcode $(FILE).$(RESEXT)
+#	@echo "Return code of $(FILE) is $(cat retcode)"
 endif
 
 
@@ -70,21 +70,21 @@ endif
 
 ifeq ($(RETVAL),0)
 testsuccess:
-        @echo "Test for $(FILE) success (compiles)"
-        @echo "Test for $(FILE) success (compiles)" >>$(LOG)
+	@echo "Test for $(FILE) success (compiles)"
+	@echo "Test for $(FILE) success (compiles)" >>$(LOG)
 else
 testsuccess:
-        @echo "Test for $(FILE) fails (does not compile) error $(RETVAL)"
-        @echo "Test for $(FILE) fails (does not compile) error $(RETVAL)" >> $(LOG)
+	@echo "Test for $(FILE) fails (does not compile) error $(RETVAL)"
+	@echo "Test for $(FILE) fails (does not compile) error $(RETVAL)" >> $(LOG)
 ifdef LONGLOG
-        @echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" >> $(LONGLOG)
-        @echo "Test for $(FILE) fails (does not compile) error $(RETVAL)" >> $(LONGLOG)
-        @echo "" >> $(LONGLOG)
-        cat $(FILE).log >> $(LONGLOG)
-        @echo "" >> $(LONGLOG)
+	@echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" >> $(LONGLOG)
+	@echo "Test for $(FILE) fails (does not compile) error $(RETVAL)" >> $(LONGLOG)
+	@echo "" >> $(LONGLOG)
+	cat $(FILE).log >> $(LONGLOG)
+	@echo "" >> $(LONGLOG)
 endif
-        @echo $(FILE) does not compile >> ts_fail
-        @echo $(FILE) does not compile error $(RETVAL) >> faillist
+	@echo $(FILE) does not compile >> ts_fail
+	@echo $(FILE) does not compile error $(RETVAL) >> faillist
 endif
 
 ifdef EXCFILE
@@ -99,100 +99,131 @@ endif
 
 ifdef REEFILE
 ifeq ($(wildcard $(REEFILE)*),$(REEFILE))
-EXPECTEDRETVAL:=$(strip $(shell cat $(REEFILE)))
+export EXPECTEDRETVAL:=$(strip $(shell cat $(REEFILE)))
 else
-EXPECTEDRETVAL=0
+export EXPECTEDRETVAL=0
+endif
+endif
+
+ifdef FILE
+ifneq ($(CFGFILE),$(FILE).cfg)
+ifneq ($(wildcard $(FILE).cfg),)
+export CFGFILE:=$(FILE).cfg
+export COMPILEROPT:=$(filter-out COMPILEROPT=,$(shell grep COMPILEROPT= $(CFGFILE)))
+export RUNARGS:=$(filter-out RUNARGS=,$(shell grep RUNARGS= $(CFGFILE)))
+export POSTPROCESS:=$(filter-out POSTPROCESS=,$(shell grep POSTPROCESS= $(CFGFILE)))
+else
+CFGFILE=
+COMPILEROPT=
+RUNARGS=
+POSTPROCESS=
+endif
 endif
 endif
 
 ifeq ($(EXERETVAL),$(EXPECTEDRETVAL))
 ifeq ($(EXPECTEDRETVAL),0)
 testexecsuccess:
-        @echo "Test for exec $(FILE) success (runs without error)"
-        @echo "Test for $(FILE) success (runs without error)" >> $(LOG)
+	@echo "Test for exec $(FILE) success (runs without error)"
+	@echo "Test for $(FILE) success (runs without error)" >> $(LOG)
 else
 testexecsuccess:
-        @echo "Test for exec $(FILE) success (gives correct error $(EXERETVAL))"
-        @echo "Test for $(FILE) success (gives correct error $(EXERETVAL))" >> $(LOG)
+	@echo "Test for exec $(FILE) success (gives correct error $(EXERETVAL))"
+	@echo "Test for $(FILE) success (gives correct error $(EXERETVAL))" >> $(LOG)
 endif
 else
 ifeq ($(EXPECTEDRETVAL),0)
 testexecsuccess:
-        @echo "Test for exec $(FILE) fails exec error $(EXERETVAL)"
-        @echo "Test for exec $(FILE) fails exec error $(EXERETVAL)" >> $(LOG)
-        @echo "Running $(FILE) fails with error $(EXERETVAL)" >> faillist
+	@echo "Test for exec $(FILE) fails exec error $(EXERETVAL)"
+	@echo "Test for exec $(FILE) fails exec error $(EXERETVAL)" >> $(LOG)
+	@echo "Running $(FILE) fails with error $(EXERETVAL)" >> faillist
 ifdef LONGLOG
-        @echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" >> $(LONGLOG)
-        @echo "Test for exec $(FILE) fails exec error $(EXERETVAL)" >> $(LONGLOG)
-        @echo "" >> $(LONGLOG)
-        cat $(FILE).elg >> $(LONGLOG)
-        @echo $(FILE) >> ex_fail
+	@echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" >> $(LONGLOG)
+	@echo "Test for exec $(FILE) fails exec error $(EXERETVAL)" >> $(LONGLOG)
+	@echo "" >> $(LONGLOG)
+	cat $(FILE).elg >> $(LONGLOG)
+	@echo $(FILE) >> ex_fail
 endif
 else
 testexecsuccess:
-        @echo "Test for exec $(FILE) fails exec error $(EXERETVAL) ($(EXPECTEDRETVAL) expected)"
-        @echo "Test for exec $(FILE) fails exec error $(EXERETVAL) ($(EXPECTEDRETVAL) expected)" >> $(LOG)
-        @echo "Running $(FILE) fails with error $(EXERETVAL) ($(EXPECTEDRETVAL) expected)" >> faillist
+	@echo "Test for exec $(FILE) fails exec error $(EXERETVAL) ($(EXPECTEDRETVAL) expected)"
+	@echo "Test for exec $(FILE) fails exec error $(EXERETVAL) ($(EXPECTEDRETVAL) expected)" >> $(LOG)
+	@echo "Running $(FILE) fails with error $(EXERETVAL) ($(EXPECTEDRETVAL) expected)" >> faillist
 ifdef LONGLOG
-        @echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" >> $(LONGLOG)
-        @echo "Test for exec $(FILE) fails exec error $(EXERETVAL) ($(EXPECTEDRETVAL) expected)" >> $(LONGLOG)
-        @echo "" >> $(LONGLOG)
-        cat $(FILE).elg >> $(LONGLOG)
-        @echo $(FILE) >> ex_fail
+	@echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" >> $(LONGLOG)
+	@echo "Test for exec $(FILE) fails exec error $(EXERETVAL) ($(EXPECTEDRETVAL) expected)" >> $(LONGLOG)
+	@echo "" >> $(LONGLOG)
+	cat $(FILE).elg >> $(LONGLOG)
+	@echo $(FILE) >> ex_fail
 endif
 endif
 endif
 
 ifeq ($(wildcard $(FILE)$(EXEEXT)),$(FILE)$(EXEEXT))
 testexec:
-        @echo "Testing $(FILE)$(EXEEXT)"
+	@echo "Testing $(FILE)$(EXEEXT)"
 ifdef NOREDIR
-        getret $(FILE)$(EXEEXT)
+	getret $(FILE)$(EXEEXT)
+	@echo CFGFILE is $(CFGFILE)
+ifdef POSTPROCESS
+	echo Running post process
+	-$(POSTPROCESS)
+endif
 else
 ifndef inlinux
-        redir -e $(FILE).elg -o $(FILE).elg getret $(FILE)$(EXEEXT)
+	redir -e $(FILE).elg -o $(FILE).elg getret $(FILE)$(EXEEXT) $(RUNARGS)
+	@echo CFGFILE is $(CFGFILE)
+ifdef POSTPROCESS
+	@echo Running post process
+	-redir -ea $(FILE).elg -oa $(FILE).elg $(POSTPROCESS)
+endif
 else
-        getret $(FILE)$(EXEEXT) > $(FILE).elg 2>$(FILE).elg
+	getret $(FILE)$(EXEEXT) $(RUNARGS) > $(FILE).elg 2>$(FILE).elg
+	@echo CFGFILE is $(CFGFILE)
+ifdef POSTPROCESS
+	echo Running post process
+	-$(POSTPROCESS) >> $(FILE).elg 2>> $(FILE).elg
 endif
 endif
-        cp -f retcode $(FILE).exc
-        $(MAKE) testexecsuccess 'FILE=$(FILE)' 'EXCFILE=$(FILE).exc' 'REEFILE=$(FILE).ree'
+endif
+	cp -f retcode $(FILE).exc
+	$(MAKE) testexecsuccess 'FILE=$(FILE)' 'EXCFILE=$(FILE).exc' 'REEFILE=$(FILE).ree'
 else
 testexec:
 ifeq ($(wildcard $(FILE)$(PPUEXT)),$(FILE)$(PPUEXT))
-        @echo "file is a unit $(FILE)$(PPUEXT)"
-        @echo "unit" > $(FILE).elg
+	@echo "file is a unit $(FILE)$(PPUEXT)"
+	@echo "unit" > $(FILE).elg
 else
 ifeq ($(wildcard $(FILE).dll),$(FILE).dll)
-        @echo "file is a DLL $(FILE)$(PPUEXT)"
-        @echo "DLL" > $(FILE).elg
+	@echo "file is a DLL $(FILE)$(PPUEXT)"
+	@echo "DLL" > $(FILE).elg
 else
-        @echo "No exefile $(FILE)$(EXEEXT)"
+	@echo "No exefile $(FILE)$(EXEEXT)"
 ifdef LONGLOG
-        @echo "No exefile $(FILE)$(EXEEXT) was generated" >> $(LONGLOG)
+	@echo "No exefile $(FILE)$(EXEEXT) was generated" >> $(LONGLOG)
 endif
 endif
 endif
 endif
 
 test_exc :
-        @echo $(wildcard $(FILE).exc*)
-        @echo xx$(wildcard $(EXCFILE)*)xx xx$(EXCFILE)xx
-        cat $(FILE).exc
+	@echo $(wildcard $(FILE).exc*)
+	@echo xx$(wildcard $(EXCFILE)*)xx xx$(EXCFILE)xx
+	cat $(FILE).exc
 
 ifneq ($(RETVAL),0)
 testfail:
-        @echo "Test for $(FILE) success (does not compile) error $(RETVAL)"
-        @echo "Test for $(FILE) success (does not compile) error $(RETVAL)" >> $(LOG)
+	@echo "Test for $(FILE) success (does not compile) error $(RETVAL)"
+	@echo "Test for $(FILE) success (does not compile) error $(RETVAL)" >> $(LOG)
 else
 testfail:
-        @echo "Test for $(FILE) fails (does compile and should not)"
-        @echo "Test for $(FILE) fails (does compile and should not)" >> $(LOG)
+	@echo "Test for $(FILE) fails (does compile and should not)"
+	@echo "Test for $(FILE) fails (does compile and should not)" >> $(LOG)
 ifdef LONGLOG
-        @echo "Test for $(FILE) fails (does compile and should not)" >> $(LONGLOG)
+	@echo "Test for $(FILE) fails (does compile and should not)" >> $(LONGLOG)
 endif
 	@echo $(FILE) >> tf_fail
-        @echo $(FILE) compiles >> faillist
+	@echo $(FILE) compiles >> faillist
 endif
 
 ifndef LONGLOG
@@ -202,6 +233,14 @@ endif
 ifndef LOG
 export LOG:=log
 endif
+
+
+listcfg :
+	@echo CFGFILE is "$(CFGFILE)"
+	@echo COMPILEROPT is "$(COMPILEROPT)"
+	@echo RUNARGS is "$(RUNARGS)"
+	@echo EXPECTEDRETVAL is "$(EXPECTEDRETVAL)"
+	@echo POSTPROCESS is "$(POSTPROCESS)"
 
 ifdef FILE
 OPTFILE=$(wildcard $(FILE).opt)
@@ -216,26 +255,26 @@ FILE=ts/ts00001.pp
 endif
 
 testone :
-        $(MAKE) getreturncode 'COMMAND=$(FPC) $(OPT) $(FILE).pp' 'RESEXT=$(RESEXT)' 'FILE=$(FILE)'
+	$(MAKE) getreturncode 'COMMAND=$(FPC) $(OPT) $(COMPILEROPT) $(FILE).pp' 'RESEXT=$(RESEXT)' 'FILE=$(FILE)'
 
 
 %.res : %.pp
-        $(MAKE) testone 'FILE=$*' 'RESEXT=res'
-        $(MAKE) testsuccess 'FILE=$*' 'RESFILE=$*.res'
+	$(MAKE) testone 'FILE=$*' 'RESEXT=res'
+	$(MAKE) testsuccess 'FILE=$*' 'RESFILE=$*.res'
 
 %.ref : %.pp
-        $(MAKE) testone 'FILE=$*' 'RESEXT=ref'
-        $(MAKE) testfail 'FILE=$*' 'RESFILE=$*.ref'
+	$(MAKE) testone 'FILE=$*' 'RESEXT=ref'
+	$(MAKE) testfail 'FILE=$*' 'RESFILE=$*.ref'
 
 # exec log files
 # creates two files
 # *.elg log file
 # *.exc exicode of program
 %.elg : %.res
-        $(MAKE) testexec 'FILE=$*'
+	$(MAKE) testexec 'FILE=$*'
 
 %.eli : %.res
-        $(MAKE) testexec 'FILE=$*' 'NOREDIR=YES'
+	$(MAKE) testexec 'FILE=$*' 'NOREDIR=YES'
 
 allts : $(patsubst %.pp,%.res,$(filter-out $(graphlst),$(wildcard ts/ts*.pp)))
 
@@ -284,31 +323,31 @@ endif
 endif
 
 clean_fail :
-        -rm -f $(addsuffix .res,$(TS_FAIL_LIST))
-        -rm -f $(addsuffix .ref,$(TF_FAIL_LIST))
-        -rm -f $(addsuffix .res,$(EXEC_FAIL_LIST))
-        -rm -f $(addsuffix .elg,$(EXEC_FAIL_LIST))
+	-rm -f $(addsuffix .res,$(TS_FAIL_LIST))
+	-rm -f $(addsuffix .ref,$(TF_FAIL_LIST))
+	-rm -f $(addsuffix .res,$(EXEC_FAIL_LIST))
+	-rm -f $(addsuffix .elg,$(EXEC_FAIL_LIST))
 
 # Test all failure of last time
 # don't forget to try to run them again
 again :
-        $(MAKE) internal_again LOG=again.log LONGLOG=again.llg
+	$(MAKE) internal_again LOG=again.log LONGLOG=again.llg
 
 internal_again : clean_fail $(addsuffix .res,$(TS_FAIL_LIST)) \
-        $(addsuffix .ref,$(TF_FAIL_LIST)) \
-        $(addsuffix .elg,$(EXEC_FAIL_LIST) $(TS_FAIL_LIST))
-        grep fails $(LOG)
+	$(addsuffix .ref,$(TF_FAIL_LIST)) \
+	$(addsuffix .elg,$(EXEC_FAIL_LIST) $(TS_FAIL_LIST))
+	grep fails $(LOG)
 
 all_compilations : allts alltbs allwebtbs alltf alltbf allwebtbf allto alltest alltesi alltis
-        grep fails $(LOG)
+	grep fails $(LOG)
 
 allexec : alltsexec alltbsexec allwebtbsexec alltestexec
-        grep fails  $(LOG)
+	grep fails  $(LOG)
 
 alltestexec: $(patsubst %.pp,%.elg,$(wildcard test/test*.pp))
 
 allfails :
-        grep fails $(LOG) > fails.log
+	grep fails $(LOG) > fails.log
 
 # these test are interactive
 # no redirection !!!
@@ -329,29 +368,30 @@ tbsexec300to399 : $(patsubst %.pp,%.elg,$(filter-out $(graphlst),$(wildcard tbs/
 alltisexec: $(patsubst %.pp,%.eli,$(filter-out $(graphlst),$(wildcard tis/tis*.pp)))
 
 clean:
-        -rm -f $(addsuffix /*.re*,$(DIRS))
+	-rm -f $(addsuffix /*.ref,$(DIRS))
+	-rm -f $(addsuffix /*.res,$(DIRS))
         -rm -f $(addsuffix /*$(PPUEXT),$(DIRS))
-        -rm -f $(addsuffix /*$(OEXT),$(DIRS))
-        -rm -f $(addsuffix /*.log,$(DIRS))
-        -rm -f $(addsuffix /*.elg,$(DIRS))
-        -rm -f $(addsuffix /*.exc,$(DIRS))
+	-rm -f $(addsuffix /*$(OEXT),$(DIRS))
+	-rm -f $(addsuffix /*.log,$(DIRS))
+	-rm -f $(addsuffix /*.elg,$(DIRS))
+	-rm -f $(addsuffix /*.exc,$(DIRS))
 ifdef inlinux
-        -rm -f $(patsubst %.pp,%$(EXEEXT),$(wildcard $(addsuffix /t*.pp,$(DIRS))))
+	-rm -f $(patsubst %.pp,%$(EXEEXT),$(wildcard $(addsuffix /t*.pp,$(DIRS))))
 else
-        -rm -f $(addsuffix /*$(EXEEXT),$(DIRS))
+	-rm -f $(addsuffix /*$(EXEEXT),$(DIRS))
 endif
-        -rm -f *.tmp
-        -rm -f $(LOG) $(LONGLOG) faillist ts_fail tf_fail ex_fail
-        -rm -f fpcmaked ppas.sh ppas.bat retcode
+	-rm -f *.tmp
+	-rm -f $(LOG) $(LONGLOG) faillist ts_fail tf_fail ex_fail
+	-rm -f fpcmaked ppas.sh ppas.bat retcode
 
 info :
-        @echo This Makefile allows to test the compiler
-        @echo compilation of 'ts*.pp' should succeed
-        @echo compilation of 'tf*.pp' should fail
-        @echo compilation of 'test*.pp' should succeed
-        @echo 'to*.pp' files should also compile
-        @echo simply run \'make tests\' to test all compilation
-        @echo run \'make allexec\' to test also if the executables
-        @echo created behave like the should
-        @echo run \'make tesiexec\' to test executables
-        @echo that require interactive mode
+	@echo This Makefile allows to test the compiler
+	@echo compilation of 'ts*.pp' should succeed
+	@echo compilation of 'tf*.pp' should fail
+	@echo compilation of 'test*.pp' should succeed
+	@echo 'to*.pp' files should also compile
+	@echo simply run \'make tests\' to test all compilation
+	@echo run \'make allexec\' to test also if the executables
+	@echo created behave like the should
+	@echo run \'make tesiexec\' to test executables
+	@echo that require interactive mode

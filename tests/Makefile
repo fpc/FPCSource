@@ -14,9 +14,9 @@ defaultrule: info
 override PATH:=$(subst \,/,$(PATH))
 
 # Search for PWD and determine also if we are under linux
-PWD:=$(strip $(wildcard $(addsuffix /pwd.exe,$(subst ;, ,$(PATH)))))
+PWD=$(strip $(wildcard $(addsuffix /pwd.exe,$(subst ;, ,$(PATH)))))
 ifeq ($(PWD),)
-PWD:=$(strip $(wildcard $(addsuffix /pwd,$(subst :, ,$(PATH)))))
+PWD=$(strip $(wildcard $(addsuffix /pwd,$(subst :, ,$(PATH)))))
 ifeq ($(PWD),)
 nopwd:
 	@echo You need the GNU utils package to use this Makefile!
@@ -52,18 +52,11 @@ else
 EXEEXT=.exe
 endif
 
-# The path which is searched separated by spaces
+# The path which is search separated by spaces
 ifdef inlinux
 SEARCHPATH=$(subst :, ,$(PATH))
 else
 SEARCHPATH=$(subst ;, ,$(PATH))
-endif
-
-# Base dir
-ifdef PWD
-BASEDIR:=$(shell $(PWD))
-else
-BASEDIR=.
 endif
 
 #####################################################################
@@ -72,85 +65,34 @@ endif
 
 # What compiler to use ?
 ifndef FPC
-# Compatibility with old makefiles
-ifdef PP
-FPC=$(PP)
-else
 ifdef inOS2
-FPC=ppos2
+export FPC=ppos2$(EXEEXT)
 else
-FPC=ppc386
+export FPC=ppc386$(EXEEXT)
 endif
 endif
-endif
-override FPC:=$(subst $(EXEEXT),,$(FPC))
-override FPC:=$(subst \,/,$(FPC))$(EXEEXT)
 
 # Target OS
 ifndef OS_TARGET
-OS_TARGET:=$(shell $(FPC) -iTO)
+export OS_TARGET=$(shell $(FPC) -iTO)
 endif
 
 # Source OS
 ifndef OS_SOURCE
-OS_SOURCE:=$(shell $(FPC) -iSO)
+export OS_SOURCE=$(shell $(FPC) -iSO)
 endif
 
-# Target CPU
-ifndef CPU_TARGET
-CPU_TARGET:=$(shell $(FPC) -iTP)
-endif
-
-# Source CPU
-ifndef CPU_SOURCE
-CPU_SOURCE:=$(shell $(FPC) -iSP)
+# FPC_CPU
+ifndef FPC_CPU
+export FPC_CPU=$(shell $(FPC) -iTP)
 endif
 
 # FPC version
 ifndef FPC_VERSION
-FPC_VERSION:=$(shell $(FPC) -iV)
+export FPC_VERSION=$(shell $(FPC) -iV)
 endif
 
-export FPC OS_TARGET OS_SOURCE CPU_TARGET CPU_SOURCE FPC_VERSION
 
-#####################################################################
-# FPCDIR Setting
-#####################################################################
-
-# Test FPCDIR to look if the RTL dir exists
-ifdef FPCDIR
-override FPCDIR:=$(subst \,/,$(FPCDIR))
-ifeq ($(wildcard $(FPCDIR)/rtl),)
-ifeq ($(wildcard $(FPCDIR)/units),)
-override FPCDIR=wrong
-endif
-endif
-else
-override FPCDIR=wrong
-endif
-
-# Detect FPCDIR
-ifeq ($(FPCDIR),wrong)
-ifdef inlinux
-override FPCDIR=/usr/local/lib/fpc/$(FPC_VERSION)
-ifeq ($(wildcard $(FPCDIR)/units),)
-override FPCDIR=/usr/lib/fpc/$(FPC_VERSION)
-endif
-else
-override FPCDIR:=$(subst /$(FPC),,$(firstword $(strip $(wildcard $(addsuffix /$(FPC),$(SEARCHPATH))))))
-override FPCDIR:=$(FPCDIR)/..
-ifeq ($(wildcard $(FPCDIR)/rtl),)
-ifeq ($(wildcard $(FPCDIR)/units),)
-override FPCDIR:=$(FPCDIR)/..
-ifeq ($(wildcard $(FPCDIR)/rtl),)
-ifeq ($(wildcard $(FPCDIR)/units),)
-override FPCDIR=c:/pp
-endif
-endif
-endif
-endif
-endif
-endif
 
 #####################################################################
 # User Settings
@@ -192,8 +134,7 @@ ASMEXT=.s
 SMARTEXT=.sl
 STATICLIBEXT=.a
 SHAREDLIBEXT=.so
-RSTEXT=.rst
-FPCMADE=fpcmade
+PACKAGESUFFIX=
 
 # Go32v1
 ifeq ($(OS_TARGET),go32v1)
@@ -203,17 +144,17 @@ ASMEXT=.s1
 SMARTEXT=.sl1
 STATICLIBEXT=.a1
 SHAREDLIBEXT=.so1
-FPCMADE=fpcmade.v1
+PACKAGESUFFIX=v1
 endif
 
 # Go32v2
 ifeq ($(OS_TARGET),go32v2)
-FPCMADE=fpcmade.dos
+PACKAGESUFFIX=go32
 endif
 
 # Linux
 ifeq ($(OS_TARGET),linux)
-FPCMADE=fpcmade.lnx
+PACKAGESUFFIX=linux
 endif
 
 # Win32
@@ -224,7 +165,7 @@ ASMEXT=.sw
 SMARTEXT=.slw
 STATICLIBEXT=.aw
 SHAREDLIBEXT=.dll
-FPCMADE=fpcmade.w32
+PACKAGESUFFIX=win32
 endif
 
 # OS/2
@@ -235,7 +176,7 @@ OEXT=.oo2
 SMARTEXT=.so
 STATICLIBEXT=.ao2
 SHAREDLIBEXT=.dll
-FPCMADE=fpcmade.os2
+PACKAGESUFFIX=os2
 endif
 
 # library prefix
@@ -267,54 +208,29 @@ endif
 # Default Directories
 #####################################################################
 
+# Base dir
+ifdef PWD
+BASEDIR:=$(shell $(PWD))
+else
+BASEDIR=.
+endif
+
 # set the prefix directory where to install everything
 ifndef PREFIXINSTALLDIR
 ifdef inlinux
-PREFIXINSTALLDIR=/usr
+export PREFIXINSTALLDIR=/usr
 else
-PREFIXINSTALLDIR=/pp
+export PREFIXINSTALLDIR=/pp
 endif
 endif
-export PREFIXINSTALLDIR
 
-# Where to place the resulting zip files
-ifndef DESTZIPDIR
-DESTZIPDIR:=$(BASEDIR)
-endif
-export DESTZIPDIR
 
-#####################################################################
-# Redirection
-#####################################################################
 
-ifndef REDIRFILE
-REDIRFILE=log
-endif
-
-ifdef REDIR
-ifndef inlinux
-override FPC=redir -eo $(FPC)
-endif
-# set the verbosity to max
-override FPCOPT+=-va
-override REDIR:= >> $(REDIRFILE)
-endif
-
-#####################################################################
-# Standard rules
-#####################################################################
-
-#####################################################################
-# Local Makefile
-#####################################################################
-
-ifneq ($(wildcard fpcmake.loc),)
-include fpcmake.loc
-endif
 
 #####################################################################
 # Users rules
 #####################################################################
+
 
 # For linux by default no graph tests
 ifdef inlinux
@@ -355,7 +271,7 @@ ifndef inlinux
 else
 	getret $(COMMAND) > $(FILE).log 2>$(FILE).log
 	cp retcode $(FILE).$(RESEXT)
-#       @echo "Return code of $(FILE) is $(cat retcode)"
+#	@echo "Return code of $(FILE) is $(cat retcode)"
 endif
 
 
@@ -405,9 +321,25 @@ endif
 
 ifdef REEFILE
 ifeq ($(wildcard $(REEFILE)*),$(REEFILE))
-EXPECTEDRETVAL:=$(strip $(shell cat $(REEFILE)))
+export EXPECTEDRETVAL:=$(strip $(shell cat $(REEFILE)))
 else
-EXPECTEDRETVAL=0
+export EXPECTEDRETVAL=0
+endif
+endif
+
+ifdef FILE
+ifneq ($(CFGFILE),$(FILE).cfg)
+ifneq ($(wildcard $(FILE).cfg),)
+export CFGFILE:=$(FILE).cfg
+export COMPILEROPT:=$(filter-out COMPILEROPT=,$(shell grep COMPILEROPT= $(CFGFILE)))
+export RUNARGS:=$(filter-out RUNARGS=,$(shell grep RUNARGS= $(CFGFILE)))
+export POSTPROCESS:=$(filter-out POSTPROCESS=,$(shell grep POSTPROCESS= $(CFGFILE)))
+else
+CFGFILE=
+COMPILEROPT=
+RUNARGS=
+POSTPROCESS=
+endif
 endif
 endif
 
@@ -454,11 +386,26 @@ testexec:
 	@echo "Testing $(FILE)$(EXEEXT)"
 ifdef NOREDIR
 	getret $(FILE)$(EXEEXT)
+	@echo CFGFILE is $(CFGFILE)
+ifdef POSTPROCESS
+	echo Running post process
+	-$(POSTPROCESS)
+endif
 else
 ifndef inlinux
-	redir -e $(FILE).elg -o $(FILE).elg getret $(FILE)$(EXEEXT)
+	redir -e $(FILE).elg -o $(FILE).elg getret $(FILE)$(EXEEXT) $(RUNARGS)
+	@echo CFGFILE is $(CFGFILE)
+ifdef POSTPROCESS
+	@echo Running post process
+	-redir -ea $(FILE).elg -oa $(FILE).elg $(POSTPROCESS)
+endif
 else
-	getret $(FILE)$(EXEEXT) > $(FILE).elg 2>$(FILE).elg
+	getret $(FILE)$(EXEEXT) $(RUNARGS) > $(FILE).elg 2>$(FILE).elg
+	@echo CFGFILE is $(CFGFILE)
+ifdef POSTPROCESS
+	echo Running post process
+	-$(POSTPROCESS) >> $(FILE).elg 2>> $(FILE).elg
+endif
 endif
 endif
 	cp -f retcode $(FILE).exc
@@ -509,6 +456,14 @@ ifndef LOG
 export LOG:=log
 endif
 
+
+listcfg :
+	@echo CFGFILE is "$(CFGFILE)"
+	@echo COMPILEROPT is "$(COMPILEROPT)"
+	@echo RUNARGS is "$(RUNARGS)"
+	@echo EXPECTEDRETVAL is "$(EXPECTEDRETVAL)"
+	@echo POSTPROCESS is "$(POSTPROCESS)"
+
 ifdef FILE
 OPTFILE=$(wildcard $(FILE).opt)
 endif
@@ -522,7 +477,7 @@ FILE=ts/ts00001.pp
 endif
 
 testone :
-	$(MAKE) getreturncode 'COMMAND=$(FPC) $(OPT) $(FILE).pp' 'RESEXT=$(RESEXT)' 'FILE=$(FILE)'
+	$(MAKE) getreturncode 'COMMAND=$(FPC) $(OPT) $(COMPILEROPT) $(FILE).pp' 'RESEXT=$(RESEXT)' 'FILE=$(FILE)'
 
 
 %.res : %.pp
@@ -635,7 +590,8 @@ tbsexec300to399 : $(patsubst %.pp,%.elg,$(filter-out $(graphlst),$(wildcard tbs/
 alltisexec: $(patsubst %.pp,%.eli,$(filter-out $(graphlst),$(wildcard tis/tis*.pp)))
 
 clean:
-	-rm -f $(addsuffix /*.re*,$(DIRS))
+	-rm -f $(addsuffix /*.ref,$(DIRS))
+	-rm -f $(addsuffix /*.res,$(DIRS))
 	-rm -f $(addsuffix /*$(PPUEXT),$(DIRS))
 	-rm -f $(addsuffix /*$(OEXT),$(DIRS))
 	-rm -f $(addsuffix /*.log,$(DIRS))
