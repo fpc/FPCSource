@@ -87,30 +87,61 @@ interface
 
   implementation
 
-
     const
-      gas_reg2str : array[tregisterindex] of string[7] = (
-       ('', '%d0','%d1','%d2','%d3','%d4','%d5','%d6','%d7',
-        '%a0','%a1','%a2','%a3','%a4','%a5','%a6','%sp',
-        '%ccr','%fp0','%fp1','%fp2','%fp3','%fp4','%fp5',
-        '%fp6','%fp7','%fpcr','%sr','%ssp','%dfc',
-        '%sfc','%vbr','%fpsr');
+      gas_regname_table : array[tregisterindex] of string[7] = (
+        {r386att.inc contains the AT&T name of each register.}
+        {$i r68kgas.inc}
+      );
+
+      gas_regname_index : array[tregisterindex] of tregisterindex = (
+        {r386ari.inc contains an index which sorts att_regname_table by
+         ATT name.}
+        {$i r68kgri.inc}
+      );
+
+
+    function findreg_by_gasname(const s:string):byte;
+      var
+        i,p : tregisterindex;
+      begin
+        {Binary search.}
+        p:=0;
+        i:=regnumber_count_bsstart;
+        repeat
+          if (p+i<=high(tregisterindex)) and (gas_regname_table[gas_regname_index[p+i]]<=s) then
+            p:=p+i;
+          i:=i shr 1;
+        until i=0;
+        if gas_regname_table[gas_regname_index[p]]=s then
+          findreg_by_gasname:=gas_regname_index[p]
+        else
+          findreg_by_gasname:=0;
+      end;
 
 
     function gas_regnum_search(const s:string):Tregister;
       begin
-        result:=std_regnum_search(s);
+        result:=regnumber_table[findreg_by_gasname(s)];
       end;
 
 
     function gas_regname(r:Tregister):string;
+      var
+        p : tregisterindex;
       begin
-        result:=std_regname(r);
+        p:=findreg_by_number(r);
+        if p<>0 then
+          result:=gas_regname_table[p]
+        else
+          result:='%'+generic_regname(r);
       end;
 
 end.
 {
   $Log$
-  Revision 1.1  2004-04-27 05:43:42  florian
+  Revision 1.2  2004-04-27 13:54:10  florian
+    * fixed using new reg. tables
+
+  Revision 1.1  2004/04/27 05:43:42  florian
     * initial revision
 }
