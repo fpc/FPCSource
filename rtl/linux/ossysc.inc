@@ -382,9 +382,11 @@ end;
 
 Function sbrk(size : longint) : pointer;
 begin
-  sbrk:=pointer(Fpmmap(0,Size,3,MAP_PRIVATE+MAP_ANONYMOUS,-1,0));
-  if sbrk<>nil then
-   errno:=0;
+  sbrk:=Fpmmap(0,Size,3,MAP_PRIVATE+MAP_ANONYMOUS,-1,0);
+  if sbrk=pointer(-1) then
+    sbrk:=nil
+  else 
+    errno:=0;
 end;
 
 {
@@ -453,7 +455,10 @@ end;
 
 {
  $Log$
- Revision 1.6  2003-09-27 11:52:35  peter
+ Revision 1.7  2003-09-27 12:58:23  peter
+   * mmap returns -1 on error
+
+ Revision 1.6  2003/09/27 11:52:35  peter
    * sbrk returns pointer
 
  Revision 1.5  2003/09/15 20:29:50  marco
