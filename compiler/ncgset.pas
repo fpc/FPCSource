@@ -376,12 +376,11 @@ implementation
                if left.nodetype=ordconstn then
                 begin
                   location_force_reg(exprasmlist,right.location,opsize,true);
-                  { first SHR the register }
-                  cg.a_op_const_reg(exprasmlist,OP_SHR,opsize,tordconstnode(left).value and 31,right.location.register);
-                  { then extract the lowest bit }
-                  cg.a_op_const_reg(exprasmlist,OP_AND,opsize,1,right.location.register);
                   location.register:=cg.getintregister(exprasmlist,location.size);
-                  cg.a_load_reg_reg(exprasmlist,opsize,location.size,right.location.register,location.register);
+                  { first SHR the register }
+                  cg.a_op_const_reg_reg(exprasmlist,OP_SHR,opsize,tordconstnode(left).value and 31,right.location.register,location.register);
+                  { then extract the lowest bit }
+                  cg.a_op_const_reg(exprasmlist,OP_AND,opsize,1,location.register);
                 end
                else
                 begin
@@ -971,7 +970,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.63  2004-06-20 08:55:29  florian
+  Revision 1.64  2004-07-04 12:38:55  jonas
+    * fixed regvar bug in tcginnode.pass_2
+
+  Revision 1.63  2004/06/20 08:55:29  florian
     * logs truncated
 
   Revision 1.62  2004/06/16 20:07:08  florian
