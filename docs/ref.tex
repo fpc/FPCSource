@@ -4727,6 +4727,36 @@ Const
 It is set in the \file{objpas} unit, but it can be set by the programmer
 to change the default exception handling.
 
+The following constants are defined to describe the operating system's file
+system:
+\begin{verbatim}
+LineEnding = #10;
+LFNSupport = true;
+DirectorySeparator = '/';
+DriveSeparator = ':';
+PathSeparator = ':';
+FileNameCaseSensitive : Boolean = True;
+\end{verbatim}
+(the shown values are for \unix platforms, but will be different on other
+platforms)
+The meaning of the constants is the following:
+\begin{description}
+\item[LineEnding] End of line marker. This constant is used when writing end
+of lines to text files.
+\item[LFNSupport] This is \var{True} if the system supports long file names,
+i.e. filenames that are not restricted to 8.3 characters.
+\item[DirectorySeparator] The character that is used as a directory
+separator, i.e. it appears between various parts of a path to a file.
+\item[DriveSeparator] On systems that support drive letters, this character
+separates the drive indication from the rest of a filename.
+\item[PathSeparator] This character can be found between elements in a
+series of paths (such as the contents of the \var{PATH} environment
+variable.
+\item[FileNameCaseSensitive] Indicates whether filenames are case sensitive.
+\end{description}
+When programming cross-platform, use these constants instead of hard-coded
+characters. This will enhance portability of an application.
+
 \subsection{Variables}
 The following variables are defined and initialized in the system unit:
 \begin{verbatim}
