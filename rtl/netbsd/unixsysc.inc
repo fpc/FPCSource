@@ -494,8 +494,8 @@ var
 begin
  do_syscall(syscall_nr_pipe,longint(@pip));
  LinuxError:=Errno;
- pipe_in:=pip[1];
- pipe_out:=pip[2];
+ pipe_in:=pip[0];
+ pipe_out:=pip[1];
  AssignPipe:=(LinuxError=0);
 end;
 
@@ -758,7 +758,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2003-05-31 16:57:22  marco
+  Revision 1.4  2004-01-02 22:51:46  marco
+   * simple bugfix for tpipe
+
+  Revision 1.3  2003/05/31 16:57:22  marco
    * works via system unit call now, because of powerpc
 
   Revision 1.2  2003/01/21 15:39:45  marco
