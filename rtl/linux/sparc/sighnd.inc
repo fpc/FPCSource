@@ -30,11 +30,13 @@ const
 procedure SignalToRunerror(sig : longint; SigInfo: PSigInfo; SigContext: PSigContext);cdecl;
 var
   res : word;
+  addr : pointer;
 begin
   res:=0;
   case sig of
     SIGFPE :
         begin
+          addr := siginfo^._sifields._sigfault._addr;
           res := 207;
           case  siginfo^.si_code of
             FPE_INTDIV:
@@ -58,16 +60,22 @@ begin
     SIGILL,
     SIGBUS,
     SIGSEGV :
-        res:=216;
+        begin
+          addr := siginfo^._sifields._sigfault._addr;
+          res:=216;
+        end;
   end;
   { give runtime error at the position where the signal was raised }
   if res<>0 then
-    HandleErrorAddrFrame(res,pointer(SigContext^.sigc_pc),pointer(SigContext^.sigc_wbuf[SigContext^.sigc_oswins-1].ins[6]));
+    HandleErrorAddrFrame(res,addr,nil);
 end;
 
 {
   $Log$
-  Revision 1.6  2005-01-30 18:01:15  peter
+  Revision 1.7  2005-02-05 23:45:38  peter
+    * sigcontext is invalid, use siginfo only
+
+  Revision 1.6  2005/01/30 18:01:15  peter
     * signal cleanup for linux
     * sigactionhandler instead of tsigaction for bsds
     * sigcontext moved to cpu dir
