@@ -191,8 +191,11 @@ begin
       // catch !
       Catches:=ExceptObjectStack^.FObject;
       { this can't be done, because there could be a reraise (PFV)
-       PopObjectStack; }
-      PopAddrStack;
+       PopObjectStack;
+
+       Also the PopAddrStack shouldn't be done, we do it now
+       immediatly in the exception handler (FK)
+      PopAddrStack; }
     end;
 end;
 
@@ -212,7 +215,10 @@ begin
 end;
 {
   $Log$
-  Revision 1.12  1999-07-26 12:11:28  florian
+  Revision 1.13  1999-07-27 08:14:15  florian
+    * catch doesn't call popaddrstack anymore, this is done now by the compiler
+
+  Revision 1.12  1999/07/26 12:11:28  florian
     * reraise doesn't call popaddrstack anymode
 
   Revision 1.11  1999/06/14 00:47:35  peter
