@@ -454,8 +454,17 @@ begin
 end;
 
 
-function DirectoryExists (const Directory: string): boolean;
+Function DirectoryExists(const Directory: string): Boolean;
+
+var
+  Info : Stat;
+  l: cint;
 begin
+  l:=sys_Stat(pchar(Directory),Info);
+  if l<>0 then
+    Result:=S_ISDIR(info.st_mode)
+  else
+    Result := false;
 end;
 
 
@@ -538,7 +547,10 @@ Finalization
 end.
 {
     $Log$
-    Revision 1.4  2003-03-29 15:16:26  hajny
+    Revision 1.5  2003-03-29 15:36:58  hajny
+      * DirectoryExists merged from the fixes branch
+
+    Revision 1.4  2003/03/29 15:16:26  hajny
       * dummy DirectoryExists added
 
     Revision 1.3  2002/09/07 16:01:26  peter
