@@ -85,14 +85,14 @@ cont_tests : all_compilations
 #
 # Compile tests
 #
-alltbs : testcheck $(patsubst %.pp,%.log,$(wildcard tbs/*.pp))
-alltbf : testcheck $(patsubst %.pp,%.log,$(wildcard tbf/*.pp))
+alltbs : testcheck $(patsubst %.pp,%.log,$(wildcard tbs/t*.pp))
+alltbf : testcheck $(patsubst %.pp,%.log,$(wildcard tbf/t*.pp))
 
-allwebtbs : testcheck $(patsubst %.pp,%.log,$(wildcard webtbs/*.pp))
-allwebtbf : testcheck $(patsubst %.pp,%.log,$(wildcard webtbf/*.pp))
+allwebtbs : testcheck $(patsubst %.pp,%.log,$(wildcard webtbs/t*.pp))
+allwebtbf : testcheck $(patsubst %.pp,%.log,$(wildcard webtbf/t*.pp))
 
-alltest : testcheck $(patsubst %.pp,%.log,$(wildcard test/*.pp))
-alltestopt : testcheck $(patsubst %.pp,%.log,$(wildcard testopt/*.pp))
+alltest : testcheck $(patsubst %.pp,%.log,$(wildcard test/t*.pp))
+alltestopt : testcheck $(patsubst %.pp,%.log,$(wildcard testopt/t*.pp))
 
 alltests: alltest alltbs alltbf allwebtbs allwebtbf
 
@@ -100,14 +100,14 @@ alltests: alltest alltbs alltbf allwebtbs allwebtbf
 # Compile and Run tests
 #
 
-allexectbs : testcheck $(patsubst %.pp,%.elg,$(wildcard tbs/*.pp))
-allexectbf : testcheck $(patsubst %.pp,%.elg,$(wildcard tbf/*.pp))
+allexectbs : testcheck $(patsubst %.pp,%.elg,$(wildcard tbs/t*.pp))
+allexectbf : testcheck $(patsubst %.pp,%.elg,$(wildcard tbf/t*.pp))
 
-allexecwebtbs : testcheck $(patsubst %.pp,%.elg,$(wildcard webtbs/*.pp))
-allexecwebtbf : testcheck $(patsubst %.pp,%.elg,$(wildcard webtbf/*.pp))
+allexecwebtbs : testcheck $(patsubst %.pp,%.elg,$(wildcard webtbs/t*.pp))
+allexecwebtbf : testcheck $(patsubst %.pp,%.elg,$(wildcard webtbf/t*.pp))
 
-allexectest : testcheck $(patsubst %.pp,%.elg,$(wildcard test/*.pp))
-allexectestopt : testcheck $(patsubst %.pp,%.elg,$(wildcard testopt/*.pp))
+allexectest : testcheck $(patsubst %.pp,%.elg,$(wildcard test/t*.pp))
+allexectestopt : testcheck $(patsubst %.pp,%.elg,$(wildcard testopt/t*.pp))
 
 allexectests: allexectest allexectbs allexectbf allexecwebtbs allexecwebtbf
 
@@ -123,7 +123,7 @@ clean:
         -rm -f $(addsuffix /*.log,$(DIRS))
         -rm -f $(addsuffix /*.elg,$(DIRS))
 ifdef INUNIX
-        -rm -f $(wildcard $(patsubst %.pp,%$(EXEEXT),$(wildcard $(addsuffix /t*.pp,$(DIRS)))))
+        -rm -f $(wildcard $(patsubst %.pp,%$(EXEEXT),$(wildcard $(addsuffix /tt*.pp,$(DIRS)))))
 else
         -rm -f $(addsuffix /*$(EXEEXT),$(DIRS))
 endif
