@@ -145,7 +145,7 @@ implementation
        strings,
 {$endif}
        globals,verbose,
-       symtable,symconst,symtype,symsym,defbase,paramgr,
+       symtable,symconst,symtype,symsym,defutil,defcmp,paramgr,
 {$ifdef GDB}
        gdb,
 {$endif GDB}
@@ -630,7 +630,7 @@ implementation
                                       begin
                                         if tstoredsym(procdefcoll^.data.procsym).is_visible_for_object(pd._class) and
                                            (not(pdoverload or hasoverloads) or
-                                            equal_paras(procdefcoll^.data.para,pd.para,cp_value_equal_const,false)) then
+                                            (compare_paras(procdefcoll^.data.para,pd.para,cp_value_equal_const,false)>=te_equal)) then
                                          begin
                                            if is_visible then
                                              procdefcoll^.hidden:=true;
@@ -648,7 +648,7 @@ implementation
                                          begin
                                            { we start a new virtual tree, hide the old }
                                            if (not(pdoverload or hasoverloads) or
-                                               equal_paras(procdefcoll^.data.para,pd.para,cp_value_equal_const,false)) and
+                                               (compare_paras(procdefcoll^.data.para,pd.para,cp_value_equal_const,false)>=te_equal)) and
                                               (tstoredsym(procdefcoll^.data.procsym).is_visible_for_object(pd._class)) then
                                             begin
                                               if is_visible then
@@ -664,7 +664,7 @@ implementation
                                            { do nothing, the error will follow when adding the entry }
                                          end
                                         { same parameters }
-                                        else if (equal_paras(procdefcoll^.data.para,pd.para,cp_value_equal_const,false)) then
+                                        else if (compare_paras(procdefcoll^.data.para,pd.para,cp_value_equal_const,false)>=te_equal) then
                                          begin
                                            { overload is inherited }
                                            if (po_overload in procdefcoll^.data.procoptions) then
@@ -680,7 +680,7 @@ implementation
                                               MessagePos1(pd.fileinfo,parser_e_header_dont_match_forward,pd.fullprocname);
 
                                            { error, if the return types aren't equal }
-                                           if not(is_equal(procdefcoll^.data.rettype.def,pd.rettype.def)) and
+                                           if not(equal_defs(procdefcoll^.data.rettype.def,pd.rettype.def)) and
                                               not((procdefcoll^.data.rettype.def.deftype=objectdef) and
                                                (pd.rettype.def.deftype=objectdef) and
                                                is_class(procdefcoll^.data.rettype.def) and
@@ -718,7 +718,7 @@ implementation
                                           if the new defintion has not the overload directive }
                                         if is_visible and
                                            ((not(pdoverload or hasoverloads)) or
-                                            equal_paras(procdefcoll^.data.para,pd.para,cp_value_equal_const,false)) then
+                                            (compare_paras(procdefcoll^.data.para,pd.para,cp_value_equal_const,false)>=te_equal)) then
                                           procdefcoll^.hidden:=true;
                                       end;
                                    end
@@ -728,7 +728,7 @@ implementation
                                        has not the overload directive }
                                      if is_visible and
                                         ((not pdoverload) or
-                                         equal_paras(procdefcoll^.data.para,pd.para,cp_value_equal_const,false)) then
+                                         (compare_paras(procdefcoll^.data.para,pd.para,cp_value_equal_const,false)>=te_equal)) then
                                        procdefcoll^.hidden:=true;
                                    end;
                                 end; { not hidden }
@@ -1030,7 +1030,7 @@ implementation
           for i:=1 to sym.procdef_count do
             begin
               implprocdef:=sym.procdef[i];
-              if equal_paras(proc.para,implprocdef.para,cp_none,false) and
+              if (compare_paras(proc.para,implprocdef.para,cp_none,false)>=te_equal) and
                  (proc.proccalloption=implprocdef.proccalloption) then
                 begin
                   gintfgetcprocdef:=implprocdef;
@@ -1333,7 +1333,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.37  2002-11-17 16:31:56  carl
+  Revision 1.38  2002-11-25 17:43:20  peter
+    * splitted defbase in defutil,symutil,defcmp
+    * merged isconvertable and is_equal into compare_defs(_ext)
+    * made operator search faster by walking the list only once
+
+  Revision 1.37  2002/11/17 16:31:56  carl
     * memory optimization (3-4%) : cleanup of tai fields,
        cleanup of tdef and tsym fields.
     * make it work for m68k

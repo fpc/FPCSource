@@ -247,9 +247,9 @@ unit cgobj;
 
           procedure a_jmp_always(list : taasmoutput;l: tasmlabel); virtual; abstract;
           procedure a_jmp_flags(list : taasmoutput;const f : TResFlags;l: tasmlabel); virtual; abstract;
- 
-          {# Depending on the value to check in the flags, either sets the register reg to one (if the flag is set) 
-             or zero (if the flag is cleared). The size parameter indicates the destination size register. 
+
+          {# Depending on the value to check in the flags, either sets the register reg to one (if the flag is set)
+             or zero (if the flag is cleared). The size parameter indicates the destination size register.
           }
           procedure g_flags2reg(list: taasmoutput; size: TCgSize; const f: tresflags; reg: TRegister); virtual; abstract;
           procedure g_flags2ref(list: taasmoutput; size: TCgSize; const f: tresflags; const ref:TReference); virtual;
@@ -491,7 +491,7 @@ unit cgobj;
 
     uses
        globals,globtype,options,systems,cgbase,
-       verbose,defbase,tgobj,symdef,paramgr,
+       verbose,defutil,tgobj,symdef,paramgr,
        rgobj,cutils;
 
     const
@@ -1625,7 +1625,12 @@ finalization
 end.
 {
   $Log$
-  Revision 1.65  2002-11-17 16:27:31  carl
+  Revision 1.66  2002-11-25 17:43:16  peter
+    * splitted defbase in defutil,symutil,defcmp
+    * merged isconvertable and is_equal into compare_defs(_ext)
+    * made operator search faster by walking the list only once
+
+  Revision 1.65  2002/11/17 16:27:31  carl
     * document flags2reg
 
   Revision 1.64  2002/11/16 17:06:28  peter

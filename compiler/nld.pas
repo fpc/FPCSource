@@ -151,7 +151,7 @@ implementation
 
     uses
       cutils,verbose,globtype,globals,systems,
-      symtable,paramgr,defbase,
+      symtable,paramgr,defutil,defcmp,
       htypechk,pass_1,
       ncon,ninl,ncnv,nmem,ncal,cpubase,rgobj,cginfo,cgbase
       ;
@@ -878,7 +878,7 @@ implementation
               else
                begin
                  if ((nf_novariaallowed in flags) or (not varia)) and
-                    (not is_equal(htype.def,hp.left.resulttype.def)) then
+                    (not equal_defs(htype.def,hp.left.resulttype.def)) then
                   begin
                     varia:=true;
                   end;
@@ -1181,7 +1181,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.65  2002-11-18 17:31:57  peter
+  Revision 1.66  2002-11-25 17:43:20  peter
+    * splitted defbase in defutil,symutil,defcmp
+    * merged isconvertable and is_equal into compare_defs(_ext)
+    * made operator search faster by walking the list only once
+
+  Revision 1.65  2002/11/18 17:31:57  peter
     * pass proccalloption to ret_in_xxx and push_xxx functions
 
   Revision 1.64  2002/11/15 01:58:52  peter

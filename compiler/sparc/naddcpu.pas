@@ -40,7 +40,7 @@ uses
   globtype,systems,
   cutils,verbose,globals,
   symconst,symdef,paramgr,
-  aasmbase,aasmtai,aasmcpu,defbase,htypechk,
+  aasmbase,aasmtai,aasmcpu,defutil,htypechk,
   cgbase,pass_2,regvars,
   cpupara,
   ncon,nset,
@@ -302,7 +302,7 @@ procedures }
     extra_not:=false;
     mboverflow:=false;
     cmpop:=false;
-    unsigned:=not(is_signed(left.resulttype.def))or 
+    unsigned:=not(is_signed(left.resulttype.def))or
               not(is_signed(right.resulttype.def));
     opsize:=def_opsize(left.resulttype.def);
     pass_left_and_right;
@@ -408,7 +408,12 @@ begin
 end.
 {
     $Log$
-    Revision 1.9  2002-11-10 19:07:46  mazen
+    Revision 1.10  2002-11-25 17:43:28  peter
+      * splitted defbase in defutil,symutil,defcmp
+      * merged isconvertable and is_equal into compare_defs(_ext)
+      * made operator search faster by walking the list only once
+
+    Revision 1.9  2002/11/10 19:07:46  mazen
     * SPARC calling mechanism almost OK (as in GCC./mppcsparc )
 
     Revision 1.8  2002/11/06 15:34:00  mazen

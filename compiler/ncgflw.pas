@@ -89,7 +89,7 @@ implementation
 
     uses
       verbose,globals,systems,globtype,
-      symconst,symsym,aasmbase,aasmtai,aasmcpu,defbase,
+      symconst,symsym,aasmbase,aasmtai,aasmcpu,defutil,
       cginfo,cgbase,pass_2,
       cpubase,cpuinfo,
       nld,ncon,
@@ -1247,7 +1247,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.43  2002-09-30 07:00:45  florian
+  Revision 1.44  2002-11-25 17:43:17  peter
+    * splitted defbase in defutil,symutil,defcmp
+    * merged isconvertable and is_equal into compare_defs(_ext)
+    * made operator search faster by walking the list only once
+
+  Revision 1.43  2002/09/30 07:00:45  florian
     * fixes to common code to get the alpha compiler compiled applied
 
   Revision 1.42  2002/09/07 15:25:02  peter

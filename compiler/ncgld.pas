@@ -53,7 +53,7 @@ implementation
     uses
       systems,
       verbose,globtype,globals,
-      symconst,symtype,symdef,symsym,symtable,defbase,paramgr,
+      symconst,symtype,symdef,symsym,symtable,defutil,paramgr,
       ncnv,ncon,nmem,
       aasmbase,aasmtai,aasmcpu,regvars,
       cginfo,cgbase,pass_2,
@@ -989,7 +989,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.39  2002-11-22 16:22:45  jonas
+  Revision 1.40  2002-11-25 17:43:18  peter
+    * splitted defbase in defutil,symutil,defcmp
+    * merged isconvertable and is_equal into compare_defs(_ext)
+    * made operator search faster by walking the list only once
+
+  Revision 1.39  2002/11/22 16:22:45  jonas
     * fixed error in my previous commit (the size of the location of the
       funcretnode must be based on the current resulttype of the node and not
       the resulttype defined by the function; these can be different in case

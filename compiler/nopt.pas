@@ -84,7 +84,7 @@ var
 
 implementation
 
-uses cutils, htypechk, defbase, globtype, globals, cpubase, ncnv, ncon,
+uses cutils, htypechk, defutil, defcmp, globtype, globals, cpubase, ncnv, ncon,
      verbose, symdef, cgbase;
 
 
@@ -278,7 +278,12 @@ end.
 
 {
   $Log$
-  Revision 1.11  2002-08-17 09:23:37  florian
+  Revision 1.12  2002-11-25 17:43:20  peter
+    * splitted defbase in defutil,symutil,defcmp
+    * merged isconvertable and is_equal into compare_defs(_ext)
+    * made operator search faster by walking the list only once
+
+  Revision 1.11  2002/08/17 09:23:37  florian
     * first part of procinfo rewrite
 
   Revision 1.10  2002/07/20 11:57:55  florian

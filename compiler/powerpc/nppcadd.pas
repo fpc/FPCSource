@@ -54,7 +54,7 @@ interface
       globtype,systems,
       cutils,verbose,globals,
       symconst,symdef,paramgr,
-      aasmbase,aasmtai,aasmcpu,defbase,htypechk,
+      aasmbase,aasmtai,aasmcpu,defutil,htypechk,
       cgbase,cpuinfo,pass_1,pass_2,regvars,
       cpupara,
       ncon,nset,
@@ -1464,7 +1464,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  2002-10-21 18:08:05  jonas
+  Revision 1.20  2002-11-25 17:43:27  peter
+    * splitted defbase in defutil,symutil,defcmp
+    * merged isconvertable and is_equal into compare_defs(_ext)
+    * made operator search faster by walking the list only once
+
+  Revision 1.19  2002/10/21 18:08:05  jonas
     * some range errors fixed
 
   Revision 1.18  2002/09/08 14:14:49  jonas

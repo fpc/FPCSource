@@ -55,7 +55,7 @@ implementation
       cutils,verbose,globals,
       symconst,symdef,
       aasmbase,aasmcpu,aasmtai,
-      defbase,
+      defutil,
       cgbase,cgobj,pass_1,pass_2,
       ncon,
       cpubase,cpuinfo,cginfo,
@@ -503,7 +503,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  2002-09-10 21:21:29  jonas
+  Revision 1.20  2002-11-25 17:43:28  peter
+    * splitted defbase in defutil,symutil,defcmp
+    * merged isconvertable and is_equal into compare_defs(_ext)
+    * made operator search faster by walking the list only once
+
+  Revision 1.19  2002/09/10 21:21:29  jonas
     * fixed unary minus of 64bit values
 
   Revision 1.18  2002/09/07 15:25:14  peter

@@ -42,7 +42,7 @@ interface
        { aasm }
        aasmbase,aasmtai,aasmcpu,
        { symtable }
-       symconst,symbase,symtype,symsym,symtable,defbase,paramgr,
+       symconst,symbase,symtype,symsym,symtable,defutil,paramgr,
        { pass 1 }
        nbas,
        { parser }
@@ -304,7 +304,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.4  2002-11-18 17:32:00  peter
+  Revision 1.5  2002-11-25 17:43:27  peter
+    * splitted defbase in defutil,symutil,defcmp
+    * merged isconvertable and is_equal into compare_defs(_ext)
+    * made operator search faster by walking the list only once
+
+  Revision 1.4  2002/11/18 17:32:00  peter
     * pass proccalloption to ret_in_xxx and push_xxx functions
 
   Revision 1.3  2002/09/03 16:26:28  daniel

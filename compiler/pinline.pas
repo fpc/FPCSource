@@ -52,7 +52,7 @@ implementation
        globtype,tokens,verbose,
        systems,
        { symtable }
-       symconst,symdef,symsym,symtable,defbase,
+       symconst,symdef,symsym,symtable,defutil,
        { pass 1 }
        pass_1,htypechk,
        nmat,nadd,ncal,nmem,nset,ncnv,ninl,ncon,nld,nflw,nbas,
@@ -657,7 +657,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  2002-10-29 10:01:22  pierre
+  Revision 1.10  2002-11-25 17:43:22  peter
+    * splitted defbase in defutil,symutil,defcmp
+    * merged isconvertable and is_equal into compare_defs(_ext)
+    * made operator search faster by walking the list only once
+
+  Revision 1.9  2002/10/29 10:01:22  pierre
    * fix crash report as webbug 2174
 
   Revision 1.8  2002/10/02 18:20:52  peter

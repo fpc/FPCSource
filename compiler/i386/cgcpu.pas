@@ -55,7 +55,7 @@ unit cgcpu;
 
     uses
        globtype,globals,verbose,systems,cutils,
-       symdef,symsym,defbase,paramgr,
+       symdef,symsym,defutil,paramgr,
        rgobj,tgobj,rgcpu;
 
 
@@ -174,7 +174,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.31  2002-10-05 12:43:29  carl
+  Revision 1.32  2002-11-25 17:43:26  peter
+    * splitted defbase in defutil,symutil,defcmp
+    * merged isconvertable and is_equal into compare_defs(_ext)
+    * made operator search faster by walking the list only once
+
+  Revision 1.31  2002/10/05 12:43:29  carl
     * fixes for Delphi 6 compilation
      (warning : Some features do not work under Delphi)
 

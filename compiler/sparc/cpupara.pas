@@ -42,7 +42,7 @@ uses
   verbose,
   globtype,
   cpuinfo,cginfo,cgbase,
-  defbase;
+  defutil;
 function TSparcParaManager.GetIntParaLoc(nr:longint):TParaLocation;
   begin
     if nr<1
@@ -283,7 +283,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2002-11-18 17:32:01  peter
+  Revision 1.11  2002-11-25 17:43:28  peter
+    * splitted defbase in defutil,symutil,defcmp
+    * merged isconvertable and is_equal into compare_defs(_ext)
+    * made operator search faster by walking the list only once
+
+  Revision 1.10  2002/11/18 17:32:01  peter
     * pass proccalloption to ret_in_xxx and push_xxx functions
 
   Revision 1.9  2002/11/03 20:22:40  mazen

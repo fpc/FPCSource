@@ -729,7 +729,7 @@ implementation
        systems,
        { symtable }
        symsym,symtable,paramgr,
-       defbase,
+       symutil,defutil,
        { module }
 {$ifdef GDB}
        gdb,
@@ -3526,7 +3526,7 @@ implementation
       begin
         s:=fullprocname;
         if assigned(rettype.def) and
-          not(is_equal(rettype.def,voidtype.def)) then
+          not(is_void(rettype.def)) then
                s:=s+' : '+rettype.def.gettypename;
         fullprocnamewithret:=s;
       end;
@@ -5537,7 +5537,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.109  2002-11-23 22:50:06  carl
+  Revision 1.110  2002-11-25 17:43:24  peter
+    * splitted defbase in defutil,symutil,defcmp
+    * merged isconvertable and is_equal into compare_defs(_ext)
+    * made operator search faster by walking the list only once
+
+  Revision 1.109  2002/11/23 22:50:06  carl
     * some small speed optimizations
     + added several new warnings/hints
 

@@ -48,7 +48,7 @@ implementation
     uses
       globtype,systems,comphook,
       cutils,cclasses,verbose,globals,
-      symconst,symbase,symtype,symdef,paramgr,defbase,
+      symconst,symbase,symtype,symdef,paramgr,defutil,
       cgbase,cgobj,cgcpu,rgcpu;
 
 
@@ -469,7 +469,12 @@ end.
 
 {
   $Log$
-  Revision 1.42  2002-11-18 17:31:59  peter
+  Revision 1.43  2002-11-25 17:43:24  peter
+    * splitted defbase in defutil,symutil,defcmp
+    * merged isconvertable and is_equal into compare_defs(_ext)
+    * made operator search faster by walking the list only once
+
+  Revision 1.42  2002/11/18 17:31:59  peter
     * pass proccalloption to ret_in_xxx and push_xxx functions
 
   Revision 1.41  2002/08/25 19:25:20  peter

@@ -72,7 +72,7 @@ implementation
        { aasm }
        aasmbase,aasmtai,aasmcpu,
        { symtable }
-       symbase,symtable,defbase,paramgr,
+       symbase,symtable,defutil,defcmp,paramgr,
        { pass 1 }
        node,htypechk,
        nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,
@@ -226,7 +226,10 @@ implementation
               aktprocdef.concatpara(tt,vs,varspez,nil);
               { check the types for procedures only }
               if not is_procvar then
-               CheckTypes(tt.def,procinfo._class);
+               begin
+                 if compare_defs(tt.def,procinfo._class,nothingn)>=te_equal then
+                   CGMessage2(type_e_incompatible_types,tt.def.typename,procinfo._class.typename);
+               end;
             end
           else
             begin
@@ -764,7 +767,7 @@ implementation
                             if assigned(otsym) then
                               otsym.vartype.def:=aktprocdef.rettype.def;
                             if (optoken=_ASSIGNMENT) and
-                               is_equal(aktprocdef.rettype.def,
+                               equal_defs(aktprocdef.rettype.def,
                                   tvarsym(aktprocdef.parast.symindex.first).vartype.def) then
                               message(parser_e_no_such_assignment)
                             else if not isoperatoracceptable(aktprocdef,optoken) then
@@ -1837,10 +1840,10 @@ const
               ) or
               { check arguments }
               (
-               equal_paras(aprocdef.para,hd.para,cp_none,false) and
+               (compare_paras(aprocdef.para,hd.para,cp_none,false)>=te_equal) and
                { for operators equal_paras is not enough !! }
                ((aprocdef.proctypeoption<>potype_operator) or (optoken<>_ASSIGNMENT) or
-                is_equal(hd.rettype.def,aprocdef.rettype.def))
+                equal_defs(hd.rettype.def,aprocdef.rettype.def))
               ) then
              begin
                { Check if we've found the forwarddef, if found then
@@ -1856,12 +1859,12 @@ const
                       (
                        (m_repeat_forward in aktmodeswitches) and
                        (not((aprocdef.maxparacount=0) or
-                            equal_paras(aprocdef.para,hd.para,cp_all,false)))
+                            (compare_paras(aprocdef.para,hd.para,cp_all,false)>=te_equal)))
                       ) or
                       (
                        ((m_repeat_forward in aktmodeswitches) or
                         not(is_void(aprocdef.rettype.def))) and
-                       (not is_equal(hd.rettype.def,aprocdef.rettype.def))) then
+                       (not equal_defs(hd.rettype.def,aprocdef.rettype.def))) then
                      begin
                        MessagePos1(aprocdef.fileinfo,parser_e_header_dont_match_forward,
                                    aprocdef.fullprocname);
@@ -2054,7 +2057,12 @@ const
 end.
 {
   $Log$
-  Revision 1.81  2002-11-18 17:31:58  peter
+  Revision 1.82  2002-11-25 17:43:21  peter
+    * splitted defbase in defutil,symutil,defcmp
+    * merged isconvertable and is_equal into compare_defs(_ext)
+    * made operator search faster by walking the list only once
+
+  Revision 1.81  2002/11/18 17:31:58  peter
     * pass proccalloption to ret_in_xxx and push_xxx functions
 
   Revision 1.80  2002/11/17 16:31:56  carl

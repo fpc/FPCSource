@@ -99,8 +99,8 @@ implementation
 {$endif}
     cutils,cclasses,
     globals,systems,verbose,
-    symconst,symsym,symtable,defbase,paramgr,
-    fmodule,
+    symconst,symsym,symtable,defutil,
+    paramgr,fmodule,
     cgbase,regvars,
 {$ifdef GDB}
     gdb,
@@ -1876,7 +1876,12 @@ function returns in a register and the caller receives it in an other one}
 end.
 {
   $Log$
-  Revision 1.62  2002-11-18 17:31:55  peter
+  Revision 1.63  2002-11-25 17:43:18  peter
+    * splitted defbase in defutil,symutil,defcmp
+    * merged isconvertable and is_equal into compare_defs(_ext)
+    * made operator search faster by walking the list only once
+
+  Revision 1.62  2002/11/18 17:31:55  peter
     * pass proccalloption to ret_in_xxx and push_xxx functions
 
   Revision 1.61  2002/11/17 17:49:08  mazen

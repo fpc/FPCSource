@@ -95,7 +95,7 @@ implementation
 {$endif GDB}
       globtype,systems,
       cutils,verbose,globals,
-      symconst,symtype,symdef,symsym,symtable,defbase,paramgr,
+      symconst,symtype,symdef,symsym,symtable,defutil,paramgr,
       aasmbase,aasmtai,aasmcpu,
       cginfo,cgbase,pass_2,
       pass_1,nld,ncon,nadd,
@@ -915,7 +915,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.34  2002-11-24 18:19:20  carl
+  Revision 1.35  2002-11-25 17:43:18  peter
+    * splitted defbase in defutil,symutil,defcmp
+    * merged isconvertable and is_equal into compare_defs(_ext)
+    * made operator search faster by walking the list only once
+
+  Revision 1.34  2002/11/24 18:19:20  carl
     + checkpointer for interfaces also
 
   Revision 1.33  2002/11/23 22:50:06  carl

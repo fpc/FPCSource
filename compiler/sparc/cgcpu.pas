@@ -98,7 +98,7 @@ CONST
 IMPLEMENTATION
 USES
   globtype,globals,verbose,systems,cutils,
-  symdef,symsym,defbase,paramgr,
+  symdef,symsym,defutil,paramgr,
   rgobj,tgobj,rgcpu,cpupi;
     { we implement the following routines because otherwise we can't }
     { instantiate the class since it's abstract                      }
@@ -107,15 +107,15 @@ procedure tcgSPARC.a_param_reg(list:TAasmOutput;size:tcgsize;r:tregister;CONST L
     IF(Size<>OS_32)AND(Size<>OS_S32)
     THEN
       InternalError(2002032212);
-		with list,LocPara do
-		  case Loc of
-			  LOC_REGISTER:
-    			if r<>Register
-					then
-						Concat(taicpu.op_Reg_Reg_Reg(A_OR,r,R_G0,Register));
-				else
-				  InternalError(2002101002);
-			end;
+                with list,LocPara do
+                  case Loc of
+                          LOC_REGISTER:
+                        if r<>Register
+                                        then
+                                                Concat(taicpu.op_Reg_Reg_Reg(A_OR,r,R_G0,Register));
+                                else
+                                  InternalError(2002101002);
+                        end;
   end;
 procedure tcgSPARC.a_param_const(list:TAasmOutput;size:tcgsize;a:aword;CONST LocPara:TParaLocation);
   BEGIN
@@ -134,37 +134,37 @@ procedure tcgSPARC.a_param_ref(list:TAasmOutput;size:tcgsize;const r:TReference;
     ref: treference;
     tmpreg:TRegister;
   begin
-	  with LocPara do
-	    case locpara.loc of
-  	    LOC_REGISTER,LOC_CREGISTER:
-    	    a_load_ref_reg(list,size,r,Register);
-      	LOC_REFERENCE:
-        	begin
+          with LocPara do
+            case locpara.loc of
+            LOC_REGISTER,LOC_CREGISTER:
+            a_load_ref_reg(list,size,r,Register);
+        LOC_REFERENCE:
+                begin
           {Code conventions need the parameters being allocated in %o6+92. See
           comment on g_stack_frame}
-          	if locpara.sp_fixup<92
-          	then
-            	InternalError(2002081104);
-          	reference_reset(ref);
-          	ref.base:=locpara.reference.index;
-          	ref.offset:=locpara.reference.offset;
-          	tmpreg := get_scratch_reg_int(list);
-          	a_load_ref_reg(list,size,r,tmpreg);
-          	a_load_reg_ref(list,size,tmpreg,ref);
-          	free_scratch_reg(list,tmpreg);
-        	end;
-      	LOC_FPUREGISTER,LOC_CFPUREGISTER:
-        	case size of
-          	OS_32:
-            	a_loadfpu_ref_reg(list,OS_F32,r,locpara.register);
-	          OS_64:
-  	          a_loadfpu_ref_reg(list,OS_F64,r,locpara.register);
-    	    else
-      	    internalerror(2002072801);
-        	end;
-	    	else
-  	    	internalerror(2002081103);
-    	end;
+                if locpara.sp_fixup<92
+                then
+                InternalError(2002081104);
+                reference_reset(ref);
+                ref.base:=locpara.reference.index;
+                ref.offset:=locpara.reference.offset;
+                tmpreg := get_scratch_reg_int(list);
+                a_load_ref_reg(list,size,r,tmpreg);
+                a_load_reg_ref(list,size,tmpreg,ref);
+                free_scratch_reg(list,tmpreg);
+                end;
+        LOC_FPUREGISTER,LOC_CFPUREGISTER:
+                case size of
+                OS_32:
+                a_loadfpu_ref_reg(list,OS_F32,r,locpara.register);
+                  OS_64:
+                  a_loadfpu_ref_reg(list,OS_F64,r,locpara.register);
+            else
+            internalerror(2002072801);
+                end;
+                else
+                internalerror(2002081103);
+        end;
   end;
 procedure tcgSPARC.a_paramaddr_ref(list:TAasmOutput;CONST r:TReference;CONST LocPara:TParaLocation);
   VAR
@@ -833,7 +833,7 @@ procedure tcgSPARC.g_return_from_proc(list:TAasmOutput;parasize:aword);
 {According to the SPARC ABI, the stack is cleared using the RESTORE instruction
 which is genereted in the g_restore_frame_pointer. Notice that SPARC has no
 RETURN instruction and that JMPL is used instead. The JMPL instrucion have one
-delay slot, so an inversion is possible such as 
+delay slot, so an inversion is possible such as
   JMPL  %i7+8,%g0
   RESTORE  %g0,0,%g0
 If no inversion we can use just
@@ -1253,7 +1253,12 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.24  2002-11-17 17:49:09  mazen
+  Revision 1.25  2002-11-25 17:43:28  peter
+    * splitted defbase in defutil,symutil,defcmp
+    * merged isconvertable and is_equal into compare_defs(_ext)
+    * made operator search faster by walking the list only once
+
+  Revision 1.24  2002/11/17 17:49:09  mazen
   + return_result_reg and function_result_reg are now used, in all plateforms, to pass functions result between called function and its caller. See the explanation of each one
 
   Revision 1.23  2002/11/10 19:07:46  mazen

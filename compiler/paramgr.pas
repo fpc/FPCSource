@@ -108,7 +108,7 @@ unit paramgr;
        cpuinfo,globals,systems,
        symconst,symbase,symsym,
        rgobj,
-       defbase,cgbase,cginfo,verbose;
+       defutil,cgbase,cginfo,verbose;
 
     { true if the return value is in accumulator (EAX for i386), D0 for 68k }
     function tparamanager.ret_in_acc(def : tdef;calloption : tproccalloption) : boolean;
@@ -339,7 +339,12 @@ end.
 
 {
    $Log$
-   Revision 1.23  2002-11-18 17:31:58  peter
+   Revision 1.24  2002-11-25 17:43:21  peter
+     * splitted defbase in defutil,symutil,defcmp
+     * merged isconvertable and is_equal into compare_defs(_ext)
+     * made operator search faster by walking the list only once
+
+   Revision 1.23  2002/11/18 17:31:58  peter
      * pass proccalloption to ret_in_xxx and push_xxx functions
 
    Revision 1.22  2002/11/16 18:00:04  peter

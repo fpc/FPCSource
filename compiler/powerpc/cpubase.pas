@@ -605,11 +605,11 @@ uses
   {the return_result_reg, is used inside the called function to store its return
   value when that is a scalar value otherwise a pointer to the address of the
   result is placed inside it}
-	return_result_reg		=	accumulator;
+        return_result_reg               =       accumulator;
 
   {the function_result_reg contains the function result after a call to a scalar
   function othewise it contains a pointer to the returned result}
-	function_result_reg	=	accumulator;
+        function_result_reg     =       accumulator;
       {# Hi-Results are returned in this register (64-bit value high register) }
       accumulatorhigh = R_4;
       { WARNING: don't change to R_ST0!! See comments above implementation of }
@@ -740,7 +740,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.37  2002-11-24 14:28:56  jonas
+  Revision 1.38  2002-11-25 17:43:27  peter
+    * splitted defbase in defutil,symutil,defcmp
+    * merged isconvertable and is_equal into compare_defs(_ext)
+    * made operator search faster by walking the list only once
+
+  Revision 1.37  2002/11/24 14:28:56  jonas
     + some comments describing the fields of treference
 
   Revision 1.36  2002/11/17 18:26:16  mazen

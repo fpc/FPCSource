@@ -250,7 +250,7 @@ implementation
         systems,
         cresstr,
         tgobj,rgobj,
-        defbase,
+        defutil,
         fmodule
 {$ifdef fixLeaksOnError}
         ,comphook
@@ -658,7 +658,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.33  2002-11-18 17:31:54  peter
+  Revision 1.34  2002-11-25 17:43:16  peter
+    * splitted defbase in defutil,symutil,defcmp
+    * merged isconvertable and is_equal into compare_defs(_ext)
+    * made operator search faster by walking the list only once
+
+  Revision 1.33  2002/11/18 17:31:54  peter
     * pass proccalloption to ret_in_xxx and push_xxx functions
 
   Revision 1.32  2002/10/05 12:43:23  carl

@@ -50,7 +50,7 @@ implementation
     uses
       globtype,systems,
       cutils,verbose,globals,fmodule,
-      symconst,symdef,defbase,
+      symconst,symdef,defutil,
       aasmbase,aasmtai,aasmcpu,
       cginfo,cgbase,pass_1,pass_2,
       cpubase,paramgr,
@@ -150,7 +150,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2002-09-18 09:19:37  jonas
+  Revision 1.4  2002-11-25 17:43:28  peter
+    * splitted defbase in defutil,symutil,defcmp
+    * merged isconvertable and is_equal into compare_defs(_ext)
+    * made operator search faster by walking the list only once
+
+  Revision 1.3  2002/09/18 09:19:37  jonas
     * fixed LOC_REFERENCE/LOC_CREFERENCE problems
 
   Revision 1.2  2002/08/19 17:35:42  jonas

@@ -28,7 +28,7 @@ unit ncgcnv;
 interface
 
     uses
-       node,ncnv,defbase;
+       node,ncnv,defutil,defcmp;
 
     type
        tcgtypeconvnode = class(ttypeconvnode)
@@ -437,7 +437,7 @@ interface
       begin
 {$ifdef fpc}
         {$warning todo: add RTL routine for widechar-char conversion }
-{$endif}        
+{$endif}
         { Quick hack to atleast generate 'working' code (PFV) }
         second_int_to_int;
       end;
@@ -507,7 +507,12 @@ end.
 
 {
   $Log$
-  Revision 1.33  2002-10-05 12:43:25  carl
+  Revision 1.34  2002-11-25 17:43:17  peter
+    * splitted defbase in defutil,symutil,defcmp
+    * merged isconvertable and is_equal into compare_defs(_ext)
+    * made operator search faster by walking the list only once
+
+  Revision 1.33  2002/10/05 12:43:25  carl
     * fixes for Delphi 6 compilation
      (warning : Some features do not work under Delphi)
 

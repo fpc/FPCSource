@@ -172,7 +172,7 @@ implementation
 
     uses
       cutils,verbose,systems,
-      defbase,cpubase,nld;
+      defutil,cpubase,nld;
 
     function genintconstnode(v : TConstExprInt) : tordconstnode;
 
@@ -924,7 +924,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.44  2002-11-22 22:48:10  carl
+  Revision 1.45  2002-11-25 17:43:18  peter
+    * splitted defbase in defutil,symutil,defcmp
+    * merged isconvertable and is_equal into compare_defs(_ext)
+    * made operator search faster by walking the list only once
+
+  Revision 1.44  2002/11/22 22:48:10  carl
   * memory optimization with tconstsym (1.5%)
 
   Revision 1.43  2002/10/05 12:43:25  carl

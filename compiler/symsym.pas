@@ -143,8 +143,7 @@ interface
                                          allowdefault:boolean):Tprocdef;
           function search_procdef_byprocvardef(d:Tprocvardef):Tprocdef;
           function search_procdef_by1paradef(firstpara:Tdef):Tprocdef;
-          function search_procdef_byretdef_by1paradef(retdef,firstpara:Tdef;
-             matchtype:Tdefmatch; var pd : pprocdeflist):Tprocdef;
+          function search_procdef_assignment_operator(fromdef,todef:tdef):Tprocdef;
           function  write_references(ppufile:tcompilerppufile;locals:boolean):boolean;override;
 {$ifdef GDB}
           function stabstring : pchar;override;
@@ -390,7 +389,7 @@ implementation
        { target }
        systems,
        { symtable }
-       symtable,defbase,
+       symtable,defutil,defcmp,
 {$ifdef GDB}
        gdb,
 {$endif GDB}
@@ -1021,72 +1020,58 @@ implementation
     function Tprocsym.search_procdef_bypara(params:Tparalinkedlist;
                                             allowconvert,
                                             allowdefault:boolean):Tprocdef;
-
       var
         pd:Pprocdeflist;
+        eq : tequaltype;
       begin
         search_procdef_bypara:=nil;
         pd:=defs;
         while assigned(pd) do
-            begin
-                if equal_paras(pd^.def.para,params,cp_value_equal_const,allowdefault) or
-                   (allowconvert and convertable_paras(pd^.def.para,params,
-                                                       cp_value_equal_const)) then
-                    begin
-                        search_procdef_bypara:=pd^.def;
-                        break;
-                    end;
-                pd:=pd^.next;
-            end;
-    end;
+         begin
+           eq:=compare_paras(pd^.def.para,params,cp_value_equal_const,allowdefault);
+           if (eq>=te_equal) or
+              (allowconvert and (eq>te_incompatible)) then
+             begin
+               search_procdef_bypara:=pd^.def;
+               break;
+             end;
+           pd:=pd^.next;
+         end;
+      end;
 
     function Tprocsym.search_procdef_byprocvardef(d:Tprocvardef):Tprocdef;
-    var pd:Pprocdeflist;
-        _result : tprocdef;
-    begin
-        {This function will return the pprocdef of pprocsym that
-         is the best match for procvardef. When there are multiple
-         matches it returns nil.}
-        {Try to find an exact match first.}
+      var
+        pd : Pprocdeflist;
+        eq,besteq : tequaltype;
+        bestpd : tprocdef;
+      begin
+        { This function will return the pprocdef of pprocsym that
+          is the best match for procvardef. When there are multiple
+          matches it returns nil.}
         search_procdef_byprocvardef:=nil;
-        _result := nil;
+        bestpd:=nil;
+        besteq:=te_incompatible;
         pd:=defs;
         while assigned(pd) do
-          begin
-            if proc_to_procvar_equal(pd^.def,d,true) then
-              begin
-                { already found a match ? Then stop and return nil }
-                if assigned(search_procdef_byprocvardef) then
-                  begin
-                    search_procdef_byprocvardef:=nil;
-                    break;
-                  end;
-                search_procdef_byprocvardef:=pd^.def;
-              end;
-            pd:=pd^.next;
-          end;
-        {Try a convertable match, if no exact match was found.}
-        if not assigned(_result) and not assigned(pd) then
+         begin
+           eq:=proc_to_procvar_equal(pd^.def,d);
+           if eq>te_incompatible then
             begin
-                pd:=defs;
-                while assigned(pd) do
-                    begin
-                        if proc_to_procvar_equal(pd^.def,d,false) then
-                            begin
-                                { already found a match ? Then stop and return nil }
-                                if assigned(_result) then
-                                    begin
-                                        search_procdef_byprocvardef:=nil;
-                                        _result := nil;
-                                        break;
-                                    end;
-                                search_procdef_byprocvardef:=pd^.def;
-                                _result:=pd^.def;
-                            end;
-                        pd:=pd^.next;
-                    end;
+              { multiple procvars with the same equal level }
+              if assigned(bestpd) and
+                 (besteq=eq) then
+                exit;
+              if eq>besteq then
+               begin
+                 besteq:=eq;
+                 bestpd:=pd^.def;
+               end;
             end;
-    end;
+           pd:=pd^.next;
+         end;
+        search_procdef_byprocvardef:=bestpd;
+      end;
+
 
     function Tprocsym.search_procdef_by1paradef(firstpara:Tdef):Tprocdef;
       var
@@ -1096,7 +1081,7 @@ implementation
         pd:=defs;
         while assigned(pd) do
           begin
-            if is_equal(Tparaitem(pd^.def.para.first).paratype.def,firstpara) and
+            if equal_defs(Tparaitem(pd^.def.para.first).paratype.def,firstpara) and
                (Tparaitem(pd^.def.para.first).next=nil) then
               begin
                 search_procdef_by1paradef:=pd^.def;
@@ -1107,40 +1092,39 @@ implementation
       end;
 
 
-    function Tprocsym.search_procdef_byretdef_by1paradef(retdef,firstpara:Tdef;
-                                                         matchtype:Tdefmatch; var pd : pprocdeflist):Tprocdef;
-
+    function Tprocsym.search_procdef_assignment_operator(fromdef,todef:tdef):Tprocdef;
       var
-        convtyp:tconverttype;
-        a,b:boolean;
-        oldpd : pprocdeflist;
+        convtyp : tconverttype;
+        pd : pprocdeflist;
+        bestpd : tprocdef;
+        eq,
+        besteq : tequaltype;
+        hpd : tprocdef;
       begin
-        search_procdef_byretdef_by1paradef:=nil;
-        if not assigned(pd) then
-          pd:=defs;
+        search_procdef_assignment_operator:=nil;
+        bestpd:=nil;
+        besteq:=te_incompatible;
+        pd:=defs;
         while assigned(pd) do
           begin
-            oldpd := pd;
-            a:=is_equal(retdef,pd^.def.rettype.def);
-            if a then
-              begin
-                case matchtype of
-                  dm_exact:
-                        b:=TParaItem(pd^.def.para.first).paratype.def=firstpara;
-                    dm_equal:
-                        b:=is_equal(Tparaitem(pd^.def.para.first).paratype.def,firstpara);
-                    dm_convertl1:
-                        b:=overloaded_assignment_isconvertable(firstpara,Tparaitem(pd^.def.para.first).paratype.def,
-                            convtyp,ordconstn,false,oldpd)=1;
+            if equal_defs(todef,pd^.def.rettype.def) then
+             begin
+               eq:=compare_defs_ext(fromdef,Tparaitem(pd^.def.para.first).paratype.def,
+                                    nothingn,false,false,convtyp,hpd);
+               if eq=te_exact then
+                begin
+                  search_procdef_assignment_operator:=pd^.def;
+                  exit;
                 end;
-              end;
-            if a and b then
-              begin
-                search_procdef_byretdef_by1paradef:=pd^.def;
-                break;
+               if eq>besteq then
+                begin
+                  bestpd:=pd^.def;
+                  besteq:=eq;
+                end;
               end;
             pd:=pd^.next;
           end;
+        search_procdef_assignment_operator:=bestpd;
       end;
 
 
@@ -2499,7 +2483,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.75  2002-11-23 22:50:09  carl
+  Revision 1.76  2002-11-25 17:43:26  peter
+    * splitted defbase in defutil,symutil,defcmp
+    * merged isconvertable and is_equal into compare_defs(_ext)
+    * made operator search faster by walking the list only once
+
+  Revision 1.75  2002/11/23 22:50:09  carl
     * some small speed optimizations
     + added several new warnings/hints
 

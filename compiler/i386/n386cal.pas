@@ -50,7 +50,7 @@ implementation
     uses
       systems,
       cutils,verbose,globals,
-      symconst,symbase,symsym,symtable,defbase,
+      symconst,symbase,symsym,symtable,defutil,
 {$ifdef GDB}
   {$ifdef delphi}
       sysutils,
@@ -1242,7 +1242,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.75  2002-11-18 17:32:00  peter
+  Revision 1.76  2002-11-25 17:43:26  peter
+    * splitted defbase in defutil,symutil,defcmp
+    * merged isconvertable and is_equal into compare_defs(_ext)
+    * made operator search faster by walking the list only once
+
+  Revision 1.75  2002/11/18 17:32:00  peter
     * pass proccalloption to ret_in_xxx and push_xxx functions
 
   Revision 1.74  2002/11/15 01:58:57  peter

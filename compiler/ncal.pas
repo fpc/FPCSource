@@ -147,7 +147,7 @@ implementation
     uses
       cutils,systems,
       verbose,globals,
-      symconst,paramgr,defbase,
+      symconst,paramgr,defutil,defcmp,
       htypechk,pass_1,cpuinfo,cpubase,
       nbas,ncnv,nld,ninl,nadd,ncon,
       rgobj,cgbase
@@ -352,7 +352,7 @@ implementation
               { passing a single element to a openarray of the same type }
                 not(
                    (is_open_array(to_def) and
-                   is_equal(tarraydef(to_def).elementtype.def,from_def))
+                   equal_defs(tarraydef(to_def).elementtype.def,from_def))
                    ) and
               { an implicit file conversion is also allowed }
               { from a typed file to an untyped one           }
@@ -362,7 +362,7 @@ implementation
                    (tfiledef(to_def).filetyp = ft_untyped) and
                    (tfiledef(from_def).filetyp = ft_typed)
                     ) and
-                not(is_equal(from_def,to_def)));
+                not(equal_defs(from_def,to_def)));
 
     end;
 
@@ -491,11 +491,11 @@ implementation
             is_shortstring(defcoll.paratype.def) and
             (defcoll.paratyp in [vs_out,vs_var]) and
             not(is_open_string(defcoll.paratype.def)) and
-            not(is_equal(left.resulttype.def,defcoll.paratype.def)) then
-            begin
-               aktfilepos:=left.fileinfo;
-               CGMessage(type_e_strict_var_string_violation);
-            end;
+            not(equal_defs(left.resulttype.def,defcoll.paratype.def)) then
+           begin
+             aktfilepos:=left.fileinfo;
+             CGMessage(type_e_strict_var_string_violation);
+           end;
 
          { Handle formal parameters separate }
          if (defcoll.paratype.def.deftype=formaldef) then
@@ -1442,7 +1442,7 @@ implementation
             end;
            { all types can be passed to a formaldef }
            is_equal:=(def.deftype=formaldef) or
-             (defbase.is_equal(p.resulttype.def,def))
+             (defcmp.equal_defs(p.resulttype.def,def))
            { integer constants are compatible with all integer parameters if
              the specified value matches the range }
              or
@@ -1481,7 +1481,7 @@ implementation
              (
               (m_tp_procvar in aktmodeswitches) and
               (def.deftype=procvardef) and (p.left.nodetype=calln) and
-              (proc_to_procvar_equal(tprocdef(tcallnode(p.left).procdefinition),tprocvardef(def),false))
+              (proc_to_procvar_equal(tprocdef(tcallnode(p.left).procdefinition),tprocvardef(def))>=te_equal)
              )
              ;
         end;
@@ -1629,7 +1629,7 @@ implementation
                                       hp:=procs;
                                       while assigned(hp) do
                                        begin
-                                         if equal_paras(hp^.data.para,pd.para,cp_value_equal_const,false) then
+                                         if compare_paras(hp^.data.para,pd.para,cp_value_equal_const,false)>=te_equal then
                                           begin
                                             found:=true;
                                             break;
@@ -1757,8 +1757,17 @@ implementation
                                        (m_tp7 in aktmodeswitches)) then
                                     hp^.nextPara.convertlevel:=0
                                    else
-                                    hp^.nextPara.convertlevel:=isconvertable(pt.resulttype.def,hp^.nextPara.paratype.def,
-                                        hcvt,pt.left.nodetype,false);
+                                    begin
+                                      case compare_defs(pt.resulttype.def,hp^.nextPara.paratype.def,pt.left.nodetype) of
+                                        te_convert_l1 :
+                                          hp^.nextPara.convertlevel:=1;
+                                        te_convert_operator,
+                                        te_convert_l2 :
+                                          hp^.nextPara.convertlevel:=2;
+                                        else
+                                          hp^.nextPara.convertlevel:=0;
+                                      end;
+                                    end;
                                    case hp^.nextPara.convertlevel of
                                     1 : include(pt.callparaflags,cpf_convlevel1found);
                                     2 : include(pt.callparaflags,cpf_convlevel2found);
@@ -1920,7 +1929,7 @@ implementation
                                               is_in_limit(def_to,conv_to) then
                                              begin
                                                 { is it the same as the previous best? }
-                                                if not defbase.is_equal(def_to,conv_to) then
+                                                if not defcmp.equal_defs(def_to,conv_to) then
                                                   begin
                                                     { no -> remove all previous best matches }
                                                     hp := hp^.next;
@@ -2531,7 +2540,7 @@ implementation
           (procdefinition = tcallnode(p).procdefinition) and
           (methodpointer.isequal(tcallnode(p).methodpointer)) and
           ((restypeset and tcallnode(p).restypeset and
-            (is_equal(restype.def,tcallnode(p).restype.def))) or
+            (equal_defs(restype.def,tcallnode(p).restype.def))) or
            (not restypeset and not tcallnode(p).restypeset));
       end;
 
@@ -2655,7 +2664,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.108  2002-11-18 17:31:54  peter
+  Revision 1.109  2002-11-25 17:43:17  peter
+    * splitted defbase in defutil,symutil,defcmp
+    * merged isconvertable and is_equal into compare_defs(_ext)
+    * made operator search faster by walking the list only once
+
+  Revision 1.108  2002/11/18 17:31:54  peter
     * pass proccalloption to ret_in_xxx and push_xxx functions
 
   Revision 1.107  2002/11/15 01:58:50  peter

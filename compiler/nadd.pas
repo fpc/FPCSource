@@ -67,7 +67,7 @@ implementation
     uses
       globtype,systems,
       cutils,verbose,globals,widestr,
-      symconst,symtype,symdef,symsym,symtable,defbase,
+      symconst,symtype,symdef,symsym,symtable,defutil,defcmp,
       cgbase,
       htypechk,pass_1,
       nbas,nmat,ncnv,ncon,nset,nopt,ncal,ninl,
@@ -238,8 +238,8 @@ implementation
                    else if (nodetype <> subn) and
                            is_voidpointer(ld) then
                      inserttypeconv(left,right.resulttype)
-                   else if not(is_equal(ld,rd)) then
-                     CGMessage(type_e_mismatch);
+                   else if not(equal_defs(ld,rd)) then
+                     CGMessage2(type_e_incompatible_types,ld.typename,rd.typename);
                 end
               else if (lt=ordconstn) and (rt=ordconstn) then
                 begin
@@ -866,14 +866,14 @@ implementation
                          CGMessage(type_w_signed_unsigned_always_false);
                     end
                  else
-                 { give out a warning if types are not of the same sign, and are 
+                 { give out a warning if types are not of the same sign, and are
                    not constants.
                  }
-                 if (((byte(is_signed(rd)) xor byte(is_signed(ld))) and 1)<>0) and 
+                 if (((byte(is_signed(rd)) xor byte(is_signed(ld))) and 1)<>0) and
                       (nodetype in [ltn,gtn,gten,lten,equaln,unequaln]) and (not is_constintnode(left)) and
                       (not is_constintnode(right)) then
                    begin
-                       CGMessage(type_w_mixed_signed_unsigned3); 
+                       CGMessage(type_w_mixed_signed_unsigned3);
                    end;
 
                  inserttypeconv(right,s32bittype);
@@ -896,7 +896,7 @@ implementation
              begin
                if (rt=setelementn) then
                 begin
-                  if not(is_equal(tsetdef(ld).elementtype.def,rd)) then
+                  if not(equal_defs(tsetdef(ld).elementtype.def,rd)) then
                    CGMessage(type_e_set_element_are_not_comp);
                 end
                else
@@ -907,7 +907,7 @@ implementation
                if not(nodetype in [addn,subn,symdifn,muln,equaln,unequaln,lten,gten]) then
                 CGMessage(type_e_set_operation_unknown);
                { right def must be a also be set }
-               if (rd.deftype<>setdef) or not(is_equal(rd,ld)) then
+               if (rd.deftype<>setdef) or not(equal_defs(rd,ld)) then
                 CGMessage(type_e_set_element_are_not_comp);
              end;
 
@@ -996,8 +996,8 @@ implementation
                       inserttypeconv(right,left.resulttype)
                     else if is_voidpointer(left.resulttype.def) then
                       inserttypeconv(left,right.resulttype)
-                    else if not(is_equal(ld,rd)) then
-                      CGMessage(type_e_mismatch);
+                    else if not(equal_defs(ld,rd)) then
+                      CGMessage2(type_e_incompatible_types,ld.typename,rd.typename);
                  end;
                ltn,lten,gtn,gten:
                  begin
@@ -1007,8 +1007,8 @@ implementation
                         inserttypeconv(right,left.resulttype)
                        else if is_voidpointer(left.resulttype.def) then
                         inserttypeconv(left,right.resulttype)
-                       else if not(is_equal(ld,rd)) then
-                        CGMessage(type_e_mismatch);
+                       else if not(equal_defs(ld,rd)) then
+                        CGMessage2(type_e_incompatible_types,ld.typename,rd.typename);
                      end
                     else
                      CGMessage(type_e_mismatch);
@@ -1021,8 +1021,8 @@ implementation
                         inserttypeconv(right,left.resulttype)
                        else if is_voidpointer(left.resulttype.def) then
                         inserttypeconv(left,right.resulttype)
-                       else if not(is_equal(ld,rd)) then
-                        CGMessage(type_e_mismatch);
+                       else if not(equal_defs(ld,rd)) then
+                        CGMessage2(type_e_incompatible_types,ld.typename,rd.typename);
                      end
                     else
                      CGMessage(type_e_mismatch);
@@ -1037,8 +1037,8 @@ implementation
                         inserttypeconv(right,left.resulttype)
                        else if is_voidpointer(left.resulttype.def) then
                         inserttypeconv(left,right.resulttype)
-                       else if not(is_equal(ld,rd)) then
-                        CGMessage(type_e_mismatch);
+                       else if not(equal_defs(ld,rd)) then
+                        CGMessage2(type_e_incompatible_types,ld.typename,rd.typename);
                      end
                     else
                      CGMessage(type_e_mismatch);
@@ -1118,7 +1118,7 @@ implementation
          else if (cs_mmx in aktlocalswitches) and
                  is_mmx_able_array(ld) and
                  is_mmx_able_array(rd) and
-                 is_equal(ld,rd) then
+                 equal_defs(ld,rd) then
             begin
               case nodetype of
                 addn,subn,xorn,orn,andn:
@@ -1179,7 +1179,9 @@ implementation
               CGMessage(type_e_mismatch);
          end
 
-         else if (rd.deftype=procvardef) and (ld.deftype=procvardef) and is_equal(rd,ld) then
+         else if (rd.deftype=procvardef) and
+                 (ld.deftype=procvardef) and
+                 equal_defs(rd,ld) then
           begin
             if not (nodetype in [equaln,unequaln]) then
              CGMessage(type_e_mismatch);
@@ -1188,7 +1190,7 @@ implementation
          { enums }
          else if (ld.deftype=enumdef) and (rd.deftype=enumdef) then
           begin
-            if not(is_equal(ld,rd)) then
+            if not(equal_defs(ld,rd)) then
              inserttypeconv(right,left.resulttype);
             if not(nodetype in [equaln,unequaln,ltn,lten,gtn,gten]) then
              CGMessage(type_e_mismatch);
@@ -1816,7 +1818,9 @@ implementation
               calcregisters(self,1,0,0);
             end
 
-         else  if (rd.deftype=procvardef) and (ld.deftype=procvardef) and is_equal(rd,ld) then
+         else  if (rd.deftype=procvardef) and
+                  (ld.deftype=procvardef) and
+                  equal_defs(rd,ld) then
            begin
              location.loc:=LOC_REGISTER;
              calcregisters(self,1,0,0);
@@ -1887,7 +1891,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.71  2002-11-23 22:50:06  carl
+  Revision 1.72  2002-11-25 17:43:17  peter
+    * splitted defbase in defutil,symutil,defcmp
+    * merged isconvertable and is_equal into compare_defs(_ext)
+    * made operator search faster by walking the list only once
+
+  Revision 1.71  2002/11/23 22:50:06  carl
     * some small speed optimizations
     + added several new warnings/hints
 

@@ -68,7 +68,7 @@ implementation
        globtype,tokens,verbose,
        systems,widestr,
        { symtable }
-       symconst,symbase,symdef,symsym,symtable,defbase,
+       symconst,symbase,symdef,symsym,symtable,defutil,defcmp,
        { pass 1 }
        pass_1,htypechk,
        nmat,nadd,ncal,nmem,nset,ncnv,ninl,ncon,nld,nflw,nbas,
@@ -609,11 +609,6 @@ implementation
       begin
          prevafterassn:=afterassignment;
          afterassignment:=false;
-{$ifdef EXTDEBUG}
-        { if assigned(p1) and
-            (p1.nodetype<>calln) then
-           internalerror(20021118);}
-{$endif EXTDEBUG}
          { want we only determine the address of }
          { a subroutine ?                       }
          if not(getaddr) then
@@ -907,7 +902,7 @@ implementation
                                    (assigned(getprocvardef) and
                                     ((block_type=bt_const) or
                                      ((m_tp_procvar in aktmodeswitches) and
-                                      proc_to_procvar_equal(tprocsym(sym).first_procdef,getprocvardef,false)
+                                      (proc_to_procvar_equal(tprocsym(sym).first_procdef,getprocvardef)>te_incompatible)
                                      )
                                     )
                                    ),again,p1);
@@ -1244,7 +1239,7 @@ implementation
                                  (assigned(getprocvardef) and
                                   ((block_type=bt_const) or
                                    ((m_tp_procvar in aktmodeswitches) and
-                                    proc_to_procvar_equal(tprocsym(srsym).first_procdef,getprocvardef,false)
+                                    (proc_to_procvar_equal(tprocsym(srsym).first_procdef,getprocvardef)>te_incompatible)
                                    )
                                   )
                                  ),again,p1);
@@ -1608,7 +1603,7 @@ implementation
                       if (p1.resulttype.def.deftype=procvardef) then
                        begin
                          if assigned(getprocvardef) and
-                            is_equal(p1.resulttype.def,getprocvardef) then
+                            equal_defs(p1.resulttype.def,getprocvardef) then
                            again:=false
                          else
                            if (token=_LKLAMMER) or
@@ -2266,8 +2261,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.91  2002-11-22 22:48:10  carl
-  * memory optimization with tconstsym (1.5%)
+  Revision 1.92  2002-11-25 17:43:22  peter
+    * splitted defbase in defutil,symutil,defcmp
+    * merged isconvertable and is_equal into compare_defs(_ext)
+    * made operator search faster by walking the list only once
+
+  Revision 1.91  2002/11/22 22:48:10  carl
+   * memory optimization with tconstsym (1.5%)
 
   Revision 1.90  2002/11/20 22:49:55  pierre
    * commented check code tht was invalid in 1.1

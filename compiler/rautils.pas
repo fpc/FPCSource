@@ -216,7 +216,7 @@ uses
 {$else}
   strings,
 {$endif}
-  defbase,systems,verbose,globals,
+  defutil,systems,verbose,globals,
   symsym,symtable,paramgr,
   aasmcpu,
   cgbase;
@@ -1592,7 +1592,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.49  2002-11-22 22:48:10  carl
+  Revision 1.50  2002-11-25 17:43:23  peter
+    * splitted defbase in defutil,symutil,defcmp
+    * merged isconvertable and is_equal into compare_defs(_ext)
+    * made operator search faster by walking the list only once
+
+  Revision 1.49  2002/11/22 22:48:10  carl
   * memory optimization with tconstsym (1.5%)
 
   Revision 1.48  2002/11/18 17:31:59  peter

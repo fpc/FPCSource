@@ -37,7 +37,7 @@ implementation
     uses
       cutils,cclasses,
       globals,verbose,systems,tokens,
-      symconst,symbase,symsym,symtable,defbase,
+      symconst,symbase,symsym,symtable,defutil,defcmp,
       cgbase,
       node,nld,nmem,ncon,ncnv,ncal,pass_1,
       scanner,
@@ -397,13 +397,13 @@ implementation
                           begin
                             pd:=Tprocsym(sym).search_procdef_bypara(propertyparas,true,false);
                             if not(assigned(pd)) or
-                               not(is_equal(pd.rettype.def,p.proptype.def)) then
+                               not(equal_defs(pd.rettype.def,p.proptype.def)) then
                               Message(parser_e_ill_property_access_sym);
                             p.readaccess.setdef(pd);
                           end;
                         varsym :
                           begin
-                            if CheckTypes(p.readaccess.def,p.proptype.def) then
+                            if compare_defs(p.readaccess.def,p.proptype.def,nothingn)>=te_equal then
                              begin
                                { property parameters are allowed if this is
                                  an indexed property, because the index is then
@@ -412,7 +412,9 @@ implementation
                                  that it isn't allowed, but the compiler accepts it (PFV) }
                                if (ppo_hasparameters in p.propoptions) then
                                 Message(parser_e_ill_property_access_sym);
-                             end;
+                             end
+                            else
+                             CGMessage2(type_e_incompatible_types,p.readaccess.def.typename,p.proptype.def.typename);
                           end;
                         else
                           Message(parser_e_ill_property_access_sym);
@@ -439,7 +441,7 @@ implementation
                           end;
                         varsym :
                           begin
-                            if CheckTypes(p.writeaccess.def,p.proptype.def) then
+                            if compare_defs(p.writeaccess.def,p.proptype.def,nothingn)>=te_equal then
                              begin
                                { property parameters are allowed if this is
                                  an indexed property, because the index is then
@@ -448,7 +450,9 @@ implementation
                                  that it isn't allowed, but the compiler accepts it (PFV) }
                                if (ppo_hasparameters in p.propoptions) then
                                 Message(parser_e_ill_property_access_sym);
-                             end;
+                             end
+                            else
+                             CGMessage2(type_e_incompatible_types,p.readaccess.def.typename,p.proptype.def.typename);
                           end;
                         else
                           Message(parser_e_ill_property_access_sym);
@@ -780,8 +784,8 @@ implementation
               Message1(sym_e_duplicate_id,implintf.name)
             else
               begin
-                 { allocate and prepare the GUID only if the class 
-                   implements some interfaces. 
+                 { allocate and prepare the GUID only if the class
+                   implements some interfaces.
                  }
                  if aktclass.implementedinterfaces.count = 0 then
                    aktclass.prepareguid;
@@ -1169,7 +1173,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.56  2002-11-17 16:31:56  carl
+  Revision 1.57  2002-11-25 17:43:21  peter
+    * splitted defbase in defutil,symutil,defcmp
+    * merged isconvertable and is_equal into compare_defs(_ext)
+    * made operator search faster by walking the list only once
+
+  Revision 1.56  2002/11/17 16:31:56  carl
     * memory optimization (3-4%) : cleanup of tai fields,
        cleanup of tdef and tsym fields.
     * make it work for m68k

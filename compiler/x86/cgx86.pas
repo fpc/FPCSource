@@ -147,7 +147,7 @@ unit cgx86;
 
     uses
        globtype,globals,verbose,systems,cutils,
-       symdef,symsym,defbase,paramgr,
+       symdef,symsym,defutil,paramgr,
        rgobj,tgobj,rgcpu;
 
 {$ifndef NOTARGETWIN32}
@@ -1682,7 +1682,12 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.21  2002-11-18 17:32:01  peter
+  Revision 1.22  2002-11-25 17:43:29  peter
+    * splitted defbase in defutil,symutil,defcmp
+    * merged isconvertable and is_equal into compare_defs(_ext)
+    * made operator search faster by walking the list only once
+
+  Revision 1.21  2002/11/18 17:32:01  peter
     * pass proccalloption to ret_in_xxx and push_xxx functions
 
   Revision 1.20  2002/11/09 21:18:31  carl

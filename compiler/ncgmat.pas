@@ -99,7 +99,7 @@ implementation
     uses
       globtype,systems,
       cutils,verbose,globals,
-      symconst,symdef,aasmbase,aasmtai,aasmcpu,defbase,
+      symconst,symdef,aasmbase,aasmtai,aasmcpu,defutil,
       pass_1,pass_2,
       ncon,
       cpuinfo,
@@ -454,7 +454,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2002-09-17 18:54:02  jonas
+  Revision 1.5  2002-11-25 17:43:18  peter
+    * splitted defbase in defutil,symutil,defcmp
+    * merged isconvertable and is_equal into compare_defs(_ext)
+    * made operator search faster by walking the list only once
+
+  Revision 1.4  2002/09/17 18:54:02  jonas
     * a_load_reg_reg() now has two size parameters: source and dest. This
       allows some optimizations on architectures that don't encode the
       register size in the register name.

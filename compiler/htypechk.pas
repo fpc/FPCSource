@@ -126,7 +126,7 @@ implementation
        globtype,systems,
        cutils,verbose,globals,
        symconst,symsym,symtable,
-       defbase,cpubase,
+       defutil,defcmp,cpubase,
        ncnv,nld,
        nmem,ncal,nmat,
        cgbase
@@ -975,7 +975,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.50  2002-10-07 20:12:08  peter
+  Revision 1.51  2002-11-25 17:43:17  peter
+    * splitted defbase in defutil,symutil,defcmp
+    * merged isconvertable and is_equal into compare_defs(_ext)
+    * made operator search faster by walking the list only once
+
+  Revision 1.50  2002/10/07 20:12:08  peter
     * ugly hack to fix tb0411
 
   Revision 1.49  2002/10/05 00:47:03  peter

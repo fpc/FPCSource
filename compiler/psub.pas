@@ -46,7 +46,8 @@ implementation
        { aasm }
        cpubase,cpuinfo,aasmbase,aasmtai,
        { symtable }
-       symconst,symbase,symdef,symsym,symtype,symtable,defbase,paramgr,
+       symconst,symbase,symdef,symsym,symtype,symtable,defutil,
+       paramgr,
        ppu,fmodule,
        { pass 1 }
        node,
@@ -804,7 +805,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.77  2002-11-23 22:50:06  carl
+  Revision 1.78  2002-11-25 17:43:23  peter
+    * splitted defbase in defutil,symutil,defcmp
+    * merged isconvertable and is_equal into compare_defs(_ext)
+    * made operator search faster by walking the list only once
+
+  Revision 1.77  2002/11/23 22:50:06  carl
     * some small speed optimizations
     + added several new warnings/hints
 

@@ -28,7 +28,8 @@ interface
 
     uses
        node,
-       symtype,symppu,defbase,
+       symtype,symppu,
+       defutil,defcmp,
        nld
 {$ifdef Delphi}
        ,dmisc
@@ -194,7 +195,7 @@ implementation
          end;
 
         { don't insert obsolete type conversions }
-        if is_equal(p.resulttype.def,t.def) and
+        if equal_defs(p.resulttype.def,t.def) and
            not ((p.resulttype.def.deftype=setdef) and
                 (tsetdef(p.resulttype.def).settype <>
                  tsetdef(t.def).settype)) then
@@ -220,7 +221,7 @@ implementation
          end;
 
         { don't insert obsolete type conversions }
-        if is_equal(p.resulttype.def,t.def) and
+        if equal_defs(p.resulttype.def,t.def) and
            not ((p.resulttype.def.deftype=setdef) and
                 (tsetdef(p.resulttype.def).settype <>
                  tsetdef(t.def).settype)) then
@@ -363,7 +364,7 @@ implementation
                             inserttypeconv(p3,u8bitdef);
                           end;
                          }
-                         if assigned(htype.def) and not(is_equal(htype.def,p3.resulttype.def)) then
+                         if assigned(htype.def) and not(equal_defs(htype.def,p3.resulttype.def)) then
                            begin
                               aktfilepos:=p3.fileinfo;
                               CGMessage(type_e_typeconflict_in_set);
@@ -967,7 +968,7 @@ implementation
         hp : tnode;
         currprocdef,
         aprocdef : tprocdef;
-
+        eq : tequaltype;
       begin
         result:=nil;
         resulttype:=totype;
@@ -976,394 +977,266 @@ implementation
         if codegenerror then
          exit;
 
-        { remove obsolete type conversions }
-        if is_equal(left.resulttype.def,resulttype.def) then
-          begin
-          { because is_equal only checks the basetype for sets we need to
-            check here if we are loading a smallset into a normalset }
-            if (resulttype.def.deftype=setdef) and
-               (left.resulttype.def.deftype=setdef) and
-               ((tsetdef(resulttype.def).settype = smallset) xor
-                (tsetdef(left.resulttype.def).settype = smallset)) then
-              begin
-                { constant sets can be converted by changing the type only }
-                if (left.nodetype=setconstn) then
+        eq:=compare_defs_ext(left.resulttype.def,resulttype.def,left.nodetype,
+                             nf_explizit in flags,true,convtype,aprocdef);
+        case eq of
+          te_exact,
+          te_equal :
+            begin
+              { because is_equal only checks the basetype for sets we need to
+                check here if we are loading a smallset into a normalset }
+              if (resulttype.def.deftype=setdef) and
+                 (left.resulttype.def.deftype=setdef) and
+                 ((tsetdef(resulttype.def).settype = smallset) xor
+                  (tsetdef(left.resulttype.def).settype = smallset)) then
+                begin
+                  { constant sets can be converted by changing the type only }
+                  if (left.nodetype=setconstn) then
+                   begin
+                     tsetdef(left.resulttype.def).changesettype(tsetdef(resulttype.def).settype);
+                     result:=left;
+                     left:=nil;
+                     exit;
+                   end;
+
+                  if (tsetdef(resulttype.def).settype <> smallset) then
+                   convtype:=tc_load_smallset
+                  else
+                   convtype := tc_normal_2_smallset;
+                  exit;
+                end
+              else
+               begin
+                 left.resulttype:=resulttype;
+                 result:=left;
+                 left:=nil;
+                 exit;
+               end;
+            end;
+
+          te_convert_l1,
+          te_convert_l2 :
+            begin
+              { nothing to do }
+            end;
+
+          te_convert_operator :
+            begin
+              procinfo.flags:=procinfo.flags or pi_do_call;
+              hp:=ccallnode.create(ccallparanode.create(left,nil),
+                                   overloaded_operators[_assignment],nil,nil);
+              { tell explicitly which def we must use !! (PM) }
+              tcallnode(hp).procdefinition:=aprocdef;
+              left:=nil;
+              result:=hp;
+              exit;
+            end;
+
+          te_incompatible :
+            begin
+              { Procedures have a resulttype.def of voiddef and functions of their
+                own resulttype.def. They will therefore always be incompatible with
+                a procvar. Because isconvertable cannot check for procedures we
+                use an extra check for them.}
+              if (m_tp_procvar in aktmodeswitches) then
+               begin
+                 if (resulttype.def.deftype=procvardef) and
+                    (is_procsym_load(left) or is_procsym_call(left)) then
+                  begin
+                    if is_procsym_call(left) then
+                     begin
+                       currprocdef:=Tprocsym(Tcallnode(left).symtableprocentry).search_procdef_byprocvardef(Tprocvardef(resulttype.def));
+                       hp:=cloadnode.create_procvar(tprocsym(tcallnode(left).symtableprocentry),
+                           currprocdef,tcallnode(left).symtableproc);
+                       if (tcallnode(left).symtableprocentry.owner.symtabletype=objectsymtable) and
+                          assigned(tcallnode(left).methodpointer) then
+                         tloadnode(hp).set_mp(tcallnode(left).methodpointer.getcopy);
+                       resulttypepass(hp);
+                       left.free;
+                       left:=hp;
+                       aprocdef:=tprocdef(left.resulttype.def);
+                     end
+                    else
+                     begin
+                       if (left.nodetype<>addrn) then
+                         aprocdef:=tprocsym(tloadnode(left).symtableentry).first_procdef;
+                     end;
+                    convtype:=tc_proc_2_procvar;
+                    { Now check if the procedure we are going to assign to
+                      the procvar,  is compatible with the procvar's type }
+                    if assigned(aprocdef) then
+                     begin
+                       if proc_to_procvar_equal(aprocdef,tprocvardef(resulttype.def))=te_incompatible then
+                        CGMessage2(type_e_incompatible_types,aprocdef.typename,resulttype.def.typename);
+                     end
+                    else
+                     CGMessage2(type_e_incompatible_types,left.resulttype.def.typename,resulttype.def.typename);
+                    exit;
+                  end;
+               end;
+
+              { Handle explicit type conversions }
+              if nf_explizit in flags then
+               begin
+                 { do common tc_equal cast }
+                 convtype:=tc_equal;
+
+                 { check if the result could be in a register }
+                 if not(tstoreddef(resulttype.def).is_intregable) and
+                   not(tstoreddef(resulttype.def).is_fpuregable) then
+                   make_not_regable(left);
+
+                 { class to class or object to object, with checkobject support }
+                 if (resulttype.def.deftype=objectdef) and
+                    (left.resulttype.def.deftype=objectdef) then
+                   begin
+                     if (cs_check_object in aktlocalswitches) then
+                      begin
+                        if is_class_or_interface(resulttype.def) then
+                         begin
+                           { we can translate the typeconvnode to 'as' when
+                             typecasting to a class or interface }
+                           hp:=casnode.create(left,cloadvmtnode.create(ctypenode.create(resulttype)));
+                           left:=nil;
+                           result:=hp;
+                           exit;
+                         end;
+                      end
+                     else
+                      begin
+                        { check if the types are related }
+                        if (not(tobjectdef(left.resulttype.def).is_related(tobjectdef(resulttype.def)))) and
+                           (not(tobjectdef(resulttype.def).is_related(tobjectdef(left.resulttype.def)))) then
+                          CGMessage2(type_w_classes_not_related,left.resulttype.def.typename,resulttype.def.typename);
+                      end;
+                   end
+
+                  { only if the same size or formal def }
+                  { why do we allow typecasting of voiddef ?? (PM) }
+                  else
+                   begin
+                     if not(
+                        (left.resulttype.def.deftype=formaldef) or
+                        (not(is_open_array(left.resulttype.def)) and
+                         (left.resulttype.def.size=resulttype.def.size)) or
+                        (is_void(left.resulttype.def)  and
+                         (left.nodetype=derefn))
+                        ) then
+                       CGMessage(cg_e_illegal_type_conversion);
+                     if ((left.resulttype.def.deftype=orddef) and
+                         (resulttype.def.deftype=pointerdef)) or
+                         ((resulttype.def.deftype=orddef) and
+                          (left.resulttype.def.deftype=pointerdef)) then
+                       CGMessage(cg_d_pointer_to_longint_conv_not_portable);
+                   end;
+
+                  { the conversion into a strutured type is only }
+                  { possible, if the source is not a register    }
+                  if (
+                      (resulttype.def.deftype in [recorddef,stringdef,arraydef]) or
+                      ((resulttype.def.deftype=objectdef) and
+                       not(is_class(resulttype.def)))
+                     ) and
+                     (left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+                    CGMessage(cg_e_illegal_type_conversion);
+               end
+              else
+               CGMessage2(type_e_incompatible_types,left.resulttype.def.typename,resulttype.def.typename);
+            end;
+
+          else
+            internalerror(200211231);
+        end;
+
+        { Constant folding and other node transitions to
+          remove the typeconv node }
+        case left.nodetype of
+          loadn :
+            begin
+              { tp7 procvar support, when right is not a procvardef and we got a
+                loadn of a procvar then convert to a calln, the check for the
+                result is already done in is_convertible, also no conflict with
+                @procvar is here because that has an extra addrn }
+              if (m_tp_procvar in aktmodeswitches) and
+                 (resulttype.def.deftype<>procvardef) and
+                 (left.resulttype.def.deftype=procvardef) then
+               begin
+                 hp:=ccallnode.create(nil,nil,nil,nil);
+                 tcallnode(hp).set_procvar(left);
+                 resulttypepass(hp);
+                 left:=hp;
+               end;
+            end;
+
+          niln :
+            begin
+              { nil to ordinal node }
+              if (resulttype.def.deftype=orddef) then
+               begin
+                 hp:=cordconstnode.create(0,resulttype,true);
+                 result:=hp;
+                 exit;
+               end
+              else
+               { fold nil to any pointer type }
+               if (resulttype.def.deftype=pointerdef) then
+                begin
+                  hp:=cnilnode.create;
+                  hp.resulttype:=resulttype;
+                  result:=hp;
+                  exit;
+                end
+              else
+               { remove typeconv after niln, but not when the result is a
+                 methodpointer. The typeconv of the methodpointer will then
+                 take care of updateing size of niln to OS_64 }
+               if not((resulttype.def.deftype=procvardef) and
+                      (po_methodpointer in tprocvardef(resulttype.def).procoptions)) then
                  begin
-                   tsetdef(left.resulttype.def).changesettype(tsetdef(resulttype.def).settype);
+                   left.resulttype:=resulttype;
                    result:=left;
                    left:=nil;
                    exit;
                  end;
-
-                if (tsetdef(resulttype.def).settype <> smallset) then
-                 convtype:=tc_load_smallset
-                else
-                 convtype := tc_normal_2_smallset;
-                exit;
-              end
-            else
-             begin
-               left.resulttype:=resulttype;
-               result:=left;
-               left:=nil;
-               exit;
-             end;
-          end;
-        aprocdef:=assignment_overloaded(left.resulttype.def,resulttype.def);
-        if assigned(aprocdef) then
-          begin
-             procinfo.flags:=procinfo.flags or pi_do_call;
-             hp:=ccallnode.create(ccallparanode.create(left,nil),
-                                  overloaded_operators[_assignment],nil,nil);
-             { tell explicitly which def we must use !! (PM) }
-             tcallnode(hp).procdefinition:=aprocdef;
-             left:=nil;
-             result:=hp;
-             exit;
-          end;
-
-        if isconvertable(left.resulttype.def,resulttype.def,convtype,left.nodetype,nf_explizit in flags)=0 then
-         begin
-           {Procedures have a resulttype.def of voiddef and functions of their
-           own resulttype.def. They will therefore always be incompatible with
-           a procvar. Because isconvertable cannot check for procedures we
-           use an extra check for them.}
-           if (m_tp_procvar in aktmodeswitches) then
-            begin
-              if (resulttype.def.deftype=procvardef) and
-                 (is_procsym_load(left) or is_procsym_call(left)) then
-               begin
-                 if is_procsym_call(left) then
-                  begin
-                    currprocdef:=Tprocsym(Tcallnode(left).symtableprocentry).search_procdef_byprocvardef(Tprocvardef(resulttype.def));
-                    hp:=cloadnode.create_procvar(tprocsym(tcallnode(left).symtableprocentry),
-                        currprocdef,tcallnode(left).symtableproc);
-                    if (tcallnode(left).symtableprocentry.owner.symtabletype=objectsymtable) and
-                       assigned(tcallnode(left).methodpointer) then
-                      tloadnode(hp).set_mp(tcallnode(left).methodpointer.getcopy);
-                    resulttypepass(hp);
-                    left.free;
-                    left:=hp;
-                    aprocdef:=tprocdef(left.resulttype.def);
-                  end
-                 else
-                  begin
-                    if (left.nodetype<>addrn) then
-                      aprocdef:=tprocsym(tloadnode(left).symtableentry).first_procdef;
-                  end;
-                 convtype:=tc_proc_2_procvar;
-                 { Now check if the procedure we are going to assign to
-                   the procvar,  is compatible with the procvar's type }
-                 if assigned(aprocdef) then
-                  begin
-                    if not proc_to_procvar_equal(aprocdef,tprocvardef(resulttype.def),false) then
-                     CGMessage2(type_e_incompatible_types,aprocdef.typename,resulttype.def.typename);
-                  end
-                 else
-                  CGMessage2(type_e_incompatible_types,left.resulttype.def.typename,resulttype.def.typename);
-                 exit;
-               end;
             end;
-           if nf_explizit in flags then
+
+          ordconstn :
             begin
-              { check if the result could be in a register }
-              if not(tstoreddef(resulttype.def).is_intregable) and
-                not(tstoreddef(resulttype.def).is_fpuregable) then
-                make_not_regable(left);
-              { boolean to byte are special because the
-                location can be different }
-
-              if is_integer(resulttype.def) and
-                 is_boolean(left.resulttype.def) then
-               begin
-                  convtype:=tc_bool_2_int;
-                  exit;
-               end;
-
-              if is_char(resulttype.def) and
-                 is_boolean(left.resulttype.def) then
-               begin
-                  convtype:=tc_bool_2_int;
-                  exit;
-               end;
-
-              { ansistring to pchar }
-              if is_pchar(resulttype.def) and
-                 is_ansistring(left.resulttype.def) then
-               begin
-                 convtype:=tc_ansistring_2_pchar;
-                 exit;
-               end;
-              { do common tc_equal cast }
-              convtype:=tc_equal;
-
-              { enum to ordinal will always be s32bit }
-              if (left.resulttype.def.deftype=enumdef) and
-                 is_ordinal(resulttype.def) then
-               begin
-                 if left.nodetype=ordconstn then
-                  begin
-                    hp:=cordconstnode.create(tordconstnode(left).value,
-                       resulttype,true);
-                    result:=hp;
-                    exit;
-                  end
-                 else
-                  begin
-                    if isconvertable(s32bittype.def,resulttype.def,convtype,ordconstn,false)=0 then
-                      CGMessage2(type_e_incompatible_types,left.resulttype.def.typename,resulttype.def.typename);
-                  end;
-               end
-
-              { ordinal to enumeration }
-              else
-               if (resulttype.def.deftype=enumdef) and
-                  is_ordinal(left.resulttype.def) then
+              { ordinal contants can be directly converted }
+              { but not char to char because it is a widechar to char or via versa }
+              { which needs extra code to do the code page transistion             }
+              if is_ordinal(resulttype.def) and
+                 not(convtype=tc_char_2_char) then
                 begin
-                  if left.nodetype=ordconstn then
-                   begin
-                     hp:=cordconstnode.create(tordconstnode(left).value,
-                       resulttype,true);
-                     result:=hp;
-                     exit;
-                   end
-                  else
-                   begin
-                     if IsConvertable(left.resulttype.def,s32bittype.def,convtype,ordconstn,false)=0 then
-                       CGMessage2(type_e_incompatible_types,left.resulttype.def.typename,resulttype.def.typename);
-                   end;
+                   { replace the resulttype and recheck the range }
+                   left.resulttype:=resulttype;
+                   testrange(left.resulttype.def,tordconstnode(left).value,(nf_explizit in flags));
+                   result:=left;
+                   left:=nil;
+                   exit;
+                end;
+            end;
+
+          pointerconstn :
+            begin
+              { pointerconstn to any pointer is folded too }
+              if (resulttype.def.deftype=pointerdef) then
+                begin
+                   left.resulttype:=resulttype;
+                   result:=left;
+                   left:=nil;
+                   exit;
                 end
-
-               { nil to ordinal node }
-               else if (left.nodetype=niln) and is_ordinal(resulttype.def) then
-                  begin
-                     hp:=cordconstnode.create(0,resulttype,true);
-                     result:=hp;
-                     exit;
-                  end
-
               { constant pointer to ordinal }
-              else if is_ordinal(resulttype.def) and
-                      (left.nodetype=pointerconstn) then
+              else if is_ordinal(resulttype.def) then
                 begin
                    hp:=cordconstnode.create(tpointerconstnode(left).value,
                      resulttype,true);
                    result:=hp;
                    exit;
-                end
-
-              { class to class or object to object, with checkobject support }
-              else if (resulttype.def.deftype=objectdef) and
-                      (left.resulttype.def.deftype=objectdef) then
-                begin
-                  if (cs_check_object in aktlocalswitches) then
-                   begin
-                     if is_class_or_interface(resulttype.def) then
-                      begin
-                        { we can translate the typeconvnode to 'as' when
-                          typecasting to a class or interface }
-                        hp:=casnode.create(left,cloadvmtnode.create(ctypenode.create(resulttype)));
-                        left:=nil;
-                        result:=hp;
-                        exit;
-                      end;
-                   end
-                  else
-                   begin
-                     { check if the types are related }
-                     if (not(tobjectdef(left.resulttype.def).is_related(tobjectdef(resulttype.def)))) and
-                        (not(tobjectdef(resulttype.def).is_related(tobjectdef(left.resulttype.def)))) then
-                       CGMessage2(type_w_classes_not_related,left.resulttype.def.typename,resulttype.def.typename);
-                   end;
-                end
-
-              {Are we typecasting an ordconst to a char?}
-              else
-                if is_char(resulttype.def) and
-                   is_ordinal(left.resulttype.def) then
-                 begin
-                   if left.nodetype=ordconstn then
-                    begin
-                      hp:=cordconstnode.create(tordconstnode(left).value,
-                        resulttype,true);
-                      result:=hp;
-                      exit;
-                    end
-                   else
-                    begin
-                      if IsConvertable(left.resulttype.def,u8bittype.def,convtype,ordconstn,false)=0 then
-                        CGMessage2(type_e_incompatible_types,left.resulttype.def.typename,resulttype.def.typename);
-                    end;
-                 end
-
-              {Are we typecasting an ordconst to a wchar?}
-              else
-                if is_widechar(resulttype.def) and
-                   is_ordinal(left.resulttype.def) then
-                 begin
-                   if left.nodetype=ordconstn then
-                    begin
-                      hp:=cordconstnode.create(tordconstnode(left).value,
-                        resulttype,true);
-                      result:=hp;
-                      exit;
-                    end
-                   else
-                    begin
-                      if IsConvertable(left.resulttype.def,u16bittype.def,convtype,ordconstn,false)=0 then
-                        CGMessage2(type_e_incompatible_types,left.resulttype.def.typename,resulttype.def.typename);
-                    end;
-                 end
-
-              { char to ordinal }
-              else
-                if is_char(left.resulttype.def) and
-                   is_ordinal(resulttype.def) then
-                 begin
-                   if left.nodetype=ordconstn then
-                    begin
-                      hp:=cordconstnode.create(tordconstnode(left).value,
-                        resulttype,true);
-                      result:=hp;
-                      exit;
-                    end
-                   else
-                    begin
-                      if IsConvertable(u8bittype.def,resulttype.def,convtype,ordconstn,false)=0 then
-                        CGMessage2(type_e_incompatible_types,left.resulttype.def.typename,resulttype.def.typename);
-                    end;
-                 end
-              { widechar to ordinal }
-              else
-                if is_widechar(left.resulttype.def) and
-                   is_ordinal(resulttype.def) then
-                 begin
-                   if left.nodetype=ordconstn then
-                    begin
-                      hp:=cordconstnode.create(tordconstnode(left).value,
-                         resulttype,true);
-                      result:=hp;
-                      exit;
-                    end
-                   else
-                    begin
-                      if IsConvertable(u16bittype.def,resulttype.def,convtype,ordconstn,false)=0 then
-                        CGMessage2(type_e_incompatible_types,left.resulttype.def.typename,resulttype.def.typename);
-                    end;
-                 end
-
-              { ordinal to pointer }
-              else
-                if (m_delphi in aktmodeswitches) and
-                   is_ordinal(left.resulttype.def) and
-                   (resulttype.def.deftype=pointerdef) then
-                 begin
-                   if left.nodetype=pointerconstn then
-                    begin
-                      hp:=cordconstnode.create(tpointerconstnode(left).value,
-                         resulttype,true);
-                      result:=hp;
-                      exit;
-                    end
-                   else
-                    begin
-                      if IsConvertable(left.resulttype.def,ordpointertype.def,convtype,ordconstn,false)=0 then
-                        CGMessage2(type_e_incompatible_types,left.resulttype.def.typename,resulttype.def.typename);
-                    end;
-                 end
-
-               { only if the same size or formal def }
-               { why do we allow typecasting of voiddef ?? (PM) }
-               else
-                begin
-                  if not(
-                     (left.resulttype.def.deftype=formaldef) or
-                     (not(is_open_array(left.resulttype.def)) and
-                      (left.resulttype.def.size=resulttype.def.size)) or
-                     (is_void(left.resulttype.def)  and
-                      (left.nodetype=derefn))
-                     ) then
-                    CGMessage(cg_e_illegal_type_conversion);
-                  if ((left.resulttype.def.deftype=orddef) and
-                      (resulttype.def.deftype=pointerdef)) or
-                      ((resulttype.def.deftype=orddef) and
-                       (left.resulttype.def.deftype=pointerdef)) then
-                    CGMessage(cg_d_pointer_to_longint_conv_not_portable);
                 end;
-
-               { the conversion into a strutured type is only }
-               { possible, if the source is not a register    }
-               if ((resulttype.def.deftype in [recorddef,stringdef,arraydef]) or
-                   ((resulttype.def.deftype=objectdef) and not(is_class(resulttype.def)))
-                  ) and (left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) { and
-                   it also works if the assignment is overloaded
-                   YES but this code is not executed if assignment is overloaded (PM)
-                  not assigned(assignment_overloaded(left.resulttype.def,resulttype.def))} then
-                 CGMessage(cg_e_illegal_type_conversion);
-            end
-           else
-            CGMessage2(type_e_incompatible_types,left.resulttype.def.typename,resulttype.def.typename);
-         end;
-
-       { tp7 procvar support, when right is not a procvardef and we got a
-         loadn of a procvar then convert to a calln, the check for the
-         result is already done in is_convertible, also no conflict with
-         @procvar is here because that has an extra addrn }
-         if (m_tp_procvar in aktmodeswitches) and
-            (resulttype.def.deftype<>procvardef) and
-            (left.resulttype.def.deftype=procvardef) and
-            (left.nodetype=loadn) then
-          begin
-            hp:=ccallnode.create(nil,nil,nil,nil);
-            tcallnode(hp).set_procvar(left);
-            resulttypepass(hp);
-            left:=hp;
-          end;
-
-        { remove typeconv after niln, but not when the result is a
-          methodpointer. The typeconv of the methodpointer will then
-          take care of updateing size of niln to OS_64 }
-        if (left.nodetype=niln) and
-           not((resulttype.def.deftype=procvardef) and
-               (po_methodpointer in tprocvardef(resulttype.def).procoptions)) then
-          begin
-            left.resulttype:=resulttype;
-            result:=left;
-            left:=nil;
-            exit;
-          end;
-
-        { ordinal contants can be directly converted }
-        if (left.nodetype=ordconstn) and is_ordinal(resulttype.def) and
-        { but not char to char because it is a widechar to char or via versa }
-        { which needs extra code to do the code page transistion             }
-          not(convtype=tc_char_2_char) then
-          begin
-             { replace the resulttype and recheck the range }
-             left.resulttype:=resulttype;
-             testrange(left.resulttype.def,tordconstnode(left).value,(nf_explizit in flags));
-             result:=left;
-             left:=nil;
-             exit;
-          end;
-
-        { fold nil to any pointer type }
-        if (left.nodetype=niln) and (resulttype.def.deftype=pointerdef) then
-          begin
-             hp:=cnilnode.create;
-             hp.resulttype:=resulttype;
-             result:=hp;
-             exit;
-          end;
-
-        { further, pointerconstn to any pointer is folded too }
-        if (left.nodetype=pointerconstn) and (resulttype.def.deftype=pointerdef) then
-          begin
-             left.resulttype:=resulttype;
-             result:=left;
-             left:=nil;
-             exit;
-          end;
+            end;
+        end;
 
         { now call the resulttype helper to do constant folding }
         result:=resulttype_call_helper(convtype);
@@ -2098,7 +1971,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.88  2002-11-17 16:31:56  carl
+  Revision 1.89  2002-11-25 17:43:18  peter
+    * splitted defbase in defutil,symutil,defcmp
+    * merged isconvertable and is_equal into compare_defs(_ext)
+    * made operator search faster by walking the list only once
+
+  Revision 1.88  2002/11/17 16:31:56  carl
     * memory optimization (3-4%) : cleanup of tai fields,
        cleanup of tdef and tsym fields.
     * make it work for m68k

@@ -25,7 +25,7 @@ unit ncpucnv;
 interface
 
     uses
-      node,ncnv,ncgcnv,defbase;
+      node,ncnv,ncgcnv,defcmp;
 
     type
        TSparcTypeConvNode = class(TCgTypeConvNode)
@@ -59,6 +59,7 @@ implementation
    uses
       verbose,globals,systems,
       symconst,symdef,aasmbase,aasmtai,
+      defutil,
       cgbase,pass_1,pass_2,
       ncon,ncal,
       ncgutil,
@@ -374,7 +375,7 @@ implementation
            @second_char_to_char,
            @second_nothing,  { normal_2_smallset }
            @second_nothing,   { dynarray_2_openarray }
-					 @second_nothing
+                                         @second_nothing
          );
       type
          tprocedureofobject = procedure of object;
@@ -420,7 +421,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2002-11-10 19:07:46  mazen
+  Revision 1.8  2002-11-25 17:43:28  peter
+    * splitted defbase in defutil,symutil,defcmp
+    * merged isconvertable and is_equal into compare_defs(_ext)
+    * made operator search faster by walking the list only once
+
+  Revision 1.7  2002/11/10 19:07:46  mazen
   * SPARC calling mechanism almost OK (as in GCC./mppcsparc )
 
   Revision 1.6  2002/11/06 11:31:24  mazen

@@ -41,9 +41,9 @@ implementation
 {$else}
        strings,
 {$endif Delphi}
-       globtype,systems,tokens,
+       globtype,systems,tokens,verbose,
        cutils,globals,widestr,scanner,
-       symconst,symbase,symdef,aasmbase,aasmtai,aasmcpu,defbase,verbose,
+       symconst,symbase,symdef,aasmbase,aasmtai,aasmcpu,defutil,defcmp,
        { pass 1 }
        node,
        nmat,nadd,ncal,nmem,nset,ncnv,ninl,ncon,nld,nflw,
@@ -248,7 +248,7 @@ implementation
               p:=comp_expr(true);
               if (p.nodetype=typeconvn) and
                  (ttypeconvnode(p).left.nodetype in [addrn,niln]) and
-                 is_equal(t.def,p.resulttype.def) then
+                 equal_defs(t.def,p.resulttype.def) then
                 begin
                    hp:=ttypeconvnode(p).left;
                    ttypeconvnode(p).left:=nil;
@@ -477,7 +477,7 @@ implementation
               p:=comp_expr(true);
               if p.nodetype=ordconstn then
                 begin
-                  if is_equal(p.resulttype.def,t.def) or
+                  if equal_defs(p.resulttype.def,t.def) or
                      is_subequal(p.resulttype.def,t.def) then
                    begin
                      case p.resulttype.def.size of
@@ -985,7 +985,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.59  2002-11-22 22:48:10  carl
+  Revision 1.60  2002-11-25 17:43:23  peter
+    * splitted defbase in defutil,symutil,defcmp
+    * merged isconvertable and is_equal into compare_defs(_ext)
+    * made operator search faster by walking the list only once
+
+  Revision 1.59  2002/11/22 22:48:10  carl
   * memory optimization with tconstsym (1.5%)
 
   Revision 1.58  2002/11/09 15:31:57  carl

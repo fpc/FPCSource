@@ -83,7 +83,7 @@ implementation
       systems,tokens,
       verbose,globals,cutils,
       globtype,
-      symconst,symtype,symtable,symdef,defbase,
+      symconst,symtype,symtable,symdef,defutil,
       htypechk,pass_1,cpubase,
       cgbase,
       ncon,ncnv,ncal,nadd;
@@ -118,7 +118,7 @@ implementation
                end;
              if is_constintnode(left) then
                begin
-                 lv:=tordconstnode(left).value; 
+                 lv:=tordconstnode(left).value;
 
                   case nodetype of
                    modn:
@@ -748,7 +748,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.43  2002-10-04 21:19:28  jonas
+  Revision 1.44  2002-11-25 17:43:20  peter
+    * splitted defbase in defutil,symutil,defcmp
+    * merged isconvertable and is_equal into compare_defs(_ext)
+    * made operator search faster by walking the list only once
+
+  Revision 1.43  2002/10/04 21:19:28  jonas
     * fixed web bug 2139: checking for division by zero fixed
 
   Revision 1.42  2002/09/07 12:16:04  carl

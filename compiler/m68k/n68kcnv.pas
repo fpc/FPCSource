@@ -27,7 +27,7 @@ unit n68kcnv;
 interface
 
     uses
-      node,ncnv,ncgcnv,defbase;
+      node,ncnv,ncgcnv,defcmp;
 
     type
        tm68ktypeconvnode = class(tcgtypeconvnode)
@@ -44,6 +44,7 @@ implementation
    uses
       verbose,globals,systems,
       symconst,symdef,aasmbase,aasmtai,
+      defutil,
       cgbase,pass_1,pass_2,
       ncon,ncal,
       ncgutil,
@@ -293,7 +294,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2002-11-09 16:10:35  carl
+  Revision 1.6  2002-11-25 17:43:27  peter
+    * splitted defbase in defutil,symutil,defcmp
+    * merged isconvertable and is_equal into compare_defs(_ext)
+    * made operator search faster by walking the list only once
+
+  Revision 1.5  2002/11/09 16:10:35  carl
     + update for compilation
 
   Revision 1.4  2002/09/07 20:53:28  carl

@@ -40,7 +40,7 @@ implementation
     uses
       globtype,systems,
       cutils,verbose,globals,
-      symconst,symbase,symsym,symtable,defbase,paramgr,
+      symconst,symbase,symsym,symtable,defutil,paramgr,
 {$ifdef GDB}
   {$ifdef delphi}
       sysutils,
@@ -121,7 +121,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2002-08-17 09:23:49  florian
+  Revision 1.3  2002-11-25 17:43:28  peter
+    * splitted defbase in defutil,symutil,defcmp
+    * merged isconvertable and is_equal into compare_defs(_ext)
+    * made operator search faster by walking the list only once
+
+  Revision 1.2  2002/08/17 09:23:49  florian
     * first part of procinfo rewrite
 
   Revision 1.1  2002/08/13 21:40:59  florian

@@ -54,7 +54,7 @@ implementation
     uses
       globtype,systems,
       cutils,verbose,globals,
-      symconst,symdef,aasmbase,aasmtai,aasmcpu,defbase,
+      symconst,symdef,aasmbase,aasmtai,aasmcpu,defutil,
       cginfo,cgbase,pass_1,pass_2,
       ncon,
       cpubase,cpuinfo,
@@ -838,7 +838,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.40  2002-09-07 15:25:10  peter
+  Revision 1.41  2002-11-25 17:43:26  peter
+    * splitted defbase in defutil,symutil,defcmp
+    * merged isconvertable and is_equal into compare_defs(_ext)
+    * made operator search faster by walking the list only once
+
+  Revision 1.40  2002/09/07 15:25:10  peter
     * old logs removed and tabs fixed
 
   Revision 1.39  2002/08/15 15:15:55  carl

@@ -42,7 +42,7 @@ type
 implementation
 
 uses
-  pass_1, defbase, htypechk,
+  pass_1,defutil,htypechk,
   symdef,paramgr,
   aasmbase,aasmtai,aasmcpu,
   ncnv, ncon, pass_2,
@@ -248,7 +248,12 @@ end.
 
 {
   $Log$
-  Revision 1.25  2002-11-15 01:58:57  peter
+  Revision 1.26  2002-11-25 17:43:27  peter
+    * splitted defbase in defutil,symutil,defcmp
+    * merged isconvertable and is_equal into compare_defs(_ext)
+    * made operator search faster by walking the list only once
+
+  Revision 1.25  2002/11/15 01:58:57  peter
     * merged changes from 1.0.7 up to 04-11
       - -V option for generating bug report tracing
       - more tracing for option parsing

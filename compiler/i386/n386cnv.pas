@@ -27,7 +27,7 @@ unit n386cnv;
 interface
 
     uses
-      node,ncgcnv,defbase;
+      node,ncgcnv,defutil,defcmp;
 
     type
        ti386typeconvnode = class(tcgtypeconvnode)
@@ -413,7 +413,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.51  2002-10-10 16:14:54  florian
+  Revision 1.52  2002-11-25 17:43:26  peter
+    * splitted defbase in defutil,symutil,defcmp
+    * merged isconvertable and is_equal into compare_defs(_ext)
+    * made operator search faster by walking the list only once
+
+  Revision 1.51  2002/10/10 16:14:54  florian
     * fixed to reflect last tconvtype change
 
   Revision 1.50  2002/10/05 12:43:29  carl

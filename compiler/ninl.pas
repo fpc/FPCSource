@@ -72,7 +72,7 @@ implementation
     uses
       verbose,globals,systems,
       globtype, cutils,
-      symbase,symconst,symtype,symdef,symsym,symtable,paramgr,defbase,
+      symbase,symconst,symtype,symdef,symsym,symtable,paramgr,defutil,defcmp,
       pass_1,
       ncal,ncon,ncnv,nadd,nld,nbas,nflw,nmem,nmat,
       cpubase,tgobj,cgbase
@@ -488,7 +488,7 @@ implementation
                     para.left:=p1;
                   end;
 
-                if not is_equal(para.left.resulttype.def,tfiledef(filepara.resulttype.def).typedfiletype.def) then
+                if not equal_defs(para.left.resulttype.def,tfiledef(filepara.resulttype.def).typedfiletype.def) then
                   begin
                     CGMessagePos(para.left.fileinfo,type_e_mismatch);
                     found_error := true;
@@ -728,7 +728,7 @@ implementation
                         (torddef(para.left.resulttype.def).typ in [s8bit,s16bit,u8bit,u16bit])
                        ) or
                        (is_real and
-                        not is_equal(para.left.resulttype.def,pbestrealtype^.def)
+                        not equal_defs(para.left.resulttype.def,pbestrealtype^.def)
                        )
                       ) then
                       { special handling of reading small numbers, because the helpers  }
@@ -2408,7 +2408,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.97  2002-11-18 18:35:01  peter
+  Revision 1.98  2002-11-25 17:43:19  peter
+    * splitted defbase in defutil,symutil,defcmp
+    * merged isconvertable and is_equal into compare_defs(_ext)
+    * made operator search faster by walking the list only once
+
+  Revision 1.97  2002/11/18 18:35:01  peter
     * Swap(QWord) constant support
 
   Revision 1.96  2002/11/18 17:31:57  peter

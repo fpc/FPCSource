@@ -44,7 +44,7 @@ unit cpupara;
        verbose,
        globtype,
        cpuinfo,cginfo,cgbase,
-       defbase;
+       defutil;
 
     function tppcparamanager.getintparaloc(nr : longint) : tparalocation;
 
@@ -295,7 +295,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2002-11-18 17:32:01  peter
+  Revision 1.17  2002-11-25 17:43:27  peter
+    * splitted defbase in defutil,symutil,defcmp
+    * merged isconvertable and is_equal into compare_defs(_ext)
+    * made operator search faster by walking the list only once
+
+  Revision 1.16  2002/11/18 17:32:01  peter
     * pass proccalloption to ret_in_xxx and push_xxx functions
 
   Revision 1.15  2002/10/02 13:33:36  jonas

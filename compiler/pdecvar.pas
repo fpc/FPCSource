@@ -39,7 +39,8 @@ implementation
        globtype,globals,tokens,verbose,
        systems,
        { symtable }
-       symconst,symbase,symtype,symdef,symsym,symtable,defbase,fmodule,paramgr,
+       symconst,symbase,symtype,symdef,symsym,symtable,defutil,
+       fmodule,paramgr,
        { pass 1 }
        node,
        nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,
@@ -578,7 +579,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.39  2002-11-15 16:29:31  peter
+  Revision 1.40  2002-11-25 17:43:21  peter
+    * splitted defbase in defutil,symutil,defcmp
+    * merged isconvertable and is_equal into compare_defs(_ext)
+    * made operator search faster by walking the list only once
+
+  Revision 1.39  2002/11/15 16:29:31  peter
     * made tasmsymbol.refs private (merged)
 
   Revision 1.38  2002/11/15 01:58:53  peter

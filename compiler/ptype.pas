@@ -60,7 +60,8 @@ implementation
        globals,tokens,verbose,
        systems,
        { symtable }
-       symconst,symbase,symdef,symsym,symtable,defbase,
+       symconst,symbase,symdef,symsym,symtable,
+       defutil,defcmp,
        { pass 1 }
        node,
        nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,
@@ -481,7 +482,7 @@ implementation
                             same type }
                           if is_integer(p.resulttype.def) or
                              is_char(p.resulttype.def) or
-                             is_equal(p.resulttype.def,aktenumdef) then
+                             equal_defs(p.resulttype.def,aktenumdef) then
                            v:=tordconstnode(p).value
                           else
                            Message2(type_e_incompatible_types,p.resulttype.def.typename,s32bittype.def.typename);
@@ -508,7 +509,7 @@ implementation
                           { we expect an integer or an enum of the
                             same type }
                           if is_integer(p.resulttype.def) or
-                             is_equal(p.resulttype.def,aktenumdef) then
+                             equal_defs(p.resulttype.def,aktenumdef) then
                            l:=tordconstnode(p).value
                           else
                            Message2(type_e_incompatible_types,p.resulttype.def.typename,s32bittype.def.typename);
@@ -640,7 +641,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.45  2002-09-27 21:13:29  carl
+  Revision 1.46  2002-11-25 17:43:23  peter
+    * splitted defbase in defutil,symutil,defcmp
+    * merged isconvertable and is_equal into compare_defs(_ext)
+    * made operator search faster by walking the list only once
+
+  Revision 1.45  2002/09/27 21:13:29  carl
     * low-highval always checked if limit ober 2GB is reached (to avoid overflow)
 
   Revision 1.44  2002/09/10 16:26:39  peter

@@ -96,7 +96,7 @@ unit cg64f32;
        globtype,globals,systems,
        cgbase,
        verbose,
-       symbase,symconst,symdef,defbase;
+       symbase,symconst,symdef,defutil;
 
 
     function joinreg64(reglo,reghi : tregister) : tregister64;
@@ -748,7 +748,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.31  2002-10-05 12:43:23  carl
+  Revision 1.32  2002-11-25 17:43:16  peter
+    * splitted defbase in defutil,symutil,defcmp
+    * merged isconvertable and is_equal into compare_defs(_ext)
+    * made operator search faster by walking the list only once
+
+  Revision 1.31  2002/10/05 12:43:23  carl
     * fixes for Delphi 6 compilation
      (warning : Some features do not work under Delphi)
 

@@ -155,7 +155,7 @@ implementation
     uses
       globtype,systems,
       cutils,verbose,globals,
-      symconst,symbase,defbase,
+      symconst,symbase,defutil,defcmp,
       nbas,
       htypechk,pass_1,ncal,nld,ncon,ncnv,cgbase
       ;
@@ -734,9 +734,7 @@ implementation
            arraydef :
              begin
                { check type of the index value }
-               if (isconvertable(right.resulttype.def,tarraydef(left.resulttype.def).rangetype.def,
-                      ct,ordconstn,false)=0) and
-                  not(is_equal(right.resulttype.def,tarraydef(left.resulttype.def).rangetype.def)) then
+               if (compare_defs(right.resulttype.def,tarraydef(left.resulttype.def).rangetype.def,right.nodetype)=te_incompatible) then
                  CGMessage(type_e_mismatch);
                resulttype:=tarraydef(left.resulttype.def).elementtype;
              end;
@@ -1057,7 +1055,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.40  2002-09-27 21:13:28  carl
+  Revision 1.41  2002-11-25 17:43:20  peter
+    * splitted defbase in defutil,symutil,defcmp
+    * merged isconvertable and is_equal into compare_defs(_ext)
+    * made operator search faster by walking the list only once
+
+  Revision 1.40  2002/09/27 21:13:28  carl
     * low-highval always checked if limit ober 2GB is reached (to avoid overflow)
 
   Revision 1.39  2002/09/01 18:44:17  peter

@@ -65,7 +65,7 @@ implementation
     uses
       globtype,widestr,systems,
       verbose,globals,
-      symconst,symdef,aasmbase,aasmtai,aasmcpu,defbase,
+      symconst,symdef,aasmbase,aasmtai,aasmcpu,defutil,
       cpuinfo,cpubase,
       cginfo,cgbase,tgobj,rgobj
 {$ifdef delphi}
@@ -531,7 +531,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  2002-11-09 15:36:50  carl
+  Revision 1.23  2002-11-25 17:43:17  peter
+    * splitted defbase in defutil,symutil,defcmp
+    * merged isconvertable and is_equal into compare_defs(_ext)
+    * made operator search faster by walking the list only once
+
+  Revision 1.22  2002/11/09 15:36:50  carl
     * align all constants correctly (default of 4 size for real type constants)
 
   Revision 1.21  2002/10/06 21:01:50  peter

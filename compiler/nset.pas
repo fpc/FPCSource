@@ -116,7 +116,7 @@ implementation
     uses
       globtype,systems,
       verbose,
-      symconst,symdef,symsym,defbase,
+      symconst,symdef,symsym,defutil,defcmp,
       htypechk,pass_1,
       ncnv,ncon,cpubase,nld,rgobj,cgbase;
 
@@ -348,8 +348,7 @@ implementation
          if codegenerror then
            exit;
          { both types must be compatible }
-         if not(is_equal(left.resulttype.def,right.resulttype.def)) and
-            (isconvertable(left.resulttype.def,right.resulttype.def,ct,ordconstn,false)=0) then
+         if compare_defs(left.resulttype.def,right.resulttype.def,left.nodetype)=te_incompatible then
            CGMessage(type_e_mismatch);
          { Check if only when its a constant set }
          if (left.nodetype=ordconstn) and (right.nodetype=ordconstn) then
@@ -691,7 +690,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.34  2002-10-05 12:43:25  carl
+  Revision 1.35  2002-11-25 17:43:21  peter
+    * splitted defbase in defutil,symutil,defcmp
+    * merged isconvertable and is_equal into compare_defs(_ext)
+    * made operator search faster by walking the list only once
+
+  Revision 1.34  2002/10/05 12:43:25  carl
     * fixes for Delphi 6 compilation
      (warning : Some features do not work under Delphi)
 

@@ -108,7 +108,7 @@ Implementation
 
     uses
        globtype,globals,verbose,systems,cutils,
-       symdef,symsym,defbase,paramgr,
+       symdef,symsym,defutil,paramgr,
        rgobj,tgobj,rgcpu;
 
 
@@ -1250,7 +1250,12 @@ end.
 
 {
   $Log$
-  Revision 1.11  2002-11-18 17:32:00  peter
+  Revision 1.12  2002-11-25 17:43:27  peter
+    * splitted defbase in defutil,symutil,defcmp
+    * merged isconvertable and is_equal into compare_defs(_ext)
+    * made operator search faster by walking the list only once
+
+  Revision 1.11  2002/11/18 17:32:00  peter
     * pass proccalloption to ret_in_xxx and push_xxx functions
 
   Revision 1.10  2002/09/22 14:15:31  carl

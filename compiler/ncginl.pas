@@ -54,7 +54,7 @@ implementation
     uses
       globtype,systems,
       cutils,verbose,globals,fmodule,
-      symconst,symdef,defbase,
+      symconst,symdef,defutil,
       aasmbase,aasmtai,aasmcpu,
       cginfo,cgbase,pass_1,pass_2,
       cpubase,paramgr,
@@ -610,7 +610,12 @@ end.
 
 {
   $Log$
-  Revision 1.16  2002-10-05 12:43:25  carl
+  Revision 1.17  2002-11-25 17:43:18  peter
+    * splitted defbase in defutil,symutil,defcmp
+    * merged isconvertable and is_equal into compare_defs(_ext)
+    * made operator search faster by walking the list only once
+
+  Revision 1.16  2002/10/05 12:43:25  carl
     * fixes for Delphi 6 compilation
      (warning : Some features do not work under Delphi)
 

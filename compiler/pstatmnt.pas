@@ -46,7 +46,8 @@ implementation
        { aasm }
        cpubase,aasmbase,aasmtai,aasmcpu,
        { symtable }
-       symconst,symbase,symtype,symdef,symsym,symtable,defbase,paramgr,
+       symconst,symbase,symtype,symdef,symsym,symtable,defutil,defcmp,
+       paramgr,
        { pass 1 }
        pass_1,htypechk,
        nbas,nmat,nadd,ncal,nmem,nset,ncnv,ninl,ncon,nld,nflw,
@@ -1146,7 +1147,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.79  2002-11-18 17:31:58  peter
+  Revision 1.80  2002-11-25 17:43:22  peter
+    * splitted defbase in defutil,symutil,defcmp
+    * merged isconvertable and is_equal into compare_defs(_ext)
+    * made operator search faster by walking the list only once
+
+  Revision 1.79  2002/11/18 17:31:58  peter
     * pass proccalloption to ret_in_xxx and push_xxx functions
 
   Revision 1.78  2002/09/07 19:34:08  florian

@@ -42,7 +42,7 @@ implementation
     uses
       globtype,systems,
       verbose,globals,
-      symconst,symdef,defbase,
+      symconst,symdef,defutil,
       paramgr,
       cpuinfo,
       pass_2,cgcpu,
@@ -156,7 +156,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2002-10-21 18:08:05  jonas
+  Revision 1.5  2002-11-25 17:43:28  peter
+    * splitted defbase in defutil,symutil,defcmp
+    * merged isconvertable and is_equal into compare_defs(_ext)
+    * made operator search faster by walking the list only once
+
+  Revision 1.4  2002/10/21 18:08:05  jonas
     * some range errors fixed
 
   Revision 1.3  2002/09/09 13:57:45  jonas

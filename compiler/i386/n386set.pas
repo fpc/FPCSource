@@ -49,7 +49,7 @@ implementation
     uses
       globtype,systems,
       verbose,globals,
-      symconst,symdef,defbase,
+      symconst,symdef,defutil,
       aasmbase,aasmtai,aasmcpu,
       cginfo,cgbase,pass_2,
       ncon,
@@ -706,7 +706,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.44  2002-10-03 21:34:45  carl
+  Revision 1.45  2002-11-25 17:43:27  peter
+    * splitted defbase in defutil,symutil,defcmp
+    * merged isconvertable and is_equal into compare_defs(_ext)
+    * made operator search faster by walking the list only once
+
+  Revision 1.44  2002/10/03 21:34:45  carl
     * range check error fixes
 
   Revision 1.43  2002/09/17 18:54:05  jonas

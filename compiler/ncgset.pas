@@ -87,7 +87,7 @@ implementation
     uses
       globtype,systems,
       verbose,
-      symconst,symdef,defbase,
+      symconst,symdef,defutil,
       paramgr,
       pass_2,
       ncon,
@@ -747,7 +747,7 @@ implementation
                                hregister2, l1);
                           { the comparisation of the low dword must be always unsigned! }
                           cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_B, aword(lo(int64(t^._low))), hregister, elselabel);
-{$endif}                          
+{$endif}
                           cg.a_label(exprasmlist,l1);
                        end
                      else
@@ -772,7 +772,7 @@ implementation
                      cg.a_cmp_const_reg_label(exprasmlist, OS_INT, jmp_gt, aword(hi(int64(t^._high))), hregister2,
                            l1);
                     cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_BE, aword(lo(int64(t^._high))), hregister, t^.statement);
-{$endif}                    
+{$endif}
                     cg.a_label(exprasmlist,l1);
                   end
                 else
@@ -1015,7 +1015,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  2002-10-05 12:43:25  carl
+  Revision 1.23  2002-11-25 17:43:18  peter
+    * splitted defbase in defutil,symutil,defcmp
+    * merged isconvertable and is_equal into compare_defs(_ext)
+    * made operator search faster by walking the list only once
+
+  Revision 1.22  2002/10/05 12:43:25  carl
     * fixes for Delphi 6 compilation
      (warning : Some features do not work under Delphi)
 

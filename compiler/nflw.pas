@@ -207,7 +207,7 @@ implementation
     uses
       globtype,systems,
       cutils,verbose,globals,
-      symconst,symtable,paramgr,defbase,htypechk,pass_1,
+      symconst,symtable,paramgr,defutil,htypechk,pass_1,
       ncon,nmem,nld,ncnv,nbas,rgobj,
     {$ifdef state_tracking}
       nstate,
@@ -1412,7 +1412,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.55  2002-11-18 17:31:56  peter
+  Revision 1.56  2002-11-25 17:43:18  peter
+    * splitted defbase in defutil,symutil,defcmp
+    * merged isconvertable and is_equal into compare_defs(_ext)
+    * made operator search faster by walking the list only once
+
+  Revision 1.55  2002/11/18 17:31:56  peter
     * pass proccalloption to ret_in_xxx and push_xxx functions
 
   Revision 1.54  2002/10/20 15:31:49  peter
