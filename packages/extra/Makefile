@@ -217,6 +217,9 @@ endif
 ifeq ($(OS_TARGET),netbsd)
 override TARGET_DIRS+=unzip uncgi fpasync x11 opengl gtk syslog forms svgalib ggi libpng libgd utmp cmem bfd zlib gdbm ncurses
 endif
+ifeq ($(OS_TARGET),openbsd)
+override TARGET_DIRS+=unzip uncgi fpasync x11 opengl gtk syslog forms svgalib ggi libpng libgd utmp cmem bfd zlib gdbm ncurses
+endif
 override INSTALL_FPCPACKAGE=y
 override INSTALL_FPCSUBDIR=packages/extra
 ifdef REQUIRE_UNITSDIR
@@ -1086,6 +1089,26 @@ TARGET_DIRS_GDBM=1
 TARGET_DIRS_NCURSES=1
 endif
 ifeq ($(OS_TARGET),netbsd)
+TARGET_DIRS_UNZIP=1
+TARGET_DIRS_UNCGI=1
+TARGET_DIRS_FPASYNC=1
+TARGET_DIRS_X11=1
+TARGET_DIRS_OPENGL=1
+TARGET_DIRS_GTK=1
+TARGET_DIRS_SYSLOG=1
+TARGET_DIRS_FORMS=1
+TARGET_DIRS_SVGALIB=1
+TARGET_DIRS_GGI=1
+TARGET_DIRS_LIBPNG=1
+TARGET_DIRS_LIBGD=1
+TARGET_DIRS_UTMP=1
+TARGET_DIRS_CMEM=1
+TARGET_DIRS_BFD=1
+TARGET_DIRS_ZLIB=1
+TARGET_DIRS_GDBM=1
+TARGET_DIRS_NCURSES=1
+endif
+ifeq ($(OS_TARGET),openbsd)
 TARGET_DIRS_UNZIP=1
 TARGET_DIRS_UNCGI=1
 TARGET_DIRS_FPASYNC=1

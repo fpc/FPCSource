@@ -15,6 +15,10 @@ dirs_freebsd=unzip uncgi fpasync \
              x11 opengl gtk syslog \
              forms svgalib ggi libpng libgd \
              utmp cmem bfd zlib gdbm ncurses
+dirs_openbsd=unzip uncgi fpasync \
+             x11 opengl gtk syslog \
+             forms svgalib ggi libpng libgd \
+             utmp cmem bfd zlib gdbm ncurses
 dirs_win32=unzip uncgi opengl gtk \
            zlib mmsystem
 dirs_os2=unzip uncgi
