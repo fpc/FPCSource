@@ -79,8 +79,8 @@ SYSTEMPPU=system$(PPUEXT)
 OBJECTS=strings go32 initc \
 	dpmiexcp profile dxeload emu387 \
 	dos crt objects printer \
-        objpas sysutils typinfo math \
-	cpu mmx mouse getopts heaptrc graph
+        objpas sysutils \
+	cpu mmx msmouse getopts heaptrc graph
 
 LOADERS=prt0 exceptn fpu
 
@@ -213,8 +213,8 @@ cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMPPU)
 mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMPPU)
 	$(COMPILER) $(PROCINC)/mmx.pp $(REDIR)
 
-mouse$(PPUEXT) : mouse.pp $(SYSTEMPPU)
-	$(COMPILER) mouse.pp $(REDIR)
+msmouse$(PPUEXT) : msmouse.pp $(SYSTEMPPU)
+	$(COMPILER) msmouse.pp $(REDIR)
 
 getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMPPU)
 	$(COMPILER) $(INC)/getopts.pp $(REDIR)
@@ -260,7 +260,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.4  1999-01-15 11:47:16  peter
+# Revision 1.5  1999-01-21 11:54:35  peter
+#   * renamed mouse->msmouse to resolve conflict with the api mouse unit
+#
+# Revision 1.4  1999/01/15 11:47:16  peter
 #   + added math unit to objects
 #
 # Revision 1.3  1998/12/28 23:37:39  peter
