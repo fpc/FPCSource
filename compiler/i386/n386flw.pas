@@ -30,6 +30,7 @@ interface
       node,nflw;
 
     type
+(*
        ti386whilerepeatnode = class(twhilerepeatnode)
           procedure pass_2;override;
        end;
@@ -61,6 +62,7 @@ interface
        ti386labelnode = class(tlabelnode)
           procedure pass_2;override;
        end;
+*)
 
        ti386raisenode = class(traisenode)
           procedure pass_2;override;
@@ -91,6 +93,10 @@ implementation
       cpubase,cpuasm,
       pass_1,nld,ncon,
       cga,tgcpu,n386util,regvars;
+
+(*
+
+   all implemented in ncgflw now (JM)
 
 {*****************************************************************************
                          Second_While_RepeatN
@@ -654,6 +660,8 @@ do_jmp:
          cleartempgen;
          secondpass(left);
       end;
+
+*)
 
 
 {*****************************************************************************
@@ -1324,6 +1332,7 @@ do_jmp:
 
 
 begin
+(*
    cwhilerepeatnode:=ti386whilerepeatnode;
    cifnode:=ti386ifnode;
    cfornode:=ti386fornode;
@@ -1332,6 +1341,7 @@ begin
    ccontinuenode:=ti386continuenode;
    cgotonode:=ti386gotonode;
    clabelnode:=ti386labelnode;
+*)
    craisenode:=ti386raisenode;
    ctryexceptnode:=ti386tryexceptnode;
    ctryfinallynode:=ti386tryfinallynode;
@@ -1340,7 +1350,17 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2001-08-26 13:36:58  florian
+  Revision 1.16  2001-09-28 20:39:33  jonas
+    * changed all flow control structures (except for exception handling
+      related things) to processor independent code (in new ncgflw unit)
+    + generic cgobj unit which contains lots of code generator helpers with
+      global "cg" class instance variable
+    + cgcpu unit for i386 (implements processor specific routines of the above
+      unit)
+    * updated cgbase and cpubase for the new code generator units
+    * include ncgflw unit in cpunode unit
+
+  Revision 1.15  2001/08/26 13:36:58  florian
     * some cg reorganisation
     * some PPC updates
 

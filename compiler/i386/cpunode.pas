@@ -29,7 +29,7 @@ unit cpunode;
   implementation
 
     uses
-       ncgbas,
+       ncgbas,ncgflw,
        n386ld,n386add,n386cal,n386con,n386flw,n386mat,n386mem,
        n386set,n386inl,n386opt,
        { this not really a node }
@@ -38,7 +38,17 @@ unit cpunode;
 end.
 {
   $Log$
-  Revision 1.4  2001-05-18 22:31:06  peter
+  Revision 1.5  2001-09-28 20:39:33  jonas
+    * changed all flow control structures (except for exception handling
+      related things) to processor independent code (in new ncgflw unit)
+    + generic cgobj unit which contains lots of code generator helpers with
+      global "cg" class instance variable
+    + cgcpu unit for i386 (implements processor specific routines of the above
+      unit)
+    * updated cgbase and cpubase for the new code generator units
+    * include ncgflw unit in cpunode unit
+
+  Revision 1.4  2001/05/18 22:31:06  peter
     * tasmnode.pass_2 is independent of cpu, moved to ncgbas
     * include ncgbas for independent nodes
 

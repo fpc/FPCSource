@@ -528,13 +528,12 @@ const
   frame_pointer = R_EBP;
   self_pointer  = R_ESI;
   accumulator   = R_EAX;
+  accumulatorhigh = R_EDX;
   { the register where the vmt offset is passed to the destructor }
   { helper routine                                                }
   vmt_offset_reg = R_EDI;
 
   scratch_regs : array[1..1] of tregister = (R_EDI);
-
-  max_scratch_regs = 1;
 
 { low and high of the available maximum width integer general purpose }
 { registers                                                           }
@@ -926,7 +925,17 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  2001-05-18 23:01:13  peter
+  Revision 1.6  2001-09-28 20:39:33  jonas
+    * changed all flow control structures (except for exception handling
+      related things) to processor independent code (in new ncgflw unit)
+    + generic cgobj unit which contains lots of code generator helpers with
+      global "cg" class instance variable
+    + cgcpu unit for i386 (implements processor specific routines of the above
+      unit)
+    * updated cgbase and cpubase for the new code generator units
+    * include ncgflw unit in cpunode unit
+
+  Revision 1.5  2001/05/18 23:01:13  peter
     * portable constants
 
   Revision 1.4  2001/04/13 01:22:18  peter

@@ -37,6 +37,15 @@ unit cgbase;
       aasm,cpubase
       ;
 
+    type
+       TOpCg = (OP_ADD,OP_AND,OP_DIV,OP_IDIV,OP_IMUL,OP_MUL,OP_NEG,OP_NOT,
+                   OP_OR,OP_SAR,OP_SHL,OP_SHR,OP_SUB,OP_XOR);
+
+       TOpCmp = (OC_NONE,OC_EQ,OC_GT,OC_LT,OC_GTE,OC_LTE,OC_NE,OC_BE,OC_B,
+                 OC_AE,OC_A);
+
+       TCgSize = (OS_NO,OS_8,OS_16,OS_32,OS_64,OS_S8,OS_S16,OS_S32,OS_S64);
+
     const
        pi_uses_asm  = $1;       { set, if the procedure uses asm }
        pi_is_global = $2;       { set, if the procedure is exported by an unit }
@@ -49,6 +58,26 @@ unit cgbase;
                                   => don't optimize}
        pi_needs_implicit_finally = $80; { set, if the procedure contains data which }
                                         { needs to be finalized              }
+
+       { defines the default address size for a processor }
+       { and defines the natural int size for a processor }
+{$ifdef i386}
+       OS_ADDR = OS_32;
+       OS_INT = OS_32;
+{$endif i386}
+{$ifdef alpha}
+       OS_ADDR = OS_64;
+       OS_INT = OS_64;
+{$endif alpha}
+{$ifdef powerpc}
+       OS_ADDR = OS_32;
+       OS_INT = OS_32;
+{$endif powercc}
+{$ifdef ia64}
+       OS_ADDR = OS_64;
+       OS_INT = OS_64;
+{$endif ia64}
+
     type
        pprocinfo = ^tprocinfo;
        tprocinfo = object
@@ -154,11 +183,22 @@ unit cgbase;
     procedure codegen_newmodule;
     procedure codegen_newprocedure;
 
+
+    function def_cgsize(const p1: tdef): tcgsize;
+
+    { return the inverse condition of opcmp }
+    function inverse_opcmp(opcmp: topcmp): topcmp;
+
+    { return whether op is commutative }
+    function commutativeop(op: topcg): boolean;
+
+
 implementation
 
      uses
         systems,
-        cresstr
+        cresstr,
+        types
 {$ifdef fixLeaksOnError}
         ,comphook
 {$endif fixLeaksOnError}
@@ -402,6 +442,41 @@ implementation
          ResourceStrings.free;
       end;
 
+
+    function def_cgsize(const p1: tdef): tcgsize;
+      begin
+        case p1.size of
+          1: result := OS_8;
+          2: result := OS_16;
+          4: result := OS_32;
+          else
+            internalerror(2001092311);
+        end;
+        if is_signed(p1) then
+          result := tcgsize(ord(result)+(ord(OS_S8)-ord(OS_8)));
+      end;
+
+
+    function inverse_opcmp(opcmp: topcmp): topcmp;
+      const
+        list: array[TOpCmp] of TOpCmp =
+          (OC_NONE,OC_NE,OC_LTE,OC_GTE,OC_LT,OC_GT,OC_EQ,OC_A,OC_AE,
+           OC_B,OC_BE);
+      begin
+        inverse_opcmp := list[opcmp];
+      end;
+
+
+    function commutativeop(op: topcg): boolean;
+      const
+        list: array[topcg] of boolean =
+          (true,true,false,false,true,true,false,false,
+           true,false,false,false,false,true);
+      begin
+        commutativeop := list[op];
+      end;
+
+
 {$ifdef fixLeaksOnError}
 procedure hcodegen_do_stop;
 var p: pprocinfo;
@@ -425,7 +500,17 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2001-08-26 13:36:36  florian
+  Revision 1.2  2001-09-28 20:39:33  jonas
+    * changed all flow control structures (except for exception handling
+      related things) to processor independent code (in new ncgflw unit)
+    + generic cgobj unit which contains lots of code generator helpers with
+      global "cg" class instance variable
+    + cgcpu unit for i386 (implements processor specific routines of the above
+      unit)
+    * updated cgbase and cpubase for the new code generator units
+    * include ncgflw unit in cpunode unit
+
+  Revision 1.1  2001/08/26 13:36:36  florian
     * some cg reorganisation
     * some PPC updates
 
