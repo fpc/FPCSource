@@ -3517,19 +3517,19 @@ Const local_symtable_index : longint = $8001;
       var
          proctypesinfo : byte;
 
-      procedure writeproc(sym : psym;def : pdef;shiftvalue : byte);
+      procedure writeproc(sym : ppropsymlist;def : pdef;shiftvalue : byte);
         var
            typvalue : byte;
         begin
-           if not(assigned(sym)) then
+           if not(assigned(sym) and assigned(sym^.sym))  then
              begin
                 rttilist^.concat(new(pai_const,init_32bit(1)));
                 typvalue:=3;
              end
-           else if sym^.typ=varsym then
+           else if sym^.sym^.typ=varsym then
              begin
                 rttilist^.concat(new(pai_const,init_32bit(
-                  pvarsym(sym)^.address)));
+                  pvarsym(sym^.sym)^.address)));
                 typvalue:=0;
              end
            else
@@ -3561,8 +3561,8 @@ Const local_symtable_index : longint = $8001;
             (sp_published in psym(sym)^.symoptions) then
            begin
               rttilist^.concat(new(pai_const_symbol,initname(ppropertysym(sym)^.proptype^.get_rtti_label)));
-              writeproc(ppropertysym(sym)^.readaccesssym^.sym,ppropertysym(sym)^.readaccessdef,0);
-              writeproc(ppropertysym(sym)^.writeaccesssym^.sym,ppropertysym(sym)^.writeaccessdef,2);
+              writeproc(ppropertysym(sym)^.readaccesssym,ppropertysym(sym)^.readaccessdef,0);
+              writeproc(ppropertysym(sym)^.writeaccesssym,ppropertysym(sym)^.writeaccessdef,2);
               { isn't it stored ? }
               if not(ppo_stored in ppropertysym(sym)^.propoptions) then
                 begin
@@ -3570,7 +3570,7 @@ Const local_symtable_index : longint = $8001;
                    proctypesinfo:=proctypesinfo or (3 shl 4);
                 end
               else
-                writeproc(ppropertysym(sym)^.storedsym^.sym,ppropertysym(sym)^.storeddef,4);
+                writeproc(ppropertysym(sym)^.storedsym,ppropertysym(sym)^.storeddef,4);
               rttilist^.concat(new(pai_const,init_32bit(ppropertysym(sym)^.index)));
               rttilist^.concat(new(pai_const,init_32bit(ppropertysym(sym)^.default)));
               rttilist^.concat(new(pai_const,init_16bit(count)));
@@ -3715,7 +3715,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.155  1999-08-16 16:26:04  pierre
+  Revision 1.156  1999-08-17 13:58:56  michael
+  RTTI writing patch
+
+  Revision 1.155  1999/08/16 16:26:04  pierre
    * error in stabs for tclassrefdef corrected
 
   Revision 1.154  1999/08/14 00:38:58  peter
