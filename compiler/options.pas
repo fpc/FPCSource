@@ -1341,19 +1341,26 @@ begin
      if cmd<>'' then
        option.parsecmd(cmd)
      else
-       option.read_parameters;
-     option.firstpass:=false;
-   { Write only quickinfo }
-     if option.quickinfo<>'' then
-      option.writequickinfo;
+      begin
+        option.read_parameters;
+        { Write only quickinfo }
+        if option.quickinfo<>'' then
+         option.writequickinfo;
+      end;
    { Read the configfile }
+     option.firstpass:=false;
      if read_configfile then
       option.interpret_file(ppccfg);
    end;
   if cmd<>'' then
     option.parsecmd(cmd)
   else
-    option.read_parameters;
+    begin
+      option.read_parameters;
+      { Write only quickinfo }
+      if option.quickinfo<>'' then
+       option.writequickinfo;
+    end;
 
 { Stop if errors in options }
   if ErrorCount>0 then
@@ -1510,7 +1517,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.25  2001-01-05 17:36:57  florian
+  Revision 1.26  2001-01-12 19:21:09  peter
+    * fixed writing of quickinfo when no ppc386.cfg is available
+
+  Revision 1.25  2001/01/05 17:36:57  florian
   * the info about exception frames is stored now on the stack
   instead on the heap
 
