@@ -23,12 +23,58 @@ function setjmp(var S : jmp_buf) : longint;assembler;[Public, alias : 'FPC_SETJM
 
 procedure longjmp(var S : jmp_buf;value : longint);assembler;[Public, alias : 'FPC_LONGJMP'];
   asm
-    {$warning FIXME!!!!}
-  end;
+     lwz r1,(r3)
+     lwz r2,4(r3)
+     lwz r0,8(r3)
+     lwz r14,12(r3)
+     lfd fp14,88(r3)
+     lwz r15,16(r3)
+     lfd fp15,96(r3)
+     lwz r16,20(r3)
+     lfd fp16,104(r3)
+     lwz r17,24(r3)
+     lfd fp17,112(r3)
+     lwz r18,28(r3)
+     lfd fp18,120(r3)
+     lwz r19,32(r3)
+     lfd fp19,128(r3)
+     lwz r20,36(r3)
+     lfd fp20,136(r3)
+     mtlr r0
+     lwz r21,40(r3)
+     lfd fp21,144(r3)
+     lwz r22,44(r3)
+     lfd fp22,152(r3)
+     lwz r0,84(r3)
+     lwz r23,48(r3)
+     lfd fp23,160(r3)
+     lwz r24,52(r3)
+     lfd fp24,168(r3)
+     lwz r25,56(r3)
+     lfd fp25,176(r3)
+     mtcrf 0xFF,r0
+     lwz r26,60(r3)
+     lfd fp26,184(r3)
+     lwz r27,64(r3)
+     lfd fp27,192(r3)
+     lwz r28,68(r3)
+     lfd fp28,200(r3)
+     lwz r29,72(r3)
+     lfd fp29,208(r3)
+     lwz r30,76(r3)
+     lfd fp30,216(r3)
+     lwz r31,80(r3)
+     lfd fp31,224(r3)
+     mr r3,r4
+     blr
+ end;
 
 {
   $Log$
-  Revision 1.5  2002-09-07 16:01:26  peter
+  Revision 1.6  2003-04-26 18:54:30  florian
+    + implemented setjmp record and longjmp
+
+  Revision 1.5  2002/09/07 16:01:26  peter
     * old logs removed and tabs fixed
 
   Revision 1.4  2002/08/31 14:27:40  florian
