@@ -31,16 +31,21 @@ const
        (0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335));
 
 function DoEncodeDate(Year, Month, Day: Word): longint;
-var i: longint;
+var c, ya: word;
 begin
-Result := 0;
-if (Year >= 1) and (Year <= 9999) and (Month >= 1) and (Month <= 12) and
-   (Day >= 1) and (Day <= 31) then begin
-   Day := Day + DayTable[IsLeapYear(Year), Month] - 1;
-   I := Year - 1;
-   result := I * 365 + I div 4 - I div 100 + I div 400 + Day - DateDelta;
-   end ;
-end ;
+if (Month > 0) and (Month < 13) and (Day > 0) and (Day < 32) then 
+   begin
+     if month > 2 then Month := Month - 3 else 
+     begin
+       Month := Month + 9;
+       Year:= Year - 1; 
+     end;
+     c:= Year DIV 100;
+     ya:= Year - 100*c;
+     result := (146097*c) SHR 2 + (1461*ya) SHR 2 + (153*Month+2) DIV 5 + Day -
+693901;
+   end else result:=0;
+end;
 
 function DoEncodeTime(Hour, Minute, Second, MilliSecond: word): longint;
 begin
@@ -112,38 +117,41 @@ end ;
     Year, Month and Day   }
 
 procedure DecodeDate(Date: TDateTime; var Year, Month, Day: word);
-const
-   D1 = 365;            { number of days in 1 year }
-   D4 = D1 * 4 + 1;     { number of days in 4 years }
-   D100 = D4 * 25 - 1;  { number of days in 100 years }
-   D400 = D100 * 4 + 1; { number of days in 400 years }
 var
-   l:longint;
-   ly:boolean;
+  j: word;
 begin
-l := Trunc(System.Int(Date)) + DateDelta;
-year := 1 + 400 * (l div D400); l := (l mod D400);
-year := year + 100 * (l div D100);l := (l mod D100);
-year := year + 4 * (l div D4);l := (l mod D4);
-year := year + (l div D1);l := 1 + (l mod D1);
-month := 0;
-ly := IsLeapYear(Year);
-while (month < 12) and (l > DayTable[ly, month + 1]) do
-   inc(month);
-day := l - DayTable[ly, month];
+  j := pred((Trunc(System.Int(Date)) + 693901) SHL 2);
+  Year:= j DIV 146097;
+  j:= j - 146097 * Year;
+  Day := j SHR 2;
+  j:=(Day SHL 2 + 3) DIV 1461;
+  Day:= (Day SHL 2 + 7 - 1461*j) SHR 2;
+  Month:=(5 * Day-3) DIV 153;
+  Day:= (5 * Day +2 - 153*Month) DIV 5;
+  Year:= 100 * Year + j;
+  if Month < 10 then Month:= Month + 3 else begin
+    Month:= Month-9;
+    inc(Year);
+  end;
 end ;
 
 {   DecodeTime unpacks Time into four values:
     Hour, Minute, Second and MilliSecond    }
 
 procedure DecodeTime(Time: TDateTime; var Hour, Minute, Second, MilliSecond: word);
+
+Var l : longint;
+
 begin
-{ l := Trunc(Frac(time) * MSecsPerDay);
- Hour   := l div 3600000;l := l mod 3600000;
- Minute := l div 60000;l := l mod 60000;
- Second := l div 1000;l := l mod 1000;
+ l := Trunc(Frac(time) * MSecsPerDay);
+ Hour   := l div 3600000;
+ l := l mod 3600000;
+ Minute := l div 60000;
+ l := l mod 60000;
+ Second := l div 1000;
+ l := l mod 1000;
  MilliSecond := l;
-}
+{
   Time := Frac(Time) * 24;
   Hour := Trunc(Time);
   Time := Frac(Time) * 60;
@@ -151,6 +159,7 @@ begin
   Time := Frac(Time) * 60;
   Second  := Trunc(Time);
   MilliSecond := Trunc(Frac(Time) * 1000);
+  }
 end;
 
 {   DateTimeToSystemTime converts DateTime value to SystemTime   }
@@ -452,6 +461,17 @@ var
       end ;
    StoreStr(pchar(@S[1]), Len);
    end ;
+   
+   Function TimeReFormat(Const S : string) : string;
+   // Change m into n for time formatting.
+   Var i : longint;
+   
+   begin
+     Result:=S;
+     For I:=1 to Length(Result) do
+       If Result[i]='m' then 
+         result[i]:='n';
+   end;
 
 var
    Year, Month, Day, DayOfWeek, Hour, Minute, Second, MilliSecond: word;
@@ -570,10 +590,10 @@ var
                         else StoreInt(Second, 2);
                         end ;
                      'T': begin
-                        if Count = 1 then StoreFormat(ShortTimeFormat)
-                        else StoreFormat(LongTimeFormat);
+                        if Count = 1 then StoreFormat(timereformat(ShortTimeFormat))
+                        else StoreFormat(TimeReformat(LongTimeFormat));
                         end ;
-                     'C': StoreFormat(ShortDateFormat + ' ' + ShortTimeFormat);
+                     'C': StoreFormat(ShortDateFormat + ' ' + TimeReformat(ShortTimeFormat));
                   end ;
                end ;
             else
@@ -632,7 +652,14 @@ end;
 
 {
   $Log$
-  Revision 1.13  1999-05-31 20:50:44  peter
+  Revision 1.13.2.1  1999-07-14 15:44:48  peter
+    * merged
+
+  Revision 1.14  1999/07/14 08:47:54  michael
+  * faster En/Decodedate routines from Frank Reichert
+  * Fixed FormatDateTime with short/longtimeformat.
+
+  Revision 1.13  1999/05/31 20:50:44  peter
     * removed warnings
 
   Revision 1.12  1999/05/13 21:51:41  michael
