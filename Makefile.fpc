@@ -332,7 +332,7 @@ endif
 DOCSOURCEDIR=$(INSTALL_SOURCEDIR)/../docs
 
 docspdf:
-        $(MAKE) -C docs pdfinstall
+        $(MAKE) -C docs pdfinstall DOCINSTALLDIR=$(PACKDIR)
 
 docs:
         $(MAKE) fpc_zipinstall ZIPTARGET=docspdf ZIPNAME=docs

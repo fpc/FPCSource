@@ -1698,7 +1698,7 @@ endif
 .PHONY: docspdf docs docsrcinstall docsrc
 DOCSOURCEDIR=$(INSTALL_SOURCEDIR)/../docs
 docspdf:
-	$(MAKE) -C docs pdfinstall
+	$(MAKE) -C docs pdfinstall DOCINSTALLDIR=$(PACKDIR)
 docs:
 	$(MAKE) fpc_zipinstall ZIPTARGET=docspdf ZIPNAME=docs
 docsrcinstall:
@@ -1805,7 +1805,7 @@ ifdef inUnix
 ifneq ($(wildcard $(CVSINSTALL)/fpc.spec),)
 .PHONY: rpmcopy rpm
 RPMFPCVERSION:=$(shell grep 'define fpcversion' $(CVSINSTALL)/fpc.spec | awk '{ print $$3 }')
-REDHATDIR=/usr/src/redhat
+REDHATDIR=/usr/src/packages
 RPMSOURCESDIR:=$(REDHATDIR)/SOURCES
 RPMSPECDIR:=$(REDHATDIR)/SPECS
 RPMSRCDIR:=$(RPMSOURCESDIR)/fpc
