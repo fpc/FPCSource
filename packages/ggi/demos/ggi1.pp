@@ -40,13 +40,20 @@ begin
 
 
   Visual := ggiOpen(nil, []);	// Open default visual
+  if not Assigned(Visual) then begin
+    WriteLn(StdErr, 'Could not get default visual');
+    Halt(3);
+  end;
+
   ggiSetFlags(Visual, GGIFLAG_ASYNC);
 
-  ggiParseMode('', mode);
+  ggiParseMode({'S640x480[GT_8BIT]'}'', mode);
   ggiSetMode(Visual, mode);
   ggiGetMode(Visual, mode);
   ScreenW := mode.Virt.x;
   ScreenH := mode.Virt.y;
+
+  WriteLn('Screen size: ', ScreenW, ' x ', ScreenH);
 
   White := ggiMapColor(Visual, WhiteColor);
 
@@ -89,7 +96,11 @@ end.
 
 {
   $Log$
-  Revision 1.1  1999-11-10 14:14:34  sg
+  Revision 1.2  1999-11-12 18:51:24  sg
+  * Added check if visual is NIL (=error...)
+  * Prints resolution on terminal (because GGI will use an unknown default mode)
+
+  Revision 1.1  1999/11/10 14:14:34  sg
   * Added to CVS
 
 }
