@@ -619,7 +619,7 @@ const
         current_scanner^.addfile(hp);
         if not current_scanner^.open then
          Message1(scan_f_cannot_open_includefile,hs);
-        status.currentsource:=current_scanner^.inputfile^.name^;
+{        status.currentsource:=current_scanner^.inputfile^.name^; }
         Message1(scan_u_start_include_file,current_scanner^.inputfile^.name^);
         current_scanner^.reload;
       { register for refs }
@@ -848,7 +848,10 @@ const
 
 {
   $Log$
-  Revision 1.12  1998-07-07 11:20:10  peter
+  Revision 1.13  1998-07-07 12:32:54  peter
+    * status.currentsource is now calculated in verbose (more accurated)
+
+  Revision 1.12  1998/07/07 11:20:10  peter
     + NEWINPUT for a better inputfile and scanner object
 
   Revision 1.11  1998/06/04 23:51:59  peter

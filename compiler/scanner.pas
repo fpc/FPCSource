@@ -402,7 +402,7 @@ implementation
       { load block }
         if not open then
          Message(scan_f_cannot_open_input);
-        status.currentsource:=inputfile^.name^;
+{        status.currentsource:=inputfile^.name^; }
         reload;
       end;
 
@@ -457,7 +457,8 @@ implementation
         filemode:=ofm;
         if ioresult<>0 then
          exit;
-      { file }  
+      { file }
+
 
         closed:=false;
         filenotatend:=true;
@@ -593,7 +594,7 @@ implementation
            nextfile;
            reopen;
          { status }
-           status.currentsource:=inputfile^.name^;
+{           status.currentsource:=inputfile^.name^; }
            Comment(V_Debug,'back in '+inputfile^.name^);
          { load some current_module fields }
            current_module^.current_index:=inputfile^.ref_index;
@@ -1803,7 +1804,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.29  1998-07-07 11:20:11  peter
+  Revision 1.30  1998-07-07 12:32:55  peter
+    * status.currentsource is now calculated in verbose (more accurated)
+
+  Revision 1.29  1998/07/07 11:20:11  peter
     + NEWINPUT for a better inputfile and scanner object
 
   Revision 1.28  1998/07/01 15:26:57  peter

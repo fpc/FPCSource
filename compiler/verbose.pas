@@ -70,7 +70,8 @@ var
   msg         : pmessage;
   UseStdErr,
   Use_Rhide   : boolean;
-
+  lastfileidx,
+  lastmoduleidx : longint;
 
 procedure LoadMsgFile(const fn:string);
 function  SetVerbosity(const s:string):boolean;
@@ -96,6 +97,10 @@ var
 
 implementation
 uses
+{$ifdef NEWINPUT}
+  files,
+{$endif}
+
   globals;
 
 procedure LoadMsgFile(const fn:string);
@@ -231,6 +236,16 @@ begin
 {$ifdef NEWINPUT}
   status.currentline:=aktfilepos.line;
   status.currentcolumn:=aktfilepos.column;
+  if assigned(current_module) and
+
+     ((current_module^.unit_index<>lastmoduleidx) or
+      (current_module^.current_index<>lastfileidx)) then
+   begin
+     status.currentsource:=current_module^.sourcefiles.get_file_name(current_module^.current_index);
+     lastmoduleidx:=current_module^.unit_index;
+     lastfileidx:=current_module^.current_index;
+   end;
+
 {$endif}
 { show comment }
   if do_comment(l,s) or dostop or (status.errorcount>=maxerrorcount) then
@@ -288,6 +303,16 @@ begin
 {$ifdef NEWINPUT}
   status.currentline:=aktfilepos.line;
   status.currentcolumn:=aktfilepos.column;
+  if assigned(current_module) and
+
+     ((current_module^.unit_index<>lastmoduleidx) or
+      (current_module^.current_index<>lastfileidx)) then
+   begin
+     status.currentsource:=current_module^.sourcefiles.get_file_name(current_module^.current_index);
+     lastmoduleidx:=current_module^.unit_index;
+     lastfileidx:=current_module^.current_index;
+   end;
+
 {$endif}
 { show comment }
   if do_comment(v,s) or dostop or (status.errorcount>=maxerrorcount) then
@@ -327,7 +352,10 @@ end.
 
 {
   $Log$
-  Revision 1.9  1998-07-07 11:20:20  peter
+  Revision 1.10  1998-07-07 12:32:56  peter
+    * status.currentsource is now calculated in verbose (more accurated)
+
+  Revision 1.9  1998/07/07 11:20:20  peter
     + NEWINPUT for a better inputfile and scanner object
 
   Revision 1.8  1998/05/23 01:21:35  peter
