@@ -86,7 +86,8 @@ type
              target_i386_beos,          { 16 }
              target_i386_netbsd,        { 17 }
              target_m68k_netbsd,        { 18 }
-             target_i386_Netware        { 19 }
+             target_i386_Netware,       { 19 }
+             target_i386_qnx            { 20 }    
        );
 const
   Targets : array[ttarget] of string[12]=(
@@ -109,7 +110,8 @@ const
   { 16 }  'BeOS-i386',
   { 17 }  'NetBSD-i386',
   { 18 }  'NetBSD-m68k',
-  { 19 }  'Netware'
+  { 19 }  'Netware',
+  { 20 }  'Qnx-i386'
   );
 begin
   if w<=ord(high(ttarget)) then
@@ -1643,7 +1645,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2001-11-02 22:58:12  peter
+  Revision 1.10  2001-12-15 05:28:01  carl
+  + Added QNX target
+
+  Revision 1.9  2001/11/02 22:58:12  peter
     * procsym definition rewrite
 
   Revision 1.8  2001/09/22 04:52:27  carl
