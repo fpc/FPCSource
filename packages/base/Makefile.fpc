@@ -10,11 +10,11 @@ dirs_win32=inet gdbint \
            mysql ibase odbc
 dirs_go32v2=gdbint
 dirs_netbsd=inet gdbint libasync \
-            mysql ibase postgres oracle
+            mysql ibase postgres oracle odbc netdb
 dirs_openbsd=inet gdbint libasync \
-            mysql ibase postgres oracle
+            mysql ibase postgres oracle odbc netdb
 dirs_freebsd=inet gdbint libasync \
-             mysql ibase postgres oracle
+             mysql ibase postgres oracle odbc netdb
 
 [install]
 fpcpackage=y
