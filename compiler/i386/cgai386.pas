@@ -1496,7 +1496,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
          target_i386_linux:
            begin
               getaddrlabel(pl);
-              emitcall('mcount');
+              emitinsertcall('mcount');
               usedinproc:=usedinproc or ($80 shr byte(R_EDX));
               exprasmlist^.insert(new(paicpu,op_sym_ofs_reg(A_MOV,S_L,pl,0,R_EDX)));
               exprasmlist^.insert(new(pai_section,init(sec_code)));
@@ -2813,7 +2813,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.4  2000-10-24 12:47:45  jonas
+  Revision 1.5  2000-10-24 22:23:04  peter
+    * emitcall -> emitinsertcall for profiling (merged)
+
+  Revision 1.4  2000/10/24 12:47:45  jonas
     * allocate registers which hold function result
 
   Revision 1.3  2000/10/24 08:54:25  michael
