@@ -711,8 +711,26 @@ Implementation
                 j:=pos(' ',s);
                 if j=0 then
                   j:=pos('-',s);
-                { single asmsymbol }
+                { also try to handle
+                  asmsymbol + constant
+                  or
+                  asmsymbol - constant }
                 if j=0 then
+                  j:=pos('+',s);
+
+                if j<>0 then
+                  begin
+                    Val(Copy(s,j+1,255),ofs,code);
+                    if code<>0 then
+                      ofs:=0
+                    else
+                    { constant reading successful,
+                      avoid further treatment by
+                      setting s[j] to '+' }
+                      s[j]:='+';
+                  end
+                else
+                { single asmsymbol }
                   j:=256;
                 { the symbol can be external
                   so we must use newasmsymbol and
@@ -723,11 +741,11 @@ Implementation
                 else
                   begin
                     sec:=ps.section;
-                    ofs:=ps.address;
+                    ofs:=ofs+ps.address;
                     reloc:=true;
                     objectlibrary.UsedAsmSymbolListInsert(ps);
                   end;
-                if j<256 then
+                if (j<256) and (s[j]<>'+') then
                   begin
                     i:=i+j;
                     s:=strpas(@p[i]);
@@ -1617,7 +1635,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.52  2003-04-23 13:48:07  peter
+  Revision 1.53  2003-07-04 22:40:58  pierre
+   * add support for constant offset in stabs address, needed by threadvar debugging support
+
+  Revision 1.52  2003/04/23 13:48:07  peter
     * m68k fix
 
   Revision 1.51  2003/04/22 14:33:38  peter
