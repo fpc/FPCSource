@@ -6,6 +6,9 @@ var
    a : ansistring;
    w : widestring;
    err : boolean;
+  
+const somestr : pwidechar = 'blaat';
+
 begin
    p:=@c1;
    i:=0;
