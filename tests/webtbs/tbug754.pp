@@ -6,8 +6,10 @@ const
 var
    f : array [1..MaxOpenTest] of text;
    i,count : longint;
+   error : word;
    s : string;
    storeexit : pointer;
+   Max : longint;
 
 procedure Errorexit;
 begin
@@ -44,8 +46,16 @@ end;
 begin
   StoreExit:=exitproc;
   ExitProc:=@ErrorExit;
+  Max:=MaxOpenTest;
+  if paramcount>0 then
+    begin
+      val(paramstr(1),count,error);
+      if error = 0 then
+        Max:=count;
+      count:=0;
+    end;
 
-  for i:=1 to MaxOpenTest do
+  for i:=1 to Max do
     begin
       str(i,s);
       s:='file'+s+'.tmp';
@@ -57,6 +67,6 @@ begin
       { no closing so they are finally all open }
     end;
 
-  for i:=MaxOpenTest downto 1 do
+  for i:=Max downto 1 do
     close(f[i]);
 end.
