@@ -218,8 +218,8 @@ unit tree;
        end;
 
        { allows to determine which elementes are to be replaced }
-       tdisposetyp = (dt_nothing,dt_leftright,dt_left,
-                      dt_mbleft,dt_typeconv,dt_inlinen,
+       tdisposetyp = (dt_nothing,dt_leftright,dt_left,dt_leftrighthigh,
+                      dt_mbleft,dt_typeconv,dt_inlinen,dt_leftrightmethod,
                       dt_mbleft_and_method,dt_loop,dt_case,dt_with,dt_onn);
 
        ptree = ^ttree;
@@ -789,6 +789,24 @@ unit tree;
                  if assigned(p^.right) then
                    disposetree(p^.right);
               end;
+            dt_leftrighthigh :
+              begin
+                 if assigned(p^.left) then
+                   disposetree(p^.left);
+                 if assigned(p^.right) then
+                   disposetree(p^.right);
+                 if assigned(p^.hightree) then
+                   disposetree(p^.hightree);
+              end;
+            dt_leftrightmethod :
+              begin
+                 if assigned(p^.left) then
+                   disposetree(p^.left);
+                 if assigned(p^.right) then
+                   disposetree(p^.right);
+                 if assigned(p^.methodpointer) then
+                   disposetree(p^.methodpointer);
+              end;
             dt_case :
               begin
                  if assigned(p^.left) then
@@ -853,7 +871,7 @@ unit tree;
                       symt:=p^.withsymtable;
                    end;
               end;
-            else internalerror(12);
+            else internalerror(1209995);
          end;
          putnode(p);
       end;
@@ -2000,7 +2018,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.13  1999-08-06 18:05:55  florian
+  Revision 1.14  1999-09-14 11:16:09  florian
+    * only small updates to work with the current compiler
+
+  Revision 1.13  1999/08/06 18:05:55  florian
     * implemented some stuff for assignments
 
   Revision 1.12  1999/08/05 14:58:16  florian

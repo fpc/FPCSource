@@ -180,7 +180,7 @@ unit cgobj;
   implementation
 
     uses
-       globals,globtype,options,files,gdb,systems,
+       strings,globals,globtype,options,files,gdb,systems,
        ppu,verbose,types,tgobj,tgcpu;
 
 {*****************************************************************************
@@ -1080,7 +1080,10 @@ unit cgobj;
 end.
 {
   $Log$
-  Revision 1.25  1999-09-03 13:09:09  jonas
+  Revision 1.26  1999-09-14 11:16:09  florian
+    * only small updates to work with the current compiler
+
+  Revision 1.25  1999/09/03 13:09:09  jonas
     * fixed typo regarding scratchregs pointer
 
   Revision 1.24  1999/08/26 14:51:54  jonas

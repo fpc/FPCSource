@@ -33,7 +33,7 @@ unit nmem;
           symtableentry : psym;
           symtable : psymtable;
           is_absolute,is_first,is_methodpointer : boolean;
-          constructor init(v : pvarsym;st : psymtable);
+          constructor init(v : psym;st : psymtable);
           destructor done;virtual;
           procedure det_temp;virtual;
           procedure det_resulttype;virtual;
@@ -70,7 +70,7 @@ unit nmem;
                                  TLOADNODE
  ****************************************************************************}
 
-    constructor tloadnode.init(v : pvarsym;st : psymtable);
+    constructor tloadnode.init(v : psym;st : psymtable);
 
       var
          p : ptree;
@@ -78,7 +78,8 @@ unit nmem;
       begin
          inherited init;
          treetype:=loadn;
-         resulttype:=v^.definition;
+         if v^.typ=varsym then
+           resulttype:=pvarsym(v)^.definition;
          symtableentry:=v;
          symtable:=st;
          is_first := False;
@@ -142,7 +143,7 @@ unit nmem;
                          location.reference.symbol:=newasmsymbol(symtableentry^.mangledname);
                       end
 
-{$ifdef i386}
+{$ifdef dummy}
                     { DLL variable, DLL variables are only available on the win32 target }
                     { maybe we've to add this later for the alpha WinNT                  }
                     else if (pvarsym(symtableentry)^.var_options and vo_is_dll_var)<>0 then
@@ -153,10 +154,10 @@ unit nmem;
                          location.reference.symbol:=nil;
                          location.reference.base:=hregister;
                       end
-{$endif i386}
+{$endif dummy}
                     else
                       begin
-{$ifdef i386}
+{$ifdef dummy}
                          symtabletype:=symtable^.symtabletype;
                          { in case it is a register variable: }
                          if pvarsym(symtableentry)^.reg<>R_NO then
@@ -289,7 +290,7 @@ unit nmem;
                               reset_reference(location.reference);
                               location.reference.base:=hregister;
                           end;
-{$endif i386}
+{$endif dummy}
                       end;
                  end;
               procsym:
@@ -412,6 +413,7 @@ unit nmem;
 
       var
          r : treference;
+         opsize : tcgsize;
 
       begin
          if left^.resulttype^.deftype=stringdef then
@@ -466,12 +468,12 @@ unit nmem;
                             (loc=LOC_CREGISTER) then
                            begin
                               case p^.left^.resulttype^.size of
-                                 1 : opsize:=S_B;
-                                 2 : opsize:=S_W;
-                                 4 : opsize:=S_L;
+                                 1 : opsize:=OS_B;
+                                 2 : opsize:=OS_W;
+                                 4 : opsize:=OS_L;
                                  { S_L is correct, the copy is done }
                                  { with two moves                   }
-                                 8 : opsize:=S_L;
+                                 8 : opsize:=OS_L;
                               end;
                               if loc=LOC_CREGISTER then
                                 begin
@@ -709,7 +711,10 @@ unit nmem;
 end.
 {
   $Log$
-  Revision 1.11  1999-08-25 12:00:12  jonas
+  Revision 1.12  1999-09-14 11:16:09  florian
+    * only small updates to work with the current compiler
+
+  Revision 1.11  1999/08/25 12:00:12  jonas
     * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
 
   Revision 1.10  1999/08/18 17:05:56  florian
@@ -744,5 +749,4 @@ end.
 
   Revision 1.1  1999/01/24 22:32:36  florian
     * well, more changes, especially parts of secondload ported
-
 }

@@ -38,28 +38,45 @@ unit convtree;
 
     function convtree2node(p : ptree) : pnode;
 
-      var
-         node : pnode;
+      function doconv(p : ptree) : pnode;
+
+        var
+           node : pnode;
+
+        begin
+           if assigned(p) then
+             begin
+                case p^.treetype of
+                  blockn:
+                    node:=new(pblocknode,init(doconv(p^.left)));
+                  assignn:
+                    node:=new(passignmentnode,init(doconv(p^.left),
+                      doconv(p^.right)));
+                  statementn:
+                    node:=new(pstatementnode,init(doconv(p^.left),
+                      doconv(p^.right)));
+                  loadn:
+                    node:=new(ploadnode,init(p^.symtableentry,p^.symtable));
+                  else internalerror(1209993);
+                end;
+                doconv:=node;
+             end
+           else
+             doconv:=nil;
+        end;
 
       begin
-         if assigned(p) then
-           begin
-              case p^.treetype of
-                blockn:
-                  node:=new(pblocknode,init(convtree2node(p^.left)));
-                else internalerror(13751);
-              end;
-              disposetree(p);
-              convtree2node:=node;
-           end
-         else
-           convtree2node:=nil;
+         convtree2node:=doconv(p);
+         disposetree(p);
       end;
 
 end.
 {
   $Log$
-  Revision 1.4  1999-01-24 22:32:35  florian
+  Revision 1.5  1999-09-14 11:16:09  florian
+    * only small updates to work with the current compiler
+
+  Revision 1.4  1999/01/24 22:32:35  florian
     * well, more changes, especially parts of secondload ported
 
   Revision 1.3  1999/01/23 23:29:47  florian
