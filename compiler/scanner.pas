@@ -90,6 +90,7 @@ interface
           preprocstack   : ppreprocstack;
           invalid        : boolean; { flag if sourcefiles have been destroyed ! }
           macros         : pdictionary;
+          in_asm_string  : boolean;
 
           constructor init(const fn:string);
           destructor done;
@@ -326,6 +327,7 @@ implementation
         lastasmgetchar:=#0;
         ignoredirectives.init;
         invalid:=false;
+        in_asm_string:=false;
         new(macros,init);
       { load block }
         if not openinputfile then
@@ -1881,6 +1883,11 @@ exit_label:
           end
          else
           readchar;
+         if in_asm_string then
+           begin
+             asmgetchar:=c;
+             exit;
+           end;
          case c of
           '{' : begin
                   skipcomment;
@@ -1925,7 +1932,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.8  2000-11-29 00:30:40  florian
+  Revision 1.9  2000-11-30 20:27:51  peter
+    * merged fix for bug 1229
+
+  Revision 1.8  2000/11/29 00:30:40  florian
     * unused units removed from uses clause
     * some changes for widestrings
 

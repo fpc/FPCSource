@@ -391,6 +391,7 @@ begin
        '''' : { string or character }
          begin
            actasmpattern:='';
+           current_scanner^.in_asm_string:=true;
            repeat
              if c = '''' then
               begin
@@ -432,12 +433,14 @@ begin
              else
               break; { end if }
            until false;
+           current_scanner^.in_asm_string:=false;
            actasmtoken:=AS_STRING;
            exit;
          end;
 
        '"' : { string or character }
          begin
+           current_scanner^.in_asm_string:=true;
            actasmpattern:='';
            repeat
              if c = '"' then
@@ -480,6 +483,7 @@ begin
              else
               break; { end if }
            until false;
+           current_scanner^.in_asm_string:=false;
            actasmtoken:=AS_STRING;
            exit;
          end;
@@ -1916,7 +1920,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2000-11-29 00:30:51  florian
+  Revision 1.4  2000-11-30 20:27:51  peter
+    * merged fix for bug 1229
+
+  Revision 1.3  2000/11/29 00:30:51  florian
     * unused units removed from uses clause
     * some changes for widestrings
 

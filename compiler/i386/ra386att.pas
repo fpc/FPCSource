@@ -577,6 +577,7 @@ begin
 
        '''' : { char }
          begin
+           current_scanner^.in_asm_string:=true;
            actasmpattern:='';
            repeat
              c:=current_scanner^.asmgetchar;
@@ -584,6 +585,7 @@ begin
                '\' :
                  begin
                    { copy also the next char so \" is parsed correctly }
+                   actasmpattern:=actasmpattern+c;
                    c:=current_scanner^.asmgetchar;
                    actasmpattern:=actasmpattern+c;
                  end;
@@ -600,11 +602,13 @@ begin
            until false;
            actasmpattern:=EscapeToPascal(actasmpattern);
            actasmtoken:=AS_STRING;
+           current_scanner^.in_asm_string:=false;
            exit;
          end;
 
        '"' : { string }
          begin
+           current_scanner^.in_asm_string:=true;
            actasmpattern:='';
            repeat
              c:=current_scanner^.asmgetchar;
@@ -612,6 +616,7 @@ begin
                '\' :
                  begin
                    { copy also the next char so \" is parsed correctly }
+                   actasmpattern:=actasmpattern+c;
                    c:=current_scanner^.asmgetchar;
                    actasmpattern:=actasmpattern+c;
                  end;
@@ -628,6 +633,7 @@ begin
            until false;
            actasmpattern:=EscapeToPascal(actasmpattern);
            actasmtoken:=AS_STRING;
+           current_scanner^.in_asm_string:=false;
            exit;
          end;
 
@@ -2114,7 +2120,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2000-11-29 00:30:50  florian
+  Revision 1.4  2000-11-30 20:27:51  peter
+    * merged fix for bug 1229
+
+  Revision 1.3  2000/11/29 00:30:50  florian
     * unused units removed from uses clause
     * some changes for widestrings
 
