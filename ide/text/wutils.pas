@@ -107,7 +107,7 @@ type
   procedure readln(var t:text;var s:string);
 {$endif}
 
-procedure ReadlnFromStream(Stream: PStream; var s:string;var linecomplete : boolean);
+procedure ReadlnFromStream(Stream: PStream; var s:string;var linecomplete,hasCR : boolean);
 function eofstream(s: pstream): boolean;
 
 function Min(A,B: longint): longint;
@@ -126,6 +126,7 @@ function IntToStr(L: longint): string;
 function IntToStrL(L: longint; MinLen: sw_integer): string;
 function IntToStrZ(L: longint; MinLen: sw_integer): string;
 function StrToInt(const S: string): longint;
+function HexToInt(S: string): longint;
 function IntToHex(L: longint; MinLen: integer): string;
 function GetStr(P: PString): string;
 function GetPChar(P: PChar): string;
@@ -172,6 +173,7 @@ procedure StrToMem(S: string; var B);
 procedure GiveUpTimeSlice;
 
 const LastStrToIntResult : integer = 0;
+      LastHexToIntResult : integer = 0;
       DirSep             : char    = {$ifdef Linux}'/'{$else}'\'{$endif};
 
 procedure RegisterWUtils;
@@ -230,7 +232,7 @@ begin
   eofstream:=(s^.getpos>=s^.getsize);
 end;
 
-procedure ReadlnFromStream(Stream: PStream; var S:string;var linecomplete : boolean);
+procedure ReadlnFromStream(Stream: PStream; var S:string;var linecomplete,hasCR : boolean);
   var
     c : char;
     i,pos : longint;
@@ -269,6 +271,8 @@ procedure ReadlnFromStream(Stream: PStream; var S:string;var linecomplete : bool
       end;
     if (c=#10) or eofstream(stream) then
       linecomplete:=true;
+    if (c=#10) then
+      hasCR:=true;
     s[0]:=chr(i);
   end;
 
@@ -411,6 +415,25 @@ begin
   StrToInt:=L;
 end;
 
+function HexToInt(S: string): longint;
+var L,I: longint;
+    C: char;
+const HexNums: string[16] = '0123456789ABCDEF';
+begin
+  S:=Trim(S); L:=0; I:=1; LastHexToIntResult:=0;
+  while (I<=length(S)) and (LastHexToIntResult=0) do
+  begin
+    C:=Upcase(S[I]);
+    if C in['0'..'9','A'..'F'] then
+    begin
+      L:=L*16+(Pos(C,HexNums)-1);
+    end else LastHexToIntResult:=I;
+    Inc(I);
+  end;
+  HexToInt:=L;
+end;
+
+
 function IntToHex(L: longint; MinLen: integer): string;
 const HexNums : string[16] = '0123456789ABCDEF';
 var S: string;
@@ -433,7 +456,6 @@ begin
   while length(S)<MinLen do S:='0'+S;
   IntToHex:=S;
 end;
-
 
 function GetStr(P: PString): string;
 begin
@@ -1161,7 +1183,19 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.6  2000-11-04 20:04:33  hajny
+  Revision 1.7  2000-11-13 17:37:44  pierre
+   merges from fixes branch
+
+  Revision 1.1.2.9  2000/11/13 16:59:10  pierre
+   * some function in double removed from fputils unit
+
+  Revision 1.1.2.8  2000/11/12 19:50:36  hajny
+    * OS/2 changes from the main branch merged
+
+  Revision 1.1.2.7  2000/11/06 17:19:58  pierre
+   * avoid eating of last carriage return
+
+  Revision 1.6  2000/11/04 20:04:33  hajny
     * wrong DosError was used under OS/2
 
   Revision 1.5  2000/10/31 22:35:56  pierre

@@ -35,7 +35,7 @@ uses
   FPDebug,
 {$endif NODEBUG}
   FPRedir,FPVars,
-  FPUtils,FPSwitch;
+  FPUtils,FPSwitch,WUtils;
 
 {****************************************************************************
                                    Run
@@ -212,7 +212,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 09:48:35  michael
+  Revision 1.2  2000-11-13 17:37:42  pierre
+   merges from fixes branch
+
+  Revision 1.1.2.1  2000/11/13 16:59:09  pierre
+   * some function in double removed from fputils unit
+
+  Revision 1.1  2000/07/13 09:48:35  michael
   + Initial import
 
   Revision 1.12  2000/06/22 09:07:12  pierre

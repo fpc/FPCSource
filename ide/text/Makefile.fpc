@@ -36,11 +36,11 @@ GDBINT=gdbint
 endif
 
 ifeq ($(GDB),1)
-GDBLIBDIR+=$(PACKAGESDIR)/$(GDBINT)/libgdb/$(OS_TARGET)
-GDBOBJDIR+=$(PACKAGESDIR)/$(GDBINT)/libgdb/$(OS_TARGET)
+override GDBLIBDIR+=$(PACKAGESDIR)/$(GDBINT)/libgdb/$(OS_TARGET)
+override GDBOBJDIR+=$(PACKAGESDIR)/$(GDBINT)/libgdb/$(OS_TARGET)
 ifeq ($(OS_TARGET),go32v2)
 ifneq ($(DJDIR),)
-GDBLIBDIR+=$(DJDIR)/lib
+override GDBLIBDIR+=$(DJDIR)/lib
 endif
 endif
 ifeq ($(strip $(wildcard $(addsuffix /libgdb.a,$(GDBLIBDIR)))),)
@@ -69,7 +69,7 @@ endif
 
 
 [rules]
-.PHONY: gdb full fullgdb clean_compiler clean
+.PHONY: gdb full fullgdb clean_compiler clean testgdb postgdbinfo
 
 clean: fpc_cleanall
 
@@ -90,6 +90,8 @@ endif
 postgdbinfo:
 ifeq ($(GDBFOUND),0)
         $(ECHO) LibGDB was not found, IDE has no Debugger support
+else
+        $(ECHO) LibGDB found in $(LIBGDB)
 endif
 
 gdb:

@@ -34,29 +34,14 @@ const
   ppext  = '.pp';
 {$endif}
 
-function IntToStr(L: longint): string;
-function IntToStrZ(L: longint; MinLen: byte): string;
-function IntToStrL(L: longint; MinLen: byte): string;
-function StrToInt(const S: string): longint;
-function IntToHex(L: longint): string;
-function IntToHexL(L: longint; MinLen: byte): string;
-function HexToInt(S: string): longint;
 function SmartPath(Path: string): string;
 Function FixPath(s:string;allowdot:boolean):string;
 function FixFileName(const s:string):string;
 function MakeExeName(const fn:string):string;
-function LExpand(const S: string; MinLen: byte): string;
-function RExpand(const S: string; MinLen: byte): string;
 function Center(const S: string; Len: byte): string;
 function FitStr(const S: string; Len: byte): string;
-function LTrim(const S: string): string;
-function RTrim(const S: string): string;
-function Trim(const S: string): string;
 function KillTilde(S: string): string;
-function UpcaseStr(const S: string): string;
 function LowercaseStr(const S: string): string;
-function Max(A,B: longint): longint;
-function Min(A,B: longint): longint;
 function DirOf(const S: string): string;
 function ExtOf(const S: string): string;
 function NameOf(const S: string): string;
@@ -76,9 +61,7 @@ function GetStr(const P: PString): string;
 procedure ReplaceStr(var S: string; const What,NewS: string);
 procedure ReplaceStrI(var S: string; What: string; const NewS: string);
 
-const LastStrToIntResult : integer = 0;
-      LastHexToIntResult : integer = 0;
-      ListSeparator      : char = ';';
+const ListSeparator      : char = ';';
 
 implementation
 
@@ -91,16 +74,6 @@ var S: string;
 begin
   Str(L,S);
   IntToStr:=S;
-end;
-
-function StrToInt(const S: string): longint;
-var L: longint;
-    C: integer;
-begin
-  Val(S,L,C);
-  if C<>0 then L:=-1;
-  LastStrToIntResult:=C;
-  StrToInt:=L;
 end;
 
 function IntToStrZ(L: longint; MinLen: byte): string;
@@ -188,24 +161,6 @@ begin
 end;
 
 
-function LExpand(const S: string; MinLen: byte): string;
-begin
-  if length(S)<MinLen then
-    LExpand:=CharStr(' ',MinLen-length(S))+S
-  else
-    LExpand:=S;
-end;
-
-
-function RExpand(const S: string; MinLen: byte): string;
-begin
-  if length(S)<MinLen then
-    RExpand:=S+CharStr(' ',MinLen-length(S))
-  else
-    RExpand:=S;
-end;
-
-
 function Center(const S: string; Len: byte): string;
 begin
   Center:=LExpand(S+CharStr(' ',Max(0,(Len-length(S)) div 2)),Len);
@@ -228,18 +183,6 @@ begin
   KillTilde:=S;
 end;
 
-function UpcaseStr(const S: string): string;
-var
-  I: Longint;
-begin
-  for I:=1 to length(S) do
-    if S[I] in ['a'..'z'] then
-      UpCaseStr[I]:=chr(ord(S[I])-32)
-    else
-      UpCaseStr[I]:=S[I];
-  UpcaseStr[0]:=S[0];
-end;
-
 function LowerCaseStr(const S: string): string;
 var
   I: Longint;
@@ -250,16 +193,6 @@ begin
     else
       LowerCaseStr[I]:=S[I];
   LowercaseStr[0]:=S[0];
-end;
-
-function Max(A,B: longint): longint;
-begin
-  if A>B then Max:=A else Max:=B;
-end;
-
-function Min(A,B: longint): longint;
-begin
-  if A<B then Min:=A else Min:=B;
 end;
 
 function DirOf(const S: string): string;
@@ -307,79 +240,6 @@ function Power(const A,B: double): double;
 begin
   if A=0 then Power:=0
          else Power:=exp(B*ln(A));
-end;
-
-function IntToHex(L: longint): string;
-const HexNums : string[16] = '0123456789ABCDEF';
-var S: string;
-    R: real;
-function DivF(Mit,Mivel: real): longint;
-begin
-  DivF:=trunc(Mit/Mivel);
-end;
-function ModF(Mit,Mivel: real): longint;
-begin
-  ModF:=trunc(Mit-DivF(Mit,Mivel)*Mivel);
-end;
-begin
-  S:='';
-  R:=L; if R<0 then begin R:=R+2147483647+2147483647+2; end;
-  repeat
-    S:=HexNums[ModF(R,16)+1]+S;
-    R:=DivF(R,16);
-  until R=0;
-  IntToHex:=S;
-end;
-
-function HexToInt(S: string): longint;
-var L,I: longint;
-    C: char;
-const HexNums: string[16] = '0123456789ABCDEF';
-begin
-  S:=Trim(S); L:=0; I:=1; LastHexToIntResult:=0;
-  while (I<=length(S)) and (LastHexToIntResult=0) do
-  begin
-    C:=Upcase(S[I]);
-    if C in['0'..'9','A'..'F'] then
-    begin
-      L:=L*16+(Pos(C,HexNums)-1);
-    end else LastHexToIntResult:=I;
-    Inc(I);
-  end;
-  HexToInt:=L;
-end;
-
-function IntToHexL(L: longint; MinLen: byte): string;
-var S: string;
-begin
-  S:=IntToHex(L);
-  while length(S)<MinLen do S:='0'+S;
-  IntToHexL:=S;
-end;
-
-function LTrim(const S: string): string;
-var
-  i : longint;
-begin
-  i:=1;
-  while (i<length(s)) and (s[i]=' ') do
-   inc(i);
-  LTrim:=Copy(s,i,High(S));
-end;
-
-function RTrim(const S: string): string;
-var
-  i : longint;
-begin
-  i:=length(s);
-  while (i>0) and (s[i]=' ') do
-   dec(i);
-  RTrim:=Copy(s,1,i);
-end;
-
-function Trim(const S: string): string;
-begin
-  Trim:=RTrim(LTrim(S));
 end;
 
 function MatchesMask(What, Mask: string): boolean;
@@ -459,7 +319,8 @@ begin
   if What<>'' then
   repeat
     P:=Pos(ListSeparator, MaskList);
-    if P=0 then P:=length(MaskList)+1;
+    if P=0 then
+      P:=length(MaskList)+1;
     Match:=MatchesMask(What,copy(MaskList,1,P-1));
     Delete(MaskList,1,P);
   until Match or (MaskList='');
@@ -632,7 +493,13 @@ end;
 END.
 {
   $Log$
-  Revision 1.3  2000-11-03 16:05:38  pierre
+  Revision 1.4  2000-11-13 17:37:42  pierre
+   merges from fixes branch
+
+  Revision 1.1.2.4  2000/11/13 16:59:09  pierre
+   * some function in double removed from fputils unit
+
+  Revision 1.3  2000/11/03 16:05:38  pierre
    * (merged)
 
   Revision 1.1.2.3  2000/11/03 15:45:57  pierre

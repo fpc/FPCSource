@@ -30,6 +30,9 @@ uses
 {$ifdef go32v2}
   dpmiexcp,
 {$endif go32v2}
+{$ifdef fpc}
+  video,
+{$endif fpc}
   Dos,Objects,
   BrowCol,
   Drivers,Views,App,Dialogs,ColorSel,Menus,StdDlg,Validate,
@@ -101,6 +104,11 @@ begin
                  UseMouse:=false;
                  ButtonCount:=0;
                end;
+{$ifdef fpc}
+          'F' :
+             if Length(Param)=1 then
+               NoExtendedFrame:=true;
+{$endif fpc}
         end;
       end
     else
@@ -268,8 +276,17 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.3  2000-10-01 22:44:18  pierre
+  Revision 1.4  2000-11-13 17:37:41  pierre
+   merges from fixes branch
+
+  Revision 1.1.2.4  2000/11/09 08:53:35  pierre
+   + -F option to force use of only one graphic set
+
+  Revision 1.3  2000/10/01 22:44:18  pierre
    * remove lineinfo in _USES
+
+  Revision 1.1.2.3  2000/09/27 22:32:26  pierre
+   * suppress lineinfo explicit in _uses
 
   Revision 1.2  2000/08/22 09:41:39  pierre
    * first big merge from fixes branch

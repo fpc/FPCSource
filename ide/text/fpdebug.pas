@@ -458,7 +458,7 @@ const
 {$ifdef TP}
 function HexStr(Value: longint; Len: byte): string;
 begin
-  HexStr:=IntToHexL(Value,Len);
+  HexStr:=IntToHex(Value,Len);
 end;
 {$endif}
 
@@ -3374,7 +3374,13 @@ end.
 
 {
   $Log$
-  Revision 1.4  2000-10-31 22:35:54  pierre
+  Revision 1.5  2000-11-13 17:37:41  pierre
+   merges from fixes branch
+
+  Revision 1.1.2.8  2000/11/13 16:59:08  pierre
+   * some function in double removed from fputils unit
+
+  Revision 1.4  2000/10/31 22:35:54  pierre
    * New big merge from fixes branch
 
   Revision 1.1.2.7  2000/10/31 07:47:54  pierre

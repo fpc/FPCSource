@@ -1308,7 +1308,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.3  2000-11-11 23:05:31  hajny
+  Revision 1.4  2000-11-13 17:37:43  pierre
+   merges from fixes branch
+
+  Revision 1.3  2000/11/11 23:05:31  hajny
     * OS/2 implementation of GetDosTicks added
 
   Revision 1.2  2000/10/31 22:35:56  pierre

@@ -151,7 +151,7 @@ begin
   C:='';
   for I:=1 to length(S) do
     begin
-      C:=C+'#$'+IntToHexL(ord(S[I]),2);
+      C:=C+'#$'+IntToHex(ord(S[I]),2);
     end;
   PaletteToStr:=C;
 end;
@@ -578,7 +578,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  2000-10-31 22:35:54  pierre
+  Revision 1.6  2000-11-13 17:37:42  pierre
+   merges from fixes branch
+
+  Revision 1.1.2.5  2000/11/13 16:59:09  pierre
+   * some function in double removed from fputils unit
+
+  Revision 1.5  2000/10/31 22:35:54  pierre
    * New big merge from fixes branch
 
   Revision 1.4  2000/10/06 23:00:13  pierre

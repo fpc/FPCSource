@@ -919,16 +919,6 @@ begin
   ExistsFile:=Exists;
 end;
 
-function Max(A,B: longint): longint;
-begin
-  if A>B then Max:=A else Max:=B;
-end;
-
-function Min(A,B: longint): longint;
-begin
-  if A<B then Min:=A else Min:=B;
-end;
-
 function StrToInt(const S: string): longint;
 var L: longint;
     C: integer;
@@ -4929,6 +4919,7 @@ begin
   S:='';
   { If AutoIndent try to align first line to
     last line before selection }
+  { DISABLED created problems PM
   if IsFlagSet(efAutoIndent) and (SelStart.Y>0) then
     begin
       i:=SelStart.Y-1;
@@ -4955,7 +4946,7 @@ begin
           Ind:=CharStr(' ',indlen);
         end;
     end
-  else
+  else }
    Ind:=' ';
   for i:=selstart.y to ey do
    begin
@@ -4989,6 +4980,7 @@ begin
    dec(ey);
   { If AutoIndent try to align first line to
     last line before selection }
+  { Disabled created problems
   if IsFlagSet(efAutoIndent) and (SelStart.Y>0) then
     begin
       S:=GetDisplayText(SelStart.Y);
@@ -5018,7 +5010,7 @@ begin
             indlen:=1;
         end;
     end
-  else
+  else }
    Indlen:=1;
   for i:=selstart.y to ey do
    begin
@@ -6126,7 +6118,7 @@ end;
 
 function TCustomCodeEditorCore.LoadFromStream(Editor: PCustomCodeEditor; Stream: PStream): boolean;
 var S: string;
-    AllLinesComplete,LineComplete,OK: boolean;
+    AllLinesComplete,LineComplete,hasCR,OK: boolean;
 begin
   DeleteAllLines;
   ChangedLine:=-1;
@@ -6135,15 +6127,20 @@ begin
   if eofstream(Stream) then
    AddLine('')
   else
-   while OK and (eofstream(Stream)=false) and (GetLineCount<MaxLineCount) do
    begin
-     ReadlnFromStream(Stream,S,LineComplete);
-     AllLinesComplete:=AllLinesComplete and LineComplete;
-     OK:=OK and (Stream^.Status=stOK);
-     if OK then AddLine(S);
-     if not LineComplete and (ChangedLine=-1) then
-       ChangedLine:=GetLineCount;
-   end;
+     while OK and (eofstream(Stream)=false) and (GetLineCount<MaxLineCount) do
+       begin
+         ReadlnFromStream(Stream,S,LineComplete,hasCR);
+         AllLinesComplete:=AllLinesComplete and LineComplete;
+         OK:=OK and (Stream^.Status=stOK);
+         if OK then AddLine(S);
+         if not LineComplete and (ChangedLine=-1) then
+           ChangedLine:=GetLineCount;
+       end;
+     { Do not remove the final newline if it exists PM }
+     if hasCR then
+       AddLine('');
+    end;
   LimitsChanged;
   if not AllLinesComplete then
     SetModified(true);
@@ -6574,7 +6571,16 @@ end;
 END.
 {
   $Log$
-  Revision 1.4  2000-11-03 16:05:38  pierre
+  Revision 1.5  2000-11-13 17:37:42  pierre
+   merges from fixes branch
+
+  Revision 1.1.2.15  2000/11/13 16:55:09  pierre
+   * multi space indent disabled
+
+  Revision 1.1.2.14  2000/11/06 17:19:58  pierre
+   * avoid eating of last carriage return
+
+  Revision 1.4  2000/11/03 16:05:38  pierre
    * (merged)
 
   Revision 1.1.2.13  2000/11/03 15:49:26  pierre

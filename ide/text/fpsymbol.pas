@@ -961,7 +961,7 @@ function AddrStr(Addr: longint): string;
 type TLongint = record LoW,HiW: word; end;
 begin
   with TLongint(Addr) do
-  AddrStr:='$'+IntToHexL(HiW,4)+IntToHexL(HiW,4);
+  AddrStr:='$'+IntToHex(HiW,4)+IntToHex(HiW,4);
 end;
 begin
   ClearFormatParams;
@@ -1695,7 +1695,13 @@ end;
 END.
 {
   $Log$
-  Revision 1.2  2000-10-31 22:35:55  pierre
+  Revision 1.3  2000-11-13 17:37:42  pierre
+   merges from fixes branch
+
+  Revision 1.1.2.2  2000/11/13 16:59:09  pierre
+   * some function in double removed from fputils unit
+
+  Revision 1.2  2000/10/31 22:35:55  pierre
    * New big merge from fixes branch
 
   Revision 1.1.2.1  2000/09/27 21:06:11  pierre

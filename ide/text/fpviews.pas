@@ -127,6 +127,7 @@ type
     TSourceEditor = object(TFileEditor)
       constructor Init(var Bounds: TRect; AHScrollBar, AVScrollBar:
           PScrollBar; AIndicator: PIndicator;const AFileName: string);
+      CompileStamp : longint;
 {$ifndef EDITORS}
     public
       CodeCompleteTip: PFPToolTip;
@@ -893,6 +894,7 @@ begin
   EC:=SearchCoreForFileName(AFileName);
   inherited Init(Bounds,AHScrollBar,AVScrollBar,AIndicator,EC,AFileName);
   SetStoreUndo(true);
+  CompileStamp:=0;
 end;
 
 function TSourceEditor.GetSpecSymbolCount(SpecClass: TSpecSymbolClass): integer;
@@ -1024,7 +1026,13 @@ procedure TSourceEditor.ModifiedChanged;
 begin
   inherited ModifiedChanged;
   if (@Self<>Clipboard) and GetModified then
-    EditorModified:=true;
+    begin
+      { global flags }
+      EditorModified:=true;
+      { reset compile flags as the file is
+      not the same as at the compilation anymore }
+      CompileStamp:=-1;
+    end;
 end;
 
 procedure TSourceEditor.InsertOptions;
@@ -3564,7 +3572,13 @@ end;
 END.
 {
   $Log$
-  Revision 1.3  2000-10-31 22:35:55  pierre
+  Revision 1.4  2000-11-13 17:37:42  pierre
+   merges from fixes branch
+
+  Revision 1.1.2.13  2000/11/06 16:55:48  pierre
+   * fix failure to recompile when file changed
+
+  Revision 1.3  2000/10/31 22:35:55  pierre
    * New big merge from fixes branch
 
   Revision 1.1.2.12  2000/10/31 07:54:24  pierre

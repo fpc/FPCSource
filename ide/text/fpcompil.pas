@@ -95,6 +95,7 @@ type
 const
     CompilerMessageWindow : PCompilerMessageWindow  = nil;
     CompilerStatusDialog  : PCompilerStatusDialog = nil;
+    CompileStamp          : longint = 0;
 
 procedure DoCompile(Mode: TCompileMode);
 function  NeedRecompile(verbose : boolean): boolean;
@@ -615,6 +616,8 @@ begin
     f:=new(PFPInputFile, Init(W^.Editor))
   else
     f:={$ifndef GABOR}def_openinputfile(filename){$else}nil{$endif};
+  if assigned(W) then
+    W^.Editor^.CompileStamp:=CompileStamp;
   CompilerOpenInputFile:=f;
 end;
 
@@ -805,6 +808,7 @@ begin
   JmpRet:=SetJmp(StopJmp);
   if JmpRet=0 then
     begin
+      inc(CompileStamp);
       FpIntF.Compile(FileName,SwitchesPath);
       SetStatus('Finished compiling...');
     end
@@ -964,6 +968,7 @@ var Need: boolean;
     I: sw_integer;
     SF: PSourceFile;
     SourceTime,PPUTime,ObjTime: longint;
+    W: PSourceWindow;
 begin
   if Assigned(SourceFiles)=false then
      Need:={(EditorModified=true)}true
@@ -992,10 +997,12 @@ begin
             writeln('O: ',SF^.GetObjFileName,' - ',ObjTime);
             writeln('------');}
             { some units don't generate object files }
+            W:=EditorWindowFile(SF^.GetSourceFileName);
             if (SourceTime<>-1) then
-              if (SourceTime>PPUTime) or
+              if ((SourceTime>PPUTime) or
                  ((SourceTime>ObjTime) and
-                 (ObjTime<>-1)) then
+                 (ObjTime<>-1))) or
+                 (assigned(W) and (W^.Editor^.CompileStamp<0)) then
                 begin
                   Need:=true;
                   if verbose then
@@ -1098,7 +1105,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  2000-10-31 22:35:54  pierre
+  Revision 1.6  2000-11-13 17:37:41  pierre
+   merges from fixes branch
+
+  Revision 1.1.2.9  2000/11/06 16:55:48  pierre
+   * fix failure to recompile when file changed
+
+  Revision 1.5  2000/10/31 22:35:54  pierre
    * New big merge from fixes branch
 
   Revision 1.1.2.8  2000/10/31 07:51:58  pierre

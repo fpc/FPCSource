@@ -96,7 +96,7 @@ procedure RegisterFPCalc;
 
 implementation
 
-uses FPString,FPUtils,FPConst;
+uses FPString,FPUtils,FPConst,WUtils;
 
 const
   cmCalcButton  = 100;
@@ -463,7 +463,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 09:48:34  michael
+  Revision 1.2  2000-11-13 17:37:41  pierre
+   merges from fixes branch
+
+  Revision 1.1.2.1  2000/11/13 16:59:08  pierre
+   * some function in double removed from fputils unit
+
+  Revision 1.1  2000/07/13 09:48:34  michael
   + Initial import
 
   Revision 1.10  2000/05/02 08:42:26  pierre

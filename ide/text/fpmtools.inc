@@ -153,7 +153,8 @@ var
   s : string;
   p,lineNb,GrepOutputLine : longint;
   error : word;
-  showmsg,error_in_reading : boolean;
+  PosText : longint;
+  showmsg,error_in_reading,FirstMsg : boolean;
   ToFocus : sw_integer;
   searchword,
   GrepExe,GrepArgs,Line,ModuleName : String;
@@ -222,6 +223,13 @@ begin
       if SearchWord<>'' then
        begin
          GrepArgs:=IL2^.Data^;
+         { Remember last used Grep extensions }
+         PosText:=pos('"$TEXT" ',GrepArgs);
+         if PosText>0 then
+           HighlightExts:=Trim(Copy(GrepArgs,PosText+Length('"$TEXT" '),Length(GrepArgs)));
+         { change spaces back into ';' again }
+         ReplaceStr(HighlightExts,' ',';');
+         { Replace search string }
          ReplaceStr(GrepArgs,'$TEXT',SearchWord);
          { Linux ? }
          AddToolCommand(GrepExe+' -n '+GrepArgs);
@@ -250,6 +258,7 @@ begin
          Assign(GrepOut,GrepOutName);
          Reset(GrepOut);
          error_in_reading:=false;
+         FirstMsg:=True;
          GrepOutputLine:=0;
          While not eof(GrepOut) do
            begin
@@ -263,7 +272,14 @@ begin
                  p:=pos(':',Line);
                  val(copy(Line,1,p-1),lineNb,error);
                  if error=0 then
-                   AddToolMessage(ModuleName,Copy(Line,p+1,255),LineNb,1)
+                   begin
+                     AddToolMessage(ModuleName,Copy(Line,p+1,255),LineNb,1);
+                     if FirstMsg then
+                       begin
+                         Inc(ToFocus);
+                         FirstMsg:=false;
+                       end;
+                   end
                  else
                    error_in_reading:=true;
                end;
@@ -300,7 +316,13 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-08-22 09:41:40  pierre
+  Revision 1.3  2000-11-13 17:37:42  pierre
+   merges from fixes branch
+
+  Revision 1.1.2.2  2000/11/13 16:57:04  pierre
+   * some grep improovements
+
+  Revision 1.2  2000/08/22 09:41:40  pierre
    * first big merge from fixes branch
 
   Revision 1.1.2.1  2000/07/20 11:02:15  michael
