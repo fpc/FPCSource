@@ -14,6 +14,9 @@ all Ä
   NewFolder "::units:" ³ Dev:Null
   NewFolder "::units:powerpc-macos:" ³ Dev:Null
   Set Exit 1
+  If {RELEASE}
+    Set OPT "{OPT} -Ur"
+  End
 	"{FPC}" {OPT} {REDIR} -Us -Fi::inc -Fi::powerpc system.pp
   "{FPC}" {OPT} {REDIR} -Fi::inc -Fi::powerpc ::inc:strings.pp
   "{FPC}" {OPT} {REDIR} -Fi::inc -Fi::powerpc ::objpas:objpas.pp
@@ -40,6 +43,9 @@ macos Ä
   NewFolder "::units:" ³ Dev:Null
   NewFolder "::units:powerpc-macos:" ³ Dev:Null
   Set Exit 1
+	If {RELEASE}
+		Set OPT "{OPT} -Ur"
+	End
   "{FPC}" {OPT} {REDIR} -Fi"{UPINTERFACES}" macos.pp
 
 clean Ä
