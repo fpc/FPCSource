@@ -330,7 +330,7 @@ unit pmodules;
                 Message(unit_f_too_much_units);
              end;
           { ok, now load the unit }
-            hp^.symtable:=new(punitsymtable,load(hp^.modulename^));
+            hp^.symtable:=new(punitsymtable,load(hp));
           { if this is the system unit insert the intern symbols }
             make_ref:=false;
             if compile_system then
@@ -352,6 +352,16 @@ unit pmodules;
                 exit;
              end;
           end;
+{$ifdef NEWPPU}
+       { The next entry should be an ibendimplementation }
+         b:=hp^.ppufile^.readentry;
+         if b <> ibendimplementation then
+          Message1(unit_f_ppu_invalid_entry,tostr(b));
+       { The next entry should be an ibend }
+         b:=hp^.ppufile^.readentry;
+         if b <> ibend then
+          Message1(unit_f_ppu_invalid_entry,tostr(b));
+{$endif}
          hp^.ppufile^.close;
 {!         dispose(hp^.ppufile,done);}
 {$else}
@@ -404,7 +414,7 @@ unit pmodules;
               hp^.ppufile^.read_data(b,1,count);
            end;
          { ok, now load the unit }
-         hp^.symtable:=new(punitsymtable,load(hp^.modulename^));
+         hp^.symtable:=new(punitsymtable,load(hp));
          { if this is the system unit insert the intern }
          { symbols                                      }
          make_ref:=false;
@@ -1110,7 +1120,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.16  1998-05-27 19:45:06  peter
+  Revision 1.17  1998-05-28 14:40:25  peter
+    * fixes for newppu, remake3 works now with it
+
+  Revision 1.16  1998/05/27 19:45:06  peter
     * symtable.pas splitted into includefiles
     * symtable adapted for $ifdef NEWPPU
 

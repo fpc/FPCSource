@@ -39,32 +39,32 @@
 
     procedure writebyte(b:byte);
       begin
-        ppufile.putbyte(b);
+        ppufile^.putbyte(b);
       end;
 
     procedure writeword(w:word);
       begin
-        ppufile.putword(w);
+        ppufile^.putword(w);
       end;
 
     procedure writelong(l:longint);
       begin
-        ppufile.putlongint(l);
+        ppufile^.putlongint(l);
       end;
 
     procedure writedouble(d:double);
       begin
-        ppufile.putdata(d,sizeof(double));
+        ppufile^.putdata(d,sizeof(double));
       end;
 
     procedure writestring(const s:string);
       begin
-        ppufile.putstring(s);
+        ppufile^.putstring(s);
       end;
 
     procedure writeset(var s); {You cannot pass an array[0..31] of byte!}
       begin
-        ppufile.putdata(s,32);
+        ppufile^.putdata(s,32);
       end;
 
     procedure writecontainer(var p:tstringcontainer;id:byte;hold:boolean);
@@ -77,11 +77,11 @@
         while not p.empty do
          begin
            s:=p.get;
-           ppufile.putstring(s);
+           ppufile^.putstring(s);
            if hold then
             hcontainer.insert(s);
          end;
-        ppufile.writeentry(id);
+        ppufile^.writeentry(id);
         if hold then
          p:=hcontainer;
       end;
@@ -96,14 +96,14 @@
     procedure writedefref(p : pdef);
       begin
         if p=nil then
-         ppufile.putlongint($ffffffff)
+         ppufile^.putlongint($ffffffff)
         else
          begin
            if (p^.owner^.symtabletype in [recordsymtable,objectsymtable]) then
-            ppufile.putword($ffff)
+            ppufile^.putword($ffff)
            else
-            ppufile.putword(p^.owner^.unitid);
-           ppufile.putword(p^.number);
+            ppufile^.putword(p^.owner^.unitid);
+           ppufile^.putword(p^.number);
          end;
       end;
 
@@ -151,9 +151,9 @@
 {$endif UseBrowser}
           end;
 
-         ppufile.init(s);
-         ppufile.change_endian:=source_os.endian<>target_os.endian;
-         if not ppufile.create then
+         ppufile:=new(pppufile,init(s));
+         ppufile^.change_endian:=source_os.endian<>target_os.endian;
+         if not ppufile^.create then
           Message(unit_f_ppu_cannot_write);
          unit_symtable^.writeasunit;
 {$ifdef UseBrowser}
@@ -167,19 +167,19 @@
               pus:=punitsymtable(pus^.next);
            end;
 {$endif UseBrowser}
-         ppufile.flush;
+         ppufile^.flush;
        { create and write header }
-         ppufile.header.size:=ppufile.size;
-         ppufile.header.checksum:=ppufile.crc;
-         ppufile.header.compiler:=wordversion;
-         ppufile.header.target:=word(target_info.target);
-         ppufile.header.flags:=current_module^.flags;
-         ppufile.writeheader;
+         ppufile^.header.size:=ppufile^.size;
+         ppufile^.header.checksum:=ppufile^.crc;
+         ppufile^.header.compiler:=wordversion;
+         ppufile^.header.target:=word(target_info.target);
+         ppufile^.header.flags:=current_module^.flags;
+         ppufile^.writeheader;
        { save crc in current_module also }
-         current_module^.crc:=ppufile.crc;
+         current_module^.crc:=ppufile^.crc;
        { close }
-         ppufile.close;
-         ppufile.done;
+         ppufile^.close;
+         dispose(ppufile,done);
       end;
 
 
@@ -343,22 +343,22 @@
 {$ifdef NEWPPU}
     function readbyte:byte;
       begin
-        readbyte:=current_module^.ppufile^.getbyte;
-        if current_module^.ppufile^.error then
+        readbyte:=ppufile^.getbyte;
+        if ppufile^.error then
          Message(unit_f_ppu_read_error);
       end;
 
     function readword:word;
       begin
-        readword:=current_module^.ppufile^.getword;
-        if current_module^.ppufile^.error then
+        readword:=ppufile^.getword;
+        if ppufile^.error then
          Message(unit_f_ppu_read_error);
       end;
 
     function readlong:longint;
       begin
-        readlong:=current_module^.ppufile^.getlongint;
-        if current_module^.ppufile^.error then
+        readlong:=ppufile^.getlongint;
+        if ppufile^.error then
          Message(unit_f_ppu_read_error);
       end;
 
@@ -366,29 +366,28 @@
       var
          d : double;
       begin
-        current_module^.ppufile^.getdata(d,sizeof(double));
-        if current_module^.ppufile^.error then
+        ppufile^.getdata(d,sizeof(double));
+        if ppufile^.error then
          Message(unit_f_ppu_read_error);
         readdouble:=d;
       end;
 
     function readstring : string;
       begin
-        readstring:=current_module^.ppufile^.getstring;
-        if current_module^.ppufile^.error then
+        readstring:=ppufile^.getstring;
+        if ppufile^.error then
          Message(unit_f_ppu_read_error);
       end;
 
     procedure readset(var s);   {You cannot pass an array [0..31] of byte.}
       begin
-        current_module^.ppufile^.getdata(s,32);
-        if current_module^.ppufile^.error then
+        ppufile^.getdata(s,32);
+        if ppufile^.error then
          Message(unit_f_ppu_read_error);
       end;
 
     procedure readcontainer(var p:tstringcontainer);
       begin
-        p.init;
         while not current_module^.ppufile^.endofentry do
          p.insert(current_module^.ppufile^.getstring);
       end;
@@ -533,7 +532,10 @@
 
 {
   $Log$
-  Revision 1.1  1998-05-27 19:45:09  peter
+  Revision 1.2  1998-05-28 14:40:28  peter
+    * fixes for newppu, remake3 works now with it
+
+  Revision 1.1  1998/05/27 19:45:09  peter
     * symtable.pas splitted into includefiles
     * symtable adapted for $ifdef NEWPPU
 

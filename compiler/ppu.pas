@@ -20,6 +20,9 @@
 
  ****************************************************************************
 }
+{$ifdef TP}
+  {$N+,E+}
+{$endif}
 unit ppu;
 interface
 
@@ -33,21 +36,25 @@ const
 {$endif}
 
 {ppu entries}
-  ibmodulename    = 1;
-  ibsourcefile    = 2;
-  ibloadunit_int  = 3;
-  ibloadunit_imp  = 4;
-  ibinitunit      = 5;
-  iblinkofile     = 6;
-  ibsharedlibs    = 7;
-  ibstaticlibs    = 8;
-  ibdbxcount      = 9;
-  ibref           = 10;
-  ibenddefs       = 250;
-  ibendsyms       = 251;
-  ibendheader     = 252;
-  ibentry         = 254;
-  ibend           = 255;
+  {special}
+  iberror             = 0;
+  ibenddefs           = 250;
+  ibendsyms           = 251;
+  ibendinterface      = 252;
+  ibendimplementation = 253;
+  ibentry             = 254;
+  ibend               = 255;
+  {general}
+  ibmodulename     = 1;
+  ibsourcefiles    = 2;
+  ibloadunit_int   = 3;
+  ibloadunit_imp   = 4;
+  ibinitunit       = 5;
+  iblinkofiles     = 6;
+  iblinksharedlibs = 7;
+  iblinkstaticlibs = 8;
+  ibdbxcount       = 9;
+  ibref            = 10;
   {syms}
   ibtypesym       = 20;
   ibprocsym       = 21;
@@ -97,8 +104,8 @@ type
     compiler : word;
     target   : word;
     flags    : longint;
-    size     : longint;
-    checksum : longint;
+    size     : longint; { size of the ppufile without header }
+    checksum : longint; { checksum for this ppufile }
   end;
 
   tppuentry=packed record
@@ -125,6 +132,7 @@ type
     bufsize,
     bufidx   : longint;
     entry    : tppuentry;
+    entrybufstart,
     entrystart,
     entryidx : longint;
 
@@ -136,16 +144,18 @@ type
     function  GetPPUVersion:longint;
     procedure NewHeader;
     procedure NewEntry;
-    function  EndOfEntry:boolean;
   {read}
     function  open:boolean;
     procedure reloadbuf;
     procedure readdata(var b;len:longint);
+    procedure skipdata(len:longint);
     function  readentry:byte;
+    function  EndOfEntry:boolean;
     procedure getdata(var b;len:longint);
     function  getbyte:byte;
     function  getword:word;
     function  getlongint:longint;
+    function  getdouble:double;
     function  getstring:string;
   {write}
     function  create:boolean;
@@ -157,6 +167,7 @@ type
     procedure putbyte(b:byte);
     procedure putword(w:word);
     procedure putlongint(l:longint);
+    procedure putdouble(d:double);
     procedure putstring(s:string);
   end;
 
@@ -240,6 +251,7 @@ begin
   change_endian:=false;
   Mode:=0;
   NewHeader;
+  Error:=false;
   getmem(buf,ppubufsize);
 end;
 
@@ -308,24 +320,6 @@ begin
 end;
 
 
-procedure tppufile.NewEntry;
-begin
-  with entry do
-   begin
-     id:=ibentry;
-     nr:=ibend;
-     size:=0;
-   end;
-  entryidx:=0;
-end;
-
-
-
-function tppufile.endofentry:boolean;
-begin
-  endofentry:=(entryidx>=entry.size);
-end;
-
 {*****************************************************************************
                                 TPPUFile Reading
 *****************************************************************************}
@@ -353,7 +347,10 @@ begin
 {reset buffer}
   bufstart:=i;
   bufsize:=0;
+  bufidx:=0;
   Mode:=1;
+  FillChar(entry,sizeof(tppuentry),0);
+  Error:=false;
   open:=true;
 end;
 
@@ -366,10 +363,10 @@ var
 begin
   inc(bufstart,bufsize);
 {$ifdef TP}
-  blockread(f,buf,ppubufsize,i);
+  blockread(f,buf^,ppubufsize,i);
   bufsize:=i;
 {$else}
-  blockread(f,buf,ppubufsize,bufsize);
+  blockread(f,buf^,ppubufsize,bufsize);
 {$endif}
   bufidx:=0;
 end;
@@ -405,16 +402,48 @@ begin
 end;
 
 
+procedure tppufile.skipdata(len:longint);
+var
+  left : longint;
+begin
+  while len>0 do
+   begin
+     left:=bufsize-bufidx;
+     if len>left then
+      begin
+        dec(len,left);
+        reloadbuf;
+        if bufsize=0 then
+         exit;
+      end
+     else
+      begin
+        inc(bufidx,len);
+        exit;
+      end;
+   end;
+end;
+
+
 function tppufile.readentry:byte;
 begin
+  if entryidx<entry.size then
+   skipdata(entry.size-entryidx);
   readdata(entry,sizeof(tppuentry));
+  entryidx:=0;
   if entry.id<>ibentry then
    begin
+     readentry:=iberror;
      error:=true;
      exit;
    end;
   readentry:=entry.nr;
-  entryidx:=0;
+end;
+
+
+function tppufile.endofentry:boolean;
+begin
+  endofentry:=(entryidx>=entry.size);
 end;
 
 
@@ -485,6 +514,25 @@ begin
 end;
 
 
+function tppufile.getdouble:double;
+type
+  pdouble = ^double;
+var
+  d : double;
+begin
+  if entryidx+sizeof(double)>entry.size then
+   begin
+     error:=true;
+     exit;
+   end;
+  readdata(d,sizeof(double));
+  getdouble:=d;
+{
+  getlongint:=plongint(@entrybuf[entrybufidx])^;}
+  inc(entryidx,sizeof(double));
+end;
+
+
 function tppufile.getstring:string;
 var
   s : string;
@@ -519,10 +567,15 @@ begin
 {write header for sure}
   blockwrite(f,header,sizeof(tppuheader));
   bufsize:=ppubufsize;
+  bufstart:=sizeof(tppuheader);
+  bufidx:=0;
 {reset}
   crc:=$ffffffff;
+  Error:=false;
   do_crc:=true;
   size:=0;
+{start}
+  NewEntry;
   create:=true;
 end;
 
@@ -531,7 +584,11 @@ procedure tppufile.writeheader;
 var
   opos : longint;
 begin
+{ flush buffer }
   writebuf;
+{ update size (w/o header!) in the header }
+  header.size:=bufstart-sizeof(tppuheader);
+{ write header and restore filepos after it }
   opos:=filepos(f);
   seek(f,0);
   blockwrite(f,header,sizeof(tppuheader));
@@ -543,7 +600,7 @@ procedure tppufile.writebuf;
 begin
   if do_crc then
    UpdateCrc32(crc,buf,bufidx);
-  blockwrite(f,buf,bufidx);
+  blockwrite(f,buf^,bufidx);
   inc(bufstart,bufidx);
   bufidx:=0;
 end;
@@ -565,6 +622,7 @@ begin
         move(p[idx],buf[bufidx],left);
         dec(len,left);
         inc(idx,left);
+        inc(bufidx,left);
         writebuf;
       end
      else
@@ -577,6 +635,23 @@ begin
 end;
 
 
+procedure tppufile.NewEntry;
+begin
+  with entry do
+   begin
+     id:=ibentry;
+     nr:=ibend;
+     size:=0;
+   end;
+{Reset Entry State}
+  entryidx:=0;
+  entrybufstart:=bufstart;
+  entrystart:=bufstart+bufidx;
+{Alloc in buffer}
+  writedata(entry,sizeof(tppuentry));
+end;
+
+
 procedure tppufile.writeentry(ibnr:byte);
 var
   opos : longint;
@@ -585,17 +660,24 @@ begin
   entry.id:=ibentry;
   entry.nr:=ibnr;
   entry.size:=entryidx;
-{flush}
-  writebuf;
-{write entry}
-  opos:=filepos(f);
-  seek(f,entrystart);
-  blockwrite(f,entry,sizeof(tppuentry));
-  seek(f,opos);
-  entrystart:=opos; {next entry position}
+{it's already been sent to disk ?}
+  if entrybufstart<>bufstart then
+   begin
+   {flush when the entry is partly in the new buffer}
+     if entrybufstart+sizeof(entry)>bufstart then
+      WriteBuf;
+   {write entry}
+     opos:=filepos(f);
+     seek(f,entrystart);
+     blockwrite(f,entry,sizeof(tppuentry));
+     seek(f,opos);
+     entrybufstart:=bufstart;
+   end
+  else
+   move(entry,buf[entrystart-bufstart],sizeof(entry));
 {Add New Entry, which is ibend by default}
+  entrystart:=bufstart+bufidx; {next entry position}
   NewEntry;
-  writedata(entry,sizeof(tppuentry));
 end;
 
 
@@ -640,6 +722,15 @@ begin
 end;
 
 
+procedure tppufile.putdouble(d:double);
+type
+  pdouble = ^double;
+begin
+{  plongint(@entrybuf[entrybufidx])^:=l;}
+  writedata(d,sizeof(double));
+  inc(entryidx,sizeof(double));
+end;
+
 procedure tppufile.putstring(s:string);
 begin
   writedata(s,length(s)+1);
@@ -651,7 +742,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  1998-05-27 19:45:08  peter
+  Revision 1.3  1998-05-28 14:40:26  peter
+    * fixes for newppu, remake3 works now with it
+
+  Revision 1.2  1998/05/27 19:45:08  peter
     * symtable.pas splitted into includefiles
     * symtable adapted for $ifdef NEWPPU
 

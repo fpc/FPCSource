@@ -89,7 +89,7 @@
          b:=readentry;
          if b=ibref then
           begin
-            while (not ppufile.endofentry) do
+            while (not ppufile^.endofentry) do
              begin
                fileindex:=readword;
                l:=readlong;
@@ -112,7 +112,7 @@
       { references do not change the ppu caracteristics      }
       { this only save the references to variables/functions }
       { defined in the unit what about the others            }
-         ppufile.do_crc:=false;
+         ppufile^.do_crc:=false;
          if assigned(lastwritten) then
            ref:=lastwritten
          else
@@ -123,8 +123,8 @@
               ref:=ref^.nextref;
            end;
          lastwritten:=lastref;
-         ppufile.writeentry(ibref);
-         ppufile.do_crc:=true;
+         ppufile^.writeentry(ibref);
+         ppufile^.do_crc:=true;
       end;
 
 
@@ -156,7 +156,7 @@
       var ref : pref;
           prdef : pdef;
       begin
-         ppufile.do_crc:=false;
+         ppufile^.do_crc:=false;
          if lastwritten=lastref then
            exit;
          writesymref(@self);
@@ -173,7 +173,7 @@
                    prdef:=pprocdef(prdef)^.nextoverloaded;
                 end;
            end;
-         ppufile.do_crc:=true;
+         ppufile^.do_crc:=true;
       end;
 
 {$else NEWPPU}
@@ -209,7 +209,7 @@
       { references do not change the ppu caracteristics      }
       { this only save the references to variables/functions }
       { defined in the unit what about the others            }
-         ppufile.do_crc:=false;
+         ppufile^.do_crc:=false;
          if assigned(lastwritten) then
            ref:=lastwritten
          else
@@ -224,7 +224,7 @@
            end;
          lastwritten:=lastref;
          writebyte(ibend);
-         ppufile.do_crc:=true;
+         ppufile^.do_crc:=true;
       end;
 
 
@@ -263,7 +263,7 @@
       var ref : pref;
           prdef : pdef;
       begin
-         ppufile.do_crc:=false;
+         ppufile^.do_crc:=false;
          if lastwritten=lastref then
            exit;
          writebyte(ibextsymref);
@@ -291,7 +291,7 @@
                    prdef:=pprocdef(prdef)^.nextoverloaded;
                 end;
            end;
-         ppufile.do_crc:=true;
+         ppufile^.do_crc:=true;
       end;
 
 {$endif NEWPPU}
@@ -363,7 +363,7 @@
       var
          s : string;
          b : byte;
-{$endif tp}
+{$endif}
       begin
 {$ifdef tp}
          if use_big then
@@ -376,7 +376,10 @@
            end
          else
 {$endif}
-          name:=strpas(_name);
+        if assigned(_name) then
+         name:=strpas(_name)
+        else
+         name:='';
       end;
 
     function tsym.mangledname : string;
@@ -575,7 +578,7 @@
          tsym.write;
          writedefref(pdef(definition));
 {$ifdef NEWPPU}
-         ppufile.writeentry(ibprocsym);
+         ppufile^.writeentry(ibprocsym);
 {$endif}
       end;
 
@@ -733,7 +736,7 @@
          writedefref(readaccessdef);
          writedefref(writeaccessdef);
 {$ifdef NEWPPU}
-         ppufile.writeentry(ibpropertysym);
+         ppufile^.writeentry(ibpropertysym);
 {$endif}
       end;
 
@@ -816,7 +819,7 @@
           toaddr : writelong(address);
          end;
 {$ifdef NEWPPU}
-        ppufile.writeentry(ibabsolutesym);
+        ppufile^.writeentry(ibabsolutesym);
 {$endif}
       end;
 
@@ -929,7 +932,7 @@
 
          writedefref(definition);
 {$ifdef NEWPPU}
-         ppufile.writeentry(ibvarsym);
+         ppufile^.writeentry(ibvarsym);
 {$endif}
       end;
 
@@ -1248,7 +1251,7 @@
          writedefref(definition);
          writestring(prefix^);
 {$ifdef NEWPPU}
-         ppufile.writeentry(ibtypedconstsym);
+         ppufile^.writeentry(ibtypedconstsym);
 {$endif}
       end;
 
@@ -1394,7 +1397,7 @@
             else internalerror(13);
          end;
 {$ifdef NEWPPU}
-        ppufile.writeentry(ibconstsym);
+        ppufile^.writeentry(ibconstsym);
 {$endif}
       end;
 
@@ -1504,7 +1507,7 @@
          writedefref(definition);
          writelong(value);
 {$ifdef NEWPPU}
-         ppufile.writeentry(ibenumsym);
+         ppufile^.writeentry(ibenumsym);
 {$endif}
       end;
 
@@ -1580,7 +1583,7 @@
          tsym.write;
          writedefref(definition);
 {$ifdef NEWPPU}
-         ppufile.writeentry(ibtypesym);
+         ppufile^.writeentry(ibtypesym);
 {$endif}
       end;
 
@@ -1687,9 +1690,12 @@
 
 {
   $Log$
-  Revision 1.1  1998-05-27 19:45:09  peter
+  Revision 1.2  1998-05-28 14:40:29  peter
+    * fixes for newppu, remake3 works now with it
+
+  Revision 1.1  1998/05/27 19:45:09  peter
     * symtable.pas splitted into includefiles
     * symtable adapted for $ifdef NEWPPU
 
 }
-  
+
