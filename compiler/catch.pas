@@ -28,6 +28,10 @@ Unit catch;
   {$S-}
 {$endif}
 
+{$ifdef BSD}
+  {$define NOCATCH}
+{$endif}
+
 {$ifdef DEBUG}
   {$define NOCATCH}
 {$endif DEBUG}
@@ -105,7 +109,10 @@ end.
 
 {
   $Log$
-  Revision 1.13  2000-03-20 09:37:51  florian
+  Revision 1.14  2000-04-07 20:52:24  marco
+   * For BSD signals are off for now
+
+  Revision 1.13  2000/03/20 09:37:51  florian
     * catching of exceptions is switched off on all targets if the define
       DEBUG is used
 
