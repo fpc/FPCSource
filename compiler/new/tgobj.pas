@@ -26,15 +26,11 @@ unit tgobj;
   interface
 
     uses
-{$ifdef i386}
-      i386base,i386asm,
-{$else i386}
       cpubase,
       cpuinfo,
       cpuasm,
       tainst,
-{$endif i386}
-       cobjects,globals,tree,hcodegen,verbose,files,aasm;
+      cobjects,globals,tree,hcodegen,verbose,files,aasm;
 
     type
        tregisterset = set of tregister;
@@ -696,7 +692,11 @@ unit tgobj;
 end.
 {
   $Log$
-  Revision 1.5  1999-08-06 16:04:06  michael
+  Revision 1.6  1999-09-10 18:48:11  florian
+    * some bug fixes (e.g. must_be_valid and procinfo.funcret_is_valid)
+    * most things for stored properties fixed
+
+  Revision 1.5  1999/08/06 16:04:06  michael
   + introduced tainstruction
 
   Revision 1.4  1999/08/03 00:33:23  michael

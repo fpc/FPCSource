@@ -3540,8 +3540,12 @@ Const local_symtable_index : longint = $8001;
          proctypesinfo : byte;
 
       procedure writeproc(sym : ppropsymlist;def : pdef;shiftvalue : byte);
+
         var
            typvalue : byte;
+           hp : ppropsymlist;
+           address : longint;
+
         begin
            if not(assigned(sym) and assigned(sym^.sym))  then
              begin
@@ -3550,8 +3554,14 @@ Const local_symtable_index : longint = $8001;
              end
            else if sym^.sym^.typ=varsym then
              begin
-                rttilist^.concat(new(pai_const,init_32bit(
-                  pvarsym(sym^.sym)^.address)));
+                address:=0;
+                hp:=sym;
+                while assigned(hp) do
+                  begin
+                     inc(address,pvarsym(hp^.sym)^.address);
+                     hp:=hp^.next;
+                  end;
+                rttilist^.concat(new(pai_const,init_32bit(address)));
                 typvalue:=0;
              end
            else
@@ -3588,7 +3598,7 @@ Const local_symtable_index : longint = $8001;
               { isn't it stored ? }
               if not(ppo_stored in ppropertysym(sym)^.propoptions) then
                 begin
-                   rttilist^.concat(new(pai_const,init_32bit(1)));
+                   rttilist^.concat(new(pai_const,init_32bit(0)));
                    proctypesinfo:=proctypesinfo or (3 shl 4);
                 end
               else
@@ -3737,7 +3747,11 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.160  1999-09-02 17:07:40  florian
+  Revision 1.161  1999-09-10 18:48:09  florian
+    * some bug fixes (e.g. must_be_valid and procinfo.funcret_is_valid)
+    * most things for stored properties fixed
+
+  Revision 1.160  1999/09/02 17:07:40  florian
     * problems with -Or fixed: tdef.isfpuregable was wrong!
 
   Revision 1.159  1999/08/27 10:52:19  pierre

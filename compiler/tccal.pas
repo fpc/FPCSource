@@ -526,11 +526,14 @@ implementation
                 begin
                    old_count_ref:=count_ref;
                    count_ref:=false;
+                   { must be valid is already false!
                    store_valid:=must_be_valid;
-                   must_be_valid:=false;
+                   must_be_valid:=false; }
                    firstcallparan(p^.left,nil);
                    count_ref:=old_count_ref;
+                   {
                    must_be_valid:=store_valid;
+                   }
                    if codegenerror then
                      goto errorexit;
                 end;
@@ -1121,7 +1124,7 @@ implementation
                      end
                 end;
            end;
-
+         must_be_valid:=store_valid;
          { a fpu can be used in any procedure !! }
          p^.registersfpu:=p^.procdefinition^.fpu_used;
          { if this is a call to a method calc the registers }
@@ -1149,9 +1152,11 @@ implementation
                      if (p^.procdefinition^.proctypeoption=potype_constructor) or
                         ((p^.methodpointer^.treetype=loadn) and
                         (not(oo_has_virtual in pobjectdef(p^.methodpointer^.resulttype)^.objectoptions))) then
-                       must_be_valid:=false
+                       must_be_valid:=false;
+                     {
                      else
                        must_be_valid:=true;
+                     }
                      firstpass(p^.methodpointer);
                      p^.registersfpu:=max(p^.methodpointer^.registersfpu,p^.registersfpu);
                      p^.registers32:=max(p^.methodpointer^.registers32,p^.registers32);
@@ -1194,7 +1199,6 @@ implementation
            p^.procdefinition^.proccalloptions:=p^.procdefinition^.proccalloptions+[pocall_inline];
 {$endif}
          aktcallprocsym:=oldcallprocsym;
-         must_be_valid:=store_valid;
       end;
 
 
@@ -1213,7 +1217,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.62  1999-08-23 23:42:52  pierre
+  Revision 1.63  1999-09-10 18:48:11  florian
+    * some bug fixes (e.g. must_be_valid and procinfo.funcret_is_valid)
+    * most things for stored properties fixed
+
+  Revision 1.62  1999/08/23 23:42:52  pierre
    * hnewn reg allocation corrected
 
   Revision 1.61  1999/08/17 13:26:08  peter

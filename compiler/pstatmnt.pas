@@ -691,9 +691,11 @@ unit pstatmnt;
               if in_except_block then
                 Message(parser_e_exit_with_argument_not__possible);
               if procinfo.retdef=pdef(voiddef) then
-                Message(parser_e_void_function)
+                Message(parser_e_void_function);
+              {
               else
                 procinfo.funcret_is_valid:=true;
+              }
            end
          else
            p:=nil;
@@ -1315,7 +1317,11 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.100  1999-09-07 14:12:36  jonas
+  Revision 1.101  1999-09-10 18:48:09  florian
+    * some bug fixes (e.g. must_be_valid and procinfo.funcret_is_valid)
+    * most things for stored properties fixed
+
+  Revision 1.100  1999/09/07 14:12:36  jonas
     * framepointer cannot be changed to esp for methods
 
   Revision 1.99  1999/08/26 21:10:08  peter

@@ -777,6 +777,13 @@ parser_e_resourcestring_only_sg=E_Resourcestrings can be only static or global
 parser_e_exit_with_argument_not__possible=E_Exit with argument can't be used here
 % an exit statement with an argument for the return value can't be used here, this
 % can happen e.g. in \var{try..except} or \var{try..finally} blocks
+parser_e_stored_property_must_be_boolean=E_The type of the storage symbol must be boolean
+% If you specify a storage symbol in a property declaration, it must be of
+% the type boolean
+parser_e_ill_property_storage_sym=E_This symbol isn't allowed as storage symbol
+% You can't use this type of symbol as storage specifier in property
+% declaration. You can use only methods with the result type boolean,
+% boolean class fields or boolean constants 
 % \end{description}
 #
 # Type Checking

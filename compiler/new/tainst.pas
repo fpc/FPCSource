@@ -44,8 +44,8 @@ tainstruction = object(tai)
   ops       : longint;
   oper      : array[0..max_operands-1] of toper;
 {$ifdef i386}
-  segprefix: tregister;
-{$endif i386}
+  segprefix : tregister;
+{$endif}           
   Constructor init(op : tasmop);
   Destructor Done;virtual;
   function getcopy:plinkedlist_item;virtual;
@@ -246,7 +246,11 @@ end.
 
 {
   $Log$
-  Revision 1.4  1999-09-03 13:10:11  jonas
+  Revision 1.5  1999-09-10 18:48:11  florian
+    * some bug fixes (e.g. must_be_valid and procinfo.funcret_is_valid)
+    * most things for stored properties fixed
+
+  Revision 1.4  1999/09/03 13:10:11  jonas
     * condition is now zeroed using fillchar\n    because on powerpc it's a record now
 
   Revision 1.3  1999/08/26 14:52:59  jonas

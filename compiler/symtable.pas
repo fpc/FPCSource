@@ -1532,6 +1532,20 @@ implementation
                  (hsym^.owner^.defowner^.owner^.symtabletype<>unitsymtable)) then
                 DuplicateSym(hsym);
            end;
+         { check for duplicate id in para symtable of methods }
+         if (symtabletype=parasymtable) and
+           assigned(next) and
+          { funcretsym is allowed !! }
+           (sym^.typ <> funcretsym) and
+           (next^.symtabletype=objectsymtable) then
+           begin
+              hsym:=search_class_member(pobjectdef(next^.defowner),sym^.name);
+              { but private ids can be reused }
+              if assigned(hsym) and
+                (not(sp_private in hsym^.symoptions) or
+                 (hsym^.owner^.defowner^.owner^.symtabletype<>unitsymtable)) then
+                DuplicateSym(hsym);
+           end;
          { check for duplicate field id in inherited classes }
          if (sym^.typ=varsym) and
             (symtabletype=objectsymtable) and
@@ -2392,7 +2406,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.45  1999-09-08 08:05:44  peter
+  Revision 1.46  1999-09-10 18:48:10  florian
+    * some bug fixes (e.g. must_be_valid and procinfo.funcret_is_valid)
+    * most things for stored properties fixed
+
+  Revision 1.45  1999/09/08 08:05:44  peter
     * fixed bug 248
 
   Revision 1.44  1999/08/31 15:46:21  pierre

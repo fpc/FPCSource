@@ -60,8 +60,8 @@ uses
   ,gdb
 {$endif GDB}
 {$ifdef i386}
-  ,tgeni386
 {$ifndef newcg}
+  ,tgeni386
   ,cgai386
 {$endif newcg}
   {$ifndef NoOpt}
@@ -2053,7 +2053,11 @@ end.
 
 {
   $Log$
-  Revision 1.19  1999-09-07 14:59:40  pierre
+  Revision 1.20  1999-09-10 18:48:09  florian
+    * some bug fixes (e.g. must_be_valid and procinfo.funcret_is_valid)
+    * most things for stored properties fixed
+
+  Revision 1.19  1999/09/07 14:59:40  pierre
    * bugfix for 237 and 244
 
   Revision 1.18  1999/09/02 18:47:45  daniel

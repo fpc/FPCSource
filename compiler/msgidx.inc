@@ -208,6 +208,8 @@ type tmsgconst=(
   parser_e_cant_use_inittable_here,
   parser_e_resourcestring_only_sg,
   parser_e_exit_with_argument_not__possible,
+  parser_e_stored_property_must_be_boolean,
+  parser_e_ill_property_storage_sym,
   type_e_mismatch,
   type_e_incompatible_types,
   type_e_not_equal_types,

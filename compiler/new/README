@@ -28,3 +28,35 @@ Intel specific
 unusedregssse
 availabletempregssse
 countusableregssse
+
+Jonas Maebe schrieb:
+> 
+> Hello,
+> 
+> Is there any difference between the localsize parameter of
+> g_stackframe_entry and the parasize parameter of g_return_from_proc, or
+> are they both the same value?
+
+They are different, I think the value of g_return_from_proc doesn't matter
+for the PowerPC. It's the size of parameters passed on the stack
+and only important for the i386/m68k probably.
+
+> 
+> And for the PowerPC, what will they contain? Just the size of the local
+> variables and parameters, or also the maximum needed size for parameters
+> of any procedure called by the current one (the caller must reserve space
+> for the callee's parameters on it's own stack because you can't push
+> values on the stack in the middle of a procedure (no frame pointer))
+> 
+> Jonas
+
+the parameter passed to g_stackframe_entry contains the size of the all local space which is
+needed
+except
+that one for saving registers: the set procinfo.registerstosave (not yet implemented,
+I'll commit it soon) will contain
+all registers which must be saved by the entry and restored by the exit code of a procedure
+and you have to add extra space to do that.
+
+
+

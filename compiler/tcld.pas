@@ -219,6 +219,9 @@ implementation
          { must be made unique }
          set_unique(p^.left);
 
+         { set we the function result? }
+         set_funcret_is_valid(p^.left);
+
          firstpass(p^.left);
          if codegenerror then
            exit;
@@ -341,8 +344,10 @@ implementation
             (@procinfo=pprocinfo(p^.funcretprocinfo)) and
             not procinfo.funcret_is_valid then
            CGMessage(sym_w_function_result_not_set);
+         {
          if count_ref then
            pprocinfo(p^.funcretprocinfo)^.funcret_is_valid:=true;
+         }
       end;
 
 
@@ -491,7 +496,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.41  1999-08-16 23:23:41  peter
+  Revision 1.42  1999-09-10 18:48:11  florian
+    * some bug fixes (e.g. must_be_valid and procinfo.funcret_is_valid)
+    * most things for stored properties fixed
+
+  Revision 1.41  1999/08/16 23:23:41  peter
     * arrayconstructor -> openarray type conversions for element types
 
   Revision 1.40  1999/08/13 21:33:17  peter

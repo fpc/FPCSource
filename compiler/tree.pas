@@ -20,7 +20,6 @@
 
  ****************************************************************************
 }
-
 {$ifdef tp}
   {$E+,N+}
 {$endif}
@@ -298,6 +297,9 @@ unit tree;
     { takes care of type casts etc.                 }
     procedure set_unique(p : ptree);
 
+    { sets funcret_is_valid to true, if p contains a funcref node }
+    procedure set_funcret_is_valid(p : ptree);
+
     { gibt den ordinalen Werten der Node zurueck oder falls sie }
     { keinen ordinalen Wert hat, wird ein Fehler erzeugt        }
     function get_ordinal_value(p : ptree) : longint;
@@ -332,7 +334,7 @@ unit tree;
 
     uses
        systems,
-       globals,verbose,files,types;
+       globals,verbose,files,types,hcodegen;
 
 
     function getnode : ptree;
@@ -1604,8 +1606,22 @@ unit tree;
               case p^.treetype of
                  vecn:
                     p^.callunique:=true;
-                 typeconvn:
+                 typeconvn,subscriptn,derefn:
                     set_unique(p^.left);
+              end;
+           end;
+      end;
+
+    procedure set_funcret_is_valid(p : ptree);
+
+      begin
+         if assigned(p) then
+           begin
+              case p^.treetype of
+                 funcretn:
+                    procinfo.funcret_is_valid:=true;
+                 vecn,typeconvn,subscriptn,derefn:
+                    set_funcret_is_valid(p^.left);
               end;
            end;
       end;
@@ -1746,13 +1762,14 @@ unit tree;
          case_get_min:=hp^._low;
       end;
 
-
-
-
 end.
 {
   $Log$
-  Revision 1.94  1999-09-07 07:52:20  peter
+  Revision 1.95  1999-09-10 18:48:11  florian
+    * some bug fixes (e.g. must_be_valid and procinfo.funcret_is_valid)
+    * most things for stored properties fixed
+
+  Revision 1.94  1999/09/07 07:52:20  peter
     * > < >= <= support for boolean
     * boolean constants are now calculated like integer constants
 

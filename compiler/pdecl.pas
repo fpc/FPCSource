@@ -879,6 +879,20 @@ unit pdecl;
              get_procdef:=p;
           end;
 
+          procedure deletepropsymlist(p : ppropsymlist);
+
+            var
+               hp : ppropsymlist;
+
+            begin
+               while assigned(p) do
+                 begin
+                    hp:=p;
+                    p:=p^.next;
+                    dispose(hp);
+                 end;
+            end;
+
           procedure addpropsymlist(var root:ppropsymlist;s:psym);
           var
             last,hp : ppropsymlist;
@@ -1076,6 +1090,9 @@ unit pdecl;
 
                 if (idtoken=_READ) then
                   begin
+                     if assigned(p^.readaccesssym) then
+                       deletepropsymlist(p^.readaccesssym);
+                     p^.readaccesssym:=nil;
                      consume(_READ);
                      sym:=search_class_member(aktclass,pattern);
                      if not(assigned(sym)) then
@@ -1133,6 +1150,9 @@ unit pdecl;
                   end;
                 if (idtoken=_WRITE) then
                   begin
+                     if assigned(p^.writeaccesssym) then
+                       deletepropsymlist(p^.writeaccesssym);
+                     p^.writeaccesssym:=nil;
                      consume(_WRITE);
                      sym:=search_class_member(aktclass,pattern);
                      if not(assigned(sym)) then
@@ -1189,9 +1209,81 @@ unit pdecl;
                 if (idtoken=_STORED) then
                   begin
                      consume(_STORED);
-                     Message(parser_w_stored_not_implemented);
-                     comp_expr(true);
-                     { !!!!!!!! }
+                     if assigned(p^.storedsym) then
+                       deletepropsymlist(p^.storedsym);
+                     p^.storedsym:=nil;
+                     case token of
+                        _ID:
+                           if idtoken=_DEFAULT then
+                             begin
+                                include(p^.propoptions,ppo_defaultproperty);
+                                p^.storeddef:=booldef;
+                             end
+                           else
+                             begin
+                                sym:=search_class_member(aktclass,pattern);
+                                if not(assigned(sym)) then
+                                  begin
+                                    Message1(sym_e_unknown_id,pattern);
+                                    consume(_ID);
+                                  end
+                                else
+                                  begin
+                                     consume(_ID);
+                                     while (token=_POINT) and
+                                           ((sym^.typ=varsym) and
+                                            (pvarsym(sym)^.definition^.deftype=recorddef)) do
+                                      begin
+                                        addpropsymlist(p^.storedsym,sym);
+                                        consume(_POINT);
+                                        getsymonlyin(precorddef(pvarsym(sym)^.definition)^.symtable,pattern);
+                                        if not assigned(srsym) then
+                                          Message1(sym_e_illegal_field,pattern);
+                                        sym:=srsym;
+                                        consume(_ID);
+                                      end;
+                                  end;
+
+                                if assigned(sym) then
+                                  begin
+                                     if ((sym^.typ=varsym) and
+                                        assigned(propertyparas)) or
+                                        not(sym^.typ in [varsym,procsym]) then
+                                       Message(parser_e_ill_property_storage_sym);
+                                     { search the matching definition }
+                                     if sym^.typ=procsym then
+                                       begin
+                                          { insert data entry to check access method }
+                                          datacoll^.next:=propertyparas;
+                                          propertyparas:=datacoll;
+                                          pp:=get_procdef;
+                                          { ... and remove it }
+                                          propertyparas:=propertyparas^.next;
+                                          datacoll^.next:=nil;
+                                          if not(assigned(pp)) then
+                                            Message(parser_e_ill_property_storage_sym);
+                                          p^.storeddef:=pp;
+                                       end
+                                     else if sym^.typ=varsym then
+                                       begin
+                                          if not(is_equal(pvarsym(sym)^.definition,
+                                            booldef)) then
+                                            Message(parser_e_stored_property_must_be_boolean);
+                                       end;
+                                     addpropsymlist(p^.storedsym,sym);
+                                  end;
+                             end;
+                        _FALSE:
+                          begin
+                             exclude(p^.propoptions,ppo_defaultproperty);
+                             p^.storeddef:=nil;
+                          end;
+                        _TRUE:
+                          begin
+                             include(p^.propoptions,ppo_defaultproperty);
+                             p^.storeddef:=booldef;
+                          end;
+                     end;
                   end;
                 if (idtoken=_DEFAULT) then
                   begin
@@ -2432,7 +2524,11 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.148  1999-09-08 21:06:06  michael
+  Revision 1.149  1999-09-10 18:48:07  florian
+    * some bug fixes (e.g. must_be_valid and procinfo.funcret_is_valid)
+    * most things for stored properties fixed
+
+  Revision 1.148  1999/09/08 21:06:06  michael
   * Stored specifier for properties is now correctly parsed
 
   Revision 1.147  1999/09/02 09:23:51  peter

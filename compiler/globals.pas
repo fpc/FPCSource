@@ -317,6 +317,11 @@ unit globals;
 
     function assigned(p : pointer) : boolean;
 
+      type
+         ptrrec = record
+            ofs,seg : word;
+         end;
+
 {$ifndef FPC}
     {$ifndef DPMI}
       var
@@ -1253,7 +1258,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.24  1999-09-08 16:05:31  peter
+  Revision 1.25  1999-09-10 18:48:02  florian
+    * some bug fixes (e.g. must_be_valid and procinfo.funcret_is_valid)
+    * most things for stored properties fixed
+
+  Revision 1.24  1999/09/08 16:05:31  peter
     * pointer add/sub is now as expected and the same results as inc/dec
 
   Revision 1.23  1999/09/07 15:11:00  pierre

@@ -769,7 +769,13 @@ const
   frame_pointer = R_EBP;
   self_pointer  = R_ESI;
   accumulator   = R_EAX;
-  scratch_register = R_EDI;
+
+  { the register where the vmt offset is passed to the destructor }
+  vmt_offset_reg = R_EDI;
+
+  scratch_regs : array[1..1] of tregister = (R_EDI);
+
+  max_scratch_regs = 1;
 
 {$ifndef noopt}
 { low and high of the available maximum width integer general purpose }
@@ -1040,7 +1046,6 @@ begin
   new_reference:=r;
 end;
 
-
 {*****************************************************************************
                               Instruction table
 *****************************************************************************}
@@ -1086,7 +1091,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.11  1999-09-08 16:04:05  peter
+  Revision 1.12  1999-09-10 18:48:01  florian
+    * some bug fixes (e.g. must_be_valid and procinfo.funcret_is_valid)
+    * most things for stored properties fixed
+
+  Revision 1.11  1999/09/08 16:04:05  peter
     * better support for object fields and more error checks for
       field accesses which create buggy code
 

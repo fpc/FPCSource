@@ -25,12 +25,8 @@ unit tgcpu;
   interface
 
     uses
-       cobjects,globals,tree,hcodegen,verbose,files,aasm
-       ,i386base,i386asm,tgobj
-{$ifdef dummy}
-       end
-{$endif}
-       ;
+       cobjects,globals,tree,hcodegen,verbose,files,
+       aasm,cpubase,cpuasm,tgobj;
 
     const
        countusablereg : byte = 4;
@@ -72,7 +68,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  1999-08-03 17:09:50  florian
+  Revision 1.4  1999-09-10 18:48:11  florian
+    * some bug fixes (e.g. must_be_valid and procinfo.funcret_is_valid)
+    * most things for stored properties fixed
+
+  Revision 1.3  1999/08/03 17:09:50  florian
     * the alpha compiler can be compiled now
 
   Revision 1.2  1999/08/02 23:13:24  florian

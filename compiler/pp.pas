@@ -176,7 +176,6 @@ uses
         {$O gdb}
   {$endif gdb}
   {$ifdef i386}
-        {$O opts386}
         {$O cpubase}
         {$O cgai386}
         {$O tgeni386}
@@ -191,6 +190,7 @@ uses
         {$O cg386set}
         {$ifndef NOOPT}
           {$O aopt386}
+          {$O opts386}
         {$endif}
         {$IfNDef Nora386dir}
           {$O ra386dir}
@@ -280,7 +280,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.47  1999-09-02 18:47:45  daniel
+  Revision 1.48  1999-09-10 18:48:08  florian
+    * some bug fixes (e.g. must_be_valid and procinfo.funcret_is_valid)
+    * most things for stored properties fixed
+
+  Revision 1.47  1999/09/02 18:47:45  daniel
     * Could not compile with TP, some arrays moved to heap
     * NOAG386BIN default for TP
     * AG386* files were not compatible with TP, fixed.

@@ -25,9 +25,7 @@ unit cgcpu;
   interface
 
     uses
-       cgobj,aasm
-{$i cpuunit.inc}
-       ;
+       cgobj,aasm,cpuinfo,cpubase;
 
     type
        pcg386 = ^tcg386;
@@ -44,14 +42,14 @@ unit cgcpu;
 
           procedure g_stackframe_entry(list : paasmoutput;localsize : longint);virtual;
           procedure g_restore_frame_pointer(list : paasmoutput);virtual;
-          procedure tcg386.g_ret_from_proc(list : paasmoutput;para size : aword);
+          procedure g_ret_from_proc(list : paasmoutput;parasize : aword);
           constructor init;
        end;
 
   implementation
 
     uses
-       globtype,globals;
+       globtype,globals,cpuasm,symconst,symtable,cgbase,verbose;
 
     constructor tcg386.init;
 
@@ -124,7 +122,7 @@ unit cgcpu;
           list^.concat(new(paicpu,op_none(A_LEAVE,S_NO)));
        end;
 
-     procedure tcg386.g_ret_from_proc(list : paasmoutput;para size : aword);
+     procedure tcg386.g_ret_from_proc(list : paasmoutput;parasize : aword);
 
        begin
           { parameters are limited to 65535 bytes because }
@@ -142,7 +140,11 @@ unit cgcpu;
 end.
 {
   $Log$
-  Revision 1.5  1999-08-25 12:00:21  jonas
+  Revision 1.6  1999-09-10 18:48:11  florian
+    * some bug fixes (e.g. must_be_valid and procinfo.funcret_is_valid)
+    * most things for stored properties fixed
+
+  Revision 1.5  1999/08/25 12:00:21  jonas
     * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
 
   Revision 1.4  1999/08/06 14:15:56  florian

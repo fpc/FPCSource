@@ -526,6 +526,7 @@ unit pexpr;
       var
          prev_in_args : boolean;
          prevafterassn : boolean;
+         Store_valid : boolean;
       begin
          prev_in_args:=in_args;
          prevafterassn:=afterassignment;
@@ -544,8 +545,11 @@ unit pexpr;
               else p1^.left:=nil;
 
               { do firstpass because we need the  }
-              { result type                    }
+              { result type                       }
+              Store_valid:=Must_be_valid;
+              Must_be_valid:=false;
               do_firstpass(p1);
+              Must_be_valid:=Store_valid;
            end
          else
            begin
@@ -2089,7 +2093,11 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.138  1999-09-07 08:01:20  peter
+  Revision 1.139  1999-09-10 18:48:07  florian
+    * some bug fixes (e.g. must_be_valid and procinfo.funcret_is_valid)
+    * most things for stored properties fixed
+
+  Revision 1.138  1999/09/07 08:01:20  peter
     * @(<x>) support
 
   Revision 1.137  1999/09/01 22:08:58  peter

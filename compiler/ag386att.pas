@@ -207,15 +207,7 @@ unit ag386att;
     begin
       case o.typ of
         top_reg :
-          begin
-{$ifdef debug}
-             if not(o.reg) in tregister then
-               getopstr:=''
-             else
-{$endif}
-
-             getopstr:=att_reg2str[o.reg];
-          end;
+          getopstr:=att_reg2str[o.reg];
         top_ref :
           getopstr:=getreferencestring(o.ref^);
         top_const :
@@ -869,7 +861,11 @@ unit ag386att;
 end.
 {
   $Log$
-  Revision 1.13  1999-09-02 17:07:38  florian
+  Revision 1.14  1999-09-10 18:48:00  florian
+    * some bug fixes (e.g. must_be_valid and procinfo.funcret_is_valid)
+    * most things for stored properties fixed
+
+  Revision 1.13  1999/09/02 17:07:38  florian
     * problems with -Or fixed: tdef.isfpuregable was wrong!
 
   Revision 1.12  1999/08/25 16:03:46  peter

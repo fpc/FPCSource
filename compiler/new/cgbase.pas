@@ -79,6 +79,10 @@ unit cgbase;
           { parameter offset }
           call_offset : longint;
 
+          { every register which must be saved by the entry code }
+          { (and restored by the exit code) must be in that set  }
+          registerstosave : tregisterset;
+
           { some collected informations about the procedure }
           { see pi_xxxx above                               }
           flags : longint;
@@ -421,7 +425,11 @@ unit cgbase;
 end.
 {
   $Log$
-  Revision 1.8  1999-08-06 13:26:49  florian
+  Revision 1.9  1999-09-10 18:48:11  florian
+    * some bug fixes (e.g. must_be_valid and procinfo.funcret_is_valid)
+    * most things for stored properties fixed
+
+  Revision 1.8  1999/08/06 13:26:49  florian
     * more changes ...
 
   Revision 1.7  1999/08/05 14:58:10  florian
