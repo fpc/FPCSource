@@ -30,6 +30,9 @@
   use_auto_openlib.
   12 Jan 2003.
   
+  Changed startcode for unit.
+  10 Feb 2003.
+  
   nils.sjoholm@mailbox.swipnet.se
 
 }
@@ -294,10 +297,24 @@ FUNCTION QNewSessionAsyncTags(host : string; port : LONGINT; name : string; cons
 FUNCTION QNewHostSessionTags(hostnames : string; port : pLONGINT; names : string; const argv : Array Of Const) : pQSession;
 FUNCTION QNewServerSessionTags(hostNames : string; progNames : string; const argv : Array Of Const) : pQSession;
 
+{You can remove this include and use a define instead}
+{$I useautoopenlib.inc}
+{$ifdef use_init_openlib}
+procedure InitAMARQUEELibrary;
+{$endif use_init_openlib}
+
+{This is a variable that knows how the unit is compiled}
+var
+    AMARQUEEIsCompiledHow : longint;
 
 IMPLEMENTATION
 
-uses msgbox ,pastoc, tagsarray;
+uses
+{$ifndef dont_use_openlib}
+msgbox,
+{$endif dont_use_openlib}
+pastoc,tagsarray;
+
 
 FUNCTION QFreeSession(session : pQSession) : LONGINT;
 BEGIN
@@ -1051,50 +1068,95 @@ begin
     QNewServerSessionTags := QNewServerSession(hostnames,prognames,readintags(argv));
 end;
 
-
-{$I useautoopenlib.inc}
-{$ifdef use_auto_openlib}
-   {$Info Compiling autoopening of amarquee.library}
-var
-    amarquee_exit : pointer;
-
 const
-    VERSION : string[2] = '50';
+    { Change VERSION and LIBVERSION to proper values }
 
-procedure CloseAmarqueeLibrary;
+    VERSION : string[2] = '0';
+    LIBVERSION : longword = 0;
+
+{$ifdef use_init_openlib}
+  {$Info Compiling initopening of amarquee.library}
+  {$Info don't forget to use InitAMARQUEELibrary in the beginning of your program}
+
+var
+    amarquee_exit : Pointer;
+
+procedure CloseamarqueeLibrary;
 begin
     ExitProc := amarquee_exit;
-    if AmarqueeBase <> nil then begin
-        CloseLibrary(AmarqueeBase);
-        AmarqueeBase := nil;
+    if AMarqueeBase <> nil then begin
+        CloseLibrary(AMarqueeBase);
+        AMarqueeBase := nil;
+    end;
+end;
+
+procedure InitAMARQUEELibrary;
+begin
+    AMarqueeBase := nil;
+    AMarqueeBase := OpenLibrary(AMARQUEENAME,LIBVERSION);
+    if AMarqueeBase <> nil then begin
+        amarquee_exit := ExitProc;
+        ExitProc := @CloseamarqueeLibrary;
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open amarquee.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
     end;
 end;
 
 begin
-    AmarqueeBase := nil;
-    AmarqueeBase := OpenLibrary(AmarqueeNAME,50);
-    if AmarqueeBase <> nil then begin
-       Amarquee_exit := ExitProc;
-       ExitProc := @CloseAmarqueeLibrary;
+    AMARQUEEIsCompiledHow := 2;
+{$endif use_init_openlib}
+
+{$ifdef use_auto_openlib}
+  {$Info Compiling autoopening of amarquee.library}
+
+var
+    amarquee_exit : Pointer;
+
+procedure CloseamarqueeLibrary;
+begin
+    ExitProc := amarquee_exit;
+    if AMarqueeBase <> nil then begin
+        CloseLibrary(AMarqueeBase);
+        AMarqueeBase := nil;
+    end;
+end;
+
+begin
+    AMarqueeBase := nil;
+    AMarqueeBase := OpenLibrary(AMARQUEENAME,LIBVERSION);
+    if AMarqueeBase <> nil then begin
+        amarquee_exit := ExitProc;
+        ExitProc := @CloseamarqueeLibrary;
+        AMARQUEEIsCompiledHow := 1;
     end else begin
         MessageBox('FPC Pascal Error',
-                   'Can''t open Amarquee.library version ' +
-                   VERSION +
-                   chr(10) + 
-                   'Deallocating resources and closing down',
-                   'Oops');
-       halt(20);
+        'Can''t open amarquee.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
     end;
-{$else}
-   {$Warning No autoopening of amarquee.library compiled}
-   {$Info Make sure you open amarquee.library yourself}
+
 {$endif use_auto_openlib}
+
+{$ifdef dont_use_openlib}
+begin
+    AMARQUEEIsCompiledHow := 3;
+   {$Warning No autoopening of amarquee.library compiled}
+   {$Warning Make sure you open amarquee.library yourself}
+{$endif dont_use_openlib}
 
 END. (* UNIT AMARQUEE *)
 
 {
   $Log$
-  Revision 1.1  2003-01-12 20:40:47  nils
+  Revision 1.2  2003-02-11 20:24:44  nils
+  * changed startcode for library
+
+  Revision 1.1  2003/01/12 20:40:47  nils
     * initial release
 
 }

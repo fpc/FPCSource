@@ -29,6 +29,9 @@
     Added the defines use_amiga_smartlink and
     use_auto_openlib.
     12 Jan 2003.
+
+    Changed startcode for unit.
+    11 Feb 2003.
     
     nils.sjoholm@mailbox.swipnet.se
 }
@@ -671,11 +674,24 @@ FUNCTION rtPaletteRequest(title : String; reqinfo : prtReqInfo; const argv : Arr
 FUNCTION rtScreenModeRequest(screenmodereq : prtScreenModeRequester; title : String; const argv : Array Of Const) : ULONG;
 
 
+{You can remove this include and use a define instead}
+{$I useautoopenlib.inc}
+{$ifdef use_init_openlib}
+procedure InitREQTOOLSLibrary;
+{$endif use_init_openlib}
+
+{This is a variable that knows how the unit is compiled}
+var
+    REQTOOLSIsCompiledHow : longint;
 
 
 IMPLEMENTATION
 
-uses msgbox,pastoc,tagsarray;
+uses
+{$ifndef dont_use_openlib}
+msgbox,
+{$endif dont_use_openlib}
+tagsarray,pastoc;
 
 FUNCTION rtAllocRequestA(typ : ULONG; taglist : pTagItem) : POINTER;
 BEGIN
@@ -1117,45 +1133,87 @@ FUNCTION rtScreenModeRequest(screenmodereq : prtScreenModeRequester; title : Str
 begin
      rtScreenModeRequest := rtScreenModeRequestA(screenmodereq,title,readintags(argv));
 end;
-{$I useautoopenlib.inc}
-{$ifdef use_auto_openlib}
-   {$Info Compiling autoopening of reqtools.library}
-
-var
-   reqtools_exit : Pointer;
-
-PROCEDURE CloseReqToolsLibrary;
-BEGIN
-     ExitProc := reqtools_exit;
-     if ReqToolsBase <> nil then begin
-        CloseLibrary(ReqToolsBase);
-        ReqToolsBase := nil;
-     end;
-END;
 
 const
-    VERSION : string[2] = '38';
+    { Change VERSION and LIBVERSION to proper values }
 
-BEGIN
+    VERSION : string[2] = '0';
+    LIBVERSION : longword = 0;
+
+{$ifdef use_init_openlib}
+  {$Info Compiling initopening of reqtools.library}
+  {$Info don't forget to use InitREQTOOLSLibrary in the beginning of your program}
+
+var
+    reqtools_exit : Pointer;
+
+procedure ClosereqtoolsLibrary;
+begin
+    ExitProc := reqtools_exit;
+    if ReqToolsBase <> nil then begin
+        CloseLibrary(ReqToolsBase);
+        ReqToolsBase := nil;
+    end;
+end;
+
+procedure InitREQTOOLSLibrary;
+begin
     ReqToolsBase := nil;
-    ReqToolsBase := OpenLibrary(REQTOOLSNAME,REQTOOLSVERSION);
-    IF ReqToolsBase <> NIL THEN begin
+    ReqToolsBase := OpenLibrary(REQTOOLSNAME,LIBVERSION);
+    if ReqToolsBase <> nil then begin
         reqtools_exit := ExitProc;
-        ExitProc := @CloseReqToolsLibrary;
+        ExitProc := @ClosereqtoolsLibrary;
     end else begin
-         MessageBox('FPC Pascal Error',
-                    'Can''t open reqtools.library version ' +
-                    VERSION +
-                    chr(10) +
-                    'Deallocating resources and closing down',
-                    'Oops');
+        MessageBox('FPC Pascal Error',
+        'Can''t open reqtools.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
         halt(20);
     end;
-{$else}
-   {$Warning No autoopening of reqtools.library compiled}
-   {$Info Make sure you open reqtools.library yourself}
+end;
+
+begin
+    REQTOOLSIsCompiledHow := 2;
+{$endif use_init_openlib}
+
+{$ifdef use_auto_openlib}
+  {$Info Compiling autoopening of reqtools.library}
+
+var
+    reqtools_exit : Pointer;
+
+procedure ClosereqtoolsLibrary;
+begin
+    ExitProc := reqtools_exit;
+    if ReqToolsBase <> nil then begin
+        CloseLibrary(ReqToolsBase);
+        ReqToolsBase := nil;
+    end;
+end;
+
+begin
+    ReqToolsBase := nil;
+    ReqToolsBase := OpenLibrary(REQTOOLSNAME,LIBVERSION);
+    if ReqToolsBase <> nil then begin
+        reqtools_exit := ExitProc;
+        ExitProc := @ClosereqtoolsLibrary;
+        REQTOOLSIsCompiledHow := 1;
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open reqtools.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+
 {$endif use_auto_openlib}
 
+{$ifdef dont_use_openlib}
+begin
+    REQTOOLSIsCompiledHow := 3;
+   {$Warning No autoopening of reqtools.library compiled}
+   {$Warning Make sure you open reqtools.library yourself}
+{$endif dont_use_openlib}
 
 
 END. (* UNIT REQTOOLS *)

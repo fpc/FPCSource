@@ -32,6 +32,9 @@
     use_auto_openlib.
     12 Jan 2003.
 
+    Changed startcode for unit.
+    10 Feb 2003.
+    
     nils.sjoholm@mailbox.swipnet.se
 
 }
@@ -556,13 +559,14 @@ const
        pHelpMsg = ^tHelpMsg;
     {   pUWord = ^UWord; }
        ppGadget = ^pGadget;
+       pUWORD   = ^UWORD;
 
-PROCEDURE LT_LevelWidth(par1 : pLayoutHandle; par2 : pCHAR; par3 : POINTER; par4 : LONGINT; par5 : LONGINT; VAR par6 : LONGINT; VAR par7 : LONGINT; last : LONGINT);
+PROCEDURE LT_LevelWidth(par1 : pLayoutHandle; par2 : pCHAR; par3 : POINTER; par4 : LONGINT; par5 : LONGINT; par6 : pLONGINT; par7 : pLONGINT; last : LONGINT);
 PROCEDURE LT_DeleteHandle(last : pLayoutHandle);
 FUNCTION LT_CreateHandle(par1 : pScreen; last : pTextAttr) : pLayoutHandle;
 FUNCTION LT_CreateHandleTagList(par1 : pScreen; tags : pTagItem) : pLayoutHandle;
 FUNCTION LT_Rebuild(par1 : pLayoutHandle; par2 : pIBox; par3 : LONGINT; par4 : LONGINT; last : LONGINT) : BOOLEAN;
-PROCEDURE LT_HandleInput(par1 : pLayoutHandle; par2 : ulong; var par3 : ulong; var par4 : UWORD; last :ppGadget);
+PROCEDURE LT_HandleInput(par1 : pLayoutHandle; par2 : ulong; par3 : pulong; par4 : pUWORD; last :ppGadget);
 PROCEDURE LT_BeginRefresh(last : pLayoutHandle);
 PROCEDURE LT_EndRefresh(par1 : pLayoutHandle; last : LONGINT);
 FUNCTION LT_GetAttributesA(par1 : pLayoutHandle; par2 : LONGINT; tags : pTagItem) : LONGINT;
@@ -587,12 +591,12 @@ FUNCTION LT_BuildA(par1 : pLayoutHandle; tags : pTagItem) : pWindow;
 FUNCTION LT_RebuildTagList(par1 : pLayoutHandle; par2 : LONGINT; tags : pTagItem) : BOOLEAN;
 PROCEDURE LT_UpdateStrings(last : pLayoutHandle);
 PROCEDURE LT_DisposeMenu(last : pMenu);
-FUNCTION LT_NewMenuTemplate(par1 : pScreen; par2 : pTextAttr; par3 : pImage; par4 : pImage; VAR par5 : LONGINT; last : pNewMenu) : pMenu;
+FUNCTION LT_NewMenuTemplate(par1 : pScreen; par2 : pTextAttr; par3 : pImage; par4 : pImage; par5 : pLONGINT; last : pNewMenu) : pMenu;
 FUNCTION LT_NewMenuTagList(tags : pTagItem) : pMenu;
 PROCEDURE LT_MenuControlTagList(par1 : pWindow; par2 : pMenu; tags : pTagItem);
 FUNCTION LT_GetMenuItem(par1 : pMenu; last : ulong) : pMenuItem;
 FUNCTION LT_FindMenuCommand(par1 : pMenu; par2 : ulong; par3 : ulong; last : pGadget) : pMenuItem;
-PROCEDURE LT_NewLevelWidth(par1 : pLayoutHandle; par2 : pCHAR; par3 : POINTER; par4 : LONGINT; par5 : LONGINT; VAR par6 : LONGINT; VAR par7 : LONGINT; last : LONGINT);
+PROCEDURE LT_NewLevelWidth(par1 : pLayoutHandle; par2 : pCHAR; par3 : POINTER; par4 : LONGINT; par5 : LONGINT; par6 : pLONGINT; par7 : pLONGINT; last : LONGINT);
 PROCEDURE LT_Refresh(last : pLayoutHandle);
 PROCEDURE LT_CatchUpRefresh(last : pLayoutHandle);
 FUNCTION LT_GetWindowUserData(par1 : pWindow; last : POINTER) : POINTER;
@@ -607,7 +611,7 @@ FUNCTION LT_GetAttributes(handle : pLayoutHandle; id : LONGINT; const tagList : 
 PROCEDURE LT_SetAttributes(handle : pLayoutHandle; id : LONGINT; const tagList : Array Of Const);
 PROCEDURE LT_Add(handle : pLayoutHandle; _type : LONGINT; _label : pCHAR; id : LONGINT; const tagList : Array Of Const);
 PROCEDURE LT_New(handle : pLayoutHandle; const tagList : Array Of Const);
-FUNCTION LT_Layout(handle : pLayoutHandle; title : pCHAR; bounds : pIBox; extraWidth : LONGINT; extraHeight : LONGINT; idcmp : CARDINAL; align : LONGINT; const tagParams : Array Of Const) : pWindow;
+FUNCTION LT_Layout(handle : pLayoutHandle; title : pCHAR; bounds : pIBox; extraWidth : LONGINT; extraHeight : LONGINT; idcmp : longword; align : LONGINT; const tagParams : Array Of Const) : pWindow;
 FUNCTION LT_LayoutMenus(handle : pLayoutHandle; menuTemplate : pNewMenu; const tagParams : Array Of Const) : pMenu;
 FUNCTION LT_Build(handle : pLayoutHandle; const tagParams : Array Of Const) : pWindow;
 FUNCTION LT_RebuildTags(handle : pLayoutHandle; clear : LONGINT; const tags : Array Of Const) : BOOLEAN;
@@ -617,12 +621,25 @@ PROCEDURE LT_MenuControlTags(window : pWindow; intuitionMenu : pMenu; const tags
 
 VAR GTLayoutBase : pLibrary;
 
+{You can remove this include and use a define instead}
+{$I useautoopenlib.inc}
+{$ifdef use_init_openlib}
+procedure InitGTLAYOUTLibrary;
+{$endif use_init_openlib}
+
+{This is a variable that knows how the unit is compiled}
+var
+    GTLAYOUTIsCompiledHow : longint;
 
 IMPLEMENTATION
 
-uses msgbox,tagsarray;
+uses
+{$ifndef dont_use_openlib}
+msgbox,
+{$endif dont_use_openlib}
+tagsarray;
 
-PROCEDURE LT_LevelWidth(par1 : pLayoutHandle; par2 : pCHAR; par3 : POINTER; par4 : LONGINT; par5 : LONGINT; VAR par6 : LONGINT; VAR par7 : LONGINT; last : LONGINT);
+PROCEDURE LT_LevelWidth(par1 : pLayoutHandle; par2 : pCHAR; par3 : POINTER; par4 : LONGINT; par5 : LONGINT;  par6 : pLONGINT;  par7 : pLONGINT; last : LONGINT);
 BEGIN
   ASM
 	MOVE.L	A6,-(A7)
@@ -696,7 +713,7 @@ BEGIN
   END;
 END;
 
-PROCEDURE LT_HandleInput(par1 : pLayoutHandle; par2 : ulong; var par3 : ulong;var  par4 : UWORD; last : ppGadget);
+PROCEDURE LT_HandleInput(par1 : pLayoutHandle; par2 : ulong; par3 : pulong;par4 : pUWORD; last : ppGadget);
 BEGIN
   ASM
 	MOVE.L	A6,-(A7)
@@ -1021,7 +1038,7 @@ BEGIN
   END;
 END;
 
-FUNCTION LT_NewMenuTemplate(par1 : pScreen; par2 : pTextAttr; par3 : pImage; par4 : pImage; VAR par5 : LONGINT; last : pNewMenu) : pMenu;
+FUNCTION LT_NewMenuTemplate(par1 : pScreen; par2 : pTextAttr; par3 : pImage; par4 : pImage; par5 : pLONGINT; last : pNewMenu) : pMenu;
 BEGIN
   ASM
 	MOVE.L	A6,-(A7)
@@ -1091,7 +1108,7 @@ BEGIN
   END;
 END;
 
-PROCEDURE LT_NewLevelWidth(par1 : pLayoutHandle; par2 : pCHAR; par3 : POINTER; par4 : LONGINT; par5 : LONGINT; VAR par6 : LONGINT; VAR par7 : LONGINT; last : LONGINT);
+PROCEDURE LT_NewLevelWidth(par1 : pLayoutHandle; par2 : pCHAR; par3 : POINTER; par4 : LONGINT; par5 : LONGINT;  par6 : pLONGINT;  par7 : pLONGINT; last : LONGINT);
 BEGIN
   ASM
 	MOVE.L	A6,-(A7)
@@ -1173,7 +1190,7 @@ begin
     LT_NewA(handle , readintags(tagList));
 end;
 
-FUNCTION LT_Layout(handle : pLayoutHandle; title : pCHAR; bounds : pIBox; extraWidth : LONGINT; extraHeight : LONGINT; idcmp : CARDINAL; align : LONGINT; const tagParams : Array Of Const) : pWindow;
+FUNCTION LT_Layout(handle : pLayoutHandle; title : pCHAR; bounds : pIBox; extraWidth : LONGINT; extraHeight : LONGINT; idcmp : longword; align : LONGINT; const tagParams : Array Of Const) : pWindow;
 begin
     LT_Layout := LT_LayoutA(handle , title , bounds , extraWidth , extraHeight , idcmp , align , readintags(tagParams));
 end;
@@ -1203,15 +1220,20 @@ begin
     LT_MenuControlTagList(window , intuitionMenu , readintags(tags));
 end;
 
+const
+    { Change VERSION and LIBVERSION to proper values }
 
-{$I useautoopenlib.inc}
-{$ifdef use_auto_openlib}
-   {$Info Compiling autoopening of gtlayout.library}
+    VERSION : string[2] = '0';
+    LIBVERSION : Cardinal = 0;
+
+{$ifdef use_init_openlib}
+  {$Info Compiling initopening of gtlayout.library}
+  {$Info don't forget to use InitGTLAYOUTLibrary in the beginning of your program}
 
 var
-    gtlayout_exit : pointer;
+    gtlayout_exit : Pointer;
 
-procedure CloseGTLayoutLibrary;
+procedure ClosegtlayoutLibrary;
 begin
     ExitProc := gtlayout_exit;
     if GTLayoutBase <> nil then begin
@@ -1220,28 +1242,65 @@ begin
     end;
 end;
 
-const
-    VERSION : string[1] = '0';
+procedure InitGTLAYOUTLibrary;
+begin
+    GTLayoutBase := nil;
+    GTLayoutBase := OpenLibrary(GTLAYOUTNAME,LIBVERSION);
+    if GTLayoutBase <> nil then begin
+        gtlayout_exit := ExitProc;
+        ExitProc := @ClosegtlayoutLibrary;
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open gtlayout.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+end;
+
+begin
+    GTLAYOUTIsCompiledHow := 2;
+{$endif use_init_openlib}
+
+{$ifdef use_auto_openlib}
+  {$Info Compiling autoopening of gtlayout.library}
+
+var
+    gtlayout_exit : Pointer;
+
+procedure ClosegtlayoutLibrary;
+begin
+    ExitProc := gtlayout_exit;
+    if GTLayoutBase <> nil then begin
+        CloseLibrary(GTLayoutBase);
+        GTLayoutBase := nil;
+    end;
+end;
 
 begin
     GTLayoutBase := nil;
-    GTLayOutBase := OpenLibrary(GTLAYOUTNAME,0);
+    GTLayoutBase := OpenLibrary(GTLAYOUTNAME,LIBVERSION);
     if GTLayoutBase <> nil then begin
         gtlayout_exit := ExitProc;
-        ExitProc := @CloseGTLayoutLibrary;
+        ExitProc := @ClosegtlayoutLibrary;
+        GTLAYOUTIsCompiledHow := 1;
     end else begin
         MessageBox('FPC Pascal Error',
-                    'Can''t open gtlayout.library version ' + 
-                    VERSION +
-                    chr(10) + 
-                    'Deallocating resources and closing down',
-                    'Oops');
+        'Can''t open gtlayout.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
         halt(20);
     end;
-{$else}
-   {$Warning No autoopening of gtlayout.library compiled}
-   {$Info Make sure you open gtlayout.library yourself}
+
 {$endif use_auto_openlib}
+
+{$ifdef dont_use_openlib}
+begin
+    GTLAYOUTIsCompiledHow := 3;
+   {$Warning No autoopening of gtlayout.library compiled}
+   {$Warning Make sure you open gtlayout.library yourself}
+{$endif dont_use_openlib}
+
 
 END. (* UNIT GTLAYOUT *)
 
@@ -1249,4 +1308,4 @@ END. (* UNIT GTLAYOUT *)
   $Log
 }
 
-  
+

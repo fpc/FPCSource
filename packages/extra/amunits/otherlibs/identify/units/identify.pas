@@ -2,7 +2,7 @@
     This file is part of the Free Pascal run time library.
 
     A file in Amiga system run time library.
-    Copyright (c) 2001 by Nils Sjoholm
+    Copyright (c) 2001-2003 by Nils Sjoholm
     member of the Amiga RTL development team.
 
     See the file COPYING.FPC, included in this distribution,
@@ -29,6 +29,10 @@
     use_auto_openlib.
     12 Jan 2003.
 
+    Changed cardinal > longword.
+    Changed startcode for unit.
+    11 Feb 2003.
+    
     nils.sjoholm@mailbox.swipnet.se
 }
 
@@ -423,12 +427,12 @@ FUNCTION IdEstimateFormatSize(String_ : pCHAR; Tags : pTagItem) : Ulong;
 }
 
 FUNCTION IdExpansionTags(const TagList : Array Of Const) : LONGINT;
-FUNCTION IdHardwareTags(Type_ : CARDINAL; const TagList : Array Of Const) : pCHAR;
-FUNCTION IdAlertTags(ID : CARDINAL; const TagList : Array Of Const) : LONGINT;
+FUNCTION IdHardwareTags(Type_ : longword; const TagList : Array Of Const) : pCHAR;
+FUNCTION IdAlertTags(ID : longword; const TagList : Array Of Const) : LONGINT;
 FUNCTION IdFunctionTags(LibName : pCHAR; Offset : LONGINT; const TagList : Array Of Const) : LONGINT;
-FUNCTION IdHardwareNumTags(Type_ : CARDINAL; const TagList : Array Of Const) : CARDINAL;
-FUNCTION IdFormatStringTags(String_ : pCHAR; Buffer : pCHAR; Length : CARDINAL; const Tags : Array Of Const) : CARDINAL;
-FUNCTION IdEstimateFormatSizeTags(String_ : pCHAR; const Tags : Array Of Const) : CARDINAL;
+FUNCTION IdHardwareNumTags(Type_ : longword; const TagList : Array Of Const) : longword;
+FUNCTION IdFormatStringTags(String_ : pCHAR; Buffer : pCHAR; Length : longword; const Tags : Array Of Const) : longword;
+FUNCTION IdEstimateFormatSizeTags(String_ : pCHAR; const Tags : Array Of Const) : longword;
 
 {
      Overlay functions
@@ -438,12 +442,26 @@ FUNCTION IdFunction(LibName : string; Offset : LONGINT; TagList : pTagItem) : LO
 FUNCTION IdFormatString(String_ : string; Buffer : pCHAR; Length : Ulong; Tags : pTagItem) : Ulong;
 FUNCTION IdEstimateFormatSize(String_ : string; Tags : pTagItem) : Ulong;
 FUNCTION IdFunctionTags(LibName : string; Offset : LONGINT; const TagList : Array Of Const) : LONGINT;
-FUNCTION IdFormatStringTags(String_ : string; Buffer : pCHAR; Length : CARDINAL; const Tags : Array Of Const) : CARDINAL;
-FUNCTION IdEstimateFormatSizeTags(String_ : string; const Tags : Array Of Const) : CARDINAL;
+FUNCTION IdFormatStringTags(String_ : string; Buffer : pCHAR; Length : longword; const Tags : Array Of Const) : longword;
+FUNCTION IdEstimateFormatSizeTags(String_ : string; const Tags : Array Of Const) : longword;
+
+{You can remove this include and use a define instead}
+{$I useautoopenlib.inc}
+{$ifdef use_init_openlib}
+procedure InitIDENTIFYLibrary;
+{$endif use_init_openlib}
+
+{This is a variable that knows how the unit is compiled}
+var
+    IDENTIFYIsCompiledHow : longint;
 
 IMPLEMENTATION
 
-uses msgbox,tagsarray,pastoc;
+uses
+{$ifndef dont_use_openlib}
+msgbox,
+{$endif dont_use_openlib}
+tagsarray,pastoc;
 
 FUNCTION IdExpansion(TagList : pTagItem) : LONGINT;
 BEGIN
@@ -556,12 +574,12 @@ begin
     IdExpansionTags := IdExpansion(readintags(TagList));
 end;
 
-FUNCTION IdHardwareTags(Type_ : CARDINAL; const TagList : Array Of Const) : pCHAR;
+FUNCTION IdHardwareTags(Type_ : longword; const TagList : Array Of Const) : pCHAR;
 begin
     IdHardwareTags := IdHardware(Type_ , readintags(TagList));
 end;
 
-FUNCTION IdAlertTags(ID : CARDINAL; const TagList : Array Of Const) : LONGINT;
+FUNCTION IdAlertTags(ID : longword; const TagList : Array Of Const) : LONGINT;
 begin
     IdAlertTags := IdAlert(ID , readintags(TagList));
 end;
@@ -571,17 +589,17 @@ begin
     IdFunctionTags := IdFunction(LibName , Offset , readintags(TagList));
 end;
 
-FUNCTION IdHardwareNumTags(Type_ : CARDINAL; const TagList : Array Of Const) : CARDINAL;
+FUNCTION IdHardwareNumTags(Type_ : longword; const TagList : Array Of Const) : longword;
 begin
     IdHardwareNumTags := IdHardwareNum(Type_ , readintags(TagList));
 end;
 
-FUNCTION IdFormatStringTags(String_ : pCHAR; Buffer : pCHAR; Length : CARDINAL; const Tags : Array Of Const) : CARDINAL;
+FUNCTION IdFormatStringTags(String_ : pCHAR; Buffer : pCHAR; Length : longword; const Tags : Array Of Const) : longword;
 begin
     IdFormatStringTags := IdFormatString(String_ , Buffer , Length , readintags(Tags));
 end;
 
-FUNCTION IdEstimateFormatSizeTags(String_ : pCHAR; const Tags : Array Of Const) : CARDINAL;
+FUNCTION IdEstimateFormatSizeTags(String_ : pCHAR; const Tags : Array Of Const) : longword;
 begin
     IdEstimateFormatSizeTags := IdEstimateFormatSize(String_ , readintags(Tags));
 end;
@@ -610,55 +628,96 @@ begin
     IdFunctionTags := IdFunction(pas2c(LibName),Offset,readintags(TagList));
 end;
 
-FUNCTION IdFormatStringTags(String_ : string; Buffer : pCHAR; Length : CARDINAL; const Tags : Array Of Const) : CARDINAL;
+FUNCTION IdFormatStringTags(String_ : string; Buffer : pCHAR; Length : longword; const Tags : Array Of Const) : longword;
 begin
     IdFormatStringTags := IdFormatString(pas2c(String_),Buffer,Length,readintags(Tags));
 end;
 
-FUNCTION IdEstimateFormatSizeTags(String_ : string; const Tags : Array Of Const) : CARDINAL;
+FUNCTION IdEstimateFormatSizeTags(String_ : string; const Tags : Array Of Const) : longword;
 begin
     IdEstimateFormatSizeTags := IdEstimateFormatSize(pas2c(String_),readintags(Tags));
 end;
 
-{$I useautoopenlib.inc}
-{$ifdef use_auto_openlib}
-   {$Info Compiling autoopening of identify.library}
+const
+    { Change VERSION and LIBVERSION to proper values }
+
+    VERSION : string[2] = '0';
+    LIBVERSION : longword = 0;
+
+{$ifdef use_init_openlib}
+  {$Info Compiling initopening of identify.library}
+  {$Info don't forget to use InitIDENTIFYLibrary in the beginning of your program}
 
 var
     identify_exit : Pointer;
 
-procedure CloseIdentifyLibrary;
+procedure CloseidentifyLibrary;
 begin
     ExitProc := identify_exit;
     if IdentifyBase <> nil then begin
-       CloseLibrary(IdentifyBase);
-       IdentifyBase := nil;
+        CloseLibrary(IdentifyBase);
+        IdentifyBase := nil;
     end;
 end;
 
-const
-    VERSION : string[2] = '12';
-    LIBVERSION : Cardinal = 12;
+procedure InitIDENTIFYLibrary;
+begin
+    IdentifyBase := nil;
+    IdentifyBase := OpenLibrary(IDENTIFYNAME,LIBVERSION);
+    if IdentifyBase <> nil then begin
+        identify_exit := ExitProc;
+        ExitProc := @CloseidentifyLibrary;
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open identify.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+end;
+
+begin
+    IDENTIFYIsCompiledHow := 2;
+{$endif use_init_openlib}
+
+{$ifdef use_auto_openlib}
+  {$Info Compiling autoopening of identify.library}
+
+var
+    identify_exit : Pointer;
+
+procedure CloseidentifyLibrary;
+begin
+    ExitProc := identify_exit;
+    if IdentifyBase <> nil then begin
+        CloseLibrary(IdentifyBase);
+        IdentifyBase := nil;
+    end;
+end;
 
 begin
     IdentifyBase := nil;
     IdentifyBase := OpenLibrary(IDENTIFYNAME,LIBVERSION);
     if IdentifyBase <> nil then begin
-       identify_exit := ExitProc;
-       ExitProc := @CloseIdentifyLibrary;
+        identify_exit := ExitProc;
+        ExitProc := @CloseidentifyLibrary;
+        IDENTIFYIsCompiledHow := 1;
     end else begin
         MessageBox('FPC Pascal Error',
-                   'Can''t open identify.library version ' +
-                   VERSION +
-                   chr(10) + 
-                   'Deallocating resources and closing down',
-                   'Oops');
-       halt(20);
+        'Can''t open identify.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
     end;
-{$else}
-   {$Warning No autoopening of identify.library compiled}
-   {$Info Make sure you open identify.library yourself}
+
 {$endif use_auto_openlib}
+
+{$ifdef dont_use_openlib}
+begin
+    IDENTIFYIsCompiledHow := 3;
+   {$Warning No autoopening of identify.library compiled}
+   {$Warning Make sure you open identify.library yourself}
+{$endif dont_use_openlib}
 
 
 END. (* UNIT IDENTIFY *)
@@ -667,4 +726,4 @@ END. (* UNIT IDENTIFY *)
   $Log
 }
 
-  
+

@@ -24,6 +24,11 @@
     use_auto_openlib.
     12 Jan 2003.
     
+    Changed integer > smallint.
+    Changed cardinal > longword.
+    Changed startcode for unit.
+    11 Feb 2003.
+    
     nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
     
 }
@@ -185,7 +190,7 @@ class_DisplayObject *}
          XResize     : BOOL;              {* Horizontally resizable? *}
          YResize     : BOOL;              {* Vertically resizable? *}
          QuickHelpString : STRPTR;        {* QuickHelp string *}
-         Shortcut    : Integer;           {* The object's shortcut *}
+         Shortcut    : smallint;           {* The object's shortcut *}
          Backfilltype : ULONG;            {* The object's backfill type *}
          Installed   : BOOL;              {* Does the object have an on-screen 
 representation? *}
@@ -682,8 +687,8 @@ surrounding array *}
 
 VAR TritonBase : pLibrary;
 
-FUNCTION TR_AddClass(app : pTR_App; d0arg : CARDINAL; supertag : CARDINAL; defaultmethod : LONGINT;
-datasize : CARDINAL; tags : pTagItem) : BOOLEAN;
+FUNCTION TR_AddClass(app : pTR_App; d0arg : longword; supertag : longword; defaultmethod : LONGINT;
+datasize : longword; tags : pTagItem) : BOOLEAN;
 PROCEDURE TR_AreaFill(project : pTR_Project; rp : pRastPort; left : ULONG; top :
 ULONG; right : ULONG; bottom : ULONG; typ : ULONG; dummy : POINTER);
 FUNCTION TR_AutoRequest(app : pTR_App; lockproject : pTR_Project; wintags : pTagItem)
@@ -743,8 +748,8 @@ FUNCTION TR_Wait(app : pTR_App; otherbits : ULONG) : ULONG;
 {
    Functions with array of const
 }
-FUNCTION TR_AddClassTags(app : pTR_App; d0arg : CARDINAL; supertag : CARDINAL;
-defaultmethod : LONGINT; datasize : CARDINAL; const tags : Array Of Const) : BOOLEAN;
+FUNCTION TR_AddClassTags(app : pTR_App; d0arg : longword; supertag : longword;
+defaultmethod : LONGINT; datasize : longword; const tags : Array Of Const) : BOOLEAN;
 FUNCTION TR_OpenProjectTags(app : pTR_App; const taglist : Array Of Const) : pTR_Project;
 FUNCTION TR_AutoRequestTags(app : pTR_App; lockproject : pTR_Project; const wintags : Array Of Const): ULONG;
 FUNCTION TR_CreateAppTags(const apptags : Array of Const) : pTR_App;
@@ -773,11 +778,23 @@ procedure TR_SetWindowTitle(p : pTR_Project; thetitle : string);
 procedure TR_SetWindowTitle(p : pTR_Project; thetitle : PChar);
 procedure TR_UpdateListView(p : pTR_Project; gadid : Longint; thelist: pList);
 
+{You can remove this include and use a define instead}
+{$I useautoopenlib.inc}
+{$ifdef use_init_openlib}
+procedure InitTRITONLibrary;
+{$endif use_init_openlib}
+
+{This is a variable that knows how the unit is compiled}
+var
+    TRITONIsCompiledHow : longint;
 
 IMPLEMENTATION
 
-uses msgbox, tagsarray,pastoc;
-
+uses
+{$ifndef dont_use_openlib}
+msgbox,
+{$endif dont_use_openlib}
+tagsarray,pastoc;
 
 procedure TR_Disable(p : pTR_Project; id : Longint);
 begin
@@ -864,7 +881,7 @@ begin
     TR_SetAttribute(p,gadid,0,Longint(thelist));
 end;
 
-FUNCTION TR_AddClass(app : pTR_App; d0arg : CARDINAL; supertag : CARDINAL; defaultmethod : LONGINT; datasize : CARDINAL; tags : pTagItem) : BOOLEAN;
+FUNCTION TR_AddClass(app : pTR_App; d0arg : longword; supertag : longword; defaultmethod : LONGINT; datasize : longword; tags : pTagItem) : BOOLEAN;
 BEGIN
   ASM
 	MOVE.L	A6,-(A7)
@@ -1390,7 +1407,7 @@ END;
 {
  Functions and procedures with array of const go here
 }
-FUNCTION TR_AddClassTags(app : pTR_App; d0arg : CARDINAL; supertag : CARDINAL; defaultmethod : LONGINT; datasize : CARDINAL; const tags : Array Of Const) : BOOLEAN;
+FUNCTION TR_AddClassTags(app : pTR_App; d0arg : longword; supertag : longword; defaultmethod : LONGINT; datasize : longword; const tags : Array Of Const) : BOOLEAN;
 begin
     TR_AddClassTags := TR_AddClass(app , d0arg , supertag , defaultmethod , datasize , readintags(tags));
 end;
@@ -1430,31 +1447,35 @@ begin
     TR_EasyRequestTags := TR_EasyRequest(app,pas2c(bodyfmt),pas2c(gadfmt),readintags(taglist));
 end;
 
-{$I useautoopenlib.inc}
-{$ifdef use_auto_openlib}
-   {$Info Compiling autoopening of triton.library}
-var
-     triton_exit : Pointer;
+const
+    { Change VERSION and LIBVERSION to proper values }
 
-PROCEDURE CloseTritonLibrary;
-BEGIN
-     ExitProc := triton_exit;
-     if TritonBase <> nil then begin
+    VERSION : string[2] = '0';
+    LIBVERSION : longword = 0;
+
+{$ifdef use_init_openlib}
+  {$Info Compiling initopening of triton.library}
+  {$Info don't forget to use InitTRITONLibrary in the beginning of your program}
+
+var
+    triton_exit : Pointer;
+
+procedure ClosetritonLibrary;
+begin
+    ExitProc := triton_exit;
+    if TritonBase <> nil then begin
         CloseLibrary(TritonBase);
         TritonBase := nil;
-     end;
-END;
+    end;
+end;
 
-const
-     VERSION : string[2] = '6';
-
-
-BEGIN
+procedure InitTRITONLibrary;
+begin
     TritonBase := nil;
-    TritonBase := OpenLibrary(TRITONNAME,TRITONVERSION);
-    IF TritonBase <> NIL THEN begin
+    TritonBase := OpenLibrary(TRITONNAME,LIBVERSION);
+    if TritonBase <> nil then begin
         triton_exit := ExitProc;
-        ExitProc := @CloseTritonLibrary;
+        ExitProc := @ClosetritonLibrary;
     end else begin
         MessageBox('FPC Pascal Error',
         'Can''t open triton.library version ' + VERSION + #10 +
@@ -1462,10 +1483,51 @@ BEGIN
         'Oops');
         halt(20);
     end;
-{$else}
-   {$Warning No autoopening of triton.library compiled}
-   {$Info Make sure you open triton.library yourself}
+end;
+
+begin
+    TRITONIsCompiledHow := 2;
+{$endif use_init_openlib}
+
+{$ifdef use_auto_openlib}
+  {$Info Compiling autoopening of triton.library}
+
+var
+    triton_exit : Pointer;
+
+procedure ClosetritonLibrary;
+begin
+    ExitProc := triton_exit;
+    if TritonBase <> nil then begin
+        CloseLibrary(TritonBase);
+        TritonBase := nil;
+    end;
+end;
+
+begin
+    TritonBase := nil;
+    TritonBase := OpenLibrary(TRITONNAME,LIBVERSION);
+    if TritonBase <> nil then begin
+        triton_exit := ExitProc;
+        ExitProc := @ClosetritonLibrary;
+        TRITONIsCompiledHow := 1;
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open triton.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+
 {$endif use_auto_openlib}
+
+{$ifdef dont_use_openlib}
+begin
+    TRITONIsCompiledHow := 3;
+   {$Warning No autoopening of triton.library compiled}
+   {$Warning Make sure you open triton.library yourself}
+{$endif dont_use_openlib}
+
 
 END. (* UNIT TRITON *)
 

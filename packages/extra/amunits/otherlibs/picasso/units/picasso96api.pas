@@ -22,11 +22,15 @@
 
     Updated to fpc 1.0.7
     08 Jan 2003
-    
+
     Added the defines use_amiga_smartlink and
     use_auto_openlib.
     12 Jan 2003.
 
+    Changed cardinal > longword.
+    Changed startcode for unit.
+    11 Feb 2003.
+    
     nils.sjoholm@mailbox.swipnet.se
 
 }
@@ -47,7 +51,7 @@ USES Exec, utility, graphics, intuition;
     }
 
  const
-       P96NAME  : PChar = 'Picasso96API.library';
+       PICASSO96APINAME  : PChar = 'Picasso96API.library';
 {************************************************************************}
 { Types for RGBFormat used
  }
@@ -433,20 +437,34 @@ FUNCTION p96EncodeColor(RGBFormat : RGBFTYPE; Color : Ulong) : Ulong;
 {
  Functions and procedures with array of const go here
 }
-FUNCTION p96BestModeIDTags(const Tags : Array Of Const) : CARDINAL;
-FUNCTION p96RequestModeIDTags(const Tags : Array Of Const) : CARDINAL;
+FUNCTION p96BestModeIDTags(const Tags : Array Of Const) : longword;
+FUNCTION p96RequestModeIDTags(const Tags : Array Of Const) : longword;
 FUNCTION p96AllocModeListTags(const Tags : Array Of Const) : pList;
 FUNCTION p96OpenScreenTags(const Tags : Array Of Const) : pScreen;
 FUNCTION p96PIP_OpenTags(const Tags : Array Of Const) : pWindow;
 FUNCTION p96PIP_SetTags(Window : pWindow; const Tags : Array Of Const) : LONGINT;
 FUNCTION p96PIP_GetTags(Window : pWindow; const Tags : Array Of Const) : LONGINT;
 FUNCTION p96GetRTGDataTags(const Tags : Array Of Const) : LONGINT;
-FUNCTION p96GetBoardDataTags(Board : CARDINAL; const Tags : Array Of Const) : LONGINT;
+FUNCTION p96GetBoardDataTags(Board : longword; const Tags : Array Of Const) : LONGINT;
 
+{You can remove this include and use a define instead}
+{$I useautoopenlib.inc}
+{$ifdef use_init_openlib}
+procedure InitPICASSO96APILibrary;
+{$endif use_init_openlib}
+
+{This is a variable that knows how the unit is compiled}
+var
+    PICASSO96APIIsCompiledHow : longint;
 
 IMPLEMENTATION
 
-uses msgbox,tagsarray;
+uses
+{$ifndef dont_use_openlib}
+msgbox,
+{$endif dont_use_openlib}
+tagsarray;
+
 
 FUNCTION p96AllocBitMap(SizeX : Ulong; SizeY : Ulong; Depth : Ulong; Flags : Ulong; Friend : pBitMap; RGBFormat : RGBFTYPE) : pBitMap;
 BEGIN
@@ -814,12 +832,12 @@ END;
 {
  Functions and procedures with array of const go here
 }
-FUNCTION p96BestModeIDTags(const Tags : Array Of Const) : CARDINAL;
+FUNCTION p96BestModeIDTags(const Tags : Array Of Const) : longword;
 begin
     p96BestModeIDTags := p96BestModeIDTagList(readintags(Tags));
 end;
 
-FUNCTION p96RequestModeIDTags(const Tags : Array Of Const) : CARDINAL;
+FUNCTION p96RequestModeIDTags(const Tags : Array Of Const) : longword;
 begin
     p96RequestModeIDTags := p96RequestModeIDTagList(readintags(Tags));
 end;
@@ -854,51 +872,92 @@ begin
     p96GetRTGDataTags := p96GetRTGDataTagList(readintags(Tags));
 end;
 
-FUNCTION p96GetBoardDataTags(Board : CARDINAL; const Tags : Array Of Const) : LONGINT;
+FUNCTION p96GetBoardDataTags(Board : longword; const Tags : Array Of Const) : LONGINT;
 begin
     p96GetBoardDataTags := p96GetBoardDataTagList(Board , readintags(Tags));
 end;
 
+const
+    { Change VERSION and LIBVERSION to proper values }
 
-{$I useautoopenlib.inc}
-{$ifdef use_auto_openlib}
-   {$Info Compiling autoopening of picasso96api.library}
+    VERSION : string[2] = '0';
+    LIBVERSION : longword = 0;
+
+{$ifdef use_init_openlib}
+  {$Info Compiling initopening of picasso96api.library}
+  {$Info don't forget to use InitPICASSO96APILibrary in the beginning of your program}
 
 var
-    picasso96_exit : pointer;
+    picasso96api_exit : Pointer;
 
-procedure ClosePicasso96Library;
+procedure Closepicasso96apiLibrary;
 begin
-    ExitProc := picasso96_exit;
+    ExitProc := picasso96api_exit;
     if P96Base <> nil then begin
-       CloseLibrary(P96Base);
-       P96Base := nil;
+        CloseLibrary(P96Base);
+        P96Base := nil;
     end;
 end;
 
-const
-    VERSION : string[2] = '2';
-    LIBVERSION = 2;
+procedure InitPICASSO96APILibrary;
+begin
+    P96Base := nil;
+    P96Base := OpenLibrary(PICASSO96APINAME,LIBVERSION);
+    if P96Base <> nil then begin
+        picasso96api_exit := ExitProc;
+        ExitProc := @Closepicasso96apiLibrary;
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open picasso96api.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+end;
+
+begin
+    PICASSO96APIIsCompiledHow := 2;
+{$endif use_init_openlib}
+
+{$ifdef use_auto_openlib}
+  {$Info Compiling autoopening of picasso96api.library}
+
+var
+    picasso96api_exit : Pointer;
+
+procedure Closepicasso96apiLibrary;
+begin
+    ExitProc := picasso96api_exit;
+    if P96Base <> nil then begin
+        CloseLibrary(P96Base);
+        P96Base := nil;
+    end;
+end;
 
 begin
     P96Base := nil;
-    P96Base := OpenLibrary(P96NAME,LIBVERSION);
+    P96Base := OpenLibrary(PICASSO96APINAME,LIBVERSION);
     if P96Base <> nil then begin
-       picasso96_exit := ExitProc;
-       ExitProc := @ClosePicasso96Library;
+        picasso96api_exit := ExitProc;
+        ExitProc := @Closepicasso96apiLibrary;
+        PICASSO96APIIsCompiledHow := 1;
     end else begin
         MessageBox('FPC Pascal Error',
-                   'Can''t open Piccaso96Api.library version ' +
-                   VERSION +
-                   chr(10) + 
-                   'Deallocating resources and closing down',
-                   'Oops');
-       halt(20);
+        'Can''t open picasso96api.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
     end;
-{$else}
-   {$Warning No autoopening of picasso96api.library compiled}
-   {$Info Make sure you open picasso96api.library yourself}
+
 {$endif use_auto_openlib}
+
+{$ifdef dont_use_openlib}
+begin
+    PICASSO96APIIsCompiledHow := 3;
+   {$Warning No autoopening of picasso96api.library compiled}
+   {$Warning Make sure you open picasso96api.library yourself}
+{$endif dont_use_openlib}
+
 
 END. (* UNIT PICASSO96API *)
 
