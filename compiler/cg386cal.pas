@@ -1239,6 +1239,7 @@ implementation
           aktprocsym:=p^.inlineprocsym;
           procinfo^.returntype:=aktprocsym^.definition^.rettype;
           procinfo^.return_offset:=p^.retoffset;
+          procinfo^.para_offset:=p^.para_offset;
           { arg space has been filled by the parent secondcall }
           st:=aktprocsym^.definition^.localst;
           { set it to the same lexical level }
@@ -1291,7 +1292,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.116  2000-01-09 12:35:00  jonas
+  Revision 1.117  2000-01-16 22:17:11  peter
+    * renamed call_offset to para_offset
+
+  Revision 1.116  2000/01/09 12:35:00  jonas
     * changed edi allocation to use getexplicitregister32/ungetregister
       (adapted tgeni386 a bit for this) and enabled it by default
     * fixed very big and stupid bug of mine in cg386mat that broke the

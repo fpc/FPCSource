@@ -913,7 +913,7 @@ unit pmodules;
          begin
            returntype.setdef(voiddef);
            _class:=nil;
-           call_offset:=8;
+           para_offset:=8;
            framepointer:=frame_pointer;
            flags:=0;
          end;
@@ -1619,7 +1619,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.182  2000-01-16 14:15:33  jonas
+  Revision 1.183  2000-01-16 22:17:12  peter
+    * renamed call_offset to para_offset
+
+  Revision 1.182  2000/01/16 14:15:33  jonas
     * changed "with object_type" construct because of bug in the
       compiler
 

@@ -516,8 +516,8 @@ implementation
                          if procinfo^.retoffset>=0 then
                            dec(procinfo^.retoffset,4);
 
-                         dec(procinfo^.call_offset,4);
-                         aktprocsym^.definition^.parast^.address_fixup:=procinfo^.call_offset;
+                         dec(procinfo^.para_offset,4);
+                         aktprocsym^.definition^.parast^.address_fixup:=procinfo^.para_offset;
                        end;
                      end;
                    *)
@@ -600,7 +600,7 @@ implementation
                                        { when loading parameter to reg  }
                                        new(hr);
                                        reset_reference(hr^);
-                                       hr^.offset:=pvarsym(regvars[i])^.address+procinfo^.call_offset;
+                                       hr^.offset:=pvarsym(regvars[i])^.address+procinfo^.para_offset;
                                        hr^.base:=procinfo^.framepointer;
 {$ifdef i386}
                                        procinfo^.aktentrycode^.concat(new(paicpu,op_ref_reg(A_MOV,regsize,
@@ -697,7 +697,7 @@ implementation
                                        { when loading parameter to reg  }
                                        new(hr);
                                        reset_reference(hr^);
-                                       hr^.offset:=pvarsym(regvars[i])^.address+procinfo^.call_offset;
+                                       hr^.offset:=pvarsym(regvars[i])^.address+procinfo^.para_offset;
                                        hr^.base:=procinfo^.framepointer;
 {$ifdef i386}
                                        procinfo^.aktentrycode^.concat(new(paicpu,op_ref_reg(A_MOV,regsize,
@@ -749,7 +749,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.49  2000-01-07 01:14:28  peter
+  Revision 1.50  2000-01-16 22:17:11  peter
+    * renamed call_offset to para_offset
+
+  Revision 1.49  2000/01/07 01:14:28  peter
     * updated copyright to 2000
 
   Revision 1.48  2000/01/04 15:15:52  florian

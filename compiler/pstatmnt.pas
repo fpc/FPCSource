@@ -1202,7 +1202,7 @@ unit pstatmnt;
                    procinfo^.return_offset:=-funcretsym^.address;
                    if ((procinfo^.flags and pi_operator)<>0) and
                      assigned(opsym) then
-                     {opsym^.address:=procinfo^.call_offset; is wrong PM }
+                     {opsym^.address:=procinfo^.para_offset; is wrong PM }
                      opsym^.address:=-procinfo^.return_offset;
                    { eax is modified by a function }
 {$ifndef newcg}
@@ -1316,7 +1316,7 @@ unit pstatmnt;
                procinfo^.framepointer:=stack_pointer;
                { set the right value for parameters }
                dec(aktprocsym^.definition^.parast^.address_fixup,target_os.size_of_pointer);
-               dec(procinfo^.call_offset,target_os.size_of_pointer);
+               dec(procinfo^.para_offset,target_os.size_of_pointer);
              end;
           { force the asm statement }
             if token<>_ASM then
@@ -1331,7 +1331,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.119  2000-01-12 10:30:50  peter
+  Revision 1.120  2000-01-16 22:17:12  peter
+    * renamed call_offset to para_offset
+
+  Revision 1.119  2000/01/12 10:30:50  peter
     * fixed library with only end.
 
   Revision 1.118  2000/01/07 01:14:31  peter

@@ -73,7 +73,7 @@ implementation
           { firsttemp position }
           firsttemp_offset : longint;
           { parameter offset }
-          call_offset : longint;
+          para_offset : longint;
 
           { some collected informations about the procedure }
           { see pi_xxxx above                          }
@@ -296,7 +296,7 @@ implementation
         selfpointer_offset:=0;
         return_offset:=0;
         firsttemp_offset:=0;
-        call_offset:=0;
+        para_offset:=0;
         flags:=0;
         framepointer:=R_NO;
         globalsymbol:=false;
@@ -447,7 +447,10 @@ end.
 
 {
   $Log$
-  Revision 1.54  2000-01-11 17:16:04  jonas
+  Revision 1.55  2000-01-16 22:17:11  peter
+    * renamed call_offset to para_offset
+
+  Revision 1.54  2000/01/11 17:16:04  jonas
     * removed a lot of memory leaks when an error is encountered (caused by
       procinfo and pstringcontainers). There are still plenty left though :)
 

@@ -2706,7 +2706,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
             emitpushreferenceaddr(hr);
             reset_reference(hr);
             hr.base:=procinfo^.framepointer;
-            hr.offset:=pvarsym(p)^.address+procinfo^.call_offset;
+            hr.offset:=pvarsym(p)^.address+procinfo^.para_offset;
 
             emitpushreferenceaddr(hr);
             reset_reference(hr);
@@ -2745,7 +2745,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                parasymtable:
                  begin
                     hr.base:=procinfo^.framepointer;
-                    hr.offset:=pvarsym(p)^.address+procinfo^.call_offset;
+                    hr.offset:=pvarsym(p)^.address+procinfo^.para_offset;
                  end;
                else
                  hr.symbol:=newasmsymbol(pvarsym(p)^.mangledname);
@@ -2775,7 +2775,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
               new(r);
               reset_reference(r^);
               r^.base:=procinfo^.framepointer;
-              r^.offset:=pvarsym(p)^.address+4+procinfo^.call_offset;
+              r^.offset:=pvarsym(p)^.address+4+procinfo^.para_offset;
 {$ifndef noAllocEdi}
               getexplicitregister32(R_EDI);
 {$endif noAllocEdi}
@@ -2817,7 +2817,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                    new(r);
                    reset_reference(r^);
                    r^.base:=procinfo^.framepointer;
-                   r^.offset:=pvarsym(p)^.address+4+procinfo^.call_offset;
+                   r^.offset:=pvarsym(p)^.address+4+procinfo^.para_offset;
 {$ifndef noAllocEdi}
                    getexplicitregister32(R_EDI);
 {$endif noAllocEdi}
@@ -2851,7 +2851,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
               new(r);
               reset_reference(r^);
               r^.base:=procinfo^.framepointer;
-              r^.offset:=pvarsym(p)^.address+4+procinfo^.call_offset;
+              r^.offset:=pvarsym(p)^.address+4+procinfo^.para_offset;
               exprasmlist^.concat(new(paicpu,
                 op_ref_reg(A_MOV,S_L,r,R_ECX)));
 
@@ -2859,7 +2859,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
               new(r);
               reset_reference(r^);
               r^.base:=procinfo^.framepointer;
-              r^.offset:=pvarsym(p)^.address+procinfo^.call_offset;
+              r^.offset:=pvarsym(p)^.address+procinfo^.para_offset;
               exprasmlist^.concat(new(paicpu,
                 op_ref_reg(A_MOV,S_L,r,R_ESI)));
 
@@ -2903,7 +2903,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
               new(r);
               reset_reference(r^);
               r^.base:=procinfo^.framepointer;
-              r^.offset:=pvarsym(p)^.address+procinfo^.call_offset;
+              r^.offset:=pvarsym(p)^.address+procinfo^.para_offset;
               exprasmlist^.concat(new(paicpu,
                 op_reg_ref(A_MOV,S_L,R_ESP,r)));
            end
@@ -2912,7 +2912,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
             begin
               reset_reference(href1);
               href1.base:=procinfo^.framepointer;
-              href1.offset:=pvarsym(p)^.address+procinfo^.call_offset;
+              href1.offset:=pvarsym(p)^.address+procinfo^.para_offset;
               reset_reference(href2);
               href2.base:=procinfo^.framepointer;
               href2.offset:=-pvarsym(p)^.localvarsym^.address;
@@ -2922,7 +2922,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
             begin
               reset_reference(href1);
               href1.base:=procinfo^.framepointer;
-              href1.offset:=pvarsym(p)^.address+procinfo^.call_offset;
+              href1.offset:=pvarsym(p)^.address+procinfo^.para_offset;
               reset_reference(href2);
               href2.base:=procinfo^.framepointer;
               href2.offset:=-pvarsym(p)^.localvarsym^.address;
@@ -3119,7 +3119,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
               if (aktprocsym^.definition^.proctypeoption in [potype_unitinit,potype_proginit,potype_unitfinalize]) then
                 parasize:=0
               else
-                parasize:=aktprocsym^.definition^.parast^.datasize+procinfo^.call_offset-4;
+                parasize:=aktprocsym^.definition^.parast^.datasize+procinfo^.para_offset-4;
               if stackframe<>0 then
                 exprasmlist^.insert(new(paicpu,
                   op_const_reg(A_SUB,S_L,gettempsize,R_ESP)));
@@ -3130,7 +3130,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
               if (aktprocsym^.definition^.proctypeoption in [potype_unitinit,potype_proginit,potype_unitfinalize]) then
                 parasize:=0
               else
-                parasize:=aktprocsym^.definition^.parast^.datasize+procinfo^.call_offset-8;
+                parasize:=aktprocsym^.definition^.parast^.datasize+procinfo^.para_offset-8;
               nostackframe:=false;
               if stackframe<>0 then
                   begin
@@ -3660,7 +3660,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.69  2000-01-12 10:38:17  peter
+  Revision 1.70  2000-01-16 22:17:11  peter
+    * renamed call_offset to para_offset
+
+  Revision 1.69  2000/01/12 10:38:17  peter
     * smartlinking fixes for binary writer
     * release alignreg code and moved instruction writing align to cpuasm,
       but it doesn't use the specified register yet

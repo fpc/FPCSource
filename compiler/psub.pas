@@ -316,7 +316,7 @@ begin
      (pd^.proctypeoption=potype_destructor) then
     inc(paramoffset,target_os.size_of_pointer);
 
-  procinfo^.call_offset:=paramoffset;
+  procinfo^.para_offset:=paramoffset;
 
   pd^.parast^.datasize:=0;
 
@@ -1285,7 +1285,7 @@ begin
                            end;
                        end;
                     end;
-                 { also the call_offset }
+                 { also the para_offset }
                    hd^.parast^.address_fixup:=aktprocsym^.definition^.parast^.address_fixup;
                    hd^.count:=true;
 
@@ -1874,11 +1874,11 @@ begin
    { pointer to the return value ? }
    if ret_in_param(procinfo^.returntype.def) then
     begin
-      procinfo^.return_offset:=procinfo^.call_offset;
-      inc(procinfo^.call_offset,target_os.size_of_pointer);
+      procinfo^.return_offset:=procinfo^.para_offset;
+      inc(procinfo^.para_offset,target_os.size_of_pointer);
     end;
    { allows to access the parameters of main functions in nested functions }
-   aktprocsym^.definition^.parast^.address_fixup:=procinfo^.call_offset;
+   aktprocsym^.definition^.parast^.address_fixup:=procinfo^.para_offset;
 
    { when it is a value para and it needs a local copy then rename
      the parameter and insert a copy in the localst. This is not done
@@ -1939,7 +1939,10 @@ end.
 
 {
   $Log$
-  Revision 1.41  2000-01-11 17:16:06  jonas
+  Revision 1.42  2000-01-16 22:17:12  peter
+    * renamed call_offset to para_offset
+
+  Revision 1.41  2000/01/11 17:16:06  jonas
     * removed a lot of memory leaks when an error is encountered (caused by
       procinfo and pstringcontainers). There are still plenty left though :)
 
