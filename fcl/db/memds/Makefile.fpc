@@ -1,0 +1,19 @@
+#
+# Makefile.fpc for memds unit
+#
+
+[package]
+main=fcl
+
+[target]
+units=memds
+examples=testpop testopen testld testcp
+
+[compiler]
+targetdir=../../$(OS_TARGET)
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..
