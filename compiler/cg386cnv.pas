@@ -590,9 +590,12 @@ implementation
 
 
     procedure second_int_to_real(pto,pfrom : ptree;convtyp : tconverttype);
+
       var
          r : preference;
-         hregister : tregister;
+         hregister,hregister2 : tregister;
+         l1,l2 : pasmlabel;
+
       begin
          { for u32bit a solution is to push $0 and to load a comp }
          { does this first, it destroys maybe EDI }
@@ -608,7 +611,12 @@ implementation
                  s16bit : exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVSX,S_WL,pfrom^.location.register,R_EDI)));
                  u16bit : exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVZX,S_WL,pfrom^.location.register,R_EDI)));
                  u32bit,s32bit:
-                   hregister:=pfrom^.location.register
+                   hregister:=pfrom^.location.register;
+                 u64bit,s64bitint:
+                   begin
+                      exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,pfrom^.location.registerhigh)));
+                      hregister:=pfrom^.location.registerlow;
+                   end;
               end;
               ungetregister(pfrom^.location.register);
            end
@@ -616,27 +624,74 @@ implementation
            begin
               r:=newreference(pfrom^.location.reference);
               case porddef(pfrom^.resulttype)^.typ of
-                 s8bit : exprasmlist^.concat(new(pai386,op_ref_reg(A_MOVSX,S_BL,r,R_EDI)));
-                 u8bit : exprasmlist^.concat(new(pai386,op_ref_reg(A_MOVZX,S_BL,r,R_EDI)));
-                 s16bit : exprasmlist^.concat(new(pai386,op_ref_reg(A_MOVSX,S_WL,r,R_EDI)));
-                 u16bit : exprasmlist^.concat(new(pai386,op_ref_reg(A_MOVZX,S_WL,r,R_EDI)));
-                 u32bit,s32bit : exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,r,R_EDI)));
+                 s8bit:
+                   exprasmlist^.concat(new(pai386,op_ref_reg(A_MOVSX,S_BL,r,R_EDI)));
+                 u8bit:
+                   exprasmlist^.concat(new(pai386,op_ref_reg(A_MOVZX,S_BL,r,R_EDI)));
+                 s16bit:
+                   exprasmlist^.concat(new(pai386,op_ref_reg(A_MOVSX,S_WL,r,R_EDI)));
+                 u16bit:
+                   exprasmlist^.concat(new(pai386,op_ref_reg(A_MOVZX,S_WL,r,R_EDI)));
+                 u32bit,s32bit:
+                   exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,r,R_EDI)));
+                 u64bit,s64bitint:
+                   begin
+                      inc(r^.offset,4);
+                      exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,r,R_EDI)));
+                      exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_EDI)));
+                      r:=newreference(pfrom^.location.reference);
+                      exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,r,R_EDI)));
+                   end;
               end;
               del_reference(pfrom^.location.reference);
               ungetiftemp(pfrom^.location.reference);
-         end;
-          exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,hregister)));
-          r:=new_reference(R_ESP,0);
-          if porddef(pfrom^.resulttype)^.typ=u32bit then
-            exprasmlist^.concat(new(pai386,op_ref(A_FILD,S_IQ,r)))
-          else
-            exprasmlist^.concat(new(pai386,op_ref(A_FILD,S_IL,r)));
-
-         { better than an add on all processors }
-         if porddef(pfrom^.resulttype)^.typ=u32bit then
-           exprasmlist^.concat(new(pai386,op_const_reg(A_ADD,S_L,8,R_ESP)))
-         else
-           exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_EDI)));
+           end;
+         { for 64 bit integers, the high dword is already pushed }
+         exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,hregister)));
+         r:=new_reference(R_ESP,0);
+         case porddef(pfrom^.resulttype)^.typ of
+           u32bit:
+             begin
+                exprasmlist^.concat(new(pai386,op_ref(A_FILD,S_IQ,r)));
+                exprasmlist^.concat(new(pai386,op_const_reg(A_ADD,S_L,8,R_ESP)));
+             end;
+           s64bitint:
+             begin
+                exprasmlist^.concat(new(pai386,op_ref(A_FILD,S_IQ,r)));
+                exprasmlist^.concat(new(pai386,op_const_reg(A_ADD,S_L,8,R_ESP)));
+             end;
+           u64bit:
+             begin
+                { unsigned 64 bit ints are harder to handle: }
+                { we load bits 0..62 and then check bit 63:  }
+                { if it is 1 then we add $80000000 000000000 }
+                { as double                                  }
+                inc(r^.offset,4);
+                exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,r,R_EDI)));
+                r:=new_reference(R_ESP,4);
+                exprasmlist^.concat(new(pai386,op_const_ref(A_AND,S_L,$7fffffff,r)));
+                exprasmlist^.concat(new(pai386,op_const_reg(A_AND,S_L,$80000000,R_EDI)));
+                r:=new_reference(R_ESP,0);
+                exprasmlist^.concat(new(pai386,op_ref(A_FILD,S_IQ,r)));
+                getdatalabel(l1);
+                getlabel(l2);
+                emitjmp(C_Z,l2);
+                consts^.concat(new(pai_label,init(l1)));
+                { I got this constant from a test progtram (FK) }
+                consts^.concat(new(pai_const,init_32bit(0)));
+                consts^.concat(new(pai_const,init_32bit(1138753536)));
+                r:=new_reference(R_NO,0);
+                r^.symbol:=l1;
+                exprasmlist^.concat(new(pai386,op_ref(A_FADD,S_FL,r)));
+                emitlab(l2);
+                exprasmlist^.concat(new(pai386,op_const_reg(A_ADD,S_L,8,R_ESP)));
+             end
+           else
+             begin
+                exprasmlist^.concat(new(pai386,op_ref(A_FILD,S_IL,r)));
+                exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_EDI)));
+             end;
+      end;
 
          clear_location(pto^.location);
          pto^.location.loc:=LOC_FPU;
@@ -1337,7 +1392,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.76  1999-06-28 22:29:10  florian
+  Revision 1.77  1999-07-04 16:37:08  florian
+    + qword/int64 -> floating point type cast
+
+  Revision 1.76  1999/06/28 22:29:10  florian
     * qword division fixed
     + code for qword/int64 type casting added:
       range checking isn't implemented yet

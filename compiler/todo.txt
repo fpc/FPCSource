@@ -62,8 +62,10 @@ compiler version and your short cut.
   - case
   - for
   - inc/dec
-  - read/write
-  - val/str
+  - read
+        - write ................................................. 0.99.13 (FK)
+        - str ................................................... 0.99.13 (FK)
+  - val
   - range checking
   - type cast QWord -> real
         - lo/hi testing ......................................... 0.99.13 (FK)
