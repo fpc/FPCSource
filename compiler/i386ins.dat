@@ -234,7 +234,7 @@ void                  \2\x0F\x06                      286,PRIV
 void                  \1\xF5                          8086
 
 [CMP,cmpX]
-(Ch_WFlags, Ch_None, Ch_None)
+(Ch_ROp1, Ch_ROp2, Ch_WFlags)
 mem,reg8              \300\1\x38\101                  8086,SM
 reg8,reg8             \300\1\x38\101                  8086
 mem,reg16             \320\300\1\x39\101              8086,SM
