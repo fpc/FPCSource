@@ -2759,6 +2759,11 @@ For I := 100 downto 1 do
 For I := 1 to 7*dwarfs do KissDwarf(i);
 \end{verbatim}
 
+If the statement is a compound statement, then  the \seep{Break} and 
+\seep{Continue} reserved words can be used to jump to the end or just 
+after the end of the \var{For} statement.
+
+
 \subsection{The \var{Repeat..until} statement}
 The \var{repeat} statement is used to execute a statement until a certain
 condition is reached. The statement will be executed at least once.
@@ -2781,6 +2786,9 @@ repeat
  X := X/2
 until x<10e-3
 \end{verbatim}
+The \seep{Break} and \seep{Continue} reserved words can be used to jump to
+the end or just after the end of the \var{repeat .. until } statement.
+
 \subsection{The \var{While..do} statement}
 A \var{while} statement is used to execute a statement as long as a certain
 condition holds. This may imply that the statement is never executed.
@@ -2806,6 +2814,11 @@ while x>=10e-3 do
   X := X/2;
 \end{verbatim}
 They correspond to the example loops for the \var{repeat} statements.
+
+If the statement is a compound statement, then  the \seep{Break} and 
+\seep{Continue} reserved words can be used to jump to the end or just 
+after the end of the \var{While} statement.
+
 \subsection{The \var{With} statement}
 \label{se:With}
 The \var{with} statement serves to access the elements of a record\footnote{
@@ -4109,6 +4122,27 @@ written to disk.
 
 For the example, see \seep{Blockread}.
 
+\begin{procedure}{Break}
+\Declaration
+Procedure Break;
+\Description
+\var{Break} jumps to the statement following the end of the current 
+repetitive statement. The code between the \var{Break} call and 
+the end of the repetitive statement is skipped. 
+The condition of the repetitive statement is NOT evaluated.
+
+This can be used with \var{For}, var{repeat} and \var{While} statements.
+
+Note that while this is a procedure, \var{Break} is a reserved word
+and hence cannot be redefined.
+\Errors
+None.
+\SeeAlso
+\seep{Continue}, \seep{Exit}
+\end{procedure}
+
+\FPCexample{ex87}
+
 \begin{procedure}{Chdir}
 \Declaration
 Procedure Chdir (const S : string);
@@ -4168,6 +4202,28 @@ None.
 \end{function}
 
 \FPCexample{ex10}
+
+\begin{procedure}{Continue}
+\Declaration
+Procedure Continue;
+\Description
+\var{Continue} jumps to the end of the current repetitive statement. 
+The code between the \var{Continue} call and the end of the repetitive 
+statement is skipped. The condition of the repetitive statement is then
+checked again.
+
+This can be used with \var{For}, var{repeat} and \var{While} statements.
+
+Note that while this is a procedure, \var{Continue} is a reserved word
+and hence cannot be redefined.
+\Errors
+None.
+\SeeAlso
+\seep{Break}, \seep{Exit}
+\end{procedure}
+
+\FPCexample{ex86}
+
 
 \begin{function}{Copy}
 \Declaration

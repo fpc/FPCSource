@@ -86,4 +86,7 @@ ex80.pp contains an example of the High/Low functions.
 ex81.pp contains an example of the HexStr function.
 ex82.pp contains an example of the BinStr function.
 ex83.pp contains an example of the Assigned function.
-ex84.pp contains an example of the Library keyword.ex85.pp contains an example of the SetLength function.
+ex84.pp contains an example of the Library keyword.
+ex85.pp contains an example of the SetLength function.
+ex86.pp contains an example of the Continue function.
+ex87.pp contains an example of the Break function.
