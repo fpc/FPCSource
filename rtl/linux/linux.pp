@@ -146,9 +146,9 @@ Const
   SIGUNUSED  = 31;
 
 Type
-  SignalHandler   = Procedure(Sig : LongInt);
+  SignalHandler   = Procedure(Sig : LongInt);cdecl;
   PSignalHandler  = ^SignalHandler;
-  SignalRestorer  = Procedure;
+  SignalRestorer  = Procedure;cdecl;
   PSignalRestorer = ^SignalRestorer;
 
   SigSet  = Integer;
@@ -157,10 +157,10 @@ Type
 
 {$PACKRECORDS 1}
   SigActionRec = record
-    Sa_Handler : PSignalHandler;
+    Sa_Handler : SignalHandler;
     Sa_Mask : longint;
     Sa_Flags : Integer;
-    Sa_restorer : PSignalRestorer;{ Obsolete - Don't use }
+    Sa_restorer : SignalRestorer;{ Obsolete - Don't use }
   end;
   PSigActionRec = ^SigActionRec;
 {$PACKRECORDS NORMAL}
@@ -595,7 +595,7 @@ Procedure SigAction(Signum:Integer;Var Act,OldAct:PSigActionRec );
 Procedure SigProcMask (How:Integer;SSet,OldSSet:PSigSet);
 Function  SigPending:SigSet;
 Procedure SigSuspend(Mask:Sigset);
-Function  Signal(Signum:Integer;Handler:PSignalHandler):PSignalHandler;
+Function  Signal(Signum:Integer;Handler:SignalHandler):SignalHandler;
 Function  Kill(Pid:longint;Sig:integer):integer;
 
 {**************************
@@ -2519,7 +2519,7 @@ end;
 
 
 
-Function Signal(Signum:Integer;Handler:PSignalHandler):PSignalHandler;
+Function Signal(Signum:Integer;Handler:SignalHandler):SignalHandler;
 {
   Install a new handler for signal Signum.
   The old signal handler is returned.
@@ -2538,7 +2538,7 @@ begin
    end
   else
    begin
-     Signal:=psignalhandler(Linuxerror);
+     Signal:=signalhandler(Linuxerror);
      linuxerror:=0;
    end;
 end;
@@ -3529,7 +3529,10 @@ End.
 
 {
   $Log$
-  Revision 1.17  1998-08-19 00:50:31  peter
+  Revision 1.18  1998-09-08 13:01:51  michael
+  + Signal call now correctly implemented
+
+  Revision 1.17  1998/08/19 00:50:31  peter
     * 'i<>0 and ' needs brackets
 
   Revision 1.16  1998/08/16 10:23:28  michael
