@@ -1156,8 +1156,10 @@ begin
     Path := PFileDialog(Owner)^.Directory^
   else Path := '';
   Path := FExpand(Path+PFileDialog(Owner)^.WildCard);
+  { avoid B Buffer overflow PM }
+  Path := ShrinkPath(Path, Size.X - 1);
   Color := GetColor($01);
-  MoveChar(B, ' ', Color, Size.X * Size.Y); { fill with empty spaces }
+  MoveChar(B, ' ', Color, Size.X); { fill with empty spaces }
   WriteLine(0, 0, Size.X, Size.Y, B);
   MoveStr(B[1], Path, Color);
   WriteLine(0, 0, Size.X, 1, B);
