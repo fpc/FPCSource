@@ -554,6 +554,30 @@ var
       end;
   end;
 
+  procedure AddTargetsUnitDir(const pre:string;var t:TTargetsString);
+  var
+    i,j : integer;
+    hs,packdir : string;
+  begin
+    for i:=0 to targets do
+     if (t[i]<>'') then
+      begin
+        hs:=t[i];
+        repeat
+          j:=pos(' ',hs);
+          if j=0 then
+           j:=length(hs)+1;
+          packdir:=pre+'/'+Copy(hs,1,j-1);
+          mf.Add('ifneq ($(wildcard '+packdir+'/$(OS_TARGET)),)');
+          mf.Add('override NEEDUNITDIR+='+packdir+'/$(OS_TARGET)');
+          mf.Add('else');
+          mf.Add('override NEEDUNITDIR+='+packdir);
+          mf.Add('endif');
+          system.delete(hs,1,j);
+        until hs='';
+      end;
+  end;
+
   procedure AddTargetDir(const s:string);
   var
     j  : integer;
@@ -769,10 +793,8 @@ begin
      AddTargets('COMPONENTS',userini.components,false);
      if userini.PackageFCL then
       Add('override NEEDUNITDIR+=$(FPCDIR)/fcl/$(OS_TARGET)');
-     if not TargetStringEmpty(userini.Packages) then
-      Add('override NEEDUNITDIR+=$(addprefix $(PACKAGEDIR)/,$(PACKAGES))');
-     if not TargetStringEmpty(userini.Components) then
-      Add('override NEEDUNITDIR+=$(addprefix $(COMPONENTDIR)/,$(COMPONENTS))');
+     AddTargetsUnitDir('$(PACKAGEDIR)',userini.packages);
+     AddTargetsUnitDir('$(COMPONENTDIR)',userini.components);
 
    { Libs }
      AddHead('Libraries');
@@ -1029,8 +1051,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  1999-12-23 13:52:23  peter
-    + default{install,build,clean}dir
+  Revision 1.15  1999-12-23 19:32:28  peter
+    * automatic support for package/target dir structure
+
+  Revision 1.14  1999/12/23 13:52:23  peter
+    + default[install,build,clean]dir
 
   Revision 1.13  1999/12/21 16:06:47  peter
     * don't call dirobjects for zipisntall,info
