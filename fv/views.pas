@@ -422,7 +422,6 @@ TYPE
       PROCEDURE DisplaceBy (Dx, Dy: Sw_Integer); Virtual;
       PROCEDURE SetCommands (Commands: TCommandSet);
       PROCEDURE ReDrawArea (X1, Y1, X2, Y2: Sw_Integer); Virtual;
-      PROCEDURE ReDrawAreaVisible (X1, Y1, X2, Y2: Sw_Integer;Cur,Last : PView);
       PROCEDURE EnableCommands (Commands: TCommandSet);
       PROCEDURE DisableCommands (Commands: TCommandSet);
       PROCEDURE SetState (AState: Word; Enable: Boolean); Virtual;
@@ -504,6 +503,7 @@ TYPE
       PROCEDURE Awaken; Virtual;
       PROCEDURE ReDraw;
       PROCEDURE ReDrawArea (X1, Y1, X2, Y2: Sw_Integer); Virtual;
+      PROCEDURE ReDrawVisibleArea (X1, Y1, X2, Y2: Sw_Integer;Cur : PView);
       PROCEDURE SelectDefaultView;
       PROCEDURE Insert (P: PView);
       PROCEDURE Delete (P: PView);
@@ -847,10 +847,11 @@ CONST
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
                              IMPLEMENTATION
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
-{$IFDEF USE_VIDEO_API}
 USES
-  Video;
+{$IFDEF USE_VIDEO_API}
+  Video,
 {$ENDIF USE_VIDEO_API}
+  CallSpec;
 
 {***************************************************************************}
 {                       PRIVATE TYPE DEFINITIONS                            }
@@ -1870,50 +1871,6 @@ BEGIN
      ViewPort.X2, ViewPort.Y2, ClipOn, TextModeGFV);  { Reset old limits }
 END;
 
-PROCEDURE TView.ReDrawAreaVisible (X1, Y1, X2, Y2: Sw_Integer;Cur,Last : PView);
-var
-  StoreDrawMask : Byte;
-VAR HLimit: PView; ViewPort: ViewPortType;
-   x3,x4,y3,y4 : sw_integer;
-BEGIN
-   if not assigned(Cur) or (Cur=Last) or (Cur=@self) then
-     Begin
-       TView.ReDrawArea(x1,y1,x2,y2);
-       exit;
-     End;
-
-   x3:=Cur^.RawOrigin.x;
-   x4:=x3+Cur^.RawSize.x;
-   y3:=Cur^.RawOrigin.Y;
-   y4:=y3+Cur^.RawSize.Y;
-   { depending on relative positions of x1,x2,x3,x4
-     we should only draw subrectangles }
-
-   { number of possible cases :
-      x3<x1, x1<=x3<x2, x3>=x2 : 3 possibilities
-      total : 3^4: 81... }
-   if ((x3>=x2) or (x4<=x1) or (y3>=y2) or (y4<=y1)) or
-      (assigned(Cur) and ((Cur^.State and sfvisible)=0)) then
-     ReDrawAreaVisible(x1,y1,x2,y2,cur^.next,last)
-   else
-     begin
-       if x3>x1 then
-         begin
-           ReDrawAreaVisible(x1,y1,x3,y2,cur^.next,last);
-           x1:=x3;
-         end;
-       if x4<x2 then
-         begin
-           ReDrawAreaVisible(x4,y1,x2,y2,cur^.next,last);
-           x2:=x4;
-         end;
-       if y3>y1 then
-         ReDrawAreaVisible(x1,y1,x2,y3,cur^.next,last);
-       if y4<y2 then
-         ReDrawAreaVisible(x1,y4,x2,y2,cur^.next,last);
-     end;
-END;
-
 {--TView--------------------------------------------------------------------}
 {  EnableCommands -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 12Sep97 LdB    }
 {---------------------------------------------------------------------------}
@@ -2518,34 +2475,26 @@ END;
 {--TGroup-------------------------------------------------------------------}
 {  FirstThat -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 17Jul99 LdB         }
 {---------------------------------------------------------------------------}
-FUNCTION TGroup.FirstThat (P: Pointer): PView; ASSEMBLER;
-   ASM
-     MOVL 8(%EBP), %ESI;                              { Self pointer }
-     MOVL TGroup.Last(%ESI), %EAX;                    { Load last view }
-     ORL %EAX, %EAX;                                  { Check for nil }
-     JZ .L_Exit;                                      { No subviews exit }
-     MOVL %EAX, %ECX;                                 { Hold last view }
-     MOVL P, %EBX;                                    { Procedure to call }
-   .L_LoopPoint:
-     MOVL TView.Next(%EAX), %EAX;                     { Fetch next pointer }
-     PUSHL %ECX;                                      { Save holdlast view }
-     PUSHL %EBX;                                      { Save procedure address }
-     PUSHL %EAX;                                      { Save for recovery }
-     PUSHL %EAX;                                      { PView pushed }
-     MOVL (%EBP), %EAX;                               { Fetch self ptr }
-     PUSH %EAX;                                       { Push self ptr }
-     CALL %EBX;                                       { Call the procedure }
-     ORB %AL, %AL;                                    { Test for true }
-     POPL %EAX;                                       { Recover next PView }
-     POPL %EBX;                                       { Restore procedure addr }
-     POPL %ECX;                                       { Restore holdlast view }
-     JNZ .L_Exit;                                     { Call returned true }
-     CMPL %ECX, %EAX;                                 { Check if last view }
-     JNZ .L_LoopPoint;                                { Continue to last }
-     XOR %EAX, %EAX;                                  { No views gave true }
-   .L_Exit:
-     {MOVL %EAX, __RESULT;not needed for assembler functions Return result }
-   END;
+FUNCTION TGroup.FirstThat (P: Pointer): PView;
+VAR
+  Tp : PView;
+BEGIN
+  If (Last<>Nil) Then
+   Begin
+     Tp := Last;                                      { Set temporary ptr }
+     Repeat
+       Tp := Tp^.Next;                                { Get next view }
+       IF Byte(Longint(CallPointerMethodLocal(P,PreviousFramePointer,@self,Tp)))<>0 THEN
+        Begin       { Test each view }
+          FirstThat := Tp;                             { View returned true }
+          Exit;                                        { Now exit }
+        End;
+     Until (Tp=Last);                                 { Until last }
+     FirstThat := Nil;                                { None passed test }
+   End
+  Else
+   FirstThat := Nil;                         { Return nil }
+END;
 
 {--TGroup-------------------------------------------------------------------}
 {  Valid -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 12Sep97 LdB             }
@@ -2600,18 +2549,84 @@ VAR P: PView;
 BEGIN
    { redraw this }
    // inherited RedrawArea(X1,Y1,X2,Y2);
-   ReDrawAreaVisible(X1, Y1, X2, Y2,Last^.Next,Last); { Redraw each subview }
-   { redraw group members }
+   { This should do the whole job now }
+   If (DrawMask AND vdNoChild = 0) and
+      (State AND (sfExposed or sfVisible) = (sfExposed or sfVisible)) and
+      (X1<RawOrigin.X+RawSize.X) and
+      (Y1<RawOrigin.Y+RawSize.Y) and
+      (X2>=RawOrigin.X) and                      { No need to parse childs for Shadows }
+      (Y2>=RawOrigin.Y) Then                     { No draw child clear }
+   ReDrawVisibleArea(X1, Y1, X2, Y2,Last^.Next); { Redraw each subview }
+(*   { redraw group members }
    If (DrawMask AND vdNoChild = 0) and
       (X1<RawOrigin.X+RawSize.X) and                  { No need to parse childs for Shadows }
       (Y1<RawOrigin.Y+RawSize.Y) Then Begin           { No draw child clear }
      P := Last;                                       { Start on Last }
      While (P <> Nil) Do Begin
-       P^.ReDrawAreaVisible(X1, Y1, X2, Y2,Last^.Next,P); { Redraw each subview }
+       P^.ReDrawVisibleArea(X1, Y1, X2, Y2,Last^.Next,P); { Redraw each subview }
        P := P^.PrevView;                              { Move to prior view }
      End;
-   End;
+   End; *)
 END;
+
+PROCEDURE TGroup.ReDrawVisibleArea (X1, Y1, X2, Y2: Sw_Integer;Cur : PView);
+var
+  StoreDrawMask : Byte;
+VAR CurN: PView; ViewPort: ViewPortType;
+   x3,x4,y3,y4 : sw_integer;
+BEGIN
+   while(assigned(Cur) and ((Cur^.State and sfvisible)=0)) and (Cur<>Last) do
+       Cur:=Cur^.Next;
+
+   if not assigned(Cur) then
+     Begin
+       TView.ReDrawArea(x1,y1,x2,y2);
+       exit;
+     End;
+
+   x3:=Cur^.RawOrigin.x;
+   x4:=x3+Cur^.RawSize.x;
+   y3:=Cur^.RawOrigin.Y;
+   y4:=y3+Cur^.RawSize.Y;
+   { depending on relative positions of x1,x2,x3,x4
+     we should only draw subrectangles }
+   if cur=last then
+     CurN:=nil
+   else
+     curN:=Cur^.Next;
+   { number of possible cases :
+      x3<x1, x1<=x3<x2, x3>=x2 : 3 possibilities
+      total : 3^4: 81... }
+   if ((x3>=x2) or (x4<=x1) or (y3>=y2) or (y4<=y1)) or
+      (assigned(Cur) and ((Cur^.State and sfvisible)=0)) then
+     ReDrawVisibleArea(x1,y1,x2,y2,curn)
+   else
+     begin
+       if x3>x1 then
+         begin
+           ReDrawVisibleArea(x1,y1,x3,y2,curn);
+           x1:=x3;
+         end;
+       if x4<x2 then
+         begin
+           ReDrawVisibleArea(x4,y1,x2,y2,curn);
+           x2:=x4;
+         end;
+       if y3>y1 then
+         Begin
+           ReDrawVisibleArea(x1,y1,x2,y3,curn);
+           y1:=y3;
+         End;
+       if y4<y2 then
+         Begin
+           ReDrawVisibleArea(x1,y4,x2,y2,curn);
+           y2:=y4;
+         End;
+       if (x1<=x2) and (y1<=y2) then
+         Cur^.ReDrawArea(x1,y1,x2,y2);
+     end;
+END;
+
 
 {--TGroup-------------------------------------------------------------------}
 {  Awaken -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 15Sep97 LdB            }
@@ -2717,35 +2732,28 @@ END;
 {--TGroup-------------------------------------------------------------------}
 {  ForEach -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 17Jul99 LdB           }
 {---------------------------------------------------------------------------}
-PROCEDURE TGroup.ForEach (P: Pointer); ASSEMBLER;
-{&USES EBX, ECX, EDI} {&FRAME-}
-VAR HoldLast: Pointer;
-   ASM
-     MOVL 8(%EBP), %ESI;                              { Self pointer }
-     MOVL TGroup.Last(%ESI), %ECX;                    { Load last view }
-     ORL %ECX, %ECX;                                  { Check for nil }
-     JZ .L_Exit;                                      { No subviews exit }
-     MOVL %ECX, HOLDLAST;                             { Hold last view }
-     MOVL TView.Next(%ECX), %ECX;                     { Fetch next pointer }
-   .L_LoopPoint:
-     MOVL P, %EBX;                                    { Fetch proc address }
-     CMPL HOLDLAST, %ECX;                             { Check if last view }
-     JZ .L_2;                                         { Exit if last view }
-     MOVL TView.Next(%ECX), %EAX;                     { Fetch next pointer }
-     PUSHL %EAX;                                      { Save next view ptr }
-     PUSHL %ECX;                                      { Push view to do }
-     MOVL (%EBP), %EAX;
-     PUSH %EAX;
-     CALL %EBX;                                       { Call the procedure }
-     POPL %ECX;                                       { Recover next view  }
-     JMP .L_LoopPoint;                                { Redo loop }
-   .L_2:
-     PUSHL %ECX;                                      { Push view to do }
-     MOVL (%EBP), %EAX;
-     PUSH %EAX;
-     CALL %EBX;                                       { Call the procedure }
-   .L_Exit:
-  END;
+PROCEDURE TGroup.ForEach (P: Pointer);
+VAR
+  Tp,Hp,L0 : PView;
+{ Vars Hp and L0 are necessary to hold original pointers in case   }
+{ when some view closes himself as a result of broadcast message ! }
+BEGIN
+  If (Last<>Nil) Then
+   Begin
+     Tp:=Last;
+     Hp:=Tp^.Next;
+     L0:=Last;              { Set temporary ptr }
+     Repeat
+       Tp:=Hp;
+       if tp=nil then
+        exit;
+       Hp:=Tp^.Next;                        { Get next view }
+       CallPointerMethodLocal(P,PreviousFramePointer,@self,Tp);
+     Until (Tp=L0);                                   { Until last }
+   End;
+END;
+
+
 
 {--TGroup-------------------------------------------------------------------}
 {  EndModal -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 12Sep97 LdB          }
@@ -4488,6 +4496,19 @@ BEGIN
                Exit;                                  { Now exit }
              End;
            End;
+           If (Flags AND wfZoom <> 0) Then Begin     { Has Zoom icon }
+             J := (SIZE.X-5)*FontWidth;                      { Set X value }
+             If (Event.Where.X >= RawOrigin.X+J) AND
+             (Event.Where.X < RawOrigin.X+J+3*FontWidth)
+             Then Begin                               { In close area }
+               Event.What := evCommand;               { Command event }
+               Event.Command := cmZoom;               { Close command }
+               Event.InfoPtr := Nil;                  { Clear pointer }
+               PutEvent(Event);                       { Put event on queue }
+               ClearEvent(Event);                     { Clear the event }
+               Exit;                                  { Now exit }
+             End;
+           End;
            If (Owner <> Nil) AND (Flags AND wfMove <> 0)
              Then DragWindow(dmDragMove);             { Drag the window }
          End Else If (Event.Where.X >= RawOrigin.X + RawSize.X-2*FontWidth) AND
@@ -5163,6 +5184,10 @@ BEGIN
   {If (X+L<ViewPort.X1) OR (Y<ViewPort.Y1) OR
      (X>=ViewPort.X2) OR (Y>=ViewPort.Y2) Then
      Exit;}
+  If Y2>ScreenHeight then
+    Y2:=ScreenHeight;
+  If X2>ScreenWidth then
+    X2:=ScreenWidth;
   For J:=Y1 to Y2-1 do Begin
     For i:=X1 to X2-1 do Begin
     P:=Owner;
@@ -5469,6 +5494,8 @@ VAR Fc, Bc: Byte; X, Y: Sw_Integer; S: String;
     Color : Byte;
     Focused : Boolean;
     Min, Max: TPoint;
+    NP : PView;
+
 BEGIN
    Fc := GetColor(2) AND $0F;                        { Foreground colour }
    Bc := (GetColor(2) AND $70) SHR 4;                { Background colour }
@@ -5580,6 +5607,26 @@ BEGIN
        BiColorRectangle(Y+1, Y+1, RawSize.X-Y-2, Y+FontHeight-1,
          White, DarkGray, False);                         { Draw 3d effect }
      end;
+   { Ensure that the scrollers are repainted }
+   NP:=Last;
+   while assigned(NP) do
+     begin
+       If (NP^.Origin.X<=Origin.X) or
+          (NP^.Origin.Y<=Origin.Y) or
+          (NP^.Origin.X>=Origin.X+Size.X) or
+          (NP^.Origin.Y>=Origin.Y+Size.Y) then
+         begin
+           NP^.ReDrawArea(RawOrigin.X,RawOrigin.Y,
+             RawOrigin.X+FontWidth*Size.X,RawOrigin.Y+FontHeight);
+           NP^.ReDrawArea(RawOrigin.X,RawOrigin.Y+FontHeight*(Size.Y-1),
+             RawOrigin.X+FontWidth*Size.X,RawOrigin.Y+FontHeight*Size.Y);
+           NP^.ReDrawArea(RawOrigin.X,RawOrigin.Y+FontHeight,
+             RawOrigin.X+FontWidth,RawOrigin.Y+FontHeight*(Size.Y-1));
+           NP^.ReDrawArea(RawOrigin.X+FontWidth*(Size.X-1),RawOrigin.Y+FontHeight,
+             RawOrigin.X+FontWidth*Size.X,RawOrigin.Y+FontHeight*(Size.Y-1));
+         end;
+       NP:=NP^.Prevview;
+     end;
 END;
 
 
@@ -5673,7 +5720,10 @@ END.
 
 {
  $Log$
- Revision 1.27  2002-05-30 14:53:54  pierre
+ Revision 1.28  2002-05-30 22:28:33  pierre
+  * tried to get a faster RedrawArea method
+
+ Revision 1.27  2002/05/30 14:53:54  pierre
   * try to follow TV better
 
  Revision 1.26  2002/05/29 19:36:52  pierre
