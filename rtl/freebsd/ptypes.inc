@@ -63,7 +63,7 @@ type
 {$ifdef CPU64}
     ssize_t  = cint64;          { used by function for returning number of bytes }
 {$else}
-    ssize_t  = cint32;          { used by function for returning number of bytes
+    ssize_t  = cint32;          { used by function for returning number of bytes}
 {$endif}
     TsSize   = ssize_t;
     psSize   = ^ssize_t;		
@@ -89,14 +89,6 @@ type
     socklen_t= cuint32;
     TSocklen = socklen_t;
     pSocklen = ^socklen_t;
-
-{$ifdef cpu64}
-    size_t   = cuint64;         { as definied in the C standard}
-    ssize_t  = cint64;          { used by function for returning number of bytes }
-    clock_t  = cuint64;
-    time_t   = cint64;           { used for returning the time  }
-{$else}
-
 
   timeval  = packed record
     tv_sec,tv_usec:clong;
@@ -125,7 +117,10 @@ CONST
 
 {
   $Log$
-  Revision 1.11  2004-05-17 19:18:38  marco
+  Revision 1.12  2004-05-18 19:33:45  marco
+   * left a comment unmatched
+
+  Revision 1.11  2004/05/17 19:18:38  marco
    * first x86-64 changes
 
   Revision 1.10  2004/03/04 22:15:16  marco
