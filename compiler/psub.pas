@@ -849,6 +849,7 @@ implementation
             end;
 
             { add the procedure to the codesegment }
+            maybe_new_object_file(codesegment);
             new_section(codesegment,sec_code,lower(procdef.mangledname),aktalignment.procalign);
             codesegment.concatlist(aktproccode);
 
@@ -1383,7 +1384,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.198  2004-07-09 22:17:32  peter
+  Revision 1.199  2004-07-10 20:24:34  peter
+    * put every proc in a new object file
+
+  Revision 1.198  2004/07/09 22:17:32  peter
     * revert has_localst patch
     * replace aktstaticsymtable/aktglobalsymtable with current_module
 
