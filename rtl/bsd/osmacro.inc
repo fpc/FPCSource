@@ -67,12 +67,12 @@ end;
 
 function wexitstatus(status : cint): cint;
 begin
- wexitstatus:=(status and 127) shr 8;
+ wexitstatus:=status shr 8;
 end;
 
 function wstopsig(status : cint): cint;
 begin
- wstopsig:=(status and 127) shr 8;
+ wstopsig:=status shr 8;
 end;
 
 const wstopped=127;
@@ -90,7 +90,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2005-02-14 17:13:21  peter
+  Revision 1.3  2005-02-15 22:27:45  jonas
+    * fixed wifexited and wstopsig
+
+  Revision 1.2  2005/02/14 17:13:21  peter
     * truncate log
 
   Revision 1.1  2005/02/13 21:47:56  peter
