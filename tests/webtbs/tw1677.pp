@@ -1,0 +1,23 @@
+{ Source provided for Free Pascal Bug Report 1677 }
+{ Submitted by "Anders Lindeberg" on  2001-11-10 }
+{ e-mail: anders.lindeberg@telia.com }
+program test;
+type trec = record i:integer; s:ansistring end;
+procedure p1(const r:trec); begin end;
+procedure p2(r:trec); begin end;
+var r:trec; s:ansistring;
+begin
+  s:=chr(ord('A')+random(26));
+  r.s:=s;
+  if plongint(pointer(s)-4)^<>3 then
+    halt(1);
+  p1(r);
+  if plongint(pointer(s)-4)^<>3 then
+    halt(1);
+  p2(r);
+  if plongint(pointer(s)-4)^<>3 then
+    halt(1);
+  writeln('ok');
+end.
+
+
