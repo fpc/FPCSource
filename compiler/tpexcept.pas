@@ -229,8 +229,7 @@ implementation
             movl %eax,24(%edi)
 
             { esp ... }
-            movl %esp,%eax
-            addl $12,%eax
+            leal 12(%ebp),%eax
             movl %eax,28(%edi)
 
             { the return address }
@@ -352,7 +351,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  1999-07-18 14:47:36  florian
+  Revision 1.8  1999-08-18 11:35:59  pierre
+   * esp loading corrected
+
+  Revision 1.7  1999/07/18 14:47:36  florian
     * bug 487 fixed, (inc(<property>) isn't allowed)
     * more fixes to compile with Delphi
 
