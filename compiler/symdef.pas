@@ -3202,6 +3202,8 @@ implementation
             hp.paratype.resolve;
             hp.defaultvalue:=tsym(hp.defaultvaluederef.resolve);
             hp.parasym:=tvarsym(hp.parasymderef.resolve);
+            { connect parasym to paraitem }
+            tvarsym(hp.parasym).paraitem:=hp;
             hp:=TParaItem(hp.next);
           end;
       end;
@@ -5854,7 +5856,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.163  2003-09-23 17:56:06  peter
+  Revision 1.164  2003-09-23 21:03:35  peter
+    * connect parasym to paraitem
+
+  Revision 1.163  2003/09/23 17:56:06  peter
     * locals and paras are allocated in the code generation
     * tvarsym.localloc contains the location of para/local when
       generating code for the current procedure
