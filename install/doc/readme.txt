@@ -1,7 +1,7 @@
 
                             Free Pascal Compiler
 
-                               Version 0.99.12
+                               Version 0.99.14
 
 
 ****************************************************************************
@@ -121,9 +121,9 @@ dos09912.zip specific:
       MV 3.16
       PWD 3.16
       GInstall 3.16
-      Date 3.16
-      Echo 3.16
-      UPX 0.72
+      GDate 3.16
+      GEcho 3.16
+      UPX 0.94
   gdbgo32.zip     contains the GNU Debugger 4.16 for Go32V2
 
 w3209912.zip specific:
@@ -132,10 +132,12 @@ w3209912.zip specific:
                   additional files
   asldw32.zip     contains additional GNU utilities from MinGW32 which are
                   necessary:
-      AS 2.9.1 for Win32
-      LD 2.9.1 for Win32
-      AR 2.9.1 for Win32
-      Strip 2.9.1 for Win32
+      AS 2.9.5 for Win32
+      LD 2.9.5 for Win32
+      AR 2.9.5 for Win32
+      Strip 2.9.5 for Win32
+      WindRes 2.9.5 for Win32
+      DLLTool 2.9.5 for Win32
   utilw32.zip     contains additional GNU utilities which might be useful to
                   compile the run time library:
       Make 3.76.1
@@ -144,9 +146,9 @@ w3209912.zip specific:
       MV 3.16
       PWD 3.16
       GInstall 3.16
-      Date 3.16
-      Echo 3.16
-      UPX 0.72
+      GDate 3.16
+      GEcho 3.16
+      UPX 0.94
   gdbw32.zip      contains the GNU Debugger 4.16.1 for Win32
 
 os209912.zip specific:
