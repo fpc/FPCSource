@@ -55,26 +55,46 @@ end;
 
 
 procedure insert(const source : shortstring;var s : shortstring;index : StrLenInt);
+var
+  cut,srclen,indexlen : longint;
 begin
-  if index>1 then
-   dec(index)
-  else
-   index:=0;
-{  s:=Copy(s,1,Index)+source+Copy(s,Index+1,length(s));}
-  move(s[Index+1],s[Index+Length(Source)+1], Length(s)-Index);
-  move(Source[1],s[Index+1],Length(Source));
-  Inc(Byte(s[0]),Byte(source[0]));
+  if index<1 then
+   index:=1;
+  if index>length(s) then
+   index:=length(s)+1;
+  indexlen:=Length(s)-Index+1;
+  srclen:=length(Source);
+  if length(source)+length(s)>=sizeof(s) then
+   begin
+     cut:=length(source)+length(s)-sizeof(s)+1;
+     if cut>indexlen then
+      begin
+        dec(srclen,cut-indexlen);
+        indexlen:=0;
+      end
+     else
+      dec(indexlen,cut);
+   end;
+  move(s[Index],s[Index+srclen],indexlen);
+  move(Source[1],s[Index],srclen);
+  s[0]:=chr(index+srclen+indexlen-1);
 end;
 
+
 procedure insert(source : Char;var s : shortstring;index : StrLenInt);
+var
+  indexlen : longint;
 begin
-  if index>1 then
-   dec(index)
-  else
-   index:=0;
-  move(s[Index+1],s[Index+2], Length(s)-Index);
-  s[Index+1] := Source;
-  Inc(Byte(s[0]));
+  if index<1 then
+   index:=1;
+  if index>length(s) then
+   index:=length(s)+1;
+  indexlen:=Length(s)-Index+1;
+  if (length(s)=sizeof(s)) and (indexlen>0) then
+   dec(indexlen);
+  move(s[Index],s[Index+1],indexlen);
+  s[Index]:=Source;
+  s[0]:=chr(index+indexlen);
 end;
 
 
@@ -951,7 +971,10 @@ end;
 
 {
   $Log$
-  Revision 1.18  1999-01-11 19:26:55  jonas
+  Revision 1.19  1999-01-25 20:24:28  peter
+    * fixed insert to support again the max string length
+
+  Revision 1.18  1999/01/11 19:26:55  jonas
     * made inster(string,string,index) a bit faster
     + overloaded insert(char,string,index)
 
