@@ -77,6 +77,8 @@ Type
 	     s_addr  : cuint32;		// inaddr_t=cuint32
             end; 
 
+  in_addrbytes = packed array [1..4] of byte;	
+
   TSockAddr = packed Record
   {$ifdef SOCK_HAS_SINLEN}
      sa_len     : cuchar;
@@ -84,8 +86,8 @@ Type
      sa_family  : sa_family_t;
      sa_data    : array [0..13] of char;
     end;
-  pSockAddr = ^TSockAddr;
-  sockaddr  = TSockAddr;		// Kylix compat	
+  PSockAddr = ^TSockAddr;
+  Sockaddr  = TSockAddr;		// Kylix compat	
 
   TInetSockAddr = packed Record
     case boolean of   
@@ -218,7 +220,10 @@ function StrToNetAddr6 (IP   : AnsiString) : TIn6_Addr;
 
 {
   $Log$
-  Revision 1.23  2005-02-13 19:59:57  marco
+  Revision 1.24  2005-02-13 21:10:31  marco
+   * in_addr_bytes to easily put an array over the byte type
+
+  Revision 1.23  2005/02/13 19:59:57  marco
    * More htons like functionality. IPV6 string support still missing
 
   Revision 1.22  2005/02/12 17:34:56  marco
