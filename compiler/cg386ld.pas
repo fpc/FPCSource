@@ -168,9 +168,11 @@ implementation
                                    p^.location.reference.base:=procinfo^.framepointer;
                                    if (symtabletype in [inlinelocalsymtable,
                                                         localsymtable]) then
-                                     p^.location.reference.offset:=pvarsym(p^.symtableentry)^.address-p^.symtable^.address_fixup
+                                     p^.location.reference.offset:=
+                                       pvarsym(p^.symtableentry)^.address-p^.symtable^.address_fixup
                                    else
-                                     p^.location.reference.offset:=pvarsym(p^.symtableentry)^.address+p^.symtable^.address_fixup;
+                                     p^.location.reference.offset:=
+                                       pvarsym(p^.symtableentry)^.address+p^.symtable^.address_fixup;
 
                                    if (symtabletype in [localsymtable,inlinelocalsymtable]) then
                                      begin
@@ -939,11 +941,8 @@ implementation
                   end
                  else
                   begin
-                    { update href to the vtype field and write it }
-                    emit_const_ref(A_MOV,S_L,
-                      vtype,newreference(href));
-                    inc(href.offset,4);
                     { write changing field update href to the next element }
+                    inc(href.offset,4);
                     if vaddr then
                      begin
                        emit_to_mem(hp^.left);
@@ -951,7 +950,11 @@ implementation
                      end
                     else
                      emit_mov_loc_ref(hp^.left^.location,href,S_L);
-                    inc(href.offset,4);
+                    { update href to the vtype field and write it }
+                    dec(href.offset,4);
+                    emit_const_ref(A_MOV,S_L,vtype,newreference(href));
+                    { goto next array element }
+                    inc(href.offset,8);
                   end;
                end
               else
@@ -979,7 +982,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.103  2000-03-01 15:36:11  florian
+  Revision 1.104  2000-03-19 08:14:17  peter
+    * small order change for array of const which allows better optimization
+
+  Revision 1.103  2000/03/01 15:36:11  florian
     * some new stuff for the new cg
 
   Revision 1.102  2000/03/01 13:20:33  pierre
