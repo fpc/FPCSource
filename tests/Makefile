@@ -748,11 +748,9 @@ zipsourceinstall: fpc_zipsourceinstall
 
 zipexampleinstall: fpc_zipexampleinstall
 
-distclean: fpc_distclean
-
 cleanall: fpc_cleanall
 
-.PHONY:  debug smart shared showinstall install sourceinstall exampleinstall zipinstall zipsourceinstall zipexampleinstall distclean cleanall
+.PHONY:  debug smart shared showinstall install sourceinstall exampleinstall zipinstall zipsourceinstall zipexampleinstall cleanall
 
 #####################################################################
 # General compile rules
@@ -1133,8 +1131,6 @@ endif
 # Users rules
 #####################################################################
 
-.PHONY: all units tests cont_tests
-
 # Unix like OS ?
 ifeq ($(OS_TARGET),linux)
 INUNIX=1
@@ -1170,8 +1166,8 @@ units/$(FPCMADE):
 	$(MAKE) -C units
 
 DOTEST=dotest$(EXEEXT)
-$(DOTEST) : utils/dotest.pp utils/redir.pp
-	$(FPC) -Fu../units -FE. utils/dotest
+$(DOTEST) : units utils/dotest.pp utils/redir.pp
+	$(FPC) -Fuunits -FE. utils/dotest
 
 testcheck: units $(DOTEST)
 
@@ -1197,12 +1193,6 @@ endif
 
 DIRS=webtbs webtbf tbs tbf test testopt
 
-all : alltests
-
-tests : clean all_compilations
-
-cont_tests : all_compilations
-
 %.log : %.pp
 	$(DOTEST) $(DOTESTOPT) $<
 
@@ -1212,6 +1202,9 @@ cont_tests : all_compilations
 #
 # Compile tests
 #
+
+.PHONY: alltbs alltbf allwebtbs allwebtbf alltest alltestopt alltests
+
 alltbs : testcheck $(patsubst %.pp,%.log,$(wildcard tbs/t*.pp))
 alltbf : testcheck $(patsubst %.pp,%.log,$(wildcard tbf/t*.pp))
 
@@ -1226,6 +1219,8 @@ alltests: alltest alltbs alltbf allwebtbs allwebtbf
 #
 # Compile and Run tests
 #
+
+.PHONY: allexectbs allexectbf allexecwebtbs allexecwebtbf allexectest allexectestopt allexectests
 
 allexectbs : testcheck $(patsubst %.pp,%.elg,$(wildcard tbs/t*.pp))
 allexectbf : testcheck $(patsubst %.pp,%.elg,$(wildcard tbf/t*.pp))
@@ -1242,6 +1237,8 @@ allexectests: allexectest allexectbs allexectbf allexecwebtbs allexecwebtbf
 # Clean
 #
 
+.PHONY: clean distclean
+
 clean:
 	-rm -f $(addsuffix /*$(PPUEXT),$(DIRS))
 	-rm -f $(addsuffix /*$(OEXT),$(DIRS))
@@ -1250,24 +1247,32 @@ clean:
 	-rm -f $(addsuffix /*.log,$(DIRS))
 	-rm -f $(addsuffix /*.elg,$(DIRS))
 ifdef INUNIX
-	-rm -f $(wildcard $(patsubst %.pp,%$(EXEEXT),$(wildcard $(addsuffix /tt*.pp,$(DIRS)))))
+	-rm -f $(wildcard $(patsubst %.pp,%$(EXEEXT),$(wildcard $(addsuffix /t*.pp,$(DIRS)))))
 else
 	-rm -f $(addsuffix /*$(EXEEXT),$(DIRS))
 endif
-	-rm -f *.tmp
+	-rm -f *.tmp core
 	-rm -f $(LOG) $(LONGLOG) $(FAILLIST)
 	-rm -f ppas.sh ppas.bat gmon.out
+
+distclean: clean
+	-rm -f dotest$(EXEEXT) dotest$(OEXT) redir$(PPUEXT) redir$(OEXT)
+	$(MAKE) -C units clean
+
+#
+# Main rules
+#
+
+.PHONY: all full
+
+all : allexectests
 
 full : clean allexectests
 
 info :
 	@echo This Makefile allows to test the compiler
-	@echo compilation of 'ts*.pp' should succeed
-	@echo compilation of 'tf*.pp' should fail
-	@echo compilation of 'test*.pp' should succeed
-	@echo 'to*.pp' files should also compile
-	@echo simply run \'make tests\' to test all compilation
-	@echo run \'make allexec\' to test also if the executables
-	@echo created behave like the should
-	@echo run \'make tesiexec\' to test executables
-	@echo that require interactive mode
+	@echo
+	@echo Targets:
+	@echo   all   - continue all tests
+	@echo   full  - clean and run all tests
+	@echo
