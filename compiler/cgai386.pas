@@ -68,6 +68,8 @@ unit cgai386;
 
     procedure emit_mov_loc_ref(const t:tlocation;const ref:treference;siz:topsize);
     procedure emit_mov_loc_reg(const t:tlocation;reg:tregister);
+    procedure emit_lea_loc_ref(const t:tlocation;const ref:treference;freetemp:boolean);
+    procedure emit_lea_loc_reg(const t:tlocation;reg:tregister;freetemp:boolean);
     procedure emit_push_loc(const t:tlocation);
 
     { pushes qword location to the stack }
@@ -78,7 +80,6 @@ unit cgai386;
     procedure release_loc(const t : tlocation);
 
     procedure emit_pushw_loc(const t:tlocation);
-    procedure emit_lea_loc_ref(const t:tlocation;const ref:treference;freetemp:boolean);
     procedure emit_push_lea_loc(const t:tlocation;freetemp:boolean);
     procedure emit_to_reference(var p:ptree);
     procedure emit_to_reg16(var hr:tregister);
@@ -496,6 +497,28 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
          internalerror(330);
         end;
       end;
+
+
+    procedure emit_lea_loc_reg(const t:tlocation;reg:tregister;freetemp:boolean);
+      begin
+        case t.loc of
+               LOC_MEM,
+         LOC_REFERENCE : begin
+                           if t.reference.is_immediate then
+                             internalerror(331)
+                           else
+                             begin
+                               emit_ref_reg(A_LEA,S_L,
+                                 newreference(t.reference),reg);
+                             end;
+                           if freetemp then
+                            ungetiftemp(t.reference);
+                         end;
+        else
+         internalerror(332);
+        end;
+      end;
+
 
     procedure emit_movq_reg_loc(reghigh,reglow: TRegister;t:tlocation);
       begin
@@ -3306,7 +3329,11 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.38  1999-09-04 20:50:08  florian
+  Revision 1.39  1999-09-10 15:42:51  peter
+    * fixed with <calln> do
+    * fixed finalize/initialize call for new/dispose
+
+  Revision 1.38  1999/09/04 20:50:08  florian
     * bug 580 fixed
 
   Revision 1.37  1999/09/02 17:07:38  florian

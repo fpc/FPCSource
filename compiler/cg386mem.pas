@@ -104,9 +104,10 @@ implementation
                    reset_reference(r^);
                    r^.symbol:=ppointerdef(p^.left^.resulttype)^.definition^.get_inittable_label;
                    emitpushreferenceaddr(r^);
-                   { push pointer adress }
-                   emitpushreferenceaddr(p^.location.reference);
                    dispose(r);
+                   { push pointer we just allocated, we need to initialize the
+                     data located at that pointer not the pointer self (PFV) }
+                   emit_push_loc(p^.location);
                    emitcall('FPC_INITIALIZE');
                 end;
               popusedregisters(pushed);
@@ -186,14 +187,9 @@ implementation
                      reset_reference(r^);
                      r^.symbol:=ppointerdef(p^.left^.resulttype)^.definition^.get_inittable_label;
                      emitpushreferenceaddr(r^);
-                     { push pointer adress }
-                     case p^.left^.location.loc of
-                        LOC_CREGISTER : emit_reg(A_PUSH,S_L,
-                          p^.left^.location.register);
-                        LOC_REFERENCE:
-                          emitpushreferenceaddr(p^.left^.location.reference);
-                     end;
                      dispose(r);
+                     { push pointer adress }
+                     emit_push_loc(p^.left^.location);
                      emitcall('FPC_FINALIZE');
                   end;
                 emitcall('FPC_FREEMEM');
@@ -207,14 +203,8 @@ implementation
                      reset_reference(r^);
                      r^.symbol:=ppointerdef(p^.left^.resulttype)^.definition^.get_inittable_label;
                      emitpushreferenceaddr(r^);
-                     { push pointer adress }
-                     case p^.left^.location.loc of
-                        LOC_CREGISTER : emit_reg(A_PUSH,S_L,
-                          p^.left^.location.register);
-                        LOC_REFERENCE:
-                          emitpushreferenceaddr(p^.left^.location.reference);
-                     end;
                      dispose(r);
+                     emit_push_loc(p^.left^.location);
                      emitcall('FPC_INITIALIZE');
                   end;
              end;
@@ -810,17 +800,17 @@ implementation
                     p^.islocal:=true;
                  end
                else
-                if (p^.left^.resulttype^.deftype=objectdef) and
+                { call can happend with a property }
+                if (p^.left^.treetype=calln) and
+                   (p^.left^.resulttype^.deftype=objectdef) and
                    pobjectdef(p^.left^.resulttype)^.is_class then
                  begin
-                    emit_ref_reg(A_MOV,S_L,
-                      newreference(p^.left^.location.reference),R_EDI);
+                    emit_mov_loc_reg(p^.left^.location,R_EDI);
                     usetemp:=true;
                  end
                else
                  begin
-                   emit_ref_reg(A_LEA,S_L,
-                     newreference(p^.left^.location.reference),R_EDI);
+                   emit_lea_loc_reg(p^.left^.location,R_EDI,true);
                    usetemp:=true;
                  end;
 
@@ -851,7 +841,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.54  1999-08-25 11:59:46  jonas
+  Revision 1.55  1999-09-10 15:42:50  peter
+    * fixed with <calln> do
+    * fixed finalize/initialize call for new/dispose
+
+  Revision 1.54  1999/08/25 11:59:46  jonas
     * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
 
   Revision 1.53  1999/08/23 23:49:21  pierre
