@@ -15,7 +15,7 @@ Type
   ptimezone = ^timezone;
               
   P__timezone_ptr_t = ^__timezone_ptr_t;
-  __timezone_ptr_t = timezone;
+  __timezone_ptr_t = ^timezone;
 
 function gettimeofday(__tv:Ptimeval; __tz:__timezone_ptr_t):longint;cdecl;external clib name 'gettimeofday';
 function settimeofday(__tv:Ptimeval; __tz:Ptimezone):longint;cdecl;external clib name 'settimeofday';
