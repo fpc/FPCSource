@@ -1,4 +1,3 @@
-{ %KNOWNRUNERROR=2,i386 long double array problem }
 {****************************************************************}
 {  CODE GENERATOR TEST PROGRAM                                   }
 {****************************************************************}
@@ -207,7 +206,7 @@ var
 
 const
   has_errors : boolean = false;
-  known_bug_about_extended_array_present : boolean = false;
+
   procedure fail;
    begin
      WriteLn('Failed!');
@@ -400,11 +399,13 @@ begin
   test_array_param_longdouble(array_long_double);
   if trunc(global_long_double) <> trunc(RESULT_LONGDOUBLE) then
     begin
+{$ifdef cpui386}
       if sizeof(global_long_double)=10 then
         begin
-          known_bug_about_extended_array_present:=true;
+          { Known issue, ignore tcalext2 contains that test }
         end
       else
+{$endif cpui386}
         failed := true;
     end;
 
@@ -769,23 +770,16 @@ begin
   else
     WriteLn('Passed!');
 
-  if known_bug_about_extended_array_present then
-    begin
-      writeln('extended size is incompatible with C');
-      writeln('this will lead to failures if long doubles');
-      writeln('are used as arrays of members of packed structures');
-      { if no other error,
-        then notify that we konw about this problem }
-      if not has_errors then
-        halt(2);
-    end;
   if has_errors then
     Halt(1);
 end.
 
 {
   $Log$
-  Revision 1.9  2002-11-18 16:48:00  pierre
+  Revision 1.10  2003-10-31 16:47:31  peter
+    * move extended size check to separate test
+
+  Revision 1.9  2002/11/18 16:48:00  pierre
    + use KNOWNRUNERROR for i386 long double problem
 
   Revision 1.8  2002/11/18 00:42:16  pierre
