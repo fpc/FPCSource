@@ -5,7 +5,7 @@ Program Example41;
 Uses Sysutils;
 
 Const
-{$ifdef linux}
+{$ifdef unix}
   FN = 'find';
   P = '.:/bin:/usr/bin';  
 {$else}
