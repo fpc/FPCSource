@@ -8,7 +8,13 @@
 {$endif win32}
 
 {$ifdef has_sockets}
-uses crt,Sockets;
+uses
+{$ifdef linux}
+  linux,
+{$else}
+  crt,
+{$endif}
+  Sockets;
 Var
  S : Longint ; Sin,Sout: Text;
  Temp, Temp2 : Char;
@@ -33,6 +39,13 @@ const
     var
       temp2 : char;
     begin
+{$ifdef linux}
+      while selecttext(sin,1)>0 do
+       begin
+         read(Sin,Temp2);
+         write(Temp2);
+       end;
+{$else}
       repeat until not eof(sin);
       while not eof(sin) do
         begin
@@ -40,6 +53,7 @@ const
           write(Temp2);
           delay(1);
         end;
+{$endif}
     end;
 
 begin
