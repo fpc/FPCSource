@@ -109,7 +109,7 @@ CHK = $(addsuffix .chk, $(HTML) progex unitex refex htex onechap scripts)
 
 CHAPTERS = $(addsuffix .tex, crt dos getopts go32 graph linux printer\
              strings objects heaptrc sysutils ipc mouse gpm dxeload \
-             emu387 ports math)
+             emu387 ports math keyboard typinfo video)
 
 GTKPDF=$(addsuffix .pdf,$(addprefix gtk, 1 2 3 4 5))
 
@@ -193,6 +193,8 @@ clean:
 	-$(MAKE) -C mathex clean
 	-$(MAKE) -C graphex clean
 	-$(MAKE) -C gpmex clean
+	-$(MAKE) -C typinfex clean
+	-$(MAKE) -C kbdex clean
 # Reference
 	-$(MAKE) -C refex clean
 # Programmers manual
@@ -222,6 +224,8 @@ ifndef INSTALLDEBUG
 	$(MAKE) -C mathex tex
 	$(MAKE) -C graphex tex
 	$(MAKE) -C gpmex tex
+	$(MAKE) -C kbdex tex
+	$(MAKE) -C typinfex tex
 endif
 	touch unitex.chk
 
@@ -509,6 +513,8 @@ examples:
 	$(MAKE) -C ipcex
 	$(MAKE) -C objectex
 	$(MAKE) -C sysutex
+	$(MAKE) -C typinfex
+	$(MAKE) -C kbdex
 
 dosexamples: examples
 	$(MAKE) -C go32ex
@@ -522,7 +528,10 @@ linuxexamples: examples
 
 #
 # $Log$
-# Revision 1.7  2001-09-22 11:15:04  peter
+# Revision 1.8  2001-10-04 21:03:13  michael
+# + Added video and keyboard units
+#
+# Revision 1.7  2001/09/22 11:15:04  peter
 #   * chmod the scripts
 #   * fixed html installation
 #
