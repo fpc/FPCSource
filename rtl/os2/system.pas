@@ -490,9 +490,11 @@ var
        sysreallocmem(argv,argvlen*sizeof(pointer));
      end;
     { use realloc to reuse already existing memory }
+    (* TH: the previous sentence applies to argv, not *)
+    (* to argv[idx], which is never allocated before. *)
     { always allocate, even if length is zero, since }
     { the arg. is still present!                     }
-    sysreallocmem(argv[idx],len+1);
+    sysallocmem(argv[idx],len+1);
   end;
 
 begin
@@ -505,7 +507,7 @@ begin
   Arglen:=0;
   repeat
     Inc(Arglen);
-  until (pc[Arglen]=#0);
+  until (pc[Arglen]^ = #0);
   allocarg(count,arglen);
   move(pc^,argv[count]^,arglen);
 
@@ -769,7 +771,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.80  2005-03-01 21:59:14  hajny
+  Revision 1.81  2005-03-27 20:40:54  hajny
+    * fix for allocarg
+
+  Revision 1.80  2005/03/01 21:59:14  hajny
     * compilation fix
 
   Revision 1.79  2005/02/14 17:13:31  peter
