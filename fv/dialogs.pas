@@ -2902,7 +2902,8 @@ BEGIN
        Inc(P);                                        { Next character }
      End;
      I := P;                                          { Start position }
-     While (P <= L) AND (S[P] <> #13) Do Inc(P);      { Scan for end }
+     While (P <= L) AND (P-I <= Size.X) AND (S[P] <> #13) Do
+       Inc(P);                                        { Scan for end }
      T := Copy(S, I, P-I);                            { String to write }
      Case Just Of
        0: J := 0;                                     { Left justify }
@@ -2914,7 +2915,7 @@ BEGIN
        Delete(T, 1, 1);                               { Delete the char }
      End;
      WriteStr(-J, -(Y*FontHeight), T, 1);             { Write the text }
-     While (P <= L) AND ((S[P] = #13) OR (S[P] = #10))
+     While (P <= L) AND (P-I <= Size.X) AND ((S[P] = #13) OR (S[P] = #10))
        Do Inc(P);                                     { Remove CR/LF }
      Inc(Y);                                          { Next line }
    End;
@@ -4179,7 +4180,10 @@ END;
 END.
 {
  $Log$
- Revision 1.12  2001-08-05 02:03:13  peter
+ Revision 1.13  2002-05-16 20:36:24  pierre
+  * break lines of static text if too long
+
+ Revision 1.12  2001/08/05 02:03:13  peter
    * view redrawing and small cursor updates
    * merged some more FV extensions
 
