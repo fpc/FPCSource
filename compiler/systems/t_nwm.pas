@@ -351,12 +351,8 @@ begin
   {$endif}
 
   { add objectfiles, start with nwpre always }
-  LinkRes.Add ('INPUT (');
-  {$ifdef NETWARE_LIBC}
-  s2 := FindObjectFile('nwplibc','',false);
-  {$else}
+  LinkRes.Add ('INPUT(');
   s2 := FindObjectFile('nwpre','',false);
-  {$endif}
   Comment (V_Debug,'adding Object File '+s2);
   {$ifndef netware} LinkRes.Add (s2); {$else} LinkRes.Add (FExpand(s2)); {$endif}
 
@@ -371,6 +367,7 @@ begin
       {$ifndef netware} LinkRes.Add (s2); {$else} LinkRes.Add (FExpand(s2)); {$endif}
     end;
   end;
+  LinkRes.Add (')');
 
   { output file (nlm), add to nlmconv }
   {$ifndef netware}
@@ -380,15 +377,9 @@ begin
   {$endif}
   
   { start and stop-procedures }
-  {$ifdef NETWARE_LIBC}
-  NLMConvLinkFile.Add ('START _LibCPrelude');
-  NLMConvLinkFile.Add ('EXIT _LibCPostlude');
-  NLMConvLinkFile.Add ('CHECK _LibCCheckUnload');
-  {$else}
   NLMConvLinkFile.Add ('START _Prelude');  { defined in rtl/netware/nwpre.as }
   NLMConvLinkFile.Add ('EXIT _Stop');                             { nwpre.as }
   NLMConvLinkFile.Add ('CHECK FPC_NW_CHECKFUNCTION');            { system.pp }
-  {$endif}
   
   if not (cs_link_strip in aktglobalswitches) then
   begin
@@ -396,9 +387,10 @@ begin
     Comment(V_Debug,'DEBUG');
   end;
 
-  { Write staticlibraries, is that correct ? }
+  { Write staticlibraries }
   if not StaticLibFiles.Empty then
    begin
+     LinkRes.Add ('GROUP(');
      While not StaticLibFiles.Empty do
       begin
         S:=lower (StaticLibFiles.GetFirst);
@@ -428,6 +420,7 @@ begin
          end;
         end
       end;
+      LinkRes.Add (')');
    end;
 
   if not SharedLibFiles.Empty then
@@ -473,13 +466,11 @@ begin
       end
      else
       { really, i think it is possible }
-      {Comment(V_Error,'Exporting of variables is not supported under netware');}
       Message1(parser_e_no_export_of_variables_for_target,'netware');
      hp2:=texported_item(hp2.next);
    end;
 
 { Write and Close response for ld, response for nlmconv is in NLMConvLinkFile(not written) }
-  linkres.Add (')');
   linkres.writetodisk;
   LinkRes.Free;
 
@@ -580,7 +571,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.16  2004-09-22 15:25:14  mazen
+  Revision 1.17  2004-09-24 10:48:31  armin
+  * added GROUP for .a files to linker script
+
+  Revision 1.16  2004/09/22 15:25:14  mazen
   * Fix error committing : previous version must be in branch USE_SYSUTILS
 
   Revision 1.14  2004/08/30 11:17:34  armin

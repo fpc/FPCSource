@@ -359,7 +359,7 @@ begin
   {$endif}
 
   { add objectfiles, start with nwpre always }
-  LinkRes.Add ('INPUT (');
+  LinkRes.Add ('INPUT(');
   s2 := FindObjectFile('nwplibc','',false);
   if s2 = '' then
     s2 := FindObjectFile('libcpre.gcc','',false);
@@ -384,6 +384,7 @@ begin
       {$ifndef netware} LinkRes.Add (s2); {$else} LinkRes.Add (FExpand(s2)); {$endif}
     end;
   end;
+  LinkRes.Add (')');
 
   { output file (nlm), add to nlmconv }
   {$ifndef netware}
@@ -404,9 +405,10 @@ begin
     Comment(V_Debug,'DEBUG');
   end;
 
-  { Write staticlibraries, is that correct ? }
+  { Write staticlibraries }
   if not StaticLibFiles.Empty then
    begin
+     LinkRes.Add ('GROUP(');
      While not StaticLibFiles.Empty do
       begin
         S:=lower (StaticLibFiles.GetFirst);
@@ -436,6 +438,7 @@ begin
          end;
         end
       end;
+     LinkRes.Add (')');
    end;
 
   if not SharedLibFiles.Empty then
@@ -502,7 +505,6 @@ begin
    end;
 
 { Write and Close response for ld, response for nlmconv is in NLMConvLinkFile(not written) }
-  linkres.Add (')');
   linkres.writetodisk;
   LinkRes.Free;
 
@@ -651,7 +653,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.5  2004-09-22 15:25:14  mazen
+  Revision 1.6  2004-09-24 10:48:31  armin
+  * added GROUP for .a files to linker script
+
+  Revision 1.5  2004/09/22 15:25:14  mazen
   * Fix error committing : previous version must be in branch USE_SYSUTILS
 
   Revision 1.3  2004/09/19 18:10:32  armin
