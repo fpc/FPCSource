@@ -209,7 +209,7 @@ is used in functions that accept an array of values of arbitrary length.
 </element>
 
 <element name="arccos">
-<short></short>
+<short>Return inverse cosine</short>
 <descr>
 <var>Arccos</var> returns the inverse cosine of its argument <var>x</var>. The
 argument <var>x</var> should lie between -1 and 1 (borders included). 
@@ -228,7 +228,7 @@ If the argument <var>x</var> is not in the allowed range, an
 </element>
 
 <element name="arcosh">
-<short></short>
+<short>Return inverse hyperbolic cosine</short>
 <descr>
 <var>Arcosh</var> returns the inverse hyperbolic cosine of its argument <var>x</var>. 
 The argument <var>x</var> should be larger than 1. 
@@ -252,7 +252,7 @@ exception is raised.
 </element>
 
 <element name="arcsin">
-<short></short>
+<short>Return inverse sine</short>
 <descr>
 <var>Arcsin</var> returns the inverse sine of its argument <var>x</var>. The
 argument <var>x</var> should lie between -1 and 1. 
@@ -272,7 +272,7 @@ exception is raised.
 
 
 <element name="arctan2">
-<short></short>
+<short>Return arctangent of (y/x)</short>
 <descr>
 <var>arctan2</var> calculates <var>arctan(y/x)</var>, and returns an angle in the
 correct quadrant. The returned angle will be in the range $-\pi$ to
@@ -296,7 +296,7 @@ If <var>x</var> is zero, an overflow error will occur.
 </element>
 
 <element name="arsinh">
-<short></short>
+<short>Return inverse hyperbolic sine</short>
 <descr>
 <var>arsinh</var> returns the inverse hyperbolic sine of its argument <var>x</var>. 
 
@@ -317,7 +317,7 @@ None.
 
 
 <element name="artanh">
-<short></short>
+<short>Return inverse hyperbolic tangent</short>
 <descr>
 <var>artanh</var> returns the inverse hyperbolic tangent of its argument <var>x</var>,
 where <var>x</var> should lie in the interval [-1,1], borders included.
@@ -339,7 +339,7 @@ exception is raised.
 
 
 <element name="ceil">
-<short></short>
+<short>Return the lowest integer number greater than or equal to argument</short>
 <descr>
 <var>Ceil</var> returns the lowest integer number greater than or equal to <var>x</var>.
 The absolute value of <var>x</var> should be less than <var>maxint</var>.
@@ -355,7 +355,7 @@ occur.
 </element>
 
 <element name="cosh">
-<short></short>
+<short>Return hyperbolic cosine</short>
 <descr>
 <var>Cosh</var> returns the hyperbolic cosine of it's argument {x}.
 </descr>
@@ -372,7 +372,7 @@ None.
 
 
 <element name="cotan">
-<short></short>
+<short>Return cotangent</short>
 <descr>
 <var>Cotan</var> returns the cotangent of it's argument <var>x</var>. <var>x</var> should
 be different from zero.
@@ -388,7 +388,7 @@ If <var>x</var> is zero then a overflow error will occur.
 
 
 <element name="cycletorad">
-<short></short>
+<short>Convert cycle angle to radians angle</short>
 <descr>
 <var>Cycletorad</var> transforms it's argument <var>cycle</var>
 (an angle expressed in cycles) to radians.
@@ -409,7 +409,7 @@ None.
 
 
 <element name="degtograd">
-<short></short>
+<short>Convert degree angle to grads angle</short>
 <descr>
 <var>Degtograd</var> transforms it's argument <var>deg</var> (an angle in degrees)
 to grads.
@@ -431,7 +431,7 @@ None.
 
 
 <element name="degtorad">
-<short></short>
+<short>Convert degree angle to radians angle.</short>
 <descr>
 <var>Degtorad</var> converts it's argument <var>deg</var> (an angle in degrees) to
 radians.
@@ -453,7 +453,7 @@ None.
 
 
 <element name="floor">
-<short></short>
+<short>Return the largest integer smaller than or equal to argument</short>
 <descr>
 <var>Floor</var> returns the largest integer smaller than or equal to <var>x</var>.
 The absolute value of <var>x</var> should be less than <var>maxint</var>.
@@ -469,7 +469,7 @@ If <var>x</var> is larger than <var>maxint</var>, an overflow will occur.
 
 
 <element name="frexp">
-<short></short>
+<short>Return mantissa and exponent.</short>
 <descr>
 <var>Frexp</var> returns the mantissa and exponent of it's argument
 <var>x</var> in <var>mantissa</var> and <var>exponent</var>.
@@ -484,7 +484,7 @@ None
 
 
 <element name="gradtodeg">
-<short></short>
+<short>Convert grads angle to degrees angle</short>
 <descr>
 <var>Gradtodeg</var> converts its argument <var>grad</var> (an angle in grads)
 to degrees.
@@ -507,7 +507,7 @@ None.
 
 
 <element name="gradtorad">
-<short></short>
+<short>Convert grads angle to radians angle</short>
 <descr>
 <var>Gradtorad</var> converts its argument <var>grad</var> (an angle in grads)
 to radians.
@@ -530,7 +530,7 @@ None.
 
 
 <element name="hypot">
-<short></short>
+<short>Return hypotenuse of triangle</short>
 <descr>
 <var>Hypot</var> returns the hypotenuse of the triangle where the sides
 adjacent to the square angle have lengths <var>x</var> and <var>y</var>.
@@ -547,7 +547,7 @@ None.
 
 
 <element name="intpower">
-<short></short>
+<short>Return integer power.</short>
 <descr>
 <var>Intpower</var> returns <var>base</var> to the power <var>exponent</var>,
 where exponent is an integer value.
@@ -564,9 +564,9 @@ overflow error will occur.
 
 
 <element name="ldexp">
-<short></short>
+<short>Return (2 to the power p) times x</short>
 <descr>
-<var>Ldexp</var> returns $2^p x$.
+<var>Ldexp</var> returns (2 to the power <var>p</var>) times <var>x</var>.
 </descr>
 <errors>
 None.
@@ -582,7 +582,7 @@ None.
 
 
 <element name="lnxp1">
-<short></short>
+<short>Return natural logarithm of 1+X</short>
 <descr>
 <var>Lnxp1</var> returns the natural logarithm of <var>1+X</var>. The result
 is more precise for small values of <var>x</var>. <var>x</var> should be larger
@@ -601,7 +601,7 @@ If $x\leq -1$ then an <var>EInvalidArgument</var> exception will be raised.
 </element>
 
 <element name="log10">
-<short></short>
+<short>Return 10-Based logarithm.</short>
 <descr>
 <var>Log10</var> returns the 10-base logarithm of <var>X</var>.
 </descr>
@@ -620,7 +620,7 @@ will occur.
 
 
 <element name="log2">
-<short></short>
+<short>Return 2-based logarithm</short>
 <descr>
 <var>Log2</var> returns the 2-base logarithm of <var>X</var>.
 </descr>
@@ -639,7 +639,7 @@ will occur.
 
 
 <element name="logn">
-<short></short>
+<short>Return N-based logarithm.</short>
 <descr>
 <var>Logn</var> returns the n-base logarithm of <var>X</var>.
 </descr>
@@ -657,7 +657,7 @@ will occur.
 </element>
 
 <element name="max">
-<short></short>
+<short>Return largest of 2 values</short>
 <descr>
 <var>Max</var> returns the maximum of <var>Int1</var> and <var>Int2</var>.
 </descr>
@@ -673,13 +673,16 @@ None.
 </element>
 
 <element name="maxIntValue">
-<short></short>
+<short>Return largest element in integer array</short>
 <descr>
+<p>
 <var>MaxIntValue</var> returns the largest integer out of the <var>Data</var>
 array.
-
+</p>
+<p>
 This function is provided for Delphi compatibility, use the <link id="maxvalue"/>
 function instead.
+</p>
 </descr>
 <errors>
 None.
@@ -694,14 +697,17 @@ None.
 
 
 <element name="maxvalue">
-<short></short>
+<short>Return largest value in array</short>
 <descr>
+<p>
 <var>Maxvalue</var> returns the largest value in the <var>data</var> 
 array with integer or float values. The return value has 
 the same type as the elements of the array.
-
+</p>
+<p>
 The third and fourth forms accept a pointer to an array of <var>N</var> 
 integer or float values.
+</p>
 </descr>
 <errors>
 None.
@@ -715,7 +721,7 @@ None.
 </element>
 
 <element name="mean">
-<short></short>
+<short>Return mean value of array</short>
 <descr>
 <var>Mean</var> returns the average value of <var>data</var>.
 
@@ -733,7 +739,7 @@ None.
 </element>
 
 <element name="meanandstddev">
-<short></short>
+<short>Return mean and standard deviation of array</short>
 <descr>
 <var>meanandstddev</var> calculates the mean and standard deviation of <var>data</var>
 and returns the result in <var>mean</var> and <var>stddev</var>, respectively.
@@ -755,7 +761,7 @@ None.
 
 
 <element name="min">
-<short></short>
+<short>Return smallest of two values.</short>
 <descr>
 <var>min</var> returns the smallest value of <var>Int1</var> and <var>Int2</var>;
 </descr>
@@ -769,12 +775,15 @@ None.
 </element>
 
 <element name="minIntValue">
-<short></short>
+<short>Return smallest value in integer array</short>
 <descr>
+<p>
 <var>MinIntvalue</var> returns the smallest value in the <var>Data</var> array.
-
+</p>
+<p>
 This function is provided for Delphi compatibility, use <var>minvalue</var>
 instead.
+</p>
 </descr>
 <errors>
 None
@@ -789,14 +798,17 @@ None
 
 
 <element name="minvalue">
-<short></short>
+<short>Return smallest value in array</short>
 <descr>
+<p>
 <var>Minvalue</var> returns the smallest value in the <var>data</var> 
 array with integer or float values. The return value has 
 the same type as the elements of the array.
-
+</p>
+<p>
 The third and fourth forms accept a pointer to an array of <var>N</var> 
 integer or float values.
+</p>
 </descr>
 <errors>
 None.
@@ -811,7 +823,7 @@ None.
 
 
 <element name="momentskewkurtosis">
-<short></short>
+<short>Return 4 first moments of distribution</short>
 <descr>
 <var>momentskewkurtosis</var> calculates the 4 first moments of the distribution
 of valuesin <var>data</var> and returns them in <var>m1</var>,<var>m2</var>,<var>m3</var> and
@@ -828,12 +840,15 @@ None.
 </element>
 
 <element name="norm">
-<short></short>
+<short>Return Euclidian norm</short>
 <descr>
+<p>
 <var>Norm</var> calculates the Euclidian norm of the array of data.
 This equals <var>sqrt(sumofsquares(data))</var>.
-
+</p>
+<p>
 The second form accepts a pointer to an array of <var>N</var> values.
+</p>
 </descr>
 <errors>
 None.
@@ -846,13 +861,16 @@ None.
 
 
 <element name="popnstddev">
-<short></short>
+<short>Return population variance</short>
 <descr>
+<p>
 <var>Popnstddev</var> returns the square root of the population variance of
 the values in the  <var>Data</var> array. It returns zero if there is only one value.
-
+</p>
+<p>
 The second form of this function accepts a pointer to an array of <var>N</var>
 values.
+</p>
 </descr>
 <errors>
 None.
@@ -861,7 +879,7 @@ None.
 <link id="popnvariance"/>
 <link id="mean"/>
 <link id="meanandstddev"/>
-<link id="stddev"/>,
+<link id="stddev"/>
 <link id="momentskewkurtosis"/>
 </seealso>
 <example file="mathex/ex35"/>
@@ -869,13 +887,16 @@ None.
 
 
 <element name="popnvariance">
-<short></short>
+<short>Return population variance</short>
 <descr>
+<p>
 <var>Popnvariance</var> returns the square root of the population variance of
 the values in the  <var>Data</var> array. It returns zero if there is only one value.
-
+</p>
+<p>
 The second form of this function accepts a pointer to an array of <var>N</var>
 values.
+</p>
 </descr>
 <errors>
 None.
@@ -892,7 +913,7 @@ None.
 
 
 <element name="power">
-<short></short>
+<short>Return real power.</short>
 <descr>
 <var>power</var> raises <var>base</var> to the power <var>power</var>. This is equivalent
 to <var>exp(power*ln(base))</var>. Therefore <var>base</var> should be non-negative.
@@ -908,12 +929,15 @@ None.
 
 
 <element name="radtocycle">
-<short></short>
+<short>Convert radians angle to cycle angle</short>
 <descr>
+<p>
 <var>Radtocycle</var> converts its argument <var>rad</var> (an angle expressed in
 radians) to an angle in cycles.
-
-(1 cycle equals 2 pi radians)
+</p>
+<p>
+(1 cycle equals 2 <var>pi</var> radians)
+</p>
 </descr>
 <errors>
 None.
@@ -930,7 +954,7 @@ None.
 
 
 <element name="radtodeg">
-<short></short>
+<short>Convert radians angle to degrees angle</short>
 <descr>
 <var>Radtodeg</var> converts its argument <var>rad</var> (an angle expressed in
 radians) to an angle in degrees.
@@ -952,12 +976,15 @@ None.
 
 
 <element name="radtograd">
-<short></short>
+<short>Convert radians angle to grads angle</short>
 <descr>
+<p>
 <var>Radtodeg</var> converts its argument <var>rad</var> (an angle expressed in
 radians) to an angle in grads.
-
+</p>
+<p>
 (200 grads equals pi radians)
+</p>
 </descr>
 <errors>
 None.
@@ -974,7 +1001,7 @@ None.
 
 
 <element name="randg">
-<short></short>
+<short>Return gaussian distributed random number.</short>
 <descr>
 <var>randg</var> returns a random number which - when produced in large
 quantities - has a Gaussian distribution with mean <var>mean</var> and 
@@ -993,13 +1020,16 @@ None.
 
 
 <element name="sincos">
-<short></short>
+<short>Return sine and cosine of argument</short>
 <descr>
+<p>
 <var>Sincos</var> calculates the sine and cosine of the angle <var>theta</var>,
 and returns the result in <var>sinus</var> and <var>cosinus</var>.
-
+</p>
+<p>
 On Intel hardware, This calculation will be faster than making 2 calls
-to clculatet he sine and cosine separately.
+to calculate the sine and cosine separately.
+</p>
 </descr>
 <errors>
 None.
@@ -1013,7 +1043,7 @@ None.
 
 
 <element name="sinh">
-<short></short>
+<short>Return hyperbolic sine</short>
 <descr>
 <var>Sinh</var> returns the hyperbolic sine of its argument <var>x</var>.
 </descr>
@@ -1030,13 +1060,16 @@ None.
 
 
 <element name="stddev">
-<short></short>
+<short>Return standard deviation of data</short>
 <descr>
+<p>
 <var>Stddev</var> returns the standard deviation of the values in <var>Data</var>.
 It returns zero if there is only one value.
-
+</p>
+<p>
 The second form of the function accepts a pointer to an array of <var>N</var>
 values.
+</p>
 </descr>
 <errors>
 None.
@@ -1052,12 +1085,15 @@ None.
 
 
 <element name="sum">
-<short></short>
+<short>Return sum of values</short>
 <descr>
+<p>
 <var>Sum</var> returns the sum of the values in the <var>data</var> array.
-
+</p>
+<p>
 The second form of the function accepts a pointer to an array of <var>N</var>
 values.
+</p>
 </descr>
 <errors>
 None.
@@ -1066,20 +1102,23 @@ None.
 <link id="sumofsquares"/>
 <link id="sumsandsquares"/>
 <link id="totalvariance"/>
-, <link id="variance"/>
+<link id="variance"/>
 </seealso>
 <example file="mathex/ex44"/>
 </element>
 
 
 <element name="sumofsquares">
-<short></short>
+<short>Return sum of squares of values</short>
 <descr>
+<p>
 <var>Sumofsquares</var> returns the sum of the squares of the values in the <var>data</var> 
 array.
-
+</p>
+<p>
 The second form of the function accepts a pointer to an array of <var>N</var>
 values.
+</p>
 </descr>
 <errors>
 None.
@@ -1088,21 +1127,24 @@ None.
 <link id="sum"/>
 <link id="sumsandsquares"/>
 <link id="totalvariance"/>
-, <link id="variance"/>
+<link id="variance"/>
 </seealso>
 <example file="mathex/ex45"/>
 </element>
 
 
 <element name="sumsandsquares">
-<short></short>
+<short>Return sum and sum of squares of values.</short>
 <descr>
+<p>
 <var>sumsandsquares</var> calculates the sum of the values and the sum of 
 the squares of the values in the <var>data</var> array and returns the
 results in <var>sum</var> and <var>sumofsquares</var>.
-
+</p>
+<p>
 The second form of the function accepts a pointer to an array of <var>N</var>
 values.
+</p>
 </descr>
 <errors>
 None.
@@ -1111,14 +1153,14 @@ None.
 <link id="sum"/>
 <link id="sumofsquares"/>
 <link id="totalvariance"/>
-, <link id="variance"/>
+<link id="variance"/>
 </seealso>
 <example file="mathex/ex46"/>
 </element>
 
 
 <element name="tan">
-<short></short>
+<short>Return tangent</short>
 <descr>
 <var>Tan</var> returns the tangent of <var>x</var>.
 </descr>
@@ -1136,7 +1178,7 @@ If <var>x</var> (normalized) is pi/2 or 3pi/2 then an overflow will occur.
 
 
 <element name="tanh">
-<short></short>
+<short>Return hyperbolic tangent</short>
 <descr>
 <var>Tanh</var> returns the hyperbolic tangent of <var>x</var>.
 </descr>
@@ -1153,13 +1195,16 @@ None.
 
 
 <element name="totalvariance">
-<short></short>
+<short>Return total varians of values</short>
 <descr>
+<p>
 <var>TotalVariance</var> returns the total variance of the values in the 
 <var>data</var> array. It returns zero if there is only one value.
-
+</p>
+<p>
 The second form of the function accepts a pointer to an array of <var>N</var>
 values.
+</p>
 </descr>
 <errors>
 None.
@@ -1174,13 +1219,16 @@ None.
 
 
 <element name="variance">
-<short></short>
+<short>Return variance of values</short>
 <descr>
+<p>
 <var>Variance</var> returns the variance of the values in the 
 <var>data</var> array. It returns zero if there is only one value.
-
+</p>
+<p>
 The second form of the function accepts a pointer to an array of <var>N</var>
 values.
+</p>
 </descr>
 <errors>
 None.
@@ -1191,6 +1239,395 @@ None.
 <link id="mean"/>
 </seealso>
 <example file="mathex/ex50"/>
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="sysutils">
+<short>Used for exception definitions.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="MinExtended">
+<short>Minimum value (closest to zero) of extended type</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="MaxExtended">
+<short>Maximum value of extended type</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="MinFloat">
+<short>Minimum value (closest to zero) of float type</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="MaxFloat">
+<short>Maximum value of float type</short>
+</element>
+
+<!-- pointer type Visibility: default -->
+<element name="PInteger">
+<short>Pointer to integer type</short>
+</element>
+
+<!-- range type Visibility: default -->
+<element name="TValueRelationship">
+<short>Type to describe relational order between values</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="EqualsValue">
+<short>Values are the same</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="LessThanValue">
+<short>First value is less than second value</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="GreaterThanValue">
+<short>First values is greater than second value</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="NaN">
+<short>Value is Not a Number</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="Infinity">
+<short>Value is infinity</short>
+</element>
+
+<!-- function Visibility: default -->
+<element name="InRange">
+<short>Check whether value is in range.</short>
+<descr>
+<var>InRange</var> returns <var>True</var> if <var>AValue</var> is in the
+range <var>AMin</var>..<var>AMax</var>. It returns <var>False</var> if
+<var>Value</var> lies outside the specified range.
+</descr>
+<seealso>
+<link id="EnsureRange"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="EnsureRange">
+<short>Change value to it falls in specified range.</short>
+<descr>
+<var>EnsureRange</var> returns <var>Value</var> if <var>AValue</var> is in
+the range <var>AMin</var>..<var>AMax</var>. It returns <var>AMin</var> if
+the value is less than <var>AMin</var>, or <var>AMax</var> if the value is
+larger than <var>AMax</var>.
+</descr>
+<seealso>
+<link id="InRange"/>
+</seealso>
+</element>
+
+<!-- procedure Visibility: default -->
+<element name="DivMod">
+<short>Return DIV and MOD of arguments </short>
+<descr>
+<var>DivMod</var> returns <var>Dividend</var> DIV <var>Divisor</var> in
+<var>Result</var>, and <var>Dividend</var> MOD <var>Divisor</var> in
+<var>Remainder</var>
+</descr>
+</element>
+
+<!-- range type Visibility: default -->
+<element name="TValueSign">
+<short>Type indicating sign of a valuea</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="NegativeValue">
+<short>Value is negative</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ZeroValue">
+<short>Value is zero</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="PositiveValue">
+<short>Value is positive</short>
+</element>
+
+<!-- function Visibility: default -->
+<element name="Sign">
+<short>Return sign of argument</short>
+<descr>
+<var>Sign</var> returns the sign of it's argument, which can be an Integer,
+64 bit integer, or a double. The returned value is an integer which is -1, 0
+or 1, and can be used to do further calculations with.
+</descr>
+</element>
+
+<!-- function Visibility: default -->
+<element name="IsZero">
+<short>Check whether value is zero</short>
+<descr>
+<p>
+<var>IsZero</var> checks whether the float value <var>A</var> is zero, up to a 
+precision of <var>Epsilon</var>. It returns <var>True</var> if Abs(<var>A</var>) is
+less than <var>Epsilon</var>.
+</p>
+<p>
+The default value for <var>Epsilon</var> is dependent on the type of the
+arguments, but is <link id="MinFloat"/> for the float type.
+</p>
+</descr>
+<seealso>
+<link id="IsNan"/>
+<link id="IsInfinite"/>
+<link id="SameValue"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="IsNan">
+<short>Check whether value is Not a Number</short>
+<descr>
+<var>IsNan</var> returns <var>True</var> if the double <var>d</var> 
+contains Not A Number (a value which cannot be represented correctly 
+in double format).
+</descr>
+<seealso>
+<link id="IsZero"/>
+<link id="IsInfinite"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="IsInfinite">
+<short>Check whether value is infinite</short>
+<descr>
+<var>IsInfinite</var> returns <var>True</var> if the double <var>d</var> 
+contains the infinite value.
+</descr>
+<seealso>
+<link id="IsZero"/>
+<link id="IsInfinite"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="SameValue">
+<short>Check whether 2 float values are the same</short>
+<descr>
+<p>
+<var>SameValue</var> returns <var>True</var> if the floating-point values
+<var>A</var> and <var>B</var> are the same, i.e. whether the absolute value
+of their their difference is smaller than <var>Epsilon</var>. If their
+difference is larger, then <var>False</var> is returned.
+</p>
+<p>
+The default value for <var>Epsilon</var> is dependent on the type of the
+arguments, but is <link id="MinFloat"/> for the float type.
+</p>
+</descr>
+<seealso>
+<link id="MinFloat"/>
+<link id="IsZero"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="arccosh">
+<short>Return inverse hyperbolic cosine</short>
+<descr>
+<p>
+<var>arccosh</var> returns the inverse hyperbolic cosine of it's argument 
+<var>x</var>.
+</p>
+<p>
+This function is an alias for <link id="arcosh"/>, provided for Delphi
+compatibility.
+</p>
+</descr>
+<seealso>
+<link id="arcosh"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="arcsinh">
+<short>Return inverse hyperbolic sine</short>
+<descr>
+<p>
+<var>arcsinh</var> returns the inverse hyperbolic sine of it's argument 
+<var>x</var>.
+</p>
+<p>
+This function is an alias for <link id="arsinh"/>, provided for Delphi
+compatibility.
+</p>
+</descr>
+<seealso>
+<link id="arsinh"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="arctanh">
+<short>Return inverse hyperbolic tangent</short>
+<descr>
+<p>
+<var>arcsinh</var> returns the inverse hyperbolic tangent of it's argument
+<var>x</var>.
+</p>
+<p>
+This function is an alias for <link id="artanh"/>, provided for Delphi
+compatibility.
+</p>
+</descr>
+<seealso>
+<link id="artanh"/>
+</seealso>
+</element>
+
+<!-- enumeration type Visibility: default -->
+<element name="TFPURoundingMode">
+<short>Type describing the rounding mode for the Floating Point processor.</short>
+</element>
+
+<!-- enumeration value Visibility: default -->
+<element name="TFPURoundingMode.rmNearest">
+<short>Round to nearest integer value</short>
+</element>
+
+<!-- enumeration value Visibility: default -->
+<element name="TFPURoundingMode.rmDown">
+<short>Round to biggest integer smaller than value.</short>
+</element>
+
+<!-- enumeration value Visibility: default -->
+<element name="TFPURoundingMode.rmUp">
+<short>Round to smallest integer larger than value.</short>
+</element>
+
+<!-- enumeration value Visibility: default -->
+<element name="TFPURoundingMode.rmTruncate">
+<short>Cut off fractional part.</short>
+</element>
+
+<!-- enumeration type Visibility: default -->
+<element name="TFPUPrecisionMode">
+<short>Type describing the default precision for the Floating Point processor.</short>
+</element>
+
+<!-- enumeration value Visibility: default -->
+<element name="TFPUPrecisionMode.pmSingle">
+<short>Single-type precision</short>
+</element>
+
+<!-- enumeration value Visibility: default -->
+<element name="TFPUPrecisionMode.pmReserved">
+<short>?</short>
+</element>
+
+<!-- enumeration value Visibility: default -->
+<element name="TFPUPrecisionMode.pmDouble">
+<short>Double-type precision</short>
+</element>
+
+<!-- enumeration value Visibility: default -->
+<element name="TFPUPrecisionMode.pmExtended">
+<short>Extended-type precision</short>
+</element>
+
+<!-- enumeration type Visibility: default -->
+<element name="TFPUException">
+<short>Type describing Floating Point processor exceptions.</short>
+</element>
+
+<!-- enumeration value Visibility: default -->
+<element name="TFPUException.exInvalidOp">
+<short>Invalid operation error</short>
+</element>
+
+<!-- enumeration value Visibility: default -->
+<element name="TFPUException.exDenormalized">
+<short></short>
+</element>
+
+<!-- enumeration value Visibility: default -->
+<element name="TFPUException.exZeroDivide">
+<short>Division by zero error.</short>
+</element>
+
+<!-- enumeration value Visibility: default -->
+<element name="TFPUException.exOverflow">
+<short>Float overflow error</short>
+</element>
+
+<!-- enumeration value Visibility: default -->
+<element name="TFPUException.exUnderflow">
+<short>Float underflow error</short>
+</element>
+
+<!-- enumeration value Visibility: default -->
+<element name="TFPUException.exPrecision">
+<short>Precision error</short>
+</element>
+
+<!-- set type Visibility: default -->
+<element name="TFPUExceptionMask">
+<short>Type to set the Floating Point Unit exception mask.</short>
+</element>
+
+<!-- function Visibility: default -->
+<element name="GetRoundMode">
+<short>Return the Floating Point Unit rounding mode.</short>
+<descr>
+</descr>
+</element>
+
+<!-- function Visibility: default -->
+<element name="SetRoundMode">
+<short>Set the Floating Point Unit rounding mode.</short>
+<descr>
+</descr>
+</element>
+
+<!-- function Visibility: default -->
+<element name="GetPrecisionMode">
+<short>Return the Floating Point Unit precision mode.</short>
+<descr>
+</descr>
+</element>
+
+<!-- function Visibility: default -->
+<element name="SetPrecisionMode">
+<short>Set the Floating Point Unit precision mode.</short>
+<descr>
+</descr>
+</element>
+
+<!-- function Visibility: default -->
+<element name="GetExceptionMask">
+<short>Get the Floating Point Unit exception mask.</short>
+<descr>
+</descr>
+</element>
+
+<!-- function Visibility: default -->
+<element name="SetExceptionMask">
+<short>Set the Floating Point Unit exception mask.</short>
+<descr>
+</descr>
+</element>
+
+<!-- procedure Visibility: default -->
+<element name="ClearExceptions">
+<short>Clear Floating Point Unit exceptions</short>
+<descr>
+</descr>
 </element>
 
 </module>

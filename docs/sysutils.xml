@@ -2007,11 +2007,13 @@ None.
 </element>
 
 <element name="AnsiExtractQuotedStr">
-<short>Removes quotes from a string.</short>
+<short>Removes the first quoted string from a string.</short>
 <descr>
-<var>AnsiExtractQuotedStr</var> Returns <var>Src</var> as a string, with <var>Quote</var>
-characters removed from the beginning and end of the string, and double
-<var>Quote</var> characters replaced by a single <var>Quote</var> characters.
+<var>AnsiExtractQuotedStr</var> returns the first quoted string in
+<var>Src</var>, and deletes the result from <var>Src</var>. The resulting
+string has with <var>Quote</var> characters removed from the beginning and 
+end of the string (if they are present), and double <var>Quote</var> 
+characters replaced by a single <var>Quote</var> characters. 
 As such, it revereses the action of <link id="AnsiQuotedStr"/>.
 </descr>
 <errors>

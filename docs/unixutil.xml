@@ -66,7 +66,6 @@ None.
 </errors>
 <seealso>
 <link id="BaseName"/>
-<link id="#rtl.unix.FExpand"/>
 </seealso>
 <example file="unutilex/ex47"/>
 </element>
@@ -99,9 +98,7 @@ None.
 </errors>
 <seealso>
 <link id="ArrayStringToPPchar"/>
-<link id="#rtl.unix.CreateShellArgV"/>
 <link id="#rtl.baseunix.FpExecve"/>
-<link id="#rtl.unix.Execv"/>
 </seealso>
 <example file="unutilex/ex70"/>
 </element>
@@ -149,7 +146,6 @@ None.
 </errors>
 <seealso>
 <link id="DirName"/>
-<link id="#rtl.unix.FExpand"/>
 </seealso>
 <example file="unutilex/ex48"/>
 </element>
@@ -172,7 +168,6 @@ None.
 </errors>
 <seealso>
 <link id="#rtl.unix.FSearch"/>
-<link id="#rtl.unix.FExpand"/>
 </seealso>
 <example file="unutilex/ex69"/>
 </element>
@@ -222,10 +217,7 @@ Converts the Local time to epoch time (=Number of seconds since 00:00:00 , Janua
 None
 </errors>
 <seealso>
-<link id="#rtl.unix.GetEpochTime"/>
 <link id="EpochToLocal"/>
-<link id="#rtl.unix.GetTime"/>
-<link id="#rtl.unix.GetDate"/> 
 </seealso>
 <example file="unutilex/ex4"/>
 </element>
@@ -246,10 +238,7 @@ This function takes into account the timzeone settings of your system.
 None
 </errors>
 <seealso>
-<link id="#rtl.unix.GetEpochTime"/>
 <link id="LocalToEpoch"/>
-<link id="#rtl.unix.GetTime"/>
-<link id="#rtl.unix.GetDate"/> 
 </seealso>
 <example file="unutilex/ex3"/>
 </element>

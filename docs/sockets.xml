@@ -1447,6 +1447,61 @@ None.
 </seealso>
 </element>
 
+<element name="htonl">
+<short>Convert long integer from host ordered to network ordered</short>
+<descr>
+<var>htonl</var> makes sure that the bytes in <var>host</var> are ordered
+in the correct way for sending over the network and returns the correctly
+ordered result.
+</descr>
+<seealso>
+<link id="htons"/>
+<link id="ntohl"/>
+<link id="ntohs"/>
+</seealso>
+</element>
+
+<element name="htons">
+<short>Convert short integer from host ordered to network ordered</short>
+<descr>
+<var>htons</var> makes sure that the bytes in <var>host</var> are  ordered
+in the correct way for sending over the network and returns the correctly
+ordered result.
+</descr>
+<seealso>
+<link id="htonl"/>
+<link id="ntohl"/>
+<link id="ntohs"/>
+</seealso>
+</element>
+
+<element name="ntohl">
+<short>Convert long integer from network ordered to host ordered</short>
+<descr>
+<var>ntohs</var> makes sure that the bytes in <var>Net</var>, received from
+the network, are ordered in the correct way for handling by the host
+machinen, and returns the correctly ordered result.
+</descr>
+<seealso>
+<link id="htonl"/>
+<link id="htons"/>
+<link id="ntohs"/>
+</seealso>
+</element>
+
+<element name="ntohs">
+<short>Convert short integer from network ordered to host ordered</short>
+<descr>
+<var>ntohs</var> makes sure that the bytes in <var>Net</var>, received from
+the network, are ordered in the correct way for handling by the host
+machinen, and returns the correctly ordered result.
+</descr>
+<seealso>
+<link id="htonl"/>
+<link id="htons"/>
+<link id="ntohl"/>
+</seealso>
+</element>
 
 </module>
 </package>
