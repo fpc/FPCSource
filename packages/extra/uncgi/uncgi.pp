@@ -381,7 +381,8 @@ begin
            end;
     end; { Case }
   { Unescape last one. }
-  query_array[2,qptr]:=unescape(query_array[2,qptr]);
+  if query_array[2,qptr] <> nil then
+    query_array[2,qptr]:=unescape(query_array[2,qptr]);
   Chop :=qptr;
 end;
 
@@ -486,7 +487,10 @@ end.
 {
   HISTORY
   $Log$
-  Revision 1.8  2002-10-18 05:43:53  michael
+  Revision 1.9  2002-10-24 17:25:36  sg
+  * Fixed parsing of empty URL arguments (with missing "=")
+
+  Revision 1.8  2002/10/18 05:43:53  michael
   + Fix of invalid pointer bug in unescape, from U. Maeder
 
   Revision 1.7  2002/10/10 05:48:20  michael
