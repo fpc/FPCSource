@@ -1011,12 +1011,12 @@ const
              r.number:=NR_R11;
              a_reg_alloc(list,r);
              { save end of fpr save area }
-             list.concat(taicpu.op_reg_reg_const(A_ORI,r,rsp,0));
+             list.concat(taicpu.op_reg_reg(A_MR,r,rsp));
           end;
 
         { calculate the size of the locals }
         if usesgpr then
-          inc(localsize,(NR_R31-firstreggpr.number+1)*4);
+          inc(localsize,((NR_R31-firstreggpr.number) shr 8+1)*4);
         if usesfpr then
           inc(localsize,(ord(R_F31)-ord(firstregfpu.enum)+1)*8);
 
@@ -1075,7 +1075,7 @@ const
              }
              r.enum:=R_INTREGISTER;
              r.number:=NR_R11;
-             reference_reset_base(href,r,-((NR_R31-firstreggpr.number) div (NR_R1-NR_R0)+1)*4);
+             reference_reset_base(href,r,-((NR_R31-firstreggpr.number) shr 8+1)*4);
              list.concat(taicpu.op_reg_ref(A_STMW,firstreggpr,href));
           end;
 
@@ -1168,7 +1168,7 @@ const
              {
              a_call_name(objectlibrary.newasmsymbol('_restgpr_14');
              }
-             reference_reset_base(href,r2,-(ord(R_31)-ord(firstreggpr.enum)+1)*4);
+             reference_reset_base(href,r2,-((NR_R31-ord(firstreggpr.number)) shr 8+1)*4);
              list.concat(taicpu.op_reg_ref(A_LMW,firstreggpr,href));
           end;
 
@@ -2199,7 +2199,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.75  2003-03-19 14:26:26  jonas
+  Revision 1.76  2003-03-22 18:01:13  jonas
+    * fixed linux entry/exit code generation
+
+  Revision 1.75  2003/03/19 14:26:26  jonas
     * fixed R_TOC bugs introduced by new register allocator conversion
 
   Revision 1.74  2003/03/13 22:57:45  olle
