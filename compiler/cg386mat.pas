@@ -244,6 +244,7 @@ implementation
          pushed,popecx : boolean;
          op : tasmop;
          hr : preference;
+         l1,l2,l3 : plabel;
 
       begin
          popecx:=false;
@@ -256,7 +257,7 @@ implementation
 
          if is_64bitint(p^.left^.resulttype) then
            begin
-              { load left operators in a register }
+              { load left operator in a register }
               if p^.left^.location.loc<>LOC_REGISTER then
                 begin
                    if p^.left^.location.loc=LOC_CREGISTER then
@@ -290,23 +291,46 @@ implementation
               { shifting by a constant directly coded: }
               if (p^.right^.treetype=ordconstn) then
                 begin
-                   if p^.treetype=shln then
+                   { shrd/shl works only for values <=31 !! }
+                   if p^.right^.value>31 then
                      begin
-                        exprasmlist^.concat(new(pai386,op_const_reg_reg(A_SHLD,S_L,p^.right^.location.reference.offset and 31,
-                          hregisterlow,hregisterhigh)));
-                        exprasmlist^.concat(new(pai386,op_const_reg(A_SHL,S_L,p^.right^.location.reference.offset and 31,
-                          hregisterlow)));
+                        if p^.treetype=shln then
+                          begin
+                             exprasmlist^.concat(new(pai386,op_reg_reg(A_XOR,S_L,hregisterhigh,
+                               hregisterhigh)));
+                             exprasmlist^.concat(new(pai386,op_const_reg(A_SHL,S_L,p^.right^.value and 31,
+                               hregisterlow)));
+                          end
+                        else
+                          begin
+                             exprasmlist^.concat(new(pai386,op_reg_reg(A_XOR,S_L,hregisterlow,
+                               hregisterlow)));
+                             exprasmlist^.concat(new(pai386,op_const_reg(A_SHR,S_L,p^.right^.value and 31,
+                               hregisterhigh)));
+                          end;
+                        p^.location.registerhigh:=hregisterlow;
+                        p^.location.registerlow:=hregisterhigh;
                      end
                    else
                      begin
-                        exprasmlist^.concat(new(pai386,op_const_reg_reg(A_SHRD,S_L,p^.right^.location.reference.offset and 31,
-                          hregisterhigh,hregisterlow)));
-                        exprasmlist^.concat(new(pai386,op_const_reg(A_SHR,S_L,p^.right^.location.reference.offset and 31,
-                          hregisterhigh)));
+                        if p^.treetype=shln then
+                          begin
+                             exprasmlist^.concat(new(pai386,op_const_reg_reg(A_SHLD,S_L,p^.right^.value and 31,
+                               hregisterlow,hregisterhigh)));
+                             exprasmlist^.concat(new(pai386,op_const_reg(A_SHL,S_L,p^.right^.value and 31,
+                               hregisterlow)));
+                          end
+                        else
+                          begin
+                             exprasmlist^.concat(new(pai386,op_const_reg_reg(A_SHRD,S_L,p^.right^.value and 31,
+                               hregisterhigh,hregisterlow)));
+                             exprasmlist^.concat(new(pai386,op_const_reg(A_SHR,S_L,p^.right^.value and 31,
+                               hregisterhigh)));
+                          end;
+                        p^.location.registerlow:=hregisterlow;
+                        p^.location.registerhigh:=hregisterhigh;
                      end;
                    p^.location.loc:=LOC_REGISTER;
-                   p^.location.registerlow:=hregisterlow;
-                   p^.location.registerhigh:=hregisterhigh;
                 end
               else
                 begin
@@ -364,19 +388,60 @@ implementation
 
                    ungetregister32(hregister2);
 
+                   { the damned shift instructions work only til a count of 32 }
+                   { so we've to do some tricks here                           }
                    if p^.treetype=shln then
                      begin
+                        getlabel(l1);
+                        getlabel(l2);
+                        getlabel(l3);
+                        exprasmlist^.concat(new(pai386,op_const_reg(A_CMP,S_L,64,R_ECX)));
+                        emitjmp(C_L,l1);
+                        exprasmlist^.concat(new(pai386,op_reg_reg(A_XOR,S_L,hregisterlow,hregisterlow)));
+                        exprasmlist^.concat(new(pai386,op_reg_reg(A_XOR,S_L,hregisterhigh,hregisterhigh)));
+                        emitjmp(C_None,l3);
+                        emitlab(l1);
+                        exprasmlist^.concat(new(pai386,op_const_reg(A_CMP,S_L,32,R_ECX)));
+                        emitjmp(C_L,l2);
+                        exprasmlist^.concat(new(pai386,op_const_reg(A_SUB,S_L,32,R_ECX)));
+                        exprasmlist^.concat(new(pai386,op_reg_reg(A_SHL,S_L,R_CL,
+                          hregisterlow)));
+                        exprasmlist^.concat(new(pai386,op_reg_reg(A_MOV,S_L,hregisterlow,hregisterhigh)));
+                        exprasmlist^.concat(new(pai386,op_reg_reg(A_XOR,S_L,hregisterlow,hregisterlow)));
+                        emitjmp(C_None,l3);
+                        emitlab(l2);
                         exprasmlist^.concat(new(pai386,op_reg_reg_reg(A_SHLD,S_L,R_CL,
                           hregisterlow,hregisterhigh)));
                         exprasmlist^.concat(new(pai386,op_reg_reg(A_SHL,S_L,R_CL,
                           hregisterlow)));
+                        emitlab(l3);
                      end
                    else
                      begin
+                        getlabel(l1);
+                        getlabel(l2);
+                        getlabel(l3);
+                        exprasmlist^.concat(new(pai386,op_const_reg(A_CMP,S_L,64,R_ECX)));
+                        emitjmp(C_L,l1);
+                        exprasmlist^.concat(new(pai386,op_reg_reg(A_XOR,S_L,hregisterlow,hregisterlow)));
+                        exprasmlist^.concat(new(pai386,op_reg_reg(A_XOR,S_L,hregisterhigh,hregisterhigh)));
+                        emitjmp(C_None,l3);
+                        emitlab(l1);
+                        exprasmlist^.concat(new(pai386,op_const_reg(A_CMP,S_L,32,R_ECX)));
+                        emitjmp(C_L,l2);
+                        exprasmlist^.concat(new(pai386,op_const_reg(A_SUB,S_L,32,R_ECX)));
+                        exprasmlist^.concat(new(pai386,op_reg_reg(A_SHR,S_L,R_CL,
+                          hregisterhigh)));
+                        exprasmlist^.concat(new(pai386,op_reg_reg(A_MOV,S_L,hregisterhigh,hregisterlow)));
+                        exprasmlist^.concat(new(pai386,op_reg_reg(A_XOR,S_L,hregisterhigh,hregisterhigh)));
+                        emitjmp(C_None,l3);
+                        emitlab(l2);
                         exprasmlist^.concat(new(pai386,op_reg_reg_reg(A_SHRD,S_L,R_CL,
                           hregisterhigh,hregisterlow)));
                         exprasmlist^.concat(new(pai386,op_reg_reg(A_SHR,S_L,R_CL,
                           hregisterhigh)));
+                        emitlab(l3);
+
                      end;
 
                    { maybe put ECX back }
@@ -418,8 +483,16 @@ implementation
               { shifting by a constant directly coded: }
               if (p^.right^.treetype=ordconstn) then
                 begin
-                   exprasmlist^.concat(new(pai386,op_const_reg(op,S_L,p^.right^.location.reference.offset and 31,
-                     hregister1)));
+                   { l shl 32 should 0 imho, but neither TP nor Delphi do it in this way (FK)
+                   if p^.right^.value<=31 then
+                   }
+                     exprasmlist^.concat(new(pai386,op_const_reg(op,S_L,p^.right^.value and 31,
+                       hregister1)));
+                   {
+                   else
+                     exprasmlist^.concat(new(pai386,op_reg_reg(A_XOR,S_L,hregister1,
+                       hregister1)));
+                   }
                    p^.location.loc:=LOC_REGISTER;
                    p^.location.register:=hregister1;
                 end
@@ -817,9 +890,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.23  1999-05-08 20:41:08  jonas
+  Revision 1.24  1999-05-25 20:36:13  florian
+    * some bugs in the qword code generation fixed
+
+  Revision 1.23  1999/05/08 20:41:08  jonas
     + positive number MOD power of 2 now done with AND instruction
+
     * fix to division of positive numbers by power of 2
+
     * the result of a MOD is left in EDX if possible
 
   Revision 1.22  1999/05/01 13:24:11  peter

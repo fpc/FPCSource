@@ -585,6 +585,70 @@ implementation
          pushedreg : tpushed;
          hloc : tlocation;
 
+      procedure firstjmp64bitcmp;
+
+        var
+           oldtreetype : ttreetyp;
+
+        begin
+           { the jump the sequence is a little bit hairy }
+           case p^.treetype of
+              ltn,gtn:
+                begin
+                   emitjmp(flag_2_cond[getresflags(p,unsigned)],truelabel);
+                   { cheat a little bit for the negative test }
+                   p^.swaped:=not(p^.swaped);
+                   emitjmp(flag_2_cond[getresflags(p,unsigned)],falselabel);
+                   p^.swaped:=not(p^.swaped);
+                end;
+              lten,gten:
+                begin
+                   oldtreetype:=p^.treetype;
+                   if p^.treetype=lten then
+                     p^.treetype:=ltn
+                   else
+                     p^.treetype:=gtn;
+                   emitjmp(flag_2_cond[getresflags(p,unsigned)],truelabel);
+                   { cheat for the negative test }
+                   if p^.treetype=ltn then
+                     p^.treetype:=gtn
+                   else
+                     p^.treetype:=ltn;
+                   emitjmp(flag_2_cond[getresflags(p,unsigned)],falselabel);
+                   p^.treetype:=oldtreetype;
+                end;
+              equaln:
+                emitjmp(C_NE,falselabel);
+              unequaln:
+                emitjmp(C_NE,truelabel);
+           end;
+        end;
+
+      procedure secondjmp64bitcmp;
+
+        begin
+           { the jump the sequence is a little bit hairy }
+           case p^.treetype of
+              ltn,gtn,lten,gten:
+                begin
+                   { the comparisaion of the low dword have to be }
+                   {  always unsigned!                            }
+                   emitjmp(flag_2_cond[getresflags(p,true)],truelabel);
+                   emitjmp(C_None,falselabel);
+                end;
+              equaln:
+                begin
+                   emitjmp(C_NE,falselabel);
+                   emitjmp(C_None,truelabel);
+                end;
+              unequaln:
+                begin
+                   emitjmp(C_NE,truelabel);
+                   emitjmp(C_None,falselabel);
+                end;
+           end;
+        end;
+
       begin
       { to make it more readable, string and set (not smallset!) have their
         own procedures }
@@ -1601,27 +1665,23 @@ implementation
                                     begin
                                        emit_reg_reg(A_CMP,S_L,p^.right^.location.registerhigh,
                                           p^.location.registerhigh);
-                                       emitjmp(flag_2_cond[getresflags(p,unsigned)],truelabel);
-
+                                       firstjmp64bitcmp;
                                        emit_reg_reg(A_CMP,S_L,p^.right^.location.registerlow,
                                           p^.location.registerlow);
-                                       emitjmp(flag_2_cond[getresflags(p,unsigned)],truelabel);
-
-                                       emitjmp(C_None,falselabel);
+                                       secondjmp64bitcmp;
                                     end
                                   else
                                     begin
                                        hr:=newreference(p^.right^.location.reference);
                                        inc(hr^.offset,4);
+
                                        exprasmlist^.concat(new(pai386,op_ref_reg(A_CMP,S_L,
                                          hr,p^.location.registerhigh)));
-                                       emitjmp(flag_2_cond[getresflags(p,unsigned)],truelabel);
+                                       firstjmp64bitcmp;
 
                                        exprasmlist^.concat(new(pai386,op_ref_reg(A_CMP,S_L,newreference(
                                          p^.right^.location.reference),p^.location.registerlow)));
-                                       emitjmp(flag_2_cond[getresflags(p,unsigned)],truelabel);
-
-                                       emitjmp(C_None,falselabel);
+                                       secondjmp64bitcmp;
 
                                        ungetiftemp(p^.right^.location.reference);
                                        del_reference(p^.right^.location.reference);
@@ -1689,12 +1749,11 @@ implementation
                                   exprasmlist^.concat(new(pai386,op_reg_reg(A_CMP,S_L,
                                     p^.right^.location.registerhigh,
                                     p^.location.registerhigh)));
-                                  emitjmp(flag_2_cond[getresflags(p,unsigned)],truelabel);
+                                  firstjmp64bitcmp;
                                   exprasmlist^.concat(new(pai386,op_reg_reg(A_CMP,S_L,
                                     p^.right^.location.registerlow,
                                     p^.location.registerlow)));
-                                  emitjmp(flag_2_cond[getresflags(p,unsigned)],truelabel);
-                                  emitjmp(C_None,falselabel);
+                                  secondjmp64bitcmp;
                                end
                              else
                                begin
@@ -2053,7 +2112,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.60  1999-05-23 19:55:10  florian
+  Revision 1.61  1999-05-25 20:36:11  florian
+    * some bugs in the qword code generation fixed
+
+  Revision 1.60  1999/05/23 19:55:10  florian
     * qword/int64 multiplication fixed
     + qword/int64 subtraction
 
