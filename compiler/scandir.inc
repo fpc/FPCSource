@@ -497,7 +497,7 @@ const
         current_scanner^.addfile(hp);
         if not current_scanner^.open then
          Message1(scan_f_cannot_open_includefile,hs);
-        Message1(scan_u_start_include_file,current_scanner^.inputfile^.name^);
+        Message1(scan_u_start_include_file,current_scanner^.inputfile^.path^+current_scanner^.inputfile^.name^);
         current_scanner^.reload;
       { register for refs }
         current_module^.sourcefiles.register_file(hp);
@@ -706,7 +706,10 @@ const
 
 {
   $Log$
-  Revision 1.16  1998-08-04 22:03:44  michael
+  Revision 1.17  1998-08-10 09:56:04  peter
+    * path to the include file is also written to the debug output
+
+  Revision 1.16  1998/08/04 22:03:44  michael
   + fixed dir_include search() call
 
   Revision 1.15  1998/07/14 21:46:55  peter
