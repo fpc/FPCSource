@@ -252,6 +252,11 @@ implementation
 {        must_pop : boolean; }
          pop_size : longint;
          pop_allowed : boolean;
+{$ifdef OPTALIGN}
+         pop_esp : boolean;
+         push_size : longint;
+{$endif OPTALIGN}
+
 
       label
          dont_call;
@@ -372,7 +377,29 @@ implementation
 {$endif GDB}
              end;
           end;
-
+{$ifdef OPTALIGN}
+         if pop_allowed and (cs_align in aktglobalswitches) then
+           begin
+              pop_esp:=true;
+              push_size:=p^.procdefinition^.para_size(para_alignment);
+              { !!!! here we have to take care of return type, self
+                and nested procedures
+              }
+              inc(push_size,12);
+              emit_reg_reg(A_MOV,S_L,R_ESP,R_EDI);
+              if (push_size mod 8)=0 then
+                emit_const_reg(A_AND,S_L,$fffffff8,R_ESP)
+              else
+                begin
+                   emit_const_reg(A_SUB,S_L,push_size,R_ESP);
+                   emit_const_reg(A_AND,S_L,$fffffff8,R_ESP);
+                   emit_const_reg(A_SUB,S_L,push_size,R_ESP);
+                end;
+              emit_reg(A_PUSH,S_L,R_EDI);
+           end
+         else
+           pop_esp:=false;
+{$endif OPTALIGN}
          if (p^.resulttype<>pdef(voiddef)) and
             ret_in_param(p^.resulttype) then
            begin
@@ -1038,6 +1065,10 @@ implementation
                 else if pushedparasize<>0 then
                   emit_const_reg(A_ADD,S_L,pushedparasize,R_ESP);
              end;
+{$ifdef OPTALIGN}
+         if pop_esp then
+           emit_reg(A_POP,S_L,R_ESP);
+{$endif OPTALIGN}
       dont_call:
          pushedparasize:=oldpushedparasize;
          unused:=unusedregisters;
@@ -1426,7 +1457,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.134  2000-05-16 20:19:05  pierre
+  Revision 1.135  2000-05-31 09:29:15  florian
+    * stack alignment to 8 byte boundaries with -Oa switch
+
+  Revision 1.134  2000/05/16 20:19:05  pierre
     + -CR option to enable check for object virtual method
 
   Revision 1.133  2000/05/15 19:30:27  peter
