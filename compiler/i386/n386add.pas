@@ -923,7 +923,7 @@ interface
 
                  (right.resulttype^.deftype=pointerdef) or
 
-                 (is_class(right.resulttype) and is_class(left.resulttype)) or
+                 (is_class_or_interface(right.resulttype) and is_class_or_interface(left.resulttype)) or
 
                  (left.resulttype^.deftype=classrefdef) or
 
@@ -2288,7 +2288,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2000-11-04 14:25:23  florian
+  Revision 1.4  2000-11-13 11:30:56  florian
+    * some bugs with interfaces and NIL fixed
+
+  Revision 1.3  2000/11/04 14:25:23  florian
     + merged Attila's changes for interfaces, not tested yet
 
   Revision 1.2  2000/10/31 22:02:56  peter

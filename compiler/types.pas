@@ -1584,7 +1584,7 @@ implementation
                   b:=1;
                 end
                else
-               { Class specific }
+               { Class/interface specific }
                 if is_class_or_interface(def_to) then
                  begin
                    { void pointer also for delphi mode }
@@ -1595,8 +1595,8 @@ implementation
                       b:=1;
                     end
                    else
-                   { nil is compatible with class instances }
-                    if (fromtreetype=niln) and is_class(def_to) then
+                   { nil is compatible with class instances and interfaces }
+                    if (fromtreetype=niln) then
                      begin
                        doconv:=tc_equal;
                        b:=1;
@@ -1719,7 +1719,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.21  2000-11-12 23:24:12  florian
+  Revision 1.22  2000-11-13 11:30:55  florian
+    * some bugs with interfaces and NIL fixed
+
+  Revision 1.21  2000/11/12 23:24:12  florian
     * interfaces are basically running
 
   Revision 1.20  2000/11/11 16:13:31  peter

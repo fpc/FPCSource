@@ -890,19 +890,27 @@ implementation
               convdone:=true;
            end
          else
-
-           if is_class_or_interface(rd) and is_class_or_interface(ld) then
+           if is_class_or_interface(rd) or is_class_or_interface(ld) then
             begin
               location.loc:=LOC_REGISTER;
-              if pobjectdef(rd)^.is_related(pobjectdef(ld)) then
-                right:=gentypeconvnode(right,ld)
+              if is_class_or_interface(rd) and is_class_or_interface(ld) then
+                begin
+                   if pobjectdef(rd)^.is_related(pobjectdef(ld)) then
+                     right:=gentypeconvnode(right,ld)
+                   else
+                     left:=gentypeconvnode(left,rd);
+                end
+              else if is_class_or_interface(rd) then
+                left:=gentypeconvnode(left,rd)
               else
-                left:=gentypeconvnode(left,rd);
+                right:=gentypeconvnode(right,ld);
+
               firstpass(right);
               firstpass(left);
               calcregisters(self,1,0,0);
               case nodetype of
-                 equaln,unequaln : ;
+                 equaln,unequaln:
+                   ;
                  else CGMessage(type_e_mismatch);
               end;
               convdone:=true;
@@ -1229,7 +1237,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2000-11-04 14:25:20  florian
+  Revision 1.16  2000-11-13 11:30:55  florian
+    * some bugs with interfaces and NIL fixed
+
+  Revision 1.15  2000/11/04 14:25:20  florian
     + merged Attila's changes for interfaces, not tested yet
 
   Revision 1.14  2000/10/31 22:02:47  peter

@@ -1211,6 +1211,7 @@ implementation
     procedure ti386typeconvnode.second_class_to_intf;
       var
          hreg : tregister;
+         l1 : pasmlabel;
       begin
          case left.location.loc of
             LOC_MEM,
@@ -1231,9 +1232,12 @@ implementation
               hreg:=left.location.register;
             else internalerror(121120001);
          end;
-
+         emit_reg_reg(A_TEST,S_L,hreg,hreg);
+         getlabel(l1);
+         emitjmp(C_Z,l1);
          emit_const_reg(A_ADD,S_L,pobjectdef(left.resulttype)^.implementedinterfaces^.ioffsets(
            pobjectdef(left.resulttype)^.implementedinterfaces^.searchintf(resulttype))^,hreg);
+         emitlab(l1);
          location.loc:=LOC_REGISTER;
          location.register:=hreg;
       end;
@@ -1479,7 +1483,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2000-11-12 23:24:14  florian
+  Revision 1.6  2000-11-13 11:30:56  florian
+    * some bugs with interfaces and NIL fixed
+
+  Revision 1.5  2000/11/12 23:24:14  florian
     * interfaces are basically running
 
   Revision 1.4  2000/11/11 16:00:10  jonas

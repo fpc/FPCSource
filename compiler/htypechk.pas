@@ -189,11 +189,11 @@ implementation
            { <> and = are defined for classes }
            (
             (ld^.deftype=objectdef) and
-            not((treetyp in [equaln,unequaln]) and (is_class(ld) or is_interface(ld)))
+            not((treetyp in [equaln,unequaln]) and is_class_or_interface(ld))
            ) or
            (
             (rd^.deftype=objectdef) and
-            not((treetyp in [equaln,unequaln]) and (is_class(rd) or is_interface(rd)))
+            not((treetyp in [equaln,unequaln]) and is_class_or_interface(rd))
            )
            or
            { allow other operators that + on strings }
@@ -887,7 +887,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  2000-11-12 22:20:37  peter
+  Revision 1.16  2000-11-13 11:30:54  florian
+    * some bugs with interfaces and NIL fixed
+
+  Revision 1.15  2000/11/12 22:20:37  peter
     * create generic toutputsection for binary writers
 
   Revision 1.14  2000/11/04 14:25:19  florian
