@@ -843,33 +843,9 @@ const sincof : TabCoef = (
      end;
 
 
-
-
-
-
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:46  root
-  Initial revision
+  Revision 1.2  1998-09-10 13:55:09  peter
+    * updates
 
-  Revision 1.4  1998/01/26 12:02:04  michael
-  + Added log at the end
-
-
-  
-  Working file: rtl/template/math.inc
-  description:
-  ----------------------------
-  revision 1.3
-  date: 1998/01/05 00:41:29;  author: carl;  state: Exp;  lines: +835 -836
-  * Licence problems fixed
-  ----------------------------
-  revision 1.2
-  date: 1997/12/01 12:45:48;  author: michael;  state: Exp;  lines: +14 -0
-  + added copyright reference in header.
-  ----------------------------
-  revision 1.1
-  date: 1997/11/28 16:48:02;  author: carl;  state: Exp;
-  math.inc template.
-  =============================================================================
 }

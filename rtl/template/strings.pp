@@ -610,34 +610,9 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.2  1998-07-01 14:29:42  carl
+  Revision 1.3  1998-09-10 13:55:10  peter
+    * updates
+
+  Revision 1.2  1998/07/01 14:29:42  carl
     * strpas bugfix
-
-  Revision 1.1.1.1  1998/03/25 11:18:46  root
-  * Restored version
-
-  Revision 1.4  1998/01/26 12:02:01  michael
-  + Added log at the end
-
-
-  
-  Working file: rtl/template/strings.pp
-  description:
-  ----------------------------
-  revision 1.3
-  date: 1998/01/05 00:41:57;  author: carl;  state: Exp;  lines: +4 -4
-  * Esthetic (spelling mistake) fix
-  ----------------------------
-  revision 1.2
-  date: 1997/12/01 12:45:49;  author: michael;  state: Exp;  lines: +14 -1
-  + added copyright reference in header.
-  ----------------------------
-  revision 1.1
-  date: 1997/11/27 08:33:49;  author: michael;  state: Exp;
-  Initial revision
-  ----------------------------
-  revision 1.1.1.1
-  date: 1997/11/27 08:33:49;  author: michael;  state: Exp;  lines: +0 -0
-  FPC RTL CVS start
-  =============================================================================
 }
