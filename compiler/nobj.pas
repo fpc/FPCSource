@@ -812,7 +812,9 @@ implementation
         proccount:=implintf.implproccount(intfindex);
         for i:=1 to proccount do
           begin
-            tmps:=mangledname_prefix('WRPR',_class.owner)+_class.objname^+'_$_'+curintf.objname^+'_$_'+implintf.implprocs(intfindex,i).mangledname;
+            tmps:=mangledname_prefix('WRPR',_class.owner)+_class.objname^+'_$_'+curintf.objname^+'_$_'+
+              tostr(i)+'_$_'+
+              implintf.implprocs(intfindex,i).mangledname;
             { create wrapper code }
             cgintfwrapper(rawcode,implintf.implprocs(intfindex,i),tmps,implintf.ioffsets(intfindex)^);
             { create reference }
@@ -1305,7 +1307,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.29  2002-10-05 12:43:25  carl
+  Revision 1.30  2002-10-06 16:40:25  florian
+    * interface wrapper name mangling improved
+
+  Revision 1.29  2002/10/05 12:43:25  carl
     * fixes for Delphi 6 compilation
      (warning : Some features do not work under Delphi)
 
