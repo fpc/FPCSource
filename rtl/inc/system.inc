@@ -640,6 +640,8 @@ begin
         InitCount:=i;
       end;
    end;
+  if assigned(InitProc) then
+    TProcedure(InitProc)();
 end;
 
 
@@ -1060,7 +1062,10 @@ end;
 
 {
   $Log$
-  Revision 1.74  2005-02-06 16:57:18  peter
+  Revision 1.75  2005-02-06 20:35:54  florian
+    + InitProc
+
+  Revision 1.74  2005/02/06 16:57:18  peter
     * threads for go32v2,os,emx,netware
 
   Revision 1.73  2005/02/06 13:06:20  peter
