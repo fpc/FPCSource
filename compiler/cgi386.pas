@@ -1623,11 +1623,14 @@ implementation
               { set it to the same lexical level }
               p^.procdefinition^.parast^.symtablelevel:=
                 aktprocsym^.definition^.parast^.symtablelevel;
-              if assigned(p^.left) then
+              if inlinecode^.para_size>0 then
                 inlinecode^.para_offset:=
                   gettempofsizepersistant(inlinecode^.para_size);
+              inlinecode^.retoffset:=inlinecode^.para_offset;
               p^.procdefinition^.parast^.call_offset:=
                 inlinecode^.para_offset;
+              if ret_in_param(p^.procdefinition^.retdef) then
+                inc(p^.procdefinition^.parast^.call_offset,sizeof(pointer));
 {$ifdef extdebug}
              Comment(V_debug,
                'inlined parasymtable is at offset '
@@ -1726,14 +1729,22 @@ implementation
          params:=p^.left;
          p^.left:=nil;
          if inlined then
-           inlinecode^.retoffset:=gettempofsizepersistant(4);
+           begin
+              inlinecode^.retoffset:=inlinecode^.para_offset;
+           end;
          if ret_in_param(p^.resulttype) then
            begin
               inc(pushedparasize,4);
               if inlined then
                 begin
+{$ifdef extdebug}
+                   exprasmlist^.concat(new(pai_asm_comment,init(
+                     strpnew('inlined func ret address is at offset '
+                     +tostr(inlinecode^.retoffset)))));
+{$endif extdebug}
                    exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,
                      newreference(funcretref),R_EDI)));
+
                    r:=new_reference(procinfo.framepointer,inlinecode^.retoffset);
                    exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,
                      R_EDI,r)));
@@ -2092,8 +2103,9 @@ implementation
                    { set poinline again }
                    p^.procdefinition^.options:=p^.procdefinition^.options or poinline;
                    { free the args }
-                   ungetpersistanttemp(p^.procdefinition^.parast^.call_offset,
-                     p^.procdefinition^.parast^.datasize);
+                   if inlinecode^.para_size>0 then
+                     ungetpersistanttemp(inlinecode^.para_offset,
+                       inlinecode^.para_size);
                 end;
               if (not inlined) and ((p^.procdefinition^.options and poclearstack)<>0) then
                 begin
@@ -2309,8 +2321,7 @@ implementation
                   ungetiftemp(pp^.left^.location.reference);
               pp:=pp^.right;
            end;
-         if inlined then
-           ungetpersistanttemp(inlinecode^.retoffset,4);
+
          disposetree(params);
 
 
@@ -3185,7 +3196,7 @@ implementation
     procedure secondhnewn(var p : ptree);
 
       begin
-       end;
+      end;
 
     procedure secondnewn(var p : ptree);
 
@@ -5034,8 +5045,7 @@ do_jmp:
               do_secondpass(p);
 
 {$ifdef StoreFPULevel}
-              if assigned(aktprocsym) then
-                aktprocsym^.fpu_used:=p^.registersfpu;
+              procinfo.def^.fpu_used:=p^.registersfpu;
 {$endif StoreFPULevel}
               { all registers can be used again }
               usableregs:=[R_EAX,R_EBX,R_ECX,R_EDX];
@@ -5053,7 +5063,11 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.33  1998-06-04 23:51:37  peter
+  Revision 1.34  1998-06-05 14:37:27  pierre
+    * fixes for inline for operators
+    * inline procedure more correctly restricted
+
+  Revision 1.33  1998/06/04 23:51:37  peter
     * m68k compiles
     + .def file creation moved to gendef.pas so it could also be used
       for win32

@@ -64,7 +64,9 @@ REPLACE=mv -f
 CP=cp -f
 else
 EXEEXT=.exe
-REPLACE=mv -f
+# mv -f gives problem under dos 
+# claiming source and destinaztion are the same files !
+REPLACE=copy /y
 CP=cp -f
 endif
 
@@ -415,7 +417,11 @@ rtlclean :
 # Test of log at the end
 # does CVS add # at start of each line ??
 # $Log$
-# Revision 1.15  1998-06-03 09:33:39  michael
+# Revision 1.16  1998-06-05 14:37:28  pierre
+#   * fixes for inline for operators
+#   * inline procedure more correctly restricted
+#
+# Revision 1.15  1998/06/03 09:33:39  michael
 # added distclean target to remove ppc1-ppc3 too
 #
 # Revision 1.14  1998/06/03 09:27:51  michael

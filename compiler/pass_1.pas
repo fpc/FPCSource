@@ -167,6 +167,8 @@ unit pass_1;
              (p^.right^.location.loc in [LOC_MEM,LOC_REFERENCE]);
         end;
 
+    function is_assignment_overloaded(from_def,to_def : pdef) : boolean;forward;
+    
     function isconvertable(def_from,def_to : pdef;
              var doconv : tconverttype;fromtreetype : ttreetyp;
              explicit : boolean) : boolean;
@@ -286,6 +288,9 @@ unit pass_1;
                 end;
               b:=true;
            end
+         { assignment overwritten ?? }
+         else if is_assignment_overloaded(def_from,def_to) then
+           b:=true
          else if (def_from^.deftype=pointerdef) and (def_to^.deftype=arraydef) and
                  (parraydef(def_to)^.lowrange=0) and
                  is_equal(ppointerdef(def_from)^.definition,
@@ -2268,15 +2273,18 @@ unit pass_1;
      function is_assignment_overloaded(from_def,to_def : pdef) : boolean;
        var
           passproc : pprocdef;
+          convtyp : tconverttype;
        begin
           is_assignment_overloaded:=false;
           if assigned(overloaded_operators[assignment]) then
             passproc:=overloaded_operators[assignment]^.definition
           else
-            passproc:=nil;
+            exit;
           while passproc<>nil do
             begin
-              if (passproc^.retdef=to_def) and (passproc^.para1^.data=from_def) then
+              if is_equal(passproc^.retdef,to_def) and
+                 isconvertable(from_def,passproc^.para1^.data,convtyp,
+                   ordconstn { nur Dummy},false ) then
                 begin
                    is_assignment_overloaded:=true;
                    break;
@@ -2352,19 +2360,19 @@ unit pass_1;
        p^.registersmmx:=p^.left^.registersmmx;
 {$endif}
        set_location(p^.location,p^.left^.location);
+       if is_assignment_overloaded(p^.left^.resulttype,p^.resulttype) then
+         begin
+            procinfo.flags:=procinfo.flags or pi_do_call;
+            hp:=gencallnode(overloaded_operators[assignment],nil);
+            hp^.left:=gencallparanode(p^.left,nil);
+            putnode(p);
+            p:=hp;
+            firstpass(p);
+            exit;
+         end;
        if (not(isconvertable(p^.left^.resulttype,p^.resulttype,
            p^.convtyp,p^.left^.treetype,p^.explizit))) then
          begin
-            if is_assignment_overloaded(p^.left^.resulttype,p^.resulttype) then
-              begin
-                 procinfo.flags:=procinfo.flags or pi_do_call;
-                 hp:=gencallnode(overloaded_operators[assignment],nil);
-                 hp^.left:=gencallparanode(p^.left,nil);
-                 putnode(p);
-                 p:=hp;
-                 firstpass(p);
-                 exit;
-              end;
            {Procedures have a resulttype of voiddef and functions of their
            own resulttype. They will therefore always be incompatible with
            a procvar. Because isconvertable cannot check for procedures we
@@ -2539,7 +2547,9 @@ unit pass_1;
                      { the conversion into a strutured type is only }
                      { possible, if the source is no register         }
                      if (p^.resulttype^.deftype in [recorddef,stringdef,arraydef,objectdef]) and
-                        (p^.left^.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+                        (p^.left^.location.loc in [LOC_REGISTER,LOC_CREGISTER]) and
+                        {it also works if the assignment is overloaded }
+                        not is_assignment_overloaded(p^.left^.resulttype,p^.resulttype) then
                        Message(cg_e_illegal_type_conversion);
                 end
               else
@@ -3265,10 +3275,10 @@ unit pass_1;
                           comment(v_fatal,'no code for inline procedure stored');
                         if assigned(inlinecode) then
                           begin
-                             firstpass(inlinecode);
                              { consider it has not inlined if called
                                again inside the args }
                              p^.procdefinition^.options:=p^.procdefinition^.options and (not poinline);
+                             firstpass(inlinecode);
                              inlined:=true;
                           end;
 
@@ -5003,7 +5013,11 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.27  1998-06-05 00:01:06  florian
+  Revision 1.28  1998-06-05 14:37:29  pierre
+    * fixes for inline for operators
+    * inline procedure more correctly restricted
+
+  Revision 1.27  1998/06/05 00:01:06  florian
     * bugs with assigning related objects and passing objects by reference
       to a procedure
 

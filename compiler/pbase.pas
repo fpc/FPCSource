@@ -68,6 +68,8 @@ unit pbase;
     { a syntax error is written                           }
     procedure consume(i : ttoken);
 
+    function tokenstring(i : ttoken) : string;
+    
     { consumes all tokens til atoken (for error recovering }
     procedure consume_all_until(atoken : ttoken);
 
@@ -91,12 +93,8 @@ unit pbase;
 
        files,scanner,systems,verbose;
 
-    { consumes token i, if the current token is unequal i }
-    { a syntax error is written                           }
-    procedure consume(i : ttoken);
-
       { generates a syntax error message }
-      procedure syntaxerror(const s : string);
+      procedure syntaxerror(s : string);
 
         begin
            Message2(scan_f_syn_expected,tostr(get_current_col),s);
@@ -119,26 +117,35 @@ unit pbase;
                  'identifier','const real.','end of file',
                  'ord const','const string','const char','@@');
 
+    function tokenstring(i : ttoken) : string;
+
       var
          j : integer;
 
       begin
+         if i<_AND then
+           tokenstring:=tokens[i]
+         else
+           begin
+              { um die Programmgr”áe klein zu halten, }
+              { wird fr ein Schlsselwort-Token der  }
+              { "Text" in der Schlsselworttabelle    }
+              { des Scanners nachgeschaut             }
+
+              for j:=1 to anz_keywords do
+                if keyword_token[j]=i then
+                tokenstring:=keyword[j];
+           end;
+      end;
+
+    { consumes token i, if the current token is unequal i }
+    { a syntax error is written                           }
+    procedure consume(i : ttoken);
+
+      begin
          if token<>i then
            begin
-              if i<_AND then
-                syntaxerror(tokens[i])
-              else
-                begin
-
-                   { um die Programmgr”áe klein zu halten, }
-                   { wird fr ein Schlsselwort-Token der  }
-                   { "Text" in der Schlsselworttabelle    }
-                   { des Scanners nachgeschaut             }
-
-                   for j:=1 to anz_keywords do
-                     if keyword_token[j]=i then
-                       syntaxerror(keyword[j])
-                end;
+              syntaxerror(tokenstring(i));
            end
          else
            begin
@@ -218,7 +225,11 @@ end.
 
 {
   $Log$
-  Revision 1.9  1998-06-03 22:48:58  peter
+  Revision 1.10  1998-06-05 14:37:31  pierre
+    * fixes for inline for operators
+    * inline procedure more correctly restricted
+
+  Revision 1.9  1998/06/03 22:48:58  peter
     + wordbool,longbool
     * rename bis,von -> high,low
     * moved some systemunit loading/creating to psystem.pas

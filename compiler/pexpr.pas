@@ -928,9 +928,9 @@ unit pexpr;
            begin
               { is this an access to a function result ? }
               if assigned(aktprocsym) and
-                 ((sym^.name=aktprocsym^.name) or
+                 ((sym^.name=aktprocsym^.name){ or
                  ((pvarsym(srsym)=opsym) and
-                 ((p^.flags and pi_operator)<>0))) and
+                 ((p^.flags and pi_operator)<>0))}) and
                  (p^.retdef<>pdef(voiddef)) and
                  (token<>LKLAMMER) and
                  (not ((cs_tp_compatible in aktswitches) and
@@ -988,9 +988,9 @@ unit pexpr;
 {$ifndef TEST_FUNCRET}
                       { is this an access to a function result ? }
                        if assigned(aktprocsym) and
-                        ((srsym^.name=aktprocsym^.name) or
+                        ((srsym^.name=aktprocsym^.name){ or
                         ((pvarsym(srsym)=opsym) and
-                        ((procinfo.flags and pi_operator)<>0))) and
+                        ((procinfo.flags and pi_operator)<>0))}) and
                         (procinfo.retdef<>pdef(voiddef)) and
                         (token<>LKLAMMER) and
                         (not ((cs_tp_compatible in aktswitches) and
@@ -1784,7 +1784,11 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.24  1998-06-04 23:51:52  peter
+  Revision 1.25  1998-06-05 14:37:33  pierre
+    * fixes for inline for operators
+    * inline procedure more correctly restricted
+
+  Revision 1.24  1998/06/04 23:51:52  peter
     * m68k compiles
     + .def file creation moved to gendef.pas so it could also be used
       for win32

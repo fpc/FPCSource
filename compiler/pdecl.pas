@@ -1750,27 +1750,55 @@ unit pdecl;
          block_type:=old_block_type;
       end;
 
+    procedure Not_supported_for_inline(t : ttoken);
+
+      begin
+         if assigned(aktprocsym) and
+            ((aktprocsym^.definition^.options and poinline)<>0) then
+           Begin
+              Comment(V_Warning,tokenstring(t)+' not yet supported inside inline procedure/function ');
+              Comment(V_Warning,'inlining disabled');
+              aktprocsym^.definition^.options:= aktprocsym^.definition^.options and not poinline;
+           End;
+      end;
+      
     procedure read_declarations(islibrary : boolean);
 
       begin
          repeat
            case token of
               _LABEL:
-                label_dec;
+                begin
+                   Not_supported_for_inline(token);
+                   label_dec;
+                end;
               _CONST:
-                const_dec;
+                begin
+                   Not_supported_for_inline(token);
+                   const_dec;
+                end;
               _TYPE:
-                type_dec;
+                begin
+                   Not_supported_for_inline(token);
+                   type_dec;
+                end;
               _VAR:
                 var_dec;
               _CONSTRUCTOR,_DESTRUCTOR,
               _FUNCTION,_PROCEDURE,_OPERATOR,_CLASS:
-                unter_dec;
+                begin
+                   Not_supported_for_inline(token);
+                   unter_dec;
+                end;
               _EXPORTS:
-                if islibrary then
-                  read_exports
-                else
-                  break;
+                begin
+                   { here we should be at lexlevel 1, no ? PM }
+                   Not_supported_for_inline(token);
+                   if islibrary then
+                     read_exports
+                   else
+                     break;
+                end
               else break;
            end;
          until false;
@@ -1801,7 +1829,11 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.23  1998-06-04 23:51:50  peter
+  Revision 1.24  1998-06-05 14:37:32  pierre
+    * fixes for inline for operators
+    * inline procedure more correctly restricted
+
+  Revision 1.23  1998/06/04 23:51:50  peter
     * m68k compiles
     + .def file creation moved to gendef.pas so it could also be used
       for win32

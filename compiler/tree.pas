@@ -1146,6 +1146,8 @@ unit tree;
          p^.retoffset:=-4; { less dangerous as zero (PM) }
          p^.para_offset:=0;
          p^.para_size:=p^.inlineprocdef^.para_size;
+         if ret_in_param(p^.inlineprocdef^.retdef) then
+           p^.para_size:=p^.para_size+sizeof(pointer);
          { copy args }
          p^.left:=getcopy(code);
          p^.registers32:=code^.registers32;
@@ -1538,7 +1540,11 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.13  1998-06-04 09:55:49  pierre
+  Revision 1.14  1998-06-05 14:37:40  pierre
+    * fixes for inline for operators
+    * inline procedure more correctly restricted
+
+  Revision 1.13  1998/06/04 09:55:49  pierre
     * demangled name of procsym reworked to become independant of the mangling scheme
 
   Come test_funcret improvements (not yet working)S: ----------------------------------------------------------------------

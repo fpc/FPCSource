@@ -1535,12 +1535,15 @@
          while assigned(pdc) do
            begin
               case pdc^.paratyp of
-                vs_value : l:=l+pdc^.data^.size+(pdc^.data^.size mod 2);
-                  vs_var : l:=l+sizeof(pointer);
-                vs_const : if dont_copy_const_param(pdc^.data) then
-                             l:=l+sizeof(pointer)
-                           else
-                             l:=l+pdc^.data^.size+(pdc^.data^.size mod 2);
+                vs_value :
+                  l:=l+pdc^.data^.size+(pdc^.data^.size mod 2);
+                vs_var :
+                  l:=l+sizeof(pointer);
+                vs_const :
+                  if dont_copy_const_param(pdc^.data) then
+                    l:=l+sizeof(pointer)
+                  else
+                    l:=l+pdc^.data^.size+(pdc^.data^.size mod 2);
                 end;
               pdc:=pdc^.next;
            end;
@@ -1557,7 +1560,7 @@
          tdef.write;
          writedefref(retdef);
 {$ifdef StoreFPULevel}
-         writebyte(FPU_used);
+         writebyte(fpu_used);
 {$endif StoreFPULevel}
          writelong(options);
          hp:=para1;
@@ -1661,6 +1664,7 @@
 {$endif alpha}
          forwarddef:=true;
          _class := nil;
+         code:=nil;
       end;
 
     constructor tprocdef.load;
@@ -1852,6 +1856,17 @@
          writelong(extnumber);
          writedefref(nextoverloaded);
          writedefref(_class);
+         if (options and poinline) <> 0 then
+           begin
+              { we need to save
+                - the para and the local symtable
+                - the code ptree !! PM
+               writesymtable(parast);
+               writesymtable(localst);
+               writeptree(ptree(code));
+               }
+           end;
+           
 {$ifdef NEWPPU}
          ppufile^.writeentry(ibprocdef);
 {$endif}
@@ -2019,7 +2034,7 @@
          { plausible (PM) }
 {$ifdef StoreFPULevel}
          if is_fpu(retdef) then
-           fpu_used:=3
+           fpu_used:=2
          else
            fpu_used:=0;
 {$endif StoreFPULevel}
@@ -2428,7 +2443,11 @@
 
 {
   $Log$
-  Revision 1.5  1998-06-04 23:52:01  peter
+  Revision 1.6  1998-06-05 14:37:37  pierre
+    * fixes for inline for operators
+    * inline procedure more correctly restricted
+
+  Revision 1.5  1998/06/04 23:52:01  peter
     * m68k compiles
     + .def file creation moved to gendef.pas so it could also be used
       for win32

@@ -323,7 +323,7 @@ unit pmodules;
               { the written crc is false, because        }
               { not defined when writing the ppufile !!  }
 {$ifdef TEST_IMPL}
-              if (loaded_unit^.crc<>0) and (loaded_unit^.crc<>checksum) then
+              if (checksum<>0) and (loaded_unit^.crc<>checksum) then
                 begin
                    { we have to compile the current unit }
                    { remove stuff which isn't needed     }
@@ -992,7 +992,11 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.21  1998-06-04 23:51:53  peter
+  Revision 1.22  1998-06-05 14:37:34  pierre
+    * fixes for inline for operators
+    * inline procedure more correctly restricted
+
+  Revision 1.21  1998/06/04 23:51:53  peter
     * m68k compiles
     + .def file creation moved to gendef.pas so it could also be used
       for win32

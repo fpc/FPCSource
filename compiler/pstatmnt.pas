@@ -1019,6 +1019,7 @@ unit pstatmnt;
               { if the current is a function aktprocsym is non nil }
               { and there is a local symtable set }
               funcretsym:=new(pfuncretsym,init(aktprocsym^.name),@procinfo);
+              procinfo.retoffset:=-funcretsym^.address;
               { insert in local symtable }
               symtablestack^.insert(funcretsym);
            end;
@@ -1145,7 +1146,11 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.17  1998-06-04 09:55:43  pierre
+  Revision 1.18  1998-06-05 14:37:35  pierre
+    * fixes for inline for operators
+    * inline procedure more correctly restricted
+
+  Revision 1.17  1998/06/04 09:55:43  pierre
     * demangled name of procsym reworked to become independant of the mangling scheme
 
   Come test_funcret improvements (not yet working)S: ----------------------------------------------------------------------
