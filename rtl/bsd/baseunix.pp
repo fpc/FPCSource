@@ -53,9 +53,7 @@ property errno : cint read fpgeterrno write fpseterrno;
 
 implementation
 
-
-{$i bunxmain.inc}	{ implementation}
-{$i bunxovl.inc}	{ redefs and overloads implementation}
+Uses Sysctl;
 
 {$ifndef ver1_0}
 function fpgeterrno:longint; external name 'FPC_SYS_GETERRNO';
@@ -77,11 +75,18 @@ begin
 end;
 
 {$endif}
+
+{$i bunxmain.inc}	{ implementation}
+{$i bunxovl.inc}	{ redefs and overloads implementation}
+
 end.
 
 {
   $Log$
-  Revision 1.9  2004-03-04 22:15:16  marco
+  Revision 1.10  2004-05-31 18:03:51  jonas
+    * moved fpgeterrno/fpseterrno declarations to before their actual usage
+
+  Revision 1.9  2004/03/04 22:15:16  marco
    * UnixType changes. Please report problems to me.
 
   Revision 1.8  2004/01/04 21:04:08  jonas

@@ -19,8 +19,6 @@
  ****************************************************************************
 }
 
-Uses Sysctl;
-
 {$I ostypes.inc}
 {$I bunxmacr.inc}
 
@@ -39,7 +37,10 @@ Uses Sysctl;
 
 {
  $Log$
- Revision 1.3  2003-12-30 12:26:21  marco
+ Revision 1.4  2004-05-31 18:03:51  jonas
+   * moved fpgeterrno/fpseterrno declarations to before their actual usage
+
+ Revision 1.3  2003/12/30 12:26:21  marco
   * FPC_USE_LIBC
 
  Revision 1.2  2003/06/01 16:35:27  marco
