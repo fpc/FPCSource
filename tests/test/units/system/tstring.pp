@@ -7,11 +7,20 @@ program tstring;
 {$Q+}
 {$APPTYPE CONSOLE}
 
+{$ifdef fpc}
+  {$ifndef ver1_0}
+    {$define haswidestring}
+  {$endif}
+{$else}
+  {$ifndef ver70}
+    {$define haswidestring}
+  {$endif}
+{$endif}
 
 var
    str1 : shortstring;
    str2 : ansistring;
-{$ifndef ver1_0}   
+{$ifdef haswidestring}   
    str3 : widestring;
 {$endif}   
 
@@ -84,7 +93,7 @@ procedure test_stringofchar;
      if str2[i] <> 'a' then 
         _result := false;
    {************************* widestring *************************}
-{$ifndef ver1_0}   
+{$ifdef haswidestring}   
    { try to fill a widestring with a null character }
    str3:='';
    str3:=stringofchar(#0,0);
@@ -188,7 +197,7 @@ procedure test_stringofchar;
      _result := false;
      
    {************************* widestring *************************}
-{$ifndef ver1_0}   
+{$ifdef haswidestring}   
    { try to delete from an empty string }
    str3:='';
    Delete(str3,0,12);
@@ -339,7 +348,7 @@ procedure test_stringofchar;
    if str2<>'' then
      _result := false;
    {************************* widestring *************************}
-{$ifndef ver1_0}   
+{$ifdef haswidestring}   
    { try to copy from an empty string }
    str3:='';
    str3:=Copy(str3,1,12);
@@ -518,7 +527,7 @@ procedure test_insert;
      _result := false;
 
    {************************* widestring *************************}
-{$ifndef ver1_0}   
+{$ifdef haswidestring}   
    str3:='Hello world';
    Insert(' this is my ',str3,-12);
    if str3<>' this is my Hello world' then
@@ -652,7 +661,7 @@ procedure test_insert;
      _result := false;
 
    {************************* widestring *************************}
-{$ifndef ver1_0}   
+{$ifdef haswidestring}   
    str3:='Hello world';
    position:=Pos('',str3);
    if position <> 0 then
