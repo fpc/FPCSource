@@ -103,30 +103,17 @@ implementation
   {   is set to zero. __RESULT register is also used as scratch.         }
   {**********************************************************************}
   procedure tcginnode.emit_bit_test_reg_reg(list : taasmoutput; bitnumber : tregister; value : tregister; __result :tregister);
-  var
-     foundlabel  : tasmlabel;
-     notfoundlabel : tasmlabel;
     begin
-      getlabel(foundlabel);
-      getlabel(notfoundlabel);
       { first make sure that the bit number is modulo 32 }
-      cg.a_op_const_reg(list,OP_AND,31,bitnumber);
-      { rotate bit to correct position }
-      cg.a_load_const_reg(list,OS_INT,1,__result);
-      cg.a_op_reg_reg(list,OP_SHL,OS_INT,bitnumber,__result);
-      { do and value to result }
-      cg.a_op_reg_reg(list,OP_AND,OS_INT,value,__result);
-      { if the value in the AND register is <> 0 then the value is equal. }
-      cg.a_cmp_const_reg_label(list,OS_32,OC_NE,0,__result,foundlabel);
-      { clear the register value, indicating result is FALSE }
-      cg.a_load_const_reg(list,OS_INT,0,__result);
-      cg.a_jmp_always(list,notfoundlabel);
-      { Now place the end label if IN success }
-      cg.a_label(list,foundlabel);
-      { result register is 1 : LOC_JUMP }
-      cg.a_load_const_reg(list,OS_INT,1,__result);
-      { in case value is not found }
-      cg.a_label(list,notfoundlabel);
+
+      { not necessary, since if it's > 31, we have a range error -> will }
+      { be caught when range checking is on! (JM)                        }
+      { cg.a_op_const_reg(list,OP_AND,31,bitnumber);                     }
+
+      { rotate value register "bitnumber" bits to the right }
+      cg.a_op_reg_reg_reg(list,OP_SHR,OS_INT,bitnumber,value,__result);
+      { extract the bit we want }
+      cg.a_op_const_reg(list,OP_AND,1,__result);
     end;
 
 
@@ -306,9 +293,8 @@ implementation
                          (hr <> pleftreg) then
                         begin
                           hr:=cg.get_scratch_reg_int(exprasmlist);
-                          cg.a_load_reg_reg(exprasmlist,opsize,pleftreg,hr);
+                          cg.a_op_const_reg_reg(exprasmlist,OP_SUB,opsize,setparts[i].start,pleftreg,hr);
                           pleftreg:=hr;
-                          rg.ungetregister(exprasmlist,pleftreg);
                           opsize := OS_INT;
                         end
                       else
@@ -360,7 +346,7 @@ implementation
                else
                  begin
                    reference_release(exprasmlist,left.location.reference);
-                   cg.free_scratch_reg(exprasmlist,R_EDI);
+                   cg.free_scratch_reg(exprasmlist,pleftreg);
                  end;
              end;
           end
@@ -585,7 +571,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2002-07-20 11:57:54  florian
+  Revision 1.7  2002-07-21 16:58:20  jonas
+    * fixed some bugs in tcginnode.pass_2() and optimized the bit test
+
+  Revision 1.6  2002/07/20 11:57:54  florian
     * types.pas renamed to defbase.pas because D6 contains a types
       unit so this would conflicts if D6 programms are compiled
     + Willamette/SSE2 instructions to assembler added
