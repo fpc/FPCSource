@@ -213,3 +213,9 @@ begin
   WriteFmt ('%s = %s',[Name,AMethodName]);
 end;
 
+{
+  $Log$
+  Revision 1.3  2000-02-15 21:57:51  sg
+  * Added copyright notice and CVS log tags where necessary
+
+}

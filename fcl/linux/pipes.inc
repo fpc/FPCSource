@@ -21,3 +21,10 @@ Function CreatePipeHandles (Var Inhandle,OutHandle : Longint) : Boolean;
 begin
   Result := AssignPipe (Inhandle,OutHandle);
 end;
+
+{
+  $Log$
+  Revision 1.5  2000-02-15 21:57:51  sg
+  * Added copyright notice and CVS log tags where necessary
+
+}

@@ -117,3 +117,10 @@ begin
 end;
 
 end.
+
+{
+  $Log$
+  Revision 1.7  2000-02-15 21:57:51  sg
+  * Added copyright notice and CVS log tags where necessary
+
+}

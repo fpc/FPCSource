@@ -766,3 +766,10 @@ Const rtfKey : Array [0..281] of TRTFKey =
 
 ( rtfKMajor: 0; rtfKMinor:              -1; rtfKstr : ''; rtfkHash : 0)
 );
+
+{
+  $Log$
+  Revision 1.5  2000-02-15 21:57:51  sg
+  * Added copyright notice and CVS log tags where necessary
+
+}

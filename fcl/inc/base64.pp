@@ -2,6 +2,7 @@
     $Id$
     This file is part of the Free Component Library (FCL)
     Copyright (c) 1999-2000 by Michael Van Canneyt and Florian Klaempfl
+    base64 encoder & decoder (c) 1999 Sebastian Guenther
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -299,7 +300,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  2000-01-07 01:24:32  peter
+  Revision 1.8  2000-02-15 21:57:51  sg
+  * Added copyright notice and CVS log tags where necessary
+
+  Revision 1.7  2000/01/07 01:24:32  peter
     * updated copyright to 2000
 
   Revision 1.6  2000/01/06 01:20:32  peter
