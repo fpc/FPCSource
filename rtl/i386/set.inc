@@ -32,7 +32,8 @@ asm
 end;
 
 
-procedure do_set_byte(p : pointer;b : byte);assembler;[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_SET_BYTE'];
+procedure do_set_byte(p : pointer;b : byte);assembler;
+   [public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_SET_BYTE'];
 {
   add the element b to the set pointed by p
 }
@@ -46,6 +47,25 @@ asm
        movb b,%al
        andl $7,%eax
        btsl %eax,(%edi)
+       popl %eax
+end;
+
+procedure do_unset_byte(p : pointer;b : byte);assembler;
+   [public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_UNSET_BYTE'];
+{
+  suppresses the element b to the set pointed by p
+  used for exclude(set,element)
+}
+asm
+       pushl %eax
+       movl p,%edi
+       movb b,%al
+       andl $0xf8,%eax
+       shrl $3,%eax
+       addl %eax,%edi
+       movb b,%al
+       andl $7,%eax
+       btrl %eax,(%edi)
        popl %eax
 end;
 
@@ -339,7 +359,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  1998-10-22 12:48:29  peter
+  Revision 1.6  1998-10-22 14:50:08  pierre
+   + added FPC_SET_UNSET_BYTE for exclude of normsets
+
+  Revision 1.5  1998/10/22 12:48:29  peter
     * fixed for stackaligment also on 4 bytes, never use 'ret $..' direct
 
   Revision 1.4  1998/09/14 10:48:12  peter
