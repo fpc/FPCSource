@@ -44,7 +44,7 @@
 \begin{document}
 \title{Free Pascal :\\ Reference guide.}
 \docdescription{Reference guide for Free Pascal, version \fpcversion}
-\docversion{1.8}
+\docversion{1.9}
 \input{date.inc}
 \author{Micha\"el Van Canneyt}
 \maketitle
@@ -4476,12 +4476,20 @@ ValSInt = Longint;
 ValUInt = Cardinal;
 ValReal = Extended;
 \end{verbatim}
+The \var{Real48} type is defined to emulate the old \tp \var{Real} type:
+\begin{verbatim}
+Real48 = Array[0..5] of byte;
+\end{verbatim}
+The assignment operator has been overloaded so this type can be assigned
+to the \fpc native \var{Double} and \var{Extended} types.
+\seefl{Real2Double}{RealToDouble}.
+
 The following character types are defined for Delphi compatibility:
 \begin{verbatim}
 TAnsiChar   = Char;
 AnsiChar    = TAnsiChar;
 \end{verbatim}
-And the following pointer types:
+And the following pointer types as well:
 \begin{verbatim}
   PChar = ^char;
   pPChar = ^PChar;
@@ -6465,7 +6473,26 @@ be controlled with the \var{\{\$i\}} compiler switch.
 \SeeAlso
 \seep{Read}, \seep{Blockread}, \seep{Write}, \seep{Blockwrite}
 \end{procedure}
+
 For an example, see \seep{Read}.
+
+\begin{functionl}{Real2Double}{RealToDouble}
+\Declaration
+Function Real2Double(r : real48) : double;
+\Description
+The \var{Real2Double} function converts a \tp style real (6 bytes long) to
+a native \fpc double type. It can be used e.g. to read old binary TP files with
+FPC and convert them to Free Pacal binary files.
+
+Note that the assignment operator has been overloaded so a \var{Real48} type
+can be assigned directly to a double or extended.
+\Errors
+None.
+\SeeAlso
+\end{functionl}
+
+\FPCexample{ex110}
+
 \begin{procedure}{Release}
 \Declaration
 Procedure Release (Var P : pointer);
