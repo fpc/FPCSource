@@ -1619,6 +1619,7 @@ type
         currpara : tparaitem;
         cand_cnt : integer;
         i : longint;
+        method_must_be_valid,
         is_const : boolean;
       label
         errorexit;
@@ -1878,6 +1879,47 @@ type
                resulttype:=tclassrefdef(methodpointer.resulttype.def).pointertype;
            end;
 
+         if assigned(methodpointer) then
+          begin
+            resulttypepass(methodpointer);
+
+            if not(methodpointer.nodetype in [typen,hnewn]) then
+             begin
+               hpt:=methodpointer;
+               while assigned(hpt) and (hpt.nodetype in [subscriptn,vecn]) do
+                hpt:=tunarynode(hpt).left;
+
+               if (procdefinition.proctypeoption in [potype_constructor,potype_destructor]) and
+                  assigned(symtableproc) and (symtableproc.symtabletype=withsymtable) and
+                  not twithsymtable(symtableproc).direct_with then
+                 begin
+                    CGmessage(cg_e_cannot_call_cons_dest_inside_with);
+                 end; { Is accepted by Delphi !! }
+
+               { R.Init then R will be initialized by the constructor,
+                 Also allow it for simple loads }
+               if (procdefinition.proctypeoption=potype_constructor) or
+                  ((hpt.nodetype=loadn) and
+                   (
+                    (methodpointer.resulttype.def.deftype=classrefdef) or
+                    (
+                     (methodpointer.resulttype.def.deftype=objectdef) and
+                     not(oo_has_virtual in tobjectdef(methodpointer.resulttype.def).objectoptions)
+                    )
+                   )
+                  ) then
+                 method_must_be_valid:=false
+               else
+                 method_must_be_valid:=true;
+               set_varstate(methodpointer,method_must_be_valid);
+
+               { The object is already used if it is called once }
+               if (hpt.nodetype=loadn) and
+                  (tloadnode(hpt).symtableentry.typ=varsym) then
+                 tvarsym(tloadnode(hpt).symtableentry).varstate:=vs_used;
+             end;
+          end;
+
          { bind paraitems to the callparanodes and insert hidden parameters }
          aktcallprocdef:=procdefinition;
          bind_paraitem;
@@ -1906,7 +1948,6 @@ type
 {$ifdef m68k}
          regi : tregister;
 {$endif}
-         method_must_be_valid : boolean;
       label
         errorexit;
       begin
@@ -2069,6 +2110,8 @@ type
          { if this is a call to a method calc the registers }
          if (methodpointer<>nil) then
            begin
+              firstpass(methodpointer);
+
               { if we are calling the constructor }
               if procdefinition.proctypeoption in [potype_constructor] then
                 verifyabstractcalls;
@@ -2081,35 +2124,8 @@ type
                           registers32:=1;
                 else
                   begin
-                     if (procdefinition.proctypeoption in [potype_constructor,potype_destructor]) and
-                        assigned(symtableproc) and (symtableproc.symtabletype=withsymtable) and
-                        not twithsymtable(symtableproc).direct_with then
-                       begin
-                          CGmessage(cg_e_cannot_call_cons_dest_inside_with);
-                       end; { Is accepted by Delphi !! }
                      { this is not a good reason to accept it in FPC if we produce
                        wrong code for it !!! (PM) }
-
-                     { R.Assign is not a constructor !!! }
-                     { but for R^.Assign, R must be valid !! }
-                     if (procdefinition.proctypeoption=potype_constructor) or
-                        ((methodpointer.nodetype=loadn) and
-                         ((methodpointer.resulttype.def.deftype=classrefdef) or
-                          ((methodpointer.resulttype.def.deftype=objectdef) and
-                           not(oo_has_virtual in tobjectdef(methodpointer.resulttype.def).objectoptions)
-                          )
-                         )
-                        ) then
-                       method_must_be_valid:=false
-                     else
-                       method_must_be_valid:=true;
-                     firstpass(methodpointer);
-                     set_varstate(methodpointer,method_must_be_valid);
-                     { The object is already used ven if it is called once }
-                     if (methodpointer.nodetype=loadn) and
-                        (tloadnode(methodpointer).symtableentry.typ=varsym) then
-                       tvarsym(tloadnode(methodpointer).symtableentry).varstate:=vs_used;
-
                      registersfpu:=max(methodpointer.registersfpu,registersfpu);
                      registers32:=max(methodpointer.registers32,registers32);
 {$ifdef SUPPORT_MMX }
@@ -2355,7 +2371,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.135  2003-04-10 17:57:52  peter
+  Revision 1.136  2003-04-11 15:51:04  peter
+    * support subscript,vec for setting methodpointer varstate
+
+  Revision 1.135  2003/04/10 17:57:52  peter
     * vs_hidden released
 
   Revision 1.134  2003/04/07 11:58:22  jonas
