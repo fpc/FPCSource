@@ -570,12 +570,26 @@ begin
    if p[i]='/' then p[i]:='\';
 end;
 
+{$ifdef SYSTEMDEBUG}
+
+   { Keep Track of open files }
+   const
+      max_files = 50;
+   var
+      opennames : array [0..max_files-1] of pchar;
+      openfiles : array [0..max_files-1] of boolean;
+      
+{$endif SYSTEMDEBUG}
 
 procedure do_close(handle : longint);
 var
   regs : trealregs;
 begin
   regs.realebx:=handle;
+{$ifdef SYSTEMDEBUG}
+  if handle<max_files then
+    openfiles[handle]:=false;
+{$endif SYSTEMDEBUG}
   regs.realeax:=$3e00;
   sysrealintr($21,regs);
 end;
@@ -856,6 +870,14 @@ begin
    end
   else
    filerec(f).handle:=regs.realeax;
+{$ifdef SYSTEMDEBUG}
+  if regs.realeax<max_files then
+    begin
+       openfiles[regs.realeax]:=true;
+       getmem(opennames[regs.realeax],strlen(p)+1);
+       opennames[regs.realeax]:=p;
+    end;
+{$endif SYSTEMDEBUG}
 { append mode }
   if (flags and $10)<>0 then
    begin
@@ -1028,7 +1050,15 @@ Begin
 End.
 {
   $Log$
-  Revision 1.7  1998-06-15 15:17:08  daniel
+  Revision 1.8  1998-06-26 08:19:10  pierre
+    + all debug in ifdef SYSTEMDEBUG
+    + added local arrays :
+      opennames names of opened files
+      fileopen boolean array to know if still open
+      usefull with gdb if you get problems about too
+      many open files !!
+
+  Revision 1.7  1998/06/15 15:17:08  daniel
 
   * RTLLITE conditional added to produce smaller RTL.
 

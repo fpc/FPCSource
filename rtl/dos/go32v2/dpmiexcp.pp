@@ -674,7 +674,7 @@ procedure djgpp_exception_toggle;
       local_ex : boolean;
 
   begin
-{$ifdef DEBUG}
+{$ifdef SYSTEMDEBUG}
      if exceptions_on then
        begin
           errln('Disabling FPK exceptions');
@@ -683,7 +683,7 @@ procedure djgpp_exception_toggle;
        begin
           errln('Enabling FPK exceptions');
        end;
-{$endif DEBUG}
+{$endif SYSTEMDEBUG}
      { toggle here to avoid infinite recursion }
      { if a subfunction calls runerror !!      }
      exceptions_on:= not exceptions_on;
@@ -724,22 +724,22 @@ procedure djgpp_exception_toggle;
           set_rm_interrupt(cbrk_vect,cbrk_ori);
           free_rm_callback(cbrk_rmcb);
           cbrk_hooked := false;
-{$ifdef DEBUG}
+{$ifdef SYSTEMDEBUG}
        errln('back to ori rm cbrk  '+hexstr(cbrk_ori.segment,4)+':'+hexstr(longint(cbrk_ori.offset),4));
 
-{$endif DEBUG}
+{$endif SYSTEMDEBUG}
        end
      else
        begin
           get_rm_interrupt(cbrk_vect, cbrk_ori);
-{$ifdef DEBUG}
+{$ifdef SYSTEMDEBUG}
        errln('ori rm cbrk  '+hexstr(cbrk_ori.segment,4)+':'+hexstr(longint(cbrk_ori.offset),4));
-{$endif DEBUG}
+{$endif SYSTEMDEBUG}
           get_rm_callback(djgpp_cbrk_hdlr, cbrk_regs, cbrk_rmcb);
           set_rm_interrupt(cbrk_vect, cbrk_rmcb);
-{$ifdef DEBUG}
+{$ifdef SYSTEMDEBUG}
        errln('now rm cbrk  '+hexstr(cbrk_rmcb.segment,4)+':'+hexstr(longint(cbrk_rmcb.offset),4));
-{$endif DEBUG}
+{$endif SYSTEMDEBUG}
           cbrk_hooked := true;
        end;
 {$endif UseRMcbrk}
@@ -939,7 +939,15 @@ djgpp_exception_setup;
 end.
 {
   $Log$
-  Revision 1.3  1998-05-31 14:18:23  peter
+  Revision 1.4  1998-06-26 08:19:08  pierre
+    + all debug in ifdef SYSTEMDEBUG
+    + added local arrays :
+      opennames names of opened files
+      fileopen boolean array to know if still open
+      usefull with gdb if you get problems about too
+      many open files !!
+
+  Revision 1.3  1998/05/31 14:18:23  peter
     * force att or direct assembling
     * cleanup of some files
 
