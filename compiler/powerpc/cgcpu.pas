@@ -1051,8 +1051,19 @@ const
           begin
             r.enum:=R_INTREGISTER;
             r.number:=NR_STACK_POINTER_REG;
-            reference_reset_base(href,r,-localsize);
-            a_load_store(list,A_STWU,r,href);
+            if (localsize <= high(smallint)) then
+              begin
+                reference_reset_base(href,r,-localsize);
+                a_load_store(list,A_STWU,r,href);
+              end
+            else
+              begin
+                reference_reset_base(href,r,0);
+                href.index := get_scratch_reg_int(list,OS_32);
+                a_load_const_reg(list,OS_S32,-localsize,href.index);
+                a_load_store(list,A_STWUX,r,href);
+                free_scratch_reg(list,href.index);
+              end;
           end;
 
         { no GOT pointer loaded yet }
@@ -1491,9 +1502,19 @@ const
           begin
             r.enum:=R_INTREGISTER;
             r.number:=NR_STACK_POINTER_REG;
-            reference_reset_base(href,r,-localsize);
-            a_load_store(list,A_STWU,r,href);
-            { this also stores the old stack pointer in the new stack frame }
+            if (localsize <= high(smallint)) then
+              begin
+                reference_reset_base(href,r,-localsize);
+                a_load_store(list,A_STWU,r,href);
+              end
+            else
+              begin
+                reference_reset_base(href,r,0);
+                href.index := get_scratch_reg_int(list,OS_32);
+                a_load_const_reg(list,OS_S32,-localsize,href.index);
+                a_load_store(list,A_STWUX,r,href);
+                free_scratch_reg(list,href.index);
+              end;
           end;
       end;
 
@@ -2369,7 +2390,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.88  2003-05-11 11:45:08  jonas
+  Revision 1.89  2003-05-11 20:59:23  jonas
+    * fixed bug with large offsets in entrycode
+
+  Revision 1.88  2003/05/11 11:45:08  jonas
     * fixed shifts
 
   Revision 1.87  2003/05/11 11:07:33  jonas
