@@ -1464,7 +1464,7 @@ ol056=**2Sc_unterstÅtze spezielle C Operatoren (*=,+=,/= and -=)
 ol057=**2Sd_sei Delphi kompatibel
 ol058=**2Se_halte Compiler nach dem ersten Fehler an
 ol059=**2Sg_erlaube LABEL und GOTO
-ol160=**2Sh_benutze ANSI-Strings
+ol060=**2Sh_benutze ANSI-Strings
 ol061=**2Si_benutze C++ artige INLINE
 ol062=**2Sm_unterstÅtze Macros wie in C (global)
 ol063=**2So_sei TP/BP 7.0 kompatibel
