@@ -776,6 +776,8 @@ unit cgobj;
 
     procedure tcg.a_load_loc_reg(list : taasmoutput;const loc: tlocation; reg : tregister);
 
+    var r:Tregister;
+
       begin
       {$ifdef i386}
         {For safety convert location register to enum for now...}
@@ -785,7 +787,12 @@ unit cgobj;
           LOC_REFERENCE,LOC_CREFERENCE:
             a_load_ref_reg(list,loc.size,loc.reference,reg);
           LOC_REGISTER,LOC_CREGISTER:
-            a_load_reg_reg(list,loc.size,loc.size,loc.register,reg);
+            begin
+              {For safety convert location register to enum for now...}
+              r:=loc.register;
+              convert_register_to_enum(r);
+              a_load_reg_reg(list,loc.size,loc.size,r,reg);
+            end;
           LOC_CONSTANT:
             a_load_const_reg(list,loc.size,loc.value,reg);
           else
@@ -1698,7 +1705,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.73  2003-01-13 14:54:34  daniel
+  Revision 1.74  2003-01-17 12:45:40  daniel
+    * Fixed internalerror 200301081 problem
+
+  Revision 1.73  2003/01/13 14:54:34  daniel
     * Further work to convert codegenerator register convention;
       internalerror bug fixed.
 
