@@ -1145,8 +1145,8 @@ type
     Private
       FDatabase : TDatabase;
       Procedure SetDatabase (Value : TDatabase);
-    Protected 
-      Procedure CheckDatabase;  
+    Protected
+      Procedure CheckDatabase;
     Public
       Destructor destroy; override;
       Property DataBase : TDatabase Read FDatabase Write SetDatabase;
@@ -1462,7 +1462,10 @@ end.
 
 {
   $Log$
-  Revision 1.10  2003-08-16 16:42:21  michael
+  Revision 1.11  2003-10-06 17:04:27  florian
+    * small step towards calculated fields
+
+  Revision 1.10  2003/08/16 16:42:21  michael
   + Fixes in TDBDataset etc. Changed MySQLDb to use database as well
 
   Revision 1.9  2003/05/15 15:15:15  michael

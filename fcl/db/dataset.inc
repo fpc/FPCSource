@@ -99,7 +99,8 @@ end;
 Procedure TDataset.CalculateFields(Buffer: PChar);
 
 begin
-  //!! To be implemented
+  { no internal calced fields or caches yet }
+  DoOnCalcFields;
 end;
 
 Procedure TDataset.CheckActive;
@@ -693,11 +694,11 @@ begin
 {$ifdef dsdebug}
   Writeln('in SetBufferCount(',AValue,')');
 {$endif}
-  If (FBufferCount=AValue) Then 
+  If (FBufferCount=AValue) Then
     exit;
-  If AValue<FRecordCount Then 
+  If AValue<FRecordCount Then
     Begin
-    If (AValue>0)And(ActiveRecord>AValue-1) Then 
+    If (AValue>0)And(ActiveRecord>AValue-1) Then
       begin
       // ActiveRecord Will be pointing to a deleted record
       // Move Buffers to a safe place and then adjust buffer count
@@ -709,10 +710,10 @@ begin
     // Current record Will be pointing to a invalid record
     // if we are not in BOF or EOF state then make current record point
     // to the last record in buffer
-    If FCurrentRecord<>-1 Then 
+    If FCurrentRecord<>-1 Then
       Begin
       FCurrentRecord:=FRecordCount - 1;
-      if FCurrentRecord=-1 Then 
+      if FCurrentRecord=-1 Then
         InternalFirst;
       End;
     End;
@@ -741,7 +742,7 @@ begin
 {$ifdef dsdebug}
   Writeln ('SetBufListSize: ',Value);
 {$endif}
-  If Value=FBufferCount Then 
+  If Value=FBufferCount Then
     exit;
   If Value>FBufferCount then
     begin
@@ -1466,12 +1467,12 @@ var
 begin
 {$ifdef dsdebug}
   Writeln('Recalculating buffer list size - check cursor');
-{$endif}    
-  If Not IsCursorOpen Then 
+{$endif}
+  If Not IsCursorOpen Then
     Exit;
 {$ifdef dsdebug}
   Writeln('Recalculating buffer list size');
-{$endif}    
+{$endif}
   MaxValue := DefaultBufferCount;
   for i := 0 to FDataSources.Count - 1 do
     for j := 0 to TDataSource(FDataSources[i]).DataLinks.Count - 1 do
@@ -1482,7 +1483,7 @@ begin
       end;
 {$ifdef dsdebug}
    Writeln('calling Setbuffercount');
-{$endif}    
+{$endif}
   SetBufferCount(MaxValue); //SetBufListSize(MaxValue);
 end;
 
@@ -1532,7 +1533,7 @@ begin
 {$ifdef dsdebug}
     Writeln ('Getting previous',ShiftCount,' records');
 {$endif}
-    While (Count<ShiftCount) and GetPriorRecord do 
+    While (Count<ShiftCount) and GetPriorRecord do
       Inc(Count);
     FActiveRecord:=Count;
     // fill rest of buffers, adjust ActiveBuffer.
@@ -1614,7 +1615,7 @@ end;
 Procedure TDataset.UpdateRecord;
 
 begin
-  if not (State in dsEditModes) then 
+  if not (State in dsEditModes) then
     DatabaseError(SNotInEditState, Self);
   DataEvent(deUpdateRecord, 0);
 end;
@@ -1661,7 +1662,7 @@ Var Temp : Pointer;
   end;
 
 begin
-  If Abs(Distance)>=BufferCount then 
+  If Abs(Distance)>=BufferCount then
     Exit;
   try
     MoveSize:=SizeOf(Pchar)*Abs(Distance);
@@ -1684,7 +1685,10 @@ end;
 
 {
   $Log$
-  Revision 1.8  2003-05-06 12:08:52  michael
+  Revision 1.9  2003-10-06 17:04:28  florian
+    * small step towards calculated fields
+
+  Revision 1.8  2003/05/06 12:08:52  michael
   + fixed dataset opening buffer issues
 
   Revision 1.7  2003/02/20 19:25:19  michael
