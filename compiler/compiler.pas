@@ -172,7 +172,6 @@ begin
   if CompilerInited then
    DoneCompiler;
 { inits which need to be done before the arguments are parsed }
-  get_exepath;
   InitVerbose;
   InitGlobals;
   InitSymtable;
@@ -267,7 +266,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  1998-08-11 21:38:24  peter
+  Revision 1.6  1998-08-29 13:51:10  peter
+    * moved get_exepath to globals
+    + date_string const with the current date for 0.99.7+
+
+  Revision 1.5  1998/08/11 21:38:24  peter
     + createheap/restoreheap procedures (only tp7 rm currently) and support
       for tp7 dpmi
 
