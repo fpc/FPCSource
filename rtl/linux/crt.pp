@@ -1366,7 +1366,8 @@ Begin
      TCGetAttr(1,Tio);
      OldIO:=Tio;
      CFMakeRaw(Tio);
-     Tio.C_IFlag:=Tio.C_IFlag or ICRNL;
+{ Removed because it maps the enter key to #10 }     
+{      Tio.C_IFlag:=Tio.C_IFlag or ICRNL;}
    end
   else
    Tio:=OldIO;
@@ -1461,7 +1462,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.4  1998-05-06 12:35:26  michael
+  Revision 1.5  1998-06-19 14:47:52  michael
+  + Enter key maps again to #13
+
+  Revision 1.4  1998/05/06 12:35:26  michael
   + Removed log from before restored version.
 
   Revision 1.3  1998/04/16 07:49:11  michael
