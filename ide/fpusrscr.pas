@@ -26,6 +26,7 @@ uses
   {$ifdef VER1_0}
     linux,
   {$else}
+    baseunix,
     unix,
   {$endif}
 {$endif}
@@ -782,18 +783,18 @@ begin
             '0'..'9' :
               begin { running Linux on native console or native-emulation }
                 FName:='/dev/vcsa' + ThisTTY[9];
-                TTYFd:=fdOpen(FName, Octal(666), Open_RdWr); { open console }
+                TTYFd:={$ifdef ver1_0}fdOpen{$else}fpOpen{$endif}(FName, Octal(666), Open_RdWr); { open console }
                 If TTYFd <>-1 Then
-       		  Console:=ttyLinux;
+                  Console:=ttyLinux;
               end;
-       	 'v'  :  { check for (Free?)BSD native}
-       		If (ThisTTY[10]>='0') and (ThisTTY[10]<='9') Then
-       		 Console:=ttyFreeBSD;	{TTYFd ?}
-    	 end;
+         'v'  :  { check for (Free?)BSD native}
+                If (ThisTTY[10]>='0') and (ThisTTY[10]<='9') Then
+                 Console:=ttyFreeBSD;   {TTYFd ?}
+         end;
        end;
      If Copy(GetEnv('TERM'),1,6)='cons25' Then
        Console:=ttyFreeBSD;
-     ioctl(stdinputhandle, TIOCGWINSZ, @WS);
+     {$ifdef ver1_0}ioctl{$else}fpioctl{$endif}(stdinputhandle, TIOCGWINSZ, @WS);
      if WS.ws_Col=0 then
        WS.ws_Col:=80;
      if WS.ws_Row=0 then
@@ -884,11 +885,11 @@ begin
     write(#27'7'#27'[?47h')
   else if (TTYfd<>-1) then
     begin
-     fdSeek(TTYFd, 0, Seek_Set);
-     fdRead(TTYFd,ConsHeight,sizeof(byte));
-     fdRead(TTYFd,ConsWidth,sizeof(byte));
-     fdRead(TTYFd,ConsCursorX,sizeof(byte));
-     fdRead(TTYFd,ConsCursorY,sizeof(byte));
+     {$ifdef ver1_0}fdSeek{$else}fpLSeek{$endif}(TTYFd, 0, Seek_Set);
+     {$ifdef ver1_0}fdread{$else}fpread{$endif}(TTYFd,ConsHeight,sizeof(byte));
+     {$ifdef ver1_0}fdread{$else}fpread{$endif}(TTYFd,ConsWidth,sizeof(byte));
+     {$ifdef ver1_0}fdread{$else}fpread{$endif}(TTYFd,ConsCursorX,sizeof(byte));
+     {$ifdef ver1_0}fdread{$else}fpread{$endif}(TTYFd,ConsCursorY,sizeof(byte));
      NewSize:=ConsWidth*ConsHeight*sizeof(word);
      if (NewSize<>ConsVideoBufSize) and
         assigned(ConsVideoBuf) then
@@ -899,7 +900,7 @@ begin
      If not assigned(ConsVideoBuf) then
        GetMem(ConsVideoBuf,NewSize);
      ConsVideoBufSize:=NewSize;
-     fdRead(TTYFd,ConsVideoBuf^,ConsVideoBufSize);
+     {$ifdef ver1_0}fdread{$else}fpread{$endif}(TTYFd,ConsVideoBuf^,ConsVideoBufSize);
     end
   else
     begin
@@ -922,10 +923,10 @@ begin
     end
   else if (TTyfd<>-1) then
     begin
-      fdSeek(TTYFd, 2, Seek_Set);
-      fdWrite(TTYFd, ConsCursorX, sizeof(byte));
-      fdWrite(TTYFd, ConsCursorY, sizeof(byte));
-      fdWrite(TTYFd, ConsVideoBuf^,ConsVideoBufSize);
+      {$ifdef ver1_0}fdSeek{$else}fplSeek{$endif}(TTYFd, 2, Seek_Set);
+      {$ifdef ver1_0}fdwrite{$else}fpwrite{$endif}(TTYFd, ConsCursorX, sizeof(byte));
+      {$ifdef ver1_0}fdwrite{$else}fpwrite{$endif}(TTYFd, ConsCursorY, sizeof(byte));
+      {$ifdef ver1_0}fdwrite{$else}fpwrite{$endif}(TTYFd, ConsVideoBuf^,ConsVideoBufSize);
       { FreeMem(ConsVideoBuf,ConsVideoBufSize);
       ConsVideoBuf:=nil; }
     end;
@@ -1440,7 +1441,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.27  2003-02-04 22:05:56  pierre
+  Revision 1.28  2003-09-27 14:03:45  peter
+    * fixed for unix
+
+  Revision 1.27  2003/02/04 22:05:56  pierre
    * fix bug 2253
 
   Revision 1.26  2002/10/30 22:07:11  pierre

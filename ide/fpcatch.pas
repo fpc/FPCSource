@@ -23,6 +23,7 @@ uses
   {$ifdef VER1_0}
     linux;
   {$else}
+    baseunix,
     unix;
   {$endif}
 {$endif}
@@ -101,9 +102,9 @@ end;
 
 {$ifdef HasSignal}
 {$ifdef Unix}
-Procedure CatchSignal(Sig : Longint);cdecl;
+Procedure Catchsignal(Sig : Longint);cdecl;
 {$else}
-Function CatchSignal(Sig : longint):longint;
+Function Catchsignal(Sig : longint):longint;
 {$endif}
 var MustQuit: boolean;
 begin
@@ -204,10 +205,10 @@ begin
 {$else TP}
   NewSignal:=SignalHandler(CatchSignal);
 {$endif TP}
-  OldSigSegm:=Signal (SIGSEGV,NewSignal);
-  OldSigInt:=Signal (SIGINT,NewSignal);
-  OldSigFPE:=Signal (SIGFPE,NewSignal);
-  OldSigILL:=Signal (SIGILL,NewSignal);
+  OldSigSegm:={$ifdef ver1_0}signal{$else}fpsignal{$endif}(SIGSEGV,NewSignal);
+  OldSigInt:={$ifdef ver1_0}signal{$else}fpsignal{$endif}(SIGINT,NewSignal);
+  OldSigFPE:={$ifdef ver1_0}signal{$else}fpsignal{$endif}(SIGFPE,NewSignal);
+  OldSigILL:={$ifdef ver1_0}signal{$else}fpsignal{$endif}(SIGILL,NewSignal);
   CatchSignalsEnabled:=true;
 {$endif}
 end;
@@ -217,10 +218,10 @@ begin
 {$ifdef HasSignal}
   if not CatchSignalsEnabled then
     exit;
-  Signal (SIGSEGV,OldSigSegm);
-  Signal (SIGINT,OldSigInt);
-  Signal (SIGFPE,OldSigFPE);
-  Signal (SIGILL,OldSigILL);
+  {$ifdef ver1_0}signal{$else}fpsignal{$endif}(SIGSEGV,OldSigSegm);
+  {$ifdef ver1_0}signal{$else}fpsignal{$endif}(SIGINT,OldSigInt);
+  {$ifdef ver1_0}signal{$else}fpsignal{$endif}(SIGFPE,OldSigFPE);
+  {$ifdef ver1_0}signal{$else}fpsignal{$endif}(SIGILL,OldSigILL);
   CatchSignalsEnabled:=false;
 {$endif}
 end;
@@ -229,7 +230,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  2003-04-23 09:49:26  peter
+  Revision 1.8  2003-09-27 14:03:45  peter
+    * fixed for unix
+
+  Revision 1.7  2003/04/23 09:49:26  peter
     * unix signal handler needs longint
 
   Revision 1.6  2002/09/07 21:04:41  carl

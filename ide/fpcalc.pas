@@ -107,6 +107,7 @@ uses
   {$ifdef VER1_0}
     linux,
   {$else}
+    baseunix,
     unix,
   {$endif}
 {$endif}
@@ -289,7 +290,7 @@ begin
 {$endif HasSignal}
     begin
 {$ifdef HasSignal}
-      StoreSigFPE:=Signal(SIGFPE,@CalcSigFPE);
+      StoreSigFPE:={$ifdef ver1_0}Signal{$else}fpSignal{$endif}(SIGFPE,@CalcSigFPE);
 {$endif HasSignal}
       if (Status = csError) and (Key <> 'C') then Key := ' ';
       if HexShown then
@@ -379,7 +380,7 @@ begin
         else CalcKey:=false;
       end;
 {$ifdef HasSignal}
-      Signal(SIGFPE,StoreSigFPE);
+      {$ifdef ver1_0}Signal{$else}fpSignal{$endif}(SIGFPE,StoreSigFPE);
 {$endif HasSignal}
       DrawView;
 {$ifdef HasSignal}
@@ -571,7 +572,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  2002-09-13 08:13:07  pierre
+  Revision 1.8  2003-09-27 14:03:45  peter
+    * fixed for unix
+
+  Revision 1.7  2002/09/13 08:13:07  pierre
    * avoid RTE 201 in hexstr calls
 
   Revision 1.6  2002/09/07 15:40:42  peter

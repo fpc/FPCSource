@@ -28,6 +28,7 @@ uses
   {$ifdef VER1_0}
     linux,
   {$else}
+    baseunix,
     unix,
   {$endif}
 {$endif Unix}
@@ -1328,7 +1329,7 @@ end;
 begin
   req.tv_sec:=0;
   req.tv_nsec:=10000000;{ 10 ms }
-  nanosleep(req,rem);
+  {$ifdef ver1_0}nanosleep(req,rem){$else}fpnanosleep(@req,@rem){$endif};
 end;
 {$endif}
 {$IFDEF OS2}
@@ -1363,7 +1364,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.16  2002-09-11 12:10:03  pierre
+  Revision 1.17  2003-09-27 14:03:45  peter
+    * fixed for unix
+
+  Revision 1.16  2002/09/11 12:10:03  pierre
    * fix bug in new readline method on line overflow
 
   Revision 1.15  2002/09/11 08:30:38  pierre

@@ -188,6 +188,7 @@ uses
   {$ifdef VER1_0}
     linux,
   {$else}
+    baseunix,
     unix,
   {$endif}
 {$endif Unix}
@@ -303,8 +304,13 @@ Function GetDosTicks:longint; { returns ticks at 18.2 Hz, just like DOS }
     tv : TimeVal;
     tz : TimeZone;
   begin
+    {$ifdef ver1_0}
     GetTimeOfDay(tv); {Timezone no longer used?}
     GetDosTicks:=((tv.Sec mod 86400) div 60)*1092+((tv.Sec mod 60)*1000000+tv.USec) div 54945;
+    {$else}
+    fpGetTimeOfDay(@tv,@tz);
+    GetDosTicks:=((tv.tv_Sec mod 86400) div 60)*1092+((tv.tv_Sec mod 60)*1000000+tv.tv_USec) div 54945;
+    {$endif}
   end;
 {$endif Unix}
 {$ifdef Win32}
@@ -951,7 +957,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.9  2002-11-22 15:18:24  pierre
+  Revision 1.10  2003-09-27 14:03:45  peter
+    * fixed for unix
+
+  Revision 1.9  2002/11/22 15:18:24  pierre
    * fix SwapWord, arg must be of var type
 
   Revision 1.8  2002/11/22 12:21:16  pierre

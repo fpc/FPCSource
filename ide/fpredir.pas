@@ -15,7 +15,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-Unit Redir;
+Unit FpRedir;
 Interface
 
 {$R-}
@@ -970,7 +970,10 @@ finalization
 End.
 {
   $Log$
-  Revision 1.3  2003-09-25 16:49:08  peter
+  Revision 1.4  2003-09-27 14:03:45  peter
+    * fixed for unix
+
+  Revision 1.3  2003/09/25 16:49:08  peter
     * adapted for 1.1 unix
 
   Revision 1.13  2003/06/05 20:03:22  peter
