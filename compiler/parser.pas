@@ -238,8 +238,6 @@ implementation
          oldpattern,
          oldorgpattern  : string;
          old_block_type : tblock_type;
-         oldcurrent_scanner,prev_scanner,
-         scanner : tscannerfile;
        { symtable }
          oldrefsymtable,
          olddefaultsymtablestack,
@@ -314,7 +312,6 @@ implementation
          oldidtoken:=idtoken;
          old_block_type:=block_type;
          oldtokenpos:=akttokenpos;
-         oldcurrent_scanner:=current_scanner;
          oldsourcecodepage:=aktsourcecodepage;
        { save cg }
          oldparse_only:=parse_only;
@@ -376,12 +373,7 @@ implementation
          fillchar(overloaded_operators,sizeof(toverloaded_operators),0);
        { reset the unit or create a new program }
          if assigned(current_module) then
-           begin
-              {current_module.reset this is wrong !! }
-               scanner:=tscannerfile(current_module.scanner);
-               current_module.reset;
-               tscannerfile(current_module.scanner):=scanner;
-           end
+          current_module.reset
          else
           begin
             current_module:=tppumodule.create(filename,'',false);
@@ -416,12 +408,11 @@ implementation
        { startup scanner and load the first file }
          current_scanner:=tscannerfile.Create(filename);
          current_scanner.firstfile;
+         current_module.scanner:=current_scanner;
        { macros }
          default_macros;
        { read the first token }
          current_scanner.readtoken;
-         prev_scanner:=tscannerfile(current_module.scanner);
-         current_module.scanner:=current_scanner;
 
        { init code generator for a new module }
          codegen_newmodule;
@@ -475,10 +466,7 @@ implementation
        { free scanner }
          current_scanner.free;
          current_scanner:=nil;
-       { restore previous scanner !! }
-         current_module.scanner:=prev_scanner;
-         if assigned(prev_scanner) then
-           prev_scanner.SetInvalid;
+         current_module.scanner:=nil;
 
          if (compile_level>1) then
            begin
@@ -493,8 +481,8 @@ implementation
               idtoken:=oldidtoken;
               akttokenpos:=oldtokenpos;
               block_type:=old_block_type;
-              current_scanner:=oldcurrent_scanner;
-              if not current_scanner.invalid then
+              current_scanner:=tscannerfile(old_compiled_module.scanner);
+              if assigned(current_scanner) then
                 parser_current_file:=current_scanner.inputfile.name^;
               { restore cg }
               parse_only:=oldparse_only;
@@ -580,24 +568,14 @@ implementation
                  do_extractsymbolinfo{$ifdef FPC}(){$endif};
               end;
 
-         if current_module.in_second_compile then
-           begin
-             current_module.in_second_compile:=false;
-             current_module.in_compile:=true;
-           end
-         else
-           current_module.in_compile:=false;
+            if current_module.in_second_compile then
+              begin
+                current_module.in_second_compile:=false;
+                current_module.in_compile:=true;
+              end
+            else
+              current_module.in_compile:=false;
 
-          (* Obsolete code aktprocsym
-             is disposed by the localsymtable disposal (PM)
-          { Free last aktprocsym }
-            if assigned(aktprocsym) and (aktprocsym.owner=nil) then
-             begin
-               { init parts are not needed in units !! }
-               if current_module.is_unit then
-                 aktprocdef.forwarddef:=false;
-               dispose(aktprocsym,done);
-             end; *)
           end;
 
          dec(compile_level);
@@ -611,7 +589,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.39  2002-08-12 15:08:40  carl
+  Revision 1.40  2002-08-12 16:46:04  peter
+    * tscannerfile is now destroyed in tmodule.reset and current_scanner
+      is updated accordingly. This removes all the loading and saving of
+      the old scanner and the invalid flag marking
+
+  Revision 1.39  2002/08/12 15:08:40  carl
     + stab register indexes for powerpc (moved from gdb to cpubase)
     + tprocessor enumeration moved to cpuinfo
     + linker in target_info is now a class

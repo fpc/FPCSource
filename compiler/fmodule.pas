@@ -426,15 +426,12 @@ uses
          dispose(map);
         if assigned(imports) then
          imports.free;
-        imports:=nil;
         if assigned(_exports) then
          _exports.free;
-        _exports:=nil;
         if assigned(externals) then
          externals.free;
-        externals:=nil;
         if assigned(scanner) then
-          tscannerfile(scanner).SetInvalid;
+         tscannerfile(scanner).free;
         used_units.free;
         dependent_units.free;
         resourcefiles.Free;
@@ -465,10 +462,8 @@ uses
 {$endif}
         if assigned(globalsymtable) then
           globalsymtable.free;
-        globalsymtable:=nil;
         if assigned(localsymtable) then
           localsymtable.free;
-        localsymtable:=nil;
 {$ifdef MEMDEBUG}
         d.free;
 {$endif}
@@ -488,7 +483,14 @@ uses
          pm : tdependent_unit;
       begin
         if assigned(scanner) then
-          tscannerfile(scanner).SetInvalid;
+          begin
+            { also update current_scanner if it was pointing
+              to this module }
+            if current_scanner=tscannerfile(scanner) then
+             current_scanner:=nil;
+            tscannerfile(scanner).free;
+            scanner:=nil;
+          end;
         if assigned(globalsymtable) then
           begin
             globalsymtable.free;
@@ -595,7 +597,12 @@ uses
 end.
 {
   $Log$
-  Revision 1.25  2002-08-11 14:28:19  peter
+  Revision 1.26  2002-08-12 16:46:04  peter
+    * tscannerfile is now destroyed in tmodule.reset and current_scanner
+      is updated accordingly. This removes all the loading and saving of
+      the old scanner and the invalid flag marking
+
+  Revision 1.25  2002/08/11 14:28:19  peter
     * TScannerFile.SetInvalid added that will also reset inputfile
 
   Revision 1.24  2002/08/11 13:24:11  peter

@@ -364,7 +364,7 @@ uses
     procedure tppumodule.writeusedmacros;
       begin
         ppufile.do_crc:=false;
-        current_scanner.macros.foreach({$ifdef FPCPROCVAR}@{$endif}writeusedmacro,nil);
+        tscannerfile(scanner).macros.foreach({$ifdef FPCPROCVAR}@{$endif}writeusedmacro,nil);
         ppufile.writeentry(ibusedmacros);
         ppufile.do_crc:=true;
       end;
@@ -486,12 +486,15 @@ uses
         was_defined_at_startup,
         was_used : boolean;
       begin
+        { only possible when we've a scanner of the current file }
+        if not assigned(current_scanner) then
+         exit;
         while not ppufile.endofentry do
          begin
            hs:=ppufile.getstring;
            was_defined_at_startup:=boolean(ppufile.getbyte);
            was_used:=boolean(ppufile.getbyte);
-           mac:=tmacro(current_scanner.macros.search(hs));
+           mac:=tmacro(tscannerfile(current_scanner).macros.search(hs));
            if assigned(mac) then
              begin
 {$ifndef EXTDEBUG}
@@ -1089,15 +1092,15 @@ uses
                     in_second_compile:=true;
                     Message1(parser_d_compiling_second_time,modulename^);
                   end;
-                current_scanner.tempcloseinputfile;
+                if assigned(current_scanner) then
+                  current_scanner.tempcloseinputfile;
                 name:=mainsource^;
-                if assigned(scanner) then
-                  tscannerfile(scanner).SetInvalid;
                 { compile this module }
                 current_module:=self;
                 compile(name);
                 in_second_compile:=false;
-                if (not current_scanner.invalid) then
+                { the scanner can be reset }
+                if assigned(current_scanner) then
                   current_scanner.tempopeninputfile;
               end;
            end;
@@ -1192,9 +1195,7 @@ uses
              begin
                { remove the old unit, but save the scanner }
                loaded_units.remove(hp);
-               scanner:=tscannerfile(hp.scanner);
                hp.reset;
-               hp.scanner:=scanner;
                { try to reopen ppu }
                hp.search_unit(s,fn,false);
                { try to load the unit a second time first }
@@ -1207,7 +1208,6 @@ uses
           { generates a new unit info record }
              begin
                 current_module:=tppumodule.create(s,fn,true);
-                scanner:=nil;
                 second_time:=false;
              end;
             { close old_current_ppu on system that are
@@ -1259,7 +1259,12 @@ uses
 end.
 {
   $Log$
-  Revision 1.19  2002-08-11 14:28:19  peter
+  Revision 1.20  2002-08-12 16:46:04  peter
+    * tscannerfile is now destroyed in tmodule.reset and current_scanner
+      is updated accordingly. This removes all the loading and saving of
+      the old scanner and the invalid flag marking
+
+  Revision 1.19  2002/08/11 14:28:19  peter
     * TScannerFile.SetInvalid added that will also reset inputfile
 
   Revision 1.18  2002/08/11 13:24:11  peter

@@ -79,9 +79,7 @@ interface
        end;
 
        tscannerfile = class
-       private
-          FInvalid        : boolean; { flag if sourcefiles have been destroyed ! }
-       public   
+       public
           inputfile    : tinputfile;  { current inputfile list }
 
           inputbuffer,                { input buffer }
@@ -109,7 +107,6 @@ interface
           constructor Create(const fn:string);
           destructor Destroy;override;
         { File buffer things }
-          procedure setinvalid;
           function  openinputfile:boolean;
           procedure closeinputfile;
           function  tempopeninputfile:boolean;
@@ -151,7 +148,6 @@ interface
           procedure readtoken;
           function  readpreproc:ttoken;
           function  asmgetchar:char;
-          property Invalid:boolean read FInvalid;
        end;
 
 {$ifdef PREPROCWRITE}
@@ -915,7 +911,6 @@ implementation
         nexttoken:=NOTOKEN;
         lastasmgetchar:=#0;
         ignoredirectives:=TStringList.Create;
-        Finvalid:=false;
         in_asm_string:=false;
         macros:=tdictionary.create;
       end;
@@ -938,26 +933,19 @@ implementation
 
     destructor tscannerfile.destroy;
       begin
-        if not invalid then
+        if (not current_module.in_second_load) and
+           (status.errorcount=0) then
+          checkpreprocstack
+        else
           begin
-             if status.errorcount=0 then
-              checkpreprocstack
-             else
-              begin
-                while assigned(preprocstack) do
-                 poppreprocstack;
-              end;
-           { close file, but only if we are the first compile }
-           { probably not necessary anymore with invalid flag PM }
-             if not current_module.in_second_compile then
-              begin
-                if not inputfile.closed then
-                 closeinputfile;
-              end;
+            while assigned(preprocstack) do
+             poppreprocstack;
           end;
-         ignoredirectives.free;
-         macros.free;
-       end;
+        if not inputfile.closed then
+          closeinputfile;
+        ignoredirectives.free;
+        macros.free;
+      end;
 
 
     procedure tscannerfile.def_macro(const s : string);
@@ -1000,15 +988,6 @@ implementation
       end;
 
 
-    procedure tscannerfile.setinvalid;
-      begin
-        { mark the tscannerfile as invalid and reset inputfile
-          so it can not be reused }
-        Finvalid:=true;  
-        inputfile:=nil;  
-      end;
-      
-      
     function tscannerfile.openinputfile:boolean;
       begin
         openinputfile:=inputfile.open;
@@ -2796,7 +2775,12 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.43  2002-08-11 14:28:19  peter
+  Revision 1.44  2002-08-12 16:46:04  peter
+    * tscannerfile is now destroyed in tmodule.reset and current_scanner
+      is updated accordingly. This removes all the loading and saving of
+      the old scanner and the invalid flag marking
+
+  Revision 1.43  2002/08/11 14:28:19  peter
     * TScannerFile.SetInvalid added that will also reset inputfile
 
   Revision 1.42  2002/08/10 14:46:31  carl
