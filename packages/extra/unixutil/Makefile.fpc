@@ -1,0 +1,19 @@
+#
+#   Makefile.fpc for libc binding
+#
+
+[package]
+name=unixutil
+version=1.0.10
+
+[target]
+units=unixutils
+
+[require]
+libc=y
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..
