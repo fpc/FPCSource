@@ -1,6 +1,20 @@
 {
   $Id$
-}
+    This file is part of the Free Pascal test suite.
+    Copyright (c) 1999-2002 by the Free Pascal development team.
+
+    This program makes the compilation and
+    execution of individual test sources.
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
+
 program dotest;
 uses
   dos,
@@ -730,7 +744,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2002-11-13 15:19:44  pierre
+  Revision 1.17  2002-11-13 15:26:24  pierre
+   + digest program added
+
+  Revision 1.16  2002/11/13 15:19:44  pierre
    log strings moved to teststr unit
 
   Revision 1.15  2002/09/07 15:40:56  peter

@@ -1,3 +1,21 @@
+{
+  $Id$
+    This file is part of the Free Pascal test suite.
+    Copyright (c) 2002 by the Free Pascal development team.
+
+    This unit stores the strings used by
+    dotest program, so that they can be also used by
+    figest program.
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
+
 unit teststr;
 
 interface
@@ -24,3 +42,10 @@ const
 implementation
 
 end.
+
+{
+  $Log$
+  Revision 1.2  2002-11-13 15:26:24  pierre
+   + digest program added
+
+}
