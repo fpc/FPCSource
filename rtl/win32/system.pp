@@ -920,7 +920,7 @@ procedure Exe_entry;[public, alias : '_FPC_EXE_Entry'];
         movl %eax,Win32StackTop
         movw %ss,%bp
         movl %ebp,_SS
-        call InitFPU
+        call SysResetFPU
         xorl %ebp,%ebp
         call PASCALMAIN
         popl %ebp
@@ -1498,7 +1498,10 @@ end.
 
 {
   $Log$
-  Revision 1.34  2002-10-14 19:39:17  peter
+  Revision 1.35  2002-10-14 20:40:22  florian
+    * InitFPU renamed to SysResetFPU
+
+  Revision 1.34  2002/10/14 19:39:17  peter
     * threads unit added for thread support
 
   Revision 1.33  2002/10/13 09:28:45  florian
