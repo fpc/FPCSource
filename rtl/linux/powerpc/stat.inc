@@ -13,13 +13,13 @@
 
  **********************************************************************}
 
-  { note: NO packed record, C also inserts padding after the nlink field! }
-  Stat = Record  // No unix typing because of differences
+  Stat = packed Record  // No unix typing because of differences
     case byte of   
       0: (st_dev    : cardinal;
           st_ino,
           st_mode   : cardinal;
           nlink     : word;
+          __pad1    : word;
           uid,
           gid,
           rdev      : cardinal;
@@ -34,33 +34,34 @@
           __unused3,
           __unused4,
           __unused5  : cardinal;);
-      1: (
-          dev     : cardinal;
-          pad1    : word;
-          ino     : longint;
-          mode,
-          nlink_dummy,
+      1: (dev    : cardinal;
+          ino,
+          mode   : cardinal;
+          nlink_dummy     : word;
+          __pad2    : word;
           uid_dummy,
-          gid_dummy     : word;
-          rdev_dummy    : dev_t;
-          pad2_dummy    : word;
-          size,
-          blksze,
+          gid_dummy,
+          rdev_dummy      : cardinal;
+          size   : longint;
+          blksize,
           blocks,
           atime,
-          unused1_dummy,
+          __unused1_dummy,
           mtime,
-          unused2_dummy,
+          __unused2_dummy,
           ctime,
-          unused3_dummy,
-          unused4_dummy,
-          unused5_dummy : longint;
-         );
+          __unused3_dummy,
+          __unused4_dummy,
+          __unused5_dummy  : cardinal;);
   end;
 
 {
   $Log$
-  Revision 1.1  2003-05-15 22:50:51  jonas
+  Revision 1.2  2003-05-16 21:22:11  jonas
+    * fixed stat struct (previous one was a frankenversion of ppc and
+      i386 version)
+
+  Revision 1.1  2003/05/15 22:50:51  jonas
     * the stat type is processor-dependent
     * the dev_t tpye is processor dependent. Don't use it in the stat type
       however, as that one is also used at a time where dev_t is already
