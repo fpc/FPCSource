@@ -111,9 +111,13 @@ begin
                    if current_module^.in_global then
                     begin
                       if state='+' then
-                       aktmoduleswitches:=aktmoduleswitches+[tmoduleswitch(setsw)]
+                        aktmoduleswitches:=aktmoduleswitches+[tmoduleswitch(setsw)]
                       else
-                       aktmoduleswitches:=aktmoduleswitches-[tmoduleswitch(setsw)];
+                        aktmoduleswitches:=aktmoduleswitches-[tmoduleswitch(setsw)];
+                      { can't have local browser when no global browser }
+                      if (cs_local_browser in aktmoduleswitches) and
+                         not(cs_browser in aktmoduleswitches) then
+                        aktmoduleswitches:=aktmoduleswitches-[cs_local_browser];
                     end
                    else
                     Message(scan_w_switch_is_global);
@@ -166,7 +170,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.18  1998-12-11 00:03:47  peter
+  Revision 1.19  1999-02-18 13:43:20  peter
+    * no localbrowser when browser is turned off
+
+  Revision 1.18  1998/12/11 00:03:47  peter
     + globtype,tokens,version unit splitted from globals
 
   Revision 1.17  1998/11/27 14:50:46  peter
