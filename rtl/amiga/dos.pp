@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1998 by Nils Sjoholm
+    Copyright (c) 1998 by Nils Sjoholm and Carl Eric Codere
     members of the Free Pascal development team
 
     See the file COPYING.FPC, included in this distribution,
@@ -13,6 +13,7 @@
 
  **********************************************************************}
 
+Unit Dos;
 
     {
        History:
@@ -41,11 +42,49 @@
                    is compatible with dos.
     }
 
+{--------------------------------------------------------------------}
+{ LEFT TO DO:                                                        }
+{--------------------------------------------------------------------}
+{ o DiskFree / Disksize don't work as expected                       }
+{ o Implement SetDate and SetTime                                    }
+{ o Implement Setftime                                               }
+{ o DosExitCode with Exec does not work                              }
+{ o Implement EnvCount,EnvStr                                        }
+{ o FindFirst should only work with correct attributes               }
+{ o FindFirst / FindNext does not set the date and time in SearchRec }
+{--------------------------------------------------------------------}
 
-Unit Dos;
+
 
 
 Interface
+
+{$I os.inc}
+
+
+Const
+  {Bitmasks for CPU Flags}
+  fcarry     = $0001;
+  fparity    = $0004;
+  fauxiliary = $0010;
+  fzero      = $0040;
+  fsign      = $0080;
+  foverflow  = $0800;
+
+  {Bitmasks for file attribute}
+  readonly  = $01;
+  hidden    = $02;
+  sysfile   = $04;
+  volumeid  = $08;
+  directory = $10;
+  archive   = $20;
+  anyfile   = $3F;
+
+  {File Status}
+  fmclosed = $D7B0;
+  fminput  = $D7B1;
+  fmoutput = $D7B2;
+  fminout  = $D7B3;
 
 
 Type
@@ -56,87 +95,114 @@ Type
   ExtStr  = String[255];  { size increased to be more compatible with Unix}
 
   { If you need more devicenames just expand this two arrays }
-
-  deviceids = (DF0ID, DF1ID, DF2ID, DF3ID, DH0ID, DH1ID,
+  { device zero is for the current drive                     }
+  deviceids = (NOTHING, DF0ID, DF1ID, DF2ID, DF3ID, DH0ID, DH1ID,
                CD0ID, MDOS1ID, MDOS2ID);
 
-       registers = record
-         case i : integer of
-            0 : (ax,f1,bx,f2,cx,f3,dx,f4,bp,f5,si,f51,di,f6,ds,f7,es,f8,flags,fs,gs : word);
-            1 : (al,ah,f9,f10,bl,bh,f11,f12,cl,ch,f13,f14,dl,dh : byte);
-            2 : (eax,  ebx,  ecx,  edx,  ebp,  esi,  edi : longint);
-       end;
 
 
 Const
-  devicenames : array [DF0ID..MDOS2ID] of PChar = (
+  devicenames : array [DF0ID..MDOS2ID] of String = (
                 'df0:','df1:','df2:','df3:','dh0:',
-                'dh1:','cd0','A:','B:');
+                'dh1:','cd0:','A:','B:');
+
+
+
+{
+  filerec.inc contains the definition of the filerec.
+  textrec.inc contains the definition of the textrec.
+  It is in a separate file to make it available in other units without
+  having to use the DOS unit for it.
+}
+{$i filerec.inc}
+{$i textrec.inc}
+
 
 Type
-  SearchRec = Record
-    {Fill : array[1..21] of byte;  Fill replaced with below}
 
-    SearchNum: LongInt; {to track which search this is}
-    SearchPos: LongInt; {directory position}
-    DirPtr: LongInt; {directory pointer for reading directory}
-    SearchType: Byte;  {0=normal, 1=open will close}
-    SearchAttr: Byte; {attribute we are searching for}
-    Fill: Array[1..07] of Byte; {future use}
+  SearchRec = Packed Record
+    { Replacement for Fill }
+    AnchorPtr : Pointer;    { Pointer to the Anchorpath structure }
+    Fill: Array[1..14] of Byte; {future use}
     {End of replacement for fill}
-
-    Attr : Byte; {attribute of found file}
-    Time : LongInt; {last modify date of found file}
-    Size : LongInt; {file size of found file}
-    Reserved : Word; {future use}
+    Attr : BYTE;        {attribute of found file}
+    Time : LongInt;     {last modify date of found file}
+    Size : LongInt;     {file size of found file}
     Name : String[255]; {name of found file}
-    SearchSpec: String[255]; {search pattern}
-    NamePos: Word; {end of path, start of name position}
-    End;
+  End;
 
 
-  FileRec = Record
-    Handle : word;
-    Mode : word;
-    RecSize : word;
-    _private : array[1..26] of byte;
-    UserData: array[1..16] of byte;
-    Name: array[0..255] of char;
-    End;
-
-
-  TextBuf = array[0..127] of char;
-
-
-  TextRec = record
-    handle : word;
-    mode : word;
-    bufSize : word;
-    _private : word;
-    bufpos : word;
-    bufend : word;
-    bufptr : ^textbuf;
-    openfunc : pointer;
-    inoutfunc : pointer;
-    flushfunc : pointer;
-    closefunc : pointer;
-    userdata : array[1..16] of byte;
-    name : array[0..255] of char;
-    buffer : textbuf;
-    End;
-
-
-  DateTime = record
+  DateTime = packed record
     Year: Word;
     Month: Word;
     Day: Word;
     Hour: Word;
     Min: Word;
     Sec: word;
-    End;
+  End;
 
+
+
+Var
+  DosError : integer;
+
+{Interrupt}
+{Procedure Intr(intno: byte; var regs: registers);
+Procedure MSDos(var regs: registers);}
+
+{Info/Date/Time}
+Function  DosVersion: Word;
+Procedure GetDate(var year, month, mday, wday: word);
+Procedure GetTime(var hour, minute, second, sec100: word);
+procedure SetDate(year,month,day: word);
+Procedure SetTime(hour,minute,second,sec100: word);
+Procedure UnpackTime(p: longint; var t: datetime);
+Procedure PackTime(var t: datetime; var p: longint);
+
+{Exec}
+Procedure Exec(const path: pathstr; const comline: comstr);
+Function  DosExitCode: word;
+
+{Disk}
+Function  DiskFree(drive: byte) : longint;
+Function  DiskSize(drive: byte) : longint;
+Procedure FindFirst(path: pathstr; attr: word; var f: searchRec);
+Procedure FindNext(var f: searchRec);
+Procedure FindClose(Var f: SearchRec);
+
+{File}
+Procedure GetFAttr(var f; var attr: word);
+Procedure GetFTime(var f; var time: longint);
+Function  FSearch(path: pathstr; dirlist: string): pathstr;
+Function  FExpand(path: pathstr): pathstr;
+Procedure FSplit(path: pathstr; var dir: dirstr; var name: namestr; var ext: extstr);
+
+{Environment}
+Function  EnvCount: longint;
+Function  EnvStr(index: integer): string;
+Function  GetEnv(envvar: string): string;
+
+{Misc}
+Procedure SetFAttr(var f; attr: word);
+Procedure SetFTime(var f; time: longint);
+Procedure GetCBreak(var breakvalue: boolean);
+Procedure SetCBreak(breakvalue: boolean);
+Procedure GetVerify(var verify: boolean);
+Procedure SetVerify(verify: boolean);
+
+{Do Nothing Functions}
+Procedure SwapVectors;
+Procedure GetIntVec(intno: byte; var vector: pointer);
+Procedure SetIntVec(intno: byte; vector: pointer);
+Procedure Keep(exitcode: word);
+
+implementation
+
+
+
+Type
     pClockData = ^tClockData;
-    tClockData = Record
+    tClockData = packed Record
       sec   : Word;
       min   : Word;
       hour  : Word;
@@ -146,83 +212,45 @@ Type
       wday  : Word;
     END;
 
-
-Procedure GetDate(var year, month, mday, wday: word);
-Procedure GetTime(var hour, minute, second, sec100: word);
-Function  DosVersion: Word;
-procedure SetDate(year,month,day: word);
-Procedure SetTime(hour,minute,second,sec100: word);
-Procedure GetCBreak(var breakvalue: boolean);
-Procedure SetCBreak(breakvalue: boolean);
-Procedure GetVerify(var verify: boolean);
-Procedure SetVerify(verify: boolean);
-Function  DiskFree(drive: byte) : longint;
-Function  DiskSize(drive: byte) : longint;
-Procedure FindFirst(const path: pathstr; attr: word; var f: searchRec);
-Procedure FindNext(var f: searchRec);
-Procedure FindClose(Var f: SearchRec);
-Procedure SwapVectors;
-Procedure MSDos(var regs: registers);
-Procedure GetIntVec(intno: byte; var vector: pointer);
-Procedure SetIntVec(intno: byte; vector: pointer);
-Procedure Keep(exitcode: word);
-Procedure Intr(intno: byte; var regs: registers);
-Procedure GetFAttr(var f; var attr: word);
-Procedure SetFAttr(var f; attr: word);
-Procedure GetFTime(var f; var time: longint);
-Procedure SetFTime(var f; time: longint);
-Procedure UnpackTime(p: longint; var t: datetime);
-Procedure PackTime(var t: datetime; var p: longint);
-Function  FSearch(path: pathstr; dirlist: string): pathstr;
-Function  FExpand(const path: pathstr): pathstr;
-Procedure FSplit(path: pathstr; var dir: dirstr; var name: namestr;
-  var ext: extstr);
-Procedure Exec(const path: pathstr; const comline: comstr);
-Function  DosExitCode: word;
-Function  EnvCount: longint;
-Function  EnvStr(index: integer): string;
-Function  GetEnv (envvar: string): string;
-
-Implementation
-
-
-Type
-
     BPTR = Longint;
+    BSTR     = Longint;
 
-{$PACKRECORDS 4}
+    TDateStamp = packed record
+        ds_Days         : Longint;      { Number of days since Jan. 1, 1978 }
+        ds_Minute       : Longint;      { Number of minutes past midnight }
+        ds_Tick         : Longint;      { Number of ticks past minute }
+    end;
+    PDateStamp = ^TDateStamp;
+
+
 
 { Returned by Examine() and ExInfo(), must be on a 4 byte boundary }
 
-    pFileInfoBlock = ^tFileInfoBlock;
-    tFileInfoBlock = record
-        fib_DiskKey      : Longint;
+    PFileInfoBlock = ^TfileInfoBlock;
+    TFileInfoBlock = packed record
+        fib_DiskKey     : Longint;
         fib_DirEntryType : Longint;
                         { Type of Directory. If < 0, then a plain file.
                           If > 0 a directory }
-        fib_FileName     : Array [0..107] of Char;
+        fib_FileName    : Array [0..107] of Char;
                         { Null terminated. Max 30 chars used for now }
-        fib_Protection   : Longint;
+        fib_Protection  : Longint;
                         { bit mask of protection, rwxd are 3-0. }
-        fib_EntryType    : Longint;
-        fib_Size         : Longint;      { Number of bytes in file }
-        fib_NumBlocks    : Longint;      { Number of blocks in file }
-        fib_Date         : tDateStamp;   { Date file last changed }
-        fib_Comment      : Array [0..79] of Char;
+        fib_EntryType   : Longint;
+        fib_Size        : Longint;      { Number of bytes in file }
+        fib_NumBlocks   : Longint;      { Number of blocks in file }
+        fib_Date        : TDateStamp; { Date file last changed }
+        fib_Comment     : Array [0..79] of Char;
                         { Null terminated comment associated with file }
-        fib_OwnerUID     : Word;
-        fib_OwnerGID     : Word;
-        fib_Reserved     : Array [0..31] of Char;
+        fib_Reserved    : Array [0..35] of Char;
     end;
 
 { returned by Info(), must be on a 4 byte boundary }
 
     pInfoData = ^tInfoData;
-    tInfoData = record
-        id_NumSoftErrors        : Longint;      { number of soft errors on disk
-}
-        id_UnitNumber           : Longint;      { Which unit disk is (was)
-mounted on }
+    tInfoData = packed record
+        id_NumSoftErrors        : Longint;      { number of soft errors on disk }
+        id_UnitNumber           : Longint;      { Which unit disk is (was) mounted on }
         id_DiskState            : Longint;      { See defines below }
         id_NumBlocks            : Longint;      { Number of blocks on disk }
         id_NumBlocksUsed        : Longint;      { Number of block in use }
@@ -233,110 +261,328 @@ mounted on }
     end;
 
 
+{ ------ Library Base Structure ---------------------------------- }
+{  Also used for Devices and some Resources  }
 
-{$PACKRECORDS NORMAL}
+{ *  List Node Structure.  Each member in a list starts with a Node * }
+
+  pNode = ^tNode;
+  tNode = Packed Record
+    ln_Succ,                { * Pointer to next (successor) * }
+    ln_Pred  : pNode;       { * Pointer to previous (predecessor) * }
+    ln_Type  : Byte;
+    ln_Pri   : Shortint;        { * Priority, for sorting * }
+    ln_Name  : PCHAR;       { * ID string, null terminated * }
+  End;  { * Note: Integer aligned * }
+
+
+    pLibrary = ^tLibrary;
+    tLibrary = packed record
+        lib_Node     : tNode;
+        lib_Flags,
+        lib_pad      : Byte;
+        lib_NegSize,            {  number of bytes before library  }
+        lib_PosSize,            {  number of bytes after library  }
+        lib_Version,            {  major  }
+        lib_Revision : Word;    {  minor  }
+        lib_IdString : PCHAR;   {  ASCII identification  }
+        lib_Sum      : LONGINT; {  the checksum itself  }
+        lib_OpenCnt  : Word;    {  number of current opens  }
+    end;                {  * Warning: size is not a longword multiple ! * }
+
+    PChain = ^TChain;
+    TChain = packed record
+      an_Child : PChain;
+      an_Parent: PChain;
+      an_Lock  : BPTR;
+      an_info  : TFileInfoBlock;
+      an_Flags : shortint;
+      an_string: Array[0..0] of char;
+    end;
+
+
+    PAnchorPath = ^TAnchorPath;
+    TAnchorPath = packed record
+       ap_Base      : PChain;     {* pointer to first anchor *}
+       ap_First     : PChain;     {* pointer to last anchor *}
+       ap_BreakBits : LONGINT;    {* Bits we want to break on *}
+       ap_FondBreak : LONGINT;    {* Bits we broke on. Also returns ERROR_BREAK *}
+       ap_Flags     : shortint;   {* New use for extra word. *}
+       ap_reserved  : BYTE;
+       ap_StrLen    : WORD;
+       ap_Info      : TFileInfoBlock;
+       ap_Buf       : Array[0..0] of Char; {* Buffer for path name, allocated by user *}
+    END;
+
+    pCommandLineInterface = ^TCommandLineInterface;
+    TCommandLineInterface = packed record
+      cli_result2     : longint;    {* Value of IoErr from last command	  *}
+      cli_SetName     : BSTR;       {* Name of current directory		     *}
+      cli_CommandDir  : BPTR;       {* Head of the path locklist		     *}
+      cli_ReturnCode  : longint;    {* Return code from last command		  *}
+      cli_CommandName : BSTR;       {* Name of current command		        *}
+      cli_FailLevel   : longint;    {* Fail level (set by FAILAT)		     *}
+      cli_Prompt      : BSTR;       {* Current prompt (set by PROMPT)	  *}
+      cli_StandardInput: BPTR;      {* Default (terminal) CLI input		  *}
+      cli_CurrentInput : BPTR;      {* Current CLI input			           *}
+      cli_CommandFile  : BSTR;      {* Name of EXECUTE command file		  *}
+      cli_Interactive  : longint;   {* Boolean; True if prompts required  *}
+      cli_Background   : longint    {* Boolean; True if CLI created by RUN*}
+      cli_CurrentOutput: BPTR;      {* Current CLI output			        *}
+      cli_DefautlStack : longint;   {* Stack size to be obtained in long words *}
+      cli_StandardOutput : BPTR;    {* Default (terminal) CLI output		  *}
+      cli_Module       : BPTR;      {* SegList of currently loaded command*}
+    END;
+
+CONST
+    { DOS Lib Offsets }
+    _LVOMatchFirst = -822;
+    _LVOMatchNext  = -828;
+    _LVOMatchEnd   = -834;
+    _LVOCli        = -492;
+    _LVOExecute    = -222;
+
+
+    ERROR_NO_MORE_ENTRIES            = 232;
+    FIBF_SCRIPT         = 64;  { program is a script              }
+    FIBF_PURE           = 32;  { program is reentrant             }
+    FIBF_ARCHIVE        = 16;  { cleared whenever file is changed }
+    FIBF_READ           = 8;   { ignoed by old filesystem         }
+    FIBF_WRITE          = 4;   { ignored by old filesystem        }
+    FIBF_EXECUTE        = 2;   { ignored by system, used by shell }
+    FIBF_DELETE         = 1;   { prevent file from being deleted  }
 
 
 
-procedure CurrentTime(var Seconds, Micros : Longint); Assembler;
-asm
+{******************************************************************************
+                           --- Internal routines ---
+******************************************************************************}
+
+
+procedure CurrentTime(var Seconds, Micros : Longint);
+Begin
+ asm
     MOVE.L  A6,-(A7)
-    MOVE.L  _IntuitionBase,A6
     MOVE.L  Seconds,a0
     MOVE.L  Micros,a1
+    MOVE.L  _IntuitionBase,A6
     JSR -084(A6)
     MOVE.L  (A7)+,A6
+ end;
 end;
 
 
-function Date2Amiga(date : pClockData) : Longint; Assembler;
-asm
+function Date2Amiga(date : pClockData) : Longint;
+Begin
+  asm
     MOVE.L  A6,-(A7)
-    MOVE.L  _UtilityBase,A6
     MOVE.L  date,a0
+    MOVE.L  _UtilityBase,A6
     JSR -126(A6)
     MOVE.L  (A7)+,A6
+    MOVE.L  d0,@RESULT
+  end;
 end;
 
 
 procedure Amiga2Date(amigatime : Longint;
-                     resultat : pClockData); Assembler;
-asm
+                     resultat : pClockData);
+Begin
+  asm
     MOVE.L  A6,-(A7)
-    MOVE.L  _UtilityBase,A6
     MOVE.L  amigatime,d0
     MOVE.L  resultat,a0
+    MOVE.L  _UtilityBase,A6
     JSR -120(A6)
     MOVE.L  (A7)+,A6
+  end;
 end;
 
 
 function Examine(lock : BPTR;
-                 info : pFileInfoBlock) : Boolean; Assembler;
-asm
+                 info : pFileInfoBlock) : Boolean;
+Begin
+  asm
     MOVEM.L d2/a6,-(A7)
-    MOVE.L  _DOSBase,A6
     MOVE.L  lock,d1
     MOVE.L  info,d2
+    MOVE.L  _DOSBase,A6
     JSR -102(A6)
     MOVEM.L (A7)+,d2/a6
     TST.L   d0
     SNE     d0
     NEG.B   d0
+    MOVE.B  d0,@RESULT
+   end;
 end;
 
 
-function Lock(name : Pchar;
-              accessmode : Longint) : BPTR; Assembler;
-asm
+function Lock(const name : string;
+           accessmode : Longint) : BPTR;
+var
+ buffer: Array[0..50] of char;
+Begin
+  move(name[1],buffer,length(name));
+  buffer[length(name)]:=#0;
+  asm
     MOVEM.L d2/a6,-(A7)
-    MOVE.L  _DOSBase,A6
-    MOVE.L  name,d1
+    LEA     buffer,a0
+    MOVE.L  a0,d1
     MOVE.L  accessmode,d2
+    MOVE.L  _DOSBase,A6
     JSR -084(A6)
     MOVEM.L (A7)+,d2/a6
+    MOVE.L  d0,@RESULT
+  end;
 end;
 
 
-procedure UnLock(lock : BPTR); Assembler;
-asm
+procedure UnLock(lock : BPTR);
+Begin
+  asm
     MOVE.L  A6,-(A7)
-    MOVE.L  _DOSBase,A6
     MOVE.L  lock,d1
+    MOVE.L  _DOSBase,A6
     JSR -090(A6)
     MOVE.L  (A7)+,A6
+  end;
 end;
 
 
 function Info(lock : BPTR;
-              params : pInfoData) : Boolean; Assembler;
-asm
+              params : pInfoData) : Boolean;
+Begin
+  asm
     MOVEM.L d2/a6,-(A7)
-    MOVE.L  _DOSBase,A6
     MOVE.L  lock,d1
     MOVE.L  params,d2
+    MOVE.L  _DOSBase,A6
     JSR -114(A6)
     MOVEM.L (A7)+,d2/a6
     TST.L   d0
     SNE     d0
     NEG.B   d0
+    MOVE.B  d0,@RESULT
+  end;
 end;
 
 function NameFromLock(Datei : BPTR;
                       Buffer : Pchar;
-                      BufferSize : Longint) : Boolean; Assembler;
-asm
+                      BufferSize : Longint) : Boolean;
+Begin
+  asm
     MOVEM.L d2/d3/a6,-(A7)
-    MOVE.L  _DOSBase,A6
     MOVE.L  Datei,d1
     MOVE.L  Buffer,d2
     MOVE.L  BufferSize,d3
+    MOVE.L  _DOSBase,A6
     JSR -402(A6)
     MOVEM.L (A7)+,d2/d3/a6
     TST.L   d0
     SNE     d0
     NEG.B   d0
+    MOVE.B  d0,@RESULT
+  end;
 end;
+
+function GetVar(name : pchar; Buffer : pchar; BufferSize : Longint;
+                flags : Longint) : Longint;
+begin
+   asm
+       MOVEM.L d2/d3/d4/a6,-(A7)
+       MOVE.L  name,d1
+       MOVE.L  Buffer,d2
+       MOVE.L  BufferSize,d3
+       MOVE.L  flags,d4
+       MOVE.L  _DOSBase,A6
+       JSR -906(A6)
+       MOVEM.L (A7)+,d2/d3/d4/a6
+       MOVE.L  d0,@RESULT
+   end;
+end;
+
+(*   Function FindTask(p : PChar): PProcess;
+   Begin
+    asm
+         move.l  a6,d6              { Save base pointer    }
+         move.l  p,d0
+         move.l  d0,a1
+         move.l  _ExecBase,a6
+         jsr     _LVOFindTask(a6)
+         move.l  d6,a6              { Restore base pointer }
+         move.l  d0,@Result
+    end;
+   end;*)
+
+
+   Function MatchFirst(pat: pchar; Anchor: pAnchorPath) : longint;
+    Begin
+      asm
+        move.l  d2,-(sp)
+        move.l  a6,d6
+        move.l  pat,d1
+        move.l  Anchor,d2
+        move.l  _DosBase,a6
+        jsr     _LVOMatchFirst(a6)
+        move.l  (sp)+,d2
+        move.l  d6,a6
+        move.l  d0,@Result
+      end;
+    end;
+
+
+   Function MatchNext(Anchor : pAnchorPath): longint;
+    Begin
+     asm
+       move.l anchor,d1
+       move.l a6,d6
+       move.l _DosBase,a6
+       jsr    _LVOMatchNext(a6)
+       move.l d6,a6
+       move.l d0,@Result
+     end;
+    end;
+
+
+   Procedure MatchEnd(Anchor : pAnchorPath);
+    Begin
+      asm
+        move.l anchor,d1
+        move.l a6,d6
+        move.l _DosBase,a6
+        jsr    _LVOMatchEnd(a6)
+        move.l d6,a6
+      end;
+    end;
+
+
+
+    Function Cli: Pointer; assembler;
+    { Returns a pointer to the current cli process }
+    asm
+      move.l  a6,d6
+      move.l  _DosBase,a6
+      jsr     _LVOCli(a6)
+      move.l  d6,a6        { value is returned in d0 }
+    end;
+
+
+
+    Function _Execute(p: pchar; stdin : longint; stdout: longint): longint;
+     Begin
+       asm
+         move.l  a6,d6                 { save base pointer    }
+         movem.l d2/d3,-(sp)
+         move.l  p,d1
+         move.l  stdin,d2
+         move.l  stdout,d3
+         move.l  _DosBase,a6
+         jsr     _LVOExecute(a6)
+         movem.l (sp)+,d2/d3
+         move.l  d6,a6                 { restore base pointer }
+         move.l  d0,@RESULT
+       end;
+     end;
 
 
 function PasToC(var s: string): Pchar;
@@ -352,336 +598,24 @@ begin
     PasToC := @s[1]
 end;
 
-procedure CToPas(var s: string);
-begin
-    s[0] := #255;
-    s[0] := Chr(Pos(#0, s) - 1)     { gives -1 (255) if not found }
-end;
+ Function strpas(Str: pchar): string;
+ { only 255 first characters are actually copied. }
+  var
+   counter : byte;
+   lstr: string;
+ Begin
+   counter := 0;
+   lstr := '';
+   while (ord(Str[counter]) <> 0) and (counter < 255) do
+   begin
+     Inc(counter);
+     lstr[counter] := char(Str[counter-1]);
+   end;
+   lstr[0] := char(counter);
+   strpas := lstr;
+ end;
 
 
-Function do_exec ( Commandline : pchar; tmp : integer) : integer;
-begin
-end;
-
-Procedure Intr (intno: byte; var regs: registers);
-  Begin
-  { Does not apply to Linux - not implemented }
-  End;
-
-
-Var
-  LastDosExitCode: word;
-
-Procedure Exec (Const Path: PathStr; Const ComLine: ComStr);
-  Begin
-  End;
-
-
-Function DosExitCode: Word;
-  Begin
-  End;
-
-
-Function DosVersion: Word;
-  Begin
-  End;
-
-
-
-Procedure GetDate(Var Year, Month, MDay, WDay: Word);
-Var
-  cd    : pClockData;
-  mysec,
-  tick  : Longint;
-begin
-  New(cd);
-  CurrentTime(mysec,tick);
-  Amiga2Date(mysec,cd);
-  Year  := cd^.year;
-  Month := cd^.month;
-  MDay  := cd^.mday;
-  WDay  := cd^.wday;
-  Dispose(cd);
-end;
-
-Procedure SetDate(Year, Month, Day: Word);
-  Begin
-  { !! }
-  End;
-
-
-Procedure GetTime(Var Hour, Minute, Second, Sec100: Word);
-Var
-  mysec,
-  tick    : Longint;
-  cd      : pClockData;
-begin
-  New(cd);
-  CurrentTime(mysec,tick);
-  Amiga2Date(mysec,cd);
-  Hour   := cd^.hour;
-  Minute := cd^.min;
-  Second := cd^.sec;
-  Sec100 := 0;
-  Dispose(cd);
-END;
-
-Procedure SetTime(Hour, Minute, Second, Sec100: Word);
-  Begin
-  { !! }
-  End;
-
-
-Procedure GetCBreak(Var BreakValue: Boolean);
-  Begin
-  { Not implemented for Linux, but set to true as a precaution. }
-  breakvalue:=true
-  End;
-
-
-Procedure SetCBreak(BreakValue: Boolean);
-  Begin
-  { ! No Linux equivalent ! }
-  End;
-
-
-Procedure GetVerify(Var Verify: Boolean);
-   Begin
-   { Not implemented for Linux, but set to true as a precaution. }
-   verify:=true;
-   End;
-
-
-Procedure SetVerify(Verify: Boolean);
-  Begin
-  { ! No Linux equivalent ! }
-  End;
-
-
-Function DiskFree(Drive: Byte): Longint;
-Var
-  MyLock      : BPTR;
-  Inf         : pInfoData;
-  Free        : Longint;
-Begin
-  Free := -1;
-  New(Inf);
-  MyLock := Lock(devicenames[Drive],-2);
-  If MyLock <> NIL then begin
-     if Info(MyLock,Inf) then begin
-        Free := (Inf^.id_NumBlocks * Inf^.id_BytesPerBlock) -
-                (Inf^.id_NumBlocksUsed * Inf^.id_BytesPerBlock);
-     end;
-     Unlock(MyLock);
-  end;
-  Dispose(Inf);
-  diskfree := Free;
-end;
-
-
-
-Function DiskSize(Drive: Byte): Longint;
-Var
-  MyLock      : BPTR;
-  Inf         : pInfoData;
-  Size        : Longint;
-Begin
-  Size := -1;
-  New(Inf);
-  MyLock := Lock(devicenames[Drive],-2);
-  If MyLock <> NIL then begin
-     if Info(MyLock,Inf) then begin
-        Size := (Inf^.id_NumBlocks * Inf^.id_BytesPerBlock);
-     end;
-     Unlock(MyLock);
-  end;
-  Dispose(Inf);
-  disksize := Size;
-end;
-
-
-
-Procedure FindClose(Var f: SearchRec);
-  Begin
-  End;
-
-
-Function FNMatch(Var Pattern: PathStr; Var Name: PathStr): Boolean;
-  Begin {start FNMatch}
-  End;
-
-
-
-Procedure FindWorkProc(Var f: SearchRec);
-  Begin
-  End;
-
-
-Function  FindLastUsed: Word;
-  Begin
-  End;
-
-
-Procedure FindFirst(Const Path: PathStr; Attr: Word; Var f: SearchRec);
-  Begin
-  End;
-
-
-Procedure FindNext(Var f: SearchRec);
-  Begin
-  End;
-
-
-
-Procedure SwapVectors;
-  Begin
-  { Does not apply to Linux - Do Nothing }
-  End;
-
-
-Function EnvCount: Longint;
-
-  Begin
-  End;
-
-
-Function EnvStr(Index: Integer): String;
-  Begin
-  End;
-
-
-Function GetEnv(EnvVar: String): String;
-  Begin
-  End;
-
-Procedure FSplit(Path: PathStr; Var Dir: DirStr; Var Name: NameStr;
-var
-  I: Word;
-begin
-  I := Length(Path);
-  while (I > 0) and not ((Path[I] = '/') or (Path[I] = ':')) do Dec(I);
-  if Path[I] = '/' then
-     dir := Copy(Path, 0, I-1)
-  else dir := Copy(Path,0,I);
-
-  if Length(Path) > Length(dir) then
-     name := Copy(Path, I + 1, Length(Path)-I)
-     else name := '';
-
-  I := Pos('.',Path);
-  if I > 0 then
-     ext := Copy(Path,I,Length(Path)-(I-1))
-     else ext := '';
-end;
-
-Function FExpand(Const Path: PathStr): PathStr;
-var
-    FLock  : BPTR;
-    buffer : PathStr;
-begin
-    FLock := Lock(PasToC(Path),-2);
-    if FLock <> NIL then begin
-       if NameFromLock(FLock,PasToC(buffer),255) then begin
-          CToPas(buffer);
-          Unlock(FLock);
-          FExpend := buffer;
-       end else begin
-          Unlock(FLock);
-          FExpand := '';
-       end;
-    end else FExpand := '';
-end;
-
-
-
-
-
-
-
-Procedure msdos(var regs : registers);
-  Begin
-  { ! Not implemented in Linux ! }
-  End;
-
-
-Procedure getintvec(intno : byte;var vector : pointer);
-  Begin
-  { ! Not implemented in Linux ! }
-  End;
-
-
-Procedure setintvec(intno : byte;vector : pointer);
-  Begin
-  { ! Not implemented in Linux ! }
-  End;
-
-
-Procedure keep(exitcode : word);
-  Begin
-  { ! Not implemented in Linux ! }
-  End;
-
-
-Procedure getfattr(var f; var attr : word);
-  Begin
-  End;
-
-
-Procedure setfattr (var f;attr : word);
-  Begin
-  { ! Not implemented in Linux ! }
-  End;
-
-
-Procedure getftime (var f; var time : longint);
-{
-    This function returns a file's date and time as the number of
-    seconds after January 1, 1978 that the file was created.
-}
-var
-    FInfo : pFileInfoBlock;
-    FTime : Longint;
-    FLock : Longint;
-begin
-    FTime := 0;
-    FLock := Lock(PasToC(filerec(f).name), -2);
-    IF FLock <> NIL then begin
-        New(FInfo);
-        if Examine(FLock, FInfo) then begin
-             with FInfo^.fib_Date do
-             FTime := ds_Days * (24 * 60 * 60) +
-             ds_Minute * 60 +
-             ds_Tick div 50;
-        end else begin
-             FTime := 0;
-        end;
-        Unlock(FLock);
-        Dispose(FInfo);
-    end;
-    time := FTime;
-end;
-
-
-Procedure setftime(var f; time : longint);
-  Begin
-  { ! Not implemented in Linux ! }
-  End;
-
-
-Procedure unpacktime(p : longint;var t : datetime);
-Begin
-  AmigaToDt(p,t);
-End;
-
-
-Procedure packtime(var t : datetime;var p : longint);
-Begin
-  p := DtToAmiga(t);
-end;
-
-Function  fsearch(path : pathstr;dirlist : string) : pathstr;
-  Begin
-  End;
 
 
 Procedure AmigaToDt(SecsPast: LongInt; Var Dt: DateTime);
@@ -716,7 +650,632 @@ Begin
   DtToAmiga := temp;
 end;
 
+Function SetProtection(const name: string; mask:longint): longint;
+ var
+  buffer : array[0..255] of char;
+ Begin
+   move(name[1],buffer,length(name));
+   buffer[length(name)]:=#0;
+   asm
+      move.l  a6,d6
+      lea     buffer,a0
+      move.l  a0,d1
+      move.l  mask,d2
+      move.l  _DosBase,a6
+      jsr     -186(a6)
+      move.l  d6,a6
+      move.l  d0,@RESULT
+   end;
+ end;
 
+
+
+{******************************************************************************
+                           --- Dos Interrupt ---
+******************************************************************************}
+
+(*Procedure Intr (intno: byte; var regs: registers);
+  Begin
+  { Does not apply to Linux - not implemented }
+  End;*)
+
+
+Procedure SwapVectors;
+  Begin
+  { Does not apply to Linux - Do Nothing }
+  End;
+
+
+(*Procedure msdos(var regs : registers);
+  Begin
+  { ! Not implemented in Linux ! }
+  End;*)
+
+
+Procedure getintvec(intno : byte;var vector : pointer);
+  Begin
+  { ! Not implemented in Linux ! }
+  End;
+
+
+Procedure setintvec(intno : byte;vector : pointer);
+  Begin
+  { ! Not implemented in Linux ! }
+  End;
+
+{******************************************************************************
+                        --- Info / Date / Time ---
+******************************************************************************}
+
+  Function DosVersion: Word;
+   var p: pLibrary;
+  Begin
+    p:=pLibrary(_DosBase);
+    DosVersion:= p^.lib_Version or (p^.lib_Revision shl 8);
+  End;
+
+Procedure GetDate(Var Year, Month, MDay, WDay: Word);
+Var
+  cd    : pClockData;
+  mysec,
+  tick  : Longint;
+begin
+  New(cd);
+  CurrentTime(mysec,tick);
+  Amiga2Date(mysec,cd);
+  Year  := cd^.year;
+  Month := cd^.month;
+  MDay  := cd^.mday;
+  WDay  := cd^.wday;
+  Dispose(cd);
+end;
+
+Procedure SetDate(Year, Month, Day: Word);
+  Begin
+  { !! }
+  End;
+
+Procedure GetTime(Var Hour, Minute, Second, Sec100: Word);
+Var
+  mysec,
+  tick    : Longint;
+  cd      : pClockData;
+begin
+  New(cd);
+  CurrentTime(mysec,tick);
+  Amiga2Date(mysec,cd);
+  Hour   := cd^.hour;
+  Minute := cd^.min;
+  Second := cd^.sec;
+  Sec100 := 0;
+  Dispose(cd);
+END;
+
+
+Procedure SetTime(Hour, Minute, Second, Sec100: Word);
+  Begin
+  { !! }
+  End;
+
+Procedure unpacktime(p : longint;var t : datetime);
+Begin
+  AmigaToDt(p,t);
+End;
+
+
+Procedure packtime(var t : datetime;var p : longint);
+Begin
+  p := DtToAmiga(t);
+end;
+
+
+{******************************************************************************
+                               --- Exec ---
+******************************************************************************}
+
+
+Var
+  LastDosExitCode: word;
+  breakflag : Boolean;
+  ver: Boolean;
+
+
+Procedure Exec (Const Path: PathStr; Const ComLine: ComStr);
+  var
+   p : string;
+   pCLI : pCommandLineInterface;
+   buf: array[0..255] of char;
+  Begin
+   DosError := 0;
+   p:=Path+' '+ComLine;
+   Move(p[1],buf,length(p));
+   buf[Length(p)]:=#0;
+   if _Execute(buf,0,0) = 0 then
+      DosError:=10;
+   { Get the error code }
+   pCLI:=CLI;
+   LastDosExitCode:=pCLI^.cli_ReturnCode;
+  End;
+
+
+Function DosExitCode: Word;
+  Begin
+    DosExitCode:=LastdosExitCode;
+  End;
+
+
+Procedure GetCBreak(Var BreakValue: Boolean);
+  Begin
+   { Not implemented for Linux, but set to true as a precaution. }
+   breakvalue:=breakflag;
+  End;
+
+
+Procedure SetCBreak(BreakValue: Boolean);
+  Begin
+   breakflag:=BreakValue;
+   { ! No Linux equivalent ! }
+  End;
+
+
+  Procedure GetVerify(Var Verify: Boolean);
+   Begin
+     verify:=ver;
+   End;
+
+
+ Procedure SetVerify(Verify: Boolean);
+  Begin
+    ver:=Verify;
+  End;
+
+{******************************************************************************
+                               --- Disk ---
+******************************************************************************}
+
+{ How to solve the problem with this:       }
+{  We could walk through the device list    }
+{  at startup to determine possible devices }
+
+Function DiskFree(Drive: Byte): Longint;
+Var
+  MyLock      : BPTR;
+  Inf         : pInfoData;
+  Free        : Longint;
+Begin
+  Free := -1;
+  New(Inf);
+  MyLock := Lock(devicenames[deviceids(Drive)],-2);
+  If MyLock <> 0 then begin
+     if Info(MyLock,Inf) then begin
+        Free := (Inf^.id_NumBlocks * Inf^.id_BytesPerBlock) -
+                (Inf^.id_NumBlocksUsed * Inf^.id_BytesPerBlock);
+     end;
+     Unlock(MyLock);
+  end;
+  Dispose(Inf);
+  diskfree := Free;
+end;
+
+
+
+Function DiskSize(Drive: Byte): Longint;
+Var
+  MyLock      : BPTR;
+  Inf         : pInfoData;
+  Size        : Longint;
+Begin
+  Size := -1;
+  New(Inf);
+  MyLock := Lock(devicenames[deviceids(Drive)],-2);
+  If MyLock <> 0 then begin
+     if Info(MyLock,Inf) then begin
+        Size := (Inf^.id_NumBlocks * Inf^.id_BytesPerBlock);
+     end;
+     Unlock(MyLock);
+  end;
+  Dispose(Inf);
+  disksize := Size;
+end;
+
+
+
+
+Procedure FindFirst(Path: PathStr; Attr: Word; Var f: SearchRec);
+var
+ buf: Array[0..255] of char;
+ Anchor : pAnchorPath;
+ Result : Longint;
+ index : Integer;
+Begin
+ DosError:=0;
+ New(Anchor);
+ {----- allow backslash as slash         -----}
+ for index:=0 to length(path) do
+   if path[index]='\' then path[index]:='/';
+ {----- replace * by #? AmigaOs strings  -----}
+ repeat
+  index:= pos('*',Path);
+  if index <> 0 then
+   Begin
+     delete(Path,index,1);
+     insert('#?',Path,index);
+   end;
+ until index =0;
+ {--------------------------------------------}
+ FillChar(Anchor^,sizeof(TAnchorPath),#0);
+ move(path[1],buf,length(path));
+ buf[length(path)]:=#0;
+
+ Result:=MatchFirst(@buf,Anchor);
+ f.AnchorPtr:=Anchor;
+ if Result = ERROR_NO_MORE_ENTRIES then
+   DosError:=18
+ else
+ if Result <> 0 then
+   DosError:=3;
+ { If there is an error, deallocate }
+ { the anchorpath structure         }
+ if DosError <> 0 then
+   Begin
+     MatchEnd(Anchor);
+     if assigned(Anchor) then
+       Dispose(Anchor);
+   end
+ else
+ {-------------------------------------------------------------------}
+ { Here we fill up the SearchRec attribute, but we also do check     }
+ { something else, if the it does not match the mask we are looking  }
+ { for we should go to the next file or directory.                   }
+ {-------------------------------------------------------------------}
+   Begin
+         with Anchor^.ap_Info do
+          Begin
+             f.Time := fib_Date.ds_Days * (24 * 60 * 60) +
+             fib_Date.ds_Minute * 60 +
+             fib_Date.ds_Tick div 50;
+           {*------------------------------------*}
+           {* Determine if is a file or a folder *}
+           {*------------------------------------*}
+           if fib_DirEntryType > 0 then
+               f.attr:=f.attr OR DIRECTORY;
+
+           {*------------------------------------*}
+           {* Determine if Read only             *}
+           {*  Readonly if R flag on and W flag  *}
+           {*   off.                             *}
+           {* Should we check also that EXEC     *}
+           {* is zero? for read only?            *}
+           {*------------------------------------*}
+           if   ((fib_Protection and FIBF_READ) <> 0)
+            AND ((fib_Protection and FIBF_WRITE) = 0)
+           then
+              f.attr:=f.attr or READONLY;
+           f.Name := strpas(fib_FileName);
+           f.Size := fib_Size;
+         end; { end with }
+   end;
+End;
+
+
+Procedure FindNext(Var f: SearchRec);
+var
+ Result: longint;
+ Anchor : pAnchorPath;
+Begin
+ DosError:=0;
+ Result:=MatchNext(f.AnchorPtr);
+ if Result = ERROR_NO_MORE_ENTRIES then
+   DosError:=18
+ else
+ if Result <> 0 then
+   DosError:=3;
+ { If there is an error, deallocate }
+ { the anchorpath structure         }
+ if DosError <> 0 then
+   Begin
+     MatchEnd(f.AnchorPtr);
+     if assigned(f.AnchorPtr) then
+       Dispose(f.AnchorPtr);
+   end
+ else
+ { Fill up the Searchrec information     }
+ { and also check if the files are with  }
+ { the correct attributes                }
+   Begin
+         Anchor:=pAnchorPath(f.AnchorPtr);
+         with Anchor^.ap_Info do
+          Begin
+             f.Time := fib_Date.ds_Days * (24 * 60 * 60) +
+             fib_Date.ds_Minute * 60 +
+             fib_Date.ds_Tick div 50;
+           {*------------------------------------*}
+           {* Determine if is a file or a folder *}
+           {*------------------------------------*}
+           if fib_DirEntryType > 0 then
+               f.attr:=f.attr OR DIRECTORY;
+
+           {*------------------------------------*}
+           {* Determine if Read only             *}
+           {*  Readonly if R flag on and W flag  *}
+           {*   off.                             *}
+           {* Should we check also that EXEC     *}
+           {* is zero? for read only?            *}
+           {*------------------------------------*}
+           if   ((fib_Protection and FIBF_READ) <> 0)
+            AND ((fib_Protection and FIBF_WRITE) = 0)
+           then
+              f.attr:=f.attr or READONLY;
+           f.Name := strpas(fib_FileName);
+           f.Size := fib_Size;
+         end; { end with }
+   end;
+End;
+
+    Procedure FindClose(Var f: SearchRec);
+      begin
+      end;
+
+{******************************************************************************
+                               --- File ---
+******************************************************************************}
+
+Procedure FSplit(path: pathstr; var dir: dirstr; var name: namestr; var ext: extstr);
+var
+  I: Word;
+begin
+  { allow backslash as slash }
+  for i:=1 to length(path) do
+    if path[i]='\' then path[i]:='/';
+  I := Length(Path);
+  while (I > 0) and not ((Path[I] = '/') or (Path[I] = ':')) do Dec(I);
+  if Path[I] = '/' then
+     dir := Copy(Path, 0, I-1)
+  else dir := Copy(Path,0,I);
+
+  if Length(Path) > Length(dir) then
+     name := Copy(Path, I + 1, Length(Path)-I)
+     else name := '';
+
+  I := Pos('.',Path);
+  if I > 0 then
+     ext := Copy(Path,I,Length(Path)-(I-1))
+     else ext := '';
+end;
+
+Function FExpand(Path: PathStr): PathStr;
+var
+    FLock  : BPTR;
+    buffer : PathStr;
+    i :integer;
+begin
+   { allow backslash as slash }
+    for i:=1 to length(path) do
+       if path[i]='\' then path[i]:='/';
+    FLock := Lock(Path,-2);
+    if FLock <> 0 then begin
+       if NameFromLock(FLock,PasToC(buffer),255) then begin
+          buffer:=StrPas(Pchar(@buffer));
+          Unlock(FLock);
+          FExpand := buffer;
+       end else begin
+          Unlock(FLock);
+          FExpand := '';
+       end;
+    end else FExpand := '';
+end;
+
+
+   Function  fsearch(path : pathstr;dirlist : string) : pathstr;
+      var
+         i,p1   : longint;
+         s      : searchrec;
+         newdir : pathstr;
+      begin
+      { No wildcards allowed in these things }
+         if (pos('?',path)<>0) or (pos('*',path)<>0) then
+           fsearch:=''
+         else
+           begin
+              { allow slash as backslash }
+              for i:=1 to length(dirlist) do
+                if dirlist[i]='\' then dirlist[i]:='/';
+              repeat
+                p1:=pos(';',dirlist);
+                if p1=0 then
+                 begin
+                   newdir:=copy(dirlist,1,p1-1);
+                   delete(dirlist,1,p1);
+                 end
+                else
+                 begin
+                   newdir:=dirlist;
+                   dirlist:='';
+                 end;
+                if (newdir<>'') and (not (newdir[length(newdir)] in ['/',':'])) then
+                 newdir:=newdir+'/';
+                findfirst(newdir+path,anyfile,s);
+                if doserror=0 then
+                 newdir:=newdir+path
+                else
+                 newdir:='';
+              until (dirlist='') or (newdir<>'');
+              fsearch:=newdir;
+           end;
+      end;
+
+
+Procedure getftime (var f; var time : longint);
+{
+    This function returns a file's date and time as the number of
+    seconds after January 1, 1978 that the file was created.
+}
+var
+    FInfo : pFileInfoBlock;
+    FTime : Longint;
+    FLock : Longint;
+begin
+    DosError:=0;
+    FTime := 0;
+    FLock := Lock(StrPas(filerec(f).name), -2);
+    IF FLock <> 0 then begin
+        New(FInfo);
+        if Examine(FLock, FInfo) then begin
+             with FInfo^.fib_Date do
+             FTime := ds_Days * (24 * 60 * 60) +
+             ds_Minute * 60 +
+             ds_Tick div 50;
+        end else begin
+             FTime := 0;
+        end;
+        Unlock(FLock);
+        Dispose(FInfo);
+    end
+    else
+     DosError:=6;
+    time := FTime;
+end;
+
+
+  Procedure setftime(var f; time : longint);
+   var
+    ClockData: pClockData;
+  Begin
+    DosError:=0;
+    New(ClockData);
+(*    { We must find the number of days since jan-1978 }
+    ds_Days:=Time div 3600;
+    ds_Minute:=Time mod 3600;
+    ds_Tick:=
+    Amiga2Date(Time, ClockData);
+
+
+        ds_Days         : Longint;      { Number of days since Jan. 1, 1978 }
+        ds_Minute       : Longint;      { Number of minutes past midnight }
+        ds_Tick         : Longint;      { Number of ticks past minute }*)
+
+    Dispose(ClockData);
+  End;
+
+  Procedure getfattr(var f; var attr : word);
+  var
+    info : pFileInfoBlock;
+    MyLock : Longint;
+    flags: word;
+  Begin
+    DosError:=0;
+    flags:=0;
+    New(info);
+    { open with shared lock }
+    MyLock:=Lock(StrPas(filerec(f).name),-2);
+    if MyLock <> 0 then
+      Begin
+        Examine(MyLock,info);
+        {*------------------------------------*}
+        {* Determine if is a file or a folder *}
+        {*------------------------------------*}
+        if info^.fib_DirEntryType > 0 then
+             flags:=flags OR DIRECTORY;
+
+        {*------------------------------------*}
+        {* Determine if Read only             *}
+        {*  Readonly if R flag on and W flag  *}
+        {*   off.                             *}
+        {* Should we check also that EXEC     *}
+        {* is zero? for read only?            *}
+        {*------------------------------------*}
+        if   ((info^.fib_Protection and FIBF_READ) <> 0)
+         AND ((info^.fib_Protection and FIBF_WRITE) = 0)
+         then
+          flags:=flags OR ReadOnly;
+        Unlock(mylock);
+      end
+    else
+      DosError:=3;
+    attr:=flags;
+    Dispose(info);
+  End;
+
+
+Procedure setfattr (var f;attr : word);
+  var
+   flags: longint;
+   MyLock : longint;
+  Begin
+    DosError:=0;
+    flags:=FIBF_WRITE;
+    { open with shared lock }
+    MyLock:=Lock(StrPas(filerec(f).name),-2);
+
+    { By default files are read-write }
+    if attr AND ReadOnly <> 0 then
+      { Clear the Fibf_write flags }
+      flags:=FIBF_READ;
+
+
+    if MyLock <> 0 then
+     Begin
+       Unlock(MyLock);
+       if SetProtection(StrPas(filerec(f).name),flags) = 0 then
+         DosError:=5;
+     end
+    else
+      DosError:=3;
+  End;
+
+
+
+{******************************************************************************
+                             --- Environment ---
+******************************************************************************}
+
+ Function EnvCount: Longint;
+ { HOW TO GET THIS VALUE:                                }
+ {   Each time this function is called, we look at the   }
+ {   local variables in the Process structure (2.0+)     }
+ {   And we also read all files in the ENV: directory    }
+  Begin
+  End;
+
+
+ Function EnvStr(Index: Integer): String;
+  Begin
+    EnvStr:='';
+  End;
+
+
+
+function GetEnv(envvar : String): String;
+var
+   buffer : Pchar;
+   bufarr : array[0..500] of char;
+   strbuffer : array[0..255] of char;
+   temp : Longint;
+begin
+   move(envvar[1],strbuffer,length(envvar));
+   strbuffer[length(envvar)] := #0;
+   buffer := @bufarr;
+   temp := GetVar(strbuffer,buffer,500,$100);
+   if temp = -1 then
+      GetEnv := ''
+   else GetEnv := StrPas(buffer);
+end;
+
+
+{******************************************************************************
+                             --- Not Supported ---
+******************************************************************************}
+
+Procedure keep(exitcode : word);
+  Begin
+  { ! Not implemented in Linux ! }
+  End;
+
+
+Begin
+ DosError:=0;
+ ver:=TRUE;
+ breakflag:=TRUE;
 End.
 
 
