@@ -8,6 +8,9 @@ units=gdbcon gdbint
 [default]
 fpcdir=../..
 
+[install]
+fpcpackage=y
+
 [rules]
 gdbint$(PPUEXT): gdbint.pas
 
