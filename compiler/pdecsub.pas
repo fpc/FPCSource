@@ -2122,7 +2122,15 @@ const
                break;
               { support procedure proc;stdcall export; }
               if not(check_proc_directive((pd.deftype=procvardef))) then
-               consume(_SEMICOLON);
+                begin
+                  { support "record p : procedure stdcall end;" and
+                    "var p : procedure stdcall = nil;" }
+                  if (pd_procvar in pdflags) and
+                     (token in [_END,_RKLAMMER,_EQUAL]) then
+                    break
+                  else
+                    consume(_SEMICOLON);
+                end;
             end
            else
             break;
@@ -2441,7 +2449,10 @@ const
 end.
 {
   $Log$
-  Revision 1.228  2005-02-01 08:46:13  michael
+  Revision 1.229  2005-02-03 17:11:40  peter
+    * more procvar directive fixes
+
+  Revision 1.228  2005/02/01 08:46:13  michael
    * Patch from peter: fix macpas anonymous function procvar
 
   Revision 1.227  2005/01/31 21:27:51  peter

@@ -725,6 +725,9 @@ implementation
                not(is_object and (idtoken in [_PUBLIC,_PRIVATE,_PUBLISHED,_PROTECTED])) do
            begin
              sorg:=orgpattern;
+             semicoloneaten:=false;
+             hasdefaultvalue:=false;
+             symdone:=false;
              sc.reset;
              repeat
                case symtablestack.symtabletype of
@@ -769,6 +772,7 @@ implementation
               end
              else
               read_type(tt,'',false);
+             ignore_equal:=false;
              { Process procvar directives }
              if (tt.def.deftype=procvardef) and
                 (tt.def.typesym=nil) and
@@ -780,9 +784,8 @@ implementation
                   newtype.restype.def:=nil;
                   tt.def.typesym:=nil;
                   newtype.free;
-               end
-             else
-               semicoloneaten:=false;
+               end;
+
 {$ifdef powerpc}
                { from gcc/gcc/config/rs6000/rs6000.h:
                 /* APPLE LOCAL begin Macintosh alignment 2002-1-22 ff */
@@ -813,14 +816,12 @@ implementation
                    is_first_field := false;
                  end;
 {$endif powerpc}
+
              { types that use init/final are not allowed in variant parts, but
                classes are allowed }
              if (variantrecordlevel>0) and
                 (tt.def.needs_inittable and not is_class(tt.def)) then
                Message(parser_e_cant_use_inittable_here);
-             ignore_equal:=false;
-             hasdefaultvalue:=false;
-             symdone:=false;
 
              if is_gpc_name then
                begin
@@ -953,32 +954,28 @@ implementation
                begin
                  { for a record there doesn't need to be a ; before the END or )    }
                  if not(token in [_END,_RKLAMMER]) and
-                   { procedure variables with a calling specifier consume a semicolon }
-                   not(semicoloneaten) then
+                    not(semicoloneaten) then
                    consume(_SEMICOLON);
                end
              else
+             { Handling of Delphi typed const = initialized vars }
+               if (token=_EQUAL) and
+                  not(m_tp7 in aktmodeswitches) and
+                  (symtablestack.symtabletype<>parasymtable) then
+                 begin
+                   { Add calling convention for procvar }
+                   if (tt.def.deftype=procvardef) and
+                      (tt.def.typesym=nil) then
+                     handle_calling_convention(tprocvardef(tt.def));
+                   read_default_value(sc,tt,is_threadvar);
+                   consume(_SEMICOLON);
+                   { for locals we've created typedconstsym with a different name }
+                   if symtablestack.symtabletype<>localsymtable then
+                     symdone:=true;
+                   hasdefaultvalue:=true;
+                 end
+             else
                begin
-                 { Handling of Delphi typed const = initialized vars }
-                 if (token=_EQUAL) and
-                    not(m_tp7 in aktmodeswitches) and
-                    (symtablestack.symtabletype<>parasymtable) then
-                   begin
-                     if (tt.def.deftype=procvardef) and
-                        (tt.def.typesym=nil) then
-                       begin
-                         { Add calling convention for procvar }
-                         handle_calling_convention(tprocvardef(tt.def));
-                         semicoloneaten:=true;
-                       end
-                     else
-                       semicoloneaten:=false;
-                     read_default_value(sc,tt,is_threadvar);
-                     { for locals we've created typedconstsym with a different name }
-                     if symtablestack.symtabletype<>localsymtable then
-                       symdone:=true;
-                     hasdefaultvalue:=true;
-                   end;
                  if not(semicoloneaten) then
                    consume(_SEMICOLON);
                end;
@@ -1321,7 +1318,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.95  2005-02-02 19:03:27  florian
+  Revision 1.96  2005-02-03 17:11:40  peter
+    * more procvar directive fixes
+
+  Revision 1.95  2005/02/02 19:03:27  florian
     * fixed proc. vars with calling specifiers in usual var declarations
 
   Revision 1.94  2005/02/01 23:18:54  florian
