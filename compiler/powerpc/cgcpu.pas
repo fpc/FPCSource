@@ -1701,7 +1701,7 @@ const
            list.concat(taicpu.op_reg_reg_reg(A_ADD,r,ref2.base,ref2.index))
          else if (ref2.base <> NR_NO) and
                  (r <> ref2.base) then
-           a_load_reg_reg(list,OS_ADDR,OS_ADDR,r,ref2.base)
+           a_load_reg_reg(list,OS_ADDR,OS_ADDR,ref2.base,r)
          else
            list.concat(taicpu.op_reg_const(A_LI,r,0));
          if freereg then
@@ -2292,7 +2292,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.159  2004-02-07 15:01:05  jonas
+  Revision 1.160  2004-02-08 14:50:13  jonas
+    * fixed previous commit
+
+  Revision 1.159  2004/02/07 15:01:05  jonas
     * changed an explicit mr to a_load_reg_reg so it's registered with the
       register allocator as move
 
