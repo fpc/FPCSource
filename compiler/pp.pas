@@ -133,7 +133,8 @@ uses
 {$EndIf}
 {$ifdef TP}
   objects,
-{$endif}  
+{$endif}
+
   dos,cobjects,
   globals,parser,systems,tree,symtable,options,link,import,files,
   verb_def,verbose;
@@ -292,8 +293,13 @@ var
 begin
   oldexit:=exitproc;
   exitproc:=@myexit;
-
-  start:=getrealtime;
+{$ifdef linux}
+  heapblocks:=true;
+{$else}
+  {$ifdef go32v2}
+    heapblocks:=true;
+  {$endif}
+{$endif}
 {$ifdef EXTDEBUG}
    EntryMemAvail:=MemAvail;
 {$endif}
@@ -352,6 +358,7 @@ begin
    Message1(general_u_gcclibpath,Linker.gcclibrarypath);
 {$endif}
 
+   start:=getrealtime;
    compile(inputdir+inputfile+inputextension,false);
 
    if errorcount=0 then
@@ -373,7 +380,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  1998-04-29 10:33:59  pierre
+  Revision 1.6  1998-04-29 13:40:23  peter
+    + heapblocks:=true
+
+  Revision 1.5  1998/04/29 10:33:59  pierre
     + added some code for ansistring (not complete nor working yet)
     * corrected operator overloading
     * corrected nasm output
