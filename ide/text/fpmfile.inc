@@ -98,7 +98,7 @@ begin
 {$endif not FPC}
        end;
      if FileDir<>'' then
-       ChDir(FileDir);
+       ChDir(TrimEndSlash(FileDir));
      New(D, Init(OpenExts,'Open a file','File to ope~n~',fdOpenButton,0));
      OpenIt:=Desktop^.ExecView(D)<>cmCancel;
      { if I go to root under go32v2 and there is no
@@ -113,12 +113,12 @@ begin
        End;
      Dispose(D, Done);
      if DriveNumber<>0 then
-       ChDir(StoreDir2);
+       ChDir(TrimEndSlash(StoreDir2));
 {$ifndef FPC}
      if (Length(StoreDir)>1) and (StoreDir[2]=':') then
        ChDir(Copy(StoreDir,1,2));
 {$endif not FPC}
-     ChDir(StoreDir);
+     ChDir(TrimEndSlash(StoreDir));
    end;
   if OpenIt then
    begin
@@ -189,7 +189,10 @@ end;
 
 {
   $Log$
-  Revision 1.17  1999-12-01 16:48:09  pierre
+  Revision 1.18  2000-03-21 23:29:52  pierre
+   + Use TrimEndSlash by Gabor
+
+  Revision 1.17  1999/12/01 16:48:09  pierre
    * avoid problems after going to root directory
 
   Revision 1.16  1999/11/30 17:15:32  pierre
