@@ -2801,8 +2801,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
   begin
       if procinfo.retdef<>pdef(voiddef) then
           begin
-              if (procinfo.flags and pi_operator)<>0 then
-                procinfo.funcret_is_valid:=opsym^.refs>0;
+              if ((procinfo.flags and pi_operator)<>0) and
+                 assigned(opsym) then
+                procinfo.funcret_is_valid:=
+                  procinfo.funcret_is_valid or (opsym^.refs>0);
               if not(procinfo.funcret_is_valid) and not inlined { and
                 ((procinfo.flags and pi_uses_asm)=0)} then
                CGMessage(sym_w_function_result_not_set);
@@ -3086,7 +3088,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.5.2.1  1999-06-14 17:27:08  peter
+  Revision 1.5.2.2  1999-06-17 12:38:39  pierre
+   * wrong warning for operators removed
+
+  Revision 1.5.2.1  1999/06/14 17:27:08  peter
     * fixed posavestd regs which popped at the wrong place
 
   Revision 1.5  1999/06/03 16:21:15  pierre
