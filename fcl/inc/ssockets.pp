@@ -219,7 +219,11 @@ end;
 
 destructor TSocketStream.Destroy;
 begin
+  {$ifdef netware}
+  CloseSocket(Handle);
+  {$else}
   FileClose(Handle);
+  {$endif}
   inherited Destroy;
 end;
 
@@ -280,7 +284,11 @@ Procedure TSocketServer.Close;
 
 begin
   If FSocket<>-1 Then
+    {$ifdef netware}
+    CloseSocket(FSocket);
+    {$else}
     FileClose(FSocket);
+    {$endif}
   FSocket:=-1;
 end;
 
@@ -560,7 +568,10 @@ end.
 
 {
   $Log$
-  Revision 1.18  2003-03-21 23:10:24  armin
+  Revision 1.19  2003-03-25 17:47:06  armin
+  * use closesocket and not fdClose for netware
+
+  Revision 1.18  2003/03/21 23:10:24  armin
   * changed defines not win32 to not Unix (Netware is not Unix nor win32)
 
   Revision 1.17  2003/03/11 13:15:40  michael
