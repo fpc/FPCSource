@@ -962,7 +962,7 @@ const
         tppcprocinfo(procinfo).localsize:=localsize;
 
         reference_reset_base(href,R_1,-localsize);
-        list.concat(taicpu.op_reg_ref(A_STWU,R_1,href));
+        a_load_store(list,A_STWU,R_1,href);
 
         { no GOT pointer loaded yet }
         gotgot:=false;
@@ -981,7 +981,7 @@ const
                if regcounter in rg.usedbyproc then
                  begin
                     { reference_reset_base(href,R_1,-localsize);
-                    list.concat(taicpu.op_reg_ref(A_STWU,R_1,href));
+                    a_load_store(list,A_STWU,R_1,href);
                     }
                  end;
 
@@ -1101,7 +1101,7 @@ const
           begin
              { adjust r1 }
              reference_reset_base(href,R_1,tppcprocinfo(procinfo).localsize);
-             list.concat(taicpu.op_reg_ref(A_STWU,R_1,href));
+             a_load_store(list,A_STWU,R_1,href);
              { load link register? }
              if (procinfo.flags and pi_do_call)<>0 then
                begin
@@ -1464,6 +1464,7 @@ const
             (ref.offset = 0)));
       end;
 
+
     function tcgppc.fixref(list: taasmoutput; var ref: treference): boolean;
 
        var
@@ -1575,11 +1576,15 @@ const
         tmpref: treference;
 
       begin
-        if assigned(ref.symbol) then
+        tmpreg := R_NO;
+        if assigned(ref.symbol) or
+           (cardinal(ref.offset-low(smallint)) >
+            high(smallint)-low(smallint)) then
           begin
             tmpreg := get_scratch_reg_address(list);
             reference_reset(tmpref);
             tmpref.symbol := ref.symbol;
+            tmpref.offset := ref.offset;
             tmpref.symaddr := refs_ha;
             if ref.base <> R_NO then
               list.concat(taicpu.op_reg_reg_ref(A_ADDIS,tmpreg,
@@ -1590,7 +1595,7 @@ const
             ref.symaddr := refs_l;
           end;
         list.concat(taicpu.op_reg_ref(op,reg,ref));
-        if assigned(ref.symbol) then
+        if (tmpreg <> R_NO) then
           free_scratch_reg(list,tmpreg);
       end;
 
@@ -1714,7 +1719,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.54  2002-09-07 17:54:58  florian
+  Revision 1.55  2002-09-08 13:03:26  jonas
+    * several large offset-related fixes
+
+  Revision 1.54  2002/09/07 17:54:58  florian
     * first part of PowerPC fixes
 
   Revision 1.53  2002/09/07 15:25:14  peter

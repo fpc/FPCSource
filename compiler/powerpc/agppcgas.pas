@@ -78,6 +78,7 @@ unit agppcgas;
        as_ppc_gas_info : tasminfo =
           (
             id     : as_gas;
+
             idtxt  : 'AS';
             asmbin : 'as';
             asmcmd : '-o $OBJ $ASM';
@@ -150,19 +151,15 @@ unit agppcgas;
        with ref do
         begin
           inc(offset,offsetfixup);
-          if (offset < -32768) or (offset > 32767) then
-{$ifndef testing}
+          if ((offset < -32768) or (offset > 32767)) and
+             (symaddr = refs_full) then
             internalerror(19991);
-{$else testing}
-            begin
-              writeln('internalerror 19991');
-              halt(1);
-            end;
-{$endif testing}
-          if not assigned(symbol) then
-             s:=''
-           else
-             s:=symbol.name+symaddr2str[symaddr];
+          if (symaddr = refs_full) then
+            s := ''
+          else if not assigned(symbol) then
+            s := '('
+          else
+            s:='('+symbol.name;
           if offset<0 then
            s:=s+tostr(offset)
           else
@@ -173,6 +170,10 @@ unit agppcgas;
               else
                s:=s+tostr(offset);
             end;
+
+           if (symaddr <> refs_full) then
+             s := s+')'+symaddr2str[symaddr];
+
            if (index=R_NO) and (base<>R_NO) then
              begin
                 if offset=0 then
@@ -187,17 +188,11 @@ unit agppcgas;
            else if (index<>R_NO) and (base<>R_NO) and (offset=0) then
              s:=s+gas_reg2str[base]+','+gas_reg2str[index]
            else if ((index<>R_NO) or (base<>R_NO)) then
-{$ifndef testing}
             internalerror(19992);
-{$else testing}
-            begin
-              writeln('internalerror 19992');
-              halt(1);
-            end;
-{$endif testing}
         end;
       getreferencestring:=s;
     end;
+
 
     function getopstr_jmp(const o:toper) : string;
     var
@@ -368,7 +363,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  2002-09-01 21:04:48  florian
+  Revision 1.18  2002-09-08 13:03:26  jonas
+    * several large offset-related fixes
+
+  Revision 1.17  2002/09/01 21:04:48  florian
     * several powerpc related stuff fixed
 
   Revision 1.16  2002/08/31 19:27:48  jonas
