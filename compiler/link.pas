@@ -442,11 +442,9 @@ var
   arbin   : string;
   arfound : boolean;
   cnt     : longint;
-  i       : word;
 begin
   smartpath:=current_module^.path^+FixPath(FixFileName(current_module^.modulename^)+target_info.smartext);
 { find ar binary }
-
   arbin:=FindExe(target_ar.arbin,arfound);
   if (not arfound) and not(cs_link_extern in aktglobalswitches) then
    begin
@@ -458,8 +456,7 @@ begin
   if filescnt=0 then
    Replace(s,'$FILES',current_module^.objfilename^)
   else
-
-   Replace(s,'$FILES',smartpath+current_module^.asmprefix^+'*'+target_info.objext);
+   Replace(s,'$FILES',FixFileName(smartpath+current_module^.asmprefix^+'*'+target_info.objext));
   DoExec(arbin,s,false,true);
 { Clean up }
   if not(cs_asm_leave in aktglobalswitches) and not(cs_link_extern in aktglobalswitches) then
@@ -468,14 +465,10 @@ begin
       RemoveFile(current_module^.objfilename^)
      else
       begin
-
         for cnt:=1 to filescnt do
-         RemoveFile(smartpath+current_module^.asmprefix^+tostr(cnt)+target_info.objext);
-        {$I-}
-         rmdir(smartpath);
-        {$I+}
-        i:=ioresult;
-      end;      
+         RemoveFile(FixFileName(smartpath+current_module^.asmprefix^+tostr(cnt)+target_info.objext));
+        RemoveDir(smartpath);
+      end;
    end;
 end;
 
@@ -495,7 +488,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.19  1998-08-17 09:17:47  peter
+  Revision 1.20  1998-08-19 10:06:14  peter
+    * fixed filenames and removedir which supports slash at the end
+
+  Revision 1.19  1998/08/17 09:17:47  peter
     * static/shared linking updates
 
   Revision 1.18  1998/08/14 21:56:34  peter

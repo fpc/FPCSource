@@ -534,9 +534,9 @@ unit files;
          exefilename:=nil;
          { go32v2 has the famous 8.3 limit ;) }
 {$ifdef go32v2}
-         asmprefix:=stringdup('as');
+         asmprefix:=stringdup(FixFileName('as'));
 {$else}
-         asmprefix:=stringdup(Lower(n));
+         asmprefix:=stringdup(FixFileName(n));
 {$endif}
          path:=nil;
          setfilename(p+n);
@@ -642,7 +642,10 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.37  1998-08-18 20:52:19  peter
+  Revision 1.38  1998-08-19 10:06:12  peter
+    * fixed filenames and removedir which supports slash at the end
+
+  Revision 1.37  1998/08/18 20:52:19  peter
     * renamed in_main to in_global which is more logical
 
   Revision 1.36  1998/08/17 10:10:07  peter
