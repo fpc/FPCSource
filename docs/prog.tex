@@ -640,6 +640,36 @@ switch \var{-Sm}.
 
 By default, macros are not allowed.
 
+\subsection{\var{\$MAXFPUREGISTERS} : Maximum number of FPU registers for variables}
+
+The \var{\{\$MAXFPUREGISTERS XXX\}} directive tells the compiler how much floating point
+variables can be kept in the floating point processor registers. This switch is ignored
+unless the \var{-Or} (use register variables) optimization is used.
+
+Since version 0.99.14, the \fpc compiler supports floating point register variables;
+the content of these variables is not stored on the stack, but is kept in the
+floating point processor stack.
+
+This is quite tricky because the Intel FPU stack is limited to 8 entries.
+The compiler uses a heuristic algorithm to determine how much variables should be
+put onto the stack: in leaf procedures it is limited to 3 and in non leaf
+procedures to 1. But in case of a deep call tree or, even worse, a recursive
+procedure this can still lead to a FPU stack overflow, so the user can tell
+the compiler how much (floating point) variables should be kept in registers.
+
+The directive accepts the following arguments:
+
+\begin{description}
+\item [N] where \var{N} is the maximum number of FPU registers to use.
+Currently this can be in the range 0 to 7.
+\item[Normal] restores the heuristic and standard behavior.
+\item[Default] restores the heuristic and standard behaviour.
+\end{description}
+
+\begin{remark}
+The directive is valid untill the end of the current procedure.
+\end{remark}
+
 \subsection{\var{\$MESSAGE} : Generate info message}
 
 If the generation of info is turned on, through the \var{-vi} command-line
@@ -4375,41 +4405,252 @@ consequences of this is that the type \var{Integer} is redefined as
 % Appendix E
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\chapter{Using \file{makefile.fpc}}
+\chapter{Using \file{fpcmake}}
 \label{ch:makefile}
 \newcommand{\mvar}[1]{\var{\$(#1)}}
-
 \section{Introduction}
-\fpc comes with a special makefile, \file{makefile.fpc}, which can be
-included in any makefile you use to compile with \fpc. There is a template
-\file{Makefile} provided also. All sources from the \fpc team are compiled
-with this system.
+\fpc comes with a special makefile tool, \file{fpcmake}, which can be
+used to construct a \file{Makefile} for use with \gnu \file{make}.
+All sources from the \fpc team are compiled with this system.
 
-These files are installed in the following directories:
+\file{fpcmake} uses a file \file{Makefile.fpc} and constructs a file
+\file{Makefile} from it, based on the settings in \file{Makefile.fpc}.
+
+The following sections explain what settings can be set in \file{Makefile.fpc},
+what variables are set by \var{fpcmake}, what variables it expects to be set,
+and what targets it defines. After that, some settings in the resulting
+\file{Makefile} are explained.
+
+\section{Usage}
+\file {fpcmake} reads a \file{Makefile.fpc} and converts it to a 
+\file{Makefile} suitable for reading by \gnu \file{make}
+to compile your projects. It is similar in functionality to GNU 
+\file{configure} or \var{Imake} for making X projects.
+
+\file{fpcmake} accepts filenames of makefile description files
+as it's command-line arguments. For each of these files it will
+create a \file{Makefile} in the same directory where the file is
+located, overwriting any other existing file.
+
+If no options are given, it just attempts to read the file 
+\file{Makefile.fpc} in the current directory and tries to
+construct a \file{Makefile} from it. any previously existing
+\file{Makefile} will be erased. 
+
+\section{Format of the \file{Makefile.fpc} configuration file}
+This section describes the rules that can be present in the file
+that is fed to \file{fpcmake}.
+
+\file{Makefile.fpc} is a plain ASCII file that contains a number
+of sections as in a \windows \file{.ini}-file.
+
+The following sections are recognized (in alphabetical order):
+
+\subsection{Clean}
+Specifies rules for cleaning the directory of units and programs. 
+The following entries are recognized:
 \begin{description}
-\item[linux]
-\item[Dos or Windows]
+\item[units] names of all units that should be removed when cleaning.
+Don't specify extensions, the makefile will append these by itself.
+\item[files] names of files that should be removed. Specify full filenames.
 \end{description}
 
-The template \file{Makefile} searches for the \file{makefile.fpc} in  the
-following places :
-\begin{enumerate}
-\item The {\em file} pointed to by the \var{FPCMAKE} environment variable.
-\item The directory pointed to by the \var{FPCDIR} envinonment variable.
-\item The directory pointed to by the \var{DEFAULTFPCDIR} make variable.
-\item The current directory.
-\end{enumerate}
-Thus, setting \var{FPCMAKE} or \var{FPCDIR} as an environment string will
-ensure that \file{makefile.fpc} is always found, and will be read by all
-makefiles, derived from the template.
+\subsection{Defaults}
+The \var{defaults} section contains some default settings. The following keywords
+are recognized:
 
-The following sections explain what variables are set by \var{makefile.fpc},
-what variables it expects to be set, and what targets it defines. After
-that, some settings in the template makefile are explained.
+\subsection{Dirs}
 
-\section{Programs needed to use the makefile}
+\subsection{Info}
 
-The following programs are needed by the makefile to function correctly:
+\subsection{Install}
+Contains instructions for installation of your units and programs. The
+following keywods are recognized:
+\begin{description}
+\item[dirprefix] is the directory below wchich all installs are done.
+This corresponds to the \var{--prefix} argument to \gnu \file{configure}.
+It is used for the installation of programs and units. By default, this is 
+\file{/usr} on \linux, and \file{/pp} on all other platforms.
+\item[dirbase]
+The directory that is used as the base directory for the installation of
+units. Default this is \var{dirprefix} appended with \var{/lib/fpc/FPC\_VERSION}
+for \linux or simply the \var{dirprefix} on other platforms.
+\end{description}
+Units will be installed in the subdirectory  \file{units/\$(OS\_TARGET)}
+of the \var{dirbase} entry.
+
+\subsection{Libs}
+This section specifies what units should be merged into a library, and what
+external libraries are needed. It can contain the following keywords:
+\begin{description}
+\item[libname] the name of the library that should be created.
+\item[libunits] a comma-separated list of units that should be moved into
+one library.
+\item[needgcclib] a boolean value that specifies whether the \file{gcc}
+library is needed. This will make sure that the path to the GCC library
+is inserted in the library search path.
+\item[needotherlib]
+a boolean value that tells the makefile that other library directories will 
+be needed.
+\end{description}
+
+\subsection{Packages}
+Which packages must be used. This section can contain the following keywords:
+\begin{description}
+\item[packages]
+A comma-separated list of packages that are needed to compile the targets.
+Valid for all platforms. In order to differentiate between platforms, you
+can prepend the keyword \var{packages} with the OS you are compiling for,
+e.g.  \var{linuxpackages} if you want the makefile to use the listed
+packages on linux only.
+\item[fcl] This is a boolean value (0 or 1) that indicates whether the FCL is used.
+\item[rtl]
+This is a boolean value (0 or 1) that indicates whether the RTL should be
+recompiled.
+\end{description}
+
+\subsection{Postsettings}
+Anything that is in this section will be inserted as-is in the makefile
+\textit{after} the makefile rules that are generated by fpcmake, but 
+\textit{before} the general configuration rules.
+In this section, you cannot use variables that are defined by fpcmake rules, but you
+can define additional rules and configuration variables.
+
+\subsection{Presettings}
+Anything that is in this section will be inserted as-is in the makefile
+\textit{before} the makefile target rules that are generated by fpcmake.
+This means that you cannot use any variables that are normally defined by
+fpcmake rules.
+
+\subsection{Rules}
+In this section you can insert dependency rules and any other targets 
+you wish to have. Do not insert 'default rules' here.
+
+\subsection{Sections}
+Here you can specify which 'rule sections' should be included in the
+\file{Makefile}. 
+The sections consist of a series of boolean keywords; each keyword decies
+whether a particular section will be written to the makefile. By default,
+all sections are written.
+ 
+You can have the following boolean keywords in this section.
+\begin{description}
+\item[none]
+If this is set to true, then no sections are written.
+\item[units]
+If set to \var{False}, \file{fpcmake} omits the rules for compiling units.
+\item[exes]
+If set to \var{False}, \file{fpcmake} omits the rules for compiling executables.
+\item[loaders]
+If set to \var{False}, \file{fpcmake} omits the rules for assembling assembler files.
+\item[examples]
+If set to \var{False}, \file{fpcmake} omits the rules for compiling examples.
+\item[package]
+If set to \var{False}, \file{fpcmake} omits the rules for making packages.
+\item[compile]
+If set to \var{False}, \file{fpcmake} omits the generic rules for compiling pascal files.
+\item[depend]
+If set to \var{False}, \file{fpcmake} omits the dependency rules.
+\item[install]
+If set to \var{False}, \file{fpcmake} omits the rules for installing everything.
+\item[sourceinstall]
+If set to \var{False}, \file{fpcmake} omits the rules for installing the sources.
+\item[zipinstall]
+If set to \var{False}, \file{fpcmake} omits the rules for installing archives.
+\item[clean]
+If set to \var{False}, \file{fpcmake} omits the rules for cleaning the directories.
+\item[libs]
+If set to \var{False}, \file{fpcmake} omits the rules for making libraries.
+\item[command]
+If set to \var{False}, \file{fpcmake} omits the rules for composing the command-line based on the various
+variables.
+\item[exts]
+If set to \var{False}, \file{fpcmake} omits the rules for making libraries.
+\item[dirs]
+If set to \var{False}, \file{fpcmake} omits the rules for running make in subdirectories..
+\item[tools]
+If set to \var{False}, \file{fpcmake} omits the rules for running some tools as the erchiver, UPX and zip.
+\item[info]
+If set to \var{False}, \file{fpcmake} omits the rules for generating information.
+\end{description}
+
+\subsection{Targets}
+In this section you can define the various targets. The following keywords
+can be used there:
+\begin{description}
+\item[dirs]
+A space separated list of directories where make should also be run.
+\item[examples]
+A space separated list of example programs that need to be compiled when
+the user asks to compile the examples. Do not specify an extension, 
+the extension will be appended.
+\item[loaders]
+A space separated list of names of assembler files that must be assembled.
+Don't specify the extension, the extension will be appended.
+\item[programs]
+A space separated list of program names that need to be compiled. Do not
+specify an extension, the extension will be appended.
+\item[rst] a list of \file{rst} files that needs to be converted to \file{.po}
+files for use with \gnu \file{gettext} and internationalization routines.
+\item[units]
+A space separated list of unit names that need to be compiled. Do not
+specify an extension, just the name of the unit as it would appear un a 
+\var{uses} clause is sufficient.
+\end{description}
+
+\subsection{Tools}
+In this section you can specify which tools are needed. Definitions to
+use each of the listed tools will be inserted in the makefile, depending
+on the setting in this section.
+
+Each keyword is a boolean keyword; you can switch the use of a tool on or
+off with it.
+
+The following keywords are recognised:
+\begin{description}
+\item[toolppdep]
+Use \file{ppdep}, the dependency tool. \var{True} by default.
+\item[toolppumove]
+Use \file{ppumove}, the Free Pascal unit mover. \var{True} by default.
+\item[toolppufiles]
+Use the \file{ppufile} tool to determine dependencies of unit files.
+\var{True} by default.
+\item[toolsed]
+Use \file{sed} the stream line editor. \var{False} by default.
+\item[tooldata2inc]
+Use the \file{data2inc} tool to create include files from data files.
+\var{False} by default.
+\item[tooldiff]
+Use the \gnu \file{diff} tool. \var{False} by default.
+\item[toolcmp]
+Use the \file{cmp} file comparer tool. \var{False} by default.
+\item[toolupx]
+Use the \file{upx} executable packer.\var{True} by default.
+\item[tooldate]
+use the \file{date} date displaying tool. \var{True} by default.
+\item[toolzip]
+Use the \file{zip} file archiver. This is used by the zip targets.
+\var{True} by default.
+\end{description}
+
+\subsection{Zip}
+This section can be used to make zip files from the compiled units and
+programs. By default all compiled units are zipped. The zip behaviour can
+be influenced with the presettings and postsettings sections.
+
+The following keywords can be used in this unit:
+\begin{description}
+\item[zipname]
+this file is the name of the zip file that will be produced.
+\item[ziptarget]
+is the name of a makefile target that will be executed before the zip is
+made. By default this is the  \var{install} target.
+\end{description}
+
+\section{Programs needed to use the generated makefile}
+
+The following programs are needed by the generated \file{Makefile}
+to function correctly:
 \begin{description}
 \item[cp] a copy program.
 \item[date] a program that prints the date.
@@ -4422,98 +4663,130 @@ These are standard programs on linux systems, with the possible exception of
 \file{make}. For \dos or \windowsnt, they can be found in the
 file \file{gnuutils.zip} on the \fpc FTP site.
 
+The following programs are optionally needed if you use some special targets.
+Which ones you need are controlled by the settings in the \var{tools} section.
+
+\begin{description}
+\item[cmp] a \dos and \windowsnt file comparer. Used if \var{toolcmp} is \var{True}.
+\item[diff] a file comparer. Used if \var{tooldiff} is \var{True}.
+\item[ppdep] the ppdep depency lister. Used if \var{toolppdep} is \var{True}.
+Distributed with \fpc.
+\item[ppfiles] the ppufiles unit file depency lister. Used if \var{toolppufiles}
+is \var{True}. Distributed with \fpc.
+\item[ppumove] the \fpc unit mover. Used if \var{toolppumove} is \var{True}.
+Distributed with \fpc.
+\item[sed] the \file{sed} program. Used if \var{toolsed} is \var{True}.
+\item[upx] the UPX executable packer. Used if \var{toolupx} is \var{True}.
+\item[zip] the zip archiver program. Used if \var{toolzip} is \var{True}.
+\end{description}
+All of these can also be found on the \fpc FTP site for \dos and \windowsnt.
+
 \section{Variables used by \file{makefile.fpc}}
 
 Many variables affect the behaviour of the makefile.  The variables can be
 split in several groups:
 \begin{description}
-\item[Required variables]
-\item[Directory variables]
+\item[Required environment variables]
+\item[Command-line directory variables]
+\item[Internal directory variables]
 \item[Target variables]
 \item[Compiler command-line variables]
+\item[Internal Compiler command-line variables]
 \end{description}
 Each group will be discussed separately in the subsequent.
 
-\subsection{Required variables}
+\subsection{Required environment variables}
 
-In principle, the \var{makefile.fpc} only expects one variable to be set:
+In principle, \var{fcmake} doesn't expect any environment variable to be set.
+Optionally, you can set the variable
+\var{FPCMAKEINI} which should contain the name of a file with the basic
+rules that fpcmake will generate.
+
+By default, \file{fpcmake} has a compiled-in copy of \file{fpcmake.ini},
+which contains the basic rules, so there should be no need to set this variable.
+You can set it however, if you wish to change the way in which fpcmake works and
+creates rules.
+
+The initial \file{fpcmake.ini} file can be found in the \file{utils} source
+package on the \fpc web site.
+
+\subsection{Command-line Directory variables}
+
+The first set of variables controls the directories that are
+recognised in the makefile. They should not be set in the
+\file{Makefile.fpc} file, but can be specified on the commandline.
+
+
 \begin{description}
-\item[FPCDIR] This is the base directory of \fpc sources. The makefile
-expects to find a directory \file{rtl} below this directory.
-\end{description}
 
-\subsection{Directory variables}
-
-The first set of variables controls the directories used in the makefile:
-
-\begin{description}
-\item[INC] this is a list of directories, separated by spaces, that will
-be added as include directories to the compiler command-line.
+\item[INCDIR] this is a list of directories, separated by spaces, that will
+be added as include directories to the compiler command-line.  Each
+directory in the list is prepended with \var{-I} and added to the
+compiler options.
 
 \item[LIBDIR] is a list of library paths, separated by spaces. Each
 directory in the list is prepended with \var{-Fl} and added to the
-compiler options.
-
-\item[NEEDLIBDIR] is a space-separated list of library paths. Each
-directory in the list is
-prepended with \var{-Fl} and added to the compiler options.
-
-\item[NEEDOBJDIR] is a list of object file directories, separated by
- spaces. Each directory in the list is prepended with \var{-Fo} and
-added to the compiler options.
-
-\item[NEEDUNITDIR] is a list of unit directories, separated by spaces.
-Each directory in the list is prepended with \var{-Fu} and is added to the
 compiler options.
 
 \item[OBJDIR] is a list of object file directories, separated by spaces, that is
 added to the object files path, i.e. Each directory in the list is prepended with
 \var{-Fo}.
 
+\end{description}
+
+\subsection{Internal Directory variables}
+
+These variables specify directories that are absolutely needed by
+the makefile to function.
+
+\begin{description}
+\item[NEEDINCDIR] is a space-separated list of library paths. Each
+directory in the list is prepended with \var{-Fl} and added to the
+compiler options.
+\item[NEEDLIBDIR] is a space-separated list of library paths. Each
+directory in the list is
+prepended with \var{-Fl} and added to the compiler options.
+\item[NEEDOBJDIR] is a list of object file directories, separated by
+ spaces. Each directory in the list is prepended with \var{-Fo} and
+added to the compiler options.
+\item[NEEDUNITDIR] is a list of unit directories, separated by spaces.
+Each directory in the list is prepended with \var{-Fu} and is added to the
+compiler options.
 \item[OSINC] this is a space-separated list of OS-dependent directories
 that will be added as include directories to the compiler command line.
-
+\item[OTHERLIBDIR] is a list of library paths, separated by spaces. Each
+directory in the list is prepended with \var{-Fl} and added to the
+compiler options. This variable is meant to be set in the \file{Makefile.fpc}
 \item[PROCINC] is a space-separated list of processor-dependent directories
 that will be added as include directories to the compiler command-line.
-
 \item[RTL] If \var{RTLDIR} is not set, \var{RTL} is used to construct
 \var{RTLDIR}, after which \var{RTLDIR} is added to the compiler unit
 path, with \var{-Fu} prepended. If \var{RTLDIR} is not set, it is set
  to \mvar{RTL}/\mvar{OS\_TARGET}.
-
 \item[RTLDIR] Directory where the \var{RTL} unit sources are.
 If \var{RTLDIR} is not set, it is set to \mvar{RTL}/\mvar{OS\_TARGET}. \\
 If \var{RTL} is also not set, it is set to \mvar{FPCDIR}\var{/rtl/}\mvar{OS\_TARGET}.
-
-
 \item[TARGETDIR] If set, this directory is added as the output directory of
 the compiler, where all units and executables are written, i.e. it gets
 \var{-FE} prepended.
-
+\item[TARGETUNITDIR] If set, this directory is added as the output directory of
+the compiler, where all units and executables are written, i.e. it gets
+\var{-FU} prepended.
 \item[UNIT] If \var{UNITDIR} is not set, \var{UNIT} is used to construct
 \var{UNITDIR}. \var{UNITDIR} is added to the compiler unit path, with \var{-Fu}
 prepended.
-
 \item[UNITDIR] Directory where the \var{RTL} compiled units are.
 If \var{UNITDIR} is not set, it is set to \mvar{UNIT}/\mvar{OS\_TARGET}. \\
 If \var{UNIT} is also not set, it is set to \mvar{FPCDIR}\var{/rtl/}\mvar{OS\_TARGET}.
-
-\item[UNITS] The content of this variable are appended to the
-\var{BASEINSTALLDIR} variable to install the units.
-
-\item[UNITTARGETDIR] If set, this directory is added as the output directory of
-the compiler, where all units are written, i.e. it gets
-\var{-FU} prepended. This overrides \var{TARGETDIR}.
 \end{description}
 
 \subsection{Target variables}
 
 The second set of variables controls the targets that are constructed
-by the makefile:
+by the makefile. They are created by FPCMAKE, so you can use them in your rules,
+but you shouldn't assign values to them yourself.
 
 \begin{description}
-\item[DEFAULTUNITS] If defined, only units will be made by the makefile. If
-not defined, then executables are made also.
 \item[EXEOBJECTS] This is a list of executable names that will be compiled.
 the makefile appends \mvar{EXEEXT} to these names.
 \item[LOADEROBJECTS] is a list of space-separated names that identify
@@ -4527,36 +4800,38 @@ makefile.
 this target is built first. If successful, the zip archive will be made.
 \end{description}
 
-\subsection{Compiler command-line variables}
+\subsection{Compiler command-line variables }
+The following variable can be set on the \file{make} command-line,
+they will be recognised and integrated in the compiler command-line:
+
+\begin{description}
+\item[OPT] Any options that you want to pass to the compiler. The contents
+of \var{OPT} is simply added to the compiler command-line.
+
+\item[OPTDEF] Are optional defines, added to the command-line of the
+compiler. They do not get \var{-d} prepended.
+\end{description}
+
+\subsection{Internal Compiler command-line variables}
 
 The following variables control the compiler command-line:
 \begin{description}
-\item[CFGFILE] if this variable is set, it will be used as the name of the
-config file to be used by the compiler.
 
-\item[CPU] the CPU type is added as a define to the compiler command line.
-Automatically determined by the makefile.
+\item[CPU\_SOURCE] the target CPU type is added as a define to the compiler
+command line. This is determined by the Makefile itself.
+
+\item[CPU\_TARGET] the target CPU type is added as a define to the compiler
+command line. This is determined by the Makefile itself.
 
 \item[LIBNAME] if smartlinking is requested (i.e. \var{SMARTLINK} is set to
 \var{YES}), this is the name of the static library to produce. Don't add
 \var{lib} to this, the compiler will do that.
-
-\item[LIBTYPE] if set to \var{shared}, then the compiler will emit a shared
-library, with name \var{LIBNAME}.If \var{LIBTYPE} is set to \var{static},
-the compiler will emit a static, smartlinked library,
 
 \item[NEEDGCCLIB] if this variable is defined, then the path to \file{libgcc}
 is added to the library path.
 
 \item[NEEDOTHERLIB] (\linux only) If this is defined, then the makefile will
 append all directories that appear in \var{/etc/ld.so.conf} to the library path.
-
-
-\item[OPT] Any options that you want to pass to the compiler. The contents
-of \var{OPT} is simply added to the compiler command-line.
-
-\item[OPTDEF] Are optional defines, added to the command-line of the
-compiler. They do not get \var{-d} prepended.
 
 \item[OS\_TARGET] What platform you want to compile for. Added to the
 compiler command-line with a \var{-T} prepended.
@@ -4566,12 +4841,13 @@ will output smartlinked units if \var{LIBTYPE} is not set to \var{shared}.
 
 \end{description}
 
-\section{Variables set by \file{makefile.fpc}}
+\section{Variables set by \file{fpcmake}}
 
-All of the following variables are only set by \var{makefile.fpc}, if
+All of the following variables are only set by \file{fpcmake}, if
 they aren't already defined. This means that you can override them by
-setting them on the make command line, or setting them in the makefile you
-use, BEFORE \file{makefile.fpc} is included.
+setting them on the make command line, or setting them in the \var{presettings}
+section. But most of them are correctly determined by the generated
+\file{Makefile}.
 The following sets of variables are defined:
 \begin{description}
 \item[Directory variables]
@@ -4640,6 +4916,8 @@ The following variables are program names, used in makefile targets.
 \item[DATE] a program to display the date.
 \item[DIFF] a program to produce diff files.
 \item[ECHO] an echo program.
+\item[FPC] the Free Pascal compiler executable. Default set to
+\var{ppc386.exe}
 \item[INSTALL] a program to install files. Default set to \file{install -m
 644} on linux.
 \item[INSTALLEXE] a program to install executable files. Default set to \file{install -m
@@ -4658,7 +4936,7 @@ compilation, if the \var{-s} option was detected among the options.
 \item[SED] a stream-line editor program. Default set to \file{sed}.
 \item[UPX] an executable packer to compress your executables into
 self-extracting compressed executables.
-\item[ZIPEXE] a zip program to compress files. zip targets are made with
+\item[ZIPPROG] a zip program to compress files. zip targets are made with
 this program
 \end{description}
 
@@ -4769,57 +5047,6 @@ the makefile, the compiler version, target OS, CPU.
 \item[fpc\_objectinfo] lists all objects that will be made.
 \item[fpc\_toolsinfo] lists all defined tools.
 \end{description}
-
-\section{Using the provided template}
-
-The template makefile that comes with \fpc does nothing other than
-offering you some variables to be set for the \file{makefile.fpc}.
-After that it loads the \var{makefile.fpc} in the indicated places.
-
-Finally it declares a set of default targets:
-\begin{description}
-\item[all]  calls fpc\_all.
-\item[clean]  calls fpc\_clean.
-\item[install]  calls fpc\_install.
-\item[info]  calls fpc\_info.
-\item[staticlib]  calls fpc\_staticlib.
-\item[sharedlib]  calls fpc\_sharedlib.
-\item[libsclean]  calls fpc\_libsclean.
-\item[staticinstall]  calls fpc\_staticinstall.
-\item[sharedinstall]  calls fpc\_sharedinstall.
-\item[libinstall]  calls fpc\_libinstall.
-\end{description}
-
-You can override each of these targets to suit your setup.
-
-If you just have to compile some units and programs, you only need to set
-the following variables:
-\begin{description}
-\item[UNITOBJECTS] names of units you wish to be built.
-\item[EXEOBJECTS] names of executables you wish to be built.
-\end{description}
-
-You may want to set some of the following variables:
-\begin{description}
-\item[INC,PROCINC or OSINC] To indicate where include files can be found.
-\item[NEEDOPT] additional options added to the compile command.
-\item[NEEDUNITDIR] space-separated list of directories where units that you
-need are located.
-\item[TARGETDIR,UNITTARGETDIR] where do you want executables and units to
-be written. Be aware that setting this variable may interfere with
-\var{make}, since it will not find the target files.
-\item[DEFAULTUNITS] if you define this variable (to whatever value you want)
-then the \var{all} target will by default only make the units.
-\end{description}
-
-You may also set any of the variables that appear in the previous sections,
-to override default behaviour of the makefile.
-
-After having set these variables, you can run 'make info' to see whether all
-variables are set to you satisfaction. If the \file{makefile.fpc} is not
-found, this command will inform you of this.
-
-After that, a simple 'make all' will make all units and executables.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Appendix F
