@@ -30,6 +30,7 @@ type
 
    { For FloatToText }
    TFloatFormat = (ffGeneral, ffExponent, ffFixed, ffNumber, ffCurrency);
+   TReplaceFlags = set of (rfReplaceAll, rfIgnoreCase);
 
 
 function NewStr(const S: string): PString;
@@ -84,6 +85,7 @@ Function FloatToStr(Value: Extended): String;
 Function StrToFloat(Value : String) : Extended;
 Function FloatToText(Buffer: PChar; Value: Extended; format: TFloatFormat; Precision, Digits: Integer): Longint;
 function LastDelimiter(const Delimiters, S: string): Integer;
+function StringReplace(const S, OldPattern, NewPattern: string;  Flags: TReplaceFlags): string;
 
 {==============================================================================}
 {   extra functions                                                            }
@@ -95,7 +97,10 @@ function BCDToInt(Value: integer): integer;
 
 {
   $Log$
-  Revision 1.1.2.2  2000-12-07 21:48:58  michael
+  Revision 1.1.2.3  2001-09-20 14:35:34  michael
+   Implemented missing StringReplace function
+
+  Revision 1.1.2.2  2000/12/07 21:48:58  michael
   + Added LastDelimiter function
 
   Revision 1.1.2.1  2000/08/09 19:31:03  peter
