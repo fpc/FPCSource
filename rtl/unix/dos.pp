@@ -224,7 +224,11 @@ End;
 ******************************************************************************}
 
 {$ifdef HASTHREADVAR}
+{$ifdef VER1_9_2}
+var
+{$else VER1_9_2}
 threadvar
+{$endif VER1_9_2}
 {$else HASTHREADVAR}
 var
 {$endif HASTHREADVAR}
@@ -541,7 +545,7 @@ Begin
 {Create Info}
   f.SearchSpec := Path;
   {We always also search for readonly and archive, regardless of Attr:}
-  f.SearchAttr := Attr or archive or readonly; 	
+  f.SearchAttr := Attr or archive or readonly;
   f.SearchPos  := 0;
   f.NamePos := Length(f.SearchSpec);
   while (f.NamePos>0) and (f.SearchSpec[f.NamePos]<>'/') do
@@ -828,7 +832,10 @@ End.
 
 {
   $Log$
-  Revision 1.28  2004-02-17 17:37:26  daniel
+  Revision 1.29  2004-02-18 19:08:27  florian
+    * fixed bootstrapping with 1.9.2
+
+  Revision 1.28  2004/02/17 17:37:26  daniel
     * Enable threadvars again
 
   Revision 1.27  2004/02/16 22:18:44  hajny
