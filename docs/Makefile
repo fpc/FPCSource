@@ -51,7 +51,7 @@ endif
 ifndef LATEX2HTMLOPTS
 LATEX2HTMLOPTS = -no_reuse -up_url "../fpctoc.html"\
                  -up_title "Free Pascal manuals" -contents_in_navigation\
-                 -html_version 3.2
+                 -html_version 3.2 -image_type gif
 endif
 
 # Ascii mode ? (i.e. no pics)
@@ -396,12 +396,12 @@ htmltar:
 	rm -rf $(DOCPREFIX)
 
 htmlzip:
-	$(MAKE) dosinstall DOCINSTALLDIR=$(DOCPREFIX)
+	$(MAKE) doshtmlinstall DOCINSTALLDIR=$(DOCPREFIX)
 	zip -D9rq doc-html $(DOCPREFIX)/*
 	rm -rf $(DOCPREFIX)
 
 htmzip:
-	$(MAKE) dosinstall DOCINSTALLDIR=$(DOCPREFIX)
+	$(MAKE) doshtmlinstall DOCINSTALLDIR=$(DOCPREFIX)
 	makehtm `find $(DOCPREFIX) -name '*.html'`
 	zip -D9rq doc-htm `find $(DOCPREFIX) -name '*.htm' -or -name '*.gif' -or -name '*.css'`
 	rm -rf $(DOCPREFIX)
@@ -441,7 +441,10 @@ linuxexamples: examples
 
 #
 # $Log$
-# Revision 1.33  2000-01-23 20:15:16  peter
+# Revision 1.34  2000-02-20 14:31:01  peter
+#   * updated for new latex2html to create .gif
+#
+# Revision 1.33  2000/01/23 20:15:16  peter
 #   * rpm/deb target in install dir
 #   * install also faq,readme,news for rpm/deb
 #
