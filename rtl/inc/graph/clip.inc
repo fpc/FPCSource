@@ -40,9 +40,9 @@ const
   {--------------------------------------------------------}
   var
    code1, code2: longint;
-   done:boolean;
    code: longint;
-   newx,newy: word;
+   newx,newy: smallint;
+   done:boolean;
 
 
     function outcode(x,y:smallint): longint;
@@ -142,7 +142,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:46  michael
+  Revision 1.3  2001-05-06 17:15:26  jonas
+    * fixed range check error (reported by Vladimir Ravodin)
+
+  Revision 1.2  2000/07/13 11:33:46  michael
   + removed logs
- 
+
 }
