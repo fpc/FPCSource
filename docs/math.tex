@@ -101,25 +101,22 @@ exception is raised.
 \FPCexample{ex2}
 
 
-\begin{function}{arcsinh}
-\Declaration
-Function arcsinh(x : float) : float;
-\Description
-
-\Errors
-\SeeAlso
-\end{function}
-
-\FPCexample{}
-
-
 \begin{function}{arctan2}
 \Declaration
 Function arctan2(x,y : float) : float;
 \Description
+\var{arctan2} calculates \var{arctan(y/x), and returns an angle in the
+correct quadrant. The returned angle will be in the range $-\pi$ to
+$\pi$ radians.
+The values of \var{x} and \var{y} must be between -2\^{}64 and 2\^{}64,
+moreover \var{x} should be different from zero.
 
+On Intel systems this function is implemented with the native intel
+\var{fpatan} instruction.
 \Errors
+If \var{x} is zero, an overflow error will occur.
 \SeeAlso
+\seef{arccos}, \seef{arccosh}, \seef{arcsinh}, \seef{arctanh}
 \end{function}
 
 \FPCexample{}
@@ -140,13 +137,19 @@ Function arctanh(x : float) : float;
 \begin{function}{arsinh}
 \Declaration
 Function arsinh(x : float) : float;
+Function arcsinh(x : float) : float;
 \Description
+\var{arsinh} returns the inverse hyperbolic sine of its argument \var{x}. 
 
+The \var{arscsinh} variant of this function is supplied for \delphi 
+compatibility.
 \Errors
+None.
 \SeeAlso
+\seef{arccosh}, \seef{arccos}, \seef{arsin}, \seef{artanh}
 \end{function}
 
-\FPCexample{}
+\FPCexample{ex4}
 
 
 \begin{function}{artanh}
@@ -714,5 +717,4 @@ Function variance(const data : array of float) : float;
 \end{function}
 
 \FPCexample{}
-
 
