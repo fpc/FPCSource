@@ -418,6 +418,9 @@ Begin
   Buffer[Length(s)] := #0;
   sys_chdir(@buffer);
   Errno2Inoutres;
+  { file not exists is path not found under tp7 }
+  if InOutRes=2 then
+   InOutRes:=3;
 End;
 
 
@@ -703,7 +706,10 @@ End.
 
 {
   $Log$
-  Revision 1.11  2001-06-02 00:31:31  peter
+  Revision 1.12  2001-06-02 19:24:49  peter
+    * chdir rte 2 mapped to 3
+
+  Revision 1.11  2001/06/02 00:31:31  peter
     * merge unix updates from the 1.0 branch, mostly related to the
       solaris target
 
