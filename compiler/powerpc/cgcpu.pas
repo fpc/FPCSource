@@ -117,6 +117,8 @@ unit cgcpu;
      tcg64fppc = class(tcg64f32)
        procedure a_op64_reg_reg(list : taasmoutput;op:TOpCG;regsrc,regdst : tregister64);override;
        procedure a_op64_const_reg(list : taasmoutput;op:TOpCG;value : qword;reg : tregister64);override;
+       procedure a_op64_const_reg_reg(list: taasmoutput;op:TOpCG;value : qword;regsrc,regdst : tregister64);override;
+       procedure a_op64_reg_reg_reg(list: taasmoutput;op:TOpCG;regsrc1,regsrc2,regdst : tregister64);override;
      end;
 
 
@@ -316,10 +318,25 @@ const
      procedure tcgppc.a_load_reg_reg(list : taasmoutput;size : tcgsize;reg1,reg2 : tregister);
 
        begin
-         if (reg1 <> reg2) then
-           list.concat(taicpu.op_reg_reg(A_MR,reg2,reg1));
+         if (reg1 <> reg2) or
+            not(size in [OS_32,OS_S32]) then
+           begin
+             case size of
+               OS_8:
+                 list.concat(taicpu.op_reg_reg_const_const_const(A_RLWINM,
+                   reg2,reg1,0,31-8+1,31));
+               OS_S8:
+                 list.concat(taicpu.op_reg_reg(A_EXTSB,reg2,reg1));
+               OS_16:
+                 list.concat(taicpu.op_reg_reg_const_const_const(A_RLWINM,
+                   reg2,reg1,0,31-16+1,31));
+               OS_S16:
+                 list.concat(taicpu.op_reg_reg(A_EXTSH,reg2,reg1));
+               OS_32,OS_S32:
+                 list.concat(taicpu.op_reg_reg(A_MR,reg2,reg1));
+             end;
+           end;
        end;
-
 
      procedure tcgppc.a_load_sym_ofs_reg(list: taasmoutput; const sym: tasmsymbol; ofs: longint; reg: tregister);
 
@@ -380,20 +397,7 @@ const
          scratch_register: TRegister;
 
        begin
-         case op of
-           OP_DIV, OP_IDIV, OP_IMUL, OP_MUL, OP_ADD, OP_AND, OP_OR, OP_SUB,
-           OP_XOR:
-             a_op_const_reg_reg(list,op,OS_32,a,reg,reg);
-           OP_SHL,OP_SHR,OP_SAR:
-             begin
-               if (a and 31) <> 0 then
-                 list.concat(taicpu.op_reg_reg_const(
-                   TOpCG2AsmOpConstLo[op],reg,reg,a and 31));
-               if (a shr 5) <> 0 then
-                 internalError(68991);
-             end
-           else internalError(68992);
-         end;
+         a_op_const_reg_reg(list,op,OS_32,a,reg,reg);
        end;
 
 
@@ -408,15 +412,26 @@ const
                        size: tcgsize; a: aword; src, dst: tregister);
       var
         l1,l2: longint;
-
-      var
         oplo, ophi: tasmop;
         scratchreg: tregister;
-        useReg: boolean;
+        useReg, gotrlwi: boolean;
+
+
+        function try_lo_hi: boolean;
+          begin
+            result := false;
+            if (smallint(a) > 0) then
+              begin
+                list.concat(taicpu.op_reg_reg_const(oplo,dst,src,word(a)));
+                list.concat(taicpu.op_reg_reg_const(ophi,dst,dst,a shr 16));
+                result := true;
+              end;
+          end;
 
       begin
         ophi := TOpCG2AsmOpConstHi[op];
         oplo := TOpCG2AsmOpConstLo[op];
+        gotrlwi := get_rlwi_const(a,l1,l2);
         { constants in a PPC instruction are always interpreted as signed }
         { 16bit values, so if the value is between low(smallint) and      }
         { high(smallint), it's easy                                       }
@@ -438,15 +453,17 @@ const
             else if (longint(a) >= low(smallint)) and
                (longint(a) <= high(smallint)) and
                (not(op = OP_AND) or
-                not get_rlwi_const(a,l1,l2)) then
+                not gotrlwi) then
               begin
                 list.concat(taicpu.op_reg_reg_const(oplo,dst,src,a));
                 exit;
               end;
             { all basic constant instructions also have a shifted form that }
-            { works only on the highest 16bits, so if low(a) is 0, we can   }
+            { works only on the highest 16bits, so if lo(a) is 0, we can    }
             { use that one                                                  }
-            if (lo(a) = 0) then
+            if (word(a) = 0) and
+               (not(op = OP_AND) or
+                not gotrlwi) then
               begin
                 list.concat(taicpu.op_reg_reg_const(ophi,dst,src,hi(a)));
                 exit;
@@ -456,21 +473,23 @@ const
         { operation                                                 }
         useReg := false;
         case op of
-           OP_DIV, OP_IDIV, OP_IMUL, OP_MUL:
-             if (Op = OP_IMUL) and (longint(a) >= -32768) and
-                (longint(a) <= 32767) then
+          OP_DIV,OP_IDIV:
+            useReg := true;
+           OP_IMUL, OP_MUL:
+             if (longint(a) >= low(smallint)) and
+                (longint(a) <= high(smallint)) then
                list.concat(taicpu.op_reg_reg_const(A_MULLI,dst,src,a))
              else
                usereg := true;
           OP_ADD,OP_SUB:
             begin
-              list.concat(taicpu.op_reg_reg_const(oplo,dst,src,low(a)));
+              list.concat(taicpu.op_reg_reg_const(oplo,dst,src,smallint(a)));
               list.concat(taicpu.op_reg_reg_const(ophi,dst,dst,
-                high(a) + ord(smallint(a) < 0)));
+                (a shr 16) + ord(smallint(a) < 0)));
             end;
           OP_OR:
             { try to use rlwimi }
-            if get_rlwi_const(a,l1,l2) then
+            if gotrlwi then
               begin
                 if src <> dst then
                   list.concat(taicpu.op_reg_reg(A_MR,dst,src));
@@ -480,17 +499,18 @@ const
                   scratchreg,0,l1,l2));
                 free_scratch_reg(list,scratchreg);
               end
-            else
+            else if not try_lo_hi then
               useReg := true;
           OP_AND:
             { try to use rlwinm }
-            if get_rlwi_const(a,l1,l2) then
+            if gotrlwi then
               list.concat(taicpu.op_reg_reg_const_const_const(A_RLWINM,dst,
                 src,0,l1,l2))
             else
               useReg := true;
           OP_XOR:
-            useReg := true;
+            if not try_lo_hi then
+              usereg := true;
           OP_SHL,OP_SHR,OP_SAR:
             begin
               if (a and 31) <> 0 Then
@@ -1172,6 +1192,8 @@ const
 
       begin
         get_rlwi_const := false;
+        if (a = 0) or (a = $ffffffff) then
+          exit;
         { start with the lowest bit }
         testbit := 1;
         { check its value }
@@ -1226,6 +1248,7 @@ const
         get_rlwi_const := true;
       end;
 
+
     procedure tcgppc.a_load_store(list:taasmoutput;op: tasmop;reg:tregister;
        ref: treference);
 
@@ -1240,7 +1263,6 @@ const
             reference_reset(tmpref);
             tmpref.symbol := ref.symbol;
             tmpref.symaddr := refs_ha;
-//            tmpref.is_immediate := true;
             if ref.base <> R_NO then
               list.concat(taicpu.op_reg_reg_ref(A_ADDIS,tmpreg,
                 ref.base,tmpref))
@@ -1270,78 +1292,97 @@ const
 
 
     procedure tcg64fppc.a_op64_reg_reg(list : taasmoutput;op:TOpCG;regsrc,regdst : tregister64);
+      begin
+        a_op64_reg_reg_reg(list,op,regsrc,regdst,regdst);
+      end;
 
+
+    procedure tcg64fppc.a_op64_const_reg(list : taasmoutput;op:TOpCG;value : qword;reg : tregister64);
+      begin
+        a_op64_const_reg_reg(list,op,value,reg,reg);
+      end;
+
+
+    procedure tcg64fppc.a_op64_reg_reg_reg(list: taasmoutput;op:TOpCG;regsrc1,regsrc2,regdst : tregister64);
       begin
         case op of
           OP_AND,OP_OR,OP_XOR:
             begin
-              cg.a_op_reg_reg(list,op,OS_32,regsrc.reglo,regdst.reglo);
-              cg.a_op_reg_reg(list,op,OS_32,regsrc.reghi,regdst.reghi);
+              cg.a_op_reg_reg_reg(list,op,OS_32,regsrc1.reglo,regsrc2.reglo,regdst.reglo);
+              cg.a_op_reg_reg_reg(list,op,OS_32,regsrc1.reghi,regsrc2.reghi,regdst.reghi);
             end;
           OP_ADD:
             begin
-              list.concat(taicpu.op_reg_reg_reg(A_ADDC,regdst.reglo,regsrc.reglo,regdst.reglo));
-              list.concat(taicpu.op_reg_reg_reg(A_ADDE,regdst.reghi,regsrc.reghi,regdst.reghi));
+              list.concat(taicpu.op_reg_reg_reg(A_ADDC,regdst.reglo,regsrc1.reglo,regsrc2.reglo));
+              list.concat(taicpu.op_reg_reg_reg(A_ADDE,regdst.reghi,regsrc1.reghi,regsrc2.reghi));
             end;
           OP_SUB:
             begin
-              list.concat(taicpu.op_reg_reg_reg(A_SUBC,regdst.reglo,regdst.reglo,regsrc.reglo));
-              list.concat(taicpu.op_reg_reg_reg(A_SUBFE,regdst.reghi,regsrc.reghi,regdst.reghi));
+              list.concat(taicpu.op_reg_reg_reg(A_SUBC,regdst.reglo,regsrc2.reglo,regsrc1.reglo));
+              list.concat(taicpu.op_reg_reg_reg(A_SUBFE,regdst.reghi,regsrc1.reghi,regsrc2.reghi));
             end;
+          else
+            internalerror(2002072801);
         end;
       end;
 
-    procedure tcg64fppc.a_op64_const_reg(list : taasmoutput;op:TOpCG;value : qword;reg : tregister64);
+
+    procedure tcg64fppc.a_op64_const_reg_reg(list: taasmoutput;op:TOpCG;value : qword;regsrc,regdst : tregister64);
 
       const
         ops: array[boolean,1..3] of tasmop = ((A_ADDIC,A_ADDC,A_ADDZE),
                                               (A_SUBIC,A_SUBC,A_ADDME));
-
       var
         tmpreg: tregister;
         tmpreg64: tregister64;
-        isadd: boolean;
+        issub: boolean;
       begin
         case op of
           OP_AND,OP_OR,OP_XOR:
             begin
-              cg.a_op_const_reg(list,op,cardinal(value),reg.reglo);
-              cg.a_op_const_reg(list,op,value shr 32,reg.reghi);
+              cg.a_op_const_reg_reg(list,op,OS_32,cardinal(value),regsrc.reglo,regdst.reglo);
+              cg.a_op_const_reg_reg(list,op,OS_32,value shr 32,regsrc.reghi,
+                regdst.reghi);
             end;
           OP_ADD, OP_SUB:
             begin
               if (longint(value) <> 0) then
                 begin
-                  isadd := op = OP_ADD;
+                  issub := op = OP_SUB;
                   if (longint(value) >= -32768) and
                      (longint(value) <= 32767) then
                     begin
-                      list.concat(taicpu.op_reg_reg_const(ops[isadd,1],
-                        reg.reglo,reg.reglo,aword(value)));
+                      list.concat(taicpu.op_reg_reg_const(ops[issub,1],
+                        regdst.reglo,regsrc.reglo,aword(value)));
+                      list.concat(taicpu.op_reg_reg(ops[issub,3],
+                        regdst.reghi,regsrc.reghi));
                     end
                   else if ((value shr 32) = 0) then
                     begin
                       tmpreg := cg.get_scratch_reg_int(list);
                       cg.a_load_const_reg(list,OS_32,cardinal(value),tmpreg);
-                      list.concat(taicpu.op_reg_reg_reg(ops[isadd,2],
-                        reg.reglo,reg.reglo,tmpreg));
-                      list.concat(taicpu.op_reg_reg(ops[isadd,3],
-                        reg.reghi,reg.reghi));
+                      list.concat(taicpu.op_reg_reg_reg(ops[issub,2],
+                        regdst.reglo,regsrc.reglo,tmpreg));
                       cg.free_scratch_reg(list,tmpreg);
+                      list.concat(taicpu.op_reg_reg(ops[issub,3],
+                        regdst.reghi,regsrc.reghi));
                     end
                   else
                     begin
                       tmpreg64.reglo := cg.get_scratch_reg_int(list);
                       tmpreg64.reghi := cg.get_scratch_reg_int(list);
                       a_load64_const_reg(list,value,tmpreg64);
-                      a_op64_reg_reg(list,op,tmpreg64,reg);
+                      a_op64_reg_reg_reg(list,op,tmpreg64,regsrc,regdst);
                       cg.free_scratch_reg(list,tmpreg64.reghi);
                       cg.free_scratch_reg(list,tmpreg64.reglo);
                     end
                 end
               else
-                cg.a_op_const_reg(list,op,value shr 32,reg.reghi);
+                cg.a_op_const_reg_reg(list,op,OS_32,value shr 32,regsrc.reghi,
+                  regdst.reghi);
             end;
+          else
+            internalerror(2002072802);
         end;
       end;
 
@@ -1352,7 +1393,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.26  2002-07-27 19:59:29  jonas
+  Revision 1.27  2002-07-28 16:01:59  jonas
+    + tcg64fppc.a_op64_const_reg_reg() and tcg64fppc.a_op64_reg_reg_reg()
+    * several fixes, most notably in a_load_reg_reg(): it didn't do any
+      conversion from smaller to larger sizes or vice versa
+    * some small optimizations
+
+  Revision 1.26  2002/07/27 19:59:29  jonas
     * fixed a_loadaddr_ref_reg()
     * fixed g_flags2reg()
     * optimized g_concatcopy()
