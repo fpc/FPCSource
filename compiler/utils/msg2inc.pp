@@ -18,9 +18,16 @@ program msg2inc;
 uses
   strings;
 
+{$ifdef unix}
+  {$define EOL_ONE_CHAR}
+{$endif unix}
+{$ifdef amiga}
+  {$define EOL_ONE_CHAR}
+{$endif amiga}
+
 const
   version='1.00';
-{$ifdef unix}
+{$ifdef EOL_ONE_CHAR}
   eollen=1;
 {$else}
   eollen=2;
@@ -805,7 +812,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2002-05-18 13:34:27  peter
+  Revision 1.11  2003-03-16 23:10:04  pierre
+   * merge from fixes branch
+
+  Revision 1.1.2.6  2003/02/03 16:34:57  pierre
+   * use EOL_ONE_CHAR to set eollen variable, also define it for amiga
+
+  Revision 1.10  2002/05/18 13:34:27  peter
     * readded missing revisions
 
   Revision 1.9  2002/05/16 19:46:53  carl
