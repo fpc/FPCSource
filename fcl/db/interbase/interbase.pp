@@ -910,16 +910,22 @@ begin
     4 :
       begin
         Move(CurrBuff^, Sin, 4);
-        Ext := Sin;
+        //Ext := Sin;
+        Dbl := Sin;
       end;
     8 :
       begin
         Move(CurrBuff^, Dbl, 8);
-        Ext := Dbl;
+        //Ext := Dbl;
       end;
-    10: Move(CurrBuff^, Ext, 10);
+    10:
+      begin
+        Move(CurrBuff^, Ext, 10);
+        Dbl := Ext;
+      end;
   end;
-  Move(Ext, Buffer^, 10);
+  //Move(Ext, Buffer^, 10);
+  Move(Dbl, Buffer^, 8);
 end;
 
 function TIBQuery.AllocRecordBuffer: PChar;
@@ -1208,7 +1214,10 @@ end.
 
 {
   $Log$
-  Revision 1.13  2004-07-25 11:32:40  michael
+  Revision 1.14  2004-09-26 00:21:10  michael
+  + Patch from Jesus Reyes to fix the change to TField.AsFloat (double)
+
+  Revision 1.13  2004/07/25 11:32:40  michael
   * Patches from Joost van der Sluis
     interbase.pp:
         * Removed unused Fprepared
