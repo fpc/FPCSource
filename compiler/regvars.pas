@@ -148,8 +148,9 @@ implementation
       { only if no asm is used }
       { and no try statement   }
       if (cs_regvars in aktglobalswitches) and
-         { we have to store regvars back to memory in this case! }
-         (tcgprocinfo(current_procinfo).nestedprocs.count = 0) and
+        { we have to store regvars back to memory in this case (the nested }
+        { procedures can access the variables of the parent)               }
+        (tcgprocinfo(current_procinfo).nestedprocs.count = 0) and
          not(pi_uses_asm in current_procinfo.flags) and
          not(pi_uses_exceptions in current_procinfo.flags) then
         begin
@@ -670,7 +671,10 @@ end.
 
 {
   $Log$
-  Revision 1.77  2004-06-20 08:55:30  florian
+  Revision 1.78  2004-09-10 19:59:38  jonas
+    * clarified comment
+
+  Revision 1.77  2004/06/20 08:55:30  florian
     * logs truncated
 
   Revision 1.76  2004/06/17 16:55:46  peter
