@@ -184,13 +184,13 @@ implementation
                         end
                       else
                        if (regvarinfo^.regvars[i].vartype.def.deftype in [orddef,enumdef]) and
-                          (torddef(regvarinfo^.regvars[i].vartype.def).size=1) then
+                          (regvarinfo^.regvars[i].vartype.def.size=1) then
                         begin
                           regvarinfo^.regvars[i].reg:=rg.makeregsize(varregs[i],OS_8);
                         end
                       else
                        if (regvarinfo^.regvars[i].vartype.def.deftype in [orddef,enumdef]) and
-                          (torddef(regvarinfo^.regvars[i].vartype.def).size=2) then
+                          (regvarinfo^.regvars[i].vartype.def.size=2) then
                          begin
                            regvarinfo^.regvars[i].reg:=rg.makeregsize(varregs[i],OS_16);
                          end
@@ -464,7 +464,10 @@ end.
 
 {
   $Log$
-  Revision 1.33  2002-05-18 13:34:17  peter
+  Revision 1.34  2002-06-24 12:43:00  jonas
+    * fixed errors found with new -CR code from Peter when cycling with -O2p3r
+
+  Revision 1.33  2002/05/18 13:34:17  peter
     * readded missing revisions
 
   Revision 1.32  2002/05/16 19:46:44  carl

@@ -1477,7 +1477,7 @@ var
 Begin {checks whether two Taicpu instructions are equal}
   If Assigned(p1) And Assigned(p2) And
      (Tai(p1).typ = ait_instruction) And
-     (Tai(p1).typ = ait_instruction) And
+     (Tai(p2).typ = ait_instruction) And
      opscompatible(Taicpu(p1),Taicpu(p2)) and
      (Taicpu(p1).oper[0].typ = Taicpu(p2).oper[0].typ) And
      (Taicpu(p1).oper[1].typ = Taicpu(p2).oper[1].typ) And
@@ -2591,7 +2591,10 @@ End.
 
 {
   $Log$
-  Revision 1.39  2002-06-09 12:56:04  jonas
+  Revision 1.40  2002-06-24 12:43:00  jonas
+    * fixed errors found with new -CR code from Peter when cycling with -O2p3r
+
+  Revision 1.39  2002/06/09 12:56:04  jonas
     * IDIV reads edx too (but now the div/mod optimization fails :/ )
 
   Revision 1.38  2002/05/18 13:34:22  peter

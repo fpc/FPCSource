@@ -347,7 +347,7 @@ implementation
                              right.free;
                              right:=t;
                           end
-                        else if tordconstnode(taddnode(right).left).nodetype=ordconstn then
+                        else if taddnode(right).left.nodetype=ordconstn then
                           begin
                              extraoffset:=tordconstnode(taddnode(right).left).value;
                              t:=taddnode(right).right;
@@ -519,7 +519,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.33  2002-05-18 13:34:25  peter
+  Revision 1.34  2002-06-24 12:43:01  jonas
+    * fixed errors found with new -CR code from Peter when cycling with -O2p3r
+
+  Revision 1.33  2002/05/18 13:34:25  peter
     * readded missing revisions
 
   Revision 1.32  2002/05/16 19:46:51  carl

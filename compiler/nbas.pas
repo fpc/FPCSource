@@ -160,7 +160,7 @@ implementation
       verbose,globals,globtype,systems,
       symconst,symdef,symsym,types,
       pass_1,
-      ncal,nflw,rgobj,cgbase
+      nld,ncal,nflw,rgobj,cgbase
       ;
 
 
@@ -380,8 +380,8 @@ implementation
                            CGMessage(cg_n_inefficient_code)
                          else
                            begin
-                              texitnode(tstatementnode(hp.left).right).left:=tstatementnode(hp.right).right;
-                              tstatementnode(hp.right).right:=nil;
+                              texitnode(tstatementnode(hp.left).right).left:=tassignmentnode(hp.right).right;
+                              tassignmentnode(hp.right).right:=nil;
                               hp.right.free;
                               hp.right:=nil;
                            end;
@@ -675,7 +675,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.25  2002-05-18 13:34:09  peter
+  Revision 1.26  2002-06-24 12:43:00  jonas
+    * fixed errors found with new -CR code from Peter when cycling with -O2p3r
+
+  Revision 1.25  2002/05/18 13:34:09  peter
     * readded missing revisions
 
   Revision 1.24  2002/05/16 19:46:37  carl
