@@ -1,5 +1,5 @@
 #
-#   Makefile.fpc for Free Component Library
+#   Makefile.fpc for Release-files creation
 #
 
 [defaults]
@@ -121,7 +121,7 @@ clean:
 build: build-stamp
 build-stamp: $(FPCDIRSET)
 # create new compiler
-        -$(MAKE) -C $(CVSBASE) compiler_cycle
+        $(MAKE) -C $(CVSBASE) compiler_cycle
 # clean
         $(MAKE) -C $(CVSBASE) rtl_clean
         $(MAKE) -C $(CVSBASE) api_clean
