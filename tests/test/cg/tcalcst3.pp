@@ -846,7 +846,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2003-04-22 10:24:29  florian
+  Revision 1.6  2004-01-23 17:21:52  florian
+  no message
+
+  Revision 1.5  2003/04/22 10:24:29  florian
     * fixed defines for powerpc
 
   Revision 1.4  2002/09/22 09:08:40  carl
@@ -860,5 +863,4 @@ end.
 
   Revision 1.1  2002/04/13 17:47:06  carl
   + constant parameter passing for different calling conventions
-
 }
