@@ -91,6 +91,10 @@ Var Temp       : PByte;
     I          : longint;
     Size,Count : longint;
     TInfo : Pointer;
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+    ArrayRec : TArrayRec;
+    RecElem : TRecElem;
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
 begin
   Temp:=PByte(TypeInfo);
   case temp^ of
@@ -101,11 +105,17 @@ begin
          inc(temp);
          I:=temp^;
          inc(temp,(I+1));                // skip name string;
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+        move(PArrayRec(Temp)^,ArrayRec,sizeof(ArrayRec));
+        for I:=0 to ArrayRec.Count-1 do
+          int_Initialize (Data+(I*ArrayRec.size),ArrayRec.Info);
+{$else FPC_REQUIRES_PROPER_ALIGNMENT}
          Size:=PArrayRec(Temp)^.Size;    // get element size
          Count:=PArrayRec(Temp)^.Count;  // get element Count
          TInfo:=PArrayRec(Temp)^.Info;   // Get element info
          For I:=0 to Count-1 do
            int_Initialize (Data+(I*size),TInfo);
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
       end;
     tkObject,
     tkRecord:
@@ -113,10 +123,19 @@ begin
          inc(Temp);
          I:=Temp^;
          inc(temp,I+1);             // skip name string;
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+         move(PRecRec(Temp)^.Count,Count,sizeof(Count));  // get element Count
+         For I:=1 to count Do
+           begin
+             move(PRecRec(Temp)^.elements[I],RecElem,sizeof(TRecElem));
+             int_Initialize (Data+RecElem.Offset,RecElem.Info);
+           end;
+{$else FPC_REQUIRES_PROPER_ALIGNMENT}
          Count:=PRecRec(Temp)^.Count;  // get element Count
          For I:=1 to count Do
            With PRecRec(Temp)^.elements[I] do
              int_Initialize (Data+Offset,Info);
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
       end;
 {$ifdef HASVARIANT}
     tkVariant:
@@ -133,6 +152,10 @@ Var Temp       : PByte;
     I          : longint;
     Size,Count : longint;
     TInfo : Pointer;
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+    ArrayRec : TArrayRec;
+    RecElem : TRecElem;
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
 begin
   Temp:=PByte(TypeInfo);
   case temp^ of
@@ -147,11 +170,17 @@ begin
         inc(Temp);
         I:=temp^;
         inc(temp,I+1);                   // skip name string;
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+        move(PArrayRec(Temp)^,ArrayRec,sizeof(ArrayRec));
+        for I:=0 to ArrayRec.Count-1 do
+          int_Finalize (Data+(I*ArrayRec.size),ArrayRec.Info);
+{$else FPC_REQUIRES_PROPER_ALIGNMENT}
         Size:=PArrayRec(Temp)^.Size;     // get element size
         Count:=PArrayRec(Temp)^.Count;   // get element Count
         TInfo:=PArrayRec(Temp)^.Info;    // Get element info
         For I:=0 to Count-1 do
           int_Finalize (Data+(I*size),TInfo);
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
       end;
     tkObject,
     tkRecord:
@@ -159,10 +188,19 @@ begin
         inc(Temp);
         I:=Temp^;
         inc(temp,I+1);                // skip name string;
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+         move(PRecRec(Temp)^.Count,Count,sizeof(Count));  // get element Count
+         For I:=1 to count Do
+           begin
+             move(PRecRec(Temp)^.elements[I],RecElem,sizeof(TRecElem));
+             int_Finalize (Data+RecElem.Offset,RecElem.Info);
+           end;
+{$else FPC_REQUIRES_PROPER_ALIGNMENT}
         Count:=PRecRec(Temp)^.Count;  // get element Count
         For I:=1 to count do
           With PRecRec(Temp)^.elements[I] do
             int_Finalize (Data+Offset,Info);
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
       end;
 {$ifdef HASINTF}
     tkInterface:
@@ -186,6 +224,10 @@ Var Temp       : PByte;
     I          : longint;
     Size,Count : longint;
     TInfo : Pointer;
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+    ArrayRec : TArrayRec;
+    RecElem : TRecElem;
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
 begin
   Temp:=PByte(TypeInfo);
   case temp^ of
@@ -200,11 +242,17 @@ begin
         Inc(Temp);
         I:=temp^;
         inc(temp,I+1);               // skip name string;
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+        move(PArrayRec(Temp)^,ArrayRec,sizeof(ArrayRec));
+        for I:=0 to ArrayRec.Count-1 do
+          int_AddRef (Data+(I*ArrayRec.size),ArrayRec.Info);
+{$else FPC_REQUIRES_PROPER_ALIGNMENT}
         Size:=PArrayRec(Temp)^.Size;     // get element size
         Count:=PArrayRec(Temp)^.Count;  // get element Count
         TInfo:=PArrayRec(Temp)^.Info;   // Get element info
         For I:=0 to Count-1 do
           int_AddRef (Data+(I*size),TInfo);
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
       end;
     tkobject,
     tkrecord :
@@ -212,10 +260,19 @@ begin
         Inc(Temp);
         I:=Temp^;
         temp:=temp+(I+1);             // skip name string;
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+         move(PRecRec(Temp)^.Count,Count,sizeof(Count));  // get element Count
+         For I:=1 to count Do
+           begin
+             move(PRecRec(Temp)^.elements[I],RecElem,sizeof(TRecElem));
+             int_AddRef (Data+RecElem.Offset,RecElem.Info);
+           end;
+{$else FPC_REQUIRES_PROPER_ALIGNMENT}
         Count:=PRecRec(Temp)^.Count;  // get element Count
         For I:=1 to count do
           With PRecRec(Temp)^.elements[I] do
             int_AddRef (Data+Offset,Info);
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
       end;
     tkDynArray:
       fpc_dynarray_incr_ref(PPointer(Data)^);
@@ -238,6 +295,10 @@ Var Temp       : PByte;
     I          : longint;
     Size,Count : longint;
     TInfo : Pointer;
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+    ArrayRec : TArrayRec;
+    RecElem : TRecElem;
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
 begin
   Temp:=PByte(TypeInfo);
   case temp^ of
@@ -253,11 +314,17 @@ begin
          inc(Temp);
          I:=temp^;
          inc(temp,I+1);               // skip name string;
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+        move(PArrayRec(Temp)^,ArrayRec,sizeof(ArrayRec));
+        for I:=0 to ArrayRec.Count-1 do
+          fpc_systemDecRef (Data+(I*ArrayRec.size),ArrayRec.Info);
+{$else FPC_REQUIRES_PROPER_ALIGNMENT}
          Size:=PArrayRec(Temp)^.Size;     // get element size
          Count:=PArrayRec(Temp)^.Count;  // get element Count
          TInfo:=PArrayRec(Temp)^.Info;   // Get element info
          For I:=0 to Count-1 do
            fpc_systemDecRef (Data+(I*size),TInfo);
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
       end;
     tkobject,
     tkrecord:
@@ -265,10 +332,19 @@ begin
          inc(Temp);
          I:=temp^;
          inc(temp,I+1);               // skip name string;
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+         move(PRecRec(Temp)^.Count,Count,sizeof(Count));  // get element Count
+         For I:=1 to count Do
+           begin
+             move(PRecRec(Temp)^.elements[I],RecElem,sizeof(TRecElem));
+             fpc_systemDecRef (Data+RecElem.Offset,RecElem.Info);
+           end;
+{$else FPC_REQUIRES_PROPER_ALIGNMENT}
          Count:=PRecRec(Temp)^.Count;  // get element Count
          For I:=1 to count do
            With PRecRec(Temp)^.elements[I] do
              fpc_systemDecRef (Data+Offset,Info);
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
       end;
     tkDynArray:
       fpc_dynarray_decr_ref(PPointer(Data)^,TypeInfo);
@@ -292,7 +368,10 @@ procedure fpc_finalize_array(data,typeinfo : pointer;count,size : longint); [Pub
 
 {
   $Log$
-  Revision 1.10  2004-02-26 16:19:01  peter
+  Revision 1.11  2004-03-27 23:22:38  florian
+    * fixed alignment issues
+
+  Revision 1.10  2004/02/26 16:19:01  peter
     * tkclass removed from finalize()
     * cleanupinstance now parses the tkclass rtti entry itself and
       calls finalize() for the rtti members
