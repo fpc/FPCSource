@@ -212,7 +212,7 @@ begin
       begin
       Result:=GetTestID(Name);
       If Result=-1 then
-        Verbose(V_WARNING,'Kon toegevoegde test niet terugvinden!')
+        Verbose(V_WARNING,'Could not find newly added test!')
       else
         If AddSource then
           UpdateTest(Result,Info,GetFileContents(Name))
@@ -221,7 +221,7 @@ begin
       end
     end
   else    
-    Verbose(V_ERROR,'Kon test "'+Name+'" niet vinden of geen info extraheren.');
+    Verbose(V_ERROR,'Could not find test "'+Name+'" or info about this test.');
 end;
 
 Const
