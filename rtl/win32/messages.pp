@@ -3,7 +3,10 @@ unit messages;
 
 interface
 
-{$DEFINE ReadInterface}
+  uses
+    windows;
+
+{$DEFINE read_interface}
 {$I messages.inc}
 
 implementation
