@@ -305,7 +305,13 @@ unit tgobj;
                { Create new block and link after bestslot }
                new(tl);
                tl^.temptype:=temptype;
-               tl^.pos:=bestslot^.pos+bestslot^.size;
+               if direction=1 then
+                 begin
+                   tl^.pos:=bestslot^.pos;
+                   inc(bestslot^.pos,size);
+                 end
+               else
+                 tl^.pos:=bestslot^.pos+bestslot^.size;
                tl^.size:=size;
                tl^.nextfree:=nil;
                { link the new block }
@@ -393,6 +399,8 @@ unit tgobj;
                      (hprev^.temptype=tt_free) then
                    begin
                      inc(hprev^.size,hp^.size);
+                     if direction=1 then
+                       hprev^.pos:=hp^.pos;
                      hprev^.next:=hp^.next;
                      dispose(hp);
                      hp:=hprev;
@@ -413,6 +421,8 @@ unit tgobj;
                   (hnext^.temptype=tt_free) then
                 begin
                   inc(hp^.size,hnext^.size);
+                  if direction=1 then
+                    hp^.pos:=hnext^.pos;
                   hp^.nextfree:=hnext^.nextfree;
                   hp^.next:=hnext^.next;
                   dispose(hnext);
@@ -544,7 +554,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.32  2003-05-12 21:29:59  peter
+  Revision 1.33  2003-05-13 20:13:41  florian
+    * fixed temp. management for CPUs were the temp. space grows upwards
+
+  Revision 1.32  2003/05/12 21:29:59  peter
     * extdebug info temp alloc type was wrong
 
   Revision 1.31  2003/04/27 11:21:35  peter
