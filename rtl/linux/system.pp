@@ -36,8 +36,8 @@ Interface
 
 Implementation
 
-{$ifdef ver_1_0}
-Var 
+{$ifdef ver1_0}
+Var
 {$else}
 ThreadVar
 {$endif}
@@ -60,11 +60,11 @@ end;
 
 { OS dependant parts  }
 
-{$I errno.inc}				// error numbers
-{$I bunxtype.inc}			// c-types, unix base types, unix
-					//    base structures
-{$I ossysc.inc}				// base syscalls
-{$I osmain.inc}				// base wrappers *nix RTL (derivatives)
+{$I errno.inc}                          // error numbers
+{$I bunxtype.inc}                       // c-types, unix base types, unix
+                                        //    base structures
+{$I ossysc.inc}                         // base syscalls
+{$I osmain.inc}                         // base wrappers *nix RTL (derivatives)
 
 { more OS independant parts}
 
@@ -108,12 +108,15 @@ Begin
   InOutRes:=0;
 {$ifdef HASVARIANT}
   initvariantmanager;
-{$endif HASVARIANT}  
+{$endif HASVARIANT}
 End.
 
 {
   $Log$
-  Revision 1.3  2002-12-18 16:44:09  marco
+  Revision 1.4  2002-12-18 17:51:27  peter
+    * fixed ifdef ver1_0
+
+  Revision 1.3  2002/12/18 16:44:09  marco
    * more new RTL
 
   Revision 1.7  2002/11/12 14:57:48  marco
