@@ -403,6 +403,7 @@ unit cpupara;
                       { non-composite (not array or record), it must be  }
                       { passed according to the rules of that type.       }
                       if (trecorddef(hp.vartype.def).symtable.symindex.count = 1) and
+                         (not trecorddef(hp.vartype.def).isunion) and
                          ((tabstractvarsym(trecorddef(hp.vartype.def).symtable.symindex.search(1)).vartype.def.deftype = floatdef) or
                           ((target_info.system = system_powerpc_darwin) and
                            (tabstractvarsym(trecorddef(hp.vartype.def).symtable.symindex.search(1)).vartype.def.deftype in [orddef,enumdef]))) then
@@ -649,7 +650,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.87  2005-02-03 20:04:49  peter
+  Revision 1.88  2005-02-11 15:20:23  jonas
+    * records which consist of only a union of one element have to be passed
+      according to record parameter passing rules, not according to the rules
+      of that item's type (change relevant to AIX abi only)
+
+  Revision 1.87  2005/02/03 20:04:49  peter
     * push_addr_param must be defined per target
 
   Revision 1.86  2005/01/31 17:46:25  peter
