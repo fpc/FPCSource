@@ -864,7 +864,8 @@ implementation
                       is_voidpointer(def_from) then
                     begin
                       doconv:=tc_equal;
-                      eq:=te_convert_l1;
+                      { prefer pointer-pointer assignments }
+                      eq:=te_convert_l2;
                     end
                    else
                    { nil is compatible with class instances and interfaces }
@@ -1249,7 +1250,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.37  2003-11-10 19:09:29  peter
+  Revision 1.38  2003-11-26 15:11:42  michael
+  + Patch to prefer getpropinfo(ptypeinfo,name) over getpropinfo(tobject,name) when called with getpropinfo(aclass.classinfo) from Peter
+
+  Revision 1.37  2003/11/10 19:09:29  peter
     * procvar default value support
 
   Revision 1.36  2003/11/04 22:30:15  florian
