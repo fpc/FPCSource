@@ -212,7 +212,7 @@ asm
         movl    %ecx,%ebx      // Copy for easy manipulation
         movl    b,%eax
         repne
-        scasd
+        scasl
         jne     .Lcharposnotfound
         incl    %ecx
         subl    %ecx,%ebx
@@ -1196,7 +1196,10 @@ end;
 
 {
   $Log$
-  Revision 1.72  2000-04-23 09:26:51  jonas
+  Revision 1.73  2000-05-09 06:21:58  pierre
+   * fix ingnored assembler error in IndexDWord
+
+  Revision 1.72  2000/04/23 09:26:51  jonas
     + FPC_SHORTSTR_CONCAT_LEN (temporary, for -dnewoptimizations)
 
   Revision 1.71  2000/04/10 09:47:15  jonas
