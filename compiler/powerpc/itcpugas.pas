@@ -53,7 +53,7 @@ interface
         'lhau','lhaux','lhax','hbrx','lhz','lhzu','lhzux','lhzx','lmw',
         'lswi','lswx','lwarx','lwbrx','lwz','lwzu','lwzux','lwzx','mcrf',
         'mcrfs','mcrxr','lcrxe','mfcr','mffs','maffs.','mfmsr','mfspr','mfsr',
-        'mfsrin','mftb','mtcrf','mtfd0','mtfsb1','mtfsf','mtfsf.',
+        'mfsrin','mftb','mtcrf','mtfsb0','mtfsb1','mtfsf','mtfsf.',
         'mtfsfi','mtfsfi.','mtmsr','mtspr','mtsr','mtsrin','mulhw',
         'mulhw.','mulhwu','mulhwu.','mulli','mullw','mullw.','mullwo',
         'mullwo.','nand','nand.','neg','neg.','nego','nego.','nor','nor.',
@@ -144,7 +144,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  2004-01-04 21:18:10  jonas
+  Revision 1.5  2004-01-10 00:16:21  jonas
+    * fixed mtfsb0 instruction for assembler reader/writer
+    * fixed initialisation of fpscr register to avoid spurious SIGPFE's
+      (uses mtfsb0 instruction, so added extra define in options.pas to avoid
+      requiring to start with a cross compiler)
+
+  Revision 1.4  2004/01/04 21:18:10  jonas
       + as_darwin assembler type (labels start with L)
       * never generate register->number mappings for Darwin
       * always use real register names for Darwin

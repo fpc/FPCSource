@@ -38,6 +38,13 @@ asm
   { clear all "exception happened" flags we care about}
   mtfsfi 0,0
   mtfsfi 1,0
+  mtfsfi 2,0
+  mtfsfi 3,0
+{$ifdef fpc_mtfsb0_corrected}
+  mtfsb0 21
+  mtfsb0 22
+  mtfsb0 23
+{$endif fpc_mtfsb0_corrected}
 
   { enable invalid operations and division by zero exceptions. }
   { No overflow/underflow, since those give some spurious      }
@@ -51,12 +58,7 @@ begin
   fpc_enable_ppc_fpu_exceptions;
 end;
 
-{
-doesn't work, at least not on linux, because there after an exception
-fpscr is set to 0 (JM)
-}
 
-(*
 function fpc_get_ppc_fpscr: cardinal;
 assembler;
 var
@@ -73,7 +75,6 @@ asm
   a_mtfsf f0
 }
 end;
-*)
 
 { This function is never called directly, it's a dummy to hold the register save/
   load subroutines
@@ -1060,7 +1061,13 @@ end;
 
 {
   $Log$
-  Revision 1.63  2004-01-03 19:46:29  jonas
+  Revision 1.64  2004-01-10 00:16:20  jonas
+    * fixed mtfsb0 instruction for assembler reader/writer
+    * fixed initialisation of fpscr register to avoid spurious SIGPFE's
+      (uses mtfsb0 instruction, so added extra define in options.pas to avoid
+      requiring to start with a cross compiler)
+
+  Revision 1.63  2004/01/03 19:46:29  jonas
     * fixed syntax error caught by Mac OS X' as :)
 
   Revision 1.62  2004/01/02 17:21:50  jonas

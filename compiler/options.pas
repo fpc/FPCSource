@@ -1672,6 +1672,7 @@ begin
 {$ifdef powerpc}
   def_symbol('HASINTF');
   def_symbol('HASVARIANT');
+  def_symbol('FPC_MTFSB0_CORRECTED');
 {$endif powerpc}
   def_symbol('INTERNSETLENGTH');
   def_symbol('INTERNLENGTH');
@@ -1993,7 +1994,13 @@ finalization
 end.
 {
   $Log$
-  Revision 1.119  2004-01-02 17:19:04  jonas
+  Revision 1.120  2004-01-10 00:16:21  jonas
+    * fixed mtfsb0 instruction for assembler reader/writer
+    * fixed initialisation of fpscr register to avoid spurious SIGPFE's
+      (uses mtfsb0 instruction, so added extra define in options.pas to avoid
+      requiring to start with a cross compiler)
+
+  Revision 1.119  2004/01/02 17:19:04  jonas
     * if currency = int64, FPC_CURRENCY_IS_INT64 is defined
     + round and trunc for currency and comp if FPC_CURRENCY_IS_INT64 is
       defined

@@ -14,13 +14,6 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
 
-procedure darwin_signal_trampoline(pc,r1: pointer; res: longint);
-begin
-{ give runtime error at the position where the signal was raised }
-  HandleErrorAddrFrame(res,pc,r1);
-end;
-
-
 procedure SignalToRunerror(Sig: cint; var info : tsiginfo_t;Var SigContext:SigContextRec); cdecl;
 
 var
@@ -45,7 +38,7 @@ begin
         { enabled by executing a sigreturn, however then the exception is triggered }
         { triggered again immediately if we don't turn off the "exception occurred" }
         { flags in fpscr                                                            }
-        SigContext.uc_mcontext^.fs.fpscr := SigContext.uc_mcontext^.fs.fpscr and not($fffc0000);
+        SigContext.uc_mcontext^.fs.fpscr := SigContext.uc_mcontext^.fs.fpscr and not($fffe0700);
       end;
     SIGILL,
     SIGBUS,
@@ -59,16 +52,22 @@ begin
   { return to trampoline }
   if res <> 0 then
     begin
-      SigContext.uc_mcontext^.ss.r3 := SigContext.uc_mcontext^.ss.srr0;
-      SigContext.uc_mcontext^.ss.r4 := SigContext.uc_mcontext^.ss.r1;
-      SigContext.uc_mcontext^.ss.r5 := res;
-      pointer(SigContext.uc_mcontext^.ss.srr0) := @darwin_signal_trampoline;
+      SigContext.uc_mcontext^.ss.r3 := res;
+      SigContext.uc_mcontext^.ss.r4 := SigContext.uc_mcontext^.ss.srr0;
+      SigContext.uc_mcontext^.ss.r5 := SigContext.uc_mcontext^.ss.r1;
+      pointer(SigContext.uc_mcontext^.ss.srr0) := @HandleErrorAddrFrame;
     end;
 end;
 
 {
   $Log$
-  Revision 1.2  2004-01-08 21:52:34  jonas
+  Revision 1.3  2004-01-10 00:16:21  jonas
+    * fixed mtfsb0 instruction for assembler reader/writer
+    * fixed initialisation of fpscr register to avoid spurious SIGPFE's
+      (uses mtfsb0 instruction, so added extra define in options.pas to avoid
+      requiring to start with a cross compiler)
+
+  Revision 1.2  2004/01/08 21:52:34  jonas
     * fixed signal handling under 10.3.2, still have to verify whether it's
       backwards compatible
 

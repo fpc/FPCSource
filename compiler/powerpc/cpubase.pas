@@ -61,7 +61,7 @@ uses
         a_lhau, a_lhaux, a_lhax, a_hbrx, a_lhz, a_lhzu, a_lhzux, a_lhzx, a_lmw,
         a_lswi, a_lswx, a_lwarx, a_lwbrx, a_lwz, a_lwzu, a_lwzux, a_lwzx, a_mcrf,
         a_mcrfs, a_mcrxr, a_lcrxe, a_mfcr, a_mffs, a_maffs_, a_mfmsr, a_mfspr, a_mfsr,
-        a_mfsrin, a_mftb, a_mtcrf, a_a_mtfd0, a_mtfsb1, a_mtfsf, a_mtfsf_,
+        a_mfsrin, a_mftb, a_mtcrf, a_mtfsb0, a_mtfsb1, a_mtfsf, a_mtfsf_,
         a_mtfsfi, a_mtfsfi_, a_mtmsr, a_mtspr, a_mtsr, a_mtsrin, a_mulhw,
         a_mulhw_, a_mulhwu, a_mulhwu_, a_mulli, a_mullw, a_mullw_, a_mullwo,
         a_mullwo_, a_nand, a_nand_, a_neg, a_neg_, a_nego, a_nego_, a_nor, a_nor_,
@@ -694,7 +694,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.81  2003-12-16 21:49:47  florian
+  Revision 1.82  2004-01-10 00:16:21  jonas
+    * fixed mtfsb0 instruction for assembler reader/writer
+    * fixed initialisation of fpscr register to avoid spurious SIGPFE's
+      (uses mtfsb0 instruction, so added extra define in options.pas to avoid
+      requiring to start with a cross compiler)
+
+  Revision 1.81  2003/12/16 21:49:47  florian
     * fixed ppc compilation
 
   Revision 1.80  2003/12/09 20:39:43  jonas
