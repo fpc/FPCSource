@@ -58,7 +58,6 @@ interface
    because of clipboard handling PM }
  {$LINKLIB kernel32}
  {$LINKLIB user32}
- {$LINKLIB shell32}
 {$endif win32}
 
 {$ifdef go32v2}
@@ -2153,7 +2152,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  1999-11-24 23:36:32  peter
+  Revision 1.2  1999-11-26 14:50:40  pierre
+   * shell32 lib is not needed in gdbint unit
+
+  Revision 1.1  1999/11/24 23:36:32  peter
     * moved to packages dir
 
   Revision 1.16  1999/11/09 22:58:08  pierre
