@@ -15,7 +15,7 @@ do
     echo "$i -> $htex"
     
     # retrieve exampledir
-    exdir=`grep exampledir $i | sed "s+\(.*\)FPCexampledir{\(.*\)}+\2+"`
+    exdir=`grep FPCexampledir $i | sed "s+\(.*\)FPCexampledir{\(.*\)}+\2+"`
 
     # replace FPCexample calls
     if [ "$exdir" != "" ]
