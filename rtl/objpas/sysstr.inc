@@ -1223,6 +1223,47 @@ begin
     Dec(Result);
 end;
 
+function StringReplace(const S, OldPattern, NewPattern: string;  Flags: TReplaceFlags): string;
+
+var
+  Srch,OldP,RemS: string; // Srch and Oldp can contain uppercase versions of S,OldPattern
+  P : Integer;
+
+begin
+  Srch:=S;
+  OldP:=OldPattern;
+  if rfIgnoreCase in Flags then
+    begin
+    Srch:=UpperCase(Srch);
+    OldP:=UpperCase(OldP);
+    end;
+  RemS:=S;
+  Result:='';
+  while (Length(Srch)<>0) do
+    begin
+    P:=Pos(OldP, Srch);
+    if P=0 then
+      begin
+      Result:=Result+RemS;
+      Srch:='';
+      end
+    else
+      begin
+      Result:=Result+Copy(RemS,1,P-1)+NewPattern;
+      P:=P+Length(OldP);
+      RemS:=Copy(RemS,P,Length(RemS)-P+1);
+      if not (rfReplaceAll in Flags) then
+        begin
+        Result:=Result+RemS;
+        Srch:='';
+        end
+      else
+         Srch:=Copy(Srch,P,Length(Srch)-P+1);
+      end;
+    end;
+end;
+
+
 {
    Case Translation Tables
    Can be used in internationalization support.
@@ -1233,6 +1274,8 @@ end;
    before modifying a translation table make sure that the current codepage
    of the OS corresponds to the one you make changes to
 }
+
+
 
 const
    { upper case translation table for character set 850 }
@@ -1281,7 +1324,17 @@ const
 
 {
   $Log$
-  Revision 1.12  2001-08-01 21:44:20  peter
+  Revision 1.13  2001-09-20 14:38:41  michael
+   Implemented missing StringReplace function
+
+  Revision 1.12  2001/08/01 21:44:20  peter
+  Revision 1.1.2.9  2001/09/20 14:35:34  michael
+   Implemented missing StringReplace function
+
+  Revision 1.1.2.8  2001/08/14 20:06:23  carl
+  -* replace ifdef linux -> ifdef unix
+
+  Revision 1.1.2.7  2001/08/01 21:45:22  peter
     * fix thousend separator when no decimal separator is available
     * allow precision to be left away like %10.n
 
