@@ -399,6 +399,8 @@ unit cpupara;
                   paraloc^.reference.index:=NR_FRAME_POINTER_REG;
                 varalign:=used_align(size_2_align(paralen),paraalign,paraalign);
                 paraloc^.reference.offset:=parasize;
+                if side=calleeside then
+                  inc(paraloc^.reference.offset,target_info.first_parm_offset);
                 parasize:=align(parasize+paralen,varalign);
               end
             else
@@ -421,40 +423,12 @@ unit cpupara;
                       paraloc^.reference.index:=NR_FRAME_POINTER_REG;
                     varalign:=used_align(size_2_align(l),paraalign,paraalign);
                     paraloc^.reference.offset:=parasize;
+                    if side=calleeside then
+                      inc(paraloc^.reference.offset,target_info.first_parm_offset);
                     parasize:=align(parasize+l,varalign);
                     dec(paralen,l);
                   end;
               end;
-          end;
-        { Adapt offsets for left-to-right calling }
-        if p.proccalloption in pushleftright_pocalls then
-          begin
-            for i:=0 to paras.count-1 do
-              begin
-                hp:=tparavarsym(paras[i]);
-                l:=push_size(hp.varspez,hp.vartype.def,p.proccalloption);
-                varalign:=used_align(size_2_align(l),paraalign,paraalign);
-                l:=align(l,varalign);
-                with hp.paraloc[side].location^ do
-                  begin
-                    reference.offset:=parasize-reference.offset-l;
-                    if side=calleeside then
-                      inc(reference.offset,target_info.first_parm_offset);
-                  end;
-              end;
-          end
-        else
-          begin
-            { Only need to adapt the callee side to include the
-              standard stackframe size }
-            if side=calleeside then
-              begin
-                for i:=0 to paras.count-1 do
-                  begin
-                    hp:=tparavarsym(paras[i]);
-                    inc(hp.paraloc[side].location^.reference.offset,target_info.first_parm_offset);
-                  end;
-               end;
           end;
       end;
 
@@ -529,6 +503,8 @@ unit cpupara;
                       paraloc^.reference.index:=NR_FRAME_POINTER_REG;
                     varalign:=used_align(size_2_align(paralen),paraalign,paraalign);
                     paraloc^.reference.offset:=parasize;
+                    if side=calleeside then
+                      inc(paraloc^.reference.offset,target_info.first_parm_offset);
                     parasize:=align(parasize+paralen,varalign);
                   end
                 else
@@ -551,29 +527,13 @@ unit cpupara;
                           paraloc^.reference.index:=NR_FRAME_POINTER_REG;
                         varalign:=used_align(size_2_align(l),paraalign,paraalign);
                         paraloc^.reference.offset:=parasize;
+                        if side=calleeside then
+                          inc(paraloc^.reference.offset,target_info.first_parm_offset);
                         parasize:=align(parasize+l,varalign);
                         dec(paralen,l);
                       end;
                   end;
               end;
-          end;
-        { Register parameters are assigned from left-to-right, adapt offset
-          for calleeside to be reversed }
-        for i:=0 to paras.count-1 do
-          begin
-            hp:=tparavarsym(paras[i]);
-            with hp.paraloc[side].location^ do
-              begin
-                if (loc=LOC_REFERENCE) then
-                  begin
-                    l:=push_size(hp.varspez,hp.vartype.def,p.proccalloption);
-                    varalign:=used_align(size_2_align(l),paraalign,paraalign);
-                    l:=align(l,varalign);
-                    reference.offset:=parasize-reference.offset-l;
-                    if side=calleeside then
-                      inc(reference.offset,target_info.first_parm_offset);
-                  end;
-               end;
           end;
       end;
 
@@ -639,7 +599,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.67  2005-02-14 19:42:02  peter
+  Revision 1.68  2005-02-15 19:16:04  peter
+    * fix passing of 64bit values when using -Or
+
+  Revision 1.67  2005/02/14 19:42:02  peter
   win32 stdcall fixes needed for tw3650
 
   Revision 1.66  2005/02/14 17:13:09  peter

@@ -1332,13 +1332,15 @@ implementation
 
       var
         i : longint;
-        sizeleft : aint;
         currpara : tparavarsym;
-        paraloc : pcgparalocation;
+        paraloc  : pcgparalocation;
+        hreflo,
+        hrefhi,
+        href     : treference;
 {$ifdef sparc}
-        tempref,
+        sizeleft : aint;
+        tempref  : treference;
 {$endif sparc}
-        href    : treference;
       begin
         if (po_assembler in current_procinfo.procdef.procoptions) then
           exit;
@@ -1348,7 +1350,6 @@ implementation
           begin
             currpara:=tparavarsym(current_procinfo.procdef.paras[i]);
             paraloc:=currpara.paraloc[calleeside].location;
-            sizeleft:=currpara.paraloc[calleeside].intsize;
             while assigned(paraloc) do
               begin
                 if paraloc^.loc in [LOC_REGISTER,LOC_FPUREGISTER,LOC_MMREGISTER] then
@@ -1365,7 +1366,6 @@ implementation
             { skip e.g. empty records }
             if (paraloc^.loc = LOC_VOID) then
               continue;
-            sizeleft:=currpara.paraloc[calleeside].intsize;
             if not assigned(paraloc) then
               internalerror(200408203);
             case currpara.localloc.loc of
@@ -1376,80 +1376,59 @@ implementation
                   if not paramanager.param_use_paraloc(currpara.paraloc[calleeside]) then
                     begin
                       href:=currpara.localloc.reference;
-                      while assigned(paraloc) do
+                      if (currpara.paraloc[calleeside].is_single_reference(paraloc)) then
                         begin
                           unget_para(paraloc^);
-                          if (currpara.paraloc[calleeside].is_single_reference(paraloc)) then
+                          gen_load_ref(paraloc^,href,currpara.paraloc[calleeside].intsize);
+                        end
+                      else
+                        begin
+                          while assigned(paraloc) do
                             begin
-                              gen_load_ref(paraloc^,href,sizeleft);
-                              { May be needed later, when we add support for     }
-                              { passing the same parameter in multiple locations }
-                              { Currently, is_single_reference returns only true }
-                              { if paraloc^.next = nil (JM)                      }
-                              inc(href.offset,sizeleft);
-                              sizeleft := 0;
-                            end
-                          else
-                            begin
+                              unget_para(paraloc^);
                               if (paraloc^.size = OS_NO) then
                                 internalerror(2005013010);
                               gen_load_ref(paraloc^,href,tcgsize2size[paraloc^.size]);
                               inc(href.offset,TCGSize2Size[paraloc^.size]);
-                              dec(sizeleft,TCGSize2Size[paraloc^.size]);
+                              paraloc:=paraloc^.next;
                             end;
-                          paraloc:=paraloc^.next;
                         end;
                     end;
                 end;
               LOC_CREGISTER :
                 begin
 {$ifndef cpu64bit}
-                  if currpara.localloc.size in [OS_64,OS_S64] then
+                  if (currpara.paraloc[calleeside].size in [OS_64,OS_S64]) and
+                     is_64bit(currpara.vartype.def) then
                     begin
-                      { Special case for single location 64bit LOC_REFERENCE parameter }
-                      if paraloc^.size in [OS_64,OS_S64] then
+                      if not assigned(paraloc^.next) then
+                        internalerror(200410104);
+                      if (target_info.endian=ENDIAN_BIG) then
                         begin
-                          if paraloc^.loc<>LOC_REFERENCE then
-                            internalerror(200412031);
-                          reference_reset_base(href,paraloc^.reference.index,paraloc^.reference.offset);
-                          if (target_info.endian=ENDIAN_BIG) then
-                            begin
-                              cg.a_load_ref_reg(list,OS_32,OS_32,href,currpara.localloc.register64.reghi);
-                              inc(href.offset,4);
-                              cg.a_load_ref_reg(list,OS_32,OS_32,href,currpara.localloc.register64.reglo);
-                            end
-                          else
-                            begin
-                              cg.a_load_ref_reg(list,OS_32,OS_32,href,currpara.localloc.register64.reglo);
-                              inc(href.offset,4);
-                              cg.a_load_ref_reg(list,OS_32,OS_32,href,currpara.localloc.register64.reghi);
-                            end;
+                          { paraloc^ -> high
+                            paraloc^.next -> low }
+                          unget_para(paraloc^);
+                          gen_load_reg(paraloc^,currpara.localloc.register64.reghi);
+                          unget_para(paraloc^.next^);
+                          gen_load_reg(paraloc^.next^,currpara.localloc.register64.reglo);
                         end
                       else
                         begin
-                          { First 32bits }
+                          { paraloc^ -> low
+                            paraloc^.next -> high }
                           unget_para(paraloc^);
-                          if (target_info.endian=ENDIAN_BIG) then
-                            gen_load_reg(paraloc^,currpara.localloc.register64.reghi)
-                          else
-                            gen_load_reg(paraloc^,currpara.localloc.register64.reglo);
-                          { Second 32bits }
-                          if not assigned(paraloc^.next) then
-                            internalerror(200410104);
+                          gen_load_reg(paraloc^,currpara.localloc.register64.reglo);
                           unget_para(paraloc^.next^);
-                          if (target_info.endian=ENDIAN_BIG) then
-                            gen_load_reg(paraloc^.next^,currpara.localloc.register64.reglo)
-                          else
-                            gen_load_reg(paraloc^.next^,currpara.localloc.register64.reghi);
+                          gen_load_reg(paraloc^.next^,currpara.localloc.register64.reghi);
                         end;
                     end
                   else
 {$endif cpu64bit}
                     begin
-                      unget_para(paraloc^);
-                      gen_load_reg(paraloc^,currpara.localloc.register);
                       if assigned(paraloc^.next) then
                         internalerror(200410105);
+                      unget_para(paraloc^);
+                      gen_load_reg(paraloc^,currpara.localloc.register);
                     end;
                 end;
               LOC_CFPUREGISTER :
@@ -2422,7 +2401,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.260  2005-02-14 17:13:06  peter
+  Revision 1.261  2005-02-15 19:16:04  peter
+    * fix passing of 64bit values when using -Or
+
+  Revision 1.260  2005/02/14 17:13:06  peter
     * truncate log
 
   Revision 1.259  2005/01/30 21:51:57  jonas

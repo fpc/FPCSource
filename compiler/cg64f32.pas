@@ -135,15 +135,20 @@ unit cg64f32;
         { 2 parameter fields? }
         if assigned(cgpara.location^.next) then
           begin
-            if target_info.endian = endian_big then
+            { Order for multiple locations is always
+                paraloc^ -> high
+                paraloc^.next -> low }
+            if (target_info.endian=ENDIAN_BIG) then
               begin
-                { low is in second location }
-                move(cgpara.location^.next^,paraloclo^,sizeof(paraloclo^));
+                { paraloc^ -> high
+                  paraloc^.next -> low }
                 move(cgpara.location^,paralochi^,sizeof(paralochi^));
+                move(cgpara.location^.next^,paraloclo^,sizeof(paraloclo^));
               end
             else
               begin
-                { low is in first location }
+                { paraloc^ -> low
+                  paraloc^.next -> high }
                 move(cgpara.location^,paraloclo^,sizeof(paraloclo^));
                 move(cgpara.location^.next^,paralochi^,sizeof(paralochi^));
               end;
@@ -157,9 +162,9 @@ unit cg64f32;
             move(cgpara.location^,paralochi^,sizeof(paralochi^));
             { for big endian low is at +4, for little endian high }
             if target_info.endian = endian_big then
-              inc(cgparalo.location^.reference.offset,tcgsize2size[cgparahi.size])
+              inc(cgparalo.location^.reference.offset,4)
             else
-              inc(cgparahi.location^.reference.offset,tcgsize2size[cgparalo.size]);
+              inc(cgparahi.location^.reference.offset,4);
           end;
         { fix size }
         paraloclo^.size:=cgparalo.size;
@@ -488,6 +493,8 @@ unit cg64f32;
         tmploclo.init;
         tmplochi.init;
         splitparaloc64(paraloc,tmploclo,tmplochi);
+        { Keep this order of first hi before lo to have
+          the correct push order for i386 }
         cg.a_param_reg(list,OS_32,reg.reghi,tmplochi);
         cg.a_param_reg(list,OS_32,reg.reglo,tmploclo);
         tmploclo.done;
@@ -502,6 +509,8 @@ unit cg64f32;
         tmploclo.init;
         tmplochi.init;
         splitparaloc64(paraloc,tmploclo,tmplochi);
+        { Keep this order of first hi before lo to have
+          the correct push order for i386 }
         cg.a_param_const(list,OS_32,aint(hi(value)),tmplochi);
         cg.a_param_const(list,OS_32,aint(lo(value)),tmploclo);
         tmploclo.done;
@@ -523,6 +532,8 @@ unit cg64f32;
           inc(tmpreflo.offset,4)
         else
           inc(tmprefhi.offset,4);
+        { Keep this order of first hi before lo to have
+          the correct push order for i386 }
         cg.a_param_ref(list,OS_32,tmprefhi,tmplochi);
         cg.a_param_ref(list,OS_32,tmpreflo,tmploclo);
         tmploclo.done;
@@ -781,7 +792,10 @@ unit cg64f32;
 end.
 {
   $Log$
-  Revision 1.69  2005-02-14 17:13:06  peter
+  Revision 1.70  2005-02-15 19:16:04  peter
+    * fix passing of 64bit values when using -Or
+
+  Revision 1.69  2005/02/14 17:13:06  peter
     * truncate log
 
   Revision 1.68  2005/02/13 18:55:19  florian
