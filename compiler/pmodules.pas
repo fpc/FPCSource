@@ -62,11 +62,8 @@ unit pmodules;
         if (cs_create_sharedlib in aktmoduleswitches) then
           Linker.MakeSharedLibrary
         else
-          if (cs_create_staticlib in aktmoduleswitches)
-{$ifndef AG386BIN}
-             or (cs_smartlink in aktmoduleswitches)
-{$endif}
-             then
+          if (cs_create_staticlib in aktmoduleswitches) or
+	     ((cs_smartlink in aktmoduleswitches) and target_asm.needar) then
             Linker.MakeStaticLibrary(SmartLinkFilesCnt);
       end;
 
@@ -1359,7 +1356,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.117  1999-05-01 13:24:32  peter
+  Revision 1.118  1999-05-03 18:03:28  peter
+    * no ar.exe running field in target_asm
+
+  Revision 1.117  1999/05/01 13:24:32  peter
     * merged nasm compiler
     * old asm moved to oldasm/
 

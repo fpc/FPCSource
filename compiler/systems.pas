@@ -154,6 +154,7 @@ unit systems;
           asmbin      : string[8];
           asmcmd      : string[50];
           externals   : boolean;
+          needar      : boolean;
           labelprefix : string[2];
           comment     : string[2];
           secnames    : array[tsection] of string[20];
@@ -477,6 +478,7 @@ implementation
             asmbin : 'as';
             asmcmd : '-o $OBJ $ASM';
             externals : false;
+            needar : true;
             labelprefix : '.L';
             comment : '# ';
             secnames : ('',
@@ -491,6 +493,7 @@ implementation
             asmbin : 'as';
             asmcmd : '-o $OBJ $ASM';
             externals : false;
+            needar : true;
             labelprefix : 'L';
             comment : '# ';
             secnames : ('',
@@ -505,6 +508,7 @@ implementation
             asmbin : 'asw';
             asmcmd : '-o $OBJ $ASM';
             externals : false;
+            needar : true;
             labelprefix : '.L';
             comment : '# ';
             secnames : ('',
@@ -520,6 +524,7 @@ implementation
             asmbin : 'nasm';
             asmcmd : '-f coff -o $OBJ $ASM';
             externals : true;
+            needar : true;
             labelprefix : 'L';
             comment : '; ';
             secnames : ('',
@@ -534,6 +539,7 @@ implementation
             asmbin : 'nasm';
             asmcmd : '-f elf -o $OBJ $ASM';
             externals : true;
+            needar : true;
             labelprefix : 'L';
             comment : '; ';
             secnames : ('',
@@ -548,6 +554,7 @@ implementation
             asmbin : 'nasm';
             asmcmd : '-f obj -o $OBJ $ASM';
             externals : true;
+            needar : true;
             labelprefix : 'L';
             comment : '; ';
             secnames : ('',
@@ -562,6 +569,7 @@ implementation
             asmbin : 'tasm';
             asmcmd : '/m2 $ASM $OBJ';
             externals : true;
+            needar : true;
             labelprefix : '@@';
             comment : '; ';
             secnames : ('',
@@ -575,6 +583,7 @@ implementation
             asmbin : 'masm';
             asmcmd : '$ASM $OBJ';
             externals : true;
+            needar : true;
             labelprefix : '.L';
             comment : '; ';
             secnames : ('',
@@ -588,6 +597,7 @@ implementation
             asmbin : '';
             asmcmd : '';
             externals : true;
+            needar : false;
             labelprefix : 'L';
             comment : '';
             secnames : ('',
@@ -602,6 +612,7 @@ implementation
             asmbin : '';
             asmcmd : '';
             externals : true;
+            needar : false;
             labelprefix : '.L';
             comment : '';
             secnames : ('',
@@ -616,6 +627,7 @@ implementation
             asmbin : '';
             asmcmd : '';
             externals : true;
+            needar : false;
             labelprefix : '.L';
             comment : '';
             secnames : ('',
@@ -1455,7 +1467,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.68  1999-05-02 22:41:59  peter
+  Revision 1.69  1999-05-03 18:03:29  peter
+    * no ar.exe running field in target_asm
+
+  Revision 1.68  1999/05/02 22:41:59  peter
     * moved section names to systems
     * fixed nasm,intel writer
 
