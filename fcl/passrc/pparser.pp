@@ -858,8 +858,8 @@ var
 var
   EnumValue: TPasEnumValue;
   Prefix : String;
-  HadPackedModifier : Boolean;           // 12/04/04 - Dave - Added 
-   
+  HadPackedModifier : Boolean;           // 12/04/04 - Dave - Added
+
 begin
   TypeName := CurTokenString;
   ExpectToken(tkEqual);
@@ -887,9 +887,11 @@ begin
         end;
       end;
     tkObject:
-      begin                                                
+      begin
       Result := ParseClassDecl(Parent, TypeName, okObject);
-      TPasClassType(Result).IsPacked := HadPackedModifier; 
+      { could be TPasClassOfType }
+      if result is TPasClassType then
+        TPasClassType(Result).IsPacked := HadPackedModifier;
       end;
     tkClass:
       begin
@@ -920,7 +922,7 @@ begin
           NextToken;
           end
         else
-          Prefix:='';  
+          Prefix:='';
         if CurToken = tkSemicolon then
         begin
           UngetToken;
@@ -1078,7 +1080,7 @@ begin
         break
       else if CurToken <> tkComma then
         ParseExc(SParserExpectedCommaColon);
-        
+
       ExpectIdentifier;
     end;
 
@@ -1157,7 +1159,7 @@ begin
         begin
         M := M + '; cvar';
         ExpectToken(tkSemicolon);
-        end 
+        end
       else if (s = 'EXTERNAL') or (s = 'PUBLIC') or (s = 'EXPORT') then
         begin
         M := M + ';' + CurTokenText;
@@ -1170,7 +1172,7 @@ begin
             M := M + ' ' + CurTokenText;
             NextToken;
             end;
-          end 
+          end
         else
           NextToken;
         if (CurToken = tkIdentifier) and (UpperCase(CurTokenText) = 'NAME') then
@@ -1183,7 +1185,7 @@ begin
           else
             ParseExc(SParserSyntaxError);
           ExpectToken(tkSemicolon);
-          end 
+          end
         else if CurToken <> tkSemicolon then
           ParseExc(SParserSyntaxError);
       end else
@@ -1841,7 +1843,10 @@ end.
 
 {
   $Log$
-  Revision 1.11  2004-12-06 19:16:38  michael
+  Revision 1.12  2004-12-21 22:19:16  florian
+    * fixed memory corruption
+
+  Revision 1.11  2004/12/06 19:16:38  michael
   + Some cleanup, removed some keywords which are not keywords
 
   Revision 1.10  2004/12/06 08:53:47  michael
