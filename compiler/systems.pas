@@ -78,7 +78,8 @@ unit systems;
      type
        tasm = (as_none
             ,as_i386_as,as_i386_as_aout,as_i386_asw,
-            as_i386_nasmcoff,as_i386_nasmelf,as_i386_nasmobj,
+            as_i386_nasmcoff,as_i386_nasmwin32,
+            as_i386_nasmelf,as_i386_nasmobj,
             as_i386_tasm,as_i386_masm,
             as_i386_dbg,as_i386_coff,as_i386_pecoff
             ,as_m68k_as,as_m68k_gas,as_m68k_mit,as_m68k_mot,as_m68k_mpw,
@@ -86,7 +87,7 @@ unit systems;
        );
        { binary assembler writers, needed to test for -a }
      const
-       {$ifdef i386} i386asmcnt=11; {$else} i386asmcnt=0; {$endif}
+       {$ifdef i386} i386asmcnt=12; {$else} i386asmcnt=0; {$endif}
        {$ifdef m68k} m68kasmcnt=5; {$else} m68kasmcnt=0; {$endif}
        {$ifdef alpha} alphaasmcnt=1; {$else} alphaasmcnt=0; {$endif}
        {$ifdef powerpc} powerpcasmcnt=1; {$else} powerpcasmcnt=0; {$endif}
@@ -562,6 +563,21 @@ implementation
             idtxt  : 'NASMCOFF';
             asmbin : 'nasm';
             asmcmd : '-f coff -o $OBJ $ASM';
+            allowdirect : true;
+            externals : true;
+            needar : true;
+            labelprefix : 'L';
+            comment : '; ';
+            secnames : ('',
+              '.text','.data','.bss',
+              '.idata2','.idata4','.idata5','.idata6','.idata7','.edata',
+              '.stab','.stabstr')
+          )
+          ,(
+            id     : as_i386_nasmwin32;
+            idtxt  : 'NASMWIN32';
+            asmbin : 'nasm';
+            asmcmd : '-f win32 -o $OBJ $ASM';
             allowdirect : true;
             externals : true;
             needar : true;
@@ -1509,7 +1525,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.99  2000-02-09 13:23:06  peter
+  Revision 1.100  2000-04-04 13:54:58  pierre
+   + nasmwin32 for win32 object output with nasm assembler
+
+  Revision 1.99  2000/02/09 13:23:06  peter
     * log truncated
 
   Revision 1.98  2000/01/07 01:14:42  peter
