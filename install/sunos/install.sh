@@ -131,22 +131,25 @@ if yesno "Install sources"; then
   echo Unpacking ...
   tar xf sources.tar
   echo Installing sources in $SRCDIR ...
-  unztar basesrc.tar.gz $PREFIX
+  unztar basesrc $PREFIX      
   if yesno "Install compiler source"; then
-    unztar compilersrc.tar.gz $PREFIX
+    unztar compilersrc $PREFIX
   fi    
   if yesno "Install RTL source"; then
-    unztar rtlsrc.tar.gz $PREFIX
+    unztar rtlsrc $PREFIX
   fi    
   if yesno "Install FCL source"; then
-    unztar fclsrc.tar.gz $PREFIX
+    unztar fclsrc $PREFIX
   fi    
-  if yesno "Install Packages source"; then
-    unztar packagessrc.tar.gz $PREFIX
+  if yesno "Install paszlib source"; then
+    unztar upaszlibsrc $PREFIX
   fi    
+  if yesno "Install regexpr source"; then
+    unztar uregexprsrc $PREFIX
+  fi   
   if yesno "Install Utils source"; then
-    unztar utilsrc.tar.gz $PREFIX
-  fi    
+    unztar utilssrc $PREFIX
+  fi
   rm -f *src.tar.gz
   echo Done.
 fi
