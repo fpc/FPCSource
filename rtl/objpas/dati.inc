@@ -178,7 +178,7 @@ end ;
 
 function DayOfWeek(DateTime: TDateTime): integer;
 begin
-Result := 1 + (Trunc(DateTime) mod 7);
+  Result := 1 + (Abs(Trunc(DateTime) - 1) mod 7);
 end ;
 
 {   Date returns the current Date   }
@@ -680,7 +680,10 @@ end;
 
 {
   $Log$
-  Revision 1.16  1999-08-11 21:53:04  peter
+  Revision 1.17  1999-10-28 09:52:29  peter
+    * fixed dayofweek
+
+  Revision 1.16  1999/08/11 21:53:04  peter
     * fixed formatdatetime('c',...)
     * fixed strtodate
     * dateencode/decode is now delphi compatible
