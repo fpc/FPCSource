@@ -24,12 +24,14 @@ OS/2 only rtl                                 medium
   - SysOS2
   - DOS
   - ObjInc.INC
+  - disk.inc
+  - filutil.inc
   - autothunking for 16-bit calls
   - ? linker (ALINK)
 
 FCL                                           medium
-  - disk.inc implementation
-  - filutil.inc implementation
+          - disk.inc................................................TH
+  - filutil.inc
   - thread.inc
           - pipes.inc...............................................TH
   - ? unit SyncObjs
