@@ -62,6 +62,8 @@ end;
 Procedure FileClose (Handle : Longint);
 
 begin
+  if Handle<=4 then
+   exit;
   fdclose(Handle);
 end;
 
@@ -283,7 +285,10 @@ end;
 
 {
   $Log$
-  Revision 1.12  2000-01-07 16:41:40  daniel
+  Revision 1.13  2000-01-16 22:25:38  peter
+    * check handle for file closing
+
+  Revision 1.12  2000/01/07 16:41:40  daniel
     * copyright 2000
 
   Revision 1.11  1999/05/14 22:19:34  michael

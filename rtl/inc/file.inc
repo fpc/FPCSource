@@ -358,14 +358,7 @@ Begin
     end;
   end;
   FileRec(f).mode:=fmClosed;
-{$IFDEF OS2}
-  if (FileRec (F).Handle > 4) or
-                            (os_MODE = osOS2) and (FileRec (F).Handle > 2) then
-{ Only three standard handles under real OS/2 }
-{$ELSE}
-  if FileRec(f).Handle>4 then
-{$ENDIF}
-   Do_Close(FileRec(f).Handle);
+  Do_Close(FileRec(f).Handle);
 End;
 
 
@@ -415,7 +408,10 @@ End;
 
 {
   $Log$
-  Revision 1.16  2000-01-07 16:41:33  daniel
+  Revision 1.17  2000-01-16 22:25:38  peter
+    * check handle for file closing
+
+  Revision 1.16  2000/01/07 16:41:33  daniel
     * copyright 2000
 
   Revision 1.15  2000/01/07 16:32:24  daniel

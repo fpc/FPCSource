@@ -743,6 +743,8 @@ procedure do_close(handle : longint);
 var
   regs : trealregs;
 begin
+  if Handle<=4 then
+   exit;
   regs.realebx:=handle;
   if handle<max_files then
     begin
@@ -1337,7 +1339,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.28  2000-01-07 16:41:32  daniel
+  Revision 1.29  2000-01-16 22:25:38  peter
+    * check handle for file closing
+
+  Revision 1.28  2000/01/07 16:41:32  daniel
     * copyright 2000
 
   Revision 1.27  2000/01/07 16:32:23  daniel

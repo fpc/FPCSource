@@ -279,11 +279,16 @@ end;
 procedure do_close(h:longint);
 
 begin
+{ Only three standard handles under real OS/2 }
+  if (h > 4) or
+     (os_MODE = osOS2) and (FileRec (F).Handle > 2) then
+   begin
      asm
         movb $0x3e,%ah
         mov h,%ebx
         call syscall
      end;
+   end;
 end;
 
 procedure do_erase(p:Pchar);
@@ -750,7 +755,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.21  2000-01-09 20:45:58  hajny
+  Revision 1.22  2000-01-16 22:25:38  peter
+    * check handle for file closing
+
+  Revision 1.21  2000/01/09 20:45:58  hajny
     * FPK changed to FPC
 
   Revision 1.20  2000/01/07 16:41:50  daniel

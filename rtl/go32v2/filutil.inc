@@ -117,6 +117,8 @@ end;
 Procedure FileClose (Handle : Longint);
 var Regs: registers;
 begin
+  if Handle<=4 then
+   exit;
 Regs.Eax := $3e00;
 Regs.Ebx := Handle;
 RealIntr($21, Regs);
@@ -454,7 +456,10 @@ end;
 
 {
   $Log$
-  Revision 1.10  2000-01-07 16:41:31  daniel
+  Revision 1.11  2000-01-16 22:25:38  peter
+    * check handle for file closing
+
+  Revision 1.10  2000/01/07 16:41:31  daniel
     * copyright 2000
 
   Revision 1.9  1999/11/25 15:55:52  pierre

@@ -260,6 +260,8 @@ end;
 
 Procedure Do_Close(Handle:Longint);
 Begin
+  if Handle<=4 then
+   exit;
 {$ifdef crtlib}
   _rtl_close(Handle);
 {$else}
@@ -739,7 +741,10 @@ End.
 
 {
   $Log$
-  Revision 1.32  2000-01-07 16:41:41  daniel
+  Revision 1.33  2000-01-16 22:25:38  peter
+    * check handle for file closing
+
+  Revision 1.32  2000/01/07 16:41:41  daniel
     * copyright 2000
 
   Revision 1.31  2000/01/07 16:32:28  daniel

@@ -333,7 +333,9 @@ end;
 
 procedure do_close(h : longint);
 begin
-   closehandle(h);
+  if Handle<=4 then
+   exit;
+  CloseHandle(h);
 end;
 
 
@@ -1159,7 +1161,10 @@ end.
 
 {
   $Log$
-  Revision 1.54  2000-01-07 16:41:52  daniel
+  Revision 1.55  2000-01-16 22:25:38  peter
+    * check handle for file closing
+
+  Revision 1.54  2000/01/07 16:41:52  daniel
     * copyright 2000
 
   Revision 1.53  2000/01/07 16:32:34  daniel
