@@ -198,7 +198,7 @@ echo
 # Install the documentation. Optional.
 if yesno "Install documentation"; then
   echo Installing documentation in $DOCDIR ...
-  unztar docs.tar.gz $PREFIX
+  unztar docs.tar.gz $DOCDIR
   echo Done.
 fi
 echo
