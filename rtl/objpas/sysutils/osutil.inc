@@ -77,9 +77,79 @@ begin
 end;
 {$endif}
 
+{ ---------------------------------------------------------------------
+  Get temporary directory name
+  ---------------------------------------------------------------------}
+  
+{$ifndef HAS_TEMPDIR} 
+Function GetTempDir(Global : Boolean) : String;
+
+begin
+  If Assigned(OnGetTempDir) then
+    Result:=OnGetTempDir(Global)
+  else
+    begin  
+    Result:=GetEnvironmentVariable('TEMP');
+    If (Result='') Then
+      Result:=GetEnvironmentVariable('TMP');
+    end;  
+  if (Result<>'') then
+    Result:=IncludeTrailingPathDelimiter(Result);
+end;
+{$endif}
+
+Function GetTempDir : String;
+
+begin
+  Result:=GetTempDir(True);
+end;
+
+{ ---------------------------------------------------------------------
+  Get temporary file name
+  ---------------------------------------------------------------------}
+  
+
+{$ifndef HAS_TEMPFILE}
+Function GetTempFileName(Const Dir,Prefix : String) : String; 
+
+Var
+  I : Integer;
+  Start : String;
+ 
+begin
+  If Assigned(OnGetTempFile) then
+    Result:=OnGetTempFile(Dir,Prefix)
+  else
+    begin  
+    If (Dir='') then
+      Start:=GetTempDir
+    else
+      Start:=IncludeTrailingPathDelimiter(Dir);
+    If (Prefix='') then
+      Start:=Start+'TMP'
+    else
+      Start:=Start+Prefix;
+    I:=0;
+    Repeat
+      Result:=Format('%s%.5d.tmp',[Start,I]);
+      Inc(I);
+    Until not FileExists(Result);
+    end;
+end;
+{$endif}
+
+Function GetTempFileName : String;
+
+begin
+  Result:=GetTempFileName('','');
+end;
+
 {  
   $Log$
-  Revision 1.1  2004-08-05 07:28:01  michael
+  Revision 1.2  2004-10-10 10:28:34  michael
+  + Implementation of GetTempDir and GetTempFileName
+
+  Revision 1.1  2004/08/05 07:28:01  michael
   + Added getappconfigdir calls
 
 }

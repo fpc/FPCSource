@@ -24,6 +24,7 @@ interface
 {$DEFINE HAS_SLEEP}
 {$DEFINE HAS_OSERROR}
 {$DEFINE HAS_OSCONFIG}
+{$DEFINE HAS_TEMPDIR}
 {$DEFINE HASUNIX}
 
 uses
@@ -676,6 +677,27 @@ begin
     end;
 end;
 
+{****************************************************************************
+                              Initialization code
+****************************************************************************}
+
+
+Function GetTempDir(Global : Boolean) : String;
+
+begin
+  If Assigned(OnGetTempDir) then
+    Result:=OnGetTempDir(Global)
+  else
+    begin  
+    Result:=GetEnvironmentVariable('TEMP');
+    If (Result='') Then
+      Result:=GetEnvironmentVariable('TMP');
+    if (Result='') then
+      Result:='/tmp/' // fallback.
+    end;  
+  if (Result<>'') then
+    Result:=IncludeTrailingPathDelimiter(Result);
+end;
 
 {****************************************************************************
                               Initialization code
@@ -691,7 +713,10 @@ end.
 {
 
   $Log$
-  Revision 1.46  2004-08-30 11:20:39  michael
+  Revision 1.47  2004-10-10 10:28:34  michael
+  + Implementation of GetTempDir and GetTempFileName
+
+  Revision 1.46  2004/08/30 11:20:39  michael
   + Give path, not comline in ExecuteProcess
 
   Revision 1.45  2004/08/30 11:13:20  michael

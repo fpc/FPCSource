@@ -26,6 +26,11 @@ procedure Sleep(milliseconds: Cardinal);
 function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString):integer;
 function ExecuteProcess(Const Path: AnsiString; Const ComLine: Array of AnsiString):integer;
 
+
+Function GetTempDir(Global : Boolean) : String;
+Function GetTempDir : String;
+Function GetTempFileName(Const Dir,Prefix : String) : String; 
+Function GetTempFileName : String;
 Function GetAppConfigDir(Global : Boolean) : String;
 Function GetAppConfigFile(Global : Boolean) : String;
 Function GetAppConfigFile(Global : Boolean; SubDir : Boolean) : String;
@@ -36,16 +41,22 @@ Const
   SysConfigDir    : String = '';   
   
 Type 
-  TGetAppNameEvent = Function : String;
+  TGetAppNameEvent  = Function : String;
+  TGetTempDirEvent  = Function (Global : Boolean) : String;
+  TGetTempFileEvent = Function (Const Dir,Prefix : String) : String;
 
 Var
   OnGetApplicationName : TGetAppNameEvent;
-
+  OnGetTempDir         : TGetTempDirEvent;
+  OnGetTempFile        : TGetTempFileEvent;
 
 
 {
   $Log$
-  Revision 1.7  2004-08-05 07:28:01  michael
+  Revision 1.8  2004-10-10 10:28:34  michael
+  + Implementation of GetTempDir and GetTempFileName
+
+  Revision 1.7  2004/08/05 07:28:01  michael
   + Added getappconfigdir calls
 
   Revision 1.6  2004/02/13 13:02:21  marco
