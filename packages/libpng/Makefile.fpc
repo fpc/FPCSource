@@ -1,0 +1,9 @@
+#
+#   Makefile.fpc for PNG Library interface
+#
+
+[targets]
+units=png
+
+[dirs]
+fpcdir=../..
