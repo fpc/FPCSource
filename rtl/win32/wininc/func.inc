@@ -1020,9 +1020,13 @@ unit func;
 
   function VirtualQuery(lpAddress:LPCVOID; lpBuffer:PMEMORY_BASIC_INFORMATION; dwLength:DWORD):DWORD;
 
+  function VirtualQuery(lpAddress:LPCVOID;var Buffer:MEMORY_BASIC_INFORMATION; dwLength:DWORD):DWORD;
+
   function VirtualProtectEx(hProcess:HANDLE; lpAddress:LPVOID; dwSize:DWORD; flNewProtect:DWORD; lpflOldProtect:PDWORD):WINBOOL;
 
   function VirtualQueryEx(hProcess:HANDLE; lpAddress:LPCVOID; lpBuffer:PMEMORY_BASIC_INFORMATION; dwLength:DWORD):DWORD;
+
+  function VirtualQueryEx(hProcess:HANDLE; lpAddress:LPCVOID; var Buffer:MEMORY_BASIC_INFORMATION; dwLength:DWORD):DWORD;
 
   function HeapCreate(flOptions:DWORD; dwInitialSize:DWORD; dwMaximumSize:DWORD):HANDLE;
 
@@ -1349,6 +1353,8 @@ ExitProcess(
   function SetLocalTime(var lpSystemTime:SYSTEMTIME):WINBOOL;
 
   procedure GetSystemInfo(lpSystemInfo:LPSYSTEM_INFO);
+
+  procedure GetSystemInfo(var SystemInfo:SYSTEM_INFO);
 
   function SystemTimeToTzSpecificLocalTime(lpTimeZoneInformation:LPTIME_ZONE_INFORMATION; lpUniversalTime:LPSYSTEMTIME; lpLocalTime:LPSYSTEMTIME):WINBOOL;
 
@@ -3775,9 +3781,13 @@ in define line 6852 *)
 
   function VirtualQuery(lpAddress:LPCVOID; lpBuffer:PMEMORY_BASIC_INFORMATION; dwLength:DWORD):DWORD; external 'kernel32' name 'VirtualQuery';
 
+  function VirtualQuery(lpAddress:LPCVOID; var Buffer:MEMORY_BASIC_INFORMATION; dwLength:DWORD):DWORD; external 'kernel32' name 'VirtualQuery';
+
   function VirtualProtectEx(hProcess:HANDLE; lpAddress:LPVOID; dwSize:DWORD; flNewProtect:DWORD; lpflOldProtect:PDWORD):WINBOOL; external 'kernel32' name 'VirtualProtectEx';
 
   function VirtualQueryEx(hProcess:HANDLE; lpAddress:LPCVOID; lpBuffer:PMEMORY_BASIC_INFORMATION; dwLength:DWORD):DWORD; external 'kernel32' name 'VirtualQueryEx';
+
+  function VirtualQueryEx(hProcess:HANDLE; lpAddress:LPCVOID; var Buffer:MEMORY_BASIC_INFORMATION; dwLength:DWORD):DWORD; external 'kernel32' name 'VirtualQueryEx';
 
   function HeapCreate(flOptions:DWORD; dwInitialSize:DWORD; dwMaximumSize:DWORD):HANDLE; external 'kernel32' name 'HeapCreate';
 
@@ -4082,6 +4092,8 @@ in define line 6852 *)
   function SetLocalTime(var lpSystemTime:SYSTEMTIME):WINBOOL; external 'kernel32' name 'SetLocalTime';
 
   procedure GetSystemInfo(lpSystemInfo:LPSYSTEM_INFO); external 'kernel32' name 'GetSystemInfo';
+
+  procedure GetSystemInfo(var SystemInfo:SYSTEM_INFO); external 'kernel32' name 'GetSystemInfo';
 
   function SystemTimeToTzSpecificLocalTime(lpTimeZoneInformation:LPTIME_ZONE_INFORMATION; lpUniversalTime:LPSYSTEMTIME; lpLocalTime:LPSYSTEMTIME):WINBOOL; external 'kernel32' name 'SystemTimeToTzSpecificLocalTime';
 
@@ -6700,7 +6712,10 @@ end.
 {$endif not windows_include_files}
 {
   $Log$
-  Revision 1.1  1999-09-16 13:38:22  peter
+  Revision 1.2  1999-10-26 09:38:51  pierre
+   + some Delphi overload added
+
+  Revision 1.1  1999/09/16 13:38:22  peter
     * windows unit include moved to wininc/
 
   Revision 1.12  1999/07/06 22:44:12  florian
