@@ -4826,6 +4826,8 @@ implementation
             case tsym(sym).typ of
               propertysym:
                 tstoreddef(tpropertysym(sym).proptype.def).get_rtti_label(fullrtti);
+              varsym:
+                tstoreddef(tvarsym(sym).vartype.def).get_rtti_label(fullrtti);
               else
                 internalerror(1509991);
             end;
@@ -5504,7 +5506,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.60  2001-12-06 17:57:39  florian
+  Revision 1.61  2001-12-19 09:34:51  florian
+    * publishing of publishable classes fixed
+
+  Revision 1.60  2001/12/06 17:57:39  florian
     + parasym to tparaitem added
 
   Revision 1.59  2001/12/03 21:48:42  peter
