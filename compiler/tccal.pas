@@ -400,7 +400,9 @@ implementation
 
          { only Dummy }
          hcvt : tconverttype;
+{$ifdef m68k}
          regi : tregister;
+{$endif}
          method_must_be_valid : boolean;
       label
         errorexit;
@@ -1231,7 +1233,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.83  2000-04-02 18:30:12  florian
+  Revision 1.84  2000-04-24 12:48:38  peter
+    * removed unused vars
+
+  Revision 1.83  2000/04/02 18:30:12  florian
     * fixed another problem with readln(<floating point register variable>);
     * the register allocator takes now care of necessary pushes/pops for
       readln/writeln

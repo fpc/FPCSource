@@ -3118,8 +3118,6 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 {$endif GDB}
       hr : preference;
       p : psymtable;
-      hp : preference;
-      pp : pprocinfo;
       r : treference;
       oldlist,
       oldexprasmlist : paasmoutput;
@@ -3899,7 +3897,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.96  2000-04-10 12:23:18  jonas
+  Revision 1.97  2000-04-24 12:48:37  peter
+    * removed unused vars
+
+  Revision 1.96  2000/04/10 12:23:18  jonas
     * modified copyshortstring so it takes an extra paramter which allows it
       to delete the sref itself (so the reg deallocations are put in the
       right place for the optimizer)
