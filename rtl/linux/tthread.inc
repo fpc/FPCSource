@@ -14,297 +14,18 @@
 
  **********************************************************************}
 
-
-{$IFDEF VER1_0} // leaving the old implementation in for now...
-type
-  PThreadRec=^TThreadRec;
-  TThreadRec=record
-    thread : TThread;
-    next   : PThreadRec;
-  end;
-
-var
-  ThreadRoot : PThreadRec;
-  ThreadsInited : boolean;
-//  MainThreadID: longint;
-
-Const
-  ThreadCount: longint = 0;
-
-function ThreadSelf:TThread;
-var
-  hp : PThreadRec;
-  sp : Pointer;
-begin
-  sp:=SPtr;
-  hp:=ThreadRoot;
-  while assigned(hp) do
-   begin
-     if (sp<=hp^.Thread.FStackPointer) and
-        (sp>(hp^.Thread.FStackPointer-hp^.Thread.FStackSize)) then
-      begin
-        Result:=hp^.Thread;
-        exit;
-      end;
-     hp:=hp^.next;
-   end;
-  Result:=nil;
-end;
-
-
-//function SIGCHLDHandler(Sig: longint): longint; cdecl;//this is std linux C declaration as function
-procedure SIGCHLDHandler(Sig: longint); cdecl;
-begin
-  fpwaitpid(-1, nil, WNOHANG);
-end;
-
-procedure InitThreads;
-var
-  Act, OldAct: Baseunix.PSigActionRec;
-begin
-  ThreadRoot:=nil;
-  ThreadsInited:=true;
-
-
-// This will install SIGCHLD signal handler
-// signal() installs "one-shot" handler,
-// so it is better to install and set up handler with sigaction()
-
-  GetMem(Act, SizeOf(SigActionRec));
-  GetMem(OldAct, SizeOf(SigActionRec));
-
-  Act^.sa_handler := @SIGCHLDHandler;
-  Act^.sa_flags := SA_NOCLDSTOP {or SA_NOMASK or SA_RESTART};
-  Fillchar(Act^.sa_mask,sizeof(Act^.sa_mask),0); //Do not block all signals ??. Don't need if SA_NOMASK in flags
-  FpSigAction(SIGCHLD, Act, OldAct);
-
-  FreeMem(Act, SizeOf(SigActionRec));
-  FreeMem(OldAct, SizeOf(SigActionRec));
-end;
-
-
-procedure DoneThreads;
-var
-  hp : PThreadRec;
-begin
-  while assigned(ThreadRoot) do
-   begin
-     ThreadRoot^.Thread.Destroy;
-     hp:=ThreadRoot;
-     ThreadRoot:=ThreadRoot^.Next;
-     dispose(hp);
-   end;
-  ThreadsInited:=false;
-end;
-
-
-procedure AddThread(t:TThread);
-var
-  hp : PThreadRec;
-begin
-  { Need to initialize threads ? }
-  if not ThreadsInited then
-   InitThreads;
-
-  { Put thread in the linked list }
-  new(hp);
-  hp^.Thread:=t;
-  hp^.next:=ThreadRoot;
-  ThreadRoot:=hp;
-
-  inc(ThreadCount, 1);
-end;
-
-
-procedure RemoveThread(t:TThread);
-var
-  lasthp,hp : PThreadRec;
-begin
-  hp:=ThreadRoot;
-  lasthp:=nil;
-  while assigned(hp) do
-   begin
-     if hp^.Thread=t then
-      begin
-        if assigned(lasthp) then
-         lasthp^.next:=hp^.next
-        else
-         ThreadRoot:=hp^.next;
-        dispose(hp);
-        exit;
-      end;
-     lasthp:=hp;
-     hp:=hp^.next;
-   end;
-
-  Dec(ThreadCount, 1);
-  if ThreadCount = 0 then DoneThreads;
-end;
-
-
-{ TThread }
-function ThreadProc(args:pointer): Integer;cdecl;
-var
-  FreeThread: Boolean;
-  Thread : TThread absolute args;
-begin
-  while Thread.FHandle = 0 do fpsleep(1);
-  if Thread.FSuspended then Thread.suspend();
-  try
-    Thread.Execute;
-  except
-    Thread.FFatalException := TObject(AcquireExceptionObject);
-  end;
-  FreeThread := Thread.FFreeOnTerminate;
-  Result := Thread.FReturnValue;
-  Thread.FFinished := True;
-  Thread.DoTerminate;
-  if FreeThread then
-    Thread.Free;
-  fpexit(Result);
-end;
-
-
-constructor TThread.Create(CreateSuspended: Boolean);
-var
-  Flags: Integer;
-begin
-  inherited Create;
-  AddThread(self);
-  FSuspended := CreateSuspended;
-  Flags := CLONE_VM + CLONE_FS + CLONE_FILES + CLONE_SIGHAND + SIGCHLD;
-  { Setup 16k of stack }
-  FStackSize:=16384;
-  Getmem(FStackPointer,FStackSize);
-  inc(FStackPointer,FStackSize);
-  FCallExitProcess:=false;
-  { Clone }
-  FHandle:= Clone(@ThreadProc,FStackPointer,Flags,self);
-//  if FSuspended then Suspend;
-  FThreadID := FHandle;
-  IsMultiThread := TRUE;
-  FFatalException := nil;
-end;
-
-
-destructor TThread.Destroy;
-begin
-  if not FFinished and not Suspended then
-   begin
-     Terminate;
-     WaitFor;
-   end;
-  if FHandle <> -1 then
-    fpkill(FHandle, SIGKILL);
-  dec(FStackPointer,FStackSize);
-  Freemem(FStackPointer);
-  FFatalException.Free;
-  FFatalException := nil;
-  inherited Destroy;
-  RemoveThread(self);
-end;
-
-
-procedure TThread.CallOnTerminate;
-begin
-  FOnTerminate(Self);
-end;
-
-procedure TThread.DoTerminate;
-begin
-  if Assigned(FOnTerminate) then
-    Synchronize(@CallOnTerminate);
-end;
-
-
-const
-{ I Don't know idle or timecritical, value is also 20, so the largest other
-  possibility is 19 (PFV) }
-  Priorities: array [TThreadPriority] of Integer =
-   (-20,-19,-10,9,10,19,20);
-
-function TThread.GetPriority: TThreadPriority;
-var
-  P: Integer;
-  I: TThreadPriority;
-begin
-  P := fpGetPriority(Prio_Process,FHandle);
-  Result := tpNormal;
-  for I := Low(TThreadPriority) to High(TThreadPriority) do
-    if Priorities[I] = P then
-      Result := I;
-end;
-
-
-procedure TThread.SetPriority(Value: TThreadPriority);
-begin
-  fpSetPriority(Prio_Process,FHandle,Priorities[Value]);
-end;
-
-
-procedure TThread.Synchronize(Method: TThreadMethod);
-begin
-  FSynchronizeException := nil;
-  FMethod := Method;
-{  SendMessage(ThreadWindow, CM_EXECPROC, 0, Longint(Self)); }
-  if Assigned(FSynchronizeException) then
-    raise FSynchronizeException;
-end;
-
-
-procedure TThread.SetSuspended(Value: Boolean);
-begin
-  if Value <> FSuspended then
-    if Value then
-      Suspend
-    else
-      Resume;
-end;
-
-
-procedure TThread.Suspend;
-begin
-  FSuspended := true;
-  fpKill(FHandle, SIGSTOP);
-end;
-
-
-procedure TThread.Resume;
-begin
-  fpKill(FHandle, SIGCONT);
-  FSuspended := False;
-end;
-
-
-procedure TThread.Terminate;
-begin
-  FTerminated := True;
-end;
-
-function TThread.WaitFor: Integer;
-var
-  status : longint;
-begin
-  if FThreadID = MainThreadID then
-    fpwaitpid(0,@status,0)
-  else
-    fpwaitpid(FHandle,@status,0);
-  Result:=status;
-end;
-{$ELSE}
-
 {
   What follows, is a short description on my implementation of TThread.
   Most information can also be found by reading the source and accompanying
   comments.
-  
+
   A thread is created using BeginThread, which in turn calls
   pthread_create. So the threads here are always posix threads.
   Posix doesn't define anything for suspending threads as this is
   inherintly unsafe. Just don't suspend threads at points they cannot
   control. Therefore, I didn't implement .Suspend() if its called from
   outside the threads execution flow (except on Linux _without_ NPTL).
-  
+
   The implementation for .suspend uses a semaphore, which is initialized
   at thread creation. If the thread tries to suspend itself, we simply
   let it wait on the semaphore until it is unblocked by someone else
@@ -315,7 +36,7 @@ end;
   are possible.
   1) the system has the LinuxThreads pthread implementation
   2) the system has NPTL as the pthread implementation.
-  
+
   In the first case, each thread is a process on its own, which as far as
   know actually violates posix with respect to signal handling.
   But we can detect this case, because getpid(2) will
@@ -326,10 +47,10 @@ end;
   PID across all threads, which is detected, and TThread.Suspend() does
   nothing in that case. This should probably be changed, but I know of
   no way to suspend a thread when using NPTL.
-  
+
   If the symbol LINUX is not defined, then the unimplemented
   function SuspendThread is called.
-  
+
   Johannes Berg <johannes@sipsolutions.de>, Sunday, November 16 2003
 }
 
@@ -601,11 +322,13 @@ procedure TThread.SetPriority(Value: TThreadPriority);
 begin
   ThreadSetPriority(FHandle, Priorities[Value]);
 end;
-{$ENDIF}
 
 {
   $Log$
-  Revision 1.4  2003-11-17 08:27:49  marco
+  Revision 1.5  2003-11-19 15:51:54  peter
+    * tthread disabled for 1.0.x
+
+  Revision 1.4  2003/11/17 08:27:49  marco
    * pthreads based ttread from Johannes Berg
 
   Revision 1.3  2003/11/10 16:54:28  marco

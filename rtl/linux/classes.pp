@@ -50,13 +50,18 @@ initialization
 finalization
   CommonCleanup;
 
+{$ifndef VER1_0}
   if ThreadsInited then
      DoneThreads;
+{$endif}
 
 end.
 {
   $Log$
-  Revision 1.2  2003-11-10 16:54:28  marco
+  Revision 1.3  2003-11-19 15:51:54  peter
+    * tthread disabled for 1.0.x
+
+  Revision 1.2  2003/11/10 16:54:28  marco
    * new oldlinux unit. 1_0 defines killed in some former FCL parts.
 
   Revision 1.1  2003/10/06 21:01:06  peter
