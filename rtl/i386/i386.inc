@@ -88,7 +88,7 @@ asm
 .LMoveEnd:
 end;
 
-Procedure FillChar(var x;count:longint;value:byte);[alias: '.FILL_OBJECT'];assembler;
+Procedure FillChar(var x;count:longint;value:byte);[alias: 'FILL_OBJECT'];assembler;
 asm
     cld
     movl    x,%edi
@@ -723,7 +723,10 @@ end;
 
 {
   $Log$
-  Revision 1.7  1998-05-20 08:09:24  daniel
+  Revision 1.8  1998-05-20 11:01:52  peter
+    * .FILL_OBJECT and FILL_OBJECT are not the same names ;)
+
+  Revision 1.7  1998/05/20 08:09:24  daniel
   * Some extra use of ;assembler;.
 
   Revision 1.6  1998/05/12 10:42:41  peter
