@@ -25,7 +25,7 @@ type
     { allows to add several longint value that can help
       to debug :
       see for instance ppheap.pas unit of the compiler source PM }
-      
+
 procedure set_extra_info( size : longint;func : fill_extra_info_type);
 
 const
@@ -128,10 +128,14 @@ begin
 end;
 
 procedure dump_wrong_size(p : pheap_mem_info;size : longint);
+var
+  i : longint;
 begin
   Writeln(stderr,'Marked memory at ',HexStr(longint(p+sizeof(theap_mem_info)),8),' invalid');
   Writeln(stderr,'Wrong size : ',p^.size,' allocated ',size,' freed');
   dump_stack(get_caller_frame(get_frame));
+  for i:=0 to (exact_info_size div 4)-1 do
+    writeln(stderr,'info ',i,'=',plongint(@p^.extra_info+4*i)^);
 end;
 
 
@@ -347,7 +351,7 @@ procedure set_extra_info( size : longint;func : fill_extra_info_type);
           fill_extra_info:=func;
        end;
   end;
-  
+
 
 begin
   SetMemoryManager(TraceManager);
@@ -356,7 +360,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  1998-11-06 08:46:01  pierre
+  Revision 1.7  1998-11-16 12:20:13  peter
+    * write extra info also for wrong size
+
+  Revision 1.6  1998/11/06 08:46:01  pierre
     * size is now also checked
     + added halt_on_error variable (default true)
       to stop at first error in getmem/freemem
