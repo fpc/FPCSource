@@ -1666,10 +1666,17 @@ of an ordinary \var{record} type.
 In the Delphi approach to Object Oriented Programming, everything revolves
 around  the concept of 'Classes'.  A class can be seen as a pointer to an
 object, or a pointer to a record.
-In order to use classes, it is necessary to put the \file{objpas} unit in the
-uses clause of your unit or program. This unit contains the basic
-definitions of \var{TObject} and \var{TClass}, as well as some auxiliary
-methods for using classes.
+
+{\em remark}  In earlier versions of \fpc it was necessary, in order to 
+use classes, to put the \file{objpas} unit in the uses 
+clause of your unit or program. {\em This is no longer needed} as of version
+0.99.12. As of version 0.99.12 the \file{system} unit contains the basic 
+definitions of \var{TObject} and  \var{TClass}, as well as some 
+auxiliary methods for using classes.
+The \file{objpas} unit still exists, and contains some redefinitions of
+basic types, so they coincide with Delphi types. The unit will be loaded
+automatically if you specify the \var{-S2} or \var{-Sd} options.
+
 \section{Class definitions}
 The prototype declaration of a class is as follows :
 \input{syntax/typeclas.syn}
