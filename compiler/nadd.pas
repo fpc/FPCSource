@@ -580,12 +580,12 @@ implementation
                     end;
                  lten :
                     begin
-			b:=tsetconstnode(right).value_set^ <= tsetconstnode(left).value_set^;
+			b:=tsetconstnode(left).value_set^ <= tsetconstnode(right).value_set^;
             		t:=cordconstnode.create(byte(b),booltype);
                     end;
                  gten :
                     begin
-			b:=tsetconstnode(right).value_set^ >= tsetconstnode(left).value_set^;
+			b:=tsetconstnode(left).value_set^ >= tsetconstnode(right).value_set^;
             		t:=cordconstnode.create(byte(b),booltype);
                     end;
               end;
@@ -1708,7 +1708,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.56  2002-07-23 12:34:29  daniel
+  Revision 1.57  2002-07-23 13:08:16  jonas
+    * fixed constant set evaluation of new set handling for non-commutative
+      operators
+
+  Revision 1.56  2002/07/23 12:34:29  daniel
   * Readded old set code. To use it define 'oldset'. Activated by default
     for ppc.
 
