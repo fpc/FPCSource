@@ -719,7 +719,7 @@ begin
           if dirlist[i]='/' then dirlist[i]:='\';
         repeat
           p1:=pos(';',dirlist);
-          if p1=0 then
+          if p1<>0 then
            begin
              newdir:=copy(dirlist,1,p1-1);
              delete(dirlist,1,p1);
@@ -886,7 +886,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.18  1999-08-12 09:24:14  michael
+  Revision 1.19  1999-08-25 13:57:55  michael
+  + Patched FSearch from Frank McCormick
+
+  Revision 1.18  1999/08/12 09:24:14  michael
   Fixed win32finddata size; searchrec.excludeattr was overwritten.
 
   Revision 1.17  1999/05/16 17:08:59  peter
