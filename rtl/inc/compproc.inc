@@ -200,10 +200,10 @@ procedure fpc_check_object(obj : pointer); compilerproc;
 procedure fpc_check_object_ext; compilerproc;
 
 Procedure fpc_Initialize (Data,TypeInfo : pointer); compilerproc;
-Procedure fpc_Finalize (Data,TypeInfo: Pointer); compilerproc;
+Procedure fpc_finalize (Data,TypeInfo: Pointer); compilerproc;
 Procedure fpc_Addref (Data,TypeInfo : Pointer); compilerproc;
 Procedure fpc_DecRef (Data,TypeInfo : Pointer);  compilerproc;
-procedure fpc_FinalizeArray(data,typeinfo : pointer;count,size : longint); compilerproc;
+procedure fpc_finalize_array(data,typeinfo : pointer;count,size : longint); compilerproc;
 
 function fpc_set_load_small(l: fpc_small_set): fpc_normal_set; compilerproc;
 function fpc_set_create_element(b : byte): fpc_normal_set; compilerproc;
@@ -256,7 +256,10 @@ Procedure fpc_typed_read(TypeSize : Longint;var f : TypedFile;var Buf); compiler
 
 {
   $Log$
-  Revision 1.14  2002-04-21 18:56:59  peter
+  Revision 1.15  2002-04-24 16:15:35  peter
+    * fpc_finalize_array renamed
+
+  Revision 1.14  2002/04/21 18:56:59  peter
     * fpc_freemem and fpc_getmem compilerproc
 
   Revision 1.13  2002/01/21 20:16:08  peter

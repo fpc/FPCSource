@@ -68,7 +68,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FPC_FINALIZE}
 
-Procedure fpc_Finalize (Data,TypeInfo: Pointer);saveregisters;[Public,Alias : 'FPC_FINALIZE'];  {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_finalize (Data,TypeInfo: Pointer);saveregisters;[Public,Alias : 'FPC_FINALIZE'];  {$ifdef hascompilerproc} compilerproc; {$endif}
 
 { this definition is sometimes (depending on switches)
   already defined or not so define it locally to avoid problems PM }
@@ -231,7 +231,7 @@ end;
 {$endif}
 
 {$ifndef FPC_SYSTEM_HAS_FPC_FINALIZEARRAY}
-procedure fpc_FinalizeArray(data,typeinfo : pointer;count,size : longint); [Public,Alias:'FPC_FINALIZEARRAY'];  {$ifdef hascompilerproc} compilerproc; {$endif}
+procedure fpc_finalize_array(data,typeinfo : pointer;count,size : longint); [Public,Alias:'FPC_FINALIZEARRAY'];  {$ifdef hascompilerproc} compilerproc; {$endif}
   var
      i : longint;
   begin
@@ -242,7 +242,10 @@ procedure fpc_FinalizeArray(data,typeinfo : pointer;count,size : longint); [Publ
 
 {
  $Log$
- Revision 1.10  2001-11-30 16:25:35  jonas
+ Revision 1.11  2002-04-24 16:15:35  peter
+   * fpc_finalize_array renamed
+
+ Revision 1.10  2001/11/30 16:25:35  jonas
    * fixed web bug 1707:
       * tvarsym.getvaluesize doesn't return 0 anymore for dynarrays (found
         by Florian)
