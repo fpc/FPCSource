@@ -140,7 +140,7 @@ package=makeemx.zip,GNU ~U~tilities (needed for Makefile usage)
 # OS-2 6
 package=gdbemx.zip,GNU ~D~ebugger for EMX and PMGDB front-end
 # OS-2 7
-package=ufclemx.zip,~F~ree Component Libary (FCL)
+package=ufclemx.zip,~F~ree Component Library (FCL)
 # OS-2 8
 #package=ugdbintemx.zip[ugdbemx.zip],GDB Interfacing units
 # OS-2 9
