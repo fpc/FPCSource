@@ -123,6 +123,7 @@ procedure st1(stack_size:longint);[public,alias: 'STACKCHECK'];
 begin
     { called when trying to get local stack }
     { if the compiler directive $S is set   }
+    {$ASMMODE DIRECT}
     asm
         movl stack_size,%ebx
         movl %esp,%eax
@@ -130,23 +131,24 @@ begin
 {$ifdef SYSTEMDEBUG}
         movl U_SYSOS2_LOWESTSTACK,%ebx
         cmpl %eax,%ebx
-        jb   .Lis_not_lowest
+        jb   Lis_not_lowest
         movl %eax,U_SYSOS2_LOWESTSTACK
-    .Lis_not_lowest:
+    Lis_not_lowest:
 {$endif SYSTEMDEBUG}
         cmpb $2,U_SYSOS2_OS_MODE
-        jne .Lrunning_in_dos
+        jne Lrunning_in_dos
         movl U_SYSOS2_STACKBOTTOM,%ebx
-        jmp .Lrunning_in_os2
-    .Lrunning_in_dos:
+        jmp Lrunning_in_os2
+    Lrunning_in_dos:
         movl __heap_brk,%ebx
-    .Lrunning_in_os2:
+    Lrunning_in_os2:
         cmpl %eax,%ebx
-        jae  .Lshort_on_stack
+        jae  Lshort_on_stack
         leave
         ret  $4
-    .Lshort_on_stack:
+    Lshort_on_stack:
     end ['EAX','EBX'];
+    {$ASMMODE ATT}
     { this needs a local variable }
     { so the function called itself !! }
     { Writeln('low in stack ');}
@@ -170,28 +172,22 @@ begin
     end;
 end;
 
-function paramcount:longint;
 
-begin
-     asm
-        movl _argc,%eax
-        decl %eax
-        leave
-        ret
-     end ['EAX'];
-end;
+{$asmmode direct}
+function paramcount:longint;assembler;
+
+asm
+    movl _argc,%eax
+    decl %eax
+end ['EAX'];
 
 function paramstr(l:longint):string;
 
-    function args:pointer;
+    function args:pointer;assembler;
 
-    begin
-        asm
-            movl _argv,%eax
-            leave
-            ret
-        end ['EAX'];
-    end;
+    asm
+        movl _argv,%eax
+    end ['EAX'];
 
 var p:^Pchar;
 
@@ -203,6 +199,8 @@ begin
         end
      else paramstr:='';
 end;
+
+{$asmmode att}
 
 procedure randomize;
 
@@ -239,15 +237,13 @@ begin
     end;
 end;
 
-function getheapstart:pointer;
+{$ASMMODE direct}
+function getheapstart:pointer;assembler;
 
-begin
-    asm
-        movl __heap_base,%eax
-        leave
-        ret
-    end ['EAX'];
-end;
+asm
+    movl __heap_base,%eax
+end ['EAX'];
+{$ASMMODE att}
 
 {$i heap.inc}
 
