@@ -199,7 +199,6 @@ function GlobalFree(hMem : Pointer):Pointer; external 'kernel32' name 'GlobalFre
         writeln('Starting new thread');
 {$endif DEBUG_MT}
         BeginThread:=CreateThread(sa,stacksize,@ThreadMain,ti,creationflags,threadid);
-        BeginThread:=threadid;
       end;
 
 
@@ -275,7 +274,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.2  2002-10-31 13:45:44  carl
+  Revision 1.3  2003-03-24 16:12:01  jonas
+    * BeginThread() now returns the thread handle instead of the threadid
+      (needed because you have to free the handle after your thread is
+       finished, and the threadid is already returned via a var-parameter)
+
+  Revision 1.2  2002/10/31 13:45:44  carl
     * threadvar.inc -> threadvr.inc
 
   Revision 1.1  2002/10/16 06:27:30  michael
