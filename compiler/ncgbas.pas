@@ -474,8 +474,8 @@ interface
                   cg.a_reg_sync(exprasmlist,tempinfo^.location.register64.reghi);
                   cg.a_reg_sync(exprasmlist,tempinfo^.location.register64.reglo);
                 end
-{$endif cpu64bit}
               else
+{$endif cpu64bit}
                 cg.a_reg_sync(exprasmlist,tempinfo^.location.register);
               if release_to_normal then
                 tempinfo^.location.loc := LOC_REGISTER;
@@ -495,7 +495,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.73  2004-12-03 16:04:47  peter
+  Revision 1.74  2004-12-12 12:56:18  peter
+    * compile fixes for x86_64
+
+  Revision 1.73  2004/12/03 16:04:47  peter
     * use tlocation for tempnodes
 
   Revision 1.72  2004/12/02 19:26:15  peter

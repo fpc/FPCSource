@@ -33,7 +33,8 @@ type
     S_IS,S_IL,S_IQ,
     S_FS,S_FL,S_FX,S_FV,S_FXX,
     S_MD,
-    S_NEAR,S_FAR,S_SHORT
+    S_NEAR,S_FAR,S_SHORT,
+    S_T
   );
 
 {*****************************************************************************
@@ -146,7 +147,10 @@ const
 
 {
   $Log$
-  Revision 1.15  2004-06-20 08:55:32  florian
+  Revision 1.16  2004-12-12 12:56:18  peter
+    * compile fixes for x86_64
+
+  Revision 1.15  2004/06/20 08:55:32  florian
     * logs truncated
 
   Revision 1.14  2004/06/16 20:07:11  florian

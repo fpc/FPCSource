@@ -29,7 +29,7 @@ unit cpupara;
     uses
       globtype,
       cpubase,cgbase,
-      symconst,symbase,symtype,symdef,
+      symconst,symbase,symtype,symsym,symdef,
       aasmtai,
       parabase,paramgr;
 
@@ -37,7 +37,7 @@ unit cpupara;
        tx86_64paramanager = class(tparamanager)
        private
           procedure create_funcretloc_info(p : tabstractprocdef; side: tcallercallee);
-          procedure create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee;firstpara:tparaitem;
+          procedure create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee;paras:tparalist;
                                                var intparareg,mmparareg,parasize:longint);
        public
           procedure getintparaloc(calloption : tproccalloption; nr : longint;var cgpara:TCGPara);override;
@@ -45,7 +45,7 @@ unit cpupara;
           function get_volatile_registers_mm(calloption : tproccalloption):tcpuregisterset;override;
           function get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;override;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
-          function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargspara):longint;override;
+          function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;override;
        end;
 
   implementation
@@ -53,7 +53,8 @@ unit cpupara;
     uses
        cutils,verbose,
        systems,
-       defutil;
+       defutil,
+       cgutils;
 
     const
       paraintsupregs : array[0..5] of tsuperregister = (RS_RDI,RS_RSI,RS_RDX,RS_RCX,RS_R8,RS_R9);
@@ -195,73 +196,75 @@ unit cpupara;
           retcgsize:=OS_ADDR
         else
           retcgsize:=def_cgsize(p.rettype.def);
-        p.funcretloc[side].reset;
-        p.funcretloc[side].Alignment:=std_param_align;
-        p.funcretloc[side].size:=retcgsize;
+
+        location_reset(p.funcretloc[side],LOC_INVALID,OS_NO);
         { void has no location }
         if is_void(p.rettype.def) then
-          exit;
-        paraloc:=p.funcretloc[side].add_location;
+          begin
+            location_reset(p.funcretloc[side],LOC_VOID,OS_NO);
+            exit;
+          end;
         { Return in FPU register? }
         if p.rettype.def.deftype=floatdef then
           begin
             case tfloatdef(p.rettype.def).typ of
               s32real,s64real:
                 begin
-                  paraloc^.loc:=LOC_MMREGISTER;
-                  paraloc^.register:=NR_MM_RESULT_REG;
+                  p.funcretloc[side].loc:=LOC_MMREGISTER;
+                  p.funcretloc[side].register:=NR_MM_RESULT_REG;
+                  p.funcretloc[side].size:=retcgsize;
                 end;
               s64currency,
               s64comp,
               s80real:
                 begin
-                  paraloc^.loc:=LOC_FPUREGISTER;
-                  paraloc^.register:=NR_FPU_RESULT_REG;
+                  p.funcretloc[side].loc:=LOC_FPUREGISTER;
+                  p.funcretloc[side].register:=NR_FPU_RESULT_REG;
+                  p.funcretloc[side].size:=retcgsize;
                 end;
               else
                 internalerror(200405034);
             end;
-            paraloc^.size:=retcgsize;
           end
         else
          { Return in register? }
          if not ret_in_param(p.rettype.def,p.proccalloption) then
           begin
-            paraloc^.loc:=LOC_REGISTER;
-            paraloc^.size:=retcgsize;
+            p.funcretloc[side].loc:=LOC_REGISTER;
+            p.funcretloc[side].size:=retcgsize;
             if side=callerside then
-              paraloc^.register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,cgsize2subreg(retcgsize))
+              p.funcretloc[side].register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,cgsize2subreg(retcgsize))
             else
-              paraloc^.register:=newreg(R_INTREGISTER,RS_FUNCTION_RETURN_REG,cgsize2subreg(retcgsize));
+              p.funcretloc[side].register:=newreg(R_INTREGISTER,RS_FUNCTION_RETURN_REG,cgsize2subreg(retcgsize));
           end
         else
           begin
-            paraloc^.loc:=LOC_REFERENCE;
-            paraloc^.size:=retcgsize;
+            p.funcretloc[side].loc:=LOC_REFERENCE;
+            p.funcretloc[side].size:=retcgsize;
           end;
       end;
 
 
-    procedure tx86_64paramanager.create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee;firstpara:tparaitem;
+    procedure tx86_64paramanager.create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee;paras:tparalist;
                                                             var intparareg,mmparareg,parasize:longint);
       var
-        hp : tparaitem;
+        hp : tparavarsym;
         paraloc,
         paraloc2 : pcgparalocation;
         subreg : tsubregister;
         pushaddr : boolean;
         paracgsize : tcgsize;
         loc1,loc2 : tcgloc;
-        l,
+        l,i,
         varalign,
         paraalign : longint;
       begin
         paraalign:=get_para_align(p.proccalloption);
         { Register parameters are assigned from left to right }
-        hp:=firstpara;
-        while assigned(hp) do
+        for i:=0 to paras.count-1 do
           begin
-            pushaddr:=push_addr_param(hp.paratyp,hp.paratype.def,p.proccalloption);
+            hp:=tparavarsym(paras[i]);
+            pushaddr:=push_addr_param(hp.varspez,hp.vartype.def,p.proccalloption);
             if pushaddr then
               begin
                 loc1:=LOC_REGISTER;
@@ -270,8 +273,8 @@ unit cpupara;
               end
             else
               begin
-                getvalueparaloc(hp.paratype.def,loc1,loc2);
-                paracgsize:=def_cgsize(hp.paratype.def);
+                getvalueparaloc(hp.vartype.def,loc1,loc2);
+                paracgsize:=def_cgsize(hp.vartype.def);
               end;
             hp.paraloc[side].reset;
             hp.paraloc[side].size:=paracgsize;
@@ -317,7 +320,7 @@ unit cpupara;
                   paraloc^.reference.index:=NR_STACK_POINTER_REG
                 else
                   paraloc^.reference.index:=NR_FRAME_POINTER_REG;
-                l:=push_size(hp.paratyp,hp.paratype.def,p.proccalloption);
+                l:=push_size(hp.varspez,hp.vartype.def,p.proccalloption);
                 varalign:=size_2_align(l);
                 paraloc^.reference.offset:=parasize;
                 varalign:=used_align(varalign,paraalign,paraalign);
@@ -363,14 +366,13 @@ unit cpupara;
                       paraloc^.reference.index:=NR_STACK_POINTER_REG
                     else
                       paraloc^.reference.index:=NR_FRAME_POINTER_REG;
-                    l:=push_size(hp.paratyp,hp.paratype.def,p.proccalloption);
+                    l:=push_size(hp.varspez,hp.vartype.def,p.proccalloption);
                     varalign:=size_2_align(l);
                     paraloc^.reference.offset:=parasize;
                     varalign:=used_align(varalign,paraalign,paraalign);
                     parasize:=align(parasize+l,varalign);
                   end;
               end;
-            hp:=tparaitem(hp.next);
           end;
         { Register parameters are assigned from left-to-right, but the
           offsets on the stack are right-to-left. There is no need
@@ -378,19 +380,18 @@ unit cpupara;
           start offset of the first param on the stack }
         if side=calleeside then
           begin
-            hp:=tparaitem(p.para.first);
-            while assigned(hp) do
+            for i:=0 to paras.count-1 do
               begin
+                hp:=tparavarsym(paras[i]);
                 with hp.paraloc[side].location^ do
                   if (loc=LOC_REFERENCE) then
                     inc(reference.offset,target_info.first_parm_offset);
-                hp:=tparaitem(hp.next);
               end;
           end;
       end;
 
 
-    function tx86_64paramanager.create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargspara):longint;
+    function tx86_64paramanager.create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;
       var
         intparareg,mmparareg,
         parasize : longint;
@@ -399,9 +400,9 @@ unit cpupara;
         mmparareg:=0;
         parasize:=0;
         { calculate the registers for the normal parameters }
-        create_paraloc_info_intern(p,callerside,tparaitem(p.para.first),intparareg,mmparareg,parasize);
+        create_paraloc_info_intern(p,callerside,p.paras,intparareg,mmparareg,parasize);
         { append the varargs }
-        create_paraloc_info_intern(p,callerside,tparaitem(varargspara.first),intparareg,mmparareg,parasize);
+        create_paraloc_info_intern(p,callerside,varargspara,intparareg,mmparareg,parasize);
         { store used no. of SSE registers, that needs to be passed in %AL }
         varargspara.mmregsused:=mmparareg;
         result:=parasize;
@@ -416,7 +417,7 @@ unit cpupara;
         intparareg:=0;
         mmparareg:=0;
         parasize:=0;
-        create_paraloc_info_intern(p,side,tparaitem(p.para.first),intparareg,mmparareg,parasize);
+        create_paraloc_info_intern(p,side,p.paras,intparareg,mmparareg,parasize);
         { Create Function result paraloc }
         create_funcretloc_info(p,side);
         { We need to return the size allocated on the stack }
@@ -429,7 +430,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2004-11-21 17:54:59  peter
+  Revision 1.13  2004-12-12 12:56:18  peter
+    * compile fixes for x86_64
+
+  Revision 1.12  2004/11/21 17:54:59  peter
     * ttempcreatenode.create_reg merged into .create with parameter
       whether a register is allowed
     * funcret_paraloc renamed to funcretloc
