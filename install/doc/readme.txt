@@ -1,7 +1,7 @@
 
                             Free Pascal Compiler
 
-                        Version 1.9.6 aka 2.0.0-Rc1
+                        Version 1.9.8 aka 2.0.0-Rc2
 
 
 ****************************************************************************
@@ -19,7 +19,7 @@ platforms. The language and the runtime library are almost compatible with
 Turbo Pascal 7.0 and recent Delphi releases. There is also partial support
 for the Macintosh pascal dialect.
 
-Free Pascal 1.9.6 is currently available for the following platforms:
+Free Pascal 1.9.8 is currently available for the following platforms:
 - Linux-i386
 - Linux-powerpc
 - Linux-sparc
@@ -102,7 +102,7 @@ Mac OS (classic)
 * Quick start - Win32 / OS/2 / DOS
 ****************************************************************************
 
-Download distribution archive (fpc-1.9.6.i386-win32.zip for Win32,
+Download distribution archive (fpc-1.9.8.i386-win32.zip for Win32,
 dos196.zip for GO32v2 or os2196.zip for OS/2) and unzip it
 into a temporary directory.
 
@@ -120,7 +120,7 @@ and type
 * Quick start - Linux/FreeBSD
 ****************************************************************************
 
-Download fpc-1.9.6.<cpu>-<os>.tar and untar into a temporary directory.
+Download fpc-1.9.8.<cpu>-<os>.tar and untar into a temporary directory.
 
 Start the install script with ./install.sh and follow the instructions.
 
