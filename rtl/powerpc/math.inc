@@ -76,6 +76,7 @@
         runerror(207);
       end;
 
+
     {$define FPC_SYSTEM_HAS_TRUNC}
     {$warning FIX ME}
     function trunc(d : extended) : int64;assembler;[internconst:in_const_trunc];
@@ -205,6 +206,11 @@
                          Int to real helpers
  ****************************************************************************}
 
+const
+  longint_to_real_helper: int64 = 0x4330000080000000;
+  cardinal_to_real_helper: int64 = 0x430000000000000;
+  int_to_real_factor: double = double(high(cardinal))+1.0;
+
 function fpc_int64_to_double(i: int64): double; compilerproc;
 assembler;
 { input: high(i) in r3, low(i) in r4 }
@@ -236,7 +242,7 @@ asm
 end ['r0','r3','r4','f0','f1','f2','f3'];
 
 
-function fpc_qword_to_real(q: qword): double; compilerproc;
+function fpc_qword_to_double(q: qword): double; compilerproc;
 assembler;
 { input: high(q) in r3, low(q) in r4 }
 { output: double(q) in f0            }
@@ -267,7 +273,10 @@ end ['r0','r3','f0','f1','f2','f3'];
 
 {
   $Log$
-  Revision 1.6  2002-07-29 21:28:17  florian
+  Revision 1.7  2002-07-31 16:58:12  jonas
+    * fixed conversion from int64/qword to double errors
+
+  Revision 1.6  2002/07/29 21:28:17  florian
     * several fixes to get further with linux/ppc system unit compilation
 
   Revision 1.5  2002/07/28 21:39:29  florian

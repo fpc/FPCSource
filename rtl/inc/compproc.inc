@@ -252,11 +252,19 @@ Procedure fpc_rewrite_typed(var f : TypedFile;Size : Longint); compilerproc;
 Procedure fpc_typed_write(TypeSize : Longint;var f : TypedFile;const Buf); compilerproc;
 Procedure fpc_typed_read(TypeSize : Longint;var f : TypedFile;var Buf); compilerproc;
 
+{$ifdef POWERPC}
+function fpc_int64_to_double(i: int64): double; compilerproc;
+function fpc_qword_to_double(q: qword): double; compilerproc;
+{$endif POWERPC}
+
 {$endif hascompilerproc}
 
 {
   $Log$
-  Revision 1.17  2002-07-28 20:43:47  florian
+  Revision 1.18  2002-07-31 16:58:12  jonas
+    * fixed conversion from int64/qword to double errors
+
+  Revision 1.17  2002/07/28 20:43:47  florian
     * several fixes for linux/powerpc
     * several fixes to MT
 
