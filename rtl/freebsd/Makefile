@@ -132,9 +132,11 @@ UNIXINC=$(RTL)/unix
 UNITPREFIX=rtl
 ifeq ($(findstring 1.0.,$(FPC_VERSION)),)
 SYSTEMUNIT=system
+LINUXUNIT=
 PRT0=prt0
 else
 SYSTEMUNIT=sysbsd
+LINUXUNIT=linux
 override FPCOPT+=-dUNIX
 PRT0=prt0_10
 endif
@@ -143,7 +145,7 @@ GRAPHDIR=$(INC)/graph
 ifndef USELIBGGI
 USELIBGGI=NO
 endif
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings unix initc dos crt objects printer sysutils typinfo math varutils cpu mmx getopts heaptrc lineinfo errors sockets gpm ipc terminfo video mouse keyboard console serial
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings $(LINUXUNIT) unix initc dos crt objects printer sysutils typinfo math varutils cpu mmx getopts heaptrc lineinfo errors sockets gpm ipc terminfo video mouse keyboard console serial
 override TARGET_LOADERS+=prt0 cprt0
 override TARGET_RSTS+=math varutils
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC) $(UNIXINC)
@@ -820,6 +822,9 @@ math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/math.pp
 gettext$(PPUEXT): $(OBJPASDIR)/gettext.pp objpas$(PPUEXT) sysutils$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/gettext.pp
+varutils$(PPUEXT) : $(OBJPASDIR)/cvarutil.inc $(OBJPASDIR)/varutils.inc \
+		    $(OBJPASDIR)/varutilh.inc varutils.pp
+	$(COMPILER) -I$(OBJPASDIR) $(UNIXINC)/varutils.pp
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT)
 mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMUNIT)$(PPUEXT)

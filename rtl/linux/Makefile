@@ -132,9 +132,11 @@ UNIXINC=$(RTL)/unix
 UNITPREFIX=rtl
 ifeq ($(findstring 1.0.,$(FPC_VERSION)),)
 SYSTEMUNIT=system
+LINUXUNIT=
 PRT0=prt0
 else
 SYSTEMUNIT=syslinux
+LINUXUNIT=linux
 PRT0=prt0_10
 override FPCOPT+=-dUNIX
 endif
@@ -143,10 +145,10 @@ GRAPHDIR=$(INC)/graph
 ifndef USELIBGGI
 USELIBGGI=NO
 endif
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings unix ports initc dos crt objects printer graph ggigraph sysutils typinfo math varutils cpu mmx getopts heaptrc lineinfo errors sockets gpm ipc serial terminfo dl dynlibs video mouse keyboard
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings $(LINUXUNIT) unix ports initc dos crt objects printer graph ggigraph sysutils typinfo math varutils cpu mmx getopts heaptrc lineinfo errors sockets gpm ipc serial terminfo dl dynlibs video mouse keyboard
 override TARGET_LOADERS+=prt0 cprt0 gprt0 cprt21 gprt21
 override TARGET_RSTS+=math varutils
-override CLEAN_UNITS+=syslinux
+override CLEAN_UNITS+=syslinux linux
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC) $(UNIXINC)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(UNIXINC)
 override COMPILER_TARGETDIR+=.

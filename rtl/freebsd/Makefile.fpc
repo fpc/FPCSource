@@ -8,7 +8,7 @@ main=rtl
 [target]
 loaders=prt0 cprt0
 units=$(SYSTEMUNIT) objpas strings \
-      unix initc \
+      $(LINUXUNIT) unix initc \
       dos crt objects printer \
       sysutils typinfo math varutils \
       cpu mmx getopts heaptrc lineinfo \
@@ -48,9 +48,11 @@ UNITPREFIX=rtl
 
 ifeq ($(findstring 1.0.,$(FPC_VERSION)),)
 SYSTEMUNIT=system
+LINUXUNIT=
 PRT0=prt0
 else
 SYSTEMUNIT=sysbsd
+LINUXUNIT=linux
 override FPCOPT+=-dUNIX
 PRT0=prt0_10
 endif
@@ -152,6 +154,10 @@ math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
 
 gettext$(PPUEXT): $(OBJPASDIR)/gettext.pp objpas$(PPUEXT) sysutils$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/gettext.pp
+
+varutils$(PPUEXT) : $(OBJPASDIR)/cvarutil.inc $(OBJPASDIR)/varutils.inc \
+                    $(OBJPASDIR)/varutilh.inc varutils.pp
+        $(COMPILER) -I$(OBJPASDIR) $(UNIXINC)/varutils.pp
 
 #
 # Other system-independent RTL Units

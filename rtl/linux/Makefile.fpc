@@ -8,7 +8,7 @@ main=rtl
 [target]
 loaders=prt0 cprt0 gprt0 cprt21 gprt21
 units=$(SYSTEMUNIT) objpas strings \
-      unix ports initc \
+      $(LINUXUNIT) unix ports initc \
       dos crt objects printer graph ggigraph \
       sysutils typinfo math varutils \
       cpu mmx getopts heaptrc lineinfo \
@@ -20,7 +20,7 @@ rsts=math varutils
 nortl=y
 
 [clean]
-units=syslinux
+units=syslinux linux
 
 [default]
 fpcdir=../..
@@ -52,9 +52,11 @@ UNITPREFIX=rtl
 
 ifeq ($(findstring 1.0.,$(FPC_VERSION)),)
 SYSTEMUNIT=system
+LINUXUNIT=
 PRT0=prt0
 else
 SYSTEMUNIT=syslinux
+LINUXUNIT=linux
 PRT0=prt0_10
 override FPCOPT+=-dUNIX
 endif
