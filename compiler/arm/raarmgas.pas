@@ -429,19 +429,6 @@ Unit raarmgas;
                            if expr = '__OLDEBP' then
                             oper.SetupOldEBP
                           else
-                            { check for direct symbolic names   }
-                            { only if compiling the system unit }
-                            if (cs_compilesystem in aktmoduleswitches) then
-                             begin
-                               if not oper.SetupDirectVar(expr) then
-                                Begin
-                                  { not found, finally ... add it anyways ... }
-                                  Message1(asmr_w_id_supposed_external,expr);
-                                  oper.InitRef;
-                                  oper.opr.ref.symbol:=objectlibrary.newasmsymbol(expr,AB_EXTERNAL,AT_FUNCTION);
-                                end;
-                             end
-                          else
                             Message1(sym_e_unknown_id,expr);
                         end;
                      end;
@@ -748,7 +735,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.10  2004-11-11 19:31:33  peter
+  Revision 1.11  2004-11-24 22:03:26  florian
+    * fixed arm compilation
+
+  Revision 1.10  2004/11/11 19:31:33  peter
     * fixed compile of powerpc,sparc,arm
 
   Revision 1.9  2004/06/20 08:55:31  florian
