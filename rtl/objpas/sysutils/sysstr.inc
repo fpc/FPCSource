@@ -476,24 +476,39 @@ end ;
     deleted to the left and right and double occurances
     of Quote replaced by a single Quote   }
 
-function AnsiExtractQuotedStr(Const Src: PChar; Quote: Char): string;
-var i: integer; P, Q: PChar;
+
+function AnsiExtractQuotedStr(var  Src: PChar; Quote: Char): string;
+var i: integer; P, Q,R: PChar;
 begin
-P := Src;
-if Src^ = Quote then P := P + 1;
-Q := StrEnd(P);
-if PChar(Q - 1)^ = Quote then Q := Q - 1;
-SetLength(result, Q - P);
-i := 0;
-while P <> Q do begin
-   i := i + 1;
-   result[i] := P^;
-   if (P^ = Quote) and (PChar(P + 1)^ = Quote) then
-      P := P + 1;
-   P := P + 1;
+ P := Src;
+ Q := StrEnd(P);
+ result:='';
+ if P=Q then exit;
+ if P^<>quote then exit;
+ inc(p);
+   
+ setlength(result,(Q-P)+1);
+ R:=@Result[1];
+ i := 0;
+ while P <> Q do 
+   begin
+     R^:=P^; 
+     inc(R);
+     if (P^ = Quote) then
+       begin
+         P := P + 1;
+         if (p^ <> Quote) then
+          begin
+	    dec(R);
+	    break;
+          end;
+       end; 
+     P := P + 1;
    end ;
-SetLength(result, i);
+ src:=p;
+ SetLength(result, (R-pchar(@Result[1])));
 end ;
+
 
 {   AdjustLineBreaks returns S with all CR characters not followed by LF
     replaced with CR/LF  }
@@ -2187,7 +2202,10 @@ const
 
 {
   $Log$
-  Revision 1.16  2004-08-30 18:00:12  michael
+  Revision 1.17  2004-11-16 18:30:35  marco
+   * updated ansiexctractquotedstring (more delphi compat, both interface and code)
+
+  Revision 1.16  2004/08/30 18:00:12  michael
   + Extra index check in IsDelimiter
 
   Revision 1.15  2004/08/07 19:32:35  florian

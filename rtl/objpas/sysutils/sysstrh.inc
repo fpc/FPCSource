@@ -107,7 +107,7 @@ function TrimLeft(const S: string): string;
 function TrimRight(const S: string): string;
 function QuotedStr(const S: string): string;
 function AnsiQuotedStr(const S: string; Quote: char): string;
-function AnsiExtractQuotedStr(Const Src: PChar; Quote: Char): string;
+function AnsiExtractQuotedStr(var Src: PChar; Quote: Char): string;
 function AdjustLineBreaks(const S: string): string;
 function AdjustLineBreaks(const S: string; Style: TTextLineBreakStyle): string;
 function IsValidIdent(const Ident: string): boolean;
@@ -193,7 +193,10 @@ function BCDToInt(Value: integer): integer;
 
 {
   $Log$
-  Revision 1.9  2004-08-30 13:07:03  michael
+  Revision 1.10  2004-11-16 18:30:36  marco
+   * updated ansiexctractquotedstring (more delphi compat, both interface and code)
+
+  Revision 1.9  2004/08/30 13:07:03  michael
   + Added MACOS linebreakstyle (tlbsCR)
 
   Revision 1.8  2004/08/07 16:56:28  florian
