@@ -1,4 +1,5 @@
 { %version=1.1 }
+{ %fail }
 { Interfaces only supported in v1.1 }
 { Should give the same error as /tbf/tb0125.pp }
 {$ifdef fpc}
