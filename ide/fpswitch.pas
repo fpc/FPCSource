@@ -1101,27 +1101,39 @@ begin
             end;
        end;
        { set appriopriate default target }
-{$ifdef go32v2}
-       TargetSwitches^.SetCurrSel(1);
-{$endif}
-{$ifdef linux}
 {$ifdef i386}
-       TargetSwitches^.SetCurrSel(3);
+  {$ifdef go32v2}
+       TargetSwitches^.SetCurrSelParam('go32v2');
+  {$endif}
+  {$ifdef linux}
+       TargetSwitches^.SetCurrSelParam('linux');
+  {$endif}
+  {$ifdef freebsd}
+       TargetSwitches^.SetCurrSelParam('freebsd');
+  {$endif}
+  {$ifdef os2}
+       TargetSwitches^.SetCurrSelParam('os2');
+  {$endif}
+  {$ifdef win32}
+       TargetSwitches^.SetCurrSelParam('win32');
+  {$endif}
+  {$ifdef netware}
+       TargetSwitches^.SetCurrSelParam('netware');
+  {$endif}
+  {$ifdef netbsd}
+       TargetSwitches^.SetCurrSelParam('netbsd');
+  {$endif}
 {$endif i386}
 {$ifdef m68k}
-       TargetSwitches^.SetCurrSel(2);
+  {$ifdef linux}
+       TargetSwitches^.SetCurrSelParam('linux');
+  {$endif linux}
 {$endif m68k}
-{$endif linux}
-{$ifdef freebsd}
-       TargetSwitches^.SetCurrSel(2);
-{$endif}
-
-{$ifdef os2}
-       TargetSwitches^.SetCurrSel(4);
-{$endif}
-{$ifdef win32}
-       TargetSwitches^.SetCurrSel(5);
-{$endif}
+{$ifdef powerpc}
+  {$ifdef linux}
+       TargetSwitches^.SetCurrSelParam('linux');
+  {$endif linux}
+{$endif powerpc}
     end;
   SwitchesMode:=OldSwitchesMode;
 end;
@@ -1248,7 +1260,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.12  2002-11-30 01:56:52  pierre
+  Revision 1.13  2002-12-15 14:08:29  peter
+    * more stable default target setting
+
+  Revision 1.12  2002/11/30 01:56:52  pierre
    + powerpc cpu support started
 
   Revision 1.11  2002/11/21 00:37:56  pierre
