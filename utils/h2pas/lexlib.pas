@@ -40,7 +40,7 @@ interface
 var
 
 yyinput, yyoutput : Text;        (* input and output file *)
-yyline            : String;      (* current input line *)
+yyline,yyprevline : String;      (* current and previous input line *)
 yylineno, yycolno : Integer;     (* current input position *)
 yytext            : String;      (* matched text (should be considered r/o) *)
 yyleng            : Byte         (* length of matched text *)
@@ -185,8 +185,10 @@ function get_char : Char;
   begin
     if (bufptr=0) and not eof(yyinput) then
       begin
+        yyprevline:=yyline;
         readln(yyinput, yyline);
-        inc(yylineno); yycolno := 1;
+        inc(yylineno);
+        yycolno := 1;
         buf[1] := nl;
         for i := 1 to length(yyline) do
           buf[i+1] := yyline[length(yyline)-i+1];
@@ -401,7 +403,8 @@ procedure yyclear;
 begin
   assign(yyinput, '');
   assign(yyoutput, '');
-  reset(yyinput); rewrite(yyoutput);
+  reset(yyinput);
+  rewrite(yyoutput);
   yylineno := 0;
   yyclear;
 end(*LexLib*).

@@ -28,6 +28,9 @@ unit scan;
    strings,
    lexlib,yacclib;
 
+    const
+       version = '0.99.15';
+
     type
        Char=system.char;
        ttyp = (
@@ -101,11 +104,7 @@ unit scan;
           { p1 expr for value }
           );
 
-       {tdtyp = (dt_id,dt_one,dt_two,dt_three,dt_no,dt_uop,dt_bop);
-        obsolete removed }
-
        presobject = ^tresobject;
-
        tresobject = object
           typ : ttyp;
           p : pchar;
@@ -119,6 +118,7 @@ unit scan;
           constructor init_id(const s : string);
           constructor init_bop(const s : string;_p1,_p2 : presobject);
           constructor init_preop(const s : string;_p1 : presobject);
+          procedure setstr(const s:string);
           function str : string;
           function strlength : byte;
           function get_copy : presobject;
@@ -132,61 +132,73 @@ unit scan;
 
     var
        infile : string;
-       textinfile,outfile : text;
+       outfile : text;
        c : char;
        aktspace : string;
        block_type : tblocktype;
 
     const
        in_define : boolean = false;
-       { 1 after define; 2 after the ID to print the first
-       separating space }
+       { 1 after define; 2 after the ID to print the first separating space }
        in_space_define : byte = 0;
        arglevel : longint = 0;
-       prev_line : string = '';
-       last_source_line : string = 'Line number 0';
 
     function yylex : integer;
     function act_token : string;
     procedure internalerror(i : integer);
 
-    procedure next_line;
-
     function strpnew(const s : string) : pchar;
 
   implementation
-    uses options,converu;
+
+    uses
+       options,converu;
+
+    const
+       newline = #10;
+
 
     procedure internalerror(i : integer);
       begin
-         writeln('Internal error ',i,' in line ',line_no);
+         writeln('Internal error ',i,' in line ',yylineno);
          halt(1);
       end;
 
-    { keep the last source line }
-    procedure next_line;
-
-      begin
-         inc(line_no);
-         prev_line:=last_source_line;
-         readln(textinfile,last_source_line);
-      end;
 
     procedure commenteof;
       begin
-         writeln('unexpected EOF inside comment at line ',line_no);
+         writeln('unexpected EOF inside comment at line ',yylineno);
       end;
 
-    var         p : pchar;
+
+    procedure copy_until_eol;
+      begin
+        c:=get_char;
+        while c<>newline do
+         begin
+           write(outfile,c);
+           c:=get_char;
+         end;
+      end;
+
+
+    procedure skip_until_eol;
+      begin
+        c:=get_char;
+        while c<>newline do
+         c:=get_char;
+      end;
+
+
     function strpnew(const s : string) : pchar;
+      var
+        p : pchar;
       begin
          getmem(p,length(s)+1);
          strpcopy(p,s);
          strpnew:=p;
       end;
 
-    const
-       newline = #10;
 
     constructor tresobject.init_preop(const s : string;_p1 : presobject);
       begin
@@ -258,14 +270,19 @@ unit scan;
          next:=nil;
       end;
 
-    function tresobject.str : string;
+    procedure tresobject.setstr(const s : string);
+      begin
+         if assigned(p) then
+          strdispose(p);
+         p:=strpnew(s);
+      end;
 
+    function tresobject.str : string;
       begin
          str:=strpas(p);
       end;
 
     function tresobject.strlength : byte;
-
       begin
          if assigned(p) then
            strlength:=strlen(p)
@@ -273,9 +290,8 @@ unit scan;
            strlength:=0;
       end;
 
-          { can this ve considered as a constant ? }
+    { can this ve considered as a constant ? }
     function tresobject.is_const : boolean;
-
       begin
          case typ of
            t_id,t_void :
@@ -325,61 +341,65 @@ unit scan;
 D [0-9]
 %%
 
-"/*"                   begin
+"/*"                    begin
                           if not stripcomment then
                             write(outfile,aktspace,'{');
                           repeat
                             c:=get_char;
                             case c of
-                               '*' : begin
-                                         c:=get_char;
-                                         if c='/' then
-                                           begin
-                                              if not stripcomment then
-                                                writeln(outfile,' }');
-                                              flush(outfile);
-                                              exit;
-                                           end
-                                         else
-                                           begin
-                                              if not stripcomment then
-                                                write(outfile,' ');
-                                              unget_char(c)
-                                           end;
-                                      end;
-                               newline : begin
-                                            next_line;
-                                            if not stripcomment then
-                                               begin
-                                               writeln(outfile);
-                                               write(outfile,aktspace);
-                                               end;
-                                         end;
-                               #0 : commenteof;
-                               else if not stripcomment then
-                                    write(outfile,c);
+                               '*' :
+                                 begin
+                                   c:=get_char;
+                                   if c='/' then
+                                    begin
+                                      if not stripcomment then
+                                       writeln(outfile,' }');
+                                      flush(outfile);
+                                      exit;
+                                    end
+                                   else
+                                    begin
+                                      if not stripcomment then
+                                       write(outfile,' ');
+                                      unget_char(c)
+                                    end;
+                                  end;
+                                newline :
+                                  begin
+                                    if not stripcomment then
+                                     begin
+                                       writeln(outfile);
+                                       write(outfile,aktspace);
+                                     end;
+                                  end;
+                                #0 :
+                                  commenteof;
+                                else
+                                  if not stripcomment then
+                                   write(outfile,c);
                             end;
                           until false;
                           flush(outfile);
                         end;
-
-"//"                   begin
+"//"                    begin
                           If not stripcomment then
-                             write(outfile,aktspace,'{');
+                            write(outfile,aktspace,'{');
                           repeat
                             c:=get_char;
                             case c of
-                              newline : begin
-                                        unget_char(c);
-                                        if not stripcomment then
-                                          writeln(outfile,' }');
-                                        flush(outfile);
-                                        exit;
-                                        end;
-                               #0 : commenteof;
-                               else if not stripcomment then
-                                    write(outfile,c);
-                            flush(outfile);
+                              newline :
+                                begin
+                                  unget_char(c);
+                                  if not stripcomment then
+                                   writeln(outfile,' }');
+                                  flush(outfile);
+                                  exit;
+                                end;
+                              #0 :
+                                commenteof;
+                              else
+                                if not stripcomment then
+                                 write(outfile,c);
                             end;
                           until false;
                           flush(outfile);
@@ -394,14 +414,15 @@ D [0-9]
                           return(CSTRING)
                         else
                           return(256);
-{D}*[U]?[L]?              begin
+{D}*[U]?[L]?            begin
                            if yytext[length(yytext)]='L' then
                              dec(byte(yytext[0]));
                            if yytext[length(yytext)]='U' then
                              dec(byte(yytext[0]));
                            return(NUMBER);
                         end;
-"0x"[0-9A-Fa-f]*[U]?[L]?    begin
+"0x"[0-9A-Fa-f]*[U]?[L]?
+                        begin
                            (* handle pre- and postfixes *)
                            if copy(yytext,1,2)='0x' then
                              begin
@@ -414,12 +435,10 @@ D [0-9]
                              dec(byte(yytext[0]));
                            return(NUMBER);
                         end;
-
 {D}+(\.{D}+)?([Ee][+-]?{D}+)?
-                       begin
-                       return(NUMBER);
-                       end;
-
+                        begin
+                          return(NUMBER);
+                        end;
 "->"                    if in_define then
                           return(DEREF)
                         else
@@ -468,11 +487,11 @@ D [0-9]
                           return(ID)
                         else
                           return(CDECL);
-"PASCAL"                            if not Win32headers then
+"PASCAL"                if not Win32headers then
                           return(ID)
                         else
                           return(PASCAL);
-"PACKED"                            if not Win32headers then
+"PACKED"                if not Win32headers then
                           return(ID)
                         else
                           return(_PACKED);
@@ -488,22 +507,26 @@ D [0-9]
                           return(ID)
                         else
                           return(WINGDIAPI);
-"CALLBACK"                       if not Win32headers then
+"CALLBACK"              if not Win32headers then
                           return(ID)
                         else
                           return(CALLBACK);
-"EXPENTRY"                       if not Win32headers then
+"EXPENTRY"              if not Win32headers then
                           return(ID)
                         else
                           return(CALLBACK);
-
 "void"                  return(VOID);
 "VOID"                  return(VOID);
 "#ifdef __cplusplus"[ \t]*\n"extern \"C\" {"\n"#endif"
-                        writeln(outfile,'{ C++ extern C conditionnal removed }');
+                        begin
+                          if not stripinfo then
+                            writeln(outfile,'{ C++ extern C conditionnal removed }');
+                        end;
 "#ifdef __cplusplus"[ \t]*\n"}"\n"#endif"
-                        writeln(outfile,'{ C++ end of extern C conditionnal removed }');
-
+                        begin
+                          if not stripinfo then
+                            writeln(outfile,'{ C++ end of extern C conditionnal removed }');
+                        end;
 "#else"                 begin
                            writeln(outfile,'{$else}');
                            block_type:=bt_no;
@@ -514,69 +537,53 @@ D [0-9]
                            block_type:=bt_no;
                            flush(outfile);
                         end;
-"#elif"                begin
-                           write(outfile,'(*** was #elif ****)');
+"#elif"                 begin
+                           if not stripinfo then
+                             write(outfile,'(*** was #elif ****)');
                            write(outfile,'{$else');
-                                          c:=get_char;
-                           while c<>newline do
-                             begin write(outfile,c);c:=get_char;end;
+                           copy_until_eol;
                            writeln(outfile,'}');
                            block_type:=bt_no;
                            flush(outfile);
-                           next_line;
                         end;
 "#undef"                begin
                            write(outfile,'{$undef');
-                                          c:=get_char;
-                           while c<>newline do
-                             begin write(outfile,c);c:=get_char;end;
+                           copy_until_eol;
                            writeln(outfile,'}');
                            flush(outfile);
-                           next_line;
                         end;
 "#error"                begin
                            write(outfile,'{$error');
-                           c:=get_char;
-                           while c<>newline do
-                             begin
-                                write(outfile,c);
-                                c:=get_char;
-                             end;
+                           copy_until_eol;
                            writeln(outfile,'}');
                            flush(outfile);
-                           next_line;
                         end;
-
 "#include"              begin
                            write(outfile,'{$include');
-                                          c:=get_char;
-                           while c<>newline do
-                             begin write(outfile,c);c:=get_char;end;
+                           copy_until_eol;
                            writeln(outfile,'}');
                            flush(outfile);
                            block_type:=bt_no;
-                           next_line;
                         end;
 "#if"                   begin
                            write(outfile,'{$if');
-                                          c:=get_char;
-                           while c<>newline do
-                             begin write(outfile,c);c:=get_char;end;
+                           copy_until_eol;
                            writeln(outfile,'}');
                            flush(outfile);
                            block_type:=bt_no;
-                           next_line;
                         end;
 "#pragma"               begin
-                           write(outfile,'(** unsupported pragma');
-                           write(outfile,'#pragma');
-                                          c:=get_char;
-                           while c<>newline do
-                             begin write(outfile,c);c:=get_char;end;
-                           writeln(outfile,'*)');
-                           flush(outfile);
+                           if not stripinfo then
+                            begin
+                              write(outfile,'(** unsupported pragma');
+                              write(outfile,'#pragma');
+                              copy_until_eol;
+                              writeln(outfile,'*)');
+                              flush(outfile);
+                            end
+                           else
+                            skip_until_eol;
                            block_type:=bt_no;
-                           next_line;
                         end;
 "#define"               begin
                            in_define:=true;
@@ -599,109 +606,43 @@ D [0-9]
 "CONST"                 return(_CONST);
 "FAR"                   return(_FAR);
 "far"                   return(_FAR);
-"NEAR"                   return(_NEAR);
-"near"                   return(_NEAR);
-"HUGE"                   return(_HUGE);
-"huge"                   return(_HUGE);
+"NEAR"                  return(_NEAR);
+"near"                  return(_NEAR);
+"HUGE"                  return(_HUGE);
+"huge"                  return(_HUGE);
 [A-Za-z_][A-Za-z0-9_]*  begin
                            if in_space_define=1 then
                              in_space_define:=2;
                            return(ID);
                         end;
 ";"                     return(SEMICOLON);
-[ \f\t]                 if arglevel=0 then
-                          if in_space_define=2 then
+[ \f\t]                 begin
+                           if (arglevel=0) and (in_space_define=2) then
                             begin
-                               in_space_define:=0;
-                               return(SPACE_DEFINE);
+                              in_space_define:=0;
+                              return(SPACE_DEFINE);
                             end;
-\\\n                    begin
-                           next_line;
-                           if arglevel=0 then
-                             if in_space_define=2 then
-                               begin
-                                  in_space_define:=0;
-                                  return(SPACE_DEFINE);
-                               end;
                         end;
 \n                      begin
-                           next_line;
                            if in_define then
-                             begin
-                                 in_define:=false;
-                                 in_space_define:=0;
-                                 return(NEW_LINE);
-                             end;
+                            begin
+                              in_define:=false;
+                              in_space_define:=0;
+                              return(NEW_LINE);
+                            end;
                         end;
 .                       begin
-                           writeln('Illegal character in line ',line_no);
-                           writeln(last_source_line);
-                           return(256 { error });
+                           writeln('Illegal character in line ',yylineno);
+                           writeln('"',yyline,'"');
+                           return(256);
                         end;
 %%
 
-    function act_token : string;
-      begin
-         act_token:=yytext;
-      end;
 
-Function ForceExtension(Const HStr,ext:String):String;
-{
-  Return a filename which certainly has the extension ext
-  (no dot in ext !!)
-}
-var
-  j : longint;
+function act_token : string;
 begin
-  j:=length(Hstr);
-  while (j>0) and (Hstr[j]<>'.') do
-   dec(j);
-  if j=0 then
-   j:=255;
-  ForceExtension:=Copy(Hstr,1,j-1)+'.'+Ext;
+  act_token:=yytext;
 end;
 
-  begin
-     ProcessOptions;
-     line_no := 1;
-     assign(yyinput, inputfilename);
-     reset(yyinput);
-     assign(textinfile, inputfilename);
-     reset(textinfile);
-     readln(textinfile,last_source_line);
-     assign(outfile, outputfilename);
-     rewrite(outfile);
-     if not(includefile) then
-       begin
-          writeln(outfile,'unit ',unitname,';');
-          writeln(outfile);
-          writeln(outfile,'{  Automatically converted by H2PAS.EXE from '+inputfilename);
-          writeln(outfile,'   Utility made by Florian Klaempfl 25th-28th september 96');
-          writeln(outfile,'   Improvements made by Mark A. Malakanov 22nd-25th may 97 ');
-          writeln(outfile,'   Further improvements by Michael Van Canneyt, April 1998 ');
-          writeln(outfile,'   define handling and error recovery by Pierre Muller, June 1998 }');
-          writeln(outfile);
-          writeln(outfile);
-          writeln(outfile,'  interface');
-          writeln(outfile);
-          writeln(outfile,'  { C default packing is dword }');
-          writeln(outfile);
-          writeln(outfile,'{$PACKRECORDS 4}');
-       end;
-     if UsePPointers then
-       begin
-       { Define some pointers to basic pascal types }
-       writeln(outfile);
-       Writeln(outfile,' { Pointers to basic pascal types, inserted by h2pas conversion program.}');
-       Writeln(outfile,'  Type');
-       Writeln(outfile,'     PLongint  = ^Longint;');
-       Writeln(outfile,'     PByte     = ^Byte;');
-       Writeln(outfile,'     PWord     = ^Word;');
-       Writeln(outfile,'     PInteger  = ^Integer;');
-       Writeln(outfile,'     PCardinal = ^Cardinal;');
-       Writeln(outfile,'     PReal     = ^Real;');
-       Writeln(outfile,'     PDouble   = ^Double;');
-       Writeln(outfile);
-       end;
-  end.
+end.
 
