@@ -139,22 +139,22 @@ begin
    Lo := b and $0f
 end;
 
-Function swap (X : Word) : Word;{$ifdef INTERNCONST}[internconst:in_const_swap_word];{$endif}
+Function swap (X : Word) : Word;[internconst:in_const_swap_word];
 Begin
   swap:=(X and $ff) shl 8 + (X shr 8)
 End;
 
-Function Swap (X : Integer) : Integer;{$ifdef INTERNCONST}[internconst:in_const_swap_word];{$endif}
+Function Swap (X : Integer) : Integer;[internconst:in_const_swap_word];
 Begin
   Swap:=Integer(Swap(Word(X)));
 End;
 
-Function swap (X : Longint) : Longint;{$ifdef INTERNCONST}[internconst:in_const_swap_long];{$endif}
+Function swap (X : Longint) : Longint;[internconst:in_const_swap_long];
 Begin
   Swap:=(X and $ffff) shl 16 + (X shr 16)
 End;
 
-Function Swap (X : Cardinal) : Cardinal;{$ifdef INTERNCONST}[internconst:in_const_swap_long];{$endif}
+Function Swap (X : Cardinal) : Cardinal;[internconst:in_const_swap_long];
 Begin
   Swap:=Swap(Longint(X));
 End;
@@ -240,7 +240,7 @@ end;
 
 {$ifndef RTLLITE}
 
-Function Ptr(sel,off : Longint) : pointer;{$ifdef INTERNCONST}[internconst:in_const_ptr];{$endif}
+Function Ptr(sel,off : Longint) : pointer;[internconst:in_const_ptr];
 Begin
   sel:=0;
   ptr:=pointer(off);
@@ -465,7 +465,10 @@ end;
 
 {
   $Log$
-  Revision 1.34  1998-09-22 15:30:54  peter
+  Revision 1.35  1998-10-02 09:25:11  peter
+    * more constant expression evals
+
+  Revision 1.34  1998/09/22 15:30:54  peter
     * shortstring=string type added
 
   Revision 1.33  1998/09/16 13:08:03  michael

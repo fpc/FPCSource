@@ -262,7 +262,7 @@
                        EXTENDED data type routines
  ****************************************************************************}
 
-    function pi : extended;
+    function pi : extended;{$ifdef MORECONST}[internconst:in_const_pi];{$endif}
 
       begin
          asm
@@ -272,7 +272,7 @@
          end [];
       end;
 
-    function abs(d : extended) : extended;{$ifdef INTERNCONST}[internconst:in_const_abs];{$endif}
+    function abs(d : extended) : extended;[internconst:in_const_abs];
 
       begin
          asm
@@ -283,7 +283,7 @@
          end [];
       end;
 
-    function sqr(d : extended) : extended;{$ifdef INTERNCONST}[internconst:in_const_sqr];{$endif}
+    function sqr(d : extended) : extended;[internconst:in_const_sqr];
 
       begin
          asm
@@ -295,7 +295,7 @@
          end [];
       end;
 
-    function sqrt(d : extended) : extended;
+    function sqrt(d : extended) : extended;{$ifdef MORECONST}[internconst:in_const_sqrt];{$endif}
 
       begin
          asm
@@ -306,7 +306,7 @@
          end [];
       end;
 
-    function arctan(d : extended) : extended;
+    function arctan(d : extended) : extended;{$ifdef MORECONST}[internconst:in_const_arctan];{$endif}
 
       begin
          asm
@@ -318,7 +318,7 @@
          end [];
       end;
 
-    function cos(d : extended) : extended;
+    function cos(d : extended) : extended;{$ifdef MORECONST}[internconst:in_const_cos];{$endif}
 
       begin
          asm
@@ -339,7 +339,7 @@
          end ['EAX'];
       end;
 
-    function exp(d : extended) : extended;
+    function exp(d : extended) : extended;{$ifdef MORECONST}[internconst:in_const_exp];{$endif}
 
       begin
          asm
@@ -376,7 +376,7 @@
          end;
       end;
 
-    function frac(d : extended) : extended;{$ifdef INTERNCONST}[internconst:in_const_frac];{$endif}
+    function frac(d : extended) : extended;[internconst:in_const_frac];
 
       begin
          asm
@@ -400,7 +400,7 @@
          end ['ECX'];
       end;
 
-    function int(d : extended) : extended;{$ifdef INTERNCONST}[internconst:in_const_int];{$endif}
+    function int(d : extended) : extended;[internconst:in_const_int];
 
       begin
          asm
@@ -421,7 +421,7 @@
          end ['ECX'];
       end;
 
-    function trunc(d : extended) : longint;{$ifdef INTERNCONST}[internconst:in_const_trunc];{$endif}
+    function trunc(d : extended) : longint;[internconst:in_const_trunc];
 
       begin
          asm
@@ -442,7 +442,7 @@
          end ['EAX','ECX'];
       end;
 
-    function round(d : extended) : longint;{$ifdef INTERNCONST}[internconst:in_const_round];{$endif}
+    function round(d : extended) : longint;[internconst:in_const_round];
 
       begin
          asm
@@ -461,7 +461,7 @@
          end ['EAX','ECX'];
       end;
 
-    function ln(d : extended) : extended;
+    function ln(d : extended) : extended;{$ifdef MORECONST}[internconst:in_const_ln];{$endif}
 
       begin
          asm
@@ -473,7 +473,7 @@
          end [];
       end;
 
-    function sin(d : extended) : extended;
+    function sin(d : extended) : extended;{$ifdef MORECONST}[internconst:in_const_sin];{$endif}
 
       begin
          asm
@@ -634,7 +634,10 @@
 
 {
   $Log$
-  Revision 1.9  1998-09-11 17:38:49  pierre
+  Revision 1.10  1998-10-02 09:25:29  peter
+    * more constant expression evals
+
+  Revision 1.9  1998/09/11 17:38:49  pierre
      merge for fixes branch
 
   Revision 1.8.2.1  1998/09/11 17:37:25  pierre

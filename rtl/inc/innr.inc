@@ -63,10 +63,19 @@ const
    in_const_ptr        = 107;
    in_const_swap_word  = 108;
    in_const_swap_long  = 109;
-
+   in_const_pi         = 110;
+   in_const_sqrt       = 111;
+   in_const_arctan     = 112;
+   in_const_cos        = 113;
+   in_const_exp        = 114;
+   in_const_ln         = 115;
+   in_const_sin        = 116;
 {
   $Log$
-  Revision 1.4  1998-09-14 10:48:17  peter
+  Revision 1.5  1998-10-02 09:25:09  peter
+    * more constant expression evals
+
+  Revision 1.4  1998/09/14 10:48:17  peter
     * FPC_ names
     * Heap manager is now system independent
 
