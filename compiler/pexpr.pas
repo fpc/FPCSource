@@ -1931,7 +1931,7 @@ implementation
                      check_hints(sym);
                      { load the procdef from the inherited class and
                        not from self }
-                     if sym.typ=procsym then
+                     if sym.typ in [procsym,propertysym] then
                       begin
                         htype.setdef(classh);
                         if (po_classmethod in current_procinfo.procdef.procoptions) or
@@ -2532,7 +2532,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.182  2005-03-03 19:58:14  jonas
+  Revision 1.183  2005-03-04 07:46:36  jonas
+    * properties can also be inherited/overridden
+
+  Revision 1.182  2005/03/03 19:58:14  jonas
     * fixed web bug 3738
 
   Revision 1.181  2005/02/14 17:13:07  peter
