@@ -268,7 +268,7 @@ uses
   globtype,globals,comphook,
   finput,fmodule,
   cpuinfo,cgbase,aasmbase,aasmtai,paramgr,
-  symsym,symdef,symtype,symbase;
+  symsym,symdef,symtype,symbase,defutil;
 
 const
   RModuleNameCollection: TStreamRec = (
@@ -1369,18 +1369,24 @@ end;
     if Name='' then
     case sym.consttyp of
       constord :
-        Name:=sym.consttype.def.typesym.name+'('+IntToStr(sym.value.valueord)+')';
+        begin
+          if sym.consttype.def.deftype=enumdef then
+            Name:=sym.consttype.def.typesym.name+'('+IntToStr(sym.value.valueord)+')'
+          else
+            if is_boolean(sym.consttype.def) then
+              Name:='Longbool('+IntToStr(sym.value.valueord)+')'
+          else
+            if is_char(sym.consttype.def) or
+               is_widechar(sym.consttype.def) then
+              Name:=''''+chr(sym.value.valueord)+''''
+          else
+            Name:=IntToStr(sym.value.valueord);
+        end;
       constresourcestring,
       conststring :
         Name:=''''+StrPas(pchar(sym.value.valueptr))+'''';
       constreal:
         Name:=FloatToStr(PBestReal(sym.value.valueptr)^);
-      constbool:
-        Name:='Longbool('+IntToStr(sym.value.valueord)+')';
-      constint:
-        Name:=IntToStr(sym.value.valueord);
-      constchar:
-        Name:=''''+chr(sym.value.valueord)+'''';
       constset:
 {        Name:=SetToStr(pnormalset(sym.value.valueptr)) };
       constnil: ;
@@ -2112,7 +2118,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.36  2003-10-01 20:34:48  peter
+  Revision 1.37  2004-03-23 22:34:49  peter
+    * constants ordinals now always have a type assigned
+    * integer constants have the smallest type, unsigned prefered over
+      signed
+
+  Revision 1.36  2003/10/01 20:34:48  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

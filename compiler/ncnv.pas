@@ -199,7 +199,7 @@ interface
 implementation
 
    uses
-      globtype,systems,tokens,
+      globtype,systems,
       cutils,verbose,globals,widestr,
       symconst,symdef,symsym,symtable,
       ncon,ncal,nset,nadd,ninl,nmem,nmat,nutils,
@@ -593,7 +593,7 @@ implementation
     function ttypeconvnode.resulttype_string_to_chararray : tnode;
 
       var
-        arrsize: longint;
+        arrsize: aword;
 
       begin
          with tarraydef(resulttype.def) do
@@ -1121,6 +1121,7 @@ implementation
     function ttypeconvnode.det_resulttype:tnode;
 
       var
+        htype : ttype;
         hp : tnode;
         currprocdef,
         aprocdef : tprocdef;
@@ -1288,6 +1289,29 @@ implementation
                begin
                  { do common tc_equal cast }
                  convtype:=tc_equal;
+
+                 { ordinal constants can be resized to 1,2,4,8 bytes }
+                 if (left.nodetype=ordconstn) then
+                   begin
+                     { Insert typeconv for ordinal to the correct size first on left, after
+                       that the other conversion can be done }
+                     htype.reset;
+                     case resulttype.def.size of
+                       1 :
+                         htype:=s8inttype;
+                       2 :
+                         htype:=s16inttype;
+                       4 :
+                         htype:=s32inttype;
+                       8 :
+                         htype:=s64inttype;
+                     end;
+                     { we need explicit, because it can also be an enum }
+                     if assigned(htype.def) then
+                       inserttypeconv_explicit(left,htype)
+                     else
+                       CGMessage2(cg_e_illegal_type_conversion,left.resulttype.def.gettypename,resulttype.def.gettypename);
+                   end;
 
                  { check if the result could be in a register }
                  if (not(tstoreddef(resulttype.def).is_intregable) and
@@ -2378,7 +2402,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.142  2004-03-18 16:19:03  peter
+  Revision 1.143  2004-03-23 22:34:49  peter
+    * constants ordinals now always have a type assigned
+    * integer constants have the smallest type, unsigned prefered over
+      signed
+
+  Revision 1.142  2004/03/18 16:19:03  peter
     * fixed operator overload allowing for pointer-string
     * replaced some type_e_mismatch with more informational messages
 

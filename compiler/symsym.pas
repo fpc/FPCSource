@@ -251,15 +251,12 @@ interface
           consttyp    : tconsttyp;
           value       : tconstvalue;
           resstrindex  : longint;     { needed for resource strings }
-          constructor create_ord(const n : string;t : tconsttyp;v : tconstexprint);
-          constructor create_ord_typed(const n : string;t : tconsttyp;v : tconstexprint;const tt:ttype);
-          constructor create_ordptr_typed(const n : string;t : tconsttyp;v : tconstptruint;const tt:ttype);
-          constructor create_ptr(const n : string;t : tconsttyp;v : pointer);
-          constructor create_ptr_typed(const n : string;t : tconsttyp;v : pointer;const tt:ttype);
+          constructor create_ord(const n : string;t : tconsttyp;v : tconstexprint;const tt:ttype);
+          constructor create_ordptr(const n : string;t : tconsttyp;v : tconstptruint;const tt:ttype);
+          constructor create_ptr(const n : string;t : tconsttyp;v : pointer;const tt:ttype);
           constructor create_string(const n : string;t : tconsttyp;str:pchar;l:longint);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor  destroy;override;
-{          function  mangledname : string;}
           procedure buildderef;override;
           procedure deref;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -860,7 +857,7 @@ implementation
            if (eq>=te_equal) or
               ((cpo_allowconvert in cpoptions) and (eq>te_incompatible)) then
             begin
-              eq:=compare_paras(pd^.def.para,params,cp_value_equal_const,cpoptions);
+              eq:=compare_paras(params,pd^.def.para,cp_value_equal_const,cpoptions);
               if (eq>=te_equal) or
                  ((cpo_allowconvert in cpoptions) and (eq>te_incompatible)) then
                 begin
@@ -1720,19 +1717,7 @@ implementation
                                   TCONSTSYM
 ****************************************************************************}
 
-    constructor tconstsym.create_ord(const n : string;t : tconsttyp;v : TConstExprInt);
-      begin
-         inherited create(n);
-         fillchar(value, sizeof(value), #0);
-         typ:=constsym;
-         consttyp:=t;
-         value.valueord:=v;
-         ResStrIndex:=0;
-         consttype.reset;
-      end;
-
-
-    constructor tconstsym.create_ord_typed(const n : string;t : tconsttyp;v : tconstexprint;const tt:ttype);
+    constructor tconstsym.create_ord(const n : string;t : tconsttyp;v : tconstexprint;const tt:ttype);
       begin
          inherited create(n);
          fillchar(value, sizeof(value), #0);
@@ -1744,7 +1729,7 @@ implementation
       end;
 
 
-    constructor tconstsym.create_ordptr_typed(const n : string;t : tconsttyp;v : tconstptruint;const tt:ttype);
+    constructor tconstsym.create_ordptr(const n : string;t : tconsttyp;v : tconstptruint;const tt:ttype);
       begin
          inherited create(n);
          fillchar(value, sizeof(value), #0);
@@ -1756,19 +1741,7 @@ implementation
       end;
 
 
-    constructor tconstsym.create_ptr(const n : string;t : tconsttyp;v : pointer);
-      begin
-         inherited create(n);
-         fillchar(value, sizeof(value), #0);
-         typ:=constsym;
-         consttyp:=t;
-         value.valueptr:=v;
-         ResStrIndex:=0;
-         consttype.reset;
-      end;
-
-
-    constructor tconstsym.create_ptr_typed(const n : string;t : tconsttyp;v : pointer;const tt:ttype);
+    constructor tconstsym.create_ptr(const n : string;t : tconsttyp;v : pointer;const tt:ttype);
       begin
          inherited create(n);
          fillchar(value, sizeof(value), #0);
@@ -1806,12 +1779,6 @@ implementation
          consttyp:=tconsttyp(ppufile.getbyte);
          fillchar(value, sizeof(value), #0);
          case consttyp of
-           constint:
-             value.valueord:=ppufile.getexprint;
-           constwchar,
-           constbool,
-           constchar :
-             value.valueord:=ppufile.getlongint;
            constord :
              begin
                ppufile.gettype(consttype);
@@ -1894,12 +1861,6 @@ implementation
          ppufile.putbyte(byte(consttyp));
          case consttyp of
            constnil : ;
-           constint:
-             ppufile.putexprint(value.valueord);
-           constbool,
-           constchar,
-           constwchar :
-             ppufile.putlongint(value.valueord);
            constord :
              begin
                ppufile.puttype(consttype);
@@ -1943,11 +1904,7 @@ implementation
       case consttyp of
         conststring:
           st:='s'''+backspace_quote(strpas(pchar(value.valueptr)),['''','"','\',#10,#13])+'''';
-        constbool,
-        constint,
-        constord,
-        constwchar,
-        constchar:
+        constord:
           st:='i'+int64tostr(value.valueord);
         constpointer:
           st:='i'+int64tostr(value.valueordptr);
@@ -2243,7 +2200,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.167  2004-03-10 22:52:57  peter
+  Revision 1.168  2004-03-23 22:34:49  peter
+    * constants ordinals now always have a type assigned
+    * integer constants have the smallest type, unsigned prefered over
+      signed
+
+  Revision 1.167  2004/03/10 22:52:57  peter
     * more stabs fixes
     * special mode -gv for valgrind compatible stabs
 

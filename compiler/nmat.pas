@@ -670,6 +670,7 @@ implementation
     function tnotnode.det_resulttype : tnode;
       var
          t : tnode;
+         tt : ttype;
          notdef : Tprocdef;
          v : tconstexprint;
       begin
@@ -709,6 +710,7 @@ implementation
          if (left.nodetype=ordconstn) then
            begin
               v:=tordconstnode(left).value;
+              tt:=left.resulttype;
               case torddef(left.resulttype.def).typ of
                 bool8bit,
                 bool16bit,
@@ -719,27 +721,23 @@ implementation
                     v:=byte(not(boolean(byte(v))));
                   end;
                 uchar,
-                u8bit :
-                  v:=byte(not byte(v));
-                s8bit :
-                  v:=shortint(not shortint(v));
                 uwidechar,
-                u16bit :
-                  v:=word(not word(v));
-                s16bit :
-                  v:=smallint(not smallint(v));
-                u32bit :
-                  v:=cardinal(not cardinal(v));
-                s32bit :
-                  v:=longint(not longint(v));
+                u8bit,
+                s8bit,
+                u16bit,
+                s16bit,
+                u32bit,
+                s32bit,
+                s64bit,
                 u64bit :
-                  v:=int64(not int64(v)); { maybe qword is required }
-                s64bit :
-                  v:=int64(not int64(v));
+                  begin
+                    v:=int64(not int64(v)); { maybe qword is required }
+                    int_to_type(v,tt);
+                  end;
                 else
                   CGMessage(type_e_mismatch);
               end;
-              t:=cordconstnode.create(v,left.resulttype,true);
+              t:=cordconstnode.create(v,tt,true);
               result:=t;
               exit;
            end;
@@ -858,7 +856,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.59  2004-02-24 16:12:39  peter
+  Revision 1.60  2004-03-23 22:34:49  peter
+    * constants ordinals now always have a type assigned
+    * integer constants have the smallest type, unsigned prefered over
+      signed
+
+  Revision 1.59  2004/02/24 16:12:39  peter
     * operator overload chooses rewrite
     * overload choosing is now generic and moved to htypechk
 

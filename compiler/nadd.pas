@@ -340,11 +340,11 @@ implementation
                   else
                     t:=genintconstnode(int64(qword(lv)*qword(rv)));
                 xorn :
-                  t:=cordconstnode.create(lv xor rv,left.resulttype,true);
+                  t:=cordconstnode.create(lv xor rv,left.resulttype,false);
                 orn :
-                  t:=cordconstnode.create(lv or rv,left.resulttype,true);
+                  t:=cordconstnode.create(lv or rv,left.resulttype,false);
                 andn :
-                  t:=cordconstnode.create(lv and rv,left.resulttype,true);
+                  t:=cordconstnode.create(lv and rv,left.resulttype,false);
                 ltn :
                   t:=cordconstnode.create(ord(lv<rv),booltype,true);
                 lten :
@@ -1926,7 +1926,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.113  2004-03-18 16:19:03  peter
+  Revision 1.114  2004-03-23 22:34:49  peter
+    * constants ordinals now always have a type assigned
+    * integer constants have the smallest type, unsigned prefered over
+      signed
+
+  Revision 1.113  2004/03/18 16:19:03  peter
     * fixed operator overload allowing for pointer-string
     * replaced some type_e_mismatch with more informational messages
 

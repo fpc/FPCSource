@@ -44,7 +44,7 @@ type
 {$endif Test_Double_checksum}
 
 const
-  CurrentPPUVersion=39;
+  CurrentPPUVersion=40;
 
 { buffer sizes }
   maxentrysize = 1024;
@@ -1042,7 +1042,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.46  2004-02-27 10:21:05  florian
+  Revision 1.47  2004-03-23 22:34:49  peter
+    * constants ordinals now always have a type assigned
+    * integer constants have the smallest type, unsigned prefered over
+      signed
+
+  Revision 1.46  2004/02/27 10:21:05  florian
     * top_symbol killed
     + refaddr to treference added
     + refsymbol to treference added

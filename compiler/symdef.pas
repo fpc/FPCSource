@@ -717,16 +717,18 @@ interface
        charpointertype,           { pointer for Char-Pointerdef }
        voidfarpointertype,
        cformaltype,               { unique formal definition }
-       voidtype,                  { Pointer to Void (procedure) }
-       cchartype,                 { Pointer to Char }
-       cwidechartype,             { Pointer to WideChar }
-       booltype,                  { pointer to boolean type }
-       u8inttype,                 { Pointer to 8-Bit unsigned }
-       u16inttype,                { Pointer to 16-Bit unsigned }
-       u32inttype,                { Pointer to 32-Bit unsigned }
-       s32inttype,                { Pointer to 32-Bit signed }
-       u64inttype,               { pointer to 64 bit unsigned def }
-       s64inttype,               { pointer to 64 bit signed def, }
+       voidtype,                  { Void (procedure) }
+       cchartype,                 { Char }
+       cwidechartype,             { WideChar }
+       booltype,                  { boolean type }
+       u8inttype,                 { 8-Bit unsigned integer }
+       s8inttype,                 { 8-Bit signed integer }
+       u16inttype,                { 16-Bit unsigned integer }
+       s16inttype,                { 16-Bit signed integer }
+       u32inttype,                { 32-Bit unsigned integer }
+       s32inttype,                { 32-Bit signed integer }
+       u64inttype,                { 64-bit unsigned integer }
+       s64inttype,                { 64-bit signed integer }
        s32floattype,              { pointer for realconstn }
        s64floattype,              { pointer for realconstn }
        s80floattype,              { pointer to type of temp. floats }
@@ -3519,21 +3521,22 @@ implementation
                       hs:=strpas(pchar(hpc.value.valueptr));
                     constreal :
                       str(pbestreal(hpc.value.valueptr)^,hs);
-                    constord :
-                      hs:=tostr(hpc.value.valueord);
                     constpointer :
                       hs:=tostr(hpc.value.valueordptr);
-                    constbool :
+                    constord :
                       begin
-                        if hpc.value.valueord<>0 then
-                         hs:='TRUE'
+                        if is_boolean(hpc.consttype.def) then
+                          begin
+                            if hpc.value.valueord<>0 then
+                             hs:='TRUE'
+                            else
+                             hs:='FALSE';
+                          end
                         else
-                         hs:='FALSE';
+                          hs:=tostr(hpc.value.valueord);
                       end;
                     constnil :
                       hs:='nil';
-                    constchar :
-                      hs:=chr(hpc.value.valueord);
                     constset :
                       hs:='<set>';
                   end;
@@ -6061,7 +6064,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.232  2004-03-18 11:43:57  olle
+  Revision 1.233  2004-03-23 22:34:49  peter
+    * constants ordinals now always have a type assigned
+    * integer constants have the smallest type, unsigned prefered over
+      signed
+
+  Revision 1.232  2004/03/18 11:43:57  olle
     * change AT_FUNCTION to AT_DATA where appropriate
 
   Revision 1.231  2004/03/14 22:51:46  peter

@@ -91,19 +91,10 @@ implementation
         case p.nodetype of
            ordconstn:
              begin
-                if is_constintnode(p) then
-                  hp:=tconstsym.create_ord_typed(orgname,constint,tordconstnode(p).value,tordconstnode(p).resulttype)
-                else if is_constcharnode(p) then
-                  hp:=tconstsym.create_ord(orgname,constchar,tordconstnode(p).value)
-                else if is_constboolnode(p) then
-                  hp:=tconstsym.create_ord(orgname,constbool,tordconstnode(p).value)
-                else if is_constwidecharnode(p) then
-                  hp:=tconstsym.create_ord(orgname,constwchar,tordconstnode(p).value)
-                else if p.resulttype.def.deftype=enumdef then
-                  hp:=tconstsym.create_ord_typed(orgname,constord,tordconstnode(p).value,p.resulttype)
-                else if p.resulttype.def.deftype=pointerdef then
-                  hp:=tconstsym.create_ordptr_typed(orgname,constpointer,tordconstnode(p).value,p.resulttype)
-                else internalerror(111);
+               if p.resulttype.def.deftype=pointerdef then
+                 hp:=tconstsym.create_ordptr(orgname,constpointer,tordconstnode(p).value,p.resulttype)
+               else
+                 hp:=tconstsym.create_ord(orgname,constord,tordconstnode(p).value,p.resulttype);
              end;
            stringconstn:
              begin
@@ -115,21 +106,21 @@ implementation
              begin
                 new(pd);
                 pd^:=trealconstnode(p).value_real;
-                hp:=tconstsym.create_ptr(orgname,constreal,pd);
+                hp:=tconstsym.create_ptr(orgname,constreal,pd,p.resulttype);
              end;
            setconstn :
              begin
                new(ps);
                ps^:=tsetconstnode(p).value_set^;
-               hp:=tconstsym.create_ptr_typed(orgname,constset,ps,p.resulttype);
+               hp:=tconstsym.create_ptr(orgname,constset,ps,p.resulttype);
              end;
            pointerconstn :
              begin
-               hp:=tconstsym.create_ordptr_typed(orgname,constpointer,tpointerconstnode(p).value,p.resulttype);
+               hp:=tconstsym.create_ordptr(orgname,constpointer,tpointerconstnode(p).value,p.resulttype);
              end;
            niln :
              begin
-               hp:=tconstsym.create_ord_typed(orgname,constnil,0,p.resulttype);
+               hp:=tconstsym.create_ord(orgname,constnil,0,p.resulttype);
              end;
            typen :
              begin
@@ -139,7 +130,7 @@ implementation
                    begin
                      new(pg);
                      pg^:=tobjectdef(p.resulttype.def).iidguid^;
-                     hp:=tconstsym.create_ptr(orgname,constguid,pg);
+                     hp:=tconstsym.create_ptr(orgname,constguid,pg,p.resulttype);
                    end
                   else
                    Message1(parser_e_interface_has_no_guid,tobjectdef(p.resulttype.def).objrealname^);
@@ -668,7 +659,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.84  2004-03-20 20:55:36  florian
+  Revision 1.85  2004-03-23 22:34:49  peter
+    * constants ordinals now always have a type assigned
+    * integer constants have the smallest type, unsigned prefered over
+      signed
+
+  Revision 1.84  2004/03/20 20:55:36  florian
     + implemented cdecl'd varargs on arm
     + -dCMEM supported by the compiler
     * label/goto asmsymbol type with -dextdebug fixed

@@ -1108,8 +1108,8 @@ begin
                       include(initglobalswitches,cs_link_internal);
                     'm' :
                       include(initglobalswitches,cs_link_map);
-		    'f' :
-		      include(initglobalswitches,cs_link_pthread);
+                    'f' :
+                      include(initglobalswitches,cs_link_pthread);
                     's' :
                       include(initglobalswitches,cs_link_strip);
                     'c' : Cshared:=TRUE;
@@ -1704,6 +1704,7 @@ begin
   if pocall_default = pocall_register then
     def_symbol('REGCALL');
   def_symbol('DECRREFNOTNIL');
+  def_symbol('HAS_INTERNAL_INTTYPES');
 
 { using a case is pretty useless here (FK) }
 { some stuff for TP compatibility }
@@ -2034,7 +2035,12 @@ finalization
 end.
 {
   $Log$
-  Revision 1.129  2004-03-21 22:40:15  florian
+  Revision 1.130  2004-03-23 22:34:49  peter
+    * constants ordinals now always have a type assigned
+    * integer constants have the smallest type, unsigned prefered over
+      signed
+
+  Revision 1.129  2004/03/21 22:40:15  florian
     + added interface support for the arm
     * added  FPC_REQUIRES_PROPER_ALIGNMENT define for targets which require proper alignment
 

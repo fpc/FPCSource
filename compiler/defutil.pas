@@ -48,7 +48,9 @@ interface
     function get_min_value(def : tdef) : TConstExprInt;
 
     {# Returns basetype of the specified integer range }
-    function range_to_basetype(low,high:TConstExprInt):tbasetype;
+    function range_to_basetype(l,h:TConstExprInt):tbasetype;
+
+    procedure int_to_type(v:TConstExprInt;var tt:ttype);
 
     {# Returns true, if definition defines an integer type }
     function is_integer(def : tdef) : boolean;
@@ -244,22 +246,42 @@ implementation
       end;
 
 
-    function range_to_basetype(low,high:TConstExprInt):tbasetype;
+    function range_to_basetype(l,h:TConstExprInt):tbasetype;
       begin
         { generate a unsigned range if high<0 and low>=0 }
-        if (low>=0) and (high<0) then
-         range_to_basetype:=u32bit
-        else if (low>=0) and (high<=255) then
+        if (l>=0) and (h<=255) then
          range_to_basetype:=u8bit
-        else if (low>=-128) and (high<=127) then
+        else if (l>=-128) and (h<=127) then
          range_to_basetype:=s8bit
-        else if (low>=0) and (high<=65536) then
+        else if (l>=0) and (h<=65535) then
          range_to_basetype:=u16bit
-        else if (low>=-32768) and (high<=32767) then
+        else if (l>=-32768) and (h<=32767) then
          range_to_basetype:=s16bit
+        else if (l>=low(longint)) and (h<=high(longint)) then
+         range_to_basetype:=s32bit
+        else if (l>=low(cardinal)) and (h<=high(cardinal)) then
+         range_to_basetype:=u32bit
         else
-         range_to_basetype:=s32bit;
-{$warning add support for range_to_basetype 64bit}
+         range_to_basetype:=s64bit;
+      end;
+
+
+    procedure int_to_type(v:TConstExprInt;var tt:ttype);
+      begin
+        if (v>=0) and (v<=255) then
+         tt:=u8inttype
+        else if (v>=-128) and (v<=127) then
+         tt:=s8inttype
+        else if (v>=0) and (v<=65535) then
+         tt:=u16inttype
+        else if (v>=-32768) and (v<=32767) then
+         tt:=s16inttype
+        else if (v>=low(longint)) and (v<=high(longint)) then
+         tt:=s32inttype
+        else if (v>=low(cardinal)) and (v<=high(cardinal)) then
+         tt:=u32inttype
+        else
+         tt:=s64inttype;
       end;
 
 
@@ -855,7 +877,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  2004-02-04 22:01:13  peter
+  Revision 1.11  2004-03-23 22:34:49  peter
+    * constants ordinals now always have a type assigned
+    * integer constants have the smallest type, unsigned prefered over
+      signed
+
+  Revision 1.10  2004/02/04 22:01:13  peter
     * first try to get cpupara working for x86_64
 
   Revision 1.9  2004/02/03 22:32:53  peter

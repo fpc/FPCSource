@@ -289,8 +289,12 @@ implementation
                consume(_POINTPOINT);
                { get high value of range }
                pt2:=comp_expr(not(ignore_equal));
-               { make both the same type }
-               inserttypeconv(pt1,pt2.resulttype);
+               { make both the same type or give an error. This is not
+                 done when both are integer values, because typecasting
+                 between -3200..3200 will result in a signed-unsigned
+                 conflict and give a range check error (PFV) }
+               if not(is_integer(pt1.resulttype.def) and is_integer(pt2.resulttype.def)) then
+                 inserttypeconv(pt1,pt2.resulttype);
                { both must be evaluated to constants now }
                if (pt1.nodetype=ordconstn) and
                   (pt2.nodetype=ordconstn) then
@@ -643,7 +647,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.64  2004-02-03 22:32:54  peter
+  Revision 1.65  2004-03-23 22:34:49  peter
+    * constants ordinals now always have a type assigned
+    * integer constants have the smallest type, unsigned prefered over
+      signed
+
+  Revision 1.64  2004/02/03 22:32:54  peter
     * renamed xNNbittype to xNNinttype
     * renamed registers32 to registersint
     * replace some s32bit,u32bit with torddef([su]inttype).def.typ

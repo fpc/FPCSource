@@ -42,7 +42,7 @@ interface
 implementation
 
     uses
-      globals,globtype,
+      globals,globtype,verbose,
       symconst,symtype,symsym,symdef,symtable,
       aasmtai,aasmcpu,ncgutil,
 {$ifdef GDB}
@@ -157,12 +157,17 @@ implementation
         addtype('ByteBool',booltype);
         adddef('WordBool',torddef.create(bool16bit,0,1));
         adddef('LongBool',torddef.create(bool32bit,0,1));
+        addtype('Byte',u8inttype);
+        addtype('ShortInt',s8inttype);
+        addtype('Word',u16inttype);
+        addtype('SmallInt',s16inttype);
+        addtype('LongWord',u32inttype);
+        addtype('LongInt',s32inttype);
+        addtype('QWord',u64inttype);
+        addtype('Int64',s64inttype);
         addtype('Char',cchartype);
         addtype('WideChar',cwidechartype);
         adddef('Text',tfiledef.createtext);
-        addtype('Longword',u32inttype);
-        addtype('QWord',u64inttype);
-        addtype('Int64',s64inttype);
         adddef('TypedFile',tfiledef.createtyped(voidtype));
         addtype('Variant',cvarianttype);
         addtype('OleVariant',colevarianttype);
@@ -170,7 +175,9 @@ implementation
         addtype('$formal',cformaltype);
         addtype('$void',voidtype);
         addtype('$byte',u8inttype);
+        addtype('$shortint',s8inttype);
         addtype('$word',u16inttype);
+        addtype('$smallint',s16inttype);
         addtype('$ulong',u32inttype);
         addtype('$longint',s32inttype);
         addtype('$qword',u64inttype);
@@ -224,38 +231,53 @@ implementation
       {
         Load all default definitions for consts from the system unit
       }
+
+
+        procedure loadtype(const s:string;var t:ttype);
+        var
+          srsym : tsym;
+        begin
+          srsym:=searchsymonlyin(systemunit,s);
+          if not(assigned(srsym) and
+                 (srsym.typ=typesym)) then
+            internalerror(200403231);
+          t:=ttypesym(srsym).restype;
+        end;
+
       begin
-        globaldef('byte',u8inttype);
-        globaldef('word',u16inttype);
-        globaldef('ulong',u32inttype);
-        globaldef('longint',s32inttype);
-        globaldef('qword',u64inttype);
-        globaldef('int64',s64inttype);
-        globaldef('formal',cformaltype);
-        globaldef('void',voidtype);
-        globaldef('char',cchartype);
-        globaldef('widechar',cwidechartype);
-        globaldef('shortstring',cshortstringtype);
-        globaldef('longstring',clongstringtype);
-        globaldef('ansistring',cansistringtype);
-        globaldef('widestring',cwidestringtype);
-        globaldef('openshortstring',openshortstringtype);
-        globaldef('openchararray',openchararraytype);
-        globaldef('s32real',s32floattype);
-        globaldef('s64real',s64floattype);
-        globaldef('s80real',s80floattype);
-        globaldef('s64currency',s64currencytype);
-        globaldef('boolean',booltype);
-        globaldef('void_pointer',voidpointertype);
-        globaldef('char_pointer',charpointertype);
-        globaldef('void_farpointer',voidfarpointertype);
-        globaldef('file',cfiletype);
-        globaldef('pvmt',pvmttype);
-        globaldef('vtblarray',vmtarraytype);
-        globaldef('__vtbl_ptr_type',vmttype);
-        globaldef('variant',cvarianttype);
-        globaldef('olevariant',colevarianttype);
-        globaldef('methodpointer',methodpointertype);
+        loadtype('byte',u8inttype);
+        loadtype('shortint',s8inttype);
+        loadtype('word',u16inttype);
+        loadtype('smallint',s16inttype);
+        loadtype('ulong',u32inttype);
+        loadtype('longint',s32inttype);
+        loadtype('qword',u64inttype);
+        loadtype('int64',s64inttype);
+        loadtype('formal',cformaltype);
+        loadtype('void',voidtype);
+        loadtype('char',cchartype);
+        loadtype('widechar',cwidechartype);
+        loadtype('shortstring',cshortstringtype);
+        loadtype('longstring',clongstringtype);
+        loadtype('ansistring',cansistringtype);
+        loadtype('widestring',cwidestringtype);
+        loadtype('openshortstring',openshortstringtype);
+        loadtype('openchararray',openchararraytype);
+        loadtype('s32real',s32floattype);
+        loadtype('s64real',s64floattype);
+        loadtype('s80real',s80floattype);
+        loadtype('s64currency',s64currencytype);
+        loadtype('boolean',booltype);
+        loadtype('void_pointer',voidpointertype);
+        loadtype('char_pointer',charpointertype);
+        loadtype('void_farpointer',voidfarpointertype);
+        loadtype('file',cfiletype);
+        loadtype('pvmt',pvmttype);
+        loadtype('vtblarray',vmtarraytype);
+        loadtype('__vtbl_ptr_type',vmttype);
+        loadtype('variant',cvarianttype);
+        loadtype('olevariant',colevarianttype);
+        loadtype('methodpointer',methodpointertype);
 {$ifdef cpu64bit}
         uinttype:=u64inttype;
         sinttype:=s64inttype;
@@ -281,7 +303,9 @@ implementation
         cformaltype.setdef(tformaldef.create);
         voidtype.setdef(torddef.create(uvoid,0,0));
         u8inttype.setdef(torddef.create(u8bit,0,255));
+        s8inttype.setdef(torddef.create(s8bit,-128,127));
         u16inttype.setdef(torddef.create(u16bit,0,65535));
+        s16inttype.setdef(torddef.create(s16bit,-32768,32767));
         u32inttype.setdef(torddef.create(u32bit,0,high(longword)));
         s32inttype.setdef(torddef.create(s32bit,low(longint),high(longint)));
         u64inttype.setdef(torddef.create(u64bit,low(qword),TConstExprInt(high(qword))));
@@ -488,7 +512,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.66  2004-03-08 22:07:47  peter
+  Revision 1.67  2004-03-23 22:34:49  peter
+    * constants ordinals now always have a type assigned
+    * integer constants have the smallest type, unsigned prefered over
+      signed
+
+  Revision 1.66  2004/03/08 22:07:47  peter
     * stabs updates to write stabs for def for all implictly used
       units
 

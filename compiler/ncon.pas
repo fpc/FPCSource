@@ -183,21 +183,11 @@ implementation
       nld;
 
     function genintconstnode(v : TConstExprInt) : tordconstnode;
-
       var
-         i,i2 : TConstExprInt;
-
+        htype : ttype;
       begin
-         { we need to bootstrap this code, so it's a little bit messy }
-         i:=2147483647;
-         { maxcardinal }
-         i2 := i+i+1;
-         if (v<=i) and (v>=-i-1) then
-           genintconstnode:=cordconstnode.create(v,s32inttype,true)
-         else if (v > i) and (v <= i2) then
-           genintconstnode:=cordconstnode.create(v,u32inttype,true)
-         else
-           genintconstnode:=cordconstnode.create(v,s64inttype,true);
+         int_to_type(v,htype);
+         genintconstnode:=cordconstnode.create(v,htype,true);
       end;
 
 
@@ -305,8 +295,8 @@ implementation
       begin
         p1:=nil;
         case p.consttyp of
-          constint :
-            p1:=genintconstnode(p.value.valueord);
+          constord :
+            p1:=cordconstnode.create(p.value.valueord,p.consttype,true);
           conststring :
             begin
               len:=p.value.len;
@@ -317,16 +307,10 @@ implementation
               pc[len]:=#0;
               p1:=cstringconstnode.createpchar(pc,len);
             end;
-          constchar :
-            p1:=cordconstnode.create(p.value.valueord,cchartype,true);
           constreal :
             p1:=crealconstnode.create(pbestreal(p.value.valueptr)^,pbestrealtype^);
-          constbool :
-            p1:=cordconstnode.create(p.value.valueord,booltype,true);
           constset :
             p1:=csetconstnode.create(pconstset(p.value.valueptr),p.consttype);
-          constord :
-            p1:=cordconstnode.create(p.value.valueord,p.consttype,true);
           constpointer :
             p1:=cpointerconstnode.create(p.value.valueordptr,p.consttype);
           constnil :
@@ -950,7 +934,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.59  2004-02-03 22:32:54  peter
+  Revision 1.60  2004-03-23 22:34:49  peter
+    * constants ordinals now always have a type assigned
+    * integer constants have the smallest type, unsigned prefered over
+      signed
+
+  Revision 1.59  2004/02/03 22:32:54  peter
     * renamed xNNbittype to xNNinttype
     * renamed registers32 to registersint
     * replace some s32bit,u32bit with torddef([su]inttype).def.typ

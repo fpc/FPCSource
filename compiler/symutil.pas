@@ -70,9 +70,6 @@ implementation
         if sym1.consttyp<>sym2.consttyp then
          exit;
         case sym1.consttyp of
-           constint,
-           constbool,
-           constchar,
            constord :
              equal_constsym:=(sym1.value.valueord=sym2.value.valueord);
            constpointer :
@@ -119,7 +116,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2003-12-07 16:40:45  jonas
+  Revision 1.4  2004-03-23 22:34:50  peter
+    * constants ordinals now always have a type assigned
+    * integer constants have the smallest type, unsigned prefered over
+      signed
+
+  Revision 1.3  2003/12/07 16:40:45  jonas
     * moved count_locals from pstatmnt to symutils
     * use count_locals in powerpc/cpupi to check whether we should set the
       first temp offset (and as such generate a stackframe)

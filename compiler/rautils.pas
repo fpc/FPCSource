@@ -962,7 +962,7 @@ Begin
       end;
     constsym :
       begin
-        if tconstsym(sym).consttyp in [constint,constchar,constbool] then
+        if tconstsym(sym).consttyp=constord then
          begin
            setconst(tconstsym(sym).value.valueord);
            SetupVar:=true;
@@ -1312,7 +1312,7 @@ Begin
      case srsym.typ of
        constsym :
          begin
-           if (tconstsym(srsym).consttyp in [constord,constint,constchar,constbool]) then
+           if tconstsym(srsym).consttyp=constord then
             Begin
               l:=tconstsym(srsym).value.valueord;
               SearchIConstant:=TRUE;
@@ -1368,7 +1368,7 @@ Begin
                st:=tobjectdef(def).symtable;
            end;
        typesym :
-		 with Ttypesym(sym).restype do
+                 with Ttypesym(sym).restype do
            case def.deftype of
              recorddef :
                st:=trecorddef(def).symtable;
@@ -1632,7 +1632,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.84  2004-03-18 11:43:57  olle
+  Revision 1.85  2004-03-23 22:34:49  peter
+    * constants ordinals now always have a type assigned
+    * integer constants have the smallest type, unsigned prefered over
+      signed
+
+  Revision 1.84  2004/03/18 11:43:57  olle
     * change AT_FUNCTION to AT_DATA where appropriate
 
   Revision 1.83  2004/03/17 22:27:41  florian

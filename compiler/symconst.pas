@@ -303,9 +303,9 @@ type
   absolutetyp = (tovar,toasm,toaddr);
 
   tconsttyp = (constnone,
-    constord,conststring,constreal,constbool,
-    constint,constchar,constset,constpointer,constnil,
-    constresourcestring,constwstring,constwchar,constguid
+    constord,conststring,constreal,
+    constset,constpointer,constnil,
+    constresourcestring,constwstring,constguid
   );
 
   { RTTI information to store }
@@ -404,7 +404,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.77  2004-03-08 22:07:47  peter
+  Revision 1.78  2004-03-23 22:34:49  peter
+    * constants ordinals now always have a type assigned
+    * integer constants have the smallest type, unsigned prefered over
+      signed
+
+  Revision 1.77  2004/03/08 22:07:47  peter
     * stabs updates to write stabs for def for all implictly used
       units
 

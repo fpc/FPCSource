@@ -1313,21 +1313,11 @@ implementation
                 constsym :
                   begin
                     case tconstsym(srsym).consttyp of
-                      constint :
+                      constord :
                         begin
-{$ifdef cpu64bit}
-                          p1:=cordconstnode.create(tconstsym(srsym).value.valueord,sinttype,true);
-{$else cpu64bit}
-                          { do a very dirty trick to bootstrap this code }
-                          if (tconstsym(srsym).value.valueord>=-(int64(2147483647)+int64(1))) and
-                             (tconstsym(srsym).value.valueord<=2147483647) then
-                           p1:=cordconstnode.create(tconstsym(srsym).value.valueord,s32inttype,true)
-                          else if (tconstsym(srsym).value.valueord > maxlongint) and
-                                  (tconstsym(srsym).value.valueord <= int64(maxlongint)+int64(maxlongint)+1) then
-                           p1:=cordconstnode.create(tconstsym(srsym).value.valueord,u32inttype,true)
-                          else
-                           p1:=cordconstnode.create(tconstsym(srsym).value.valueord,s64inttype,true);
-{$endif cpu64bit}
+                          if tconstsym(srsym).consttype.def=nil then
+                            internalerror(200403232);
+                          p1:=cordconstnode.create(tconstsym(srsym).value.valueord,tconstsym(srsym).consttype,true);
                         end;
                       conststring :
                         begin
@@ -1339,16 +1329,10 @@ implementation
                           pc[len]:=#0;
                           p1:=cstringconstnode.createpchar(pc,len);
                         end;
-                      constchar :
-                        p1:=cordconstnode.create(tconstsym(srsym).value.valueord,cchartype,true);
                       constreal :
                         p1:=crealconstnode.create(pbestreal(tconstsym(srsym).value.valueptr)^,pbestrealtype^);
-                      constbool :
-                        p1:=cordconstnode.create(tconstsym(srsym).value.valueord,booltype,true);
                       constset :
                         p1:=csetconstnode.create(pconstset(tconstsym(srsym).value.valueptr),tconstsym(srsym).consttype);
-                      constord :
-                        p1:=cordconstnode.create(tconstsym(srsym).value.valueord,tconstsym(srsym).consttype,true);
                       constpointer :
                         p1:=cpointerconstnode.create(tconstsym(srsym).value.valueordptr,tconstsym(srsym).consttype);
                       constnil :
@@ -1903,7 +1887,8 @@ implementation
                if code=0 then
                  begin
                     consume(_INTCONST);
-                    p1:=cordconstnode.create(ic,sinttype,true);
+                    int_to_type(card,htype);
+                    p1:=cordconstnode.create(ic,htype,true);
                  end;
 {$else cpu64bit}
                { try cardinal first }
@@ -1911,16 +1896,8 @@ implementation
                if code=0 then
                  begin
                     consume(_INTCONST);
-                    { check whether the value isn't in the longint range as well }
-                    { (longint is easier to perform calculations with) (JM)      }
-                    if card <= $7fffffff then
-                      { no sign extension necessary, so not longint typecast (JM) }
-                      { use the native int types here instead of fixed 32bit,
-                        this is needed to have integer values the same size as
-                        pointers (PFV) }
-                      p1:=cordconstnode.create(card,s32inttype,true)
-                    else
-                      p1:=cordconstnode.create(card,u32inttype,true)
+                    int_to_type(card,htype);
+                    p1:=cordconstnode.create(card,htype,true);
                  end
                else
                  begin
@@ -1929,7 +1906,8 @@ implementation
                    if code = 0 then
                      begin
                        consume(_INTCONST);
-                       p1:=cordconstnode.create(l,sinttype,true)
+                       int_to_type(l,htype);
+                       p1:=cordconstnode.create(l,htype,true);
                      end
                    else
                      begin
@@ -1938,7 +1916,8 @@ implementation
                        if code=0 then
                          begin
                             consume(_INTCONST);
-                            p1:=cordconstnode.create(ic,s64inttype,true);
+                            int_to_type(ic,htype);
+                            p1:=cordconstnode.create(ic,htype,true);
                          end;
                      end;
                  end;
@@ -2419,7 +2398,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.150  2004-02-20 21:55:59  peter
+  Revision 1.151  2004-03-23 22:34:49  peter
+    * constants ordinals now always have a type assigned
+    * integer constants have the smallest type, unsigned prefered over
+      signed
+
+  Revision 1.150  2004/02/20 21:55:59  peter
     * procvar cleanup
 
   Revision 1.149  2004/02/18 21:58:53  peter

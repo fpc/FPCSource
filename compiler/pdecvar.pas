@@ -342,6 +342,8 @@ implementation
                        Message(parser_e_invalid_property_index_value);
                        p.index:=0;
                      end;
+{$warning FIXME: force 32bit int for property index}
+                   inserttypeconv(pt,s32inttype);
                    p.indextype.setdef(pt.resulttype.def);
                    include(p.propoptions,ppo_indexed);
                    { concat a longint to the para templates }
@@ -1170,7 +1172,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.71  2004-03-05 22:17:11  jonas
+  Revision 1.72  2004-03-23 22:34:49  peter
+    * constants ordinals now always have a type assigned
+    * integer constants have the smallest type, unsigned prefered over
+      signed
+
+  Revision 1.71  2004/03/05 22:17:11  jonas
     * fixed importing of variables from shared libraries, but disabled
       PIC support for now. You have to save/restore r31 when you us it! :)
       Also, it's not necessary to support the imported variables
