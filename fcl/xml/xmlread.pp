@@ -380,7 +380,8 @@ end;
 
 {$IFDEF UsesFPCWidestrings}
 
-procedure SimpleWide2AnsiMove(source:pwidechar;dest:pchar;len:sizeint);
+
+{procedure SimpleWide2AnsiMove(source:pwidechar;dest:pchar;len:sizeint);
 var
   i : sizeint;
 begin
@@ -406,7 +407,7 @@ begin
      inc(source);
    end;
 end;
-
+}
 
 {$ENDIF}
 
@@ -423,8 +424,8 @@ begin
   {$IFDEF UsesFPCWidestrings}
   GetWideStringManager(MyWideStringManager);
 
-  MyWideStringManager.Wide2AnsiMoveProc:=@SimpleWide2AnsiMove;
-  MyWideStringManager.Ansi2WideMoveProc:=@SimpleAnsi2WideMove;
+  MyWideStringManager.Wide2AnsiMoveProc:=@defaultWide2AnsiMove;
+  MyWideStringManager.Ansi2WideMoveProc:=@defaultAnsi2WideMove;
   SetWideStringManager(MyWideStringManager, OldWideStringManager);
   try
   {$ENDIF}
@@ -1562,7 +1563,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.15  2005-02-14 17:13:18  peter
+  Revision 1.16  2005-03-14 21:10:12  florian
+    * adapated for the new widestring manager
+
+  Revision 1.15  2005/02/14 17:13:18  peter
     * truncate log
 
   Revision 1.14  2005/02/01 20:23:39  florian
