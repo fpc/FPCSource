@@ -1621,12 +1621,8 @@ implementation
                   (ctemprefnode.create(temp)),
                    ccallparanode.create(p1,
                    ccallparanode.create(
-                     ctypeconvnode.create_internal(
-                       cderefnode.create(
-                         ctypeconvnode.create_internal(ctemprefnode.create(temp),voidpointertype
-                       )
-                     ),cvarianttype),
-                     nil))));
+                       ctemprefnode.create(tempresultvariant)
+                     ,nil))));
 
                 addstatement(newstatement,ccallnode.createintern('fpc_vararray_get',paras));
                 addstatement(newstatement,ctempdeletenode.create(temp));
@@ -2623,7 +2619,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.187  2005-03-27 20:19:21  florian
+  Revision 1.188  2005-03-28 14:14:52  florian
+    * fpc_variant_get call fixed
+
+  Revision 1.187  2005/03/27 20:19:21  florian
     + compiler support for reading/writing of vararrays
 
   Revision 1.186  2005/03/25 22:20:19  peter
