@@ -188,7 +188,7 @@ implementation
          begin
            If (hp.u.flags and uf_threadvars)=uf_threadvars then
             begin
-              ltvTables.concat(Tai_const_symbol.Createname(hp.u.modulename^+'_$THREADVARLIST'));
+              ltvTables.concat(Tai_const_symbol.Createdataname(hp.u.modulename^+'_$THREADVARLIST'));
               inc(count);
             end;
            hp:=tused_unit(hp.next);
@@ -196,7 +196,7 @@ implementation
         { Add program threadvars, if any }
         If (current_module.flags and uf_threadvars)=uf_threadvars then
          begin
-           ltvTables.concat(Tai_const_symbol.Createname(current_module.modulename^+'_$THREADVARLIST'));
+           ltvTables.concat(Tai_const_symbol.Createdataname(current_module.modulename^+'_$THREADVARLIST'));
            inc(count);
          end;
         { TableCount }
@@ -223,7 +223,7 @@ implementation
            (vo_is_thread_var in tvarsym(p).varoptions) then
          begin
            { address of threadvar }
-           ltvTable.concat(tai_const_symbol.createname(tvarsym(p).mangledname));
+           ltvTable.concat(tai_const_symbol.createdataname(tvarsym(p).mangledname));
            { size of threadvar }
            ltvTable.concat(tai_const.create_32bit(tvarsym(p).getsize));
          end;
@@ -266,7 +266,7 @@ implementation
          begin
            If (hp.u.flags and uf_has_resources)=uf_has_resources then
             begin
-              ResourceStringTables.concat(Tai_const_symbol.Createname(hp.u.modulename^+'_RESOURCESTRINGLIST'));
+              ResourceStringTables.concat(Tai_const_symbol.Createdataname(hp.u.modulename^+'_RESOURCESTRINGLIST'));
               inc(count);
             end;
            hp:=tused_unit(hp.next);
@@ -274,7 +274,7 @@ implementation
         { Add program resources, if any }
         If ResourceStringList<>Nil then
          begin
-           ResourceStringTables.concat(Tai_const_symbol.Createname(current_module.modulename^+'_RESOURCESTRINGLIST'));
+           ResourceStringTables.concat(Tai_const_symbol.Createdataname(current_module.modulename^+'_RESOURCESTRINGLIST'));
            Inc(Count);
          end;
         { TableCount }
@@ -1438,7 +1438,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.93  2003-01-11 11:19:54  hajny
+  Revision 1.94  2003-01-30 21:46:20  peter
+    * tai_const_symbol.createdataname added
+
+  Revision 1.93  2003/01/11 11:19:54  hajny
     * correction from rev. 1.88 put back
 
   Revision 1.92  2003/01/08 18:43:56  daniel

@@ -720,7 +720,10 @@ implementation
       begin
         hp:=tasmsymbol(symbolsearch.search(s));
         if assigned(hp) then
-         hp.defbind:=_bind
+         begin
+           if (_bind<>AB_EXTERNAL) then
+             hp.defbind:=_bind
+         end
         else
          begin
            { Not found, insert it as an External }
@@ -884,7 +887,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  2002-11-17 16:31:55  carl
+  Revision 1.13  2003-01-30 21:46:20  peter
+    * tai_const_symbol.createdataname added
+
+  Revision 1.12  2002/11/17 16:31:55  carl
     * memory optimization (3-4%) : cleanup of tai fields,
        cleanup of tdef and tsym fields.
     * make it work for m68k

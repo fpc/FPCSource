@@ -316,6 +316,7 @@ interface
           constructor Createname(const name:string);
           constructor Createname_offset(const name:string;ofs:longint);
           constructor Createname_rva(const name:string);
+          constructor Createdataname(const name:string);
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure derefimpl;override;
@@ -845,7 +846,7 @@ uses
 
 
 {****************************************************************************
-                               TAI_CONST_SYMBOL_OFFSET
+                               TAI_CONST_SYMBOL
  ****************************************************************************}
 
     constructor tai_const_symbol.Create(_sym:tasmsymbol);
@@ -903,6 +904,17 @@ uses
          inherited Create;
          typ:=ait_const_rva;
          sym:=objectlibrary.newasmsymbol(name);
+         offset:=0;
+         { update sym info }
+         sym.increfs;
+      end;
+
+
+    constructor tai_const_symbol.Createdataname(const name:string);
+      begin
+         inherited Create;
+         typ:=ait_const_symbol;
+         sym:=objectlibrary.newasmsymboltype(name,AB_EXTERNAL,AT_DATA);
          offset:=0;
          { update sym info }
          sym.increfs;
@@ -1714,13 +1726,13 @@ uses
                end;
            end;
       end;
-      
+
     procedure Taasmoutput.convert_registers;
-    
+
     var p:Tai;
         i:shortint;
         r:Preference;
-    
+
     begin
       p:=Tai(first);
       while assigned(p) do
@@ -1754,7 +1766,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.19  2003-01-21 08:48:08  daniel
+  Revision 1.20  2003-01-30 21:46:20  peter
+    * tai_const_symbol.createdataname added
+
+  Revision 1.19  2003/01/21 08:48:08  daniel
     * Another 200301081 fixed
 
   Revision 1.18  2003/01/09 20:40:59  daniel
