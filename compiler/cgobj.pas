@@ -558,6 +558,9 @@ unit cgobj;
                 break;
              end;
          exclude(unusedscratchregisters,r.number shr 8);
+{$ifndef i386}
+         include(rg.usedintbyproc,r.number shr 8);
+{$endif i386}
          inc(scratch_register_array_pointer);
          if scratch_register_array_pointer>max_scratch_regs then
            scratch_register_array_pointer:=1;
@@ -1729,7 +1732,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.78  2003-03-11 21:46:24  jonas
+  Revision 1.79  2003-03-22 18:07:18  jonas
+    + add used scratch registers to usedintbyproc for non-i386
+
+  Revision 1.78  2003/03/11 21:46:24  jonas
     * lots of new regallocator fixes, both in generic and ppc-specific code
       (ppc compiler still can't compile the linux system unit though)
 
