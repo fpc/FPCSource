@@ -129,6 +129,24 @@ unit cpupara;
          loc : tloc;
          is_64bit: boolean;
 
+      procedure assignintreg;
+
+        begin
+           if nextintreg<=R_10 then
+             begin
+                hp.paraloc.loc:=LOC_REGISTER;
+                hp.paraloc.register:=nextintreg;
+                inc(nextintreg);
+             end
+           else
+              begin
+                 hp.paraloc.loc:=LOC_REFERENCE;
+                 hp.paraloc.reference.index:=stack_pointer_reg;
+                 hp.paraloc.reference.offset:=stack_offset;
+                 inc(stack_offset,4);
+             end;
+        end;
+
       begin
          nextintreg:=R_3;
          nextfloatreg:=R_F1;
@@ -217,21 +235,7 @@ unit cpupara;
                    begin
                       hp.paraloc.size:=OS_ADDR;
                       if push_addr_param(hp.paratype.def,p.proccalloption) or (hp.paratyp in [vs_var,vs_out]) then
-                        begin
-                           if nextintreg<=R_10 then
-                             begin
-                                hp.paraloc.loc:=LOC_REGISTER;
-                                hp.paraloc.register:=nextintreg;
-                                inc(nextintreg);
-                             end
-                           else
-                              begin
-                                 hp.paraloc.loc:=LOC_REFERENCE;
-                                 hp.paraloc.reference.index:=stack_pointer_reg;
-                                 hp.paraloc.reference.offset:=stack_offset;
-                                 inc(stack_offset,4);
-                             end;
-                        end
+                        assignintreg
                       else
                         begin
                            hp.paraloc.loc:=LOC_REFERENCE;
@@ -295,7 +299,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  2002-11-25 17:43:27  peter
+  Revision 1.18  2002-12-15 19:22:01  florian
+    * fixed some crashes and a rte 201
+
+  Revision 1.17  2002/11/25 17:43:27  peter
     * splitted defbase in defutil,symutil,defcmp
     * merged isconvertable and is_equal into compare_defs(_ext)
     * made operator search faster by walking the list only once

@@ -66,7 +66,7 @@ unit cpupi;
     procedure tppcprocinfo.after_header;
       begin
          procdef.parast.address_fixup:=0;
-         if procdef.localst.symtablelevel>1 then
+         if assigned(procdef.localst) and (procdef.localst.symtablelevel>1) then
            begin
               procinfo.framepointer_offset:=procdef.parast.address_fixup;
               inc(procdef.parast.address_fixup,4);
@@ -82,7 +82,8 @@ unit cpupi;
               inc(procdef.parast.address_fixup,4);
            end;
          { this value is necessary for nested procedures }
-         procdef.localst.address_fixup:=align(procdef.parast.address_fixup+procdef.parast.datasize,16);
+         if assigned(procdef.localst) then
+           procdef.localst.address_fixup:=align(procdef.parast.address_fixup+procdef.parast.datasize,16);
          if assigned(aktprocdef.funcretsym) and
            not(paramanager.ret_in_param(procdef.rettype.def,procdef.proccalloption)) then
            procinfo.return_offset:=tg.direction*tfuncretsym(aktprocdef.funcretsym).address+procdef.localst.address_fixup;
@@ -123,7 +124,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2002-11-18 17:32:01  peter
+  Revision 1.6  2002-12-15 19:22:01  florian
+    * fixed some crashes and a rte 201
+
+  Revision 1.5  2002/11/18 17:32:01  peter
     * pass proccalloption to ret_in_xxx and push_xxx functions
 
   Revision 1.4  2002/09/10 20:30:42  florian

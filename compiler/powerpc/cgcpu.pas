@@ -1426,9 +1426,10 @@ const
          else if ref2.offset <> 0 Then
            if ref2.base <> R_NO then
              a_op_const_reg_reg(list,OP_ADD,OS_32,ref2.offset,ref2.base,r)
-  { FixRef makes sure that "(ref.index <> R_NO) and (ref.offset <> 0)" never}
-  { occurs, so now only ref.offset has to be loaded                         }
-           else a_load_const_reg(list,OS_32,ref2.offset,r)
+           { FixRef makes sure that "(ref.index <> R_NO) and (ref.offset <> 0)" never}
+           { occurs, so now only ref.offset has to be loaded                         }
+           else
+             a_load_const_reg(list,OS_32,ref2.offset,r)
          else if ref.index <> R_NO Then
            list.concat(taicpu.op_reg_reg_reg(A_ADD,r,ref2.base,ref2.index))
          else if (ref2.base <> R_NO) and
@@ -1681,7 +1682,8 @@ const
     function tcgppc.get_rlwi_const(a: aword; var l1, l2: longint): boolean;
 
       var
-        temp, testbit: longint;
+        temp : longint;
+        testbit : aword;
         compare: boolean;
 
       begin
@@ -1933,7 +1935,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.66  2002-11-28 10:55:16  olle
+  Revision 1.67  2002-12-15 19:22:01  florian
+    * fixed some crashes and a rte 201
+
+  Revision 1.66  2002/11/28 10:55:16  olle
     * macos: changing code gen for references to globals
 
   Revision 1.65  2002/11/07 15:50:23  jonas
