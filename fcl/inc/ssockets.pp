@@ -23,6 +23,7 @@
 
 {$ifdef netwlibc}
   {$define notUnix}
+  {$define netware}
 {$endif}
 
 unit ssockets;
@@ -125,7 +126,7 @@ type
     Constructor Create(APort: Word);
     Property Port : Word Read FPort;
   end;
-  
+
 {$ifndef notUnix}
   TUnixServer = Class(TSocketServer)
   Private
@@ -194,7 +195,7 @@ resourcestring
   strSocketBindFailed = 'Binding of socket failed: %s';
   strSocketListenFailed = 'Listening on port #%d failed: %s';
   strSocketConnectFailed = 'Connect to %s failed.';
-  strSocketAcceptFailed = 'Could not accept a client connection: %s';
+  strSocketAcceptFailed = 'Could not accept a client connection on socket: %d, error %d';
   strSocketAcceptWouldBlock = 'Accept would block on socket: %d';
 
 constructor ESocketError.Create(ACode: TSocketErrorType; const MsgArgs: array of const);
@@ -353,13 +354,15 @@ begin
           end
       except
         On E : ESocketError do
+        begin
           If E.Code=seAcceptWouldBlock then
             begin
             DoOnIdle;
             NewSocket:=-1;
-            end;
+            end
           else
             Raise;
+        end;
        end;
     Until (NewSocket>=0) or (Not NonBlocking);
   Until Not (FAccepting) or ((FMaxConnections<>-1) and (NoConnections>=FMaxConnections));
@@ -452,7 +455,7 @@ begin
       Raise ESocketError.Create(seAcceptWouldBlock,[socket])
     else
 {$endif}
-      Raise ESocketError.Create(seAcceptFailed,[socket]);
+      Raise ESocketError.Create(seAcceptFailed,[Socket,SocketError]);
 end;
 
 { ---------------------------------------------------------------------
@@ -501,7 +504,7 @@ begin
     If SocketError={$ifdef ver1_0}Sys_EWOULDBLOCK{$else}ESysEWOULDBLOCK{$endif} then
       Raise ESocketError.Create(seAcceptWouldBlock,[socket])
     else
-      Raise ESocketError.Create(seAcceptFailed,[socket]);
+      Raise ESocketError.Create(seAcceptFailed,[socket,SocketError]);
 end;
 
 Function  TUnixServer.SockToStream (ASocket : Longint) : TSocketStream;
@@ -549,10 +552,10 @@ begin
       try
         If Not NameLookup(FHost) then
           raise ESocketError.Create(seHostNotFound, [FHost]);
-        A:=HostAddress;  
+        A:=HostAddress;
       finally
         free;
-      end;    
+      end;
   addr.family := AF_INET;
   addr.port := ShortHostToNet(FPort);
   addr.addr := Cardinal(A);
@@ -597,7 +600,11 @@ end.
 
 {
   $Log$
-  Revision 1.22  2004-09-17 19:03:32  armin
+  Revision 1.23  2004-09-18 23:24:12  armin
+  + netwlibc support
+  * added error number to seAcceptFailed exception
+
+  Revision 1.22  2004/09/17 19:03:32  armin
   * added ssockets for target netwlibc
 
   Revision 1.21  2003/11/22 11:51:28  sg
