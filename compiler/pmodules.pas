@@ -137,6 +137,8 @@ implementation
 
 
     procedure insertsegment;
+      var
+        oldaktfilepos : tfileposinfo;
       begin
       { Insert Ident of the compiler }
         if (not (cs_create_smart in aktmoduleswitches))
@@ -166,9 +168,12 @@ implementation
 {$ifdef GDB}
         if assigned(debuglist) then
           begin
+            oldaktfilepos:=aktfilepos;
+            aktfilepos.line:=0;
             debugList.insert(Tai_symbol.Createname('gcc2_compiled',AT_FUNCTION,0));
             debugList.insert(Tai_symbol.Createname('fpc_compiled',AT_FUNCTION,0));
             fixseg(debuglist,sec_code);
+            aktfilepos:=oldaktfilepos;
           end;
 {$endif GDB}
       end;
@@ -1447,7 +1452,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.145  2004-03-10 22:52:57  peter
+  Revision 1.146  2004-03-14 20:10:14  peter
+    * fix stabs lineno for fpc_compiled
+
+  Revision 1.145  2004/03/10 22:52:57  peter
     * more stabs fixes
     * special mode -gv for valgrind compatible stabs
 
