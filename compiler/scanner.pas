@@ -1857,15 +1857,11 @@ implementation
 
     procedure tscannerfile.skipuntildirective;
       var
-        incomment : boolean;
         found : longint;
         next_char_loaded : boolean;
-        oldcommentstyle : tcommentstyle;
       begin
          found:=0;
          next_char_loaded:=false;
-         incomment:=true;
-         oldcommentstyle:=aktcommentstyle;
          repeat
            case c of
              #10,
@@ -1880,29 +1876,24 @@ implementation
                end;
              '{' :
                begin
-                 if (not incomment) or
-                    (aktcommentstyle=comment_tp) then
-                   begin 
+                 if (aktcommentstyle in [comment_tp,comment_none]) then
+                   begin
+                     aktcommentstyle:=comment_tp;
                      if (comment_level=0) then
-                      begin
-                        found:=1;
-                        aktcommentstyle:=comment_tp;
-                      end;
+                       found:=1;
                      inc_comment_level;
-                     incomment:=true;
-                   end;  
+                   end;
                end;
              '*' :
                begin
-                 if incomment and
-                    (aktcommentstyle=comment_oldtp) then
+                 if (aktcommentstyle=comment_oldtp) then
                    begin
                      readchar;
                      if c=')' then
                        begin
                          dec_comment_level;
                          found:=0;
-                         incomment:=false;
+                         aktcommentstyle:=comment_none;
                        end
                      else
                        next_char_loaded:=true;
@@ -1912,13 +1903,13 @@ implementation
                end;
              '}' :
                begin
-                 if incomment and
-                    (aktcommentstyle=comment_tp) then
-                   begin 
+                 if (aktcommentstyle=comment_tp) then
+                   begin
                      dec_comment_level;
+                     if (comment_level=0) then
+                       aktcommentstyle:=comment_none;
                      found:=0;
-                     incomment:=false;
-                   end;  
+                   end;
                end;
              '$' :
                begin
@@ -1926,7 +1917,7 @@ implementation
                   found:=2;
                end;
              '''' :
-               if not incomment then
+               if (aktcommentstyle=comment_none) then
                 begin
                   repeat
                     readchar;
@@ -1949,7 +1940,7 @@ implementation
                 end;
              '(' :
                begin
-                 if not incomment then
+                 if (aktcommentstyle=comment_none) then
                   begin
                     readchar;
                     if c='*' then
@@ -1964,24 +1955,22 @@ implementation
                        else
                         begin
                           skipoldtpcomment;
-                          aktcommentstyle:=oldcommentstyle;
+                          next_char_loaded:=true;
                         end;
-                     end;
-                    next_char_loaded:=true;
+                     end
+                    else
+                     next_char_loaded:=true;
                   end
                  else
                   found:=0;
                end;
              '/' :
                begin
-                 if not incomment then
+                 if (aktcommentstyle=comment_none) then
                   begin
                     readchar;
                     if c='/' then
-                     begin
-                       skipdelphicomment;
-                       aktcommentstyle:=oldcommentstyle;
-                     end;
+                     skipdelphicomment;
                     next_char_loaded:=true;
                   end
                  else
@@ -2988,7 +2977,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.73  2004-02-27 11:50:13  michael
+  Revision 1.74  2004-02-29 13:28:57  peter
+    * more fixes for skipuntildirective
+
+  Revision 1.73  2004/02/27 11:50:13  michael
   + Patch from peter to fix webtb[fs]/tw2853*.pp
 
   Revision 1.72  2004/02/26 16:15:45  peter
