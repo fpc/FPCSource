@@ -1,5 +1,5 @@
 { %version=1.1 }
-unit tb1820;
+unit tw1820;
 
 interface
 
@@ -18,5 +18,4 @@ const
   implementation
 
 end.
-
 
