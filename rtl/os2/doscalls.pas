@@ -151,10 +151,20 @@ const   dtSuspended         =1; {Thread is started suspended instead of
                                  frame > 4 kb. at once. If you want to do
                                  this, or for other reasons you can allocate
                                  the complete stack at once with this flag.}
+(* The following for compatibility only *)
+        CREATE_READY          =0;                   { defect 65437  }
+        CREATE_SUSPENDED      =dtSuspended;
+        STACK_SPARSE          =0;
+        STACK_COMMITTED       =dtStack_Commited;
 
+   { Wait option values }
         dtWait              =0; {Wait until termination.}
         dtNoWait            =1; {Do not wait. Return with error if not yet
                                  terminated.}
+(* The following for compatibility only *)
+        DCWW_WAIT           =dtWait;
+        DCWW_NOWAIT         =dtNoWait;
+
 
 {Create a new thread.
  TID        = Thread ID of new thread is returned here.
@@ -162,8 +172,13 @@ const   dtSuspended         =1; {Thread is started suspended instead of
  AParam     = This one is passed to the thread entry procedure.
  Flags      = Flags. Either dtsuspended or dt_stackcommited.
  StackSize  = Size of the stack of the new thread.}
-function DosCreateThread(var TID:longint;Address:TThreadEntry;
-                        AParam:pointer;Flags,StackSize:longint):longint; cdecl;
+function DosCreateThread (var TID: longint; Address: TThreadEntry;
+                   AParam: pointer; Flags, StackSize: longint): longint; cdecl;
+
+(* Overloaded version for compatibility. *)
+function DosCreateThread (var TID: longint; Address: pointer;
+                   AParam: Pointer; Flags, StackSize: longint): longint; cdecl;
+                       
 
 {Suspend a running thread.}
 function DosSuspendThread(TID:longint):longint; cdecl;
@@ -188,6 +203,7 @@ function DosEnterCritSec:longint; cdecl;
 {Resume the other threads again.}
 function DosExitCritSec:longint; cdecl;
 
+{ DosExit codes }
 const   deThread=0;         {Terminate thread only.}
         deProcess=1;        {Terminate the whole process.}
 (* The following for compatibility only *)
@@ -255,8 +271,8 @@ type    PThreadInfoBlock=^TThreadInfoBlock;
  of one of those datastructures, since you can supply nil for the other
  parameter then.}
 
-{procedure DosGetInfoBlocks(var ATIB:PThreadInfoBlock;
-                           var APIB:PProcessInfoBlock); cdecl;}
+procedure DosGetInfoBlocks(var ATIB:PThreadInfoBlock;
+                           var APIB:PProcessInfoBlock); cdecl;
 procedure DosGetInfoBlocks(PATIB:PPThreadInfoBlock;
                            PAPIB:PPProcessInfoBlock); cdecl;
 
@@ -273,17 +289,153 @@ function DosBeep(Freq,MS:longint):longint; cdecl;
 
 ****************************************************************************}
 
+{ User's Debug Buffer structure }
+
+type    PDbgBuf = ^TDbgBuf;
+        TDbgBuf = record
+            Pid: longint;             { Debuggee Process id          }
+            Tid: longint;             { Debuggee Thread id           }
+            Cmd: longint;             { Command or Notification      }
+            Value: longint;           { Generic Data Value           }
+            Addr: pointer;            { Debuggee Address             }
+            Buffer: pointer;          { Debugger Buffer Address      }
+            Len: cardinal;            { Length of Range              }
+            index: cardinal;          { Generic Identifier Index     }
+            MTE: cardinal;            { Module Table Entry Handle    }
+            EAX: cardinal;            { Register Set                 }
+            ECX: cardinal;
+            EDX: cardinal;
+            EBX: cardinal;
+            ESP: cardinal;
+            EBP: cardinal;
+            ESI: cardinal;
+            EDI: cardinal;
+            EFlags: cardinal;
+            EIP: cardinal;
+            CSLim: cardinal;
+            CSBase: cardinal;
+            CSAcc: byte;
+            CSAtr: byte;
+            CS: word;
+            DSLim: cardinal;
+            DSBase: cardinal;
+            DSAcc: byte;
+            DSAtr: byte;
+            DS: word;
+            ESLim: cardinal;
+            ESBase: cardinal;
+            ESAcc: byte;
+            ESAtr: byte;
+            ES: word;
+            FSLim: cardinal;
+            FSBase: cardinal;
+            FSAcc: byte;
+            FSAtr: byte;
+            FS: word;
+            GSLim: cardinal;
+            GSBase: cardinal;
+            GSAcc: byte;
+            GSAtr: byte;
+            GS: word;
+            SSLim: cardinal;
+            SSBase: cardinal;
+            SSAcc: byte;
+            SSAtr: byte;
+            SS: word;
+        end;
+
+
+{ DosDebug Command Numbers
+ *
+ *      These numbers are placed in the Cmd field of the uDB on
+ *      entry to DosDebug.
+ *
+ *      These numbers identify which command DosDebug is requested
+ *      to perform.
+ *
+ }
+
+const   DBG_C_Null              = 0;       { Null                         }
+        DBG_C_ReadMem           = 1;       { Read Word                    }
+        DBG_C_ReadMem_I         = 1;       { Read Word                    }
+        DBG_C_ReadMem_D         = 2;       { Read Word (same as 1)        }
+        DBG_C_ReadReg           = 3;       { Read Register Set            }
+        DBG_C_WriteMem          = 4;       { Write Word                   }
+        DBG_C_WriteMem_I        = 4;       { Write Word                   }
+        DBG_C_WriteMem_D        = 5;       { Write Word (same as 4)       }
+        DBG_C_WriteReg          = 6;       { Write Register Set           }
+        DBG_C_Go                = 7;       { Go                           }
+        DBG_C_Term              = 8;       { Terminate                    }
+        DBG_C_SStep             = 9;       { Single Step                  }
+        DBG_C_Stop              = 10;      { Stop                         }
+        DBG_C_Freeze            = 11;      { Freeze Thread                }
+        DBG_C_Resume            = 12;      { Resume Thread                }
+        DBG_C_NumToAddr         = 13;      { Object Number to Address     }
+        DBG_C_ReadCoRegs        = 14;      { Read Coprocessor Registers   }
+        DBG_C_WriteCoRegs       = 15;      { Write Coprocessor Registers  }
+                                           { 16 is reserved               }
+        DBG_C_ThrdStat          = 17;      { Get Thread Status            }
+        DBG_C_MapROAlias        = 18;      { Map read-only alias          }
+        DBG_C_MapRWAlias        = 19;      { Map read-write alias         }
+        DBG_C_UnMapAlias        = 20;      { Unmap Alias                  }
+        DBG_C_Connect           = 21;      { Connect to Debuggee          }
+        DBG_C_ReadMemBuf        = 22;      { Read Memory Buffer           }
+        DBG_C_WriteMemBuf       = 23;      { Write Memory Buffer          }
+        DBG_C_SetWatch          = 24;      { Set Watchpoint               }
+        DBG_C_ClearWatch        = 25;      { Clear Watchpoint             }
+        DBG_C_RangeStep         = 26;      { Range Step                   }
+        DBG_C_Continue          = 27;      { Continue after an Exception  }
+        DBG_C_AddrToObject      = 28;      { Address to Object            }
+        DBG_C_XchgOpcode        = 29;      { Exchange opcode and go       }
+        DBG_C_LinToSel          = 30;      { 32 to 16 conversion      A001}
+        DBG_C_SelToLin          = 31;      { 16 to 32 conversion      A001}
+
+        {------ Constants -------------------}
+        DBG_L_386               = 1;
+        DBG_O_OBJMTE            = $10000000;
+
+        {------ Notifications ---------------}
+        DBG_N_SUCCESS             =  0;
+        DBG_N_ERROR               = -1;
+        DBG_N_ProcTerm            = -6;
+        DBG_N_Exception           = -7;
+        DBG_N_ModuleLoad          = -8;
+        DBG_N_CoError             = -9;
+        DBG_N_ThreadTerm          = -10;
+        DBG_N_AsyncStop           = -11;
+        DBG_N_NewProc             = -12;
+        DBG_N_AliasFree           = -13;
+        DBG_N_Watchpoint          = -14;
+        DBG_N_ThreadCreate        = -15;
+        DBG_N_ModuleFree          = -16;
+        DBG_N_RangeStep           = -17;
+
+        DBG_X_PRE_FIRST_CHANCE    = 0;
+        DBG_X_FIRST_CHANCE        = 1;
+        DBG_X_LAST_CHANCE         = 2;
+        DBG_X_STACK_INVALID       = 3;
+     
+        DBG_W_Local               = $0000001;
+        DBG_W_Global              = $0000002;
+        DBG_W_Execute             = $00010000;
+        DBG_W_Write               = $00020000;
+        DBG_W_ReadWrite           = $00030000;
+
 {You need a heavy manual if you want to know how this procedure works. Used
 for writing debuggers.}
-function DosDebug(DebugBuf:pointer):longint; cdecl;
+function DosDebug (DebugBuf: PDbgBuf):longint; cdecl;
 
+function DosDebug (var APDbgBuf: TDbgBuf): longint; cdecl;
+                  
+{ codeTerminate values (also passed to ExitList routines) }
 const   TC_exit         = 0;
         TC_harderror    = 1;
         TC_trap         = 2;
         TC_killprocess  = 3;
         TC_exception    = 4;
 
-        ExLst_Add       = 1;
+{ DosExitList options }
+const   ExLst_Add       = 1;
         ExLst_Remove    = 2;
         ExLst_Exit      = 3;
 
@@ -301,6 +453,7 @@ done it must call DosExitList with ExLst_Exit.
 Exit procedures are called in random order.}
 function DosExitList(OrderCode:longint;Proc:TExitProc):longint; cdecl;
 
+{ DosExecPgm options }
 const   deSync          = 0;    {Wait until program terminates.}
         deAsync         = 1;    {Do not wait.}
         deAsyncResult   = 2;    {Do not wait. DosWaitChild will follow to
@@ -314,6 +467,15 @@ const   deSync          = 0;    {Wait until program terminates.}
         deSuspended     = 5;    {Child will be loaded, but not executed.}
         deAsyncResultDb = 6;    {?? Info wanted.}
 
+(* The following for compatibility only *)
+        EXEC_SYNC          =deSync;
+        EXEC_ASYNC         =deAsync;
+        EXEC_ASYNCRESULT   =deAsyncResult;
+        EXEC_TRACE         =deTrace;
+        EXEC_BACKGROUND    =deBackground;
+        EXEC_LOAD          =deSuspended;
+        EXEC_ASYNCRESULTDB =deAsyncResultDb;
+        
 type    TResultCodes=record
             TerminateReason,        {0 = Normal termionation.
                                      1 = Critical error.
@@ -375,7 +537,7 @@ const   dpProcess       = 0;
                       2 = Change to regular class.
                       3 = Change to time-critical class.
  Delta              = Value to add to priority. Resulting priority must be in
-                      the range 0..31.
+                      the range 0..31 (Delta value must be within -31..31).
  PortID             = Process ID when Scope=0 or 1, thread ID when Scope=2.}
 function DosSetPriority(Scope,TrClass,Delta,PortID:longint):longint; cdecl;
 
@@ -2569,6 +2731,11 @@ function DosCreateThread(var TID:longint;Address:TThreadEntry;
 
 external 'DOSCALLS' index 311;
 
+function DosCreateThread (var TID: longint; Address: pointer;
+                   AParam: Pointer; Flags, StackSize: longint): longint; cdecl;
+
+external 'DOSCALLS' index 311;
+
 function DosSuspendThread(TID:longint):longint; cdecl;
 
 external 'DOSCALLS' index 238;
@@ -2595,10 +2762,12 @@ external 'DOSCALLS' index 233;
 
 procedure DosExit(Action,Result:longint); cdecl;
 
-external 'DOSCALLS' index 233;
+external 'DOSCALLS' index 234;
 
-{procedure DosGetInfoBlocks(var ATIB:PThreadInfoBlock;
-                           var APIB:PProcessInfoBlock); cdecl;}
+procedure DosGetInfoBlocks(var ATIB:PThreadInfoBlock;
+                           var APIB:PProcessInfoBlock); cdecl;
+
+external 'DOSCALLS' index 312;
 
 procedure DosGetInfoBlocks(PATIB:PPThreadInfoBlock;
                            PAPIB:PPProcessInfoBlock); cdecl;
@@ -2613,7 +2782,11 @@ function DosBeep(Freq,MS:longint):longint; cdecl;
 
 external 'DOSCALLS' index 286;
 
-function DosDebug(DebugBuf:pointer):longint; cdecl;
+function DosDebug (DebugBuf: PDbgBuf):longint; cdecl;
+
+external 'DOSCALLS' index 317;
+
+function DosDebug (var APDbgBuf: TDbgBuf): longint; cdecl;
 
 external 'DOSCALLS' index 317;
 
@@ -4031,7 +4204,10 @@ external 'DOSCALLS' index 582;
 end.
 {
   $Log$
-  Revision 1.10  2001-05-20 18:40:32  hajny
+  Revision 1.11  2002-07-07 18:03:22  hajny
+    * 1st part of corrections/additions by Yuri Prokushev
+
+  Revision 1.10  2001/05/20 18:40:32  hajny
     * merging Carl's fixes from the fixes branch
 
   Revision 1.9  2001/01/27 18:31:38  hajny
