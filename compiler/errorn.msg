@@ -75,7 +75,7 @@
 % display useful information. The number of such messages can be
 % controlled with the various verbosity level \var{-v} switches.
 % \begin{description}
-general_t_compilername=T_Compiler: $1
+general_t_compilername=T_Gebruikte compiler: $1
 % When the \var{-vt} switch is used, this line tells you what compiler
 % is used.
 general_d_sourceos=D_Bronsysteem: $1
@@ -116,6 +116,22 @@ general_f_no_memory_left=F_Geen geheugen meer vrij
 % \item If the previous two don't work, recompile the compiler with a bigger
 % heap (you can use the \var{-Ch} option for this, \seeo{Ch})
 % \end{itemize}
+% \end{description}
+#
+# Scanner
+#
+% \section{Scanner messages.}
+% This section lists the messages that the scanner emits. The scanner takes
+% care of the lexical structure of the pascal file, i.e. it tries to find
+% reserved words, strings, etc. It also takes care of directives and
+% conditional compiling handling.
+% \begin{description}
+general_i_writingresourcefile=I_Schrijven van resource string tabel bestand: $1
+% This message is shown when the compiler writes the Resource String Table
+% file containing all the resource strings for a program.
+general_e_errorwritingresourcefile=E_Schrijven van resource string tabel bestand: $1
+% This message is shown when the compiler encountered an error when writing
+% the Resource String Table file
 % \end{description}
 #
 # Scanner
@@ -257,15 +273,248 @@ scan_w_illegal_directive=W_Ongeldige compiler optie $1
 scan_t_back_in=T_Terug in $1
 % When you use (\var{-vt}) the compiler tells you when it has finished
 % reading an include file.
-scan_w_unsupported_app_type=W_Applicatie type niet ondersteund: $1
-% You get this warning, ff you specify an unknown application type
-% with the directive \var{\{\$APPTYPE\}}
+%%% scan_w_unsupported_app_type=W_Applicatie type niet ondersteund: $1
+%%% % You get this warning, ff you specify an unknown application type
+%%% % with the directive \var{\{\$APPTYPE\}}
 scan_w_app_type_not_support=W_$APPTYPE niet ondersteund op doelsysteem
 % The \var{\{\$APPTYPE\}} directive is supported by win32 applications only.
+scan_w_decription_not_support=W_DESCRIPTION is slechts toegestaan onder OS2 en Win32
+% The \var{\{\$DESCRIPTION\}} directive is only supported for OS2 and Win32 targets.
+scan_n_version_not_support=N_VERSION is niet ondersteund door het doel OS.
+% The \var{\{\$VERSION\}} directive is only supported by win32 target.
+scan_n_only_exe_version=N_VERSION kan alleen voor executables of bibliotheken
+% The \var{\{\$VERSION\}} directive is only used for executable or DLL sources.
+scan_w_wrong_version_ignored=W_verkeerd formaat voor VERSION directive $1
+% The \var{\{\$VERSION\}} directive format is major_version.minor_version
+% where major_version and minor_version are words.
 scan_w_unsupported_asmmode_specifier=W_Niet ondersteunde assembler soort gegeven $1
 % When you specify an assembler mode with the \var{\{\$ASMMODE xxx\}}
 % the compiler didn't recognize the mode you specified.
 scan_w_no_asm_reader_switch_inside_asm=W_ASM lezer-optie is niet mogelijk in een asm instructie, $1 ingesteld voor volgende blok
+scan_w_include_env_not_found=W_Include omgevingsvariabele $1 niet gevonden in omgeving
+% The included environment variable can't be found in the environment, it'll
+% be replaced by an empty string instead.
+scan_e_invalid_maxfpureg_value=E_Ongeldige waarde voor FPU register limiet
+% Valid values for this directive are 0..8 and NORMAL/DEFAULT
+% \end{description}
+#
+# Parser
+#
+% \section{Parser messages}
+% This section lists all parser messages. The parser takes care of the
+% semantics of you language, i.e. it determines if your pascal constructs
+% are correct.
+% \begin{description}
+parser_w_proc_interrupt_ignored=W_Procedure type INTERRUPT genegeerd
+% This is a warning. \var{INTERRUPT} is a i386 specific construct
+% and is igonred for other processors.
+parser_e_dont_nest_interrupt=E_INTERRUPT procedures kunnen niet genest worden
+% An \VAR{INTERRUPT} procedure must be global.
+parser_w_parser_reloc_no_debug=W_Relocatable bibliotheek of applicatie $1 debug informatie niet ondersteund.
+parser_w_parser_win32_debug_needs_WN=W_Om win32 code te debuggen moet relocatie afgezet worden door de -WN optie
+% Stabs info is wrong for relocatable DLL or EXES use -WN
+% if you want to debug win32 executables.
+parser_e_overloaded_methodes_not_same_ret=E_Virtuele overladen methodes moeten dezelfde resultaat-type hebben: $1
+% If you declare virtual overloaded methods in a class definition, they must
+% have the same return type.
+parser_e_no_such_assignment=E_Het is niet toegestaan de assignatie operator te overladen voor gelijke types
+% You can not overload assignment for types
+% that the compiler considers as equal.
+parser_u_parsing_interface=U_Parsen van de interface van unit $1
+% This tells you that the reading of the interface
+% of the current unit starts
+parser_u_parsing_implementation=U_Parsen van de implementatie van unit $1
+% This tells you that the code reading of the implementation
+% of the current unit, library or program starts
+parser_w_string_too_long=W_string "$1" is langer dan $2
+% The size of the constant string is larger than the size you specified in
+% string type definition
+parser_e_resourcestring_only_sg=E_Resourcestrings kunnen alleen statisch of globaal zijn.
+% Resourcestring can not be declared local, only global or using the static
+% directive.
+parser_e_exit_with_argument_not__possible=E_Exit met argument is hier niet toegestaan
+% an exit statement with an argument for the return value can't be used here, this
+% can happen e.g. in \var{try..except} or \var{try..finally} blocks
+parser_e_stored_property_must_be_boolean=E_De stored directive verwacht een boolean argument.
+% If you specify a storage symbol in a property declaration, it must be of
+% the type boolean
+parser_e_ill_property_storage_sym=E_Dit symbool is niet toegestaan achter het stored sleutelwoord.
+% You can't use this type of symbol as storage specifier in property
+% declaration. You can use only methods with the result type boolean,
+% boolean class fields or boolean constants
+parser_e_only_publishable_classes_can__be_published=E_Alleen klassen gecompileerd in $M+ modus kunnen een published sectie hebben.
+% In the published section of a class can be only class as fields used which
+% are compiled in $M+ or which are derived from such a class. Normally
+% such a class should be derived from TPersitent
+parser_e_proc_directive_expected=E_Procedure directive verwacht.
+% When declaring a procedure in a const block you used a ; after the
+% procedure declaration after which a procedure directive must follow.
+% Correct declarations are:
+% \begin{verbatim}
+% const
+%   p : procedure;stdcall=nil;
+%   p : procedure stdcall=nil;
+% \end{verbatim}
+parser_e_invalid_property_index_value=E_De waarde voor een property index moet een ordinale waarde zijn.
+% The value you use to index a property must be of an ordinal type, for
+% example an integer or enumerated type.
+parser_e_procname_to_short_for_export=E_Procedure naam te kort om te exporteren.
+% The length of the procedure/function name must be at least 2 characters
+% long. This is because of a bug in dlltool which doesn't parse the .def
+% file correct with a name of length 1.
+parser_e_dlltool_unit_var_problem=E_Kan geen DEFFILE item genereren voor globale variabelen.
+parser_e_dlltool_unit_var_problem2=E_Compileer zonder -WD optie
+% \end{description}
+#
+# Type Checking
+#
+% \section{Type checking errors}
+% This section lists all errors that can occur when type checking is
+% performed.
+% \begin{description}
+type_e_boolean_expr_expected=E_Boolean waarde verwacht, kreeg echter "$1"
+% The expression must be a boolean type, it should be return true or
+% false.
+type_e_no_readln_writeln_for_typed_file=E_Kan geen readln of writeln op getypeerde bestanden doen.
+% \var{readln} and \var{writeln} are only allowed for text files.
+type_e_no_read_write_for_untyped_file=E_Kan geen read of write doen op ongetypeerde bestanden.
+% \var{read} and \var{write} are only allowed for text or typed files.
+type_e_argument_cant_be_assigned=E_Kan geen waarde toekennen aan argument
+% Only expressions which can be on the left side of an
+% assignment can be passed as call by reference argument
+% Remark: Properties can be only
+% used on the left side of an assignment, but they can't be used as arguments
+type_e_cannot_local_proc_to_procvar=E_Kan geen lokale procedure toekennen aan procedure variabele
+% It's not allowed to assign a local procedure/function to a
+% procedure variable, because the calling of local procedure/function is
+% different. You can only assign local procedure/function to a void pointer.
+type_e_no_assign_to_addr=E_Kan geen waarde toekennen aan een adres
+% It's not allowed to assign a value to an address of a variable,constant,
+% procedure or function. You can try compiling with -So if the identifier
+% is a procedure variable.
+type_e_no_assign_to_const=E_Kan geen waarde toekennen aan constante
+% It's not allowed to assign a value to a variable which is declared
+% as a const. This is normally a parameter declared as const, to allow
+% changing make the parameter value or var.
+% \end{description}
+#
+# Symtable
+#
+% \section{Symbol handling}
+% This section lists all the messages that concern the handling of symbols.
+% This means all things that have to do with procedure and variable names.
+% \begin{description}
+sym_e_label_used_and_not_defined=E_Label gebruikt maar niet gedefinieerd
+% A label was declared and used, but not defined.
+sym_n_unit_not_used=H_Unit $1 wordt niet gebruikt in $2
+% The unit referenced in the \var{uses} clause is not used.
+sym_h_para_identifier_only_set=H_Waarde parameter $1 is gedeclareerd maar niet gebruikt.
+% This is a warning. The identifier was declared (locally or globally)
+% set but not used (locally or globally).
+sym_n_local_identifier_only_set=N_Lokale variabele $1 gedeclareerd maar niet gebruikt.
+% The variable in a procedure or function
+% implementation is declared, set but never used.
+sym_h_local_symbol_not_used=H_Lokaal $1 $2 is niet gebruikt
+% A local symbol is never used.
+sym_n_private_identifier_not_used=N_Privaat veld $1.$2 wordt niet gebruikt
+sym_n_private_identifier_only_set=N_Privaat veld $1.$2 gedeclareerd maar niet gebruikt.
+sym_n_private_method_not_used=N_Private methode $1.$2 wordt nooit gebruikt.
+sym_e_segment_too_large=E_Data segment te groot (max. 2GB)
+% You get this when you declare an array whose size exceeds the 2GB limit.
+% \end{description}
+#
+# Codegenerator
+#
+% \section{Code generator messages}
+% This section lists all messages that can be displayed if the code
+% generator encounters an error condition.
+% \begin{description}
+cg_w_64bit_range_check_not_supported=W_bereik check voor 64 bit integer is niet ondersteund op dit platform
+% 64 bit range check is not yet implemented for 32 bit processors.
+cg_e_no_call_to_interrupt=E_Directe oproep van interrupt procedure $1 is niet mogelijk
+% You can not call an interrupt procedure directly from FPC code
+cg_e_goto_inout_of_exception_block=E_Sprong in of uit een exception blok
+% It isn't allowed to jump in or outside of an exception block like \var{try..finally..end;}:
+% \begin{verbatim}
+% label 1;
+%
+% ...
+%
+% try
+%    if not(final) then
+%      goto 1;   // this line will cause an error
+% finally
+%   ...
+% end;
+% 1:
+% ...
+% \end{verbatim}
+% \end{description}
+cg_e_control_flow_outside_finally=E_Control flow statements niet toegestaan in een finally blok
+% It isn't allowed to use the control flow statements \var{break},
+% \var{continue} and \var{exit}
+% inside a finally statement. The following example shows the problem:
+% \begin{verbatim}
+% ...
+%   try
+%      p;
+%   finally
+%      ...
+%      exit;  // This exit ISN'T allowed
+%   end;
+% ...
+%
+% \end{verbatim}
+% If the procedure \var{p} raises an exception the finally block is
+% executed. If the execution reaches the exit, it's unclear what to do:
+% exiting the procedure or searching for another exception handler
+# EndOfTeX
+asmr_e_type_without_identifier=E_TYPE gebruikt zonder identifier
+% You can only use TYPE with an identifier. Other syntaxes aren't
+% supported
+asmr_e_local_para_unreachable=E_$1 niet bereikbaar vanuit deze code
+% You can not read directly the value of local or para
+% of a higher level in assembler code (except for
+% local assembler code without parameter nor locals).
+asmr_e_local_label_not_allowed_as_ref=E_Lokale symbolen/labels niet toegestaan als referenties
+% You can't use local symbols/labels as references
+asmr_w_possible_object_field_bug=W_Mogelijke fout in behandeling velden van object.
+% Fields of objects or classes can be reached directly in normal or objfpc
+% modes but TP and Delphi modes treat the field name as a simple offset.
+asmr_e_unknown_opcode=E_Ongekende opcode $1
+asmr_e_dollar_without_identifier=E_Dollar teken gebruikt zonder identifier
+asmr_w_32bit_const_for_address=W_32bit constante aangemaakt voor adres
+asmr_n_align_is_target_specific=N_.align is doel specifiek, gebruik .balign of .p2align
+asmr_e_cannot_access_field_directly_for_parameters=E_Kan velden niet direct gebruiken voor parameters.
+% You should load the parameter first into a register and then access the
+% fields using that register.
+asmr_e_cannot_access_object_field_directly=E_Kan velden van objecten/klassen niet direct aanspreken
+% You should load the self pointer first into a register and then access the
+% fields using the register as base. By default the self pointer is available
+% in the esi register on i386.
+#
+# Assembler/binary writers
+#
+asmw_e_undefined_label=E_Asm: Ongedefinieerd label $1
+exec_e_cant_create_objectfile=E_Kan geen object bestand openen: $1
+% The mentioned file can't be create. Check if you've
+% permission to create this file
+exec_e_cant_create_archivefile=E_kan geen archief bestand openen: $1
+% The mentioned file can't be create. Check if you've
+% permission to create this file
+exec_i_assembling_smart=I_Assembleren slim-link $1
+exec_w_util_not_found=W_Tool $1 niet gevonden, schakel over op exter linken.
+exec_t_using_util=T_Gebruik tool $1
+exec_e_exe_not_supported=E_Creatie van executable bestanden niet ondersteund.
+unit_f_cant_find_ppu=F_Kan unit $1 niet vinden
+% You tried to use a unit of which the PPU file isn't found by the
+% compiler. Check your config files for the unit pathes
+unit_w_unit_name_error=W_Unit $1 niet gevonden maar $2 bestaat
+unit_f_unit_name_error=F_Unit $1 gezocht maar $2 gevonden
+% Dos truncation of 8 letters for unit PPU files
+% may lead to problems when unit name is longer than 8 letters.
+option_no_option_found=N_geen opties in configuratie bestand $1
+% The compiler didn't find any option in that config file.
 scan_w_unsupported_app_type=W_Niet ondersteund programmatype: $1
 % It is not possible to switch from one assembler reader to another
 % inside an assmebler block. The new reader will be used for next
@@ -503,9 +752,6 @@ parser_w_overloaded_are_not_both_virtual=W_Alle overroepen methoden moeten virtu
 parser_w_overloaded_are_not_both_non_virtual=W_Overroepen methode van een niet virtuele methode moet niet-virtueel zijn: $1
 % If you declare overloaded methods in a class, then they should either all be
 % virtual, or none. You shouldn't mix them.
-parser_e_overloaded_methoden_not_same_ret=E_Virtuele overroepen methoden moeten hetzelfde resultaat type hebben: $1
-% If you declare virtual overloaded methods in a class definition, they must
-% have the same return type.
 parser_e_dont_nest_export=E_Als EXPORT gedeclareerde procedures kunnen niet genest worden
 % You cannot declare a function or procedure within a function or procedure
 % that was declared as an export procedure.
@@ -1143,7 +1389,6 @@ asmr_e_only_add_relocatable_symbol=E_Een verplaatsbaar symbool kan enkel toegevo
 asmr_e_invalid_constant_expression=E_Ongeldige constante uitdrukking
 asmr_e_relocatable_symbol_not_allowed=E_Verplaatsbaar symbool niet toegelaten
 asmr_e_invalid_reference_syntax=E_Ongeldige geheugenlocatie schrijfwijze
-asmr_e_local_symbol_not_allowed_as_ref=E_Lokale symbolen kunnen niet gebruikt worden als verwijzing
 asmr_e_wrong_base_index=E_Ongeldig gebruik van basis en index register
 asmr_e_wrong_scale_factor=E_Ongeldige schaalfactor
 asmr_e_multiple_index=E_Meervoudig indexregister gebruik
@@ -1232,15 +1477,11 @@ exec_t_using_assembler=T_Gebruikte assembler: $1
 exec_w_error_while_assembling=W_Fout bij assembleren
 exec_w_cant_call_assembler=W_Kan assembleerder niet oproepen, overschakeling naar externe assemblage
 exec_i_assembling=I_Assembleren van $1
-exec_w_linker_not_found=W_Linker $1 niet gevonden, oveschakeling naar externe linker
-exec_t_using_linker=T_Gebruikte linker: $1
 exec_w_objfile_not_found=E_Bestand $1 niet gevonden, linken kan foutlopen !
 exec_w_libfile_not_found=E_Bibliotheek $1 niet gevonden, linken kan foutlopen !
 exec_w_error_while_linking=W_Fout tijdens linken
 exec_w_cant_call_linker=W_Kan linker niet oproepen, overschakeling naar extern linken
 exec_i_linking=I_Linken van $1
-exec_w_binder_not_found=W_Linker niet gevonden, overschakeling naar extern binden.
-exec_w_ar_not_found=W_ar niet gevonden, overschakeling naar externe ar
 exec_e_dll_not_supported=E_Dynamische bibliotheken niet ondersteund
 exec_i_closing_script=I_Afsluiten batch $1
 exec_w_res_not_found=W_resource compiler niet gevonden, ga over op externe modus
@@ -1444,7 +1685,6 @@ option_info5=Dit programma wordt verspreid onder de GNU General Public Licence
 option_info6=Voor meer informatie, lees COPYING.FPC. Hiervan is helaas geen
 option_info7=Nederlandse vertaling beschikbaar.
 option_info8=<lf>
-option_info9=Meld bugs,suggesties, enz. aan:
 option_info_end=                fpc-devel@mail.tolna.hungary.net
 #
 # Help pages (option -? and -h)
@@ -1593,6 +1833,15 @@ ol138=6*2TMACOS_Macintosh m68k
 ol139=6*2TLINUX_Linux-68k
 ol140=**1*_
 ol141=**1?_Toont deze hulp
+ol142=6*1R<x>_assembler lezer modus:
+ol143=6*2RMOT_Lees motorola-stijl assembler
+ol144=6*1T<x>_Doel operating systeem:
+ol145=6*2TAMIGA_Commodore Amiga
+ol146=6*2TATARI_Atari ST/STe/TT
+ol147=6*2TMACOS_Macintosh m68k
+ol148=6*2TLINUX_Linux-68k
+ol149=**1*_
+ol150=**1?_Toont deze hulp
 ol_end=**1h_Toont deze hulp zonder wachten
 #
 # The End...
