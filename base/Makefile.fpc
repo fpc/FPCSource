@@ -9,7 +9,7 @@ dirs=compiler rtl utils packages fcl ide
 defaultrule=info
 
 [dirs]
-fpcdir=.
+fpcdir=$(BASEDIR)
 
 [sections]
 none=1
@@ -70,10 +70,6 @@ ide_fullgdb:
 #######################################
 # Install targets
 #######################################
-
-base_install:
-        $(INSTALL) base/Makefile $(BASEINSTALLDIR)
-        $(INSTALL) base/makefile.fpc $(BASEINSTALLDIR)
 
 demo_install:
         $(MAKE) -C demo installdemo

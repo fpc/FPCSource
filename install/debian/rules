@@ -96,7 +96,6 @@ install-arch-stamp: build-arch-stamp debian-files-stamp
 	$(MAKE) utils_install $(INSTALLOPTS)
 	$(MAKE) packages install $(INSTALLOPTS)
 
-	$(MAKE) base_install $(INSTALLOPTS)
 	$(MAKE) man_install $(INSTALLOPTS) PREFIXINSTALLDIR=$(INSTALL_DIR)/usr/share
 	$(MAKE) demo_install $(INSTALLOPTS)
 
