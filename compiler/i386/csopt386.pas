@@ -1685,7 +1685,10 @@ Begin
                                   if (taicpu(p).opcode = A_MOV) and
                                      (taicpu(p).oper[1].typ = top_reg) and
                                      (taicpu(p).oper[1].reg = regcounter) then
-                                    pTaiProp(p.optinfo)^.canberemoved := true
+                                    begin
+                                      pTaiProp(p.optinfo)^.canberemoved := true;
+                                      allocregbetween(asml,reg32(regcounter),hp5,p);
+                                    end
                                   else
                                     begin
                                       Taicpu(p).loadreg(0,regcounter);
@@ -1953,7 +1956,10 @@ End.
 
 {
   $Log$
-  Revision 1.21  2001-10-27 10:20:43  jonas
+  Revision 1.22  2001-11-30 16:35:02  jonas
+    * added missing allocregbetween() call for a memtoreg() optimization
+
+  Revision 1.21  2001/10/27 10:20:43  jonas
     + replace mem accesses to locations to which a reg was stored recently with that reg
 
   Revision 1.20  2001/10/14 11:50:21  jonas
