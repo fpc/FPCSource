@@ -1,0 +1,19 @@
+#
+#   Makefile.fpc for fpgtk
+#
+[require]
+packages=fcl
+
+[package]
+name=fpgtk
+version=1.0.6
+
+[target]
+units=fpglib fpgtk fpgtkext
+exampledirs=demo
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..
