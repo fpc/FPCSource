@@ -33,7 +33,6 @@
   \usepackage{html}
   \usepackage{htmllist}
 \fi
-\usepackage{fpc}
 \latex{%
   \ifpdf
   \pdfcompresslevel=9
@@ -47,6 +46,7 @@
   \fi
 }
 %
+\latex{\usepackage{fpc}}
 \html{\input{fpc-html.tex}}
 %
 % Settings
