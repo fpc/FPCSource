@@ -5,8 +5,17 @@
 [targets]
 dirs=fake text
 
+[install]
+packagename=ide
+sourcesubdirs=0
+
 [sections]
 none=1
+zipsourceinstall=1
+
+[defaults]
+defaultinstalldir=text
+
 
 [rules]
 .PHONY: gdb full fullgdb clean_compiler
@@ -27,4 +36,5 @@ fullgdb:
 # Misc
 #
 clean_compiler:
-        make -C ../../compiler clean
+        $(MAKE) -C ../compiler clean
+
