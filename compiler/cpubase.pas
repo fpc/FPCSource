@@ -594,12 +594,10 @@ Type
 {$endif arithopt}
      Ch_CDirFlag {clear direction flag}, Ch_SDirFlag {set dir flag},
      Ch_RFlags, Ch_WFlags, Ch_RWFlags, Ch_FPU,
-     Ch_Rop1, Ch_Wop1, Ch_RWop1,
-     Ch_Rop2, Ch_Wop2, Ch_RWop2,
-     Ch_Rop3, Ch_WOp3, Ch_RWOp3,
-{$ifdef arithopt}
-     Ch_Mop1, Ch_Mop2, Ch_Mop3,
-{$endif arithopt}
+     Ch_Rop1, Ch_Wop1, Ch_RWop1,{$ifdef arithopt}Ch_Mop1,{$endif}
+     Ch_Rop2, Ch_Wop2, Ch_RWop2,{$ifdef arithopt}Ch_Mop2,{$endif}
+     Ch_Rop3, Ch_WOp3, Ch_RWOp3,{$ifdef arithopt}Ch_Mop3,{$endif}
+
      Ch_WMemEDI,
      Ch_All
   );
@@ -904,7 +902,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.25  2000-04-04 13:45:20  pierre
+  Revision 1.26  2000-04-11 11:21:44  jonas
+    * changed the order of the tinschange type enum
+
+  Revision 1.25  2000/04/04 13:45:20  pierre
    + AttSufFPUint for integer fpu instructions
 
   Revision 1.24  2000/03/27 21:18:54  pierre
