@@ -33,12 +33,7 @@ interface
 {$I systemh.inc}
 
 {Platform specific information}
-const
- LineEnding = #13#10;
- LFNSupport = false; { ??? - that's how it was declared in dos.pp! }
- DirectorySeparator = '\';
- DriveSeparator = ':';
- PathSeparator = ';';
+const LineEnding = #13#10; LFNSupport = false; { ??? - that's how it was declared in dos.pp! } DirectorySeparator = '\'; DriveSeparator = ':'; PathSeparator = ';';
 { FileNameCaseSensitive is defined separately below!!! }
 
 type
@@ -87,10 +82,9 @@ PROCEDURE ConsolePrintf (FormatStr : PCHAR);  CDecl;
    
 
 implementation
+{ Indicate that stack checking is taken care by OS}{$DEFINE NO_GENERIC_STACK_CHECK}
 
-{ include system independent routines }
-
-{$I system.inc}
+{ include system independent routines }{$I system.inc}
 
 { some declarations for Netware API calls }
 {$I nwsys.inc}
@@ -154,8 +148,18 @@ begin
   end;
 end;
 
-
-
+{*****************************************************************************
+                         Stack check code
+*****************************************************************************}
+procedure int_stackcheck(stack_size:longint);[public,alias:'FPC_STACKCHECK'];
+{
+  called when trying to get local stack if the compiler directive $S  is set this function must preserve esi !!!! because esi is set by  the calling proc for methods it must preserve all registers !!
+  With a 2048 byte safe area used to write to StdIo without crossing  the stack boundary
+}
+begin
+  IF _stackavail > stack_size + 2048 THEN EXIT;
+  HandleError (202);
+end;
 {*****************************************************************************
                               ParamStr/Randomize
 *****************************************************************************}
@@ -767,7 +771,10 @@ Begin   StackBottom := SPtr - StackLength;
 End.
 {
   $Log$
-  Revision 1.11  2002-04-12 17:40:11  carl
+  Revision 1.12  2002-04-15 18:47:34  carl
+  + reinstate novell stack checking
+
+  Revision 1.11  2002/04/12 17:40:11  carl
   + generic stack checking
 
   Revision 1.10  2002/04/01 15:20:08  armin
