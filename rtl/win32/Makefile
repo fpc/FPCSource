@@ -225,9 +225,9 @@ OBJPASDIR=$(RTL)/objpas
 GRAPHDIR=$(INC)/graph
 include $(WININC)/makefile.inc
 WINDOWS_SOURCE_FILES=$(addprefix $(WININC)/,$(addsuffix .inc,$(WINDOWS_FILES)))
-override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas strings lineinfo heaptrc windows ole2 activex winsock initc dos crt objects graph messages sysutils classes typinfo math varutils variants cpu mmx charset ucomplex getopts wincrt winmouse winevent sockets printer dynlibs video mouse keyboard types comobj dateutils rtlconst sysconst runerrors
+override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas strings lineinfo heaptrc windows ole2 activex winsock initc dos crt objects graph messages sysutils classes typinfo math varutils variants cpu mmx charset ucomplex getopts wincrt winmouse winevent sockets printer dynlibs video mouse keyboard types comobj dateutils rtlconst sysconst
 override TARGET_LOADERS+=wprt0 wdllprt0 gprt0
-override TARGET_RSTS+=math varutils typinfo variants classes dateutils sysconst runerrors
+override TARGET_RSTS+=math varutils typinfo variants classes dateutils sysconst
 override INSTALL_FPCPACKAGE=y
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC)
@@ -1360,7 +1360,7 @@ comobj$(PPUEXT) : comobj.pp activex$(PPUEXT) sysutils$(PPUEXT) $(SYSTEMUNIT)$(PP
 	$(COMPILER) -I$(OBJPASDIR) comobj.pp
 rtlconst$(PPUEXT) : $(OBJPASDIR)/rtlconst.pp
 	$(COMPILER) $(OBJPASDIR)/rtlconst.pp
-sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp
+sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/sysconst.pp
 dateutils$(PPUEXT) : $(OBJPASDIR)/dateutils.pp
 	$(COMPILER) $(OBJPASDIR)/dateutils.pp
@@ -1373,4 +1373,3 @@ lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT)
 charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT)
 ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 callspec$(PPUEXT) : $(INC)/callspec.pp $(SYSTEMUNIT)$(PPUEXT)
-runerrors$(PPUEXT) : $(INC)/runerrors.pp $(SYSTEMUNIT)$(PPUEXT)
