@@ -649,18 +649,27 @@ begin
    {$endif}
   {$endif cpu86}
 {$endif i386}
+
 {$ifdef x86_64}
   {$ifdef cpux86_64}
     default_target(source_info.system);
+    {$define source_system_set}
   {$else cpux86_64}
    {$ifdef linux}
     default_target(system_x86_64_linux);
+    {$define source_system_set}
    {$endif}
    {$ifdef freebsd}
     default_target(system_x86_64_freebsd);
+    {$define source_system_set}
    {$endif}
+   { default is linux }
+   {$ifndef source_system_set}
+    default_target(system_x86_64_linux);
+   {$endif source_system_set}
   {$endif cpux86_64}
 {$endif x86_64}
+
 {$ifdef m68k}
   {$ifdef cpu68}
     default_target(source_info.target);
@@ -706,7 +715,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.94  2004-10-31 19:09:54  peter
+  Revision 1.95  2004-11-01 15:42:00  florian
+    * default target for x86_64 is linux
+
+  Revision 1.94  2004/10/31 19:09:54  peter
     * default paths fixed
 
   Revision 1.93  2004/10/25 15:38:41  peter
