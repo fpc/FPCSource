@@ -1,22 +1,15 @@
 {
-  $Id$
+    $Id$
 
-  "shedit" - Text editor with syntax highlighting
-  Copyright (C) 1999  Sebastian Guenther (sguenther@gmx.de)
+    "SHEdit" - Text editor with syntax highlighting
+    Copyright (C) 1999  Sebastian Guenther (sg@freepascal.org)
 
-  This program is free software; you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation; either version 2 of the License, or
-  (at your option) any later version.
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
 
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
-
-  You should have received a copy of the GNU General Public License
-  along with this program; if not, write to the Free Software
-  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
 
 
@@ -55,32 +48,25 @@ end;
 
 procedure TSHTextEdit.AdjustCursorToRange;
 begin
-  if FCursorY<Renderer.VertPos then
-   begin
-     HideCursor;
-     FCursorY:=Renderer.VertPos;
-     ShowCursor;
-   end
-  else
-   if FCursorY>Renderer.VertPos+Renderer.PageHeight then
-    begin
-      HideCursor;
-      FCursorY:=Renderer.VertPos+Renderer.PageHeight-1;
-      ShowCursor;
-    end;
-  if FCursorX<Renderer.HorzPos then
-   begin
-     HideCursor;
-     FCursorX:=Renderer.HorzPos;
-     ShowCursor;
-   end
-  else
-   if FCursorX>Renderer.HorzPos+Renderer.PageWidth then
-    begin
-      HideCursor;
-      FCursorX:=Renderer.HorzPos+Renderer.PageWidth-1;
-      ShowCursor;
-    end;
+  if FCursorY < FWidget.VertPos then begin
+    HideCursor;
+    FCursorY := FWidget.VertPos;
+    ShowCursor;
+  end else if FCursorY > FWidget.VertPos + FWidget.PageHeight then begin
+    HideCursor;
+    FCursorY := FWidget.VertPos + FWidget.PageHeight - 1;
+    ShowCursor;
+  end;
+
+  if FCursorX < FWidget.HorzPos then begin
+    HideCursor;
+    FCursorX := FWidget.HorzPos;
+    ShowCursor;
+  end else if FCursorX > FWidget.HorzPos + FWidget.PageWidth then begin
+    HideCursor;
+    FCursorX := FWidget.HorzPos + FWidget.PageWidth - 1;
+    ShowCursor;
+  end;
 end;
 
 
@@ -88,28 +74,24 @@ procedure TSHTextEdit.AdjustRangeToCursor;
 var
   py : integer;
 begin
-  if FCursorY< Renderer.VertPos then
-   Renderer.VertPos:=FCursorY
-  else
-   if FCursorY>=Renderer.VertPos+Renderer.PageHeight then
-    begin
-      py := FCursorY - Renderer.PageHeight + 1;
-      if py < 0 then
-       Renderer.VertPos:=0
-      else
-       Renderer.VertPos:=py;
-    end;
-  if FCursorX<Renderer.HorzPos then
-   Renderer.HorzPos:=FCursorX
-  else
-   if FCursorX>=Renderer.HorzPos+Renderer.PageWidth then
-    begin
-      py := FCursorX - Renderer.PageWidth +1;
-      if py < 0 then
-       Renderer.HorzPos:=0
-      else
-       Renderer.HorzPos:=py;
-    end;
+  if FCursorY < FWidget.VertPos then
+    FWidget.VertPos := FCursorY
+  else if FCursorY >= FWidget.VertPos + FWidget.PageHeight then begin
+    py := FCursorY - FWidget.PageHeight + 1;
+    if py < 0 then
+      FWidget.VertPos:=0
+    else
+      FWidget.VertPos:=py;
+  end;
+  if FCursorX < FWidget.HorzPos then
+    FWidget.HorzPos := FCursorX
+  else if FCursorX >= FWidget.HorzPos + FWidget.PageWidth then begin
+    py := FCursorX - FWidget.PageWidth + 1;
+    if py < 0 then
+      FWidget.HorzPos := 0
+    else
+      FWidget.HorzPos := py;
+  end;
 end;
 
 
@@ -185,18 +167,18 @@ end;
 
 procedure TSHTextEdit.CursorPageUp;
 begin
-  dec(FCursorY,Renderer.PageHeight);
+  Dec(FCursorY, FWidget.PageHeight);
   if FCursorY<0 then
-   FCursorY:=0;
+    FCursorY:=0;
   AdjustRangeToCursor;
 end;
 
 
 procedure TSHTextEdit.CursorPageDown;
 begin
-  inc(FCursorY,Renderer.PageHeight);
-  if FCursorY>FDoc.LineCount-1 then
-   FCursorY:=FDoc.LineCount-1;
+  Inc(FCursorY, FWidget.PageHeight);
+  if FCursorY > FDoc.LineCount-1 then
+    FCursorY:=FDoc.LineCount-1;
   AdjustRangeToCursor;
 end;
 
@@ -317,15 +299,14 @@ begin
     cbtext := cbtext + Copy(FDoc.LineText[FSel.OEndY], 1, FSel.OEndX);
   end;
 
-  Renderer.SetClipboard(cbtext);
+  FWidget.SetClipboard(cbtext);
 end;
 
 procedure TSHTextEdit.ClipboardPaste;
 var
   cbtext: String;
 begin
-  cbtext := Renderer.GetClipboard;
-
+  cbtext := FWidget.GetClipboard;
   ExecKeys(cbtext, True);
 end;
 
@@ -473,70 +454,65 @@ procedure TSHTextEdit.KeyPressed(KeyCode: LongWord; ShiftState: TShiftState);
   begin
     // WriteLn('Redraw: ', x1, '/', y1, ' - ', x2, '/', y2);
     if y1 = y2 then
-     Renderer.InvalidateRect(x1,y1,x2,y2)
-    else
-     begin
-       Renderer.InvalidateRect(x1,y1,x1+Renderer.PageWidth,y1);
-       if y1 < y2 - 1 then
-        Renderer.InvalidateRect(0,y1+1,Renderer.PageWidth,y2 - 1);
-       Renderer.InvalidateRect(0,y2,x2,y2+1);
-     end;
+      FWidget.InvalidateRect(x1, y1, x2, y2)
+    else begin
+      FWidget.InvalidateRect(x1, y1, x1 + FWidget.PageWidth, y1);
+      if y1 < y2 - 1 then
+        FWidget.InvalidateRect(0, y1+1, FWidget.PageWidth, y2 - 1);
+      FWidget.InvalidateRect(0, y2, x2, y2+1);
+    end;
   end;
 
 var
   i: Integer;
   shortcut: TShortcut;
-  AssignmentMatched, OldSelValid: Boolean;
+  ShortcutFound, OldSelValid: Boolean;
   OldSelStartX, OldSelStartY, OldSelEndX, OldSelEndY: Integer;
 begin
-//  WriteLn('Text Widget: Key pressed: "', Key, '" ', KeyCode);
+  //  WriteLn('TSHTextEdit: Key pressed: ', KeyCode);
   HideCursor;
 
   LastCursorX := FCursorX;
   LastCursorY := FCursorY;
   OldSelValid := FSel.IsValid;
-  if OldSelValid then
-   begin
-     OldSelStartX := FSel.OStartX;
-     OldSelStartY := FSel.OStartY;
-     OldSelEndX := FSel.OEndX;
-     OldSelEndY := FSel.OEndY;
-   end;
+  if OldSelValid then begin
+    OldSelStartX := FSel.OStartX;
+    OldSelStartY := FSel.OStartY;
+    OldSelEndX := FSel.OEndX;
+    OldSelEndY := FSel.OEndY;
+  end;
 
   // Check for keyboard shortcuts
-  AssignmentMatched := False;
-  for i := 0 to Shortcuts.Count - 1 do
-   begin
-     shortcut := TShortcut(Shortcuts.Items[i]);
-     if (KeyCode = shortcut.KeyCode) and
-        (ShiftState * [ssShift, ssCtrl, ssAlt] = shortcut.ShiftState) then
-      begin
-        shortcut.Action.Method;
-        // Handle the selection extending
-        case shortcut.Action.SelectionAction of
-          selNothing : ;
-          selExtend :
-            begin
-              if not FSel.IsValid then
-               begin
-                 FSel.StartX:=LastCursorX;
-                 FSel.StartY:=LastCursorY;
-               end;
-              FSel.EndX:=FCursorX;
-              FSel.EndY:=FCursorY;
-            end;
-          selClear :
-            begin
-              FSel.Clear;
-            end;
-        end;
-        AssignmentMatched := True;
-        break;
-      end;
-   end;
+  ShortcutFound := False;
+  for i := 0 to Shortcuts.Count - 1 do begin
+    shortcut := TShortcut(Shortcuts.Items[i]);
+    if (KeyCode = shortcut.KeyCode) and
+       (ShiftState * [ssShift, ssCtrl, ssAlt] = shortcut.ShiftState) then begin
+      ShortcutFound := True;
+      break;
+    end;
+  end;
 
-  if (not AssignmentMatched) and (ShiftState * [ssCtrl, ssAlt] = []) then
-    ExecKey(Chr(KeyCode), False);
+  if ShortcutFound then begin
+    // WriteLn(shortcut.Action.Descr);
+    shortcut.Action.Method;	// Execute associated action
+    // Handle the selection extending
+    case shortcut.Action.SelectionAction of
+      selNothing: ;
+      selExtend: begin
+          if not FSel.IsValid then begin
+            FSel.StartX:=LastCursorX;
+            FSel.StartY:=LastCursorY;
+          end;
+          FSel.EndX:=FCursorX;
+          FSel.EndY:=FCursorY;
+        end;
+      selClear:
+        FSel.Clear;
+    end;
+  end else
+    if (KeyCode <= 255) and (ShiftState * [ssCtrl, ssAlt] = []) then
+      ExecKey(Chr(KeyCode), False);
 
   // Check selection
   if FSel.IsValid and (FSel.StartX = FSel.EndX) and (FSel.StartY = FSel.EndY) then
@@ -547,42 +523,36 @@ begin
   else WriteLn;}
 
   // Handle the rewriting of selections
-  if not OldSelValid then
-   begin
-     if FSel.IsValid then
+  if not OldSelValid then begin
+    if FSel.IsValid then
       RedrawArea(FSel.OStartX, FSel.OStartY, FSel.OEndX, FSel.OEndY);
-   end
-  else
-   begin
-     if not FSel.IsValid then
+  end else begin
+    if not FSel.IsValid then
       RedrawArea(OldSelStartX, OldSelStartY, OldSelEndX, OldSelEndY)
-     else
+    else begin
+      // Do OldSel and FSel intersect?
+      if (OldSelEndY < FSel.OStartY) or (OldSelStartY > FSel.OEndY) or
+         ((OldSelEndY = FSel.OStartY) and (OldSelEndX <= FSel.OStartX)) or
+         ((OldSelStartY = FSel.OEndY) and (OldSelStartX >= FSel.OEndX)) then
       begin
-        // Do OldSel and FSel intersect?
-        if (OldSelEndY < FSel.OStartY) or (OldSelStartY > FSel.OEndY) or
-           ((OldSelEndY = FSel.OStartY) and (OldSelEndX <= FSel.OStartX)) or
-           ((OldSelStartY = FSel.OEndY) and (OldSelStartX >= FSel.OEndX)) then
-         begin
-           RedrawArea(OldSelStartX, OldSelStartY, OldSelEndX, OldSelEndY);
-           RedrawArea(FSel.OStartX, FSel.OStartY, FSel.OEndX, FSel.OEndY);
-         end
-        else
-         begin
-           // Intersection => determine smallest possible area(s) to redraw
-           // 1. Check if the start position has changed
-           if (OldSelStartX <> FSel.OStartX) or (OldSelStartY <> FSel.OStartY) then
-            if (OldSelStartY < FSel.OStartY) or ((OldSelStartY = FSel.OStartY) and
-               (OldSelStartX < FSel.OStartX)) then
-             RedrawArea(OldSelStartX, OldSelStartY, FSel.OStartX, FSel.OStartY)
-            else
-             RedrawArea(FSel.OStartX, FSel.OStartY, OldSelStartX, OldSelStartY);
-           // 2. Check if end position has changed
-           if (OldSelEndX <> FSel.OEndX) or (OldSelEndY <> FSel.OEndY) then
+        RedrawArea(OldSelStartX, OldSelStartY, OldSelEndX, OldSelEndY);
+        RedrawArea(FSel.OStartX, FSel.OStartY, FSel.OEndX, FSel.OEndY);
+      end else begin
+        // Intersection => determine smallest possible area(s) to redraw
+        // 1. Check if the start position has changed
+        if (OldSelStartX <> FSel.OStartX) or (OldSelStartY <> FSel.OStartY) then
+          if (OldSelStartY < FSel.OStartY) or ((OldSelStartY = FSel.OStartY) and
+             (OldSelStartX < FSel.OStartX)) then
+            RedrawArea(OldSelStartX, OldSelStartY, FSel.OStartX, FSel.OStartY)
+          else
+            RedrawArea(FSel.OStartX, FSel.OStartY, OldSelStartX, OldSelStartY);
+          // 2. Check if end position has changed
+          if (OldSelEndX <> FSel.OEndX) or (OldSelEndY <> FSel.OEndY) then
             if (OldSelEndY < FSel.OEndY) or ((OldSelEndY = FSel.OEndY) and
                (OldSelEndX < FSel.OEndX)) then
-             RedrawArea(OldSelEndX, OldSelEndY, FSel.OEndX, FSel.OEndY)
+              RedrawArea(OldSelEndX, OldSelEndY, FSel.OEndX, FSel.OEndY)
             else
-             RedrawArea(FSel.OEndX, FSel.OEndY, OldSelEndX, OldSelEndY);
+              RedrawArea(FSel.OEndX, FSel.OEndY, OldSelEndX, OldSelEndY);
       end;
     end;
   end;
@@ -592,9 +562,8 @@ end;
 
 {
   $Log$
-  Revision 1.6  1999-12-12 17:50:50  sg
-  * Fixed drawing of selection
-  * Several small corrections (removed superfluous local variables etc.)
+  Revision 1.7  1999-12-30 21:10:24  sg
+  * Fixed some keyboard issues
 
   Revision 1.5  1999/12/10 15:01:02  peter
     * first things for selection
