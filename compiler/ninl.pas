@@ -671,6 +671,37 @@ implementation
                       { first param must be var }
                       valid_for_assign(tcallparanode(left).left,false);
                       { check type }
+                      if is_64bitint(left.resulttype) then
+                        { convert to simple add for 64bit (JM) }
+                        begin
+                          { extra parameter? }
+                          if assigned(tcallparanode(left).right) then
+                            begin
+                              { Yes, use for add node }
+                              hpp := tcallparanode(tcallparanode(left).right).left;
+                              tcallparanode(tcallparanode(left).right).left := nil;
+                              if assigned(tcallparanode(tcallparanode(left).right).right) then
+                                CGMessage(cg_e_illegal_expression);
+                            end
+                          else
+                            { no, create constant 1 }
+                            hpp := cordconstnode.create(1,s32bitdef);
+                          { addition/substraction depending on inc/dec }
+                          if inlinenumber = in_inc_x then
+                            hp := caddnode.create(addn,tcallparanode(left).left,hpp)
+                          else
+                            hp := caddnode.create(subn,tcallparanode(left).left.getcopy,hpp);
+                          { assign result of addition }
+                          hpp := cassignmentnode.create(tcallparanode(left).left,hp);
+                          tcallparanode(left).left := nil;
+                          { firstpass it }
+                          firstpass(hpp);
+                          { return new node }
+                          pass_1 := hpp;
+                          dec(parsing_para_level);
+                          exit;
+                        end;
+
                       if (left.resulttype^.deftype in [enumdef,pointerdef]) or
                          is_ordinal(left.resulttype) then
                         begin
@@ -1381,7 +1412,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2000-10-14 10:14:50  peter
+  Revision 1.8  2000-10-14 18:27:53  jonas
+    * merged fix for inc/dec on 64bit types from tcinl
+
+  Revision 1.7  2000/10/14 10:14:50  peter
     * moehrendorf oct 2000 rewrite
 
   Revision 1.6  2000/10/01 19:48:24  peter
