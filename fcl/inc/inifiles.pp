@@ -26,6 +26,7 @@ type
 
    TIniFile = class(TObject)
    private
+     FEscapeLineFeeds : Boolean;
      FFileName   : string;
      FStream     : TStream;
      FFileBuffer : TStringList;
@@ -58,6 +59,7 @@ type
      procedure WriteInteger(const section, ident : string; value : longint);
      procedure WriteString(const section, ident, value : string);
      property FileName : String read FFileName;
+     property EscapeLineFeeds : Boolean Read FEscapeLineFeeds Write FEscapeLineFeeds default false;
    end;
 
 implementation
@@ -76,6 +78,7 @@ constructor TIniFile.Create(const theFileName : string);
 begin
    FFileName := theFileName;
    FStream:=nil;
+   FEscapeLineFeeds:=False;
    FFileBuffer := TStringList.Create;
 
    if FileExists(fileName) then
@@ -86,8 +89,8 @@ constructor TIniFile.Create(s:TStream);
 begin
    FFileName := '';
    FStream:=s;
+   FEscapeLineFeeds:=False;
    FFileBuffer := TStringList.Create;
-
    LoadFromStream;
 end;
 
@@ -279,7 +282,7 @@ begin
               if value <> '' then
                begin
                  result := value;
-                 if (result[length(result)]='\') then
+                 if EscapeLineFeeds and (result[length(result)]='\') then
                   begin
                     inc(index);
                     while (index < FFileBuffer.Count) and (result[length(result)]='\') do
@@ -481,7 +484,10 @@ end.
 
 {
   $Log$
-  Revision 1.8  2000-01-07 01:24:33  peter
+  Revision 1.9  2000-03-11 15:56:17  michael
+  + Added EscapeLinefeeds boolean property.
+
+  Revision 1.8  2000/01/07 01:24:33  peter
     * updated copyright to 2000
 
   Revision 1.7  2000/01/06 01:20:33  peter
