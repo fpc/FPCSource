@@ -81,7 +81,7 @@ endif
 
 # Test dir if none specified
 ifndef PREFIXINSTALLDIR
-ifdef inlinux
+ifdef UNIXINSTALLDIR
 PREFIXINSTALLDIR=/tmp/pptest
 else
 PREFIXINSTALLDIR=/pptest
