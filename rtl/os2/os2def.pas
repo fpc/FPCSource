@@ -25,7 +25,7 @@ const
        Severity_Error = $8;
        Severity_Severe = $C;
        Severity_Unrecoverable = $10;
-      
+
        WinErr_Base = $1000;
        GPIErr_Base = $2000;
        DevErr_Base = $3000;
@@ -55,7 +55,7 @@ const
        FAttr_FontUse_Outline = $0004;
        FAttr_FontUse_Transformable = $0008;
        FaceSize = 32;
-      
+
        FM_Type_Fixed = $0001;
        FM_Type_Licensed = $0002;
        FM_Type_Kerning = $0004;
@@ -84,55 +84,55 @@ const
        PShortint = ^shortint;
        PPointer = ^pointer;
        PByte = ^byte;
-       
+
        PointL = record
-	  X: longint;
-	  Y: longint;
+          X: longint;
+          Y: longint;
        end;
 
        PPointL = ^PointL;
 
        PointS = record
-	  X: integer;
-	  Y: integer;
+          X: integer;
+          Y: integer;
        end;
-      
+
        PPointS = ^PointS;
-      
+
        RectL = record
-	  xLeft: longint;
-	  yBottom: longint;
-	  xRight: longint;
-	  yTop: longint;
+          xLeft: longint;
+          yBottom: longint;
+          xRight: longint;
+          yTop: longint;
        end;
 
        PRectL = ^RectL;
 
        NPrectL = ^RectL;
-       
+
        Str8 = array[0..7] of char;
 
        PStr8 = ^Str8;
 
        DrivData = record
-	  cb: longint;
-	  lVersion: longint;
-	  szDeviceName: array[0..31] of char;
-	  abGeneralData: array[0..0] of char;
+          cb: longint;
+          lVersion: longint;
+          szDeviceName: array[0..31] of char;
+          abGeneralData: array[0..0] of char;
        end;
 
        PDrivData = ^DrivData;
 
        DevOpenStruc = record
-	  pszLogAddress: PChar;
-	  pszDriverName: PChar;
-	  pdriv: PDrivData;
-	  pszDataType: PChar;
-	  pszComment: PChar;
-	  pszQueueProcName: PChar;
-	  pszQueueProcParams: PChar;
-	  pszSpoolerParams: PChar;
-	  pszNetworkParams: PChar;
+          pszLogAddress: PChar;
+          pszDriverName: PChar;
+          pdriv: PDrivData;
+          pszDataType: PChar;
+          pszComment: PChar;
+          pszQueueProcName: PChar;
+          pszQueueProcParams: PChar;
+          pszSpoolerParams: PChar;
+          pszNetworkParams: PChar;
        end;
 
        PDevOpenStruc = ^DevOpenStruc;
@@ -140,119 +140,119 @@ const
        PDevOpenData = PDevOpenStruc;
 
        PrintDest = record
-	  cb: cardinal;
-	  lType: longint;
-	  pszToken: PChar;
-	  lCount: longint;
-	  pdopData: PDevOpenData;
-	  fl: cardinal;
-	  pszPrinter: PChar;
+          cb: cardinal;
+          lType: longint;
+          pszToken: PChar;
+          lCount: longint;
+          pdopData: PDevOpenData;
+          fl: cardinal;
+          pszPrinter: PChar;
        end;
 
        PPrintDest = ^PrintDest;
-       
+
        FAttrs = record
-	  usRecordLength: word;
-	  fsSelection: word;
-	  lMatch: longint;
-	  szFacename: array[0..FaceSize-1] of char;
-	  idRegistry: word;
-	  usCodePage: word;
-	  lMaxBaselineExt: longint;
-	  lAveCharWidth: longint;
-	  fsType: word;
-	  fsFontUse: word;
+          usRecordLength: word;
+          fsSelection: word;
+          lMatch: longint;
+          szFacename: array[0..FaceSize-1] of char;
+          idRegistry: word;
+          usCodePage: word;
+          lMaxBaselineExt: longint;
+          lAveCharWidth: longint;
+          fsType: word;
+          fsFontUse: word;
        end;
 
        PFAttrs = ^FAttrs;
-       
+
        Panose = record
-	  bFamilyType: byte;
-	  bSerifStyle: byte;
-	  bWeight: byte;
-	  bProportion: byte;
-	  bContrast: byte;
-	  bStrokeVariation: byte;
-	  bArmStyle: byte;
-	  bLetterform: byte;
-	  bMidline: byte;
-	  bXHeight: byte;
-	  abReserved: array[0..1] of byte;
+          bFamilyType: byte;
+          bSerifStyle: byte;
+          bWeight: byte;
+          bProportion: byte;
+          bContrast: byte;
+          bStrokeVariation: byte;
+          bArmStyle: byte;
+          bLetterform: byte;
+          bMidline: byte;
+          bXHeight: byte;
+          abReserved: array[0..1] of byte;
        end;
 
        FontMetrics = record
-	  szFamilyname: array[0..FaceSize-1] of char;
-	  szFacename: array[0..FaceSize-1] of char;
-	  idRegistry: word;
-	  usCodePage: word;
-	  lEmHeight: longint;
-	  lXHeight: longint;
-	  lMaxAscender: longint;
-	  lMaxDescender: longint;
-	  lLowerCaseAscent: longint;
-	  lLowerCaseDescent: longint;
-	  lInternalLeading: longint;
-	  lExternalLeading: longint;
-	  lAveCharWidth: longint;
-	  lMaxCharInc: longint;
-	  lEmInc: longint;
-	  lMaxBaselineExt: longint;
-	  sCharSlope: integer;
-	  sInlineDir: integer;
-	  sCharRot: integer;
-	  usWeightClass: word;
-	  usWidthClass: word;
-	  sXDeviceRes: integer;
-	  sYDeviceRes: integer;
-	  sFirstChar: integer;
-	  sLastChar: integer;
-	  sDefaultChar: integer;
-	  sBreakChar: integer;
-	  sNominalPointSize: integer;
-	  sMinimumPointSize: integer;
-	  sMaximumPointSize: integer;
-	  fsType: word;
-	  fsDefn: word;
-	  fsSelection: word;
-	  fsCapabilities: word;
-	  lSubscriptXSize: longint;
-	  lSubscriptYSize: longint;
-	  lSubscriptXOffset: longint;
-	  lSubscriptYOffset: longint;
-	  lSuperscriptXSize: longint;
-	  lSuperscriptYSize: longint;
-	  lSuperscriptXOffset: longint;
-	  lSuperscriptYOffset: longint;
-	  lUnderscoreSize: longint;
-	  lUnderscorePosition: longint;
-	  lStrikeoutSize: longint;
-	  lStrikeoutPosition: longint;
-	  sKerningPairs: integer;
-	  sFamilyClass: integer;
-	  lMatch: longint;
-	  FamilyNameAtom: longint;
-	  FaceNameAtom: longint;
-	  _Panose: Panose;
+          szFamilyname: array[0..FaceSize-1] of char;
+          szFacename: array[0..FaceSize-1] of char;
+          idRegistry: word;
+          usCodePage: word;
+          lEmHeight: longint;
+          lXHeight: longint;
+          lMaxAscender: longint;
+          lMaxDescender: longint;
+          lLowerCaseAscent: longint;
+          lLowerCaseDescent: longint;
+          lInternalLeading: longint;
+          lExternalLeading: longint;
+          lAveCharWidth: longint;
+          lMaxCharInc: longint;
+          lEmInc: longint;
+          lMaxBaselineExt: longint;
+          sCharSlope: integer;
+          sInlineDir: integer;
+          sCharRot: integer;
+          usWeightClass: word;
+          usWidthClass: word;
+          sXDeviceRes: integer;
+          sYDeviceRes: integer;
+          sFirstChar: integer;
+          sLastChar: integer;
+          sDefaultChar: integer;
+          sBreakChar: integer;
+          sNominalPointSize: integer;
+          sMinimumPointSize: integer;
+          sMaximumPointSize: integer;
+          fsType: word;
+          fsDefn: word;
+          fsSelection: word;
+          fsCapabilities: word;
+          lSubscriptXSize: longint;
+          lSubscriptYSize: longint;
+          lSubscriptXOffset: longint;
+          lSubscriptYOffset: longint;
+          lSuperscriptXSize: longint;
+          lSuperscriptYSize: longint;
+          lSuperscriptXOffset: longint;
+          lSuperscriptYOffset: longint;
+          lUnderscoreSize: longint;
+          lUnderscorePosition: longint;
+          lStrikeoutSize: longint;
+          lStrikeoutPosition: longint;
+          sKerningPairs: integer;
+          sFamilyClass: integer;
+          lMatch: longint;
+          FamilyNameAtom: longint;
+          FaceNameAtom: longint;
+          _Panose: Panose;
        end;
 
        PFontMetrics = ^FontMetrics;
-       
+
       { Null terminated strings are often declared as array[0..0] of byte  }
       { in header files, the following type makes type conversion possible }
       CharArray = array[0..0] of char;
-     
+
 {Names beginning with T for compatibility}
-	TPointL = PointL;
-	TPointS = PointS;
-	TRectL = RectL;
-	TStr8 = Str8;
-	TDrivData = DrivData;
-	TDevOpenStruc = DevOpenStruc;
-	TPrintDest = PrintDest;
-	TFAttrs = FAttrs;
-	TPanose = Panose;
-	TFontMetrics = FontMetrics;
-	TCharArray = CharArray;
+        TPointL = PointL;
+        TPointS = PointS;
+        TRectL = RectL;
+        TStr8 = Str8;
+        TDrivData = DrivData;
+        TDevOpenStruc = DevOpenStruc;
+        TPrintDest = PrintDest;
+        TFAttrs = FAttrs;
+        TPanose = Panose;
+        TFontMetrics = FontMetrics;
+        TCharArray = CharArray;
 
 {Another bunch of compatibility things}
         HWnd = cardinal;
@@ -2517,6 +2517,24 @@ const
 
 {$PACKRECORDS NORMAL}
 
+Type
+  ICONINFO=record
+    cb: Cardinal;         // size of ICONINFO structure
+    fFormat: Cardinal;
+    pszFileName: PChar;   //use when fFormat = ICON_FILE
+    hmod: Cardinal;       // use when fFormat = ICON_RESOURCE
+    resid: Cardinal;      // use when fFormat = ICON_RESOURCE
+    cbIconData: Cardinal; // use when fFormat = ICON_DATA
+    pIconData: Pointer;   // use when fFormat = ICON_DATA
+  end;
+  PIconInfo=^IconInfo;
+
+const
+     ICON_FILE     =1;         // flags for fFormat
+     ICON_RESOURCE =2;
+     ICON_DATA     =3;
+     ICON_CLEAR    =4;
+
 { Error constants from bseerr.h header file }
 CONST
       NO_ERROR                =0;      { MSG%RESPONSE_DATA }
@@ -3373,11 +3391,14 @@ CONST
 
 
   implementation
-  
+
 end.
 {
   $Log$
-  Revision 1.6  2002-11-02 11:15:38  hajny
+  Revision 1.7  2003-03-28 13:25:08  yuri
+    * Iconinfo type & constants added
+
+  Revision 1.6  2002/11/02 11:15:38  hajny
     + comments and MSG lookup strings added
 
   Revision 1.5  2002/09/07 16:01:24  peter
