@@ -40,12 +40,15 @@ function Do_SysCall(sysnr,param1,param2:TSysParam):TSysResult;  external name 'F
 function Do_SysCall(sysnr,param1,param2,param3:TSysParam):TSysResult; external name 'FPC_SYSCALL3';
 function Do_SysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult; external name 'FPC_SYSCALL4';
 function Do_SysCall(sysnr,param1,param2,param3,param4,param5:TSysParam):TSysResult;  external name 'FPC_SYSCALL5';
-function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6:TSysParam):TSysResult;  external name 'FPC_SYSCALL6';
-function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6,param7:TSysParam):TSysResult;  external name 'FPC_SYSCALL7';
+function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6:TSysParam):int64;  external name 'FPC_SYSCALL6';
+function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6,param7:TSysParam):int64;  external name 'FPC_SYSCALL7';
 
 {
   $Log$
-  Revision 1.1  2003-05-25 14:07:26  jonas
+  Revision 1.2  2003-06-01 16:35:28  marco
+   * Several small fixes to harmonize the *BSD rtls and Linux.
+
+  Revision 1.1  2003/05/25 14:07:26  jonas
     + added from linux
 
   Revision 1.2  2003/05/11 16:07:55  jonas

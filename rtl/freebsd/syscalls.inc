@@ -71,7 +71,7 @@ function Do_SysCall(sysnr,param1:longint):longint; assembler;
   movw  %bx,Errno
  end;
 
-function Do_SysCall(sysnr,param1:integer):longint; assembler;
+{function Do_SysCall(sysnr,param1:integer):longint; assembler;
 
  asm
   movl  sysnr,%eax
@@ -80,7 +80,7 @@ function Do_SysCall(sysnr,param1:integer):longint; assembler;
   add   $2,%esp
   movw  %bx,Errno
  end;
-
+}
 
 function Do_SysCall(sysnr,param1,param2:LONGINT):longint; assembler;
 
@@ -133,7 +133,7 @@ function Do_SysCall(sysnr,param1,param2,param3,param4,param5:LONGINT):longint;  
    movw  %bx,Errno
  end;
 
-function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6:LONGINT):longint;  assembler;
+function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6:LONGINT):int64;  assembler;
 
 asm
    movl  sysnr,%eax
@@ -149,7 +149,7 @@ asm
 end;
 
 
-function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6,param7:LONGINT):longint;  assembler;
+function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6,param7:LONGINT):int64;  assembler;
 
 asm
    movl  sysnr,%eax
@@ -514,7 +514,10 @@ end;
 
 {
   $Log$
-  Revision 1.10  2003-01-05 19:02:29  marco
+  Revision 1.11  2003-06-01 16:35:28  marco
+   * Several small fixes to harmonize the *BSD rtls and Linux.
+
+  Revision 1.10  2003/01/05 19:02:29  marco
    * Should now work with baseunx. (gmake all works)
 
   Revision 1.9  2002/09/07 16:01:17  peter

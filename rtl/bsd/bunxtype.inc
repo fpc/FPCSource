@@ -23,6 +23,12 @@
 
 {$i ptypes.inc}
 
+{$ifdef powerpc}
+ {$ifdef netbsd}
+   {$define netbsdpowerpc}
+{$endif}
+{$endif}
+
 //      CONST SYS_NMLN=65;
 
 // Can't find these two in Posix and in FreeBSD
@@ -57,11 +63,17 @@ TYPE
         st_mtimensec  : clong;             // nsec of last data modification
         st_ctime      : time_t;            // time of last file status change
         st_ctimensec  : clong;             // nsec of last file status change
+{$ifdef netbsdPowerpc}
+	st_padd1	      : cint;
+{$endif}
         st_size       : off_t;             // file size, in bytes
         st_blocks     : cint64;            // blocks allocated for file
         st_blksize    : cuint32;           // optimal blocksize for I/O
         st_flags      : cuint32;           // user defined flags for file
         st_gen        : cuint32;           // file generation number
+{$ifdef netbsdPowerpc}
+	st_padd2	      : cint;
+{$endif}
 {$ifndef NetBSD}
         st_lspare     : cint32;
 {$endif}
@@ -87,7 +99,12 @@ TYPE
         dd_size   : clong;        // amount of data returned by getdirentries
         dd_buf    : pchar;        // data buffer
         dd_len    : cint;         // size of data buffer
+{$ifdef netbsdpowerpc}
+	dd_pad1   : cint;
+        dd_seek   : cint64;        // magic cookie returned by getdirentries
+{$else}
         dd_seek   : clong;        // magic cookie returned by getdirentries
+{$endif}
         dd_rewind : clong;        // magic cookie for rewinding
         dd_flags  : cint;         // flags for readdir
    end;
@@ -174,7 +191,10 @@ CONST
 
 {
   $Log$
-  Revision 1.1  2003-01-03 15:45:21  marco
+  Revision 1.2  2003-06-01 16:35:27  marco
+   * Several small fixes to harmonize the *BSD rtls and Linux.
+
+  Revision 1.1  2003/01/03 15:45:21  marco
    * Renamed to bunxtype.inc (from osposixh.inc), some minor changes
       (as introduced going from posix unit to baseunix)
 

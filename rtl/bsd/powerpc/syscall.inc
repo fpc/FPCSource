@@ -141,6 +141,7 @@ asm
   lis   r4,Errno@ha
   stw   r3,Errno@l(r4)
   li    r3,-1
+  li    r4,-1
 end;
 
 function FpSysCall(sysnr,param1,param2,param3,param4,param5,param6,param7:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL7'];
@@ -162,12 +163,16 @@ asm
   lis   r4,Errno@ha
   stw   r3,Errno@l(r4)
   li    r3,-1
+  li    r4,-1
 end;
 
 
 {
   $Log$
-  Revision 1.4  2003-05-29 13:42:58  marco
+  Revision 1.5  2003-06-01 16:35:28  marco
+   * Several small fixes to harmonize the *BSD rtls and Linux.
+
+  Revision 1.4  2003/05/29 13:42:58  marco
    * small fix
 
   Revision 1.3  2003/05/29 13:14:07  marco
