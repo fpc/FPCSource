@@ -169,22 +169,70 @@ Type
   SignalRestorer  = Procedure;cdecl;
   PSignalRestorer = ^SignalRestorer;
 
- {$ifdef BSD}
+{$ifdef BSD}
   SigSet  = Array[0..31] of byte;
- {$else}
+{$else}
   SigSet  = Longint;
- {$endif}
+{$endif}
   PSigSet = ^SigSet;
 
+  tfpreg = record
+          significand: array[0..3] of word;
+          exponent: word;
+  end;
+
+  pfpstate = ^tfpstate;
+  tfpstate = record
+           cw, sw, tag, ipoff, cssel, dataoff, datasel: cardinal;
+           st: array[0..7] of tfpreg;
+           status: cardinal;
+  end;
+
+{$ifdef i386}
+  PSigContextRec = ^SigContextRec;
+  SigContextRec = record
+    gs, __gsh: word;
+    fs, __fsh: word;
+    es, __esh: word;
+    ds, __dsh: word;
+    edi: cardinal;
+    esi: cardinal;
+    ebp: cardinal;
+    esp: cardinal;
+    ebx: cardinal;
+    edx: cardinal;
+    ecx: cardinal;
+    eax: cardinal;
+    trapno: cardinal;
+    err: cardinal;
+    eip: cardinal;
+    cs, __csh: word;
+    eflags: cardinal;
+    esp_at_signal: cardinal;
+    ss, __ssh: word;
+    fpstate: pfpstate;
+    oldmask: cardinal;
+    cr2: cardinal;
+  end;
+  TSigContextRec = SigContextRec;
+{$endif}
+
+  TSigAction = procedure(Sig: Longint; SigContext: SigContextRec);cdecl;
+
+  PSigActionRec = ^SigActionRec;
   SigActionRec = packed record
-    Sa_Handler  : SignalHandler;
+    Handler  : record
+      case byte of
+        0: (Sh: SignalHandler);
+        1: (Sa: TSigAction);
+      end;
     Sa_Mask     : SigSet;
     Sa_Flags    : Longint;
     {$ifndef BSD}
     Sa_restorer : SignalRestorer; { Obsolete - Don't use }
     {$endif}
   end;
-  PSigActionRec = ^SigActionRec;
+  TSigActionRec = SigActionRec;
 
 
 {********************
@@ -2881,7 +2929,10 @@ End.
 
 {
   $Log$
-  Revision 1.68  2000-04-16 16:09:32  marco
+  Revision 1.69  2000-05-17 17:11:44  peter
+    * added sigaction record from signal.inc
+
+  Revision 1.68  2000/04/16 16:09:32  marco
    * Some small mistakes when merging BSD and Linux version fixed
 
   Revision 1.67  2000/04/14 16:07:06  marco
