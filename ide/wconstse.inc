@@ -27,6 +27,7 @@
     label_find_texttofind = '~T~ext to find';
     label_find_casesensitive = '~C~ase sensitive';
     label_find_wholewordsonly = '~W~hole words only';
+    label_find_useregexp = '~U~se regular expr.';
     label_find_direction = 'Direction';
     label_find_forward = 'Forwar~d~';
     label_find_backward = '~B~ackward';
@@ -42,6 +43,7 @@
     label_replace_newtext = '    ~N~ew text';
     label_replace_options = label_find_options;
     label_replace_casesensitive = label_find_casesensitive;
+    label_replace_useregexp = label_find_useregexp;
     label_replace_wholewordsonly = label_find_wholewordsonly;
     label_replace_promptonreplace = '~P~rompt on replace';
     label_replace_direction = label_find_direction;
@@ -113,7 +115,10 @@
 
 {
   $Log$
-  Revision 1.1  2001-08-04 11:30:25  peter
+  Revision 1.2  2001-09-14 23:47:09  pierre
+   + more regexp, options now in Find/Replace dialogs
+
+  Revision 1.1  2001/08/04 11:30:25  peter
     * ide works now with both compiler versions
 
   Revision 1.1.2.3  2001/03/06 22:04:53  pierre

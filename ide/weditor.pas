@@ -141,7 +141,11 @@ const
       ffEntireScope      = $0020;
 
 {$ifdef TEST_REGEXP}
-      ffUseRegExp        = $0040;
+      ffUseRegExp        = $0100;
+      ffmUseRegExpFind   = $0004;
+      ffsUseRegExpFind   = 8 - 2;
+      ffmUseRegExpReplace = $0008;
+      ffsUseRegExpReplace = 8 - 3;
 {$endif TEST_REGEXP}
 
       coTextColor         = 0;
@@ -5866,7 +5870,12 @@ begin
     Find := FindStr;
     if GetCurrentWord<>'' then
       Find:=GetCurrentWord;
+{$ifdef TEST_REGEXP}
+    Options := (FindFlags and ffmOptions) shr ffsOptions or
+               (FindFlags and ffUseRegExp) shr ffsUseRegExpFind;
+{$else not TEST_REGEXP}
     Options := (FindFlags and ffmOptions) shr ffsOptions;
+{$endif TEST_REGEXP}
     Direction := (FindFlags and ffmDirection) shr ffsDirection;
     Scope := (FindFlags and ffmScope) shr ffsScope;
     Origin := (FindFlags and ffmOrigin) shr ffsOrigin;
@@ -5874,7 +5883,10 @@ begin
     if EditorDialog(edFind, @FindRec) <> cmCancel then
     begin
       FindStr := Find;
-      FindFlags := (Options shl ffsOptions) or (Direction shl ffsDirection) or
+      FindFlags := ((Options and ffmOptions) shl ffsOptions) or (Direction shl ffsDirection) or
+{$ifdef TEST_REGEXP}
+         ((Options and ffmUseRegExpFind) shl ffsUseRegExpFind) or
+{$endif TEST_REGEXP}
          (Scope shl ffsScope) or (Origin shl ffsOrigin);
       FindFlags := FindFlags and not ffDoReplace;
       if DoConf then
@@ -5900,7 +5912,12 @@ begin
     if GetCurrentWord<>'' then
       Find:=GetCurrentWord;
     Replace := ReplaceStr;
+{$ifdef TEST_REGEXP}
+    Options := (FindFlags and ffmOptions) shr ffsOptions or
+               (FindFlags and ffUseRegExp) shr ffsUseRegExpReplace;
+{$else not TEST_REGEXP}
     Options := (FindFlags and ffmOptions) shr ffsOptions;
+{$endif TEST_REGEXP}
     Direction := (FindFlags and ffmDirection) shr ffsDirection;
     Scope := (FindFlags and ffmScope) shr ffsScope;
     Origin := (FindFlags and ffmOrigin) shr ffsOrigin;
@@ -5910,6 +5927,9 @@ begin
       FindStr := Find;
       ReplaceStr := Replace;
       FindFlags := (Options shl ffsOptions) or (Direction shl ffsDirection) or
+{$ifdef TEST_REGEXP}
+         ((Options and ffmUseRegExpReplace) shl ffsUseRegExpReplace) or
+{$endif TEST_REGEXP}
          (Scope shl ffsScope) or (Origin shl ffsOrigin);
       FindFlags := FindFlags or ffDoReplace;
       if Re = cmYes then
@@ -6086,9 +6106,13 @@ begin
        begin
          getmem(findstrpchar,length(Copy(S,X+1,high(S)))+1);
          strpcopy(findstrpchar,Copy(S,X+1,high(S)));
-         Found:=RegExprPos(RegExpEngine,findstrpchar,regexpindex,regexplen);
+         { If start of line is required do check other positions PM }
+         if (FindStr[1]='^') and (X<>0) then
+           Found:=false
+         else
+           Found:=RegExprPos(RegExpEngine,findstrpchar,regexpindex,regexplen);
          strdispose(findstrpchar);
-         P:=regexpindex;
+         P:=regexpindex+X+1;
        end
     else
 {$endif TEST_REGEXP}
@@ -6226,7 +6250,8 @@ begin
   if FindStr<>'' then
     PopInfo;
 {$ifdef TEST_REGEXP}
-  DestroyRegExprEngine(RegExpEngine);
+  if UseRegExp then
+    DestroyRegExprEngine(RegExpEngine);
 {$endif TEST_REGEXP}
   if (FindFlags and ffmScope)=ffSelectedText then
     { restore selection PM }
@@ -6671,11 +6696,15 @@ begin
     Insert(Control);
 
     R1.Copy(R); Inc(R1.A.Y,2); R1.B.Y:=R1.A.Y+1; R1.B.X:=R1.A.X+(R1.B.X-R1.A.X) div 2-1;
-    R2.Copy(R1); R2.Move(0,1); R2.B.Y:=R2.A.Y+2;
+    R2.Copy(R1); R2.Move(0,1);
+    R2.B.Y:=R2.A.Y+{$ifdef TEST_REGEXP}3{$else}2{$endif};
     New(CB1, Init(R2,
       NewSItem(label_find_casesensitive,
       NewSItem(label_find_wholewordsonly,
-      nil))));
+{$ifdef TEST_REGEXP}
+      NewSItem(label_find_useregexp,
+{$endif TEST_REGEXP}
+      nil)))){$ifdef TEST_REGEXP}){$endif TEST_REGEXP};
     Insert(CB1);
     Insert(New(PLabel, Init(R1, label_find_options, CB1)));
 
@@ -6751,12 +6780,16 @@ begin
     Insert(Control);
 
     R1.Copy(R); Inc(R1.A.Y,4); R1.B.Y:=R1.A.Y+1; R1.B.X:=R1.A.X+(R1.B.X-R1.A.X) div 2-1;
-    R2.Copy(R1); R2.Move(0,1); R2.B.Y:=R2.A.Y+3;
+    R2.Copy(R1); R2.Move(0,1);
+    R2.B.Y:=R2.A.Y+{$ifdef TEST_REGEXP}4{$else}3{$endif};
     New(CB1, Init(R2,
       NewSItem(label_replace_casesensitive,
       NewSItem(label_replace_wholewordsonly,
       NewSItem(label_replace_promptonreplace,
-      nil)))));
+{$ifdef TEST_REGEXP}
+      NewSItem(label_find_useregexp,
+{$endif TEST_REGEXP}
+      nil))))){$ifdef TEST_REGEXP}){$endif TEST_REGEXP};
     Insert(CB1);
     Insert(New(PLabel, Init(R1, label_replace_options, CB1)));
 
@@ -6992,7 +7025,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.6  2001-09-13 16:11:34  pierre
+  Revision 1.7  2001-09-14 23:47:09  pierre
+   + more regexp, options now in Find/Replace dialogs
+
+  Revision 1.6  2001/09/13 16:11:34  pierre
    + test code for regexpr use in find dialog
 
   Revision 1.5  2001/09/12 09:31:42  pierre

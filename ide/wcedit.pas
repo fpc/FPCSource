@@ -1132,6 +1132,8 @@ begin
      inc(i);
      inc(rx);
      if s[i]=#9 then
+
+
       inc(rx,TabSize-(rx mod tabsize));
    end;
   GetDisplayTextPos:=rx;
@@ -1990,7 +1992,10 @@ end;
 END.
 {
  $Log$
- Revision 1.3  2001-09-14 16:33:06  pierre
+ Revision 1.4  2001-09-14 23:47:08  pierre
+  + more regexp, options now in Find/Replace dialogs
+
+ Revision 1.3  2001/09/14 16:33:06  pierre
   * several small changes
 
  Revision 1.2  2001/08/05 02:01:48  peter
