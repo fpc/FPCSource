@@ -992,7 +992,7 @@ unit tree;
          p^.treetype:=loadn;
          p^.left:=nil;
          p^.resulttype:=sym^.definition;
-         p^.symtableentry:=pvarsym(sym);
+         p^.symtableentry:=sym;
          p^.symtable:=st;
          p^.disposetyp:=dt_nothing;
          gentypedconstloadnode:=p;
@@ -1717,7 +1717,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.75  1999-05-01 13:25:02  peter
+  Revision 1.76  1999-05-04 14:27:04  pierre
+   * avoid RTE220 in gentypedconstloadnode
+
+  Revision 1.75  1999/05/01 13:25:02  peter
     * merged nasm compiler
     * old asm moved to oldasm/
 
