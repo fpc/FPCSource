@@ -30,11 +30,6 @@
 { needed for insert,delete,readln }
 {$P+}
 
-{ Stack check gives a note under linux }
-{$ifndef unix}
-  {$S-}
-{$endif}
-
 {****************************************************************************
                          Global Types and Constants
 ****************************************************************************}
@@ -214,6 +209,8 @@ const
  { Delphi Compatibility }
  { assume that this program will not spawn other threads. }
   IsMultiThread : boolean = FALSE;
+ { Indicates if there was an error }
+  StackError : boolean = FALSE;
 
 var
 { Standard In- and Output }
@@ -224,8 +221,9 @@ var
   ExitCode    : Word;
   StackBottom,
   RandSeed    : Cardinal;
-{ Delphi compatible }
-  IsLibrary,IsConsole : boolean;
+  { Delphi compatibility }
+  IsLibrary : boolean;
+  IsConsole : boolean;
 {$ifdef MT}
 ThreadVar
 {$else MT}
@@ -557,7 +555,11 @@ const
 
 {
   $Log$
-  Revision 1.44  2002-04-12 17:35:24  carl
+  Revision 1.45  2002-04-21 15:51:51  carl
+  * StackError is now a typed constant
+  + $S can be used under unix
+
+  Revision 1.44  2002/04/12 17:35:24  carl
   - removed unused variable
 
   Revision 1.43  2002/01/25 17:41:05  peter

@@ -415,9 +415,6 @@ end;
 
 {$IFNDEF NO_GENERIC_STACK_CHECK}
 
-var
-  StackError : boolean;
-
 {$IFOPT S+}
 {$DEFINE STACKCHECK}
 {$ENDIF}
@@ -724,7 +721,11 @@ end;
 
 {
   $Log$
-  Revision 1.27  2002-04-15 19:38:40  peter
+  Revision 1.28  2002-04-21 15:51:50  carl
+  * StackError is now a typed constant
+  + $S can be used under unix
+
+  Revision 1.27  2002/04/15 19:38:40  peter
     * stackcheck protected against infinite recursive after stack error
     * stackcheck requires saveregisters, because it can be called from
       iocheck and then will destroy the result of the original function
