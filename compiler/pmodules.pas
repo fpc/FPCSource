@@ -725,6 +725,7 @@ implementation
         inc(ps.refs);
         symtablestack.insert(ps);
         pd:=tprocdef.create(main_program_level);
+        include(pd.procoptions,po_public);
         pd.procsym:=ps;
         ps.addprocdef(pd);
         { restore symtable }
@@ -799,7 +800,7 @@ implementation
         objectlibrary.getlabel(aktexitlabel);
         objectlibrary.getlabel(aktexit2label);
         include(current_procinfo.flags,pi_do_call);
-        genentrycode(list,true,0,parasize,nostackframe,false);
+        genentrycode(list,0,parasize,nostackframe,false);
         genexitcode(list,parasize,nostackframe,false);
         list.convert_registers;
         release_main_proc(pd);
@@ -844,18 +845,15 @@ implementation
 
          if token=_ID then
           begin
-          { create filenames and unit name }
+             { create filenames and unit name }
              main_file := current_scanner.inputfile;
              while assigned(main_file.next) do
                main_file := main_file.next;
 
              current_module.SetFileName(main_file.path^+main_file.name^,true);
+             current_module.SetModuleName(orgpattern);
 
-             stringdispose(current_module.modulename);
-             stringdispose(current_module.realmodulename);
-             current_module.modulename:=stringdup(pattern);
-             current_module.realmodulename:=stringdup(orgpattern);
-          { check for system unit }
+             { check for system unit }
              new(s2);
              s2^:=upper(SplitName(main_file.name^));
              if (cs_check_unit_name in aktglobalswitches) and
@@ -1040,7 +1038,9 @@ implementation
          { Compile the unit }
          pd:=create_main_proc(current_module.modulename^+'_init',potype_unitinit,st);
          pd.aliasnames.insert('INIT$$'+current_module.modulename^);
-         compile_proc_body(pd,true,false);
+         tcgprocinfo(current_procinfo).parse_body;
+         tcgprocinfo(current_procinfo).generate_code;
+         tcgprocinfo(current_procinfo).resetprocdef;
          release_main_proc(pd);
 
          { if the unit contains ansi/widestrings, initialization and
@@ -1064,7 +1064,9 @@ implementation
               { Compile the finalize }
               pd:=create_main_proc(current_module.modulename^+'_finalize',potype_unitfinalize,st);
               pd.aliasnames.insert('FINALIZE$$'+current_module.modulename^);
-              compile_proc_body(pd,true,false);
+              tcgprocinfo(current_procinfo).parse_body;
+              tcgprocinfo(current_procinfo).generate_code;
+              tcgprocinfo(current_procinfo).resetprocdef;
               release_main_proc(pd);
            end
          else if force_init_final then
@@ -1352,7 +1354,9 @@ implementation
   PROCEDURE main(ArgC:Integer;ArgV,EnvP:ARRAY OF PChar):Integer;CDECL;
 So, all parameters are passerd into registers in sparc architecture.}
 {$ENDIF SPARC}
-         compile_proc_body(pd,true,false);
+         tcgprocinfo(current_procinfo).parse_body;
+         tcgprocinfo(current_procinfo).generate_code;
+         tcgprocinfo(current_procinfo).resetprocdef;
          release_main_proc(pd);
 
          { should we force unit initialization? }
@@ -1390,7 +1394,9 @@ So, all parameters are passerd into registers in sparc architecture.}
               { Compile the finalize }
               pd:=create_main_proc(current_module.modulename^+'_finalize',potype_unitfinalize,st);
               pd.aliasnames.insert('FINALIZE$$'+current_module.modulename^);
-              compile_proc_body(pd,true,false);
+              tcgprocinfo(current_procinfo).parse_body;
+              tcgprocinfo(current_procinfo).generate_code;
+              tcgprocinfo(current_procinfo).resetprocdef;
               release_main_proc(pd);
            end;
 
@@ -1482,7 +1488,10 @@ So, all parameters are passerd into registers in sparc architecture.}
 end.
 {
   $Log$
-  Revision 1.106  2003-05-15 18:58:53  peter
+  Revision 1.107  2003-05-22 21:31:35  peter
+    * defer codegeneration for nested procedures
+
+  Revision 1.106  2003/05/15 18:58:53  peter
     * removed selfpointer_offset, vmtpointer_offset
     * tvarsym.adjusted_address
     * address in localsymtable is now in the real direction

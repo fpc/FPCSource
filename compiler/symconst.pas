@@ -194,7 +194,8 @@ type
     po_leftright,         { push arguments from left to right }
     po_clearstack,        { caller clears the stack }
     po_internconst,       { procedure has constant evaluator intern }
-    po_addressonly        { flag that only the address of a method is returned and not a full methodpointer }
+    po_addressonly,       { flag that only the address of a method is returned and not a full methodpointer }
+    po_public             { procedure is exported }
   );
   tprocoptions=set of tprocoption;
 
@@ -351,7 +352,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.55  2003-05-15 21:10:32  peter
+  Revision 1.56  2003-05-22 21:31:35  peter
+    * defer codegeneration for nested procedures
+
+  Revision 1.55  2003/05/15 21:10:32  peter
     * remove po_containsself
 
   Revision 1.54  2003/05/09 17:47:03  peter

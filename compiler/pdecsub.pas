@@ -29,15 +29,17 @@ interface
     uses
       tokens,symconst,symtype,symdef,symsym;
 
-    const
-      pd_global    = $1;    { directive must be global }
-      pd_body      = $2;    { directive needs a body }
-      pd_implemen  = $4;    { directive can be used implementation section }
-      pd_interface = $8;    { directive can be used interface section }
-      pd_object    = $10;   { directive can be used object declaration }
-      pd_procvar   = $20;   { directive can be used procvar declaration }
-      pd_notobject = $40;   { directive can not be used object declaration }
-      pd_notobjintf= $80;   { directive can not be used interface declaration }
+    type
+      tpdflag=(
+        pd_body,       { directive needs a body }
+        pd_implemen,   { directive can be used implementation section }
+        pd_interface,  { directive can be used interface section }
+        pd_object,     { directive can be used object declaration }
+        pd_procvar,    { directive can be used procvar declaration }
+        pd_notobject,  { directive can not be used object declaration }
+        pd_notobjintf  { directive can not be used interface declaration }
+      );
+      tpdflags=set of tpdflag;
 
     function  is_proc_directive(tok:ttoken):boolean;
 
@@ -50,7 +52,7 @@ interface
     procedure handle_calling_convention(pd:tabstractprocdef);
 
     procedure parse_parameter_dec(pd:tabstractprocdef);
-    procedure parse_proc_directives(pd:tabstractprocdef;var pdflags:word);
+    procedure parse_proc_directives(pd:tabstractprocdef;var pdflags:tpdflags);
     procedure parse_var_proc_directives(sym:tsym);
     procedure parse_object_proc_directives(pd:tabstractprocdef);
     function  parse_proc_head(aclass:tobjectdef;potype:tproctypeoption):tprocdef;
@@ -341,7 +343,6 @@ implementation
         srsym   : tsym;
         hs1 : string;
         varspez : Tvarspez;
-        hpara      : tparaitem;
         tdefaultvalue : tconstsym;
         defaultrequired : boolean;
         old_object_option : tsymoptions;
@@ -484,7 +485,7 @@ implementation
                    paramanager.push_addr_param(tt.def,pd.proccalloption) then
                   include(vs.varoptions,vo_regable);
               end;
-             hpara:=pd.concatpara(nil,tt,vs,tdefaultvalue,false);
+             pd.concatpara(nil,tt,vs,tdefaultvalue,false);
              vs:=tvarsym(vs.listnext);
            end;
         until not try_to_consume(_SEMICOLON);
@@ -588,9 +589,6 @@ implementation
             begin
               aclass:=tobjectdef(ttypesym(sym).restype.def);
               aprocsym:=tprocsym(aclass.symtable.search(sp));
-              { The procedure has been found. So it is
-                a global one. Set the flags to mark this.}
-              include(current_procinfo.flags,pi_is_global);
               { we solve this below }
               if assigned(aprocsym) then
                begin
@@ -695,13 +693,6 @@ implementation
             else
              aprocsym:=tprocsym.create(orgsp);
             symtablestack.insert(aprocsym);
-         end
-        else
-         begin
-           { Set global flag when found in globalsytmable }
-           if (not parse_only) and
-              (aprocsym.owner.symtabletype=globalsymtable) then
-             include(current_procinfo.flags,pi_is_global);
          end;
 
         { to get the correct symtablelevel we must ignore objectsymtables }
@@ -712,6 +703,10 @@ implementation
         pd._class:=aclass;
         pd.procsym:=aprocsym;
         pd.proctypeoption:=potype;
+        { methods need to be exported }
+        if assigned(aclass) and
+           (symtablestack.symtablelevel=main_program_level) then
+          include(pd.procoptions,po_public);
 
         { symbol options that need to be kept per procdef }
         pd.fileinfo:=procstartfilepos;
@@ -756,9 +751,6 @@ implementation
                      inc(testcurobject);
                      single_type(pd.rettype,hs,false);
                      pd.test_if_fpu_result;
-                     if (pd.rettype.def.deftype=stringdef) and
-                        (tstringdef(pd.rettype.def).string_typ<>st_shortstring) then
-                       include(current_procinfo.flags,pi_needs_implicit_finally);
                      dec(testcurobject);
                    end
                   else
@@ -1174,7 +1166,7 @@ type
    pd_handler=procedure(pd:tabstractprocdef);
    proc_dir_rec=record
      idtok     : ttoken;
-     pd_flags  : longint;
+     pd_flags  : tpdflags;
      handler   : pd_handler;
      pocall    : tproccalloption;
      pooption  : tprocoptions;
@@ -1189,7 +1181,7 @@ const
    (
     (
       idtok:_ABSTRACT;
-      pd_flags : pd_interface+pd_object+pd_notobjintf;
+      pd_flags : [pd_interface,pd_object,pd_notobjintf];
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_abstract;
       pocall   : pocall_none;
       pooption : [po_abstractmethod];
@@ -1198,7 +1190,7 @@ const
       mutexclpo     : [po_exports,po_interrupt,po_external]
     ),(
       idtok:_ALIAS;
-      pd_flags : pd_implemen+pd_body+pd_notobjintf;
+      pd_flags : [pd_implemen,pd_body,pd_notobjintf];
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_alias;
       pocall   : pocall_none;
       pooption : [];
@@ -1207,7 +1199,7 @@ const
       mutexclpo     : [po_external]
     ),(
       idtok:_ASMNAME;
-      pd_flags : pd_interface+pd_implemen+pd_notobjintf;
+      pd_flags : [pd_interface,pd_implemen,pd_notobjintf];
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_asmname;
       pocall   : pocall_cdecl;
       pooption : [po_external];
@@ -1216,7 +1208,7 @@ const
       mutexclpo     : [po_external]
     ),(
       idtok:_ASSEMBLER;
-      pd_flags : pd_implemen+pd_body+pd_notobjintf;
+      pd_flags : [pd_implemen,pd_body,pd_notobjintf];
       handler  : nil;
       pocall   : pocall_none;
       pooption : [po_assembler];
@@ -1225,7 +1217,7 @@ const
       mutexclpo     : [po_external]
     ),(
       idtok:_CDECL;
-      pd_flags : pd_interface+pd_implemen+pd_body+pd_procvar;
+      pd_flags : [pd_interface,pd_implemen,pd_body,pd_procvar];
       handler  : nil;
       pocall   : pocall_cdecl;
       pooption : [];
@@ -1234,7 +1226,7 @@ const
       mutexclpo     : [po_assembler,po_external]
     ),(
       idtok:_DYNAMIC;
-      pd_flags : pd_interface+pd_object+pd_notobjintf;
+      pd_flags : [pd_interface,pd_object,pd_notobjintf];
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_virtual;
       pocall   : pocall_none;
       pooption : [po_virtualmethod];
@@ -1243,16 +1235,16 @@ const
       mutexclpo     : [po_exports,po_interrupt,po_external]
     ),(
       idtok:_EXPORT;
-      pd_flags : pd_body+pd_global+pd_interface+pd_implemen{??}+pd_notobjintf;
+      pd_flags : [pd_body,pd_interface,pd_implemen,pd_notobjintf];
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_export;
       pocall   : pocall_none;
-      pooption : [po_exports];
+      pooption : [po_exports,po_public];
       mutexclpocall : [pocall_internproc,pocall_inline];
       mutexclpotype : [potype_constructor,potype_destructor];
       mutexclpo     : [po_external,po_interrupt]
     ),(
       idtok:_EXTERNAL;
-      pd_flags : pd_implemen+pd_interface+pd_notobject+pd_notobjintf;
+      pd_flags : [pd_implemen,pd_interface,pd_notobject,pd_notobjintf];
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_external;
       pocall   : pocall_none;
       pooption : [po_external];
@@ -1261,7 +1253,7 @@ const
       mutexclpo     : [po_exports,po_interrupt,po_assembler]
     ),(
       idtok:_FAR;
-      pd_flags : pd_implemen+pd_body+pd_interface+pd_procvar+pd_notobject+pd_notobjintf;
+      pd_flags : [pd_implemen,pd_body,pd_interface,pd_procvar,pd_notobject,pd_notobjintf];
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_far;
       pocall   : pocall_none;
       pooption : [];
@@ -1270,7 +1262,7 @@ const
       mutexclpo     : []
     ),(
       idtok:_FAR16;
-      pd_flags : pd_interface+pd_implemen+pd_body+pd_procvar+pd_notobject;
+      pd_flags : [pd_interface,pd_implemen,pd_body,pd_procvar,pd_notobject];
       handler  : nil;
       pocall   : pocall_far16;
       pooption : [];
@@ -1279,7 +1271,7 @@ const
       mutexclpo     : [po_external,po_leftright]
     ),(
       idtok:_FORWARD;
-      pd_flags : pd_implemen+pd_notobject+pd_notobjintf;
+      pd_flags : [pd_implemen,pd_notobject,pd_notobjintf];
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_forward;
       pocall   : pocall_none;
       pooption : [];
@@ -1288,7 +1280,7 @@ const
       mutexclpo     : [po_external]
     ),(
       idtok:_FPCCALL;
-      pd_flags : pd_interface+pd_implemen+pd_body+pd_procvar;
+      pd_flags : [pd_interface,pd_implemen,pd_body,pd_procvar];
       handler  : nil;
       pocall   : pocall_fpccall;
       pooption : [];
@@ -1297,7 +1289,7 @@ const
       mutexclpo     : [po_leftright]
     ),(
       idtok:_INLINE;
-      pd_flags : pd_interface+pd_implemen+pd_body+pd_notobjintf;
+      pd_flags : [pd_interface,pd_implemen,pd_body,pd_notobjintf];
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_inline;
       pocall   : pocall_inline;
       pooption : [];
@@ -1306,7 +1298,7 @@ const
       mutexclpo     : [po_exports,po_external,po_interrupt]
     ),(
       idtok:_INTERNCONST;
-      pd_flags : pd_implemen+pd_body+pd_notobject+pd_notobjintf;
+      pd_flags : [pd_implemen,pd_body,pd_notobject,pd_notobjintf];
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_intern;
       pocall   : pocall_none;
       pooption : [po_internconst];
@@ -1315,7 +1307,7 @@ const
       mutexclpo     : []
     ),(
       idtok:_INTERNPROC;
-      pd_flags : pd_implemen+pd_notobject+pd_notobjintf;
+      pd_flags : [pd_implemen,pd_notobject,pd_notobjintf];
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_intern;
       pocall   : pocall_internproc;
       pooption : [];
@@ -1324,7 +1316,7 @@ const
       mutexclpo     : [po_exports,po_external,po_interrupt,po_assembler,po_iocheck,po_leftright]
     ),(
       idtok:_INTERRUPT;
-      pd_flags : pd_implemen+pd_body+pd_notobject+pd_notobjintf;
+      pd_flags : [pd_implemen,pd_body,pd_notobject,pd_notobjintf];
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_interrupt;
       pocall   : pocall_none;
       pooption : [po_interrupt];
@@ -1334,7 +1326,7 @@ const
       mutexclpo     : [po_external,po_leftright,po_clearstack]
     ),(
       idtok:_IOCHECK;
-      pd_flags : pd_implemen+pd_body+pd_notobjintf;
+      pd_flags : [pd_implemen,pd_body,pd_notobjintf];
       handler  : nil;
       pocall   : pocall_none;
       pooption : [po_iocheck];
@@ -1343,7 +1335,7 @@ const
       mutexclpo     : [po_external]
     ),(
       idtok:_MESSAGE;
-      pd_flags : pd_interface+pd_object+pd_notobjintf;
+      pd_flags : [pd_interface,pd_object,pd_notobjintf];
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_message;
       pocall   : pocall_none;
       pooption : []; { can be po_msgstr or po_msgint }
@@ -1352,7 +1344,7 @@ const
       mutexclpo     : [po_interrupt,po_external]
     ),(
       idtok:_NEAR;
-      pd_flags : pd_implemen+pd_body+pd_procvar+pd_notobjintf;
+      pd_flags : [pd_implemen,pd_body,pd_procvar,pd_notobjintf];
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_near;
       pocall   : pocall_none;
       pooption : [];
@@ -1361,7 +1353,7 @@ const
       mutexclpo     : []
     ),(
       idtok:_OVERLOAD;
-      pd_flags : pd_implemen+pd_interface+pd_body;
+      pd_flags : [pd_implemen,pd_interface,pd_body];
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_overload;
       pocall   : pocall_none;
       pooption : [po_overload];
@@ -1370,7 +1362,7 @@ const
       mutexclpo     : []
     ),(
       idtok:_OVERRIDE;
-      pd_flags : pd_interface+pd_object+pd_notobjintf;
+      pd_flags : [pd_interface,pd_object,pd_notobjintf];
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_override;
       pocall   : pocall_none;
       pooption : [po_overridingmethod,po_virtualmethod];
@@ -1379,7 +1371,7 @@ const
       mutexclpo     : [po_exports,po_external,po_interrupt]
     ),(
       idtok:_PASCAL;
-      pd_flags : pd_interface+pd_implemen+pd_body+pd_procvar;
+      pd_flags : [pd_interface,pd_implemen,pd_body,pd_procvar];
       handler  : nil;
       pocall   : pocall_pascal;
       pooption : [];
@@ -1388,7 +1380,7 @@ const
       mutexclpo     : [po_external]
     ),(
       idtok:_POPSTACK;
-      pd_flags : pd_interface+pd_implemen+pd_body+pd_procvar;
+      pd_flags : [pd_interface,pd_implemen,pd_body,pd_procvar];
       handler  : nil;
       pocall   : pocall_none;
       pooption : [po_clearstack];
@@ -1397,16 +1389,16 @@ const
       mutexclpo     : [po_assembler,po_external]
     ),(
       idtok:_PUBLIC;
-      pd_flags : pd_implemen+pd_body+pd_global+pd_notobject+pd_notobjintf;
+      pd_flags : [pd_implemen,pd_body,pd_notobject,pd_notobjintf];
       handler  : nil;
       pocall   : pocall_none;
-      pooption : [];
+      pooption : [po_public];
       mutexclpocall : [pocall_internproc,pocall_inline];
       mutexclpotype : [];
       mutexclpo     : [po_external]
     ),(
       idtok:_REGISTER;
-      pd_flags : pd_interface+pd_implemen+pd_body+pd_procvar;
+      pd_flags : [pd_interface,pd_implemen,pd_body,pd_procvar];
       handler  : nil;
       pocall   : pocall_register;
       pooption : [];
@@ -1415,7 +1407,7 @@ const
       mutexclpo     : [po_external]
     ),(
       idtok:_REINTRODUCE;
-      pd_flags : pd_interface+pd_object;
+      pd_flags : [pd_interface,pd_object];
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_reintroduce;
       pocall   : pocall_none;
       pooption : [];
@@ -1424,7 +1416,7 @@ const
       mutexclpo     : []
     ),(
       idtok:_SAFECALL;
-      pd_flags : pd_interface+pd_implemen+pd_body+pd_procvar;
+      pd_flags : [pd_interface,pd_implemen,pd_body,pd_procvar];
       handler  : nil;
       pocall   : pocall_safecall;
       pooption : [];
@@ -1433,7 +1425,7 @@ const
       mutexclpo     : [po_external]
     ),(
       idtok:_SAVEREGISTERS;
-      pd_flags : pd_interface+pd_implemen+pd_body+pd_procvar+pd_notobjintf;
+      pd_flags : [pd_interface,pd_implemen,pd_body,pd_procvar,pd_notobjintf];
       handler  : nil;
       pocall   : pocall_none;
       pooption : [po_saveregisters];
@@ -1442,7 +1434,7 @@ const
       mutexclpo     : [po_external]
     ),(
       idtok:_STATIC;
-      pd_flags : pd_interface+pd_object+pd_notobjintf;
+      pd_flags : [pd_interface,pd_object,pd_notobjintf];
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_static;
       pocall   : pocall_none;
       pooption : [po_staticmethod];
@@ -1451,7 +1443,7 @@ const
       mutexclpo     : [po_external,po_interrupt,po_exports]
     ),(
       idtok:_STDCALL;
-      pd_flags : pd_interface+pd_implemen+pd_body+pd_procvar;
+      pd_flags : [pd_interface,pd_implemen,pd_body,pd_procvar];
       handler  : nil;
       pocall   : pocall_stdcall;
       pooption : [];
@@ -1460,7 +1452,7 @@ const
       mutexclpo     : [po_external]
     ),(
       idtok:_SYSCALL;
-      pd_flags : pd_interface+pd_implemen+pd_notobjintf;
+      pd_flags : [pd_interface,pd_implemen,pd_notobjintf];
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_syscall;
       pocall   : pocall_palmossyscall;
       pooption : [];
@@ -1469,7 +1461,7 @@ const
       mutexclpo     : [po_external,po_assembler,po_interrupt,po_exports]
     ),(
       idtok:_VIRTUAL;
-      pd_flags : pd_interface+pd_object+pd_notobjintf;
+      pd_flags : [pd_interface,pd_object,pd_notobjintf];
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_virtual;
       pocall   : pocall_none;
       pooption : [po_virtualmethod];
@@ -1478,7 +1470,7 @@ const
       mutexclpo     : [po_external,po_interrupt,po_exports]
     ),(
       idtok:_CPPDECL;
-      pd_flags : pd_interface+pd_implemen+pd_body+pd_procvar;
+      pd_flags : [pd_interface,pd_implemen,pd_body,pd_procvar];
       handler  : nil;
       pocall   : pocall_cppdecl;
       pooption : [po_savestdregs];
@@ -1487,7 +1479,7 @@ const
       mutexclpo     : [po_assembler,po_external,po_virtualmethod]
     ),(
       idtok:_VARARGS;
-      pd_flags : pd_interface+pd_implemen+pd_procvar;
+      pd_flags : [pd_interface,pd_implemen,pd_procvar];
       handler  : nil;
       pocall   : pocall_none;
       pooption : [po_varargs];
@@ -1497,7 +1489,7 @@ const
       mutexclpo     : [po_assembler,po_interrupt,po_leftright]
     ),(
       idtok:_COMPILERPROC;
-      pd_flags : pd_interface+pd_implemen+pd_body+pd_notobjintf;
+      pd_flags : [pd_interface,pd_implemen,pd_body,pd_notobjintf];
       handler  : nil;
       pocall   : pocall_compilerproc;
       pooption : [];
@@ -1522,7 +1514,7 @@ const
       end;
 
 
-    function parse_proc_direc(pd:tabstractprocdef;var pdflags:word):boolean;
+    function parse_proc_direc(pd:tabstractprocdef;var pdflags:tpdflags):boolean;
       {
         Parse the procedure directive, returns true if a correct directive is found
       }
@@ -1560,7 +1552,7 @@ const
          begin
             { parsing a procvar type the name can be any
               next variable !! }
-            if (pdflags and (pd_procvar or pd_object))=0 then
+            if (pdflags * [pd_procvar,pd_object])=[] then
               Message1(parser_w_unknown_proc_directive_ignored,name);
             exit;
          end;
@@ -1592,19 +1584,19 @@ const
 
         { check if method and directive not for object, like public.
           This needs to be checked also for procvars }
-        if ((proc_direcdata[p].pd_flags and pd_notobject)<>0) and
+        if (pd_notobject in proc_direcdata[p].pd_flags) and
            (pd.owner.symtabletype=objectsymtable) then
            exit;
 
         if pd.deftype=procdef then
          begin
            { Check if the directive is only for objects }
-           if ((proc_direcdata[p].pd_flags and pd_object)<>0) and
+           if (pd_object in proc_direcdata[p].pd_flags) and
               not assigned(tprocdef(pd)._class) then
             exit;
 
            { check if method and directive not for interface }
-           if ((proc_direcdata[p].pd_flags and pd_notobjintf)<>0) and
+           if (pd_notobjintf in proc_direcdata[p].pd_flags) and
               is_interface(tprocdef(pd)._class) then
             exit;
          end;
@@ -1614,30 +1606,28 @@ const
         parse_proc_direc:=true;
 
         { Check the pd_flags if the directive should be allowed }
-        if ((pdflags and pd_interface)<>0) and
-           ((proc_direcdata[p].pd_flags and pd_interface)=0) then
+        if (pd_interface in pdflags) and
+           not(pd_interface in proc_direcdata[p].pd_flags) then
           begin
             Message1(parser_e_proc_dir_not_allowed_in_interface,name);
             exit;
           end;
-        if ((pdflags and pd_implemen)<>0) and
-           ((proc_direcdata[p].pd_flags and pd_implemen)=0) then
+        if (pd_implemen in pdflags) and
+           not(pd_implemen in proc_direcdata[p].pd_flags) then
           begin
             Message1(parser_e_proc_dir_not_allowed_in_implementation,name);
             exit;
           end;
-        if ((pdflags and pd_procvar)<>0) and
-           ((proc_direcdata[p].pd_flags and pd_procvar)=0) then
+        if (pd_procvar in pdflags) and
+           not(pd_procvar in proc_direcdata[p].pd_flags) then
           begin
             Message1(parser_e_proc_dir_not_allowed_in_procvar,name);
             exit;
           end;
 
         { Return the new pd_flags }
-        if (proc_direcdata[p].pd_flags and pd_body)=0 then
-          pdflags:=pdflags and (not pd_body);
-        if (proc_direcdata[p].pd_flags and pd_global)<>0 then
-          pdflags:=pdflags or pd_global;
+        if not(pd_body in proc_direcdata[p].pd_flags) then
+          exclude(pdflags,pd_body);
 
         { Add the correct flag }
         pd.procoptions:=pd.procoptions+proc_direcdata[p].pooption;
@@ -1826,7 +1816,7 @@ const
 
 
 
-    procedure parse_proc_directives(pd:tabstractprocdef;var pdflags:word);
+    procedure parse_proc_directives(pd:tabstractprocdef;var pdflags:tpdflags);
       {
         Parse the procedure directives. It does not matter if procedure directives
         are written using ;procdir; or ['procdir'] syntax.
@@ -1870,10 +1860,10 @@ const
 
     procedure parse_var_proc_directives(sym:tsym);
       var
-        pdflags : word;
+        pdflags : tpdflags;
         pd      : tabstractprocdef;
       begin
-        pdflags:=pd_procvar;
+        pdflags:=[pd_procvar];
         pd:=nil;
         case sym.typ of
           varsym :
@@ -1894,9 +1884,9 @@ const
 
     procedure parse_object_proc_directives(pd:tabstractprocdef);
       var
-        pdflags : word;
+        pdflags : tpdflags;
       begin
-        pdflags:=pd_object;
+        pdflags:=[pd_object];
         parse_proc_directives(pd,pdflags);
       end;
 
@@ -2173,7 +2163,10 @@ const
 end.
 {
   $Log$
-  Revision 1.124  2003-05-15 18:58:53  peter
+  Revision 1.125  2003-05-22 21:31:35  peter
+    * defer codegeneration for nested procedures
+
+  Revision 1.124  2003/05/15 18:58:53  peter
     * removed selfpointer_offset, vmtpointer_offset
     * tvarsym.adjusted_address
     * address in localsymtable is now in the real direction
