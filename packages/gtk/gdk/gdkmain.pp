@@ -70,6 +70,9 @@ procedure gdk_window_destroy(window:PGdkWindow);cdecl;external gdkdll name 'gdk_
 {$ifndef win32}
 function  gdk_window_ref(window:PGdkWindow):PGdkWindow;cdecl;external gdkdll name 'gdk_window_ref';
 procedure gdk_window_unref(window:PGdkWindow);cdecl;external gdkdll name 'gdk_window_unref';
+{$else}
+function  gdk_window_ref(window:PGdkWindow):PGdkWindow;cdecl;external gdkdll name 'gdk_drawable_ref';
+procedure gdk_window_unref(window:PGdkWindow);cdecl;external gdkdll name 'gdk_drawable_unref';
 {$endif}
 function  gdk_window_at_pointer(win_x:Pgint; win_y:Pgint):PGdkWindow;cdecl;external gdkdll name 'gdk_window_at_pointer';
 procedure gdk_window_show(window:PGdkWindow);cdecl;external gdkdll name 'gdk_window_show';
@@ -110,8 +113,8 @@ function  gdk_drag_get_selection(context:PGdkDragContext):TGdkAtom;cdecl;externa
 function  gdk_drag_begin(window:PGdkWindow; targets:PGList):PGdkDragContext;cdecl;external gdkdll name 'gdk_drag_begin';
 function  gdk_drag_get_protocol(xid:guint32; protocol:PGdkDragProtocol):guint32;cdecl;external gdkdll name 'gdk_drag_get_protocol';
 procedure gdk_drag_find_window(context:PGdkDragContext; drag_window:PGdkWindow; x_root:gint; y_root:gint; dest_window:PPGdkWindow;protocol:PGdkDragProtocol);cdecl;external gdkdll name 'gdk_drag_find_window';
-function  gdk_drag_motion(context:PGdkDragContext; dest_window:PGdkWindow; protocol:TGdkDragProtocol; x_root:gint; y_root:gint;suggested_action:TGdkDragAction; possible_actions:TGdkDragAction; time:guint32):gboolean;cdecl;external gdkdll name 'gdk_drag_motion';
-procedure gdk_drag_drop(context:PGdkDragContext; time:guint32);cdecl;external gdkdll name 'gdk_drag_drop';
+function  gdk_drag_motion(context:PGdkDragContext; dest_window:PGdkWindow; protocol:TGdkDragProtocol; x_root:gint; y_root:gint;suggested_action:TGdkDragAction; possible_actions:TGdkDragAction; time:guint32):gboolean;cdecl;
+    external gdkdll name 'gdk_drag_motion';
 procedure gdk_drag_abort(context:PGdkDragContext; time:guint32);cdecl;external gdkdll name 'gdk_drag_abort';
 procedure gdk_window_set_hints(window:PGdkWindow; x:gint; y:gint; min_width:gint; min_height:gint; max_width:gint; max_height:gint; flags:gint);cdecl;external gdkdll name 'gdk_window_set_hints';
 procedure gdk_window_set_geometry_hints(window:PGdkWindow; geometry:PGdkGeometry; flags:TGdkWindowHints);cdecl;external gdkdll name 'gdk_window_set_geometry_hints';
@@ -124,13 +127,22 @@ procedure gdk_window_set_transient_for(window:PGdkWindow; leader:PGdkWindow);cde
 procedure gdk_window_set_background(window:PGdkWindow; color:PGdkColor);cdecl;external gdkdll name 'gdk_window_set_background';
 procedure gdk_window_set_back_pixmap(window:PGdkWindow; pixmap:PGdkPixmap; parent_relative:gint);cdecl;external gdkdll name 'gdk_window_set_back_pixmap';
 procedure gdk_window_set_cursor(window:PGdkWindow; cursor:PGdkCursor);cdecl;external gdkdll name 'gdk_window_set_cursor';
-{$ifndef win32}
+{$ifdef win32}
+{In gtk 1.3 these functions have been renamed/replaced.}
+procedure gdk_window_set_colormap(window:PGdkWindow; colormap:PGdkColormap);cdecl;external gdkdll name 'gdk_drawable_set_colormap';
+{$else}
 procedure gdk_window_set_colormap(window:PGdkWindow; colormap:PGdkColormap);cdecl;external gdkdll name 'gdk_window_set_colormap';
 {$endif}
 procedure gdk_window_get_user_data(window:PGdkWindow; data:Pgpointer);cdecl;external gdkdll name 'gdk_window_get_user_data';
 procedure gdk_window_get_geometry(window:PGdkWindow; x:Pgint; y:Pgint; width:Pgint; height:Pgint; depth:Pgint);cdecl;external gdkdll name 'gdk_window_get_geometry';
 procedure gdk_window_get_position(window:PGdkWindow; x:Pgint; y:Pgint);cdecl;external gdkdll name 'gdk_window_get_position';
-{$ifndef win32}
+{$ifdef win32}
+{In gtk 1.3 these functions have been renamed/replaced.}
+procedure gdk_window_get_size(window:PGdkWindow; width:Pgint; height:Pgint);cdecl;external gdkdll name 'gdk_drawable_get_size';
+function  gdk_window_get_visual(window:PGdkWindow):PGdkVisual;cdecl;external gdkdll name 'gdk_drawable_get_visual';
+function  gdk_window_get_colormap(window:PGdkWindow):PGdkColormap;cdecl;external gdkdll name 'gdk_drawable_get_colormap';
+function  gdk_window_get_type(window:PGdkWindow):TGdkWindowType;cdecl;external gdkdll name 'gdk_drawable_get_type';
+{$else}
 procedure gdk_window_get_size(window:PGdkWindow; width:Pgint; height:Pgint);cdecl;external gdkdll name 'gdk_window_get_size';
 function  gdk_window_get_visual(window:PGdkWindow):PGdkVisual;cdecl;external gdkdll name 'gdk_window_get_visual';
 function  gdk_window_get_colormap(window:PGdkWindow):PGdkColormap;cdecl;external gdkdll name 'gdk_window_get_colormap';
@@ -155,12 +167,20 @@ procedure gdk_window_register_dnd(window:PGdkWindow);cdecl;external gdkdll name 
 procedure gdk_drawable_set_data(drawable:PGdkDrawable; key:Pgchar; data:gpointer; destroy_func:TGDestroyNotify);cdecl;external gdkdll name 'gdk_drawable_set_data';
 function  gdk_cursor_new(cursor_type:TGdkCursorType):PGdkCursor;cdecl;external gdkdll name 'gdk_cursor_new';
 function  gdk_cursor_new_from_pixmap(source:PGdkPixmap; mask:PGdkPixmap; fg:PGdkColor; bg:PGdkColor; x:gint; y:gint):PGdkCursor;cdecl;external gdkdll name 'gdk_cursor_new_from_pixmap';
+{$ifdef win32}
+{In gtk 1.3 these functions have been renamed/replaced.}
+procedure gdk_cursor_destroy(cursor:PGdkCursor);cdecl;external gdkdll name 'gdk_cursor_unref';
+{$else}
 procedure gdk_cursor_destroy(cursor:PGdkCursor);cdecl;external gdkdll name 'gdk_cursor_destroy';
+{$endif}
 function  gdk_gc_new(window:PGdkWindow):PGdkGC;cdecl;external gdkdll name 'gdk_gc_new';
 function  gdk_gc_new_with_values(window:PGdkWindow; values:PGdkGCValues; values_mask:TGdkGCValuesMask):PGdkGC;cdecl;external gdkdll name 'gdk_gc_new_with_values';
 function  gdk_gc_ref(gc:PGdkGC):PGdkGC;cdecl;external gdkdll name 'gdk_gc_ref';
 procedure gdk_gc_unref(gc:PGdkGC);cdecl;external gdkdll name 'gdk_gc_unref';
-{$ifndef win32}
+{$ifdef win32}
+{In gtk 1.3 these functions have been renamed/replaced.}
+procedure gdk_gc_destroy(gc:PGdkGC);cdecl;external gdkdll name 'gdk_gc_unref';
+{$else}
 procedure gdk_gc_destroy(gc:PGdkGC);cdecl;external gdkdll name 'gdk_gc_destroy';
 {$endif}
 procedure gdk_gc_get_values(gc:PGdkGC; values:PGdkGCValues);cdecl;external gdkdll name 'gdk_gc_get_values';
@@ -188,7 +208,13 @@ function  gdk_pixmap_create_from_xpm(window:PGdkWindow; mask:PPGdkBitmap; transp
 function  gdk_pixmap_colormap_create_from_xpm(window:PGdkWindow; colormap:PGdkColormap; mask:PPGdkBitmap; transparent_color:PGdkColor; filename:Pgchar):PGdkPixmap;cdecl;external gdkdll name 'gdk_pixmap_colormap_create_from_xpm';
 function  gdk_pixmap_create_from_xpm_d(window:PGdkWindow; mask:PPGdkBitmap; transparent_color:PGdkColor; data:PPgchar):PGdkPixmap;cdecl;external gdkdll name 'gdk_pixmap_create_from_xpm_d';
 function  gdk_pixmap_colormap_create_from_xpm_d(window:PGdkWindow; colormap:PGdkColormap; mask:PPGdkBitmap; transparent_color:PGdkColor; data:PPgchar):PGdkPixmap;cdecl;external gdkdll name 'gdk_pixmap_colormap_create_from_xpm_d';
-{$ifndef win32}
+{$ifdef win32}
+{In gtk 1.3 these functions have been renamed/replaced.}
+function  gdk_pixmap_ref(pixmap:PGdkPixmap):PGdkPixmap;cdecl;external gdkdll name 'gdk_drawable_ref';
+procedure gdk_pixmap_unref(pixmap:PGdkPixmap);cdecl;external gdkdll name 'gdk_drawable_unref';
+function  gdk_bitmap_ref(pixmap:PGdkBitmap):PGdkBitmap;cdecl;external gdkdll name 'gdk_drawable_ref';
+procedure gdk_bitmap_unref(pixmap:PGdkBitmap);cdecl;external gdkdll name 'gdk_drawable_unref';
+{$else}
 function  gdk_pixmap_ref(pixmap:PGdkPixmap):PGdkPixmap;cdecl;external gdkdll name 'gdk_pixmap_ref';
 procedure gdk_pixmap_unref(pixmap:PGdkPixmap);cdecl;external gdkdll name 'gdk_pixmap_unref';
 function  gdk_bitmap_ref(pixmap:PGdkBitmap):PGdkBitmap;cdecl;external gdkdll name 'gdk_bitmap_ref';
@@ -199,7 +225,10 @@ function  gdk_image_new(thetype:TGdkImageType; visual:PGdkVisual; width:gint; he
 function  gdk_image_get(window:PGdkWindow; x:gint; y:gint; width:gint; height:gint):PGdkImage;cdecl;external gdkdll name 'gdk_image_get';
 procedure gdk_image_put_pixel(image:PGdkImage; x:gint; y:gint; pixel:guint32);cdecl;external gdkdll name 'gdk_image_put_pixel';
 function  gdk_image_get_pixel(image:PGdkImage; x:gint; y:gint):guint32;cdecl;external gdkdll name 'gdk_image_get_pixel';
-{$ifndef win32}
+{$ifdef win32}
+{In gtk 1.3 these functions have been renamed/replaced.}
+procedure gdk_image_destroy(image:PGdkImage);cdecl;external gdkdll name 'gdk_image_unref';
+{$else}
 procedure gdk_image_destroy(image:PGdkImage);cdecl;external gdkdll name 'gdk_image_destroy';
 {$endif}
 function  gdk_colormap_new(visual:PGdkVisual; allocate:gint):PGdkColormap;cdecl;external gdkdll name 'gdk_colormap_new';
@@ -252,7 +281,11 @@ procedure gdk_draw_polygon(drawable:PGdkDrawable; gc:PGdkGC; filled:gint; points
 procedure gdk_draw_string(drawable:PGdkDrawable; font:PGdkFont; gc:PGdkGC; x:gint; y:gint; thestring:Pgchar);cdecl;external gdkdll name 'gdk_draw_string';
 procedure gdk_draw_text(drawable:PGdkDrawable; font:PGdkFont; gc:PGdkGC; x:gint; y:gint; text:Pgchar; text_length:gint);cdecl;external gdkdll name 'gdk_draw_text';
 procedure gdk_draw_text_wc(drawable:PGdkDrawable; font:PGdkFont; gc:PGdkGC; x:gint; y:gint; text:PGdkWChar; text_length:gint);cdecl;external gdkdll name 'gdk_draw_text_wc';
-{$ifndef gtkwin}
+{$ifdef gtkwin}
+{In gtk 1.3 these functions have been renamed/replaced.}
+procedure gdk_draw_pixmap(drawable:PGdkDrawable; gc:PGdkGC; src:PGdkDrawable; xsrc:gint; ysrc:gint; xdest:gint; ydest:gint; width:gint; height:gint);cdecl;external gdkdll name 'gdk_draw_drawable';
+procedure gdk_draw_bitmap(drawable:PGdkDrawable; gc:PGdkGC; src:PGdkDrawable; xsrc:gint; ysrc:gint; xdest:gint; ydest:gint; width:gint; height:gint);cdecl;external gdkdll name 'gdk_draw_drawable';
+{$else}
 procedure gdk_draw_pixmap(drawable:PGdkDrawable; gc:PGdkGC; src:PGdkDrawable; xsrc:gint; ysrc:gint; xdest:gint; ydest:gint; width:gint; height:gint);cdecl;external gdkdll name 'gdk_draw_pixmap';
 procedure gdk_draw_bitmap(drawable:PGdkDrawable; gc:PGdkGC; src:PGdkDrawable; xsrc:gint; ysrc:gint; xdest:gint; ydest:gint; width:gint; height:gint);cdecl;external gdkdll name 'gdk_draw_bitmap';
 {$endif}
@@ -271,7 +304,8 @@ function  gdk_string_to_compound_text(str:Pgchar; encoding:PTGdkAtom; format:Pgi
 procedure gdk_free_compound_text(ctext:Pguchar);cdecl;external gdkdll name 'gdk_free_compound_text';
 function  gdk_atom_intern(atom_name:Pgchar; only_if_exists:gint):TGdkAtom;cdecl;external gdkdll name 'gdk_atom_intern';
 function  gdk_atom_name(atom:TGdkAtom):Pgchar;cdecl;external gdkdll name 'gdk_atom_name';
-function  gdk_property_get(window:PGdkWindow; theproperty:TGdkAtom; thetype:TGdkAtom; offset:gulong; length:gulong; pdelete:gint; actual_property_type:PTGdkAtom; actual_format:Pgint; actual_length:Pgint; data:PPguchar):gint;cdecl;external gdkdll name 'gdk_property_get';
+function  gdk_property_get(window:PGdkWindow; theproperty:TGdkAtom; thetype:TGdkAtom; offset:gulong; length:gulong; pdelete:gint; actual_property_type:PTGdkAtom; actual_format:Pgint; actual_length:Pgint; data:PPguchar):gint;cdecl;
+   external gdkdll name 'gdk_property_get';
 procedure gdk_property_change(window:PGdkWindow; theproperty:TGdkAtom; thetype:TGdkAtom; format:gint; mode:TGdkPropMode; data:Pguchar; nelements:gint);cdecl;external gdkdll name 'gdk_property_change';
 procedure gdk_property_delete(window:PGdkWindow; theproperty:TGdkAtom);cdecl;external gdkdll name 'gdk_property_delete';
 function  gdk_rectangle_intersect(src1:PGdkRectangle; src2:PGdkRectangle; dest:PGdkRectangle):gint;cdecl;external gdkdll name 'gdk_rectangle_intersect';
@@ -355,7 +389,10 @@ procedure gdk_threads_leave;cdecl;external gdkdll name 'gdk_threads_leave';
 
 {
   $Log$
-  Revision 1.3  2000-01-26 19:16:24  lazarus
+  Revision 1.4  2000-02-14 19:18:58  peter
+    * win32 updates from vincent snijder
+
+  Revision 1.3  2000/01/26 19:16:24  lazarus
   Implemented TPen.Style properly for GTK. Done SelectObject for pen objects.
   Misc bug fixes.
   Corrected GDK declaration for gdk_gc_set_slashes.
@@ -400,4 +437,3 @@ procedure gdk_threads_leave;cdecl;external gdkdll name 'gdk_threads_leave';
     * gtk.pp,gdk.pp for an all in one unit
 
 }
-

@@ -170,8 +170,8 @@ procedure gtk_object_destroy(theobject:PGtkObject);cdecl;external gtkdll name 'g
 procedure gtk_object_getv(theobject:PGtkObject; n_args:guint; args:PGtkArg);cdecl;external gtkdll name 'gtk_object_getv';
 {$ifndef gtkwin}
 procedure gtk_object_get(theobject:PGtkObject; first_arg_name:Pgchar; args:array of const);cdecl;external gtkdll name 'gtk_object_get';
-procedure gtk_object_set(theobject:PGtkObject; first_arg_name:Pgchar; args:array of const);cdecl;external gtkdll name 'gtk_object_set';
 {$endif}
+procedure gtk_object_set(theobject:PGtkObject; first_arg_name:Pgchar; args:array of const);cdecl;external gtkdll name 'gtk_object_set';
 procedure gtk_object_setv(theobject:PGtkObject; n_args:guint; args:PGtkArg);cdecl;external gtkdll name 'gtk_object_setv';
 function  gtk_object_query_args(class_type:TGtkType; arg_flags:PPguint32; n_args:Pguint):PGtkArg;cdecl;external gtkdll name 'gtk_object_query_args';
 procedure gtk_object_set_data(theobject:PGtkObject; key:Pgchar; data:gpointer);cdecl;external gtkdll name 'gtk_object_set_data';
@@ -189,9 +189,7 @@ procedure gtk_object_set_data_by_id(theobject:PGtkObject; data_id:TGQuark; data:
 procedure gtk_object_set_data_by_id_full(theobject:PGtkObject; data_id:TGQuark; data:gpointer; destroy:TGtkDestroyNotify);cdecl;external gtkdll name 'gtk_object_set_data_by_id_full';
 function  gtk_object_get_data_by_id(theobject:PGtkObject; data_id:TGQuark):gpointer;cdecl;external gtkdll name 'gtk_object_get_data_by_id';
 procedure gtk_object_remove_data_by_id(theobject:PGtkObject; data_id:TGQuark);cdecl;external gtkdll name 'gtk_object_remove_data_by_id';
-{$ifndef gtkwin}
 procedure gtk_object_remove_no_notify_by_id(theobject:PGtkObject; key_id:TGQuark);cdecl;external gtkdll name 'gtk_object_remove_no_notify_by_id';
-{$endif}
 procedure gtk_object_arg_set(theobject:PGtkObject; arg:PGtkArg; info:PGtkArgInfo);cdecl;external gtkdll name 'gtk_object_arg_set';
 procedure gtk_object_arg_get(theobject:PGtkObject; arg:PGtkArg; info:PGtkArgInfo);cdecl;external gtkdll name 'gtk_object_arg_get';
 function  gtk_object_args_collect(theobject_type:TGtkType; arg_list_p:PPGSList; info_list_p:PPGSList; first_arg_name:Pgchar; var_args:array of const):Pgchar;cdecl;external gtkdll name 'gtk_object_args_collect';
@@ -266,7 +264,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  1999-11-24 23:36:36  peter
+  Revision 1.2  2000-02-14 19:18:58  peter
+    * win32 updates from vincent snijder
+
+  Revision 1.1  1999/11/24 23:36:36  peter
     * moved to packages dir
 
   Revision 1.15  1999/10/06 17:42:49  peter

@@ -34,9 +34,7 @@ function  gtk_init_check(argc:plongint; argv:pppchar):gboolean;cdecl;external gt
 procedure gtk_exit(error_code:gint);cdecl;external gtkdll name 'gtk_exit';
 function  gtk_set_locale:Pgchar;cdecl;external gtkdll name 'gtk_set_locale';
 function  gtk_events_pending:gint;cdecl;external gtkdll name 'gtk_events_pending';
-{$ifndef gtkwin}
 procedure gtk_main_do_event(event:PGdkEvent);cdecl;external gtkdll name 'gtk_main_do_event';
-{$endif}
 procedure gtk_main;cdecl;external gtkdll name 'gtk_main';
 function  gtk_main_level:guint;cdecl;external gtkdll name 'gtk_main_level';
 procedure gtk_main_quit;cdecl;external gtkdll name 'gtk_main_quit';
@@ -84,7 +82,10 @@ procedure gtk_propagate_event(widget:PGtkWidget; event:PGdkEvent);cdecl;external
 
 {
   $Log$
-  Revision 1.1  1999-11-24 23:36:36  peter
+  Revision 1.2  2000-02-14 19:18:58  peter
+    * win32 updates from vincent snijder
+
+  Revision 1.1  1999/11/24 23:36:36  peter
     * moved to packages dir
 
   Revision 1.9  1999/10/06 17:42:49  peter
