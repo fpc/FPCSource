@@ -514,6 +514,111 @@ end;
 {$endif not hascompilerproc}
 
 {$ifdef hascompilerproc}
+function fpc_WideCharArray_To_ShortStr(const arr: array of widechar): shortstring;[public,alias:'FPC_WIDECHARARRAY_TO_SHORTSTR']; compilerproc;
+var
+  l: longint;
+{$else hascompilerproc}
+function fpc_WideCharArray_To_ShortStr(arr:pwidechar; l : longint):shortstring;[public,alias:'FPC_WIDECHARARRAY_TO_SHORTSTR'];
+var
+{$endif hascompilerproc}
+ index: longint;
+ len: byte;
+begin
+{$ifdef hascompilerproc}
+  l := high(arr)+1;
+{$endif hascompilerproc}
+  if l>=256 then
+    l:=255
+  else if l<0 then
+    l:=0;
+  index:=IndexWord(arr[0],l,0);
+  if (index < 0) then
+    len := l
+  else
+    len := index;
+{$ifdef hascompilerproc}
+  Wide2AnsiMoveProc (pwidechar(@arr),PAnsiChar(@(fpc_WideCharArray_To_ShortStr[1])),len);
+{$else}
+  Wide2AnsiMoveProc (arr, PAnsiChar(@(fpc_WideCharArray_To_ShortStr[1])),len);
+{$endif}
+  fpc_WideCharArray_To_ShortStr[0]:=chr(len);
+end;
+
+Function fpc_WideCharArray_To_AnsiStr(const arr: array of widechar): AnsiString; {$ifdef hascompilerproc} compilerproc; {$endif}
+var
+  i  : SizeInt;
+begin
+  if arr[0]=#0 Then
+    { result is automatically set to '' }
+    exit;
+  i:=IndexWord(arr,high(arr)+1,0);
+  if i = -1 then
+    i := high(arr)+1;
+  SetLength(fpc_WideCharArray_To_AnsiStr,i);
+  Wide2AnsiMoveProc (pwidechar(@arr),PAnsiChar(Pointer(fpc_WideCharArray_To_AnsiStr)),i);
+end;
+
+{ old style helper }
+{$ifndef hascompilerproc}
+Procedure fpc_WideCharArray_To_AnsiStr(var a : AnsiString; p: pointer; len: SizeInt); [Public,Alias : 'FPC_WIDECHARARRAY_TO_ANSISTR'];  {$ifdef hascompilerproc} compilerproc; {$endif}
+var
+  src: pwidechar;
+  i: SizeInt;
+begin
+  src := pwidechar(p);
+  if src[0]=#0 Then
+    begin
+      pointer(a) := nil;
+      exit;
+    end;
+  i:=IndexWord(src^,len,0);
+  if i = -1 then
+    i := len;
+  pointer(a) := NewAnsiString(i);
+  Wide2AnsiMoveProc (src,PAnsiChar(Pointer(@a[1])),i);
+end;
+{$endif not hascompilerproc}
+
+Function fpc_WideCharArray_To_WideStr(const arr: array of widechar): WideString; {$ifdef hascompilerproc} compilerproc; {$endif}
+var
+  i  : SizeInt;
+begin
+  if arr[0]=#0 Then
+    { result is automatically set to '' }
+    exit;
+  i:=IndexWord(arr,high(arr)+1,0);
+  if i = -1 then
+    i := high(arr)+1;
+  SetLength(fpc_WideCharArray_To_WideStr,i);
+  Move(pwidechar(@arr)^, PWideChar(Pointer(@fpc_WideCharArray_To_WideStr[1]))^,i*sizeof(WideChar));
+  { Terminating Zero }
+  PWideChar(Pointer(@fpc_WideCharArray_To_WideStr[1])+i*sizeof(WideChar))^:=#0;
+end;
+
+{ old style helper }
+{$ifndef hascompilerproc}
+Procedure fpc_WideCharArray_To_WideStr(var a : WideString; p: pointer; len: SizeInt); [Public,Alias : 'FPC_WIDECHARARRAY_TO_WIDESTR'];  {$ifdef hascompilerproc} compilerproc; {$endif}
+var
+  src: pwidechar;
+  i: SizeInt;
+begin
+  src := pwidechar(p);
+  if src[0]=#0 Then
+    begin
+      pointer(a) := nil;
+      exit;
+    end;
+  i:=IndexWord(src^,len,#0);
+  if i = -1 then
+    i := len;
+  pointer(a) := NewWideString(i);
+  Move(p^, PWideChar(Pointer(@a[1]))^,i*sizeof(WideChar));
+  { Terminating Zero }
+  PWideChar(Pointer(@a[1])+i*sizeof(WideChar))^:=#0;
+end;
+{$endif not hascompilerproc}
+
+{$ifdef hascompilerproc}
 { inside the compiler, the resulttype is modified to that of the actual }
 { chararray we're converting to (JM)                                    }
 function fpc_widestr_to_chararray(arraysize: SizeInt; const src: WideString): fpc_big_chararray;[public,alias: 'FPC_WIDESTR_TO_CHARARRAY']; compilerproc;
@@ -530,6 +635,55 @@ begin
 end;
 {$endif hascompilerproc}
 
+{$ifdef hascompilerproc}
+{ inside the compiler, the resulttype is modified to that of the actual }
+{ widechararray we're converting to (JM)                                }
+function fpc_widestr_to_widechararray(arraysize: SizeInt; const src: WideString): fpc_big_widechararray;[public,alias: 'FPC_WIDESTR_TO_WIDECHARARRAY']; compilerproc;
+var
+  len: SizeInt;
+begin
+  len := length(src);
+  if len > arraysize then
+    len := arraysize;
+  { make sure we don't try to access element 1 of the ansistring if it's nil }
+  if len > 0 then
+    move(src[1],fpc_widestr_to_widechararray[0],len*SizeOf(WideChar));
+  fillchar(fpc_widestr_to_widechararray[len],(arraysize-len)*SizeOf(WideChar),0);
+end;
+{$endif hascompilerproc}
+
+{$ifdef hascompilerproc}
+{ inside the compiler, the resulttype is modified to that of the actual }
+{ chararray we're converting to (JM)                                    }
+function fpc_ansistr_to_widechararray(arraysize: SizeInt; const src: AnsiString): fpc_big_widechararray;[public,alias: 'FPC_ANSISTR_TO_WIDECHARARRAY']; compilerproc;
+var
+  len: SizeInt;
+begin
+  len := length(src);
+  if len > arraysize then
+    len := arraysize;
+  { make sure we don't dereference src if it can be nil (JM) }
+  if len > 0 then
+    ansi2widemoveproc(pchar(@src[1]),pwidechar(@fpc_ansistr_to_widechararray[0]),len);
+  fillchar(fpc_ansistr_to_widechararray[len],(arraysize-len)*SizeOf(WideChar),0);
+end;
+{$endif hascompilerproc}
+
+{$ifdef hascompilerproc}
+function fpc_shortstr_to_widechararray(arraysize: SizeInt; const src: ShortString): fpc_big_widechararray;[public,alias: 'FPC_SHORTSTR_TO_WIDECHARARRAY']; compilerproc;
+var
+  len: longint;
+begin
+  len := length(src);
+  if len > arraysize then
+    len := arraysize;
+  { make sure we don't access char 1 if length is 0 (JM) }
+  if len > 0 then
+    ansi2widemoveproc(pchar(@src[1]),pwidechar(@fpc_shortstr_to_widechararray[0]),len);
+  fillchar(fpc_shortstr_to_widechararray[len],(arraysize-len)*SizeOf(WideChar),0);
+end;
+
+{$endif hascompilerproc}
 Function fpc_WideStr_Compare(const S1,S2 : WideString): SizeInt;[Public,Alias : 'FPC_WIDESTR_COMPARE']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {
   Compares 2 WideStrings;
@@ -1234,7 +1388,10 @@ function Utf8ToAnsi(const s : UTF8String) : ansistring;{$ifdef SYSTEMINLINE}inli
 
 {
   $Log$
-  Revision 1.46  2004-11-17 22:19:04  peter
+  Revision 1.47  2005-01-06 13:31:06  florian
+    * widecharray patch from Peter
+
+  Revision 1.46  2004/11/17 22:19:04  peter
   internconst, internproc and some external declarations moved to interface
 
   Revision 1.45  2004/10/24 20:01:42  peter
