@@ -749,12 +749,19 @@ Begin
               { this is not allowed, because we don't know if the self
                 register is still free, and loading it first is also
                 not possible, because this could break code }
-              {opr.typ:=OPR_CONSTANT;
-              opr.val:=pvarsym(sym)^.address;}
+              { Be TP/Delphi compatible in Delphi or TP modes }
+              if (m_tp in aktmodeswitches) then
+                begin
+                  opr.typ:=OPR_CONSTANT;
+                  opr.val:=pvarsym(sym)^.address;
+                end
               { I do not agree here people using method vars should ensure
                 that %esi is valid there }
-              opr.ref.base:=self_pointer;
-              opr.ref.offset:=pvarsym(sym)^.address;
+              else
+                begin
+                  opr.ref.base:=self_pointer;
+                  opr.ref.offset:=pvarsym(sym)^.address;
+                end;
               hasvar:=true;
               SetupVar:=true;
               Exit;
@@ -1501,7 +1508,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.37  2000-03-16 15:10:25  pierre
+  Revision 1.38  2000-03-28 22:10:12  pierre
+   * Object fields are simple offsets in TP/Delphi mode
+
+  Revision 1.37  2000/03/16 15:10:25  pierre
    * correct the fixups for inlined assembler code
 
   Revision 1.36  2000/03/15 23:10:01  pierre
