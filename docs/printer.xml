@@ -33,21 +33,11 @@ Its basic functionality is the same for al supported systems, although there
 are minor differences on linux/unix.
 </descr>
 
-<element name="DefFile">
-<short>Default printer file name</short>
-<descr>
-This constant is used to initialize the <link id="Lst"/> file on Linux. It
-is the filename argument that is given to <link id="AssignLst"/>.
-</descr>
-</element>
-
 <element name="lst">
 <short>Default printing file.</short>
 <descr>
 <var>Lst</var> is the standard printing device. <br/> On linux, 
 <var>Lst</var> is set up using <var>AssignLst('/tmp/PID.lst')</var>. 
-You can change this behaviour at compile time, setting the <link
-id="DefFile"/> constant.
 </descr>
 <seealso>
 <link id="AssignLst"/>

@@ -26,7 +26,7 @@
 <!-- \FPCexampledir{sysutex} -->
 <descr>
 This documentation describes the <file>sysutils</file> unit. The <file>sysutils</file> unit
-was largely written by Gertjan Schouten, and completed by Michael Van Canneyt.
+was started by Gertjan Schouten, and completed by Michael Van Canneyt.
 It aims to be compatible to the Delphi <file>sysutils</file> unit, but in contrast
 with  the latter, it is designed to work on multiple platforms. It is implemented
 on all supported platforms.
@@ -3301,6 +3301,53 @@ environment variable. If the specified variable does not exist or
 <var>EnvVar</var> is empty, an empty string is returned.
 </p>
 </descr>
+<seealso>
+<link id="GetEnvironmentString"/>
+<link id="GetEnvironmentVariableCount"/>
+<example file="sysutex/ex93"/>
+</seealso>
+
+</element>
+
+<!-- function Visibility: default -->
+<element name="GetEnvironmentVariableCount">
+<short>Return the number of variables in the environment.</short>
+<descr>
+<p>
+<var>GetEnvironmentVariableCount</var> returns the number of variables in
+the environment. The number is 1 based, but the result may be zero if there
+are no environment variables.
+</p>
+</descr>
+<errors>
+If there is no environment, -1 may be returned.
+</errors>
+<seealso>
+<link id="GetEnvironmentString"/>
+<link id="GetEnvironmentVariable"/>
+</seealso>
+<example file="sysutex/ex92"/>
+</element>
+
+<element name="GetEnvironmentString">
+<short>Return an environment variable by index.</short>
+<descr>
+<p>
+<var>GetEnvironmentString</var> returns the <var>Index</var>-th environment
+variable. The index is 1 based, and is bounded from above by the result of <link
+id="GetEnvironmentVariableCount"/>.
+</p>
+<p>
+For an example, <link id="GetEnvironmentVariableCount"/>.
+</p>
+</descr>
+<errors>
+If there is no environment, -1 may be returned.
+</errors>
+<seealso>
+<link id="GetEnvironmentVariable"/>
+<link id="GetEnvironmentVariableCount"/>
+</seealso>
 </element>
 
 <!-- procedure Visibility: default -->
@@ -3316,10 +3363,6 @@ After the specified period has expired, program execution resumes.
 guarantees are made as to the exact duration of the suspension. 
 </remark>
 </descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
 </element>
 
 <!-- function Visibility: default -->
