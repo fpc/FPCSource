@@ -36,10 +36,9 @@
 {$ifndef FPC_SYSTEM_HAS_SHL_QWORD}
     function fpc_shl_qword(value,shift : qword) : qword; [public,alias: 'FPC_SHL_QWORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
       begin
+        shift:=shift and 63;
         if shift=0 then
           result:=value
-        else if shift>63 then
-          result:=0
         else if shift>31 then
           begin
             tqwordrec(result).low:=0;
@@ -57,10 +56,9 @@
 {$ifndef FPC_SYSTEM_HAS_SHR_QWORD}
    function fpc_shr_qword(value,shift : qword) : qword; [public,alias: 'FPC_SHR_QWORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
       begin
+        shift:=shift and 63;
         if shift=0 then
           result:=value
-        else if shift>63 then
-          result:=0
         else if shift>31 then
           begin
             tqwordrec(result).high:=0;
@@ -78,10 +76,9 @@
 {$ifndef FPC_SYSTEM_HAS_SHL_INT64}
     function fpc_shl_int64(value,shift : int64) : int64; [public,alias: 'FPC_SHL_INT64']; {$ifdef hascompilerproc} compilerproc; {$endif}
       begin
+        shift:=shift and 63;
         if shift=0 then
           result:=value
-        else if shift>63 then
-          result:=0
         else if shift>31 then
           begin
             tqwordrec(result).low:=0;
@@ -99,10 +96,9 @@
 {$ifndef FPC_SYSTEM_HAS_SHR_INT64}
     function fpc_shr_int64(value,shift : int64) : int64; [public,alias: 'FPC_SHR_INT64']; {$ifdef hascompilerproc} compilerproc; {$endif}
       begin
+        shift:=shift and 63;
         if shift=0 then
           result:=value
-        else if shift>63 then
-          result:=0
         else if shift>31 then
           begin
             tqwordrec(result).high:=0;
@@ -366,7 +362,10 @@
 
 {
   $Log$
-  Revision 1.25  2004-04-29 18:59:43  peter
+  Revision 1.26  2004-05-23 14:09:43  peter
+    * shr/shl use and 63 for the shift value
+
+  Revision 1.25  2004/04/29 18:59:43  peter
     * str() helpers now also use valint/valuint
     * int64/qword helpers disabled for cpu64
 
