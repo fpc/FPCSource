@@ -550,9 +550,6 @@ var
 const
   MaxFileNameSize = 46;
 begin
-{$ifdef TEMPHEAP}
-  switch_to_base_heap;
-{$endif TEMPHEAP}
   case CompilationPhase of
     cpCompiling :
       begin
@@ -620,9 +617,6 @@ begin
    FormatParams)
   );
   KeyST^.SetText(^C+KeyS);
-{$ifdef TEMPHEAP}
-  switch_to_temp_heap;
-{$endif TEMPHEAP}
 end;
 
 
@@ -738,9 +732,6 @@ end;
 
 function CompilerComment(Level:Longint; const s:string):boolean; {$ifndef FPC}far;{$endif}
 begin
-{$ifdef TEMPHEAP}
-  switch_to_base_heap;
-{$endif TEMPHEAP}
   CompilerComment:=false;
   if (status.verbosity and Level)<>0 then
    begin
@@ -768,9 +759,6 @@ begin
      { update memory usage }
      { HeapView^.Update; }
    end;
-{$ifdef TEMPHEAP}
-  switch_to_temp_heap;
-{$endif TEMPHEAP}
 end;
 
 
@@ -944,10 +932,6 @@ begin
   ChangeRedirOut(FPOutFileName,false);
   ChangeRedirError(FPErrFileName,false);
 {$endif}
-{$ifdef TEMPHEAP}
-  split_heap;
-  switch_to_temp_heap;
-{$endif TEMPHEAP}
   { insert "" around name so that spaces are allowed }
   { only supported in compiler after 2000/01/14 PM   }
   if pos(' ',FileName)>0 then
@@ -1089,9 +1073,6 @@ begin
        else if error=0 then
          WUtils.DeleteFile(GetExePath+PpasFile);
     end;
-{$ifdef TEMPHEAP}
-  switch_to_base_heap;
-{$endif TEMPHEAP}
 {$ifdef redircompiler}
   RestoreRedirOut;
   RestoreRedirError;
@@ -1140,10 +1121,6 @@ begin
    end;
 { Update the app }
   Message(Application,evCommand,cmUpdate,nil);
-{$ifdef TEMPHEAP}
-  releasetempheap;
-  unsplit_heap;
-{$endif TEMPHEAP}
   DummyView:=Desktop^.First;
   while (DummyView<>nil) and (DummyView^.GetState(sfVisible)=false) do
   begin
@@ -1336,7 +1313,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.24  2004-09-09 20:33:00  jonas
+  Revision 1.25  2004-11-02 23:53:19  peter
+    * fixed crashes with ide and 1.9.x
+
+  Revision 1.24  2004/09/09 20:33:00  jonas
     * made CompilerStop declaration compliant to new tstopprocedure type in
       compiler
 

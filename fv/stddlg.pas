@@ -829,9 +829,10 @@ function MatchesMask(What, Mask: string): boolean;
       end;
     found:=true;
     repeat
-      if found then
-       inc(i2);
+      inc(i2);
       inc(i1);
+      if (i1>length(hstr1)) or (i2>length(hstr2)) then
+        break;
       case hstr1[i1] of
         '?' :
           found:=true;
@@ -853,7 +854,7 @@ function MatchesMask(What, Mask: string): boolean;
         else
           found:=(hstr1[i1]=hstr2[i2]) or (hstr2[i2]='?');
       end;
-    until (i1>=length(hstr1)) or (i2>length(hstr2)) or (not found);
+    until (not found);
     if found then
       found:=(i1>=length(hstr1)) and (i2>=length(hstr2));
     CmpStr:=found;

@@ -1606,6 +1606,7 @@ FUNCTION NewMenu (Items: PMenuItem): PMenu;
 VAR P: PMenu;
 BEGIN
    New(P);                                            { Create new menu }
+   FillChar(P^,sizeof(TMenu),0);
    If (P <> Nil) Then Begin                           { Check valid pointer }
      P^.Items := Items;                               { Hold item list }
      P^.Default := Items;                             { Set default item }
@@ -1647,10 +1648,9 @@ FUNCTION NewLine (Next: PMenuItem): PMenuItem;
 VAR P: PMenuItem;
 BEGIN
    New(P);                                            { Allocate memory }
+   FillChar(P^,sizeof(TMenuItem),0);
    If (P <> Nil) Then Begin                           { Check valid pointer }
      P^.Next := Next;                                 { Hold next menu item }
-     P^.Name := Nil;                                  { Clear name ptr }
-     P^.HelpCtx := hcNoContext;                       { Clear help context }
    End;
    NewLine := P;                                      { Return new line }
 END;
@@ -1664,6 +1664,7 @@ VAR P: PMenuItem; R: TRect; T: PView;
 BEGIN
    If (Name <> '') AND (Command <> 0) Then Begin
      New(P);                                          { Allocate memory }
+     FillChar(P^,sizeof(TMenuItem),0);
      If (P <> Nil) Then Begin                         { Check valid pointer }
        P^.Next := Next;                               { Hold next item }
        P^.Name := NewStr(Name);                       { Hold item name }
@@ -1691,11 +1692,10 @@ VAR P: PMenuItem;
 BEGIN
    If (Name <> '') AND (SubMenu <> Nil) Then Begin
      New(P);                                          { Allocate memory }
+     FillChar(P^,sizeof(TMenuItem),0);
      If (P <> Nil) Then Begin                         { Check valid pointer }
        P^.Next := Next;                               { Hold next item }
        P^.Name := NewStr(Name);                       { Hold submenu name }
-       P^.Command := 0;                               { Clear item command }
-       P^.Disabled := False;                          { Item not disabled }
        P^.HelpCtx := AHelpCtx;                        { Set help context }
        P^.SubMenu := SubMenu;                         { Hold next submenu }
      End;
@@ -1759,7 +1759,10 @@ END;
 END.
 {
  $Log$
- Revision 1.16  2002-10-17 11:24:17  pierre
+ Revision 1.17  2004-11-02 23:53:19  peter
+   * fixed crashes with ide and 1.9.x
+
+ Revision 1.16  2002/10/17 11:24:17  pierre
   * Clean up the Load/Store routines so they are endian independent
 
  Revision 1.15  2002/09/07 15:06:37  peter

@@ -71,7 +71,6 @@ procedure RegisterHelpType;
 
 implementation
 
-uses CallSpec;
 
 function DefVPHGetAttrColor(TextStyle, TextColor: byte; var Color: byte): boolean;
 begin
@@ -183,7 +182,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.3  2002-09-07 15:40:50  peter
+  Revision 1.4  2004-11-02 23:53:19  peter
+    * fixed crashes with ide and 1.9.x
+
+  Revision 1.3  2002/09/07 15:40:50  peter
     * old logs removed and tabs fixed
 
 }

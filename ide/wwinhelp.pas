@@ -235,7 +235,7 @@ procedure RegisterHelpType;
 
 implementation
 
-uses {Crt,}Strings,CallSpec;
+uses Strings;
 
 function ReadString(F: PStream): string;
 var S: string;
@@ -1229,7 +1229,7 @@ begin
       TEN.LinkData1:=LinkData1;
       TEN.LinkData2Size:=LinkData2Size;
       TEN.LinkData2:=LinkData2;
-      DoCont:=(longint(CallPointerLocal(EnumProc,PreviousFramePointer,@TEN)) and $ff)<>0;
+      DoCont:=(longint(CallPointerLocal(EnumProc,get_caller_frame(get_frame),@TEN)) and $ff)<>0;
       case TL.RecordType of
         $02: ;
         $20,$23:
@@ -1677,7 +1677,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.5  2002-11-28 08:44:19  pierre
+  Revision 1.6  2004-11-02 23:53:19  peter
+    * fixed crashes with ide and 1.9.x
+
+  Revision 1.5  2002/11/28 08:44:19  pierre
    * Correct the wrong code commented out by last commit
 
   Revision 1.4  2002/11/27 20:07:03  peter

@@ -1424,13 +1424,16 @@ END;
 PROCEDURE TInputLine.DrawCursor;
 VAR I, X: Sw_Integer; S: String;
 BEGIN
-   if (TextModeGFV) then
+  If (State AND sfFocused <> 0) Then
+   Begin           { Focused window }
+    if (TextModeGFV) then
      begin
        Cursor.Y:=0;
        Cursor.X:=CurPos-FirstPos+1;
-       TView.ResetCursor;
+       ResetCursor;
      end
-   else If (State AND sfFocused <> 0) Then Begin           { Focused window }
+   else
+    begin
      X := TextWidth(LeftArr);                         { Preset x position }
      I := 0;                                          { Preset cursor width }
      If (Data <> Nil) Then Begin                      { Data pointer valid }
@@ -1447,6 +1450,7 @@ BEGIN
          Else ClearArea(X, 0, X+I, FontHeight, Green);{ Line cursor }
      End Else ClearArea(X, 0, X+I, FontHeight, Green);{ Line cursor }
    End;
+  end; 
 END;
 
 {--TInputLine---------------------------------------------------------------}
@@ -4225,7 +4229,10 @@ END;
 END.
 {
  $Log$
- Revision 1.22  2002-10-17 13:27:53  pierre
+ Revision 1.23  2004-11-02 23:53:19  peter
+   * fixed crashes with ide and 1.9.x
+
+ Revision 1.22  2002/10/17 13:27:53  pierre
   * fix TCluster.Get/SetData on big endian machines
 
  Revision 1.21  2002/10/17 11:24:16  pierre

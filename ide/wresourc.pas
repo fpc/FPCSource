@@ -33,7 +33,7 @@ type
        LangID : longint;
        Flags  : longint;
        DataOfs: longint;
-       DataLen: longint;
+       DataLen: sw_word;
      end;
 
      TResourceHeader = packed record
@@ -59,7 +59,7 @@ type
        LangID  : longint;
        Flags   : longint;
        DataOfs : longint;
-       DataLen : longint;
+       DataLen : sw_word;
        procedure   BuildHeader(var Header : TResourceEntryHeader);
      end;
 
@@ -114,7 +114,7 @@ type
                    var Source: TStream; ADataSize: longint): boolean; virtual;
        function    DeleteResourceEntry(const ResName: string; ALangID: longint): boolean; virtual;
        function    DeleteResource(const ResName: string): boolean; virtual;
-       function    ReadResourceEntry(const ResName: string; ALangID: longint; var Buf; var BufSize: sw_word): boolean;
+       function    ReadResourceEntry(const ResName: string; ALangID: longint; var Buf; BufSize: sw_word): boolean;
        function    ReadResourceEntryToStream(const ResName: string; ALangID: longint; var DestS: TStream): boolean;
        procedure   Flush; virtual;
        destructor  Done; virtual;
@@ -144,7 +144,7 @@ type
 
 implementation
 
-uses  CallSpec,
+uses  
       WUtils;
 
 function TResourceEntryCollection.At(Index: Sw_Integer): PResourceEntry;
@@ -229,7 +229,7 @@ begin
   for I:=0 to Items^.Count-1 do
     begin
       EP:=Items^.At(I);
-      if Byte(Longint(CallPointerMethodLocal(Func,PreviousFramePointer,@Self,EP)))<>0 then
+      if Byte(Longint(CallPointerMethodLocal(Func,get_caller_frame(get_frame),@Self,EP)))<>0 then
         begin
           P := EP;
           Break;
@@ -245,7 +245,7 @@ begin
   for I:=0 to Items^.Count-1 do
     begin
       RP:=Items^.At(I);
-      CallPointerMethodLocal(Func,PreviousFramePointer,@Self,RP);
+      CallPointerMethodLocal(Func,get_caller_frame(get_frame),@Self,RP);
     end;
 end;
 
@@ -371,7 +371,7 @@ begin
   for I:=0 to Resources^.Count-1 do
     begin
       RP:=Resources^.At(I);
-      if Byte(Longint(CallPointerMethodLocal(Func,PreviousFramePointer,@Self,RP)))<>0 then
+      if Byte(Longint(CallPointerMethodLocal(Func,get_caller_frame(get_frame),@Self,RP)))<>0 then
         begin
           P := RP;
           Break;
@@ -387,7 +387,7 @@ begin
   for I:=0 to Resources^.Count-1 do
     begin
       RP:=Resources^.At(I);
-      CallPointerMethodLocal(Func,PreviousFramePointer,@Self,RP);
+      CallPointerMethodLocal(Func,get_caller_frame(get_frame),@Self,RP);
     end;
 end;
 
@@ -398,7 +398,7 @@ begin
   for I:=0 to Entries^.Count-1 do
     begin
       E:=Entries^.At(I);
-      CallPointerMethodLocal(Func,PreviousFramePointer,@Self,E);
+      CallPointerMethodLocal(Func,get_caller_frame(get_frame),@Self,E);
     end;
 end;
 
@@ -520,7 +520,7 @@ begin
   DeleteResource:=OK;
 end;
 
-function TResourceFile.ReadResourceEntry(const ResName: string; ALangID: longint; var Buf; var BufSize: sw_word): boolean;
+function TResourceFile.ReadResourceEntry(const ResName: string; ALangID: longint; var Buf; BufSize: sw_word): boolean;
 var E: PResourceEntry;
     P: PResource;
     OK: boolean;
@@ -528,6 +528,7 @@ var E: PResourceEntry;
     TempBuf: pointer;
 const TempBufSize = 4096;
 begin
+  E:=nil;
   P:=FindResource(ResName);
   OK:=P<>nil;
   if OK then E:=P^.Items^.SearchEntryForLang(ALangID);
@@ -643,8 +644,8 @@ end;
 procedure TResourceFile.WriteResourceTable;
 var RH: TResourceHeader;
     REH: TResourceEntryHeader;
-procedure WriteResource(P: PResource); {$ifndef FPC}far;{$endif}
-procedure WriteResourceEntry(P: PResourceEntry); {$ifndef FPC}far;{$endif}
+procedure WriteResource(P: PResource);
+procedure WriteResourceEntry(P: PResourceEntry);
 begin
   P^.BuildHeader(REH);
   S^.Write(REH,SizeOf(REH));
@@ -677,13 +678,13 @@ var RH  : TResourceHeader;
     REH : TResourceEntryHeader;
     Size: longint;
     NamesSize: longint;
-procedure AddResourceEntrySize(P: PResourceEntry); {$ifndef FPC}far;{$endif}
+procedure AddResourceEntrySize(P: PResourceEntry);
 begin
   if UpdatePosData then P^.DataOfs:=Size;
   P^.BuildHeader(REH);
   Inc(Size,REH.DataLen);
 end;
-procedure AddResourceSize(P: PResource); {$ifndef FPC}far;{$endif}
+procedure AddResourceSize(P: PResource);
 var RH: TResourceHeader;
 begin
   P^.BuildHeader(RH);
@@ -797,7 +798,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.2  2002-09-07 15:40:50  peter
+  Revision 1.3  2004-11-02 23:53:19  peter
+    * fixed crashes with ide and 1.9.x
+
+  Revision 1.2  2002/09/07 15:40:50  peter
     * old logs removed and tabs fixed
 
 }

@@ -8017,8 +8017,8 @@ end.
 
 {
   $Log$
-  Revision 1.13  2004-09-15 19:16:38  hajny
-    * regenerated
+  Revision 1.14  2004-11-02 23:53:19  peter
+    * fixed crashes with ide and 1.9.x
 
   Revision 1.9  2004/09/08 22:21:41  carl
     + support for creating packed records

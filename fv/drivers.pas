@@ -252,15 +252,15 @@ TYPE
           Double: Boolean;                            { Double click state }
           Where: TPoint);                             { Mouse position }
         evKeyDown: (
-	{ ** KEY EVENT ** }
+        { ** KEY EVENT ** }
           Case Sw_Integer Of
             0: (KeyCode:  Word);                       { Full key code }
             1: (
 {$ifdef ENDIAN_BIG}
-	        ScanCode: Byte;
-	        CharCode: Char;
-{$else not ENDIAN_BIG}	
-	        CharCode: Char;                       { Char code }
+                ScanCode: Byte;
+                CharCode: Char;
+{$else not ENDIAN_BIG}
+                CharCode: Char;                       { Char code }
                 ScanCode: Byte;                       { Scan code }
 {$endif not ENDIAN_BIG}
                 KeyShift: byte));                     { Shift states }
@@ -732,7 +732,7 @@ Function GetDosTicks:longint; { returns ticks at 18.2 Hz, just like DOS }
     GetTimeOfDay(tv{,tz});
     GetDosTicks:=((tv.Sec mod 86400) div 60)*1092+((tv.Sec mod 60)*1000000+tv.USec) div 54945;
     {$else}
-    FPGetTimeOfDay(@tv,nil{,tz}); 
+    FPGetTimeOfDay(@tv,nil{,tz});
     GetDosTicks:=((tv.tv_Sec mod 86400) div 60)*1092+((tv.tv_Sec mod 60)*1000000+tv.tv_USec) div 54945;
 
     {$endif}
@@ -1576,8 +1576,9 @@ VAR ResultLength, FormatIndex, Justify, Wth: Byte; Fill: Char; S: String;
    PROCEDURE HandleParameter (I : LongInt);
    BEGIN
      While (FormatIndex <= Length(Format)) Do Begin   { While length valid }
-       While (Format[FormatIndex] <> '%') AND         { Param char not found }
-       (FormatIndex <= Length(Format)) Do Begin       { Length still valid }
+       While (FormatIndex <= Length(Format)) and
+             (Format[FormatIndex] <> '%')          { Param char not found }
+       Do Begin       { Length still valid }
          Result[ResultLength+1] := Format[FormatIndex]; { Transfer character }
          Inc(ResultLength);                           { One character added }
          Inc(FormatIndex);                            { Next param char }
@@ -1709,7 +1710,10 @@ BEGIN
 END.
 {
  $Log$
- Revision 1.38  2003-10-01 16:20:27  marco
+ Revision 1.39  2004-11-02 23:53:19  peter
+   * fixed crashes with ide and 1.9.x
+
+ Revision 1.38  2003/10/01 16:20:27  marco
   * baseunix fixes for 1.1
 
  Revision 1.37  2002/10/17 11:22:46  pierre

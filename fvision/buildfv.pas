@@ -8,7 +8,6 @@ interface
 uses
   fvcommon,
   objects,
-  callspec,
   drivers,
   fileio,
   memory,
@@ -38,7 +37,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2002-09-07 15:06:36  peter
+  Revision 1.6  2004-11-02 23:53:19  peter
+    * fixed crashes with ide and 1.9.x
+
+  Revision 1.5  2002/09/07 15:06:36  peter
     * old logs removed and tabs fixed
 
   Revision 1.4  2002/05/29 22:15:19  pierre

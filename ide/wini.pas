@@ -85,7 +85,6 @@ const MainSectionName : string[40] = 'MainSection';
 implementation
 
 uses
-  CallSpec,
   WUtils;
 
 constructor TINIEntry.Init(const ALine: string);
@@ -215,7 +214,7 @@ begin
   for I:=0 to Sections^.Count-1 do
     begin
       S:=Sections^.At(I);
-      CallPointerLocal(EnumProc,PreviousFramePointer,S);
+      CallPointerLocal(EnumProc,get_caller_frame(get_frame),S);
     end;
 end;
 
@@ -226,12 +225,12 @@ begin
   for I:=0 to Entries^.Count-1 do
     begin
       E:=Entries^.At(I);
-      CallPointerLocal(EnumProc,PreviousFramePointer,E);
+      CallPointerLocal(EnumProc,get_caller_frame(get_frame),E);
     end;
 end;
 
 function TINISection.SearchEntry(Tag: string): PINIEntry;
-function MatchingEntry(E: PINIEntry): boolean; {$ifndef FPC}far;{$endif}
+function MatchingEntry(E: PINIEntry): boolean;
 begin
   MatchingEntry:=UpcaseStr(E^.GetTag)=Tag;
 end;
@@ -308,9 +307,9 @@ end;
 
 function TINIFile.IsModified: boolean;
 
-  function SectionModified(P: PINISection): boolean; {$ifndef FPC}far;{$endif}
+  function SectionModified(P: PINISection): boolean;
 
-    function EntryModified(E: PINIEntry): boolean; {$ifndef FPC}far;{$endif}
+    function EntryModified(E: PINIEntry): boolean;
     begin
       EntryModified:=E^.Modified;
     end;
@@ -369,7 +368,7 @@ begin
 end;
 
 function TINIFile.SearchSection(Section: string): PINISection;
-function MatchingSection(P: PINISection): boolean; {$ifndef FPC}far;{$endif}
+function MatchingSection(P: PINISection): boolean;
 var SN: string;
     M: boolean;
 begin
@@ -402,16 +401,7 @@ begin
     for I:=0 to P^.Entries^.Count-1 do
       begin
         E:=P^.Entries^.At(I);
-      {$ifdef FPC}
-        CallPointerMethodLocal(EnumProc,CurrentFramePointer,@Self,E);
-      {$else}
-        asm
-          push E.word[2]
-          push E.word[0]
-          push word ptr [bp]
-          call EnumProc
-        end;
-      {$endif}
+        CallPointerMethodLocal(EnumProc,get_frame,@Self,E);
       end;
 end;
 
@@ -489,7 +479,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.3  2002-09-07 15:40:50  peter
+  Revision 1.4  2004-11-02 23:53:19  peter
+    * fixed crashes with ide and 1.9.x
+
+  Revision 1.3  2002/09/07 15:40:50  peter
     * old logs removed and tabs fixed
 
 }

@@ -856,11 +856,10 @@ CONST
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
                              IMPLEMENTATION
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
-USES
 {$IFDEF USE_VIDEO_API}
-  Video,
+USES
+  Video;
 {$ENDIF USE_VIDEO_API}
-  CallSpec;
 
 {***************************************************************************}
 {                       PRIVATE TYPE DEFINITIONS                            }
@@ -1440,7 +1439,8 @@ BEGIN
            Draw;                                      { Draw interior }
            If (GOptions AND goDrawFocus <> 0) Then
              DrawFocus;                               { Draw focus }
-           If (State AND sfCursorVis <> 0) Then
+           if not TextModeGFV and
+              (State AND sfCursorVis <> 0) Then
              DrawCursor;                              { Draw any cursor }
            If (Options AND ofFramed <> 0) OR
            (GOptions AND goThickFramed <> 0)          { View has border }
@@ -1496,14 +1496,10 @@ BEGIN
      UnlockScreenUpdate;
 {$endif USE_VIDEO_API}
      if TextModeGFV or UseFixedFont then
-      begin
-        DrawScreenBuf;
-        If (DrawMask AND vdCursor <> 0) Then       { Check cursor mask }
-          Begin
-            DrawMask := DrawMask and Not vdCursor;
-            DrawCursor;                              { Draw any cursor }
-          End;
-      end;
+       begin
+         DrawScreenBuf;
+         TView.DrawCursor;
+       end;
      End;
      ReleaseViewLimits;                               { Release the limits }
    End;
@@ -1784,8 +1780,6 @@ END;
 {  SetDrawMask -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 05Sep99 LdB       }
 {---------------------------------------------------------------------------}
 PROCEDURE TView.SetDrawMask (Mask: Byte);
-VAR
-    OldMask : byte;
 BEGIN
    If (Options AND ofFramed = 0) AND                  { Check for no frame }
      (GOptions AND goThickFramed = 0) AND             { Check no thick frame }
@@ -1795,7 +1789,6 @@ BEGIN
      Mask := Mask AND NOT vdCursor;                   { Clear cursor draw }
    If (GOptions AND goDrawFocus = 0) Then             { Check no focus draw }
      Mask := Mask AND NOT vdFocus;                    { Clear focus draws }
-   OldMask:=DrawMask;
    DrawMask := DrawMask OR Mask;                      { Set draw masks }
 END;
 
@@ -1819,7 +1812,7 @@ BEGIN
    If ((DrawMask and vdInSetCursor)=0) and (State AND sfCursorVis <> 0) Then
      Begin         { Cursor visible }
        if TextModeGFV or UseFixedFont then
-        ResetCursor
+        TView.DrawCursor
        else
         begin
           SetDrawMask(vdCursor or vdInSetCursor);          { Set draw mask }
@@ -1864,7 +1857,10 @@ BEGIN
            DrawView;         { Draw the view now }
          End;
        If (Options AND ofSelectable <> 0) Then        { View is selectable }
-         If (Owner <> Nil) Then Owner^.ResetCurrent;  { Reset current }
+         begin
+           Owner^.ResetCurrent;  { Reset current }
+           Owner^.ResetCursor;
+         end;
        Owner^.Unlock;
      End;
 END;
@@ -1955,23 +1951,30 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TView.SetState (AState: Word; Enable: Boolean);
 VAR OldState, Command: Word;
+    ShouldDrawCursor,
     ShouldDraw : Boolean;
 BEGIN
    OldState := State;
    If Enable Then State := State OR AState            { Set state mask }
      Else State := State AND NOT AState;              { Clear state mask }
    ShouldDraw:=false;
+   ShouldDrawCursor:=false;
    If (AState AND sfVisible <> 0) Then Begin          { Visibilty change }
      If (Owner <> Nil) AND                            { valid owner }
      (Owner^.State AND sfExposed <> 0)                { If owner exposed }
        Then SetState(sfExposed, Enable);              { Expose this view }
-     If Enable Then DrawView Else                     { Draw the view }
-       If (Owner <> Nil) Then Owner^.ReDrawArea(      { Owner valid }
-         RawOrigin.X, RawOrigin.Y,
-         RawOrigin.X + RawSize.X + ShadowSize.X*SysFontWidth,
-         RawOrigin.Y + RawSize.Y + ShadowSize.Y*SysFontHeight);         { Owner redraws area }
+     If Enable Then
+       ShouldDraw:=true
+     Else
+       If (Owner <> Nil) Then
+          Owner^.ReDrawArea(      { Owner valid }
+            RawOrigin.X, RawOrigin.Y,
+            RawOrigin.X + RawSize.X + 1 + ShadowSize.X*SysFontWidth,
+            RawOrigin.Y + RawSize.Y + 1 + ShadowSize.Y*SysFontHeight);         { Owner redraws area }
      If (Options AND ofSelectable <> 0) Then          { View is selectable }
-       If (Owner <> Nil) Then Owner^.ResetCurrent;    { Reset selected }
+       If (Owner <> Nil) Then
+         Owner^.ResetCurrent;    { Reset selected }
+     ShouldDrawCursor:=true;
    End;
    If (AState AND sfFocused <> 0) Then Begin          { Focus change }
      If (Owner <> Nil) Then Begin                     { Owner valid }
@@ -1986,22 +1989,28 @@ BEGIN
        SetDrawMask(vdFocus);                          { Set focus draw mask }
        ShouldDraw:=true;
      End;
+     ShouldDrawCursor:=true;
    End;
    If (AState AND (sfCursorVis + sfCursorIns) <> 0) and  { Change cursor state }
-      (OldState<>State)
-   Then Begin
-     if TextModeGFV or UseFixedFont then
-      ResetCursor
-     else
-      begin
-        SetDrawMask(vdCursor);       { Set cursor draw mask }
-        ShouldDraw:=true;
-      end;
-   End;
-   If ShouldDraw then
-       begin
+      (OldState<>State) then
+     ShouldDrawCursor:=true;
+   if (TextModeGFV or UseFixedFont) then
+     begin
+       If ShouldDraw then
          DrawView;                                      { Redraw the border }
-       end;
+       if ShouldDrawCursor Then
+         DrawCursor;
+     end
+   else
+     Begin
+       if ShouldDrawCursor Then
+         begin
+           SetDrawMask(vdCursor);       { Set cursor draw mask }
+           ShouldDraw:=true;
+         end;
+       If ShouldDraw then
+         DrawView;                                      { Redraw the border }
+     End;
 END;
 
 {--TView--------------------------------------------------------------------}
@@ -2161,12 +2170,12 @@ BEGIN
       assigned(Owner) then
      begin
        State:= State and not sfShadow;
-       Owner^.ReDrawArea(RawOrigin.X + RawSize.X, RawOrigin.Y,
-         RawOrigin.X + RawSize.X + ShadowSize.X*SysFontWidth,
-         RawOrigin.Y + RawSize.Y + ShadowSize.Y*SysFontHeight);         { Owner redraws area }
-       Owner^.ReDrawArea(RawOrigin.X, RawOrigin.Y + RawSize.Y,
-         RawOrigin.X + RawSize.X + ShadowSize.X*SysFontWidth,
-         RawOrigin.Y + RawSize.Y + ShadowSize.Y*SysFontHeight);         { Owner redraws area }
+       Owner^.ReDrawArea(RawOrigin.X + RawSize.X + 1 , RawOrigin.Y,
+         RawOrigin.X + RawSize.X + 1 + ShadowSize.X*SysFontWidth,
+         RawOrigin.Y + RawSize.Y + 1 + ShadowSize.Y*SysFontHeight);         { Owner redraws area }
+       Owner^.ReDrawArea(RawOrigin.X, RawOrigin.Y + RawSize.Y + 1 ,
+         RawOrigin.X + RawSize.X + 1 + ShadowSize.X*SysFontWidth,
+         RawOrigin.Y + RawSize.Y + 1 + ShadowSize.Y*SysFontHeight);         { Owner redraws area }
        State:= State or sfShadow;
      end;
    If (Bounds.B.X > 0) AND (Bounds.B.Y > 0)           { Normal text co-ords }
@@ -2546,7 +2555,7 @@ BEGIN
      Tp := Last;                                      { Set temporary ptr }
      Repeat
        Tp := Tp^.Next;                                { Get next view }
-       IF Byte(Longint(CallPointerMethodLocal(P,PreviousFramePointer,@self,Tp)))<>0 THEN
+       IF Byte(Longint(CallPointerMethodLocal(P,get_caller_frame(get_frame),@self,Tp)))<>0 THEN
         Begin       { Test each view }
           FirstThat := Tp;                             { View returned true }
           Exit;                                        { Now exit }
@@ -2810,7 +2819,7 @@ BEGIN
        if tp=nil then
         exit;
        Hp:=Tp^.Next;                        { Get next view }
-       CallPointerMethodLocal(P,PreviousFramePointer,@self,Tp);
+       CallPointerMethodLocal(P,get_caller_frame(get_frame),@self,Tp);
      Until (Tp=L0);                                   { Until last }
    End;
 END;
@@ -5179,7 +5188,9 @@ VAR
   PrevP,PP : PView;
   CurOrigin : TPoint;
   I,XI : longint;
+  B : Word;
   ViewPort : ViewPortType;
+  Shadowed,
   Skip : boolean;
 BEGIN
 {$ifdef DEBUG}
@@ -5205,6 +5216,7 @@ BEGIN
     If (XI<ViewPort.X1) OR
        (XI>=ViewPort.X2) Then
       Continue;
+    Shadowed:=false;
     Skip:=false;
     While Assigned(P) do Begin
       { If parent not visible or
@@ -5225,21 +5237,46 @@ BEGIN
       While Assigned(PP) and (PP<>P^.Last) and (PP<>PrevP) do Begin
         { If position is owned by another view that is before self
          then skip }
-        If ((PP^.State AND sfVisible) <> 0) AND
-           (XI>=PP^.Origin.X) AND
-           (XI<PP^.Origin.X+PP^.Size.X) AND
-           (Y>=PP^.Origin.Y) AND
-           (Y<PP^.Origin.Y+PP^.Size.Y) then
-          Begin
-            Skip:=true;
-            break;
-          End;
+        If ((PP^.State AND sfVisible) <> 0) then
+          begin
+            if (XI>=PP^.Origin.X) AND
+               (XI<PP^.Origin.X+PP^.Size.X) AND
+               (Y>=PP^.Origin.Y) AND
+               (Y<PP^.Origin.Y+PP^.Size.Y) then
+              Begin
+                Skip:=true;
+                break;
+              End;
+            If ((PP^.State AND sfShadow) <> 0) AND
+               { Vertical Shadow }
+               (
+                (
+                 (XI>=PP^.Origin.X+PP^.Size.X) AND
+                 (XI<PP^.Origin.X+PP^.Size.X+ShadowSize.X) AND
+                 (Y>=PP^.Origin.Y+1) AND
+                 (Y<PP^.Origin.Y+PP^.Size.Y+ShadowSize.Y)
+                ) or
+                { Horizontal Shadow }
+                (
+                 (XI>=PP^.Origin.X+1) AND
+                 (XI<PP^.Origin.X+PP^.Size.X+ShadowSize.X) AND
+                 (Y>=PP^.Origin.Y+PP^.Size.Y) AND
+                 (Y<PP^.Origin.Y+PP^.Size.Y+ShadowSize.Y)
+                )
+               ) then
+              Begin
+                Shadowed:=true;
+              End;
+          end;
         PP:=PP^.Next;
       End;
 
       If Not Skip and Assigned(P^.Buffer) then Begin
         begin
-          P^.Buffer^[(Y-P^.Origin.Y)*P^.size.X+(XI-P^.Origin.X)]:=TDrawBuffer(Buf)[I];
+          B:=TDrawBuffer(Buf)[I];
+          if Shadowed then
+            B:=$0800 or (B and $FF);
+          P^.Buffer^[(Y-P^.Origin.Y)*P^.size.X+(XI-P^.Origin.X)]:=B;
 {$IFDEF GRAPH_API}
           If (pointer(P^.Buffer)=pointer(VideoBuf)) and (SpVideoBuf^[Y*TextScreenWidth+XI]=EmptyVideoBufCell) then
             OldVideoBuf^[Y*TextScreenWidth+XI]:=0;
@@ -5262,7 +5299,6 @@ VAR
   PrevP,PP : PView;
   CurOrigin : TPoint;
   I,J : longint;
-  Col,OrigCol : byte;
   B : Word;
   ViewPort : ViewPortType;
   Skip : boolean;
@@ -5315,12 +5351,8 @@ BEGIN
 
       If not Skip and Assigned(P^.Buffer) then Begin
         B:=P^.Buffer^[(J-P^.Origin.Y)*P^.size.X+(I-P^.Origin.X)];
-        OrigCol:=B shr 8;
-        if OrigCol and $F >= 8 then
-          Col:=OrigCol and $7
-        else
-          Col:=0;
-        P^.Buffer^[(J-P^.Origin.Y)*P^.size.X+(I-P^.Origin.X)]:=  (col shl 8) or (B and $FF);
+        B:=$0800 or (B and $FF);
+        P^.Buffer^[(J-P^.Origin.Y)*P^.size.X+(I-P^.Origin.X)]:=B;
       End;
       PrevP:=P;
       If Skip then
@@ -5820,7 +5852,10 @@ END.
 
 {
  $Log$
- Revision 1.40  2002-10-17 11:24:17  pierre
+ Revision 1.41  2004-11-02 23:53:19  peter
+   * fixed crashes with ide and 1.9.x
+
+ Revision 1.40  2002/10/17 11:24:17  pierre
   * Clean up the Load/Store routines so they are endian independent
 
  Revision 1.39  2002/09/22 19:42:21  hajny

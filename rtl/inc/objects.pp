@@ -567,6 +567,48 @@ TYPE
 {***************************************************************************}
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
+{                      CALL HELPERS INTERFACE ROUTINES                      }
+{+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
+
+{ Constructor calls.
+
+  Ctor     Pointer to the constructor.
+  Obj      Pointer to the instance. NIL if new instance to be allocated.
+  VMT      Pointer to the VMT (obtained by TypeOf()).
+  returns  Pointer to the instance.
+}
+function CallVoidConstructor(Ctor: pointer; Obj: pointer; VMT: pointer): pointer;
+function CallPointerConstructor(Ctor: pointer; Obj: pointer; VMT: pointer; Param1: pointer): pointer;
+
+{ Method calls.
+
+  Method   Pointer to the method.
+  Obj      Pointer to the instance. NIL if new instance to be allocated.
+  returns  Pointer to the instance.
+}
+function CallVoidMethod(Method: pointer; Obj: pointer): pointer;
+function CallPointerMethod(Method: pointer; Obj: pointer; Param1: pointer): pointer;
+
+{ Local-function/procedure calls.
+
+  Func     Pointer to the local function (which must be far-coded).
+  Frame    Frame pointer of the wrapping function.
+}
+
+function CallVoidLocal(Func: pointer; Frame: Pointer): pointer;
+function CallPointerLocal(Func: pointer; Frame: Pointer; Param1: pointer): pointer;
+
+{ Calls of functions/procedures local to methods.
+
+  Func     Pointer to the local function (which must be far-coded).
+  Frame    Frame pointer of the wrapping method.
+  Obj      Pointer to the object that the method belongs to.
+}
+function CallVoidMethodLocal(Func: pointer; Frame: Pointer; Obj: pointer): pointer;
+function CallPointerMethodLocal(Func: pointer; Frame: Pointer; Obj: pointer; Param1: pointer): pointer;
+
+
+{+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 {                    DYNAMIC STRING INTERFACE ROUTINES                      }
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 
@@ -696,61 +738,32 @@ Uses dos;
 {***************************************************************************}
 
 type
-  FramePointer = pointer;
-  PointerLocal = function(_EBP: FramePointer; Param1: pointer): pointer;
+  VoidLocal = function(_EBP: Pointer): pointer;
+  PointerLocal = function(_EBP: Pointer; Param1: pointer): pointer;
+  VoidMethodLocal = function(_EBP: Pointer): pointer;
+  PointerMethodLocal = function(_EBP: Pointer; Param1: pointer): pointer;
+  VoidConstructor = function(VMT: pointer; Obj: pointer): pointer;
   PointerConstructor = function(VMT: pointer; Obj: pointer; Param1: pointer): pointer;
+  VoidMethod = function(Obj: pointer): pointer;
   PointerMethod = function(Obj: pointer; Param1: pointer): pointer;
 
-function PreviousFramePointer: FramePointer;assembler;
-{$undef FPC_PreviousFramePointer_Implemented}
+
+function CallVoidConstructor(Ctor: pointer; Obj: pointer; VMT: pointer): pointer;
+begin
+{$ifdef VER1_0}
+  asm
 {$ifdef cpui386}
-{$define FPC_PreviousFramePointer_Implemented}
-asm
-    movl (%ebp), %eax
-end ['EAX'];
-{$endif}
-{$ifdef cpux86_64}
-{$define FPC_PreviousFramePointer_Implemented}
-asm
-    movq (%rbp), %rax
-end ['RAX'];
+        movl Obj, %esi
 {$endif}
 {$ifdef cpum68k}
-{$define FPC_PreviousFramePointer_Implemented}
-asm
-    move.l (a6),d0
-end ['D0'];
+        move.l Obj, a5
 {$endif}
-{$ifdef cpusparc}
-{$define FPC_PreviousFramePointer_Implemented}
-asm
-    { flush register windows, so they are stored in the stack }
-    ta      3
-    { we have first our own frame }
-    ld [%fp+56],%i0
-    ld [%i0+56],%i0
-end;
+  end;
+  CallVoidConstructor := VoidConstructor(Ctor)(VMT, Obj);
+{$else}
+  CallVoidConstructor := VoidConstructor(Ctor)(Obj, VMT);
 {$endif}
-{$ifdef cpupowerpc}
-{$define FPC_PreviousFramePointer_Implemented}
-asm
-    lwz  r3,0(r1)
 end;
-{$endif cpupowerpc}
-{$ifdef cpuarm}
-{$define FPC_PreviousFramePointer_Implemented}
-{$warning FIX ME !!!! }
-asm
-   // on the arm, even assembler declared procedure save fp because it's part of the
-   // entry code where e.g. the link register is saved so we've to dereference fp
-   // here twice
-   ldr r0,[fp,#-12]
-   ldr r0,[r0,#-12]
-end;
-{$endif cpuarm}
-{$ifndef FPC_PreviousFramePointer_Implemented}
-{$error PreviousFramePointer function not implemented}
-{$endif not FPC_PreviousFramePointer_Implemented}
 
 
 function CallPointerConstructor(Ctor: pointer; Obj: pointer; VMT: pointer; Param1: pointer): pointer;
@@ -767,20 +780,35 @@ begin
         move.l Obj, a5
 {$endif}
   end;
-{$else}
-{ 1.1 does not esi to be loaded }
-{$define FPC_CallPointerConstructor_Implemented}
-{$endif}
   CallPointerConstructor := PointerConstructor(Ctor)(VMT, Obj, Param1)
-end;
-{$ifdef cpupowerpc}
-{$define FPC_CallPointerConstructor_Implemented}
-{ for the powerpc, we don't need to load self, because we use standard calling conventions
-  so self should be in a register anyways }
+{$else}
+  { 1.1 does not esi to be loaded }
+  {$define FPC_CallPointerConstructor_Implemented}
+  CallPointerConstructor := PointerConstructor(Ctor)(Obj, VMT, Param1)
 {$endif}
+end;
 {$ifndef FPC_CallPointerConstructor_Implemented}
 {$error CallPointerConstructor function not implemented}
 {$endif not FPC_CallPointerConstructor_Implemented}
+
+
+function CallVoidMethod(Method: pointer; Obj: pointer): pointer;
+begin
+{$ifdef VER1_0}
+  { load the object pointer }
+{$ifdef CPUI386}
+  asm
+        movl Obj, %esi
+  end;
+{$endif CPUI386}
+{$ifdef CPU68K}
+  asm
+        move.l Obj, a5
+  end;
+{$endif CPU68K}
+{$endif VER1_0}
+  CallVoidMethod := VoidMethod(Method)(Obj)
+end;
 
 
 function CallPointerMethod(Method: pointer; Obj: pointer; Param1: pointer): pointer;
@@ -813,10 +841,56 @@ end;
 {$endif not FPC_CallPointerMethod_Implemented}
 
 
-function CallPointerLocal(Func: pointer; Frame: FramePointer; Param1: pointer): pointer;
+function CallVoidLocal(Func: pointer; Frame: Pointer): pointer;
+begin
+  CallVoidLocal := VoidLocal(Func)(Frame)
+end;
+
+
+function CallPointerLocal(Func: pointer; Frame: Pointer; Param1: pointer): pointer;
 begin
   CallPointerLocal := PointerLocal(Func)(Frame, Param1)
 end;
+
+
+function CallVoidMethodLocal(Func: pointer; Frame: Pointer; Obj: pointer): pointer;
+begin
+{$ifdef VER1_0}
+  { load the object pointer }
+{$ifdef CPUI386}
+  asm
+        movl Obj, %esi
+  end;
+{$endif CPUI386}
+{$ifdef CPU68K}
+  asm
+        move.l Obj, a5
+  end;
+{$endif CPU68K}
+{$endif VER1_0}
+  CallVoidMethodLocal := VoidMethodLocal(Func)(Frame)
+end;
+
+
+function CallPointerMethodLocal(Func: pointer; Frame: Pointer; Obj: pointer; Param1: pointer): pointer;
+begin
+{$ifdef VER1_0}
+  { load the object pointer }
+{$ifdef CPUI386}
+  asm
+        movl Obj, %esi
+  end;
+{$endif CPUI386}
+{$ifdef CPU68K}
+  asm
+        move.l Obj, a5
+  end;
+{$endif CPU68K}
+{$endif VER1_0}
+  CallPointerMethodLocal := PointerMethodLocal(Func)(Frame, Param1)
+end;
+
+
 
 
 {***************************************************************************}
@@ -1789,7 +1863,6 @@ VAR
   I, W: Longint;
   Li: LongInt;
   P: PPointerArray;
-  OldVal : Boolean;
 BEGIN
    If (ALimit <> BlkCount) Then Begin                 { Change is needed }
      ChangeListSize := False;                         { Preset failure }
@@ -1933,7 +2006,7 @@ VAR I: LongInt;
 BEGIN
    For I := Count DownTo 1 Do
      Begin                   { Down from last item }
-       IF Boolean(Byte(ptrint(CallPointerLocal(Test,PreviousFramePointer,Items^[I-1])))) THEN
+       IF Boolean(Byte(ptrint(CallPointerLocal(Test,get_caller_frame(get_frame),Items^[I-1])))) THEN
        Begin          { Test each item }
          LastThat := Items^[I-1];                     { Return item }
          Exit;                                        { Now exit }
@@ -1949,7 +2022,7 @@ FUNCTION TCollection.FirstThat (Test: Pointer): Pointer;
 VAR I: LongInt;
 BEGIN
    For I := 1 To Count Do Begin                       { Up from first item }
-     IF Boolean(Byte(ptrint(CallPointerLocal(Test,PreviousFramePointer,Items^[I-1])))) THEN
+     IF Boolean(Byte(ptrint(CallPointerLocal(Test,get_caller_frame(get_frame),Items^[I-1])))) THEN
        Begin          { Test each item }
        FirstThat := Items^[I-1];                      { Return item }
        Exit;                                          { Now exit }
@@ -2063,7 +2136,7 @@ PROCEDURE TCollection.ForEach (Action: Pointer);
 VAR I: LongInt;
 BEGIN
    For I := 1 To Count Do                             { Up from first item }
-    CallPointerLocal(Action,PreviousFramePointer,Items^[I-1]);   { Call with each item }
+    CallPointerLocal(Action,get_caller_frame(get_frame),Items^[I-1]);   { Call with each item }
 END;
 
 {--TCollection--------------------------------------------------------------}
@@ -2946,7 +3019,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.34  2004-10-03 17:43:47  florian
+  Revision 1.35  2004-11-02 23:53:19  peter
+    * fixed crashes with ide and 1.9.x
+
+  Revision 1.34  2004/10/03 17:43:47  florian
     * fixedPreviousFramePointer on sparc
 
   Revision 1.33  2004/08/26 22:58:01  carl

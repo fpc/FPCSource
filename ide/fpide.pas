@@ -1230,10 +1230,8 @@ begin
 end;
 
 function TIDEApp.GetPalette: PPalette;
-var P: string;
 begin
-  P:=AppPalette;
-  GetPalette:=@P;
+  GetPalette:=@AppPalette;
 end;
 
 function TIDEApp.IsClosing: Boolean;
@@ -1254,7 +1252,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.26  2003-09-29 14:36:59  peter
+  Revision 1.27  2004-11-02 23:53:19  peter
+    * fixed crashes with ide and 1.9.x
+
+  Revision 1.26  2003/09/29 14:36:59  peter
     * win32 fixed
 
   Revision 1.25  2003/01/31 11:01:00  pierre

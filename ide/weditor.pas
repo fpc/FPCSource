@@ -1181,7 +1181,7 @@ Var
   buffer : Array[0..MaxBufLength-1] of Byte Absolute block;
   s2     : String;
   len,
-  numb   : Sw_integer;
+  numb   : Sw_word;
   found  : Boolean;
 begin
   len:=length(str);
@@ -1225,7 +1225,7 @@ Var
   buffer : Array[0..MaxBufLength-1] of Char Absolute block;
   len,
   numb,
-  x      : Sw_integer;
+  x      : Sw_word;
   found  : Boolean;
   p      : pchar;
   c      : char;
@@ -1897,7 +1897,7 @@ begin
   else
     begin
      CP:=0; RX:=0;
-     while (RX<=X) and (CP<=length(S)) do
+     while (RX<=X) and (CP<length(S)) do
       begin
         Inc(CP);
         if S[CP]=TAB then
@@ -2249,14 +2249,16 @@ var
       begin
         if (C='.') then
           begin
-            if (LineText[X+1]='.') then
+            if (X>=length(LineText)) or
+	       (LineText[X+1]='.') then
               cc:=ccSymbol
             else
               cc:=ccRealNumber;
           end
         else {'E','e'}
           begin
-            if (LineText[X+1]in ['+','-','0'..'9']) then
+            if (X>=length(LineText)) or
+	       (LineText[X+1]in ['+','-','0'..'9']) then
               cc:=ccRealNumber
             else
               cc:=ccAlpha
@@ -3731,10 +3733,10 @@ var SelectColor,
     HighlightRowColor,
     ErrorMessageColor  : word;
     B: TDrawBuffer;
-    I,X,Y,AX,AY,MaxX,LSX: sw_integer;
+    X,Y,AX,AY,MaxX,LSX: sw_integer;
     PX: TPoint;
     LineCount: sw_integer;
-    Line,PrevLine: PCustomLine;
+    Line: PCustomLine;
     LineText,Format: string;
     isBreak : boolean;
     C: char;
@@ -3756,7 +3758,7 @@ begin
     Color:=(Color and $F0) or $F;
   CombineColors:=Color;
 end;
-var PrevEI,EI: PEditorLineInfo;
+var 
     FoldPrefix,FoldSuffix: string;
 {    SkipLine: boolean;}
 {    FoldStartLine: sw_integer;}
@@ -3797,7 +3799,6 @@ begin
     UpdateAttrsRange(GetLastSyntaxedLine,Delta.Y+Size.Y,AttrAll);
 {$endif TEST_PARTIAL_SYNTAX}
   LSX:=GetReservedColCount;
-  PrevLine:=nil; PrevEI:=nil; {FoldStartLine:=-1;}
   Y:=0; AY:=Delta.Y;
   for Y:=0 to Size.Y-1 do
   begin
@@ -3816,19 +3817,16 @@ begin
             if assigned(Line) then
               begin
                 IsBreak:=Line^.IsFlagSet(lfBreakpoint);
-                EI:=Line^.GetEditorInfo(@Self);
               end
             else
               begin
                 IsBreak:=false;
-                EI:=nil;
               end;
           end
         else
           begin
             Line:=nil;
             IsBreak:=false;
-            EI:=nil;
           end;
 
         begin
@@ -3919,13 +3917,11 @@ begin
           WriteLine(0,Y,Size.X,1,B);
         end; { if not SkipLine ... }
       end; { not errorline }
-    PrevEI:=EI; PrevLine:=Line;
   end; { while (Y<Size.Y) ... }
   DrawCursor;
 end;
 
 procedure TCustomCodeEditor.DrawCursor;
-var LSX: sw_integer;
 begin
   if Elockflag>0 then
     DrawCursorCalled:=true
@@ -3942,7 +3938,9 @@ const
   sfV_CV_F:word = sfVisible + sfCursorVis + sfFocused;
 var
   p,p2 : PView;
+{$ifndef FVISION}
   G : PGroup;
+{$endif FVISION}
   cur : TPoint;
 
   function Check0:boolean;
@@ -4661,7 +4659,6 @@ end;
 
 function TCustomCodeEditor.EditorToViewLine(EditorLine: sw_integer): sw_integer;
 var I,Line: sw_integer;
-    F: PFold;
 begin
   if not IsFlagSet(efFolds) then
     Line:=EditorLine
@@ -5341,7 +5338,7 @@ end;
 
 procedure TCustomCodeEditor.IndentBlock;
 var
-  ey,i,indlen : Sw_integer;
+  ey,i{,indlen} : Sw_integer;
   S,Ind : String;
   Pos : Tpoint;
 begin
@@ -5582,7 +5579,7 @@ procedure TCustomCodeEditor.ExpandCodeTemplate;
 var Line,ShortCutInEditor,ShortCut: string;
     X,Y,I,LineIndent: sw_integer;
     CodeLines: PUnsortedStringCollection;
-    CanJump,Expanded: boolean;
+    CanJump: boolean;
     CP: TPoint;
 begin
   {
@@ -5594,7 +5591,7 @@ begin
 
   Lock;
 
-  CP.X:=-1; CP.Y:=-1; Expanded:=false;
+  CP.X:=-1; CP.Y:=-1; 
   Line:=GetDisplayText(CurPos.Y);
   X:=CurPos.X; ShortCut:='';
   if X<=length(Line) then
@@ -5661,7 +5658,6 @@ begin
             SetCurPtr(0,CurPos.Y);
         end;
     end;
-    Expanded:=true;
   end;
   Dispose(CodeLines, Done);
 
@@ -6118,7 +6114,7 @@ var S: string;
     IFindStr : string;
     BT : BTable;
 
-  function ContainsText(const SubS:string;var S: string; Start: Sw_word): Sw_integer;
+  function ContainsText(const SubS:string;var S: string; Start: Sw_integer): Sw_integer;
   var
     P: Sw_Integer;
   begin
@@ -7274,7 +7270,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.44  2004-02-13 06:53:57  pierre
+  Revision 1.45  2004-11-02 23:53:19  peter
+    * fixed crashes with ide and 1.9.x
+
+  Revision 1.44  2004/02/13 06:53:57  pierre
    * fix for webbug 2940
 
   Revision 1.43  2004/02/10 07:16:28  pierre

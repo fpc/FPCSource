@@ -285,7 +285,7 @@ begin
     begin
       PushStatus(msg_storingbreakpoints);
       New(S, Init(30*1024,4096));
-      BreakpointsCollection^.Store(S^);
+      S^.Put(BreakpointsCollection);
       S^.Seek(0);
       F^.CreateResource(resBreakpoints,rcBinary,0);
       OK:=F^.AddResourceEntryFromStream(resBreakpoints,langDefault,0,S^,S^.GetSize);
@@ -745,11 +745,10 @@ end;
 
 function ReadFlags(F: PResourceFile): boolean;
 var
-  size : sw_word;
-    OK: boolean;
+  OK: boolean;
 begin
   OK:=F^.ReadResourceEntry(resDesktopFlags,langDefault,DesktopFileFlags,
-    size);
+    sizeof(DesktopFileFlags));
   if OK=false then
     ErrorBox(msg_errorreadingflags,nil);
   ReadFlags:=OK;
@@ -769,15 +768,13 @@ end;
 
 function ReadVideoMode(F: PResourceFile;var NewScreenMode : TVideoMode): boolean;
 var
-  size : sw_word;
   OK,test : boolean;
 begin
-  size:=SizeOf(TVideoMode);
   test:=F^.ReadResourceEntry(resVideo,langDefault,NewScreenMode,
-    size);
+    sizeof(NewScreenMode));
   if not test then
     NewScreenMode:=ScreenMode;
-  OK:=test and (size = SizeOf(TVideoMode));
+  OK:=test;
   if OK=false then
     ErrorBox(msg_errorreadingvideomode,nil);
   ReadVideoMode:=OK;
@@ -854,22 +851,22 @@ begin
           Application^.SetScreenVideoMode(VM);
       end;
     if ((DesktopFileFlags and dfHistoryLists)<>0) then
-      OK:=OK and ReadHistory(F);
+      OK:=ReadHistory(F) and OK;
     if ((DesktopFileFlags and dfWatches)<>0) then
-      OK:=OK and ReadWatches(F);
+      OK:=ReadWatches(F) and OK;
     if ((DesktopFileFlags and dfBreakpoints)<>0) then
-      OK:=OK and ReadBreakpoints(F);
+      OK:=ReadBreakpoints(F) and OK;
     if ((DesktopFileFlags and dfOpenWindows)<>0) then
-      OK:=OK and ReadOpenWindows(F);
+      OK:=ReadOpenWindows(F) and OK;
     { no errors if no browser info available PM }
     if ((DesktopFileFlags and dfSymbolInformation)<>0) then
-      OK:=OK and ReadSymbols(F);
+      OK:=ReadSymbols(F) and OK;
     if ((DesktopFileFlags and dfCodeCompleteWords)<>0) then
-      OK:=OK and ReadCodeComplete(F);
+      OK:=ReadCodeComplete(F) and OK;
     if ((DesktopFileFlags and dfCodeTemplates)<>0) then
-      OK:=OK and ReadCodeTemplates(F);
+      OK:=ReadCodeTemplates(F) and OK;
 {$ifdef Unix}
-    OK:=OK and ReadKeys(F);
+    OK:=ReadKeys(F) and OK;
 {$endif Unix}
     Dispose(F, Done);
   end;
@@ -966,7 +963,13 @@ end;
 END.
 {
   $Log$
-  Revision 1.6  2002-09-07 15:40:42  peter
+  Revision 1.8  2004-11-02 23:53:19  peter
+    * fixed crashes with ide and 1.9.x
+
+  Revision 1.7  2002/02/09 00:32:27  pierre
+   * fix error when loading breakpoints, try to load other items even after an error
+
+  Revision 1.6  2002/09/07 15:40:42  peter
     * old logs removed and tabs fixed
 
   Revision 1.5  2002/09/04 14:03:52  pierre

@@ -260,7 +260,6 @@ Given two long integers returns the maximum longint of the two.
 ---------------------------------------------------------------------}
 FUNCTION MaxLongIntOf (A, B: LongInt): LongInt;
 
-{$IFDEF PPC_DELPHI3}                                  { DELPHI 3+ CODE }
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 {                          MISSING DELPHI3 ROUTINES                         }
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
@@ -281,7 +280,6 @@ Returns the max free memory block size available under Delphi 3+.
 14Aug98 LdB
 ---------------------------------------------------------------------}
 FUNCTION MaxAvail: LongInt;
-{$ENDIF}
 
 {***************************************************************************}
 {                        INITIALIZED PUBLIC VARIABLES                       }
@@ -392,36 +390,28 @@ BEGIN
      Else MaxLongIntOf := A;                          { Else take A }
 END;
 
-{$IFDEF PPC_DELPHI3}                                  { DELPHI 3+ CODE }
-{+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
-{                          MISSING DELPHI3 ROUTINES                         }
-{+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
-
-{---------------------------------------------------------------------------}
-{  MemAvail -> Platforms WIN/NT - Updated 14Aug98 LdB                       }
-{---------------------------------------------------------------------------}
 FUNCTION MemAvail: LongInt;
-VAR Ms: TMemoryStatus;
 BEGIN
-   GlobalMemoryStatus(Ms);                            { Get memory status }
-   MemAvail := Ms.dwAvailPhys;                        { Avail physical memory }
+  { Unlimited }
+  MemAvail:=high(longint);
 END;
 
 {---------------------------------------------------------------------------}
 {  MaxAvail -> Platforms WIN/NT - Updated 14Aug98 LdB                       }
 {---------------------------------------------------------------------------}
 FUNCTION MaxAvail: LongInt;
-VAR Ms: TMemoryStatus;
 BEGIN
-   GlobalMemoryStatus(Ms);                            { Get memory status }
-   MaxAvail := Ms.dwTotalPhys;                        { Max physical memory }
+  { Unlimited }
+  MaxAvail:=high(longint);
 END;
-{$ENDIF}
 
 END.
 {
  $Log$
- Revision 1.5  2003-06-05 14:45:06  peter
+ Revision 1.6  2004-11-02 23:53:19  peter
+   * fixed crashes with ide and 1.9.x
+
+ Revision 1.5  2003/06/05 14:45:06  peter
    * use Windows THandle
 
  Revision 1.4  2002/09/07 15:06:36  peter

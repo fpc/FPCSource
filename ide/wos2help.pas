@@ -132,7 +132,6 @@ procedure RegisterHelpType;
 
 implementation
 
-uses CallSpec;
 
 function DefINFGetAttrColor(TextStyle, TextColor: byte; var Color: byte): boolean;
 {
@@ -250,7 +249,7 @@ end;
 
 function TOS2HelpFile.ReadTOC: boolean;
 var OK: boolean;
-    I,J,L,Count: longint;
+    I,Count: longint;
     TE: TINFTOCEntry;
     W: word;
     C: array[0..255] of char;
@@ -317,9 +316,8 @@ end;
 
 function TOS2HelpFile.ReadTopicRec(FileOfs: longint; Topic: PTopic; Lines: PUnsortedStringCollection): boolean;
 var Line: string;
-    LastTextChar: char;
     CharsInLine: sw_integer;
-    LeftMargin,RightMargin: byte;
+    LeftMargin: byte;
     TextStyle,TextColor: byte;
     InMonospace: boolean;
     Align: (alLeft,alRight,alCenter);
@@ -363,7 +361,6 @@ begin
       end;
   end;
   AddChar(C);
-  LastTextChar:=C;
   if C=hscLineBreak then
     begin
       CharsInLine:=0;
@@ -384,7 +381,6 @@ var H: TINFTopicHeader;
     Dict: PWordArray;
     Spacing: boolean;
 function NextByte: byte;
-var B: byte;
 begin
   NextByte:=Text^[TextOfs];
   Inc(TextOfs);
@@ -423,7 +419,7 @@ begin
   if OK then
   begin
     LineNo:=0;
-    Line:=''; LeftMargin:=0; RightMargin:=0; LastTextChar:=hscLineBreak;
+    Line:=''; LeftMargin:=0;
     InTempMargin:=false;
     CharsInLine:=0; TextStyle:=0; TextColor:=0; Align:=alLeft;
     CurLinkCtx:=-1; InMonospace:=false;
@@ -471,7 +467,8 @@ begin
                       LeftMargin:=NextByte;
                     end;
                   $03 :
-                    RightMargin:=NextByte;
+		    { right margin, not used }
+                    NextByte;
                   $04 :
                     begin
                       TextStyle:=NextByte;
@@ -614,7 +611,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.3  2002-09-07 15:40:50  peter
+  Revision 1.4  2004-11-02 23:53:19  peter
+    * fixed crashes with ide and 1.9.x
+
+  Revision 1.3  2002/09/07 15:40:50  peter
     * old logs removed and tabs fixed
 
 }
