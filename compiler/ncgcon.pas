@@ -147,19 +147,52 @@ implementation
                   Consts.concat(Tai_label.Create(lastlabel));
                   case realait of
                     ait_real_32bit :
-                      Consts.concat(Tai_real_32bit.Create(ts32real(value_real)));
+                      begin
+                        Consts.concat(Tai_real_32bit.Create(ts32real(value_real)));
+                        { range checking? }
+                        if ((cs_check_range in aktlocalswitches) or
+                          (cs_check_overflow in aktlocalswitches)) and
+                          (tai_real_32bit(Consts.Last).value=double(MathInf)) then
+                          Message(parser_e_range_check_error);
+                      end;
+
                     ait_real_64bit :
+                      begin
 {$ifdef ARM}
-                      if hiloswapped then
-                        Consts.concat(Tai_real_64bit.Create_hiloswapped(ts64real(value_real)))
-                      else
+                        if hiloswapped then
+                          Consts.concat(Tai_real_64bit.Create_hiloswapped(ts64real(value_real)))
+                        else
 {$endif ARM}
-                        Consts.concat(Tai_real_64bit.Create(ts64real(value_real)));
+                          Consts.concat(Tai_real_64bit.Create(ts64real(value_real)));
+
+                        { range checking? }
+                        if ((cs_check_range in aktlocalswitches) or
+                          (cs_check_overflow in aktlocalswitches)) and
+                          (tai_real_64bit(Consts.Last).value=double(MathInf)) then
+                          Message(parser_e_range_check_error);
+                     end;
+
                     ait_real_80bit :
-                      Consts.concat(Tai_real_80bit.Create(value_real));
+                      begin
+                        Consts.concat(Tai_real_80bit.Create(value_real));
+
+                        { range checking? }
+                        if ((cs_check_range in aktlocalswitches) or
+                          (cs_check_overflow in aktlocalswitches)) and
+                          (tai_real_80bit(Consts.Last).value=double(MathInf)) then
+                          Message(parser_e_range_check_error);
+                      end;
 {$ifdef cpufloat128}
                     ait_real_128bit :
-                      Consts.concat(Tai_real_128bit.Create(value_real));
+                      begin
+                        Consts.concat(Tai_real_128bit.Create(value_real));
+
+                        { range checking? }
+                        if ((cs_check_range in aktlocalswitches) or
+                          (cs_check_overflow in aktlocalswitches)) and
+                          (tai_real_128bit(Consts.Last).value=double(MathInf)) then
+                          Message(parser_e_range_check_error);
+                      end;
 {$endif cpufloat128}
 
 {$ifdef ver1_0}
@@ -721,7 +754,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.44  2004-07-12 17:58:19  peter
+  Revision 1.45  2004-08-08 16:00:56  florian
+    * constant floating point assignments etc. are now overflow checked
+      if Q+ or R+ is turned on
+
+  Revision 1.44  2004/07/12 17:58:19  peter
     * remove maxlen field from ansistring/widestrings
 
   Revision 1.43  2004/06/20 08:55:29  florian

@@ -1362,9 +1362,17 @@ implementation
                  in_const_exp :
                    begin
                      if isreal then
-                      hp:=crealconstnode.create(exp(vr),pbestrealtype^)
+                       hp:=crealconstnode.create(exp(vr),pbestrealtype^)
                      else
-                      hp:=crealconstnode.create(exp(vl),pbestrealtype^);
+                       hp:=crealconstnode.create(exp(vl),pbestrealtype^);
+
+                     if (trealconstnode(hp).value_real=double(MathInf)) and
+                        ((cs_check_range in aktlocalswitches) or
+                        (cs_check_overflow in aktlocalswitches)) then
+                       begin
+                         result:=crealconstnode.create(0,pbestrealtype^);
+                         CGMessage(parser_e_range_check_error);
+                       end;
                    end;
                  in_const_ln :
                    begin
@@ -2433,7 +2441,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.141  2004-07-15 19:55:39  jonas
+  Revision 1.142  2004-08-08 16:00:56  florian
+    * constant floating point assignments etc. are now overflow checked
+      if Q+ or R+ is turned on
+
+  Revision 1.141  2004/07/15 19:55:39  jonas
     + (incomplete) node_complexity function to assess the complexity of a
       tree
     + support for inlining value and const parameters at the node level

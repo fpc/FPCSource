@@ -901,7 +901,7 @@ implementation
           result:=cordconstnode.create(round(trealconstnode(left).value_real),resulttype,false)
         else
           result:=ccallnode.createinternres('fpc_round',
-                      ccallparanode.create(left,nil),resulttype);
+            ccallparanode.create(left,nil),resulttype);
         left:=nil;
       end;
 
@@ -2450,7 +2450,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.151  2004-06-29 20:57:50  peter
+  Revision 1.152  2004-08-08 16:00:56  florian
+    * constant floating point assignments etc. are now overflow checked
+      if Q+ or R+ is turned on
+
+  Revision 1.151  2004/06/29 20:57:50  peter
     * fix pchar:=char
     * fix longint(smallset)
 
