@@ -55,12 +55,60 @@ unit pass_1;
     const
        count_ref : boolean = true;
 
-    procedure error(const t : tmsgconst);
+    procedure message(const t : tmsgconst);
+
+      var
+         olderrorcount : longint;
 
       begin
          if not(codegenerror) then
-           verbose.Message(t);
-         codegenerror:=true;
+           begin
+              olderrorcount:=errorcount;
+              verbose.Message(t);
+              codegenerror:=olderrorcount<>errorcount;
+           end;
+      end;
+
+    procedure message1(const t : tmsgconst;const s : string);
+
+      var
+         olderrorcount : longint;
+
+      begin
+         if not(codegenerror) then
+           begin
+              olderrorcount:=errorcount;
+              verbose.Message1(t,s);
+              codegenerror:=olderrorcount<>errorcount;
+           end;
+      end;
+
+    procedure message2(const t : tmsgconst;const s1,s2 : string);
+
+      var
+         olderrorcount : longint;
+
+      begin
+         if not(codegenerror) then
+           begin
+              olderrorcount:=errorcount;
+              verbose.Message2(t,s1,s2);
+              codegenerror:=olderrorcount<>errorcount;
+           end;
+      end;
+
+    procedure message3(const t : tmsgconst;const s1,s2,s3 : string);
+
+      var
+         olderrorcount : longint;
+
+      begin
+         if not(codegenerror) then
+           begin
+              olderrorcount:=errorcount;
+              verbose.Message3(t,s1,s2,s3);
+              codegenerror:=olderrorcount<>errorcount;
+           end;
       end;
 
     procedure firstpass(var p : ptree);forward;
@@ -379,6 +427,13 @@ unit pass_1;
          else
            { nil is compatible with class references }
            if (fromtreetype=niln) and (def_to^.deftype=classrefdef) then
+             begin
+                doconv:=tc_equal;
+                b:=true;
+             end
+         else
+           { nil is compatible with procvars }
+           if (fromtreetype=niln) and (def_to^.deftype=procvardef) then
              begin
                 doconv:=tc_equal;
                 b:=true;
@@ -4502,7 +4557,12 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.8  1998-04-13 08:42:52  florian
+  Revision 1.9  1998-04-13 21:15:42  florian
+    * error handling of pass_1 and cgi386 fixed
+    * the following bugs fixed: 0117, 0118, 0119 and 0129, 0122 was already
+      fixed, verified
+
+  Revision 1.8  1998/04/13 08:42:52  florian
     * call by reference and call by value open arrays fixed
 
   Revision 1.7  1998/04/12 22:39:44  florian

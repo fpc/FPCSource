@@ -187,7 +187,7 @@ begin
   else
    if (idx in [1..5]) then
     begin
-      for i:=1to idx do
+      for i:=1 to idx do
        begin
          case upcase(s[i]) of
           'F' : begin
@@ -290,7 +290,12 @@ end.
 
 {
   $Log$
-  Revision 1.2  1998-03-28 23:09:57  florian
+  Revision 1.3  1998-04-13 21:15:42  florian
+    * error handling of pass_1 and cgi386 fixed
+    * the following bugs fixed: 0117, 0118, 0119 and 0129, 0122 was already
+      fixed, verified
+
+  Revision 1.2  1998/03/28 23:09:57  florian
     * secondin bugfix (m68k and i386)
     * overflow checking bugfix (m68k and i386) -- pretty useless in
       secondadd, since everything is done using 32-bit

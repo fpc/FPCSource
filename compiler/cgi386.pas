@@ -99,12 +99,60 @@ implementation
      const
        bytes2Sxx:array[1..4] of Topsize=(S_B,S_W,S_NO,S_L);
 
-    procedure error(const t : tmsgconst);
+    procedure message(const t : tmsgconst);
+
+      var
+         olderrorcount : longint;
 
       begin
          if not(codegenerror) then
-           verbose.Message(t);
-         codegenerror:=true;
+           begin
+              olderrorcount:=errorcount;
+              verbose.Message(t);
+              codegenerror:=olderrorcount<>errorcount;
+           end;
+      end;
+
+    procedure message1(const t : tmsgconst;const s : string);
+
+      var
+         olderrorcount : longint;
+
+      begin
+         if not(codegenerror) then
+           begin
+              olderrorcount:=errorcount;
+              verbose.Message1(t,s);
+              codegenerror:=olderrorcount<>errorcount;
+           end;
+      end;
+
+    procedure message2(const t : tmsgconst;const s1,s2 : string);
+
+      var
+         olderrorcount : longint;
+
+      begin
+         if not(codegenerror) then
+           begin
+              olderrorcount:=errorcount;
+              verbose.Message2(t,s1,s2);
+              codegenerror:=olderrorcount<>errorcount;
+           end;
+      end;
+
+    procedure message3(const t : tmsgconst;const s1,s2,s3 : string);
+
+      var
+         olderrorcount : longint;
+
+      begin
+         if not(codegenerror) then
+           begin
+              olderrorcount:=errorcount;
+              verbose.Message3(t,s1,s2,s3);
+              codegenerror:=olderrorcount<>errorcount;
+           end;
       end;
 
     type
@@ -2093,6 +2141,10 @@ implementation
          getlabel(falselabel);
          { calculate left sides }
          secondpass(p^.left);
+
+         if codegenerror then
+           exit;
+
          case p^.left^.location.loc of
             LOC_REFERENCE : begin
                               { in case left operator uses to register }
@@ -2150,6 +2202,10 @@ implementation
                 end;
            end;
          secondpass(p^.right);
+
+         if codegenerror then
+           exit;
+
 {$ifdef test_dest_loc}
          dest_loc_known:=false;
          if in_dest_loc then
@@ -4596,7 +4652,7 @@ implementation
               cleartempgen;
 
               getlabel(l3);
-              aktcontinuelabel:=l1;
+              aktcontinuelabel:=l2;
               aktbreaklabel:=l3;
 
               if assigned(p^.right) then
@@ -5751,7 +5807,12 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.11  1998-04-13 08:42:51  florian
+  Revision 1.12  1998-04-13 21:15:41  florian
+    * error handling of pass_1 and cgi386 fixed
+    * the following bugs fixed: 0117, 0118, 0119 and 0129, 0122 was already
+      fixed, verified
+
+  Revision 1.11  1998/04/13 08:42:51  florian
     * call by reference and call by value open arrays fixed
 
   Revision 1.10  1998/04/12 22:39:43  florian
