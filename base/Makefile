@@ -47,7 +47,7 @@ FPINSTDIR=fpinst
 endif
 
 ifndef IDEDIR
-IDEDIR=ide/text
+IDEDIR=ide
 endif
 
 #####################################################################
@@ -383,7 +383,10 @@ compilerzip: compiler_clean rtl_clean
 
 #
 # $Log$
-# Revision 1.11  1999-04-08 10:16:16  peter
+# Revision 1.12  1999-04-16 20:15:41  michael
+# + Adapted ide Makefiles
+#
+# Revision 1.11  1999/04/08 10:16:16  peter
 #   * zipinstall for linux with .tar.gz
 #
 # Revision 1.10  1999/04/01 22:16:02  peter
