@@ -1,17 +1,17 @@
 Name: fpc
-Version: 1.0.4
+Version: 1.0.5
 Release: 1
 ExclusiveArch: i386 i586 i686
 Copyright: GPL
 Group: Development/Languages
-Source: fpc-1.0.4-src.tar.gz
+Source: fpc-1.0.5-src.tar.gz
 Summary: Free Pascal Compiler
 Packager: Peter Vreman (peter@freepascal.org)
 URL: http://www.freepascal.org/
 BuildRoot: /tmp/fpc-build
 BuildRequires: fpc
 
-%define fpcversion 1.0.4
+%define fpcversion 1.0.5
 %define fpcdir /usr/lib/fpc/%{fpcversion}
 %define docdir /usr/doc/fpc-%{fpcversion}
 
@@ -33,39 +33,30 @@ utils. Provided units are the runtime library (RTL), free component library
 NEWPP=`pwd`/compiler/ppc386
 	make compiler_cycle
 	make rtl_clean rtl_smart PP=${NEWPP}
-	make fcl_smart PP=${NEWPP}
-	make api_smart PP=${NEWPP}
 	make packages_smart PP=${NEWPP}
+	make fcl_smart PP=${NEWPP}
 	make utils_all PP=${NEWPP}
-	make compiler_fpcexe PP={$NEWPP}
 
 %install
 	rm -rf %{buildroot}
 	
 NEWPP=`pwd`/compiler/ppc386
-NEWPPUFILES=`pwd`/utils/ppufiles
-INSTALLOPTS="PP=${NEWPP} PPUFILES=${NEWPPUFILES} PREFIXINSTALLDIR=%{buildroot}/usr"
-	make compiler_install ${INSTALLOPTS}
-	make rtl_install ${INSTALLOPTS}
-	make fcl_install ${INSTALLOPTS}
-	make api_install ${INSTALLOPTS}
-	make packages_install ${INSTALLOPTS}
-	make utils_install ${INSTALLOPTS}
+INSTALLOPTS="PP=${NEWPP} INSTALL_PREFIX=%{buildroot}/usr INSTALL_DOCDIR=%{builddocdir}"
+	make compiler_distinstall ${INSTALLOPTS}
+	make rtl_distinstall ${INSTALLOPTS}
+	make packages_distinstall ${INSTALLOPTS}
+	make fcl_distinstall ${INSTALLOPTS}
+	make utils_distinstall ${INSTALLOPTS}
 
-	make fcl_exampleinstall ${INSTALLOPTS} DOCINSTALLDIR=%{builddocdir}
-	make api_exampleinstall ${INSTALLOPTS} DOCINSTALLDIR=%{builddocdir}
-	make packages_exampleinstall ${INSTALLOPTS} DOCINSTALLDIR=%{builddocdir}
-
-	make demo_install ${INSTALLOPTS} SOURCEINSTALLDIR=%{builddocdir}
-	make doc_install ${INSTALLOPTS} DOCINSTALLDIR=%{builddocdir}
+	make demo_install ${INSTALLOPTS} INSTALL_SOURCEDIR=%{builddocdir}
+	make doc_install ${INSTALLOPTS}
 	make man_install ${INSTALLOPTS}
 	
 %clean
 	make compiler_clean
 	make rtl_clean
-	make fcl_clean
-	make api_clean
 	make packages_clean
+	make fcl_clean
 	make utils_clean
 
 	rm -rf %{buildroot}
