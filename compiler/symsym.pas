@@ -1235,10 +1235,10 @@ implementation
          { Note: This needs to write everything of tvarsym.write }
          inherited writesym(ppufile);
          ppufile.putbyte(byte(varspez));
-         oldintfcrc:=ppufile.do_interface_crc;
-         ppufile.do_interface_crc:=false;
+         oldintfcrc:=ppufile.do_crc;
+         ppufile.do_crc:=false;
          ppufile.putbyte(byte(varregable));
-         ppufile.do_interface_crc:=oldintfcrc;
+         ppufile.do_crc:=oldintfcrc;
          ppufile.putlongint(fieldoffset);
          { write only definition or definitionsym }
          ppufile.puttype(vartype);
@@ -1385,10 +1385,10 @@ implementation
       begin
          inherited writesym(ppufile);
          ppufile.putbyte(byte(varspez));
-         oldintfcrc:=ppufile.do_interface_crc;
-         ppufile.do_interface_crc:=false;
+         oldintfcrc:=ppufile.do_crc;
+         ppufile.do_crc:=false;
          ppufile.putbyte(byte(varregable));
-         ppufile.do_interface_crc:=oldintfcrc;
+         ppufile.do_crc:=oldintfcrc;
          ppufile.putlongint(fieldoffset);
          ppufile.puttype(vartype);
          ppufile.putsmallset(varoptions);
@@ -2218,7 +2218,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.180  2004-10-08 17:09:43  peter
+  Revision 1.181  2004-10-10 09:31:28  peter
+  regvar ppu writing doesn't affect any crc
+
+  Revision 1.180  2004/10/08 17:09:43  peter
     * tvarsym.varregable added, split vo_regable from varoptions
 
   Revision 1.179  2004/10/06 19:26:50  jonas
