@@ -802,9 +802,9 @@ implementation
                  p.free;
                  exit;
                end;
-              { remove typeconvn, that will normally insert a lea
+              { remove typeconvs, that will normally insert a lea
                 instruction which is not necessary for us }
-              if p.nodetype=typeconvn then
+              while p.nodetype=typeconvn do
                begin
                  hp:=ttypeconvnode(p).left;
                  ttypeconvnode(p).left:=nil;
@@ -1081,7 +1081,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.99  2005-01-09 15:05:29  peter
+  Revision 1.100  2005-01-24 21:39:03  peter
+    * remove multiple typeconvs for procvar
+
+  Revision 1.99  2005/01/09 15:05:29  peter
     * fix interface vtbl optimization
     * replace ugly pointer construct of ioffset()
 
