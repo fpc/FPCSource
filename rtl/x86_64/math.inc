@@ -117,7 +117,7 @@
             fwait
             movw -4(%rbp),%cx
             orw $0x0c3f,%cx
-            movw %cx,-8(rbp)
+            movw %cx,-8(%rbp)
             fldcw -8(%rbp)
             fwait
             fldt d
@@ -198,6 +198,9 @@
 
 {
   $Log$
-  Revision 1.1  2003-04-30 22:11:06  florian
+  Revision 1.2  2004-02-05 01:16:12  florian
+    + completed x86-64/linux system unit
+
+  Revision 1.1  2003/04/30 22:11:06  florian
     + for a lot of x86-64 dependend files mostly dummies added
 }

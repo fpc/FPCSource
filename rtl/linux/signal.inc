@@ -133,7 +133,6 @@ type
 
 
 {$ifdef cpupowerpc}
-
   { from include/ppc/ptrace.h }
   pptregs = ^tptregs;
   tptregs = record
@@ -242,6 +241,12 @@ type
   end;
 {$endif cpusparc}
 
+{$ifdef cpux86_64}
+{ get it from glibc/sysdeps/unix/sysv/linux/x86_64/sys/uncontext.h }
+  PSigContextRec = ^SigContextRec;
+  SigContextRec = record
+  end;
+{$endif cpux86_64}
 
 {$ifdef cpuarm}
   PSigContextRec = ^SigContextRec;
@@ -342,7 +347,10 @@ type
 
 {
   $Log$
-  Revision 1.15  2004-01-01 16:28:16  jonas
+  Revision 1.16  2004-02-05 01:16:12  florian
+    + completed x86-64/linux system unit
+
+  Revision 1.15  2004/01/01 16:28:16  jonas
     * fixed signal handling
 
   Revision 1.14  2003/11/21 00:40:06  florian

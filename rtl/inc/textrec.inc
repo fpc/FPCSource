@@ -32,7 +32,7 @@ type
     bufsize,
     _private,
     bufpos,
-    bufend    : longint;
+    bufend    : SizeInt;
     bufptr    : ^textbuf;
     openfunc,
     inoutfunc,
@@ -45,7 +45,10 @@ type
 
 {
   $Log$
-  Revision 1.4  2003-11-03 09:42:28  marco
+  Revision 1.5  2004-02-05 01:16:12  florian
+    + completed x86-64/linux system unit
+
+  Revision 1.4  2003/11/03 09:42:28  marco
    * Peter's Cardinal<->Longint fixes patch
 
   Revision 1.3  2002/09/07 15:07:46  peter

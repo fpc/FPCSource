@@ -17,7 +17,7 @@
  **********************************************************************}
 
 
-{$ASMMODE ATT}
+{$ASMMODE GAS}
 
 function FpSysCall(sysnr:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL0'];
 
@@ -266,7 +266,6 @@ Procedure FpSysCall( callnr:TSysParam;var regs : SysCallregs );assembler;
   This function puts the registers in place, does the call, and then
   copies back the registers as they are after the SysCall.
 }
-{$ASMMODE ATT}
 {$define fpc_syscall_ok}
 asm
 { load the registers... }
@@ -341,7 +340,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  2003-04-30 22:11:06  florian
+  Revision 1.2  2004-02-05 01:16:12  florian
+    + completed x86-64/linux system unit
+
+  Revision 1.1  2003/04/30 22:11:06  florian
     + for a lot of x86-64 dependend files mostly dummies added
 }
 

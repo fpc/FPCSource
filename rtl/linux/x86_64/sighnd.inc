@@ -22,6 +22,7 @@ const
 
 function GetFPUState(const SigContext : SigContextRec) : longint;
 begin
+{!!!!!!!
   if assigned(SigContext.fpstate) then
     GetfpuState:=SigContext.fpstate^.sw;
 {$ifdef SYSTEM_DEBUG}
@@ -30,6 +31,7 @@ begin
 {$ifdef SYSTEM_DEBUG}
   Writeln(stderr,'FpuState = ',GetFpuState);
 {$endif SYSTEM_DEBUG}
+}
 end;
 
 procedure SignalToRunerror(Sig: longint; SigContext: SigContextRec); cdecl;
@@ -71,13 +73,15 @@ begin
         res:=216;
   end;
 { give runtime error at the position where the signal was raised }
+{!!!!
   if res<>0 then
     HandleErrorAddrFrame(res,pointer(SigContext.eip),pointer(SigContext.ebp));
+}
 end;
 
 {
   $Log$
-  Revision 1.3  2004-02-05 01:16:12  florian
+  Revision 1.1  2004-02-05 01:16:12  florian
     + completed x86-64/linux system unit
 
   Revision 1.2  2003/11/01 01:58:11  marco

@@ -361,6 +361,10 @@ type
 {$define OLDMMAP}
 {$endif cpuarm}
 
+{$ifdef cpux86_64}
+{$define OLDMMAP}
+{$endif cpux86_64}
+
 Function Fpmmap(adr:pointer;len:size_t;prot:cint;flags:cint;fd:cint;off:off_t):pointer;  [public, alias : 'FPC_SYSC_MMAP'];
 // OFF_T procedure, and returns a pointer, NOT cint.
 
@@ -475,7 +479,10 @@ end;
 
 {
  $Log$
- Revision 1.14  2004-01-31 16:25:48  florian
+ Revision 1.15  2004-02-05 01:16:12  florian
+   + completed x86-64/linux system unit
+
+ Revision 1.14  2004/01/31 16:25:48  florian
    * use wait4 instead of waitpid on arm
 
  Revision 1.13  2004/01/23 00:00:06  florian

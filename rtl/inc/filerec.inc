@@ -26,8 +26,8 @@ const
 type
   FileRec = Packed Record
     Handle    : THandle;
-    Mode,
-    RecSize   : longint;
+    Mode      : longint;
+    RecSize   : SizeInt;
     _private  : array[1..32] of byte;
     UserData  : array[1..16] of byte;
     name      : array[0..filerecnamelength] of char;
@@ -35,7 +35,10 @@ type
 
 {
   $Log$
-  Revision 1.4  2003-11-03 09:42:27  marco
+  Revision 1.5  2004-02-05 01:16:12  florian
+    + completed x86-64/linux system unit
+
+  Revision 1.4  2003/11/03 09:42:27  marco
    * Peter's Cardinal<->Longint fixes patch
 
   Revision 1.3  2002/09/07 15:07:45  peter

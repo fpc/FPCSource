@@ -38,7 +38,7 @@ Type
   TExceptObjectClass = Class of TObject;
 
 Const
-  CatchAllExceptions = SizeInt(-1);
+  CatchAllExceptions : PtrInt = -1;
 {$ifdef SUPPORT_THREADVAR}
 ThreadVar
 {$else SUPPORT_THREADVAR}
@@ -311,7 +311,10 @@ begin
 end;
 {
   $Log$
-  Revision 1.13  2003-11-26 20:12:08  michael
+  Revision 1.14  2004-02-05 01:16:12  florian
+    + completed x86-64/linux system unit
+
+  Revision 1.13  2003/11/26 20:12:08  michael
   + New runerror 231 (exception stack error) and 232 (nothread support)
 
   Revision 1.12  2003/10/06 15:59:20  florian

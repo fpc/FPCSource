@@ -25,11 +25,13 @@ procedure fpc_cpuinit;
 begin
 end;
 
+
 function geteipasebx : pointer;assembler;[public,alias:'FPC_GETEIPINEBX'];
 asm
   movl (%esp),%ebx
   ret
 end;
+
 
 {$ifndef FPC_SYSTEM_HAS_MOVE}
 {$define FPC_SYSTEM_HAS_MOVE}
@@ -1455,7 +1457,10 @@ end;
 
 {
   $Log$
-  Revision 1.58  2004-01-11 11:10:07  jonas
+  Revision 1.59  2004-02-05 01:16:12  florian
+    + completed x86-64/linux system unit
+
+  Revision 1.58  2004/01/11 11:10:07  jonas
     + cgeneric.inc: implementations of rtl routines based on libc
     * system.inc: include cgeneric.inc before powerpc.inc/i386.inc/... if
       FPC_USE_LIBC is defined

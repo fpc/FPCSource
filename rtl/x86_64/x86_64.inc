@@ -25,7 +25,52 @@
                                Primitives
 ****************************************************************************}
 
+procedure fpc_cpuinit;
+begin
+end;
+
+
+{$define FPC_SYSTEM_HAS_SPTR}
+Function Sptr : Pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
+asm
+        movl    %rsp,%rax
+end ['RAX'];
+
+
+{$define FPC_SYSTEM_HAS_GET_FRAME}
+function get_frame:pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
+asm
+        movq    %rbp,%rax
+end ['RAX'];
+
+
+{$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
+function get_caller_addr(framebp:pointer):pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
+asm
+{$ifndef REGCALL}
+        movq    framebp,%rax
+{$endif}
+        orq     %rax,%rax
+        jz      .Lg_a_null
+        movq    4(%rax),%rax
+.Lg_a_null:
+end ['RAX'];
+
+
+{$define FPC_SYSTEM_HAS_GET_CALLER_FRAME}
+function get_caller_frame(framebp:pointer):pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
+asm
+{$ifndef REGCALL}
+        movl    framebp,%rax
+{$endif}
+        orl     %rax,%rax
+        jz      .Lgnf_null
+        movl    (%rax),%rax
+.Lgnf_null:
+end ['RAX'];
 {$define FPC_SYSTEM_HAS_MOVE}
+
+
 procedure Move(const source;var dest;count:longint);assembler;
   asm
      { rdi destination
@@ -237,9 +282,28 @@ procedure inclocked(var l : longint);assembler;
 .Linclockedend:
   end;
 
+{****************************************************************************
+                                  FPU
+****************************************************************************}
+
+const
+  fpucw : word = $1332;
+  { Internal constants for use in system unit }
+  FPU_Invalid = 1;
+  FPU_Denormal = 2;
+  FPU_DivisionByZero = 4;
+  FPU_Overflow = 8;
+  FPU_Underflow = $10;
+  FPU_StackUnderflow = $20;
+  FPU_StackOverflow = $40;
+  FPU_ExceptionMask = $ff;
+
 {
   $Log$
-  Revision 1.4  2004-01-20 12:52:18  florian
+  Revision 1.5  2004-02-05 01:16:12  florian
+    + completed x86-64/linux system unit
+
+  Revision 1.4  2004/01/20 12:52:18  florian
     * some problems with x86-64 inline assembler fixed
 
   Revision 1.3  2003/05/01 08:05:23  florian
