@@ -1,7 +1,7 @@
 
                             Free Pascal Compiler
 
-                               Version 0.99.10
+                               Version 0.99.12
 
 
 ****************************************************************************
@@ -35,7 +35,7 @@ The current version is only an evaluation version.
 
 Quick start
 -----------
-Download dos09910.zip and unzip it into a temporary directory.
+Download dos09912.zip and unzip it into a temporary directory.
 
 Start the install program INSTALL.EXE and follow the instructions.
 
@@ -55,32 +55,16 @@ All standard packages contain a part that is specific for the target platform
 and a few files which are target independent. All files are also available
 as separate files to reduce file size if the default file is too big.
 
-dos09910.zip specific:
+dos09912.zip specific:
 ----------------------
   basego32.zip    contains a DOS (Go32V2) compiler, run time library and
                   additional files.
   asldgo32.zip    contains additional GNU utilities which are necessary:
-      AS 2.8.1 for Go32V2
-      LD 2.8.1 for Go32V2
+      AS 2.9.1 for Go32V2
+      LD 2.9.1 for Go32V2
       AR 2.8.1 for Go32V2
       Strip 2.8.1 for Go32V2
-  gdbgo32.zip     contains the GNU Debugger 4.16 for Go32V2
-
-w3209910.zip specific:
-----------------------
-  basew32.zip     contains a Win32 compiler, run time library and
-                  additional files.
-  asldw32.zip     contains additional GNU utilities from MinGW32 which are
-                  necessary:
-      AS 980119 for Win32
-      LD 980119 for Win32
-      AR 980119 for Win32
-      Strip 980119 for Win32
-  gdbw32.zip      contains the GNU Debugger 4.16.1 for Win32
-
-common files in dos09910.zip and w3209910.zip:
-----------------------------------------------
-  gnuutils.zip    contains additional GNU utilities which are neccessary to
+  utilgo32.zip    contains additional GNU utilities which are neccessary to
                   compile the run time library:
       Make 3.76.1
       RM 3.16
@@ -88,6 +72,36 @@ common files in dos09910.zip and w3209910.zip:
       MV 3.16
       PWD 3.16
       GInstall 3.16
+      Date 3.16
+      Echo 3.16
+      UPX 0.71
+  gdbgo32.zip     contains the GNU Debugger 4.16 for Go32V2
+
+w3209912.zip specific:
+----------------------
+  basew32.zip     contains a Win32 compiler, run time library and
+                  additional files.
+  asldw32.zip     contains additional GNU utilities from MinGW32 which are
+                  necessary:
+      AS 2.9.1 for Win32
+      LD 2.9.1 for Win32
+      AR 2.9.1 for Win32
+      Strip 2.9.1 for Win32
+  utilw32.zip     contains additional GNU utilities which are neccessary to
+                  compile the run time library:
+      Make 3.76.1
+      RM 3.16
+      CP 3.16
+      MV 3.16
+      PWD 3.16
+      GInstall 3.16
+      Date 3.16
+      Echo 3.16
+      UPX 0.71
+  gdbw32.zip      contains the GNU Debugger 4.16.1 for Win32
+
+common files in dos09912.zip and w3209912.zip:
+----------------------------------------------
   demo.zip        contains some demo files
   docs-htm.zip    contains the documentatio in HTML format
   docs-ps.zip     contains the documentaion in post script
@@ -96,10 +110,10 @@ common files in dos09910.zip and w3209910.zip:
   readme.txt      this readme file
   whatsnew.txt    what's been changed
 
-Optional source package src09910.zip:
+Optional source package src09912.zip:
 -------------------------------------
-  pp09910s.zip    contains the compiler sources
-  rl09910s.zip    contains the run time library sources
+  pp09912s.zip    contains the compiler sources
+  rl09912s.zip    contains the run time library sources
   doc120s.zip     contains the TeX sources of the doc
 
 
@@ -119,7 +133,7 @@ The documentation as post script is available at the ftp server.
 
 Suggestions, Help ...
 ---------------------
-EMail: ba2395@fen.baynet.de
+EMail: fpc-devel@vekoll.saturnus.vein.hu
 WWW: http://tfdec1.fys.kuleuven.ac.be/~michael/fpc/
 Additional informations about mailing lists etc. can be found on the
 web site.

@@ -1,7 +1,37 @@
 
                             Free Pascal Compiler
 
-                               Version 0.99.10
+                               Version 0.99.12
+
+******************************************************************************
+                            Whats New in 0.99.12
+******************************************************************************
+
+Compiler:
+  + lot of ansistring fixes
+  + coff writer for go32v2,win32 with instant .a creation (BETA)
+  + working global browser
+  + new compiler directives (path and other cmdline switches)
+  + val,readln support range checking
+  + initialization/finalization support
+  * better intel,at&t parsers with mmx,kni support
+  * better unit dependency handling and recompiling
+  * static var fixes
+  * better addr() support
+  * lot of other fixes, too many to list here
+
+RTL:
+  + Internationalization suport in sysutils
+  + FileNameCaseSensitive boolean for go32v2,win32
+  * more precise str/val
+  * better val(),readln()
+  * io error handling much more like tp7
+  * small other fixes
+
+Utils:
+  + ptop to pretty print your sources
+  * beter ppudump
+
 
 ******************************************************************************
                             Whats New in 0.99.10
@@ -24,7 +54,7 @@ Compiler:
   * more constant expression evalutations
   * removed all memoryleaks
   * almost all reported bugs are fixed
-  
+
 RTL:
   + heaptrc unit to detect memoryleaks and other problems with the heap
   + graph unit works and some missing functions are added
@@ -32,10 +62,10 @@ RTL:
   * more functions for the classes,sysutils unit
 
 Utils:
-  * ppudump updated for new ppu entries  
+  * ppudump updated for new ppu entries
   * h2pas updated to write new cdecl declaration
-  
-  
+
+
 ******************************************************************************
                             Whats New in 0.99.8
 ******************************************************************************
