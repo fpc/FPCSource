@@ -328,29 +328,38 @@ Type
         lib_OpenCnt  : Word;    {  number of current opens  }
     end;                {  * Warning: size is not a longword multiple ! * }
 
-    PChain = ^TChain;
-    TChain = packed record
-      an_Child : PChain;
-      an_Parent: PChain;
-      an_Lock  : BPTR;
-      an_info  : TFileInfoBlock;
-      an_Flags : shortint;
-      an_string: Array[0..0] of char;
-    end;
+       pAChain = ^tAChain;
+       tAChain = packed record
+        an_Child,
+        an_Parent   : pAChain;
+        an_Lock     : BPTR;
+        an_Info     : tFileInfoBlock;
+        an_Flags    : Shortint;
+        an_String   : Array[0..0] of Char;   { FIX!! }
+       END;
 
 
-    PAnchorPath = ^TAnchorPath;
-    TAnchorPath = packed record
-       ap_Base      : PChain;     {* pointer to first anchor *}
-       ap_First     : PChain;     {* pointer to last anchor *}
-       ap_BreakBits : LONGINT;    {* Bits we want to break on *}
-       ap_FondBreak : LONGINT;    {* Bits we broke on. Also returns ERROR_BREAK *}
-       ap_Flags     : shortint;   {* New use for extra word. *}
-       ap_reserved  : BYTE;
-       ap_StrLen    : WORD;
-       ap_Info      : TFileInfoBlock;
-       ap_Buf       : Array[0..0] of Char; {* Buffer for path name, allocated by user *}
-    END;
+       pAnchorPath = ^tAnchorPath;
+       tAnchorPath = packed record
+        case integer of
+        0 : (
+        ap_First      : pAChain;
+        ap_Last       : pAChain;
+        );
+        1 : (
+        ap_Base,                    { pointer to first anchor }
+        ap_Current    : pAChain;    { pointer to last anchor }
+        ap_BreakBits,               { Bits we want to break on }
+        ap_FoundBreak : Longint;    { Bits we broke on. Also returns ERROR_BREAK }
+        ap_Flags      : Shortint;       { New use for extra Integer. }
+        ap_Reserved   : Shortint;
+        ap_Strlen     : Integer;       { This is what ap_Length used to be }
+        ap_Info       : tFileInfoBlock;
+        ap_Buf        : Array[0..0] of Char;     { Buffer for path name, allocated by user !! }
+        { FIX! }
+        );
+       END;
+
 
     pCommandLineInterface = ^TCommandLineInterface;
     TCommandLineInterface = packed record
@@ -372,15 +381,49 @@ Type
       cli_Module       : BPTR;      {* SegList of currently loaded command*}
     END;
 
-  pDosList = ^tDosList;
+    {    structure used for multi-directory assigns. AllocVec()ed. }
+
+       pAssignList = ^tAssignList;
+       tAssignList = packed record
+        al_Next : pAssignList;
+        al_Lock : BPTR;
+       END;
+
+   pDosList = ^tDosList;
    tDosList = packed record
     dol_Next            : BPTR;           {    bptr to next device on list }
     dol_Type            : Longint;        {    see DLT below }
-    dol_Task            : Pointer;        {    ptr to handler task }
+    dol_Task            : pMsgPort;       {    ptr to handler task }
     dol_Lock            : BPTR;
-    dol_Misc            : Array[0..23] of Shortint;
+    case integer of
+    0 : (
+        dol_Handler : record
+          dol_Handler    : BSTR;      {    file name to load IF seglist is null }
+          dol_StackSize,              {    stacksize to use when starting process }
+          dol_Priority,               {    task priority when starting process }
+          dol_Startup    : Longint;   {    startup msg: FileSysStartupMsg for disks }
+          dol_SegList,                {    already loaded code for new task }
+          dol_GlobVec    : BPTR;      {    BCPL global vector to use when starting
+                                 * a process. -1 indicates a C/Assembler
+                                 * program. }
+        end;
+    );
+    1 : (
+        dol_Volume       : record
+          dol_VolumeDate : tDateStamp; {    creation date }
+          dol_LockList   : BPTR;       {    outstanding locks }
+          dol_DiskType   : Longint;    {    'DOS', etc }
+        END;
+    );
+    2 : (
+        dol_assign       :  record
+          dol_AssignName : PChar;         {    name for non-OR-late-binding assign }
+          dol_List       : pAssignList;   {    for multi-directory assigns (regular) }
+         END;
     dol_Name            : BSTR;           {    bptr to bcpl name }
+    );
    END;
+
 
     TProcess = packed record
         pr_Task         : TTask;
@@ -1288,32 +1331,42 @@ End;
 
 Procedure FSplit(path: pathstr; var dir: dirstr; var name: namestr; var ext: extstr);
 var
-  I: Word;
+   p1,i : longint;
 begin
-  { allow backslash as slash }
+  { allow slash as backslash }
   for i:=1 to length(path) do
-    if path[i]='\' then path[i]:='/';
-
-  I := Length(Path);
-  while (I > 0) and not ((Path[I] = '/') or (Path[I] = ':'))
-     do Dec(I);
-  if Path[I] = '/' then
-     dir := Copy(Path, 0, I)
-  else dir := Copy(Path,0,I);
-
-  if Length(Path) > Length(dir) then
-      name := Copy(Path, I + 1, Length(Path)-I)
+   if path[i]='\' then path[i]:='/';
+  { get drive name }
+  p1:=pos(':',path);
+  if p1>0 then
+    begin
+       dir:=copy(path,1,p1);
+       delete(path,1,p1);
+    end
   else
-      name := '';
-  { Remove extension }
-  if pos('.',name) <> 0 then
-     delete(name,pos('.',name),length(name));
-
-  I := Pos('.',Path);
-  if I > 0 then
-     ext := Copy(Path,I,Length(Path)-(I-1))
-     else ext := '';
+    dir:='';
+  { split the path and the name, there are no more path informtions }
+  { if path contains no backslashes                                 }
+  while true do
+    begin
+       p1:=pos('/',path);
+       if p1=0 then
+         break;
+       dir:=dir+copy(path,1,p1);
+       delete(path,1,p1);
+    end;
+  { try to find out a extension }
+  p1:=pos('.',path);
+  if p1>0 then
+    begin
+       ext:=copy(path,p1,4);
+       delete(path,p1,length(path)-p1+1);
+    end
+  else
+    ext:='';
+  name:=path;
 end;
+
 
 Function FExpand(Path: PathStr): PathStr;
 var
@@ -1669,7 +1722,11 @@ End.
 
 {
   $Log$
-  Revision 1.8  1998-08-19 14:52:52  carl
+  Revision 1.9  1998-09-14 20:20:57  carl
+    * FSplit bugfix
+    * Structures bugfixes by Nils Sjoholm
+
+  Revision 1.8  1998/08/19 14:52:52  carl
     * SearchRec was not aligned!! so BOUM!...
 
   Revision 1.7  1998/08/17 12:30:42  carl
