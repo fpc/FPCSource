@@ -43,9 +43,10 @@ interface
     type
        tcoffsection = class(tobjectsection)
        public
-          flags    : cardinal;
-          relocpos : longint;
-          constructor createsec(sec:TSection;AAlign,AFlags:cardinal);
+         flags    : cardinal;
+         coffrelocs,
+         coffrelocpos : longint;
+         constructor createsec(sec:TSection;AAlign,AFlags:cardinal);
        end;
 
        tcoffdata = class(tobjectdata)
@@ -63,10 +64,10 @@ interface
          procedure writestabs(section:tsection;offset:longint;p:pchar;nidx,nother,line:longint;reloc:boolean);override;
          procedure writesymstabs(section:tsection;offset:longint;p:pchar;ps:pasmsymbol;nidx,nother,line:longint;reloc:boolean);override;
          strs,
-         syms    : Tdynamicarray;
+         syms  : Tdynamicarray;
        end;
 
-       tcoffoutput = class(tobjectoutput)
+       tcoffobjectoutput = class(tobjectoutput)
        private
          win32   : boolean;
          initsym : longint;
@@ -78,7 +79,25 @@ interface
        public
          constructor createdjgpp(smart:boolean);
          constructor createwin32(smart:boolean);
-         function  initwriting(Aplace:tcutplace):tobjectdata;override;
+         function  initwriting(const fn:string):boolean;override;
+       end;
+
+       tpasmsymbolarray = array[0..high(word)] of pasmsymbol;
+
+       tcoffobjectinput = class(tobjectinput)
+       private
+         Fidx2sec  : array[0..255] of tsection;
+         FCoffsyms : tdynamicarray;
+         FSymTbl   : ^tpasmsymbolarray;
+         win32     : boolean;
+         procedure read_relocs(s:tcoffsection);
+         procedure handle_symbols;
+       public
+         constructor createdjgpp(const fn:string);
+         constructor createwin32(const fn:string);
+         function  initreading:boolean;override;
+         procedure donereading;override;
+         procedure readfromdisk;override;
        end;
 
 
@@ -94,9 +113,18 @@ implementation
        globtype,globals,fmodule;
 
     const
-       symbolresize = 200*18;
+       symbolresize = 200*sizeof(toutputsymbol);
+       coffsymbolresize = 200*18;
        strsresize   = 8192;
        DataResize   = 8192;
+
+    const
+       COFF_SYM_EXTERNAL = 2;
+       COFF_SYM_STATIC   = 3;
+       COFF_SYM_LABEL    = 6;
+       COFF_SYM_FUNCTION = 101;
+       COFF_SYM_FILE     = 103;
+       COFF_SYM_SECTION  = 104;
 
     type
        { Structures which are written directly to the output file }
@@ -507,36 +535,38 @@ implementation
 
 
 {****************************************************************************
-                                TCoffOutput
+                                tcoffobjectoutput
 ****************************************************************************}
 
-    constructor tcoffoutput.createdjgpp(smart:boolean);
+    constructor tcoffobjectoutput.createdjgpp(smart:boolean);
       begin
         inherited create(smart);
         win32:=false;
       end;
 
 
-    constructor tcoffoutput.createwin32(smart:boolean);
+    constructor tcoffobjectoutput.createwin32(smart:boolean);
       begin
         inherited create(smart);
         win32:=true;
       end;
 
 
-    function tcoffoutput.initwriting(Aplace:tcutplace):tobjectdata;
+    function tcoffobjectoutput.initwriting(const fn:string):boolean;
       begin
-        inherited initwriting(Aplace);
-        initsym:=0;
-        if win32 then
-         data:=tcoffdata.createwin32
-        else
-         data:=tcoffdata.createdjgpp;
-        initwriting:=data;
+        result:=inherited initwriting(fn);
+        if result then
+         begin
+           initsym:=0;
+           if win32 then
+            FData:=tcoffdata.createwin32
+           else
+            FData:=tcoffdata.createdjgpp;
+         end;
       end;
 
 
-    procedure tcoffoutput.write_relocs(s:tobjectsection);
+    procedure tcoffobjectoutput.write_relocs(s:tobjectsection);
       var
         rel  : coffreloc;
         hr,r : poutputreloc;
@@ -568,7 +598,7 @@ implementation
              relative_false : rel.relative:=$6;
              relative_rva   : rel.relative:=$7;
            end;
-           writer.write(rel,sizeof(rel));
+           FWriter.write(rel,sizeof(rel));
            { goto next and dispose this reloc }
            hr:=r;
            r:=r^.next;
@@ -577,7 +607,7 @@ implementation
       end;
 
 
-    procedure tcoffoutput.write_symbol(const name:string;strpos,value,section,typ,aux:longint);
+    procedure tcoffobjectoutput.write_symbol(const name:string;strpos,value,section,typ,aux:longint);
       var
         sym : coffsymbol;
       begin
@@ -590,11 +620,11 @@ implementation
         sym.section:=section;
         sym.typ:=typ;
         sym.aux:=aux;
-        writer.write(sym,sizeof(sym));
+        FWriter.write(sym,sizeof(sym));
       end;
 
 
-    procedure tcoffoutput.write_symbols;
+    procedure tcoffobjectoutput.write_symbols;
       var
         filename  : string[18];
         sec       : tsection;
@@ -610,7 +640,7 @@ implementation
            write_symbol ('.file', -1, 0, -2, $67, 1);
            fillchar(filename,sizeof(filename),0);
            filename:=SplitFileName(current_module.mainsource^);
-           writer.write(filename[1],sizeof(filename)-1);
+           FWriter.write(filename[1],sizeof(filename)-1);
            { The section records, with their auxiliaries, also store the
              symbol index }
            for sec:=low(tsection) to high(tsection) do
@@ -620,7 +650,7 @@ implementation
                fillchar(secrec,sizeof(secrec),0);
                secrec.len:=sects[sec].aligneddatasize;
                secrec.nrelocs:=sects[sec].nrelocs;
-               writer.write(secrec,sizeof(secrec));
+               FWriter.write(secrec,sizeof(secrec));
              end;
            { The real symbols }
            Syms.seek(0);
@@ -641,7 +671,7 @@ implementation
       end;
 
 
-    procedure tcoffoutput.writetodisk;
+    procedure tcoffobjectoutput.writetodisk;
       var
         datapos,
         secsymidx,
@@ -697,7 +727,7 @@ implementation
            for sec:=low(tsection) to high(tsection) do
             if assigned(sects[sec]) then
              begin
-               tcoffsection(sects[sec]).relocpos:=datapos;
+               tcoffsection(sects[sec]).coffrelocpos:=datapos;
                inc(datapos,10*sects[sec].nrelocs);
                if (not gotreloc) and (sects[sec].nrelocs>0) then
                 gotreloc:=true;
@@ -714,7 +744,7 @@ implementation
             header.flag:=$104
            else
             header.flag:=$105;
-           writer.write(header,sizeof(header));
+           FWriter.write(header,sizeof(header));
          { Section headers }
            for sec:=low(tsection) to high(tsection) do
             if assigned(sects[sec]) then
@@ -735,9 +765,9 @@ implementation
                if (sects[sec].datasize>0) and assigned(sects[sec].data) then
                  sechdr.datapos:=sects[sec].datapos;
                sechdr.nrelocs:=sects[sec].nrelocs;
-               sechdr.relocpos:=TCoffSection(sects[sec]).relocpos;
+               sechdr.relocpos:=TCoffSection(sects[sec]).coffrelocpos;
                sechdr.flags:=TCoffSection(sects[sec]).flags;
-               writer.write(sechdr,sizeof(sechdr));
+               FWriter.write(sechdr,sizeof(sechdr));
              end;
          { Sections }
            for sec:=low(tsection) to high(tsection) do
@@ -748,7 +778,7 @@ implementation
                hp:=sects[sec].data.firstblock;
                while assigned(hp) do
                 begin
-                  writer.write(hp^.data,hp^.used);
+                  FWriter.write(hp^.data,hp^.used);
                   hp:=hp^.next;
                 end;
              end;
@@ -760,25 +790,319 @@ implementation
            write_symbols;
          { Strings }
            i:=Strs.size+4;
-           writer.write(i,4);
+           FWriter.write(i,4);
            hp:=Strs.firstblock;
            while assigned(hp) do
             begin
-              writer.write(hp^.data,hp^.used);
+              FWriter.write(hp^.data,hp^.used);
               hp:=hp^.next;
             end;
          end;
       end;
 
 {****************************************************************************
-                                TCoffInput
+                                tcoffobjectinput
 ****************************************************************************}
+
+    constructor tcoffobjectinput.createdjgpp(const fn:string);
+      begin
+        inherited create(fn);
+        win32:=false;
+      end;
+
+
+    constructor tcoffobjectinput.createwin32(const fn:string);
+      begin
+        inherited create(fn);
+        win32:=true;
+      end;
+
+
+    function tcoffobjectinput.initreading:boolean;
+      begin
+        result:=inherited initreading;
+        if result then
+         begin
+           if win32 then
+            FData:=tcoffdata.createwin32
+           else
+            FData:=tcoffdata.createdjgpp;
+           FCoffSyms:=TDynamicArray.Create(symbolresize);
+         end;
+      end;
+
+
+    procedure tcoffobjectinput.donereading;
+      begin
+        FCoffSyms.Free;
+      end;
+
+
+    procedure tcoffobjectinput.read_relocs(s:tcoffsection);
+      var
+        rel  : coffreloc;
+        rel_type : relative_type;
+        i        : longint;
+        p        : pasmsymbol;
+      begin
+        for i:=1 to s.coffrelocs do
+         begin
+           FReader.read(rel,sizeof(rel));
+           case rel.relative of
+             $14 : rel_type:=relative_true;
+             $06 : rel_type:=relative_false;
+             $07 : rel_type:=relative_rva;
+           else
+             begin
+               Comment(V_Error,'Error reading coff file');
+               exit;
+             end;
+           end;
+
+           p:=FSymTbl^[rel.sym];
+           if assigned(p) then
+            begin
+              s.addsymreloc(rel.address,p,rel_type);
+            end
+           else
+            begin
+              Comment(V_Error,'Error reading coff file');
+              exit;
+            end;
+         end;
+      end;
+
+
+    procedure tcoffobjectinput.handle_symbols;
+      var
+        filename  : string[18];
+        sec       : tsection;
+        sectionval,
+        i,nsyms,
+        symidx    : longint;
+        globalval : byte;
+        secrec    : coffsectionrec;
+        sym,
+        sym2      : coffsymbol;
+        strname,
+        strname2  : string;
+        p         : pasmsymbol;
+        auxrec    : array[0..17] of byte;
+      begin
+        with tcoffdata(data) do
+         begin
+           nsyms:=FCoffSyms.Size div sizeof(CoffSymbol);
+           { Allocate memory for symidx -> pasmsymbol table }
+           GetMem(FSymTbl,nsyms*sizeof(pointer));
+           FillChar(FSymTbl^,nsyms*sizeof(pointer),0);
+           { Loop all symbols }
+           FCoffSyms.Seek(0);
+           symidx:=0;
+           while (symidx<nsyms) do
+            begin
+              FCoffSyms.Read(sym,sizeof(sym));
+              if plongint(@sym.name)^<>0 then
+               begin
+                 move(sym.name,strname[1],8);
+                 strname[9]:=#0;
+               end
+              else
+               begin
+                 Strs.Seek(sym.strpos-4);
+                 Strs.Read(strname[1],255);
+                 strname[255]:=#0;
+               end;
+              strname[0]:=chr(strlen(@strname[1]));
+              if strname='' then
+               Internalerror(341324310);
+              case sym.typ of
+                COFF_SYM_EXTERNAL :
+                  begin
+                    if sym.section=0 then
+                     begin
+                       p:=new(pasmsymbol,init(strname,AB_EXTERNAL,AT_FUNCTION));
+                     end
+                    else
+                     begin
+                       p:=new(pasmsymbol,init(strname,AB_GLOBAL,AT_FUNCTION));
+                       sec:=Fidx2sec[sym.section];
+                       if assigned(sects[sec]) then
+                        begin
+                          p^.section:=sec;
+                          if sym.value>=sects[sec].mempos then
+                           p^.address:=sym.value-sects[sec].mempos
+                          else
+                           internalerror(432432432);
+                        end
+                       else
+                        internalerror(34243214);
+                     end;
+                    AddSymbol(p);
+                    FSymTbl^[symidx]:=p
+                  end;
+                COFF_SYM_STATIC :
+                  begin
+                    p:=new(pasmsymbol,init(strname,AB_LOCAL,AT_FUNCTION));
+                    sec:=Fidx2sec[sym.section];
+                    if assigned(sects[sec]) then
+                     begin
+                       p^.section:=sec;
+                       if sym.value>=sects[sec].mempos then
+                        p^.address:=sym.value-sects[sec].mempos
+                       else
+                        begin
+                          if Str2Sec(strname)<>sec then
+                           internalerror(432432432);
+                        end;
+                     end
+                    else
+                     internalerror(34243214);
+                    AddSymbol(p);
+                    FSymTbl^[symidx]:=p;
+                  end;
+                COFF_SYM_SECTION,
+                COFF_SYM_LABEL,
+                COFF_SYM_FUNCTION,
+                COFF_SYM_FILE :
+                  ;
+                else
+                  internalerror(4342343);
+              end;
+              { read aux records }
+              for i:=1 to sym.aux do
+               begin
+                 FCoffSyms.Read(auxrec,sizeof(auxrec));
+                 inc(symidx);
+               end;
+              inc(symidx);
+            end;
+         end;
+      end;
+
+
+    procedure tcoffobjectinput.readfromdisk;
+      var
+        datapos,
+        secsymidx,
+        nsects,
+        strsize,
+        sympos,i : longint;
+        hstab    : coffstab;
+        gotreloc : boolean;
+        sec      : tsection;
+        header   : coffheader;
+        sechdr   : coffsechdr;
+        empty    : array[0..15] of byte;
+        hp       : pdynamicblock;
+      begin
+        with tcoffdata(data) do
+         begin
+           FillChar(Fidx2sec,sizeof(Fidx2sec),0);
+         { COFF header }
+           if not reader.read(header,sizeof(coffheader)) then
+            begin
+              Comment(V_Error,'Error reading coff file');
+              exit;
+            end;
+           if header.mach<>$14c then
+            begin
+              Comment(V_Error,'Not a coff file');
+              exit;
+            end;
+           if header.nsects>255 then
+            begin
+              Comment(V_Error,'To many sections');
+              exit;
+            end;
+{           header.mach:=$14c;
+           header.nsects:=nsects;
+           header.sympos:=sympos;
+           header.syms:=(Syms.size div sizeof(TOutputSymbol))+initsym;
+           if gotreloc then
+            header.flag:=$104
+           else
+            header.flag:=$105 }
+         { Section headers }
+           for i:=1 to header.nsects do
+            begin
+              if not reader.read(sechdr,sizeof(sechdr)) then
+               begin
+                 Comment(V_Error,'Error reading coff file');
+                 exit;
+               end;
+              sec:=str2sec(strpas(sechdr.name));
+              if sec<>sec_none then
+               begin
+                 Fidx2sec[i]:=sec;
+                 createsection(sec);
+                 if not win32 then
+                  sects[sec].mempos:=sechdr.rvaofs;
+                 tcoffsection(sects[sec]).coffrelocs:=sechdr.nrelocs;
+                 tcoffsection(sects[sec]).coffrelocpos:=sechdr.relocpos;
+                 sects[sec].datapos:=sechdr.datapos;
+                 sects[sec].datasize:=sechdr.datasize;
+                 tcoffsection(sects[sec]).flags:=sechdr.flags;
+               end
+              else
+               Comment(V_Warning,'skipping unsupported section '+strpas(sechdr.name));
+            end;
+         { Symbols }
+           Reader.Seek(header.sympos);
+           if not Reader.ReadArray(FCoffSyms,header.syms*sizeof(CoffSymbol)) then
+            begin
+              Comment(V_Error,'Error reading coff file');
+              exit;
+            end;
+         { Strings }
+           if not Reader.Read(strsize,4) then
+            begin
+              Comment(V_Error,'Error reading coff file');
+              exit;
+            end;
+           if strsize<4 then
+            begin
+              Comment(V_Error,'Error reading coff file');
+              exit;
+            end;
+           if not Reader.ReadArray(Strs,Strsize-4) then
+            begin
+              Comment(V_Error,'Error reading coff file');
+              exit;
+            end;
+         { Insert all symbols }
+           handle_symbols;
+         { Sections }
+           for sec:=low(tsection) to high(tsection) do
+            if assigned(sects[sec]) and
+               (sec<>sec_bss) then
+             begin
+               Reader.Seek(sects[sec].datapos);
+               if not Reader.ReadArray(sects[sec].data,sects[sec].datasize) then
+                begin
+                  Comment(V_Error,'Error reading coff file');
+                  exit;
+                end;
+             end;
+         { Relocs }
+           for sec:=low(tsection) to high(tsection) do
+            if assigned(sects[sec]) and
+               (tcoffsection(sects[sec]).coffrelocs>0) then
+             begin
+               Reader.Seek(tcoffsection(sects[sec]).coffrelocpos);
+               read_relocs(tcoffsection(sects[sec]));
+             end;
+         end;
+      end;
+
 
 
 end.
 {
   $Log$
-  Revision 1.8  2000-12-25 00:07:26  peter
+  Revision 1.9  2001-03-05 21:40:38  peter
+    * more things for tcoffobjectinput
+
+  Revision 1.8  2000/12/25 00:07:26  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 

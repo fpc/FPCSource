@@ -79,7 +79,7 @@ interface
                                  nidx,nother,line:longint;reloc:boolean);override;
        end;
 
-       telf32output = class(tobjectoutput)
+       telf32objectoutput = class(tobjectoutput)
        private
          initsym  : longint;
          procedure createrelocsection(s:telf32section);
@@ -89,7 +89,7 @@ interface
        protected
          procedure writetodisk;override;
        public
-         function  initwriting(Aplace:tcutplace):tobjectdata;override;
+         function  initwriting(const fn:string):boolean;override;
        end;
 
 
@@ -495,19 +495,21 @@ implementation
 
 
 {****************************************************************************
-                            TElf32Output
+                            telf32objectoutput
 ****************************************************************************}
 
-    function telf32output.initwriting(Aplace:tcutplace):tobjectdata;
+    function telf32objectoutput.initwriting(const fn:string):boolean;
       begin
-        inherited initwriting(Aplace);
-        initsym:=0;
-        data:=telf32data.create;
-        initwriting:=data;
+        result:=inherited initwriting(fn);
+        if result then
+         begin
+           initsym:=0;
+           Fdata:=telf32data.create;
+         end;
       end;
 
 
-    procedure telf32output.createrelocsection(s:telf32section);
+    procedure telf32objectoutput.createrelocsection(s:telf32section);
       var
         rel  : telf32reloc;
         hr,r : poutputreloc;
@@ -556,7 +558,7 @@ implementation
       end;
 
 
-    procedure telf32output.createsymtab;
+    procedure telf32objectoutput.createsymtab;
       var
         elfsym : telf32symbol;
         sym : toutputsymbol;
@@ -631,7 +633,7 @@ implementation
       end;
 
 
-    procedure telf32output.createshstrtab;
+    procedure telf32objectoutput.createshstrtab;
       var
         sec : tsection;
       begin
@@ -655,7 +657,7 @@ implementation
       end;
 
 
-    procedure telf32output.writesectionheader(s:telf32section);
+    procedure telf32objectoutput.writesectionheader(s:telf32section);
       var
         sechdr : telf32sechdr;
       begin
@@ -673,7 +675,7 @@ implementation
       end;
 
 
-    procedure telf32output.writetodisk;
+    procedure telf32objectoutput.writetodisk;
       var
         header : telf32header;
         datapos,
@@ -844,7 +846,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2000-12-25 00:07:26  peter
+  Revision 1.6  2001-03-05 21:40:39  peter
+    * more things for tcoffobjectinput
+
+  Revision 1.5  2000/12/25 00:07:26  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 

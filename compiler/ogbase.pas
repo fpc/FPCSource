@@ -25,7 +25,6 @@ unit ogbase;
 {$i defines.inc}
 
 interface
-
     uses
 {$ifdef Delphi}
        sysutils,
@@ -69,36 +68,37 @@ interface
        end;
 
        tobjectsection = class
-          name      : string[32];
-          secsymidx : longint; { index for the section in symtab }
-          addralign : longint;
-          { size of the data and in the file }
-          data      : TDynamicArray;
-          datasize  : longint;
-          datapos   : longint;
-          { size and position in memory, set by setsectionsize }
-          memsize,
-          mempos    : longint;
-          { relocation }
-          nrelocs   : longint;
-          relochead : POutputReloc;
-          reloctail : ^POutputReloc;
-          constructor create(const Aname:string;Aalign:longint;alloconly:boolean);
-          destructor  destroy;override;
-          function  write(var d;l:longint):longint;
-          function  writestr(const s:string):longint;
-          procedure writealign(l:longint);
-          function  aligneddatasize:longint;
-          procedure alignsection;
-          procedure alloc(l:longint);
-          procedure addsymreloc(ofs:longint;p:pasmsymbol;relative:relative_type);
-          procedure addsectionreloc(ofs:longint;sec:tsection;relative:relative_type);
+         name      : string[32];
+         secsymidx : longint; { index for the section in symtab }
+         addralign : longint;
+         { size of the data and in the file }
+         data      : TDynamicArray;
+         datasize  : longint;
+         datapos   : longint;
+         { size and position in memory, set by setsectionsize }
+         memsize,
+         mempos    : longint;
+         { relocation }
+         nrelocs   : longint;
+         relochead : POutputReloc;
+         reloctail : ^POutputReloc;
+         constructor create(const Aname:string;Aalign:longint;alloconly:boolean);
+         destructor  destroy;override;
+         function  write(var d;l:longint):longint;
+         function  writestr(const s:string):longint;
+         procedure writealign(l:longint);
+         function  aligneddatasize:longint;
+         procedure alignsection;
+         procedure alloc(l:longint);
+         procedure addsymreloc(ofs:longint;p:pasmsymbol;relative:relative_type);
+         procedure addsectionreloc(ofs:longint;sec:tsection;relative:relative_type);
        end;
 
        tobjectdata = class
          { section }
          currsec   : tsection;
          sects     : array[TSection] of tobjectsection;
+         localsyms : pdictionary;
          constructor create;
          destructor  destroy;override;
          procedure createsection(sec:tsection);virtual;
@@ -112,6 +112,7 @@ interface
          procedure writesymbol(p:pasmsymbol);virtual;abstract;
          procedure writestabs(section:tsection;offset:longint;p:pchar;nidx,nother,line:longint;reloc:boolean);virtual;abstract;
          procedure writesymstabs(section:tsection;offset:longint;p:pchar;ps:pasmsymbol;nidx,nother,line:longint;reloc:boolean);virtual;abstract;
+         procedure addsymbol(p:pasmsymbol);
        end;
 
        tobjectalloc = class
@@ -129,27 +130,38 @@ interface
 
        tobjectoutput = class
        protected
-         path      : pathstr;
-         ObjFile   : string;
-         { smartlinking }
-         objsmart  : boolean;
-         place     : tcutplace;
-         SmartFilesCount,
-         SmartHeaderCount : longint;
          { writer }
-         writer    : tobjectwriter;
+         FWriter    : tobjectwriter;
          { section }
-         data      : tobjectdata;
-         { Writing }
-         procedure NextSmartName;
-       protected
+         FData      : tobjectdata;
          procedure writetodisk;virtual;
        public
          constructor create(smart:boolean);
          destructor  destroy;override;
-         function  initwriting(Aplace:tcutplace):tobjectdata;virtual;
+         function  initwriting(const fn:string):boolean;virtual;
          procedure donewriting;virtual;
          procedure exportsymbol(p:pasmsymbol);
+         property Data:TObjectData read FData write FData;
+         property Writer:TObjectWriter read FWriter;
+       end;
+
+       tobjectinput = class
+       protected
+         FObjFile   : string;
+         { writer }
+         FReader    : tobjectreader;
+       protected
+         { section }
+         FData      : tobjectdata;
+         function  str2sec(const s:string):tsection;
+       public
+         constructor create(const fn:string);
+         destructor  destroy;override;
+         function  initreading:boolean;virtual;
+         procedure donereading;virtual;
+         procedure readfromdisk;virtual;
+         property Data:TObjectData read FData write FData;
+         property Reader:TObjectReader read FReader;
        end;
 
     var
@@ -159,6 +171,9 @@ interface
       objectalloc  : tobjectalloc;
       { current object writer used }
       objectoutput : tobjectoutput;
+
+      { globals }
+      globalsyms : pdictionary;
 
 
 implementation
@@ -355,6 +370,8 @@ implementation
       begin
         { reset }
         FillChar(Sects,sizeof(Sects),0);
+        localsyms:=new(pdictionary,init);
+        localsyms^.usehash;
       end;
 
 
@@ -366,6 +383,7 @@ implementation
         for sec:=low(tsection) to high(tsection) do
          if assigned(sects[sec]) then
           sects[sec].free;
+        dispose(localsyms,done);
       end;
 
 
@@ -423,67 +441,33 @@ implementation
       end;
 
 
+    procedure tobjectdata.addsymbol(p:pasmsymbol);
+      begin
+        if (p^.bind=AB_LOCAL) then
+         localsyms^.insert(p)
+        else
+         globalsyms^.insert(p);
+      end;
+
+
 {****************************************************************************
                                 tobjectoutput
 ****************************************************************************}
 
     constructor tobjectoutput.create(smart:boolean);
       begin
-        SmartFilesCount:=0;
-        SmartHeaderCount:=0;
-        objsmart:=smart;
-        objfile:=current_module.objfilename^;
-      { Which path will be used ? }
-        if objsmart and
-           (cs_asm_leave in aktglobalswitches) then
-         begin
-           path:=current_module.path^+FixFileName(current_module.modulename^)+target_info.smartext;
-           {$I-}
-            mkdir(path);
-           {$I+}
-           if ioresult<>0 then;
-           path:=FixPath(path,false);
-         end
-        else
-         path:=current_module.path^;
       { init writer }
-        if objsmart and
+        if smart and
            not(cs_asm_leave in aktglobalswitches) then
-          writer:=tarobjectwriter.create(current_module.staticlibfilename^)
+          FWriter:=tarobjectwriter.create(current_module.staticlibfilename^)
         else
-          writer:=tobjectwriter.create;
+          FWriter:=tobjectwriter.create;
       end;
 
 
     destructor tobjectoutput.destroy;
       begin
-        writer.free;
-      end;
-
-
-    procedure tobjectoutput.NextSmartName;
-      var
-        s : string;
-      begin
-        inc(SmartFilesCount);
-        if SmartFilesCount>999999 then
-         Message(asmw_f_too_many_asm_files);
-        if (cs_asm_leave in aktglobalswitches) then
-         s:=current_module.asmprefix^
-        else
-         s:=current_module.modulename^;
-        case place of
-          cut_begin :
-            begin
-              inc(SmartHeaderCount);
-              s:=s+tostr(SmartHeaderCount)+'h';
-            end;
-          cut_normal :
-            s:=s+tostr(SmartHeaderCount)+'s';
-          cut_end :
-            s:=s+tostr(SmartHeaderCount)+'t';
-        end;
-        ObjFile:=FixFileName(s+tostr(SmartFilesCount)+target_info.objext);
+        FWriter.free;
       end;
 
 
@@ -492,16 +476,11 @@ implementation
       end;
 
 
-    function tobjectoutput.initwriting(Aplace:tcutplace):tobjectdata;
+    function tobjectoutput.initwriting(const fn:string):boolean;
       begin
-        place:=Aplace;
         { the data should be set by the real output like coffoutput }
-        data:=nil;
-        initwriting:=nil;
-        { open the writer }
-        if objsmart then
-         NextSmartName;
-        writer.createfile(objfile);
+        FData:=nil;
+        initwriting:=FWriter.createfile(fn);
       end;
 
 
@@ -511,10 +490,10 @@ implementation
         if errorcount=0 then
           writetodisk;
         { close the writer }
-        writer.closefile;
+        FWriter.closefile;
         { free data }
-        data.free;
-        data:=nil;
+        FData.free;
+        FData:=nil;
       end;
 
 
@@ -523,13 +502,77 @@ implementation
         { export globals and common symbols, this is needed
           for .a files }
         if p^.bind in [AB_GLOBAL,AB_COMMON] then
-         writer.writesym(p^.name);
+         FWriter.writesym(p^.name);
       end;
+
+
+{****************************************************************************
+                                tobjectinput
+****************************************************************************}
+
+    constructor tobjectinput.create(const fn:string);
+      begin
+        FObjfile:=fn;
+        FData:=nil;
+      { init reader }
+        FReader:=tobjectreader.create;
+      end;
+
+
+    destructor tobjectinput.destroy;
+      begin
+        FReader.free;
+      end;
+
+
+    function tobjectinput.initreading:boolean;
+      begin
+        { the data should be set by the real output like coffoutput }
+        FData:=nil;
+        { open the reader }
+        initreading:=FReader.openfile(FObjfile);
+      end;
+
+
+    procedure tobjectinput.donereading;
+      begin
+        { close the writer }
+        FReader.closefile;
+        { free data }
+        FData.free;
+        FData:=nil;
+      end;
+
+
+    procedure tobjectinput.readfromdisk;
+      begin
+      end;
+
+
+    function tobjectinput.str2sec(const s:string):tsection;
+      var
+        t : tsection;
+      begin
+        for t:=low(tsection) to high(tsection) do
+         begin
+           if (s=target_asm.secnames[t]) then
+            begin
+              str2sec:=t;
+              exit;
+            end;
+         end;
+        str2sec:=sec_none;
+      end;
+
+
 
 end.
 {
   $Log$
-  Revision 1.5  2000-12-25 00:07:26  peter
+  Revision 1.6  2001-03-05 21:40:38  peter
+    * more things for tcoffobjectinput
+
+  Revision 1.5  2000/12/25 00:07:26  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 

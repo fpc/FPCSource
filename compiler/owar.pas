@@ -44,7 +44,7 @@ type
   tarobjectwriter=class(tobjectwriter)
     constructor create(const Aarfn:string);
     destructor  destroy;override;
-    procedure createfile(const fn:string);override;
+    function  createfile(const fn:string):boolean;override;
     procedure closefile;override;
     procedure writesym(const sym:string);override;
     procedure write(const b;len:longint);override;
@@ -173,11 +173,12 @@ begin
 end;
 
 
-procedure tarobjectwriter.createfile(const fn:string);
+function tarobjectwriter.createfile(const fn:string):boolean;
 begin
   objfn:=fn;
   objpos:=ardata.size;
   ardata.seek(objpos + sizeof(tarhdr));
+  createfile:=true;
 end;
 
 
@@ -280,7 +281,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  2000-12-24 12:25:32  peter
+  Revision 1.8  2001-03-05 21:40:39  peter
+    * more things for tcoffobjectinput
+
+  Revision 1.7  2000/12/24 12:25:32  peter
     + cstreams unit
     * dynamicarray object to class
 
