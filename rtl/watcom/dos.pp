@@ -298,7 +298,7 @@ var
     c : array[0..255] of char;
   begin
      paste_to_dos:=false;
-     if current_dos_buffer_pos+length(src)+1>transfer_buffer+tb_size then
+     if current_dos_buffer_pos+length(src)+1>tb+tb_size then
       RunError(217);
      move(src[1],c[0],length(src));
      c[length(src)]:=#0;
@@ -320,7 +320,7 @@ begin
   if LFNSupport then
     GetShortName(p);
 { create buffer }
-  la_env:=transfer_buffer;
+  la_env:=tb;
   while (la_env and 15)<>0 do
    inc(la_env);
   current_dos_buffer_pos:=la_env;
@@ -1048,7 +1048,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2003-10-03 21:59:28  peter
+  Revision 1.4  2003-10-18 09:18:29  hajny
+    * Wiktor Sywula: transfer_buffer changed to tb
+
+  Revision 1.3  2003/10/03 21:59:28  peter
     * stdcall fixes
 
   Revision 1.2  2003/09/07 22:29:26  hajny
