@@ -1,122 +1,58 @@
 This directory contains the sources of the Free Pascal Compiler
 
-To recompile the compiler, use the batch file
-mppc386.bat
-
-If you want to build a m68k version to cross compile from i386 to m68k
-use the batch file
-mppc68k.bat
-
 If you want to compile/modify the compiler, please read first the
 programmers manual.
 
+To recompile the compiler, you can use the batch files :
+ + mppc386.bat    if you want to build a cross compiler from i386 to m68k
+ + mppcsparc      if you want to build a cross compiler from i386 to SPARC
+ 
+ or
+Use the make utility as following
+  
+      make OS_TARGET="compiler OS target" \
+      CPU_TARGET="compiler CPU target" \
+      FPCCPUOPT="Optimization level" \
+      PP="compiler used to compile FPC" \
+      COMPILER_OPTIONS="Options passed to compiler" \
+      
+      
+If an option is omitted, then target CPU/OS will be same as current CPU/OS
+ 
+Possibles targets are : linux go32v2 win32 os2 freebsd beos netbsd amiga
+atari sunos qnx netware openbsd wdosx palmos macos macosx emx
+   
+Possible compiler switches (* marks a currently required switch):
+  -----------------------------------------------------------------
+  GDB*                support of the GNU Debugger
+  I386                generate a compiler for the Intel i386+
+  x86_64              generate a compiler for the AMD x86-64 architecture
+  M68K                generate a compiler for the M68000
+  SPARC               generate a compiler for SPARC
+  POWERPC             generate a compiler for the PowerPC
+  VIS                 generate a compile for the VIS
+  DEBUG               version with debug code is generated
+  EXTDEBUG            some extra debug code is executed
+  SUPPORT_MMX         only i386: releases the compiler switch
+                      MMX which allows the compiler to generate
+                      MMX instructions
+  EXTERN_MSG          Don't compile the msgfiles in the compiler, always
+                      use external messagefiles, default for TP
+  NOAG386INT          no Intel Assembler output
+  NOAG386NSM          no NASM output
+  NOAG386BIN          leaves out the binary writer, default for TP
+  NORA386DIR          No direct i386 assembler reader
+  TEST_GENERIC        Test Generic version of code generator
+                      (uses generic RTL calls)
+  -----------------------------------------------------------------
+  cpuflags            The target processor has status flags (on by default)
+  cpufpemu            The target compiler will also support emitting software
+                       floating point operations
+  cpu64bit            The target is a 64-bit processor
+  -----------------------------------------------------------------
 
-Changes in the syntax or semantic of FPC:
------------------------------------------
-  28/01/99   implicit conversion from boolean to integer is not possible
-             anymore (solved several bugs) but this could lead to errors
-             on previously accepted code (PM)
-  01/02/99   c styled comments are supported (/* ... */), mainly
-             for the Sibyl sources of Medigo (FK)
-  02/02/99   class destructors take now two parameters: flag
-             if the helper routine should free the instance and
-             self pointer (FK)
-  22/02/99   PROTECTED and PRIVATE have now the same behavior
-             as in TP
-  09/03/99   small records and arrays passed by value to a function are now directly copied
-             into a 4 bytes parameter (needed for C and DLL calls) (PM)
-  11/03/99   the makefile.fpc is now also needed for the compiler and RTL, you can
-             find it in the base.zip package (PFV)
-  24/03/99   new directives UNITPATH,INCLUDEPATH,OBJECTPATH,LIBRARYPATH to
-             set the searchpaths where to find the files for that module (PFV)
-  25/03/99   new directive STATIC +/- or on/off , works like -St commandline
-             switch
-  02/04/99   rtl/cfg/ directory has been removed, it's not used anymore
-  15/04/99   FINALIZATION is supported
-  21/04/99   Default assembler for i386 changed to AT&T instead of direct
-  25/04/99   initialized vars supported in Delphi mode (only $J+ mode)
-             getting the address of an untyped const is now
-             forbidden as in BP
-  27/04/99   New unit format PPU016, you need to recompile all older units
-  01/05/99   Internal assembler. Assembler readers now support MMX,KNI
-             instructions.
-  12/05/99   rtl/utils/ directory moved to utils/. Moved the utils only needed
-             for compiler development to compiler/utils/
-  13/05/99   Classes are now only allowed in the ObjFpc or Delphi mode. Use
-             {$mode objfpc} or {$mode delphi}. Or from commandline -S2 or -Sd
-  16/05/99   Remove options -Up (use now -Fu) and -Fg (use now -Fl)
-  17/05/99   Redesign of ansistring temporary handling, please report
-             any problems
-  17/05/99   Most stuff of the objpas unit is now in the system unit
-             because the new temporary ansistring handling support
-             exceptions and exceptions need the class OOP model
-  18/05/99   The compiler will stop directly if there are errors in the
-             commandline parameters
-  16/08/99   DLL are relocatable by default (need to strip symbols)
-             -WN make non relocatable DLL (which can retain debug info)
-             for both type of DLL the prefered image base can be specified
-             with -WB1100000 for instance to get image base at $11000000.
-  08/09/99   pointer addition/substraction (only available in fpc,objfpc mode)
-             now uses the size of the type the pointer points to, just like
-             inc(),dec() already did. Now inc(p) is the same as p:=p+1.
-             But old code can be broken by this when there is a p:=p+4 then
-             it's now parsed like: p:=p+4*sizeof(type). To get the old situation
-             you can use typecasting: p:=ptype(pointer(p)+4).
-  08/09/99   class/object field return their offsets in the object/class. You
-             must access them self with loading the object/class pointer and
-             then create a reference where you add the field
-  07/11/99   Small change to property writing in PPU => all units
-             exporting classes with properties must be recompiled
-             (no new unit format, so be careful) (FK)
-  08/11/99   PP variable in Makefiles changed to FPC
-  14/11/99   makefile.fpc is not available anymore. You must now use fpcmake
-             which is available from the utils/. There is also an example
-             Makefile.fpc
-  15/02/00   The support of the fixed data type has been removed from the
-             compiler because
-                1. it is buggy
-                2. it is very seldom used
-                3. the single data type is faster on modern cpus (Pentium+)
+  Required switches for a i386 compiler be compiled by Free Pascal Compiler:
+  GDB;I386
 
-             If still want to use it, you have to recompile the compiler
-             with -dSUPPORT_FIXED and recompile the rtl with that compiler.
-             To find out if the used compiler supports the fixed data
-             type, check the directive HASFIXED  (FK)
-  29/02/00   ORDERSOURCES released => PPU version change
-             this allows for a more correct include file hunting order.
-  01/04/00   fix the handling of value parameters in cdecl function
-  11/05/00   changed vmt handling to fix problems some problems
-             with overloading in objects
-  11/11/00   default parameter support
-  11/11/00   you can declare a pointer type with directive far; to make
-             it a farpointer. Only usefull for dos.
-  11/11/00   ptr() returns a farpointer instead of pointer. Becuase the
-             pointer result would be useless and only causing segmentation
-             faults. With the farpointer this would already be detected at
-             compiletime. To get the code working you can declare a pointer
-             with far; like:
-
-             type
-               farlongint = ^longint;far;
-             var
-               timer : farlongint;
-             begin
-               timer:=ptr($40,$6c);
-               writeln(timer^);
-             end.
-  07/12/00   constant handling has been rewritten: hex constants <=$ffffffff
-             are now always parsed as unsigned numbers (because of the int64
-             constant support, the were always sign-extended before). This
-             may force you to add longint typecasts round hex numbers in
-             your programs to avoid range check errors.
-  10/04/01   Argument names are now checked if names are the same in the
-             both the forward (interface) and implementation declaration
-  13/04/01   It's not possible anymore (except in -So mode) to pass a cardinal
-             to a parameter declared with a "var longint". The same goes for
-             the other signed-unsigned like smallint-word and shortint-byte.
-  13/04/01   in FPC mode you're now always forced to use @ to get the address
-             of a procedure and load it in a procedure variable. Before it was
-             sometimes a bit more relaxed
-  03/06/01   hint directives (library,platform,deprecated) are parsed, but
-             futher ignored
-  03/06/01   varargs directive is supported
+to build a compiler to SPARC target using a Win32/i386 you just use :
+      make CPU_TARGET=SPARC
