@@ -4,6 +4,8 @@
 %%% Contains all comments from errord.msg
 %%% Reordering of errord.msg respective to errore.msg
 %%% Contains all comments from errord.msg
+%%% Reordering of errord.msg respective to errore.msg
+%%% Contains all comments from errord.msg
 #
 #   $Id$
 #   This file is part of the Free Pascal Compiler
@@ -582,6 +584,9 @@ parser_e_operator_not_overloaded=E_Operator besitzt kein Overload
 parser_e_no_such_assignment=E_Es ist nicht mîglich, die Zuweisung fÅr gleiche Typen zu Åberladen
 % You can not overload assignment for types
 % that the compiler considers as equal.
+parser_e_overload_impossible=E_Unmîgliche Operator-.berladung
+% The combination of operator, arguments and return type are
+% incompatible.
 parser_e_no_reraise_possible=E_Auslîsen einer Exception an dieser Stelle nicht mîglich
 % You are trying to raise an exception where it isn't allowed. You can only
 % raise exceptions in an \var{except} block.
@@ -1348,11 +1353,8 @@ asmr_e_invalid_string_as_opcode_operand=E_UngÅlitge Zeichenkette als Opcode-Oper
 asmr_w_CODE_and_DATA_not_supported=W_@CODE und @DATA werden nicht unterstÅtzt
 % @CODE and @DATA are unsupported and are ignored.
 asmr_e_null_label_ref_not_allowed=E_Null-Label-Bezug nicht mîglich
-asmr_e_ev_zero_divide=F_Division durch Null in asm Ausdruck
-asmr_e_ev_stack_overflow=F_Ausdruck liefert StackÅberlauf
-asmr_e_ev_stack_underflow=F_Ausdruck liefert Stackunterlauf
-asmr_e_ev_invalid_number=F_UngÅltiges Zahlenformat in asm Ausdruck
-asmr_e_ev_invalid_op=F_UngÅltiger Operator in asm-Ausdruck
+asmr_e_expr_zero_divide=E_Division durch Null in Assembler-Ausdruck
+asmr_e_expr_illegal=E_UngÅltiger Ausdruck
 asmr_e_escape_seq_ignored=E_Escape-Sequenz ignoriert: $1
 asmr_e_invalid_symbol_ref=E_UngÅltige Symbolverwendung
 asmr_w_fwait_emu_prob=W_FWAIT kann Emulationsprobleme mit emu387 verursachen
@@ -1391,6 +1393,7 @@ asmr_w_far_ignored=W_FAR ignoriert
 asmr_e_dup_local_sym=E_Doppelters lokales Symbol $1
 asmr_e_unknown_local_sym=E_Undefiniertes lokales Symbol $1
 asmr_e_unknown_label_identifier=E_Unbekannter Label-Bezeichner $1
+asmr_e_invalid_register=E_UngÅltiger Registername
 asmr_e_invalid_fpu_register=E_UngÅltiger Name fÅr Fliesskommaregister
 asmr_e_nor_not_supported=E_NOR nicht unterstÅtzt
 asmr_w_modulo_not_supported=W_Modulo nicht unterstÅtzt
@@ -1490,13 +1493,13 @@ unit_t_unitsearch=T_Suche Unit: $1
 unit_t_ppu_loading=T_Lade PPU: $1
 % When the \var{-vt} switch is used, the compiler tells you
 % what units it loads.
-unit_u_ppu_name=U_PPU Name: $1
+unit_u_ppu_name=U_PPU-Name: $1
 % When you use the \var{-vu} flag, the unit name is shown.
-unit_u_ppu_flags=U_PPU Flags: $1
+unit_u_ppu_flags=U_PPU-Flags: $1
 % When you use the \var{-vu} flag, the unit flags are shown.
-unit_u_ppu_crc=U_PPU CRC: $1
+unit_u_ppu_crc=U_PPU-CRC: $1
 % When you use the \var{-vu} flag, the unit CRC check is shown.
-unit_u_ppu_time=U_PPU Zeit: $1
+unit_u_ppu_time=U_PPU-Zeit: $1
 % When you use the \var{-vu} flag, the unit time is shown.
 unit_u_ppu_file_too_short=U_PPU-Datei zu kurz
 % When you use the \var{-vu} flag, the unit time is shown.
