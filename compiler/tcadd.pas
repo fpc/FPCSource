@@ -105,7 +105,7 @@ implementation
             (ld^.deftype=recorddef) or
             ((ld^.deftype=arraydef) and
              (not (rd^.deftype in [setdef,orddef])) and
-             (not is_open_array(ld))
+             (not is_chararray(ld))
             ) or
             { <> and = are defined for classes }
             ((ld^.deftype=objectdef) and
@@ -116,7 +116,7 @@ implementation
             (rd^.deftype=recorddef) or
             ((rd^.deftype=arraydef) and
              (not (ld^.deftype in [setdef,orddef])) and
-             (not is_open_array(rd))
+             (not is_chararray(rd))
             ) or
             { <> and = are defined for classes }
             ((rd^.deftype=objectdef) and
@@ -1135,7 +1135,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.46  1999-09-10 15:40:46  peter
+  Revision 1.47  1999-09-13 16:28:05  peter
+    * typo in previous commit open_array -> chararray :(
+
+  Revision 1.46  1999/09/10 15:40:46  peter
     * fixed array check for operators, becuase array can also be a set
 
   Revision 1.45  1999/09/08 16:05:29  peter
