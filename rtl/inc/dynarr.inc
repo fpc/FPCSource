@@ -33,7 +33,16 @@ type
       elesize : sizeint;
       eletype : pdynarraytypeinfo;
    end;
-
+   
+function aligntoptr(p : pointer) : pointer;
+  begin
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+    if (ptrint(p) mod sizeof(ptrint))<>0 then
+      inc(ptrint(p),sizeof(ptrint)-ptrint(p) mod sizeof(ptrint));
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+    result:=p;
+  end;
+      
 
 procedure fpc_dynarray_rangecheck(p : pointer;i : tdynarrayindex);[Public,Alias:'FPC_DYNARRAY_RANGECHECK']; {$ifdef hascompilerproc} compilerproc; {$endif}
   begin
@@ -70,15 +79,14 @@ procedure fpc_dynarray_clear_internal(p : pointer;ti : pointer);
        exit;
 
      { skip kind and name }
-     inc(pointer(ti),ord(pdynarraytypeinfo(ti)^.namelen));
+     inc(pointer(ti),ord(pdynarraytypeinfo(ti)^.namelen)+2);
 
-{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
-     move(pdynarraytypeinfo(ti)^.elesize,elesize,sizeof(elesize));
-     move(pdynarraytypeinfo(ti)^.eletype,eletype,sizeof(eletype));
-{$else FPC_REQUIRES_PROPER_ALIGNMENT}
-     elesize:=pdynarraytypeinfo(ti)^.elesize;
-     eletype:=pdynarraytypeinfo(ti)^.eletype;
-{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+{$ifdef FPC_ALIGNSRTTI}
+     ti:=aligntoptr(ti);
+{$endif FPC_ALIGNSRTTI}
+
+     elesize:=psizeint(ti)^;
+     eletype:=pdynarraytypeinfo(ti+sizeof(sizeint));
 
      { finalize all data }
      int_finalizearray(p+sizeof(tdynarray),eletype,pdynarray(p)^.high+1,
@@ -170,16 +178,16 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
 
   begin
      ti:=pdynarraytypeinfo(pti);
+     
      { skip kind and name }
-     inc(pointer(ti),ord(ti^.namelen));
+     inc(pointer(ti),ord(pdynarraytypeinfo(ti)^.namelen)+2);
 
-{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
-     move(pdynarraytypeinfo(ti)^.elesize,elesize,sizeof(elesize));
-     move(pdynarraytypeinfo(ti)^.eletype,eletype,sizeof(eletype));
-{$else FPC_REQUIRES_PROPER_ALIGNMENT}
-     elesize:=pdynarraytypeinfo(ti)^.elesize;
-     eletype:=pdynarraytypeinfo(ti)^.eletype;
-{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+{$ifdef FPC_ALIGNSRTTI}
+     ti:=aligntoptr(ti);
+{$endif FPC_ALIGNSRTTI}
+
+     elesize:=psizeint(ti)^;
+     eletype:=pdynarraytypeinfo(ti+sizeof(sizeint));
 
      { determine new memory size }
      { dims[dimcount-1] because the dimensions are in reverse order! (JM) }
@@ -348,7 +356,10 @@ procedure fpc_dynarray_copy(var pdest : pointer;psrc : pointer;ti : pointer;
 
 {
   $Log$
-  Revision 1.30  2004-10-24 20:01:41  peter
+  Revision 1.31  2004-11-03 10:54:36  florian
+    * fixed dyn. array handling for 32 bit architectures requiering proper alignment
+
+  Revision 1.30  2004/10/24 20:01:41  peter
     * saveregisters calling convention is obsolete
 
   Revision 1.29  2004/09/15 07:28:09  michael
