@@ -114,7 +114,7 @@ var
    c      : word;
    addThis: boolean;
 begin
-         with ir.KeyEvent do
+         with ir.Event.KeyEvent do
            begin
               { key up events are ignored (except alt) }
               if bKeyDown then
@@ -140,7 +140,7 @@ begin
                         if addThis then
                         begin
                           keyboardeventqueue[nextfreekeyevent]:=
-                            ir.KeyEvent;
+                            ir.Event.KeyEvent;
                           incqueueindex(nextfreekeyevent);
                         end;
                      end;
@@ -167,7 +167,7 @@ begin
                               AsciiChar := char (c);
                                                        {and add to queue}
                               EnterCriticalSection (lockVar);
-                              keyboardeventqueue[nextfreekeyevent]:=ir.KeyEvent;
+                              keyboardeventqueue[nextfreekeyevent]:=ir.Event.KeyEvent;
                               incqueueindex(nextfreekeyevent);
                               SetEvent (newKeyEvent);      {event that a new key is available}
                               LeaveCriticalSection (lockVar);
@@ -781,7 +781,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2001-05-20 12:08:17  peter
+  Revision 1.4  2001-08-05 12:23:57  peter
+    * fixed for new input_record
+
+  Revision 1.3  2001/05/20 12:08:17  peter
     * fixed to compile with debug
 
   Revision 1.2  2001/01/14 22:20:00  peter

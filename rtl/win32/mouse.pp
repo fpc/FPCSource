@@ -39,15 +39,15 @@ procedure MouseEventHandler(var ir:INPUT_RECORD);
 
   begin
           EnterCriticalSection(ChangeMouseEvents);
-          e.x:=ir.MouseEvent.dwMousePosition.x;
-          e.y:=ir.MouseEvent.dwMousePosition.y;
+          e.x:=ir.Event.MouseEvent.dwMousePosition.x;
+          e.y:=ir.Event.MouseEvent.dwMousePosition.y;
           e.buttons:=0;
           e.action:=0;
-          if (ir.MouseEvent.dwButtonState and FROM_LEFT_1ST_BUTTON_PRESSED<>0) then
+          if (ir.Event.MouseEvent.dwButtonState and FROM_LEFT_1ST_BUTTON_PRESSED<>0) then
             e.buttons:=e.buttons or MouseLeftButton;
-          if (ir.MouseEvent.dwButtonState and FROM_LEFT_2ND_BUTTON_PRESSED<>0) then
+          if (ir.Event.MouseEvent.dwButtonState and FROM_LEFT_2ND_BUTTON_PRESSED<>0) then
             e.buttons:=e.buttons or MouseMiddleButton;
-          if (ir.MouseEvent.dwButtonState and RIGHTMOST_BUTTON_PRESSED<>0) then
+          if (ir.Event.MouseEvent.dwButtonState and RIGHTMOST_BUTTON_PRESSED<>0) then
             e.buttons:=e.buttons or MouseRightButton;
 
           { can we compress the events? }
@@ -217,7 +217,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2001-04-10 21:28:36  peter
+  Revision 1.4  2001-08-05 12:23:57  peter
+    * fixed for new input_record
+
+  Revision 1.3  2001/04/10 21:28:36  peter
     * removed warnigns
 
   Revision 1.2  2001/01/14 22:20:00  peter

@@ -423,33 +423,33 @@ begin
        begin
           ReadConsoleInputA(TextRec(input).Handle,buf,1,nread);
           if buf.EventType = KEY_EVENT then
-            if buf.KeyEvent.bKeyDown then
+            if buf.Event.KeyEvent.bKeyDown then
               begin
                  { Alt key is VK_MENU }
                  { Capslock key is VK_CAPITAL }
 
-                 AltKey := ((Buf.KeyEvent.dwControlKeyState AND
+                 AltKey := ((Buf.Event.KeyEvent.dwControlKeyState AND
                             (RIGHT_ALT_PRESSED OR LEFT_ALT_PRESSED)) > 0);
-                 if not(Buf.KeyEvent.wVirtualKeyCode in [VK_SHIFT, VK_MENU, VK_CONTROL,
+                 if not(Buf.Event.KeyEvent.wVirtualKeyCode in [VK_SHIFT, VK_MENU, VK_CONTROL,
                                                       VK_CAPITAL, VK_NUMLOCK,
                                                       VK_SCROLL]) then
                    begin
                       keypressed:=true;
 
-                      if (ord(buf.KeyEvent.AsciiChar) = 0) or
-                        (buf.keyevent.dwControlKeyState=2) then
+                      if (ord(buf.Event.KeyEvent.AsciiChar) = 0) or
+                        (buf.Event.KeyEvent.dwControlKeyState=2) then
                         begin
                            SpecialKey := TRUE;
-                           ScanCode := Chr(RemapScanCode(Buf.KeyEvent.wVirtualScanCode, Buf.KeyEvent.dwControlKeyState,
-                                           Buf.KeyEvent.wVirtualKeyCode));
+                           ScanCode := Chr(RemapScanCode(Buf.Event.KeyEvent.wVirtualScanCode, Buf.Event.KeyEvent.dwControlKeyState,
+                                           Buf.Event.KeyEvent.wVirtualKeyCode));
                         end
                       else
                         begin
                            SpecialKey := FALSE;
-                           ScanCode := Chr(Ord(buf.KeyEvent.AsciiChar));
+                           ScanCode := Chr(Ord(buf.Event.KeyEvent.AsciiChar));
                         end;
 
-                      if Buf.KeyEvent.wVirtualKeyCode in [VK_NUMPAD0..VK_NUMPAD9] then
+                      if Buf.Event.KeyEvent.wVirtualKeyCode in [VK_NUMPAD0..VK_NUMPAD9] then
                         if AltKey then
                           begin
                              Keypressed := false;
@@ -459,7 +459,7 @@ begin
                         else break;
                    end;
               end
-             else if (Buf.KeyEvent.wVirtualKeyCode in [VK_MENU]) then
+             else if (Buf.Event.KeyEvent.wVirtualKeyCode in [VK_MENU]) then
                if DoingNumChars then
                  if DoingNumCode > 0 then
                    begin
@@ -851,7 +851,10 @@ end. { unit Crt }
 
 {
   $Log$
-  Revision 1.13  2001-08-01 18:01:20  peter
+  Revision 1.14  2001-08-05 12:23:57  peter
+    * fixed for new input_record
+
+  Revision 1.13  2001/08/01 18:01:20  peter
     * WChar fix to compile also with 1.0.x
 
   Revision 1.12  2001/07/30 15:00:54  marco
