@@ -247,11 +247,12 @@ begin
    begin
      { create a new procsym and set the real filepos }
      tokenpos:=procstartfilepos;
-     aktprocsym:=new(pprocsym,init(sp));
      { for operator we have only one definition for each overloaded
        operation }
      if (options=potype_operator) then
        begin
+          { create the procsym with saving the original case }
+          aktprocsym:=new(pprocsym,init('$'+sp));
           { the only problem is that nextoverloaded might not be in a unit
             known for the unit itself }
           { not anymore PM }
@@ -260,7 +261,9 @@ begin
 {$ifndef DONOTCHAINOPERATORS}
           overloaded_operators[optoken]:=aktprocsym;
 {$endif DONOTCHAINOPERATORS}
-       end;
+       end
+      else
+       aktprocsym:=new(pprocsym,init(sp));
      symtablestack^.insert(aktprocsym);
    end;
 
@@ -2087,7 +2090,10 @@ end.
 
 {
   $Log$
-  Revision 1.10  2000-08-27 16:11:52  peter
+  Revision 1.11  2000-09-04 20:15:19  peter
+    * fixed operator overloading
+
+  Revision 1.10  2000/08/27 16:11:52  peter
     * moved some util functions from globals,cobjects to cutils
     * splitted files into finput,fmodule
 
