@@ -87,7 +87,7 @@ begin
      if (Length(FileDir)>1) and (FileDir[2]=':') then
        begin
          { does not assume that lowercase are greater then uppercase ! }
-         if (FileDir[1]>='a') and (FileDir[1]>='z') then
+         if (FileDir[1]>='a') and (FileDir[1]<='z') then
            DriveNumber:=Ord(FileDir[1])-ord('a')+1
          else
            DriveNumber:=Ord(FileDir[1])-ord('A')+1;
@@ -180,7 +180,10 @@ end;
 
 {
   $Log$
-  Revision 1.14  1999-10-27 10:44:08  pierre
+  Revision 1.15  1999-10-29 13:47:00  pierre
+   * typo error corrected
+
+  Revision 1.14  1999/10/27 10:44:08  pierre
    * Avoid ChDir('') gives sometimes DosError 3 !!
 
   Revision 1.13  1999/08/16 18:25:20  peter
