@@ -257,9 +257,17 @@ implementation
                       st_shortstring:
                         begin
                            { empty strings }
-                           if p^.length=0 then
-                            consts^.concat(new(pai_const,init_16bit(0)))
-                           else
+                           
+                           (* if p^.length=0 then
+                           { consts^.concat(new(pai_const,init_16bit(0)))}
+                           { this was not very good because several occurence
+                             needed several data space ! }
+                             begin
+                               getmem(pc,3);
+                               pc[0]:=#0;pc[1]:=#0;
+                               consts^.concat(new(pai_string,init_length_pchar(pc,2)));
+                             end
+                           else  *)
                             begin
                               { truncate strings larger than 255 chars }
                               if p^.length>255 then
@@ -402,7 +410,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.30  1999-03-31 13:51:49  peter
+  Revision 1.31  1999-04-07 15:16:43  pierre
+   * zero length string were generated multiple times
+
+  Revision 1.30  1999/03/31 13:51:49  peter
     * shortstring reuse fixed
 
   Revision 1.29  1999/02/25 21:02:25  peter
