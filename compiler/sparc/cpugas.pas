@@ -51,45 +51,39 @@ var
       lastinfile:tinputfile;
       symendcount:longint;
 function GetReferenceString(var ref:TReference):string;
-  var
-    s:string;
   begin
-    s:='';
+    GetReferenceString:='+';
     with ref do
-      begin
-        inc(offset,offsetfixup);
-        if assigned(symbol)
-        then
-          s:=s+symbol.name;
-        if base<>R_NONE
-        then
-          s:=s+gas_reg2str[base]+'+';
-        if index<>R_NONE
-        then
-          begin
-            if ScaleFactor<>0
-            then
-              s:=s+ToStr(ScaleFactor)+'*';
-            s:=s+gas_reg2str[index]+'+';
-          end;
-        if Offset=0
-        then
-          SetLength(s,Length(s)-1)
-        else if offset<0
-        then
-          begin
-            SetLength(s,Length(s)-1);
-            s:=s+tostr(offset);
-          end
-        else if offset>0
-        then
-          if assigned(symbol)
+      if assigned(symbol)
+      then
+        GetReferenceString:=symbol.name
+      else
+        begin
+          inc(offset,offsetfixup);
+          if base<>R_NONE
           then
-            s:=s+'+'+tostr(offset)
-          else
-            s:=s+tostr(offset);
-      end;
-      getreferencestring:=s;
+            GetReferenceString:=gas_reg2str[base]+'+';
+          if index<>R_NONE
+          then
+            begin
+              if ScaleFactor<>0
+              then
+                GetReferenceString:=GetReferenceString+ToStr(ScaleFactor)+'*';
+              GetReferenceString:=GetReferenceString+gas_reg2str[index]+'+';
+            end;
+          if Offset=0
+          then
+            SetLength(GetReferenceString,Length(GetReferenceString)-1)
+          else if offset<0
+          then
+            begin
+              SetLength(GetReferenceString,Length(GetReferenceString)-1);
+              GetReferenceString:=GetReferenceString+tostr(offset);
+            end
+          else if offset>0
+          then
+            GetReferenceString:=GetReferenceString+tostr(offset);
+        end;
   end;
 function getopstr(const Oper:TOper):string;
   var
@@ -216,7 +210,10 @@ initialization
 end.
 {
     $Log$
-    Revision 1.7  2002-10-20 19:01:38  mazen
+    Revision 1.8  2002-10-25 19:37:53  mazen
+    * bug of references name missing last character fixed
+
+    Revision 1.7  2002/10/20 19:01:38  mazen
     + op_raddr_reg and op_caddr_reg added to fix functions prologue
 
     Revision 1.6  2002/10/15 09:00:28  mazen
