@@ -117,7 +117,7 @@ general_i_hint=01016_I_Hint:
 #
 # Scanner
 #
-# 02057 is the last used one
+# 02061 is the last used one
 #
 % \section{Scanner messages.}
 % This section lists the messages that the scanner emits. The scanner takes
@@ -305,7 +305,7 @@ scan_e_string_exceeds_255_chars=02061_E_Constant strings can't be longer than 25
 #
 # Parser
 #
-# 03181 is the last used one
+# 03188 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -787,7 +787,7 @@ parser_e_cant_publish_that_property=03134_E_That kind of property can't be publi
 parser_w_empty_import_name=03135_W_Empty import name specified
 % Both index and name for the import are 0 or empty
 parser_e_empty_import_name=03136_W_An import name is required
-% Some targets need a name for the imported procedure or a cdecl specifier
+% Some targets need a name for the imported procedure or a \var{cdecl} specifier
 parser_e_used_proc_name_changed=03137_E_Function internal name changed after use of function
 % This is an internal error; please report any occurrences of this error
 % to the \fpc team.
@@ -945,9 +945,21 @@ parser_e_no_procvarobj_const=03183_E_Typed constants of the type "procedure of o
 % class instance it operates on (which can not be known at compile time).
 parser_e_default_value_only_one_para=03184_E_Default value can only be assigned to one parameter
 parser_e_default_value_expected_for_para=03185_E_Default parameter required for "$1"
+parser_w_unsupported_feature=03186_W_Use of unsupported feature!
+% You're trying to force the compiler into doing something it cannot do yet.
+parser_h_c_arrays_are_references=03187_H_C arrays are passed by reference
+% Any array passed to a C functions is passed
+% by a pointer (i.e. by reference).
+parser_e_C_array_of_const_must_be_last=03188_E_C array of const must be the last argument
+% You can not add any other argument after
+% an \var{array of const} for \var{cdecl} functions,
+% as the size pushed on stack for this arg is
+% unknown.
 % \end{description}
 #
 # Type Checking
+#
+# 04043 is the last used one
 #
 % \section{Type checking errors}
 % This section lists all errors that can occur when type checking is
@@ -1123,6 +1135,8 @@ type_w_string_too_long=04043_W_String literal has more characters than short str
 #
 # Symtable
 #
+# 05042 is the last used one
+#
 % \section{Symbol handling}
 % This section lists all the messages that concern the handling of symbols.
 % This means all things that have to do with procedure and variable names.
@@ -1237,14 +1251,20 @@ sym_b_param_list=05039_B_Found declaration: $1
 % You get this when you use the \var{-vb} switch. In case an overloaded
 % procedure is not found, then all candidate overloaded procedures are
 % listed, with their parameter lists.
-sym_e_segment_too_large=05040_E_Data segment too large (max. 2GB)
-% You get this when you declare an array whose size exceeds the 2GB limit.
-sym_e_no_matching_implementation_found=05041_E_No matching implementation for interface method "$1" found
+sym_e_segment_too_large=05040_E_Data element too large
+% You get this when you declare a data element whose size exceeds the prescribed limit.
+% (2 Gb on 80386+/68020+ processors)
+sym_w_segment_too_large=05041_W_Data element might be too large
+% You get this when you declare a data element which might cause invalid opcodes
+% (which will be detected by the assembler) in 68000 mode.
+sym_e_no_matching_implementation_found=05042_E_No matching implementation for interface method "$1" found
 % There was no matching method found which could implement the interface
 % method. Check argument types and result type of the methods.
 % \end{description}
 #
 # Codegenerator
+#
+# 06040 is the last used one
 #
 % \section{Code generator messages}
 % This section lists all messages that can be displayed if the code
@@ -1367,10 +1387,10 @@ cg_e_no_call_to_interrupt=06034_E_Direct call of interrupt procedure "$1" is not
 cg_e_can_access_element_zero=06035_E_Element zero of an ansi/wide- or longstring can't be accessed, use (set)length instead
 % You should use \var{setlength} to set the length of an ansi/wide/longstring
 % and \var{length} to get the length of such kinf of string
-cg_e_include_not_implemented=06036_E_Include and exclude not implemented in this case
-% \var{include} and \var{exclude} are only partially
-% implemented for \var{i386} processors
-% and not at all for \var{m68k} processors.
+cg_e_paralimit_in_local_routine=06036_E_Parameter limit excedeed in local routine
+% Your routine pushes too much parameters. Some processors pose limits
+% on the parameters passed to a routine. You should pass some of your parameters
+% by reference.
 cg_e_cannot_call_cons_dest_inside_with=06037_E_Constructors or destructors can not be called inside a 'with' clause
 % Inside a \var{With} clause you cannot call a constructor or destructor for the
 % object you have in the \var{with} clause.
@@ -1565,7 +1585,7 @@ asmr_e_68020_mode_required=07097_E_68020 mode required
 #
 # Assembler/binary writers
 #
-# 08015 is the last used one
+# 08018 is the last used one
 #
 asmw_f_too_many_asm_files=08000_F_Too many assembler files
 asmw_f_assembler_output_not_supported=08001_F_Selected assembler output not supported
@@ -1584,6 +1604,8 @@ asmw_e_undefined_label=08013_E_Asm: Undefined label $1
 asmw_e_comp_not_supported=08014_E_Asm: Comp type not supported for this target
 asmw_e_extended_not_supported=08015_E_Asm: Extended type not supported for this target
 asmw_e_duplicate_label=08016_E_Asm: Duplicate label $1
+asmw_e_redefined_label=08017_E_Asm: Redefined label $1
+asmw_e_first_defined_label=08018_E_Asm: First defined here
 
 #
 # Executing linker/assembler
@@ -1784,7 +1806,7 @@ unit_u_ppu_invalid_fpumode=10042_U_Using a unit which was not compiled with corr
 #
 #  Options
 #
-# 11029 is the last used one
+# 11039 is the last used one
 #
 option_usage=11000_$1 [options] <inputfile> [options]
 # BeginOfTeX
@@ -1862,7 +1884,20 @@ option_using_env=11027_T_Reading options from environment $1
 option_handling_option=11028_D_Handling option "$1"
 % Debug info that an option is found and will be handled
 option_help_press_enter=11029__*** press enter ***
-option_code_page_not_available=11030_E_Unknown code page
+option_start_reading_configfile=11030_H_Start of reading config file $1
+% Starting of config file parsing.
+option_end_reading_configfile=11031_H_End of reading config file $1
+% End of config file parsing.
+option_interpreting_option=11032_D_interpreting option "$1"
+option_interpreting_firstpass_option=11036_D_interpreting firstpass option "$1"
+option_interpreting_file_option=11033_D_interpreting file option "$1"
+option_read_config_file=11034_D_Reading config file "$1"
+option_found_file=11035_D_found source file name "$1"
+option_defining_symbol=11037_D_Defining symbol $1
+option_undefining_symbol=11038_D_Undefining symbol $1
+% Additional infos about options, displayed
+% when you have debug option turned on.
+option_code_page_not_available=11039_E_Unknown code page
 %\end{description}
 # EndOfTeX
 
@@ -1986,6 +2021,7 @@ option_help_pages=11025_[
 **2*_b : Show all procedure          r : Rhide/GCC compatibility mode
 **2*_    declarations if an error    x : Executable info (Win32 only)
 **2*_    occurs
+**1V_write fpcdebug.txt file with lots of debugging info
 **1X_executable options:
 *L2Xc_link with the c library
 **2Xs_strip all symbols from executable
@@ -2045,7 +2081,8 @@ option_help_pages=11025_[
 6*2Og_generate smaller code
 6*2OG_generate faster code (default)
 6*2Ox_optimize maximum (still BUGGY!!!)
-6*2O2_set target processor to a MC68020+
+6*2O0_set target processor to a MC68000
+6*2O2_set target processor to a MC68020+ (default)
 6*1R<x>_assembler reading style:
 6*2RMOT_read motorola style assembler
 6*1T<x>_Target operating system:

@@ -148,9 +148,10 @@ uses
 {$else Delphi}
   dos,
 {$endif Delphi}
-{$ifdef HEAPTRC}
+{$ifdef heaptrc}
   fmodule,
-{$endif HEAPTRC}
+  ppheap,
+{$endif heaptrc}
   globals,systems
   ;
 
@@ -512,9 +513,9 @@ uses
          { update cache }
          cacheindex:=last_ref_index;
          cacheinputfile:=f;
-{$ifdef HEAPTRC}
-         writeln(stderr,f.name^,' index ',current_module.unit_index*100000+f.ref_index);
-{$endif HEAPTRC}
+{$ifdef heaptrc}
+         ppheap_register_file(f.name^,current_module.unit_index*100000+f.ref_index);
+{$endif heaptrc}
       end;
 
 
@@ -686,7 +687,17 @@ uses
 end.
 {
   $Log$
-  Revision 1.19  2002-10-20 14:49:31  peter
+  Revision 1.20  2002-11-15 01:58:46  peter
+    * merged changes from 1.0.7 up to 04-11
+      - -V option for generating bug report tracing
+      - more tracing for option parsing
+      - errors for cdecl and high()
+      - win32 import stabs
+      - win32 records<=8 are returned in eax:edx (turned off by default)
+      - heaptrc update
+      - more info for temp management in .s file with EXTDEBUG
+
+  Revision 1.19  2002/10/20 14:49:31  peter
     * store original source time in ppu so it can be compared instead of
       comparing with the ppu time
 

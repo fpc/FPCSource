@@ -1613,6 +1613,7 @@ procedure T386IntelInstruction.InitOperands;
 var
   i : longint;
 begin
+  OpOrder:=op_intel;
   for i:=1 to 3 do
    Operands[i]:=T386IntelOperand.Create;
 end;
@@ -1962,7 +1963,17 @@ finalization
 end.
 {
   $Log$
-  Revision 1.35  2002-09-16 19:07:00  peter
+  Revision 1.36  2002-11-15 01:58:59  peter
+    * merged changes from 1.0.7 up to 04-11
+      - -V option for generating bug report tracing
+      - more tracing for option parsing
+      - errors for cdecl and high()
+      - win32 import stabs
+      - win32 records<=8 are returned in eax:edx (turned off by default)
+      - heaptrc update
+      - more info for temp management in .s file with EXTDEBUG
+
+  Revision 1.35  2002/09/16 19:07:00  peter
     * support [eax].constant as reference
 
   Revision 1.34  2002/09/03 16:26:28  daniel

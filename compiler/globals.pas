@@ -200,9 +200,6 @@ interface
        stacksize    : longint;
 
 {$Ifdef EXTDEBUG}
-  {$ifdef FPC}
-       EntryMemUsed : longint;
-  {$endif FPC}
      { parameter switches }
        debugstop : boolean;
 {$EndIf EXTDEBUG}
@@ -287,11 +284,11 @@ interface
     procedure swap_qword(var q : qword);
 
     function UpdateAlignmentStr(s:string;var a:talignmentinfo):boolean;
-    
-    {# Routine to get the required alignment for size of data, which will 
+
+    {# Routine to get the required alignment for size of data, which will
        be placed in bss segment, according to the current alignment requirements }
     function var_align(siz: longint): longint;
-    {# Routine to get the required alignment for size of data, which will 
+    {# Routine to get the required alignment for size of data, which will
        be placed in data/const segment, according to the current alignment requirements }
     function const_align(siz: longint): longint;
 
@@ -304,6 +301,13 @@ implementation
     procedure abstract;
       begin
         do_internalerror(255);
+      end;
+
+
+    procedure WarnNonExistingPath(const path : string);
+      begin
+        if assigned({$ifndef FPCPROCVAR}@{$endif}do_comment) then
+          do_comment(V_Hint,'Path "'+path+'" not found');
       end;
 
 
@@ -451,18 +455,27 @@ implementation
 
 
     Function FileExists ( Const F : String) : Boolean;
-{$ifndef delphi}
       Var
+         res : boolean;
+{$ifndef delphi}
          Info : SearchRec;
 {$endif}
       begin
 {$ifdef delphi}
-        FileExists:=sysutils.FileExists(f);
+        res:=sysutils.FileExists(f);
 {$else}
         findfirst(F,readonly+archive+hidden,info);
-        FileExists:=(doserror=0);
+        res:=(doserror=0);
         findclose(Info);
 {$endif delphi}
+        if assigned({$ifndef FPCPROVCAR}@{$endif}do_comment) then
+         begin
+           if res then
+             do_comment(V_Tried,'Searching file '+F+'... found')
+           else
+             do_comment(V_Tried,'Searching file '+F+'... not found');
+         end;
+        FileExists:=res;
       end;
 
 
@@ -737,6 +750,7 @@ implementation
        hs,hsd,
        CurrentDir,
        CurrPath : string;
+       subdirfound : boolean;
        dir      : searchrec;
        hp       : TStringListItem;
 
@@ -802,25 +816,31 @@ implementation
              hs:=currpath;
             hsd:=SplitPath(hs);
             findfirst(hs,directory,dir);
+            subdirfound:=false;
             while doserror=0 do
              begin
                if (dir.name<>'.') and
                   (dir.name<>'..') and
                   ((dir.attr and directory)<>0) then
                 begin
+                  subdirfound:=true;
                   currpath:=hsd+dir.name+source_info.dirsep;
                   hp:=Find(currPath);
                   if not assigned(hp) then
                    AddCurrPath;
                 end;
                findnext(dir);
+               if not subdirfound then
+                 WarnNonExistingPath(currpath);
              end;
             FindClose(dir);
           end
          else
           begin
             if PathExists(currpath) then
-             addcurrpath;
+             addcurrpath
+            else
+             WarnNonExistingPath(currpath);
           end;
        until (s='');
      end;
@@ -1328,14 +1348,14 @@ implementation
         until false;
         UpdateAlignment(a,b);
       end;
-      
-      
+
+
     function var_align(siz: longint): longint;
       begin
         siz := size_2_align(siz);
         var_align := used_align(siz,aktalignment.varalignmin,aktalignment.varalignmax);
       end;
-      
+
     function const_align(siz: longint): longint;
       begin
         siz := size_2_align(siz);
@@ -1454,7 +1474,7 @@ implementation
         initasmmode:=asmmode_i386_att;
 {$endif i386}
 {$ifdef m68k}
-        initoptprocessor:=MC68000;
+        initoptprocessor:=MC68020;
         include(initmoduleswitches,cs_fp_emulation);
         initpackenum:=4;
         {$IFDEF testvarsets}
@@ -1489,16 +1509,20 @@ implementation
         have_local_threadvars := false;
      end;
 
-{$ifdef EXTDEBUG}
-begin
-  {$ifdef FPC}
-    EntryMemUsed:=system.HeapSize-MemAvail;
-  {$endif FPC}
-{$endif}
 end.
 {
   $Log$
-  Revision 1.68  2002-11-09 15:38:39  carl
+  Revision 1.69  2002-11-15 01:58:47  peter
+    * merged changes from 1.0.7 up to 04-11
+      - -V option for generating bug report tracing
+      - more tracing for option parsing
+      - errors for cdecl and high()
+      - win32 import stabs
+      - win32 records<=8 are returned in eax:edx (turned off by default)
+      - heaptrc update
+      - more info for temp management in .s file with EXTDEBUG
+
+  Revision 1.68  2002/11/09 15:38:39  carl
     + added var_align/const_align routines
 
   Revision 1.67  2002/10/16 19:01:43  peter

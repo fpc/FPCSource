@@ -100,6 +100,7 @@ uses
     Unix,
   {$endif}
 {$endif}
+  cutils,
   globtype,globals,systems;
 
 
@@ -130,7 +131,7 @@ end;
 constructor TScript.CreateExec(const s:string);
 begin
   if cs_link_on_target in aktglobalswitches then
-    fn:=FixFileName(s)+target_info.scriptext
+    fn:=TargetFixFileName(s)+target_info.scriptext
   else
     fn:=FixFileName(s)+source_info.scriptext;
   executable:=true;
@@ -202,10 +203,10 @@ Procedure TAsmScriptDos.AddAsmCommand (Const Command, Options,FileName : String)
 begin
   if FileName<>'' then
    begin
-     Add('SET THEFILE='+FileName);
+     Add('SET THEFILE='+ScriptFixFileName(FileName));
      Add('echo Assembling %THEFILE%');
    end;
-  Add(command+' '+Options);
+  Add(maybequoted(command)+' '+Options);
   Add('if errorlevel 1 goto asmend');
 end;
 
@@ -214,17 +215,17 @@ Procedure TAsmScriptDos.AddLinkCommand (Const Command, Options, FileName : Strin
 begin
   if FileName<>'' then
    begin
-     Add('SET THEFILE='+FileName);
+     Add('SET THEFILE='+ScriptFixFileName(FileName));
      Add('echo Linking %THEFILE%');
    end;
-  Add (Command+' '+Options);
+  Add(maybequoted(command)+' '+Options);
   Add('if errorlevel 1 goto linkend');
 end;
 
 
 Procedure TAsmScriptDos.AddDeleteCommand (Const FileName : String);
 begin
- Add('Del '+FileName);
+ Add('Del '+ScriptFixFileName(FileName));
 end;
 
 
@@ -261,10 +262,10 @@ Procedure TAsmScriptAmiga.AddAsmCommand (Const Command, Options,FileName : Strin
 begin
   if FileName<>'' then
    begin
-     Add('SET THEFILE '+FileName);
+     Add('SET THEFILE '+ScriptFixFileName(FileName));
      Add('echo Assembling $THEFILE');
    end;
-  Add(command+' '+Options);
+  Add(maybequoted(command)+' '+Options);
   { There is a problem here,
     as allways return with a non zero error value PM  }
   Add('if error');
@@ -278,10 +279,10 @@ Procedure TAsmScriptAmiga.AddLinkCommand (Const Command, Options, FileName : Str
 begin
   if FileName<>'' then
    begin
-     Add('SET THEFILE '+FileName);
+     Add('SET THEFILE '+ScriptFixFileName(FileName));
      Add('echo Linking $THEFILE');
    end;
-  Add (Command+' '+Options);
+  Add(maybequoted(command)+' '+Options);
   Add('if error');
   Add('skip linkend');
   Add('endif');
@@ -290,13 +291,13 @@ end;
 
 Procedure TAsmScriptAmiga.AddDeleteCommand (Const FileName : String);
 begin
- Add('Delete '+FileName);
+ Add('Delete '+ScriptFixFileName(FileName));
 end;
 
 
 Procedure TAsmScriptAmiga.AddDeleteDirCommand (Const FileName : String);
 begin
- Add('Delete '+FileName);
+ Add('Delete '+ScriptFixFileName(FileName));
 end;
 
 
@@ -328,30 +329,30 @@ end;
 Procedure TAsmScriptUnix.AddAsmCommand (Const Command, Options,FileName : String);
 begin
   if FileName<>'' then
-   Add('echo Assembling '+FileName);
-  Add (Command+' '+Options);
-  Add('if [ $? != 0 ]; then DoExitAsm '+FileName+'; fi');
+   Add('echo Assembling '+ScriptFixFileName(FileName));
+  Add(maybequoted(command)+' '+Options);
+  Add('if [ $? != 0 ]; then DoExitAsm '+ScriptFixFileName(FileName)+'; fi');
 end;
 
 
 Procedure TAsmScriptUnix.AddLinkCommand (Const Command, Options, FileName : String);
 begin
   if FileName<>'' then
-   Add('echo Linking '+FileName);
-  Add (Command+' '+Options);
-  Add('if [ $? != 0 ]; then DoExitLink '+FileName+'; fi');
+   Add('echo Linking '+ScriptFixFileName(FileName));
+  Add(maybequoted(command)+' '+Options);
+  Add('if [ $? != 0 ]; then DoExitLink '+ScriptFixFileName(FileName)+'; fi');
 end;
 
 
 Procedure TAsmScriptUnix.AddDeleteCommand (Const FileName : String);
 begin
- Add('rm '+FileName);
+ Add('rm '+ScriptFixFileName(FileName));
 end;
 
 
 Procedure TAsmScriptUnix.AddDeleteDirCommand (Const FileName : String);
 begin
- Add('rmdir '+FileName);
+ Add('rmdir '+ScriptFixFileName(FileName));
 end;
 
 
@@ -414,7 +415,17 @@ end;
 end.
 {
   $Log$
-  Revision 1.16  2002-05-18 13:34:18  peter
+  Revision 1.17  2002-11-15 01:58:54  peter
+    * merged changes from 1.0.7 up to 04-11
+      - -V option for generating bug report tracing
+      - more tracing for option parsing
+      - errors for cdecl and high()
+      - win32 import stabs
+      - win32 records<=8 are returned in eax:edx (turned off by default)
+      - heaptrc update
+      - more info for temp management in .s file with EXTDEBUG
+
+  Revision 1.16  2002/05/18 13:34:18  peter
     * readded missing revisions
 
   Revision 1.15  2002/05/16 19:46:44  carl

@@ -258,7 +258,8 @@ implementation
               end;
          end;
          if (cs_gdb_heaptrc in aktglobalswitches) and
-            (cs_checkpointer in aktglobalswitches) then
+            (cs_checkpointer in aktglobalswitches) and
+            not(cs_compilesystem in aktmoduleswitches) then
           begin
             cg.a_param_reg(exprasmlist, OS_ADDR,location.reference.base,paramanager.getintparaloc(1));
             cg.a_call_name(exprasmlist,'FPC_CHECKPOINTER');
@@ -345,6 +346,8 @@ implementation
       var
         tmpreg: tregister;
         usetemp,with_expr_in_temp : boolean;
+        symtable : twithsymtable;
+        i : integer;
 {$ifdef GDB}
         withstartlabel,withendlabel : tasmlabel;
         pp : pchar;
@@ -392,15 +395,22 @@ implementation
 
                location_release(exprasmlist,left.location);
 
+               symtable:=withsymtable;
+               for i:=1 to tablecount do
+                begin
+                  if (left.nodetype=loadn) and
+                     (tloadnode(left).symtable=aktprocdef.localst) then
+                    symtable.direct_with:=true;
+                  symtable.withnode:=self;
+                  symtable:=twithsymtable(symtable.next);
+                end;
+
                { if the with expression is stored in a temp    }
                { area we must make it persistent and shouldn't }
                { release it (FK)                               }
                if (left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) and
                   tg.istemp(left.location.reference) then
-                 begin
-                    tg.ChangeTempType(left.location.reference,tt_persistant);
-                    with_expr_in_temp:=true;
-                 end
+                 with_expr_in_temp:=tg.ChangeTempType(exprasmlist,left.location.reference,tt_persistant)
                else
                  with_expr_in_temp:=false;
 
@@ -887,7 +897,17 @@ begin
 end.
 {
   $Log$
-  Revision 1.31  2002-10-09 20:24:47  florian
+  Revision 1.32  2002-11-15 01:58:51  peter
+    * merged changes from 1.0.7 up to 04-11
+      - -V option for generating bug report tracing
+      - more tracing for option parsing
+      - errors for cdecl and high()
+      - win32 import stabs
+      - win32 records<=8 are returned in eax:edx (turned off by default)
+      - heaptrc update
+      - more info for temp management in .s file with EXTDEBUG
+
+  Revision 1.31  2002/10/09 20:24:47  florian
     + range checking for dyn. arrays
 
   Revision 1.30  2002/10/07 21:30:45  peter

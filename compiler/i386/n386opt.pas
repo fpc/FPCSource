@@ -97,7 +97,7 @@ begin
   { ti386addnode.pass_2                                     }
   secondpass(left);
   if not(tg.istemp(left.location.reference) and
-         (tg.sizeoftemp(left.location.reference) = 256)) and
+         (tg.sizeoftemp(exprasmlist,left.location.reference) = 256)) and
      not(nf_use_strconcat in flags) then
     begin
        tg.Gettemp(exprasmlist,256,tt_normal,href);
@@ -205,7 +205,7 @@ begin
   { ti386addnode.pass_2                                     }
   secondpass(left);
   if not(tg.istemp(left.location.reference) and
-         (tg.sizeoftemp(left.location.reference) = 256)) and
+         (tg.sizeoftemp(exprasmlist,left.location.reference) = 256)) and
      not(nf_use_strconcat in flags) then
     begin
        tg.GetTemp(exprasmlist,256,tt_normal,href);
@@ -248,7 +248,17 @@ end.
 
 {
   $Log$
-  Revision 1.24  2002-08-23 16:14:49  peter
+  Revision 1.25  2002-11-15 01:58:57  peter
+    * merged changes from 1.0.7 up to 04-11
+      - -V option for generating bug report tracing
+      - more tracing for option parsing
+      - errors for cdecl and high()
+      - win32 import stabs
+      - win32 records<=8 are returned in eax:edx (turned off by default)
+      - heaptrc update
+      - more info for temp management in .s file with EXTDEBUG
+
+  Revision 1.24  2002/08/23 16:14:49  peter
     * tempgen cleanup
     * tt_noreuse temp type added that will be used in genentrycode
 

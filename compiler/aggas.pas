@@ -248,11 +248,11 @@ var
                 if (infile.path^<>'') then
                  begin
                    AsmWriteLn(#9'.stabs "'+lower(BsToSlash(FixPath(infile.path^,false)))+'",'+
-                     tostr(curr_n)+',0,0,'+'Ltext'+ToStr(IncludeCount));
+                     tostr(curr_n)+',0,0,'+target_asm.labelprefix+'text'+ToStr(IncludeCount));
                  end;
                 AsmWriteLn(#9'.stabs "'+lower(FixFileName(infile.name^))+'",'+
-                  tostr(curr_n)+',0,0,'+'Ltext'+ToStr(IncludeCount));
-                AsmWriteLn('Ltext'+ToStr(IncludeCount)+':');
+                  tostr(curr_n)+',0,0,'+target_asm.labelprefix+'text'+ToStr(IncludeCount));
+                AsmWriteLn(target_asm.labelprefix+'text'+ToStr(IncludeCount)+':');
                 inc(includecount);
                 { force new line info }
                 stabslastfileinfo.line:=-1;
@@ -285,8 +285,8 @@ var
            exit;
           AsmLn;
           AsmWriteLn(ait_section2str(sec_code));
-          AsmWriteLn(#9'.stabs "",'+tostr(n_sourcefile)+',0,0,Letext');
-          AsmWriteLn('Letext:');
+          AsmWriteLn(#9'.stabs "",'+tostr(n_sourcefile)+',0,0,'+target_asm.labelprefix+'etext');
+          AsmWriteLn(target_asm.labelprefix+'etext:');
         end;
 
 {$endif GDB}
@@ -408,8 +408,16 @@ var
            ait_tempalloc :
              begin
                if (cs_asm_tempalloc in aktglobalswitches) then
-                 AsmWriteLn(target_asm.comment+'Temp '+tostr(tai_tempalloc(hp).temppos)+','+
-                   tostr(tai_tempalloc(hp).tempsize)+allocstr[tai_tempalloc(hp).allocation]);
+                 begin
+{$ifdef EXTDEBUG}
+                   if assigned(tai_tempalloc(hp).problem) then
+                     AsmWriteLn(target_asm.comment+tai_tempalloc(hp).problem^+' ('+tostr(tai_tempalloc(hp).temppos)+','+
+                       tostr(tai_tempalloc(hp).tempsize)+')')
+                   else
+{$endif EXTDEBUG}
+                     AsmWriteLn(target_asm.comment+'Temp '+tostr(tai_tempalloc(hp).temppos)+','+
+                       tostr(tai_tempalloc(hp).tempsize)+allocstr[tai_tempalloc(hp).allocation]);
+                 end;
              end;
 
            ait_align :
@@ -811,7 +819,17 @@ var
 end.
 {
   $Log$
-  Revision 1.14  2002-10-30 21:01:14  peter
+  Revision 1.15  2002-11-15 01:58:45  peter
+    * merged changes from 1.0.7 up to 04-11
+      - -V option for generating bug report tracing
+      - more tracing for option parsing
+      - errors for cdecl and high()
+      - win32 import stabs
+      - win32 records<=8 are returned in eax:edx (turned off by default)
+      - heaptrc update
+      - more info for temp management in .s file with EXTDEBUG
+
+  Revision 1.14  2002/10/30 21:01:14  peter
     * always include lineno after fileswitch. valgrind requires this
 
   Revision 1.13  2002/10/05 12:43:23  carl

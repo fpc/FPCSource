@@ -29,6 +29,7 @@ interface
 { $define AnsiStrRef}
 
     uses
+      cpubase,
       symdef,node,ncal;
 
     type
@@ -39,14 +40,20 @@ interface
        end;
 
        tcgcallnode = class(tcallnode)
-          procedure pass_2;override;
+       protected
+          funcretref : treference;
+          refcountedtemp : treference;
+          procedure handle_return_value(inlined,extended_new:boolean);
           procedure load_framepointer;virtual;abstract;
           procedure extra_interrupt_code;virtual;
+       public
+          procedure pass_2;override;
        end;
 
        tcgprocinlinenode = class(tprocinlinenode)
           procedure pass_2;override;
        end;
+
 
 implementation
 
@@ -63,12 +70,12 @@ implementation
       gdb,
 {$endif GDB}
       cginfo,cgbase,pass_2,
-      cpuinfo,cpubase,cpupi,aasmbase,aasmtai,aasmcpu,
+      cpuinfo,cpupi,aasmbase,aasmtai,aasmcpu,
       nmem,nld,ncnv,
 {$ifdef i386}
       cga,
 {$endif i386}
-      ncgutil,cgobj,tgobj,regvars,rgobj,rgcpu,cgcpu;
+      cg64f32,ncgutil,cgobj,tgobj,regvars,rgobj,rgcpu,cgcpu;
 
 {*****************************************************************************
                              TCGCALLPARANODE
@@ -189,7 +196,8 @@ implementation
                         (left.nodetype=selfn)) then
                   internalerror(200106041);
                end;
-              maybe_push_high;
+              if not push_from_left_to_right then
+                maybe_push_high;
               if (defcoll.paratyp=vs_out) and
                  assigned(defcoll.paratype.def) and
                  not is_class(defcoll.paratype.def) and
@@ -207,6 +215,8 @@ implementation
               else
                 cg.a_paramaddr_ref(exprasmlist,left.location.reference,defcoll.paraloc);
               location_release(exprasmlist,left.location);
+              if push_from_left_to_right then
+                maybe_push_high;
            end
          else
            begin
@@ -245,7 +255,8 @@ implementation
                        internalerror(200204011);
                     end;
 
-                   maybe_push_high;
+                   if not push_from_left_to_right then
+                     maybe_push_high;
                    inc(pushedparasize,4);
                    if inlined then
                      begin
@@ -258,6 +269,8 @@ implementation
                    else
                      cg.a_paramaddr_ref(exprasmlist,left.location.reference,defcoll.paraloc);
                    location_release(exprasmlist,left.location);
+                   if push_from_left_to_right then
+                     maybe_push_high;
                 end
               else
                 begin
@@ -294,12 +307,125 @@ implementation
 {$endif i386}
       end;
 
+
+
+    procedure tcgcallnode.handle_return_value(inlined,extended_new:boolean);
+      var
+        cgsize : tcgsize;
+        hregister : tregister;
+      begin
+        { structured results are easy to handle.... }
+        { needed also when result_no_used !! }
+        if paramanager.ret_in_param(resulttype.def) then
+         begin
+           location_reset(location,LOC_CREFERENCE,def_cgsize(resulttype.def));
+           location.reference.symbol:=nil;
+           location.reference:=funcretref;
+         end
+        else
+        { ansi/widestrings must be registered, so we can dispose them }
+         if is_ansistring(resulttype.def) or
+            is_widestring(resulttype.def) then
+          begin
+            location_reset(location,LOC_CREFERENCE,OS_ADDR);
+            location.reference:=refcountedtemp;
+            cg.a_reg_alloc(exprasmlist,accumulator);
+            cg.a_load_reg_ref(exprasmlist,OS_ADDR,accumulator,location.reference);
+            cg.a_reg_dealloc(exprasmlist,accumulator);
+          end
+        else
+        { we have only to handle the result if it is used }
+         if (nf_return_value_used in flags) then
+          begin
+            case resulttype.def.deftype of
+              enumdef,
+              orddef :
+                begin
+                  cgsize:=def_cgsize(resulttype.def);
+                  { an object constructor is a function with boolean result }
+                  if (inlined or (right=nil)) and
+                     (procdefinition.proctypeoption=potype_constructor) then
+                   begin
+{$ifdef x86}
+                     if extended_new then
+                      cgsize:=OS_INT
+                     else
+                      begin
+                        cgsize:=OS_NO;
+                        { this fails if popsize > 0 PM }
+                        location_reset(location,LOC_FLAGS,OS_NO);
+                        location.resflags:=F_NE;
+                      end;
+{$else x86}
+                     cgsize:=OS_INT
+{$endif x86}
+                   end;
+
+                  if cgsize<>OS_NO then
+                   begin
+                     location_reset(location,LOC_REGISTER,cgsize);
+                     cg.a_reg_alloc(exprasmlist,accumulator);
+{$ifndef cpu64bit}
+                     if cgsize in [OS_64,OS_S64] then
+                      begin
+                        cg.a_reg_alloc(exprasmlist,accumulatorhigh);
+                        location.registerhigh:=rg.getexplicitregisterint(exprasmlist,accumulatorhigh);
+                        location.registerlow:=rg.getexplicitregisterint(exprasmlist,accumulator);
+                        cg64.a_load64_reg_reg(exprasmlist,joinreg64(accumulator,accumulatorhigh),
+                            location.register64);
+                      end
+                     else
+{$endif cpu64bit}
+                      begin
+                        location.register:=rg.getexplicitregisterint(exprasmlist,accumulator);
+                        hregister:=rg.makeregsize(accumulator,cgsize);
+                        location.register:=rg.makeregsize(location.register,cgsize);
+                        cg.a_load_reg_reg(exprasmlist,cgsize,cgsize,hregister,location.register);
+                      end;
+                   end;
+                end;
+              floatdef :
+                begin
+                  location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
+                  location.register:=R_ST;
+{$ifdef x86}
+                  inc(trgcpu(rg).fpuvaroffset);
+{$endif x86}
+                end;
+{$ifdef TEST_WIN32_RECORDS}
+              recorddef :
+                begin
+                  if (target_info.system=system_i386_win32) then
+                   begin
+                     location_reset(location,LOC_REFERENCE,def_cgsize(resulttype.def));
+                     tg.GetTemp(exprasmlist,resulttype.size,tt_normal,location);
+{$ifndef cpu64bit}
+                     if cgsize in [OS_64,OS_S64] then
+                       cg64.a_load64_reg_loc(exprasmlist,joinreg64(accumulator,accumulatorhigh),location)
+                     else
+{$endif cpu64bit}
+                       cg.a_load_reg_loc(exprasmlist,accumulator,location);
+                   end
+                  else
+                   internalerror(200211141);
+                end;
+{$endif TEST_WIN32_RECORDS}
+              else
+                begin
+                  location_reset(location,LOC_REGISTER,OS_INT);
+                  location.register:=rg.getexplicitregisterint(exprasmlist,accumulator);
+                  cg.a_load_reg_reg(exprasmlist,OS_INT,OS_INT,accumulator,location.register);
+                end;
+            end;
+         end;
+      end;
+
+
     procedure tcgcallnode.pass_2;
       var
          regs_to_push : tregisterset;
          unusedstate: pointer;
          pushed : tpushedsaved;
-         funcretref,refcountedtemp : treference;
          tmpreg : tregister;
          hregister : tregister;
          hregister64 : tregister64;
@@ -392,6 +518,7 @@ implementation
               tprocdef(procdefinition).parast.symtablelevel:=aktprocdef.localst.symtablelevel;
               if assigned(params) then
                begin
+                 inlinecode.para_size:=tprocdef(procdefinition).para_size(para_alignment);
                  tg.GetTemp(exprasmlist,inlinecode.para_size,tt_persistant,pararef);
                  inlinecode.para_offset:=pararef.offset;
                end;
@@ -540,7 +667,8 @@ implementation
            end;
 
          { Allocate return value for inlined routines }
-         if inlined then
+         if inlined and
+            (resulttype.def.size>0) then
            begin
              tg.GetTemp(exprasmlist,Align(resulttype.def.size,aktalignment.paraalign),tt_persistant,returnref);
              inlinecode.retoffset:=returnref.offset;
@@ -777,6 +905,7 @@ implementation
                                              { class method needs current VMT }
                                              rg.getexplicitregisterint(exprasmlist,R_ESI);
                                              reference_reset_base(href,R_ESI,tprocdef(procdefinition)._class.vmt_offset);
+                                             cg.a_maybe_testself(exprasmlist);
                                              cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,self_pointer_reg);
                                           end;
 
@@ -836,6 +965,7 @@ implementation
                              { class method needs current VMT }
                              rg.getexplicitregisterint(exprasmlist,R_ESI);
                              reference_reset_base(href,R_ESI,tprocdef(procdefinition)._class.vmt_offset);
+                             cg.a_maybe_testself(exprasmlist);
                              cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,R_ESI);
                           end
                         else
@@ -942,6 +1072,7 @@ implementation
                          begin
                             { this is one point where we need vmt_offset (PM) }
                             reference_reset_base(href,R_ESI,tprocdef(procdefinition)._class.vmt_offset);
+                            cg.a_maybe_testself(exprasmlist);
                             tmpreg:=cg.get_scratch_reg_address(exprasmlist);
                             cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,tmpreg);
                             reference_reset_base(href,tmpreg,0);
@@ -1143,89 +1274,7 @@ implementation
 
          { handle function results }
          if (not is_void(resulttype.def)) then
-          begin
-            { structured results are easy to handle.... }
-            { needed also when result_no_used !! }
-            if paramanager.ret_in_param(resulttype.def) then
-             begin
-               location_reset(location,LOC_CREFERENCE,def_cgsize(resulttype.def));
-               location.reference:=funcretref;
-             end
-            else
-            { ansi/widestrings must be registered, so we can dispose them }
-             if is_ansistring(resulttype.def) or
-                is_widestring(resulttype.def) then
-              begin
-                location_reset(location,LOC_CREFERENCE,OS_ADDR);
-                location.reference:=refcountedtemp;
-                cg.a_reg_alloc(exprasmlist,accumulator);
-                cg.a_load_reg_ref(exprasmlist,OS_ADDR,accumulator,location.reference);
-                cg.a_reg_dealloc(exprasmlist,accumulator);
-              end
-            else
-            { we have only to handle the result if it is used }
-             if (nf_return_value_used in flags) and paramanager.ret_in_reg(resulttype.def) then
-              begin
-                 resultloc:=paramanager.getfuncresultloc(resulttype.def);
-{$ifdef dummy}
-                      { an object constructor is a function with boolean result }
-                      if (inlined or (right=nil)) and
-                         (procdefinition.proctypeoption=potype_constructor) then
-                       begin
-                         if extended_new then
-                          cgsize:=OS_INT
-                         else
-                          begin
-                            cgsize:=OS_NO;
-                            { this fails if popsize > 0 PM }
-                            location_reset(location,LOC_FLAGS,OS_NO);
-                            location.resflags:=F_NE;
-                          end;
-                       end;
-{$endif dummy}
-                 cgsize:=resultloc.size;
-                 case resultloc.loc of
-                    LOC_REGISTER:
-                      begin
-                         location_reset(location,LOC_REGISTER,cgsize);
-{$ifndef cpu64bit}
-                         if cgsize in [OS_64,OS_S64] then
-                           begin
-                              cg64.a_reg_alloc(exprasmlist,resultloc.register64);
-                              {  FIX ME !!!
-                              location.register:=rg.getexplicitregisterint(exprasmlist,resultloc.register64);
-                              }
-                              location.register64.reglo:=rg.getexplicitregisterint(exprasmlist,resultloc.register64.reglo);
-                              location.register64.reghi:=rg.getexplicitregisterint(exprasmlist,resultloc.register64.reghi);
-                              cg64.a_load64_reg_reg(exprasmlist,resultloc.register64,location.register64);
-                           end
-                         else
-{$endif cpu64bit}
-                           begin
-                              cg.a_reg_alloc(exprasmlist,resultloc.register);
-                              location.register:=rg.getexplicitregisterint(exprasmlist,resultloc.register);
-                              hregister:=rg.makeregsize(resultloc.register,cgsize);
-                              location.register:=rg.makeregsize(location.register,cgsize);
-                              cg.a_load_reg_reg(exprasmlist,cgsize,cgsize,hregister,location.register);
-                           end;
-                      end;
-                    LOC_FPUREGISTER:
-                      begin
-                         location_reset(location,LOC_FPUREGISTER,cgsize);
-                         cg.a_reg_alloc(exprasmlist,resultloc.register);
-                         location.register:=rg.getexplicitregisterfpu(exprasmlist,resultloc.register);
-                         cg.a_loadfpu_reg_reg(exprasmlist,resultloc.register,location.register);
-                         if (resultloc.register <> location.register) then
-                           cg.a_reg_dealloc(exprasmlist,resultloc.register);
-{$ifdef x86}
-                         inc(trgcpu(rg).fpuvaroffset);
-{$endif x86}
-                      end;
-                    else
-                      internalerror(2002081701);
-                 end;
-              end;
-          end;
+          handle_return_value(inlined,extended_new);
 
          { perhaps i/o check ? }
          if iolabel<>nil then
@@ -1270,7 +1319,8 @@ implementation
            end;
          if inlined then
            begin
-             tg.ungettemp(exprasmlist,pararef);
+             if (resulttype.def.size>0) then
+               tg.UnGetTemp(exprasmlist,returnref);
              tprocdef(procdefinition).parast.address_fixup:=store_parast_fixup;
              right:=inlinecode;
            end;
@@ -1279,7 +1329,7 @@ implementation
 
          { from now on the result can be freed normally }
          if inlined and paramanager.ret_in_param(resulttype.def) then
-           tg.ChangeTempType(funcretref,tt_normal);
+           tg.ChangeTempType(exprasmlist,funcretref,tt_normal);
 
          { if return value is not used }
          if (not(nf_return_value_used in flags)) and (not is_void(resulttype.def)) then
@@ -1492,7 +1542,17 @@ begin
 end.
 {
   $Log$
-  Revision 1.25  2002-10-05 12:43:25  carl
+  Revision 1.26  2002-11-15 01:58:51  peter
+    * merged changes from 1.0.7 up to 04-11
+      - -V option for generating bug report tracing
+      - more tracing for option parsing
+      - errors for cdecl and high()
+      - win32 import stabs
+      - win32 records<=8 are returned in eax:edx (turned off by default)
+      - heaptrc update
+      - more info for temp management in .s file with EXTDEBUG
+
+  Revision 1.25  2002/10/05 12:43:25  carl
     * fixes for Delphi 6 compilation
      (warning : Some features do not work under Delphi)
 

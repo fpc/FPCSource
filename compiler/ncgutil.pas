@@ -1147,7 +1147,17 @@ implementation
                   begin
                     uses_acc:=true;
                     cg.a_reg_alloc(list,accumulator);
-                    cg.a_load_ref_reg(list,cgsize,href,accumulator);
+{$ifndef cpu64bit}
+                    { Win32 can return records in EAX:EDX }
+                    if cgsize in [OS_64,OS_S64] then
+                     begin
+                       uses_acchi:=true;
+                       cg.a_reg_alloc(list,accumulatorhigh);
+                       cg64.a_load64_ref_reg(list,href,joinreg64(accumulator,accumulatorhigh));
+                     end
+                    else
+{$endif cpu64bit}
+                     cg.a_load_ref_reg(list,cgsize,href,accumulator);
                    end
                end;
            end;
@@ -1362,7 +1372,13 @@ implementation
               { initialize profiling for win32 }
               if (target_info.system in [system_i386_win32,system_i386_wdosx]) and
                  (cs_profile in aktmoduleswitches) then
-                cg.a_call_name(list,'__monstartup');
+               begin
+                 reference_reset_symbol(href,objectlibrary.newasmsymbol('etext'),0);
+                 cg.a_paramaddr_ref(list,href,paraloc);
+                 reference_reset_symbol(href,objectlibrary.newasmsymbol('__image_base__'),0);
+                 cg.a_paramaddr_ref(list,href,paraloc);
+                 cg.a_call_name(list,'monstartup');
+               end;
 
               { initialize units }
               cg.a_call_name(list,'FPC_INITIALIZEUNITS');
@@ -1617,7 +1633,12 @@ implementation
         if (not DLLsource) and
            (not inlined) and
            (aktprocdef.proctypeoption=potype_proginit) then
-         cg.a_call_name(list,'FPC_DO_EXIT');
+         begin
+           {if (target_info.system=system_i386_win32) and
+              (cs_profile in aktmoduleswitches) then
+             cg.a_call_name(list,'__mcleanup');   }
+           cg.a_call_name(list,'FPC_DO_EXIT');
+         end;
 
         { handle return value, this is not done for assembler routines when
           they didn't reference the result variable }
@@ -1846,7 +1867,17 @@ implementation
 end.
 {
   $Log$
-  Revision 1.58  2002-11-10 19:07:45  mazen
+  Revision 1.59  2002-11-15 01:58:51  peter
+    * merged changes from 1.0.7 up to 04-11
+      - -V option for generating bug report tracing
+      - more tracing for option parsing
+      - errors for cdecl and high()
+      - win32 import stabs
+      - win32 records<=8 are returned in eax:edx (turned off by default)
+      - heaptrc update
+      - more info for temp management in .s file with EXTDEBUG
+
+  Revision 1.58  2002/11/10 19:07:45  mazen
   * SPARC calling mechanism almost OK (as in GCC./mppcsparc )
 
   Revision 1.57  2002/11/03 20:22:40  mazen

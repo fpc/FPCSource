@@ -186,6 +186,7 @@ interface
           { already usable before firstwith
             needed for firstpass of function parameters PM }
           withrefnode : pointer;
+          use_count : longint;
           constructor create(aowner:tdef;asymsearch:TDictionary);
           destructor  destroy;override;
           procedure clear;override;
@@ -1702,6 +1703,8 @@ implementation
              debugList.concat(tai_comment.Create(strpnew('Global '+name^+' has index '+tostr(unitid))));
              debugList.concat(Tai_stabs.Create(strpnew('"'+name^+'",'+tostr(N_BINCL)+',0,0,0')));
              {inc(current_module.unitcount);}
+             { we can't use dbx_vcount, because we don't know
+               if the object file will be loaded before or afeter PM }
              dbx_count_ok:=false;
              dbx_counter:=@dbx_count;
              do_count_dbx:=true;
@@ -1727,6 +1730,10 @@ implementation
 
 
     procedure tglobalsymtable.ppuload(ppufile:tcompilerppufile);
+{$ifdef GDB}
+      var
+        b : byte;
+{$endif GDB}
       begin
 {$ifdef GDB}
          if cs_gdb_dbx in aktglobalswitches then
@@ -1758,6 +1765,29 @@ implementation
          { necessary for dependencies }
          current_module.globalsymtable:=nil;
 {$endif NEWMAP}
+
+        { read dbx count }
+{$ifdef GDB}
+        if (current_module.flags and uf_has_dbx)<>0 then
+         begin
+           b:=ppufile.readentry;
+           if b<>ibdbxcount then
+             Message(unit_f_ppu_dbx_count_problem)
+           else
+             dbx_count:=ppufile.getlongint;
+{$IfDef EXTDEBUG}
+           writeln('Read dbx_count ',dbx_count,' in unit ',name^,'.ppu');
+{$ENDIF EXTDEBUG}
+           { we can't use dbx_vcount, because we don't know
+             if the object file will be loaded before or afeter PM }
+           dbx_count_ok := {true}false;
+         end
+        else
+         begin
+           dbx_count:=-1;
+           dbx_count_ok:=false;
+         end;
+{$endif GDB}
       end;
 
 
@@ -1855,6 +1885,7 @@ implementation
          direct_with:=false;
          withnode:=nil;
          withrefnode:=nil;
+         use_count:=1;
          { we don't need the symsearch }
          symsearch.free;
          { set the defaults }
@@ -2312,7 +2343,17 @@ implementation
 end.
 {
   $Log$
-  Revision 1.76  2002-11-09 15:29:28  carl
+  Revision 1.77  2002-11-15 01:58:54  peter
+    * merged changes from 1.0.7 up to 04-11
+      - -V option for generating bug report tracing
+      - more tracing for option parsing
+      - errors for cdecl and high()
+      - win32 import stabs
+      - win32 records<=8 are returned in eax:edx (turned off by default)
+      - heaptrc update
+      - more info for temp management in .s file with EXTDEBUG
+
+  Revision 1.76  2002/11/09 15:29:28  carl
     + bss / constant alignment fixes
     * avoid incrementing address/datasize in local symtable for const's
 

@@ -74,6 +74,7 @@ const
 
 procedure SetRedirectFile(const fn:string);
 function  SetVerbosity(const s:string):boolean;
+procedure PrepareReport;
 
 procedure SetCompileModule(p:tmodulebase);
 procedure Stop;
@@ -118,6 +119,11 @@ var
            close(status.redirfile);
            status.use_redir:=false;
          end;
+        if status.use_bugreport then
+         begin
+           close(status.reportbugfile);
+           status.use_bugreport:=false;
+         end;
       end;
 
 
@@ -130,6 +136,25 @@ var
           rewrite(status.redirfile);
         {$I+}
         status.use_redir:=(ioresult=0);
+      end;
+
+
+    procedure PrepareReport;
+      var
+        fn : string;
+      begin
+        if status.use_bugreport then
+         exit;
+        fn:='fpcdebug.txt';
+        assign(status.reportbugfile,fn);
+        {$I-}
+         append(status.reportbugfile);
+         if ioresult <> 0 then
+          rewrite(status.reportbugfile);
+        {$I+}
+        status.use_bugreport:=(ioresult=0);
+        if status.use_bugreport then
+         writeln(status.reportbugfile,'FPC bug report file');
       end;
 
 
@@ -424,8 +449,9 @@ var
            (status.errorhint and ((l and V_Hint)<>0)) then
          inc(status.errorcount);
       { check verbosity level }
-        if (status.verbosity and l)<>l then
-         exit;
+        if ((status.verbosity and l)<>l) and
+           (not status.use_bugreport) then
+          exit;
       { Create status info }
         UpdateStatus;
       { Fix replacements }
@@ -521,7 +547,8 @@ var
           end;
         Delete(s,1,idx);
       { check verbosity level }
-        if (status.verbosity and v)<>v then
+        if ((status.verbosity and v)<>v) and
+           (not status.use_bugreport) then
          exit;
       { fix status }
         UpdateStatus;
@@ -675,14 +702,26 @@ var
            dispose(msg,Done);
            msg:=nil;
          end;
-        if status.use_redir then
-         DoneRedirectFile;
+        DoneRedirectFile;
       end;
 
+finalization
+  { Be sure to close the redirect files to flush all data }
+  DoneRedirectFile;
 end.
 {
   $Log$
-  Revision 1.21  2002-10-05 12:43:29  carl
+  Revision 1.22  2002-11-15 01:58:54  peter
+    * merged changes from 1.0.7 up to 04-11
+      - -V option for generating bug report tracing
+      - more tracing for option parsing
+      - errors for cdecl and high()
+      - win32 import stabs
+      - win32 records<=8 are returned in eax:edx (turned off by default)
+      - heaptrc update
+      - more info for temp management in .s file with EXTDEBUG
+
+  Revision 1.21  2002/10/05 12:43:29  carl
     * fixes for Delphi 6 compilation
      (warning : Some features do not work under Delphi)
 

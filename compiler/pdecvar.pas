@@ -238,7 +238,7 @@ implementation
                    }
                    if tloadnode(pt).symtableentry.typ = varsym then
                      begin
-                       if abssym.vartype.def <> 
+                       if abssym.vartype.def <>
                           tvarsym(tloadnode(pt).symtableentry).vartype.def then
                           tvarsym(tloadnode(pt).symtableentry).varoptions:=
                           tvarsym(tloadnode(pt).symtableentry).varoptions-[vo_regable,vo_fpuregable]
@@ -265,10 +265,9 @@ implementation
                    abssym.abstyp:=toaddr;
                    abssym.absseg:=false;
                    abssym.address:=tordconstnode(pt).value;
-                   if (token=_COLON) and
-                      (target_info.system=system_i386_go32v2) then
+                   if (target_info.system=system_i386_go32v2) and
+                      try_to_consume(_COLON) then
                     begin
-                      consume(token);
                       pt.free;
                       pt:=expr;
                       if is_constintnode(pt) then
@@ -277,7 +276,7 @@ implementation
                           abssym.absseg:=true;
                         end
                       else
-                         Message(parser_e_absolute_only_to_var_or_const);
+                         Message(type_e_ordinal_expr_expected);
                     end;
                    symtablestack.replace(vs,abssym);
                    vs.free;
@@ -313,7 +312,7 @@ implementation
              { hint directive }
 {$ifdef fpc}
              {$warning hintdirective not stored in syms}
-{$endif}             
+{$endif}
              dummysymoptions:=[];
              try_consume_hintdirective(dummysymoptions);
              { for a record there doesn't need to be a ; before the END or ) }
@@ -576,7 +575,17 @@ implementation
 end.
 {
   $Log$
-  Revision 1.37  2002-10-05 15:18:43  carl
+  Revision 1.38  2002-11-15 01:58:53  peter
+    * merged changes from 1.0.7 up to 04-11
+      - -V option for generating bug report tracing
+      - more tracing for option parsing
+      - errors for cdecl and high()
+      - win32 import stabs
+      - win32 records<=8 are returned in eax:edx (turned off by default)
+      - heaptrc update
+      - more info for temp management in .s file with EXTDEBUG
+
+  Revision 1.37  2002/10/05 15:18:43  carl
     * fix heap leaks
 
   Revision 1.36  2002/10/05 12:43:26  carl

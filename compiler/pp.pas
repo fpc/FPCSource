@@ -119,6 +119,9 @@ uses
   {$ifdef heaptrc}
     ppheap,
   {$endif heaptrc}
+  {$ifdef EXTDEBUG}
+    checkmem,
+  {$endif EXTDEBUG}
   {$ifndef NOCATCH}
     {$ifdef Unix}
       catch,
@@ -176,7 +179,17 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  2002-10-30 21:45:02  peter
+  Revision 1.19  2002-11-15 01:58:53  peter
+    * merged changes from 1.0.7 up to 04-11
+      - -V option for generating bug report tracing
+      - more tracing for option parsing
+      - errors for cdecl and high()
+      - win32 import stabs
+      - win32 records<=8 are returned in eax:edx (turned off by default)
+      - heaptrc update
+      - more info for temp management in .s file with EXTDEBUG
+
+  Revision 1.18  2002/10/30 21:45:02  peter
     * do not include catch unit when compiling with NOCATCH
 
   Revision 1.17  2002/10/15 18:16:44  peter

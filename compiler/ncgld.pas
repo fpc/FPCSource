@@ -827,8 +827,11 @@ implementation
                                u64bit:
                                  vtype:=vtQWord;
                             end;
-                            freetemp:=false;
-                            vaddr:=true;
+                           if not(nf_cargs in flags) then
+                            begin
+                              freetemp:=false;
+                              vaddr:=true;
+                            end;
                          end
                        else if (lt.deftype=enumdef) or
                          is_integer(lt) then
@@ -850,8 +853,11 @@ implementation
                    floatdef :
                      begin
                        vtype:=vtExtended;
-                       vaddr:=true;
-                       freetemp:=false;
+                       if not(nf_cargs in flags) then
+                        begin
+                          freetemp:=false;
+                          vaddr:=true;
+                        end;
                      end;
                    procvardef,
                    pointerdef :
@@ -905,10 +911,16 @@ implementation
                        location_release(exprasmlist,hp.left.location);
                        if freetemp then
                          location_freetemp(exprasmlist,hp.left.location);
+                       inc(pushedparasize,pointer_size);
                      end
                     else
-                     cg.a_param_loc(exprasmlist,hp.left.location,paralocdummy);
-                    inc(pushedparasize,pointer_size);
+                      if vtype in [vtInt64,vtQword,vtExtended] then
+                        push_value_para(hp.left,false,true,0,4,paralocdummy)
+                    else
+                      begin
+                        cg.a_param_loc(exprasmlist,hp.left.location,paralocdummy);
+                        inc(pushedparasize,pointer_size);
+                      end;
                   end
                  else
                   begin
@@ -977,7 +989,17 @@ begin
 end.
 {
   $Log$
-  Revision 1.35  2002-10-14 19:44:13  peter
+  Revision 1.36  2002-11-15 01:58:51  peter
+    * merged changes from 1.0.7 up to 04-11
+      - -V option for generating bug report tracing
+      - more tracing for option parsing
+      - errors for cdecl and high()
+      - win32 import stabs
+      - win32 records<=8 are returned in eax:edx (turned off by default)
+      - heaptrc update
+      - more info for temp management in .s file with EXTDEBUG
+
+  Revision 1.35  2002/10/14 19:44:13  peter
     * (hacked) new threadvar relocate code
 
   Revision 1.34  2002/10/13 11:22:06  florian

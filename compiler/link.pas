@@ -458,12 +458,14 @@ begin
   DoExec:=true;
   if not(cs_link_extern in aktglobalswitches) then
    begin
-     swapvectors;
      if useshell then
-      shell(command+' '+para)
+       shell(maybequoted(command)+' '+para)
      else
-      exec(command,para);
-     swapvectors;
+       begin
+         swapvectors;
+         exec(command,para);
+         swapvectors;
+       end;
      if (doserror<>0) then
       begin
          Message(exec_e_cant_call_linker);
@@ -508,7 +510,7 @@ begin
   smartpath:=current_module.outputpath^+FixPath(FixFileName(current_module.modulename^)+target_info.smartext,false);
   SplitBinCmd(target_ar.arcmd,binstr,cmdstr);
   Replace(cmdstr,'$LIB',current_module.staticlibfilename^);
-  Replace(cmdstr,'$FILES',ScriptFixFileName(smartpath+current_module.asmprefix^+'*'+target_info.objext));
+  Replace(cmdstr,'$FILES',FixFileName(smartpath+current_module.asmprefix^+'*'+target_info.objext));
   success:=DoExec(FindUtil(binstr),cmdstr,false,true);
 { Clean up }
   if not(cs_asm_leave in aktglobalswitches) then
@@ -650,7 +652,17 @@ initialization
 end.
 {
   $Log$
-  Revision 1.32  2002-11-09 15:37:21  carl
+  Revision 1.33  2002-11-15 01:58:48  peter
+    * merged changes from 1.0.7 up to 04-11
+      - -V option for generating bug report tracing
+      - more tracing for option parsing
+      - errors for cdecl and high()
+      - win32 import stabs
+      - win32 records<=8 are returned in eax:edx (turned off by default)
+      - heaptrc update
+      - more info for temp management in .s file with EXTDEBUG
+
+  Revision 1.32  2002/11/09 15:37:21  carl
     - removed no longer used defines
 
   Revision 1.31  2002/09/07 15:25:02  peter

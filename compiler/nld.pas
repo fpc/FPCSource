@@ -524,18 +524,13 @@ implementation
         resulttype:=voidtype;
 
         { must be made unique }
-        if assigned(left) then
-          begin
-             set_unique(left);
-
-             { set we the function result? }
-             set_funcret_is_valid(left);
-          end;
+        set_unique(left);
 
         resulttypepass(left);
         resulttypepass(right);
         set_varstate(left,false);
         set_varstate(right,true);
+        set_funcret_is_valid(left);
         if codegenerror then
           exit;
 
@@ -958,7 +953,11 @@ implementation
                      end;
                    floatdef :
                      begin
-                       hp.left:=ctypeconvnode.create(hp.left,pbestrealtype^);
+                       { C uses 64bit floats }
+                       if nf_cargs in flags then
+                         hp.left:=ctypeconvnode.create(hp.left,s64floattype)
+                       else
+                         hp.left:=ctypeconvnode.create(hp.left,pbestrealtype^);
                        firstpass(hp.left);
                      end;
                    stringdef :
@@ -1182,7 +1181,17 @@ begin
 end.
 {
   $Log$
-  Revision 1.63  2002-10-17 12:44:09  florian
+  Revision 1.64  2002-11-15 01:58:52  peter
+    * merged changes from 1.0.7 up to 04-11
+      - -V option for generating bug report tracing
+      - more tracing for option parsing
+      - errors for cdecl and high()
+      - win32 import stabs
+      - win32 records<=8 are returned in eax:edx (turned off by default)
+      - heaptrc update
+      - more info for temp management in .s file with EXTDEBUG
+
+  Revision 1.63  2002/10/17 12:44:09  florian
     + s:=s+<string type> where s is an ansistring is done via calls to append_ansistring_*
 
   Revision 1.62  2002/10/05 12:43:25  carl

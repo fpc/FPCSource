@@ -759,11 +759,11 @@ implementation
       end;
 
 
-    { This check must be done with the operand in ATT order
-      i.e.after swapping in the intel reader
-      but before swapping in the NASM and TASM writers PM }
     procedure taicpu.CheckNonCommutativeOpcodes;
       begin
+        { we need ATT order }
+        SetOperandOrder(op_att);
+
         if ((ops=2) and
            (oper[0].typ=top_reg) and
            (oper[1].typ=top_reg) and
@@ -1874,7 +1874,17 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  2002-10-31 13:28:32  pierre
+  Revision 1.7  2002-11-15 01:58:54  peter
+    * merged changes from 1.0.7 up to 04-11
+      - -V option for generating bug report tracing
+      - more tracing for option parsing
+      - errors for cdecl and high()
+      - win32 import stabs
+      - win32 records<=8 are returned in eax:edx (turned off by default)
+      - heaptrc update
+      - more info for temp management in .s file with EXTDEBUG
+
+  Revision 1.6  2002/10/31 13:28:32  pierre
    * correct last wrong fix for tw2158
 
   Revision 1.5  2002/10/30 17:10:00  pierre

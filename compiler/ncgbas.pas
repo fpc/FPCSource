@@ -113,17 +113,9 @@ interface
           if p.proclocal then
            begin
              if not assigned(p.altsymbol) then
-              begin
-                { generatealtsymbol will also increase the refs }
-                objectlibrary.GenerateAltSymbol(p);
-              end
-             else
-              begin
-                { increase the refs, they will be decreased when the
-                  asmnode is destroyed }
-                inc(p.refs);
-              end;
+               objectlibrary.GenerateAltSymbol(p);
              p:=p.altsymbol;
+             inc(p.refs);
            end;
         end;
 
@@ -279,7 +271,7 @@ interface
     procedure tcgtempdeletenode.pass_2;
       begin
         if release_to_normal then
-          tg.ChangeTempType(tempinfo^.ref,tt_normal)
+          tg.ChangeTempType(exprasmlist,tempinfo^.ref,tt_normal)
         else
           tg.UnGetTemp(exprasmlist,tempinfo^.ref);
       end;
@@ -296,7 +288,17 @@ begin
 end.
 {
   $Log$
-  Revision 1.23  2002-08-23 16:14:48  peter
+  Revision 1.24  2002-11-15 01:58:51  peter
+    * merged changes from 1.0.7 up to 04-11
+      - -V option for generating bug report tracing
+      - more tracing for option parsing
+      - errors for cdecl and high()
+      - win32 import stabs
+      - win32 records<=8 are returned in eax:edx (turned off by default)
+      - heaptrc update
+      - more info for temp management in .s file with EXTDEBUG
+
+  Revision 1.23  2002/08/23 16:14:48  peter
     * tempgen cleanup
     * tt_noreuse temp type added that will be used in genentrycode
 

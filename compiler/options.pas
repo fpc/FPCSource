@@ -105,6 +105,7 @@ begin
   if s='' then
    exit;
   initdefines.insert(upper(s));
+  Message1(option_defining_symbol,s);
 end;
 
 
@@ -113,6 +114,7 @@ begin
   if s='' then
    exit;
   InitDefines.Remove(s);
+  Message1(option_undefining_symbol,s);
 end;
 
 
@@ -366,554 +368,752 @@ begin
 
   { only parse define,undef,target,verbosity and link options the firsttime }
   if firstpass and
-     not((opt[1]='-') and (opt[2] in ['i','d','v','T','u','n','X'])) then
+     not((opt[1]='-') and (opt[2] in ['i','d','v','V','T','u','n','X'])) then
    exit;
 
   Message1(option_handling_option,opt);
   case opt[1] of
- '-' : begin
+    '-' :
+      begin
          more:=Copy(opt,3,255);
-         case opt[2] of
-              '!' : initlocalswitches:=initlocalswitches+[cs_ansistrings];
-              '?' : WriteHelpPages;
-              'a' : begin
-                      initglobalswitches:=initglobalswitches+[cs_asm_leave];
-                      for j:=1 to length(more) do
-                       case more[j] of
-                        'l' : include(initglobalswitches,cs_asm_source);
-                        'r' : include(initglobalswitches,cs_asm_regalloc);
-                        't' : include(initglobalswitches,cs_asm_tempalloc);
-                        'n' : include(initglobalswitches,cs_asm_nodes);
-                        '-' : initglobalswitches:=initglobalswitches -
-                                [cs_asm_leave, cs_asm_source,cs_asm_regalloc, cs_asm_tempalloc];
-                       else
-                         IllegalPara(opt);
-                       end;
-                    end;
-              'A' : begin
-                      if set_target_asm_by_string(More) then
-                       asm_is_set:=true
-                      else
-                       IllegalPara(opt);
-                    end;
-              'b' : begin
-                      if UnsetBool(More,0) then
-                       begin
-                         exclude(initmoduleswitches,cs_browser);
-                         exclude(initmoduleswitches,cs_local_browser);
-{$ifdef BrowserLog}
-                         exclude(initglobalswitches,cs_browser_log);
-{$endif}
-                       end
-                      else
-                       begin
-                         include(initmoduleswitches,cs_browser);
-{$ifdef BrowserLog}
-                         include(initglobalswitches,cs_browser_log);
-{$endif}
-                       end;
-                      if More<>'' then
-                        if (More='l') or (More='l+') then
-                          include(initmoduleswitches,cs_local_browser)
-                        else
-                         if More='l-' then
-                          exclude(initmoduleswitches,cs_local_browser)
-                        else
-{$ifdef BrowserLog}
-                          browserlog.elements_to_list.insert(more);
-{$else}
-                          IllegalPara(opt);
-{$endif}
-                    end;
-              'B' : do_build:=not UnSetBool(more,0);
-              'C' : begin
-                      j := 1;
-                      while j <= length(more) Do
-                        Begin
-                          case more[j] of
-                            'a' : Message2(option_obsolete_switch_use_new,'-Ca','-Or');
-                            'c' :
-                               begin
-                                 if not SetAktProcCall(upper(copy(more,j+1,length(more)-j)),true) then
-                                  IllegalPara(opt);
-                                 break;
-                               end;
-                            'h' :
-                               begin
-                                 val(copy(more,j+1,length(more)-j),heapsize,code);
-                                 if (code<>0) or (heapsize>=67107840) or (heapsize<1024) then
-                                  IllegalPara(opt);
-                                 break;
-                               end;
-                            'i' :
-                              If UnsetBool(More, j) then
-                                exclude(initlocalswitches,cs_check_io)
-                              else
-                                include(initlocalswitches,cs_check_io);
-                            'n' :
-                              If UnsetBool(More, j) then
-                                exclude(initglobalswitches,cs_link_extern)
-                              Else
-                                include(initglobalswitches,cs_link_extern);
-                            'o' :
-                              If UnsetBool(More, j) then
-                                exclude(initlocalswitches,cs_check_overflow)
-                              Else
-                                include(initlocalswitches,cs_check_overflow);
-                            'r' :
-                              If UnsetBool(More, j) then
-                                exclude(initlocalswitches,cs_check_range)
-                              Else
-                                include(initlocalswitches,cs_check_range);
-                            'R' :
-                              If UnsetBool(More, j) then
-                                begin
-                                  exclude(initlocalswitches,cs_check_range);
-                                  exclude(initlocalswitches,cs_check_object);
-                                end
-                              Else
-                                begin
-                                  include(initlocalswitches,cs_check_range);
-                                  include(initlocalswitches,cs_check_object);
-                                end;
-                            's' :
-                              begin
-                                 val(copy(more,j+1,length(more)-j),stacksize,code);
-                                 if (code<>0) or (stacksize>=67107840) or (stacksize<1024) then
-                                  IllegalPara(opt);
-                                 break;
-                              end;
-                            't' :
-                               If UnsetBool(More, j) then
-                                 exclude(initlocalswitches,cs_check_stack)
-                               Else
-                                 include(initlocalswitches,cs_check_stack);
-                            'D' :
-                               If UnsetBool(More, j) then
-                                 exclude(initmoduleswitches,cs_create_dynamic)
-                               Else
-                                 include(initmoduleswitches,cs_create_dynamic);
-                            'X' :
-                               If UnsetBool(More, j) then
-                                 exclude(initmoduleswitches,cs_create_smart)
-                               Else
-                                 include(initmoduleswitches,cs_create_smart);
-                            else
-                               IllegalPara(opt);
-                          end;
-                          inc(j);
-                        end;
-                    end;
-              'd' : def_symbol(more);
-              'D' : begin
-                      include(initglobalswitches,cs_link_deffile);
-                      for j:=1 to length(more) do
-                       case more[j] of
-                        'd' : begin
-                                description:=Copy(more,j+1,255);
-                                break;
-                              end;
-                        'v' : begin
-                                dllversion:=Copy(more,j+1,255);
-                                l:=pos('.',dllversion);
-                                dllminor:=0;
-                                error:=0;
-                                if l>0 then
-                                  begin
-                                    valint(copy(dllversion,l+1,255),minor,error);
-                                    if (error=0) and
-                                       (minor>=0) and (minor<=$ffff) then
-                                      dllminor:=minor
-                                    else if error=0 then
-                                      error:=1;
-                                  end;
-                                if l=0 then l:=256;
-                                dllmajor:=1;
-                                if error=0 then
-                                  valint(copy(dllversion,1,l-1),major,error);
-                                if (error=0) and (major>=0) and (major<=$ffff) then
-                                  dllmajor:=major
-                                else if error=0 then
-                                  error:=1;
-                                if error<>0 then
-                                  Message1(scan_w_wrong_version_ignored,dllversion);
-                                break;
-                              end;
-                        'w' : usewindowapi:=true;
-                        '-' : begin
-                                exclude(initglobalswitches,cs_link_deffile);
-                                usewindowapi:=false;
-                              end;
-                       else
-                         IllegalPara(opt);
-                       end;
-                    end;
-              'e' : exepath:=FixPath(More,true);
-              { Just used by RHIDE }
-              'E' : if UnsetBool(More, 0) then
-                      exclude(initglobalswitches,cs_link_extern)
-                    else
-                      include(initglobalswitches,cs_link_extern);
-              'F' : begin
-                      c:=more[1];
-                      Delete(more,1,1);
-                      DefaultReplacements(More);
-                      case c of
-                       'c' : begin
-                                if not(cpavailable(more)) then
-                                  Message1(option_code_page_not_available,more)
-                                else
-                                  initsourcecodepage:=more;
-                             end;
-                       'D' : utilsdirectory:=FixPath(More,true);
-                       'e' : SetRedirectFile(More);
-                       'E' : OutputExeDir:=FixPath(More,true);
-                       'i' : if ispara then
-                              ParaIncludePath.AddPath(More,false)
-                             else
-                              includesearchpath.AddPath(More,true);
-                       'g' : Message2(option_obsolete_switch_use_new,'-Fg','-Fl');
-                       'l' : if ispara then
-                              ParaLibraryPath.AddPath(More,false)
-                             else
-                              LibrarySearchPath.AddPath(More,true);
-                       'L' : if More<>'' then
-                              ParaDynamicLinker:=More
-                             else
-                              IllegalPara(opt);
-                       'o' : if ispara then
-                              ParaObjectPath.AddPath(More,false)
-                             else
-                              ObjectSearchPath.AddPath(More,true);
-                       'r' : Msgfilename:=More;
-                       'u' : if ispara then
-                              ParaUnitPath.AddPath(More,false)
-                             else
-                              unitsearchpath.AddPath(More,true);
-                       'U' : OutputUnitDir:=FixPath(More,true);
-                      else
-                        IllegalPara(opt);
-                      end;
-                    end;
-              'g' : begin
-                      if UnsetBool(More, 0) then
-                        begin
-                          exclude(initmoduleswitches,cs_debuginfo);
-                          exclude(initglobalswitches,cs_gdb_dbx);
-                          exclude(initglobalswitches,cs_gdb_gsym);
-                          exclude(initglobalswitches,cs_gdb_heaptrc);
-                          exclude(initglobalswitches,cs_gdb_lineinfo);
-                          exclude(initglobalswitches,cs_checkpointer);
-                        end
-                      else
-                       begin
-{$ifdef GDB}
-                         include(initmoduleswitches,cs_debuginfo);
-                         if not RelocSectionSetExplicitly then
-                           RelocSection:=false;
-                         for j:=1 to length(more) do
-                          case more[j] of
-                           'd' : if UnsetBool(More, j) then
-                                   exclude(initglobalswitches,cs_gdb_dbx)
-                                 else
-                                   include(initglobalswitches,cs_gdb_dbx);
-                           'g' : if UnsetBool(More, j) then
-                                   exclude(initglobalswitches,cs_gdb_gsym)
-                                 else
-                                   include(initglobalswitches,cs_gdb_gsym);
-                           'h' : if UnsetBool(More, j) then
-                                   exclude(initglobalswitches,cs_gdb_heaptrc)
-                                 else
-                                   include(initglobalswitches,cs_gdb_heaptrc);
-                           'l' : if UnsetBool(More, j) then
-                                   exclude(initglobalswitches,cs_gdb_lineinfo)
-                                 else
-                                   include(initglobalswitches,cs_gdb_lineinfo);
-                           'c' : if UnsetBool(More, j) then
-                                   exclude(initglobalswitches,cs_checkpointer)
-                                 else
-                                   include(initglobalswitches,cs_checkpointer);
-                          else
-                            IllegalPara(opt);
-                          end;
-{$else GDB}
-                         Message(option_no_debug_support);
-                         Message(option_no_debug_support_recompile_fpc);
-{$endif GDB}
-                       end;
-                    end;
-              'h' : begin
-                      NoPressEnter:=true;
-                      WriteHelpPages;
-                    end;
-              'i' : if More='' then
-                     WriteInfo
-                    else
-                     QuickInfo:=QuickInfo+More;
-              'I' : if ispara then
-                     ParaIncludePath.AddPath(More,false)
-                    else
-                     includesearchpath.AddPath(More,false);
-              'k' : if more<>'' then
-                     ParaLinkOptions:=ParaLinkOptions+' '+More
-                    else
-                     IllegalPara(opt);
-              'l' : DoWriteLogo:=not UnSetBool(more,0);
-              'm' : parapreprocess:=not UnSetBool(more,0);
-              'n' : if More='' then
-                     disable_configfile:=true
-                    else
-                     IllegalPara(opt);
-              'o' : if More<>'' then
-                     Fsplit(More,d,OutputFile,e)
-                    else
-                     IllegalPara(opt);
-              'p' : begin
-                      if UnsetBool(More, 0) then
-                        begin
-                          initmoduleswitches:=initmoduleswitches-[cs_profile];
-                          undef_symbol('FPC_PROFILE');
-                        end
-                      else
-                        if Length(More)=0 then
-                          IllegalPara(opt)
-                        else
-                        case more[1] of
-                         'g' : if UnsetBool(more, 1) then
-                                begin
-                                  exclude(initmoduleswitches,cs_profile);
-                                  undef_symbol('FPC_PROFILE');
-                                end
-                               else
-                                begin
-                                  include(initmoduleswitches,cs_profile);
-                                  def_symbol('FPC_PROFILE');
-                               end;
-                        else
-                          IllegalPara(opt);
-                        end;
-                    end;
-{$ifdef Unix}
-              'P' : if UnsetBool(More, 0) then
-                      exclude(initglobalswitches,cs_asm_pipe)
-                    else
-                      include(initglobalswitches,cs_asm_pipe);
-{$endif Unix}
-              's' :
-                    begin
-                      if UnsetBool(More, 0) then
-                        begin
-                          initglobalswitches:=initglobalswitches-[cs_asm_extern,cs_link_extern];
-                          if more<>'' then
-                            IllegalPara(opt);
-                        end
-                      else
-                        begin
-                          initglobalswitches:=initglobalswitches+[cs_asm_extern,cs_link_extern];
-                          if more='h' then
-                            initglobalswitches:=initglobalswitches-[cs_link_on_target]
-                          else if more='t' then
-                            initglobalswitches:=initglobalswitches+[cs_link_on_target]
-                          else if more<>'' then
-                            IllegalPara(opt);
-                        end;
-                    end;
-              'S' : begin
-                      if more[1]='I' then
-                        begin
-                          if upper(more)='ICOM' then
-                            initinterfacetype:=it_interfacecom
-                          else if upper(more)='ICORBA' then
-                            initinterfacetype:=it_interfacecorba
-                          else
-                            IllegalPara(opt);
-                        end
-                      else
-                        for j:=1 to length(more) do
-                         case more[j] of
-                          '2' : SetCompileMode('OBJFPC',true);
-                          'a' : include(initlocalswitches,cs_do_assertion);
-                          'c' : include(initmoduleswitches,cs_support_c_operators);
-                          'd' : SetCompileMode('DELPHI',true);
-                          'e' : begin
-                                  SetErrorFlags(copy(more,j+1,length(more)));
-                                  break;
-                                end;
-                          'g' : include(initmoduleswitches,cs_support_goto);
-                          'h' : include(initlocalswitches,cs_ansistrings);
-                          'i' : include(initmoduleswitches,cs_support_inline);
-                          'm' : include(initmoduleswitches,cs_support_macro);
-                          'o' : SetCompileMode('TP',true);
-                          'p' : SetCompileMode('GPC',true);
-                          's' : include(initglobalswitches,cs_constructor_name);
-                          't' : include(initmoduleswitches,cs_static_keyword);
-                          '-' : begin
-                                  exclude(initglobalswitches,cs_constructor_name);
-                                  initlocalswitches:=InitLocalswitches - [cs_do_assertion, cs_ansistrings];
-                                  initmoduleswitches:=initmoduleswitches - [cs_support_c_operators, cs_support_goto,
-                                                                            cs_support_inline, cs_support_macro,
-                                                                            cs_static_keyword];
-                                end;
-                         else
-                          IllegalPara(opt);
-                         end;
-                    end;
-              'T' : begin
-                      more:=Upper(More);
-                      if not target_is_set then
-                       begin
-                         { remove old target define }
-                         TargetDefines(false);
-                         { Save assembler if set }
-                         if asm_is_set then
-                          forceasm:=target_asm.id;
-                         { load new target }
-                         if not(set_target_by_string(More)) then
-                           IllegalPara(opt);
-                         { also initialize assembler if not explicitly set }
-                         if asm_is_set then
-                          set_target_asm(forceasm);
-                         { set new define }
-                         TargetDefines(true);
-                         target_is_set:=true;
-                       end
-                      else
-                       if More<>upper(target_info.shortname) then
-                        Message1(option_target_is_already_set,target_info.shortname);
-                    end;
-              'u' : undef_symbol(upper(More));
-              'U' : begin
-                      for j:=1 to length(more) do
-                       case more[j] of
-{$ifdef UNITALIASES}
-                        'a' : begin
-                                AddUnitAlias(Copy(More,j+1,255));
-                                break;
-                              end;
-{$endif UNITALIASES}
-                        'n' : exclude(initglobalswitches,cs_check_unit_name);
-                        'p' : begin
-                                Message2(option_obsolete_switch_use_new,'-Up','-Fu');
-                                break;
-                              end;
-                        'r' : do_release:=true;
-                        's' : include(initmoduleswitches,cs_compilesystem);
-                        '-' : begin
-                                exclude(initmoduleswitches,cs_compilesystem);
-                                exclude(initglobalswitches,cs_check_unit_name);
-                              end;
-                       else
-                         IllegalPara(opt);
-                       end;
-                    end;
-              'v' : if not setverbosity(More) then
-                     IllegalPara(opt);
-              'W' : begin
-                      j:=0;
-                      while j<length(More) do
-                      begin
-                       inc(j);
-                       case More[j] of
-                        'B': begin
-                               {  -WB200000 means set trefered base address
-                                 to $200000, but does not change relocsection boolean
-                                 this way we can create both relocatble and
-                                 non relocatable DLL at a specific base address PM }
-                               if (length(More)>j) then
-                                 begin
-                                   if DLLImageBase=nil then
-                                     DLLImageBase:=StringDup(Copy(More,j+1,255));
-                                 end
-                               else
-                                 begin
-                                   RelocSection:=true;
-                                   RelocSectionSetExplicitly:=true;
-                                 end;
-                               break;
-                             end;
-                        'C': if UnsetBool(More, j) then
-                               apptype:=app_gui
-                              else
-                               apptype:=app_cui;
-                        'D': ForceDeffileForExport:=not UnsetBool(More, j);
-                        'F': apptype:=app_fs;
-                        'G': if UnsetBool(More, j) then
-                               apptype:=app_cui
-                              else
-                               apptype:=app_gui;
-                        'N': begin
-                               RelocSection:=UnsetBool(More,j);
-                               RelocSectionSetExplicitly:=true;
-                             end;
-                        'R': begin
-                               { support -WR+ / -WR- as synonims to -WR / -WN }
-                               RelocSection:=not UnsetBool(More,j);
-                               RelocSectionSetExplicitly:=true;
-                             end;
-                       else
-                        IllegalPara(opt);
-                       end;
-                       end; {of while}
-                    end;
-              'X' : begin
-                      for j:=1 to length(More) do
-                       case More[j] of
-                        'i' : include(initglobalswitches,cs_link_internal);
-                        'm' : include(initglobalswitches,cs_link_map);
-                        's' : include(initglobalswitches,cs_link_strip);
-                        't' : include(initglobalswitches,cs_link_staticflag);
-                        'D' : begin
-                                def_symbol('FPC_LINK_DYNAMIC');
-                                undef_symbol('FPC_LINK_SMART');
-                                undef_symbol('FPC_LINK_STATIC');
-                                exclude(initglobalswitches,cs_link_static);
-                                exclude(initglobalswitches,cs_link_smart);
-                                include(initglobalswitches,cs_link_shared);
-                                LinkTypeSetExplicitly:=true;
-                              end;
-                        'S' : begin
-                                def_symbol('FPC_LINK_STATIC');
-                                undef_symbol('FPC_LINK_SMART');
-                                undef_symbol('FPC_LINK_DYNAMIC');
-                                include(initglobalswitches,cs_link_static);
-                                exclude(initglobalswitches,cs_link_smart);
-                                exclude(initglobalswitches,cs_link_shared);
-                                LinkTypeSetExplicitly:=true;
-                              end;
-                        'X' : begin
-                                def_symbol('FPC_LINK_SMART');
-                                undef_symbol('FPC_LINK_STATIC');
-                                undef_symbol('FPC_LINK_DYNAMIC');
-                                exclude(initglobalswitches,cs_link_static);
-                                include(initglobalswitches,cs_link_smart);
-                                exclude(initglobalswitches,cs_link_shared);
-                                LinkTypeSetExplicitly:=true;
-                              end;
-                        '-' : begin
-                                exclude(initglobalswitches,cs_link_staticflag);
-                                exclude(initglobalswitches,cs_link_strip);
-                                exclude(initglobalswitches,cs_link_map);
-                                set_default_link_type;
-                              end;
-                       else
-                         IllegalPara(opt);
-                       end;
-                    end;
-       { give processor specific options a chance }
+         if firstpass then
+           Message1(option_interpreting_firstpass_option,opt)
          else
-          interpret_proc_specific_options(opt);
+           Message1(option_interpreting_option,opt);
+         case opt[2] of
+           '?' :
+             WriteHelpPages;
+
+           'a' :
+             begin
+               include(initglobalswitches,cs_asm_leave);
+               j:=1;
+               while j<=length(more) do
+                begin
+                  case more[j] of
+                    'l' :
+                      include(initglobalswitches,cs_asm_source);
+                    'r' :
+                      include(initglobalswitches,cs_asm_regalloc);
+                    't' :
+                      include(initglobalswitches,cs_asm_tempalloc);
+                    'n' :
+                      include(initglobalswitches,cs_asm_nodes);
+                    '-' :
+                      initglobalswitches:=initglobalswitches -
+                          [cs_asm_leave, cs_asm_source,cs_asm_regalloc, cs_asm_tempalloc, cs_asm_nodes];
+                    else
+                      IllegalPara(opt);
+                  end;
+                  inc(j);
+                end;
+             end;
+
+           'A' :
+             begin
+               if set_target_asm_by_string(More) then
+                asm_is_set:=true
+               else
+                IllegalPara(opt);
+             end;
+
+           'b' :
+             begin
+               if UnsetBool(More,0) then
+                begin
+                  exclude(initmoduleswitches,cs_browser);
+                  exclude(initmoduleswitches,cs_local_browser);
+{$ifdef BrowserLog}
+                  exclude(initglobalswitches,cs_browser_log);
+{$endif}
+                end
+               else
+                begin
+                  include(initmoduleswitches,cs_browser);
+{$ifdef BrowserLog}
+                  include(initglobalswitches,cs_browser_log);
+{$endif}
+                end;
+               if More<>'' then
+                 if (More='l') or (More='l+') then
+                   include(initmoduleswitches,cs_local_browser)
+                 else
+                  if More='l-' then
+                   exclude(initmoduleswitches,cs_local_browser)
+                 else
+{$ifdef BrowserLog}
+                   browserlog.elements_to_list.insert(more);
+{$else}
+                   IllegalPara(opt);
+{$endif}
+             end;
+
+           'B' :
+             do_build:=not UnSetBool(more,0);
+
+           'C' :
+             begin
+               j:=1;
+               while j<=length(more) do
+                begin
+                  case more[j] of
+                    'a' :
+                      Message2(option_obsolete_switch_use_new,'-Ca','-Or');
+                    'c' :
+                       begin
+                         if not SetAktProcCall(upper(copy(more,j+1,length(more)-j)),true) then
+                          IllegalPara(opt);
+                         break;
+                       end;
+                    'h' :
+                       begin
+                         val(copy(more,j+1,length(more)-j),heapsize,code);
+                         if (code<>0) or (heapsize>=67107840) or (heapsize<1024) then
+                          IllegalPara(opt);
+                         break;
+                       end;
+                    'i' :
+                      If UnsetBool(More, j) then
+                        exclude(initlocalswitches,cs_check_io)
+                      else
+                        include(initlocalswitches,cs_check_io);
+                    'n' :
+                      If UnsetBool(More, j) then
+                        exclude(initglobalswitches,cs_link_extern)
+                      Else
+                        include(initglobalswitches,cs_link_extern);
+                    'o' :
+                      If UnsetBool(More, j) then
+                        exclude(initlocalswitches,cs_check_overflow)
+                      Else
+                        include(initlocalswitches,cs_check_overflow);
+                    'r' :
+                      If UnsetBool(More, j) then
+                        exclude(initlocalswitches,cs_check_range)
+                      Else
+                        include(initlocalswitches,cs_check_range);
+                    'R' :
+                      If UnsetBool(More, j) then
+                        begin
+                          exclude(initlocalswitches,cs_check_range);
+                          exclude(initlocalswitches,cs_check_object);
+                        end
+                      Else
+                        begin
+                          include(initlocalswitches,cs_check_range);
+                          include(initlocalswitches,cs_check_object);
+                        end;
+                    's' :
+                      begin
+                         val(copy(more,j+1,length(more)-j),stacksize,code);
+                         if (code<>0) or (stacksize>=67107840) or (stacksize<1024) then
+                          IllegalPara(opt);
+                         break;
+                      end;
+                    't' :
+                       If UnsetBool(More, j) then
+                         exclude(initlocalswitches,cs_check_stack)
+                       Else
+                         include(initlocalswitches,cs_check_stack);
+                    'D' :
+                       If UnsetBool(More, j) then
+                         exclude(initmoduleswitches,cs_create_dynamic)
+                       Else
+                         include(initmoduleswitches,cs_create_dynamic);
+                    'X' :
+                       If UnsetBool(More, j) then
+                         exclude(initmoduleswitches,cs_create_smart)
+                       Else
+                         include(initmoduleswitches,cs_create_smart);
+                    else
+                       IllegalPara(opt);
+                  end;
+                  inc(j);
+                end;
+             end;
+
+           'd' :
+             def_symbol(more);
+
+           'D' :
+             begin
+               include(initglobalswitches,cs_link_deffile);
+               j:=1;
+               while j<=length(more) do
+                begin
+                  case more[j] of
+                    'd' :
+                      begin
+                        description:=Copy(more,j+1,255);
+                        break;
+                      end;
+                    'v' :
+                      begin
+                        dllversion:=Copy(more,j+1,255);
+                        l:=pos('.',dllversion);
+                        dllminor:=0;
+                        error:=0;
+                        if l>0 then
+                         begin
+                           valint(copy(dllversion,l+1,255),minor,error);
+                           if (error=0) and
+                              (minor>=0) and (minor<=$ffff) then
+                             dllminor:=minor
+                           else
+                             if error=0 then
+                               error:=1;
+                         end;
+                        if l=0 then
+                          l:=256;
+                        dllmajor:=1;
+                        if error=0 then
+                          valint(copy(dllversion,1,l-1),major,error);
+                        if (error=0) and (major>=0) and (major<=$ffff) then
+                          dllmajor:=major
+                        else
+                          if error=0 then
+                            error:=1;
+                        if error<>0 then
+                          Message1(scan_w_wrong_version_ignored,dllversion);
+                        break;
+                      end;
+                    'w' :
+                      usewindowapi:=true;
+                    '-' :
+                      begin
+                        exclude(initglobalswitches,cs_link_deffile);
+                        usewindowapi:=false;
+                      end;
+                    else
+                      IllegalPara(opt);
+                  end;
+                  inc(j);
+                end;
+             end;
+
+           'e' :
+             exepath:=FixPath(More,true);
+
+           'E' :
+             begin
+               if UnsetBool(More, 0) then
+                 exclude(initglobalswitches,cs_link_extern)
+               else
+                 include(initglobalswitches,cs_link_extern);
+             end;
+
+           'F' :
+             begin
+               c:=more[1];
+               Delete(more,1,1);
+               DefaultReplacements(More);
+               case c of
+                 'c' :
+                   begin
+                     if not(cpavailable(more)) then
+                       Message1(option_code_page_not_available,more)
+                     else
+                       initsourcecodepage:=more;
+                   end;
+                 'D' :
+                   utilsdirectory:=FixPath(More,true);
+                 'e' :
+                   SetRedirectFile(More);
+                 'E' :
+                   OutputExeDir:=FixPath(More,true);
+                 'i' :
+                   begin
+                     if ispara then
+                       ParaIncludePath.AddPath(More,false)
+                     else
+                       includesearchpath.AddPath(More,true);
+                   end;
+                 'g' :
+                   Message2(option_obsolete_switch_use_new,'-Fg','-Fl');
+                 'l' :
+                   begin
+                     if ispara then
+                       ParaLibraryPath.AddPath(More,false)
+                     else
+                       LibrarySearchPath.AddPath(More,true);
+                   end;
+                 'L' :
+                   begin
+                     if More<>'' then
+                       ParaDynamicLinker:=More
+                     else
+                       IllegalPara(opt);
+                   end;
+                 'o' :
+                   begin
+                     if ispara then
+                       ParaObjectPath.AddPath(More,false)
+                     else
+                       ObjectSearchPath.AddPath(More,true);
+                   end;
+                 'r' :
+                   Msgfilename:=More;
+                 'u' :
+                   begin
+                     if ispara then
+                       ParaUnitPath.AddPath(More,false)
+                     else
+                       unitsearchpath.AddPath(More,true);
+                   end;
+                 'U' :
+                   OutputUnitDir:=FixPath(More,true);
+                 else
+                   IllegalPara(opt);
+               end;
+             end;
+       'g' : begin
+               if UnsetBool(More, 0) then
+                begin
+                  exclude(initmoduleswitches,cs_debuginfo);
+                  exclude(initglobalswitches,cs_gdb_dbx);
+                  exclude(initglobalswitches,cs_gdb_gsym);
+                  exclude(initglobalswitches,cs_gdb_heaptrc);
+                  exclude(initglobalswitches,cs_gdb_lineinfo);
+                  exclude(initglobalswitches,cs_checkpointer);
+                end
+               else
+                begin
+{$ifdef GDB}
+                  include(initmoduleswitches,cs_debuginfo);
+                  if not RelocSectionSetExplicitly then
+                    RelocSection:=false;
+                  j:=1;
+                  while j<=length(more) do
+                    begin
+                      case more[j] of
+                        'd' :
+                          begin
+                            if UnsetBool(More, j) then
+                              exclude(initglobalswitches,cs_gdb_dbx)
+                            else
+                              include(initglobalswitches,cs_gdb_dbx);
+                          end;
+                       'g' :
+                          begin
+                            if UnsetBool(More, j) then
+                              exclude(initglobalswitches,cs_gdb_gsym)
+                            else
+                              include(initglobalswitches,cs_gdb_gsym);
+                          end;
+                        'h' :
+                          begin
+                            if UnsetBool(More, j) then
+                              exclude(initglobalswitches,cs_gdb_heaptrc)
+                            else
+                              include(initglobalswitches,cs_gdb_heaptrc);
+                          end;
+                        'l' :
+                          begin
+                            if UnsetBool(More, j) then
+                              exclude(initglobalswitches,cs_gdb_lineinfo)
+                            else
+                              include(initglobalswitches,cs_gdb_lineinfo);
+                          end;
+                        'c' :
+                          begin
+                            if UnsetBool(More, j) then
+                              exclude(initglobalswitches,cs_checkpointer)
+                            else
+                              include(initglobalswitches,cs_checkpointer);
+                          end;
+                        else
+                          IllegalPara(opt);
+                      end;
+                      inc(j);
+                    end;
+{$else GDB}
+                  Message(option_no_debug_support);
+                  Message(option_no_debug_support_recompile_fpc);
+{$endif GDB}
+                end;
+             end;
+
+           'h' :
+             begin
+               NoPressEnter:=true;
+               WriteHelpPages;
+             end;
+
+           'i' :
+             begin
+               if More='' then
+                 WriteInfo
+               else
+                 QuickInfo:=QuickInfo+More;
+             end;
+
+           'I' :
+             begin
+               if ispara then
+                 ParaIncludePath.AddPath(More,false)
+               else
+                includesearchpath.AddPath(More,false);
+             end;
+
+           'k' :
+             begin
+               if more<>'' then
+                 ParaLinkOptions:=ParaLinkOptions+' '+More
+               else
+                 IllegalPara(opt);
+             end;
+
+           'l' :
+             DoWriteLogo:=not UnSetBool(more,0);
+
+           'm' :
+             parapreprocess:=not UnSetBool(more,0);
+
+           'n' :
+             begin
+               if More='' then
+                 disable_configfile:=true
+               else
+                 IllegalPara(opt);
+             end;
+
+           'o' :
+             begin
+               if More<>'' then
+                 Fsplit(More,d,OutputFile,e)
+               else
+                 IllegalPara(opt);
+             end;
+
+           'p' :
+             begin
+               if UnsetBool(More, 0) then
+                 begin
+                   initmoduleswitches:=initmoduleswitches-[cs_profile];
+                   undef_symbol('FPC_PROFILE');
+                 end
+               else
+                 if Length(More)=0 then
+                   IllegalPara(opt)
+                 else
+                 case more[1] of
+                  'g' : if UnsetBool(more, 1) then
+                         begin
+                           exclude(initmoduleswitches,cs_profile);
+                           undef_symbol('FPC_PROFILE');
+                         end
+                        else
+                         begin
+                           include(initmoduleswitches,cs_profile);
+                           def_symbol('FPC_PROFILE');
+                        end;
+                 else
+                   IllegalPara(opt);
+                 end;
+             end;
+
+{$ifdef Unix}
+           'P' :
+             begin
+               if UnsetBool(More, 0) then
+                 exclude(initglobalswitches,cs_asm_pipe)
+               else
+                 include(initglobalswitches,cs_asm_pipe);
+             end;
+{$endif Unix}
+
+           's' :
+             begin
+               if UnsetBool(More, 0) then
+                 begin
+                   initglobalswitches:=initglobalswitches-[cs_asm_extern,cs_link_extern];
+                   if more<>'' then
+                     IllegalPara(opt);
+                 end
+               else
+                 begin
+                   initglobalswitches:=initglobalswitches+[cs_asm_extern,cs_link_extern];
+                   if more='h' then
+                     initglobalswitches:=initglobalswitches-[cs_link_on_target]
+                   else if more='t' then
+                     initglobalswitches:=initglobalswitches+[cs_link_on_target]
+                   else if more<>'' then
+                     IllegalPara(opt);
+                 end;
+             end;
+
+           'S' :
+             begin
+               if more[1]='I' then
+                 begin
+                   if upper(more)='ICOM' then
+                     initinterfacetype:=it_interfacecom
+                   else if upper(more)='ICORBA' then
+                     initinterfacetype:=it_interfacecorba
+                   else
+                     IllegalPara(opt);
+                 end
+               else
+                begin
+                  j:=1;
+                  while j<=length(more) do
+                   begin
+                     case more[j] of
+                       '2' :
+                         SetCompileMode('OBJFPC',true);
+                       'a' :
+                         include(initlocalswitches,cs_do_assertion);
+                       'c' :
+                         include(initmoduleswitches,cs_support_c_operators);
+                       'd' :
+                         SetCompileMode('DELPHI',true);
+                       'e' :
+                         begin
+                           SetErrorFlags(copy(more,j+1,length(more)));
+                           break;
+                         end;
+                       'g' :
+                         include(initmoduleswitches,cs_support_goto);
+                       'h' :
+                         include(initlocalswitches,cs_ansistrings);
+                       'i' :
+                         include(initmoduleswitches,cs_support_inline);
+                       'm' :
+                         include(initmoduleswitches,cs_support_macro);
+                       'o' :
+                         SetCompileMode('TP',true);
+                       'p' :
+                         SetCompileMode('GPC',true);
+                       's' :
+                         include(initglobalswitches,cs_constructor_name);
+                       't' :
+                         include(initmoduleswitches,cs_static_keyword);
+                       '-' :
+                         begin
+                           exclude(initglobalswitches,cs_constructor_name);
+                           initlocalswitches:=InitLocalswitches - [cs_do_assertion, cs_ansistrings];
+                           initmoduleswitches:=initmoduleswitches - [cs_support_c_operators, cs_support_goto,
+                                                                     cs_support_inline, cs_support_macro,
+                                                                     cs_static_keyword];
+                         end;
+                       else
+                         IllegalPara(opt);
+                     end;
+                     inc(j);
+                   end;
+                end;
+             end;
+
+           'T' :
+             begin
+               more:=Upper(More);
+               if not target_is_set then
+                begin
+                  { remove old target define }
+                  TargetDefines(false);
+                  { Save assembler if set }
+                  if asm_is_set then
+                   forceasm:=target_asm.id;
+                  { load new target }
+                  if not(set_target_by_string(More)) then
+                    IllegalPara(opt);
+                  { also initialize assembler if not explicitly set }
+                  if asm_is_set then
+                   set_target_asm(forceasm);
+                  { set new define }
+                  TargetDefines(true);
+                  target_is_set:=true;
+                end
+               else
+                if More<>upper(target_info.shortname) then
+                 Message1(option_target_is_already_set,target_info.shortname);
+             end;
+
+           'u' :
+             undef_symbol(upper(More));
+
+           'U' :
+             begin
+               j:=1;
+               while j<=length(more) do
+                begin
+                  case more[j] of
+{$ifdef UNITALIASES}
+                    'a' :
+                       begin
+                         AddUnitAlias(Copy(More,j+1,255));
+                         break;
+                       end;
+{$endif UNITALIASES}
+                    'n' :
+                      exclude(initglobalswitches,cs_check_unit_name);
+                    'p' :
+                       begin
+                         Message2(option_obsolete_switch_use_new,'-Up','-Fu');
+                         break;
+                       end;
+                    'r' :
+                      do_release:=true;
+                    's' :
+                      include(initmoduleswitches,cs_compilesystem);
+                    '-' :
+                      begin
+                        exclude(initmoduleswitches,cs_compilesystem);
+                        exclude(initglobalswitches,cs_check_unit_name);
+                      end;
+                    else
+                      IllegalPara(opt);
+                  end;
+                  inc(j);
+                end;
+             end;
+
+           'v' :
+             begin
+               if not setverbosity(More) then
+                 IllegalPara(opt);
+             end;
+
+           'V' :
+             PrepareReport;
+
+           'W' :
+             begin
+               j:=1;
+               while j<=length(More) do
+                begin
+                  case More[j] of
+                    'B':
+                      begin
+                        {  -WB200000 means set trefered base address
+                          to $200000, but does not change relocsection boolean
+                          this way we can create both relocatble and
+                          non relocatable DLL at a specific base address PM }
+                        if (length(More)>j) then
+                          begin
+                            if DLLImageBase=nil then
+                              DLLImageBase:=StringDup(Copy(More,j+1,255));
+                          end
+                        else
+                          begin
+                            RelocSection:=true;
+                            RelocSectionSetExplicitly:=true;
+                          end;
+                        break;
+                      end;
+                    'C':
+                      begin
+                        if UnsetBool(More, j) then
+                          apptype:=app_gui
+                        else
+                          apptype:=app_cui;
+                      end;
+                    'D':
+                      ForceDeffileForExport:=not UnsetBool(More, j);
+                    'F':
+                      apptype:=app_fs;
+                    'G':
+                      begin
+                        if UnsetBool(More, j) then
+                          apptype:=app_cui
+                        else
+                          apptype:=app_gui;
+                      end;
+                    'N':
+                      begin
+                        RelocSection:=UnsetBool(More,j);
+                        RelocSectionSetExplicitly:=true;
+                      end;
+                    'R':
+                      begin
+                        { support -WR+ / -WR- as synonims to -WR / -WN }
+                        RelocSection:=not UnsetBool(More,j);
+                        RelocSectionSetExplicitly:=true;
+                      end;
+                    else
+                      IllegalPara(opt);
+                  end;
+                  inc(j);
+                end;
+             end;
+
+           'X' :
+             begin
+               j:=1;
+               while j<=length(more) do
+                begin
+                  case More[j] of
+                    'i' :
+                      include(initglobalswitches,cs_link_internal);
+                    'm' :
+                      include(initglobalswitches,cs_link_map);
+                    's' :
+                      include(initglobalswitches,cs_link_strip);
+                    't' :
+                      include(initglobalswitches,cs_link_staticflag);
+                    'D' :
+                      begin
+                        def_symbol('FPC_LINK_DYNAMIC');
+                        undef_symbol('FPC_LINK_SMART');
+                        undef_symbol('FPC_LINK_STATIC');
+                        exclude(initglobalswitches,cs_link_static);
+                        exclude(initglobalswitches,cs_link_smart);
+                        include(initglobalswitches,cs_link_shared);
+                        LinkTypeSetExplicitly:=true;
+                      end;
+                    'S' :
+                      begin
+                        def_symbol('FPC_LINK_STATIC');
+                        undef_symbol('FPC_LINK_SMART');
+                        undef_symbol('FPC_LINK_DYNAMIC');
+                        include(initglobalswitches,cs_link_static);
+                        exclude(initglobalswitches,cs_link_smart);
+                        exclude(initglobalswitches,cs_link_shared);
+                        LinkTypeSetExplicitly:=true;
+                      end;
+                    'X' :
+                      begin
+                        def_symbol('FPC_LINK_SMART');
+                        undef_symbol('FPC_LINK_STATIC');
+                        undef_symbol('FPC_LINK_DYNAMIC');
+                        exclude(initglobalswitches,cs_link_static);
+                        include(initglobalswitches,cs_link_smart);
+                        exclude(initglobalswitches,cs_link_shared);
+                        LinkTypeSetExplicitly:=true;
+                      end;
+                    '-' :
+                      begin
+                        exclude(initglobalswitches,cs_link_staticflag);
+                        exclude(initglobalswitches,cs_link_strip);
+                        exclude(initglobalswitches,cs_link_map);
+                        set_default_link_type;
+                      end;
+                    else
+                      IllegalPara(opt);
+                  end;
+                  inc(j);
+                end;
+             end;
+
+           { give processor specific options a chance }
+           else
+             interpret_proc_specific_options(opt);
          end;
        end;
- '@' : begin
-         Message(option_no_nested_response_file);
-         StopOptions;
-       end;
-  else
-   begin
-     if (length(param_file)<>0) then
-       Message(option_only_one_source_support);
-     param_file:=opt;
-   end;
+
+    '@' :
+      begin
+        Message(option_no_nested_response_file);
+        StopOptions;
+      end;
+
+    else
+      begin
+        if (length(param_file)<>0) then
+          Message(option_only_one_source_support);
+        param_file:=opt;
+        Message1(option_found_file,opt);
+      end;
   end;
 end;
 
@@ -971,6 +1171,7 @@ begin
      Message1(option_unable_open_file,filename);
      exit;
    end;
+  Message1(option_start_reading_configfile,filename);
   fillchar(skip,sizeof(skip),0);
   level:=0;
   while not eof(f) do
@@ -981,6 +1182,7 @@ begin
       begin
         if opts[1]='#' then
          begin
+           Message1(option_interpreting_file_option,opts);
            Delete(opts,1,1);
            s:=upper(GetName(opts));
            if (s='SECTION') then
@@ -1072,7 +1274,9 @@ begin
   if Level>0 then
    Message(option_too_less_endif);
   if Not Option_read then
-    Message1(option_no_option_found,filename);
+    Message1(option_no_option_found,filename)
+  else
+    Message1(option_end_reading_configfile,filename);
   Close(f);
   Dec(FileLevel);
 end;
@@ -1541,7 +1745,7 @@ begin
   if (target_info.system in [system_m68k_netbsd,system_m68k_linux]) then
    exclude(initmoduleswitches,cs_fp_emulation)
   else
-   def_symbol('M68K_FPU_EMULATED');
+   def_symbol('FPC_FPU_INTERNAL');
 
   if initoptprocessor=MC68020 then
     def_symbol('CPUM68020');
@@ -1675,7 +1879,17 @@ finalization
 end.
 {
   $Log$
-  Revision 1.87  2002-10-23 17:07:40  peter
+  Revision 1.88  2002-11-15 01:58:52  peter
+    * merged changes from 1.0.7 up to 04-11
+      - -V option for generating bug report tracing
+      - more tracing for option parsing
+      - errors for cdecl and high()
+      - win32 import stabs
+      - win32 records<=8 are returned in eax:edx (turned off by default)
+      - heaptrc update
+      - more info for temp management in .s file with EXTDEBUG
+
+  Revision 1.87  2002/10/23 17:07:40  peter
     * fix -n that was broken in the previous commit
 
   Revision 1.86  2002/10/23 16:57:16  peter

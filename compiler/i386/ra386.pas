@@ -43,11 +43,13 @@ type
   end;
 
   T386Instruction=class(TInstruction)
+    OpOrder : TOperandOrder;
     { Operand sizes }
     procedure AddReferenceSizes;
     procedure SetInstructionOpsize;
     procedure CheckOperandSizes;
     procedure CheckNonCommutativeOpcodes;
+    procedure SwapOperands;
     { opcode adding }
     procedure ConcatInstruction(p : taasmoutput);override;
   end;
@@ -227,6 +229,17 @@ end;
                               T386Instruction
 *****************************************************************************}
 
+procedure T386Instruction.SwapOperands;
+begin
+  Inherited SwapOperands;
+  { mark the correct order }
+  if OpOrder=op_intel then
+    OpOrder:=op_att
+  else
+    OpOrder:=op_intel;
+end;
+
+
 procedure T386Instruction.AddReferenceSizes;
 { this will add the sizes for references like [esi] which do not
   have the size set yet, it will take only the size if the other
@@ -301,6 +314,8 @@ procedure T386Instruction.SetInstructionOpsize;
 begin
   if opsize<>S_NO then
    exit;
+  if (OpOrder=op_intel) then
+    SwapOperands;
   case ops of
     0 : ;
     1 :
@@ -415,6 +430,8 @@ end;
   but before swapping in the NASM and TASM writers PM }
 procedure T386Instruction.CheckNonCommutativeOpcodes;
 begin
+  if (OpOrder=op_intel) then
+    SwapOperands;
   if ((ops=2) and
      (operands[1].opr.typ=OPR_REGISTER) and
      (operands[2].opr.typ=OPR_REGISTER) and
@@ -461,6 +478,9 @@ var
   i,asize : longint;
   ai   : taicpu;
 begin
+  if (OpOrder=op_intel) then
+    SwapOperands;
+
 { Get Opsize }
   if (opsize<>S_NO) or (Ops=0) then
    siz:=opsize
@@ -608,6 +628,7 @@ begin
      end;
 
   ai:=taicpu.op_none(opcode,siz);
+  ai.SetOperandOrder(OpOrder);
   ai.Ops:=Ops;
   for i:=1to Ops do
    begin
@@ -669,7 +690,17 @@ end;
 end.
 {
   $Log$
-  Revision 1.25  2002-10-31 13:28:32  pierre
+  Revision 1.26  2002-11-15 01:58:58  peter
+    * merged changes from 1.0.7 up to 04-11
+      - -V option for generating bug report tracing
+      - more tracing for option parsing
+      - errors for cdecl and high()
+      - win32 import stabs
+      - win32 records<=8 are returned in eax:edx (turned off by default)
+      - heaptrc update
+      - more info for temp management in .s file with EXTDEBUG
+
+  Revision 1.25  2002/10/31 13:28:32  pierre
    * correct last wrong fix for tw2158
 
   Revision 1.24  2002/10/30 17:10:00  pierre

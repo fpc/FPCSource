@@ -85,10 +85,13 @@ type
     skip_error,
     use_stderr,
     use_redir,
+    use_bugreport,
     use_gccoutput,
     compiling_current : boolean;
   { Redirection support }
     redirfile : text;
+  { Special file for bug report }
+    reportbugfile : text;
   end;
 var
   status : tcompilerstatus;
@@ -292,20 +295,33 @@ begin
      else
       hs:=s;
    end;
+  { only show when the level is required }
+  if ((status.verbosity and Level)=Level) then
+   begin
 {$ifdef FPC}
-  if status.use_stderr then
-   begin
-     writeln(stderr,hs);
-     flush(stderr);
-   end
-  else
-{$endif}
-   begin
-     if status.use_redir then
-      writeln(status.redirfile,hs)
+     if status.use_stderr then
+      begin
+        writeln(stderr,hs);
+        flush(stderr);
+      end
      else
-      writeln(hs);
+{$endif}
+      begin
+        if status.use_redir then
+         writeln(status.redirfile,hs)
+        else
+         writeln(hs);
+      end;
    end;
+  { include everything in the bugreport file }
+  if status.use_bugreport then
+   begin
+{$ifdef FPC}
+     Write(status.reportbugfile,hexstr(level,8)+':');
+     Writeln(status.reportbugfile,hs);
+{$endif}
+   end;
+
 {$ifdef DEBUG}
   def_gdb_stop(level);
 {$endif DEBUG}
@@ -356,7 +372,17 @@ end;
 end.
 {
   $Log$
-  Revision 1.20  2002-09-05 19:29:42  peter
+  Revision 1.21  2002-11-15 01:58:46  peter
+    * merged changes from 1.0.7 up to 04-11
+      - -V option for generating bug report tracing
+      - more tracing for option parsing
+      - errors for cdecl and high()
+      - win32 import stabs
+      - win32 records<=8 are returned in eax:edx (turned off by default)
+      - heaptrc update
+      - more info for temp management in .s file with EXTDEBUG
+
+  Revision 1.20  2002/09/05 19:29:42  peter
     * memdebug enhancements
 
   Revision 1.19  2002/05/18 13:34:06  peter

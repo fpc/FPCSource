@@ -70,7 +70,7 @@ implementation
       symconst,symtype,symdef,symsym,symtable,defbase,
       cgbase,
       htypechk,pass_1,
-      nmat,ncnv,ncon,nset,nopt,ncal,ninl,
+      nbas,nmat,ncnv,ncon,nset,nopt,ncal,ninl,
       {$ifdef state_tracking}
       nstate,
       {$endif}
@@ -206,8 +206,8 @@ implementation
            Message(parser_e_division_by_zero);
            case rt of
              ordconstn:
-                tordconstnode(right).value := 1;  
-             realconstn:   
+                tordconstnode(right).value := 1;
+             realconstn:
                 trealconstnode(right).value_real := 1.0;
            end;
          end;
@@ -318,7 +318,10 @@ implementation
                     t:=crealconstnode.create(lvd/rvd,pbestrealtype^);
                   end;
                 else
-                  CGMessage(type_e_mismatch);
+                  begin
+                    CGMessage(type_e_mismatch);
+                    t:=cnothingnode.create;
+                  end;
               end;
               result:=t;
               exit;
@@ -350,9 +353,7 @@ implementation
                        t:=crealconstnode.create(exp(ln(lvd)*rvd),pbestrealtype^);
                    end;
                  slashn :
-                   begin
-                     t:=crealconstnode.create(lvd/rvd,pbestrealtype^);
-                   end;
+                   t:=crealconstnode.create(lvd/rvd,pbestrealtype^);
                  ltn :
                    t:=cordconstnode.create(ord(lvd<rvd),booltype,true);
                  lten :
@@ -366,7 +367,10 @@ implementation
                  unequaln :
                    t:=cordconstnode.create(ord(lvd<>rvd),booltype,true);
                  else
-                   CGMessage(type_e_mismatch);
+                   begin
+                     CGMessage(type_e_mismatch);
+                     t:=cnothingnode.create;
+                   end;
               end;
               result:=t;
               exit;
@@ -404,6 +408,11 @@ implementation
                    t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)=0),booltype,true);
                  unequaln :
                    t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)<>0),booltype,true);
+                 else
+                   begin
+                     CGMessage(type_e_mismatch);
+                     t:=cnothingnode.create;
+                   end;
               end;
               donewidestring(ws1);
               donewidestring(ws2);
@@ -1828,7 +1837,17 @@ begin
 end.
 {
   $Log$
-  Revision 1.68  2002-10-08 16:50:43  jonas
+  Revision 1.69  2002-11-15 01:58:50  peter
+    * merged changes from 1.0.7 up to 04-11
+      - -V option for generating bug report tracing
+      - more tracing for option parsing
+      - errors for cdecl and high()
+      - win32 import stabs
+      - win32 records<=8 are returned in eax:edx (turned off by default)
+      - heaptrc update
+      - more info for temp management in .s file with EXTDEBUG
+
+  Revision 1.68  2002/10/08 16:50:43  jonas
     * fixed web bug 2136
 
   Revision 1.67  2002/10/05 00:47:03  peter

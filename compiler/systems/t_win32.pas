@@ -34,7 +34,7 @@ interface
 {$endif Delphi}
        cutils,cclasses,
        aasmbase,aasmtai,aasmcpu,fmodule,globtype,globals,systems,verbose,
-       symconst,symsym,
+       symconst,symdef,symsym,
        script,gendef,
        cpubase,
 {$ifdef GDB}
@@ -50,12 +50,18 @@ interface
      tStr4=array[1..MAX_DEFAULT_EXTENSIONS]of string[4];
      pStr4=^tStr4;
 
+    twin32imported_item = class(timported_item)
+       procdef : tprocdef;
+    end;
+
     timportlibwin32=class(timportlib)
     private
+      procedure win32importproc(aprocdef:tprocdef;const func,module : string;index : longint;const name : string);
       procedure importvariable_str(const s:string;const name,module:string);
     public
       procedure GetDefExt(var N:longint;var P:pStr4);virtual;
       procedure preparelib(const s:string);override;
+      procedure importproceduredef(aprocdef:tprocdef;const module:string;index:longint;const name:string);override;
       procedure importprocedure(const func,module:string;index:longint;const name:string);override;
       procedure importvariable(vs:tvarsym;const name,module:string);override;
       procedure generatelib;override;
@@ -133,12 +139,13 @@ const
       end;
 
 
-    procedure timportlibwin32.importprocedure(const func,module : string;index : longint;const name : string);
+    procedure timportlibwin32.win32importproc(aprocdef:tprocdef;const func,module : string;index : longint;const name : string);
       var
          hp1 : timportlist;
-         hp2 : timported_item;
+         hp2 : twin32imported_item;
          hs  : string;
-         PP:pStr4;NN:longint;
+         PP  : pStr4;
+         NN  : longint;
       begin
          { force the current mangledname }
          aktprocdef.has_mangledname:=true;
@@ -160,18 +167,31 @@ const
               current_module.imports.concat(hp1);
            end;
          { search for reuse of old import item }
-         hp2:=timported_item(hp1.imported_items.first);
+         hp2:=twin32imported_item(hp1.imported_items.first);
          while assigned(hp2) do
           begin
             if hp2.func^=func then
              break;
-            hp2:=timported_item(hp2.next);
+            hp2:=twin32imported_item(hp2.next);
           end;
          if not assigned(hp2) then
           begin
-            hp2:=timported_item.create(func,name,index);
+            hp2:=twin32imported_item.create(func,name,index);
+            hp2.procdef:=aprocdef;
             hp1.imported_items.concat(hp2);
           end;
+      end;
+
+
+    procedure timportlibwin32.importproceduredef(aprocdef:tprocdef;const module : string;index : longint;const name : string);
+      begin
+        win32importproc(aprocdef,aprocdef.mangledname,module,index,name);
+      end;
+
+
+    procedure timportlibwin32.importprocedure(const func,module : string;index : longint;const name : string);
+      begin
+        win32importproc(nil,func,module,index,name);
       end;
 
 
@@ -184,9 +204,10 @@ const
     procedure timportlibwin32.importvariable_str(const s:string;const name,module:string);
       var
          hp1 : timportlist;
-         hp2 : timported_item;
+         hp2 : twin32imported_item;
          hs  : string;
-         NN:longint;PP:pStr4;
+         NN  : longint;
+         PP  : pStr4;
       begin
          GetDefExt(NN,PP);
          hs:=DllName(module,NN,PP);
@@ -204,21 +225,22 @@ const
               hp1:=timportlist.create(hs);
               current_module.imports.concat(hp1);
            end;
-         hp2:=timported_item.create_var(s,name);
+         hp2:=twin32imported_item.create_var(s,name);
+         hp2.procdef:=nil;
          hp1.imported_items.concat(hp2);
       end;
 
     procedure timportlibwin32.generatenasmlib;
       var
          hp1 : timportlist;
-         hp2 : timported_item;
+         hp2 : twin32imported_item;
          p : pchar;
       begin
          importssection.concat(tai_section.create(sec_code));
          hp1:=timportlist(current_module.imports.first);
          while assigned(hp1) do
            begin
-             hp2:=timported_item(hp1.imported_items.first);
+             hp2:=twin32imported_item(hp1.imported_items.first);
              while assigned(hp2) do
                begin
                  if (aktoutputformat=as_i386_tasm) or
@@ -229,7 +251,7 @@ const
                  importssection.concat(tai_direct.create(p));
                  p:=strpnew(#9+'import '+hp2.func^+' '+hp1.dllname^+' '+hp2.name^);
                  importssection.concat(tai_direct.create(p));
-                 hp2:=timported_item(hp2.next);
+                 hp2:=twin32imported_item(hp2.next);
                end;
              hp1:=timportlist(hp1.next);
            end;
@@ -243,9 +265,10 @@ const
          hp1 : timportlist;
 {$ifdef GDB}
          importname : string;
+         mangledstring : string;
          suffix : integer;
 {$endif GDB}
-         hp2 : timported_item;
+         hp2 : twin32imported_item;
          lhead,lname,lcode,
          lidata4,lidata5 : tasmlabel;
          href : treference;
@@ -286,7 +309,7 @@ const
              importsSection.concat(Tai_label.Create(lidata5));
 
              { create procedures }
-             hp2:=timported_item(hp1.imported_items.first);
+             hp2:=twin32imported_item(hp1.imported_items.first);
              while assigned(hp2) do
                begin
                  { insert cuts }
@@ -306,6 +329,15 @@ const
                     importsSection.concat(Tai_symbol.Createname_global(hp2.func^,0));
                     importsSection.concat(Taicpu.Op_ref(A_JMP,S_NO,href));
                     importsSection.concat(Tai_align.Create_op(4,$90));
+{$IfDef GDB}
+                    if assigned(hp2.procdef) then
+                     begin
+                       mangledstring:=hp2.procdef.mangledname;
+                       hp2.procdef.setmangledname(hp2.func^);
+                       hp2.procdef.concatstabto(importssection);
+                       hp2.procdef.setmangledname(mangledstring);
+                     end;
+{$EndIf GDB}
                   end;
                  { create head link }
                  importsSection.concat(Tai_section.Create(sec_idata7));
@@ -357,7 +389,7 @@ const
                  importsSection.concat(Tai_const.Create_16bit(hp2.ordnr));
                  importsSection.concat(Tai_string.Create(hp2.name^+#0));
                  importsSection.concat(Tai_align.Create_op(2,0));
-                 hp2:=timported_item(hp2.next);
+                 hp2:=twin32imported_item(hp2.next);
                end;
 
               { write final section }
@@ -381,10 +413,11 @@ const
     procedure timportlibwin32.generatelib;
       var
          hp1 : timportlist;
-         hp2 : timported_item;
+         hp2 : twin32imported_item;
          l1,l2,l3,l4 : tasmlabel;
 {$ifdef GDB}
          importname : string;
+         mangledstring : string;
          suffix : integer;
 {$endif GDB}
          href : treference;
@@ -422,7 +455,7 @@ const
               importsSection.concat(Tai_section.Create(sec_idata4));
               importsSection.concat(Tai_label.Create(l2));
 
-              hp2:=timported_item(hp1.imported_items.first);
+              hp2:=twin32imported_item(hp1.imported_items.first);
               while assigned(hp2) do
                 begin
                    objectlibrary.getlabel(tasmlabel(hp2.lab));
@@ -430,7 +463,7 @@ const
                      importsSection.concat(Tai_const_symbol.Create_rva(hp2.lab))
                    else
                      importsSection.concat(Tai_const.Create_32bit($80000000 or hp2.ordnr));
-                   hp2:=timported_item(hp2.next);
+                   hp2:=twin32imported_item(hp2.next);
                 end;
               { finalize the names ... }
               importsSection.concat(Tai_const.Create_32bit(0));
@@ -438,7 +471,7 @@ const
               { then the addresses and create also the indirect jump }
               importsSection.concat(Tai_section.Create(sec_idata5));
               importsSection.concat(Tai_label.Create(l3));
-              hp2:=timported_item(hp1.imported_items.first);
+              hp2:=twin32imported_item(hp1.imported_items.first);
               while assigned(hp2) do
                 begin
                    if not hp2.is_var then
@@ -448,9 +481,22 @@ const
                       reference_reset_symbol(href,l4,0);
                       { place jump in codesegment }
                       importsSection.concat(Tai_section.Create(sec_code));
+{$IfDef GDB}
+                      if (cs_debuginfo in aktmoduleswitches) then
+                        importssection.concat(tai_stab_function_name.create(nil));
+{$EndIf GDB}
                       importsSection.concat(Tai_symbol.Createname_global(hp2.func^,0));
                       importsSection.concat(Taicpu.Op_ref(A_JMP,S_NO,href));
                       importsSection.concat(Tai_align.Create_op(4,$90));
+{$IfDef GDB}
+                      if assigned(hp2.procdef) then
+                       begin
+                         mangledstring:=hp2.procdef.mangledname;
+                         hp2.procdef.setmangledname(hp2.func^);
+                         hp2.procdef.concatstabto(importssection);
+                         hp2.procdef.setmangledname(mangledstring);
+                       end;
+{$EndIf GDB}
                       { add jump field to imporTSection }
                       importsSection.concat(Tai_section.Create(sec_idata5));
 {$ifdef GDB}
@@ -487,14 +533,14 @@ const
                       importsSection.concat(Tai_symbol.Createname_global(hp2.func^,0));
                     end;
                    importsSection.concat(Tai_const_symbol.Create_rva(hp2.lab));
-                   hp2:=timported_item(hp2.next);
+                   hp2:=twin32imported_item(hp2.next);
                 end;
               { finalize the addresses }
               importsSection.concat(Tai_const.Create_32bit(0));
 
               { finally the import information }
               importsSection.concat(Tai_section.Create(sec_idata6));
-              hp2:=timported_item(hp1.imported_items.first);
+              hp2:=twin32imported_item(hp1.imported_items.first);
               while assigned(hp2) do
                 begin
                    importsSection.concat(Tai_label.Create(hp2.lab));
@@ -502,7 +548,7 @@ const
                    importsSection.concat(Tai_const.Create_16bit(hp2.ordnr));
                    importsSection.concat(Tai_string.Create(hp2.name^+#0));
                    importsSection.concat(Tai_align.Create_op(2,0));
-                   hp2:=timported_item(hp2.next);
+                   hp2:=twin32imported_item(hp2.next);
                 end;
               { create import dll name }
               importsSection.concat(Tai_section.Create(sec_idata7));
@@ -864,6 +910,8 @@ begin
    LinkRes.AddFileName(GetShortName(FindObjectFile('wdllprt0','')))
   else
    LinkRes.AddFileName(GetShortName(FindObjectFile('wprt0','')));
+  if cs_profile in aktmoduleswitches then
+   LinkRes.AddFileName(GetShortName(FindObjectFile('mcount','')));
   while not ObjectFiles.Empty do
    begin
      s:=ObjectFiles.GetFirst;
@@ -874,7 +922,8 @@ begin
   if cs_profile in aktmoduleswitches then
    begin
      LinkRes.Add('-lgmon');
-     LinkRes.Add('-lc');
+     LinkRes.Add('-lkernel32');
+     LinkRes.Add('-lmsvcrt');
    end;
   LinkRes.Add(')');
 
@@ -1563,7 +1612,17 @@ initialization
 end.
 {
   $Log$
-  Revision 1.3  2002-10-05 12:43:29  carl
+  Revision 1.4  2002-11-15 01:59:02  peter
+    * merged changes from 1.0.7 up to 04-11
+      - -V option for generating bug report tracing
+      - more tracing for option parsing
+      - errors for cdecl and high()
+      - win32 import stabs
+      - win32 records<=8 are returned in eax:edx (turned off by default)
+      - heaptrc update
+      - more info for temp management in .s file with EXTDEBUG
+
+  Revision 1.3  2002/10/05 12:43:29  carl
     * fixes for Delphi 6 compilation
      (warning : Some features do not work under Delphi)
 

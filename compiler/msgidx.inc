@@ -263,6 +263,9 @@ const
   parser_e_no_procvarobj_const=03183;
   parser_e_default_value_only_one_para=03184;
   parser_e_default_value_expected_for_para=03185;
+  parser_w_unsupported_feature=03186;
+  parser_h_c_arrays_are_references=03187;
+  parser_e_C_array_of_const_must_be_last=03188;
   type_e_mismatch=04000;
   type_e_incompatible_types=04001;
   type_e_not_equal_types=04002;
@@ -348,7 +351,8 @@ const
   sym_e_id_no_member=05038;
   sym_b_param_list=05039;
   sym_e_segment_too_large=05040;
-  sym_e_no_matching_implementation_found=05041;
+  sym_w_segment_too_large=05041;
+  sym_e_no_matching_implementation_found=05042;
   cg_e_break_not_allowed=06000;
   cg_e_continue_not_allowed=06001;
   cg_e_too_complex_expr=06002;
@@ -384,7 +388,7 @@ const
   cg_e_no_code_for_inline_stored=06033;
   cg_e_no_call_to_interrupt=06034;
   cg_e_can_access_element_zero=06035;
-  cg_e_include_not_implemented=06036;
+  cg_e_paralimit_in_local_routine=06036;
   cg_e_cannot_call_cons_dest_inside_with=06037;
   cg_e_cannot_call_message_direct=06038;
   cg_e_goto_inout_of_exception_block=06039;
@@ -504,6 +508,8 @@ const
   asmw_e_comp_not_supported=08014;
   asmw_e_extended_not_supported=08015;
   asmw_e_duplicate_label=08016;
+  asmw_e_redefined_label=08017;
+  asmw_e_first_defined_label=08018;
   exec_w_source_os_redefined=09000;
   exec_i_assembling_pipe=09001;
   exec_d_cant_create_asmfile=09002;
@@ -609,14 +615,23 @@ const
   option_using_env=11027;
   option_handling_option=11028;
   option_help_press_enter=11029;
-  option_code_page_not_available=11030;
+  option_start_reading_configfile=11030;
+  option_end_reading_configfile=11031;
+  option_interpreting_option=11032;
+  option_interpreting_firstpass_option=11036;
+  option_interpreting_file_option=11033;
+  option_read_config_file=11034;
+  option_found_file=11035;
+  option_defining_symbol=11037;
+  option_undefining_symbol=11038;
+  option_code_page_not_available=11039;
   option_logo=11023;
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 34465;
+  MsgTxtSize = 35103;
 
   MsgIdxMax : array[1..20] of longint=(
-    17,62,186,44,42,41,98,17,35,43,
-    31,1,1,1,1,1,1,1,1,1
+    17,62,189,44,43,41,98,19,35,43,
+    40,1,1,1,1,1,1,1,1,1
   );

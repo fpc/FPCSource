@@ -33,10 +33,67 @@ interface
 
     procedure pp_heap_init;
 
+    procedure ppheap_register_file(name : string;index : longint);
+
+
 implementation
 
     uses
        globtype,globals,fmodule;
+
+{*****************************************************************************
+                            Filename registration
+*****************************************************************************}
+
+    const
+      MaxFiles = 1024;
+      MaxNameLength = 39;
+
+    type
+      theapfileinfo = record
+        name : string[MaxNameLength];
+        index : longint;
+      end;
+
+      tfileinfoarray = array [1..MaxFiles] of theapfileinfo;
+
+    var
+      fileinfoarray : tfileinfoarray;
+      last_index : longint;
+
+
+    procedure ppheap_register_file(name : string;index : longint);
+      begin
+        inc(last_index);
+        if last_index <= MaxFiles then
+          begin
+            fileinfoarray[last_index].name:=copy(name,1,MaxNameLength);
+            fileinfoarray[last_index].index:=index;
+          end
+        else
+          writeln(stderr,'file',name,' has index ',index);
+      end;
+
+
+    function getfilename(index : longint) : string;
+      var
+        i : longint;
+      begin
+        for i:=1 to last_index do
+          begin
+            if fileinfoarray[i].index=index then
+              begin
+                getfilename:=fileinfoarray[i].name;
+                exit;
+              end;
+          end;
+        getfilename:=tostr(index);
+      end;
+
+
+{*****************************************************************************
+                              Heaptrc callbacks
+*****************************************************************************}
 
     type
       pextra_info = ^textra_info;
@@ -60,13 +117,25 @@ implementation
       end;
 
 
+{$ifdef VER1_0}
+    function get_extra_info(p : pointer) : string;
+      begin
+        with pextra_info(p)^ do
+         begin
+           get_extra_info:=getfilename(fileindex)+'('+tostr(line)+','+tostr(col)+
+             ') ';
+         end;
+      end;
+{$else}
     procedure show_extra_info(var t : text;p : pointer);
       begin
         with pextra_info(p)^ do
          begin
-           writeln(t,'fileinfo: (',line,',',col,') ',fileindex);
+           writeln(t,getfilename(fileindex)+'('+tostr(line)+','+tostr(col)+') ');
          end;
       end;
+{$endif}
+
 
   const
      pp_heap_inited : boolean = false;
@@ -77,9 +146,13 @@ implementation
          begin
             keepreleased:=true;
             SetHeapTraceOutput('heap.log');
+{$ifdef VER1_0}
+            SetExtraInfoString({$ifdef FPC}@{$endif}get_extra_info);
+{$else}
             SetHeapExtraInfo(sizeof(textra_info),
                              {$ifdef FPCPROCVAR}@{$endif}set_extra_info,
                              {$ifdef FPCPROCVAR}@{$endif}show_extra_info);
+{$endif}
          end;
        pp_heap_inited:=true;
     end;
@@ -90,7 +163,17 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2002-05-18 13:34:13  peter
+  Revision 1.11  2002-11-15 01:58:53  peter
+    * merged changes from 1.0.7 up to 04-11
+      - -V option for generating bug report tracing
+      - more tracing for option parsing
+      - errors for cdecl and high()
+      - win32 import stabs
+      - win32 records<=8 are returned in eax:edx (turned off by default)
+      - heaptrc update
+      - more info for temp management in .s file with EXTDEBUG
+
+  Revision 1.10  2002/05/18 13:34:13  peter
     * readded missing revisions
 
   Revision 1.9  2002/05/16 19:46:43  carl

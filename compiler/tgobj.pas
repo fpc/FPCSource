@@ -91,8 +91,8 @@ unit tgobj;
           procedure GetTemp(list: taasmoutput; size : longint;temptype:ttemptype;var ref : treference);
           procedure UnGetTemp(list: taasmoutput; const ref : treference);
 
-          function SizeOfTemp(const ref: treference): longint;
-          procedure ChangeTempType(const ref:treference;temptype:ttemptype);
+          function SizeOfTemp(list: taasmoutput; const ref: treference): longint;
+          function ChangeTempType(list: taasmoutput; const ref:treference;temptype:ttemptype):boolean;
 
           {# Returns TRUE if the reference ref is allocated in temporary volatile memory space,
              otherwise returns FALSE.
@@ -238,7 +238,7 @@ unit tgobj;
 {$ifdef EXTDEBUG}
          if size=0 then
           begin
-            Comment(V_Warning,'Temp of size 0 requested');
+            Comment(V_Warning,'Temp of size 0 requested, allocating 4 bytes');
             size:=4;
           end;
 {$endif}
@@ -346,8 +346,10 @@ unit tgobj;
           end;
 {$ifdef EXTDEBUG}
          tl^.posinfo:=aktfilepos;
-{$endif}
+         list.concat(tai_tempalloc.allocinfo(tl^.pos,tl^.size,'type '+TempTypeStr[templist^.temptype]));
+{$else}
          list.concat(tai_tempalloc.alloc(tl^.pos,tl^.size));
+{$endif}
          AllocTemp:=tl^.pos;
       end;
 
@@ -368,6 +370,7 @@ unit tgobj;
                 begin
 {$ifdef EXTDEBUG}
                   Comment(V_Warning,'temp managment : (FreeTemp) temp at pos '+tostr(pos)+ ' is already free !');
+                  list.concat(tai_tempalloc.allocinfo(hp^.pos,hp^.size,'temp is already freed'));
 {$endif}
                   exit;
                 end;
@@ -375,7 +378,8 @@ unit tgobj;
                if not(hp^.temptype in temptypes) then
                 begin
 {$ifdef EXTDEBUG}
-                  Comment(V_Debug,'temp managment : (Freetemp) temp at pos '+tostr(pos)+ ' has different type, not releasing');
+                  Comment(V_Debug,'temp managment : (Freetemp) temp at pos '+tostr(pos)+ ' has different type ('+TempTypeStr[hp^.temptype]+'), not releasing');
+                  list.concat(tai_tempalloc.allocinfo(hp^.pos,hp^.size,'temp has wrong type ('+TempTypeStr[hp^.temptype]+') not releasing'));
 {$endif}
                   exit;
                 end;
@@ -445,7 +449,7 @@ unit tgobj;
       end;
 
 
-    function ttgobj.SizeOfTemp(const ref: treference): longint;
+    function ttgobj.SizeOfTemp(list: taasmoutput; const ref: treference): longint;
       var
          hp : ptemprecord;
       begin
@@ -461,15 +465,17 @@ unit tgobj;
              hp := hp^.next;
            end;
 {$ifdef EXTDEBUG}
-         Comment(V_Debug,'temp managment : SizeOfTemp temp at pos '+tostr(ref.offset)+ ' not found !');
+         Comment(V_Debug,'temp managment : SizeOfTemp temp at pos '+tostr(ref.offset)+' not found !');
+         list.concat(tai_tempalloc.allocinfo(ref.offset,0,'temp not found'));
 {$endif}
       end;
 
 
-    procedure ttgobj.ChangeTempType(const ref:treference;temptype:ttemptype);
+    function ttgobj.ChangeTempType(list: taasmoutput; const ref:treference;temptype:ttemptype):boolean;
       var
         hp : ptemprecord;
       begin
+         ChangeTempType:=false;
          hp:=templist;
          while assigned(hp) do
           begin
@@ -481,7 +487,9 @@ unit tgobj;
                   if hp^.temptype=temptype then
                     Comment(V_Warning,'temp managment : ChangeTempType temp'+
                        ' at pos '+tostr(ref.offset)+ ' is already of the correct type !');
+                  list.concat(tai_tempalloc.allocinfo(hp^.pos,hp^.size,'type changed to '+TempTypeStr[templist^.temptype]));
 {$endif}
+                  ChangeTempType:=true;
                   hp^.temptype:=temptype;
                 end
                else
@@ -489,6 +497,7 @@ unit tgobj;
 {$ifdef EXTDEBUG}
                    Comment(V_Warning,'temp managment : ChangeTempType temp'+
                       ' at pos '+tostr(ref.offset)+ ' is already freed !');
+                  list.concat(tai_tempalloc.allocinfo(hp^.pos,hp^.size,'temp is already freed'));
 {$endif}
                 end;
                exit;
@@ -498,6 +507,7 @@ unit tgobj;
 {$ifdef EXTDEBUG}
          Comment(V_Warning,'temp managment : ChangeTempType temp'+
             ' at pos '+tostr(ref.offset)+ ' not found !');
+         list.concat(tai_tempalloc.allocinfo(ref.offset,0,'temp not found'));
 {$endif}
       end;
 
@@ -522,7 +532,17 @@ finalization
 end.
 {
   $Log$
-  Revision 1.18  2002-10-11 11:57:43  florian
+  Revision 1.19  2002-11-15 01:58:54  peter
+    * merged changes from 1.0.7 up to 04-11
+      - -V option for generating bug report tracing
+      - more tracing for option parsing
+      - errors for cdecl and high()
+      - win32 import stabs
+      - win32 records<=8 are returned in eax:edx (turned off by default)
+      - heaptrc update
+      - more info for temp management in .s file with EXTDEBUG
+
+  Revision 1.18  2002/10/11 11:57:43  florian
   *** empty log message ***
 
   Revision 1.16  2002/09/07 18:25:00  florian

@@ -1075,6 +1075,8 @@ implementation
 
     procedure tstoreddef.write_rtti_data(rt:trttitype);
       begin
+        rttilist.concat(tai_const.create_8bit(tkUnknown));
+        write_rtti_name;
       end;
 
 
@@ -1724,6 +1726,8 @@ implementation
         bool16bit,
         bool32bit : stabstring := strpnew('r'+numberstring+';0;255;');
 {$else : not Use_integer_types_for_boolean}
+           uchar  : stabstring := strpnew('-20;');
+       uwidechar  : stabstring := strpnew('-30;');
          bool8bit : stabstring := strpnew('-21;');
         bool16bit : stabstring := strpnew('-22;');
         bool32bit : stabstring := strpnew('-23;');
@@ -2585,6 +2589,7 @@ implementation
 
     function tarraydef.size : longint;
       var
+        _resultsize,
         newsize,
         cachedsize: TConstExprInt;
       begin
@@ -2598,24 +2603,35 @@ implementation
         if highrange<lowrange then
             internalerror(99080501);
         newsize:=(int64(highrange)-int64(lowrange)+1)*cachedsize;
-        If (cachedsize>0) and
+        if (cachedsize>0) and
             (
              (TConstExprInt(highrange)-TConstExprInt(lowrange) > $7fffffff) or
              { () are needed around elesize-1 to avoid a possible
                integer overflow for elesize=1 !! PM }
              (($7fffffff div cachedsize + (cachedsize -1)) < (int64(highrange) - int64(lowrange)))
             ) Then
-          Begin
+          begin
              Message(sym_e_segment_too_large);
-             size:=4;
+             _resultsize := 4
           end
         else
-        { prevent an overflow }
-        if newsize>high(longint) then
-           size:=high(longint)
-        else
-           size:=newsize;
+          begin
+            { prevent an overflow }
+            if newsize>high(longint) then
+              _resultsize:=high(longint)
+            else
+              _resultsize:=newsize;
+          end;
+
+{$ifdef m68k}
+        { 68000 (only) CPU's only accept 32K arrays }
+        if (_resultsize > 32767) and
+           (aktoptprocessor = MC68000) then
+          Message(sym_w_segment_too_large);
+{$endif}
+        size := _resultsize;
       end;
+
 
       procedure tarraydef.setelementtype(t: ttype);
        var
@@ -2883,8 +2899,17 @@ implementation
 
 
     function trecorddef.size:longint;
+      var
+        _resultsize : longint;
       begin
-        size:=symtable.datasize;
+        _resultsize:=symtable.datasize;
+{$ifdef m68k}
+        { 68000 (only) CPU's only accept 32K arrays }
+        if (_resultsize > 32767) and
+           (aktoptprocessor = MC68000) then
+          Message(sym_w_segment_too_large);
+{$endif}
+        size:=_resultsize;
       end;
 
 
@@ -3126,14 +3151,24 @@ implementation
           begin
             case pdc.paratyp of
               vs_out,
-              vs_var   : inc(l,POINTER_SIZE);
+              vs_var :
+                inc(l,POINTER_SIZE);
               vs_value,
-              vs_const : if paramanager.push_addr_param(pdc.paratype.def,is_cdecl) then
-                          inc(l,POINTER_SIZE)
-                         else
-                          inc(l,pdc.paratype.def.size);
+              vs_const :
+                begin
+                  if paramanager.push_addr_param(pdc.paratype.def,is_cdecl) then
+                    inc(l,POINTER_SIZE)
+                  else
+                    inc(l,pdc.paratype.def.size);
+                end;
             end;
             l:=align(l,alignsize);
+            if assigned(pdc.paratype.def) and
+               is_special_array(pdc.paratype.def) then
+              begin
+                inc(l,POINTER_SIZE);
+                l:=align(l,alignsize);
+              end;
             pdc:=TParaItem(pdc.next);
           end;
          para_size:=l;
@@ -4348,12 +4383,21 @@ implementation
           end;
      end;
 
+
     function tobjectdef.size : longint;
+      var
+        _resultsize : longint;
       begin
         if objecttype in [odt_class,odt_interfacecom,odt_interfacecorba] then
-          size:=POINTER_SIZE
+          _resultsize:=POINTER_SIZE
         else
-          size:=symtable.datasize;
+          _resultsize:=symtable.datasize;
+{$ifdef m68k}
+        { 68000 (only) CPU's only accept 32K arrays }
+        if (_resultsize > 32767) and (aktoptprocessor = MC68000) then
+            Message(sym_w_segment_too_large);
+{$endif}
+        size := _resultsize;
       end;
 
 
@@ -5463,7 +5507,17 @@ implementation
 end.
 {
   $Log$
-  Revision 1.101  2002-11-09 15:31:02  carl
+  Revision 1.102  2002-11-15 01:58:54  peter
+    * merged changes from 1.0.7 up to 04-11
+      - -V option for generating bug report tracing
+      - more tracing for option parsing
+      - errors for cdecl and high()
+      - win32 import stabs
+      - win32 records<=8 are returned in eax:edx (turned off by default)
+      - heaptrc update
+      - more info for temp management in .s file with EXTDEBUG
+
+  Revision 1.101  2002/11/09 15:31:02  carl
     + align RTTI tables
 
   Revision 1.100  2002/10/19 15:09:25  peter

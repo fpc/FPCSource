@@ -359,7 +359,7 @@ interface
                         { or a function result, so simply check for a        }
                         { temp of 256 bytes(JM)                                          }
                         if not(tg.istemp(left.location.reference) and
-                               (tg.SizeOfTemp(left.location.reference) = 256)) and
+                               (tg.SizeOfTemp(exprasmlist,left.location.reference) = 256)) and
                            not(nf_use_strconcat in flags) then
                           begin
                              tg.GetTemp(exprasmlist,256,tt_normal,href);
@@ -1553,7 +1553,17 @@ begin
 end.
 {
   $Log$
-  Revision 1.50  2002-10-20 13:11:27  jonas
+  Revision 1.51  2002-11-15 01:58:56  peter
+    * merged changes from 1.0.7 up to 04-11
+      - -V option for generating bug report tracing
+      - more tracing for option parsing
+      - errors for cdecl and high()
+      - win32 import stabs
+      - win32 records<=8 are returned in eax:edx (turned off by default)
+      - heaptrc update
+      - more info for temp management in .s file with EXTDEBUG
+
+  Revision 1.50  2002/10/20 13:11:27  jonas
     * re-enabled optimized version of comparisons with the empty string that
       I accidentally disabled in revision 1.26
 

@@ -266,6 +266,13 @@ implementation
          localmaxfpuregisters:=aktmaxfpuregisters;
          { parse the code ... }
          code:=block(current_module.islibrary);
+         { store a copy of the original tree for inline, for
+           normal procedures only store a reference to the
+           current tree }
+         if (aktprocdef.proccalloption=pocall_inline) then
+           aktprocdef.code:=code.getcopy
+         else
+           aktprocdef.code:=code;
          { get a better entry point }
          if assigned(code) then
            entrypos:=code.fileinfo;
@@ -305,7 +312,6 @@ implementation
             if (status.errorcount=0) then
               begin
                 generatecode(code);
-                aktprocdef.code:=code;
                 { first generate entry code with the correct position and switches }
                 aktfilepos:=entrypos;
                 aktlocalswitches:=entryswitches;
@@ -404,8 +410,14 @@ implementation
          tg.resettempgen;
 
          { remove code tree, if not inline procedure }
-         if assigned(code) and (aktprocdef.proccalloption<>pocall_inline) then
-           code.free;
+         if assigned(code) then
+          begin
+            { the inline procedure has already got a copy of the tree
+              stored in aktprocdef.code }
+            code.free;
+            if (aktprocdef.proccalloption<>pocall_inline) then
+              aktprocdef.code:=nil;
+          end;
 
          { remove class member symbol tables }
          while symtablestack.symtabletype=objectsymtable do
@@ -609,7 +621,11 @@ implementation
 {$endif i386}
 
          { pointer to the return value ? }
-         if paramanager.ret_in_param(aktprocdef.rettype.def) then
+         if paramanager.ret_in_param(aktprocdef.rettype.def)
+{$ifdef m68k}
+            and not(pocall_cdecl in aktprocsym^.definition^.proccalloptions)
+{$endif m68k}
+            then
           begin
             procinfo.return_offset:=procinfo.para_offset;
             inc(procinfo.para_offset,pointer_size);
@@ -786,7 +802,17 @@ implementation
 end.
 {
   $Log$
-  Revision 1.73  2002-11-09 15:32:30  carl
+  Revision 1.74  2002-11-15 01:58:53  peter
+    * merged changes from 1.0.7 up to 04-11
+      - -V option for generating bug report tracing
+      - more tracing for option parsing
+      - errors for cdecl and high()
+      - win32 import stabs
+      - win32 records<=8 are returned in eax:edx (turned off by default)
+      - heaptrc update
+      - more info for temp management in .s file with EXTDEBUG
+
+  Revision 1.73  2002/11/09 15:32:30  carl
     * noopt for non-i386 targets
 
   Revision 1.72  2002/09/10 20:31:48  florian

@@ -28,6 +28,12 @@ unit ncal;
 
 interface
 
+{$ifdef DEBUG}
+ {$ifdef i386}
+  {$define TEST_WIN32_RECORDS}
+ {$endif i386}
+{$endif DEBUG}
+
     uses
        node,
        {$ifdef state_tracking}
@@ -334,19 +340,19 @@ implementation
                 not(
                     (from_def.deftype=objectdef) and
                     (to_def.deftype=objectdef) and
-                   
+
                     ((
                       (tobjectdef(from_def).is_related(tobjectdef(to_def))) and
-                      (m_delphi in aktmodeswitches) and                  
+                      (m_delphi in aktmodeswitches) and
                       (tobjectdef(from_def).objecttype=odt_object) and
                       (tobjectdef(to_def).objecttype=odt_object)
                      ) or
-                   
+
                     (
                       (tobjectdef(from_def).is_related(tobjectdef(to_def))) and
                       (not (m_delphi in aktmodeswitches))
                     ))
-                   
+
                    ) and
               { passing a single element to a openarray of the same type }
                 not(
@@ -2314,8 +2320,7 @@ implementation
                      CGMessage(cg_e_unable_inline_object_methods);
                    if assigned(right) and (right.nodetype<>procinlinen) then
                      CGMessage(cg_e_unable_inline_procvar);
-                   { nodetype:=procinlinen; }
-                   if not assigned(right) then
+                   if not assigned(inlinecode) then
                      begin
                         if assigned(tprocdef(procdefinition).code) then
                           inlinecode:=cprocinlinenode.create(tprocdef(procdefinition))
@@ -2345,10 +2350,20 @@ implementation
          { get a register for the return value }
          if (not is_void(resulttype.def)) then
            begin
-             if paramanager.ret_in_param(resulttype.def) then
+{$ifdef TEST_WIN32_RECORDS}
+             if (target_info.system=system_i386_win32) and
+                (resulttype.def.deftype=recorddef) then
               begin
+                { for win32 records returned in EDX:EAX, we
+                  move them to memory after ... }
                 location.loc:=LOC_CREFERENCE;
               end
+             else
+{$endif TEST_WIN32_RECORDS}
+              if paramanager.ret_in_param(resulttype.def) then
+               begin
+                 location.loc:=LOC_CREFERENCE;
+               end
              else
              { ansi/widestrings must be registered, so we can dispose them }
               if is_ansistring(resulttype.def) or
@@ -2631,6 +2646,7 @@ implementation
         result:=nil;
       end;
 
+
     function tprocinlinenode.docompare(p: tnode): boolean;
       begin
         docompare :=
@@ -2646,7 +2662,17 @@ begin
 end.
 {
   $Log$
-  Revision 1.106  2002-10-14 18:20:30  carl
+  Revision 1.107  2002-11-15 01:58:50  peter
+    * merged changes from 1.0.7 up to 04-11
+      - -V option for generating bug report tracing
+      - more tracing for option parsing
+      - errors for cdecl and high()
+      - win32 import stabs
+      - win32 records<=8 are returned in eax:edx (turned off by default)
+      - heaptrc update
+      - more info for temp management in .s file with EXTDEBUG
+
+  Revision 1.106  2002/10/14 18:20:30  carl
     * var parameter checking for classes and interfaces in Delphi mode
 
   Revision 1.105  2002/10/06 21:02:17  peter

@@ -30,7 +30,7 @@ unit cpupara;
 
     uses
        cpubase,
-       symdef,paramgr;
+       symtype,symdef,paramgr;
 
     type
        { Returns the location for the nr-st 32 Bit int parameter
@@ -39,6 +39,8 @@ unit cpupara;
          rtl are used.
        }
        ti386paramanager = class(tparamanager)
+          function ret_in_acc(def : tdef) : boolean;override;
+          function ret_in_param(def : tdef) : boolean;override;
           function getintparaloc(nr : longint) : tparalocation;override;
           procedure create_param_loc_info(p : tabstractprocdef);override;
           function getselflocation(p : tabstractprocdef) : tparalocation;override;
@@ -48,6 +50,30 @@ unit cpupara;
 
     uses
        verbose;
+
+    function ti386paramanager.ret_in_acc(def : tdef) : boolean;
+      begin
+{$ifdef TEST_WIN32_RECORDS}
+        { Win32 returns small records in the accumulator }
+        if ((target_info.system=system_i386_win32) and
+            (def.deftype=recorddef) and (def.size<=8)) then
+          result:=true
+        else
+{$endif TEST_WIN32_RECORDS}
+          result:=inherited ret_in_acc(def);
+      end;
+
+    function ti386paramanager.ret_in_param(def : tdef) : boolean;
+      begin
+{$ifdef TEST_WIN32_RECORDS}
+        { Win32 returns small records in the accumulator }
+        if ((target_info.system=system_i386_win32) and
+            (def.deftype=recorddef) and (def.size<=8)) then
+          result:=false
+        else
+{$endif TEST_WIN32_RECORDS}
+          result:=inherited ret_in_param(def);
+      end;
 
     function ti386paramanager.getintparaloc(nr : longint) : tparalocation;
       begin
@@ -73,7 +99,17 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2002-08-09 07:33:04  florian
+  Revision 1.4  2002-11-15 01:58:56  peter
+    * merged changes from 1.0.7 up to 04-11
+      - -V option for generating bug report tracing
+      - more tracing for option parsing
+      - errors for cdecl and high()
+      - win32 import stabs
+      - win32 records<=8 are returned in eax:edx (turned off by default)
+      - heaptrc update
+      - more info for temp management in .s file with EXTDEBUG
+
+  Revision 1.3  2002/08/09 07:33:04  florian
     * a couple of interface related fixes
 
   Revision 1.2  2002/07/11 14:41:32  florian

@@ -234,7 +234,7 @@ interface
 
     { if acp is cp_all the var const or nothing are considered equal }
     type
-      compare_type = ( cp_none, cp_value_equal_const, cp_all);
+      compare_type = ( cp_none, cp_value_equal_const, cp_all,cp_procvar);
 
     {# true, if two parameter lists are equal
       if acp is cp_none, all have to match exactly
@@ -283,7 +283,7 @@ interface
 implementation
 
     uses
-       globtype,tokens,verbose,
+       globtype,tokens,systems,verbose,
        symtable;
 
 
@@ -338,8 +338,6 @@ implementation
       end;
 
 
-    {  compare_type = ( cp_none, cp_value_equal_const, cp_all); }
-
     function equal_paras(paralist1,paralist2 : TLinkedList; acp : compare_type;allowdefaults:boolean) : boolean;
       var
         def1,def2 : TParaItem;
@@ -364,7 +362,7 @@ implementation
                         exit;
                      end;
                 end;
-              cp_all :
+              cp_all,cp_procvar :
                 begin
                    if not(is_equal(def1.paratype.def,def2.paratype.def)) or
                       (def1.paratyp<>def2.paratyp) then
@@ -413,6 +411,7 @@ implementation
         def1,def2 : TParaItem;
         doconv : tconverttype;
         p : pointer;
+        b : byte;
       begin
          def1:=TParaItem(paralist1.first);
          def2:=TParaItem(paralist2.first);
@@ -435,11 +434,25 @@ implementation
               cp_all :
                 begin
                    if (isconvertable(def1.paratype.def,def2.paratype.def,doconv,callparan,false)=0) or
-                     (def1.paratyp<>def2.paratyp) then
+                      (def1.paratyp<>def2.paratyp) then
                      begin
                         convertable_paras:=false;
                         exit;
                      end;
+                end;
+              cp_procvar :
+                begin
+                  b:=isconvertable(def1.paratype.def,def2.paratype.def,doconv,callparan,false);
+                  if (b=0) or
+                     not(doconv in [tc_equal,tc_int_2_int]) or
+                     (def1.paratyp<>def2.paratyp) or
+                     (not is_special_array(def1.paratype.def) and
+                      not is_special_array(def2.paratype.def) and
+                      (def1.paratype.def.size<>def2.paratype.def.size)) then
+                    begin
+                       convertable_paras:=false;
+                       exit;
+                    end;
                 end;
               cp_none :
                 begin
@@ -491,7 +504,8 @@ implementation
          { check return value and para's and options, methodpointer is already checked
            parameters may also be convertable }
          if is_equal(def1.rettype.def,def2.rettype.def) and
-            (equal_paras(def1.para,def2.para,cp_all,false) or
+            (def1.para_size(target_info.alignment.paraalign)=def2.para_size(target_info.alignment.paraalign)) and
+            (equal_paras(def1.para,def2.para,cp_procvar,false) or
              ((not exact) and convertable_paras(def1.para,def2.para,cp_all))) and
             ((po_comp * def1.procoptions)= (po_comp * def2.procoptions)) then
            proc_to_procvar_equal:=true
@@ -2026,7 +2040,17 @@ implementation
 end.
 {
   $Log$
-  Revision 1.23  2002-10-20 15:34:16  peter
+  Revision 1.24  2002-11-15 01:58:46  peter
+    * merged changes from 1.0.7 up to 04-11
+      - -V option for generating bug report tracing
+      - more tracing for option parsing
+      - errors for cdecl and high()
+      - win32 import stabs
+      - win32 records<=8 are returned in eax:edx (turned off by default)
+      - heaptrc update
+      - more info for temp management in .s file with EXTDEBUG
+
+  Revision 1.23  2002/10/20 15:34:16  peter
     * removed df_unique flag. It breaks code. For a good type=type <id>
       a def copy is required
 

@@ -327,6 +327,7 @@ interface
 
     procedure T386IntelAssembler.WriteTree(p:TAAsmoutput);
     const
+      allocstr : array[boolean] of string[10]=(' released',' allocated');
       nolinetai =[ait_label,
                   ait_regalloc,ait_tempalloc,
 {$ifdef GDB}
@@ -410,8 +411,29 @@ interface
                        AsmWritePChar(tai_comment(hp).str);
                        AsmLn;
                      End;
-       ait_regalloc,
-       ait_tempalloc : ;
+
+           ait_regalloc :
+             begin
+               if (cs_asm_regalloc in aktglobalswitches) then
+                 AsmWriteLn(target_asm.comment+'Register '+std_reg2str[tai_regalloc(hp).reg]+
+                   allocstr[tai_regalloc(hp).allocation]);
+             end;
+
+           ait_tempalloc :
+             begin
+               if (cs_asm_tempalloc in aktglobalswitches) then
+                 begin
+{$ifdef EXTDEBUG}
+                   if assigned(tai_tempalloc(hp).problem) then
+                     AsmWriteLn(target_asm.comment+tai_tempalloc(hp).problem^+' ('+tostr(tai_tempalloc(hp).temppos)+','+
+                       tostr(tai_tempalloc(hp).tempsize)+')')
+                   else
+{$endif EXTDEBUG}
+                     AsmWriteLn(target_asm.comment+'Temp '+tostr(tai_tempalloc(hp).temppos)+','+
+                       tostr(tai_tempalloc(hp).tempsize)+allocstr[tai_tempalloc(hp).allocation]);
+                 end;
+             end;
+
        ait_section : begin
                        if LasTSec<>sec_none then
                         AsmWriteLn('_'+target_asm.secnames[LasTSec]+#9#9'ENDS');
@@ -572,8 +594,6 @@ interface
     ait_symbol_end : begin
                      end;
    ait_instruction : begin
-                     { Must be done with args in ATT order }
-                       taicpu(hp).SetOperandOrder(op_att);
                        taicpu(hp).CheckNonCommutativeOpcodes;
                      { We need intel order, no At&t }
                        taicpu(hp).SetOperandOrder(op_intel);
@@ -824,7 +844,17 @@ initialization
 end.
 {
   $Log$
-  Revision 1.28  2002-08-20 21:40:44  florian
+  Revision 1.29  2002-11-15 01:58:56  peter
+    * merged changes from 1.0.7 up to 04-11
+      - -V option for generating bug report tracing
+      - more tracing for option parsing
+      - errors for cdecl and high()
+      - win32 import stabs
+      - win32 records<=8 are returned in eax:edx (turned off by default)
+      - heaptrc update
+      - more info for temp management in .s file with EXTDEBUG
+
+  Revision 1.28  2002/08/20 21:40:44  florian
     + target macos for ppc added
     + frame work for mpw assembler output
 

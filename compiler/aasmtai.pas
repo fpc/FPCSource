@@ -164,13 +164,15 @@ interface
 {$ifndef NOOPT}
           { pointer to record with optimizer info about this tai object }
           optinfo  : pointer;
-{$endif}
+{$endif NOOPT}
           fileinfo : tfileposinfo;
           typ      : taitype;
           constructor Create;
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);virtual;
           procedure ppuwrite(ppufile:tcompilerppufile);virtual;
           procedure derefimpl;virtual;
+          { helper for checking symbol redefines }
+          procedure checkredefinesym(sym:tasmsymbol);
        end;
 
        taiclass = class of tai;
@@ -188,6 +190,7 @@ interface
           destructor Destroy;override;
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+          function getcopy:tlinkedlistitem;override;
        end;
 
        { Generates a common label }
@@ -231,6 +234,7 @@ interface
           destructor Destroy; override;
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+          function getcopy:tlinkedlistitem;override;
        end;
 
        { Generates an assembler comment }
@@ -240,6 +244,7 @@ interface
           destructor Destroy; override;
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+          function getcopy:tlinkedlistitem;override;
        end;
 
 
@@ -287,6 +292,7 @@ interface
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure derefimpl;override;
+          function getcopy:tlinkedlistitem;override;
        end;
 
        { Generates a single float (32 bit real) }
@@ -345,10 +351,16 @@ interface
 
        tai_tempalloc = class(tai)
           allocation : boolean;
+{$ifdef EXTDEBUG}
+          problem : pstring;
+{$endif EXTDEBUG}
           temppos,
           tempsize   : longint;
           constructor alloc(pos,size:longint);
           constructor dealloc(pos,size:longint);
+{$ifdef EXTDEBUG}
+          constructor allocinfo(pos,size:longint;const st:string);
+{$endif EXTDEBUG}
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
        end;
@@ -503,7 +515,7 @@ uses
         fileinfo:=aktfilepos;
 {$ifndef NOOPT}
         optinfo:=nil;
-{$endif}
+{$endif NOOPT}
       end;
 
 
@@ -525,6 +537,18 @@ uses
 
     procedure tai.derefimpl;
       begin
+      end;
+
+
+    procedure tai.checkredefinesym(sym:tasmsymbol);
+      begin
+        if assigned(sym.taiowner) then
+         begin
+           Message1(asmw_e_redefined_label,sym.name);
+           MessagePos(tai(sym.taiowner).fileinfo,asmw_e_first_defined_label);
+         end
+        else
+         sym.taiowner:=self;
       end;
 
 
@@ -564,6 +588,7 @@ uses
          inherited Create;
          typ:=ait_datablock;
          sym:=objectlibrary.newasmsymboltype(_name,AB_LOCAL,AT_DATA);
+         checkredefinesym(sym);
          { keep things aligned }
          if _size<=0 then
            _size:=4;
@@ -577,6 +602,7 @@ uses
          inherited Create;
          typ:=ait_datablock;
          sym:=objectlibrary.newasmsymboltype(_name,AB_GLOBAL,AT_DATA);
+         checkredefinesym(sym);
          { keep things aligned }
          if _size<=0 then
            _size:=4;
@@ -618,6 +644,7 @@ uses
          inherited Create;
          typ:=ait_symbol;
          sym:=_sym;
+         checkredefinesym(sym);
          size:=siz;
          is_global:=(sym.defbind=AB_GLOBAL);
       end;
@@ -627,6 +654,7 @@ uses
          inherited Create;
          typ:=ait_symbol;
          sym:=objectlibrary.newasmsymboltype(_name,AB_LOCAL,AT_FUNCTION);
+         checkredefinesym(sym);
          size:=siz;
          is_global:=false;
       end;
@@ -636,6 +664,7 @@ uses
          inherited Create;
          typ:=ait_symbol;
          sym:=objectlibrary.newasmsymboltype(_name,AB_GLOBAL,AT_FUNCTION);
+         checkredefinesym(sym);
          size:=siz;
          is_global:=true;
       end;
@@ -645,6 +674,7 @@ uses
          inherited Create;
          typ:=ait_symbol;
          sym:=objectlibrary.newasmsymboltype(_name,AB_LOCAL,AT_DATA);
+         checkredefinesym(sym);
          size:=siz;
          is_global:=false;
       end;
@@ -654,6 +684,7 @@ uses
          inherited Create;
          typ:=ait_symbol;
          sym:=objectlibrary.newasmsymboltype(_name,AB_GLOBAL,AT_DATA);
+         checkredefinesym(sym);
          size:=siz;
          is_global:=true;
       end;
@@ -851,6 +882,13 @@ uses
       end;
 
 
+    function tai_const_symbol.getcopy:tlinkedlistitem;
+      begin
+        getcopy:=inherited getcopy;
+        { we need to increase the reference number }
+        inc(sym.refs);
+      end;
+
 
 {****************************************************************************
                                TAI_real_32bit
@@ -1019,6 +1057,17 @@ uses
       end;
 
 
+    function tai_string.getcopy : tlinkedlistitem;
+      var
+        p : tlinkedlistitem;
+      begin
+        p:=inherited getcopy;
+        getmem(tai_string(p).str,len+1);
+        move(str^,tai_string(p).str^,len+1);
+        getcopy:=p;
+      end;
+
+
 {****************************************************************************
                                TAI_LABEL
  ****************************************************************************}
@@ -1028,6 +1077,7 @@ uses
         inherited Create;
         typ:=ait_label;
         l:=_l;
+        checkredefinesym(l);
         l.is_set:=true;
         is_global:=(l.defbind=AB_GLOBAL);
       end;
@@ -1098,6 +1148,17 @@ uses
       end;
 
 
+    function tai_direct.getcopy : tlinkedlistitem;
+      var
+        p : tlinkedlistitem;
+      begin
+        p:=inherited getcopy;
+        getmem(tai_direct(p).str,strlen(str)+1);
+        move(str^,tai_direct(p).str^,strlen(str)+1);
+        getcopy:=p;
+      end;
+
+
 {****************************************************************************
           tai_comment  comment to be inserted in the assembler file
  ****************************************************************************}
@@ -1137,6 +1198,17 @@ uses
         len:=strlen(str);
         ppufile.putlongint(len);
         ppufile.putdata(str^,len);
+      end;
+
+
+    function tai_comment.getcopy : tlinkedlistitem;
+      var
+        p : tlinkedlistitem;
+      begin
+        p:=inherited getcopy;
+        getmem(tai_comment(p).str,strlen(str)+1);
+        move(str^,tai_comment(p).str^,strlen(str)+1);
+        getcopy:=p;
       end;
 
 
@@ -1186,12 +1258,12 @@ uses
                              Tai_Marker
  ****************************************************************************}
 
-     Constructor Tai_Marker.Create(_Kind: TMarker);
-     Begin
-       Inherited Create;
-       typ := ait_marker;
-       Kind := _Kind;
-     End;
+    constructor Tai_Marker.Create(_Kind: TMarker);
+      begin
+        Inherited Create;
+        typ := ait_marker;
+        Kind := _Kind;
+      end;
 
 
     constructor Tai_Marker.ppuload(t:taitype;ppufile:tcompilerppufile);
@@ -1219,6 +1291,9 @@ uses
         allocation:=true;
         temppos:=pos;
         tempsize:=size;
+{$ifdef EXTDEBUG}
+        problem:=nil;
+{$endif EXTDEBUG}
       end;
 
 
@@ -1229,7 +1304,23 @@ uses
         allocation:=false;
         temppos:=pos;
         tempsize:=size;
+{$ifdef EXTDEBUG}
+        problem:=nil;
+{$endif EXTDEBUG}
       end;
+
+
+{$ifdef EXTDEBUG}
+    constructor tai_tempalloc.allocinfo(pos,size:longint;const st:string);
+      begin
+        inherited Create;
+        typ:=ait_tempalloc;
+        allocation:=false;
+        temppos:=pos;
+        tempsize:=size;
+        problem:=stringdup(st);
+      end;
+{$endif EXTDEBUG}
 
 
     constructor tai_tempalloc.ppuload(t:taitype;ppufile:tcompilerppufile);
@@ -1238,6 +1329,9 @@ uses
         temppos:=ppufile.getlongint;
         tempsize:=ppufile.getlongint;
         allocation:=boolean(ppufile.getbyte);
+{$ifdef EXTDEBUG}
+        problem:=nil;
+{$endif EXTDEBUG}
       end;
 
 
@@ -1554,7 +1648,17 @@ uses
 end.
 {
   $Log$
-  Revision 1.10  2002-11-09 15:38:03  carl
+  Revision 1.11  2002-11-15 01:58:45  peter
+    * merged changes from 1.0.7 up to 04-11
+      - -V option for generating bug report tracing
+      - more tracing for option parsing
+      - errors for cdecl and high()
+      - win32 import stabs
+      - win32 records<=8 are returned in eax:edx (turned off by default)
+      - heaptrc update
+      - more info for temp management in .s file with EXTDEBUG
+
+  Revision 1.10  2002/11/09 15:38:03  carl
     + NOOPT removed the optinfo field
 
   Revision 1.9  2002/10/05 12:43:23  carl

@@ -57,13 +57,16 @@ interface
          { this need to be incremented with every symbol loading into the
            paasmoutput, thus in loadsym/loadref/const_symbol (PFV) }
          refs    : longint;
-         {# Alternate symbol which can be used for 'renaming' needed for
+         { Alternate symbol which can be used for 'renaming' needed for
            inlining }
          altsymbol : tasmsymbol;
+         { pointer to objectdata that is the owner of this symbol }
          objectdata : pointer;
-         {# TRUE if the symbol is local for a procedure/function }
+         { pointer to the tai that is the owner of this symbol }
+         taiowner : pointer;
+         { TRUE if the symbol is local for a procedure/function }
          proclocal : boolean;
-         {# Is the symbol in the used list }
+         { Is the symbol in the used list }
          inusedlist : boolean;
          { assembler pass label is set, used for detecting multiple labels }
          pass : byte;
@@ -254,6 +257,8 @@ implementation
         pass:=255;
         currbind:=AB_EXTERNAL;
         proclocal:=false;
+        altsymbol:=nil;
+        taiowner:=nil;
       end;
 
     function tasmsymbol.is_used:boolean;
@@ -749,11 +754,9 @@ implementation
         if not assigned(p.altsymbol) then
          begin
            p.altsymbol:=tasmsymbol.create(name+'_'+tostr(nextaltnr),p.defbind,p.typ);
-           { also copy the amount of references }
-           p.altsymbol.refs:=p.refs;
-           inc(nextaltnr);
-           { add to the usedasmsymbollist, that list is used to reset the
-             altsymbol }
+           symbolsearch.insert(p.altsymbol);
+           { add also the original sym to the usedasmsymbollist,
+             that list is used to reset the altsymbol }
            if not p.inusedlist then
             usedasmsymbollist.insert(p);
            p.inusedlist:=true;
@@ -783,6 +786,7 @@ implementation
         hp : tasmsymbol;
       begin
         hp:=tasmsymbol(usedasmsymbollist.first);
+        inc(nextaltnr);
         while assigned(hp) do
          begin
            with hp do
@@ -863,7 +867,17 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  2002-10-05 12:43:23  carl
+  Revision 1.10  2002-11-15 01:58:45  peter
+    * merged changes from 1.0.7 up to 04-11
+      - -V option for generating bug report tracing
+      - more tracing for option parsing
+      - errors for cdecl and high()
+      - win32 import stabs
+      - win32 records<=8 are returned in eax:edx (turned off by default)
+      - heaptrc update
+      - more info for temp management in .s file with EXTDEBUG
+
+  Revision 1.9  2002/10/05 12:43:23  carl
     * fixes for Delphi 6 compilation
      (warning : Some features do not work under Delphi)
 

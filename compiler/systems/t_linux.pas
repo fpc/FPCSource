@@ -209,6 +209,10 @@ procedure TLinkerLinux.SetDefaultInfo;
 {
   This will also detect which libc version will be used
 }
+{$ifdef m68k}
+var
+  St : SearchRec;
+{$endif m68k}
 begin
   Glibc2:=false;
   Glibc21:=false;
@@ -217,6 +221,21 @@ begin
      ExeCmd[1]:='ld $OPT $DYNLINK $STATIC $STRIP -L. -o $EXE $RES';
      DllCmd[1]:='ld $OPT $INIT $FINI $SONAME -shared -L. -o $EXE $RES';
      DllCmd[2]:='strip --strip-unneeded $EXE';
+{$ifdef m68k}
+     Glibc2:=true;
+     FindFirst('/lib/ld*',AnyFile,st);
+     while DosError=0 do
+      begin
+        if copy(st.name,1,5)='ld-2.' then
+         begin
+               DynamicLinker:='/lib/'+St.name;
+               Glibc21:=st.name[6]<>'0';
+           break;
+             end;
+            FindNext(St);
+      end;
+     FindClose(St);
+{$else m68k}
      { first try glibc2 }
      DynamicLinker:='/lib/ld-linux.so.2';
      if FileExists(DynamicLinker) then
@@ -230,6 +249,7 @@ begin
       end
      else
       DynamicLinker:='/lib/ld-linux.so.1';
+{$endif m68k}
    end;
 end;
 
@@ -525,7 +545,17 @@ end.
 
 {
   $Log$
-  Revision 1.2  2002-09-09 17:34:17  peter
+  Revision 1.3  2002-11-15 01:59:02  peter
+    * merged changes from 1.0.7 up to 04-11
+      - -V option for generating bug report tracing
+      - more tracing for option parsing
+      - errors for cdecl and high()
+      - win32 import stabs
+      - win32 records<=8 are returned in eax:edx (turned off by default)
+      - heaptrc update
+      - more info for temp management in .s file with EXTDEBUG
+
+  Revision 1.2  2002/09/09 17:34:17  peter
     * tdicationary.replace added to replace and item in a dictionary. This
       is only allowed for the same name
     * varsyms are inserted in symtable before the types are parsed. This

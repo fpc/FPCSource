@@ -273,15 +273,20 @@ implementation
       end;
 
     procedure tclassheader.writenames(p : pprocdeftree);
-
+      var
+        ca : pchar;
+        len : longint;
       begin
          objectlibrary.getdatalabel(p^.nl);
          if assigned(p^.l) then
            writenames(p^.l);
          datasegment.concat(tai_align.create(const_align(POINTER_SIZE)));
          dataSegment.concat(Tai_label.Create(p^.nl));
-         dataSegment.concat(Tai_const.Create_8bit(strlen(p^.data.messageinf.str)));
-         dataSegment.concat(Tai_string.Create_pchar(p^.data.messageinf.str));
+         len:=strlen(p^.data.messageinf.str);
+         datasegment.concat(tai_const.create_8bit(len));
+         getmem(ca,len+1);
+         move(p^.data.messageinf.str^,ca^,len+1);
+         dataSegment.concat(Tai_string.Create_pchar(ca));
          if assigned(p^.r) then
            writenames(p^.r);
       end;
@@ -872,7 +877,7 @@ implementation
         dataSegment.concat(Tai_const.Create_32bit(implintf.ioffsets(contintfindex)^));
         { IIDStr }
         objectlibrary.getdatalabel(tmplabel);
-        rawdata.concat(tai_align.create(const_align(pointer_size))); 
+        rawdata.concat(tai_align.create(const_align(pointer_size)));
         rawdata.concat(Tai_label.Create(tmplabel));
         rawdata.concat(Tai_const.Create_8bit(length(curintf.iidstr^)));
         if curintf.objecttype=odt_interfacecom then
@@ -1328,7 +1333,17 @@ initialization
 end.
 {
   $Log$
-  Revision 1.35  2002-11-09 16:19:43  carl
+  Revision 1.36  2002-11-15 01:58:52  peter
+    * merged changes from 1.0.7 up to 04-11
+      - -V option for generating bug report tracing
+      - more tracing for option parsing
+      - errors for cdecl and high()
+      - win32 import stabs
+      - win32 records<=8 are returned in eax:edx (turned off by default)
+      - heaptrc update
+      - more info for temp management in .s file with EXTDEBUG
+
+  Revision 1.35  2002/11/09 16:19:43  carl
     - remove superfluous data in classname
 
   Revision 1.34  2002/11/09 15:35:35  carl

@@ -29,7 +29,7 @@ uses
   cutils,cclasses,
   systems,
   aasmbase,
-  symsym;
+  symdef,symsym;
 
 type
    timported_item = class(TLinkedListItem)
@@ -58,6 +58,7 @@ type
       constructor Create;virtual;
       destructor Destroy;override;
       procedure preparelib(const s:string);virtual;
+      procedure importproceduredef(aprocdef : tprocdef; const module:string;index:longint;const name:string);virtual;
       procedure importprocedure(const func,module:string;index:longint;const name:string);virtual;
       procedure importvariable(vs:tvarsym;const name,module:string);virtual;
       procedure generatelib;virtual;
@@ -180,6 +181,12 @@ begin
 end;
 
 
+procedure timportlib.importproceduredef(aprocdef : tprocdef; const module:string;index:longint;const name:string);
+begin
+  importprocedure(aprocdef.mangledname, module, index, name);
+end;
+
+
 procedure timportlib.importprocedure(const func,module:string;index:longint;const name:string);
 begin
   NotSupported;
@@ -238,7 +245,17 @@ end;
 end.
 {
   $Log$
-  Revision 1.20  2002-09-09 17:34:14  peter
+  Revision 1.21  2002-11-15 01:58:48  peter
+    * merged changes from 1.0.7 up to 04-11
+      - -V option for generating bug report tracing
+      - more tracing for option parsing
+      - errors for cdecl and high()
+      - win32 import stabs
+      - win32 records<=8 are returned in eax:edx (turned off by default)
+      - heaptrc update
+      - more info for temp management in .s file with EXTDEBUG
+
+  Revision 1.20  2002/09/09 17:34:14  peter
     * tdicationary.replace added to replace and item in a dictionary. This
       is only allowed for the same name
     * varsyms are inserted in symtable before the types are parsed. This

@@ -95,6 +95,43 @@ implementation
       end;
 
 
+    procedure checkparatype(p:tnamedindexitem;arg:pointer);
+      var
+        highname : string;
+      begin
+        if tsym(p).typ<>varsym then
+         exit;
+        with tvarsym(p) do
+         begin
+           if assigned(vartype.def) and
+              (vartype.def.deftype=arraydef) and
+              not is_special_array(vartype.def) then
+            begin
+              if (varspez<>vs_var) then
+                Message(parser_h_c_arrays_are_references);
+              varspez:=vs_var;
+            end;
+           if assigned(vartype.def) and
+              is_array_of_const(vartype.def) then
+            begin
+              if assigned(indexnext) and
+                 (tsym(indexnext).typ=varsym) and
+                 (copy(tvarsym(indexnext).name,1,4)='high') then
+               begin
+                 { removing it is to complicated,
+                   we just hide it PM }
+                 highname:='hidden'+copy(tvarsym(indexnext).name,5,high(name));
+                 owner.rename(tvarsym(indexnext).name,highname);
+                 if assigned(indexnext.indexnext) then
+                   Message(parser_e_C_array_of_const_must_be_last);
+               end
+              else
+               if assigned(indexnext) then
+                Message(parser_e_C_array_of_const_must_be_last);
+            end;
+         end;
+      end;
+
 
     procedure parameter_dec(aktprocdef:tabstractprocdef);
       {
@@ -649,6 +686,9 @@ implementation
                             inc(testcurobject);
                             single_type(aktprocdef.rettype,hs,false);
                             aktprocdef.test_if_fpu_result;
+                            if (aktprocdef.rettype.def.deftype=stringdef) and
+                               (tstringdef(aktprocdef.rettype.def).string_typ<>st_shortstring) then
+                              procinfo.no_fast_exit:=true;
                             dec(testcurobject);
                           end;
                        end;
@@ -796,6 +836,29 @@ begin
   aktprocdef.forwarddef:=false;
 end;
 
+procedure pd_inline;
+var
+  hp : tparaitem;
+begin
+  { check if there is an array of const }
+  hp:=tparaitem(aktprocdef.para.first);
+  while assigned(hp) do
+   begin
+     if assigned(hp.paratype.def) and
+        (hp.paratype.def.deftype=arraydef) then
+      begin
+        with tarraydef(hp.paratype.def) do
+         if IsVariant or IsConstructor {or IsArrayOfConst} then
+          begin
+            Message1(parser_w_not_supported_for_inline,'array of const');
+            Message(parser_w_inlining_disabled);
+            aktprocdef.proccalloption:=pocall_fpccall;
+          end;
+        hp:=tparaitem(hp.next);
+      end;
+   end;
+end;
+
 procedure pd_intern;
 begin
   consume(_COLON);
@@ -916,6 +979,7 @@ procedure pd_external;
   the procedure is either imported by number or by name. (DM)
 }
 var
+  pd : tprocdef;
   import_dll,
   import_name : string;
   import_nr   : word;
@@ -953,22 +1017,17 @@ begin
          current_module.uses_imports:=true;
          importlib.preparelib(current_module.modulename^);
        end;
-{$ifdef notused}
-      if not(m_repeat_forward in aktmodeswitches) and
-         { if the procedure is declared with the overload option     }
-         { it requires a full declaration in the implementation part }
-         not(sp_has_overloaded in aktprocsym.symoptions) then
-        begin
-          { we can only have one overloaded here ! }
-          if assigned(aktprocdef.defs.next) then
-            importlib.importprocedure(aktprocdef.defs.next.mangledname,
-              import_dll,import_nr,import_name)
-          else
-            importlib.importprocedure(aktprocdef.mangledname,import_dll,import_nr,import_name);
-        end
+      if not(m_repeat_forward in aktmodeswitches) then
+       begin
+         { we can only have one overloaded here ! }
+         if aktprocsym.procdef_count>1 then
+          pd:=aktprocsym.procdef[2]
+         else
+          pd:=aktprocdef;
+       end
       else
-{$endif notused}
-      importlib.importprocedure(aktprocdef.mangledname,import_dll,import_nr,import_name);
+       pd:=aktprocdef;
+      importlib.importproceduredef(pd,import_dll,import_nr,import_name);
     end
   else
     begin
@@ -1043,7 +1102,7 @@ const
       pooption : [];
       mutexclpocall : [];
       mutexclpotype : [];
-      mutexclpo     : [po_assembler,po_external]
+      mutexclpo     : [po_assembler,po_external,po_virtualmethod]
     ),(
       idtok:_DYNAMIC;
       pd_flags : pd_interface+pd_object+pd_notobjintf;
@@ -1110,7 +1169,7 @@ const
     ),(
       idtok:_INLINE;
       pd_flags : pd_interface+pd_implemen+pd_body+pd_notobjintf;
-      handler  : nil;
+      handler  : {$ifdef FPCPROCVAR}@{$endif}pd_inline;
       pocall   : pocall_inline;
       pooption : [];
       mutexclpocall : [];
@@ -1305,7 +1364,7 @@ const
       pooption : [po_savestdregs];
       mutexclpocall : [];
       mutexclpotype : [];
-      mutexclpo     : [po_assembler,po_external]
+      mutexclpo     : [po_assembler,po_external,po_virtualmethod]
     ),(
       idtok:_VARARGS;
       pd_flags : pd_interface+pd_implemen+pd_procvar;
@@ -1493,6 +1552,8 @@ const
                   internalerror(200110234);
                  { do not copy on local !! }
                  tprocdef(def).parast.foreach_static({$ifdef FPCPROCVAR}@{$endif}resetvaluepara,nil);
+                 { check C cdecl para types }
+                 tprocdef(def).parast.foreach_static({$ifdef FPCPROCVAR}@{$endif}checkparatype,nil);
                  { Adjust alignment to match cdecl or stdcall }
                  tprocdef(def).parast.dataalignment:=std_param_align;
                end;
@@ -1513,6 +1574,8 @@ const
                   internalerror(200110235);
                  { do not copy on local !! }
                  tprocdef(def).parast.foreach_static({$ifdef FPCPROCVAR}@{$endif}resetvaluepara,nil);
+                 { check C cdecl para types }
+                 tprocdef(def).parast.foreach_static({$ifdef FPCPROCVAR}@{$endif}checkparatype,nil);
                  { Adjust alignment to match cdecl or stdcall }
                  tprocdef(def).parast.dataalignment:=std_param_align;
                end;
@@ -1996,7 +2059,17 @@ const
 end.
 {
   $Log$
-  Revision 1.77  2002-10-06 15:09:12  peter
+  Revision 1.78  2002-11-15 01:58:53  peter
+    * merged changes from 1.0.7 up to 04-11
+      - -V option for generating bug report tracing
+      - more tracing for option parsing
+      - errors for cdecl and high()
+      - win32 import stabs
+      - win32 records<=8 are returned in eax:edx (turned off by default)
+      - heaptrc update
+      - more info for temp management in .s file with EXTDEBUG
+
+  Revision 1.77  2002/10/06 15:09:12  peter
     * variant:=nil supported
 
   Revision 1.76  2002/09/27 21:13:29  carl

@@ -631,19 +631,6 @@ implementation
        begin
          if not (cs_debuginfo in aktmoduleswitches) then
           exit;
-         if (cs_gdb_dbx in aktglobalswitches) then
-           begin
-             debugList.concat(tai_comment.Create(strpnew('EINCL of global '+
-               tglobalsymtable(current_module.globalsymtable).name^+' has index '+
-               tostr(tglobalsymtable(current_module.globalsymtable).unitid))));
-             debugList.concat(Tai_stabs.Create(strpnew('"'+
-               tglobalsymtable(current_module.globalsymtable).name^+'",'+
-               tostr(N_EINCL)+',0,0,0')));
-             tglobalsymtable(current_module.globalsymtable).dbx_count_ok:={true}false;
-             dbx_counter:=tglobalsymtable(current_module.globalsymtable).prev_dbx_counter;
-             do_count_dbx:=false;
-           end;
-
          { now insert the units in the symtablestack }
          hp:=tused_unit(current_module.used_units.first);
          while assigned(hp) do
@@ -672,6 +659,19 @@ implementation
               { and all local symbols}
               tglobalsymtable(current_module.globalsymtable).concatstabto(debuglist);
            end;
+         if (cs_gdb_dbx in aktglobalswitches) then
+           begin
+             debugList.concat(tai_comment.Create(strpnew('EINCL of global '+
+               tglobalsymtable(current_module.globalsymtable).name^+' has index '+
+               tostr(tglobalsymtable(current_module.globalsymtable).unitid))));
+             debugList.concat(Tai_stabs.Create(strpnew('"'+
+               tglobalsymtable(current_module.globalsymtable).name^+'",'+
+               tostr(N_EINCL)+',0,0,0')));
+             tglobalsymtable(current_module.globalsymtable).dbx_count_ok:={true}false;
+             dbx_counter:=tglobalsymtable(current_module.globalsymtable).prev_dbx_counter;
+             do_count_dbx:=false;
+           end;
+
        end;
 {$Else GDB}
        begin
@@ -1141,7 +1141,7 @@ implementation
 {$ifdef EXTDEBUG}
          if not(cs_compilesystem in aktmoduleswitches) then
            if (store_crc<>current_module.crc) and simplify_ppu then
-             Comment(V_Warning,current_module.ppufilename^+' implementation CRC changed '+
+             Comment(V_Note,current_module.ppufilename^+' implementation CRC changed '+
                hexstr(store_crc,8)+'<>'+hexstr(current_module.crc,8));
 {$endif EXTDEBUG}
 
@@ -1441,7 +1441,17 @@ implementation
 end.
 {
   $Log$
-  Revision 1.83  2002-11-09 15:33:26  carl
+  Revision 1.84  2002-11-15 01:58:53  peter
+    * merged changes from 1.0.7 up to 04-11
+      - -V option for generating bug report tracing
+      - more tracing for option parsing
+      - errors for cdecl and high()
+      - win32 import stabs
+      - win32 records<=8 are returned in eax:edx (turned off by default)
+      - heaptrc update
+      - more info for temp management in .s file with EXTDEBUG
+
+  Revision 1.83  2002/11/09 15:33:26  carl
     * major alignment updates
 
   Revision 1.82  2002/10/16 06:32:52  michael

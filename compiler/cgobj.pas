@@ -298,6 +298,7 @@ unit cgobj;
 
 
           procedure g_maybe_loadself(list : taasmoutput);virtual;
+          procedure g_maybe_testself(list : taasmoutput);virtual;
           {# This should emit the opcode to copy len bytes from the source
              to destination, if loadref is true, it assumes that it first must load
              the source address from the memory location where
@@ -1397,10 +1398,25 @@ unit cgobj;
       end;
 
 
+    procedure tcg.g_maybe_testself(list : taasmoutput);
+      var
+        OKLabel : tasmlabel;
+      begin
+        if (cs_check_object in aktlocalswitches) or
+           (cs_check_range in aktlocalswitches) then
+         begin
+           objectlibrary.getlabel(oklabel);
+           a_cmp_const_reg_label(list,OS_ADDR,OC_NE,0,SELF_POINTER_REG,oklabel);
+           a_call_name(list,'FPC_RANGEERROR');
+           a_label(list,oklabel);
+         end;
+      end;
+
 
 {*****************************************************************************
                             Entry/Exit Code Functions
 *****************************************************************************}
+
     procedure tcg.g_call_constructor_helper(list : taasmoutput);
      var
       href : treference;
@@ -1604,7 +1620,17 @@ finalization
 end.
 {
   $Log$
-  Revision 1.62  2002-10-16 19:01:43  peter
+  Revision 1.63  2002-11-15 01:58:46  peter
+    * merged changes from 1.0.7 up to 04-11
+      - -V option for generating bug report tracing
+      - more tracing for option parsing
+      - errors for cdecl and high()
+      - win32 import stabs
+      - win32 records<=8 are returned in eax:edx (turned off by default)
+      - heaptrc update
+      - more info for temp management in .s file with EXTDEBUG
+
+  Revision 1.62  2002/10/16 19:01:43  peter
     + $IMPLICITEXCEPTIONS switch to turn on/off generation of the
       implicit exception frames for procedures with initialized variables
       and for constructors. The default is on for compatibility

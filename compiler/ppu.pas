@@ -848,7 +848,7 @@ begin
        begin
          if (crcindex2<crc_array_size) and (crcindex2<crc_index2) and
             (crc_test2^[crcindex2]<>crc) then
-           Do_comment(V_Warning,'impl CRC changed');
+           Do_comment(V_Note,'impl CRC changed');
 {$ifdef Test_Double_checksum_write}
          Writeln(CRCFile,crc);
 {$endif Test_Double_checksum_write}
@@ -985,7 +985,17 @@ end;
 end.
 {
   $Log$
-  Revision 1.27  2002-10-14 19:42:33  peter
+  Revision 1.28  2002-11-15 01:58:53  peter
+    * merged changes from 1.0.7 up to 04-11
+      - -V option for generating bug report tracing
+      - more tracing for option parsing
+      - errors for cdecl and high()
+      - win32 import stabs
+      - win32 records<=8 are returned in eax:edx (turned off by default)
+      - heaptrc update
+      - more info for temp management in .s file with EXTDEBUG
+
+  Revision 1.27  2002/10/14 19:42:33  peter
     * only use init tables for threadvars
 
   Revision 1.26  2002/08/18 20:06:25  peter

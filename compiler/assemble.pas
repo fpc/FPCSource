@@ -414,6 +414,12 @@ Implementation
            Message1(exec_i_assembling,name);
          end;
         s:=target_asm.asmcmd;
+{$ifdef m68k}
+        if aktoptprocessor = MC68020 then
+          s:='-m68020 '+s
+        else
+          s:='-m68000 '+s;
+{$endif}
         if (cs_link_on_target in aktglobalswitches) then
          begin
            Replace(s,'$ASM',ScriptFixFileName(AsmFile));
@@ -507,14 +513,14 @@ Implementation
       begin
         if SmartAsm then
          NextSmartName(Aplace);
-      {$ifdef unix}
+{$ifdef unix}
         if DoPipe then
          begin
            Message1(exec_i_assembling_pipe,asmfile);
            POpen(outfile,'as -o '+objfile,'W');
          end
         else
-      {$endif}
+{$endif}
          begin
            Assign(outfile,asmfile);
            {$I-}
@@ -535,11 +541,11 @@ Implementation
         l : longint;
       begin
         AsmFlush;
-      {$ifdef unix}
+{$ifdef unix}
         if DoPipe then
          PClose(outfile)
         else
-      {$endif}
+{$endif}
          begin
          {Touch Assembler time to ppu time is there is a ppufilename}
            if ppufilename<>'' then
@@ -1615,7 +1621,17 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.45  2002-10-30 21:01:14  peter
+  Revision 1.46  2002-11-15 01:58:46  peter
+    * merged changes from 1.0.7 up to 04-11
+      - -V option for generating bug report tracing
+      - more tracing for option parsing
+      - errors for cdecl and high()
+      - win32 import stabs
+      - win32 records<=8 are returned in eax:edx (turned off by default)
+      - heaptrc update
+      - more info for temp management in .s file with EXTDEBUG
+
+  Revision 1.45  2002/10/30 21:01:14  peter
     * always include lineno after fileswitch. valgrind requires this
 
   Revision 1.44  2002/09/05 19:29:42  peter
