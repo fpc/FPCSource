@@ -659,17 +659,17 @@ function strchararray(p:pchar; l : longint):shortstring;[public,alias:'FPC_CHARA
 begin
   asm
         cld
-        movl    p,%edi
+        movl    p,%esi
         movl    l,%ecx
-        orl     %edi,%edi
-        jnz     .LStrPasNotNil
+        orl     %esi,%esi
+        jnz     .LStrCharArrayNotNil
         movl    $0,%ecx
-.LStrPasNotNil:
+.LStrCharArrayNotNil:
         movl    %ecx,%eax
         movl    __RESULT,%edi
         stosb
         cmpl    $7,%eax
-        jl      .LStrPas2
+        jl      .LStrCharArray2
         movl    %edi,%ecx       { Align on 32bits }
         negl    %ecx
         andl    $3,%ecx
@@ -681,7 +681,7 @@ begin
         shrl    $2,%ecx
         rep
         movsl
-.LStrPas2:
+.LStrCharArray2:
         movl    %eax,%ecx
         rep
         movsb
@@ -918,7 +918,10 @@ end;
 
 {
   $Log$
-  Revision 1.62  1999-12-21 11:13:34  pierre
+  Revision 1.63  1999-12-21 11:48:09  pierre
+   * typo error if previous commit
+
+  Revision 1.62  1999/12/21 11:13:34  pierre
    + FPC_CHARARRAY_TO_SHORTSTRING added
 
   Revision 1.61  1999/12/11 18:59:44  jonas
