@@ -37,7 +37,7 @@ interface
   {$ifdef ver1_0}
       linux,
   {$else}
-      unix,
+      Baseunix,unix,
   {$endif}
 {$endif}
 {$ifdef Delphi}
@@ -968,12 +968,16 @@ implementation
    Function GetFileTime ( Var F : File) : Longint;
      Var
      {$ifdef hasunix}
-       Info : Stat;
+	info: Stat; 
      {$endif}
        L : longint;
      begin
      {$ifdef hasunix}
-       FStat (F,Info);
+       {$IFDEF VER1_0}
+        FStat (F,Info);
+       {$ELSE}
+        FPFStat (F,Info);
+       {$ENDIF}
        L:=Info.Mtime;
      {$else}
        GetFTime(f,l);
@@ -1158,7 +1162,7 @@ implementation
       {$endif}
       begin
       {$ifdef hasunix}
-        GetEnvPchar:={$ifdef ver1_0}Linux{$else}Unix{$endif}.Getenv(envname);
+        GetEnvPchar:={$ifdef ver1_0}Linux.getenv{$else}BaseUnix.fpGetEnv{$endif}(envname);
         {$define GETENVOK}
       {$endif}
       {$ifdef win32}
@@ -1674,7 +1678,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.98  2003-09-14 12:55:06  jonas
+  Revision 1.99  2003-09-14 20:26:18  marco
+   * Unix reform
+
+  Revision 1.98  2003/09/14 12:55:06  jonas
     * fixed compilation for non-x86
 
   Revision 1.97  2003/09/07 22:09:34  peter

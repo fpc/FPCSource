@@ -45,7 +45,7 @@ uses
   {$ifdef ver1_0}
     Linux,
   {$else}
-    Unix,
+    BaseUnix,Unix,
   {$endif}
  {$endif}
 {$endif}
@@ -106,17 +106,20 @@ begin
   {$ifdef has_signal}
     NewSignal:=SignalHandler({$ifdef fpcprocvar}@{$endif}CatchSignal);
     {$ifndef sunos}
-      OldSigSegm:=Signal (SIGSEGV,NewSignal);
+      OldSigSegm:={$ifdef VER1_0}Signal{$else}fpSignal{$endif} (SIGSEGV,NewSignal);
     {$endif} // lxrun on solaris hooks this for handling linux-calls!
-    OldSigInt:=Signal (SIGINT,NewSignal);
-    OldSigFPE:=Signal (SIGFPE,NewSignal);
+    OldSigInt:={$ifdef VER1_0}Signal{$else}fpSignal{$endif}  (SIGINT,NewSignal);
+    OldSigFPE:={$ifdef VER1_0}Signal{$else}fpSignal{$endif}  (SIGFPE,NewSignal);
   {$endif}
 {$endif nocatch}
 end.
 
 {
   $Log$
-  Revision 1.14  2003-09-05 17:41:12  florian
+  Revision 1.15  2003-09-14 20:26:18  marco
+   * Unix reform
+
+  Revision 1.14  2003/09/05 17:41:12  florian
     * merged Wiktor's Watcom patches in 1.1
 
   Revision 1.13  2003/04/23 10:10:31  peter

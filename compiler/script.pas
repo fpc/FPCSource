@@ -97,7 +97,7 @@ uses
   {$ifdef ver1_0}
     Linux,
   {$else}
-    Unix,
+    BaseUnix,Unix,
   {$endif}
 {$endif}
   cutils,
@@ -174,7 +174,7 @@ begin
   Close(t);
 {$ifdef hasUnix}
   if executable then
-   ChMod(fn,493);
+   {$ifdef VER1_0}ChMod{$else}fpchmod{$endif}(fn,493);
 {$endif}
 end;
 
@@ -419,7 +419,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.21  2003-04-22 14:33:38  peter
+  Revision 1.22  2003-09-14 20:26:18  marco
+   * Unix reform
+
+  Revision 1.21  2003/04/22 14:33:38  peter
     * removed some notes/hints
 
   Revision 1.20  2003/02/07 21:21:39  marco

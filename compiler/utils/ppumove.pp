@@ -28,7 +28,7 @@ uses
   {$ifdef ver1_0}
   linux,
   {$else}
-  unix,
+  Baseunix,Unix,
   {$endif}
 {$else unix}
   dos,
@@ -133,7 +133,7 @@ Var
 {$endif}
 begin
 {$ifdef unix}
-  FileExists:=FStat (F,Info);
+  FileExists:={$ifdef VER1_0}FStat{$ELSE}FpStat{$endif} (F,Info){$ifndef VER1_0}=0{$endif};
 {$else}
   FindFirst (F,anyfile,Info);
   FileExists:=DosError=0;
@@ -473,7 +473,7 @@ begin
    Error('Fatal: Library building stage failed.',true);
 { fix permission to 644, so it's not 755 }
 {$ifdef unix}
-  ChMod(OutputFile,420);
+  {$ifdef VER1_0}ChMod{$ELSE}FPChmod{$endif}(OutputFile,420);
 {$endif}
 { Rename to the destpath }
   if DestPath<>'' then
@@ -605,7 +605,7 @@ begin
       Writeln('Writing pmove'+BatchExt);
      Close(BatchFile);
 {$ifdef unix}
-     ChMod('pmove'+BatchExt,493);
+  {$ifdef VER1_0}ChMod{$ELSE}FPChmod{$endif}('pmove'+BatchExt,493);
 {$endif}
    end;
 { The End }
@@ -614,7 +614,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2002-05-18 13:34:27  peter
+  Revision 1.6  2003-09-14 20:26:18  marco
+   * Unix reform
+
+  Revision 1.5  2002/05/18 13:34:27  peter
     * readded missing revisions
 
   Revision 1.4  2002/05/16 19:46:54  carl
