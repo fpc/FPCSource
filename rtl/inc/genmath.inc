@@ -249,7 +249,7 @@ Function float32_to_int32_round_to_zero( a: Float32 ): longint;
          l:=f64.low;
          f64.low:=f64.high;
          f64.high:=l;
-{$endif arm}         
+{$endif arm}
          trunc:=float64_to_int32_round_to_zero(f64);
        end
      else
@@ -276,13 +276,13 @@ Function float32_to_int32_round_to_zero( a: Float32 ): longint;
         sx: longint;
         f64 : float64;
       begin
-         move(d,f64,sizeof(f64));
+         f64:=float64(d);
 {$ifdef arm}
          { the arm fpu has a strange opinion how a double has to be stored }
          i0:=f64.low;
          f64.low:=f64.high;
          f64.high:=i0;
-{$endif arm}         
+{$endif arm}
         i0 := f64.high;
         i1 := cardinal(f64.low);
         sx := i0 and $80000000;
@@ -312,7 +312,7 @@ Function float32_to_int32_round_to_zero( a: Float32 ): longint;
             f64.high := i0;
             f64.low := longint(i1 and not(cardinal($ffffffff) shr (j0 - 20)));
           end;
-        result := d;
+        result:=double(f64);
       end;
 
 {$else SUPPORT_DOUBLE}
@@ -1189,7 +1189,10 @@ function fpc_int64_to_double(i : int64): double; compilerproc;
 
 {
   $Log$
-  Revision 1.20  2004-01-24 18:15:58  florian
+  Revision 1.21  2004-02-04 14:15:57  florian
+    * fixed generic system.int(...)
+
+  Revision 1.20  2004/01/24 18:15:58  florian
     * fixed small bugs
     * fixed some arm issues
 
