@@ -515,11 +515,11 @@ uses
       var
         i : longint;
       begin
-{$ifdef jmpfix}
+{$ifndef nojmpfix}
         if is_jmp then
           dec(PasmLabel(oper[0].sym)^.refs)
         else
-{$endif jmpfix}
+{$endif nojmpfix}
           for i:=1 to ops do
             if (oper[i-1].typ=top_ref) then
               dispose(oper[i-1].ref);
@@ -1524,7 +1524,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.12.2.2  1999-07-04 21:50:16  jonas
+  Revision 1.12.2.3  1999-07-04 23:55:50  jonas
+    * changed {$ifdef jmpfix} to {$ifndef nojmpfix}
+
+  Revision 1.12.2.2  1999/07/04 21:50:16  jonas
     * everything between {$ifdef jmpfix}:
       * when a jxx instruction is disposed, decrease the refcount of the label
         it referenced
