@@ -650,7 +650,9 @@ The length is limited to 255 characters.
 <descr>
 <p>
 <var>Exec</var> executes the program in <var>Path</var>, with the options given by
-<var>ComLine</var>.
+<var>ComLine</var>. The program name should <em>not</em> appear again in
+<var>ComLine</var>, it is specified in <var>Path</var>. Comline contains only the 
+parameters that are passed to the program.
 </p>
 <p>
 After the program has terminated, the procedure returns. The Exit value of

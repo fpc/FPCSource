@@ -4051,7 +4051,7 @@ exception when the <var>Read</var> is used.
 </element>
 
 <element name="TStream.Write">  <!-- Function -->
-<short>Writes data from the stream to the buffer and returns the number of
+<short>Writes data from a buffer to the stream and returns the number of
 bytes written.</short>
 <descr>
 <p>

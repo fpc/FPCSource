@@ -1444,9 +1444,9 @@ PREAMBLETYPE = report
 ifndef CROSSCOMPILE
 ifndef FPDOC
 ifneq ($(wildcard ../utils/fpdoc/fpdoc),)
-FPDOC=../utils/fpdoc/fpdoc
+FPDOC=../utils/fpdoc/fpdoc --warn-no-node --hide-protected
 else
-FPDOC=fpdoc
+FPDOC=fpdoc --warn-no-node
 endif
 endif
 endif

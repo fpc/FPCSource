@@ -181,6 +181,18 @@ This can be used mainly for debugging purposes. The \file{system} unit sets the
 and simply exits. The \file{sysutils} unit catches the run-time error 227
 and raises an \var{EAssertionFailed} exception.
 
+\subsection{\var{\protect\$CHECKPOINTER} : Check pointer values}
+The \var{\{\$CHECKPOINTER\}} directive turns heap pointer checking on (value
+\var{ON}} or off (value \var{OFF}). When heap pointer checking is on and the
+code is compiled with the \var{-gh} (heaptrace) option on, then a check is
+inserted when dereferencing a pointer. The check will verify that the
+pointer contains a valid value, i.e. points to a location that is reachable
+by the program: the stack or a location in the heap. If not, a run-time error
+216 or 204 is raised.
+
+If the code is compiled without \var{-gl} switch, then this directive has no
+effect. Note that this considerably slows down the code.
+
 \subsection{\var{\protect\$DEFINE} : Define a symbol}
 
 The directive
@@ -2838,7 +2850,7 @@ When a routine is declared within the scope of a procedure or
 function, it is said to be nested. In this case, an additional
 invisible parameter is passed to the nested routine. This
 additional parameter is the frame pointer address of the
-calling routine. This permits the nested routine to access
+parent routine. This permits the nested routine to access
 the local variables and parameters of the calling routine.
 
 The resulting stack frame after the entry code of a simple nested procedure
@@ -4147,38 +4159,9 @@ The algorithm for allocating memory is as follows:
 or of bigger size, if so it is allocated and the routine exits.
 \item If not found in the \var{freelist} the heap is grown to allocate the
 specified memory, and the routine exits.
-\item If the heap cannot be grown internally anymore and if \var{heaperror} is set
-accordingly, it calls the heap error handler. If there is no heap error handler
-installed, the runtime library generates a runtime error 203.
+\item If the heap cannot be grown internally anymore, the runtime library 
+generates a runtime error 203.
 \end{enumerate}
-
-
-% Error handler routinr
-\subsection{The HeapError variable}
-
-The heap error permits developpers to install a heap error hook which
-is called each time an allocation cannot be completed by the default
-heap manager. \var{HeapError} is a pointer that points to a function
-with the following prototype:
-
-\begin{verbatim}
-  function HeapFunc(size : longint): integer;
-\end{verbatim}
-
-The \var{size} parameter indicates the size of the block which could
-not be allocated. Depending on the success, the error handler routine
-should return a value which indicates what the default heap manager
-should do thereafter (cf. \seet{Heaperrorresult}).
-
-\begin{FPCltable}{|c|l|}{Heap error result}{Heaperrorresult}
-\hline
- Value returned & Memory manager action \\ \hline
- 0		& Generates a runtime error 203 \\
- 1		& \var{GetMem},\var{ReallocMem} and \var{New} returns \var{nil} \\
- 2		& Try allocating the memory block once again \\
-\hline
-\end{FPCltable}
-
 
 
 % The heap grows

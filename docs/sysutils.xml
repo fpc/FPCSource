@@ -1084,8 +1084,9 @@ On error, <var>False</var> is returned.
 <element name="DoDirSeparators">
 <short>Convert known directory separators to the current directory separator.</short>
 <descr>
-This function replaces all known directory separators
-to the directory separator character for the current system.
+This function replaces all known directory separators in <var>FileName</var>
+to the directory separator character for the current system. The list of
+known separators is specified in the <link id="DirSeparators"/> constant.
 </descr>
 <errors>
 None.
