@@ -61,7 +61,7 @@
      asm
       move.l 8(a6), a0      { destination                   }
       move.l 12(a6), d1     { number of bytes to fill       }
-      move.w 16(a6),d0      { fill data                     }
+      move.b 16(a6),d0      { fill data                     }
       cmpi.l #65535, d1     { check, if this is a word move }
       ble    @LMEMSET3      { use fast dbra mode            }
       bra @LMEMSET2
@@ -283,30 +283,26 @@
 
   { checks for a correct vmt pointer }
   procedure co;assembler;
-   { Entry code: On Stack --> pointer to check }
+  { ON ENTRY: a0 -> Pointer to the VMT                  }
+  {   Nota: All registers must be preserved including   }
+  {   A0 itself!                                        }
   asm
    XDEF CHECK_OBJECT
-     { save important registers }
-     movem.l   a0/d0,-(sp)
-
-     { check if pointer is nil.... before trying to access it      }
-     { offset is 12 contrary to i386 because we save two registers }
-     move.l   12(sp),a0
-     { z flag set by move }
+     move.l   d0,-(sp)
+     tst.l    a0
+     { z flag set if zero }
      beq      @co_re
 
      move.l   (a0),d0
      add.l    4(a0),d0
      bne      @co_re
-     { restore registers }
-     movem.l  (sp)+,a0/d0
      bra      @end
 @co_re:
-     { restore registers }
-     movem.l  (sp)+,a0/d0
+     move.l   (sp)+,d0
      move.b   #210,d0
      jsr      HALT_ERROR
 @end:
+     move.l   (sp)+,d0
   end;
 
 
@@ -405,17 +401,27 @@
          RunError(215);
       end;
 
-    { Copies Strings }
-    procedure strcopy(dstr,sstr : pointer;len : longint);[public,alias: 'STRCOPY'];
-
-      begin
+{    procedure strcopy(dstr,sstr : pointer;len : longint);[public,alias: 'STRCOPY'];}
+     procedure strcopy; assembler;
+    {---------------------------------------------------}
+    { Low-level routine to copy a string to another     }
+    { string with maximum length. Never call directly!  }
+    { On Entry:                                         }
+    {     a1.l = string to copy to                      }
+    {     a0.l = source string                          }
+    {     d0.l = maximum length of copy                 }
+    { registers destroyed: a0,a1,d0,d1                  }
+    {---------------------------------------------------}
          asm
-            move.l 12(a6),a0
-            move.l 16(a6),a1     { Load pointer to strings }
-            move.l 8(a6),d1      { Get length              }
+           XDEF STRCOPY
+{            move.l 12(a6),a0
+            move.l 16(a6),a1
+            move.l 8(a6),d1 }
+            move.l d0,d1
 
             move.b (a0)+,d0     { Get source length }
-            cmp.b  d0,d1
+            and.w  #$ff,d0
+            cmp.w  d1,d0        { This is a signed comparison! }
             ble    @LM4
             move.b d1,d0        { If longer than maximum size of target, cut
                                   source length }
@@ -433,7 +439,6 @@
          @LMSTRCOPY55:
             dbra  d1,@LMSTRCOPY56
          @Lend:
-         end;
       end;
 
     { Concatenate Strings }
@@ -448,7 +453,9 @@
           move.l  s2,a1                { a1 = source      }
           sub.b   (a0),d0              {  copyl:= 255 -length(s1)    }
           move.b  (a1),d6
-          cmp.b   d0,d6                { if copyl > length(s2) then  }
+          and.w   #$ff,d0              { Sign flags are checked!     }
+          and.w   #$ff,d6
+          cmp.w   d6,d0                { if copyl > length(s2) then  }
           ble     @Lcontinue
           move.b  (a1),d0              {  copyl:=length(s2)          }
     @Lcontinue:
@@ -461,8 +468,10 @@
           { exit without copying anything.               }
           tst.b  d6
           beq    @Lend
+          bra    @ALoop
     @Loop:
           move.b  (a1)+,(a0)+          { s1[i] := s2[i];             }
+    @ALoop:
           dbra    d6,@Loop
           move.l  s1,a0
           add.b   d0,(a0)              { change to new string length }
@@ -748,9 +757,11 @@ XDEF RE_BOUNDS_CHECK
 
 {
   $Log$
-  Revision 1.5  1998-06-05 12:28:58  carl
-    * all string internal routines fixed and tested (to my knowledge)
-    * bugfix of missing typecast with a call to halt with a word
+  Revision 1.6  1998-07-01 14:25:57  carl
+    * strconcat was copying one byte too much
+    * strcopy bugfix was using signed comparison
+    + STRCOPY uses register calling conventions
+    * FillChar bugfix was loading a word instead of a byte
 
   Revision 1.2  1998/03/27 23:48:06  carl
     * bugfix of STRCONCAT alignment problem
