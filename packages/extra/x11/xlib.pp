@@ -1,5 +1,6 @@
 unit xlib;
 interface
+{$mode objfpc}
 uses
   x;
 {$define MACROS}
@@ -13,6 +14,26 @@ const
 const
   libX11='X11';
 {$endif}
+
+type
+  culong = dword;
+  cuchar = byte;
+
+  clong = longint;
+  cint = longint;
+  cuint = dword;
+  cshort = smallint;
+  cushort = word;
+
+  cunsigned = cuint;
+  cchar = shortint;
+
+  Pcint = ^cint;
+  Pcuint = ^cuint;
+  Pculong = ^culong;
+  Pcuchar = ^cuchar;
+  PPcint = ^Pcint;
+  PPcuchar = ^Pcuchar;
 
 {
   Automatically converted by H2Pas 0.99.15 from xlib.h
@@ -35,9 +56,9 @@ type
    PXPointer = ^TXPointer;
    TXPointer = ^char;
    PBool = ^TBool;
-   TBool = longbool;
+   TBool = longbool; {cint?}
    PStatus = ^TStatus;
-   TStatus = longint;
+   TStatus = cint;
 
 const
    QueuedAlready = 0;
@@ -49,52 +70,52 @@ type
    PPXExtData = ^PXExtData;
    PXExtData = ^TXExtData;
    TXExtData = record
-        number : longint;
+        number : cint;
         next : PXExtData;
-        free_private : function (extension:PXExtData):longint;cdecl;
+        free_private : function (extension:PXExtData):cint;cdecl;
         private_data : TXPointer;
      end;
 
    PXExtCodes = ^TXExtCodes;
    TXExtCodes = record
-        extension : longint;
-        major_opcode : longint;
-        first_event : longint;
-        first_error : longint;
+        extension : cint;
+        major_opcode : cint;
+        first_event : cint;
+        first_error : cint;
      end;
 
    PXPixmapFormatValues = ^TXPixmapFormatValues;
    TXPixmapFormatValues = record
-        depth : longint;
-        bits_per_pixel : longint;
-        scanline_pad : longint;
+        depth : cint;
+        bits_per_pixel : cint;
+        scanline_pad : cint;
      end;
 
    PXGCValues = ^TXGCValues;
    TXGCValues = record
-        _function : longint;
-        plane_mask : dword;
-        foreground : dword;
-        background : dword;
-        line_width : longint;
-        line_style : longint;
-        cap_style : longint;
-        join_style : longint;
-        fill_style : longint;
-        fill_rule : longint;
-        arc_mode : longint;
+        _function : cint;
+        plane_mask : culong;
+        foreground : culong;
+        background : culong;
+        line_width : cint;
+        line_style : cint;
+        cap_style : cint;
+        join_style : cint;
+        fill_style : cint;
+        fill_rule : cint;
+        arc_mode : cint;
         tile : TPixmap;
         stipple : TPixmap;
-        ts_x_origin : longint;
-        ts_y_origin : longint;
+        ts_x_origin : cint;
+        ts_y_origin : cint;
         font : TFont;
-        subwindow_mode : longint;
+        subwindow_mode : cint;
         graphics_exposures : TBool;
-        clip_x_origin : longint;
-        clip_y_origin : longint;
+        clip_x_origin : cint;
+        clip_y_origin : cint;
         clip_mask : TPixmap;
-        dash_offset : longint;
-        dashes : char;
+        dash_offset : cint;
+        dashes : cchar;
      end;
 
    PXGC = ^TXGC;
@@ -107,18 +128,16 @@ type
    TVisual = record
         ext_data : PXExtData;
         visualid : TVisualID;
-        _class : longint;
-        red_mask : dword;
-        green_mask : dword;
-        blue_mask : dword;
-        bits_per_rgb : longint;
-        map_entries : longint;
+        c_class : cint;
+        red_mask, green_mask, blue_mask : culong;
+        bits_per_rgb : cint;
+        map_entries : cint;
      end;
 
    PDepth = ^TDepth;
    TDepth = record
-        depth : longint;
-        nvisuals : longint;
+        depth : cint;
+        nvisuals : cint;
         visuals : PVisual;
      end;
    PXDisplay = ^TXDisplay;
@@ -131,47 +150,44 @@ type
         ext_data : PXExtData;
         display : PXDisplay;
         root : TWindow;
-        width : longint;
-        height : longint;
-        mwidth : longint;
-        mheight : longint;
-        ndepths : longint;
+        width, height : cint;
+        mwidth, mheight : cint;
+        ndepths : cint;
         depths : PDepth;
-        root_depth : longint;
+        root_depth : cint;
         root_visual : PVisual;
         default_gc : TGC;
         cmap : TColormap;
-        white_pixel : dword;
-        black_pixel : dword;
-        max_maps : longint;
-        min_maps : longint;
-        backing_store : longint;
+        white_pixel : culong;
+        black_pixel : culong;
+        max_maps, min_maps : cint;
+        backing_store : cint;
         save_unders : TBool;
-        root_input_mask : longint;
+        root_input_mask : clong;
      end;
 
    PScreenFormat = ^TScreenFormat;
    TScreenFormat = record
         ext_data : PXExtData;
-        depth : longint;
-        bits_per_pixel : longint;
-        scanline_pad : longint;
+        depth : cint;
+        bits_per_pixel : cint;
+        scanline_pad : cint;
      end;
 
    PXSetWindowAttributes = ^TXSetWindowAttributes;
    TXSetWindowAttributes = record
         background_pixmap : TPixmap;
-        background_pixel : dword;
+        background_pixel : culong;
         border_pixmap : TPixmap;
-        border_pixel : dword;
-        bit_gravity : longint;
-        win_gravity : longint;
-        backing_store : longint;
-        backing_planes : dword;
-        backing_pixel : dword;
+        border_pixel : culong;
+        bit_gravity : cint;
+        win_gravity : cint;
+        backing_store : cint;
+        backing_planes : culong;
+        backing_pixel : culong;
         save_under : TBool;
-        event_mask : longint;
-        do_not_propagate_mask : longint;
+        event_mask : clong;
+        do_not_propagate_mask : clong;
         override_redirect : TBool;
         colormap : TColormap;
         cursor : TCursor;
@@ -179,153 +195,143 @@ type
 
    PXWindowAttributes = ^TXWindowAttributes;
    TXWindowAttributes = record
-        x : longint;
-        y : longint;
-        width : longint;
-        height : longint;
-        border_width : longint;
-        depth : longint;
+        x, y : cint;
+        width, height : cint;
+        border_width : cint;
+        depth : cint;
         visual : PVisual;
         root : TWindow;
-        _class : longint;
-        bit_gravity : longint;
-        win_gravity : longint;
-        backing_store : longint;
-        backing_planes : dword;
-        backing_pixel : dword;
+        c_class : cint;
+        bit_gravity : cint;
+        win_gravity : cint;
+        backing_store : cint;
+        backing_planes : culong;
+        backing_pixel : culong;
         save_under : TBool;
         colormap : TColormap;
         map_installed : TBool;
-        map_state : longint;
-        all_event_masks : longint;
-        your_event_mask : longint;
-        do_not_propagate_mask : longint;
+        map_state : cint;
+        all_event_masks : clong;
+        your_event_mask : clong;
+        do_not_propagate_mask : clong;
         override_redirect : TBool;
         screen : PScreen;
      end;
 
    PXHostAddress = ^TXHostAddress;
    TXHostAddress = record
-        family : longint;
-        length : longint;
+        family : cint;
+        length : cint;
         address : Pchar;
+     end;
+
+   PXServerInterpretedAddress = ^TXServerInterpretedAddress;
+   TXServerInterpretedAddress = record
+        typelength : cint;
+        valuelength : cint;
+        _type : Pchar;
+        value : Pchar;
      end;
 
    PXImage = ^TXImage;
    TXImage = record
-        width : longint;
-        height : longint;
-        xoffset : longint;
-        format : longint;
+        width, height : cint;
+        xoffset : cint;
+        format : cint;
         data : Pchar;
-        byte_order : longint;
-        bitmap_unit : longint;
-        bitmap_bit_order : longint;
-        bitmap_pad : longint;
-        depth : longint;
-        bytes_per_line : longint;
-        bits_per_pixel : longint;
-        red_mask : dword;
-        green_mask : dword;
-        blue_mask : dword;
+        byte_order : cint;
+        bitmap_unit : cint;
+        bitmap_bit_order : cint;
+        bitmap_pad : cint;
+        depth : cint;
+        bytes_per_line : cint;
+        bits_per_pixel : cint;
+        red_mask : culong;
+        green_mask : culong;
+        blue_mask : culong;
         obdata : TXPointer;
         f : record
-             create_image : function (para1:PXDisplay; para2:PVisual; para3:dword; para4:longint; para5:longint;
-                          para6:Pchar; para7:dword; para8:dword; para9:longint; para10:longint):PXImage;cdecl;
-             destroy_image : function (para1:PXImage):longint;cdecl;
-             get_pixel : function (para1:PXImage; para2:longint; para3:longint):dword;cdecl;
-             put_pixel : function (para1:PXImage; para2:longint; para3:longint; para4:dword):longint;cdecl;
-             sub_image : function (para1:PXImage; para2:longint; para3:longint; para4:dword; para5:dword):PXImage;cdecl;
-             add_pixel : function (para1:PXImage; para2:longint):longint;cdecl;
+             create_image : function (para1:PXDisplay; para2:PVisual; para3:cuint; para4:cint; para5:cint;
+                          para6:Pchar; para7:cuint; para8:cuint; para9:cint; para10:cint):PXImage;cdecl;
+             destroy_image : function (para1:PXImage):cint;cdecl;
+             get_pixel : function (para1:PXImage; para2:cint; para3:cint):culong;cdecl;
+             put_pixel : function (para1:PXImage; para2:cint; para3:cint; para4:culong):cint;cdecl;
+             sub_image : function (para1:PXImage; para2:cint; para3:cint; para4:cuint; para5:cuint):PXImage;cdecl;
+             add_pixel : function (para1:PXImage; para2:clong):cint;cdecl;
           end;
      end;
 
    PXWindowChanges = ^TXWindowChanges;
    TXWindowChanges = record
-        x : longint;
-        y : longint;
-        width : longint;
-        height : longint;
-        border_width : longint;
+        x, y : cint;
+        width, height : cint;
+        border_width : cint;
         sibling : TWindow;
-        stack_mode : longint;
+        stack_mode : cint;
      end;
 
    PXColor = ^TXColor;
    TXColor = record
-        pixel : dword;
-        red : word;
-        green : word;
-        blue : word;
-        flags : byte;
-        pad : byte;
+        pixel : culong;
+        red, green, blue : cushort;
+        flags : cchar;
+        pad : cchar;
      end;
 
    PXSegment = ^TXSegment;
    TXSegment = record
-        x1 : smallint;
-        y1 : smallint;
-        x2 : smallint;
-        y2 : smallint;
+        x1, y1, x2, y2 : cshort;
      end;
 
    PXPoint = ^TXPoint;
    TXPoint = record
-        x : smallint;
-        y : smallint;
+        x, y : cshort;
      end;
 
    PXRectangle = ^TXRectangle;
    TXRectangle = record
-        x : smallint;
-        y : smallint;
-        width : word;
-        height : word;
+        x, y : cshort;
+        width, height : cushort;
      end;
 
    PXArc = ^TXArc;
    TXArc = record
-        x : smallint;
-        y : smallint;
-        width : word;
-        height : word;
-        angle1 : smallint;
-        angle2 : smallint;
+        x, y : cshort;
+        width, height : cushort;
+        angle1, angle2 : cshort;
      end;
 
    PXKeyboardControl = ^TXKeyboardControl;
    TXKeyboardControl = record
-        key_click_percent : longint;
-        bell_percent : longint;
-        bell_pitch : longint;
-        bell_duration : longint;
-        led : longint;
-        led_mode : longint;
-        key : longint;
-        auto_repeat_mode : longint;
+        key_click_percent : cint;
+        bell_percent : cint;
+        bell_pitch : cint;
+        bell_duration : cint;
+        led : cint;
+        led_mode : cint;
+        key : cint;
+        auto_repeat_mode : cint;
      end;
 
    PXKeyboardState = ^TXKeyboardState;
    TXKeyboardState = record
-        key_click_percent : longint;
-        bell_percent : longint;
-        bell_pitch : dword;
-        bell_duration : dword;
-        led_mask : dword;
-        global_auto_repeat : longint;
-        auto_repeats : array[0..31] of char;
+        key_click_percent : cint;
+        bell_percent : cint;
+        bell_pitch, bell_duration : cuint;
+        led_mask : culong;
+        global_auto_repeat : cint;
+        auto_repeats : array[0..31] of cchar;
      end;
 
    PXTimeCoord = ^TXTimeCoord;
    TXTimeCoord = record
         time : TTime;
-        x : smallint;
-        y : smallint;
+        x, y : cshort;
      end;
 
    PXModifierKeymap = ^TXModifierKeymap;
    TXModifierKeymap = record
-        max_keypermod : longint;
+        max_keypermod : cint;
         modifiermap : PKeyCode;
      end;
 
@@ -345,66 +351,63 @@ type
    TXPrivDisplay = record
         ext_data : PXExtData;
         private1 : PXPrivate;
-        fd : longint;
-        private2 : longint;
-        proto_major_version : longint;
-        proto_minor_version : longint;
+        fd : cint;
+        private2 : cint;
+        proto_major_version : cint;
+        proto_minor_version : cint;
         vendor : Pchar;
         private3 : TXID;
         private4 : TXID;
         private5 : TXID;
-        private6 : longint;
+        private6 : cint;
         resource_alloc : function (para1:PXDisplay):TXID;cdecl;
-        byte_order : longint;
-        bitmap_unit : longint;
-        bitmap_pad : longint;
-        bitmap_bit_order : longint;
-        nformats : longint;
+        byte_order : cint;
+        bitmap_unit : cint;
+        bitmap_pad : cint;
+        bitmap_bit_order : cint;
+        nformats : cint;
         pixmap_format : PScreenFormat;
-        private8 : longint;
-        release : longint;
-        private9 : PXPrivate;
-        private10 : PXPrivate;
-        qlen : longint;
-        last_request_read : dword;
-        request : dword;
+        private8 : cint;
+        release : cint;
+        private9, private10 : PXPrivate;
+        qlen : cint;
+        last_request_read : culong;
+        request : culong;
         private11 : TXPointer;
         private12 : TXPointer;
         private13 : TXPointer;
         private14 : TXPointer;
-        max_request_size : dword;
+        max_request_size : cunsigned;
         db : PXrmHashBucketRec;
-        private15 : function (para1:PXDisplay):longint;cdecl;
+        private15 : function (para1:PXDisplay):cint;cdecl;
         display_name : Pchar;
-        default_screen : longint;
-        nscreens : longint;
+        default_screen : cint;
+        nscreens : cint;
         screens : PScreen;
-        motion_buffer : dword;
-        private16 : dword;
-        min_keycode : longint;
-        max_keycode : longint;
+        motion_buffer : culong;
+        private16 : culong;
+        min_keycode : cint;
+        max_keycode : cint;
         private17 : TXPointer;
         private18 : TXPointer;
-        private19 : longint;
+        private19 : cint;
         xdefaults : Pchar;
      end;
 
    PXKeyEvent = ^TXKeyEvent;
    TXKeyEvent = record
-        _type : longint;
-        serial : dword;
+        _type : cint;
+        serial : culong;
         send_event : TBool;
         display : PDisplay;
         window : TWindow;
         root : TWindow;
         subwindow : TWindow;
         time : TTime;
-        x : longint;
-        y : longint;
-        x_root : longint;
-        y_root : longint;
-        state : dword;
-        keycode : dword;
+        x, y : cint;
+        x_root, y_root : cint;
+        state : cuint;
+        keycode : cuint;
         same_screen : TBool;
      end;
 
@@ -416,20 +419,18 @@ type
 
    PXButtonEvent = ^TXButtonEvent;
    TXButtonEvent = record
-        _type : longint;
-        serial : dword;
+        _type : cint;
+        serial : culong;
         send_event : TBool;
         display : PDisplay;
         window : TWindow;
         root : TWindow;
         subwindow : TWindow;
         time : TTime;
-        x : longint;
-        y : longint;
-        x_root : longint;
-        y_root : longint;
-        state : dword;
-        button : dword;
+        x, y : cint;
+        x_root, y_root : cint;
+        state : cuint;
+        button : cuint;
         same_screen : TBool;
      end;
 
@@ -441,20 +442,18 @@ type
 
    PXMotionEvent = ^TXMotionEvent;
    TXMotionEvent = record
-        _type : longint;
-        serial : dword;
+        _type : cint;
+        serial : culong;
         send_event : TBool;
         display : PDisplay;
         window : TWindow;
         root : TWindow;
         subwindow : TWindow;
         time : TTime;
-        x : longint;
-        y : longint;
-        x_root : longint;
-        y_root : longint;
-        state : dword;
-        is_hint : char;
+        x, y : cint;
+        x_root, y_root : cint;
+        state : cuint;
+        is_hint : cchar;
         same_screen : TBool;
      end;
 
@@ -463,23 +462,21 @@ type
 
    PXCrossingEvent = ^TXCrossingEvent;
    TXCrossingEvent = record
-        _type : longint;
-        serial : dword;
+        _type : cint;
+        serial : culong;
         send_event : TBool;
         display : PDisplay;
         window : TWindow;
         root : TWindow;
         subwindow : TWindow;
         time : TTime;
-        x : longint;
-        y : longint;
-        x_root : longint;
-        y_root : longint;
-        mode : longint;
-        detail : longint;
+        x, y : cint;
+        x_root, y_root : cint;
+        mode : cint;
+        detail : cint;
         same_screen : TBool;
         focus : TBool;
-        state : dword;
+        state : cuint;
      end;
 
    PXEnterWindowEvent = ^TXEnterWindowEvent;
@@ -490,13 +487,13 @@ type
 
    PXFocusChangeEvent = ^TXFocusChangeEvent;
    TXFocusChangeEvent = record
-        _type : longint;
-        serial : dword;
+        _type : cint;
+        serial : culong;
         send_event : TBool;
         display : PDisplay;
         window : TWindow;
-        mode : longint;
-        detail : longint;
+        mode : cint;
+        detail : cint;
      end;
 
    PXFocusInEvent = ^TXFocusInEvent;
@@ -507,85 +504,79 @@ type
 
    PXKeymapEvent = ^TXKeymapEvent;
    TXKeymapEvent = record
-        _type : longint;
-        serial : dword;
+        _type : cint;
+        serial : culong;
         send_event : TBool;
         display : PDisplay;
         window : TWindow;
-        key_vector : array[0..31] of char;
+        key_vector : array[0..31] of cchar;
      end;
 
    PXExposeEvent = ^TXExposeEvent;
    TXExposeEvent = record
-        _type : longint;
-        serial : dword;
+        _type : cint;
+        serial : culong;
         send_event : TBool;
         display : PDisplay;
         window : TWindow;
-        x : longint;
-        y : longint;
-        width : longint;
-        height : longint;
-        count : longint;
+        x, y : cint;
+        width, height : cint;
+        count : cint;
      end;
 
    PXGraphicsExposeEvent = ^TXGraphicsExposeEvent;
    TXGraphicsExposeEvent = record
-        _type : longint;
-        serial : dword;
+        _type : cint;
+        serial : culong;
         send_event : TBool;
         display : PDisplay;
         drawable : TDrawable;
-        x : longint;
-        y : longint;
-        width : longint;
-        height : longint;
-        count : longint;
-        major_code : longint;
-        minor_code : longint;
+        x, y : cint;
+        width, height : cint;
+        count : cint;
+        major_code : cint;
+        minor_code : cint;
      end;
 
    PXNoExposeEvent = ^TXNoExposeEvent;
    TXNoExposeEvent = record
-        _type : longint;
-        serial : dword;
+        _type : cint;
+        serial : culong;
         send_event : TBool;
         display : PDisplay;
         drawable : TDrawable;
-        major_code : longint;
-        minor_code : longint;
+        major_code : cint;
+        minor_code : cint;
      end;
 
    PXVisibilityEvent = ^TXVisibilityEvent;
    TXVisibilityEvent = record
-        _type : longint;
-        serial : dword;
+        _type : cint;
+        serial : culong;
         send_event : TBool;
         display : PDisplay;
         window : TWindow;
-        state : longint;
+        state : cint;
      end;
 
    PXCreateWindowEvent = ^TXCreateWindowEvent;
    TXCreateWindowEvent = record
-        _type : longint;
-        serial : dword;
+        _type : cint;
+        serial : culong;
         send_event : TBool;
         display : PDisplay;
         parent : TWindow;
         window : TWindow;
-        x : longint;
-        y : longint;
-        width : longint;
-        height : longint;
-        border_width : longint;
+        x, y : cint;
+        width, height : cint;
+        border_width : cint;
         override_redirect : TBool;
      end;
 
    PXDestroyWindowEvent = ^TXDestroyWindowEvent;
    TXDestroyWindowEvent = record
-        _type : longint;
-        serial : dword;
+        _type : cint;
+        serial : culong;
         send_event : TBool;
         display : PDisplay;
         event : TWindow;
@@ -594,8 +585,8 @@ type
 
    PXUnmapEvent = ^TXUnmapEvent;
    TXUnmapEvent = record
-        _type : longint;
-        serial : dword;
+        _type : cint;
+        serial : culong;
         send_event : TBool;
         display : PDisplay;
         event : TWindow;
@@ -605,8 +596,8 @@ type
 
    PXMapEvent = ^TXMapEvent;
    TXMapEvent = record
-        _type : longint;
-        serial : dword;
+        _type : cint;
+        serial : culong;
         send_event : TBool;
         display : PDisplay;
         event : TWindow;
@@ -616,8 +607,8 @@ type
 
    PXMapRequestEvent = ^TXMapRequestEvent;
    TXMapRequestEvent = record
-        _type : longint;
-        serial : dword;
+        _type : cint;
+        serial : culong;
         send_event : TBool;
         display : PDisplay;
         parent : TWindow;
@@ -626,114 +617,107 @@ type
 
    PXReparentEvent = ^TXReparentEvent;
    TXReparentEvent = record
-        _type : longint;
-        serial : dword;
+        _type : cint;
+        serial : culong;
         send_event : TBool;
         display : PDisplay;
         event : TWindow;
         window : TWindow;
         parent : TWindow;
-        x : longint;
-        y : longint;
+        x, y : cint;
         override_redirect : TBool;
      end;
 
    PXConfigureEvent = ^TXConfigureEvent;
    TXConfigureEvent = record
-        _type : longint;
-        serial : dword;
+        _type : cint;
+        serial : culong;
         send_event : TBool;
         display : PDisplay;
         event : TWindow;
         window : TWindow;
-        x : longint;
-        y : longint;
-        width : longint;
-        height : longint;
-        border_width : longint;
+        x, y : cint;
+        width, height : cint;
+        border_width : cint;
         above : TWindow;
         override_redirect : TBool;
      end;
 
    PXGravityEvent = ^TXGravityEvent;
    TXGravityEvent = record
-        _type : longint;
-        serial : dword;
+        _type : cint;
+        serial : culong;
         send_event : TBool;
         display : PDisplay;
         event : TWindow;
         window : TWindow;
-        x : longint;
-        y : longint;
+        x, y : cint;
      end;
 
    PXResizeRequestEvent = ^TXResizeRequestEvent;
    TXResizeRequestEvent = record
-        _type : longint;
-        serial : dword;
+        _type : cint;
+        serial : culong;
         send_event : TBool;
         display : PDisplay;
         window : TWindow;
-        width : longint;
-        height : longint;
+        width, height : cint;
      end;
 
    PXConfigureRequestEvent = ^TXConfigureRequestEvent;
    TXConfigureRequestEvent = record
-        _type : longint;
-        serial : dword;
+        _type : cint;
+        serial : culong;
         send_event : TBool;
         display : PDisplay;
         parent : TWindow;
         window : TWindow;
-        x : longint;
-        y : longint;
-        width : longint;
-        height : longint;
-        border_width : longint;
+        x, y : cint;
+        width, height : cint;
+        border_width : cint;
         above : TWindow;
-        detail : longint;
-        value_mask : dword;
+        detail : cint;
+        value_mask : culong;
      end;
 
    PXCirculateEvent = ^TXCirculateEvent;
    TXCirculateEvent = record
-        _type : longint;
-        serial : dword;
+        _type : cint;
+        serial : culong;
         send_event : TBool;
         display : PDisplay;
         event : TWindow;
         window : TWindow;
-        place : longint;
+        place : cint;
      end;
 
    PXCirculateRequestEvent = ^TXCirculateRequestEvent;
    TXCirculateRequestEvent = record
-        _type : longint;
-        serial : dword;
+        _type : cint;
+        serial : culong;
         send_event : TBool;
         display : PDisplay;
         parent : TWindow;
         window : TWindow;
-        place : longint;
+        place : cint;
      end;
 
    PXPropertyEvent = ^TXPropertyEvent;
    TXPropertyEvent = record
-        _type : longint;
-        serial : dword;
+        _type : cint;
+        serial : culong;
         send_event : TBool;
         display : PDisplay;
         window : TWindow;
         atom : TAtom;
         time : TTime;
-        state : longint;
+        state : cint;
      end;
 
    PXSelectionClearEvent = ^TXSelectionClearEvent;
    TXSelectionClearEvent = record
-        _type : longint;
-        serial : dword;
+        _type : cint;
+        serial : culong;
         send_event : TBool;
         display : PDisplay;
         window : TWindow;
@@ -743,8 +727,8 @@ type
 
    PXSelectionRequestEvent = ^TXSelectionRequestEvent;
    TXSelectionRequestEvent = record
-        _type : longint;
-        serial : dword;
+        _type : cint;
+        serial : culong;
         send_event : TBool;
         display : PDisplay;
         owner : TWindow;
@@ -757,8 +741,8 @@ type
 
    PXSelectionEvent = ^TXSelectionEvent;
    TXSelectionEvent = record
-        _type : longint;
-        serial : dword;
+        _type : cint;
+        serial : culong;
         send_event : TBool;
         display : PDisplay;
         requestor : TWindow;
@@ -770,60 +754,60 @@ type
 
    PXColormapEvent = ^TXColormapEvent;
    TXColormapEvent = record
-        _type : longint;
-        serial : dword;
+        _type : cint;
+        serial : culong;
         send_event : TBool;
         display : PDisplay;
         window : TWindow;
         colormap : TColormap;
-        _new : TBool;
-        state : longint;
+        c_new : TBool;
+        state : cint;
      end;
 
    PXClientMessageEvent = ^TXClientMessageEvent;
    TXClientMessageEvent = record
-        _type : longint;
-        serial : dword;
+        _type : cint;
+        serial : culong;
         send_event : TBool;
         display : PDisplay;
         window : TWindow;
         message_type : TAtom;
-        format : longint;
+        format : cint;
         data : record
             case longint of
-               0 : ( b : array[0..19] of char );
-               1 : ( s : array[0..9] of smallint );
-               2 : ( l : array[0..4] of longint );
+               0 : ( b : array[0..19] of cchar );
+               1 : ( s : array[0..9] of cshort );
+               2 : ( l : array[0..4] of clong );
             end;
      end;
 
    PXMappingEvent = ^TXMappingEvent;
    TXMappingEvent = record
-        _type : longint;
-        serial : dword;
+        _type : cint;
+        serial : culong;
         send_event : TBool;
         display : PDisplay;
         window : TWindow;
-        request : longint;
-        first_keycode : longint;
-        count : longint;
+        request : cint;
+        first_keycode : cint;
+        count : cint;
      end;
 
    PXErrorEvent = ^TXErrorEvent;
    TXErrorEvent = record
-        _type : longint;
+        _type : cint;
         display : PDisplay;
         resourceid : TXID;
-        serial : dword;
-        error_code : byte;
-        request_code : byte;
-        minor_code : byte;
+        serial : culong;
+        error_code : cuchar;
+        request_code : cuchar;
+        minor_code : cuchar;
      end;
 
    PXAnyEvent = ^TXAnyEvent;
    TXAnyEvent = record
-        _type : longint;
-        serial : dword;
+        _type : cint;
+        serial : culong;
         send_event : TBool;
         display : PDisplay;
         window : TWindow;
@@ -832,7 +816,7 @@ type
    PXEvent = ^TXEvent;
    TXEvent = record
        case longint of
-          0 : ( _type : longint );
+          0 : ( _type : cint );
           1 : ( xany : TXAnyEvent );
           2 : ( xkey : TXKeyEvent );
           3 : ( xbutton : TXButtonEvent );
@@ -864,25 +848,25 @@ type
           29 : ( xmapping : TXMappingEvent );
           30 : ( xerror : TXErrorEvent );
           31 : ( xkeymap : TXKeymapEvent );
-          32 : ( pad : array[0..23] of longint );
+          32 : ( pad : array[0..23] of clong );
        end;
 
 type
 
    PXCharStruct = ^TXCharStruct;
    TXCharStruct = record
-        lbearing : smallint;
-        rbearing : smallint;
-        width : smallint;
-        ascent : smallint;
-        descent : smallint;
-        attributes : word;
+        lbearing : cshort;
+        rbearing : cshort;
+        width : cshort;
+        ascent : cshort;
+        descent : cshort;
+        attributes : cushort;
      end;
 
    PXFontProp = ^TXFontProp;
    TXFontProp = record
         name : TAtom;
-        card32 : dword;
+        card32 : culong;
      end;
 
    PPPXFontStruct = ^PPXFontStruct;
@@ -891,41 +875,41 @@ type
    TXFontStruct = record
         ext_data : PXExtData;
         fid : TFont;
-        direction : dword;
-        min_char_or_byte2 : dword;
-        max_char_or_byte2 : dword;
-        min_byte1 : dword;
-        max_byte1 : dword;
+        direction : cunsigned;
+        min_char_or_byte2 : cunsigned;
+        max_char_or_byte2 : cunsigned;
+        min_byte1 : cunsigned;
+        max_byte1 : cunsigned;
         all_chars_exist : TBool;
-        default_char : dword;
-        n_properties : longint;
+        default_char : cunsigned;
+        n_properties : cint;
         properties : PXFontProp;
         min_bounds : TXCharStruct;
         max_bounds : TXCharStruct;
         per_char : PXCharStruct;
-        ascent : longint;
-        descent : longint;
+        ascent : cint;
+        descent : cint;
      end;
 
    PXTextItem = ^TXTextItem;
    TXTextItem = record
         chars : Pchar;
-        nchars : longint;
-        delta : longint;
+        nchars : cint;
+        delta : cint;
         font : TFont;
      end;
 
    PXChar2b = ^TXChar2b;
    TXChar2b = record
-        byte1 : byte;
-        byte2 : byte;
+        byte1 : cuchar;
+        byte2 : cuchar;
      end;
 
    PXTextItem16 = ^TXTextItem16;
    TXTextItem16 = record
         chars : PXChar2b;
-        nchars : longint;
-        delta : longint;
+        nchars : cint;
+        delta : cint;
         font : TFont;
      end;
 
@@ -959,16 +943,16 @@ type
    PXmbTextItem = ^TXmbTextItem;
    TXmbTextItem = record
         chars : Pchar;
-        nchars : longint;
-        delta : longint;
+        nchars : cint;
+        delta : cint;
         font_set : TXFontSet;
      end;
 
    PXwcTextItem = ^TXwcTextItem;
    TXwcTextItem = record
-        chars : PWideChar;
-        nchars : longint;
-        delta : longint;
+        chars : PWideChar; {wchar_t*}
+        nchars : cint;
+        delta : cint;
         font_set : TXFontSet;
      end;
 
@@ -987,7 +971,7 @@ type
 
    PXOMCharSetList = ^TXOMCharSetList;
    TXOMCharSetList = record
-        charset_count : longint;
+        charset_count : cint;
         charset_list : PPChar;
      end;
 
@@ -998,13 +982,13 @@ type
 
    PXOMOrientation = ^TXOMOrientation;
    TXOMOrientation = record
-        num_orientation : longint;
+        num_orientation : cint;
         orientation : PXOrientation;
      end;
 
    PXOMFontInfo = ^TXOMFontInfo;
    TXOMFontInfo = record
-        num_font : longint;
+        num_font : cint;
         font_struct_list : ^PXFontStruct;
         font_name_list : PPChar;
      end;
@@ -1024,11 +1008,11 @@ type
    TXIDProc = procedure (para1:PDisplay; para2:TXPointer; para3:TXPointer);cdecl;
 
    PXIMStyle = ^TXIMStyle;
-   TXIMStyle = dword;
+   TXIMStyle = culong;
 
    PXIMStyles = ^TXIMStyles;
    TXIMStyles = record
-        count_styles : word;
+        count_styles : cushort;
         supported_styles : PXIMStyle;
      end;
 
@@ -1107,7 +1091,7 @@ type
      end;
 
    PXIMFeedback = ^TXIMFeedback;
-   TXIMFeedback = dword;
+   TXIMFeedback = culong;
 
 const
    XIMReverse = 1;
@@ -1123,18 +1107,18 @@ type
 
    PXIMText = ^TXIMText;
    TXIMText = record
-        length : word;
+        length : cushort;
         feedback : PXIMFeedback;
         encoding_is_wchar : TBool;
         _string : record
             case longint of
                0 : ( multi_byte : Pchar );
-               1 : ( wide_char : PWideChar );
+               1 : ( wide_char : PWideChar ); {wchar_t*}
             end;
      end;
 
    PXIMPreeditState = ^TXIMPreeditState;
-   TXIMPreeditState = dword;
+   TXIMPreeditState = culong;
 
 const
    XIMPreeditUnKnown = 0;
@@ -1148,7 +1132,7 @@ type
      end;
 
    PXIMResetState = ^TXIMResetState;
-   TXIMResetState = dword;
+   TXIMResetState = culong;
 
 const
    XIMInitialState = 1;
@@ -1156,7 +1140,7 @@ const
 type
 
    PXIMStringConversionFeedback = ^TXIMStringConversionFeedback;
-   TXIMStringConversionFeedback = dword;
+   TXIMStringConversionFeedback = culong;
 
 const
    XIMStringConversionLeftEdge = $00000001;
@@ -1169,21 +1153,21 @@ type
 
    PXIMStringConversionText = ^TXIMStringConversionText;
    TXIMStringConversionText = record
-        length : word;
+        length : cushort;
         feedback : PXIMStringConversionFeedback;
         encoding_is_wchar : TBool;
         _string : record
             case longint of
                0 : ( mbs : Pchar );
-               1 : ( wcs : PWideChar );
+               1 : ( wcs : PWideChar ); {wchar_t*}
             end;
      end;
 
    PXIMStringConversionPosition = ^TXIMStringConversionPosition;
-   TXIMStringConversionPosition = word;
+   TXIMStringConversionPosition = cushort;
 
    PXIMStringConversionType = ^TXIMStringConversionType;
-   TXIMStringConversionType = word;
+   TXIMStringConversionType = cushort;
 
 const
    XIMStringConversionBuffer = $0001;
@@ -1193,7 +1177,7 @@ const
 type
 
    PXIMStringConversionOperation = ^TXIMStringConversionOperation;
-   TXIMStringConversionOperation = word;
+   TXIMStringConversionOperation = cushort;
 
 const
    XIMStringConversionSubstitution = $0001;
@@ -1212,15 +1196,15 @@ type
         position : TXIMStringConversionPosition;
         direction : TXIMCaretDirection;
         operation : TXIMStringConversionOperation;
-        factor : word;
+        factor : cushort;
         text : PXIMStringConversionText;
      end;
 
    PXIMPreeditDrawCallbackStruct = ^TXIMPreeditDrawCallbackStruct;
    TXIMPreeditDrawCallbackStruct = record
-        caret : longint;
-        chg_first : longint;
-        chg_length : longint;
+        caret : cint;
+        chg_first : cint;
+        chg_length : cint;
         text : PXIMText;
      end;
 
@@ -1230,7 +1214,7 @@ type
 
    PXIMPreeditCaretCallbackStruct = ^TXIMPreeditCaretCallbackStruct;
    TXIMPreeditCaretCallbackStruct = record
-        position : longint;
+        position : cint;
         direction : TXIMCaretDirection;
         style : TXIMCaretStyle;
      end;
@@ -1251,18 +1235,18 @@ type
    PXIMHotKeyTrigger = ^TXIMHotKeyTrigger;
    TXIMHotKeyTrigger = record
         keysym : TKeySym;
-        modifier : longint;
-        modifier_mask : longint;
+        modifier : cint;
+        modifier_mask : cint;
      end;
 
    PXIMHotKeyTriggers = ^TXIMHotKeyTriggers;
    TXIMHotKeyTriggers = record
-        num_hot_key : longint;
+        num_hot_key : cint;
         key : PXIMHotKeyTrigger;
      end;
 
    PXIMHotKeyState = ^TXIMHotKeyState;
-   TXIMHotKeyState = dword;
+   TXIMHotKeyState = culong;
 
 const
    XIMHotKeyStateON = $0001;
@@ -1271,508 +1255,527 @@ type
 
    PXIMValuesList = ^TXIMValuesList;
    TXIMValuesList = record
-        count_values : word;
+        count_values : cushort;
         supported_values : PPChar;
      end;
 {$ifndef os2}
   var
-     _Xdebug : longint;cvar;external;
+     _Xdebug : cint;cvar;external;
 {$endif}
 type
-  funclong = function :longint;
-  funcbool = function :TBool;
+  funcdisp = function(display:PDisplay):cint;cdecl;
+  funcifevent = function(display:PDisplay; event:PXEvent; p : TXPointer):TBool;cdecl;
   chararr32 = array[0..31] of char;
 
 const
-  AllPlanes : dword = dword(not 0);
+  AllPlanes : culong = culong(not 0);
 
 function XLoadQueryFont(para1:PDisplay; para2:Pchar):PXFontStruct;cdecl;external libX11;
 function XQueryFont(para1:PDisplay; para2:TXID):PXFontStruct;cdecl;external libX11;
-function XGetMotionEvents(para1:PDisplay; para2:TWindow; para3:TTime; para4:TTime; para5:Plongint):PXTimeCoord;cdecl;external libX11;
-function XDeleteModifiermapEntry(para1:PXModifierKeymap; para2:TKeyCode; para3:longint):PXModifierKeymap;cdecl;external libX11;
+function XGetMotionEvents(para1:PDisplay; para2:TWindow; para3:TTime; para4:TTime; para5:Pcint):PXTimeCoord;cdecl;external libX11;
+function XDeleteModifiermapEntry(para1:PXModifierKeymap; para2:TKeyCode; para3:cint):PXModifierKeymap;cdecl;external libX11;
 function XGetModifierMapping(para1:PDisplay):PXModifierKeymap;cdecl;external libX11;
-function XInsertModifiermapEntry(para1:PXModifierKeymap; para2:TKeyCode; para3:longint):PXModifierKeymap;cdecl;external libX11;
-function XNewModifiermap(para1:longint):PXModifierKeymap;cdecl;external libX11;
-function XCreateImage(para1:PDisplay; para2:PVisual; para3:dword; para4:longint; para5:longint;
-           para6:Pchar; para7:dword; para8:dword; para9:longint; para10:longint):PXImage;cdecl;external libX11;
+function XInsertModifiermapEntry(para1:PXModifierKeymap; para2:TKeyCode; para3:cint):PXModifierKeymap;cdecl;external libX11;
+function XNewModifiermap(para1:cint):PXModifierKeymap;cdecl;external libX11;
+function XCreateImage(para1:PDisplay; para2:PVisual; para3:cuint; para4:cint; para5:cint;
+           para6:Pchar; para7:cuint; para8:cuint; para9:cint; para10:cint):PXImage;cdecl;external libX11;
 function XInitImage(para1:PXImage):TStatus;cdecl;external libX11;
-function XGetImage(para1:PDisplay; para2:TDrawable; para3:longint; para4:longint; para5:dword;
-           para6:dword; para7:dword; para8:longint):PXImage;cdecl;external libX11;
-function XGetSubImage(para1:PDisplay; para2:TDrawable; para3:longint; para4:longint; para5:dword;
-           para6:dword; para7:dword; para8:longint; para9:PXImage; para10:longint;
-           para11:longint):PXImage;cdecl;external libX11;
+function XGetImage(para1:PDisplay; para2:TDrawable; para3:cint; para4:cint; para5:cuint;
+           para6:cuint; para7:culong; para8:cint):PXImage;cdecl;external libX11;
+function XGetSubImage(para1:PDisplay; para2:TDrawable; para3:cint; para4:cint; para5:cuint;
+           para6:cuint; para7:culong; para8:cint; para9:PXImage; para10:cint;
+           para11:cint):PXImage;cdecl;external libX11;
 function XOpenDisplay(para1:Pchar):PDisplay;cdecl;external libX11;
 procedure XrmInitialize;cdecl;external libX11;
-function XFetchBytes(para1:PDisplay; para2:Plongint):Pchar;cdecl;external libX11;
-function XFetchBuffer(para1:PDisplay; para2:Plongint; para3:longint):Pchar;cdecl;external libX11;
+function XFetchBytes(para1:PDisplay; para2:Pcint):Pchar;cdecl;external libX11;
+function XFetchBuffer(para1:PDisplay; para2:Pcint; para3:cint):Pchar;cdecl;external libX11;
 function XGetAtomName(para1:PDisplay; para2:TAtom):Pchar;cdecl;external libX11;
-function XGetAtomNames(para1:PDisplay; para2:PAtom; para3:longint; para4:PPchar):TStatus;cdecl;external libX11;
+function XGetAtomNames(para1:PDisplay; para2:PAtom; para3:cint; para4:PPchar):TStatus;cdecl;external libX11;
 function XGetDefault(para1:PDisplay; para2:Pchar; para3:Pchar):Pchar;cdecl;external libX11;
 function XDisplayName(para1:Pchar):Pchar;cdecl;external libX11;
 function XKeysymToString(para1:TKeySym):Pchar;cdecl;external libX11;
-function XSynchronize(para1:PDisplay; para2:TBool):funclong;cdecl;external libX11;
-function XSetAfterFunction(para1:PDisplay; para2:funclong):funclong;cdecl;external libX11;
+function XSynchronize(para1:PDisplay; para2:TBool):funcdisp;cdecl;external libX11;
+function XSetAfterFunction(para1:PDisplay; para2:funcdisp):funcdisp;cdecl;external libX11;
 function XInternAtom(para1:PDisplay; para2:Pchar; para3:TBool):TAtom;cdecl;external libX11;
-function XInternAtoms(para1:PDisplay; para2:PPchar; para3:longint; para4:TBool; para5:PAtom):TStatus;cdecl;external libX11;
+function XInternAtoms(para1:PDisplay; para2:PPchar; para3:cint; para4:TBool; para5:PAtom):TStatus;cdecl;external libX11;
 function XCopyColormapAndFree(para1:PDisplay; para2:TColormap):TColormap;cdecl;external libX11;
-function XCreateColormap(para1:PDisplay; para2:TWindow; para3:PVisual; para4:longint):TColormap;cdecl;external libX11;
+function XCreateColormap(para1:PDisplay; para2:TWindow; para3:PVisual; para4:cint):TColormap;cdecl;external libX11;
 function XCreatePixmapCursor(para1:PDisplay; para2:TPixmap; para3:TPixmap; para4:PXColor; para5:PXColor;
-           para6:dword; para7:dword):TCursor;cdecl;external libX11;
-function XCreateGlyphCursor(para1:PDisplay; para2:TFont; para3:TFont; para4:dword; para5:dword;
+           para6:cuint; para7:cuint):TCursor;cdecl;external libX11;
+function XCreateGlyphCursor(para1:PDisplay; para2:TFont; para3:TFont; para4:cuint; para5:cuint;
            para6:PXColor; para7:PXColor):TCursor;cdecl;external libX11;
-function XCreateFontCursor(para1:PDisplay; para2:dword):TCursor;cdecl;external libX11;
+function XCreateFontCursor(para1:PDisplay; para2:cuint):TCursor;cdecl;external libX11;
 function XLoadFont(para1:PDisplay; para2:Pchar):TFont;cdecl;external libX11;
-function XCreateGC(para1:PDisplay; para2:TDrawable; para3:dword; para4:PXGCValues):TGC;cdecl;external libX11;
+function XCreateGC(para1:PDisplay; para2:TDrawable; para3:culong; para4:PXGCValues):TGC;cdecl;external libX11;
 function XGContextFromGC(para1:TGC):TGContext;cdecl;external libX11;
 procedure XFlushGC(para1:PDisplay; para2:TGC);cdecl;external libX11;
-function XCreatePixmap(para1:PDisplay; para2:TDrawable; para3:dword; para4:dword; para5:dword):TPixmap;cdecl;external libX11;
-function XCreateBitmapFromData(para1:PDisplay; para2:TDrawable; para3:Pchar; para4:dword; para5:dword):TPixmap;cdecl;external libX11;
-function XCreatePixmapFromBitmapData(para1:PDisplay; para2:TDrawable; para3:Pchar; para4:dword; para5:dword;
-           para6:dword; para7:dword; para8:dword):TPixmap;cdecl;external libX11;
-function XCreateSimpleWindow(para1:PDisplay; para2:TWindow; para3:longint; para4:longint; para5:dword;
-           para6:dword; para7:dword; para8:dword; para9:dword):TWindow;cdecl;external libX11;
+function XCreatePixmap(para1:PDisplay; para2:TDrawable; para3:cuint; para4:cuint; para5:cuint):TPixmap;cdecl;external libX11;
+function XCreateBitmapFromData(para1:PDisplay; para2:TDrawable; para3:Pchar; para4:cuint; para5:cuint):TPixmap;cdecl;external libX11;
+function XCreatePixmapFromBitmapData(para1:PDisplay; para2:TDrawable; para3:Pchar; para4:cuint; para5:cuint;
+           para6:culong; para7:culong; para8:cuint):TPixmap;cdecl;external libX11;
+function XCreateSimpleWindow(para1:PDisplay; para2:TWindow; para3:cint; para4:cint; para5:cuint;
+           para6:cuint; para7:cuint; para8:culong; para9:culong):TWindow;cdecl;external libX11;
 function XGetSelectionOwner(para1:PDisplay; para2:TAtom):TWindow;cdecl;external libX11;
-function XCreateWindow(para1:PDisplay; para2:TWindow; para3:longint; para4:longint; para5:dword;
-           para6:dword; para7:dword; para8:longint; para9:dword; para10:PVisual;
-           para11:dword; para12:PXSetWindowAttributes):TWindow;cdecl;external libX11;
-function XListInstalledColormaps(para1:PDisplay; para2:TWindow; para3:Plongint):PColormap;cdecl;external libX11;
-function XListFonts(para1:PDisplay; para2:Pchar; para3:longint; para4:Plongint):PPChar;cdecl;external libX11;
-function XListFontsWithInfo(para1:PDisplay; para2:Pchar; para3:longint; para4:Plongint; para5:PPXFontStruct):PPChar;cdecl;external libX11;
-function XGetFontPath(para1:PDisplay; para2:Plongint):PPChar;cdecl;external libX11;
-function XListExtensions(para1:PDisplay; para2:Plongint):PPChar;cdecl;external libX11;
-function XListProperties(para1:PDisplay; para2:TWindow; para3:Plongint):PAtom;cdecl;external libX11;
-function XListHosts(para1:PDisplay; para2:Plongint; para3:PBool):PXHostAddress;cdecl;external libX11;
-function XKeycodeToKeysym(para1:PDisplay; para2:TKeyCode; para3:longint):TKeySym;cdecl;external libX11;
-function XLookupKeysym(para1:PXKeyEvent; para2:longint):TKeySym;cdecl;external libX11;
-function XGetKeyboardMapping(para1:PDisplay; para2:TKeyCode; para3:longint; para4:Plongint):PKeySym;cdecl;external libX11;
+function XCreateWindow(para1:PDisplay; para2:TWindow; para3:cint; para4:cint; para5:cuint;
+           para6:cuint; para7:cuint; para8:cint; para9:cuint; para10:PVisual;
+           para11:culong; para12:PXSetWindowAttributes):TWindow;cdecl;external libX11;
+function XListInstalledColormaps(para1:PDisplay; para2:TWindow; para3:Pcint):PColormap;cdecl;external libX11;
+function XListFonts(para1:PDisplay; para2:Pchar; para3:cint; para4:Pcint):PPChar;cdecl;external libX11;
+function XListFontsWithInfo(para1:PDisplay; para2:Pchar; para3:cint; para4:Pcint; para5:PPXFontStruct):PPChar;cdecl;external libX11;
+function XGetFontPath(para1:PDisplay; para2:Pcint):PPChar;cdecl;external libX11;
+function XListExtensions(para1:PDisplay; para2:Pcint):PPChar;cdecl;external libX11;
+function XListProperties(para1:PDisplay; para2:TWindow; para3:Pcint):PAtom;cdecl;external libX11;
+function XListHosts(para1:PDisplay; para2:Pcint; para3:PBool):PXHostAddress;cdecl;external libX11;
+function XKeycodeToKeysym(para1:PDisplay; para2:TKeyCode; para3:cint):TKeySym;cdecl;external libX11;
+function XLookupKeysym(para1:PXKeyEvent; para2:cint):TKeySym;cdecl;external libX11;
+function XGetKeyboardMapping(para1:PDisplay; para2:TKeyCode; para3:cint; para4:Pcint):PKeySym;cdecl;external libX11;
 function XStringToKeysym(para1:Pchar):TKeySym;cdecl;external libX11;
-function XMaxRequestSize(para1:PDisplay):longint;cdecl;external libX11;
-function XExtendedMaxRequestSize(para1:PDisplay):longint;cdecl;external libX11;
+function XMaxRequestSize(para1:PDisplay):clong;cdecl;external libX11;
+function XExtendedMaxRequestSize(para1:PDisplay):clong;cdecl;external libX11;
 function XResourceManagerString(para1:PDisplay):Pchar;cdecl;external libX11;
 function XScreenResourceString(para1:PScreen):Pchar;cdecl;external libX11;
-function XDisplayMotionBufferSize(para1:PDisplay):dword;cdecl;external libX11;
+function XDisplayMotionBufferSize(para1:PDisplay):culong;cdecl;external libX11;
 function XVisualIDFromVisual(para1:PVisual):TVisualID;cdecl;external libX11;
 function XInitThreads:TStatus;cdecl;external libX11;
 procedure XLockDisplay(para1:PDisplay);cdecl;external libX11;
 procedure XUnlockDisplay(para1:PDisplay);cdecl;external libX11;
 function XInitExtension(para1:PDisplay; para2:Pchar):PXExtCodes;cdecl;external libX11;
 function XAddExtension(para1:PDisplay):PXExtCodes;cdecl;external libX11;
-function XFindOnExtensionList(para1:PPXExtData; para2:longint):PXExtData;cdecl;external libX11;
+function XFindOnExtensionList(para1:PPXExtData; para2:cint):PXExtData;cdecl;external libX11;
 function XEHeadOfExtensionList(para1:TXEDataObject):PPXExtData;cdecl;external libX11;
-function XRootWindow(para1:PDisplay; para2:longint):TWindow;cdecl;external libX11;
+function XRootWindow(para1:PDisplay; para2:cint):TWindow;cdecl;external libX11;
 function XDefaultRootWindow(para1:PDisplay):TWindow;cdecl;external libX11;
 function XRootWindowOfScreen(para1:PScreen):TWindow;cdecl;external libX11;
-function XDefaultVisual(para1:PDisplay; para2:longint):PVisual;cdecl;external libX11;
+function XDefaultVisual(para1:PDisplay; para2:cint):PVisual;cdecl;external libX11;
 function XDefaultVisualOfScreen(para1:PScreen):PVisual;cdecl;external libX11;
-function XDefaultGC(para1:PDisplay; para2:longint):TGC;cdecl;external libX11;
+function XDefaultGC(para1:PDisplay; para2:cint):TGC;cdecl;external libX11;
 function XDefaultGCOfScreen(para1:PScreen):TGC;cdecl;external libX11;
-function XBlackPixel(para1:PDisplay; para2:longint):dword;cdecl;external libX11;
-function XWhitePixel(para1:PDisplay; para2:longint):dword;cdecl;external libX11;
-function XAllPlanes:dword;cdecl;external libX11;
-function XBlackPixelOfScreen(para1:PScreen):dword;cdecl;external libX11;
-function XWhitePixelOfScreen(para1:PScreen):dword;cdecl;external libX11;
-function XNextRequest(para1:PDisplay):dword;cdecl;external libX11;
-function XLastKnownRequestProcessed(para1:PDisplay):dword;cdecl;external libX11;
+function XBlackPixel(para1:PDisplay; para2:cint):culong;cdecl;external libX11;
+function XWhitePixel(para1:PDisplay; para2:cint):culong;cdecl;external libX11;
+function XAllPlanes:culong;cdecl;external libX11;
+function XBlackPixelOfScreen(para1:PScreen):culong;cdecl;external libX11;
+function XWhitePixelOfScreen(para1:PScreen):culong;cdecl;external libX11;
+function XNextRequest(para1:PDisplay):culong;cdecl;external libX11;
+function XLastKnownRequestProcessed(para1:PDisplay):culong;cdecl;external libX11;
 function XServerVendor(para1:PDisplay):Pchar;cdecl;external libX11;
 function XDisplayString(para1:PDisplay):Pchar;cdecl;external libX11;
-function XDefaultColormap(para1:PDisplay; para2:longint):TColormap;cdecl;external libX11;
+function XDefaultColormap(para1:PDisplay; para2:cint):TColormap;cdecl;external libX11;
 function XDefaultColormapOfScreen(para1:PScreen):TColormap;cdecl;external libX11;
 function XDisplayOfScreen(para1:PScreen):PDisplay;cdecl;external libX11;
-function XScreenOfDisplay(para1:PDisplay; para2:longint):PScreen;cdecl;external libX11;
+function XScreenOfDisplay(para1:PDisplay; para2:cint):PScreen;cdecl;external libX11;
 function XDefaultScreenOfDisplay(para1:PDisplay):PScreen;cdecl;external libX11;
-function XEventMaskOfScreen(para1:PScreen):longint;cdecl;external libX11;
-function XScreenNumberOfScreen(para1:PScreen):longint;cdecl;external libX11;
+function XEventMaskOfScreen(para1:PScreen):clong;cdecl;external libX11;
+function XScreenNumberOfScreen(para1:PScreen):cint;cdecl;external libX11;
 type
 
-   TXErrorHandler = function (para1:PDisplay; para2:PXErrorEvent):longint;cdecl;
+   TXErrorHandler = function (para1:PDisplay; para2:PXErrorEvent):cint;cdecl;
 
 function XSetErrorHandler(para1:TXErrorHandler):TXErrorHandler;cdecl;external libX11;
 type
 
-   TXIOErrorHandler = function (para1:PDisplay):longint;cdecl;
+   TXIOErrorHandler = function (para1:PDisplay):cint;cdecl;
 
 function XSetIOErrorHandler(para1:TXIOErrorHandler):TXIOErrorHandler;cdecl;external libX11;
-function XListPixmapFormats(para1:PDisplay; para2:Plongint):PXPixmapFormatValues;cdecl;external libX11;
-function XListDepths(para1:PDisplay; para2:longint; para3:Plongint):Plongint;cdecl;external libX11;
-function XReconfigureWMWindow(para1:PDisplay; para2:TWindow; para3:longint; para4:dword; para5:PXWindowChanges):TStatus;cdecl;external libX11;
-function XGetWMProtocols(para1:PDisplay; para2:TWindow; para3:PPAtom; para4:Plongint):TStatus;cdecl;external libX11;
-function XSetWMProtocols(para1:PDisplay; para2:TWindow; para3:PAtom; para4:longint):TStatus;cdecl;external libX11;
-function XIconifyWindow(para1:PDisplay; para2:TWindow; para3:longint):TStatus;cdecl;external libX11;
-function XWithdrawWindow(para1:PDisplay; para2:TWindow; para3:longint):TStatus;cdecl;external libX11;
-function XGetCommand(para1:PDisplay; para2:TWindow; para3:PPPchar; para4:Plongint):TStatus;cdecl;external libX11;
-function XGetWMColormapWindows(para1:PDisplay; para2:TWindow; para3:PPWindow; para4:Plongint):TStatus;cdecl;external libX11;
-function XSetWMColormapWindows(para1:PDisplay; para2:TWindow; para3:PWindow; para4:longint):TStatus;cdecl;external libX11;
+function XListPixmapFormats(para1:PDisplay; para2:Pcint):PXPixmapFormatValues;cdecl;external libX11;
+function XListDepths(para1:PDisplay; para2:cint; para3:Pcint):Pcint;cdecl;external libX11;
+function XReconfigureWMWindow(para1:PDisplay; para2:TWindow; para3:cint; para4:cuint; para5:PXWindowChanges):TStatus;cdecl;external libX11;
+function XGetWMProtocols(para1:PDisplay; para2:TWindow; para3:PPAtom; para4:Pcint):TStatus;cdecl;external libX11;
+function XSetWMProtocols(para1:PDisplay; para2:TWindow; para3:PAtom; para4:cint):TStatus;cdecl;external libX11;
+function XIconifyWindow(para1:PDisplay; para2:TWindow; para3:cint):TStatus;cdecl;external libX11;
+function XWithdrawWindow(para1:PDisplay; para2:TWindow; para3:cint):TStatus;cdecl;external libX11;
+function XGetCommand(para1:PDisplay; para2:TWindow; para3:PPPchar; para4:Pcint):TStatus;cdecl;external libX11;
+function XGetWMColormapWindows(para1:PDisplay; para2:TWindow; para3:PPWindow; para4:Pcint):TStatus;cdecl;external libX11;
+function XSetWMColormapWindows(para1:PDisplay; para2:TWindow; para3:PWindow; para4:cint):TStatus;cdecl;external libX11;
 procedure XFreeStringList(para1:PPchar);cdecl;external libX11;
-function XSetTransientForHint(para1:PDisplay; para2:TWindow; para3:TWindow):longint;cdecl;external libX11;
-function XActivateScreenSaver(para1:PDisplay):longint;cdecl;external libX11;
-function XAddHost(para1:PDisplay; para2:PXHostAddress):longint;cdecl;external libX11;
-function XAddHosts(para1:PDisplay; para2:PXHostAddress; para3:longint):longint;cdecl;external libX11;
-function XAddToExtensionList(para1:PPXExtData; para2:PXExtData):longint;cdecl;external libX11;
-function XAddToSaveSet(para1:PDisplay; para2:TWindow):longint;cdecl;external libX11;
+function XSetTransientForHint(para1:PDisplay; para2:TWindow; para3:TWindow):cint;cdecl;external libX11;
+function XActivateScreenSaver(para1:PDisplay):cint;cdecl;external libX11;
+function XAddHost(para1:PDisplay; para2:PXHostAddress):cint;cdecl;external libX11;
+function XAddHosts(para1:PDisplay; para2:PXHostAddress; para3:cint):cint;cdecl;external libX11;
+function XAddToExtensionList(para1:PPXExtData; para2:PXExtData):cint;cdecl;external libX11;
+function XAddToSaveSet(para1:PDisplay; para2:TWindow):cint;cdecl;external libX11;
 function XAllocColor(para1:PDisplay; para2:TColormap; para3:PXColor):TStatus;cdecl;external libX11;
-function XAllocColorCells(para1:PDisplay; para2:TColormap; para3:TBool; para4:Pdword; para5:dword;
-           para6:Pdword; para7:dword):TStatus;cdecl;external libX11;
-function XAllocColorPlanes(para1:PDisplay; para2:TColormap; para3:TBool; para4:Pdword; para5:longint;
-           para6:longint; para7:longint; para8:longint; para9:Pdword; para10:Pdword;
-           para11:Pdword):TStatus;cdecl;external libX11;
+function XAllocColorCells(para1:PDisplay; para2:TColormap; para3:TBool; para4:Pculong; para5:cuint;
+           para6:Pculong; para7:cuint):TStatus;cdecl;external libX11;
+function XAllocColorPlanes(para1:PDisplay; para2:TColormap; para3:TBool; para4:Pculong; para5:cint;
+           para6:cint; para7:cint; para8:cint; para9:Pculong; para10:Pculong;
+           para11:Pculong):TStatus;cdecl;external libX11;
 function XAllocNamedColor(para1:PDisplay; para2:TColormap; para3:Pchar; para4:PXColor; para5:PXColor):TStatus;cdecl;external libX11;
-function XAllowEvents(para1:PDisplay; para2:longint; para3:TTime):longint;cdecl;external libX11;
-function XAutoRepeatOff(para1:PDisplay):longint;cdecl;external libX11;
-function XAutoRepeatOn(para1:PDisplay):longint;cdecl;external libX11;
-function XBell(para1:PDisplay; para2:longint):longint;cdecl;external libX11;
-function XBitmapBitOrder(para1:PDisplay):longint;cdecl;external libX11;
-function XBitmapPad(para1:PDisplay):longint;cdecl;external libX11;
-function XBitmapUnit(para1:PDisplay):longint;cdecl;external libX11;
-function XCellsOfScreen(para1:PScreen):longint;cdecl;external libX11;
-function XChangeActivePointerGrab(para1:PDisplay; para2:dword; para3:TCursor; para4:TTime):longint;cdecl;external libX11;
-function XChangeGC(para1:PDisplay; para2:TGC; para3:dword; para4:PXGCValues):longint;cdecl;external libX11;
-function XChangeKeyboardControl(para1:PDisplay; para2:dword; para3:PXKeyboardControl):longint;cdecl;external libX11;
-function XChangeKeyboardMapping(para1:PDisplay; para2:longint; para3:longint; para4:PKeySym; para5:longint):longint;cdecl;external libX11;
-function XChangePointerControl(para1:PDisplay; para2:TBool; para3:TBool; para4:longint; para5:longint;
-           para6:longint):longint;cdecl;external libX11;
-function XChangeProperty(para1:PDisplay; para2:TWindow; para3:TAtom; para4:TAtom; para5:longint;
-           para6:longint; para7:Pbyte; para8:longint):longint;cdecl;external libX11;
-function XChangeSaveSet(para1:PDisplay; para2:TWindow; para3:longint):longint;cdecl;external libX11;
-function XChangeWindowAttributes(para1:PDisplay; para2:TWindow; para3:dword; para4:PXSetWindowAttributes):longint;cdecl;external libX11;
-function XCheckIfEvent(para1:PDisplay; para2:PXEvent; para3:funcbool; para4:TXPointer):TBool;cdecl;external libX11;
-function XCheckMaskEvent(para1:PDisplay; para2:longint; para3:PXEvent):TBool;cdecl;external libX11;
-function XCheckTypedEvent(para1:PDisplay; para2:longint; para3:PXEvent):TBool;cdecl;external libX11;
-function XCheckTypedWindowEvent(para1:PDisplay; para2:TWindow; para3:longint; para4:PXEvent):TBool;cdecl;external libX11;
-function XCheckWindowEvent(para1:PDisplay; para2:TWindow; para3:longint; para4:PXEvent):TBool;cdecl;external libX11;
-function XCirculateSubwindows(para1:PDisplay; para2:TWindow; para3:longint):longint;cdecl;external libX11;
-function XCirculateSubwindowsDown(para1:PDisplay; para2:TWindow):longint;cdecl;external libX11;
-function XCirculateSubwindowsUp(para1:PDisplay; para2:TWindow):longint;cdecl;external libX11;
-function XClearArea(para1:PDisplay; para2:TWindow; para3:longint; para4:longint; para5:dword;
-           para6:dword; para7:TBool):longint;cdecl;external libX11;
-function XClearWindow(para1:PDisplay; para2:TWindow):longint;cdecl;external libX11;
-function XCloseDisplay(para1:PDisplay):longint;cdecl;external libX11;
-function XConfigureWindow(para1:PDisplay; para2:TWindow; para3:dword; para4:PXWindowChanges):longint;cdecl;external libX11;
-function XConnectionNumber(para1:PDisplay):longint;cdecl;external libX11;
+function XAllowEvents(para1:PDisplay; para2:cint; para3:TTime):cint;cdecl;external libX11;
+function XAutoRepeatOff(para1:PDisplay):cint;cdecl;external libX11;
+function XAutoRepeatOn(para1:PDisplay):cint;cdecl;external libX11;
+function XBell(para1:PDisplay; para2:cint):cint;cdecl;external libX11;
+function XBitmapBitOrder(para1:PDisplay):cint;cdecl;external libX11;
+function XBitmapPad(para1:PDisplay):cint;cdecl;external libX11;
+function XBitmapUnit(para1:PDisplay):cint;cdecl;external libX11;
+function XCellsOfScreen(para1:PScreen):cint;cdecl;external libX11;
+function XChangeActivePointerGrab(para1:PDisplay; para2:cuint; para3:TCursor; para4:TTime):cint;cdecl;external libX11;
+function XChangeGC(para1:PDisplay; para2:TGC; para3:culong; para4:PXGCValues):cint;cdecl;external libX11;
+function XChangeKeyboardControl(para1:PDisplay; para2:culong; para3:PXKeyboardControl):cint;cdecl;external libX11;
+function XChangeKeyboardMapping(para1:PDisplay; para2:cint; para3:cint; para4:PKeySym; para5:cint):cint;cdecl;external libX11;
+function XChangePointerControl(para1:PDisplay; para2:TBool; para3:TBool; para4:cint; para5:cint;
+           para6:cint):cint;cdecl;external libX11;
+function XChangeProperty(para1:PDisplay; para2:TWindow; para3:TAtom; para4:TAtom; para5:cint;
+           para6:cint; para7:Pcuchar; para8:cint):cint;cdecl;external libX11;
+function XChangeSaveSet(para1:PDisplay; para2:TWindow; para3:cint):cint;cdecl;external libX11;
+function XChangeWindowAttributes(para1:PDisplay; para2:TWindow; para3:culong; para4:PXSetWindowAttributes):cint;cdecl;external libX11;
+function XCheckIfEvent(para1:PDisplay; para2:PXEvent; para3:funcifevent; para4:TXPointer):TBool;cdecl;external libX11;
+function XCheckMaskEvent(para1:PDisplay; para2:clong; para3:PXEvent):TBool;cdecl;external libX11;
+function XCheckTypedEvent(para1:PDisplay; para2:cint; para3:PXEvent):TBool;cdecl;external libX11;
+function XCheckTypedWindowEvent(para1:PDisplay; para2:TWindow; para3:cint; para4:PXEvent):TBool;cdecl;external libX11;
+function XCheckWindowEvent(para1:PDisplay; para2:TWindow; para3:clong; para4:PXEvent):TBool;cdecl;external libX11;
+function XCirculateSubwindows(para1:PDisplay; para2:TWindow; para3:cint):cint;cdecl;external libX11;
+function XCirculateSubwindowsDown(para1:PDisplay; para2:TWindow):cint;cdecl;external libX11;
+function XCirculateSubwindowsUp(para1:PDisplay; para2:TWindow):cint;cdecl;external libX11;
+function XClearArea(para1:PDisplay; para2:TWindow; para3:cint; para4:cint; para5:cuint;
+           para6:cuint; para7:TBool):cint;cdecl;external libX11;
+function XClearWindow(para1:PDisplay; para2:TWindow):cint;cdecl;external libX11;
+function XCloseDisplay(para1:PDisplay):cint;cdecl;external libX11;
+function XConfigureWindow(para1:PDisplay; para2:TWindow; para3:cuint; para4:PXWindowChanges):cint;cdecl;external libX11;
+function XConnectionNumber(para1:PDisplay):cint;cdecl;external libX11;
 function XConvertSelection(para1:PDisplay; para2:TAtom; para3:TAtom; para4:TAtom; para5:TWindow;
-           para6:TTime):longint;cdecl;external libX11;
-function XCopyArea(para1:PDisplay; para2:TDrawable; para3:TDrawable; para4:TGC; para5:longint;
-           para6:longint; para7:dword; para8:dword; para9:longint; para10:longint):longint;cdecl;external libX11;
-function XCopyGC(para1:PDisplay; para2:TGC; para3:dword; para4:TGC):longint;cdecl;external libX11;
-function XCopyPlane(para1:PDisplay; para2:TDrawable; para3:TDrawable; para4:TGC; para5:longint;
-           para6:longint; para7:dword; para8:dword; para9:longint; para10:longint;
-           para11:dword):longint;cdecl;external libX11;
-function XDefaultDepth(para1:PDisplay; para2:longint):longint;cdecl;external libX11;
-function XDefaultDepthOfScreen(para1:PScreen):longint;cdecl;external libX11;
-function XDefaultScreen(para1:PDisplay):longint;cdecl;external libX11;
-function XDefineCursor(para1:PDisplay; para2:TWindow; para3:TCursor):longint;cdecl;external libX11;
-function XDeleteProperty(para1:PDisplay; para2:TWindow; para3:TAtom):longint;cdecl;external libX11;
-function XDestroyWindow(para1:PDisplay; para2:TWindow):longint;cdecl;external libX11;
-function XDestroySubwindows(para1:PDisplay; para2:TWindow):longint;cdecl;external libX11;
-function XDoesBackingStore(para1:PScreen):longint;cdecl;external libX11;
+           para6:TTime):cint;cdecl;external libX11;
+function XCopyArea(para1:PDisplay; para2:TDrawable; para3:TDrawable; para4:TGC; para5:cint;
+           para6:cint; para7:cuint; para8:cuint; para9:cint; para10:cint):cint;cdecl;external libX11;
+function XCopyGC(para1:PDisplay; para2:TGC; para3:culong; para4:TGC):cint;cdecl;external libX11;
+function XCopyPlane(para1:PDisplay; para2:TDrawable; para3:TDrawable; para4:TGC; para5:cint;
+           para6:cint; para7:cuint; para8:cuint; para9:cint; para10:cint;
+           para11:culong):cint;cdecl;external libX11;
+function XDefaultDepth(para1:PDisplay; para2:cint):cint;cdecl;external libX11;
+function XDefaultDepthOfScreen(para1:PScreen):cint;cdecl;external libX11;
+function XDefaultScreen(para1:PDisplay):cint;cdecl;external libX11;
+function XDefineCursor(para1:PDisplay; para2:TWindow; para3:TCursor):cint;cdecl;external libX11;
+function XDeleteProperty(para1:PDisplay; para2:TWindow; para3:TAtom):cint;cdecl;external libX11;
+function XDestroyWindow(para1:PDisplay; para2:TWindow):cint;cdecl;external libX11;
+function XDestroySubwindows(para1:PDisplay; para2:TWindow):cint;cdecl;external libX11;
+function XDoesBackingStore(para1:PScreen):cint;cdecl;external libX11;
 function XDoesSaveUnders(para1:PScreen):TBool;cdecl;external libX11;
-function XDisableAccessControl(para1:PDisplay):longint;cdecl;external libX11;
-function XDisplayCells(para1:PDisplay; para2:longint):longint;cdecl;external libX11;
-function XDisplayHeight(para1:PDisplay; para2:longint):longint;cdecl;external libX11;
-function XDisplayHeightMM(para1:PDisplay; para2:longint):longint;cdecl;external libX11;
-function XDisplayKeycodes(para1:PDisplay; para2:Plongint; para3:Plongint):longint;cdecl;external libX11;
-function XDisplayPlanes(para1:PDisplay; para2:longint):longint;cdecl;external libX11;
-function XDisplayWidth(para1:PDisplay; para2:longint):longint;cdecl;external libX11;
-function XDisplayWidthMM(para1:PDisplay; para2:longint):longint;cdecl;external libX11;
-function XDrawArc(para1:PDisplay; para2:TDrawable; para3:TGC; para4:longint; para5:longint;
-           para6:dword; para7:dword; para8:longint; para9:longint):longint;cdecl;external libX11;
-function XDrawArcs(para1:PDisplay; para2:TDrawable; para3:TGC; para4:PXArc; para5:longint):longint;cdecl;external libX11;
-function XDrawImageString(para1:PDisplay; para2:TDrawable; para3:TGC; para4:longint; para5:longint;
-           para6:Pchar; para7:longint):longint;cdecl;external libX11;
-function XDrawImageString16(para1:PDisplay; para2:TDrawable; para3:TGC; para4:longint; para5:longint;
-           para6:PXChar2b; para7:longint):longint;cdecl;external libX11;
-function XDrawLine(para1:PDisplay; para2:TDrawable; para3:TGC; para4:longint; para5:longint;
-           para6:longint; para7:longint):longint;cdecl;external libX11;
-function XDrawLines(para1:PDisplay; para2:TDrawable; para3:TGC; para4:PXPoint; para5:longint;
-           para6:longint):longint;cdecl;external libX11;
-function XDrawPoint(para1:PDisplay; para2:TDrawable; para3:TGC; para4:longint; para5:longint):longint;cdecl;external libX11;
-function XDrawPoints(para1:PDisplay; para2:TDrawable; para3:TGC; para4:PXPoint; para5:longint;
-           para6:longint):longint;cdecl;external libX11;
-function XDrawRectangle(para1:PDisplay; para2:TDrawable; para3:TGC; para4:longint; para5:longint;
-           para6:dword; para7:dword):longint;cdecl;external libX11;
-function XDrawRectangles(para1:PDisplay; para2:TDrawable; para3:TGC; para4:PXRectangle; para5:longint):longint;cdecl;external libX11;
-function XDrawSegments(para1:PDisplay; para2:TDrawable; para3:TGC; para4:PXSegment; para5:longint):longint;cdecl;external libX11;
-function XDrawString(para1:PDisplay; para2:TDrawable; para3:TGC; para4:longint; para5:longint;
-           para6:Pchar; para7:longint):longint;cdecl;external libX11;
-function XDrawString16(para1:PDisplay; para2:TDrawable; para3:TGC; para4:longint; para5:longint;
-           para6:PXChar2b; para7:longint):longint;cdecl;external libX11;
-function XDrawText(para1:PDisplay; para2:TDrawable; para3:TGC; para4:longint; para5:longint;
-           para6:PXTextItem; para7:longint):longint;cdecl;external libX11;
-function XDrawText16(para1:PDisplay; para2:TDrawable; para3:TGC; para4:longint; para5:longint;
-           para6:PXTextItem16; para7:longint):longint;cdecl;external libX11;
-function XEnableAccessControl(para1:PDisplay):longint;cdecl;external libX11;
-function XEventsQueued(para1:PDisplay; para2:longint):longint;cdecl;external libX11;
+function XDisableAccessControl(para1:PDisplay):cint;cdecl;external libX11;
+function XDisplayCells(para1:PDisplay; para2:cint):cint;cdecl;external libX11;
+function XDisplayHeight(para1:PDisplay; para2:cint):cint;cdecl;external libX11;
+function XDisplayHeightMM(para1:PDisplay; para2:cint):cint;cdecl;external libX11;
+function XDisplayKeycodes(para1:PDisplay; para2:Pcint; para3:Pcint):cint;cdecl;external libX11;
+function XDisplayPlanes(para1:PDisplay; para2:cint):cint;cdecl;external libX11;
+function XDisplayWidth(para1:PDisplay; para2:cint):cint;cdecl;external libX11;
+function XDisplayWidthMM(para1:PDisplay; para2:cint):cint;cdecl;external libX11;
+function XDrawArc(para1:PDisplay; para2:TDrawable; para3:TGC; para4:cint; para5:cint;
+           para6:cuint; para7:cuint; para8:cint; para9:cint):cint;cdecl;external libX11;
+function XDrawArcs(para1:PDisplay; para2:TDrawable; para3:TGC; para4:PXArc; para5:cint):cint;cdecl;external libX11;
+function XDrawImageString(para1:PDisplay; para2:TDrawable; para3:TGC; para4:cint; para5:cint;
+           para6:Pchar; para7:cint):cint;cdecl;external libX11;
+function XDrawImageString16(para1:PDisplay; para2:TDrawable; para3:TGC; para4:cint; para5:cint;
+           para6:PXChar2b; para7:cint):cint;cdecl;external libX11;
+function XDrawLine(para1:PDisplay; para2:TDrawable; para3:TGC; para4:cint; para5:cint;
+           para6:cint; para7:cint):cint;cdecl;external libX11;
+function XDrawLines(para1:PDisplay; para2:TDrawable; para3:TGC; para4:PXPoint; para5:cint;
+           para6:cint):cint;cdecl;external libX11;
+function XDrawPoint(para1:PDisplay; para2:TDrawable; para3:TGC; para4:cint; para5:cint):cint;cdecl;external libX11;
+function XDrawPoints(para1:PDisplay; para2:TDrawable; para3:TGC; para4:PXPoint; para5:cint;
+           para6:cint):cint;cdecl;external libX11;
+function XDrawRectangle(para1:PDisplay; para2:TDrawable; para3:TGC; para4:cint; para5:cint;
+           para6:cuint; para7:cuint):cint;cdecl;external libX11;
+function XDrawRectangles(para1:PDisplay; para2:TDrawable; para3:TGC; para4:PXRectangle; para5:cint):cint;cdecl;external libX11;
+function XDrawSegments(para1:PDisplay; para2:TDrawable; para3:TGC; para4:PXSegment; para5:cint):cint;cdecl;external libX11;
+function XDrawString(para1:PDisplay; para2:TDrawable; para3:TGC; para4:cint; para5:cint;
+           para6:Pchar; para7:cint):cint;cdecl;external libX11;
+function XDrawString16(para1:PDisplay; para2:TDrawable; para3:TGC; para4:cint; para5:cint;
+           para6:PXChar2b; para7:cint):cint;cdecl;external libX11;
+function XDrawText(para1:PDisplay; para2:TDrawable; para3:TGC; para4:cint; para5:cint;
+           para6:PXTextItem; para7:cint):cint;cdecl;external libX11;
+function XDrawText16(para1:PDisplay; para2:TDrawable; para3:TGC; para4:cint; para5:cint;
+           para6:PXTextItem16; para7:cint):cint;cdecl;external libX11;
+function XEnableAccessControl(para1:PDisplay):cint;cdecl;external libX11;
+function XEventsQueued(para1:PDisplay; para2:cint):cint;cdecl;external libX11;
 function XFetchName(para1:PDisplay; para2:TWindow; para3:PPchar):TStatus;cdecl;external libX11;
-function XFillArc(para1:PDisplay; para2:TDrawable; para3:TGC; para4:longint; para5:longint;
-           para6:dword; para7:dword; para8:longint; para9:longint):longint;cdecl;external libX11;
-function XFillArcs(para1:PDisplay; para2:TDrawable; para3:TGC; para4:PXArc; para5:longint):longint;cdecl;external libX11;
-function XFillPolygon(para1:PDisplay; para2:TDrawable; para3:TGC; para4:PXPoint; para5:longint;
-           para6:longint; para7:longint):longint;cdecl;external libX11;
-function XFillRectangle(para1:PDisplay; para2:TDrawable; para3:TGC; para4:longint; para5:longint;
-           para6:dword; para7:dword):longint;cdecl;external libX11;
-function XFillRectangles(para1:PDisplay; para2:TDrawable; para3:TGC; para4:PXRectangle; para5:longint):longint;cdecl;external libX11;
-function XFlush(para1:PDisplay):longint;cdecl;external libX11;
-function XForceScreenSaver(para1:PDisplay; para2:longint):longint;cdecl;external libX11;
-function XFree(para1:pointer):longint;cdecl;external libX11;
-function XFreeColormap(para1:PDisplay; para2:TColormap):longint;cdecl;external libX11;
-function XFreeColors(para1:PDisplay; para2:TColormap; para3:Pdword; para4:longint; para5:dword):longint;cdecl;external libX11;
-function XFreeCursor(para1:PDisplay; para2:TCursor):longint;cdecl;external libX11;
-function XFreeExtensionList(para1:PPchar):longint;cdecl;external libX11;
-function XFreeFont(para1:PDisplay; para2:PXFontStruct):longint;cdecl;external libX11;
-function XFreeFontInfo(para1:PPchar; para2:PXFontStruct; para3:longint):longint;cdecl;external libX11;
-function XFreeFontNames(para1:PPchar):longint;cdecl;external libX11;
-function XFreeFontPath(para1:PPchar):longint;cdecl;external libX11;
-function XFreeGC(para1:PDisplay; para2:TGC):longint;cdecl;external libX11;
-function XFreeModifiermap(para1:PXModifierKeymap):longint;cdecl;external libX11;
-function XFreePixmap(para1:PDisplay; para2:TPixmap):longint;cdecl;external libX11;
-function XGeometry(para1:PDisplay; para2:longint; para3:Pchar; para4:Pchar; para5:dword;
-           para6:dword; para7:dword; para8:longint; para9:longint; para10:Plongint;
-           para11:Plongint; para12:Plongint; para13:Plongint):longint;cdecl;external libX11;
+function XFillArc(para1:PDisplay; para2:TDrawable; para3:TGC; para4:cint; para5:cint;
+           para6:cuint; para7:cuint; para8:cint; para9:cint):cint;cdecl;external libX11;
+function XFillArcs(para1:PDisplay; para2:TDrawable; para3:TGC; para4:PXArc; para5:cint):cint;cdecl;external libX11;
+function XFillPolygon(para1:PDisplay; para2:TDrawable; para3:TGC; para4:PXPoint; para5:cint;
+           para6:cint; para7:cint):cint;cdecl;external libX11;
+function XFillRectangle(para1:PDisplay; para2:TDrawable; para3:TGC; para4:cint; para5:cint;
+           para6:cuint; para7:cuint):cint;cdecl;external libX11;
+function XFillRectangles(para1:PDisplay; para2:TDrawable; para3:TGC; para4:PXRectangle; para5:cint):cint;cdecl;external libX11;
+function XFlush(para1:PDisplay):cint;cdecl;external libX11;
+function XForceScreenSaver(para1:PDisplay; para2:cint):cint;cdecl;external libX11;
+function XFree(para1:pointer):cint;cdecl;external libX11;
+function XFreeColormap(para1:PDisplay; para2:TColormap):cint;cdecl;external libX11;
+function XFreeColors(para1:PDisplay; para2:TColormap; para3:Pculong; para4:cint; para5:culong):cint;cdecl;external libX11;
+function XFreeCursor(para1:PDisplay; para2:TCursor):cint;cdecl;external libX11;
+function XFreeExtensionList(para1:PPchar):cint;cdecl;external libX11;
+function XFreeFont(para1:PDisplay; para2:PXFontStruct):cint;cdecl;external libX11;
+function XFreeFontInfo(para1:PPchar; para2:PXFontStruct; para3:cint):cint;cdecl;external libX11;
+function XFreeFontNames(para1:PPchar):cint;cdecl;external libX11;
+function XFreeFontPath(para1:PPchar):cint;cdecl;external libX11;
+function XFreeGC(para1:PDisplay; para2:TGC):cint;cdecl;external libX11;
+function XFreeModifiermap(para1:PXModifierKeymap):cint;cdecl;external libX11;
+function XFreePixmap(para1:PDisplay; para2:TPixmap):cint;cdecl;external libX11;
+function XGeometry(para1:PDisplay; para2:cint; para3:Pchar; para4:Pchar; para5:cuint;
+           para6:cuint; para7:cuint; para8:cint; para9:cint; para10:Pcint;
+           para11:Pcint; para12:Pcint; para13:Pcint):cint;cdecl;external libX11;
 function XGetErrorDatabaseText(para1:PDisplay; para2:Pchar; para3:Pchar; para4:Pchar; para5:Pchar;
-           para6:longint):longint;cdecl;external libX11;
-function XGetErrorText(para1:PDisplay; para2:longint; para3:Pchar; para4:longint):longint;cdecl;external libX11;
-function XGetFontProperty(para1:PXFontStruct; para2:TAtom; para3:Pdword):TBool;cdecl;external libX11;
-function XGetGCValues(para1:PDisplay; para2:TGC; para3:dword; para4:PXGCValues):TStatus;cdecl;external libX11;
-function XGetGeometry(para1:PDisplay; para2:TDrawable; para3:PWindow; para4:Plongint; para5:Plongint;
-           para6:Pdword; para7:Pdword; para8:Pdword; para9:Pdword):TStatus;cdecl;external libX11;
+           para6:cint):cint;cdecl;external libX11;
+function XGetErrorText(para1:PDisplay; para2:cint; para3:Pchar; para4:cint):cint;cdecl;external libX11;
+function XGetFontProperty(para1:PXFontStruct; para2:TAtom; para3:Pculong):TBool;cdecl;external libX11;
+function XGetGCValues(para1:PDisplay; para2:TGC; para3:culong; para4:PXGCValues):TStatus;cdecl;external libX11;
+function XGetGeometry(para1:PDisplay; para2:TDrawable; para3:PWindow; para4:Pcint; para5:Pcint;
+           para6:Pcuint; para7:Pcuint; para8:Pcuint; para9:Pcuint):TStatus;cdecl;external libX11;
 function XGetIconName(para1:PDisplay; para2:TWindow; para3:PPchar):TStatus;cdecl;external libX11;
-function XGetInputFocus(para1:PDisplay; para2:PWindow; para3:Plongint):longint;cdecl;external libX11;
-function XGetKeyboardControl(para1:PDisplay; para2:PXKeyboardState):longint;cdecl;external libX11;
-function XGetPointerControl(para1:PDisplay; para2:Plongint; para3:Plongint; para4:Plongint):longint;cdecl;external libX11;
-function XGetPointerMapping(para1:PDisplay; para2:Pbyte; para3:longint):longint;cdecl;external libX11;
-function XGetScreenSaver(para1:PDisplay; para2:Plongint; para3:Plongint; para4:Plongint; para5:Plongint):longint;cdecl;external libX11;
+function XGetInputFocus(para1:PDisplay; para2:PWindow; para3:Pcint):cint;cdecl;external libX11;
+function XGetKeyboardControl(para1:PDisplay; para2:PXKeyboardState):cint;cdecl;external libX11;
+function XGetPointerControl(para1:PDisplay; para2:Pcint; para3:Pcint; para4:Pcint):cint;cdecl;external libX11;
+function XGetPointerMapping(para1:PDisplay; para2:Pcuchar; para3:cint):cint;cdecl;external libX11;
+function XGetScreenSaver(para1:PDisplay; para2:Pcint; para3:Pcint; para4:Pcint; para5:Pcint):cint;cdecl;external libX11;
 function XGetTransientForHint(para1:PDisplay; para2:TWindow; para3:PWindow):TStatus;cdecl;external libX11;
-function XGetWindowProperty(para1:PDisplay; para2:TWindow; para3:TAtom; para4:longint; para5:longint;
-           para6:TBool; para7:TAtom; para8:PAtom; para9:Plongint; para10:Pdword;
-           para11:Pdword; para12:PPbyte):longint;cdecl;external libX11;
+function XGetWindowProperty(para1:PDisplay; para2:TWindow; para3:TAtom; para4:clong; para5:clong;
+           para6:TBool; para7:TAtom; para8:PAtom; para9:Pcint; para10:Pculong;
+           para11:Pculong; para12:PPcuchar):cint;cdecl;external libX11;
 function XGetWindowAttributes(para1:PDisplay; para2:TWindow; para3:PXWindowAttributes):TStatus;cdecl;external libX11;
-function XGrabButton(para1:PDisplay; para2:dword; para3:dword; para4:TWindow; para5:TBool;
-           para6:dword; para7:longint; para8:longint; para9:TWindow; para10:TCursor):longint;cdecl;external libX11;
-function XGrabKey(para1:PDisplay; para2:longint; para3:dword; para4:TWindow; para5:TBool;
-           para6:longint; para7:longint):longint;cdecl;external libX11;
-function XGrabKeyboard(para1:PDisplay; para2:TWindow; para3:TBool; para4:longint; para5:longint;
-           para6:TTime):longint;cdecl;external libX11;
-function XGrabPointer(para1:PDisplay; para2:TWindow; para3:TBool; para4:dword; para5:longint;
-           para6:longint; para7:TWindow; para8:TCursor; para9:TTime):longint;cdecl;external libX11;
-function XGrabServer(para1:PDisplay):longint;cdecl;external libX11;
-function XHeightMMOfScreen(para1:PScreen):longint;cdecl;external libX11;
-function XHeightOfScreen(para1:PScreen):longint;cdecl;external libX11;
-function XIfEvent(para1:PDisplay; para2:PXEvent; para3:funcbool; para4:TXPointer):longint;cdecl;external libX11;
-function XImageByteOrder(para1:PDisplay):longint;cdecl;external libX11;
-function XInstallColormap(para1:PDisplay; para2:TColormap):longint;cdecl;external libX11;
+function XGrabButton(para1:PDisplay; para2:cuint; para3:cuint; para4:TWindow; para5:TBool;
+           para6:cuint; para7:cint; para8:cint; para9:TWindow; para10:TCursor):cint;cdecl;external libX11;
+function XGrabKey(para1:PDisplay; para2:cint; para3:cuint; para4:TWindow; para5:TBool;
+           para6:cint; para7:cint):cint;cdecl;external libX11;
+function XGrabKeyboard(para1:PDisplay; para2:TWindow; para3:TBool; para4:cint; para5:cint;
+           para6:TTime):cint;cdecl;external libX11;
+function XGrabPointer(para1:PDisplay; para2:TWindow; para3:TBool; para4:cuint; para5:cint;
+           para6:cint; para7:TWindow; para8:TCursor; para9:TTime):cint;cdecl;external libX11;
+function XGrabServer(para1:PDisplay):cint;cdecl;external libX11;
+function XHeightMMOfScreen(para1:PScreen):cint;cdecl;external libX11;
+function XHeightOfScreen(para1:PScreen):cint;cdecl;external libX11;
+function XIfEvent(para1:PDisplay; para2:PXEvent; para3:funcifevent; para4:TXPointer):cint;cdecl;external libX11;
+function XImageByteOrder(para1:PDisplay):cint;cdecl;external libX11;
+function XInstallColormap(para1:PDisplay; para2:TColormap):cint;cdecl;external libX11;
 function XKeysymToKeycode(para1:PDisplay; para2:TKeySym):TKeyCode;cdecl;external libX11;
-function XKillClient(para1:PDisplay; para2:TXID):longint;cdecl;external libX11;
+function XKillClient(para1:PDisplay; para2:TXID):cint;cdecl;external libX11;
 function XLookupColor(para1:PDisplay; para2:TColormap; para3:Pchar; para4:PXColor; para5:PXColor):TStatus;cdecl;external libX11;
-function XLowerWindow(para1:PDisplay; para2:TWindow):longint;cdecl;external libX11;
-function XMapRaised(para1:PDisplay; para2:TWindow):longint;cdecl;external libX11;
-function XMapSubwindows(para1:PDisplay; para2:TWindow):longint;cdecl;external libX11;
-function XMapWindow(para1:PDisplay; para2:TWindow):longint;cdecl;external libX11;
-function XMaskEvent(para1:PDisplay; para2:longint; para3:PXEvent):longint;cdecl;external libX11;
-function XMaxCmapsOfScreen(para1:PScreen):longint;cdecl;external libX11;
-function XMinCmapsOfScreen(para1:PScreen):longint;cdecl;external libX11;
-function XMoveResizeWindow(para1:PDisplay; para2:TWindow; para3:longint; para4:longint; para5:dword;
-           para6:dword):longint;cdecl;external libX11;
-function XMoveWindow(para1:PDisplay; para2:TWindow; para3:longint; para4:longint):longint;cdecl;external libX11;
-function XNextEvent(para1:PDisplay; para2:PXEvent):longint;cdecl;external libX11;
-function XNoOp(para1:PDisplay):longint;cdecl;external libX11;
+function XLowerWindow(para1:PDisplay; para2:TWindow):cint;cdecl;external libX11;
+function XMapRaised(para1:PDisplay; para2:TWindow):cint;cdecl;external libX11;
+function XMapSubwindows(para1:PDisplay; para2:TWindow):cint;cdecl;external libX11;
+function XMapWindow(para1:PDisplay; para2:TWindow):cint;cdecl;external libX11;
+function XMaskEvent(para1:PDisplay; para2:clong; para3:PXEvent):cint;cdecl;external libX11;
+function XMaxCmapsOfScreen(para1:PScreen):cint;cdecl;external libX11;
+function XMinCmapsOfScreen(para1:PScreen):cint;cdecl;external libX11;
+function XMoveResizeWindow(para1:PDisplay; para2:TWindow; para3:cint; para4:cint; para5:cuint;
+           para6:cuint):cint;cdecl;external libX11;
+function XMoveWindow(para1:PDisplay; para2:TWindow; para3:cint; para4:cint):cint;cdecl;external libX11;
+function XNextEvent(para1:PDisplay; para2:PXEvent):cint;cdecl;external libX11;
+function XNoOp(para1:PDisplay):cint;cdecl;external libX11;
 function XParseColor(para1:PDisplay; para2:TColormap; para3:Pchar; para4:PXColor):TStatus;cdecl;external libX11;
-function XParseGeometry(para1:Pchar; para2:Plongint; para3:Plongint; para4:Pdword; para5:Pdword):longint;cdecl;external libX11;
-function XPeekEvent(para1:PDisplay; para2:PXEvent):longint;cdecl;external libX11;
-function XPeekIfEvent(para1:PDisplay; para2:PXEvent; para3:funcbool; para4:TXPointer):longint;cdecl;external libX11;
-function XPending(para1:PDisplay):longint;cdecl;external libX11;
-function XPlanesOfScreen(para1:PScreen):longint;cdecl;external libX11;
-function XProtocolRevision(para1:PDisplay):longint;cdecl;external libX11;
-function XProtocolVersion(para1:PDisplay):longint;cdecl;external libX11;
-function XPutBackEvent(para1:PDisplay; para2:PXEvent):longint;cdecl;external libX11;
-function XPutImage(para1:PDisplay; para2:TDrawable; para3:TGC; para4:PXImage; para5:longint;
-           para6:longint; para7:longint; para8:longint; para9:dword; para10:dword):longint;cdecl;external libX11;
-function XQLength(para1:PDisplay):longint;cdecl;external libX11;
-function XQueryBestCursor(para1:PDisplay; para2:TDrawable; para3:dword; para4:dword; para5:Pdword;
-           para6:Pdword):TStatus;cdecl;external libX11;
-function XQueryBestSize(para1:PDisplay; para2:longint; para3:TDrawable; para4:dword; para5:dword;
-           para6:Pdword; para7:Pdword):TStatus;cdecl;external libX11;
-function XQueryBestStipple(para1:PDisplay; para2:TDrawable; para3:dword; para4:dword; para5:Pdword;
-           para6:Pdword):TStatus;cdecl;external libX11;
-function XQueryBestTile(para1:PDisplay; para2:TDrawable; para3:dword; para4:dword; para5:Pdword;
-           para6:Pdword):TStatus;cdecl;external libX11;
-function XQueryColor(para1:PDisplay; para2:TColormap; para3:PXColor):longint;cdecl;external libX11;
-function XQueryColors(para1:PDisplay; para2:TColormap; para3:PXColor; para4:longint):longint;cdecl;external libX11;
-function XQueryExtension(para1:PDisplay; para2:Pchar; para3:Plongint; para4:Plongint; para5:Plongint):TBool;cdecl;external libX11;
-function XQueryKeymap(para1:PDisplay; para2:chararr32):longint;cdecl;external libX11;
-function XQueryPointer(para1:PDisplay; para2:TWindow; para3:PWindow; para4:PWindow; para5:Plongint;
-           para6:Plongint; para7:Plongint; para8:Plongint; para9:Pdword):TBool;cdecl;external libX11;
-function XQueryTextExtents(para1:PDisplay; para2:TXID; para3:Pchar; para4:longint; para5:Plongint;
-           para6:Plongint; para7:Plongint; para8:PXCharStruct):longint;cdecl;external libX11;
-function XQueryTextExtents16(para1:PDisplay; para2:TXID; para3:PXChar2b; para4:longint; para5:Plongint;
-           para6:Plongint; para7:Plongint; para8:PXCharStruct):longint;cdecl;external libX11;
+function XParseGeometry(para1:Pchar; para2:Pcint; para3:Pcint; para4:Pcuint; para5:Pcuint):cint;cdecl;external libX11;
+function XPeekEvent(para1:PDisplay; para2:PXEvent):cint;cdecl;external libX11;
+function XPeekIfEvent(para1:PDisplay; para2:PXEvent; para3:funcifevent; para4:TXPointer):cint;cdecl;external libX11;
+function XPending(para1:PDisplay):cint;cdecl;external libX11;
+function XPlanesOfScreen(para1:PScreen):cint;cdecl;external libX11;
+function XProtocolRevision(para1:PDisplay):cint;cdecl;external libX11;
+function XProtocolVersion(para1:PDisplay):cint;cdecl;external libX11;
+function XPutBackEvent(para1:PDisplay; para2:PXEvent):cint;cdecl;external libX11;
+function XPutImage(para1:PDisplay; para2:TDrawable; para3:TGC; para4:PXImage; para5:cint;
+           para6:cint; para7:cint; para8:cint; para9:cuint; para10:cuint):cint;cdecl;external libX11;
+function XQLength(para1:PDisplay):cint;cdecl;external libX11;
+function XQueryBestCursor(para1:PDisplay; para2:TDrawable; para3:cuint; para4:cuint; para5:Pcuint;
+           para6:Pcuint):TStatus;cdecl;external libX11;
+function XQueryBestSize(para1:PDisplay; para2:cint; para3:TDrawable; para4:cuint; para5:cuint;
+           para6:Pcuint; para7:Pcuint):TStatus;cdecl;external libX11;
+function XQueryBestStipple(para1:PDisplay; para2:TDrawable; para3:cuint; para4:cuint; para5:Pcuint;
+           para6:Pcuint):TStatus;cdecl;external libX11;
+function XQueryBestTile(para1:PDisplay; para2:TDrawable; para3:cuint; para4:cuint; para5:Pcuint;
+           para6:Pcuint):TStatus;cdecl;external libX11;
+function XQueryColor(para1:PDisplay; para2:TColormap; para3:PXColor):cint;cdecl;external libX11;
+function XQueryColors(para1:PDisplay; para2:TColormap; para3:PXColor; para4:cint):cint;cdecl;external libX11;
+function XQueryExtension(para1:PDisplay; para2:Pchar; para3:Pcint; para4:Pcint; para5:Pcint):TBool;cdecl;external libX11;
+{?}
+function XQueryKeymap(para1:PDisplay; para2:chararr32):cint;cdecl;external libX11;
+function XQueryPointer(para1:PDisplay; para2:TWindow; para3:PWindow; para4:PWindow; para5:Pcint;
+           para6:Pcint; para7:Pcint; para8:Pcint; para9:Pcuint):TBool;cdecl;external libX11;
+function XQueryTextExtents(para1:PDisplay; para2:TXID; para3:Pchar; para4:cint; para5:Pcint;
+           para6:Pcint; para7:Pcint; para8:PXCharStruct):cint;cdecl;external libX11;
+function XQueryTextExtents16(para1:PDisplay; para2:TXID; para3:PXChar2b; para4:cint; para5:Pcint;
+           para6:Pcint; para7:Pcint; para8:PXCharStruct):cint;cdecl;external libX11;
 function XQueryTree(para1:PDisplay; para2:TWindow; para3:PWindow; para4:PWindow; para5:PPWindow;
-           para6:Pdword):TStatus;cdecl;external libX11;
-function XRaiseWindow(para1:PDisplay; para2:TWindow):longint;cdecl;external libX11;
-function XReadBitmapFile(para1:PDisplay; para2:TDrawable; para3:Pchar; para4:Pdword; para5:Pdword;
-           para6:PPixmap; para7:Plongint; para8:Plongint):longint;cdecl;external libX11;
-function XReadBitmapFileData(para1:Pchar; para2:Pdword; para3:Pdword; para4:PPbyte; para5:Plongint;
-           para6:Plongint):longint;cdecl;external libX11;
-function XRebindKeysym(para1:PDisplay; para2:TKeySym; para3:PKeySym; para4:longint; para5:Pbyte;
-           para6:longint):longint;cdecl;external libX11;
-function XRecolorCursor(para1:PDisplay; para2:TCursor; para3:PXColor; para4:PXColor):longint;cdecl;external libX11;
-function XRefreshKeyboardMapping(para1:PXMappingEvent):longint;cdecl;external libX11;
-function XRemoveFromSaveSet(para1:PDisplay; para2:TWindow):longint;cdecl;external libX11;
-function XRemoveHost(para1:PDisplay; para2:PXHostAddress):longint;cdecl;external libX11;
-function XRemoveHosts(para1:PDisplay; para2:PXHostAddress; para3:longint):longint;cdecl;external libX11;
-function XReparentWindow(para1:PDisplay; para2:TWindow; para3:TWindow; para4:longint; para5:longint):longint;cdecl;external libX11;
-function XResetScreenSaver(para1:PDisplay):longint;cdecl;external libX11;
-function XResizeWindow(para1:PDisplay; para2:TWindow; para3:dword; para4:dword):longint;cdecl;external libX11;
-function XRestackWindows(para1:PDisplay; para2:PWindow; para3:longint):longint;cdecl;external libX11;
-function XRotateBuffers(para1:PDisplay; para2:longint):longint;cdecl;external libX11;
-function XRotateWindowProperties(para1:PDisplay; para2:TWindow; para3:PAtom; para4:longint; para5:longint):longint;cdecl;external libX11;
-function XScreenCount(para1:PDisplay):longint;cdecl;external libX11;
-function XSelectInput(para1:PDisplay; para2:TWindow; para3:longint):longint;cdecl;external libX11;
-function XSendEvent(para1:PDisplay; para2:TWindow; para3:TBool; para4:longint; para5:PXEvent):TStatus;cdecl;external libX11;
-function XSetAccessControl(para1:PDisplay; para2:longint):longint;cdecl;external libX11;
-function XSetArcMode(para1:PDisplay; para2:TGC; para3:longint):longint;cdecl;external libX11;
-function XSetBackground(para1:PDisplay; para2:TGC; para3:dword):longint;cdecl;external libX11;
-function XSetClipMask(para1:PDisplay; para2:TGC; para3:TPixmap):longint;cdecl;external libX11;
-function XSetClipOrigin(para1:PDisplay; para2:TGC; para3:longint; para4:longint):longint;cdecl;external libX11;
-function XSetClipRectangles(para1:PDisplay; para2:TGC; para3:longint; para4:longint; para5:PXRectangle;
-           para6:longint; para7:longint):longint;cdecl;external libX11;
-function XSetCloseDownMode(para1:PDisplay; para2:longint):longint;cdecl;external libX11;
-function XSetCommand(para1:PDisplay; para2:TWindow; para3:PPchar; para4:longint):longint;cdecl;external libX11;
-function XSetDashes(para1:PDisplay; para2:TGC; para3:longint; para4:Pchar; para5:longint):longint;cdecl;external libX11;
-function XSetFillRule(para1:PDisplay; para2:TGC; para3:longint):longint;cdecl;external libX11;
-function XSetFillStyle(para1:PDisplay; para2:TGC; para3:longint):longint;cdecl;external libX11;
-function XSetFont(para1:PDisplay; para2:TGC; para3:TFont):longint;cdecl;external libX11;
-function XSetFontPath(para1:PDisplay; para2:PPchar; para3:longint):longint;cdecl;external libX11;
-function XSetForeground(para1:PDisplay; para2:TGC; para3:dword):longint;cdecl;external libX11;
-function XSetFunction(para1:PDisplay; para2:TGC; para3:longint):longint;cdecl;external libX11;
-function XSetGraphicsExposures(para1:PDisplay; para2:TGC; para3:TBool):longint;cdecl;external libX11;
-function XSetIconName(para1:PDisplay; para2:TWindow; para3:Pchar):longint;cdecl;external libX11;
-function XSetInputFocus(para1:PDisplay; para2:TWindow; para3:longint; para4:TTime):longint;cdecl;external libX11;
-function XSetLineAttributes(para1:PDisplay; para2:TGC; para3:dword; para4:longint; para5:longint;
-           para6:longint):longint;cdecl;external libX11;
-function XSetModifierMapping(para1:PDisplay; para2:PXModifierKeymap):longint;cdecl;external libX11;
-function XSetPlaneMask(para1:PDisplay; para2:TGC; para3:dword):longint;cdecl;external libX11;
-function XSetPointerMapping(para1:PDisplay; para2:Pbyte; para3:longint):longint;cdecl;external libX11;
-function XSetScreenSaver(para1:PDisplay; para2:longint; para3:longint; para4:longint; para5:longint):longint;cdecl;external libX11;
-function XSetSelectionOwner(para1:PDisplay; para2:TAtom; para3:TWindow; para4:TTime):longint;cdecl;external libX11;
-function XSetState(para1:PDisplay; para2:TGC; para3:dword; para4:dword; para5:longint;
-           para6:dword):longint;cdecl;external libX11;
-function XSetStipple(para1:PDisplay; para2:TGC; para3:TPixmap):longint;cdecl;external libX11;
-function XSetSubwindowMode(para1:PDisplay; para2:TGC; para3:longint):longint;cdecl;external libX11;
-function XSetTSOrigin(para1:PDisplay; para2:TGC; para3:longint; para4:longint):longint;cdecl;external libX11;
-function XSetTile(para1:PDisplay; para2:TGC; para3:TPixmap):longint;cdecl;external libX11;
-function XSetWindowBackground(para1:PDisplay; para2:TWindow; para3:dword):longint;cdecl;external libX11;
-function XSetWindowBackgroundPixmap(para1:PDisplay; para2:TWindow; para3:TPixmap):longint;cdecl;external libX11;
-function XSetWindowBorder(para1:PDisplay; para2:TWindow; para3:dword):longint;cdecl;external libX11;
-function XSetWindowBorderPixmap(para1:PDisplay; para2:TWindow; para3:TPixmap):longint;cdecl;external libX11;
-function XSetWindowBorderWidth(para1:PDisplay; para2:TWindow; para3:dword):longint;cdecl;external libX11;
-function XSetWindowColormap(para1:PDisplay; para2:TWindow; para3:TColormap):longint;cdecl;external libX11;
-function XStoreBuffer(para1:PDisplay; para2:Pchar; para3:longint; para4:longint):longint;cdecl;external libX11;
-function XStoreBytes(para1:PDisplay; para2:Pchar; para3:longint):longint;cdecl;external libX11;
-function XStoreColor(para1:PDisplay; para2:TColormap; para3:PXColor):longint;cdecl;external libX11;
-function XStoreColors(para1:PDisplay; para2:TColormap; para3:PXColor; para4:longint):longint;cdecl;external libX11;
-function XStoreName(para1:PDisplay; para2:TWindow; para3:Pchar):longint;cdecl;external libX11;
-function XStoreNamedColor(para1:PDisplay; para2:TColormap; para3:Pchar; para4:dword; para5:longint):longint;cdecl;external libX11;
-function XSync(para1:PDisplay; para2:TBool):longint;cdecl;external libX11;
-function XTextExtents(para1:PXFontStruct; para2:Pchar; para3:longint; para4:Plongint; para5:Plongint;
-           para6:Plongint; para7:PXCharStruct):longint;cdecl;external libX11;
-function XTextExtents16(para1:PXFontStruct; para2:PXChar2b; para3:longint; para4:Plongint; para5:Plongint;
-           para6:Plongint; para7:PXCharStruct):longint;cdecl;external libX11;
-function XTextWidth(para1:PXFontStruct; para2:Pchar; para3:longint):longint;cdecl;external libX11;
-function XTextWidth16(para1:PXFontStruct; para2:PXChar2b; para3:longint):longint;cdecl;external libX11;
-function XTranslateCoordinates(para1:PDisplay; para2:TWindow; para3:TWindow; para4:longint; para5:longint;
-           para6:Plongint; para7:Plongint; para8:PWindow):TBool;cdecl;external libX11;
-function XUndefineCursor(para1:PDisplay; para2:TWindow):longint;cdecl;external libX11;
-function XUngrabButton(para1:PDisplay; para2:dword; para3:dword; para4:TWindow):longint;cdecl;external libX11;
-function XUngrabKey(para1:PDisplay; para2:longint; para3:dword; para4:TWindow):longint;cdecl;external libX11;
-function XUngrabKeyboard(para1:PDisplay; para2:TTime):longint;cdecl;external libX11;
-function XUngrabPointer(para1:PDisplay; para2:TTime):longint;cdecl;external libX11;
-function XUngrabServer(para1:PDisplay):longint;cdecl;external libX11;
-function XUninstallColormap(para1:PDisplay; para2:TColormap):longint;cdecl;external libX11;
-function XUnloadFont(para1:PDisplay; para2:TFont):longint;cdecl;external libX11;
-function XUnmapSubwindows(para1:PDisplay; para2:TWindow):longint;cdecl;external libX11;
-function XUnmapWindow(para1:PDisplay; para2:TWindow):longint;cdecl;external libX11;
-function XVendorRelease(para1:PDisplay):longint;cdecl;external libX11;
-function XWarpPointer(para1:PDisplay; para2:TWindow; para3:TWindow; para4:longint; para5:longint;
-           para6:dword; para7:dword; para8:longint; para9:longint):longint;cdecl;external libX11;
-function XWidthMMOfScreen(para1:PScreen):longint;cdecl;external libX11;
-function XWidthOfScreen(para1:PScreen):longint;cdecl;external libX11;
-function XWindowEvent(para1:PDisplay; para2:TWindow; para3:longint; para4:PXEvent):longint;cdecl;external libX11;
-function XWriteBitmapFile(para1:PDisplay; para2:Pchar; para3:TPixmap; para4:dword; para5:dword;
-           para6:longint; para7:longint):longint;cdecl;external libX11;
+           para6:Pcuint):TStatus;cdecl;external libX11;
+function XRaiseWindow(para1:PDisplay; para2:TWindow):cint;cdecl;external libX11;
+function XReadBitmapFile(para1:PDisplay; para2:TDrawable; para3:Pchar; para4:Pcuint; para5:Pcuint;
+           para6:PPixmap; para7:Pcint; para8:Pcint):cint;cdecl;external libX11;
+function XReadBitmapFileData(para1:Pchar; para2:Pcuint; para3:Pcuint; para4:PPcuchar; para5:Pcint;
+           para6:Pcint):cint;cdecl;external libX11;
+function XRebindKeysym(para1:PDisplay; para2:TKeySym; para3:PKeySym; para4:cint; para5:Pcuchar;
+           para6:cint):cint;cdecl;external libX11;
+function XRecolorCursor(para1:PDisplay; para2:TCursor; para3:PXColor; para4:PXColor):cint;cdecl;external libX11;
+function XRefreshKeyboardMapping(para1:PXMappingEvent):cint;cdecl;external libX11;
+function XRemoveFromSaveSet(para1:PDisplay; para2:TWindow):cint;cdecl;external libX11;
+function XRemoveHost(para1:PDisplay; para2:PXHostAddress):cint;cdecl;external libX11;
+function XRemoveHosts(para1:PDisplay; para2:PXHostAddress; para3:cint):cint;cdecl;external libX11;
+function XReparentWindow(para1:PDisplay; para2:TWindow; para3:TWindow; para4:cint; para5:cint):cint;cdecl;external libX11;
+function XResetScreenSaver(para1:PDisplay):cint;cdecl;external libX11;
+function XResizeWindow(para1:PDisplay; para2:TWindow; para3:cuint; para4:cuint):cint;cdecl;external libX11;
+function XRestackWindows(para1:PDisplay; para2:PWindow; para3:cint):cint;cdecl;external libX11;
+function XRotateBuffers(para1:PDisplay; para2:cint):cint;cdecl;external libX11;
+function XRotateWindowProperties(para1:PDisplay; para2:TWindow; para3:PAtom; para4:cint; para5:cint):cint;cdecl;external libX11;
+function XScreenCount(para1:PDisplay):cint;cdecl;external libX11;
+function XSelectInput(para1:PDisplay; para2:TWindow; para3:clong):cint;cdecl;external libX11;
+function XSendEvent(para1:PDisplay; para2:TWindow; para3:TBool; para4:clong; para5:PXEvent):TStatus;cdecl;external libX11;
+function XSetAccessControl(para1:PDisplay; para2:cint):cint;cdecl;external libX11;
+function XSetArcMode(para1:PDisplay; para2:TGC; para3:cint):cint;cdecl;external libX11;
+function XSetBackground(para1:PDisplay; para2:TGC; para3:culong):cint;cdecl;external libX11;
+function XSetClipMask(para1:PDisplay; para2:TGC; para3:TPixmap):cint;cdecl;external libX11;
+function XSetClipOrigin(para1:PDisplay; para2:TGC; para3:cint; para4:cint):cint;cdecl;external libX11;
+function XSetClipRectangles(para1:PDisplay; para2:TGC; para3:cint; para4:cint; para5:PXRectangle;
+           para6:cint; para7:cint):cint;cdecl;external libX11;
+function XSetCloseDownMode(para1:PDisplay; para2:cint):cint;cdecl;external libX11;
+function XSetCommand(para1:PDisplay; para2:TWindow; para3:PPchar; para4:cint):cint;cdecl;external libX11;
+function XSetDashes(para1:PDisplay; para2:TGC; para3:cint; para4:Pchar; para5:cint):cint;cdecl;external libX11;
+function XSetFillRule(para1:PDisplay; para2:TGC; para3:cint):cint;cdecl;external libX11;
+function XSetFillStyle(para1:PDisplay; para2:TGC; para3:cint):cint;cdecl;external libX11;
+function XSetFont(para1:PDisplay; para2:TGC; para3:TFont):cint;cdecl;external libX11;
+function XSetFontPath(para1:PDisplay; para2:PPchar; para3:cint):cint;cdecl;external libX11;
+function XSetForeground(para1:PDisplay; para2:TGC; para3:culong):cint;cdecl;external libX11;
+function XSetFunction(para1:PDisplay; para2:TGC; para3:cint):cint;cdecl;external libX11;
+function XSetGraphicsExposures(para1:PDisplay; para2:TGC; para3:TBool):cint;cdecl;external libX11;
+function XSetIconName(para1:PDisplay; para2:TWindow; para3:Pchar):cint;cdecl;external libX11;
+function XSetInputFocus(para1:PDisplay; para2:TWindow; para3:cint; para4:TTime):cint;cdecl;external libX11;
+function XSetLineAttributes(para1:PDisplay; para2:TGC; para3:cuint; para4:cint; para5:cint;
+           para6:cint):cint;cdecl;external libX11;
+function XSetModifierMapping(para1:PDisplay; para2:PXModifierKeymap):cint;cdecl;external libX11;
+function XSetPlaneMask(para1:PDisplay; para2:TGC; para3:culong):cint;cdecl;external libX11;
+function XSetPointerMapping(para1:PDisplay; para2:Pcuchar; para3:cint):cint;cdecl;external libX11;
+function XSetScreenSaver(para1:PDisplay; para2:cint; para3:cint; para4:cint; para5:cint):cint;cdecl;external libX11;
+function XSetSelectionOwner(para1:PDisplay; para2:TAtom; para3:TWindow; para4:TTime):cint;cdecl;external libX11;
+function XSetState(para1:PDisplay; para2:TGC; para3:culong; para4:culong; para5:cint;
+           para6:culong):cint;cdecl;external libX11;
+function XSetStipple(para1:PDisplay; para2:TGC; para3:TPixmap):cint;cdecl;external libX11;
+function XSetSubwindowMode(para1:PDisplay; para2:TGC; para3:cint):cint;cdecl;external libX11;
+function XSetTSOrigin(para1:PDisplay; para2:TGC; para3:cint; para4:cint):cint;cdecl;external libX11;
+function XSetTile(para1:PDisplay; para2:TGC; para3:TPixmap):cint;cdecl;external libX11;
+function XSetWindowBackground(para1:PDisplay; para2:TWindow; para3:culong):cint;cdecl;external libX11;
+function XSetWindowBackgroundPixmap(para1:PDisplay; para2:TWindow; para3:TPixmap):cint;cdecl;external libX11;
+function XSetWindowBorder(para1:PDisplay; para2:TWindow; para3:culong):cint;cdecl;external libX11;
+function XSetWindowBorderPixmap(para1:PDisplay; para2:TWindow; para3:TPixmap):cint;cdecl;external libX11;
+function XSetWindowBorderWidth(para1:PDisplay; para2:TWindow; para3:cuint):cint;cdecl;external libX11;
+function XSetWindowColormap(para1:PDisplay; para2:TWindow; para3:TColormap):cint;cdecl;external libX11;
+function XStoreBuffer(para1:PDisplay; para2:Pchar; para3:cint; para4:cint):cint;cdecl;external libX11;
+function XStoreBytes(para1:PDisplay; para2:Pchar; para3:cint):cint;cdecl;external libX11;
+function XStoreColor(para1:PDisplay; para2:TColormap; para3:PXColor):cint;cdecl;external libX11;
+function XStoreColors(para1:PDisplay; para2:TColormap; para3:PXColor; para4:cint):cint;cdecl;external libX11;
+function XStoreName(para1:PDisplay; para2:TWindow; para3:Pchar):cint;cdecl;external libX11;
+function XStoreNamedColor(para1:PDisplay; para2:TColormap; para3:Pchar; para4:culong; para5:cint):cint;cdecl;external libX11;
+function XSync(para1:PDisplay; para2:TBool):cint;cdecl;external libX11;
+function XTextExtents(para1:PXFontStruct; para2:Pchar; para3:cint; para4:Pcint; para5:Pcint;
+           para6:Pcint; para7:PXCharStruct):cint;cdecl;external libX11;
+function XTextExtents16(para1:PXFontStruct; para2:PXChar2b; para3:cint; para4:Pcint; para5:Pcint;
+           para6:Pcint; para7:PXCharStruct):cint;cdecl;external libX11;
+function XTextWidth(para1:PXFontStruct; para2:Pchar; para3:cint):cint;cdecl;external libX11;
+function XTextWidth16(para1:PXFontStruct; para2:PXChar2b; para3:cint):cint;cdecl;external libX11;
+function XTranslateCoordinates(para1:PDisplay; para2:TWindow; para3:TWindow; para4:cint; para5:cint;
+           para6:Pcint; para7:Pcint; para8:PWindow):TBool;cdecl;external libX11;
+function XUndefineCursor(para1:PDisplay; para2:TWindow):cint;cdecl;external libX11;
+function XUngrabButton(para1:PDisplay; para2:cuint; para3:cuint; para4:TWindow):cint;cdecl;external libX11;
+function XUngrabKey(para1:PDisplay; para2:cint; para3:cuint; para4:TWindow):cint;cdecl;external libX11;
+function XUngrabKeyboard(para1:PDisplay; para2:TTime):cint;cdecl;external libX11;
+function XUngrabPointer(para1:PDisplay; para2:TTime):cint;cdecl;external libX11;
+function XUngrabServer(para1:PDisplay):cint;cdecl;external libX11;
+function XUninstallColormap(para1:PDisplay; para2:TColormap):cint;cdecl;external libX11;
+function XUnloadFont(para1:PDisplay; para2:TFont):cint;cdecl;external libX11;
+function XUnmapSubwindows(para1:PDisplay; para2:TWindow):cint;cdecl;external libX11;
+function XUnmapWindow(para1:PDisplay; para2:TWindow):cint;cdecl;external libX11;
+function XVendorRelease(para1:PDisplay):cint;cdecl;external libX11;
+function XWarpPointer(para1:PDisplay; para2:TWindow; para3:TWindow; para4:cint; para5:cint;
+           para6:cuint; para7:cuint; para8:cint; para9:cint):cint;cdecl;external libX11;
+function XWidthMMOfScreen(para1:PScreen):cint;cdecl;external libX11;
+function XWidthOfScreen(para1:PScreen):cint;cdecl;external libX11;
+function XWindowEvent(para1:PDisplay; para2:TWindow; para3:clong; para4:PXEvent):cint;cdecl;external libX11;
+function XWriteBitmapFile(para1:PDisplay; para2:Pchar; para3:TPixmap; para4:cuint; para5:cuint;
+           para6:cint; para7:cint):cint;cdecl;external libX11;
 function XSupportsLocale:TBool;cdecl;external libX11;
 function XSetLocaleModifiers(para1:Pchar):Pchar;cdecl;external libX11;
 function XOpenOM(para1:PDisplay; para2:PXrmHashBucketRec; para3:Pchar; para4:Pchar):TXOM;cdecl;external libX11;
 function XCloseOM(para1:TXOM):TStatus;cdecl;external libX11;
-function XSetOMValues:Pchar;cdecl;external libX11;
-function XGetOMValues:Pchar;cdecl;external libX11;
+function XSetOMValues(para1:TXOM; dotdotdot:array of const):Pchar;cdecl;external libX11;
+function XGetOMValues(para1:TXOM; dotdotdot:array of const):Pchar;cdecl;external libX11;
 function XDisplayOfOM(para1:TXOM):PDisplay;cdecl;external libX11;
 function XLocaleOfOM(para1:TXOM):Pchar;cdecl;external libX11;
-function XCreateOC:TXOC;cdecl;external libX11;
+function XCreateOC(para1:TXOM; dotdotdot:array of const):TXOC;cdecl;external libX11;
 procedure XDestroyOC(para1:TXOC);cdecl;external libX11;
 function XOMOfOC(para1:TXOC):TXOM;cdecl;external libX11;
-function XSetOCValues:Pchar;cdecl;external libX11;
-function XGetOCValues:Pchar;cdecl;external libX11;
-function XCreateFontSet(para1:PDisplay; para2:Pchar; para3:PPPchar; para4:Plongint; para5:PPchar):TXFontSet;cdecl;external libX11;
+function XSetOCValues(para1:TXOC; dotdotdot:array of const):Pchar;cdecl;external libX11;
+function XGetOCValues(para1:TXOC; dotdotdot:array of const):Pchar;cdecl;external libX11;
+function XCreateFontSet(para1:PDisplay; para2:Pchar; para3:PPPchar; para4:Pcint; para5:PPchar):TXFontSet;cdecl;external libX11;
 procedure XFreeFontSet(para1:PDisplay; para2:TXFontSet);cdecl;external libX11;
-function XFontsOfFontSet(para1:TXFontSet; para2:PPPXFontStruct; para3:PPPchar):longint;cdecl;external libX11;
+function XFontsOfFontSet(para1:TXFontSet; para2:PPPXFontStruct; para3:PPPchar):cint;cdecl;external libX11;
 function XBaseFontNameListOfFontSet(para1:TXFontSet):Pchar;cdecl;external libX11;
 function XLocaleOfFontSet(para1:TXFontSet):Pchar;cdecl;external libX11;
 function XContextDependentDrawing(para1:TXFontSet):TBool;cdecl;external libX11;
 function XDirectionalDependentDrawing(para1:TXFontSet):TBool;cdecl;external libX11;
 function XContextualDrawing(para1:TXFontSet):TBool;cdecl;external libX11;
 function XExtentsOfFontSet(para1:TXFontSet):PXFontSetExtents;cdecl;external libX11;
-function XmbTextEscapement(para1:TXFontSet; para2:Pchar; para3:longint):longint;cdecl;external libX11;
-function XwcTextEscapement(para1:TXFontSet; para2:PWideChar; para3:longint):longint;cdecl;external libX11;
-function XmbTextExtents(para1:TXFontSet; para2:Pchar; para3:longint; para4:PXRectangle; para5:PXRectangle):longint;cdecl;external libX11;
-function XwcTextExtents(para1:TXFontSet; para2:PWideChar; para3:longint; para4:PXRectangle; para5:PXRectangle):longint;cdecl;external libX11;
-function XmbTextPerCharExtents(para1:TXFontSet; para2:Pchar; para3:longint; para4:PXRectangle; para5:PXRectangle;
-           para6:longint; para7:Plongint; para8:PXRectangle; para9:PXRectangle):TStatus;cdecl;external libX11;
-function XwcTextPerCharExtents(para1:TXFontSet; para2:PWideChar; para3:longint; para4:PXRectangle; para5:PXRectangle;
-           para6:longint; para7:Plongint; para8:PXRectangle; para9:PXRectangle):TStatus;cdecl;external libX11;
-procedure XmbDrawText(para1:PDisplay; para2:TDrawable; para3:TGC; para4:longint; para5:longint;
-            para6:PXmbTextItem; para7:longint);cdecl;external libX11;
-procedure XwcDrawText(para1:PDisplay; para2:TDrawable; para3:TGC; para4:longint; para5:longint;
-            para6:PXwcTextItem; para7:longint);cdecl;external libX11;
-procedure XmbDrawString(para1:PDisplay; para2:TDrawable; para3:TXFontSet; para4:TGC; para5:longint;
-            para6:longint; para7:Pchar; para8:longint);cdecl;external libX11;
-procedure XwcDrawString(para1:PDisplay; para2:TDrawable; para3:TXFontSet; para4:TGC; para5:longint;
-            para6:longint; para7:PWideChar; para8:longint);cdecl;external libX11;
-procedure XmbDrawImageString(para1:PDisplay; para2:TDrawable; para3:TXFontSet; para4:TGC; para5:longint;
-            para6:longint; para7:Pchar; para8:longint);cdecl;external libX11;
-procedure XwcDrawImageString(para1:PDisplay; para2:TDrawable; para3:TXFontSet; para4:TGC; para5:longint;
-            para6:longint; para7:PWideChar; para8:longint);cdecl;external libX11;
+function XmbTextEscapement(para1:TXFontSet; para2:Pchar; para3:cint):cint;cdecl;external libX11;
+function XwcTextEscapement(para1:TXFontSet; para2:PWideChar; para3:cint):cint;cdecl;external libX11;
+function Xutf8TextEscapement(para1:TXFontSet; para2:Pchar; para3:cint):cint;cdecl;external libX11;
+function XmbTextExtents(para1:TXFontSet; para2:Pchar; para3:cint; para4:PXRectangle; para5:PXRectangle):cint;cdecl;external libX11;
+function XwcTextExtents(para1:TXFontSet; para2:PWideChar; para3:cint; para4:PXRectangle; para5:PXRectangle):cint;cdecl;external libX11;
+function Xutf8TextExtents(para1:TXFontSet; para2:Pchar; para3:cint; para4:PXRectangle; para5:PXRectangle):cint;cdecl;external libX11;
+function XmbTextPerCharExtents(para1:TXFontSet; para2:Pchar; para3:cint; para4:PXRectangle; para5:PXRectangle;
+           para6:cint; para7:Pcint; para8:PXRectangle; para9:PXRectangle):TStatus;cdecl;external libX11;
+function XwcTextPerCharExtents(para1:TXFontSet; para2:PWideChar; para3:cint; para4:PXRectangle; para5:PXRectangle;
+           para6:cint; para7:Pcint; para8:PXRectangle; para9:PXRectangle):TStatus;cdecl;external libX11;
+function Xutf8TextPerCharExtents(para1:TXFontSet; para2:Pchar; para3:cint; para4:PXRectangle; para5:PXRectangle;
+           para6:cint; para7:Pcint; para8:PXRectangle; para9:PXRectangle):TStatus;cdecl;external libX11;
+procedure XmbDrawText(para1:PDisplay; para2:TDrawable; para3:TGC; para4:cint; para5:cint;
+            para6:PXmbTextItem; para7:cint);cdecl;external libX11;
+procedure XwcDrawText(para1:PDisplay; para2:TDrawable; para3:TGC; para4:cint; para5:cint;
+            para6:PXwcTextItem; para7:cint);cdecl;external libX11;
+procedure Xutf8DrawText(para1:PDisplay; para2:TDrawable; para3:TGC; para4:cint; para5:cint;
+            para6:PXmbTextItem; para7:cint);cdecl;external libX11;
+procedure XmbDrawString(para1:PDisplay; para2:TDrawable; para3:TXFontSet; para4:TGC; para5:cint;
+            para6:cint; para7:Pchar; para8:cint);cdecl;external libX11;
+procedure XwcDrawString(para1:PDisplay; para2:TDrawable; para3:TXFontSet; para4:TGC; para5:cint;
+            para6:cint; para7:PWideChar; para8:cint);cdecl;external libX11;
+procedure Xutf8DrawString(para1:PDisplay; para2:TDrawable; para3:TXFontSet; para4:TGC; para5:cint;
+            para6:cint; para7:Pchar; para8:cint);cdecl;external libX11;
+procedure XmbDrawImageString(para1:PDisplay; para2:TDrawable; para3:TXFontSet; para4:TGC; para5:cint;
+            para6:cint; para7:Pchar; para8:cint);cdecl;external libX11;
+procedure XwcDrawImageString(para1:PDisplay; para2:TDrawable; para3:TXFontSet; para4:TGC; para5:cint;
+            para6:cint; para7:PWideChar; para8:cint);cdecl;external libX11;
+procedure Xutf8DrawImageString(para1:PDisplay; para2:TDrawable; para3:TXFontSet; para4:TGC; para5:cint;
+            para6:cint; para7:Pchar; para8:cint);cdecl;external libX11;
 function XOpenIM(para1:PDisplay; para2:PXrmHashBucketRec; para3:Pchar; para4:Pchar):TXIM;cdecl;external libX11;
 function XCloseIM(para1:TXIM):TStatus;cdecl;external libX11;
-function XGetIMValues:Pchar;cdecl;external libX11;
+function XGetIMValues(para1:TXIM; dotdotdot:array of const):Pchar;cdecl;external libX11;
+function XSetIMValues(para1:TXIM; dotdotdot:array of const):Pchar;cdecl;external libX11;
 function XDisplayOfIM(para1:TXIM):PDisplay;cdecl;external libX11;
 function XLocaleOfIM(para1:TXIM):Pchar;cdecl;external libX11;
-function XCreateIC:TXIC;cdecl;external libX11;
+function XCreateIC(para1:TXIM; dotdotdot:array of const):TXIC;cdecl;external libX11;
 procedure XDestroyIC(para1:TXIC);cdecl;external libX11;
 procedure XSetICFocus(para1:TXIC);cdecl;external libX11;
 procedure XUnsetICFocus(para1:TXIC);cdecl;external libX11;
 function XwcResetIC(para1:TXIC):PWideChar;cdecl;external libX11;
 function XmbResetIC(para1:TXIC):Pchar;cdecl;external libX11;
-function XSetICValues:Pchar;cdecl;external libX11;
-function XGetICValues:Pchar;cdecl;external libX11;
+function Xutf8ResetIC(para1:TXIC):Pchar;cdecl;external libX11;
+function XSetICValues(para1:TXIC; dotdotdot:array of const):Pchar;cdecl;external libX11;
+function XGetICValues(para1:TXIC; dotdotdot:array of const):Pchar;cdecl;external libX11;
 function XIMOfIC(para1:TXIC):TXIM;cdecl;external libX11;
 function XFilterEvent(para1:PXEvent; para2:TWindow):TBool;cdecl;external libX11;
-function XmbLookupString(para1:TXIC; para2:PXKeyPressedEvent; para3:Pchar; para4:longint; para5:PKeySym;
-           para6:PStatus):longint;cdecl;external libX11;
-function XwcLookupString(para1:TXIC; para2:PXKeyPressedEvent; para3:PWideChar; para4:longint; para5:PKeySym;
-           para6:PStatus):longint;cdecl;external libX11;
-function XVaCreateNestedList:TXVaNestedList;cdecl;external libX11;
+function XmbLookupString(para1:TXIC; para2:PXKeyPressedEvent; para3:Pchar; para4:cint; para5:PKeySym;
+           para6:PStatus):cint;cdecl;external libX11;
+function XwcLookupString(para1:TXIC; para2:PXKeyPressedEvent; para3:PWideChar; para4:cint; para5:PKeySym;
+           para6:PStatus):cint;cdecl;external libX11;
+function Xutf8LookupString(para1:TXIC; para2:PXKeyPressedEvent; para3:Pchar; para4:cint; para5:PKeySym;
+           para6:PStatus):cint;cdecl;external libX11;
+function XVaCreateNestedList(unused:cint; dotdotdot:array of const):TXVaNestedList;cdecl;external libX11;
 function XRegisterIMInstantiateCallback(para1:PDisplay; para2:PXrmHashBucketRec; para3:Pchar; para4:Pchar; para5:TXIDProc;
            para6:TXPointer):TBool;cdecl;external libX11;
 function XUnregisterIMInstantiateCallback(para1:PDisplay; para2:PXrmHashBucketRec; para3:Pchar; para4:Pchar; para5:TXIDProc;
            para6:TXPointer):TBool;cdecl;external libX11;
 type
+   TXConnectionWatchProc = procedure (para1:PDisplay; para2:TXPointer; para3:cint; para4:TBool; para5:PXPointer);cdecl;
 
-   TXConnectionWatchProc = procedure (para1:PDisplay; para2:TXPointer; para3:longint; para4:TBool; para5:PXPointer);cdecl;
-
-function XInternalConnectionNumbers(para1:PDisplay; para2:PPlongint; para3:Plongint):TStatus;cdecl;external libX11;
-procedure XProcessInternalConnection(para1:PDisplay; para2:longint);cdecl;external libX11;
+function XInternalConnectionNumbers(para1:PDisplay; para2:PPcint; para3:Pcint):TStatus;cdecl;external libX11;
+procedure XProcessInternalConnection(para1:PDisplay; para2:cint);cdecl;external libX11;
 function XAddConnectionWatch(para1:PDisplay; para2:TXConnectionWatchProc; para3:TXPointer):TStatus;cdecl;external libX11;
 procedure XRemoveConnectionWatch(para1:PDisplay; para2:TXConnectionWatchProc; para3:TXPointer);cdecl;external libX11;
-procedure XSetAuthorization(para1:Pchar; para2:longint; para3:Pchar; para4:longint);cdecl;external libX11;
+procedure XSetAuthorization(para1:Pchar; para2:cint; para3:Pchar; para4:cint);cdecl;external libX11;
+
+{
+  _Xmbtowc?
+  _Xwctomb?
+}
 
 {$ifdef MACROS}
 function ConnectionNumber(dpy : PDisplay) : longint;

@@ -6,6 +6,10 @@ interface
   {$LinkLib X11}
 {$endif}
 
+type
+  culong = dword;
+  cuchar = byte;
+
 {
   Automatically converted by H2Pas 0.99.15 from x.h
   The following command line parameters were used:
@@ -42,20 +46,20 @@ const
 type
 
    PXID = ^TXID;
-   TXID = dword;
+   TXID = culong;
 
    PMask = ^TMask;
-   TMask = dword;
+   TMask = culong;
 
    PPAtom = ^PAtom;
    PAtom = ^TAtom;
-   TAtom = dword;
+   TAtom = culong;
 
    PVisualID = ^TVisualID;
-   TVisualID = dword;
+   TVisualID = culong;
 
    PTime = ^TTime;
-   TTime = dword;
+   TTime = culong;
 
    PPWindow = ^PWindow;
    PWindow = ^TWindow;
@@ -83,7 +87,7 @@ type
    TKeySym = TXID;
 
    PKeyCode = ^TKeyCode;
-   TKeyCode = byte;
+   TKeyCode = cuchar;
 
 const
    None = 0;
@@ -206,6 +210,8 @@ const
    FamilyInternet = 0;
    FamilyDECnet = 1;
    FamilyChaos = 2;
+   FamilyInternet6 = 6;
+   FamilyServerInterpreted = 5;
    PropertyNewValue = 0;
    PropertyDelete = 1;
    ColormapUninstalled = 0;
@@ -225,8 +231,8 @@ const
    ReplayKeyboard = 5;
    AsyncBoth = 6;
    SyncBoth = 7;
-   RevertToNone = 0;
-   RevertToPointerRoot = 1;
+   RevertToNone = None;
+   RevertToPointerRoot = PointerRoot;
    RevertToParent = 2;
    Success = 0;
    BadRequest = 1;
