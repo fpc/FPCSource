@@ -370,8 +370,12 @@ begin
                  (srsym.typ=unitsym) and
                  (srsym.owner.unitid=0) then
                begin
+                 { Add . to create System.Identifier }
                  actasmpattern:=actasmpattern+c;
                  c:=current_scanner.asmgetchar;
+                 { Delphi allows System.@Halt, just ignore the @ }
+                 if c='@' then
+                   c:=current_scanner.asmgetchar;
                  while c in  ['A'..'Z','a'..'z','0'..'9','_','$'] do
                   begin
                     actasmpattern:=actasmpattern + upcase(c);
@@ -1932,7 +1936,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.56  2003-10-10 17:48:14  peter
+  Revision 1.57  2003-10-21 18:17:40  peter
+    * ignore @ in Unit.@Proc
+
+  Revision 1.56  2003/10/10 17:48:14  peter
     * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
     * tregisteralloctor renamed to trgobj
     * removed rgobj from a lot of units
