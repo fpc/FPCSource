@@ -104,9 +104,9 @@ interface
         { wdosx }   ( true,  false, false, false, false, false),
         { palmos }  ( false, true,  false, false, false, false),
         { macos }   ( false, false, true,  false, false, false),
-        { macosx }  ( false, false, true,  false, false, false),
+        { darwin }  ( false, false, true,  false, false, false),
         { emx }     ( true,  false, false, false, false, false),
-	{ watcom }  ( true,  false, false, false ,false, false)
+        { watcom }  ( true,  false, false, false ,false, false)
       );
 
     type
@@ -1556,7 +1556,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.38  2004-05-20 12:02:48  marco
+  Revision 1.39  2004-06-05 11:14:49  olle
+    * niceified
+
+  Revision 1.38  2004/05/20 12:02:48  marco
    * freebsd/x86_64
 
   Revision 1.37  2004/02/22 14:55:22  hajny
