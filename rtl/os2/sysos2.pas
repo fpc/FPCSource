@@ -521,6 +521,12 @@ begin
         do_seekend(filerec(f).handle);
 end;
 
+function do_isdevice(handle:longint):boolean;
+begin
+  do_isdevice:=(handle<=5);
+end;
+
+
 {*****************************************************************************
                            UnTyped File Handling
 *****************************************************************************}
@@ -649,17 +655,6 @@ end;
                         System unit initialization.
 
 ****************************************************************************}
-
-procedure OpenStdIO(var f:text;mode:word;hdl:longint);
-
-begin
-    Assign(f,'');
-    TextRec(f).Handle:=hdl;
-    TextRec(f).Mode:=mode;
-    TextRec(f).InOutFunc:=@FileInOutFunc;
-    TextRec(f).FlushFunc:=@FileInOutFunc;
-    TextRec(f).Closefunc:=@fileclosefunc;
-end;
 
 var pib:Pprocessinfoblock;
     tib:Pthreadinfoblock;

@@ -21,11 +21,6 @@
 # with the main makefile.
 #####################################################################
 
-# What is the Operating System ?
-ifndef OS_SOURCE
-OS_SOURCE=go32v2
-endif
-
 # What is the target operating system ?
 ifndef OS_TARGET
 OS_TARGET=os2
@@ -54,7 +49,7 @@ PPUMOVE=ppumove
 endif
 
 # Set this to 'shared' or 'static'
-LIBTYPE=shared
+# LIBTYPE=shared
 
 # AOUT should be defined in main makefile.
 # But you can set it here too.
@@ -110,14 +105,14 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 
 PPUEXT=.ppo
 ASMEXT=.so2
-OEXT=.o2
+OEXT=.oo2
 
 # Define Linux Units
 SYSTEMPPU=sysos2$(PPUEXT)
-OBJECTS=strings objpas \
-        dos crt
+OBJECTS=strings dos crt objpas sysutils
+# objects still not implemented !!
 
-LOADERS=prt0 prt1
+LOADERS=prt0 prt1 code2 code3
 
 #####################################################################
 # System independent Makefile
@@ -148,22 +143,19 @@ clean :
 # Loaders
 #
 
-prt0$(OEXT) : prt0.as
-	as -D -o prt0$(OEXT) prt0.as
-
-prt1$(OEXT) : prt1.as
-	as -D -o prt1$(OEXT) prt1.as
+%$(OEXT) : %.as
+	as -o $*$(OEXT) $*.as
 
 #
 # Base Units (System, strings, os-dependent-base-unit)
 #
 
 $(SYSTEMPPU) : sysos2.pas $(SYSDEPS)
-	$(PP) $(OPT) -Us -Sg sysos2.pas $(REDIR)
+	$(COMPILER) -Us -Sg sysos2.pas $(REDIR)
 
 strings$(PPUEXT) : $(PROCINC)/strings.pp $(SYSTEMPPU)
 	$(COPY) $(PROCINC)/strings.pp .
-	$(PP) $(OPT) strings $(REDIR)
+	$(COMPILER) strings $(REDIR)
 	$(DEL) strings.pp
 
 #
@@ -192,14 +184,14 @@ sysutils$(PPUEXT) : $(OBJPASDIR)/sysutils.pp $(SYSUTILINC) filutil.inc disk.inc
 #
 
 dos$(PPUEXT) : dos.pas $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) $(SYSTEMPPU)
-	$(PP) $(OPT) dos.pas $(REDIR)
+	$(COMPILER) dos.pas $(REDIR)
 
 crt$(PPUEXT) : crt.pas dos$(PPUEXT)
-	$(PP) $(OPT) crt.pas $(REDIR)
+	$(COMPILER) crt.pas $(REDIR)
 
 #objects$(PPUEXT) : $(INC)/objects.pp objinc.inc $(SYSTEMPPU)
 #	 $(COPY) $(INC)/objects.pp .
-#	 $(PP) $(OPT) objects $(REDIR)
+#	 $(COMPILER) $(OPT) objects $(REDIR)
 #	 $(DEL) objects.pp
 
 #
@@ -234,7 +226,14 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.2  1998-10-11 13:46:31  michael
+# Revision 1.3  1998-10-27 15:14:03  pierre
+#   * update sys_os2 so that it compiles with current RTL
+#     (do_isdevice might be wrong !! Daniel could you check this !!)
+#   * fixed makefile (works from go32v2 compiler)
+#     I had to remove library=shared !!
+#     (it tried to use ld with -CD !!)
+#
+# Revision 1.2  1998/10/11 13:46:31  michael
 # Sysutils changes
 #
 # Revision 1.1  1998/09/10 14:17:51  peter
