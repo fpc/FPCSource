@@ -88,7 +88,7 @@
          D:=S;
       end;
 
-    procedure fpc_intf_as(var D: pointer; const S: pointer; const iid: TGUID);[public,alias: 'FPC_INTF_AS']; {$ifdef hascompilerproc} compilerproc; {$endif}
+    function fpc_intf_as(const S: pointer; const iid: TGUID): pointer;[public,alias: 'FPC_INTF_AS']; {$ifdef hascompilerproc} compilerproc; {$endif}
       const
         S_OK = 0;
       var
@@ -98,14 +98,14 @@
           begin
              if IUnknown(S).QueryInterface(iid,tmpi)<>S_OK then
                handleerror(219);
-             if assigned(D) then IUnknown(D)._Release;
-             D:=tmpi;
+             fpc_intf_as:=tmpi;
           end
         else
-          intf_decr_ref(D);
+          fpc_intf_as:=nil;
       end;
 
-    procedure fpc_class_as_intf(var D: pointer; const S: pointer; const iid: TGUID);[public,alias: 'FPC_CLASS_AS_INTF']; {$ifdef hascompilerproc} compilerproc; {$endif}
+
+    function fpc_class_as_intf(const S: pointer; const iid: TGUID): pointer;[public,alias: 'FPC_CLASS_AS_INTF']; {$ifdef hascompilerproc} compilerproc; {$endif}
       const
         S_OK = 0;
       var
@@ -113,14 +113,12 @@
       begin
         if assigned(S) then
           begin
-             if TObject(S).GetInterface(iid,tmpi) then
+             if not TObject(S).GetInterface(iid,tmpi) then
                handleerror(219);
-             if assigned(D) then
-               IUnknown(D)._Release;
-             D:=tmpi;
+             fpc_class_as_intf:=tmpi;
           end
         else
-          intf_decr_ref(D);
+          fpc_class_as_intf:=nil;
       end;
 {$endif HASINTF}
 
@@ -715,7 +713,10 @@
 
 {
   $Log$
-  Revision 1.23  2002-07-30 17:29:19  florian
+  Revision 1.24  2002-08-20 18:24:06  jonas
+    * interface "as" helpers converted from procedures to functions
+
+  Revision 1.23  2002/07/30 17:29:19  florian
     * interface helpers for 1.1 compilers without interface support fixed
 
   Revision 1.22  2002/07/01 16:29:05  peter

@@ -178,7 +178,8 @@ function fpc_do_as(aclass : tclass;aobject : tobject): tobject; compilerproc;
 procedure fpc_intf_decr_ref(var i: pointer); compilerproc;
 procedure fpc_intf_incr_ref(i: pointer); compilerproc;
 procedure fpc_intf_assign(var D: pointer; const S: pointer); compilerproc;
-procedure fpc_intf_as(var D: pointer; const S: pointer; const iid: TGUID); compilerproc;
+function  fpc_intf_as(const S: pointer; const iid: TGUID): pointer; compilerproc;
+function fpc_class_as_intf(const S: pointer; const iid: TGUID): pointer; compilerproc;
 
 Function fpc_PushExceptAddr (Ft: Longint;_buf,_newaddr : pointer): PJmp_buf ; compilerproc;
 Procedure fpc_PushExceptObj (Obj : TObject; AnAddr,AFrame : Pointer); compilerproc;
@@ -261,7 +262,10 @@ function fpc_qword_to_double(q: qword): double; compilerproc;
 
 {
   $Log$
-  Revision 1.18  2002-07-31 16:58:12  jonas
+  Revision 1.19  2002-08-20 18:24:05  jonas
+    * interface "as" helpers converted from procedures to functions
+
+  Revision 1.18  2002/07/31 16:58:12  jonas
     * fixed conversion from int64/qword to double errors
 
   Revision 1.17  2002/07/28 20:43:47  florian
