@@ -26,7 +26,7 @@ Interface
 Uses
   strings,
   cobjects,
-  globtype,systems,verbose,globals,files,
+  globtype,types,systems,verbose,globals,files,
   symconst,symtable,aasm,cpubase,cpuasm
 {$ifdef NEWCG}
   ,cgbase
@@ -812,6 +812,10 @@ Begin
                   opr.ref.offsetfixup:=0;
                   opr.ref.options:=ref_none;
                 end;
+              if (pvarsym(sym)^.varspez=vs_var) or
+                 ((pvarsym(sym)^.varspez=vs_const) and
+                 push_addr_param(pvarsym(sym)^.vartype.def)) then
+                SetSize(target_os.size_of_pointer,false);
             end;
           localsymtable :
             begin
@@ -1512,7 +1516,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.43  2000-05-18 17:05:16  peter
+  Revision 1.44  2000-05-22 12:47:52  pierre
+   fix wrong handling of var para for size bug 961
+
+  Revision 1.43  2000/05/18 17:05:16  peter
     * fixed size of const parameters in asm readers
 
   Revision 1.42  2000/05/11 09:56:22  pierre
