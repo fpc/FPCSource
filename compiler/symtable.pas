@@ -991,8 +991,13 @@ const localsymtablestack : psymtable = nil;
 {$ifndef OLDPPU}
          new(symindex,init(indexgrowsize));
          new(defindex,init(indexgrowsize));
-         new(symsearch,init);
-         symsearch^.noclear:=true;
+         if symtabletype<>withsymtable then
+           begin
+              new(symsearch,init);
+              symsearch^.noclear:=true;
+           end
+         else
+           symsearch:=nil;
 {$else}
          lastsym:=nil;
          rootdef:=nil;
@@ -2659,8 +2664,17 @@ const localsymtablestack : psymtable = nil;
 
 
      destructor tunitsymtable.done;
+       var
+          pus : punitsym;
        begin
-          unitsym:=nil;
+          pus:=unitsym;
+          while assigned(pus) do
+            begin
+               unitsym:=pus^.prevsym;
+               pus^.prevsym:=nil;
+               pus^.unitsymtable:=nil;
+               pus:=unitsym;
+            end;
           inherited done;
        end;
        
@@ -3224,7 +3238,10 @@ const localsymtablestack : psymtable = nil;
 end.
 {
   $Log$
-  Revision 1.11  1999-05-10 15:02:51  pierre
+  Revision 1.12  1999-05-10 22:34:59  pierre
+   * one more unitsym problem fix
+
+  Revision 1.11  1999/05/10 15:02:51  pierre
   unitsym finally problem fixed
 
   Revision 1.10  1999/05/09 12:46:26  peter
