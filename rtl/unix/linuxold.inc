@@ -1551,24 +1551,24 @@ function MUnMap (P : Pointer; Size : Longint) : Boolean;
 Function  IOperm (From,Num : Cardinal; Value : Longint) : boolean;
 Function IoPL(Level : longint) : Boolean;
 {$ifdef cpui386}
-Procedure WritePort (Port : Longint; Value : Byte);oldfpccall;
-Procedure WritePort (Port : Longint; Value : Word);oldfpccall;
-Procedure WritePort (Port : Longint; Value : Longint);oldfpccall;
-Procedure WritePortB (Port : Longint; Value : Byte);oldfpccall;
-Procedure WritePortW (Port : Longint; Value : Word);oldfpccall;
-Procedure WritePortL (Port : Longint; Value : Longint);oldfpccall;
-Procedure WritePortL (Port : Longint; Var Buf; Count: longint);oldfpccall;
-Procedure WritePortW (Port : Longint; Var Buf; Count: longint);oldfpccall;
-Procedure WritePortB (Port : Longint; Var Buf; Count: longint);oldfpccall;
-Procedure ReadPort (Port : Longint; Var Value : Byte);oldfpccall;
-Procedure ReadPort (Port : Longint; Var Value : Word);oldfpccall;
-Procedure ReadPort (Port : Longint; Var Value : Longint);oldfpccall;
-function  ReadPortB (Port : Longint): Byte;oldfpccall;
-function  ReadPortW (Port : Longint): Word;oldfpccall;
-function  ReadPortL (Port : Longint): LongInt;oldfpccall;
-Procedure ReadPortL (Port : Longint; Var Buf; Count: longint);oldfpccall;
-Procedure ReadPortW (Port : Longint; Var Buf; Count: longint);oldfpccall;
-Procedure ReadPortB (Port : Longint; Var Buf; Count: longint);oldfpccall;
+Procedure WritePort (Port : Longint; Value : Byte);{$ifndev VER1_0}oldfpccall;{$endif}
+Procedure WritePort (Port : Longint; Value : Word);{$ifndev VER1_0}oldfpccall;{$endif}
+Procedure WritePort (Port : Longint; Value : Longint);{$ifndev VER1_0}oldfpccall;{$endif}
+Procedure WritePortB (Port : Longint; Value : Byte);{$ifndev VER1_0}oldfpccall;{$endif}
+Procedure WritePortW (Port : Longint; Value : Word);{$ifndev VER1_0}oldfpccall;{$endif}
+Procedure WritePortL (Port : Longint; Value : Longint);{$ifndev VER1_0}oldfpccall;{$endif}
+Procedure WritePortL (Port : Longint; Var Buf; Count: longint);{$ifndev VER1_0}oldfpccall;{$endif}
+Procedure WritePortW (Port : Longint; Var Buf; Count: longint);{$ifndev VER1_0}oldfpccall;{$endif}
+Procedure WritePortB (Port : Longint; Var Buf; Count: longint);{$ifndev VER1_0}oldfpccall;{$endif}
+Procedure ReadPort (Port : Longint; Var Value : Byte);{$ifndev VER1_0}oldfpccall;{$endif}
+Procedure ReadPort (Port : Longint; Var Value : Word);{$ifndev VER1_0}oldfpccall;{$endif}
+Procedure ReadPort (Port : Longint; Var Value : Longint);{$ifndev VER1_0}oldfpccall;{$endif}
+function  ReadPortB (Port : Longint): Byte;{$ifndev VER1_0}oldfpccall;{$endif}
+function  ReadPortW (Port : Longint): Word;{$ifndev VER1_0}oldfpccall;{$endif}
+function  ReadPortL (Port : Longint): LongInt;{$ifndev VER1_0}oldfpccall{$endif};
+Procedure ReadPortL (Port : Longint; Var Buf; Count: longint);{$ifndev VER1_0}oldfpccall;{$endif}
+Procedure ReadPortW (Port : Longint; Var Buf; Count: longint);{$ifndev VER1_0}oldfpccall;{$endif}
+Procedure ReadPortB (Port : Longint; Var Buf; Count: longint);{$ifndev VER1_0}oldfpccall;{$endif}
 {$endif}
 
 {**************************
@@ -5908,7 +5908,10 @@ End.
 
 {
   $Log$
-  Revision 1.14  2004-02-19 19:50:51  daniel
+  Revision 1.15  2004-02-19 20:56:22  daniel
+    * Make it compile with 1.0.10
+
+  Revision 1.14  2004/02/19 19:50:51  daniel
     * More oldfpccall
 
   Revision 1.13  2004/02/19 19:43:36  daniel
