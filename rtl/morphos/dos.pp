@@ -1251,7 +1251,7 @@ begin
       end;
    end;
    close(f);
-   exec('C:delete','sram:temp.lst quiet');
+   exec('C:delete','ram:temp.lst quiet');
    getpathstring := temp;
 end;
 
@@ -1373,7 +1373,10 @@ End.
 
 {
   $Log$
-  Revision 1.2  2004-05-13 00:42:29  karoly
+  Revision 1.3  2004-05-13 00:48:52  karoly
+    * fixed a typo
+
+  Revision 1.2  2004/05/13 00:42:29  karoly
     * getpathstring displayed dos messages, fixed
 
   Revision 1.1  2004/05/12 20:27:29  karoly
