@@ -818,18 +818,18 @@ end;
 
 
 {$ASMMODE INTEL}
-function DirectoryExists (const Directory: string): boolean;
+function DirectoryExists (const Dirname: string): boolean;
 {$IFOPT H+}
                                                              assembler;
 {$ELSE}
 var FN: string;
 begin
-    FN := Directory + #0;
+    FN := Dirname + #0;
 {$ENDIF}
 asm
     mov ax, 4300h
 {$IFOPT H+}
-    mov edx, Directory
+    mov edx, Dirname
 {$ELSE}
     lea edx, FN
     inc edx
@@ -983,7 +983,10 @@ end.
 
 {
   $Log$
-  Revision 1.23  2003-03-29 15:01:20  hajny
+  Revision 1.24  2003-03-29 18:53:10  yuri
+    * Fixed DirectoryExists function header
+
+  Revision 1.23  2003/03/29 15:01:20  hajny
     + DirectoryExists added for main branch OS/2 too
 
   Revision 1.22  2003/03/01 21:19:14  hajny
