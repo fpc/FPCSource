@@ -418,8 +418,10 @@ implementation
            end
          else
 
-           { is one of the operands a string ? }
-           if (rd^.deftype=stringdef) or (ld^.deftype=stringdef) then
+           { is one of the operands a string?,
+             chararrays are also handled as strings (after conversion) }
+           if (rd^.deftype=stringdef) or (ld^.deftype=stringdef) or
+              is_chararray(rd) or is_chararray(ld) then
             begin
               if is_widestring(rd) or is_widestring(ld) then
                 begin
@@ -915,7 +917,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  1998-11-17 00:36:47  peter
+  Revision 1.15  1998-11-24 22:59:05  peter
+    * handle array of char the same as strings
+
+  Revision 1.14  1998/11/17 00:36:47  peter
     * more ansistring fixes
 
   Revision 1.13  1998/11/16 15:33:05  peter
