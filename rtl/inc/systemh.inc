@@ -143,6 +143,9 @@ Type
 { procedure type }
   TProcedure  = Procedure;
 
+{ Text file }
+  TextFile    = Text;
+
 const
 { Maximum value of the biggest signed and unsigned integer type available}
   MaxSIntValue = High(ValSInt);
@@ -512,7 +515,10 @@ const
 
 {
   $Log$
-  Revision 1.26  2001-07-09 21:15:41  peter
+  Revision 1.27  2001-07-10 18:04:37  peter
+    * merged textfile, readlink and concat ansistring fixes
+
+  Revision 1.26  2001/07/09 21:15:41  peter
     * Length made internal
     * Add array support for Length
 

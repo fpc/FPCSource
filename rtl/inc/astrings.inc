@@ -164,9 +164,6 @@ Procedure AnsiStr_Concat (S1,S2 : Pointer;var S3 : Pointer);[Public, alias: 'FPC
 Var
   Size,Location : Longint;
 begin
-{ create new result }
-  if S3<>nil then
-    AnsiStr_Decr_Ref(S3);
 { only assign if s1 or s2 is empty }
   if (S1=Nil) then
     AnsiStr_Assign(S3,S2)
@@ -175,6 +172,9 @@ begin
       AnsiStr_Assign(S3,S1)
   else
     begin
+       { create new result }
+       if S3<>nil then
+         AnsiStr_Decr_Ref(S3);
        Size:=PAnsiRec(S2-FirstOff)^.Len;
        Location:=Length(AnsiString(S1));
        SetLength (AnsiString(S3),Size+Location);
@@ -707,7 +707,10 @@ end;
 
 {
   $Log$
-  Revision 1.15  2001-07-09 21:15:41  peter
+  Revision 1.16  2001-07-10 18:04:37  peter
+    * merged textfile, readlink and concat ansistring fixes
+
+  Revision 1.15  2001/07/09 21:15:41  peter
     * Length made internal
     * Add array support for Length
 

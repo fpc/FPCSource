@@ -265,10 +265,8 @@ Function  fdSeek (fd,pos,seektype :longint): longint;
 Function  fdFlush (fd : Longint) : Boolean;
 Function  Link(OldPath,NewPath:pathstr):boolean;
 Function  SymLink(OldPath,NewPath:pathstr):boolean;
-{$ifndef bsd}
 Function  ReadLink(name,linkname:pchar;maxlen:longint):longint;
 Function  ReadLink(name:pathstr):pathstr;
-{$endif}
 Function  UnLink(Path:pathstr):boolean;
 Function  UnLink(Path:pchar):Boolean;
 Function  FReName (OldName,NewName : Pchar) : Boolean;
@@ -2892,7 +2890,10 @@ End.
 
 {
   $Log$
-  Revision 1.10  2001-06-03 20:19:09  peter
+  Revision 1.11  2001-07-10 18:04:37  peter
+    * merged textfile, readlink and concat ansistring fixes
+
+  Revision 1.10  2001/06/03 20:19:09  peter
     * FSStat to StatFS
     * StatFS structure to TStatFS
 
