@@ -139,9 +139,6 @@ printer$(PPUEXT) : printer.pp $(INC)/textrec.inc linux$(PPUEXT) $(SYSTEMPPU)
 #
 # Graph
 #
-ifndef NEWGRAPH
-graph$(PPUEXT) : graph.pp linux$(PPUEXT) objects$(PPUEXT)
-else
 include $(GRAPHDIR)/makefile.inc
 GRAPHINCDEPS=$(addprefix $(GRAPHDIR)/,$(GRAPHINCNAMES))
 ifeq ($(USELIBGGI),YES)
@@ -152,7 +149,7 @@ GRAPHINCDEPS+=vgagraph.inc
 endif
 graph$(PPUEXT) : $(GRAPHDIR)/graph.pp $(SYSTEMPPU) $(GRAPHINCDEPS) graph.inc
         $(COMPILER) -I$(GRAPHDIR) $(GRAPHDIR)/graph.pp $(REDIR)
-endif
+
 #
 # Delphi Compatible Units
 #
