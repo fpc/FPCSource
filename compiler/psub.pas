@@ -683,9 +683,7 @@ implementation
               rg.epilogue_colouring;
             until (rg.spillednodes='') or not rg.spill_registers(aktproccode,rg.spillednodes);
             aktproccode.translate_registers(rg.colour);
-            aktproccode.convert_registers;
 {$else newra}
-            aktproccode.convert_registers;
 {$ifndef NoOpt}
             if (cs_optimize in aktglobalswitches) and
             { do not optimize pure assembler procedures }
@@ -1302,7 +1300,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.134  2003-08-17 16:59:20  jonas
+  Revision 1.135  2003-08-20 07:48:03  daniel
+    * Made internal assembler use new register coding
+
+  Revision 1.134  2003/08/17 16:59:20  jonas
     * fixed regvars so they work with newra (at least for ppc)
     * fixed some volatile register bugs
     + -dnotranslation option for -dnewra, which causes the registers not to

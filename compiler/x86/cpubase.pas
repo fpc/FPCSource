@@ -128,7 +128,6 @@ uses
 
       {Super register numbers:}
    const
-{$ifdef x86_64}
       RS_SPECIAL    = $00;      {Special register}
       RS_RAX        = $01;      {EAX}
       RS_RBX        = $02;      {EBX}
@@ -155,17 +154,6 @@ uses
       RS_EDI        = RS_RDI;
       RS_EBP        = RS_RBP;
       RS_ESP        = RS_RSP;
-{$else x86_64}
-      RS_SPECIAL    = $00;      {Special register}
-      RS_EAX        = $01;      {EAX}
-      RS_EBX        = $02;      {EBX}
-      RS_ECX        = $03;      {ECX}
-      RS_EDX        = $04;      {EDX}
-      RS_ESI        = $05;      {ESI}
-      RS_EDI        = $06;      {EDI}
-      RS_EBP        = $07;      {EBP}
-      RS_ESP        = $08;      {ESP}
-{$endif x86_64}
 
 
       {Number of first and last superregister.}
@@ -735,7 +723,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  2003-08-17 16:59:20  jonas
+  Revision 1.13  2003-08-20 07:48:04  daniel
+    * Made internal assembler use new register coding
+
+  Revision 1.12  2003/08/17 16:59:20  jonas
     * fixed regvars so they work with newra (at least for ppc)
     * fixed some volatile register bugs
     + -dnotranslation option for -dnewra, which causes the registers not to

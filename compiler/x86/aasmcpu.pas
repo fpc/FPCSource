@@ -1287,20 +1287,38 @@ implementation
         { Segment override }
         if segprefix.enum>lastreg then
           internalerror(200201081);
-        if (segprefix.enum<>R_NO) then
-         begin
-           case segprefix.enum of
-             R_CS : c:=$2e;
-             R_DS : c:=$3e;
-             R_ES : c:=$26;
-             R_FS : c:=$64;
-             R_GS : c:=$65;
-             R_SS : c:=$36;
+        if segprefix.enum=R_INTREGISTER then
+          begin
+            if segprefix.number<>NR_NO then
+              begin
+                case segprefix.number of
+                  NR_CS: c:=$2e;
+                  NR_DS: c:=$3e;
+                  NR_ES: c:=$26;
+                  NR_FS: c:=$64;
+                  NR_GS: c:=$65;
+                  NR_SS: c:=$36;
+                end;
+                sec.writebytes(c,1);
+                { fix the offset for GenNode }
+                inc(InsOffset);
+              end;
+          end
+        else
+          if (segprefix.enum<>R_NO) then
+           begin
+             case segprefix.enum of
+               R_CS : c:=$2e;
+               R_DS : c:=$3e;
+               R_ES : c:=$26;
+               R_FS : c:=$64;
+               R_GS : c:=$65;
+               R_SS : c:=$36;
+             end;
+             sec.writebytes(c,1);
+             { fix the offset for GenNode }
+             inc(InsOffset);
            end;
-           sec.writebytes(c,1);
-           { fix the offset for GenNode }
-           inc(InsOffset);
-         end;
         { Generate the instruction }
         GenCode(sec);
       end;
@@ -1337,9 +1355,9 @@ implementation
     end;
 
 
-    function regval(r:tregister):byte;
+    function regval(r:Toldregister):byte;
       begin
-        case r.enum of
+        case r of
           R_EAX,R_AX,R_AL,R_ES,R_CR0,R_DR0,R_ST,R_ST0,R_MM0,R_XMM0 :
             regval:=0;
           R_ECX,R_CX,R_CL,R_CS,R_DR1,R_ST1,R_MM1,R_XMM1 :
@@ -1363,6 +1381,58 @@ implementation
             end;
         end;
       end;
+
+    function regval_new(r:Tnewregister):byte;
+
+    const count=45;
+          bsstart=32;
+
+          registers:array[0..count-1] of Tnewregister=(
+              NR_CS,  NR_DS,  NR_ES,  NR_SS,
+              NR_FS,  NR_GS,  NR_DR0, NR_DR1,
+              NR_DR2, NR_DR3, NR_DR6, NR_DR7,
+              NR_CR0, NR_CR2, NR_CR3, NR_CR4,
+              NR_TR3, NR_TR4, NR_TR5, NR_TR6,
+              NR_TR7, NR_AL,  NR_AH,  NR_AX,
+              NR_EAX, NR_BL,  NR_BH,  NR_BX,
+              NR_EBX, NR_CL,  NR_CH,  NR_CX,
+              NR_ECX, NR_DL,  NR_DH,  NR_DX,
+              NR_EDX, NR_SI,  NR_ESI, NR_DI,
+              NR_EDI, NR_BP,  NR_EBP, NR_SP,
+              NR_ESP);
+
+          register_values:array[0..count-1] of byte=(
+              1,      3,      0,      2,
+              4,      5,      0,      1,
+              2,      3,      6,      7,
+              0,      2,      3,      4,
+              3,      4,      5,      6,
+              7,      0,      4,      0,
+              0,      3,      7,      3,
+              3,      1,      5,      1,
+              1,      2,      6,      2,
+              2,      6,      6,      7,
+              7,      5,      5,      4,
+              4);
+
+
+     var i,p:byte;
+
+     begin
+        {Binary search.}
+        p:=0;
+        i:=bsstart;
+        while i<>0 do
+          begin
+            if (p+i<count) and (registers[p+i]<=r) then
+              p:=p+i;
+            i:=i shr 1;
+          end;
+        if registers[p]=r then
+          regval_new:=register_values[p]
+        else
+          internalerror(777001);
+    end;
 
 
     function process_ea(const input:toper;var output:ea;rfield:longint):boolean;
@@ -1789,7 +1859,10 @@ implementation
               end;
             8,9,10 :
               begin
-                bytes[0]:=ord(codes^)+regval(oper[c-8].reg);
+                if oper[c-8].reg.enum=R_INTREGISTER then
+                  bytes[0]:=ord(codes^)+regval_new(oper[c-8].reg.number)
+                else
+                  bytes[0]:=ord(codes^)+regval(oper[c-8].reg.enum);
                 inc(codes);
                 sec.writebytes(bytes,1);
               end;
@@ -1926,9 +1999,15 @@ implementation
                    if (c<127) then
                     begin
                       if (oper[c and 7].typ=top_reg) then
-                        rfield:=regval(oper[c and 7].reg)
+                        if oper[c and 7].reg.enum=R_INTREGISTER then
+                          rfield:=regval_new(oper[c and 7].reg.number)
+                        else
+                          rfield:=regval(oper[c and 7].reg.enum)
                       else
-                        rfield:=regval(oper[c and 7].ref^.base);
+                        if oper[c and 7].ref^.base.enum=R_INTREGISTER then
+                          rfield:=regval_new(oper[c and 7].ref^.base.number)
+                        else
+                          rfield:=regval(oper[c and 7].ref^.base.enum);
                     end
                    else
                     rfield:=c and 7;
@@ -2370,7 +2449,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  2003-08-19 13:58:33  daniel
+  Revision 1.12  2003-08-20 07:48:04  daniel
+    * Made internal assembler use new register coding
+
+  Revision 1.11  2003/08/19 13:58:33  daniel
     * Corrected a comment.
 
   Revision 1.10  2003/08/15 14:44:20  daniel
