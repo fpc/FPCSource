@@ -5,7 +5,7 @@
     Generate i386 assembler for in call nodes
 
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
+    it under the terms of the GNU General Public License as published bymethodpointer
     the Free Software Foundation; either version 2 of the License, or
     (at your option) any later version.
 
@@ -281,14 +281,20 @@ implementation
 
          if not assigned(p^.procdefinition) then
           exit;
+
+         { Deciding whether we may still need the parameters happens next (JM) }
+         params:=p^.left;
+
          if (pocall_inline in p^.procdefinition^.proccalloptions) then
            begin
+              { make a copy for the next time the procedure is inlined (JM) }
+              p^.left:=getcopy(p^.left);
               inlined:=true;
               inlinecode:=p^.right;
               { set it to the same lexical level as the local symtable, becuase
                 the para's are stored there }
               pprocdef(p^.procdefinition)^.parast^.symtablelevel:=aktprocsym^.definition^.localst^.symtablelevel;
-              if assigned(p^.left) then
+              if assigned(params) then
                 inlinecode^.para_offset:=gettempofsizepersistant(inlinecode^.para_size);
               pprocdef(p^.procdefinition)^.parast^.address_fixup:=inlinecode^.para_offset;
 {$ifdef extdebug}
@@ -299,7 +305,8 @@ implementation
                strpnew('inlined parasymtable is at offset '
                +tostr(pprocdef(p^.procdefinition)^.parast^.address_fixup)))));
 {$endif extdebug}
-              p^.right:=nil;
+              { copy for the next time the procedure is inlined (JM) }
+              p^.right:=getcopy(p^.right);
               { disable further inlining of the same proc
                 in the args }
 {$ifdef INCLUDEOK}
@@ -307,12 +314,17 @@ implementation
 {$else}
               p^.procdefinition^.proccalloptions:=p^.procdefinition^.proccalloptions-[pocall_inline];
 {$endif}
-           end;
+           end
+         else
+           { parameters not necessary anymore (JM) }
+           p^.left := nil;
          { only if no proc var }
-         if not(assigned(p^.right)) then
+         if inlined or
+            not(assigned(p^.right)) then
            is_con_or_destructor:=(p^.procdefinition^.proctypeoption in [potype_constructor,potype_destructor]);
          { proc variables destroy all registers }
-         if (p^.right=nil) and
+         if (inlined or
+            (p^.right=nil)) and
             { virtual methods too }
             not(po_virtualmethod in p^.procdefinition^.procoptions) then
            begin
@@ -346,11 +358,11 @@ implementation
          pop_size:=0;
          { no inc esp for inlined procedure
            and for objects constructors PM }
-         if inlined or
-            ((p^.right=nil) and
+         if (inlined or
+            (p^.right=nil)) and
             (p^.procdefinition^.proctypeoption=potype_constructor) and
             { quick'n'dirty check if it is a class or an object }
-            (p^.resulttype^.deftype=orddef)) then
+            (p^.resulttype^.deftype=orddef) then
            pop_allowed:=false
          else
            pop_allowed:=true;
@@ -425,7 +437,7 @@ implementation
                 else
                   gettempofsizereference(p^.procdefinition^.rettype.def^.size,funcretref);
            end;
-         if assigned(p^.left) then
+         if assigned(params) then
            begin
               { be found elsewhere }
               if inlined then
@@ -433,19 +445,18 @@ implementation
                   pprocdef(p^.procdefinition)^.parast^.datasize
               else
                 para_offset:=0;
-              if assigned(p^.right) then
-                secondcallparan(p^.left,pparaitem(pabstractprocdef(p^.right^.resulttype)^.para^.first),
+              if not(inlined) and
+                 assigned(p^.right) then
+                secondcallparan(params,pparaitem(pabstractprocdef(p^.right^.resulttype)^.para^.first),
                   (pocall_leftright in p^.procdefinition^.proccalloptions),inlined,
                   (pocall_cdecl in p^.procdefinition^.proccalloptions),
                   para_alignment,para_offset)
               else
-                secondcallparan(p^.left,pparaitem(p^.procdefinition^.para^.first),
+                secondcallparan(params,pparaitem(p^.procdefinition^.para^.first),
                   (pocall_leftright in p^.procdefinition^.proccalloptions),inlined,
                   (pocall_cdecl in p^.procdefinition^.proccalloptions),
                   para_alignment,para_offset);
            end;
-         params:=p^.left;
-         p^.left:=nil;
          if inlined then
            inlinecode^.retoffset:=gettempofsizepersistant(4);
          if ret_in_param(p^.resulttype) then
@@ -473,7 +484,8 @@ implementation
                 emitpushreferenceaddr(funcretref);
            end;
          { procedure variable ? }
-         if (p^.right=nil) then
+         if inlined or
+           (p^.right=nil) then
            begin
               { overloaded operator have no symtable }
               { push self }
@@ -1082,7 +1094,8 @@ implementation
          { if calling constructor called fail we
            must jump directly to quickexitlabel  PM
            but only if it is a call of an inherited constructor }
-         if (p^.right=nil) and
+         if (inlined or
+             (p^.right=nil)) and
             (p^.procdefinition^.proctypeoption=potype_constructor) and
             assigned(p^.methodpointer) and
             (p^.methodpointer^.treetype=typen) and
@@ -1105,7 +1118,8 @@ implementation
            is_ansistring(p^.resulttype) or is_widestring(p^.resulttype)) then
            begin
               { a contructor could be a function with boolean result }
-              if (p^.right=nil) and
+              if (inlined or
+                  (p^.right=nil)) and
                  (p^.procdefinition^.proctypeoption=potype_constructor) and
                  { quick'n'dirty check if it is a class or an object }
                  (p^.resulttype^.deftype=orddef) then
@@ -1291,6 +1305,8 @@ implementation
            end;
          if inlined then
            ungetpersistanttemp(inlinecode^.retoffset);
+         if assigned(inlinecode) then
+           disposetree(inlinecode);
          disposetree(params);
 
 
@@ -1417,6 +1433,9 @@ implementation
           secondpass(p^.inlinetree);
           genexitcode(inlineexitcode,0,false,true);
           exprasmlist^.concatlist(inlineexitcode);
+          
+          dispose(inlineentrycode,done);
+          dispose(inlineexitcode,done);
 {$ifdef extdebug}
           exprasmlist^.concat(new(pai_asm_comment,init(strpnew('End of inlined proc'))));
 {$endif extdebug}
@@ -1458,7 +1477,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.136  2000-06-04 09:05:05  peter
+  Revision 1.137  2000-06-29 13:50:30  jonas
+    * fixed inline bugs (calling an inlined procedure more than once didn't
+      work)
+
+  Revision 1.136  2000/06/04 09:05:05  peter
     * fix addrn with procvar, also detected by testpva2 !
 
   Revision 1.135  2000/05/31 09:29:15  florian
