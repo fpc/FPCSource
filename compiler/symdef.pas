@@ -430,7 +430,7 @@ interface
           proccalloptions : tproccalloptions;
           procoptions     : tprocoptions;
           para            : tparalinkedlist;
-          maxparacount,              { -1 means varargs }
+          maxparacount,
           minparacount    : longint;
           symtablelevel   : byte;
           fpu_used        : byte;    { how many stack fpu must be empty }
@@ -3261,9 +3261,9 @@ implementation
            if assigned(hp) then
             s:=s+',';
          end;
-        if maxparacount=-1 then
-         s:=s+',...';
         s:=s+')';
+        if (po_varargs in procoptions) then
+         s:=s+';VarArgs';
         demangled_paras:=s;
       end;
 
@@ -3289,7 +3289,7 @@ implementation
            (mask:pocall_inline;       str:'Inline'),
            (mask:pocall_internproc;   str:'InternProc'),
            (mask:pocall_internconst;  str:'InternConst'),
-           (mask:pocall_cdecl;        str:'CPPDecl')
+           (mask:pocall_cppdecl;      str:'CPPDecl')
         );
       var
         s : string;
@@ -5524,7 +5524,10 @@ Const local_symtable_index : longint = $8001;
 end.
 {
   $Log$
-  Revision 1.33  2001-06-04 11:53:13  peter
+  Revision 1.34  2001-06-04 18:05:39  peter
+    * procdef demangling fixed
+
+  Revision 1.33  2001/06/04 11:53:13  peter
     + varargs directive
 
   Revision 1.32  2001/05/09 19:58:45  peter
