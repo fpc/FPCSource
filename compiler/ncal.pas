@@ -1532,6 +1532,7 @@ implementation
       begin
          result:=nil;
          inlined:=false;
+         inlinecode := nil;
 
          { work trough all parameters to get the register requirements }
          if assigned(left) then
@@ -1836,7 +1837,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.64  2002-01-24 18:25:48  peter
+  Revision 1.65  2002-03-30 23:02:42  carl
+  * avoid crash with inline routines
+
+  Revision 1.64  2002/01/24 18:25:48  peter
    * implicit result variable generation for assembler routines
    * removed m_tp modeswitch, use m_tp7 or not(m_fpc) instead
 
