@@ -904,6 +904,7 @@ implementation
          r : preference;
          //hp : tcallparanode;
          hp2 : tstringconstnode;
+         dummycoll  : tparaitem;
          l : longint;
          ispushed : boolean;
          hregister : tregister;
@@ -1379,7 +1380,19 @@ implementation
                        emit_push_loc(tcallparanode(hp).left.location);
                        hp:=tcallparanode(hp).right;
                     end;
-                  secondpass(tcallparanode(hp).left);
+                  { handle shortstrings separately since the hightree must be }
+                  { pushed too (JM)                                           }
+                  if not(is_dynamic_array(def)) and
+                     (pstringdef(def)^.string_typ = st_shortstring) then
+                    begin
+                      dummycoll.init;
+                      dummycoll.paratyp:=vs_var;
+                      dummycoll.paratype.setdef(openshortstringdef);
+                      tcallparanode(hp).secondcallparan(@dummycoll,false,false,false,0,0);
+                      if codegenerror then
+                        exit;
+                    end
+                  else secondpass(tcallparanode(hp).left);
                   if is_dynamic_array(def) then
                     begin
                        emitpushreferenceaddr(hr);
@@ -1394,12 +1407,17 @@ implementation
                   else
                     { must be string }
                     begin
-                       emitpushreferenceaddr(tcallparanode(hp).left.location.reference);
                        case pstringdef(def)^.string_typ of
                           st_widestring:
-                            emitcall('FPC_WIDESTR_SETLENGTH');
+                            begin
+                              emitpushreferenceaddr(tcallparanode(hp).left.location.reference);
+                              emitcall('FPC_WIDESTR_SETLENGTH');
+                            end;
                           st_ansistring:
-                            emitcall('FPC_ANSISTR_SETLENGTH');
+                            begin
+                              emitpushreferenceaddr(tcallparanode(hp).left.location.reference);
+                              emitcall('FPC_ANSISTR_SETLENGTH');
+                            end;
                           st_shortstring:
                             emitcall('FPC_SHORTSTR_SETLENGTH');
                        end;
@@ -1612,7 +1630,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2000-10-21 18:16:13  florian
+  Revision 1.3  2000-10-26 14:15:07  jonas
+    * fixed setlength for shortstrings
+
+  Revision 1.2  2000/10/21 18:16:13  florian
     * a lot of changes:
        - basic dyn. array support
        - basic C++ support

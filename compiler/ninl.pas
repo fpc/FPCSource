@@ -104,6 +104,7 @@ implementation
          vr      : bestreal;
          p1,hp,hpp  :  tnode;
          ppn : tcallparanode;
+         dummycoll: tparaitem;
 {$ifndef NOCOLONCHECK}
          frac_para,length_para : tnode;
 {$endif ndef NOCOLONCHECK}
@@ -691,6 +692,20 @@ implementation
                        if (counter>1) and
                          (not(is_dynamic_array(left.resulttype))) then
                          CGMessage(type_e_mismatch);
+                         
+                       { convert shortstrings to openstring parameters }
+                       { (generate the hightree) (JM)                  }
+                       if (ppn.left.resulttype^.deftype = stringdef) and
+                          (pstringdef(ppn.left.resulttype)^.string_typ =
+                            st_shortstring) then
+                         begin
+                           dummycoll.init;
+                           dummycoll.paratyp:=vs_var;
+                           dummycoll.paratype.setdef(openshortstringdef);
+                           tcallparanode(ppn).firstcallparan(@dummycoll,false);
+                           if codegenerror then
+                             exit;
+                         end;
                     end
                   else
                     CGMessage(type_e_mismatch);
@@ -1449,7 +1464,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2000-10-21 18:16:11  florian
+  Revision 1.11  2000-10-26 14:15:06  jonas
+    * fixed setlength for shortstrings
+
+  Revision 1.10  2000/10/21 18:16:11  florian
     * a lot of changes:
        - basic dyn. array support
        - basic C++ support
