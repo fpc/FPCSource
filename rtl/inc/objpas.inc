@@ -455,15 +455,6 @@
                           tmessagehandlerrec(msghandler).proc:=p;
                           tmessagehandlerrec(msghandler).obj:=self;
                           msghandler(message);
-                          { we don't need any longer the assembler
-                            solution
-                          asm
-                             pushl message
-                             pushl %esi
-                             movl p,%edi
-                             call *%edi
-                          end;
-                          }
                           exit;
                        end;
                   end;
@@ -507,15 +498,6 @@
                           tmessagehandlerrec(msghandler).proc:=p;
                           tmessagehandlerrec(msghandler).obj:=self;
                           msghandler(message);
-                          { we don't need any longer the assembler
-                            solution
-                          asm
-                             pushl message
-                             pushl %esi
-                             movl p,%edi
-                             call *%edi
-                          end;
-                          }
                           exit;
                        end;
                   end;
@@ -717,91 +699,9 @@
 
 {
   $Log$
-  Revision 1.25  2002-08-31 13:11:11  florian
+  Revision 1.26  2002-09-07 11:08:58  carl
+    - remove logs
+
+  Revision 1.25  2002/08/31 13:11:11  florian
     * several fixes for Linux/PPC compilation
-
-  Revision 1.24  2002/08/20 18:24:06  jonas
-    * interface "as" helpers converted from procedures to functions
-
-  Revision 1.23  2002/07/30 17:29:19  florian
-    * interface helpers for 1.1 compilers without interface support fixed
-
-  Revision 1.22  2002/07/01 16:29:05  peter
-    * sLineBreak changed to normal constant like Kylix
-
-  Revision 1.21  2002/04/26 15:19:05  peter
-    * use saveregisters for incr routines, saves also problems with
-      the optimizer
-
-  Revision 1.20  2002/04/25 20:14:57  peter
-    * updated compilerprocs
-    * incr ref count has now a value argument instead of var
-
-  Revision 1.19  2002/03/30 14:52:59  carl
-  * don't crash everything if the class allocation failed
-
-  Revision 1.18  2001/12/26 21:03:56  peter
-    * merged fixes from 1.0.x
-
-  Revision 1.17  2001/09/29 21:32:47  jonas
-    * almost all second pass typeconvnode helpers are now processor independent
-    * fixed converting boolean to int64/qword
-    * fixed register allocation bugs which could cause internalerror 10
-    * isnode and asnode are completely processor indepent now as well
-    * fpc_do_as now returns its class argument (necessary to be able to use it
-      properly with compilerproc)
-
-  Revision 1.16  2001/08/01 15:00:10  jonas
-    + "compproc" helpers
-    * renamed several helpers so that their name is the same as their
-      "public alias", which should facilitate the conversion of processor
-      specific code in the code generator to processor independent code
-    * some small fixes to the val_ansistring and val_widestring helpers
-      (always immediately exit if the source string is longer than 255
-       chars)
-    * fixed fpc_dynarray_high and fpc_dynarray_length if the dynarray is
-      still nil (used to crash, now return resp -1 and 0)
-
-  Revision 1.15  2001/05/27 14:28:44  florian
-    + made the ref. couting MT safe
-
-  Revision 1.14  2001/04/13 22:30:04  peter
-    * remove warnings
-
-  Revision 1.13  2000/12/20 21:38:23  florian
-    * is-operator fixed
-
-  Revision 1.12  2000/11/12 23:23:34  florian
-    * interfaces are basically running
-
-  Revision 1.11  2000/11/09 17:50:12  florian
-    * Finalize to int_finalize renamed
-
-  Revision 1.10  2000/11/07 23:42:21  florian
-    + AfterConstruction and BeforeDestruction implemented
-    + TInterfacedObject implemented
-
-  Revision 1.9  2000/11/06 22:03:12  florian
-    * another fix
-
-  Revision 1.8  2000/11/06 21:53:38  florian
-    * another fix for interfaces
-
-  Revision 1.7  2000/11/06 21:35:59  peter
-    * removed some warnings
-
-  Revision 1.6  2000/11/06 20:34:24  peter
-    * changed ver1_0 defines to temporary defs
-
-  Revision 1.5  2000/11/04 17:52:46  florian
-    * fixed linker errors
-
-  Revision 1.4  2000/11/04 16:29:54  florian
-    + interfaces support
-
-  Revision 1.3  2000/07/22 14:52:01  sg
-  * Resolved CVS conflicts for TObject.MethodAddress patch
-
-  Revision 1.1.2.1  2000/07/22 14:46:57  sg
-  * Made TObject.MethodAddress case independent
-}
+}
