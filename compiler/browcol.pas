@@ -1273,9 +1273,11 @@ var
   hp : pmodule;
 begin
   DisposeBrowserCol;
-  NewBrowserCol;
+  if (cs_browser in aktmoduleswitches) then
+    NewBrowserCol;
   hp:=pmodule(loaded_units.first);
-  while assigned(hp) do
+  if (cs_browser in aktmoduleswitches) then
+   while assigned(hp) do
     begin
        t:=psymtable(hp^.globalsymtable);
        if assigned(t) then
@@ -1292,8 +1294,10 @@ begin
          end;
        hp:=pmodule(hp^.next);
     end;
-  BuildObjectInfo;
-
+  if (cs_browser in aktmoduleswitches) then
+    BuildObjectInfo;
+  { can allways be done
+    needed to know when recompilation of sources is necessary }
   BuildSourceList;
 end;
 
@@ -1692,7 +1696,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.23  1999-09-07 15:07:49  pierre
+  Revision 1.24  1999-09-16 07:54:48  pierre
+   * BuildSourceList allways called for dependency in FP
+
+  Revision 1.23  1999/09/07 15:07:49  pierre
    * avoid some infinite recursions
 
   Revision 1.22  1999/08/16 18:25:49  peter
