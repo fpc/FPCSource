@@ -976,55 +976,12 @@
 
     procedure tfiledef.setsize;
       begin
-{$ifdef i386}
-         case target_info.target of
-      target_LINUX : begin
-                       case filetype of
-                     ft_text : savesize:=432;
-                    ft_typed,
-                  ft_untyped : savesize:=304;
-                       end;
-                     end;
-      target_Win32 : begin
-                       case filetype of
-                     ft_text : savesize:=434;
-                    ft_typed,
-                  ft_untyped : savesize:=306;
-                       end;
-                     end;
-
-         else
-           begin
-              case filetype of
-                 ft_text : savesize:=256;
-                 ft_typed,ft_untyped : savesize:=128;
-              end;
-           end;
-         end;
-{$endif}
-{$ifdef m68k}
-         case target_info.target of
-      target_Amiga,
-     target_Mac68k : begin
-                       case filetype of
-                     ft_text : savesize:=434;
-                    ft_typed,
-                  ft_untyped : savesize:=306;
-                       end;
-                     end;
-
-         else
-           begin
-              case filetype of
-                 ft_text : savesize:=256;
-                 ft_typed,ft_untyped : savesize:=128;
-              end;
-           end;
-         end;
-{$endif}
+        case filetype of
+          ft_text : savesize:=572;
+         ft_typed,
+       ft_untyped : savesize:=316;
+        end;
       end;
-
-
 
     procedure tfiledef.write;
       begin
@@ -1040,64 +997,35 @@
       var Handlebitsize,namesize : longint;
           Handledef :string;
       begin
-      {$IfDef GDBknowsfiles}
+   {$IfDef GDBknowsfiles}
       case filetyp of
         ft_typed : stabstring := strpnew('d'+typed_as^.numberstring{+';'});
-        ft_untyped : stabstring := strpnew('d'+voiddef^.numberstring{+';'});
-        ft_text : stabstring := strpnew('d'+cchardef^.numberstring{+';'});
-        end;
-      {$Else }
+      ft_untyped : stabstring := strpnew('d'+voiddef^.numberstring{+';'});
+         ft_text : stabstring := strpnew('d'+cchardef^.numberstring{+';'});
+      end;
+   {$Else }
       {based on
-       filerec = record
-          handle : word;
-          mode : word;
-          recsize : word;
-          _private : array[1..26] of byte;
-          userdata : array[1..16] of byte;
-          name : string[79 or 255 for linux]; }
-{$ifdef i386}
-
-      if (target_info.target=target_GO32V1) or
-         (target_info.target=target_GO32V2) then
-        namesize:=79
-      else
-        namesize:=255;
-
-      if (target_info.target=target_Win32) then
-        begin
-          Handledef:='longint';
-          Handlebitsize:=32;
-        end
-      else
-        begin
-           Handledef:='word';
-           HandleBitSize:=16;
-        end;
-{$endif}
-{$ifdef m68k}
-      namesize:=79;
-      Handledef:='word';
-      HandleBitSize:=16;
-{$endif}
-
+        FileRec = Packed Record
+          Handle,
+          Mode,
+          RecSize   : longint;
+          _private  : array[1..32] of byte;
+          UserData  : array[1..16] of byte;
+          name      : array[0..255] of char;
+        End; }
       { the buffer part is still missing !! (PM) }
       { but the string could become too long !! }
       stabstring := strpnew('s'+tostr(savesize)+
-                     'HANDLE:'+typeglobalnumber(Handledef)+',0,'+tostr(HandleBitSize)+';'+
-                      'MODE:'+typeglobalnumber('word')+','+tostr(HandleBitSize)+',16;'+
-                      'RECSIZE:'+typeglobalnumber('word')+','+tostr(HandleBitSize+16)+',16;'+
-                      '_PRIVATE:ar'+typeglobalnumber('word')+';1;26;'+typeglobalnumber('byte')
-                        +','+tostr(HandleBitSize+32)+',208;'+
-                      'USERDATA:ar'+typeglobalnumber('word')+';1;16;'+typeglobalnumber('byte')
-                        +','+tostr(HandleBitSize+240)+',128;'+
-                     { 'NAME:s'+tostr(namesize+1)+
-                        'length:'+typeglobalnumber('byte')+',0,8;'+
-                        'st:ar'+typeglobalnumber('word')+';1;'
-                        +tostr(namesize)+';'+typeglobalnumber('char')+',8,'+tostr(8*namesize)+';;'+}
-                      'NAME:ar'+typeglobalnumber('word')+';0;'
-                        +tostr(namesize)+';'+typeglobalnumber('char')+
-                      ','+tostr(HandleBitSize+368)+','+tostr(8*(namesize+1))+';;');
-      {$EndIf}
+                     'HANDLE:'+typeglobalnumber('longint')+',0,32;'+
+                     'MODE:'+typeglobalnumber('longint')+',32,32;'+
+                     'RECSIZE:'+typeglobalnumber('longint')+',64,32;'+
+                     '_PRIVATE:ar'+typeglobalnumber('word')+';1;32;'+typeglobalnumber('byte')
+                        +',92,256;'+
+                     'USERDATA:ar'+typeglobalnumber('word')+';1;16;'+typeglobalnumber('byte')
+                        +',348,128;'+
+                     'NAME:ar'+typeglobalnumber('word')+';0;255;'+typeglobalnumber('char')
+                        +',476,2048;;');
+   {$EndIf}
       end;
 
     procedure tfiledef.concatstabto(asmlist : paasmoutput);
@@ -2771,7 +2699,10 @@
 
 {
   $Log$
-  Revision 1.33  1998-09-03 17:08:49  pierre
+  Revision 1.34  1998-09-04 18:15:02  peter
+    * filedef updated
+
+  Revision 1.33  1998/09/03 17:08:49  pierre
     * better lines for stabs
       (no scroll back to if before else part
       no return to case line at jump outside case)
