@@ -361,6 +361,7 @@ var
  local4rec : tlevel4rec_packed;
  local5rec : tlevel5rec_packed;
 begin
+{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
  { normal record access }
  Write('Non-Aligned simple local record access (secondvecn())...');
  failed := false;
@@ -441,6 +442,7 @@ begin
    fail
  else
    WriteLN('Passed!');
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
 end;
 {---------------------------}
 
@@ -511,6 +513,7 @@ begin
  else
    WriteLN('Passed!');
 
+{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
  Write('Non-Aligned simple global record access (secondvecn())...');
 
  clear_globals;
@@ -646,8 +649,11 @@ begin
  else
    WriteLN('Passed!');
 
- testlocals;
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
 
+ testlocals;
+ 
+{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
 {$ifndef cpu68k}
  Write('Non-Aligned big local record access (secondvecn())...');
  failed := false;
@@ -662,6 +668,8 @@ begin
  else
    WriteLN('Passed!');
 {$endif}
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+
  Write('Aligned class big field access (secondvecn())...');
  clear_globals;
  failed := false;
@@ -759,7 +767,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2004-01-24 21:12:47  florian
+  Revision 1.5  2004-11-05 19:22:34  florian
+  *** empty log message ***
+
+  Revision 1.4  2004/01/24 21:12:47  florian
     * newlines fixed
 
   Revision 1.3  2003/04/22 13:03:36  florian
