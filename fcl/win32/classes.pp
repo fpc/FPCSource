@@ -30,72 +30,14 @@ implementation
 
 {$i classes.inc}
 
-{****************************************************************************}
-{*                         THandleStream                                    *}
-{****************************************************************************}
-
-  procedure THandleStream.SetSize(NewSize: Longint);
-
-    begin
-       inherited SetSize(NewSize);
-       {!!!!!}
-    end;
-
-  constructor THandleStream.Create(AHandle: Integer);
-
-    begin
-       inherited Create;
-       FHandle:=AHandle;
-    end;
-
-  function THandleStream.Read(var Buffer; Count: Longint): Longint;
-
-    begin
-       {!!!!!}
-    end;
-
-  function THandleStream.Write(const Buffer; Count: Longint): Longint;
-
-    begin
-       {!!!!!}
-    end;
-
-  function THandleStream.Seek(Offset: Longint; Origin: Word): Longint;
-
-    var
-       regs : registers;
-
-    begin
-       regs.ebx:=FHandle;
-       regs.ecx:=pos shr 16;
-       regs.edx:=Offset and $ffff;
-       regs.eax:=$4200+Origin;
-       Intr($21,regs);
-       if (regs.realflags and carryflag) <> 0 then
-         InOutRes:=lo(regs.realeax);
-    end;
-
-{****************************************************************************}
-{*                          TFileStream                                     *}
-{****************************************************************************}
-
-  constructor TFileStream.Create(const FileName: string; Mode: Word);
-
-    begin
-       {!!!!!}
-    end;
-
-  destructor TFileStream.Destroy;
-
-    begin
-       {!!!!!}
-    end;
-
 end.
 
 {
   $Log$
-  Revision 1.1  1998-05-04 12:16:01  florian
+  Revision 1.2  1998-05-04 14:31:51  michael
+  + Split classes file.
+
+  Revision 1.1  1998/05/04 12:16:01  florian
     + Initial revisions after making a new directory structure
 
 }
