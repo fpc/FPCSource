@@ -2320,7 +2320,6 @@
     function tprocdef.stabstring : pchar;
       var param : pdefcoll;
           i : word;
-          vartyp : char;
           oldrec : pchar;
       begin
       oldrec := stabrecstring;
@@ -3200,7 +3199,10 @@
 
 {
   $Log$
-  Revision 1.68  1998-11-05 23:34:36  peter
+  Revision 1.69  1998-11-10 17:54:56  peter
+    * removed warning
+
+  Revision 1.68  1998/11/05 23:34:36  peter
     * don't dispose staticsymtable (caused crash under tp7 after a fatal
       error)
 
