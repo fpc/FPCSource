@@ -396,7 +396,7 @@ const
   { generic register names }
   stack_pointer = R_1;
   R_RTOC        = R_2;
-  frame_pointer = R_NO;
+  frame_pointer = stack_pointer;
   self_pointer  = R_9;
   accumulator   = R_3;
   vmt_offset_reg = R_0;
@@ -565,7 +565,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  2000-01-07 01:14:58  peter
+  Revision 1.13  2000-03-26 16:38:06  jonas
+    * frame_pointer = stackpointer instead of R_NO
+
+  Revision 1.12  2000/01/07 01:14:58  peter
     * updated copyright to 2000
 
   Revision 1.11  1999/12/24 22:48:10  jonas
