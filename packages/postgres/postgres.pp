@@ -189,7 +189,7 @@ procedure PQuntrace(conn:PPGconn); cdecl;
 Function  PQexec(conn:PPGconn; query:Pchar):PPGresult; cdecl;
 Function  PQgetline(conn:PPGconn; str:Pchar; len:longint):longint; cdecl;
 Function  PQendcopy(conn:PPGconn):longint; cdecl;
-procedure PQputline(conn:PPGconn; str:Pchar); cdecl;
+Function  PQputline(conn:PPGconn; str:Pchar) : longint; cdecl;
 Function  PQresultStatus(res:PPGresult):TExecStatusType; cdecl;
 Function  PQntuples(res:PPGresult):longint; cdecl;
 Function  PQnfields(res:PPGresult):longint; cdecl;
@@ -268,7 +268,7 @@ implementation
   function  PQexec(conn:PPGconn; query:Pchar):PPGresult;cdecl; external;
   function  PQgetline(conn:PPGconn; str:Pchar; len:longint):longint;cdecl; external;
   function  PQendcopy(conn:PPGconn):longint;cdecl; external;
-  procedure PQputline(conn:PPGconn; str:Pchar);cdecl; external;
+  function PQputline(conn:PPGconn; str:Pchar) : longint;cdecl; external;
   function  PQresultStatus(res:PPGresult):TExecStatusType;cdecl; external;
   function  PQntuples(res:PPGresult):longint;cdecl; external;
   function  PQnfields(res:PPGresult):longint;cdecl; external;
