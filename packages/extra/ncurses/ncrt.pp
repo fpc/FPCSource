@@ -33,7 +33,8 @@ Uses
     termio,
   {$endif}
 {$endif}
-  ncurses;
+  ncurses,
+  dos;  {dos needed for TextRec}
 
 {$i ncrt.inc}
 
@@ -47,7 +48,10 @@ Begin
 End. { of Unit nCrt }
 {
   $Log$
-  Revision 1.5  2003-11-19 17:11:40  marco
+  Revision 1.6  2004-09-22 13:45:48  armin
+  * removed redefinition of TextRec, included Dos-Unit for TextRec
+
+  Revision 1.5  2003/11/19 17:11:40  marco
    * termio unit
 
   Revision 1.4  2003/09/27 12:19:20  peter

@@ -216,33 +216,6 @@ Var
    tios : TermIOS;                    { saves the term settings at startup }
    prev_textattr : integer;           { detect change in TextAttr }
 
-{==========================================================================
-   This code chunk is from the FPC source tree in rtl/inc/textrec.inc.
-   It is the internal format of a variable of type "Text" as defined and
-   described in the Borland Pascal docs.
- ==========================================================================}
-const
-  TextRecNameLength = 256;
-  TextRecBufSize    = 256;
-type
-  TextBuf = array[0..TextRecBufSize-1] of char;
-  TextRec = Packed Record
-    Handle    : THandle;
-    Mode      : longint;
-    bufsize,
-    _private,
-    bufpos,
-    bufend    : SizeInt;
-    bufptr    : ^textbuf;
-    openfunc,
-    inoutfunc,
-    flushfunc,
-    closefunc : pointer;
-    UserData  : array[1..16] of byte;
-    name      : array[0..textrecnamelength-1] of char;
-    buffer    : textbuf;
-  End;
-  
 {==========================================================================}
 
 { set the active window for write(ln), read(ln) }
@@ -964,7 +937,10 @@ Begin
 End;
 {
   $Log$
-  Revision 1.5  2004-05-25 15:52:15  peter
+  Revision 1.6  2004-09-22 13:45:48  armin
+  * removed redefinition of TextRec, included Dos-Unit for TextRec
+
+  Revision 1.5  2004/05/25 15:52:15  peter
     * adapt for 64bit textrec
 
   Revision 1.4  2004/05/03 20:52:48  peter

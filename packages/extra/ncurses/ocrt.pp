@@ -157,7 +157,8 @@ Uses
     termio,
   {$endif}
 {$endif}
-  ncurses,panel,menu;
+  ncurses,panel,menu,
+  dos;  {dos needed for TextRec}
 
 Const
 
@@ -3069,6 +3070,7 @@ Var
    sp1,sp2,sp3 : plongint;
 Begin
    If IsValid(i) Then Begin
+      sp1:=nil; sp2:=nil; sp3:=nil;
       ClearItem(i);
       GetMem(items[i],Length(s)+1);
       StrPCopy(items[i]^,s);
@@ -3272,7 +3274,10 @@ End. { of Unit oCrt }
 
 {
   $Log$
-  Revision 1.4  2003-11-19 17:11:40  marco
+  Revision 1.5  2004-09-22 13:45:48  armin
+  * removed redefinition of TextRec, included Dos-Unit for TextRec
+
+  Revision 1.4  2003/11/19 17:11:40  marco
    * termio unit
 
   Revision 1.3  2003/09/27 12:19:20  peter
