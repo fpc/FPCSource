@@ -898,7 +898,7 @@ procedure GetDir (DriveNr: byte; var Dir: ShortString);
 {Written by Michael Van Canneyt.}
 var sof: Pchar;
     i:byte;
-    l, l2: Longint;
+    l,l2:cardinal;
 begin
     Dir [4] := #0;
     { Used in case the specified drive isn't available }
@@ -1162,7 +1162,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.45  2003-10-13 21:17:31  hajny
+  Revision 1.46  2003-10-14 21:10:06  hajny
+    * another longint2cardinal fix
+
+  Revision 1.45  2003/10/13 21:17:31  hajny
     * longint to cardinal corrections
 
   Revision 1.44  2003/10/12 18:07:30  hajny
