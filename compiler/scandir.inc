@@ -597,7 +597,7 @@ const
         s : string;
       begin
         current_scanner^.skipspace;
-        s:=AddExtension(FixFileName(current_scanner^.readcomment),target_info.resext);
+        s:=AddExtension(FixFileName(current_scanner^.readcomment),target_info.objext);
         current_module^.linkofiles.insert(s);
       end;
 
@@ -1001,7 +1001,10 @@ const
 
 {
   $Log$
-  Revision 1.45  1998-12-28 23:26:25  peter
+  Revision 1.46  1999-02-05 08:51:16  pierre
+   * $L default extension from resext to objext
+
+  Revision 1.45  1998/12/28 23:26:25  peter
     + resource file handling ($R directive) for Win32
 
   Revision 1.44  1998/12/15 10:23:29  peter
