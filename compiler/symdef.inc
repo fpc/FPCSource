@@ -2989,7 +2989,7 @@ Const local_symtable_index : longint = $8001;
          aktrecordsymtable:=publicsyms;
          { nun die Definitionen dereferenzieren }
 {$ifdef STORENUMBER}
-         hp:=pdef(publicsyms^.symindex^.first);
+         hp:=pdef(publicsyms^.defindex^.first);
 {$else}
          hp:=publicsyms^.rootdef;
 {$endif}
@@ -3472,7 +3472,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.101  1999-04-14 09:14:58  peter
+  Revision 1.102  1999-04-17 22:01:28  pierre
+   * typo error fix in STORENUMBER code
+
+  Revision 1.101  1999/04/14 09:14:58  peter
     * first things to store the symbol/def number in the ppu
 
   Revision 1.100  1999/04/08 15:57:51  peter
