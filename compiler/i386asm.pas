@@ -118,28 +118,31 @@ type
      procedure loadreg(opidx:longint;r:tregister);
      procedure loadoper(opidx:longint;o:toper);
      procedure changeopsize(siz:topsize);
-
-     destructor  done;virtual;
-     function  getcopy:plinkedlist_item;virtual;
-  public
      procedure SetCondition(c:TAsmCond);
-     function  Pass1(offset:longint):longint;virtual;
-     procedure Pass2;virtual;
+
+     destructor done;virtual;
+     function  getcopy:plinkedlist_item;virtual;
      function  GetString:string;
   private
      segprefix : tregister;
+     procedure init(op : tasmop;_size : topsize); { this need to be called by all constructor }
+{$ifndef NOAG386BIN}
+  public
+     function  Pass1(offset:longint):longint;virtual;
+     procedure Pass2;virtual;
+  private
      { next fields are filled in pass1, so pass2 is faster }
      insentry  : PInsEntry;
      LastInsOffset,
      insoffset,
      inssize   : longint;
-     procedure init(op : tasmop;_size : topsize); { this need to be called by all constructor }
      function  InsEnd:longint;
      procedure create_ot;
      function  Matches(p:PInsEntry):longint;
      function  calcsize(p:PInsEntry):longint;
      procedure gencode;
      function  NeedAddrPrefix(opidx:byte):boolean;
+{$endif NOAG386BIN}
   end;
 
   pai386_labeled = ^tai386_labeled;
@@ -148,8 +151,10 @@ type
      constructor op_lab(op : tasmop; l : plabel);
      constructor op_cond_lab(op : tasmop; cond:tasmcond;l : plabel);
      destructor  done;virtual;
+{$ifndef NOAG386BIN}
      function  Pass1(offset:longint):longint;virtual;
      procedure Pass2;virtual;
+{$endif}
   end;
 
 
@@ -296,14 +301,16 @@ uses
     procedure tai386.init(op : tasmop;_size : topsize);
       begin
          typ:=ait_instruction;
-         insentry:=nil;
-         LastInsOffset:=-1;
-         InsOffset:=0;
          segprefix:=R_NO;
          opcode:=op;
          opsize:=_size;
          ops:=0;
          fillchar(oper,sizeof(oper),0);
+{$ifndef NOAG386BIN}
+         insentry:=nil;
+         LastInsOffset:=-1;
+         InsOffset:=0;
+{$endif}
       end;
 
     constructor tai386.op_none(op : tasmop;_size : topsize);
@@ -593,6 +600,8 @@ uses
 {*****************************************************************************
                                 Assembler
 *****************************************************************************}
+
+{$ifndef NOAG386BIN}
 
 type
   ea=packed record
@@ -1502,6 +1511,8 @@ begin
     end;
   until false;
 end;
+{$endif NOAG386BIN}
+
 
 {*****************************************************************************
                                Tai_Labeled
@@ -1540,6 +1551,7 @@ end;
       end;
 
 
+{$ifndef NOAG386BIN}
    function tai386_labeled.Pass1(offset:longint):longint;
       begin
          { Only create the Operand if it's not set yet }
@@ -1556,11 +1568,15 @@ end;
          oper[0].symofs:=lab^.address;
          inherited Pass2;
       end;
+{$endif}
 
 end.
 {
   $Log$
-  Revision 1.4  1999-05-05 22:21:51  peter
+  Revision 1.5  1999-05-11 16:29:59  peter
+    * more noag386bin defines, so tp7 can compile at least
+
+  Revision 1.4  1999/05/05 22:21:51  peter
     * updated messages
 
   Revision 1.3  1999/05/02 22:41:53  peter

@@ -664,6 +664,7 @@ const
                               Instruction table
 *****************************************************************************}
 
+{$ifndef NOAG386BIN}
 type
   tinsentry=packed record
     opcode  : tasmop;
@@ -683,6 +684,7 @@ const
 
 var
   InsTabCache : PInsTabCache;
+{$endif NOAG386BIN}
 
 
 {*****************************************************************************
@@ -902,14 +904,19 @@ var
 procedure FreeInsTabCache;{$ifndef FPC}far;{$endif}
 begin
   exitproc:=saveexit;
+{$ifndef NOAG386BIN}
   dispose(instabcache);
+{$endif NOAG386BIN}
 end;
 
 
 procedure BuildInsTabCache;
+{$ifndef NOAG386BIN}
 var
   i : longint;
+{$endif}
 begin
+{$ifndef NOAG386BIN}
   new(instabcache);
   FillChar(instabcache^,sizeof(tinstabcache),$ff);
   i:=0;
@@ -919,6 +926,7 @@ begin
       InsTabCache^[InsTab[i].OPcode]:=i;
      inc(i);
    end;
+{$endif NOAG386BIN}
   saveexit:=exitproc;
   exitproc:=@FreeInsTabCache;
 end;
@@ -929,7 +937,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  1999-05-01 13:24:23  peter
+  Revision 1.2  1999-05-11 16:30:00  peter
+    * more noag386bin defines, so tp7 can compile at least
+
+  Revision 1.1  1999/05/01 13:24:23  peter
     * merged nasm compiler
     * old asm moved to oldasm/
 
