@@ -13,7 +13,7 @@ end;
 
 Function CloseSocket (Sock:Longint):Longint;
 begin
-  if fdClose (Sock) then
+  if fpclose(Sock)=0 then
     CloseSocket := 0 else
     CloseSocket := -1;
 end;
@@ -199,7 +199,10 @@ end;
 
 {
  $Log$
- Revision 1.7  2003-03-23 17:47:15  armin
+ Revision 1.8  2003-09-15 07:09:58  marco
+  * small fixes, round 1
+
+ Revision 1.7  2003/03/23 17:47:15  armin
  * CloseSocket added
 
  Revision 1.6  2002/09/07 16:01:18  peter

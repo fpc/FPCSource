@@ -73,21 +73,21 @@ var  tz : timezone;
 
 begin
  do_syscall(syscall_nr_gettimeofday,longint(@tv),longint(@tz));
- LinuxError:=Errno;
+ LinuxError:=FpGetErrno;
 end;
 }
 Function  fdFlush (fd : Longint) : Boolean;
 
 begin
   fdflush:=do_syscall(syscall_nr_fsync,fd)=0;
-  LinuxError:=Errno;
+  LinuxError:=FpGetErrno;
 end;
 
 Function  Flock (fd,mode : longint) : boolean;
 
 begin
  Flock:=do_syscall(syscall_nr_flock,fd,mode)=0;
- LinuxError:=Errno;
+ LinuxError:=FpGetErrno;
 end;
 
 Function StatFS(Path:Pathstr;Var Info:Tstatfs):Boolean;
@@ -101,7 +101,7 @@ Function StatFS(Path:Pathstr;Var Info:Tstatfs):Boolean;
 begin
   path:=path+#0;
   StatFS:=Do_Syscall(syscall_nr_statfs,longint(@path[1]),longint(@info))=0;
-  LinuxError:=Errno;
+  LinuxError:=FpGetErrno;
 end;
 
 Function StatFS(Fd:Longint;Var Info:tstatfs):Boolean;
@@ -113,7 +113,7 @@ Function StatFS(Fd:Longint;Var Info:tstatfs):Boolean;
 
 begin
  StatFS:=do_syscall(syscall_nr_fstatfs,fd,longint(@info))=0;
- LinuxError:=Errno;
+ LinuxError:=FpGetErrno;
 end;
 
 Function AssignPipe(var pipe_in,pipe_out:longint):boolean;
@@ -127,7 +127,7 @@ var
 
 begin
  do_syscall(syscall_nr_pipe,longint(@pip));
- LinuxError:=Errno;
+ LinuxError:=FpGetErrno;
  pipe_in:=pip[1];
  pipe_out:=pip[2];
  AssignPipe:=(LinuxError=0);
@@ -164,10 +164,17 @@ function MUnMap (P : Pointer; Size : Longint) : Boolean;
 
 begin
   MUnMap:=do_syscall(syscall_nr_munmap,longint(P),Size)=0;
-  LinuxError:=Errno;
+  LinuxError:=FpGetErrno;
 end;
 
-function  Clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint; assembler;
+function  Clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint; 
+
+var lerrno : Longint;
+    errset : Boolean;
+    Res    : Longint;	
+begin
+  errset:=false;
+  Res:=0;
 asm
         pushl   %esi
         movl    12(%ebp), %esi  // get stack addr
@@ -190,18 +197,26 @@ asm
         addl    $8, %esp
         call    halt            // Does not return
 .L2:
-        mov     %eax,ErrNo
-        mov     $-1,%eax
-        jmp     .L1
-//      jmp     PIC_PLT(HIDENAME(cerror))
+        mov     %eax,LErrNo
+        mov     $true,Errset
+	mov	$-1,%eax
+//        jmp     .L1
 .L1:
         addl    $8, %esp
         popl    %esi
+	mov	%eax,Res
+end;
+  If ErrSet Then
+   fpSetErrno(LErrno);
+  Clone:=Res; 
 end;
 
 {
   $Log$
-  Revision 1.8  2003-09-14 20:15:01  marco
+  Revision 1.9  2003-09-15 07:09:58  marco
+   * small fixes, round 1
+
+  Revision 1.8  2003/09/14 20:15:01  marco
    * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
 
   Revision 1.7  2003/01/05 19:02:29  marco

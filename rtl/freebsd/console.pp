@@ -7,7 +7,7 @@ UNIT Console;
    See the file COPYING.FPC, included in this distribution,
    for details about the copyright.
 
-   Header conversions (with IOCTL macro expansion) for FreeBSD 4.2's
+   Header conversions (with FpIoctl macro expansion) for FreeBSD 4.2's
    sys/fbio.h sys/consio.h sys/kbdio.h (together these three form
         machine/console.h) and
    machine/mouse.h
@@ -16,7 +16,7 @@ UNIT Console;
    the physical console with mousesupport.
 
    As soon as cross unit inlining is ready, all functions should be made
-    inline. (so the ioctl and the other very small macro's)
+    inline. (so the FpIoctl and the other very small macro's)
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY;without even the implied warranty of
@@ -85,7 +85,7 @@ TYPE
  }
 
 {
- * Frame buffer ioctls (from Sprite, trimmed to essentials for X11).
+ * Frame buffer FpIoctls (from Sprite, trimmed to essentials for X11).
  }
 
 {
@@ -254,7 +254,7 @@ Function FBIOGCURPOS(fd:longint;var param1 : fbcurpos):boolean;
 { get maximum cursor size }
 Function FBIOGCURMAX(fd:longint;var param1 : fbcurpos):boolean;
 
-{ The new style frame buffer ioctls. }
+{ The new style frame buffer FpIoctls. }
 
 CONST
          V_INFO_COLOR   =(1 SHL 0);
@@ -577,10 +577,10 @@ copyright follows:
 {$define definconsole}
 
 {
- * Console ioctl commands.  Some commands are named as KDXXXX, GIO_XXX, and
+ * Console FpIoctl commands.  Some commands are named as KDXXXX, GIO_XXX, and
  * PIO_XXX, rather than CONS_XXX, for historical and compatibility reasons.
  * Some other CONS_XXX commands are works as wrapper around frame buffer
- * ioctl commands FBIO_XXX.  Do not try to change all these commands,
+ * FpIoctl commands FBIO_XXX.  Do not try to change all these commands,
  * otherwise we shall have compatibility problems.
  }
 
@@ -638,7 +638,7 @@ Function CONS_IO(fd:longint):boolean;
 { set blank time interval }
 Function CONS_BLANKTIME(fd:longint;var param1 : longint):boolean;
 
-{ set/get the screen saver (these ioctls are current noop) }
+{ set/get the screen saver (these FpIoctls are current noop) }
 CONST        maxsaver=16;
 
 type ssaver =record
@@ -669,7 +669,7 @@ Function CONS_BELLTYPE(fd:longint;var param1 : longint):boolean;
 { set the history (scroll back) buffer size (in lines) }
 Function CONS_HISTORY(fd:longint;var param1 : longint):boolean;
 
-{ mouse cursor ioctl }
+{ mouse cursor FpIoctl }
 type
         mouse_data      = record
                             x       : longint;
@@ -831,7 +831,7 @@ Function ADJUST_CLOCK(fd:longint):boolean;
 {$endif}
 
 {
-* Vty switching ioctl commands.
+* Vty switching FpIoctl commands.
 }
 
 { get the next available vty }
@@ -880,7 +880,7 @@ Function VT_GETACTIVE(fd:longint;var param1 : longint):boolean;
 Function VT_GETINDEX(fd:longint;var param1 : longint):boolean;
 
 {
-* Video mode switching ioctl.  See sys/fbio.h for mode numbers.
+* Video mode switching FpIoctl.  See sys/fbio.h for mode numbers.
 }
 
 Function SW_B40x25(fd:longint):boolean;
@@ -990,7 +990,7 @@ const   K_RAW           =0;             { keyboard returns scancodes}
         K_XLATE         =1;             { keyboard returns ascii}
         K_CODE          =2;             { keyboard returns keycodes}
 
-{After each IOCTL value, I've put the type of the parameters to be passed:
+{After each FpIoctl value, I've put the type of the parameters to be passed:
      @int -> pass a pointer to an int.
       int -> pass pointer(int)
       -   -> nothing
@@ -1005,7 +1005,7 @@ Function KDSKBMODE(fd:longint;param1 : longint):boolean;
 { make tone}
 Function KDMKTONE(fd:longint;param1 : longint):boolean;
 
-{ see console.h for the definitions of the following ioctls}
+{ see console.h for the definitions of the following FpIoctls}
 {$ifndef definconsole}
 Function KDGETMODE(fd:longint;var param1 : longint):boolean;
 Function KDSETMODE(fd:longint;param1 : longint):boolean;
@@ -1049,7 +1049,7 @@ Function KDSETLED(fd:longint;param1 : longint):boolean;
 { set keyboard repeat rate (obsolete, use KDSETREPEAT below)}
 Function KDSETRAD(fd:longint;param1 : longint):boolean;
 
-{ see console.h for the definition of the following ioctl}
+{ see console.h for the definition of the following FpIoctl}
 {$ifndef definconsole}
 Function KDRASTER(fd:longint;var param1 : scr_size_t):boolean;
 
@@ -1267,7 +1267,7 @@ function KEYFLAGS(c:longint):longint;
  }
 
 
-{ ioctls }
+{ FpIoctls }
 
 
 { mouse status block }
@@ -1589,7 +1589,7 @@ const
        _PATH_MOUSEREMOTE        ='/var/run/MouseRemote';
 
 
-{fbio IOCTL numbers}
+{fbio FpIoctl numbers}
            nr_FBIOGTYPE     =$40184600;
            nr_FBIOGINFO     =$40184602;
            nr_FBIOPUTCMAP     =$80144603;
@@ -1618,7 +1618,7 @@ const
            nr_FBIO_GETPALETTE     =$80184671;
            nr_FBIO_SETPALETTE     =$80184672;
 
-{consio IOCTL numbers}
+{consio FpIoctl numbers}
 
            nr_KDGETMODE     =$40044b09;
            nr_KDSETMODE     =$20004b0a;
@@ -1759,7 +1759,7 @@ const
            nr_SW_VESA_64K_1280     =$2000561a;
            nr_SW_VESA_FULL_1280     =$2000561b;
 
-{kbdsio IOCTL numbers}
+{kbdsio FpIoctl numbers}
 
            nr_KDGKBMODE     =$40044b06;
            nr_KDSKBMODE     =$20004b07;
@@ -1799,7 +1799,7 @@ const
 
 
 
-{mouse IOCTL numbers}
+{mouse FpIoctl numbers}
            nr_MOUSE_GETSTATUS     =$40184d00;
            nr_MOUSE_GETHWINFO     =$40144d01;
            nr_MOUSE_GETMODE     =$401c4d02;
@@ -1821,7 +1821,7 @@ function physicalconsole(fd:longint) : boolean;
 
 IMPLEMENTATION
 
-Uses Unix;
+Uses BaseUnix,Unix;
 
 function physicalconsole(fd:longint) : boolean;
 
@@ -1847,7 +1847,7 @@ begin
   physicalconsole:=false;       {Not a tty, then I don't know what it is}
 end;
 
-{other macros (not IOCTL)}
+{other macros (not FpIoctl)}
 
 function KEYCHAR(c:longint):longint;
 
@@ -1876,205 +1876,205 @@ begin
  kbio_ACC:=x+F_ACC;
 end;
 
-{fbio.h IOCTL's}
+{fbio.h FpIoctl's}
 
 Function FBIOGTYPE(fd:longint;var param1 : fbtype):boolean;
 {IOR('F',0,sizeof(struct fbtype) }
 
 Begin
- FBIOGTYPE:=ioctl(fd,nr_FBIOGTYPE,@param1);
+ FBIOGTYPE:=FpIoctl(fd,nr_FBIOGTYPE,@param1)=0;
 end;
 
 Function FBIOGINFO(fd:longint;var param1 : fbinfo):boolean;
 {IOR('F',2,sizeof(struct fbinfo) }
 
 Begin
- FBIOGINFO:=ioctl(fd,nr_FBIOGINFO,@param1);
+ FBIOGINFO:=FpIoctl(fd,nr_FBIOGINFO,@param1)=0;
 end;
 
 Function FBIOPUTCMAP(fd:longint;var param1 : fbcmap):boolean;
 {IOW('F',3,sizeof(struct fbcmap) }
 
 Begin
- FBIOPUTCMAP:=ioctl(fd,nr_FBIOPUTCMAP,@param1);
+ FBIOPUTCMAP:=FpIoctl(fd,nr_FBIOPUTCMAP,@param1)=0;
 end;
 
 Function FBIOGETCMAP(fd:longint;var param1 : fbcmap):boolean;
 {IOW('F',4,sizeof(struct fbcmap) }
 
 Begin
- FBIOGETCMAP:=ioctl(fd,nr_FBIOGETCMAP,@param1);
+ FBIOGETCMAP:=FpIoctl(fd,nr_FBIOGETCMAP,@param1)=0;
 end;
 
 Function FBIOGATTR(fd:longint;var param1 : fbgattr):boolean;
 {IOR('F',6,sizeof(struct fbgattr) }
 
 Begin
- FBIOGATTR:=ioctl(fd,nr_FBIOGATTR,@param1);
+ FBIOGATTR:=FpIoctl(fd,nr_FBIOGATTR,@param1)=0;
 end;
 
 Function FBIOSVIDEO(fd:longint;var param1 : longint):boolean;
 {IOW('F',7,sizeof(int) }
 
 Begin
- FBIOSVIDEO:=ioctl(fd,nr_FBIOSVIDEO,@param1);
+ FBIOSVIDEO:=FpIoctl(fd,nr_FBIOSVIDEO,@param1)=0;
 end;
 
 Function FBIOGVIDEO(fd:longint;var param1 : longint):boolean;
 {IOR('F',8,sizeof(int) }
 
 Begin
- FBIOGVIDEO:=ioctl(fd,nr_FBIOGVIDEO,@param1);
+ FBIOGVIDEO:=FpIoctl(fd,nr_FBIOGVIDEO,@param1)=0;
 end;
 
 Function FBIOSCURSOR(fd:longint;var param1 : fbcursor):boolean;
 {IOW('F',24,sizeof(struct fbcursor) }
 
 Begin
- FBIOSCURSOR:=ioctl(fd,nr_FBIOSCURSOR,@param1);
+ FBIOSCURSOR:=FpIoctl(fd,nr_FBIOSCURSOR,@param1)=0;
 end;
 
 Function FBIOGCURSOR(fd:longint;var param1 : fbcursor):boolean;
 {IOWR('F',25,sizeof(struct fbcursor) }
 
 Begin
- FBIOGCURSOR:=ioctl(fd,nr_FBIOGCURSOR,@param1);
+ FBIOGCURSOR:=FpIoctl(fd,nr_FBIOGCURSOR,@param1)=0;
 end;
 
 Function FBIOSCURPOS(fd:longint;var param1 : fbcurpos):boolean;
 {IOW('F',26,sizeof(struct fbcurpos) }
 
 Begin
- FBIOSCURPOS:=ioctl(fd,nr_FBIOSCURPOS,@param1);
+ FBIOSCURPOS:=FpIoctl(fd,nr_FBIOSCURPOS,@param1)=0;
 end;
 
 Function FBIOGCURPOS(fd:longint;var param1 : fbcurpos):boolean;
 {IOW('F',27,sizeof(struct fbcurpos) }
 
 Begin
- FBIOGCURPOS:=ioctl(fd,nr_FBIOGCURPOS,@param1);
+ FBIOGCURPOS:=FpIoctl(fd,nr_FBIOGCURPOS,@param1)=0;
 end;
 
 Function FBIOGCURMAX(fd:longint;var param1 : fbcurpos):boolean;
 {IOR('F',28,sizeof(struct fbcurpos) }
 
 Begin
- FBIOGCURMAX:=ioctl(fd,nr_FBIOGCURMAX,@param1);
+ FBIOGCURMAX:=FpIoctl(fd,nr_FBIOGCURMAX,@param1)=0;
 end;
 
 Function FBIO_ADAPTER(fd:longint;var param1 : longint):boolean;
 {IOR('F',100,sizeof(int) }
 
 Begin
- FBIO_ADAPTER:=ioctl(fd,nr_FBIO_ADAPTER,@param1);
+ FBIO_ADAPTER:=FpIoctl(fd,nr_FBIO_ADAPTER,@param1)=0;
 end;
 
 Function FBIO_ADPTYPE(fd:longint;var param1 : longint):boolean;
 {IOR('F',101,sizeof(int) }
 
 Begin
- FBIO_ADPTYPE:=ioctl(fd,nr_FBIO_ADPTYPE,@param1);
+ FBIO_ADPTYPE:=FpIoctl(fd,nr_FBIO_ADPTYPE,@param1)=0;
 end;
 
 Function FBIO_ADPINFO(fd:longint;var param1 : video_adapter_info):boolean;
 {IOR('F',102,sizeof(struct video_adapter_info) }
 
 Begin
- FBIO_ADPINFO:=ioctl(fd,nr_FBIO_ADPINFO,@param1);
+ FBIO_ADPINFO:=FpIoctl(fd,nr_FBIO_ADPINFO,@param1)=0;
 end;
 
 Function FBIO_MODEINFO(fd:longint;var param1 : video_info):boolean;
 {IOWR('F',103,sizeof(struct video_info) }
 
 Begin
- FBIO_MODEINFO:=ioctl(fd,nr_FBIO_MODEINFO,@param1);
+ FBIO_MODEINFO:=FpIoctl(fd,nr_FBIO_MODEINFO,@param1)=0;
 end;
 
 Function FBIO_FINDMODE(fd:longint;var param1 : video_info):boolean;
 {IOWR('F',104,sizeof(struct video_info) }
 
 Begin
- FBIO_FINDMODE:=ioctl(fd,nr_FBIO_FINDMODE,@param1);
+ FBIO_FINDMODE:=FpIoctl(fd,nr_FBIO_FINDMODE,@param1)=0;
 end;
 
 Function FBIO_GETMODE(fd:longint;var param1 : longint):boolean;
 {IOR('F',105,sizeof(int) }
 
 Begin
- FBIO_GETMODE:=ioctl(fd,nr_FBIO_GETMODE,@param1);
+ FBIO_GETMODE:=FpIoctl(fd,nr_FBIO_GETMODE,@param1)=0;
 end;
 
 Function FBIO_SETMODE(fd:longint;var param1 : longint):boolean;
 {IOW('F',106,sizeof(int) }
 
 Begin
- FBIO_SETMODE:=ioctl(fd,nr_FBIO_SETMODE,@param1);
+ FBIO_SETMODE:=FpIoctl(fd,nr_FBIO_SETMODE,@param1)=0;
 end;
 
 Function FBIO_GETWINORG(fd:longint;var param1 : u_int):boolean;
 {IOR('F',107,sizeof(u_int) }
 
 Begin
- FBIO_GETWINORG:=ioctl(fd,nr_FBIO_GETWINORG,@param1);
+ FBIO_GETWINORG:=FpIoctl(fd,nr_FBIO_GETWINORG,@param1)=0;
 end;
 
 Function FBIO_SETWINORG(fd:longint;var param1 : u_int):boolean;
 {IOW('F',108,sizeof(u_int) }
 
 Begin
- FBIO_SETWINORG:=ioctl(fd,nr_FBIO_SETWINORG,@param1);
+ FBIO_SETWINORG:=FpIoctl(fd,nr_FBIO_SETWINORG,@param1)=0;
 end;
 
 Function FBIO_GETDISPSTART(fd:longint;var param1 : video_display_start_t):boolean;
 {IOR('F',109,sizeof(video_display_start_t) }
 
 Begin
- FBIO_GETDISPSTART:=ioctl(fd,nr_FBIO_GETDISPSTART,@param1);
+ FBIO_GETDISPSTART:=FpIoctl(fd,nr_FBIO_GETDISPSTART,@param1)=0;
 end;
 
 Function FBIO_SETDISPSTART(fd:longint;var param1 : video_display_start_t):boolean;
 {IOW('F',110,sizeof(video_display_start_t) }
 
 Begin
- FBIO_SETDISPSTART:=ioctl(fd,nr_FBIO_SETDISPSTART,@param1);
+ FBIO_SETDISPSTART:=FpIoctl(fd,nr_FBIO_SETDISPSTART,@param1)=0;
 end;
 
 Function FBIO_GETLINEWIDTH(fd:longint;var param1 : u_int):boolean;
 {IOR('F',111,sizeof(u_int) }
 
 Begin
- FBIO_GETLINEWIDTH:=ioctl(fd,nr_FBIO_GETLINEWIDTH,@param1);
+ FBIO_GETLINEWIDTH:=FpIoctl(fd,nr_FBIO_GETLINEWIDTH,@param1)=0;
 end;
 
 Function FBIO_SETLINEWIDTH(fd:longint;var param1 : u_int):boolean;
 {IOW('F',112,sizeof(u_int) }
 
 Begin
- FBIO_SETLINEWIDTH:=ioctl(fd,nr_FBIO_SETLINEWIDTH,@param1);
+ FBIO_SETLINEWIDTH:=FpIoctl(fd,nr_FBIO_SETLINEWIDTH,@param1)=0;
 end;
 
 Function FBIO_GETPALETTE(fd:longint;var param1 : video_color_palette_t):boolean;
 {IOW('F',113,sizeof(video_color_palette_t) }
 
 Begin
- FBIO_GETPALETTE:=ioctl(fd,nr_FBIO_GETPALETTE,@param1);
+ FBIO_GETPALETTE:=FpIoctl(fd,nr_FBIO_GETPALETTE,@param1)=0;
 end;
 
 Function FBIO_SETPALETTE(fd:longint;var param1 : video_color_palette_t):boolean;
 {IOW('F',114,sizeof(video_color_palette_t) }
 
 Begin
- FBIO_SETPALETTE:=ioctl(fd,nr_FBIO_SETPALETTE,@param1);
+ FBIO_SETPALETTE:=FpIoctl(fd,nr_FBIO_SETPALETTE,@param1)=0;
 end;
 
 
-{consio.h IOCTL's}
+{consio.h FpIoctl's}
 
 Function KDGETMODE(fd:longint;var param1 : longint):boolean;
 {IOR('K',9,sizeof(int) }
 
 Begin
- KDGETMODE:=ioctl(fd,nr_KDGETMODE,@param1);
+ KDGETMODE:=FpIoctl(fd,nr_KDGETMODE,@param1)=0;
 end;
 
 Function KDSETMODE(fd:longint;param1 : longint):boolean;
@@ -2082,7 +2082,7 @@ Function KDSETMODE(fd:longint;param1 : longint):boolean;
  }
 
 Begin
- KDSETMODE:=ioctl(fd,nr_KDSETMODE,pointer(param1));
+ KDSETMODE:=FpIoctl(fd,nr_KDSETMODE,pointer(param1))=0;
 end;
 
 Function KDSBORDER(fd:longint;param1 : longint):boolean;
@@ -2090,56 +2090,56 @@ Function KDSBORDER(fd:longint;param1 : longint):boolean;
  }
 
 Begin
- KDSBORDER:=ioctl(fd,nr_KDSBORDER,pointer(param1));
+ KDSBORDER:=FpIoctl(fd,nr_KDSBORDER,pointer(param1))=0;
 end;
 
 Function KDRASTER(fd:longint;var param1 : scr_size_t):boolean;
 {IOW('K',100,sizeof(scr_size_t) }
 
 Begin
- KDRASTER:=ioctl(fd,nr_KDRASTER,@param1);
+ KDRASTER:=FpIoctl(fd,nr_KDRASTER,@param1)=0;
 end;
 
 Function GIO_SCRNMAP(fd:longint;var param1 : scrmap_t):boolean;
 {IOR('k',2,sizeof(scrmap_t) }
 
 Begin
- GIO_SCRNMAP:=ioctl(fd,nr_GIO_SCRNMAP,@param1);
+ GIO_SCRNMAP:=FpIoctl(fd,nr_GIO_SCRNMAP,@param1)=0;
 end;
 
 Function PIO_SCRNMAP(fd:longint;var param1 : scrmap_t):boolean;
 {IOW('k',3,sizeof(scrmap_t) }
 
 Begin
- PIO_SCRNMAP:=ioctl(fd,nr_PIO_SCRNMAP,@param1);
+ PIO_SCRNMAP:=FpIoctl(fd,nr_PIO_SCRNMAP,@param1)=0;
 end;
 
 Function GIO_ATTR(fd:longint;var param1 : longint):boolean;
 {IOR('a',0,sizeof(int) }
 
 Begin
- GIO_ATTR:=ioctl(fd,nr_GIO_ATTR,@param1);
+ GIO_ATTR:=FpIoctl(fd,nr_GIO_ATTR,@param1)=0;
 end;
 
 Function GIO_COLOR(fd:longint;var param1 : longint):boolean;
 {IOR('c',0,sizeof(int) }
 
 Begin
- GIO_COLOR:=ioctl(fd,nr_GIO_COLOR,@param1);
+ GIO_COLOR:=FpIoctl(fd,nr_GIO_COLOR,@param1)=0;
 end;
 
 Function CONS_CURRENT(fd:longint;var param1 : longint):boolean;
 {IOR('c',1,sizeof(int) }
 
 Begin
- CONS_CURRENT:=ioctl(fd,nr_CONS_CURRENT,@param1);
+ CONS_CURRENT:=FpIoctl(fd,nr_CONS_CURRENT,@param1)=0;
 end;
 
 Function CONS_GET(fd:longint;var param1 : longint):boolean;
 {IOR('c',2,sizeof(int) }
 
 Begin
- CONS_GET:=ioctl(fd,nr_CONS_GET,@param1);
+ CONS_GET:=FpIoctl(fd,nr_CONS_GET,@param1)=0;
 end;
 
 Function CONS_IO(fd:longint):boolean;
@@ -2147,161 +2147,161 @@ Function CONS_IO(fd:longint):boolean;
  }
 
 Begin
- CONS_IO:=ioctl(fd,nr_CONS_IO,nil);
+ CONS_IO:=FpIoctl(fd,nr_CONS_IO,nil)=0;
 end;
 
 Function CONS_BLANKTIME(fd:longint;var param1 : longint):boolean;
 {IOW('c',4,sizeof(int) }
 
 Begin
- CONS_BLANKTIME:=ioctl(fd,nr_CONS_BLANKTIME,@param1);
+ CONS_BLANKTIME:=FpIoctl(fd,nr_CONS_BLANKTIME,@param1)=0;
 end;
 
 Function CONS_SSAVER(fd:longint;var param1 : ssaver_t):boolean;
 {IOW('c',5,sizeof(ssaver_t) }
 
 Begin
- CONS_SSAVER:=ioctl(fd,nr_CONS_SSAVER,@param1);
+ CONS_SSAVER:=FpIoctl(fd,nr_CONS_SSAVER,@param1)=0;
 end;
 
 Function CONS_GSAVER(fd:longint;var param1 : ssaver_t):boolean;
 {IOWR('c',6,sizeof(ssaver_t) }
 
 Begin
- CONS_GSAVER:=ioctl(fd,nr_CONS_GSAVER,@param1);
+ CONS_GSAVER:=FpIoctl(fd,nr_CONS_GSAVER,@param1)=0;
 end;
 
 Function CONS_CURSORTYPE(fd:longint;var param1 : longint):boolean;
 {IOW('c',7,sizeof(int) }
 
 Begin
- CONS_CURSORTYPE:=ioctl(fd,nr_CONS_CURSORTYPE,@param1);
+ CONS_CURSORTYPE:=FpIoctl(fd,nr_CONS_CURSORTYPE,@param1)=0;
 end;
 
 Function CONS_BELLTYPE(fd:longint;var param1 : longint):boolean;
 {IOW('c',8,sizeof(int) }
 
 Begin
- CONS_BELLTYPE:=ioctl(fd,nr_CONS_BELLTYPE,@param1);
+ CONS_BELLTYPE:=FpIoctl(fd,nr_CONS_BELLTYPE,@param1)=0;
 end;
 
 Function CONS_HISTORY(fd:longint;var param1 : longint):boolean;
 {IOW('c',9,sizeof(int) }
 
 Begin
- CONS_HISTORY:=ioctl(fd,nr_CONS_HISTORY,@param1);
+ CONS_HISTORY:=FpIoctl(fd,nr_CONS_HISTORY,@param1)=0;
 end;
 
 Function CONS_MOUSECTL(fd:longint;var param1 : mouse_info_t):boolean;
 {IOWR('c',10,sizeof(mouse_info_t) }
 
 Begin
- CONS_MOUSECTL:=ioctl(fd,nr_CONS_MOUSECTL,@param1);
+ CONS_MOUSECTL:=FpIoctl(fd,nr_CONS_MOUSECTL,@param1)=0;
 end;
 
 Function CONS_IDLE(fd:longint;var param1 : longint):boolean;
 {IOR('c',11,sizeof(int) }
 
 Begin
- CONS_IDLE:=ioctl(fd,nr_CONS_IDLE,@param1);
+ CONS_IDLE:=FpIoctl(fd,nr_CONS_IDLE,@param1)=0;
 end;
 
 Function CONS_SAVERMODE(fd:longint;var param1 : longint):boolean;
 {IOW('c',12,sizeof(int) }
 
 Begin
- CONS_SAVERMODE:=ioctl(fd,nr_CONS_SAVERMODE,@param1);
+ CONS_SAVERMODE:=FpIoctl(fd,nr_CONS_SAVERMODE,@param1)=0;
 end;
 
 Function CONS_SAVERSTART(fd:longint;var param1 : longint):boolean;
 {IOW('c',13,sizeof(int) }
 
 Begin
- CONS_SAVERSTART:=ioctl(fd,nr_CONS_SAVERSTART,@param1);
+ CONS_SAVERSTART:=FpIoctl(fd,nr_CONS_SAVERSTART,@param1)=0;
 end;
 
 Function PIO_FONT8x8(fd:longint;var param1 : fnt8_t):boolean;
 {IOW('c',64,sizeof(fnt8_t) }
 
 Begin
- PIO_FONT8x8:=ioctl(fd,nr_PIO_FONT8x8,@param1);
+ PIO_FONT8x8:=FpIoctl(fd,nr_PIO_FONT8x8,@param1)=0;
 end;
 
 Function GIO_FONT8x8(fd:longint;var param1 : fnt8_t):boolean;
 {IOR('c',65,sizeof(fnt8_t) }
 
 Begin
- GIO_FONT8x8:=ioctl(fd,nr_GIO_FONT8x8,@param1);
+ GIO_FONT8x8:=FpIoctl(fd,nr_GIO_FONT8x8,@param1)=0;
 end;
 
 Function PIO_FONT8x14(fd:longint;var param1 : fnt14_t):boolean;
 {IOW('c',66,sizeof(fnt14_t) }
 
 Begin
- PIO_FONT8x14:=ioctl(fd,nr_PIO_FONT8x14,@param1);
+ PIO_FONT8x14:=FpIoctl(fd,nr_PIO_FONT8x14,@param1)=0;
 end;
 
 Function GIO_FONT8x14(fd:longint;var param1 : fnt14_t):boolean;
 {IOR('c',67,sizeof(fnt14_t) }
 
 Begin
- GIO_FONT8x14:=ioctl(fd,nr_GIO_FONT8x14,@param1);
+ GIO_FONT8x14:=FpIoctl(fd,nr_GIO_FONT8x14,@param1)=0;
 end;
 
 Function PIO_FONT8x16(fd:longint;var param1 : fnt16_t):boolean;
 {IOW('c',68,sizeof(fnt16_t) }
 
 Begin
- PIO_FONT8x16:=ioctl(fd,nr_PIO_FONT8x16,@param1);
+ PIO_FONT8x16:=FpIoctl(fd,nr_PIO_FONT8x16,@param1)=0;
 end;
 
 Function GIO_FONT8x16(fd:longint;var param1 : fnt16_t):boolean;
 {IOR('c',69,sizeof(fnt16_t) }
 
 Begin
- GIO_FONT8x16:=ioctl(fd,nr_GIO_FONT8x16,@param1);
+ GIO_FONT8x16:=FpIoctl(fd,nr_GIO_FONT8x16,@param1)=0;
 end;
 
 Function CONS_GETINFO(fd:longint;var param1 : vid_info_t):boolean;
 {IOWR('c',73,sizeof(vid_info_t) }
 
 Begin
- CONS_GETINFO:=ioctl(fd,nr_CONS_GETINFO,@param1);
+ CONS_GETINFO:=FpIoctl(fd,nr_CONS_GETINFO,@param1)=0;
 end;
 
 Function CONS_GETVERS(fd:longint;var param1 : longint):boolean;
 {IOR('c',74,sizeof(int) }
 
 Begin
- CONS_GETVERS:=ioctl(fd,nr_CONS_GETVERS,@param1);
+ CONS_GETVERS:=FpIoctl(fd,nr_CONS_GETVERS,@param1)=0;
 end;
 
 Function CONS_CURRENTADP(fd:longint;var param1 : longint):boolean;
 {IOR('c',100,sizeof(int) }
 
 Begin
- CONS_CURRENTADP:=ioctl(fd,nr_CONS_CURRENTADP,@param1);
+ CONS_CURRENTADP:=FpIoctl(fd,nr_CONS_CURRENTADP,@param1)=0;
 end;
 
 Function CONS_ADPINFO(fd:longint;var param1 : video_adapter_info_t):boolean;
 {IOWR('c',101,sizeof(video_adapter_info_t) }
 
 Begin
- CONS_ADPINFO:=ioctl(fd,nr_CONS_ADPINFO,@param1);
+ CONS_ADPINFO:=FpIoctl(fd,nr_CONS_ADPINFO,@param1)=0;
 end;
 
 Function CONS_MODEINFO(fd:longint;var param1 : video_info_t):boolean;
 {IOWR('c',102,sizeof(video_info_t) }
 
 Begin
- CONS_MODEINFO:=ioctl(fd,nr_CONS_MODEINFO,@param1);
+ CONS_MODEINFO:=FpIoctl(fd,nr_CONS_MODEINFO,@param1)=0;
 end;
 
 Function CONS_FINDMODE(fd:longint;var param1 : video_info_t):boolean;
 {IOWR('c',103,sizeof(video_info_t) }
 
 Begin
- CONS_FINDMODE:=ioctl(fd,nr_CONS_FINDMODE,@param1);
+ CONS_FINDMODE:=FpIoctl(fd,nr_CONS_FINDMODE,@param1)=0;
 end;
 
 Function CONS_SETWINORG(fd:longint;param1 : longint):boolean;
@@ -2309,7 +2309,7 @@ Function CONS_SETWINORG(fd:longint;param1 : longint):boolean;
  }
 
 Begin
- CONS_SETWINORG:=ioctl(fd,nr_CONS_SETWINORG,pointer(param1));
+ CONS_SETWINORG:=FpIoctl(fd,nr_CONS_SETWINORG,pointer(param1))=0;
 end;
 
 Function CONS_SETKBD(fd:longint;param1 : longint):boolean;
@@ -2317,7 +2317,7 @@ Function CONS_SETKBD(fd:longint;param1 : longint):boolean;
  }
 
 Begin
- CONS_SETKBD:=ioctl(fd,nr_CONS_SETKBD,pointer(param1));
+ CONS_SETKBD:=FpIoctl(fd,nr_CONS_SETKBD,pointer(param1))=0;
 end;
 
 Function CONS_RELKBD(fd:longint):boolean;
@@ -2325,21 +2325,21 @@ Function CONS_RELKBD(fd:longint):boolean;
  }
 
 Begin
- CONS_RELKBD:=ioctl(fd,nr_CONS_RELKBD,nil);
+ CONS_RELKBD:=FpIoctl(fd,nr_CONS_RELKBD,nil)=0;
 end;
 
 Function CONS_GETTERM(fd:longint;var param1 : term_info_t):boolean;
 {IOWR('c',112,sizeof(term_info_t) }
 
 Begin
- CONS_GETTERM:=ioctl(fd,nr_CONS_GETTERM,@param1);
+ CONS_GETTERM:=FpIoctl(fd,nr_CONS_GETTERM,@param1)=0;
 end;
 
 Function CONS_SETTERM(fd:longint;var param1 : term_info_t):boolean;
 {IOW('c',113,sizeof(term_info_t) }
 
 Begin
- CONS_SETTERM:=ioctl(fd,nr_CONS_SETTERM,@param1);
+ CONS_SETTERM:=FpIoctl(fd,nr_CONS_SETTERM,@param1)=0;
 end;
 
 Function ADJUST_CLOCK(fd:longint):boolean;
@@ -2347,28 +2347,28 @@ Function ADJUST_CLOCK(fd:longint):boolean;
  }
 
 Begin
- ADJUST_CLOCK:=ioctl(fd,nr_ADJUST_CLOCK,nil);
+ ADJUST_CLOCK:=FpIoctl(fd,nr_ADJUST_CLOCK,nil)=0;
 end;
 
 Function VT_OPENQRY(fd:longint;var param1 : longint):boolean;
 {IOR('v',1,sizeof(int) }
 
 Begin
- VT_OPENQRY:=ioctl(fd,nr_VT_OPENQRY,@param1);
+ VT_OPENQRY:=FpIoctl(fd,nr_VT_OPENQRY,@param1)=0;
 end;
 
 Function VT_SETMODE(fd:longint;var param1 : vtmode_t):boolean;
 {IOW('v',2,sizeof(vtmode_t) }
 
 Begin
- VT_SETMODE:=ioctl(fd,nr_VT_SETMODE,@param1);
+ VT_SETMODE:=FpIoctl(fd,nr_VT_SETMODE,@param1)=0;
 end;
 
 Function VT_GETMODE(fd:longint;var param1 : vtmode_t):boolean;
 {IOR('v',3,sizeof(vtmode_t) }
 
 Begin
- VT_GETMODE:=ioctl(fd,nr_VT_GETMODE,@param1);
+ VT_GETMODE:=FpIoctl(fd,nr_VT_GETMODE,@param1)=0;
 end;
 
 Function VT_RELDISP(fd:longint;param1 : longint):boolean;
@@ -2376,7 +2376,7 @@ Function VT_RELDISP(fd:longint;param1 : longint):boolean;
  }
 
 Begin
- VT_RELDISP:=ioctl(fd,nr_VT_RELDISP,pointer(param1));
+ VT_RELDISP:=FpIoctl(fd,nr_VT_RELDISP,pointer(param1))=0;
 end;
 
 Function VT_ACTIVATE(fd:longint;param1 : longint):boolean;
@@ -2384,7 +2384,7 @@ Function VT_ACTIVATE(fd:longint;param1 : longint):boolean;
  }
 
 Begin
- VT_ACTIVATE:=ioctl(fd,nr_VT_ACTIVATE,pointer(param1));
+ VT_ACTIVATE:=FpIoctl(fd,nr_VT_ACTIVATE,pointer(param1))=0;
 end;
 
 Function VT_WAITACTIVE(fd:longint;param1 : longint):boolean;
@@ -2392,21 +2392,21 @@ Function VT_WAITACTIVE(fd:longint;param1 : longint):boolean;
  }
 
 Begin
- VT_WAITACTIVE:=ioctl(fd,nr_VT_WAITACTIVE,pointer(param1));
+ VT_WAITACTIVE:=FpIoctl(fd,nr_VT_WAITACTIVE,pointer(param1))=0;
 end;
 
 Function VT_GETACTIVE(fd:longint;var param1 : longint):boolean;
 {IOR('v',7,sizeof(int) }
 
 Begin
- VT_GETACTIVE:=ioctl(fd,nr_VT_GETACTIVE,@param1);
+ VT_GETACTIVE:=FpIoctl(fd,nr_VT_GETACTIVE,@param1)=0;
 end;
 
 Function VT_GETINDEX(fd:longint;var param1 : longint):boolean;
 {IOR('v',8,sizeof(int) }
 
 Begin
- VT_GETINDEX:=ioctl(fd,nr_VT_GETINDEX,@param1);
+ VT_GETINDEX:=FpIoctl(fd,nr_VT_GETINDEX,@param1)=0;
 end;
 
 Function SW_B40x25(fd:longint):boolean;
@@ -2414,7 +2414,7 @@ Function SW_B40x25(fd:longint):boolean;
  }
 
 Begin
- SW_B40x25:=ioctl(fd,nr_SW_B40x25,nil);
+ SW_B40x25:=FpIoctl(fd,nr_SW_B40x25,nil)=0;
 end;
 
 Function SW_C40x25(fd:longint):boolean;
@@ -2422,7 +2422,7 @@ Function SW_C40x25(fd:longint):boolean;
  }
 
 Begin
- SW_C40x25:=ioctl(fd,nr_SW_C40x25,nil);
+ SW_C40x25:=FpIoctl(fd,nr_SW_C40x25,nil)=0;
 end;
 
 Function SW_B80x25(fd:longint):boolean;
@@ -2430,7 +2430,7 @@ Function SW_B80x25(fd:longint):boolean;
  }
 
 Begin
- SW_B80x25:=ioctl(fd,nr_SW_B80x25,nil);
+ SW_B80x25:=FpIoctl(fd,nr_SW_B80x25,nil)=0;
 end;
 
 Function SW_C80x25(fd:longint):boolean;
@@ -2438,7 +2438,7 @@ Function SW_C80x25(fd:longint):boolean;
  }
 
 Begin
- SW_C80x25:=ioctl(fd,nr_SW_C80x25,nil);
+ SW_C80x25:=FpIoctl(fd,nr_SW_C80x25,nil)=0;
 end;
 
 Function SW_BG320(fd:longint):boolean;
@@ -2446,7 +2446,7 @@ Function SW_BG320(fd:longint):boolean;
  }
 
 Begin
- SW_BG320:=ioctl(fd,nr_SW_BG320,nil);
+ SW_BG320:=FpIoctl(fd,nr_SW_BG320,nil)=0;
 end;
 
 Function SW_CG320(fd:longint):boolean;
@@ -2454,7 +2454,7 @@ Function SW_CG320(fd:longint):boolean;
  }
 
 Begin
- SW_CG320:=ioctl(fd,nr_SW_CG320,nil);
+ SW_CG320:=FpIoctl(fd,nr_SW_CG320,nil)=0;
 end;
 
 Function SW_BG640(fd:longint):boolean;
@@ -2462,7 +2462,7 @@ Function SW_BG640(fd:longint):boolean;
  }
 
 Begin
- SW_BG640:=ioctl(fd,nr_SW_BG640,nil);
+ SW_BG640:=FpIoctl(fd,nr_SW_BG640,nil)=0;
 end;
 
 Function SW_EGAMONO80x25(fd:longint):boolean;
@@ -2470,7 +2470,7 @@ Function SW_EGAMONO80x25(fd:longint):boolean;
  }
 
 Begin
- SW_EGAMONO80x25:=ioctl(fd,nr_SW_EGAMONO80x25,nil);
+ SW_EGAMONO80x25:=FpIoctl(fd,nr_SW_EGAMONO80x25,nil)=0;
 end;
 
 Function SW_CG320_D(fd:longint):boolean;
@@ -2478,7 +2478,7 @@ Function SW_CG320_D(fd:longint):boolean;
  }
 
 Begin
- SW_CG320_D:=ioctl(fd,nr_SW_CG320_D,nil);
+ SW_CG320_D:=FpIoctl(fd,nr_SW_CG320_D,nil)=0;
 end;
 
 Function SW_CG640_E(fd:longint):boolean;
@@ -2486,7 +2486,7 @@ Function SW_CG640_E(fd:longint):boolean;
  }
 
 Begin
- SW_CG640_E:=ioctl(fd,nr_SW_CG640_E,nil);
+ SW_CG640_E:=FpIoctl(fd,nr_SW_CG640_E,nil)=0;
 end;
 
 Function SW_EGAMONOAPA(fd:longint):boolean;
@@ -2494,7 +2494,7 @@ Function SW_EGAMONOAPA(fd:longint):boolean;
  }
 
 Begin
- SW_EGAMONOAPA:=ioctl(fd,nr_SW_EGAMONOAPA,nil);
+ SW_EGAMONOAPA:=FpIoctl(fd,nr_SW_EGAMONOAPA,nil)=0;
 end;
 
 Function SW_CG640x350(fd:longint):boolean;
@@ -2502,7 +2502,7 @@ Function SW_CG640x350(fd:longint):boolean;
  }
 
 Begin
- SW_CG640x350:=ioctl(fd,nr_SW_CG640x350,nil);
+ SW_CG640x350:=FpIoctl(fd,nr_SW_CG640x350,nil)=0;
 end;
 
 Function SW_ENH_MONOAPA2(fd:longint):boolean;
@@ -2510,7 +2510,7 @@ Function SW_ENH_MONOAPA2(fd:longint):boolean;
  }
 
 Begin
- SW_ENH_MONOAPA2:=ioctl(fd,nr_SW_ENH_MONOAPA2,nil);
+ SW_ENH_MONOAPA2:=FpIoctl(fd,nr_SW_ENH_MONOAPA2,nil)=0;
 end;
 
 Function SW_ENH_CG640(fd:longint):boolean;
@@ -2518,7 +2518,7 @@ Function SW_ENH_CG640(fd:longint):boolean;
  }
 
 Begin
- SW_ENH_CG640:=ioctl(fd,nr_SW_ENH_CG640,nil);
+ SW_ENH_CG640:=FpIoctl(fd,nr_SW_ENH_CG640,nil)=0;
 end;
 
 Function SW_ENH_B40x25(fd:longint):boolean;
@@ -2526,7 +2526,7 @@ Function SW_ENH_B40x25(fd:longint):boolean;
  }
 
 Begin
- SW_ENH_B40x25:=ioctl(fd,nr_SW_ENH_B40x25,nil);
+ SW_ENH_B40x25:=FpIoctl(fd,nr_SW_ENH_B40x25,nil)=0;
 end;
 
 Function SW_ENH_C40x25(fd:longint):boolean;
@@ -2534,7 +2534,7 @@ Function SW_ENH_C40x25(fd:longint):boolean;
  }
 
 Begin
- SW_ENH_C40x25:=ioctl(fd,nr_SW_ENH_C40x25,nil);
+ SW_ENH_C40x25:=FpIoctl(fd,nr_SW_ENH_C40x25,nil)=0;
 end;
 
 Function SW_ENH_B80x25(fd:longint):boolean;
@@ -2542,7 +2542,7 @@ Function SW_ENH_B80x25(fd:longint):boolean;
  }
 
 Begin
- SW_ENH_B80x25:=ioctl(fd,nr_SW_ENH_B80x25,nil);
+ SW_ENH_B80x25:=FpIoctl(fd,nr_SW_ENH_B80x25,nil)=0;
 end;
 
 Function SW_ENH_C80x25(fd:longint):boolean;
@@ -2550,7 +2550,7 @@ Function SW_ENH_C80x25(fd:longint):boolean;
  }
 
 Begin
- SW_ENH_C80x25:=ioctl(fd,nr_SW_ENH_C80x25,nil);
+ SW_ENH_C80x25:=FpIoctl(fd,nr_SW_ENH_C80x25,nil)=0;
 end;
 
 Function SW_ENH_B80x43(fd:longint):boolean;
@@ -2558,7 +2558,7 @@ Function SW_ENH_B80x43(fd:longint):boolean;
  }
 
 Begin
- SW_ENH_B80x43:=ioctl(fd,nr_SW_ENH_B80x43,nil);
+ SW_ENH_B80x43:=FpIoctl(fd,nr_SW_ENH_B80x43,nil)=0;
 end;
 
 Function SW_ENH_C80x43(fd:longint):boolean;
@@ -2566,7 +2566,7 @@ Function SW_ENH_C80x43(fd:longint):boolean;
  }
 
 Begin
- SW_ENH_C80x43:=ioctl(fd,nr_SW_ENH_C80x43,nil);
+ SW_ENH_C80x43:=FpIoctl(fd,nr_SW_ENH_C80x43,nil)=0;
 end;
 
 Function SW_MCAMODE(fd:longint):boolean;
@@ -2574,7 +2574,7 @@ Function SW_MCAMODE(fd:longint):boolean;
  }
 
 Begin
- SW_MCAMODE:=ioctl(fd,nr_SW_MCAMODE,nil);
+ SW_MCAMODE:=FpIoctl(fd,nr_SW_MCAMODE,nil)=0;
 end;
 
 Function SW_VGA_C40x25(fd:longint):boolean;
@@ -2582,7 +2582,7 @@ Function SW_VGA_C40x25(fd:longint):boolean;
  }
 
 Begin
- SW_VGA_C40x25:=ioctl(fd,nr_SW_VGA_C40x25,nil);
+ SW_VGA_C40x25:=FpIoctl(fd,nr_SW_VGA_C40x25,nil)=0;
 end;
 
 Function SW_VGA_C80x25(fd:longint):boolean;
@@ -2590,7 +2590,7 @@ Function SW_VGA_C80x25(fd:longint):boolean;
  }
 
 Begin
- SW_VGA_C80x25:=ioctl(fd,nr_SW_VGA_C80x25,nil);
+ SW_VGA_C80x25:=FpIoctl(fd,nr_SW_VGA_C80x25,nil)=0;
 end;
 
 Function SW_VGA_C80x30(fd:longint):boolean;
@@ -2598,7 +2598,7 @@ Function SW_VGA_C80x30(fd:longint):boolean;
  }
 
 Begin
- SW_VGA_C80x30:=ioctl(fd,nr_SW_VGA_C80x30,nil);
+ SW_VGA_C80x30:=FpIoctl(fd,nr_SW_VGA_C80x30,nil)=0;
 end;
 
 Function SW_VGA_C80x50(fd:longint):boolean;
@@ -2606,7 +2606,7 @@ Function SW_VGA_C80x50(fd:longint):boolean;
  }
 
 Begin
- SW_VGA_C80x50:=ioctl(fd,nr_SW_VGA_C80x50,nil);
+ SW_VGA_C80x50:=FpIoctl(fd,nr_SW_VGA_C80x50,nil)=0;
 end;
 
 Function SW_VGA_C80x60(fd:longint):boolean;
@@ -2614,7 +2614,7 @@ Function SW_VGA_C80x60(fd:longint):boolean;
  }
 
 Begin
- SW_VGA_C80x60:=ioctl(fd,nr_SW_VGA_C80x60,nil);
+ SW_VGA_C80x60:=FpIoctl(fd,nr_SW_VGA_C80x60,nil)=0;
 end;
 
 Function SW_VGA_M80x25(fd:longint):boolean;
@@ -2622,7 +2622,7 @@ Function SW_VGA_M80x25(fd:longint):boolean;
  }
 
 Begin
- SW_VGA_M80x25:=ioctl(fd,nr_SW_VGA_M80x25,nil);
+ SW_VGA_M80x25:=FpIoctl(fd,nr_SW_VGA_M80x25,nil)=0;
 end;
 
 Function SW_VGA_M80x30(fd:longint):boolean;
@@ -2630,7 +2630,7 @@ Function SW_VGA_M80x30(fd:longint):boolean;
  }
 
 Begin
- SW_VGA_M80x30:=ioctl(fd,nr_SW_VGA_M80x30,nil);
+ SW_VGA_M80x30:=FpIoctl(fd,nr_SW_VGA_M80x30,nil)=0;
 end;
 
 Function SW_VGA_M80x50(fd:longint):boolean;
@@ -2638,7 +2638,7 @@ Function SW_VGA_M80x50(fd:longint):boolean;
  }
 
 Begin
- SW_VGA_M80x50:=ioctl(fd,nr_SW_VGA_M80x50,nil);
+ SW_VGA_M80x50:=FpIoctl(fd,nr_SW_VGA_M80x50,nil)=0;
 end;
 
 Function SW_VGA_M80x60(fd:longint):boolean;
@@ -2646,7 +2646,7 @@ Function SW_VGA_M80x60(fd:longint):boolean;
  }
 
 Begin
- SW_VGA_M80x60:=ioctl(fd,nr_SW_VGA_M80x60,nil);
+ SW_VGA_M80x60:=FpIoctl(fd,nr_SW_VGA_M80x60,nil)=0;
 end;
 
 Function SW_VGA11(fd:longint):boolean;
@@ -2654,7 +2654,7 @@ Function SW_VGA11(fd:longint):boolean;
  }
 
 Begin
- SW_VGA11:=ioctl(fd,nr_SW_VGA11,nil);
+ SW_VGA11:=FpIoctl(fd,nr_SW_VGA11,nil)=0;
 end;
 
 Function SW_BG640x480(fd:longint):boolean;
@@ -2662,7 +2662,7 @@ Function SW_BG640x480(fd:longint):boolean;
  }
 
 Begin
- SW_BG640x480:=ioctl(fd,nr_SW_BG640x480,nil);
+ SW_BG640x480:=FpIoctl(fd,nr_SW_BG640x480,nil)=0;
 end;
 
 Function SW_VGA12(fd:longint):boolean;
@@ -2670,7 +2670,7 @@ Function SW_VGA12(fd:longint):boolean;
  }
 
 Begin
- SW_VGA12:=ioctl(fd,nr_SW_VGA12,nil);
+ SW_VGA12:=FpIoctl(fd,nr_SW_VGA12,nil)=0;
 end;
 
 Function SW_CG640x480(fd:longint):boolean;
@@ -2678,7 +2678,7 @@ Function SW_CG640x480(fd:longint):boolean;
  }
 
 Begin
- SW_CG640x480:=ioctl(fd,nr_SW_CG640x480,nil);
+ SW_CG640x480:=FpIoctl(fd,nr_SW_CG640x480,nil)=0;
 end;
 
 Function SW_VGA13(fd:longint):boolean;
@@ -2686,7 +2686,7 @@ Function SW_VGA13(fd:longint):boolean;
  }
 
 Begin
- SW_VGA13:=ioctl(fd,nr_SW_VGA13,nil);
+ SW_VGA13:=FpIoctl(fd,nr_SW_VGA13,nil)=0;
 end;
 
 Function SW_VGA_CG320(fd:longint):boolean;
@@ -2694,7 +2694,7 @@ Function SW_VGA_CG320(fd:longint):boolean;
  }
 
 Begin
- SW_VGA_CG320:=ioctl(fd,nr_SW_VGA_CG320,nil);
+ SW_VGA_CG320:=FpIoctl(fd,nr_SW_VGA_CG320,nil)=0;
 end;
 
 Function SW_VGA_CG640(fd:longint):boolean;
@@ -2702,7 +2702,7 @@ Function SW_VGA_CG640(fd:longint):boolean;
  }
 
 Begin
- SW_VGA_CG640:=ioctl(fd,nr_SW_VGA_CG640,nil);
+ SW_VGA_CG640:=FpIoctl(fd,nr_SW_VGA_CG640,nil)=0;
 end;
 
 Function SW_VGA_MODEX(fd:longint):boolean;
@@ -2710,7 +2710,7 @@ Function SW_VGA_MODEX(fd:longint):boolean;
  }
 
 Begin
- SW_VGA_MODEX:=ioctl(fd,nr_SW_VGA_MODEX,nil);
+ SW_VGA_MODEX:=FpIoctl(fd,nr_SW_VGA_MODEX,nil)=0;
 end;
 
 Function SW_PC98_80x25(fd:longint):boolean;
@@ -2718,7 +2718,7 @@ Function SW_PC98_80x25(fd:longint):boolean;
  }
 
 Begin
- SW_PC98_80x25:=ioctl(fd,nr_SW_PC98_80x25,nil);
+ SW_PC98_80x25:=FpIoctl(fd,nr_SW_PC98_80x25,nil)=0;
 end;
 
 Function SW_PC98_80x30(fd:longint):boolean;
@@ -2726,7 +2726,7 @@ Function SW_PC98_80x30(fd:longint):boolean;
  }
 
 Begin
- SW_PC98_80x30:=ioctl(fd,nr_SW_PC98_80x30,nil);
+ SW_PC98_80x30:=FpIoctl(fd,nr_SW_PC98_80x30,nil)=0;
 end;
 
 Function SW_PC98_EGC640x400(fd:longint):boolean;
@@ -2734,7 +2734,7 @@ Function SW_PC98_EGC640x400(fd:longint):boolean;
  }
 
 Begin
- SW_PC98_EGC640x400:=ioctl(fd,nr_SW_PC98_EGC640x400,nil);
+ SW_PC98_EGC640x400:=FpIoctl(fd,nr_SW_PC98_EGC640x400,nil)=0;
 end;
 
 Function SW_PC98_PEGC640x400(fd:longint):boolean;
@@ -2742,7 +2742,7 @@ Function SW_PC98_PEGC640x400(fd:longint):boolean;
  }
 
 Begin
- SW_PC98_PEGC640x400:=ioctl(fd,nr_SW_PC98_PEGC640x400,nil);
+ SW_PC98_PEGC640x400:=FpIoctl(fd,nr_SW_PC98_PEGC640x400,nil)=0;
 end;
 
 Function SW_PC98_PEGC640x480(fd:longint):boolean;
@@ -2750,7 +2750,7 @@ Function SW_PC98_PEGC640x480(fd:longint):boolean;
  }
 
 Begin
- SW_PC98_PEGC640x480:=ioctl(fd,nr_SW_PC98_PEGC640x480,nil);
+ SW_PC98_PEGC640x480:=FpIoctl(fd,nr_SW_PC98_PEGC640x480,nil)=0;
 end;
 
 Function SW_VGA_C90x25(fd:longint):boolean;
@@ -2758,7 +2758,7 @@ Function SW_VGA_C90x25(fd:longint):boolean;
  }
 
 Begin
- SW_VGA_C90x25:=ioctl(fd,nr_SW_VGA_C90x25,nil);
+ SW_VGA_C90x25:=FpIoctl(fd,nr_SW_VGA_C90x25,nil)=0;
 end;
 
 Function SW_VGA_M90x25(fd:longint):boolean;
@@ -2766,7 +2766,7 @@ Function SW_VGA_M90x25(fd:longint):boolean;
  }
 
 Begin
- SW_VGA_M90x25:=ioctl(fd,nr_SW_VGA_M90x25,nil);
+ SW_VGA_M90x25:=FpIoctl(fd,nr_SW_VGA_M90x25,nil)=0;
 end;
 
 Function SW_VGA_C90x30(fd:longint):boolean;
@@ -2774,7 +2774,7 @@ Function SW_VGA_C90x30(fd:longint):boolean;
  }
 
 Begin
- SW_VGA_C90x30:=ioctl(fd,nr_SW_VGA_C90x30,nil);
+ SW_VGA_C90x30:=FpIoctl(fd,nr_SW_VGA_C90x30,nil)=0;
 end;
 
 Function SW_VGA_M90x30(fd:longint):boolean;
@@ -2782,7 +2782,7 @@ Function SW_VGA_M90x30(fd:longint):boolean;
  }
 
 Begin
- SW_VGA_M90x30:=ioctl(fd,nr_SW_VGA_M90x30,nil);
+ SW_VGA_M90x30:=FpIoctl(fd,nr_SW_VGA_M90x30,nil)=0;
 end;
 
 Function SW_VGA_C90x43(fd:longint):boolean;
@@ -2790,7 +2790,7 @@ Function SW_VGA_C90x43(fd:longint):boolean;
  }
 
 Begin
- SW_VGA_C90x43:=ioctl(fd,nr_SW_VGA_C90x43,nil);
+ SW_VGA_C90x43:=FpIoctl(fd,nr_SW_VGA_C90x43,nil)=0;
 end;
 
 Function SW_VGA_M90x43(fd:longint):boolean;
@@ -2798,7 +2798,7 @@ Function SW_VGA_M90x43(fd:longint):boolean;
  }
 
 Begin
- SW_VGA_M90x43:=ioctl(fd,nr_SW_VGA_M90x43,nil);
+ SW_VGA_M90x43:=FpIoctl(fd,nr_SW_VGA_M90x43,nil)=0;
 end;
 
 Function SW_VGA_C90x50(fd:longint):boolean;
@@ -2806,7 +2806,7 @@ Function SW_VGA_C90x50(fd:longint):boolean;
  }
 
 Begin
- SW_VGA_C90x50:=ioctl(fd,nr_SW_VGA_C90x50,nil);
+ SW_VGA_C90x50:=FpIoctl(fd,nr_SW_VGA_C90x50,nil)=0;
 end;
 
 Function SW_VGA_M90x50(fd:longint):boolean;
@@ -2814,7 +2814,7 @@ Function SW_VGA_M90x50(fd:longint):boolean;
  }
 
 Begin
- SW_VGA_M90x50:=ioctl(fd,nr_SW_VGA_M90x50,nil);
+ SW_VGA_M90x50:=FpIoctl(fd,nr_SW_VGA_M90x50,nil)=0;
 end;
 
 Function SW_VGA_C90x60(fd:longint):boolean;
@@ -2822,7 +2822,7 @@ Function SW_VGA_C90x60(fd:longint):boolean;
  }
 
 Begin
- SW_VGA_C90x60:=ioctl(fd,nr_SW_VGA_C90x60,nil);
+ SW_VGA_C90x60:=FpIoctl(fd,nr_SW_VGA_C90x60,nil)=0;
 end;
 
 Function SW_VGA_M90x60(fd:longint):boolean;
@@ -2830,7 +2830,7 @@ Function SW_VGA_M90x60(fd:longint):boolean;
  }
 
 Begin
- SW_VGA_M90x60:=ioctl(fd,nr_SW_VGA_M90x60,nil);
+ SW_VGA_M90x60:=FpIoctl(fd,nr_SW_VGA_M90x60,nil)=0;
 end;
 
 Function SW_TEXT_80x25(fd:longint):boolean;
@@ -2838,7 +2838,7 @@ Function SW_TEXT_80x25(fd:longint):boolean;
  }
 
 Begin
- SW_TEXT_80x25:=ioctl(fd,nr_SW_TEXT_80x25,nil);
+ SW_TEXT_80x25:=FpIoctl(fd,nr_SW_TEXT_80x25,nil)=0;
 end;
 
 Function SW_TEXT_80x30(fd:longint):boolean;
@@ -2846,7 +2846,7 @@ Function SW_TEXT_80x30(fd:longint):boolean;
  }
 
 Begin
- SW_TEXT_80x30:=ioctl(fd,nr_SW_TEXT_80x30,nil);
+ SW_TEXT_80x30:=FpIoctl(fd,nr_SW_TEXT_80x30,nil)=0;
 end;
 
 Function SW_TEXT_80x43(fd:longint):boolean;
@@ -2854,7 +2854,7 @@ Function SW_TEXT_80x43(fd:longint):boolean;
  }
 
 Begin
- SW_TEXT_80x43:=ioctl(fd,nr_SW_TEXT_80x43,nil);
+ SW_TEXT_80x43:=FpIoctl(fd,nr_SW_TEXT_80x43,nil)=0;
 end;
 
 Function SW_TEXT_80x50(fd:longint):boolean;
@@ -2862,7 +2862,7 @@ Function SW_TEXT_80x50(fd:longint):boolean;
  }
 
 Begin
- SW_TEXT_80x50:=ioctl(fd,nr_SW_TEXT_80x50,nil);
+ SW_TEXT_80x50:=FpIoctl(fd,nr_SW_TEXT_80x50,nil)=0;
 end;
 
 Function SW_TEXT_80x60(fd:longint):boolean;
@@ -2870,7 +2870,7 @@ Function SW_TEXT_80x60(fd:longint):boolean;
  }
 
 Begin
- SW_TEXT_80x60:=ioctl(fd,nr_SW_TEXT_80x60,nil);
+ SW_TEXT_80x60:=FpIoctl(fd,nr_SW_TEXT_80x60,nil)=0;
 end;
 
 Function SW_TEXT_132x25(fd:longint):boolean;
@@ -2878,7 +2878,7 @@ Function SW_TEXT_132x25(fd:longint):boolean;
  }
 
 Begin
- SW_TEXT_132x25:=ioctl(fd,nr_SW_TEXT_132x25,nil);
+ SW_TEXT_132x25:=FpIoctl(fd,nr_SW_TEXT_132x25,nil)=0;
 end;
 
 Function SW_TEXT_132x30(fd:longint):boolean;
@@ -2886,7 +2886,7 @@ Function SW_TEXT_132x30(fd:longint):boolean;
  }
 
 Begin
- SW_TEXT_132x30:=ioctl(fd,nr_SW_TEXT_132x30,nil);
+ SW_TEXT_132x30:=FpIoctl(fd,nr_SW_TEXT_132x30,nil)=0;
 end;
 
 Function SW_TEXT_132x43(fd:longint):boolean;
@@ -2894,7 +2894,7 @@ Function SW_TEXT_132x43(fd:longint):boolean;
  }
 
 Begin
- SW_TEXT_132x43:=ioctl(fd,nr_SW_TEXT_132x43,nil);
+ SW_TEXT_132x43:=FpIoctl(fd,nr_SW_TEXT_132x43,nil)=0;
 end;
 
 Function SW_TEXT_132x50(fd:longint):boolean;
@@ -2902,7 +2902,7 @@ Function SW_TEXT_132x50(fd:longint):boolean;
  }
 
 Begin
- SW_TEXT_132x50:=ioctl(fd,nr_SW_TEXT_132x50,nil);
+ SW_TEXT_132x50:=FpIoctl(fd,nr_SW_TEXT_132x50,nil)=0;
 end;
 
 Function SW_TEXT_132x60(fd:longint):boolean;
@@ -2910,7 +2910,7 @@ Function SW_TEXT_132x60(fd:longint):boolean;
  }
 
 Begin
- SW_TEXT_132x60:=ioctl(fd,nr_SW_TEXT_132x60,nil);
+ SW_TEXT_132x60:=FpIoctl(fd,nr_SW_TEXT_132x60,nil)=0;
 end;
 
 Function SW_VESA_CG640x400(fd:longint):boolean;
@@ -2918,7 +2918,7 @@ Function SW_VESA_CG640x400(fd:longint):boolean;
  }
 
 Begin
- SW_VESA_CG640x400:=ioctl(fd,nr_SW_VESA_CG640x400,nil);
+ SW_VESA_CG640x400:=FpIoctl(fd,nr_SW_VESA_CG640x400,nil)=0;
 end;
 
 Function SW_VESA_CG640x480(fd:longint):boolean;
@@ -2926,7 +2926,7 @@ Function SW_VESA_CG640x480(fd:longint):boolean;
  }
 
 Begin
- SW_VESA_CG640x480:=ioctl(fd,nr_SW_VESA_CG640x480,nil);
+ SW_VESA_CG640x480:=FpIoctl(fd,nr_SW_VESA_CG640x480,nil)=0;
 end;
 
 Function SW_VESA_800x600(fd:longint):boolean;
@@ -2934,7 +2934,7 @@ Function SW_VESA_800x600(fd:longint):boolean;
  }
 
 Begin
- SW_VESA_800x600:=ioctl(fd,nr_SW_VESA_800x600,nil);
+ SW_VESA_800x600:=FpIoctl(fd,nr_SW_VESA_800x600,nil)=0;
 end;
 
 Function SW_VESA_CG800x600(fd:longint):boolean;
@@ -2942,7 +2942,7 @@ Function SW_VESA_CG800x600(fd:longint):boolean;
  }
 
 Begin
- SW_VESA_CG800x600:=ioctl(fd,nr_SW_VESA_CG800x600,nil);
+ SW_VESA_CG800x600:=FpIoctl(fd,nr_SW_VESA_CG800x600,nil)=0;
 end;
 
 Function SW_VESA_1024x768(fd:longint):boolean;
@@ -2950,7 +2950,7 @@ Function SW_VESA_1024x768(fd:longint):boolean;
  }
 
 Begin
- SW_VESA_1024x768:=ioctl(fd,nr_SW_VESA_1024x768,nil);
+ SW_VESA_1024x768:=FpIoctl(fd,nr_SW_VESA_1024x768,nil)=0;
 end;
 
 Function SW_VESA_CG1024x768(fd:longint):boolean;
@@ -2958,7 +2958,7 @@ Function SW_VESA_CG1024x768(fd:longint):boolean;
  }
 
 Begin
- SW_VESA_CG1024x768:=ioctl(fd,nr_SW_VESA_CG1024x768,nil);
+ SW_VESA_CG1024x768:=FpIoctl(fd,nr_SW_VESA_CG1024x768,nil)=0;
 end;
 
 Function SW_VESA_1280x1024(fd:longint):boolean;
@@ -2966,7 +2966,7 @@ Function SW_VESA_1280x1024(fd:longint):boolean;
  }
 
 Begin
- SW_VESA_1280x1024:=ioctl(fd,nr_SW_VESA_1280x1024,nil);
+ SW_VESA_1280x1024:=FpIoctl(fd,nr_SW_VESA_1280x1024,nil)=0;
 end;
 
 Function SW_VESA_CG1280x1024(fd:longint):boolean;
@@ -2974,7 +2974,7 @@ Function SW_VESA_CG1280x1024(fd:longint):boolean;
  }
 
 Begin
- SW_VESA_CG1280x1024:=ioctl(fd,nr_SW_VESA_CG1280x1024,nil);
+ SW_VESA_CG1280x1024:=FpIoctl(fd,nr_SW_VESA_CG1280x1024,nil)=0;
 end;
 
 Function SW_VESA_C80x60(fd:longint):boolean;
@@ -2982,7 +2982,7 @@ Function SW_VESA_C80x60(fd:longint):boolean;
  }
 
 Begin
- SW_VESA_C80x60:=ioctl(fd,nr_SW_VESA_C80x60,nil);
+ SW_VESA_C80x60:=FpIoctl(fd,nr_SW_VESA_C80x60,nil)=0;
 end;
 
 Function SW_VESA_C132x25(fd:longint):boolean;
@@ -2990,7 +2990,7 @@ Function SW_VESA_C132x25(fd:longint):boolean;
  }
 
 Begin
- SW_VESA_C132x25:=ioctl(fd,nr_SW_VESA_C132x25,nil);
+ SW_VESA_C132x25:=FpIoctl(fd,nr_SW_VESA_C132x25,nil)=0;
 end;
 
 Function SW_VESA_C132x43(fd:longint):boolean;
@@ -2998,7 +2998,7 @@ Function SW_VESA_C132x43(fd:longint):boolean;
  }
 
 Begin
- SW_VESA_C132x43:=ioctl(fd,nr_SW_VESA_C132x43,nil);
+ SW_VESA_C132x43:=FpIoctl(fd,nr_SW_VESA_C132x43,nil)=0;
 end;
 
 Function SW_VESA_C132x50(fd:longint):boolean;
@@ -3006,7 +3006,7 @@ Function SW_VESA_C132x50(fd:longint):boolean;
  }
 
 Begin
- SW_VESA_C132x50:=ioctl(fd,nr_SW_VESA_C132x50,nil);
+ SW_VESA_C132x50:=FpIoctl(fd,nr_SW_VESA_C132x50,nil)=0;
 end;
 
 Function SW_VESA_C132x60(fd:longint):boolean;
@@ -3014,7 +3014,7 @@ Function SW_VESA_C132x60(fd:longint):boolean;
  }
 
 Begin
- SW_VESA_C132x60:=ioctl(fd,nr_SW_VESA_C132x60,nil);
+ SW_VESA_C132x60:=FpIoctl(fd,nr_SW_VESA_C132x60,nil)=0;
 end;
 
 Function SW_VESA_32K_320(fd:longint):boolean;
@@ -3022,7 +3022,7 @@ Function SW_VESA_32K_320(fd:longint):boolean;
  }
 
 Begin
- SW_VESA_32K_320:=ioctl(fd,nr_SW_VESA_32K_320,nil);
+ SW_VESA_32K_320:=FpIoctl(fd,nr_SW_VESA_32K_320,nil)=0;
 end;
 
 Function SW_VESA_64K_320(fd:longint):boolean;
@@ -3030,7 +3030,7 @@ Function SW_VESA_64K_320(fd:longint):boolean;
  }
 
 Begin
- SW_VESA_64K_320:=ioctl(fd,nr_SW_VESA_64K_320,nil);
+ SW_VESA_64K_320:=FpIoctl(fd,nr_SW_VESA_64K_320,nil)=0;
 end;
 
 Function SW_VESA_FULL_320(fd:longint):boolean;
@@ -3038,7 +3038,7 @@ Function SW_VESA_FULL_320(fd:longint):boolean;
  }
 
 Begin
- SW_VESA_FULL_320:=ioctl(fd,nr_SW_VESA_FULL_320,nil);
+ SW_VESA_FULL_320:=FpIoctl(fd,nr_SW_VESA_FULL_320,nil)=0;
 end;
 
 Function SW_VESA_32K_640(fd:longint):boolean;
@@ -3046,7 +3046,7 @@ Function SW_VESA_32K_640(fd:longint):boolean;
  }
 
 Begin
- SW_VESA_32K_640:=ioctl(fd,nr_SW_VESA_32K_640,nil);
+ SW_VESA_32K_640:=FpIoctl(fd,nr_SW_VESA_32K_640,nil)=0;
 end;
 
 Function SW_VESA_64K_640(fd:longint):boolean;
@@ -3054,7 +3054,7 @@ Function SW_VESA_64K_640(fd:longint):boolean;
  }
 
 Begin
- SW_VESA_64K_640:=ioctl(fd,nr_SW_VESA_64K_640,nil);
+ SW_VESA_64K_640:=FpIoctl(fd,nr_SW_VESA_64K_640,nil)=0;
 end;
 
 Function SW_VESA_FULL_640(fd:longint):boolean;
@@ -3062,7 +3062,7 @@ Function SW_VESA_FULL_640(fd:longint):boolean;
  }
 
 Begin
- SW_VESA_FULL_640:=ioctl(fd,nr_SW_VESA_FULL_640,nil);
+ SW_VESA_FULL_640:=FpIoctl(fd,nr_SW_VESA_FULL_640,nil)=0;
 end;
 
 Function SW_VESA_32K_800(fd:longint):boolean;
@@ -3070,7 +3070,7 @@ Function SW_VESA_32K_800(fd:longint):boolean;
  }
 
 Begin
- SW_VESA_32K_800:=ioctl(fd,nr_SW_VESA_32K_800,nil);
+ SW_VESA_32K_800:=FpIoctl(fd,nr_SW_VESA_32K_800,nil)=0;
 end;
 
 Function SW_VESA_64K_800(fd:longint):boolean;
@@ -3078,7 +3078,7 @@ Function SW_VESA_64K_800(fd:longint):boolean;
  }
 
 Begin
- SW_VESA_64K_800:=ioctl(fd,nr_SW_VESA_64K_800,nil);
+ SW_VESA_64K_800:=FpIoctl(fd,nr_SW_VESA_64K_800,nil)=0;
 end;
 
 Function SW_VESA_FULL_800(fd:longint):boolean;
@@ -3086,7 +3086,7 @@ Function SW_VESA_FULL_800(fd:longint):boolean;
  }
 
 Begin
- SW_VESA_FULL_800:=ioctl(fd,nr_SW_VESA_FULL_800,nil);
+ SW_VESA_FULL_800:=FpIoctl(fd,nr_SW_VESA_FULL_800,nil)=0;
 end;
 
 Function SW_VESA_32K_1024(fd:longint):boolean;
@@ -3094,7 +3094,7 @@ Function SW_VESA_32K_1024(fd:longint):boolean;
  }
 
 Begin
- SW_VESA_32K_1024:=ioctl(fd,nr_SW_VESA_32K_1024,nil);
+ SW_VESA_32K_1024:=FpIoctl(fd,nr_SW_VESA_32K_1024,nil)=0;
 end;
 
 Function SW_VESA_64K_1024(fd:longint):boolean;
@@ -3102,7 +3102,7 @@ Function SW_VESA_64K_1024(fd:longint):boolean;
  }
 
 Begin
- SW_VESA_64K_1024:=ioctl(fd,nr_SW_VESA_64K_1024,nil);
+ SW_VESA_64K_1024:=FpIoctl(fd,nr_SW_VESA_64K_1024,nil)=0;
 end;
 
 Function SW_VESA_FULL_1024(fd:longint):boolean;
@@ -3110,7 +3110,7 @@ Function SW_VESA_FULL_1024(fd:longint):boolean;
  }
 
 Begin
- SW_VESA_FULL_1024:=ioctl(fd,nr_SW_VESA_FULL_1024,nil);
+ SW_VESA_FULL_1024:=FpIoctl(fd,nr_SW_VESA_FULL_1024,nil)=0;
 end;
 
 Function SW_VESA_32K_1280(fd:longint):boolean;
@@ -3118,7 +3118,7 @@ Function SW_VESA_32K_1280(fd:longint):boolean;
  }
 
 Begin
- SW_VESA_32K_1280:=ioctl(fd,nr_SW_VESA_32K_1280,nil);
+ SW_VESA_32K_1280:=FpIoctl(fd,nr_SW_VESA_32K_1280,nil)=0;
 end;
 
 Function SW_VESA_64K_1280(fd:longint):boolean;
@@ -3126,7 +3126,7 @@ Function SW_VESA_64K_1280(fd:longint):boolean;
  }
 
 Begin
- SW_VESA_64K_1280:=ioctl(fd,nr_SW_VESA_64K_1280,nil);
+ SW_VESA_64K_1280:=FpIoctl(fd,nr_SW_VESA_64K_1280,nil)=0;
 end;
 
 Function SW_VESA_FULL_1280(fd:longint):boolean;
@@ -3134,16 +3134,16 @@ Function SW_VESA_FULL_1280(fd:longint):boolean;
  }
 
 Begin
- SW_VESA_FULL_1280:=ioctl(fd,nr_SW_VESA_FULL_1280,nil);
+ SW_VESA_FULL_1280:=FpIoctl(fd,nr_SW_VESA_FULL_1280,nil)=0;
 end;
 
-{----------------------------- kbio.h IOCTL's ---------------------------}
+{----------------------------- kbio.h FpIoctl's ---------------------------}
 
 Function KDGKBMODE(fd:longint;var param1 : longint):boolean;
 {IOR('K',6,sizeof(int) }
 
 Begin
- KDGKBMODE:=ioctl(fd,nr_KDGKBMODE,@param1);
+ KDGKBMODE:=FpIoctl(fd,nr_KDGKBMODE,@param1)=0;
 end;
 
 Function KDSKBMODE(fd:longint;param1 : longint):boolean;
@@ -3151,7 +3151,7 @@ Function KDSKBMODE(fd:longint;param1 : longint):boolean;
  }
 
 Begin
- KDSKBMODE:=ioctl(fd,nr_KDSKBMODE,pointer(param1));
+ KDSKBMODE:=FpIoctl(fd,nr_KDSKBMODE,pointer(param1))=0;
 end;
 
 Function KDMKTONE(fd:longint;param1 : longint):boolean;
@@ -3159,7 +3159,7 @@ Function KDMKTONE(fd:longint;param1 : longint):boolean;
  }
 
 Begin
- KDMKTONE:=ioctl(fd,nr_KDMKTONE,pointer(param1));
+ KDMKTONE:=FpIoctl(fd,nr_KDMKTONE,pointer(param1))=0;
 end;
 
 {$ifndef definconsole}
@@ -3167,7 +3167,7 @@ Function KDGETMODE(fd:longint;var param1 : longint):boolean;
 {IOR('K',9,sizeof(int) }
 
 Begin
- KDGETMODE:=ioctl(fd,nr_KDGETMODE,@param1);
+ KDGETMODE:=FpIoctl(fd,nr_KDGETMODE,@param1)=0;
 end;
 
 Function KDSETMODE(fd:longint;param1 : longint):boolean;
@@ -3175,7 +3175,7 @@ Function KDSETMODE(fd:longint;param1 : longint):boolean;
  }
 
 Begin
- KDSETMODE:=ioctl(fd,nr_KDSETMODE,pointer(param1));
+ KDSETMODE:=FpIoctl(fd,nr_KDSETMODE,pointer(param1))=0;
 end;
 
 Function KDSBORDER(fd:longint;param1 : longint):boolean;
@@ -3183,14 +3183,14 @@ Function KDSBORDER(fd:longint;param1 : longint):boolean;
  }
 
 Begin
- KDSBORDER:=ioctl(fd,nr_KDSBORDER,pointer(param1));
+ KDSBORDER:=FpIoctl(fd,nr_KDSBORDER,pointer(param1))=0;
 end;
 {$endif}
 Function KDGKBSTATE(fd:longint;var param1 : longint):boolean;
 {IOR('K',19,sizeof(int) }
 
 Begin
- KDGKBSTATE:=ioctl(fd,nr_KDGKBSTATE,@param1);
+ KDGKBSTATE:=FpIoctl(fd,nr_KDGKBSTATE,@param1)=0;
 end;
 
 Function KDSKBSTATE(fd:longint;param1 : longint):boolean;
@@ -3198,7 +3198,7 @@ Function KDSKBSTATE(fd:longint;param1 : longint):boolean;
  }
 
 Begin
- KDSKBSTATE:=ioctl(fd,nr_KDSKBSTATE,pointer(param1));
+ KDSKBSTATE:=FpIoctl(fd,nr_KDSKBSTATE,pointer(param1))=0;
 end;
 
 Function KDENABIO(fd:longint):boolean;
@@ -3206,7 +3206,7 @@ Function KDENABIO(fd:longint):boolean;
  }
 
 Begin
- KDENABIO:=ioctl(fd,nr_KDENABIO,nil);
+ KDENABIO:=FpIoctl(fd,nr_KDENABIO,nil)=0;
 end;
 
 Function KDDISABIO(fd:longint):boolean;
@@ -3214,7 +3214,7 @@ Function KDDISABIO(fd:longint):boolean;
  }
 
 Begin
- KDDISABIO:=ioctl(fd,nr_KDDISABIO,nil);
+ KDDISABIO:=FpIoctl(fd,nr_KDDISABIO,nil)=0;
 end;
 
 Function KIOCSOUND(fd:longint;param1 : longint):boolean;
@@ -3222,21 +3222,21 @@ Function KIOCSOUND(fd:longint;param1 : longint):boolean;
  }
 
 Begin
- KIOCSOUND:=ioctl(fd,nr_KIOCSOUND,pointer(param1));
+ KIOCSOUND:=FpIoctl(fd,nr_KIOCSOUND,pointer(param1))=0;
 end;
 
 Function KDGKBTYPE(fd:longint;var param1 : longint):boolean;
 {IOR('K',64,sizeof(int) }
 
 Begin
- KDGKBTYPE:=ioctl(fd,nr_KDGKBTYPE,@param1);
+ KDGKBTYPE:=FpIoctl(fd,nr_KDGKBTYPE,@param1)=0;
 end;
 
 Function KDGETLED(fd:longint;var param1 : longint):boolean;
 {IOR('K',65,sizeof(int) }
 
 Begin
- KDGETLED:=ioctl(fd,nr_KDGETLED,@param1);
+ KDGETLED:=FpIoctl(fd,nr_KDGETLED,@param1)=0;
 end;
 
 Function KDSETLED(fd:longint;param1 : longint):boolean;
@@ -3244,7 +3244,7 @@ Function KDSETLED(fd:longint;param1 : longint):boolean;
  }
 
 Begin
- KDSETLED:=ioctl(fd,nr_KDSETLED,pointer(param1));
+ KDSETLED:=FpIoctl(fd,nr_KDSETLED,pointer(param1))=0;
 end;
 
 Function KDSETRAD(fd:longint;param1 : longint):boolean;
@@ -3252,7 +3252,7 @@ Function KDSETRAD(fd:longint;param1 : longint):boolean;
  }
 
 Begin
- KDSETRAD:=ioctl(fd,nr_KDSETRAD,pointer(param1));
+ KDSETRAD:=FpIoctl(fd,nr_KDSETRAD,pointer(param1))=0;
 end;
 {$ifndef definconsole}
 
@@ -3260,110 +3260,110 @@ Function KDRASTER(fd:longint;var param1 : scr_size_t):boolean;
 {IOW('K',100,sizeof(scr_size_t) }
 
 Begin
- KDRASTER:=ioctl(fd,nr_KDRASTER,@param1);
+ KDRASTER:=FpIoctl(fd,nr_KDRASTER,@param1)=0;
 end;
 {$endif}
 Function KDGKBINFO(fd:longint;var param1 : keyboard_info_t):boolean;
 {IOR('K',101,sizeof(keyboard_info_t) }
 
 Begin
- KDGKBINFO:=ioctl(fd,nr_KDGKBINFO,@param1);
+ KDGKBINFO:=FpIoctl(fd,nr_KDGKBINFO,@param1)=0;
 end;
 
 Function KDSETREPEAT(fd:longint;var param1 : keyboard_repeat_t):boolean;
 {IOW('K',102,sizeof(keyboard_repeat_t) }
 
 Begin
- KDSETREPEAT:=ioctl(fd,nr_KDSETREPEAT,@param1);
+ KDSETREPEAT:=FpIoctl(fd,nr_KDSETREPEAT,@param1)=0;
 end;
 
 Function KDGETREPEAT(fd:longint;var param1 : keyboard_repeat_t):boolean;
 {IOR('K',103,sizeof(keyboard_repeat_t) }
 
 Begin
- KDGETREPEAT:=ioctl(fd,nr_KDGETREPEAT,@param1);
+ KDGETREPEAT:=FpIoctl(fd,nr_KDGETREPEAT,@param1)=0;
 end;
 
 Function GETFKEY(fd:longint;var param1 : fkeyarg_t):boolean;
 {IOWR('k',0,sizeof(fkeyarg_t) }
 
 Begin
- GETFKEY:=ioctl(fd,nr_GETFKEY,@param1);
+ GETFKEY:=FpIoctl(fd,nr_GETFKEY,@param1)=0;
 end;
 
 Function SETFKEY(fd:longint;var param1 : fkeyarg_t):boolean;
 {IOWR('k',1,sizeof(fkeyarg_t) }
 
 Begin
- SETFKEY:=ioctl(fd,nr_SETFKEY,@param1);
+ SETFKEY:=FpIoctl(fd,nr_SETFKEY,@param1)=0;
 end;
 {$ifndef definconsole}
 Function GIO_SCRNMAP(fd:longint;var param1 : scrmap_t):boolean;
 {IOR('k',2,sizeof(scrmap_t) }
 
 Begin
- GIO_SCRNMAP:=ioctl(fd,nr_GIO_SCRNMAP,@param1);
+ GIO_SCRNMAP:=FpIoctl(fd,nr_GIO_SCRNMAP,@param1)=0;
 end;
 
 Function PIO_SCRNMAP(fd:longint;var param1 : scrmap_t):boolean;
 {IOW('k',3,sizeof(scrmap_t) }
 
 Begin
- PIO_SCRNMAP:=ioctl(fd,nr_PIO_SCRNMAP,@param1);
+ PIO_SCRNMAP:=FpIoctl(fd,nr_PIO_SCRNMAP,@param1)=0;
 end;
 {$endif}
 Function GIO_KEYMAP(fd:longint;var param1 : keymap_t):boolean;
 {IOR('k',6,sizeof(keymap_t) }
 
 Begin
- GIO_KEYMAP:=ioctl(fd,nr_GIO_KEYMAP,@param1);
+ GIO_KEYMAP:=FpIoctl(fd,nr_GIO_KEYMAP,@param1)=0;
 end;
 
 Function PIO_KEYMAP(fd:longint;var param1 : keymap_t):boolean;
 {IOW('k',7,sizeof(keymap_t) }
 
 Begin
- PIO_KEYMAP:=ioctl(fd,nr_PIO_KEYMAP,@param1);
+ PIO_KEYMAP:=FpIoctl(fd,nr_PIO_KEYMAP,@param1)=0;
 end;
 
 Function GIO_DEADKEYMAP(fd:longint;var param1 : accentmap_t):boolean;
 {IOR('k',8,sizeof(accentmap_t) }
 
 Begin
- GIO_DEADKEYMAP:=ioctl(fd,nr_GIO_DEADKEYMAP,@param1);
+ GIO_DEADKEYMAP:=FpIoctl(fd,nr_GIO_DEADKEYMAP,@param1)=0;
 end;
 
 Function PIO_DEADKEYMAP(fd:longint;var param1 : accentmap_t):boolean;
 {IOW('k',9,sizeof(accentmap_t) }
 
 Begin
- PIO_DEADKEYMAP:=ioctl(fd,nr_PIO_DEADKEYMAP,@param1);
+ PIO_DEADKEYMAP:=FpIoctl(fd,nr_PIO_DEADKEYMAP,@param1)=0;
 end;
 
 Function GIO_KEYMAPENT(fd:longint;var param1 : keyarg_t):boolean;
 {IOWR('k',10,sizeof(keyarg_t) }
 
 Begin
- GIO_KEYMAPENT:=ioctl(fd,nr_GIO_KEYMAPENT,@param1);
+ GIO_KEYMAPENT:=FpIoctl(fd,nr_GIO_KEYMAPENT,@param1)=0;
 end;
 
 Function PIO_KEYMAPENT(fd:longint;var param1 : keyarg_t):boolean;
 {IOW('k',11,sizeof(keyarg_t) }
 
 Begin
- PIO_KEYMAPENT:=ioctl(fd,nr_PIO_KEYMAPENT,@param1);
+ PIO_KEYMAPENT:=FpIoctl(fd,nr_PIO_KEYMAPENT,@param1)=0;
 end;
 
 
 
-{----------------------------- mouse.h IOCTL's ---------------------------}
+{----------------------------- mouse.h FpIoctl's ---------------------------}
 
 Function MOUSE_GETSTATUS(fd:longint;var param1 : mousestatus_t):boolean;
 {IOR('M',0,sizeof(mousestatus_t)));
 }
 
 Begin
- MOUSE_GETSTATUS:=ioctl(fd,nr_MOUSE_GETSTATUS,@param1);
+ MOUSE_GETSTATUS:=FpIoctl(fd,nr_MOUSE_GETSTATUS,@param1)=0;
 end;
 
 Function MOUSE_GETHWINFO(fd:longint;var param1 : mousehw_t):boolean;
@@ -3371,7 +3371,7 @@ Function MOUSE_GETHWINFO(fd:longint;var param1 : mousehw_t):boolean;
 }
 
 Begin
- MOUSE_GETHWINFO:=ioctl(fd,nr_MOUSE_GETHWINFO,@param1);
+ MOUSE_GETHWINFO:=FpIoctl(fd,nr_MOUSE_GETHWINFO,@param1)=0;
 end;
 
 Function MOUSE_GETMODE(fd:longint;var param1 : mousemode_t):boolean;
@@ -3379,7 +3379,7 @@ Function MOUSE_GETMODE(fd:longint;var param1 : mousemode_t):boolean;
 }
 
 Begin
- MOUSE_GETMODE:=ioctl(fd,nr_MOUSE_GETMODE,@param1);
+ MOUSE_GETMODE:=FpIoctl(fd,nr_MOUSE_GETMODE,@param1)=0;
 end;
 
 Function MOUSE_SETMODE(fd:longint;var param1 : mousemode_t):boolean;
@@ -3387,7 +3387,7 @@ Function MOUSE_SETMODE(fd:longint;var param1 : mousemode_t):boolean;
 }
 
 Begin
- MOUSE_SETMODE:=ioctl(fd,nr_MOUSE_SETMODE,@param1);
+ MOUSE_SETMODE:=FpIoctl(fd,nr_MOUSE_SETMODE,@param1)=0;
 end;
 
 Function MOUSE_GETLEVEL(fd:longint;var param1 : longint):boolean;
@@ -3395,7 +3395,7 @@ Function MOUSE_GETLEVEL(fd:longint;var param1 : longint):boolean;
 }
 
 Begin
- MOUSE_GETLEVEL:=ioctl(fd,nr_MOUSE_GETLEVEL,@param1);
+ MOUSE_GETLEVEL:=FpIoctl(fd,nr_MOUSE_GETLEVEL,@param1)=0;
 end;
 
 Function MOUSE_SETLEVEL(fd:longint;var param1 : longint):boolean;
@@ -3403,7 +3403,7 @@ Function MOUSE_SETLEVEL(fd:longint;var param1 : longint):boolean;
 }
 
 Begin
- MOUSE_SETLEVEL:=ioctl(fd,nr_MOUSE_SETLEVEL,@param1);
+ MOUSE_SETLEVEL:=FpIoctl(fd,nr_MOUSE_SETLEVEL,@param1)=0;
 end;
 
 Function MOUSE_GETVARS(fd:longint;var param1 : mousevar_t):boolean;
@@ -3411,7 +3411,7 @@ Function MOUSE_GETVARS(fd:longint;var param1 : mousevar_t):boolean;
 }
 
 Begin
- MOUSE_GETVARS:=ioctl(fd,nr_MOUSE_GETVARS,@param1);
+ MOUSE_GETVARS:=FpIoctl(fd,nr_MOUSE_GETVARS,@param1)=0;
 end;
 
 Function MOUSE_SETVARS(fd:longint;var param1 : mousevar_t):boolean;
@@ -3419,7 +3419,7 @@ Function MOUSE_SETVARS(fd:longint;var param1 : mousevar_t):boolean;
 }
 
 Begin
- MOUSE_SETVARS:=ioctl(fd,nr_MOUSE_SETVARS,@param1);
+ MOUSE_SETVARS:=FpIoctl(fd,nr_MOUSE_SETVARS,@param1)=0;
 end;
 
 Function MOUSE_READSTATE(fd:longint;var param1 : mousedata_t):boolean;
@@ -3427,7 +3427,7 @@ Function MOUSE_READSTATE(fd:longint;var param1 : mousedata_t):boolean;
 }
 
 Begin
- MOUSE_READSTATE:=ioctl(fd,nr_MOUSE_READSTATE,@param1);
+ MOUSE_READSTATE:=FpIoctl(fd,nr_MOUSE_READSTATE,@param1)=0;
 end;
 
 Function MOUSE_READDATA(fd:longint;var param1 : mousedata_t):boolean;
@@ -3435,7 +3435,7 @@ Function MOUSE_READDATA(fd:longint;var param1 : mousedata_t):boolean;
 }
 
 Begin
- MOUSE_READDATA:=ioctl(fd,nr_MOUSE_READDATA,@param1);
+ MOUSE_READDATA:=FpIoctl(fd,nr_MOUSE_READDATA,@param1)=0;
 end;
 
 Function MOUSE_SETRESOLUTION(fd:longint;var param1 : longint):boolean;
@@ -3443,7 +3443,7 @@ Function MOUSE_SETRESOLUTION(fd:longint;var param1 : longint):boolean;
 }
 
 Begin
- MOUSE_SETRESOLUTION:=ioctl(fd,nr_MOUSE_SETRESOLUTION,@param1);
+ MOUSE_SETRESOLUTION:=FpIoctl(fd,nr_MOUSE_SETRESOLUTION,@param1)=0;
 end;
 
 Function MOUSE_SETSCALING(fd:longint;var param1 : longint):boolean;
@@ -3451,7 +3451,7 @@ Function MOUSE_SETSCALING(fd:longint;var param1 : longint):boolean;
 }
 
 Begin
- MOUSE_SETSCALING:=ioctl(fd,nr_MOUSE_SETSCALING,@param1);
+ MOUSE_SETSCALING:=FpIoctl(fd,nr_MOUSE_SETSCALING,@param1)=0;
 end;
 
 Function MOUSE_SETRATE(fd:longint;var param1 : longint):boolean;
@@ -3459,7 +3459,7 @@ Function MOUSE_SETRATE(fd:longint;var param1 : longint):boolean;
 }
 
 Begin
- MOUSE_SETRATE:=ioctl(fd,nr_MOUSE_SETRATE,@param1);
+ MOUSE_SETRATE:=FpIoctl(fd,nr_MOUSE_SETRATE,@param1)=0;
 end;
 
 Function MOUSE_GETHWID(fd:longint;var param1 : longint):boolean;
@@ -3467,7 +3467,7 @@ Function MOUSE_GETHWID(fd:longint;var param1 : longint):boolean;
 }
 
 Begin
- MOUSE_GETHWID:=ioctl(fd,nr_MOUSE_GETHWID,@param1);
+ MOUSE_GETHWID:=FpIoctl(fd,nr_MOUSE_GETHWID,@param1)=0;
 end;
 
 
