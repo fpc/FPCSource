@@ -183,7 +183,6 @@ type
     function  DoRealWrite(const ABuffer; Count: Integer): Integer; override;
     procedure WritingFailed; override;
     procedure WantWrite; override;
-    procedure BufferEmpty; override;
     procedure CanWrite(UserData: TObject);
   public
     constructor Create(AEventLoop: TEventLoop; AStream: THandleStream);
@@ -768,11 +767,6 @@ begin
       @CanWrite, nil);
 end;
 
-procedure TAsyncWriteStream.BufferEmpty;
-begin
-  inherited BufferEmpty;
-end;
-
 procedure TAsyncWriteStream.CanWrite(UserData: TObject);
 begin
   if FBytesInBuffer = 0 then
@@ -831,7 +825,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2003-08-03 21:18:40  sg
+  Revision 1.5  2003-11-22 11:46:40  sg
+  * Removed TAsyncWriteStream.BufferEmpty (not needed anymore)
+
+  Revision 1.4  2003/08/03 21:18:40  sg
   * Added TWriteBuffer.OnBufferSent and made this and OnBufferEmpty
     working correctly
 
