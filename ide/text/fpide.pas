@@ -800,7 +800,9 @@ end;
 
 function TIDEApp.DoExecute(ProgramPath, Params, InFile,OutFile: string; ExecType: TExecType): boolean;
 var CanRun: boolean;
+{$ifndef linux}
     PosExe: sw_integer;
+{$endif linux}
 begin
   SaveCancelled:=false;
   CanRun:=AutoSave;
@@ -820,26 +822,26 @@ begin
     if ExecType=exDosShell then
       WriteShellMsg;
 
-  {$ifdef linux}
-    Shell(ProgramPath+' '+Params);
-  {$else}
-    { DO NOT use COMSPEC for exe files as the
+     { DO NOT use COMSPEC for exe files as the
       ExitCode is lost in those cases PM }
 
+{$ifndef linux}
     posexe:=Pos('.EXE',UpCaseStr(ProgramPath));
     { if programpath was three char long => bug }
     if (posexe>0) and (posexe=Length(ProgramPath)-3) then
       begin
+{$endif linux}
         if (InFile='') and (OutFile='') then
           DosExecute(ProgramPath,Params)
         else
           ExecuteRedir(ProgramPath,Params,InFile,OutFile,'stderr');
+{$ifndef linux}
       end
     else if (InFile='') and (OutFile='') then
       DosExecute(GetEnv('COMSPEC'),'/C '+ProgramPath+' '+Params)
     else
       ExecuteRedir(GetEnv('COMSPEC'),'/C '+ProgramPath+' '+Params,InFile,OutFile,'stderr');
-  {$endif}
+{$endif linux}
 
     if ExecType<>exNoSwap then
       ShowIDEScreen;
@@ -1080,7 +1082,11 @@ end;
 END.
 {
   $Log$
-  Revision 1.2  2000-08-22 09:41:39  pierre
+  Revision 1.3  2000-09-22 15:24:04  jonas
+    * Linux now also uses the DosExecute and ExecuteRedir procedures
+      (merged from fixes branch)
+
+  Revision 1.2  2000/08/22 09:41:39  pierre
    * first big merge from fixes branch
 
   Revision 1.1.2.7  2000/08/21 12:10:19  jonas
