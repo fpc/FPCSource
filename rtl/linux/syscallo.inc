@@ -24,7 +24,7 @@
 *****************************************************************************}
 
 
-Procedure Do_SysCallspec( callnr:longint;var regs : SysCallregs );assembler;
+Procedure Do_SysCallspec( callnr:longint;var regs : SysCallregs );assembler;{$ifndef VER1_0}oldfpccall;{$endif}
 {
   This function puts the registers in place, does the call, and then
   copies back the registers as they are after the SysCall.
@@ -188,7 +188,10 @@ end;
 
 {
   $Log$
-  Revision 1.6  2003-09-14 20:15:01  marco
+  Revision 1.7  2003-10-29 19:45:44  peter
+    * use oldfpccall because all registers are destroyed
+
+  Revision 1.6  2003/09/14 20:15:01  marco
    * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
 
   Revision 1.5  2003/08/21 22:24:52  olle
