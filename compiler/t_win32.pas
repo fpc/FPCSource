@@ -472,6 +472,11 @@ unit t_win32;
          address_table,name_table_pointers,
          name_table,ordinal_table : paasmoutput;
       begin
+
+         hp:=pexported_item(current_module^._exports^.first);
+         if not assigned(hp) then
+           exit;
+
          ordinal_max:=0;
          ordinal_min:=$7FFFFFFF;
          entries:=0;
@@ -480,8 +485,6 @@ unit t_win32;
          getlabel(export_address_table);
          getlabel(export_name_table_pointers);
          getlabel(export_ordinal_table);
-
-         hp:=pexported_item(current_module^._exports^.first);
 
          { count entries }
          while assigned(hp) do
@@ -1300,7 +1303,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.23  2000-05-23 20:18:25  pierre
+  Revision 1.24  2000-06-20 12:44:30  pierre
+   * do not create an empty export section
+
+  Revision 1.23  2000/05/23 20:18:25  pierre
     + pavel's code integrated, but onyl inside
       ifdef pavel_linklib !
 
