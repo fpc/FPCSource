@@ -103,7 +103,7 @@ var
   namelen : byte;
   count,
   size,
-  i : longint;
+  i : SizeInt;
   info : pointer;
 begin
   Temp:=PByte(TypeInfo);
@@ -113,10 +113,10 @@ begin
   inc(temp,namelen+1);
   temp:=aligntoptr(temp);
   { Element size }
-  size:=PLongint(Temp)^;
+  size:=PSizeInt(Temp)^;
   inc(Temp,sizeof(Size));
   { Element count }
-  Count:=PLongint(Temp)^;
+  Count:=PSizeInt(Temp)^;
   inc(Temp,sizeof(Count));
   Info:=PPointer(Temp)^;
   inc(Temp,sizeof(Info));
@@ -247,7 +247,10 @@ procedure fpc_finalize_array(data,typeinfo : pointer;count,size : longint); [Pub
 
 {
   $Log$
-  Revision 1.18  2004-10-26 15:02:51  peter
+  Revision 1.19  2004-11-02 15:52:04  florian
+    * fixed rtti reading of arrays for 64 bit
+
+  Revision 1.18  2004/10/26 15:02:51  peter
     * rtti is always aligned, remove move() workarounds
 
   Revision 1.17  2004/10/24 21:39:42  peter
