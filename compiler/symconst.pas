@@ -201,7 +201,8 @@ type
     po_varargs,           { printf like arguments }
     po_internconst,       { procedure has constant evaluator intern }
     po_addressonly,       { flag that only the address of a method is returned and not a full methodpointer }
-    po_public             { procedure is exported }
+    po_public,            { procedure is exported }
+    po_hascallingconvention { calling convention is specified explicitly }
   );
   tprocoptions=set of tprocoption;
 
@@ -372,7 +373,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.61  2003-09-07 22:09:35  peter
+  Revision 1.62  2003-09-09 15:54:10  peter
+    * calling convention fix
+
+  Revision 1.61  2003/09/07 22:09:35  peter
     * preparations for different default calling conventions
     * various RA fixes
 

@@ -1573,13 +1573,14 @@ const
       { set calling convention }
         if proc_direcdata[p].pocall<>pocall_none then
          begin
-           if pd.proccalloption<>pocall_none then
+           if (po_hascallingconvention in pd.procoptions) then
             begin
               Message2(parser_w_proc_overriding_calling,
                 proccalloptionStr[pd.proccalloption],
                 proccalloptionStr[proc_direcdata[p].pocall]);
             end;
            pd.proccalloption:=proc_direcdata[p].pocall;
+           include(pd.procoptions,po_hascallingconvention);
          end;
 
         { check if method and directive not for object, like public.
@@ -1640,9 +1641,15 @@ const
 
     procedure handle_calling_convention(pd:tabstractprocdef);
       begin
-        { set the default calling convention }
-        if pd.proccalloption=pocall_none then
-          pd.proccalloption:=aktdefproccall;
+        { set the default calling convention if none provided }
+        if not(po_hascallingconvention in pd.procoptions) then
+          pd.proccalloption:=aktdefproccall
+        else
+          begin
+            if pd.proccalloption=pocall_none then
+              internalerror(200309081);
+          end;
+
         { handle proccall specific settings }
         case pd.proccalloption of
           pocall_cdecl :
@@ -1970,10 +1977,10 @@ const
                         part }
                       if (m_delphi in aktmodeswitches) then
                        begin
-                         if (pd.proccalloption=pocall_none) then
+                         if not(po_hascallingconvention in pd.procoptions) then
                           pd.proccalloption:=hd.proccalloption
                          else
-                          if (hd.proccalloption=pocall_none) then
+                          if not(po_hascallingconvention in hd.procoptions) then
                            hd.proccalloption:=pd.proccalloption
                          else
                           begin
@@ -2141,7 +2148,10 @@ const
 end.
 {
   $Log$
-  Revision 1.131  2003-09-07 22:09:35  peter
+  Revision 1.132  2003-09-09 15:54:10  peter
+    * calling convention fix
+
+  Revision 1.131  2003/09/07 22:09:35  peter
     * preparations for different default calling conventions
     * various RA fixes
 
