@@ -225,7 +225,7 @@ begin
   if len=-32767 then
     len:=maxlen;
   { determine sign. before precision, needs 2 less calls to abs() }
-{$ifndef big_endian}
+{$ifndef endian_big}
 {$ifdef SUPPORT_EXTENDED}
   { extended, format (MSB): 1 Sign bit, 15 bit exponent, 64 bit mantissa }
   sign := (TSplitExtended(d).w and $8000) <> 0;
@@ -250,9 +250,25 @@ begin
 {$endif SUPPORT_SINGLE}
 {$endif SUPPORT_DOUBLE}
 {$endif SUPPORT_EXTENDED}
-{$else big_endian}
+{$else endian_big}
+{$ifdef SUPPORT_EXTENDED}
   {$error sign/NaN/Inf not yet supported for big endian CPU's in str_real}
-{$endif big_endian}
+{$else SUPPORT_EXTENDED}
+{$ifdef SUPPORT_DOUBLE}
+  { double, format (MSB): 1 Sign bit, 11 bit exponent, 52 bit mantissa }
+  {$error sign/NaN/Inf not yet supported for big endian CPU's in str_real}
+{$else SUPPORT_DOUBLE}
+{$ifdef SUPPORT_SINGLE}
+  { single, format (MSB): 1 Sign bit, 8 bit exponent, 23 bit mantissa }
+  sign := ((TSplitSingle(d).bytes[0] and $80)) <> 0;
+  expMaximal := ((TSplitSingle(d).words[0] shr 7) and $ff) = 255;
+  mantZero := (TSplitSingle(d).cards[0] and $7fffff = 0);
+{$else SUPPORT_SINGLE}
+  {$error No big endian floating type supported yet in real2str}
+{$endif SUPPORT_SINGLE}
+{$endif SUPPORT_DOUBLE}
+{$endif SUPPORT_EXTENDED}
+{$endif endian}
   if expMaximal then
     if mantZero then
       if sign then
@@ -403,7 +419,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2001-04-23 18:25:45  peter
+  Revision 1.4  2001-06-13 18:32:05  peter
+    * big endian updates (merged)
+
+  Revision 1.3  2001/04/23 18:25:45  peter
     * m68k updates
 
   Revision 1.2  2000/07/13 11:33:45  michael

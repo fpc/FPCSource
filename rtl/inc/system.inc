@@ -81,12 +81,18 @@ Procedure Rewrite(var f : TypedFile); [INTERNPROC: In_Rewrite_TypedFile];
 ****************************************************************************}
 
 {$IFDEF I386}
+  {$IFNDEF ENDIAN_LITTLE}
+    {$DEFINE ENDIAN_LITTLE}
+  {$ENDIF}
   {$IFDEF M68K}
     {$Error Can't determine processor type !}
   {$ENDIF}
   {$I i386.inc}  { Case dependent, don't change }
 {$ELSE}
   {$IFDEF M68K}
+  {$IFNDEF ENDIAN_BIG}
+    {$DEFINE ENDIAN_BIG}
+  {$ENDIF}
     {$I m68k.inc}  { Case dependent, don't change }
   {$ELSE}
     {$Error Can't determine processor type !}
@@ -650,7 +656,10 @@ end;
 
 {
   $Log$
-  Revision 1.14  2001-06-03 15:15:58  peter
+  Revision 1.15  2001-06-13 18:32:05  peter
+    * big endian updates (merged)
+
+  Revision 1.14  2001/06/03 15:15:58  peter
     * lib_exit added
 
   Revision 1.13  2001/05/09 19:57:07  peter
