@@ -1,12 +1,12 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999 by Michael Van Canneyt, member of the 
+    Copyright (c) 1999 by Michael Van Canneyt, member of the
     Free Pascal development team
 
 
     DB header file with interface section.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -28,11 +28,11 @@ const
 
   dsMaxBufferCount = MAXINT div 8;
   dsMaxStringSize = 8192;
- 
+
   // Used in AsBoolean for string fields to determine
   // whether it's true or false.
   YesNoChars : Array[Boolean] of char = ('Y','N');
-  
+
 type
 
 { Auxiliary type }
@@ -91,7 +91,7 @@ type
     property FieldClass: TFieldClass read GetFieldClass;
     property FieldNo: Longint read FFieldNo;
     property Name: string read FName;
-    property Precision: Longint read FPrecision write FPrecision; 
+    property Precision: Longint read FPrecision write FPrecision;
     property Required: Boolean read FRequired;
     property Size: Word read FSize;
   end;
@@ -123,7 +123,7 @@ type
 
   TFieldKind = (fkData, fkCalculated, fkLookup, fkInternalCalc);
   TFieldKinds = Set of TFieldKind;
-  
+
   TFieldNotifyEvent = procedure(Sender: TField) of object;
   TFieldGetTextEvent = procedure(Sender: TField; var Text: string;
     DisplayText: Boolean) of object;
@@ -132,7 +132,7 @@ type
   TFieldChars = set of Char;
   { TAlignment may need to come from somewhere else }
   TAlignMent = (taLeftjustify,taCenter,taRightJustify);
-  
+
   TField = class(TComponent)
   Private
     FAlignMent : TAlignment;
@@ -162,7 +162,7 @@ type
     FLookupKeyfields : String;
     FLookupresultField : String;
     FOffset : Word;
-    FOnChange : TNotifyEvent;
+    FOnChange : TFieldNotifyEvent;
     FOnGetText: TFieldGetTextEvent;
     FOnSetText: TFieldSetTextEvent;
     FOnValidate: TFieldNotifyEvent;
@@ -335,7 +335,7 @@ type
     property MinValue: Longint read FMinValue write SetMinValue default 0;
   end;
   TIntegerField = TLongintField;
-  
+
 { TSmallintField }
 
   TSmallintField = class(TLongintField)
@@ -366,7 +366,7 @@ type
 { TFloatField }
 
   TFloatField = class(TNumericField)
-  private 
+  private
     FMaxValue : Extended;
     FMinValue : Extended;
     FPrecision : Longint;
@@ -383,7 +383,7 @@ type
     constructor Create(AOwner: TComponent); override;
     Function CheckRange(AValue : Extended) : Boolean;
     property Value: Extended read GetAsFloat write SetAsFloat;
-    
+
   published
     property MaxValue: Extended read FMaxValue write FMaxValue;
     property MinValue: Extended read FMinValue write FMinValue;
@@ -569,7 +569,7 @@ type
     ixCaseInsensitive, ixExpression);
 
   TIndexDef = class
-  Private 
+  Private
     FExpression : String;
     FFields : String;
     FName : String;
@@ -630,8 +630,8 @@ type
 { TCheckConstraints }
 
   TCheckConstraints = class(TCollection)
-  Private 
-   Function GetItem(Index : Longint) : TCheckConstraint; 
+  Private
+   Function GetItem(Index : Longint) : TCheckConstraint;
    Procedure SetItem(index : Longint; Value : TCheckConstraint);
   protected
     function GetOwner: TPersistent; override;
@@ -674,7 +674,7 @@ type
       Property Dataset : TDataset Read FDataset;
       Property Fields [Index : Integer] : TField Read GetField; default;
     end;
-    
+
 
 { TDataSet }
 
@@ -715,7 +715,7 @@ type
 
   TDatasetClass = Class of TDataset;
   TBufferArray = ^pchar;
-     
+
   TDataSet = class(TComponent)
   Private
     FActive: Boolean;
@@ -771,7 +771,7 @@ type
     FState: TDataSetState;
     Procedure DoInternalOpen;
     Procedure DoInternalClose;
-    Function  GetBuffer (Index : longint) : Pchar;  
+    Function  GetBuffer (Index : longint) : Pchar;
     Function  GetField (Index : Longint) : TField;
     Procedure RemoveField (Field : TField);
     Procedure SetActive (Value : Boolean);
@@ -988,14 +988,14 @@ type
     Published
       Property DataBase : TDatabase Read FDatabase Write SetDatabase;
     end;
-  
+
   { TDatabase }
-    
+
   TLoginEvent = procedure(Database: TDatabase;
     LoginParams: TStrings) of object;
 
   TDatabaseClass = Class Of TDatabase;
-  
+
   TDatabase = class(TComponent)
   private
     FConnected : Boolean;
@@ -1070,7 +1070,7 @@ Const
 Procedure DatabaseError (Const Msg : String);
 Procedure DatabaseError (Const Msg : String; Comp : TComponent);
 Procedure DatabaseErrorFmt (Const Fmt : String; Args : Array Of Const);
-Procedure DatabaseErrorFmt (Const Fmt : String; Args : Array Of const; 
+Procedure DatabaseErrorFmt (Const Fmt : String; Args : Array Of const;
                             Comp : TComponent);
 
 implementation
@@ -1078,7 +1078,7 @@ implementation
 { ---------------------------------------------------------------------
     Auxiliary functions
   ---------------------------------------------------------------------}
-  
+
 
 
 Procedure DatabaseError (Const Msg : String);
@@ -1099,7 +1099,7 @@ begin
   Raise EDatabaseError.CreateFmt(Fmt,Args);
 end;
 
-Procedure DatabaseErrorFmt (Const Fmt : String; Args : Array Of const; 
+Procedure DatabaseErrorFmt (Const Fmt : String; Args : Array Of const;
                             Comp : TComponent);
 begin
   Raise EDatabaseError.CreateFmt(Format('%s : %s',[Comp.Name,Fmt]),Args);
@@ -1118,8 +1118,8 @@ begin
 end;
 
 
-      
-destructor TIndexDef.Destroy; 
+
+destructor TIndexDef.Destroy;
 
 begin
   //!! To be implemented
@@ -1202,7 +1202,7 @@ end;
 
 { TCheckConstraint }
 
-procedure TCheckConstraint.Assign(Source: TPersistent); 
+procedure TCheckConstraint.Assign(Source: TPersistent);
 
 begin
   //!! To be implemented
@@ -1212,7 +1212,7 @@ end;
 
 { TCheckConstraints }
 
-Function TCheckConstraints.GetItem(Index : Longint) : TCheckConstraint; 
+Function TCheckConstraints.GetItem(Index : Longint) : TCheckConstraint;
 
 begin
   //!! To be implemented
@@ -1256,7 +1256,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  1999-10-24 17:07:54  michael
+  Revision 1.3  1999-11-09 13:33:47  peter
+    * reallocmem fixes
+
+  Revision 1.2  1999/10/24 17:07:54  michael
   + Added copyright header
 
 }
