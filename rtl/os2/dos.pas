@@ -134,6 +134,7 @@ function diskfree(drive:byte):longint;
 function disksize(drive:byte):longint;
 procedure findfirst(const path:pathstr;attr:word;var f:searchRec);
 procedure findnext(var f:searchRec);
+procedure findclose(var f:searchRec);
 
 {Is a dummy:}
 procedure swapvectors;
@@ -755,6 +756,10 @@ begin
     dossearchrec2searchrec(f);
 end;
 
+procedure findclose(var f:searchRec);
+begin
+end;
+
 procedure swapvectors;
 
 {For TP compatibility, this exists.}
@@ -980,7 +985,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.11  1999-01-18 16:22:51  jonas
+  Revision 1.12  1999-01-22 16:25:58  pierre
+   + findclose added
+
+  Revision 1.11  1999/01/18 16:22:51  jonas
     - removed "noattcdq" define
 
   Revision 1.10  1998/12/10 16:05:39  daniel
