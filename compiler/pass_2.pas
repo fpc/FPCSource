@@ -336,7 +336,8 @@ implementation
                      begin
                        if (aktprocsym^.definition^.options and
                         (poconstructor+podestructor{+poinline}+pointerrupt)=0) and
-                        ((procinfo.flags and pi_do_call)=0) and (lexlevel>1) then
+                        ((procinfo.flags and pi_do_call)=0) and
+                        (lexlevel>=normal_function_level) then
                        begin
                          { use ESP as frame pointer }
                          procinfo.framepointer:=stack_pointer;
@@ -495,7 +496,17 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  1998-10-29 15:42:49  florian
+  Revision 1.9  1998-11-13 15:40:21  pierre
+    + added -Se in Makefile cvstest target
+    + lexlevel cleanup
+      normal_function_level main_program_level and unit_init_level defined
+    * tins_cache grown to A_EMMS (gave range check error in asm readers)
+      (test added in code !)
+    * -Un option was wrong
+    * _FAIL and _SELF only keyword inside
+      constructors and methods respectively
+
+  Revision 1.8  1998/10/29 15:42:49  florian
     + partial disposing of temp. ansistrings
 
   Revision 1.7  1998/10/26 22:58:19  florian

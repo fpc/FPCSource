@@ -261,13 +261,13 @@ const
       (str:'CVAR'          ;special:false;keyword:m_none),
       (str:'ELSE'          ;special:false;keyword:m_all),
       (str:'EXIT'          ;special:false;keyword:m_all),
-      (str:'FAIL'          ;special:false;keyword:m_all),
+      (str:'FAIL'          ;special:false;keyword:m_none), { only set within constructors  PM }
       (str:'FILE'          ;special:false;keyword:m_all),
       (str:'GOTO'          ;special:false;keyword:m_all),
       (str:'NAME'          ;special:false;keyword:m_none),
       (str:'NEAR'          ;special:false;keyword:m_none),
       (str:'READ'          ;special:false;keyword:m_none),
-      (str:'SELF'          ;special:false;keyword:m_all),
+      (str:'SELF'          ;special:false;keyword:m_none), {set inside methods only PM }
       (str:'THEN'          ;special:false;keyword:m_all),
       (str:'TRUE'          ;special:false;keyword:m_all),
       (str:'TYPE'          ;special:false;keyword:m_all),
@@ -334,7 +334,17 @@ const
 
 {
   $Log$
-  Revision 1.5  1998-11-10 10:09:19  peter
+  Revision 1.6  1998-11-13 15:40:33  pierre
+    + added -Se in Makefile cvstest target
+    + lexlevel cleanup
+      normal_function_level main_program_level and unit_init_level defined
+    * tins_cache grown to A_EMMS (gave range check error in asm readers)
+      (test added in code !)
+    * -Un option was wrong
+    * _FAIL and _SELF only keyword inside
+      constructors and methods respectively
+
+  Revision 1.5  1998/11/10 10:09:19  peter
     * va_list -> array of const
 
   Revision 1.4  1998/11/09 11:44:42  peter

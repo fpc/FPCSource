@@ -265,7 +265,7 @@ cycledep:
 	make cycle USEDEPEND=1
 
 cvstest:
-	make cycle 'LOCALOPT=-n' 'RTLOPTS=-n'
+	make cycle 'LOCALOPT=-n -Se' 'RTLOPTS=-n -Se'
 
 #####################################################################
 # Installation
@@ -337,7 +337,17 @@ $(M68KEXENAME): $(PASFILES) $(INCFILES)
 
 #
 # $Log$
-# Revision 1.14  1998-11-10 17:56:48  peter
+# Revision 1.15  1998-11-13 15:40:12  pierre
+#   + added -Se in Makefile cvstest target
+#   + lexlevel cleanup
+#     normal_function_level main_program_level and unit_init_level defined
+#   * tins_cache grown to A_EMMS (gave range check error in asm readers)
+#     (test added in code !)
+#   * -Un option was wrong
+#   * _FAIL and _SELF only keyword inside
+#     constructors and methods respectively
+#
+# Revision 1.14  1998/11/10 17:56:48  peter
 #   * fixes to build correct again
 #
 # Revision 1.13  1998/10/22 23:55:24  peter

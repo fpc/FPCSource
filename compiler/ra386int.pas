@@ -3470,11 +3470,24 @@ end;
 
 begin
    old_exit:=exitproc;
+   { you will get range problems here }
+   if lastop_in_table > last_instruction_in_cache then
+     Internalerror(2111);
    exitproc:=@ra386int_exit;
 end.
 {
   $Log$
-  Revision 1.11  1998-11-13 10:12:11  peter
+  Revision 1.12  1998-11-13 15:40:30  pierre
+    + added -Se in Makefile cvstest target
+    + lexlevel cleanup
+      normal_function_level main_program_level and unit_init_level defined
+    * tins_cache grown to A_EMMS (gave range check error in asm readers)
+      (test added in code !)
+    * -Un option was wrong
+    * _FAIL and _SELF only keyword inside
+      constructors and methods respectively
+
+  Revision 1.11  1998/11/13 10:12:11  peter
     * constant fixes
 
   Revision 1.10  1998/11/05 23:48:27  peter

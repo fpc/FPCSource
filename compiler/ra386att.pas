@@ -3255,7 +3255,7 @@ const
                          else
                          if actasmpattern = '__OLDEBP' then
                          Begin
-                           if lexlevel>2 then
+                           if lexlevel>normal_function_level then
                              Begin
                                instr.operands[operandnum].operandtype := OPR_REFERENCE;
                                instr.operands[operandnum].ref.offset :=
@@ -3880,6 +3880,9 @@ var
 
 Begin
  previous_was_id := FALSE;
+ { you will get range problems here }
+ if lastop_in_table > last_instruction_in_cache then
+   Internalerror(2111);
  line:=''; { Initialization of line variable.
              No 255 char const string in version 0.9.1 MVC}
  old_exit := exitproc;
@@ -3888,7 +3891,17 @@ end.
 
 {
   $Log$
-  Revision 1.19  1998-11-13 10:12:16  peter
+  Revision 1.20  1998-11-13 15:40:27  pierre
+    + added -Se in Makefile cvstest target
+    + lexlevel cleanup
+      normal_function_level main_program_level and unit_init_level defined
+    * tins_cache grown to A_EMMS (gave range check error in asm readers)
+      (test added in code !)
+    * -Un option was wrong
+    * _FAIL and _SELF only keyword inside
+      constructors and methods respectively
+
+  Revision 1.19  1998/11/13 10:12:16  peter
     * constant fixes
 
   Revision 1.18  1998/11/05 23:48:26  peter

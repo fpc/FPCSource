@@ -1126,7 +1126,7 @@ unit pstatmnt;
            end;
 
          {Unit initialization?.}
-         if (lexlevel=1) and (current_module^.is_unit) then
+         if (lexlevel=unit_init_level) and (current_module^.is_unit) then
            if (token=_END) then
              begin
                 consume(_END);
@@ -1218,7 +1218,17 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.49  1998-11-12 12:55:17  pierre
+  Revision 1.50  1998-11-13 15:40:25  pierre
+    + added -Se in Makefile cvstest target
+    + lexlevel cleanup
+      normal_function_level main_program_level and unit_init_level defined
+    * tins_cache grown to A_EMMS (gave range check error in asm readers)
+      (test added in code !)
+    * -Un option was wrong
+    * _FAIL and _SELF only keyword inside
+      constructors and methods respectively
+
+  Revision 1.49  1998/11/12 12:55:17  pierre
    * fix for bug0176 and bug0177
 
   Revision 1.48  1998/11/05 23:43:24  peter

@@ -437,7 +437,11 @@ unit i386;
           o1,o2,o3 : longint;
        end;
 
-       tins_cache = array[A_MOV..A_POPFD] of longint;
+    const
+       last_instruction_in_cache = A_EMMS;
+    type
+    
+       tins_cache = array[A_MOV..last_instruction_in_cache] of longint;
 
     var
        ins_cache : tins_cache;
@@ -1727,7 +1731,17 @@ unit i386;
 end.
 {
   $Log$
-  Revision 1.16  1998-11-13 10:13:46  peter
+  Revision 1.17  1998-11-13 15:40:19  pierre
+    + added -Se in Makefile cvstest target
+    + lexlevel cleanup
+      normal_function_level main_program_level and unit_init_level defined
+    * tins_cache grown to A_EMMS (gave range check error in asm readers)
+      (test added in code !)
+    * -Un option was wrong
+    * _FAIL and _SELF only keyword inside
+      constructors and methods respectively
+
+  Revision 1.16  1998/11/13 10:13:46  peter
     + cpuid,emms support for asm readers
 
   Revision 1.15  1998/11/05 23:48:20  peter

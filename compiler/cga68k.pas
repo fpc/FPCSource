@@ -1140,7 +1140,7 @@ end;
       begin
          if assigned(procinfo._class) then
            begin
-              if lexlevel>2 then
+              if lexlevel>normal_function_level then
                 begin
                    new(hp);
                    reset_reference(hp^);
@@ -1351,7 +1351,17 @@ end;
 end.
 {
   $Log$
-  Revision 1.28  1998-11-12 11:19:42  pierre
+  Revision 1.29  1998-11-13 15:40:16  pierre
+    + added -Se in Makefile cvstest target
+    + lexlevel cleanup
+      normal_function_level main_program_level and unit_init_level defined
+    * tins_cache grown to A_EMMS (gave range check error in asm readers)
+      (test added in code !)
+    * -Un option was wrong
+    * _FAIL and _SELF only keyword inside
+      constructors and methods respectively
+
+  Revision 1.28  1998/11/12 11:19:42  pierre
    * fix for first line of function break
 
   Revision 1.27  1998/11/12 09:46:17  pierre

@@ -224,11 +224,11 @@ unit Ra386dir;
                                              end
                                            else if upper(hs)='__OLDEBP' then
                                              begin
-                                                            { complicate to check there }
-                                                            { we do it: }
-                                                if lexlevel>2 then
+                                                { complicate to check there }
+                                                { we do it: }
+                                                if lexlevel>normal_function_level then
                                                   hs:=tostr(procinfo.framepointer_offset)
-                                                                +'('+att_reg2str[procinfo.framepointer]+')'
+                                                    +'('+att_reg2str[procinfo.framepointer]+')'
                                                 else
                                                   Message(assem_e_cannot_use___OLDEBP_outside_nested_procedure);
                                                 end;
@@ -262,7 +262,17 @@ unit Ra386dir;
 end.
 {
   $Log$
-  Revision 1.9  1998-10-20 08:06:57  pierre
+  Revision 1.10  1998-11-13 15:40:28  pierre
+    + added -Se in Makefile cvstest target
+    + lexlevel cleanup
+      normal_function_level main_program_level and unit_init_level defined
+    * tins_cache grown to A_EMMS (gave range check error in asm readers)
+      (test added in code !)
+    * -Un option was wrong
+    * _FAIL and _SELF only keyword inside
+      constructors and methods respectively
+
+  Revision 1.9  1998/10/20 08:06:57  pierre
     * several memory corruptions due to double freemem solved
       => never use p^.loc.location:=p^.left^.loc.location;
     + finally I added now by default

@@ -678,7 +678,9 @@ unit pdecl;
         begin
            consume(_CONSTRUCTOR);
            { must be at same level as in implementation }
+           inc(lexlevel);
            parse_proc_head(poconstructor);
+           dec(lexlevel);
 
            if (cs_constructor_name in aktglobalswitches) and (aktprocsym^.name<>'INIT') then
             Message(parser_e_constructorname_must_be_init);
@@ -1018,7 +1020,9 @@ unit pdecl;
       procedure destructor_head;
         begin
            consume(_DESTRUCTOR);
+           inc(lexlevel);
            parse_proc_head(podestructor);
+           dec(lexlevel);
            if (cs_constructor_name in aktglobalswitches) and (aktprocsym^.name<>'DONE') then
             Message(parser_e_destructorname_must_be_done);
            aktclass^.options:=aktclass^.options or oo_hasdestructor;
@@ -2090,7 +2094,17 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.80  1998-11-13 10:18:09  peter
+  Revision 1.81  1998-11-13 15:40:22  pierre
+    + added -Se in Makefile cvstest target
+    + lexlevel cleanup
+      normal_function_level main_program_level and unit_init_level defined
+    * tins_cache grown to A_EMMS (gave range check error in asm readers)
+      (test added in code !)
+    * -Un option was wrong
+    * _FAIL and _SELF only keyword inside
+      constructors and methods respectively
+
+  Revision 1.80  1998/11/13 10:18:09  peter
     + nil constants
 
   Revision 1.79  1998/11/05 12:02:51  peter

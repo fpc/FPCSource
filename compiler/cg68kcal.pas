@@ -725,8 +725,8 @@ implementation
                 end;
 
               { push base pointer ?}
-              if (lexlevel>1) and assigned(pprocdef(p^.procdefinition)^.parast) and
-            ((p^.procdefinition^.parast^.symtablelevel)>2) then
+              if (lexlevel>=normal_function_level) and assigned(pprocdef(p^.procdefinition)^.parast) and
+            ((p^.procdefinition^.parast^.symtablelevel)>normal_function_level) then
                     begin
                    { if we call a nested function in a method, we must      }
                    { push also SELF!                                        }
@@ -1062,7 +1062,17 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  1998-11-12 11:19:41  pierre
+  Revision 1.16  1998-11-13 15:40:15  pierre
+    + added -Se in Makefile cvstest target
+    + lexlevel cleanup
+      normal_function_level main_program_level and unit_init_level defined
+    * tins_cache grown to A_EMMS (gave range check error in asm readers)
+      (test added in code !)
+    * -Un option was wrong
+    * _FAIL and _SELF only keyword inside
+      constructors and methods respectively
+
+  Revision 1.15  1998/11/12 11:19:41  pierre
    * fix for first line of function break
 
   Revision 1.14  1998/10/21 15:12:51  pierre
