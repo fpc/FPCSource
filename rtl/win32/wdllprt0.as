@@ -26,9 +26,58 @@ _WinMainCRTStartup:
      popl     %ebx
      popl     %ebp
      ret      $12
+     
+     .globl asm_exit
+asm_exit:     
+    pushl  %eax
+	call   exitprocess
+	
+.text
+.globl	exitprocess
+exitprocess:
+	jmp	*.L10
+	.balign 4,144
+	
+.text
+	.balign 4,144
+
+.section .idata$2
+	.rva	.L7
+	.long	0,0
+	.rva	.L6
+	.rva	.L8
+
+.section .idata$4
+.L7:
+	.rva	.L9
+	.long	0
+
+.section .idata$5
+.L8:
+	
+
+.section .idata$5
+.L10:
+	.rva	.L9
+	.long	0
+
+.section .idata$6
+.L9:
+	.short	0
+	.ascii	"ExitProcess\000"
+	.balign 2,0
+
+.section .idata$7
+.L6:
+	.ascii	"kernel32.dll\000"
+     
+     
 //
 // $Log$
-// Revision 1.3  2002-07-28 20:43:51  florian
+// Revision 1.4  2002-12-04 21:36:44  carl
+//   * libraries would no longer compile because of my profiling fix
+//
+// Revision 1.3  2002/07/28 20:43:51  florian
 //   * several fixes for linux/powerpc
 //   * several fixes to MT
 //
