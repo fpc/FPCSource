@@ -73,13 +73,13 @@ implementation
          resdef,
          rd,ld   : pdef;
          tempdef : pdef;
-         optoken : ttoken;
          concatstrings : boolean;
 
          { to evalute const sets }
          resultset : pconstset;
          i : longint;
          b : boolean;
+         optoken : ttoken;
          convdone : boolean;
          s1,s2 : pchar;
          l1,l2 : longint;
@@ -143,44 +143,44 @@ implementation
                  { the nil as symtable signs firstcalln that this is
                    an overloaded operator }
                  addn:
-                   token:=_PLUS;
+                   optoken:=_PLUS;
                  subn:
-                   token:=_MINUS;
+                   optoken:=_MINUS;
                  muln:
-                   token:=_STAR;
+                   optoken:=_STAR;
                  starstarn:
-                   token:=_STARSTAR;
+                   optoken:=_STARSTAR;
                  slashn:
-                   token:=_SLASH;
+                   optoken:=_SLASH;
                  ltn:
-                   token:=tokens._lt;
+                   optoken:=tokens._lt;
                  gtn:
-                   token:=tokens._gt;
+                   optoken:=tokens._gt;
                  lten:
-                   token:=_lte;
+                   optoken:=_lte;
                  gten:
-                   token:=_gte;
+                   optoken:=_gte;
                  equaln,unequaln :
-                   token:=_EQUAL;
+                   optoken:=_EQUAL;
                  symdifn :
-                   token:=_SYMDIF;
+                   optoken:=_SYMDIF;
                  modn :
-                   token:=_OP_MOD;
+                   optoken:=_OP_MOD;
                  orn :
-                   token:=_OP_OR;
+                   optoken:=_OP_OR;
                  xorn :
-                   token:=_OP_XOR;
+                   optoken:=_OP_XOR;
                  andn :
-                   token:=_OP_AND;
+                   optoken:=_OP_AND;
                  divn :
-                   token:=_OP_DIV;
+                   optoken:=_OP_DIV;
                  shln :
-                   token:=_OP_SHL;
+                   optoken:=_OP_SHL;
                  shrn :
-                   token:=_OP_SHR;
+                   optoken:=_OP_SHR;
                  else goto no_overload;
               end;
-              t:=gencallnode(overloaded_operators[token],nil);
+              t:=gencallnode(overloaded_operators[optoken],nil);
               { we have to convert p^.left and p^.right into
                callparanodes }
               if t^.symtableprocentry=nil then
@@ -1158,7 +1158,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.53  1999-11-15 21:53:42  peter
+  Revision 1.54  1999-11-16 23:45:28  pierre
+   * global var token was changed by overload code (form bug 707)
+
+  Revision 1.53  1999/11/15 21:53:42  peter
     * fixed constant eval for bool xor/or/and bool
 
   Revision 1.52  1999/11/15 17:53:00  pierre
