@@ -126,10 +126,10 @@ procedure fillword(var x;count : longint;value : word);assembler;
 asm
         movl    x,%edi
         movl    count,%ecx
-        movl    value,%eax
+        movzwl  value,%eax
         movl    %eax,%edx
         shll    $16,%eax
-        movw    %dx,%ax
+        orl     %edx,%eax
         movl    %ecx,%edx
         shrl    $1,%ecx
         cld
@@ -1154,7 +1154,10 @@ end;
 
 {
   $Log$
-  Revision 1.67  2000-01-11 21:11:04  marco
+  Revision 1.68  2000-01-13 13:06:03  jonas
+    * fixed warning
+
+  Revision 1.67  2000/01/11 21:11:04  marco
    * Changed some direct asm params to real params
 
   Revision 1.66  2000/01/10 09:54:30  peter
