@@ -1004,121 +1004,108 @@ end;
     OldCurrentColor : word;
     TmpFillPattern, patternPos : byte;
    begin
+     { convert to global coordinates ... }
+     x1 := x1 + StartXViewPort;
+     x2 := x2 + StartXViewPort;
+     y  := y + StartYViewPort;
+     { if line was fully clipped then exit...}
+     if LineClipped(x1,y,x2,y,StartXViewPort,StartYViewPort,
+        StartXViewPort+ViewWidth, StartYViewPort+ViewHeight) then
+         exit;
      OldWriteMode := CurrentWriteMode;
      CurrentWriteMode := NormalPut;
      { Get the current pattern }
      TmpFillPattern := FillPatternTable
        [FillSettings.Pattern][((y + startYViewPort) and $7)+1];
-     Case TmpFillPattern Of
-       0:
-         begin
-           OldCurrentColor := CurrentColor;
-           CurrentColor := CurrentBkColor;
-           HLineVESA256(x1,x2,y);
-           CurrentColor := OldCurrentColor;
-         end;
-       $ff: HLineVESA256(x1,x2,y);
-       else
-         begin
-           { convert to global coordinates ... }
-           x1 := x1 + StartXViewPort;
-           x2 := x2 + StartXViewPort;
-           y  := y + StartYViewPort;
-           { if line was fully clipped then exit...}
-           if LineClipped(x1,y,x2,y,StartXViewPort,StartYViewPort,
-              StartXViewPort+ViewWidth, StartYViewPort+ViewHeight) then
-               exit;
-           {$ifdef logging}
-           LogLn('patternline '+strf(x1)+' - '+strf(x2)+' on '+strf(y));
-           {$endif logging}
-           { how long is the line }
-           amount := x2 - x1 + 1;
-           { offset to start at }
-           offs := (longint(y)+yoffset)*bytesperline+x1;
-           { convert the pattern data into the actual color sequence }
-           j := 1;
-           FillChar(fill,sizeOf(fill),byte(currentBkColor));
-           for i := 0 to 7 do
-             begin
-               if TmpFillPattern and j <> 0 then
-                 fill.pat[7-i] := currentColor;
+     {$ifdef logging}
+     LogLn('patternline '+strf(x1)+' - '+strf(x2)+' on '+strf(y));
+     {$endif logging}
+     { how long is the line }
+     amount := x2 - x1 + 1;
+     { offset to start at }
+     offs := (longint(y)+yoffset)*bytesperline+x1;
+     { convert the pattern data into the actual color sequence }
+     j := 1;
+     FillChar(fill,sizeOf(fill),byte(currentBkColor));
+     for i := 0 to 7 do
+       begin
+         if TmpFillPattern and j <> 0 then
+           fill.pat[7-i] := currentColor;
 {$ifopt q+}
 {$q-}
 {$define overflowOn}
 {$endif}
-               j := j shl 1;
+         j := j shl 1;
 {$ifdef overflowOn}
 {$q+}
 {$undef overflowOn}
 {$endif}
+       end;
+     Repeat
+       SetWriteBank(integer(offs shr 16));
+       If (amount > 7) and
+          (((offs and 7) = 0) or
+           (amount > 7+8-(offs and 7))) Then
+         Begin
+           { align target }
+           l := 0;
+           If (offs and 7) <> 0 then
+           { this cannot go past a window boundary bacause the }
+           { size of a window is always a multiple of 8        }
+             Begin
+               { position in the pattern where to start }
+               patternPos := offs and 7;
+               {$ifdef logging}
+               LogLn('Aligning by drawing '+strf(8-(offs and 7))+' pixels');
+               {$endif logging}
+               for l := 1 to 8-(offs and 7) do
+                 begin
+                   Mem[WinWriteSeg:word(offs)+l-1] := fill.pat[patternPos and 7];
+                   inc(patternPos)
+                 end;
+             End;
+           Dec(amount, l);
+           inc(offs, l);
+           {$ifdef logging}
+           LogLn('Offset is now '+hexstr(offs,8)+', length left: '+strf(amount));
+           {$endif logging}
+           { offs is now 8-bytes alligned }
+           If amount <= ($10000-(Offs and $ffff)) Then
+              bankrest := amount
+           else {the rest won't fit anymore in the current window }
+             bankrest := $10000 - (Offs and $ffff);
+           {$ifdef logging}
+           LogLn('Rest to be drawn in this window: '+strf(bankrest));
+           {$endif logging}
+           for l := 0 to (bankrest div 8)-1 Do
+             begin
+               MemL[WinWriteSeg:word(offs)+l*8] := fill.data1;
+               MemL[WinWriteSeg:word(offs)+l*8+4] := fill.data2;
              end;
-           Repeat
-             SetWriteBank(integer(offs shr 16));
-             If (amount > 7) and
-                (((offs and 7) = 0) or
-                 (amount > 7+8-(offs and 7))) Then
-               Begin
-                 { align target }
-                 l := 0;
-                 If (offs and 7) <> 0 then
-                 { this cannot go past a window boundary bacause the }
-                 { size of a window is always a multiple of 8        }
-                   Begin
-                     { position in the pattern where to start }
-                     patternPos := offs and 7;
-                     {$ifdef logging}
-                     LogLn('Aligning by drawing '+strf(8-(offs and 7))+' pixels');
-                     {$endif logging}
-                     for l := 1 to 8-(offs and 7) do
-                       begin
-                         Mem[WinWriteSeg:word(offs)+l-1] := fill.pat[patternPos and 7];
-                         inc(patternPos)
-                       end;
-                   End;
-                 Dec(amount, l);
-                 inc(offs, l);
-                 {$ifdef logging}
-                 LogLn('Offset is now '+hexstr(offs,8)+', length left: '+strf(amount));
-                 {$endif logging}
-                 { offs is now 8-bytes alligned }
-                 If amount <= ($10000-(Offs and $ffff)) Then
-                    bankrest := amount
-                 else {the rest won't fit anymore in the current window }
-                   bankrest := $10000 - (Offs and $ffff);
-                 {$ifdef logging}
-                 LogLn('Rest to be drawn in this window: '+strf(bankrest));
-                 {$endif logging}
-                 for l := 0 to (bankrest div 8)-1 Do
-                   begin
-                     MemL[WinWriteSeg:word(offs)+l*8] := fill.data1;
-                     MemL[WinWriteSeg:word(offs)+l*8+4] := fill.data2;
-                   end;
-                 inc(offs,l*8+8);
-                 dec(amount,l*8+8);
-                 {$ifdef logging}
-                 LogLn('Offset is now '+hexstr(offs,8)+', length left: '+strf(amount));
-                 {$endif logging}
-               End
-             Else
-               Begin
-                 {$ifdef logging}
-                 LogLn('Drawing leftover: '+strf(amount)+' at offset '+hexstr(offs,8));
-                 {$endif logging}
-                 i := offs mod bytesperline;
-                 patternPos := i and 7;
-                 oldCurrentColor := currentColor;
-                 For l := 0 to amount - 1 do
-                   begin
-                     currentColor := fill.pat[patternPos and 7];
-                     DirectPutPixVESA256(i+l,y);
-                     inc(patternPos);
-                   end;
-                 amount := 0;
-                 currentColor := oldCurrentColor;
-               End
-           Until amount = 0;
-         end;
-     end;
+           inc(offs,l*8+8);
+           dec(amount,l*8+8);
+           {$ifdef logging}
+           LogLn('Offset is now '+hexstr(offs,8)+', length left: '+strf(amount));
+           {$endif logging}
+         End
+       Else
+         Begin
+           {$ifdef logging}
+           LogLn('Drawing leftover: '+strf(amount)+' at offset '+hexstr(offs,8));
+           {$endif logging}
+           i := offs mod bytesperline;
+           patternPos := i and 7;
+           oldCurrentColor := currentColor;
+           For l := 0 to amount - 1 do
+             begin
+               currentColor := fill.pat[patternPos and 7];
+               DirectPutPixVESA256(i+l,y);
+               inc(patternPos);
+             end;
+           amount := 0;
+           currentColor := oldCurrentColor;
+         End
+     Until amount = 0;
      currentWriteMode := oldWriteMode;
    end;
 
@@ -1224,7 +1211,7 @@ end;
  {*                    15/16bit pixels VESA mode routines                *}
  {************************************************************************}
 
-  procedure PutPixVESA32k(x, y : integer; color : word); {$ifndef fpc}far;{$endif fpc}
+  procedure PutPixVESA32kOr64k(x, y : integer; color : word); {$ifndef fpc}far;{$endif fpc}
   var
      offs : longint;
   begin
@@ -1244,27 +1231,7 @@ end;
      memW[WinWriteSeg : word(offs)] := color;
   end;
 
-  procedure PutPixVESA64k(x, y : integer; color : word); {$ifndef fpc}far;{$endif fpc}
-  var
-     offs : longint;
-  begin
-     X:= X + StartXViewPort;
-     Y:= Y + StartYViewPort;
-     { convert to absolute coordinates and then verify clipping...}
-     if ClipPixels then
-     Begin
-       if (X < StartXViewPort) or (X > (StartXViewPort + ViewWidth)) then
-         exit;
-       if (Y < StartYViewPort) or (Y > (StartYViewPort + ViewHeight)) then
-         exit;
-     end;
-     Y := Y + YOffset; { adjust pixel for correct virtual page }
-    offs := longint(y) * BytesPerLine + 2*x;
-    SetWriteBank(integer(offs shr 16));
-    memW[WinWriteSeg : word(offs)] := color;
-  end;
-
-  function GetPixVESA32k(x, y : integer): word; {$ifndef fpc}far;{$endif fpc}
+  function GetPixVESA32kOr64k(x, y : integer): word; {$ifndef fpc}far;{$endif fpc}
   var
      offs : longint;
   begin
@@ -1272,21 +1239,10 @@ end;
      Y:= Y + StartYViewPort + YOffset;
      offs := longint(y) * BytesPerLine + 2*x;
      SetReadBank(integer(offs shr 16));
-     GetPixVESA32k:=memW[WinReadSeg : word(offs)];
+     GetPixVESA32kOr64k:=memW[WinReadSeg : word(offs)];
   end;
 
-  function GetPixVESA64k(x, y : integer): word; {$ifndef fpc}far;{$endif fpc}
-  var
-     offs : longint;
-  begin
-     X:= X + StartXViewPort;
-     Y:= Y + StartYViewPort + YOffset;
-     offs := longint(y) * BytesPerLine + 2*x;
-     SetReadBank(integer(offs shr 16));
-     GetPixVESA64k:=memW[WinReadSeg : word(offs)];
-  end;
-
-  procedure DirectPutPixVESA32k(x, y : integer); {$ifndef fpc}far;{$endif fpc}
+  procedure DirectPutPixVESA32kOr64k(x, y : integer); {$ifndef fpc}far;{$endif fpc}
   var
      offs : longint;
      col : word;
@@ -1320,40 +1276,6 @@ end;
      End;
   end;
 
-  procedure DirectPutPixVESA64k(x, y : integer); {$ifndef fpc}far;{$endif fpc}
-  var
-     offs : longint;
-     Col : word;
-  begin
-     Y:= y + YOffset;
-     offs := longint(y) * BytesPerLine + 2*x;
-     SetWriteBank(integer(offs shr 16));
-     Case CurrentWriteMode of
-       XorPut:
-         Begin
-           SetReadBank(integer(offs shr 16));
-           memW[WinWriteSeg : word(offs)] := memW[WinReadSeg : word(offs)] xor currentcolor;
-         End;
-       AndPut:
-         Begin
-           SetReadBank(integer(offs shr 16));
-           memW[WinWriteSeg : word(offs)] := memW[WinReadSeg : word(offs)] And currentcolor;
-         End;
-       OrPut:
-         Begin
-           SetReadBank(integer(offs shr 16));
-           memW[WinWriteSeg : word(offs)] := memW[WinReadSeg : word(offs)] or currentcolor;
-         End
-       Else
-         Begin
-           If CurrentWriteMode <> NotPut Then
-             col := CurrentColor
-           Else col := Not(CurrentColor);
-           memW[WinWriteSeg : word(offs)] := Col;
-         End
-     End;
-  end;
-
 {$ifdef FPC}
  {************************************************************************}
  {*                    15/16bit pixels VESA mode routines  Linear mode   *}
@@ -1376,6 +1298,7 @@ end;
      offs := longint(y) * BytesPerLine + 2*x;
      seg_move(get_ds,longint(@color),WinWriteSeg,offs+LinearPageOfs,2);
   end;
+
   function GetPixVESA32kor64kLinear(x, y : integer): word; {$ifndef fpc}far;{$endif fpc}
   var
      offs : longint;
@@ -2512,16 +2435,21 @@ end;
     YOffset := (MaxY+1)*page;
   end;
 
-{
+(*
 $Log$
-Revision 1.11  1999-12-25 22:31:09  jonas
+Revision 1.12  1999-12-26 10:36:00  jonas
+  * finished patternlineVESA256 and enabled it
+  * folded (direct)put/getpixVESA32k and 64k into one procedure since
+    they were exactly the same code
+
+Revision 1.11  1999/12/25 22:31:09  jonas
   + patternlineVESA256, not yet used because I'm not yet sure it's
     already working 100%
   * changed {$ifdef logging} to {$ifdef logging2} for vlineVESA256 and
      hlineVESA256 (they're used a lot a working properly afaik)
 
 Revision 1.10  1999/12/21 17:42:17  jonas
-  * changed vesa.inc do it doesn't try to use linear modes anymore (doesn't work
+  * changed vesa.inc so it doesn't try to use linear modes anymore (doesn't work
     yet!!)
   * fixed mode detection so the low modenumber of a driver doesn't have to be zero
     anymore (so VESA autodetection now works)
@@ -2542,7 +2470,7 @@ Revision 1.8  1999/12/11 23:41:39  jonas
   + getscanlineVESA256 for 256 color VESA modes (banked)
 
 Revision 1.7  1999/12/10 12:52:54  pierre
- * some LinearFrameBuffer code, not finished
+  * some LinearFrameBuffer code, not finished
 
 Revision 1.6  1999/12/09 02:06:00  carl
   + page flipping for all VESA modes.
@@ -2552,14 +2480,14 @@ Revision 1.6  1999/12/09 02:06:00  carl
     SetVisualPage() has so much checking).
 
 Revision 1.5  1999/12/02 22:34:14  pierre
- * avoid FPC problem in array of char comp
+  * avoid FPC problem in array of char comp
 
 Revision 1.4  1999/11/30 02:25:15  carl
   * GetPixVESA16 bugfix with read segment.
 
 Revision 1.3  1999/11/28 12:18:39  jonas
-   + all available mode numbers are logged if you compile the unit with
-     -dlogging
+  + all available mode numbers are logged if you compile the unit with
+    -dlogging
 
 Revision 1.2  1999/11/27 21:48:01  jonas
   * fixed VlineVESA256 and re-enabled it in graph.inc
@@ -2636,7 +2564,7 @@ Revision 1.9  1999/08/01 14:51:07  jonas
   * added notput support to directputpix256
 
 Revision 1.8  1999/07/18 15:07:21  jonas
-  + xor-, and and- orput support for VESA256 modes
+  + xor-, and- and orput support for VESA256 modes
   * compile with -dlogging if you wnt some info to be logged to grlog.txt
 
 Revision 1.7  1999/07/14 15:21:49  jonas
@@ -2651,4 +2579,4 @@ Revision 1.6  1999/07/14 13:17:29  jonas
 Revision 1.5  1999/07/12 13:28:33  jonas
   * forgot log tag in previous commit
 
-}
+*)
