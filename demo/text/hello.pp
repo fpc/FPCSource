@@ -19,11 +19,10 @@ program hello;
   begin
      writeln('Hello world');
   end.
+  
+{  
     $Log$
-    Revision 1.1  2001-05-03 21:39:34  peter
-      * moved to own module
+    Revision 1.2  2002-02-22 21:46:25  carl
+    + fixed log problems
 
-    Revision 1.2  2000/07/13 11:33:10  michael
-    + removed logs
- 
 }
