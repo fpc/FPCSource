@@ -34,7 +34,7 @@ uses
   {$i msgtxt.inc}
 {$endif}
 
-{$i msgidx.INC}
+{$i msgidx.inc}
 
 Const
 { <$10000 will show file and line }
@@ -506,7 +506,10 @@ end.
 
 {
   $Log$
-  Revision 1.46  2000-02-28 17:23:57  daniel
+  Revision 1.47  2000-03-01 21:45:42  peter
+    * lowercase .INC -> .inc
+
+  Revision 1.46  2000/02/28 17:23:57  daniel
   * Current work of symtable integration committed. The symtable can be
     activated by defining 'newst', but doesn't compile yet. Changes in type
     checking and oop are completed. What is left is to write a new
