@@ -734,6 +734,11 @@ var
 
 implementation
 
+{$ifdef heaptrc}
+  uses
+      ppheap;
+{$endif heaptrc}
+
 {*****************************************************************************
                                   Helpers
 *****************************************************************************}
@@ -916,7 +921,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  1999-05-12 00:19:51  peter
+  Revision 1.4  1999-05-17 14:33:50  pierre
+   uses heaptrc need for extrainfo with heaptrc
+
+  Revision 1.3  1999/05/12 00:19:51  peter
     * removed R_DEFAULT_SEG
     * uniform float names
 
