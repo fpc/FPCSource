@@ -545,7 +545,7 @@ interface
 
      WNDPROC = function (_para1:HWND; _para2:UINT; _para3:WPARAM; _para4:LPARAM):LRESULT;
 
-     FARPROC = pointer; {function :longint;}
+     FARPROC = pointer;
 
      PROC = FARPROC;
 
@@ -960,7 +960,10 @@ end.
 
 {
   $Log$
-  Revision 1.9  1998-12-28 23:35:14  peter
+  Revision 1.10  1999-01-09 07:29:47  florian
+    * some updates to compile API units for win32
+
+  Revision 1.9  1998/12/28 23:35:14  peter
     * small fixes for better compatibility
 
   Revision 1.8  1998/10/27 11:17:11  peter

@@ -825,6 +825,7 @@ unit ascdef;
   function ReadConsoleOutput(hConsoleOutput:HANDLE; lpBuffer:PCHAR_INFO; dwBufferSize:COORD; dwBufferCoord:COORD; lpReadRegion:PSMALL_RECT):WINBOOL;
 
   function WriteConsoleOutput(hConsoleOutput:HANDLE; var lpBuffer:CHAR_INFO; dwBufferSize:COORD; dwBufferCoord:COORD; lpWriteRegion:PSMALL_RECT):WINBOOL;
+  function WriteConsoleOutput(hConsoleOutput:HANDLE; lpBuffer : pointer; dwBufferSize:COORD; dwBufferCoord:COORD; var lpWriteRegion : SMALL_RECT):WINBOOL;
 
   function ReadConsoleOutputCharacter(hConsoleOutput:HANDLE; lpCharacter:LPSTR; nLength:DWORD; dwReadCoord:COORD; lpNumberOfCharsRead:LPDWORD):WINBOOL;
 
@@ -1726,6 +1727,7 @@ unit ascdef;
   function ReadConsoleOutput(hConsoleOutput:HANDLE; lpBuffer:PCHAR_INFO; dwBufferSize:COORD; dwBufferCoord:COORD; lpReadRegion:PSMALL_RECT):WINBOOL; external 'kernel32' name 'ReadConsoleOutputA';
 
   function WriteConsoleOutput(hConsoleOutput:HANDLE; var lpBuffer:CHAR_INFO; dwBufferSize:COORD; dwBufferCoord:COORD; lpWriteRegion:PSMALL_RECT):WINBOOL; external 'kernel32' name 'WriteConsoleOutputA';
+  function WriteConsoleOutput(hConsoleOutput:HANDLE; lpBuffer : pointer; dwBufferSize:COORD; dwBufferCoord:COORD; var lpWriteRegion : SMALL_RECT):WINBOOL; external 'kernel32' name 'WriteConsoleOutputA';
 
   function ReadConsoleOutputCharacter(hConsoleOutput:HANDLE; lpCharacter:LPSTR; nLength:DWORD; dwReadCoord:COORD; lpNumberOfCharsRead:LPDWORD):WINBOOL; external 'kernel32' name 'ReadConsoleOutputCharacterA';
 
@@ -1850,7 +1852,10 @@ end.
 {$endif not windows_include_files}
 {
   $Log$
-  Revision 1.6  1999-01-07 15:52:22  peter
+  Revision 1.7  1999-01-09 07:29:46  florian
+    * some updates to compile API units for win32
+
+  Revision 1.6  1999/01/07 15:52:22  peter
     * removed winspool requirement
 
   Revision 1.5  1998/10/27 11:17:07  peter

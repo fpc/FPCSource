@@ -30,6 +30,7 @@ unit windows;
 {$i defines.pp}
 {$i messages.pp}
 {$i struct.pp}
+{$i redef.inc}
 {$i ascfun.pp}
 {$i unifun.pp}
 {$ifdef UNICODE}
@@ -59,11 +60,18 @@ const External_library='kernel32';
 {$i ascdef.pp}
 {$endif UNICODE}
 {$i func.pp}
+  procedure InitializeCriticalSection(var CriticalSection : TRTLCriticalSection); external 'kernel32' name 'InitializeCriticalSection';
+  procedure EnterCriticalSection(var CriticalSection : TRTLCriticalSection); external 'kernel32' name 'EnterCriticalSection';
+  procedure LeaveCriticalSection(var CriticalSection : TRTLCriticalSection); external 'kernel32' name 'LeaveCriticalSection';
+  procedure DeleteCriticalSection(var CriticalSection : TRTLCriticalSection); external 'kernel32' name 'DeleteCriticalSection';
 
 end.
 {
   $Log$
-  Revision 1.1  1998-08-31 11:54:02  pierre
+  Revision 1.2  1999-01-09 07:29:51  florian
+    * some updates to compile API units for win32
+
+  Revision 1.1  1998/08/31 11:54:02  pierre
     * compilable windows.pp file
       still to do :
        - findout problems

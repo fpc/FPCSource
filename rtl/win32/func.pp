@@ -3457,10 +3457,12 @@ in define line 6852 *)
     function GetNumberOfConsoleInputEvents(hConsoleInput:HANDLE; lpNumberOfEvents:LPDWORD):WINBOOL;
 
     function GetConsoleScreenBufferInfo(hConsoleOutput:HANDLE; lpConsoleScreenBufferInfo:PCONSOLE_SCREEN_BUFFER_INFO):WINBOOL;
+    function GetConsoleScreenBufferInfo(hConsoleOutput:HANDLE; var lpConsoleScreenBufferInfo:CONSOLE_SCREEN_BUFFER_INFO):WINBOOL;
 
     function GetLargestConsoleWindowSize(hConsoleOutput:HANDLE):COORD;
 
     function GetConsoleCursorInfo(hConsoleOutput:HANDLE; lpConsoleCursorInfo:PCONSOLE_CURSOR_INFO):WINBOOL;
+    function GetConsoleCursorInfo(hConsoleOutput:HANDLE; var lpConsoleCursorInfo:CONSOLE_CURSOR_INFO):WINBOOL;
 
     function GetNumberOfConsoleMouseButtons(lpNumberOfMouseButtons:LPDWORD):WINBOOL;
 
@@ -6592,10 +6594,12 @@ in define line 6826 *)
     function GetNumberOfConsoleInputEvents(hConsoleInput:HANDLE; lpNumberOfEvents:LPDWORD):WINBOOL; external 'kernel32' name 'GetNumberOfConsoleInputEvents';
 
     function GetConsoleScreenBufferInfo(hConsoleOutput:HANDLE; lpConsoleScreenBufferInfo:PCONSOLE_SCREEN_BUFFER_INFO):WINBOOL; external 'kernel32' name 'GetConsoleScreenBufferInfo';
+    function GetConsoleScreenBufferInfo(hConsoleOutput:HANDLE; var lpConsoleScreenBufferInfo: CONSOLE_SCREEN_BUFFER_INFO):WINBOOL; external 'kernel32' name 'GetConsoleScreenBufferInfo';
 
     function GetLargestConsoleWindowSize(hConsoleOutput:HANDLE):COORD; external 'kernel32' name 'GetLargestConsoleWindowSize';
 
     function GetConsoleCursorInfo(hConsoleOutput:HANDLE; lpConsoleCursorInfo:PCONSOLE_CURSOR_INFO):WINBOOL; external 'kernel32' name 'GetConsoleCursorInfo';
+    function GetConsoleCursorInfo(hConsoleOutput:HANDLE; var lpConsoleCursorInfo:CONSOLE_CURSOR_INFO):WINBOOL; external 'kernel32' name 'GetConsoleCursorInfo';
 
     function GetNumberOfConsoleMouseButtons(lpNumberOfMouseButtons:LPDWORD):WINBOOL; external 'kernel32' name 'GetNumberOfConsoleMouseButtons';
 
@@ -6775,7 +6779,10 @@ end.
 {$endif not windows_include_files}
 {
   $Log$
-  Revision 1.7  1998-12-28 23:35:15  peter
+  Revision 1.8  1999-01-09 07:29:48  florian
+    * some updates to compile API units for win32
+
+  Revision 1.7  1998/12/28 23:35:15  peter
     * small fixes for better compatibility
 
   Revision 1.6  1998/10/27 11:17:14  peter
