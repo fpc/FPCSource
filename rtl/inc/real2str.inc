@@ -187,20 +187,20 @@ begin
       end;
     rt_s80real :
       begin
-         maxlen:=26;
+         maxlen:=23;
          minlen:=10;
          explen:=6;
          { correction used with comparing to avoid rounding/precision errors }
-         roundCorr := (1/exp((26-6-3)*ln(10)));
+         roundCorr := (1/exp((23-6-3)*ln(10)));
       end;
     rt_c64bit  :
       begin
-         maxlen:=22;
-         minlen:=9;
+         maxlen:=23;
+         minlen:=10;
          { according to TP (was 5) (FK) }
          explen:=6;
          { correction used with comparing to avoid rounding/precision errors }
-         roundCorr := (1/exp((22-6-3)*ln(10)));
+         roundCorr := (1/exp((23-6-3)*ln(10)));
       end;
     rt_f16bit  :
       begin
@@ -399,7 +399,11 @@ end;
 
 {
   $Log$
-  Revision 1.30  2000-03-26 11:36:28  jonas
+  Revision 1.31  2000-07-06 21:09:45  florian
+    * fixed writing of comp and extended: the precision of comp was to little
+      while it was too high for extended
+
+  Revision 1.30  2000/03/26 11:36:28  jonas
     + $maxfpuregisters 0 for i386 in systemh (to avoid requiring too much
       empty FPU registers for sysstem routines
     * fixed bug in str_real when using :x:0
