@@ -1841,7 +1841,7 @@ Begin
       AS_DQ:
         Begin
           Consume(AS_DQ);
-          BuildRealConstant(s64bit);
+          BuildRealConstant(s64bitcomp);
         end;
       AS_SINGLE:
         Begin
@@ -1983,7 +1983,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.44  1999-05-05 22:22:00  peter
+  Revision 1.45  1999-05-06 09:05:25  peter
+    * generic write_float and str_float
+    * fixed constant float conversions
+
+  Revision 1.44  1999/05/05 22:22:00  peter
     * updated messages
 
   Revision 1.43  1999/05/04 21:45:01  florian

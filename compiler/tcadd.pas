@@ -178,14 +178,14 @@ implementation
          { other operand is a real const             }
          if (rt=realconstn) and is_constintnode(p^.left) then
            begin
-              t:=genrealconstnode(p^.left^.value);
+              t:=genrealconstnode(p^.left^.value,p^.right^.resulttype);
               disposetree(p^.left);
               p^.left:=t;
               lt:=realconstn;
            end;
          if (lt=realconstn) and is_constintnode(p^.right) then
            begin
-              t:=genrealconstnode(p^.right^.value);
+              t:=genrealconstnode(p^.right^.value,p^.left^.resulttype);
               disposetree(p^.right);
               p^.right:=t;
               rt:=realconstn;
@@ -214,10 +214,10 @@ implementation
                          if int(rv)=0 then
                           begin
                             Message(parser_e_invalid_float_operation);
-                            t:=genrealconstnode(0);
+                            t:=genrealconstnode(0,bestrealdef^);
                           end
                          else
-                          t:=genrealconstnode(int(lv)/int(rv));
+                          t:=genrealconstnode(int(lv)/int(rv),bestrealdef^);
                          firstpass(t);
                        end;
               else
@@ -235,18 +235,18 @@ implementation
               lvd:=p^.left^.value_real;
               rvd:=p^.right^.value_real;
               case p^.treetype of
-                 addn : t:=genrealconstnode(lvd+rvd);
-                 subn : t:=genrealconstnode(lvd-rvd);
-                 muln : t:=genrealconstnode(lvd*rvd);
-               caretn : t:=genrealconstnode(exp(ln(lvd)*rvd));
+                 addn : t:=genrealconstnode(lvd+rvd,bestrealdef^);
+                 subn : t:=genrealconstnode(lvd-rvd,bestrealdef^);
+                 muln : t:=genrealconstnode(lvd*rvd,bestrealdef^);
+               caretn : t:=genrealconstnode(exp(ln(lvd)*rvd),bestrealdef^);
                slashn : begin
                           if rvd=0 then
                            begin
                              Message(parser_e_invalid_float_operation);
-                             t:=genrealconstnode(0);
+                             t:=genrealconstnode(0,bestrealdef^);
                            end
                           else
-                           t:=genrealconstnode(lvd/rvd);
+                           t:=genrealconstnode(lvd/rvd,bestrealdef^);
                         end;
                   ltn : t:=genordinalconstnode(ord(lvd<rvd),booldef);
                  lten : t:=genordinalconstnode(ord(lvd<=rvd),booldef);
@@ -473,12 +473,12 @@ implementation
                 begin
                    if (porddef(ld)^.typ<>s64bitint) then
                      begin
-                       p^.left:=gentypeconvnode(p^.left,cs64bitintdef);
+                       p^.left:=gentypeconvnode(p^.left,cs64bitdef);
                        firstpass(p^.left);
                      end;
                    if (porddef(rd)^.typ<>s64bitint) then
                      begin
-                        p^.right:=gentypeconvnode(p^.right,cs64bitintdef);
+                        p^.right:=gentypeconvnode(p^.right,cs64bitdef);
                         firstpass(p^.right);
                      end;
                    calcregisters(p,2,0,0);
@@ -749,10 +749,10 @@ implementation
                  p^.location.loc:=LOC_REGISTER;
                end
               else
-              { convert both to c64float }
+              { convert both to bestreal }
                 begin
-                  p^.right:=gentypeconvnode(p^.right,c64floatdef);
-                  p^.left:=gentypeconvnode(p^.left,c64floatdef);
+                  p^.right:=gentypeconvnode(p^.right,bestrealdef^);
+                  p^.left:=gentypeconvnode(p^.left,bestrealdef^);
                   firstpass(p^.left);
                   firstpass(p^.right);
                   calcregisters(p,1,1,0);
@@ -1004,8 +1004,8 @@ implementation
               if p^.treetype=slashn then
                 begin
                    CGMessage(type_h_use_div_for_int);
-                   p^.right:=gentypeconvnode(p^.right,c64floatdef);
-                   p^.left:=gentypeconvnode(p^.left,c64floatdef);
+                   p^.right:=gentypeconvnode(p^.right,bestrealdef^);
+                   p^.left:=gentypeconvnode(p^.left,bestrealdef^);
                    firstpass(p^.left);
                    firstpass(p^.right);
                    { maybe we need an integer register to save }
@@ -1074,7 +1074,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.28  1999-05-01 13:24:46  peter
+  Revision 1.29  1999-05-06 09:05:32  peter
+    * generic write_float and str_float
+    * fixed constant float conversions
+
+  Revision 1.28  1999/05/01 13:24:46  peter
     * merged nasm compiler
     * old asm moved to oldasm/
 

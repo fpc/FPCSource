@@ -49,9 +49,9 @@ unit aasm;
           ait_const_16bit,
           ait_const_8bit,
           ait_const_symbol,
+          ait_real_80bit,
           ait_real_64bit,
           ait_real_32bit,
-          ait_real_extended,
           ait_comp,
           ait_external,
           ait_align,
@@ -278,7 +278,7 @@ unit aasm;
 { bestreal is defined in globals }
 {$ifdef i386}
 const
-       ait_bestreal = ait_real_extended;
+       ait_bestreal = ait_real_80bit;
 type
        pai_bestreal = pai_extended;
        tai_bestreal = tai_extended;
@@ -522,7 +522,7 @@ uses
 
       begin
          inherited init;
-         typ:=ait_real_extended;
+         typ:=ait_real_80bit;
          value:=_value;
       end;
 
@@ -1006,7 +1006,11 @@ uses
 end.
 {
   $Log$
-  Revision 1.41  1999-05-02 22:41:46  peter
+  Revision 1.42  1999-05-06 09:05:05  peter
+    * generic write_float and str_float
+    * fixed constant float conversions
+
+  Revision 1.41  1999/05/02 22:41:46  peter
     * moved section names to systems
     * fixed nasm,intel writer
 

@@ -425,9 +425,8 @@ implementation
                    case pfloatdef(p^.left^.resulttype)^.typ of
                      s32real : p^.right^.realtyp:=ait_real_32bit;
                      s64real : p^.right^.realtyp:=ait_real_64bit;
-                     s80real : p^.right^.realtyp:=ait_real_extended;
-                     { what about f32bit and s64bit }
-                     end;
+                     s80real : p^.right^.realtyp:=ait_real_80bit;
+                   end;
                 end;
            end;
          secondpass(p^.right);
@@ -864,7 +863,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.52  1999-05-01 13:24:10  peter
+  Revision 1.53  1999-05-06 09:05:16  peter
+    * generic write_float and str_float
+    * fixed constant float conversions
+
+  Revision 1.52  1999/05/01 13:24:10  peter
     * merged nasm compiler
     * old asm moved to oldasm/
 

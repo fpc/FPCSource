@@ -350,7 +350,7 @@ unit ag386bin;
                objectalloc^.sectionalloc(8);
              ait_real_32bit :
                objectalloc^.sectionalloc(4);
-             ait_real_extended :
+             ait_real_80bit :
                objectalloc^.sectionalloc(10);
              ait_const_rva,
              ait_const_symbol :
@@ -455,7 +455,7 @@ unit ag386bin;
                objectalloc^.sectionalloc(8);
              ait_real_32bit :
                objectalloc^.sectionalloc(4);
-             ait_real_extended :
+             ait_real_80bit :
                objectalloc^.sectionalloc(10);
              ait_const_rva,
              ait_const_symbol :
@@ -604,7 +604,7 @@ unit ag386bin;
                objectoutput^.writebytes(pai_double(hp)^.value,8);
              ait_real_32bit :
                objectoutput^.writebytes(pai_single(hp)^.value,4);
-             ait_real_extended :
+             ait_real_80bit :
                objectoutput^.writebytes(pai_extended(hp)^.value,10);
              ait_string :
                objectoutput^.writebytes(pai_string(hp)^.str^,pai_string(hp)^.len);
@@ -774,7 +774,11 @@ unit ag386bin;
 end.
 {
   $Log$
-  Revision 1.4  1999-05-05 22:21:47  peter
+  Revision 1.5  1999-05-06 09:05:07  peter
+    * generic write_float and str_float
+    * fixed constant float conversions
+
+  Revision 1.4  1999/05/05 22:21:47  peter
     * updated messages
 
   Revision 1.3  1999/05/05 17:34:29  peter

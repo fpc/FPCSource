@@ -197,7 +197,7 @@ implementation
 {$endif i386}
              then
            begin
-              t:=genrealconstnode(-p^.left^.value_real);
+              t:=genrealconstnode(-p^.left^.value_real,bestrealdef^);
               disposetree(p);
               firstpass(t);
               p:=t;
@@ -377,7 +377,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  1999-05-01 13:24:55  peter
+  Revision 1.14  1999-05-06 09:05:38  peter
+    * generic write_float and str_float
+    * fixed constant float conversions
+
+  Revision 1.13  1999/05/01 13:24:55  peter
     * merged nasm compiler
     * old asm moved to oldasm/
 

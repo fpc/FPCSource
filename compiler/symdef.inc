@@ -1117,8 +1117,8 @@
             f32bit,
            s32real : savesize:=4;
            s64real : savesize:=8;
-            s64bit : savesize:=8;
            s80real : savesize:=extended_size;
+           s64bitcomp : savesize:=8;
          else
            savesize:=0;
          end;
@@ -1148,7 +1148,7 @@
               stabstring := strpnew('r'+s32bitdef^.numberstring+';0;'+
                 tostr($ffff)+';');
             { found this solution in stabsread.c from GDB v4.16 }
-            s64bit : stabstring := strpnew('r'+
+            s64bitcomp : stabstring := strpnew('r'+
                s32bitdef^.numberstring+';-'+tostr(savesize)+';0;');
 {$ifdef i386}
             { under dos at least you must give a size of twelve instead of 10 !! }
@@ -1164,8 +1164,9 @@
 
     procedure tfloatdef.write_rtti_data;
       const
+         {tfloattype = (s32real,s64real,s80real,s64bit,f16bit,f32bit);}
          translate : array[tfloattype] of byte =
-           (ftFixed32,ftSingle,ftDouble,ftExtended,ftComp,ftFixed16);
+           (ftSingle,ftDouble,ftExtended,ftComp,ftFixed16,ftFixed32);
       begin
          rttilist^.concat(new(pai_const,init_8bit(tkFloat)));
          write_rtti_name;
@@ -3459,7 +3460,11 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.109  1999-05-05 10:05:56  florian
+  Revision 1.110  1999-05-06 09:05:28  peter
+    * generic write_float and str_float
+    * fixed constant float conversions
+
+  Revision 1.109  1999/05/05 10:05:56  florian
     * a delphi compiled compiler recompiles ppc
 
   Revision 1.108  1999/04/28 22:30:52  pierre

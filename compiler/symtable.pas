@@ -295,20 +295,21 @@ unit symtable;
        charpointerdef : ppointerdef; { pointer for Char-Pointerdef      }
        voidfarpointerdef : ppointerdef;
 
+       cformaldef : pformaldef;    { unique formal definition          }
        voiddef   : porddef;        { Pointer to Void (procedure)       }
        cchardef  : porddef;        { Pointer to Char                   }
+       booldef   : porddef;        { pointer to boolean type           }
        u8bitdef  : porddef;        { Pointer to 8-Bit unsigned         }
        u16bitdef : porddef;        { Pointer to 16-Bit unsigned        }
        u32bitdef : porddef;        { Pointer to 32-Bit unsigned        }
        s32bitdef : porddef;        { Pointer to 32-Bit signed          }
-       booldef   : porddef;        { pointer to boolean type           }
-       cformaldef : pformaldef;    { unique formal definition          }
 
        cu64bitdef : porddef;       { pointer to 64 bit unsigned def }
-       cs64bitintdef : porddef;    { pointer to 64 bit signed def, }
+       cs64bitdef : porddef;       { pointer to 64 bit signed def, }
                                    { calculated by the int unit on i386 }
 
-       c64floatdef : pfloatdef;    { pointer for realconstn            }
+       s32floatdef : pfloatdef;    { pointer for realconstn            }
+       s64floatdef : pfloatdef;    { pointer for realconstn            }
        s80floatdef : pfloatdef;    { pointer to type of temp. floats   }
        s32fixeddef : pfloatdef;    { pointer to type of temp. fixed    }
 
@@ -353,6 +354,13 @@ unit symtable;
        unit_init_level = 1;
        normal_function_level = 2;
        in_loading : boolean = false;
+
+{$ifdef i386}
+       bestrealdef : ^pfloatdef = @s80floatdef;
+{$endif}
+{$ifdef m68k}
+       bestrealdef : ^pfloatdef = @s64floatdef;
+{$endif}
 
     var
 
@@ -3204,7 +3212,11 @@ const localsymtablestack : psymtable = nil;
 end.
 {
   $Log$
-  Revision 1.6  1999-05-05 09:19:16  florian
+  Revision 1.7  1999-05-06 09:05:31  peter
+    * generic write_float and str_float
+    * fixed constant float conversions
+
+  Revision 1.6  1999/05/05 09:19:16  florian
     * more fixes to get it with delphi running
 
   Revision 1.5  1999/05/01 13:24:43  peter

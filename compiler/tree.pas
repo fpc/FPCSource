@@ -257,7 +257,7 @@ unit tree;
     function gentypeconvnode(node : ptree;t : pdef) : ptree;
     function gentypenode(t : pdef) : ptree;
     function gencallparanode(expr,next : ptree) : ptree;
-    function genrealconstnode(v : bestreal) : ptree;
+    function genrealconstnode(v : bestreal;def : pdef) : ptree;
     function gencallnode(v : pprocsym;st : psymtable) : ptree;
     function genmethodcallnode(v : pprocsym;st : psymtable;mp : ptree) : ptree;
 
@@ -770,7 +770,7 @@ unit tree;
       end;
 
 
-    function genrealconstnode(v : bestreal) : ptree;
+    function genrealconstnode(v : bestreal;def : pdef) : ptree;
 
       var
          p : ptree;
@@ -786,21 +786,20 @@ unit tree;
 {$ifdef SUPPORT_MMX}
          p^.registersmmx:=0;
 {$endif SUPPORT_MMX}
-{$ifdef i386}
-         p^.resulttype:=c64floatdef;
+         p^.resulttype:=def;
          p^.value_real:=v;
-         { default value is double }
-         p^.realtyp:=ait_real_64bit;
-{$endif}
-{$ifdef m68k}
-         p^.resulttype:=new(pfloatdef,init(s32real));
-         p^.value_real:=v;
-         { default value is double }
-         p^.realtyp:=ait_real_32bit;
-{$endif}
+         case pfloatdef(def)^.typ of
+           s32real :
+             p^.realtyp:=ait_real_32bit;
+           s64real :
+             p^.realtyp:=ait_real_64bit;
+           s80real :
+             p^.realtyp:=ait_real_80bit;
+         end;
          p^.lab_real:=nil;
          genrealconstnode:=p;
       end;
+
 
     function genstringconstnode(const s : string) : ptree;
 
@@ -1717,7 +1716,11 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.76  1999-05-04 14:27:04  pierre
+  Revision 1.77  1999-05-06 09:05:39  peter
+    * generic write_float and str_float
+    * fixed constant float conversions
+
+  Revision 1.76  1999/05/04 14:27:04  pierre
    * avoid RTE220 in gentypedconstloadnode
 
   Revision 1.75  1999/05/01 13:25:02  peter

@@ -316,7 +316,7 @@
        { moment.                                          }
        { s64 bit is considered as a real because all      }
        { calculations are done by the fpu.                }
-       tfloattype = (f32bit,s32real,s64real,s80real,s64bit,f16bit);
+       tfloattype = (s32real,s64real,s80real,s64bitcomp,f16bit,f32bit);
 
        pfloatdef = ^tfloatdef;
        tfloatdef = object(tdef)
@@ -506,7 +506,11 @@
 
 {
   $Log$
-  Revision 1.23  1999-04-26 18:30:02  peter
+  Revision 1.24  1999-05-06 09:05:30  peter
+    * generic write_float and str_float
+    * fixed constant float conversions
+
+  Revision 1.23  1999/04/26 18:30:02  peter
     * farpointerdef moved into pointerdef.is_far
 
   Revision 1.22  1999/04/26 13:31:49  peter

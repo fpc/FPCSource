@@ -35,7 +35,7 @@ implementation
       globtype,systems,
       cobjects,verbose,globals,files,
       symtable,aasm,types,
-      hcodegen,temp_gen,pass_2,
+      hcodegen,temp_gen,pass_1,pass_2,
 {$ifndef OLDASM}
       i386base,i386asm,
 {$else}
@@ -148,9 +148,9 @@ implementation
 
     procedure secondinline(var p : ptree);
        const
-         { tfloattype = (f32bit,s32real,s64real,s80real,s64bit); }
-         float_name: array[tfloattype] of string[8]=
-           ('FIXED','SINGLE','REAL','EXTENDED','COMP','FIXED16');
+         {tfloattype = (s32real,s64real,s80real,s64bit,f16bit,f32bit);}
+{         float_name: array[tfloattype] of string[8]=
+           ('S32REAL','S64REAL','S80REAL','S64BIT','F16BIT','F32BIT'); }
          incdecop:array[in_inc_x..in_dec_x] of tasmop=(A_INC,A_DEC);
          addsubop:array[in_inc_x..in_dec_x] of tasmop=(A_ADD,A_SUB);
        var
@@ -188,6 +188,7 @@ implementation
            node,hp    : ptree;
            typedtyp,
            pararesult : pdef;
+           orgfloattype : tfloattype;
            has_length : boolean;
            dummycoll  : tdefcoll;
            iolabel    : plabel;
@@ -280,6 +281,16 @@ implementation
                      hp^.right:=nil;
                      if hp^.is_colon_para then
                        CGMessage(parser_e_illegal_colon_qualifier);
+                     { when float is written then we need bestreal to be pushed
+                       convert here else we loose the old flaot type }
+                     if (not doread) and
+                        (ft<>ft_typed) and
+                        (hp^.left^.resulttype^.deftype=floatdef) then
+                      begin
+                        orgfloattype:=pfloatdef(hp^.left^.resulttype)^.typ;
+                        hp^.left:=gentypeconvnode(hp^.left,bestrealdef^);
+                        firstpass(hp^.left);
+                      end;
                      { when read ord,floats are functions, so they need this
                        parameter as their destination instead of being pushed }
                      if doread and
@@ -368,40 +379,15 @@ implementation
                                 begin
                                   if pararesult^.deftype=floatdef then
                                     push_int(-1);
-                                end
+                                end;
+                             { push also the real type for floats }
+                              if pararesult^.deftype=floatdef then
+                                push_int(ord(orgfloattype));
                             end;
                           case pararesult^.deftype of
                             stringdef :
                               begin
-{$ifndef OLDREAD}
                                 emitcall(rdwrprefix[doread]+pstringdef(pararesult)^.stringtypname,true);
-{$else}
-                                     if doread then
-                                       begin
-                                         { push maximum string length }
-                                         case pstringdef(pararesult)^.string_typ of
-                                          st_shortstring:
-                                            emitcall ('FPC_READ_TEXT_STRING',true);
-                                          st_ansistring:
-                                            emitcall ('FPC_READ_TEXT_ANSISTRING',true);
-                                          st_longstring:
-                                            emitcall ('FPC_READ_TEXT_LONGSTRING',true);
-                                          st_widestring:
-                                            emitcall ('FPC_READ_TEXT_ANSISTRING',true);
-                                          end
-                                       end
-                                     else
-                                       Case pstringdef(Pararesult)^.string_typ of
-                                        st_shortstring:
-                                          emitcall ('FPC_WRITE_TEXT_STRING',true);
-                                        st_ansistring:
-                                          emitcall ('FPC_WRITE_TEXT_ANSISTRING',true);
-                                        st_longstring:
-                                          emitcall ('FPC_WRITE_TEXT_LONGSTRING',true);
-                                        st_widestring:
-                                          emitcall ('FPC_WRITE_TEXT_ANSISTRING',true);
-                                        end;
-{$endif}
                               end;
                             pointerdef :
                               begin
@@ -415,48 +401,17 @@ implementation
                               end;
                             floatdef :
                               begin
-{$ifndef OLDREAD}
+                                emitcall(rdwrprefix[doread]+'FLOAT',true);
                                 if doread then
-                                  begin
-                                    emitcall(rdwrprefix[doread]+'FLOAT',true);
-                                    StoreDirectFuncResult(destpara);
-                                  end
-                                else
-{$endif}
-                                  emitcall(rdwrprefix[doread]+float_name[pfloatdef(pararesult)^.typ],true)
+                                  StoreDirectFuncResult(destpara);
                               end;
                             orddef :
                               begin
                                 case porddef(pararesult)^.typ of
-{$ifndef OLDREAD}
                                   s8bit,s16bit,s32bit :
                                     emitcall(rdwrprefix[doread]+'SINT',true);
                                   u8bit,u16bit,u32bit :
                                     emitcall(rdwrprefix[doread]+'UINT',true);
-{$else}
-                                  u8bit :
-                                    if doread then
-                                      emitcall('FPC_READ_TEXT_BYTE',true);
-                                  s8bit :
-                                    if doread then
-                                      emitcall('FPC_READ_TEXT_SHORTINT',true);
-                                  u16bit :
-                                    if doread then
-                                      emitcall('FPC_READ_TEXT_WORD',true);
-                                  s16bit :
-                                    if doread then
-                                      emitcall('FPC_READ_TEXT_INTEGER',true);
-                                  s32bit :
-                                    if doread then
-                                      emitcall('FPC_READ_TEXT_LONGINT',true)
-                                    else
-                                      emitcall('FPC_WRITE_TEXT_LONGINT',true);
-                                  u32bit :
-                                    if doread then
-                                      emitcall('FPC_READ_TEXT_CARDINAL',true)
-                                    else
-                                      emitcall('FPC_WRITE_TEXT_CARDINAL',true);
-{$endif}
                                   uchar :
                                     emitcall(rdwrprefix[doread]+'CHAR',true);
                                   s64bitint:
@@ -468,10 +423,8 @@ implementation
                                   bool32bit :
                                     emitcall(rdwrprefix[doread]+'BOOLEAN',true);
                                 end;
-{$ifndef OLDREAD}
                                 if doread then
                                  StoreDirectFuncResult(destpara);
-{$endif}
                               end;
                           end;
                        end;
@@ -533,6 +486,7 @@ implementation
            hp,node : ptree;
            dummycoll : tdefcoll;
            is_real,has_length : boolean;
+           realtype : tfloattype;
            procedureprefix : string;
 
           begin
@@ -543,7 +497,10 @@ implementation
            while assigned(node^.right) do node:=node^.right;
            { if a real parameter somewhere then call REALSTR }
            if (node^.left^.resulttype^.deftype=floatdef) then
-             is_real:=true;
+            begin
+              is_real:=true;
+              realtype:=pfloatdef(node^.left^.resulttype)^.typ;
+            end;
 
            node:=p^.left;
            { we have at least two args }
@@ -570,6 +527,11 @@ implementation
            hp:=node;
            node:=node^.right;
            hp^.right:=nil;
+
+           { if real push real type }
+           if is_real then
+             push_int(ord(realtype));
+
            { frac  para }
            if hp^.is_colon_para and assigned(node) and
               node^.is_colon_para then
@@ -610,6 +572,13 @@ implementation
              else
                push_int(-1);
 
+           { Convert float to bestreal }
+           if is_real then
+            begin
+              hp^.left:=gentypeconvnode(hp^.left,bestrealdef^);
+              firstpass(hp^.left);
+            end;
+
            { last arg longint or real }
            secondcallparan(hp,@dummycoll,false
              ,false,false,0
@@ -620,7 +589,7 @@ implementation
              exit;
 
            if is_real then
-             emitcall(procedureprefix+float_name[pfloatdef(hp^.resulttype)^.typ],true)
+             emitcall(procedureprefix+'FLOAT',true)
            else
              case porddef(hp^.resulttype)^.typ of
                 u32bit:
@@ -1272,7 +1241,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.46  1999-05-05 16:18:20  jonas
+  Revision 1.47  1999-05-06 09:05:13  peter
+    * generic write_float and str_float
+    * fixed constant float conversions
+
+  Revision 1.46  1999/05/05 16:18:20  jonas
     * changes to handle_val so register vars are pushed/poped only once
 
   Revision 1.45  1999/05/01 13:24:08  peter

@@ -1058,7 +1058,7 @@ unit pexpr;
                                 constchar :
                                   p1:=genordinalconstnode(pconstsym(srsym)^.value,cchardef);
                                 constreal :
-                                  p1:=genrealconstnode(pbestreal(pconstsym(srsym)^.value)^);
+                                  p1:=genrealconstnode(pbestreal(pconstsym(srsym)^.value)^,bestrealdef^);
                                 constbool :
                                   p1:=genordinalconstnode(pconstsym(srsym)^.value,booldef);
                                 constset :
@@ -1634,7 +1634,7 @@ unit pexpr;
                     else
                      begin
                        consume(INTCONST);
-                       p1:=genrealconstnode(d);
+                       p1:=genrealconstnode(d,bestrealdef^);
                      end;
                   end
                  else
@@ -1651,7 +1651,7 @@ unit pexpr;
                     d:=1.0;
                   end;
                  consume(REALNUMBER);
-                 p1:=genrealconstnode(d);
+                 p1:=genrealconstnode(d,bestrealdef^);
                end;
      _STRING : begin
                  pd:=stringtype;
@@ -1979,7 +1979,11 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.100  1999-05-04 21:44:57  florian
+  Revision 1.101  1999-05-06 09:05:21  peter
+    * generic write_float and str_float
+    * fixed constant float conversions
+
+  Revision 1.100  1999/05/04 21:44:57  florian
     * changes to compile it with Delphi 4.0
 
   Revision 1.99  1999/05/01 13:24:31  peter

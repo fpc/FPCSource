@@ -75,7 +75,7 @@ implementation
                         if (hp1^.typ=p^.realtyp) and (lastlabel<>nil) then
                           begin
                              if ((p^.realtyp=ait_real_64bit) and (pai_double(hp1)^.value=p^.value_real)) or
-                               ((p^.realtyp=ait_real_extended) and (pai_extended(hp1)^.value=p^.value_real)) or
+                               ((p^.realtyp=ait_real_80bit) and (pai_extended(hp1)^.value=p^.value_real)) or
                                ((p^.realtyp=ait_real_32bit) and (pai_single(hp1)^.value=p^.value_real)) then
                                begin
                                   { found! }
@@ -96,9 +96,9 @@ implementation
                     consts^.concat(new(pai_cut,init));
                    consts^.concat(new(pai_label,init(lastlabel)));
                    case p^.realtyp of
+                     ait_real_80bit : consts^.concat(new(pai_extended,init(p^.value_real)));
                      ait_real_64bit : consts^.concat(new(pai_double,init(p^.value_real)));
                      ait_real_32bit : consts^.concat(new(pai_single,init(p^.value_real)));
-                  ait_real_extended : consts^.concat(new(pai_extended,init(p^.value_real)));
                    else
                      internalerror(10120);
                    end;
@@ -410,7 +410,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.32  1999-05-01 13:24:06  peter
+  Revision 1.33  1999-05-06 09:05:12  peter
+    * generic write_float and str_float
+    * fixed constant float conversions
+
+  Revision 1.32  1999/05/01 13:24:06  peter
     * merged nasm compiler
     * old asm moved to oldasm/
 

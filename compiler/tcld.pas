@@ -287,35 +287,10 @@ implementation
           end
          else
           begin
-            if (p^.right^.treetype=realconstn) then
-              begin
-                 if p^.left^.resulttype^.deftype=floatdef then
-                   begin
-                      case pfloatdef(p^.left^.resulttype)^.typ of
-                        s32real : p^.right^.realtyp:=ait_real_32bit;
-                        s64real : p^.right^.realtyp:=ait_real_64bit;
-                        s80real : p^.right^.realtyp:=ait_real_extended;
-                        { what about f32bit and s64bit }
-                      else
-                        begin
-                           p^.right:=gentypeconvnode(p^.right,p^.left^.resulttype);
-
-                           { nochmal firstpass wegen der Typkonvertierung aufrufen }
-                           firstpass(p^.right);
-
-                           if codegenerror then
-                             exit;
-                        end;
-                      end;
-                   end;
-               end
-             else
-               begin
-                 p^.right:=gentypeconvnode(p^.right,p^.left^.resulttype);
-                 firstpass(p^.right);
-                 if codegenerror then
-                  exit;
-               end;
+            p^.right:=gentypeconvnode(p^.right,p^.left^.resulttype);
+            firstpass(p^.right);
+            if codegenerror then
+             exit;
           end;
 
          p^.resulttype:=voiddef;
@@ -413,7 +388,7 @@ implementation
                      end;
                    floatdef :
                      begin
-                       hp^.left:=gentypeconvnode(hp^.left,s80floatdef);
+                       hp^.left:=gentypeconvnode(hp^.left,bestrealdef^);
                        firstpass(hp^.left);
                      end;
                    stringdef :
@@ -477,7 +452,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.25  1999-05-01 13:24:54  peter
+  Revision 1.26  1999-05-06 09:05:36  peter
+    * generic write_float and str_float
+    * fixed constant float conversions
+
+  Revision 1.25  1999/05/01 13:24:54  peter
     * merged nasm compiler
     * old asm moved to oldasm/
 

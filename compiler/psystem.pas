@@ -81,58 +81,61 @@ var
   vmtarraydef : parraydef;
   vmtsymtable : psymtable;
 begin
-  p^.insert(new(ptypesym,init('longint',s32bitdef)));
-  p^.insert(new(ptypesym,init('ulong',u32bitdef)));
-  p^.insert(new(ptypesym,init('void',voiddef)));
-  p^.insert(new(ptypesym,init('char',cchardef)));
+{ Internal types }
   p^.insert(new(ptypesym,init('formal',cformaldef)));
+  p^.insert(new(ptypesym,init('void',voiddef)));
+  p^.insert(new(ptypesym,init('byte',u8bitdef)));
+  p^.insert(new(ptypesym,init('word',u16bitdef)));
+  p^.insert(new(ptypesym,init('ulong',u32bitdef)));
+  p^.insert(new(ptypesym,init('longint',s32bitdef)));
 {$ifdef INT64}
   p^.insert(new(ptypesym,init('qword',cu64bitdef)));
   p^.insert(new(ptypesym,init('int64',cs64bitintdef)));
 {$endif INT64}
-{$ifdef i386}
-  p^.insert(new(ptypesym,init('s64real',c64floatdef)));
-{$endif i386}
-  p^.insert(new(ptypesym,init('s80real',s80floatdef)));
-  p^.insert(new(ptypesym,init('cs32fixed',s32fixeddef)));
-  p^.insert(new(ptypesym,init('byte',u8bitdef)));
-  p^.insert(new(ptypesym,init('string',cshortstringdef)));
+  p^.insert(new(ptypesym,init('char',cchardef)));
   p^.insert(new(ptypesym,init('shortstring',cshortstringdef)));
   p^.insert(new(ptypesym,init('longstring',clongstringdef)));
   p^.insert(new(ptypesym,init('ansistring',cansistringdef)));
   p^.insert(new(ptypesym,init('widestring',cwidestringdef)));
   p^.insert(new(ptypesym,init('openshortstring',openshortstringdef)));
-  p^.insert(new(ptypesym,init('word',u16bitdef)));
   p^.insert(new(ptypesym,init('boolean',booldef)));
   p^.insert(new(ptypesym,init('void_pointer',voidpointerdef)));
   p^.insert(new(ptypesym,init('char_pointer',charpointerdef)));
   p^.insert(new(ptypesym,init('void_farpointer',voidfarpointerdef)));
   p^.insert(new(ptypesym,init('openchararray',openchararraydef)));
   p^.insert(new(ptypesym,init('file',cfiledef)));
-{$ifdef i386}
-  p^.insert(new(ptypesym,init('REAL',c64floatdef)));
+  p^.insert(new(ptypesym,init('s32real',s32floatdef)));
+  p^.insert(new(ptypesym,init('s64real',s64floatdef)));
+  p^.insert(new(ptypesym,init('s80real',s80floatdef)));
+  p^.insert(new(ptypesym,init('s32fixed',s32fixeddef)));
+  { Add a type for virtual method tables in lowercase }
+  { so it isn't reachable!                            }
+  vmtsymtable:=new(psymtable,init(recordsymtable));
+  vmtdef:=new(precdef,init(vmtsymtable));
+  pvmtdef:=new(ppointerdef,init(vmtdef));
+  vmtsymtable^.insert(new(pvarsym,init('parent',pvmtdef)));
+  vmtsymtable^.insert(new(pvarsym,init('length',globaldef('longint'))));
+  vmtsymtable^.insert(new(pvarsym,init('mlength',globaldef('longint'))));
+  vmtarraydef:=new(parraydef,init(0,1,s32bitdef));
+  vmtarraydef^.definition := voidpointerdef;
+  vmtsymtable^.insert(new(pvarsym,init('__pfn',vmtarraydef)));
+  p^.insert(new(ptypesym,init('__vtbl_ptr_type',vmtdef)));
+  p^.insert(new(ptypesym,init('pvmt',pvmtdef)));
+  vmtarraydef:=new(parraydef,init(0,1,s32bitdef));
+  vmtarraydef^.definition := pvmtdef;
+  p^.insert(new(ptypesym,init('vtblarray',vmtarraydef)));
+  insertinternsyms(p);
+{ Normal types }
+  p^.insert(new(ptypesym,init('SINGLE',s32floatdef)));
+  p^.insert(new(ptypesym,init('DOUBLE',s64floatdef)));
   p^.insert(new(ptypesym,init('EXTENDED',s80floatdef)));
-  p^.insert(new(ptypesym,init('COMP',new(pfloatdef,init(s64bit)))));
+  p^.insert(new(ptypesym,init('REAL',s64floatdef)));
+{$ifdef i386}
+  p^.insert(new(ptypesym,init('COMP',new(pfloatdef,init(s64bitcomp)))));
 {$endif}
-{$ifdef m68k}
-  { internal definitions }
-  p^.insert(new(ptypesym,init('s32real',c64floatdef)));
-  { mappings... }
-  p^.insert(new(ptypesym,init('REAL',new(pfloatdef,init(s32real)))));
-  if (cs_fp_emulation) in aktmoduleswitches then
-    p^.insert(new(ptypesym,init('DOUBLE',new(pfloatdef,init(s32real)))))
-  else
-    p^.insert(new(ptypesym,init('DOUBLE',c64floatdef)));
-  if (cs_fp_emulation) in aktmoduleswitches then
-    p^.insert(new(ptypesym,init('EXTENDED',new(pfloatdef,init(s32real)))))
-  else
-    p^.insert(new(ptypesym,init('EXTENDED',s80floatdef)));
-{  p^.insert(new(ptypesym,init('COMP',new(pfloatdef,init(s32real)))));}
-{$endif}
-  p^.insert(new(ptypesym,init('SINGLE',new(pfloatdef,init(s32real)))));
   p^.insert(new(ptypesym,init('POINTER',voidpointerdef)));
   p^.insert(new(ptypesym,init('FARPOINTER',voidfarpointerdef)));
-  p^.insert(new(ptypesym,init('STRING',cshortstringdef)));
+{  p^.insert(new(ptypesym,init('STRING',cshortstringdef))); }
   p^.insert(new(ptypesym,init('SHORTSTRING',cshortstringdef)));
   p^.insert(new(ptypesym,init('LONGSTRING',clongstringdef)));
   p^.insert(new(ptypesym,init('ANSISTRING',cansistringdef)));
@@ -151,23 +154,6 @@ begin
   p^.insert(new(ptypesym,init('INT64',cs64bitintdef)));
 {$endif INT64}
   p^.insert(new(ptypesym,init('TYPEDFILE',new(pfiledef,init(ft_typed,voiddef)))));
-  { Add a type for virtual method tables in lowercase }
-  { so it isn't reachable!                            }
-  vmtsymtable:=new(psymtable,init(recordsymtable));
-  vmtdef:=new(precdef,init(vmtsymtable));
-  pvmtdef:=new(ppointerdef,init(vmtdef));
-  vmtsymtable^.insert(new(pvarsym,init('parent',pvmtdef)));
-  vmtsymtable^.insert(new(pvarsym,init('length',globaldef('longint'))));
-  vmtsymtable^.insert(new(pvarsym,init('mlength',globaldef('longint'))));
-  vmtarraydef:=new(parraydef,init(0,1,s32bitdef));
-  vmtarraydef^.definition := voidpointerdef;
-  vmtsymtable^.insert(new(pvarsym,init('__pfn',vmtarraydef)));
-  p^.insert(new(ptypesym,init('__vtbl_ptr_type',vmtdef)));
-  p^.insert(new(ptypesym,init('pvmt',pvmtdef)));
-  vmtarraydef:=new(parraydef,init(0,1,s32bitdef));
-  vmtarraydef^.definition := pvmtdef;
-  p^.insert(new(ptypesym,init('vtblarray',vmtarraydef)));
-  insertinternsyms(p);
 end;
 
 
@@ -176,13 +162,16 @@ procedure readconstdefs;
   Load all default definitions for consts from the system unit
 }
 begin
-  s32bitdef:=porddef(globaldef('longint'));
+  u8bitdef:=porddef(globaldef('byte'));
+  u16bitdef:=porddef(globaldef('word'));
   u32bitdef:=porddef(globaldef('ulong'));
-  cformaldef:=pformaldef(globaldef('formal'));
+  s32bitdef:=porddef(globaldef('longint'));
 {$ifdef INT64}
   cu64bitdef:=porddef(globaldef('qword'));
   cs64bitintdef:=porddef(globaldef('int64'));
 {$endif INT64}
+  cformaldef:=pformaldef(globaldef('formal'));
+  voiddef:=porddef(globaldef('void'));
   cchardef:=porddef(globaldef('char'));
   cshortstringdef:=pstringdef(globaldef('shortstring'));
   clongstringdef:=pstringdef(globaldef('longstring'));
@@ -190,17 +179,10 @@ begin
   cwidestringdef:=pstringdef(globaldef('widestring'));
   openshortstringdef:=pstringdef(globaldef('openshortstring'));
   openchararraydef:=parraydef(globaldef('openchararray'));
-{$ifdef i386}
-  c64floatdef:=pfloatdef(globaldef('s64real'));
-{$endif}
-{$ifdef m68k}
-  c64floatdef:=pfloatdef(globaldef('s32real'));
-{$endif m68k}
+  s32floatdef:=pfloatdef(globaldef('s32real'));
+  s64floatdef:=pfloatdef(globaldef('s64real'));
   s80floatdef:=pfloatdef(globaldef('s80real'));
-  s32fixeddef:=pfloatdef(globaldef('cs32fixed'));
-  voiddef:=porddef(globaldef('void'));
-  u8bitdef:=porddef(globaldef('byte'));
-  u16bitdef:=porddef(globaldef('word'));
+  s32fixeddef:=pfloatdef(globaldef('s32fixed'));
   booldef:=porddef(globaldef('boolean'));
   voidpointerdef:=ppointerdef(globaldef('void_pointer'));
   charpointerdef:=ppointerdef(globaldef('char_pointer'));
@@ -219,12 +201,12 @@ begin
   { create definitions for constants }
   oldregisterdef:=registerdef;
   registerdef:=false;
+  cformaldef:=new(pformaldef,init);
   voiddef:=new(porddef,init(uvoid,0,0));
   u8bitdef:=new(porddef,init(u8bit,0,255));
   u16bitdef:=new(porddef,init(u16bit,0,65535));
   u32bitdef:=new(porddef,init(u32bit,0,$ffffffff));
   s32bitdef:=new(porddef,init(s32bit,$80000000,$7fffffff));
-  cformaldef:=new(pformaldef,init);
 {$ifdef INT64}
   cu64bitdef:=new(porddef,init(u64bit,0,0));
   cs64bitintdef:=new(porddef,init(s64bitint,0,0));
@@ -241,11 +223,13 @@ begin
   openchararraydef:=new(parraydef,init(0,-1,s32bitdef));
   parraydef(openchararraydef)^.definition:=cchardef;
 {$ifdef i386}
-  c64floatdef:=new(pfloatdef,init(s64real));
+  s32floatdef:=new(pfloatdef,init(s32real));
+  s64floatdef:=new(pfloatdef,init(s64real));
   s80floatdef:=new(pfloatdef,init(s80real));
 {$endif}
 {$ifdef m68k}
-  c64floatdef:=new(pfloatdef,init(s32real));
+  s32floatdef:=new(pfloatdef,init(s32real))
+  s64floatdef:=new(pfloatdef,init(s32real));
   if (cs_fp_emulation in aktmoduleswitches) then
    s80floatdef:=new(pfloatdef,init(s32real))
   else
@@ -264,7 +248,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.21  1999-04-26 18:28:15  peter
+  Revision 1.22  1999-05-06 09:05:23  peter
+    * generic write_float and str_float
+    * fixed constant float conversions
+
+  Revision 1.21  1999/04/26 18:28:15  peter
     * better read/write array
 
   Revision 1.20  1999/04/17 13:12:20  peter

@@ -131,7 +131,7 @@ implementation
              begin
                case p^.inlinenumber of
                  in_const_pi :
-                   hp:=genrealconstnode(pi);
+                   hp:=genrealconstnode(pi,bestrealdef^);
                  else
                    internalerror(89);
                end;
@@ -194,28 +194,28 @@ implementation
                  in_const_frac :
                    begin
                      if isreal then
-                      hp:=genrealconstnode(frac(vr))
+                      hp:=genrealconstnode(frac(vr),bestrealdef^)
                      else
-                      hp:=genrealconstnode(frac(vl));
+                      hp:=genrealconstnode(frac(vl),bestrealdef^);
                    end;
                  in_const_int :
                    begin
                      if isreal then
-                      hp:=genrealconstnode(int(vr))
+                      hp:=genrealconstnode(int(vr),bestrealdef^)
                      else
-                      hp:=genrealconstnode(int(vl));
+                      hp:=genrealconstnode(int(vl),bestrealdef^);
                    end;
                  in_const_abs :
                    begin
                      if isreal then
-                      hp:=genrealconstnode(abs(vr))
+                      hp:=genrealconstnode(abs(vr),bestrealdef^)
                      else
                       hp:=genordinalconstnode(abs(vl),p^.left^.resulttype);
                    end;
                  in_const_sqr :
                    begin
                      if isreal then
-                      hp:=genrealconstnode(sqr(vr))
+                      hp:=genrealconstnode(sqr(vr),bestrealdef^)
                      else
                       hp:=genordinalconstnode(sqr(vl),p^.left^.resulttype);
                    end;
@@ -253,42 +253,42 @@ implementation
                        begin
                           if vr<0.0 then
                             message(cg_w_may_wrong_math_argument);
-                          hp:=genrealconstnode(sqrt(vr))
+                          hp:=genrealconstnode(sqrt(vr),bestrealdef^)
                        end
                      else
                        begin
                           if vl<0 then
                             message(cg_w_may_wrong_math_argument);
-                          hp:=genrealconstnode(sqrt(vl));
+                          hp:=genrealconstnode(sqrt(vl),bestrealdef^);
                        end;
                    end;
                  in_const_arctan :
                    begin
                      if isreal then
-                      hp:=genrealconstnode(arctan(vr))
+                      hp:=genrealconstnode(arctan(vr),bestrealdef^)
                      else
-                      hp:=genrealconstnode(arctan(vl));
+                      hp:=genrealconstnode(arctan(vl),bestrealdef^);
                    end;
                  in_const_cos :
                    begin
                      if isreal then
-                      hp:=genrealconstnode(cos(vr))
+                      hp:=genrealconstnode(cos(vr),bestrealdef^)
                      else
-                      hp:=genrealconstnode(cos(vl));
+                      hp:=genrealconstnode(cos(vl),bestrealdef^);
                    end;
                  in_const_sin :
                    begin
                      if isreal then
-                      hp:=genrealconstnode(sin(vr))
+                      hp:=genrealconstnode(sin(vr),bestrealdef^)
                      else
-                      hp:=genrealconstnode(sin(vl));
+                      hp:=genrealconstnode(sin(vl),bestrealdef^);
                    end;
                  in_const_exp :
                    begin
                      if isreal then
-                      hp:=genrealconstnode(exp(vr))
+                      hp:=genrealconstnode(exp(vr),bestrealdef^)
                      else
-                      hp:=genrealconstnode(exp(vl));
+                      hp:=genrealconstnode(exp(vl),bestrealdef^);
                    end;
                  in_const_ln :
                    begin
@@ -296,13 +296,13 @@ implementation
                        begin
                           if vr<=0.0 then
                             message(cg_w_may_wrong_math_argument);
-                          hp:=genrealconstnode(ln(vr))
+                          hp:=genrealconstnode(ln(vr),bestrealdef^)
                        end
                      else
                        begin
                           if vl<=0 then
                             message(cg_w_may_wrong_math_argument);
-                          hp:=genrealconstnode(ln(vl));
+                          hp:=genrealconstnode(ln(vl),bestrealdef^);
                        end;
                    end;
                  else
@@ -1104,7 +1104,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.32  1999-05-05 22:25:21  florian
+  Revision 1.33  1999-05-06 09:05:35  peter
+    * generic write_float and str_float
+    * fixed constant float conversions
+
+  Revision 1.32  1999/05/05 22:25:21  florian
     * fixed register allocation for val
 
   Revision 1.31  1999/05/02 21:33:57  florian

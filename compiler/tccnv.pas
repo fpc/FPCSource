@@ -321,100 +321,93 @@ implementation
       var
         t : ptree;
       begin
-         if p^.left^.treetype=ordconstn then
-           begin
-              { convert constants direct }
-              { not because of type conversion }
-              t:=genrealconstnode(p^.left^.value);
-              { do a first pass here
-                because firstpass of typeconv does
-                not redo it for left field !! }
-              firstpass(t);
-              { the type can be something else than s64real !!}
-              t:=gentypeconvnode(t,p^.resulttype);
-              firstpass(t);
-              disposetree(p);
-              p:=t;
-              exit;
-           end
-         else
-           begin
-              if p^.registersfpu<1 then
-                p^.registersfpu:=1;
-              p^.location.loc:=LOC_FPU;
-           end;
+        if p^.left^.treetype=ordconstn then
+         begin
+           t:=genrealconstnode(p^.left^.value,pfloatdef(p^.resulttype));
+           firstpass(t);
+           disposetree(p);
+           p:=t;
+           exit;
+         end;
+        if p^.registersfpu<1 then
+         p^.registersfpu:=1;
+        p^.location.loc:=LOC_FPU;
       end;
 
 
     procedure first_int_to_fix(var p : ptree);
+      var
+        t : ptree;
       begin
-         if p^.left^.treetype=ordconstn then
-           begin
-              { convert constants direct }
-              p^.treetype:=fixconstn;
-              p^.value_fix:=p^.left^.value shl 16;
-              p^.disposetyp:=dt_nothing;
-              disposetree(p^.left);
-              p^.location.loc:=LOC_MEM;
-           end
-         else
-           begin
-              if p^.registers32<1 then
-                p^.registers32:=1;
-                  p^.location.loc:=LOC_REGISTER;
-           end;
+        if p^.left^.treetype=ordconstn then
+         begin
+           t:=genfixconstnode(p^.left^.value shl 16,p^.resulttype);
+           firstpass(t);
+           disposetree(p);
+           p:=t;
+           exit;
+         end;
+        if p^.registers32<1 then
+         p^.registers32:=1;
+        p^.location.loc:=LOC_REGISTER;
       end;
 
 
     procedure first_real_to_fix(var p : ptree);
+      var
+        t : ptree;
       begin
-         if p^.left^.treetype=realconstn then
-           begin
-              { convert constants direct }
-              p^.treetype:=fixconstn;
-              p^.value_fix:=round(p^.left^.value_real*65536);
-              p^.disposetyp:=dt_nothing;
-              disposetree(p^.left);
-              p^.location.loc:=LOC_MEM;
-           end
-         else
-           begin
-              { at least one fpu and int register needed }
-              if p^.registers32<1 then
-                p^.registers32:=1;
-              if p^.registersfpu<1 then
-                p^.registersfpu:=1;
-              p^.location.loc:=LOC_REGISTER;
-           end;
+        if p^.left^.treetype=fixconstn then
+         begin
+           t:=genfixconstnode(round(p^.left^.value_real*65536),p^.resulttype);
+           firstpass(t);
+           disposetree(p);
+           p:=t;
+           exit;
+         end;
+        { at least one fpu and int register needed }
+        if p^.registers32<1 then
+          p^.registers32:=1;
+        if p^.registersfpu<1 then
+          p^.registersfpu:=1;
+        p^.location.loc:=LOC_REGISTER;
       end;
 
 
     procedure first_fix_to_real(var p : ptree);
+      var
+        t : ptree;
       begin
-         if p^.left^.treetype=fixconstn then
-           begin
-              { convert constants direct }
-              p^.treetype:=realconstn;
-              p^.value_real:=round(p^.left^.value_fix/65536.0);
-              p^.disposetyp:=dt_nothing;
-              disposetree(p^.left);
-              p^.location.loc:=LOC_MEM;
-           end
-         else
-           begin
-              if p^.registersfpu<1 then
-                p^.registersfpu:=1;
-                  p^.location.loc:=LOC_FPU;
-           end;
+        if p^.left^.treetype=fixconstn then
+          begin
+            t:=genrealconstnode(round(p^.left^.value_fix/65536.0),p^.resulttype);
+            firstpass(t);
+            disposetree(p);
+            p:=t;
+            exit;
+          end;
+        if p^.registersfpu<1 then
+          p^.registersfpu:=1;
+        p^.location.loc:=LOC_FPU;
       end;
 
 
     procedure first_real_to_real(var p : ptree);
+      var
+        t : ptree;
       begin
+         if p^.left^.treetype=realconstn then
+           begin
+             t:=genrealconstnode(p^.left^.value_real,p^.resulttype);
+             firstpass(t);
+             disposetree(p);
+             p:=t;
+             exit;
+           end;
         { comp isn't a floating type }
 {$ifdef i386}
-         if (pfloatdef(p^.resulttype)^.typ=s64bit) and
-            (pfloatdef(p^.left^.resulttype)^.typ<>s64bit) and
+         if (pfloatdef(p^.resulttype)^.typ=s64bitcomp) and
+            (pfloatdef(p^.left^.resulttype)^.typ<>s64bitcomp) and
             not (p^.explizit) then
            CGMessage(type_w_convert_real_2_comp);
 {$endif}
@@ -940,7 +933,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.27  1999-05-01 13:24:48  peter
+  Revision 1.28  1999-05-06 09:05:34  peter
+    * generic write_float and str_float
+    * fixed constant float conversions
+
+  Revision 1.27  1999/05/01 13:24:48  peter
     * merged nasm compiler
     * old asm moved to oldasm/
 

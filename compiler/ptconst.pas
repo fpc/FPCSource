@@ -181,7 +181,7 @@ unit ptconst;
                  s64real : curconstsegment^.concat(new(pai_double,init(value)));
                  s32real : curconstsegment^.concat(new(pai_single,init(value)));
                  s80real : curconstsegment^.concat(new(pai_extended,init(value)));
-                 s64bit  : curconstsegment^.concat(new(pai_comp,init(value)));
+                 s64bitcomp  : curconstsegment^.concat(new(pai_comp,init(value)));
                  f32bit : curconstsegment^.concat(new(pai_const,init_32bit(trunc(value*65536))));
               else internalerror(18);
               end;
@@ -714,7 +714,11 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.41  1999-05-01 13:24:39  peter
+  Revision 1.42  1999-05-06 09:05:24  peter
+    * generic write_float and str_float
+    * fixed constant float conversions
+
+  Revision 1.41  1999/05/01 13:24:39  peter
     * merged nasm compiler
     * old asm moved to oldasm/
 

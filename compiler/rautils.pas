@@ -1302,7 +1302,7 @@ end;
           s32real : p^.concat(new(pai_single,init(value)));
           s64real : p^.concat(new(pai_double,init(value)));
           s80real : p^.concat(new(pai_extended,init(value)));
-          s64bit  : p^.concat(new(pai_comp,init(value)));
+          s64bitcomp : p^.concat(new(pai_comp,init(value)));
           f32bit  : p^.concat(new(pai_const,init_32bit(trunc(value*$10000))));
        end;
     end;
@@ -1400,7 +1400,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.12  1999-05-05 22:22:04  peter
+  Revision 1.13  1999-05-06 09:05:27  peter
+    * generic write_float and str_float
+    * fixed constant float conversions
+
+  Revision 1.12  1999/05/05 22:22:04  peter
     * updated messages
 
   Revision 1.11  1999/05/02 22:41:57  peter

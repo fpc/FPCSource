@@ -448,7 +448,7 @@ unit ag386nsm;
                      end;
     ait_real_32bit : AsmWriteLn(#9#9'DD'#9+double2str(pai_single(hp)^.value));
     ait_real_64bit : AsmWriteLn(#9#9'DQ'#9+double2str(pai_double(hp)^.value));
- ait_real_extended : AsmWriteLn(#9#9'DT'#9+extended2str(pai_extended(hp)^.value));
+    ait_real_80bit : AsmWriteLn(#9#9'DT'#9+extended2str(pai_extended(hp)^.value));
           ait_comp : AsmWriteLn(#9#9'DQ'#9+comp2str(pai_extended(hp)^.value));
         ait_string : begin
                        counter := 0;
@@ -737,7 +737,11 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.31  1999-05-04 21:44:32  florian
+  Revision 1.32  1999-05-06 09:05:11  peter
+    * generic write_float and str_float
+    * fixed constant float conversions
+
+  Revision 1.31  1999/05/04 21:44:32  florian
     * changes to compile it with Delphi 4.0
 
   Revision 1.30  1999/05/02 22:41:50  peter
