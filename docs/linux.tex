@@ -399,18 +399,252 @@ the \seep{FLock} call uses the following mode constants :
 %\procedure{Name}{arguments}{explain}{errors}{refs}
 %\function{}{()}{}{}{}{}{}
 %\procedure{}{}{}{}{}{}
-\function{GetEpochTime}{}{longint}
+\function{Access}{(Path : Pathstr; Mode : integer)}{Boolean}
 {
-returns the number of seconds since 00:00:00 gmt, january 1, 1970.
-it is adjusted to the local time zone, but not to DST.
+Tests user's access rights on the specified file. Mode is a mask existing of
+one or more of
+\begin{description}
+\item[R\_OK] User has read rights.
+\item[W\_OK] User has write rights.
+\item[X\_OK] User has execute rights.
+\item[F\_OK] User has search rights in the directory where the file is.
+\end{description}
+The test is done with the real user ID, instead of the effective user ID.
+
+If access is denied, or an error occurred, false is returned.
 }
-{no errors}
-{\seep{EpochToLocal}, \seep{GetTime}, \seem{time}{2}}
+{ \var{LinuxError} is used to report errors:
+\begin{description}
+\item[sys\_eaccess] The requested access is denied, either to the file or one
+of the directories in its path.
+\item[sys\_einval] \var{Mode} was incorrect.
+\item[sys\_enoent] A directory component in \var{Path} doesn't exist or is a
+dangling symbolic link.
+\item[sys\_enotdir] A directory component in \var{Path} is not a directory.
+\item[sys\_enomem] Insufficient kernel memory.
+\item[sys\_eloop] \var{Path} has a circular symbolic link.
+\end{description}
+}
+{\seef{Chown}, \seef{Chmod}, \seem{Access}{2} }
 
-\input{linuxex/ex1.tex}
+\input{linuxex/ex26.tex}
 
-\procedure
-{EpochToLocal}
+\procedure{AssignPipe}{(Pipe\_in, Pipe\_out : Text)}
+{\var{AssignePipe} creates a pipe, i.e. two file objects, one for input, one for output.
+What is written to \var{Pipe\_out}, can be read from \var{Pipe\_in}.
+Reading and writing happens through the usual \var{Readln(Pipe\_in,...)} and
+\var{Writeln (Pipe\_out,...)} procedures.
+}
+{ \var{LinuxError} is used to report errors:
+\begin{description}
+\item[sys\_emfile] Too many file descriptors for this process.
+\item[sys\_enfile] The system file table is full.
+\end{description}
+}
+{\seep{POpen}, \seef{MkFifo}, \seem{pipe}{2}}
+
+\input{linuxex/ex36.tex}
+
+\procedure{AssignStream}{(StreamIn,StreamOut : Text; Const prog : String)}
+{\var{AssignStream} creates a 2 pipes, i.e. two file objects, one for input, one for
+output, the other ends of these pipes are connected to standard input and and
+output of \var{Prog}. \var{Prog} is the name of a program (including path)
+with options, which will be executed.
+What is written to \var{StreamOut}, will go to the standard input of
+\var{Prog}. Whatever is written by \var{Prog} to it's standard output be read from
+\var{StreamIn}.
+Reading and writing happens through the usual \var{Readln(StreamIn,...)} and
+\var{Writeln (StreamOut,...)} procedures.
+}
+{ \var{LinuxError} is used to report errors:
+\begin{description}
+\item[sys\_emfile] Too many file descriptors for this process.
+\item[sys\_enfile] The system file table is full.
+\end{description}
+Other errors include the ones by the fork and exec programs
+}
+{\seep{AssignPipe}, \seep{POpen},\seem{pipe}{2}}
+
+\input{linuxex/ex38.tex}
+
+\function{BaseName}{(Const Path;Suf : Pathstr)}{Pathstr}
+{Returns the filename part of \var{Path}, stripping off \var{Suf} if it
+exists.
+
+The filename part is the whole name if \var{Path} contains no slash,
+or the part of \var{Path} after the last slash.
+
+The last character of the result is not a slash, unless the directory is the
+root directory.
+}
+{None.}
+{\seef{DirName}, \seef{FExpand}, \seem{Basename}{1}}
+
+\input{linuxex/ex48.tex}
+
+\procedure{CFMakeRaw}{(var Tios:TermIOS)}
+{ \var{CFMakeRaw}
+  Sets the flags in the \var{Termios} structure \var{Tios} to a state so that 
+  the terminal will function in Raw Mode.
+}
+{None.}
+{ \seep{CFSetOSpeed}, \seep{CFSetISpeed}, \seem{termios}{2}}
+
+For an example, see \seef{TCGetAttr}.
+
+\procedure{CFSetISpeed}{(var Tios:TermIOS;Speed:Longint)}
+{ \var{CFSetISpeed}
+  Sets the input baudrate in the \var{TermIOS} structure \var{Tios} to 
+  \var{Speed}.
+}
+{None.}
+{\seep{CFSetOSpeed}, \seep{CFMakeRaw}, \seem{termios}{2}}
+
+\procedure{CFSetOSpeed}{(var Tios:TermIOS;Speed:Longint)}
+{ \var{CFSetOSpeed}
+  Sets the output baudrate in the \var{Termios} structure \var{Tios} to
+  \var{Speed}.
+}
+{None.}
+{\seep{CFSetISpeed}, \seep{CFMakeRaw}, \seem{termios}{2}}
+
+\function{Chown}{(Path : Pathstr;NewUid,NewGid : Longint)}{Boolean}
+{ \var{Chown} sets the User ID and Group ID of the file in \var{Path} to \var{NewUid,
+NewGid}.
+
+The function returns \var{True} if the call was succesfull, \var{False} if the call
+failed.
+}
+{
+Errors are returned in \var{LinuxError}.
+\begin{description}
+\item[sys\_eperm] The effective UID doesn't match the ownership of the file,
+and is not zero. Owner or group were not specified correctly.
+\item[sys\_eaccess] One of the directories in \var{Path} has no
+search (=execute) permission.
+\item[sys\_enoent] A directory entry in \var{Path} does
+not exist or is a symbolic link pointing to a non-existent directory.
+\item[sys\_enotdir] A directory entry in \var{OldPath} or \var{NewPath} is
+nor a directory.
+\item[sys\_enomem] Insufficient kernel memory.
+\item[sys\_erofs] The file is on a read-only filesystem.
+\item[sys\_eloop] \var{Path} has a reference to a circular
+symbolic link, i.e. a symbolic link, whose expansion points to itself.
+\end{description}
+}
+{\seef{Chmod}, \seef{Access}, \seem{Chown}(2)}
+
+\input{linuxex/ex24.tex}
+
+\function{Chmod}{(Path : Pathstr;NewMode : Longint)}{Boolean}
+{ \var{Chmod}
+Sets the Mode bits of the file in \var{Path} to \var{NewMode}. Newmode can be
+specified by 'or'-ing the following:
+\begin{description}
+\item[S\_ISUID] Set user ID on execution.
+\item[S\_ISGID] Set Group ID on execution.
+\item[S\_ISVTX] Set sticky bit.
+\item[S\_IRUSR] Read by owner.
+\item[S\_IWUSR] Write by owner.
+\item[S\_IXUSR] Execute by owner.
+\item[S\_IRGRP] Read by group.
+\item[S\_IWGRP] Write by group.
+\item[S\_IXGRP] Execute by group.
+\item[S\_IROTH] Read by others.
+\item[S\_IWOTH] Write by others.
+\item[S\_IXOTH] Execute by others.
+\item[S\_IRWXO] Read, write, execute by others.
+\item[S\_IRWXG] Read, write, execute by groups.
+\item[S\_IRWXU] Read, write, execute by user.
+\end{description}
+}
+{
+Errors are returned in \var{LinuxError}.
+\begin{description}
+\item[sys\_eperm] The effective UID doesn't match the ownership of the file,
+and is not zero. Owner or group were not specified correctly.
+\item[sys\_eaccess] One of the directories in \var{Path} has no
+search (=execute) permission.
+\item[sys\_enoent] A directory entry in \var{Path} does
+not exist or is a symbolic link pointing to a non-existent directory.
+\item[sys\_enotdir] A directory entry in \var{OldPath} or \var{NewPath} is
+nor a directory.
+\item[sys\_enomem] Insufficient kernel memory.
+\item[sys\_erofs] The file is on a read-only filesystem.
+\item[sys\_eloop] \var{Path} has a reference to a circular
+symbolic link, i.e. a symbolic link, whose expansion points to itself.
+\end{description}
+}
+{\seef{Chown}, \seef{Access}, \seem{Chmod}(2)}
+
+\input{linuxex/ex23.tex}
+
+\function{CloseDir}{(p:pdir)}{integer}
+{ \var{CloseDir} closes the directory pointed to by \var{p}.
+It returns zero if the directory was closed succesfully, -1 otherwise.}
+{Errors are returned in LinuxError.}
+{\seef{OpenDir}, \seef{ReadDir}, \seep{SeekDir}, \seef{TellDir},
+\seem{closedir}{3}}
+
+For an example, see \seef{OpenDir}.
+
+\function{DirName}{(Const Path : Pathstr)}{Pathstr}
+{Returns the directory part of \var{Path}.
+
+The directory is the part of \var{Path} before the last slash,
+or empty if there is no slash.
+
+The last character of the result is not a slash, unless the directory is the
+root directory.
+}
+{None.}
+{\seef{BaseName}, \seef{FExpand}, \seem{Dirname}{1}}
+
+\input{linuxex/ex47.tex}
+
+\procedure{Dup}{(Var OldFile, NewFile : Text)}
+{
+Makes \var{NewFile} an exact copy of \var{OldFile}, after having flushed the
+buffer of \var{OldFile}. Due to the buffering mechanism of Pascal, this has not
+the same functionality as the \seem{dup}{2} call in C. The internal Pascal
+buffers are not the same after this call, but when the buffers are flushed
+(e.g. after output), the output is sent to the same file.
+Doing an lseek will, however, work as in C, i.e. doing a lseek will change the
+fileposition in both files.
+}
+{ \var{Linuxerror} is used to report errors.
+\begin{description}
+\item[sys\_ebadf] \var{OldFile} hasn't been assigned.
+\item[sys\_emfile] Maximum number of open files for the process is reached.
+\end{description}
+}
+{\seep{Dup2}, \seem{Dup}{2} }
+
+\input{linuxex/ex31.tex}
+
+\procedure{Dup2}{(Var OldFile, NewFile : Text)}
+{
+Makes \var{NewFile} an exact copy of \var{OldFile}, after having flushed the
+buffer of \var{OldFile}. \var{NewFile} can be an assigned file.
+If \var{newfile} was open, it is closed first.
+Due to the buffering mechanism of Pascal, this has not
+the same functionality as the \seem{dup2}{2} call in C. The internal Pascal
+buffers are not the same after this call, but when the buffers are flushed
+(e.g. after output), the output is sent to the same file.
+Doing an lseek will, however, work as in C, i.e. doing a lseek will change the
+fileposition in both files.
+}
+{ \var{Linuxerror} is used to report errors.
+\begin{description}
+\item[sys\_ebadf] \var{OldFile} hasn't been assigned.
+\item[sys\_emfile] Maximum number of open files for the process is reached.
+\end{description}
+}
+{ \seep{Dup}, \seem{Dup2}{2} }
+
+\input{linuxex/ex32.tex}
+
+\procedure{EpochToLocal}
 {(Epoch : Longint; var Year,Month,Day,Hour,Minute,Second : Word)}
 {
 Converts the epoch time (=Number of seconds since 00:00:00 , January 1,
@@ -420,122 +654,6 @@ Converts the epoch time (=Number of seconds since 00:00:00 , January 1,
 {\seef{GetEpochTime}, \seef{LocalToEpoch}, \seep{GetTime},\seep{GetDate} }
 
 \input{linuxex/ex3.tex}
-
-\function{LocalToEpoch}{(Year,Month,Day,Hour,Minute,Second : Word)}{longint}
-{
-Converts the Local time to epoch time (=Number of seconds since 00:00:00 , January 1,
-1970 ).
-}
-{None}
-{\seef{GetEpochTime}, \seep{EpochToLocal}, \seep{GetTime},\seep{GetDate} }
-
-\input{linuxex/ex4.tex}
-
-\procedure{GetTime}
-{ (Var Hour,Minute, Second : Word) }
-{
-Returns the current time of the day.
-}
-{None}
-{\seef{GetEpochTime}, \seep{GetDate}, \seep{EpochToLocal} }
-
-\input{linuxex/ex5.tex}
-
-\procedure{GetDate}
-{ (Var Year, Month, Day : Word) }
-{
-Returns the current day.
-}
-{None}
-{\seef{GetEpochTime}, \seep{GetTime}, \seep{EpochToLocal} }
-
-\input{linuxex/ex6.tex}
-
-\procedure{Execve}
-{(Path : pathstr; args,ep : ppchar)}
-{
-Replaces the currently running program with the program, specified in
-\var{path}.
-It gives the program the options in \var{args}, and the environment in
-\var{ep}. They are pointers to an array of pointers to null-terminated
-strings. The last pointer in this array should be nil.
-
-On success, \var{execve} does not return.
-}
-{Errors are reported in \var{LinuxError}:
-\begin{description}
-\item[eacces] File is not a regular file, or has no execute permission.
-A compononent of the path has no search permission.
-\item[sys\_ eperm] The file system is mounted \textit{noexec}.
-\item[sys\_ e2big] Argument list too big.
-\item[sys\_ enoexec] The magic number in the file is incorrect.
-\item[sys\_ enoent] The file does not exist.
-\item[sys\_ enomem] Not enough memory for kernel.
-\item[sys\_ enotdir] A component of the path is not a directory.
-\item[sys\_ eloop] The path contains a circular reference (via symlinks).
-\end{description}}
-{\seep{Execve}, \seep{Execv}, \seep{Execvp} \seep{Execle},
-\seep{Execl}, \seep{Execlp}, \seef {Fork}, \seem{execve}{2} }
-
-\input{linuxex/ex7.tex}
-
-\procedure{Execv}
-{(Path : pathstr; args : ppchar)}
-{
-Replaces the currently running program with the program, specified in
-\var{path}.
-It gives the program the options in \var{args}.
-This is a pointer to an array of pointers to null-terminated
-strings. The last pointer in this array should be nil.
-The current environment is passed to the program.
-
-On success, \var{execv} does not return.
-}
-{Errors are reported in \var{LinuxError}:
-\begin{description}
-\item[sys\_eacces] File is not a regular file, or has no execute permission.
-A compononent of the path has no search permission.
-\item[sys\_eperm] The file system is mounted \textit{noexec}.
-\item[sys\_e2big] Argument list too big.
-\item[sys\_enoexec] The magic number in the file is incorrect.
-\item[sys\_enoent] The file does not exist.
-\item[sys\_enomem] Not enough memory for kernel.
-\item[sys\_enotdir] A component of the path is not a directory.
-\item[sys\_eloop] The path contains a circular reference (via symlinks).
-\end{description}}
-{\seep{Execve}, \seep{Execvp}, \seep{Execle},
-\seep{Execl}, \seep{Execlp}, \seef {Fork}, \seem{execv}{3} }
-
-\input{linuxex/ex8.tex}
-
-\procedure{Execvp}
-{(Path : pathstr; args : ppchar)}
-{
-Replaces the currently running program with the program, specified in
-\var{path}. The executable in \var{path} is searched in the path, if it isn't
-an absolute filename.
-It gives the program the options in \var{args}. This is a pointer to an array of pointers to null-terminated
-strings. The last pointer in this array should be nil.
-The current environment is passed to the program.
-
-On success, \var{execvp} does not return.
-}
-{Errors are reported in \var{LinuxError}:
-\begin{description}
-\item[sys\_eacces] File is not a regular file, or has no execute permission.
-A compononent of the path has no search permission.
-\item[sys\_eperm] The file system is mounted \textit{noexec}.
-\item[sys\_e2big] Argument list too big.
-\item[sys\_enoexec] The magic number in the file is incorrect.
-\item[sys\_enoent] The file does not exist.
-\item[sys\_enomem] Not enough memory for kernel.
-\item[sys\_enotdir] A component of the path is not a directory.
-\item[sys\_eloop] The path contains a circular reference (via symlinks).
-\end{description}}
-{\seep{Execve}, \seep{Execv}, \seep{Execle},
-\seep{Execl}, \seep{Execlp}, \seef {Fork}, \seem{execvp}{3} }
-
-\input{linuxex/ex9.tex}
 
 \procedure{Execl}
 {(Path : pathstr)}
@@ -620,419 +738,264 @@ A compononent of the path has no search permission.
 
 \input{linuxex/ex12.tex}
 
-\function{Fork}{}{Longint}
+\procedure{Execv}
+{(Path : pathstr; args : ppchar)}
 {
-Fork creates a child process which is a copy of the parent process.
+Replaces the currently running program with the program, specified in
+\var{path}.
+It gives the program the options in \var{args}.
+This is a pointer to an array of pointers to null-terminated
+strings. The last pointer in this array should be nil.
+The current environment is passed to the program.
 
-Fork returns the process ID in the parent process, and zero in the child's
-process. (you can get the parent's PID with \seef{GetPPid}).
+On success, \var{execv} does not return.
 }
-{On error, -1 is returned to the parent, and no child is created.
+{Errors are reported in \var{LinuxError}:
 \begin{description}
-\item [sys\_eagain] Not enough memory to create child process.
-\end{description}
+\item[sys\_eacces] File is not a regular file, or has no execute permission.
+A compononent of the path has no search permission.
+\item[sys\_eperm] The file system is mounted \textit{noexec}.
+\item[sys\_e2big] Argument list too big.
+\item[sys\_enoexec] The magic number in the file is incorrect.
+\item[sys\_enoent] The file does not exist.
+\item[sys\_enomem] Not enough memory for kernel.
+\item[sys\_enotdir] A component of the path is not a directory.
+\item[sys\_eloop] The path contains a circular reference (via symlinks).
+\end{description}}
+{\seep{Execve}, \seep{Execvp}, \seep{Execle},
+\seep{Execl}, \seep{Execlp}, \seef {Fork}, \seem{execv}{3} }
+
+\input{linuxex/ex8.tex}
+
+\procedure{Execve}
+{(Path : pathstr; args,ep : ppchar)}
+{
+Replaces the currently running program with the program, specified in
+\var{path}.
+It gives the program the options in \var{args}, and the environment in
+\var{ep}. They are pointers to an array of pointers to null-terminated
+strings. The last pointer in this array should be nil.
+
+On success, \var{execve} does not return.
 }
-{\seep{Execve}, \seem{fork}{2}}
-
-\input{linuxex/ex14.tex}
-
-\function{Shell}{(Command : String)}{Longint}
-{\var{Shell} invokes the bash shell (\file{/bin/sh}), and feeds it the
-command \var{Command} (using the \var{-c} option). The function then waits
-for the command to complete, and then returns the exit
-status of the command, or 127 if it could not complete the \seef{Fork} 
-or \seep{Execve} calls.
-}
-{Errors are reported in LinuxError.}
-{\seep{POpen}, \seef{Fork}, \seep{Execve}, \seem{system}{3}}
-
-\input{linuxex/ex56.tex}
-
-\procedure{Nice}{( N : Integer)}
-{Nice adds \var{-N} to the priority of the running process. The lower the
-priority numerically, the less the process is favored.
-
-Only the superuser can specify a negative \var{N}, i.e. increase the rate at
-which the process is run.
-}
-{ Errors are returned in \var{LinuxError}
+{Errors are reported in \var{LinuxError}:
 \begin{description}
-\item [sys\_eperm] A non-superuser tried to specify a negative \var{N}, i.e.
-do a priority increase.
-\end{description}
-}{\seef{GetPriority}, \seef{SetPriority}, \seem{Nice}{2}}
+\item[eacces] File is not a regular file, or has no execute permission.
+A compononent of the path has no search permission.
+\item[sys\_ eperm] The file system is mounted \textit{noexec}.
+\item[sys\_ e2big] Argument list too big.
+\item[sys\_ enoexec] The magic number in the file is incorrect.
+\item[sys\_ enoent] The file does not exist.
+\item[sys\_ enomem] Not enough memory for kernel.
+\item[sys\_ enotdir] A component of the path is not a directory.
+\item[sys\_ eloop] The path contains a circular reference (via symlinks).
+\end{description}}
+{\seep{Execve}, \seep{Execv}, \seep{Execvp} \seep{Execle},
+\seep{Execl}, \seep{Execlp}, \seef {Fork}, \seem{execve}{2} }
 
-\input{linuxex/ex15.tex}
+\input{linuxex/ex7.tex}
 
-\function{GetPriority}{(Which,Who : Integer)}{Integer}
+\procedure{Execvp}
+{(Path : pathstr; args : ppchar)}
 {
-GetPriority returns the priority with which a process is running.
-Which process(es) is determined by the \var{Which} and \var{Who} variables.
-\var{Which} can be one of the pre-defined \var{Prio\_Process, Prio\_PGrp,
-Prio\_User}, in which case \var{Who} is the process ID, Process group ID or
-User ID, respectively.
+Replaces the currently running program with the program, specified in
+\var{path}. The executable in \var{path} is searched in the path, if it isn't
+an absolute filename.
+It gives the program the options in \var{args}. This is a pointer to an array of pointers to null-terminated
+strings. The last pointer in this array should be nil.
+The current environment is passed to the program.
+
+On success, \var{execvp} does not return.
 }
-{
- Error checking must be done on LinuxError, since a priority can be negative.
- \begin{description}
- \item[sys\_esrch] No process found using \var{which} and \var{who}.
- \item[sys\_einval] \var{Which} was not one of \var{Prio\_Process, Prio\_Grp
-or Prio\_User}.
- \end{description}
- }
-{\seef{SetPriority}, \seep{Nice}, \seem{Getpriority}{2}}
+{Errors are reported in \var{LinuxError}:
+\begin{description}
+\item[sys\_eacces] File is not a regular file, or has no execute permission.
+A compononent of the path has no search permission.
+\item[sys\_eperm] The file system is mounted \textit{noexec}.
+\item[sys\_e2big] Argument list too big.
+\item[sys\_enoexec] The magic number in the file is incorrect.
+\item[sys\_enoent] The file does not exist.
+\item[sys\_enomem] Not enough memory for kernel.
+\item[sys\_enotdir] A component of the path is not a directory.
+\item[sys\_eloop] The path contains a circular reference (via symlinks).
+\end{description}}
+{\seep{Execve}, \seep{Execv}, \seep{Execle},
+\seep{Execl}, \seep{Execlp}, \seef {Fork}, \seem{execvp}{3} }
 
-For an example, see \seep{Nice}.
+\input{linuxex/ex9.tex}
 
-\function{SetPriority}{(Which,Who,Prio : Integer)}{Integer}
-{
-SetPriority sets the priority with which a process is running.
-Which process(es) is determined by the \var{Which} and \var{Who} variables.
-\var{Which} can be one of the pre-defined \var{Prio\_Process, Prio\_PGrp,
-Prio\_User}, in which case \var{Who} is the process ID, Process group ID or
-User ID, respectively.
 
-\var{Prio} is a value in the range -20 to 20.
-}
-{
- Error checking must be done on LinuxError, since a priority can be negative.
- \begin{description}
- \item[sys\_esrch] No process found using \var{which} and \var{who}.
- \item[sys\_einval] \var{Which} was not one of \var{Prio\_Process, Prio\_Grp
-or Prio\_User}.
- \item[sys\_eperm] A process was found, but neither its effective or real
- user ID match the effective user ID of the caller.
- \item [sys\_eacces] A non-superuser tried to a priority increase.
- \end{description}
- }
-{\seef{GetPriority}, \seep{Nice}, \seem{Setpriority}{2}}
-
-For an example, see \seep{Nice}.
-
-\function{GetPid}{}{Longint}
-{ Get the Process ID of the currently running process.}
+\procedurel{FD\_Clear}{FDClear}{(var fds:fdSet)}
+{\var{FD\_Clear} clears all the filedescriptors in the file descriptor 
+set \var{fds}.}
 {None.}
-{\seef{GetPPid}, \seem{getpid}{2}}
+{\seef{Select}, 
+\seef{SelectText}, 
+\seef{GetFS}, 
+\seepl{FD\_Clr}{FDClr},
+\seepl{FD\_Set}{FDSet}, 
+\seefl{FD\_IsSet}{FDIsSet}
+}
 
-\input{linuxex/ex16.tex}
+For an example, see \seef{Select}.
 
-
-\function{GetPPid}{}{Longint}
-{ Get the Process ID of the parent process.}
+\procedurel{FD\_Clr}{FDClr}{(fd:longint;var fds:fdSet)}
+{ \var{FD\_Clr} clears file descriptor \var{fd} in filedescriptor s
+  et \var{fds}.}
 {None.}
-{\seef{GetPid}, \seem{getppid}{2}}
+{\seef{Select}, 
+\seef{SelectText}, 
+\seef{GetFS},
+\seepl{FD\_Clear}{FDClear}, 
+\seepl{FD\_Set}{FDSet}, 
+\seefl{FD\_IsSet}{FDIsSet}}
 
-\input{linuxex/ex16.tex}
+For an example, see \seef{Select}.
 
-\function{GetUid}{}{Longint}
-{ Get the real user ID of the currently running process.}
+\functionl{FD\_IsSet}{FDIsSet}{(fd:longint;var fds:fdSet)}{boolean}
+{\var{FD\_Set} Checks whether file descriptor \var{fd} in filedescriptor set \var{fds}
+is set.}
 {None.}
-{\seef{GetEUid}, \seem{getuid}{2} }
+{\seef{Select}, \seef{SelectText}, \seef{GetFS},
+\seepl{FD\_Clear}{FDClear}, 
+\seepl{FD\_Clr}{FDClr},
+\seepl{FD\_Set}{FDSet}}
 
-\input{linuxex/ex17.tex}
+For an example, see \seef{Select}.
 
-\function{GetEUid}{}{Longint}
-{ Get the effective user ID of the currently running process.}
+\procedurel{FD\_Set}{FDSet}{(fd:longint;var fds:fdSet)}
+{\var{FD\_Set} sets file descriptor \var{fd} in filedescriptor set \var{fds}.}
 {None.}
-{\seef{GetEUid}, \seem{geteuid}{2} }
+{\seef{Select}, \seef{SelectText}, \seef{GetFS},\seepl{FD\_Clear}{FDClear}, 
+\seepl{FD\_Clr}{FDClr}, \seefl{FD\_IsSet}{FDIsSet}}
 
-\input{linuxex/ex17.tex}
+For an example, see \seef{Select}.
 
-\function{GetGid}{}{Longint}
-{ Get the real group ID of the currently running process.}
-{None.}
-{\seef{GetEGid}, \seem{getgid}{2} }
-
-\input{linuxex/ex18.tex}
-
-\function{GetEGid}{}{Longint}
-{ Get the effective group ID of the currently running process.}
-{None.}
-{\seef{GetGid}, \seem{getegid}{2} }
-
-\input{linuxex/ex18.tex}
-
-\function{IOperm}{(From,Num : Cadinal; Value : Longint)}{boolean}
-{\var{IOperm}
-  sets permissions on \var{Num} ports starting with port \var{From} to 
-  \var{Value}. The function returns \var{True} if the call was successfull,
-  \var{False} otherwise.
-
-{\em Remark:}
-\begin{itemize}
-\item This works ONLY as root.
-\item Only the first \var{0x03ff} ports can be set.
-\item When doing a \seef{Fork}, the permissions are reset. When doing a
-\seep{Execve} they are kept.
-\end{itemize}
-}{Errors are returned in \var{LinuxError}}{\seem{ioperm}{2}}
-
-\function{Link}{(OldPath,NewPath : pathstr)}{Boolean}
-{\var{Link} makes \var{NewPath} point to the same file als \var{OldPath}. The two files
-then have the same inode number. This is known as a 'hard' link.
-
-The function returns \var{True} if the call was succesfull, \var{False} if the call
-failed.
-}
-{ Errors are returned in \var{LinuxError}.
-\begin{description}
-\item[sys\_exdev] \var {OldPath} and \var {NewPath} are not on the same
-filesystem.
-\item[sys\_eperm] The filesystem containing oldpath and newpath doesn't
-support linking files.
-\item[sys\_eaccess] Write access for the directory containing \var{Newpath}
-is disallowed, or one of the directories in \var{OldPath} or {NewPath} has no
-search (=execute) permission.
-\item[sys\_enoent] A directory entry in \var{OldPath} or \var{NewPath} does
-not exist or is a symbolic link pointing to a non-existent directory.
-\item[sys\_enotdir] A directory entry in \var{OldPath} or \var{NewPath} is
-nor a directory.
-\item[sys\_enomem] Insufficient kernel memory.
-\item[sys\_erofs] The files are on a read-only filesystem.
-\item[sys\_eexist] \var{NewPath} already exists.
-\item[sys\_emlink] \var{OldPath} has reached maximal link count.
-\item[sys\_eloop] \var{OldPath} or \var{NewPath} has a reference to a circular
-symbolic link, i.e. a symbolic link, whose expansion points to itself.
-\item[sys\_enospc] The device containing \var{NewPath} has no room for anothe
-entry.
-\item[sys\_eperm] \var{OldPath} points to . or .. of a directory.
-\end{description}
-}
-{\seef{SymLink}, \seef{UnLink}, \seem{Link}{2} }
-
-\input{linuxex/ex21.tex}
-
-\function{SymLink}{(OldPath,NewPath : pathstr)}{Boolean}
-{\var{SymLink} makes \var{Newpath} point to the file in \var{OldPath}, which doesn't
-necessarily exist. The two files DO NOT have the same inode number.
-This is known as a 'soft' link.
-The permissions of the link are irrelevant, as they are not used when
-following the link. Ownership of the file is only checked in case of removal
-or renaming of the link.
-
-The function returns \var{True} if the call was succesfull, \var{False} if the call
-failed.
-}
-{ Errors are returned in \var{LinuxError}.
-\begin{description}
-\item[sys\_eperm] The filesystem containing oldpath and newpath doesn't
-support linking files.
-\item[sys\_eaccess] Write access for the directory containing \var{Newpath}
-is disallowed, or one of the directories in \var{OldPath} or {NewPath} has no
-search (=execute) permission.
-\item[sys\_enoent] A directory entry in \var{OldPath} or \var{NewPath} does
-not exist or is a symbolic link pointing to a non-existent directory.
-\item[sys\_enotdir] A directory entry in \var{OldPath} or \var{NewPath} is
-nor a directory.
-\item[sys\_enomem] Insufficient kernel memory.
-\item[sys\_erofs] The files are on a read-only filesystem.
-\item[sys\_eexist] \var{NewPath} already exists.
-\item[sys\_eloop] \var{OldPath} or \var{NewPath} has a reference to a circular
-symbolic link, i.e. a symbolic link, whose expansion points to itself.
-\item[sys\_enospc] The device containing \var{NewPath} has no room for anothe
-entry.
-\end{description}
-}
-{\seef{Link}, \seef{UnLink}, \seem{Symlink}{2} }
-
-\input{linuxex/ex22.tex}
-
-\function{UnLink}{(Var Path)}{Boolean}
+\function{fdClose}{(fd:longint)}{boolean}
 {
-\var{UnLink} decreases the link count on file \var{Path}. \var{Path} can be
-of type \var{PathStr} or \var{PChar}. If the link count is zero, the
-file is removed from the disk.
-
-The function returns \var{True} if the call was succesfull, \var{False} if the call
-failed.
+\var{fdClose} closes a file with file descriptor \var{Fd}. The function
+returns \var{True} if the file was closed successfully, \var{False}
+otherwise. 
 }
-{ Errors are returned in \var{LinuxError}.
+{Errors are returned in LinuxError}
+{\seef{fdOpen}, \seef{fdRead}, \seef{fdWrite},\seef{fdTruncate},
+\seef{fdFlush}, seef{FdSeek}}
+
+For an example, see \seef{fdOpen}.
+
+\function{fdFlush}{(fd:Longint)}{boolean}
+{\var{fdflush} flushes the Linux kernel file buffer, so the file is actually
+written to disk. This is NOT the same as the internal buffer, maintained by
+Free Pascal. 
+
+The function returns \var{True} if the call was successful, \var{false} if
+an error occurred.}
+{Errors are returned in LinuxError.}
+{\seef{fdOpen}, \seef{fdClose}, \seef{fdRead},\seef{fdWrite},
+\seef{fdTruncate}, \seef{fdSeek}}
+
+For an example, see \seef{fdRead}.
+
+\function{fdOpen}{(Var PathName;flags:longint[; Mode: longint])}{longint}
+{ \var{fdOpen} opens a file in \var{pathname} with flags \var{flags} a ORed combination of
+  \var{Open\_Accmode, Open\_RdOnly, Open\_WrOnly, Open\_RdWr, Open\_Creat,
+  Open\_Excl, Open\_NoCtty, Open\_Trunc, Open\_Append, Open\_NonBlock,
+  Open\_NDelay, Open\_Sync} \var{PathName} can be of type \var{PChar} or
+\var{String}
+
+  The optional \var{mode} argument specifies the permissions to set when opening
+  the file. This is modified by the umask setting. The real permissions are
+  \var{Mode and not umask}.
+
+  The return value of the function is the filedescriptor, or a negative 
+  value if there was an error.
+}
+{Errors are returned in LinuxError}
+{\seef{fdClose}, \seef{fdRead}, \seef{fdWrite},\seef{fdTruncate},
+\seef{fdFlush}, \seef{fdSeek}}
+
+\input{linuxex/ex19.tex}
+
+\function{fdRead}{(fd:longint;var buf;size:longint}{longint}
+{ \var{fdRead} reads at most \var{size} bytes from the file descriptor
+\var{fd}, and stores them in \var{buf}. 
+
+The function returns the number of bytes actually read, or -1 if
+an error occurred.
+
+No checking on the length of \var{buf} is done.
+}
+{Errors are returned in LinuxError.}
+{\seef{fdOpen}, \seef{fdClose}, \seef{fdWrite},\seef{fdTruncate},
+\seef{fdFlush}, \seef{fdSeek}}
+
+\input{linuxex/ex20.tex}
+
+\function{fdSeek}{(fd,Pos,SeekType:longint}{longint}  
+{\var{fdSeek} sets the current fileposition of file \var{fd} to
+\var{Pos}, starting from \var{SeekType}, which can be one of the following:
 \begin{description}
-\item[sys\_eaccess] You have no write access right in the directory
-containing \var{Path}, or you have no search permission in one of the
-directory components of \var{Path}.
-\item[sys\_eperm] The  directory containing pathname has the sticky-bit 
-set and the process's effective  uid is neither the uid of the 
-file to be deleted nor that of the directory containing it.
-\item[sys\_enoent] A component of the path doesn't exist.
-\item[sys\_enotdir] A directory component of the path is not a directory.
-\item[sys\_eisdir] \var{Path} refers to a directory.
-\item[sys\_enomem] Insufficient kernel memory.
-\item[sys\_erofs] \var{Path} is on a read-only filesystem. 
+\item [Seek\_Set] \ \var{Pos} is the absolute position in the file.
+\item [Seek\_Cur] \ \var{Pos} is relative to the current position.
+\item [Seek\_end] \ \var{Pos} is relative to the end of the file.
 \end{description}
+
+The function returns the new fileposition, or -1 of an error occurred.
 }
-{\seef{Link}, \seef{SymLink}, \seem{Unlink}{2} }
+{Errors are returned in LinuxError.}
+{\seef{fdOpen}, \seef{fdWrite}, \seef{fdClose},
+\seef{fdRead},\seef{fdTruncate},
+ \seef{fdFlush}}
 
-For an example, see \seef{Link}.
+For an example, see \seef{fdOpen}.
 
-\function{Chown}{(Path : Pathstr;NewUid,NewGid : Longint)}{Boolean}
-{ \var{Chown} sets the User ID and Group ID of the file in \var{Path} to \var{NewUid,
-NewGid}.
+\function{fdTruncate}{(fd,size:longint)}{boolean}
+{\var{fdTruncate} sets the length of a file in \var{fd} on \var{size}
+bytes, where \var{size} must be less than or equal to the current length of
+the file in \var{fd}.
 
-The function returns \var{True} if the call was succesfull, \var{False} if the call
-failed.
+The function returns \var{True} if the call was successful, \var{false} if
+an error occurred.}
+{Errors are returned in LinuxError.}
+{\seef{fdOpen}, \seef{fdClose}, \seef{fdRead},\seef{fdWrite},\seef{fdFlush},
+\seef{fdSeek}}
+
+\function{fdWrite}{(fd:longint;var buf;size:longint}{longint}  
+{\var{fdWrite} writes at most \var{size} bytes from \var{buf} to
+file descriptor \var{fd}.
+
+The function returns the number of bytes actually written, or -1 if an error
+occurred.
 }
-{
-Errors are returned in \var{LinuxError}.
-\begin{description}
-\item[sys\_eperm] The effective UID doesn't match the ownership of the file,
-and is not zero. Owner or group were not specified correctly.
-\item[sys\_eaccess] One of the directories in \var{Path} has no
-search (=execute) permission.
-\item[sys\_enoent] A directory entry in \var{Path} does
-not exist or is a symbolic link pointing to a non-existent directory.
-\item[sys\_enotdir] A directory entry in \var{OldPath} or \var{NewPath} is
-nor a directory.
-\item[sys\_enomem] Insufficient kernel memory.
-\item[sys\_erofs] The file is on a read-only filesystem.
-\item[sys\_eloop] \var{Path} has a reference to a circular
-symbolic link, i.e. a symbolic link, whose expansion points to itself.
-\end{description}
-}
-{\seef{Chmod}, \seef{Access}, \seem{Chown}(2)}
+{Errors are returned in LinuxError.}
+{\seef{fdOpen}, \seef{fdClose}, \seef{fdRead},\seef{fdTruncate},
+\seef{fdSeek}, \seef{fdFlush}}
 
-\input{linuxex/ex24.tex}
-
-\function{Chmod}{(Path : Pathstr;NewMode : Longint)}{Boolean}
-{ \var{Chmod}
-Sets the Mode bits of the file in \var{Path} to \var{NewMode}. Newmode can be
-specified by 'or'-ing the following:
-\begin{description}
-\item[S\_ISUID] Set user ID on execution.
-\item[S\_ISGID] Set Group ID on execution.
-\item[S\_ISVTX] Set sticky bit.
-\item[S\_IRUSR] Read by owner.
-\item[S\_IWUSR] Write by owner.
-\item[S\_IXUSR] Execute by owner.
-\item[S\_IRGRP] Read by group.
-\item[S\_IWGRP] Write by group.
-\item[S\_IXGRP] Execute by group.
-\item[S\_IROTH] Read by others.
-\item[S\_IWOTH] Write by others.
-\item[S\_IXOTH] Execute by others.
-\item[S\_IRWXO] Read, write, execute by others.
-\item[S\_IRWXG] Read, write, execute by groups.
-\item[S\_IRWXU] Read, write, execute by user.
-\end{description}
-}
-{
-Errors are returned in \var{LinuxError}.
-\begin{description}
-\item[sys\_eperm] The effective UID doesn't match the ownership of the file,
-and is not zero. Owner or group were not specified correctly.
-\item[sys\_eaccess] One of the directories in \var{Path} has no
-search (=execute) permission.
-\item[sys\_enoent] A directory entry in \var{Path} does
-not exist or is a symbolic link pointing to a non-existent directory.
-\item[sys\_enotdir] A directory entry in \var{OldPath} or \var{NewPath} is
-nor a directory.
-\item[sys\_enomem] Insufficient kernel memory.
-\item[sys\_erofs] The file is on a read-only filesystem.
-\item[sys\_eloop] \var{Path} has a reference to a circular
-symbolic link, i.e. a symbolic link, whose expansion points to itself.
-\end{description}
-}
-{\seef{Chown}, \seef{Access}, \seem{Chmod}(2)}
-
-\input{linuxex/ex23.tex}
-
-\function{Utime}{(path : pathstr; utim : utimbuf)}{Boolean}
-{
-\var{Utime} sets the access and modification times of a file.
-the \var{utimbuf} record contains 2 fields, \var{actime}, and \var{modtime},
-both of type Longint. They should be filled with an epoch-like time,
-specifying, respectively, the last access time, and the last modification
-time. 
-
-For some filesystem (most notably, FAT), these times are the same. 
-}
-{Errors are returned in \var{LinuxError}.
-\begin{description}
-\item[sys\_eaccess] One of the directories in \var{Path} has no
-search (=execute) permission.
-\item[sys\_enoent] A directory entry in \var{Path} does
-not exist or is a symbolic link pointing to a non-existent directory.
-\end{description}
-Other errors may occur, but aren't documented.
-}
-{\seef{GetEpochTime}, \seef{Chown}, \seef{Access}, \seem{utime}(2)}
-
-\input{linuxex/ex25.tex}
-
-\function{Umask}{(Mask : Integer)}{Integer}
-{
-Change the file creation mask for the current user to \var{Mask}. The
-current mask is returned.
+\function{FExpand}{(Const Path: Pathstr)}{pathstr}
+{ Expands \var {Path} to a full path, starting from root,
+eliminating directory references such as . and .. from the result.
 }
 {None}
-{\seef{Chmod}, \seem{Umask}{2}}
+{\seef{BaseName},\seef{DirName} }
 
-\input{linuxex/ex27.tex}
+\input{linuxex/ex45.tex}
 
-\function{Access}{(Path : Pathstr; Mode : integer)}{Boolean}
-{
-Tests user's access rights on the specified file. Mode is a mask existing of
-one or more of
+\procedure{FLock}{(Var F; Mode : longint)}
+{\var{FLock} implements file locking. it sets or removes a lock on the file
+\var{F}. F can be of type \var{Text} or \var{File}, or it can be a \linux
+filedescriptor (a longint)
+
+\var{Mode} can be one of the following constants :
 \begin{description}
-\item[R\_OK] User has read rights.
-\item[W\_OK] User has write rights.
-\item[X\_OK] User has execute rights.
-\item[F\_OK] User has search rights in the directory where the file is.
-\end{description}
-The test is done with the real user ID, instead of the effective user ID.
-
-If access is denied, or an error occurred, false is returned.
-}
-{ \var{LinuxError} is used to report errors:
-\begin{description}
-\item[sys\_eaccess] The requested access is denied, either to the file or one
-of the directories in its path.
-\item[sys\_einval] \var{Mode} was incorrect.
-\item[sys\_enoent] A directory component in \var{Path} doesn't exist or is a
-dangling symbolic link.
-\item[sys\_enotdir] A directory component in \var{Path} is not a directory.
-\item[sys\_enomem] Insufficient kernel memory.
-\item[sys\_eloop] \var{Path} has a circular symbolic link.
+\item [LOCK\_SH] \ sets a shared lock.
+\item [LOCK\_EX] \ sets an exclusive lock.
+\item [LOCK\_UN] \ unlocks the file.
+\item [LOCK\_NB] \ This can be OR-ed together with the other. If this is done
+the application doesn't block when locking.
 \end{description}
 }
-{\seef{Chown}, \seef{Chmod}, \seem{Access}{2} }
-
-\input{linuxex/ex26.tex}
-
-\function{FStat}{(Path : Pathstr; Var Info : stat)}{Boolean}
-{
-\var{FStat} gets information about the file specified in \var{Path}, and stores it in 
-\var{Info}, which is of type \var{stat}.
-
-The function returns \var{True} if the call was succesfull, \var{False} if the call
-failed.
-}
-{ \var{LinuxError} is used to report errors.
-\begin{description}
-\item[sys\_enoent] \var{Path} does not exist.
-\end{description}
-}
-{\seef{FSStat}, \seef{LStat}, \seem{stat}{2}}
-
-\input{linuxex/ex28.tex}
-
-\function{LStat}{(Path : Pathstr; Var Info : stat)}{Boolean}
-{
-\var{LStat} gets information about the link specified in \var{Path}, and stores it in 
-\var{Info}, which is of type \var{stat}. Contrary to \var{FStat}, it stores
-information about the link, not about the file the link points to.
-
-The function returns \var{True} if the call was succesfull, \var{False} if the call
-failed.
-}
-{ \var{LinuxError} is used to report errors.
-\begin{description}
-\item[sys\_enoent] \var{Path} does not exist.
-\end{description}
-}
-{\seef{FStat}, \seef{FSStat}, \seem{stat}{2}}
-
-\input{linuxex/ex29.tex}
+{Errors are reported in \var{LinuxError}.}
+{\seef{Fcntl}, \seem{flock}{2}}
 
 \function{FSStat}{(Path : Pathstr; Var Info : statfs)}{Boolean}
 { Return in \var{Info} information about the filesystem on which the file
@@ -1056,61 +1019,6 @@ failed.
 
 \input{linuxex/ex30.tex}
 
-\procedure{IOCtl}{(Handle,Ndx: Longint; Data: Pointer)}
-{
-This is a general interface to the Unix/ \linux ioctl call.
-It performs various operations on the filedescriptor \var{Handle}.
-\var{Ndx} describes the operation to perform.
-\var{Data} points to data needed for the \var{Ndx} function. 
-The structure of this data is function-dependent, so we don't elaborate on
-this here. 
-
-For more information on this, see various manual pages under linux.
-}
-{
-Errors are reported in LinuxError. They are very dependent on the used
-function, that's why we don't list them here
-}
-{\seem{ioctl}{2}}
-
-\input{linuxex/ex54.tex}
-
-\function{IsATTY}{(var f)}{Boolean};
-{
-Check if the filehandle described by \var{f} is a terminal.
-f can be of type
-\begin{enumerate}
-\item \var{longint} for file handles;
-\item \var{Text} for \var{text} variables such as \var{input} etc.
-\end{enumerate}
-
-Returns \var{True} if \var{f} is a terminal, \var{False} otherwise.
-}
-{No errors are reported}
-{\seep{IOCtl},\seef{TTYName}}
-
-\function{TTYName}{(var f)}{String}
-{
-Returns the name of the terminal pointed to by \var{f}. \var{f}
-must be a terminal. \var{f} can be of type:
-\begin{enumerate}
-\item \var{longint} for file handles;
-\item \var{Text} for \var{text} variables such as \var{input} etc.
-\end{enumerate}
-}
-{ Returns an empty string in case of an error. \var{Linuxerror} may be set
- to indicate what error occurred, but this is uncertain.}
-{\seef{IsATTY},\seep{IOCtl}}
-
-\function{FExpand}{(Const Path: Pathstr)}{pathstr}
-{ Expands \var {Path} to a full path, starting from root,
-eliminating directory references such as . and .. from the result.
-}
-{None}
-{\seef{BaseName},\seef{DirName} }
-
-\input{linuxex/ex45.tex}
-
 \function{FSearch}{(Path : pathstr;DirList : string)}{Pathstr}
 { Searches in \var{DirList}, a colon separated list of directories,
 for a file named \var{Path}. It then returns a path to the found file.}
@@ -1119,143 +1027,22 @@ for a file named \var{Path}. It then returns a path to the found file.}
 
 \input{linuxex/ex46.tex}
 
-\function{BaseName}{(Const Path;Suf : Pathstr)}{Pathstr}
-{Returns the filename part of \var{Path}, stripping off \var{Suf} if it
-exists.
-
-The filename part is the whole name if \var{Path} contains no slash,
-or the part of \var{Path} after the last slash.
-
-The last character of the result is not a slash, unless the directory is the
-root directory.
-}
-{None.}
-{\seef{DirName}, \seef{FExpand}, \seem{Basename}{1}}
-
-\input{linuxex/ex48.tex}
-
-\function{DirName}{(Const Path : Pathstr)}{Pathstr}
-{Returns the directory part of \var{Path}.
-
-The directory is the part of \var{Path} before the last slash,
-or empty if there is no slash.
-
-The last character of the result is not a slash, unless the directory is the
-root directory.
-}
-{None.}
-{\seef{BaseName}, \seef{FExpand}, \seem{Dirname}{1}}
-
-\input{linuxex/ex47.tex}
-
-\function{Glob}{(Const Path : Pathstr)}{PGlob}
+\function{FStat}{(Path : Pathstr; Var Info : stat)}{Boolean}
 {
-Glob returns a pointer to a glob structure which contains all filenames which
-exist and match the pattern in \var{Path}.
+\var{FStat} gets information about the file specified in \var{Path}, and stores it in 
+\var{Info}, which is of type \var{stat}.
 
-The pattern can contain wildcard characters, which have their
-usual meaning.
-
-The pglob structure is defined as :
-Some more text.
+The function returns \var{True} if the call was succesfull, \var{False} if the call
+failed.
 }
-{ Returns nil on error, and \var{LinuxError} is set.
+{ \var{LinuxError} is used to report errors.
 \begin{description}
-\item[sys\_enomem] No memory on heap for glob structure.
-\item[others] As returned by the opendir call, and sys\_readdir.
+\item[sys\_enoent] \var{Path} does not exist.
 \end{description}
 }
-{\seep{GlobFree}, \seem{Glob}{3} }
+{\seef{FSStat}, \seef{LStat}, \seem{stat}{2}}
 
-\input{linuxex/ex49.tex}
-
- \procedure{GlobFree}{(Var P : Pglob)}
- {Releases the memory, occupied by a pglob structure. \var{P} is set to nil.}{None}
- { \seef{Glob} }
-
-For an example, see \seef{Glob}.
-
-\procedure{AssignPipe}{(Pipe\_in, Pipe\_out : Text)}
-{\var{AssignePipe} creates a pipe, i.e. two file objects, one for input, one for output.
-What is written to \var{Pipe\_out}, can be read from \var{Pipe\_in}.
-Reading and writing happens through the usual \var{Readln(Pipe\_in,...)} and
-\var{Writeln (Pipe\_out,...)} procedures.
-}
-{ \var{LinuxError} is used to report errors:
-\begin{description}
-\item[sys\_emfile] Too many file descriptors for this process.
-\item[sys\_enfile] The system file table is full.
-\end{description}
-}
-{\seep{POpen}, \seef{MkFifo}, \seem{pipe}{2}}
-
-\input{linuxex/ex36.tex}
-
-\function{MkFifo}{(PathName: String; Mode : Longint)}{Boolean}
-{\var{MkFifo} creates named a named pipe in the filesystem, with name
-\var{PathName} and mode {Mode}. 
-}
-{ \var{LinuxError} is used to report errors:
-\begin{description}
-\item[sys\_emfile] Too many file descriptors for this process.
-\item[sys\_enfile] The system file table is full.
-\end{description}
-}
-{\seep{POpen}, \seef{MkFifo}, \seem{mkfifo}{4}}
-
-
-\procedure{AssignStream}{(StreamIn,StreamOut : Text; Const prog : String)}
-{\var{AssignStream} creates a 2 pipes, i.e. two file objects, one for input, one for
-output, the other ends of these pipes are connected to standard input and and
-output of \var{Prog}. \var{Prog} is the name of a program (including path)
-with options, which will be executed.
-What is written to \var{StreamOut}, will go to the standard input of
-\var{Prog}. Whatever is written by \var{Prog} to it's standard output be read from
-\var{StreamIn}.
-Reading and writing happens through the usual \var{Readln(StreamIn,...)} and
-\var{Writeln (StreamOut,...)} procedures.
-}
-{ \var{LinuxError} is used to report errors:
-\begin{description}
-\item[sys\_emfile] Too many file descriptors for this process.
-\item[sys\_enfile] The system file table is full.
-\end{description}
-Other errors include the ones by the fork and exec programs
-}
-{\seep{AssignPipe}, \seep{POpen},\seem{pipe}{2}}
-
-\input{linuxex/ex38.tex}
-
-\procedure {POpen}{(Var F : FileType; Cmd : pathstr; rw : char)}
-{ Popen runs the command specified in \var{Cmd},
- and redirects the standard in or output of the
-command to the other end of the pipe \var{F}. The parameter \var{rw}
-indicates the direction of the pipe. If it is set to \var{'W'}, then F can
-be used to write data, which will then be read by the command from stdinput.
-If it is set to \var{'R'}, then the standard output of the command can be 
-read from \var{F}. \var{F} should be reset or rewritten prior to using it.
-
-\var{F} can be of type \var{Text} or \var{File}.
-
-A file opened with \var {POpen} can be closed with \var{Close}, but also
-with \seef{PClose}. The result is the same, but \var{PClose} returns the
-exit status of the command \var{Cmd}.}
-{Errors are reported in \var{LinuxError} and are essentially those of the
-Execve, Dup and AssignPipe commands.
-}
-{\seep{AssignPipe}, \seem{popen}{3}, \seef{PClose}}
-
-\input{linuxex/ex37.tex}
-
-\function{PClose}{(Var F : FileType)}{longint}
-{ \var{PClose} closes a file opened with \var{POpen}. It waits for the
-command to complete, and then returns the exit status of the command. 
-}
-{\var{LinuxError} is used to report errors. If it is different from zero,
-the exit status is not valid.}
-{\seep{POpen}}
-
-For an example, see \seep{POpen}
+\input{linuxex/ex28.tex}
 
 \function{Fcntl}{(Fd :  text, Cmd : Integer)}{Integer}
 {
@@ -1304,142 +1091,336 @@ held by another process.
 }
 {\seef{Fcntl}, \seem{Fcntl}{2} }
 
-\procedure{Dup}{(Var OldFile, NewFile : Text)}
+\function{Fork}{}{Longint}
 {
-Makes \var{NewFile} an exact copy of \var{OldFile}, after having flushed the
-buffer of \var{OldFile}. Due to the buffering mechanism of Pascal, this has not
-the same functionality as the \seem{dup}{2} call in C. The internal Pascal
-buffers are not the same after this call, but when the buffers are flushed
-(e.g. after output), the output is sent to the same file.
-Doing an lseek will, however, work as in C, i.e. doing a lseek will change the
-fileposition in both files.
+Fork creates a child process which is a copy of the parent process.
+
+Fork returns the process ID in the parent process, and zero in the child's
+process. (you can get the parent's PID with \seef{GetPPid}).
 }
-{ \var{Linuxerror} is used to report errors.
+{On error, -1 is returned to the parent, and no child is created.
 \begin{description}
-\item[sys\_ebadf] \var{OldFile} hasn't been assigned.
-\item[sys\_emfile] Maximum number of open files for the process is reached.
+\item [sys\_eagain] Not enough memory to create child process.
 \end{description}
 }
-{\seep{Dup2}, \seem{Dup}{2} }
+{\seep{Execve}, \seem{fork}{2}}
 
-\input{linuxex/ex31.tex}
+\input{linuxex/ex14.tex}
 
-\procedure{Dup2}{(Var OldFile, NewFile : Text)}
+\procedure{GetDate}
+{ (Var Year, Month, Day : Word) }
 {
-Makes \var{NewFile} an exact copy of \var{OldFile}, after having flushed the
-buffer of \var{OldFile}. \var{NewFile} can be an assigned file.
-If \var{newfile} was open, it is closed first.
-Due to the buffering mechanism of Pascal, this has not
-the same functionality as the \seem{dup2}{2} call in C. The internal Pascal
-buffers are not the same after this call, but when the buffers are flushed
-(e.g. after output), the output is sent to the same file.
-Doing an lseek will, however, work as in C, i.e. doing a lseek will change the
-fileposition in both files.
-}
-{ \var{Linuxerror} is used to report errors.
-\begin{description}
-\item[sys\_ebadf] \var{OldFile} hasn't been assigned.
-\item[sys\_emfile] Maximum number of open files for the process is reached.
-\end{description}
-}
-{ \seep{Dup}, \seem{Dup2}{2} }
-
-\input{linuxex/ex32.tex}
-
-\procedure{SigAction}{(Signum : Integer; Var Act,OldAct : PSigActionRec)}
-{ Changes the action to take upon receipt of a signal. \var{Act} and
-\var{Oldact} are pointers to a \var{SigActionRec} record.
-
-\var{SigNum} specifies the signal, and can be any signal except
-\textbf{SIGKILL} or \textbf{SIGSTOP}.
-
-If \var{Act} is non-nil, then the new action for signal \var{SigNum} is taken
-from it. If \var{OldAct} is non-nil, the old action is stored there.
-
-\var{Sa\_Handler} may be \var{SIG\_DFL} for the default action or
-\var{SIG\_IGN} to ignore the signal.
-
-\var{Sa\_Mask} Specifies which signals should be ignord during the execution
-of the signal handler.
-
-\var{Sa\_Flags} Speciefies a series of flags which modify the behaviour of
-the signal handler. You can 'or' none or more of the following :
-\begin{description}
-\item[SA\_NOCLDSTOP] If signum is \textbf{SIGCHLD} do not receive
-notification when child processes stop.
-\item[SA\_ONESHOT or SA\_RESETHAND] Restore the signal action to the default
-state once the signal handler has been called.
-\item[SA\_RESTART] For compatibility with BSD signals.
-\item[SA\_NOMASK or SA\_NODEFER] Do not prevent the signal from being received
-from within its own signal handler.
-\end{description}
-}
-{\var{LinuxError} is used to report errors.
-\begin{description}
-\item[sys\_einval] an invalid signal was specified, or it was
-\textbf{SIGKILL} or \textbf{SIGSTOP}.
-\item[sys\_efault] \var{Act,OldAct} point outside this process address space
-\item[sys\_eintr] System call was interrupted.
-\end{description}
-}
-{
-\seep{SigProcMask}, \seef{SigPending}, \seep{SigSuspend}, \seef{Kill},
-\seem{Sigaction}{2}
-}
-
-\procedure {SigProcMask}{(How : Integer; SSet,OldSSet : PSigSet)}
-{
-Changes the list of currently blocked signals. The behaviour of the call
-depends on \var{How} :
-\begin{description}
-\item[SIG\_BLOCK] The set of blocked signals is the union of the current set
-and the \var{SSet} argument.
-\item[SIG\_UNBLOCK] The signals in \var{SSet} are removed from the set of
-currently blocked signals.
-\item[SIG\_SETMASK] The list of blocked signals is set so \var{SSet}.
-\end{description}
-If \var{OldSSet} is non-nil, then the old set is stored in it.
-}
-{\var{LinuxError} is used to report errors.
-\begin{description}
-\item[sys\_efault] \var{SSet} or \var{OldSSet} point to an adress outside
-the range of the process.
-\item[sys\_eintr] System call was interrupted.
-\end{description}
-}
-{\seep{SigAction}, \seef{SigPending}, \seep{SigSuspend}, \seef{Kill},
-\seem{Sigprocmask}{2} }
-
-\function{SigPending}{}{SigSet}
-{
-Sigpending allows the examination of pending signals (which have been raised
-while blocked.) The signal mask of pending signals is returned.
+Returns the current day.
 }
 {None}
-{\seep{SigAction}, \seep{SigProcMask}, \seep{SigSuspend}, \seef{Signal},
-\seef{Kill}, \seem{Sigpending}{2} }
+{\seef{GetEpochTime}, \seep{GetTime}, \seep{EpochToLocal} }
 
-\procedure{SigSuspend}{(Mask : SigSet)}
-{SigSuspend temporarily replaces the signal mask for the process with the one
-given in \var{Mask}, and then suspends the process until a signal is received.
+\input{linuxex/ex6.tex}
+
+\function{GetDomainName}{}{String}
+{
+Get the domain name of the machine on which the process is running.
+An empty string is returned if the domain is not set.
+}
+{None.}
+{ \seef{GetHostName},seem{Getdomainname}{2} }
+
+\input{linuxex/ex39.tex}
+
+\function{GetEGid}{}{Longint}
+{ Get the effective group ID of the currently running process.}
+{None.}
+{\seef{GetGid}, \seem{getegid}{2} }
+
+\input{linuxex/ex18.tex}
+
+\function{GetEUid}{}{Longint}
+{ Get the effective user ID of the currently running process.}
+{None.}
+{\seef{GetEUid}, \seem{geteuid}{2} }
+
+\input{linuxex/ex17.tex}
+
+\function{GetEnv}{(P : String)}{PChar}
+{Returns the value of the environment variable in \var{P}. If the variable is
+not defined, nil is returned. The value of the environment variable may be
+the empty string.
+
+A PChar is returned to accomodate for strings longer than 255 bytes,
+\var{TERMCAP} and \var{LS\_COLORS}, for instance.
+}
+{None.}
+{\seem{sh}{1}, \seem{csh}{1} }
+
+\input{linuxex/ex41.tex}
+
+\function{GetEpochTime}{}{longint}
+{
+returns the number of seconds since 00:00:00 gmt, january 1, 1970.
+it is adjusted to the local time zone, but not to DST.
+}
+{no errors}
+{\seep{EpochToLocal}, \seep{GetTime}, \seem{time}{2}}
+
+\input{linuxex/ex1.tex}
+\function{GetFS}{(Var F : Any File Type)}{Longint}
+{\var{GetFS} returns the file selector that the kernel provided for your
+file. In principle you don' need this file selector. Only for some calls
+it is needed, such as the \seef{Select} call or so.}
+{In case the file was not opened, then -1 is returned.}
+{\seef{Select}}
+
+\input{linuxex/ex34.tex}
+
+\function{GetGid}{}{Longint}
+{ Get the real group ID of the currently running process.}
+{None.}
+{\seef{GetEGid}, \seem{getgid}{2} }
+
+\input{linuxex/ex18.tex}
+\function{GetHostName}{}{String}
+{
+Get the hostname of the machine on which the process is running.
+An empty string is returned if hostname is not set.
+}
+{None.}
+{ \seef{GetDomainName},seem{Gethostname}{2} }
+
+\input{linuxex/ex40.tex}
+
+\function{GetPid}{}{Longint}
+{ Get the Process ID of the currently running process.}
+{None.}
+{\seef{GetPPid}, \seem{getpid}{2}}
+
+\input{linuxex/ex16.tex}
+
+
+\function{GetPPid}{}{Longint}
+{ Get the Process ID of the parent process.}
+{None.}
+{\seef{GetPid}, \seem{getppid}{2}}
+
+\input{linuxex/ex16.tex}
+
+\function{GetPriority}{(Which,Who : Integer)}{Integer}
+{
+GetPriority returns the priority with which a process is running.
+Which process(es) is determined by the \var{Which} and \var{Who} variables.
+\var{Which} can be one of the pre-defined \var{Prio\_Process, Prio\_PGrp,
+Prio\_User}, in which case \var{Who} is the process ID, Process group ID or
+User ID, respectively.
+}
+{
+ Error checking must be done on LinuxError, since a priority can be negative.
+ \begin{description}
+ \item[sys\_esrch] No process found using \var{which} and \var{who}.
+ \item[sys\_einval] \var{Which} was not one of \var{Prio\_Process, Prio\_Grp
+or Prio\_User}.
+ \end{description}
+ }
+{\seef{SetPriority}, \seep{Nice}, \seem{Getpriority}{2}}
+
+For an example, see \seep{Nice}.
+
+\procedure{GetTime}
+{ (Var Hour,Minute, Second : Word) }
+{
+Returns the current time of the day.
 }
 {None}
-{\seep{SigAction}, \seep{SigProcMask}, \seef{SigPending}, \seef{Signal},
-\seef{Kill}, \seem{SigSuspend}{2} }
+{\seef{GetEpochTime}, \seep{GetDate}, \seep{EpochToLocal} }
 
-\function{Signal}{(SigNum : Integer; Handler : PSignalHandler)}{PSignalHandler}
+\input{linuxex/ex5.tex}
+
+\function{GetUid}{}{Longint}
+{ Get the real user ID of the currently running process.}
+{None.}
+{\seef{GetEUid}, \seem{getuid}{2} }
+
+\input{linuxex/ex17.tex}
+
+\function{Glob}{(Const Path : Pathstr)}{PGlob}
 {
-Signal installs a new signal handler for signal \var{SigNum}. This call has
-the same functionality as the \textbf{SigAction} call.
+Glob returns a pointer to a glob structure which contains all filenames which
+exist and match the pattern in \var{Path}.
 
-The return value for Signal is the old signal handler, or nil on error.
+The pattern can contain wildcard characters, which have their
+usual meaning.
 }
-{\var {LinuxError} is used to report errors :
+{ Returns nil on error, and \var{LinuxError} is set.
 \begin{description}
-\item[SIG\_ERR] An error occurred.
+\item[sys\_enomem] No memory on heap for glob structure.
+\item[others] As returned by the opendir call, and sys\_readdir.
 \end{description}
 }
-{\seep{SigAction},\seef{Kill}, \seem{Signal}{2} }
+{\seep{GlobFree}, \seem{Glob}{3} }
+
+\input{linuxex/ex49.tex}
+
+ \procedure{GlobFree}{(Var P : Pglob)}
+ {Releases the memory, occupied by a pglob structure. \var{P} is set to nil.}{None}
+ { \seef{Glob} }
+
+For an example, see \seef{Glob}.
+
+\procedure{IOCtl}{(Handle,Ndx: Longint; Data: Pointer)}
+{
+This is a general interface to the Unix/ \linux ioctl call.
+It performs various operations on the filedescriptor \var{Handle}.
+\var{Ndx} describes the operation to perform.
+\var{Data} points to data needed for the \var{Ndx} function. 
+The structure of this data is function-dependent, so we don't elaborate on
+this here. 
+
+For more information on this, see various manual pages under linux.
+}
+{
+Errors are reported in LinuxError. They are very dependent on the used
+function, that's why we don't list them here
+}
+{\seem{ioctl}{2}}
+
+\input{linuxex/ex54.tex}
+
+\function{IOperm}{(From,Num : Cadinal; Value : Longint)}{boolean}
+{\var{IOperm}
+  sets permissions on \var{Num} ports starting with port \var{From} to 
+  \var{Value}. The function returns \var{True} if the call was successfull,
+  \var{False} otherwise.
+
+{\em Remark:}
+\begin{itemize}
+\item This works ONLY as root.
+\item Only the first \var{0x03ff} ports can be set.
+\item When doing a \seef{Fork}, the permissions are reset. When doing a
+\seep{Execve} they are kept.
+\end{itemize}
+}{Errors are returned in \var{LinuxError}}{\seem{ioperm}{2}}
+
+\function{IsATTY}{(var f)}{Boolean};
+{
+Check if the filehandle described by \var{f} is a terminal.
+f can be of type
+\begin{enumerate}
+\item \var{longint} for file handles;
+\item \var{Text} for \var{text} variables such as \var{input} etc.
+\end{enumerate}
+
+Returns \var{True} if \var{f} is a terminal, \var{False} otherwise.
+}
+{No errors are reported}
+{\seep{IOCtl},\seef{TTYName}}
+
+
+\functionl{S\_ISBLK}{ISBLK}{(m:integer)}{boolean}
+{ \var{S\_ISBLK} checks the file mode \var{m} to see whether the file is a
+block device file. If so it returns \var{True}.
+}
+{\seef{FStat},
+ \seefl{S\_ISLNK}{ISLNK}, 
+ \seefl{S\_ISREG}{ISREG},
+ \seefl{S\_ISDIR}{ISDIR},
+ \seefl{S\_ISCHR}{ISCHR},
+ \seefl{S\_ISFIFO}{ISFIFO},
+ \seefl{S\_ISSOCK}{ISSOCK}
+}
+
+For an example, see \seef{ISLNK}.
+
+
+\functionl{S\_ISCHR}{ISCHR}{(m:integer)}{boolean}
+{ \var{S\_ISCHR} checks the file mode \var{m} to see whether the file is a
+character device file. If so it returns \var{True}.
+}
+{\seef{FStat},
+ \seefl{S\_ISLNK}{ISLNK}, 
+ \seefl{S\_ISREG}{ISREG},
+ \seefl{S\_ISDIR}{ISDIR},
+ \seefl{S\_ISBLK}{ISBLK},
+ \seefl{S\_ISFIFO}{ISFIFO},
+ \seefl{S\_ISSOCK}{ISSOCK}
+}
+
+For an example, see \seef{ISLNK}.
+
+\functionl{S\_ISDIR}{ISDIR}{(m:integer)}{boolean}	
+{ \var{S\_ISDIR} checks the file mode \var{m} to see whether the file is a
+directory. If so it returns \var{True}
+}
+{\seef{FStat},
+ \seefl{S\_ISLNK}{ISLNK}, 
+ \seefl{S\_ISREG}{ISREG},
+ \seefl{S\_ISCHR}{ISCHR},
+ \seefl{S\_ISBLK}{ISBLK},
+ \seefl{S\_ISFIFO}{ISFIFO},
+ \seefl{S\_ISSOCK}{ISSOCK}
+}
+
+For an example, see \seef{ISLNK}.
+
+\functionl{S\_ISFIFO}{ISFIFO}{(m:integer)}{boolean}
+{ \var{S\_ISFIFO} checks the file mode \var{m} to see whether the file is a
+fifo (a named pipe). If so it returns \var{True}.
+}
+{\seef{FStat},
+ \seefl{S\_ISLNK}{ISLNK}, 
+ \seefl{S\_ISREG}{ISREG},
+ \seefl{S\_ISDIR}{ISDIR},
+ \seefl{S\_ISCHR}{ISCHR},
+ \seefl{S\_ISBLK}{ISBLK},
+ \seefl{S\_ISSOCK}{ISSOCK}
+}
+
+For an example, see \seef{ISLNK}.
+
+\functionl{S\_ISLNK}{ISLNK}{(m:integer)}{boolean}
+{ \var{S\_ISLNK} checks the file mode \var{m} to see whether the file is a
+symbolic link. If so it returns \var{True}
+}
+{\seef{FStat},
+ \seefl{S\_ISREG}{ISREG},
+ \seefl{S\_ISDIR}{ISDIR},
+ \seefl{S\_ISCHR}{ISCHR},
+ \seefl{S\_ISBLK}{ISBLK},
+ \seefl{S\_ISFIFO}{ISFIFO},
+ \seefl{S\_ISSOCK}{ISSOCK}
+}
+
+\input{linuxex/ex53.tex}
+
+
+\functionl{S\_ISREG}{ISREG}{(m:integer)}{boolean}
+{ \var{S\_ISREG} checks the file mode \var{m} to see whether the file is a
+regular file. If so it returns \var{True}
+}
+{\seef{FStat},
+ \seefl{S\_ISLNK}{ISLNK}, 
+ \seefl{S\_ISDIR}{ISDIR},
+ \seefl{S\_ISCHR}{ISCHR},
+ \seefl{S\_ISBLK}{ISBLK},
+ \seefl{S\_ISFIFO}{ISFIFO},
+ \seefl{S\_ISSOCK}{ISSOCK}
+}
+
+For an example, see \seef{ISLNK}.
+
+
+
+\functionl{S\_ISSOCK}{ISSOCK}{(m:integer)}{boolean}
+{ \var{S\_ISSOCK} checks the file mode \var{m} to see whether the file is a
+socket. If so it returns \var{True}.
+}
+{\seef{FStat},
+ \seefl{S\_ISLNK}{ISLNK}, 
+ \seefl{S\_ISREG}{ISREG},
+ \seefl{S\_ISDIR}{ISDIR},
+ \seefl{S\_ISCHR}{ISCHR},
+ \seefl{S\_ISBLK}{ISBLK},
+ \seefl{S\_ISFIFO}{ISFIFO}
+}
+
+For an example, see \seef{ISLNK}.
 
 \function{Kill}{Pid : Longint; Sig : Integer)}{Integer}
 { Send a signal \var{Sig} to a process or process group. If \var{Pid}>0 then
@@ -1460,38 +1441,159 @@ the one of process \var{Pid}.
 }
 {\seep{SigAction}, \seef{Signal}, \seem{Kill}{2} }
 
-\function{GetHostName}{}{String}
+\function{LStat}{(Path : Pathstr; Var Info : stat)}{Boolean}
 {
-Get the hostname of the machine on which the process is running.
-An empty string is returned if hostname is not set.
+\var{LStat} gets information about the link specified in \var{Path}, and stores it in 
+\var{Info}, which is of type \var{stat}. Contrary to \var{FStat}, it stores
+information about the link, not about the file the link points to.
+
+The function returns \var{True} if the call was succesfull, \var{False} if the call
+failed.
 }
-{None.}
-{ \seef{GetDomainName},seem{Gethostname}{2} }
+{ \var{LinuxError} is used to report errors.
+\begin{description}
+\item[sys\_enoent] \var{Path} does not exist.
+\end{description}
+}
+{\seef{FStat}, \seef{FSStat}, \seem{stat}{2}}
 
-\input{linuxex/ex40.tex}
+\input{linuxex/ex29.tex}
 
-\function{GetDomainName}{}{String}
+\function{Link}{(OldPath,NewPath : pathstr)}{Boolean}
+{\var{Link} makes \var{NewPath} point to the same file als \var{OldPath}. The two files
+then have the same inode number. This is known as a 'hard' link.
+
+The function returns \var{True} if the call was succesfull, \var{False} if the call
+failed.
+}
+{ Errors are returned in \var{LinuxError}.
+\begin{description}
+\item[sys\_exdev] \var {OldPath} and \var {NewPath} are not on the same
+filesystem.
+\item[sys\_eperm] The filesystem containing oldpath and newpath doesn't
+support linking files.
+\item[sys\_eaccess] Write access for the directory containing \var{Newpath}
+is disallowed, or one of the directories in \var{OldPath} or {NewPath} has no
+search (=execute) permission.
+\item[sys\_enoent] A directory entry in \var{OldPath} or \var{NewPath} does
+not exist or is a symbolic link pointing to a non-existent directory.
+\item[sys\_enotdir] A directory entry in \var{OldPath} or \var{NewPath} is
+nor a directory.
+\item[sys\_enomem] Insufficient kernel memory.
+\item[sys\_erofs] The files are on a read-only filesystem.
+\item[sys\_eexist] \var{NewPath} already exists.
+\item[sys\_emlink] \var{OldPath} has reached maximal link count.
+\item[sys\_eloop] \var{OldPath} or \var{NewPath} has a reference to a circular
+symbolic link, i.e. a symbolic link, whose expansion points to itself.
+\item[sys\_enospc] The device containing \var{NewPath} has no room for anothe
+entry.
+\item[sys\_eperm] \var{OldPath} points to . or .. of a directory.
+\end{description}
+}
+{\seef{SymLink}, \seef{UnLink}, \seem{Link}{2} }
+
+\input{linuxex/ex21.tex}
+
+
+
+\function{LocalToEpoch}{(Year,Month,Day,Hour,Minute,Second : Word)}{longint}
 {
-Get the domain name of the machine on which the process is running.
-An empty string is returned if the domain is not set.
+Converts the Local time to epoch time (=Number of seconds since 00:00:00 , January 1,
+1970 ).
 }
-{None.}
-{ \seef{GetHostName},seem{Getdomainname}{2} }
+{None}
+{\seef{GetEpochTime}, \seep{EpochToLocal}, \seep{GetTime},\seep{GetDate} }
 
-\input{linuxex/ex39.tex}
+\input{linuxex/ex4.tex}
 
-\function{GetEnv}{(P : String)}{PChar}
-{Returns the value of the environment variable in \var{P}. If the variable is
-not defined, nil is returned. The value of the environment variable may be
-the empty string.
-
-A PChar is returned to accomodate for strings longer than 255 bytes,
-\var{TERMCAP} and \var{LS\_COLORS}, for instance.
+\function{MkFifo}{(PathName: String; Mode : Longint)}{Boolean}
+{\var{MkFifo} creates named a named pipe in the filesystem, with name
+\var{PathName} and mode {Mode}. 
 }
-{None.}
-{\seem{sh}{1}, \seem{csh}{1} }
+{ \var{LinuxError} is used to report errors:
+\begin{description}
+\item[sys\_emfile] Too many file descriptors for this process.
+\item[sys\_enfile] The system file table is full.
+\end{description}
+}
+{\seep{POpen}, \seef{MkFifo}, \seem{mkfifo}{4}}
 
-\input{linuxex/ex41.tex}
+\procedure{Nice}{( N : Integer)}
+{Nice adds \var{-N} to the priority of the running process. The lower the
+priority numerically, the less the process is favored.
+
+Only the superuser can specify a negative \var{N}, i.e. increase the rate at
+which the process is run.
+}
+{ Errors are returned in \var{LinuxError}
+\begin{description}
+\item [sys\_eperm] A non-superuser tried to specify a negative \var{N}, i.e.
+do a priority increase.
+\end{description}
+}{\seef{GetPriority}, \seef{SetPriority}, \seem{Nice}{2}}
+
+\input{linuxex/ex15.tex}
+
+\function{OpenDir}{(f:pchar)}{pdir}
+{ \var{OpenDir} opens the directory  \var{f}, and returns a \var{pdir}
+pointer to a \var{Dir} record, which can be used to read the directory 
+structure. If the directory cannot be opened, \var{nil} is returned.}
+{Errors are returned in LinuxError.}
+{\seef{CloseDir}, \seef{ReadDir}, \seep{SeekDir}, \seef{TellDir},
+\seem{opendir}{3}}
+
+\input{linuxex/ex35.tex}
+
+\function{PClose}{(Var F : FileType)}{longint}
+{ \var{PClose} closes a file opened with \var{POpen}. It waits for the
+command to complete, and then returns the exit status of the command. 
+}
+{\var{LinuxError} is used to report errors. If it is different from zero,
+the exit status is not valid.}
+{\seep{POpen}}
+
+For an example, see \seep{POpen}
+
+\procedure {POpen}{(Var F : FileType; Cmd : pathstr; rw : char)}
+{ Popen runs the command specified in \var{Cmd},
+ and redirects the standard in or output of the
+command to the other end of the pipe \var{F}. The parameter \var{rw}
+indicates the direction of the pipe. If it is set to \var{'W'}, then F can
+be used to write data, which will then be read by the command from stdinput.
+If it is set to \var{'R'}, then the standard output of the command can be 
+read from \var{F}. \var{F} should be reset or rewritten prior to using it.
+
+\var{F} can be of type \var{Text} or \var{File}.
+
+A file opened with \var {POpen} can be closed with \var{Close}, but also
+with \seef{PClose}. The result is the same, but \var{PClose} returns the
+exit status of the command \var{Cmd}.}
+{Errors are reported in \var{LinuxError} and are essentially those of the
+Execve, Dup and AssignPipe commands.
+}
+{\seep{AssignPipe}, \seem{popen}{3}, \seef{PClose}}
+
+\input{linuxex/ex37.tex}
+
+\function{ReadDir}{(p:pdir)}{pdirent}
+{\var{ReadDir} reads the next entry in the directory pointed to by \var{p}.
+It returns a \var{pdirent} pointer to a structure describing the entry.
+If the next entry can't be read, \var{Nil} is returned.
+}
+{Errors are returned in LinuxError.}
+{\seef{CloseDir}, \seef{OpenDir}, \seep{SeekDir}, \seef{TellDir},
+\seem{readdir}{3}}
+
+For an example, see \seef{OpenDir}.
+
+\procedure {SeekDir}{(p:pdir;off:longint)}
+{ \var{SeekDir} sets the directory pointer to the \var{off}-th entry in the
+directory structure pointed to by \var{p}.}
+{Errors are returned in LinuxError.}
+{\seef{CloseDir}, \seef{ReadDir}, \seef{OpenDir}, \seef{TellDir},
+\seem{seekdir}{3}}
+
+For an example, see \seef{OpenDir}.
 
 \function{Select}{(N : Longint; \\ var readfds,writefds,exceptfds : PFDset;
 Var Timeout)}{Longint}
@@ -1557,445 +1659,175 @@ how the file was opened : With \var{Reset} it is checked for reading, with
 {See \seef{Select}. \var{SYS\_EBADF} can also mean that the file wasn't
 opened.}
 {\seef{Select}, \seef{GetFS}}
-\function{GetFS}{(Var F : Any File Type)}{Longint}
-{\var{GetFS} returns the file selector that the kernel provided for your
-file. In principle you don' need this file selector. Only for some calls
-it is needed, such as the \seef{Select} call or so.}
-{In case the file was not opened, then -1 is returned.}
-{\seef{Select}}
 
-\input{linuxex/ex34.tex}
-
-\procedurel{FD\_Clear}{FDClear}{(var fds:fdSet)}
-{\var{FD\_Clear} clears all the filedescriptors in the file descriptor 
-set \var{fds}.}
-{None.}
-{\seef{Select}, 
-\seef{SelectText}, 
-\seef{GetFS}, 
-\seepl{FD\_Clr}{FDClr},
-\seepl{FD\_Set}{FDSet}, 
-\seefl{FD\_IsSet}{FDIsSet}
-
-}
-
-For an example, see \seef{Select}.
-
-\procedurel{FD\_Clr}{FDClr}{(fd:longint;var fds:fdSet)}
-{ \var{FD\_Clr} clears file descriptor \var{fd} in filedescriptor s
-  et \var{fds}.}
-{None.}
-{\seef{Select}, 
-\seef{SelectText}, 
-\seef{GetFS},
-\seepl{FD\_Clear}{FDClear}, 
-\seepl{FD\_Set}{FDSet}, 
-\seefl{FD\_IsSet}{FDIsSet}}
-
-For an example, see \seef{Select}.
-
-\procedurel{FD\_Set}{FDSet}{(fd:longint;var fds:fdSet)}
-{\var{FD\_Set} sets file descriptor \var{fd} in filedescriptor set \var{fds}.}
-{None.}
-{\seef{Select}, \seef{SelectText}, \seef{GetFS},\seepl{FD\_Clear}{FDClear}, 
-\seepl{FD\_Clr}{FDClr}, \seefl{FD\_IsSet}{FDIsSet}}
-
-For an example, see \seef{Select}.
-
-\functionl{FD\_IsSet}{FDIsSet}{(fd:longint;var fds:fdSet)}{boolean}
-{\var{FD\_Set} Checks whether file descriptor \var{fd} in filedescriptor set \var{fds}
-is set.}
-{None.}
-{\seef{Select}, \seef{SelectText}, \seef{GetFS},
-\seepl{FD\_Clear}{FDClear}, 
-\seepl{FD\_Clr}{FDClr},
-\seepl{FD\_Set}{FDSet}}
-
-For an example, see \seef{Select}.
-
-\function{fdOpen}{(Var PathName;flags:longint[; Mode: longint])}{longint}
-{ \var{fdOpen} opens a file in \var{pathname} with flags \var{flags} a ORed combination of
-  \var{Open\_Accmode, Open\_RdOnly, Open\_WrOnly, Open\_RdWr, Open\_Creat,
-  Open\_Excl, Open\_NoCtty, Open\_Trunc, Open\_Append, Open\_NonBlock,
-  Open\_NDelay, Open\_Sync} \var{PathName} can be of type \var{PChar} or
-\var{String}
-
-  The optional \var{mode} argument specifies the permissions to set when opening
-  the file. This is modified by the umask setting. The real permissions are
-  \var{Mode and not umask}.
-
-  The return value of the function is the filedescriptor, or a negative 
-  value if there was an error.
-}
-{Errors are returned in LinuxError}
-{\seef{fdClose}, \seef{fdRead}, \seef{fdWrite},\seef{fdTruncate},
-\seef{fdFlush}, \seef{fdSeek}}
-
-\input{linuxex/ex19.tex}
-
-\function{fdClose}{(fd:longint)}{boolean}
+\function{SetPriority}{(Which,Who,Prio : Integer)}{Integer}
 {
-\var{fdClose} closes a file with file descriptor \var{Fd}. The function
-returns \var{True} if the file was closed successfully, \var{False}
-otherwise. 
+SetPriority sets the priority with which a process is running.
+Which process(es) is determined by the \var{Which} and \var{Who} variables.
+\var{Which} can be one of the pre-defined \var{Prio\_Process, Prio\_PGrp,
+Prio\_User}, in which case \var{Who} is the process ID, Process group ID or
+User ID, respectively.
+
+\var{Prio} is a value in the range -20 to 20.
 }
-{Errors are returned in LinuxError}
-{\seef{fdOpen}, \seef{fdRead}, \seef{fdWrite},\seef{fdTruncate},
-\seef{fdFlush}, seef{FdSeek}}
-
-For an example, see \seef{fdOpen}.
-
-\function{fdRead}{(fd:longint;var buf;size:longint}{longint}
-{ \var{fdRead} reads at most \var{size} bytes from the file descriptor
-\var{fd}, and stores them in \var{buf}. 
-
-The function returns the number of bytes actually read, or -1 if
-an error occurred.
-
-No checking on the length of \var{buf} is done.
-}
-{Errors are returned in LinuxError.}
-{\seef{fdOpen}, \seef{fdClose}, \seef{fdWrite},\seef{fdTruncate},
-\seef{fdFlush}, \seef{fdSeek}}
-
-\input{linuxex/ex20.tex}
-
-\function{fdWrite}{(fd:longint;var buf;size:longint}{longint}  
-{\var{fdWrite} writes at most \var{size} bytes from \var{buf} to
-file descriptor \var{fd}.
-
-The function returns the number of bytes actually written, or -1 if an error
-occurred.
-}
-{Errors are returned in LinuxError.}
-{\seef{fdOpen}, \seef{fdClose}, \seef{fdRead},\seef{fdTruncate},
-\seef{fdSeek}, \seef{fdFlush}}
-
-\function{fdSeek}{(fd,Pos,SeekType:longint}{longint}  
-{\var{fdSeek} sets the current fileposition of file \var{fd} to
-\var{Pos}, starting from \var{SeekType}, which can be one of the following:
-\begin{description}
-\item [Seek\_Set] \ \var{Pos} is the absolute position in the file.
-\item [Seek\_Cur] \ \var{Pos} is relative to the current position.
-\item [Seek\_end] \ \var{Pos} is relative to the end of the file.
-\end{description}
-
-The function returns the new fileposition, or -1 of an error occurred.
-}
-{Errors are returned in LinuxError.}
-{\seef{fdOpen}, \seef{fdWrite}, \seef{fdClose},
-\seef{fdRead},\seef{fdTruncate},
- \seef{fdFlush}}
-
-For an example, see \seef{fdOpen}.
-
-\function{fdTruncate}{(fd,size:longint)}{boolean}
-{\var{fdTruncate} sets the length of a file in \var{fd} on \var{size}
-bytes, where \var{size} must be less than or equal to the current length of
-the file in \var{fd}.
-
-The function returns \var{True} if the call was successful, \var{false} if
-an error occurred.}
-{Errors are returned in LinuxError.}
-{\seef{fdOpen}, \seef{fdClose}, \seef{fdRead},\seef{fdWrite},\seef{fdFlush},
-\seef{fdSeek}}
-
-\function{fdFlush}{(fd:Longint)}{boolean}
-{\var{fdflush} flushes the Linux kernel file buffer, so the file is actually
-written to disk. This is NOT the same as the internal buffer, maintained by
-Free Pascal. 
-
-The function returns \var{True} if the call was successful, \var{false} if
-an error occurred.}
-{Errors are returned in LinuxError.}
-{\seef{fdOpen}, \seef{fdClose}, \seef{fdRead},\seef{fdWrite},
-\seef{fdTruncate}, \seef{fdSeek}}
-
-For an example, see \seef{fdRead}.
-
-\functionl{S\_ISLNK}{ISLNK}{(m:integer)}{boolean}
-{ \var{S\_ISLNK} checks the file mode \var{m} to see whether the file is a
-symbolic link. If so it returns \var{True}
-}
-{\seef{FStat},
- \seefl{S\_ISREG}{ISREG},
- \seefl{S\_ISDIR}{ISDIR},
- \seefl{S\_ISCHR}{ISCHR},
- \seefl{S\_ISBLK}{ISBLK},
- \seefl{S\_ISFIFO}{ISFIFO},
- \seefl{S\_ISSOCK}{ISSOCK}
-}
-
-\input{linuxex/ex53.tex}
-
-\functionl{S\_ISREG}{ISREG}{(m:integer)}{boolean}
-{ \var{S\_ISREG} checks the file mode \var{m} to see whether the file is a
-regular file. If so it returns \var{True}
-}
-{\seef{FStat},
- \seefl{S\_ISLNK}{ISLNK}, 
- \seefl{S\_ISDIR}{ISDIR},
- \seefl{S\_ISCHR}{ISCHR},
- \seefl{S\_ISBLK}{ISBLK},
- \seefl{S\_ISFIFO}{ISFIFO},
- \seefl{S\_ISSOCK}{ISSOCK}
-}
-
-For an example, see \seef{ISLNK}.
-
-\functionl{S\_ISDIR}{ISDIR}{(m:integer)}{boolean}	
-{ \var{S\_ISDIR} checks the file mode \var{m} to see whether the file is a
-directory. If so it returns \var{True}
-}
-{\seef{FStat},
- \seefl{S\_ISLNK}{ISLNK}, 
- \seefl{S\_ISREG}{ISREG},
- \seefl{S\_ISCHR}{ISCHR},
- \seefl{S\_ISBLK}{ISBLK},
- \seefl{S\_ISFIFO}{ISFIFO},
- \seefl{S\_ISSOCK}{ISSOCK}
-}
-
-For an example, see \seef{ISLNK}.
-
-\functionl{S\_ISCHR}{ISCHR}{(m:integer)}{boolean}
-{ \var{S\_ISCHR} checks the file mode \var{m} to see whether the file is a
-character device file. If so it returns \var{True}.
-}
-{\seef{FStat},
- \seefl{S\_ISLNK}{ISLNK}, 
- \seefl{S\_ISREG}{ISREG},
- \seefl{S\_ISDIR}{ISDIR},
- \seefl{S\_ISBLK}{ISBLK},
- \seefl{S\_ISFIFO}{ISFIFO},
- \seefl{S\_ISSOCK}{ISSOCK}
-}
-
-For an example, see \seef{ISLNK}.
-
-\functionl{S\_ISBLK}{ISBLK}{(m:integer)}{boolean}
-{ \var{S\_ISBLK} checks the file mode \var{m} to see whether the file is a
-block device file. If so it returns \var{True}.
-}
-{\seef{FStat},
- \seefl{S\_ISLNK}{ISLNK}, 
- \seefl{S\_ISREG}{ISREG},
- \seefl{S\_ISDIR}{ISDIR},
- \seefl{S\_ISCHR}{ISCHR},
- \seefl{S\_ISFIFO}{ISFIFO},
- \seefl{S\_ISSOCK}{ISSOCK}
-}
-
-For an example, see \seef{ISLNK}.
-
-\functionl{S\_ISFIFO}{ISFIFO}{(m:integer)}{boolean}
-{ \var{S\_ISFIFO} checks the file mode \var{m} to see whether the file is a
-fifo (a named pipe). If so it returns \var{True}.
-}
-{\seef{FStat},
- \seefl{S\_ISLNK}{ISLNK}, 
- \seefl{S\_ISREG}{ISREG},
- \seefl{S\_ISDIR}{ISDIR},
- \seefl{S\_ISCHR}{ISCHR},
- \seefl{S\_ISBLK}{ISBLK},
- \seefl{S\_ISSOCK}{ISSOCK}
-}
-
-For an example, see \seef{ISLNK}.
-
-\functionl{S\_ISSOCK}{ISSOCK}{(m:integer)}{boolean}
-{ \var{S\_ISSOCK} checks the file mode \var{m} to see whether the file is a
-socket. If so it returns \var{True}.
-}
-{\seef{FStat},
- \seefl{S\_ISLNK}{ISLNK}, 
- \seefl{S\_ISREG}{ISREG},
- \seefl{S\_ISDIR}{ISDIR},
- \seefl{S\_ISCHR}{ISCHR},
- \seefl{S\_ISBLK}{ISBLK},
- \seefl{S\_ISFIFO}{ISFIFO}
-}
-
-
-For an example, see \seef{ISLNK}.
-
-\function{OpenDir}{(f:pchar)}{pdir}
-{ \var{OpenDir} opens the directory  \var{f}, and returns a \var{pdir}
-pointer to a \var{Dir} record, which can be used to read the directory 
-structure. If the directory cannot be opened, \var{nil} is returned.}
-{Errors are returned in LinuxError.}
-{\seef{CloseDir}, \seef{ReadDir}, \seep{SeekDir}, \seef{TellDir},
-\seem{opendir}{3}}
-
-\input{linuxex/ex35.tex}
-
-\function{CloseDir}{(p:pdir)}{integer}
-{ \var{CloseDir} closes the directory pointed to by \var{p}.
-It returns zero if the directory was closed succesfully, -1 otherwise.}
-{Errors are returned in LinuxError.}
-{\seef{OpenDir}, \seef{ReadDir}, \seep{SeekDir}, \seef{TellDir},
-\seem{closedir}{3}}
-
-For an example, see \seef{OpenDir}.
-
-\function{ReadDir}{(p:pdir)}{pdirent}
-{\var{ReadDir} reads the next entry in the directory pointed to by \var{p}.
-It returns a \var{pdirent} pointer to a structure describing the entry.
-If the next entry can't be read, \var{Nil} is returned.
-}
-{Errors are returned in LinuxError.}
-{\seef{CloseDir}, \seef{OpenDir}, \seep{SeekDir}, \seef{TellDir},
-\seem{readdir}{3}}
-
-For an example, see \seef{OpenDir}.
-
-\procedure {SeekDir}{(p:pdir;off:longint)}
-{ \var{SeekDir} sets the directory pointer to the \var{off}-th entry in the
-directory structure pointed to by \var{p}.}
-{Errors are returned in LinuxError.}
-{\seef{CloseDir}, \seef{ReadDir}, \seef{OpenDir}, \seef{TellDir},
-\seem{seekdir}{3}}
-
-For an example, see \seef{OpenDir}.
-
-\function{TellDir}{(p:pdir)}{longint}
-{ \var{TellDir} returns the current location in the directory structure
-pointed to by \var{p}. It returns -1 on failure.}
-{Errors are returned in LinuxError.}
-{\seef{CloseDir}, \seef{ReadDir}, \seep{SeekDir}, \seef{OpenDir},
-\seem{telldir}{3}}
-
-For an example, see \seef{OpenDir}.
-
-\procedure{Uname}{(var unamerec:utsname)}
-{\var{Uname} gets the name and configuration of the current \linux kernel,
-and returns it in \var{unamerec}.
-}
-{\var{LinuxError} is used to report errors.}
-{\seef{GetHostName}, \seef{GetDomainName}, \seem{uname}{2}}
-
-\function{WaitPid}{(Pid : longint; Status : pointer; Options : Integer)}{Longint}
-{ \var{WaitPid} waits for a child process with process ID \var{Pid} to exit. The
-value of \var{Pid} can be one of the following:
-\begin{description}
-\item[Pid < -1] Causes \var{WaitPid} to wait for  any  child  process  whose
-              process group ID equals the absolute value of \var{pid}.
-
-\item[Pid = -1] Causes \var{WaitPid} to wait for any child process.
-
-\item[Pid = 0] Causes \var{WaitPid} to wait for  any  child  process  whose
-              process  group  ID  equals the one of the calling
-              process.
-
-\item[Pid > 0] Causes \var{WaitPid} to wait for the child whose process  ID
-equals the value of \var{Pid}.
-\end{description}
-The \var{Options} parameter can be used to specify further how \var{WaitPid}
-behaves:
-\begin{description}
-\item [WNOHANG] Causes \var{Waitpid} to return immediately if no child  has
-exited.
-\item [WUNTRACED] Causes \var{WaitPid} to return also for children which are
-stopped, but whose status has not yet been reported.
-\end{description} 
-
-Upon return, it returns the exit status of the process, or -1 in case of
-failure. 
-}
-{Errors are returned in LinuxError.}
-{\seef{Fork}, \seep{Execve}, \seem{waitpid}{2}}
-
-for an example, see \seef{Fork}.
-
-\function{TCGetAttr}{(fd:longint;var tios:TermIOS)}{Boolean}
-{ \var{TCGetAttr}
-  gets the terminal parameters from the terminal referred to by the file
-  descriptor \var{fd} and returns them in a \var{TermIOS} structure \var{tios}. 
-
-The function returns \var{True} if the call was succesfull, \var{False}
-otherwise.
-}
-{Errors are reported in LinuxError}
-{\seef{TCSetAttr}, \seem{termios}{2} }
-
-\input{linuxex/ex55.tex}
-
-\function{TCSetAttr}{(Fd:longint;OptAct:longint;var Tios:TermIOS)}{Boolean}
-{ \var{TCSetAttr}
-  Sets the terminal parameters you specify in a \var{TermIOS} structure
-\var{Tios} for the terminal
-  referred to by the file descriptor \var{Fd}. \var{OptAct} specifies an 
-  optional action when the set need to be done,
-  this could be one of the following pre-defined values:
+{
+ Error checking must be done on LinuxError, since a priority can be negative.
  \begin{description}
-\item [TCSANOW\ ] set immediately.
-\item [TCSADRAIN\ ] wait for output.
-\item [TCSAFLUSH\ ] wait for output and discard all input not yet read. 
+ \item[sys\_esrch] No process found using \var{which} and \var{who}.
+ \item[sys\_einval] \var{Which} was not one of \var{Prio\_Process, Prio\_Grp
+or Prio\_User}.
+ \item[sys\_eperm] A process was found, but neither its effective or real
+ user ID match the effective user ID of the caller.
+ \item [sys\_eacces] A non-superuser tried to a priority increase.
+ \end{description}
+ }
+{\seef{GetPriority}, \seep{Nice}, \seem{Setpriority}{2}}
+
+For an example, see \seep{Nice}.
+
+
+
+\function{Shell}{(Command : String)}{Longint}
+{\var{Shell} invokes the bash shell (\file{/bin/sh}), and feeds it the
+command \var{Command} (using the \var{-c} option). The function then waits
+for the command to complete, and then returns the exit
+status of the command, or 127 if it could not complete the \seef{Fork} 
+or \seep{Execve} calls.
+}
+{Errors are reported in LinuxError.}
+{\seep{POpen}, \seef{Fork}, \seep{Execve}, \seem{system}{3}}
+
+\input{linuxex/ex56.tex}
+
+\procedure{SigAction}{(Signum : Integer; Var Act,OldAct : PSigActionRec)}
+{ Changes the action to take upon receipt of a signal. \var{Act} and
+\var{Oldact} are pointers to a \var{SigActionRec} record.
+
+\var{SigNum} specifies the signal, and can be any signal except
+\textbf{SIGKILL} or \textbf{SIGSTOP}.
+
+If \var{Act} is non-nil, then the new action for signal \var{SigNum} is taken
+from it. If \var{OldAct} is non-nil, the old action is stored there.
+
+\var{Sa\_Handler} may be \var{SIG\_DFL} for the default action or
+\var{SIG\_IGN} to ignore the signal.
+
+\var{Sa\_Mask} Specifies which signals should be ignord during the execution
+of the signal handler.
+
+\var{Sa\_Flags} Speciefies a series of flags which modify the behaviour of
+the signal handler. You can 'or' none or more of the following :
+\begin{description}
+\item[SA\_NOCLDSTOP] If signum is \textbf{SIGCHLD} do not receive
+notification when child processes stop.
+\item[SA\_ONESHOT or SA\_RESETHAND] Restore the signal action to the default
+state once the signal handler has been called.
+\item[SA\_RESTART] For compatibility with BSD signals.
+\item[SA\_NOMASK or SA\_NODEFER] Do not prevent the signal from being received
+from within its own signal handler.
 \end{description}
-The function Returns \var{True} if the call was succesfull, \var{False} 
-otherwise.
 }
-{Errors are reported in LinuxError.}
-{\seef{TCGetAttr}, \seem{termios}{2}}
-
-For an example, see \seef{TCGetAttr}.
-
-\procedure{CFSetISpeed}{(var Tios:TermIOS;Speed:Longint)}
-{ \var{CFSetISpeed}
-  Sets the input baudrate in the \var{TermIOS} structure \var{Tios} to 
-  \var{Speed}.
+{\var{LinuxError} is used to report errors.
+\begin{description}
+\item[sys\_einval] an invalid signal was specified, or it was
+\textbf{SIGKILL} or \textbf{SIGSTOP}.
+\item[sys\_efault] \var{Act,OldAct} point outside this process address space
+\item[sys\_eintr] System call was interrupted.
+\end{description}
 }
-{None.}
-{\seep{CFSetOSpeed}, \seep{CFMakeRaw}, \seem{termios}{2}}
-
-\procedure{CFSetOSpeed}{(var Tios:TermIOS;Speed:Longint)}
-{ \var{CFSetOSpeed}
-  Sets the output baudrate in the \var{Termios} structure \var{Tios} to
-  \var{Speed}.
+{
+\seep{SigProcMask}, \seef{SigPending}, \seep{SigSuspend}, \seef{Kill},
+\seem{Sigaction}{2}
 }
-{None.}
-{\seep{CFSetISpeed}, \seep{CFMakeRaw}, \seem{termios}{2}}
 
-\procedure{CFMakeRaw}{(var Tios:TermIOS)}
-{ \var{CFMakeRaw}
-  Sets the flags in the \var{Termios} structure \var{Tios} to a state so that 
-  the terminal will function in Raw Mode.
+\function{SigPending}{}{SigSet}
+{
+Sigpending allows the examination of pending signals (which have been raised
+while blocked.) The signal mask of pending signals is returned.
 }
-{None.}
-{ \seep{CFSetOSpeed}, \seep{CFSetISpeed}, \seem{termios}{2}}
+{None}
+{\seep{SigAction}, \seep{SigProcMask}, \seep{SigSuspend}, \seef{Signal},
+\seef{Kill}, \seem{Sigpending}{2} }
 
-For an example, see \seef{TCGetAttr}.
-
-\function{TCSendBreak}{(Fd,Duration:longint)}{Boolean}
-{ \var{TCSendBreak} 
-  Sends zero-valued bits on an asynchrone serial connection decsribed by
-  file-descriptor \var{Fd}, for duration \var{Duration}.
-
-  The function returns \var{True} if the action was performed successfully,
-\var{False} otherwise.
+\procedure {SigProcMask}{(How : Integer; SSet,OldSSet : PSigSet)}
+{
+Changes the list of currently blocked signals. The behaviour of the call
+depends on \var{How} :
+\begin{description}
+\item[SIG\_BLOCK] The set of blocked signals is the union of the current set
+and the \var{SSet} argument.
+\item[SIG\_UNBLOCK] The signals in \var{SSet} are removed from the set of
+currently blocked signals.
+\item[SIG\_SETMASK] The list of blocked signals is set so \var{SSet}.
+\end{description}
+If \var{OldSSet} is non-nil, then the old set is stored in it.
 }
-{Errors are reported in LinuxError.}
-{\seem{termios}{2}}
-
-Function TCSetPGrp(Fd,Id:longint):boolean;
-{ \var{TCSetPGrp}
-  Sets the Process Group Id to \var{Id}. 
-
-  The function returns \var{True} if the call was successful, \var{False}
-otherwise.
+{\var{LinuxError} is used to report errors.
+\begin{description}
+\item[sys\_efault] \var{SSet} or \var{OldSSet} point to an adress outside
+the range of the process.
+\item[sys\_eintr] System call was interrupted.
+\end{description}
 }
-{Errors are returned in LinuxError.}
-{\seef{TCGetPGrp}\seem{termios}{2}}
+{\seep{SigAction}, \seef{SigPending}, \seep{SigSuspend}, \seef{Kill},
+\seem{Sigprocmask}{2} }
 
-\function{TCGetPGrp}{(Fd:longint;var Id:longint)}{boolean}
-{ \var{TCGetPGrp}
-  returns the process group ID of a foreground process group in \var{Id} 
-
-  The function returns \var{True} if the call was succesfull, \var{False}
-  otherwise
+\procedure{SigSuspend}{(Mask : SigSet)}
+{SigSuspend temporarily replaces the signal mask for the process with the one
+given in \var{Mask}, and then suspends the process until a signal is received.
 }
-{Errors are reported in LinuxError}
-{\seem{termios}{2}}
+{None}
+{\seep{SigAction}, \seep{SigProcMask}, \seef{SigPending}, \seef{Signal},
+\seef{Kill}, \seem{SigSuspend}{2} }
+
+\function{Signal}{(SigNum : Integer; Handler : PSignalHandler)}{PSignalHandler}
+{
+Signal installs a new signal handler for signal \var{SigNum}. This call has
+the same functionality as the \textbf{SigAction} call.
+
+The return value for Signal is the old signal handler, or nil on error.
+}
+{\var {LinuxError} is used to report errors :
+\begin{description}
+\item[SIG\_ERR] An error occurred.
+\end{description}
+}
+{\seep{SigAction},\seef{Kill}, \seem{Signal}{2} }
+
+\function{SymLink}{(OldPath,NewPath : pathstr)}{Boolean}
+{\var{SymLink} makes \var{Newpath} point to the file in \var{OldPath}, which doesn't
+necessarily exist. The two files DO NOT have the same inode number.
+This is known as a 'soft' link.
+The permissions of the link are irrelevant, as they are not used when
+following the link. Ownership of the file is only checked in case of removal
+or renaming of the link.
+
+The function returns \var{True} if the call was succesfull, \var{False} if the call
+failed.
+}
+{ Errors are returned in \var{LinuxError}.
+\begin{description}
+\item[sys\_eperm] The filesystem containing oldpath and newpath doesn't
+support linking files.
+\item[sys\_eaccess] Write access for the directory containing \var{Newpath}
+is disallowed, or one of the directories in \var{OldPath} or {NewPath} has no
+search (=execute) permission.
+\item[sys\_enoent] A directory entry in \var{OldPath} or \var{NewPath} does
+not exist or is a symbolic link pointing to a non-existent directory.
+\item[sys\_enotdir] A directory entry in \var{OldPath} or \var{NewPath} is
+nor a directory.
+\item[sys\_enomem] Insufficient kernel memory.
+\item[sys\_erofs] The files are on a read-only filesystem.
+\item[sys\_eexist] \var{NewPath} already exists.
+\item[sys\_eloop] \var{OldPath} or \var{NewPath} has a reference to a circular
+symbolic link, i.e. a symbolic link, whose expansion points to itself.
+\item[sys\_enospc] The device containing \var{NewPath} has no room for anothe
+entry.
+\end{description}
+}
+{\seef{Link}, \seef{UnLink}, \seem{Symlink}{2} }
+
+\input{linuxex/ex22.tex}
 
 \function{TCDrain}{(Fd:longint)}{Boolean}
 { \var{TCDrain}
@@ -2043,19 +1875,193 @@ otherwise.
 {Errors are reported in LinuxError.}
 {\seem{termios}{2}}
 
-\procedure{FLock}{(Var F; Mode : longint)}
-{\var{FLock} implements file locking. it sets or removes a lock on the file
-\var{F}. F can be of type \var{Text} or \var{File}, or it can be a \linux
-filedescriptor (a longint)
+\function{TCGetAttr}{(fd:longint;var tios:TermIOS)}{Boolean}
+{ \var{TCGetAttr}
+  gets the terminal parameters from the terminal referred to by the file
+  descriptor \var{fd} and returns them in a \var{TermIOS} structure \var{tios}. 
 
-\var{Mode} can be one of the following constants :
+The function returns \var{True} if the call was succesfull, \var{False}
+otherwise.
+}
+{Errors are reported in LinuxError}
+{\seef{TCSetAttr}, \seem{termios}{2} }
+
+\input{linuxex/ex55.tex}
+
+\function{TCGetPGrp}{(Fd:longint;var Id:longint)}{boolean}
+{ \var{TCGetPGrp}
+  returns the process group ID of a foreground process group in \var{Id} 
+
+  The function returns \var{True} if the call was succesfull, \var{False}
+  otherwise
+}
+{Errors are reported in LinuxError}
+{\seem{termios}{2}}
+
+\function{TCSendBreak}{(Fd,Duration:longint)}{Boolean}
+{ \var{TCSendBreak} 
+  Sends zero-valued bits on an asynchrone serial connection decsribed by
+  file-descriptor \var{Fd}, for duration \var{Duration}.
+
+  The function returns \var{True} if the action was performed successfully,
+\var{False} otherwise.
+}
+{Errors are reported in LinuxError.}
+{\seem{termios}{2}}
+
+\function{TCSetAttr}{(Fd:longint;OptAct:longint;var Tios:TermIOS)}{Boolean}
+{ \var{TCSetAttr}
+  Sets the terminal parameters you specify in a \var{TermIOS} structure
+\var{Tios} for the terminal
+  referred to by the file descriptor \var{Fd}. \var{OptAct} specifies an 
+  optional action when the set need to be done,
+  this could be one of the following pre-defined values:
+ \begin{description}
+\item [TCSANOW\ ] set immediately.
+\item [TCSADRAIN\ ] wait for output.
+\item [TCSAFLUSH\ ] wait for output and discard all input not yet read. 
+\end{description}
+The function Returns \var{True} if the call was succesfull, \var{False} 
+otherwise.
+}
+{Errors are reported in LinuxError.}
+{\seef{TCGetAttr}, \seem{termios}{2}}
+
+For an example, see \seef{TCGetAttr}.
+
+\function{TCSetPGrp}{(Fd,Id:longint)}{boolean};
+{ \var{TCSetPGrp} Sets the Process Group Id to \var{Id}. 
+
+The function returns \var{True} if the call was successful, \var{False}
+otherwise.
+}
+{Errors are returned in LinuxError.}
+{\seef{TCGetPGrp}, \seem{termios}{2}}
+
+For an example, see \seef{TCGetPGrp}.
+
+\function{TTYName}{(var f)}{String}
+{
+Returns the name of the terminal pointed to by \var{f}. \var{f}
+must be a terminal. \var{f} can be of type:
+\begin{enumerate}
+\item \var{longint} for file handles;
+\item \var{Text} for \var{text} variables such as \var{input} etc.
+\end{enumerate}
+}
+{ Returns an empty string in case of an error. \var{Linuxerror} may be set
+ to indicate what error occurred, but this is uncertain.}
+{\seef{IsATTY},\seep{IOCtl}}
+
+
+\function{TellDir}{(p:pdir)}{longint}
+{ \var{TellDir} returns the current location in the directory structure
+pointed to by \var{p}. It returns -1 on failure.}
+{Errors are returned in LinuxError.}
+{\seef{CloseDir}, \seef{ReadDir}, \seep{SeekDir}, \seef{OpenDir},
+\seem{telldir}{3}}
+
+For an example, see \seef{OpenDir}.
+
+\function{Umask}{(Mask : Integer)}{Integer}
+{
+Change the file creation mask for the current user to \var{Mask}. The
+current mask is returned.
+}
+{None}
+{\seef{Chmod}, \seem{Umask}{2}}
+
+\input{linuxex/ex27.tex}
+
+\procedure{Uname}{(var unamerec:utsname)}
+{\var{Uname} gets the name and configuration of the current \linux kernel,
+and returns it in \var{unamerec}.
+}
+{\var{LinuxError} is used to report errors.}
+{\seef{GetHostName}, \seef{GetDomainName}, \seem{uname}{2}}
+
+\function{UnLink}{(Var Path)}{Boolean}
+{
+\var{UnLink} decreases the link count on file \var{Path}. \var{Path} can be
+of type \var{PathStr} or \var{PChar}. If the link count is zero, the
+file is removed from the disk.
+
+The function returns \var{True} if the call was succesfull, \var{False} if the call
+failed.
+}
+{ Errors are returned in \var{LinuxError}.
 \begin{description}
-\item [LOCK\_SH] \ sets a shared lock.
-\item [LOCK\_EX] \ sets an exclusive lock.
-\item [LOCK\_UN] \ unlocks the file.
-\item [LOCK\_NB] \ This can be OR-ed together with the other. If this is done
-the application doesn't block when locking.
+\item[sys\_eaccess] You have no write access right in the directory
+containing \var{Path}, or you have no search permission in one of the
+directory components of \var{Path}.
+\item[sys\_eperm] The  directory containing pathname has the sticky-bit 
+set and the process's effective  uid is neither the uid of the 
+file to be deleted nor that of the directory containing it.
+\item[sys\_enoent] A component of the path doesn't exist.
+\item[sys\_enotdir] A directory component of the path is not a directory.
+\item[sys\_eisdir] \var{Path} refers to a directory.
+\item[sys\_enomem] Insufficient kernel memory.
+\item[sys\_erofs] \var{Path} is on a read-only filesystem. 
 \end{description}
 }
-{Errors are reported in \var{LinuxError}.}
-{\seef{Fcntl}, \seem{flock}{2}}
+{\seef{Link}, \seef{SymLink}, \seem{Unlink}{2} }
+
+For an example, see \seef{Link}.
+
+
+\function{Utime}{(path : pathstr; utim : utimbuf)}{Boolean}
+{
+\var{Utime} sets the access and modification times of a file.
+the \var{utimbuf} record contains 2 fields, \var{actime}, and \var{modtime},
+both of type Longint. They should be filled with an epoch-like time,
+specifying, respectively, the last access time, and the last modification
+time. 
+
+For some filesystem (most notably, FAT), these times are the same. 
+}
+{Errors are returned in \var{LinuxError}.
+\begin{description}
+\item[sys\_eaccess] One of the directories in \var{Path} has no
+search (=execute) permission.
+\item[sys\_enoent] A directory entry in \var{Path} does
+not exist or is a symbolic link pointing to a non-existent directory.
+\end{description}
+Other errors may occur, but aren't documented.
+}
+{\seef{GetEpochTime}, \seef{Chown}, \seef{Access}, \seem{utime}(2)}
+
+\input{linuxex/ex25.tex}
+
+\function{WaitPid}{(Pid : longint; Status : pointer; Options : Integer)}{Longint}
+{ \var{WaitPid} waits for a child process with process ID \var{Pid} to exit. The
+value of \var{Pid} can be one of the following:
+\begin{description}
+\item[Pid < -1] Causes \var{WaitPid} to wait for  any  child  process  whose
+              process group ID equals the absolute value of \var{pid}.
+
+\item[Pid = -1] Causes \var{WaitPid} to wait for any child process.
+
+\item[Pid = 0] Causes \var{WaitPid} to wait for  any  child  process  whose
+              process  group  ID  equals the one of the calling
+              process.
+
+\item[Pid > 0] Causes \var{WaitPid} to wait for the child whose process  ID
+equals the value of \var{Pid}.
+\end{description}
+The \var{Options} parameter can be used to specify further how \var{WaitPid}
+behaves:
+\begin{description}
+\item [WNOHANG] Causes \var{Waitpid} to return immediately if no child  has
+exited.
+\item [WUNTRACED] Causes \var{WaitPid} to return also for children which are
+stopped, but whose status has not yet been reported.
+\end{description} 
+
+Upon return, it returns the exit status of the process, or -1 in case of
+failure. 
+}
+{Errors are returned in LinuxError.}
+{\seef{Fork}, \seep{Execve}, \seem{waitpid}{2}}
+
+for an example, see \seef{Fork}.
+
