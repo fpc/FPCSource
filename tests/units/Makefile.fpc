@@ -25,6 +25,7 @@ rtl:
         $(MAKE) -C ../../rtl install $(INSTALLOPT)
 
 fcl:
+	$(MAKE) -C ../../packages/base all "OPT=$(OPT) -n"
         $(MAKE) -C ../../fcl all "OPT=$(OPT) -n"
         $(MAKE) -C ../../fcl install $(INSTALLOPT)
 
