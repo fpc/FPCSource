@@ -506,7 +506,11 @@ begin
 
  { Concat the opcode or give an error }
   if assigned(ai) then
-   p.concat(ai)
+   begin
+     { Check the instruction if it's valid }
+     ai.CheckIfValid;
+     p.concat(ai);
+   end
   else
    Message(asmr_e_invalid_opcode_and_operand);
 end;
@@ -514,7 +518,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2000-12-25 00:07:34  peter
+  Revision 1.5  2001-01-12 19:18:42  peter
+    * check for valid asm instructions
+
+  Revision 1.4  2000/12/25 00:07:34  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 

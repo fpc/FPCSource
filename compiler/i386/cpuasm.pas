@@ -122,6 +122,7 @@ type
   public
      { the next will reset all instructions that can change in pass 2 }
      procedure ResetPass2;
+     function  CheckIfValid:boolean;
      function  Pass1(offset:longint):longint;virtual;
      procedure Pass2;virtual;
   private
@@ -949,9 +950,65 @@ begin
 end;
 
 
-function taicpu.Pass1(offset:longint):longint;
+function taicpu.CheckIfValid:boolean;
 var
   m,i : longint;
+begin
+  CheckIfValid:=false;
+{ Things which may only be done once, not when a second pass is done to
+  optimize }
+  if Insentry=nil then
+   begin
+     { We need intel style operands }
+     SwapOperands;
+     { create the .ot fields }
+     create_ot;
+     { set the file postion }
+     aktfilepos:=fileinfo;
+   end
+  else
+   begin
+     { we've already an insentry so it's valid }
+     CheckIfValid:=true;
+     exit;
+   end;
+{ Lookup opcode in the table }
+  InsSize:=-1;
+  i:=instabcache^[opcode];
+  if i=-1 then
+   begin
+{$ifdef TP}
+     Message1(asmw_e_opcode_not_in_table,'');
+{$else}
+     Message1(asmw_e_opcode_not_in_table,att_op2str[opcode]);
+{$endif}
+     exit;
+   end;
+  insentry:=@instab[i];
+  while (insentry^.opcode=opcode) do
+   begin
+     m:=matches(insentry);
+     if m=100 then
+      begin
+        InsSize:=calcsize(insentry);
+        if (segprefix<>R_NO) then
+         inc(InsSize);
+        CheckIfValid:=true;
+        exit;
+      end;
+     inc(i);
+     insentry:=@instab[i];
+   end;
+  if insentry^.opcode<>opcode then
+   Message1(asmw_e_invalid_opcode_and_operands,GetString);
+{ No instruction found, set insentry to nil and inssize to -1 }
+  insentry:=nil;
+  inssize:=-1;
+end;
+
+
+
+function taicpu.Pass1(offset:longint):longint;
 begin
   Pass1:=0;
 { Save the old offset and set the new offset }
@@ -963,10 +1020,6 @@ begin
      { Check if error last time then InsSize=-1 }
      if InsSize=-1 then
       exit;
-     { We need intel style operands }
-     SwapOperands;
-     { create the .ot fields }
-     create_ot;
      { set the file postion }
      aktfilepos:=fileinfo;
    end
@@ -983,35 +1036,13 @@ begin
      create_ot;
 {$endif}
    end;
-{ Lookup opcode in the table }
-  InsSize:=-1;
-  i:=instabcache^[opcode];
-  if i=-1 then
+{ Check if it's a valid instruction }
+  if CheckIfValid then
    begin
-     Message1(asmw_e_opcode_not_in_table,att_op2str[opcode]);
+     LastInsOffset:=InsOffset;
+     Pass1:=InsSize;
      exit;
    end;
-  insentry:=@instab[i];
-  while (insentry^.opcode=opcode) do
-   begin
-     m:=matches(insentry);
-     if m=100 then
-      begin
-        InsSize:=calcsize(insentry);
-        if (segprefix<>R_NO) then
-         inc(InsSize);
-        Pass1:=InsSize;
-        LastInsOffset:=InsOffset;
-        exit;
-      end;
-     inc(i);
-     insentry:=@instab[i];
-   end;
-  if insentry^.opcode<>opcode then
-   Message1(asmw_e_invalid_opcode_and_operands,GetString);
-{ No instruction found, set insentry to nil and inssize to -1 }
-  insentry:=nil;
-  inssize:=-1;
   LastInsOffset:=-1;
 end;
 
@@ -1690,7 +1721,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  2001-01-07 15:48:56  jonas
+  Revision 1.9  2001-01-12 19:18:42  peter
+    * check for valid asm instructions
+
+  Revision 1.8  2001/01/07 15:48:56  jonas
     * references to symbols were only decreased in taicpu.done for jmps, fixed
 
   Revision 1.7  2000/12/26 15:56:17  peter
