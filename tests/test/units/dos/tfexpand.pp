@@ -166,6 +166,10 @@ begin
  Check ('...', CurDir + DirSep + '...');
 {$IFDEF UNIX}
  S := GetEnv ('HOME');
+ { On m68k netbsd at least, HOME contains a final slash
+   remove it PM }
+ if S[length(S)]=DirSep then
+   S:=Copy(S,1,Length(S)-1);
  Check ('~', S);
  Check ('~' + DirSep + '.', S);
  if (Length (S) > 0) and (S [Length (S)] <> DirSep) then S := S + DirSep;
