@@ -996,6 +996,18 @@ begin
                 // + 1 to accomodate for - sign in length !!
                 Insert(StringOfChar('0',Index+1),toadd,2);
               end;
+        'U' : begin
+              if Checkarg(vtinteger,false) then
+                Str(cardinal(Args[Doarg].VInteger),ToAdd)
+  	      {$IFNDEF VIRTUALPASCAL}
+              else if CheckArg(vtInt64,true) then
+                Str(qword(Args[DoArg].VInt64^),toadd)
+	      {$ENDIF}
+	      ;
+              Width:=Abs(width);
+              Index:=Prec-Length(ToAdd);
+	      ToAdd:=StringOfChar('0',Index)+ToAdd
+              end;        
         'E' : begin
               CheckArg(vtExtended,true);
               ToAdd:=FloatToStrF(Args[doarg].VExtended^,ffexponent,Prec,3);
@@ -2202,7 +2214,10 @@ const
 
 {
   $Log$
-  Revision 1.17  2004-11-16 18:30:35  marco
+  Revision 1.18  2004-11-21 16:44:01  marco
+   * %u
+
+  Revision 1.17  2004/11/16 18:30:35  marco
    * updated ansiexctractquotedstring (more delphi compat, both interface and code)
 
   Revision 1.16  2004/08/30 18:00:12  michael
