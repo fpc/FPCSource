@@ -209,7 +209,12 @@ type
 
 function Last2DosError(d:dword):integer;
 begin
-  Last2DosError:=d;
+  case d of
+    87 : { Parameter invalid -> Data invalid }
+      Last2DosError:=13;
+    else
+      Last2DosError:=d;
+  end;
 end;
 
 
@@ -379,18 +384,17 @@ var
   l    : Longint;
   CommandLine : array[0..511] of char;
   AppParam : array[0..255] of char;
-  SpacePos : integer;
-  pathlocal : string;  
+  pathlocal : string;
 begin
   DosError := 0;
   FillChar(SI, SizeOf(SI), 0);
   SI.cb:=SizeOf(SI);
   SI.wShowWindow:=1;
-  { always surroound the name of the application by quotes 
+  { always surroound the name of the application by quotes
     so that long filenames will always be accepted. But don't
     do it if there are already double quotes, since Win32 does not
     like double quotes which are duplicated!
-  } 
+  }
   if pos('"',path) = 0 then
     pathlocal:='"'+path+'"'
   else
@@ -821,7 +825,8 @@ var
   ft : TFileTime;
 begin
   if DosToWinTime(time,ft) then
-   SetFileTime(filerec(f).Handle,nil,nil,@ft);
+   if not SetFileTime(filerec(f).Handle,nil,nil,@ft) then;
+  DosError:=Last2DosError(GetLastError);
 end;
 
 
@@ -1032,7 +1037,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2002-12-04 21:35:50  carl
+  Revision 1.17  2002-12-15 20:23:53  peter
+    * map error 87 to 13 to be compatible with dos
+
+  Revision 1.16  2002/12/04 21:35:50  carl
     * bugfixes for dos.exec() : it would not be able to execute 16-bit apps
     * doserror was not reset to zero in dos.exec
 
