@@ -68,43 +68,68 @@ end;
 Function HostToNet (Host : ThostAddr) : THostAddr;
 
 begin
+{$Ifdef ENDIAN_LITTLE}
   Result[1]:=Host[4];
   Result[2]:=Host[3];
   Result[3]:=Host[2];
   Result[4]:=Host[1];
+{$ELSE}
+  result:=host;
+{$endif}
 end;
 
 Function NetToHost (Net : TNetAddr) : TNetAddr;
 
 begin
+{$Ifdef ENDIAN_LITTLE}
   Result[1]:=Net[4];
   Result[2]:=Net[3];
   Result[3]:=Net[2];
   Result[4]:=Net[1];
+{$ELSE}
+  result:=net;
+{$endif}
 end;
 
 Function HostToNet (Host : Longint) : Longint;
 
 begin
+{$Ifdef ENDIAN_LITTLE}
   Result:=Longint(HostToNet(THostAddr(host)));
+{$ELSE}
+  result:=host;
+{$endif}
 end;
 
 Function NetToHost (Net : Longint) : Longint;
 
 begin
+{$Ifdef ENDIAN_LITTLE}
   Result:=Longint(NetToHost(TNetAddr(Net)));
+{$ELSE}
+  result:=net;
+{$endif}
 end;
 
 Function ShortHostToNet (Host : Word) : Word;
 
 begin
+{$Ifdef ENDIAN_LITTLE}
   ShortHostToNet:=lo(host)*256+Hi(Host);
+{$ELSE}
+  result:=host;
+{$endif}
+
 end;
 
 Function ShortNetToHost (Net : Word) : Word;
 
 begin
+{$Ifdef ENDIAN_LITTLE}
   ShortNetToHost:=lo(Net)*256+Hi(Net);
+{$ELSE}
+  result:=net;
+{$endif}
 end;
 
 
