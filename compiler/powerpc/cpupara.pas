@@ -185,6 +185,7 @@ unit cpupara;
                    end;
                  LOC_REFERENCE:
                    begin
+                      hp.paraloc.size:=OS_32;
                       if push_addr_param(hp.paratype.def) or (hp.paratyp in [vs_var,vs_out]) then
                         begin
                            if nextintreg<=R_8 then
@@ -226,7 +227,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2002-08-17 22:09:47  florian
+  Revision 1.8  2002-08-18 10:42:38  florian
+    * remaining assembler writer bugs fixed, the errors in the
+      system unit are inline assembler problems
+
+  Revision 1.7  2002/08/17 22:09:47  florian
     * result type handling in tcgcal.pass_2 overhauled
     * better tnode.dowrite
     * some ppc stuff fixed

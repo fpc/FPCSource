@@ -1221,8 +1221,8 @@ implementation
              hp:=tparaitem(procinfo.procdef.para.first);
              while assigned(hp) do
                begin
-                  if (hp.paraloc.loc in [LOC_REGISTER,LOC_FPUREGISTER
-                   {$ifdef SUPPORT_MMX},LOC_MMREGISTER{$endif}]) and (([vo_regable,vo_fpuregable]*tvarsym(hp.parasym).varoptions)=[]) then
+                  if (hp.paraloc.loc in [LOC_REGISTER,LOC_FPUREGISTER,LOC_MMREGISTER]) and
+                    (([vo_regable,vo_fpuregable]*tvarsym(hp.parasym).varoptions)=[]) then
                     begin
                        case hp.paraloc.loc of
                           LOC_REGISTER:
@@ -1730,7 +1730,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.39  2002-08-17 09:23:36  florian
+  Revision 1.40  2002-08-18 10:42:37  florian
+    * remaining assembler writer bugs fixed, the errors in the
+      system unit are inline assembler problems
+
+  Revision 1.39  2002/08/17 09:23:36  florian
     * first part of procinfo rewrite
 
   Revision 1.38  2002/08/16 14:24:57  carl
