@@ -62,6 +62,25 @@ procedure SystemEventHandler(var ir:INPUT_RECORD);
 var
   Xsize, YSize : longint;
 
+function HandleConsoleCtrl(typ : dword) : BOOL; stdcall;
+var
+  SE :   TSystemEvent;
+begin
+  HandleConsoleCtrl:=false;
+  case typ of
+    CTRL_CLOSE_EVENT,
+    CTRL_LOGOFF_EVENT,
+    CTRL_SHUTDOWN_EVENT :
+      begin
+        SE.typ:=SysClose;
+        SE.CloseTyp:=typ;
+        PutSystemEvent(SE);
+        HandleConsoleCtrl:=true;
+      end;
+  end;
+end;
+
+
 procedure InitSystemMsg;
 
 var
@@ -86,6 +105,7 @@ begin
   InitializeCriticalSection(ChangeSystemEvents);
   SetResizeEventHandler(@SystemEventHandler);
   SetFocusEventHandler(@SystemEventHandler);
+  SetConsoleCtrlHandler(@HandleConsoleCtrl,true);
   SystemEventActive:=true;
 end;
 
@@ -104,6 +124,7 @@ begin
   SetResizeEventHandler(nil);
   SetFocusEventHandler(nil);
   DeleteCriticalSection(ChangeSystemEvents);
+  SetConsoleCtrlHandler(@HandleConsoleCtrl,false);
   SystemEventActive:=false;
 end;
 
@@ -170,7 +191,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2002-06-06 20:32:34  pierre
+  Revision 1.3  2003-01-31 11:01:50  pierre
+   + handle closing events
+
+  Revision 1.2  2002/06/06 20:32:34  pierre
    * check console window size changes
 
   Revision 1.1  2002/05/21 11:59:57  pierre
