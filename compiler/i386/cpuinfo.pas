@@ -46,12 +46,22 @@ Const
    {# Size of a multimedia register               }
    mmreg_size = 8;
 
+   { target cpu string (used by compiler options) }
+   target_cpu_string = 'i386';
+   
+
 Implementation
 
 end.
 {
   $Log$
-  Revision 1.10  2002-05-18 13:34:22  peter
+  Revision 1.11  2002-08-10 14:47:50  carl
+    + moved target_cpu_string to cpuinfo
+    * renamed asmmode enum.
+    * assembler reader has now less ifdef's
+    * move from nppcmem.pas -> ncgmem.pas vec. node.
+
+  Revision 1.10  2002/05/18 13:34:22  peter
     * readded missing revisions
 
   Revision 1.9  2002/05/16 19:46:50  carl

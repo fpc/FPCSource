@@ -31,7 +31,7 @@ interface
        globtype,globals,version,tokens,
        verbose,comphook,
        finput,
-       widestr;
+       widestr,cpuinfo;
 
     const
        maxmacrolen=16*1024;
@@ -2783,7 +2783,13 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.41  2002-08-06 21:12:16  florian
+  Revision 1.42  2002-08-10 14:46:31  carl
+    + moved target_cpu_string to cpuinfo
+    * renamed asmmode enum.
+    * assembler reader has now less ifdef's
+    * move from nppcmem.pas -> ncgmem.pas vec. node.
+
+  Revision 1.41  2002/08/06 21:12:16  florian
     + support for octal constants, they are specified by a leading &
 
   Revision 1.40  2002/07/20 17:35:52  florian

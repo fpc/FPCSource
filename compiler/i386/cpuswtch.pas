@@ -114,7 +114,7 @@ begin
              initasmmode:=asmmode_i386_intel
            else
             if More='DIRECT' then
-             initasmmode:=asmmode_i386_direct
+             initasmmode:=asmmode_direct
            else
             IllegalPara(opt);
          end;
@@ -129,7 +129,13 @@ initialization
 end.
 {
   $Log$
-  Revision 1.7  2002-05-18 13:34:22  peter
+  Revision 1.8  2002-08-10 14:47:50  carl
+    + moved target_cpu_string to cpuinfo
+    * renamed asmmode enum.
+    * assembler reader has now less ifdef's
+    * move from nppcmem.pas -> ncgmem.pas vec. node.
+
+  Revision 1.7  2002/05/18 13:34:22  peter
     * readded missing revisions
 
   Revision 1.6  2002/05/16 19:46:50  carl

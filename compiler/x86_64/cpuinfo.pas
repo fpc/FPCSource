@@ -49,6 +49,8 @@ Const
    pointer_size  = 8;
    { Size of a multimedia register }
    mmreg_size = 16;
+   { target cpu string (used by compiler options) }
+   target_cpu_string = 'x86_64';
 
 
 Implementation
@@ -56,7 +58,13 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.2  2002-07-25 22:55:34  florian
+  Revision 1.3  2002-08-10 14:53:38  carl
+    + moved target_cpu_string to cpuinfo
+    * renamed asmmode enum.
+    * assembler reader has now less ifdef's
+    * move from nppcmem.pas -> ncgmem.pas vec. node.
+
+  Revision 1.2  2002/07/25 22:55:34  florian
     * several fixes, small test units can be compiled
 
   Revision 1.1  2002/07/24 22:38:15  florian

@@ -112,7 +112,7 @@ begin
              initasmmode:=asmmode_ppc_motorola
            else
             if More='DIRECT' then
-             initasmmode:=asmmode_ppc_direct
+             initasmmode:=asmmode_direct
            else
             IllegalPara(opt);
          end;
@@ -128,7 +128,13 @@ initialization
 end.
 {
   $Log$
-  Revision 1.5  2002-07-28 20:45:23  florian
+  Revision 1.6  2002-08-10 14:52:52  carl
+    + moved target_cpu_string to cpuinfo
+    * renamed asmmode enum.
+    * assembler reader has now less ifdef's
+    * move from nppcmem.pas -> ncgmem.pas vec. node.
+
+  Revision 1.5  2002/07/28 20:45:23  florian
     + added direct assembler reader for PowerPC
 
   Revision 1.4  2002/05/18 13:34:26  peter

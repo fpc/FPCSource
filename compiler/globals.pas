@@ -51,7 +51,7 @@ interface
       dos,
 {$endif}
       cutils,cclasses,
-      globtype,version,systems;
+      globtype,version,systems,cpuinfo;
 
     const
 {$ifdef Splitheap}
@@ -1450,7 +1450,7 @@ implementation
         {$IFDEF testvarsets}
          initsetalloc:=0;
         {$ENDIF}
-        initasmmode:=asmmode_ppc_direct;
+        initasmmode:=asmmode_direct;
 {$endif powerpc}
         initinterfacetype:=it_interfacecom;
         initdefproccall:=pocall_none;
@@ -1480,7 +1480,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.62  2002-07-28 20:45:22  florian
+  Revision 1.63  2002-08-10 14:46:29  carl
+    + moved target_cpu_string to cpuinfo
+    * renamed asmmode enum.
+    * assembler reader has now less ifdef's
+    * move from nppcmem.pas -> ncgmem.pas vec. node.
+
+  Revision 1.62  2002/07/28 20:45:22  florian
     + added direct assembler reader for PowerPC
 
   Revision 1.61  2002/07/20 17:12:42  florian

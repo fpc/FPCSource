@@ -55,6 +55,7 @@ implementation
        pbase,pexpr,
        { codegen }
        rgobj,cgbase
+       ,radirect
 {$ifdef i386}
   {$ifndef NoRa386Int}
        ,ra386int
@@ -62,25 +63,9 @@ implementation
   {$ifndef NoRa386Att}
        ,ra386att
   {$endif NoRa386Att}
-  {$ifndef NoRa386Dir}
-       ,ra386dir
-  {$endif NoRa386Dir}
+{$else}  
+       ,rasm
 {$endif i386}
-{$ifdef powerpc}
-  {$ifndef NoRaPPCDir}
-       ,rappcdir
-  {$endif NoRaPPCDir}
-{$endif powerpc}
-{$ifdef x86_64}
-  {$ifndef NoRax86Dir}
-       ,rax86dir
-  {$endif NoRax86Dir}
-{$endif i386}
-{$ifdef m68k}
-  {$ifndef NoRa68kMot}
-       ,ra68kmot
-  {$endif NoRa68kMot}
-{$endif m68k}
        ;
 
 
@@ -740,8 +725,8 @@ implementation
            asmmode_i386_intel:
              asmstat:=tasmnode(ra386int.assemble);
   {$endif NoRA386Int}
-  {$ifndef NoRA386Dir}
-           asmmode_i386_direct:
+{$else}  
+           asmmode_direct:
              begin
                if not target_asm.allowdirect then
                  Message(parser_f_direct_assembler_not_allowed);
@@ -751,51 +736,13 @@ implementation
                     Message(parser_w_inlining_disabled);
                     aktprocdef.proccalloption:=pocall_fpccall;
                  End;
-               asmstat:=tasmnode(ra386dir.assemble);
+               asmstat:=tasmnode(radirect.assemble);
              end;
-  {$endif NoRA386Dir}
-{$endif}
 
-{$ifdef x86_64}
-  {$ifndef NoRA386Dir}
-           asmmode_i386_direct:
-             begin
-               if not target_asm.allowdirect then
-                 Message(parser_f_direct_assembler_not_allowed);
-               if (aktprocdef.proccalloption=pocall_inline) then
-                 Begin
-                    Message1(parser_w_not_supported_for_inline,'direct asm');
-                    Message(parser_w_inlining_disabled);
-                    aktprocdef.proccalloption:=pocall_fpccall;
-                 End;
-               asmstat:=tasmnode(rax86dir.assemble);
-             end;
-  {$endif NoRA386Dir}
-{$endif x86_64}
-
-{$ifdef powerpc}
-  {$ifndef NoRAPPCDir}
-           asmmode_ppc_direct:
-             begin
-               if not target_asm.allowdirect then
-                 Message(parser_f_direct_assembler_not_allowed);
-               if (aktprocdef.proccalloption=pocall_inline) then
-                 Begin
-                    Message1(parser_w_not_supported_for_inline,'direct asm');
-                    Message(parser_w_inlining_disabled);
-                    aktprocdef.proccalloption:=pocall_fpccall;
-                 End;
-               asmstat:=tasmnode(rappcdir.assemble);
-             end;
-  {$endif NoRAPPCDir}
-{$endif powerpc}
-
-{$ifdef m68k}
-  {$ifndef NoRA68kMot}
-           asmmode_m68k_mot:
-             asmstat:=tasmnode(ra68kmot.assemble);
-  {$endif NoRA68kMot}
-{$endif}
+           asmmode_standard:
+             asmstat:=tasmnode(rasm.assemble);
+{$endif}  
+             
          else
            Message(parser_f_assembler_reader_not_supported);
          end;
@@ -1195,7 +1142,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.67  2002-08-09 19:11:44  carl
+  Revision 1.68  2002-08-10 14:46:30  carl
+    + moved target_cpu_string to cpuinfo
+    * renamed asmmode enum.
+    * assembler reader has now less ifdef's
+    * move from nppcmem.pas -> ncgmem.pas vec. node.
+
+  Revision 1.67  2002/08/09 19:11:44  carl
     + reading of used registers in assembler routines is now
       cpu-independent
 

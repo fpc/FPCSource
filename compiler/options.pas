@@ -27,7 +27,7 @@ unit options;
 interface
 
 uses
-  globtype,globals,verbose,systems;
+  globtype,globals,verbose,systems,cpuinfo;
 
 type
   TOption=class
@@ -1677,7 +1677,13 @@ finalization
 end.
 {
   $Log$
-  Revision 1.80  2002-08-09 19:15:41  carl
+  Revision 1.81  2002-08-10 14:46:29  carl
+    + moved target_cpu_string to cpuinfo
+    * renamed asmmode enum.
+    * assembler reader has now less ifdef's
+    * move from nppcmem.pas -> ncgmem.pas vec. node.
+
+  Revision 1.80  2002/08/09 19:15:41  carl
      - removed newcg define
 
   Revision 1.79  2002/07/26 22:22:10  florian

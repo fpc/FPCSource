@@ -40,7 +40,7 @@ implementation
        globals,verbose,fmodule,finput,fppu,
        symconst,symbase,symtype,symdef,symsym,symtable,
        aasmbase,aasmtai,aasmcpu,
-       cgbase,
+       cgbase,cpuinfo,
        ncgutil,
        link,assemble,import,export,gendef,ppu,comprsrc,
        cresstr,cpubase,
@@ -1388,7 +1388,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.69  2002-07-26 21:15:41  florian
+  Revision 1.70  2002-08-10 14:46:29  carl
+    + moved target_cpu_string to cpuinfo
+    * renamed asmmode enum.
+    * assembler reader has now less ifdef's
+    * move from nppcmem.pas -> ncgmem.pas vec. node.
+
+  Revision 1.69  2002/07/26 21:15:41  florian
     * rewrote the system handling
 
   Revision 1.68  2002/07/04 20:43:01  florian

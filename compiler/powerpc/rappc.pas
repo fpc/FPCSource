@@ -20,7 +20,7 @@
 
  ****************************************************************************
 }
-unit Ra386;
+unit Rasm;
 
 {$i fpcdefs.inc}
 
@@ -669,7 +669,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2002-07-28 20:45:23  florian
+  Revision 1.2  2002-08-10 14:52:52  carl
+    + moved target_cpu_string to cpuinfo
+    * renamed asmmode enum.
+    * assembler reader has now less ifdef's
+    * move from nppcmem.pas -> ncgmem.pas vec. node.
+
+  Revision 1.1  2002/07/28 20:45:23  florian
     + added direct assembler reader for PowerPC
 
 }

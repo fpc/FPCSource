@@ -43,35 +43,6 @@ interface
        date_string = 'N/A';
 {$endif}
 
-       { target cpu string }
-{$ifdef i386}
-       target_cpu_string = 'i386';
-{$endif}
-{$ifdef x86_64}
-       target_cpu_string = 'x86_64';
-{$endif}
-{$ifdef sparc}
-       target_cpu_string = 'sparc';
-{$endif}
-{$ifdef m68k}
-       target_cpu_string = 'm68k';
-{$endif}
-{$ifdef alpha}
-       target_cpu_string = 'alpha';
-{$endif}
-{$ifdef powerpc}
-       target_cpu_string = 'powerpc';
-{$endif}
-{$ifdef ia64}
-       target_cpu_string = 'ia64';
-{$endif}
-{$ifdef mips}
-       target_cpu_string = 'mips';
-{$endif}
-{$ifdef arm}
-       target_cpu_string = 'arm';
-{$endif}
-
 
        { source cpu string }
 {$ifdef cpu86}
@@ -113,7 +84,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.14  2002-08-09 19:15:41  carl
+  Revision 1.15  2002-08-10 14:46:31  carl
+    + moved target_cpu_string to cpuinfo
+    * renamed asmmode enum.
+    * assembler reader has now less ifdef's
+    * move from nppcmem.pas -> ncgmem.pas vec. node.
+
+  Revision 1.14  2002/08/09 19:15:41  carl
      - removed newcg define
 
   Revision 1.13  2002/07/04 20:43:02  florian

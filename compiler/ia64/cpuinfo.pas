@@ -43,13 +43,22 @@ Const
    c_countusableregsfpu = 95;
    c_countusableregsmm  = 0;
    c_countusableregsqp  = 48;
+   
+   { target cpu string (used by compiler options) }
+   target_cpu_string = 'ia64';
 
 Implementation
 
 end.
 {
   $Log$
-  Revision 1.4  2002-05-16 19:46:52  carl
+  Revision 1.5  2002-08-10 14:48:09  carl
+    + moved target_cpu_string to cpuinfo
+    * renamed asmmode enum.
+    * assembler reader has now less ifdef's
+    * move from nppcmem.pas -> ncgmem.pas vec. node.
+
+  Revision 1.4  2002/05/16 19:46:52  carl
   + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
   + try to fix temp allocation (still in ifdef)
   + generic constructor calls
