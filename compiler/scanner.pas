@@ -48,9 +48,11 @@ interface
        tscannerfile = class;
 
        tmacro = class(TNamedIndexItem)
-          defined,
-          defined_at_startup,
+          defined : boolean; { normally true, but false when the macro is undef-ed}
+          defined_at_startup : boolean;
           is_used : boolean;
+          is_compiler_var : boolean; { if this is a mac style compiler variable, in
+                                  which case no macro substitutions shall be done.}
           buftext : pchar;
           buflen  : longint;
           fileinfo : tfileposinfo;
@@ -379,7 +381,8 @@ implementation
           len : integer;
         begin
           result := current_scanner.preproc_pattern;
-          { allow macro support in macro's }
+          { Substitue macros and compiler variables with their content/value.
+            For real macros also do recursive substitution. }
           macrocount:=0;
           repeat
             mac:=tmacro(current_scanner.macros.search(result));
@@ -391,20 +394,29 @@ implementation
                 break;
               end;
 
-            if assigned(mac) and mac.defined and assigned(mac.buftext) then
-              begin
-                if mac.buflen>255 then
-                  begin
-                    len:=255;
-                    Message(scan_w_macro_cut_after_255_chars);
-                  end
-                else
-                  len:=mac.buflen;
-                hs[0]:=char(len);
-                move(mac.buftext^,hs[1],len);
-                result:=upcase(hs);
-              end
+            if assigned(mac) and mac.defined then
+              if assigned(mac.buftext) then
+                begin
+                  if mac.buflen>255 then
+                    begin
+                      len:=255;
+                      Message(scan_w_macro_cut_after_255_chars);
+                    end
+                  else
+                    len:=mac.buflen;
+                  hs[0]:=char(len);
+                  move(mac.buftext^,hs[1],len);
+                  result:=upcase(hs);
+                end
+              else
+                begin
+                  Message1(scan_e_error_macro_lacks_value, result);
+                  break;
+                end
             else
+              break;
+
+            if mac.is_compiler_var then
               break;
           until false;
         end;
@@ -421,7 +433,7 @@ implementation
         begin
            if current_scanner.preproc_token=_ID then
              begin
-                if preproc_substitutedtoken='DEFINED' then
+                if current_scanner.preproc_pattern='DEFINED' then
                   begin
                     preproc_consume(_ID);
                     current_scanner.skipspace;
@@ -452,7 +464,7 @@ implementation
                       Message(scan_e_error_in_preproc_expr);
                   end
                 else
-                if (m_mac in aktmodeswitches) and (preproc_substitutedtoken='UNDEFINED') then
+                if (m_mac in aktmodeswitches) and (current_scanner.preproc_pattern='UNDEFINED') then
                   begin
                     preproc_consume(_ID);
                     current_scanner.skipspace;
@@ -472,7 +484,7 @@ implementation
                       Message(scan_e_error_in_preproc_expr);
                   end
                 else
-                if (m_mac in aktmodeswitches) and (preproc_substitutedtoken='OPTION') then
+                if (m_mac in aktmodeswitches) and (current_scanner.preproc_pattern='OPTION') then
                   begin
                     preproc_consume(_ID);
                     current_scanner.skipspace;
@@ -507,7 +519,7 @@ implementation
                       Message(scan_e_error_in_preproc_expr);
                   end
                 else
-                if preproc_substitutedtoken='SIZEOF' then
+                if current_scanner.preproc_pattern='SIZEOF' then
                   begin
                     preproc_consume(_ID);
                     current_scanner.skipspace;
@@ -544,7 +556,7 @@ implementation
                       Message(scan_e_error_in_preproc_expr);
                   end
                 else
-                if preproc_substitutedtoken='DECLARED' then
+                if current_scanner.preproc_pattern='DECLARED' then
                   begin
                     preproc_consume(_ID);
                     current_scanner.skipspace;
@@ -574,7 +586,7 @@ implementation
                       Message(scan_e_error_in_preproc_expr);
                   end
                 else
-                if preproc_substitutedtoken='NOT' then
+                if current_scanner.preproc_pattern='NOT' then
                   begin
                     preproc_consume(_ID);
                     hs:=read_factor();
@@ -585,13 +597,13 @@ implementation
                       read_factor:='1';
                   end
                 else
-                if (m_mac in aktmodeswitches) and (preproc_substitutedtoken='TRUE') then
+                if (m_mac in aktmodeswitches) and (current_scanner.preproc_pattern='TRUE') then
                   begin
                     preproc_consume(_ID);
                     read_factor:='1';
                   end
                 else
-                if (m_mac in aktmodeswitches) and (preproc_substitutedtoken='FALSE') then
+                if (m_mac in aktmodeswitches) and (current_scanner.preproc_pattern='FALSE') then
                   begin
                     preproc_consume(_ID);
                     read_factor:='0';
@@ -623,7 +635,7 @@ implementation
           repeat
             if (current_scanner.preproc_token<>_ID) then
               break;
-            if preproc_substitutedtoken<>'AND' then
+            if current_scanner.preproc_pattern<>'AND' then
               break;
             preproc_consume(_ID);
             hs2:=read_factor;
@@ -648,7 +660,7 @@ implementation
           repeat
             if (current_scanner.preproc_token<>_ID) then
               break;
-            if preproc_substitutedtoken<>'OR' then
+            if current_scanner.preproc_pattern<>'OR' then
               break;
             preproc_consume(_ID);
             hs2:=read_term;
@@ -757,6 +769,7 @@ implementation
           begin
             Message1(parser_c_macro_defined,mac.name);
             mac.defined:=true;
+            mac.is_compiler_var:=false;
           { delete old definition }
             if assigned(mac.buftext) then
              begin
@@ -767,53 +780,59 @@ implementation
         mac.is_used:=true;
         if (cs_support_macro in aktmoduleswitches) then
           begin
-          { key words are never substituted }
+             { key words are never substituted }
              if is_keyword(hs) then
-              Message(scan_e_keyword_cant_be_a_macro);
-           { !!!!!! handle macro params, need we this? }
+               Message(scan_e_keyword_cant_be_a_macro);
+             { !!!!!! handle macro params, need we this? }
              current_scanner.skipspace;
-           { may be a macro? }
-             if c=':' then
+
+             if not (m_mac in aktmodeswitches) then
                begin
-                  current_scanner.readchar;
-                  if c='=' then
-                    begin
-                       new(macrobuffer);
-                       macropos:=0;
-                       { parse macro, brackets are counted so it's possible
-                         to have a $ifdef etc. in the macro }
-                       bracketcount:=0;
-                       repeat
-                         current_scanner.readchar;
-                         case c of
-                           '}' :
-                             if (bracketcount=0) then
-                              break
-                             else
-                              dec(bracketcount);
-                           '{' :
-                             inc(bracketcount);
-                           #10,#13 :
-                             current_scanner.linebreak;
-                           #26 :
-                             current_scanner.end_of_file;
-                         end;
-                         macrobuffer^[macropos]:=c;
-                         inc(macropos);
-                         if macropos>maxmacrolen then
-                          Message(scan_f_macro_buffer_overflow);
-                       until false;
-                       { free buffer of macro ?}
-                       if assigned(mac.buftext) then
-                         freemem(mac.buftext,mac.buflen);
-                       { get new mem }
-                       getmem(mac.buftext,macropos);
-                       mac.buflen:=macropos;
-                       { copy the text }
-                       move(macrobuffer^,mac.buftext^,macropos);
-                       dispose(macrobuffer);
-                    end;
+                 { may be a macro? }
+                 if c <> ':' then
+                   exit;
+                 current_scanner.readchar;
+                 if c <> '=' then
+                   exit;
+                 current_scanner.readchar;
+                 current_scanner.skipspace;
                end;
+
+             new(macrobuffer);
+             macropos:=0;
+             { parse macro, brackets are counted so it's possible
+               to have a $ifdef etc. in the macro }
+             bracketcount:=0;
+             repeat
+               case c of
+                 '}' :
+                   if (bracketcount=0) then
+                    break
+                   else
+                    dec(bracketcount);
+                 '{' :
+                   inc(bracketcount);
+                 #10,#13 :
+                   current_scanner.linebreak;
+                 #26 :
+                   current_scanner.end_of_file;
+               end;
+               macrobuffer^[macropos]:=c;
+               inc(macropos);
+               if macropos>maxmacrolen then
+                 Message(scan_f_macro_buffer_overflow);
+               current_scanner.readchar;
+             until false;
+
+             { free buffer of macro ?}
+             if assigned(mac.buftext) then
+               freemem(mac.buftext,mac.buflen);
+             { get new mem }
+             getmem(mac.buftext,macropos);
+             mac.buflen:=macropos;
+             { copy the text }
+             move(macrobuffer^,mac.buftext^,macropos);
+             dispose(macrobuffer);
           end
         else
           begin
@@ -841,12 +860,14 @@ implementation
           begin
             mac:=tmacro.create(hs);
             mac.defined:=true;
+            mac.is_compiler_var:=true;
             Message1(parser_c_macro_defined,mac.name);
             current_scanner.macros.insert(mac);
           end
         else
           begin
             mac.defined:=true;
+            mac.is_compiler_var:=true;
           { delete old definition }
             if assigned(mac.buftext) then
              begin
@@ -911,6 +932,7 @@ implementation
           begin
              Message1(parser_c_macro_undefined,mac.name);
              mac.defined:=false;
+             mac.is_compiler_var:=false;
              { delete old definition }
              if assigned(mac.buftext) then
                begin
@@ -1061,6 +1083,7 @@ implementation
          defined_at_startup:=false;
          fileinfo:=akttokenpos;
          is_used:=false;
+         is_compiler_var:= false;
          buftext:=nil;
          buflen:=0;
       end;
@@ -1242,8 +1265,9 @@ implementation
            end
          else
            begin
-              if assigned(mac.buftext) then
-                freemem(mac.buftext,mac.buflen);
+             mac.is_compiler_var:=false;
+             if assigned(mac.buftext) then
+               freemem(mac.buftext,mac.buflen);
            end;
          Message2(parser_c_macro_set_to,mac.name,value);
          mac.buflen:=length(value);
@@ -2416,7 +2440,7 @@ implementation
               if (cs_support_macro in aktmoduleswitches) then
                begin
                  mac:=tmacro(macros.search(pattern));
-                 if assigned(mac) and (assigned(mac.buftext)) then
+                 if assigned(mac) and (not mac.is_compiler_var) and (assigned(mac.buftext)) then
                   begin
                     if yylexcount<max_macro_nesting then
                      begin
@@ -3242,9 +3266,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.86  2004-08-22 10:50:19  olle
-    + added DEFINEC for mode macpas, is equivalent to DEFINE
-    * fixed bug when macro without value is used in a compile time expr.
+  Revision 1.87  2004-08-22 23:16:06  olle
+    + added flag to TMacro denoting mac style compiler variable
+    * fixed $DEFINEC
+    * improved robustness of macro facility
 
   Revision 1.85  2004/08/02 20:45:40  florian
     * sizeof in the preprocessor handles types now as well
