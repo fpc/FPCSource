@@ -135,6 +135,8 @@ Begin
    End;
   End;
   TextRec(t).mode:=word(mode);
+  TextRec(t).bufpos:=0;
+  TextRec(t).bufend:=0;
   FileFunc(TextRec(t).OpenFunc)(TextRec(t))
 End;
 
@@ -1200,7 +1202,10 @@ end;
 
 {
   $Log$
-  Revision 1.22  1998-08-26 11:23:25  pierre
+  Revision 1.23  1998-08-26 15:33:28  peter
+    * reset bufpos,bufend in opentext like tp7
+
+  Revision 1.22  1998/08/26 11:23:25  pierre
     * close did not reset the bufpos and bufend fields
       led to problems when using the same file several times
 
