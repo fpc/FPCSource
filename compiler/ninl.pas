@@ -1511,6 +1511,15 @@ implementation
                             left:=nil;
                             goto myexit;
                          end
+                        else if is_pwidechar(left.resulttype.def) then
+                         begin
+                            hp := ccallparanode.create(left,nil);
+                            result := ccallnode.createintern('fpc_pwidechar_length',hp);
+                            { make sure the left node doesn't get disposed, since it's }
+                            { reused in the new node (JM)                              }
+                            left:=nil;
+                            goto myexit;
+                         end
                         else
                          CGMessage(type_e_mismatch);
                       end;
@@ -2396,7 +2405,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.91  2002-10-05 14:21:08  peter
+  Revision 1.92  2002-10-10 16:07:57  florian
+    + several widestring/pwidechar related stuff added
+
+  Revision 1.91  2002/10/05 14:21:08  peter
     * Length(PChar) supported
 
   Revision 1.90  2002/09/13 19:12:09  carl

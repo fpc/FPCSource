@@ -67,6 +67,7 @@ interface
           function resulttype_pchar_to_string : tnode;
           function resulttype_interface_to_guid : tnode;
           function resulttype_dynarray_to_openarray : tnode;
+          function resulttype_pwchar_to_string : tnode;
           function resulttype_call_helper(c : tconverttype) : tnode;
        protected
           function first_int_to_int : tnode;virtual;
@@ -132,7 +133,6 @@ interface
           procedure second_bool_to_bool;virtual;abstract;
           procedure second_load_smallset;virtual;abstract;
           procedure second_ansistring_to_pchar;virtual;abstract;
-          procedure second_pchar_to_string;virtual;abstract;
           procedure second_class_to_intf;virtual;abstract;
           procedure second_char_to_char;virtual;abstract;
           procedure second_nothing; virtual;abstract;
@@ -876,6 +876,15 @@ implementation
         result.resulttype := resulttype;
       end;
 
+    function ttypeconvnode.resulttype_pwchar_to_string : tnode;
+
+      begin
+        result := ccallnode.createinternres(
+          'fpc_pwidechar_to_'+tstringdef(resulttype.def).stringtypname,
+          ccallparanode.create(left,nil),resulttype);
+        left := nil;
+      end;
+
 
     function ttypeconvnode.resulttype_call_helper(c : tconverttype) : tnode;
 {$ifdef fpc}
@@ -909,7 +918,8 @@ implementation
           { class_2_intf } nil,
           { char_2_char } @ttypeconvnode.resulttype_char_to_char,
           { normal_2_smallset} nil,
-          { dynarray_2_openarray} @resulttype_dynarray_to_openarray
+          { dynarray_2_openarray} @resulttype_dynarray_to_openarray,
+          { pwchar_2_string} @resulttype_pwchar_to_string
          );
       type
          tprocedureofobject = function : tnode of object;
@@ -945,6 +955,7 @@ implementation
           tc_intf_2_guid : resulttype_interface_to_guid;
           tc_char_2_char : resulttype_char_to_char;
           tc_dynarray_2_openarray : resulttype_dynarray_to_openarray;
+          tc_pwchar_2_string : resulttype_pwchar_to_string;
         end;
       end;
 {$Endif fpc}
@@ -1764,7 +1775,8 @@ implementation
            @ttypeconvnode._first_class_to_intf,
            @ttypeconvnode._first_char_to_char,
            @ttypeconvnode._first_nothing,
-           @ttypeconvnode._first_nothing
+           @ttypeconvnode._first_nothing,
+           nil
          );
       type
          tprocedureofobject = function : tnode of object;
@@ -2086,7 +2098,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.86  2002-10-06 16:10:23  florian
+  Revision 1.87  2002-10-10 16:07:57  florian
+    + several widestring/pwidechar related stuff added
+
+  Revision 1.86  2002/10/06 16:10:23  florian
     * when compiling <interface> as <interface> we can't assume
       anything about relation
 

@@ -203,7 +203,8 @@ interface
           tc_class_2_intf,
           tc_char_2_char,
           tc_normal_2_smallset,
-          tc_dynarray_2_openarray
+          tc_dynarray_2_openarray,
+          tc_pwchar_2_string
        );
 
     function assignment_overloaded(from_def,to_def : tdef) : tprocdef;
@@ -1509,19 +1510,32 @@ implementation
                    begin
                    { pchar can be assigned to short/ansistrings,
                      but not in tp7 compatible mode }
-                     if is_pchar(def_from) and not(m_tp7 in aktmodeswitches) then
-                      begin
-                        doconv:=tc_pchar_2_string;
-                        { trefer ansistrings because pchars can overflow shortstrings, }
-                        { but only if ansistrings are the default (JM)                 }
-                        if (is_shortstring(def_to) and
-                            not(cs_ansistrings in aktlocalswitches)) or
-                           (is_ansistring(def_to) and
-                            (cs_ansistrings in aktlocalswitches)) then
-                          b:=1
-                        else
-                          b:=2;
-                      end;
+                     if not(m_tp7 in aktmodeswitches) then
+                       begin
+                          if is_pchar(def_from) then
+                           begin
+                             doconv:=tc_pchar_2_string;
+                             { trefer ansistrings because pchars can overflow shortstrings, }
+                             { but only if ansistrings are the default (JM)                 }
+                             if (is_shortstring(def_to) and
+                                 not(cs_ansistrings in aktlocalswitches)) or
+                                (is_ansistring(def_to) and
+                                 (cs_ansistrings in aktlocalswitches)) then
+                               b:=1
+                             else
+                               b:=2;
+                           end
+                          else if is_pwidechar(def_from) then
+                           begin
+                             doconv:=tc_pwchar_2_string;
+                             { trefer ansistrings because pchars can overflow shortstrings, }
+                             { but only if ansistrings are the default (JM)                 }
+                             if is_widestring(def_to) then
+                               b:=1
+                             else
+                               b:=2;
+                           end;
+                       end;
                    end;
                end;
              end;
@@ -2012,7 +2026,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.21  2002-10-09 21:01:41  florian
+  Revision 1.22  2002-10-10 16:07:57  florian
+    + several widestring/pwidechar related stuff added
+
+  Revision 1.21  2002/10/09 21:01:41  florian
     * variants aren't compatible with nil
 
   Revision 1.20  2002/10/07 09:49:42  florian
