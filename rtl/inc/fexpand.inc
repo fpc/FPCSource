@@ -68,11 +68,19 @@ const
 {$ELSE FPC_FEXPAND_DRIVES}
     PathStart = 1;
 {$ENDIF FPC_FEXPAND_DRIVES}
+{$IFDEF FPC_FEXPAND_UNC}
+ RootNotNeeded: boolean = false;
+{$ELSE FPC_FEXPAND_UNC}
+ RootNotNeeded = false;
+{$ENDIF FPC_FEXPAND_UNC}
 
 var S, Pa, Dirs: PathStr;
     I, J: longint;
 
 begin
+{$IFDEF FPC_FEXPAND_UNC}
+    RootNotNeeded := false;
+{$ENDIF FPC_FEXPAND_UNC}
     if FileNameCaseSensitive then
         Pa := Path
     else
@@ -164,14 +172,29 @@ begin
                     if (Length (Pa) > 1) and (Pa [2] = DirSep)
                                                             and LFNSupport then
                         begin
-                            if Length (Pa) = 2 then
-                                Pa := DirSep + DirSep + '.' + DirSep;
                             PathStart := 3;
                             {Find the start of the string of directories}
-                            while (Pa [PathStart] <> DirSep) and
-                                                  (PathStart <= Length (Pa)) do
+                            while (PathStart <= Length (Pa)) and
+                                                  (Pa [PathStart] <> DirSep) do
                                 Inc (PathStart);
-                            if PathStart > Length (Pa) then Pa := Pa + DirSep;
+                            if PathStart > Length (Pa) then
+                            {We have just a machine name...}
+                                if Length (Pa) = 2 then
+                                {...or not even that one}
+                                    PathStart := 2
+                                else
+                                    Pa := Pa + DirSep
+                            else
+                                if PathStart < Length (Pa) then
+                                {We have a resource name as well}
+                                    begin
+                                        RootNotNeeded := true;
+                                        {Let's continue in searching}
+                                        repeat
+                                            Inc (PathStart);
+                                        until (PathStart > Length (Pa)) or
+                                                     (Pa [PathStart] = DirSep);
+                                    end;
                         end
                     else
  {$ENDIF FPC_FEXPAND_UNC}
@@ -263,15 +286,20 @@ begin
         Pa := Copy (Pa, 1, PathStart) + Dirs;
     {Remove ending \ if not supplied originally, the original string
     wasn't empty (to stay compatible) and if not really needed}
-    if (Length (Pa) > PathStart) and (Pa [Length (Pa)] = DirSep)
-             and (Length (Path) <> 0) and (Path [Length (Path)] <> DirSep) then
+    if (Pa [Length (Pa)] = DirSep) and ((Length (Pa) > PathStart) or
+{A special case with UNC paths}
+            (RootNotNeeded and (Length (Pa) = PathStart))) and
+                 (Length (Path) <> 0) and (Path [Length (Path)] <> DirSep) then
         Dec (Pa [0]);
     FExpand := Pa;
 end;
 
 {
   $Log$
-  Revision 1.6  2001-04-07 19:37:27  hajny
+  Revision 1.7  2001-04-08 12:47:23  hajny
+    * invalid UNC paths handled more consistently to OS/2 and Win32 API functions
+
+  Revision 1.6  2001/04/07 19:37:27  hajny
     * fix for absolute paths on platforms without drives (*nix), support for long volume names added
 
   Revision 1.5  2001/03/21 21:08:20  hajny
