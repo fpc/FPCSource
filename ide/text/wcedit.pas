@@ -660,16 +660,26 @@ end;
 procedure TCodeEditorCore.AddGroupedAction(AAction : byte);
 begin
 {$ifdef Undo}
-  UndoList^.CurrentGroupedAction:=New(PEditorAction,Init_group(AAction));
+  if Assigned(UndoList^.CurrentGroupedAction) then
+    inc(UndoList^.GroupLevel)
+  else
+    begin
+      UndoList^.CurrentGroupedAction:=New(PEditorAction,Init_group(AAction));
+      UndoList^.GroupLevel:=1;
+    end;
 {$endif Undo}
 end;
 
 procedure TCodeEditorCore.CloseGroupedAction(AAction : byte);
 begin
 {$ifdef Undo}
-  UndoList^.Insert(UndoList^.CurrentGroupedAction);
-  UndoList^.CurrentGroupedAction:=nil;
-  UpdateUndoRedo(cmUndo,AAction);
+  dec(UndoList^.GroupLevel);
+  if UndoList^.GroupLevel=0 then
+    begin
+      UndoList^.Insert(UndoList^.CurrentGroupedAction);
+      UndoList^.CurrentGroupedAction:=nil;
+      UpdateUndoRedo(cmUndo,AAction);
+    end;
 {$endif Undo}
 end;
 
@@ -1182,7 +1192,7 @@ procedure TCodeEditor.Undo;
 {$ifdef Undo}
 var
   Temp,Idx,Last,Count : Longint;
-  Is_grouped : boolean;
+  Is_grouped,Had_efNoIndent : boolean;
   MaxY,MinY : sw_integer;
 
   procedure SetMinMax(y : sw_integer);
@@ -1257,7 +1267,11 @@ begin
               begin
                 SetCurPtr(EndPos.X,EndPos.Y);
                 SetMinMax(EndPos.Y);
+                Had_efNoIndent:=(GetFlags and efNoIndent)<>0;
+                SetFlags(GetFlags or efNoIndent);
                 InsertNewLine;
+                if not Had_efNoIndent then
+                  SetFlags(GetFlags and not efNoIndent);
                 {DelEnd; wrong for eaCut at least }
                 SetCurPtr(StartPos.X,StartPos.Y);
                 SetLineText(StartPos.Y,Copy(GetDisplayText(StartPos.Y),1,StartPos.X)+GetStr(Text));
@@ -1310,7 +1324,7 @@ procedure TCodeEditor.Redo;
 {$ifdef Undo}
 var
   Temp,Idx,Last,Count : Longint;
-  Is_grouped : boolean;
+  Is_grouped,Had_efNoIndent : boolean;
 {$endif Undo}
 begin
 {$ifdef Undo}
@@ -1353,7 +1367,11 @@ begin
         eaInsertLine :
           begin
             SetCurPtr(StartPos.X,StartPos.Y);
+            Had_efNoIndent:=(GetFlags and efNoIndent)<>0;
+            SetFlags(GetFlags or efNoIndent);
             InsertNewLine;
+            if not Had_efNoIndent then
+              SetFlags(GetFlags and not efNoIndent);
             SetCurPtr(0,StartPos.Y+1);
             InsertText(GetStr(Text));
             SetCurPtr(EndPos.X,EndPos.Y);
@@ -1807,7 +1825,16 @@ end;
 END.
 {
  $Log$
- Revision 1.3  2000-10-31 22:35:55  pierre
+ Revision 1.4  2000-11-03 16:05:38  pierre
+  * (merged)
+
+ Revision 1.1.2.6  2000/11/03 15:49:26  pierre
+  * more Undo fixes
+
+ Revision 1.1.2.5  2000/11/03 13:31:33  pierre
+  + more Undo stuff and smarter indent/unindent
+
+ Revision 1.3  2000/10/31 22:35:55  pierre
   * New big merge from fixes branch
 
  Revision 1.1.2.4  2000/10/24 23:06:30  pierre

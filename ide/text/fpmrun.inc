@@ -244,6 +244,8 @@ procedure TIDEApp.DoOpenGDBWindow;
 begin
 {$ifndef NODEBUG}
   InitGDBWindow;
+  if not assigned(Debugger) then
+    new(Debugger,Init(ExeFile));
   If assigned(GDBWindow) then
     GDBWindow^.MakeFirst;
 {$else NODEBUG}
@@ -284,8 +286,11 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-10-31 22:35:54  pierre
-   * New big merge from fixes branch
+  Revision 1.3  2000-11-03 16:05:38  pierre
+   * (merged)
+
+  Revision 1.1.2.3  2000/11/03 13:29:59  pierre
+   Start GDB if opening GDB window
 
   Revision 1.1.2.2  2000/10/18 21:53:27  pierre
    * several Gabor fixes

@@ -1,4 +1,5 @@
 {
+    $Id$
     This file is part of the Free Pascal Integrated Development Environment
     Copyright (c) 1998 by Berczi Gabor
 
@@ -160,11 +161,20 @@ const
       eaPasteWin          = 9;
       eaDelChar           = 10;
       eaClear             = 11;
-      LastAction          = eaClear;
+      eaCopyBlock         = 12;
+      eaMoveBlock         = 13;
+      eaDelBlock          = 14;
+      eaReadBlock         = 15;
+      eaIndentBlock       = 16;
+      eaUnindentBlock     = 17;
+      eaDummy             = 18;
+      LastAction          = eaDummy;
 
-      ActionString : array [0..LastAction] of string[8] =
+      ActionString : array [0..LastAction-1] of string[13] =
         ('','Move','InsLine','InsText','DelLine','DelText',
-         'SelCh','Cut','Paste','PasteWin','DelChar','Clear');
+         'SelChange','Cut','Paste','PasteWin','DelChar','Clear',
+         'CopyBlock','MoveBlock','DelBlock',
+         'ReadBlock','IndentBlock','UnindentBlock');
 
       CIndicator    = #2#3#1;
       CEditor       = #33#34#35#36#37#38#39#40#41#42#43#44#45#46#47#48#49;
@@ -284,6 +294,7 @@ type
     PEditorActionCollection = ^TEditorActionCollection;
     TEditorActionCollection = object(TCollection)
       CurrentGroupedAction : PEditorAction;
+      GroupLevel           : longint;
       function At(Idx : sw_integer) : PEditorAction;
     end;
 {$else}
@@ -2779,13 +2790,12 @@ begin
     OK:=GetLineCount<MaxLineCount;
     OrigS:=GetDisplayText(DestPos.Y);
     AfterS:=Copy(OrigS,DestPos.X+1,High(OrigS));
-
+    BPos:=CurPos;
     while OK and (LineDelta<LineCount) do
     begin
       if (LineDelta>0) and (VerticalBlock=false) then
         begin
           InsertLine(DestPos.Y,'');
-          BPos.X:=0;BPos.Y:=DestPos.Y;
           EPOS.X:=0;EPos.Y:=DestPos.Y;
           AddAction(eaInsertLine,BPos,EPos,'');
           LimitsChanged;
@@ -2826,6 +2836,7 @@ begin
               EPOS.X:=DestPos.X+Length(S);EPos.Y:=DestPos.Y;
               AddAction(eaInsertText,BPos,EPos,S);
             end;
+          BPos.X:=EPos.X;
           if LineDelta=LineCount-1 then
             begin
               SEnd.Y:=DestPos.Y;
@@ -4197,7 +4208,7 @@ begin
         caToggleCase  : if C in['a'..'z'] then
                           C:=Upcase(C)
                         else
-                         C:=LowCase(C);
+                          C:=LowCase(C);
        end;
       S[X+1]:=C;
     end;
@@ -4390,7 +4401,7 @@ begin
 end;
 
 function TCustomCodeEditor.InsertNewLine: Sw_integer;
-var Ind: Sw_integer;
+var i,Ind: Sw_integer;
     S,IndentStr: string;
 procedure CalcIndent(LineOver: Sw_integer);
 begin
@@ -4437,7 +4448,13 @@ begin
     end;
     SetDisplayText(CurPos.Y,copy(S,1,CurPos.X-1+1));
     CalcIndent(CurPos.Y);
-    NewL:=InsertLine(CurPos.Y+1,IndentStr+copy(S,CurPos.X+1,High(S)));
+    S:=copy(S,CurPos.X+1,High(S));
+    i:=1;
+    while (i<=length(s)) and (i<=length(IndentStr)) and (s[i]=' ') do
+      inc(i);
+    if i>1 then
+      Delete(IndentStr,1,i-1);
+    NewL:=InsertLine(CurPos.Y+1,IndentStr+S);
     LimitsChanged;
 (*    if PointOfs(SelStart)<>PointOfs(SelEnd) then { !!! check it - it's buggy !!! }
       begin SelEnd.Y:=CurPos.Y+1; SelEnd.X:=length(GetLineText(CurPos.Y+1))-SelBack; end;*)
@@ -4784,6 +4801,7 @@ begin
   if IsReadOnly or (ValidBlock=false) then Exit;
 
   Lock;
+  AddGroupedAction(eaDelBlock);
   LineCount:=(SelEnd.Y-SelStart.Y)+1;
   LineDelta:=0; LastX:=CurPos.X;
   CurLine:=SelStart.Y;
@@ -4838,6 +4856,7 @@ begin
   UpdateAttrs(CurPos.Y,attrAll);
   DrawLines(CurPos.Y);
   SetModified(true);
+  CloseGroupedAction(eaDelBlock);
   UnLock;
 end;
 
@@ -4855,6 +4874,7 @@ begin
 
   Lock;
   GetExtent(R);
+  AddGroupedAction(eaCopyBlock);
   New(Temp, Init(R, nil, nil, nil,nil));
   Temp^.InsertFrom(@Self);
 (*  Temp^.SelectAll(true);
@@ -4866,6 +4886,7 @@ begin
 
   InsertFrom(Temp);
   Dispose(Temp, Done);
+  CloseGroupedAction(eaCopyBlock);
   UnLock;
 end;
 
@@ -4877,6 +4898,7 @@ begin
   if IsReadOnly then Exit;
   if (SelStart.X=SelEnd.X) and (SelStart.Y=SelEnd.Y) then Exit;
   Lock;
+  AddGroupedAction(eaMoveBlock);
   GetExtent(R);
   New(Temp, Init(R, nil, nil, nil,nil));
   Temp^.InsertFrom(@Self);
@@ -4887,54 +4909,140 @@ begin
   SetCurPtr(OldPos.X,OldPos.Y);
   InsertFrom(Temp);
   Dispose(Temp, Done);
+  CloseGroupedAction(eaMoveBlock);
   UnLock;
 end;
 
 procedure TCustomCodeEditor.IndentBlock;
 var
-  ey,i : Sw_integer;
-  S : String;
+  ey,i,indlen : Sw_integer;
+  S,Ind : String;
+  Pos : Tpoint;
 begin
   if IsReadOnly then Exit;
   if (SelStart.X=SelEnd.X) and (SelStart.Y=SelEnd.Y) then Exit;
   Lock;
+  AddGroupedAction(eaIndentBlock);
   ey:=selend.y;
   if selend.x=0 then
    dec(ey);
+  S:='';
+  { If AutoIndent try to align first line to
+    last line before selection }
+  if IsFlagSet(efAutoIndent) and (SelStart.Y>0) then
+    begin
+      i:=SelStart.Y-1;
+      while (S='') and (i>=0) do
+        begin
+          S:=GetDisplayText(i);
+          dec(i);
+        end;
+      if (S='') or (S[1]<>' ') then
+        Ind:=' '
+      else
+        begin
+          i:=1;
+          while (i<=Length(S)) and (S[i]=' ') do
+           inc(i);
+          indlen:=i;
+          S:=GetDisplayText(SelStart.Y);
+          i:=1;
+          while (i<=Length(S)) and (S[i]=' ') do
+            inc(i);
+          indlen:=indlen-i;
+          if indlen<=0 then
+            indlen:=1;
+          Ind:=CharStr(' ',indlen);
+        end;
+    end
+  else
+   Ind:=' ';
   for i:=selstart.y to ey do
    begin
      S:=GetLineText(i);
-     SetLineText(i,' '+S);
+     SetLineText(i,Ind+S);
+     Pos.X:=0;Pos.Y:=i;
+     AddAction(eaInsertText,Pos,Pos,Ind);
    end;
   SetCurPtr(CurPos.X,CurPos.Y);
+  { must be added manually here PM }
+  AddAction(eaMoveCursor,Pos,CurPos,'');
   UpdateAttrsRange(SelStart.Y,SelEnd.Y,attrAll);
   DrawLines(CurPos.Y);
   SetModified(true);
+  CloseGroupedAction(eaIndentBlock);
   UnLock;
 end;
 
 procedure TCustomCodeEditor.UnindentBlock;
 var
-  ey,i : Sw_integer;
+  ey,i,j,k,indlen : Sw_integer;
   S : String;
+  Pos : TPoint;
 begin
   if IsReadOnly then Exit;
   if (SelStart.X=SelEnd.X) and (SelStart.Y=SelEnd.Y) then Exit;
   Lock;
+  AddGroupedAction(eaUnindentBlock);
   ey:=selend.y;
   if selend.x=0 then
    dec(ey);
+  { If AutoIndent try to align first line to
+    last line before selection }
+  if IsFlagSet(efAutoIndent) and (SelStart.Y>0) then
+    begin
+      S:=GetDisplayText(SelStart.Y);
+      i:=1;
+      while (i<=Length(S)) and (S[i]=' ') do
+        inc(i);
+      indlen:=i-1;
+      i:=SelStart.Y-1;
+      S:='';
+      while (S='') and (i>=0) do
+        begin
+          if Trim(Copy(GetDisplayText(i),1,indlen))='' then
+            S:=''
+          else
+            S:=GetDisplayText(i);
+          dec(i);
+        end;
+      if (S='') then
+        Indlen:=1
+      else
+        begin
+          i:=1;
+          while (i<=Length(S)) and (S[i]=' ') do
+           inc(i);
+          indlen:=indlen-i+1;
+          if indlen<=0 then
+            indlen:=1;
+        end;
+    end
+  else
+   Indlen:=1;
   for i:=selstart.y to ey do
    begin
      S:=GetLineText(i);
-     if (length(s)>1) and (S[1]=' ') then
-      Delete(s,1,1);
+     k:=0;
+     for j:=1 to indlen do
+       if (length(s)>1) and (S[1]=' ') then
+         begin
+           Delete(s,1,1);
+           inc(k);
+         end;
      SetLineText(i,S);
+     if k>0 then
+       begin
+         Pos.Y:=i;
+         Pos.X:=0;
+         AddAction(eaDeleteText,Pos,Pos,CharStr(' ',k));
+       end;
    end;
   SetCurPtr(CurPos.X,CurPos.Y);
   UpdateAttrsRange(SelStart.Y,SelEnd.Y,attrAll);
   DrawLines(CurPos.Y);
   SetModified(true);
+  CloseGroupedAction(eaUnindentBlock);
   UnLock;
 end;
 
@@ -5001,6 +5109,7 @@ var FileName: string;
     E: PCodeEditor;
     R: TRect;
 begin
+  if IsReadOnly then Exit;
   FileName:='';
   if EditorDialog(edReadBlock, @FileName) <> cmCancel then
   begin
@@ -5013,6 +5122,7 @@ begin
       begin
         R.Assign(0,0,0,0);
         New(E, Init(R,nil,nil,nil,nil));
+        AddGroupedAction(eaReadBlock);
         if E^.LoadFromStream(S)=false then
           EditorDialog(edReadError,@FileName)
         else
@@ -5020,6 +5130,7 @@ begin
             E^.SelectAll(true);
             Self.InsertFrom(E);
           end;
+        CloseGroupedAction(eaReadBlock);
         Dispose(E, Done);
       end;
     if Assigned(S) then Dispose(S, Done);
@@ -6100,7 +6211,9 @@ end;
 
 function TEditorAction.Is_grouped_action : boolean;
 begin
-  Is_grouped_action:=Action in [eaCut,eaPaste,eaPasteWin,eaClear];
+  Is_grouped_action:=Action in [eaCut,eaPaste,eaPasteWin,eaClear,
+                                eaCopyBlock,eaMoveBlock,eaDelBlock,
+                                eaIndentBlock,eaUnindentBlock,eaReadBlock];
 end;
 
 destructor TEditorAction.done;
@@ -6461,7 +6574,16 @@ end;
 END.
 {
   $Log$
-  Revision 1.3  2000-10-31 22:35:55  pierre
+  Revision 1.4  2000-11-03 16:05:38  pierre
+   * (merged)
+
+  Revision 1.1.2.13  2000/11/03 15:49:26  pierre
+   * more Undo fixes
+
+  Revision 1.1.2.12  2000/11/03 13:31:33  pierre
+   + more Undo stuff and smarter indent/unindent
+
+  Revision 1.3  2000/10/31 22:35:55  pierre
    * New big merge from fixes branch
 
   Revision 1.1.2.11  2000/10/31 08:12:45  pierre

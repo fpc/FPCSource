@@ -364,7 +364,7 @@ begin
   i:=1;
   while (i<length(s)) and (s[i]=' ') do
    inc(i);
-  LTrim:=Copy(s,i,255);
+  LTrim:=Copy(s,i,High(S));
 end;
 
 function RTrim(const S: string): string;
@@ -632,7 +632,13 @@ end;
 END.
 {
   $Log$
-  Revision 1.2  2000-08-22 09:41:41  pierre
+  Revision 1.3  2000-11-03 16:05:38  pierre
+   * (merged)
+
+  Revision 1.1.2.3  2000/11/03 15:45:57  pierre
+   * fix LTrim for AnsiStrings
+
+  Revision 1.2  2000/08/22 09:41:41  pierre
    * first big merge from fixes branch
 
   Revision 1.1.2.2  2000/08/15 03:40:53  peter
