@@ -1301,6 +1301,9 @@ VAR
   Ts, Fs: Sw_Integer; Ps: HPs; Tm: FontMetrics;
 {$ENDIF}
 {$ENDIF}
+{$ifdef USE_VIDEO_API}
+    StoreScreenMode : TVideoMode;
+{$endif USE_VIDEO_API}
 BEGIN
 if VideoInitialized then
   DoneVideo;
@@ -1366,17 +1369,25 @@ if Not TextmodeGFV then
 else
 {$endif GRAPH_API}
   begin
+{$ifdef USE_VIDEO_API}
+    StoreScreenMode:=ScreenMode;
+{$endif USE_VIDEO_API}
     Video.InitVideo;
+{$ifdef USE_VIDEO_API}
+    GetVideoMode(ScreenMode);
+    If (StoreScreenMode.color<>ScreenMode.color) or
+       (StoreScreenMode.row<>ScreenMode.row) or
+       (StoreScreenMode.col<>ScreenMode.col) then
+      begin
+        Video.SetVideoMode(StoreScreenMode);
+        GetVideoMode(ScreenMode);
+      end;
+{$endif USE_VIDEO_API}
     if ScreenWidth > MaxViewWidth then
       ScreenWidth := MaxViewWidth;
     ScreenWidth:=Video.ScreenWidth;
     ScreenHeight:=Video.ScreenHeight;
     SetViewPort(0,0,ScreenWidth,ScreenHeight,true,true);
-{$ifndef USE_VIDEO_API}
-   {ScreenMode  : Sw_Word;   }                             { Screen mode }
-{$else not USE_VIDEO_API}
-    GetVideoMode(ScreenMode);
-{$endif USE_VIDEO_API}
     I := ScreenWidth*8 -1;                         { Mouse width }
     J := ScreenHeight*8 -1;                        { Mouse height }
     SysScreenWidth := I + 1;
@@ -1652,7 +1663,10 @@ BEGIN
 END.
 {
  $Log$
- Revision 1.27  2002-06-06 20:33:35  pierre
+ Revision 1.28  2002-06-07 14:08:28  pierre
+  * try to get resizing to work
+
+ Revision 1.27  2002/06/06 20:33:35  pierre
   * remove system event by calling sysmsg.getsystemevent
 
  Revision 1.26  2002/06/06 13:57:50  pierre

@@ -903,14 +903,14 @@ begin
   DoneMouse;
   DoneMemory;
   ScreenMode:=Mode;
+  InitMouse;
+  InitMemory;
+  InitScreen;
 {$ifdef USE_VIDEO_API}
   Video.SetVideoMode(Mode);
 {$else USE_VIDEO_API}
   SetVideoMode(Mode);
 {$endif USE_VIDEO_API}
-  InitMouse;
-  InitMemory;
-  InitScreen;
 {$ifdef USE_VIDEO_API}
   Buffer := Views.PVideoBuf(VideoBuf);
 {$endif USE_VIDEO_API}
@@ -1193,7 +1193,10 @@ END;
 END.
 {
  $Log$
- Revision 1.17  2002-06-06 20:34:19  pierre
+ Revision 1.18  2002-06-07 14:12:21  pierre
+  * try to get resizing to work
+
+ Revision 1.17  2002/06/06 20:34:19  pierre
   + also check for system events
 
  Revision 1.16  2002/05/25 23:24:29  pierre

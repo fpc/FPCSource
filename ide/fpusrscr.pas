@@ -640,11 +640,12 @@ begin
   if not res then
     error:=GetLastError;
 {$endif win32bigwin}
-  { make sure that both Screen Handle have the sme buffer }
   GetConsoleScreenBufferInfo(StartScreenBufferHandle,
     @ConsoleScreenBufferInfo);
+  { make sure that the IDE Screen Handle has the maximum display size
+    this removes the scroll bars if it is maximized }
   res:=SetConsoleScreenBufferSize(NewScreenBufferHandle,
-         ConsoleScreenBufferInfo.dwSize);
+         ConsoleScreenBufferInfo.dwMaximumWindowSize);
   if not res then
     error:=GetLastError;
   IDEScreenBufferHandle:=NewScreenBufferHandle;
@@ -908,6 +909,11 @@ begin
       GetConsoleScreenBufferInfo(IDEScreenBufferHandle,
         @ConsoleScreenBufferInfo);
       SetConsoleActiveScreenBuffer(IDEScreenBufferHandle);
+{$ifdef fvision}
+      { Needed to force InitSystemMsg to use the right console handle }
+      DoneEvents;
+      InitEvents;
+{$endif fvision}
       IdeMode:=(IdeMode or ENABLE_MOUSE_INPUT or ENABLE_WINDOW_INPUT) and not ENABLE_PROCESSED_INPUT;
       SetConsoleMode(GetStdHandle(Std_Input_Handle), IdeMode);
       WindowPos.left:=0;
@@ -969,7 +975,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.11  2002-06-06 14:10:34  pierre
+  Revision 1.12  2002-06-07 14:10:24  pierre
+   * try to get resizing to work
+
+  Revision 1.11  2002/06/06 14:10:34  pierre
    * allow window input for fvsion system messages
 
   Revision 1.10  2002/06/06 06:46:28  pierre

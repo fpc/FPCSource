@@ -28,14 +28,19 @@ end;
 procedure TIDEApp.ResizeApplication(x, y : longint);
 var
   OldR, R : TRect;
+  Mode: TVideoMode;
 begin
   GetBounds(OldR);
-  R.A.X:=0;
-  R.B.X:=X;
-  R.A.Y:=0;
-  R.B.Y:=Y;
-  ChangeBounds(R);
-  ReDraw;
+  { adapt to new size }
+  if (OldR.B.Y-OldR.A.Y<>y) or
+     (OldR.B.X-OldR.A.X<>x) then
+    begin
+      Mode.color:=ScreenMode.Color;
+      Mode.col:=x;
+      Mode.row:=y;
+      SetScreenVideoMode(Mode);
+      Redraw;
+    end;
 end;
 
 type
@@ -254,7 +259,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2002-05-30 15:03:24  pierre
+  Revision 1.3  2002-06-07 14:09:56  pierre
+   * try to get resizing to work
+
+  Revision 1.2  2002/05/30 15:03:24  pierre
    + ResizeApplication pethod for fvision
 
   Revision 1.1  2001/08/04 11:30:23  peter
