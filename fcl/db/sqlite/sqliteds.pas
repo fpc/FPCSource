@@ -291,7 +291,7 @@ end;
 procedure TSqliteDataset.DisposeLinkedList;
 var
   TempItem:PDataRecord;
-  Counter:Integer;
+  Counter,I:Integer;
 begin
   //Todo insert debug info
   FDataAllocated:=False;
@@ -317,8 +317,8 @@ begin
   for Counter:= 0 to FOrphanItems.Count - 1 do
   begin
     TempItem:=PDataRecord(FOrphanItems[Counter]);
-    for Counter:= 0 to FRowCount - 1 do
-      StrDispose(TempItem^.Row[Counter]);  
+    for I:= 0 to FRowCount - 1 do
+      StrDispose(TempItem^.Row[I]);  
     FreeMem(TempItem^.Row,FRowBufferSize);
     Dispose(TempItem);  
   end;     
