@@ -93,7 +93,7 @@ unit files;
           sources_avail,            { if all sources are reachable }
           is_unit,
           in_implementation,        { processing the implementation part? }
-          in_main       : boolean;  { global, after uses else false }
+          in_global     : boolean;  { allow global settings }
 
           map           : punitmap; { mapping of all used units }
           unitcount     : word;     { local unit counter }
@@ -560,7 +560,7 @@ unit files;
          sources_avail:=true;
          compiled:=false;
          in_implementation:=false;
-         in_main:=false;
+         in_global:=true;
          is_unit:=_is_unit;
          uses_imports:=false;
          imports:=new(plinkedlist,init);
@@ -642,7 +642,10 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.36  1998-08-17 10:10:07  peter
+  Revision 1.37  1998-08-18 20:52:19  peter
+    * renamed in_main to in_global which is more logical
+
+  Revision 1.36  1998/08/17 10:10:07  peter
     - removed OLDPPU
 
   Revision 1.35  1998/08/17 09:17:44  peter

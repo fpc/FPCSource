@@ -95,7 +95,7 @@ begin
                     Message(scan_n_stack_check_global_under_linux);
                  end;
       modulesw : begin
-                   if current_module^.in_main then
+                   if current_module^.in_global then
                     begin
                       if state='+' then
                        aktmoduleswitches:=aktmoduleswitches+[tmoduleswitch(setsw)]
@@ -106,7 +106,7 @@ begin
                     Message(scan_w_switch_is_global);
                  end;
       globalsw : begin
-                   if current_module^.in_main and (current_module=main_module) then
+                   if current_module^.in_global and (current_module=main_module) then
                     begin
                       if state='+' then
                        aktglobalswitches:=aktglobalswitches+[tglobalswitch(setsw)]
@@ -153,7 +153,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  1998-08-14 18:14:57  peter
+  Revision 1.11  1998-08-18 20:52:21  peter
+    * renamed in_main to in_global which is more logical
+
+  Revision 1.10  1998/08/14 18:14:57  peter
     * forgot to check the target for linux for $S switch message
 
   Revision 1.9  1998/08/10 15:47:08  peter

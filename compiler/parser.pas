@@ -132,7 +132,7 @@ unit parser;
          oldaktoutputformat : tasm;
          oldaktoptprocessor : tprocessors;
          oldaktasmmode      : tasmmode;
-        
+
 
       begin
          inc(compile_level);
@@ -223,7 +223,7 @@ unit parser;
          current_scanner:=new(pscannerfile,Init(filename));
          token:=current_scanner^.yylex;
          { global switches are read, so further changes aren't allowed }
-         current_module^.in_main:=true;
+         current_module^.in_global:=false;
 
        { init code generator for a new module }
          codegen_newmodule;
@@ -259,11 +259,9 @@ unit parser;
            end
          else
            proc_program(token=_LIBRARY);
-        
 
          if status.errorcount>0 then
            Message1(unit_f_errors_in_unit,tostr(status.errorcount));
-        
 
          { clear memory }
 {$ifdef Splitheap}
@@ -372,7 +370,10 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.37  1998-08-17 09:17:49  peter
+  Revision 1.38  1998-08-18 20:52:20  peter
+    * renamed in_main to in_global which is more logical
+
+  Revision 1.37  1998/08/17 09:17:49  peter
     * static/shared linking updates
 
   Revision 1.36  1998/08/14 21:56:36  peter
