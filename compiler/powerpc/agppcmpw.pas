@@ -55,9 +55,6 @@ interface
   implementation
 
     uses
-{$ifdef delphi}
-      sysutils,
-{$endif}
       cutils,globtype,systems,cclasses,
       verbose,finput,fmodule,script,cpuinfo,
       cgbase,
@@ -1358,7 +1355,7 @@ var
     procedure TPPCMPWAssembler.WriteExternals;
       begin
         currentasmlist:=self;
-        objectlibrary.symbolsearch.foreach_static({$ifdef fpcprocvar}@{$endif}writeexternal,nil);
+        objectlibrary.symbolsearch.foreach_static(@writeexternal,nil);
       end;
 
 
@@ -1487,7 +1484,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.39  2004-10-09 10:48:34  olle
+  Revision 1.40  2004-10-15 09:30:13  mazen
+  - remove $IFDEF DELPHI and related code
+  - remove $IFDEF FPCPROCVAR and related code
+
+  Revision 1.39  2004/10/09 10:48:34  olle
     * minor fix
 
   Revision 1.38  2004/09/10 11:23:52  olle

@@ -81,7 +81,7 @@ unit cpupi;
         else
           begin
             locals := 0;
-            current_procinfo.procdef.localst.foreach_static({$ifdef FPCPROCVAR}@{$endif}count_locals,@locals);
+            current_procinfo.procdef.localst.foreach_static(@count_locals,@locals);
             if locals <> 0 then
               { at 0(r1), the previous value of r1 will be stored }
               tg.setfirsttemp(4);
@@ -145,7 +145,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.35  2004-06-20 08:55:32  florian
+  Revision 1.36  2004-10-15 09:30:13  mazen
+  - remove $IFDEF DELPHI and related code
+  - remove $IFDEF FPCPROCVAR and related code
+
+  Revision 1.35  2004/06/20 08:55:32  florian
     * logs truncated
 
   Revision 1.34  2004/02/19 17:07:42  florian

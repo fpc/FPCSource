@@ -43,11 +43,7 @@ implementation
       cutils,verbose,globals,
       symconst,symbase,symsym,symtable,defutil,paramgr,parabase,
 {$ifdef GDB}
-  {$ifdef delphi}
-      sysutils,
-  {$else}
       strings,
-  {$endif}
       gdb,
 {$endif GDB}
       cgbase,pass_2,
@@ -100,7 +96,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.29  2004-09-25 14:23:54  peter
+  Revision 1.30  2004-10-15 09:30:13  mazen
+  - remove $IFDEF DELPHI and related code
+  - remove $IFDEF FPCPROCVAR and related code
+
+  Revision 1.29  2004/09/25 14:23:54  peter
     * ungetregister is now only used for cpuregisters, renamed to
       ungetcpuregister
     * renamed (get|unget)explicitregister(s) to ..cpuregister
