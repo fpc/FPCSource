@@ -1,10 +1,10 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2002 by Peter Vreman,
+    Copyright (c) 2002-5 by Tomas Hajny,
     member of the Free Pascal development team.
 
-    Linux (pthreads) threading support implementation
+    OS/2 threading support implementation
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -105,8 +105,9 @@ end;
 
 procedure SysReleaseThreadVars;
 begin
- { release thread vars }
- DosFreeMem (DataIndex^);
+  { release thread vars }
+  DosFreeMem (DataIndex^);
+  DosFreeThreadLocalMemory (DataIndex);
 end;
 
 (*    procedure InitThreadVars;
@@ -545,7 +546,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  2005-02-06 16:57:18  peter
+  Revision 1.2  2005-03-20 22:33:27  hajny
+    * thread local memory freed
+
+  Revision 1.1  2005/02/06 16:57:18  peter
     * threads for go32v2,os,emx,netware
 
   Revision 1.1  2005/02/06 13:06:20  peter
@@ -553,4 +557,3 @@ end;
     * win32 thread in systemunit
 
 }
-
