@@ -231,7 +231,7 @@ type
   end;
 
   PSigContextRec = ^SigContextRec;
-  SigContextRec = t_rt_sigframe;
+  SigContextRec = tsigcontext_struct;
 {$endif cpupowerpc}
 
 
@@ -342,7 +342,10 @@ type
 
 {
   $Log$
-  Revision 1.14  2003-11-21 00:40:06  florian
+  Revision 1.15  2004-01-01 16:28:16  jonas
+    * fixed signal handling
+
+  Revision 1.14  2003/11/21 00:40:06  florian
     * some arm issues fixed
 
   Revision 1.13  2003/11/02 14:53:06  jonas

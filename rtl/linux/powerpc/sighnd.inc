@@ -17,7 +17,7 @@
  **********************************************************************}
 
 
-procedure SignalToRunerror(Sig: longint; SigContext: SigContextRec); cdecl;
+procedure SignalToRunerror(Sig: longint; SigContext: PSigContextRec); cdecl;
 
 var
   res,fpustate : word;
@@ -36,12 +36,15 @@ begin
   end;
 { give runtime error at the position where the signal was raised }
   if res<>0 then
-    HandleErrorAddrFrame(res,pointer(SigContext.uc.uc_mcontext.pt_regs^.nip),pointer(SigContext.uc.uc_mcontext.pt_regs^.gpr[1]));
+    HandleErrorAddrFrame(res,pointer(SigContext^.pt_regs^.nip),pointer(SigContext^.pt_regs^.gpr[1]));
 end;
 
 {
   $Log$
-  Revision 1.2  2003-11-21 00:40:06  florian
+  Revision 1.3  2004-01-01 16:28:16  jonas
+    * fixed signal handling
+
+  Revision 1.2  2003/11/21 00:40:06  florian
     * some arm issues fixed
 
   Revision 1.1  2003/11/02 14:53:06  jonas
