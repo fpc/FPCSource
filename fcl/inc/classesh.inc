@@ -175,7 +175,7 @@ type
     FLock: TRTLCriticalSection;
   public
     constructor Create;
-    destructor Destroy; { override; }
+    destructor Destroy; override;
     procedure Add(Item: Pointer);
     procedure Clear;
     function  LockList: TList;
@@ -1006,7 +1006,7 @@ type
     FCallExitProcess : boolean;
 {$endif}
     constructor Create(CreateSuspended: Boolean);
-    destructor Destroy; { override; }
+    destructor Destroy; { override; !!!: Why???}
     procedure Resume;
     procedure Suspend;
     procedure Terminate;
@@ -1234,7 +1234,11 @@ function LineStart(Buffer, BufPos: PChar): PChar;
 
 {
   $Log$
-  Revision 1.22  2000-06-29 16:29:23  sg
+  Revision 1.23  2000-07-08 07:26:23  sg
+  * Destructor of TThreadList is now virtual; this fixes some memory leak
+    problems in FCL.
+
+  Revision 1.22  2000/06/29 16:29:23  sg
   * Implemented streaming. Note: The writer driver interface is stable, but
     the reader interface is not final yet!
 
