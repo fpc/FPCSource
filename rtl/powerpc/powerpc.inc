@@ -932,8 +932,8 @@ function declocked(var l : longint) : boolean;assembler;
 { input:  address of l in r3                                      }
 { output: boolean indicating whether l is zero after decrementing }
 asm
-LDecLockedLoop:
 {$ifdef MT}
+LDecLockedLoop:
     lwarx   r10,0,r3
     subi    r10,r10,1
     stwcx.  r10,0,r3
@@ -943,13 +943,14 @@ LDecLockedLoop:
     subi    r10,r10,1
     stw     r10,0(r3)
 {$endif MT}
-    mr.     r3,r10
+    cntlzw  r3,r10
+    srwi    r3,r3,5
 end ['R3','R10'];
 
 procedure inclocked(var l : longint);assembler;
 asm
-LIncLockedLoop:
 {$ifdef MT}
+LIncLockedLoop:
     lwarx   r10,0,r3
     addi    r10,r10,1
     stwcx.  r10,0,r3
@@ -964,7 +965,10 @@ end ['R3','R10'];
 
 {
   $Log$
-  Revision 1.22  2002-10-05 14:20:16  peter
+  Revision 1.23  2002-10-17 10:12:50  jonas
+    * fixed return value of declocked()
+
+  Revision 1.22  2002/10/05 14:20:16  peter
     * fpc_pchar_length compilerproc and strlen alias
 
   Revision 1.21  2002/10/02 18:21:52  peter
