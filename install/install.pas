@@ -47,7 +47,7 @@ program install;
        defcfg   : array[1..maxdefcfgs] of pstring;
      end;
 
-     datarec=record
+     datarec=packed record
        basepath : string[80];
        mask     : word;
      end;
@@ -547,12 +547,6 @@ program install;
 
 
 begin
-{$ifndef fpc}
-asm
-mov ax,3
-int 10h
-end;
-{$endif}
    getdir(0,startpath);
    successfull:=false;
 
@@ -575,7 +569,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  1998-10-25 23:38:35  peter
+  Revision 1.11  1998-11-01 20:32:25  peter
+    * packed record
+
+  Revision 1.10  1998/10/25 23:38:35  peter
     * removed warnings
 
   Revision 1.9  1998/10/23 16:57:40  pierre
