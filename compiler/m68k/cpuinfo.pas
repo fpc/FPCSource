@@ -46,18 +46,6 @@ Type
      );
 
 Const
-   {# Size of native extended floating point type }
-   extended_size = 8;
-   {# Size of a multimedia register               }
-   mmreg_size = 16;
-   { size of the buffer used for setjump/longjmp
-     the size of this buffer is deduced from the
-     jmp_buf structure in setjumph.inc file
-   }
-   jmp_buf_size = 28;
-   { target cpu string (used by compiler options) }
-   target_cpu_string = 'm68k';
-
    { calling conventions supported by the code generator }
    supported_calling_conventions : tproccalloptions = [
      pocall_internproc,
@@ -89,7 +77,11 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.13  2004-06-20 08:55:31  florian
+  Revision 1.14  2004-11-09 22:32:59  peter
+    * small m68k updates to bring it up2date
+    * give better error for external local variable
+
+  Revision 1.13  2004/06/20 08:55:31  florian
     * logs truncated
 
   Revision 1.12  2004/06/16 20:07:10  florian

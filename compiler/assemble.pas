@@ -193,6 +193,9 @@ Implementation
       finput,
       gdb,
 {$endif GDB}
+{$ifdef m68k}
+      cpuinfo,
+{$endif m68k}
       cpubase,aasmcpu
       ;
 
@@ -1680,7 +1683,11 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.81  2004-10-31 21:45:02  peter
+  Revision 1.82  2004-11-09 22:32:59  peter
+    * small m68k updates to bring it up2date
+    * give better error for external local variable
+
+  Revision 1.81  2004/10/31 21:45:02  peter
     * generic tlocation
     * move tlocation to cgutils
 

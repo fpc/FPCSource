@@ -82,7 +82,7 @@ Unit Ra386int;
        globals,verbose,
        systems,
        { aasm }
-       cpuinfo,aasmbase,aasmtai,aasmcpu,
+       aasmbase,aasmtai,aasmcpu,
        { symtable }
        symconst,symbase,symtype,symsym,symdef,symtable,
        { parser }
@@ -846,8 +846,10 @@ Unit Ra386int;
                       if assigned(sym) then
                        begin
                          case sym.typ of
-                           fieldvarsym :
-                             l:=tfieldvarsym(sym).getsize;
+                           globalvarsym,
+                           localvarsym,
+                           paravarsym :
+                             l:=tabstractvarsym(sym).getsize;
                            typedconstsym :
                              l:=ttypedconstsym(sym).getsize;
                            typesym :
@@ -2017,7 +2019,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.79  2004-11-08 22:09:59  peter
+  Revision 1.80  2004-11-09 22:32:59  peter
+    * small m68k updates to bring it up2date
+    * give better error for external local variable
+
+  Revision 1.79  2004/11/08 22:09:59  peter
     * tvarsym splitted
 
   Revision 1.78  2004/10/31 21:45:03  peter

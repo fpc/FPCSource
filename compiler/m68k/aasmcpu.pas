@@ -29,7 +29,7 @@ interface
 uses
   cclasses,aasmtai,
   aasmbase,globals,verbose,
-  cpubase,cpuinfo,cgbase;
+  cpubase,cpuinfo,cgbase,cgutils;
 
 
 const
@@ -95,6 +95,8 @@ type
   procedure InitAsm;
   procedure DoneAsm;
 
+    function spilling_create_load(const ref:treference;r:tregister): tai;
+    function spilling_create_store(r:tregister; const ref:treference): tai;
 
   implementation
 
@@ -416,6 +418,49 @@ type
       end;
 
 
+    function spilling_create_load(const ref:treference;r:tregister): tai;
+      begin
+        {
+        case getregtype(r) of
+          R_INTREGISTER :
+            result:=taicpu.op_ref_reg(A_LD,ref,r);
+          R_FPUREGISTER :
+            begin
+              case getsubreg(r) of
+                R_SUBFS :
+                  result:=taicpu.op_ref_reg(A_LDF,ref,r);
+                R_SUBFD :
+                  result:=taicpu.op_ref_reg(A_LDD,ref,r);
+                else
+                  internalerror(200401042);
+              end;
+            end
+          else
+            internalerror(200401041);
+        end;}
+      end;
+
+
+    function spilling_create_store(r:tregister; const ref:treference): tai;
+      begin
+        {case getregtype(r) of
+          R_INTREGISTER :
+            result:=taicpu.op_reg_ref(A_ST,r,ref);
+          R_FPUREGISTER :
+            begin
+              case getsubreg(r) of
+                R_SUBFS :
+                  result:=taicpu.op_reg_ref(A_STF,r,ref);
+                R_SUBFD :
+                  result:=taicpu.op_reg_ref(A_STD,r,ref);
+                else
+                  internalerror(200401042);
+              end;
+            end
+          else
+            internalerror(200401041);
+        end;}
+      end;
 
     procedure InitAsm;
       begin
@@ -429,7 +474,11 @@ type
 end.
 {
   $Log$
-  Revision 1.13  2004-06-20 08:55:31  florian
+  Revision 1.14  2004-11-09 22:32:59  peter
+    * small m68k updates to bring it up2date
+    * give better error for external local variable
+
+  Revision 1.13  2004/06/20 08:55:31  florian
     * logs truncated
 
   Revision 1.12  2004/06/20 08:47:33  florian

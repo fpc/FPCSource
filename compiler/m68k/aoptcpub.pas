@@ -1,10 +1,10 @@
  {
     $Id$
-    Copyright (c) 1998-2002 by Jonas Maebe, member of the Free Pascal
+    Copyright (c) 1998-2004 by Jonas Maebe, member of the Free Pascal
     Development Team
 
     This unit contains several types and constants necessary for the
-    optimizer to work on the 80x86 architecture
+    optimizer to work on the sparc architecture
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -24,6 +24,8 @@
 }
 Unit aoptcpub; { Assembler OPTimizer CPU specific Base }
 
+{$i fpcdefs.inc}
+
 { enable the following define if memory references can have both a base and }
 { index register in 1 operand                                               }
 
@@ -41,7 +43,7 @@ Unit aoptcpub; { Assembler OPTimizer CPU specific Base }
 Interface
 
 Uses
-  aasmcpu,AOptBase;
+  cpubase,aasmcpu,AOptBase;
 
 Type
 
@@ -62,7 +64,7 @@ Type
 { **************************** TAoptBaseCpu ******************************* }
 { ************************************************************************* }
 
-  TAoptBaseCpu = Object(TAoptBase)
+  TAoptBaseCpu = class(TAoptBase)
   End;
 
 
@@ -100,6 +102,9 @@ Const
 
   StoreDst = 1;
 
+  aopt_uncondjmp = A_JMP;
+  aopt_condjmp = A_Bxx;
+
 Implementation
 
 { ************************************************************************* }
@@ -117,7 +122,15 @@ End.
 
 {
  $Log$
- Revision 1.3  2004-06-20 08:55:31  florian
+ Revision 1.4  2004-11-09 22:32:59  peter
+   * small m68k updates to bring it up2date
+   * give better error for external local variable
+
+ Revision 1.1  2004/10/30 15:21:38  florian
+   * fixed generic optimizer
+   * enabled generic optimizer for sparc
+
+ Revision 1.6  2004/06/20 08:55:31  florian
    * logs truncated
 
 }

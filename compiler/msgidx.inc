@@ -237,7 +237,7 @@ const
   parser_e_no_con_des_in_interfaces=03171;
   parser_e_no_access_specifier_in_interfaces=03172;
   parser_e_no_vars_in_interfaces=03173;
-  parser_e_no_local_external=03174;
+  parser_e_no_local_proc_external=03174;
   parser_w_skipped_fields_before=03175;
   parser_e_skipped_fields_before=03176;
   parser_w_skipped_fields_after=03177;
@@ -272,6 +272,7 @@ const
   parser_e_upper_lower_than_lower=03206;
   parser_e_macpas_exit_wrong_param=03207;
   parser_e_illegal_assignment_to_count_var=03208;
+  parser_e_no_local_var_external=03209;
   type_e_mismatch=04000;
   type_e_incompatible_types=04001;
   type_e_not_equal_types=04002;
@@ -646,9 +647,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 37604;
+  MsgTxtSize = 37653;
 
   MsgIdxMax : array[1..20] of longint=(
-    18,67,209,59,57,46,99,20,35,60,
+    18,67,210,59,57,46,99,20,35,60,
     40,1,1,1,1,1,1,1,1,1
   );

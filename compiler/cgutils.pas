@@ -52,6 +52,11 @@ unit cgutils;
          addressmode : taddressmode;
          shiftmode   : tshiftmode;
 {$endif arm}
+{$ifdef m68k}
+         { indexed increment and decrement mode }
+         { (An)+ and -(An)                      }
+         direction : tdirection;
+{$endif m68k}
       end;
 
       tlocation = record
@@ -178,7 +183,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2004-11-01 17:41:28  florian
+  Revision 1.4  2004-11-09 22:32:59  peter
+    * small m68k updates to bring it up2date
+    * give better error for external local variable
+
+  Revision 1.3  2004/11/01 17:41:28  florian
     * fixed arm compilation with cgutils
     * ...
 

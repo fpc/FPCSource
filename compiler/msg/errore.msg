@@ -860,7 +860,7 @@ parser_e_no_access_specifier_in_interfaces=03172_E_Access specifiers can't be us
 parser_e_no_vars_in_interfaces=03173_E_An interface can't contain fields
 % Declarations of fields aren't allowed in interfaces. An interface
 % can contain only methods
-parser_e_no_local_external=03174_E_Can't declare local procedure as EXTERNAL
+parser_e_no_local_proc_external=03174_E_Can't declare local procedure as EXTERNAL
 % Declaring local procedures as external is not possible. Local procedures
 % get hidden parameters that will make the chance of errors very high
 parser_w_skipped_fields_before=03175_W_Some fields coming before "$1" weren't initialized
@@ -980,6 +980,9 @@ parser_e_macpas_exit_wrong_param=03207_E_Exit's parameter must be the name of th
 parser_e_illegal_assignment_to_count_var=03208_E_Illegal assignment to for-loop variable "$1"
 % The type of a \var{for} loop variable must be an ordinal type.
 % Loop variables cannot be reals or strings.
+parser_e_no_local_var_external=03209_E_Can't declare local variable as EXTERNAL
+% Declaring local variables as external is not allowed. Only global variables can reference
+% to external variables.
 % \end{description}
 #
 # Type Checking

@@ -27,11 +27,11 @@ unit cgcpu;
   interface
 
     uses
-       cgbase,cgobj,
+       cgbase,cgobj,globtype,
        aasmbase,aasmtai,aasmcpu,
        cpubase,cpuinfo,cpupara,
        node,symconst,symtype,
-       cg64f32;
+       cgutils,cg64f32;
 
     type
       tcg68k = class(tcg)
@@ -39,7 +39,7 @@ unit cgcpu;
           procedure done_register_allocators;override;
           procedure a_call_name(list : taasmoutput;const s : string);override;
           procedure a_call_reg(list : taasmoutput;reg : tregister);override;
-          procedure a_load_const_reg(list : taasmoutput;size : tcgsize;a : aword;register : tregister);override;
+          procedure a_load_const_reg(list : taasmoutput;size : tcgsize;a : aint;register : tregister);override;
           procedure a_load_reg_ref(list : taasmoutput;fromsize,tosize : tcgsize;register : tregister;const ref : treference);override;
           procedure a_load_reg_reg(list : taasmoutput;fromsize,tosize : tcgsize;reg1,reg2 : tregister);override;
           procedure a_load_ref_reg(list : taasmoutput;fromsize,tosize : tcgsize;const ref : treference;register : tregister);override;
@@ -51,22 +51,22 @@ unit cgcpu;
           procedure a_loadmm_ref_reg(list: taasmoutput;fromsize,tosize : tcgsize; const ref: treference; reg: tregister;shuffle : pmmshuffle); override;
           procedure a_loadmm_reg_ref(list: taasmoutput;fromsize,tosize : tcgsize; reg: tregister; const ref: treference;shuffle : pmmshuffle); override;
           procedure a_parammm_reg(list: taasmoutput; size: tcgsize; reg: tregister;const locpara : tparalocation;shuffle : pmmshuffle); override;
-          procedure a_op_const_reg(list : taasmoutput; Op: TOpCG; size: tcgsize; a: AWord; reg: TRegister); override;
+          procedure a_op_const_reg(list : taasmoutput; Op: TOpCG; size: tcgsize; a: aint; reg: TRegister); override;
           procedure a_op_reg_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; reg1, reg2: TRegister); override;
-          procedure a_cmp_const_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;reg : tregister;
+          procedure a_cmp_const_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aint;reg : tregister;
             l : tasmlabel);override;
           procedure a_cmp_reg_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : tasmlabel); override;
           procedure a_jmp_always(list : taasmoutput;l: tasmlabel); override;
           procedure a_jmp_flags(list : taasmoutput;const f : TResFlags;l: tasmlabel); override;
           procedure g_flags2reg(list: taasmoutput; size: TCgSize; const f: tresflags; reg: TRegister); override;
 
-          procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aword;delsource,loadref : boolean);override;
+          procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aint;delsource,loadref : boolean);override;
           { generates overflow checking code for a node }
           procedure g_overflowcheck(list: taasmoutput; const l:tlocation; def:tdef); override;
-          procedure g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;const lenloc:tlocation;elesize:aword); override;
+          procedure g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;const lenloc:tlocation;elesize:aint); override;
           procedure g_stackframe_entry(list : taasmoutput;localsize : longint);override;
           procedure g_restore_frame_pointer(list : taasmoutput);override;
-          procedure g_return_from_proc(list : taasmoutput;parasize : aword);override;
+          procedure g_return_from_proc(list : taasmoutput;parasize : aint);override;
           procedure g_restore_standard_registers(list:Taasmoutput);override;
           procedure g_save_standard_registers(list:Taasmoutput);override;
           procedure g_save_all_registers(list : taasmoutput);override;
@@ -253,7 +253,7 @@ unit cgcpu;
 
 
 
-    procedure tcg68k.a_load_const_reg(list : taasmoutput;size : tcgsize;a : aword;register : tregister);
+    procedure tcg68k.a_load_const_reg(list : taasmoutput;size : tcgsize;a : aint;register : tregister);
       begin
         if getregtype(register)=R_ADDRESSREGISTER then
          begin
@@ -386,7 +386,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcg68k.a_op_const_reg(list : taasmoutput; Op: TOpCG; size: tcgsize; a: AWord; reg: TRegister);
+    procedure tcg68k.a_op_const_reg(list : taasmoutput; Op: TOpCG; size: tcgsize; a: aint; reg: TRegister);
       var
        scratch_reg : tregister;
        scratch_reg2: tregister;
@@ -746,7 +746,7 @@ unit cgcpu;
 
 
 
-    procedure tcg68k.a_cmp_const_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;reg : tregister;
+    procedure tcg68k.a_cmp_const_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aint;reg : tregister;
             l : tasmlabel);
       var
        hregister : tregister;
@@ -861,7 +861,7 @@ unit cgcpu;
 
 
 
-    procedure tcg68k.g_concatcopy(list : taasmoutput;const source,dest : treference;len : aword;delsource,loadref : boolean);
+    procedure tcg68k.g_concatcopy(list : taasmoutput;const source,dest : treference;len : aint;delsource,loadref : boolean);
      var
          helpsize : longint;
          i : byte;
@@ -998,7 +998,7 @@ unit cgcpu;
       begin
       end;
 
-    procedure tcg68k.g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;const lenloc:tlocation;elesize:aword);
+    procedure tcg68k.g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;const lenloc:tlocation;elesize:aint);
       begin
       end;
 
@@ -1038,7 +1038,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcg68k.g_return_from_proc(list : taasmoutput;parasize : aword);
+    procedure tcg68k.g_return_from_proc(list : taasmoutput;parasize : aint);
       var
         r,hregister : tregister;
         ref : treference;
@@ -1313,7 +1313,11 @@ end.
 
 {
   $Log$
-  Revision 1.30  2004-10-11 15:48:15  peter
+  Revision 1.31  2004-11-09 22:32:59  peter
+    * small m68k updates to bring it up2date
+    * give better error for external local variable
+
+  Revision 1.30  2004/10/11 15:48:15  peter
     * small regvar for para fixes
     * function tvarsym.is_regvar added
     * tvarsym.getvaluesize removed, use getsize instead

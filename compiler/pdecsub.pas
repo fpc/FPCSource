@@ -1215,7 +1215,7 @@ begin
   tprocdef(pd).forwarddef:=false;
   { forbid local external procedures }
   if pd.parast.symtablelevel>normal_function_level then
-    Message(parser_e_no_local_external);
+    Message(parser_e_no_local_proc_external);
   { If the procedure should be imported from a DLL, a constant string follows.
     This isn't really correct, an contant string expression follows
     so we check if an semicolon follows, else a string constant have to
@@ -2266,7 +2266,11 @@ const
 end.
 {
   $Log$
-  Revision 1.201  2004-11-09 17:26:47  peter
+  Revision 1.202  2004-11-09 22:32:59  peter
+    * small m68k updates to bring it up2date
+    * give better error for external local variable
+
+  Revision 1.201  2004/11/09 17:26:47  peter
     * fixed wrong typecasts
 
   Revision 1.200  2004/11/08 22:09:59  peter

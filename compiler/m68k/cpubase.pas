@@ -138,6 +138,11 @@ unit cpubase;
         {$i r68ksta.inc}
       );
 
+      regdwarf_table : array[tregisterindex] of shortint = (
+{$warning TODO reused stabs values!}
+        {$i r68ksta.inc}
+      );
+
       { registers which may be destroyed by calls }
       VOLATILE_INTREGISTERS = [];
       VOLATILE_FPUREGISTERS = [];
@@ -163,6 +168,11 @@ unit cpubase;
         'ge','pl','gt','t','hi','vc','le','vs'
       );
 
+      inverse_cond:array[TAsmCond] of TAsmCond=(C_None,
+{$warning TODO, this is just a copy!}
+         C_CC,C_LS,C_CS,C_LT,C_EQ,C_MI,C_F,C_NE,
+         C_GE,C_PL,C_GT,C_T,C_HI,C_VC,C_LE,C_VS
+      );
 
 {*****************************************************************************
                                    Flags
@@ -178,93 +188,9 @@ unit cpubase;
 *****************************************************************************}
 
     type
-      trefoptions=(ref_none,ref_parafixup,ref_localfixup,ref_selffixup);
-
       { direction of address register :      }
       {              (An)     (An)+   -(An)  }
       tdirection = (dir_none,dir_inc,dir_dec);
-
-      { reference record }
-      preference = ^treference;
-      treference = packed record
-         base,
-         index       : tregister;
-         scalefactor : byte;
-         offset      : longint;
-         symbol      : tasmsymbol;
-         { symbol the symbol of this reference is relative to, nil if none }
-         relsymbol      : tasmsymbol;
-         { reference type addr or symbol itself }
-         refaddr : trefaddr;
-         options     : trefoptions;
-         { indexed increment and decrement mode }
-         { (An)+ and -(An)                      }
-         direction : tdirection;
-      end;
-
-      { reference record }
-      pparareference = ^tparareference;
-      tparareference = record
-         offset      : longint;
-         index       : tregister;
-      end;
-
-
-{*****************************************************************************
-                               Generic Location
-*****************************************************************************}
-
-    type
-      { tparamlocation describes where a parameter for a procedure is stored.
-        References are given from the caller's point of view. The usual
-        TLocation isn't used, because contains a lot of unnessary fields.
-      }
-      tparalocation = record
-         size : TCGSize;
-         loc  : TCGLoc;
-         lochigh : TCGLoc;
-         alignment : byte;
-         case TCGLoc of
-            LOC_REFERENCE : (reference : tparareference);
-            { segment in reference at the same place as in loc_register }
-            LOC_REGISTER,LOC_CREGISTER : (
-              case longint of
-                1 : (register,register64.reghi : tregister);
-                { overlay a register64.reglo }
-                2 : (register64.reglo : tregister);
-                { overlay a 64 Bit register type }
-                3 : (reg64 : tregister64);
-                4 : (register64 : tregister64);
-              );
-      end;
-
-      tlocation = record
-         loc  : TCGLoc;
-         size : TCGSize;
-         case TCGLoc of
-            LOC_FLAGS : (resflags : tresflags);
-            LOC_CONSTANT : (
-              case longint of
-                1 : (value : aint);
-                { can't do this, this layout depends on the host cpu. Use }
-                { lo(valueqword)/hi(valueqword) instead (JM)              }
-                { 2 : (valuelow, valuehigh:AWord);                        }
-                { overlay a complete 64 Bit value }
-                3 : (value64 : qword);
-              );
-            LOC_CREFERENCE,
-            LOC_REFERENCE : (reference : treference);
-            { segment in reference at the same place as in loc_register }
-            LOC_REGISTER,LOC_CREGISTER : (
-              case longint of
-                1 : (register,register64.reghi,segment : tregister);
-                { overlay a register64.reglo }
-                2 : (register64.reglo : tregister);
-                { overlay a 64 Bit register type }
-                3 : (reg64 : tregister64);
-                4 : (register64 : tregister64);
-              );
-      end;
 
 
 {*****************************************************************************
@@ -336,6 +262,9 @@ unit cpubase;
          further information look at GCC source : PIC_OFFSET_TABLE_REGNUM
       }
       NR_PIC_OFFSET_REG = NR_A5;
+      { Return address for DWARF }
+{$warning TODO just a guess!}
+      NR_RETURN_ADDRESS_REG = NR_A0;
       { Results are returned in this register (32-bit values) }
       NR_FUNCTION_RETURN_REG = NR_D0;
       RS_FUNCTION_RETURN_REG = NR_D0;
@@ -369,8 +298,9 @@ unit cpubase;
          This value can be deduced from CALLED_USED_REGISTERS array in the
          GCC source.
       }
-      std_saved_intregisters = [RS_D2..RS_D7];
-      std_saved_addrregisters = [RS_A2..RS_A5];
+      saved_standard_registers : array[0..5] of tsuperregister = (RS_D2,RS_D3,RS_D4,RS_D5,RS_D6,RS_D7);
+      saved_standard_address_registers : array[0..3] of tsuperregister = (RS_A2,RS_A3,RS_A4,RS_A5);
+
       {# Required parameter alignment when calling a routine declared as
          stdcall and cdecl. The alignment value should be the one defined
          by GCC or the target ABI.
@@ -379,6 +309,12 @@ unit cpubase;
          PARM_BOUNDARY / BITS_PER_UNIT in the GCC source.
       }
       std_param_align = 4;  { for 32-bit version only }
+
+      { size of the buffer used for setjump/longjmp
+      the size of this buffer is deduced from the
+      jmp_buf structure in setjumph.inc file
+      }
+      jmp_buf_size = 28;
 
 {*****************************************************************************
                             CPU Dependent Constants
@@ -394,6 +330,7 @@ unit cpubase;
     procedure inverse_flags(var r : TResFlags);
     function  flags_to_cond(const f: TResFlags) : TAsmCond;
     function cgsize2subreg(s:Tcgsize):Tsubregister;
+    function reg_cgsize(const reg: tregister): tcgsize;
 
     function findreg_by_number(r:Tregister):tregisterindex;
     function std_regnum_search(const s:string):Tregister;
@@ -482,6 +419,20 @@ implementation
       end;
 
 
+    function reg_cgsize(const reg: tregister): tcgsize;
+      begin
+        case getregtype(reg) of
+          R_ADDRESSREGISTER,
+          R_INTREGISTER :
+            result:=OS_32;
+          R_FPUREGISTER :
+            result:=OS_F32;
+          else
+            internalerror(200303181);
+        end;
+      end;
+
+
     function findreg_by_number(r:Tregister):tregisterindex;
       begin
         result:=findreg_by_number_table(r,regnumber_index);
@@ -515,7 +466,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.32  2004-10-31 21:45:03  peter
+  Revision 1.33  2004-11-09 22:32:59  peter
+    * small m68k updates to bring it up2date
+    * give better error for external local variable
+
+  Revision 1.32  2004/10/31 21:45:03  peter
     * generic tlocation
     * move tlocation to cgutils
 

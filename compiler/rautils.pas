@@ -113,7 +113,6 @@ type
     operands  : array[1..max_operands] of toperand;
     constructor create(optype : tcoperand);virtual;
     destructor  destroy;override;
-    Procedure BuildOpcode;virtual;abstract;
     { converts the instruction to an instruction how it's used by the assembler writer
       and concats it to the passed list, the newly created item is returned }
     function ConcatInstruction(p:TAAsmoutput) : tai;virtual;
@@ -1636,7 +1635,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.94  2004-11-08 22:09:59  peter
+  Revision 1.95  2004-11-09 22:32:59  peter
+    * small m68k updates to bring it up2date
+    * give better error for external local variable
+
+  Revision 1.94  2004/11/08 22:09:59  peter
     * tvarsym splitted
 
   Revision 1.93  2004/10/31 21:45:03  peter

@@ -29,7 +29,6 @@ interface
 
     uses
       globtype,
-      aasmbase,
       symconst;
 
     type
@@ -598,7 +597,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.97  2004-11-09 16:18:12  peter
+  Revision 1.98  2004-11-09 22:32:59  peter
+    * small m68k updates to bring it up2date
+    * give better error for external local variable
+
+  Revision 1.97  2004/11/09 16:18:12  peter
     * indexword can't be used for 1.9.4
 
   Revision 1.96  2004/10/31 21:45:02  peter

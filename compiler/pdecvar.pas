@@ -829,7 +829,7 @@ implementation
                       include(vs.varoptions,vo_is_external);
                     end
                   else
-                    Message(parser_e_not_external_and_export);
+                    Message(parser_e_no_local_var_external);
                   symdone:=true;
                end;
 
@@ -1131,7 +1131,7 @@ implementation
                         end;
                      end
                    else
-                     Message(parser_e_not_external_and_export);
+                     Message(parser_e_no_local_var_external);
                    symdone:=true;
                  end;
               end;
@@ -1309,7 +1309,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.82  2004-11-08 22:09:59  peter
+  Revision 1.83  2004-11-09 22:32:59  peter
+    * small m68k updates to bring it up2date
+    * give better error for external local variable
+
+  Revision 1.82  2004/11/08 22:09:59  peter
     * tvarsym splitted
 
   Revision 1.81  2004/10/15 09:14:17  mazen

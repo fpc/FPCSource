@@ -1755,7 +1755,6 @@ type
     type
       TM68kInstruction=class(TInstruction)
         procedure InitOperands;override;
-        procedure BuildOpcode;override;
         procedure ConcatInstruction(p : taasmoutput);override;
         Procedure ConcatLabeledInstr(p : taasmoutput);
       end;
@@ -1767,67 +1766,6 @@ type
         for i:=1 to max_operands do
          Operands[i]:=TM68kOperand.Create;
       end;
-
-
-  Procedure TM68kInstruction.BuildOpCode;
-  {*********************************************************************}
-  { PROCEDURE BuildOpcode;                                              }
-  {  Description: Parses the intel opcode and operands, and writes it   }
-  {  in the TInstruction object.                                        }
-  {*********************************************************************}
-  { EXIT CONDITION:  On exit the routine should point to AS_SEPARATOR.  }
-  { On ENTRY: Token should point to AS_OPCODE                           }
-  {*********************************************************************}
-  var asmtok: tasmop;
-      expr: string;
-      operandnum : longint;
-  begin
-    expr := '';
-    asmtok := A_NONE; { assmume no prefix          }
-
-    { //  opcode                          // }
-    { allow for newline as in gas styled syntax }
-    { under DOS you get two AS_SEPARATOR !! }
-    while actasmtoken=AS_SEPARATOR do
-      Consume(AS_SEPARATOR);
-    if (actasmtoken <> AS_OPCODE) then
-    begin
-      Message(asmr_e_invalid_or_missing_opcode);
-      { error recovery }
-      While not (actasmtoken in [AS_SEPARATOR,AS_COMMA]) do
-         Consume(actasmtoken);
-      exit;
-    end
-    else
-    begin
-      opcode := findopcode(actasmpattern,opsize);
-      Consume(AS_OPCODE);
-      { // Zero operand opcode ? // }
-      if actasmtoken = AS_SEPARATOR then
-        exit
-      else
-       operandnum := 1;
-    end;
-
-    While actasmtoken <> AS_SEPARATOR do
-    begin
-       case actasmtoken of
-         { //  Operand delimiter // }
-         AS_COMMA: begin
-                  if operandnum > Max_Operands then
-                    Message(asmr_e_too_many_operands)
-                  else
-                    Inc(operandnum);
-                  Consume(AS_COMMA);
-                end;
-         { // End of asm operands for this opcode // }
-         AS_SEPARATOR: ;
-       else
-         Operands[operandnum].BuildOperand;
-     end; { end case }
-    end; { end while }
-  end;
-
 
 
  procedure TM68kInstruction.ConcatInstruction(p : taasmoutput);
@@ -2135,7 +2073,70 @@ type
       end;
 
 
-    function ti386intreader.Assemble: tlinkedlist;
+
+  Procedure TM68kReader.BuildOpCode(instr:Tm68kinstruction);
+  {*********************************************************************}
+  { PROCEDURE BuildOpcode;                                              }
+  {  Description: Parses the intel opcode and operands, and writes it   }
+  {  in the TInstruction object.                                        }
+  {*********************************************************************}
+  { EXIT CONDITION:  On exit the routine should point to AS_SEPARATOR.  }
+  { On ENTRY: Token should point to AS_OPCODE                           }
+  {*********************************************************************}
+  var asmtok: tasmop;
+      expr: string;
+      operandnum : longint;
+  begin
+    expr := '';
+    asmtok := A_NONE; { assmume no prefix          }
+
+    { //  opcode                          // }
+    { allow for newline as in gas styled syntax }
+    { under DOS you get two AS_SEPARATOR !! }
+    while actasmtoken=AS_SEPARATOR do
+      Consume(AS_SEPARATOR);
+    if (actasmtoken <> AS_OPCODE) then
+    begin
+      Message(asmr_e_invalid_or_missing_opcode);
+      { error recovery }
+      While not (actasmtoken in [AS_SEPARATOR,AS_COMMA]) do
+         Consume(actasmtoken);
+      exit;
+    end
+    else
+    begin
+      Instr.opcode := findopcode(actasmpattern,opsize);
+      Consume(AS_OPCODE);
+      { // Zero operand opcode ? // }
+      if actasmtoken = AS_SEPARATOR then
+        exit
+      else
+       operandnum := 1;
+    end;
+
+    While actasmtoken <> AS_SEPARATOR do
+    begin
+       case actasmtoken of
+         { //  Operand delimiter // }
+         AS_COMMA: begin
+                  if operandnum > Max_Operands then
+                    Message(asmr_e_too_many_operands)
+                  else
+                    Inc(operandnum);
+                  Consume(AS_COMMA);
+                end;
+         { // End of asm operands for this opcode // }
+         AS_SEPARATOR: ;
+       else
+         Instr.Operands[operandnum].BuildOperand;
+     end; { end case }
+    end; { end while }
+  end;
+
+
+
+
+    function tm68kreader.Assemble: tlinkedlist;
       var
         hl: tasmlabel;
         labelptr,nextlabel : tasmlabel;
@@ -2208,7 +2209,7 @@ type
               AS_OPCODE:
                 begin
                   instr:=TM68kInstruction.Create;
-                  instr.BuildOpcode;
+                  BuildOpcode(instr);
 {                    instr.AddReferenceSizes;}
 {                    instr.SetInstructionOpsize;}
 {                    instr.CheckOperandSizes;}
@@ -2271,7 +2272,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2004-06-20 08:55:31  florian
+  Revision 1.6  2004-11-09 22:32:59  peter
+    * small m68k updates to bring it up2date
+    * give better error for external local variable
+
+  Revision 1.5  2004/06/20 08:55:31  florian
     * logs truncated
 
   Revision 1.4  2004/05/20 21:54:33  florian
