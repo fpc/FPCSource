@@ -461,6 +461,9 @@ implementation
            { Lineinfo unit }
            if (cs_gdb_lineinfo in aktglobalswitches) then
              AddUnit('LineInfo');
+           { Lineinfo unit }
+           if (cs_gdb_valgrind in aktglobalswitches) then
+             AddUnit('CMem');
          end;
         { save default symtablestack }
         defaultsymtablestack:=symtablestack;
@@ -1444,7 +1447,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.144  2004-03-09 20:45:04  peter
+  Revision 1.145  2004-03-10 22:52:57  peter
+    * more stabs fixes
+    * special mode -gv for valgrind compatible stabs
+
+  Revision 1.144  2004/03/09 20:45:04  peter
     * more stabs updates
 
   Revision 1.143  2004/03/08 22:07:47  peter

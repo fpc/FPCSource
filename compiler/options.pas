@@ -768,6 +768,13 @@ begin
                             else
                               include(initglobalswitches,cs_checkpointer);
                           end;
+                        'v' :
+                          begin
+                            if UnsetBool(More, j) then
+                              exclude(initglobalswitches,cs_gdb_valgrind)
+                            else
+                              include(initglobalswitches,cs_gdb_valgrind);
+                          end;
                         else
                           IllegalPara(opt);
                       end;
@@ -1999,7 +2006,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.126  2004-03-02 17:32:12  florian
+  Revision 1.127  2004-03-10 22:52:57  peter
+    * more stabs fixes
+    * special mode -gv for valgrind compatible stabs
+
+  Revision 1.126  2004/03/02 17:32:12  florian
     * make cycle fixed
     + pic support for darwin
     + support of importing vars from shared libs on darwin implemented

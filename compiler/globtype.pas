@@ -74,7 +74,7 @@ interface
          cs_browser_log,
          { debugger }
          cs_gdb_dbx,cs_gdb_gsym,cs_gdb_heaptrc,cs_gdb_lineinfo,
-         cs_checkpointer,
+         cs_checkpointer,cs_gdb_valgrind,
          { assembling }
          cs_asm_leave,cs_asm_extern,cs_asm_pipe,cs_asm_source,
          cs_asm_regalloc,cs_asm_tempalloc,cs_asm_nodes,
@@ -235,7 +235,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.49  2004-02-15 16:34:18  marco
+  Revision 1.50  2004-03-10 22:52:57  peter
+    * more stabs fixes
+    * special mode -gv for valgrind compatible stabs
+
+  Revision 1.49  2004/02/15 16:34:18  marco
    * pthread on -CURRENT related fixes.
 
   Revision 1.48  2003/12/23 23:22:35  peter

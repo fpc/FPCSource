@@ -1963,7 +1963,11 @@ implementation
           { sets are not recognized by GDB}
           {***}
       end;
-      stabstring:=stabstr_evaluate('"${name}:c=$1;",${N_FUNCTION},0,${line},0',[st]);
+      { valgrind does not support constants }
+      if cs_gdb_valgrind in aktglobalswitches then
+        stabstring:=nil
+      else
+        stabstring:=stabstr_evaluate('"${name}:c=$1;",${N_FUNCTION},0,${line},0',[st]);
     end;
 {$endif GDB}
 
@@ -2239,7 +2243,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.166  2004-03-09 20:45:04  peter
+  Revision 1.167  2004-03-10 22:52:57  peter
+    * more stabs fixes
+    * special mode -gv for valgrind compatible stabs
+
+  Revision 1.166  2004/03/09 20:45:04  peter
     * more stabs updates
 
   Revision 1.165  2004/03/08 22:07:47  peter

@@ -216,7 +216,7 @@ interface
           stabsize,staballoc,recoffset:integer;
        end;
 
-       tabstractrecorddef = class(tstoreddef)
+       tabstractrecorddef= class(tstoreddef)
        private
           Count         : integer;
           FRTTIType     : trttitype;
@@ -417,7 +417,6 @@ interface
           { debug }
 {$ifdef GDB}
           function  stabstring : pchar;override;
-          procedure concatstabto(asmlist:taasmoutput);override;
 {$endif GDB}
           { rtti }
           procedure write_rtti_data(rt:trttitype);override;
@@ -1856,66 +1855,48 @@ implementation
 {$ifdef GDB}
     function torddef.stabstring : pchar;
       begin
-        case typ of
-          uvoid :
-            stabstring := strpnew(numberstring+';');
-         {GDB 4.12 for go32 doesn't like boolean as range for 0 to 1 !!!}
-{$ifdef Use_integer_types_for_boolean}
-          bool8bit,
-          bool16bit,
-          bool32bit :
-            stabstring := stabstr_evaluate('r${numberstring};0;255;',[]);
-{$else : not Use_integer_types_for_boolean}
-          uchar :
-            stabstring := strpnew('-20;');
-          uwidechar :
-            stabstring := strpnew('-30;');
-          bool8bit :
-            stabstring := strpnew('-21;');
-          bool16bit :
-            stabstring := strpnew('-22;');
-          bool32bit :
-            stabstring := strpnew('-23;');
-          u64bit :
-            stabstring := strpnew('-32;');
-          s64bit :
-            stabstring := strpnew('-31;');
-{$endif not Use_integer_types_for_boolean}
-          {u32bit : stabstring := tstoreddef(s32inttype.def).numberstring+';0;-1;'); }
-          else
-            stabstring:=stabstr_evaluate('r$1;$2;$3;',[Tstoreddef(s32inttype.def).numberstring,tostr(longint(low)),tostr(longint(high))]);
-        end;
-      end;
-
-
-    procedure torddef.concatstabto(asmlist:taasmoutput);
-      begin
-        if (stab_state in [stab_state_writing,stab_state_written]) then
-          exit;
-        if not(typ in [uvoid,
-{$ifdef Use_integer_types_for_boolean}
-             bool8bit,
-             bool16bit,
-             bool32bit
-{$else : not Use_integer_types_for_boolean}
-             uchar,
-             uwidechar,
-             bool8bit,
-             bool16bit,
-             bool32bit,
-             u64bit,
-             s64bit
-{$endif not Use_integer_types_for_boolean}
-             ]) then
+        if cs_gdb_valgrind in aktglobalswitches then
           begin
-            { prevent circular calls when bootstrapping s32inttype }
-            if (self<>s32inttype.def) and
-               (Tstoreddef(s32inttype.def).stab_state<>stab_state_written) then
-              Tstoreddef(s32inttype.def).concatstabto(asmlist);
-          end;
-        inherited concatstabto(asmlist);
+            case typ of
+              uvoid :
+                stabstring := strpnew(numberstring);
+              bool8bit,
+              bool16bit,
+              bool32bit :
+                stabstring := stabstr_evaluate('r${numberstring};0;255;',[]);
+              u32bit,
+              s64bit,
+              u64bit :
+                stabstring:=stabstr_evaluate('r${numberstring};0;-1;',[]);
+              else
+                stabstring:=stabstr_evaluate('r${numberstring};$1;$2;',[tostr(longint(low)),tostr(longint(high))]);
+            end;
+          end
+        else
+          begin
+            case typ of
+              uvoid :
+                stabstring := strpnew(numberstring);
+              uchar :
+                stabstring := strpnew('-20;');
+              uwidechar :
+                stabstring := strpnew('-30;');
+              bool8bit :
+                stabstring := strpnew('-21;');
+              bool16bit :
+                stabstring := strpnew('-22;');
+              bool32bit :
+                stabstring := strpnew('-23;');
+              u64bit :
+                stabstring := strpnew('-32;');
+              s64bit :
+                stabstring := strpnew('-31;');
+              {u32bit : stabstring := tstoreddef(s32inttype.def).numberstring+';0;-1;'); }
+              else
+                stabstring:=stabstr_evaluate('r${numberstring};$1;$2;',[tostr(longint(low)),tostr(longint(high))]);
+            end;
+         end;
       end;
-
 {$endif GDB}
 
 
@@ -2245,8 +2226,8 @@ implementation
       { the buffer part is still missing !! (PM) }
       { but the string could become too long !! }
       stabstring:=stabstr_evaluate('s${savesize}HANDLE:$1,0,32;MODE:$1,32,32;RECSIZE:$1,64,32;'+
-                                   '_PRIVATE:ar$2;1;32;$3,96,256;USERDATA:ar$2;1;16+$3,352,128;'+
-                                   'NAME:ar$2;0;255;$4,480,2048',[tstoreddef(u32inttype.def).numberstring,
+                                   '_PRIVATE:ar$2;1;32;$3,96,256;USERDATA:ar$2;1;16;$3,352,128;'+
+                                   'NAME:ar$2;0;255;$4,480,2048;;',[tstoreddef(u32inttype.def).numberstring,
                                    tstoreddef(u16inttype.def).numberstring,tstoreddef(u8inttype.def).numberstring,
                                    tstoreddef(cchartype.def).numberstring]);
    {$EndIf}
@@ -2533,7 +2514,7 @@ implementation
 {$ifdef GDB}
     function tclassrefdef.stabstring : pchar;
       begin
-         stabstring:=strpnew(tstoreddef(pvmttype.def).numberstring+';');
+         stabstring:=strpnew(tstoreddef(pvmttype.def).numberstring);
       end;
 {$endif GDB}
 
@@ -4487,7 +4468,7 @@ implementation
         getmem(nss,1024);
         { it is not a function but a function pointer !! (PM) }
 
-        strpcopy(nss,'*f'+tstoreddef(rettype.def).numberstring{+','+tostr(i)}+';');
+        strpcopy(nss,'*f'+tstoreddef(rettype.def).numberstring{+','+tostr(i)});
         { this confuses gdb !!
           we should use 'F' instead of 'f' but
           as we use c++ language mode
@@ -6089,7 +6070,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.228  2004-03-09 22:18:22  peter
+  Revision 1.229  2004-03-10 22:52:57  peter
+    * more stabs fixes
+    * special mode -gv for valgrind compatible stabs
+
+  Revision 1.228  2004/03/09 22:18:22  peter
     * first write parent classes
 
   Revision 1.227  2004/03/09 20:45:04  peter
