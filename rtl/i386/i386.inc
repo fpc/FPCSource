@@ -306,10 +306,8 @@ asm
      8 VMT-Address
      4 Main program-Addr
      0 %ebp
+     edi contains the vmt position
 }
-      { temporary Variable }
-        subl    $4,%esp
-        movl    %esp,%edi
         pushal
       { Should the object be resolved ? }
         movl    8(%ebp),%eax
@@ -318,7 +316,16 @@ asm
       { Yes, get size from SELF! }
         movl    12(%ebp),%eax
       { get VMT-pointer (from Self) to %ebx }
+{$ifdef OBJECTVMTOFFSET}
+      { the offset is in %edi since the calling and has not been changed !! }
+        movl    (%eax,%edi,1),%ebx
+{$else OBJECTVMTOFFSET}
         movl    (%eax),%ebx
+{$endif OBJECTVMTOFFSET}
+        movl    (%eax),%ebx
+      { temporary Variable }
+        subl    $4,%esp
+        movl    %esp,%edi
       { And put size on the Stack }
         pushl   (%ebx)
       { SELF }
@@ -332,9 +339,9 @@ asm
 {$else}
         call    FREEMEM
 {$endif}
+        addl    $4,%esp
 .LHD_3:
         popal
-        addl    $4,%esp
 end;
 
 {$ASMMODE ATT}
@@ -706,7 +713,10 @@ end;
 
 {
   $Log$
-  Revision 1.27  1998-10-16 08:53:50  peter
+  Revision 1.28  1998-10-16 13:37:46  pierre
+    * added code for vmt_offset in destructors
+
+  Revision 1.27  1998/10/16 08:53:50  peter
     * fill_object in constructor changed to 'inline' code to overcome
       pushw/pushl problem
 

@@ -192,6 +192,7 @@
                 8 VMT-Address
                 4 Main program-Addr
                 0 %ebp
+                d0 contains vmt_offset
             }
             { temporary Variable }
             subq.l #4,sp
@@ -199,13 +200,18 @@
             { Save Registers }
             movem.l d0-a7,-(sp)
 
-            move.l 8(a6),d0         { Get the address of the vmt }
-            or.l   d0,d0            { Check if there is a vmt    }
+            move.l 8(a6),d1         { Get the address of the vmt }
+            or.l   d1,d1            { Check if there is a vmt    }
             beq    @LHD_3
             { Yes, get size from SELF! }
             move.l 12(a6),a0
             { get VMT-pointer (from Self) to %ebx }
+{$ifdef OBJECTVMTOFFSET}
+      { the offset is in d0 since the calling and has not been changed !! }
+            move.l (a0,d0.l),a1
+{$else OBJECTVMTOFFSET}
             move.l (a0),a1
+{$endif OBJECTVMTOFFSET}
             { And put size on the Stack }
             move.l (a1),-(sp)
             { SELF }
@@ -682,7 +688,10 @@ end;
 
 {
   $Log$
-  Revision 1.13  1998-10-15 11:35:03  pierre
+  Revision 1.14  1998-10-16 13:37:45  pierre
+    * added code for vmt_offset in destructors
+
+  Revision 1.13  1998/10/15 11:35:03  pierre
    + first step of variable vmt offset
      offset is stored in R_EDI (R_D0)
      if objectvmtoffset is defined
