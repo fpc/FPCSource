@@ -561,18 +561,17 @@ Const
   feMissingArgument = 2;
   feInvalidArgIndex = 3;
 
+{$ifdef fmtdebug}
 Procedure Log (Const S: String);
-
 begin
- {$ifdef debug}
  Writeln (S);
- {$endif}
 end;
+{$endif}
+
 
 Procedure DoFormatError (ErrCode : Longint);
-
-Var S : String;
-
+Var
+  S : String;
 begin
   //!! must be changed to contain format string...
   S:='';
@@ -647,7 +646,9 @@ Var ChPos,OldPos,ArgPos,DoArg,Len : Longint;
         Value:=-1;
         Inc(Chpos);
         end;
+{$ifdef fmtdebug}
       Log ('Read index');
+{$endif}
     end;
 
     Procedure ReadLeft;
@@ -660,7 +661,9 @@ Var ChPos,OldPos,ArgPos,DoArg,Len : Longint;
         end
       else
         Left:=False;
+{$ifdef fmtdebug}
       Log ('Read Left');
+{$endif}
     end;
 
     Procedure ReadWidth;
@@ -672,7 +675,9 @@ Var ChPos,OldPos,ArgPos,DoArg,Len : Longint;
         Width:=Value;
         Value:=-1;
         end;
+{$ifdef fmtdebug}
       Log ('Read width');
+{$endif}
     end;
 
     Procedure ReadPrec;
@@ -685,11 +690,15 @@ Var ChPos,OldPos,ArgPos,DoArg,Len : Longint;
         If Value=-1 then DoFormaterror(feMissingArgument);
         prec:=Value;
         end;
+{$ifdef fmtdebug}
       Log ('Read precision');
+{$endif}
     end;
 
   begin
+{$ifdef fmtdebug}
     Log ('Start format');
+{$endif}
     Index:=-1;
     Width:=-1;
     Prec:=-1;
@@ -701,11 +710,14 @@ Var ChPos,OldPos,ArgPos,DoArg,Len : Longint;
     ReadWidth;
     ReadPrec;
     ReadFormat:=Upcase(Fmt[ChPos]);
+{$ifdef fmtdebug}
     Log ('End format');
+{$endif}
 end;
 
-Procedure DumpFormat (C : char);
 
+{$ifdef fmtdebug}
+Procedure DumpFormat (C : char);
 begin
   Write ('Fmt : ',fmt:10);
   Write (' Index : ',Index:3);
@@ -714,6 +726,8 @@ begin
   Write (' Prec  : ',prec:3);
   Writeln (' Type  : ',C);
 end;
+{$endif}
+
 
 function Checkarg (AT : Longint;err:boolean):boolean;
 {
@@ -757,9 +771,9 @@ begin
     If ChPos<Len then
       begin
       FChar:=ReadFormat;
-      {$ifdef debug}
+{$ifdef fmtdebug}
       DumpFormat(FCHar);
-      {$endif}
+{$endif}
       Case FChar of
         'D' : begin
               Checkarg(vtinteger,true);
@@ -795,6 +809,9 @@ begin
         'S' : begin
                 if CheckArg(vtString,false) then
                   hs:=Args[doarg].VString^
+                else
+                  if CheckArg(vtChar,false) then
+                    hs:=Args[doarg].VChar
                 else
                   if CheckArg(vtPChar,false) then
                     hs:=Args[doarg].VPChar
@@ -1140,7 +1157,11 @@ const
 
 {
   $Log$
-  Revision 1.32  2000-04-03 06:40:37  michael
+  Revision 1.33  2000-05-08 13:26:42  peter
+    * vtchar support for %s
+    * define debug -> define fmtdebug
+
+  Revision 1.32  2000/04/03 06:40:37  michael
   * TRim(right|Left) more Delphi compatible
 
   Revision 1.31  2000/02/09 16:59:33  peter
