@@ -101,7 +101,7 @@ begin
   If S=Nil then
     exit;
   Dec (Longint(S),FirstOff);
-  FreeMem (S,PAnsiRec(S)^.Maxlen+AnsiRecLen);
+  FreeMem (S);
   S:=Nil;
 end;
 
@@ -642,7 +642,10 @@ end;
 
 {
   $Log$
-  Revision 1.40  2000-02-09 16:59:29  peter
+  Revision 1.41  2000-05-18 17:04:48  peter
+    * use freemem without size
+
+  Revision 1.40  2000/02/09 16:59:29  peter
     * truncated log
 
   Revision 1.39  2000/01/07 16:41:33  daniel
