@@ -782,7 +782,7 @@ begin
   end ['EAX'];
 end;
 
-Function Random(L: LongInt): LongInt; assembler;
+Function Random(L: LongInt): LongInt;{assembler;
 asm
   movl $134775813,%eax
   mull U_SYSTEM_RANDSEED
@@ -790,11 +790,19 @@ asm
   movl %eax,U_SYSTEM_RANDSEED
   mull 4(%esp)
   movl %edx,%eax
+end;}
+
+begin
+  Randseed:=Randseed*134775813+1;
+  Random:=abs(Randseed mod l);
 end;
 
 {
   $Log$
-  Revision 1.2  1998-04-08 07:53:31  michael
+  Revision 1.3  1998-04-10 15:25:23  michael
+  - Removed so-called better random function
+
+  Revision 1.2  1998/04/08 07:53:31  michael
   + Changed Random() function. Moved from system to processor dependent files (from Pedro Gimeno)
 
   Revision 1.1.1.1  1998/03/25 11:18:43  root
