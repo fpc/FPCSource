@@ -160,7 +160,7 @@ implementation
         while assigned(hp) do
           begin
             fillchar(paraloc,sizeof(paraloc),0);
-            paraloc.Alignment:=4;
+            paraloc.Alignment:= std_param_align;
             if push_addr_param(hp.paratyp,hp.paratype.def,p.proccalloption) or (hp.paratyp in [vs_var,vs_out]) then
               paraloc.size:=OS_ADDR
             else
@@ -225,6 +225,7 @@ implementation
         { Function return }
         fillchar(paraloc,sizeof(tparalocation),0);
         paraloc.size:=def_cgsize(p.rettype.def);
+        paraloc.Alignment:= std_param_align;
         { Return in FPU register? }
         if p.rettype.def.deftype=floatdef then
           begin
@@ -294,7 +295,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.32  2003-10-08 14:11:36  mazen
+  Revision 1.33  2003-10-08 21:16:27  olle
+    * changed to symbolic const for alignment
+    + alignment set for function result
+
+  Revision 1.32  2003/10/08 14:11:36  mazen
   + Alignement field added to TParaLocation (=4 as 32 bits archs)
 
   Revision 1.31  2003/10/01 20:34:50  peter
