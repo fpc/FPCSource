@@ -34,7 +34,7 @@ function g_copy_vector(vec:PPchar):Ppchar;cdecl;external libgnomedll name 'g_cop
 function gnome_util_user_shell:pchar;cdecl;external libgnomedll name 'gnome_util_user_shell';
 function g_is_image_filename(path:Pchar):gboolean;cdecl;external libgnomedll name 'g_is_image_filename';
 
-Function g_copy_strings(string1:Pgchar; args:array of const):Pgchar;
+//Function g_copy_strings(string1:Pgchar; args:array of const):Pgchar;
 Function g_filename_index(path : Pgchar) : Pgchar;
 Function g_filename_pointer(file_name:Pgchar):Pgchar; 
 Function g_flatten_vector(separator:Pgchar; str_array:PPgchar) : Pgchar;
@@ -45,10 +45,10 @@ Function gnome_util_home_file(afile : Pgchar) : Pgchar;
 {$EndIf read_interface}
 
 {$Ifdef read_implementation}
-Function g_copy_strings(string1:Pgchar; args:array of const):Pgchar;
+{Function g_copy_strings(string1:Pgchar; args:array of const):Pgchar;
 begin
   g_copy_strings := g_strconcat(string1, args);
-end;
+end;}
 
 Function g_filename_index(path : Pgchar) : Pgchar;
 begin
