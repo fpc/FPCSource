@@ -1234,6 +1234,8 @@ end;
          begin
            inserttree(currtree^.left,currroot);
            inserttree(currtree^.right,currroot);
+           currtree^.right:=nil;
+           currtree^.left:=nil;
            insertnode(currtree,currroot);
          end;
       end;
@@ -2015,7 +2017,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.33  1999-05-31 23:33:21  peter
+  Revision 1.34  1999-06-15 10:14:19  peter
+    * merged
+
+  Revision 1.33.2.1  1999/06/15 10:12:22  peter
+    * fixed inserttree which didn't reset left,right
+
+  Revision 1.33  1999/05/31 23:33:21  peter
     * fixed tdictionary rename which didn't reset left,right when
       reinserting
 
