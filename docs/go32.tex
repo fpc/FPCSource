@@ -195,8 +195,8 @@ See also:
 The following examples illustrate the use of software interrupts.
 \latex{\inputlisting{go32ex/softint.pp}}
 \html{\input{go32ex/softint.tex}}
-\latex{\inputlisting{go32ex/rmpm_int.pp}}
-\html{\input{go32ex/rmpm_int.tex}}
+\latex{\inputlisting{go32ex/rmpmint.pp}}
+\html{\input{go32ex/rmpmint.tex}}
 \subsection{Real mode callbacks}
 The callback mechanism can be thought of as the converse of calling a real
 mode procedure (i.e. interrupt), which allows your program to pass
@@ -387,8 +387,8 @@ function.
 \seefl{set\_segment\_base\_address}{setsegmentbaseaddress} 
 
 \end{functionl}
-\latex{\inputlisting{go32ex/sel_des.pp}}
-\html{\input{go32ex/sel_des.tex}}
+\latex{\inputlisting{go32ex/seldes.pp}}
+\html{\input{go32ex/seldes.tex}}
 \begin{functionl}{allocate\_memory\_block}{allocatememoryblock}
 \Declaration
 Function allocate\_memory\_block (size:Longint) : Longint;
@@ -1431,8 +1431,8 @@ protected mode address.
 \seefl{set\_rm\_interrupt}{setrminterrupt},
 \seefl{get\_rm\_interrupt}{getrminterrupt} 
 \end{functionl}
-\latex{\inputlisting{go32ex/int_pm.pp}}
-\html{\input{go32ex/int_pm.tex}}
+\latex{\inputlisting{go32ex/intpm.pp}}
+\html{\input{go32ex/intpm.tex}}
 \begin{functionl}{set\_rm\_interrupt}{setrminterrupt}
 \Declaration
 Function set\_rm\_interrupt (vector : byte; const intaddr :

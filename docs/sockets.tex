@@ -120,8 +120,8 @@ operation.
 \SeeAlso
 \seef{Listen}, \seef{Connect}
 \end{function}
-\latex{\inputlisting{sockex/sock_svr.pp}}
-\html{\input{sockex/sock_svr.tex}}
+\latex{\inputlisting{sockex/socksvr.pp}}
+\html{\input{sockex/socksvr.tex}}
 \begin{functionl}{Accept}{AltAAccept}
 \Declaration
 Function Accept (Sock:longint;var addr:string;var SockIn,SockOut:text) : Boolean;
@@ -226,8 +226,8 @@ Errors are reported in \var{SocketError}.
 \SeeAlso
 \seef{Listen}, \seef{Bind},\seef{Accept}
 \end{function}
-\latex{\inputlisting{sockex/sock_cli.pp}}
-\html{\input{sockex/sock_cli.tex}}
+\latex{\inputlisting{sockex/sockcli.pp}}
+\html{\input{sockex/sockcli.tex}}
 \begin{functionl}{Connect}{AltAConnect}
 \Declaration
 Function Connect (Sock:longint;const addr:string;var SockIn,SockOut:text) : Boolean;
