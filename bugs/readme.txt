@@ -310,3 +310,4 @@ bug0221.pp   syntax parsing incompatibilities with tp7
 bug0222.pp   an record field can't be the counter index (compiles with TP)
 bug0225.pp   Sigsegv when run with range checks on open arrays
 bug0227.pp   external var does strange things when declared in localsymtable
+bug0229.pp   consts > 255 are truncated (should work in -S2,-Sd)
