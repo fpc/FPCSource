@@ -431,7 +431,6 @@ begin
            if c in ['0'..'9'] then
             begin
               actasmtoken:=AS_MOD;
-              {Message(asmr_w_modulo_not_supported);}
             end
            else
             begin
@@ -2130,7 +2129,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.32  2002-11-15 01:58:58  peter
+  Revision 1.33  2002-11-30 23:16:39  carl
+    - removed unused message
+
+  Revision 1.32  2002/11/15 01:58:58  peter
     * merged changes from 1.0.7 up to 04-11
       - -V option for generating bug report tracing
       - more tracing for option parsing
