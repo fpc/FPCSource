@@ -103,7 +103,7 @@ implementation
       comphook;
 
 var
-  current_module : tmodulebase;
+  compiling_module : tmodulebase;
 
 {****************************************************************************
                        Extra Handlers for default compiler
@@ -305,7 +305,7 @@ var
 
     procedure SetCompileModule(p:tmodulebase);
       begin
-        current_module:=p;
+        compiling_module:=p;
       end;
 
 
@@ -317,24 +317,24 @@ var
       { fix status }
         status.currentline:=aktfilepos.line;
         status.currentcolumn:=aktfilepos.column;
-        if assigned(current_module) and
-           assigned(current_module.sourcefiles) and
-           ((current_module.unit_index<>lastmoduleidx) or
+        if assigned(compiling_module) and
+           assigned(compiling_module.sourcefiles) and
+           ((compiling_module.unit_index<>lastmoduleidx) or
             (aktfilepos.fileindex<>lastfileidx)) then
          begin
            { update status record }
-           status.currentmodule:=current_module.modulename^;
-           status.currentsource:=current_module.sourcefiles.get_file_name(aktfilepos.fileindex);
-           status.currentsourcepath:=current_module.sourcefiles.get_file_path(aktfilepos.fileindex);
+           status.currentmodule:=compiling_module.modulename^;
+           status.currentsource:=compiling_module.sourcefiles.get_file_name(aktfilepos.fileindex);
+           status.currentsourcepath:=compiling_module.sourcefiles.get_file_path(aktfilepos.fileindex);
            { update lastfileidx only if name known PM }
            if status.currentsource<>'' then
              lastfileidx:=aktfilepos.fileindex
            else
              lastfileidx:=0;
-           lastmoduleidx:=current_module.unit_index;
+           lastmoduleidx:=compiling_module.unit_index;
          end;
-        if assigned(current_module) then
-          status.compiling_current:=current_module.in_compile;
+        if assigned(compiling_module) then
+          status.compiling_current:=compiling_module.in_compile;
       end;
 
 
@@ -680,7 +680,11 @@ var
 end.
 {
   $Log$
-  Revision 1.19  2002-05-18 13:34:21  peter
+  Revision 1.20  2002-08-18 19:59:03  peter
+    * renamed local current_module to compiling_module because it
+      confused a lot in gdb
+
+  Revision 1.19  2002/05/18 13:34:21  peter
     * readded missing revisions
 
   Revision 1.18  2002/05/16 19:46:47  carl
