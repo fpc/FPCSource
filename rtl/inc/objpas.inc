@@ -132,8 +132,8 @@
     {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
         if (ptrint(p) mod sizeof(ptrint))<>0 then
           inc(ptrint(p),sizeof(ptrint)-ptrint(p) mod sizeof(ptrint));
-        result:=p;
     {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+        result:=p;
       end;
 
 
@@ -758,7 +758,10 @@
 
 {
   $Log$
-  Revision 1.40  2004-10-05 20:21:23  florian
+  Revision 1.41  2004-10-10 19:18:31  florian
+    * fixed aligntoptr
+
+  Revision 1.40  2004/10/05 20:21:23  florian
     * bootstrapping with rtti alignment fixed
 
   Revision 1.39  2004/10/04 21:26:16  florian

@@ -290,8 +290,8 @@ function aligntoptr(p : pointer) : pointer;
 {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
     if (ptrint(p) mod sizeof(ptrint))<>0 then
       inc(ptrint(p),sizeof(ptrint)-ptrint(p) mod sizeof(ptrint));
-    result:=p;
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+    result:=p;
   end;
 
 
@@ -1490,7 +1490,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.29  2004-10-04 21:26:16  florian
+  Revision 1.30  2004-10-10 19:18:31  florian
+    * fixed aligntoptr
+
+  Revision 1.29  2004/10/04 21:26:16  florian
     * rtti alignment fixed
 
   Revision 1.28  2004/08/16 16:12:28  peter
