@@ -164,9 +164,9 @@ unit cpugas;
         s:=#9+std_op2str[op]+cond2str[taicpu(hp).condition];
         if taicpu(hp).ops>0 then
           begin
-            s:=s+#9+getopstr(taicpu(hp).oper[0]);
+            s:=s+#9+getopstr(taicpu(hp).oper[0]^);
             for i:=1 to taicpu(hp).ops-1 do
-              s:=s+','+getopstr(taicpu(hp).oper[i]);
+              s:=s+','+getopstr(taicpu(hp).oper[i]^);
           end;
         AsmWriteLn(s);
       end;
@@ -205,7 +205,10 @@ begin
 end.
 {
     $Log$
-    Revision 1.22  2003-09-03 15:55:01  peter
+    Revision 1.23  2003-10-24 11:22:50  mazen
+    *fix related to toper==>poper
+
+    Revision 1.22  2003/09/03 15:55:01  peter
       * NEWRA branch merged
 
     Revision 1.21.2.1  2003/09/01 21:02:55  peter
