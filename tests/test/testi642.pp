@@ -1,3 +1,4 @@
+{$Q-} { this is necessary to avoid an overflow error below }
 {$mode objfpc}
 uses
    sysutils
