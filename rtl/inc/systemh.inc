@@ -527,6 +527,19 @@ function StringToWideChar(const Src : AnsiString;Dest : PWideChar;DestSize : Lon
 function WideCharLenToString(S : PWideChar;Len : LongInt) : AnsiString;
 procedure WideCharLenToStrVar(Src : PWideChar;Len : LongInt;var Dest : AnsiString);
 procedure WideCharToStrVar(S : PWideChar;var Dest : AnsiString);
+
+Type
+  TWide2AnsiMove=procedure(source:pwidechar;dest:pchar;len:longint);
+  TAnsi2WideMove=procedure(source:pchar;dest:pwidechar;len:longint);
+    
+  TWideStringManager = record   
+    Wide2AnsiMove : TWide2AnsiMove;
+    Ansi2WideMove : TAnsi2WideMove;
+  end;
+  
+Procedure GetWideStringManager (Var Manager : TWideStringManager);
+Procedure SetWideStringManager (Const New : TWideStringManager; Var Old: TWideStringManager);
+
 {$endif HASWIDESTRING}
 
 
@@ -699,7 +712,10 @@ const
 
 {
   $Log$
-  Revision 1.78  2003-11-15 19:01:27  florian
+  Revision 1.79  2003-11-28 20:36:13  michael
+  + Added WideStringManager
+
+  Revision 1.78  2003/11/15 19:01:27  florian
     * fixed rtl to work with the integrated fpc ppc assembler reader
 
   Revision 1.77  2003/11/03 09:42:28  marco

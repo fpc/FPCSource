@@ -84,13 +84,25 @@ begin
    end;
 end;
 
-
-Type
-  TWide2AnsiMove=procedure(source:pwidechar;dest:pchar;len:longint);
-  TAnsi2WideMove=procedure(source:pchar;dest:pwidechar;len:longint);
 Const
   Wide2AnsiMoveProc:TWide2AnsiMove=@Wide2AnsiMove;
   Ansi2WideMoveProc:TAnsi2WideMove=@Ansi2WideMove;
+
+Procedure GetWideStringManager (Var Manager : TWideStringManager);
+
+begin
+  Manager.Wide2AnsiMove:=Wide2AnsiMoveProc;
+  Manager.Ansi2WideMove:=Ansi2WideMoveProc;
+end;
+
+
+Procedure SetWideStringManager (Const New : TWideStringManager; Var Old: TWideStringManager);
+
+begin
+  GetWideStringManager(Old);
+  Wide2AnsiMoveProc:=New.Wide2AnsiMove;
+  Ansi2WideMoveProc:=New.Ansi2WideMove;
+end;
 
 (*
 Procedure UniqueWideString(Var S : WideString); [Public,Alias : 'FPC_WIDESTR_UNIQUE'];
@@ -993,7 +1005,10 @@ end;
 
 {
   $Log$
-  Revision 1.32  2003-11-05 15:33:51  florian
+  Revision 1.33  2003-11-28 20:36:13  michael
+  + Added WideStringManager
+
+  Revision 1.32  2003/11/05 15:33:51  florian
     * made Index* usage consistent with astrings.inc
 
   Revision 1.31  2003/06/17 19:24:08  jonas
