@@ -17,7 +17,8 @@ program FP;
 
 {$ifdef IncRes}
 {$ifdef win32}
-{$R fpw32.rc}
+{$R fpw32t.rc}
+{$R fpw32ico.rc}
 {$endif win32}
 {$endif IncRes}
 
@@ -30,11 +31,11 @@ program FP;
 (**********************************************************************)
 
 uses
-{$ifndef NODEBUG}
+{$ifdef WITH_GDB}
 {$ifdef win32}
   fpcygwin,
 {$endif win32}
-{$endif NODEBUG}
+{$endif WITH_GDB}
 {$ifdef IDEHeapTrc}
   PPheap,
 {$endif IDEHeapTrc}
@@ -302,12 +303,12 @@ BEGIN
 {$ifdef win32}
   Win32ShowMouse;
 {$endif win32}
-{$ifndef NODEBUG}
+{$ifdef WITH_GDB}
 {$ifdef win32}
   writeln('Using "',GetCygwinFullName,'" version ',GetCygwinVersionString);
   CheckCygwinVersion;
 {$endif win32}
-{$endif NODEBUG}
+{$endif WITH_GDB}
 
   ProcessParams(true);
 
@@ -496,7 +497,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.19  2003-01-14 16:24:52  pierre
+  Revision 1.20  2003-01-28 16:53:47  pierre
+   * only include fpcygwin if libgdb is linked in
+
+  Revision 1.19  2003/01/14 16:24:52  pierre
    * only insert win32 resource if IncRes is defined
 
   Revision 1.18  2003/01/07 00:29:13  pierre
