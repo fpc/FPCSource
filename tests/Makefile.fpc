@@ -142,7 +142,7 @@ endif
 # Test run targets
 #
 
-DIRS=webtbs webtbf tbs tbf test test/cg test/units/system test/units/dos test/units/objects
+DIRS=webtbs webtbf tbs tbf $(TESTDIRS)
 
 %.log : %.pp $(DOTESTDEP)
         $(DOTEST) $(DOTESTOPT) $<
@@ -216,14 +216,19 @@ clean:
         -rm -f $(addsuffix /*$(SHAREDLIBEXT),$(DIRS))
         -rm -f $(addsuffix /*.log,$(DIRS))
         -rm -f $(addsuffix /*.elg,$(DIRS))
+        -rm -f $(addsuffix /*$(ASMEXT),$(DIRS))
 ifeq ($(EXEEXT),)
         -rm -f $(wildcard $(patsubst %.pp,%$(EXEEXT),$(wildcard $(addsuffix /t*.pp,$(DIRS)))))
 else
         -rm -f $(addsuffix /*$(EXEEXT),$(DIRS))
 endif
+ifdef DEBUGSYMEXT
+        -rm -f $(addsuffix /*$(DEBUGSYMEXT),$(DIRS))
+endif
         -rm -f test*.txt *.tmp *$(SHAREDLIBEXT) *$(OEXT) *$(PPUEXT) core
         -rm -f $(LOG) $(LONGLOG) $(FAILLIST)
         -rm -f ptest.* ppas.sh ppas.bat gmon.out allpreps-stamp.$(OS_TARGET)
+        -rm -f $(addsuffix /*_ppas,$(DIRS))
         $(MAKE) -C units clean
 
 distclean: clean
