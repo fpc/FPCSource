@@ -940,7 +940,7 @@ implementation
         for i:=1 to max do
           begin
             if i<>impintfindexes[i] then { why execute x:=x ? }
-              with _class^.implementedinterfaces^ do 
+              with _class^.implementedinterfaces^ do
 	        ioffsets(i)^:=ioffsets(impintfindexes[i])^;
             gintfgenentry(_class,i,impintfindexes[i],@rawdata);
           end;
@@ -1070,7 +1070,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  2000-11-08 00:07:40  florian
+  Revision 1.14  2000-11-12 23:24:10  florian
+    * interfaces are basically running
+
+  Revision 1.13  2000/11/08 00:07:40  florian
      * potential range check error fixed
 
   Revision 1.12  2000/11/06 23:13:53  peter

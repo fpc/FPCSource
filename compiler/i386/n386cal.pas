@@ -903,6 +903,7 @@ implementation
                          assigned(methodpointer) and
                          (methodpointer.resulttype^.deftype=classrefdef)
                         ) or
+                        { is_interface(pprocdef(procdefinition)^._class) or }
                         { ESI is loaded earlier }
                         (po_classmethod in procdefinition^.procoptions) then
                          begin
@@ -941,7 +942,8 @@ implementation
                    if pprocdef(procdefinition)^.extnumber=-1 then
                      internalerror(44584);
                    r^.offset:=pprocdef(procdefinition)^._class^.vmtmethodoffset(pprocdef(procdefinition)^.extnumber);
-                   if (cs_check_object_ext in aktlocalswitches) then
+                   if (cs_check_object_ext in aktlocalswitches) and
+                     not(is_interface(pprocdef(procdefinition)^._class)) then
                      begin
                         emit_sym(A_PUSH,S_L,
                           newasmsymbol(pprocdef(procdefinition)^._class^.vmt_mangledname));
@@ -1587,7 +1589,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2000-11-07 23:40:49  florian
+  Revision 1.7  2000-11-12 23:24:14  florian
+    * interfaces are basically running
+
+  Revision 1.6  2000/11/07 23:40:49  florian
     + AfterConstruction and BeforeDestruction impemented
 
   Revision 1.5  2000/11/06 23:15:01  peter

@@ -259,31 +259,31 @@ interface
        end;
 
        timplementedinterfaces = object
-         constructor init;
-         destructor  done; virtual;
+          constructor init;
+          destructor  done; virtual;
 
-         function  count: longint;
-         function  interfaces(intfindex: longint): pobjectdef;
-         function  ioffsets(intfindex: longint): plongint;
-         function  searchintf(def: pdef): longint;
-         procedure addintf(def: pdef);
+          function  count: longint;
+          function  interfaces(intfindex: longint): pobjectdef;
+          function  ioffsets(intfindex: longint): plongint;
+          function  searchintf(def: pdef): longint;
+          procedure addintf(def: pdef);
 
-         procedure deref;
-         procedure addintfref(def: pdef);
+          procedure deref;
+          procedure addintfref(def: pdef);
 
-         procedure clearmappings;
-         procedure addmappings(intfindex: longint; const name, newname: string);
-         function  getmappings(intfindex: longint; const name: string; var nextexist: pointer): string;
+          procedure clearmappings;
+          procedure addmappings(intfindex: longint; const name, newname: string);
+          function  getmappings(intfindex: longint; const name: string; var nextexist: pointer): string;
 
-         procedure clearimplprocs;
-         procedure addimplproc(intfindex: longint; procdef: pprocdef);
-         function  implproccount(intfindex: longint): longint;
-         function  implprocs(intfindex: longint; procindex: longint): pprocdef;
-         function  isimplmergepossible(intfindex, remainindex: longint; var weight: longint): boolean;
+          procedure clearimplprocs;
+          procedure addimplproc(intfindex: longint; procdef: pprocdef);
+          function  implproccount(intfindex: longint): longint;
+          function  implprocs(intfindex: longint; procindex: longint): pprocdef;
+          function  isimplmergepossible(intfindex, remainindex: longint; var weight: longint): boolean;
 
        private
-         finterfaces: tindexarray;
-         procedure checkindex(intfindex: longint);
+          finterfaces: tindexarray;
+          procedure checkindex(intfindex: longint);
        end;
 
 
@@ -4069,9 +4069,9 @@ Const local_symtable_index : longint = $8001;
         symtable^.datasize:=0;
         symtable^.defowner:=@self;
         symtable^.dataalignment:=packrecordalignment[aktpackrecords];
+        lastvtableindex:=0;
         set_parent(c);
         objname:=stringdup(n);
-        lastvtableindex:=0;
 
         { set up guid }
         isiidguidvalid:=true; { default null guid }
@@ -4394,14 +4394,18 @@ Const local_symtable_index : longint = $8001;
     function tobjectdef.vmtmethodoffset(index:longint):longint;
       begin
         { for offset of methods for classes, see rtl/inc/objpash.inc }
-        if objecttype in [odt_class,odt_interfacecom,odt_interfacecorba] then
-          vmtmethodoffset:=(index+12)*target_os.size_of_pointer
+        case objecttype of
+        odt_class:
+          vmtmethodoffset:=(index+12)*target_os.size_of_pointer;
+        odt_interfacecom,odt_interfacecorba:
+          vmtmethodoffset:=index*target_os.size_of_pointer;
         else
 {$ifdef WITHDMT}
-         vmtmethodoffset:=(index+4)*target_os.size_of_pointer;
+          vmtmethodoffset:=(index+4)*target_os.size_of_pointer;
 {$else WITHDMT}
-         vmtmethodoffset:=(index+3)*target_os.size_of_pointer;
+          vmtmethodoffset:=(index+3)*target_os.size_of_pointer;
 {$endif WITHDMT}
+        end;
       end;
 
 
@@ -5524,7 +5528,10 @@ Const local_symtable_index : longint = $8001;
 end.
 {
   $Log$
-  Revision 1.10  2000-11-11 16:12:38  peter
+  Revision 1.11  2000-11-12 23:24:12  florian
+    * interfaces are basically running
+
+  Revision 1.10  2000/11/11 16:12:38  peter
     * add far; to typename for far pointer
 
   Revision 1.9  2000/11/07 20:01:57  peter

@@ -176,7 +176,8 @@ interface
           tc_load_smallset,
           tc_cord_2_pointer,
           tc_intf_2_string,
-          tc_intf_2_guid
+          tc_intf_2_guid,
+          tc_class_2_intf
        );
 
     function assignment_overloaded(from_def,to_def : pdef) : pprocdef;
@@ -1576,12 +1577,11 @@ implementation
            objectdef :
              begin
                { object pascal objects }
-               if (def_from^.deftype=objectdef) {and
-                  pobjectdef(def_from)^.isclass and pobjectdef(def_to)^.isclass }then
+               if (def_from^.deftype=objectdef) and
+                 pobjectdef(def_from)^.is_related(pobjectdef(def_to)) then
                 begin
                   doconv:=tc_equal;
-                  if pobjectdef(def_from)^.is_related(pobjectdef(def_to)) then
-                   b:=1;
+                  b:=1;
                 end
                else
                { Class specific }
@@ -1600,6 +1600,15 @@ implementation
                      begin
                        doconv:=tc_equal;
                        b:=1;
+                     end
+                   { classes can be assigned to interfaces }
+                   else if is_interface(def_to) and
+                     is_class(def_from) and
+                     assigned(pobjectdef(def_from)^.implementedinterfaces) and
+                     (pobjectdef(def_from)^.implementedinterfaces^.searchintf(def_to)<>-1) then
+                     begin
+                        doconv:=tc_class_2_intf;
+                        b:=1;
                      end;
                  end;
              end;
@@ -1710,7 +1719,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.20  2000-11-11 16:13:31  peter
+  Revision 1.21  2000-11-12 23:24:12  florian
+    * interfaces are basically running
+
+  Revision 1.20  2000/11/11 16:13:31  peter
     * farpointer and normal pointer aren't compatible
 
   Revision 1.19  2000/11/06 22:30:30  peter

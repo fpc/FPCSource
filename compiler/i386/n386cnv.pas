@@ -51,6 +51,7 @@ interface
           procedure second_load_smallset;virtual;
           procedure second_ansistring_to_pchar;virtual;
           procedure second_pchar_to_string;virtual;
+          procedure second_class_to_intf;virtual;
           procedure second_nothing;virtual;
           procedure pass_2;override;
           procedure second_call_helper(c : tconverttype);
@@ -1207,6 +1208,37 @@ implementation
       end;
 
 
+    procedure ti386typeconvnode.second_class_to_intf;
+      var
+         hreg : tregister;
+      begin
+         case left.location.loc of
+            LOC_MEM,
+            LOC_REFERENCE:
+              begin
+                 del_reference(left.location.reference);
+                 hreg:=getregister32;
+                 exprasmlist^.concat(new(paicpu,op_ref_reg(
+                   A_MOV,S_L,newreference(left.location.reference),hreg)));
+              end;
+            LOC_CREGISTER:
+              begin
+                 hreg:=getregister32;
+                 exprasmlist^.concat(new(paicpu,op_reg_reg(
+                   A_MOV,S_L,left.location.register,hreg)));
+              end;
+            LOC_REGISTER:
+              hreg:=left.location.register;
+            else internalerror(121120001);
+         end;
+
+         emit_const_reg(A_ADD,S_L,pobjectdef(left.resulttype)^.implementedinterfaces^.ioffsets(
+           pobjectdef(left.resulttype)^.implementedinterfaces^.searchintf(resulttype))^,hreg);
+         location.loc:=LOC_REGISTER;
+         location.register:=hreg;
+      end;
+
+
     procedure ti386typeconvnode.second_nothing;
       begin
       end;
@@ -1246,7 +1278,8 @@ implementation
            @ti386typeconvnode.second_load_smallset,
            @ti386typeconvnode.second_cord_to_pointer,
            @ti386typeconvnode.second_nothing, { interface 2 string }
-           @ti386typeconvnode.second_nothing  { interface 2 guid   }
+           @ti386typeconvnode.second_nothing, { interface 2 guid   }
+           @ti386typeconvnode.second_class_to_intf
          );
       type
          tprocedureofobject = procedure of object;
@@ -1446,7 +1479,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2000-11-11 16:00:10  jonas
+  Revision 1.5  2000-11-12 23:24:14  florian
+    * interfaces are basically running
+
+  Revision 1.4  2000/11/11 16:00:10  jonas
     * optimize converting of 8/16/32 bit constants to 64bit ones
 
   Revision 1.3  2000/11/04 14:25:23  florian

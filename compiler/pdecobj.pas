@@ -732,7 +732,7 @@ implementation
               if pd^.deftype=procdef then
                 begin
                   pd^.extnumber:=aktclass^.lastvtableindex;
-                  aktclass^.lastvtableindex:=aktclass^.lastvtableindex+1;
+                  inc(aktclass^.lastvtableindex);
                   include(pd^.procoptions,po_virtualmethod);
                   pd^.forwarddef:=false;
                 end;
@@ -858,7 +858,6 @@ implementation
         var
           tt: ttype;
           p : tnode;
-          isiidguidvalid: boolean;
 
         begin
           p:=comp_expr(true);
@@ -1156,7 +1155,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  2000-11-12 22:17:47  peter
+  Revision 1.11  2000-11-12 23:24:11  florian
+    * interfaces are basically running
+
+  Revision 1.10  2000/11/12 22:17:47  peter
     * some realname updates for messages
 
   Revision 1.9  2000/11/06 23:05:52  florian

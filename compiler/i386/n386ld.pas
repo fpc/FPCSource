@@ -95,7 +95,7 @@ implementation
                      begin
                         location.loc:=LOC_MEM;
                         location.reference.symbol:=newasmsymbol(pconstsym(symtableentry)^.owner^.name^+'_RESOURCESTRINGLIST');
-                        location.reference.offset:=pconstsym(symtableentry)^.resstrindex*16+4;
+                        location.reference.offset:=pconstsym(symtableentry)^.resstrindex*16+8;
                      end
                    else
                      internalerror(22798);
@@ -1050,7 +1050,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2000-11-11 22:59:20  florian
+  Revision 1.7  2000-11-12 23:24:15  florian
+    * interfaces are basically running
+
+  Revision 1.6  2000/11/11 22:59:20  florian
     * fixed resourcestrings, made a stupid mistake yesterday
 
   Revision 1.5  2000/11/09 18:52:06  florian

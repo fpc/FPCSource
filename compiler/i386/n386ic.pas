@@ -137,6 +137,8 @@ procedure cgintfwrapper(asmlist: paasmoutput; procdef: pprocdef; const labelname
 
 var
   oldexprasmlist: paasmoutput;
+  lab : pasmsymbol;
+
 begin
   if procdef^.proctypeoption<>potype_none then
     Internalerror(200006137);
@@ -194,7 +196,8 @@ begin
   { case 0 }
   else
     begin
-      emitcall(procdef^.mangledname);
+      lab:=newasmsymbol(procdef^.mangledname);
+      emit_sym(A_JMP,S_NO,lab);
     end;
   exprasmlist:=oldexprasmlist;
 end;
@@ -202,7 +205,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2000-11-04 14:25:23  florian
+  Revision 1.2  2000-11-12 23:24:15  florian
+    * interfaces are basically running
+
+  Revision 1.1  2000/11/04 14:25:23  florian
     + merged Attila's changes for interfaces, not tested yet
 
   Revision 1.1.2.2  2000/06/15 15:05:30  kaz

@@ -1396,6 +1396,8 @@ implementation
                     begin
                        { get temp. space }
                        gettempofsizereference(l*4,hr);
+                       { keep data start }
+                       hr2:=hr;
                        { copy dimensions }
                        hp:=left;
                        while assigned(tcallparanode(hp).right) do
@@ -1427,8 +1429,8 @@ implementation
                     end
                   else secondpass(tcallparanode(hp).left);
                   if is_dynamic_array(def) then
-                    begin
-                       emitpushreferenceaddr(hr);
+                    begin                       
+                       emitpushreferenceaddr(hr2);
                        push_int(l);
                        reset_reference(hr2);
                        hr2.symbol:=pstoreddef(def)^.get_inittable_label;
@@ -1663,7 +1665,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2000-11-09 17:46:56  florian
+  Revision 1.6  2000-11-12 23:24:15  florian
+    * interfaces are basically running
+
+  Revision 1.5  2000/11/09 17:46:56  florian
     * System.TypeInfo fixed
     + System.Finalize implemented
     + some new keywords for interface support added

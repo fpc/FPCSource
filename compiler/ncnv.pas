@@ -61,6 +61,7 @@ interface
           function first_pchar_to_string : tnode;virtual;
           function first_ansistring_to_pchar : tnode;virtual;
           function first_arrayconstructor_to_set : tnode;virtual;
+          function first_class_to_intf : tnode;virtual;
           function first_call_helper(c : tconverttype) : tnode;
        end;
 
@@ -698,6 +699,15 @@ implementation
         first_arrayconstructor_to_set:=hp;
       end;
 
+    function ttypeconvnode.first_class_to_intf : tnode;
+
+      begin
+         first_class_to_intf:=nil;
+         location.loc:=LOC_REFERENCE;
+         if registers32<1 then
+           registers32:=1;
+      end;
+
     function ttypeconvnode.first_call_helper(c : tconverttype) : tnode;
 
       const
@@ -728,7 +738,8 @@ implementation
            @ttypeconvnode.first_load_smallset,
            @ttypeconvnode.first_cord_to_pointer,
            @ttypeconvnode.first_nothing,
-           @ttypeconvnode.first_nothing
+           @ttypeconvnode.first_nothing,
+           @ttypeconvnode.first_class_to_intf
          );
       type
          tprocedureofobject = function : tnode of object;
@@ -1165,7 +1176,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2000-11-04 14:25:20  florian
+  Revision 1.11  2000-11-12 23:24:11  florian
+    * interfaces are basically running
+
+  Revision 1.10  2000/11/04 14:25:20  florian
     + merged Attila's changes for interfaces, not tested yet
 
   Revision 1.9  2000/10/31 22:02:48  peter
