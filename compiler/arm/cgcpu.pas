@@ -729,8 +729,7 @@ unit cgcpu;
             { restore int registers and return }
             reference_reset(ref);
             ref.index:=NR_FRAME_POINTER_REG;
-            ref.addressmode:=AM_PREINDEXED;
-            list.concat(setoppostfix(taicpu.op_ref_regset(A_LDM,ref,rg.used_in_proc_int-[RS_R0..RS_R3]+[RS_R11,RS_R13,RS_R15]),PF_EA));
+-            list.concat(setoppostfix(taicpu.op_ref_regset(A_LDM,ref,rg.used_in_proc_int-[RS_R0..RS_R3]+[RS_R11,RS_R13,RS_R15]),PF_EA));
           end;
       end;
 
@@ -1094,7 +1093,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2003-09-06 11:21:50  florian
+  Revision 1.17  2003-09-06 16:45:51  florian
+    * fixed exit code (no preindexed addressing mode in LDM)
+
+  Revision 1.16  2003/09/06 11:21:50  florian
     * fixed stm and ldm to be usable with preindex operand
 
   Revision 1.15  2003/09/05 23:57:01  florian
