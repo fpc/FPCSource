@@ -342,7 +342,7 @@ unit tgobj;
           end;
 {$ifdef EXTDEBUG}
          tl^.posinfo:=aktfilepos;
-         list.concat(tai_tempalloc.allocinfo(tl^.pos,tl^.size,'type '+TempTypeStr[templist^.temptype]));
+         list.concat(tai_tempalloc.allocinfo(tl^.pos,tl^.size,'Temp type '+TempTypeStr[templist^.temptype]));
 {$else}
          list.concat(tai_tempalloc.alloc(tl^.pos,tl^.size));
 {$endif}
@@ -439,9 +439,18 @@ unit tgobj;
          { ref.index = R_NO was missing
            led to problems with local arrays
            with lower bound > 0 (PM) }
-         istemp:=((ref.base=procinfo.framepointer) and
-                  (ref.index=R_NO) and
-                  (ref.offset*direction>firsttemp));
+         if direction = 1 then
+           begin
+             istemp:=((ref.base=procinfo.framepointer) and
+                     (ref.index=R_NO) and
+                      (ref.offset>firsttemp));
+           end
+        else
+           begin
+             istemp:=((ref.base=procinfo.framepointer) and
+                     (ref.index=R_NO) and
+                      (ref.offset<firsttemp));
+           end;
       end;
 
 
@@ -528,7 +537,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.21  2002-11-24 18:18:04  carl
+  Revision 1.22  2002-12-01 18:58:26  carl
+    * fix bugs with istemp() was wrong, and every reference was a temp
+
+  Revision 1.21  2002/11/24 18:18:04  carl
     - remove some unused defines
 
   Revision 1.20  2002/11/17 17:49:08  mazen
