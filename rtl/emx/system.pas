@@ -205,7 +205,7 @@ asm
     mov  ah, 04ch
     mov  al, byte ptr exitcode
     call syscall
-end ['EAX'];
+end {['EAX']};
 
 {$ASMMODE ATT}
 
@@ -308,7 +308,11 @@ end;
 {$ELSE DUMPGROW}
                                      assembler;
 asm
+{$IFDEF REGCALL}
+    movl %eax,%edx
+{$ELSE REGCALL}
     movl size,%edx
+{$ENDIF REGCALL}
     movw $0x7f00,%ax
     call syscall
     inc %eax         { Result in EAX, -1 = error (has to be transformed to 0) }
@@ -377,7 +381,7 @@ begin
         movb $0x41,%ah
         call syscall
         jnc .LERASE1
-        movw %ax,inoutres;
+        movw %ax,inoutres
     .LERASE1:
     end ['eax', 'edx'];
 end;
@@ -393,7 +397,7 @@ begin
         movb $0x56,%ah
         call syscall
         jnc .LRENAME1
-        movw %ax,inoutres;
+        movw %ax,inoutres
     .LRENAME1:
     end ['eax', 'edx', 'edi'];
 end;
@@ -401,13 +405,17 @@ end;
 function do_read(h,addr,len:longint):longint; assembler;
 asm
     pushl %ebx
+{$IFNDEF REGCALL}
     movl len,%ecx
     movl addr,%edx
+    movl %eax,%ebx
+{$ELSE REGCALL}
     movl h,%ebx
+{$ENDIF REGCALL}
     movb $0x3f,%ah
     call syscall
     jnc .LDOSREAD1
-    movw %ax,inoutres;
+    movw %ax,inoutres
     xorl %eax,%eax
 .LDOSREAD1:
     popl %ebx
@@ -416,16 +424,21 @@ end {['eax', 'ebx', 'ecx', 'edx']};
 function do_write(h,addr,len:longint) : longint; assembler;
 asm
     pushl %ebx
+{$IFDEF REGCALL}
+    movl %eax,%ebx
+{$ENDIF REGCALL}
     xorl %eax,%eax
     cmpl $0,len    { 0 bytes to write is undefined behavior }
     jz   .LDOSWRITE1
+{$IFNDEF REGCALL}
     movl len,%ecx
     movl addr,%edx
     movl h,%ebx
+{$ENDIF REGCALL}
     movb $0x40,%ah
     call syscall
     jnc .LDOSWRITE1
-    movw %ax,inoutres;
+    movw %ax,inoutres
 .LDOSWRITE1:
     popl %ebx
 end {['eax', 'ebx', 'ecx', 'edx']};
@@ -433,12 +446,16 @@ end {['eax', 'ebx', 'ecx', 'edx']};
 function do_filepos(handle:longint): longint; assembler;
 asm
     pushl %ebx
-    movw $0x4201,%ax
+{$IFDEF REGCALL}
+    movl %eax,%ebx
+{$ELSE REGCALL}
     movl handle,%ebx
+{$ENDIF REGCALL}
+    movw $0x4201,%ax
     xorl %edx,%edx
     call syscall
     jnc .LDOSFILEPOS
-    movw %ax,inoutres;
+    movw %ax,inoutres
     xorl %eax,%eax
 .LDOSFILEPOS:
     popl %ebx
@@ -447,12 +464,16 @@ end {['eax', 'ebx', 'ecx', 'edx']};
 procedure do_seek(handle,pos:longint); assembler;
 asm
     pushl %ebx
-    movw $0x4200,%ax
+{$IFDEF REGCALL}
+    movl %eax,%ebx
+{$IFDEF REGCALL}
     movl handle,%ebx
     movl pos,%edx
+{$IFDEF REGCALL}
+    movw $0x4200,%ax
     call syscall
     jnc .LDOSSEEK1
-    movw %ax,inoutres;
+    movw %ax,inoutres
 .LDOSSEEK1:
     popl %ebx
 end {['eax', 'ebx', 'ecx', 'edx']};
@@ -460,8 +481,12 @@ end {['eax', 'ebx', 'ecx', 'edx']};
 function do_seekend(handle:longint):longint; assembler;
 asm
     pushl %ebx
-    movw $0x4202,%ax
+{$IFDEF REGCALL}
+    movl %eax,%ebx
+{$ELSE REGCALL}
     movl handle,%ebx
+{$ENDIF REGCALL}
+    movw $0x4202,%ax
     xorl %edx,%edx
     call syscall
     jnc .Lset_at_end1
@@ -483,24 +508,36 @@ end;
 
 procedure do_truncate(handle,pos:longint); assembler;
 asm
+    pushl %ebx
 (* DOS function 40h isn't safe for this according to EMX documentation *)
-    movl $0x7F25,%eax
+{$IFDEF REGCALL}
+    movl %eax,%ebx
+    pushl %eax
+{$ELSE REGCALL}
     movl Handle,%ebx
     movl Pos,%edx
+{$ENDIF REGCALL}
+    movl $0x7F25,%eax
     call syscall
     incl %eax
     movl %ecx, %eax
+{$IFDEF REGCALL}
+    popl %ebx
+{$ENDIF REGCALL}
     jnz .LTruncate1      { compare the value of EAX to verify error }
 (* File position is undefined after truncation, move to the end. *)
     movl $0x4202,%eax
+{$IFNDEF REGCALL}
     movl Handle,%ebx
+{$ENDIF REGCALL}
     movl $0,%edx
     call syscall
     jnc .LTruncate2
 .LTruncate1:
-    movw %ax,inoutres;
+    movw %ax,inoutres
 .LTruncate2:
-end ['eax', 'ebx', 'ecx', 'edx'];
+    popl %ebx
+end {['eax', 'ebx', 'ecx', 'edx']};
 
 const
     FileHandleCount: cardinal = 20;
@@ -665,7 +702,11 @@ begin
 *)
 asm
     push ebx
+{$IFDEF REGCALL}
+    mov ebx, eax
+{$ELSE REGCALL}
     mov ebx, Handle
+{$ENDIF REGCALL}
     mov eax, 4400h
     call syscall
     mov eax, 1
@@ -1266,7 +1307,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.21  2003-12-17 22:52:39  hajny
+  Revision 1.22  2003-12-26 22:20:44  hajny
+    * regcall fixes
+
+  Revision 1.21  2003/12/17 22:52:39  hajny
     * fix for stackbottom change to pointer
 
   Revision 1.20  2003/11/06 23:21:51  hajny

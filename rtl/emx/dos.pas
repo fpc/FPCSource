@@ -204,9 +204,13 @@ var i,p1:longint;
 {$ASMMODE INTEL}
 function CheckFile (FN: ShortString):boolean; assembler;
 asm
-    mov ax, 4300h
+{$IFDEF REGCALL}
+    mov edx, eax
+{$ELSE REGCALL}
     mov edx, FN      { get pointer to string }
+{$ENDIF REGCALL}
     inc edx          { avoid length byte     }
+    mov ax, 4300h
     call syscall
     mov ax, 0
     jc @LCFstop
@@ -260,14 +264,23 @@ procedure GetFTime (var F; var Time: longint); assembler;
 asm
     pushl %ebx
     {Load handle}
+{$IFDEF REGCALL}
+    movl %eax,%ebx
+    pushl %edx
+{$ELSE REGCALL}
     movl F,%ebx
+{$ENDIF REGCALL}
     movl (%ebx),%ebx
     {Get date}
     movw $0x5700,%ax
     call syscall
     shll $16,%edx
     movw %cx,%dx
+{$IFDEF REGCALL}
+    popl %ebx
+{$ELSE REGCALL}
     movl Time,%ebx
+{$ENDIF REGCALL}
     movl %edx,(%ebx)
     movw %ax,DosError
     popl %ebx
@@ -594,7 +607,12 @@ end;
 
 {$asmmode att}
 
-procedure GetTime (var Hour, Minute, Second, Sec100: word); assembler;
+procedure GetTime (var Hour, Minute, Second, Sec100: word);
+{$IFDEF REGCALL}
+begin
+{$ELSE REGCALL}
+                                                            assembler;
+{$ENDIF REGCALL}
 asm
     movb $0x2c, %ah
     call syscall
@@ -611,7 +629,12 @@ asm
     movl Hour, %edi
     movb %ch,%al
     stosw
-end ['eax', 'ecx', 'edx'];
+{$IFDEF REGCALL}
+  end ['eax', 'ecx', 'edx'];
+end;
+{$ELSE REGCALL}
+end {['eax', 'ecx', 'edx']};
+{$ENDIF REGCALL}
 
 {$asmmode intel}
 procedure SetTime (Hour, Minute, Second, Sec100: word);
@@ -1225,7 +1248,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2003-10-25 22:45:37  hajny
+  Revision 1.8  2003-12-26 22:20:44  hajny
+    * regcall fixes
+
+  Revision 1.7  2003/10/25 22:45:37  hajny
     * file handling related fixes
 
   Revision 1.6  2003/10/07 21:33:24  hajny

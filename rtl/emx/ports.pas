@@ -76,77 +76,140 @@ procedure syscall; external name '___SYSCALL';
 procedure TPort.WritePort (P: word; Data: byte); assembler;
 asm
  xorl %ecx, %ecx
+{$IFDEF REGCALL}
+ movw %ax, %cx
+ pushl %edx
+ pushl %ecx
+{$ELSE REGCALL}
  movw P, %cx
+{$ENDIF REGCALL}
  movl %ecx, %edx
  movw $0x7F12, %ax
  call syscall
+{$IFDEF REGCALL}
+ popl %edx
+ popl %eax
+{$ELSE REGCALL}
  movw P, %dx
  movb Data, %al
+{$ENDIF REGCALL}
  outb %al, %dx
-end ['eax', 'ecx', 'edx'];
+end {['eax', 'ecx', 'edx']};
 
 function TPort.ReadPort (P: word): byte; assembler;
 asm
  xorl %ecx, %ecx
+{$IFDEF REGCALL}
+ movw %ax, %cx
+{$ELSE REGCALL}
  movw P, %cx
+ pushl %ecx
+{$ENDIF REGCALL}
  movl %ecx, %edx
  movw $0x7F12, %ax
  call syscall
+{$IFDEF REGCALL}
+ popl %edx
+{$ELSE REGCALL}
  movw P, %dx
+{$ENDIF REGCALL}
  inb %dx, %al
-end ['eax', 'ecx', 'edx'];
+end {['eax', 'ecx', 'edx']};
 
 procedure TPortW.WritePort (P: word; Data : word); assembler;
 asm
  xorl %ecx, %ecx
+{$IFDEF REGCALL}
+ movw %ax, %cx
+ pushl %edx
+ pushl %ecx
+{$ELSE REGCALL}
  movw P, %cx
+{$ENDIF REGCALL}
  movl %ecx, %edx
  movw $0x7F12, %ax
  call syscall
+{$IFDEF REGCALL}
+ popl %edx
+ popl %eax
+{$ELSE REGCALL}
  movw P, %dx
  movw Data, %ax
+{$ENDIF REGCALL}
  outw %ax, %dx
-end ['eax', 'ecx', 'edx'];
+end {['eax', 'ecx', 'edx']};
 
 function TPortW.ReadPort (P: word): word; assembler;
 asm
  xorl %ecx, %ecx
+{$IFDEF REGCALL}
+ movw %ax, %cx
+ pushl %ecx
+{$ELSE REGCALL}
  movw P, %cx
+{$ENDIF REGCALL}
  movl %ecx, %edx
  movw $0x7F12, %ax
  call syscall
+{$IFDEF REGCALL}
+ popl %edx
+{$ELSE REGCALL}
  movw P, %dx
+{$ENDIF REGCALL}
  inw %dx, %ax
-end ['eax', 'ecx', 'edx'];
+end {['eax', 'ecx', 'edx']};
 
 procedure TPortL.WritePort (P: word; Data: longint); assembler;
 asm
  xorl %ecx, %ecx
+{$IFDEF REGCALL}
+ movw %ax, %cx
+ pushl %edx
+ pushl %ecx
+{$ELSE REGCALL}
  movw P, %cx
+{$ENDIF REGCALL}
  movl %ecx, %edx
  movw $0x7F12, %ax
  call syscall
+{$IFDEF REGCALL}
+ popl %edx
+ popl %eax
+{$ELSE REGCALL}
  movw P, %dx
  movl Data, %eax
+{$ENDIF REGCALL}
  outl %eax, %dx
-end ['eax', 'ecx', 'edx'];
+end {['eax', 'ecx', 'edx']};
 
 function TPortL.ReadPort (P: word): longint; assembler;
 asm
  xorl %ecx, %ecx
+{$IFDEF REGCALL}
+ movw %ax, %cx
+ pushl %ecx
+{$ELSE REGCALL}
  movw P, %cx
+{$ENDIF REGCALL}
  movl %ecx, %edx
  movw $0x7F12, %ax
  call syscall
+{$IFDEF REGCALL}
+ popl %edx
+{$ELSE REGCALL}
  movw P, %dx
+{$ENDIF REGCALL}
  inl %dx, %eax
-end ['eax', 'ecx', 'edx'];
+end {['eax', 'ecx', 'edx']};
 
 end.
 
 {
   $Log$
-  Revision 1.2  2003-10-07 21:33:24  hajny
+  Revision 1.3  2003-12-26 22:20:44  hajny
+    * regcall fixes
+
+  Revision 1.2  2003/10/07 21:33:24  hajny
     * stdcall fixes and asm routines cleanup
 
   Revision 1.1  2002/11/17 16:22:54  hajny
