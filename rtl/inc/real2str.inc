@@ -20,9 +20,9 @@ type
 
 const
    { do not use real constants else you get rouding errors }
-   i10 = 10;
-   i2 = 2;
-   i1 = 1;
+   i10 : longint = 10;
+   i2  : longint = 2;
+   i1  : longint = 1;
 
 Procedure str_real (len,f : longint; d : ValReal; real_type :treal_type; var s : string);
 {
@@ -48,6 +48,7 @@ var correct : longint;  { Power correction }
     i : integer;
     dot : byte;
     currp : pchar;
+    il : longint;
 begin
   case real_type of
     rt_s32real :
@@ -120,17 +121,24 @@ begin
   { convert to standard form. }
   correct:=0;
   if d>=i10 then
-    while d>=i10 do
+   begin
+     il:=10;
+     while (d>il) do
       begin
-        d:=d/i10;
+        il:=il*10;
         inc(correct);
-      end
-  else if (d<1) and (d<>0) then
-    while d<1 do
-      begin
-        d:=d*i10;
-        dec(correct);
       end;
+     d:=d/il;
+   end
+  else
+   if (d<1) and (d<>0) then
+    begin
+      while d<1 do
+       begin
+         d:=d*i10;
+         dec(correct);
+       end;
+    end;
   { RoundOff }
   roundcorr:=extended(i1)/extended(i2);
   if f<0 then
@@ -226,7 +234,11 @@ end;
 
 {
   $Log$
-  Revision 1.14  1999-08-03 21:58:44  peter
+  Revision 1.15  1999-11-02 15:05:53  peter
+    * better precisio by dividing only once with a calculated longint
+      instead of multiple times by 10
+
+  Revision 1.14  1999/08/03 21:58:44  peter
     * small speed improvements
 
   Revision 1.13  1999/05/06 09:05:12  peter
