@@ -51,9 +51,11 @@ const
 Function  lo(i : Integer) : byte;  [INTERNPROC: In_lo_Word];
 Function  lo(w : Word) : byte;     [INTERNPROC: In_lo_Word];
 Function  lo(l : Longint) : Word;  [INTERNPROC: In_lo_long];
+Function  lo(l : DWord) : Word;  [INTERNPROC: In_lo_long];
 Function  hi(i : Integer) : byte;  [INTERNPROC: In_hi_Word];
 Function  hi(w : Word) : byte;     [INTERNPROC: In_hi_Word];
 Function  hi(l : Longint) : Word;  [INTERNPROC: In_hi_long];
+Function  hi(l : DWord) : Word;  [INTERNPROC: In_hi_long];
 
 Function chr(b : byte) : Char;      [INTERNPROC: In_chr_byte];
 Function Length(s : string) : byte; [INTERNPROC: In_Length_string];
@@ -478,7 +480,10 @@ end;
 
 {
   $Log$
-  Revision 1.53  1999-01-29 09:23:09  pierre
+  Revision 1.54  1999-02-01 00:05:14  florian
+    + functions lo/hi for DWord type implemented
+
+  Revision 1.53  1999/01/29 09:23:09  pierre
    * Fillchar(..,..,boolean) added
 
   Revision 1.52  1999/01/22 12:39:23  pierre

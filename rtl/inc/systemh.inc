@@ -143,12 +143,14 @@ Procedure FillWord(Var x;count:Longint;Value:Word);
 {$ifndef RTLLITE}
 Function  lo(w:Word):byte;
 Function  lo(l:Longint):Word;
+Function  lo(l:DWord):Word;
 Function  lo(i:Integer):byte;
 Function  lo(B: Byte):Byte;
 Function  hi(w:Word):byte;
 Function  hi(i:Integer):byte;
 Function  hi(l:Longint):Word;
-Function  Hi(B : Byte): byte;
+Function  hi(b : Byte) : Byte;
+Function  hi(l: DWord): Word;
 Function  Swap (X:Word):Word;
 Function  Swap (X:Integer):Integer;
 Function  Swap (X:Cardinal):Cardinal;
@@ -432,7 +434,10 @@ const
 
 {
   $Log$
-  Revision 1.49  1999-01-29 09:23:10  pierre
+  Revision 1.50  1999-02-01 00:05:16  florian
+    + functions lo/hi for DWord type implemented
+
+  Revision 1.49  1999/01/29 09:23:10  pierre
    * Fillchar(..,..,boolean) added
 
   Revision 1.48  1999/01/22 12:39:24  pierre
