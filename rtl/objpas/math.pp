@@ -119,12 +119,18 @@ function Min(a, b: Cardinal): Cardinal;
 function Max(a, b: Cardinal): Cardinal;
 function Min(a, b: Int64): Int64;
 function Max(a, b: Int64): Int64;
+{$ifdef FPC_HAS_TYPE_SINGLE}
 function Min(a, b: Single): Single;
 function Max(a, b: Single): Single;
+{$endif FPC_HAS_TYPE_SINGLE}
+{$ifdef FPC_HAS_TYPE_DOUBLE}
 function Min(a, b: Double): Double;
 function Max(a, b: Double): Double;
+{$endif FPC_HAS_TYPE_DOUBLE}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
 function Min(a, b: Extended): Extended;
 function Max(a, b: Extended): Extended;
+{$endif FPC_HAS_TYPE_EXTENDED}
 
 { angle conversion }
 
@@ -933,6 +939,7 @@ begin
     Result := b;
 end;
 
+{$ifdef FPC_HAS_TYPE_SINGLE}
 function Min(a, b: Single): Single;
 begin
   if a < b then
@@ -948,7 +955,9 @@ begin
   else
     Result := b;
 end;
+{$endif FPC_HAS_TYPE_SINGLE}
 
+{$ifdef FPC_HAS_TYPE_DOUBLE}
 function Min(a, b: Double): Double;
 begin
   if a < b then
@@ -964,7 +973,9 @@ begin
   else
     Result := b;
 end;
+{$endif FPC_HAS_TYPE_DOUBLE}
 
+{$ifdef FPC_HAS_TYPE_EXTENDED}
 function Min(a, b: Extended): Extended;
 begin
   if a < b then
@@ -980,6 +991,7 @@ begin
   else
     Result := b;
 end;
+{$endif FPC_HAS_TYPE_EXTENDED}
 
 { include cpu specific stuff }
 {$i mathu.inc}
@@ -987,7 +999,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  2003-04-24 09:21:59  florian
+  Revision 1.11  2003-04-24 09:38:12  florian
+    * min/max must check the compiler capabilities
+
+  Revision 1.10  2003/04/24 09:21:59  florian
     + moved cpu dependend code to mathuh.inc and mathu.inc
 
   Revision 1.9  2003/01/03 20:34:02  peter
