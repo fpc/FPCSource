@@ -257,7 +257,8 @@ implementation
                               b:=1;
                             end
                            else
-                            if isconvertable(parraydef(def_to)^.definition,parraydef(def_from)^.definition,hct,nothingn,false)<>0 then
+                            if isconvertable(parraydef(def_to)^.definition,
+                                             parraydef(def_from)^.definition,hct,nothingn,false)<>0 then
                              begin
                                doconv:=hct;
                                b:=2;
@@ -695,7 +696,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.37  1999-08-16 23:23:38  peter
+  Revision 1.38  1999-08-17 13:26:07  peter
+    * arrayconstructor -> arrayofconst fixed when arraycosntructor was not
+      variant.
+
+  Revision 1.37  1999/08/16 23:23:38  peter
     * arrayconstructor -> openarray type conversions for element types
 
   Revision 1.36  1999/08/06 12:49:36  jonas

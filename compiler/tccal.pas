@@ -250,6 +250,8 @@ implementation
                             (pocall_cdecl in aktcallprocsym^.definition^.proccalloptions) and
                             (po_external in aktcallprocsym^.definition^.procoptions) then
                            p^.left^.cargs:=true;
+                         { force variant array }
+                         p^.left^.forcevaria:=true;
                        end
                       else
                        begin
@@ -1206,7 +1208,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.60  1999-08-16 23:23:39  peter
+  Revision 1.61  1999-08-17 13:26:08  peter
+    * arrayconstructor -> arrayofconst fixed when arraycosntructor was not
+      variant.
+
+  Revision 1.60  1999/08/16 23:23:39  peter
     * arrayconstructor -> openarray type conversions for element types
 
   Revision 1.59  1999/08/13 21:33:16  peter

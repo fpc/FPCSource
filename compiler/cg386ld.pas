@@ -832,7 +832,7 @@ implementation
         dovariant : boolean;
         elesize : longint;
       begin
-        dovariant:=parraydef(p^.resulttype)^.isvariant;
+        dovariant:=p^.forcevaria or parraydef(p^.resulttype)^.isvariant;
         if dovariant then
          elesize:=8
         else
@@ -966,7 +966,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.73  1999-08-13 21:33:09  peter
+  Revision 1.74  1999-08-17 13:26:06  peter
+    * arrayconstructor -> arrayofconst fixed when arraycosntructor was not
+      variant.
+
+  Revision 1.73  1999/08/13 21:33:09  peter
     * support for array constructors extended and more error checking
 
   Revision 1.72  1999/08/09 22:19:50  peter

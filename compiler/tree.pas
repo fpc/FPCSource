@@ -231,7 +231,7 @@ unit tree;
              labeln,goton : (labelnr : pasmlabel);
              withn : (withsymtable : pwithsymtable;tablecount : longint;withreference:preference;islocal:boolean);
              onn : (exceptsymtable : psymtable;excepttype : pobjectdef);
-             arrayconstructn : (cargs,cargswap,novariaallowed: boolean;constructdef:pdef);
+             arrayconstructn : (cargs,cargswap,forcevaria,novariaallowed: boolean;constructdef:pdef);
            end;
 
     function gennode(t : ttreetyp;l,r : ptree) : ptree;
@@ -1739,7 +1739,11 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.89  1999-08-16 23:23:42  peter
+  Revision 1.90  1999-08-17 13:26:09  peter
+    * arrayconstructor -> arrayofconst fixed when arraycosntructor was not
+      variant.
+
+  Revision 1.89  1999/08/16 23:23:42  peter
     * arrayconstructor -> openarray type conversions for element types
 
   Revision 1.88  1999/08/13 21:33:18  peter
