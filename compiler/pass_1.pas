@@ -116,8 +116,6 @@ implementation
       begin
 {$ifdef extdebug}
          inc(total_of_firstpass);
-         if (p.firstpasscount>0) and only_one_pass then
-           exit;
 {$endif extdebug}
          oldcodegenerror:=codegenerror;
          oldpos:=aktfilepos;
@@ -175,7 +173,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  2001-04-15 09:48:30  peter
+  Revision 1.15  2001-07-06 15:29:39  peter
+    * fixed EXTDEBUG
+
+  Revision 1.14  2001/04/15 09:48:30  peter
     * fixed crash in labelnode
     * easier detection of goto and label in try blocks
 
