@@ -77,6 +77,9 @@ package=utilemx.zip,GNU ~U~tilities (for makefiles)
 pack=C~o~mmon
 package=docs-pdf.zip,Documentation (~P~DF)
 package=demo.zip,D~e~mos
+package=ufclexm.zip,Examples for ~F~CL
+package=uapiexm.zip,Examples for ~A~PI
+package=upkgexm.zip,Examples for ~P~ackages
 
 
 #
@@ -96,7 +99,7 @@ package=docsrc.zip,~D~ocumentation sources (LaTeX)
 
 defaultcfg=
 #
-# Example ppc386.cfg for Free Pascal Compiler Version 0.99.14
+# Example ppc386.cfg for Free Pascal Compiler Version 1.00
 #
 
 # ----------------------
