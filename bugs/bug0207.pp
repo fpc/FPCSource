@@ -1,5 +1,19 @@
 {$mode delphi}
 
+type
+   tmyobject = class(tobject)
+	procedure free;
+    end;
+
+   procedure tmyobject.free;
+     begin
+        if self<>nil then
+          destroy;
+     end; 
+
+   var t : tmyobject;
 begin
-   while true do tobject.create.free;
+   t:=tmyobject.create;
+   t.destroy;
+   while true do tmyobject.create.free;
 end.

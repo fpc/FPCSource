@@ -1,3 +1,4 @@
+{$asmmode att}
 var
   w : word;
 begin

@@ -244,6 +244,7 @@ Fixed bugs:
   bug0209.pp   problem with boolean expressions of different store sizes
                (problem created while solving bug205 ! PM)          OK 0.99.11 (PM)
   bug0207.pp   a class destructor doesn't release the memory        OK 0.99.11 (FK) 
+  bug0210.pp   fillchar should accept boolean value also !!         OK 0.99.11 (PM)
 
 Unproducable bugs:
 ------------------
@@ -282,4 +283,4 @@ bug0200.pp   array of char overloading problem with strings
 bug0201.pp   problem with record var-parameters and assembler
 bug0202.pp   flag results not supported with case
 bug0206.pp   sets with variable ranges doesn't work
-
+bug0211.pp   a and not a is true !!! (if a:=boolean(5))
