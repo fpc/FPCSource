@@ -1,6 +1,7 @@
 
 { Translation of macro }
 
+{$ifndef LIBC_OLDERRNO}
 function errno : error_t; 
 
 begin
@@ -12,3 +13,4 @@ procedure seterrno (value : error_t);
 begin
   __errno_location()^:=Value;  
 end;
+{$endif}
