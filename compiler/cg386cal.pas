@@ -551,7 +551,7 @@ implementation
                                       emit_reg(A_PUSH,S_L,R_ESI);
                                     { if an inherited con- or destructor should be  }
                                     { called in a con- or destructor then a warning }
-                                    { will be made                                }
+                                    { will be made                                  }
                                     { con- and destructors need a pointer to the vmt }
                                     if is_con_or_destructor and
                                     not(pobjectdef(p^.methodpointer^.resulttype)^.is_class) and
@@ -561,12 +561,18 @@ implementation
                                                 [potype_constructor,potype_destructor]) then
                                           CGMessage(cg_w_member_cd_call_from_method);
                                       end;
-                                    { class destructors get there flag below }
+                                    { class destructors get there flag above }
+                                    { constructor flags ?                    }
                                     if is_con_or_destructor and
                                         not(pobjectdef(p^.methodpointer^.resulttype)^.is_class and
                                         assigned(aktprocsym) and
                                         (aktprocsym^.definition^.proctypeoption=potype_destructor)) then
-                                       push_int(0);
+                                      begin
+                                         { a constructor needs also a flag }
+                                         if pobjectdef(p^.methodpointer^.resulttype)^.is_class then
+                                           push_int(0);
+                                         push_int(0);
+                                      end;
                                  end;
                                hnewn:
                                  begin
@@ -643,7 +649,7 @@ implementation
                                              emit_ref_reg(A_MOV,S_L,r,R_ESI);
                                           end;
 
-                                        { direct call to destructor: don't remove data! }
+                                        { direct call to destructor: remove data }
                                         if (p^.procdefinition^.proctypeoption=potype_destructor) and
                                            (p^.methodpointer^.resulttype^.deftype=objectdef) and
                                            (pobjectdef(p^.methodpointer^.resulttype)^.is_class) then
@@ -653,9 +659,19 @@ implementation
                                         if (p^.procdefinition^.proctypeoption=potype_constructor) and
                                            (p^.methodpointer^.resulttype^.deftype=objectdef) and
                                            (pobjectdef(p^.methodpointer^.resulttype)^.is_class) then
-                                          emit_const(A_PUSH,S_L,0)
+                                          begin
+                                             emit_const(A_PUSH,S_L,0);
+                                             emit_const(A_PUSH,S_L,0);
+                                          end
                                         else
-                                          emit_reg(A_PUSH,S_L,R_ESI);
+                                          begin
+                                             { constructor call via classreference => allocate memory }
+                                             if (p^.procdefinition^.proctypeoption=potype_constructor) and
+                                                (p^.methodpointer^.resulttype^.deftype=classrefdef) and
+                                                (pobjectdef(pclassrefdef(p^.methodpointer^.resulttype)^.pointertype.def)^.is_class) then
+                                                emit_const(A_PUSH,S_L,1);
+                                             emit_reg(A_PUSH,S_L,R_ESI);
+                                          end;
                                       end;
 
                                     if is_con_or_destructor then
@@ -671,7 +687,7 @@ implementation
                                                      pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname));
                                                 end
                                               { destructors haven't to dispose the instance, if this is }
-                                              { a direct call                                      }
+                                              { a direct call                                           }
                                               else
                                                 push_int(0);
                                            end;
@@ -709,7 +725,10 @@ implementation
                                   emit_reg(A_PUSH,S_L,R_ESI);
                                end
                              else if (p^.procdefinition^.proctypeoption=potype_constructor) then
-                               emit_const(A_PUSH,S_L,0)
+                               begin
+                                  emit_const(A_PUSH,S_L,0);
+                                  emit_const(A_PUSH,S_L,0);
+                               end
                              else
                                emit_reg(A_PUSH,S_L,R_ESI);
                           end
@@ -1332,7 +1351,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.123  2000-01-26 15:03:59  peter
+  Revision 1.124  2000-02-04 20:00:21  florian
+    * an exception in a construcor calls now the destructor (this applies only
+      to classes)
+
+  Revision 1.123  2000/01/26 15:03:59  peter
     * fixed pop_size included twice with clearstack
 
   Revision 1.122  2000/01/26 12:02:29  peter

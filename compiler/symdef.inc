@@ -3342,6 +3342,53 @@ Const local_symtable_index : longint = $8001;
         is_related:=false;
      end;
 
+   var
+      sd : pprocdef;
+
+   procedure _searchdestructor(sym : pnamedindexobject);{$ifndef fpc}far;{$endif}
+
+     var
+        p : pprocdef;
+
+     begin
+        { if we found already a destructor, then we exit }
+        if assigned(sd) then
+          exit;
+        if psym(sym)^.typ=procsym then
+          begin
+             p:=pprocsym(sym)^.definition;
+             while assigned(p) do
+               begin
+                  if p^.proctypeoption=potype_destructor then
+                    begin
+                       sd:=p;
+                       exit;
+                    end;
+                  p:=p^.nextoverloaded;
+               end;
+          end;
+     end;
+
+   function tobjectdef.searchdestructor : pprocdef;
+
+     var
+        o : pobjectdef;
+
+     begin
+        searchdestructor:=nil;
+        o:=@self;
+        sd:=nil;
+        while assigned(o) do
+          begin
+             symtable^.foreach({$ifndef TP}@{$endif}_searchdestructor);
+             if assigned(sd) then
+               begin
+                  searchdestructor:=sd;
+                  exit;
+               end;
+             o:=o^.childof;
+          end;
+     end;
 
     function tobjectdef.size : longint;
       begin
@@ -3868,7 +3915,11 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.191  2000-01-30 23:29:06  peter
+  Revision 1.192  2000-02-04 20:00:22  florian
+    * an exception in a construcor calls now the destructor (this applies only
+      to classes)
+
+  Revision 1.191  2000/01/30 23:29:06  peter
     * fixed dup rtti writing for classes
 
   Revision 1.190  2000/01/28 23:17:53  florian

@@ -3089,9 +3089,9 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
       { a constructor needs a help procedure }
       if (aktprocsym^.definition^.proctypeoption=potype_constructor) then
         begin
-          {!!!! not yet procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;}
           if procinfo^._class^.is_class then
             begin
+              procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
               exprasmlist^.insert(new(paicpu,op_cond_sym(A_Jcc,C_Z,S_NO,faillabel)));
               emitinsertcall('FPC_NEW_CLASS');
             end
@@ -3404,12 +3404,11 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
        mangled_length : longint;
        p : pchar;
 {$endif GDB}
-       nofinal,okexitlabel,noreraiselabel : pasmlabel;
+       nofinal,okexitlabel,noreraiselabel,nodestroycall : pasmlabel;
        hr : treference;
        oldexprasmlist : paasmoutput;
        ai : paicpu;
        pd : pprocdef;
-       r : preference;
 
   begin
       oldexprasmlist:=exprasmlist;
@@ -3477,30 +3476,39 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
            emitjmp(C_E,noreraiselabel);
            if (aktprocsym^.definition^.proctypeoption=potype_constructor) then
              begin
-                {
                 if assigned(procinfo^._class) then
                   begin
                      pd:=procinfo^._class^.searchdestructor;
-                     if procinfo^._class^.is_class then
+                     if assigned(pd) then
                        begin
-                          emit_const(A_PUSH,S_L,1);
-                          emit_reg(A_PUSH,S_L,R_ESI);
-                       end
-                     else
-                       begin
-                          emit_reg(A_PUSH,S_L,R_ESI);
-                          emit_sym(A_PUSH,S_L,newasmsymbol(procinfo._class^.vmt_mangledname);
-                       end;
-                     if (po_virtualmethod in pd^.procoptions) then
-                       begin
-                          emit_ref_reg(A_MOV,S_L,ref,R_EDI)
-                          emit_ref(A_CALL,S_NO,ref);
-                       end
-                     else
-                       begin
+                          getlabel(nodestroycall);
+                          emit_const_ref(A_CMP,S_L,0,new_reference(procinfo^.framepointer,
+                            procinfo^.selfpointer_offset));
+                          emitjmp(C_E,nodestroycall);
+                          if procinfo^._class^.is_class then
+                            begin
+                               emit_const(A_PUSH,S_L,1);
+                               emit_reg(A_PUSH,S_L,R_ESI);
+                            end
+                          else
+                            begin
+                               emit_reg(A_PUSH,S_L,R_ESI);
+                               emit_sym(A_PUSH,S_L,newasmsymbol(procinfo^._class^.vmt_mangledname));
+                            end;
+                          if (po_virtualmethod in pd^.procoptions) then
+                            begin
+                               emit_ref_reg(A_MOV,S_L,new_reference(R_ESI,0),R_EDI);
+                               emit_ref(A_CALL,S_NO,new_reference(R_EDI,procinfo^._class^.vmtmethodoffset(pd^.extnumber)));
+                            end
+                          else
+                            emitcall(pd^.mangledname);
+                          { not necessary because the result is never assigned in the
+                            case of an exception (FK) }
+                          emit_const_reg(A_MOV,S_L,0,R_ESI);
+                          emit_const_ref(A_MOV,S_L,0,new_reference(procinfo^.framepointer,8));
+                          emitlab(nodestroycall);
                        end;
                   end
-                }
              end
            else
            { must be the return value finalized before reraising the exception? }
@@ -3724,7 +3732,11 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.76  2000-02-04 14:29:57  pierre
+  Revision 1.77  2000-02-04 20:00:21  florian
+    * an exception in a construcor calls now the destructor (this applies only
+      to classes)
+
+  Revision 1.76  2000/02/04 14:29:57  pierre
    + add pseudo local var parent_ebp for local procs
 
   Revision 1.75  2000/01/25 08:46:03  pierre

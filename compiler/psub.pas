@@ -310,10 +310,10 @@ begin
         inc(paramoffset,target_os.size_of_pointer);
     end;
 
-  { destructor flag ? }
+  { con/-destructor flag ? }
   if assigned (procinfo^._Class) and
      procinfo^._class^.is_class and
-     (pd^.proctypeoption=potype_destructor) then
+     (pd^.proctypeoption in [potype_destructor,potype_constructor]) then
     inc(paramoffset,target_os.size_of_pointer);
 
   procinfo^.para_offset:=paramoffset;
@@ -1969,7 +1969,11 @@ end.
 
 {
   $Log$
-  Revision 1.45  2000-02-04 14:54:17  jonas
+  Revision 1.46  2000-02-04 20:00:22  florian
+    * an exception in a construcor calls now the destructor (this applies only
+      to classes)
+
+  Revision 1.45  2000/02/04 14:54:17  jonas
     * moved call to resetusableregs to compile_proc_body (put it right before the
       reset of the temp generator) so the optimizer can know which registers are
       regvars

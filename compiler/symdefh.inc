@@ -174,6 +174,8 @@
 {$endif GDB}
        end;
 
+       pprocdef = ^tprocdef;
+
        pobjectdef = ^tobjectdef;
        tobjectdef = object(tdef)
           childof  : pobjectdef;
@@ -200,6 +202,7 @@
           function  next_free_name_index : longint;
           procedure insertvmt;
           procedure set_parent(c : pobjectdef);
+          function searchdestructor : pprocdef;
           { debug }
 {$ifdef GDB}
           function stabstring : pchar;virtual;
@@ -381,7 +384,6 @@
            1 : (i : longint);
        end;
 
-       pprocdef = ^tprocdef;
        tprocdef = object(tabstractprocdef)
        private
           _mangledname : pchar;
@@ -528,7 +530,11 @@
 
 {
   $Log$
-  Revision 1.51  2000-01-26 12:02:30  peter
+  Revision 1.52  2000-02-04 20:00:22  florian
+    * an exception in a construcor calls now the destructor (this applies only
+      to classes)
+
+  Revision 1.51  2000/01/26 12:02:30  peter
     * abstractprocdef.para_size needs alignment parameter
     * secondcallparan gets para_alignment size instead of dword_align
 
