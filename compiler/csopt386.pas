@@ -382,8 +382,12 @@ end;
 
 function FindRegDealloc(reg: tregister; p: pai): boolean;
 { assumes reg is a 32bit register }
+var
+  hp: pai;
+  first: boolean;
 begin
   findregdealloc := false;
+  first := true;
   while assigned(p^.previous) and
         ((Pai(p^.previous)^.typ in (skipinstr+[ait_align])) or
          ((Pai(p^.previous)^.typ = ait_label) and
@@ -392,10 +396,21 @@ begin
       p := pai(p^.previous);
       if (p^.typ = ait_regalloc) and
          (pairegalloc(p)^.reg = reg) then
-        begin
-          findregdealloc := not(pairegalloc(p)^.allocation);
-          break;
-        end;
+        if not(pairegalloc(p)^.allocation) then
+          if first then
+            begin
+              findregdealloc := true;
+              break;
+            end
+          else
+            begin
+              findRegDealloc :=
+                getNextInstruction(p,hp) and
+                 regLoadedWithNewValue(reg,false,hp);
+              break
+            end
+        else
+          first := false;
     end
 end;
 
@@ -1155,7 +1170,11 @@ End.
 
 {
   $Log$
-  Revision 1.4  2000-07-21 15:19:54  jonas
+  Revision 1.5  2000-08-04 20:08:03  jonas
+    * improved detection of range of instructions which use a register
+      (merged from fixes branch)
+
+  Revision 1.4  2000/07/21 15:19:54  jonas
     * daopt386: changes to getnextinstruction/getlastinstruction so they
       ignore labels who have is_addr set
     + daopt386/csopt386: remove loads of registers which are overwritten
