@@ -11,6 +11,8 @@ const
      MaxTopicLinks = 5000; { maximum number of links on a single HTML page }
 
 type
+    THTMLSection = (hsNone,hsHeading1,hsHeading2,hsHeading3,hsHeading4,hsHeading5,hsHeading6);
+
     PTopicLinkCollection = ^TTopicLinkCollection;
     TTopicLinkCollection = object(TStringCollection)
       procedure   Insert(Item: Pointer); virtual;
@@ -58,6 +60,8 @@ type
       procedure DocTableRow(Entered: boolean); virtual;
       procedure DocTableItem(Entered: boolean); virtual;
       procedure DocHorizontalRuler; virtual;
+    public
+      function  GetSectionColor(Section: THTMLSection; var Color: byte): boolean; virtual;
     private
       URL: string;
       Topic: PTopic;
@@ -112,10 +116,22 @@ type
       IndexFileName: string;
     end;
 
+    THTMLGetSectionColorProc = function(Section: THTMLSection; var Color: byte): boolean;
+
+function DefHTMLGetSectionColor(Section: THTMLSection; var Color: byte): boolean;
+
+const HTMLGetSectionColor : THTMLGetSectionColorProc = DefHTMLGetSectionColor;
+
 implementation
 
 uses WUtils,WHTMLScn,
      Dos;
+
+function DefHTMLGetSectionColor(Section: THTMLSection; var Color: byte): boolean;
+begin
+  Color:=0;
+  DefHTMLGetSectionColor:=false;
+end;
 
 function EncodeHTMLCtx(FileID: integer; LinkNo: word): longint;
 var Ctx: longint;
@@ -280,6 +296,8 @@ end;
 
 procedure THTMLTopicRenderer.DocHeading(Level: integer; Entered: boolean);
 var Align: string;
+    C: byte;
+    SC: THTMLSection;
 begin
   if Entered then
     begin
@@ -288,9 +306,21 @@ begin
       PAlign:=paLeft;
       if DocGetTagParam('ALIGN',Align) then
         DecodeAlign(Align,PAlign);
+      SC:=hsNone;
+      case Level of
+        1: SC:=hsHeading1;
+        2: SC:=hsHeading2;
+        3: SC:=hsHeading3;
+        4: SC:=hsHeading4;
+        5: SC:=hsHeading5;
+        6: SC:=hsHeading6;
+      end;
+      if GetSectionColor(SC,C) then
+        AddText(hscTextAttr+chr(C));
     end
   else
     begin
+      AddChar(hscNormText);
       CurHeadLevel:=0;
       DocBreak;
     end;
@@ -482,6 +512,11 @@ var I: sw_integer;
 begin
   for I:=1 to length(S) do
     AddChar(S[I]);
+end;
+
+function THTMLTopicRenderer.GetSectionColor(Section: THTMLSection; var Color: byte): boolean;
+begin
+  GetSectionColor:=HTMLGetSectionColor(Section,Color);
 end;
 
 function THTMLTopicRenderer.BuildTopic(P: PTopic; AURL: string; HTMLFile: PTextFile;
