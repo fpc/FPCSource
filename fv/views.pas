@@ -510,7 +510,8 @@ TYPE
       PROCEDURE SelectDefaultView;
       PROCEDURE Insert (P: PView);
       PROCEDURE Delete (P: PView);
-      PROCEDURE ForEach (P: Pointer); Virtual;
+      PROCEDURE ForEach (P: Pointer);
+      { ForEach can't be virtual because it generates SIGSEGV }
       PROCEDURE EndModal (Command: Word); Virtual;
       PROCEDURE DisplaceBy (Dx, Dy: Sw_Integer); Virtual;
       PROCEDURE SelectNext (Forwards: Boolean);
@@ -5718,7 +5719,10 @@ END.
 
 {
  $Log$
- Revision 1.29  2002-05-31 12:40:48  pierre
+ Revision 1.30  2002-05-31 13:36:42  pierre
+  * avoid SIGSEGV in owner^.close code by removing virtual attribute to ForEach method
+
+ Revision 1.29  2002/05/31 12:40:48  pierre
   * several fixes + graph enhancements
 
  Revision 1.28  2002/05/30 22:28:33  pierre
