@@ -309,6 +309,7 @@ implementation
          dont_call;
 
       begin
+         reset_reference(p^.location.reference);
          extended_new:=false;
          iolabel:=nil;
          inlinecode:=nil;
@@ -1235,7 +1236,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.59  1999-01-27 00:13:52  florian
+  Revision 1.60  1999-01-28 23:56:44  florian
+    * the reference in the result location of a function call wasn't resetted =>
+      problem with unallowed far pointer, is solved now
+
+  Revision 1.59  1999/01/27 00:13:52  florian
     * "procedure of object"-stuff fixed
 
   Revision 1.58  1999/01/21 22:10:35  peter
