@@ -16,6 +16,7 @@
 Unit BaseUnix;
 
 Interface
+{$packrecords C}
 {$define oldreaddir}		// Keep using readdir system call instead
 				// of userland getdents stuff.
 {$define usedomain}		// Allow uname with "domain" entry.
@@ -36,7 +37,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2003-01-05 19:01:28  marco
+  Revision 1.2  2003-06-03 14:23:45  marco
+   * Moved prototypes outside of baseunix. And shared with linux for now
+
+  Revision 1.1  2003/01/05 19:01:28  marco
    * FreeBSD compiles now with baseunix mods.
 
   Revision 1.1  2002/12/18 16:44:09  marco
