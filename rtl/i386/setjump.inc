@@ -20,24 +20,21 @@ asm
   movl %ebx,(%eax)
   movl %esi,4(%eax)
   movl %edi,8(%eax)
-  movl 4(%ebp),%edx
-  movl %edx,20(%eax)
-  movl (%ebp),%edx
-  movl %edx,12(%eax)
-  leal 12(%ebp),%edx
-  movl %edx,16(%eax)
+  movl 4(%ebp),%edi
+  movl %edi,20(%eax)
+  movl (%ebp),%edi
+  movl %edi,12(%eax)
+  leal 12(%ebp),%edi
+  movl %edi,16(%eax)
+  movl 8(%eax),%edi
   xorl %eax,%eax
-end;
+end['EAX'];
 
 
 Procedure longJmp (Var S : Jmp_buf; value : longint); assembler;[Public, alias : 'FPC_LONGJMP'];
 asm
   movl 8(%ebp),%ecx
   movl 12(%ebp),%eax
-  testl %eax,%eax
-  jne .Ljnonzero
-  movl $1,%eax
-.Ljnonzero:
   movl (%ecx),%ebx
   movl 4(%ecx),%esi
   movl 8(%ecx),%edi
@@ -51,7 +48,11 @@ end;
 
 {
   $Log$
-  Revision 1.12  2000-03-31 23:12:09  pierre
+  Revision 1.13  2000-05-04 09:47:40  pierre
+    * Preserve all registers in SetJmp
+    * set EAX to value filed in LongJmp instead of only 0 or 1
+
+  Revision 1.12  2000/03/31 23:12:09  pierre
    * remove fninit in longjump
 
   Revision 1.11  2000/02/18 16:16:13  florian
