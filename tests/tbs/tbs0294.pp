@@ -13,7 +13,9 @@ var t : longint;
 
 begin
   t:=2;
-  { here you get garbage value with BP ! }
-  Writeln('test(t=2) = ',test(t));
-  Writeln('t after test = ',t);
+  if (test(t)<>1) or (t<>2) then
+    begin
+       writeln('Error');
+       halt(1);
+    end;
 end.
