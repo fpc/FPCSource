@@ -89,6 +89,10 @@ const
 
 implementation
 
+{$ifdef USEEXCEPT}
+  uses tpexcept;
+{$endif USEEXCEPT}
+
 {****************************************************************************
                           Helper Routines
 ****************************************************************************}
@@ -126,7 +130,11 @@ end;
 { predefined handler when then compiler stops }
 procedure def_stop;
 begin
+{$ifndef USEEXCEPT}
   Halt(1);
+{$else USEEXCEPT}
+  Halt(1);
+{$endif USEEXCEPT}
 end;
 
 
@@ -245,7 +253,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  1998-09-15 10:49:32  pierre
+  Revision 1.9  1998-10-26 17:15:16  pierre
+    + added two level of longjump to
+      allow clean freeing of used memory on errors
+
+  Revision 1.8  1998/09/15 10:49:32  pierre
   merged from fixes branch
 
   Revision 1.7.2.1  1998/09/15 10:30:17  pierre

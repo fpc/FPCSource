@@ -39,6 +39,8 @@ type
 {$endif TP}
    end;
 
+   pjmp_buf = ^jmp_buf;
+   
 {$ifdef TP}
   function setjmp(var rec : jmp_buf) : integer;
   procedure longjmp(const rec : jmp_buf;return_value : integer);
@@ -47,6 +49,8 @@ type
   procedure longjmp(const rec : jmp_buf;return_value : longint);
 {$endif TP}
 
+  var
+     recoverpospointer : pjmp_buf;
 
 implementation
 
@@ -331,7 +335,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  1998-08-28 10:57:03  peter
+  Revision 1.3  1998-10-26 17:15:19  pierre
+    + added two level of longjump to
+      allow clean freeing of used memory on errors
+
+  Revision 1.2  1998/08/28 10:57:03  peter
     * removed warnings
 
   Revision 1.1  1998/08/10 10:18:36  peter

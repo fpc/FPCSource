@@ -25,6 +25,17 @@
 {$endif}
 unit parser;
 
+{ Use exception catching so the compiler goes futher after a Stop }
+{$ifdef i386}
+  {$define USEEXCEPT}
+{$endif}
+
+{$ifdef TP}
+  {$ifdef DPMI}
+    {$undef USEEXCEPT}
+  {$endif}
+{$endif}
+
   interface
 
     procedure compile(const filename:string;compile_system:boolean);
@@ -41,6 +52,9 @@ unit parser;
 {$ifdef UseBrowser}
       browser,
 {$endif UseBrowser}
+{$ifdef UseExcept}
+      tpexcept,compiler,
+{$endif UseExcept}
       tree,scanner,pbase,pdecl,psystem,pmodules;
 
 
@@ -144,6 +158,10 @@ unit parser;
          oldaktoptprocessor : tprocessors;
          oldaktasmmode      : tasmmode;
 
+{$ifdef USEEXCEPT}
+  recoverpos : jmp_buf;
+  oldrecoverpos : pjmp_buf;
+{$endif useexcept}
 {$ifdef usebrowser}
 {$ifdef dummydebug}
          hp : pmodule;
@@ -254,6 +272,12 @@ unit parser;
 
          { If the compile level > 1 we get a nice "unit expected" error
            message if we are trying to use a program as unit.}
+{$ifdef USEEXCEPT}
+  if setjmp(recoverpos)=0 then
+   begin
+     oldrecoverpos:=recoverpospointer;
+     recoverpospointer:=@recoverpos;
+{$endif USEEXCEPT}
          if (token=_UNIT) or (compile_level>1) then
            begin
              current_module^.is_unit:=true;
@@ -262,6 +286,12 @@ unit parser;
          else
            proc_program(token=_LIBRARY);
 
+{$ifdef USEEXCEPT}
+       recoverpospointer:=oldrecoverpos;
+     end
+     else
+       recoverpospointer:=oldrecoverpos;
+{$endif USEEXCEPT}
          { clear memory }
 {$ifdef Splitheap}
          if testsplit then
@@ -384,7 +414,11 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.58  1998-10-16 08:50:02  peter
+  Revision 1.59  1998-10-26 17:15:18  pierre
+    + added two level of longjump to
+      allow clean freeing of used memory on errors
+
+  Revision 1.58  1998/10/16 08:50:02  peter
     * reset_gdb_info -> reset_global_def becuase it also resets rangenr !
 
   Revision 1.57  1998/10/08 17:17:23  pierre

@@ -94,21 +94,20 @@ uses
 
 function Compile(const cmd:string):longint;
 
-
 implementation
 
 
 var
   CompilerInited : boolean;
-{$ifdef USEEXCEPT}
-  recoverpos : jmp_buf;
-{$endif USEEXCEPT}
-
 
 {$ifdef USEEXCEPT}
+
 procedure RecoverStop;{$ifndef FPC}far;{$endif}
 begin
-  LongJmp(recoverpos,1);
+  if assigned(recoverpospointer) then
+    LongJmp(recoverpospointer^,1)
+  else
+    Halt(1);
 end;
 {$endif USEEXCEPT}
 
@@ -121,11 +120,11 @@ procedure DoneCompiler;
 begin
   if not CompilerInited then
    exit;
+  CompilerInited:=false;
 { Free memory }
   DoneSymtable;
   DoneGlobals;
   linker.done;
-  CompilerInited:=false;
   doneparser;
   DoneImport;
 {$ifdef UseBrowser}
@@ -168,6 +167,7 @@ function Compile(const cmd:string):longint;
 var
   starttime  : real;
 {$ifdef USEEXCEPT}
+  recoverpos : jmp_buf;
   olddo_stop : tstopprocedure;
 {$endif}
 {$IfDef Extdebug}
@@ -199,10 +199,11 @@ begin
 {$endif}
 
 {$ifdef USEEXCEPT}
-  olddo_stop:=do_stop;
-  do_stop:=recoverstop;
   if setjmp(recoverpos)=0 then
    begin
+     olddo_stop:=do_stop;
+     recoverpospointer:=@recoverpos;
+     do_stop:=recoverstop;
 {$endif USEEXCEPT}
      starttime:=getrealtime;
      parser.compile(inputdir+inputfile+inputextension,false);
@@ -215,7 +216,9 @@ begin
    { Stop the compiler, frees also memory }
      DoneCompiler;
 {$ifdef USEEXCEPT}
-   end;
+   end
+  else
+    DoneCompiler;
 { Stop is always called, so we come here when a program is compiled or not }
   do_stop:=olddo_stop;
 {$endif USEEXCEPT}
@@ -239,7 +242,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.12  1998-10-09 16:36:02  pierre
+  Revision 1.13  1998-10-26 17:15:17  pierre
+    + added two level of longjump to
+      allow clean freeing of used memory on errors
+
+  Revision 1.12  1998/10/09 16:36:02  pierre
     * some memory leaks specific to usebrowser define fixed
     * removed tmodule.implsymtable (was like tmodule.localsymtable)
 
