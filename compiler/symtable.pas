@@ -24,10 +24,6 @@
 {$endif}
 unit symtable;
 
-{$ifdef STORENUMBER}
-  {$define NONEXTFIELD}
-{$endif}
-
   interface
 
     uses
@@ -55,7 +51,9 @@ unit symtable;
 {$endif}
        ;
 
-{define NOLOCALBROWSER if you have problems with -bl option }
+{$ifdef OLDPPU}
+  {define NOLOCALBROWSER if you have problems with -bl option }
+{$endif}
 
 {************************************************
            Some internal constants
@@ -63,7 +61,7 @@ unit symtable;
 
    const
        hasharraysize    = 256;
-{$ifdef STORENUMBER}
+{$ifndef OLDPPU}
   {$ifdef TP}
        indexgrowsize    = 256;
   {$else}
@@ -132,14 +130,14 @@ unit symtable;
 
        tcallback = procedure(p : psym);
 
-{$ifndef STORENUMBER}
+{$ifdef OLDPPU}
        tnamedindexcallback = procedure(p : psym);
 {$endif}
 
        tsearchhasharray = array[0..hasharraysize-1] of psym;
        psearchhasharray = ^tsearchhasharray;
 
-{$ifndef STORENUMBER}
+{$ifdef OLDPPU}
        tdefhasharray = array[0..defhasharraysize-1] of pdef;
        pdefhasharray = ^tdefhasharray;
 {$endif}
@@ -149,7 +147,7 @@ unit symtable;
           unitid    : word;           { each symtable gets a number }
           name      : pstring;
           datasize  : longint;
-{$ifdef STORENUMBER}
+{$ifndef OLDPPU}
           symindex,
           defindex  : pindexarray;
           symsearch : pdictionary;
@@ -174,7 +172,7 @@ unit symtable;
           constructor init(t : tsymtabletype);
           destructor  done;virtual;
           { access }
-{$ifndef STORENUMBER}
+{$ifdef OLDPPU}
           { indexes all defs from 0 to num and return num + 1 }
           function  number_defs:longint;
           { indexes all symbols from 1 to num and return num }
@@ -191,7 +189,7 @@ unit symtable;
           procedure loadsyms;
           procedure writedefs;
           procedure writesyms;
-{$ifdef STORENUMBER}
+{$ifndef OLDPPU}
           procedure deref;
 {$endif}
           procedure clear;
@@ -236,7 +234,7 @@ unit symtable;
           constructor loadasunit;
           procedure writeasunit;
 {$ifdef GDB}
-{$ifndef STORENUMBER}
+{$ifdef OLDPPU}
           procedure orderdefs;
 {$endif}
           procedure concattypestabto(asmlist : paasmoutput);
@@ -473,7 +471,6 @@ implementation
    {to dispose the global symtable of a unit }
   const
      dispose_global : boolean = false;
-     object_options : boolean = false;
      memsizeinc = 2048; { for long stabstrings }
      tagtypes : Set of tdeftype =
        [recorddef,enumdef,
@@ -696,25 +693,25 @@ const localsymtablestack : psymtable = nil;
                         Symbol Call Back Functions
 *****************************************************************************}
 
-{$ifndef STORENUMBER}
+{$ifdef OLDPPU}
     procedure writesym(p : psym);
       begin
          p^.write;
       end;
 {$endif}
 
-    procedure derefsym(p : {$ifdef STORENUMBER}pnamedindexobject{$else}psym{$endif});
+    procedure derefsym(p : {$ifndef OLDPPU}pnamedindexobject{$else}psym{$endif});
       begin
          psym(p)^.deref;
       end;
 
-    procedure derefsymsdelayed(p : {$ifdef STORENUMBER}pnamedindexobject{$else}psym{$endif});
+    procedure derefsymsdelayed(p : {$ifndef OLDPPU}pnamedindexobject{$else}psym{$endif});
       begin
          if psym(p)^.typ in [absolutesym,propertysym] then
            psym(p)^.deref;
       end;
 
-    procedure check_procsym_forward(sym : {$ifdef STORENUMBER}pnamedindexobject{$else}psym{$endif});
+    procedure check_procsym_forward(sym : {$ifndef OLDPPU}pnamedindexobject{$else}psym{$endif});
       begin
          if psym(sym)^.typ=procsym then
            pprocsym(sym)^.check_forward
@@ -728,21 +725,21 @@ const localsymtablestack : psymtable = nil;
            pobjectdef(ptypesym(sym)^.definition)^.check_forwards;
       end;
 
-    procedure labeldefined(p : {$ifdef STORENUMBER}pnamedindexobject{$else}psym{$endif});
+    procedure labeldefined(p : {$ifndef OLDPPU}pnamedindexobject{$else}psym{$endif});
       begin
         if (psym(p)^.typ=labelsym) and
            not(plabelsym(p)^.defined) then
           Message1(sym_w_label_not_defined,p^.name);
       end;
 
-    procedure unitsymbolused(p : {$ifdef STORENUMBER}pnamedindexobject{$else}psym{$endif});
+    procedure unitsymbolused(p : {$ifndef OLDPPU}pnamedindexobject{$else}psym{$endif});
       begin
          if (psym(p)^.typ=unitsym) and
             (punitsym(p)^.refs=0) then
            comment(V_info,'Unit '+p^.name+' is not used');
       end;
 
-    procedure varsymbolused(p : {$ifdef STORENUMBER}pnamedindexobject{$else}psym{$endif});
+    procedure varsymbolused(p : {$ifndef OLDPPU}pnamedindexobject{$else}psym{$endif});
       var
         oldaktfilepos : tfileposinfo;
       begin
@@ -769,13 +766,13 @@ const localsymtablestack : psymtable = nil;
       end;
 
 {$ifdef GDB}
-    procedure concatstab(p : {$ifdef STORENUMBER}pnamedindexobject{$else}psym{$endif});
+    procedure concatstab(p : {$ifndef OLDPPU}pnamedindexobject{$else}psym{$endif});
       begin
         if psym(p)^.typ <> procsym then
           psym(p)^.concatstabto(asmoutput);
       end;
 
-    procedure concattypestab(p : {$ifdef STORENUMBER}pnamedindexobject{$else}psym{$endif});
+    procedure concattypestab(p : {$ifndef OLDPPU}pnamedindexobject{$else}psym{$endif});
       begin
         if psym(p)^.typ = typesym then
          begin
@@ -824,7 +821,7 @@ const localsymtablestack : psymtable = nil;
       end;
 {$endif}
 
-    procedure write_refs(sym : {$ifdef STORENUMBER}pnamedindexobject{$else}psym{$endif});
+    procedure write_refs(sym : {$ifndef OLDPPU}pnamedindexobject{$else}psym{$endif});
       begin
          psym(sym)^.write_references;
       end;
@@ -976,7 +973,7 @@ const localsymtablestack : psymtable = nil;
          name:=nil;
          address_fixup:=0;
          datasize:=0;
-{$ifdef STORENUMBER}
+{$ifndef OLDPPU}
          new(symindex,init(indexgrowsize));
          new(defindex,init(indexgrowsize));
          new(symsearch,init);
@@ -994,7 +991,7 @@ const localsymtablestack : psymtable = nil;
 
 
     destructor tsymtable.done;
-{$ifndef STORENUMBER}
+{$ifdef OLDPPU}
       var
          hp : pdef;
   {$ifdef GDB}
@@ -1003,7 +1000,7 @@ const localsymtablestack : psymtable = nil;
 {$endif}
       begin
         stringdispose(name);
-{$ifdef STORENUMBER}
+{$ifndef OLDPPU}
         dispose(symindex,done);
         dispose(defindex,done);
         { symsearch can already be disposed or set to nil for withsymtable }
@@ -1061,7 +1058,7 @@ const localsymtablestack : psymtable = nil;
 
     destructor twithsymtable.done;
       begin
-{$ifdef STORENUMBER}
+{$ifndef OLDPPU}
         symsearch:=nil;
 {$endif}
         inherited done;
@@ -1080,7 +1077,7 @@ const localsymtablestack : psymtable = nil;
 
     procedure tsymtable.registerdef(p : pdef);
       begin
-{$ifdef STORENUMBER}
+{$ifndef OLDPPU}
          defindex^.insert(p);
 {$else}
          p^.next:=rootdef;
@@ -1090,7 +1087,7 @@ const localsymtablestack : psymtable = nil;
          p^.owner:=@self;
       end;
 
-{$ifdef STORENUMBER}
+{$ifndef OLDPPU}
 
     procedure tsymtable.foreach(proc2call : tnamedindexcallback);
       begin
@@ -1130,7 +1127,7 @@ const localsymtablestack : psymtable = nil;
 
 {$endif}
 
-{$ifndef STORENUMBER}
+{$ifdef OLDPPU}
 
     function tsymtable.number_defs:longint;
       var
@@ -1181,7 +1178,7 @@ const localsymtablestack : psymtable = nil;
 
     procedure tsymtable.loaddefs;
       var
-{$ifndef STORENUMBER}
+{$ifdef OLDPPU}
         counter : longint;
         last : pdef;
 {$endif}
@@ -1191,7 +1188,7 @@ const localsymtablestack : psymtable = nil;
       { load start of definition section, which holds the amount of defs }
          if current_ppu^.readentry<>ibstartdefs then
           Message(unit_f_ppu_read_error);
-{$ifndef STORENUMBER}
+{$ifdef OLDPPU}
          if symtabletype=unitsymtable then
           begin
             defhasharraysize:=current_ppu^.getlongint;
@@ -1202,7 +1199,7 @@ const localsymtablestack : psymtable = nil;
 {$endif}
            current_ppu^.getlongint;
       { read definitions }
-{$ifndef STORENUMBER}
+{$ifdef OLDPPU}
          counter:=0;
          rootdef:=nil;
 {$endif}
@@ -1214,7 +1211,7 @@ const localsymtablestack : psymtable = nil;
                   iborddef : hp:=new(porddef,load);
                 ibfloatdef : hp:=new(pfloatdef,load);
                  ibprocdef : hp:=new(pprocdef,load);
-               ibstringdef : hp:=new(pstringdef,shortload);
+          ibshortstringdef : hp:=new(pstringdef,shortload);
            iblongstringdef : hp:=new(pstringdef,longload);
            ibansistringdef : hp:=new(pstringdef,ansiload);
            ibwidestringdef : hp:=new(pstringdef,wideload);
@@ -1232,7 +1229,7 @@ const localsymtablestack : psymtable = nil;
            else
              Message1(unit_f_ppu_invalid_entry,tostr(b));
            end;
-{$ifdef STORENUMBER}
+{$ifndef OLDPPU}
            hp^.owner:=@self;
            defindex^.insert(hp);
 {$else}
@@ -1258,7 +1255,7 @@ const localsymtablestack : psymtable = nil;
            inc(counter);
 {$endif}
          until false;
-{$ifndef STORENUMBER}
+{$ifdef OLDPPU}
          number_defs;
 {$endif}
       end;
@@ -1291,7 +1288,7 @@ const localsymtablestack : psymtable = nil;
             ibpropertysym : sym:=new(ppropertysym,load);
                 ibunitsym : sym:=new(punitsym,load);
                iblabelsym : sym:=new(plabelsym,load);
-{$ifdef STORENUMBER}
+{$ifndef OLDPPU}
                  ibsyssym : sym:=new(psyssym,load);
 {$endif}
                 ibendsyms : break;
@@ -1299,7 +1296,7 @@ const localsymtablestack : psymtable = nil;
            else
              Message1(unit_f_ppu_invalid_entry,tostr(b));
            end;
-{$ifdef STORENUMBER}
+{$ifndef OLDPPU}
            sym^.owner:=@self;
            symindex^.insert(sym);
            symsearch^.insert(sym);
@@ -1318,7 +1315,7 @@ const localsymtablestack : psymtable = nil;
 {$endif}
          until false;
 
-{$ifndef STORENUMBER}
+{$ifdef OLDPPU}
        { symbol numbering for references }
          number_symbols;
 
@@ -1340,20 +1337,14 @@ const localsymtablestack : psymtable = nil;
       begin
       { each definition get a number, write then the amount of defs to the
          ibstartdef entry }
-{$ifdef Double_checksum}
-         current_ppu^.do_interface_crc:=false;
-{$endif Double_checksum}
-{$ifdef STORENUMBER}
+{$ifndef OLDPPU}
          current_ppu^.putlongint(defindex^.count);
 {$else}
          current_ppu^.putlongint(number_defs);
 {$endif}
          current_ppu^.writeentry(ibstartdefs);
       { now write the definition }
-{$ifdef Double_checksum}
-         current_ppu^.do_interface_crc:=true;
-{$endif Double_checksum}
-{$ifdef STORENUMBER}
+{$ifndef OLDPPU}
          pd:=pdef(defindex^.first);
 {$else}
          pd:=rootdef;
@@ -1369,14 +1360,14 @@ const localsymtablestack : psymtable = nil;
 
 
     procedure tsymtable.writesyms;
-{$ifdef STORENUMBER}
+{$ifndef OLDPPU}
       var
         pd : psym;
 {$endif}
       begin
        { each definition get a number, write then the amount of syms and the
          datasize to the ibsymdef entry }
-{$ifdef STORENUMBER}
+{$ifndef OLDPPU}
          current_ppu^.putlongint(symindex^.count);
 {$else}
          current_ppu^.putlongint(number_symbols);
@@ -1384,7 +1375,7 @@ const localsymtablestack : psymtable = nil;
          current_ppu^.putlongint(datasize);
          current_ppu^.writeentry(ibstartsyms);
        { foreach is used to write all symbols }
-{$ifdef STORENUMBER}
+{$ifndef OLDPPU}
          pd:=psym(symindex^.first);
          while assigned(pd) do
            begin
@@ -1403,7 +1394,7 @@ const localsymtablestack : psymtable = nil;
       end;
 
 
-{$ifdef STORENUMBER}
+{$ifndef OLDPPU}
     procedure tsymtable.deref;
       var
         hp : pdef;
@@ -1429,7 +1420,7 @@ const localsymtablestack : psymtable = nil;
 
     constructor tsymtable.load;
       var
-{$ifndef STORENUMBER}
+{$ifdef OLDPPU}
          hp : pdef;
 {$endif}
          st_loading : boolean;
@@ -1453,7 +1444,7 @@ const localsymtablestack : psymtable = nil;
         name:=nil;
         unitid:=0;
         defowner:=nil;
-{$ifdef STORENUMBER}
+{$ifndef OLDPPU}
         new(symindex,init(indexgrowsize));
         new(defindex,init(indexgrowsize));
         new(symsearch,init);
@@ -1474,13 +1465,9 @@ const localsymtablestack : psymtable = nil;
 
       { load definitions }
         loaddefs;
-{$ifndef STORENUMBER}
+{$ifdef OLDPPU}
       { solve the references to other definitions for each definition }
-  {$ifdef STORENUMBER}
-        hp:=pdef(defindex^.first);
-  {$else}
         hp:=rootdef;
-  {$endif}
         while assigned(hp) do
          begin
            hp^.deref;
@@ -1493,7 +1480,7 @@ const localsymtablestack : psymtable = nil;
       { load symbols }
         loadsyms;
 
-{$ifdef STORENUMBER}
+{$ifndef OLDPPU}
         deref;
 {$endif}
 
@@ -1517,7 +1504,7 @@ const localsymtablestack : psymtable = nil;
     constructor tsymtable.loadas(typ : tsymtabletype);
       var
          storesymtable : psymtable;
-{$ifndef STORENUMBER}
+{$ifdef OLDPPU}
          hp : pdef;
 {$endif}
          st_loading : boolean;
@@ -1525,7 +1512,7 @@ const localsymtablestack : psymtable = nil;
          st_loading:=in_loading;
          in_loading:=true;
          symtabletype:=typ;
-{$ifdef STORENUMBER}
+{$ifndef OLDPPU}
          new(symindex,init(indexgrowsize));
          new(defindex,init(indexgrowsize));
          new(symsearch,init);
@@ -1548,7 +1535,7 @@ const localsymtablestack : psymtable = nil;
          if typ=staticppusymtable then
            begin
               aktstaticsymtable:=@self;
-{$ifdef STORENUMBER}
+{$ifndef OLDPPU}
               symsearch^.usehash;
 {$else}
               new(searchhasharray);
@@ -1573,13 +1560,9 @@ const localsymtablestack : psymtable = nil;
 
          loaddefs;
 
-{$ifndef STORENUMBER}
+{$ifdef OLDPPU}
        { solve the references of the symbols for each definition }
-  {$ifdef STORENUMBER}
-         hp:=pdef(defindex^.first);
-  {$else}
          hp:=rootdef;
-  {$endif}
          if not (typ in [recordsymtable,objectsymtable]) then
           while assigned(hp) do
            begin
@@ -1593,7 +1576,7 @@ const localsymtablestack : psymtable = nil;
       { load symbols }
          loadsyms;
 
-{$ifdef STORENUMBER}
+{$ifndef OLDPPU}
          if not (typ in [recordsymtable,objectsymtable]) then
            deref;
 {$endif}
@@ -1632,7 +1615,7 @@ const localsymtablestack : psymtable = nil;
           Get Symbol / Def by Number
 ***********************************************}
 
-{$ifdef STORENUMBER}
+{$ifndef OLDPPU}
 
     function tsymtable.getsymnr(l : longint) : psym;
       var
@@ -1734,7 +1717,7 @@ const localsymtablestack : psymtable = nil;
                 Table Access
 ***********************************************}
 
-{$ifdef STORENUMBER}
+{$ifndef OLDPPU}
 
     procedure tsymtable.clear;
       begin
@@ -1937,9 +1920,7 @@ const localsymtablestack : psymtable = nil;
        these on the heap saves even more, totally 1016 bytes per recursion!}
         var
           s1,s2:^string;
-{$ifndef STORENUMBER}
           lasthfp,hfp : pforwardpointer;
-{$endif}
         begin
            if osym=nil then
              begin
@@ -1982,7 +1963,6 @@ const localsymtablestack : psymtable = nil;
                   begin
                      dispose(s2);
                      dispose(s1);
-{$ifndef STORENUMBER}
                      if (osym^.typ=typesym) and (osym^.properties=sp_forwarddef) then
                        begin
                           if (sym^.typ<>typesym) then
@@ -2033,7 +2013,6 @@ const localsymtablestack : psymtable = nil;
                           _insert:=osym;
                        end
                      else
-{$endif}
                        begin
                          Message1(sym_e_duplicate_id,sym^.name);
                          _insert:=osym;
@@ -2137,9 +2116,6 @@ const localsymtablestack : psymtable = nil;
            insert:=_insert(searchroot);
          { store the sym also in the index, must be after the insert the table
            because }
-{$ifdef STORENUMBER}
-         symindex^.insert(sym);
-{$endif}
       end;
 
 
@@ -2153,7 +2129,6 @@ const localsymtablestack : psymtable = nil;
       var
          hp : psym;
       begin
-{$ifndef STORENUMBER}
          if assigned(searchhasharray) then
            hp:=searchhasharray^[speedvalue mod hasharraysize]
          else
@@ -2168,10 +2143,6 @@ const localsymtablestack : psymtable = nil;
               else
                 begin
                    if (hp^.name=s) then
-{$else}
-         hp:=inherited speedsearch(s,speedvalue);
-         if assigned(hp) then
-{$endif}
                      begin
                         { reject non static members in static procedures,
                           be carefull aktprocsym^.definition is not allways
@@ -2202,7 +2173,6 @@ const localsymtablestack : psymtable = nil;
                                hp^.defref:=hp^.lastref;
                              inc(hp^.refcount);
                           end;
-{$ifndef STORENUMBER}
                         speedsearch:=hp;
                         exit;
                      end
@@ -2214,10 +2184,6 @@ const localsymtablestack : psymtable = nil;
                 end;
            end;
          speedsearch:=nil;
-{$else}
-                     end;
-         speedsearch:=hp;
-{$endif}
       end;
 
 
@@ -2496,16 +2462,16 @@ const localsymtablestack : psymtable = nil;
           hasharray ! }
         alignment:=_alignment;
         if (symtabletype<>parasymtable)
-{$ifndef STORENUMBER}
+{$ifdef OLDPPU}
            or assigned(searchhasharray)
 {$endif}
            then
           internalerror(1111);
-{$ifdef STORENUMBER}
+{$ifndef OLDPPU}
         sym:=pvarsym(symindex^.first);
-{$else STORENUMBER}
+{$else}
         sym:=pvarsym(searchroot);
-{$endif STORENUMBER}
+{$endif}
         datasize:=0;
         { there can be only varsyms }
         while assigned(sym) do
@@ -2513,11 +2479,11 @@ const localsymtablestack : psymtable = nil;
              l:=sym^.getpushsize;
              sym^.address:=datasize;
              datasize:=align(datasize+l,alignment);
-{$ifdef STORENUMBER}
+{$ifndef OLDPPU}
              sym:=pvarsym(sym^.next);
-{$else STORENUMBER}
+{$else}
              sym:=pvarsym(sym^.nextsym);
-{$endif STORENUMBER}
+{$endif}
           end;
       end;
 
@@ -2529,16 +2495,16 @@ const localsymtablestack : psymtable = nil;
         { this can not be done if there is an
           hasharray ! }
         if (symtabletype<>parasymtable)
-{$ifndef STORENUMBER}
+{$ifdef OLDPPU}
            or assigned(searchhasharray)
 {$endif}
            then
           internalerror(1111);
-{$ifdef STORENUMBER}
+{$ifndef OLDPPU}
         sym:=pvarsym(symindex^.first);
-{$else STORENUMBER}
+{$else}
         sym:=pvarsym(searchroot);
-{$endif STORENUMBER}
+{$endif}
         while assigned(sym) do
           begin
              if sym^.address+address_fixup=l then
@@ -2546,11 +2512,11 @@ const localsymtablestack : psymtable = nil;
                  find_at_offset:=sym;
                  exit;
                end;
-{$ifdef STORENUMBER}
+{$ifndef OLDPPU}
              sym:=pvarsym(sym^.next);
-{$else STORENUMBER}
+{$else}
              sym:=pvarsym(sym^.nextsym);
-{$endif STORENUMBER}
+{$endif}
           end;
       end;
 
@@ -2606,7 +2572,7 @@ const localsymtablestack : psymtable = nil;
          name:=stringdup(upper(n));
          unitid:=0;
          unitsym:=nil;
-{$ifdef STORENUMBER}
+{$ifndef OLDPPU}
          symsearch^.usehash;
 {$else}
        { create a hasharray }
@@ -2681,7 +2647,7 @@ const localsymtablestack : psymtable = nil;
             b : byte;
             unitindex : word;
          begin
-{$ifndef STORENUMBER}
+{$ifdef OLDPPU}
          number_defs;
          number_symbols;
 {$endif}
@@ -2802,7 +2768,7 @@ const localsymtablestack : psymtable = nil;
 
 
 {$ifdef GDB}
-  {$ifndef STORENUMBER}
+  {$ifdef OLDPPU}
     procedure tunitsymtable.orderdefs;
       var
          firstd, last, nonum, pd, cur, prev, lnext : pdef;
@@ -3045,7 +3011,7 @@ const localsymtablestack : psymtable = nil;
    var
       _defaultprop : ppropertysym;
 
-   procedure testfordefaultproperty(p : {$ifdef STORENUMBER}pnamedindexobject{$else}psym{$endif});
+   procedure testfordefaultproperty(p : {$ifndef OLDPPU}pnamedindexobject{$else}psym{$endif});
      begin
         if (psym(p)^.typ=propertysym) and ((ppropertysym(p)^.options and ppo_defaultproperty)<>0) then
           _defaultprop:=ppropertysym(p);
@@ -3236,8 +3202,11 @@ const localsymtablestack : psymtable = nil;
 end.
 {
   $Log$
-  Revision 1.1  1999-04-26 14:50:13  michael
-  + Added my version again after crash
+  Revision 1.2  1999-04-26 15:12:25  peter
+    * reinstered
+
+  Revision 1.151  1999/04/26 13:31:54  peter
+    * release storenumber,double_checksum
 
   Revision 1.150  1999/04/25 17:36:13  peter
     * typo fix for storenumber
