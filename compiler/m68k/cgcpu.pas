@@ -976,7 +976,7 @@ Implementation
              { of the systems only support this format, the localsize cannot }
              { exceed 32K in size.                                            }
              if (localsize < low(smallint)) or (localsize > high(smallint)) then
-                CGMessage(cg_e_stacklimit_in_local_routine);
+                CGMessage(cg_e_localsize_too_big);
              list.concat(taicpu.op_reg_const(A_LINK,S_W,frame_pointer_reg,-localsize));
            end { endif localsize <> 0 }
           else
@@ -1250,7 +1250,10 @@ end.
 
 {
   $Log$
-  Revision 1.12  2002-11-25 17:43:27  peter
+  Revision 1.13  2002-12-01 22:12:36  carl
+    * rename an error message
+
+  Revision 1.12  2002/11/25 17:43:27  peter
     * splitted defbase in defutil,symutil,defcmp
     * merged isconvertable and is_equal into compare_defs(_ext)
     * made operator search faster by walking the list only once
