@@ -31,6 +31,7 @@ Interface
 function fpgeterrno:longint; 
 procedure fpseterrno(err:longint); 
 
+property errno : cint read fpgeterrno write fpseterrno;
 
 implementation
 
@@ -45,7 +46,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2003-09-14 20:15:01  marco
+  Revision 1.4  2003-12-10 17:08:33  marco
+   * property errno defined
+
+  Revision 1.3  2003/09/14 20:15:01  marco
    * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
 
   Revision 1.2  2003/06/03 14:23:45  marco
