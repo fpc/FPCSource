@@ -28,7 +28,7 @@ Const
   syscall_nr_write                      =  $900000+ 4;
   syscall_nr_open                       =  $900000+ 5;
   syscall_nr_close                      =  $900000+ 6;
-  syscall_nr_waitpid                    =  $900000+ 7;
+  // not supported: syscall_nr_waitpid                    =  $900000+ 7;
   syscall_nr_creat                      =  $900000+ 8;
   syscall_nr_link                       =  $900000+ 9;
   syscall_nr_unlink                     =  $900000+10;
@@ -273,7 +273,10 @@ Const
 
 {
     $Log$
-    Revision 1.3  2004-01-22 20:12:37  florian
+    Revision 1.4  2004-01-31 16:25:14  florian
+      - deleted unsupported syscall waitpid
+
+    Revision 1.3  2004/01/22 20:12:37  florian
       * fixed syscall number
 
     Revision 1.2  2004/01/21 01:25:19  florian
