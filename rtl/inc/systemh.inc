@@ -166,8 +166,6 @@ Type
   {$define FPC_INCLUDE_SOFTWARE_SHIFT_INT64}
   {$define FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE}
 
-  ValSInt = Longint;
-  ValUInt = Cardinal;
   ValReal = Real;
 
   { map comp to int64, but this doesn't mean we compile the comp support in! }
@@ -556,7 +554,7 @@ Type
   TWideStringManager = record
     Wide2AnsiMove : TWide2AnsiMove;
     Ansi2WideMove : TAnsi2WideMove;
-
+{
     UpperUTF8 : procedure(p:PUTF8String);
     UpperUCS2 : procedure(p:PUCS2Char);
     UpperUCS4 : procedure(p:PUCS4Char);
@@ -567,6 +565,7 @@ Type
     CompUTF8 : function(p1,p2:PUTF8String) : shortint;
     CompUCS2 : function(p1,p2:PUCS2Char) : shortint;
     CompUCS4 : function(p1,p2:PUC42Char) : shortint;
+}
   end;
 
 Procedure GetWideStringManager (Var Manager : TWideStringManager);
@@ -745,7 +744,10 @@ const
 
 {
   $Log$
-  Revision 1.94  2004-06-11 13:45:33  florian
+  Revision 1.95  2004-06-11 19:21:53  florian
+    * fixed wrong commit
+
+  Revision 1.94  2004/06/11 13:45:33  florian
     * fixed arm system unit compilation
 
   Revision 1.93  2004/05/30 16:51:38  peter
