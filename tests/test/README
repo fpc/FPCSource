@@ -1,7 +1,22 @@
 This directory contains tests for several parts of the compiler and RTL
 
-Compiler
---------
+
+--------------------------------------------------------------------
+                      Code generator
+--------------------------------------------------------------------
+
+secondadd() ........... /cg/taddbool.pas      Boolean arithmetic operations     
+secondadd() ........... /cg/taddcard.pas      Cardinal arithmetic operations
+secondadd() ........... /cg/taddreal.pas      Real arithmetic operations
+secondadd() ........... /cg/taddlong.pas      Longint arithmetic operations
+secondload()........... /cg/tldparam.pas      Load subroutine parameters
+secondload()........... /cg/tldlocal.pas      Load subroutine local variables
+
+--------------------------------------------------------------------
+                        Compiler
+--------------------------------------------------------------------
+
+
 Shortstrings .......... tstring1.pp    compatibility and speed of shortstrings
                         tstring2.pp    some misc. tests mainly collected
                                        from bug reports
@@ -21,8 +36,6 @@ Procedure Variable .... tprocvar1.pp
 Libraries ............. testlib.pp     a very primitive test
 Parameter passing ..... tpara1.pp      Out Parameter
 
-input/output .......... tinoutres.pp   tests inoutres values of invalid
-                                       operations
 Units ................. testu1.pp      tests init. & finalization and halt
                         testu2.pp      in finalization
                         testu3.pp      a type redefining problem
@@ -55,16 +68,29 @@ Range checking ........ trange1.pp     range checking when converting int64/
                         trange3.pp     range checking for array
                         trange4.pp     range checking when assigning
                                        values to int64/qword
-Random ................ trandom.pp     tests random (interactive)
 Floating Point ........ tfpu1.pp
                         tfpu2.pp
 Assembler readers.......tasmread.pp    tests for support of unit or program specifier
                         testmovd.pp    testspecial issues about MOVD instruction
 
-RTL
----
+--------------------------------------------------------------------
+                            RTL
+--------------------------------------------------------------------
+
+SYSTEM
+------
 str/write(real_type) .. tstrreal1.pp   test correct rounding
                         tstrreal2.pp   test correct writing of 10 till 1e-24
 Heap .................. theap.pp       Heap manager test
-Dos unit .............. tdos.pp        tests most dos unit functions (interactive)
-Crt unit .............. tcrt.pp        tests most crt unit functions (interactive)
+input/output .......... /units/system/tiorte.pp   tests inoutres values of invalid operations
+Random ................ /units/system/trandom.pp  tests random (interactive)
+
+DOS
+---
+General .............. /units/dos/tdos.pp         (interactive)
+General .............. /units/dos/testdos.pas     (interactive)
+FExpand .............. /units/dos/tfexpand.pp
+
+CRT
+---
+General .............. /units/crt/tcrt.pp          tests most crt unit functions (interactive)
