@@ -104,9 +104,9 @@ implementation
          if (p^.treetype=starstarn) or
             (ld^.deftype=recorddef) or
             ((ld^.deftype=arraydef) and
-             (rd^.deftype<>orddef) and
-             ((parraydef(ld)^.definition^.deftype<>orddef) or
-              (porddef(parraydef(ld)^.definition)^.typ<>uchar))) or
+             (not (rd^.deftype in [setdef,orddef])) and
+             (not is_open_array(ld))
+            ) or
             { <> and = are defined for classes }
             ((ld^.deftype=objectdef) and
              (not(pobjectdef(ld)^.is_class) or
@@ -115,9 +115,9 @@ implementation
             ) or
             (rd^.deftype=recorddef) or
             ((rd^.deftype=arraydef) and
-             (ld^.deftype<>orddef) and
-             ((parraydef(rd)^.definition^.deftype<>orddef) or
-              (porddef(parraydef(rd)^.definition)^.typ<>uchar))) or
+             (not (ld^.deftype in [setdef,orddef])) and
+             (not is_open_array(rd))
+            ) or
             { <> and = are defined for classes }
             ((rd^.deftype=objectdef) and
              (not(pobjectdef(rd)^.is_class) or
@@ -1135,7 +1135,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.45  1999-09-08 16:05:29  peter
+  Revision 1.46  1999-09-10 15:40:46  peter
+    * fixed array check for operators, becuase array can also be a set
+
+  Revision 1.45  1999/09/08 16:05:29  peter
     * pointer add/sub is now as expected and the same results as inc/dec
 
   Revision 1.44  1999/09/07 07:52:19  peter
