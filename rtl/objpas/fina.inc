@@ -188,9 +188,54 @@ begin
   If Result>-1 then inc(Result);
 end;
 
+function IncludeTrailingPathDelimiter(Const Path : String) : String;
+
+Var
+  l : Integer;
+
+begin
+  Result:=Path;
+  l:=Length(Result);
+  If (L=0) or (Result[l]<>PathDelim) then
+    Result:=Result+PathDelim;
+end;
+
+function IncludeTrailingBackslash(Const Path : String) : String;
+
+begin
+  Result:=IncludeTrailingPathDelimiter(Path);
+end;
+
+function ExcludeTrailingBackslash(Const Path: string): string;
+
+begin
+  Result:=ExcludeTrailingPathDelimiter(Path);   
+end;
+
+function ExcludeTrailingPathDelimiter(Const Path: string): string;
+
+Var
+  L : Integer;
+
+begin
+  L:=Length(Path);
+  If (L>0) and (Path[L]=PathDelim) then
+    Dec(L);
+  Result:=Copy(Path,1,L);
+end;
+
+function IsPathDelimiter(Const Path: string; Index: Integer): Boolean;
+
+begin
+  Result:=(Index>0) and (Index<=Length(Path)) and (Path[Index]=PathDelim);
+end;
+
 {
   $Log$
-  Revision 1.7  2002-10-12 15:34:09  michael
+  Revision 1.8  2002-10-22 21:57:54  michael
+  + Added some missing path functions
+
+  Revision 1.7  2002/10/12 15:34:09  michael
   + Fixed changefileexit for long (>255) filenames
 
   Revision 1.6  2002/09/07 16:01:22  peter

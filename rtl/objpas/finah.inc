@@ -34,13 +34,21 @@ function ExtractFileDir(Const FileName : string): string;
 function ExpandFileName (Const FileName : string): String;
 function ExpandUNCFileName (Const FileName : string): String;
 function ExtractRelativepath (Const BaseName,DestNAme : String): String;
+function IncludeTrailingPathDelimiter(Const Path : String) : String;
+function IncludeTrailingBackslash(Const Path : String) : String;
+function ExcludeTrailingBackslash(Const Path: string): string;
+function ExcludeTrailingPathDelimiter(Const Path: string): string;
+function IsPathDelimiter(Const Path: string; Index: Integer): Boolean;
 Procedure DoDirSeparators (Var FileName : String);
 Function SetDirSeparators (Const FileName : String) : String;
 Function GetDirs (Var DirName : String; Var Dirs : Array of pchar) : Longint;
 
 {
   $Log$
-  Revision 1.7  2002-09-07 16:01:22  peter
+  Revision 1.8  2002-10-22 21:57:54  michael
+  + Added some missing path functions
+
+  Revision 1.7  2002/09/07 16:01:22  peter
     * old logs removed and tabs fixed
 
 }
