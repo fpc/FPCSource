@@ -110,7 +110,7 @@ uses cutils,rgobj;
       begin
         if opidx>=ops then
          ops:=opidx+1;
-        with oper[opidx] do
+        with oper[opidx]^ do
          begin
            if typ=top_ref then
             dispose(ref);
@@ -351,7 +351,7 @@ uses cutils,rgobj;
       begin
         { we don't insert any more nops than necessary }
         is_nop :=
-          ((opcode=A_MR) and (oper[0].typ=top_reg) and (oper[1].typ=top_reg) and (oper[0].reg=oper[1].reg));
+          ((opcode=A_MR) and (oper[0]^.typ=top_reg) and (oper[1]^.typ=top_reg) and (oper[0]^.reg=oper[1]^.reg));
       end;
 
 
@@ -361,9 +361,9 @@ uses cutils,rgobj;
                    (opcode = A_EXTSB) or
                    (opcode = A_EXTSH) or
                    ((opcode = A_RLWINM) and
-                    (oper[2].val = 0) and
-                    (oper[4].val = 31) and
-                    (oper[3].val in [31-8+1,31-16+1]));
+                    (oper[2]^.val = 0) and
+                    (oper[4]^.val = 31) and
+                    (oper[3]^.val in [31-8+1,31-16+1]));
       end;
 
 
@@ -466,7 +466,10 @@ uses cutils,rgobj;
 end.
 {
   $Log$
-  Revision 1.18  2003-10-01 20:34:49  peter
+  Revision 1.19  2003-10-25 10:37:26  florian
+    * fixed compilation of ppc compiler
+
+  Revision 1.18  2003/10/01 20:34:49  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

@@ -265,8 +265,8 @@ unit agppcgas;
                s:=cond2str(op,taicpu(hp).condition)+',';
           end;
 
-          if (taicpu(hp).oper[0].typ <> top_none) then
-            s:=s+getopstr_jmp(taicpu(hp).oper[0]);
+          if (taicpu(hp).oper[0]^.typ <> top_none) then
+            s:=s+getopstr_jmp(taicpu(hp).oper[0]^);
         end
       else
         { process operands }
@@ -285,7 +285,7 @@ unit agppcgas;
                    // debug code
                    // writeln(s);
                    // writeln(taicpu(hp).fileinfo.line);
-                   s:=s+sep+getopstr(taicpu(hp).oper[i]);
+                   s:=s+sep+getopstr(taicpu(hp).oper[i]^);
                    sep:=',';
                 end;
             end;
@@ -298,7 +298,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.31  2003-10-01 20:34:49  peter
+  Revision 1.32  2003-10-25 10:37:26  florian
+    * fixed compilation of ppc compiler
+
+  Revision 1.31  2003/10/01 20:34:49  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

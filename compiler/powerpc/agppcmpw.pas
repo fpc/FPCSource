@@ -294,8 +294,8 @@ var
              else
                s:=cond2str(op,taicpu(hp).condition)+',';
           end;
-          if (taicpu(hp).oper[0].typ <> top_none) then
-            s:=s+getopstr_jmp(taicpu(hp).oper[0]);
+          if (taicpu(hp).oper[0]^.typ <> top_none) then
+            s:=s+getopstr_jmp(taicpu(hp).oper[0]^);
           if use_PR then
             if (op=A_BL) or (op=A_BLA) then
               s:=s+'[PR]';
@@ -305,7 +305,7 @@ var
         begin
           case op of
              A_MFSPR:
-               case taicpu(hp).oper[1].reg of
+               case taicpu(hp).oper[1]^.reg of
                   NR_CR:
                     begin
                        op:=A_MFCR;
@@ -320,7 +320,7 @@ var
                     internalerror(2002100701);
                end;
              A_MTSPR:
-               case taicpu(hp).oper[1].reg of
+               case taicpu(hp).oper[1]^.reg of
                   NR_CR:
                     begin
                        op:=A_MTCR;
@@ -341,7 +341,7 @@ var
                sep:=#9;
                for i:=0 to taicpu(hp).ops-1 do
                  begin
-                   s:=s+sep+getopstr(taicpu(hp).oper[i]);
+                   s:=s+sep+getopstr(taicpu(hp).oper[i]^);
                    sep:=',';
                  end;
             end;
@@ -1337,7 +1337,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.26  2003-10-01 20:34:49  peter
+  Revision 1.27  2003-10-25 10:37:26  florian
+    * fixed compilation of ppc compiler
+
+  Revision 1.26  2003/10/01 20:34:49  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose
