@@ -246,3 +246,4 @@ bug0163.pp   missing <= and >= operators for sets.
 bug0169.pp   missing new(type) support for not object/class
 bug0171.pp   missing typecasting in constant expressions
 bug0183.pp   internal error 10
+bug0185.pp   missing range checking for Val and subrange types
