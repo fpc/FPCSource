@@ -1991,10 +1991,11 @@ Var
     Cnt, InstrCnt : Longint;
     InstrProp: TInsProp;
     UsedRegs: TRegSet;
-    prev, p, hp : Tai;
+    prev,p  : Tai;
     TmpRef: TReference;
     TmpReg: TRegister;
 {$ifdef AnalyzeLoops}
+    hp : Tai;
     TmpState: Byte;
 {$endif AnalyzeLoops}
 Begin
@@ -2591,7 +2592,10 @@ End.
 
 {
   $Log$
-  Revision 1.25  2001-12-29 15:29:59  jonas
+  Revision 1.26  2002-03-04 19:10:13  peter
+    * removed compiler warnings
+
+  Revision 1.25  2001/12/29 15:29:59  jonas
     * powerpc/cgcpu.pas compiles :)
     * several powerpc-related fixes
     * cpuasm unit is now based on common tainst unit

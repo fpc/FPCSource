@@ -957,8 +957,16 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  2001-12-30 17:24:46  jonas
-    * range checking is now processor independent (part in cgobj, part in    cg64f32) and should work correctly again (it needed some changes after    the changes of the low and high of tordef's to int64)  * maketojumpbool() is now processor independent (in ncgutil)  * getregister32 is now called getregisterint
+  Revision 1.10  2002-03-04 19:10:12  peter
+    * removed compiler warnings
+
+  Revision 1.9  2001/12/30 17:24:46  jonas
+    * range checking is now processor independent (part in cgobj,
+      part in cg64f32) and should work correctly again (it needed
+      some changes after the changes of the low and high of
+      tordef's to int64)
+    * maketojumpbool() is now processor independent (in ncgutil)
+    * getregister32 is now called getregisterint
 
   Revision 1.8  2001/12/29 15:29:59  jonas
     * powerpc/cgcpu.pas compiles :)

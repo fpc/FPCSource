@@ -261,7 +261,7 @@ Var
   gprtobj,
   prtobj       : string[80];
   HPath        : TStringListItem;
-  s,s1,s2      : string;
+  s,s2         : string;
   linkdynamic,
   linklibc     : boolean;
 begin
@@ -555,7 +555,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.15  2001-12-15 05:29:36  carl
+  Revision 1.16  2002-03-04 19:10:14  peter
+    * removed compiler warnings
+
+  Revision 1.15  2001/12/15 05:29:36  carl
   + crtbegin.o and crtend.o now not linked anymore since they can cause conflicts with
      GCC and the native C library...
 

@@ -64,18 +64,11 @@ implementation
 
     procedure ti386moddivnode.pass_2;
       var
-         unusedregisters : tregisterset;
-         usablecount, regstopush : byte;
          hreg1 : tregister;
          hreg2 : tregister;
          shrdiv, pushed,popeax,popedx : boolean;
-
          power : longint;
          hl : tasmlabel;
-         hloc : tlocation;
-         pushedreg : tpushed;
-         typename,opname : string[6];
-
       begin
          shrdiv := false;
          secondpass(left);
@@ -300,7 +293,7 @@ implementation
          hregister1,hregister2,hregister3,
          hregisterhigh,hregisterlow : tregister;
          pushed,popecx : boolean;
-         op,opd : tasmop;
+         op : tasmop;
          l1,l2,l3 : tasmlabel;
 
       begin
@@ -320,10 +313,6 @@ implementation
 
          if is_64bitint(left.resulttype.def) then
            begin
-              if nodetype = shln then
-                opd:=A_SHLD
-              else opd:=A_SHRD;
-
               { load left operator in a register }
               if left.location.loc<>LOC_REGISTER then
                 begin
@@ -999,8 +988,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  2001-12-30 17:24:47  jonas
-    * range checking is now processor independent (part in cgobj, part in    cg64f32) and should work correctly again (it needed some changes after    the changes of the low and high of tordef's to int64)  * maketojumpbool() is now processor independent (in ncgutil)  * getregister32 is now called getregisterint
+  Revision 1.23  2002-03-04 19:10:14  peter
+    * removed compiler warnings
+
+  Revision 1.22  2001/12/30 17:24:47  jonas
+    * range checking is now processor independent (part in cgobj,
+      part in cg64f32) and should work correctly again (it needed
+      some changes after the changes of the low and high of
+      tordef's to int64)
+    * maketojumpbool() is now processor independent (in ncgutil)
+    * getregister32 is now called getregisterint
 
   Revision 1.21  2001/12/29 15:27:24  jonas
     * made 'mod powerof2' -> 'and' optimization processor independent

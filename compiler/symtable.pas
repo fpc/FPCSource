@@ -1501,16 +1501,11 @@ implementation
 
 
     procedure tglobalsymtable.load(ppufile:tcompilerppufile);
-{$ifdef GDB}
-      var
-        storeGlobalTypeCount : pword;
-{$endif GDB}
       begin
 {$ifdef GDB}
          if cs_gdb_dbx in aktglobalswitches then
            begin
               UnitTypeCount:=1;
-              storeGlobalTypeCount:=PGlobalTypeCount;
               PglobalTypeCount:=@UnitTypeCount;
            end;
 {$endif GDB}
@@ -2068,7 +2063,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.55  2002-02-03 09:30:07  peter
+  Revision 1.56  2002-03-04 19:10:11  peter
+    * removed compiler warnings
+
+  Revision 1.55  2002/02/03 09:30:07  peter
     * more fixes for protected handling
 
   Revision 1.54  2002/01/29 21:30:25  peter

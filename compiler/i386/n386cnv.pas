@@ -492,8 +492,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.29  2001-12-30 17:24:46  jonas
-    * range checking is now processor independent (part in cgobj, part in    cg64f32) and should work correctly again (it needed some changes after    the changes of the low and high of tordef's to int64)  * maketojumpbool() is now processor independent (in ncgutil)  * getregister32 is now called getregisterint
+  Revision 1.30  2002-03-04 19:10:13  peter
+    * removed compiler warnings
+
+  Revision 1.29  2001/12/30 17:24:46  jonas
+    * range checking is now processor independent (part in cgobj,
+      part in cg64f32) and should work correctly again (it needed
+      some changes after the changes of the low and high of
+      tordef's to int64)
+    * maketojumpbool() is now processor independent (in ncgutil)
+    * getregister32 is now called getregisterint
 
   Revision 1.28  2001/12/11 08:14:17  jonas
     * part of my fix for dynarray -> open array conversion, forgot to
@@ -533,7 +541,7 @@ end.
   Revision 1.21  2001/08/28 13:24:47  jonas
     + compilerproc implementation of most string-related type conversions
     - removed all code from the compiler which has been replaced by
-      compilerproc implementations (using {$ifdef hascompilerproc} is not
+      compilerproc implementations (using $ifdef hascompilerproc is not
       necessary in the compiler)
 
   Revision 1.20  2001/08/26 13:36:57  florian

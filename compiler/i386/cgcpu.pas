@@ -270,7 +270,6 @@ unit cgcpu;
       var
         opcode: tasmop;
         power: longint;
-        scratch_register: TRegister;
 
       begin
         Case Op of
@@ -342,7 +341,6 @@ unit cgcpu;
       var
         opcode: tasmop;
         power: longint;
-        scratch_register: TRegister;
 
       begin
         Case Op of
@@ -604,7 +602,6 @@ unit cgcpu;
         size: tcgsize; src1, src2, dst: tregister);
       var
         tmpref: treference;
-        power: longint;
         opsize: topsize;
       begin
         opsize := regsize(src1);
@@ -880,8 +877,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2001-12-30 17:24:46  jonas
-    * range checking is now processor independent (part in cgobj, part in    cg64f32) and should work correctly again (it needed some changes after    the changes of the low and high of tordef's to int64)  * maketojumpbool() is now processor independent (in ncgutil)  * getregister32 is now called getregisterint
+  Revision 1.7  2002-03-04 19:10:12  peter
+    * removed compiler warnings
+
+  Revision 1.6  2001/12/30 17:24:46  jonas
+    * range checking is now processor independent (part in cgobj,
+      part in cg64f32) and should work correctly again (it needed
+      some changes after the changes of the low and high of
+      tordef's to int64)
+    * maketojumpbool() is now processor independent (in ncgutil)
+    * getregister32 is now called getregisterint
 
   Revision 1.5  2001/12/29 15:29:59  jonas
     * powerpc/cgcpu.pas compiles :)

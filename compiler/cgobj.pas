@@ -399,8 +399,8 @@ unit cgobj;
 
     procedure tcg.g_decrstrref(list : taasmoutput;const ref : treference;t : tdef);
 
-      var
-         pushedregs : tpushed;
+{      var
+         pushedregs : tpushed; }
 
       begin
 (*
@@ -425,8 +425,8 @@ unit cgobj;
     { that r points to the data to initialize             }
     procedure tcg.g_initialize(list : taasmoutput;t : tdef;const ref : treference;is_already_ref : boolean);
 
-      var
-         hr : treference;
+{      var
+         hr : treference; }
 
       begin
 (*
@@ -450,8 +450,8 @@ unit cgobj;
 
     procedure tcg.g_finalize(list : taasmoutput;t : tdef;const ref : treference;is_already_ref : boolean);
 
-      var
-         r : treference;
+{      var
+         r : treference; }
 
       begin
 (*
@@ -478,8 +478,8 @@ unit cgobj;
     { generates the code for initialisation of local data }
     procedure tcg.g_initialize_data(list : taasmoutput;p : tsym);
 
-      var
-         hr : treference;
+{      var
+         hr : treference; }
 
       begin
 (*
@@ -510,8 +510,8 @@ unit cgobj;
     { generates the code for incrementing the reference count of parameters }
     procedure tcg.g_incr_data(list : taasmoutput;p : tsym);
 
-      var
-         hr : treference;
+{      var
+         hr : treference; }
 
       begin
 (*
@@ -540,8 +540,8 @@ unit cgobj;
     { generates the code for finalisation of local data }
     procedure tcg.g_finalize_data(list : taasmoutput;p : tnamedindexitem);
 
-      var
-         hr : treference;
+ {     var
+         hr : treference; }
 
       begin
 (*
@@ -847,7 +847,7 @@ unit cgobj;
     end;
 
     procedure tcg.g_exitcode(list : taasmoutput;parasize:longint;nostackframe,inlined:boolean);
-
+(*
       var
   {$ifdef GDB}
          mangled_length : longint;
@@ -856,7 +856,7 @@ unit cgobj;
          nofinal,noreraiselabel : tasmlabel;
          hr : treference;
          r : tregister;
-
+*)
       begin
 (*
          if aktexitlabel^.is_used then
@@ -1434,8 +1434,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.6  2001-12-30 17:24:48  jonas
-    * range checking is now processor independent (part in cgobj, part in    cg64f32) and should work correctly again (it needed some changes after    the changes of the low and high of tordef's to int64)  * maketojumpbool() is now processor independent (in ncgutil)  * getregister32 is now called getregisterint
+  Revision 1.7  2002-03-04 19:10:11  peter
+    * removed compiler warnings
+
+  Revision 1.6  2001/12/30 17:24:48  jonas
+    * range checking is now processor independent (part in cgobj, part in    cg64f32) and should work correctly again (it needed some changes after    the changes of the low and high of tordef's to int64)  * maketojumpbool() is now processor independent (in ncgutil)  * getregister32 is now called getregisterint
 
   Revision 1.5  2001/12/29 15:28:58  jonas
     * powerpc/cgcpu.pas compiles :)

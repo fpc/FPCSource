@@ -2987,7 +2987,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  2002-01-24 18:25:53  peter
+  Revision 1.16  2002-03-04 19:10:12  peter
+    * removed compiler warnings
+
+  Revision 1.15  2002/01/24 18:25:53  peter
    * implicit result variable generation for assembler routines
    * removed m_tp modeswitch, use m_tp7 or not(m_fpc) instead
 
@@ -2995,7 +2998,12 @@ end.
     * fixed init/final for value parameters
 
   Revision 1.13  2001/12/30 17:24:45  jonas
-    * range checking is now processor independent (part in cgobj, part in    cg64f32) and should work correctly again (it needed some changes after    the changes of the low and high of tordef's to int64)  * maketojumpbool() is now processor independent (in ncgutil)  * getregister32 is now called getregisterint
+    * range checking is now processor independent (part in cgobj,
+      part in cg64f32) and should work correctly again (it needed
+      some changes after the changes of the low and high of
+      tordef's to int64)
+    * maketojumpbool() is now processor independent (in ncgutil)
+    * getregister32 is now called getregisterint
 
   Revision 1.12  2001/12/29 15:28:58  jonas
     * powerpc/cgcpu.pas compiles :)

@@ -688,8 +688,6 @@ implementation
       end;
 
     function tguidconstnode.det_resulttype:tnode;
-      var
-        srsym : ttypesym;
       begin
         result:=nil;
         resulttype.setdef(rec_tguid);
@@ -720,7 +718,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.24  2001-10-20 19:28:38  peter
+  Revision 1.25  2002-03-04 19:10:11  peter
+    * removed compiler warnings
+
+  Revision 1.24  2001/10/20 19:28:38  peter
     * interface 2 guid support
     * guid constants support
 

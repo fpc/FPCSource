@@ -1394,7 +1394,7 @@ procedure DoCSE(AsmL: TAAsmOutput; First, Last: Tai; findPrevSeqs, doSubOpts: bo
 {marks the instructions that can be removed by RemoveInstructs. They're not
  removed immediately because sometimes an instruction needs to be checked in
  two different sequences}
-var cnt, cnt2, cnt3, orgNrOfMods: longint;
+var cnt, cnt2, {cnt3,} orgNrOfMods: longint;
     p, hp1, hp2, prevSeq, prevSeq_next: Tai;
     hp3, hp4: Tai;
     hp5 : Tai;
@@ -1956,7 +1956,10 @@ End.
 
 {
   $Log$
-  Revision 1.23  2001-12-04 15:58:13  jonas
+  Revision 1.24  2002-03-04 19:10:12  peter
+    * removed compiler warnings
+
+  Revision 1.23  2001/12/04 15:58:13  jonas
     * unnecessary loads of constants are now also remove by
       removePrevNotUsedLoad()
 

@@ -213,8 +213,14 @@ end.
 
 {
   $Log$
-  Revision 1.1  2001-12-30 17:24:48  jonas
-    * range checking is now processor independent (part in cgobj, part in    cg64f32) and should work correctly again (it needed some changes after    the changes of the low and high of tordef's to int64)  * maketojumpbool() is now processor independent (in ncgutil)  * getregister32 is now called getregisterint
+  Revision 1.2  2002-03-04 19:10:11  peter
+    * removed compiler warnings
 
-
+  Revision 1.1  2001/12/30 17:24:48  jonas
+    * range checking is now processor independent (part in cgobj,
+      part in cg64f32) and should work correctly again (it needed
+      some changes after the changes of the low and high of
+      tordef's to int64)
+    * maketojumpbool() is now processor independent (in ncgutil)
+    * getregister32 is now called getregisterint
 }

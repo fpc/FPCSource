@@ -257,7 +257,7 @@ implementation
          unusedregisters : tregisterset;
          usablecount : byte;
          pushed : tpushed;
-         hr,funcretref,refcountedtemp : treference;
+         funcretref,refcountedtemp : treference;
          hregister,hregister2 : tregister;
          oldpushedparasize : longint;
          { true if ESI must be loaded again after the subroutine }
@@ -1593,7 +1593,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.40  2001-12-31 09:53:15  jonas
+  Revision 1.41  2002-03-04 19:10:13  peter
+    * removed compiler warnings
+
+  Revision 1.40  2001/12/31 09:53:15  jonas
     * changed remaining "getregister32" calls to "getregisterint"
 
   Revision 1.39  2001/12/29 15:32:13  jonas

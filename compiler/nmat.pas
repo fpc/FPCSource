@@ -217,7 +217,7 @@ implementation
 
     function tmoddivnode.firstoptimize: tnode;
       var
-        power, shiftval : longint;
+        power{,shiftval} : longint;
         newtype: tnodetype;
       begin
         result := nil;
@@ -678,7 +678,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.28  2002-02-11 11:45:51  michael
+  Revision 1.29  2002-03-04 19:10:11  peter
+    * removed compiler warnings
+
+  Revision 1.28  2002/02/11 11:45:51  michael
   * Compilation without mmx support fixed from Peter
 
   Revision 1.27  2001/12/29 15:27:24  jonas
