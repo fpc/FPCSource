@@ -73,56 +73,54 @@ unit struct;
      If not, write to the Free Software Foundation,
      59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
    }
-{$ifndef _GNU_H_WINDOWS32_STRUCTURES}
-{$define _GNU_H_WINDOWS32_STRUCTURES}
-{ C++ extern C conditionnal removed }
-  { __cplusplus  }
 
   type
 
-      { WARNING
+    { WARNING
       the variable argument list
       is not implemented for FPC
       va_list is just a dummy record }
-      va_list = record
-                end;
+     va_list = record
+               end;
+
      ABC = record
           abcA : longint;
           abcB : UINT;
           abcC : longint;
        end;
-
      LPABC = ^ABC;
-
      _ABC = ABC;
+     TABC = ABC;
+     PABC = ^ABC;
 
      ABCFLOAT = record
           abcfA : FLOAT;
           abcfB : FLOAT;
           abcfC : FLOAT;
        end;
-
      LPABCFLOAT = ^ABCFLOAT;
-
      _ABCFLOAT = ABCFLOAT;
+     TABCFLOAT = ABCFLOAT;
+     PABCFLOAT = ^ABCFLOAT;
 
      ACCEL = record
           fVirt : BYTE;
           key : WORD;
           cmd : WORD;
        end;
-
      LPACCEL = ^ACCEL;
-
-     tagACCEL = ACCEL;
+     _ACCEL = ACCEL;
+     TACCEL = ACCEL;
+     PACCEL = ^ACCEL;
 
      ACE_HEADER = record
           AceType : BYTE;
           AceFlags : BYTE;
           AceSize : WORD;
        end;
-
      _ACE_HEADER = ACE_HEADER;
+     TACE_HEADER = ACE_HEADER;
+     PACE_HEADER = ^ACE_HEADER;
 
      ACCESS_MASK = DWORD;
 
@@ -133,24 +131,26 @@ unit struct;
           Mask : ACCESS_MASK;
           SidStart : DWORD;
        end;
-
      _ACCESS_ALLOWED_ACE = ACCESS_ALLOWED_ACE;
+     TACCESS_ALLOWED_ACE = ACCESS_ALLOWED_ACE;
+     PACCESS_ALLOWED_ACE = ^ACCESS_ALLOWED_ACE;
 
      ACCESS_DENIED_ACE = record
           Header : ACE_HEADER;
           Mask : ACCESS_MASK;
           SidStart : DWORD;
        end;
-
      _ACCESS_DENIED_ACE = ACCESS_DENIED_ACE;
+     TACCESS_DENIED_ACE = ACCESS_DENIED_ACE;
 
      ACCESSTIMEOUT = record
           cbSize : UINT;
           dwFlags : DWORD;
           iTimeOutMSec : DWORD;
        end;
-
-     tagACCESSTIMEOUT = ACCESSTIMEOUT;
+     _ACCESSTIMEOUT = ACCESSTIMEOUT;
+     TACCESSTIMEOUT = ACCESSTIMEOUT;
+     PACCESSTIMEOUT = ^ACCESSTIMEOUT;
 
      ACL = record
           AclRevision : BYTE;
@@ -159,32 +159,34 @@ unit struct;
           AceCount : WORD;
           Sbz2 : WORD;
        end;
-
      PACL = ^ACL;
-
      _ACL = ACL;
+     TACL = ACL;
 
      ACL_REVISION_INFORMATION = record
           AclRevision : DWORD;
        end;
-
      _ACL_REVISION_INFORMATION = ACL_REVISION_INFORMATION;
+     TACLREVISIONINFORMATION = ACL_REVISION_INFORMATION;
+     PACLREVISIONINFORMATION = ^ACL_REVISION_INFORMATION;
 
      ACL_SIZE_INFORMATION = record
           AceCount : DWORD;
           AclBytesInUse : DWORD;
           AclBytesFree : DWORD;
        end;
-
      _ACL_SIZE_INFORMATION = ACL_SIZE_INFORMATION;
+     TACLSIZEINFORMATION = ACL_SIZE_INFORMATION;
+     PACLSIZEINFORMATION = ^ACL_SIZE_INFORMATION;
 
      ACTION_HEADER = record
           transport_id : ULONG;
           action_code : USHORT;
           reserved : USHORT;
        end;
-
      _ACTION_HEADER = ACTION_HEADER;
+     TACTIONHEADER = ACTION_HEADER;
+     PACTIONHEADER = ^ACTION_HEADER;
 
      ADAPTER_STATUS = record
           adapter_address : array[0..5] of UCHAR;
@@ -215,24 +217,26 @@ unit struct;
           max_sess_pkt_size : WORD;
           name_count : WORD;
        end;
-
      _ADAPTER_STATUS = ADAPTER_STATUS;
+     TADAPTERSTATUS = ADAPTER_STATUS;
+     PADAPTERSTATUS = ^ADAPTER_STATUS;
 
      ADDJOB_INFO_1 = record
           Path : LPTSTR;
           JobId : DWORD;
        end;
-
      _ADDJOB_INFO_1 = ADDJOB_INFO_1;
+     TADDJOB_INFO_1 = ADDJOB_INFO_1;
+     PADDJOB_INFO_1 = ^ADDJOB_INFO_1;
 
      ANIMATIONINFO = record
           cbSize : UINT;
           iMinAnimate : longint;
        end;
-
      LPANIMATIONINFO = ^ANIMATIONINFO;
-
-     tagANIMATIONINFO = ANIMATIONINFO;
+     _ANIMATIONINFO = ANIMATIONINFO;
+     TANIMATIONINFO = ANIMATIONINFO;
+     PANIMATIONINFO = ^ANIMATIONINFO;
 
      RECT = record
           left : LONG;
@@ -240,12 +244,10 @@ unit struct;
           right : LONG;
           bottom : LONG;
        end;
-
      LPRECT = ^RECT;
-
-     PRECT = ^RECT;
-
      _RECT = RECT;
+     TRECT = RECT;
+     PRECT = ^RECT;
 
      RECTL = record
           left : LONG;
@@ -253,8 +255,9 @@ unit struct;
           right : LONG;
           bottom : LONG;
        end;
-
      _RECTL = RECTL;
+     TRECTL = RECTL;
+     PRECTL = ^RECTL;
 
      APPBARDATA = record
           cbSize : DWORD;
@@ -264,10 +267,9 @@ unit struct;
           rc : RECT;
           lParam : LPARAM;
        end;
-
-     PAPPBARDATA = ^APPBARDATA;
-
      _AppBarData = APPBARDATA;
+     TAppBarData = APPBARDATA;
+     PAppBarData = ^APPBARDATA;
 
      BITMAP = record
           bmType : LONG;
@@ -278,14 +280,11 @@ unit struct;
           bmBitsPixel : WORD;
           bmBits : LPVOID;
        end;
-
      PBITMAP = ^BITMAP;
-
      NPBITMAP = ^BITMAP;
-
      LPBITMAP = ^BITMAP;
-
      tagBITMAP = BITMAP;
+     TBITMAP = BITMAP;
 
      BITMAPCOREHEADER = record
           bcSize : DWORD;
@@ -294,27 +293,28 @@ unit struct;
           bcPlanes : WORD;
           bcBitCount : WORD;
        end;
-
      tagBITMAPCOREHEADER = BITMAPCOREHEADER;
+     TBITMAPCOREHEADER = BITMAPCOREHEADER;
+     PBITMAPCOREHEADER = ^BITMAPCOREHEADER;
 
      RGBTRIPLE = record
           rgbtBlue : BYTE;
           rgbtGreen : BYTE;
           rgbtRed : BYTE;
        end;
-
      tagRGBTRIPLE = RGBTRIPLE;
+     TRGBTRIPLE = RGBTRIPLE;
+     PRGBTRIPLE = ^RGBTRIPLE;
 
      BITMAPCOREINFO = record
           bmciHeader : BITMAPCOREHEADER;
           bmciColors : array[0..0] of RGBTRIPLE;
        end;
-
      PBITMAPCOREINFO = ^BITMAPCOREINFO;
-
      LPBITMAPCOREINFO = ^BITMAPCOREINFO;
-
      _BITMAPCOREINFO = BITMAPCOREINFO;
+     TBITMAPCOREINFO = BITMAPCOREINFO;
+
 (* error
   WORD    bfReserved1;
   WORD    bfReserved2;
@@ -333,12 +333,9 @@ unit struct;
           biClrUsed : DWORD;
           biClrImportant : DWORD;
        end;
-
      LPBITMAPINFOHEADER = ^BITMAPINFOHEADER;
-
-     PBITMAPINFO = ^BITMAPINFOHEADER;
-
-     tagBITMAPINFOHEADER = BITMAPINFOHEADER;
+     TBITMAPINFOHEADER = BITMAPINFOHEADER;
+     PBITMAPINFOHEADER = ^BITMAPINFOHEADER;
 
      RGBQUAD = record
           rgbBlue : BYTE;
@@ -346,41 +343,42 @@ unit struct;
           rgbRed : BYTE;
           rgbReserved : BYTE;
        end;
-
      tagRGBQUAD = RGBQUAD;
+     TRGBQUAD = RGBQUAD;
+     PRGBQUAD = ^RGBQUAD;
 
      BITMAPINFO = record
           bmiHeader : BITMAPINFOHEADER;
           bmiColors : array[0..0] of RGBQUAD;
        end;
-
      LPBITMAPINFO = ^BITMAPINFO;
-
-     tagBITMAPINFO = BITMAPINFO;
+     PBITMAPINFO = ^BITMAPINFO;
+     TBITMAPINFO = BITMAPINFO;
 
      FXPT2DOT30 = longint;
-
      LPFXPT2DOT30 = ^FXPT2DOT30;
+     TPFXPT2DOT30 = FXPT2DOT30;
+     PPFXPT2DOT30 = ^FXPT2DOT30;
 
      CIEXYZ = record
           ciexyzX : FXPT2DOT30;
           ciexyzY : FXPT2DOT30;
           ciexyzZ : FXPT2DOT30;
        end;
-
      tagCIEXYZ = CIEXYZ;
-
      LPCIEXYZ = ^CIEXYZ;
+     TPCIEXYZ = CIEXYZ;
+     PCIEXYZ = ^CIEXYZ;
 
      CIEXYZTRIPLE = record
           ciexyzRed : CIEXYZ;
           ciexyzGreen : CIEXYZ;
           ciexyzBlue : CIEXYZ;
        end;
-
      tagCIEXYZTRIPLE = CIEXYZTRIPLE;
-
      LPCIEXYZTRIPLE = ^CIEXYZTRIPLE;
+     TCIEXYZTRIPLE = CIEXYZTRIPLE;
+     PCIEXYZTRIPLE = ^CIEXYZTRIPLE;
 
      BITMAPV4HEADER = record
           bV4Size : DWORD;
@@ -404,40 +402,36 @@ unit struct;
           bV4GammaGreen : DWORD;
           bV4GammaBlue : DWORD;
        end;
-
      LPBITMAPV4HEADER = ^BITMAPV4HEADER;
-
+     TBITMAPV4HEADER = BITMAPV4HEADER;
      PBITMAPV4HEADER = ^BITMAPV4HEADER;
 
      BLOB = record
           cbSize : ULONG;
           pBlobData : ^BYTE;
        end;
-
      _BLOB = BLOB;
+     TBLOB = BLOB;
+     PBLOB = ^BLOB;
 
      SHITEMID = record
           cb : USHORT;
           abID : array[0..0] of BYTE;
        end;
-
      LPSHITEMID = ^SHITEMID;
-
-     _SHITEMID = SHITEMID;
-(* Const before type ignored *)
-
      LPCSHITEMID = ^SHITEMID;
+     _SHITEMID = SHITEMID;
+     TSHITEMID = SHITEMID;
+     PSHITEMID = ^SHITEMID;
 
      ITEMIDLIST = record
           mkid : SHITEMID;
        end;
-
      LPITEMIDLIST = ^ITEMIDLIST;
-
-     _ITEMIDLIST = ITEMIDLIST;
-(* Const before type ignored *)
-
      LPCITEMIDLIST = ^ITEMIDLIST;
+     _ITEMIDLIST = ITEMIDLIST;
+     TITEMIDLIST = ITEMIDLIST;
+     PITEMIDLIST = ^ITEMIDLIST;
 
      BROWSEINFO = record
           hwndOwner : HWND;
@@ -449,23 +443,19 @@ unit struct;
           lParam : LPARAM;
           iImage : longint;
        end;
-
-     PBROWSEINFO = ^BROWSEINFO;
-
      LPBROWSEINFO = ^BROWSEINFO;
-
      _browseinfo = BROWSEINFO;
+     Tbrowseinfo = BROWSEINFO;
+     PBROWSEINFO = ^BROWSEINFO;
 
      FILETIME = record
           dwLowDateTime : DWORD;
           dwHighDateTime : DWORD;
        end;
-
      LPFILETIME = ^FILETIME;
-
-     PFILETIME = ^FILETIME;
-
      _FILETIME = FILETIME;
+     TFILETIME = FILETIME;
+     PFILETIME = ^FILETIME;
 
      BY_HANDLE_FILE_INFORMATION = record
           dwFileAttributes : DWORD;
@@ -479,49 +469,51 @@ unit struct;
           nFileIndexHigh : DWORD;
           nFileIndexLow : DWORD;
        end;
-
      LPBY_HANDLE_FILE_INFORMATION = ^BY_HANDLE_FILE_INFORMATION;
-
      _BY_HANDLE_FILE_INFORMATION = BY_HANDLE_FILE_INFORMATION;
+     TBYHANDLEFILEINFORMATION = BY_HANDLE_FILE_INFORMATION;
+     PBYHANDLEFILEINFORMATION = ^BY_HANDLE_FILE_INFORMATION;
 
      FIXED = record
           fract : WORD;
           value : integer;
        end;
-
      _FIXED = FIXED;
+     TFIXED = FIXED;
+     PFIXED = ^FIXED;
 
      POINT = record
           x : LONG;
           y : LONG;
        end;
-
      LPPOINT = ^POINT;
-
-     PPOINT = ^POINT;
-
      tagPOINT = POINT;
+     TPOINT = POINT;
+     PPOINT = ^POINT;
 
      POINTFX = record
           x : FIXED;
           y : FIXED;
        end;
-
      tagPOINTFX = POINTFX;
+     TPOINTFX = POINTFX;
+     PPOINTFX = ^POINTFX;
 
      POINTL = record
           x : LONG;
           y : LONG;
        end;
-
      _POINTL = POINTL;
+     TPOINTL = POINTL;
+     PPOINTL = ^POINTL;
 
      POINTS = record
           x : SHORT;
           y : SHORT;
        end;
-
      tagPOINTS = POINTS;
+     TPOINTS = POINTS;
+     PPOINTS = ^POINTS;
 
      CANDIDATEFORM = record
           dwIndex : DWORD;
@@ -529,10 +521,10 @@ unit struct;
           ptCurrentPos : POINT;
           rcArea : RECT;
        end;
-
      LPCANDIDATEFORM = ^CANDIDATEFORM;
-
      _tagCANDIDATEFORM = CANDIDATEFORM;
+     TCANDIDATEFORM = CANDIDATEFORM;
+     PCANDIDATEFORM = ^CANDIDATEFORM;
 
      CANDIDATELIST = record
           dwSize : DWORD;
@@ -543,10 +535,10 @@ unit struct;
           dwPageSize : DWORD;
           dwOffset : array[0..0] of DWORD;
        end;
-
      LPCANDIDATELIST = ^CANDIDATELIST;
-
      _tagCANDIDATELIST = CANDIDATELIST;
+     TCANDIDATELIST = CANDIDATELIST;
+     PCANDIDATELIST = ^CANDIDATELIST;
 
      CREATESTRUCT = record
           lpCreateParams : LPVOID;
@@ -562,24 +554,26 @@ unit struct;
           lpszClass : LPCTSTR;
           dwExStyle : DWORD;
        end;
-
      LPCREATESTRUCT = ^CREATESTRUCT;
-
      tagCREATESTRUCT = CREATESTRUCT;
+     TCREATESTRUCT = CREATESTRUCT;
+     PCREATESTRUCT = ^CREATESTRUCT;
 
      CBT_CREATEWND = record
           lpcs : LPCREATESTRUCT;
           hwndInsertAfter : HWND;
        end;
-
      tagCBT_CREATEWND = CBT_CREATEWND;
+     TCBT_CREATEWND = CBT_CREATEWND;
+     PCBT_CREATEWND = ^CBT_CREATEWND;
 
      CBTACTIVATESTRUCT = record
           fMouse : WINBOOL;
           hWndActive : HWND;
        end;
-
      tagCBTACTIVATESTRUCT = CBTACTIVATESTRUCT;
+     TCBTACTIVATESTRUCT = CBTACTIVATESTRUCT;
+     PCBTACTIVATESTRUCT = ^CBTACTIVATESTRUCT;
 
      CHAR_INFO = record
           Char : record
@@ -589,10 +583,9 @@ unit struct;
               end;
           Attributes : WORD;
        end;
-
-     PCHAR_INFO = ^CHAR_INFO;
-
      _CHAR_INFO = CHAR_INFO;
+     TCHAR_INFO = CHAR_INFO;
+     PCHAR_INFO = ^CHAR_INFO;
 
      CHARFORMAT = record
           cbSize : UINT;
@@ -605,39 +598,43 @@ unit struct;
           bPitchAndFamily : BYTE;
           szFaceName : array[0..(LF_FACESIZE)-1] of TCHAR;
        end;
-
      _charformat = CHARFORMAT;
+     Tcharformat = CHARFORMAT;
+     Pcharformat = ^CHARFORMAT;
 
      CHARRANGE = record
           cpMin : LONG;
           cpMax : LONG;
        end;
-
      _charrange = CHARRANGE;
+     Tcharrange = CHARRANGE;
+     Pcharrange = ^CHARRANGE;
 
      CHARSET = record
           aflBlock : array[0..2] of DWORD;
           flLang : DWORD;
        end;
-
      tagCHARSET = CHARSET;
+     TCHARSET = CHARSET;
+     PCHARSET = ^CHARSET;
 
      FONTSIGNATURE = record
           fsUsb : array[0..3] of DWORD;
           fsCsb : array[0..1] of DWORD;
        end;
-
      LPFONTSIGNATURE = ^FONTSIGNATURE;
-
      tagFONTSIGNATURE = FONTSIGNATURE;
+     TFONTSIGNATURE = FONTSIGNATURE;
+     PFONTSIGNATURE = ^FONTSIGNATURE;
 
      CHARSETINFO = record
           ciCharset : UINT;
           ciACP : UINT;
           fs : FONTSIGNATURE;
        end;
-
      LPCHARSETINFO = ^CHARSETINFO;
+     TCHARSETINFO = CHARSETINFO;
+     PCHARSETINFO = ^CHARSETINFO;
 
      {CHOOSECOLOR = record confilcts with function ChooseColor }
      TCHOOSECOLOR = record
@@ -651,8 +648,8 @@ unit struct;
           lpfnHook : LPCCHOOKPROC;
           lpTemplateName : LPCTSTR;
        end;
-
      LPCHOOSECOLOR = ^TCHOOSECOLOR;
+     PCHOOSECOLOR = ^TCHOOSECOLOR;
 
      LOGFONT = record
           lfHeight : LONG;
@@ -670,12 +667,9 @@ unit struct;
           lfPitchAndFamily : BYTE;
           lfFaceName : array[0..(LF_FACESIZE)-1] of TCHAR;
        end;
-
      LPLOGFONT = ^LOGFONT;
-
+     TLOGFONT = LOGFONT;
      PLOGFONT = ^LOGFONT;
-
-     tagLOGFONT = LOGFONT;
 
      {CHOOSEFONT = record conflicts with ChosseFont function }
      TCHOOSEFONT = record
@@ -696,26 +690,26 @@ unit struct;
           nSizeMin : INT;
           nSizeMax : INT;
        end;
-
      LPCHOOSEFONT = ^TCHOOSEFONT;
+     PCHOOSEFONT = ^TCHOOSEFONT;
 
      CIDA = record
           cidl : UINT;
           aoffset : array[0..0] of UINT;
        end;
-
      LPIDA = ^CIDA;
-
      _IDA = CIDA;
+     TIDA = CIDA;
+     PIDA = ^CIDA;
 
      CLIENTCREATESTRUCT = record
           hWindowMenu : HANDLE;
           idFirstChild : UINT;
        end;
-
-     tagCLIENTCREATESTRUCT = CLIENTCREATESTRUCT;
-
      LPCLIENTCREATESTRUCT = ^CLIENTCREATESTRUCT;
+     tagCLIENTCREATESTRUCT = CLIENTCREATESTRUCT;
+     TCLIENTCREATESTRUCT = CLIENTCREATESTRUCT;
+     PCLIENTCREATESTRUCT = ^CLIENTCREATESTRUCT;
 
      CMINVOKECOMMANDINFO = record
           cbSize : DWORD;
@@ -728,10 +722,10 @@ unit struct;
           dwHotKey : DWORD;
           hIcon : HANDLE;
        end;
-
      LPCMINVOKECOMMANDINFO = ^CMINVOKECOMMANDINFO;
-
      _CMInvokeCommandInfo = CMINVOKECOMMANDINFO;
+     TCMInvokeCommandInfo = CMINVOKECOMMANDINFO;
+     PCMInvokeCommandInfo = ^CMINVOKECOMMANDINFO;
 
      COLORADJUSTMENT = record
           caSize : WORD;
@@ -747,19 +741,19 @@ unit struct;
           caColorfulness : SHORT;
           caRedGreenTint : SHORT;
        end;
-
      LPCOLORADJUSTMENT = ^COLORADJUSTMENT;
-
      tagCOLORADJUSTMENT = COLORADJUSTMENT;
+     TCOLORADJUSTMENT = COLORADJUSTMENT;
+     PCOLORADJUSTMENT = ^COLORADJUSTMENT;
 
      COLORMAP = record
           from : COLORREF;
           _to : COLORREF;
        end;
-
      LPCOLORMAP = ^COLORMAP;
-
      _COLORMAP = COLORMAP;
+     TCOLORMAP = COLORMAP;
+     PCOLORMAP = ^COLORMAP;
 
      DCB = record
           DCBlength : DWORD;
@@ -778,10 +772,11 @@ unit struct;
           EvtChar : char;
           wReserved1 : WORD;
        end;
-
      LPDCB = ^DCB;
-
      _DCB = DCB;
+     TDCB = DCB;
+     PDCB = ^DCB;
+
   const
      bm_DCB_fBinary = $1;
      bp_DCB_fBinary = 0;
@@ -852,10 +847,10 @@ unit struct;
           dwProviderSize : DWORD;
           wcProviderData : array[0..0] of WCHAR;
        end;
-
      LPCOMMCONFIG = ^COMMCONFIG;
-
      _COMM_CONFIG = COMMCONFIG;
+     TCOMMCONFIG = COMMCONFIG;
+     PCOMMCONFIG = ^COMMCONFIG;
 
      COMMPROP = record
           wPacketLength : WORD;
@@ -877,10 +872,10 @@ unit struct;
           dwProvSpec2 : DWORD;
           wcProvChar : array[0..0] of WCHAR;
        end;
-
      LPCOMMPROP = ^COMMPROP;
-
      _COMMPROP = COMMPROP;
+     TCOMMPROP = COMMPROP;
+     PCOMMPROP = ^COMMPROP;
 
      COMMTIMEOUTS = record
           ReadIntervalTimeout : DWORD;
@@ -889,10 +884,10 @@ unit struct;
           WriteTotalTimeoutMultiplier : DWORD;
           WriteTotalTimeoutConstant : DWORD;
        end;
-
      LPCOMMTIMEOUTS = ^COMMTIMEOUTS;
-
      _COMMTIMEOUTS = COMMTIMEOUTS;
+     TCOMMTIMEOUTS = COMMTIMEOUTS;
+     PCOMMTIMEOUTS = ^COMMTIMEOUTS;
 
      COMPAREITEMSTRUCT = record
           CtlType : UINT;
@@ -903,34 +898,37 @@ unit struct;
           itemID2 : UINT;
           itemData2 : DWORD;
        end;
-
      tagCOMPAREITEMSTRUCT = COMPAREITEMSTRUCT;
+     TCOMPAREITEMSTRUCT = COMPAREITEMSTRUCT;
+     PCOMPAREITEMSTRUCT = ^COMPAREITEMSTRUCT;
 
      COMPCOLOR = record
           crText : COLORREF;
           crBackground : COLORREF;
           dwEffects : DWORD;
        end;
+     TCOMPCOLOR = COMPCOLOR;
+     PCOMPCOLOR = ^COMPCOLOR;
 
      COMPOSITIONFORM = record
           dwStyle : DWORD;
           ptCurrentPos : POINT;
           rcArea : RECT;
        end;
-
      LPCOMPOSITIONFORM = ^COMPOSITIONFORM;
-
      _tagCOMPOSITIONFORM = COMPOSITIONFORM;
+     TCOMPOSITIONFORM = COMPOSITIONFORM;
+     PCOMPOSITIONFORM = ^COMPOSITIONFORM;
 
      COMSTAT = record
           flag0 : longint;
           cbInQue : DWORD;
           cbOutQue : DWORD;
        end;
-
      LPCOMSTAT = ^COMSTAT;
-
      _COMSTAT = COMSTAT;
+     TCOMSTAT = COMSTAT;
+     PCOMSTAT = ^COMSTAT;
   const
      bm_COMSTAT_fCtsHold = $1;
      bp_COMSTAT_fCtsHold = 0;
@@ -971,17 +969,18 @@ unit struct;
           dwSize : DWORD;
           bVisible : WINBOOL;
        end;
-
      PCONSOLE_CURSOR_INFO = ^CONSOLE_CURSOR_INFO;
-
      _CONSOLE_CURSOR_INFO = CONSOLE_CURSOR_INFO;
+     TCONSOLECURSORINFO = CONSOLE_CURSOR_INFO;
+     PCONSOLECURSORINFO = ^CONSOLE_CURSOR_INFO;
 
      COORD = record
           X : SHORT;
           Y : SHORT;
        end;
-
      _COORD = COORD;
+     TCOORD = COORD;
+     PCOORD = ^COORD;
 
      SMALL_RECT = record
           Left : SHORT;
@@ -989,10 +988,9 @@ unit struct;
           Right : SHORT;
           Bottom : SHORT;
        end;
-
-     PSMALL_RECT = ^SMALL_RECT;
-
      _SMALL_RECT = SMALL_RECT;
+     TSMALL_RECT = SMALL_RECT;
+     PSMALL_RECT = ^SMALL_RECT;
 
      CONSOLE_SCREEN_BUFFER_INFO = record
           dwSize : COORD;
@@ -1001,12 +999,12 @@ unit struct;
           srWindow : SMALL_RECT;
           dwMaximumWindowSize : COORD;
        end;
-
      PCONSOLE_SCREEN_BUFFER_INFO = ^CONSOLE_SCREEN_BUFFER_INFO;
-
      _CONSOLE_SCREEN_BUFFER_INFO = CONSOLE_SCREEN_BUFFER_INFO;
-{$ifdef __i386__}
+     TCONSOLESCREENBUFFERINFO = CONSOLE_SCREEN_BUFFER_INFO;
+     PCONSOLESCREENBUFFERINFO = ^CONSOLE_SCREEN_BUFFER_INFO;
 
+{$ifdef __i386__}
   type
 
      FLOATING_SAVE_AREA = record
@@ -1020,8 +1018,9 @@ unit struct;
           RegisterArea : array[0..79] of BYTE;
           Cr0NpxState : DWORD;
        end;
-
      _FLOATING_SAVE_AREA = FLOATING_SAVE_AREA;
+     TFLOATINGSAVEAREA = FLOATING_SAVE_AREA;
+     PFLOATINGSAVEAREA = ^FLOATING_SAVE_AREA;
 
      CONTEXT = record
           ContextFlags : DWORD;
@@ -1049,12 +1048,11 @@ unit struct;
           Esp : DWORD;
           SegSs : DWORD;
        end;
-
+     LPCONTEXT = ^CONTEXT;
+     _CONTEXT = CONTEXT;
+     TCONTEXT = CONTEXT;
      PCONTEXT = ^CONTEXT;
 
-     LPCONTEXT = ^CONTEXT;
-
-     _CONTEXT = CONTEXT;
 {$else}
   { __ppc__  }
   { Floating point registers returned when CONTEXT_FLOATING_POINT is set  }
@@ -1162,10 +1160,10 @@ unit struct;
           Dr6 : DWORD;
           Dr7 : DWORD;
        end;
-
+     LPCONTEXT = ^CONTEXT;
+     TCONTEXT = CONTEXT;
      PCONTEXT = ^CONTEXT;
 
-     LPCONTEXT = ^CONTEXT;
 {$endif}
 
   type
@@ -1174,10 +1172,9 @@ unit struct;
           Flink : ^_LIST_ENTRY;
           Blink : ^_LIST_ENTRY;
        end;
-
-     PLIST_ENTRY = ^LIST_ENTRY;
-
      _LIST_ENTRY = LIST_ENTRY;
+     TLISTENTRY = LIST_ENTRY;
+     PLISTENTRY = ^LIST_ENTRY;
 
      CRITICAL_SECTION_DEBUG = record
           _Type : WORD;
@@ -1189,10 +1186,11 @@ unit struct;
           Depth : DWORD;
           OwnerBackTrace : array[0..4] of PVOID;
        end;
-
-     PCRITICAL_SECTION_DEBUG = ^CRITICAL_SECTION_DEBUG;
-
+     LPCRITICAL_SECTION_DEBUG = ^CRITICAL_SECTION_DEBUG;
+     PCRITICAL_SECTION_DEBUG = CRITICAL_SECTION_DEBUG;
      _CRITICAL_SECTION_DEBUG = CRITICAL_SECTION_DEBUG;
+     TCRITICALSECTIONDEBUG = CRITICAL_SECTION_DEBUG;
+     PCRITICALSECTIONDEBUG = ^CRITICAL_SECTION_DEBUG;
 
      CRITICAL_SECTION = record
           DebugInfo : PCRITICAL_SECTION_DEBUG;
@@ -1202,12 +1200,12 @@ unit struct;
           LockSemaphore : HANDLE;
           Reserved : DWORD;
        end;
-
-     PCRITICAL_SECTION = ^CRITICAL_SECTION;
-
      LPCRITICAL_SECTION = ^CRITICAL_SECTION;
-
+     PCRITICAL_SECTION = ^CRITICAL_SECTION;
      _CRITICAL_SECTION = CRITICAL_SECTION;
+     TCRITICALSECTION = CRITICAL_SECTION;
+     PCRITICALSECTION = ^CRITICAL_SECTION;
+
   { SECURITY_CONTEXT_TRACKING_MODE ContextTrackingMode;  }
 
      SECURITY_QUALITY_OF_SERVICE = record
@@ -1216,8 +1214,10 @@ unit struct;
           ContextTrackingMode : WINBOOL;
           EffectiveOnly : BOOLEAN;
        end;
-
+     PSECURITY_QUALITY_OF_SERVICE = ^SECURITY_QUALITY_OF_SERVICE;
      _SECURITY_QUALITY_OF_SERVICE = SECURITY_QUALITY_OF_SERVICE;
+     TSECURITYQUALITYOFSERVICE = SECURITY_QUALITY_OF_SERVICE;
+     PSECURITYQUALITYOFSERVICE = ^SECURITY_QUALITY_OF_SERVICE;
 
      CONVCONTEXT = record
           cb : UINT;
@@ -1228,9 +1228,8 @@ unit struct;
           dwSecurity : DWORD;
           qos : SECURITY_QUALITY_OF_SERVICE;
        end;
-
      tagCONVCONTEXT = CONVCONTEXT;
-
+     TCONVCONTEXT = CONVCONTEXT;
      PCONVCONTEXT = ^CONVCONTEXT;
 
      CONVINFO = record
@@ -1251,26 +1250,28 @@ unit struct;
           _hwnd : HWND;
           hwndPartner : HWND;
        end;
-
      tagCONVINFO = CONVINFO;
+     TCONVINFO = CONVINFO;
+     PCONVINFO = ^CONVINFO;
 
      COPYDATASTRUCT = record
           dwData : DWORD;
           cbData : DWORD;
           lpData : PVOID;
        end;
-
      tagCOPYDATASTRUCT = COPYDATASTRUCT;
+     TCOPYDATASTRUCT = COPYDATASTRUCT;
+     PCOPYDATASTRUCT = ^COPYDATASTRUCT;
 
      CPINFO = record
           MaxCharSize : UINT;
           DefaultChar : array[0..(MAX_DEFAULTCHAR)-1] of BYTE;
           LeadByte : array[0..(MAX_LEADBYTES)-1] of BYTE;
        end;
-
      LPCPINFO = ^CPINFO;
-
      _cpinfo = CPINFO;
+     Tcpinfo = CPINFO;
+     Pcpinfo = ^CPINFO;
 
      CPLINFO = record
           idIcon : longint;
@@ -1278,8 +1279,9 @@ unit struct;
           idInfo : longint;
           lData : LONG;
        end;
-
      tagCPLINFO = CPLINFO;
+     TCPLINFO = CPLINFO;
+     PCPLINFO = ^CPLINFO;
 
      CREATE_PROCESS_DEBUG_INFO = record
           hFile : HANDLE;
@@ -1293,16 +1295,18 @@ unit struct;
           lpImageName : LPVOID;
           fUnicode : WORD;
        end;
-
      _CREATE_PROCESS_DEBUG_INFO = CREATE_PROCESS_DEBUG_INFO;
+     TCREATEPROCESSDEBUGINFO = CREATE_PROCESS_DEBUG_INFO;
+     PCREATEPROCESSDEBUGINFO = ^CREATE_PROCESS_DEBUG_INFO;
 
      CREATE_THREAD_DEBUG_INFO = record
           hThread : HANDLE;
           lpThreadLocalBase : LPVOID;
           lpStartAddress : LPTHREAD_START_ROUTINE;
        end;
-
      _CREATE_THREAD_DEBUG_INFO = CREATE_THREAD_DEBUG_INFO;
+     TCREATETHREADDEBUGINFO = CREATE_THREAD_DEBUG_INFO;
+     PCREATETHREADDEBUGINFO = ^CREATE_THREAD_DEBUG_INFO;
   (*
    TODO: sockets
   typedef struct _SOCKET_ADDRESS {
@@ -1329,8 +1333,9 @@ unit struct;
           PositiveOrder : UINT;
           lpCurrencySymbol : LPTSTR;
        end;
-
      _currencyfmt = CURRENCYFMT;
+     Tcurrencyfmt = CURRENCYFMT;
+     Pcurrencyfmt = ^CURRENCYFMT;
 
      CURSORSHAPE = record
           xHotSpot : longint;
@@ -1341,10 +1346,10 @@ unit struct;
           Planes : BYTE;
           BitsPixel : BYTE;
        end;
-
      LPCURSORSHAPE = ^CURSORSHAPE;
-
      tagCURSORSHAPE = CURSORSHAPE;
+     TCURSORSHAPE = CURSORSHAPE;
+     PCURSORSHAPE = ^CURSORSHAPE;
 
      CWPRETSTRUCT = record
           lResult : LRESULT;
@@ -1353,8 +1358,9 @@ unit struct;
           message : DWORD;
           hwnd : HWND;
        end;
-
      tagCWPRETSTRUCT = CWPRETSTRUCT;
+     TCWPRETSTRUCT = CWPRETSTRUCT;
+     PCWPRETSTRUCT = ^CWPRETSTRUCT;
 
      CWPSTRUCT = record
           lParam : LPARAM;
@@ -1362,18 +1368,22 @@ unit struct;
           message : UINT;
           hwnd : HWND;
        end;
-
      tagCWPSTRUCT = CWPSTRUCT;
+     TCWPSTRUCT = CWPSTRUCT;
+     PCWPSTRUCT = ^CWPSTRUCT;
 
      DATATYPES_INFO_1 = record
           pName : LPTSTR;
        end;
-
      _DATATYPES_INFO_1 = DATATYPES_INFO_1;
+     TDATATYPESINFO1 = DATATYPES_INFO_1;
+     PDATATYPESINFO1 = ^DATATYPES_INFO_1;
 
      DDEACK = record
           flag0 : word;
        end;
+     TDDEACK = DDEACK;
+     PDDEACK = ^DDEACK;
   const
      bm_DDEACK_bAppReturnCode = $FF;
      bp_DDEACK_bAppReturnCode = 0;
@@ -1398,6 +1408,8 @@ unit struct;
           flag0 : word;
           cfFormat : integer;
        end;
+     TDDEADVISE = DDEADVISE;
+     PDDEADVISE = ^DDEADVISE;
   const
      bm_DDEADVISE_reserved = $3FFF;
      bp_DDEADVISE_reserved = 0;
@@ -1419,6 +1431,7 @@ unit struct;
           cfFormat : integer;
           Value : array[0..0] of BYTE;
        end;
+     PDDEDATA = ^DDEDATA;
   const
      bm_DDEDATA_unused = $FFF;
      bp_DDEDATA_unused = 0;
@@ -1447,6 +1460,8 @@ unit struct;
           flag0 : word;
           cfFormat : integer;
        end;
+     TDDELN = DDELN;
+     PDDELN = ^DDELN;
   const
      bm_DDELN_unused = $1FFF;
      bp_DDELN_unused = 0;
@@ -1473,14 +1488,17 @@ unit struct;
           cbData : DWORD;
           Data : array[0..7] of DWORD;
        end;
-
      tagDDEML_MSG_HOOK_DATA = DDEML_MSG_HOOK_DATA;
+     TDDEMLMSGHOOKDATA = DDEML_MSG_HOOK_DATA;
+     PDDEMLMSGHOOKDATA = ^DDEML_MSG_HOOK_DATA;
 
      DDEPOKE = record
           flag0 : word;
           cfFormat : integer;
           Value : array[0..0] of BYTE;
        end;
+     TDDEPOKE = DDEPOKE;
+     PDDEPOKE = ^DDEPOKE;
   const
      bm_DDEPOKE_unused = $1FFF;
      bp_DDEPOKE_unused = 0;
@@ -1502,6 +1520,8 @@ unit struct;
           cfFormat : integer;
           rgb : array[0..0] of BYTE;
        end;
+     TDDEUP = DDEUP;
+     PDDEUP = ^DDEUP;
   const
      bm_DDEUP_unused = $FFF;
      bp_DDEUP_unused = 0;
@@ -1534,31 +1554,34 @@ unit struct;
           NumberParameters : DWORD;
           ExceptionInformation : array[0..(EXCEPTION_MAXIMUM_PARAMETERS)-1] of DWORD;
        end;
-
      PEXCEPTION_RECORD = ^EXCEPTION_RECORD;
-
-     LPEXCEPTION_RECORD = ^EXCEPTION_RECORD;
-
      _EXCEPTION_RECORD = EXCEPTION_RECORD;
+     TEXCEPTIONRECORD = EXCEPTION_RECORD;
+     PEXCEPTIONRECORD = ^EXCEPTION_RECORD;
 
      EXCEPTION_DEBUG_INFO = record
           ExceptionRecord : EXCEPTION_RECORD;
           dwFirstChance : DWORD;
        end;
-
+     PEXCEPTION_DEBUG_INFO = ^EXCEPTION_DEBUG_INFO;
      _EXCEPTION_DEBUG_INFO = EXCEPTION_DEBUG_INFO;
+     TEXCEPTIONDEBUGINFO = EXCEPTION_DEBUG_INFO;
+     PEXCEPTIONDEBUGINFO = ^EXCEPTION_DEBUG_INFO;
 
      EXIT_PROCESS_DEBUG_INFO = record
           dwExitCode : DWORD;
        end;
-
      _EXIT_PROCESS_DEBUG_INFO = EXIT_PROCESS_DEBUG_INFO;
+     TEXITPROCESSDEBUGINFO = EXIT_PROCESS_DEBUG_INFO;
+     PEXITPROCESSDEBUGINFO = ^EXIT_PROCESS_DEBUG_INFO;
+
 
      EXIT_THREAD_DEBUG_INFO = record
           dwExitCode : DWORD;
        end;
-
      _EXIT_THREAD_DEBUG_INFO = EXIT_THREAD_DEBUG_INFO;
+     TEXITTHREADDEBUGINFO = EXIT_THREAD_DEBUG_INFO;
+     PEXITTHREADDEBUGINFO = ^EXIT_THREAD_DEBUG_INFO;
 
      LOAD_DLL_DEBUG_INFO = record
           hFile : HANDLE;
@@ -1568,29 +1591,33 @@ unit struct;
           lpImageName : LPVOID;
           fUnicode : WORD;
        end;
-
      _LOAD_DLL_DEBUG_INFO = LOAD_DLL_DEBUG_INFO;
+     TLOADDLLDEBUGINFO = LOAD_DLL_DEBUG_INFO;
+     PLOADDLLDEBUGINFO = ^LOAD_DLL_DEBUG_INFO;
 
      UNLOAD_DLL_DEBUG_INFO = record
           lpBaseOfDll : LPVOID;
        end;
-
      _UNLOAD_DLL_DEBUG_INFO = UNLOAD_DLL_DEBUG_INFO;
+     TUNLOADDLLDEBUGINFO = UNLOAD_DLL_DEBUG_INFO;
+     PUNLOADDLLDEBUGINFO = ^UNLOAD_DLL_DEBUG_INFO;
 
      OUTPUT_DEBUG_STRING_INFO = record
           lpDebugStringData : LPSTR;
           fUnicode : WORD;
           nDebugStringLength : WORD;
        end;
-
      _OUTPUT_DEBUG_STRING_INFO = OUTPUT_DEBUG_STRING_INFO;
+     TOUTPUTDEBUGSTRINGINFO = OUTPUT_DEBUG_STRING_INFO;
+     POUTPUTDEBUGSTRINGINFO = ^OUTPUT_DEBUG_STRING_INFO;
 
      RIP_INFO = record
           dwError : DWORD;
           dwType : DWORD;
        end;
-
      _RIP_INFO = RIP_INFO;
+     TRIPINFO = RIP_INFO;
+     PRIPINFO = ^RIP_INFO;
 
      DEBUG_EVENT = record
           dwDebugEventCode : DWORD;
@@ -1609,10 +1636,10 @@ unit struct;
                  8 : ( RipInfo : RIP_INFO );
               end;
        end;
-
      LPDEBUG_EVENT = ^DEBUG_EVENT;
-
      _DEBUG_EVENT = DEBUG_EVENT;
+     TDEBUGEVENT = DEBUG_EVENT;
+     PDEBUGEVENT = ^DEBUG_EVENT;
 
      DEBUGHOOKINFO = record
           idThread : DWORD;
@@ -1621,8 +1648,9 @@ unit struct;
           wParam : WPARAM;
           code : longint;
        end;
-
      tagDEBUGHOOKINFO = DEBUGHOOKINFO;
+     TDEBUGHOOKINFO = DEBUGHOOKINFO;
+     PDEBUGHOOKINFO = ^DEBUGHOOKINFO;
 
      DELETEITEMSTRUCT = record
           CtlType : UINT;
@@ -1631,18 +1659,19 @@ unit struct;
           hwndItem : HWND;
           itemData : UINT;
        end;
-
      tagDELETEITEMSTRUCT = DELETEITEMSTRUCT;
+     TDELETEITEMSTRUCT = DELETEITEMSTRUCT;
+     PDELETEITEMSTRUCT = ^DELETEITEMSTRUCT;
 
      DEV_BROADCAST_HDR = record
           dbch_size : ULONG;
           dbch_devicetype : ULONG;
           dbch_reserved : ULONG;
        end;
-
-     _DEV_BROADCAST_HDR = DEV_BROADCAST_HDR;
-
      PDEV_BROADCAST_HDR = ^DEV_BROADCAST_HDR;
+     _DEV_BROADCAST_HDR = DEV_BROADCAST_HDR;
+     TDEVBROADCASTHDR = DEV_BROADCAST_HDR;
+     PDEVBROADCASTHDR = ^DEV_BROADCAST_HDR;
 
      DEV_BROADCAST_OEM = record
           dbco_size : ULONG;
@@ -1651,10 +1680,10 @@ unit struct;
           dbco_identifier : ULONG;
           dbco_suppfunc : ULONG;
        end;
-
-     _DEV_BROADCAST_OEM = DEV_BROADCAST_OEM;
-
      PDEV_BROADCAST_OEM = ^DEV_BROADCAST_OEM;
+     _DEV_BROADCAST_OEM = DEV_BROADCAST_OEM;
+     TDEVBROADCASTOEM = DEV_BROADCAST_OEM;
+     PDEVBROADCASTOEM = ^DEV_BROADCAST_OEM;
 
      DEV_BROADCAST_PORT = record
           dbcp_size : ULONG;
@@ -1662,16 +1691,18 @@ unit struct;
           dbcp_reserved : ULONG;
           dbcp_name : array[0..0] of char;
        end;
-
-     _DEV_BROADCAST_PORT = DEV_BROADCAST_PORT;
-
      PDEV_BROADCAST_PORT = ^DEV_BROADCAST_PORT;
+     _DEV_BROADCAST_PORT = DEV_BROADCAST_PORT;
+     TDEVBROADCASTPORT = DEV_BROADCAST_PORT;
+     PDEVBROADCASTPORT = ^DEV_BROADCAST_PORT;
+
      _DEV_BROADCAST_USERDEFINED = record
           dbud_dbh : _DEV_BROADCAST_HDR;
           dbud_szName : array[0..0] of char;
           dbud_rgbUserDefined : array[0..0] of BYTE;
        end;
-
+     TDEVBROADCASTUSERDEFINED = _DEV_BROADCAST_USERDEFINED;
+     PDEVBROADCASTUSERDEFINED = ^_DEV_BROADCAST_USERDEFINED;
 
      DEV_BROADCAST_VOLUME = record
           dbcv_size : ULONG;
@@ -1680,10 +1711,10 @@ unit struct;
           dbcv_unitmask : ULONG;
           dbcv_flags : USHORT;
        end;
-
-     _DEV_BROADCAST_VOLUME = DEV_BROADCAST_VOLUME;
-
      PDEV_BROADCAST_VOLUME = ^DEV_BROADCAST_VOLUME;
+     _DEV_BROADCAST_VOLUME = DEV_BROADCAST_VOLUME;
+     TDEVBROADCASTVOLUME = DEV_BROADCAST_VOLUME;
+     PDEVBROADCASTVOLUME = ^DEV_BROADCAST_VOLUME;
 
      DEVMODE = record
           dmDeviceName : array[0..(CCHDEVICENAME)-1] of BCHAR;
@@ -1719,10 +1750,10 @@ unit struct;
           dmICCManufacturer : DWORD;
           dmICCModel : DWORD;
        end;
-
      LPDEVMODE = ^DEVMODE;
-
      _devicemode = DEVMODE;
+     TDEVMODE = DEVMODE;
+     PDEVMODE = ^DEVMODE;
 
      DEVNAMES = record
           wDriverOffset : WORD;
@@ -1730,10 +1761,10 @@ unit struct;
           wOutputOffset : WORD;
           wDefault : WORD;
        end;
-
      LPDEVNAMES = ^DEVNAMES;
-
      tagDEVNAMES = DEVNAMES;
+     TDEVNAMES = DEVNAMES;
+     PDEVNAMES = ^DEVNAMES;
 
      DIBSECTION = record
           dsBm : BITMAP;
@@ -1742,17 +1773,18 @@ unit struct;
           dshSection : HANDLE;
           dsOffset : DWORD;
        end;
-
      tagDIBSECTION = DIBSECTION;
+     TDIBSECTION = DIBSECTION;
+     PDIBSECTION = ^DIBSECTION;
 
      LARGE_INTEGER = record
           LowPart : DWORD;
           HighPart : LONG;
        end;
-
      PLARGE_INTEGER = ^LARGE_INTEGER;
-
      _LARGE_INTEGER = LARGE_INTEGER;
+     TLARGEINTEGER = LARGE_INTEGER;
+     PLARGEINTEGER = ^LARGE_INTEGER;
 
      DISK_GEOMETRY = record
           Cylinders : LARGE_INTEGER;
@@ -1761,8 +1793,9 @@ unit struct;
           SectorsPerTrack : DWORD;
           BytesPerSector : DWORD;
        end;
-
      _DISK_GEOMETRY = DISK_GEOMETRY;
+     TDISKGEOMETRY = DISK_GEOMETRY;
+     PDISKGEOMETRY = ^DISK_GEOMETRY;
 
      DISK_PERFORMANCE = record
           BytesRead : LARGE_INTEGER;
@@ -1773,11 +1806,11 @@ unit struct;
           WriteCount : DWORD;
           QueueDepth : DWORD;
        end;
-
      _DISK_PERFORMANCE = DISK_PERFORMANCE;
-{$PACKRECORDS 1}
+     TDISKPERFORMANCE = DISK_PERFORMANCE;
+     PDISKPERFORMANCE = ^DISK_PERFORMANCE;
 
-     DLGITEMTEMPLATE = record
+     DLGITEMTEMPLATE = packed record
           style : DWORD;
           dwExtendedStyle : DWORD;
           x : integer;
@@ -1786,12 +1819,11 @@ unit struct;
           cy : integer;
           id : WORD;
        end;
-
      LPDLGITEMTEMPLATE = ^DLGITEMTEMPLATE;
-
+     TDLGITEMTEMPLATE = DLGITEMTEMPLATE;
      PDLGITEMTEMPLATE = ^DLGITEMTEMPLATE;
 
-     DLGTEMPLATE = record
+     DLGTEMPLATE = packed record
           style : DWORD;
           dwExtendedStyle : DWORD;
           cdit : WORD;
@@ -1800,20 +1832,19 @@ unit struct;
           cx : integer;
           cy : integer;
        end;
-
      LPDLGTEMPLATE = ^DLGTEMPLATE;
-(* Const before type ignored *)
-
      LPCDLGTEMPLATE = ^DLGTEMPLATE;
-{$PACKRECORDS 4}
+     TDLGTEMPLATE = DLGTEMPLATE;
+     PDLGTEMPLATE = ^DLGTEMPLATE;
 
      DOC_INFO_1 = record
           pDocName : LPTSTR;
           pOutputFile : LPTSTR;
           pDatatype : LPTSTR;
        end;
-
      _DOC_INFO_1 = DOC_INFO_1;
+     TDOCINFO1 = DOC_INFO_1;
+     PDOCINFO1 = ^DOC_INFO_1;
 
      DOC_INFO_2 = record
           pDocName : LPTSTR;
@@ -1822,8 +1853,9 @@ unit struct;
           dwMode : DWORD;
           JobId : DWORD;
        end;
-
      _DOC_INFO_2 = DOC_INFO_2;
+     TDOCINFO2 = DOC_INFO_2;
+     PDOCINFO2 = ^DOC_INFO_2;
 
      DOCINFO = record
           cbSize : longint;
@@ -1832,14 +1864,17 @@ unit struct;
           lpszDatatype : LPCTSTR;
           fwType : DWORD;
        end;
+     TDOCINFO = DOCINFO;
+     PDOCINFO = ^DOCINFO;
 
      DRAGLISTINFO = record
           uNotification : UINT;
           hWnd : HWND;
           ptCursor : POINT;
        end;
-
      LPDRAGLISTINFO = ^DRAGLISTINFO;
+     TDRAGLISTINFO = DRAGLISTINFO;
+     PDRAGLISTINFO = ^DRAGLISTINFO;
 
      DRAWITEMSTRUCT = record
           CtlType : UINT;
@@ -1852,12 +1887,10 @@ unit struct;
           rcItem : RECT;
           itemData : DWORD;
        end;
-
      LPDRAWITEMSTRUCT = ^DRAWITEMSTRUCT;
-
-     PDRAWITEMSTRUCT = ^DRAWITEMSTRUCT;
-
      tagDRAWITEMSTRUCT = DRAWITEMSTRUCT;
+     TDRAWITEMSTRUCT = DRAWITEMSTRUCT;
+     PDRAWITEMSTRUCT = ^DRAWITEMSTRUCT;
 
      DRAWTEXTPARAMS = record
           cbSize : UINT;
@@ -1866,8 +1899,9 @@ unit struct;
           iRightMargin : longint;
           uiLengthDrawn : UINT;
        end;
-
      LPDRAWTEXTPARAMS = ^DRAWTEXTPARAMS;
+     TDRAWTEXTPARAMS = DRAWTEXTPARAMS;
+     PDRAWTEXTPARAMS = ^DRAWTEXTPARAMS;
 
      PARTITION_INFORMATION = record
           PartitionType : BYTE;
@@ -1878,22 +1912,25 @@ unit struct;
           PartitionLength : LARGE_INTEGER;
           HiddenSectors : LARGE_INTEGER;
        end;
-
      _PARTITION_INFORMATION = PARTITION_INFORMATION;
+     TPARTITIONINFORMATION = PARTITION_INFORMATION;
+     PPARTITIONINFORMATION = ^PARTITION_INFORMATION;
 
      DRIVE_LAYOUT_INFORMATION = record
           PartitionCount : DWORD;
           Signature : DWORD;
           PartitionEntry : array[0..0] of PARTITION_INFORMATION;
        end;
-
      _DRIVE_LAYOUT_INFORMATION = DRIVE_LAYOUT_INFORMATION;
+     TDRIVELAYOUTINFORMATION = DRIVE_LAYOUT_INFORMATION;
+     PDRIVELAYOUTINFORMATION = ^DRIVE_LAYOUT_INFORMATION;
 
      DRIVER_INFO_1 = record
           pName : LPTSTR;
        end;
-
      _DRIVER_INFO_1 = DRIVER_INFO_1;
+     TDRIVERINFO1 = DRIVER_INFO_1;
+     PDRIVERINFO1 = ^DRIVER_INFO_1;
 
      DRIVER_INFO_2 = record
           cVersion : DWORD;
@@ -1903,8 +1940,9 @@ unit struct;
           pDataFile : LPTSTR;
           pConfigFile : LPTSTR;
        end;
-
      _DRIVER_INFO_2 = DRIVER_INFO_2;
+     TDRIVERINFO2 = DRIVER_INFO_2;
+     PDRIVERINFO2 = ^DRIVER_INFO_2;
 
      DRIVER_INFO_3 = record
           cVersion : DWORD;
@@ -1918,25 +1956,26 @@ unit struct;
           pMonitorName : LPTSTR;
           pDefaultDataType : LPTSTR;
        end;
-
      _DRIVER_INFO_3 = DRIVER_INFO_3;
+     TDRIVERINFO3 = DRIVER_INFO_3;
+     PDRIVERINFO3 = ^DRIVER_INFO_3;
 
      EDITSTREAM = record
           dwCookie : DWORD;
           dwError : DWORD;
           pfnCallback : EDITSTREAMCALLBACK;
        end;
-
      _editstream = EDITSTREAM;
+     Teditstream = EDITSTREAM;
+     Peditstream = ^EDITSTREAM;
 
      EMR = record
           iType : DWORD;
           nSize : DWORD;
        end;
-
-     PEMR = ^EMR;
-
      tagEMR = EMR;
+     TEMR = EMR;
+     PEMR = ^EMR;
 
      EMRANGLEARC = record
           emr : EMR;
@@ -1945,10 +1984,9 @@ unit struct;
           eStartAngle : FLOAT;
           eSweepAngle : FLOAT;
        end;
-
-     PEMRANGLEARC = ^EMRANGLEARC;
-
      tagEMRANGLEARC = EMRANGLEARC;
+     TEMRANGLEARC = EMRANGLEARC;
+     PEMRANGLEARC = ^EMRANGLEARC;
 
      EMRARC = record
           emr : EMR;
@@ -1956,22 +1994,21 @@ unit struct;
           ptlStart : POINTL;
           ptlEnd : POINTL;
        end;
-
+     tagEMRARC = EMRARC;
+     TEMRARC = EMRARC;
      PEMRARC = ^EMRARC;
 
      EMRARCTO = EMRARC;
-
+     TEMRARCTO = EMRARC;
      PEMRARCTO = ^EMRARC;
 
      EMRCHORD = EMRARC;
-
+     TEMRCHORD = EMRARC;
      PEMRCHORD = ^EMRARC;
 
      EMRPIE = EMRARC;
-
+     TEMRPIE = EMRARC;
      PEMRPIE = ^EMRARC;
-
-     tagEMRARC = EMRARC;
 
      XFORM = record
           eM11 : FLOAT;
@@ -1981,12 +2018,10 @@ unit struct;
           eDx : FLOAT;
           eDy : FLOAT;
        end;
-
-     PXFORM = ^XFORM;
-
      LPXFORM = ^XFORM;
-
      _XFORM = XFORM;
+     TXFORM = XFORM;
+     PXFORM = ^XFORM;
 
      EMRBITBLT = record
           emr : EMR;
@@ -2005,28 +2040,27 @@ unit struct;
           offBitsSrc : DWORD;
           cbBitsSrc : DWORD;
        end;
-
-     PEMRBITBLT = ^EMRBITBLT;
-
      tagEMRBITBLT = EMRBITBLT;
+     TEMRBITBLT = EMRBITBLT;
+     PEMRBITBLT = ^EMRBITBLT;
 
      LOGBRUSH = record
           lbStyle : UINT;
           lbColor : COLORREF;
           lbHatch : LONG;
        end;
-
      tagLOGBRUSH = LOGBRUSH;
+     TLOGBRUSH = LOGBRUSH;
+     PLOGBRUSH = ^LOGBRUSH;
 
      EMRCREATEBRUSHINDIRECT = record
           emr : EMR;
           ihBrush : DWORD;
           lb : LOGBRUSH;
        end;
-
-     PEMRCREATEBRUSHINDIRECT = ^EMRCREATEBRUSHINDIRECT;
-
      tagEMRCREATEBRUSHINDIRECT = EMRCREATEBRUSHINDIRECT;
+     TEMRCREATEBRUSHINDIRECT = EMRCREATEBRUSHINDIRECT;
+     PEMRCREATEBRUSHINDIRECT = ^EMRCREATEBRUSHINDIRECT;
 
      LCSCSTYPE = LONG;
 
@@ -2044,20 +2078,19 @@ unit struct;
           lcsGammaBlue : DWORD;
           lcsFilename : array[0..(MAX_PATH)-1] of TCHAR;
        end;
-
      LPLOGCOLORSPACE = ^LOGCOLORSPACE;
-
      tagLOGCOLORSPACE = LOGCOLORSPACE;
+     TLOGCOLORSPACE = LOGCOLORSPACE;
+     PLOGCOLORSPACE = ^LOGCOLORSPACE;
 
      EMRCREATECOLORSPACE = record
           emr : EMR;
           ihCS : DWORD;
           lcs : LOGCOLORSPACE;
        end;
-
-     PEMRCREATECOLORSPACE = ^EMRCREATECOLORSPACE;
-
      tagEMRCREATECOLORSPACE = EMRCREATECOLORSPACE;
+     TEMRCREATECOLORSPACE = EMRCREATECOLORSPACE;
+     PEMRCREATECOLORSPACE = ^EMRCREATECOLORSPACE;
 
      EMRCREATEDIBPATTERNBRUSHPT = record
           emr : EMR;
@@ -2068,10 +2101,9 @@ unit struct;
           offBits : DWORD;
           cbBits : DWORD;
        end;
-
-     PEMRCREATEDIBPATTERNBRUSHPT = EMRCREATEDIBPATTERNBRUSHPT;
-
      tagEMRCREATEDIBPATTERNBRUSHPT = EMRCREATEDIBPATTERNBRUSHPT;
+     TEMRCREATEDIBPATTERNBRUSHPT = EMRCREATEDIBPATTERNBRUSHPT;
+     PEMRCREATEDIBPATTERNBRUSHPT = EMRCREATEDIBPATTERNBRUSHPT;
 
      EMRCREATEMONOBRUSH = record
           emr : EMR;
@@ -2082,10 +2114,9 @@ unit struct;
           offBits : DWORD;
           cbBits : DWORD;
        end;
-
-     PEMRCREATEMONOBRUSH = ^EMRCREATEMONOBRUSH;
-
      tagEMRCREATEMONOBRUSH = EMRCREATEMONOBRUSH;
+     TEMRCREATEMONOBRUSH = EMRCREATEMONOBRUSH;
+     PEMRCREATEMONOBRUSH = ^EMRCREATEMONOBRUSH;
 
      PALETTEENTRY = record
           peRed : BYTE;
@@ -2093,65 +2124,59 @@ unit struct;
           peBlue : BYTE;
           peFlags : BYTE;
        end;
-
      LPPALETTEENTRY = ^PALETTEENTRY;
-
-     PPALETTEENTRY = ^PALETTEENTRY;
-
      tagPALETTEENTRY = PALETTEENTRY;
+     TPALETTEENTRY = PALETTEENTRY;
+     PPALETTEENTRY = ^PALETTEENTRY;
 
      LOGPALETTE = record
           palVersion : WORD;
           palNumEntries : WORD;
           palPalEntry : array[0..0] of PALETTEENTRY;
        end;
-
      LPLOGPALETTE = ^LOGPALETTE;
-
-     PLOGPALETTE = ^LOGPALETTE;
-
      tagLOGPALETTE = LOGPALETTE;
+     TLOGPALETTE = LOGPALETTE;
+     PLOGPALETTE = ^LOGPALETTE;
 
      EMRCREATEPALETTE = record
           emr : EMR;
           ihPal : DWORD;
           lgpl : LOGPALETTE;
        end;
-
-     PEMRCREATEPALETTE = ^EMRCREATEPALETTE;
-
      tagEMRCREATEPALETTE = EMRCREATEPALETTE;
+     TEMRCREATEPALETTE = EMRCREATEPALETTE;
+     PEMRCREATEPALETTE = ^EMRCREATEPALETTE;
 
      LOGPEN = record
           lopnStyle : UINT;
           lopnWidth : POINT;
           lopnColor : COLORREF;
        end;
-
      tagLOGPEN = LOGPEN;
+     TLOGPEN = LOGPEN;
+     PLOGPEN = ^LOGPEN;
 
      EMRCREATEPEN = record
           emr : EMR;
           ihPen : DWORD;
           lopn : LOGPEN;
        end;
-
-     PEMRCREATEPEN = ^EMRCREATEPEN;
-
      tagEMRCREATEPEN = EMRCREATEPEN;
+     TEMRCREATEPEN = EMRCREATEPEN;
+     PEMRCREATEPEN = ^EMRCREATEPEN;
 
      EMRELLIPSE = record
           emr : EMR;
           rclBox : RECTL;
        end;
-
+     tagEMRELLIPSE = EMRELLIPSE;
+     TEMRELLIPSE = EMRELLIPSE;
      PEMRELLIPSE = ^EMRELLIPSE;
 
      EMRRECTANGLE = EMRELLIPSE;
-
+     TEMRRECTANGLE = EMRELLIPSE;
      PEMRRECTANGLE = ^EMRELLIPSE;
-
-     tagEMRELLIPSE = EMRELLIPSE;
 
      EMREOF = record
           emr : EMR;
@@ -2159,23 +2184,21 @@ unit struct;
           offPalEntries : DWORD;
           nSizeLast : DWORD;
        end;
-
-     PEMREOF = ^EMREOF;
-
      tagEMREOF = EMREOF;
+     TEMREOF = EMREOF;
+     PEMREOF = ^EMREOF;
 
      EMREXCLUDECLIPRECT = record
           emr : EMR;
           rclClip : RECTL;
        end;
-
+     tagEMREXCLUDECLIPRECT = EMREXCLUDECLIPRECT;
+     TEMREXCLUDECLIPRECT = EMREXCLUDECLIPRECT;
      PEMREXCLUDECLIPRECT = ^EMREXCLUDECLIPRECT;
 
      EMRINTERSECTCLIPRECT = EMREXCLUDECLIPRECT;
-
+     TEMRINTERSECTCLIPRECT = EMREXCLUDECLIPRECT;
      PEMRINTERSECTCLIPRECT = ^EMREXCLUDECLIPRECT;
-
-     tagEMREXCLUDECLIPRECT = EMREXCLUDECLIPRECT;
 
      PANOSE = record
           bFamilyType : BYTE;
@@ -2189,8 +2212,9 @@ unit struct;
           bMidline : BYTE;
           bXHeight : BYTE;
        end;
-
      tagPANOSE = PANOSE;
+     TPANOSE = PANOSE;
+     PPANOSE = ^PANOSE;
 
      EXTLOGFONT = record
           elfLogFont : LOGFONT;
@@ -2204,18 +2228,19 @@ unit struct;
           elfCulture : DWORD;
           elfPanose : PANOSE;
        end;
-
      tagEXTLOGFONT = EXTLOGFONT;
+     TEXTLOGFONT = EXTLOGFONT;
+     PEXTLOGFONT = ^EXTLOGFONT;
 
      EMREXTCREATEFONTINDIRECTW = record
           emr : EMR;
           ihFont : DWORD;
           elfw : EXTLOGFONT;
        end;
-
-     PEMREXTCREATEFONTINDIRECTW = EMREXTCREATEFONTINDIRECTW;
-
      tagEMREXTCREATEFONTINDIRECTW = EMREXTCREATEFONTINDIRECTW;
+     TEMREXTCREATEFONTINDIRECTW = EMREXTCREATEFONTINDIRECTW;
+     PEMREXTCREATEFONTINDIRECTW = ^EMREXTCREATEFONTINDIRECTW;
+
 
      EXTLOGPEN = record
           elpPenStyle : UINT;
@@ -2226,8 +2251,9 @@ unit struct;
           elpNumEntries : DWORD;
           elpStyleEntry : array[0..0] of DWORD;
        end;
-
      tagEXTLOGPEN = EXTLOGPEN;
+     TEXTLOGPEN = EXTLOGPEN;
+     PEXTLOGPEN = ^EXTLOGPEN;
 
      EMREXTCREATEPEN = record
           emr : EMR;
@@ -2238,10 +2264,9 @@ unit struct;
           cbBits : DWORD;
           elp : EXTLOGPEN;
        end;
-
-     PEMREXTCREATEPEN = ^EMREXTCREATEPEN;
-
      tagEMREXTCREATEPEN = EMREXTCREATEPEN;
+     TEMREXTCREATEPEN = EMREXTCREATEPEN;
+     PEMREXTCREATEPEN = ^EMREXTCREATEPEN;
 
      EMREXTFLOODFILL = record
           emr : EMR;
@@ -2249,10 +2274,9 @@ unit struct;
           crColor : COLORREF;
           iMode : DWORD;
        end;
-
-     PEMREXTFLOODFILL = ^EMREXTFLOODFILL;
-
      tagEMREXTFLOODFILL = EMREXTFLOODFILL;
+     TEMREXTFLOODFILL = EMREXTFLOODFILL;
+     PEMREXTFLOODFILL = ^EMREXTFLOODFILL;
 
      EMREXTSELECTCLIPRGN = record
           emr : EMR;
@@ -2260,10 +2284,9 @@ unit struct;
           iMode : DWORD;
           RgnData : array[0..0] of BYTE;
        end;
-
-     PEMREXTSELECTCLIPRGN = ^EMREXTSELECTCLIPRGN;
-
      tagEMREXTSELECTCLIPRGN = EMREXTSELECTCLIPRGN;
+     TEMREXTSELECTCLIPRGN = EMREXTSELECTCLIPRGN;
+     PEMREXTSELECTCLIPRGN = ^EMREXTSELECTCLIPRGN;
 
      EMRTEXT = record
           ptlReference : POINTL;
@@ -2273,10 +2296,9 @@ unit struct;
           rcl : RECTL;
           offDx : DWORD;
        end;
-
-     PEMRTEXT = ^EMRTEXT;
-
      tagEMRTEXT = EMRTEXT;
+     TEMRTEXT = EMRTEXT;
+     PEMRTEXT = ^EMRTEXT;
 
      EMREXTTEXTOUTA = record
           emr : EMR;
@@ -2286,31 +2308,29 @@ unit struct;
           eyScale : FLOAT;
           emrtext : EMRTEXT;
        end;
-
+     tagEMREXTTEXTOUTA = EMREXTTEXTOUTA;
+     TEMREXTTEXTOUTA = EMREXTTEXTOUTA;
      PEMREXTTEXTOUTA = ^EMREXTTEXTOUTA;
 
      EMREXTTEXTOUTW = EMREXTTEXTOUTA;
-
+     TEMREXTTEXTOUTW = EMREXTTEXTOUTA;
      PEMREXTTEXTOUTW = ^EMREXTTEXTOUTA;
-
-     tagEMREXTTEXTOUTA = EMREXTTEXTOUTA;
 
      EMRFILLPATH = record
           emr : EMR;
           rclBounds : RECTL;
        end;
-
+     tagEMRFILLPATH = EMRFILLPATH;
+     TEMRFILLPATH = EMRFILLPATH;
      PEMRFILLPATH = ^EMRFILLPATH;
 
      EMRSTROKEANDFILLPATH = EMRFILLPATH;
-
+     TEMRSTROKEANDFILLPATH = EMRFILLPATH;
      PEMRSTROKEANDFILLPATH = ^EMRFILLPATH;
 
      EMRSTROKEPATH = EMRFILLPATH;
-
+     TEMRSTROKEPATH = EMRFILLPATH;
      PEMRSTROKEPATH = ^EMRFILLPATH;
-
-     tagEMRFILLPATH = EMRFILLPATH;
 
      EMRFILLRGN = record
           emr : EMR;
@@ -2319,10 +2339,9 @@ unit struct;
           ihBrush : DWORD;
           RgnData : array[0..0] of BYTE;
        end;
-
-     PEMRFILLRGN = ^EMRFILLRGN;
-
      tagEMRFILLRGN = EMRFILLRGN;
+     TEMRFILLRGN = EMRFILLRGN;
+     PEMRFILLRGN = ^EMRFILLRGN;
 
      EMRFORMAT = record
           dSignature : DWORD;
@@ -2330,25 +2349,23 @@ unit struct;
           cbData : DWORD;
           offData : DWORD;
        end;
-
      tagEMRFORMAT = EMRFORMAT;
+     TEMRFORMAT = EMRFORMAT;
+     PEMRFORMAT = ^EMRFORMAT;
 
      SIZE = record
           cx : LONG;
           cy : LONG;
        end;
-
+     LPSIZE = ^SIZE;
+     tagSIZE = SIZE;
+     TSIZE = SIZE;
      PSIZE = ^SIZE;
 
-     LPSIZE = ^SIZE;
-
      SIZEL = SIZE;
-
+     TSIZEL = SIZE;
      PSIZEL = ^SIZE;
-
      LPSIZEL = ^SIZE;
-
-     tagSIZE = SIZE;
 
      EMRFRAMERGN = record
           emr : EMR;
@@ -2358,20 +2375,18 @@ unit struct;
           szlStroke : SIZEL;
           RgnData : array[0..0] of BYTE;
        end;
-
-     PEMRFRAMERGN = ^EMRFRAMERGN;
-
      tagEMRFRAMERGN = EMRFRAMERGN;
+     TEMRFRAMERGN = EMRFRAMERGN;
+     PEMRFRAMERGN = ^EMRFRAMERGN;
 
      EMRGDICOMMENT = record
           emr : EMR;
           cbData : DWORD;
           Data : array[0..0] of BYTE;
        end;
-
-     PEMRGDICOMMENT = ^EMRGDICOMMENT;
-
      tagEMRGDICOMMENT = EMRGDICOMMENT;
+     TEMRGDICOMMENT = EMRGDICOMMENT;
+     PEMRGDICOMMENT = ^EMRGDICOMMENT;
 
      EMRINVERTRGN = record
           emr : EMR;
@@ -2379,27 +2394,25 @@ unit struct;
           cbRgnData : DWORD;
           RgnData : array[0..0] of BYTE;
        end;
-
+     tagEMRINVERTRGN = EMRINVERTRGN;
+     TEMRINVERTRGN = EMRINVERTRGN;
      PEMRINVERTRGN = ^EMRINVERTRGN;
 
      EMRPAINTRGN = EMRINVERTRGN;
-
+     TEMRPAINTRGN = EMRINVERTRGN;
      PEMRPAINTRGN = ^EMRINVERTRGN;
-
-     tagEMRINVERTRGN = EMRINVERTRGN;
 
      EMRLINETO = record
           emr : EMR;
           ptl : POINTL;
        end;
-
+     tagEMRLINETO = EMRLINETO;
+     TEMRLINETO = EMRLINETO;
      PEMRLINETO = ^EMRLINETO;
 
      EMRMOVETOEX = EMRLINETO;
-
+     TEMRMOVETOEX = EMRLINETO;
      PEMRMOVETOEX = ^EMRLINETO;
-
-     tagEMRLINETO = EMRLINETO;
 
      EMRMASKBLT = record
           emr : EMR;
@@ -2426,29 +2439,26 @@ unit struct;
           offBitsMask : DWORD;
           cbBitsMask : DWORD;
        end;
-
-     PEMRMASKBLT = ^EMRMASKBLT;
-
      tagEMRMASKBLT = EMRMASKBLT;
+     TEMRMASKBLT = EMRMASKBLT;
+     PEMRMASKBLT = ^EMRMASKBLT;
 
      EMRMODIFYWORLDTRANSFORM = record
           emr : EMR;
           xform : XFORM;
           iMode : DWORD;
        end;
-
-     PEMRMODIFYWORLDTRANSFORM = EMRMODIFYWORLDTRANSFORM;
-
      tagEMRMODIFYWORLDTRANSFORM = EMRMODIFYWORLDTRANSFORM;
+     TEMRMODIFYWORLDTRANSFORM = EMRMODIFYWORLDTRANSFORM;
+     PEMRMODIFYWORLDTRANSFORM = EMRMODIFYWORLDTRANSFORM;
 
      EMROFFSETCLIPRGN = record
           emr : EMR;
           ptlOffset : POINTL;
        end;
-
-     PEMROFFSETCLIPRGN = ^EMROFFSETCLIPRGN;
-
      tagEMROFFSETCLIPRGN = EMROFFSETCLIPRGN;
+     TEMROFFSETCLIPRGN = EMROFFSETCLIPRGN;
+     PEMROFFSETCLIPRGN = ^EMROFFSETCLIPRGN;
 
      EMRPLGBLT = record
           emr : EMR;
@@ -2473,10 +2483,9 @@ unit struct;
           offBitsMask : DWORD;
           cbBitsMask : DWORD;
        end;
-
-     PEMRPLGBLT = ^EMRPLGBLT;
-
      tagEMRPLGBLT = EMRPLGBLT;
+     TEMRPLGBLT = EMRPLGBLT;
+     PEMRPLGBLT = ^EMRPLGBLT;
 
      EMRPOLYDRAW = record
           emr : EMR;
@@ -2485,10 +2494,9 @@ unit struct;
           aptl : array[0..0] of POINTL;
           abTypes : array[0..0] of BYTE;
        end;
-
-     PEMRPOLYDRAW = ^EMRPOLYDRAW;
-
      tagEMRPOLYDRAW = EMRPOLYDRAW;
+     TEMRPOLYDRAW = EMRPOLYDRAW;
+     PEMRPOLYDRAW = ^EMRPOLYDRAW;
 
      EMRPOLYDRAW16 = record
           emr : EMR;
@@ -2497,10 +2505,9 @@ unit struct;
           apts : array[0..0] of POINTS;
           abTypes : array[0..0] of BYTE;
        end;
-
-     PEMRPOLYDRAW16 = ^EMRPOLYDRAW16;
-
      tagEMRPOLYDRAW16 = EMRPOLYDRAW16;
+     TEMRPOLYDRAW16 = EMRPOLYDRAW16;
+     PEMRPOLYDRAW16 = ^EMRPOLYDRAW16;
 
      EMRPOLYLINE = record
           emr : EMR;
@@ -2508,26 +2515,25 @@ unit struct;
           cptl : DWORD;
           aptl : array[0..0] of POINTL;
        end;
-
+     tagEMRPOLYLINE = EMRPOLYLINE;
+     TEMRPOLYLINE = EMRPOLYLINE;
      PEMRPOLYLINE = ^EMRPOLYLINE;
 
      EMRPOLYBEZIER = EMRPOLYLINE;
-
+     TEMRPOLYBEZIER = EMRPOLYLINE;
      PEMRPOLYBEZIER = ^EMRPOLYLINE;
 
      EMRPOLYGON = EMRPOLYLINE;
-
+     TEMRPOLYGON = EMRPOLYLINE;
      PEMRPOLYGON = ^EMRPOLYLINE;
 
      EMRPOLYBEZIERTO = EMRPOLYLINE;
-
+     TEMRPOLYBEZIERTO = EMRPOLYLINE;
      PEMRPOLYBEZIERTO = ^EMRPOLYLINE;
 
      EMRPOLYLINETO = EMRPOLYLINE;
-
+     TEMRPOLYLINETO = EMRPOLYLINE;
      PEMRPOLYLINETO = ^EMRPOLYLINE;
-
-     tagEMRPOLYLINE = EMRPOLYLINE;
 
      EMRPOLYLINE16 = record
           emr : EMR;
@@ -2535,26 +2541,25 @@ unit struct;
           cpts : DWORD;
           apts : array[0..0] of POINTL;
        end;
-
+     tagEMRPOLYLINE16 = EMRPOLYLINE16;
+     TEMRPOLYLINE16 = EMRPOLYLINE16;
      PEMRPOLYLINE16 = ^EMRPOLYLINE16;
 
      EMRPOLYBEZIER16 = EMRPOLYLINE16;
-
+     TEMRPOLYBEZIER16 = EMRPOLYLINE16;
      PEMRPOLYBEZIER16 = ^EMRPOLYLINE16;
 
      EMRPOLYGON16 = EMRPOLYLINE16;
-
+     TEMRPOLYGON16 = EMRPOLYLINE16;
      PEMRPOLYGON16 = ^EMRPOLYLINE16;
 
      EMRPOLYBEZIERTO16 = EMRPOLYLINE16;
-
+     TEMRPOLYBEZIERTO16 = EMRPOLYLINE16;
      PEMRPOLYBEZIERTO16 = ^EMRPOLYLINE16;
 
      EMRPOLYLINETO16 = EMRPOLYLINE16;
-
+     TEMRPOLYLINETO16 = EMRPOLYLINE16;
      PEMRPOLYLINETO16 = ^EMRPOLYLINE16;
-
-     tagEMRPOLYLINE16 = EMRPOLYLINE16;
 
      EMRPOLYPOLYLINE = record
           emr : EMR;
@@ -2564,14 +2569,13 @@ unit struct;
           aPolyCounts : array[0..0] of DWORD;
           aptl : array[0..0] of POINTL;
        end;
-
+     tagEMRPOLYPOLYLINE = EMRPOLYPOLYLINE;
+     TEMRPOLYPOLYLINE = EMRPOLYPOLYLINE;
      PEMRPOLYPOLYLINE = ^EMRPOLYPOLYLINE;
 
      EMRPOLYPOLYGON = EMRPOLYPOLYLINE;
-
+     TEMRPOLYPOLYGON = EMRPOLYPOLYLINE;
      PEMRPOLYPOLYGON = ^EMRPOLYPOLYLINE;
-
-     tagEMRPOLYPOLYLINE = EMRPOLYPOLYLINE;
 
      EMRPOLYPOLYLINE16 = record
           emr : EMR;
@@ -2581,14 +2585,13 @@ unit struct;
           aPolyCounts : array[0..0] of DWORD;
           apts : array[0..0] of POINTS;
        end;
-
+     tagEMRPOLYPOLYLINE16 = EMRPOLYPOLYLINE16;
+     TEMRPOLYPOLYLINE16 = EMRPOLYPOLYLINE16;
      PEMRPOLYPOLYLINE16 = ^EMRPOLYPOLYLINE16;
 
      EMRPOLYPOLYGON16 = EMRPOLYPOLYLINE16;
-
+     TEMRPOLYPOLYGON16 = EMRPOLYPOLYLINE16;
      PEMRPOLYPOLYGON16 = ^EMRPOLYPOLYLINE16;
-
-     tagEMRPOLYPOLYLINE16 = EMRPOLYPOLYLINE16;
 
      EMRPOLYTEXTOUTA = record
           emr : EMR;
@@ -2599,43 +2602,39 @@ unit struct;
           cStrings : LONG;
           aemrtext : array[0..0] of EMRTEXT;
        end;
-
+     tagEMRPOLYTEXTOUTA = EMRPOLYTEXTOUTA;
+     TEMRPOLYTEXTOUTA = EMRPOLYTEXTOUTA;
      PEMRPOLYTEXTOUTA = ^EMRPOLYTEXTOUTA;
 
      EMRPOLYTEXTOUTW = EMRPOLYTEXTOUTA;
-
+     TEMRPOLYTEXTOUTW = EMRPOLYTEXTOUTA;
      PEMRPOLYTEXTOUTW = ^EMRPOLYTEXTOUTA;
-
-     tagEMRPOLYTEXTOUTA = EMRPOLYTEXTOUTA;
 
      EMRRESIZEPALETTE = record
           emr : EMR;
           ihPal : DWORD;
           cEntries : DWORD;
        end;
-
-     PEMRRESIZEPALETTE = ^EMRRESIZEPALETTE;
-
      tagEMRRESIZEPALETTE = EMRRESIZEPALETTE;
+     TEMRRESIZEPALETTE = EMRRESIZEPALETTE;
+     PEMRRESIZEPALETTE = ^EMRRESIZEPALETTE;
 
      EMRRESTOREDC = record
           emr : EMR;
           iRelative : LONG;
        end;
-
-     PEMRRESTOREDC = ^EMRRESTOREDC;
-
      tagEMRRESTOREDC = EMRRESTOREDC;
+     TEMRRESTOREDC = EMRRESTOREDC;
+     PEMRRESTOREDC = ^EMRRESTOREDC;
 
      EMRROUNDRECT = record
           emr : EMR;
           rclBox : RECTL;
           szlCorner : SIZEL;
        end;
-
-     PEMRROUNDRECT = ^EMRROUNDRECT;
-
      tagEMRROUNDRECT = EMRROUNDRECT;
+     TEMRROUNDRECT = EMRROUNDRECT;
+     PEMRROUNDRECT = ^EMRROUNDRECT;
 
      EMRSCALEVIEWPORTEXTEX = record
           emr : EMR;
@@ -2644,80 +2643,73 @@ unit struct;
           yNum : LONG;
           yDenom : LONG;
        end;
-
+     tagEMRSCALEVIEWPORTEXTEX = EMRSCALEVIEWPORTEXTEX;
+     TEMRSCALEVIEWPORTEXTEX = EMRSCALEVIEWPORTEXTEX;
      PEMRSCALEVIEWPORTEXTEX = ^EMRSCALEVIEWPORTEXTEX;
 
      EMRSCALEWINDOWEXTEX = EMRSCALEVIEWPORTEXTEX;
-
+     TEMRSCALEWINDOWEXTEX = EMRSCALEVIEWPORTEXTEX;
      PEMRSCALEWINDOWEXTEX = ^EMRSCALEVIEWPORTEXTEX;
-
-     tagEMRSCALEVIEWPORTEXTEX = EMRSCALEVIEWPORTEXTEX;
 
      EMRSELECTCOLORSPACE = record
           emr : EMR;
           ihCS : DWORD;
        end;
-
+     tagEMRSELECTCOLORSPACE = EMRSELECTCOLORSPACE;
+     TEMRSELECTCOLORSPACE = EMRSELECTCOLORSPACE;
      PEMRSELECTCOLORSPACE = ^EMRSELECTCOLORSPACE;
 
      EMRDELETECOLORSPACE = EMRSELECTCOLORSPACE;
-
+     TEMRDELETECOLORSPACE = EMRSELECTCOLORSPACE;
      PEMRDELETECOLORSPACE = ^EMRSELECTCOLORSPACE;
-
-     tagEMRSELECTCOLORSPACE = EMRSELECTCOLORSPACE;
 
      EMRSELECTOBJECT = record
           emr : EMR;
           ihObject : DWORD;
        end;
-
+     tagEMRSELECTOBJECT = EMRSELECTOBJECT;
+     TEMRSELECTOBJECT = EMRSELECTOBJECT;
      PEMRSELECTOBJECT = ^EMRSELECTOBJECT;
 
      EMRDELETEOBJECT = EMRSELECTOBJECT;
-
+     TEMRDELETEOBJECT = EMRSELECTOBJECT;
      PEMRDELETEOBJECT = ^EMRSELECTOBJECT;
-
-     tagEMRSELECTOBJECT = EMRSELECTOBJECT;
 
      EMRSELECTPALETTE = record
           emr : EMR;
           ihPal : DWORD;
        end;
-
-     PEMRSELECTPALETTE = ^EMRSELECTPALETTE;
-
      tagEMRSELECTPALETTE = EMRSELECTPALETTE;
+     TEMRSELECTPALETTE = EMRSELECTPALETTE;
+     PEMRSELECTPALETTE = ^EMRSELECTPALETTE;
 
      EMRSETARCDIRECTION = record
           emr : EMR;
           iArcDirection : DWORD;
        end;
-
-     PEMRSETARCDIRECTION = ^EMRSETARCDIRECTION;
-
      tagEMRSETARCDIRECTION = EMRSETARCDIRECTION;
+     TEMRSETARCDIRECTION = EMRSETARCDIRECTION;
+     PEMRSETARCDIRECTION = ^EMRSETARCDIRECTION;
 
      EMRSETBKCOLOR = record
           emr : EMR;
           crColor : COLORREF;
        end;
-
+     tagEMRSETTEXTCOLOR = EMRSETBKCOLOR;
+     TEMRSETBKCOLOR = EMRSETBKCOLOR;
      PEMRSETBKCOLOR = ^EMRSETBKCOLOR;
 
      EMRSETTEXTCOLOR = EMRSETBKCOLOR;
-
+     TEMRSETTEXTCOLOR = EMRSETBKCOLOR;
      PEMRSETTEXTCOLOR = ^EMRSETBKCOLOR;
-
-     tagEMRSETTEXTCOLOR = EMRSETBKCOLOR;
 
      EMRSETCOLORADJUSTMENT = record
           emr : EMR;
           ColorAdjustment : COLORADJUSTMENT;
        end;
-
-     PEMRSETCOLORADJUSTMENT = ^EMRSETCOLORADJUSTMENT;
-
      tagEMRSETCOLORADJUSTMENT = EMRSETCOLORADJUSTMENT;
+     TEMRSETCOLORADJUSTMENT = EMRSETCOLORADJUSTMENT;
+     PEMRSETCOLORADJUSTMENT = ^EMRSETCOLORADJUSTMENT;
 
      EMRSETDIBITSTODEVICE = record
           emr : EMR;
@@ -2736,28 +2728,25 @@ unit struct;
           iStartScan : DWORD;
           cScans : DWORD;
        end;
-
-     PEMRSETDIBITSTODEVICE = ^EMRSETDIBITSTODEVICE;
-
      tagEMRSETDIBITSTODEVICE = EMRSETDIBITSTODEVICE;
+     TEMRSETDIBITSTODEVICE = EMRSETDIBITSTODEVICE;
+     PEMRSETDIBITSTODEVICE = ^EMRSETDIBITSTODEVICE;
 
      EMRSETMAPPERFLAGS = record
           emr : EMR;
           dwFlags : DWORD;
        end;
-
-     PEMRSETMAPPERFLAGS = ^EMRSETMAPPERFLAGS;
-
      tagEMRSETMAPPERFLAGS = EMRSETMAPPERFLAGS;
+     TEMRSETMAPPERFLAGS = EMRSETMAPPERFLAGS;
+     PEMRSETMAPPERFLAGS = ^EMRSETMAPPERFLAGS;
 
      EMRSETMITERLIMIT = record
           emr : EMR;
           eMiterLimit : FLOAT;
        end;
-
-     PEMRSETMITERLIMIT = ^EMRSETMITERLIMIT;
-
      tagEMRSETMITERLIMIT = EMRSETMITERLIMIT;
+     TEMRSETMITERLIMIT = EMRSETMITERLIMIT;
+     PEMRSETMITERLIMIT = ^EMRSETMITERLIMIT;
 
      EMRSETPALETTEENTRIES = record
           emr : EMR;
@@ -2766,59 +2755,54 @@ unit struct;
           cEntries : DWORD;
           aPalEntries : array[0..0] of PALETTEENTRY;
        end;
-
-     PEMRSETPALETTEENTRIES = ^EMRSETPALETTEENTRIES;
-
      tagEMRSETPALETTEENTRIES = EMRSETPALETTEENTRIES;
+     TEMRSETPALETTEENTRIES = EMRSETPALETTEENTRIES;
+     PEMRSETPALETTEENTRIES = ^EMRSETPALETTEENTRIES;
 
      EMRSETPIXELV = record
           emr : EMR;
           ptlPixel : POINTL;
           crColor : COLORREF;
        end;
-
-     PEMRSETPIXELV = ^EMRSETPIXELV;
-
      tagEMRSETPIXELV = EMRSETPIXELV;
+     TEMRSETPIXELV = EMRSETPIXELV;
+     PEMRSETPIXELV = ^EMRSETPIXELV;
 
      EMRSETVIEWPORTEXTEX = record
           emr : EMR;
           szlExtent : SIZEL;
        end;
-
+     tagEMRSETVIEWPORTEXTEX = EMRSETVIEWPORTEXTEX;
+     TEMRSETVIEWPORTEXTEX = EMRSETVIEWPORTEXTEX;
      PEMRSETVIEWPORTEXTEX = ^EMRSETVIEWPORTEXTEX;
 
      EMRSETWINDOWEXTEX = EMRSETVIEWPORTEXTEX;
-
+     TEMRSETWINDOWEXTEX = EMRSETVIEWPORTEXTEX;
      PEMRSETWINDOWEXTEX = ^EMRSETVIEWPORTEXTEX;
-
-     tagEMRSETVIEWPORTEXTEX = EMRSETVIEWPORTEXTEX;
 
      EMRSETVIEWPORTORGEX = record
           emr : EMR;
           ptlOrigin : POINTL;
        end;
-
+     tagEMRSETVIEWPORTORGEX = EMRSETVIEWPORTORGEX;
+     TEMRSETVIEWPORTORGEX = EMRSETVIEWPORTORGEX;
      PEMRSETVIEWPORTORGEX = ^EMRSETVIEWPORTORGEX;
 
      EMRSETWINDOWORGEX = EMRSETVIEWPORTORGEX;
-
+     TEMRSETWINDOWORGEX = EMRSETVIEWPORTORGEX;
      PEMRSETWINDOWORGEX = ^EMRSETVIEWPORTORGEX;
 
      EMRSETBRUSHORGEX = EMRSETVIEWPORTORGEX;
-
+     TEMRSETBRUSHORGEX = EMRSETVIEWPORTORGEX;
      PEMRSETBRUSHORGEX = ^EMRSETVIEWPORTORGEX;
-
-     tagEMRSETVIEWPORTORGEX = EMRSETVIEWPORTORGEX;
 
      EMRSETWORLDTRANSFORM = record
           emr : EMR;
           xform : XFORM;
        end;
-
-     PEMRSETWORLDTRANSFORM = ^EMRSETWORLDTRANSFORM;
-
      tagEMRSETWORLDTRANSFORM = EMRSETWORLDTRANSFORM;
+     TEMRSETWORLDTRANSFORM = EMRSETWORLDTRANSFORM;
+     PEMRSETWORLDTRANSFORM = ^EMRSETWORLDTRANSFORM;
 
      EMRSTRETCHBLT = record
           emr : EMR;
@@ -2840,10 +2824,9 @@ unit struct;
           cxSrc : LONG;
           cySrc : LONG;
        end;
-
-     PEMRSTRETCHBLT = ^EMRSTRETCHBLT;
-
      tagEMRSTRETCHBLT = EMRSTRETCHBLT;
+     TEMRSTRETCHBLT = EMRSTRETCHBLT;
+     PEMRSTRETCHBLT = ^EMRSTRETCHBLT;
 
      EMRSTRETCHDIBITS = record
           emr : EMR;
@@ -2863,103 +2846,104 @@ unit struct;
           cxDest : LONG;
           cyDest : LONG;
        end;
-
-     PEMRSTRETCHDIBITS = ^EMRSTRETCHDIBITS;
-
      tagEMRSTRETCHDIBITS = EMRSTRETCHDIBITS;
+     TEMRSTRETCHDIBITS = EMRSTRETCHDIBITS;
+     PEMRSTRETCHDIBITS = ^EMRSTRETCHDIBITS;
 
      EMRABORTPATH = record
           emr : EMR;
        end;
-
+     TEMRABORTPATH = EMRABORTPATH;
      PEMRABORTPATH = ^EMRABORTPATH;
 
-     EMRBEGINPATH = EMRABORTPATH;
+     tagABORTPATH = EMRABORTPATH;
+     TABORTPATH = EMRABORTPATH;
 
+     EMRBEGINPATH = EMRABORTPATH;
+     TEMRBEGINPATH = EMRABORTPATH;
      PEMRBEGINPATH = ^EMRABORTPATH;
 
      EMRENDPATH = EMRABORTPATH;
-
+     TEMRENDPATH = EMRABORTPATH;
      PEMRENDPATH = ^EMRABORTPATH;
 
      EMRCLOSEFIGURE = EMRABORTPATH;
-
+     TEMRCLOSEFIGURE = EMRABORTPATH;
      PEMRCLOSEFIGURE = ^EMRABORTPATH;
 
      EMRFLATTENPATH = EMRABORTPATH;
-
+     TEMRFLATTENPATH = EMRABORTPATH;
      PEMRFLATTENPATH = ^EMRABORTPATH;
 
      EMRWIDENPATH = EMRABORTPATH;
-
+     TEMRWIDENPATH = EMRABORTPATH;
      PEMRWIDENPATH = ^EMRABORTPATH;
 
      EMRSETMETARGN = EMRABORTPATH;
-
+     TEMRSETMETARGN = EMRABORTPATH;
      PEMRSETMETARGN = ^EMRABORTPATH;
 
      EMRSAVEDC = EMRABORTPATH;
-
+     TEMRSAVEDC = EMRABORTPATH;
      PEMRSAVEDC = ^EMRABORTPATH;
 
      EMRREALIZEPALETTE = EMRABORTPATH;
-
+     TEMRREALIZEPALETTE = EMRABORTPATH;
      PEMRREALIZEPALETTE = ^EMRABORTPATH;
-
-     tagABORTPATH = EMRABORTPATH;
 
      EMRSELECTCLIPPATH = record
           emr : EMR;
           iMode : DWORD;
        end;
-
+     tagEMRSELECTCLIPPATH = EMRSELECTCLIPPATH;
+     TEMRSELECTCLIPPATH = EMRSELECTCLIPPATH;
      PEMRSELECTCLIPPATH = ^EMRSELECTCLIPPATH;
 
      EMRSETBKMODE = EMRSELECTCLIPPATH;
-
+     TEMRSETBKMODE = EMRSELECTCLIPPATH;
      PEMRSETBKMODE = ^EMRSELECTCLIPPATH;
 
      EMRSETMAPMODE = EMRSELECTCLIPPATH;
-
+     TEMRSETMAPMODE = EMRSELECTCLIPPATH;
      PEMRSETMAPMODE = ^EMRSELECTCLIPPATH;
 
      EMRSETPOLYFILLMODE = EMRSELECTCLIPPATH;
-
+     TEMRSETPOLYFILLMODE = EMRSELECTCLIPPATH;
      PEMRSETPOLYFILLMODE = ^EMRSELECTCLIPPATH;
 
      EMRSETROP2 = EMRSELECTCLIPPATH;
-
+     TEMRSETROP2 = EMRSELECTCLIPPATH;
      PEMRSETROP2 = ^EMRSELECTCLIPPATH;
 
      EMRSETSTRETCHBLTMODE = EMRSELECTCLIPPATH;
-
+     TEMRSETSTRETCHBLTMODE = EMRSELECTCLIPPATH;
      PEMRSETSTRETCHBLTMODE = ^EMRSELECTCLIPPATH;
 
      EMRSETTEXTALIGN = EMRSELECTCLIPPATH;
-
+     TEMRSETTEXTALIGN = EMRSELECTCLIPPATH;
      PEMRSETTEXTALIGN = ^EMRSELECTCLIPPATH;
 
      EMRENABLEICM = EMRSELECTCLIPPATH;
-
+     TEMRENABLEICM = EMRSELECTCLIPPATH;
      PEMRENABLEICM = ^EMRSELECTCLIPPATH;
-
-     tagEMRSELECTCLIPPATH = EMRSELECTCLIPPATH;
 
      NMHDR = record
           hwndFrom : HWND;
           idFrom : UINT;
           code : UINT;
        end;
-
      tagNMHDR = NMHDR;
+     TNMHDR = NMHDR;
+     PNMHDR = ^NMHDR;
 
      ENCORRECTTEXT = record
           nmhdr : NMHDR;
           chrg : CHARRANGE;
           seltyp : WORD;
        end;
-
      _encorrecttext = ENCORRECTTEXT;
+     Tencorrecttext = ENCORRECTTEXT;
+     Pencorrecttext = ^ENCORRECTTEXT;
 
      ENDROPFILES = record
           nmhdr : NMHDR;
@@ -2967,14 +2951,17 @@ unit struct;
           cp : LONG;
           fProtected : WINBOOL;
        end;
-
      _endropfiles = ENDROPFILES;
+     Tendropfiles = ENDROPFILES;
+     Pendropfiles = ^ENDROPFILES;
 
      ENSAVECLIPBOARD = record
           nmhdr : NMHDR;
           cObjectCount : LONG;
           cch : LONG;
        end;
+     TENSAVECLIPBOARD = ENSAVECLIPBOARD;
+     PENSAVECLIPBOARD = ^ENSAVECLIPBOARD;
 
      ENOLEOPFAILED = record
           nmhdr : NMHDR;
@@ -2982,6 +2969,8 @@ unit struct;
           lOper : LONG;
           hr : HRESULT;
        end;
+     TENOLEOPFAILED = ENOLEOPFAILED;
+     PENOLEOPFAILED = ^ENOLEOPFAILED;
 
      ENHMETAHEADER = record
           iType : DWORD;
@@ -3000,22 +2989,20 @@ unit struct;
           szlDevice : SIZEL;
           szlMillimeters : SIZEL;
        end;
-
      LPENHMETAHEADER = ^ENHMETAHEADER;
-
      tagENHMETAHEADER = ENHMETAHEADER;
+     TENHMETAHEADER = ENHMETAHEADER;
+     PENHMETAHEADER = ^ENHMETAHEADER;
 
      ENHMETARECORD = record
           iType : DWORD;
           nSize : DWORD;
           dParm : array[0..0] of DWORD;
        end;
-
-     PENHMETARECORD = ^ENHMETARECORD;
-
      LPENHMETARECORD = ^ENHMETARECORD;
-
      tagENHMETARECORD = ENHMETARECORD;
+     TENHMETARECORD = ENHMETARECORD;
+     PENHMETARECORD = ^ENHMETARECORD;
 
      ENPROTECTED = record
           nmhdr : NMHDR;
@@ -3024,8 +3011,9 @@ unit struct;
           lParam : LPARAM;
           chrg : CHARRANGE;
        end;
-
      _enprotected = ENPROTECTED;
+     Tenprotected = ENPROTECTED;
+     Penprotected = ^ENPROTECTED;
 
      SERVICE_STATUS = record
           dwServiceType : DWORD;
@@ -3036,28 +3024,29 @@ unit struct;
           dwCheckPoint : DWORD;
           dwWaitHint : DWORD;
        end;
-
      LPSERVICE_STATUS = ^SERVICE_STATUS;
-
      _SERVICE_STATUS = SERVICE_STATUS;
+     TSERVICESTATUS = SERVICE_STATUS;
+     PSERVICESTATUS = ^SERVICE_STATUS;
 
      ENUM_SERVICE_STATUS = record
           lpServiceName : LPTSTR;
           lpDisplayName : LPTSTR;
           ServiceStatus : SERVICE_STATUS;
        end;
-
      LPENUM_SERVICE_STATUS = ^ENUM_SERVICE_STATUS;
-
      _ENUM_SERVICE_STATUS = ENUM_SERVICE_STATUS;
+     TENUMSERVICESTATUS = ENUM_SERVICE_STATUS;
+     PENUMSERVICESTATUS = ^ENUM_SERVICE_STATUS;
 
      ENUMLOGFONT = record
           elfLogFont : LOGFONT;
           elfFullName : array[0..(LF_FULLFACESIZE)-1] of BCHAR;
           elfStyle : array[0..(LF_FACESIZE)-1] of BCHAR;
        end;
-
      tagENUMLOGFONT = ENUMLOGFONT;
+     TENUMLOGFONT = ENUMLOGFONT;
+     PENUMLOGFONT = ^ENUMLOGFONT;
 
      ENUMLOGFONTEX = record
           elfLogFont : LOGFONT;
@@ -3065,8 +3054,9 @@ unit struct;
           elfStyle : array[0..(LF_FACESIZE)-1] of BCHAR;
           elfScript : array[0..(LF_FACESIZE)-1] of BCHAR;
        end;
-
      tagENUMLOGFONTEX = ENUMLOGFONTEX;
+     TENUMLOGFONTEX = ENUMLOGFONTEX;
+     PENUMLOGFONTEX = ^ENUMLOGFONTEX;
   {
     Then follow:
 
@@ -3097,8 +3087,9 @@ unit struct;
           DataLength : DWORD;
           DataOffset : DWORD;
        end;
-
      _EVENTLOGRECORD = EVENTLOGRECORD;
+     TEVENTLOGRECORD = EVENTLOGRECORD;
+     PEVENTLOGRECORD = ^EVENTLOGRECORD;
 
      EVENTMSG = record
           message : UINT;
@@ -3107,29 +3098,29 @@ unit struct;
           time : DWORD;
           hwnd : HWND;
        end;
-
      tagEVENTMSG = EVENTMSG;
+     TEVENTMSG = EVENTMSG;
+     PEVENTMSG = ^EVENTMSG;
 
      EXCEPTION_POINTERS = record
           ExceptionRecord : PEXCEPTION_RECORD;
           ContextRecord : PCONTEXT;
        end;
-
-     PEXCEPTION_POINTERS = ^EXCEPTION_POINTERS;
-
      LPEXCEPTION_POINTERS = ^EXCEPTION_POINTERS;
-
+     PEXCEPTION_POINTERS = ^EXCEPTION_POINTERS;
      _EXCEPTION_POINTERS = EXCEPTION_POINTERS;
+     TEXCEPTIONPOINTERS = EXCEPTION_POINTERS;
+     PEXCEPTIONPOINTERS = ^EXCEPTION_POINTERS;
 
      EXT_BUTTON = record
           idCommand : WORD;
           idsHelp : WORD;
           fsStyle : WORD;
        end;
-
      LPEXT_BUTTON = ^EXT_BUTTON;
-
      _EXT_BUTTON = EXT_BUTTON;
+     TEXTBUTTON = EXT_BUTTON;
+     PEXTBUTTON = ^EXT_BUTTON;
 
      FILTERKEYS = record
           cbSize : UINT;
@@ -3139,8 +3130,9 @@ unit struct;
           iRepeatMSec : DWORD;
           iBounceMSec : DWORD;
        end;
-
      tagFILTERKEYS = FILTERKEYS;
+     TFILTERKEYS = FILTERKEYS;
+     PFILTERKEYS = ^FILTERKEYS;
 
      FIND_NAME_BUFFER = record
           length : UCHAR;
@@ -3150,16 +3142,18 @@ unit struct;
           source_addr : array[0..5] of UCHAR;
           routing_info : array[0..17] of UCHAR;
        end;
-
      _FIND_NAME_BUFFER = FIND_NAME_BUFFER;
+     TFINDNAMEBUFFER = FIND_NAME_BUFFER;
+     PFINDNAMEBUFFER = ^FIND_NAME_BUFFER;
 
      FIND_NAME_HEADER = record
           node_count : WORD;
           reserved : UCHAR;
           unique_group : UCHAR;
        end;
-
      _FIND_NAME_HEADER = FIND_NAME_HEADER;
+     TFINDNAMEHEADER = FIND_NAME_HEADER;
+     PFINDNAMEHEADER = ^FIND_NAME_HEADER;
 
      FINDREPLACE = record
           lStructSize : DWORD;
@@ -3174,24 +3168,26 @@ unit struct;
           lpfnHook : LPFRHOOKPROC;
           lpTemplateName : LPCTSTR;
        end;
-
      LPFINDREPLACE = ^FINDREPLACE;
+     TFINDREPLACE = FINDREPLACE;
+     PFINDREPLACE = ^FINDREPLACE;
 
      {FINDTEXT = record conflicts with FindText function }
      TFINDTEXT = record
           chrg : CHARRANGE;
           lpstrText : LPSTR;
        end;
-
      _findtext = TFINDTEXT;
+     Pfindtext = ^TFINDTEXT;
 
      FINDTEXTEX = record
           chrg : CHARRANGE;
           lpstrText : LPSTR;
           chrgText : CHARRANGE;
        end;
-
      _findtextex = FINDTEXTEX;
+     Tfindtextex = FINDTEXTEX;
+     Pfindtextex = ^FINDTEXTEX;
 
      FMS_GETDRIVEINFO = record
           dwTotalSpace : DWORD;
@@ -3200,8 +3196,9 @@ unit struct;
           szVolume : array[0..13] of TCHAR;
           szShare : array[0..127] of TCHAR;
        end;
-
      _FMS_GETDRIVEINFO = FMS_GETDRIVEINFO;
+     TFMSGETDRIVEINFO = FMS_GETDRIVEINFO;
+     PFMSGETDRIVEINFO = ^FMS_GETDRIVEINFO;
 
      FMS_GETFILESEL = record
           ftTime : FILETIME;
@@ -3209,8 +3206,9 @@ unit struct;
           bAttr : BYTE;
           szName : array[0..259] of TCHAR;
        end;
-
      _FMS_GETFILESEL = FMS_GETFILESEL;
+     TFMSGETFILESEL = FMS_GETFILESEL;
+     PFMSGETFILESEL = ^FMS_GETFILESEL;
 
      FMS_LOAD = record
           dwSize : DWORD;
@@ -3218,8 +3216,9 @@ unit struct;
           hMenu : HMENU;
           wMenuDelta : UINT;
        end;
-
      _FMS_LOAD = FMS_LOAD;
+     TFMSLOAD = FMS_LOAD;
+     PFMSLOAD = ^FMS_LOAD;
 
      FMS_TOOLBARLOAD = record
           dwSize : DWORD;
@@ -3229,14 +3228,16 @@ unit struct;
           idBitmap : WORD;
           hBitmap : HBITMAP;
        end;
-
      _FMS_TOOLBARLOAD = FMS_TOOLBARLOAD;
+     TFMSTOOLBARLOAD = FMS_TOOLBARLOAD;
+     PFMSTOOLBARLOAD = ^FMS_TOOLBARLOAD;
 
      FOCUS_EVENT_RECORD = record
           bSetFocus : WINBOOL;
        end;
-
      _FOCUS_EVENT_RECORD = FOCUS_EVENT_RECORD;
+     TFOCUSEVENTRECORD = FOCUS_EVENT_RECORD;
+     PFOCUSEVENTRECORD = ^FOCUS_EVENT_RECORD;
 
      FORM_INFO_1 = record
           Flags : DWORD;
@@ -3244,8 +3245,9 @@ unit struct;
           Size : SIZEL;
           ImageableArea : RECTL;
        end;
-
      _FORM_INFO_1 = FORM_INFO_1;
+     TFORMINFO1 = FORM_INFO_1;
+     PFORMINFO1 = ^FORM_INFO_1;
 
      FORMAT_PARAMETERS = record
           MediaType : MEDIA_TYPE;
@@ -3254,8 +3256,9 @@ unit struct;
           StartHeadNumber : DWORD;
           EndHeadNumber : DWORD;
        end;
-
      _FORMAT_PARAMETERS = FORMAT_PARAMETERS;
+     TFORMATPARAMETERS = FORMAT_PARAMETERS;
+     PFORMATPARAMETERS = ^FORMAT_PARAMETERS;
 
      FORMATRANGE = record
           _hdc : HDC;
@@ -3264,8 +3267,9 @@ unit struct;
           rcPage : RECT;
           chrg : CHARRANGE;
        end;
-
      _formatrange = FORMATRANGE;
+     Tformatrange = FORMATRANGE;
+     Pformatrange = ^FORMATRANGE;
 
      GCP_RESULTS = record
           lStructSize : DWORD;
@@ -3278,10 +3282,10 @@ unit struct;
           nGlyphs : UINT;
           nMaxFit : UINT;
        end;
-
      LPGCP_RESULTS = ^GCP_RESULTS;
-
      tagGCP_RESULTS = GCP_RESULTS;
+     TGCPRESULTS = GCP_RESULTS;
+     PGCPRESULTS = ^GCP_RESULTS;
 
      GENERIC_MAPPING = record
           GenericRead : ACCESS_MASK;
@@ -3289,10 +3293,10 @@ unit struct;
           GenericExecute : ACCESS_MASK;
           GenericAll : ACCESS_MASK;
        end;
-
      PGENERIC_MAPPING = ^GENERIC_MAPPING;
-
      _GENERIC_MAPPING = GENERIC_MAPPING;
+     TGENERICMAPPING = GENERIC_MAPPING;
+     PGENERICMAPPING = ^GENERIC_MAPPING;
 
      GLYPHMETRICS = record
           gmBlackBoxX : UINT;
@@ -3301,26 +3305,26 @@ unit struct;
           gmCellIncX : integer;
           gmCellIncY : integer;
        end;
-
      LPGLYPHMETRICS = ^GLYPHMETRICS;
-
      _GLYPHMETRICS = GLYPHMETRICS;
+     TGLYPHMETRICS = GLYPHMETRICS;
+     PGLYPHMETRICS = ^GLYPHMETRICS;
 
      HANDLETABLE = record
           objectHandle : array[0..0] of HGDIOBJ;
        end;
-
-     LPHANDLETABLE = ^HANDLETABLE;
-
      tagHANDLETABLE = HANDLETABLE;
+     THANDLETABLE = HANDLETABLE;
+     LPHANDLETABLE = ^HANDLETABLE;
 
      HD_HITTESTINFO = record
           pt : POINT;
           flags : UINT;
           iItem : longint;
        end;
-
      _HD_HITTESTINFO = HD_HITTESTINFO;
+     THDHITTESTINFO = HD_HITTESTINFO;
+     PHDHITTESTINFO = ^HD_HITTESTINFO;
 
      HD_ITEM = record
           mask : UINT;
@@ -3331,8 +3335,9 @@ unit struct;
           fmt : longint;
           lParam : LPARAM;
        end;
-
      _HD_ITEM = HD_ITEM;
+     THDITEM = HD_ITEM;
+     PHDITEM = ^HD_ITEM;
 
      WINDOWPOS = record
           _hwnd : HWND;
@@ -3343,19 +3348,18 @@ unit struct;
           cy : longint;
           flags : UINT;
        end;
-
-     PWINDOWPOS = ^WINDOWPOS;
-
      LPWINDOWPOS = ^WINDOWPOS;
-
      _WINDOWPOS = WINDOWPOS;
+     TWINDOWPOS = WINDOWPOS;
+     PWINDOWPOS = ^WINDOWPOS;
 
      HD_LAYOUT = record
           prc : ^RECT;
           pwpos : ^WINDOWPOS;
        end;
-
      _HD_LAYOUT = HD_LAYOUT;
+     THDLAYOUT = HD_LAYOUT;
+     PHDLAYOUT = ^HD_LAYOUT;
 
      HD_NOTIFY = record
           hdr : NMHDR;
@@ -3363,8 +3367,9 @@ unit struct;
           iButton : longint;
           pitem : ^HD_ITEM;
        end;
-
      _HD_NOTIFY = HD_NOTIFY;
+     THDNOTIFY = HD_NOTIFY;
+     PHDNOTIFY = ^HD_NOTIFY;
 
      HELPINFO = record
           cbSize : UINT;
@@ -3374,10 +3379,10 @@ unit struct;
           dwContextId : DWORD;
           MousePos : POINT;
        end;
-
      LPHELPINFO = ^HELPINFO;
-
      tagHELPINFO = HELPINFO;
+     THELPINFO = HELPINFO;
+     PHELPINFO = ^HELPINFO;
 
      HELPWININFO = record
           wStructSize : longint;
@@ -3388,23 +3393,26 @@ unit struct;
           wMax : longint;
           rgchMember : array[0..1] of TCHAR;
        end;
+     THELPWININFO = HELPWININFO;
+     PHELPWININFO = ^HELPWININFO;
 
      HIGHCONTRAST = record
           cbSize : UINT;
           dwFlags : DWORD;
           lpszDefaultScheme : LPTSTR;
        end;
-
      LPHIGHCONTRAST = ^HIGHCONTRAST;
-
      tagHIGHCONTRAST = HIGHCONTRAST;
+     THIGHCONTRAST = HIGHCONTRAST;
+     PHIGHCONTRAST = ^HIGHCONTRAST;
 
      HSZPAIR = record
           hszSvc : HSZ;
           hszTopic : HSZ;
        end;
-
      tagHSZPAIR = HSZPAIR;
+     THSZPAIR = HSZPAIR;
+     PHSZPAIR = ^HSZPAIR;
 
      ICONINFO = record
           fIcon : WINBOOL;
@@ -3413,10 +3421,9 @@ unit struct;
           hbmMask : HBITMAP;
           hbmColor : HBITMAP;
        end;
-
-     PICONINFO = ^ICONINFO;
-
      _ICONINFO = ICONINFO;
+     TICONINFO = ICONINFO;
+     PICONINFO = ^ICONINFO;
 
      ICONMETRICS = record
           cbSize : UINT;
@@ -3425,10 +3432,10 @@ unit struct;
           iTitleWrap : longint;
           lfFont : LOGFONT;
        end;
-
      LPICONMETRICS = ^ICONMETRICS;
-
      tagICONMETRICS = ICONMETRICS;
+     TICONMETRICS = ICONMETRICS;
+     PICONMETRICS = ^ICONMETRICS;
 
      IMAGEINFO = record
           hbmImage : HBITMAP;
@@ -3437,14 +3444,11 @@ unit struct;
           Unused2 : longint;
           rcImage : RECT;
        end;
-
      _IMAGEINFO = IMAGEINFO;
+     TIMAGEINFO = IMAGEINFO;
+     PIMAGEINFO = ^IMAGEINFO;
 
-{$PACKRECORDS 1}
-
-  type
-
-     KEY_EVENT_RECORD = record
+     KEY_EVENT_RECORD = packed record
           bKeyDown : WINBOOL;
           wRepeatCount : WORD;
           wVirtualKeyCode : WORD;
@@ -3458,9 +3462,9 @@ unit struct;
               end;
           dwControlKeyState : DWORD;
        end;
-
      _KEY_EVENT_RECORD = KEY_EVENT_RECORD;
-{$PACKRECORDS 4}
+     TKEYEVENTRECORD = KEY_EVENT_RECORD;
+     PKEYEVENTRECORD = ^KEY_EVENT_RECORD;
 
      MOUSE_EVENT_RECORD = record
           dwMousePosition : COORD;
@@ -3468,27 +3472,24 @@ unit struct;
           dwControlKeyState : DWORD;
           dwEventFlags : DWORD;
        end;
-
      _MOUSE_EVENT_RECORD = MOUSE_EVENT_RECORD;
+     TMOUSEEVENTRECORD = MOUSE_EVENT_RECORD;
+     PMOUSEEVENTRECORD = ^MOUSE_EVENT_RECORD;
 
      WINDOW_BUFFER_SIZE_RECORD = record
           dwSize : COORD;
        end;
-
      _WINDOW_BUFFER_SIZE_RECORD = WINDOW_BUFFER_SIZE_RECORD;
+     TWINDOWBUFFERSIZERECORD = WINDOW_BUFFER_SIZE_RECORD;
+     PWINDOWBUFFERSIZERECORD = ^WINDOW_BUFFER_SIZE_RECORD;
 
      MENU_EVENT_RECORD = record
           dwCommandId : UINT;
        end;
-
      PMENU_EVENT_RECORD = ^MENU_EVENT_RECORD;
-
      _MENU_EVENT_RECORD = MENU_EVENT_RECORD;
-{$ifndef __cplus_plus}
-  { this will be the wrong size in c++  }
-{$endif}
-
-  type
+     TMENUEVENTRECORD = MENU_EVENT_RECORD;
+     PMENUEVENTRECORD = ^MENU_EVENT_RECORD;
 
      INPUT_RECORD = record
           EventType : WORD;
@@ -3501,10 +3502,10 @@ unit struct;
                  4 : ( FocusEvent : FOCUS_EVENT_RECORD );
               end;
        end;
-
      PINPUT_RECORD = ^INPUT_RECORD;
-
      _INPUT_RECORD = INPUT_RECORD;
+     TINPUTRECORD = INPUT_RECORD;
+     PINPUTRECORD = ^INPUT_RECORD;
 
      SYSTEMTIME = record
           wYear : WORD;
@@ -3516,10 +3517,10 @@ unit struct;
           wSecond : WORD;
           wMilliseconds : WORD;
        end;
-
      LPSYSTEMTIME = ^SYSTEMTIME;
-
      _SYSTEMTIME = SYSTEMTIME;
+     TSYSTEMTIME = SYSTEMTIME;
+     PSYSTEMTIME = ^SYSTEMTIME;
 
      JOB_INFO_1 = record
           JobId : DWORD;
@@ -3536,18 +3537,18 @@ unit struct;
           PagesPrinted : DWORD;
           Submitted : SYSTEMTIME;
        end;
-
      _JOB_INFO_1 = JOB_INFO_1;
+     TJOBINFO1 = JOB_INFO_1;
+     PJOBINFO1 = ^JOB_INFO_1;
 
      SID_IDENTIFIER_AUTHORITY = record
           Value : array[0..5] of BYTE;
        end;
-
-     PSID_IDENTIFIER_AUTHORITY = ^SID_IDENTIFIER_AUTHORITY;
-
      LPSID_IDENTIFIER_AUTHORITY = ^SID_IDENTIFIER_AUTHORITY;
-
+     PSID_IDENTIFIER_AUTHORITY = ^SID_IDENTIFIER_AUTHORITY;
      _SID_IDENTIFIER_AUTHORITY = SID_IDENTIFIER_AUTHORITY;
+     TSIDIDENTIFIERAUTHORITY = SID_IDENTIFIER_AUTHORITY;
+     PSIDIDENTIFIERAUTHORITY = ^SID_IDENTIFIER_AUTHORITY;
 
      SID = record
           Revision : BYTE;
@@ -3555,14 +3556,14 @@ unit struct;
           IdentifierAuthority : SID_IDENTIFIER_AUTHORITY;
           SubAuthority : array[0..(ANYSIZE_ARRAY)-1] of DWORD;
        end;
-
+     _SID = SID;
+     TSID = SID;
      PSID = ^SID;
 
-     _SID = SID;
-
      SECURITY_DESCRIPTOR_CONTROL = WORD;
-
      PSECURITY_DESCRIPTOR_CONTROL = ^SECURITY_DESCRIPTOR_CONTROL;
+     TSECURITYDESCRIPTORCONTROL = SECURITY_DESCRIPTOR_CONTROL;
+     PSECURITYDESCRIPTORCONTROL = ^SECURITY_DESCRIPTOR_CONTROL;
 
      SECURITY_DESCRIPTOR = record
           Revision : BYTE;
@@ -3573,10 +3574,10 @@ unit struct;
           Sacl : PACL;
           Dacl : PACL;
        end;
-
      PSECURITY_DESCRIPTOR = ^SECURITY_DESCRIPTOR;
-
      _SECURITY_DESCRIPTOR = SECURITY_DESCRIPTOR;
+     TSECURITYDESCRIPTOR = SECURITY_DESCRIPTOR;
+     PSECURITYDESCRIPTOR = ^SECURITY_DESCRIPTOR;
 
      JOB_INFO_2 = record
           JobId : DWORD;
@@ -3603,25 +3604,27 @@ unit struct;
           Time : DWORD;
           PagesPrinted : DWORD;
        end;
-
      _JOB_INFO_2 = JOB_INFO_2;
+     TJOBINFO2 = JOB_INFO_2;
+     PJOBINFO2 = ^JOB_INFO_2;
 
      KERNINGPAIR = record
           wFirst : WORD;
           wSecond : WORD;
           iKernAmount : longint;
        end;
-
      LPKERNINGPAIR = ^KERNINGPAIR;
-
      tagKERNINGPAIR = KERNINGPAIR;
+     TKERNINGPAIR = KERNINGPAIR;
+     PKERNINGPAIR = ^KERNINGPAIR;
 
      LANA_ENUM = record
           length : UCHAR;
           lana : array[0..(MAX_LANA)-1] of UCHAR;
        end;
-
      _LANA_ENUM = LANA_ENUM;
+     TLANAENUM = LANA_ENUM;
+     PLANAENUM = ^LANA_ENUM;
 
      LDT_ENTRY = record
           LimitLow : WORD;
@@ -3639,12 +3642,12 @@ unit struct;
                    end );
               end;
        end;
-
-     PLDT_ENTRY = ^LDT_ENTRY;
-
      LPLDT_ENTRY = ^LDT_ENTRY;
-
+     PLDT_ENTRY = ^LDT_ENTRY;
      _LDT_ENTRY = LDT_ENTRY;
+     TLDTENTRY = LDT_ENTRY;
+     PLDTENTRY = ^LDT_ENTRY;
+
   const
      bm_LDT_ENTRY_BaseMid = $FF;
      bp_LDT_ENTRY_BaseMid = 0;
@@ -3674,39 +3677,45 @@ unit struct;
           lsCsbDefault : array[0..1] of DWORD;
           lsCsbSupported : array[0..1] of DWORD;
        end;
-
      tagLOCALESIGNATURE = LOCALESIGNATURE;
+     TLOCALESIGNATURE = LOCALESIGNATURE;
+     PLOCALESIGNATURE = ^LOCALESIGNATURE;
 
      LOCALGROUP_MEMBERS_INFO_0 = record
           lgrmi0_sid : PSID;
        end;
-
      _LOCALGROUP_MEMBERS_INFO_0 = LOCALGROUP_MEMBERS_INFO_0;
+     TLOCALGROUPMEMBERSINFO0 = LOCALGROUP_MEMBERS_INFO_0;
+     PLOCALGROUPMEMBERSINFO0 = ^LOCALGROUP_MEMBERS_INFO_0;
 
      LOCALGROUP_MEMBERS_INFO_3 = record
           lgrmi3_domainandname : LPWSTR;
        end;
-
      _LOCALGROUP_MEMBERS_INFO_3 = LOCALGROUP_MEMBERS_INFO_3;
+     TLOCALGROUPMEMBERSINFO3 = LOCALGROUP_MEMBERS_INFO_3;
+     PLOCALGROUPMEMBERSINFO3 = ^LOCALGROUP_MEMBERS_INFO_3;
 
      FXPT16DOT16 = longint;
-
      LPFXPT16DOT16 = ^FXPT16DOT16;
+     TFXPT16DOT16 = FXPT16DOT16;
+     PFXPT16DOT16 = ^FXPT16DOT16;
 
      LUID = LARGE_INTEGER;
-
+     TLUID = LUID;
      PLUID = ^LUID;
 
      LUID_AND_ATTRIBUTES = record
           Luid : LUID;
           Attributes : DWORD;
        end;
-
      _LUID_AND_ATTRIBUTES = LUID_AND_ATTRIBUTES;
+     TLUIDANDATTRIBUTES = LUID_AND_ATTRIBUTES;
+     PLUIDANDATTRIBUTES = ^LUID_AND_ATTRIBUTES;
 
      LUID_AND_ATTRIBUTES_ARRAY = array[0..(ANYSIZE_ARRAY)-1] of LUID_AND_ATTRIBUTES;
-
      PLUID_AND_ATTRIBUTES_ARRAY = ^LUID_AND_ATTRIBUTES_ARRAY;
+     TLUIDANDATTRIBUTESARRAY = LUID_AND_ATTRIBUTES_ARRAY;
+     PLUIDANDATTRIBUTESARRAY = ^LUID_AND_ATTRIBUTES_ARRAY;
 
      LV_COLUMN = record
           mask : UINT;
@@ -3716,8 +3725,9 @@ unit struct;
           cchTextMax : longint;
           iSubItem : longint;
        end;
-
      _LV_COLUMN = LV_COLUMN;
+     TLVCOLUMN = LV_COLUMN;
+     PLVCOLUMN = ^LV_COLUMN;
 
      LV_ITEM = record
           mask : UINT;
@@ -3730,15 +3740,17 @@ unit struct;
           iImage : longint;
           lParam : LPARAM;
        end;
-
      _LV_ITEM = LV_ITEM;
+     TLVITEM = LV_ITEM;
+     PLVITEM = ^LV_ITEM;
 
      LV_DISPINFO = record
           hdr : NMHDR;
           item : LV_ITEM;
        end;
-
      tagLV_DISPINFO = LV_DISPINFO;
+     TLVDISPINFO = LV_DISPINFO;
+     PLVDISPINFO = ^LV_DISPINFO;
 
      LV_FINDINFO = record
           flags : UINT;
@@ -3747,24 +3759,27 @@ unit struct;
           pt : POINT;
           vkDirection : UINT;
        end;
-
      _LV_FINDINFO = LV_FINDINFO;
+     TLVFINDINFO = LV_FINDINFO;
+     PLVFINDINFO = ^LV_FINDINFO;
 
      LV_HITTESTINFO = record
           pt : POINT;
           flags : UINT;
           iItem : longint;
        end;
-
      _LV_HITTESTINFO = LV_HITTESTINFO;
+     TLVHITTESTINFO = LV_HITTESTINFO;
+     PLVHITTESTINFO = ^LV_HITTESTINFO;
 
      LV_KEYDOWN = record
           hdr : NMHDR;
           wVKey : WORD;
           flags : UINT;
        end;
-
      tagLV_KEYDOWN = LV_KEYDOWN;
+     TLVKEYDOWN = LV_KEYDOWN;
+     PLVKEYDOWN = ^LV_KEYDOWN;
 
      MAT2 = record
           eM11 : FIXED;
@@ -3772,8 +3787,9 @@ unit struct;
           eM21 : FIXED;
           eM22 : FIXED;
        end;
-
      _MAT2 = MAT2;
+     TMAT2 = MAT2;
+     PMAT2 = ^MAT2;
 
      MDICREATESTRUCT = record
           szClass : LPCTSTR;
@@ -3786,10 +3802,10 @@ unit struct;
           style : DWORD;
           lParam : LPARAM;
        end;
-
-     tagMDICREATESTRUCT = MDICREATESTRUCT;
-
      LPMDICREATESTRUCT = ^MDICREATESTRUCT;
+     tagMDICREATESTRUCT = MDICREATESTRUCT;
+     TMDICREATESTRUCT = MDICREATESTRUCT;
+     PMDICREATESTRUCT = ^MDICREATESTRUCT;
 
      MEASUREITEMSTRUCT = record
           CtlType : UINT;
@@ -3799,10 +3815,10 @@ unit struct;
           itemHeight : UINT;
           itemData : DWORD;
        end;
-
      LPMEASUREITEMSTRUCT = ^MEASUREITEMSTRUCT;
-
      tagMEASUREITEMSTRUCT = MEASUREITEMSTRUCT;
+     TMEASUREITEMSTRUCT = MEASUREITEMSTRUCT;
+     PMEASUREITEMSTRUCT = ^MEASUREITEMSTRUCT;
 
      MEMORY_BASIC_INFORMATION = record
           BaseAddress : PVOID;
@@ -3813,10 +3829,10 @@ unit struct;
           Protect : DWORD;
           _Type : DWORD;
        end;
-
-     _MEMORY_BASIC_INFORMATION = MEMORY_BASIC_INFORMATION;
-
      PMEMORY_BASIC_INFORMATION = ^MEMORY_BASIC_INFORMATION;
+     _MEMORY_BASIC_INFORMATION = MEMORY_BASIC_INFORMATION;
+     TMEMORYBASICINFORMATION = MEMORY_BASIC_INFORMATION;
+     PMEMORYBASICINFORMATION = ^MEMORY_BASIC_INFORMATION;
 
      MEMORYSTATUS = record
           dwLength : DWORD;
@@ -3828,16 +3844,18 @@ unit struct;
           dwTotalVirtual : DWORD;
           dwAvailVirtual : DWORD;
        end;
-
      LPMEMORYSTATUS = ^MEMORYSTATUS;
-
      _MEMORYSTATUS = MEMORYSTATUS;
+     TMEMORYSTATUS = MEMORYSTATUS;
+     PMEMORYSTATUS = ^MEMORYSTATUS;
 
      MENUEX_TEMPLATE_HEADER = record
           wVersion : WORD;
           wOffset : WORD;
           dwHelpId : DWORD;
        end;
+     TMENUXTEMPLATEHEADER = MENUEX_TEMPLATE_HEADER;
+     PMENUXTEMPLATEHEADER = ^MENUEX_TEMPLATE_HEADER;
 
      MENUEX_TEMPLATE_ITEM = record
           dwType : DWORD;
@@ -3847,6 +3865,8 @@ unit struct;
           szText : array[0..0] of WCHAR;
           dwHelpId : DWORD;
        end;
+     TMENUEXTEMPLATEITEM = MENUEX_TEMPLATE_ITEM;
+     PMENUEXTEMPLATEITEM = ^MENUEX_TEMPLATE_ITEM;
 
      MENUITEMINFO = record
           cbSize : UINT;
@@ -3861,29 +3881,32 @@ unit struct;
           dwTypeData : LPTSTR;
           cch : UINT;
        end;
-
      LPMENUITEMINFO = ^MENUITEMINFO;
-
-     tagMENUITEMINFO = MENUITEMINFO;
-(* Const before declarator ignored *)
-
      LPCMENUITEMINFO = ^MENUITEMINFO;
+     tagMENUITEMINFO = MENUITEMINFO;
+     TMENUITEMINFO = MENUITEMINFO;
+     PMENUITEMINFO = ^MENUITEMINFO;
 
      MENUITEMTEMPLATE = record
           mtOption : WORD;
           mtID : WORD;
           mtString : array[0..0] of WCHAR;
        end;
+     TMENUITEMTEMPLATE = MENUITEMTEMPLATE;
+     PMENUITEMTEMPLATE = ^MENUITEMTEMPLATE;
 
      MENUITEMTEMPLATEHEADER = record
           versionNumber : WORD;
           offset : WORD;
        end;
+     TMENUITEMTEMPLATEHEADER = MENUITEMTEMPLATEHEADER;
+     PMENUITEMTEMPLATEHEADER = ^MENUITEMTEMPLATEHEADER;
 
      MENUTEMPLATE = record
                     end;
-
      LPMENUTEMPLATE = ^MENUTEMPLATE;
+     TMENUTEMPLATE = MENUTEMPLATE;
+     PMENUTEMPLATE = ^MENUTEMPLATE;
 
      METAFILEPICT = record
           mm : LONG;
@@ -3891,15 +3914,12 @@ unit struct;
           yExt : LONG;
           hMF : HMETAFILE;
        end;
-
+     LPMETAFILEPICT = ^METAFILEPICT;
+     tagMETAFILEPICT = METAFILEPICT;
+     TMETAFILEPICT = METAFILEPICT;
      PMETAFILEPICT = ^METAFILEPICT;
 
-     LPMETAFILEPICT = ^METAFILEPICT;
-
-     tagMETAFILEPICT = METAFILEPICT;
-{$PACKRECORDS 1}
-
-     METAHEADER = record
+     METAHEADER = packed record
           mtType : WORD;
           mtHeaderSize : WORD;
           mtVersion : WORD;
@@ -3908,19 +3928,19 @@ unit struct;
           mtMaxRecord : DWORD;
           mtNoParameters : WORD;
        end;
-
      tagMETAHEADER = METAHEADER;
-{$PACKRECORDS 4}
+     TMETAHEADER = METAHEADER;
+     PMETAHEADER = ^METAHEADER;
 
      METARECORD = record
           rdSize : DWORD;
           rdFunction : WORD;
           rdParm : array[0..0] of WORD;
        end;
-
      LPMETARECORD = ^METARECORD;
-
      tagMETARECORD = METARECORD;
+     TMETARECORD = METARECORD;
+     PMETARECORD = ^METARECORD;
 
      MINIMIZEDMETRICS = record
           cbSize : UINT;
@@ -3929,10 +3949,10 @@ unit struct;
           iVertGap : longint;
           iArrange : longint;
        end;
-
      LPMINIMIZEDMETRICS = ^MINIMIZEDMETRICS;
-
      tagMINIMIZEDMETRICS = MINIMIZEDMETRICS;
+     TMINIMIZEDMETRICS = MINIMIZEDMETRICS;
+     PMINIMIZEDMETRICS = ^MINIMIZEDMETRICS;
 
      MINMAXINFO = record
           ptReserved : POINT;
@@ -3941,8 +3961,9 @@ unit struct;
           ptMinTrackSize : POINT;
           ptMaxTrackSize : POINT;
        end;
-
      tagMINMAXINFO = MINMAXINFO;
+     TMINMAXINFO = MINMAXINFO;
+     PMINMAXINFO = ^MINMAXINFO;
 
      MODEMDEVCAPS = record
           dwActualSize : DWORD;
@@ -3966,10 +3987,9 @@ unit struct;
           dwMaxDCERate : DWORD;
           abVariablePortion : array[0..0] of BYTE;
        end;
-
-     PMODEMDEVCAPS = ^MODEMDEVCAPS;
-
      LPMODEMDEVCAPS = ^MODEMDEVCAPS;
+     TMODEMDEVCAPS = MODEMDEVCAPS;
+     PMODEMDEVCAPS = ^MODEMDEVCAPS;
 
      modemdevcaps_tag = MODEMDEVCAPS;
 
@@ -3987,10 +4007,9 @@ unit struct;
           dwNegotiatedDCERate : DWORD;
           abVariablePortion : array[0..0] of BYTE;
        end;
-
-     PMODEMSETTINGS = ^MODEMSETTINGS;
-
      LPMODEMSETTINGS = ^MODEMSETTINGS;
+     TMODEMSETTINGS = MODEMSETTINGS;
+     PMODEMSETTINGS = ^MODEMSETTINGS;
 
      modemsettings_tag = MODEMSETTINGS;
 
@@ -4011,8 +4030,9 @@ unit struct;
           cbData : DWORD;
           Data : array[0..7] of DWORD;
        end;
-
      tagMONCBSTRUCT = MONCBSTRUCT;
+     TMONCBSTRUCT = MONCBSTRUCT;
+     PMONCBSTRUCT = ^MONCBSTRUCT;
 
      MONCONVSTRUCT = record
           cb : UINT;
@@ -4024,8 +4044,9 @@ unit struct;
           hConvClient : HCONV;
           hConvServer : HCONV;
        end;
-
      tagMONCONVSTRUCT = MONCONVSTRUCT;
+     TMONCONVSTRUCT = MONCONVSTRUCT;
+     PMONCONVSTRUCT = ^MONCONVSTRUCT;
 
      MONERRSTRUCT = record
           cb : UINT;
@@ -4033,8 +4054,9 @@ unit struct;
           dwTime : DWORD;
           hTask : HANDLE;
        end;
-
      tagMONERRSTRUCT = MONERRSTRUCT;
+     TMONERRSTRUCT = MONERRSTRUCT;
+     PMONERRSTRUCT = ^MONERRSTRUCT;
 
      MONHSZSTRUCT = record
           cb : UINT;
@@ -4044,22 +4066,25 @@ unit struct;
           hTask : HANDLE;
           str : array[0..0] of TCHAR;
        end;
-
      tagMONHSZSTRUCT = MONHSZSTRUCT;
+     TMONHSZSTRUCT = MONHSZSTRUCT;
+     PMONHSZSTRUCT = ^MONHSZSTRUCT;
 
      MONITOR_INFO_1 = record
           pName : LPTSTR;
        end;
-
      _MONITOR_INFO_1 = MONITOR_INFO_1;
+     TMONITORINFO1 = MONITOR_INFO_1;
+     PMONITORINFO1 = ^MONITOR_INFO_1;
 
      MONITOR_INFO_2 = record
           pName : LPTSTR;
           pEnvironment : LPTSTR;
           pDLLName : LPTSTR;
        end;
-
      _MONITOR_INFO_2 = MONITOR_INFO_2;
+     TMONITORINFO2 = MONITOR_INFO_2;
+     PMONITORINFO2 = ^MONITOR_INFO_2;
 
      MONLINKSTRUCT = record
           cb : UINT;
@@ -4075,8 +4100,9 @@ unit struct;
           hConvServer : HCONV;
           hConvClient : HCONV;
        end;
-
      tagMONLINKSTRUCT = MONLINKSTRUCT;
+     TMONLINKSTRUCT = MONLINKSTRUCT;
+     PMONLINKSTRUCT = ^MONLINKSTRUCT;
 
      MONMSGSTRUCT = record
           cb : UINT;
@@ -4088,8 +4114,9 @@ unit struct;
           lParam : LPARAM;
           dmhd : DDEML_MSG_HOOK_DATA;
        end;
-
      tagMONMSGSTRUCT = MONMSGSTRUCT;
+     TMONMSGSTRUCT = MONMSGSTRUCT;
+     PMONMSGSTRUCT = ^MONMSGSTRUCT;
 
      MOUSEHOOKSTRUCT = record
           pt : POINT;
@@ -4097,12 +4124,10 @@ unit struct;
           wHitTestCode : UINT;
           dwExtraInfo : DWORD;
        end;
-
-     PMOUSEHOOKSTRUCT = ^MOUSEHOOKSTRUCT;
-
      LPMOUSEHOOKSTRUCT = ^MOUSEHOOKSTRUCT;
-
      tagMOUSEHOOKSTRUCT = MOUSEHOOKSTRUCT;
+     TMOUSEHOOKSTRUCT = MOUSEHOOKSTRUCT;
+     PMOUSEHOOKSTRUCT = ^MOUSEHOOKSTRUCT;
 
      MOUSEKEYS = record
           cbSize : DWORD;
@@ -4113,8 +4138,8 @@ unit struct;
           dwReserved1 : DWORD;
           dwReserved2 : DWORD;
        end;
-
-     _MOUSEKEYS = MOUSEKEYS;
+     TMOUSEKEYS = MOUSEKEYS;
+     PMOUSEKEYS = ^MOUSEKEYS;
 
      MSG = record
           hwnd : HWND;
@@ -4124,12 +4149,13 @@ unit struct;
           time : DWORD;
           pt : POINT;
        end;
-
      LPMSG = ^MSG;
-
      tagMSG = MSG;
+     TMSG = MSG;
+     PMSG = ^MSG;
 
      MSGBOXCALLBACK = procedure (lpHelpInfo:LPHELPINFO);
+     TMSGBOXCALLBACK = MSGBOXCALLBACK;
 
      MSGBOXPARAMS = record
           cbSize : UINT;
@@ -4143,10 +4169,9 @@ unit struct;
           lpfnMsgBoxCallback : MSGBOXCALLBACK;
           dwLanguageId : DWORD;
        end;
-
-     PMSGBOXPARAMS = ^MSGBOXPARAMS;
-
      LPMSGBOXPARAMS = ^MSGBOXPARAMS;
+     TMSGBOXPARAMS = MSGBOXPARAMS;
+     PMSGBOXPARAMS = ^MSGBOXPARAMS;
 
      MSGFILTER = record
           nmhdr : NMHDR;
@@ -4154,24 +4179,27 @@ unit struct;
           wParam : WPARAM;
           lParam : LPARAM;
        end;
-
      _msgfilter = MSGFILTER;
+     Tmsgfilter = MSGFILTER;
+     Pmsgfilter = ^MSGFILTER;
 
      MULTIKEYHELP = record
           mkSize : DWORD;
           mkKeylist : TCHAR;
           szKeyphrase : array[0..0] of TCHAR;
        end;
-
      tagMULTIKEYHELP = MULTIKEYHELP;
+     TMULTIKEYHELP = MULTIKEYHELP;
+     PMULTIKEYHELP = ^MULTIKEYHELP;
 
      NAME_BUFFER = record
           name : array[0..(NCBNAMSZ)-1] of UCHAR;
           name_num : UCHAR;
           name_flags : UCHAR;
        end;
-
      _NAME_BUFFER = NAME_BUFFER;
+     TNAMEBUFFER = NAME_BUFFER;
+     PNAMEBUFFER = ^NAME_BUFFER;
 
      p_NCB = ^_NCB;
      NCB = record
@@ -4191,15 +4219,17 @@ unit struct;
           ncb_reserve : array[0..9] of UCHAR;
           ncb_event : HANDLE;
        end;
-
      _NCB = NCB;
+     TNCB = NCB;
+     PNCB = ^NCB;
 
      NCCALCSIZE_PARAMS = record
           rgrc : array[0..2] of RECT;
           lppos : PWINDOWPOS;
        end;
-
      _NCCALCSIZE_PARAMS = NCCALCSIZE_PARAMS;
+     TNCCALCSIZEPARAMS = NCCALCSIZE_PARAMS;
+     PNCCALCSIZEPARAMS = ^NCCALCSIZE_PARAMS;
 
      NDDESHAREINFO = record
           lRevision : LONG;
@@ -4214,8 +4244,9 @@ unit struct;
           cNumItems : LONG;
           lpszItemList : LPTSTR;
        end;
-
      _NDDESHAREINFO = NDDESHAREINFO;
+     TNDDESHAREINFO = NDDESHAREINFO;
+     PNDDESHAREINFO = ^NDDESHAREINFO;
 
      NETRESOURCE = record
           dwScope : DWORD;
@@ -4227,10 +4258,10 @@ unit struct;
           lpComment : LPTSTR;
           lpProvider : LPTSTR;
        end;
-
      LPNETRESOURCE = ^NETRESOURCE;
-
      _NETRESOURCE = NETRESOURCE;
+     TNETRESOURCE = NETRESOURCE;
+     PNETRESOURCE = ^NETRESOURCE;
 
      NEWCPLINFO = record
           dwSize : DWORD;
@@ -4242,8 +4273,9 @@ unit struct;
           szInfo : array[0..63] of TCHAR;
           szHelpFile : array[0..127] of TCHAR;
        end;
-
      tagNEWCPLINFO = NEWCPLINFO;
+     TNEWCPLINFO = NEWCPLINFO;
+     PNEWCPLINFO = ^NEWCPLINFO;
 
      NEWTEXTMETRIC = record
           tmHeight : LONG;
@@ -4271,15 +4303,17 @@ unit struct;
           ntmCellHeight : UINT;
           ntmAvgWidth : UINT;
        end;
-
      tagNEWTEXTMETRIC = NEWTEXTMETRIC;
+     TNEWTEXTMETRIC = NEWTEXTMETRIC;
+     PNEWTEXTMETRIC = ^NEWTEXTMETRIC;
 
      NEWTEXTMETRICEX = record
           ntmentm : NEWTEXTMETRIC;
           ntmeFontSignature : FONTSIGNATURE;
        end;
-
      tagNEWTEXTMETRICEX = NEWTEXTMETRICEX;
+     TNEWTEXTMETRICEX = NEWTEXTMETRICEX;
+     PNEWTEXTMETRICEX = ^NEWTEXTMETRICEX;
 
      NM_LISTVIEW = record
           hdr : NMHDR;
@@ -4291,14 +4325,17 @@ unit struct;
           ptAction : POINT;
           lParam : LPARAM;
        end;
-
      tagNM_LISTVIEW = NM_LISTVIEW;
+     TNMLISTVIEW = NM_LISTVIEW;
+     PNMLISTVIEW = ^NM_LISTVIEW;
 
 {$ifndef windows_include_files}
 { already in defines.pp file }
-      TREEITEM = record
-                 end;
+     TREEITEM = record
+       end;
      HTREEITEM = ^TREEITEM;
+     TTREEITEM = TREEITEM;
+     PTREEITEM = ^TREEITEM;
 {$endif windows_include_files}
 
      TV_ITEM = record
@@ -4313,10 +4350,10 @@ unit struct;
           cChildren : longint;
           lParam : LPARAM;
        end;
-
      LPTV_ITEM = ^TV_ITEM;
-
      _TV_ITEM = TV_ITEM;
+     TTVITEM = TV_ITEM;
+     PTVITEM = ^TV_ITEM;
 
      NM_TREEVIEW = record
           hdr : NMHDR;
@@ -4325,18 +4362,19 @@ unit struct;
           itemNew : TV_ITEM;
           ptDrag : POINT;
        end;
-
-     _NM_TREEVIEW = NM_TREEVIEW;
-
      LPNM_TREEVIEW = ^NM_TREEVIEW;
+     _NM_TREEVIEW = NM_TREEVIEW;
+     TNMTREEVIEW = NM_TREEVIEW;
+     PNMTREEVIEW = ^NM_TREEVIEW;
 
      NM_UPDOWNW = record
           hdr : NMHDR;
           iPos : longint;
           iDelta : longint;
        end;
-
      _NM_UPDOWN = NM_UPDOWNW;
+     TNMUPDOWN = NM_UPDOWNW;
+     PNMUPDOWN = ^NM_UPDOWNW;
 
      NONCLIENTMETRICS = record
           cbSize : UINT;
@@ -4355,10 +4393,10 @@ unit struct;
           lfStatusFont : LOGFONT;
           lfMessageFont : LOGFONT;
        end;
-
      LPNONCLIENTMETRICS = ^NONCLIENTMETRICS;
-
      tagNONCLIENTMETRICS = NONCLIENTMETRICS;
+     TNONCLIENTMETRICS = NONCLIENTMETRICS;
+     PNONCLIENTMETRICS = ^NONCLIENTMETRICS;
 
      SERVICE_ADDRESS = record
           dwAddressType : DWORD;
@@ -4368,17 +4406,18 @@ unit struct;
           lpAddress : ^BYTE;
           lpPrincipal : ^BYTE;
        end;
-
      _SERVICE_ADDRESS = SERVICE_ADDRESS;
+     TSERVICEADDRESS = SERVICE_ADDRESS;
+     PSERVICEADDRESS = ^SERVICE_ADDRESS;
 
      SERVICE_ADDRESSES = record
           dwAddressCount : DWORD;
           Addresses : array[0..0] of SERVICE_ADDRESS;
        end;
-
      LPSERVICE_ADDRESSES = ^SERVICE_ADDRESSES;
-
      _SERVICE_ADDRESSES = SERVICE_ADDRESSES;
+     TSERVICEADDRESSES = SERVICE_ADDRESSES;
+     PSERVICEADDRESSES = ^SERVICE_ADDRESSES;
 
      GUID = record
           Data1 : cardinal;
@@ -4386,14 +4425,15 @@ unit struct;
           Data3 : word;
           Data4 : array[0..7] of byte;
        end;
-
      LPGUID = ^GUID;
-
      _GUID = GUID;
+     TGUID = GUID;
+     PGUID = ^GUID;
 
      CLSID = GUID;
-
      LPCLSID = ^CLSID;
+     TCLSID = CLSID;
+     PCLSID = ^CLSID;
 
      SERVICE_INFO = record
           lpServiceType : LPGUID;
@@ -4407,15 +4447,17 @@ unit struct;
           lpServiceAddress : LPSERVICE_ADDRESSES;
           ServiceSpecificInfo : BLOB;
        end;
-
      _SERVICE_INFO = SERVICE_INFO;
+     TSERVICEINFO = SERVICE_INFO;
+     PSERVICEINFO = ^SERVICE_INFO;
 
      NS_SERVICE_INFO = record
           dwNameSpace : DWORD;
           ServiceInfo : SERVICE_INFO;
        end;
-
      _NS_SERVICE_INFO = NS_SERVICE_INFO;
+     TNSSERVICEINFO = NS_SERVICE_INFO;
+     PNSSERVICEINFO = ^NS_SERVICE_INFO;
 
      NUMBERFMT = record
           NumDigits : UINT;
@@ -4425,8 +4467,9 @@ unit struct;
           lpThousandSep : LPTSTR;
           NegativeOrder : UINT;
        end;
-
      _numberfmt = NUMBERFMT;
+     Tnumberfmt = NUMBERFMT;
+     Pnumberfmt = ^NUMBERFMT;
 
      OFSTRUCT = record
           cBytes : BYTE;
@@ -4436,10 +4479,10 @@ unit struct;
           Reserved2 : WORD;
           szPathName : array[0..(OFS_MAXPATHNAME)-1] of CHAR;
        end;
-
      LPOFSTRUCT = ^OFSTRUCT;
-
      _OFSTRUCT = OFSTRUCT;
+     TOFSTRUCT = OFSTRUCT;
+     POFSTRUCT = ^OFSTRUCT;
 
      OPENFILENAME = record
           lStructSize : DWORD;
@@ -4463,20 +4506,23 @@ unit struct;
           lpfnHook : LPOFNHOOKPROC;
           lpTemplateName : LPCTSTR;
        end;
-
      LPOPENFILENAME = ^OPENFILENAME;
+     TOPENFILENAME = OPENFILENAME;
+     POPENFILENAME = ^OPENFILENAME;
 
      tagOFN = OPENFILENAME;
+     TOFN = OPENFILENAME;
+     POFN = ^OPENFILENAME;
 
      OFNOTIFY = record
           hdr : NMHDR;
           lpOFN : LPOPENFILENAME;
           pszFile : LPTSTR;
        end;
-
      LPOFNOTIFY = ^OFNOTIFY;
-
      _OFNOTIFY = OFNOTIFY;
+     TOFNOTIFY = OFNOTIFY;
+     POFNOTIFY = ^OFNOTIFY;
 
      OSVERSIONINFO = record
           dwOSVersionInfoSize : DWORD;
@@ -4486,12 +4532,10 @@ unit struct;
           dwPlatformId : DWORD;
           szCSDVersion : array[0..127] of TCHAR;
        end;
-
-     POSVERSIONINFO = ^OSVERSIONINFO;
-
      LPOSVERSIONINFO = ^OSVERSIONINFO;
-
      _OSVERSIONINFO = OSVERSIONINFO;
+     TOSVERSIONINFO = OSVERSIONINFO;
+     POSVERSIONINFO = ^OSVERSIONINFO;
 
      TEXTMETRIC = record
           tmHeight : LONG;
@@ -4515,10 +4559,10 @@ unit struct;
           tmPitchAndFamily : BYTE;
           tmCharSet : BYTE;
        end;
-
      LPTEXTMETRIC = ^TEXTMETRIC;
-
      tagTEXTMETRIC = TEXTMETRIC;
+     TTEXTMETRIC = TEXTMETRIC;
+     PTEXTMETRIC = ^TEXTMETRIC;
 
      OUTLINETEXTMETRIC = record
           otmSize : UINT;
@@ -4554,10 +4598,10 @@ unit struct;
           otmpStyleName : PSTR;
           otmpFullName : PSTR;
        end;
-
      LPOUTLINETEXTMETRIC = ^OUTLINETEXTMETRIC;
-
      _OUTLINETEXTMETRIC = OUTLINETEXTMETRIC;
+     TOUTLINETEXTMETRIC = OUTLINETEXTMETRIC;
+     POUTLINETEXTMETRIC = ^OUTLINETEXTMETRIC;
 
      OVERLAPPED = record
           Internal : DWORD;
@@ -4566,10 +4610,10 @@ unit struct;
           OffsetHigh : DWORD;
           hEvent : HANDLE;
        end;
-
      LPOVERLAPPED = ^OVERLAPPED;
-
      _OVERLAPPED = OVERLAPPED;
+     TOVERLAPPED = OVERLAPPED;
+     POVERLAPPED = ^OVERLAPPED;
 
      {PAGESETUPDLG = record conflicts with function PageSetupDlg }
      TPAGESETUPDLG = record
@@ -4588,10 +4632,12 @@ unit struct;
           lpPageSetupTemplateName : LPCTSTR;
           hPageSetupTemplate : HGLOBAL;
        end;
-
      LPPAGESETUPDLG = ^TPAGESETUPDLG;
+     PPAGESETUPDLG = ^TPAGESETUPDLG;
 
      tagPSD = TPAGESETUPDLG;
+     TPSD = TPAGESETUPDLG;
+     PPSD = ^TPAGESETUPDLG;
 
      PAINTSTRUCT = record
           hdc : HDC;
@@ -4601,10 +4647,10 @@ unit struct;
           fIncUpdate : WINBOOL;
           rgbReserved : array[0..31] of BYTE;
        end;
-
      LPPAINTSTRUCT = ^PAINTSTRUCT;
-
      tagPAINTSTRUCT = PAINTSTRUCT;
+     TPAINTSTRUCT = PAINTSTRUCT;
+     PPAINTSTRUCT = ^PAINTSTRUCT;
 
      PARAFORMAT = record
           cbSize : UINT;
@@ -4618,14 +4664,16 @@ unit struct;
           cTabCount : SHORT;
           rgxTabs : array[0..(MAX_TAB_STOPS)-1] of LONG;
        end;
-
      _paraformat = PARAFORMAT;
+     Tparaformat = PARAFORMAT;
+     Pparaformat = ^PARAFORMAT;
 
      PERF_COUNTER_BLOCK = record
           ByteLength : DWORD;
        end;
-
      _PERF_COUNTER_BLOCK = PERF_COUNTER_BLOCK;
+     TPERFCOUNTERBLOCK = PERF_COUNTER_BLOCK;
+     PPERFCOUNTERBLOCK = ^PERF_COUNTER_BLOCK;
 
      PERF_COUNTER_DEFINITION = record
           ByteLength : DWORD;
@@ -4639,8 +4687,9 @@ unit struct;
           CounterSize : DWORD;
           CounterOffset : DWORD;
        end;
-
      _PERF_COUNTER_DEFINITION = PERF_COUNTER_DEFINITION;
+     TPERFCOUNTERDEFINITION = PERF_COUNTER_DEFINITION;
+     PPERFCOUNTERDEFINITION = ^PERF_COUNTER_DEFINITION;
 
      PERF_DATA_BLOCK = record
           Signature : array[0..3] of WCHAR;
@@ -4658,8 +4707,9 @@ unit struct;
           SystemNameLength : DWORD;
           SystemNameOffset : DWORD;
        end;
-
      _PERF_DATA_BLOCK = PERF_DATA_BLOCK;
+     TPERFDATABLOCK = PERF_DATA_BLOCK;
+     PPERFDATABLOCK = ^PERF_DATA_BLOCK;
 
      PERF_INSTANCE_DEFINITION = record
           ByteLength : DWORD;
@@ -4669,8 +4719,9 @@ unit struct;
           NameOffset : DWORD;
           NameLength : DWORD;
        end;
-
      _PERF_INSTANCE_DEFINITION = PERF_INSTANCE_DEFINITION;
+     TPERFINSTANCEDEFINITION = PERF_INSTANCE_DEFINITION;
+     PPERFINSTANCEDEFINITION = PERF_INSTANCE_DEFINITION;
 
      PERF_OBJECT_TYPE = record
           TotalByteLength : DWORD;
@@ -4688,8 +4739,9 @@ unit struct;
           PerfTime : LARGE_INTEGER;
           PerfFreq : LARGE_INTEGER;
        end;
-
      _PERF_OBJECT_TYPE = PERF_OBJECT_TYPE;
+     TPERFOBJECTTYPE = PERF_OBJECT_TYPE;
+     PPERFOBJECTTYPE = ^PERF_OBJECT_TYPE;
 
      POLYTEXT = record
           x : longint;
@@ -4700,14 +4752,16 @@ unit struct;
           rcl : RECT;
           pdx : ^longint;
        end;
-
      _POLYTEXT = POLYTEXT;
+     TPOLYTEXT = POLYTEXT;
+     PPOLYTEXT = ^POLYTEXT;
 
      PORT_INFO_1 = record
           pName : LPTSTR;
        end;
-
      _PORT_INFO_1 = PORT_INFO_1;
+     TPORTINFO1 = PORT_INFO_1;
+     PPORTINFO1 = ^PORT_INFO_1;
 
      PORT_INFO_2 = record
           pPortName : LPSTR;
@@ -4716,18 +4770,19 @@ unit struct;
           fPortType : DWORD;
           Reserved : DWORD;
        end;
-
      _PORT_INFO_2 = PORT_INFO_2;
+     TPORTINFO2 = PORT_INFO_2;
+     PPORTINFO2 = ^PORT_INFO_2;
 
      PREVENT_MEDIA_REMOVAL = record
           PreventMediaRemoval : BOOLEAN;
        end;
-
      _PREVENT_MEDIA_REMOVAL = PREVENT_MEDIA_REMOVAL;
-{$PACKRECORDS 1}
+     TPREVENTMEDIAREMOVAL = PREVENT_MEDIA_REMOVAL;
+     PPREVENTMEDIAREMOVAL = ^PREVENT_MEDIA_REMOVAL;
 
      {PRINTDLG = record conflicts with PrintDlg function }
-     TPRINTDLG = record
+     TPRINTDLG = packed record
           lStructSize : DWORD;
           hwndOwner : HWND;
           hDevMode : HANDLE;
@@ -4748,19 +4803,21 @@ unit struct;
           hPrintTemplate : HANDLE;
           hSetupTemplate : HANDLE;
        end;
-
      LPPRINTDLG = ^TPRINTDLG;
+     PPRINTDLG = ^TPRINTDLG;
 
      tagPD = TPRINTDLG;
-{$PACKRECORDS 4}
+     TPD = TPRINTDLG;
+     PPD = ^TPRINTDLG;
 
      PRINTER_DEFAULTS = record
           pDatatype : LPTSTR;
           pDevMode : LPDEVMODE;
           DesiredAccess : ACCESS_MASK;
        end;
-
      _PRINTER_DEFAULTS = PRINTER_DEFAULTS;
+     TPRINTERDEFAULTS = PRINTER_DEFAULTS;
+     PPRINTERDEFAULTS = ^PRINTER_DEFAULTS;
 
      PRINTER_INFO_1 = record
           Flags : DWORD;
@@ -4768,12 +4825,11 @@ unit struct;
           pName : LPTSTR;
           pComment : LPTSTR;
        end;
-
-     PPRINTER_INFO_1 = ^PRINTER_INFO_1;
-
      LPPRINTER_INFO_1 = ^PRINTER_INFO_1;
-
+     PPRINTER_INFO_1 = ^PRINTER_INFO_1;
      _PRINTER_INFO_1 = PRINTER_INFO_1;
+     TPRINTERINFO1 = PRINTER_INFO_1;
+     PPRINTERINFO1 = ^PRINTER_INFO_1;
 
      PRINTER_INFO_2 = record
           pServerName : LPTSTR;
@@ -4798,22 +4854,25 @@ unit struct;
           cJobs : DWORD;
           AveragePPM : DWORD;
        end;
-
      _PRINTER_INFO_2 = PRINTER_INFO_2;
+     TPRINTERINFO2 = PRINTER_INFO_2;
+     PPRINTERINFO2 = ^PRINTER_INFO_2;
 
      PRINTER_INFO_3 = record
           pSecurityDescriptor : PSECURITY_DESCRIPTOR;
        end;
-
      _PRINTER_INFO_3 = PRINTER_INFO_3;
+     TPRINTERINFO3 = PRINTER_INFO_3;
+     PPRINTERINFO3 = ^PRINTER_INFO_3;
 
      PRINTER_INFO_4 = record
           pPrinterName : LPTSTR;
           pServerName : LPTSTR;
           Attributes : DWORD;
        end;
-
      _PRINTER_INFO_4 = PRINTER_INFO_4;
+     TPRINTERINFO4 = PRINTER_INFO_4;
+     PPRINTERINFO4 = ^PRINTER_INFO_4;
 
      PRINTER_INFO_5 = record
           pPrinterName : LPTSTR;
@@ -4822,8 +4881,9 @@ unit struct;
           DeviceNotSelectedTimeout : DWORD;
           TransmissionRetryTimeout : DWORD;
        end;
-
      _PRINTER_INFO_5 = PRINTER_INFO_5;
+     TPRINTERINFO5 = PRINTER_INFO_5;
+     PPRINTERINFO5 = ^PRINTER_INFO_5;
 
      PRINTER_NOTIFY_INFO_DATA = record
           _Type : WORD;
@@ -4839,8 +4899,9 @@ unit struct;
                    end );
               end;
        end;
-
      _PRINTER_NOTIFY_INFO_DATA = PRINTER_NOTIFY_INFO_DATA;
+     TPRINTERNOTIFYINFODATA = PRINTER_NOTIFY_INFO_DATA;
+     PPRINTERNOTIFYINFODATA = ^PRINTER_NOTIFY_INFO_DATA;
 
      PRINTER_NOTIFY_INFO = record
           Version : DWORD;
@@ -4848,8 +4909,9 @@ unit struct;
           Count : DWORD;
           aData : array[0..0] of PRINTER_NOTIFY_INFO_DATA;
        end;
-
      _PRINTER_NOTIFY_INFO = PRINTER_NOTIFY_INFO;
+     TPRINTERNOTIFYINFO = PRINTER_NOTIFY_INFO;
+     PPRINTERNOTIFYINFO = ^PRINTER_NOTIFY_INFO;
 
      PRINTER_NOTIFY_OPTIONS_TYPE = record
           _Type : WORD;
@@ -4859,10 +4921,10 @@ unit struct;
           Count : DWORD;
           pFields : PWORD;
        end;
-
      PPRINTER_NOTIFY_OPTIONS_TYPE = ^PRINTER_NOTIFY_OPTIONS_TYPE;
-
      _PRINTER_NOTIFY_OPTIONS_TYPE = PRINTER_NOTIFY_OPTIONS_TYPE;
+     TPRINTERNOTIFYOPTIONSTYPE = PRINTER_NOTIFY_OPTIONS_TYPE;
+     PPRINTERNOTIFYOPTIONSTYPE = ^PRINTER_NOTIFY_OPTIONS_TYPE;
 
      PRINTER_NOTIFY_OPTIONS = record
           Version : DWORD;
@@ -4870,26 +4932,27 @@ unit struct;
           Count : DWORD;
           pTypes : PPRINTER_NOTIFY_OPTIONS_TYPE;
        end;
-
      _PRINTER_NOTIFY_OPTIONS = PRINTER_NOTIFY_OPTIONS;
+     TPRINTERNOTIFYOPTIONS = PRINTER_NOTIFY_OPTIONS;
+     PPRINTERNOTIFYOPTIONS = ^PRINTER_NOTIFY_OPTIONS;
 
      PRINTPROCESSOR_INFO_1 = record
           pName : LPTSTR;
        end;
-
      _PRINTPROCESSOR_INFO_1 = PRINTPROCESSOR_INFO_1;
+     TPRINTPROCESSORINFO1 = PRINTPROCESSOR_INFO_1;
+     PPRINTPROCESSORINFO1 = ^PRINTPROCESSOR_INFO_1;
 
      PRIVILEGE_SET = record
           PrivilegeCount : DWORD;
           Control : DWORD;
           Privilege : array[0..(ANYSIZE_ARRAY)-1] of LUID_AND_ATTRIBUTES;
        end;
-
-     PPRIVILEGE_SET = ^PRIVILEGE_SET;
-
      LPPRIVILEGE_SET = ^PRIVILEGE_SET;
-
+     PPRIVILEGE_SET = ^PRIVILEGE_SET;
      _PRIVILEGE_SET = PRIVILEGE_SET;
+     TPRIVILEGESET = PRIVILEGE_SET;
+     PPRIVILEGESET = ^PRIVILEGE_SET;
 
      PROCESS_HEAPENTRY = record
           lpData : PVOID;
@@ -4903,10 +4966,10 @@ unit struct;
           lpLastBlock : LPVOID;
           hMem : HANDLE;
        end;
-
      LPPROCESS_HEAP_ENTRY = ^PROCESS_HEAPENTRY;
-
      _PROCESS_HEAP_ENTRY = PROCESS_HEAPENTRY;
+     TPROCESSHEAPENTRY = PROCESS_HEAPENTRY;
+     PPROCESSHEAPENTRY = ^PROCESS_HEAPENTRY;
 
      PROCESS_INFORMATION = record
           hProcess : HANDLE;
@@ -4914,12 +4977,13 @@ unit struct;
           dwProcessId : DWORD;
           dwThreadId : DWORD;
        end;
-
      LPPROCESS_INFORMATION = ^PROCESS_INFORMATION;
-
      _PROCESS_INFORMATION = PROCESS_INFORMATION;
+     TPROCESSINFORMATION = PROCESS_INFORMATION;
+     PPROCESSINFORMATION = ^PROCESS_INFORMATION;
 
      LPFNPSPCALLBACK = function (_para1:HWND; _para2:UINT; _para3:LPVOID):UINT;
+     TFNPSPCALLBACK = LPFNPSPCALLBACK;
 
      PROPSHEETPAGE = record
           dwSize : DWORD;
@@ -4941,17 +5005,15 @@ unit struct;
           pfnCallback : LPFNPSPCALLBACK;
           pcRefParent : ^UINT;
        end;
-
      LPPROPSHEETPAGE = ^PROPSHEETPAGE;
-
-     _PROPSHEETPAGE = PROPSHEETPAGE;
-(* Const before type ignored *)
-
      LPCPROPSHEETPAGE = ^PROPSHEETPAGE;
+     _PROPSHEETPAGE = PROPSHEETPAGE;
+     TPROPSHEETPAGE = PROPSHEETPAGE;
+     PPROPSHEETPAGE = ^PROPSHEETPAGE;
 
-   emptyrecord = record
-                 end;
-   HPROPSHEETPAGE = ^emptyrecord;
+     emptyrecord = record
+       end;
+     HPROPSHEETPAGE = ^emptyrecord;
 
      PROPSHEETHEADER = record
           dwSize : DWORD;
@@ -4977,18 +5039,18 @@ unit struct;
               end;
           pfnCallback : PFNPROPSHEETCALLBACK;
        end;
-
      LPPROPSHEETHEADER = ^PROPSHEETHEADER;
-
-     _PROPSHEETHEADER = PROPSHEETHEADER;
-(* Const before type ignored *)
-
      LPCPROPSHEETHEADER = ^PROPSHEETHEADER;
-  { PropertySheet callbacks  }
+     _PROPSHEETHEADER = PROPSHEETHEADER;
+     TPROPSHEETHEADER = PROPSHEETHEADER;
+     PPROPSHEETHEADER = ^PROPSHEETHEADER;
 
+     { PropertySheet callbacks  }
      LPFNADDPROPSHEETPAGE = function (_para1:HPROPSHEETPAGE; _para2:LPARAM):WINBOOL;
+     TFNADDPROPSHEETPAGE = LPFNADDPROPSHEETPAGE;
 
      LPFNADDPROPSHEETPAGES = function (_para1:LPVOID; _para2:LPFNADDPROPSHEETPAGE; _para3:LPARAM):WINBOOL;
+     TFNADDPROPSHEETPAGES = LPFNADDPROPSHEETPAGES;
 
      PROTOCOL_INFO = record
           dwServiceFlags : DWORD;
@@ -5000,32 +5062,35 @@ unit struct;
           dwMessageSize : DWORD;
           lpProtocol : LPTSTR;
        end;
-
      _PROTOCOL_INFO = PROTOCOL_INFO;
+     TPROTOCOLINFO = PROTOCOL_INFO;
+     PPROTOCOLINFO = ^PROTOCOL_INFO;
 
      PROVIDOR_INFO_1 = record
           pName : LPTSTR;
           pEnvironment : LPTSTR;
           pDLLName : LPTSTR;
        end;
-
      _PROVIDOR_INFO_1 = PROVIDOR_INFO_1;
+     TPROVIDORINFO1 = PROVIDOR_INFO_1;
+     PPROVIDORINFO1 = ^PROVIDOR_INFO_1;
 
      PSHNOTIFY = record
           hdr : NMHDR;
           lParam : LPARAM;
        end;
-
      LPPSHNOTIFY = ^PSHNOTIFY;
-
      _PSHNOTIFY = PSHNOTIFY;
+     TPSHNOTIFY = PSHNOTIFY;
+     PPSHNOTIFY = ^PSHNOTIFY;
 
      PUNCTUATION = record
           iSize : UINT;
           szPunctuation : LPSTR;
        end;
-
      _punctuation = PUNCTUATION;
+     Tpunctuation = PUNCTUATION;
+     Ppunctuation = ^PUNCTUATION;
 
      QUERY_SERVICE_CONFIG = record
           dwServiceType : DWORD;
@@ -5038,20 +5103,20 @@ unit struct;
           lpServiceStartName : LPTSTR;
           lpDisplayName : LPTSTR;
        end;
-
      LPQUERY_SERVICE_CONFIG = ^QUERY_SERVICE_CONFIG;
-
      _QUERY_SERVICE_CONFIG = QUERY_SERVICE_CONFIG;
+     TQUERYSERVICECONFIG = QUERY_SERVICE_CONFIG;
+     PQUERYSERVICECONFIG = ^QUERY_SERVICE_CONFIG;
 
      QUERY_SERVICE_LOCK_STATUS = record
           fIsLocked : DWORD;
           lpLockOwner : LPTSTR;
           dwLockDuration : DWORD;
        end;
-
      LPQUERY_SERVICE_LOCK_STATUS = ^QUERY_SERVICE_LOCK_STATUS;
-
      _QUERY_SERVICE_LOCK_STATUS = QUERY_SERVICE_LOCK_STATUS;
+     TQUERYSERVICELOCKSTATUS = QUERY_SERVICE_LOCK_STATUS;
+     PQUERYSERVICELOCKSTATUS = ^QUERY_SERVICE_LOCK_STATUS;
 
      RASAMB = record
           dwSize : DWORD;
@@ -5059,8 +5124,9 @@ unit struct;
           szNetBiosError : array[0..(NETBIOS_NAME_LEN + 1)-1] of TCHAR;
           bLana : BYTE;
        end;
-
      _RASAMB = RASAMB;
+     TRASAMB = RASAMB;
+     PRASAMB = ^RASAMB;
 
      RASCONN = record
           dwSize : DWORD;
@@ -5069,8 +5135,9 @@ unit struct;
           szDeviceType : array[0..(RAS_MaxDeviceType + 1)-1] of CHAR;
           szDeviceName : array[0..(RAS_MaxDeviceName + 1)-1] of CHAR;
        end;
-
      _RASCONN = RASCONN;
+     TRASCONN = RASCONN;
+     PRASCONN = ^RASCONN;
 
      RASCONNSTATUS = record
           dwSize : DWORD;
@@ -5079,8 +5146,9 @@ unit struct;
           szDeviceType : array[0..(RAS_MaxDeviceType + 1)-1] of TCHAR;
           szDeviceName : array[0..(RAS_MaxDeviceName + 1)-1] of TCHAR;
        end;
-
      _RASCONNSTATUS = RASCONNSTATUS;
+     TRASCONNSTATUS = RASCONNSTATUS;
+     PRASCONNSTATUS = ^RASCONNSTATUS;
 
      RASDIALEXTENSIONS = record
           dwSize : DWORD;
@@ -5088,8 +5156,9 @@ unit struct;
           hwndParent : HWND;
           reserved : DWORD;
        end;
-
      _RASDIALEXTENSIONS = RASDIALEXTENSIONS;
+     TRASDIALEXTENSIONS = RASDIALEXTENSIONS;
+     PRASDIALEXTENSIONS = ^RASDIALEXTENSIONS;
 
      RASDIALPARAMS = record
           dwSize : DWORD;
@@ -5100,31 +5169,35 @@ unit struct;
           szPassword : array[0..(PWLEN + 1)-1] of TCHAR;
           szDomain : array[0..(DNLEN + 1)-1] of TCHAR;
        end;
-
      _RASDIALPARAMS = RASDIALPARAMS;
+     TRASDIALPARAMS = RASDIALPARAMS;
+     PRASDIALPARAMS = ^RASDIALPARAMS;
 
      RASENTRYNAME = record
           dwSize : DWORD;
           szEntryName : array[0..(RAS_MaxEntryName + 1)-1] of TCHAR;
        end;
-
      _RASENTRYNAME = RASENTRYNAME;
+     TRASENTRYNAME = RASENTRYNAME;
+     PRASENTRYNAME = ^RASENTRYNAME;
 
      RASPPPIP = record
           dwSize : DWORD;
           dwError : DWORD;
           szIpAddress : array[0..(RAS_MaxIpAddress + 1)-1] of TCHAR;
        end;
-
      _RASPPPIP = RASPPPIP;
+     TRASPPPIP = RASPPPIP;
+     PRASPPPIP = ^RASPPPIP;
 
      RASPPPIPX = record
           dwSize : DWORD;
           dwError : DWORD;
           szIpxAddress : array[0..(RAS_MaxIpxAddress + 1)-1] of TCHAR;
        end;
-
      _RASPPPIPX = RASPPPIPX;
+     TRASPPPIPX = RASPPPIPX;
+     PRASPPPIPX = ^RASPPPIPX;
 
      RASPPPNBF = record
           dwSize : DWORD;
@@ -5134,34 +5207,38 @@ unit struct;
           szWorkstationName : array[0..(NETBIOS_NAME_LEN + 1)-1] of TCHAR;
           bLana : BYTE;
        end;
-
      _RASPPPNBF = RASPPPNBF;
+     TRASPPPNBF = RASPPPNBF;
+     PRASPPPNBF = ^RASPPPNBF;
 
      RASTERIZER_STATUS = record
           nSize : integer;
           wFlags : integer;
           nLanguageID : integer;
        end;
-
      LPRASTERIZER_STATUS = ^RASTERIZER_STATUS;
-
      _RASTERIZER_STATUS = RASTERIZER_STATUS;
+     TRASTERIZERSTATUS = RASTERIZER_STATUS;
+     PRASTERIZERSTATUS = ^RASTERIZER_STATUS;
 
      REASSIGN_BLOCKS = record
           Reserved : WORD;
           Count : WORD;
           BlockNumber : array[0..0] of DWORD;
        end;
-
      _REASSIGN_BLOCKS = REASSIGN_BLOCKS;
+     TREASSIGNBLOCKS = REASSIGN_BLOCKS;
+     PREASSIGNBLOCKS = ^REASSIGN_BLOCKS;
 
      REMOTE_NAME_INFO = record
           lpUniversalName : LPTSTR;
           lpConnectionName : LPTSTR;
           lpRemainingPath : LPTSTR;
        end;
-
      _REMOTE_NAME_INFO = REMOTE_NAME_INFO;
+     TREMOTENAMEINFO = REMOTE_NAME_INFO;
+     PREMOTENAMEINFO = ^REMOTE_NAME_INFO;
+
   (*
    TODO: OLE
   typedef struct _reobject {
@@ -5182,15 +5259,17 @@ unit struct;
           dwAspect : DWORD;
           dwParam : DWORD;
        end;
-
      _repastespecial = REPASTESPECIAL;
+     Trepastespecial = REPASTESPECIAL;
+     Prepastespecial = ^REPASTESPECIAL;
 
      REQRESIZE = record
           nmhdr : NMHDR;
           rc : RECT;
        end;
-
      _reqresize = REQRESIZE;
+     Treqresize = REQRESIZE;
+     Preqresize = ^REQRESIZE;
 
      RGNDATAHEADER = record
           dwSize : DWORD;
@@ -5199,17 +5278,18 @@ unit struct;
           nRgnSize : DWORD;
           rcBound : RECT;
        end;
-
      _RGNDATAHEADER = RGNDATAHEADER;
+     TRGNDATAHEADER = RGNDATAHEADER;
+     PRGNDATAHEADER = ^RGNDATAHEADER;
 
      RGNDATA = record
           rdh : RGNDATAHEADER;
           Buffer : array[0..0] of char;
        end;
-
      LPRGNDATA = ^RGNDATA;
-
      _RGNDATA = RGNDATA;
+     TRGNDATA = RGNDATA;
+     PRGNDATA = ^RGNDATA;
 
      SCROLLINFO = record
           cbSize : UINT;
@@ -5220,35 +5300,35 @@ unit struct;
           nPos : longint;
           nTrackPos : longint;
        end;
-
      LPSCROLLINFO = ^SCROLLINFO;
-
-     tagSCROLLINFO = SCROLLINFO;
-(* Const before declarator ignored *)
-
      LPCSCROLLINFO = ^SCROLLINFO;
+     tagSCROLLINFO = SCROLLINFO;
+     TSCROLLINFO = SCROLLINFO;
+     PSCROLLINFO = ^SCROLLINFO;
 
      SECURITY_ATTRIBUTES = record
           nLength : DWORD;
           lpSecurityDescriptor : LPVOID;
           bInheritHandle : WINBOOL;
        end;
-
      LPSECURITY_ATTRIBUTES = ^SECURITY_ATTRIBUTES;
-
      _SECURITY_ATTRIBUTES = SECURITY_ATTRIBUTES;
+     TSECURITYATTRIBUTES = SECURITY_ATTRIBUTES;
+     PSECURITYATTRIBUTES = ^SECURITY_ATTRIBUTES;
 
      SECURITY_INFORMATION = DWORD;
-
      PSECURITY_INFORMATION = ^SECURITY_INFORMATION;
+     TSECURITYINFORMATION = SECURITY_INFORMATION;
+     PSECURITYINFORMATION = ^SECURITY_INFORMATION;
 
      SELCHANGE = record
           nmhdr : NMHDR;
           chrg : CHARRANGE;
           seltyp : WORD;
        end;
-
      _selchange = SELCHANGE;
+     Tselchange = SELCHANGE;
+     Pselchange = ^SELCHANGE;
 
      SERIALKEYS = record
           cbSize : DWORD;
@@ -5258,19 +5338,19 @@ unit struct;
           iBaudRate : DWORD;
           iPortState : DWORD;
        end;
-
      LPSERIALKEYS = ^SERIALKEYS;
-
      tagSERIALKEYS = SERIALKEYS;
+     TSERIALKEYS = SERIALKEYS;
+     PSERIALKEYS = ^SERIALKEYS;
 
      SERVICE_TABLE_ENTRY = record
           lpServiceName : LPTSTR;
           lpServiceProc : LPSERVICE_MAIN_FUNCTION;
        end;
-
      LPSERVICE_TABLE_ENTRY = ^SERVICE_TABLE_ENTRY;
-
      _SERVICE_TABLE_ENTRY = SERVICE_TABLE_ENTRY;
+     TSERVICETABLEENTRY = SERVICE_TABLE_ENTRY;
+     PSERVICETABLEENTRY = ^SERVICE_TABLE_ENTRY;
 
      SERVICE_TYPE_VALUE_ABS = record
           dwNameSpace : DWORD;
@@ -5279,16 +5359,18 @@ unit struct;
           lpValueName : LPTSTR;
           lpValue : PVOID;
        end;
-
      _SERVICE_TYPE_VALUE_ABS = SERVICE_TYPE_VALUE_ABS;
+     TSERVICETYPEVALUEABS = SERVICE_TYPE_VALUE_ABS;
+     PSERVICETYPEVALUEABS = ^SERVICE_TYPE_VALUE_ABS;
 
      SERVICE_TYPE_INFO_ABS = record
           lpTypeName : LPTSTR;
           dwValueCount : DWORD;
           Values : array[0..0] of SERVICE_TYPE_VALUE_ABS;
        end;
-
      _SERVICE_TYPE_INFO_ABS = SERVICE_TYPE_INFO_ABS;
+     TSERVICETYPEINFOABS = SERVICE_TYPE_INFO_ABS;
+     PSERVICETYPEINFOABS = ^SERVICE_TYPE_INFO_ABS;
 
      SESSION_BUFFER = record
           lsn : UCHAR;
@@ -5298,8 +5380,9 @@ unit struct;
           rcvs_outstanding : UCHAR;
           sends_outstanding : UCHAR;
        end;
-
      _SESSION_BUFFER = SESSION_BUFFER;
+     TSESSIONBUFFER = SESSION_BUFFER;
+     PSESSIONBUFFER = ^SESSION_BUFFER;
 
      SESSION_HEADER = record
           sess_name : UCHAR;
@@ -5307,19 +5390,21 @@ unit struct;
           rcv_dg_outstanding : UCHAR;
           rcv_any_outstanding : UCHAR;
        end;
-
      _SESSION_HEADER = SESSION_HEADER;
+     TSESSIONHEADER = SESSION_HEADER;
+     PSESSIONHEADER = ^SESSION_HEADER;
 
      SET_PARTITION_INFORMATION = record
           PartitionType : BYTE;
        end;
-
      _SET_PARTITION_INFORMATION = SET_PARTITION_INFORMATION;
+     TSETPARTITIONINFORMATION = SET_PARTITION_INFORMATION;
+     PSETPARTITIONINFORMATION = ^SET_PARTITION_INFORMATION;
 
      SHCONTF = (SHCONTF_FOLDERS := 32,SHCONTF_NONFOLDERS := 64,
        SHCONTF_INCLUDEHIDDEN := 128);
-
      tagSHCONTF = SHCONTF;
+     TSHCONTF = SHCONTF;
 
      SHFILEINFO = record
           hIcon : HICON;
@@ -5328,10 +5413,13 @@ unit struct;
           szDisplayName : array[0..(MAX_PATH)-1] of char;
           szTypeName : array[0..79] of char;
        end;
-
      _SHFILEINFO = SHFILEINFO;
+     TSHFILEINFO = SHFILEINFO;
+     PSHFILEINFO = ^SHFILEINFO;
 
      FILEOP_FLAGS = WORD;
+     TFILEOPFLAGS = FILEOP_FLAGS;
+     PFILEOPFLAGS = ^FILEOP_FLAGS;
 
      SHFILEOPSTRUCT = record
           hwnd : HWND;
@@ -5343,15 +5431,15 @@ unit struct;
           hNameMappings : LPVOID;
           lpszProgressTitle : LPCSTR;
        end;
-
      LPSHFILEOPSTRUCT = ^SHFILEOPSTRUCT;
-
      _SHFILEOPSTRUCT = SHFILEOPSTRUCT;
+     TSHFILEOPSTRUCT = SHFILEOPSTRUCT;
+     PSHFILEOPSTRUCT = ^SHFILEOPSTRUCT;
 
      SHGNO = (SHGDN_NORMAL := 0,SHGDN_INFOLDER := 1,
        SHGDN_FORPARSING := $8000);
-
      tagSHGDN = SHGNO;
+     TSHGDN = SHGNO;
 
      SHNAMEMAPPING = record
           pszOldPath : LPSTR;
@@ -5359,27 +5447,30 @@ unit struct;
           cchOldPath : longint;
           cchNewPath : longint;
        end;
-
      LPSHNAMEMAPPING = ^SHNAMEMAPPING;
-
      _SHNAMEMAPPING = SHNAMEMAPPING;
+     TSHNAMEMAPPING = SHNAMEMAPPING;
+     PSHNAMEMAPPING = ^SHNAMEMAPPING;
 
      SID_AND_ATTRIBUTES = record
           Sid : PSID;
           Attributes : DWORD;
        end;
-
      _SID_AND_ATTRIBUTES = SID_AND_ATTRIBUTES;
+     TSIDANDATTRIBUTES = SID_AND_ATTRIBUTES;
+     PSIDANDATTRIBUTES = ^SID_AND_ATTRIBUTES;
 
      SID_AND_ATTRIBUTES_ARRAY = array[0..(ANYSIZE_ARRAY)-1] of SID_AND_ATTRIBUTES;
-
      PSID_AND_ATTRIBUTES_ARRAY = ^SID_AND_ATTRIBUTES_ARRAY;
+     TSIDANDATTRIBUTESARRAY = SID_AND_ATTRIBUTES_ARRAY;
+     PSIDANDATTRIBUTESARRAY = ^SID_AND_ATTRIBUTES_ARRAY;
 
      SINGLE_LIST_ENTRY = record
           Next : ^_SINGLE_LIST_ENTRY;
        end;
-
      _SINGLE_LIST_ENTRY = SINGLE_LIST_ENTRY;
+     TSINGLELISTENTRY = SINGLE_LIST_ENTRY;
+     PSINGLELISTENTRY = ^SINGLE_LIST_ENTRY;
 
      SOUNDSENTRY = record
           cbSize : UINT;
@@ -5395,10 +5486,10 @@ unit struct;
           lpszWindowsEffectDLL : LPTSTR;
           iWindowsEffectOrdinal : DWORD;
        end;
-
      LPSOUNDSENTRY = ^SOUNDSENTRY;
-
      tagSOUNDSENTRY = SOUNDSENTRY;
+     TSOUNDSENTRY = SOUNDSENTRY;
+     PSOUNDSENTRY = ^SOUNDSENTRY;
 
      STARTUPINFO = record
           cb : DWORD;
@@ -5420,19 +5511,19 @@ unit struct;
           hStdOutput : HANDLE;
           hStdError : HANDLE;
        end;
-
      LPSTARTUPINFO = ^STARTUPINFO;
-
      _STARTUPINFO = STARTUPINFO;
+     TSTARTUPINFO = STARTUPINFO;
+     PSTARTUPINFO = ^STARTUPINFO;
 
      STICKYKEYS = record
           cbSize : DWORD;
           dwFlags : DWORD;
        end;
-
      LPSTICKYKEYS = ^STICKYKEYS;
-
      tagSTICKYKEYS = STICKYKEYS;
+     TSTICKYKEYS = STICKYKEYS;
+     PSTICKYKEYS = ^STICKYKEYS;
 
      STRRET = record
           uType : UINT;
@@ -5443,36 +5534,37 @@ unit struct;
                  2 : ( cStr : array[0..(MAX_PATH)-1] of char );
               end;
        end;
-
      LPSTRRET = ^STRRET;
-
      _STRRET = STRRET;
+     TSTRRET = STRRET;
+     PSTRRET = ^STRRET;
 
      STYLEBUF = record
           dwStyle : DWORD;
           szDescription : array[0..31] of CHAR;
        end;
-
      LPSTYLEBUF = ^STYLEBUF;
-
      _tagSTYLEBUF = STYLEBUF;
+     TSTYLEBUF = STYLEBUF;
+     PSTYLEBUF = ^STYLEBUF;
 
      STYLESTRUCT = record
           styleOld : DWORD;
           styleNew : DWORD;
        end;
-
      LPSTYLESTRUCT = ^STYLESTRUCT;
-
      tagSTYLESTRUCT = STYLESTRUCT;
+     TSTYLESTRUCT = STYLESTRUCT;
+     PSTYLESTRUCT = ^STYLESTRUCT;
 
      SYSTEM_AUDIT_ACE = record
           Header : ACE_HEADER;
           Mask : ACCESS_MASK;
           SidStart : DWORD;
        end;
-
      _SYSTEM_AUDIT_ACE = SYSTEM_AUDIT_ACE;
+     TSYSTEMAUDITACE = SYSTEM_AUDIT_ACE;
+     PSYSTEMAUDITACE = ^SYSTEM_AUDIT_ACE;
 
      SYSTEM_INFO = record
           u : record
@@ -5493,10 +5585,10 @@ unit struct;
           wProcessorLevel : WORD;
           wProcessorRevision : WORD;
        end;
-
      LPSYSTEM_INFO = ^SYSTEM_INFO;
-
      _SYSTEM_INFO = SYSTEM_INFO;
+     TSYSTEMINFO = SYSTEM_INFO;
+     PSYSTEMINFO = ^SYSTEM_INFO;
 
      SYSTEM_POWER_STATUS = record
           ACLineStatus : BYTE;
@@ -5506,16 +5598,18 @@ unit struct;
           BatteryLifeTime : DWORD;
           BatteryFullLifeTime : DWORD;
        end;
-
      _SYSTEM_POWER_STATUS = SYSTEM_POWER_STATUS;
+     TSYSTEMPOWERSTATUS = SYSTEM_POWER_STATUS;
+     PSYSTEMPOWERSTATUS = ^SYSTEM_POWER_STATUS;
 
      LPSYSTEM_POWER_STATUS = ^emptyrecord;
 
      TAPE_ERASE = record
           _Type : ULONG;
        end;
-
      _TAPE_ERASE = TAPE_ERASE;
+     TTAPEERASE = TAPE_ERASE;
+     PTAPEERASE = ^TAPE_ERASE;
 
      TAPE_GET_DRIVE_PARAMETERS = record
           ECC : BOOLEAN;
@@ -5530,8 +5624,9 @@ unit struct;
           FeaturesHigh : ULONG;
           EOTWarningZoneSize : ULONG;
        end;
-
      _TAPE_GET_DRIVE_PARAMETERS = TAPE_GET_DRIVE_PARAMETERS;
+     TTAPEGETDRIVEPARAMETERS = TAPE_GET_DRIVE_PARAMETERS;
+     PTAPEGETDRIVEPARAMETERS = ^TAPE_GET_DRIVE_PARAMETERS;
 
      TAPE_GET_MEDIA_PARAMETERS = record
           Capacity : LARGE_INTEGER;
@@ -5540,8 +5635,9 @@ unit struct;
           PartitionCount : DWORD;
           WriteProtected : BOOLEAN;
        end;
-
      _TAPE_GET_MEDIA_PARAMETERS = TAPE_GET_MEDIA_PARAMETERS;
+     TTAPEGETMEDIAPARAMETERS = TAPE_GET_MEDIA_PARAMETERS;
+     PTAPEGETMEDIAPARAMETERS = ^TAPE_GET_MEDIA_PARAMETERS;
 
      TAPE_GET_POSITION = record
           _Type : ULONG;
@@ -5549,14 +5645,16 @@ unit struct;
           OffsetLow : ULONG;
           OffsetHigh : ULONG;
        end;
-
      _TAPE_GET_POSITION = TAPE_GET_POSITION;
+     TTAPEGETPOSITION = TAPE_GET_POSITION;
+     PTAPEGETPOSITION = ^TAPE_GET_POSITION;
 
      TAPE_PREPARE = record
           Operation : ULONG;
        end;
-
      _TAPE_PREPARE = TAPE_PREPARE;
+     TTAPEPREPARE = TAPE_PREPARE;
+     PTAPEPREPARE = ^TAPE_PREPARE;
 
      TAPE_SET_DRIVE_PARAMETERS = record
           ECC : BOOLEAN;
@@ -5565,14 +5663,16 @@ unit struct;
           ReportSetmarks : BOOLEAN;
           EOTWarningZoneSize : ULONG;
        end;
-
      _TAPE_SET_DRIVE_PARAMETERS = TAPE_SET_DRIVE_PARAMETERS;
+     TTAPESETDRIVEPARAMETERS = TAPE_SET_DRIVE_PARAMETERS;
+     PTAPESETDRIVEPARAMETERS = ^TAPE_SET_DRIVE_PARAMETERS;
 
      TAPE_SET_MEDIA_PARAMETERS = record
           BlockSize : ULONG;
        end;
-
      _TAPE_SET_MEDIA_PARAMETERS = TAPE_SET_MEDIA_PARAMETERS;
+     TTAPESETMEDIAPARAMETERS = TAPE_SET_MEDIA_PARAMETERS;
+     PTAPESETMEDIAPARAMETERS = ^TAPE_SET_MEDIA_PARAMETERS;
 
      TAPE_SET_POSITION = record
           Method : ULONG;
@@ -5580,22 +5680,25 @@ unit struct;
           OffsetLow : ULONG;
           OffsetHigh : ULONG;
        end;
-
      _TAPE_SET_POSITION = TAPE_SET_POSITION;
+     TTAPESETPOSITION = TAPE_SET_POSITION;
+     PTAPESETPOSITION = ^TAPE_SET_POSITION;
 
      TAPE_WRITE_MARKS = record
           _Type : ULONG;
           Count : ULONG;
        end;
-
      _TAPE_WRITE_MARKS = TAPE_WRITE_MARKS;
+     TTAPEWRITEMARKS = TAPE_WRITE_MARKS;
+     PTAPEWRITEMARKS = ^TAPE_WRITE_MARKS;
 
      TBADDBITMAP = record
           hInst : HINST;
           nID : UINT;
        end;
-
      LPTBADDBITMAP = ^TBADDBITMAP;
+     TTBADDBITMAP = TBADDBITMAP;
+     PTBADDBITMAP = ^TBADDBITMAP;
 
      TBBUTTON = record
           iBitmap : longint;
@@ -5605,15 +5708,11 @@ unit struct;
           dwData : DWORD;
           iString : longint;
        end;
-
-     PTBBUTTON = ^TBBUTTON;
-
      LPTBBUTTON = ^TBBUTTON;
-
-     _TBBUTTON = TBBUTTON;
-(* Const before type ignored *)
-
      LPCTBBUTTON = ^TBBUTTON;
+     _TBBUTTON = TBBUTTON;
+     TTBBUTTON = TBBUTTON;
+     PTBBUTTON = ^TBBUTTON;
 
      TBNOTIFY = record
           hdr : NMHDR;
@@ -5622,21 +5721,25 @@ unit struct;
           cchText : longint;
           pszText : LPTSTR;
        end;
-
      LPTBNOTIFY = ^TBNOTIFY;
+     TTBNOTIFY = TBNOTIFY;
+     PTBNOTIFY = ^TBNOTIFY;
 
      TBSAVEPARAMS = record
           hkr : HKEY;
           pszSubKey : LPCTSTR;
           pszValueName : LPCTSTR;
        end;
+     TTBSAVEPARAMS = TBSAVEPARAMS;
+     PTBSAVEPARAMS = ^TBSAVEPARAMS;
 
      TC_HITTESTINFO = record
           pt : POINT;
           flags : UINT;
        end;
-
      _TC_HITTESTINFO = TC_HITTESTINFO;
+     TTCHITTESTINFO = TC_HITTESTINFO;
+     PTCHITTESTINFO = ^TC_HITTESTINFO;
 
      TC_ITEM = record
           mask : UINT;
@@ -5647,8 +5750,9 @@ unit struct;
           iImage : longint;
           lParam : LPARAM;
        end;
-
      _TC_ITEM = TC_ITEM;
+     TTCITEM = TC_ITEM;
+     PTCITEM = ^TC_ITEM;
 
      TC_ITEMHEADER = record
           mask : UINT;
@@ -5658,23 +5762,26 @@ unit struct;
           cchTextMax : longint;
           iImage : longint;
        end;
-
      _TC_ITEMHEADER = TC_ITEMHEADER;
+     TTCITEMHEADER = TC_ITEMHEADER;
+     PTCITEMHEADER = ^TC_ITEMHEADER;
 
      TC_KEYDOWN = record
           hdr : NMHDR;
           wVKey : WORD;
           flags : UINT;
        end;
-
      _TC_KEYDOWN = TC_KEYDOWN;
+     TTCKEYDOWN = TC_KEYDOWN;
+     PTCKEYDOWN = ^TC_KEYDOWN;
 
      TEXTRANGE = record
           chrg : CHARRANGE;
           lpstrText : LPSTR;
        end;
-
      _textrange = TEXTRANGE;
+     Ttextrange = TEXTRANGE;
+     Ptextrange = ^TEXTRANGE;
 
      TIME_ZONE_INFORMATION = record
           Bias : LONG;
@@ -5685,24 +5792,26 @@ unit struct;
           DaylightDate : SYSTEMTIME;
           DaylightBias : LONG;
        end;
-
      LPTIME_ZONE_INFORMATION = ^TIME_ZONE_INFORMATION;
-
      _TIME_ZONE_INFORMATION = TIME_ZONE_INFORMATION;
+     TTIMEZONEINFORMATION = TIME_ZONE_INFORMATION;
+     PTIMEZONEINFORMATION = ^TIME_ZONE_INFORMATION;
 
      TOGGLEKEYS = record
           cbSize : DWORD;
           dwFlags : DWORD;
        end;
-
      tagTOGGLEKEYS = TOGGLEKEYS;
+     TTOGGLEKEYS = TOGGLEKEYS;
+     PTOGGLEKEYS = ^TOGGLEKEYS;
 
      TOKEN_SOURCE = record
           SourceName : array[0..7] of CHAR;
           SourceIdentifier : LUID;
        end;
-
      _TOKEN_SOURCE = TOKEN_SOURCE;
+     TTOKENSOURCE = TOKEN_SOURCE;
+     PTOKENSOURCE = ^TOKEN_SOURCE;
 
      TOKEN_CONTROL = record
           TokenId : LUID;
@@ -5710,48 +5819,50 @@ unit struct;
           ModifiedId : LUID;
           TokenSource : TOKEN_SOURCE;
        end;
-
      _TOKEN_CONTROL = TOKEN_CONTROL;
+     TTOKENCONTROL = TOKEN_CONTROL;
+     PTOKENCONTROL = ^TOKEN_CONTROL;
 
      TOKEN_DEFAULT_DACL = record
           DefaultDacl : PACL;
        end;
-
      _TOKEN_DEFAULT_DACL = TOKEN_DEFAULT_DACL;
+     TTOKENDEFAULTDACL = TOKEN_DEFAULT_DACL;
+     PTOKENDEFAULTDACL = ^TOKEN_DEFAULT_DACL;
 
      TOKEN_GROUPS = record
           GroupCount : DWORD;
           Groups : array[0..(ANYSIZE_ARRAY)-1] of SID_AND_ATTRIBUTES;
        end;
-
      PTOKEN_GROUPS = ^TOKEN_GROUPS;
-
      LPTOKEN_GROUPS = ^TOKEN_GROUPS;
-
      _TOKEN_GROUPS = TOKEN_GROUPS;
+     TTOKENGROUPS = TOKEN_GROUPS;
+     PTOKENGROUPS = ^TOKEN_GROUPS;
 
      TOKEN_OWNER = record
           Owner : PSID;
        end;
-
      _TOKEN_OWNER = TOKEN_OWNER;
+     TTOKENOWNER = TOKEN_OWNER;
+     PTOKENOWNER = ^TOKEN_OWNER;
 
      TOKEN_PRIMARY_GROUP = record
           PrimaryGroup : PSID;
        end;
-
      _TOKEN_PRIMARY_GROUP = TOKEN_PRIMARY_GROUP;
+     TTOKENPRIMARYGROUP = TOKEN_PRIMARY_GROUP;
+     PTOKENPRIMARYGROUP = ^TOKEN_PRIMARY_GROUP;
 
      TOKEN_PRIVILEGES = record
           PrivilegeCount : DWORD;
           Privileges : array[0..(ANYSIZE_ARRAY)-1] of LUID_AND_ATTRIBUTES;
        end;
-
      PTOKEN_PRIVILEGES = ^TOKEN_PRIVILEGES;
-
      LPTOKEN_PRIVILEGES = ^TOKEN_PRIVILEGES;
-
      _TOKEN_PRIVILEGES = TOKEN_PRIVILEGES;
+     TTOKENPRIVILEGES = TOKEN_PRIVILEGES;
+     PTOKENPRIVILEGES = ^TOKEN_PRIVILEGES;
 
      TOKEN_STATISTICS = record
           TokenId : LUID;
@@ -5765,14 +5876,16 @@ unit struct;
           PrivilegeCount : DWORD;
           ModifiedId : LUID;
        end;
-
      _TOKEN_STATISTICS = TOKEN_STATISTICS;
+     TTOKENSTATISTICS = TOKEN_STATISTICS;
+     PTOKENSTATISTICS = ^TOKEN_STATISTICS;
 
      TOKEN_USER = record
           User : SID_AND_ATTRIBUTES;
        end;
-
      _TOKEN_USER = TOKEN_USER;
+     TTOKENUSER = TOKEN_USER;
+     PTOKENUSER = ^TOKEN_USER;
 
      TOOLINFO = record
           cbSize : UINT;
@@ -5783,10 +5896,9 @@ unit struct;
           hinst : HINST;
           lpszText : LPTSTR;
        end;
-
-     PTOOLINFO = ^TOOLINFO;
-
      LPTOOLINFO = ^TOOLINFO;
+     TTOOLINFO = TOOLINFO;
+     PTOOLINFO = ^TOOLINFO;
 
      TOOLTIPTEXT = record
           hdr : NMHDR;
@@ -5795,17 +5907,18 @@ unit struct;
           hinst : HINST;
           uFlags : UINT;
        end;
-
      LPTOOLTIPTEXT = ^TOOLTIPTEXT;
+     TTOOLTIPTEXT = TOOLTIPTEXT;
+     PTOOLTIPTEXT = ^TOOLTIPTEXT;
 
      TPMPARAMS = record
           cbSize : UINT;
           rcExclude : RECT;
        end;
-
      LPTPMPARAMS = ^TPMPARAMS;
-
      tagTPMPARAMS = TPMPARAMS;
+     TTPMPARAMS = TPMPARAMS;
+     PTPMPARAMS = ^TPMPARAMS;
 
      TRANSMIT_FILE_BUFFERS = record
           Head : PVOID;
@@ -5813,111 +5926,118 @@ unit struct;
           Tail : PVOID;
           TailLength : DWORD;
        end;
-
      _TRANSMIT_FILE_BUFFERS = TRANSMIT_FILE_BUFFERS;
+     TTRANSMITFILEBUFFERS = TRANSMIT_FILE_BUFFERS;
+     PTRANSMITFILEBUFFERS = ^TRANSMIT_FILE_BUFFERS;
 
      TTHITTESTINFO = record
           hwnd : HWND;
           pt : POINT;
           ti : TOOLINFO;
        end;
-
      LPHITTESTINFO = ^TTHITTESTINFO;
-
      _TT_HITTESTINFO = TTHITTESTINFO;
+     TTTHITTESTINFO = TTHITTESTINFO;
+     PTTHITTESTINFO = ^TTHITTESTINFO;
 
      TTPOLYCURVE = record
           wType : WORD;
           cpfx : WORD;
           apfx : array[0..0] of POINTFX;
        end;
-
      LPTTPOLYCURVE = ^TTPOLYCURVE;
-
      tagTTPOLYCURVE = TTPOLYCURVE;
+     TTTPOLYCURVE = TTPOLYCURVE;
+     PTTPOLYCURVE = ^TTPOLYCURVE;
 
      TTPOLYGONHEADER = record
           cb : DWORD;
           dwType : DWORD;
           pfxStart : POINTFX;
        end;
-
      LPTTPOLYGONHEADER = ^TTPOLYGONHEADER;
-
      _TTPOLYGONHEADER = TTPOLYGONHEADER;
+     TTTPOLYGONHEADER = TTPOLYGONHEADER;
+     PTTPOLYGONHEADER = ^TTPOLYGONHEADER;
 
      TV_DISPINFO = record
           hdr : NMHDR;
           item : TV_ITEM;
        end;
-
      _TV_DISPINFO = TV_DISPINFO;
+     TTVDISPINFO = TV_DISPINFO;
+     PTVDISPINFO = ^TV_DISPINFO;
 
      TV_HITTESTINFO = record
           pt : POINT;
           flags : UINT;
           hItem : HTREEITEM;
        end;
-
      LPTV_HITTESTINFO = ^TV_HITTESTINFO;
-
      _TVHITTESTINFO = TV_HITTESTINFO;
+     TTVHITTESTINFO = TV_HITTESTINFO;
+     PTVHITTESTINFO = ^TV_HITTESTINFO;
 
      TV_INSERTSTRUCT = record
           hParent : HTREEITEM;
           hInsertAfter : HTREEITEM;
           item : TV_ITEM;
        end;
-
      LPTV_INSERTSTRUCT = ^TV_INSERTSTRUCT;
-
      _TV_INSERTSTRUCT = TV_INSERTSTRUCT;
+     TTVINSERTSTRUCT = TV_INSERTSTRUCT;
+     PTVINSERTSTRUCT = ^TV_INSERTSTRUCT;
 
      TV_KEYDOWN = record
           hdr : NMHDR;
           wVKey : WORD;
           flags : UINT;
        end;
-
      _TV_KEYDOWN = TV_KEYDOWN;
+     TTVKEYDOWN = TV_KEYDOWN;
+     PTVKEYDOWN = ^TV_KEYDOWN;
 
      TV_SORTCB = record
           hParent : HTREEITEM;
           lpfnCompare : PFNTVCOMPARE;
           lParam : LPARAM;
        end;
-
      LPTV_SORTCB = ^TV_SORTCB;
-
      _TV_SORTCB = TV_SORTCB;
+     TTVSORTCB = TV_SORTCB;
+     PTVSORTCB = ^TV_SORTCB;
 
      UDACCEL = record
           nSec : UINT;
           nInc : UINT;
        end;
+     TUDACCEL = UDACCEL;
+     PUDACCEL = ^UDACCEL;
 
      ULARGE_INTEGER = record
           LowPart : DWORD;
           HighPart : DWORD;
        end;
-
      PULARGE_INTEGER = ^ULARGE_INTEGER;
-
      _ULARGE_INTEGER = ULARGE_INTEGER;
+     TULARGEINTEGER = ULARGE_INTEGER;
+     PULARGEINTEGER = ^ULARGE_INTEGER;
 
      UNIVERSAL_NAME_INFO = record
           lpUniversalName : LPTSTR;
        end;
-
      _UNIVERSAL_NAME_INFO = UNIVERSAL_NAME_INFO;
+     TUNIVERSALNAMEINFO = UNIVERSAL_NAME_INFO;
+     PUNIVERSALNAMEINFO = ^UNIVERSAL_NAME_INFO;
 
      USEROBJECTFLAGS = record
           fInherit : WINBOOL;
           fReserved : WINBOOL;
           dwFlags : DWORD;
        end;
-
      tagUSEROBJECTFLAGS = USEROBJECTFLAGS;
+     TUSEROBJECTFLAGS = USEROBJECTFLAGS;
+     PUSEROBJECTFLAGS = ^USEROBJECTFLAGS;
 
      VALENT = record
           ve_valuename : LPTSTR;
@@ -5925,17 +6045,20 @@ unit struct;
           ve_valueptr : DWORD;
           ve_type : DWORD;
        end;
-
+     TVALENT = VALENT;
      PVALENT = ^VALENT;
 
      value_ent = VALENT;
+     Tvalue_ent = VALENT;
+     Pvalue_ent = ^VALENT;
 
      VERIFY_INFORMATION = record
           StartingOffset : LARGE_INTEGER;
           Length : DWORD;
        end;
-
      _VERIFY_INFORMATION = VERIFY_INFORMATION;
+     TVERIFYINFORMATION = VERIFY_INFORMATION;
+     PVERIFYINFORMATION = ^VERIFY_INFORMATION;
 
      VS_FIXEDFILEINFO = record
           dwSignature : DWORD;
@@ -5952,8 +6075,9 @@ unit struct;
           dwFileDateMS : DWORD;
           dwFileDateLS : DWORD;
        end;
-
      _VS_FIXEDFILEINFO = VS_FIXEDFILEINFO;
+     TVSFIXEDFILEINFO = VS_FIXEDFILEINFO;
+     PVSFIXEDFILEINFO = ^VS_FIXEDFILEINFO;
 
      WIN32_FIND_DATA = record
           dwFileAttributes : DWORD;
@@ -5967,12 +6091,11 @@ unit struct;
           cFileName : array[0..(MAX_PATH)-1] of TCHAR;
           cAlternateFileName : array[0..13] of TCHAR;
        end;
-
      LPWIN32_FIND_DATA = ^WIN32_FIND_DATA;
-
      PWIN32_FIND_DATA = ^WIN32_FIND_DATA;
-
      _WIN32_FIND_DATA = WIN32_FIND_DATA;
+     TWIN32FINDDATA = WIN32_FIND_DATA;
+     PWIN32FINDDATA = ^WIN32_FIND_DATA;
 
      WIN32_STREAM_ID = record
           dwStreamId : DWORD;
@@ -5981,8 +6104,9 @@ unit struct;
           dwStreamNameSize : DWORD;
           cStreamName : ^WCHAR;
        end;
-
      _WIN32_STREAM_ID = WIN32_STREAM_ID;
+     TWIN32STREAMID = WIN32_STREAM_ID;
+     PWIN32STREAMID = ^WIN32_STREAM_ID;
 
      WINDOWPLACEMENT = record
           length : UINT;
@@ -5992,8 +6116,9 @@ unit struct;
           ptMaxPosition : POINT;
           rcNormalPosition : RECT;
        end;
-
      _WINDOWPLACEMENT = WINDOWPLACEMENT;
+     TWINDOWPLACEMENT = WINDOWPLACEMENT;
+     PWINDOWPLACEMENT = ^WINDOWPLACEMENT;
 
      WNDCLASS = record
           style : UINT;
@@ -6007,10 +6132,10 @@ unit struct;
           lpszMenuName : LPCTSTR;
           lpszClassName : LPCTSTR;
        end;
-
      LPWNDCLASS = ^WNDCLASS;
-
      _WNDCLASS = WNDCLASS;
+     TWNDCLASS = WNDCLASS;
+     PWNDCLASS = ^WNDCLASS;
 
      WNDCLASSEX = record
           cbSize : UINT;
@@ -6026,10 +6151,10 @@ unit struct;
           lpszClassName : LPCTSTR;
           hIconSm : HICON;
        end;
-
      LPWNDCLASSEX = ^WNDCLASSEX;
-
      _WNDCLASSEX = WNDCLASSEX;
+     TWNDCLASSEX = WNDCLASSEX;
+     PWNDCLASSEX = ^WNDCLASSEX;
 
      CONNECTDLGSTRUCT = record
           cbStructure : DWORD;
@@ -6038,10 +6163,10 @@ unit struct;
           dwFlags : DWORD;
           dwDevNum : DWORD;
        end;
-
      LPCONNECTDLGSTRUCT = ^CONNECTDLGSTRUCT;
-
      _CONNECTDLGSTRUCT = CONNECTDLGSTRUCT;
+     TCONNECTDLGSTRUCT = CONNECTDLGSTRUCT;
+     PCONNECTDLGSTRUCT = ^CONNECTDLGSTRUCT;
 
      DISCDLGSTRUCT = record
           cbStructure : DWORD;
@@ -6050,10 +6175,10 @@ unit struct;
           lpRemoteName : LPTSTR;
           dwFlags : DWORD;
        end;
-
      LPDISCDLGSTRUCT = ^DISCDLGSTRUCT;
-
      _DISCDLGSTRUCT = DISCDLGSTRUCT;
+     TDISCDLGSTRUCT = DISCDLGSTRUCT;
+     PDISCDLGSTRUCT = ^DISCDLGSTRUCT;
 
      NETINFOSTRUCT = record
           cbStructure : DWORD;
@@ -6065,10 +6190,10 @@ unit struct;
           dwPrinters : DWORD;
           dwDrives : DWORD;
        end;
-
      LPNETINFOSTRUCT = ^NETINFOSTRUCT;
-
      _NETINFOSTRUCT = NETINFOSTRUCT;
+     TNETINFOSTRUCT = NETINFOSTRUCT;
+     PNETINFOSTRUCT = ^NETINFOSTRUCT;
 
      NETCONNECTINFOSTRUCT = record
           cbStructure : DWORD;
@@ -6077,10 +6202,10 @@ unit struct;
           dwDelay : DWORD;
           dwOptDataSize : DWORD;
        end;
-
      LPNETCONNECTINFOSTRUCT = ^NETCONNECTINFOSTRUCT;
-
      _NETCONNECTINFOSTRUCT = NETCONNECTINFOSTRUCT;
+     TNETCONNECTINFOSTRUCT = NETCONNECTINFOSTRUCT;
+     PNETCONNECTINFOSTRUCT = ^NETCONNECTINFOSTRUCT;
 
      ENUMMETAFILEPROC = function (_para1:HDC; _para2:HANDLETABLE; _para3:METARECORD; _para4:longint; _para5:LPARAM):longint;
 
@@ -6093,18 +6218,16 @@ unit struct;
      FONTENUMEXPROC = function (var _para1:ENUMLOGFONTEX;var _para2:NEWTEXTMETRICEX; _para3:longint; _para4:LPARAM):longint;
 
      LPOVERLAPPED_COMPLETION_ROUTINE = procedure (_para1:DWORD; _para2:DWORD; _para3:LPOVERLAPPED);
-  {
-    Structures for the extensions to OpenGL
-     }
+
+     { Structures for the extensions to OpenGL }
 
      POINTFLOAT = record
           x : FLOAT;
           y : FLOAT;
        end;
-
-     PPOINTFLOAT = ^POINTFLOAT;
-
      _POINTFLOAT = POINTFLOAT;
+     TPOINTFLOAT = POINTFLOAT;
+     PPOINTFLOAT = ^POINTFLOAT;
 
      GLYPHMETRICSFLOAT = record
           gmfBlackBoxX : FLOAT;
@@ -6113,12 +6236,10 @@ unit struct;
           gmfCellIncX : FLOAT;
           gmfCellIncY : FLOAT;
        end;
-
-     PGLYPHMETRICSFLOAT = ^GLYPHMETRICSFLOAT;
-
      LPGLYPHMETRICSFLOAT = ^GLYPHMETRICSFLOAT;
-
      _GLYPHMETRICSFLOAT = GLYPHMETRICSFLOAT;
+     TGLYPHMETRICSFLOAT = GLYPHMETRICSFLOAT;
+     PGLYPHMETRICSFLOAT = ^GLYPHMETRICSFLOAT;
 
      LAYERPLANEDESCRIPTOR = record
           nSize : WORD;
@@ -6146,12 +6267,10 @@ unit struct;
           bReserved : BYTE;
           crTransparent : COLORREF;
        end;
-
-     PLAYERPLANEDESCRIPTOR = ^LAYERPLANEDESCRIPTOR;
-
      LPLAYERPLANEDESCRIPTOR = ^LAYERPLANEDESCRIPTOR;
-
      tagLAYERPLANEDESCRIPTOR = LAYERPLANEDESCRIPTOR;
+     TLAYERPLANEDESCRIPTOR = LAYERPLANEDESCRIPTOR;
+     PLAYERPLANEDESCRIPTOR = ^LAYERPLANEDESCRIPTOR;
 
      PIXELFORMATDESCRIPTOR = record
           nSize : WORD;
@@ -6181,12 +6300,10 @@ unit struct;
           dwVisibleMask : DWORD;
           dwDamageMask : DWORD;
        end;
-
-     PPIXELFORMATDESCRIPTOR = ^PIXELFORMATDESCRIPTOR;
-
      LPPIXELFORMATDESCRIPTOR = ^PIXELFORMATDESCRIPTOR;
-
      tagPIXELFORMATDESCRIPTOR = PIXELFORMATDESCRIPTOR;
+     TPIXELFORMATDESCRIPTOR = PIXELFORMATDESCRIPTOR;
+     PPIXELFORMATDESCRIPTOR = ^PIXELFORMATDESCRIPTOR;
 
      USER_INFO_2 = record
           usri2_name : LPWSTR;
@@ -6214,18 +6331,18 @@ unit struct;
           usri2_country_code : DWORD;
           usri2_code_page : DWORD;
        end;
-
      PUSER_INFO_2 = ^USER_INFO_2;
-
      LPUSER_INFO_2 = ^USER_INFO_2;
+     TUSERINFO2 = USER_INFO_2;
+     PUSERINFO2 = ^USER_INFO_2;
 
      USER_INFO_0 = record
           usri0_name : LPWSTR;
        end;
-
      PUSER_INFO_0 = ^USER_INFO_0;
-
      LPUSER_INFO_0 = ^USER_INFO_0;
+     TUSERINFO0 = USER_INFO_0;
+     PUSERINFO0 = ^USER_INFO_0;
 
      USER_INFO_3 = record
           usri3_name : LPWSTR;
@@ -6258,10 +6375,10 @@ unit struct;
           usri3_home_dir_drive : LPWSTR;
           usri3_password_expired : DWORD;
        end;
-
      PUSER_INFO_3 = ^USER_INFO_3;
-
      LPUSER_INFO_3 = ^USER_INFO_3;
+     TUSERINFO3 = USER_INFO_3;
+     PUSERINFO3 = ^USER_INFO_3;
 
      GROUP_INFO_2 = record
           grpi2_name : LPWSTR;
@@ -6269,16 +6386,18 @@ unit struct;
           grpi2_group_id : DWORD;
           grpi2_attributes : DWORD;
        end;
-
      PGROUP_INFO_2 = ^GROUP_INFO_2;
+     TGROUPINFO2 = GROUP_INFO_2;
+     PGROUPINFO2 = ^GROUP_INFO_2;
 
      LOCALGROUP_INFO_0 = record
           lgrpi0_name : LPWSTR;
        end;
-
      PLOCALGROUP_INFO_0 = ^LOCALGROUP_INFO_0;
-
      LPLOCALGROUP_INFO_0 = ^LOCALGROUP_INFO_0;
+     TLOCALGROUPINFO0 = LOCALGROUP_INFO_0;
+     PLOCALGROUPINFO0 = ^LOCALGROUP_INFO_0;
+
   { PE executable header.   }
   { Magic number, 0x5a4d  }
   { Bytes on last page of file, 0x90  }
@@ -6299,8 +6418,7 @@ unit struct;
   { OEM information; e_oemid specific, 0x0  }
   { Reserved words, all 0x0  }
   { File address of new exe header, 0x80  }
-  { We leave out the next two fields, since they aren't in the
-       Windows header file.   }
+  { We leave out the next two fields, since they aren't in the header file }
   { DWORD dos_message[16];   text which always follows dos header  }
   { DWORD nt_signature;      required NT signature, 0x4550  }
 
@@ -6325,21 +6443,15 @@ unit struct;
           e_res2 : array[0..9] of WORD;
           e_lfanew : LONG;
        end;
-
      PIMAGE_DOS_HEADER = ^IMAGE_DOS_HEADER;
-{ C++ end of extern C conditionnal removed }
-  { __cplusplus  }
-{$endif}
-  { _GNU_H_WINDOWS32_STRUCTURES  }
-
+     TIMAGEDOSHEADER = IMAGE_DOS_HEADER;
+     PIMAGEDOSHEADER = ^IMAGE_DOS_HEADER;
 
 {$endif read_interface}
 
+
 {$ifndef windows_include_files}
   implementation
-
-    const External_library='kernel32'; {Setup as you need!}
-
 {$endif not windows_include_files}
 
 {$ifdef read_implementation}
@@ -6813,7 +6925,10 @@ end.
 {$endif not windows_include_files}
 {
   $Log$
-  Revision 1.5  1998-10-27 11:17:17  peter
+  Revision 1.6  1998-11-12 11:41:06  peter
+    + pascal type aliases
+
+  Revision 1.5  1998/10/27 11:17:17  peter
     * type HINSTANCE -> HINST
 
   Revision 1.4  1998/08/31 11:53:59  pierre
