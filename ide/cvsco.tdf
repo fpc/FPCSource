@@ -1,7 +1,7 @@
 [Main]
 Title="CVS Commit"
 Size=(56,15)
-CommandLine="commit -F cvsco.log %filename%"
+CommandLine="commit -F %msglog% %filename%"
 Default="filename"
 
 [filename]
@@ -17,7 +17,7 @@ Size=(52,1)
 Text="~F~ile(s) to commit"
 Link="filename"
 
-[msg]
+[msglog]
 Type=Memo
 Origin=(2,6)
 Size=(52,6)
@@ -29,4 +29,4 @@ Type=Label
 Origin=(2,5)
 Size=(52,1)
 Text="~M~essage"
-Link="msg"
+Link="msglog"
