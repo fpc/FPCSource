@@ -110,7 +110,6 @@ Var Source, Dest : String;
 Const OneLevelBack = '..'+OSDirSeparator;
 
 begin
-{$ifdef autoobjpas}
   If Upcase(ExtractFileDrive(BaseName))<>Upcase(ExtractFileDrive(DestName)) Then
     begin
     Result:=DestName;
@@ -132,7 +131,6 @@ begin
   For J:=I to SC-1 do Result:=Result+OneLevelBack;
   For J:=I to DC-1 do Result:=Result+DD[J]+OsDirSeparator;
   Result:=Result+ExtractFileName(DestNAme);
-{$endif}
 end;
 
 Procedure DoDirSeparators (Var FileName : String);
@@ -183,7 +181,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  1998-10-05 21:35:41  peter
+  Revision 1.5  1998-12-19 14:52:28  peter
+    * removed temp define
+
+  Revision 1.4  1998/10/05 21:35:41  peter
     * fixed for 0.99.8
 
   Revision 1.3  1998/10/04 20:19:56  michael
