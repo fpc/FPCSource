@@ -19,7 +19,10 @@ var
   Time : Longint;
   DT   : DateTime;
 begin
-  Assign(f,ParamStr(1));
+  if Paramcount>0 then
+    Assign(f,ParamStr(1))
+  else
+    Assign(f,'ex9.pp' );
   Reset(f);
   GetFTime(f,Time);
   Close(f);
