@@ -209,9 +209,11 @@ implementation
          begin
            if (srsym.typ=unitsym) then
             begin
+              if not(srsym.owner.symtabletype in [staticsymtable,globalsymtable]) then
+                internalerror(200501154);
               { only allow unit.symbol access if the name was
                 found in the current module }
-              if srsym.owner.unitid=0 then
+              if srsym.owner.iscurrentunit then
                begin
                  consume(_ID);
                  consume(_POINT);
@@ -271,7 +273,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.29  2004-08-08 12:06:38  florian
+  Revision 1.30  2005-01-19 22:19:41  peter
+    * unit mapping rewrite
+    * new derefmap added
+
+  Revision 1.29  2004/08/08 12:06:38  florian
     * finally is an "endtoken" as well
 
   Revision 1.28  2004/06/20 08:55:30  florian

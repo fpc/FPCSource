@@ -44,7 +44,7 @@ implementation
     uses
       globals,globtype,verbose,
       symconst,symtype,symsym,symdef,symtable,
-      aasmtai,aasmcpu,ncgutil,
+      aasmtai,aasmcpu,ncgutil,fmodule,
 {$ifdef GDB}
       gdb,
 {$endif GDB}
@@ -255,7 +255,11 @@ implementation
           t:=ttypesym(srsym).restype;
         end;
 
+      var
+        oldcurrentmodule : tmodule;
       begin
+        oldcurrentmodule:=current_module;
+        current_module:=nil;
         loadtype('byte',u8inttype);
         loadtype('shortint',s8inttype);
         loadtype('word',u16inttype);
@@ -305,6 +309,7 @@ implementation
         sinttype:=s32inttype;
         ptrinttype:=u32inttype;
 {$endif cpu64bit}
+        current_module:=oldcurrentmodule;
       end;
 
 
@@ -537,7 +542,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.75  2004-12-07 16:11:52  peter
+  Revision 1.76  2005-01-19 22:19:41  peter
+    * unit mapping rewrite
+    * new derefmap added
+
+  Revision 1.75  2004/12/07 16:11:52  peter
     * set vo_explicit_paraloc flag
 
   Revision 1.74  2004/12/07 13:52:54  michael

@@ -58,9 +58,11 @@ unit nppcld;
           system_powerpc_darwin:
             begin
               if (symtableentry.typ = procsym) and
-                 not assigned(left) and
-                 ((tprocsym(symtableentry).owner.unitid<>0) or
-                  (po_external in tprocsym(symtableentry).procdef[1].procoptions)) then
+                 (tprocsym(symtableentry).owner.symtabletype in [staticsymtable,globalsymtable]) and
+                 (
+                  (not tabstractunitsymtable(tprocsym(symtableentry).owner).iscurrentmodule) or
+                  (po_external in tprocsym(symtableentry).procdef[1].procoptions)
+                 ) then
                 begin
                   l:=objectlibrary.getasmsymbol('L'+tprocsym(symtableentry).procdef[1].mangledname+'$non_lazy_ptr');
                   if not(assigned(l)) then
@@ -90,8 +92,9 @@ unit nppcld;
         case target_info.system of
           system_powerpc_darwin:
             begin
-              if (tglobalvarsym(symtableentry).owner.unitid<>0) or
-                 (vo_is_dll_var in tglobalvarsym(symtableentry).varoptions) then
+              if (vo_is_dll_var in tglobalvarsym(symtableentry).varoptions) and
+                 (tglobalvarsym(symtableentry).owner.symtabletype in [staticsymtable,globalsymtable]) and
+                 not(tabstractunitsymtable(tglobalvarsym(symtableentry).owner).iscurrentmodule) then
                 begin
                   l:=objectlibrary.getasmsymbol('L'+tglobalvarsym(symtableentry).mangledname+'$non_lazy_ptr');
                   if not(assigned(l)) then
@@ -122,7 +125,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2004-11-11 19:31:33  peter
+  Revision 1.6  2005-01-19 22:19:41  peter
+    * unit mapping rewrite
+    * new derefmap added
+
+  Revision 1.5  2004/11/11 19:31:33  peter
     * fixed compile of powerpc,sparc,arm
 
   Revision 1.4  2004/07/19 12:45:43  jonas

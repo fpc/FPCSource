@@ -2180,7 +2180,8 @@ type
              if (st.symtabletype=objectsymtable) then
                st:=st.defowner.owner;
              if (pi_uses_static_symtable in tprocdef(procdefinition).inlininginfo^.flags) and
-                (st.unitid<>0) then
+                (st.symtabletype=globalsymtable) and
+                (not st.iscurrentunit) then
                begin
                  Comment(V_lineinfo+V_Debug,'Not inlining "'+tprocdef(procdefinition).procsym.realname+'", references static symtable');
                end
@@ -2495,7 +2496,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.275  2005-01-04 16:36:31  peter
+  Revision 1.276  2005-01-19 22:19:41  peter
+    * unit mapping rewrite
+    * new derefmap added
+
+  Revision 1.275  2005/01/04 16:36:31  peter
     * fix aftercosntruction calls, vmt=1 is used to indicate that
       afterconstruction needs to be called
     * only accept resourcestring when objpas is loaded

@@ -479,7 +479,7 @@ implementation
         if (sp_private in symoptions) and
            assigned(owner.defowner) and
            (owner.defowner.owner.symtabletype in [globalsymtable,staticsymtable]) and
-           (owner.defowner.owner.unitid<>0) then
+           (not owner.defowner.owner.iscurrentunit) then
           exit;
 
         { protected symbols are vissible in the module that defines them and
@@ -489,7 +489,7 @@ implementation
             (
              assigned(owner.defowner) and
              (owner.defowner.owner.symtabletype in [globalsymtable,staticsymtable]) and
-             (owner.defowner.owner.unitid<>0)
+             (not owner.defowner.owner.iscurrentunit)
             ) and
             not(
                 assigned(currobjdef) {and
@@ -595,8 +595,10 @@ implementation
         if assigned(sym) and
            (
             (sym<>def.typesym) or
-            ((sym.owner.unitid<>0) and
-             (sym.owner.unitid<>1))
+            (
+             not((sym.owner.symtabletype in [globalsymtable,staticsymtable]) and
+                 sym.owner.iscurrentunit)
+            )
            ) then
           deref.build(sym)
         else
@@ -811,33 +813,33 @@ implementation
         end;
 
         procedure addowner(s:tsymtableentry);
+        var
+          idx : longint;
         begin
           if not assigned(s.owner) then
             internalerror(200306063);
           case s.owner.symtabletype of
             globalsymtable :
               begin
-                if s.owner.unitid=0 then
+                if s.owner.iscurrentunit then
                   begin
                     data[len]:=ord(deref_aktglobal);
                     inc(len);
                   end
                 else
                   begin
-                    { check if the unit is available in the uses
-                      clause, else it's an error }
-                    if s.owner.unitid=$ffff then
-                      internalerror(200306063);
+                    { register that the unit is needed for resolving }
+                    idx:=current_module.derefidx_unit(s.owner.moduleid);
                     data[len]:=ord(deref_unit);
-                    data[len+1]:=s.owner.unitid shr 8;
-                    data[len+2]:=s.owner.unitid and $ff;
+                    data[len+1]:=idx shr 8;
+                    data[len+2]:=idx and $ff;
                     inc(len,3);
                   end;
               end;
             staticsymtable :
               begin
                 { only references to the current static symtable are allowed }
-                if s.owner<>current_module.localsymtable then
+                if not s.owner.iscurrentunit then
                   internalerror(200306233);
                 data[len]:=ord(deref_aktstatic);
                 inc(len);
@@ -893,12 +895,11 @@ implementation
           while (currdef<>ownerdef) do
             begin
               nextdef:=currdef.getparentdef;
-              { objects are only allowed in globalsymtable,staticsymtable this check is
-                needed because we need the unitid }
+              { objects are only allowed in globalsymtable,staticsymtable  }
               if not(nextdef.owner.symtabletype in [globalsymtable,staticsymtable]) then
                 internalerror(200306187);
               { Next parent is in a different unit, then stop }
-              if nextdef.owner.unitid<>0 then
+              if not(nextdef.owner.iscurrentunit) then
                 break;
               currdef:=nextdef;
             end;
@@ -940,14 +941,14 @@ implementation
          begin
            { Static symtable of current unit ? }
            if (s.owner.symtabletype=staticsymtable) and
-              (s.owner.unitid=0) then
+              s.owner.iscurrentunit then
             begin
               data[len]:=ord(deref_aktstatic);
               inc(len);
             end
            { Global symtable of current unit ? }
            else if (s.owner.symtabletype=globalsymtable) and
-                   (s.owner.unitid=0) then
+                   s.owner.iscurrentunit then
             begin
               data[len]:=ord(deref_aktglobal);
               inc(len);
@@ -1075,11 +1076,7 @@ implementation
                 begin
                   idx:=(data[i] shl 8) or data[i+1];
                   inc(i,2);
-                  if idx>current_module.mapsize then
-                    internalerror(200306231);
-                  pm:=current_module.map[idx].u;
-                  if not assigned(pm) then
-                    internalerror(200212273);
+                  pm:=current_module.resolve_unit(idx);
                   st:=pm.globalsymtable;
                 end;
               deref_local :
@@ -1457,7 +1454,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.49  2004-12-15 21:09:06  peter
+  Revision 1.50  2005-01-19 22:19:41  peter
+    * unit mapping rewrite
+    * new derefmap added
+
+  Revision 1.49  2004/12/15 21:09:06  peter
     * 64bit typecast
 
   Revision 1.48  2004/11/15 23:35:31  peter

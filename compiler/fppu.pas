@@ -67,12 +67,14 @@ interface
           procedure writesourcefiles;
           procedure writeusedunit(intf:boolean);
           procedure writelinkcontainer(var p:tlinkcontainer;id:byte;strippath:boolean);
+          procedure writederefmap;
           procedure writederefdata;
           procedure putasmsymbol_in_idx(s:tnamedindexitem;arg:pointer);
           procedure writeasmsymbols;
           procedure readsourcefiles;
           procedure readloadunit;
           procedure readlinkcontainer(var p:tlinkcontainer);
+          procedure readderefmap;
           procedure readderefdata;
           procedure readasmsymbols;
 {$IFDEF MACRO_DIFF_HINT}
@@ -462,8 +464,6 @@ uses
         hp : tused_unit;
         oldcrc : boolean;
       begin
-        { renumber the units for derefence writing }
-        numberunits;
         { write a reference for each used unit }
         hp:=tused_unit(used_units.first);
         while assigned(hp) do
@@ -505,6 +505,27 @@ uses
         ppufile.writeentry(id);
         p.Free;
         p:=hcontainer;
+      end;
+
+
+    procedure tppumodule.writederefmap;
+      var
+        i : longint;
+        oldcrc : boolean;
+      begin
+        { This does not influence crc }
+        oldcrc:=ppufile.do_crc;
+        ppufile.do_crc:=false;
+        { The unit map used for resolving }
+        ppufile.putlongint(derefmapcnt);
+        for i:=0 to derefmapcnt-1 do
+          begin
+            if not assigned(derefmap[i].u) then
+              internalerror(2005011512);
+            ppufile.putstring(derefmap[i].u.modulename^)
+          end;
+        ppufile.writeentry(ibderefmap);
+        ppufile.do_crc:=oldcrc;
       end;
 
 
@@ -604,20 +625,20 @@ uses
   Define MACRO_DIFF_HINT for the whole compiler (and ppudump)
   to turn this facility on. Also the hint messages defined
   below must be commented in in the msg/errore.msg file.
-  
+
   There is some problems with this, thats why it is shut off:
-  
+
   At the first compilation, consider a macro which is not initially
   defined, but it is used (e g the check that it is undefined is true).
-  Since it do not exist, there is no macro object where the is_used 
+  Since it do not exist, there is no macro object where the is_used
   flag can be set. Later on when the macro is defined, and the ppu
   is opened, the check cannot detect this.
-  
+
   Also, in which macro object should this flag be set ? It cant be set
   for macros in the initialmacrosymboltable since this table is shared
   between different files.
 }
-  
+
     procedure tppumodule.readusedmacros;
       var
         hs : string;
@@ -797,6 +818,19 @@ uses
       end;
 
 
+    procedure tppumodule.readderefmap;
+      var
+        i : longint;
+      begin
+        { Load unit map used for resolving }
+        derefmapsize:=ppufile.getlongint;
+        getmem(derefmap,derefmapsize*sizeof(tderefmaprec));
+        fillchar(derefmap^,derefmapsize*sizeof(tderefmaprec),0);
+        for i:=0 to derefmapsize-1 do
+          derefmap[i].modulename:=stringdup(ppufile.getstring);
+      end;
+
+
     procedure tppumodule.readderefdata;
       var
         len,hlen : longint;
@@ -898,6 +932,8 @@ uses
                readlinkcontainer(LinkotherStaticLibs);
              iblinkothersharedlibs :
                readlinkcontainer(LinkotherSharedLibs);
+             ibderefmap :
+               readderefmap;
              ibderefdata :
                readderefdata;
              ibendinterface :
@@ -941,7 +977,7 @@ uses
         if (flags and uf_has_browser)<>0 then
           begin
             tstoredsymtable(globalsymtable).load_references(ppufile,true);
-            for i:=0 to mapsize-1 do
+            for i:=0 to unitmapsize-1 do
               tstoredsymtable(globalsymtable).load_references(ppufile,false);
             b:=ppufile.readentry;
             if b<>ibendbrowser then
@@ -1023,6 +1059,7 @@ uses
              tstoredsymtable(localsymtable).buildderef;
              tstoredsymtable(localsymtable).buildderefimpl;
            end;
+         writederefmap;
          writederefdata;
 
          ppufile.writeentry(ibendinterface);
@@ -1034,7 +1071,7 @@ uses
            begin
              ppufile.putbyte(byte(true));
              ppufile.writeentry(ibexportedmacros);
-             tstoredsymtable(globalmacrosymtable).ppuwrite(ppufile);           
+             tstoredsymtable(globalmacrosymtable).ppuwrite(ppufile);
            end
          else
            begin
@@ -1130,6 +1167,7 @@ uses
          derefdata.reset;
          tstoredsymtable(globalsymtable).buildderef;
          derefdataintflen:=derefdata.size;
+         writederefmap;
          writederefdata;
 
          ppufile.writeentry(ibendinterface);
@@ -1141,7 +1179,7 @@ uses
            begin
              ppufile.putbyte(byte(true));
              ppufile.writeentry(ibexportedmacros);
-             tstoredsymtable(globalmacrosymtable).ppuwrite(ppufile);           
+             tstoredsymtable(globalmacrosymtable).ppuwrite(ppufile);
            end
          else
            begin
@@ -1227,14 +1265,13 @@ uses
             end;
            pu:=tused_unit(pu.next);
          end;
-        numberunits;
 
         { ok, now load the interface of this unit }
         if current_module<>self then
          internalerror(200208187);
-        globalsymtable:=tglobalsymtable.create(modulename^);
+        globalsymtable:=tglobalsymtable.create(modulename^,moduleid);
         tstoredsymtable(globalsymtable).ppuload(ppufile);
-    
+
         if ppufile.readentry<>ibexportedmacros then
           Message(unit_f_ppu_read_error);
         if boolean(ppufile.getbyte) then
@@ -1273,12 +1310,11 @@ uses
             end;
            pu:=tused_unit(pu.next);
          end;
-        numberunits;
 
         { load implementation symtable }
         if (flags and uf_local_symtable)<>0 then
           begin
-            localsymtable:=tstaticsymtable.create(modulename^);
+            localsymtable:=tstaticsymtable.create(modulename^,moduleid);
             tstaticsymtable(localsymtable).ppuload(ppufile);
           end;
 
@@ -1566,7 +1602,7 @@ uses
            Message1(unit_u_registering_new_unit,Upper(s));
            hp:=tppumodule.create(callermodule,s,fn,true);
            hp.loaded_from:=callermodule;
-           loaded_units.insert(hp);
+           addloadedunit(hp);
          end;
         { return }
         registerunit:=hp;
@@ -1575,7 +1611,11 @@ uses
 end.
 {
   $Log$
-  Revision 1.65  2005-01-10 21:02:35  olle
+  Revision 1.66  2005-01-19 22:19:41  peter
+    * unit mapping rewrite
+    * new derefmap added
+
+  Revision 1.65  2005/01/10 21:02:35  olle
     - disabled macro diff message
 
   Revision 1.64  2005/01/09 20:24:43  olle

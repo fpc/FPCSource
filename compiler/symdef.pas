@@ -1132,8 +1132,9 @@ implementation
           end;
         if (cs_gdb_dbx in aktglobalswitches) and
            assigned(typesym) and
-           (ttypesym(typesym).owner.unitid<>0) then
-          result:='('+tostr(ttypesym(typesym).owner.unitid)+','+tostr(tstoreddef(ttypesym(typesym).restype.def).globalnb)+')'
+           (ttypesym(typesym).owner.symtabletype in [staticsymtable,globalsymtable]) and
+           (ttypesym(typesym).owner.iscurrentunit) then
+          result:='('+tostr(tabstractunitsymtable(ttypesym(typesym).owner).moduleid)+','+tostr(tstoreddef(ttypesym(typesym).restype.def).globalnb)+')'
         else
           result:=tostr(globalnb);
       end;
@@ -3315,7 +3316,7 @@ implementation
          { now dereference the definitions }
          tstoredsymtable(symtable).deref;
          aktrecordsymtable:=oldrecsyms;
-         { assign TGUID? load only from system unit (unitid=1) }
+         { assign TGUID? load only from system unit }
          if not(assigned(rec_tguid)) and
             (upper(typename)='TGUID') and
             assigned(owner) and
@@ -3837,6 +3838,8 @@ implementation
 {$ifdef GDB}
          isstabwritten := false;
 {$endif GDB}
+         { Disable po_has_inlining until the derefimpl is done }
+         exclude(procoptions,po_has_inlininginfo);
       end;
 
 
@@ -4034,7 +4037,7 @@ implementation
           module as they are defined }
         if (sp_private in symoptions) and
            (owner.defowner.owner.symtabletype in [globalsymtable,staticsymtable]) and
-           (owner.defowner.owner.unitid<>0) then
+           not(owner.defowner.owner.iscurrentunit) then
           exit;
 
         { protected symbols are vissible in the module that defines them and
@@ -4044,11 +4047,12 @@ implementation
            (
             (
              (owner.defowner.owner.symtabletype in [globalsymtable,staticsymtable]) and
-             (owner.defowner.owner.unitid<>0)
+             not(owner.defowner.owner.iscurrentunit)
             ) and
             not(
                 assigned(currobjdef) and
-                (currobjdef.owner.unitid=0) and
+                (currobjdef.owner.symtabletype in [globalsymtable,staticsymtable]) and
+                (currobjdef.owner.iscurrentunit) and
                 currobjdef.is_related(tobjectdef(owner.defowner))
                )
            ) then
@@ -4155,6 +4159,7 @@ implementation
          end;
         ppufile.writeentry(ibdefref);
         write_references:=true;
+{$ifdef supportbrowser}
         if ((current_module.flags and uf_local_browser)<>0) and
            assigned(localst) and
            locals then
@@ -4165,14 +4170,14 @@ implementation
                  begin
                     if pdo.symtable<>aktrecordsymtable then
                       begin
-                         pdo.symtable.unitid:=local_symtable_index;
+                         pdo.symtable.moduleid:=local_symtable_index;
                          inc(local_symtable_index);
                       end;
                     pdo:=pdo.childof;
                  end;
-             parast.unitid:=local_symtable_index;
+             parast.moduleid:=local_symtable_index;
              inc(local_symtable_index);
-             localst.unitid:=local_symtable_index;
+             localst.moduleid:=local_symtable_index;
              inc(local_symtable_index);
              tstoredsymtable(parast).write_references(ppufile,locals);
              tstoredsymtable(localst).write_references(ppufile,locals);
@@ -4187,6 +4192,7 @@ implementation
                     pdo:=pdo.childof;
                  end;
           end;
+{$endif supportbrowser}
         aktparasymtable:=oldparasymtable;
         aktlocalsymtable:=oldlocalsymtable;
       end;
@@ -4302,6 +4308,12 @@ implementation
          aktlocalsymtable:=localst;
 
          inherited buildderefimpl;
+
+         { Enable has_inlininginfo when the inlininginfo
+           structure is available. The has_inlininginfo was disabled
+           after the load, since the data was invalid }
+         if assigned(inlininginfo) then
+             include(procoptions,po_has_inlininginfo);
 
          { Locals }
          if assigned(localst) and
@@ -4566,7 +4578,7 @@ implementation
 
     function tprocvardef.getcopy : tstoreddef;
       begin
-      {
+      (*
           { saves a definition to the return type }
           rettype         : ttype;
           parast          : tsymtable;
@@ -4588,7 +4600,7 @@ implementation
           constructor create(level:byte);
           constructor ppuload(ppufile:tcompilerppufile);
           function getcopy : tstoreddef;override;
-       }
+       *)
       end;
 
 
@@ -4959,7 +4971,7 @@ implementation
     function tobjectdef.getcopy : tstoreddef;
       begin
         result:=inherited getcopy;
-      {
+      (*
         result:=tobjectdef.create(objecttype,objname^,childof);
           childofderef  : tderef;
           objname,
@@ -4977,7 +4989,7 @@ implementation
           lastvtableindex: longint;
           { store implemented interfaces defs and name mappings }
           implementedinterfaces: timplementedinterfaces;
-      }
+      *)
       end;
 
 
@@ -6355,7 +6367,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.289  2005-01-16 14:47:26  florian
+  Revision 1.290  2005-01-19 22:19:41  peter
+    * unit mapping rewrite
+    * new derefmap added
+
+  Revision 1.289  2005/01/16 14:47:26  florian
     * typeinfo in typedata is now aligned
 
   Revision 1.288  2005/01/09 15:05:29  peter

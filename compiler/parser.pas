@@ -460,18 +460,19 @@ implementation
          exceptblockcounter:=0;
          aktmaxfpuregisters:=-1;
        { reset the unit or create a new program }
-         if not assigned(current_module) then
-          begin
-            current_module:=tppumodule.create(nil,filename,'',false);
-            main_module:=current_module;
-            current_module.state:=ms_compile;
-          end;
-         if not(current_module.state in [ms_compile,ms_second_compile]) then
-           internalerror(200212281);
-
          { a unit compiled at command line must be inside the loaded_unit list }
          if (compile_level=1) then
-           loaded_units.insert(current_module);
+           begin
+             if assigned(current_module) then
+               internalerror(200501158);
+             current_module:=tppumodule.create(nil,filename,'',false);
+             addloadedunit(current_module);
+             main_module:=current_module;
+             current_module.state:=ms_compile;
+           end;
+         if not(assigned(current_module) and
+                (current_module.state in [ms_compile,ms_second_compile])) then
+           internalerror(200212281);
 
          { Set the module to use for verbose }
          compiled_module:=current_module;
@@ -699,7 +700,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.69  2005-01-09 20:24:43  olle
+  Revision 1.70  2005-01-19 22:19:41  peter
+    * unit mapping rewrite
+    * new derefmap added
+
+  Revision 1.69  2005/01/09 20:24:43  olle
     * rework of macro subsystem
     + exportable macros for mode macpas
 

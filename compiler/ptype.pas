@@ -111,7 +111,11 @@ implementation
            begin
               is_unit_specific:=true;
               consume(_POINT);
-              if srsym.owner.unitid=0 then
+              if not(srsym.owner.symtabletype in [staticsymtable,globalsymtable]) then
+                internalerror(200501155);
+              { only allow unit.symbol access if the name was
+                found in the current module }
+              if srsym.owner.iscurrentunit then
                begin
                  srsym:=searchsymonlyin(tunitsym(srsym).unitsymtable,pattern);
                  pos:=akttokenpos;
@@ -166,9 +170,12 @@ implementation
            they can be refered from the parameters and symbols are not
            loaded at that time. Only write the definition when the
            symbol is the real owner of the definition (not a redefine) }
-         if (ttypesym(srsym).owner.unitid=0) and
-            ((ttypesym(srsym).restype.def.typesym=nil) or
-             (srsym=ttypesym(srsym).restype.def.typesym)) then
+         if (ttypesym(srsym).owner.symtabletype in [staticsymtable,globalsymtable]) and
+            ttypesym(srsym).owner.iscurrentunit and
+            (
+             (ttypesym(srsym).restype.def.typesym=nil) or
+             (srsym=ttypesym(srsym).restype.def.typesym)
+            ) then
           tt.setdef(ttypesym(srsym).restype.def)
          else
           tt.setsym(srsym);
@@ -659,7 +666,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.72  2005-01-04 16:39:12  peter
+  Revision 1.73  2005-01-19 22:19:41  peter
+    * unit mapping rewrite
+    * new derefmap added
+
+  Revision 1.72  2005/01/04 16:39:12  peter
     * allow enum with jumps as array index in delphi mode
 
   Revision 1.71  2004/11/16 20:32:41  peter

@@ -44,7 +44,7 @@ type
 {$endif Test_Double_checksum}
 
 const
-  CurrentPPUVersion=47;
+  CurrentPPUVersion=48;
 
 { buffer sizes }
   maxentrysize = 1024;
@@ -84,6 +84,7 @@ const
 {$ENDIF}
   ibderefdata            = 17;
   ibexportedmacros       = 18;
+  ibderefmap             = 19;
   {syms}
   ibtypesym        = 20;
   ibprocsym        = 21;
@@ -1059,7 +1060,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.61  2005-01-09 20:24:43  olle
+  Revision 1.62  2005-01-19 22:19:41  peter
+    * unit mapping rewrite
+    * new derefmap added
+
+  Revision 1.61  2005/01/09 20:24:43  olle
     * rework of macro subsystem
     + exportable macros for mode macpas
 

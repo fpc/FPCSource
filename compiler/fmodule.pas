@@ -80,10 +80,20 @@ interface
       tused_unit = class;
 
       tunitmaprec = record
-        u : tmodule;
-        unitsym : tunitsym;
+        u        : tmodule;
+        { number of references }
+        refs     : longint;
+        { index in the derefmap }
+        derefidx : longint;
       end;
       punitmap = ^tunitmaprec;
+
+      tderefmaprec = record
+        u           : tmodule;
+        { modulename, used during ppu load }
+        modulename  : pstring;
+      end;
+      pderefmap = ^tderefmaprec;
 
       tmodule = class(tmodulebase)
         do_reload,                { force reloading of the unit }
@@ -102,8 +112,12 @@ interface
         interface_crc : cardinal;
         flags         : cardinal;  { the PPU flags }
         islibrary     : boolean;  { if it is a library (win32 dll) }
-        map           : punitmap; { mapping of all used units }
-        mapsize       : longint;  { number of units in the map }
+        moduleid      : longint;
+        unitmap       : punitmap; { mapping of all used units }
+        unitmapsize   : longint;  { number of units in the map }
+        derefmap      : pderefmap; { mapping of all units needed for deref }
+        derefmapcnt   : longint;  { number of units in the map }
+        derefmapsize  : longint;  { number of units in the map }
         derefdataintflen : longint;
         derefdata     : tdynamicarray;
         globalsymtable,           { pointer to the global symtable of this unit }
@@ -145,7 +159,9 @@ interface
         procedure adddependency(callermodule:tmodule);
         procedure flagdependent(callermodule:tmodule);
         function  addusedunit(hp:tmodule;inuses:boolean;usym:tunitsym):tused_unit;
-        procedure numberunits;
+        procedure updatemaps;
+        function  derefidx_unit(id:longint):longint;
+        function  resolve_unit(id:longint):tmodule;
         procedure allunitsused;
         procedure setmodulename(const s:string);
       end;
@@ -174,7 +190,8 @@ interface
        SmartLinkOFiles   : TStringList; { List of .o files which are generated,
                                           used to delete them after linking }
 
-function get_source_file(moduleindex,fileindex : longint) : tinputfile;
+    function get_source_file(moduleindex,fileindex : longint) : tinputfile;
+    procedure addloadedunit(hp:tmodule);
 
 
 implementation
@@ -187,7 +204,7 @@ implementation
       dos,
     {$ENDIF USE_SYSUTILS}
       verbose,systems,
-      scanner,
+      scanner,ppu,
       procinfo;
 
 
@@ -206,6 +223,13 @@ implementation
           get_source_file:=hp.sourcefiles.get_file(fileindex)
          else
           get_source_file:=nil;
+      end;
+
+
+    procedure addloadedunit(hp:tmodule);
+      begin
+        hp.moduleid:=loaded_units.count;
+        loaded_units.concat(hp);
       end;
 
 
@@ -393,8 +417,11 @@ implementation
         interface_crc:=0;
         flags:=0;
         scanner:=nil;
-        map:=nil;
-        mapsize:=0;
+        unitmap:=nil;
+        unitmapsize:=0;
+        derefmap:=nil;
+        derefmapsize:=0;
+        derefmapcnt:=0;
         derefdata:=TDynamicArray.Create(1024);
         derefdataintflen:=0;
         globalsymtable:=nil;
@@ -429,9 +456,17 @@ implementation
 {$ifdef MEMDEBUG}
         d : tmemdebug;
 {$endif}
+        i : longint;
         hpi : tprocinfo;
       begin
-        dispose(map);
+        if assigned(unitmap) then
+          freemem(unitmap);
+        if assigned(derefmap) then
+          begin
+            for i:=0 to derefmapcnt-1 do
+              stringdispose(derefmap[i].modulename);
+            freemem(derefmap);
+          end;
         if assigned(imports) then
          imports.free;
         if assigned(_exports) then
@@ -512,6 +547,7 @@ implementation
     procedure tmodule.reset;
       var
         hpi : tprocinfo;
+        i   : longint;
       begin
         if assigned(scanner) then
           begin
@@ -556,13 +592,22 @@ implementation
           end;
         derefdata.free;
         derefdata:=TDynamicArray.Create(1024);
-        if assigned(map) then
+        if assigned(unitmap) then
           begin
-            freemem(map);
-            map:=nil;
+            freemem(unitmap);
+            unitmap:=nil;
           end;
+        if assigned(derefmap) then
+          begin
+            for i:=0 to derefmapcnt-1 do
+              stringdispose(derefmap[i].modulename);
+            freemem(derefmap);
+            derefmap:=nil;
+          end;
+        unitmapsize:=0;
+        derefmapsize:=0;
+        derefmapcnt:=0;
         derefdataintflen:=0;
-        mapsize:=0;
         sourcefiles.free;
         sourcefiles:=tinputfilemanager.create;
         librarydata.free;
@@ -665,55 +710,110 @@ implementation
       end;
 
 
-    procedure tmodule.numberunits;
+    procedure tmodule.updatemaps;
       var
-        pu : tused_unit;
-        hp : tmodule;
-        i  : integer;
+        oldmapsize : longint;
+        hp  : tmodule;
+        i   : longint;
       begin
-        { Reset all numbers to -1 }
+        { Extend unitmap }
+        oldmapsize:=unitmapsize;
+        unitmapsize:=loaded_units.count;
+        reallocmem(unitmap,unitmapsize*sizeof(tunitmaprec));
+        fillchar(unitmap[oldmapsize],(unitmapsize-oldmapsize)*sizeof(tunitmaprec),0);
+
+        { Extend Derefmap }
+        oldmapsize:=derefmapsize;
+        derefmapsize:=loaded_units.count;
+        reallocmem(derefmap,derefmapsize*sizeof(tderefmaprec));
+        fillchar(derefmap[oldmapsize],(derefmapsize-oldmapsize)*sizeof(tderefmaprec),0);
+
+        { Add all units to unitmap }
         hp:=tmodule(loaded_units.first);
+        i:=0;
         while assigned(hp) do
-         begin
-           if assigned(hp.globalsymtable) then
-             hp.globalsymtable.unitid:=$ffff;
-           hp:=tmodule(hp.next);
-         end;
-        { Allocate map }
-        mapsize:=used_units.count+1;
-        reallocmem(map,mapsize*sizeof(tunitmaprec));
-        { Our own symtable gets unitid 0, for a program there is
-          no globalsymtable }
-        if assigned(globalsymtable) then
-          globalsymtable.unitid:=0;
-        map[0].u:=self;
-        map[0].unitsym:=nil;
-        { number units and map }
-        i:=1;
-        pu:=tused_unit(used_units.first);
-        while assigned(pu) do
           begin
-            if assigned(pu.u.globalsymtable) then
+            if hp.moduleid>=unitmapsize then
+              internalerror(200501151);
+            { Verify old entries }
+            if (i<oldmapsize) then
               begin
-                tsymtable(pu.u.globalsymtable).unitid:=i;
-                map[i].u:=pu.u;
-                map[i].unitsym:=pu.unitsym;
-                inc(i);
+                if (hp.moduleid<>i) or
+                   (unitmap[hp.moduleid].u<>hp) then
+                  internalerror(200501156);
+              end
+            else
+              begin
+                unitmap[hp.moduleid].u:=hp;
+                unitmap[hp.moduleid].derefidx:=-1;
               end;
-            pu:=tused_unit(pu.next);
+            inc(i);
+            hp:=tmodule(hp.next);
+          end;
+      end;
+
+
+    function tmodule.derefidx_unit(id:longint):longint;
+      begin
+        if id>=unitmapsize then
+          internalerror(2005011511);
+        if unitmap[id].derefidx=-1 then
+          begin
+            unitmap[id].derefidx:=derefmapcnt;
+            inc(derefmapcnt);
+            derefmap[unitmap[id].derefidx].u:=unitmap[id].u;
+          end;
+        if unitmap[id].derefidx>=derefmapsize then
+          internalerror(2005011514);
+        result:=unitmap[id].derefidx;
+      end;
+
+
+    function tmodule.resolve_unit(id:longint):tmodule;
+      var
+        hp : tmodule;
+      begin
+        if id>=derefmapsize then
+          internalerror(200306231);
+        result:=derefmap[id].u;
+        if not assigned(result) then
+          begin
+            if not assigned(derefmap[id].modulename) or
+               (derefmap[id].modulename^='') then
+              internalerror(200501159);
+            hp:=tmodule(loaded_units.first);
+            while assigned(hp) do
+              begin
+                if hp.modulename^=derefmap[id].modulename^ then
+                  break;
+                hp:=tmodule(hp.next);
+              end;
+            if not assigned(hp) then
+              internalerror(2005011510);
+            derefmap[id].u:=hp;
+            result:=hp;
           end;
       end;
 
 
     procedure tmodule.allunitsused;
       var
-        i : longint;
+        pu : tused_unit;
       begin
-        for i:=0 to mapsize-1 do
+        pu:=tused_unit(used_units.first);
+        while assigned(pu) do
           begin
-            if assigned(map[i].unitsym) and
-               (map[i].unitsym.refs=0) then
-              MessagePos2(map[i].unitsym.fileinfo,sym_n_unit_not_used,map[i].u.realmodulename^,realmodulename^);
+            if assigned(pu.u.globalsymtable) then
+              begin
+                if unitmap[pu.u.moduleid].u<>pu.u then
+                  internalerror(200501157);
+                { Give a note when the unit is not referenced, skip
+                  this is for units with an initialization/finalization }
+                if (unitmap[pu.u.moduleid].refs=0) and
+                   ((pu.u.flags and (uf_init or uf_finalize))=0) then
+                  CGMessagePos2(pu.unitsym.fileinfo,sym_n_unit_not_used,pu.u.realmodulename^,realmodulename^);
+              end;
+            pu:=tused_unit(pu.next);
           end;
       end;
 
@@ -732,7 +832,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.51  2005-01-09 20:24:43  olle
+  Revision 1.52  2005-01-19 22:19:41  peter
+    * unit mapping rewrite
+    * new derefmap added
+
+  Revision 1.51  2005/01/09 20:24:43  olle
     * rework of macro subsystem
     + exportable macros for mode macpas
 

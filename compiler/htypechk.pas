@@ -1337,7 +1337,7 @@ implementation
         if assigned(st) and
            (st.symtabletype=objectsymtable) and
            (st.defowner.owner.symtabletype in [globalsymtable,staticsymtable]) and
-           (st.defowner.owner.unitid=0) then
+           st.defowner.owner.iscurrentunit then
           topclassh:=tobjectdef(st.defowner)
         else
           begin
@@ -1986,7 +1986,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.109  2005-01-19 20:53:27  florian
+  Revision 1.110  2005-01-19 22:19:41  peter
+    * unit mapping rewrite
+    * new derefmap added
+
+  Revision 1.109  2005/01/19 20:53:27  florian
     * tmypointer(12435)^ is an l-value
 
   Revision 1.108  2005/01/10 22:10:26  peter

@@ -387,7 +387,8 @@ Unit Ra386int;
                     searchsym(actasmpattern,srsym,srsymtable);
                     if assigned(srsym) and
                        (srsym.typ=unitsym) and
-                       (srsym.owner.unitid=0) then
+                       (srsym.owner.symtabletype in [staticsymtable,globalsymtable]) and
+                       srsym.owner.iscurrentunit then
                      begin
                        { Add . to create System.Identifier }
                        actasmpattern:=actasmpattern+c;
@@ -2035,7 +2036,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.84  2005-01-19 20:21:51  peter
+  Revision 1.85  2005-01-19 22:19:41  peter
+    * unit mapping rewrite
+    * new derefmap added
+
+  Revision 1.84  2005/01/19 20:21:51  peter
     * support labels in references
 
   Revision 1.83  2004/12/22 17:09:55  peter

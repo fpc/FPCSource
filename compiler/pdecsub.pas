@@ -734,7 +734,7 @@ implementation
                 not assigned(srsym) and
                 (symtablestack.symtabletype=staticsymtable) and
                 assigned(symtablestack.next) and
-                (symtablestack.next.unitid=0) then
+                (symtablestack.next.iscurrentunit) then
                begin
                  { The procedure we prepare for is in the implementation
                    part of the unit we compile. It is also possible that we
@@ -1212,7 +1212,7 @@ begin
         begin
           consume(_LEGACY);
           include(pd.procoptions,po_syscall_legacy);
-        end 
+        end
       else if idtoken=_SYSV then
         begin
           consume(_SYSV);
@@ -1222,7 +1222,7 @@ begin
         begin
           consume(_BASESYSV);
           include(pd.procoptions,po_syscall_basesysv);
-        end 
+        end
       else if idtoken=_SYSVBASE then
         begin
           consume(_SYSVBASE);
@@ -1233,8 +1233,8 @@ begin
           consume(_R12BASE);
           include(pd.procoptions,po_syscall_r12base);
         end
-      else 
-        if syscall_convention='LEGACY' then 
+      else
+        if syscall_convention='LEGACY' then
           include(pd.procoptions,po_syscall_legacy)
         else if syscall_convention='SYSV' then
           include(pd.procoptions,po_syscall_sysv)
@@ -1246,7 +1246,7 @@ begin
           include(pd.procoptions,po_syscall_r12base)
         else
           internalerror(2005010404);
-      
+
       if consume_sym(sym,symtable) then
         begin
           if (sym.typ=globalvarsym) and
@@ -2408,7 +2408,11 @@ const
 end.
 {
   $Log$
-  Revision 1.225  2005-01-06 02:13:03  karoly
+  Revision 1.226  2005-01-19 22:19:41  peter
+    * unit mapping rewrite
+    * new derefmap added
+
+  Revision 1.225  2005/01/06 02:13:03  karoly
     * more SysV call support stuff for MorphOS
 
   Revision 1.224  2005/01/05 02:31:06  karoly

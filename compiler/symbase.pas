@@ -103,10 +103,9 @@ interface
           next      : tsymtable;
           defowner  : tdefentry; { for records and objects }
           symtabletype  : tsymtabletype;
-          { each symtable gets a number }
-          unitid        : word;
           { level of symtable, used for nested procedures }
           symtablelevel : byte;
+          moduleid      : longint;
           refcount  : integer;
           constructor Create(const s:string);
           destructor  destroy;override;
@@ -123,6 +122,7 @@ interface
           function  search(const s : stringid) : tsymentry;
           function  speedsearch(const s : stringid;speedvalue : cardinal) : tsymentry;virtual;
           procedure registerdef(p : tdefentry);
+          function  iscurrentunit:boolean;virtual;
 {$ifdef EXTDEBUG}
           procedure dump;
 {$endif EXTDEBUG}
@@ -178,7 +178,6 @@ implementation
          defindex:=TIndexArray.create(indexgrowsize);
          symsearch:=tdictionary.create;
          symsearch.noclear:=true;
-         unitid:=0;
          refcount:=1;
       end;
 
@@ -239,6 +238,12 @@ implementation
          defindex.insert(p);
          { set def owner and indexnb }
          p.owner:=self;
+      end;
+
+
+    function tsymtable.iscurrentunit:boolean;
+      begin
+        result:=false;
       end;
 
 
@@ -345,7 +350,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.24  2005-01-09 20:24:43  olle
+  Revision 1.25  2005-01-19 22:19:41  peter
+    * unit mapping rewrite
+    * new derefmap added
+
+  Revision 1.24  2005/01/09 20:24:43  olle
     * rework of macro subsystem
     + exportable macros for mode macpas
 

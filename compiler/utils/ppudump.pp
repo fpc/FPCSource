@@ -28,9 +28,9 @@ uses
   ppu;
 
 const
-  Version   = 'Version 1.10';
+  Version   = 'Version 1.9.8';
   Title     = 'PPU-Analyser';
-  Copyright = 'Copyright (c) 1998-2003 by the Free Pascal Development Team';
+  Copyright = 'Copyright (c) 1998-2005 by the Free Pascal Development Team';
 
 { verbosity }
   v_none           = $0;
@@ -76,7 +76,6 @@ type
 var
   ppufile     : tppufile;
   space       : string;
-  unitnumber,
   unitindex   : longint;
   verbose     : longint;
   derefdata   : pbyte;
@@ -391,12 +390,22 @@ var
 begin
   while not ppufile.EndOfEntry do
     begin
-      inc(unitnumber);
-      write('Uses unit: ',ppufile.getstring,' (Number: ',unitnumber,')');
+      write('Uses unit: ',ppufile.getstring);
       ucrc:=cardinal(ppufile.getlongint);
       uintfcrc:=cardinal(ppufile.getlongint);
       writeln(' (Crc: ',hexstr(ucrc,8),', IntfcCrc: ',hexstr(uintfcrc,8),')');
     end;
+end;
+
+
+Procedure ReadDerefmap;
+var
+  i,mapsize : longint;
+begin
+  mapsize:=ppufile.getword;
+  writeln('DerefMapsize: ',mapsize);
+  for i:=0 to mapsize-1 do
+    writeln('DerefMap[',i,'] = ',ppufile.getstring);
 end;
 
 
@@ -1764,6 +1773,9 @@ begin
          ibderefdata :
            ReadDerefData;
 
+         ibderefmap :
+           ReadDerefMap;
+
          iberror :
            begin
              Writeln('Error in PPU');
@@ -2132,7 +2144,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.64  2005-01-09 20:24:43  olle
+  Revision 1.65  2005-01-19 22:19:41  peter
+    * unit mapping rewrite
+    * new derefmap added
+
+  Revision 1.64  2005/01/09 20:24:43  olle
     * rework of macro subsystem
     + exportable macros for mode macpas
 

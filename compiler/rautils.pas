@@ -1211,7 +1211,8 @@ begin
      if assigned(srsym) then
       begin
         if (srsym.typ=unitsym) and
-           (srsym.owner.unitid=0) then
+           (srsym.owner.symtabletype in [staticsymtable,globalsymtable]) and
+           srsym.owner.iscurrentunit then
          srsym:=searchsymonlyin(tunitsym(srsym).unitsymtable,Copy(s,i+1,255))
         else
          srsym:=nil;
@@ -1625,7 +1626,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.100  2005-01-05 15:22:39  florian
+  Revision 1.101  2005-01-19 22:19:41  peter
+    * unit mapping rewrite
+    * new derefmap added
+
+  Revision 1.100  2005/01/05 15:22:39  florian
     * added support of shifter ops in arm inline assembler
 
   Revision 1.99  2004/12/22 17:09:55  peter

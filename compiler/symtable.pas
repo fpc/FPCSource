@@ -138,16 +138,17 @@ interface
           prev_dbx_counter : plongint;
           dbx_count_ok : boolean;
 {$endif GDB}
-          constructor create(const n : string);
+          constructor create(const n : string;id:word);
 {$ifdef GDB}
           procedure concattypestabto(asmlist : taasmoutput);
 {$endif GDB}
+          function iscurrentunit:boolean;override;
        end;
 
        tglobalsymtable = class(tabstractunitsymtable)
        public
           unittypecount : word;
-          constructor create(const n : string);
+          constructor create(const n : string;id:word);
           procedure ppuload(ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure load_references(ppufile:tcompilerppufile;locals:boolean);override;
@@ -160,7 +161,7 @@ interface
 
        tstaticsymtable = class(tabstractunitsymtable)
        public
-          constructor create(const n : string);
+          constructor create(const n : string;id:word);
           procedure ppuload(ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure load_references(ppufile:tcompilerppufile;locals:boolean);override;
@@ -591,7 +592,9 @@ implementation
         st:=findunitsymtable(sym.owner);
         with tsym(sym).fileinfo do
           begin
-            if assigned(st) and (st.unitid<>0) then
+            if assigned(st) and
+               (st.symtabletype=globalsymtable) and
+               (not st.iscurrentunit) then
               Message2(sym_h_duplicate_id_where,'unit '+st.name^,tostr(line))
             else
               Message2(sym_h_duplicate_id_where,current_module.sourcefiles.get_file_name(fileindex),tostr(line));
@@ -661,19 +664,14 @@ implementation
              Message(sym_e_only_static_in_static);
 
            { unit uses count }
-           if (unitid<>0) and
-              (symtabletype = globalsymtable) and
-              assigned(current_module) and
-              (unitid<current_module.mapsize) and
-              assigned(current_module.map[unitid].unitsym) then
-             inc(current_module.map[unitid].unitsym.refs);
+           if assigned(current_module) and
+              (symtabletype=globalsymtable) then
+             begin
+               if tglobalsymtable(self).moduleid>current_module.unitmapsize then
+                 internalerror(200501152);
+               inc(current_module.unitmap[tglobalsymtable(self).moduleid].refs);
+             end;
 
-           { unitsym are only loaded for browsing PM    }
-           { this was buggy anyway because we could use }
-           { unitsyms from other units in _USES !!      }
-           {if (symtabletype=unitsymtable) and (hp.typ=unitsym) and
-              assigned(current_module) and (current_module.globalsymtable<>.load) then
-             hp:=nil;}
            if make_ref and (cs_browser in aktmoduleswitches) then
              begin
                 newref:=tref.create(hp.lastref,@akttokenpos);
@@ -1344,9 +1342,10 @@ implementation
                          TAbstractUnitSymtable
 ****************************************************************************}
 
-    constructor tabstractunitsymtable.create(const n : string);
+    constructor tabstractunitsymtable.create(const n : string;id:word);
       begin
         inherited create(n);
+        moduleid:=id;
         symsearch.usehash;
 {$ifdef GDB}
          { reset GDB things }
@@ -1354,6 +1353,16 @@ implementation
          dbx_counter := nil;
          dbx_count := -1;
 {$endif GDB}
+      end;
+
+
+    function tabstractunitsymtable.iscurrentunit:boolean;
+      begin
+        result:=assigned(current_module) and
+                (
+                 (current_module.globalsymtable=self) or
+                 (current_module.localsymtable=self)
+                );
       end;
 
 
@@ -1368,7 +1377,7 @@ implementation
              while assigned(p) do
                begin
                  { also insert local types for the current unit }
-                 if (unitid=0) then
+                 if iscurrentunit then
                    begin
                      case p.deftype of
                        procdef :
@@ -1390,23 +1399,23 @@ implementation
         begin
            if not assigned(name) then
              name := stringdup('Main_program');
-           asmList.concat(tai_comment.Create(strpnew('Begin unit '+name^+' has index '+tostr(unitid))));
+           asmList.concat(tai_comment.Create(strpnew('Begin unit '+name^+' has index '+tostr(moduleid))));
            if cs_gdb_dbx in aktglobalswitches then
              begin
                 if dbx_count_ok then
                   begin
                      asmList.concat(tai_comment.Create(strpnew('"repeated" unit '+name^
-                              +' has index '+tostr(unitid)+' dbx count = '+tostr(dbx_count))));
+                              +' has index '+tostr(moduleid)+' dbx count = '+tostr(dbx_count))));
                      asmList.concat(Tai_stabs.Create(strpnew('"'+name^+'",'
                        +tostr(N_EXCL)+',0,0,'+tostr(dbx_count))));
                      exit;
                   end
-                else if (current_module.globalsymtable<>self) then
+                else if not iscurrentunit then
                   begin
                     prev_dbx_count := dbx_counter;
                     dbx_counter := nil;
                     do_count_dbx:=false;
-                    if (symtabletype = globalsymtable) and (unitid<>0) then
+                    if (symtabletype = globalsymtable) then
                       asmList.concat(Tai_stabs.Create(strpnew('"'+name^+'",'+tostr(N_BINCL)+',0,0,0')));
                     dbx_counter := @dbx_count;
                     dbx_count:=0;
@@ -1421,7 +1430,7 @@ implementation
 
            if cs_gdb_dbx in aktglobalswitches then
              begin
-                if (current_module.globalsymtable<>self) then
+                if not iscurrentunit then
                   begin
                     dbx_counter := prev_dbx_count;
                     do_count_dbx:=false;
@@ -1431,7 +1440,7 @@ implementation
                     dbx_count_ok := {true}false;
                   end;
              end;
-           asmList.concat(tai_comment.Create(strpnew('End unit '+name^+' has index '+tostr(unitid))));
+           asmList.concat(tai_comment.Create(strpnew('End unit '+name^+' has index '+tostr(moduleid))));
         end;
 {$endif GDB}
 
@@ -1440,9 +1449,9 @@ implementation
                               TStaticSymtable
 ****************************************************************************}
 
-    constructor tstaticsymtable.create(const n : string);
+    constructor tstaticsymtable.create(const n : string;id:word);
       begin
-        inherited create(n);
+        inherited create(n,id);
         symtabletype:=staticsymtable;
         symtablelevel:=main_program_level;
       end;
@@ -1487,7 +1496,8 @@ implementation
       begin
          { also check the global symtable }
          if assigned(next) and
-            (next.unitid=0) then
+            (next.symtabletype=globalsymtable) and
+            (next.iscurrentunit) then
           begin
             hsym:=tsym(next.search(sym.name));
             if assigned(hsym) then
@@ -1511,20 +1521,19 @@ implementation
                               TGlobalSymtable
 ****************************************************************************}
 
-    constructor tglobalsymtable.create(const n : string);
+    constructor tglobalsymtable.create(const n : string;id:word);
       begin
-         inherited create(n);
+         inherited create(n,id);
          symtabletype:=globalsymtable;
          symtablelevel:=main_program_level;
-         unitid:=0;
 {$ifdef GDB}
          if cs_gdb_dbx in aktglobalswitches then
            begin
              dbx_count := 0;
              unittypecount:=1;
              pglobaltypecount := @unittypecount;
-             {unitid:=current_module.unitcount;}
-             {debugList.concat(tai_comment.Create(strpnew('Global '+name^+' has index '+tostr(unitid))));
+             {moduleid:=current_module.unitcount;}
+             {debugList.concat(tai_comment.Create(strpnew('Global '+name^+' has index '+tostr(moduleid))));
              debugList.concat(Tai_stabs.Create(strpnew('"'+name^+'",'+tostr(N_BINCL)+',0,0,0')));}
              {inc(current_module.unitcount);}
              { we can't use dbx_vcount, because we don't know
@@ -1624,24 +1633,6 @@ implementation
       var
          hsym : tsym;
       begin
-         { also check the global symtable }
-         if assigned(next) and
-            (next.unitid=0) then
-          begin
-            hsym:=tsym(next.search(sym.name));
-            if assigned(hsym) then
-             begin
-               { Delphi you can have a symbol with the same name as the
-                 unit, the unit can then not be accessed anymore using
-                 <unit>.<id>, so we can hide the symbol }
-               if (m_duplicate_names in aktmodeswitches) and
-                  (hsym.typ=symconst.unitsym) then
-                hsym.owner.rename(hsym.name,'hidden'+hsym.name)
-               else
-                DuplicateSym(sym,hsym);
-             end;
-          end;
-
          hsym:=tsym(search(sym.name));
          if assigned(hsym) then
           begin
@@ -1834,7 +1825,7 @@ implementation
                     assigned(srsymtable.defowner) and
                     (srsymtable.defowner.deftype=objectdef) and
                     (srsymtable.defowner.owner.symtabletype in [globalsymtable,staticsymtable]) and
-                    (srsymtable.defowner.owner.unitid=0) then
+                    (srsymtable.defowner.owner.iscurrentunit) then
                    topclass:=tobjectdef(srsymtable.defowner)
                  else
                    begin
@@ -1904,7 +1895,8 @@ implementation
                  exit;
                end;
               { also check in the local symtbale if it exists }
-              if (p=tsymtable(current_module.globalsymtable)) then
+              if (p.symtabletype=globalsymtable) and
+                 (p.iscurrentunit) then
                 begin
                    srsym:=tsym(current_module.localsymtable.search(s));
                    if assigned(srsym) then
@@ -1931,7 +1923,7 @@ implementation
            units. At least kylix supports it this way (PFV) }
          if assigned(classh) and
             (classh.owner.symtabletype in [globalsymtable,staticsymtable]) and
-            (classh.owner.unitid=0) then
+            classh.owner.iscurrentunit then
            topclassh:=classh
          else
            begin
@@ -1965,7 +1957,7 @@ implementation
            units. At least kylix supports it this way (PFV) }
          if assigned(classh) and
             (classh.owner.symtabletype in [globalsymtable,staticsymtable]) and
-            (classh.owner.unitid=0) then
+            classh.owner.iscurrentunit then
            topclassh:=classh
          else
            begin
@@ -2016,7 +2008,7 @@ implementation
            units. At least kylix supports it this way (PFV) }
          if assigned(classh) and
             (classh.owner.symtabletype in [globalsymtable,staticsymtable]) and
-            (classh.owner.unitid=0) then
+            classh.owner.iscurrentunit then
            topclassh:=classh
          else
            begin
@@ -2286,7 +2278,7 @@ implementation
                macrosymtablestack.next.insert(mac)
            end;
          if not mac.defined then
-           Message1(parser_c_macro_defined,mac.name); 
+           Message1(parser_c_macro_defined,mac.name);
          mac.defined:=true;
       end;
 
@@ -2471,7 +2463,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.168  2005-01-09 20:24:43  olle
+  Revision 1.169  2005-01-19 22:19:41  peter
+    * unit mapping rewrite
+    * new derefmap added
+
+  Revision 1.168  2005/01/09 20:24:43  olle
     * rework of macro subsystem
     + exportable macros for mode macpas
 

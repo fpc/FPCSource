@@ -371,7 +371,8 @@ unit raatt;
                     searchsym(actasmpattern,srsym,srsymtable);
                     if assigned(srsym) and
                        (srsym.typ=unitsym) and
-                       (srsym.owner.unitid=0) then
+                       (srsym.owner.symtabletype in [staticsymtable,globalsymtable]) and
+                       srsym.owner.iscurrentunit then
                      begin
                        actasmpattern:=actasmpattern+c;
                        c:=current_scanner.asmgetchar;
@@ -1522,7 +1523,11 @@ end.
 
 {
   $Log$
-  Revision 1.16  2004-12-22 17:09:55  peter
+  Revision 1.17  2005-01-19 22:19:41  peter
+    * unit mapping rewrite
+    * new derefmap added
+
+  Revision 1.16  2004/12/22 17:09:55  peter
     * support sizeof()
     * fix typecasting a constant like dword(4)
 

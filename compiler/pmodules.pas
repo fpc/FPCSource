@@ -487,7 +487,7 @@ implementation
          hp3     : tsymtable;
          unitsym : tunitsym;
          top_of_macrosymtable : tsymtable;
-         
+
       begin
          consume(_USES);
 {$ifdef DEBUG}
@@ -567,11 +567,6 @@ implementation
                pu.interface_checksum:=pu.u.interface_crc;
                { connect unitsym to the globalsymtable of the unit }
                pu.unitsym.unitsymtable:=pu.u.globalsymtable;
-               { increase refs of the unitsym when the unit contains
-                 initialization/finalization code so it doesn't trigger
-                 the unit not used hint }
-               if (pu.u.flags and (uf_init or uf_finalize))<>0 then
-                 inc(pu.unitsym.refs);
              end;
             pu:=tused_unit(pu.next);
           end;
@@ -700,7 +695,7 @@ implementation
           begin
             debugList.concat(tai_comment.Create(strpnew('EINCL of global '+
               tglobalsymtable(current_module.globalsymtable).name^+' has index '+
-              tostr(tglobalsymtable(current_module.globalsymtable).unitid))));
+              tostr(tglobalsymtable(current_module.globalsymtable).moduleid))));
             debugList.concat(Tai_stabs.Create(strpnew('"'+
               tglobalsymtable(current_module.globalsymtable).name^+'",'+
               tostr(N_EINCL)+',0,0,0')));
@@ -894,7 +889,7 @@ implementation
       if assigned(hp) then
         current_module.localmacrosymtable.delete(hp);
     end;
-    
+
     procedure proc_unit;
 
       function is_assembler_generated:boolean;
@@ -926,7 +921,7 @@ implementation
              ConsolidateMode;
              current_module.mode_switch_allowed:= false;
            end;
-       
+
          consume(_UNIT);
          if compile_level=1 then
           Status.IsExe:=false;
@@ -995,7 +990,7 @@ implementation
          parse_only:=true;
 
          { generate now the global symboltable }
-         st:=tglobalsymtable.create(current_module.modulename^);
+         st:=tglobalsymtable.create(current_module.modulename^,current_module.moduleid);
          refsymtable:=st;
          unitst:=tglobalsymtable(st);
          { define first as local to overcome dependency conflicts }
@@ -1057,7 +1052,7 @@ implementation
 
          { number all units, so we know if a unit is used by this unit or
            needs to be added implicitly }
-         current_module.numberunits;
+         current_module.updatemaps;
 
          { ... parse the declarations }
          Message1(parser_u_parsing_interface,current_module.realmodulename^);
@@ -1091,16 +1086,16 @@ implementation
          parse_only:=false;
 
          { generates static symbol table }
-         st:=tstaticsymtable.create(current_module.modulename^);
+         st:=tstaticsymtable.create(current_module.modulename^,current_module.moduleid);
          current_module.localsymtable:=st;
 
-         { Swap the positions of the local and global macro sym table}        
+         { Swap the positions of the local and global macro sym table}
          if assigned(current_module.globalmacrosymtable) then
            begin
              macrosymtablestack:=current_module.localmacrosymtable;
              current_module.globalmacrosymtable.next:= current_module.localmacrosymtable.next;
              current_module.localmacrosymtable.next:=current_module.globalmacrosymtable;
-             
+
              current_module.globalmacrosymtable.foreach_static(@delete_duplicate_macros, nil);
            end;
 
@@ -1110,11 +1105,11 @@ implementation
 
          { we don't want implementation units symbols in unitsymtable !! PM }
          refsymtable:=st;
-         
+
          if has_impl then
            begin
-             consume(_IMPLEMENTATION);     
-             Message1(unit_u_loading_implementation_units,current_module.modulename^);     
+             consume(_IMPLEMENTATION);
+             Message1(unit_u_loading_implementation_units,current_module.modulename^);
              { Read the implementation units }
              parse_implementation_uses;
            end;
@@ -1126,7 +1121,7 @@ implementation
          reset_all_defs;
 
          { All units are read, now give them a number }
-         current_module.numberunits;
+         current_module.updatemaps;
 
          { now we can change refsymtable }
          refsymtable:=st;
@@ -1390,7 +1385,7 @@ implementation
 
          { insert after the unit symbol tables the static symbol table }
          { of the program                                             }
-         st:=tstaticsymtable.create(current_module.modulename^);;
+         st:=tstaticsymtable.create(current_module.modulename^,current_module.moduleid);
          current_module.localsymtable:=st;
          refsymtable:=st;
 
@@ -1401,7 +1396,7 @@ implementation
 
          current_module.localmacrosymtable.next:=macrosymtablestack;
          macrosymtablestack:=current_module.localmacrosymtable;
-         
+
          {Load the units used by the program we compile.}
          if token=_USES then
            loadunits;
@@ -1410,7 +1405,7 @@ implementation
          reset_all_defs;
 
          { All units are read, now give them a number }
-         current_module.numberunits;
+         current_module.updatemaps;
 
          {Insert the name of the main program into the symbol table.}
          if current_module.realmodulename^<>'' then
@@ -1600,7 +1595,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.179  2005-01-09 20:24:43  olle
+  Revision 1.180  2005-01-19 22:19:41  peter
+    * unit mapping rewrite
+    * new derefmap added
+
+  Revision 1.179  2005/01/09 20:24:43  olle
     * rework of macro subsystem
     + exportable macros for mode macpas
 
