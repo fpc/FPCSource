@@ -1247,7 +1247,7 @@ const
       pooption : [po_virtualmethod];
       mutexclpocall : [pocall_internproc,pocall_inline];
       mutexclpotype : [];
-      mutexclpo     : [po_exports,po_interrupt,po_external]
+      mutexclpo     : [po_exports,po_interrupt,po_external,po_overridingmethod]
     ),(
       idtok:_EXPORT;
       pd_flags : [pd_body,pd_interface,pd_implemen,pd_notobjintf];
@@ -1310,7 +1310,7 @@ const
       pooption : [];
       mutexclpocall : [];
       mutexclpotype : [potype_constructor,potype_destructor];
-      mutexclpo     : [po_exports,po_external,po_interrupt]
+      mutexclpo     : [po_exports,po_external,po_interrupt,po_virtualmethod]
     ),(
       idtok:_INTERNCONST;
       pd_flags : [pd_implemen,pd_body,pd_notobject,pd_notobjintf];
@@ -1328,7 +1328,7 @@ const
       pooption : [];
       mutexclpocall : [];
       mutexclpotype : [potype_constructor,potype_destructor,potype_operator];
-      mutexclpo     : [po_exports,po_external,po_interrupt,po_assembler,po_iocheck]
+      mutexclpo     : [po_exports,po_external,po_interrupt,po_assembler,po_iocheck,po_virtualmethod]
     ),(
       idtok:_INTERRUPT;
       pd_flags : [pd_implemen,pd_body,pd_notobject,pd_notobjintf];
@@ -1383,7 +1383,7 @@ const
       pooption : [po_overridingmethod,po_virtualmethod];
       mutexclpocall : [pocall_inline,pocall_internproc];
       mutexclpotype : [];
-      mutexclpo     : [po_exports,po_external,po_interrupt]
+      mutexclpo     : [po_exports,po_external,po_interrupt,po_virtualmethod]
     ),(
       idtok:_PASCAL;
       pd_flags : [pd_interface,pd_implemen,pd_body,pd_procvar];
@@ -1484,7 +1484,7 @@ const
       pooption : [po_virtualmethod];
       mutexclpocall : [pocall_inline,pocall_internproc];
       mutexclpotype : [];
-      mutexclpo     : [po_external,po_interrupt,po_exports]
+      mutexclpo     : [po_external,po_interrupt,po_exports,po_overridingmethod]
     ),(
       idtok:_CPPDECL;
       pd_flags : [pd_interface,pd_implemen,pd_body,pd_procvar];
@@ -2151,7 +2151,10 @@ const
 end.
 {
   $Log$
-  Revision 1.153  2003-11-10 19:09:29  peter
+  Revision 1.154  2003-11-12 15:49:06  peter
+    * virtual conflicts with override
+
+  Revision 1.153  2003/11/10 19:09:29  peter
     * procvar default value support
 
   Revision 1.152  2003/11/07 15:58:32  florian
