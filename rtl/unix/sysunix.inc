@@ -212,6 +212,9 @@ Procedure Do_Erase(p:pchar);
 Begin
   sys_unlink(p);
   Errno2Inoutres;
+  { tp compatible result }
+  if (Errno=Sys_EISDIR) then
+   InOutRes:=2;
 End;
 
 
@@ -721,7 +724,10 @@ End.
 
 {
   $Log$
-  Revision 1.16  2001-08-05 12:24:20  peter
+  Revision 1.17  2001-09-30 21:10:20  peter
+    * erase(directory) returns now 2 to be tp compatible
+
+  Revision 1.16  2001/08/05 12:24:20  peter
     * m68k merges
 
   Revision 1.15  2001/07/16 19:51:36  marco
