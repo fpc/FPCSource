@@ -1388,7 +1388,11 @@ distclean: clean
 build: build-stamp
 build-stamp:
 # create new compiler
+ifeq $($(OS_TARGET),win32)
+	-$(MAKE) compiler_cycle
+else
 	$(MAKE) compiler_cycle
+endif
 # clean
 	$(MAKE) rtl_clean
 	$(MAKE) api_clean
@@ -1415,6 +1419,7 @@ installbase: build-stamp
 	$(MKDIR) $(BASEINSTALLDIR)
 	$(MKDIR) $(DOCINSTALLDIR)
 	$(MKDIR) $(BININSTALLDIR)
+#ifndef SNAPSHOT
 # readme & whatsnew and docs
 	$(COPY) $(CVSINSTALL)/doc/*.txt $(CVSINSTALL)/doc/copying* $(CVSINSTALL)/doc/faq.* $(DOCINSTALLDIR)
 # bingo32 (cwsdpmi,wmemu387.dxe)
@@ -1428,6 +1433,7 @@ endif
 # manpages for linux
 ifeq ($(OS_TARGET),linux)
 	$(MAKE) -C $(CVSINSTALL)/man installman
+endif
 endif
 # install generated things
 	$(MAKE) compiler_install $(INSTALLOPTS)
