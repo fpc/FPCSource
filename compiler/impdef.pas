@@ -23,7 +23,7 @@
 
  ****************************************************************************
 }
-unit imtdef;
+unit impdef;
 
 {$ifndef STANDALONE}
   {$i fpcdefs.inc}
@@ -71,7 +71,7 @@ var
   PEoffset:cardinal;
   loaded:longint;
 
-function DOSstubOK(var x:longint):longbool;
+function DOSstubOK(var x:cardinal):longbool;
 begin
   blockread(f,TheWord,2,loaded);
   if loaded<>2 then
@@ -175,7 +175,7 @@ procedure CreateTempDir(const s:string);
  end;
 procedure call_as(const name:string);
  begin
-  exec(utilsprefix+as_name,'-o '+name+'o '+name);
+  exec(as_name,'-o '+name+'o '+name);
  end;
 procedure call_ar;
  var
@@ -190,7 +190,7 @@ procedure call_ar;
   GetFAttr(f,attr);
   If DOSError=0 then
    erase(f);
-  exec(utilsprefix+ar_name,'rs '+impname+' '+path+dirsep+'*.swo');
+  exec(ar_name,'rs '+impname+' '+path+dirsep+'*.swo');
   cleardir(path,'*.sw');
   cleardir(path,'*.swo');
   {$i-}
@@ -478,7 +478,10 @@ end.
 
 {
   $Log$
-  Revision 1.12  2003-10-03 14:16:48  marco
+  Revision 1.13  2004-02-22 14:52:59  hajny
+    * compilation fixes + *w tools renamed to *
+
+  Revision 1.12  2003/10/03 14:16:48  marco
    * -XP<prefix> support
 
   Revision 1.11  2003/10/02 21:17:08  peter

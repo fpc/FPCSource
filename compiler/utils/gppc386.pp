@@ -46,11 +46,7 @@ const
   GDBIniName = '.gdbinit';
   DefaultCompilerName = 'ppc386';
 {$else}
-{$ifdef win32}
-  GDBExeName = 'gdbpasw.exe';
-{$else not win32}
   GDBExeName = 'gdbpas.exe';
-{$endif win32}
   GDBIniName = 'gdb.ini';
   DefaultCompilerName = 'ppc386.exe';
 {$endif not linux}
@@ -143,7 +139,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2002-12-06 17:51:11  peter
+  Revision 1.6  2004-02-22 14:52:59  hajny
+    * compilation fixes + *w tools renamed to *
+
+  Revision 1.5  2002/12/06 17:51:11  peter
     * merged cdecl and array fixes
 
   Revision 1.4  2002/06/02 09:44:17  marco

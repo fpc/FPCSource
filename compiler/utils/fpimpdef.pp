@@ -75,21 +75,21 @@ begin
 binname:=GetOption('-i','--input');
 if(binname='')or(Ofound('-h','--help')>0)then
   help_info;
- asw_name:=GetOption('-s','--assembler');
- if asw_name='' then
-  asw_name:='asw';
- arw_name:=GetOption('-r','--archiver');
- if arw_name='' then
-  arw_name:='arw';
+ as_name:=GetOption('-s','--assembler');
+ if as_name='' then
+  as_name:='as';
+ ar_name:=GetOption('-r','--archiver');
+ if ar_name='' then
+  ar_name:='ar';
 {$ifndef UNIX}
- AddExt(asw_name);
- AddExt(arw_name);
+ AddExt(as_name);
+ AddExt(ar_name);
 {$endif}
  EnvPath:=GetEnv('Path');
  if EnvPath='' then
   EnvPath:=GetEnv('PATH');
- asw_name:=FSearch(asw_name,EnvPath);
- arw_name:=FSearch(arw_name,EnvPath);
+ as_name:=FSearch(as_name,EnvPath);
+ ar_name:=FSearch(ar_name,EnvPath);
 if not makedef(binname,GetOption('-o','--output'),GetOption('-l','--library'))then
   begin
    writeln('Export names not found');
