@@ -33,6 +33,7 @@ type
     procedure second_add64bit;
     procedure second_addfloat;
     function GetResFlags(unsigned:Boolean):TResFlags;
+    procedure emit_compare(unsigned:boolean);
     procedure left_must_be_reg(OpSize:TOpSize;NoSwap:Boolean);
     procedure emit_generic_code(op:TAsmOp;OpSize:TOpSize;unsigned,extra_not,mboverflow:Boolean);
     procedure emit_op_right_left(op:TAsmOp);
@@ -299,32 +300,33 @@ doesn't change the value of the register}
       end;
   end;
 procedure TSparcAddNode.emit_generic_code(op:TAsmOp;OpSize:TOpSize;unsigned,extra_not,mboverflow:Boolean);
-  VAR
+  var
     power:LongInt;
     hl4:TAsmLabel;
   begin
     { at this point, left.location.loc should be LOC_REGISTER }
-    if right.location.loc=LOC_REGISTER
-    then
-      begin
+    with ExprAsmList do
+      if right.location.loc=LOC_REGISTER
+      then
+        begin
         { right.location is a LOC_REGISTER }
         { when swapped another result register }
-        if(nodetype=subn)and(nf_swaped in flags)
-        then
-          begin
-            if extra_not
-            then
-              exprasmList.concat(Taicpu.Op_reg(A_NOT,left.location.register));
-            exprasmList.concat(Taicpu.Op_reg_reg_reg(Op,right.location.register,left.location.register,right.location.register));
+          if(nodetype=subn)and(nf_swaped in flags)
+          then
+            begin
+              if extra_not
+              then
+                Concat(Taicpu.Op_reg(A_NOT,left.location.register));
+              Concat(Taicpu.Op_reg_reg_reg(Op,right.location.register,left.location.register,right.location.register));
             { newly swapped also set swapped flag }
-            location_swap(left.location,right.location);
-            toggleflag(nf_swaped);
-          end
-        else
-          begin
-            if extra_not
-            then
-              exprasmList.concat(Taicpu.Op_reg(A_NOT,right.location.register));
+              location_swap(left.location,right.location);
+              toggleflag(nf_swaped);
+            end
+          else
+            begin
+              if extra_not
+              then
+                Concat(Taicpu.Op_reg(A_NOT,right.location.register));
            // emit_reg_reg(op,opsize,right.location.register,left.location.register);
             exprasmList.concat(Taicpu.Op_reg_reg_reg(Op,right.location.register,left.location.register,right.location.register));
           end;
@@ -407,6 +409,72 @@ procedure TSparcAddNode.emit_generic_code(op:TAsmOp;OpSize:TOpSize;unsigned,extr
           end;
       end;
   end;
+procedure TSparcAddNode.emit_compare(unsigned:boolean);
+  var
+    op:tasmop;
+    tmpreg:tregister;
+    useconst:boolean;
+  begin
+    // get the constant on the right if there is one
+    if(left.location.loc=LOC_CONSTANT)
+    then
+      swapleftright;
+    // can we use an immediate, or do we have to load the
+    // constant in a register first?
+    if(right.location.loc=LOC_CONSTANT)
+    then
+      begin
+{$ifdef dummy}
+        if (right.location.size in [OS_64,OS_S64]) and (hi(right.location.valueqword)<>0) and ((hi(right.location.valueqword)<>$ffffffff) or unsigned)
+        then
+          internalerror(2002080301);
+{$endif extdebug}
+        if (nodetype in [equaln,unequaln])
+        then
+          if (unsigned and
+            (right.location.value > high(word))) or
+            (not unsigned and
+            (longint(right.location.value) < low(smallint)) or
+            (longint(right.location.value) > high(smallint))) then
+            { we can then maybe use a constant in the 'othersigned' case
+            (the sign doesn't matter for // equal/unequal)}
+            unsigned := not unsigned;
+        if (unsigned and
+                ((right.location.value) <= high(word))) or
+               (not(unsigned) and
+                (longint(right.location.value) >= low(smallint)) and
+                (longint(right.location.value) <= high(smallint)))
+        then
+          useconst := true
+        else
+          begin
+            useconst := false;
+            tmpreg := cg.get_scratch_reg_int(exprasmlist,OS_INT);
+            cg.a_load_const_reg(exprasmlist,OS_INT,right.location.value,tmpreg);
+          end
+      end
+      else
+        useconst := false;
+        location.loc := LOC_FLAGS;
+        location.resflags:=getresflags(False);
+        if not unsigned
+        then
+          op:=A_CMP;
+        if (right.location.loc = LOC_CONSTANT)
+        then
+          if useconst
+          then
+            exprasmlist.concat(taicpu.op_reg_const(op,
+              left.location.register,longint(right.location.value)))
+          else
+            begin
+              exprasmlist.concat(taicpu.op_reg_reg(op,left.location.register,tmpreg));
+              cg.free_scratch_reg(exprasmlist,tmpreg);
+            end
+        else
+          exprasmlist.concat(taicpu.op_reg_reg(op,
+            left.location.register,right.location.register));
+  end;
 procedure TSparcAddNode.emit_op_right_left(op:TAsmOp);
   begin
     {left must be a register}
@@ -451,13 +519,13 @@ procedure TSparcAddNode.second_add64bit;
       else
         right.location.registerlow := right.location.registerhigh;
       // and call the normal emit_compare
-      //emit_compare(unsigned);
+      emit_compare(unsigned);
       location_copy(left.location,oldleft);
       location_copy(right.location,oldright);
     end;
     procedure emit_cmp64_lo;
       begin
-//        emit_compare(true);
+        emit_compare(true);
       end;
     procedure firstjmp64bitcmp;
       var
@@ -1111,7 +1179,10 @@ begin
 end.
 {
     $Log$
-    Revision 1.11  2003-03-10 21:59:54  mazen
+    Revision 1.12  2003-05-06 21:37:58  mazen
+    * adding emit_compare trying fixing compare bugs
+
+    Revision 1.11  2003/03/10 21:59:54  mazen
     * fixing index overflow in handling new registers arrays.
 
     Revision 1.10  2003/02/19 22:00:17  daniel
