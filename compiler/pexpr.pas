@@ -1385,7 +1385,7 @@ implementation
                   begin
                     { access to property in a method }
                     { are we in a class method ? }
-                    if (srsym.owner.symtabletype=objectsymtable) and
+                    if (srsymtable.symtabletype=objectsymtable) and
                        assigned(current_procinfo) and
                        (po_classmethod in current_procinfo.procdef.procoptions) then
                      Message(parser_e_only_class_methods);
@@ -2419,7 +2419,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.125  2003-08-23 18:41:52  peter
+  Revision 1.126  2003-08-23 22:29:51  peter
+    * fixed static class check for properties
+
+  Revision 1.125  2003/08/23 18:41:52  peter
     * allow typeof(self) in class methods
 
   Revision 1.124  2003/08/10 17:25:23  peter
