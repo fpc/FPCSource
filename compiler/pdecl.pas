@@ -925,6 +925,8 @@ unit pdecl;
          hp1        : pdef;
          oldprocsym : Pprocsym;
          oldparse_only : boolean;
+         classnamelabel,rttilabel : plabel;
+
       begin
          {Nowadays aktprocsym may already have a value, so we need to save
           it.}
@@ -1281,6 +1283,32 @@ unit pdecl;
 
          if (cs_smartlink in aktmoduleswitches) then
            datasegment^.concat(new(pai_cut,init));
+         { write extended info for classes }
+         if is_a_class then
+           begin
+              { write class name }
+              getlabel(classnamelabel);
+              datasegment^.concat(new(pai_label,init(classnamelabel)));
+              datasegment^.concat(new(pai_const,init_8bit(length(aktclass^.name^))));
+              datasegment^.concat(new(pai_string,init(aktclass^.name^)));
+
+              { interface table }
+              datasegment^.concat(new(pai_const,init_32bit(0)));
+              { auto table }
+              datasegment^.concat(new(pai_const,init_32bit(0)));
+              { rtti for dispose }
+              datasegment^.concat(new(pai_const,init_symbol(strpnew(lab2str(aktclass^.get_rtti_label)))));
+              { pointer to type info }
+              datasegment^.concat(new(pai_const,init_32bit(0)));
+              { pointer to field table }
+              datasegment^.concat(new(pai_const,init_32bit(0)));
+              { pointer to method table }
+              datasegment^.concat(new(pai_const,init_32bit(0)));
+              { pointer to dynamic table }
+              datasegment^.concat(new(pai_const,init_32bit(0)));
+              { pointer to class name string }
+              datasegment^.concat(new(pai_const,init_symbol(strpnew(lab2str(classnamelabel)))));
+           end;
 {$ifdef GDB}
          { generate the VMT }
          if cs_debuginfo in aktmoduleswitches then
@@ -1907,7 +1935,11 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.40  1998-08-21 15:48:58  pierre
+  Revision 1.41  1998-08-23 21:04:36  florian
+    + rtti generation for classes added
+    + new/dispose do now also a call to INITIALIZE/FINALIZE, if necessaray
+
+  Revision 1.40  1998/08/21 15:48:58  pierre
     * more cdecl chagnes
       - better line info
       - changes the definition options of a procvar

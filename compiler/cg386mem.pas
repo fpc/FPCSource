@@ -117,8 +117,11 @@ implementation
 *****************************************************************************}
 
     procedure secondsimplenewdispose(var p : ptree);
+
       var
          pushed : tpushed;
+         r : preference;
+
       begin
          secondpass(p^.left);
          if codegenerror then
@@ -134,21 +137,53 @@ implementation
               p^.left^.location.register)));
             LOC_REFERENCE:
               emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
-
          end;
 
          { call the mem handling procedures }
          case p^.treetype of
            simpledisposen:
-             emitcall('FREEMEM',true);
+             begin
+                if ppointerdef(p^.left^.resulttype)^.definition^.needs_rtti then
+                  begin
+                     new(r);
+                     reset_reference(r^);
+                     r^.symbol:=stringdup(lab2str(ppointerdef(p^.left^.resulttype)^.definition^.get_rtti_label));
+                     emitpushreferenceaddr(exprasmlist,r^);
+                     { push pointer adress }
+                     case p^.left^.location.loc of
+                        LOC_CREGISTER : exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,
+                          p^.left^.location.register)));
+                        LOC_REFERENCE:
+                          emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
+                     end;
+                     emitcall('FINALIZE',true);
+                  end;
+                emitcall('FREEMEM',true);
+             end;
            simplenewn:
-             emitcall('GETMEM',true);
+             begin
+                emitcall('GETMEM',true);
+                if ppointerdef(p^.left^.resulttype)^.definition^.needs_rtti then
+                  begin
+                     new(r);
+                     reset_reference(r^);
+                     r^.symbol:=stringdup(lab2str(ppointerdef(p^.left^.resulttype)^.definition^.get_rtti_label));
+                     emitpushreferenceaddr(exprasmlist,r^);
+                     { push pointer adress }
+                     case p^.left^.location.loc of
+                        LOC_CREGISTER : exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,
+                          p^.left^.location.register)));
+                        LOC_REFERENCE:
+                          emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
+                     end;
+                     emitcall('INITIALIZE',true);
+                  end;
+             end;
          end;
-
          popusedregisters(pushed);
-           { may be load ESI }
-           maybe_loadesi;
-       end;
+         { may be load ESI }
+         maybe_loadesi;
+      end;
 
 
 {*****************************************************************************
@@ -608,7 +643,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  1998-08-20 11:27:40  michael
+  Revision 1.8  1998-08-23 21:04:34  florian
+    + rtti generation for classes added
+    + new/dispose do now also a call to INITIALIZE/FINALIZE, if necessaray
+
+  Revision 1.7  1998/08/20 11:27:40  michael
   * Applied Peters Fix
 
   Revision 1.6  1998/08/10 14:49:49  peter

@@ -2504,7 +2504,11 @@
            rttilist^.concat(new(pai_const,init_8bit(17)))
          else
            rttilist^.concat(new(pai_const,init_8bit(16)));
-         writename;
+
+         { generate the name }
+         rttilist^.concat(new(pai_const,init_8bit(length(name^))));
+         rttilist^.concat(new(pai_string,init(name^)));
+         
          rttilist^.concat(new(pai_const,init_32bit(size)));
          count:=0;
          publicsyms^.foreach(count_field);
@@ -2531,7 +2535,11 @@
 
 {
   $Log$
-  Revision 1.24  1998-08-20 12:53:26  peter
+  Revision 1.25  1998-08-23 21:04:38  florian
+    + rtti generation for classes added
+    + new/dispose do now also a call to INITIALIZE/FINALIZE, if necessaray
+
+  Revision 1.24  1998/08/20 12:53:26  peter
     * object_options are always written for object syms
 
   Revision 1.23  1998/08/19 00:42:42  peter
