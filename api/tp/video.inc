@@ -7,6 +7,15 @@
 { use a buffer, just like linux,go32v2 }
 {$define use_buf}
 
+
+procedure TargetEntry;
+begin
+end;
+
+procedure TargetExit;
+begin
+end;
+
 var
   VideoSeg    : word;
   OldVideoBuf : PVideoBuf;
@@ -212,7 +221,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:27  michael
+  Revision 1.3  2000-10-04 11:53:32  pierre
+   Add TargetEntry and TargetExit (merged)
+
+  Revision 1.2  2000/07/13 11:32:27  michael
   + removed logs
- 
+
 }

@@ -2,6 +2,7 @@
   System independent low-level video interface for OS/2
 
   $Id$
+
 }
 
 uses
@@ -37,6 +38,14 @@ var OrigCurType: TVioCursorInfo;
     OrigCurRow: word;
     OrigCurCol: word;
     CellHeight: byte;
+
+procedure TargetEntry;
+begin
+end;
+
+procedure TargetExit;
+begin
+end;
 
 
 procedure CheckCellHeight;
@@ -365,7 +374,10 @@ end;
 {
 
   $Log$
-  Revision 1.4  2000-09-26 18:15:29  hajny
+  Revision 1.5  2000-10-04 11:53:31  pierre
+   Add TargetEntry and TargetExit (merged)
+
+  Revision 1.4  2000/09/26 18:15:29  hajny
     + working with VP/2 already (not FPC yet)!video.inc
 
   Revision 1.3  2000/09/24 19:53:03  hajny

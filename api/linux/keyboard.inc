@@ -23,10 +23,7 @@ Begin
      Tio.c_lflag:=Tio.c_lflag and (not (ECHO or ECHONL or ICANON or ISIG or IEXTEN));
    end
   else
-   begin
-     Tio.c_iflag:=OldIO.c_iflag;
-     Tio.c_lflag:=OldIO.c_lflag;
-   end;
+    Tio := OldIO;
   TCSetAttr(1,TCSANOW,Tio);
 End;
 
@@ -576,7 +573,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:25  michael
+  Revision 1.3  2000-10-04 11:53:31  pierre
+   Add TargetEntry and TargetExit (merged)
+
+  Revision 1.2  2000/07/13 11:32:25  michael
   + removed logs
- 
+
 }

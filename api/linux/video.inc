@@ -300,7 +300,7 @@ begin
 end;
 
 var
-  preInitVideoTio, postInitVideoTio: linux.termios;
+  InitialVideoTio, preInitVideoTio, postInitVideoTio: linux.termios;
   inputRaw, outputRaw: boolean;
 
 procedure saveRawSettings(const tio: linux.termios);
@@ -336,6 +336,16 @@ begin
        end;
    end;
   TCSetAttr(1,TCSANOW,tio);
+end;
+
+procedure TargetEntry;
+begin
+  TCGetAttr(1,InitialVideoTio);
+end;
+
+procedure TargetExit;
+begin
+  TCSetAttr(1,TCSANOW,InitialVideoTio);
 end;
 
 procedure prepareInitVideo;
@@ -437,7 +447,9 @@ begin
         SendEscapeSeqNdx(cursor_visible);
         SendEscapeSeqNdx(enter_ca_mode);
         SetCursorType(crUnderLine);
-      end;
+      end
+     else if not assigned(cur_term) then
+       setupterm(nil, stdout, err);
      ClearScreen;
 {$ifdef logging}
      assign(f,'video.log');
@@ -471,7 +483,11 @@ begin
   FreeMem(OldVideoBuf,VideoBufSize);
   VideoBufSize:=0;
   doneVideoDone;
-  del_curterm(cur_term);
+  if assigned(cur_term) then
+    begin
+      del_curterm(cur_term);
+      cur_term := nil;
+    end;
 {$ifdef logging}
   close(f);
 {$endif logging}
@@ -589,7 +605,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  2000-09-26 08:18:29  jonas
+  Revision 1.5  2000-10-04 11:53:31  pierre
+   Add TargetEntry and TargetExit (merged)
+
+  Revision 1.4  2000/09/26 08:18:29  jonas
     + added preserving of rawness of terminal when going though
       init/donevideo
     * del_term() is now called in donevideo
@@ -609,5 +628,5 @@ end;
 
   Revision 1.2  2000/07/13 11:32:25  michael
   + removed logs
- 
+
 }

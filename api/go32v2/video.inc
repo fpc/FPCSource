@@ -10,6 +10,15 @@ uses
   mouse,
   go32;
 
+
+procedure TargetEntry;
+begin
+end;
+
+procedure TargetExit;
+begin
+end;
+
 var
   OldVideoBuf : PVideoBuf;
 
@@ -293,7 +302,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2000-08-16 18:51:57  peter
+  Revision 1.4  2000-10-04 11:53:31  pierre
+   Add TargetEntry and TargetExit (merged)
+
+  Revision 1.3  2000/08/16 18:51:57  peter
     * Fixes from Gabor (merged)
 
   Revision 1.2  2000/07/13 11:32:24  michael

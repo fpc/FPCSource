@@ -157,6 +157,8 @@ var
 implementation
 
 { Include system dependent part }
+{ must declare TargetEntry and TargetExit procedures
+  which can be empty of course }
 {$i video.inc}
 
 procedure GetVideoMode(var Mode: TVideoMode);
@@ -202,11 +204,13 @@ end;
 
 var
   OldExitProc : pointer;
+
 procedure UnRegisterVideoModes;{$ifdef PPC_BP}far;{$endif}
 var
   P: PVideoModeList;
 begin
   ExitProc:=OldExitProc;
+  TargetExit;
   while assigned(modes) do
    begin
      p:=modes;
@@ -218,84 +222,19 @@ end;
 
 begin
   RegisterVideoModes;
+  TargetEntry;
   OldExitProc:=ExitProc;
   ExitProc:=@UnRegisterVideoModes;
 end.
 {
   $Log$
-  Revision 1.2  2000-09-24 19:52:21  hajny
+  Revision 1.3  2000-10-04 11:53:31  pierre
+   Add TargetEntry and TargetExit (merged)
+
+  Revision 1.2  2000/09/24 19:52:21  hajny
     * max TVideoBuf size extended
 
   Revision 1.1  2000/07/13 06:29:39  michael
   + Initial import
 
-  Revision 1.3  2000/02/29 11:43:16  pierre
-    Common renamed APIComm to avoid problems with free vision
-
-  Revision 1.2  2000/02/06 14:28:19  florian
-    * mouse support for vesa resolutions under go32v2, needs currently the define
-      custommouse
-
-  Revision 1.1  2000/01/06 01:20:31  peter
-    * moved out of packages/ back to topdir
-
-  Revision 1.1  1999/12/23 19:36:47  peter
-    * place unitfiles in target dirs
-
-  Revision 1.1  1999/11/24 23:36:37  peter
-    * moved to packages dir
-
-  Revision 1.9  1999/03/14 22:15:48  florian
-    * my last changes doesn't work correctly, fixed more
-      the screen height calculation works incorrect in 80x50 mode
-
-  Revision 1.8  1999/03/14 17:43:00  florian
-    + 80x50 mode support added
-    * some bugs in VESA mode support removed
-
-  Revision 1.7  1999/03/13 17:34:01  florian
-    * again SetVideoMode fixed
-
-  Revision 1.6  1999/03/13 17:30:47  florian
-    * endless loop in SetVideoMode fixed
-
-  Revision 1.5  1999/02/22 12:46:15  peter
-    + lowascii boolean if ascii < #32 is handled correctly
-
-  Revision 1.4  1998/12/23 22:41:08  peter
-    + color consts
-
-  Revision 1.3  1998/12/11 00:13:18  peter
-    + SetMouseXY
-    * use far for exitproc procedure
-
-  Revision 1.2  1998/12/08 10:09:56  peter
-    * unregister videomodes at the end
-
-  Revision 1.1  1998/12/04 12:48:24  peter
-    * moved some dirs
-
-  Revision 1.14  1998/11/01 20:29:10  peter
-    + lockupdatescreen counter to not let updatescreen() update
-
-  Revision 1.13  1998/10/28 21:18:23  peter
-    * more fixes
-
-  Revision 1.12  1998/10/28 00:02:07  peter
-    + mouse
-    + video.clearscreen, video.videobufsize
-
-  Revision 1.11  1998/10/27 11:24:20  peter
-    * fixed the log
-
-
-   Date       Version   Who       Comments
-   07/06/97   0.1       bazsi     Initial implementation
-                                  Console mode (Linux) ready
-   07/28/97   0.2       bazsi     Linux on foreign terminals ready
-   08/27/97   0.3       bazsi     Noone else did it, so I did it: DOS support
-                                  (I had to boot DOS... ;-(
-                                  Mode-switching implemented
-   07/28/97   0.3.1     bazsi     added support for terminfo. remote terminal
-                                  support is broken now
 }
