@@ -279,6 +279,8 @@ Fixed bugs:
   bug0229.pp   consts > 255 are truncated (should work in -S2,-Sd)  OK 0.99.11 (PFV)
   bug0231.pp   Problem with comments                                OK 0.99.11 (PFV)
   bug0233.pp   Problem with enum sets in args                       OK 0.99.11 (PFV)
+  1.pp         produces a linker error under win32/linux, sorry for the filename
+               but the filename is the bug :)                       OK 0.99.11 (PFV)
 
 
 Unproducable bugs:
@@ -300,8 +302,6 @@ bug0193.pp   overflow checking for 8 and 16 bit operations wrong
              as all operations are done on 32 bit integers in FPC
              overflow checking will only trap 32 bit overflow
              you have to use range checks for byte or 16 bit integers
-1.pp         produces a linker error under win32/linux, sorry for the filename
-             but the filename is the bug :)
 
 Unfixed bugs:
 -------------
