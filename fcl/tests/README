@@ -46,11 +46,13 @@ dsockcli.pp  Dual socket server application. Tests ssockets.
 sstream.pp   Tests TStringStream object.
 testol.pp    Tests TObjectList in contnrs. (MVC)
 testcont.pp  Tests TStack/TQueue in contnrs. (MVC)
-testhres.pp  Test hostresolver in resolve
-testnres.pp  Test netresolver in resolve
-testsres.pp  Test serviceresolver in resolve
-testrhre.pp  Test reverse hostresolver in resolve
-testrnre.pp  Test reverse netresolver in resolve
-testrsre.pp  Test reverse serviceresolver in resolve
-txmlreg.pp   Test of xmlreg unit (xml-like registry)
-testreg.pp   Test of registry unit.
+testhres.pp  Test hostresolver in resolve (MVC)
+testnres.pp  Test netresolver in resolve (MVC) 
+testsres.pp  Test serviceresolver in resolve (MVC)
+testrhre.pp  Test reverse hostresolver in resolve (MVC)
+testrnre.pp  Test reverse netresolver in resolve (MVC)
+testrsre.pp  Test reverse serviceresolver in resolve (MVC)
+txmlreg.pp   Test of xmlreg unit (xml-like registry) (MVC)
+testreg.pp   Test of registry unit. (MVC)
+tstelcmd.pp  Test of eventlog unit, command-line version.
+tstelgtk.pp  Test of eventlog unit, FPGTK version. Not built by default. (MVC)
