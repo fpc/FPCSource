@@ -252,14 +252,20 @@ implementation
                         eq:=te_convert_l1;
                       end;
                    end;
+                 classrefdef,
+                 procvardef,
                  pointerdef :
                    begin
-                     if explicit and
-                        (fromtreetype=niln) then
+                     if explicit then
                       begin
-                        { will be handled by the constant folding }
-                        doconv:=tc_equal;
                         eq:=te_convert_l1;
+                        if (fromtreetype=niln) then
+                         begin
+                           { will be handled by the constant folding }
+                           doconv:=tc_equal;
+                         end
+                        else
+                         doconv:=tc_int_2_int;
                       end;
                    end;
                end;
@@ -1181,7 +1187,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  2003-01-05 15:54:15  florian
+  Revision 1.16  2003-01-05 22:42:13  peter
+    * use int_to_int conversion for pointer/procvar/classref to int
+
+  Revision 1.15  2003/01/05 15:54:15  florian
     + added proper support of type = type <type>; for simple types
 
   Revision 1.14  2003/01/03 17:16:04  peter
