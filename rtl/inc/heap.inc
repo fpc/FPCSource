@@ -732,7 +732,7 @@ begin
   if size<=GrowHeapSize1 then
    begin
      NewPos:=Sbrk(GrowHeapSize1);
-     if NewPos>0 then
+     if NewPos<>-1 then
       size:=GrowHeapSize1;
    end
   else
@@ -740,7 +740,7 @@ begin
    if size<=GrowHeapSize2 then
     begin
       NewPos:=Sbrk(GrowHeapSize2);
-      if NewPos>0 then
+      if NewPos<>-1 then
        size:=GrowHeapSize2;
     end
   { else alloate the needed bytes }
@@ -807,7 +807,10 @@ end;
 
 {
   $Log$
-  Revision 1.34  2000-02-10 13:59:35  peter
+  Revision 1.35  2000-03-10 12:41:21  pierre
+   * avoid problems if sbrk returns negative values
+
+  Revision 1.34  2000/02/10 13:59:35  peter
     * fixed bug with reallocmem to use the wrong size when copying the
       data to the new allocated pointer
 
