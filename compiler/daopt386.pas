@@ -240,6 +240,8 @@ Implementation
 Uses
   globals, systems, strings, verbose, hcodegen;
 
+Type TRefCompare = function(const r1, r2: TReference): Boolean;
+
 Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
   {A_<NONE>} (Ch: (C_All, C_None, C_None)), { new }
   {A_LOCK} (Ch: (C_None, C_None, C_None)),
@@ -1584,7 +1586,34 @@ Begin {checks whether two Paicpu instructions are equal}
 End;
 *)
 
-Function RefInInstruction(Const Ref: TReference; p: Pai): Boolean;
+Procedure ReadReg(p: PPaiProp; Reg: TRegister);
+Begin
+  Reg := Reg32(Reg);
+  If Reg in [R_EAX..R_EDI] Then
+    IncState(p^.Regs[Reg].RState)
+End;
+
+
+Procedure ReadRef(p: PPaiProp; Ref: PReference);
+Begin
+  If Ref^.Base <> R_NO Then
+    ReadReg(p, Ref^.Base);
+  If Ref^.Index <> R_NO Then
+    ReadReg(p, Ref^.Index);
+End;
+
+Procedure ReadOp(P: PPaiProp;const o:toper);
+Begin
+  Case o.typ Of
+    top_reg: ReadReg(P, o.reg);
+    top_ref: ReadRef(P, o.ref);
+    top_symbol : ;
+  End;
+End;
+
+
+Function RefInInstruction(Const Ref: TReference; p: Pai;
+           RefsEq: TRefCompare): Boolean;
 {checks whehter Ref is used in P}
 Var TmpResult: Boolean;
 Begin
@@ -1592,14 +1621,17 @@ Begin
   If (p^.typ = ait_instruction) Then
     Begin
       If (Paicpu(p)^.oper[0].typ = Top_Ref) Then
-        TmpResult := RefsEqual(Ref, Paicpu(p)^.oper[0].ref^);
+        TmpResult := RefsEq(Ref, Paicpu(p)^.oper[0].ref^);
       If Not(TmpResult) And (Paicpu(p)^.oper[1].typ = Top_Ref) Then
-        TmpResult := RefsEqual(Ref, Paicpu(p)^.oper[1].ref^);
+        TmpResult := RefsEq(Ref, Paicpu(p)^.oper[1].ref^);
+      If Not(TmpResult) And (Paicpu(p)^.oper[2].typ = Top_Ref) Then
+        TmpResult := RefsEq(Ref, Paicpu(p)^.oper[2].ref^);
     End;
   RefInInstruction := TmpResult;
 End;
 
-Function RefInSequence(Const Ref: TReference; Content: TContent): Boolean;
+Function RefInSequence(Const Ref: TReference; Content: TContent;
+           RefsEq: TRefCompare): Boolean;
 {checks the whole sequence of Content (so StartMod and and the next NrOfMods
  Pai objects) to see whether Ref is used somewhere}
 Var p: Pai;
@@ -1613,7 +1645,7 @@ Begin
         (Counter <= Content.NrOfMods) Do
     Begin
       If (p^.typ = ait_instruction) And
-         RefInInstruction(Ref, p)
+         RefInInstruction(Ref, p, RefsEq)
         Then TmpResult := True;
       Inc(Counter);
       GetNextInstruction(p,p)
@@ -1621,18 +1653,34 @@ Begin
   RefInSequence := TmpResult
 End;
 
+Function ArrayRefsEq(const r1, r2: TReference): Boolean;
+Begin
+  ArrayRefsEq := (R1.Offset+R1.OffsetFixup = R2.Offset+R2.OffsetFixup) And
+                 (R1.Segment = R2.Segment) And (R1.Base = R2.Base) And
+                 (R1.Symbol=R2.Symbol);
+End;
+
+
 Procedure DestroyRefs(p: pai; Const Ref: TReference; WhichReg: TRegister);
 {destroys all registers which possibly contain a reference to Ref, WhichReg
  is the register whose contents are being written to memory (if this proc
  is called because of a "mov?? %reg, (mem)" instruction)}
-Var Counter: TRegister;
+Var RefsEq: TRefCompare;
+    Counter: TRegister;
 Begin
   WhichReg := Reg32(WhichReg);
-  If (Ref.Index = R_NO) And
-     ((Ref.base = procinfo^.FramePointer) Or
-      (Assigned(Ref.Symbol) And
-       (Ref.base = R_NO)))
-    Then
+  If (Ref.base = procinfo^.FramePointer) or
+      Assigned(Ref.Symbol) Then
+    Begin
+      If (Ref.Index = R_NO) And
+         (Not(Assigned(Ref.Symbol)) or
+          (Ref.base = R_NO)) Then
+  { local variable which is not an array }
+        RefsEq := {$ifdef fpc}@{$endif}RefsEqual
+      Else
+  { local variable which is an array }
+        RefsEq := {$ifdef fpc}@{$endif}ArrayRefsEq;
+
 {write something to a parameter, a local or global variable, so
    * with uncertain optimizations on:
       - destroy the contents of registers whose contents have somewhere a
@@ -1649,12 +1697,12 @@ Begin
                ((Not(cs_UncertainOpts in aktglobalswitches) And
                  (NrOfMods <> 1)
                 ) Or
-                (RefInSequence(Ref,PPaiProp(p^.OptInfo)^.Regs[Counter]) And
+                (RefInSequence(Ref,PPaiProp(p^.OptInfo)^.Regs[Counter],RefsEq) And
                  ((Counter <> WhichReg) Or
                   ((NrOfMods <> 1) And
  {StarMod is always of the type ait_instruction}
                    (Paicpu(StartMod)^.oper[0].typ = top_ref) And
-                   RefsEqual(Paicpu(StartMod)^.oper[0].ref^, Ref)
+                   RefsEq(Paicpu(StartMod)^.oper[0].ref^, Ref)
                   )
                  )
                 )
@@ -1662,7 +1710,8 @@ Begin
               Then
                 DestroyReg(PPaiProp(p^.OptInfo), Counter)
           End
-    Else
+    End
+  Else
 {write something to a pointer location, so
    * with uncertain optimzations on:
       - do not destroy registers which contain a local/global variable or a
@@ -1670,28 +1719,31 @@ Begin
    * with uncertain optimzations off:
       - destroy every register which contains a memory location
       }
-      For Counter := R_EAX to R_EDI Do
-        With PPaiProp(p^.OptInfo)^.Regs[Counter] Do
-        If (typ = Con_Ref) And
-           (Not(cs_UncertainOpts in aktglobalswitches) Or
-        {for movsl}
-            (Ref.Base = R_EDI) Or
-        {don't destroy if reg contains a parameter, local or global variable}
-            Not((NrOfMods = 1) And
-                (Paicpu(StartMod)^.oper[0].typ = top_ref) And
-                ((Paicpu(StartMod)^.oper[0].ref^.base = procinfo^.FramePointer) Or
-                  Assigned(Paicpu(StartMod)^.oper[0].ref^.Symbol)
-                )
-               )
-           )
-          Then DestroyReg(PPaiProp(p^.OptInfo), Counter)
+    For Counter := R_EAX to R_EDI Do
+      With PPaiProp(p^.OptInfo)^.Regs[Counter] Do
+      If (typ = Con_Ref) And
+         (Not(cs_UncertainOpts in aktglobalswitches) Or
+      {for movsl}
+          (Ref.Base = R_EDI) Or
+      {don't destroy if reg contains a parameter, local or global variable}
+          Not((NrOfMods = 1) And
+              (Paicpu(StartMod)^.oper[0].typ = top_ref) And
+              ((Paicpu(StartMod)^.oper[0].ref^.base = procinfo^.FramePointer) Or
+                Assigned(Paicpu(StartMod)^.oper[0].ref^.Symbol)
+              )
+             )
+         )
+        Then DestroyReg(PPaiProp(p^.OptInfo), Counter)
 End;
 
 Procedure DestroyAllRegs(p: PPaiProp);
 Var Counter: TRegister;
 Begin {initializes/desrtoys all registers}
   For Counter := R_EAX To R_EDI Do
-    DestroyReg(p, Counter);
+    Begin
+      ReadReg(p, Counter);
+      DestroyReg(p, Counter);
+    End;
   p^.DirFlag := F_Unknown;
 End;
 
@@ -1699,32 +1751,12 @@ Procedure DestroyOp(PaiObj: Pai; const o:Toper);
 Begin
   Case o.typ Of
     top_reg: DestroyReg(PPaiProp(PaiObj^.OptInfo), o.reg);
-    top_ref: DestroyRefs(PaiObj, o.ref^, R_NO);
+    top_ref:
+      Begin
+        ReadRef(PPaiProp(PaiObj^.OptInfo), o.ref);
+        DestroyRefs(PaiObj, o.ref^, R_NO);
+      End;
     top_symbol:;
-  End;
-End;
-
-Procedure ReadReg(p: PPaiProp; Reg: TRegister);
-Begin
-  Reg := Reg32(Reg);
-  If Reg in [R_EAX..R_EDI] Then
-    IncState(p^.Regs[Reg32(Reg)].RState)
-End;
-
-Procedure ReadRef(p: PPaiProp; Ref: PReference);
-Begin
-  If Ref^.Base <> R_NO Then
-    ReadReg(p, Ref^.Base);
-  If Ref^.Index <> R_NO Then
-    ReadReg(p, Ref^.Index);
-End;
-
-Procedure ReadOp(P: PPaiProp;const o:toper);
-Begin
-  Case o.typ Of
-    top_reg: ReadReg(P, o.reg);
-    top_ref: ReadRef(P, o.ref);
-    top_symbol : ;
   End;
 End;
 
@@ -2351,7 +2383,12 @@ End.
 
 {
  $Log$
- Revision 1.60  1999-09-27 23:44:50  peter
+ Revision 1.61  1999-09-29 13:49:53  jonas
+   * writing to a position in an array now only destroys registers
+     containing a reference pointing somewhere in that array (since my last
+     fix, it behaved like a write to a pointer location)
+
+ Revision 1.60  1999/09/27 23:44:50  peter
    * procinfo is now a pointer
    * support for result setting in sub procedure
 
