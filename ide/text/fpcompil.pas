@@ -92,12 +92,12 @@ implementation
 uses
   Dos,Video,
   App,Commands,
-  CompHook,
+  CompHook, systems,
   WUtils,WEditor,
 {$ifdef redircompiler}
   FPRedir,
 {$endif}
-  FPConst,FPVars,FPUtils,FPIntf,FPSwitch;
+  FPIde,FPConst,FPVars,FPUtils,FPIntf,FPSwitch;
 
 const
   RCompilerMessageListBox: TStreamRec = (
@@ -329,6 +329,7 @@ const
   CtrlBS   = 'Press ESC to cancel';
   SuccessS = 'Compile successful: ~Press Enter~';
   FailS    = 'Compile failed';
+  AbortS   = 'Compile aborted';
 var
   StatusS,KeyS: string;
 begin
@@ -356,6 +357,11 @@ begin
         StatusS:='Failed to compile...';
         KeyS:=FailS;
       end;
+    cpAborted    :
+      begin
+        StatusS:='Compilation aborted...';
+        KeyS:=AbortS;
+      end;
   end;
   ST^.SetText(
     'Main file: '+SmartPath(MainFile)+#13+
@@ -378,10 +384,22 @@ end;
 ****************************************************************************}
 
 function CompilerStatus: boolean; {$ifndef FPC}far;{$endif}
+  var
+     event : tevent;
 begin
 {$ifdef redircompiler}
   RedirDisableAll;
 {$endif}
+  GetKeyEvent(Event);
+  if (Event.What=evKeyDown) and (Event.KeyCode=kbEsc) then
+    begin
+       CompilationPhase:=cpAborted;
+       { update info messages }
+       if assigned(CompilerStatusDialog) then
+        CompilerStatusDialog^.Update;
+       CompilerStatus:=true;
+       exit;
+    end;
 { only display line info every 100 lines, ofcourse all other messages
   will be displayed directly }
   if (status.currentline mod 100=0) then
@@ -467,6 +485,9 @@ var
   P : PSourceWindow;
   FileName: string;
   E : TEvent;
+const
+  PpasFile = 'ppas';
+
 begin
 { Get FileName }
   P:=Message(Desktop,evBroadcast,cmSearchWindow,nil);
@@ -506,9 +527,15 @@ begin
   Application^.Insert(CompilerStatusDialog);
   CompilerStatusDialog^.Update;
 { hook compiler output }
+{$ifdef TP}
   do_status:=CompilerStatus;
   do_stop:=CompilerStop;
   do_comment:=CompilerComment;
+{$else not TP}
+  do_status:=@CompilerStatus;
+  do_stop:=@CompilerStop;
+  do_comment:=@CompilerComment;
+{$endif TP}
 { Compile ! }
 {$ifdef redircompiler}
   ChangeRedirOut('fp$$$.out',false);
@@ -519,6 +546,15 @@ begin
   switch_to_temp_heap;
 {$endif TEMPHEAP}
   Compile(FileName);
+  if LinkAfter then
+    begin
+       CompilationPhase:=cpLinking;
+{$ifdef linux}
+       Shell(PpasFile+source_os.scriptext);
+{$else}
+       Dos.Exec(GetEnv('COMSPEC'),'/C '+PpasFile+source_os.scriptext);
+{$endif}
+    end;
 {$ifdef TEMPHEAP}
   switch_to_base_heap;
 {$endif TEMPHEAP}
@@ -527,14 +563,15 @@ begin
   RestoreRedirError;
 {$endif}
 { Set end status }
-  if status.errorCount=0 then
-    CompilationPhase:=cpDone
-  else
-    CompilationPhase:=cpFailed;
+  if CompilationPhase<>cpAborted then
+    if (status.errorCount=0) then
+      CompilationPhase:=cpDone
+    else
+      CompilationPhase:=cpFailed;
 { Show end status }
   CompilerStatusDialog^.Update;
   CompilerStatusDialog^.SetState(sfModal,false);
-  if ((CompilationPhase in[cpDone,cpFailed]) or (ShowStatusOnError)) and (Mode<>cRun) then
+  if ((CompilationPhase in[cpAborted,cpDone,cpFailed]) or (ShowStatusOnError)) and (Mode<>cRun) then
    repeat
      CompilerStatusDialog^.GetEvent(E);
      if IsExitEvent(E)=false then
@@ -564,7 +601,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.27  1999-05-22 13:44:29  peter
+  Revision 1.28  1999-06-21 23:42:16  pierre
+   + LinkAfter and Esc to abort support added
+
+  Revision 1.27  1999/05/22 13:44:29  peter
     * fixed couple of bugs
 
   Revision 1.26  1999/05/02 14:29:35  peter
