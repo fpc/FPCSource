@@ -1461,12 +1461,12 @@ unit cgx86;
 {$endif cpu64bit}
                       list.concat(Taicpu.op_none(A_MOVSL,S_NO));
                   end;
-                if len>2 then
+                if len>=4 then
                   begin
                     dec(len,4);
                     list.concat(Taicpu.op_none(A_MOVSL,S_NO));
                   end;
-                if len>1 then
+                if len>=2 then
                   begin
                     dec(len,2);
                     list.concat(Taicpu.op_none(A_MOVSW,S_NO));
@@ -1791,7 +1791,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.118  2004-03-10 22:52:03  peter
+  Revision 1.119  2004-03-11 19:35:05  peter
+    * fixed concatcopy end bytes copy broken by 64bits patch
+
+  Revision 1.118  2004/03/10 22:52:03  peter
     * mcount for linux fixed
     * push/pop edx for mcount
 
