@@ -1,10 +1,11 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1993,97 by the Free Pascal development team.
+    Copyright (c) 1998 by the Free Pascal development team
 
-    Strings unit for PChar (asciiz/C compatible strings) handling
-
+    Processor dependent part of strings.pp, that can be shared with 
+    sysutils unit.
+    
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -13,84 +14,6 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-unit strings;
-interface
-
-    { Returns the length of a string }
-    function strlen(p : pchar) : longint;
-
-    { Converts a Pascal string to a null-terminated string }
-    function strpcopy(d : pchar;const s : string) : pchar;
-
-    { Converts a null-terminated string to a Pascal string }
-    function strpas(p : pchar) : string;
-
-    { Copies source to dest, returns a pointer to dest }
-    function strcopy(dest,source : pchar) : pchar;
-
-    { Copies at most maxlen bytes from source to dest. }
-    { Returns a pointer to dest }
-    function strlcopy(dest,source : pchar;maxlen : longint) : pchar;
-
-    { Copies source to dest and returns a pointer to the terminating }
-    { null character.    }
-    function strecopy(dest,source : pchar) : pchar;
-
-    { Returns a pointer tro the terminating null character of p }
-    function strend(p : pchar) : pchar;
-
-    { Appends source to dest, returns a pointer do dest}
-    function strcat(dest,source : pchar) : pchar;
-
-    { Compares str1 und str2, returns }
-    { a value <0 if str1<str2;        }
-    {  0 when str1=str2               }
-    { and a value >0 if str1>str2     }
-    function strcomp(str1,str2 : pchar) : longint;
-
-    { The same as strcomp, but at most l characters are compared  }
-    function strlcomp(str1,str2 : pchar;l : longint) : longint;
-
-    { The same as strcomp but case insensitive       }
-    function stricomp(str1,str2 : pchar) : longint;
-
-    { Copies l characters from source to dest, returns dest. }
-    function strmove(dest,source : pchar;l : longint) : pchar;
-
-    { Appends at most l characters from source to dest }
-    function strlcat(dest,source : pchar;l : longint) : pchar;
-
-    { Returns a pointer to the first occurrence of c in p }
-    { If c doesn't occur, nil is returned }
-    function strscan(p : pchar;c : char) : pchar;
-
-    { Returns a pointer to the last occurrence of c in p }
-    { If c doesn't occur, nil is returned }
-    function strrscan(p : pchar;c : char) : pchar;
-
-    { converts p to all-lowercase, returns p   }
-    function strlower(p : pchar) : pchar;
-
-    { converts p to all-uppercase, returns p  }
-    function strupper(p : pchar) : pchar;
-
-    { The same al stricomp, but at most l characters are compared }
-    function strlicomp(str1,str2 : pchar;l : longint) : longint;
-
-    { Returns a pointer to the first occurrence of str2 in    }
-    { str2 Otherwise returns nil                          }
-    function strpos(str1,str2 : pchar) : pchar;
-
-    { Makes a copy of p on the heap, and returns a pointer to this copy  }
-    function strnew(p : pchar) : pchar;
-
-    { Allocates L bytes on the heap, returns a pchar pointer to it }
-    function stralloc(L : longint) : pchar;
-
-    { Releases a null-terminated string from the heap  }
-    procedure strdispose(p : pchar);
-
-implementation
 
 {$ASMMODE ATT}
 
@@ -209,83 +132,6 @@ implementation
             leave
             ret $4
          end ['EDI','ECX','EAX'];
-      end;
-
-    function strpcopy(d : pchar;const s : string) : pchar;
-
-      begin
-         asm
-            pushl %esi          // Save ESI
-            cld
-            movl 8(%ebp),%edi   // load destination address
-            movl 12(%ebp),%esi   // Load Source adress
-            movl %edi,%ebx      // Set return value
-            lodsb               // load length in ECX
-            movzbl %al,%ecx
-            rep
-            movsb
-            xorb %al,%al        // Set #0
-            stosb
-            movl %ebx,%eax      // return value to EAX
-            popl %esi
-            leave               // ... and ready
-            ret $8
-         end ['EDI','ESI','EBX','EAX','ECX'];
-      end;
-
-{$ASMMODE DIRECT}
-    function strpas(p : pchar) : string;
-    begin
-      asm
-        cld
-        movl    12(%ebp),%edi
-        movl    $0xff,%ecx
-        xorl    %eax,%eax
-        movl    %edi,%esi
-        repne
-        scasb
-        movl    %ecx,%eax
-
-        movl    8(%ebp),%edi
-        notb    %al
-        decl    %eax
-        stosb
-        cmpl    $7,%eax
-        jl      .LStrPas2
-        movl    %edi,%ecx       // Align on 32bits
-        negl    %ecx
-        andl    $3,%ecx
-        subl    %ecx,%eax
-        rep
-        movsb
-        movl    %eax,%ecx
-        andl    $3,%eax
-        shrl    $2,%ecx
-        rep
-        movsl
-.LStrPas2:
-        movl    %eax,%ecx
-        rep
-        movsb
-      end ['ECX','EAX','ESI','EDI'];
-    end;
-{$ASMMODE ATT}
-
-    function strcat(dest,source : pchar) : pchar;
-
-      begin
-         strcat:=strcopy(strend(dest),source);
-      end;
-
-    function strlcat(dest,source : pchar;l : longint) : pchar;
-
-      var
-         destend : pchar;
-
-      begin
-         destend:=strend(dest);
-         l:=l-(destend-dest);
-         strlcat:=strlcopy(destend,source,l);
       end;
 
     function strcomp(str1,str2 : pchar) : longint;
@@ -425,13 +271,6 @@ implementation
          end ['EAX','ECX','ESI','EDI'];
       end;
 
-    function strmove(dest,source : pchar;l : longint) : pchar;
-
-      begin
-         move(source^,dest^,l);
-         strmove:=dest;
-      end;
-
     function strscan(p : pchar;c : char) : pchar;
 
       begin
@@ -531,75 +370,3 @@ implementation
             ret $4
          end;
       end;
-
-    function strpos(str1,str2 : pchar) : pchar;
-
-      var
-         p : pchar;
-         lstr2 : longint;
-
-      begin
-         strpos:=nil;
-         p:=strscan(str1,str2^);
-         if p=nil then
-           exit;
-         lstr2:=strlen(str2);
-         while p<>nil do
-           begin
-              if strlcomp(p,str2,lstr2)=0 then
-                begin
-                   strpos:=p;
-                   exit;
-                end;
-              inc(longint(p));
-              p:=strscan(p,str2^);
-           end;
-      end;
-
-    procedure strdispose(p : pchar);
-
-      begin
-         if p<>nil then
-           freemem(p,strlen(p)+1);
-      end;
-
-    function strnew(p : pchar) : pchar;
-
-      var
-         len : longint;
-
-      begin
-         strnew:=nil;
-         if (p=nil) or (p^=#0) then
-           exit;
-         len:=strlen(p)+1;
-         getmem(strnew,len);
-         if strnew<>nil then
-           strmove(strnew,p,len);
-      end;
-
-      function stralloc(L : longint) : pchar;
-
-      begin
-         StrAlloc:=Nil;
-         GetMem (Stralloc,l);
-      end;
-
-end.
-
-{
-  $Log$
-  Revision 1.7  1998-08-05 08:59:53  michael
-  reverted to non-assmebler version, florians fix is applied.
-
-  Revision 1.4  1998/05/31 14:15:52  peter
-    * force to use ATT or direct parsing
-
-  Revision 1.3  1998/05/30 14:30:22  peter
-    * force att reading
-
-  Revision 1.2  1998/05/23 01:14:06  peter
-    + I386_ATT switch
-
-}
-

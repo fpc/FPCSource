@@ -21,34 +21,40 @@
     System Utilities For Free Pascal
 }
 
-function StrLen(Str: PChar): cardinal;
-function StrEnd(Str: PChar): PChar;
-function StrMove(Dest, Source: PChar; Count: cardinal): PChar;
-function StrCopy(Dest, Source: PChar): PChar;
-function StrECopy(Dest, Source: PChar): PChar;
-function StrLCopy(Dest, Source: PChar; MaxLen: cardinal): PChar;
+{ shared with strings unit }
+function strlen(p : pchar) : longint;
+function strcopy(dest,source : pchar) : pchar;
+function strlcopy(dest,source : pchar;maxlen : longint) : pchar;
+function strecopy(dest,source : pchar) : pchar;
+function strend(p : pchar) : pchar;
+function strcat(dest,source : pchar) : pchar;
+function strcomp(str1,str2 : pchar) : longint;
+function strlcomp(str1,str2 : pchar;l : longint) : longint;
+function stricomp(str1,str2 : pchar) : longint;
+function strmove(dest,source : pchar;l : longint) : pchar;
+function strlcat(dest,source : pchar;l : longint) : pchar;
+function strscan(p : pchar;c : char) : pchar;
+function strrscan(p : pchar;c : char) : pchar;
+function strlower(p : pchar) : pchar;
+function strupper(p : pchar) : pchar;
+function strlicomp(str1,str2 : pchar;l : longint) : longint;
+function strpos(str1,str2 : pchar) : pchar;
+function strnew(p : pchar) : pchar;
+
+{ Different from strings unit - ansistrings or different behaviour }
+function StrPas(Str: PChar): string;
 function StrPCopy(Dest: PChar; Source: string): PChar;
 function StrPLCopy(Dest: PChar; Source: string; MaxLen: cardinal): PChar;
-function StrCat(Dest, Source: PChar): PChar;
-function StrLCat(Dest, Source: PChar; MaxLen: cardinal): PChar;
-function StrComp(Str1, Str2: PChar): integer;
-function StrIComp(Str1, Str2: PChar): integer;
-function StrLComp(Str1, Str2: PChar; MaxLen: cardinal): integer;
-function StrLIComp(Str1, Str2: PChar; MaxLen: cardinal): integer;
-function StrScan(Str: PChar; Chr: char): PChar;
-function StrRScan(Str: PChar; Chr: char): PChar;
-function StrPos(Str1, Str2: PChar): PChar;
-function StrUpper(Str: PChar): PChar;
-function StrLower(Str: PChar): PChar;
-function StrPas(Str: PChar): string;
 function StrAlloc(Size: cardinal): PChar;
 function StrBufSize(var Str: PChar): cardinal;
-function StrNew(Str: PChar): PChar;
 procedure StrDispose(var Str: PChar);
 
 {
   $Log$
-  Revision 1.2  1998-09-16 08:28:41  michael
+  Revision 1.3  1999-02-25 07:39:58  michael
+  * Joined strings and sysutils
+
+  Revision 1.2  1998/09/16 08:28:41  michael
   Update from gertjan Schouten, plus small fix for linux
 
   Revision 1.1  1998/04/10 15:17:46  michael

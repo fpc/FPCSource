@@ -157,10 +157,10 @@ clean :
 $(SYSTEMPPU) : sysos2.pas $(SYSDEPS)
 	$(COMPILER) -Us -Sg sysos2.pas $(REDIR)
 
-strings$(PPUEXT) : $(PROCINC)/strings.pp $(SYSTEMPPU)
-	$(COPY) $(PROCINC)/strings.pp .
-	$(COMPILER) strings $(REDIR)
-	$(DEL) strings.pp
+strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
+                   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc\
+                   $($(SYSTEMPPU)
+	$(COMPILER) $(INC)/strings.pp $(REDIR)
 
 #
 # Delphi Object Model
@@ -230,7 +230,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.4  1998-11-24 19:51:21  jonas
+# Revision 1.5  1999-02-25 07:39:22  michael
+# * Joined strings and sysutils
+#
+# Revision 1.4  1998/11/24 19:51:21  jonas
 #   + added warning about TABs
 #
 # Revision 1.3  1998/10/27 15:14:03  pierre

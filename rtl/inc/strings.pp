@@ -1,0 +1,140 @@
+{
+    $Id$
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 1993,97 by the Free Pascal development team.
+
+    Strings unit for PChar (asciiz/C compatible strings) handling
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
+unit strings;
+interface
+
+    { Returns the length of a string }
+    function strlen(p : pchar) : longint;
+
+    { Converts a Pascal string to a null-terminated string }
+    function strpcopy(d : pchar;const s : string) : pchar;
+
+    { Converts a null-terminated string to a Pascal string }
+    function strpas(p : pchar) : string;
+
+    { Copies source to dest, returns a pointer to dest }
+    function strcopy(dest,source : pchar) : pchar;
+
+    { Copies at most maxlen bytes from source to dest. }
+    { Returns a pointer to dest }
+    function strlcopy(dest,source : pchar;maxlen : longint) : pchar;
+
+    { Copies source to dest and returns a pointer to the terminating }
+    { null character.    }
+    function strecopy(dest,source : pchar) : pchar;
+
+    { Returns a pointer tro the terminating null character of p }
+    function strend(p : pchar) : pchar;
+
+    { Appends source to dest, returns a pointer do dest}
+    function strcat(dest,source : pchar) : pchar;
+
+    { Compares str1 und str2, returns }
+    { a value <0 if str1<str2;        }
+    {  0 when str1=str2               }
+    { and a value >0 if str1>str2     }
+    function strcomp(str1,str2 : pchar) : longint;
+
+    { The same as strcomp, but at most l characters are compared  }
+    function strlcomp(str1,str2 : pchar;l : longint) : longint;
+
+    { The same as strcomp but case insensitive       }
+    function stricomp(str1,str2 : pchar) : longint;
+
+    { Copies l characters from source to dest, returns dest. }
+    function strmove(dest,source : pchar;l : longint) : pchar;
+
+    { Appends at most l characters from source to dest }
+    function strlcat(dest,source : pchar;l : longint) : pchar;
+
+    { Returns a pointer to the first occurrence of c in p }
+    { If c doesn't occur, nil is returned }
+    function strscan(p : pchar;c : char) : pchar;
+
+    { Returns a pointer to the last occurrence of c in p }
+    { If c doesn't occur, nil is returned }
+    function strrscan(p : pchar;c : char) : pchar;
+
+    { converts p to all-lowercase, returns p   }
+    function strlower(p : pchar) : pchar;
+
+    { converts p to all-uppercase, returns p  }
+    function strupper(p : pchar) : pchar;
+
+    { The same al stricomp, but at most l characters are compared }
+    function strlicomp(str1,str2 : pchar;l : longint) : longint;
+
+    { Returns a pointer to the first occurrence of str2 in    }
+    { str2 Otherwise returns nil                          }
+    function strpos(str1,str2 : pchar) : pchar;
+
+    { Makes a copy of p on the heap, and returns a pointer to this copy  }
+    function strnew(p : pchar) : pchar;
+
+    { Allocates L bytes on the heap, returns a pchar pointer to it }
+    function stralloc(L : longint) : pchar;
+
+    { Releases a null-terminated string from the heap  }
+    procedure strdispose(p : pchar);
+
+implementation
+
+{  Read Processor dependent part, shared with sysutils unit }
+{$i strings.inc }
+
+{ Read processor denpendent part, NOT shared with sysutils unit }
+{$i stringss.inc }
+
+{ Functions not in assembler, but shared with sysutils unit  }
+{$i stringsi.inc}
+
+{ Functions, different from the one in sysutils }
+
+    procedure strdispose(p : pchar);
+
+      begin
+         if p<>nil then
+           freemem(p,strlen(p)+1);
+      end;
+
+    function stralloc(L : longint) : pchar;
+
+      begin
+         StrAlloc:=Nil;
+         GetMem (Stralloc,l);
+      end;
+
+end.
+
+{
+  $Log$
+  Revision 1.1  1999-02-25 07:42:03  michael
+  * Joined strings and sysutils
+
+  Revision 1.7  1998/08/05 08:59:53  michael
+  reverted to non-assmebler version, florians fix is applied.
+
+  Revision 1.4  1998/05/31 14:15:52  peter
+    * force to use ATT or direct parsing
+
+  Revision 1.3  1998/05/30 14:30:22  peter
+    * force att reading
+
+  Revision 1.2  1998/05/23 01:14:06  peter
+    + I386_ATT switch
+
+}
+

@@ -154,8 +154,10 @@ wdllprt0$(OEXT) : wdllprt0.as
 $(SYSTEMPPU) : syswin32.pp win32.inc $(SYSDEPS)
 	$(COMPILER) -Us -Sg syswin32.pp $(REDIR)
 
-strings$(PPUEXT) : $(PROCINC)/strings.pp $(SYSTEMPPU)
-	$(COMPILER) $(PROCINC)/strings.pp $(REDIR)
+strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
+                   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc\
+                   $($(SYSTEMPPU)
+	$(COMPILER) $(INC)/strings.pp $(REDIR)
 
 #
 # Delphi Object Model
@@ -378,7 +380,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.17  1999-01-15 11:47:19  peter
+# Revision 1.18  1999-02-25 07:39:19  michael
+# * Joined strings and sysutils
+#
+# Revision 1.17  1999/01/15 11:47:19  peter
 #   + added math unit to objects
 #
 # Revision 1.16  1999/01/04 11:57:45  peter

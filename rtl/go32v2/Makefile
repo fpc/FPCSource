@@ -152,8 +152,10 @@ fpu$(OEXT) : fpu.as
 $(SYSTEMPPU) : system.pp $(SYSDEPS)
 	$(COMPILER) -Us -Sg system.pp $(REDIR)
 
-strings$(PPUEXT) : $(PROCINC)/strings.pp $(SYSTEMPPU)
-	$(COMPILER) $(PROCINC)/strings.pp $(REDIR)
+strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
+                   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc\
+                   $($(SYSTEMPPU)
+	$(COMPILER) $(INC)/strings.pp $(REDIR)
 
 go32$(PPUEXT) : go32.pp $(SYSTEMPPU)
 	$(COMPILER) go32.pp $(REDIR)
@@ -260,7 +262,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.6  1999-02-09 17:16:58  florian
+# Revision 1.7  1999-02-25 07:39:20  michael
+# * Joined strings and sysutils
+#
+# Revision 1.6  1999/02/09 17:16:58  florian
 #   + typinfo is now also in the makefile for go32v2
 #   + sysutils.filetruncate for go32v2
 #

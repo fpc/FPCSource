@@ -232,8 +232,10 @@ lprt$(OEXT) : lprt.c
 $(SYSTEMPPU) : syslinux.pp $(SYSLINUXDEPS) $(SYSDEPS)
 	$(COMPILER) -Us -Sg syslinux.pp $(REDIR)
 
-strings$(PPUEXT) : $(PROCINC)/strings.pp $(SYSTEMPPU)
-	$(COMPILER) $(PROCINC)/strings.pp $(REDIR)
+strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
+                   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc\
+                   $($(SYSTEMPPU)
+	$(COMPILER) $(INC)/strings.pp $(REDIR)
 
 linux$(PPUEXT) : linux.pp strings$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
 		 syscalls.inc systypes.inc sysconst.inc $(SYSTEMPPU)
@@ -336,7 +338,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.13  1999-01-15 11:45:14  peter
+# Revision 1.14  1999-02-25 07:39:17  michael
+# * Joined strings and sysutils
+#
+# Revision 1.13  1999/01/15 11:45:14  peter
 #   * added math unit to objects
 #
 # Revision 1.12  1998/12/21 13:07:05  peter
