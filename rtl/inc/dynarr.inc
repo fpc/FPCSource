@@ -132,10 +132,13 @@ function dynarray_copy(var p : pointer;ti : pdynarraytypeinfo;
 
 {
   $Log$
-  Revision 1.2  2000-11-06 21:35:59  peter
+  Revision 1.3  2000-11-07 23:42:21  florian
+    + AfterConstruction and BeforeDestruction implemented
+    + TInterfacedObject implemented
+
+  Revision 1.2  2000/11/06 21:35:59  peter
     * removed some warnings
 
   Revision 1.1  2000/11/04 17:52:46  florian
     * fixed linker errors
-
 }

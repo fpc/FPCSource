@@ -151,23 +151,38 @@
 {$ifdef HASINTF}
        IUnknown = interface
          ['{00000000-0000-0000-C000-000000000046}']
-         function QueryInterface(const iid: tguid; out obj): LongInt; stdcall;
-         function _AddRef: LongInt; stdcall;
-         function _Release: LongInt; stdcall;
+         function QueryInterface(const iid : tguid;out obj) : longint;stdcall;
+         function _AddRef : longint;stdcall;
+         function _Release : longint;stdcall;
        end;
 
        { for native dispinterface support }
        IDispatch = interface(IUnknown)
-         ['{00020400-0000-0000-C000-000000000046}']
-         function GetTypeInfoCount(out count: LongInt): LongInt; stdcall;
-         function GetTypeInfo(Index, LocaleID: LongInt;
-           out TypeInfo): LongInt; stdcall;
-         function GetIDsOfNames(const iid: TGUID; names: Pointer;
-           NameCount, LocaleID: LongInt; DispIDs: Pointer): LongInt; stdcall;
-         function Invoke(DispID: LongInt; const iid: TGUID;
-           LocaleID: LongInt; Flags: Word; var params;
-           VarResult, ExcepInfo, ArgErr: Pointer): Integer; stdcall;
+          ['{00020400-0000-0000-C000-000000000046}']
+          function GetTypeInfoCount(out count : longint) : longint;stdcall;
+          function GetTypeInfo(Index,LocaleID : longint;
+            out TypeInfo): LongInt;stdcall;
+          function GetIDsOfNames(const iid: TGUID; names: Pointer;
+            NameCount, LocaleID: LongInt; DispIDs: Pointer) : longint;stdcall;
+          function Invoke(DispID: LongInt;const iid : TGUID;
+            LocaleID : longint; Flags: Word;var params;
+            VarResult,ExcepInfo,ArgErr : pointer) : longint;stdcall;
        end;
+
+       TInterfacedObject = class(TObject,IUnknown)
+       protected
+          frefcount : longint;
+          { implement methods of IUnknown }
+          function QueryInterface(const iid : tguid;out obj) : longint;stdcall;
+          function _AddRef : longint;stdcall;
+          function _Release : longint;stdcall;
+        public
+          procedure AfterConstruction;override;
+          procedure BeforeDestruction;override;
+          class function NewInstance : TObject;override;
+          property RefCount : longint read frefcount;
+       end;
+
 {$endif HASINTF}
 
        TExceptProc = Procedure (Obj : TObject; Addr,Frame: Pointer);
@@ -258,7 +273,11 @@
        end;
 {
   $Log$
-  Revision 1.7  2000-11-06 20:34:24  peter
+  Revision 1.8  2000-11-07 23:42:21  florian
+    + AfterConstruction and BeforeDestruction implemented
+    + TInterfacedObject implemented
+
+  Revision 1.7  2000/11/06 20:34:24  peter
     * changed ver1_0 defines to temporary defs
 
   Revision 1.6  2000/11/04 17:31:50  florian

@@ -1117,14 +1117,59 @@ end;
 {$ifdef SYSTEMDEBUG}
 end;
 {$endif def SYSTEMDEBUG}
+{$ifdef HASINTF}
+{ do a thread save inc/dec }
 
+procedure declocked(var l : longint);assembler;
+
+  asm
+{$ifdef MTRTL}
+     { this check should be done because a lock takes a lot }
+     { of time!                                             }
+     cmpb       $0,IsMultithreaded
+     jz         .Ldeclockednolock
+     movl       l,%edi
+     lock
+     decl       (%edi)
+     jmp        .Ldeclockedend
+.Ldeclockednolock:
+{$endif MTRTL}
+     movl       l,%edi
+     decl       (%edi);
+.Ldeclockedend:
+  end ['EDI'];
+
+procedure inclocked(var l : longint);assembler;
+
+  asm
+{$ifdef MTRTL}
+     { this check should be done because a lock takes a lot }
+     { of time!                                             }
+     cmpb       $0,IsMultithreaded
+     jz         .Linclockednolock
+     movl       l,%edi
+     lock
+     incl       (%edi)
+     jmp        .Linclockedend
+.Linclockednolock:
+{$endif MTRTL}
+     movl       l,%edi
+     incl       (%edi);
+.Linclockedend:
+  end ['EDI'];
+
+{$endif HASINTF}
 
 {
   $Log$
-  Revision 1.3  2000-07-14 10:33:09  michael
+  Revision 1.4  2000-11-07 23:42:21  florian
+    + AfterConstruction and BeforeDestruction implemented
+    + TInterfacedObject implemented
+
+  Revision 1.3  2000/07/14 10:33:09  michael
   + Conditionals fixed
 
   Revision 1.2  2000/07/13 11:33:41  michael
   + removed logs
- 
+
 }

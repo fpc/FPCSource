@@ -595,6 +595,58 @@ Procedure Finalize (Data,TypeInfo: Pointer);forward;
         begin
           getinterfacetable:=pinterfacetable((pointer(Self)+vmtIntfTable)^);
         end;
+{****************************************************************************
+                               TINTERFACEDOBJECT
+****************************************************************************}
+
+    function TInterfacedObject.QueryInterface(
+      const iid : tguid;out obj) : longint;stdcall;
+
+      begin
+         if getinterface(iid,obj) then
+           result:=0
+         else
+           result:=$80004002;
+      end;
+
+    function TInterfacedObject._AddRef : longint;stdcall;
+
+      begin
+         inclocked(frefcount);
+         _addref:=frefcount;
+      end;
+
+    function TInterfacedObject._Release : longint;stdcall;
+
+      begin
+         declocked(frefcount);
+         _release:=frefcount;
+         if frefcount=0 then
+           destroy;
+      end;
+
+    procedure TInterfacedObject.AfterConstruction;
+
+      begin
+         { we need to fix the refcount we forced in newinstance }
+         { further, it must be done in a thread safe way        }
+         declocked(frefcount);
+      end;
+
+    procedure TInterfacedObject.BeforeDestruction;
+
+      begin
+         if frefcount<>0 then
+           HandleError(204);
+      end;
+
+    class function TInterfacedObject.NewInstance : TObject;
+
+      begin
+         NewInstance:=inherited NewInstance;
+         TInterfacedObject(NewInstance).frefcount:=1;
+      end;
+
 {$endif HASINTF}
 
 {****************************************************************************
@@ -609,7 +661,11 @@ Procedure Finalize (Data,TypeInfo: Pointer);forward;
 
 {
   $Log$
-  Revision 1.9  2000-11-06 22:03:12  florian
+  Revision 1.10  2000-11-07 23:42:21  florian
+    + AfterConstruction and BeforeDestruction implemented
+    + TInterfacedObject implemented
+
+  Revision 1.9  2000/11/06 22:03:12  florian
     * another fix
 
   Revision 1.8  2000/11/06 21:53:38  florian
