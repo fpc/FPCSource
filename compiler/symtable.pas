@@ -1818,7 +1818,8 @@ const localsymtablestack : psymtable = nil;
          if sym^.typ = typesym then
            if assigned(ptypesym(sym)^.definition) then
              begin
-             if not assigned(ptypesym(sym)^.definition^.owner) then
+             if not assigned(ptypesym(sym)^.definition^.owner) and
+                (ptypesym(sym)^.definition^.deftype<>errordef) then
               registerdef(ptypesym(sym)^.definition);
 {$ifdef GDB}
              if (cs_debuginfo in aktmoduleswitches) and assigned(debuglist)
@@ -3212,7 +3213,10 @@ const localsymtablestack : psymtable = nil;
 end.
 {
   $Log$
-  Revision 1.7  1999-05-06 09:05:31  peter
+  Revision 1.8  1999-05-06 21:38:38  peter
+    * don't register errordef
+
+  Revision 1.7  1999/05/06 09:05:31  peter
     * generic write_float and str_float
     * fixed constant float conversions
 
