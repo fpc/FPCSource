@@ -56,12 +56,14 @@ asm
 .MyRecordInitLoop:
         decl    %edx
         jl      .ExitInitialize
-# Calculate data
-        movl    8(%ebp),%eax
-        addl    (%ebx),%eax
-        addl     $4,%ebx
+# %ebx points to typeinfo pointer
 # Push type
         pushl    (%ebx)
+        addl     $4,%ebx
+# %ebx points to offset in record.
+# Us it to calculate data
+        movl    8(%ebp),%eax
+        addl    (%ebx),%eax
         addl     $4,%ebx
 # push data
         pushl    %eax
@@ -69,6 +71,11 @@ asm
         jmp     .MyRecordInitLoop
 # Array handling
 .DoArrayInit:
+# Skip array name !!
+	incl	%ebx
+	movzbl  (%ebx),%eax
+	incl	%eax
+	addl	%eax,%ebx
 # %ebx points to size. Put size in ecx
         movl    (%ebx),%ecx
         addl    $4, %ebx
@@ -140,12 +147,14 @@ asm
 .MyRecordFinalLoop:
         decl    %edx
         jl      .ExitFinalize
-# Calculate data
-        movl    8(%ebp),%eax
-        addl    (%ebx),%eax
-        addl     $4,%ebx
+# %ebx points to typeinfo pointer
 # Push type
         pushl    (%ebx)
+        addl     $4,%ebx
+# %ebx points to offset.        
+# Use to calculate data
+        movl    8(%ebp),%eax
+        addl    (%ebx),%eax
         addl     $4,%ebx
 # push data
         pushl    %eax
@@ -153,6 +162,11 @@ asm
         jmp     .MyRecordFinalLoop
 # Array handling
 .DoArrayFinal:
+# Skip array name !!
+	incl	%ebx
+	movzbl  (%ebx),%eax
+	incl	%eax
+	addl	%eax,%ebx
 # %ebx points to size. Put size in ecx
         movl    (%ebx),%ecx
         addl    $4, %ebx
@@ -360,7 +374,10 @@ end;
 
 {
   $Log$
-  Revision 1.8  1998-09-20 17:49:07  florian
+  Revision 1.9  1998-09-29 08:38:25  michael
+  + Corrections in record and array handling.
+
+  Revision 1.8  1998/09/20 17:49:07  florian
     * some ansistring fixes
 
   Revision 1.7  1998/09/14 10:48:11  peter
