@@ -1357,12 +1357,12 @@ unit tree;
                end;
              realconstn :
                begin
-                  if oldp^.valued<>p^.valued then
+                  if oldp^.value_real<>p^.value_real then
                   begin
                      comment(v_warning,'valued field different');
                      error_found:=true;
                   end;
-                  if oldp^.labnumber<>p^.labnumber then
+                  if oldp^.lab_real<>p^.lab_real then
                   begin
                      comment(v_warning,'labnumber field different');
                      error_found:=true;
@@ -1545,7 +1545,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.36  1998-09-07 18:46:17  peter
+  Revision 1.37  1998-09-08 10:38:04  pierre
+    * some variable fields inside conditionnal were not updated
+
+  Revision 1.36  1998/09/07 18:46:17  peter
     * update smartlinking, uses getdatalabel
     * renamed ptree.value vars to value_str,value_real,value_set
 
