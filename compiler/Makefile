@@ -241,6 +241,7 @@ override NEEDOPT=-Sg
 # Directories
 
 override NEEDUNITDIR=$(CPU_TARGET)
+override NEEDINCDIR=$(CPU_TARGET)
 ifndef TARGETDIR
 TARGETDIR=.
 endif
@@ -862,6 +863,11 @@ endif
 ifdef UNITSDIR
 override FPCOPT+=-Fu$(UNITSDIR)
 endif
+
+ifdef NEEDINCDIR
+override FPCOPT+=$(addprefix -Fi,$(NEEDINCDIR))
+endif
+
 
 # Target dirs and the prefix to use for clean/install
 ifdef TARGETDIR
