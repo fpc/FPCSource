@@ -888,7 +888,7 @@
          while assigned(hp) do
            begin
               rttilist^.concat(new(pai_const,init_8bit(length(hp^.name))));
-              rttilist^.concat(new(pai_string,init(hp^.name)));
+              rttilist^.concat(new(pai_string,init(globals.lower(hp^.name))));
               hp:=hp^.nextenum;
            end;
          rttilist^.concat(new(pai_const,init_8bit(0)));
@@ -3460,7 +3460,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.110  1999-05-06 09:05:28  peter
+  Revision 1.111  1999-05-07 11:06:37  florian
+    * enumeration type names are now written in lowercase (rtti)
+
+  Revision 1.110  1999/05/06 09:05:28  peter
     * generic write_float and str_float
     * fixed constant float conversions
 
