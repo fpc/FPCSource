@@ -1008,7 +1008,7 @@ type
     property FieldDefs: TFieldDefs read FFieldDefs write FFieldDefs;
 //    property Fields[Index: Longint]: TField read GetField write SetField;
     property Found: Boolean read FFound;
-    property Modified: Boolean read FModified;
+    property Modified: Boolean read FModified write SetModified;
     property IsUniDirectional: Boolean read FIsUniDirectional write FIsUniDirectional default False;
     property RecordCount: Longint read GetRecordCount;
     property RecNo: Longint read FRecNo write FRecNo;
@@ -1500,7 +1500,10 @@ end.
 
 {
   $Log$
-  Revision 1.20  2004-08-13 07:06:02  michael
+  Revision 1.21  2004-08-14 12:46:35  michael
+  + Patch from Joost van der Sluis to implement Modified and UpdateRecord event
+
+  Revision 1.20  2004/08/13 07:06:02  michael
   + Rework of buffer management by Joost Van der Sluis
 
   Revision 1.19  2004/07/25 11:32:40  michael

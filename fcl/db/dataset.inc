@@ -839,7 +839,7 @@ end;
 Procedure TDataset.SetModified(Value: Boolean);
 
 begin
-  //!! To be implemented
+  FModified := value;
 end;
 
 Procedure TDataset.SetName(const Value: TComponentName);
@@ -1471,6 +1471,7 @@ Procedure TDataset.Post;
 begin
   if State in [dsEdit,dsInsert] then
     begin
+    DataEvent(deUpdateRecord,0);
     DataEvent(deCheckBrowseMode,0);
 {$ifdef dsdebug}
     writeln ('Post: checking required fields');
@@ -1684,7 +1685,10 @@ end;
 
 {
   $Log$
-  Revision 1.18  2004-08-13 07:06:02  michael
+  Revision 1.19  2004-08-14 12:46:36  michael
+  + Patch from Joost van der Sluis to implement Modified and UpdateRecord event
+
+  Revision 1.18  2004/08/13 07:06:02  michael
   + Rework of buffer management by Joost Van der Sluis
 
   Revision 1.17  2004/08/03 19:08:48  michael
