@@ -1344,6 +1344,8 @@ implementation
     {
       Load a string, handles stringdef and orddef (char) types
     }
+      var
+        href: treference;
       begin
          case source.resulttype^.deftype of
             stringdef:
@@ -1368,26 +1370,29 @@ implementation
                       A_MOV,S_W,tordconstnode(source).value*256+1,newreference(dest.location.reference))
                  else
                    begin
-                      { not so elegant (goes better with extra register }
-{$ifndef noAllocEdi}
-                      getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
                       if (source.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
                         begin
-                           emit_reg_reg(A_MOV,S_L,makereg32(source.location.register),R_EDI);
+                           href := dest.location.reference;
+                           emit_const_ref(A_MOV,S_B,1,newreference(href));
+                           inc(href.offset,1);
+                           emit_reg_ref(A_MOV,S_B,makereg8(source.location.register),
+                                        newreference(href));
                            ungetregister(source.location.register);
                         end
                       else
+                      { not so elegant (goes better with extra register    }
                         begin
-                           emit_ref_reg(A_MOV,S_L,newreference(source.location.reference),R_EDI);
+                           { not "movl", because then we may read past the }
+                           { end of the heap! "movw" would be ok too, but  }
+                           { I don't think that would be faster (JM)       }
+                           getexplicitregister32(R_EDI);
+                           emit_ref_reg(A_MOVZX,S_BL,newreference(source.location.reference),R_EDI);
                            del_reference(source.location.reference);
+                           emit_const_reg(A_SHL,S_L,8,R_EDI);
+                           emit_const_reg(A_OR,S_L,1,R_EDI);
+                           emit_reg_ref(A_MOV,S_W,R_DI,newreference(dest.location.reference));
+                           ungetregister32(R_EDI);
                         end;
-                      emit_const_reg(A_SHL,S_L,8,R_EDI);
-                      emit_const_reg(A_OR,S_L,1,R_EDI);
-                      emit_reg_ref(A_MOV,S_W,R_DI,newreference(dest.location.reference));
-{$ifndef noAllocEdi}
-                      ungetregister32(R_EDI);
-{$endif noAllocEdi}
                    end;
               end;
          else
@@ -1543,7 +1548,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  2000-12-25 00:07:33  peter
+  Revision 1.10  2000-12-31 11:02:12  jonas
+    * optimized loadshortstring a bit
+
+  Revision 1.9  2000/12/25 00:07:33  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 
