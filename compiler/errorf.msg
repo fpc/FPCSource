@@ -184,8 +184,8 @@ scan_e_preproc_syntax_error=E_Erreur de syntaxe pendant l'interpr‚tation d'une d
 scan_e_error_in_preproc_expr=E_Erreur d'‚valuation d'une directive de compilation
 % There is an error in the expression following the \var{\{\$if \}} compiler
 % directive.
-scan_w_marco_cut_after_255_chars=W_Le contenu d'une macro est tronqu‚ … 255 caractŠres
-% The contents of macros canno be longer than 255 characters. This is a
+scan_w_macro_cut_after_255_chars=W_Le contenu d'une macro est tronqu‚ … 255 caractŠres
+% The contents of macros cannot be longer than 255 characters. This is a
 % safety in the compiler, to prevent buffer overflows. This is shown as a
 % warning, i.e. when the \var{-vw} switch is used.
 scan_e_endif_without_if=E_ENDIF sans IF(N)DEF
@@ -277,6 +277,9 @@ scan_e_wrong_switch_toggle=E_Mauvais argument de switch, utilisez ON/OFF ou +/-
 scan_e_resourcefiles_not_supported=E_Fichiers ressource non support‚ pour cette cible
 % The target you are compiling for doesn't support Resource files. The
 % only target which can use resource files is Win32
+scan_w_only_one_resourcefile_supported=W_Un fichier ressource est seulement support‚ pour cette cible
+% Only one resource file can be supported for this target - this is the case of
+% OS/2 (EMX) currently. The first one found is used, the others are discarded.
 %
 % \end{description}
 #

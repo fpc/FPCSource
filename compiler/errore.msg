@@ -176,7 +176,7 @@ scan_e_preproc_syntax_error=E_Syntax error while parsing a conditional compiling
 scan_e_error_in_preproc_expr=E_Evaluating a conditional compiling expression
 % There is an error in the expression following the \var{\{\$if ..\}} compiler
 % directive.
-scan_w_marco_cut_after_255_chars=W_Macro contents is cut after char 255 to evalute expression
+scan_w_macro_cut_after_255_chars=W_Macro contents is cut after char 255 to evalute expression
 % The contents of macros canno be longer than 255 characters. This is a
 % safety in the compiler, to prevent buffer overflows. This is shown as a
 % warning, i.e. when the \var{-vw} switch is used.
@@ -267,13 +267,17 @@ scan_w_no_asm_reader_switch_inside_asm=W_ASM reader switch is not possible insid
 scan_e_wrong_switch_toggle=E_Wrong switch toggle, use ON/OFF or +/-
 % You need to use ON or OFF or a + or - to toggle the switch
 scan_e_resourcefiles_not_supported=E_Resource files are not supported for this target
-% The target you are compiling for doesn't support Resource files. The
-% only target which can use resource files is Win32
+% The target you are compiling for doesn't support resource files. The
+% only targets which can use resource files are Win32 and OS/2 (EMX) currently
 scan_w_include_env_not_found=W_Include environment $1 not found in environment
 % The included environment variable can't be found in the environment, it'll
 % be replaced by an empty string instead.
 scan_e_invalid_maxfpureg_value=E_Illegal value for FPU register limit
 % Valid values for this directive are 0..8 and NORMAL/DEFAULT
+scan_w_only_one_resourcefile_supported=W_Only one resource file is supported for this target
+% The target you are compiling for supports only one resource file. This is the
+% case of OS/2 (EMX) currently. The first resource file found is used, the
+% others are discarded.
 % \end{description}
 #
 # Parser

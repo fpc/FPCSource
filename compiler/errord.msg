@@ -174,8 +174,8 @@ scan_e_preproc_syntax_error=E_Syntaxfehler im Argument einer $if Direktive
 scan_e_error_in_preproc_expr=E_Syntaxfehler im Kontext einer $if Direktive
 % There is an error in the expression following the \var{\{\$if ..\}} compiler
 % directive.
-scan_w_marco_cut_after_255_chars=W_Inhalt des Makros wurde nach der Auswertung bei 255 Zeichen abgeschnitten
-% The contents of macros canno be longer than 255 characters. This is a
+scan_w_macro_cut_after_255_chars=W_Inhalt des Makros wurde nach der Auswertung bei 255 Zeichen abgeschnitten
+% The contents of macros cannot be longer than 255 characters. This is a
 % safety in the compiler, to prevent buffer overflows. This is shown as a
 % warning, i.e. when the \var{-vw} switch is used.
 scan_e_endif_without_if=E_ENDIF ohne IF(N)DEF
@@ -270,6 +270,9 @@ scan_e_resourcefiles_not_supported=E_Resourcedateien werden vom aktuellen Zielbe
 scan_w_include_env_not_found=W_$1 ist keine Umgebungsvariable
 % The included environment variable can't be found in the environment, it'll
 % be replaced by an empty string instead.
+scan_w_only_one_resourcefile_supported=W_Nur ein Resourcedatei wird vom aktuellen Zielbetriebssystem unterstÅtzt
+% Only one resource file can be supported for this target - this is the case of
+% OS/2 (EMX) currently. The first one found is used, the others are discarded.
 % \end{description}
 #
 # Parser

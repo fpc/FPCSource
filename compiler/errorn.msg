@@ -208,8 +208,8 @@ scan_e_preproc_syntax_error=E_Taalfout bij het compileren van een conditionele c
 scan_e_error_in_preproc_expr=E_Evalueren van een conditionele compilatie uitdrukking
 % There is an error in the expression following the \var{\{\$if ..\}} compiler
 % directive.
-scan_w_marco_cut_after_255_chars=W_Macro inhoud is afgekapt op 255 karakters voor evaluatie
-% The contents of macros canno be longer than 255 characters. This is a
+scan_w_macro_cut_after_255_chars=W_Macro inhoud is afgekapt op 255 karakters voor evaluatie
+% The contents of macros cannot be longer than 255 characters. This is a
 % safety in the compiler, to prevent buffer overflows. This is shown as a
 % warning, i.e. when the \var{-vw} switch is used.
 scan_e_endif_without_if=E_ENDIF zonder IF(N)DEF
