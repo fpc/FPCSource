@@ -76,7 +76,7 @@ unit cgcpu;
 
         procedure g_flags2reg(list: taasmoutput; size: TCgSize; const f: TResFlags; reg: TRegister); override;
 
-
+        procedure g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;elesize:integer);override;
         procedure g_stackframe_entry(list : taasmoutput;localsize : longint);override;
         procedure g_return_from_proc(list : taasmoutput;parasize : aword); override;
         procedure g_restore_frame_pointer(list : taasmoutput);override;
@@ -958,7 +958,7 @@ const
         { following is the entry code as described in "Altivec Programming }
         { Interface Manual", bar the saving of AltiVec registers           }
         rsp.enum:=R_INTREGISTER;
-        rsp.number:=NR_STACK_POINTER_REG;;
+        rsp.number:=NR_STACK_POINTER_REG;
         a_reg_alloc(list,rsp);
         r.enum:=R_INTREGISTER;
         r.number:=NR_R0;
@@ -1824,6 +1824,128 @@ const
          free_scratch_reg(list,dst.base);
       end;
 
+    procedure tcgppc.g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;elesize:integer);
+      var
+        lenref : treference;
+        power,len  : longint;
+{$ifndef __NOWINPECOFF__}
+        again,ok : tasmlabel;
+{$endif}
+        r,r2,rsp:Tregister;
+      begin
+         {$warning !!!! FIX ME !!!!}
+{!!!!
+        lenref:=ref;
+        inc(lenref.offset,4);
+        { get stack space }
+        r.enum:=R_INTREGISTER;
+        r.number:=NR_EDI;
+        rsp.enum:=R_INTREGISTER;
+        rsp.number:=NR_ESP;
+        r2.enum:=R_INTREGISTER;
+        rg.getexplicitregisterint(list,NR_EDI);
+        list.concat(Taicpu.op_ref_reg(A_MOV,S_L,lenref,r));
+        list.concat(Taicpu.op_reg(A_INC,S_L,r));
+        if (elesize<>1) then
+         begin
+           if ispowerof2(elesize, power) then
+             list.concat(Taicpu.op_const_reg(A_SHL,S_L,power,r))
+           else
+             list.concat(Taicpu.op_const_reg(A_IMUL,S_L,elesize,r));
+         end;
+{$ifndef __NOWINPECOFF__}
+        { windows guards only a few pages for stack growing, }
+        { so we have to access every page first              }
+        if target_info.system=system_i386_win32 then
+          begin
+             objectlibrary.getlabel(again);
+             objectlibrary.getlabel(ok);
+             a_label(list,again);
+             list.concat(Taicpu.op_const_reg(A_CMP,S_L,winstackpagesize,r));
+             a_jmp_cond(list,OC_B,ok);
+             list.concat(Taicpu.op_const_reg(A_SUB,S_L,winstackpagesize-4,rsp));
+             r2.number:=NR_EAX;
+             list.concat(Taicpu.op_reg(A_PUSH,S_L,r));
+             list.concat(Taicpu.op_const_reg(A_SUB,S_L,winstackpagesize,r));
+             a_jmp_always(list,again);
+
+             a_label(list,ok);
+             list.concat(Taicpu.op_reg_reg(A_SUB,S_L,r,rsp));
+             rg.ungetregisterint(list,r);
+             { now reload EDI }
+             rg.getexplicitregisterint(list,NR_EDI);
+             list.concat(Taicpu.op_ref_reg(A_MOV,S_L,lenref,r));
+             list.concat(Taicpu.op_reg(A_INC,S_L,r));
+
+             if (elesize<>1) then
+              begin
+                if ispowerof2(elesize, power) then
+                  list.concat(Taicpu.op_const_reg(A_SHL,S_L,power,r))
+                else
+                  list.concat(Taicpu.op_const_reg(A_IMUL,S_L,elesize,r));
+              end;
+          end
+        else
+{$endif __NOWINPECOFF__}
+          list.concat(Taicpu.op_reg_reg(A_SUB,S_L,r,rsp));
+        { align stack on 4 bytes }
+        list.concat(Taicpu.op_const_reg(A_AND,S_L,$fffffff4,rsp));
+        { load destination }
+        a_load_reg_reg(list,OS_INT,OS_INT,rsp,r);
+
+        { don't destroy the registers! }
+        r2.number:=NR_ECX;
+        list.concat(Taicpu.op_reg(A_PUSH,S_L,r2));
+        r2.number:=NR_ESI;
+        list.concat(Taicpu.op_reg(A_PUSH,S_L,r2));
+
+        { load count }
+        r2.number:=NR_ECX;
+        a_load_ref_reg(list,OS_INT,lenref,r2);
+
+        { load source }
+        r2.number:=NR_ESI;
+        a_load_ref_reg(list,OS_INT,ref,r2);
+
+        { scheduled .... }
+        r2.number:=NR_ECX;
+        list.concat(Taicpu.op_reg(A_INC,S_L,r2));
+
+        { calculate size }
+        len:=elesize;
+        opsize:=S_B;
+        if (len and 3)=0 then
+         begin
+           opsize:=S_L;
+           len:=len shr 2;
+         end
+        else
+         if (len and 1)=0 then
+          begin
+            opsize:=S_W;
+            len:=len shr 1;
+          end;
+
+        if ispowerof2(len, power) then
+          list.concat(Taicpu.op_const_reg(A_SHL,S_L,power,r2))
+        else
+          list.concat(Taicpu.op_const_reg(A_IMUL,S_L,len,r2));
+        list.concat(Taicpu.op_none(A_REP,S_NO));
+        case opsize of
+          S_B : list.concat(Taicpu.Op_none(A_MOVSB,S_NO));
+          S_W : list.concat(Taicpu.Op_none(A_MOVSW,S_NO));
+          S_L : list.concat(Taicpu.Op_none(A_MOVSD,S_NO));
+        end;
+        rg.ungetregisterint(list,r);
+        r2.number:=NR_ESI;
+        list.concat(Taicpu.op_reg(A_POP,S_L,r2));
+        r2.number:=NR_ECX;
+        list.concat(Taicpu.op_reg(A_POP,S_L,r2));
+
+        { patch the new address }
+        a_load_reg_ref(list,OS_INT,rsp,ref);
+!!!!}
+      end;
 
     procedure tcgppc.g_overflowcheck(list: taasmoutput; const p: tnode);
 
@@ -2215,7 +2337,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.78  2003-04-16 09:26:55  jonas
+  Revision 1.79  2003-04-23 12:35:35  florian
+    * fixed several issues with powerpc
+    + applied a patch from Jonas for nested function calls (PowerPC only)
+    * ...
+
+  Revision 1.78  2003/04/16 09:26:55  jonas
     * assembler procedures now again get a stackframe if they have local
       variables. No space is reserved for a function result however.
       Also, the register parameters aren't automatically saved on the stack

@@ -29,7 +29,7 @@ interface
     uses
        cutils,cclasses,
        globtype,cpuinfo,
-       node,
+       node,nbas,
        {$ifdef state_tracking}
        nstate,
        {$endif state_tracking}
@@ -113,6 +113,9 @@ interface
           function  docompare(p: tnode): boolean; override;
           procedure set_procvar(procvar:tnode);
        private
+{$ifdef callparatemp}
+          function extract_functioncall_paras: tblocknode;
+{$endif callparatemp}
           AbstractMethodsList : TStringList;
        end;
        tcallnodeclass = class of tcallnode;
@@ -179,7 +182,8 @@ implementation
       verbose,globals,
       symconst,paramgr,defutil,defcmp,
       htypechk,pass_1,cpubase,
-      nbas,ncnv,nld,ninl,nadd,ncon,nmem,
+      ncnv,nld,ninl,nadd,ncon,nmem,
+      nutils,
       rgobj,cginfo,cgbase
       ;
 
@@ -1958,6 +1962,58 @@ type
       end;
 
 
+{$ifdef callparatemp}
+    function tree_contains_function_call(var n: tnode): foreachnoderesult;
+      begin
+        result := fen_false;
+        if n.nodetype = calln then
+          { stop when we encounter a call node }
+          result := fen_norecurse_true;
+      end;
+
+
+    function tcallnode.extract_functioncall_paras: tblocknode;
+      var
+        curpara: tcallparanode;
+        newblock: tblocknode;
+        newstatement: tstatementnode;
+        temp: ttempcreatenode;
+        foundcall: boolean;
+      begin
+        foundcall := false;
+        curpara := tcallparanode(left);
+        if assigned(curpara) then
+          curpara := tcallparanode(curpara.right);
+        newblock := nil;
+        while assigned(curpara) do
+          begin
+            if foreachnodestatic(curpara.left,@tree_contains_function_call) then
+              begin
+                if (not foundcall) then
+                  begin
+                    foundcall := true;
+                    newblock := internalstatements(newstatement);
+                  end;
+                temp := ctempcreatenode.create(curpara.left.resulttype,curpara.left.resulttype.def.size,true);
+                addstatement(newstatement,temp);
+                resulttypepass(newstatement);
+                addstatement(newstatement,
+                  cassignmentnode.create(ctemprefnode.create(temp),curpara.left));
+                resulttypepass(newstatement);
+                { after the assignment, turn the temp into a non-persistent one, so }
+                { that it will be freed once it's used as parameter                 }
+                addstatement(newstatement,ctempdeletenode.create_normal_temp(temp));
+                resulttypepass(newstatement);
+                curpara.left := ctemprefnode.create(temp);
+                { the para's themselves are "resulttypepassed" in in tcallnode.pass_1 }
+              end;
+            curpara := tcallparanode(curpara.right);
+          end;
+        result := newblock;
+      end;
+{$endif callparatemp}
+
+
     function tcallnode.pass_1 : tnode;
       var
          inlinecode : tnode;
@@ -1965,12 +2021,21 @@ type
 {$ifdef m68k}
          regi : tregister;
 {$endif}
+{$ifdef callparatemp}
+         callparatemps, newblock: tblocknode;
+         statement: tstatementnode;
+         paras, oldright, newcall: tnode;
+{$endif callparatemp}
       label
         errorexit;
       begin
          result:=nil;
          inlined:=false;
          inlinecode := nil;
+
+{$ifdef callparatemp}
+         callparatemps := extract_functioncall_paras;
+{$endif callparatemp}
 
          { work trough all parameters to get the register requirements }
          if assigned(left) then
@@ -2176,9 +2241,39 @@ type
               registersmmx:=max(left.registersmmx,registersmmx);
 {$endif SUPPORT_MMX}
            end;
+{$ifdef callparatemp}
+         if (callparatemps <> nil) then
+           begin
+             { we have to replace the callnode with a blocknode. firstpass will }
+             { free the original call node. Avoid copying all subnodes though   }
+             paras := left;
+             oldright := right;
+             left := nil;
+             right := nil;
+             newcall := self.getcopy;
+             tcallnode(newcall).left := paras;
+             tcallnode(newcall).right := oldright;
+             
+             newblock := internalstatements(statement);
+             addstatement(statement,callparatemps);
+             { add the copy of the call node after the callparatemps block    }
+             { and return that. The last statement of a bocknode determines   }
+             { the resulttype & location of the block -> ok. Working with a   }
+             { new block is easier than going to the end of the callparatemps }
+             { block (JM)                                                     }
+             addstatement(statement,newcall);
+             result := newblock;
+             { set to nil so we can free this one in case of an errorexit }
+             callparatemps := nil;
+           end;
+{$endif callparatemp}
       errorexit:
          if inlined then
            procdefinition.proccalloption:=pocall_inline;
+{$ifdef callparatemp}
+         if assigned(callparatemps) then
+           callparatemps.free;
+{$endif callparatemp}
       end;
 
 {$ifdef state_tracking}
@@ -2391,7 +2486,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.139  2003-04-22 23:50:22  peter
+  Revision 1.140  2003-04-23 12:35:34  florian
+    * fixed several issues with powerpc
+    + applied a patch from Jonas for nested function calls (PowerPC only)
+    * ...
+
+  Revision 1.139  2003/04/22 23:50:22  peter
     * firstpass uses expectloc
     * checks if there are differences between the expectloc and
       location.loc from secondpass in EXTDEBUG

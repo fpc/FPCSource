@@ -67,7 +67,7 @@ unit cpupara;
            end;
       end;
 
-    function getparaloc(p : tdef) : tloc;
+    function getparaloc(p : tdef) : tcgloc;
 
       begin
          { Later, the LOC_REFERENCE is in most cases changed into LOC_REGISTER
@@ -129,7 +129,7 @@ unit cpupara;
          paradef : tdef;
          stack_offset : aword;
          hp : tparaitem;
-         loc : tloc;
+         loc : tcgloc;
          is_64bit: boolean;
 
       procedure assignintreg;
@@ -301,7 +301,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.25  2003-04-17 18:52:35  jonas
+  Revision 1.26  2003-04-23 12:35:35  florian
+    * fixed several issues with powerpc
+    + applied a patch from Jonas for nested function calls (PowerPC only)
+    * ...
+
+  Revision 1.25  2003/04/17 18:52:35  jonas
     * process para's from first to last instead of the other way round
 
   Revision 1.24  2003/04/16 07:55:07  jonas

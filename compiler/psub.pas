@@ -329,7 +329,7 @@ implementation
 
          {When we are called to compile the body of a unit, aktprocsym should
           point to the unit initialization. If the unit has no initialization,
-          aktprocsym=nil. But in that case code=nil. hus we should check for
+          aktprocsym=nil. But in that case code=nil. Thus we should check for
           code=nil, when we use aktprocsym.}
 
          { set the start offset to the start of the temp area in the stack }
@@ -884,7 +884,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.101  2003-04-22 14:33:38  peter
+  Revision 1.102  2003-04-23 12:35:34  florian
+    * fixed several issues with powerpc
+    + applied a patch from Jonas for nested function calls (PowerPC only)
+    * ...
+
+  Revision 1.101  2003/04/22 14:33:38  peter
     * removed some notes/hints
 
   Revision 1.100  2003/04/22 13:47:08  peter

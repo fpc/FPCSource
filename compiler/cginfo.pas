@@ -44,9 +44,14 @@ interface
          LOC_FPUREGISTER,  { FPU stack }
          LOC_CFPUREGISTER, { if it is a FPU register variable on the fpu stack }
          LOC_MMXREGISTER,  { MMX register }
-         LOC_CMMXREGISTER, { MMX register variable }
+         { MMX register variable }
+         LOC_CMMXREGISTER,
          LOC_SSEREGISTER,
-         LOC_CSSEREGISTER
+         LOC_CSSEREGISTER,
+         { multimedia register }
+         LOC_MMREGISTER,
+         { Constant multimedia reg which shouldn't be modified }
+         LOC_CMMREGISTER
        );
 
        {# Generic opcodes, which must be supported by all processors
@@ -126,7 +131,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.19  2003-04-22 23:50:22  peter
+  Revision 1.20  2003-04-23 12:35:34  florian
+    * fixed several issues with powerpc
+    + applied a patch from Jonas for nested function calls (PowerPC only)
+    * ...
+
+  Revision 1.19  2003/04/22 23:50:22  peter
     * firstpass uses expectloc
     * checks if there are differences between the expectloc and
       location.loc from secondpass in EXTDEBUG

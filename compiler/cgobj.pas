@@ -1808,7 +1808,7 @@ unit cgobj;
     var r:Tregister;
 
      begin
-       r.enum:=R_INTREGISTER;;
+       r.enum:=R_INTREGISTER;
        r.number:=NR_ACCUMULATOR;
        a_load_ref_reg(list, OS_S32, href, r);
      end;
@@ -1838,7 +1838,12 @@ finalization
 end.
 {
   $Log$
-  Revision 1.84  2003-04-22 14:33:38  peter
+  Revision 1.85  2003-04-23 12:35:34  florian
+    * fixed several issues with powerpc
+    + applied a patch from Jonas for nested function calls (PowerPC only)
+    * ...
+
+  Revision 1.84  2003/04/22 14:33:38  peter
     * removed some notes/hints
 
   Revision 1.83  2003/04/22 13:47:08  peter

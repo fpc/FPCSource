@@ -73,7 +73,7 @@ interface
             result := nil;
             firstpass(left);
             firstpass(right);
-            location.loc := LOC_FLAGS;
+            expectloc := LOC_FLAGS;
             calcregisters(self,2,0,0);
             exit;
           end;
@@ -1479,7 +1479,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.24  2003-03-11 21:46:24  jonas
+  Revision 1.25  2003-04-23 12:35:35  florian
+    * fixed several issues with powerpc
+    + applied a patch from Jonas for nested function calls (PowerPC only)
+    * ...
+
+  Revision 1.24  2003/03/11 21:46:24  jonas
     * lots of new regallocator fixes, both in generic and ppc-specific code
       (ppc compiler still can't compile the linux system unit though)
 

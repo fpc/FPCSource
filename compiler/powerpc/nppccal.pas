@@ -72,38 +72,43 @@ implementation
     end;
 
   procedure tppccallnode.push_framepointer;
-
+    var
+       href : treference;
+       hregister1,hregister2 : tregister;
+       i : longint;
     begin
-       {
        if lexlevel=(tprocdef(procdefinition).parast.symtablelevel) then
          begin
-            reference_reset_base(href,procinfo^.framepointer,procinfo^.framepointer_offset);
-            cg.a_param_ref(exprasmlist,OS_ADDR,href,paramanager.getframepointerloc(procinfo.procdef));
+            { pass the same framepointer as the current procedure got }
+            hregister2.enum:=R_INTREGISTER;
+            hregister2.number:=NR_R11;
+            cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,procinfo.framepointer,hregister2);
+            { it must be adjusted! }
          end
          { this is only true if the difference is one !!
            but it cannot be more !! }
        else if (lexlevel=(tprocdef(procdefinition).parast.symtablelevel)-1) then
          begin
-            cg.a_param_reg(exprasmlist,OS_ADDR,procinfo^.framepointer,paramanager.getframepointerloc(procinfo.procdef));
+            // cg.a_param_reg(exprasmlist,OS_ADDR,procinfo.framepointer,paramanager.getframepointerloc(procinfo.procdef));
          end
        else if (lexlevel>(tprocdef(procdefinition).parast.symtablelevel)) then
          begin
-            hregister:=rg.getregisterint(exprasmlist);
-            reference_reset_base(href,procinfo^.framepointer,procinfo^.framepointer_offset);
-            cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,hregister);
+            hregister1:=rg.getregisterint(exprasmlist,OS_ADDR);
+            reference_reset_base(href,procinfo.framepointer,procinfo.framepointer_offset);
+            cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,hregister1);
             for i:=(tprocdef(procdefinition).parast.symtablelevel) to lexlevel-1 do
               begin
                  {we should get the correct frame_pointer_offset at each level
                  how can we do this !!! }
-                 reference_reset_base(href,hregister,procinfo^.framepointer_offset);
-                 cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,hregister);
+                 reference_reset_base(href,hregister2,procinfo.framepointer_offset);
+                 cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,hregister1);
               end;
-            cg.a_param_reg(exprasmlist,OS_ADDR,hregister,-1);
-            rg.ungetregisterint(exprasmlist,hregister);
+            hregister2.enum:=R_11;
+            cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,hregister1,hregister2);
+            rg.ungetregisterint(exprasmlist,hregister1);
          end
        else
          internalerror(2002081303);
-       }
     end;
 
 begin
@@ -111,7 +116,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2003-04-04 15:38:56  peter
+  Revision 1.6  2003-04-23 12:35:35  florian
+    * fixed several issues with powerpc
+    + applied a patch from Jonas for nested function calls (PowerPC only)
+    * ...
+
+  Revision 1.5  2003/04/04 15:38:56  peter
     * moved generic code from n386cal to ncgcal, i386 now also
       uses the generic ncgcal
 

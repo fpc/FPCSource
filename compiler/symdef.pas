@@ -687,11 +687,19 @@ interface
        ordpointertype,
        pvmttype      : ttype;     { type of classrefs, used for stabs }
 
+       { pointer to the anchestor of all classes }
+       class_tobject : tobjectdef;
+       { pointer to the ancestor of all COM interfaces }
+       interface_iunknown : tobjectdef;
+       { pointer to the TGUID type
+         of all interfaces         }
+       rec_tguid : trecorddef;
 
-       class_tobject : tobjectdef;      { pointer to the anchestor of all classes }
-       interface_iunknown : tobjectdef; { KAZ: pointer to the ancestor }
-       rec_tguid : trecorddef;          { KAZ: pointer to the TGUID type }
-                                        { of all interfaces            }
+       { Pointer to a procdef with no parameters and no return value.
+         This is used for procedures which are generated automatically
+         by the compiler.
+       }
+       voidprocdef : tprocdef;
 
     const
 {$ifdef i386}
@@ -5706,10 +5714,17 @@ implementation
           (tobjectdef(def).objecttype in [odt_class,odt_interfacecom,odt_interfacecorba]);
       end;
 
+begin
+   voidprocdef:=tprocdef.create;
 end.
 {
   $Log$
-  Revision 1.133  2003-04-10 17:57:53  peter
+  Revision 1.134  2003-04-23 12:35:34  florian
+    * fixed several issues with powerpc
+    + applied a patch from Jonas for nested function calls (PowerPC only)
+    * ...
+
+  Revision 1.133  2003/04/10 17:57:53  peter
     * vs_hidden released
 
   Revision 1.132  2003/03/18 16:25:50  peter

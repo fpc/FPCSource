@@ -281,7 +281,7 @@ const
   {Subregisters; nothing known about.}
   R_SUBWHOLE=$00;
   R_SUBL=$00;
-  
+
 type
   reg2strtable=ARRAY[TOldRegister] OF STRING[7];
 
@@ -366,30 +366,14 @@ TYPE
                                Generic Location
 *****************************************************************************}
 TYPE
-  TLoc=(              {information about the location of an operand}
-    LOC_INVALID,      { added for tracking problems}
-    LOC_CONSTANT,     { CONSTant value }
-    LOC_JUMP,         { boolean results only, jump to false or true label }
-    LOC_FLAGS,        { boolean results only, flags are set }
-    LOC_CREFERENCE,   { in memory CONSTant value }
-    LOC_REFERENCE,    { in memory value }
-    LOC_REGISTER,     { in a processor register }
-    LOC_CREGISTER,    { Constant register which shouldn't be modified }
-    LOC_FPUREGISTER,  { FPU stack }
-    LOC_CFPUREGISTER, { if it is a FPU register variable on the fpu stack }
-    LOC_MMXREGISTER,  { MMX register }
-    LOC_CMMXREGISTER, { MMX register variable }
-    LOC_MMREGISTER,
-    LOC_CMMREGISTER
-  );
 {tparamlocation describes where a parameter for a procedure is stored.
 References are given from the caller's point of view. The usual TLocation isn't
 used, because contains a lot of unnessary fields.}
   TParaLocation=PACKED RECORD
     Size:TCGSize;
-    Loc:TLoc;
+    Loc:TCGLoc;
     sp_fixup:LongInt;
-    CASE TLoc OF
+    CASE TCGLoc OF
       LOC_REFERENCE:(reference:tparareference);
             { segment in reference at the same place as in loc_register }
       LOC_REGISTER,LOC_CREGISTER : (
@@ -405,9 +389,9 @@ used, because contains a lot of unnessary fields.}
       LOC_MMXREGISTER,LOC_CMMXREGISTER : (mmxreg : tregister);
     END;
     TLocation=PACKED RECORD
-         loc  : TLoc;
+         loc  : TCGLoc;
          size : TCGSize;
-         case TLoc of
+         case TCGLoc of
             LOC_FLAGS : (resflags : tresflags);
             LOC_CONSTANT : (
               case longint of
@@ -455,13 +439,13 @@ const
   mmregs=[];
   usableregsmm=[];
   c_countusableregsmm=0;
-  { no distinction on this platform }      
+  { no distinction on this platform }
   maxaddrregs = 0;
   addrregs    = [];
   usableregsaddr = [];
   c_countusableregsaddr = 0;
-  
-  
+
+
   firstsaveintreg = RS_O0;
   lastsaveintreg = RS_I7;
   firstsavefpureg = R_F0;
@@ -591,8 +575,8 @@ const
   max_operands = 3;
   maxintregs = maxvarregs;
   maxfpuregs = maxfpuvarregs;
-  
-  
+
+
 
 FUNCTION is_calljmp(o:tasmop):boolean;
 FUNCTION flags_to_cond(CONST f:TResFlags):TAsmCond;
@@ -676,7 +660,12 @@ END.
 
 {
   $Log$
-  Revision 1.25  2003-03-10 21:59:54  mazen
+  Revision 1.26  2003-04-23 12:35:35  florian
+    * fixed several issues with powerpc
+    + applied a patch from Jonas for nested function calls (PowerPC only)
+    * ...
+
+  Revision 1.25  2003/03/10 21:59:54  mazen
   * fixing index overflow in handling new registers arrays.
 
   Revision 1.24  2003/02/26 22:06:27  mazen

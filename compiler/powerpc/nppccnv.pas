@@ -272,7 +272,7 @@ implementation
       begin
          { byte(boolean) or word(wordbool) or longint(longbool) must }
          { be accepted for var parameters                            }
-         if (nf_explizit in flags) and
+         if (nf_explicit in flags) and
             (left.resulttype.def.size=resulttype.def.size) and
             (left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER]) then
            begin
@@ -394,7 +394,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.30  2003-03-11 21:46:24  jonas
+  Revision 1.31  2003-04-23 12:35:35  florian
+    * fixed several issues with powerpc
+    + applied a patch from Jonas for nested function calls (PowerPC only)
+    * ...
+
+  Revision 1.30  2003/03/11 21:46:24  jonas
     * lots of new regallocator fixes, both in generic and ppc-specific code
       (ppc compiler still can't compile the linux system unit though)
 

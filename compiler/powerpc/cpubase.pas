@@ -395,33 +395,6 @@ uses
 *****************************************************************************}
 
     type
-      TLoc=(
-        { added for tracking problems}
-        LOC_INVALID,
-        { ordinal constant }
-        LOC_CONSTANT,
-        { in a processor register }
-        LOC_REGISTER,
-        { Constant register which shouldn't be modified }
-        LOC_CREGISTER,
-        { FPU register}
-        LOC_FPUREGISTER,
-        { Constant FPU register which shouldn't be modified }
-        LOC_CFPUREGISTER,
-        { multimedia register }
-        LOC_MMREGISTER,
-        { Constant multimedia reg which shouldn't be modified }
-        LOC_CMMREGISTER,
-        { in memory }
-        LOC_REFERENCE,
-        { in memory (constant) }
-        LOC_CREFERENCE,
-        { boolean results only, jump to false or true label }
-        LOC_JUMP,
-        { boolean results only, flags are set }
-        LOC_FLAGS
-      );
-
       { tparamlocation describes where a parameter for a procedure is stored.
         References are given from the caller's point of view. The usual
         TLocation isn't used, because contains a lot of unnessary fields.
@@ -431,7 +404,7 @@ uses
          { The location type where the parameter is passed, usually
            LOC_REFERENCE,LOC_REGISTER or LOC_FPUREGISTER
          }
-         loc  : TLoc;
+         loc  : TCGLoc;
          { The stack pointer must be decreased by this value before
            the parameter is copied to the given destination.
            This allows to "encode" pushes with tparalocation.
@@ -439,7 +412,7 @@ uses
            because several generic code accesses it.
          }
          sp_fixup : longint;
-         case TLoc of
+         case TCGLoc of
             LOC_REFERENCE : (reference : tparareference);
             LOC_FPUREGISTER, LOC_CFPUREGISTER, LOC_MMREGISTER, LOC_CMMREGISTER,
               LOC_REGISTER,LOC_CREGISTER : (
@@ -466,8 +439,8 @@ uses
 
       tlocation = packed record
          size : TCGSize;
-         loc : tloc;
-         case tloc of
+         loc : tcgloc;
+         case tcgloc of
             LOC_CREFERENCE,LOC_REFERENCE : (reference : treference);
             LOC_CONSTANT : (
               case longint of
@@ -879,7 +852,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.47  2003-04-22 11:27:48  florian
+  Revision 1.48  2003-04-23 12:35:35  florian
+    * fixed several issues with powerpc
+    + applied a patch from Jonas for nested function calls (PowerPC only)
+    * ...
+
+  Revision 1.47  2003/04/22 11:27:48  florian
     + added first_ and last_imreg
 
   Revision 1.46  2003/03/19 14:26:26  jonas

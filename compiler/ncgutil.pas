@@ -2000,7 +2000,11 @@ implementation
 
 
     procedure genimplicitunitinit(list : TAAsmoutput);
+      var
+         oldprocinfo : tprocinfo;
       begin
+         oldprocinfo:=procinfo;
+         procinfo:=voidprocpi;
 {$ifdef GDB}
          if (cs_debuginfo in aktmoduleswitches) and
             target_info.use_function_relative_addresses then
@@ -2008,17 +2012,26 @@ implementation
 {$endif GDB}
          list.concat(Tai_symbol.Createname_global('INIT$$'+current_module.modulename^,0));
          list.concat(Tai_symbol.Createname_global(target_info.cprefix+current_module.modulename^+'_init',0));
+{$ifndef i386}
+         { on the 386, g_return_from_proc is a simple return, so we don't need a real stack frame }
+         cg.g_stackframe_entry(list,0);
+{$endif i386}
          { using current_module.globalsymtable is hopefully      }
          { more robust than symtablestack and symtablestack.next }
          if assigned(current_module.globalsymtable) then
            tsymtable(current_module.globalsymtable).foreach_static({$ifdef FPCPROCVAR}@{$endif}finalize_data,list);
          tsymtable(current_module.localsymtable).foreach_static({$ifdef FPCPROCVAR}@{$endif}finalize_data,list);
          cg.g_return_from_proc(list,0);
+         procinfo:=oldprocinfo;
       end;
 
 
     procedure genimplicitunitfinal(list : TAAsmoutput);
+      var
+         oldprocinfo : tprocinfo;
       begin
+         oldprocinfo:=procinfo;
+         procinfo:=voidprocpi;
 {$ifdef GDB}
          if (cs_debuginfo in aktmoduleswitches) and
             target_info.use_function_relative_addresses then
@@ -2026,20 +2039,28 @@ implementation
 {$endif GDB}
          list.concat(Tai_symbol.Createname_global('FINALIZE$$'+current_module.modulename^,0));
          list.concat(Tai_symbol.Createname_global(target_info.cprefix+current_module.modulename^+'_finalize',0));
+{$ifndef i386}
+         { on the 386, g_return_from_proc is a simple return, so we don't need a real stack frame }
+         cg.g_stackframe_entry(list,0);
+{$endif i386}
          { using current_module.globalsymtable is hopefully      }
          { more robust than symtablestack and symtablestack.next }
          if assigned(current_module.globalsymtable) then
            tsymtable(current_module.globalsymtable).foreach_static({$ifdef FPCPROCVAR}@{$endif}finalize_data,list);
          tsymtable(current_module.localsymtable).foreach_static({$ifdef FPCPROCVAR}@{$endif}finalize_data,list);
          cg.g_return_from_proc(list,0);
+         procinfo:=oldprocinfo;
       end;
-
-
 
 end.
 {
   $Log$
-  Revision 1.87  2003-04-22 14:33:38  peter
+  Revision 1.88  2003-04-23 12:35:34  florian
+    * fixed several issues with powerpc
+    + applied a patch from Jonas for nested function calls (PowerPC only)
+    * ...
+
+  Revision 1.87  2003/04/22 14:33:38  peter
     * removed some notes/hints
 
   Revision 1.86  2003/04/22 13:47:08  peter

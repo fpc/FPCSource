@@ -72,6 +72,8 @@ unit cgbase;
           procdef : tprocdef;
           {# offset from frame pointer to get parent frame pointer reference
              (used in nested routines only)
+             On the PowerPC, this is used to store the offset where the
+             frame pointer from the outer procedure is stored.
           }
           framepointer_offset : longint;
           {# offset from frame pointer to get self reference }
@@ -217,6 +219,8 @@ unit cgbase;
        { save the size of pushed parameter, needed for aligning }
        pushedparasize : longint;
 
+       { procinfo instance which is used in procedures created automatically by the compiler }
+       voidprocpi : tprocinfo;
 
     { message calls with codegenerror support }
     procedure cgmessage(t : longint);
@@ -515,6 +519,14 @@ implementation
          ResourceStrings:=TResourceStrings.Create;
          { use the librarydata from current_module }
          objectlibrary:=current_module.librarydata;
+         { for the implicitly generated init/final. procedures for global init. variables,
+           a dummy procinfo is necessary }
+         voidprocpi:=cprocinfo.create;
+         with voidprocpi do
+           begin
+              framepointer.enum:=R_INTREGISTER;
+              framepointer.number:=NR_FRAME_POINTER_REG;
+           end;
       end;
 
 
@@ -549,6 +561,7 @@ implementation
          { resource strings }
          ResourceStrings.free;
          objectlibrary:=nil;
+         // voidprocpi.free;
       end;
 
 
@@ -644,7 +657,6 @@ implementation
         commutativeop := list[op];
       end;
 
-
 {$ifdef fixLeaksOnError}
 procedure hcodegen_do_stop;
 var p: pprocinfo;
@@ -652,7 +664,8 @@ begin
   p := pprocinfo(procinfoStack.pop);
   while p <> nil Do
     begin
-      dispose(p,done);
+      if p<>voidprocpi then
+        p.free;
       p := pprocinfo(procinfoStack.pop);
     end;
   procinfoStack.done;
@@ -668,7 +681,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.40  2003-04-22 13:47:08  peter
+  Revision 1.41  2003-04-23 12:35:34  florian
+    * fixed several issues with powerpc
+    + applied a patch from Jonas for nested function calls (PowerPC only)
+    * ...
+
+  Revision 1.40  2003/04/22 13:47:08  peter
     * fixed C style array of const
     * fixed C array passing
     * fixed left to right with high parameters

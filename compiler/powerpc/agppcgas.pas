@@ -174,10 +174,10 @@ unit agppcgas;
            if (symaddr <> refs_full) then
              s := s+')'+symaddr2str[symaddr];
 
-            if (index.enum < firstreg) or (index.enum > lastreg) then
-              internalerror(20030312);
-            if (base.enum < firstreg) or (base.enum > lastreg) then
-              internalerror(200303123);
+           if (index.enum < firstreg) or (index.enum > lastreg) then
+             internalerror(20030312);
+           if (base.enum < firstreg) or (base.enum > lastreg) then
+             internalerror(200303123);
            if (index.enum=R_NO) and (base.enum<>R_NO) then
              begin
                 if offset=0 then
@@ -192,7 +192,7 @@ unit agppcgas;
            else if (index.enum<>R_NO) and (base.enum<>R_NO) and (offset=0) then
              s:=s+gas_reg2str[base.enum]+','+gas_reg2str[index.enum]
            else if ((index.enum<>R_NO) or (base.enum<>R_NO)) then
-            internalerror(19992);
+             internalerror(19992);
         end;
       getreferencestring:=s;
     end;
@@ -364,6 +364,9 @@ unit agppcgas;
                 sep:=#9;
               for i:=0 to taicpu(hp).ops-1 do
                 begin
+                   // debug code
+                   // writeln(s);
+                   // writeln(taicpu(hp).fileinfo.line);
                    s:=s+sep+getopstr(taicpu(hp).oper[i]);
                    sep:=',';
                 end;
@@ -377,7 +380,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.21  2003-03-12 22:43:38  jonas
+  Revision 1.22  2003-04-23 12:35:35  florian
+    * fixed several issues with powerpc
+    + applied a patch from Jonas for nested function calls (PowerPC only)
+    * ...
+
+  Revision 1.21  2003/03/12 22:43:38  jonas
     * more powerpc and generic fixes related to the new register allocator
 
   Revision 1.20  2003/01/08 18:43:57  daniel

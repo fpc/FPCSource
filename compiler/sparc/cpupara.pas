@@ -63,7 +63,7 @@ function TSparcParaManager.GetIntParaLoc(nr:longint):TParaLocation;
           reference.offset:=-68-nr*4;
         end;
   end;
-function GetParaLoc(p:TDef):TLoc;
+function GetParaLoc(p:TDef):TCGLoc;
   begin
 {Later, the LOC_REFERENCE is in most cases changed into LOC_REGISTER if
 push_addr_param for the def is true}
@@ -124,7 +124,7 @@ procedure TSparcParaManager.create_param_loc_info(p:TAbstractProcDef);
     nextintreg,nextfloatreg:tregister;
     stack_offset:aword;
     hp:tparaitem;
-    loc:tloc;
+    loc:tcgloc;
     is_64bit:boolean;
   begin
     nextintreg.enum:=R_O0;
@@ -281,7 +281,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2003-01-08 18:43:58  daniel
+  Revision 1.15  2003-04-23 12:35:35  florian
+    * fixed several issues with powerpc
+    + applied a patch from Jonas for nested function calls (PowerPC only)
+    * ...
+
+  Revision 1.14  2003/01/08 18:43:58  daniel
    * Tregister changed into a record
 
   Revision 1.13  2003/01/05 21:32:35  mazen

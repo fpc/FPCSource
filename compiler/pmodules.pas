@@ -774,7 +774,9 @@ implementation
          store_crc,store_interface_crc : cardinal;
          s2  : ^string; {Saves stack space}
          force_init_final : boolean;
+         initfinalcode : taasmoutput;
       begin
+         initfinalcode:=taasmoutput.create;
          consume(_UNIT);
          if compile_level=1 then
           Status.IsExe:=false;
@@ -999,7 +1001,9 @@ implementation
               { now we can insert a cut }
               if (cs_create_smart in aktmoduleswitches) then
                 codeSegment.concat(Tai_cut.Create);
-              genimplicitunitinit(codesegment);
+              genimplicitunitinit(initfinalcode);
+              initfinalcode.convert_registers;
+              codesegment.concatlist(initfinalcode);
            end;
          { finalize? }
          if token=_FINALIZATION then
@@ -1021,7 +1025,9 @@ implementation
               { now we can insert a cut }
               if (cs_create_smart in aktmoduleswitches) then
                 codeSegment.concat(Tai_cut.Create);
-              genimplicitunitfinal(codesegment);
+              genimplicitunitfinal(initfinalcode);
+              initfinalcode.convert_registers;
+              codesegment.concatlist(initfinalcode);
            end;
 
          { the last char should always be a point }
@@ -1166,7 +1172,10 @@ implementation
             exit;
           end;
 
+        initfinalcode.free;
+
         Comment(V_Used,'Finished compiling module '+current_module.modulename^);
+
       end;
 
 
@@ -1175,7 +1184,9 @@ implementation
          main_file: tinputfile;
          st    : tsymtable;
          hp    : tmodule;
+         initfinalcode : taasmoutput;
       begin
+        initfinalcode:=taasmoutput.create;
          DLLsource:=islibrary;
          Status.IsLibrary:=IsLibrary;
          Status.IsExe:=true;
@@ -1318,11 +1329,15 @@ So, all parameters are passerd into registers in sparc architecture.}
               { Add initialize section }
               if (cs_create_smart in aktmoduleswitches) then
                 codeSegment.concat(Tai_cut.Create);
-              genimplicitunitinit(codesegment);
+              genimplicitunitinit(initfinalcode);
+              initfinalcode.convert_registers;
+              codesegment.concatlist(initfinalcode);
               { Add finalize section }
               if (cs_create_smart in aktmoduleswitches) then
                 codeSegment.concat(Tai_cut.Create);
-              genimplicitunitfinal(codesegment);
+              genimplicitunitfinal(initfinalcode);
+              initfinalcode.convert_registers;
+              codesegment.concatlist(initfinalcode);
            end;
 
          { Add symbol to the exports section for win32 so smartlinking a
@@ -1448,12 +1463,18 @@ So, all parameters are passerd into registers in sparc architecture.}
                 linker.MakeExecutable;
              end;
           end;
+         initfinalcode.free;
       end;
 
 end.
 {
   $Log$
-  Revision 1.100  2003-04-12 15:13:03  peter
+  Revision 1.101  2003-04-23 12:35:34  florian
+    * fixed several issues with powerpc
+    + applied a patch from Jonas for nested function calls (PowerPC only)
+    * ...
+
+  Revision 1.100  2003/04/12 15:13:03  peter
     * Use the original unitname when defining a unitsym
 
   Revision 1.99  2003/03/23 23:21:42  hajny

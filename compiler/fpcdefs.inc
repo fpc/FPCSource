@@ -52,6 +52,9 @@
   {$define cpu64bit}
   {$undef cpuflags}
 {$endif alpha}
+{$ifdef powerpc}
+  {$define callparatemp}
+{$endif powerpc}
 
 { FPU Emulator support }
 {$ifdef m68k}
@@ -60,7 +63,12 @@
 
 {
   $Log$
-  Revision 1.14  2002-12-06 16:56:57  peter
+  Revision 1.15  2003-04-23 12:35:34  florian
+    * fixed several issues with powerpc
+    + applied a patch from Jonas for nested function calls (PowerPC only)
+    * ...
+
+  Revision 1.14  2002/12/06 16:56:57  peter
     * only compile cs_fp_emulation support when cpufpuemu is defined
     * define cpufpuemu for m68k only
 

@@ -114,7 +114,7 @@ uses
          R_INTREGISTER,R_FLOATREGISTER);
 
       Tnewregister=word;
-      
+
       Tregister=record
         enum:Toldregister;
         number:word;
@@ -151,14 +151,14 @@ uses
       NR_D6 = $0700; NR_D7 = $0800; NR_A0 = $0900;
       NR_A1 = $0A00; NR_A2 = $0B00; NR_A3 = $0C00;
       NR_A4 = $0D00; NR_A5 = $0E00; NR_A6 = $0F00;
-      NR_A7 = $1000; 
+      NR_A7 = $1000;
 
     {Super registers.}
-      RS_D0 = $01; RS_D1 = $02; RS_D2 = $03; 
-      RS_D3 = $04; RS_D4 = $05; RS_D5 = $06; 
-      RS_D6 = $07; RS_D7 = $08; RS_A0 = $09; 
-      RS_A1 = $0A; RS_A2 = $0B; RS_A3 = $0C; 
-      RS_A4 = $0D; RS_A5 = $0E; RS_A6 = $0F; 
+      RS_D0 = $01; RS_D1 = $02; RS_D2 = $03;
+      RS_D3 = $04; RS_D4 = $05; RS_D5 = $06;
+      RS_D6 = $07; RS_D7 = $08; RS_A0 = $09;
+      RS_A1 = $0A; RS_A2 = $0B; RS_A3 = $0C;
+      RS_A4 = $0D; RS_A5 = $0E; RS_A6 = $0F;
       RS_A7 = $10;
 
      {Sub register numbers:}
@@ -288,35 +288,15 @@ uses
 *****************************************************************************}
 
     type
-      TLoc=(
-        LOC_INVALID,      { added for tracking problems}
-        LOC_CONSTANT,     { constant value }
-        LOC_JUMP,         { boolean results only, jump to false or true label }
-        LOC_FLAGS,        { boolean results only, flags are set }
-        LOC_CREFERENCE,   { in memory constant value reference (cannot change) }
-        LOC_REFERENCE,    { in memory value }
-        LOC_REGISTER,     { in a processor register }
-        LOC_CREGISTER,    { Constant register which shouldn't be modified }
-        LOC_FPUREGISTER,  { FPU stack }
-        LOC_CFPUREGISTER, { if it is a FPU register variable on the fpu stack }
-
-        { The m68k doesn't know multi media registers but this is for easier porting
-          because several generic parts of the compiler use it. }
-        LOC_MMREGISTER,
-        { The m68k doesn't know multi media registers but this is for easier porting
-          because several generic parts of the compiler use it. }
-        LOC_CMMREGISTER
-      );
-
       { tparamlocation describes where a parameter for a procedure is stored.
         References are given from the caller's point of view. The usual
         TLocation isn't used, because contains a lot of unnessary fields.
       }
       tparalocation = packed record
          size : TCGSize;
-         loc  : TLoc;
+         loc  : TCGLoc;
          sp_fixup : longint;
-         case TLoc of
+         case TCGLoc of
             LOC_REFERENCE : (reference : tparareference);
             { segment in reference at the same place as in loc_register }
             LOC_REGISTER,LOC_CREGISTER : (
@@ -331,9 +311,9 @@ uses
       end;
 
       tlocation = packed record
-         loc  : TLoc;
+         loc  : TCGLoc;
          size : TCGSize;
-         case TLoc of
+         case TCGLoc of
             LOC_FLAGS : (resflags : tresflags);
             LOC_CONSTANT : (
               case longint of
@@ -646,7 +626,7 @@ implementation
 
     function flags_to_cond(const f: TResFlags) : TAsmCond;
       const flags2cond: array[tresflags] of tasmcond = (
-          C_EQ,{F_E     equal}    
+          C_EQ,{F_E     equal}
           C_NE,{F_NE    not equal}
           C_GT,{F_G     gt signed}
           C_LT,{F_L     lt signed}
@@ -726,7 +706,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.18  2003-02-19 22:00:16  daniel
+  Revision 1.19  2003-04-23 12:35:35  florian
+    * fixed several issues with powerpc
+    + applied a patch from Jonas for nested function calls (PowerPC only)
+    * ...
+
+  Revision 1.18  2003/02/19 22:00:16  daniel
     * Code generator converted to new register notation
     - Horribily outdated todo.txt removed
 

@@ -64,7 +64,7 @@ implementation
 
      function tppcinlinenode.first_abs_real : tnode;
       begin
-        location.loc:=LOC_FPUREGISTER;
+        expectloc:=LOC_FPUREGISTER;
         registers32:=left.registers32;
         registersfpu:=max(left.registersfpu,1);
 {$ifdef SUPPORT_MMX}
@@ -75,7 +75,7 @@ implementation
 
      function tppcinlinenode.first_sqr_real : tnode;
       begin
-        location.loc:=LOC_FPUREGISTER;
+        expectloc:=LOC_FPUREGISTER;
         registers32:=left.registers32;
         registersfpu:=max(left.registersfpu,1);
 {$ifdef SUPPORT_MMX}
@@ -86,7 +86,7 @@ implementation
 
      function tppcinlinenode.first_sqrt_real : tnode;
       begin
-        location.loc:=LOC_FPUREGISTER;
+        expectloc:=LOC_FPUREGISTER;
         registers32:=left.registers32;
         registersfpu:=max(left.registersfpu,1);
 {$ifdef SUPPORT_MMX}
@@ -126,6 +126,7 @@ implementation
 
      procedure tppcinlinenode.second_abs_real;
        begin
+         location.loc:=LOC_FPUREGISTER;
          load_fpu_location;
          exprasmlist.concat(taicpu.op_reg_reg(A_FABS,location.register,
            left.location.register));
@@ -133,6 +134,7 @@ implementation
 
      procedure tppcinlinenode.second_sqr_real;
        begin
+         location.loc:=LOC_FPUREGISTER;
          load_fpu_location;
          exprasmlist.concat(taicpu.op_reg_reg_reg(A_FMUL,location.register,
            left.location.register,left.location.register));
@@ -140,6 +142,7 @@ implementation
 
      procedure tppcinlinenode.second_sqrt_real;
        begin
+         location.loc:=LOC_FPUREGISTER;
          load_fpu_location;
          exprasmlist.concat(taicpu.op_reg_reg(A_FSQRT,location.register,
            left.location.register));
@@ -150,7 +153,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2002-11-25 17:43:28  peter
+  Revision 1.5  2003-04-23 12:35:35  florian
+    * fixed several issues with powerpc
+    + applied a patch from Jonas for nested function calls (PowerPC only)
+    * ...
+
+  Revision 1.4  2002/11/25 17:43:28  peter
     * splitted defbase in defutil,symutil,defcmp
     * merged isconvertable and is_equal into compare_defs(_ext)
     * made operator search faster by walking the list only once
