@@ -3,13 +3,13 @@ stack_pointer              contains the register used as stack pointer
 self_pointer               contains the register used as self pointer
 
 
-unusedregsint
-unusedregsfpu
-unusedregsmm
+unusedregsint              set of Currently available integer registers
+unusedregsfpu              set of Currently available fpu registers
+unusedregsmm               set of Currently available mm registers
 
-availabletempregsint
-availabletempregsfpu
-availabletempregsmm
+availabletempregsint       set of maximally available integer registers
+availabletempregsfpu       set of maximally available fpu registers
+availabletempregsmm        set of maximally available mm registers
 
 countusableregsint         count of currently available integer registers
 countusableregsfpu         count of currently available fpu registers
