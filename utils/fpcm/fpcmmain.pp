@@ -116,7 +116,7 @@ interface
         function  CopySection(Sec:TFPCMakeSection;Secname:string):TFPCMakeSection;
       protected
         VerboseIdent : string;
-        procedure Verbose(lvl:TFPCMakeVerbose;const s:string);
+        procedure Verbose(lvl:TFPCMakeVerbose;const s:string);virtual;
       public
         constructor Create(const AFileName:string);
         constructor CreateFromStream(s:TStream;const AFileName:string);
@@ -1202,7 +1202,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  2001-06-02 19:20:24  peter
+  Revision 1.7  2001-06-04 21:42:57  peter
+    * Arguments added
+    * Start of Package.fpc creation
+
+  Revision 1.6  2001/06/02 19:20:24  peter
     * beos target added
 
   Revision 1.5  2001/02/22 21:11:24  peter

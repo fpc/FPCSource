@@ -61,7 +61,7 @@ interface
          function  insert(obj:TDictionaryItem):TDictionaryItem;
          function  rename(const olds,News : string):TDictionaryItem;
          function  search(const s:string):TDictionaryItem;
-         function  speedsearch(const s:string;SpeedValue:integer):TDictionaryItem;
+         function  speedsearch(const s:string;SpeedValue:Cardinal):TDictionaryItem;
          property  Items[const s:string]:TDictionaryItem read Search;default;
        end;
 
@@ -119,14 +119,14 @@ constructor TDictionaryItem.Create(const n:string);
 begin
   left:=nil;
   right:=nil;
-  FSpeedValue:=-1;
+  FSpeedValue:=$ffffffff;
   FName:=n;
 end;
 
 
 procedure TDictionaryItem.Setname(const n:string);
 begin
-  if FSpeedValue=-1 then
+  if FSpeedValue=$ffffffff then
    FName:=n;
 end;
 
@@ -415,7 +415,7 @@ end;
 
     function tdictionary.rename(const olds,News : string):TDictionaryItem;
       var
-        spdval : integer;
+        spdval : Cardinal;
         lasthp,
         hp,hp2,hp3 : TDictionaryItem;
       begin
@@ -501,7 +501,7 @@ end;
       end;
 
 
-    function Tdictionary.speedsearch(const s:string;SpeedValue:integer):TDictionaryItem;
+    function Tdictionary.speedsearch(const s:string;SpeedValue:Cardinal):TDictionaryItem;
       var
         NewNode:TDictionaryItem;
       begin
@@ -538,7 +538,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2001-01-24 21:59:36  peter
+  Revision 1.2  2001-06-04 21:42:57  peter
+    * Arguments added
+    * Start of Package.fpc creation
+
+  Revision 1.1  2001/01/24 21:59:36  peter
     * first commit of new fpcmake
 
 }

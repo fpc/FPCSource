@@ -23,16 +23,16 @@ interface
 
     type
       tsections=(sec_none,
-        sec_units,sec_exes,sec_loaders,sec_examples,
+        sec_units,sec_exes,sec_loaders,sec_examples,sec_rsts,
         sec_compile,sec_install,
         sec_distinstall,sec_zipinstall,sec_clean,sec_libs,
         sec_command,sec_exts,sec_dirs,sec_tools,sec_info
       );
 
       trules=(
-        r_all,r_debug,
+        r_all,r_debug,r_smart,
         r_examples,
-        r_smart,r_shared,
+        r_shared,
         r_install,r_sourceinstall,r_exampleinstall,r_distinstall,
         r_zipinstall,r_zipsourceinstall,r_zipexampleinstall,r_zipdistinstall,
         r_clean,r_distclean,r_cleanall,
@@ -42,9 +42,9 @@ interface
 
     const
       rule2str : array[trules] of string=(
-        'all','debug',
+        'all','debug','smart',
         'examples',
-        'smart','shared',
+        'shared',
         'install','sourceinstall','exampleinstall','distinstall',
         'zipinstall','zipsourceinstall','zipexampleinstall','zipdistinstall',
         'clean','distclean','cleanall',
@@ -52,9 +52,9 @@ interface
       );
 
       rule2sec : array[trules] of tsections=(
-        sec_compile,sec_compile,
+        sec_compile,sec_compile,sec_compile,
         sec_examples,
-        sec_libs,sec_libs,
+        sec_libs,
         sec_install,sec_install,sec_install,sec_distinstall,
         sec_zipinstall,sec_zipinstall,sec_zipinstall,sec_zipinstall,
         sec_clean,sec_clean,sec_clean,
@@ -86,6 +86,7 @@ interface
         procedure AddTargetDirs(const inivar:string);
         function  CheckTargetVariable(const inivar:string):boolean;
         function  CheckVariable(const inivar:string):boolean;
+        procedure OptimizeSections;
       public
         constructor Create(AFPCMake:TFPCMake;const AFileName:string);
         destructor  Destroy;override;
@@ -247,7 +248,7 @@ implementation
 
 
 {*****************************************************************************
-                               TMyMemoryStream
+                            TMakefileWriter
 *****************************************************************************}
 
     constructor TMakefileWriter.Create(AFPCMake:TFPCMake;const AFileName:string);
@@ -481,13 +482,15 @@ implementation
           hs:='';
           if FHasSection[Rule2Sec[rule]] then
            hs:=hs+' fpc_'+rule2str[rule];
-          { include target dirs }
-          if CheckTargetVariable('target_dirs') then
+          { include target dirs, but not for info and targets that
+            call other targets with a only extra settings }
+          if CheckTargetVariable('target_dirs') and
+             not(rule in [r_info,r_shared,r_smart,r_debug,r_distinstall]) then
            begin
              if CheckVariable('default_dir') then
               hs:=hs+' $(addsuffix _'+rule2str[rule]+',$(DEFAULT_DIR))'
              else
-              if not(rule in [r_sourceinstall,r_distinstall,r_zipinstall,r_zipsourceinstall]) or
+              if not(rule in [r_sourceinstall,r_zipinstall,r_zipsourceinstall]) or
                  not(CheckVariable('package_name')) then
                hs:=hs+' $(addsuffix _'+rule2str[rule]+',$(TARGET_DIRS))';
            end;
@@ -638,16 +641,66 @@ implementation
         WritePhony;
       end;
 
+
+    procedure TMakefileWriter.OptimizeSections;
+      var
+        SkippedSecs :integer;
+      begin
+        { Turn some sections off, depending if files are
+          provided }
+        if not FInput.IsPackage then
+         begin
+           FHasSection[sec_zipinstall]:=false;
+           FHasSection[sec_distinstall]:=false;
+         end;
+        FHasSection[sec_libs]:=CheckVariable('lib_name');
+        { Remove unused sections for targets }
+        SkippedSecs:=0;
+        if (not CheckTargetVariable('target_units')) then
+         begin
+           inc(SkippedSecs);
+           FHasSection[sec_units]:=false;
+         end;
+        if (not CheckTargetVariable('target_programs')) then
+         begin
+           inc(SkippedSecs);
+           FHasSection[sec_exes]:=false;
+         end;
+        if (not CheckTargetVariable('target_examples')) then
+         begin
+           inc(SkippedSecs);
+           { example dirs also requires the fpc_examples target, because
+             it also depends on the all target }
+           if (not CheckTargetVariable('target_exampledirs')) then
+            FHasSection[sec_examples]:=false;
+         end;
+        if (not CheckTargetVariable('target_loaders')) then
+         begin
+           inc(SkippedSecs);
+           FHasSection[sec_loaders]:=false;
+         end;
+        { if all 4 sections are not available we can skip also the
+          generic compile rules }
+        if SkippedSecs=4 then
+         begin
+           FHasSection[sec_compile]:=false;
+           if (not CheckTargetVariable('install_units')) and
+              (not CheckTargetVariable('install_files')) then
+            FHasSection[sec_install]:=false;
+           if (not CheckTargetVariable('clean_units')) and
+              (not CheckTargetVariable('clean_files')) then
+            FHasSection[sec_clean]:=false;
+         end;
+      end;
+
+
     procedure TMakefileWriter.WriteGenericMakefile;
       begin
+        { Remove unused sections }
+        OptimizeSections;
+        { Generate Output }
         with FOutput do
          begin
-           { Turn some sections off }
-           if not FInput.IsPackage then
-	    begin
-              FHasSection[sec_zipinstall]:=false;
-              FHasSection[sec_distinstall]:=false;
-	    end;  
            { Header }
            Add('#');
            Add('# Don''t edit, this file is generated by '+TitleDate);
@@ -735,22 +788,23 @@ implementation
             AddIniSection('command_libc');
            AddIniSection('command_end');
            { compile }
-           if CheckTargetVariable('target_loaders') then
+           if FHasSection[sec_loaders] then
             AddIniSection('loaderrules');
-           if CheckTargetVariable('target_units') then
+           if FHasSection[sec_units] then
             AddIniSection('unitrules');
-           if CheckTargetVariable('target_programs') then
+           if FHasSection[sec_exes] then
             AddIniSection('exerules');
-           if CheckTargetVariable('target_rsts') then
+           if FHasSection[sec_rsts] then
             AddIniSection('rstrules');
-           if CheckTargetVariable('target_examples') or
-              CheckTargetVariable('target_exampledirs') then
+           if FHasSection[sec_examples] then
             AddIniSection('examplerules');
-           AddIniSection('compilerules');
-           if CheckVariable('lib_name') then
+           if FHasSection[sec_compile] then
+            AddIniSection('compilerules');
+           if FHasSection[sec_libs] then
             AddIniSection('libraryrules');
            { install }
-           AddIniSection('installrules');
+           if FHasSection[sec_install] then
+            AddIniSection('installrules');
            if FHasSection[sec_distinstall] then
             AddIniSection('distinstallrules');
            if FHasSection[sec_zipinstall] then
@@ -780,7 +834,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  2001-05-30 21:39:17  peter
+  Revision 1.9  2001-06-04 21:42:57  peter
+    * Arguments added
+    * Start of Package.fpc creation
+
+  Revision 1.8  2001/05/30 21:39:17  peter
     * gecho, gdate fixes
     * distinstall target rewrite to not install things twice
 
