@@ -7,15 +7,24 @@
 unit mysql4_comdyn;
 
 {$mode objfpc}{$H+}
+{$MACRO on}
 
 interface
 
 uses dynlibs, sysutils;
 
-{$PACKRECORDS C}
+{$IFDEF Unix}
+  {$DEFINE extdecl:=cdecl}
+  const
+    Mysqllib = 'libmysqlclient.so';
+{$ENDIF}
+{$IFDEF Win32}
+  {$DEFINE extdecl:=stdcall}
+  const
+    Mysqllib = 'libmysql.dll';
+{$ENDIF}
 
-const
-  Mysqllib = 'libmysqlclient.so';
+{$PACKRECORDS C}
 
 {$i mysql4_comtypes.inc}
 
@@ -37,46 +46,33 @@ const
 
 
 var
-  my_net_init : function (net:PNET; vio:PVio):longint;cdecl;
-  net_end : procedure (net:PNET);cdecl;
-  net_clear : procedure (net:PNET);cdecl;
-  net_flush : function (net:PNET):longint;cdecl;
-(* Const before type ignored *)
-  my_net_write : function (net:PNET; packet:Pchar; len:dword):longint;cdecl;
-(* Const before type ignored *)
-  net_write_command : function (net:PNET; command:byte; packet:Pchar; len:dword):longint;cdecl;
-(* Const before type ignored *)
-  net_real_write : function (net:PNET; packet:Pchar; len:dword):longint;cdecl;
-  my_net_read : function (net:PNET):dword;cdecl;
+  my_net_init : function (net:PNET; vio:PVio):longint;extdecl;
+  net_end : procedure (net:PNET);extdecl;
+  net_clear : procedure (net:PNET);extdecl;
+  net_flush : function (net:PNET):longint;extdecl;
+  my_net_write : function (net:PNET; packet:Pchar; len:dword):longint;extdecl;
+  net_write_command : function (net:PNET; command:byte; packet:Pchar; len:dword):longint;extdecl;
+  net_real_write : function (net:PNET; packet:Pchar; len:dword):longint;extdecl;
+  my_net_read : function (net:PNET):dword;extdecl;
 { The following function is not meant for normal usage  }
 {
 struct sockaddr;
 int my_connect(my_socket s, const struct sockaddr  name, unsigned int namelen,
 unsigned int timeout);
 }
-  randominit : procedure (_para1:Prand_struct; seed1:dword; seed2:dword);cdecl;
-  rnd : function (_para1:Prand_struct):double;cdecl;
-(* Const before type ignored *)
-  make_scrambled_password : procedure (_to:Pchar; password:Pchar);cdecl;
-(* Const before type ignored *)
-  get_salt_from_password : procedure (res:Pdword; password:Pchar);cdecl;
-  make_password_from_salt : procedure (_to:Pchar; hash_res:Pdword);cdecl;
-(* Const before type ignored *)
-(* Const before type ignored *)
-  scramble : function (_to:Pchar; message:Pchar; password:Pchar; old_ver:my_bool):Pchar;cdecl;
-(* Const before type ignored *)
-(* Const before type ignored *)
-  check_scramble : function (_para1:Pchar; message:Pchar; salt:Pdword; old_ver:my_bool):my_bool;cdecl;
-  get_tty_password : function (opt_message:Pchar):Pchar;cdecl;
-(* Const before type ignored *)
-  hash_password : procedure (result:Pdword; password:Pchar);cdecl;
-{ Some other useful functions  }
-  my_init : procedure;cdecl;
-(* Const before type ignored *)
-(* Const before type ignored *)
-  load_defaults : procedure (conf_file:Pchar; groups:PPchar; argc:Plongint; argv:PPPchar);cdecl;
-  my_thread_init : function : my_bool;cdecl;
-  my_thread_end : procedure ;cdecl;
+  randominit : procedure (_para1:Prand_struct; seed1:dword; seed2:dword);extdecl;
+  rnd : function (_para1:Prand_struct):double;extdecl;
+  make_scrambled_password : procedure (_to:Pchar; password:Pchar);extdecl;
+  get_salt_from_password : procedure (res:Pdword; password:Pchar);extdecl;
+  make_password_from_salt : procedure (_to:Pchar; hash_res:Pdword);extdecl;
+  scramble : function (_to:Pchar; message:Pchar; password:Pchar; old_ver:my_bool):Pchar;extdecl;
+  check_scramble : function (_para1:Pchar; message:Pchar; salt:Pdword; old_ver:my_bool):my_bool;extdecl;
+  get_tty_password : function (opt_message:Pchar):Pchar;extdecl;
+  hash_password : procedure (result:Pdword; password:Pchar);extdecl;
+  my_init : procedure;extdecl;
+  load_defaults : procedure (conf_file:Pchar; groups:PPchar; argc:Plongint; argv:PPPchar);extdecl;
+  my_thread_init : function : my_bool;extdecl;
+  my_thread_end : procedure ;extdecl;
 
 function packet_error : longint;
   { For net_store_length  }
