@@ -1220,35 +1220,40 @@ unit pstatmnt;
            end;
 
          {Unit initialization?.}
-         if (lexlevel=unit_init_level) and (current_module^.is_unit) then
-           if (token=_END) then
-             begin
-                consume(_END);
-                block:=nil;
-             end
-           else
-             begin
-                if token=_INITIALIZATION then
-                  begin
-                     current_module^.flags:=current_module^.flags or uf_init;
-                     block:=statement_block(_INITIALIZATION);
-                  end
-                else if (token=_FINALIZATION) then
-                  begin
-                     if (current_module^.flags and uf_finalize)<>0 then
-                       block:=statement_block(_FINALIZATION)
-                     else
-                       begin
-                          block:=nil;
-                          exit;
-                       end;
-                  end
-                else
-                  begin
-                     current_module^.flags:=current_module^.flags or uf_init;
-                     block:=statement_block(_BEGIN);
-                  end;
-             end
+         if (lexlevel=unit_init_level) and (current_module^.is_unit)
+            or islibrary then
+           begin
+             if (token=_END) then
+                begin
+                   consume(_END);
+                   block:=nil;
+                end
+              else
+                begin
+                   if token=_INITIALIZATION then
+                     begin
+                        current_module^.flags:=current_module^.flags or uf_init;
+                        block:=statement_block(_INITIALIZATION);
+                     end
+                   else if (token=_FINALIZATION) then
+                     begin
+                        if (current_module^.flags and uf_finalize)<>0 then
+                          block:=statement_block(_FINALIZATION)
+                        else
+                          begin
+                          { can we allow no INITIALIZATION for DLL ??
+                            I think it should work PM }
+                             block:=nil;
+                             exit;
+                          end;
+                     end
+                   else
+                     begin
+                        current_module^.flags:=current_module^.flags or uf_init;
+                        block:=statement_block(_BEGIN);
+                     end;
+                end;
+            end
          else
             block:=statement_block(_BEGIN);
       end;
@@ -1318,7 +1323,11 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.111  1999-11-18 15:34:48  pierre
+  Revision 1.112  1999-11-20 01:19:10  pierre
+    * DLL index used for win32 target with DEF file
+    + DLL initialization/finalization support
+
+  Revision 1.111  1999/11/18 15:34:48  pierre
     * Notes/Hints for local syms changed to
       Set_varstate function
 

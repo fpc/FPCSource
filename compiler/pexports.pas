@@ -74,7 +74,10 @@ unit pexports;
                          begin
                           ProcName:=hp^.sym^.name;
                           InternalProcName:=hp^.sym^.mangledname;
-                          delete(InternalProcName,1,1);
+                          { This is wrong if the first is not
+                            an underline }
+                          if InternalProcName[1]='_' then
+                            delete(InternalProcName,1,1);
                           if length(InternalProcName)<2 then
                            Message(parser_e_procname_to_short_for_export);
                           DefString:=ProcName+'='+InternalProcName;
@@ -85,7 +88,10 @@ unit pexports;
                              hp^.options:=hp^.options or eo_index;
                              val(pattern,hp^.index,code);
                              consume(_INTCONST);
-                             DefString:=ProcName+'='+InternalProcName; {Index ignored!}
+                             if target_os.id=os_i386_win32 then
+                               DefString:=ProcName+' @'+tostr(hp^.index)+'='+InternalProcName
+                             else
+                               DefString:=ProcName+'='+InternalProcName; {Index ignored!}
                           end;
                         if (idtoken=_NAME) then
                           begin
@@ -130,7 +136,11 @@ end.
 
 {
   $Log$
-  Revision 1.13  1999-10-26 12:30:44  peter
+  Revision 1.14  1999-11-20 01:19:10  pierre
+    * DLL index used for win32 target with DEF file
+    + DLL initialization/finalization support
+
+  Revision 1.13  1999/10/26 12:30:44  peter
     * const parameter is now checked
     * better and generic check if a node can be used for assigning
     * export fixes

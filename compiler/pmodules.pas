@@ -210,6 +210,14 @@ unit pmodules;
             end;
            hp:=Pused_unit(hp^.next);
          end;
+        if current_module^.islibrary then
+          if (current_module^.flags and uf_finalize)<>0 then
+            begin
+              { INIT code is done by PASCALMAIN calling }
+              unitinits.concat(new(pai_const,init_32bit(0)));
+              unitinits.concat(new(pai_const_symbol,initname('FINALIZE$$'+current_module^.modulename^)));
+              inc(count);
+            end;
         { TableCount,InitCount }
         unitinits.insert(new(pai_const,init_32bit(0)));
         unitinits.insert(new(pai_const,init_32bit(count)));
@@ -1444,6 +1452,23 @@ unit pmodules;
 
          codegen_doneprocedure;
 
+         { finalize? }
+         if token=_FINALIZATION then
+           begin
+              { set module options }
+              current_module^.flags:=current_module^.flags or uf_finalize;
+
+              { Compile the finalize }
+              codegen_newprocedure;
+              gen_main_procsym(current_module^.modulename^+'_finalize',potype_unitfinalize,st);
+              names.init;
+              names.insert('FINALIZE$$'+current_module^.modulename^);
+              names.insert(target_os.cprefix+current_module^.modulename^+'_finalize');
+              compile_proc_body(names,true,false);
+              names.done;
+              codegen_doneprocedure;
+           end;
+
          { consume the last point }
          consume(_POINT);
 
@@ -1526,7 +1551,11 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.168  1999-11-18 23:35:40  pierre
+  Revision 1.169  1999-11-20 01:19:10  pierre
+    * DLL index used for win32 target with DEF file
+    + DLL initialization/finalization support
+
+  Revision 1.168  1999/11/18 23:35:40  pierre
    * avoid double warnings
 
   Revision 1.167  1999/11/18 15:34:47  pierre
