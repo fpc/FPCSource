@@ -22,11 +22,23 @@
 }
 
 
+type
+  PDayTable = ^TDayTable;
+  TDayTable = array[1..12] of Word;
+
 const
-   SecsPerDay = 24 * 60 * 60; // Seconds and milliseconds per day
+   HoursPerDay = 24;
+   MinsPerDay  = HoursPerDay * 60;
+   SecsPerDay  = MinsPerDay * 60;
    MSecsPerDay = SecsPerDay * 1000;
 
    DateDelta = 693594;        // Days between 1/1/0001 and 12/31/1899
+   UnixDateDelta = 25569;
+
+   { True=Leapyear }
+   MonthDays: array [Boolean] of TDayTable =
+     ((31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31),
+      (31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31));
 
    TwoDigitYearCenturyWindow : word=0;
                              { Threshold to be subtracted from year before
@@ -77,13 +89,17 @@ type
       Date: integer;   { One plus number of days since 1/1/0001 }
    end ;
 
+
 function DateTimeToTimeStamp(DateTime: TDateTime): TTimeStamp;
 function TimeStampToDateTime(const TimeStamp: TTimeStamp): TDateTime;
 function MSecsToTimeStamp(MSecs: Comp): TTimeStamp;
 function TimeStampToMSecs(const TimeStamp: TTimeStamp): comp;
+function TryEncodeDate(Year, Month, Day: Word; var Date: TDateTime): Boolean;
+function TryEncodeTime(Hour, Min, Sec, MSec: Word; var Time: TDateTime): Boolean;
 function EncodeDate(Year, Month, Day :word): TDateTime;
 function EncodeTime(Hour, Minute, Second, MilliSecond:word): TDateTime;
 procedure DecodeDate(Date: TDateTime; var Year, Month, Day: word);
+function DecodeDateFully(const DateTime: TDateTime; var Year, Month, Day, DOW: Word): Boolean;
 procedure DecodeTime(Time: TDateTime; var Hour, Minute, Second, MilliSecond: word);
 procedure DateTimeToSystemTime(DateTime: TDateTime; var SystemTime: TSystemTime);
 function SystemTimeToDateTime(const SystemTime: TSystemTime): TDateTime;
@@ -109,7 +125,10 @@ Procedure GetLocalTime(var SystemTime: TSystemTime);
 
 {
   $Log$
-  Revision 1.6  2002-10-02 21:04:06  peter
+  Revision 1.7  2002-12-25 01:03:48  peter
+    * some date constants added
+
+  Revision 1.6  2002/10/02 21:04:06  peter
     * For win32 use the tsystemtime from the windows unit, that is changed
       to a variant record with compatibile field names
 

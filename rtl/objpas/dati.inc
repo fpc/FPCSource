@@ -98,6 +98,20 @@ begin
   result := TimeStamp.Time + timestamp.date*msecsperday;
 end ;
 
+
+function TryEncodeDate(Year, Month, Day: Word; var Date: TDateTime): Boolean;
+begin
+  Date := DoEncodeDate(Year, Month, Day);
+  Result:=(Date<>0);
+end;
+
+
+function TryEncodeTime(Hour, Min, Sec, MSec: Word; var Time: TDateTime): Boolean;
+begin
+  Time := DoEncodeTime(hour, Min, Sec, MSec) / MSecsPerDay;
+  Result:=(Time<>0);
+end;
+
 {   EncodeDate packs three variables Year, Month and Day into a
     TDateTime value the result is the number of days since 12/30/1899   }
 
@@ -138,6 +152,15 @@ begin
       inc(Year);
     end;
 end;
+
+
+function DecodeDateFully(const DateTime: TDateTime; var Year, Month, Day, DOW: Word): Boolean;
+begin
+  DecodeDate(DateTime,Year,Month,Day);
+  DOW:=DateTimeToTimeStamp(DateTime).Date mod 7+1;
+  Result:=IsLeapYear(Year);
+end;
+
 
 {   DecodeTime unpacks Time into four values:
     Hour, Minute, Second and MilliSecond    }
@@ -677,7 +700,10 @@ end;
 
 {
   $Log$
-  Revision 1.7  2002-09-07 21:06:51  carl
+  Revision 1.8  2002-12-25 01:03:48  peter
+    * some date constants added
+
+  Revision 1.7  2002/09/07 21:06:51  carl
     * bugfix 1867 (merged)
 
   Revision 1.6  2002/09/07 16:01:22  peter
