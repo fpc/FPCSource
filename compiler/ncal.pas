@@ -1704,8 +1704,15 @@ implementation
                                 else
                                  begin
                                    hp^.nextPara.argconvtyp:=act_convertable;
-                                   hp^.nextPara.convertlevel:=isconvertable(pt.resulttype.def,hp^.nextPara.paratype.def,
-                                       hcvt,pt.left.nodetype,false);
+                                   { var and out parameters are not be convertable
+                                     in Delphi/tp mode }
+                                   if (hp^.nextPara.paratyp in [vs_var,vs_out]) and
+                                      ((m_delphi in aktmodeswitches) or
+                                       (m_tp7 in aktmodeswitches)) then
+                                    hp^.nextPara.convertlevel:=0
+                                   else
+                                    hp^.nextPara.convertlevel:=isconvertable(pt.resulttype.def,hp^.nextPara.paratype.def,
+                                        hcvt,pt.left.nodetype,false);
                                    case hp^.nextPara.convertlevel of
                                     1 : include(pt.callparaflags,cpf_convlevel1found);
                                     2 : include(pt.callparaflags,cpf_convlevel2found);
@@ -2595,7 +2602,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.98  2002-09-07 15:25:02  peter
+  Revision 1.99  2002-09-09 19:30:34  peter
+    * don't allow convertable parameters for var and out parameters in
+      delphi and tp mode
+
+  Revision 1.98  2002/09/07 15:25:02  peter
     * old logs removed and tabs fixed
 
   Revision 1.97  2002/09/07 12:16:05  carl
