@@ -703,6 +703,8 @@ begin
            ACSIn:=Copy(ACSIn,1,Pos('$<',ACSIn)-1);
          if pos('$<',ACSOut)>0 then
            ACSOut:=Copy(ACSOut,1,Pos('$<',ACSOut)-1);
+         If fpGetEnv('TERM')='xterm' then
+           NoExtendedFrame := true;  {use of acs for xterm is ok}
        end
      else
        begin
@@ -903,7 +905,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.24  2004-10-03 20:16:43  armin
+  Revision 1.25  2004-10-05 17:16:24  armin
+  * enable acs on xterm by default
+
+  Revision 1.24  2004/10/03 20:16:43  armin
   * SysUpdateScreen modified esi and edi
 
   Revision 1.23  2004/07/09 19:03:35  peter
