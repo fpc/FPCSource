@@ -23,15 +23,6 @@ unit System;
 
 interface
 
-{Platform specific information}
-const
- LineEnding = #10;
- LFNSupport = true;
- DirectorySeparator = '/';
- DriveSeparator = ':';
- PathSeparator = ':';
- FileNameCaseSensitive = true;
-
 { include system-independent routine headers }
 
 {$I systemh.inc}
@@ -40,10 +31,19 @@ const
 
 {$I heaph.inc}
 
+{Platform specific information}
+const
+ LineEnding = #10;
+ LFNSupport = true;
+ DirectorySeparator = '/';
+ DriveSeparator = ':';
+ PathSeparator = ':';
+{ FileNameCaseSensitive is defined separately below!!! }
+
 const
   FileNameCaseSensitive : boolean = true;
 
-  sLineBreak : string[1] = #10;
+  sLineBreak : string[1] = LineEnding;
   DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsLF;
 
 var
@@ -522,7 +522,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2001-06-13 22:20:10  hajny
+  Revision 1.3  2001-06-19 20:46:07  hajny
+    * platform specific constants moved after systemh.inc, BeOS omission corrected
+
+  Revision 1.2  2001/06/13 22:20:10  hajny
     + platform specific information
 
   Revision 1.1  2001/06/02 19:26:03  peter

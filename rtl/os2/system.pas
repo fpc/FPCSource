@@ -50,15 +50,6 @@ Coding style:
 
 interface
 
-{Platform specific information}
-const
- LineEnding = #13#10;
-{ LFNSupport is defined separately below!!! }
- DirectorySeparator = '\';
- DriveSeparator = ':';
- PathSeparator = ';';
-{ FileNameCaseSensitive is defined separately below!!! }
-
 {Link the startup code.}
 {$l prt1.oo2}
 
@@ -89,6 +80,15 @@ type
 {$i threadh.inc}
 
 {$I heaph.inc}
+
+{Platform specific information}
+const
+ LineEnding = #13#10;
+{ LFNSupport is defined separately below!!! }
+ DirectorySeparator = '\';
+ DriveSeparator = ':';
+ PathSeparator = ';';
+{ FileNameCaseSensitive is defined separately below!!! }
 
 type    Tos=(osDOS,osOS2,osDPMI);
 
@@ -1066,7 +1066,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2001-06-13 22:21:53  hajny
+  Revision 1.15  2001-06-19 20:46:07  hajny
+    * platform specific constants moved after systemh.inc, BeOS omission corrected
+
+  Revision 1.14  2001/06/13 22:21:53  hajny
     + platform specific information
 
   Revision 1.13  2001/05/20 18:40:32  hajny

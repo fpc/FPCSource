@@ -21,6 +21,14 @@ unit system;
 
 interface
 
+{ include system-independent routine headers }
+
+{$I systemh.inc}
+
+{ include heap support headers }
+
+{$I heaph.inc}
+
 {Platform specific information}
 const
  LineEnding = #13#10;
@@ -30,13 +38,19 @@ const
  PathSeparator = ';';
  FileNameCaseSensitive = false;
 
-{ include system-independent routine headers }
+const
+  UnusedHandle    = -1;
+  StdInputHandle  = 0;
+  StdOutputHandle = 1;
+  StdErrorHandle  = 2;
 
-{$I systemh.inc}
+  sLineBreak : string[1] = LineEnding;
+  DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsLF;
 
-{ include heap support headers }
-
-{$I heaph.inc}
+var
+  argc : longint;
+  argv : ppchar;
+  envp : ppchar;
 
 implementation
 
@@ -285,7 +299,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.5  2001-06-13 22:21:53  hajny
+  Revision 1.6  2001-06-19 20:46:56  hajny
+    * platform specific constants moved after systemh.inc, BeOS omission corrected
+
+  Revision 1.5  2001/06/13 22:21:53  hajny
     + platform specific information
 
   Revision 1.4  2001/03/25 11:06:35  hajny

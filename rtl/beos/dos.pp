@@ -30,7 +30,6 @@ type
 
 
 Const
-  LFNSUPPORT=True;
 
   {Bitmasks for CPU Flags}
   fcarry     = $0001;
@@ -503,7 +502,10 @@ End;
 
 {
   $Log$
-  Revision 1.1  2001-06-02 19:26:03  peter
+  Revision 1.2  2001-06-19 20:46:07  hajny
+    * platform specific constants moved after systemh.inc, BeOS omission corrected
+
+  Revision 1.1  2001/06/02 19:26:03  peter
     * BeOS target!
 
   Revision 1.5  2000/01/07 16:41:29  daniel

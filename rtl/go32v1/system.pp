@@ -15,6 +15,14 @@
 unit system;
 interface
 
+{ include system-independent routine headers }
+
+{$I systemh.inc}
+
+{ include heap support headers }
+
+{$I heaph.inc}
+
 {Platform specific information}
 const
  LineEnding = #13#10;
@@ -23,14 +31,6 @@ const
  DriveSeparator = ':';
  PathSeparator = ';';
  FileNameCaseSensitive = false;
-
-{ include system-independent routine headers }
-
-{$I systemh.inc}
-
-{ include heap support headers }
-
-{$I heaph.inc}
 
 const
 { Default filehandles }
@@ -628,7 +628,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.5  2001-06-13 22:22:59  hajny
+  Revision 1.6  2001-06-19 20:46:07  hajny
+    * platform specific constants moved after systemh.inc, BeOS omission corrected
+
+  Revision 1.5  2001/06/13 22:22:59  hajny
     + platform specific information
 
   Revision 1.4  2001/03/21 21:08:20  hajny

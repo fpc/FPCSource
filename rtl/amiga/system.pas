@@ -31,6 +31,10 @@ unit {$ifdef VER1_0}sysamiga{$else}{$ifdef VER0_99}sysamiga{$ELSE}system{$endif}
 
   interface
 
+    {$I systemh.inc}
+
+    {$I heaph.inc}
+
 {Platform specific information}
 const
  LineEnding = #10;
@@ -44,10 +48,6 @@ const
 
     { used for single computations }
     const BIAS4 = $7f-1;
-
-    {$I systemh.inc}
-
-    {$I heaph.inc}
 
 const
   UnusedHandle    : longint = -1;
@@ -1825,7 +1825,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2001-06-13 22:22:59  hajny
+  Revision 1.3  2001-06-19 20:46:07  hajny
+    * platform specific constants moved after systemh.inc, BeOS omission corrected
+
+  Revision 1.2  2001/06/13 22:22:59  hajny
     + platform specific information
 
   Revision 1.1  2001/03/16 20:01:47  hajny
