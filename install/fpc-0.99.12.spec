@@ -53,12 +53,8 @@ FPCDIR=%{fpcdir}
 # create link
 ln -sf $FPCDIR/ppc386 /usr/bin/ppc386
 
-# create /etc/ppc386.cfg
-GCCSPEC=`(gcc -v 2>&1)| head -n 1| awk '{ print $4 } '`
-GCCDIR=`dirname $GCCSPEC`
-
-chmod 755 $FPCDIR/samplecfg
-$FPCDIR/samplecfg $FPCDIR $GCCDIR
+# Create config
+$FPCDIR/samplecfg $FPCDIR
 
 # update ld.so cache
 ldconfig
@@ -76,6 +72,8 @@ ldconfig
 /usr/man/man1/ppc386.1
 /usr/man/man1/ptop.1
 /usr/man/man1/ppudump.1
+/usr/man/man1/ppumove.1
+/usr/man/man1/ppdep.1
 /usr/man/man5/ppc386.cfg.5
 /usr/man/man5/ptop.cfg.5
 %{docdir}/demo

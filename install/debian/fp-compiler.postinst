@@ -6,10 +6,7 @@ FPCDIR=/usr/lib/fpc/0.99.12
 ln -sf $FPCDIR/ppc386 /usr/bin/ppc386
 
 # create /etc/ppc386.cfg
-GCCSPEC=`(gcc -v 2>&1)| head -n 1| awk '{ print $4 } '`
-GCCDIR=`dirname $GCCSPEC`
-
-$FPCDIR/samplecfg $FPCDIR $GCCDIR
+$FPCDIR/samplecfg $FPCDIR
 
 # update ld.so cache
 # ldconfig
