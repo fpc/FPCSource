@@ -221,9 +221,9 @@ override FPCOPT+=-Ur
 endif
 OBJPASDIR=$(RTL)/objpas
 GRAPHDIR=$(INC)/graph
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings ports os2def doscalls moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos crt objects printer sysutils classes math typinfo varutils winsock charset ucomplex cpu mmx getopts heaptrc lineinfo dynlibs video mouse keyboard variants types
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings ports os2def doscalls moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos crt objects printer sysutils classes math typinfo varutils winsock charset ucomplex cpu mmx getopts heaptrc lineinfo dynlibs video mouse keyboard variants types rtlconst sysconst dateutil
 override TARGET_LOADERS+=prt0 prt1
-override TARGET_RSTS+=math varutils typinfo variants pmhelp classes
+override TARGET_RSTS+=math varutils typinfo variants pmhelp classes sysconst dateutil
 override INSTALL_FPCPACKAGE=y
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC)
@@ -1390,6 +1390,12 @@ varutils$(PPUEXT) : $(OBJPASDIR)/cvarutil.inc $(OBJPASDIR)/varutils.inc \
 	$(COMPILER) -I$(OBJPASDIR) varutils.pp $(REDIR)
 types$(PPUEXT) : $(OBJPASDIR/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/types.pp
+rtlconst$(PPUEXT) : $(OBJPASDIR)/rtlconst.pp
+        $(COMPILER) $(OBJPASDIR)/rtlconst.pp
+sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT)
+	$(COMPILER) $(OBJPASDIR)/sysconst.pp
+dateutil$(PPUEXT) : $(OBJPASDIR)/dateutil.pp
+	$(COMPILER) $(OBJPASDIR)/dateutil.pp
 ucomplex$(PPUEXT): $(INC)/ucomplex.pp math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT)
 mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)

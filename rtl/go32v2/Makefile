@@ -222,9 +222,9 @@ endif
 ifdef NO_EXCEPTIONS_IN_SYSTEM
 override FPCOPT+=-dNO_EXCEPTIONS_IN_SYSTEM
 endif
-override TARGET_UNITS+=system objpas strings go32 dpmiexcp initc ports profile dxeload emu387 dos crt objects printer graph sysutils classes math typinfo cpu mmx ucomplex getopts heaptrc lineinfo msmouse charset varutils video mouse keyboard variants vesamode types sysconst rtlconst dateutils
+override TARGET_UNITS+=system objpas strings go32 dpmiexcp initc ports profile dxeload emu387 dos crt objects printer graph sysutils classes math typinfo cpu mmx ucomplex getopts heaptrc lineinfo msmouse charset varutils video mouse keyboard variants vesamode types sysconst rtlconst dateutil
 override TARGET_LOADERS+=prt0 exceptn fpu
-override TARGET_RSTS+=math varutils typinfo classes variants sysconst
+override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst
 override INSTALL_FPCPACKAGE=y
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC)
@@ -1387,8 +1387,8 @@ rtlconst$(PPUEXT) : $(OBJPASDIR)/rtlconst.pp
 	$(COMPILER) $(OBJPASDIR)/rtlconst.pp
 sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/sysconst.pp
-dateutils$(PPUEXT) : $(OBJPASDIR)/dateutils.pp
-	$(COMPILER) $(OBJPASDIR)/dateutils.pp
+dateutil$(PPUEXT) : $(OBJPASDIR)/dateutil.pp
+	$(COMPILER) $(OBJPASDIR)/dateutil.pp
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp system$(PPUEXT)
 mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) system$(PPUEXT)
 getopts$(PPUEXT) : $(INC)/getopts.pp system$(PPUEXT)

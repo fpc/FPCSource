@@ -13,8 +13,8 @@ units=$(SYSTEMUNIT) objpas strings \
       dos crt objects printer \
       sysutils classes typinfo math varutils variants \
       charset ucomplex cpu mmx getopts heaptrc lineinfo dynlibs \
-      video mouse keyboard variants types sysconst
-rsts=math varutils typinfo variants classes dateutils sysconst
+      video mouse keyboard variants types sysconst rtlconst dateutil
+rsts=math varutils typinfo variants classes dateutil sysconst
 
 [require]
 nortl=y
@@ -174,6 +174,15 @@ varutils$(PPUEXT) : $(OBJPASDIR)/cvarutil.inc $(OBJPASDIR)/varutils.inc \
 
 types$(PPUEXT) : $(OBJPASDIR/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/types.pp
+
+rtlconst$(PPUEXT) : $(OBJPASDIR)/rtlconst.pp
+        $(COMPILER) $(OBJPASDIR)/rtlconst.pp
+
+sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/sysconst.pp
+
+dateutil$(PPUEXT) : $(OBJPASDIR)/dateutil.pp
+        $(COMPILER) $(OBJPASDIR)/dateutil.pp
 
 #
 # Other system-independent RTL Units
