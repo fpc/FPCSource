@@ -542,7 +542,8 @@ Function FullWin:boolean;
   Full Screen 80x25? Window(1,1,80,25) is used, allows faster routines
 }
 begin
-  FullWin:=(WinMaxX=ScreenWidth) and (WinMaxY=ScreenHeight);
+  FullWin:=(WinMinX=1) and (WinMinY=1) and
+           (WinMaxX=ScreenWidth) and (WinMaxY=ScreenHeight);
 end;
 
 
@@ -1491,7 +1492,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.10  1998-10-27 11:13:27  peter
+  Revision 1.11  1998-10-30 12:11:51  peter
+    * fixed fullwi, which did not check for 1,1
+
+  Revision 1.10  1998/10/27 11:13:27  peter
     * fixed ttyWrite() with #8
 
   Revision 1.9  1998/10/15 08:31:53  peter
