@@ -15,119 +15,364 @@
 {*                               TBits                                      *}
 {****************************************************************************}
 
-  procedure TBits.Error;
+{ ************* functions to match TBits class ************* }
 
-    begin
-         Raise EBitsError.Create('');
-    end;
+function TBits.getSize : longint;
+begin
+   result := (FSize shl BITSHIFT) - 1;   
+end;
 
-  procedure TBits.SetSize(Value: Integer);
+procedure TBits.setSize(value : longint);
+begin
+   grow(value - 1);
+end;
 
-    var
-       hp : pointer;
-       cvalue,csize : Integer;
+procedure TBits.SetBit(bit : longint; value : Boolean);
+begin
+   if value = True then
+      seton(bit)
+   else
+      clear(bit);
+end;
 
-    begin
-       { ajust value to n*8 }
-       cvalue:=Value;
-       if cvalue mod 8<>0 then
-         cvalue:=cvalue+(8-(cvalue mod 8));
+function TBits.OpenBit : longint;
+var
+   loop : longint;
+   loop2 : longint;
+   startIndex : longint;
+begin
+   result := -1; {should only occur if the whole array is set}
+   for loop := 0 to FSize - 1 do
+   begin
+      if FBits^[loop] <> $FFFFFFFF then
+      begin
+         startIndex := loop * 32;
+         for loop2 := startIndex to startIndex + 31 do
+	 begin
+            if get(loop2) = False then
+	    begin
+               result := loop2;
+	       break; { use this as the index to return }
+	    end;
+	 end;
+	 break;  {stop looking for empty bit in records }
+      end;
+   end;
 
-       { store pointer to release it later }
-       hp:=FBits;
+   if result = -1 then
+      if FSize < MaxBitRec then
+          result := FSize * 32;  {first bit of next record} 
+end;
 
-       { ajust size to n*8 }
-       csize:=FSize;
-       if csize mod 8<>0 then
-         csize:=csize+(8-(csize mod 8));
+{ ******************** TBits ***************************** }
 
-       if FSize>0 then
-         begin
-            { get new memory }
-            GetMem(FBits,cvalue div 8);
-            { clear the whole array }
-            FillChar(FBits^,cvalue div 8,0);
-            { copy old data }
-            Move(hp^,FBits^,csize div 8);
-         end
-       else
-         FBits:=nil;
+constructor TBits.Create(theSize : longint);
+begin
+   FSize := 0;
+   FBits := nil;
+   findIndex := -1;
+   findState := True;  { no reason just setting it to something }
+   grow(theSize);
+end;
 
-       if assigned(hp) then
-         FreeMem(hp,csize div 8);
+destructor TBits.Destroy;
+begin
+   if FBits <> nil then
+      FreeMem(FBits, FSize * SizeOf(longint));
+   FBits := nil;
 
-       FSize:=Value;
-    end;
+   inherited Destroy;
+end;
 
-  procedure TBits.SetBit(Index: Integer; Value: Boolean);
+procedure TBits.grow(nbit : longint);
+var
+   newSize : longint;
+   loop : longint;
+begin
 
-    type
-       pbyte = ^byte;
+   if nbit >= MaxBitFlags then
+      Raise EBitsError.Create('Bit index exceeds array limit');
 
-    begin
-       if (Index>=FSize) or (Index<0)  then
-         Error
-       else
-         begin
-            if Value then
-              pbyte(FBits)[Index div 8]:=pbyte(FBits)[Index div 8] or
-                (1 shl (Index mod 8))
-            else
-              pbyte(FBits)[Index div 8]:=pbyte(FBits)[Index div 8] and
-                not(1 shl (Index mod 8));
-         end;
-    end;
+   newSize :=  (nbit shr BITSHIFT) + 1;
 
-  function TBits.GetBit(Index: Integer): Boolean;
+   if newSize > FSize then
+   begin
+{$IFDEF VER80}
+      if FBits = nil then
+         FBits := AllocMem(newSize * SizeOf(longint))
+      else
+         FBits := ReAllocMem(bits, currentSize * SizeOf(longint), newSize * SizeOf(longint));
+{$ELSE}
+{$IFDEF FPC}
+      if FBits = nil then
+         FBits := AllocMem(newSize * SizeOf(longint))
+      else
+         ReAllocMem(FBits, FSize * SizeOf(longint), newSize * SizeOf(longint));
+{$ELSE}
+   { Delphi 2 & 3 keep track of the current size for you }
+      ReAllocMem(FBits, newSize * SizeOf(longint));
+{$ENDIF}
+{$ENDIF}
 
-    type
-       pbyte = ^byte;
+      if FBits <> nil then
+      begin
+         if newSize > FSize then
+            for loop := FSize to newSize - 1 do
+               FBits^[loop] := 0;
 
-    begin
-       if (Index>=FSize) or (Index<0) then
-         Error
-       else
-         GetBit:=(pbyte(FBits)[Index div 8] and (1 shl (Index mod 8)))<>0;
-    end;
+         FSize := newSize;
+      end;
+   end;
+end;
 
-  destructor TBits.Destroy;
+function TBits.getFSize : longint;
+begin
+   result := FSize;
+end;
 
-    var
-       csize : Integer;
+procedure TBits.seton(bit : longint);
+var
+   n : longint;
+begin
+   n := bit shr BITSHIFT;
 
-    begin
-       { ajust size to n*8 }
-       csize:=FSize;
-       if csize mod 8<>0 then
-         csize:=csize+(8-(csize mod 8));
-       if assigned(FBits) then
-         FreeMem(FBits,csize);
-       inherited Destroy;
-    end;
+   grow(bit);
 
-  function TBits.OpenBit: Integer;
+   FBits^[n] := FBits^[n] or (longint(1) shl (bit and MASK));
+end;
 
-    type
-       pbyte = ^byte;
+procedure TBits.clear(bit : longint);
+var
+   n : longint;
+begin
+   n := bit shr BITSHIFT;
 
-    var
-       i : Integer;
+   grow(bit);
 
-    begin
-       for i:=0 to FSize-1 do
-         if (pbyte(FBits)[i div 8] and (1 shl (i mod 8)))=0 then
-           begin
-              OpenBit:=i;
-              exit;
-           end;
-       SetSize(FSize+1);
-       OpenBit:=FSize-1;
-    end;
+   FBits^[n] := FBits^[n] and not(longint(1) shl (bit and MASK));
+end;
+
+procedure TBits.clearall;
+var
+   loop : longint;
+begin
+   for loop := 0 to FSize - 1 do
+      FBits^[loop] := 0;
+end;
+
+function TBits.get(bit : longint) : Boolean;
+var
+   n : longint;
+begin
+   result := False;
+
+   if bit >= MaxBitFlags then
+      Raise EBitsError.Create('Bit index exceeds array limit');
+
+   n := bit shr BITSHIFT;
+
+   if (n < FSize) then
+      result := (FBits^[n] and (longint(1) shl (bit and MASK))) <> 0;
+end;
+
+procedure TBits.andbits(bitset : TBits);
+var
+   n : longint;
+   loop : longint;
+begin
+   if FSize < bitset.getFSize then
+      n := FSize - 1
+   else
+      n := bitset.getFSize - 1;
+
+   for loop := 0 to n do
+      FBits^[loop] := FBits^[loop] and bitset.FBits^[loop];
+
+   for loop := n + 1 to FSize - 1 do
+      FBits^[loop] := 0;
+end;
+
+procedure TBits.notbits(bitset : TBits);
+var
+   n : longint;
+   jj : longint;
+   loop : longint;
+begin
+   if FSize < bitset.getFSize then
+      n := FSize - 1
+   else
+      n := bitset.getFSize - 1;
+
+   for loop := 0 to n do
+   begin
+      jj := FBits^[loop];
+      FBits^[loop] := FBits^[loop] and (jj xor bitset.FBits^[loop]);
+   end;
+end;
+
+procedure TBits.orbits(bitset : TBits);
+var
+   n : longint;
+   loop : longint;
+begin
+   if FSize < bitset.getFSize then
+      n := bitset.getFSize - 1
+   else
+      n := FSize - 1;
+
+   grow(n shl BITSHIFT);
+
+   for loop := 0 to n do
+      FBits^[loop] := FBits^[loop] or bitset.FBits^[loop];
+end;
+
+procedure TBits.xorbits(bitset : TBits);
+var
+   n : longint;
+   loop : longint;
+begin
+   if FSize < bitset.getFSize then
+      n := bitset.getFSize - 1
+   else
+      n := FSize - 1;
+
+   grow(n shl BITSHIFT);
+
+   for loop := 0 to n do
+      FBits^[loop] := FBits^[loop] xor bitset.FBits^[loop];
+end;
+
+function TBits.equals(bitset : TBits) : Boolean;
+var
+   n : longint;
+   loop : longint;
+begin
+   result := False;
+
+   if FSize < bitset.getFSize then
+      n := FSize - 1
+   else
+      n := bitset.getFSize - 1;
+
+   for loop := 0 to n do
+      if FBits^[loop] <> bitset.FBits^[loop] then exit;
+
+   if FSize - 1 > n then
+   begin
+      for loop := n to FSize - 1 do
+         if FBits^[loop] <> 0 then exit;
+   end
+   else if bitset.getFSize - 1 > n then
+      for loop := n to bitset.getFSize - 1 do
+         if bitset.FBits^[loop] <> 0 then exit;
+
+   result := True;  {passed all tests}
+end;
+
+
+{ us this in place of calling FindFirstBit. It sets the current }
+{ index used by FindNextBit and FindPrevBit                     }
+
+procedure TBits.SetIndex(index : longint);
+begin
+   findIndex := index;
+end;
+
+
+{ When state is set to True it looks for bits that are turned On (1) }
+{ and when it is set to False it looks for bits that are turned      }
+{ off (0).                                                           }
+
+function TBits.FindFirstBit(state : boolean) : longint;
+var
+   loop : longint;
+   loop2 : longint;
+   startIndex : longint;
+   compareVal : longint;
+begin
+   result := -1; {should only occur if none are set}
+
+   findState := state;
+
+   if state = False then
+      compareVal := $FFFFFFFF  { looking for off bits }
+   else
+      compareVal := $00000000; { looking for on bits }
+
+   for loop := 0 to FSize - 1 do
+   begin
+      if FBits^[loop] <> compareVal then
+      begin
+         startIndex := loop * 32;
+         for loop2 := startIndex to startIndex + 31 do
+	 begin
+            if get(loop2) = state then
+	    begin
+               result := loop2;
+	       break; { use this as the index to return }
+	    end;
+	 end;
+	 break;  {stop looking for bit in records }
+      end;
+   end;
+
+   findIndex := result;
+end;
+
+function TBits.FindNextBit : longint;
+var
+   loop : longint;
+   maxVal : longint;
+begin
+   result := -1;  { will occur only if no other bits set to }
+                  { current findState                        }
+
+   if findIndex > -1 then { must have called FindFirstBit first }
+   begin                  { or set the start index              }
+      maxVal := (FSize * 32) - 1;
+   
+      for loop := findIndex + 1 to maxVal  do
+      begin
+         if get(loop) = findState then
+	 begin
+            result := loop;
+	    break;
+	 end;
+      end;
+
+      findIndex := result;
+   end;
+end;
+
+function TBits.FindPrevBit : longint;
+var
+   loop : longint;
+begin
+   result := -1;  { will occur only if no other bits set to }
+                  { current findState                        }
+
+   if findIndex > -1 then { must have called FindFirstBit first }
+   begin                  { or set the start index              }
+      for loop := findIndex - 1 downto 0  do
+      begin
+         if get(loop) = findState then
+	 begin
+            result := loop;
+	    break;
+	 end;
+      end;
+
+      findIndex := result;
+   end;
+end;
 
 
 {
   $Log$
-  Revision 1.3  1998-11-04 14:36:29  michael
+  Revision 1.4  1999-04-09 12:13:31  michael
+  + Changed TBits to TbitsPlus from Michael A. Hess (renamed to Tbits)
+
+  Revision 1.3  1998/11/04 14:36:29  michael
   Error handling always with exceptions
 
   Revision 1.2  1998/11/04 10:46:42  peter

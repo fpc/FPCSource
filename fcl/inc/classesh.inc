@@ -171,36 +171,52 @@ type
     procedure UnlockList;
   end;
 
-  {
-    TBits provides a bitvector, the bitvector can be extended by setting
-    the size property
-   }
-  TBits = class
-  private
-    { contains the size of the bitvector }
-    FSize: Integer;
-    { pointer to the data, FBits is nil if FSize is zero }
-    FBits: Pointer;
-    { called if an error occurs }
-    procedure Error;
-    { sets the size to Value }
-    procedure SetSize(Value: Integer);
-    { sets the bit Index to Value }
-    procedure SetBit(Index: Integer; Value: Boolean);
-    { returns the bit Index }
-    function GetBit(Index: Integer): Boolean;
-  public
-    { releases the bitvector }
-    destructor Destroy; override;
-    { returns the index of the first bit which is false }
-    { if all bits are 1, the bitvector is extended      }
-    function OpenBit: Integer;
-    { direct access to the bits }
-    property Bits[Index: Integer]: Boolean read GetBit write SetBit; default;
-    { size of the bitvector. If this field is written the bitvector }
-    { will be extended or shrinked                                  }
-    property Size: Integer read FSize write SetSize;
-  end;
+const
+   BITSHIFT = 5;
+   MASK = 31; {for longs that are 32-bit in size}
+   MaxBitRec = $FFFF Div (SizeOf(longint));
+   MaxBitFlags = MaxBitRec * 32;
+
+type
+   TBitArray = array[0..MaxBitRec - 1] of longint;
+
+   TBits = class(TObject)
+   private
+      { Private declarations }
+      FBits : ^TBitArray;
+      FSize : longint;  { total longints currently allocated }
+      findIndex : longint;
+      findState : boolean;
+
+      { functions and properties to match TBits class }
+      procedure SetBit(bit : longint; value : Boolean);
+      function getSize : longint;
+      procedure setSize(value : longint);
+   public
+      { Public declarations }
+      constructor Create(theSize : longint); virtual;
+      destructor Destroy; override;
+      function  getFSize : longint;
+      procedure seton(bit : longint);
+      procedure clear(bit : longint);
+      procedure clearall;
+      procedure andbits(bitset : TBits);
+      procedure orbits(bitset : TBits);
+      procedure xorbits(bitset : TBits);
+      procedure notbits(bitset : TBits);
+      function  get(bit : longint) : boolean;
+      procedure grow(nbit : longint);
+      function  equals(bitset : TBits) : Boolean;
+      procedure SetIndex(index : longint);
+      function  FindFirstBit(state : boolean) : longint;
+      function  FindNextBit : longint;
+      function  FindPrevBit : longint;
+
+      { functions and properties to match TBits class }
+      function OpenBit: longint;
+      property Bits[bit: longint]: Boolean read get write SetBit; default;
+      property Size: longint read getSize write setSize;
+   end;
 
 { TPersistent abstract class }
 
@@ -1049,7 +1065,10 @@ function LineStart(Buffer, BufPos: PChar): PChar;
 
 {
   $Log$
-  Revision 1.10  1998-10-30 14:52:49  michael
+  Revision 1.11  1999-04-09 12:13:30  michael
+  + Changed TBits to TbitsPlus from Michael A. Hess (renamed to Tbits)
+
+  Revision 1.10  1998/10/30 14:52:49  michael
   + Added format in interface
   + Some errors in parser fixed, it uses exceptions now
   + Strings now has no more syntax errors.
