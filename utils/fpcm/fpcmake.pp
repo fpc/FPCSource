@@ -241,6 +241,7 @@ begin
   writeln('Operations:');
   writeln(' -p  Generate Package.fpc');
   writeln(' -w  Write Makefile');
+  writeln(' -V  Print fpcmake version and exit');
   writeln('');
   writeln('Options:');
   writeln(' -T<target>[,target] Support only specified targets. If "-Tall", all targets are');
@@ -253,13 +254,19 @@ begin
 end;
 
 
+procedure printVersion;
+begin
+  writeln (TitleDate);
+  halt(0);	
+end;
+
 
 Procedure ProcessOpts;
 {
   Process command line opions, and checks if command line options OK.
 }
 const
-  ShortOpts = 'pwqrvh?T:';
+  ShortOpts = 'pwqrvh?VT:';
 var
   C : char;
 begin
@@ -280,6 +287,7 @@ begin
       'T' : ParaTargets:=OptArg;
       '?' : Usage;
       'h' : Usage;
+      'V' : printVersion;
     end;
   until false;
 end;
@@ -294,7 +302,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2005-01-10 20:33:09  peter
+  Revision 1.12  2005-01-11 21:13:12  armin
+  * added -V to print version
+
+  Revision 1.11  2005/01/10 20:33:09  peter
     * use cpu-os style
 
   Revision 1.10  2004/12/05 11:18:04  hajny
