@@ -383,7 +383,6 @@ implementation
          old_allow_multi_pass2,
          releaseright : boolean;
          len : aint;
-         cgsize : tcgsize;
          r:Tregister;
 
       begin
@@ -574,19 +573,18 @@ implementation
                     LOC_REGISTER,
                     LOC_CREGISTER :
                       begin
-                        cgsize:=def_cgsize(left.resulttype.def);
 {$ifndef cpu64bit}
-                        if cgsize in [OS_64,OS_S64] then
+                        if left.location.size in [OS_64,OS_S64] then
                           cg64.a_load64_ref_reg(exprasmlist,right.location.reference,left.location.register64)
                         else
 {$endif cpu64bit}
-                          cg.a_load_ref_reg(exprasmlist,cgsize,cgsize,right.location.reference,left.location.register);
+                          cg.a_load_ref_reg(exprasmlist,right.location.size,left.location.size,right.location.reference,left.location.register);
                       end;
                     LOC_FPUREGISTER,
                     LOC_CFPUREGISTER :
                       begin
                         cg.a_loadfpu_ref_reg(exprasmlist,
-                            def_cgsize(right.resulttype.def),
+                            right.location.size,
                             right.location.reference,
                             left.location.register);
                       end;
@@ -624,7 +622,6 @@ implementation
                     end
                   else
                     begin
-                      cgsize:=def_cgsize(left.resulttype.def);
                       if left.location.loc=LOC_CMMREGISTER then
                         cg.a_loadmm_reg_reg(exprasmlist,right.location.size,left.location.size,right.location.register,left.location.register,mms_movescalar)
                       else
@@ -634,9 +631,8 @@ implementation
               LOC_REGISTER,
               LOC_CREGISTER :
                 begin
-                  cgsize:=def_cgsize(left.resulttype.def);
 {$ifndef cpu64bit}
-                  if cgsize in [OS_64,OS_S64] then
+                  if left.location.size in [OS_64,OS_S64] then
                     cg64.a_load64_reg_loc(exprasmlist,
                       right.location.register64,left.location)
                   else
@@ -663,7 +659,6 @@ implementation
                 end;
               LOC_JUMP :
                 begin
-                  cgsize:=def_cgsize(left.resulttype.def);
                   objectlibrary.getlabel(hlabel);
                   { generate the leftnode for the true case, and
                     release the location }
@@ -957,7 +952,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.132  2004-11-09 17:26:47  peter
+  Revision 1.133  2004-11-29 17:32:56  peter
+    * prevent some IEs with delphi methodpointers
+
+  Revision 1.132  2004/11/09 17:26:47  peter
     * fixed wrong typecasts
 
   Revision 1.131  2004/11/08 22:09:59  peter

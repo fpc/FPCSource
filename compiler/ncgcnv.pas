@@ -398,7 +398,6 @@ interface
               begin
                 location.register:=cg.getaddressregister(exprasmlist);
                 cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,left.location.reference,location.register);
-//                location_freetemp(exprasmlist,left.location);
               end;
             else
               internalerror(2002032214);
@@ -466,6 +465,8 @@ interface
 
 
     procedure tcgtypeconvnode.second_nothing;
+      var
+        newsize : tcgsize;
       begin
         { we reuse the old value }
         location_copy(location,left.location);
@@ -477,9 +478,11 @@ interface
          location_force_mem(exprasmlist,location);
 
         { but use the new size, but we don't know the size of all arrays }
-        location.size:=def_cgsize(resulttype.def);
+        newsize:=def_cgsize(resulttype.def);
         if location.loc in [LOC_REGISTER,LOC_CREGISTER] then
-          location.register:=cg.makeregsize(exprasmlist,location.register,location.size);
+          location_force_reg(exprasmlist,location,newsize,false)
+        else
+          location.size:=newsize;
       end;
 
 
@@ -531,7 +534,10 @@ end.
 
 {
   $Log$
-  Revision 1.63  2004-11-01 17:41:28  florian
+  Revision 1.64  2004-11-29 17:32:56  peter
+    * prevent some IEs with delphi methodpointers
+
+  Revision 1.63  2004/11/01 17:41:28  florian
     * fixed arm compilation with cgutils
     * ...
 

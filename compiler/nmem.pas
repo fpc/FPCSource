@@ -390,10 +390,6 @@ implementation
         else
          if (left.nodetype=loadn) and (tloadnode(left).symtableentry.typ=procsym) then
           begin
-            { the address is already available when loading a procedure of object }
-            if assigned(tloadnode(left).left) then
-             include(flags,nf_procvarload);
-
             { result is a procedure variable }
             { No, to be TP compatible, you must return a voidpointer to
               the procedure that is stored in the procvar.}
@@ -425,7 +421,9 @@ implementation
 
                  { only need the address of the method? this is needed
                    for @tobject.create }
-                 if not assigned(tloadnode(left).left) then
+                 if assigned(tloadnode(left).left) then
+                   include(flags,nf_procvarload)
+                 else
                    include(tprocvardef(resulttype.def).procoptions,po_addressonly);
 
                  { Add parameters use only references, we don't need to keep the
@@ -437,9 +435,8 @@ implementation
             else
               begin
                 if assigned(tloadnode(left).left) then
-                  CGMessage(parser_e_illegal_expression)
-                else
-                  resulttype:=voidpointertype;
+                  CGMessage(parser_e_illegal_expression);
+                resulttype:=voidpointertype;
               end;
           end
         else
@@ -1000,7 +997,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.90  2004-11-26 22:33:24  peter
+  Revision 1.91  2004-11-29 17:32:56  peter
+    * prevent some IEs with delphi methodpointers
+
+  Revision 1.90  2004/11/26 22:33:24  peter
     * don't allow @method in tp procvar mode
 
   Revision 1.89  2004/11/15 23:35:31  peter

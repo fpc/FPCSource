@@ -695,6 +695,7 @@ implementation
                        ordinals to pointer.
                        It is also used by the compiler internally for inc(pointer,ordinal) }
                      if (eq=te_incompatible) and
+                        not is_void(def_from) and
                         (
                          (
                           (m_delphi in aktmodeswitches) and
@@ -1311,7 +1312,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.60  2004-11-26 22:33:54  peter
+  Revision 1.61  2004-11-29 17:32:56  peter
+    * prevent some IEs with delphi methodpointers
+
+  Revision 1.60  2004/11/26 22:33:54  peter
     * don't allow pointer(ordinal) typecast in fpc mode, only allow it
       for delphi and for internal use
 
