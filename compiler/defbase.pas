@@ -60,8 +60,8 @@ interface
     {# Returns true if definition is a boolean }
     function is_boolean(def : tdef) : boolean;
 
-    {# Returns true if definition is a char 
-    
+    {# Returns true if definition is a char
+
        This excludes the unicode char.
     }
     function is_char(def : tdef) : boolean;
@@ -75,8 +75,8 @@ interface
     {# Returns true if definition is a smallset}
     function is_smallset(p : tdef) : boolean;
 
-    {# Returns true, if def defines a signed data type 
-       (only for ordinal types) 
+    {# Returns true, if def defines a signed data type
+       (only for ordinal types)
     }
     function is_signed(def : tdef) : boolean;
 
@@ -1273,7 +1273,7 @@ implementation
           assignment_overloaded:=nil;
           if not assigned(overloaded_operators[_ASSIGNMENT]) then
             exit;
-    
+
           { look for an exact match first }
       assignment_overloaded:=overloaded_operators[_ASSIGNMENT].
        search_procdef_byretdef_by1paradef(to_def,from_def,dm_exact);
@@ -1499,6 +1499,13 @@ implementation
                   doconv:=tc_equal;
                   b:=1;
                 end
+               else if is_dynamic_array(def_to) and
+                { nil is compatible with dyn. arrays }
+                (fromtreetype=niln) then
+                 begin
+                   doconv:=tc_equal;
+                   b:=1;
+                 end
                else
                 begin
                   case def_from.deftype of
@@ -1886,7 +1893,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2002-08-05 18:27:48  carl
+  Revision 1.4  2002-08-12 14:17:56  florian
+    * nil is now recognized as being compatible with a dynamic array
+
+  Revision 1.3  2002/08/05 18:27:48  carl
     + more more more documentation
     + first version include/exclude (can't test though, not enough scratch for i386 :()...
 
