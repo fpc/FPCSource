@@ -1,3 +1,8 @@
+{ %OPT=-vn }
+{$ifdef ENDIAN_BIG}
+{$note This test should fail on big endian machines. }
+{$endif}
+
 {$ifdef fpc}{$mode tp}{$endif}
 
 var
