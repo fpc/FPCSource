@@ -536,7 +536,7 @@ implementation
                 to right as the other way is checked in the typeconv }
               if (tsetdef(right.resulttype.def).settype=smallset) and
                  (tsetdef(left.resulttype.def).settype<>smallset) then
-                tsetdef(right.resulttype.def).changesettype(normset);
+                right.resulttype.setdef(tsetdef.create(tsetdef(right.resulttype.def).elementtype,255));
               { check base types }
               inserttypeconv(left,right.resulttype);
 
@@ -1953,7 +1953,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.92  2003-06-03 21:04:43  peter
+  Revision 1.93  2003-06-05 20:05:55  peter
+    * removed changesettype because that will change the definition
+      of the setdef forever and can result in a different between
+      original interface and current implementation definition
+
+  Revision 1.92  2003/06/03 21:04:43  peter
     * widen cardinal+signed operations
 
   Revision 1.91  2003/05/26 21:15:18  peter

@@ -621,7 +621,6 @@ interface
           procedure deref;override;
           function  gettypename:string;override;
           function  is_publishable : boolean;override;
-          procedure changesettype(s:tsettype);
           { debug }
 {$ifdef GDB}
           function  stabstring : pchar;override;
@@ -2446,20 +2445,6 @@ implementation
          if settype=varset then
            ppufile.putlongint(savesize);
          ppufile.writeentry(ibsetdef);
-      end;
-
-
-    procedure tsetdef.changesettype(s:tsettype);
-      begin
-        case s of
-          smallset :
-            savesize:=sizeof(longint);
-          normset :
-            savesize:=32;
-          varset :
-            internalerror(200110201);
-        end;
-        settype:=s;
       end;
 
 
@@ -5741,7 +5726,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.148  2003-06-03 13:01:59  daniel
+  Revision 1.149  2003-06-05 20:05:55  peter
+    * removed changesettype because that will change the definition
+      of the setdef forever and can result in a different between
+      original interface and current implementation definition
+
+  Revision 1.148  2003/06/03 13:01:59  daniel
     * Register allocator finished
 
   Revision 1.147  2003/06/02 22:55:28  florian

@@ -1107,7 +1107,7 @@ implementation
                   { constant sets can be converted by changing the type only }
                   if (left.nodetype=setconstn) then
                    begin
-                     tsetdef(left.resulttype.def).changesettype(tsetdef(resulttype.def).settype);
+                     left.resulttype:=resulttype;
                      result:=left;
                      left:=nil;
                      exit;
@@ -2111,7 +2111,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.114  2003-06-04 17:55:09  jonas
+  Revision 1.115  2003-06-05 20:05:55  peter
+    * removed changesettype because that will change the definition
+      of the setdef forever and can result in a different between
+      original interface and current implementation definition
+
+  Revision 1.114  2003/06/04 17:55:09  jonas
     * disable fpuregable for fpu variables typecasted to non fpu-type
 
   Revision 1.113  2003/06/04 17:29:01  jonas
