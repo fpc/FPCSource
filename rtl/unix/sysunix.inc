@@ -781,11 +781,18 @@ Begin
   OpenStdIO(StdErr,fmOutput,StdErrorHandle);
 { Reset IO Error }
   InOutRes:=0;
+{ Setup variant support }
+{$ifdef HASVARIANT}
+  initvariantmanager;
+{$endif HASVARIANT}
 End.
 
 {
   $Log$
-  Revision 1.29  2002-09-07 16:01:27  peter
+  Revision 1.30  2002-10-13 09:20:56  peter
+    * added initvariantmanager
+
+  Revision 1.29  2002/09/07 16:01:27  peter
     * old logs removed and tabs fixed
 
   Revision 1.28  2002/09/02 19:46:37  florian
