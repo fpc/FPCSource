@@ -573,7 +573,7 @@ end;
 
 procedure fsplit(path : pathstr;var dir : dirstr;var name : namestr;var ext : extstr);
 var
-   p1,i : longint;
+   dotpos,p1,i : longint;
 begin
    { allow slash as backslash }
    for i:=1 to length(path) do
@@ -598,15 +598,20 @@ begin
         delete(path,1,p1);
      end;
    { try to find out a extension }
-   p1:=pos('.',path);
-   if p1>0 then
-     begin
-        ext:=copy(path,p1,4);
-        delete(path,p1,length(path)-p1+1);
-     end
-   else
-     ext:='';
-   name:=path;
+   Ext:='';
+   i:=Length(Path);
+   DotPos:=256;
+   While (i>0) Do
+     Begin
+        If (Path[i]='.') Then
+          begin
+             DotPos:=i;
+             break;
+          end;
+        Dec(i);
+     end;
+   Ext:=Copy(Path,DotPos,255);
+   Name:=Copy(Path,1,DotPos - 1);
 end;
 
 
@@ -876,7 +881,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.10  1998-10-16 14:20:06  peter
+  Revision 1.11  1998-10-22 15:32:38  pierre
+   * fsplit adapted to long filenames
+
+  Revision 1.10  1998/10/16 14:20:06  peter
     * removed writelns
 
   Revision 1.9  1998/10/16 08:55:26  peter
