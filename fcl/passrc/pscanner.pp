@@ -374,7 +374,7 @@ end;
 
 procedure TFileResolver.AddIncludePath(const APath: String);
 begin
-  FIncludePaths.Add(IncludeTrailingPathDelimiter(APath));
+  FIncludePaths.Add(IncludeTrailingPathDelimiter(ExpandFileName(APath)));
 end;
 
 function TFileResolver.FindSourceFile(const AName: String): TLineReader;
@@ -392,18 +392,27 @@ end;
 function TFileResolver.FindIncludeFile(const AName: String): TLineReader;
 var
   i: Integer;
+  FN : String;
+  
 begin
   Result := nil;
-  try
-    Result := TFileLineReader.Create(AName);
-  except
-    for i := 0 to FIncludePaths.Count - 1 do
-      try
-        Result := TFileLineReader.Create(FIncludePaths[i] + AName);
-	break;
+  If FileExists(AName) then
+    Result := TFileLineReader.Create(AName)
+  else
+    begin
+    I:=0;
+    While (Result=Nil) and I<FIncludePaths.Count do
+      begin
+      Try
+        FN:=FIncludePaths[i]+AName;
+        If FileExists(FN) then
+          Result := TFileLineReader.Create(FN);
       except
+        Result:=Nil;
       end;
-  end;
+      Inc(I);
+      end;
+    end;
 end;
 
 
@@ -1026,7 +1035,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  2004-07-23 23:41:10  michael
+  Revision 1.8  2004-08-25 09:32:39  michael
+  + Fix for relative pathnames in include files, and code cleanup
+
+  Revision 1.7  2004/07/23 23:41:10  michael
   + Fixed scanning of strings with quotes in them
 
   Revision 1.6  2004/05/01 20:08:51  marco
