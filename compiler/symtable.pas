@@ -1019,7 +1019,13 @@ implementation
         if (usefieldalignment=-1) then
           varalignrecord:=used_align(varalign,aktalignment.recordalignmin,aktalignment.maxCrecordalign)
         else
-          varalignrecord:=used_align(varalign,aktalignment.recordalignmin,aktalignment.recordalignmax);
+          if (usefieldalignment=0) then
+            varalignrecord:=used_align(varalign,aktalignment.recordalignmin,aktalignment.recordalignmax)
+        else
+          begin
+            { packrecords is set explicit, ignore recordalignmax limit }
+            varalignrecord:=used_align(varalign,aktalignment.recordalignmin,varalign);
+          end;
         recordalignment:=max(recordalignment,varalignrecord);
       end;
 
@@ -2296,7 +2302,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.143  2004-03-09 20:45:04  peter
+  Revision 1.144  2004-03-14 20:08:37  peter
+    * packrecords fixed for settings from $PACKRECORDS
+    * default packrecords now uses value 0 and uses info from aligment
+      structure only, initpackrecords removed
+
+  Revision 1.143  2004/03/09 20:45:04  peter
     * more stabs updates
 
   Revision 1.142  2004/03/08 22:07:47  peter

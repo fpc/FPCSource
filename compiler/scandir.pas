@@ -605,7 +605,7 @@ implementation
             aktpackrecords:=-1
            else
             if (hs='NORMAL') or (hs='DEFAULT') then
-             aktpackrecords:=2
+             aktpackrecords:=0
            else
             Message(scan_w_only_pack_records);
          end
@@ -992,7 +992,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.30  2004-01-28 22:16:31  peter
+  Revision 1.31  2004-03-14 20:08:37  peter
+    * packrecords fixed for settings from $PACKRECORDS
+    * default packrecords now uses value 0 and uses info from aligment
+      structure only, initpackrecords removed
+
+  Revision 1.30  2004/01/28 22:16:31  peter
     * more record alignment fixes
 
   Revision 1.29  2003/12/25 01:07:09  florian

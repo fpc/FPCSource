@@ -192,7 +192,6 @@ interface
        {$IFDEF testvarsets}
         Initsetalloc,                            {0=fixed, 1 =var}
        {$ENDIF}
-       initpackrecords,
        initpackenum       : shortint;
        initalignment      : talignmentinfo;
        initoptprocessor,
@@ -708,16 +707,16 @@ implementation
        FixFileName[0]:=s[0];
      end;
 
-   {Translates a unix or dos path to a mac path for use in MPW. 
-   If already a mac path, it does nothing. The origin of this 
+   {Translates a unix or dos path to a mac path for use in MPW.
+   If already a mac path, it does nothing. The origin of this
    algorithm will be put in macos/dos.pp, please update this
    from that, because there is some flaws in the algo below.}
     procedure TranslatePathToMac (var path: string);
-  
+
       var
         slashPos, oldpos, newpos, oldlen: Integer;
         inname: Boolean;
-  
+
     begin
       slashPos := Pos('/', path);
       if (slashPos <> 0) then   {its a unix path}
@@ -726,7 +725,7 @@ implementation
             begin
               Delete(path,1,1);
               Insert('{Boot}', path, 1);
-            end 
+            end
           else {its a partial path}
             Insert('/', path, 1);
         end
@@ -739,7 +738,7 @@ implementation
                 begin
                   Delete(path,1,1);
                   Insert('{Boot}', path, 1);
-                end 
+                end
               else if (Length(path) >= 2) and (path[2] = ':') then {its a full path, with drive letter}
                 begin
                   Delete(path, 1, 2);
@@ -749,7 +748,7 @@ implementation
                 Insert('/', path, 1);
             end;
         end;
-  
+
       if (slashPos <> 0) then   {its a unix or dos path}
         begin
           {Translate "/../" to "::" , "/./" to ":" and "/" to ":" ) in place. }
@@ -761,7 +760,7 @@ implementation
             begin
               oldpos := oldpos + 1;
               case path[oldpos] of
-                '.': 
+                '.':
                   if (((oldpos < oldlen) and (path[oldpos + 1] in ['.', '/', '\'])) or (oldpos = oldlen)) and not inname then
                     begin {its really a lonely ".." or "."}
                         {Skip two chars in any case. }
@@ -776,7 +775,7 @@ implementation
                       newpos := newpos + 1;
                       path[newpos] := path[oldpos];
                     end;
-                '/', '\': 
+                '/', '\':
                   begin
                     inname := false;
                     newpos := newpos + 1;
@@ -1836,7 +1835,6 @@ implementation
 
         initfputype:=fpu_x87;
 
-        initpackrecords:=4;
         initpackenum:=4;
         {$IFDEF testvarsets}
         initsetalloc:=0;
@@ -1845,7 +1843,6 @@ implementation
 {$endif i386}
 {$ifdef m68k}
         initoptprocessor:=MC68020;
-        initpackrecords:=2;
         initpackenum:=4;
         {$IFDEF testvarsets}
          initsetalloc:=0;
@@ -1853,7 +1850,6 @@ implementation
 {$endif m68k}
 {$ifdef powerpc}
         initoptprocessor:=PPC604;
-        initpackrecords:=4;
         initpackenum:=4;
         {$IFDEF testvarsets}
          initsetalloc:=0;
@@ -1862,14 +1858,12 @@ implementation
 {$endif powerpc}
 {$ifdef sparc}
         initoptprocessor:=SPARC_V8;
-        initpackrecords:=8;
         initpackenum:=4;
         {$IFDEF testvarsets}
          initsetalloc:=0;
         {$ENDIF}
 {$endif sparc}
 {$ifdef arm}
-        initpackrecords:=4;
         initpackenum:=4;
         {$IFDEF testvarsets}
         initsetalloc:=0;
@@ -1882,7 +1876,6 @@ implementation
 
         initfputype:=fpu_sse64;
 
-        initpackrecords:=8;
         initpackenum:=4;
         {$IFDEF testvarsets}
         initsetalloc:=0;
@@ -1904,7 +1897,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.125  2004-02-19 20:40:15  olle
+  Revision 1.126  2004-03-14 20:08:37  peter
+    * packrecords fixed for settings from $PACKRECORDS
+    * default packrecords now uses value 0 and uses info from aligment
+      structure only, initpackrecords removed
+
+  Revision 1.125  2004/02/19 20:40:15  olle
     + Support for Link on target especially for MacOS
     + TLinkerMPW
     + TAsmScriptMPW

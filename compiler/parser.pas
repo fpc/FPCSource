@@ -483,7 +483,7 @@ implementation
          aktalignment:=initalignment;
          aktfputype:=initfputype;
          aktpackenum:=initpackenum;
-         aktpackrecords:=initpackrecords;
+         aktpackrecords:=0;
          aktoutputformat:=initoutputformat;
          set_target_asm(aktoutputformat);
          aktoptprocessor:=initoptprocessor;
@@ -698,7 +698,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.61  2004-03-02 17:32:12  florian
+  Revision 1.62  2004-03-14 20:08:37  peter
+    * packrecords fixed for settings from $PACKRECORDS
+    * default packrecords now uses value 0 and uses info from aligment
+      structure only, initpackrecords removed
+
+  Revision 1.61  2004/03/02 17:32:12  florian
     * make cycle fixed
     + pic support for darwin
     + support of importing vars from shared libs on darwin implemented
