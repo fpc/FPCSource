@@ -620,17 +620,16 @@ implementation
            end;
          arraydef:
            begin
-              if token=_LKLAMMER then
+              if try_to_consume(_LKLAMMER) then
                 begin
-                    consume(_LKLAMMER);
-                    for l:=tarraydef(t.def).lowrange to tarraydef(t.def).highrange-1 do
-                      begin
-                         readtypedconst(tarraydef(t.def).elementtype,nil,writable);
-                         consume(_COMMA);
-                      end;
-                    readtypedconst(tarraydef(t.def).elementtype,nil,writable);
-                    consume(_RKLAMMER);
-                 end
+                  for l:=tarraydef(t.def).lowrange to tarraydef(t.def).highrange-1 do
+                    begin
+                      readtypedconst(tarraydef(t.def).elementtype,nil,writable);
+                      consume(_COMMA);
+                    end;
+                  readtypedconst(tarraydef(t.def).elementtype,nil,writable);
+                  consume(_RKLAMMER);
+                end
               else
               { if array of char then we allow also a string }
                if is_char(tarraydef(t.def).elementtype.def) then
@@ -671,6 +670,14 @@ implementation
                           curconstSegment.concat(Tai_const.Create_8bit(0));
                      end;
                    p.free;
+                end
+              else
+              { dynamic array nil }
+               if is_dynamic_array(t.def) then
+                begin
+                  { Only allow nil initialization }
+                  consume(_NIL);
+                  curconstSegment.concat(Tai_const.Create_32bit(0));
                 end
               else
                 begin
@@ -988,7 +995,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.64  2003-01-02 20:45:08  peter
+  Revision 1.65  2003-03-17 21:42:32  peter
+    * allow nil initialization of dynamic array
+
+  Revision 1.64  2003/01/02 20:45:08  peter
     * fix uninited var
 
   Revision 1.63  2002/12/26 12:34:54  florian
