@@ -210,7 +210,7 @@ interface
            { when swapped another result register }
            if (nodetype=subn) and (nf_swaped in flags) then
             begin
-              cg64.a_op64_reg_reg(exprasmlist,op,
+              cg64.a_op64_reg_reg(exprasmlist,op,location.size,
                 left.location.register64,
                 right.location.register64);
               location_swap(left.location,right.location);
@@ -218,7 +218,7 @@ interface
             end
            else
             begin
-              cg64.a_op64_reg_reg(exprasmlist,op,
+              cg64.a_op64_reg_reg(exprasmlist,op,location.size,
                 right.location.register64,
                 left.location.register64);
             end;
@@ -239,7 +239,7 @@ interface
             end
            else
             begin
-              cg64.a_op64_loc_reg(exprasmlist,op,right.location,
+              cg64.a_op64_loc_reg(exprasmlist,op,location.size,right.location,
                 left.location.register64);
             end;
           location_freetemp(exprasmlist,right.location);
@@ -653,7 +653,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.101  2004-11-01 12:43:29  peter
+  Revision 1.102  2005-02-13 18:55:19  florian
+    + overflow checking for the arm
+
+  Revision 1.101  2004/11/01 12:43:29  peter
     * shortstr compare with empty string fixed
     * removed special i386 code
 

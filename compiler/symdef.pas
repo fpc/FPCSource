@@ -823,6 +823,9 @@ interface
 {$ifdef ARM}
        pbestrealtype : ^ttype = @s64floattype;
 {$endif ARM}
+{$ifdef MIPS}
+       pbestrealtype : ^ttype = @s64floattype;
+{$endif MIPS}
 
     function make_mangledname(const typeprefix:string;st:tsymtable;const suffix:string):string;
 
@@ -6391,7 +6394,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.295  2005-02-10 22:08:37  peter
+  Revision 1.296  2005-02-13 18:55:19  florian
+    + overflow checking for the arm
+
+  Revision 1.295  2005/02/10 22:08:37  peter
     * implprocs requires no duplicate entries of the same procdef
 
   Revision 1.294  2005/02/02 19:02:47  florian

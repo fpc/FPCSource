@@ -60,12 +60,12 @@ unit cg64f32;
         procedure a_load64high_loc_reg(list : taasmoutput;const l : tlocation;reg : tregister);override;
         procedure a_load64low_loc_reg(list : taasmoutput;const l : tlocation;reg : tregister);override;
 
-        procedure a_op64_ref_reg(list : taasmoutput;op:TOpCG;const ref : treference;reg : tregister64);override;
-        procedure a_op64_reg_ref(list : taasmoutput;op:TOpCG;reg : tregister64; const ref: treference);override;
-        procedure a_op64_const_loc(list : taasmoutput;op:TOpCG;value : int64;const l: tlocation);override;
-        procedure a_op64_reg_loc(list : taasmoutput;op:TOpCG;reg : tregister64;const l : tlocation);override;
-        procedure a_op64_loc_reg(list : taasmoutput;op:TOpCG;const l : tlocation;reg : tregister64);override;
-        procedure a_op64_const_ref(list : taasmoutput;op:TOpCG;value : int64;const ref : treference);override;
+        procedure a_op64_ref_reg(list : taasmoutput;op:TOpCG;size : tcgsize;const ref : treference;reg : tregister64);override;
+        procedure a_op64_reg_ref(list : taasmoutput;op:TOpCG;size : tcgsize;reg : tregister64; const ref: treference);override;
+        procedure a_op64_const_loc(list : taasmoutput;op:TOpCG;size : tcgsize;value : int64;const l: tlocation);override;
+        procedure a_op64_reg_loc(list : taasmoutput;op:TOpCG;size : tcgsize;reg : tregister64;const l : tlocation);override;
+        procedure a_op64_loc_reg(list : taasmoutput;op:TOpCG;size : tcgsize;const l : tlocation;reg : tregister64);override;
+        procedure a_op64_const_ref(list : taasmoutput;op:TOpCG;size : tcgsize;value : int64;const ref : treference);override;
 
         procedure a_param64_reg(list : taasmoutput;reg : tregister64;const paraloc : tcgpara);override;
         procedure a_param64_const(list : taasmoutput;value : int64;const paraloc : tcgpara);override;
@@ -404,26 +404,26 @@ unit cg64f32;
       end;
 
 
-    procedure tcg64f32.a_op64_const_loc(list : taasmoutput;op:TOpCG;value : int64;const l: tlocation);
+    procedure tcg64f32.a_op64_const_loc(list : taasmoutput;op:TOpCG;size : tcgsize;value : int64;const l: tlocation);
       begin
         case l.loc of
           LOC_REFERENCE, LOC_CREFERENCE:
-            a_op64_const_ref(list,op,value,l.reference);
+            a_op64_const_ref(list,op,size,value,l.reference);
           LOC_REGISTER,LOC_CREGISTER:
-            a_op64_const_reg(list,op,value,l.register64);
+            a_op64_const_reg(list,op,size,value,l.register64);
           else
             internalerror(200203292);
         end;
       end;
 
 
-    procedure tcg64f32.a_op64_reg_loc(list : taasmoutput;op:TOpCG;reg : tregister64;const l : tlocation);
+    procedure tcg64f32.a_op64_reg_loc(list : taasmoutput;op:TOpCG;size : tcgsize;reg : tregister64;const l : tlocation);
       begin
         case l.loc of
           LOC_REFERENCE, LOC_CREFERENCE:
-            a_op64_reg_ref(list,op,reg,l.reference);
+            a_op64_reg_ref(list,op,size,reg,l.reference);
           LOC_REGISTER,LOC_CREGISTER:
-            a_op64_reg_reg(list,op,reg,l.register64);
+            a_op64_reg_reg(list,op,size,reg,l.register64);
           else
             internalerror(2002032422);
         end;
@@ -431,52 +431,52 @@ unit cg64f32;
 
 
 
-    procedure tcg64f32.a_op64_loc_reg(list : taasmoutput;op:TOpCG;const l : tlocation;reg : tregister64);
+    procedure tcg64f32.a_op64_loc_reg(list : taasmoutput;op:TOpCG;size : tcgsize;const l : tlocation;reg : tregister64);
       begin
         case l.loc of
           LOC_REFERENCE, LOC_CREFERENCE:
-            a_op64_ref_reg(list,op,l.reference,reg);
+            a_op64_ref_reg(list,op,size,l.reference,reg);
           LOC_REGISTER,LOC_CREGISTER:
-            a_op64_reg_reg(list,op,l.register64,reg);
+            a_op64_reg_reg(list,op,size,l.register64,reg);
           LOC_CONSTANT :
-            a_op64_const_reg(list,op,l.value64,reg);
+            a_op64_const_reg(list,op,size,l.value64,reg);
           else
             internalerror(200203242);
         end;
       end;
 
 
-    procedure tcg64f32.a_op64_ref_reg(list : taasmoutput;op:TOpCG;const ref : treference;reg : tregister64);
+    procedure tcg64f32.a_op64_ref_reg(list : taasmoutput;op:TOpCG;size : tcgsize;const ref : treference;reg : tregister64);
       var
         tempreg: tregister64;
       begin
         tempreg.reghi:=cg.getintregister(list,OS_32);
         tempreg.reglo:=cg.getintregister(list,OS_32);
         a_load64_ref_reg(list,ref,tempreg);
-        a_op64_reg_reg(list,op,tempreg,reg);
+        a_op64_reg_reg(list,op,size,tempreg,reg);
       end;
 
 
-    procedure tcg64f32.a_op64_reg_ref(list : taasmoutput;op:TOpCG;reg : tregister64; const ref: treference);
+    procedure tcg64f32.a_op64_reg_ref(list : taasmoutput;op:TOpCG;size : tcgsize;reg : tregister64; const ref: treference);
       var
         tempreg: tregister64;
       begin
         tempreg.reghi:=cg.getintregister(list,OS_32);
         tempreg.reglo:=cg.getintregister(list,OS_32);
         a_load64_ref_reg(list,ref,tempreg);
-        a_op64_reg_reg(list,op,reg,tempreg);
+        a_op64_reg_reg(list,op,size,reg,tempreg);
         a_load64_reg_ref(list,tempreg,ref);
       end;
 
 
-    procedure tcg64f32.a_op64_const_ref(list : taasmoutput;op:TOpCG;value : int64;const ref : treference);
+    procedure tcg64f32.a_op64_const_ref(list : taasmoutput;op:TOpCG;size : tcgsize;value : int64;const ref : treference);
       var
         tempreg: tregister64;
       begin
         tempreg.reghi:=cg.getintregister(list,OS_32);
         tempreg.reglo:=cg.getintregister(list,OS_32);
         a_load64_ref_reg(list,ref,tempreg);
-        a_op64_const_reg(list,op,value,tempreg);
+        a_op64_const_reg(list,op,size,value,tempreg);
         a_load64_reg_ref(list,tempreg,ref);
       end;
 
@@ -781,7 +781,10 @@ unit cg64f32;
 end.
 {
   $Log$
-  Revision 1.67  2005-01-18 22:19:20  peter
+  Revision 1.68  2005-02-13 18:55:19  florian
+    + overflow checking for the arm
+
+  Revision 1.67  2005/01/18 22:19:20  peter
     * multiple location support for i386 a_param_ref
     * remove a_param_copy_ref for i386
 

@@ -134,10 +134,10 @@ unit cgcpu;
      end;
 
      tcg64fppc = class(tcg64f32)
-       procedure a_op64_reg_reg(list : taasmoutput;op:TOpCG;regsrc,regdst : tregister64);override;
-       procedure a_op64_const_reg(list : taasmoutput;op:TOpCG;value : int64;reg : tregister64);override;
-       procedure a_op64_const_reg_reg(list: taasmoutput;op:TOpCG;value : int64;regsrc,regdst : tregister64);override;
-       procedure a_op64_reg_reg_reg(list: taasmoutput;op:TOpCG;regsrc1,regsrc2,regdst : tregister64);override;
+       procedure a_op64_reg_reg(list : taasmoutput;op:TOpCG;size : tcgsize;regsrc,regdst : tregister64);override;
+       procedure a_op64_const_reg(list : taasmoutput;op:TOpCG;size : tcgsize;value : int64;reg : tregister64);override;
+       procedure a_op64_const_reg_reg(list: taasmoutput;op:TOpCG;size : tcgsize;value : int64;regsrc,regdst : tregister64);override;
+       procedure a_op64_reg_reg_reg(list: taasmoutput;op:TOpCG;size : tcgsize;regsrc1,regsrc2,regdst : tregister64);override;
      end;
 
 
@@ -2310,19 +2310,19 @@ const
       end;
 
 
-    procedure tcg64fppc.a_op64_reg_reg(list : taasmoutput;op:TOpCG;regsrc,regdst : tregister64);
+    procedure tcg64fppc.a_op64_reg_reg(list : taasmoutput;op:TOpCG;size : tcgsize;regsrc,regdst : tregister64);
       begin
-        a_op64_reg_reg_reg(list,op,regsrc,regdst,regdst);
+        a_op64_reg_reg_reg(list,op,size,regsrc,regdst,regdst);
       end;
 
 
-    procedure tcg64fppc.a_op64_const_reg(list : taasmoutput;op:TOpCG;value : int64;reg : tregister64);
+    procedure tcg64fppc.a_op64_const_reg(list : taasmoutput;op:TOpCG;size : tcgsize;value : int64;reg : tregister64);
       begin
-        a_op64_const_reg_reg(list,op,value,reg,reg);
+        a_op64_const_reg_reg(list,op,size,value,reg,reg);
       end;
 
 
-    procedure tcg64fppc.a_op64_reg_reg_reg(list: taasmoutput;op:TOpCG;regsrc1,regsrc2,regdst : tregister64);
+    procedure tcg64fppc.a_op64_reg_reg_reg(list: taasmoutput;op:TOpCG;size : tcgsize;regsrc1,regsrc2,regdst : tregister64);
       begin
         case op of
           OP_AND,OP_OR,OP_XOR:
@@ -2346,7 +2346,7 @@ const
       end;
 
 
-    procedure tcg64fppc.a_op64_const_reg_reg(list: taasmoutput;op:TOpCG;value : int64;regsrc,regdst : tregister64);
+    procedure tcg64fppc.a_op64_const_reg_reg(list: taasmoutput;op:TOpCG;size : tcgsize;value : int64;regsrc,regdst : tregister64);
 
       const
         ops: array[boolean,1..3] of tasmop = ((A_ADDIC,A_ADDC,A_ADDZE),
@@ -2398,7 +2398,7 @@ const
                       tmpreg64.reglo := tcgppc(cg).rg[R_INTREGISTER].getregister(list,R_SUBWHOLE);
                       tmpreg64.reghi := tcgppc(cg).rg[R_INTREGISTER].getregister(list,R_SUBWHOLE);
                       a_load64_const_reg(list,value,tmpreg64);
-                      a_op64_reg_reg_reg(list,op,tmpreg64,regsrc,regdst);
+                      a_op64_reg_reg_reg(list,op,size,tmpreg64,regsrc,regdst);
                     end
                 end
               else
@@ -2420,7 +2420,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.193  2005-01-24 22:08:32  peter
+  Revision 1.194  2005-02-13 18:55:19  florian
+    + overflow checking for the arm
+
+  Revision 1.193  2005/01/24 22:08:32  peter
     * interface wrapper generation moved to cgobj
     * generate interface wrappers after the module is parsed
 

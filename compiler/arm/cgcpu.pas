@@ -39,7 +39,7 @@ unit cgcpu;
     type
       tcgarm = class(tcg)
         { true, if the next arithmetic operation should modify the flags }
-        setflags : boolean;
+        cgsetflags : boolean;
         procedure init_register_allocators;override;
         procedure done_register_allocators;override;
 
@@ -57,6 +57,8 @@ unit cgcpu;
           size: tcgsize; a: aint; src, dst: tregister); override;
         procedure a_op_reg_reg_reg(list: taasmoutput; op: TOpCg;
           size: tcgsize; src1, src2, dst: tregister); override;
+        procedure a_op_const_reg_reg_checkoverflow(list: taasmoutput; op: TOpCg; size: tcgsize; a: aint; src, dst: tregister;setflags : boolean;var ovloc : tlocation);override;
+        procedure a_op_reg_reg_reg_checkoverflow(list: taasmoutput; op: TOpCg; size: tcgsize; src1, src2, dst: tregister;setflags : boolean;var ovloc : tlocation);override;
 
         { move instructions }
         procedure a_load_const_reg(list : taasmoutput; size: tcgsize; a : aint;reg : tregister);override;
@@ -88,6 +90,7 @@ unit cgcpu;
         procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aint);override;
 
         procedure g_overflowcheck(list: taasmoutput; const l: tlocation; def: tdef); override;
+        procedure g_overflowCheck_loc(List:TAasmOutput;const Loc:TLocation;def:TDef;ovloc : tlocation);override;
 
         procedure g_save_standard_registers(list : taasmoutput);override;
         procedure g_restore_standard_registers(list : taasmoutput);override;
@@ -100,10 +103,12 @@ unit cgcpu;
       end;
 
       tcg64farm = class(tcg64f32)
-        procedure a_op64_reg_reg(list : taasmoutput;op:TOpCG;regsrc,regdst : tregister64);override;
-        procedure a_op64_const_reg(list : taasmoutput;op:TOpCG;value : int64;reg : tregister64);override;
-        procedure a_op64_const_reg_reg(list: taasmoutput;op:TOpCG;value : int64;regsrc,regdst : tregister64);override;
-        procedure a_op64_reg_reg_reg(list: taasmoutput;op:TOpCG;regsrc1,regsrc2,regdst : tregister64);override;
+        procedure a_op64_reg_reg(list : taasmoutput;op:TOpCG;size : tcgsize;regsrc,regdst : tregister64);override;
+        procedure a_op64_const_reg(list : taasmoutput;op:TOpCG;size : tcgsize;value : int64;reg : tregister64);override;
+        procedure a_op64_const_reg_reg(list: taasmoutput;op:TOpCG;size : tcgsize;value : int64;regsrc,regdst : tregister64);override;
+        procedure a_op64_reg_reg_reg(list: taasmoutput;op:TOpCG;size : tcgsize;regsrc1,regsrc2,regdst : tregister64);override;
+        procedure a_op64_const_reg_reg_checkoverflow(list: taasmoutput;op:TOpCG;size : tcgsize;value : int64;regsrc,regdst : tregister64;setflags : boolean;var ovloc : tlocation);override;
+        procedure a_op64_reg_reg_reg_checkoverflow(list: taasmoutput;op:TOpCG;size : tcgsize;regsrc1,regsrc2,regdst : tregister64;setflags : boolean;var ovloc : tlocation);override;
       end;
 
     const
@@ -301,160 +306,230 @@ unit cgcpu;
        end;
 
 
-     const
-       op_reg_reg_opcg2asmop: array[TOpCG] of tasmop =
-         (A_NONE,A_ADD,A_AND,A_NONE,A_NONE,A_MUL,A_MUL,A_NONE,A_NONE,A_ORR,
-          A_NONE,A_NONE,A_NONE,A_SUB,A_EOR);
+    const
+      op_reg_reg_opcg2asmop: array[TOpCG] of tasmop =
+        (A_NONE,A_ADD,A_AND,A_NONE,A_NONE,A_MUL,A_MUL,A_NONE,A_NONE,A_ORR,
+         A_NONE,A_NONE,A_NONE,A_SUB,A_EOR);
 
 
-     procedure tcgarm.a_op_const_reg_reg(list: taasmoutput; op: TOpCg;
-       size: tcgsize; a: aint; src, dst: tregister);
-       var
-         shift : byte;
-         tmpreg : tregister;
-         so : tshifterop;
-         l1 : longint;
-       begin
-          if is_shifter_const(-a,shift) then
-            case op of
-              OP_ADD:
+    procedure tcgarm.a_op_const_reg_reg(list: taasmoutput; op: TOpCg;
+      size: tcgsize; a: aint; src, dst: tregister);
+      var
+        ovloc : tlocation;
+      begin
+        a_op_const_reg_reg_checkoverflow(list,op,size,a,src,dst,false,ovloc);
+      end;
+
+
+    procedure tcgarm.a_op_reg_reg_reg(list: taasmoutput; op: TOpCg;
+      size: tcgsize; src1, src2, dst: tregister);
+      var
+        ovloc : tlocation;
+      begin
+        a_op_reg_reg_reg_checkoverflow(list,op,size,src1,src2,dst,false,ovloc);
+      end;
+
+
+    procedure tcgarm.a_op_const_reg_reg_checkoverflow(list: taasmoutput; op: TOpCg; size: tcgsize; a: aint; src, dst: tregister;setflags : boolean;var ovloc : tlocation);
+      var
+        shift : byte;
+        tmpreg : tregister;
+        so : tshifterop;
+        l1 : longint;
+      begin
+        ovloc.loc:=LOC_VOID;
+        if is_shifter_const(-a,shift) then
+          case op of
+            OP_ADD:
+              begin
+                op:=OP_SUB;
+                a:=dword(-a);
+              end;
+            OP_SUB:
+              begin
+                op:=OP_ADD;
+                a:=dword(-a);
+              end
+          end;
+
+        if is_shifter_const(a,shift) and not(op in [OP_IMUL,OP_MUL]) then
+          case op of
+            OP_NEG,OP_NOT,
+            OP_DIV,OP_IDIV:
+              internalerror(200308281);
+            OP_SHL:
+              begin
+                if a>32 then
+                  internalerror(200308291);
+                if a<>0 then
+                  begin
+                    shifterop_reset(so);
+                    so.shiftmode:=SM_LSL;
+                    so.shiftimm:=a;
+                    list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src,so));
+                  end
+                else
+                 list.concat(taicpu.op_reg_reg(A_MOV,dst,src));
+              end;
+            OP_SHR:
+              begin
+                if a>32 then
+                  internalerror(200308292);
+                shifterop_reset(so);
+                if a<>0 then
+                  begin
+                    so.shiftmode:=SM_LSR;
+                    so.shiftimm:=a;
+                    list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src,so));
+                  end
+                else
+                 list.concat(taicpu.op_reg_reg(A_MOV,dst,src));
+              end;
+            OP_SAR:
+              begin
+                if a>32 then
+                  internalerror(200308291);
+                if a<>0 then
+                  begin
+                    shifterop_reset(so);
+                    so.shiftmode:=SM_ASR;
+                    so.shiftimm:=a;
+                    list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src,so));
+                  end
+                else
+                 list.concat(taicpu.op_reg_reg(A_MOV,dst,src));
+              end;
+            else
+              list.concat(setoppostfix(
+                  taicpu.op_reg_reg_const(op_reg_reg_opcg2asmop[op],dst,src,a),toppostfix(ord(cgsetflags or setflags)*ord(PF_S))
+              ));
+              if (cgsetflags or setflags) and (size in [OS_8,OS_16,OS_32]) then
                 begin
-                  op:=OP_SUB;
-                  a:=dword(-a);
+                  ovloc.loc:=LOC_FLAGS;
+                  case op of
+                    OP_ADD:
+                      ovloc.resflags:=F_CS;
+                    OP_SUB:
+                      ovloc.resflags:=F_CC;
+                  end;
                 end;
-              OP_SUB:
-                begin
-                  op:=OP_ADD;
-                  a:=dword(-a);
-                end
+          end
+        else
+          begin
+            { there could be added some more sophisticated optimizations }
+            if (op in [OP_MUL,OP_IMUL]) and (a=1) then
+              a_load_reg_reg(list,size,size,src,dst)
+            else if (op in [OP_MUL,OP_IMUL]) and (a=0) then
+              a_load_const_reg(list,size,0,dst)
+            else if (op in [OP_IMUL]) and (a=-1) then
+              a_op_reg_reg(list,OP_NEG,size,src,dst)
+            { we do this here instead in the peephole optimizer because
+              it saves us a register }
+            else if (op in [OP_MUL,OP_IMUL]) and ispowerof2(a,l1) and not(cgsetflags or setflags) then
+              a_op_const_reg_reg(list,OP_SHL,size,l1,src,dst)
+            else
+              begin
+                tmpreg:=getintregister(list,size);
+                a_load_const_reg(list,size,a,tmpreg);
+                a_op_reg_reg_reg_checkoverflow(list,op,size,tmpreg,src,dst,setflags,ovloc);
+              end;
+          end;
+      end;
+
+
+    procedure tcgarm.a_op_reg_reg_reg_checkoverflow(list: taasmoutput; op: TOpCg; size: tcgsize; src1, src2, dst: tregister;setflags : boolean;var ovloc : tlocation);
+      var
+        so : tshifterop;
+        tmpreg,overflowreg : tregister;
+        asmop : tasmop;
+      begin
+        ovloc.loc:=LOC_VOID;
+        case op of
+          OP_NEG,OP_NOT,
+          OP_DIV,OP_IDIV:
+            internalerror(200308281);
+          OP_SHL:
+            begin
+              shifterop_reset(so);
+              so.rs:=src1;
+              so.shiftmode:=SM_LSL;
+              list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src2,so));
             end;
-
-          if is_shifter_const(a,shift) and not(op in [OP_IMUL,OP_MUL]) then
-            case op of
-              OP_NEG,OP_NOT,
-              OP_DIV,OP_IDIV:
-                internalerror(200308281);
-              OP_SHL:
+          OP_SHR:
+            begin
+              shifterop_reset(so);
+              so.rs:=src1;
+              so.shiftmode:=SM_LSR;
+              list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src2,so));
+            end;
+          OP_SAR:
+            begin
+              shifterop_reset(so);
+              so.rs:=src1;
+              so.shiftmode:=SM_ASR;
+              list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src2,so));
+            end;
+          OP_IMUL,
+          OP_MUL:
+            begin
+              if cgsetflags or setflags then
                 begin
-                  if a>32 then
-                    internalerror(200308291);
-                  if a<>0 then
+                  overflowreg:=getintregister(list,size);
+                  if op=OP_IMUL then
+                    asmop:=A_SMULL
+                  else
+                    asmop:=A_UMULL;
+                  { the arm doesn't allow that rd and rm are the same }
+                  if dst=src2 then
                     begin
-                      shifterop_reset(so);
-                      so.shiftmode:=SM_LSL;
-                      so.shiftimm:=a;
-                      list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src,so));
+                      if dst<>src1 then
+                        list.concat(taicpu.op_reg_reg_reg_reg(asmop,dst,overflowreg,src1,src2))
+                      else
+                        begin
+                          tmpreg:=getintregister(list,size);
+                          a_load_reg_reg(list,size,size,src2,dst);
+                          list.concat(taicpu.op_reg_reg_reg_reg(asmop,dst,overflowreg,tmpreg,src1));
+                        end;
                     end
                   else
-                   list.concat(taicpu.op_reg_reg(A_MOV,dst,src));
-                end;
-              OP_SHR:
-                begin
-                  if a>32 then
-                    internalerror(200308292);
-                  shifterop_reset(so);
-                  if a<>0 then
-                    begin
-                      so.shiftmode:=SM_LSR;
-                      so.shiftimm:=a;
-                      list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src,so));
-                    end
-                  else
-                   list.concat(taicpu.op_reg_reg(A_MOV,dst,src));
-                end;
-              OP_SAR:
-                begin
-                  if a>32 then
-                    internalerror(200308291);
-                  if a<>0 then
+                    list.concat(taicpu.op_reg_reg_reg_reg(asmop,dst,overflowreg,src2,src1));
+                  if op=OP_IMUL then
                     begin
                       shifterop_reset(so);
                       so.shiftmode:=SM_ASR;
-                      so.shiftimm:=a;
-                      list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src,so));
+                      so.shiftimm:=31;
+                      list.concat(taicpu.op_reg_reg_shifterop(A_CMP,overflowreg,overflowreg,so));
                     end
                   else
-                   list.concat(taicpu.op_reg_reg(A_MOV,dst,src));
-                end;
-              else
-                list.concat(taicpu.op_reg_reg_const(op_reg_reg_opcg2asmop[op],dst,src,a));
-            end
-          else
-            begin
-              { there could be added some more sophisticated optimizations }
-              if (op in [OP_MUL,OP_IMUL]) and (a=1) then
-                a_load_reg_reg(list,size,size,src,dst)
-              else if (op in [OP_MUL,OP_IMUL]) and (a=0) then
-                a_load_const_reg(list,size,0,dst)
-              else if (op in [OP_IMUL]) and (a=-1) then
-                a_op_reg_reg(list,OP_NEG,size,src,dst)
-              { we do this here instead in the peephole optimizer because
-                it saves us a register }
-              else if (op in [OP_MUL,OP_IMUL]) and ispowerof2(a,l1) then
-                a_op_const_reg_reg(list,OP_SHL,size,l1,src,dst)
+                    list.concat(taicpu.op_reg_const(A_CMP,overflowreg,0));
+
+                   ovloc.loc:=LOC_FLAGS;
+                   ovloc.resflags:=F_NE;
+                end
               else
                 begin
-                  tmpreg:=getintregister(list,size);
-                  a_load_const_reg(list,size,a,tmpreg);
-                  a_op_reg_reg_reg(list,op,size,tmpreg,src,dst);
+                  { the arm doesn't allow that rd and rm are the same }
+                  if dst=src2 then
+                    begin
+                      if dst<>src1 then
+                        list.concat(taicpu.op_reg_reg_reg(A_MUL,dst,src1,src2))
+                      else
+                        begin
+                          tmpreg:=getintregister(list,size);
+                          a_load_reg_reg(list,size,size,src2,dst);
+                          list.concat(taicpu.op_reg_reg_reg(A_MUL,dst,tmpreg,src1));
+                        end;
+                    end
+                  else
+                    list.concat(taicpu.op_reg_reg_reg(A_MUL,dst,src2,src1));
                 end;
             end;
-       end;
-
-
-     procedure tcgarm.a_op_reg_reg_reg(list: taasmoutput; op: TOpCg;
-       size: tcgsize; src1, src2, dst: tregister);
-       var
-         so : tshifterop;
-         tmpreg : tregister;
-       begin
-         case op of
-           OP_NEG,OP_NOT,
-           OP_DIV,OP_IDIV:
-             internalerror(200308281);
-           OP_SHL:
-             begin
-               shifterop_reset(so);
-               so.rs:=src1;
-               so.shiftmode:=SM_LSL;
-               list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src2,so));
-             end;
-           OP_SHR:
-             begin
-               shifterop_reset(so);
-               so.rs:=src1;
-               so.shiftmode:=SM_LSR;
-               list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src2,so));
-             end;
-           OP_SAR:
-             begin
-               shifterop_reset(so);
-               so.rs:=src1;
-               so.shiftmode:=SM_ASR;
-               list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src2,so));
-             end;
-           OP_IMUL,
-           OP_MUL:
-             begin
-               { the arm doesn't allow that rd and rm are the same }
-               if dst=src2 then
-                 begin
-                   if dst<>src1 then
-                     list.concat(taicpu.op_reg_reg_reg(A_MUL,dst,src1,src2))
-                   else
-                     begin
-                       tmpreg:=getintregister(list,size);
-                       a_load_reg_reg(list,size,size,src2,dst);
-                       list.concat(taicpu.op_reg_reg_reg(A_MUL,dst,tmpreg,src1));
-                     end;
-                 end
-               else
-                 list.concat(taicpu.op_reg_reg_reg(A_MUL,dst,src2,src1));
-             end;
-           else
-             list.concat(setoppostfix(taicpu.op_reg_reg_reg(op_reg_reg_opcg2asmop[op],dst,src2,src1),toppostfix(ord(setflags)*ord(PF_S))));
-         end;
-       end;
+          else
+            list.concat(setoppostfix(
+                taicpu.op_reg_reg_reg(op_reg_reg_opcg2asmop[op],dst,src2,src1),toppostfix(ord(cgsetflags or setflags)*ord(PF_S))
+              ));
+        end;
+      end;
 
 
      function rotl(d : dword;b : byte) : dword;
@@ -1177,8 +1252,51 @@ unit cgcpu;
       end;
 
 
-    procedure tcgarm.g_overflowcheck(list: taasmoutput; const l: tlocation; def: tdef);
+    procedure tcgarm.g_overflowCheck(list : taasmoutput;const l : tlocation;def : tdef);
+      var
+        ovloc : tlocation;
       begin
+        ovloc.loc:=LOC_VOID;
+        g_overflowCheck_loc(list,l,def,ovloc);
+      end;
+
+
+    procedure tcgarm.g_overflowCheck_loc(List:TAasmOutput;const Loc:TLocation;def:TDef;ovloc : tlocation);
+      var
+        hl : tasmlabel;
+        ai:TAiCpu;
+        hflags : tresflags;
+      begin
+        if not(cs_check_overflow in aktlocalswitches) then
+          exit;
+        objectlibrary.getlabel(hl);
+        case ovloc.loc of
+          LOC_VOID:
+            begin
+              ai:=taicpu.op_sym(A_B,hl);
+              ai.is_jmp:=true;
+
+              if not((def.deftype=pointerdef) or
+                    ((def.deftype=orddef) and
+                     (torddef(def).typ in [u64bit,u16bit,u32bit,u8bit,uchar,bool8bit,bool16bit,bool32bit]))) then
+                 ai.SetCondition(C_VC)
+              else
+                 ai.SetCondition(C_CC);
+
+              list.concat(ai);
+            end;
+          LOC_FLAGS:
+            begin
+              hflags:=ovloc.resflags;
+              inverse_flags(hflags);
+              cg.a_jmp_flags(list,hflags,hl);
+            end;
+          else
+            internalerror(200409281);
+        end;
+
+        a_call_name(list,'FPC_OVERFLOW');
+        a_label(list,hl);
       end;
 
 
@@ -1270,7 +1388,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcg64farm.a_op64_reg_reg(list : taasmoutput;op:TOpCG;regsrc,regdst : tregister64);
+    procedure tcg64farm.a_op64_reg_reg(list : taasmoutput;op:TOpCG;size : tcgsize;regsrc,regdst : tregister64);
       var
         tmpreg : tregister;
       begin
@@ -1286,95 +1404,217 @@ unit cgcpu;
               cg.a_op_reg_reg(list,OP_NOT,OS_INT,regsrc.reghi,regdst.reghi);
             end;
           else
-            a_op64_reg_reg_reg(list,op,regsrc,regdst,regdst);
+            a_op64_reg_reg_reg(list,op,size,regsrc,regdst,regdst);
         end;
       end;
 
 
-    procedure tcg64farm.a_op64_const_reg(list : taasmoutput;op:TOpCG;value : int64;reg : tregister64);
+    procedure tcg64farm.a_op64_const_reg(list : taasmoutput;op:TOpCG;size : tcgsize;value : int64;reg : tregister64);
       begin
-        a_op64_const_reg_reg(list,op,value,reg,reg);
+        a_op64_const_reg_reg(list,op,size,value,reg,reg);
       end;
 
 
-    procedure tcg64farm.a_op64_const_reg_reg(list: taasmoutput;op:TOpCG;value : int64;regsrc,regdst : tregister64);
+    procedure tcg64farm.a_op64_const_reg_reg(list: taasmoutput;op:TOpCG;size : tcgsize;value : int64;regsrc,regdst : tregister64);
+      var
+        ovloc : tlocation;
+      begin
+        a_op64_const_reg_reg_checkoverflow(list,op,size,value,regsrc,regdst,false,ovloc);
+      end;
+
+
+    procedure tcg64farm.a_op64_reg_reg_reg(list: taasmoutput;op:TOpCG;size : tcgsize;regsrc1,regsrc2,regdst : tregister64);
+      var
+        ovloc : tlocation;
+      begin
+        a_op64_reg_reg_reg_checkoverflow(list,op,size,regsrc1,regsrc2,regdst,false,ovloc);
+      end;
+
+
+    procedure tcg64farm.a_op64_const_reg_reg_checkoverflow(list: taasmoutput;op:TOpCG;size : tcgsize;value : int64;regsrc,regdst : tregister64;setflags : boolean;var ovloc : tlocation);
       var
         tmpreg : tregister;
         b : byte;
       begin
+        ovloc.loc:=LOC_VOID;
         case op of
-          OP_AND,OP_OR,OP_XOR:
-            begin
-              cg.a_op_const_reg_reg(list,op,OS_32,lo(value),regsrc.reglo,regdst.reglo);
-              cg.a_op_const_reg_reg(list,op,OS_32,hi(value),regsrc.reghi,regdst.reghi);
-            end;
-          OP_ADD:
-            begin
-              if is_shifter_const(lo(value),b) then
-                list.concat(setoppostfix(taicpu.op_reg_reg_const(A_ADD,regdst.reglo,regsrc.reglo,lo(value)),PF_S))
-              else
+          OP_NEG,
+          OP_NOT :
+            internalerror(200306017);
+        end;
+        if (setflags or tcgarm(cg).cgsetflags) and (op in [OP_ADD,OP_SUB]) then
+          begin
+            case op of
+              OP_ADD:
                 begin
-                  tmpreg:=cg.getintregister(list,OS_32);
-                  cg.a_load_const_reg(list,OS_32,lo(value),tmpreg);
-                  list.concat(setoppostfix(taicpu.op_reg_reg_reg(A_ADD,regdst.reglo,regsrc.reglo,tmpreg),PF_S));
-                end;
+                  if is_shifter_const(lo(value),b) then
+                    list.concat(setoppostfix(taicpu.op_reg_reg_const(A_ADD,regdst.reglo,regsrc.reglo,lo(value)),PF_S))
+                  else
+                    begin
+                      tmpreg:=cg.getintregister(list,OS_32);
+                      cg.a_load_const_reg(list,OS_32,lo(value),tmpreg);
+                      list.concat(setoppostfix(taicpu.op_reg_reg_reg(A_ADD,regdst.reglo,regsrc.reglo,tmpreg),PF_S));
+                    end;
 
-              if is_shifter_const(hi(value),b) then
-                list.concat(taicpu.op_reg_reg_const(A_ADC,regdst.reghi,regsrc.reghi,hi(value)))
-              else
-                begin
-                  tmpreg:=cg.getintregister(list,OS_32);
-                  cg.a_load_const_reg(list,OS_32,hi(value),tmpreg);
-                  list.concat(taicpu.op_reg_reg_reg(A_ADC,regdst.reghi,regsrc.reghi,tmpreg));
+                  if is_shifter_const(hi(value),b) then
+                    list.concat(setoppostfix(taicpu.op_reg_reg_const(A_ADC,regdst.reghi,regsrc.reghi,hi(value)),PF_S))
+                  else
+                    begin
+                      tmpreg:=cg.getintregister(list,OS_32);
+                      cg.a_load_const_reg(list,OS_32,hi(value),tmpreg);
+                      list.concat(setoppostfix(taicpu.op_reg_reg_reg(A_ADC,regdst.reghi,regsrc.reghi,tmpreg),PF_S));
+                    end;
                 end;
-            end;
-          OP_SUB:
-            begin
-              if is_shifter_const(lo(value),b) then
-                list.concat(setoppostfix(taicpu.op_reg_reg_const(A_SUB,regdst.reglo,regsrc.reglo,lo(value)),PF_S))
-              else
+              OP_SUB:
                 begin
-                  tmpreg:=cg.getintregister(list,OS_32);
-                  cg.a_load_const_reg(list,OS_32,lo(value),tmpreg);
-                  list.concat(setoppostfix(taicpu.op_reg_reg_reg(A_SUB,regdst.reglo,regsrc.reglo,tmpreg),PF_S));
-                end;
+                  if is_shifter_const(lo(value),b) then
+                    list.concat(setoppostfix(taicpu.op_reg_reg_const(A_SUB,regdst.reglo,regsrc.reglo,lo(value)),PF_S))
+                  else
+                    begin
+                      tmpreg:=cg.getintregister(list,OS_32);
+                      cg.a_load_const_reg(list,OS_32,lo(value),tmpreg);
+                      list.concat(setoppostfix(taicpu.op_reg_reg_reg(A_SUB,regdst.reglo,regsrc.reglo,tmpreg),PF_S));
+                    end;
 
-              if is_shifter_const(hi(value),b) then
-                list.concat(taicpu.op_reg_reg_const(A_SBC,regdst.reghi,regsrc.reghi,hi(value)))
-              else
-                begin
-                  tmpreg:=cg.getintregister(list,OS_32);
-                  cg.a_load_const_reg(list,OS_32,hi(value),tmpreg);
-                  list.concat(taicpu.op_reg_reg_reg(A_SBC,regdst.reghi,regsrc.reghi,tmpreg));
+                  if is_shifter_const(hi(value),b) then
+                    list.concat(setoppostfix(taicpu.op_reg_reg_const(A_SBC,regdst.reghi,regsrc.reghi,hi(value)),PF_S))
+                  else
+                    begin
+                      tmpreg:=cg.getintregister(list,OS_32);
+                      cg.a_load_const_reg(list,OS_32,hi(value),tmpreg);
+                      list.concat(setoppostfix(taicpu.op_reg_reg_reg(A_SBC,regdst.reghi,regsrc.reghi,tmpreg),PF_S));
+                    end;
                 end;
+              else
+                internalerror(200502131);
             end;
-          else
-            internalerror(2003083101);
+            if size=OS_64 then
+              begin
+                { the arm has an weired opinion how flags for SUB/ADD are handled }
+                ovloc.loc:=LOC_FLAGS;
+                case op of
+                  OP_ADD:
+                    ovloc.resflags:=F_CS;
+                  OP_SUB:
+                    ovloc.resflags:=F_CC;
+                end;
+              end;
+          end
+        else
+          begin
+            case op of
+              OP_AND,OP_OR,OP_XOR:
+                begin
+                  cg.a_op_const_reg_reg(list,op,OS_32,lo(value),regsrc.reglo,regdst.reglo);
+                  cg.a_op_const_reg_reg(list,op,OS_32,hi(value),regsrc.reghi,regdst.reghi);
+                end;
+              OP_ADD:
+                begin
+                  if is_shifter_const(lo(value),b) then
+                    list.concat(setoppostfix(taicpu.op_reg_reg_const(A_ADD,regdst.reglo,regsrc.reglo,lo(value)),PF_S))
+                  else
+                    begin
+                      tmpreg:=cg.getintregister(list,OS_32);
+                      cg.a_load_const_reg(list,OS_32,lo(value),tmpreg);
+                      list.concat(setoppostfix(taicpu.op_reg_reg_reg(A_ADD,regdst.reglo,regsrc.reglo,tmpreg),PF_S));
+                    end;
+
+                  if is_shifter_const(hi(value),b) then
+                    list.concat(taicpu.op_reg_reg_const(A_ADC,regdst.reghi,regsrc.reghi,hi(value)))
+                  else
+                    begin
+                      tmpreg:=cg.getintregister(list,OS_32);
+                      cg.a_load_const_reg(list,OS_32,hi(value),tmpreg);
+                      list.concat(taicpu.op_reg_reg_reg(A_ADC,regdst.reghi,regsrc.reghi,tmpreg));
+                    end;
+                end;
+              OP_SUB:
+                begin
+                  if is_shifter_const(lo(value),b) then
+                    list.concat(setoppostfix(taicpu.op_reg_reg_const(A_SUB,regdst.reglo,regsrc.reglo,lo(value)),PF_S))
+                  else
+                    begin
+                      tmpreg:=cg.getintregister(list,OS_32);
+                      cg.a_load_const_reg(list,OS_32,lo(value),tmpreg);
+                      list.concat(setoppostfix(taicpu.op_reg_reg_reg(A_SUB,regdst.reglo,regsrc.reglo,tmpreg),PF_S));
+                    end;
+
+                  if is_shifter_const(hi(value),b) then
+                    list.concat(taicpu.op_reg_reg_const(A_SBC,regdst.reghi,regsrc.reghi,hi(value)))
+                  else
+                    begin
+                      tmpreg:=cg.getintregister(list,OS_32);
+                      cg.a_load_const_reg(list,OS_32,hi(value),tmpreg);
+                      list.concat(taicpu.op_reg_reg_reg(A_SBC,regdst.reghi,regsrc.reghi,tmpreg));
+                    end;
+                end;
+            else
+              internalerror(2003083101);
+          end;
         end;
       end;
 
 
-    procedure tcg64farm.a_op64_reg_reg_reg(list: taasmoutput;op:TOpCG;regsrc1,regsrc2,regdst : tregister64);
+    procedure tcg64farm.a_op64_reg_reg_reg_checkoverflow(list: taasmoutput;op:TOpCG;size : tcgsize;regsrc1,regsrc2,regdst : tregister64;setflags : boolean;var ovloc : tlocation);
+      var
+        op1,op2:TAsmOp;
       begin
+        ovloc.loc:=LOC_VOID;
         case op of
-          OP_AND,OP_OR,OP_XOR:
-            begin
-              cg.a_op_reg_reg_reg(list,op,OS_32,regsrc1.reglo,regsrc2.reglo,regdst.reglo);
-              cg.a_op_reg_reg_reg(list,op,OS_32,regsrc1.reghi,regsrc2.reghi,regdst.reghi);
-            end;
-          OP_ADD:
-            begin
-              list.concat(setoppostfix(taicpu.op_reg_reg_reg(A_ADD,regdst.reglo,regsrc1.reglo,regsrc2.reglo),PF_S));
-              list.concat(taicpu.op_reg_reg_reg(A_ADC,regdst.reghi,regsrc1.reghi,regsrc2.reghi));
-            end;
-          OP_SUB:
-            begin
-              list.concat(setoppostfix(taicpu.op_reg_reg_reg(A_SUB,regdst.reglo,regsrc2.reglo,regsrc1.reglo),PF_S));
-              list.concat(taicpu.op_reg_reg_reg(A_SBC,regdst.reghi,regsrc2.reghi,regsrc1.reghi));
-            end;
-          else
-            internalerror(2003083101);
+          OP_NEG,
+          OP_NOT :
+            internalerror(200306017);
         end;
+        if (setflags or tcgarm(cg).cgsetflags) and (op in [OP_ADD,OP_SUB]) then
+          begin
+            case op of
+              OP_ADD:
+                begin
+                  list.concat(setoppostfix(taicpu.op_reg_reg_reg(A_ADD,regdst.reglo,regsrc1.reglo,regsrc2.reglo),PF_S));
+                  list.concat(setoppostfix(taicpu.op_reg_reg_reg(A_ADC,regdst.reghi,regsrc1.reghi,regsrc2.reghi),PF_S));
+                end;
+              OP_SUB:
+                begin
+                  list.concat(setoppostfix(taicpu.op_reg_reg_reg(A_SUB,regdst.reglo,regsrc2.reglo,regsrc1.reglo),PF_S));
+                  list.concat(setoppostfix(taicpu.op_reg_reg_reg(A_SBC,regdst.reghi,regsrc2.reghi,regsrc1.reghi),PF_S));
+                end;
+              else
+                internalerror(2003083101);
+            end;
+            if size=OS_64 then
+              begin
+                { the arm has an weired opinion how flags for SUB/ADD are handled }
+                ovloc.loc:=LOC_FLAGS;
+                case op of
+                  OP_ADD:
+                    ovloc.resflags:=F_CC;
+                  OP_SUB:
+                    ovloc.resflags:=F_CS;
+                end;
+              end;
+          end
+        else
+          begin
+            case op of
+              OP_AND,OP_OR,OP_XOR:
+                begin
+                  cg.a_op_reg_reg_reg(list,op,OS_32,regsrc1.reglo,regsrc2.reglo,regdst.reglo);
+                  cg.a_op_reg_reg_reg(list,op,OS_32,regsrc1.reghi,regsrc2.reghi,regdst.reghi);
+                end;
+              OP_ADD:
+                begin
+                  list.concat(setoppostfix(taicpu.op_reg_reg_reg(A_ADD,regdst.reglo,regsrc1.reglo,regsrc2.reglo),PF_S));
+                  list.concat(taicpu.op_reg_reg_reg(A_ADC,regdst.reghi,regsrc1.reghi,regsrc2.reghi));
+                end;
+              OP_SUB:
+                begin
+                  list.concat(setoppostfix(taicpu.op_reg_reg_reg(A_SUB,regdst.reglo,regsrc2.reglo,regsrc1.reglo),PF_S));
+                  list.concat(taicpu.op_reg_reg_reg(A_SBC,regdst.reghi,regsrc2.reghi,regsrc1.reghi));
+                end;
+              else
+                internalerror(2003083101);
+            end;
+          end;
       end;
 
 
@@ -1384,7 +1624,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.67  2005-01-30 14:43:40  florian
+  Revision 1.68  2005-02-13 18:55:19  florian
+    + overflow checking for the arm
+
+  Revision 1.67  2005/01/30 14:43:40  florian
     * fixed compilation of arm compiler
 
   Revision 1.66  2005/01/04 21:00:48  florian

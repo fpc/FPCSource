@@ -441,18 +441,18 @@ unit cgobj;
         procedure a_load64high_loc_reg(list : taasmoutput;const l : tlocation;reg : tregister);virtual;abstract;
         procedure a_load64low_loc_reg(list : taasmoutput;const l : tlocation;reg : tregister);virtual;abstract;
 
-        procedure a_op64_ref_reg(list : taasmoutput;op:TOpCG;const ref : treference;reg : tregister64);virtual;abstract;
-        procedure a_op64_reg_reg(list : taasmoutput;op:TOpCG;regsrc,regdst : tregister64);virtual;abstract;
-        procedure a_op64_reg_ref(list : taasmoutput;op:TOpCG;regsrc : tregister64;const ref : treference);virtual;abstract;
-        procedure a_op64_const_reg(list : taasmoutput;op:TOpCG;value : int64;regdst : tregister64);virtual;abstract;
-        procedure a_op64_const_ref(list : taasmoutput;op:TOpCG;value : int64;const ref : treference);virtual;abstract;
-        procedure a_op64_const_loc(list : taasmoutput;op:TOpCG;value : int64;const l: tlocation);virtual;abstract;
-        procedure a_op64_reg_loc(list : taasmoutput;op:TOpCG;reg : tregister64;const l : tlocation);virtual;abstract;
-        procedure a_op64_loc_reg(list : taasmoutput;op:TOpCG;const l : tlocation;reg64 : tregister64);virtual;abstract;
-        procedure a_op64_const_reg_reg(list: taasmoutput;op:TOpCG;value : int64;regsrc,regdst : tregister64);virtual;
-        procedure a_op64_reg_reg_reg(list: taasmoutput;op:TOpCG;regsrc1,regsrc2,regdst : tregister64);virtual;
-        procedure a_op64_const_reg_reg_checkoverflow(list: taasmoutput;op:TOpCG;value : int64;regsrc,regdst : tregister64;setflags : boolean;var ovloc : tlocation);virtual;
-        procedure a_op64_reg_reg_reg_checkoverflow(list: taasmoutput;op:TOpCG;regsrc1,regsrc2,regdst : tregister64;setflags : boolean;var ovloc : tlocation);virtual;
+        procedure a_op64_ref_reg(list : taasmoutput;op:TOpCG;size : tcgsize;const ref : treference;reg : tregister64);virtual;abstract;
+        procedure a_op64_reg_reg(list : taasmoutput;op:TOpCG;size : tcgsize;regsrc,regdst : tregister64);virtual;abstract;
+        procedure a_op64_reg_ref(list : taasmoutput;op:TOpCG;size : tcgsize;regsrc : tregister64;const ref : treference);virtual;abstract;
+        procedure a_op64_const_reg(list : taasmoutput;op:TOpCG;size : tcgsize;value : int64;regdst : tregister64);virtual;abstract;
+        procedure a_op64_const_ref(list : taasmoutput;op:TOpCG;size : tcgsize;value : int64;const ref : treference);virtual;abstract;
+        procedure a_op64_const_loc(list : taasmoutput;op:TOpCG;size : tcgsize;value : int64;const l: tlocation);virtual;abstract;
+        procedure a_op64_reg_loc(list : taasmoutput;op:TOpCG;size : tcgsize;reg : tregister64;const l : tlocation);virtual;abstract;
+        procedure a_op64_loc_reg(list : taasmoutput;op:TOpCG;size : tcgsize;const l : tlocation;reg64 : tregister64);virtual;abstract;
+        procedure a_op64_const_reg_reg(list: taasmoutput;op:TOpCG;size : tcgsize;value : int64;regsrc,regdst : tregister64);virtual;
+        procedure a_op64_reg_reg_reg(list: taasmoutput;op:TOpCG;size : tcgsize;regsrc1,regsrc2,regdst : tregister64);virtual;
+        procedure a_op64_const_reg_reg_checkoverflow(list: taasmoutput;op:TOpCG;size : tcgsize;value : int64;regsrc,regdst : tregister64;setflags : boolean;var ovloc : tlocation);virtual;
+        procedure a_op64_reg_reg_reg_checkoverflow(list: taasmoutput;op:TOpCG;size : tcgsize;regsrc1,regsrc2,regdst : tregister64;setflags : boolean;var ovloc : tlocation);virtual;
 
         procedure a_param64_reg(list : taasmoutput;reg64 : tregister64;const loc : TCGPara);virtual;abstract;
         procedure a_param64_const(list : taasmoutput;value : int64;const loc : TCGPara);virtual;abstract;
@@ -2021,14 +2021,14 @@ implementation
 *****************************************************************************}
 
 {$ifndef cpu64bit}
-    procedure tcg64.a_op64_const_reg_reg(list: taasmoutput;op:TOpCG;value : int64; regsrc,regdst : tregister64);
+    procedure tcg64.a_op64_const_reg_reg(list: taasmoutput;op:TOpCG;size : tcgsize;value : int64; regsrc,regdst : tregister64);
       begin
         a_load64_reg_reg(list,regsrc,regdst);
-        a_op64_const_reg(list,op,value,regdst);
+        a_op64_const_reg(list,op,size,value,regdst);
       end;
 
 
-    procedure tcg64.a_op64_reg_reg_reg(list: taasmoutput;op:TOpCG;regsrc1,regsrc2,regdst : tregister64);
+    procedure tcg64.a_op64_reg_reg_reg(list: taasmoutput;op:TOpCG;size : tcgsize;regsrc1,regsrc2,regdst : tregister64);
       var
         tmpreg64 : tregister64;
       begin
@@ -2042,27 +2042,27 @@ implementation
             tmpreg64.reglo:=cg.getintregister(list,OS_32);
             tmpreg64.reghi:=cg.getintregister(list,OS_32);
             a_load64_reg_reg(list,regsrc2,tmpreg64);
-            a_op64_reg_reg(list,op,regsrc1,tmpreg64);
+            a_op64_reg_reg(list,op,size,regsrc1,tmpreg64);
             a_load64_reg_reg(list,tmpreg64,regdst);
           end
         else
           begin
             a_load64_reg_reg(list,regsrc2,regdst);
-            a_op64_reg_reg(list,op,regsrc1,regdst);
+            a_op64_reg_reg(list,op,size,regsrc1,regdst);
           end;
       end;
 
 
-    procedure tcg64.a_op64_const_reg_reg_checkoverflow(list: taasmoutput;op:TOpCG;value : int64;regsrc,regdst : tregister64;setflags : boolean;var ovloc : tlocation);
+    procedure tcg64.a_op64_const_reg_reg_checkoverflow(list: taasmoutput;op:TOpCG;size : tcgsize;value : int64;regsrc,regdst : tregister64;setflags : boolean;var ovloc : tlocation);
       begin
-        a_op64_const_reg_reg(list,op,value,regsrc,regdst);
+        a_op64_const_reg_reg(list,op,size,value,regsrc,regdst);
         ovloc.loc:=LOC_VOID;
       end;
 
 
-    procedure tcg64.a_op64_reg_reg_reg_checkoverflow(list: taasmoutput;op:TOpCG;regsrc1,regsrc2,regdst : tregister64;setflags : boolean;var ovloc : tlocation);
+    procedure tcg64.a_op64_reg_reg_reg_checkoverflow(list: taasmoutput;op:TOpCG;size : tcgsize;regsrc1,regsrc2,regdst : tregister64;setflags : boolean;var ovloc : tlocation);
       begin
-        a_op64_reg_reg_reg(list,op,regsrc1,regsrc2,regdst);
+        a_op64_reg_reg_reg(list,op,size,regsrc1,regsrc2,regdst);
         ovloc.loc:=LOC_VOID;
       end;
 
@@ -2081,7 +2081,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.193  2005-01-29 00:32:53  peter
+  Revision 1.194  2005-02-13 18:55:19  florian
+    + overflow checking for the arm
+
+  Revision 1.193  2005/01/29 00:32:53  peter
     * finalize for refcounted strings shall also reset temps to 0, the
       previous exception that decrrefcnt already set it to 0 is not valid
       anymore

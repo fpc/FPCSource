@@ -875,7 +875,7 @@ interface
                     begin
                        tempreg64.reglo := cg.getintregister(exprasmlist,OS_INT);
                        tempreg64.reghi := cg.getintregister(exprasmlist,OS_INT);
-                       cg64.a_op64_reg_reg_reg(exprasmlist,OP_XOR,
+                       cg64.a_op64_reg_reg_reg(exprasmlist,OP_XOR,location.size,
                          left.location.register64,right.location.register64,
                          tempreg64);
                     end;
@@ -899,10 +899,10 @@ interface
                   if (left.location.loc = LOC_CONSTANT) then
                     swapleftright;
                   if (right.location.loc = LOC_CONSTANT) then
-                    cg64.a_op64_const_reg_reg(exprasmlist,op,right.location.value64,
+                    cg64.a_op64_const_reg_reg(exprasmlist,op,location.size,right.location.value64,
                       left.location.register64,location.register64)
                   else
-                    cg64.a_op64_reg_reg_reg(exprasmlist,op,right.location.register64,
+                    cg64.a_op64_reg_reg_reg(exprasmlist,op,location.size,right.location.register64,
                       left.location.register64,location.register64);
                 end;
               subn:
@@ -919,12 +919,12 @@ interface
                       end;
                       if right.location.loc <> LOC_CONSTANT then
                         // reg64 - reg64
-                        cg64.a_op64_reg_reg_reg(exprasmlist,OP_SUB,
+                        cg64.a_op64_reg_reg_reg(exprasmlist,OP_SUB,location.size,
                           right.location.register64,left.location.register64,
                           location.register64)
                       else
                         // reg64 - const64
-                        cg64.a_op64_const_reg_reg(exprasmlist,OP_SUB,
+                        cg64.a_op64_const_reg_reg(exprasmlist,OP_SUB,location.size,
                           right.location.value64,left.location.register64,
                           location.register64)
                     end
@@ -983,7 +983,7 @@ interface
                          location.register64.reglo := cg.getintregister(exprasmlist,OS_INT);
                          location.register64.reghi := cg.getintregister(exprasmlist,OS_INT);
                         end;
-                      cg64.a_op64_reg_reg_reg(exprasmlist,OP_SUB,
+                      cg64.a_op64_reg_reg_reg(exprasmlist,OP_SUB,location.size,
                         right.location.register64,left.location.register64,
                         location.register64);
                      end;
@@ -1462,7 +1462,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.55  2004-12-24 11:58:33  jonas
+  Revision 1.56  2005-02-13 18:55:19  florian
+    + overflow checking for the arm
+
+  Revision 1.55  2004/12/24 11:58:33  jonas
     - removed unused variables
 
   Revision 1.54  2004/11/26 12:30:47  jonas

@@ -162,16 +162,16 @@ implementation
                    cg.a_load_ref_reg(exprasmlist,OS_32,OS_32,left.location.reference,hregister);
                    href:=left.location.reference;
                    inc(href.offset,4);
-                   tcgarm(cg).setflags:=true;
+                   tcgarm(cg).cgsetflags:=true;
                    cg.a_op_ref_reg(exprasmlist,OP_OR,OS_32,href,hregister);
-                   tcgarm(cg).setflags:=false;
+                   tcgarm(cg).cgsetflags:=false;
                  end
                 else
                  begin
                    location_force_reg(exprasmlist,left.location,left.location.size,true);
-                   tcgarm(cg).setflags:=true;
+                   tcgarm(cg).cgsetflags:=true;
                    cg.a_op_reg_reg(exprasmlist,OP_OR,left.location.size,left.location.register,left.location.register);
-                   tcgarm(cg).setflags:=false;
+                   tcgarm(cg).cgsetflags:=false;
                  end;
               end;
             LOC_FLAGS :
@@ -184,15 +184,15 @@ implementation
                  begin
                    hregister:=cg.getintregister(exprasmlist,OS_32);
                    cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,left.location.register64.reglo,hregister);
-                   tcgarm(cg).setflags:=true;
+                   tcgarm(cg).cgsetflags:=true;
                    cg.a_op_reg_reg(exprasmlist,OP_OR,OS_32,left.location.register64.reghi,hregister);
-                   tcgarm(cg).setflags:=false;
+                   tcgarm(cg).cgsetflags:=false;
                  end
                 else
                  begin
-                   tcgarm(cg).setflags:=true;
+                   tcgarm(cg).cgsetflags:=true;
                    cg.a_op_reg_reg(exprasmlist,OP_OR,left.location.size,left.location.register,left.location.register);
-                   tcgarm(cg).setflags:=false;
+                   tcgarm(cg).cgsetflags:=false;
                  end;
               end;
             LOC_JUMP :
@@ -205,9 +205,9 @@ implementation
                 cg.a_label(exprasmlist,falselabel);
                 cg.a_load_const_reg(exprasmlist,OS_INT,0,hregister);
                 cg.a_label(exprasmlist,hlabel);
-                tcgarm(cg).setflags:=true;
+                tcgarm(cg).cgsetflags:=true;
                 cg.a_op_reg_reg(exprasmlist,OP_OR,OS_INT,hregister,hregister);
-                tcgarm(cg).setflags:=false;
+                tcgarm(cg).cgsetflags:=false;
               end;
             else
               internalerror(200311301);
@@ -226,7 +226,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2004-11-01 12:10:26  florian
+  Revision 1.14  2005-02-13 18:55:19  florian
+    + overflow checking for the arm
+
+  Revision 1.13  2004/11/01 12:10:26  florian
     * fixed currency division
 
   Revision 1.12  2004/10/31 21:45:03  peter

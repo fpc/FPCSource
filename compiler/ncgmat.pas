@@ -179,7 +179,7 @@ implementation
         { load left operator in a register }
         location_copy(location,left.location);
         location_force_reg(exprasmlist,location,OS_64,false);
-        cg64.a_op64_loc_reg(exprasmlist,OP_NEG,
+        cg64.a_op64_loc_reg(exprasmlist,OP_NEG,OS_64,
            location,joinreg64(location.register64.reglo,location.register64.reghi));
       end;
 {$endif cpu64bit}
@@ -434,7 +434,7 @@ implementation
         location_force_reg(exprasmlist,left.location,def_cgsize(left.resulttype.def),false);
         location_copy(location,left.location);
         { perform the NOT operation }
-        cg64.a_op64_reg_reg(exprasmlist,OP_NOT,left.location.register64,location.register64);
+        cg64.a_op64_reg_reg(exprasmlist,OP_NOT,location.size,left.location.register64,location.register64);
       end;
 {$endif cpu64bit}
 
@@ -473,7 +473,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.30  2004-10-31 21:45:03  peter
+  Revision 1.31  2005-02-13 18:55:19  florian
+    + overflow checking for the arm
+
+  Revision 1.30  2004/10/31 21:45:03  peter
     * generic tlocation
     * move tlocation to cgutils
 

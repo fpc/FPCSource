@@ -371,7 +371,7 @@ implementation
 
 {$ifndef cpu64bit}
         if cgsize in [OS_64,OS_S64] then
-          cg64.a_op64_const_reg(exprasmlist,cgop,1,location.register64)
+          cg64.a_op64_const_reg(exprasmlist,cgop,cgsize,1,location.register64)
         else
 {$endif cpu64bit}
           cg.a_op_const_reg(exprasmlist,cgop,location.size,1,location.register);
@@ -440,7 +440,7 @@ implementation
             begin
 {$ifndef cpu64bit}
               if cgsize in [OS_64,OS_S64] then
-                cg64.a_op64_const_loc(exprasmlist,addsubop[inlinenumber],addvalue,tcallparanode(left).left.location)
+                cg64.a_op64_const_loc(exprasmlist,addsubop[inlinenumber],cgsize,addvalue,tcallparanode(left).left.location)
               else
 {$endif cpu64bit}
                 cg.a_op_const_loc(exprasmlist,addsubop[inlinenumber],
@@ -450,7 +450,7 @@ implementation
              begin
 {$ifndef cpu64bit}
                if cgsize in [OS_64,OS_S64] then
-                 cg64.a_op64_reg_loc(exprasmlist,addsubop[inlinenumber],
+                 cg64.a_op64_reg_loc(exprasmlist,addsubop[inlinenumber],cgsize,
                    joinreg64(hregister,hregisterhi),tcallparanode(left).left.location)
                else
 {$endif cpu64bit}
@@ -679,7 +679,10 @@ end.
 
 {
   $Log$
-  Revision 1.67  2004-11-21 15:35:23  peter
+  Revision 1.68  2005-02-13 18:55:19  florian
+    + overflow checking for the arm
+
+  Revision 1.67  2004/11/21 15:35:23  peter
     * float routines all use internproc and compilerproc helpers
 
   Revision 1.66  2004/11/08 21:59:34  florian

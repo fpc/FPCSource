@@ -149,8 +149,19 @@ unit rgcpu;
       begin
         if p.typ=ait_instruction then
           begin
-            if (taicpu(p).opcode=A_MUL) then
-              add_edge(getsupreg(taicpu(p).oper[0]^.reg),getsupreg(taicpu(p).oper[1]^.reg));
+            case taicpu(p).opcode of
+              A_MUL:
+                add_edge(getsupreg(taicpu(p).oper[0]^.reg),getsupreg(taicpu(p).oper[1]^.reg));
+              A_UMULL,
+              A_UMLAL,
+              A_SMULL,
+              A_SMLAL:
+                begin
+                  add_edge(getsupreg(taicpu(p).oper[0]^.reg),getsupreg(taicpu(p).oper[1]^.reg));
+                  add_edge(getsupreg(taicpu(p).oper[1]^.reg),getsupreg(taicpu(p).oper[2]^.reg));
+                  add_edge(getsupreg(taicpu(p).oper[0]^.reg),getsupreg(taicpu(p).oper[2]^.reg));
+                end;
+            end;
           end;
       end;
 
@@ -159,7 +170,10 @@ end.
 
 {
   $Log$
-  Revision 1.15  2004-11-01 17:41:28  florian
+  Revision 1.16  2005-02-13 18:55:19  florian
+    + overflow checking for the arm
+
+  Revision 1.15  2004/11/01 17:41:28  florian
     * fixed arm compilation with cgutils
     * ...
 

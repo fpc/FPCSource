@@ -62,6 +62,9 @@ uses
          { SFM/LFM }
          constructor op_reg_const_ref(op : tasmop;_op1 : tregister;_op2 : aint;_op3 : treference);
 
+         { *M*LL }
+         constructor op_reg_reg_reg_reg(op : tasmop;_op1,_op2,_op3,_op4 : tregister);
+
          { this is for Jmp instructions }
          constructor op_cond_sym(op : tasmop;cond:TAsmCond;_op1 : tasmsymbol);
 
@@ -206,6 +209,17 @@ implementation
          loadreg(0,_op1);
          loadreg(1,_op2);
          loadreg(2,_op3);
+      end;
+
+
+    constructor taicpu.op_reg_reg_reg_reg(op : tasmop;_op1,_op2,_op3,_op4 : tregister);
+      begin
+         inherited create(op);
+         ops:=4;
+         loadreg(0,_op1);
+         loadreg(1,_op2);
+         loadreg(2,_op3);
+         loadreg(3,_op3);
       end;
 
 
@@ -493,7 +507,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.36  2004-11-01 17:41:28  florian
+  Revision 1.37  2005-02-13 18:55:19  florian
+    + overflow checking for the arm
+
+  Revision 1.36  2004/11/01 17:41:28  florian
     * fixed arm compilation with cgutils
     * ...
 

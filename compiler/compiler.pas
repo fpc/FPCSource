@@ -99,6 +99,14 @@ unit compiler;
    {$endif ARM}
 
 
+   {$ifdef MIPS}
+   {$ifndef CPUOK}
+   {$DEFINE CPUOK}
+   {$else}
+     {$fatal cannot define two CPU switches}
+   {$endif MIPS}
+   {$endif MIPS}
+
    {$ifndef CPUOK}
    {$fatal One of the switches I386, iA64, Alpha, PowerPC or M68K must be defined}
    {$endif}
@@ -427,7 +435,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.53  2005-01-31 21:30:56  olle
+  Revision 1.54  2005-02-13 18:55:19  florian
+    + overflow checking for the arm
+
+  Revision 1.53  2005/01/31 21:30:56  olle
     + Added fake Exception classes, only for MACOS.
 
   Revision 1.52  2005/01/26 16:23:28  peter

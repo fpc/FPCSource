@@ -99,12 +99,12 @@ interface
         procedure a_load64_reg_ref(list : taasmoutput;reg : tregister64;const ref : treference);override;
         procedure a_load64_ref_reg(list : taasmoutput;const ref : treference;reg : tregister64);override;
         procedure a_param64_ref(list : taasmoutput;const r : treference;const paraloc : tcgpara);override;
-        procedure a_op64_reg_reg(list:TAasmOutput;op:TOpCG;regsrc,regdst:TRegister64);override;
-        procedure a_op64_const_reg(list:TAasmOutput;op:TOpCG;value:int64;regdst:TRegister64);override;
-        procedure a_op64_const_reg_reg(list: taasmoutput;op:TOpCG;value : int64;regsrc,regdst : tregister64);override;
-        procedure a_op64_reg_reg_reg(list: taasmoutput;op:TOpCG;regsrc1,regsrc2,regdst : tregister64);override;
-        procedure a_op64_const_reg_reg_checkoverflow(list: taasmoutput;op:TOpCG;value : int64;regsrc,regdst : tregister64;setflags : boolean;var ovloc : tlocation);override;
-        procedure a_op64_reg_reg_reg_checkoverflow(list: taasmoutput;op:TOpCG;regsrc1,regsrc2,regdst : tregister64;setflags : boolean;var ovloc : tlocation);override;
+        procedure a_op64_reg_reg(list:TAasmOutput;op:TOpCG;size : tcgsize;regsrc,regdst:TRegister64);override;
+        procedure a_op64_const_reg(list:TAasmOutput;op:TOpCG;size : tcgsize;value:int64;regdst:TRegister64);override;
+        procedure a_op64_const_reg_reg(list: taasmoutput;op:TOpCG;size : tcgsize;value : int64;regsrc,regdst : tregister64);override;
+        procedure a_op64_reg_reg_reg(list: taasmoutput;op:TOpCG;size : tcgsize;regsrc1,regsrc2,regdst : tregister64);override;
+        procedure a_op64_const_reg_reg_checkoverflow(list: taasmoutput;op:TOpCG;size : tcgsize;value : int64;regsrc,regdst : tregister64;setflags : boolean;var ovloc : tlocation);override;
+        procedure a_op64_reg_reg_reg_checkoverflow(list: taasmoutput;op:TOpCG;size : tcgsize;regsrc1,regsrc2,regdst : tregister64;setflags : boolean;var ovloc : tlocation);override;
       end;
 
     const
@@ -1388,7 +1388,7 @@ implementation
       end;
 
 
-    procedure TCg64Sparc.a_op64_reg_reg(list:TAasmOutput;op:TOpCG;regsrc,regdst:TRegister64);
+    procedure TCg64Sparc.a_op64_reg_reg(list:TAasmOutput;op:TOpCG;size : tcgsize;regsrc,regdst:TRegister64);
       var
         op1,op2 : TAsmOp;
       begin
@@ -1413,7 +1413,7 @@ implementation
       end;
 
 
-    procedure TCg64Sparc.a_op64_const_reg(list:TAasmOutput;op:TOpCG;value:int64;regdst:TRegister64);
+    procedure TCg64Sparc.a_op64_const_reg(list:TAasmOutput;op:TOpCG;size : tcgsize;value:int64;regdst:TRegister64);
       var
         op1,op2:TAsmOp;
       begin
@@ -1428,23 +1428,23 @@ implementation
       end;
 
 
-    procedure tcg64sparc.a_op64_const_reg_reg(list: taasmoutput;op:TOpCG;value : int64; regsrc,regdst : tregister64);
+    procedure tcg64sparc.a_op64_const_reg_reg(list: taasmoutput;op:TOpCG;size : tcgsize;value : int64; regsrc,regdst : tregister64);
       var
         l : tlocation;
       begin
-        a_op64_const_reg_reg_checkoverflow(list,op,value,regsrc,regdst,false,l);
+        a_op64_const_reg_reg_checkoverflow(list,op,size,value,regsrc,regdst,false,l);
       end;
 
 
-    procedure tcg64sparc.a_op64_reg_reg_reg(list: taasmoutput;op:TOpCG;regsrc1,regsrc2,regdst : tregister64);
+    procedure tcg64sparc.a_op64_reg_reg_reg(list: taasmoutput;op:TOpCG;size : tcgsize;regsrc1,regsrc2,regdst : tregister64);
       var
         l : tlocation;
       begin
-        a_op64_reg_reg_reg_checkoverflow(list,op,regsrc1,regsrc2,regdst,false,l);
+        a_op64_reg_reg_reg_checkoverflow(list,op,size,regsrc1,regsrc2,regdst,false,l);
       end;
 
 
-    procedure tcg64sparc.a_op64_const_reg_reg_checkoverflow(list: taasmoutput;op:TOpCG;value : int64;regsrc,regdst : tregister64;setflags : boolean;var ovloc : tlocation);
+    procedure tcg64sparc.a_op64_const_reg_reg_checkoverflow(list: taasmoutput;op:TOpCG;size : tcgsize;value : int64;regsrc,regdst : tregister64;setflags : boolean;var ovloc : tlocation);
       var
         op1,op2:TAsmOp;
       begin
@@ -1459,7 +1459,7 @@ implementation
       end;
 
 
-    procedure tcg64sparc.a_op64_reg_reg_reg_checkoverflow(list: taasmoutput;op:TOpCG;regsrc1,regsrc2,regdst : tregister64;setflags : boolean;var ovloc : tlocation);
+    procedure tcg64sparc.a_op64_reg_reg_reg_checkoverflow(list: taasmoutput;op:TOpCG;size : tcgsize;regsrc1,regsrc2,regdst : tregister64;setflags : boolean;var ovloc : tlocation);
       var
         op1,op2:TAsmOp;
       begin
@@ -1480,7 +1480,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.105  2005-01-27 20:32:51  florian
+  Revision 1.106  2005-02-13 18:55:19  florian
+    + overflow checking for the arm
+
+  Revision 1.105  2005/01/27 20:32:51  florian
     + implemented overflow checking for 64 bit types on sparc
 
   Revision 1.104  2005/01/25 20:58:30  florian

@@ -119,6 +119,12 @@ program pp;
      {$endif CPUDEFINED}
      {$define CPUDEFINED}
    {$endif ARM}
+   {$ifdef MIPS}
+     {$ifdef CPUDEFINED}
+        {$fatal ONLY one of the switches for the CPU type must be defined}
+     {$endif CPUDEFINED}
+     {$define CPUDEFINED}
+   {$endif MIPS}
    {$ifndef CPUDEFINED}
      {$fatal A CPU type switch must be defined}
    {$endif CPUDEFINED}
@@ -204,7 +210,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.33  2004-06-20 08:55:30  florian
+  Revision 1.34  2005-02-13 18:55:19  florian
+    + overflow checking for the arm
+
+  Revision 1.33  2004/06/20 08:55:30  florian
     * logs truncated
 
   Revision 1.32  2004/06/16 20:07:09  florian

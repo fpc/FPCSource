@@ -529,10 +529,10 @@ interface
           xorn,orn,andn,addn:
             begin
               if (right.location.loc = LOC_CONSTANT) then
-                cg64.a_op64_const_reg_reg_checkoverflow(exprasmlist,op,right.location.value64,
+                cg64.a_op64_const_reg_reg_checkoverflow(exprasmlist,op,location.size,right.location.value64,
                   left.location.register64,location.register64,checkoverflow,ovloc)
               else
-                cg64.a_op64_reg_reg_reg_checkoverflow(exprasmlist,op,right.location.register64,
+                cg64.a_op64_reg_reg_reg_checkoverflow(exprasmlist,op,location.size,right.location.register64,
                   left.location.register64,location.register64,checkoverflow,ovloc);
             end;
           subn:
@@ -544,12 +544,12 @@ interface
                 begin
                   if right.location.loc <> LOC_CONSTANT then
                     // reg64 - reg64
-                    cg64.a_op64_reg_reg_reg_checkoverflow(exprasmlist,OP_SUB,
+                    cg64.a_op64_reg_reg_reg_checkoverflow(exprasmlist,OP_SUB,location.size,
                       right.location.register64,left.location.register64,
                       location.register64,checkoverflow,ovloc)
                   else
                     // reg64 - const64
-                    cg64.a_op64_const_reg_reg_checkoverflow(exprasmlist,OP_SUB,
+                    cg64.a_op64_const_reg_reg_checkoverflow(exprasmlist,OP_SUB,location.size,
                       right.location.value64,left.location.register64,
                       location.register64,checkoverflow,ovloc)
                 end
@@ -557,7 +557,7 @@ interface
                 begin
                   // const64 - reg64
                   location_force_reg(exprasmlist,left.location,left.location.size,true);
-                  cg64.a_op64_reg_reg_reg_checkoverflow(exprasmlist,OP_SUB,
+                  cg64.a_op64_reg_reg_reg_checkoverflow(exprasmlist,OP_SUB,location.size,
                     right.location.register64,left.location.register64,
                     location.register64,checkoverflow,ovloc);
                 end;
@@ -569,7 +569,7 @@ interface
 
         { emit overflow check if enabled }
         if checkoverflow then
-           cg.g_overflowcheck(exprasmlist,Location,ResultType.Def);
+           cg.g_overflowcheck_loc(exprasmlist,Location,ResultType.Def,ovloc);
       end;
 
 
@@ -777,7 +777,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.40  2005-01-29 00:40:18  peter
+  Revision 1.41  2005-02-13 18:55:19  florian
+    + overflow checking for the arm
+
+  Revision 1.40  2005/01/29 00:40:18  peter
     * fixed x86_64 compile
 
   Revision 1.39  2005/01/27 20:32:51  florian

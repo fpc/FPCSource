@@ -53,10 +53,10 @@ unit cgcpu;
      end;
 
       tcg64f386 = class(tcg64f32)
-        procedure a_op64_ref_reg(list : taasmoutput;op:TOpCG;const ref : treference;reg : tregister64);override;
-        procedure a_op64_reg_reg(list : taasmoutput;op:TOpCG;regsrc,regdst : tregister64);override;
-        procedure a_op64_const_reg(list : taasmoutput;op:TOpCG;value : int64;reg : tregister64);override;
-        procedure a_op64_const_ref(list : taasmoutput;op:TOpCG;value : int64;const ref : treference);override;
+        procedure a_op64_ref_reg(list : taasmoutput;op:TOpCG;size : tcgsize;const ref : treference;reg : tregister64);override;
+        procedure a_op64_reg_reg(list : taasmoutput;op:TOpCG;size : tcgsize;regsrc,regdst : tregister64);override;
+        procedure a_op64_const_reg(list : taasmoutput;op:TOpCG;size : tcgsize;value : int64;reg : tregister64);override;
+        procedure a_op64_const_ref(list : taasmoutput;op:TOpCG;size : tcgsize;value : int64;const ref : treference);override;
       private
         procedure get_64bit_ops(op:TOpCG;var op1,op2:TAsmOp);
       end;
@@ -645,7 +645,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcg64f386.a_op64_ref_reg(list : taasmoutput;op:TOpCG;const ref : treference;reg : tregister64);
+    procedure tcg64f386.a_op64_ref_reg(list : taasmoutput;op:TOpCG;size : tcgsize;const ref : treference;reg : tregister64);
       var
         op1,op2 : TAsmOp;
         tempref : treference;
@@ -658,7 +658,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcg64f386.a_op64_reg_reg(list : taasmoutput;op:TOpCG;regsrc,regdst : tregister64);
+    procedure tcg64f386.a_op64_reg_reg(list : taasmoutput;op:TOpCG;size : tcgsize;regsrc,regdst : tregister64);
       var
         op1,op2 : TAsmOp;
       begin
@@ -687,7 +687,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcg64f386.a_op64_const_reg(list : taasmoutput;op:TOpCG;value : int64;reg : tregister64);
+    procedure tcg64f386.a_op64_const_reg(list : taasmoutput;op:TOpCG;size : tcgsize;value : int64;reg : tregister64);
       var
         op1,op2 : TAsmOp;
       begin
@@ -710,7 +710,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcg64f386.a_op64_const_ref(list : taasmoutput;op:TOpCG;value : int64;const ref : treference);
+    procedure tcg64f386.a_op64_const_ref(list : taasmoutput;op:TOpCG;size : tcgsize;value : int64;const ref : treference);
       var
         op1,op2 : TAsmOp;
         tempref : treference;
@@ -743,7 +743,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.65  2005-02-03 17:10:21  peter
+  Revision 1.66  2005-02-13 18:55:19  florian
+    + overflow checking for the arm
+
+  Revision 1.65  2005/02/03 17:10:21  peter
     * fix win32 small array parameters
 
   Revision 1.64  2005/01/24 22:08:32  peter
