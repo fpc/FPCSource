@@ -16,18 +16,12 @@
 
  **********************************************************************}
 
-
 {$ASMMODE GAS}
 
 function FpSysCall(sysnr:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL0'];
 
 asm
   movq sysnr, %rax        { Syscall number -> rax.  }
-  movq %rsi, %rdi         { shift arg1 - arg5. }
-  movq %rdx, %rsi
-  movq %rcx, %rdx
-  movq %r8, %r10
-  movq %r9, %r8
   syscall                 { Do the system call. }
   cmpq $-4095, %rax       { Check %rax for error.  }
   jnae .LSyscOK           { Jump to error handler if error.  }
@@ -230,7 +224,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  2004-04-22 17:17:23  peter
+  Revision 1.6  2004-05-16 11:04:27  marco
+   * comment removed and four dud instrcutions
+
+  Revision 1.5  2004/04/22 17:17:23  peter
     * x86-64 fixes
 
   Revision 1.4  2004/02/06 23:06:16  florian

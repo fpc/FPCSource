@@ -28,9 +28,6 @@ type
                         // use int64, and typecast all calls that don't
                         // return off_t to cint.
 
-// I don't think this is going to work on several platforms
-// 64-bit machines don't have only 64-bit params.
-
   TSysParam  = int64;
 
 function Do_SysCall(sysnr:TSysParam):TSysResult;  external name 'FPC_SYSCALL0';
@@ -43,7 +40,10 @@ function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6:TSysParam):T
 
 {
   $Log$
-  Revision 1.4  2004-04-22 17:17:23  peter
+  Revision 1.5  2004-05-16 11:04:27  marco
+   * comment removed and four dud instrcutions
+
+  Revision 1.4  2004/04/22 17:17:23  peter
     * x86-64 fixes
 
   Revision 1.3  2004/02/06 15:58:21  florian
