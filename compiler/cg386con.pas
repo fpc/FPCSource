@@ -226,19 +226,27 @@ implementation
                                 consts^.concat(new(pai_label,init(l1)));
                                 getmem(pc,p^.length+1);
                                 move(p^.value_str^,pc^,p^.length+1);
+                                pc[p^.length]:=#0;
                                 { to overcome this problem we set the length explicitly }
                                 { with the ending null char }
-                                consts^.concat(new(pai_string,init_length_pchar(pc,p^.length+1)));
+                                consts^.concat(new(pai_string,init_length_pchar(pc,p^.length)));
                              end;
                         end;
                       st_shortstring:
                         begin
-                           getmem(pc,p^.length+3);
-                           move(p^.value_str^,pc[1],p^.length+1);
-                           pc[0]:=chr(p^.length);
-                           { to overcome this problem we set the length explicitly }
-                           { with the ending null char }
-                           consts^.concat(new(pai_string,init_length_pchar(pc,p^.length+2)));
+                           { empty strings }
+                           if p^.length=0 then
+                            consts^.concat(new(pai_const,init_16bit(0)))
+                           else
+                            begin
+                              { also length and terminating zero }
+                              getmem(pc,p^.length+2);
+                              move(p^.value_str^,pc[1],p^.length+1);
+                              pc[0]:=chr(p^.length);
+                              { to overcome this problem we set the length explicitly }
+                              { with the ending null char }
+                              consts^.concat(new(pai_string,init_length_pchar(pc,p^.length+1)));
+                            end;
                         end;
                    end;
 {$endif UseAnsiString}
@@ -317,7 +325,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  1998-09-17 09:42:13  peter
+  Revision 1.15  1998-11-04 10:11:36  peter
+    * ansistring fixes
+
+  Revision 1.14  1998/09/17 09:42:13  peter
     + pass_2 for cg386
     * Message() -> CGMessage() for pass_1/pass_2
 

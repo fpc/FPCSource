@@ -1890,9 +1890,7 @@ unit pexpr;
       do_firstpass(p);
       if p^.treetype<>stringconstn then
         begin
-          if (p^.treetype=ordconstn) and
-             (p^.resulttype^.deftype=orddef) and
-             (Porddef(p^.resulttype)^.typ=uchar) then
+          if (p^.treetype=ordconstn) and is_char(p^.resulttype) then
             get_stringconst:=char(p^.value)
           else
             Message(cg_e_illegal_expression);
@@ -1909,7 +1907,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.71  1998-10-22 23:57:29  peter
+  Revision 1.72  1998-11-04 10:11:41  peter
+    * ansistring fixes
+
+  Revision 1.71  1998/10/22 23:57:29  peter
     * fixed filedef for typenodetype
 
   Revision 1.70  1998/10/21 15:12:54  pierre

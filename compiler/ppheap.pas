@@ -30,16 +30,19 @@ unit ppheap;
 
     uses
        globals,files;
-       
+
     procedure ppextra_info(p : pointer);
       begin
          longint(p^):=aktfilepos.line;
          plongint(cardinal(p)+4)^:=aktfilepos.column;
-         plongint(cardinal(p)+8)^:=current_module^.unit_index*100000+aktfilepos.fileindex;
+         if assigned(current_module) then
+          plongint(cardinal(p)+8)^:=current_module^.unit_index*100000+aktfilepos.fileindex
+         else
+          plongint(cardinal(p)+8)^:=aktfilepos.fileindex
       end;
-      
+
   begin
      set_extra_info(12,ppextra_info);
   end.
-  
+
 

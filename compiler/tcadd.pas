@@ -275,7 +275,8 @@ implementation
 {$ifdef UseAnsiString}
               s1:=strpnew(char(byte(p^.left^.value)));
               s2:=strpnew(char(byte(p^.right^.value)));
-              l1:=1;l2:=1;
+              l1:=1;
+              l2:=1;
 {$else UseAnsiString}
               s1^:=char(byte(p^.left^.value));
               s2^:=char(byte(p^.right^.value));
@@ -286,7 +287,6 @@ implementation
            if (lt=stringconstn) and (rt=ordconstn) and is_char(rd) then
            begin
 {$ifdef UseAnsiString}
-              { here there is allways the damn #0 problem !! }
               s1:=getpcharcopy(p^.left);
               l1:=p^.left^.length;
               s2:=strpnew(char(byte(p^.right^.value)));
@@ -297,12 +297,10 @@ implementation
 {$endif UseAnsiString}
               concatstrings:=true;
            end
-         else if (lt=ordconstn) and (rt=stringconstn) and
-           (ld^.deftype=orddef) and
-           (porddef(ld)^.typ=uchar) then
+         else
+           if (lt=ordconstn) and (rt=stringconstn) and is_char(ld) then
            begin
 {$ifdef UseAnsiString}
-              { here there is allways the damn #0 problem !! }
               s1:=strpnew(char(byte(p^.left^.value)));
               l1:=1;
               s2:=getpcharcopy(p^.right);
@@ -368,10 +366,7 @@ implementation
               p:=t;
               exit;
            end;
-{$ifdef UseAnsiString}
-         ansistringdispose(s1,l1);
-         ansistringdispose(s2,l2);
-{$else UseAnsiString}
+{$ifndef UseAnsiString}
          dispose(s1);
          dispose(s2);
 {$endif UseAnsiString}
@@ -971,7 +966,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  1998-10-25 23:32:04  peter
+  Revision 1.10  1998-11-04 10:11:46  peter
+    * ansistring fixes
+
+  Revision 1.9  1998/10/25 23:32:04  peter
     * fixed u32bit - s32bit conversion problems
 
   Revision 1.8  1998/10/22 12:12:28  pierre

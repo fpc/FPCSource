@@ -54,6 +54,9 @@ unit ptconst;
 {$ifdef m68k}
          j : longint;
 {$endif m68k}
+{$ifdef useansistring}
+         len       : longint;
+{$endif}
          p,hp      : ptree;
          i,l,offset,
          strlength : longint;
@@ -317,7 +320,10 @@ unit ptconst;
                              strlength:=p^.length;
                            datasegment^.concat(new(pai_const,init_8bit(strlength)));
                            { this can also handle longer strings }
-                           generate_pascii(datasegment,p^.value_str,strlength);
+                           getmem(ca,strlength+1);
+                           move(p^.value_str^,ca^,strlength);
+                           ca[strlength]:=#0;
+                           generate_pascii(datasegment,ca,strlength);
 {$else UseAnsiString}
                            if length(p^.value_str^)>=def^.size then
                              begin
@@ -341,12 +347,12 @@ unit ptconst;
                       if def^.size>strlength then
                         begin
                            getmem(ca,def^.size-strlength);
+                           { def^.size contains also the leading length, so we }
+                           { we have to subtract one                           }
                            fillchar(ca[0],def^.size-strlength-1,' ');
                            ca[def^.size-strlength-1]:=#0;
 {$ifdef UseAnsiString}
                            { this can also handle longer strings }
-                           { def^.size contains also the leading length, so we }
-                           { we have to subtract one                           }
                            generate_pascii(datasegment,ca,def^.size-strlength-1);
 {$else UseAnsiString}
                            datasegment^.concat(new(pai_string,init_pchar(ca)));
@@ -356,19 +362,24 @@ unit ptconst;
 {$ifdef UseLongString}
                  st_longstring:
                    begin
+                     if is_constcharnode(p) then
+                      strlength:=1
+                     else
+                      strlength:=p^.length;
                      { first write the maximum size }
-                     datasegment^.concat(new(pai_const,init_32bit(p^.length)))));
+                     datasegment^.concat(new(pai_const,init_32bit(strlength)))));
                      { fill byte }
                      datasegment^.concat(new(pai_const,init_8bit(0)));
                      if p^.treetype=stringconstn then
                        begin
-                          { this can also handle longer strings }
-                          generate_pascii(consts,p^.value_str,p^.length);
+                         getmem(ca,strlength+1);
+                         move(p^.value_str^,ca^,strlength);
+                         ca[strlength]:=#0;
+                         generate_pascii(consts,ca,strlength);
                        end
                      else if is_constcharnode(p) then
                        begin
                           consts^.concat(new(pai_const,init_8bit(p^.value)));
-                          strlength:=1;
                        end
                      else Message(cg_e_illegal_expression);
                      datasegment^.concat(new(pai_const,init_8bit(0)));
@@ -382,12 +393,16 @@ unit ptconst;
                         datasegment^.concat(new(pai_const,init_32bit(0)))
                       else
                         begin
+                           if is_constcharnode(p) then
+                            strlength:=1
+                           else
+                            strlength:=p^.length;
                            getdatalabel(ll);
                            datasegment^.concat(new(pai_const,init_symbol(strpnew(lab2str(ll)))));
                            { first write the maximum size }
-                           consts^.concat(new(pai_const,init_32bit(p^.length)));
+                           consts^.concat(new(pai_const,init_32bit(strlength)));
                            { second write the real length }
-                           consts^.concat(new(pai_const,init_32bit(p^.length)));
+                           consts^.concat(new(pai_const,init_32bit(strlength)));
                            { redondent with maxlength but who knows ... (PM) }
                            { third write use count (set to -1 for safety ) }
                            consts^.concat(new(pai_const,init_32bit(-1)));
@@ -398,13 +413,14 @@ unit ptconst;
                            consts^.concat(new(pai_label,init(ll)));
                            if p^.treetype=stringconstn then
                              begin
-                                { this can also handle longer strings }
-                                generate_pascii(consts,p^.value_str,p^.length);
+                               getmem(ca,strlength+1);
+                               move(p^.value_str^,ca^,strlength);
+                               ca[strlength]:=#0;
+                               generate_pascii(consts,ca,strlength);
                              end
                            else if is_constcharnode(p) then
                              begin
                                 consts^.concat(new(pai_const,init_8bit(p^.value)));
-                                strlength:=1;
                              end
                            else Message(cg_e_illegal_expression);
                            consts^.concat(new(pai_const,init_8bit(0)));
@@ -432,10 +448,23 @@ unit ptconst;
                    p:=comp_expr(true);
                    do_firstpass(p);
                    if p^.treetype=stringconstn then
+                    begin
+{$ifdef useansistring}
+                      if p^.length>255 then
+                       len:=255
+                      else
+                       len:=p^.length;
+                      s[0]:=chr(len);
+                      move(p^.value_str^,s[1],len);
+{$else}
                      s:=p^.value_str^
-                   else if is_constcharnode(p) then
-                     s:=char(byte(p^.value))
-                   else Message(cg_e_illegal_expression);
+{$endif}
+                    end
+                   else
+                     if is_constcharnode(p) then
+                       s:=char(byte(p^.value))
+                   else
+                     Message(cg_e_illegal_expression);
                    disposetree(p);
                    l:=length(s);
                    for i:=Parraydef(def)^.lowrange to Parraydef(def)^.highrange do
@@ -580,7 +609,7 @@ unit ptconst;
                              else
                                symt:=nil;
                           end;
-                        
+
                         if srsym=nil then
                           begin
                              Message1(sym_e_id_not_found,s);
@@ -591,18 +620,18 @@ unit ptconst;
                              { check position }
                              if pvarsym(srsym)^.address<aktpos then
                                Message(parser_e_invalid_record_const);
-     
+
                              { if needed fill }
                              if pvarsym(srsym)^.address>aktpos then
                                for i:=1 to pvarsym(srsym)^.address-aktpos do
                                  datasegment^.concat(new(pai_const,init_8bit(0)));
-     
+
                              { new position }
                              aktpos:=pvarsym(srsym)^.address+pvarsym(srsym)^.definition^.size;
-     
+
                              { read the data }
                              readtypedconst(pvarsym(srsym)^.definition,nil);
-     
+
                              if token=SEMICOLON then
                                consume(SEMICOLON)
                              else break;
@@ -620,7 +649,10 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.22  1998-10-20 08:06:56  pierre
+  Revision 1.23  1998-11-04 10:11:45  peter
+    * ansistring fixes
+
+  Revision 1.22  1998/10/20 08:06:56  pierre
     * several memory corruptions due to double freemem solved
       => never use p^.loc.location:=p^.left^.loc.location;
     + finally I added now by default

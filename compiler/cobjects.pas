@@ -269,12 +269,10 @@ unit cobjects;
 
   implementation
 
+
     function pchar2pstring(p : pchar) : pstring;
-
       var
-         w : word;
-         i : longint;
-
+         w,i : longint;
       begin
          w:=strlen(p);
          for i:=w-1 downto 0 do
@@ -283,22 +281,20 @@ unit cobjects;
          pchar2pstring:=pstring(p);
       end;
 
+
     function pstring2pchar(p : pstring) : pchar;
-
       var
-         w : word;
-         i : longint;
-
+         w,i : longint;
       begin
-         w:=length(p^[0]);
+         w:=length(p^);
          for i:=1 to w do
            p^[i-1]:=p^[i];
          p^[w]:=#0;
          pstring2pchar:=pchar(p);
       end;
 
-    function lowercase(c : char) : char;
 
+    function lowercase(c : char) : char;
        begin
           case c of
              #65..#90 : c := chr(ord (c) + 32);
@@ -316,6 +312,7 @@ unit cobjects;
           lowercase := c;
        end;
 
+
     function strpnew(const s : string) : pchar;
       var
          p : pchar;
@@ -325,12 +322,14 @@ unit cobjects;
          strpnew:=p;
       end;
 
+
     procedure stringdispose(var p : pstring);
       begin
          if assigned(p) then
            freemem(p,length(p^)+1);
          p:=nil;
       end;
+
 
     procedure ansistringdispose(var p : pchar;length : longint);
       begin
@@ -339,16 +338,16 @@ unit cobjects;
          p:=nil;
       end;
 
-    function stringdup(const s : string) : pstring;
 
+    function stringdup(const s : string) : pstring;
       var
          p : pstring;
-
       begin
          getmem(p,length(s)+1);
          p^:=s;
          stringdup:=p;
       end;
+
 
 {****************************************************************************
                                   TStringQueue
@@ -1145,7 +1144,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.15  1998-10-19 18:04:40  peter
+  Revision 1.16  1998-11-04 10:11:37  peter
+    * ansistring fixes
+
+  Revision 1.15  1998/10/19 18:04:40  peter
     + tstringcontainer.init_no_doubles
 
   Revision 1.14  1998/09/18 16:03:37  florian

@@ -354,46 +354,18 @@ implementation
       end;
 
 
-    function strnew(p : pchar;length : longint) : pchar;
-      var
-         pc : pchar;
-      begin
-         getmem(pc,length);
-         move(p^,pc^,length);
-         strnew:=pc;
-      end;
-
-
-    { concates the ASCII string from pchar to the asmslist a }
     procedure generate_pascii(a : paasmoutput;hs : pchar;length : longint);
-      var
-         real_end,current_begin,current_end : pchar;
-         c :char;
       begin
          if assigned(hs) then
-           begin
-              current_begin:=hs;
-              real_end:=strend(hs);
-              c:=hs[0];
-              while length>32 do
-                begin
-                   { restore the char displaced }
-                   current_begin[0]:=c;
-                   current_end:=current_begin+32;
-                   { store the char for next loop }
-                   c:=current_end[0];
-                   current_end[0]:=#0;
-                   a^.concat(new(pai_string,init_length_pchar(strnew(current_begin,32),32)));
-                   current_begin:=current_end;
-                   length:=length-32;
-                end;
-              current_begin[0]:=c;
-              a^.concat(new(pai_string,init_length_pchar(strnew(current_begin,length),length)));
-           end;
+           a^.concat(new(pai_string,init_length_pchar(hs,length)));
       end;
 
-    constructor ttemptodestroy.init(const a : treference;p : pdef);
 
+{*****************************************************************************
+                              TTempToDestroy
+*****************************************************************************}
+
+    constructor ttemptodestroy.init(const a : treference;p : pdef);
       begin
          inherited init;
          address:=a;
@@ -404,7 +376,10 @@ end.
 
 {
   $Log$
-  Revision 1.20  1998-10-29 15:42:48  florian
+  Revision 1.21  1998-11-04 10:11:38  peter
+    * ansistring fixes
+
+  Revision 1.20  1998/10/29 15:42:48  florian
     + partial disposing of temp. ansistrings
 
   Revision 1.19  1998/10/26 22:58:18  florian
