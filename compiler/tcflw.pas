@@ -284,13 +284,13 @@ implementation
            in the same lexlevel }
          if (hp^.treetype<>loadn) or
             ((hp^.symtable^.symtablelevel>1) and (hp^.symtable^.symtablelevel<>lexlevel)) then
-          CGMessage(cg_e_illegal_count_var)
+          CGMessagePos(hp^.fileinfo,cg_e_illegal_count_var)
          else
           begin
             if hp^.symtableentry^.typ=varsym then
               pvarsym(hp^.symtableentry)^.varstate:=vs_used;
             if (not(is_ordinal(p^.t2^.resulttype)) or is_64bitint(p^.t2^.resulttype)) then
-              CGMessage(type_e_ordinal_expr_expected);
+              CGMessagePos(hp^.fileinfo,type_e_ordinal_expr_expected);
           end;
 
          if p^.t2^.registers32>p^.registers32 then
@@ -517,7 +517,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.29  1999-12-09 23:18:05  pierre
+  Revision 1.30  1999-12-13 11:21:24  peter
+    * better position for for counter errors
+
+  Revision 1.29  1999/12/09 23:18:05  pierre
    * no_fast_exit if procedure contains implicit termination code
 
   Revision 1.28  1999/12/02 17:27:56  peter
