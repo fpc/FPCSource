@@ -60,6 +60,9 @@ endif
 units : units/$(FPCMADE)
 units/$(FPCMADE):
         $(MAKE) -C units
+ifeq ($(OS_TARGET),win32)
+        $(FPC) -n -Fuunits -FEunits utils/win32err.pp
+endif
 
 DOTEST=./dotest$(EXEEXT)
 $(DOTEST) : units utils/dotest.pp utils/redir.pp utils/teststr.pp
@@ -75,7 +78,7 @@ ifneq ($(TESTCOMSPECRES),)
 NOCOMSPEC=1
 endif
 
-# 
+#
 # Digest program
 #
 ifeq ($(USESQL),YES)
