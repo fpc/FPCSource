@@ -440,126 +440,93 @@ implementation
         { we have only to handle the result if it is used }
          if (nf_return_value_used in flags) then
           begin
-            case resulttype.def.deftype of
-              enumdef,
-              orddef :
-                begin
-                  cgsize:=def_cgsize(resulttype.def);
-
-                  { an object constructor is a function with pointer result }
-                  if (inlined or (right=nil)) and
-                     (procdefinition.proctypeoption=potype_constructor) then
-                    cgsize:=OS_ADDR;
-
-                  if cgsize<>OS_NO then
-                   begin
-                     location_reset(location,LOC_REGISTER,cgsize);
-{$ifndef cpu64bit}
-                     if cgsize in [OS_64,OS_S64] then
-                      begin
-                        {Move the function result to free registers, preferably the
-                         accumulator/accumulatorhigh, so no move is necessary.}
-                        r.enum:=R_INTREGISTER;
-                        r.number:=NR_ACCUMULATOR;
-                        hregister.enum:=R_INTREGISTER;
-                        hregister.number:=NR_ACCUMULATORHIGH;
-{$ifdef newra}
-                        rg.getexplicitregisterint(exprasmlist,NR_ACCUMULATOR);
-                        rg.getexplicitregisterint(exprasmlist,NR_ACCUMULATORHIGH);
-                        rg.ungetregisterint(exprasmlist,r);
-                        rg.ungetregisterint(exprasmlist,hregister);
-                        location.registerlow:=rg.getregisterint(exprasmlist,OS_INT);
-                        location.registerhigh:=rg.getregisterint(exprasmlist,OS_INT);
-{$else newra}
-                        cg.a_reg_alloc(exprasmlist,r);
-                        cg.a_reg_alloc(exprasmlist,hregister);
-                        if RS_ACCUMULATOR in rg.unusedregsint then
-                          location.registerlow:=rg.getexplicitregisterint(exprasmlist,NR_ACCUMULATOR)
-                        else
-                          location.registerlow:=rg.getregisterint(exprasmlist,OS_INT);
-                        if RS_ACCUMULATORHIGH in rg.unusedregsint then
-                          location.registerhigh:=rg.getexplicitregisterint(exprasmlist,NR_ACCUMULATORHIGH)
-                        else
-                          location.registerhigh:=rg.getregisterint(exprasmlist,OS_INT);
-{$endif newra}
-                        cg64.a_load64_reg_reg(exprasmlist,joinreg64(r,hregister),
-                            location.register64);
-                      end
-                     else
-{$endif cpu64bit}
-                      begin
-                        {Move the function result to a free register, preferably the
-                         accumulator, so no move is necessary.}
-                        nr:=RS_ACCUMULATOR shl 8 or cgsize2subreg(cgsize);
-                        r.enum:=R_INTREGISTER;
-                        r.number:=nr;
-{$ifdef newra}
-                        rg.getexplicitregisterint(exprasmlist,nr);
-                        rg.ungetregisterint(exprasmlist,r);
-                        location.register:=rg.getregisterint(exprasmlist,cgsize);
-{$else newra}
-                        cg.a_reg_alloc(exprasmlist,r);
-                        if RS_ACCUMULATOR in rg.unusedregsint then
-                          location.register:=rg.getexplicitregisterint(exprasmlist,nr)
-                        else
-                          location.register:=rg.getregisterint(exprasmlist,cgsize);
-{$endif newra}
-                        cg.a_load_reg_reg(exprasmlist,cgsize,cgsize,r,location.register);
-                      end;
-                   end;
-                end;
-              floatdef :
-                begin
-                  location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
+            if (resulttype.def.deftype=floatdef) then
+              begin
+                location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
 {$ifdef cpufpemu}
-                  if cs_fp_emulation in aktmoduleswitches then
-                    location.register.enum := accumulator
-                 else
+                if cs_fp_emulation in aktmoduleswitches then
+                  location.register.enum := accumulator
+               else
 {$endif cpufpemu}
-                  location.register.enum:=FPU_RESULT_REG;
+                location.register.enum:=FPU_RESULT_REG;
 {$ifdef x86}
-                  inc(trgcpu(rg).fpuvaroffset);
+                inc(trgcpu(rg).fpuvaroffset);
 {$endif x86}
-                end;
-{$ifdef TEST_WIN32_RECORDS}
-              recorddef :
-                begin
-                  if (target_info.system=system_i386_win32) then
-                   begin
-                     location_reset(location,LOC_REFERENCE,def_cgsize(resulttype.def));
-                     tg.GetTemp(exprasmlist,resulttype.size,tt_normal,location);
+              end
+            else
+              begin
+                cgsize:=def_cgsize(resulttype.def);
+
+                { an object constructor is a function with pointer result }
+                if (inlined or (right=nil)) and
+                   (procdefinition.proctypeoption=potype_constructor) then
+                  cgsize:=OS_ADDR;
+
+                if cgsize<>OS_NO then
+                 begin
+                   location_reset(location,LOC_REGISTER,cgsize);
 {$ifndef cpu64bit}
-                     if cgsize in [OS_64,OS_S64] then
-                       cg64.a_load64_reg_loc(exprasmlist,joinreg64(accumulator,accumulatorhigh),location)
-                     else
-{$endif cpu64bit}
-                       cg.a_load_reg_loc(exprasmlist,accumulator,location);
-                   end
-                  else
-                   internalerror(200211141);
-                end;
-{$endif TEST_WIN32_RECORDS}
-              else
-                begin
-                  location_reset(location,LOC_REGISTER,OS_INT);
-                  r.enum:=R_INTREGISTER;
-                  r.number:=NR_ACCUMULATOR;
+                   if cgsize in [OS_64,OS_S64] then
+                    begin
+                      {Move the function result to free registers, preferably the
+                       accumulator/accumulatorhigh, so no move is necessary.}
+                      r.enum:=R_INTREGISTER;
+                      r.number:=NR_ACCUMULATOR;
+                      hregister.enum:=R_INTREGISTER;
+                      hregister.number:=NR_ACCUMULATORHIGH;
 {$ifdef newra}
-                  rg.getexplicitregisterint(exprasmlist,NR_ACCUMULATOR);
-                  rg.ungetregisterint(exprasmlist,r);
-                  location.register:=rg.getregisterint(exprasmlist,OS_INT);
+                      rg.getexplicitregisterint(exprasmlist,NR_ACCUMULATOR);
+                      rg.getexplicitregisterint(exprasmlist,NR_ACCUMULATORHIGH);
+                      rg.ungetregisterint(exprasmlist,r);
+                      rg.ungetregisterint(exprasmlist,hregister);
+                      location.registerlow:=rg.getregisterint(exprasmlist,OS_INT);
+                      location.registerhigh:=rg.getregisterint(exprasmlist,OS_INT);
 {$else newra}
-                  if RS_ACCUMULATOR in rg.unusedregsint then
-                    location.register:=rg.getexplicitregisterint(exprasmlist,NR_ACCUMULATOR)
-                  else
-                    location.register:=rg.getregisterint(exprasmlist,OS_INT);
+                      cg.a_reg_alloc(exprasmlist,r);
+                      cg.a_reg_alloc(exprasmlist,hregister);
+                      if RS_ACCUMULATOR in rg.unusedregsint then
+                        location.registerlow:=rg.getexplicitregisterint(exprasmlist,NR_ACCUMULATOR)
+                      else
+                        location.registerlow:=rg.getregisterint(exprasmlist,OS_INT);
+                      if RS_ACCUMULATORHIGH in rg.unusedregsint then
+                        location.registerhigh:=rg.getexplicitregisterint(exprasmlist,NR_ACCUMULATORHIGH)
+                      else
+                        location.registerhigh:=rg.getregisterint(exprasmlist,OS_INT);
 {$endif newra}
-                  cg.a_load_reg_reg(exprasmlist,OS_INT,OS_INT,r,location.register);
-                end;
-            end;
-         end
+                      cg64.a_load64_reg_reg(exprasmlist,joinreg64(r,hregister),
+                          location.register64);
+                    end
+                   else
+{$endif cpu64bit}
+                    begin
+                      {Move the function result to a free register, preferably the
+                       accumulator, so no move is necessary.}
+                      nr:=RS_ACCUMULATOR shl 8 or cgsize2subreg(cgsize);
+                      r.enum:=R_INTREGISTER;
+                      r.number:=nr;
+{$ifdef newra}
+                      rg.getexplicitregisterint(exprasmlist,nr);
+                      rg.ungetregisterint(exprasmlist,r);
+                      location.register:=rg.getregisterint(exprasmlist,cgsize);
+{$else newra}
+                      cg.a_reg_alloc(exprasmlist,r);
+                      if RS_ACCUMULATOR in rg.unusedregsint then
+                        location.register:=rg.getexplicitregisterint(exprasmlist,nr)
+                      else
+                        location.register:=rg.getregisterint(exprasmlist,cgsize);
+{$endif newra}
+                      cg.a_load_reg_reg(exprasmlist,cgsize,cgsize,r,location.register);
+                    end;
+                 end
+                else
+                 begin
+                   if resulttype.def.size>0 then
+                     internalerror(200305131);
+                 end;
+              end;
+          end
         else
-         location_reset(location,LOC_VOID,OS_NO);
+          location_reset(location,LOC_VOID,OS_NO);
       end;
 
 
@@ -579,13 +546,13 @@ implementation
          pp : tcallparanode;
          inlined : boolean;
          inlinecode : tprocinlinenode;
+         pushedregs : tmaybesave;
          store_parast_fixup,
          para_alignment,
          para_offset : longint;
          pop_size : longint;
          returnref,
          pararef : treference;
-         vmtreg,
          accreg : tregister;
          oldaktcallnode : tcallnode;
       begin
@@ -701,7 +668,6 @@ implementation
          oldaktcallnode:=aktcallnode;
          aktcallnode:=self;
 
-{$ifdef powerpc}
          { process procvar. Done here already, because otherwise it may }
          { destroy registers containing a parameter for the actual      }
          { function call (e.g. if it's a function, its result will      }
@@ -718,25 +684,31 @@ implementation
                 begin
                    secondpass(methodpointer);
                    location_force_reg(exprasmlist,methodpointer.location,OS_ADDR,false);
-                   vmtreg:=methodpointer.location.register;
 
                    { virtual methods require an index }
                    if tprocdef(procdefinition).extnumber=-1 then
                      internalerror(200304021);
                    { VMT should already be loaded in a register }
-                   if vmtreg.number=NR_NO then
+                   if methodpointer.location.register.number=NR_NO then
                      internalerror(200304022);
 
                    { test validity of VMT }
                    if not(is_interface(tprocdef(procdefinition)._class)) and
                       not(is_cppclass(tprocdef(procdefinition)._class)) then
-                     cg.g_maybe_testvmt(exprasmlist,vmtreg,tprocdef(procdefinition)._class);
+                     cg.g_maybe_testvmt(exprasmlist,methodpointer.location.register,tprocdef(procdefinition)._class);
                 end;
            end;
-{$endif powerpc}
 
          if assigned(left) then
            begin
+            {$ifndef newra}
+              if assigned(right) then
+                maybe_save(exprasmlist,left.registers32,right.location,pushedregs)
+              else
+                if assigned(methodpointer) then
+                  maybe_save(exprasmlist,left.registers32,methodpointer.location,pushedregs);
+
+            {$endif}
               { be found elsewhere }
               if inlined then
                 para_offset:=tprocdef(procdefinition).parast.address_fixup+
@@ -752,6 +724,13 @@ implementation
                 tcallparanode(left).secondcallparan(
                   (po_leftright in procdefinition.procoptions),procdefinition.proccalloption,
                   para_alignment,para_offset);
+            {$ifndef newra}
+              if assigned(right) then
+                maybe_restore(exprasmlist,right.location,pushedregs)
+              else
+                if assigned(methodpointer) then
+                  maybe_restore(exprasmlist,methodpointer.location,pushedregs);
+            {$endif newra}
            end;
          aktcallnode:=oldaktcallnode;
 
@@ -783,31 +762,13 @@ implementation
               if (po_virtualmethod in procdefinition.procoptions) and
                  assigned(methodpointer) then
                 begin
-{$ifndef powerpc}
-                   secondpass(methodpointer);
-                   location_force_reg(exprasmlist,methodpointer.location,OS_ADDR,false);
-                   vmtreg:=methodpointer.location.register;
-
-                   { virtual methods require an index }
-                   if tprocdef(procdefinition).extnumber=-1 then
-                     internalerror(200304021);
-                   { VMT should already be loaded in a register }
-                   if vmtreg.number=NR_NO then
-                     internalerror(200304022);
-
-                   { test validity of VMT }
-                   if not(is_interface(tprocdef(procdefinition)._class)) and
-                      not(is_cppclass(tprocdef(procdefinition)._class)) then
-                     cg.g_maybe_testvmt(exprasmlist,vmtreg,tprocdef(procdefinition)._class);
-{$endif powerpc}
-
                    { call method }
-                   reference_reset_base(href,vmtreg,
+                   reference_reset_base(href,methodpointer.location.register,
                       tprocdef(procdefinition)._class.vmtmethodoffset(tprocdef(procdefinition).extnumber));
                    cg.a_call_ref(exprasmlist,href);
 
                    { release self }
-                   rg.ungetaddressregister(exprasmlist,vmtreg);
+                   rg.ungetaddressregister(exprasmlist,methodpointer.location.register);
                 end
               else
                 begin
@@ -833,10 +794,6 @@ implementation
          else
            { now procedure variable case }
            begin
-{$ifndef powerpc}
-              secondpass(right);
-{$endif not powerpc}
-
               { Calling interrupt from the same code requires some
                 extra code }
               if (po_interrupt in procdefinition.procoptions) then
@@ -877,8 +834,7 @@ implementation
             pop_size:=pushedparasize;
             { for Cdecl functions we don't need to pop the funcret when it
               was pushed by para }
-            if (procdefinition.proccalloption in [pocall_cdecl,pocall_cppdecl]) and
-               paramanager.ret_in_param(procdefinition.rettype.def,procdefinition.proccalloption) then
+            if paramanager.ret_in_param(procdefinition.rettype.def,procdefinition.proccalloption) then
               dec(pop_size,POINTER_SIZE);
           end;
 
@@ -1184,7 +1140,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.61  2003-05-12 18:17:55  jonas
+  Revision 1.62  2003-05-13 15:18:18  peter
+    * generate code for procvar first before pushing parameters. Made
+      the already existing code for powerpc available for all platforms
+
+  Revision 1.61  2003/05/12 18:17:55  jonas
     * moved fpc_check_object call earlier for the ppc, so it can't destroy
       already-loaded parameter registers
 
