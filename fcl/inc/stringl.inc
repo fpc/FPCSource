@@ -89,10 +89,21 @@ end;
 
 
 
-Procedure TStrings.ReadData(Reader: TReader);
-
+procedure TStrings.ReadData(Reader: TReader);
 begin
+  Reader.ReadListBegin;
+  BeginUpdate;
+  try
+    Clear;
+    while not Reader.EndOfList do
+      Add(Reader.ReadString);
+  finally
+    EndUpdate;
+  end;
+  Reader.ReadListEnd;
 end;
+
+
 
 Function GetQuotedString (Var P : Pchar) : AnsiString;
 
@@ -189,16 +200,31 @@ end;
 
 
 
-Procedure TStrings.WriteData(Writer: TWriter);
-
+procedure TStrings.WriteData(Writer: TWriter);
+var
+  i: Integer;
 begin
+  Writer.WriteListBegin;
+  for i := 0 to Count - 1 do
+    Writer.WriteString(Strings[i]);
+  Writer.WriteListEnd;
 end;
 
 
 
-Procedure TStrings.DefineProperties(Filer: TFiler);
-
+procedure TStrings.DefineProperties(Filer: TFiler);
+var
+  HasData: Boolean;
 begin
+  if Assigned(Filer.Ancestor) then
+    // Only serialize if string list is different from ancestor
+    if Filer.Ancestor.InheritsFrom(TStrings) then
+      HasData := not Equals(TStrings(Filer.Ancestor))
+    else
+      HasData := True
+  else
+    HasData := Count > 0;
+  Filer.DefineProperty('Strings', @ReadData, @WriteData, HasData);
 end;
 
 
@@ -646,7 +672,7 @@ Procedure TStringList.QuickSort(L, R: Integer; CompareFn: TStringListSortCompare
 Var I,J, Pivot : Longint;
 
 begin
-  Repeat;
+  Repeat
     I:=L;
     J:=R;
     Pivot:=(L+R) div 2;
@@ -656,6 +682,10 @@ begin
       If I<=J then
         begin
         ExchangeItems(I,J); // No check, indices are correct.
+        if Pivot=I then
+          Pivot:=J
+        else if Pivot=J then
+          Pivot := I;
         Inc(I);
         Dec(j);
         end;
@@ -889,7 +919,7 @@ begin
   If (Index1<0) or (Index1>=FCount) then
     Error(SListIndexError,Index1);
   If (Index2<0) or (Index2>=FCount) then
-    Error(SListIndexError,Index1);
+    Error(SListIndexError,Index2);
   Changing;
   ExchangeItems(Index1,Index2);
   changed;
@@ -969,7 +999,7 @@ function StringListAnsiCompare(List: TStringList; Index1, Index: Integer): Integ
 
 begin
   Result := AnsiCompareText(List.FList^[Index1].FString,
-    List.FList^[Index1].FString);
+    List.FList^[Index].FString);
 end;
 
 Procedure TStringList.Sort;
@@ -980,7 +1010,10 @@ end;
 
 {
   $Log$
-  Revision 1.6  2000-12-03 22:35:09  sg
+  Revision 1.7  2001-02-23 22:24:08  michael
+  + Fixed sorting of stringslist
+
+  Revision 1.6  2000/12/03 22:35:09  sg
   * Applied patch by Markus Kaemmerer (merged):
     - Added support for TStringList.CustomSort
 
