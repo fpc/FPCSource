@@ -187,13 +187,13 @@ refex.chk:
 messages: 
 	msg2inc -TE ../compiler/errore.msg messages.tex
 
-units.dvi: units.tex $(CHAPTERS) unitex.chk
+units.dvi: units.tex $(CHAPTERS)
 
-ref.dvi: ref.tex refex.chk
+ref.dvi: ref.tex
 
-units.pdf: units.tex $(CHAPTERS) unitex.chk
+units.pdf: units.tex $(CHAPTERS)
 
-ref.pdf: ref.tex refex.chk
+ref.pdf: ref.tex
 
 dvi : $(DVI)
 
@@ -207,7 +207,7 @@ all : dvi ps pdf txt html
 
 user: user.chk
 
-user.chk: user.tex
+user.chk: user.tex userex.chk
 	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 2 -link 2\
          -t "User's guide for Free Pascal" user.tex
 	sed -f foot.sed <user/footnode.html >user/footnote.html
@@ -320,7 +320,10 @@ linuxexamples: examples
 
 #
 # $Log$
-# Revision 1.13  1998-09-13 19:26:13  michael
+# Revision 1.14  1998-10-01 12:57:22  michael
+# + Correction in dependencies
+#
+# Revision 1.13  1998/09/13 19:26:13  michael
 # + Added messages target
 #
 # Revision 1.12  1998/09/13 12:42:05  michael
