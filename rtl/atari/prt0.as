@@ -26,7 +26,7 @@
 |
 | useful constants
 |
-MINSTK          =     8192    | Minimum 1K stack size
+MINSTK          =     16384   | Minimum 16K stack size
 MARGIN          =     512     | Minimum memory to return to OS
 
 |
@@ -100,14 +100,10 @@ _start:
 | calculate new stack size (store in d2)
 |
 | ASSUME 8K STACK FOR THE MOMENT.
-|	movel   __stklen,a2            | a2 = &_STKSIZ
-|	movel   a2,d2                   | if __STKSIZ is undefined
-	bra     minimum                 |   use MINSTK
-	movel   a2@,d2                 | if __STKSIZ is positive
-	bpl     setstk                  |   use __STKSIZ
-	addl    d3,d2                   | if __STKSIZ is negative
-	cmpl    #MINSTK,d2              |   try (free space + __STKSIZ)
-	bge     setstk                  | if < MINSTK
+ 	movel   __stklen,d2            | d2 = _STKSIZ
+ 	tstl    d2                     | if __STKSIZ is zero
+	beq     minimum                |   use MINSTK
+	bra     setstk                 |   use __STKSIZ
 minimum:
 	movel  #MINSTK,d2              |   use MINSTK
 |
