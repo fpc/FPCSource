@@ -558,7 +558,9 @@ const
             if (a = 0) then
               begin
                 if op = OP_AND then
-                  list.concat(taicpu.op_reg_const(A_LI,dst,0));
+                  list.concat(taicpu.op_reg_const(A_LI,dst,0))
+                else
+                  a_load_reg_reg(list,size,size,src,dst);
                 exit;
               end
             else if (a = high(aword)) then
@@ -568,6 +570,8 @@ const
                     list.concat(taicpu.op_reg_const(A_LI,dst,-1));
                   OP_XOR:
                     list.concat(taicpu.op_reg_reg(A_NOT,dst,src));
+                  OP_AND:
+                    a_load_reg_reg(list,size,size,src,dst);
                 end;
                 exit;
               end
@@ -1352,7 +1356,6 @@ const
                  firstreggpr.number:=regcounter2 shl 8;
                  break;
               end;
-            inc(r.number,NR_R1-NR_R0);
           end;
 
       offset:= 0;
@@ -2364,7 +2367,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.86  2003-04-27 11:21:36  peter
+  Revision 1.87  2003-05-11 11:07:33  jonas
+    * fixed optimizations in a_op_const_reg_reg()
+
+  Revision 1.86  2003/04/27 11:21:36  peter
     * aktprocdef renamed to current_procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be
