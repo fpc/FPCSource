@@ -2337,11 +2337,13 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
               if (procinfo^.returntype.def^.deftype in [orddef,enumdef]) then
                 begin
                   uses_eax:=true;
+                  exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
                   case procinfo^.returntype.def^.size of
                    8:
                      begin
                         emit_ref_reg(A_MOV,S_L,hr,R_EAX);
                         hr:=new_reference(procinfo^.framepointer,procinfo^.return_offset+4);
+                        exprasmlist^.concat(new(pairegalloc,alloc(R_EDX)));
                         emit_ref_reg(A_MOV,S_L,hr,R_EDX);
                         uses_edx:=true;
                      end;
@@ -2360,6 +2362,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                 if ret_in_acc(procinfo^.returntype.def) then
                   begin
                     uses_eax:=true;
+                    exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
                     emit_ref_reg(A_MOV,S_L,hr,R_EAX);
                   end
               else
@@ -2462,10 +2465,12 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 
            getlabel(noreraiselabel);
            emitcall('FPC_POPADDRSTACK');
+           exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
            exprasmlist^.concat(new(paicpu,
              op_reg(A_POP,S_L,R_EAX)));
            exprasmlist^.concat(new(paicpu,
              op_reg_reg(A_TEST,S_L,R_EAX,R_EAX)));
+           ungetregister32(R_EAX);
            emitjmp(C_E,noreraiselabel);
            if (aktprocsym^.definition^.proctypeoption=potype_constructor) then
              begin
@@ -2557,6 +2562,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                     end;
                   emitlab(okexitlabel);
 
+                  exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
                   emit_reg_reg(A_MOV,S_L,R_ESI,R_EAX);
                   emit_reg_reg(A_TEST,S_L,R_ESI,R_ESI);
                   uses_eax:=true;
@@ -2624,9 +2630,15 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
              if uses_esi then
                exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,R_ESI,new_reference(R_ESP,16))));
              if uses_edx then
-               exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,R_EDX,new_reference(R_ESP,12))));
+               begin
+                 exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
+                 exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,R_EDX,new_reference(R_ESP,12))));
+               end;
              if uses_eax then
-               exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,R_EAX,new_reference(R_ESP,0))));
+               begin
+                 exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
+                 exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,R_EAX,new_reference(R_ESP,0))));
+               end;
              generate_interrupt_stackframe_exit;
           end
       else
@@ -2801,7 +2813,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.3  2000-10-24 08:54:25  michael
+  Revision 1.4  2000-10-24 12:47:45  jonas
+    * allocate registers which hold function result
+
+  Revision 1.3  2000/10/24 08:54:25  michael
   + Extra patch from peter
 
   Revision 1.2  2000/10/24 07:20:03  pierre
