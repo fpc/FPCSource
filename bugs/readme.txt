@@ -181,6 +181,8 @@ Fixed bugs:
   bug0149.pp   (a, b) compile bug0149b twice and you'll get a crash  OK 0.99.7 (PFV)
   bug0150.pp   Shows that the assert() macro is missing under Delphi OK 0.99.9 (PFV)
   bug0151.pp   crash when using undeclared variable in withstatement OK 0.99.7 (PFV)
+  bug0152.pp   End value of loop variable must be calculated before loop
+               variable is initialized.                              OK 0.99.11 (PM)
   bug0153.pp   Asm, indexing a local/para var should produce an error like tp7 OK 0.99.9 (PFV)
   bug0154.pp   Subrange types give type mismatch when assigning to   OK 0.99.7 (PFV)
   bug0156.pp   (a,b) forward type def in record crashes when loading ppu OK 0.99.7 (PM/PFV)
@@ -216,10 +218,13 @@ Fixed bugs:
   bug0183.pp   internal error 10 in secondnot	                     OK 0.99.11 (PM)	
   bug0184.pp   multiple copies of the same constant set are stored in executable OK 0.99.9 (PFV)
   bug0186.pp   Erroneous array syntax is accepted.                   OK 0.99.9 (PFV)
+  bug0187.pp   constructor in a WIth statement isn't called correct.
+               (works at lest in the case stated)		     OK 0.99.11 (PM)	
   bug0188.pp   can't print function result of procedural var that returns a
                function. Not a bug : wrong syntax !! See source (PM)
   bug0189.pp   cant compare adresses of function variables !!
                As bug0188 FPC syntax problem see source (PM)
+  bug0190.pp   can't have typecast for var params ??                 OK 0.99.11 (PM)
   bug0191.pp   missing vecn constant evaluation                      OK 0.99.11 (PM)
   bug0192.pp   can't compare boolean result with true/false, because the
                boolean result is already in the flags             OK 0.99.11 (PFV)
@@ -229,7 +234,15 @@ Fixed bugs:
   bug0196.pp   "function a;" is accepted (should require result type) OK 0.99.1 (PM)
   bug0197.pp   should produce an error: problem with c1:=c2<c3 where c? is OK 0.99.11 (PM)
                a comp type
-  bug0199.pp   bug in mul code                                OK 0.99.11  (FK)
+  bug0199.pp   bug in mul code                                       OK 0.99.11  (FK)
+  bug0203.pp   problem with changed mangledname of procedures after use
+               Generates an error now				     OK 0.99.11 (PM)
+  bug0204.pp   can typecast the result var in an assignment          OK 0.99.11 (PM)
+  bug0205.pp   and parsing bug, generates wrong code (tp7 gives parser error) OK 0.99.11 (PM)
+  bug0208.pp   implicit conversion from boolean to longint should not be allowed
+               (this is the reason of bug0205 !)                     OK 0.99.11 (PM)
+  bug0209.pp   problem with boolean expressions of different store sizes
+               (problem created while solving bug205 ! PM)           OK 0.99.11 (PM) 
 
 Unproducable bugs:
 ------------------
@@ -249,6 +262,11 @@ bug0155.pp   Asm, Missing string return for asm functions
              (this is a feature rather than a bug :
               complex return values are not allowed for assembler
               functions (PM) )
+bug0193.pp   overflow checking for 8 and 16 bit operations wrong
+	     overflow are just special range checks so
+             as all operations are done on 32 bit integers in FPC
+	     overflow checking will only trap 32 bit overflow
+	     you have to use range checks for byte or 16 bit integers
 
 Unfixed bugs:
 -------------
@@ -256,21 +274,10 @@ bug0123.pp   Asm, problem with intel assembler (shrd)
 bug0124.pp   Asm, problem with -Rintel switch and indexing (whatever the order)
 bug0175.pp   Asm, mov word,%eax should not be allowed without casting
 
-bug0152.pp   End value of loop variable must be calculated before loop
-             variable is initialized.
 bug0185.pp   missing range checking for Val and subrange types
-bug0187.pp   constructor in a WIth statement isn't called correct.
-bug0190.pp   can't have typecast for var params ??
-bug0193.pp   overflow checking for 8 and 16 bit operations wrong
 bug0198.pp   calling specifications aren't allowed in class declarations,
              this should be allowed
 bug0200.pp   array of char overloading problem with strings
 bug0202.pp   flag results not supported with case
-bug0203.pp   problem with changed mangledname of procedures after use
-bug0204.pp   can typecast the result var in an assignment
-bug0205.pp   and parsing bug, generates wrong code (tp7 gives parser error)
 bug0206.pp   sets with variable ranges doesn't work
 bug0207.pp   a class destructor doesn't release the memory
-bug0208.pp   implicit conversion from boolean to longint should not be allowed
-             (this is the reason of bug0205 !)
-bug0209.pp   problem with boolean expressions of different store sizes
