@@ -1750,201 +1750,214 @@ implementation
                              var unusedregsint:Tsuperregisterset;
                              const spilltemplist:Tspill_temp_list): boolean;
       var
-        i:byte;
         supreg, reg1, reg2, reg3: Tsuperregister;
         helpreg:Tregister;
         helpins:Tai;
         op:Tasmop;
         pos:Tai;
         wasload: boolean;
-
-      begin
-        spill_registers:=false;
-        if (ops = 2) and
-           (oper[1]^.typ=top_ref) and
-           { oper[1] can also be ref in case of "lis r3,symbol@ha" or so }
-           spilling_decode_loadstore(opcode,op,wasload) then
-          begin
-            { the register that's being stored/loaded }
-            supreg:=getsupreg(oper[0]^.reg);
-            if supregset_in(r,supreg) then
-              begin
-                // Example:
-                //   l?? r20d, 8(r1)   ; r20d must be spilled into -60(r1)
-                //
-                //   Change into:
-                //
-                //   l?? r21d, 8(r1)
-                //   st? r21d, -60(r1)
-                //
-                // And:
-                //
-                //   st? r20d, 8(r1)   ; r20d must be spilled into -60(r1)
-                //
-                //   Change into:
-                //
-                //   l?? r21d, -60(r1)
-                //   st? r21d, 8(r1)
-
-                pos := get_insert_pos(Tai(previous),supreg,
-                                      getsupreg(oper[1]^.ref^.base),
-                                      getsupreg(oper[1]^.ref^.index),
-                                      unusedregsint);
-                rgget(list,pos,R_SUBWHOLE,helpreg);
-                spill_registers := true;
-                if wasload then
-                  begin
-                    helpins:=spilling_create_loadstore(opcode,helpreg,oper[1]^.ref^);
-                    loadref(1,spilltemplist[supreg]);
-                    opcode := op;
-                  end
-                else
-                  helpins:=spilling_create_loadstore(op,helpreg,spilltemplist[supreg]);
-                if pos=nil then
-                  list.insertafter(helpins,list.first)
-                else
-                  list.insertafter(helpins,pos.next);
-                loadreg(0,helpreg);
-                rgunget(list,helpins,helpreg);
-                forward_allocation(tai(helpins.next),unusedregsint);
-{
-                writeln('spilling!');
-                list.insertafter(tai_comment.Create(strpnew('Spilling!')),helpins);
-}
-              end;
-
-            { now the registers used in the reference }
-            { a) base                                 }
-            supreg := getsupreg(oper[1]^.ref^.base);
-            if supregset_in(r,supreg) then
-              begin
-                if wasload then
-                  pos:=get_insert_pos(Tai(previous),getsupreg(oper[1]^.ref^.index),getsupreg(oper[0]^.reg),0,unusedregsint)
-                else
-                  pos:=get_insert_pos(Tai(previous),getsupreg(oper[1]^.ref^.index),0,0,unusedregsint);
-                rgget(list,pos,R_SUBWHOLE,helpreg);
-                spill_registers:=true;
-                helpins:=spilling_create_load(spilltemplist[supreg],helpreg);
-                if pos=nil then
-                  list.insertafter(helpins,list.first)
-                else
-                  list.insertafter(helpins,pos.next);
-                oper[1]^.ref^.base:=helpreg;
-                rgunget(list,helpins,helpreg);
-                forward_allocation(Tai(helpins.next),unusedregsint);
-{
-                writeln('spilling!');
-                list.insertafter(tai_comment.Create(strpnew('Spilling!')),helpins);
-}
-              end;
-
-            { b) index }
-            supreg := getsupreg(oper[1]^.ref^.index);
-            if supregset_in(r,supreg) then
-              begin
-                if wasload then
-                  pos:=get_insert_pos(Tai(previous),getsupreg(oper[1]^.ref^.base),getsupreg(oper[0]^.reg),0,unusedregsint)
-                else
-                  pos:=get_insert_pos(Tai(previous),getsupreg(oper[1]^.ref^.base),0,0,unusedregsint);
-                rgget(list,pos,R_SUBWHOLE,helpreg);
-                spill_registers:=true;
-                helpins:=spilling_create_load(spilltemplist[supreg],helpreg);
-                if pos=nil then
-                  list.insertafter(helpins,list.first)
-                else
-                  list.insertafter(helpins,pos.next);
-                oper[1]^.ref^.index:=helpreg;
-                rgunget(list,helpins,helpreg);
-                forward_allocation(Tai(helpins.next),unusedregsint);
-{
-                writeln('spilling!');
-                list.insertafter(tai_comment.Create(strpnew('Spilling!')),helpins);
-}
-              end;
-            { load/store is done }
-            exit;
-          end;
-
-        { all other instructions the compiler generates are the same (I hope):   }
-        { operand 0 is a register and is the destination, the others are sources }
-        { and can be either registers or constants                               }
-        { exception: branches (is_jmp isn't always set for them)                 }
-        if oper[0]^.typ <> top_reg then
-          exit;
-        reg1 := getsupreg(oper[0]^.reg);
-        if oper[1]^.typ = top_reg then
-          reg2 := getsupreg(oper[1]^.reg)
-        else
-          reg2 := 0;
-        if (ops >= 3) and
-           (oper[2]^.typ = top_reg) then
-          reg3 := getsupreg(oper[2]^.reg)
-        else
-          reg3 := 0;
-
-        supreg:=reg1;
-        if supregset_in(r,supreg) then
-          begin
-            // Example:
-            //   add r20d, r21d, r22d   ; r20d must be spilled into -60(r1)
-            //
-            //   Change into:
-            //
-            //   lwz r23d, -60(r1)
-            //   add r23d, r21d, r22d
-            //   stw r23d, -60(r1)
-
-            pos := get_insert_pos(Tai(previous),reg1,reg2,reg3,unusedregsint);
-            rgget(list,pos,R_SUBWHOLE,helpreg);
-            spill_registers := true;
-            helpins:=spilling_create_store(helpreg,spilltemplist[supreg]);
-            list.insertafter(helpins,self);
-            helpins:=spilling_create_load(spilltemplist[supreg],helpreg);
-            if pos=nil then
-              list.insertafter(helpins,list.first)
-            else
-              list.insertafter(helpins,pos.next);
-            loadreg(0,helpreg);
-            rgunget(list,helpins,helpreg);
-            forward_allocation(tai(helpins.next),unusedregsint);
-{
-            writeln('spilling!');
-            list.insertafter(tai_comment.Create(strpnew('Spilling!')),helpins);
-}
-          end;
-
-        for i := 1 to 2 do
-          if (oper[i]^.typ = top_reg) then
+      procedure DoSpill2RegInstructions;
+        begin
+          if (oper[1]^.typ=top_ref) and
+             { oper[1] can also be ref in case of "lis r3,symbol@ha" or so }
+             spilling_decode_loadstore(opcode,op,wasload) then
             begin
-              supreg:=getsupreg(oper[i]^.reg);
+              { the register that's being stored/loaded }
+              supreg:=getsupreg(oper[0]^.reg);
               if supregset_in(r,supreg) then
                 begin
                   // Example:
-                  //   add r20d, r21d, r22d   ; r20d must be spilled into -60(r1)
+                  //   l?? r20d, 8(r1)   ; r20d must be spilled into -60(r1)
                   //
                   //   Change into:
                   //
-                  //   lwz r23d, -60(r1)
-                  //   add r23d, r21d, r22d
-                  //   stw r23d, -60(r1)
-
-                  pos := get_insert_pos(Tai(previous),reg1,reg2,reg3,unusedregsint);
+                  //   l?? r21d, 8(r1)
+                  //   st? r21d, -60(r1)
+                  //
+                  // And:
+                  //
+                  //   st? r20d, 8(r1)   ; r20d must be spilled into -60(r1)
+                  //
+                  //   Change into:
+                  //
+                  //   l?? r21d, -60(r1)
+                  //   st? r21d, 8(r1)
+  
+                  pos := get_insert_pos(Tai(previous),supreg,
+                                        getsupreg(oper[1]^.ref^.base),
+                                        getsupreg(oper[1]^.ref^.index),
+                                        unusedregsint);
                   rgget(list,pos,R_SUBWHOLE,helpreg);
                   spill_registers := true;
+                  if wasload then
+                    begin
+                      helpins:=spilling_create_loadstore(opcode,helpreg,oper[1]^.ref^);
+                      loadref(1,spilltemplist[supreg]);
+                      opcode := op;
+                    end
+                  else
+                    helpins:=spilling_create_loadstore(op,helpreg,spilltemplist[supreg]);
+                  if pos=nil then
+                    list.insertafter(helpins,list.first)
+                  else
+                    list.insertafter(helpins,pos.next);
+                  loadreg(0,helpreg);
+                  rgunget(list,helpins,helpreg);
+                  forward_allocation(tai(helpins.next),unusedregsint);
+  {
+                  writeln('spilling!');
+                  list.insertafter(tai_comment.Create(strpnew('Spilling!')),helpins);
+  }
+                end;
+  
+              { now the registers used in the reference }
+              { a) base                                 }
+              supreg := getsupreg(oper[1]^.ref^.base);
+              if supregset_in(r,supreg) then
+                begin
+                  if wasload then
+                    pos:=get_insert_pos(Tai(previous),getsupreg(oper[1]^.ref^.index),getsupreg(oper[0]^.reg),0,unusedregsint)
+                  else
+                    pos:=get_insert_pos(Tai(previous),getsupreg(oper[1]^.ref^.index),0,0,unusedregsint);
+                  rgget(list,pos,R_SUBWHOLE,helpreg);
+                  spill_registers:=true;
                   helpins:=spilling_create_load(spilltemplist[supreg],helpreg);
                   if pos=nil then
                     list.insertafter(helpins,list.first)
                   else
                     list.insertafter(helpins,pos.next);
-                  loadreg(i,helpreg);
+                  oper[1]^.ref^.base:=helpreg;
                   rgunget(list,helpins,helpreg);
-                  forward_allocation(tai(helpins.next),unusedregsint);
-{
+                  forward_allocation(Tai(helpins.next),unusedregsint);
+  {
                   writeln('spilling!');
                   list.insertafter(tai_comment.Create(strpnew('Spilling!')),helpins);
-}
+  }
+                end;
+  
+              { b) index }
+              supreg := getsupreg(oper[1]^.ref^.index);
+              if supregset_in(r,supreg) then
+                begin
+                  if wasload then
+                    pos:=get_insert_pos(Tai(previous),getsupreg(oper[1]^.ref^.base),getsupreg(oper[0]^.reg),0,unusedregsint)
+                  else
+                    pos:=get_insert_pos(Tai(previous),getsupreg(oper[1]^.ref^.base),0,0,unusedregsint);
+                  rgget(list,pos,R_SUBWHOLE,helpreg);
+                  spill_registers:=true;
+                  helpins:=spilling_create_load(spilltemplist[supreg],helpreg);
+                  if pos=nil then
+                    list.insertafter(helpins,list.first)
+                  else
+                    list.insertafter(helpins,pos.next);
+                  oper[1]^.ref^.index:=helpreg;
+                  rgunget(list,helpins,helpreg);
+                  forward_allocation(Tai(helpins.next),unusedregsint);
+  {
+                  writeln('spilling!');
+                  list.insertafter(tai_comment.Create(strpnew('Spilling!')),helpins);
+  }
                 end;
             end;
+          end;
+
+      procedure DoSpill3RegInstructions;
+        var
+          i:byte;
+        begin
+          if oper[0]^.typ <> top_reg then
+            exit;
+          reg1 := getsupreg(oper[0]^.reg);
+          if oper[1]^.typ = top_reg then
+            reg2 := getsupreg(oper[1]^.reg)
+          else
+            reg2 := 0;
+          if (ops >= 3) and
+             (oper[2]^.typ = top_reg) then
+            reg3 := getsupreg(oper[2]^.reg)
+          else
+            reg3 := 0;
+  
+          supreg:=reg1;
+          if supregset_in(r,supreg) then
+            begin
+              // Example:
+              //   add r20d, r21d, r22d   ; r20d must be spilled into -60(r1)
+              //
+              //   Change into:
+              //
+              //   lwz r23d, -60(r1)
+              //   add r23d, r21d, r22d
+              //   stw r23d, -60(r1)
+  
+              pos := get_insert_pos(Tai(previous),reg1,reg2,reg3,unusedregsint);
+              rgget(list,pos,R_SUBWHOLE,helpreg);
+              spill_registers := true;
+              helpins:=spilling_create_store(helpreg,spilltemplist[supreg]);
+              list.insertafter(helpins,self);
+              helpins:=spilling_create_load(spilltemplist[supreg],helpreg);
+              if pos=nil then
+                list.insertafter(helpins,list.first)
+              else
+                list.insertafter(helpins,pos.next);
+              loadreg(0,helpreg);
+              rgunget(list,helpins,helpreg);
+              forward_allocation(tai(helpins.next),unusedregsint);
+  {
+              writeln('spilling!');
+              list.insertafter(tai_comment.Create(strpnew('Spilling!')),helpins);
+  }
+            end;
+  
+          for i := 1 to 2 do
+            if (oper[i]^.typ = top_reg) then
+              begin
+                supreg:=getsupreg(oper[i]^.reg);
+                if supregset_in(r,supreg) then
+                  begin
+                    // Example:
+                    //   add r20d, r21d, r22d   ; r20d must be spilled into -60(r1)
+                    //
+                    //   Change into:
+                    //
+                    //   lwz r23d, -60(r1)
+                    //   add r23d, r21d, r22d
+                    //   stw r23d, -60(r1)
+  
+                    pos := get_insert_pos(Tai(previous),reg1,reg2,reg3,unusedregsint);
+                    rgget(list,pos,R_SUBWHOLE,helpreg);
+                    spill_registers := true;
+                    helpins:=spilling_create_load(spilltemplist[supreg],helpreg);
+                    if pos=nil then
+                      list.insertafter(helpins,list.first)
+                    else
+                      list.insertafter(helpins,pos.next);
+                    loadreg(i,helpreg);
+                    rgunget(list,helpins,helpreg);
+                    forward_allocation(tai(helpins.next),unusedregsint);
+  {
+                    writeln('spilling!');
+                    list.insertafter(tai_comment.Create(strpnew('Spilling!')),helpins);
+  }
+                  end;
+              end;
+        end;
+      begin
+        spill_registers:=false;
+        case ops of
+          0,1:
+            Exit;
+          2:
+            DoSpill2RegInstructions;
+          3:
+        {all other instructions the compiler generates are the same (I hope):  }
+        {operand 0 is a register and is the destination, the others are sources}
+        {and can be either registers or constants                              }
+        {exception: branches (is_jmp isn't always set for them)                }
+            DoSpill3RegInstructions;
+          else
+            InternalError(2003102900);
+        end;
       end;
 
 
@@ -2140,7 +2153,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.48  2003-10-24 17:39:41  peter
+  Revision 1.49  2003-10-29 14:05:45  mazen
+  * Splling function devided to sub functions to make it easy to understand.
+    This commit is just to allow easy diffs to validate the migration (hint use -w)
+
+  Revision 1.48  2003/10/24 17:39:41  peter
     * asmnode.get_position now inserts a marker
 
   Revision 1.47  2003/10/23 14:44:07  peter
