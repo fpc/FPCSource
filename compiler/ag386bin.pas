@@ -422,7 +422,7 @@ unit ag386bin;
              ait_datablock :
                begin
                  if objectalloc^.currsec<>sec_bss then
-                  writeln('allocating of data is only allowed in bss section');
+                  Message(asmw_e_alloc_data_only_in_bss);
 {$ifdef EXTERNALBSS}
                  if pai_datablock(hp)^.is_global then
                   begin
@@ -516,9 +516,9 @@ unit ag386bin;
              ait_instruction :
                objectalloc^.sectionalloc(pai386(hp)^.Pass1(objectalloc^.sectionsize));
              ait_direct :
-               Comment(V_Fatal,'direct asm not supported with binary writers');
+               Message(asmw_f_direct_not_supported);
              ait_comp :
-               Comment(V_Fatal,'comp not supported');
+               Message(asmw_f_comp_not_supported);
              ait_cut :
                break;
            end;
@@ -752,10 +752,7 @@ unit ag386bin;
       begin
         case t of
           og_none :
-            begin
-              writeln('no binary writer selected');
-              exit;
-            end;
+            Message(asmw_f_no_binary_writer_selected);
           og_dbg :
             objectoutput:=new(pdbgoutput,init);
           og_coff :
@@ -777,7 +774,10 @@ unit ag386bin;
 end.
 {
   $Log$
-  Revision 1.3  1999-05-05 17:34:29  peter
+  Revision 1.4  1999-05-05 22:21:47  peter
+    * updated messages
+
+  Revision 1.3  1999/05/05 17:34:29  peter
     * output is more like as 2.9.1
     * stabs really working for go32v2
 

@@ -129,15 +129,6 @@ Type
   {                   Expression parser types                           }
   {---------------------------------------------------------------------}
 
-  { expression parser error codes }
-  texpr_error =
-   (zero_divide,       { divide by zero.     }
-    stack_overflow,    { stack overflow.     }
-    stack_underflow,   { stack underflow.    }
-    invalid_number,    { invalid conversion  }
-    invalid_op);       { invalid operator    }
-
-
    TExprOperator = record
     ch: char;           { operator }
     is_prefix: boolean; { was it a prefix, possible prefixes are +,- and not }
@@ -166,7 +157,6 @@ Type
      Constructor Init;
      Destructor Done;
      Function Evaluate(Expr:  String): longint;
-     Procedure Error(anerror: texpr_error); virtual;
      Function Priority(_Operator: Char): Integer; virtual;
     private
      RPNStack   : Array[1..RPNMax] of longint;        { Stack For RPN calculator }
@@ -241,6 +231,7 @@ Function ValHexaDecimal(const S:String):longint;
   Procedure ConcatConstSymbol(p : paasmoutput;const sym:string;l:longint);
   Procedure ConcatRealConstant(p : paasmoutput;value: bestreal; real_typ : tfloattype);
   Procedure ConcatString(p : paasmoutput;s:string);
+  procedure ConcatAlign(p:paasmoutput;l:longint);
   Procedure ConcatPublic(p:paasmoutput;const s : string);
   Procedure ConcatLocal(p:paasmoutput;const s : string);
   Procedure ConcatGlobalBss(const s : string;size : longint);
@@ -261,138 +252,136 @@ Constructor TExprParse.Init;
 Begin
 end;
 
-Procedure TExprParse.Error(anerror:texpr_error);
-var
-  t : tmsgconst;
-Begin
-  case anerror of
-    zero_divide:
-      t:=assem_f_ev_zero_divide;
-    stack_overflow:
-      t:=assem_f_ev_stack_overflow;
-    stack_underflow:
-      t:=assem_f_ev_stack_underflow;
-    invalid_number:
-      t:=assem_f_ev_invalid_number;
-    invalid_op:
-      t:=assem_f_ev_invalid_op;
-    else
-      t:=assem_f_ev_unknown;
-  end;
-  Message(t);
-end;
-
-Procedure TExprParse.RPNPush(Num : longint); { Add an operand to the top of the RPN stack }
+Procedure TExprParse.RPNPush(Num : longint);
+{ Add an operand to the top of the RPN stack }
 begin
   if RPNTop < RPNMax then
-  begin
-    Inc(RPNTop);
-    RPNStack[RPNTop]:=Num;
-  end
+   begin
+     Inc(RPNTop);
+     RPNStack[RPNTop]:=Num;
+   end
   else
-    Error(stack_overflow); { Put some error handler here }
+   Message(asmr_e_ev_stack_overflow);
 end;
 
 
-
-
-Function TExprParse.RPNPop : longint;       { Get the operand at the top of the RPN stack }
+Function TExprParse.RPNPop : longint;
+{ Get the operand at the top of the RPN stack }
 begin
   if RPNTop > 0 then
-  begin
-    RPNPop:=RPNStack[RPNTop];
-    Dec(RPNTop);
-  end
-  else  { Put some error handler here }
-   Error(stack_underflow);
+   begin
+     RPNPop:=RPNStack[RPNTop];
+     Dec(RPNTop);
+   end
+  else
+   Message(asmr_e_ev_stack_underflow);
 end;
+
 
 Procedure TExprParse.RPNCalc(Token : String15; prefix:boolean);                       { RPN Calculator }
 Var
   Temp  : longint;
   LocalError : Integer;
 begin
-{  Write(Token, ' ');              This just outputs the RPN expression }
-
+  { Handle operators }
   if (Length(Token) = 1) and (Token[1] in ['+', '-', '*', '/','&','|','%','^','~','<','>']) then
-  Case Token[1] of                                   { Handle operators }
-    '+' : Begin
-       if prefix then
-       else
-          RPNPush(RPNPop + RPNPop);
-     end;
-    '-' : Begin
-      if prefix then
+   Case Token[1] of
+    '+' :
+      Begin
+        if not prefix then
+         RPNPush(RPNPop + RPNPop);
+      end;
+    '-' :
+      Begin
+        if prefix then
          RPNPush(-(RPNPop))
-      else
+        else
          RPNPush(RPNPop - RPNPop);
-     end;
+      end;
     '*' : RPNPush(RPNPop * RPNPop);
     '&' : RPNPush(RPNPop AND RPNPop);
     '|' : RPNPush(RPNPop OR RPNPop);
     '~' : RPNPush(NOT RPNPop);
     '<' : RPNPush(RPNPop SHL RPNPop);
     '>' : RPNPush(RPNPop SHR RPNPop);
-    '%' : begin
-      Temp:=RPNPop;
-      if Temp <> 0 then
-       RPNPush(RPNPop mod Temp)
-      else Error(zero_divide); { Handle divide by zero error }
-     end;
+    '%' :
+      begin
+        Temp:=RPNPop;
+        if Temp <> 0 then
+         RPNPush(RPNPop mod Temp)
+        else
+         Message(asmr_e_ev_zero_divide);
+      end;
     '^' : RPNPush(RPNPop XOR RPNPop);
     '/' :
-    begin
-      Temp:=RPNPop;
-      if Temp <> 0 then
-   RPNPush(RPNPop div Temp)
-      else  Error(zero_divide);{ Handle divide by 0 error }
-    end;
-  end
-  else
-  begin                   { Convert String to number and add to stack }
-    if token='-2147483648' then
       begin
-         temp:=$80000000;
-         localerror:=0;
+        Temp:=RPNPop;
+        if Temp <> 0 then
+         RPNPush(RPNPop div Temp)
+        else
+         Message(asmr_e_ev_zero_divide);
+      end;
+   end
+  else
+   begin
+     { Convert String to number and add to stack }
+     if token='-2147483648' then
+      begin
+        temp:=$80000000;
+        localerror:=0;
       end
-    else
+     else
       Val(Token, Temp, LocalError);
-    if LocalError = 0 then
+     if LocalError = 0 then
       RPNPush(Temp)
-    else  Error(invalid_number);{ Handle error }
-  end;
+     else
+      Message(asmr_e_ev_invalid_number);
+   end;
 end;
 
-Procedure TExprParse.OpPush(_Operator : char;prefix: boolean);  { Add an operator onto top of the stack }
+
+Procedure TExprParse.OpPush(_Operator : char;prefix: boolean);
+{ Add an operator onto top of the stack }
 begin
   if OpTop < OpMax then
-  begin
-    Inc(OpTop);
-    OpStack[OpTop].ch:=_Operator;
-    OpStack[OpTop].is_prefix:=prefix;
-  end
-  else Error(stack_overflow); { Put some error handler here }
+   begin
+     Inc(OpTop);
+     OpStack[OpTop].ch:=_Operator;
+     OpStack[OpTop].is_prefix:=prefix;
+   end
+  else
+   Message(asmr_e_ev_stack_overflow);
 end;
 
-Procedure TExprParse.OpPop(var _Operator:TExprOperator);               { Get operator at the top of the stack }
+
+Procedure TExprParse.OpPop(var _Operator:TExprOperator);
+{ Get operator at the top of the stack }
 begin
   if OpTop > 0 then
-  begin
-    _Operator:=OpStack[OpTop];
-    Dec(OpTop);
-  end
-  else Error(stack_underflow); { Put some error handler here }
+   begin
+     _Operator:=OpStack[OpTop];
+     Dec(OpTop);
+   end
+  else
+   Message(asmr_e_ev_stack_underflow);
 end;
 
-Function TExprParse.Priority(_Operator : Char) : Integer; { Return priority of operator }
+
+Function TExprParse.Priority(_Operator : Char) : Integer;
+{ Return priority of operator }
 { The greater the priority, the higher the precedence }
 begin
   Case _Operator OF
-    '('      : Priority:=0;
-    '+', '-' : Priority:=1;
-    '*', '/','%','<','>' : Priority:=2;
-    '|','&','^','~': Priority:=0;
-    else  Error(invalid_op);{ More error handling }
+    '(' :
+      Priority:=0;
+    '+', '-' :
+      Priority:=1;
+    '*', '/','%','<','>' :
+      Priority:=2;
+    '|','&','^','~' :
+      Priority:=0;
+  else
+    Message(asmr_e_ev_invalid_op);
   end;
 end;
 
@@ -401,7 +390,7 @@ Function TExprParse.Evaluate(Expr : String):longint;
 Var
   I     : Integer;
   Token : String15;
-  opr: TExprOperator;
+  opr   : TExprOperator;
 begin
   Evaluate:=0;
   { Reset stacks }
@@ -473,7 +462,7 @@ begin
          end; { Case }
        end
      else
-      Error(invalid_op);  { Handle bad input error }
+      Message(asmr_e_ev_invalid_op);  { Handle bad input error }
    end;
 
 { Pop off the remaining operators }
@@ -557,7 +546,7 @@ Begin
            end;
          else
            Begin
-             Message1(assem_e_escape_seq_ignored,s[i]);
+             Message1(asmr_e_escape_seq_ignored,s[i]);
              c:=s[i];
            end;
         end;
@@ -585,7 +574,7 @@ Begin
       inc(vs,ord(s[c])-ord('0'))
      else
       begin
-        Comment(V_Error,'assem_e_error_converting_decimal');
+        Message1(asmr_e_error_converting_decimal,s);
         ValDecimal:=0;
         exit;
       end;
@@ -607,7 +596,7 @@ Begin
       inc(vs,ord(s[c])-ord('0'))
      else
       begin
-        Comment(V_Error,'assem_e_error_converting_octal');
+        Message1(asmr_e_error_converting_octal,s);
         ValOctal:=0;
         exit;
       end;
@@ -629,7 +618,7 @@ Begin
       inc(vs,ord(s[c])-ord('0'))
      else
       begin
-        Comment(V_Error,'assem_e_error_converting_binary');
+        Message1(asmr_e_error_converting_binary,s);
         ValBinary:=0;
         exit;
       end;
@@ -656,7 +645,7 @@ Begin
          inc(vs,ord(s[c])-ord('a')+10);
        else
          begin
-           Comment(V_Error,'assem_e_error_converting_hexadecimal');
+           Message1(asmr_e_error_converting_hexadecimal,s);
            ValHexadecimal:=0;
            exit;
          end;
@@ -901,14 +890,14 @@ end;
     { replace by correct offset. }
     if assigned(procinfo.retdef) and
       (procinfo.retdef<>pdef(voiddef)) then
-    begin
-      instr.operands[operandnum].ref.offset:=procinfo.retoffset;
-      instr.operands[operandnum].ref.base:= procinfo.framepointer;
-      { always assume that the result is valid. }
-      procinfo.funcret_is_valid:=true;
-    end
+     begin
+       instr.operands[operandnum].ref.offset:=procinfo.retoffset;
+       instr.operands[operandnum].ref.base:= procinfo.framepointer;
+       { always assume that the result is valid. }
+       procinfo.funcret_is_valid:=true;
+     end
     else
-     Message(assem_e_invalid_symbol_ref);
+     Message(asmr_e_void_function);
   end;
 
 
@@ -916,7 +905,7 @@ end;
   Procedure FWaitWarning;
   begin
     if (target_info.target=target_i386_GO32V2) and (cs_fp_emulation in aktmoduleswitches) then
-     Message(assem_w_fwait_emu_prob);
+     Message(asmr_w_fwait_emu_prob);
   end;
 {$endif i386}
 
@@ -1122,7 +1111,7 @@ Begin
     procsym :
       begin
         if assigned(pprocsym(sym)^.definition^.nextoverloaded) then
-          Message(assem_w_calling_overload_func);
+          Message(asmr_w_calling_overload_func);
         instr.operands[operandnum].operandtype:=OPR_SYMBOL;
         instr.operands[operandnum].symbol:=newasmsymbol(pprocsym(sym)^.definition^.mangledname);
         instr.operands[operandnum].hasvar:=true;
@@ -1131,7 +1120,7 @@ Begin
       end;
     else
       begin
-        Message(assem_e_unsupported_symbol_type);
+        Message(asmr_e_unsupported_symbol_type);
         exit;
       end;
   end;
@@ -1262,32 +1251,32 @@ end;
 
 
 
-   Procedure ConcatConstant(p: paasmoutput; value: longint; maxvalue: longint);
-  {*********************************************************************}
-  { PROCEDURE ConcatConstant(value: longint; maxvalue: longint);        }
-  {  Description: This routine adds the value constant to the current   }
-  {  instruction linked list.                                           }
-  {   maxvalue -> indicates the size of the data to initialize:         }
-  {                  $ff -> create a byte node.                         }
-  {                  $ffff -> create a word node.                       }
-  {                  $ffffffff -> create a dword node.                  }
-  {*********************************************************************}
-  Begin
-      if value > maxvalue then
-      Begin
-         Message(assem_e_constant_out_of_bounds);
-         { assuming a value of maxvalue }
-         value:=maxvalue;
-      end;
-      if maxvalue = $ff then
-          p^.concat(new(pai_const,init_8bit(byte(value))))
-      else
-      if maxvalue = $ffff then
-          p^.concat(new(pai_const,init_16bit(word(value))))
-      else
-      if maxvalue = $ffffffff then
-          p^.concat(new(pai_const,init_32bit(longint(value))));
-  end;
+Procedure ConcatConstant(p: paasmoutput; value: longint; maxvalue: longint);
+{*********************************************************************}
+{ PROCEDURE ConcatConstant(value: longint; maxvalue: longint);        }
+{  Description: This routine adds the value constant to the current   }
+{  instruction linked list.                                           }
+{   maxvalue -> indicates the size of the data to initialize:         }
+{                  $ff -> create a byte node.                         }
+{                  $ffff -> create a word node.                       }
+{                  $ffffffff -> create a dword node.                  }
+{*********************************************************************}
+Begin
+  if value > maxvalue then
+   Begin
+     Message(asmr_e_constant_out_of_bounds);
+     { assuming a value of maxvalue }
+     value:=maxvalue;
+   end;
+  if maxvalue = $ff then
+   p^.concat(new(pai_const,init_8bit(byte(value))))
+  else
+   if maxvalue = $ffff then
+    p^.concat(new(pai_const,init_16bit(word(value))))
+  else
+   if maxvalue = $ffffffff then
+    p^.concat(new(pai_const,init_32bit(longint(value))));
+end;
 
 
   Procedure ConcatConstSymbol(p : paasmoutput;const sym:string;l:longint);
@@ -1326,6 +1315,16 @@ end;
   {*********************************************************************}
    begin
      p^.concat(new(pai_label,init(l)))
+   end;
+
+   procedure ConcatAlign(p:paasmoutput;l:longint);
+  {*********************************************************************}
+  { PROCEDURE ConcatPublic                                              }
+  {  Description: This routine emits an global   definition to the      }
+  {  linked list of instructions.(used by AT&T styled asm)              }
+  {*********************************************************************}
+   begin
+     p^.concat(new(pai_align,init(l)));
    end;
 
    procedure ConcatPublic(p:paasmoutput;const s : string);
@@ -1401,7 +1400,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.11  1999-05-02 22:41:57  peter
+  Revision 1.12  1999-05-05 22:22:04  peter
+    * updated messages
+
+  Revision 1.11  1999/05/02 22:41:57  peter
     * moved section names to systems
     * fixed nasm,intel writer
 

@@ -720,6 +720,8 @@ unit pstatmnt;
   {$ifndef NoRA386Dir}
            asmmode_i386_direct:
              begin
+               if not target_asm.allowdirect then
+                 Message(parser_f_direct_assembler_not_allowed);
                if (aktprocsym^.definition^.options and poinline)<>0 then
                  Begin
                     Message1(parser_w_not_supported_for_inline,'direct asm');
@@ -1283,7 +1285,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.82  1999-05-01 13:24:35  peter
+  Revision 1.83  1999-05-05 22:21:58  peter
+    * updated messages
+
+  Revision 1.82  1999/05/01 13:24:35  peter
     * merged nasm compiler
     * old asm moved to oldasm/
 

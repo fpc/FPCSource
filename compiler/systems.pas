@@ -152,7 +152,8 @@ unit systems;
           idtxt       : string[8];
           asmbin      : string[8];
           asmcmd      : string[50];
-          externals   : boolean;
+          allowdirect,
+          externals,
           needar      : boolean;
           labelprefix : string[2];
           comment     : string[2];
@@ -476,6 +477,7 @@ implementation
             idtxt  : 'AS';
             asmbin : 'as';
             asmcmd : '-o $OBJ $ASM';
+            allowdirect : true;
             externals : false;
             needar : true;
             labelprefix : '.L';
@@ -490,6 +492,7 @@ implementation
             idtxt  : 'AS_AOUT';
             asmbin : 'as';
             asmcmd : '-o $OBJ $ASM';
+            allowdirect : true;
             externals : false;
             needar : true;
             labelprefix : 'L';
@@ -504,6 +507,7 @@ implementation
             idtxt  : 'ASW';
             asmbin : 'asw';
             asmcmd : '-o $OBJ $ASM';
+            allowdirect : true;
             externals : false;
             needar : true;
             labelprefix : '.L';
@@ -519,6 +523,7 @@ implementation
             idtxt  : 'NASMCOFF';
             asmbin : 'nasm';
             asmcmd : '-f coff -o $OBJ $ASM';
+            allowdirect : true;
             externals : true;
             needar : true;
             labelprefix : 'L';
@@ -533,6 +538,7 @@ implementation
             idtxt  : 'NASMELF';
             asmbin : 'nasm';
             asmcmd : '-f elf -o $OBJ $ASM';
+            allowdirect : true;
             externals : true;
             needar : true;
             labelprefix : 'L';
@@ -547,6 +553,7 @@ implementation
             idtxt  : 'NASMOBJ';
             asmbin : 'nasm';
             asmcmd : '-f obj -o $OBJ $ASM';
+            allowdirect : true;
             externals : true;
             needar : true;
             labelprefix : 'L';
@@ -561,6 +568,7 @@ implementation
             idtxt  : 'TASM';
             asmbin : 'tasm';
             asmcmd : '/m2 $ASM $OBJ';
+            allowdirect : true;
             externals : true;
             needar : true;
             labelprefix : '@@';
@@ -575,6 +583,7 @@ implementation
             idtxt  : 'MASM';
             asmbin : 'masm';
             asmcmd : '$ASM $OBJ';
+            allowdirect : true;
             externals : true;
             needar : true;
             labelprefix : '.L';
@@ -589,6 +598,7 @@ implementation
             idtxt  : 'DBG';
             asmbin : '';
             asmcmd : '';
+            allowdirect : false;
             externals : true;
             needar : false;
             labelprefix : 'L';
@@ -603,6 +613,7 @@ implementation
             idtxt  : 'COFF';
             asmbin : '';
             asmcmd : '';
+            allowdirect : false;
             externals : true;
             needar : false;
             labelprefix : '.L';
@@ -617,6 +628,7 @@ implementation
             idtxt  : 'PECOFF';
             asmbin : '';
             asmcmd : '';
+            allowdirect : false;
             externals : true;
             needar : false;
             labelprefix : '.L';
@@ -633,7 +645,9 @@ implementation
             idtxt  : 'AS';
             asmbin : 'as';
             asmcmd : '-o $OBJ $ASM';
+            allowdirect : true;
             externals : false;
+            needar : true;
             labelprefix : '.L';
             comment : '# ';
             secnames : ('',
@@ -646,7 +660,9 @@ implementation
             idtxt  : 'GAS';
             asmbin : 'as68k'; { Gas for the Amiga}
             asmcmd : '--register-prefix-optional -o $OBJ $ASM';
+            allowdirect : true;
             externals : false;
+            needar : true;
             labelprefix : '.L';
             comment : '| ';
             secnames : ('',
@@ -659,7 +675,9 @@ implementation
             idtxt  : 'MIT';
             asmbin : '';
             asmcmd : '-o $OBJ $ASM';
+            allowdirect : true;
             externals : false;
+            needar : true;
             labelprefix : '.L';
             comment : '| ';
             secnames : ('',
@@ -672,7 +690,9 @@ implementation
             idtxt  : 'MOT';
             asmbin : '';
             asmcmd : '-o $OBJ $ASM';
+            allowdirect : true;
             externals : false;
+            needar : true;
             labelprefix : '__L';
             comment : '| ';
             secnames : ('',
@@ -685,7 +705,9 @@ implementation
             idtxt  : 'MPW';
             asmbin : '';
             asmcmd : '-model far -o $OBJ $ASM';
+            allowdirect : true;
             externals : false;
+            needar : true;
             labelprefix : '__L';
             comment : '| ';
             secnames : ('',
@@ -1452,7 +1474,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.71  1999-05-05 17:34:33  peter
+  Revision 1.72  1999-05-05 22:22:05  peter
+    * updated messages
+
+  Revision 1.71  1999/05/05 17:34:33  peter
     * output is more like as 2.9.1
     * stabs really working for go32v2
 

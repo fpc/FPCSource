@@ -27,7 +27,7 @@ interface
 {$ifdef OLDASM}
   {$define NOAG386BIN}
 {$endif}
-  
+
 uses
 {$ifdef Delphi}
   dmisc,
@@ -247,7 +247,7 @@ var
 begin
   inc(SmartLinkFilesCnt);
   if SmartLinkFilesCnt>999999 then
-   Message(assem_f_too_many_asm_files);
+   Message(asmw_f_too_many_asm_files);
   if IsEndFile then
    begin
      s:=current_module^.asmprefix^+'e';
@@ -524,7 +524,7 @@ begin
   {$endif NoAg68kMpw}
 {$endif}
   else
-    Message(assem_f_assembler_output_not_supported);
+    Message(asmw_f_assembler_output_not_supported);
   end;
   a^.AsmCreate;
   a^.WriteAsmList;
@@ -548,7 +548,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.45  1999-05-04 21:44:33  florian
+  Revision 1.46  1999-05-05 22:21:48  peter
+    * updated messages
+
+  Revision 1.45  1999/05/04 21:44:33  florian
     * changes to compile it with Delphi 4.0
 
   Revision 1.44  1999/05/02 23:28:42  peter

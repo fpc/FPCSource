@@ -146,7 +146,7 @@ Begin
        OPR_REFERENCE: exit;
        OPR_NONE: ;
      else
-       Message(assem_e_invalid_operand_type);
+       Message(asmr_e_invalid_operand_type);
      end;
      operands[operandnum].operandtype := OPR_REFERENCE;
      operands[operandnum].ref.segment := R_DEFAULT_SEG;
@@ -303,9 +303,9 @@ begin
         { if range checks are on then generate an error }
         if (cs_compilesystem in aktmoduleswitches) or
            not (cs_check_range in aktlocalswitches) then
-          Message(assem_w_size_suffix_and_dest_dont_match)
+          Message(asmr_w_size_suffix_and_dest_dont_match)
         else
-          Message(assem_e_size_suffix_and_dest_dont_match);
+          Message(asmr_e_size_suffix_and_dest_dont_match);
       end;
    end;
 end;
@@ -385,7 +385,7 @@ begin
      if assigned(ai) then
       p^.concat(ai)
      else
-      Message(assem_e_invalid_opcode_and_operand);
+      Message(asmr_e_invalid_opcode_and_operand);
 
    end;
 end;
@@ -393,7 +393,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  1999-05-02 14:24:26  peter
+  Revision 1.3  1999-05-05 22:21:59  peter
+    * updated messages
+
+  Revision 1.2  1999/05/02 14:24:26  peter
     * translate opr_symbol to reference for lea
 
   Revision 1.1  1999/05/01 13:24:40  peter

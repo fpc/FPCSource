@@ -130,7 +130,7 @@ unit Ra386dir;
                                        plabelsym(srsym)^.number^.is_set:=true;
                                     end
                                   else
-                                    Message(assem_w_using_defined_as_local);
+                                    Message(asmr_w_using_defined_as_local);
                               end
                             else if upper(hs)='FWAIT' then
                              FwaitWarning
@@ -215,7 +215,7 @@ unit Ra386dir;
                                              begin
                                                 if (sym^.typ = varsym) or (sym^.typ = typedconstsym) then
                                                   begin
-                                                     Message2(assem_h_direct_global_to_mangled,hs,sym^.mangledname);
+                                                     Message2(asmr_h_direct_global_to_mangled,hs,sym^.mangledname);
                                                      hs:=sym^.mangledname;
                                                      if sym^.typ=varsym then
                                                        inc(pvarsym(sym)^.refs);
@@ -225,8 +225,8 @@ unit Ra386dir;
                                                    ((pos('CALL',upper(s))>0) or (pos('LEA',upper(s))>0)) then
                                                   begin
                                                      if assigned(pprocsym(sym)^.definition^.nextoverloaded) then
-                                                       Message1(assem_w_direct_global_is_overloaded_func,hs);
-                                                     Message2(assem_h_direct_global_to_mangled,hs,sym^.mangledname);
+                                                       Message1(asmr_w_direct_global_is_overloaded_func,hs);
+                                                     Message2(asmr_h_direct_global_to_mangled,hs,sym^.mangledname);
                                                      hs:=sym^.mangledname;
                                                   end;
                                              end
@@ -237,7 +237,7 @@ unit Ra386dir;
                                                 if assigned(procinfo._class) then
                                                   hs:=tostr(procinfo.ESI_offset)+'('+att_reg2str[procinfo.framepointer]+')'
                                                 else
-                                                 Message(assem_e_cannot_use_SELF_outside_a_method);
+                                                 Message(asmr_e_cannot_use_SELF_outside_a_method);
                                              end
                                            else if upper(hs)='__RESULT' then
                                              begin
@@ -245,17 +245,17 @@ unit Ra386dir;
                                                   (procinfo.retdef<>pdef(voiddef)) then
                                                   hs:=retstr
                                                 else
-                                                  Message(assem_w_void_function);
+                                                  Message(asmr_e_void_function);
                                              end
                                            else if upper(hs)='__OLDEBP' then
                                              begin
                                                 { complicate to check there }
                                                 { we do it: }
                                                 if lexlevel>normal_function_level then
-                                                  hs:=tostr(procinfo.framepointer_offset)
-                                                    +'('+att_reg2str[procinfo.framepointer]+')'
+                                                  hs:=tostr(procinfo.framepointer_offset)+
+                                                    '('+att_reg2str[procinfo.framepointer]+')'
                                                 else
-                                                  Message(assem_e_cannot_use___OLDEBP_outside_nested_procedure);
+                                                  Message(asmr_e_cannot_use___OLDEBP_outside_nested_procedure);
                                              end;
                                            end;
                                         end;
@@ -295,7 +295,10 @@ unit Ra386dir;
 end.
 {
   $Log$
-  Revision 1.18  1999-05-01 13:24:40  peter
+  Revision 1.19  1999-05-05 22:22:02  peter
+    * updated messages
+
+  Revision 1.18  1999/05/01 13:24:40  peter
     * merged nasm compiler
     * old asm moved to oldasm/
 

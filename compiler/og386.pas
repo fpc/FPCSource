@@ -177,7 +177,7 @@ unit og386;
       begin
         inc(SmartLinkFilesCnt);
         if SmartLinkFilesCnt>999999 then
-         Message(assem_f_too_many_asm_files);
+         Message(asmw_f_too_many_asm_files);
         if (cs_asm_leave in aktglobalswitches) then
           begin
             if IsEndFile then
@@ -253,7 +253,10 @@ unit og386;
 end.
 {
   $Log$
-  Revision 1.4  1999-05-05 17:34:30  peter
+  Revision 1.5  1999-05-05 22:21:57  peter
+    * updated messages
+
+  Revision 1.4  1999/05/05 17:34:30  peter
     * output is more like as 2.9.1
     * stabs really working for go32v2
 

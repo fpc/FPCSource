@@ -822,7 +822,11 @@ begin
   i:=instabcache^[opcode];
   if i=-1 then
    begin
-     Comment(V_Warning,'opcode not in the table !');
+{$ifdef TP}
+     Message1(asmw_e_opcode_not_in_table,'');
+{$else}
+     Message1(asmw_e_opcode_not_in_table,att_op2str[opcode]);
+{$endif}
      exit;
    end;
   insentry:=@instab[i];
@@ -842,14 +846,7 @@ begin
      insentry:=@instab[i];
    end;
   if insentry^.opcode<>opcode then
-   begin
-     case size_prob of
-      1 : Comment(V_Warning,GetString+' operation size not specified');
-      2 : Comment(V_Warning,GetString+' mismatch in operand sizes');
-     else
-      Comment(V_Warning,GetString+' invalid combination of opcode and operands');
-     end;
-   end;
+   Message1(asmw_e_invalid_opcode_and_operands,GetString);
 { No instruction found, set insentry to nil and inssize to -1 }
   insentry:=nil;
   inssize:=-1;
@@ -925,7 +922,7 @@ begin
       regval:=7;
     else
       begin
-        Comment(V_Warning,'invalid register operand given to regval()');
+        internalerror(777001);
         regval:=0;
       end;
   end;
@@ -989,7 +986,7 @@ begin
      { 16 bit address? }
      if not((i in [R_NO,R_EAX,R_EBX,R_ECX,R_EDX,R_EBP,R_ESP,R_ESI,R_EDI]) and
             (b in [R_NO,R_EAX,R_EBX,R_ECX,R_EDX,R_EBP,R_ESP,R_ESI,R_EDI])) then
-      Comment(V_Warning,'16 bit ea not supported');
+      Message(asmw_e_16bit_not_supported);
 {$ifdef OPTEA}
      { make single reg base }
      if (b=R_NO) and (s=1) then
@@ -1142,21 +1139,19 @@ begin
         end;
       224,225,226 :
         begin
-          Comment(V_Warning,'not supported');
+          InternalError(777002);
         end;
       else
         begin
           if (c>=64) and (c<=191) then
            begin
              if not process_ea(oper[(c shr 3) and 7], ea_data, 0) then
-              Comment(V_Warning,'invalid effective address')
+              Message(asmw_e_invalid_effective_address)
              else
               inc(len,ea_data.size);
            end
           else
-           begin
-             Comment(V_Warning,'internal instruction table corrupt: instruction code '+tostr(c)+' given');
-           end;
+           InternalError(777003);
         end;
     end;
   until false;
@@ -1233,7 +1228,7 @@ var
           currsym:=oper[opidx].sym;
         end;
       else
-        Comment(V_Error,'immediate or reference expected');
+        Message(asmw_e_immediate_or_reference_expected);
     end;
   end;
 
@@ -1296,7 +1291,7 @@ begin
                  bytes[0]:=$16;
               end;
             else
-              Comment(V_Warning,'bizarre 8086 segment register received');
+              InternalError(777004);
           end;
           objectoutput^.writebytes(bytes,1);
         end;
@@ -1318,7 +1313,7 @@ begin
                  bytes[0]:=$a8;
               end;
             else
-              Comment(V_Warning,'bizarre 386 segment register received');
+              InternalError(777005);
           end;
           objectoutput^.writebytes(bytes,1);
         end;
@@ -1337,7 +1332,7 @@ begin
         begin
           getvalsym(c-12);
           if (currval<-128) or (currval>127) then
-           Comment(V_Warning,'signed byte value exceeds bounds '+tostr(currval));
+           Message2(asmw_e_value_exceeds_bounds,'signed byte',tostr(currval));
           if assigned(currsym) then
             objectoutput^.writereloc(currval,1,currsym,relative_false)
           else
@@ -1347,7 +1342,7 @@ begin
         begin
           getvalsym(c-16);
           if (currval<-256) or (currval>255) then
-            Comment(V_Warning,'byte value exceeds bounds '+tostr(currval));
+           Message2(asmw_e_value_exceeds_bounds,'byte',tostr(currval));
           if assigned(currsym) then
            objectoutput^.writereloc(currval,1,currsym,relative_false)
           else
@@ -1357,7 +1352,7 @@ begin
         begin
           getvalsym(c-20);
           if (currval<0) or (currval>255) then
-            Comment(V_Warning,'unsigned byte value exceeds bounds '+tostr(currval));
+           Message2(asmw_e_value_exceeds_bounds,'unsigned byte',tostr(currval));
           if assigned(currsym) then
            objectoutput^.writereloc(currval,1,currsym,relative_false)
           else
@@ -1367,15 +1362,11 @@ begin
         begin
           getvalsym(c-24);
           if (currval<-65536) or (currval>65535) then
-            Comment(V_Warning,'word value exceeds bounds '+tostr(currval));
+           Message2(asmw_e_value_exceeds_bounds,'word',tostr(currval));
           if assigned(currsym) then
            objectoutput^.writereloc(currval,2,currsym,relative_false)
           else
            objectoutput^.writebytes(currval,2);
-        end;
-      31 :
-        begin
-          Comment(V_Warning,'not supported');
         end;
       28,29,30 :
         begin
@@ -1400,12 +1391,8 @@ begin
           if assigned(currsym) then
            inc(data,currsym^.address);
           if (data>127) or (data<-128) then
-           Comment(V_Warning,'short jump is out of range '+tostr(data));
+           Message1(asmw_e_short_jmp_out_of_range,tostr(data));
           objectoutput^.writebytes(data,1);
-        end;
-      48,49,50 :
-        begin
-          Comment(V_Warning,'rel2adr not supported');
         end;
       52,53,54 :
         begin
@@ -1436,22 +1423,10 @@ begin
           bytes[0]:=$67;
           objectoutput^.writebytes(bytes,1);
         end;
-      201 :
-        begin
-        end;
-      202 :
-        begin
-        end;
       208 :
         begin
           bytes[0]:=$66;
           objectoutput^.writebytes(bytes,1);
-        end;
-      209 :
-        begin
-        end;
-      210 :
-        begin
         end;
       216 :
         begin
@@ -1459,9 +1434,17 @@ begin
           inc(codes);
           objectoutput^.writebytes(bytes,1);
         end;
+      201,
+      202,
+      209,
+      210 :
+        begin
+        end;
+      31,
+      48,49,50,
       224,225,226 :
         begin
-          Comment(V_Warning,'not supported');
+          InternalError(777006);
         end
       else
         begin
@@ -1478,7 +1461,7 @@ begin
               rfield:=c and 7;
              opidx:=(c shr 3) and 7;
              if not process_ea(oper[opidx], ea_data, rfield) then
-              Comment(V_Warning,'invalid effective address');
+              Message(asmw_e_invalid_effective_address);
 
              pb:=@bytes;
              pb^:=chr(ea_data.modrm);
@@ -1514,9 +1497,7 @@ begin
              end;
            end
           else
-           begin
-             Comment(V_Warning,'internal instruction table corrupt: instruction code '+tostr(c)+' given');
-           end;
+           InternalError(777007);
         end;
     end;
   until false;
@@ -1579,7 +1560,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  1999-05-02 22:41:53  peter
+  Revision 1.4  1999-05-05 22:21:51  peter
+    * updated messages
+
+  Revision 1.3  1999/05/02 22:41:53  peter
     * moved section names to systems
     * fixed nasm,intel writer
 
