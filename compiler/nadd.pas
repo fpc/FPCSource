@@ -1552,26 +1552,26 @@ implementation
           exit;
 
         case nodetype of
-          addn : procname := 'float32_add';
-          muln : procname := 'float32_mul';
-          subn : procname := 'float32_sub';
-          slashn : procname := 'float32_div';
-          ltn : procname := 'float32_lt';
-          lten: procname := 'float32_le';
+          addn : procname := 'fpc_float32_add';
+          muln : procname := 'fpc_float32_mul';
+          subn : procname := 'fpc_float32_sub';
+          slashn : procname := 'fpc_float32_div';
+          ltn : procname := 'fpc_float32_lt';
+          lten: procname := 'fpc_float32_le';
           gtn:
             begin
-             procname := 'float32_le';
+             procname := 'fpc_float32_le';
              notnode := true;
             end;
           gten:
             begin
-              procname := 'float32_lt';
+              procname := 'fpc_float32_lt';
               notnode := true;
             end;
-          equaln: procname := 'float32_eq';
+          equaln: procname := 'fpc_float32_eq';
           unequaln :
             begin
-              procname := 'float32_eq';
+              procname := 'fpc_float32_eq';
               notnode := true;
             end;
           else
@@ -1931,7 +1931,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.79  2003-01-02 22:19:54  peter
+  Revision 1.80  2003-02-12 22:10:07  carl
+    * load_frame_pointer is now generic
+    * change fpu emulation routine names
+
+  Revision 1.79  2003/01/02 22:19:54  peter
     * support pchar-char operations converting to string first
     * support chararray-nil
 

@@ -44,7 +44,16 @@ interface
           funcretref : treference;
           refcountedtemp : treference;
           procedure handle_return_value(inlined,extended_new:boolean);
-          procedure load_framepointer;virtual;abstract;
+          {# This routine is used to push the current frame pointer 
+             on the stack. This is used in nested routines where the
+             value of the frame pointer is always pushed as an extra
+             parameter.
+             
+             The default handling is the standard handling used on
+             most stack based machines, where the frame pointer is
+             the first invisible parameter.
+          }
+          procedure load_framepointer;virtual;
           procedure extra_interrupt_code;virtual;
        public
           procedure pass_2;override;
@@ -322,6 +331,40 @@ implementation
          emit_reg(A_PUSH,S_L,r);
 {$endif i386}
       end;
+      
+      
+      procedure tcgcallnode.load_framepointer;
+        var href : treference;
+            hregister : tregister;
+            i: integer; 
+        begin
+          { this routine is itself not nested }
+          if lexlevel=(tprocdef(procdefinition).parast.symtablelevel) then
+            begin
+              reference_reset_base(href,procinfo.framepointer,procinfo.framepointer_offset);
+              cg.a_param_ref(exprasmlist,OS_ADDR,href,paramanager.getintparaloc(1));
+            end
+          { one nesting level }
+          else if (lexlevel=(tprocdef(procdefinition).parast.symtablelevel)-1) then
+            begin
+              cg.a_param_reg(exprasmlist,OS_ADDR,procinfo.framepointer,paramanager.getintparaloc(1));
+            end
+          { very complex nesting level ... }  
+          else if (lexlevel>(tprocdef(procdefinition).parast.symtablelevel)) then
+            begin
+              hregister:=rg.getaddressregister(exprasmlist);
+              reference_reset_base(href,procinfo.framepointer,procinfo.framepointer_offset);
+              cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,hregister);
+              for i:=(tprocdef(procdefinition).parast.symtablelevel) to lexlevel-1 do
+                begin
+                  reference_reset_base(href,hregister,procinfo.framepointer_offset);
+                  cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,hregister);
+                end;
+              cg.a_param_reg(exprasmlist,OS_ADDR,hregister,paramanager.getintparaloc(1));
+              rg.ungetaddressregister(exprasmlist,hregister);
+            end;
+        end;
+      
 
 
 
@@ -1579,7 +1622,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.36  2003-01-30 21:46:57  peter
+  Revision 1.37  2003-02-12 22:10:07  carl
+    * load_frame_pointer is now generic
+    * change fpu emulation routine names
+
+  Revision 1.36  2003/01/30 21:46:57  peter
     * self fixes for static methods (merged)
 
   Revision 1.35  2003/01/22 20:45:15  mazen
