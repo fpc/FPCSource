@@ -3538,7 +3538,7 @@ const
     Begin
       Message(assem_e_invalid_or_missing_opcode);
       { error recovery }
-      While not (actasmtoken in [AS_SEPARATOR,AS_COMMA]) do
+      While not (actasmtoken in [AS_SEPARATOR,AS_COMMA,AS_END]) do
          Consume(actasmtoken);
       exit;
     end
@@ -3551,15 +3551,14 @@ const
         Message1(assem_e_invalid_prefix_and_opcode,actasmpattern);
       Consume(AS_OPCODE);
       { // Zero operand opcode ? // }
-      if actasmtoken = AS_SEPARATOR then
+      if actasmtoken in [AS_SEPARATOR,AS_END] then
         exit
       else
-       operandnum := 1;
+        operandnum := 1;
     end;
 
-    While actasmtoken <> AS_SEPARATOR do
-    Begin
-       case actasmtoken of
+    repeat
+      case actasmtoken of
          { //  Operand delimiter // }
          AS_COMMA: Begin
                   if operandnum > MaxOperands then
@@ -3569,11 +3568,12 @@ const
                   Consume(AS_COMMA);
                 end;
          { // End of asm operands for this opcode // }
-         AS_SEPARATOR: ;
+         AS_SEPARATOR,
+         AS_END : break;
        else
          BuildOperand(instr);
      end; { end case }
-    end; { end while }
+    until false;
   end;
 
 
@@ -3612,8 +3612,8 @@ const
     labellist.init;
     c:=current_scanner^.asmgetchar;
     actasmtoken:=gettoken;
-    while actasmtoken<>AS_END do
-    Begin
+
+    repeat
       case actasmtoken of
         AS_LLABEL: Begin
                     labelptr := labellist.search(actasmpattern);
@@ -3832,7 +3832,7 @@ const
                      { let us go back to the first operand }
                      operandnum := 0;
                     end;
-        AS_END: ; { end assembly block }
+        AS_END: break; { end assembly block }
     else
       Begin
          Message(assem_e_assemble_node_syntax_error);
@@ -3840,7 +3840,8 @@ const
          Consume(actasmtoken);
       end;
     end; { end case }
-  end; { end while }
+  until false;
+
   { check if there were undefined symbols.   }
   { if so, then list each of those undefined }
   { labels.                                  }
@@ -3867,31 +3868,32 @@ end;
 
 
 var
- old_exit: pointer;
+  old_exit: pointer;
 
-    procedure ra386att_exit;{$ifndef FPC}far;{$endif}
-
-      begin
-         if assigned(iasmops) then
-           dispose(iasmops);
-         exitproc:=old_exit;
-      end;
+procedure ra386att_exit;{$ifndef FPC}far;{$endif}
+begin
+  if assigned(iasmops) then
+    dispose(iasmops);
+  exitproc:=old_exit;
+end;
 
 
 Begin
- previous_was_id := FALSE;
- { you will get range problems here }
- if lastop_in_table > last_instruction_in_cache then
+  previous_was_id := FALSE;
+  line:='';
+  { you will get range problems here }
+  if lastop_in_table > last_instruction_in_cache then
    Internalerror(2111);
- line:=''; { Initialization of line variable.
-             No 255 char const string in version 0.9.1 MVC}
- old_exit := exitproc;
- exitproc := @ra386att_exit;
+  old_exit := exitproc;
+  exitproc := @ra386att_exit;
 end.
 
 {
   $Log$
-  Revision 1.21  1998-11-16 15:38:54  peter
+  Revision 1.22  1998-11-29 12:47:21  peter
+    * fixes for 'asm sti end;'
+
+  Revision 1.21  1998/11/16 15:38:54  peter
     * fixed instruct not in table msg
 
   Revision 1.20  1998/11/13 15:40:27  pierre
