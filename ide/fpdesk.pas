@@ -56,7 +56,11 @@ uses Dos,
      FPCompil,FPCodCmp,FPCodTmp;
 
 type
-     TWindowInfo = packed record
+     TWindowInfo =
+{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+     packed
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+     record
        HelpCtx   : word;
        Bounds    : TRect;
        Visible   : boolean;
@@ -946,7 +950,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.12  2004-12-22 15:24:07  peter
+  Revision 1.13  2004-12-29 20:12:25  florian
+    * packed removed for sparc and co.
+
+  Revision 1.12  2004/12/22 15:24:07  peter
     * fixed NODEBUG
     * set default target to the default target of the compiler
 
