@@ -393,11 +393,18 @@ implementation
             begin
               firstpass(hp^.left);
               case hp^.left^.resulttype^.deftype of
-                enumdef,
-                orddef :
+                enumdef :
                   begin
                     hp^.left:=gentypeconvnode(hp^.left,s32bitdef);
                     firstpass(hp^.left);
+                  end;
+                orddef :
+                  begin
+                    if is_integer(hp^.left^.resulttype) then
+                     begin
+                       hp^.left:=gentypeconvnode(hp^.left,s32bitdef);
+                       firstpass(hp^.left);
+                     end;
                   end;
                 floatdef :
                   begin
@@ -461,7 +468,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.18  1999-03-16 21:02:10  peter
+  Revision 1.19  1999-03-18 11:21:52  peter
+    * convert only to s32bit if integer or enum
+
+  Revision 1.18  1999/03/16 21:02:10  peter
     * all array of const enum/ord are converted to s32bit
 
   Revision 1.17  1999/03/10 13:24:23  pierre
