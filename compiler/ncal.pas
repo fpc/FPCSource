@@ -1785,7 +1785,13 @@ type
           { do not create/destroy when called from member function
             without specifying self explicit }
           if (nf_member_call in flags) then
-            vmttree:=cpointerconstnode.create(0,voidpointertype)
+            begin
+              if (methodpointer.resulttype.def.deftype=classrefdef) and
+                (procdefinition.proctypeoption=potype_constructor) then
+                vmttree:=methodpointer.getcopy
+              else
+                vmttree:=cpointerconstnode.create(0,voidpointertype);
+            end
         else
           { constructor with extended syntax called from new }
           if (nf_new_call in flags) then
@@ -2609,7 +2615,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.193  2003-10-08 19:19:45  peter
+  Revision 1.194  2003-10-09 15:00:13  florian
+    * fixed constructor call in class methods
+
+  Revision 1.193  2003/10/08 19:19:45  peter
     * set_varstate cleanup
 
   Revision 1.192  2003/10/07 21:14:32  peter

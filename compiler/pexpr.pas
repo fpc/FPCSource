@@ -1374,8 +1374,9 @@ implementation
                     if possible_error then
                      begin
                        do_resulttypepass(p1);
-                       if not(po_classmethod in tcallnode(p1).procdefinition.procoptions) then
-                        Message(parser_e_only_class_methods);
+                       if not(tcallnode(p1).procdefinition.proctypeoption=potype_constructor) and
+                          not(po_classmethod in tcallnode(p1).procdefinition.procoptions) then
+                         Message(parser_e_only_class_methods);
                      end;
                   end;
 
@@ -2417,7 +2418,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.133  2003-10-08 19:19:45  peter
+  Revision 1.134  2003-10-09 15:00:13  florian
+    * fixed constructor call in class methods
+
+  Revision 1.133  2003/10/08 19:19:45  peter
     * set_varstate cleanup
 
   Revision 1.132  2003/10/05 12:56:04  peter
