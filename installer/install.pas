@@ -165,6 +165,7 @@ program install;
      tunzipdialog=object(tdialog)
         filetext : pstatictext;
         extractfiletext : pstatictext;
+        currentfile : string;
         constructor Init(var Bounds: TRect; ATitle: TTitleStr);
         procedure do_unzip(s,topath:string);
      end;
@@ -198,6 +199,11 @@ program install;
          procedure do_installdialog;
          procedure readcfg(const fn:string);
          procedure checkavailpack;
+     end;
+
+     PSpecialInputLine= ^TSpecialInputLine;
+     TSpecialInputLine = object (TInputLine)
+       procedure GetData(var Rec); virtual;
      end;
 
 {$IFDEF DOSSTUB}
@@ -490,6 +496,33 @@ program install;
     DirOf:=D;
   end;
 
+  function GetZipErrorInfo(error : longint) : string;
+  var
+    ErrorStr : string;
+  begin
+    case error of
+      unzip_CRCErr         : GetZipErrorInfo:='CRC error';
+      unzip_WriteErr       : GetZipErrorInfo:='Write error';
+      unzip_ReadErr        : GetZipErrorInfo:='Read error';
+      unzip_ZipFileErr     : GetZipErrorInfo:='ZipFile erroe';
+      unzip_UserAbort      : GetZipErrorInfo:='User abort';
+      unzip_NotSupported   : GetZipErrorInfo:='Not supported';
+      unzip_Encrypted      : GetZipErrorInfo:='File is encrypted';
+      unzip_InUse          : GetZipErrorInfo:='Fie is in use';
+      unzip_InternalError  : GetZipErrorInfo:='Internal error';    {Error in zip format}
+      unzip_NoMoreItems    : GetZipErrorInfo:='No more items';
+      unzip_FileError      : GetZipErrorInfo:='File error';   {Error Accessing file}
+      unzip_NotZipfile     : GetZipErrorInfo:='Not a zipfile';   {not a zip file}
+      unzip_SeriousError   : GetZipErrorInfo:='Serious error';  {serious error}
+      unzip_MissingParameter : GetZipErrorInfo:='Missing parameter'; {missing parameter}
+    else
+      begin
+        Str(Error,ErrorStr);
+        GetZipErrorInfo:='Unknown error '+errorstr;
+      end;
+    end;
+  end;
+
 {*****************************************************************************
                           HTML-Index Generation
 *****************************************************************************}
@@ -556,7 +589,7 @@ program install;
        r.assign(10,10,70,15);
        indexdlg:=new(phtmlindexdialog,init(r,'Creating HTML index file, please wait ...'));
        desktop^.insert(indexdlg);
-{$warning FIXME !!!! }
+ { warning FIXME !!!!, don't know what is to fix here ... PM }
        New(LS, Init(DirOf(FileName)));
        LS^.ProcessDocument(FileName,[soSubDocsOnly]);
        if LS^.GetDocumentCount=0 then
@@ -691,6 +724,7 @@ program install;
          begin
           Disposestr(text);
           name:=Strpas(Rec^.FileName);
+          UnzDlg^.currentfile:=name;
           Text:=NewStr(#3+name);
           DrawView;
          end;
@@ -713,8 +747,12 @@ program install;
 
   procedure tunzipdialog.do_unzip(s,topath : string);
     var
-      again : boolean;
-      fn,dir,wild : string;
+      again,islfn : boolean;
+      st2,fn,dir,wild : string;
+      p : pathstr;
+      n : namestr;
+      e : extstr;
+
     begin
        Disposestr(filetext^.text);
        filetext^.Text:=NewStr(#3'File: '+s + #13#3' ');
@@ -740,8 +778,34 @@ program install;
          FileUnzipEx(@fn[1],@dir[1],@wild[1]);
          if (UnzipErr <> 0) then
            begin
-              Str(UnzipErr,s);
-              if messagebox('Error (' + S + ') while extracting. Disk full?'#13+
+              s:=GetZipErrorInfo(UnzipErr);
+              { Str(UnzipErr,s);}
+              st2:='';
+              if UnzipErr=unzip_WriteErr then
+                begin
+{$ifdef MAYBE_LFN}
+                  if not(locallfnsupport) then
+                    begin
+                      islfn:=false;
+                      fsplit(currentfile,p,n,e);
+                      if (length(n)>8) or (length(e)>4) or
+                         (pos('.',n)>0) or (upper(p+n+e)<>upper(currentfile)) then
+                        islfn:=true;
+                      if islfn then
+                        begin
+                          messagebox('Error while extracting '+currentfile+
+                            #13#3'because of missing lfn support'+
+                            #13#3'skipping rest of zipfile '+s
+                            ,nil,mferror+mfOkButton);
+                          again:=false;
+                          exit;
+                        end;
+                    end
+                  else
+{$endif MAYBE_LFN}
+                    st2:=' Disk full?';
+                end;
+              if messagebox('Error (' + S + ') while extracting.'+st2+#13+
                             #13#3'Try again?',nil,mferror+mfyesbutton+mfnobutton)=cmNo then
                errorhalt
               else
@@ -823,7 +887,7 @@ program install;
 {$ENDIF}
 
       R.Assign(6, 6, 74, YB);
-      inherited init(r,'Installation Successfull');
+      inherited init(r,'Installation Successful.');
 
 {$IFNDEF LINUX}
       if WPath then
@@ -887,7 +951,8 @@ program install;
 
     begin
        fsplit(strpas(rec^.Filename),p,n,e);
-       if (length(n)>8) or (length(e)>4) then
+       if (length(n)>8) or (length(e)>4) or
+          (pos('.',n)>0) or (upper(p+n+e)<>upper(strpas(rec^.Filename))) then
          islfn:=true;
     end;
 
@@ -908,6 +973,60 @@ program install;
     end;
 {$endif MAYBE_LFN}
 
+  var
+     AllFilesPresent : boolean;
+
+  procedure presentreport( Retcode : longint;Rec : pReportRec );
+
+    var
+       st : string;
+       f : file;
+       size,time : longint;
+       p : pathstr;
+       n : namestr;
+       e : extstr;
+
+    begin
+       if not ALLFilesPresent then
+         exit;
+       st:=Data.BasePath+strpas(rec^.Filename);
+       fsplit(st,p,n,e);
+
+       if not file_exists(n+e,p) then
+         AllFilesPresent:=false
+       else
+         begin
+           Assign(f,st);
+           Reset(f,1);
+           if IOresult<>0 then
+             begin
+               ALLfilesPresent:=false;
+               exit;
+             end;
+           GetFtime(f,time);
+           size:=FileSize(f);
+           if (rec^.Time<>time) or (rec^.size<>size) then
+             ALLFilesPresent:=false;
+           close(f);
+         end;
+    end;
+
+  function AreAllFilesPresent(const zipfile : string) : boolean;
+
+    var
+       buf : array[0..255] of char;
+
+    begin
+       strpcopy(buf,zipfile);
+       AllFilesPresent:=true;
+{$ifdef FPC}
+       ViewZip(buf,AllFiles,@presentreport);
+{$else FPC}
+       ViewZip(buf,AllFiles,presentreport);
+{$endif FPC}
+       AreAllFilesPresent:=AllFilesPresent;
+    end;
+
   constructor tinstalldialog.init;
     const
        width = 76;
@@ -919,6 +1038,7 @@ program install;
     var
        tabr,tabir,r : trect;
        packmask : array[1..maxpacks] of longint;
+       enabmask : array[1..maxpacks] of longint;
        i,line,j : integer;
        items : array[1..maxpacks] of psitem;
        f : pview;
@@ -928,7 +1048,7 @@ program install;
        packcbs : array[1..maxpacks] of pcheckboxes;
        packtd : ptabdef;
        labpath : plabel;
-       ilpath : pinputline;
+       ilpath : pspecialinputline;
        tab : ptab;
        titletext : pcoloredtext;
        labcfg : plabel;
@@ -946,6 +1066,7 @@ program install;
            firstitem[j]:=0;
            items[j]:=nil;
            packmask[j]:=0;
+           enabmask[j]:=0;
            for i:=packages downto 1 do
             begin
               zipfile:='';
@@ -967,7 +1088,9 @@ program install;
                       if not(haslfn(zipfile)) then
                         begin
                            items[j]:=newsitem(package[i].name+diskspacestr(package[i].diskspace),items[j]);
-                           packmask[j]:=packmask[j] or packagemask(i);
+                           {if not AreAllFilesPresent(zipfile) then}
+                             packmask[j]:=packmask[j] or packagemask(i);
+                           enabmask[j]:=enabmask[j] or packagemask(i);
                            firstitem[j]:=i;
                            if createlog then
                              writeln(log,'Checking lfn usage for ',zipfile,' ... no lfn');
@@ -975,7 +1098,8 @@ program install;
                       else
                         begin
                            items[j]:=newsitem(package[i].name+' (requires LFN support)',items[j]);
-                           packmask[j]:=packmask[j] or packagemask(i);
+                           {packmask[j]:=packmask[j] or packagemask(i);}
+                           enabmask[j]:=enabmask[j] or packagemask(i);
                            firstitem[j]:=i;
                            if createlog then
                              writeln(log,'Checking lfn usage for ',zipfile,' ... uses lfn');
@@ -986,6 +1110,8 @@ program install;
                    begin
                       items[j]:=newsitem(package[i].name+diskspacestr(package[i].diskspace),items[j]);
                       packmask[j]:=packmask[j] or packagemask(i);
+                      {if not AreAllFilesPresent(zipfile) then}
+                        enabmask[j]:=enabmask[j] or packagemask(i);
                       firstitem[j]:=i;
                    end;
                end
@@ -1048,7 +1174,7 @@ program install;
           new(packcbs[j],init(r,items[j]));
           if data.packmask[j]=$ffff then
            data.packmask[j]:=packmask[j];
-          packcbs[j]^.enablemask:={$ifdef DEV}$7fffffff{$else}packmask[j]{$endif};
+          packcbs[j]^.enablemask:={$ifdef DEV}$7fffffff{$else}enabmask[j]{$endif};
           packcbs[j]^.movedto(firstitem[j]);
         end;
 
@@ -1102,6 +1228,17 @@ program install;
        Tab^.Select;
     end;
 
+
+{*****************************************************************************
+                               TSpecialInputLine
+*****************************************************************************}
+
+{ this should use AreAllFilesPresent if the base dir is changed...
+ but what if the installer has already choosen which files he wants ... }
+procedure TSpecialInputLine.GetData(var Rec);
+begin
+  inherited GetData(Rec);
+end;
 
 {*****************************************************************************
                                 TApp
@@ -1783,7 +1920,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2002-04-10 21:18:42  pierre
+  Revision 1.9  2002-04-11 13:20:27  pierre
+   + several go32v2 related fixes
+
+  Revision 1.8  2002/04/10 21:18:42  pierre
    * explicitly check if one of the files from the list of each package exists
 
   Revision 1.7  2002/04/03 12:46:02  pierre
