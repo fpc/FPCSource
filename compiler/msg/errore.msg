@@ -918,6 +918,10 @@ parser_w_skipped_fields_after=03177_W_Some fields coming after "$1" weren't init
 % You can leave some fields at the end of a type constant record uninitialized
 % (the compiler will initialize them to zero automatically), but the the
 % compiler warns you when it detects such situations.
+parser_e_varargs_need_cdecl_and_external=03178_E_VarArgs directive without CDecl and External
+% The varargs directive can only be used with procedures or functions
+% that are declared with CDecl and External directives. The varargs directive
+% is only meant to provide a compatible interface to C functions like printf.
 % \end{description}
 #
 # Type Checking

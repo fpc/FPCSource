@@ -382,7 +382,9 @@ type
     po_exports,           { Procedure has export directive (needed for OS/2) }
     po_external,          { Procedure is external (in other object or lib)}
     po_savestdregs,       { save std regs cdecl and stdcall need that ! }
-    po_saveregisters      { save all registers }
+    po_saveregisters,     { save all registers }
+    po_overload,          { procedure is declared with overload directive }
+    po_varargs            { printf like arguments }
   );
   tprocoptions=set of tprocoption;
 type
@@ -423,7 +425,7 @@ const
      (mask:potype_destructor;  str:'Destructor'),
      (mask:potype_operator;    str:'Operator')
   );
-  procopts=16;
+  procopts=18;
   procopt : array[1..procopts] of tprocopt=(
      (mask:po_classmethod;     str:'ClassMethod'),
      (mask:po_virtualmethod;   str:'VirtualMethod'),
@@ -440,7 +442,9 @@ const
      (mask:po_exports;         str:'Exports'),
      (mask:po_external;        str:'External'),
      (mask:po_savestdregs;     str:'SaveStdRegs'),
-     (mask:po_saveregisters;   str:'SaveRegisters')
+     (mask:po_saveregisters;   str:'SaveRegisters'),
+     (mask:po_overload;        str:'Overload'),
+     (mask:po_varargs;         str:'VarArgs')
   );
   tvarspez : array[0..2] of string[5]=('Value','Const','Var  ');
 var
@@ -1543,7 +1547,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2001-05-09 14:11:10  jonas
+  Revision 1.4  2001-06-04 11:53:15  peter
+    + varargs directive
+
+  Revision 1.3  2001/05/09 14:11:10  jonas
     * range check error fixes from Peter
 
   Revision 1.2  2001/05/06 14:49:19  peter

@@ -262,8 +262,8 @@ type
     po_external,          { Procedure is external (in other object or lib)}
     po_savestdregs,       { save std regs cdecl and stdcall need that ! }
     po_saveregisters,     { save all registers }
-    po_overload           { procedure is declared with overload directive }
-    ,po_18
+    po_overload,          { procedure is declared with overload directive }
+    po_varargs            { printf like arguments }
     ,po_19
     ,po_20
     ,po_21
@@ -449,7 +449,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.18  2001-06-03 21:57:38  peter
+  Revision 1.19  2001-06-04 11:53:13  peter
+    + varargs directive
+
+  Revision 1.18  2001/06/03 21:57:38  peter
     + hint directive parsing support
 
   Revision 1.17  2001/05/08 21:06:31  florian

@@ -430,7 +430,7 @@ interface
           proccalloptions : tproccalloptions;
           procoptions     : tprocoptions;
           para            : tparalinkedlist;
-          maxparacount,
+          maxparacount,              { -1 means varargs }
           minparacount    : longint;
           symtablelevel   : byte;
           fpu_used        : byte;    { how many stack fpu must be empty }
@@ -3261,6 +3261,8 @@ implementation
            if assigned(hp) then
             s:=s+',';
          end;
+        if maxparacount=-1 then
+         s:=s+',...';
         s:=s+')';
         demangled_paras:=s;
       end;
@@ -5522,7 +5524,10 @@ Const local_symtable_index : longint = $8001;
 end.
 {
   $Log$
-  Revision 1.32  2001-05-09 19:58:45  peter
+  Revision 1.33  2001-06-04 11:53:13  peter
+    + varargs directive
+
+  Revision 1.32  2001/05/09 19:58:45  peter
     * m68k doesn't support double (merged)
 
   Revision 1.31  2001/05/06 14:49:17  peter

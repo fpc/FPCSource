@@ -612,6 +612,28 @@ implementation
          oldfilepos:=aktfilepos;
          aktfilepos:=aktprocsym.definition.fileinfo;
 
+      { For varargs directive also cdecl and external must be defined }
+         if (po_varargs in aktprocsym.definition.procoptions) then
+          begin
+            { check first for external in the interface, if available there
+              then the cdecl must also be there since there is no implementation
+              available to contain it }
+            if parse_only then
+             begin
+               { if external is available, then cdecl must also be available }
+               if (po_external in aktprocsym.definition.procoptions) and
+                  not(pocall_cdecl in aktprocsym.definition.proccalloptions) then
+                Message(parser_e_varargs_need_cdecl_and_external);
+             end
+            else
+             begin
+               { both must be defined now }
+               if not(po_external in aktprocsym.definition.procoptions) or
+                  not(pocall_cdecl in aktprocsym.definition.proccalloptions) then
+                Message(parser_e_varargs_need_cdecl_and_external);
+             end;
+          end;
+
       { search for forward declarations }
          if not check_identical_proc(prevdef) then
            begin
@@ -818,7 +840,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.33  2001-06-03 21:57:37  peter
+  Revision 1.34  2001-06-04 11:53:13  peter
+    + varargs directive
+
+  Revision 1.33  2001/06/03 21:57:37  peter
     + hint directive parsing support
 
   Revision 1.32  2001/04/21 12:03:12  peter

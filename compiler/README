@@ -119,4 +119,4 @@ Changes in the syntax or semantic of FPC:
              sometimes a bit more relaxed
   03/06/01   hint directives (library,platform,deprecated) are parsed, but
              futher ignored
-
+  03/06/01   varargs directive is supported

@@ -156,6 +156,7 @@ interface
           destructor  destroy;
           procedure load(ppufile:tcompilerppufile);override;
           procedure write(ppufile:tcompilerppufile);override;
+          procedure insert(sym : tsymentry);override;
 {$ifdef GDB}
           function getnewtypecount : word; override;
 {$endif}
@@ -1598,6 +1599,42 @@ implementation
       end;
 
 
+    procedure tglobalsymtable.insert(sym:tsymentry);
+      var
+         hsym : tsym;
+      begin
+         { also check the global symtable }
+         if assigned(next) and
+            (next.unitid=0) then
+          begin
+            hsym:=tsym(next.search(sym.name));
+            if assigned(hsym) then
+             begin
+               DuplicateSym(hsym);
+               exit;
+             end;
+          end;
+
+         hsym:=tsym(search(sym.name));
+         if assigned(hsym) then
+          begin
+            { Delphi you can have a symbol with the same name as the
+              unit, the unit can then not be accessed anymore using
+              <unit>.<id>, so we can hide the symbol }
+            if (m_tp in aktmodeswitches) and
+               (hsym.typ=symconst.unitsym) then
+             hsym.owner.rename(hsym.name,'hidden'+hsym.name)
+            else
+             begin
+               DuplicateSym(hsym);
+               exit;
+             end;
+          end;
+
+         inherited insert(sym);
+      end;
+
+
 {$ifdef GDB}
    function tglobalsymtable.getnewtypecount : word;
       begin
@@ -2000,7 +2037,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.36  2001-06-03 21:57:38  peter
+  Revision 1.37  2001-06-04 11:53:14  peter
+    + varargs directive
+
+  Revision 1.36  2001/06/03 21:57:38  peter
     + hint directive parsing support
 
   Revision 1.35  2001/05/06 14:49:18  peter

@@ -214,10 +214,11 @@ interface
          nf_error,
 
          { flags used by tcallnode }
-         nf_no_check,
-         nf_unit_specific,
          nf_return_value_used,
          nf_static_call,
+
+         { flags used by tcallparanode }
+         nf_varargs_para,  { belongs this para to varargs }
 
          { flags used by loop nodes }
          nf_backward,  { set if it is a for ... downto ... do loop }
@@ -790,7 +791,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  2001-04-13 01:22:10  peter
+  Revision 1.16  2001-06-04 11:53:13  peter
+    + varargs directive
+
+  Revision 1.15  2001/04/13 01:22:10  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

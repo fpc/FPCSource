@@ -323,6 +323,7 @@ var orgsp,sp:stringid;
     paramoffset:longint;
     sym:tsym;
     hs:string;
+    doinsert : boolean;
     st : tsymtable;
     srsymtable : tsymtable;
     overloaded_level:word;
@@ -502,22 +503,36 @@ begin
    end;
 {$endif UseNiceNames}
 
+  doinsert:=true;
   if assigned(aktprocsym) then
    begin
-     { Check if overloaded is a procsym, we use a different error message
-       for tp7 so it looks more compatible }
+     { Check if overloaded is a procsym }
      if aktprocsym.typ<>procsym then
       begin
-        if (m_fpc in aktmodeswitches) then
-         Message1(parser_e_overloaded_no_procedure,aktprocsym.realname)
+        { when the other symbol is a unit symbol then hide the unit
+          symbol. Only in tp mode because it's bad programming }
+        if (m_tp in aktmodeswitches) and
+           (aktprocsym.typ=unitsym) then
+         begin
+           aktprocsym.owner.rename(aktprocsym.name,'hidden'+aktprocsym.name);
+         end
         else
-         DuplicateSym(aktprocsym);
-        { try to recover by creating a new aktprocsym }
-        akttokenpos:=procstartfilepos;
-        aktprocsym:=tprocsym.create(orgsp);
+         begin
+           {  we use a different error message for tp7 so it looks more compatible }
+           if (m_fpc in aktmodeswitches) then
+            Message1(parser_e_overloaded_no_procedure,aktprocsym.realname)
+           else
+            DuplicateSym(aktprocsym);
+           { don't reinsert as that will generated another error }
+           doinsert:=false;
+         end;
+        { generate a new aktprocsym }
+        aktprocsym:=nil;
       end;
-   end
-  else
+   end;
+
+  { test again if assigned, it can be reset to recover }
+  if not assigned(aktprocsym) then
    begin
      { create a new procsym and set the real filepos }
      akttokenpos:=procstartfilepos;
@@ -536,7 +551,8 @@ begin
        end
       else
        aktprocsym:=tprocsym.create(orgsp);
-     symtablestack.insert(aktprocsym);
+      if doinsert then
+       symtablestack.insert(aktprocsym);
    end;
 
   st:=symtablestack;
@@ -1103,7 +1119,7 @@ type
    end;
 const
   {Should contain the number of procedure directives we support.}
-  num_proc_directives=32;
+  num_proc_directives=33;
   proc_direcdata:array[1..num_proc_directives] of proc_dir_rec=
    (
     (
@@ -1402,6 +1418,16 @@ const
       mutexclpocall : [pocall_cdecl,pocall_internproc,pocall_leftright,pocall_inline];
       mutexclpotype : [];
       mutexclpo     : [po_assembler,po_external]
+    ),(
+      idtok:_VARARGS;
+      pd_flags : pd_interface+pd_implemen;
+      handler  : nil;
+      pocall   : [];
+      pooption : [po_varargs];
+      mutexclpocall : [pocall_internproc,pocall_stdcall,pocall_register,
+                       pocall_leftright,pocall_inline];
+      mutexclpotype : [];
+      mutexclpo     : [po_assembler,po_interrupt]
     )
    );
 
@@ -1864,7 +1890,10 @@ const
 end.
 {
   $Log$
-  Revision 1.25  2001-06-03 21:57:36  peter
+  Revision 1.26  2001-06-04 11:53:13  peter
+    + varargs directive
+
+  Revision 1.25  2001/06/03 21:57:36  peter
     + hint directive parsing support
 
   Revision 1.24  2001/05/08 21:06:31  florian
