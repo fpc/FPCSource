@@ -309,46 +309,50 @@ function get_value(id: pchar): pchar;
 
 Function UnEscape(QueryString: PChar): PChar;
 var
-  qunescaped    : pchar;
-  sptr          : longint;
-  cnt           : word;
-  qslen         : longint;
+   qunescaped    : pchar;
+   sptr          : longint;
+   cnt           : word;
+   qslen         : longint;
 
 begin
-  qslen:=strlen(QueryString);
-  if qslen=0 then
-    begin
-    Unescape:=#0;
-    get_nodata:=true;
-    exit;
-    end
-  else
-    get_nodata :=false;
+   qslen:=strlen(QueryString);
+   if qslen=0 then
+     begin
+     Unescape:=#0;
+     get_nodata:=true;
+     exit;
+     end
+   else
+     get_nodata :=false;
 { skelet fix }
-  getmem(qunescaped,qslen+1);
-  if qunescaped=nil then
-    begin
-    writeln ('Oh-oh');
-    halt;
-    end;
-  sptr :=0;
-  for cnt := 0 to qslen do
-    begin
-    case querystring[cnt] of
-      '+': qunescaped[sptr] := ' ';
-      '%': begin
-           qunescaped[sptr] :=
-               hexconv(querystring[cnt+1], querystring[cnt+2]);
-           inc(cnt,2);
-           end;
-    else
-      qunescaped[sptr] := querystring[cnt];
-    end;
-    inc(sptr);
+   getmem(qunescaped,qslen+1);
+   if qunescaped=nil then
+     begin
+     writeln ('Oh-oh');
+     halt;
+     end;
+   sptr :=0;
+
+{  for cnt := 0 to qslen do  +++++ use while instead of for }
+   cnt:=0;
+   while cnt<=qslen do
+   begin
+     case querystring[cnt] of
+       '+': qunescaped[sptr] := ' ';
+       '%': begin
+            qunescaped[sptr] :=
+                hexconv(querystring[cnt+1], querystring[cnt+2]);
+            inc(cnt,2); { <--- not allowed in for loops in pascal }
+            end;
+     else
+       qunescaped[sptr] := querystring[cnt];
+     end;
+     inc(sptr);
 { skelet fix }
-    qunescaped[sptr]:=#0;
-    end;
-  UnEscape:=qunescaped;
+     qunescaped[sptr]:=#0;
+     inc(cnt);               { <-- don't forget to increment }
+   end;
+   UnEscape:=qunescaped;
 end;
 
 Function Chop(QunEscaped : PChar) : Longint;
@@ -482,7 +486,10 @@ end.
 {
   HISTORY
   $Log$
-  Revision 1.7  2002-10-10 05:48:20  michael
+  Revision 1.8  2002-10-18 05:43:53  michael
+  + Fix of invalid pointer bug in unescape, from U. Maeder
+
+  Revision 1.7  2002/10/10 05:48:20  michael
   Added http_remote and fixed determining of input method. Fix courtesy of Antal <antal@carmelcomputer.com>
 
   Revision 1.6  2002/09/12 16:24:59  michael
