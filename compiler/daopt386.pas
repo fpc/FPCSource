@@ -28,6 +28,13 @@
 
 Unit DAOpt386;
 
+{$ifdef newOptimizations}
+{$define foropt}
+{$define replacereg}
+{$define arithopt}
+{$define foldarithops}
+{$endif newOptimizations}
+
 Interface
 
 Uses
@@ -1936,7 +1943,10 @@ End.
 
 {
  $Log$
- Revision 1.73  1999-11-27 23:45:43  jonas
+ Revision 1.74  1999-12-02 11:26:41  peter
+   * newoptimizations define added
+
+ Revision 1.73  1999/11/27 23:45:43  jonas
    * even more missing register deallocations are added!
 
  Revision 1.72  1999/11/21 13:06:30  jonas

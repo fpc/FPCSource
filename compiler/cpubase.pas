@@ -25,6 +25,14 @@
  ****************************************************************************
 }
 unit cpubase;
+
+{$ifdef newOptimizations}
+{$define foropt}
+{$define replacereg}
+{$define arithopt}
+{$define foldarithops}
+{$endif newOptimizations}
+
 interface
 {$ifdef TP}
   {$L-,Y-}
@@ -887,7 +895,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.17  1999-11-09 23:06:45  peter
+  Revision 1.18  1999-12-02 11:26:41  peter
+    * newoptimizations define added
+
+  Revision 1.17  1999/11/09 23:06:45  peter
     * esi_offset -> selfpointer_offset to be newcg compatible
     * hcogegen -> cgbase fixes for newcg
 

@@ -22,6 +22,13 @@
 }
 Unit POpt386;
 
+{$ifdef newOptimizations}
+{$define foropt}
+{$define replacereg}
+{$define arithopt}
+{$define foldarithops}
+{$endif newOptimizations}
+
 Interface
 
 Uses Aasm;
@@ -1728,7 +1735,10 @@ End.
 
 {
  $Log$
- Revision 1.72  1999-11-30 10:40:45  peter
+ Revision 1.73  1999-12-02 11:26:41  peter
+   * newoptimizations define added
+
+ Revision 1.72  1999/11/30 10:40:45  peter
    + ttype, tsymlist
 
  Revision 1.71  1999/11/27 23:47:55  jonas

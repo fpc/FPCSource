@@ -22,6 +22,13 @@
 }
 Unit CSOpt386;
 
+{$ifdef newOptimizations}
+{$define foropt}
+{$define replacereg}
+{$define arithopt}
+{$define foldarithops}
+{$endif newOptimizations}
+
 Interface
 
 Uses aasm;
@@ -1054,7 +1061,10 @@ End.
 
 {
  $Log$
- Revision 1.34  1999-11-21 13:09:41  jonas
+ Revision 1.35  1999-12-02 11:26:41  peter
+   * newoptimizations define added
+
+ Revision 1.34  1999/11/21 13:09:41  jonas
    * fixed some missed optimizations because 8bit regs were not always
      taken into account
 
