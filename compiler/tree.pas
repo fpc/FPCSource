@@ -307,6 +307,10 @@ unit tree;
     function getcopy(p : ptree) : ptree;
 
     function equal_trees(t1,t2 : ptree) : boolean;
+{$ifdef newoptimizations}
+    { checks if t1 is loaded more than once in t2 and its sub-trees }
+    function multiple_uses(t1,t2: ptree): boolean;
+{$endif newoptimizations}
 
     procedure swaptree(p:Ptree);
     procedure disposetree(p : ptree);
@@ -1731,6 +1735,26 @@ unit tree;
           equal_trees:=false;
      end;
 
+{$ifdef newoptimizations}
+    function multiple_uses(t1,t2: ptree): boolean;
+    var nr: longint;
+
+      procedure check_tree(t: ptree);
+      begin
+        inc(nr,ord(equal_trees(t1,t)));
+        if (nr < 2) and assigned(t^.left) then
+          check_tree(t^.left);
+        if (nr < 2) and assigned(t^.right) then
+          check_tree(t^.right);
+      end;
+
+    begin
+       nr := 0;
+       check_tree(t2);
+       multiple_uses := nr > 1;
+    end;
+{$endif newoptimizations}
+
     procedure set_unique(p : ptree);
 
       begin
@@ -2066,7 +2090,11 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.116  2000-03-01 15:36:12  florian
+  Revision 1.117  2000-04-08 16:22:11  jonas
+    * fixed concat_string optimization and enabled it when
+      -dnewoptimizations is used
+
+  Revision 1.116  2000/03/01 15:36:12  florian
     * some new stuff for the new cg
 
   Revision 1.115  2000/03/01 11:43:55  daniel

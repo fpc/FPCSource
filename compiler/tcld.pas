@@ -201,10 +201,10 @@ implementation
 *****************************************************************************}
 
     procedure firstassignment(var p : ptree);
-{$ifdef dummyi386}
+{$ifdef newoptimizations}
       var
         hp : ptree;
-{$endif}
+{$endif newoptimizations}
       begin
          { must be made unique }
          set_unique(p^.left);
@@ -273,8 +273,11 @@ implementation
             { the problem is for
               s:=s+s+s;
               this is broken here !! }
-            { while hp^.treetype=addn do hp:=hp^.left;
-            if equal_trees(p^.left,hp) then
+{$ifdef newoptimizations}
+            hp := p^.right;
+            while hp^.treetype=addn do hp:=hp^.left;
+            if equal_trees(p^.left,hp) and
+               not multiple_uses(p^.left,p^.right) then
               begin
                 p^.concat_string:=true;
                 hp:=p^.right;
@@ -283,7 +286,8 @@ implementation
                     hp^.use_strconcat:=true;
                     hp:=hp^.left;
                   end;
-              end; }
+              end;
+{$endif newoptimizations}
           end
          else
           begin
@@ -486,7 +490,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.61  2000-02-24 18:41:39  peter
+  Revision 1.62  2000-04-08 16:22:11  jonas
+    * fixed concat_string optimization and enabled it when
+      -dnewoptimizations is used
+
+  Revision 1.61  2000/02/24 18:41:39  peter
     * removed warnings/notes
 
   Revision 1.60  2000/02/17 14:53:43  florian
