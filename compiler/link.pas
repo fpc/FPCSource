@@ -452,8 +452,12 @@ begin
 
 { Post processor executable }
 {$ifdef i386}
-  if target_info.target=target_i386_Win32 then
-    win_targ.postprocessexecutable(current_module^.exefilename^);
+  if (target_info.target=target_i386_Win32) and success and
+     not(cs_link_extern in aktglobalswitches) then
+    if DLLsource then
+      win_targ.postprocessexecutable(current_module^.sharedlibfilename^)
+    else
+      win_targ.postprocessexecutable(current_module^.exefilename^);
 {$endif}
 
 {Remove ReponseFile}
@@ -527,7 +531,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.40  1998-12-01 12:51:20  peter
+  Revision 1.41  1998-12-01 23:39:46  pierre
+   * postprocessexec for win32 changed
+
+  Revision 1.40  1998/12/01 12:51:20  peter
     * fixed placing of ppas.sh and link.res when using -FE
 
   Revision 1.39  1998/11/30 13:26:23  pierre
