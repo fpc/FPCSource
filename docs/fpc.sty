@@ -218,8 +218,11 @@
 \else
   \usepackage[dvips,bookmarks=true,colorlinks=true,linkcolor=blue]{hyperref}
 \fi
-\usepackage{html}
-\usepackage{htmllist}
+%
+% Fake Latex2Html support, so latex2html is not required
+%
+\RequirePackage{fakehtml}
+%
 %
 % For examples
 %
