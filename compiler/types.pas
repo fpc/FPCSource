@@ -1067,8 +1067,8 @@ implementation
               { range checking for case statements is done with testrange        }
               case porddef(def1)^.typ of
                 u8bit,u16bit,u32bit,
-                s8bit,s16bit,s32bit :
-                  is_subequal:=(porddef(def2)^.typ in [s32bit,u32bit,u8bit,s8bit,s16bit,u16bit]);
+                s8bit,s16bit,s32bit,s64bit,u64bit :
+                  is_subequal:=(porddef(def2)^.typ in [s64bit,u64bit,s32bit,u32bit,u8bit,s8bit,s16bit,u16bit]);
                 bool8bit,bool16bit,bool32bit :
                   is_subequal:=(porddef(def2)^.typ in [bool8bit,bool16bit,bool32bit]);
                 uchar :
@@ -1130,7 +1130,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  2000-08-08 19:26:41  peter
+  Revision 1.5  2000-08-12 06:49:22  florian
+    + case statement for int64/qword implemented
+
+  Revision 1.4  2000/08/08 19:26:41  peter
     * equal_constsym() needed for default para
 
   Revision 1.3  2000/07/13 12:08:28  michael

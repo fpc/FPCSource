@@ -34,7 +34,7 @@ interface
 implementation
 
     uses
-      globtype,systems,
+      globtype,systems,cpuinfo,
       cobjects,verbose,globals,
       symconst,symtable,aasm,types,
       hcodegen,temp_gen,pass_2,
@@ -42,7 +42,7 @@ implementation
       cgai386,tgeni386;
 
      const
-       bytes2Sxx:array[1..4] of Topsize=(S_B,S_W,S_NO,S_L);
+       bytes2Sxx:array[1..8] of Topsize=(S_B,S_W,S_NO,S_L,S_NO,S_NO,S_NO,S_Q);
 
 {*****************************************************************************
                               SecondSetElement
@@ -529,14 +529,14 @@ implementation
          jmp_gt,jmp_le,jmp_lee : tasmcond;
          hp : ptree;
          { register with case expression }
-         hregister : tregister;
+         hregister,hregister2 : tregister;
          endlabel,elselabel : pasmlabel;
 
          { true, if we can omit the range check of the jump table }
          jumptable_no_range : boolean;
          { where to put the jump table }
          jumpsegment : paasmoutput;
-         min_label : longint;
+         min_label : TConstExprInt;
 
       procedure gentreejmp(p : pcaserecord);
 
@@ -586,18 +586,33 @@ implementation
 
         var
            first : boolean;
-           last : longint;
+           last : TConstExprInt;
 
         procedure genitem(t : pcaserecord);
+
+          var
+             l1 : pasmlabel;
 
           begin
              if assigned(t^.less) then
                genitem(t^.less);
              if t^._low=t^._high then
                begin
-                  emit_const_reg(A_CMP,opsize,t^._low,hregister);
-                  emitjmp(C_Z,t^.statement);
-                  last:=t^._low;
+                  if opsize=S_Q then
+                    begin
+                       getlabel(l1);
+                       emit_const_reg(A_CMP,S_L,hi(int64(t^._low)),hregister2);
+                       emitjmp(C_NZ,l1);
+                       emit_const_reg(A_CMP,S_L,lo(int64(t^._low)),hregister);
+                       emitjmp(C_Z,t^.statement);
+                       emitlab(l1);
+                    end
+                  else
+                    begin
+                       emit_const_reg(A_CMP,opsize,t^._low,hregister);
+                       emitjmp(C_Z,t^.statement);
+                       last:=t^._low;
+                    end;
                end
              else
                begin
@@ -606,12 +621,40 @@ implementation
                   { immediately. else check the range in between:        }
                   if first or (t^._low-last>1) then
                     begin
-                       emit_const_reg(A_CMP,opsize,t^._low,hregister);
-                       emitjmp(jmp_le,elselabel);
+                       if opsize=S_Q then
+                         begin
+                            getlabel(l1);
+                            emit_const_reg(A_CMP,S_L,hi(int64(t^._low)),hregister2);
+                            emitjmp(jmp_le,elselabel);
+                            emitjmp(jmp_gt,l1);
+                            emit_const_reg(A_CMP,S_L,lo(int64(t^._low)),hregister);
+                            { the comparisation of the low dword must be always unsigned! }
+                            emitjmp(C_B,elselabel);
+                            emitlab(l1);
+                         end
+                       else
+                         begin
+                            emit_const_reg(A_CMP,opsize,t^._low,hregister);
+                            emitjmp(jmp_le,elselabel);
+                         end;
                     end;
 
-                  emit_const_reg(A_CMP,opsize,t^._high,hregister);
-                  emitjmp(jmp_lee,t^.statement);
+                  if opsize=S_Q then
+                    begin
+                       getlabel(l1);
+                       emit_const_reg(A_CMP,S_L,hi(int64(t^._high)),hregister2);
+                       emitjmp(jmp_le,t^.statement);
+                       emitjmp(jmp_gt,l1);
+                       emit_const_reg(A_CMP,S_L,lo(int64(t^._high)),hregister);
+                       { the comparisation of the low dword must be always unsigned! }
+                       emitjmp(C_BE,t^.statement);
+                       emitlab(l1);
+                    end
+                  else
+                    begin
+                       emit_const_reg(A_CMP,opsize,t^._high,hregister);
+                       emitjmp(jmp_lee,t^.statement);
+                    end;
 
                   last:=t^._high;
                end;
@@ -631,7 +674,7 @@ implementation
 
         var
            first : boolean;
-           last : longint;
+           last : TConstExprInt;
            {helplabel : longint;}
 
         procedure genitem(t : pcaserecord);
@@ -692,7 +735,7 @@ implementation
 
         begin
            { do we need to generate cmps? }
-           if with_sign and (min_label<0) then
+           if (with_sign and (min_label<0)) then
              genlinearcmplist(hp)
            else
              begin
@@ -707,7 +750,7 @@ implementation
 
         var
            table : pasmlabel;
-           last : longint;
+           last : TConstExprInt;
            hr : preference;
 
         procedure genitem(t : pcaserecord);
@@ -788,6 +831,8 @@ implementation
 {$else Delphi}
          dist : dword;
 {$endif Delphi}
+         hr : preference;
+
       begin
          getlabel(endlabel);
          getlabel(elselabel);
@@ -824,7 +869,15 @@ implementation
          { copy the case expression to a register }
          case p^.left^.location.loc of
             LOC_REGISTER:
-              hregister:=p^.left^.location.register;
+              begin
+                 if opsize=S_Q then
+                   begin
+                      hregister:=p^.left^.location.registerlow;
+                      hregister2:=p^.left^.location.registerhigh;
+                   end
+                 else
+                   hregister:=p^.left^.location.register;
+              end;
             LOC_FLAGS :
               begin
                 locflags2reg(p^.left^.location,opsize);
@@ -839,112 +892,143 @@ implementation
               begin
                  hregister:=getregister32;
                  case opsize of
-                    S_B : hregister:=reg32toreg8(hregister);
-                    S_W : hregister:=reg32toreg16(hregister);
+                    S_B:
+                      hregister:=reg32toreg8(hregister);
+                    S_W:
+                      hregister:=reg32toreg16(hregister);
+                    S_Q:
+                      hregister2:=R_EDI;
                  end;
-                 emit_reg_reg(A_MOV,opsize,
-                   p^.left^.location.register,hregister);
+                 if opsize=S_Q then
+                   begin
+                      emit_reg_reg(A_MOV,S_L,p^.left^.location.registerlow,hregister);
+                      hr:=newreference(p^.left^.location.reference);
+                      inc(hr^.offset,4);
+                      emit_reg_reg(A_MOV,S_L,p^.left^.location.registerhigh,hregister2);
+                   end
+                 else
+                   emit_reg_reg(A_MOV,opsize,
+                     p^.left^.location.register,hregister);
               end;
-            LOC_MEM,LOC_REFERENCE : begin
-                                       del_reference(p^.left^.location.reference);
-                                       hregister:=getregister32;
-                                       case opsize of
-                                          S_B : hregister:=reg32toreg8(hregister);
-                                          S_W : hregister:=reg32toreg16(hregister);
-                                       end;
-                                       emit_ref_reg(A_MOV,opsize,newreference(
-                                         p^.left^.location.reference),hregister);
-                                    end;
+            LOC_MEM,LOC_REFERENCE:
+              begin
+                 del_reference(p^.left^.location.reference);
+                 hregister:=getregister32;
+                 case opsize of
+                    S_B:
+                      hregister:=reg32toreg8(hregister);
+                    S_W:
+                      hregister:=reg32toreg16(hregister);
+                    S_Q:
+                      hregister2:=R_EDI;
+                 end;
+                 if opsize=S_Q then
+                   begin
+                      emit_ref_reg(A_MOV,S_L,newreference(
+                        p^.left^.location.reference),hregister);
+                      hr:=newreference(p^.left^.location.reference);
+                      inc(hr^.offset,4);
+                      emit_ref_reg(A_MOV,S_L,hr,hregister2);
+                   end
+                 else
+                   emit_ref_reg(A_MOV,opsize,newreference(
+                     p^.left^.location.reference),hregister);
+              end;
             else internalerror(2002);
          end;
          { we need the min_label always to choose between }
          { cmps and subs/decs                             }
          min_label:=case_get_min(p^.nodes);
          { now generate the jumps }
-           if cs_optimize in aktglobalswitches then
+         if opsize=S_Q then
+           genlinearcmplist(p^.nodes)
+         else
            begin
-              { procedures are empirically passed on }
-              { consumption can also be calculated   }
-              { but does it pay on the different     }
-              { processors?                       }
-              { moreover can the size only be appro- }
-              { ximated as it is not known if rel8,  }
-              { rel16 or rel32 jumps are used   }
-              max_label:=case_get_max(p^.nodes);
-              labels:=case_count_labels(p^.nodes);
-              { can we omit the range check of the jump table ? }
-              getrange(p^.left^.resulttype,lv,hv);
-              jumptable_no_range:=(lv=min_label) and (hv=max_label);
-              { hack a little bit, because the range can be greater }
-              { than the positive range of a longint            }
-
-              if (min_label<0) and (max_label>0) then
+              if cs_optimize in aktglobalswitches then
                 begin
+                   { procedures are empirically passed on }
+                   { consumption can also be calculated   }
+                   { but does it pay on the different     }
+                   { processors?                       }
+                   { moreover can the size only be appro- }
+                   { ximated as it is not known if rel8,  }
+                   { rel16 or rel32 jumps are used   }
+                   max_label:=case_get_max(p^.nodes);
+                   labels:=case_count_labels(p^.nodes);
+                   { can we omit the range check of the jump table ? }
+                   getrange(p^.left^.resulttype,lv,hv);
+                   jumptable_no_range:=(lv=min_label) and (hv=max_label);
+                   { hack a little bit, because the range can be greater }
+                   { than the positive range of a longint            }
+
+                   if (min_label<0) and (max_label>0) then
+                     begin
 {$ifdef Delphi}
-                   if min_label=longint($80000000) then
-                     dist:=Cardinal(max_label)+Cardinal($80000000)
-                   else
-                     dist:=Cardinal(max_label)+Cardinal(-min_label)
+                        if min_label=longint($80000000) then
+                          dist:=Cardinal(max_label)+Cardinal($80000000)
+                        else
+                          dist:=Cardinal(max_label)+Cardinal(-min_label)
 {$else Delphi}
-                   if min_label=$80000000 then
-                     dist:=dword(max_label)+dword($80000000)
-                   else
-                     dist:=dword(max_label)+dword(-min_label)
+                        if min_label=$80000000 then
+                          dist:=dword(max_label)+dword($80000000)
+                        else
+                          dist:=dword(max_label)+dword(-min_label)
 {$endif Delphi}
-                end
-              else
-                dist:=max_label-min_label;
-
-              { optimize for size ? }
-              if cs_littlesize in aktglobalswitches  then
-                begin
-                   if (labels<=2) or
-                      ((max_label-min_label)<0) or
-                      ((max_label-min_label)>3*labels) then
-                  { a linear list is always smaller than a jump tree }
-                     genlinearlist(p^.nodes)
+                     end
                    else
-                  { if the labels less or more a continuum then }
-                     genjumptable(p^.nodes,min_label,max_label);
-                end
-              else
-                begin
-                   if jumptable_no_range then
-                     max_linear_list:=4
-                   else
-                     max_linear_list:=2;
-                   { a jump table crashes the pipeline! }
-                   if aktoptprocessor=Class386 then
-                     inc(max_linear_list,3);
-                       if aktoptprocessor=ClassP5 then
-                     inc(max_linear_list,6);
-                   if aktoptprocessor>=ClassP6 then
-                     inc(max_linear_list,9);
+                     dist:=max_label-min_label;
 
-                   if (labels<=max_linear_list) then
-                     genlinearlist(p^.nodes)
+                   { optimize for size ? }
+                   if cs_littlesize in aktglobalswitches  then
+                     begin
+                        if (labels<=2) or
+                           ((max_label-min_label)<0) or
+                           ((max_label-min_label)>3*labels) then
+                       { a linear list is always smaller than a jump tree }
+                          genlinearlist(p^.nodes)
+                        else
+                       { if the labels less or more a continuum then }
+                          genjumptable(p^.nodes,min_label,max_label);
+                     end
                    else
                      begin
-                        if (dist>4*labels) then
-                          begin
-                             if labels>16 then
-                               gentreejmp(p^.nodes)
-                             else
-                               genlinearlist(p^.nodes);
-                          end
+                        if jumptable_no_range then
+                          max_linear_list:=4
                         else
-                          genjumptable(p^.nodes,min_label,max_label);
-                     end;
-                end;
-             end
-           else
-           { it's always not bad }
-           genlinearlist(p^.nodes);
-           ungetregister(hregister);
+                          max_linear_list:=2;
+                        { a jump table crashes the pipeline! }
+                        if aktoptprocessor=Class386 then
+                          inc(max_linear_list,3);
+                            if aktoptprocessor=ClassP5 then
+                          inc(max_linear_list,6);
+                        if aktoptprocessor>=ClassP6 then
+                          inc(max_linear_list,9);
 
+                        if (labels<=max_linear_list) then
+                          genlinearlist(p^.nodes)
+                        else
+                          begin
+                             if (dist>4*labels) then
+                               begin
+                                  if labels>16 then
+                                    gentreejmp(p^.nodes)
+                                  else
+                                    genlinearlist(p^.nodes);
+                               end
+                             else
+                               genjumptable(p^.nodes,min_label,max_label);
+                          end;
+                     end;
+                end
+              else
+                { it's always not bad }
+                genlinearlist(p^.nodes);
+           end;
+
+         ungetregister(hregister);
 
          { now generate the instructions }
-           hp:=p^.right;
+         hp:=p^.right;
          while assigned(hp) do
            begin
               cleartempgen;
@@ -957,7 +1041,7 @@ implementation
          emitlab(elselabel);
          { ...and the else block }
          if assigned(p^.elseblock) then
-             begin
+           begin
               cleartempgen;
               secondpass(p^.elseblock);
            end;
@@ -968,7 +1052,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2000-08-05 09:57:27  jonas
+  Revision 1.6  2000-08-12 06:47:56  florian
+    + case statement for int64/qword implemented
+
+  Revision 1.5  2000/08/05 09:57:27  jonas
     * added missing register deallocation (could cause IE10 i some cases)
       (merged from fixes branch)
 

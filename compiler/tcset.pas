@@ -316,7 +316,9 @@ implementation
            end;
          t_times:=old_t_times;
 
-         { there is one register required for the case expression }
+         { there is one register required for the case expression    }
+         { for 64 bit ints we cheat: the high dword is stored in EDI }
+         { so we don't need an extra register                        }
          if p^.registers32<1 then p^.registers32:=1;
       end;
 
@@ -324,7 +326,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:52  michael
+  Revision 1.3  2000-08-12 06:46:26  florian
+    + case statement for int64/qword implemented
+
+  Revision 1.2  2000/07/13 11:32:52  michael
   + removed logs
 
 }

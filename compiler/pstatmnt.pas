@@ -40,7 +40,7 @@ unit pstatmnt;
 
     uses
        globtype,systems,tokens,
-       strings,cobjects,globals,files,verbose,
+       strings,cobjects,globals,files,verbose,cpuinfo,
        symconst,symtable,aasm,pass_1,types,scanner,
 {$ifdef newcg}
        cgbase,
@@ -188,8 +188,9 @@ unit pstatmnt;
 
       var
          code,caseexpr,p,instruc,elseblock : ptree;
-         hl1,hl2 : longint;
+         hl1,hl2 : TConstExprInt;
          casedeferror : boolean;
+
       begin
          consume(_CASE);
          caseexpr:=comp_expr(true);
@@ -199,7 +200,7 @@ unit pstatmnt;
          casedeferror:=false;
          casedef:=caseexpr^.resulttype;
          if (not assigned(casedef)) or
-            not(is_ordinal(casedef) or is_64bitint(casedef)) then
+            not(is_ordinal(casedef)) then
           begin
             CGMessage(type_e_ordinal_expr_expected);
             { create a correct tree }
@@ -1380,7 +1381,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.3  2000-07-13 12:08:27  michael
+  Revision 1.4  2000-08-12 06:46:06  florian
+    + case statement for int64/qword implemented
+
+  Revision 1.3  2000/07/13 12:08:27  michael
   + patched to 1.1.0 with former 1.09patch from peter
 
   Revision 1.2  2000/07/13 11:32:45  michael

@@ -28,7 +28,7 @@ unit tree;
   interface
 
     uses
-       globtype,cobjects
+       globtype,cobjects,cpuinfo
        {$IFDEF NEWST}
        ,objects,symtable,symbols,defs
        {$ELSE}
@@ -167,7 +167,7 @@ unit tree;
       tcaserecord = record
 
           { range }
-          _low,_high : longint;
+          _low,_high : TConstExprInt;
 
           { only used by gentreejmp }
           _at : pasmlabel;
@@ -2133,7 +2133,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.4  2000-08-06 19:39:28  peter
+  Revision 1.5  2000-08-12 06:46:51  florian
+    + case statement for int64/qword implemented
+
+  Revision 1.4  2000/08/06 19:39:28  peter
     * default parameters working !
 
   Revision 1.3  2000/08/04 22:00:52  peter
