@@ -163,11 +163,11 @@ implementation
         { we need a certain constant for the conversion, so create it here }
         if signed then
           tempconst :=
-            crealconstnode.create(double(dummy1),
+            crealconstnode.create(double(tdummyarray(dummy1)),
             pbestrealtype^)
         else
           tempconst :=
-            crealconstnode.create(double(dummy2),
+            crealconstnode.create(double(tdummyarray(dummy2)),
             pbestrealtype^);
 
         resulttypepass(tempconst);
@@ -422,7 +422,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.33  2003-04-24 22:29:58  florian
+  Revision 1.34  2003-05-02 15:13:38  jonas
+    * yet another final fix for second_int_to_real() :) (tested this time)
+
+  Revision 1.33  2003/04/24 22:29:58  florian
     * fixed a lot of PowerPC related stuff
 
   Revision 1.32  2003/04/23 21:10:54  peter
