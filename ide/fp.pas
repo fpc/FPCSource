@@ -24,6 +24,11 @@ program FP;
 (**********************************************************************)
 
 uses
+{$ifndef NODEBUG}
+{$ifdef win32}
+  fpcygwin,
+{$endif win32}
+{$endif NODEBUG}
 {$ifdef IDEHeapTrc}
   HeapTrc,
 {$endif IDEHeapTrc}
@@ -256,6 +261,12 @@ BEGIN
 {$ifdef win32}
   Win32ShowMouse;
 {$endif win32}
+{$ifndef NODEBUG}
+{$ifdef win32}
+  writeln('Using "',GetCygwinFullName,'" version ',GetCygwinVersionString);
+  CheckCygwinVersion;
+{$endif win32}
+{$endif NODEBUG}
 
   ProcessParams(true);
 
@@ -412,7 +423,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.7  2002-04-12 09:00:01  pierre
+  Revision 1.8  2002-04-12 11:28:55  pierre
+   + use fpcygwin unit for win32 debug IDE
+
+  Revision 1.7  2002/04/12 09:00:01  pierre
    * enhance internal error handling
 
   Revision 1.6  2002/03/28 16:32:48  pierre
