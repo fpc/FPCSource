@@ -724,7 +724,7 @@ implementation
                        end
                      else
                       { same types }
-                      if (tpointerdef(def_from).pointertype.def=tpointerdef(def_to).pointertype.def) then
+                      if equal_defs(tpointerdef(def_from).pointertype.def,tpointerdef(def_to).pointertype.def) then
                        begin
                          eq:=te_equal
                        end
@@ -1274,7 +1274,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.48  2004-03-03 22:02:16  peter
+  Revision 1.49  2004-03-04 17:22:32  peter
+    * use defs_equal when comparing pointer types
+
+  Revision 1.48  2004/03/03 22:02:16  peter
     * also compare calling convention in proc_to_procvar_equal
 
   Revision 1.47  2004/02/24 16:12:39  peter
