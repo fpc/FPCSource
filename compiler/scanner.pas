@@ -1940,9 +1940,10 @@ for the last instruction of an include file !}
                              '^' : begin
                                       nextchar;
                                       c:=upcase(c);
-                                      if c in ['A'..'Z'] then
-                                        pattern:=pattern+chr(ord(c)-64)
-                                      else Message(scan_f_illegal_char);
+                                      if ord(c)<64 then
+                                        pattern:=pattern+chr(ord(c)+64)
+                                      else
+                                        pattern:=pattern+chr(ord(c)-64);
                                       nextchar;
                                    end;
                              else break;
@@ -2103,7 +2104,10 @@ for the last instruction of an include file !}
 end.
 {
   $Log$
-  Revision 1.8  1998-04-16 12:07:55  peter
+  Revision 1.9  1998-04-16 12:14:58  peter
+    * quick hack for ^[ in strings
+
+  Revision 1.8  1998/04/16 12:07:55  peter
     * quick $L+ hack
 
   Revision 1.7  1998/04/10 15:39:48  florian
