@@ -21,7 +21,7 @@ interface
   then be redired (PFV) }
 {$ifndef debug}
   {$ifndef linux}
-    {$define redircompiler}
+    { $define redircompiler}
   {$endif}
 {$endif}
 
@@ -36,7 +36,6 @@ uses
 type
   TCompileMode = (cBuild,cMake,cCompile,cRun);
 
-{$ifndef OLDCOMP}
 type
     PCompilerMessage = ^TCompilerMessage;
     TCompilerMessage = object(TMessageItem)
@@ -51,18 +50,12 @@ type
     PCompilerMessageWindow = ^TCompilerMessageWindow;
     TCompilerMessageWindow = object(TFPWindow)
       constructor Init;
-      procedure   Updateinfo;
       procedure   HandleEvent(var Event: TEvent); virtual;
       function    GetPalette: PPalette; virtual;
       procedure   Close;virtual;
-      procedure   Zoom;virtual;
       destructor  Done; virtual;
       procedure   AddMessage(AClass: longint;const Msg, Module: string; Line, Column: longint);
       procedure   ClearMessages;
-      procedure   SetCompileMode(Amode:TCompileMode);
-      procedure   SetCompileShow(b:boolean);
-      procedure   StartCompilation;
-      function    EndCompilation:boolean;
       constructor Load(var S: TStream);
       procedure   Store(var S: TStream);
     private
@@ -74,29 +67,22 @@ type
       LineST : PStaticText;
     end;
 
-const
-    CompilerMessageWindow : PCompilerMessageWindow  = nil;
-
-{$else}
-type
-    PCompileStatusDialog = ^TCompileStatusDialog;
-    TCompileStatusDialog = object(TCenterDialog)
+    PCompilerStatusDialog = ^TCompilerStatusDialog;
+    TCompilerStatusDialog = object(TCenterDialog)
       ST    : PAdvancedStaticText;
       KeyST : PColorStaticText;
       constructor Init;
       procedure   Update;
-    private
-      MsgLB: PMessageListBox;
     end;
 
 const
-    SD: PCompileStatusDialog = nil;
-
-{$endif}
+    CompilerMessageWindow : PCompilerMessageWindow  = nil;
+    CompilerStatusDialog  : PCompilerStatusDialog = nil;
 
 procedure DoCompile(Mode: TCompileMode);
 
 procedure RegisterFPCompile;
+
 
 implementation
 
@@ -110,7 +96,6 @@ uses
 {$endif}
   FPConst,FPVars,FPUtils,FPIntf,FPSwitch;
 
-{$ifndef OLDCOMP}
 const
   RCompilerMessageListBox: TStreamRec = (
      ObjType: 1211;
@@ -124,13 +109,7 @@ const
      Load:    @TCompilerMessageWindow.Load;
      Store:   @TCompilerMessageWindow.Store
   );
-{$else}
-{$endif}
 
-const
-    LastStatusUpdate : longint = 0;
-
-{$ifndef OLDCOMP}
 
 {*****************************************************************************
                                TCompilerMessage
@@ -223,11 +202,9 @@ begin
   R.Grow(-1,-1);
   New(MsgLB, Init(R, HSB, VSB));
   Insert(MsgLB);
-
-  Updateinfo;
-
   CompilerMessageWindow:=@self;
 end;
+
 
 procedure TCompilerMessageWindow.AddMessage(AClass: longint;const Msg, Module: string; Line, Column: longint);
 begin
@@ -236,6 +213,7 @@ begin
   MsgLB^.AddItem(New(PCompilerMessage,Init(AClass, Msg, MsgLB^.AddModuleName(Module), Line, Column)));
 end;
 
+
 procedure TCompilerMessageWindow.ClearMessages;
 begin
   MsgLB^.Clear;
@@ -243,7 +221,7 @@ begin
 end;
 
 
-procedure TCompilerMessageWindow.Updateinfo;
+{procedure TCompilerMessageWindow.Updateinfo;
 begin
   if CompileShowed then
    begin
@@ -259,156 +237,7 @@ begin
       CurrST^.SetText(' Status: '#1#$7e+status.currentsource+#2);
    end;
   ReDraw;
-end;
-
-
-procedure TCompilerMessageWindow.SetCompileMode(Amode:TCompileMode);
-begin
-  mode:=Amode;
-end;
-
-procedure TCompilerMessageWindow.SetCompileShow(b:boolean);
-var
-  r : TRect;
-  c : word;
-begin
-  r.a:=Origin;
-  r.b:=Size;
-  if b then
-   begin
-     if CompileShowed then
-      exit;
-     dec(r.a.y,4);
-     inc(r.b.x,r.a.x);
-     inc(r.b.y,r.a.y+4);
-     ChangeBounds(r);
-   { shrink msg listbox }
-     GetExtent(R);
-     R.Grow(-1,-1);
-     dec(R.b.y,5);
-     MsgLB^.ChangeBounds(r);
-   { insert line and infost }
-     C:=((Desktop^.GetColor(32+6) and $f0) or White)*256+Desktop^.GetColor(32+6);
-     GetExtent(R);
-     R.Grow(-1,-1);
-     inc(R.a.y,5);
-     r.b.y:=r.a.y+1;
-     New(LineST, Init(R, CharStr('Ä', MaxViewWidth)));
-     LineST^.GrowMode:=gfGrowHiX;
-     Insert(LineST);
-     inc(r.a.x);
-     dec(r.b.x);
-     inc(r.a.y);
-     r.b.y:=r.a.y+2;
-     New(InfoST, Init(R,'', C));
-     InfoST^.GrowMode:=gfGrowHiX;
-     InfoST^.DontWrap:=true;
-     Insert(InfoST);
-     inc(r.a.y,2);
-     r.b.y:=r.a.y+1;
-     New(CurrST, Init(R,'', C));
-     CurrST^.GrowMode:=gfGrowHiX;
-     Insert(CurrST);
-   end
-  else
-   begin
-     if not CompileShowed then
-      exit;
-     inc(r.a.y,4);
-     inc(r.b.x,r.a.x);
-     inc(r.b.y,r.a.y-4);
-     ChangeBounds(r);
-   { remove infost and line }
-     Dispose(CurrSt,Done);
-     CurrSt:=nil;
-     Dispose(InfoSt,Done);
-     InfoSt:=nil;
-     Dispose(LineSt,Done);
-     LineSt:=nil;
-   end;
-  CompileShowed:=b;
-{ update all windows }
-  Message(Application,evCommand,cmUpdate,nil);
-end;
-
-
-procedure TCompilerMessageWindow.StartCompilation;
-begin
-  SetCompileShow(true);
-  Updateinfo;
-end;
-
-
-function TCompilerMessageWindow.EndCompilation:boolean;
-var
-  doevent,
-  closewin : boolean;
-  E : TEvent;
-begin
-  { be sure that we have the latest info displayed, fake the currentsource
-    and currentline to display the result }
-  status.currentline:=0;
-  if status.errorcount=0 then
-    status.currentsource:='Compilation Succesfull'
-  else
-    status.currentsource:='Compilation Failed';
-  Updateinfo;
-  doevent:=false;
-  closewin:=(status.errorcount=0);
-  if (status.errorcount>0) or (Mode<>cRun) then
-   begin
-     repeat
-       GetEvent(E);
-       case E.what of
-         evKeyDown :
-           begin
-             { only exit when not navigating trough the errors }
-             case E.Keycode of
-               kbEsc :
-                 begin
-                   closewin:=true;
-                   break;
-                 end;
-               kbSpaceBar :
-                 begin
-                   closewin:=false;
-                   doevent:=true;
-                   break;
-                 end;
-               kbUp,
-               kbDown,
-               kbPgUp,
-               kbPgDn,
-               kbHome,
-               kbEnd : ;
-               else
-                 break;
-             end;
-           end;
-         evCommand :
-           begin
-             case E.command of
-               cmQuit,
-               cmClose,
-               cmMsgGotoSource,
-               cmMsgTrackSource :
-                 begin
-                   closewin:=false;
-                   doevent:=true;
-                   break;
-                 end;
-             end;
-           end;
-       end;
-       HandleEvent(E);
-     until false;
-     SetCompileShow(false);
-   { Handle the Source tracking after the window has shrunk }
-     if doevent then
-       HandleEvent(E);
-   end;
-  EndCompilation:=closewin;
-end;
+end;}
 
 
 procedure TCompilerMessageWindow.HandleEvent(var Event: TEvent);
@@ -424,16 +253,12 @@ begin
   inherited HandleEvent(Event);
 end;
 
+
 procedure TCompilerMessageWindow.Close;
 begin
   Hide;
 end;
 
-procedure TCompilerMessageWindow.Zoom;
-begin
-  SetCompileShow(false);
-  inherited Zoom;
-end;
 
 function TCompilerMessageWindow.GetPalette: PPalette;
 const
@@ -442,189 +267,38 @@ begin
   GetPalette:=@S;
 end;
 
+
 constructor TCompilerMessageWindow.Load(var S: TStream);
 begin
   inherited Load(S);
-
-  S.Read(CompileShowed,SizeOf(CompileShowed));
-  S.Read(Mode,SizeOf(Mode));
   GetSubViewPtr(S,MsgLB);
-  GetSubViewPtr(S,CurrST);
-  GetSubViewPtr(S,InfoST);
-  GetSubViewPtr(S,LineST);
-
-  UpdateInfo;
 end;
+
 
 procedure TCompilerMessageWindow.Store(var S: TStream);
 begin
   if MsgLB^.List=nil then
     MsgLB^.NewList(New(PCollection, Init(100,100)));
   inherited Store(S);
-
-  S.Write(CompileShowed,SizeOf(CompileShowed));
-  S.Write(Mode,SizeOf(Mode));
   PutSubViewPtr(S,MsgLB);
-  PutSubViewPtr(S,CurrST);
-  PutSubViewPtr(S,InfoST);
-  PutSubViewPtr(S,LineST);
 end;
+
 
 destructor TCompilerMessageWindow.Done;
 begin
-  SetCompileShow(false);
   CompilerMessageWindow:=nil;
   inherited Done;
 end;
 
 
 {****************************************************************************
-                               Compiler Hooks
+                          CompilerStatusDialog
 ****************************************************************************}
 
-function CompilerStatus: boolean; {$ifndef FPC}far;{$endif}
-begin
-{ only display every 50 lines }
-  if (status.currentline mod 50=0) then
-  { ^^^ I don't think this is a good idea, since it could eventually
-    come that we don't have a line number for seconds which is a multiple
-    of 50... What was the problem with the GetDosTicks() solution?  - BG }
-   begin
-     { update info messages }
-     if assigned(CompilerMessageWindow) then
-      CompilerMessageWindow^.updateinfo;
-     { update memory usage }
-     HeapView^.Update;
-   end;
-  CompilerStatus:=false;
-end;
-
-
-procedure CompilerStop; {$ifndef FPC}far;{$endif}
-begin
-end;
-
-
-function CompilerComment(Level:Longint; const s:string):boolean; {$ifndef FPC}far;{$endif}
-begin
-{$ifdef TEMPHEAP}
-  switch_to_base_heap;
-{$endif TEMPHEAP}
-  CompilerComment:=false;
-{$ifndef DEV}
-  if (status.verbosity and Level)=Level then
-{$endif}
-   begin
-     CompilerMessageWindow^.AddMessage(Level,S,status.currentsourcepath+status.currentsource,
-       status.currentline,status.currentcolumn);
-   end;
-{$ifdef TEMPHEAP}
-  switch_to_temp_heap;
-{$endif TEMPHEAP}
-end;
-
-
-{****************************************************************************
-                                 DoCompile
-****************************************************************************}
-
-function GetExePath: string;
-var Path: string;
-    I: Sw_integer;
-begin
-  Path:='.'+DirSep;
-  if DirectorySwitches<>nil then
-    with DirectorySwitches^ do
-    for I:=0 to ItemCount-1 do
-      begin
-        if Pos('EXE',KillTilde(ItemName(I)))>0 then
-          begin Path:=GetStringItem(I); Break; end;
-      end;
-  GetExePath:=CompleteDir(FExpand(Path));
-end;
-
-
-procedure DoCompile(Mode: TCompileMode);
-var
-  P: PSourceWindow;
-  FileName: string;
-begin
-{ Get FileName }
-  P:=Message(Desktop,evBroadcast,cmSearchWindow,nil);
-  if (PrimaryFileMain='') and (P=nil) then
-    begin
-      ErrorBox('Oooops, nothing to compile.',nil);
-      Exit;
-    end;
-  if PrimaryFileMain<>'' then
-    FileName:=PrimaryFileMain
-  else
-    begin
-      if P^.Editor^.Modified and (not P^.Editor^.Save) then
-       begin
-         ErrorBox('Can''t compile unsaved file.',nil);
-         Exit;
-       end;
-      FileName:=P^.Editor^.FileName;
-    end;
-  WriteSwitches(SwitchesPath);
-  MainFile:=FixFileName(FExpand(FileName));
-  If GetEXEPath<>'' then
-    EXEFile:=FixFileName(GetEXEPath+NameOf(MainFile)+ExeExt)
-  else
-    EXEFile:=DirOf(MainFile)+NameOf(MainFile)+ExeExt;
-{ Reset }
-  CtrlBreakHit:=false;
-{ Show Compiler Info }
-  if not CompilerMessageWindow^.GetState(sfVisible) then
-   CompilerMessageWindow^.Show;
-  CompilerMessageWindow^.MakeFirst;
-  CompilerMessageWindow^.ClearMessages;
-
-  CompilerMessageWindow^.SetCompileMode(Mode);
-  CompilerMessageWindow^.StartCompilation;
-
-  { hook compiler output }
-  do_status:=CompilerStatus;
-  do_stop:=CompilerStop;
-  do_comment:=CompilerComment;
-
-{$ifdef redircompiler}
-  ChangeRedirOut('fp$$$.out',false);
-  ChangeRedirError('fp$$$.err',false);
-{$endif}
-{$ifdef TEMPHEAP}
-  split_heap;
-  switch_to_temp_heap;
-{$endif TEMPHEAP}
-  Compile(FileName);
-{$ifdef TEMPHEAP}
-  switch_to_base_heap;
-{$endif TEMPHEAP}
-{$ifdef redircompiler}
-  RestoreRedirOut;
-  RestoreRedirError;
-{$endif}
-
-{ endcompilation returns true if the messagewindow should be removed }
-  if CompilerMessageWindow^.EndCompilation then
-   CompilerMessageWindow^.Hide;
-
-  Message(Application,evCommand,cmUpdate,nil);
-{$ifdef TEMPHEAP}
-  releasetempheap;
-  unsplit_heap;
-{$endif TEMPHEAP}
-end;
-
-
-
-{$else OLDCOMP}
-
-constructor TCompileStatusDialog.Init;
+constructor TCompilerStatusDialog.Init;
 var R: TRect;
 begin
-  R.Assign(0,0,50,11+7);
+  R.Assign(0,0,50,11);
   inherited Init(R, 'Compiling');
   GetExtent(R); R.B.Y:=11;
   R.Grow(-3,-2);
@@ -634,17 +308,16 @@ begin
   R.Grow(-1,-1); R.A.Y:=R.B.Y-1;
   New(KeyST, Init(R, '', Blue*16+White+longint($80+Blue*16+White)*256));
   Insert(KeyST);
-  GetExtent(R); R.Grow(-1,-1); R.A.Y:=10;
-  New(MsgLB, Init(R, nil, nil));
-  Insert(MsgLB);
 end;
 
 
-procedure TCompileStatusDialog.Update;
-var StatusS,KeyS: string;
-const CtrlBS = 'Press Ctrl+Break to cancel';
-      SuccessS = 'Compile successful: ~Press Enter~';
-      FailS = 'Compile failed';
+procedure TCompilerStatusDialog.Update;
+const
+  CtrlBS   = 'Press ESC to cancel';
+  SuccessS = 'Compile successful: ~Press Enter~';
+  FailS    = 'Compile failed';
+var
+  StatusS,KeyS: string;
 begin
 {$ifdef TEMPHEAP}
   switch_to_base_heap;
@@ -652,7 +325,7 @@ begin
   case CompilationPhase of
     cpCompiling :
       begin
-        StatusS:='Compiling '+Status.CurrentSource;
+        StatusS:='Compiling '+SmartPath(Status.CurrentSource);
         KeyS:=CtrlBS;
       end;
     cpLinking   :
@@ -686,19 +359,23 @@ begin
 {$endif TEMPHEAP}
 end;
 
+
 {****************************************************************************
                                Compiler Hooks
 ****************************************************************************}
 
 function CompilerStatus: boolean; {$ifndef FPC}far;{$endif}
-var TT: longint;
 begin
-  TT:=GetDosTicks;
-  if abs(TT-LastStatusUpdate)>=round(CompilerStatusUpdateDelay*18.2) then
-    begin
-      LastStatusUpdate:=TT;
-      if SD<>nil then SD^.Update;
-    end;
+{ only display line info every 100 lines, ofcourse all other messages
+  will be displayed directly }
+  if (status.currentline mod 100=0) then
+   begin
+     { update info messages }
+     if assigned(CompilerStatusDialog) then
+      CompilerStatusDialog^.Update;
+     { update memory usage }
+     { HeapView^.Update; }
+   end;
   CompilerStatus:=false;
 end;
 
@@ -718,17 +395,19 @@ begin
   if (status.verbosity and Level)=Level then
 {$endif}
    begin
-     ProgramInfoWindow^.AddMessage(Level,S,status.currentsourcepath+status.currentsource,
+     CompilerMessageWindow^.AddMessage(Level,S,status.currentsourcepath+status.currentsource,
        status.currentline,status.currentcolumn);
-     if SD<>nil then
-     SD^.MsgLB^.AddItem(
-       New(PMessageItem, Init(Level, S, SD^.MsgLB^.AddModuleName(SmartPath(status.currentmodule)),
-         status.currentline,status.currentcolumn)));
+     { update info messages }
+     if assigned(CompilerStatusDialog) then
+      CompilerStatusDialog^.Update;
+     { update memory usage }
+     { HeapView^.Update; }
    end;
 {$ifdef TEMPHEAP}
   switch_to_temp_heap;
 {$endif TEMPHEAP}
 end;
+
 
 {****************************************************************************
                                  DoCompile
@@ -736,7 +415,7 @@ end;
 
 function GetExePath: string;
 var Path: string;
-    I: integer;
+    I: Sw_integer;
 begin
   Path:='.'+DirSep;
   if DirectorySwitches<>nil then
@@ -759,12 +438,10 @@ procedure DoCompile(Mode: TCompileMode);
                  ((E.What=evCommand) and (E.command=cmClose));
   end;
 
-
 var
-  P: PSourceWindow;
+  P : PSourceWindow;
   FileName: string;
-  E: TEvent;
-{  WasVisible: boolean;}
+  E : TEvent;
 begin
 { Get FileName }
   P:=Message(Desktop,evBroadcast,cmSearchWindow,nil);
@@ -792,25 +469,22 @@ begin
     EXEFile:=DirOf(MainFile)+NameOf(MainFile)+ExeExt;
 { Reset }
   CtrlBreakHit:=false;
-{ Show Program Info }
-{  WasVisible:=ProgramInfoWindow^.GetState(sfVisible);
-  ProgramInfoWindow^.LogLB^.Clear;
-  if WasVisible=false then
-    ProgramInfoWindow^.Show;
-  ProgramInfoWindow^.MakeFirst;}
-  if Assigned(ProgramInfoWindow) then
-    ProgramInfoWindow^.ClearMessages;
-
+{ Show Compiler Messages Window }
+  if not CompilerMessageWindow^.GetState(sfVisible) then
+   CompilerMessageWindow^.Show;
+  CompilerMessageWindow^.MakeFirst;
+  CompilerMessageWindow^.ClearMessages;
+{ Create Compiler Status Dialog }
   CompilationPhase:=cpCompiling;
-  New(SD, Init);
-  SD^.SetState(sfModal,true);
-  Application^.Insert(SD);
-  SD^.Update;
-
+  New(CompilerStatusDialog, Init);
+  CompilerStatusDialog^.SetState(sfModal,true);
+  Application^.Insert(CompilerStatusDialog);
+  CompilerStatusDialog^.Update;
+{ hook compiler output }
   do_status:=CompilerStatus;
   do_stop:=CompilerStop;
   do_comment:=CompilerComment;
-
+{ Compile ! }
 {$ifdef redircompiler}
   ChangeRedirOut('fp$$$.out',false);
   ChangeRedirError('fp$$$.err',false);
@@ -827,26 +501,27 @@ begin
   RestoreRedirOut;
   RestoreRedirError;
 {$endif}
-
-  if status.errorCount=0
-     then CompilationPhase:=cpDone
-     else CompilationPhase:=cpFailed;
-  SD^.Update;
-
-  SD^.SetState(sfModal,false);
-
+{ Set end status }
+  if status.errorCount=0 then
+    CompilationPhase:=cpDone
+  else
+    CompilationPhase:=cpFailed;
+{ Show end status }
+  CompilerStatusDialog^.Update;
+  CompilerStatusDialog^.SetState(sfModal,false);
   if ((CompilationPhase in[cpDone,cpFailed]) or (ShowStatusOnError)) and (Mode<>cRun) then
    repeat
-     SD^.GetEvent(E);
+     CompilerStatusDialog^.GetEvent(E);
      if IsExitEvent(E)=false then
-      SD^.HandleEvent(E);
+      CompilerStatusDialog^.HandleEvent(E);
    until IsExitEvent(E);
-
-  Application^.Delete(SD);
-  Dispose(SD, Done); SD:=nil;
-
-{  if (WasVisible=false) and (status.errorcount=0) then
-   ProgramInfoWindow^.Hide;}
+  Application^.Delete(CompilerStatusDialog);
+  Dispose(CompilerStatusDialog, Done);
+  CompilerStatusDialog:=nil;
+{ endcompilation returns true if the messagewindow should be removed }
+  if CompilationPhase=cpDone then
+   CompilerMessageWindow^.Hide;
+{ Update the app }
   Message(Application,evCommand,cmUpdate,nil);
 {$ifdef TEMPHEAP}
   releasetempheap;
@@ -854,21 +529,22 @@ begin
 {$endif TEMPHEAP}
 end;
 
-{$endif}
-
 procedure RegisterFPCompile;
 begin
-{$ifndef OLDCOMP}
   RegisterType(RCompilerMessageListBox);
   RegisterType(RCompilerMessageWindow);
-{$else}
-{$endif}
 end;
+
 
 end.
 {
   $Log$
-  Revision 1.23  1999-04-07 21:55:43  peter
+  Revision 1.24  1999-04-29 09:36:11  peter
+    * fixed hotkeys with Compiler switches
+    * fixed compiler status dialog
+    * Run shows again the output
+
+  Revision 1.23  1999/04/07 21:55:43  peter
     + object support for browser
     * html help fixes
     * more desktop saving things

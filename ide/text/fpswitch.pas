@@ -703,7 +703,7 @@ begin
   with VerboseSwitches^ do
    begin
      AddBooleanItem('~W~arnings','w');
-     AddBooleanItem('~N~otes','n');
+     AddBooleanItem('N~o~tes','n');
      AddBooleanItem('~H~ints','h');
      AddBooleanItem('General ~I~nfo','i');
      AddBooleanItem('~U~sed,tried info','ut');
@@ -722,12 +722,12 @@ begin
   with OptimizingGoalSwitches^ do
     begin
        AddSelectItem('Generate ~f~aster code','G');
-       AddSelectItem('Generate ~s~maller code','g');
+       AddSelectItem('Generate s~m~aller code','g');
     end;
   New(OptimizationSwitches,Init('O'));
   with OptimizationSwitches^ do
    begin
-     AddBooleanItem('Use register-~v~ariables','r');
+     AddBooleanItem('Use regis~t~er-variables','r');
      AddBooleanItem('~U~ncertain optimizations','u');
      AddBooleanItem('Level ~1~ optimizations','1');
      AddBooleanItem('Level ~2~ optimizations','2');
@@ -751,15 +751,15 @@ begin
   New(AsmReaderSwitches,InitSelect('R'));
   with AsmReaderSwitches^ do
    begin
-     AddSelectItem('No preprocessin~g~','direct');
+     AddSelectItem('Di~r~ect assembler','direct');
      AddSelectItem('~A~T&T style assembler','att');
      AddSelectItem('Int~e~l style assembler','intel');
    end;
   New(BrowserSwitches,InitSelect('b'));
   with BrowserSwitches^ do
    begin
-     AddSelectItem('~N~o browser','-');
-     AddSelectItem('Only ~G~lobal browser','+');
+     AddSelectItem('N~o~ browser','-');
+     AddSelectItem('Only Glob~a~l browser','+');
      AddSelectItem('~L~ocal and global browser','l');
    end;
   New(ConditionalSwitches,Init('d'));
@@ -841,7 +841,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.12  1999-03-23 15:11:34  peter
+  Revision 1.13  1999-04-29 09:36:12  peter
+    * fixed hotkeys with Compiler switches
+    * fixed compiler status dialog
+    * Run shows again the output
+
+  Revision 1.12  1999/03/23 15:11:34  peter
     * desktop saving things
     * vesa mode
     * preferences dialog
