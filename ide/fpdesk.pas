@@ -18,7 +18,7 @@ unit FPDesk;
 interface
 
 const
-     MinDesktopVersion  = $0009;
+     MinDesktopVersion  = $000A;
      DesktopVersion     = $000A; { <- if you change any Load&Store methods,
                                       default object properties (Options,State)
                                       then you should also change this }
@@ -966,7 +966,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.4  2002-05-31 12:37:09  pierre
+  Revision 1.5  2002-09-04 14:03:52  pierre
+   * MinDesktopVersion increased because of CodeComplete changes
+
+  Revision 1.4  2002/05/31 12:37:09  pierre
    + register asciitable char
 
   Revision 1.3  2001/10/11 11:38:22  pierre
