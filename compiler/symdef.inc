@@ -1787,8 +1787,8 @@
        begin
        size:=pvarsym(p)^.definition^.size;
        { open arrays made overflows !! }
-       if size=$7ffffff then
-         size:=0;
+       if size>$fffffff then
+         size:=$fffffff;
        newrec := strpnew(p^.name+':'+spec+pvarsym(p)^.definition^.numberstring
                      +','+tostr(pvarsym(p)^.address*8)+','
                      +tostr(size*8)+';');
@@ -3289,7 +3289,10 @@
 
 {
   $Log$
-  Revision 1.89  1999-01-22 17:29:30  pierre
+  Revision 1.90  1999-01-26 09:57:29  pierre
+   * open arrays stabs changed
+
+  Revision 1.89  1999/01/22 17:29:30  pierre
    * overflow in addname for open arrays removed
 
   Revision 1.88  1999/01/20 14:18:39  pierre
