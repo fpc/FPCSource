@@ -528,11 +528,11 @@ begin
   TP:=(@TD^.UnitName+Length(TD^.UnitName)+1);
   Count:=PWord(TP)^;
   // Now point TP to first propinfo record.
-  Inc(Longint(TP),SizeOF(Word));
+  Inc(Pointer(TP),SizeOF(Word));
   While Count>0 do
     begin
       PropList^[0]:=TP;
-      Inc(Longint(PropList),SizeOf(Pointer));
+      Inc(Pointer(PropList),SizeOf(Pointer));
       // Point to TP next propinfo record.
       // Located at Name[Length(Name)+1] !
       TP:=PPropInfo(pointer(@TP^.Name)+PByte(@TP^.Name)^+1);
@@ -788,7 +788,11 @@ end;
 
 Function GetObjectProp(Instance: TObject; PropInfo : PPropInfo; MinClass: TClass): TObject;
 begin
+{$ifdef cpu64}
+  Result:=TObject(GetInt64Prop(Instance,PropInfo));
+{$else cpu64}
   Result:=TObject(GetOrdProp(Instance,PropInfo));
+{$endif cpu64}
   If (MinClass<>Nil) and (Result<>Nil) Then
     If Not Result.InheritsFrom(MinClass) then
       Result:=Nil;
@@ -803,7 +807,11 @@ end;
 
 Procedure SetObjectProp(Instance: TObject; PropInfo : PPropInfo;  Value: TObject);
 begin
+{$ifdef cpu64}
+  SetInt64Prop(Instance,PropInfo,Int64(Value));
+{$else cpu64}
   SetOrdProp(Instance,PropInfo,Integer(Value));
+{$endif cpu64}
 end;
 
 
@@ -1307,7 +1315,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.21  2004-02-20 15:55:26  peter
+  Revision 1.22  2004-02-21 22:53:49  florian
+    * several 64 bit/x86-64 fixes
+
+  Revision 1.21  2004/02/20 15:55:26  peter
     * enable variant again
 
   Revision 1.20  2003/12/24 22:27:13  peter
