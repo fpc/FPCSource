@@ -755,6 +755,11 @@ begin
 end;
 
 procedure TDebugController.Run;
+{$ifdef Unix}
+var
+  Debuggeefile : text;
+  ResetOK, TTYUsed  : boolean;
+{$endif Unix}
 begin
   ResetBreakpointsValues;
 {$ifdef win32}
@@ -769,8 +774,23 @@ begin
   { Run the debuggee in another tty }
   if DebuggeeTTY <> '' then
     begin
-      Command('tty '+DebuggeeTTY);
-      if DebuggeeTTY<>TTYName(stdout) then
+{$I-}
+      Assign(Debuggeefile,DebuggeeTTY);
+      system.Reset(Debuggeefile);
+      ResetOK:=IOResult=0;
+      If ResetOK and IsATTY(textrec(Debuggeefile).handle) then
+        begin
+          Command('tty '+DebuggeeTTY);
+          TTYUsed:=true;
+        end
+      else
+        begin
+          Command('tty ');
+          TTYUsed:=false;
+        end;
+      if ResetOK then
+        close(Debuggeefile);
+      if TTYUsed and (DebuggeeTTY<>TTYName(stdout)) then
         NoSwitch:= true
       else
         NoSwitch:=false;
@@ -4113,7 +4133,10 @@ end.
 
 {
   $Log$
-  Revision 1.20  2002-06-06 14:11:25  pierre
+  Revision 1.21  2002-06-10 19:26:48  pierre
+   * check if DebuggeTTY is a valid terminal
+
+  Revision 1.20  2002/06/06 14:11:25  pierre
    * handle win32 Ctrl-C change for graphic version
 
   Revision 1.19  2002/06/06 08:16:18  pierre
