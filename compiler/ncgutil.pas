@@ -1083,36 +1083,6 @@ implementation
       end;
 
 
-(*
-    Return value is in the localst/parast and will be initialized by the
-    foreach loop (PFV)
-
-    procedure initretvalue(list:taasmoutput);
-      var
-        href    : treference;
-      begin
-        if not is_void(current_procinfo.procdef.rettype.def) then
-          begin
-             { initialize return value }
-             if (current_procinfo.procdef.rettype.def.needs_inittable) then
-               begin
-{$ifdef powerpc}
-                  if (po_assembler in current_procinfo.procdef.procoptions) then
-                    internalerror(200304161);
-{$endif powerpc}
-                  if (cs_implicit_exceptions in aktmoduleswitches) then
-                    include(current_procinfo.flags,pi_needs_implicit_finally);
-                  reference_reset_base(href,current_procinfo.framepointer,tvarsym(current_procinfo.procdef.funcretsym).adjusted_address);
-                  cg.g_initialize(list,current_procinfo.procdef.rettype.def,href,paramanager.ret_in_param(current_procinfo.procdef.rettype.def,current_procinfo.procdef.proccalloption));
-                  { load the pointer to the initialized retvalue in te register }
-                  if (tvarsym(current_procinfo.procdef.funcretsym).reg<>NR_NO) then
-                    cg.a_load_ref_reg(list,OS_ADDR,def_cgsize(current_procinfo.procdef.rettype.def),href,tvarsym(current_procinfo.procdef.funcretsym).reg);
-               end;
-          end;
-      end;
-*)
-
-
     procedure gen_load_return_value(list:TAAsmoutput; var uses_acc,uses_acchi,uses_fpu : boolean);
       var
         ressym : tvarsym;
@@ -1250,11 +1220,6 @@ implementation
             if not (current_procinfo.procdef.proctypeoption=potype_proginit) then
               cg.g_profilecode(list);
           end;
-
-(*
-        { initialize return value }
-        initretvalue(list);
-*)
 
         { initialize local data like ansistrings }
         case current_procinfo.procdef.proctypeoption of
@@ -1457,18 +1422,6 @@ implementation
         else
           if current_procinfo.procdef.proccalloption in savestdregs_pocalls then
             cg.g_save_standard_registers(list,rg.used_in_proc_int);
-
-(*
-        { Save stackpointer value }
-        if not inlined and
-           (current_procinfo.framepointer<>NR_STACK_POINTER_REG) and
-           ((po_savestdregs in current_procinfo.procdef.procoptions) or
-            (po_saveregisters in current_procinfo.procdef.procoptions)) then
-         begin
-           tg.GetTemp(list,POINTER_SIZE,tt_noreuse,current_procinfo.save_stackptr_ref);
-           cg.a_load_reg_ref(list,OS_ADDR,OS_ADDR,NR_STACK_POINTER_REG,current_procinfo.save_stackptr_ref);
-         end;
-*)
       end;
 
 
@@ -1477,18 +1430,6 @@ implementation
         { Pure assembler routines need to save the registers themselves }
         if (po_assembler in current_procinfo.procdef.procoptions) then
           exit;
-
-(*
-        { Restore stackpointer if it was saved }
-        if not inlined and
-           (current_procinfo.framepointer<>NR_STACK_POINTER_REG) and
-           ((po_savestdregs in current_procinfo.procdef.procoptions) or
-            (po_saveregisters in current_procinfo.procdef.procoptions)) then
-         begin
-           cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,current_procinfo.save_stackptr_ref,NR_STACK_POINTER_REG);
-           tg.UngetTemp(list,current_procinfo.save_stackptr_ref);
-         end;
-*)
 
         { for the save all registers we can simply use a pusha,popa which
           push edi,esi,ebp,esp(ignored),ebx,edx,ecx,eax }
@@ -1824,7 +1765,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.142  2003-09-11 11:54:59  florian
+  Revision 1.143  2003-09-14 19:18:10  peter
+    * remove obsolete code already in comments
+
+  Revision 1.142  2003/09/11 11:54:59  florian
     * improved arm code generation
     * move some protected and private field around
     * the temp. register for register parameters/arguments are now released

@@ -725,13 +725,6 @@ implementation
         gen_exit_code(templist,false,usesacc,usesacchi);
         aktproccode.concatlist(templist);
 
-(*
-        { now all the registers used are known }
-        { Remove all imaginary registers from the used list.}
-        procdef.usedintregisters:=rg.used_in_proc_int*paramanager.get_volatile_registers_int(pocall_default)-rg.preserved_by_proc_int;
-        procdef.usedotherregisters:=rg.used_in_proc_other;
-*)
-
         { save local data (casetable) also in the same file }
         if assigned(aktlocaldata) and
            (not aktlocaldata.empty) then
@@ -1309,7 +1302,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.147  2003-09-14 12:58:00  peter
+  Revision 1.148  2003-09-14 19:18:10  peter
+    * remove obsolete code already in comments
+
+  Revision 1.147  2003/09/14 12:58:00  peter
     * support mulitple overloads in implementation, this is delphi
       compatible
     * procsym only stores the overloads available in the interface

@@ -376,36 +376,6 @@ implementation
            current_procinfo.firsttemp_offset := tg.direction*symtablestack.datasize
          else
            current_procinfo.firsttemp_offset := 0;
-(*
-         THe registers are also allocated when loading the result
-
-         { include return value registers }
-         if not is_void(procdef.rettype.def) then
-           begin
-             paramloc:=procdef.funcret_paraloc[calleeside];
-             case paramloc.loc of
-               LOC_FPUREGISTER,
-               LOC_CFPUREGISTER,
-               LOC_MMREGISTER,
-               LOC_CMMREGISTER :
-                 begin
-                   regidx:=findreg_by_number(paramloc.register);
-                   include(used_regs_fpu,regidx);
-                 end;
-               LOC_REGISTER,LOC_CREGISTER :
-                 begin
-                   if ((paramloc.size in [OS_S64,OS_64]) and
-                      (sizeof(aword) < 8)) then
-                     begin
-                       include(used_regs_int,getsupreg(paramloc.registerhigh));
-                       include(used_regs_fpu,getsupreg(paramloc.registerlow));
-                     end
-                   else
-                     include(used_regs_fpu,getsupreg(paramloc.register));
-                 end;
-             end;
-           end;
-*)
       end;
 
 
@@ -576,7 +546,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.62  2003-09-07 22:09:34  peter
+  Revision 1.63  2003-09-14 19:18:10  peter
+    * remove obsolete code already in comments
+
+  Revision 1.62  2003/09/07 22:09:34  peter
     * preparations for different default calling conventions
     * various RA fixes
 
