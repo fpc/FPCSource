@@ -84,6 +84,7 @@ interface
 
        TSearchPathList = class(TStringList)
          procedure AddPath(s:string;addfirst:boolean);
+         procedure AddPath(SrcPath,s:string;addfirst:boolean);
          procedure AddList(list:TSearchPathList;addfirst:boolean);
          function  FindFile(const f : string;var foundfile:string):boolean;
        end;
@@ -742,9 +743,12 @@ implementation
         end;
      end;
 
+  procedure TSearchPathList.AddPath(s:string;addfirst:boolean);
+    begin
+      AddPath('',s,AddFirst);
+    end;
 
-
-   procedure TSearchPathList.AddPath(s:string;addfirst:boolean);
+   procedure TSearchPathList.AddPath(SrcPath,s:string;addfirst:boolean);
      var
        j        : longint;
        hs,hsd,
@@ -795,7 +799,7 @@ implementation
             j:=Pos(';',s);
             if j=0 then
              j:=255;
-            CurrPath:=FixPath(Copy(s,1,j-1),false);
+            CurrPath:=SrcPath+FixPath(Copy(s,1,j-1),false);
             System.Delete(s,1,j);
           end;
          { fix pathname }
@@ -1512,7 +1516,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.70  2002-11-16 14:49:12  carl
+  Revision 1.71  2002-11-20 10:11:46  mazen
+  + TSearchPathList.AddPath supports a local path in addition to file name
+
+  Revision 1.70  2002/11/16 14:49:12  carl
     - browser information is off by default
 
   Revision 1.69  2002/11/15 01:58:47  peter
