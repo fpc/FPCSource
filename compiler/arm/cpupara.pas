@@ -180,13 +180,11 @@ unit cpupara;
       procedure assignintreg;
 
         begin
-           if nextintreg.number<=NR_R10 then
+           if nextintreg.number<=NR_R3 then
              begin
                 paraloc.loc:=LOC_REGISTER;
                 paraloc.register:=nextintreg;
                 inc(nextintreg.number,NR_R1-NR_R0);
-                if target_info.abi=abi_powerpc_aix then
-                  inc(stack_offset,4);
              end
            else
               begin
@@ -236,27 +234,20 @@ unit cpupara;
                       if paraloc.size = OS_NO then
                         paraloc.size := OS_ADDR;
                       is_64bit := paraloc.size in [OS_64,OS_S64];
-                      if nextintreg.number<=(NR_R10-ord(is_64bit)*(NR_R1-NR_R0))  then
+                      if nextintreg.number<=(NR_R3-ord(is_64bit)*(NR_R1-NR_R0))  then
                         begin
                            paraloc.loc:=LOC_REGISTER;
 		           if is_64bit then
                              begin
-			       if odd((nextintreg.number-NR_R3) shr 8) and (target_info.abi=abi_powerpc_sysv) Then
-                                inc(nextintreg.number,NR_R1-NR_R0);
                                paraloc.registerhigh:=nextintreg;
                                inc(nextintreg.number,NR_R1-NR_R0);
-                               if target_info.abi=abi_powerpc_aix then
-                                 inc(stack_offset,4);
                              end;
                            paraloc.registerlow:=nextintreg;
                            inc(nextintreg.number,NR_R1-NR_R0);
-                           if target_info.abi=abi_powerpc_aix then
-                             inc(stack_offset,4);
-
                         end
                       else
                          begin
-                            nextintreg.number := NR_R11;
+                            nextintreg.number := NR_R4;
                             paraloc.loc:=LOC_REFERENCE;
                             paraloc.reference.index.enum:=R_INTREGISTER;
                             paraloc.reference.index.number:=NR_STACK_POINTER_REG;
@@ -270,7 +261,7 @@ unit cpupara;
                  LOC_FPUREGISTER:
                    begin
                       paraloc.size:=def_cgsize(paradef);
-                      if nextfloatreg.enum<=R_F10 then
+                      if nextfloatreg.enum<=R_F3 then
                         begin
                            paraloc.loc:=LOC_FPUREGISTER;
                            paraloc.register:=nextfloatreg;
@@ -349,7 +340,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2003-08-16 13:23:01  florian
+  Revision 1.3  2003-08-27 00:27:56  florian
+    + same procedure as very day: today's work on arm
+
+  Revision 1.2  2003/08/16 13:23:01  florian
     * several arm related stuff fixed
 
   Revision 1.1  2003/07/21 16:35:30  florian

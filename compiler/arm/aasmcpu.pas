@@ -39,6 +39,7 @@ uses
 
     type
       taicpu = class(taicpu_abstract)
+         oppostfix : TOpPostfix;
          roundingmode : troundingmode;
          procedure loadshifterop(opidx:longint;const so:tshifterop);
          constructor op_none(op : tasmop);
@@ -741,7 +742,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  2003-08-25 23:20:38  florian
+  Revision 1.5  2003-08-27 00:27:56  florian
+    + same procedure as very day: today's work on arm
+
+  Revision 1.4  2003/08/25 23:20:38  florian
     + started to implement FPU support for the ARM
     * fixed a lot of other things
 
