@@ -43,7 +43,12 @@ unit ptconst;
        { processor specific stuff }
        cpubase,
        { codegen }
-       hcodegen,hcgdata;
+{$ifdef newcg}
+       cgbase,
+{$else}
+       hcodegen,
+{$endif}
+       hcgdata;
 
 
     { this procedure reads typed constants }
@@ -740,7 +745,10 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.53  1999-09-26 21:30:20  peter
+  Revision 1.54  1999-10-14 14:57:54  florian
+    - removed the hcodegen use in the new cg, use cgbase instead
+
+  Revision 1.53  1999/09/26 21:30:20  peter
     + constant pointer support which can happend with typecasting like
       const p=pointer(1)
     * better procvar parsing in typed consts

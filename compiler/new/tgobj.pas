@@ -30,7 +30,7 @@ unit tgobj;
       cpuinfo,
       cpuasm,
       tainst,
-      cobjects,globals,tree,hcodegen,verbose,files,aasm;
+      cobjects,globals,tree,cgbase,verbose,files,aasm;
 
     type
        tregisterset = set of tregister;
@@ -692,7 +692,10 @@ unit tgobj;
 end.
 {
   $Log$
-  Revision 1.7  1999-10-12 21:20:47  florian
+  Revision 1.8  1999-10-14 14:57:54  florian
+    - removed the hcodegen use in the new cg, use cgbase instead
+
+  Revision 1.7  1999/10/12 21:20:47  florian
     * new codegenerator compiles again
 
   Revision 1.6  1999/09/10 18:48:11  florian

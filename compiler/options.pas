@@ -1058,10 +1058,13 @@ begin
   def_symbol('CPU68');
 {$endif}
 {$ifdef ALPHA}
-  def_symbol('ALPHA');
+  def_symbol('CPUALPHA');
 {$endif}
 {$ifdef powerpc}
-  def_symbol('POWERPC');
+  def_symbol('CPUPOWERPC');
+{$endif}
+{$ifdef m68k}
+  def_symbol('CPU68K');
 {$endif}
 
 { get default messagefile }
@@ -1230,7 +1233,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.25  1999-10-13 10:24:49  peter
+  Revision 1.26  1999-10-14 14:57:52  florian
+    - removed the hcodegen use in the new cg, use cgbase instead
+
+  Revision 1.25  1999/10/13 10:24:49  peter
     * dpmi can only be set after reading the options
 
   Revision 1.24  1999/10/03 19:44:41  peter

@@ -22,6 +22,12 @@
 }
 unit hcodegen;
 
+{$ifdef newcg}
+interface
+
+implementation
+{$else newcg}
+
   interface
 
     uses
@@ -363,12 +369,15 @@ implementation
          address:=a;
          typ:=p;
       end;
-
+{$endif newcg}
 end.
 
 {
   $Log$
-  Revision 1.44  1999-10-13 10:42:15  peter
+  Revision 1.45  1999-10-14 14:57:52  florian
+    - removed the hcodegen use in the new cg, use cgbase instead
+
+  Revision 1.44  1999/10/13 10:42:15  peter
     * cgmessagepos functions
 
   Revision 1.43  1999/09/27 23:44:51  peter

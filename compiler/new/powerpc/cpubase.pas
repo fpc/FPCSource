@@ -284,6 +284,7 @@ type
      symaddr     : trefsymaddr;
      offsetfixup : longint;
      options     : trefoptions;
+     alignment   : byte;
   end;
 
 const symaddr2str: array[trefsymaddr] of string[3] = ('','@ha','@l');
@@ -548,7 +549,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  1999-09-15 20:35:47  florian
+  Revision 1.8  1999-10-14 14:57:55  florian
+    - removed the hcodegen use in the new cg, use cgbase instead
+
+  Revision 1.7  1999/09/15 20:35:47  florian
     * small fix to operator overloading when in MMX mode
     + the compiler uses now fldz and fld1 if possible
     + some fixes to floating point registers

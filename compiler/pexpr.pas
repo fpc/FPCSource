@@ -49,7 +49,12 @@ unit pexpr;
        globtype,systems,tokens,
        cobjects,globals,scanner,
        symconst,aasm,
-       hcodegen,types,verbose,strings,
+{$ifdef newcg}
+       cgbase,
+{$else}
+       hcodegen,
+{$endif}
+       types,verbose,strings,
 {$ifndef newcg}
        tccal,
 {$endif newcg}
@@ -2108,7 +2113,10 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.147  1999-09-28 11:03:54  peter
+  Revision 1.148  1999-10-14 14:57:52  florian
+    - removed the hcodegen use in the new cg, use cgbase instead
+
+  Revision 1.147  1999/09/28 11:03:54  peter
     * fixed result access in 'if result = XXX then'
     * fixed const cr=chr(13)
 

@@ -59,7 +59,8 @@ unit cgbase;
           retdef : pdef;
           { return type }
           sym : pprocsym;
-          { symbol of the function }
+          { symbol of the function, and the sym for result variable }
+          resultfuncretsym,
           funcretsym : pfuncretsym;
           { the definition of the proc itself }
           { why was this a pdef only ?? PM    }
@@ -427,7 +428,10 @@ unit cgbase;
 end.
 {
   $Log$
-  Revision 1.10  1999-10-12 21:20:46  florian
+  Revision 1.11  1999-10-14 14:57:54  florian
+    - removed the hcodegen use in the new cg, use cgbase instead
+
+  Revision 1.10  1999/10/12 21:20:46  florian
     * new codegenerator compiles again
 
   Revision 1.9  1999/09/10 18:48:11  florian

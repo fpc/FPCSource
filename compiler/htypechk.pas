@@ -61,7 +61,12 @@ implementation
        cobjects,verbose,globals,
        symconst,
        types,
-       hcodegen;
+{$ifdef newcg}
+       cgbase
+{$else}
+       hcodegen
+{$endif}
+       ;
 
 {****************************************************************************
                              Convert
@@ -714,7 +719,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.40  1999-09-26 21:30:15  peter
+  Revision 1.41  1999-10-14 14:57:52  florian
+    - removed the hcodegen use in the new cg, use cgbase instead
+
+  Revision 1.40  1999/09/26 21:30:15  peter
     + constant pointer support which can happend with typecasting like
       const p=pointer(1)
     * better procvar parsing in typed consts

@@ -1653,7 +1653,7 @@ Begin
   RefInSequence := TmpResult
 End;
 
-Function ArrayRefsEq(const r1, r2: TReference): Boolean;
+Function ArrayRefsEq(const r1, r2: TReference): Boolean;{$ifdef tp}far;{$endif}
 Begin
   ArrayRefsEq := (R1.Offset+R1.OffsetFixup = R2.Offset+R2.OffsetFixup) And
                  (R1.Segment = R2.Segment) And
@@ -2385,7 +2385,10 @@ End.
 
 {
  $Log$
- Revision 1.62  1999-10-07 16:07:35  jonas
+ Revision 1.63  1999-10-14 14:57:52  florian
+   - removed the hcodegen use in the new cg, use cgbase instead
+
+ Revision 1.62  1999/10/07 16:07:35  jonas
    * small bugfix in ArrayRefsEq
 
  Revision 1.61  1999/09/29 13:49:53  jonas

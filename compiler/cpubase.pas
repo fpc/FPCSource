@@ -693,6 +693,9 @@ type
      symbol      : pasmsymbol;
      offsetfixup : longint;
      options     : trefoptions;
+{$ifdef newcg}
+     alignment   : byte;+
+{$endif newcg}
   end;
 
 {*****************************************************************************
@@ -1091,7 +1094,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.13  1999-09-15 20:35:39  florian
+  Revision 1.14  1999-10-14 14:57:51  florian
+    - removed the hcodegen use in the new cg, use cgbase instead
+
+  Revision 1.13  1999/09/15 20:35:39  florian
     * small fix to operator overloading when in MMX mode
     + the compiler uses now fldz and fld1 if possible
     + some fixes to floating point registers

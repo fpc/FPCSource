@@ -41,7 +41,13 @@ unit pstatmnt;
     uses
        globtype,systems,tokens,
        strings,cobjects,globals,files,verbose,
-       symconst,symtable,aasm,pass_1,types,scanner,hcodegen,ppu
+       symconst,symtable,aasm,pass_1,types,scanner,
+{$ifdef newcg}
+       cgbase,
+{$else}
+       hcodegen,
+{$endif}
+       ppu
        ,pbase,pexpr,pdecl,cpubase,cpuasm
 {$ifdef i386}
        ,tgeni386
@@ -1318,7 +1324,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.103  1999-09-27 23:44:56  peter
+  Revision 1.104  1999-10-14 14:57:54  florian
+    - removed the hcodegen use in the new cg, use cgbase instead
+
+  Revision 1.103  1999/09/27 23:44:56  peter
     * procinfo is now a pointer
     * support for result setting in sub procedure
 

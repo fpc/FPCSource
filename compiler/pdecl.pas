@@ -69,7 +69,13 @@ unit pdecl;
        ,pbase,ptconst,pexpr,psub,pexports
        { processor specific stuff }
        { codegen }
-       ,hcodegen,hcgdata
+{$ifdef newcg}
+       ,cgbase
+{$else}
+       ,hcodegen
+{$endif}
+
+       ,hcgdata
        ;
 
     const
@@ -2611,7 +2617,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.163  1999-10-06 17:39:14  peter
+  Revision 1.164  1999-10-14 14:57:52  florian
+    - removed the hcodegen use in the new cg, use cgbase instead
+
+  Revision 1.163  1999/10/06 17:39:14  peter
     * fixed stabs writting for forward types
 
   Revision 1.162  1999/10/03 19:44:42  peter

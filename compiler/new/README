@@ -1,3 +1,12 @@
+$Id$
+
+History
+-------
+
+13th oct 1999              remark about alignment added (FK)
+
+CVS Log see at the end of that file
+
 frame_pointer              contains the register used as frame pointer
 stack_pointer              contains the register used as stack pointer
 self_pointer               contains the register used as self pointer
@@ -47,7 +56,7 @@ and only important for the i386/m68k probably.
 > of any procedure called by the current one (the caller must reserve space
 > for the callee's parameters on it's own stack because you can't push
 > values on the stack in the middle of a procedure (no frame pointer))
-> 
+>
 > Jonas
 
 the parameter passed to g_stackframe_entry contains the size of the all local space which is
@@ -58,5 +67,23 @@ I'll commit it soon) will contain
 all registers which must be saved by the entry and restored by the exit code of a procedure
 and you have to add extra space to do that.
 
+
+
+Alignment
+---------
+
+The alignment is handled very easily: treference contains a field
+alignment which describes the ensured alignment for the node, possible
+values: 1,2,4,8,16 (1 means unligned). The code generator must update
+that field at the appropriate places and take care of it when
+generating the code
+
+
+CVS Log
+-------
+
+$Log$
+Revision 1.4  1999-10-14 14:57:54  florian
+  - removed the hcodegen use in the new cg, use cgbase instead
 
 
