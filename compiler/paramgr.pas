@@ -81,6 +81,7 @@ unit paramgr;
     uses
        cpuinfo,
        symconst,symbase,symsym,
+       rgobj,
        defbase;
 
     { true if the return value is in accumulator (EAX for i386), D0 for 68k }
@@ -154,10 +155,14 @@ unit paramgr;
          hp:=tparaitem(p.para.first);
          while assigned(hp) do
            begin
-              if (hp.paraloc.loc in [LOC_REGISTER,LOC_FPUREGISTER]) and
+              if (hp.paraloc.loc in [LOC_REGISTER,LOC_FPUREGISTER,LOC_MMREGISTER]) and
               { if the parameter isn't regable, we've to work with the local copy }
-                (vo_regable in tvarsym(hp.parasym).varoptions) then
-                tvarsym(hp.parasym).reg:=hp.paraloc.register;
+                ((vo_regable in tvarsym(hp.parasym).varoptions) or
+                 (vo_fpuregable in tvarsym(hp.parasym).varoptions)) then
+                begin
+                   tvarsym(hp.parasym).reg:=hp.paraloc.register;
+                   rg.regvar_loaded[hp.paraloc.register]:=true;
+                end;
               hp:=tparaitem(hp.next);
            end;
       end;
@@ -168,7 +173,10 @@ end.
 
 {
    $Log$
-   Revision 1.7  2002-08-05 18:27:48  carl
+   Revision 1.8  2002-08-06 20:55:21  florian
+     * first part of ppc calling conventions fix
+
+   Revision 1.7  2002/08/05 18:27:48  carl
      + more more more documentation
      + first version include/exclude (can't test though, not enough scratch for i386 :()...
 

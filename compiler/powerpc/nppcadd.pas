@@ -1302,7 +1302,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2002-08-05 08:58:54  jonas
+  Revision 1.6  2002-08-06 20:55:24  florian
+    * first part of ppc calling conventions fix
+
+  Revision 1.5  2002/08/05 08:58:54  jonas
     * fixed compilation problems
 
   Revision 1.4  2002/08/04 12:57:56  jonas
@@ -1319,6 +1322,4 @@ end.
   Revision 1.1  2002/07/26 12:31:57  jonas
     + intial implementation of add nodes, only integer/enumeration/pointer/...
       handling is finished
-
-
 }

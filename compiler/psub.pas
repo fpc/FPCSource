@@ -285,6 +285,7 @@ implementation
          { reset the temporary memory }
          rg.cleartempgen;
          rg.usedinproc:=[];
+         rg.usedbyproc:=[];
 
          { save entry info }
          entrypos:=aktfilepos;
@@ -831,7 +832,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.62  2002-07-26 21:15:41  florian
+  Revision 1.63  2002-08-06 20:55:22  florian
+    * first part of ppc calling conventions fix
+
+  Revision 1.62  2002/07/26 21:15:41  florian
     * rewrote the system handling
 
   Revision 1.61  2002/07/20 11:57:56  florian

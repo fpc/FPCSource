@@ -62,7 +62,7 @@ unit cgbase;
     type
        {# This object gives information on the current routine being
           compiled.
-       }   
+       }
        pprocinfo = ^tprocinfo;
        tprocinfo = object
           {# pointer to parent in nested procedures }
@@ -85,7 +85,7 @@ unit cgbase;
           para_offset : longint;
 
           {# some collected informations about the procedure
-             see pi_xxxx constants above                               
+             see pi_xxxx constants above
           }
           flags : longint;
 
@@ -100,33 +100,40 @@ unit cgbase;
 
           {# true, if we can not use fast exit code }
           no_fast_exit : boolean;
-          
-          {# Holds the environment reference for default exceptions 
-             
+
+          {# Holds the environment reference for default exceptions
+
              The exception reference is created when ansistrings
              or classes are used. It holds buffer for exception
              frames. It is allocted by g_new_exception.
           }
           exception_env_ref : treference;
-          {# Holds the environment reference for default exceptions 
-             
+          {# Holds the environment reference for default exceptions
+
              The exception reference is created when ansistrings
              or classes are used. It holds buffer for setjmp
              It is allocted by g_new_exception.
           }
           exception_jmp_ref :treference;
-          {# Holds the environment reference for default exceptions 
-             
+          {# Holds the environment reference for default exceptions
+
              The exception reference is created when ansistrings
              or classes are used. It holds the location where
              temporary storage of the setjmp result is stored.
-             
+
              This reference can be unused, if the result is instead
              saved on the stack.
           }
           exception_result_ref :treference;
+
+          { overall size of allocated stack space, currently this is used for the PowerPC only }
+          localsize : aword;
+
+          { max. of space need for parameters, currently used by the PowerPC port only }
+          maxpushedparasize : aword;
+
           {# Holds the reference used to store alll saved registers.
-          
+
              This is used on systems which do not have direct stack
              operations (such as the PowerPC), it is unused on other
              systems
@@ -134,7 +141,7 @@ unit cgbase;
           save_regs_ref : treference;
           {# The code for the routine itself, excluding entry and
              exit code. This is a linked list of tai classes.
-          }   
+          }
           aktproccode : taasmoutput;
           {# The code for the routine entry code.
           }
@@ -143,6 +150,7 @@ unit cgbase;
           }
           aktexitcode: taasmoutput;
           aktlocaldata : taasmoutput;
+
           constructor init;
           destructor done;
        end;
@@ -208,7 +216,7 @@ unit cgbase;
     function def_cgsize(def: tdef): tcgsize;
     {# From a constant numeric value, return the abstract code generator
        size.
-    }   
+    }
     function int_cgsize(const l: aword): tcgsize;
 
     {# return the inverse condition of opcmp }
@@ -357,6 +365,8 @@ implementation
         globalsymbol:=false;
         exported:=false;
         no_fast_exit:=false;
+        maxpushedparasize:=0;
+        localsize:=0;
 
         aktentrycode:=Taasmoutput.Create;
         aktexitcode:=Taasmoutput.Create;
@@ -580,7 +590,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.21  2002-08-05 18:27:48  carl
+  Revision 1.22  2002-08-06 20:55:20  florian
+    * first part of ppc calling conventions fix
+
+  Revision 1.21  2002/08/05 18:27:48  carl
     + more more more documentation
     + first version include/exclude (can't test though, not enough scratch for i386 :()...
 

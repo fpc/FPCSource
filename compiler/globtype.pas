@@ -101,7 +101,7 @@ interface
          cs_profile,cs_debuginfo,cs_browser,cs_local_browser,cs_compilesystem,
          cs_lineinfo,
          { linking }
-         cs_create_smart,cs_create_dynamic
+         cs_create_smart,cs_create_dynamic,cs_create_pic
        );
        tmoduleswitches = set of tmoduleswitch;
 
@@ -255,7 +255,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.28  2002-07-04 20:43:00  florian
+  Revision 1.29  2002-08-06 20:55:20  florian
+    * first part of ppc calling conventions fix
+
+  Revision 1.28  2002/07/04 20:43:00  florian
     * first x86-64 patches
 
   Revision 1.27  2002/07/01 18:46:22  peter

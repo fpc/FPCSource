@@ -1123,6 +1123,8 @@ implementation
               list.concat(Tai_symbol.Createname(hs,0));
            until false;
 
+{$ifdef i386}
+           { at least for the ppc this applies always, so this code isn't usable (FK) }
            { omit stack frame ? }
            if (procinfo^.framepointer=STACK_POINTER_REG) then
             begin
@@ -1136,6 +1138,7 @@ implementation
                 cg.a_op_const_reg(list,OP_SUB,stackframe,procinfo^.framepointer);
             end
            else
+{$endif i386}
             begin
               nostackframe:=false;
               if (aktprocdef.proctypeoption in [potype_unitinit,potype_proginit,potype_unitfinalize]) then
@@ -1626,7 +1629,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.29  2002-08-04 19:09:22  carl
+  Revision 1.30  2002-08-06 20:55:21  florian
+    * first part of ppc calling conventions fix
+
+  Revision 1.29  2002/08/04 19:09:22  carl
     + added generic exception support (still does not work!)
     + more documentation
 

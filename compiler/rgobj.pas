@@ -51,12 +51,12 @@ unit rgobj;
 
        tpushedsaved = array[firstreg..lastreg] of tpushedsavedloc;
 
-       {# 
+       {#
           This class implements the abstract register allocator
           It is used by the code generator to allocate and free
           registers which might be valid across nodes. It also
           contains utility routines related to registers.
-          
+
           Some of the methods in this class should be overriden
           by cpu-specific implementations.
        }
@@ -77,6 +77,10 @@ unit rgobj;
           countusableregsfpu,
           countusableregsmm : byte;
 
+          { Contains the registers which are really used by the proc itself.
+            It doesn't take care of registers used by called procedures
+          }
+          usedbyproc,
           usedinproc : tregisterset;
 
           reg_pushes : regvar_longintarray;
@@ -89,27 +93,27 @@ unit rgobj;
 
           constructor create;
 
-          {# Allocate a general purpose register 
-             
+          {# Allocate a general purpose register
+
              An internalerror will be generated if there
              is no more free registers which can be allocated
           }
           function getregisterint(list: taasmoutput) : tregister; virtual;
           {# Free a general purpose register
-          
+
              @param(r register to free)
 
           }
           procedure ungetregisterint(list: taasmoutput; r : tregister); virtual;
 
-          {# Allocate a floating point register 
+          {# Allocate a floating point register
 
              An internalerror will be generated if there
              is no more free registers which can be allocated
           }
           function getregisterfpu(list: taasmoutput) : tregister; virtual;
-          {# Free a floating point register 
-          
+          {# Free a floating point register
+
              @param(r register to free)
 
           }
@@ -118,8 +122,8 @@ unit rgobj;
           function getregistermm(list: taasmoutput) : tregister; virtual;
           procedure ungetregistermm(list: taasmoutput; r : tregister); virtual;
 
-          {# Allocate an address register. 
-          
+          {# Allocate an address register.
+
              Address registers are the only registers which can
              be used as a base register in references (treference).
              On most cpu's this is the same as a general purpose
@@ -133,18 +137,18 @@ unit rgobj;
           {# Verify if the specified register is an address or
              general purpose register. Returns TRUE if @var(reg)
              is an adress register.
-             
-             This routine should only be used to check on 
+
+             This routine should only be used to check on
              general purpose or address register. It will
              not work on multimedia or floating point
              registers
-             
+
              @param(reg register to verify)
-          }   
+          }
           function isaddressregister(reg: tregister): boolean; virtual;
 
-          {# Tries to allocate the passed register, if possible 
-          
+          {# Tries to allocate the passed register, if possible
+
              @param(r specific register to allocate)
           }
           function getexplicitregisterint(list: taasmoutput; r : tregister) : tregister;virtual;
@@ -156,7 +160,7 @@ unit rgobj;
              in the specified reference. On most systems,
              this will free the base and index registers
              of the specified reference.
-             
+
              @param(ref reference which must have its registers freed)
           }
           procedure ungetreference(list: taasmoutput; const ref : treference); virtual;
@@ -174,10 +178,10 @@ unit rgobj;
           {# Saves in temporary references (allocated via the temp. allocator)
              the registers defined in @var(s). The registers are only saved
              if they are currently in use, otherwise they are left as is.
-             
+
              On processors which have instructions which manipulate the stack,
              this routine should be overriden for performance reasons.
-             
+
              @param(list)   List to add the instruction to
              @param(saved)  Array of saved register information
              @param(s)      Registers which might require saving
@@ -186,7 +190,7 @@ unit rgobj;
             var saved : tpushedsaved;const s: tregisterset);virtual;
           {# Restores the registers which were saved with a call
              to @var(saveusedregisters).
-             
+
              On processors which have instructions which manipulate the stack,
              this routine should be overriden for performance reasons.
           }
@@ -223,7 +227,7 @@ unit rgobj;
        end;
 
      const
-       {# This value is used in tsaved. If the array value is equal 
+       {# This value is used in tsaved. If the array value is equal
           to this, then this means that this register is not used.
        }
        reg_not_saved = $7fffffff;
@@ -233,7 +237,7 @@ unit rgobj;
        rg: trgobj;
 
      { trerefence handling }
-     
+
      {# Clear to zero a treference }
      procedure reference_reset(var ref : treference);
      {# Clear to zero a treference, and set is base address
@@ -270,6 +274,8 @@ unit rgobj;
         countusableregsint,
         countusableregsfpu,
         countusableregsmm : byte;
+        { contains the registers which are really used by the proc itself }
+        usedbyproc,
         usedinproc : tregisterset;
         reg_pushes : regvar_longintarray;
         is_reg_var : regvar_booleanarray;
@@ -296,6 +302,7 @@ unit rgobj;
 
      begin
        usedinproc := [];
+       usedbyproc:=[];
        t_times := 0;
        resetusableregisters;
 {$ifdef TEMPREGDEBUG}
@@ -316,6 +323,7 @@ unit rgobj;
                 begin
                    exclude(unusedregs,i);
                    include(usedinproc,i);
+                   include(usedbyproc,i);
                    dec(countunusedregs);
                    list.concat(tai_regalloc.alloc(i));
                    result := i;
@@ -399,6 +407,7 @@ unit rgobj;
 {$endif TEMPREGDEBUG}
               exclude(unusedregsint,r);
               include(usedinproc,r);
+              include(usedbyproc,r);
               list.concat(tai_regalloc.alloc(r));
               getexplicitregisterint:=r;
 {$ifdef TEMPREGDEBUG}
@@ -783,6 +792,7 @@ unit rgobj;
         psavedstate(state)^.countusableregsfpu := countusableregsfpu;
         psavedstate(state)^.countusableregsmm := countusableregsmm;
         psavedstate(state)^.usedinproc := usedinproc;
+        psavedstate(state)^.usedbyproc := usedbyproc;
         psavedstate(state)^.reg_pushes := reg_pushes;
         psavedstate(state)^.is_reg_var := is_reg_var;
         psavedstate(state)^.regvar_loaded := regvar_loaded;
@@ -808,6 +818,7 @@ unit rgobj;
         countusableregsfpu := psavedstate(state)^.countusableregsfpu;
         countusableregsmm := psavedstate(state)^.countusableregsmm;
         usedinproc := psavedstate(state)^.usedinproc;
+        usedbyproc := psavedstate(state)^.usedbyproc;
         reg_pushes := psavedstate(state)^.reg_pushes;
         is_reg_var := psavedstate(state)^.is_reg_var;
         regvar_loaded := psavedstate(state)^.regvar_loaded;
@@ -942,7 +953,10 @@ end.
 
 {
   $Log$
-  Revision 1.15  2002-08-05 18:27:48  carl
+  Revision 1.16  2002-08-06 20:55:23  florian
+    * first part of ppc calling conventions fix
+
+  Revision 1.15  2002/08/05 18:27:48  carl
     + more more more documentation
     + first version include/exclude (can't test though, not enough scratch for i386 :()...
 

@@ -214,20 +214,22 @@ const
         tmpreg: tregister;
 
       begin
-  {$ifdef para_sizes_known}
-        if (nr <= max_param_regs_int) then
-          a_loadaddr_ref_reg(list,size,r,param_regs_int[nr])
-        else
-          begin
-            reset_reference(ref);
-            ref.base := STACK_POINTER_REG;
-            ref.offset := LinkageAreaSize+para_size_till_now;
-            tmpreg := get_scratch_reg_address(list);
-            a_loadaddr_ref_reg(list,size,r,tmpreg);
-            a_load_reg_ref(list,size,tmpreg,ref);
-            free_scratch_reg(list,tmpreg);
-          end;
-  {$endif para_sizes_known}
+         case locpara.loc of
+            LOC_REGISTER:
+              a_loadaddr_ref_reg(list,r,locpara.register);
+            LOC_REFERENCE:
+              begin
+                reference_reset(ref);
+                ref.base := locpara.reference.index;
+                ref.offset := locpara.reference.offset;
+                tmpreg := get_scratch_reg_address(list);
+                a_loadaddr_ref_reg(list,r,tmpreg);
+                a_load_reg_ref(list,OS_ADDR,tmpreg,ref);
+                free_scratch_reg(list,tmpreg);
+              end;
+            else
+              internalerror(2002080701);
+         end;
       end;
 
     { calling a code fragment by name }
@@ -243,12 +245,14 @@ const
          list.concat(taicpu.op_sym(A_BL,newasmsymbol(s)));
          reference_reset_base(href,STACK_POINTER_REG,LA_RTOC);
          list.concat(taicpu.op_reg_ref(A_LWZ,R_TOC,href));
+         procinfo^.flags:=procinfo^.flags or pi_do_call;
       end;
 
     { calling a code fragment through a reference }
     procedure tcgppc.a_call_ref(list : taasmoutput;const ref : treference);
       begin
          {$warning FIX ME}
+         procinfo^.flags:=procinfo^.flags or pi_do_call;
       end;
 
 {********************** load instructions ********************}
@@ -789,17 +793,18 @@ const
 
 
     procedure tcgppc.g_stackframe_entry_sysv(list : taasmoutput;localsize : longint);
- { generated the entry code of a procedure/function. Note: localsize is the }
- { sum of the size necessary for local variables and the maximum possible   }
- { combined size of ALL the parameters of a procedure called by the current }
- { one                                                                      }
-     var regcounter: TRegister;
+     { generated the entry code of a procedure/function. Note: localsize is the }
+     { sum of the size necessary for local variables and the maximum possible   }
+     { combined size of ALL the parameters of a procedure called by the current }
+     { one                                                                      }
+     var regcounter,firstregfpu,firstreggpr : TRegister;
          href : treference;
+         usesfpr,usesgpr,gotgot : boolean;
+         parastart : aword;
 
       begin
-        if (localsize mod 8) <> 0 then internalerror(58991);
- { CR and LR only have to be saved in case they are modified by the current }
- { procedure, but currently this isn't checked, so save them always         }
+        { CR and LR only have to be saved in case they are modified by the current }
+        { procedure, but currently this isn't checked, so save them always         }
         { following is the entry code as described in "Altivec Programming }
         { Interface Manual", bar the saving of AltiVec registers           }
         a_reg_alloc(list,STACK_POINTER_REG);
@@ -807,36 +812,114 @@ const
         { allocate registers containing reg parameters }
         for regcounter := R_3 to R_10 do
           a_reg_alloc(list,regcounter);
-        { save return address... }
-        list.concat(taicpu.op_reg_reg(A_MFSPR,R_0,R_LR));
-        { ... in caller's frame }
-        reference_reset_base(href,STACK_POINTER_REG,4);
-        list.concat(taicpu.op_reg_ref(A_STW,R_0,href));
-        a_reg_dealloc(list,R_0);
-        a_reg_alloc(list,R_11);
-        { save end of fpr save area }
-        list.concat(taicpu.op_reg_reg_const(A_ORI,R_11,STACK_POINTER_REG,0));
-        a_reg_alloc(list,R_12);
-        { 0 or 8 based on SP alignment }
-        list.concat(taicpu.op_reg_reg_const_const_const(A_RLWINM,
-          R_12,STACK_POINTER_REG,0,28,28));
-        { add in stack length }
-        list.concat(taicpu.op_reg_reg_const(A_SUBFIC,R_12,R_12,
-          -localsize));
-        { establish new alignment }
-        list.concat(taicpu.op_reg_reg_reg(A_STWUX,STACK_POINTER_REG,STACK_POINTER_REG,R_12));
-        a_reg_dealloc(list,R_12);
-        { save floating-point registers }
-        { !!! has to be optimized: only save registers that are used }
-        list.concat(taicpu.op_sym_ofs(A_BL,newasmsymbol('_savefpr_14'),0));
-        { compute end of gpr save area }
-        list.concat(taicpu.op_reg_reg_const(A_ADDI,R_11,R_11,-144));
+
+        usesfpr:=false;
+        for regcounter:=R_F14 to R_F31 do
+          if regcounter in rg.usedbyproc then
+            begin
+               usesfpr:=true;
+               firstregfpu:=regcounter;
+               break;
+            end;
+
+        usesgpr:=false;
+        for regcounter:=R_14 to R_31 do
+          if regcounter in rg.usedbyproc then
+            begin
+               usesgpr:=true;
+               firstreggpr:=regcounter;
+               break;
+            end;
+
+        { save link register? }
+        if (procinfo^.flags and pi_do_call)<>0 then
+          begin
+             { save return address... }
+             list.concat(taicpu.op_reg_reg(A_MFSPR,R_0,R_LR));
+             { ... in caller's rframe }
+             reference_reset_base(href,STACK_POINTER_REG,4);
+             list.concat(taicpu.op_reg_ref(A_STW,R_0,href));
+             a_reg_dealloc(list,R_0);
+          end;
+
+        if usesfpr or usesgpr then
+          begin
+             a_reg_alloc(list,R_11);
+             { save end of fpr save area }
+             list.concat(taicpu.op_reg_reg_const(A_ORI,R_11,STACK_POINTER_REG,0));
+          end;
+
+        { calculate the size of the locals }
+        if usesgpr then
+          inc(localsize,(ord(R_31)-ord(firstreggpr)+1)*4);
+        if usesfpr then
+          inc(localsize,(ord(R_F31)-ord(firstregfpu)+1)*8);
+
+        { align to 16 bytes }
+        if (localsize mod 16)<>0 then
+          localsize:=(localsize and $fffffff0)+16;
+
+        parastart:=localsize;
+        inc(localsize,procinfo^.maxpushedparasize);
+
+        { align to 16 bytes }
+        if (localsize mod 16)<>0 then
+          localsize:=(localsize and $fffffff0)+16;
+
+        procinfo^.procdef.localst.address_fixup:=localsize-parastart;
+
+        procinfo^.localsize:=localsize;
+
+        reference_reset_base(href,R_1,-localsize);
+        list.concat(taicpu.op_reg_ref(A_STWU,R_1,href));
+
+        { no GOT pointer loaded yet }
+        gotgot:=false;
+        if usesfpr then
+          begin
+             { save floating-point registers }
+             if (cs_create_pic in aktmoduleswitches) and not(usesgpr) then
+               begin
+                  list.concat(taicpu.op_sym_ofs(A_BL,newasmsymbol('_savefpr_'+tostr(ord(firstregfpu)-ord(R_F14)+14)+'_g'),0));
+                  gotgot:=true;
+               end
+             else
+               list.concat(taicpu.op_sym_ofs(A_BL,newasmsymbol('_savefpr_'+tostr(ord(firstregfpu)-ord(R_F14)+14)),0));
+             { compute end of gpr save area }
+             list.concat(taicpu.op_reg_reg_const(A_ADDI,R_11,R_11,-(ord(R_F31)-ord(firstregfpu)+1)*8));
+          end;
+
         { save gprs and fetch GOT pointer }
-        { !!! has to be optimized: only save registers that are used }
-        list.concat(taicpu.op_sym_ofs(A_BL,newasmsymbol('_savegpr_14_go'),0));
-        a_reg_alloc(list,R_31);
-        { place GOT ptr in r31 }
-        list.concat(taicpu.op_reg_reg(A_MFSPR,R_31,R_LR));
+        if usesgpr then
+          begin
+             {
+             if cs_create_pic in aktmoduleswitches then
+               begin
+                  list.concat(taicpu.op_sym_ofs(A_BL,newasmsymbol('_savegpr_'+tostr(ord(firstreggpr)-ord(R_14)+14)+'_g'),0));
+                  gotgot:=true;
+               end
+             else
+               list.concat(taicpu.op_sym_ofs(A_BL,newasmsymbol('_savegpr_'+tostr(ord(firstreggpr)-ord(R_14)+14)),0))
+             }
+             reference_reset_base(href,R_11,-(ord(R_31)-ord(firstreggpr)+1)*4);
+             list.concat(taicpu.op_reg_ref(A_STMW,firstreggpr,href));
+          end;
+
+        if usesfpr or usesgpr then
+          a_reg_dealloc(list,R_11);
+
+        { PIC code support, }
+        if cs_create_pic in aktmoduleswitches then
+          begin
+             { if we didn't get the GOT pointer till now, we've to calculate it now }
+             if not(gotgot) then
+               begin
+                  {!!!!!!!!!!!!!}
+               end;
+             a_reg_alloc(list,R_31);
+             { place GOT ptr in r31 }
+             list.concat(taicpu.op_reg_reg(A_MFSPR,R_31,R_LR));
+          end;
         { save the CR if necessary ( !!! always done currently ) }
         { still need to find out where this has to be done for SystemV
         a_reg_alloc(list,R_0);
@@ -844,11 +927,89 @@ const
         list.concat(taicpu.op_reg_ref(A_STW,scratch_register,
           new_reference(STACK_POINTER_REG,LA_CR)));
         a_reg_dealloc(list,R_0); }
-        { save pointer to incoming arguments }
-        list.concat(taicpu.op_reg_reg_const(A_ADDI,R_30,R_11,144));
         { now comes the AltiVec context save, not yet implemented !!! }
       end;
 
+    procedure tcgppc.g_return_from_proc_sysv(list : taasmoutput;parasize : aword);
+
+      var
+         regcounter,firstregfpu,firstreggpr : TRegister;
+         href : treference;
+         usesfpr,usesgpr,genret : boolean;
+
+      begin
+        { release parameter registers }
+        for regcounter := R_3 to R_10 do
+          a_reg_dealloc(list,regcounter);
+        { AltiVec context restore, not yet implemented !!! }
+
+        usesfpr:=false;
+        for regcounter:=R_F14 to R_F31 do
+          if regcounter in rg.usedbyproc then
+            begin
+               usesfpr:=true;
+               firstregfpu:=regcounter;
+               break;
+            end;
+
+        usesgpr:=false;
+        for regcounter:=R_14 to R_30 do
+          if regcounter in rg.usedbyproc then
+            begin
+               usesgpr:=true;
+               firstreggpr:=regcounter;
+               break;
+            end;
+
+        { no return (blr) generated yet }
+        genret:=true;
+        if usesgpr then
+          begin
+             { address of gpr save area to r11 }
+             if usesfpr then
+               list.concat(taicpu.op_reg_reg_const(A_ADDI,R_11,R_1,procinfo^.localsize-(ord(R_F31)-ord(firstregfpu)+1)*8))
+             else
+               list.concat(taicpu.op_reg_reg_const(A_ADDI,R_11,R_1,procinfo^.localsize));
+
+             { restore gprs }
+             { at least for now we use LMW }
+             {
+             list.concat(taicpu.op_sym_ofs(A_BL,newasmsymbol('_restgpr_14'),0));
+             }
+             reference_reset_base(href,R_11,-(ord(R_31)-ord(firstreggpr)+1)*4);
+             list.concat(taicpu.op_reg_ref(A_LMW,firstreggpr,href));
+          end;
+
+        { restore fprs and return }
+        if usesfpr then
+          begin
+             { address of fpr save area to r11 }
+             list.concat(taicpu.op_reg_reg_const(A_ADDI,R_11,R_11,(ord(R_F31)-ord(firstregfpu)+1)*8));
+             if (procinfo^.flags and pi_do_call)<>0 then
+               list.concat(taicpu.op_sym_ofs(A_BL,newasmsymbol('_restfpr_'+tostr(ord(firstregfpu)-ord(R_F14)+14)+
+                 '_x'),0))
+             else
+               { leaf node => lr haven't to be restored }
+               list.concat(taicpu.op_sym_ofs(A_BL,newasmsymbol('_restfpr_'+tostr(ord(firstregfpu)-ord(R_F14)+14)+
+                 '_l'),0));
+             genret:=false;
+          end;
+        { if we didn't generate the return code, we've to do it now }
+        if genret then
+          begin
+             { adjust r1 }
+             reference_reset_base(href,R_1,procinfo^.localsize);
+             list.concat(taicpu.op_reg_ref(A_STWU,R_1,href));
+             { load link register? }
+             if (procinfo^.flags and pi_do_call)<>0 then
+               begin
+                  reference_reset_base(href,STACK_POINTER_REG,4);
+                  list.concat(taicpu.op_reg_ref(A_LWZ,R_0,href));
+                  list.concat(taicpu.op_reg_reg(A_MTSPR,R_LR,R_0));
+               end;
+             list.concat(taicpu.op_none(A_BLR));
+          end;
+      end;
 
     procedure tcgppc.g_stackframe_entry_mac(list : taasmoutput;localsize : longint);
  { generated the entry code of a procedure/function. Note: localsize is the }
@@ -860,8 +1021,8 @@ const
 
       begin
         if (localsize mod 8) <> 0 then internalerror(58991);
- { CR and LR only have to be saved in case they are modified by the current }
- { procedure, but currently this isn't checked, so save them always         }
+        { CR and LR only have to be saved in case they are modified by the current }
+        { procedure, but currently this isn't checked, so save them always         }
         { following is the entry code as described in "Altivec Programming }
         { Interface Manual", bar the saving of AltiVec registers           }
         a_reg_alloc(list,STACK_POINTER_REG);
@@ -907,7 +1068,7 @@ const
     procedure tcgppc.g_restore_frame_pointer(list : taasmoutput);
 
       begin
- { no frame pointer on the PowerPC (maybe there is one in the SystemV ABI?)}
+         { no frame pointer on the PowerPC (maybe there is one in the SystemV ABI?)}
       end;
 
 
@@ -1153,27 +1314,6 @@ const
 
 
 {***************** This is private property, keep out! :) *****************}
-
-    procedure tcgppc.g_return_from_proc_sysv(list : taasmoutput;parasize : aword);
-
-      var
-        regcounter: TRegister;
-
-      begin
-        { release parameter registers }
-        for regcounter := R_3 to R_10 do
-          a_reg_dealloc(list,regcounter);
-        { AltiVec context restore, not yet implemented !!! }
-
-        { address of gpr save area to r11 }
-        list.concat(taicpu.op_reg_reg_const(A_ADDI,R_11,R_31,-144));
-        { restore gprs }
-        list.concat(taicpu.op_sym_ofs(A_BL,newasmsymbol('_restgpr_14'),0));
-        { address of fpr save area to r11 }
-        list.concat(taicpu.op_reg_reg_const(A_ADDI,R_11,R_11,144));
-        { restore fprs and return }
-        list.concat(taicpu.op_sym_ofs(A_BL,newasmsymbol('_restfpr_14_x'),0));
-      end;
 
 
     procedure tcgppc.g_return_from_proc_mac(list : taasmoutput;parasize : aword);
@@ -1446,7 +1586,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.35  2002-08-06 07:12:05  jonas
+  Revision 1.36  2002-08-06 20:55:23  florian
+    * first part of ppc calling conventions fix
+
+  Revision 1.35  2002/08/06 07:12:05  jonas
     * fixed bug in g_flags2reg()
     * and yet more constant operation fixes :)
 

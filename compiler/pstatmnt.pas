@@ -889,6 +889,7 @@ implementation
                     if pattern=upper(std_reg2str[r]) then
                       begin
                          include(rg.usedinproc,r);
+                         include(rg.usedbyproc,r);
                          found:=true;
                          break;
                       end;
@@ -906,7 +907,11 @@ implementation
                 until false;
               consume(_RECKKLAMMER);
            end
-         else rg.usedinproc := ALL_REGISTERS;
+         else
+           begin
+              rg.usedbyproc := ALL_REGISTERS;
+              rg.usedinproc := ALL_REGISTERS;
+           end;
 
          { mark the start and the end of the assembler block
            this is needed for the optimizer }
@@ -1266,7 +1271,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.65  2002-07-28 20:45:22  florian
+  Revision 1.66  2002-08-06 20:55:22  florian
+    * first part of ppc calling conventions fix
+
+  Revision 1.65  2002/07/28 20:45:22  florian
     + added direct assembler reader for PowerPC
 
   Revision 1.64  2002/07/20 11:57:56  florian

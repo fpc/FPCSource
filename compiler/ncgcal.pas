@@ -1100,7 +1100,8 @@ implementation
                   emit_const_reg(A_ADD,S_L,pushedparasize,R_ESP);
              end;
 {$endif dummy}
-
+         if procinfo^.maxpushedparasize<pushedparasize then
+           procinfo^.maxpushedparasize:=pushedparasize;
 {$ifdef OPTALIGN}
          if pop_esp then
            emit_reg(A_POP,S_L,R_ESP);
@@ -1499,7 +1500,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2002-07-20 11:57:53  florian
+  Revision 1.4  2002-08-06 20:55:20  florian
+    * first part of ppc calling conventions fix
+
+  Revision 1.3  2002/07/20 11:57:53  florian
     * types.pas renamed to defbase.pas because D6 contains a types
       unit so this would conflicts if D6 programms are compiled
     + Willamette/SSE2 instructions to assembler added

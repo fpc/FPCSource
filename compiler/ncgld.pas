@@ -172,7 +172,12 @@ implementation
                               begin
                                  location.reference.base:=procinfo^.framepointer;
                                  if (symtabletype in [inlinelocalsymtable,
-                                                      localsymtable]) then
+                                                      localsymtable])
+{$ifdef powerpc}
+                                   { the ifdef is only for speed reasons }
+                                   and not(target_info.system in [system_powerpc_linux,system_powerpc_macos])
+{$endif powerpc}
+                                   then
                                    location.reference.offset:=
                                      tvarsym(symtableentry).address-symtable.address_fixup
                                  else
@@ -924,7 +929,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  2002-07-28 09:25:37  carl
+  Revision 1.18  2002-08-06 20:55:21  florian
+    * first part of ppc calling conventions fix
+
+  Revision 1.17  2002/07/28 09:25:37  carl
     + correct size of parameter (64-bit portability)
 
   Revision 1.16  2002/07/27 19:53:51  jonas

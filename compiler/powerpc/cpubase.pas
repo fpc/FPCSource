@@ -646,7 +646,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.23  2002-08-04 12:57:56  jonas
+  Revision 1.24  2002-08-06 20:55:24  florian
+    * first part of ppc calling conventions fix
+
+  Revision 1.23  2002/08/04 12:57:56  jonas
     * more misc. fixes, mostly constant-related
 
   Revision 1.22  2002/07/27 19:57:18  jonas
@@ -700,5 +703,4 @@ end.
 
   Revision 1.7  2002/04/06 18:13:02  jonas
     * several powerpc-related additions and fixes
-
 }

@@ -213,6 +213,11 @@ implementation
                 parasym:=false;
                 symtablestack.foreach_static({$ifdef FPCPROCVAR}@{$endif}searchfpuregvars,@parasym);
 {$ifdef dummy}
+                { this code should be never enabled because     }
+                { 1. the caller loads parameters into registers }
+                { 2. (later) the CSE loads a parameter into a   }
+                {    register, if necessary                     }
+                {                                        (FK)   }
                 { copy parameter into a register ? }
                 parasym:=true;
                 symtablestack.next.foreach_static({$ifdef FPCPROCVAR}@{$endif}searchregvars);
@@ -464,7 +469,10 @@ end.
 
 {
   $Log$
-  Revision 1.37  2002-07-20 11:57:57  florian
+  Revision 1.38  2002-08-06 20:55:22  florian
+    * first part of ppc calling conventions fix
+
+  Revision 1.37  2002/07/20 11:57:57  florian
     * types.pas renamed to defbase.pas because D6 contains a types
       unit so this would conflicts if D6 programms are compiled
     + Willamette/SSE2 instructions to assembler added

@@ -312,6 +312,10 @@ uses
 *****************************************************************************}
 
     const
+      { declare aliases }
+      LOC_MMREGISTER = LOC_SSEREGISTER;
+      LOC_CMMREGISTER = LOC_CSSEREGISTER;
+
       max_operands = 3;
 
       lvaluelocations = [LOC_REFERENCE,LOC_CFPUREGISTER,
@@ -486,7 +490,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.27  2002-07-25 18:01:29  carl
+  Revision 1.28  2002-08-06 20:55:23  florian
+    * first part of ppc calling conventions fix
+
+  Revision 1.27  2002/07/25 18:01:29  carl
     + FPURESULTREG -> FPU_RESULT_REG
 
   Revision 1.26  2002/07/07 09:52:33  florian
