@@ -85,7 +85,7 @@ implementation
 
     uses
       globtype,globals,
-      cutils,verbose;
+      cutils,verbose, systems;
 
     const
       gas_regname_table : array[tregisterindex] of string[7] = (
@@ -132,7 +132,8 @@ implementation
       begin
         p:=findreg_by_number(r);
         if p<>0 then
-          if (cs_create_smart in aktmoduleswitches) then
+          if (cs_create_smart in aktmoduleswitches) and
+             (target_info.system <> system_powerpc_darwin) then
             result:=gas_regname_short_table[p]
           else
             result:=gas_regname_table[p]
@@ -143,7 +144,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2003-12-10 22:19:27  florian
+  Revision 1.4  2004-01-04 21:18:10  jonas
+      + as_darwin assembler type (labels start with L)
+      * never generate register->number mappings for Darwin
+      * always use real register names for Darwin
+
+  Revision 1.3  2003/12/10 22:19:27  florian
     + short gas register names for smartlinking added
 
   Revision 1.2  2003/11/15 19:00:10  florian
