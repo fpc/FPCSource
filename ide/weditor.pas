@@ -3888,15 +3888,21 @@ begin
    begin
      p:=@Self;
      cur:=cursor;
-     { origin is reelative to screen for fvision }
+{$ifdef FVISION}
+     { origin is relative to screen for fvision }
      cur.x:=cur.x+p^.origin.x;
      cur.y:=cur.y+p^.origin.y;
+{$endif FVISION}
      while true do
       begin
         if (cur.x<0) or (cur.x>=p^.size.x) or
            (cur.y<0) or (cur.y>=p^.size.y) then
           break;
         p2:=p;
+{$ifndef FVISION}
+        cur.x:=cur.x+p^.origin.x;
+        cur.y:=cur.y+p^.origin.y;
+{$endif not FVISION}
         G:=p^.owner;
         if G=Nil then { top view }
          begin
@@ -7087,7 +7093,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.14  2001-10-02 16:35:04  pierre
+  Revision 1.15  2001-10-02 22:43:22  pierre
+   * correct last commit, FVISION conditional means the new fvision dir instead of fvnew
+
+  Revision 1.14  2001/10/02 16:35:04  pierre
    * get correct curosr position for fvision
 
   Revision 1.13  2001/10/01 09:08:21  pierre
