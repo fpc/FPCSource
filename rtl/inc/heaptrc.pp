@@ -33,6 +33,8 @@ const
     splitted in two if memory is released !! }
   tracesize = 8;
   quicktrace : boolean=true;
+  { calls halt() on error by default !! }
+  halt_on_error : boolean = true;
   { set this to true if you suspect that memory
     is freed several times }
   keepreleased : boolean=false;
@@ -125,6 +127,13 @@ begin
   dump_stack(get_caller_frame(get_frame));
 end;
 
+procedure dump_wrong_size(p : pheap_mem_info;size : longint);
+begin
+  Writeln(stderr,'Marked memory at ',HexStr(longint(p+sizeof(theap_mem_info)),8),' invalid');
+  Writeln(stderr,'Wrong size : ',p^.size,' allocated ',size,' freed');
+  dump_stack(get_caller_frame(get_frame));
+end;
+
 
 function is_in_getmem_list (p : pointer) : boolean;
 var
@@ -192,21 +201,32 @@ end;
 
 procedure TraceFreeMem(var p:pointer;size:longint);
 
-  var i,bp : longint;
+  var i,bp, ppsize : longint;
   pp : pheap_mem_info;
 begin
   inc(freemem_size,size);
   inc(freemem8_size,((size+7) div 8)*8);
-  inc(size,sizeof(theap_mem_info)+extra_info_size);
+  ppsize:= size + sizeof(theap_mem_info)+extra_info_size;
   dec(p,sizeof(theap_mem_info)+extra_info_size);
   pp:=pheap_mem_info(p);
   if not quicktrace and not(is_in_getmem_list(p)) then
     RunError(204);
   if pp^.sig=$AAAAAAAA then
-    dump_already_free(pp)
+    begin
+       dump_already_free(pp);
+       if halt_on_error then halt(1);
+    end
   else if pp^.sig<>$DEADBEEF then
     begin
        dump_error(pp);
+       { don't release anything in this case !! }
+       if halt_on_error then halt(1);
+       exit;
+    end
+  else if pp^.size<>size then
+    begin
+       dump_wrong_size(pp,size);
+       if halt_on_error then halt(1);
        { don't release anything in this case !! }
        exit;
     end;
@@ -220,22 +240,22 @@ begin
          pp^.previous^.next:=pp^.next;
        if pp=heap_mem_root then
          heap_mem_root:=heap_mem_root^.previous;
+       bp:=get_caller_frame(get_frame);
+       for i:=(tracesize div 2)+1 to tracesize do
+        begin
+          pp^.calls[i]:=get_caller_addr(bp);
+          bp:=get_caller_frame(bp);
+        end;
     end;
-  bp:=get_caller_frame(get_frame);
-  for i:=(tracesize div 2)+1 to tracesize do
-   begin
-     pp^.calls[i]:=get_caller_addr(bp);
-     bp:=get_caller_frame(bp);
-   end;
   inc(freemem_cnt);
   { release the normal memory at least !! }
   { this way we keep all info about all released memory !! }
   if keepreleased then
     begin
-       dec(size,sizeof(theap_mem_info)+extra_info_size);
+       dec(ppsize,sizeof(theap_mem_info)+extra_info_size);
        inc(p,sizeof(theap_mem_info)+extra_info_size);
     end;
-  SysFreeMem(p,size);
+  SysFreeMem(p,ppsize);
 end;
 
 
@@ -336,7 +356,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  1998-10-09 11:59:31  pierre
+  Revision 1.6  1998-11-06 08:46:01  pierre
+    * size is now also checked
+    + added halt_on_error variable (default true)
+      to stop at first error in getmem/freemem
+
+  Revision 1.5  1998/10/09 11:59:31  pierre
     * changed default to keepreleased=false
       (allows to compile pp in one call without reaching the
       64Mb limit of Windows 95 dos box)
