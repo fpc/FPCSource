@@ -257,10 +257,21 @@ msgtxt.inc: $(MSGFILE) $(MSG2INC)
 msg: msgtxt.inc
 
 # Make only the compiler
+ifndef COMPLETE
 $(EXENAME) : $(wildcard *.pas) $(wildcard *.inc)
 	$(COMPILER) pp.pas
 	$(EXECPPAS)
 	$(MOVE) $(PPEXENAME) $(EXENAME)
+else
+$(EXENAME) : $(wildcard *.pas) $(wildcard *.inc)
+	$(COMPILER) $(LOCALOPT) pp.pas
+	$(EXECPPAS)
+	$(COMPILER) $(LOCALOPT) pp.pas
+	$(EXECPPAS)
+	$(COMPILER) $(LOCALOPT) pp.pas
+	$(EXECPPAS)
+	$(MOVE) $(PPEXENAME) $(EXENAME)
+endif
 
 # This target remakes the units with the currently made version
 remake: $(EXENAME)
@@ -372,7 +383,10 @@ $(M68KEXENAME): $(PASFILES) $(INCFILES)
 
 #
 # $Log$
-# Revision 1.24  1999-04-01 22:05:16  peter
+# Revision 1.25  1999-04-07 15:26:50  pierre
+#  + added COMPLETE env for triple compilation test
+#
+# Revision 1.24  1999/04/01 22:05:16  peter
 #   * only 'make' now does a make all instead of make info
 #
 # Revision 1.23  1999/03/24 23:12:54  peter
