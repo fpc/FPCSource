@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl and Pierre Muller
+    Copyright (c) 1998-2002 by Florian Klaempfl and Pierre Muller
 
     Support routines for creating the browser log
 
@@ -514,35 +514,7 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  2001-11-02 22:58:01  peter
-    * procsym definition rewrite
-
-  Revision 1.9  2001/08/19 09:39:27  peter
-    * local browser support fixed
-
-  Revision 1.8  2001/04/18 22:01:53  peter
-    * registration of targets and assemblers
-
-  Revision 1.7  2001/04/13 01:22:06  peter
-    * symtable change to classes
-    * range check generation and errors fixed, make cycle DEBUG=1 works
-    * memory leaks fixed
-
-  Revision 1.6  2000/12/25 00:07:25  peter
-    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
-      tlinkedlist objects)
-
-  Revision 1.5  2000/10/31 22:02:46  peter
-    * symtable splitted, no real code changes
-
-  Revision 1.4  2000/09/24 15:06:11  peter
-    * use defines.inc
-
-  Revision 1.3  2000/08/27 16:11:49  peter
-    * moved some util functions from globals,cobjects to cutils
-    * splitted files into finput,fmodule
-
-  Revision 1.2  2000/07/13 11:32:32  michael
-  + removed logs
+  Revision 1.11  2002-05-14 19:34:40  peter
+    * removed old logs and updated copyright year
 
 }

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 2000-2001 by Florian Klaempfl
+    Copyright (c) 2000-2002 by Florian Klaempfl
 
     Type checking and register allocation for set/case nodes
 
@@ -574,7 +574,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.21  2002-05-12 16:53:08  peter
+  Revision 1.22  2002-05-14 19:34:43  peter
+    * removed old logs and updated copyright year
+
+  Revision 1.21  2002/05/12 16:53:08  peter
     * moved entry and exitcode to ncgutil and cgobj
     * foreach gets extra argument for passing local data to the
       iterator function
@@ -621,72 +624,5 @@ end.
       R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
     - list field removed of the tnode class because it's not used currently
       and can cause hard-to-find bugs
-
-  Revision 1.17  2001/12/06 17:57:35  florian
-    + parasym to tparaitem added
-
-  Revision 1.16  2001/10/12 13:51:51  jonas
-    * fixed internalerror(10) due to previous fpu overflow fixes ("merged")
-    * fixed bug in n386add (introduced after compilerproc changes for string
-      operations) where calcregisters wasn't called for shortstring addnodes
-    * NOTE: from now on, the location of a binary node must now always be set
-       before you call calcregisters() for it
-
-  Revision 1.15  2001/09/02 21:12:07  peter
-    * move class of definitions into type section for delphi
-
-  Revision 1.14  2001/08/26 13:36:43  florian
-    * some cg reorganisation
-    * some PPC updates
-
-  Revision 1.13  2001/04/13 01:22:10  peter
-    * symtable change to classes
-    * range check generation and errors fixed, make cycle DEBUG=1 works
-    * memory leaks fixed
-
-  Revision 1.12  2001/04/02 21:20:31  peter
-    * resulttype rewrite
-
-  Revision 1.11  2000/12/31 11:14:11  jonas
-    + implemented/fixed docompare() mathods for all nodes (not tested)
-    + nopt.pas, nadd.pas, i386/n386opt.pas: optimized nodes for adding strings
-      and constant strings/chars together
-    * n386add.pas: don't copy temp strings (of size 256) to another temp string
-      when adding
-
-  Revision 1.10  2000/12/18 17:44:26  jonas
-    * more int64 case fixes
-
-  Revision 1.9  2000/11/29 00:30:34  florian
-    * unused units removed from uses clause
-    * some changes for widestrings
-
-  Revision 1.8  2000/11/04 14:25:20  florian
-    + merged Attila's changes for interfaces, not tested yet
-
-  Revision 1.7  2000/10/31 22:02:49  peter
-    * symtable splitted, no real code changes
-
-  Revision 1.6  2000/10/21 18:16:11  florian
-    * a lot of changes:
-       - basic dyn. array support
-       - basic C++ support
-       - some work for interfaces done
-       ....
-
-  Revision 1.5  2000/10/14 10:14:51  peter
-    * moehrendorf oct 2000 rewrite
-
-  Revision 1.4  2000/10/01 19:48:25  peter
-    * lot of compile updates for cg11
-
-  Revision 1.3  2000/09/27 18:14:31  florian
-    * fixed a lot of syntax errors in the n*.pas stuff
-
-  Revision 1.2  2000/09/24 20:17:44  florian
-    * more conversion work done
-
-  Revision 1.1  2000/09/24 19:38:39  florian
-    * initial implementation
 
 }

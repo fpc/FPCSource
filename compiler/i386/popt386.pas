@@ -1,6 +1,6 @@
  {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl and Jonas Maebe
+    Copyright (c) 1998-2002 by Florian Klaempfl and Jonas Maebe
 
     This unit contains the peephole optimizer.
 
@@ -2043,7 +2043,10 @@ End.
 
 {
   $Log$
-  Revision 1.24  2002-05-12 16:53:18  peter
+  Revision 1.25  2002-05-14 19:35:00  peter
+    * removed old logs and updated copyright year
+
+  Revision 1.24  2002/05/12 16:53:18  peter
     * moved entry and exitcode to ncgutil and cgobj
     * foreach gets extra argument for passing local data to the
       iterator function
@@ -2105,125 +2108,5 @@ End.
       R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
     - list field removed of the tnode class because it's not used currently
       and can cause hard-to-find bugs
-
-  Revision 1.17  2001/12/29 15:29:59  jonas
-    * powerpc/cgcpu.pas compiles :)
-    * several powerpc-related fixes
-    * cpuasm unit is now based on common tainst unit
-    + nppcmat unit for powerpc (almost complete)
-
-  Revision 1.16  2001/10/12 13:53:24  jonas
-    * fixed small crashing bug ("merged")
-    * some more optimizations are now only done once at the end of the optimizing
-      cycle instead of every iteration
-
-  Revision 1.15  2001/08/26 13:37:01  florian
-    * some cg reorganisation
-    * some PPC updates
-
-  Revision 1.14  2001/08/01 09:46:55  jonas
-    * fixed endless loop with web bug 1571 (merged)
-
-  Revision 1.13  2001/04/13 01:22:19  peter
-    * symtable change to classes
-    * range check generation and errors fixed, make cycle DEBUG=1 works
-    * memory leaks fixed
-
-  Revision 1.12  2001/04/06 14:06:03  jonas
-    * fixed incompatibility between new regvar handling and -Op2
-
-  Revision 1.11  2001/04/02 21:20:39  peter
-    * resulttype rewrite
-
-  Revision 1.10  2001/02/08 12:13:40  jonas
-    * fixed web bug 1391
-
-  Revision 1.9  2001/01/27 21:29:35  florian
-     * behavior -Oa optimized
-
-  Revision 1.8  2001/01/10 10:29:36  jonas
-    * really fixed problems with -Op2 opts (merged)
-
-  Revision 1.7  2001/01/07 15:49:49  jonas
-    * fixed bug in call/jmp optimization with -Op1 and -Op2
-
-  Revision 1.6  2000/12/25 00:07:33  peter
-    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
-      tlinkedlist objects)
-
-  Revision 1.5  2000/12/16 16:00:12  jonas
-    * removed warnings about possible range check errors
-
-  Revision 1.4  2000/11/29 00:30:49  florian
-    * unused units removed from uses clause
-    * some changes for widestrings
-
-  Revision 1.3  2000/11/14 09:53:18  jonas
-    * added missing allocregbetween() (merged)
-
-  Revision 1.2  2000/10/24 10:40:54  jonas
-    + register renaming ("fixes" bug1088)
-    * changed command line options meanings for optimizer:
-        O2 now means peepholopts, CSE and register renaming in 1 pass
-        O3 is the same, but repeated until no further optimizations are
-          possible or until 5 passes have been done (to avoid endless loops)
-    * changed aopt386 so it does this looping
-    * added some procedures from csopt386 to the interface because they're
-      used by rropt386 as well
-    * some changes to csopt386 and daopt386 so that newly added instructions
-      by the CSE get optimizer info (they were simply skipped previously),
-      this fixes some bugs
-
-  Revision 1.1  2000/10/15 09:47:43  peter
-    * moved to i386/
-
-  Revision 1.13  2000/10/02 13:01:29  jonas
-    * fixed bug regarding removal of "test/or reg,reg": apparently, shr/shl
-      doesn't set the zero flag according to the contents of the register
-      after the shift :( (mergfed from fixes branch)
-
-  Revision 1.12  2000/09/24 15:06:23  peter
-    * use defines.inc
-
-  Revision 1.11  2000/09/18 11:28:36  jonas
-    * fixed web bug 1133 (merged from fixes branch)
-
-  Revision 1.10  2000/08/18 10:09:13  jonas
-    * fix for web bug1099 (merged from fixes branch)
-
-  Revision 1.9  2000/08/05 13:33:08  peter
-    * $ifdef go32v2 -> target_info.target=go32v2
-
-  Revision 1.8  2000/08/05 10:35:51  jonas
-    * readded l1 variable (between ifdef go32v2 to avoid hints/notes)
-
-  Revision 1.7  2000/08/04 22:00:52  peter
-    * merges from fixes
-
-  Revision 1.6  2000/07/31 08:44:05  jonas
-    - removed imul support from -dfoldarithops since "imull [reg32],[mem32]"
-      doesn't exist (merged from fixes branch)
-
-  Revision 1.5  2000/07/28 13:56:23  jonas
-    * fixed bug in shr/shl optimization when -Og is used (merged from fixes
-      branch)
-
-  Revision 1.4  2000/07/21 15:19:55  jonas
-    * daopt386: changes to getnextinstruction/getlastinstruction so they
-      ignore labels who have is_addr set
-    + daopt386/csopt386: remove loads of registers which are overwritten
-       before their contents are used (especially usefull for removing superfluous
-      maybe_loadself outputs and push/pops transformed by below optimization
-    + popt386: transform pop/pop/pop/.../push/push/push to sequences of
-      'movl x(%esp),%reg' (only active when compiling a go32v2 compiler
-      currently because I don't know whether it's safe to do this under Win32/
-      Linux (because of problems we had when using esp as frame pointer on
-      those os'es)
-
-  Revision 1.3  2000/07/14 05:11:49  michael
-  + Patch to 1.1
-
-  Revision 1.2  2000/07/13 11:32:45  michael
-  + removed logs
 
 }

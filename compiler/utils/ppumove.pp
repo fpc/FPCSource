@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1999-2000 by the FPC Development Team
+    Copyright (c) 1999-2002 by the FPC Development Team
 
     Add multiple FPC units into a static/shared library
 
@@ -39,7 +39,7 @@ uses
 const
   Version   = 'Version 1.00';
   Title     = 'PPU-Mover';
-  Copyright = 'Copyright (c) 1998-2000 by the Free Pascal Development Team';
+  Copyright = 'Copyright (c) 1998-2002 by the Free Pascal Development Team';
 
   ShortOpts = 'o:e:d:qhsvbw';
   BufSize = 4096;
@@ -614,42 +614,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2001-05-06 14:49:19  peter
-    * ppu object to class rewrite
-    * move ppu read and write stuff to fppu
-
-  Revision 1.1  2001/04/25 22:40:07  peter
-    * compiler dependent utils in utils/ subdir
-
-  Revision 1.2  2001/01/29 21:48:26  peter
-    * linux -> unix
-
-  Revision 1.1  2000/07/13 10:16:22  michael
-  + Initial import
-
-  Revision 1.11  2000/07/04 19:05:54  peter
-    * be optimistic: version 1.00 for some utils
-
-  Revision 1.10  2000/05/17 18:30:57  peter
-    * libname fixes for unix
-
-  Revision 1.9  2000/02/09 16:44:15  peter
-    * log truncated
-
-  Revision 1.8  2000/01/07 16:46:04  daniel
-    * copyright 2000
-
-  Revision 1.7  1999/11/25 00:00:39  peter
-    * strip created .so file with strip --strip-unneeded
-
-  Revision 1.6  1999/11/23 09:44:15  peter
-    * updated
-
-  Revision 1.5  1999/07/29 01:40:21  peter
-    * fsplit var type fixes
-
-  Revision 1.4  1999/07/28 16:53:58  peter
-    * updated for new linking, but still doesn't work because ld-unix.so.2
-      requires some more crt*.o files
+  Revision 1.3  2002-05-14 19:35:02  peter
+    * removed old logs and updated copyright year
 
 }

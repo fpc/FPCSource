@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl, Daniel Mantione
+    Copyright (c) 1998-2002 by Florian Klaempfl, Daniel Mantione
 
     Does the parsing and codegeneration at subroutine level
 
@@ -805,7 +805,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.50  2002-05-12 16:53:09  peter
+  Revision 1.51  2002-05-14 19:34:49  peter
+    * removed old logs and updated copyright year
+
+  Revision 1.50  2002/05/12 16:53:09  peter
     * moved entry and exitcode to ncgutil and cgobj
     * foreach gets extra argument for passing local data to the
       iterator function
@@ -871,151 +874,4 @@ end.
   Revision 1.42  2002/01/19 15:12:34  peter
     * check for unresolved forward classes in the interface
 
-  Revision 1.41  2001/11/02 22:58:06  peter
-    * procsym definition rewrite
-
-  Revision 1.40  2001/10/25 21:22:37  peter
-    * calling convention rewrite
-
-  Revision 1.39  2001/10/22 21:20:46  peter
-    * overloaded functions don't need to be global in kylix
-
-  Revision 1.38  2001/10/01 13:38:45  jonas
-    * allow self parameter for normal procedures again (because Kylix allows
-      it too) ("merged")
-
-  Revision 1.37  2001/09/10 10:26:26  jonas
-    * fixed web bug 1593
-    * writing of procvar headers is more complete (mention var/const/out for
-      paras, add "of object" if applicable)
-    + error if declaring explicit self para as var/const
-    * fixed mangled name of procedures which contain an explicit self para
-    * parsing para's should be slightly faster because mangled name of
-      procedure is only updated once instead of after parsing each para
-      (all merged from fixes)
-
-  Revision 1.36  2001/08/26 13:36:46  florian
-    * some cg reorganisation
-    * some PPC updates
-
-  Revision 1.35  2001/08/06 21:40:47  peter
-    * funcret moved from tprocinfo to tprocdef
-
-  Revision 1.34  2001/06/04 11:53:13  peter
-    + varargs directive
-
-  Revision 1.33  2001/06/03 21:57:37  peter
-    + hint directive parsing support
-
-  Revision 1.32  2001/04/21 12:03:12  peter
-    * m68k updates merged from fixes branch
-
-  Revision 1.31  2001/04/18 22:01:57  peter
-    * registration of targets and assemblers
-
-  Revision 1.30  2001/04/14 14:05:47  peter
-    * better skipping of secondpass if error
-
-  Revision 1.29  2001/04/13 23:49:24  peter
-    * when errors are found don't generate code, but still run the
-      resulttype pass
-
-  Revision 1.28  2001/04/13 17:59:03  peter
-    * don't generate code when there is already an error
-
-  Revision 1.27  2001/04/13 01:22:13  peter
-    * symtable change to classes
-    * range check generation and errors fixed, make cycle DEBUG=1 works
-    * memory leaks fixed
-
-  Revision 1.26  2001/04/02 21:20:34  peter
-    * resulttype rewrite
-
-  Revision 1.25  2001/02/26 19:44:53  peter
-    * merged generic m68k updates from fixes branch
-
-  Revision 1.24  2000/12/25 00:07:27  peter
-    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
-      tlinkedlist objects)
-
-  Revision 1.23  2000/11/29 00:30:37  florian
-    * unused units removed from uses clause
-    * some changes for widestrings
-
-  Revision 1.22  2000/11/08 16:38:24  jonas
-    * if a procedure uses exceptions (be it implicit or explicit), the
-      usedregisters are set to all (because FPC_POPADDRSTACK doesn't save
-      any registers) ("merged", fixes make cycle woth -Or)
-
-  Revision 1.21  2000/11/01 23:04:38  peter
-    * tprocdef.fullprocname added for better casesensitve writing of
-      procedures
-
-  Revision 1.20  2000/10/31 22:02:50  peter
-    * symtable splitted, no real code changes
-
-  Revision 1.19  2000/10/24 22:21:25  peter
-    * set usedregisters after writing entry and exit code (merged)
-
-  Revision 1.18  2000/10/21 18:16:12  florian
-    * a lot of changes:
-       - basic dyn. array support
-       - basic C++ support
-       - some work for interfaces done
-       ....
-
-  Revision 1.17  2000/10/15 07:47:51  peter
-    * unit names and procedure names are stored mixed case
-
-  Revision 1.16  2000/10/14 10:14:52  peter
-    * moehrendorf oct 2000 rewrite
-
-  Revision 1.15  2000/09/24 21:33:47  peter
-    * message updates merges
-
-  Revision 1.14  2000/09/24 21:19:51  peter
-    * delphi compile fixes
-
-  Revision 1.13  2000/09/24 15:06:24  peter
-    * use defines.inc
-
-  Revision 1.12  2000/09/10 20:11:07  peter
-    * overload checking in implementation removed (merged)
-
-  Revision 1.11  2000/09/04 20:15:19  peter
-    * fixed operator overloading
-
-  Revision 1.10  2000/08/27 16:11:52  peter
-    * moved some util functions from globals,cobjects to cutils
-    * splitted files into finput,fmodule
-
-  Revision 1.9  2000/08/16 18:33:54  peter
-    * splitted namedobjectitem.next into indexnext and listnext so it
-      can be used in both lists
-    * don't allow "word = word" type definitions (merged)
-
-  Revision 1.8  2000/08/13 12:54:56  peter
-    * class member decl wrong then no other error after it
-    * -vb has now also line numbering
-    * -vb is also used for interface/implementation different decls and
-      doesn't list the current function (merged)
-
-  Revision 1.7  2000/08/08 19:28:57  peter
-    * memdebug/memory patches (merged)
-    * only once illegal directive (merged)
-
-  Revision 1.6  2000/08/06 19:39:28  peter
-    * default parameters working !
-
-  Revision 1.5  2000/08/06 14:17:15  peter
-    * overload fixes (merged)
-
-  Revision 1.4  2000/07/30 17:04:43  peter
-    * merged fixes
-
-  Revision 1.3  2000/07/13 12:08:27  michael
-  + patched to 1.1.0 with former 1.09patch from peter
-
-  Revision 1.2  2000/07/13 11:32:46  michael
-  + removed logs
 }

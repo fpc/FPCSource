@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl
+    Copyright (c) 1998-2002 by Florian Klaempfl
 
     Generate PowerPC assembler for math nodes
 
@@ -547,7 +547,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2002-05-14 17:28:10  peter
+  Revision 1.7  2002-05-14 19:35:01  peter
+    * removed old logs and updated copyright year
+
+  Revision 1.6  2002/05/14 17:28:10  peter
     * synchronized cpubase between powerpc and i386
     * moved more tables from cpubase to cpuasm
     * tai_align_abstract moved to tainst, cpuasm must define
@@ -564,12 +567,5 @@ end.
 
   Revision 1.2  2002/01/03 14:57:52  jonas
     * completed (not compilale yet though)
-
-  Revision 1.1  2001/12/29 15:28:58  jonas
-    * powerpc/cgcpu.pas compiles :)
-    * several powerpc-related fixes
-    * cpuasm unit is now based on common tainst unit
-    + nppcmat unit for powerpc (almost complete)
-
 
 }

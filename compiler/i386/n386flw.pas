@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl
+    Copyright (c) 1998-2002 by Florian Klaempfl
 
     Generate i386 assembler for nodes that influence the flow
 
@@ -739,7 +739,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.23  2002-05-12 16:53:17  peter
+  Revision 1.24  2002-05-14 19:34:59  peter
+    * removed old logs and updated copyright year
+
+  Revision 1.23  2002/05/12 16:53:17  peter
     * moved entry and exitcode to ncgutil and cgobj
     * foreach gets extra argument for passing local data to the
       iterator function
@@ -787,85 +790,5 @@ end.
       R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
     - list field removed of the tnode class because it's not used currently
       and can cause hard-to-find bugs
-
-  Revision 1.19  2001/12/29 15:29:58  jonas
-    * powerpc/cgcpu.pas compiles :)
-    * several powerpc-related fixes
-    * cpuasm unit is now based on common tainst unit
-    + nppcmat unit for powerpc (almost complete)
-
-  Revision 1.17  2001/09/29 21:34:04  jonas
-    - removed unused code (replaced by processor independent code)
-
-  Revision 1.16  2001/09/28 20:39:33  jonas
-    * changed all flow control structures (except for exception handling
-      related things) to processor independent code (in new ncgflw unit)
-    + generic cgobj unit which contains lots of code generator helpers with
-      global "cg" class instance variable
-    + cgcpu unit for i386 (implements processor specific routines of the above
-      unit)
-    * updated cgbase and cpubase for the new code generator units
-    * include ncgflw unit in cpunode unit
-
-  Revision 1.15  2001/08/26 13:36:58  florian
-    * some cg reorganisation
-    * some PPC updates
-
-  Revision 1.14  2001/08/06 21:40:50  peter
-    * funcret moved from tprocinfo to tprocdef
-
-  Revision 1.13  2001/07/01 20:16:20  peter
-    * alignmentinfo record added
-    * -Oa argument supports more alignment settings that can be specified
-      per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN
-      RECORDMAX,LOCALMIN,LOCALMAX. It is possible to set the mimimum
-      required alignment and the maximum usefull alignment. The final
-      alignment will be choosen per variable size dependent on these
-      settings
-
-  Revision 1.12  2001/04/15 09:48:31  peter
-    * fixed crash in labelnode
-    * easier detection of goto and label in try blocks
-
-  Revision 1.11  2001/04/14 14:07:11  peter
-    * moved more code from pass_1 to det_resulttype
-
-  Revision 1.10  2001/04/13 01:22:19  peter
-    * symtable change to classes
-    * range check generation and errors fixed, make cycle DEBUG=1 works
-    * memory leaks fixed
-
-  Revision 1.9  2001/04/02 21:20:37  peter
-    * resulttype rewrite
-
-  Revision 1.8  2001/01/27 21:29:35  florian
-     * behavior -Oa optimized
-
-  Revision 1.7  2001/01/06 23:35:05  jonas
-    * fixed webbug 1323
-
-  Revision 1.6  2001/01/05 17:36:58  florian
-  * the info about exception frames is stored now on the stack
-  instead on the heap
-
-  Revision 1.5  2000/12/25 00:07:32  peter
-    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
-      tlinkedlist objects)
-
-  Revision 1.4  2000/12/05 11:44:33  jonas
-    + new integer regvar handling, should be much more efficient
-
-  Revision 1.3  2000/11/29 00:30:47  florian
-    * unused units removed from uses clause
-    * some changes for widestrings
-
-  Revision 1.2  2000/10/31 22:02:56  peter
-    * symtable splitted, no real code changes
-
-  Revision 1.1  2000/10/15 09:33:31  peter
-    * moved n386*.pas to i386/ cpu_target dir
-
-  Revision 1.1  2000/10/14 10:14:48  peter
-    * moehrendorf oct 2000 rewrite
 
 }

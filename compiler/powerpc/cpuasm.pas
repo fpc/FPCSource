@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1999-2001 by Jonas Maebe
+    Copyright (c) 1999-2002 by Jonas Maebe
 
     Contains the assembler object for the PowerPC
 
@@ -337,7 +337,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2002-05-14 17:28:10  peter
+  Revision 1.6  2002-05-14 19:35:01  peter
+    * removed old logs and updated copyright year
+
+  Revision 1.5  2002/05/14 17:28:10  peter
     * synchronized cpubase between powerpc and i386
     * moved more tables from cpubase to cpuasm
     * tai_align_abstract moved to tainst, cpuasm must define
@@ -346,38 +349,4 @@ end.
   Revision 1.4  2002/05/13 19:52:46  peter
     * a ppcppc can be build again
 
-  Revision 1.3  2001/12/29 15:28:58  jonas
-    * powerpc/cgcpu.pas compiles :)
-    * several powerpc-related fixes
-    * cpuasm unit is now based on common tainst unit
-    + nppcmat unit for powerpc (almost complete)
-
-  Revision 1.2  2001/08/26 13:31:04  florian
-    * some cg reorganisation
-    * some PPC updates
-
-  Revision 1.2  2001/08/26 13:29:34  florian
-    * some cg reorganisation
-    * some PPC updates
-
-  Revision 1.1  2000/07/13 06:30:12  michael
-    + Initial import
-
-  Revision 1.5  2000/01/07 01:14:58  peter
-    * updated copyright to 2000
-
-  Revision 1.4  1999/08/25 12:00:24  jonas
-    * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
-
-  Revision 1.3  1999/08/06 16:41:11  jonas
-    * PowerPC compiles again, several routines implemented in cgcpu.pas
-    * added constant to cpubase of alpha and powerpc for maximum
-      number of operands
-
-  Revision 1.2  1999/08/04 12:59:24  jonas
-    * all tokes now start with an underscore
-    * PowerPC compiles!!
-
-  Revision 1.1  1999/08/03 23:37:53  jonas
-    + initial implementation for PowerPC based on the Alpha stuff
 }

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2001 by Florian Klaempfl
+    Copyright (c) 1998-2002 by Florian Klaempfl
 
     Reads typed constants
 
@@ -971,7 +971,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.46  2002-05-12 16:53:09  peter
+  Revision 1.47  2002-05-14 19:34:49  peter
+    * removed old logs and updated copyright year
+
+  Revision 1.46  2002/05/12 16:53:09  peter
     * moved entry and exitcode to ncgutil and cgobj
     * foreach gets extra argument for passing local data to the
       iterator function
@@ -1015,136 +1018,5 @@ end.
 
   Revision 1.40  2002/01/06 21:47:32  peter
     * removed getprocvar, use only getprocvardef
-
-  Revision 1.39  2001/12/06 17:57:38  florian
-    + parasym to tparaitem added
-
-  Revision 1.38  2001/11/02 22:58:06  peter
-    * procsym definition rewrite
-
-  Revision 1.37  2001/10/29 14:59:48  jonas
-    * typed constants that are "procedure of object" and which are assigned
-      nil require 8 bytes of "0" (not 4)
-    * fixed web bug 1655 (reject the code)
-
-  Revision 1.36  2001/10/20 20:30:21  peter
-    * read only typed const support, switch $J-
-
-  Revision 1.35  2001/10/20 17:24:26  peter
-    * make all sets equal when reading an array of sets. Before it could
-      mix normal and small sets in the same array!
-
-  Revision 1.34  2001/09/19 11:06:03  michael
-  * realname updated for some hints
-  * realname used for consts,labels
-
-  Revision 1.33  2001/09/17 21:29:12  peter
-    * merged netbsd, fpu-overflow from fixes branch
-
-  Revision 1.32  2001/09/02 21:18:28  peter
-    * split constsym.value in valueord,valueordptr,valueptr. The valueordptr
-      is used for holding target platform pointer values. As those can be
-      bigger than the source platform.
-
-  Revision 1.31  2001/08/26 13:36:47  florian
-    * some cg reorganisation
-    * some PPC updates
-
-  Revision 1.30  2001/08/01 21:46:41  peter
-    * support pwidechar in typed const
-
-  Revision 1.29  2001/07/30 21:39:26  peter
-    * declare fpu in rtl for m68k linux
-
-  Revision 1.28  2001/07/30 20:59:27  peter
-    * m68k updates from v10 merged
-
-  Revision 1.27  2001/07/08 21:00:15  peter
-    * various widestring updates, it works now mostly without charset
-      mapping supported
-
-  Revision 1.26  2001/06/29 14:16:57  jonas
-    * fixed inconsistent handling of procvars in FPC mode (sometimes @ was
-      required to assign the address of a procedure to a procvar, sometimes
-      not. Now it is always required) (merged)
-
-  Revision 1.25  2001/06/27 21:37:36  peter
-    * v10 merges
-
-  Revision 1.24  2001/06/18 20:36:25  peter
-    * -Ur switch (merged)
-    * masm fixes (merged)
-    * quoted filenames for go32v2 and win32
-
-  Revision 1.23  2001/05/06 17:15:00  jonas
-    + detect incomplete typed constant records
-
-  Revision 1.22  2001/04/18 22:01:57  peter
-    * registration of targets and assemblers
-
-  Revision 1.21  2001/04/13 01:22:13  peter
-    * symtable change to classes
-    * range check generation and errors fixed, make cycle DEBUG=1 works
-    * memory leaks fixed
-
-  Revision 1.20  2001/04/04 22:43:53  peter
-    * remove unnecessary calls to firstpass
-
-  Revision 1.19  2001/04/02 21:20:34  peter
-    * resulttype rewrite
-
-  Revision 1.18  2001/03/11 22:58:50  peter
-    * getsym redesign, removed the globals srsym,srsymtable
-
-  Revision 1.17  2001/02/04 11:12:16  jonas
-    * fixed web bug 1377 & const pointer arithmtic
-
-  Revision 1.16  2001/02/03 00:26:35  peter
-    * merged fix for bug 1365
-
-  Revision 1.15  2000/12/25 00:07:28  peter
-    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
-      tlinkedlist objects)
-
-  Revision 1.14  2000/12/10 20:24:18  peter
-    * allow subtypes for enums
-
-  Revision 1.13  2000/11/29 00:30:38  florian
-    * unused units removed from uses clause
-    * some changes for widestrings
-
-  Revision 1.12  2000/11/06 15:54:15  florian
-    * fixed two bugs to get make cycle work, but it's not enough
-
-  Revision 1.11  2000/11/04 14:25:21  florian
-    + merged Attila's changes for interfaces, not tested yet
-
-  Revision 1.10  2000/10/31 22:02:51  peter
-    * symtable splitted, no real code changes
-
-  Revision 1.9  2000/10/14 10:14:52  peter
-    * moehrendorf oct 2000 rewrite
-
-  Revision 1.8  2000/09/30 13:23:04  peter
-    * const array of char and pchar length fixed (merged)
-
-  Revision 1.7  2000/09/24 15:06:25  peter
-    * use defines.inc
-
-  Revision 1.6  2000/08/27 16:11:52  peter
-    * moved some util functions from globals,cobjects to cutils
-    * splitted files into finput,fmodule
-
-  Revision 1.5  2000/08/24 19:13:18  peter
-    * allow nil for class typed consts (merged)
-
-  Revision 1.4  2000/08/16 13:06:06  florian
-    + support of 64 bit integer constants
-
-  Revision 1.3  2000/08/05 13:25:06  peter
-    * packenum 1 fixes (merged)
-
-  Revision 1.2  2000/07/13 11:32:47  michael
-  + removed logs
 
 }

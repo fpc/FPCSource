@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Peter Vreman and Pierre Muller
+    Copyright (c) 1998-2002 by Peter Vreman and Pierre Muller
 
     Contains the binary coff reader and writer
 
@@ -1181,78 +1181,18 @@ implementation
 initialization
   RegisterAssembler(as_i386_coff_info,TCoffAssembler);
   RegisterAssembler(as_i386_pecoff_info,TPECoffAssembler);
-  RegisterAssembler(as_i386_pecoffwdosx_info,TPECoffAssembler); 
+  RegisterAssembler(as_i386_pecoffwdosx_info,TPECoffAssembler);
 end.
 {
   $Log$
-  Revision 1.18  2002-04-04 19:05:58  peter
+  Revision 1.19  2002-05-14 19:34:43  peter
+    * removed old logs and updated copyright year
+
+  Revision 1.18  2002/04/04 19:05:58  peter
     * removed unused units
     * use tlocation.size in cg.a_*loc*() routines
 
   Revision 1.17  2002/04/04 18:38:30  carl
   + added wdosx support (patch from Pavel)
-
-  Revision 1.16  2001/09/17 21:29:12  peter
-    * merged netbsd, fpu-overflow from fixes branch
-
-  Revision 1.15  2001/05/06 17:13:23  jonas
-    * completed incomplete typed constant records
-
-  Revision 1.14  2001/05/04 19:50:58  peter
-    * finally added the missing outputbinary field that was missing
-
-  Revision 1.13  2001/04/18 22:01:54  peter
-    * registration of targets and assemblers
-
-  Revision 1.12  2001/04/13 01:22:10  peter
-    * symtable change to classes
-    * range check generation and errors fixed, make cycle DEBUG=1 works
-    * memory leaks fixed
-
-  Revision 1.11  2001/04/02 21:20:31  peter
-    * resulttype rewrite
-
-  Revision 1.10  2001/03/13 18:45:07  peter
-    * fixed some memory leaks
-
-  Revision 1.9  2001/03/05 21:40:38  peter
-    * more things for tcoffobjectinput
-
-  Revision 1.8  2000/12/25 00:07:26  peter
-    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
-      tlinkedlist objects)
-
-  Revision 1.7  2000/12/24 12:25:31  peter
-    + cstreams unit
-    * dynamicarray object to class
-
-  Revision 1.6  2000/12/23 19:59:35  peter
-    * object to class for ow/og objects
-    * split objectdata from objectoutput
-
-  Revision 1.5  2000/12/21 12:06:38  jonas
-    * changed type of all "flags" variables/parameters/fields to cardinal
-      and removed longint typecasts around constants
-
-  Revision 1.4  2000/12/20 15:59:04  jonas
-    * fixed range check errors
-
-  Revision 1.3  2000/12/18 21:56:35  peter
-    * fixed stab reloc writing
-
-  Revision 1.2  2000/12/07 17:19:42  jonas
-    * new constant handling: from now on, hex constants >$7fffffff are
-      parsed as unsigned constants (otherwise, $80000000 got sign extended
-      and became $ffffffff80000000), all constants in the longint range
-      become longints, all constants >$7fffffff and <=cardinal($ffffffff)
-      are cardinals and the rest are int64's.
-    * added lots of longint typecast to prevent range check errors in the
-      compiler and rtl
-    * type casts of symbolic ordinal constants are now preserved
-    * fixed bug where the original resulttype wasn't restored correctly
-      after doing a 64bit rangecheck
-
-  Revision 1.1  2000/11/12 22:20:37  peter
-    * create generic toutputsection for binary writers
 
 }

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Jonas Maebe, member of the Free Pascal
+    Copyright (c) 1998-2002 by Jonas Maebe, member of the Free Pascal
     Development Team
 
     This unit contains the data flow analyzer object of the assembler
@@ -177,33 +177,13 @@ End.
 
 {
   $Log$
-  Revision 1.3  2002-04-15 18:55:40  carl
+  Revision 1.4  2002-05-14 19:34:39  peter
+    * removed old logs and updated copyright year
+
+  Revision 1.3  2002/04/15 18:55:40  carl
   + change reg2str array use
 
   Revision 1.2  2002/04/14 16:49:30  carl
   + att_reg2str -> gas_reg2str
-
-  Revision 1.1  2001/08/26 13:36:35  florian
-    * some cg reorganisation
-    * some PPC updates
-
-  Revision 1.1  2000/07/13 06:30:07  michael
-  + Initial import
-
-  Revision 1.6  2000/01/07 01:14:52  peter
-    * updated copyright to 2000
-
-  Revision 1.5  1999/11/09 22:57:08  peter
-    * compiles again both i386,alpha both with optimizer
-
-  Revision 1.4  1999/08/18 14:32:21  jonas
-    + compilable!
-    + dataflow analyzer finished
-    + start of CSE units
-    + aoptbase which contains a base object for all optimizer objects
-    * some constants and type definitions moved around to avoid circular
-      dependencies
-    * moved some methods from base objects to specialized objects because
-      they're not used anywhere else
 
 }

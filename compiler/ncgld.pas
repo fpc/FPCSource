@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl
+    Copyright (c) 1998-2002 by Florian Klaempfl
 
     Generate assembler for nodes that handle loads and assignments which
     are the same for all (most) processors
@@ -906,7 +906,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2002-05-13 19:54:37  peter
+  Revision 1.5  2002-05-14 19:34:42  peter
+    * removed old logs and updated copyright year
+
+  Revision 1.4  2002/05/13 19:54:37  peter
     * removed n386ld and n386util units
     * maybe_save/maybe_restore added instead of the old maybe_push
 

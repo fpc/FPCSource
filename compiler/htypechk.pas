@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl
+    Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit exports some help routines for the type checking
 
@@ -938,7 +938,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.42  2002-04-02 17:11:28  peter
+  Revision 1.43  2002-05-14 19:34:41  peter
+    * removed old logs and updated copyright year
+
+  Revision 1.42  2002/04/02 17:11:28  peter
     * tlocation,treference update
     * LOC_CONSTANT added for better constant handling
     * secondadd splitted in multiple routines
@@ -953,150 +956,4 @@ end.
     * no longer allow assignments to pointer expressions (unless there's a
       deref), reported by John Lee
 
-  Revision 1.40  2001/12/31 16:59:41  peter
-    * protected/private symbols parsing fixed
-
-  Revision 1.39  2001/11/08 21:55:36  marco
-   * Fix from Peter. Fixes a hang when ptop's upperstr procedure is converted
-     to ansistrings
-
-  Revision 1.38  2001/11/02 22:58:01  peter
-    * procsym definition rewrite
-
-  Revision 1.37  2001/10/20 20:30:21  peter
-    * read only typed const support, switch $J-
-
-  Revision 1.36  2001/10/12 13:51:51  jonas
-    * fixed internalerror(10) due to previous fpu overflow fixes ("merged")
-    * fixed bug in n386add (introduced after compilerproc changes for string
-      operations) where calcregisters wasn't called for shortstring addnodes
-    * NOTE: from now on, the location of a binary node must now always be set
-       before you call calcregisters() for it
-
-  Revision 1.35  2001/09/17 21:29:11  peter
-    * merged netbsd, fpu-overflow from fixes branch
-
-  Revision 1.34  2001/09/07 07:46:17  jonas
-    * allow typecasting from child object types to parent object types (with
-      different sizes)
-
-  Revision 1.33  2001/09/02 21:13:31  peter
-    * check for size differences in typecasts when assigning
-
-  Revision 1.32  2001/08/26 13:36:37  florian
-    * some cg reorganisation
-    * some PPC updates
-
-  Revision 1.31  2001/08/23 14:28:35  jonas
-    + tempcreate/ref/delete nodes (allows the use of temps in the
-      resulttype and first pass)
-    * made handling of read(ln)/write(ln) processor independent
-    * moved processor independent handling for str and reset/rewrite-typed
-      from firstpass to resulttype pass
-    * changed names of helpers in text.inc to be generic for use as
-      compilerprocs + added "iocheck" directive for most of them
-    * reading of ordinals is done by procedures instead of functions
-      because otherwise FPC_IOCHECK overwrote the result before it could
-      be stored elsewhere (range checking still works)
-    * compilerprocs can now be used in the system unit before they are
-      implemented
-    * added note to errore.msg that booleans can't be read using read/readln
-
-  Revision 1.30  2001/08/06 21:40:46  peter
-    * funcret moved from tprocinfo to tprocdef
-
-  Revision 1.29  2001/06/04 18:04:36  peter
-    * fixes to valid_for_assign for properties
-
-  Revision 1.28  2001/06/04 11:48:02  peter
-    * better const to var checking
-
-  Revision 1.27  2001/05/18 22:57:08  peter
-    * replace constant by cpu dependent value (merged)
-
-  Revision 1.26  2001/05/08 08:52:05  jonas
-    * fix from Peter to avoid excessive number of warnings
-
-  Revision 1.25  2001/04/22 22:46:49  florian
-    * more variant support
-
-  Revision 1.24  2001/04/13 01:22:08  peter
-    * symtable change to classes
-    * range check generation and errors fixed, make cycle DEBUG=1 works
-    * memory leaks fixed
-
-  Revision 1.23  2001/04/02 21:20:29  peter
-    * resulttype rewrite
-
-  Revision 1.22  2001/02/20 21:46:26  peter
-    * don't allow assign to void type (merged)
-
-  Revision 1.21  2001/02/04 11:12:17  jonas
-    * fixed web bug 1377 & const pointer arithmtic
-
-  Revision 1.20  2000/12/09 13:04:05  florian
-    * web bug 1207 fixed: field and properties of const classes can be
-      changed
-
-  Revision 1.19  2000/11/29 00:30:31  florian
-    * unused units removed from uses clause
-    * some changes for widestrings
-
-  Revision 1.18  2000/11/28 17:14:33  jonas
-    * fixed crash when trying to use an overloaded operator which is nowhere
-      defined
-
-  Revision 1.17  2000/11/28 14:04:03  jonas
-    * fixed operator overloading problems
-
-  Revision 1.16  2000/11/13 11:30:54  florian
-    * some bugs with interfaces and NIL fixed
-
-  Revision 1.15  2000/11/12 22:20:37  peter
-    * create generic toutputsection for binary writers
-
-  Revision 1.14  2000/11/04 14:25:19  florian
-    + merged Attila's changes for interfaces, not tested yet
-
-  Revision 1.13  2000/10/31 22:02:47  peter
-    * symtable splitted, no real code changes
-
-  Revision 1.12  2000/10/14 10:14:47  peter
-    * moehrendorf oct 2000 rewrite
-
-  Revision 1.11  2000/10/01 19:48:23  peter
-    * lot of compile updates for cg11
-
-  Revision 1.10  2000/09/29 15:45:23  florian
-    * make cycle fixed
-
-  Revision 1.9  2000/09/28 19:49:51  florian
-  *** empty log message ***
-
-  Revision 1.8  2000/09/27 18:14:31  florian
-    * fixed a lot of syntax errors in the n*.pas stuff
-
-  Revision 1.7  2000/09/26 20:06:13  florian
-    * hmm, still a lot of work to get things compilable
-
-  Revision 1.6  2000/09/24 15:06:17  peter
-    * use defines.inc
-
-  Revision 1.5  2000/08/27 16:11:51  peter
-    * moved some util functions from globals,cobjects to cutils
-    * splitted files into finput,fmodule
-
-  Revision 1.4  2000/08/16 18:33:53  peter
-    * splitted namedobjectitem.next into indexnext and listnext so it
-      can be used in both lists
-    * don't allow "word = word" type definitions (merged)
-
-  Revision 1.3  2000/08/07 11:31:04  jonas
-    * fixed bug in type conversions between enum subranges (it didn't take
-      the packenum directive into account)
-    + define PACKENUMFIXED symbol in options.pas
-     (merged from fixes branch)
-
-  Revision 1.2  2000/07/13 11:32:41  michael
-  + removed logs
 }

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl
+    Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit implements the scanner part and handling of the switches
 
@@ -2764,7 +2764,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.36  2002-04-21 18:57:23  peter
+  Revision 1.37  2002-05-14 19:34:50  peter
+    * removed old logs and updated copyright year
+
+  Revision 1.36  2002/04/21 18:57:23  peter
     * fixed memleaks when file can't be opened
 
   Revision 1.35  2002/04/21 15:22:26  carl
@@ -2789,93 +2792,5 @@ end.
   Revision 1.28  2002/01/24 18:25:50  peter
    * implicit result variable generation for assembler routines
    * removed m_tp modeswitch, use m_tp7 or not(m_fpc) instead
-
-  Revision 1.27  2001/10/22 20:25:49  peter
-    * fixed previous commit
-
-  Revision 1.26  2001/10/22 19:55:44  peter
-    * give error with string constants longer than 255 chars, this is
-      compatible with kylix
-
-  Revision 1.25  2001/10/17 22:41:05  florian
-    * several widechar fixes, case works now
-
-  Revision 1.24  2001/10/12 16:02:34  peter
-    * fix bug 1634 (merged)
-
-  Revision 1.23  2001/09/30 21:23:59  peter
-    * merged delphi comment fix
-
-  Revision 1.22  2001/09/18 11:30:48  michael
-  * Fixes win32 linking problems with import libraries
-  * LINKLIB Libraries are now looked for using C file extensions
-  * get_exepath fix
-
-  Revision 1.21  2001/07/30 20:59:27  peter
-    * m68k updates from v10 merged
-
-  Revision 1.20  2001/07/15 11:56:21  peter
-    * merged fixed relative path fix
-
-  Revision 1.19  2001/07/08 21:00:16  peter
-    * various widestring updates, it works now mostly without charset
-      mapping supported
-
-  Revision 1.18  2001/06/03 21:57:38  peter
-    + hint directive parsing support
-
-  Revision 1.17  2001/05/27 14:30:55  florian
-    + some widestring stuff added
-
-  Revision 1.16  2001/04/13 22:12:34  peter
-    * fixed comment after comment parsing in assembler blocks
-
-  Revision 1.15  2001/04/13 18:00:36  peter
-    * easier registration of directives
-
-  Revision 1.14  2001/04/13 01:22:13  peter
-    * symtable change to classes
-    * range check generation and errors fixed, make cycle DEBUG=1 works
-    * memory leaks fixed
-
-  Revision 1.13  2000/12/25 00:07:28  peter
-    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
-      tlinkedlist objects)
-
-  Revision 1.12  2000/12/24 12:24:38  peter
-    * moved preprocessfile into a conditional
-
-  Revision 1.11  2000/12/18 17:59:01  peter
-    * fixed skipuntildirective
-
-  Revision 1.10  2000/12/16 15:36:02  peter
-    * fixed parsing of strings and comments in skipuntildirective
-
-  Revision 1.9  2000/11/30 20:27:51  peter
-    * merged fix for bug 1229
-
-  Revision 1.8  2000/11/29 00:30:40  florian
-    * unused units removed from uses clause
-    * some changes for widestrings
-
-  Revision 1.7  2000/10/31 22:02:51  peter
-    * symtable splitted, no real code changes
-
-  Revision 1.6  2000/09/24 15:06:28  peter
-    * use defines.inc
-
-  Revision 1.5  2000/08/27 16:11:53  peter
-    * moved some util functions from globals,cobjects to cutils
-    * splitted files into finput,fmodule
-
-  Revision 1.4  2000/08/12 15:30:44  peter
-    * IDE patch for stream reading (merged)
-
-  Revision 1.3  2000/08/08 19:28:57  peter
-    * memdebug/memory patches (merged)
-    * only once illegal directive (merged)
-
-  Revision 1.2  2000/07/13 11:32:49  michael
-  + removed logs
 
 }

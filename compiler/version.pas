@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (C) 1998-2000 by Florian Klaempfl
+    Copyright (C) 1998-2002 by Florian Klaempfl
 
     Version/target constants
 
@@ -104,29 +104,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  2002-03-24 19:12:11  carl
+  Revision 1.10  2002-05-14 19:34:52  peter
+    * removed old logs and updated copyright year
+
+  Revision 1.9  2002/03/24 19:12:11  carl
   + patch for SPARC from Mazen NEIFER
 
   Revision 1.8  2002/03/01 12:47:21  pierre
    * used shl 7 for release number
-
-  Revision 1.7  2000/11/29 00:30:43  florian
-    * unused units removed from uses clause
-    * some changes for widestrings
-
-  Revision 1.6  2000/09/24 15:06:33  peter
-    * use defines.inc
-
-  Revision 1.5  2000/07/14 05:14:10  michael
-  + Adapted wordversion
-
-  Revision 1.4  2000/07/14 05:11:49  michael
-  + Patch to 1.1
-
-  Revision 1.3  2000/07/13 12:08:28  michael
-  + patched to 1.1.0 with former 1.09patch from peter
-
-  Revision 1.2  2000/07/13 11:32:54  michael
-  + removed logs
 
 }

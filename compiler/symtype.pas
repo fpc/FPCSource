@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl, Pierre Muller
+    Copyright (c) 1998-2002 by Florian Klaempfl, Pierre Muller
 
     This unit handles the symbol tables
 
@@ -528,7 +528,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  2002-05-12 16:53:15  peter
+  Revision 1.16  2002-05-14 19:34:51  peter
+    * removed old logs and updated copyright year
+
+  Revision 1.15  2002/05/12 16:53:15  peter
     * moved entry and exitcode to ncgutil and cgobj
     * foreach gets extra argument for passing local data to the
       iterator function
@@ -552,53 +555,5 @@ end.
       manglednames depending on the current procedure, object and module
     * removed static procprefix since the mangledname is now build only
       on demand from tprocdef.mangledname
-
-  Revision 1.13  2001/12/31 16:59:43  peter
-    * protected/private symbols parsing fixed
-
-  Revision 1.12  2001/11/18 18:43:18  peter
-    * overloading supported in child classes
-    * fixed parsing of classes with private and virtual and overloaded
-      so it is compatible with delphi
-
-  Revision 1.11  2001/11/02 22:58:08  peter
-    * procsym definition rewrite
-
-  Revision 1.10  2001/10/21 12:33:07  peter
-    * array access for properties added
-
-  Revision 1.9  2001/08/30 20:13:57  peter
-    * rtti/init table updates
-    * rttisym for reusable global rtti/init info
-    * support published for interfaces
-
-  Revision 1.8  2001/08/06 21:40:49  peter
-    * funcret moved from tprocinfo to tprocdef
-
-  Revision 1.7  2001/05/06 14:49:19  peter
-    * ppu object to class rewrite
-    * move ppu read and write stuff to fppu
-
-  Revision 1.6  2001/04/13 01:22:17  peter
-    * symtable change to classes
-    * range check generation and errors fixed, make cycle DEBUG=1 works
-    * memory leaks fixed
-
-  Revision 1.5  2001/04/02 21:20:35  peter
-    * resulttype rewrite
-
-  Revision 1.4  2000/12/25 00:07:30  peter
-    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
-      tlinkedlist objects)
-
-  Revision 1.3  2000/11/29 00:30:42  florian
-    * unused units removed from uses clause
-    * some changes for widestrings
-
-  Revision 1.2  2000/11/07 20:48:33  peter
-    * removed ref_count from pinputfile it's not used
-
-  Revision 1.1  2000/10/31 22:02:53  peter
-    * symtable splitted, no real code changes
 
 }

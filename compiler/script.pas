@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Peter Vreman
+    Copyright (c) 1998-2002 by Peter Vreman
 
     This unit handles the writing of script files
 
@@ -414,43 +414,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.13  2001-09-17 21:29:12  peter
-    * merged netbsd, fpu-overflow from fixes branch
-
-  Revision 1.12  2001/08/07 18:44:09  peter
-    * made script target indepedent
-
-  Revision 1.11  2001/07/30 20:59:27  peter
-    * m68k updates from v10 merged
-
-  Revision 1.10  2001/07/10 21:01:35  peter
-    * fixed crash with writing of the linker script
-
-  Revision 1.9  2001/04/18 22:01:58  peter
-    * registration of targets and assemblers
-
-  Revision 1.8  2001/04/13 01:22:14  peter
-    * symtable change to classes
-    * range check generation and errors fixed, make cycle DEBUG=1 works
-    * memory leaks fixed
-
-  Revision 1.7  2001/02/05 20:47:00  peter
-    * support linux unit for ver1_0 compilers
-
-  Revision 1.6  2001/01/21 20:32:45  marco
-   * Renamefest. Compiler part. Not that hard.
-
-  Revision 1.5  2000/12/25 00:07:29  peter
-    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
-      tlinkedlist objects)
-
-  Revision 1.4  2000/11/13 15:43:07  marco
-   * Renamefest
-
-  Revision 1.3  2000/09/24 15:06:28  peter
-    * use defines.inc
-
-  Revision 1.2  2000/07/13 11:32:49  michael
-  + removed logs
+  Revision 1.14  2002-05-14 19:34:50  peter
+    * removed old logs and updated copyright year
 
 }

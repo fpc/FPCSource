@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 2000-2001 by Florian Klaempfl
+    Copyright (c) 2000-2002 by Florian Klaempfl
 
     Type checking and register allocation for type converting nodes
 
@@ -1739,7 +1739,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.55  2002-05-12 16:53:07  peter
+  Revision 1.56  2002-05-14 19:34:42  peter
+    * removed old logs and updated copyright year
+
+  Revision 1.55  2002/05/12 16:53:07  peter
     * moved entry and exitcode to ncgutil and cgobj
     * foreach gets extra argument for passing local data to the
       iterator function
@@ -1792,197 +1795,4 @@ end.
   Revision 1.48  2002/02/03 09:30:03  peter
     * more fixes for protected handling
 
-  Revision 1.47  2001/12/10 14:34:04  jonas
-    * fixed type conversions from dynamic arrays to open arrays
-
-  Revision 1.46  2001/12/06 17:57:34  florian
-    + parasym to tparaitem added
-
-  Revision 1.45  2001/12/03 21:48:41  peter
-    * freemem change to value parameter
-    * torddef low/high range changed to int64
-
-  Revision 1.44  2001/11/02 23:24:11  jonas
-    * fixed web bug 1665 (allow char to chararray type conversion) ("merged")
-
-  Revision 1.43  2001/11/02 22:58:02  peter
-    * procsym definition rewrite
-
-  Revision 1.42  2001/10/28 17:22:25  peter
-    * allow assignment of overloaded procedures to procvars when we know
-      which procedure to take
-
-  Revision 1.41  2001/10/20 19:28:37  peter
-    * interface 2 guid support
-    * guid constants support
-
-  Revision 1.40  2001/10/20 17:21:54  peter
-    * fixed size of constset when change from small to normalset
-
-  Revision 1.39  2001/09/30 16:12:46  jonas
-    - removed unnecessary i386 pass_2 of as- and isnode and added dummy generic ones
-
-  Revision 1.38  2001/09/29 21:32:46  jonas
-    * almost all second pass typeconvnode helpers are now processor independent
-    * fixed converting boolean to int64/qword
-    * fixed register allocation bugs which could cause internalerror 10
-    * isnode and asnode are completely processor indepent now as well
-    * fpc_do_as now returns its class argument (necessary to be able to use it
-      properly with compilerproc)
-
-  Revision 1.37  2001/09/03 13:27:42  jonas
-    * compilerproc implementation of set addition/substraction/...
-    * changed the declaration of some set helpers somewhat to accomodate the
-      above change
-    * i386 still uses the old code for comparisons of sets, because its
-      helpers return the results in the flags
-    * dummy tc_normal_2_small_set type conversion because I need the original
-      resulttype of the set add nodes
-    NOTE: you have to start a cycle with 1.0.5!
-
-  Revision 1.36  2001/09/02 21:12:06  peter
-    * move class of definitions into type section for delphi
-
-  Revision 1.35  2001/08/29 19:49:03  jonas
-    * some fixes in compilerprocs for chararray to string conversions
-    * conversion from string to chararray is now also done via compilerprocs
-
-  Revision 1.34  2001/08/29 12:18:07  jonas
-    + new createinternres() constructor for tcallnode to support setting a
-      custom resulttype
-    * compilerproc typeconversions now set the resulttype from the type
-      conversion for the generated call node, because the resulttype of
-      of the compilerproc helper isn't always exact (e.g. the ones that
-      return shortstrings, actually return a shortstring[x], where x is
-      specified by the typeconversion node)
-    * ti386callnode.pass_2 now always uses resulttype instead of
-      procsym.definition.rettype (so the custom resulttype, if any, is
-      always used). Note that this "rettype" stuff is only for use with
-      compilerprocs.
-
-  Revision 1.33  2001/08/28 13:24:46  jonas
-    + compilerproc implementation of most string-related type conversions
-    - removed all code from the compiler which has been replaced by
-      compilerproc implementations (using (ifdef hascompilerproc) is not
-      necessary in the compiler)
-
-  Revision 1.32  2001/08/26 13:36:40  florian
-    * some cg reorganisation
-    * some PPC updates
-
-  Revision 1.31  2001/08/05 13:19:51  peter
-    * partly fix for proc of obj=nil
-
-  Revision 1.30  2001/07/30 20:59:27  peter
-    * m68k updates from v10 merged
-
-  Revision 1.29  2001/07/08 21:00:15  peter
-    * various widestring updates, it works now mostly without charset
-      mapping supported
-
-  Revision 1.28  2001/05/13 15:43:46  florian
-    * made resultype_char_to_char a little bit robuster
-
-  Revision 1.27  2001/05/08 21:06:30  florian
-    * some more support for widechars commited especially
-      regarding type casting and constants
-
-  Revision 1.26  2001/05/04 15:52:03  florian
-    * some Delphi incompatibilities fixed:
-       - out, dispose and new can be used as idenfiers now
-       - const p = apointerype(nil); is supported now
-    + support for const p = apointertype(pointer(1234)); added
-
-  Revision 1.25  2001/04/13 22:20:58  peter
-    * remove wrongly placed first_call_helper
-
-  Revision 1.24  2001/04/13 01:22:08  peter
-    * symtable change to classes
-    * range check generation and errors fixed, make cycle DEBUG=1 works
-    * memory leaks fixed
-
-  Revision 1.23  2001/04/04 22:42:39  peter
-    * move constant folding into det_resulttype
-
-  Revision 1.22  2001/04/02 21:20:30  peter
-    * resulttype rewrite
-
-  Revision 1.21  2001/03/08 17:44:47  jonas
-    * fixed web bug 1430
-
-  Revision 1.20  2001/02/21 11:49:50  jonas
-    * evaluate typecasts of const pointers to ordinals inline ('merged')
-
-  Revision 1.19  2001/02/20 18:37:10  peter
-    * removed unused code
-
-  Revision 1.18  2001/02/20 13:14:18  marco
-   * Fix from Peter for passing a procedure of method to a other method in a method
-
-  Revision 1.17  2001/02/08 13:09:03  jonas
-    * fixed web bug 1396: tpointerord is now a cardinal instead of a longint,
-      but added a hack in ncnv so that pointer(-1) still works
-
-  Revision 1.16  2000/12/31 11:14:10  jonas
-    + implemented/fixed docompare() mathods for all nodes (not tested)
-    + nopt.pas, nadd.pas, i386/n386opt.pas: optimized nodes for adding strings
-      and constant strings/chars together
-    * n386add.pas: don't copy temp strings (of size 256) to another temp string
-      when adding
-
-  Revision 1.15  2000/12/08 12:41:01  jonas
-    * fixed bug in sign extension patch
-
-  Revision 1.14  2000/12/07 17:19:42  jonas
-    * new constant handling: from now on, hex constants >$7fffffff are
-      parsed as unsigned constants (otherwise, $80000000 got sign extended
-      and became $ffffffff80000000), all constants in the longint range
-      become longints, all constants >$7fffffff and <=cardinal($ffffffff)
-      are cardinals and the rest are int64's.
-    * added lots of longint typecast to prevent range check errors in the
-      compiler and rtl
-    * type casts of symbolic ordinal constants are now preserved
-    * fixed bug where the original resulttype.def wasn't restored correctly
-      after doing a 64bit rangecheck
-
-  Revision 1.13  2000/11/29 00:30:32  florian
-    * unused units removed from uses clause
-    * some changes for widestrings
-
-  Revision 1.12  2000/11/20 16:06:04  jonas
-    + allow evaluation of 64bit constant expressions at compile time
-    * disable range checking for explicit typecasts of constant expressions
-
-  Revision 1.11  2000/11/12 23:24:11  florian
-    * interfaces are basically running
-
-  Revision 1.10  2000/11/04 14:25:20  florian
-    + merged Attila's changes for interfaces, not tested yet
-
-  Revision 1.9  2000/10/31 22:02:48  peter
-    * symtable splitted, no real code changes
-
-  Revision 1.8  2000/10/14 21:52:55  peter
-    * fixed memory leaks
-
-  Revision 1.7  2000/10/14 10:14:50  peter
-    * moehrendorf oct 2000 rewrite
-
-  Revision 1.6  2000/10/01 19:48:24  peter
-    * lot of compile updates for cg11
-
-  Revision 1.5  2000/09/28 19:49:52  florian
-  *** empty log message ***
-
-  Revision 1.4  2000/09/27 18:14:31  florian
-    * fixed a lot of syntax errors in the n*.pas stuff
-
-  Revision 1.3  2000/09/26 20:06:13  florian
-    * hmm, still a lot of work to get things compilable
-
-  Revision 1.2  2000/09/26 14:59:34  florian
-    * more conversion work done
-
-  Revision 1.1  2000/09/25 15:37:14  florian
-    * more fixes
 }

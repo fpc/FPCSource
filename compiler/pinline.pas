@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2001 by Florian Klaempfl
+    Copyright (c) 1998-2002 by Florian Klaempfl
 
     Generates nodes for routines that need compiler support
 
@@ -565,7 +565,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2002-05-12 16:53:09  peter
+  Revision 1.3  2002-05-14 19:34:49  peter
+    * removed old logs and updated copyright year
+
+  Revision 1.2  2002/05/12 16:53:09  peter
     * moved entry and exitcode to ncgutil and cgobj
     * foreach gets extra argument for passing local data to the
       iterator function

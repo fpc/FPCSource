@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl
+    Copyright (c) 1998-2002 by Florian Klaempfl
 
     Helper routines for all code generators
 
@@ -1607,7 +1607,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  2002-05-13 19:54:37  peter
+  Revision 1.14  2002-05-14 19:34:42  peter
+    * removed old logs and updated copyright year
+
+  Revision 1.13  2002/05/13 19:54:37  peter
     * removed n386ld and n386util units
     * maybe_save/maybe_restore added instead of the old maybe_push
 
@@ -1688,11 +1691,4 @@ end.
   Revision 1.2  2002/03/04 19:10:11  peter
     * removed compiler warnings
 
-  Revision 1.1  2001/12/30 17:24:48  jonas
-    * range checking is now processor independent (part in cgobj,
-      part in cg64f32) and should work correctly again (it needed
-      some changes after the changes of the low and high of
-      tordef's to int64)
-    * maketojumpbool() is now processor independent (in ncgutil)
-    * getregister32 is now called getregisterint
 }

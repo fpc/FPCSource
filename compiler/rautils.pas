@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Carl Eric Codere and Peter Vreman
+    Copyright (c) 1998-2002 by Carl Eric Codere and Peter Vreman
 
     This unit implements some support routines for assembler parsing
     independent of the processor
@@ -1591,7 +1591,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.32  2002-05-14 17:28:09  peter
+  Revision 1.33  2002-05-14 19:34:50  peter
+    * removed old logs and updated copyright year
+
+  Revision 1.32  2002/05/14 17:28:09  peter
     * synchronized cpubase between powerpc and i386
     * moved more tables from cpubase to cpuasm
     * tai_align_abstract moved to tainst, cpuasm must define
@@ -1644,94 +1647,5 @@ end.
   Revision 1.26  2002/01/24 18:25:50  peter
    * implicit result variable generation for assembler routines
    * removed m_tp modeswitch, use m_tp7 or not(m_fpc) instead
-
-  Revision 1.25  2001/11/02 22:58:06  peter
-    * procsym definition rewrite
-
-  Revision 1.24  2001/09/02 21:18:28  peter
-    * split constsym.value in valueord,valueordptr,valueptr. The valueordptr
-      is used for holding target platform pointer values. As those can be
-      bigger than the source platform.
-
-  Revision 1.23  2001/08/26 13:36:48  florian
-    * some cg reorganisation
-    * some PPC updates
-
-  Revision 1.22  2001/08/12 17:57:07  peter
-    * under development flag for targets
-
-  Revision 1.21  2001/08/06 21:40:48  peter
-    * funcret moved from tprocinfo to tprocdef
-
-  Revision 1.20  2001/04/18 22:01:58  peter
-    * registration of targets and assemblers
-
-  Revision 1.19  2001/04/13 20:06:05  peter
-    * allow unit.identifier in asm readers
-
-  Revision 1.18  2001/04/13 01:22:13  peter
-    * symtable change to classes
-    * range check generation and errors fixed, make cycle DEBUG=1 works
-    * memory leaks fixed
-
-  Revision 1.17  2001/04/02 21:20:34  peter
-    * resulttype rewrite
-
-  Revision 1.16  2001/03/11 22:58:50  peter
-    * getsym redesign, removed the globals srsym,srsymtable
-
-  Revision 1.15  2001/02/26 19:44:54  peter
-    * merged generic m68k updates from fixes branch
-
-  Revision 1.14  2000/12/25 00:07:28  peter
-    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
-      tlinkedlist objects)
-
-  Revision 1.13  2000/12/07 17:19:43  jonas
-    * new constant handling: from now on, hex constants >$7fffffff are
-      parsed as unsigned constants (otherwise, $80000000 got sign extended
-      and became $ffffffff80000000), all constants in the longint range
-      become longints, all constants >$7fffffff and <=cardinal($ffffffff)
-      are cardinals and the rest are int64's.
-    * added lots of longint typecast to prevent range check errors in the
-      compiler and rtl
-    * type casts of symbolic ordinal constants are now preserved
-    * fixed bug where the original resulttype wasn't restored correctly
-      after doing a 64bit rangecheck
-
-  Revision 1.12  2000/11/29 00:30:38  florian
-    * unused units removed from uses clause
-    * some changes for widestrings
-
-  Revision 1.11  2000/11/06 22:30:30  peter
-    * more fixes
-
-  Revision 1.10  2000/11/04 14:25:21  florian
-    + merged Attila's changes for interfaces, not tested yet
-
-  Revision 1.9  2000/10/31 22:30:13  peter
-    * merged asm result patch part 2
-
-  Revision 1.8  2000/10/31 22:02:51  peter
-    * symtable splitted, no real code changes
-
-  Revision 1.7  2000/10/08 10:26:33  peter
-    * merged @result fix from Pierre
-
-  Revision 1.6  2000/09/24 21:19:51  peter
-    * delphi compile fixes
-
-  Revision 1.5  2000/09/24 15:06:26  peter
-    * use defines.inc
-
-  Revision 1.4  2000/08/27 16:11:52  peter
-    * moved some util functions from globals,cobjects to cutils
-    * splitted files into finput,fmodule
-
-  Revision 1.3  2000/08/06 10:42:29  peter
-    * merged patches name generation in lib and asm constant eval
-
-  Revision 1.2  2000/07/13 11:32:48  michael
-  + removed logs
 
 }

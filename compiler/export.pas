@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl
+    Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit implements an uniform export object
 
@@ -180,55 +180,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.16  2001-06-28 19:46:25  peter
-    * added override and virtual for constructors
-
-  Revision 1.15  2001/06/06 21:58:16  peter
-    * Win32 fixes for Makefile so it doesn't require sh.exe
-
-  Revision 1.14  2001/04/18 22:01:53  peter
-    * registration of targets and assemblers
-
-  Revision 1.13  2001/04/13 01:22:07  peter
-    * symtable change to classes
-    * range check generation and errors fixed, make cycle DEBUG=1 works
-    * memory leaks fixed
-
-  Revision 1.12  2001/02/26 19:44:52  peter
-    * merged generic m68k updates from fixes branch
-
-  Revision 1.11  2001/02/03 00:09:02  peter
-    * fixed netware typo in previous commit
-
-  Revision 1.10  2001/02/02 22:43:39  peter
-    * add notarget defines
-
-  Revision 1.9  2000/12/25 00:07:25  peter
-    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
-      tlinkedlist objects)
-
-  Revision 1.8  2000/11/29 00:30:30  florian
-    * unused units removed from uses clause
-    * some changes for widestrings
-
-  Revision 1.7  2000/10/31 22:02:46  peter
-    * symtable splitted, no real code changes
-
-  Revision 1.6  2000/09/24 15:06:16  peter
-    * use defines.inc
-
-  Revision 1.5  2000/09/16 12:22:52  peter
-    * freebsd support merged
-
-  Revision 1.4  2000/09/11 17:00:22  florian
-    + first implementation of Netware Module support, thanks to
-      Armin Diehl (diehl@nordrhein.de) for providing the patches
-
-  Revision 1.3  2000/08/27 16:11:50  peter
-    * moved some util functions from globals,cobjects to cutils
-    * splitted files into finput,fmodule
-
-  Revision 1.2  2000/07/13 11:32:41  michael
-  + removed logs
+  Revision 1.17  2002-05-14 19:34:41  peter
+    * removed old logs and updated copyright year
 
 }

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl, Pierre Muller
+    Copyright (c) 1998-2002 by Florian Klaempfl, Pierre Muller
 
     This unit handles the symbol tables
 
@@ -2060,7 +2060,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.58  2002-05-12 16:53:15  peter
+  Revision 1.59  2002-05-14 19:34:51  peter
+    * removed old logs and updated copyright year
+
+  Revision 1.58  2002/05/12 16:53:15  peter
     * moved entry and exitcode to ncgutil and cgobj
     * foreach gets extra argument for passing local data to the
       iterator function
@@ -2098,196 +2101,5 @@ end.
   Revision 1.52  2002/01/24 18:25:50  peter
    * implicit result variable generation for assembler routines
    * removed m_tp modeswitch, use m_tp7 or not(m_fpc) instead
-
-  Revision 1.51  2001/12/31 16:59:43  peter
-    * protected/private symbols parsing fixed
-
-  Revision 1.50  2001/11/18 18:43:17  peter
-    * overloading supported in child classes
-    * fixed parsing of classes with private and virtual and overloaded
-      so it is compatible with delphi
-
-  Revision 1.49  2001/11/02 23:16:52  peter
-    * removed obsolete chainprocsym and test_procsym code
-
-  Revision 1.48  2001/11/02 22:58:08  peter
-    * procsym definition rewrite
-
-  Revision 1.47  2001/10/12 20:27:43  jonas
-    * fixed crashing bug in unit reference counting
-
-  Revision 1.46  2001/09/30 21:29:47  peter
-    * gdb fixes merged
-
-  Revision 1.45  2001/09/19 11:06:03  michael
-  * realname updated for some hints
-  * realname used for consts,labels
-
-  Revision 1.44  2001/09/04 11:38:55  jonas
-    + searchsystype() and searchsystype() functions in symtable
-    * changed ninl and nadd to use these functions
-    * i386 set comparison functions now return their results in al instead
-      of in the flags so that they can be sued as compilerprocs
-    - removed all processor specific code from n386add.pas that has to do
-      with set handling, it's now all done in nadd.pas
-    * fixed fpc_set_contains_sets in genset.inc
-    * fpc_set_in_byte is now coded inline in n386set.pas and doesn't use a
-      helper anymore
-    * some small fixes in compproc.inc/set.inc regarding the declaration of
-      internal helper types (fpc_small_set and fpc_normal_set)
-
-  Revision 1.43  2001/08/30 20:13:56  peter
-    * rtti/init table updates
-    * rttisym for reusable global rtti/init info
-    * support published for interfaces
-
-  Revision 1.42  2001/08/26 13:36:51  florian
-    * some cg reorganisation
-    * some PPC updates
-
-  Revision 1.41  2001/08/19 09:39:29  peter
-    * local browser support fixed
-
-  Revision 1.40  2001/08/06 21:40:49  peter
-    * funcret moved from tprocinfo to tprocdef
-
-  Revision 1.39  2001/07/29 22:12:58  peter
-    * skip private symbols when found in withsymtable
-
-  Revision 1.38  2001/07/01 20:16:18  peter
-    * alignmentinfo record added
-    * -Oa argument supports more alignment settings that can be specified
-      per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN
-      RECORDMAX,LOCALMIN,LOCALMAX. It is possible to set the mimimum
-      required alignment and the maximum usefull alignment. The final
-      alignment will be choosen per variable size dependent on these
-      settings
-
-  Revision 1.37  2001/06/04 11:53:14  peter
-    + varargs directive
-
-  Revision 1.36  2001/06/03 21:57:38  peter
-    + hint directive parsing support
-
-  Revision 1.35  2001/05/06 14:49:18  peter
-    * ppu object to class rewrite
-    * move ppu read and write stuff to fppu
-
-  Revision 1.34  2001/04/18 22:01:59  peter
-    * registration of targets and assemblers
-
-  Revision 1.33  2001/04/13 20:05:15  peter
-    * better check for globalsymtable
-
-  Revision 1.32  2001/04/13 18:08:37  peter
-    * scanner object to class
-
-  Revision 1.31  2001/04/13 01:22:16  peter
-    * symtable change to classes
-    * range check generation and errors fixed, make cycle DEBUG=1 works
-    * memory leaks fixed
-
-  Revision 1.30  2001/04/02 21:20:35  peter
-    * resulttype rewrite
-
-  Revision 1.29  2001/03/22 00:10:58  florian
-    + basic variant type support in the compiler
-
-  Revision 1.28  2001/03/13 18:45:07  peter
-    * fixed some memory leaks
-
-  Revision 1.27  2001/03/11 22:58:51  peter
-    * getsym redesign, removed the globals srsym,srsymtable
-
-  Revision 1.26  2001/02/21 19:37:19  peter
-    * moved deref to be done after loading of implementation units. prederef
-      is still done directly after loading of symbols and definitions.
-
-  Revision 1.25  2001/02/20 21:41:16  peter
-    * new fixfilename, findfile for unix. Look first for lowercase, then
-      NormalCase and last for UPPERCASE names.
-
-  Revision 1.24  2001/01/08 21:40:27  peter
-    * fixed crash with unsupported token overloading
-
-  Revision 1.23  2000/12/25 00:07:30  peter
-    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
-      tlinkedlist objects)
-
-  Revision 1.22  2000/12/23 19:50:09  peter
-    * fixed mem leak with withsymtable
-
-  Revision 1.21  2000/12/10 20:25:32  peter
-    * fixed missing typecast
-
-  Revision 1.20  2000/12/10 14:14:51  florian
-    * fixed web bug 1203: class fields can be now redefined
-      in Delphi mode though I don't like this :/
-
-  Revision 1.19  2000/11/30 22:16:49  florian
-    * moved to i386
-
-  Revision 1.18  2000/11/29 00:30:42  florian
-    * unused units removed from uses clause
-    * some changes for widestrings
-
-  Revision 1.17  2000/11/28 00:28:07  pierre
-   * stabs fixing
-
-  Revision 1.1.2.8  2000/11/17 11:14:37  pierre
-   * one more class stabs fix
-
-  Revision 1.16  2000/11/12 22:17:47  peter
-    * some realname updates for messages
-
-  Revision 1.15  2000/11/06 15:54:15  florian
-    * fixed two bugs to get make cycle work, but it's not enough
-
-  Revision 1.14  2000/11/04 14:25:22  florian
-    + merged Attila's changes for interfaces, not tested yet
-
-  Revision 1.13  2000/11/01 23:04:38  peter
-    * tprocdef.fullprocname added for better casesensitve writing of
-      procedures
-
-  Revision 1.12  2000/10/31 22:02:52  peter
-    * symtable splitted, no real code changes
-
-  Revision 1.1.2.7  2000/10/16 19:43:04  pierre
-   * trying to correct class stabss once more
-
-  Revision 1.11  2000/10/15 07:47:53  peter
-    * unit names and procedure names are stored mixed case
-
-  Revision 1.10  2000/10/14 10:14:53  peter
-    * moehrendorf oct 2000 rewrite
-
-  Revision 1.9  2000/10/01 19:48:25  peter
-    * lot of compile updates for cg11
-
-  Revision 1.8  2000/09/24 15:06:29  peter
-    * use defines.inc
-
-  Revision 1.7  2000/08/27 16:11:54  peter
-    * moved some util functions from globals,cobjects to cutils
-    * splitted files into finput,fmodule
-
-  Revision 1.6  2000/08/21 11:27:45  pierre
-   * fix the stabs problems
-
-  Revision 1.5  2000/08/20 14:58:41  peter
-    * give fatal if objfpc/delphi mode things are found (merged)
-
-  Revision 1.1.2.6  2000/08/20 14:56:46  peter
-    * give fatal if objfpc/delphi mode things are found
-
-  Revision 1.4  2000/08/16 18:33:54  peter
-    * splitted namedobjectitem.next into indexnext and listnext so it
-      can be used in both lists
-    * don't allow "word = word" type definitions (merged)
-
-  Revision 1.3  2000/08/08 19:28:57  peter
-    * memdebug/memory patches (merged)
-    * only once illegal directive (merged)
 
 }

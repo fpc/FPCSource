@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl
+    Copyright (c) 1998-2002 by Florian Klaempfl
     Member of the Free Pascal development team
 
     This unit implements the basic code generator object
@@ -1113,7 +1113,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.22  2002-05-13 19:54:36  peter
+  Revision 1.23  2002-05-14 19:34:40  peter
+    * removed old logs and updated copyright year
+
+  Revision 1.22  2002/05/13 19:54:36  peter
     * removed n386ld and n386util units
     * maybe_save/maybe_restore added instead of the old maybe_push
 
@@ -1212,57 +1215,4 @@ end.
   Revision 1.7  2002/03/04 19:10:11  peter
     * removed compiler warnings
 
-  Revision 1.6  2001/12/30 17:24:48  jonas
-    * range checking is now processor independent (part in cgobj,
-      part in cg64f32) and should work correctly again (it needed
-      some changes after the changes of the low and high of
-      tordef's to int64)
-    * maketojumpbool() is now processor independent (in ncgutil)
-    * getregister32 is now called getregisterint
-
-  Revision 1.5  2001/12/29 15:28:58  jonas
-    * powerpc/cgcpu.pas compiles :)
-    * several powerpc-related fixes
-    * cpuasm unit is now based on common tainst unit
-    + nppcmat unit for powerpc (almost complete)
-
-  Revision 1.4  2001/09/30 21:26:42  peter
-    * removed obsolete newst defines
-
-  Revision 1.3  2001/09/30 16:17:17  jonas
-    * made most constant and mem handling processor independent
-
-  Revision 1.2  2001/09/28 20:39:32  jonas
-    * changed all flow control structures (except for exception handling
-      related things) to processor independent code (in new ncgflw unit)
-    + generic cgobj unit which contains lots of code generator helpers with
-      global "cg" class instance variable
-    + cgcpu unit for i386 (implements processor specific routines of the above
-      unit)
-    * updated cgbase and cpubase for the new code generator units
-    * include ncgflw unit in cpunode unit
-
-  Revision 1.5  2001/09/09 17:10:26  jonas
-    * some more things implemented
-
-  Revision 1.4  2001/09/06 15:25:55  jonas
-    * changed type of tcg from object to class ->  abstract methods are now
-      a lot cleaner :)
-    + more updates: load_*_loc methods, op_*_* methods, g_flags2reg method
-      (if possible with geenric implementation and necessary ppc
-       implementations)
-    * worked a bit further on cgflw, now working on exitnode
-
-  Revision 1.3  2001/09/05 20:21:03  jonas
-    * new cgflow based on n386flw with all nodes until forn "translated"
-    + a_cmp_loc_*_label methods for tcg
-    + base implementatino for a_cmp_ref_*_label methods
-    * small bugfixes to powerpc cg
-
-  Revision 1.2  2001/08/26 13:37:04  florian
-    * some cg reorganisation
-    * some PPC updates
-
-  Revision 1.1  2000/07/13 06:30:07  michael
-    + Initial import
 }

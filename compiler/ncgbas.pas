@@ -294,7 +294,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2002-05-13 19:54:37  peter
+  Revision 1.17  2002-05-14 19:34:42  peter
+    * removed old logs and updated copyright year
+
+  Revision 1.16  2002/05/13 19:54:37  peter
     * removed n386ld and n386util units
     * maybe_save/maybe_restore added instead of the old maybe_push
 
@@ -347,53 +350,5 @@ end.
       R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
     - list field removed of the tnode class because it's not used currently
       and can cause hard-to-find bugs
-
-  Revision 1.10  2001/12/31 16:54:14  peter
-    * fixed inline crash with assembler routines
-
-  Revision 1.9  2001/11/02 22:58:01  peter
-    * procsym definition rewrite
-
-  Revision 1.8  2001/10/25 21:22:35  peter
-    * calling convention rewrite
-
-  Revision 1.7  2001/08/26 13:36:39  florian
-    * some cg reorganisation
-    * some PPC updates
-
-  Revision 1.6  2001/08/24 13:47:27  jonas
-    * moved "reverseparameters" from ninl.pas to ncal.pas
-    + support for non-persistent temps in ttempcreatenode.create, for use
-      with typeconversion nodes
-
-  Revision 1.5  2001/08/23 14:28:35  jonas
-    + tempcreate/ref/delete nodes (allows the use of temps in the
-      resulttype and first pass)
-    * made handling of read(ln)/write(ln) processor independent
-    * moved processor independent handling for str and reset/rewrite-typed
-      from firstpass to resulttype pass
-    * changed names of helpers in text.inc to be generic for use as
-      compilerprocs + added "iocheck" directive for most of them
-    * reading of ordinals is done by procedures instead of functions
-      because otherwise FPC_IOCHECK overwrote the result before it could
-      be stored elsewhere (range checking still works)
-    * compilerprocs can now be used in the system unit before they are
-      implemented
-    * added note to errore.msg that booleans can't be read using read/readln
-
-  Revision 1.4  2001/06/02 19:22:15  peter
-    * refs count for relabeled asmsymbols fixed
-
-  Revision 1.3  2001/05/18 22:31:06  peter
-    * tasmnode.pass_2 is independent of cpu, moved to ncgbas
-    * include ncgbas for independent nodes
-
-  Revision 1.2  2001/04/13 01:22:08  peter
-    * symtable change to classes
-    * range check generation and errors fixed, make cycle DEBUG=1 works
-    * memory leaks fixed
-
-  Revision 1.1  2000/10/14 10:14:50  peter
-    * moehrendorf oct 2000 rewrite
 
 }

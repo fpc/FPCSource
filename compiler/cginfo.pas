@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl
+    Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit exports some types and constants for the code generation
 
@@ -101,7 +101,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  2002-05-13 19:54:36  peter
+  Revision 1.8  2002-05-14 19:34:40  peter
+    * removed old logs and updated copyright year
+
+  Revision 1.7  2002/05/13 19:54:36  peter
     * removed n386ld and n386util units
     * maybe_save/maybe_restore added instead of the old maybe_push
 

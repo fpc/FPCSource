@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl and Jonas Maebe
+    Copyright (c) 1998-2002 by Florian Klaempfl and Jonas Maebe
 
     This unit handles register variable allocation
 
@@ -464,7 +464,10 @@ end.
 
 {
   $Log$
-  Revision 1.30  2002-05-12 16:53:10  peter
+  Revision 1.31  2002-05-14 19:34:50  peter
+    * removed old logs and updated copyright year
+
+  Revision 1.30  2002/05/12 16:53:10  peter
     * moved entry and exitcode to ncgutil and cgobj
     * foreach gets extra argument for passing local data to the
       iterator function
@@ -533,94 +536,5 @@ end.
       R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
     - list field removed of the tnode class because it's not used currently
       and can cause hard-to-find bugs
-
-  Revision 1.22  2001/12/29 15:32:13  jonas
-    * powerpc/cgcpu.pas compiles :)
-    * several powerpc-related fixes
-    * cpuasm unit is now based on common tainst unit
-    + nppcmat unit for powerpc (almost complete)
-
-  Revision 1.21  2001/12/03 12:17:02  jonas
-    * forgot to commit yesterday :( (less unnecessary loading of regvars with
-      if-statements)
-
-  Revision 1.20  2001/11/05 16:49:32  jonas
-    * constant regvars (addresses of var/out para's and const para's) aren't
-      saved to memory anymore when their register will be destroyed
-    * unit has been made mostly processor independent
-
-  Revision 1.19  2001/11/02 22:58:06  peter
-    * procsym definition rewrite
-
-  Revision 1.18  2001/08/26 13:36:49  florian
-    * some cg reorganisation
-    * some PPC updates
-
-  Revision 1.17  2001/04/21 12:03:12  peter
-    * m68k updates merged from fixes branch
-
-  Revision 1.16  2001/04/13 01:22:13  peter
-    * symtable change to classes
-    * range check generation and errors fixed, make cycle DEBUG=1 works
-    * memory leaks fixed
-
-  Revision 1.15  2000/12/25 00:07:28  peter
-    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
-      tlinkedlist objects)
-
-  Revision 1.14  2000/12/05 11:44:32  jonas
-    + new integer regvar handling, should be much more efficient
-
-  Revision 1.13  2000/11/29 00:30:39  florian
-    * unused units removed from uses clause
-    * some changes for widestrings
-
-  Revision 1.12  2000/11/04 14:25:21  florian
-    + merged Attila's changes for interfaces, not tested yet
-
-  Revision 1.11  2000/10/31 22:02:51  peter
-    * symtable splitted, no real code changes
-
-  Revision 1.10  2000/10/14 10:14:52  peter
-    * moehrendorf oct 2000 rewrite
-
-  Revision 1.9  2000/10/01 19:48:25  peter
-    * lot of compile updates for cg11
-
-  Revision 1.8  2000/09/30 16:08:45  peter
-    * more cg11 updates
-
-  Revision 1.7  2000/09/30 13:08:16  jonas
-    * regvars are now zeroed at the start of their life if they contain an 8
-      or 16bit var/parameter, because the full 32bits are used if they are
-      necessary for a btrl instruction
-
-  Revision 1.6  2000/09/24 15:06:27  peter
-    * use defines.inc
-
-  Revision 1.5  2000/08/27 16:11:52  peter
-    * moved some util functions from globals,cobjects to cutils
-    * splitted files into finput,fmodule
-
-  Revision 1.4  2000/08/17 11:07:51  jonas
-    * fixed crash when inlining assembler procedures with -Or
-
-  Revision 1.3  2000/08/04 05:52:00  jonas
-    * correct version (I also had a regvars.pp locally, which was used
-      instead of the regvars.pas on CVS, so I didn't notice the errors :( )
-
-  Revision 1.2  2000/08/03 14:36:47  jonas
-    * fixed inserting of allocated register for regvars (only those for
-      parameters were done, and sometimes even the wrong ones)
-
-  Revision 1.1  2000/08/03 13:17:25  jonas
-    + allow regvars to be used inside inlined procs, which required  the
-      following changes:
-        + load regvars in genentrycode/free them in genexitcode (cgai386)
-        * moved all regvar related code to new regvars unit
-        + added pregvarinfo type to hcodegen
-        + added regvarinfo field to tprocinfo (symdef/symdefh)
-        * deallocate the regvars of the caller in secondprocinline before
-          inlining the called procedure and reallocate them afterwards
 
 }

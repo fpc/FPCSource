@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl
+    Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit handles the codegeneration pass
 
@@ -321,7 +321,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.27  2002-05-12 16:53:08  peter
+  Revision 1.28  2002-05-14 19:34:43  peter
+    * removed old logs and updated copyright year
+
+  Revision 1.27  2002/05/12 16:53:08  peter
     * moved entry and exitcode to ncgutil and cgobj
     * foreach gets extra argument for passing local data to the
       iterator function
@@ -384,81 +387,5 @@ end.
       R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
     - list field removed of the tnode class because it's not used currently
       and can cause hard-to-find bugs
-
-  Revision 1.21  2001/11/06 16:39:02  jonas
-    * moved call to "cleanup_regvars" to cga.pas for i386 because it has
-      to insert "fstp %st0" instructions after the exit label
-
-  Revision 1.20  2001/11/02 22:58:02  peter
-    * procsym definition rewrite
-
-  Revision 1.19  2001/10/25 21:22:35  peter
-    * calling convention rewrite
-
-  Revision 1.18  2001/08/26 13:36:44  florian
-    * some cg reorganisation
-    * some PPC updates
-
-  Revision 1.17  2001/08/06 21:40:47  peter
-    * funcret moved from tprocinfo to tprocdef
-
-  Revision 1.16  2001/05/09 19:57:07  peter
-    * check for errorcount after firstpass
-
-  Revision 1.15  2001/04/15 09:48:30  peter
-    * fixed crash in labelnode
-    * easier detection of goto and label in try blocks
-
-  Revision 1.14  2001/04/13 01:22:10  peter
-    * symtable change to classes
-    * range check generation and errors fixed, make cycle DEBUG=1 works
-    * memory leaks fixed
-
-  Revision 1.13  2001/04/02 21:20:31  peter
-    * resulttype rewrite
-
-  Revision 1.12  2000/12/25 00:07:27  peter
-    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
-      tlinkedlist objects)
-
-  Revision 1.11  2000/11/29 00:30:35  florian
-    * unused units removed from uses clause
-    * some changes for widestrings
-
-  Revision 1.10  2000/10/31 22:02:49  peter
-    * symtable splitted, no real code changes
-
-  Revision 1.9  2000/10/14 10:14:51  peter
-    * moehrendorf oct 2000 rewrite
-
-  Revision 1.8  2000/09/24 15:06:21  peter
-    * use defines.inc
-
-  Revision 1.7  2000/08/27 16:11:51  peter
-    * moved some util functions from globals,cobjects to cutils
-    * splitted files into finput,fmodule
-
-  Revision 1.6  2000/08/12 15:34:22  peter
-    + usedasmsymbollist to check and reset only the used symbols (merged)
-
-  Revision 1.5  2000/08/03 13:17:25  jonas
-    + allow regvars to be used inside inlined procs, which required  the
-      following changes:
-        + load regvars in genentrycode/free them in genexitcode (cgai386)
-        * moved all regvar related code to new regvars unit
-        + added pregvarinfo type to hcodegen
-        + added regvarinfo field to tprocinfo (symdef/symdefh)
-        * deallocate the regvars of the caller in secondprocinline before
-          inlining the called procedure and reallocate them afterwards
-
-  Revision 1.4  2000/08/03 11:15:42  jonas
-    - disable regvars for inlined procedures (merged from fixes branch)
-
-  Revision 1.3  2000/07/21 15:14:02  jonas
-    + added is_addr field for labels, if they are only used for getting the address
-       (e.g. for io checks) and corresponding getaddrlabel() procedure
-
-  Revision 1.2  2000/07/13 11:32:44  michael
-  + removed logs
 
 }

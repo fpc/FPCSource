@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl and Peter Vreman
+    Copyright (c) 1998-2002 by Florian Klaempfl and Peter Vreman
 
     Contains the base types for the i386
 
@@ -434,7 +434,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.20  2002-05-14 17:28:09  peter
+  Revision 1.21  2002-05-14 19:34:58  peter
+    * removed old logs and updated copyright year
+
+  Revision 1.20  2002/05/14 17:28:09  peter
     * synchronized cpubase between powerpc and i386
     * moved more tables from cpubase to cpuasm
     * tai_align_abstract moved to tainst, cpuasm must define
@@ -522,78 +525,5 @@ end.
 
   Revision 1.10  2002/03/04 19:10:12  peter
     * removed compiler warnings
-
-  Revision 1.9  2001/12/30 17:24:46  jonas
-    * range checking is now processor independent (part in cgobj,
-      part in cg64f32) and should work correctly again (it needed
-      some changes after the changes of the low and high of
-      tordef's to int64)
-    * maketojumpbool() is now processor independent (in ncgutil)
-    * getregister32 is now called getregisterint
-
-  Revision 1.8  2001/12/29 15:29:59  jonas
-    * powerpc/cgcpu.pas compiles :)
-    * several powerpc-related fixes
-    * cpuasm unit is now based on common tainst unit
-    + nppcmat unit for powerpc (almost complete)
-
-  Revision 1.7  2001/12/06 17:57:40  florian
-    + parasym to tparaitem added
-
-  Revision 1.6  2001/09/28 20:39:33  jonas
-    * changed all flow control structures (except for exception handling
-      related things) to processor independent code (in new ncgflw unit)
-    + generic cgobj unit which contains lots of code generator helpers with
-      global "cg" class instance variable
-    + cgcpu unit for i386 (implements processor specific routines of the above
-      unit)
-    * updated cgbase and cpubase for the new code generator units
-    * include ncgflw unit in cpunode unit
-
-  Revision 1.5  2001/05/18 23:01:13  peter
-    * portable constants
-
-  Revision 1.4  2001/04/13 01:22:18  peter
-    * symtable change to classes
-    * range check generation and errors fixed, make cycle DEBUG=1 works
-    * memory leaks fixed
-
-  Revision 1.3  2001/02/20 21:34:04  peter
-    * iret, lret fixes
-
-  Revision 1.2  2000/12/07 17:19:45  jonas
-    * new constant handling: from now on, hex constants >$7fffffff are
-      parsed as unsigned constants (otherwise, $80000000 got sign extended
-      and became $ffffffff80000000), all constants in the longint range
-      become longints, all constants >$7fffffff and <=cardinal($ffffffff)
-      are cardinals and the rest are int64's.
-    * added lots of longint typecast to prevent range check errors in the
-      compiler and rtl
-    * type casts of symbolic ordinal constants are now preserved
-    * fixed bug where the original resulttype wasn't restored correctly
-      after doing a 64bit rangecheck
-
-  Revision 1.1  2000/10/15 09:39:37  peter
-    * moved cpu*.pas to i386/
-    * renamed n386 to common cpunode
-
-  Revision 1.7  2000/09/26 20:06:13  florian
-    * hmm, still a lot of work to get things compilable
-
-  Revision 1.6  2000/09/24 15:06:14  peter
-    * use defines.inc
-
-  Revision 1.5  2000/08/27 16:11:50  peter
-    * moved some util functions from globals,cobjects to cutils
-    * splitted files into finput,fmodule
-
-  Revision 1.4  2000/08/05 13:25:06  peter
-    * packenum 1 fixes (merged)
-
-  Revision 1.3  2000/07/14 05:11:48  michael
-  + Patch to 1.1
-
-  Revision 1.2  2000/07/13 11:32:39  michael
-  + removed logs
 
 }

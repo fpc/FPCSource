@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl and Peter Vreman
+    Copyright (c) 1998-2002 by Florian Klaempfl and Peter Vreman
 
     Contains the assembler object for the i386
 
@@ -1807,7 +1807,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.22  2002-05-14 17:28:09  peter
+  Revision 1.23  2002-05-14 19:34:58  peter
+    * removed old logs and updated copyright year
+
+  Revision 1.22  2002/05/14 17:28:09  peter
     * synchronized cpubase between powerpc and i386
     * moved more tables from cpubase to cpuasm
     * tai_align_abstract moved to tainst, cpuasm must define
@@ -1856,87 +1859,5 @@ end.
       (this is compatible with Kylix). This saves a lot of push/pop especially
       with string operations
     * adapted some routines to use the new cg methods
-
-  Revision 1.17  2001/12/31 16:59:43  peter
-    * protected/private symbols parsing fixed
-
-  Revision 1.16  2001/12/29 15:29:59  jonas
-    * powerpc/cgcpu.pas compiles :)
-    * several powerpc-related fixes
-    * cpuasm unit is now based on common tainst unit
-    + nppcmat unit for powerpc (almost complete)
-
-  Revision 1.15  2001/04/21 12:13:15  peter
-    * restore correct pass2 handling bug 1425 (merged)
-
-  Revision 1.14  2001/04/13 01:22:18  peter
-    * symtable change to classes
-    * range check generation and errors fixed, make cycle DEBUG=1 works
-    * memory leaks fixed
-
-  Revision 1.13  2001/04/05 21:33:45  peter
-    * movd and opsize fix merged
-
-  Revision 1.12  2001/03/25 12:29:45  peter
-    * offset_fixup fixes (merged)
-
-  Revision 1.11  2001/02/20 21:51:36  peter
-    * fpu fixes (merged)
-
-  Revision 1.10  2001/01/13 20:24:24  peter
-    * fixed operand order that got mixed up for external writers after
-      my previous assembler block valid instruction check
-
-  Revision 1.9  2001/01/12 19:18:42  peter
-    * check for valid asm instructions
-
-  Revision 1.8  2001/01/07 15:48:56  jonas
-    * references to symbols were only decreased in taicpu.done for jmps, fixed
-
-  Revision 1.7  2000/12/26 15:56:17  peter
-    * unrolled loops in taicpu.destroy
-
-  Revision 1.6  2000/12/25 00:07:31  peter
-    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
-      tlinkedlist objects)
-
-  Revision 1.5  2000/12/23 19:59:35  peter
-    * object to class for ow/og objects
-    * split objectdata from objectoutput
-
-  Revision 1.4  2000/12/07 17:19:45  jonas
-    * new constant handling: from now on, hex constants >$7fffffff are
-      parsed as unsigned constants (otherwise, $80000000 got sign extended
-      and became $ffffffff80000000), all constants in the longint range
-      become longints, all constants >$7fffffff and <=cardinal($ffffffff)
-      are cardinals and the rest are int64's.
-    * added lots of longint typecast to prevent range check errors in the
-      compiler and rtl
-    * type casts of symbolic ordinal constants are now preserved
-    * fixed bug where the original resulttype wasn't restored correctly
-      after doing a 64bit rangecheck
-
-  Revision 1.3  2000/11/12 22:20:37  peter
-    * create generic toutputsection for binary writers
-
-  Revision 1.2  2000/10/15 10:50:46  florian
-   * fixed xmm register access
-
-  Revision 1.1  2000/10/15 09:39:37  peter
-    * moved cpu*.pas to i386/
-    * renamed n386 to common cpunode
-
-  Revision 1.5  2000/09/24 15:06:14  peter
-    * use defines.inc
-
-  Revision 1.4  2000/08/27 16:11:50  peter
-    * moved some util functions from globals,cobjects to cutils
-    * splitted files into finput,fmodule
-
-  Revision 1.3  2000/07/13 12:08:25  michael
-  + patched to 1.1.0 with former 1.09patch from peter
-
-  Revision 1.2  2000/07/13 11:32:38  michael
-  + removed logs
 
 }

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl
+    Copyright (c) 1998-2002 by Florian Klaempfl
 
     Handles the resource files handling
 
@@ -142,38 +142,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.11  2002-04-04 18:32:37  carl
+  Revision 1.12  2002-05-14 19:34:40  peter
+    * removed old logs and updated copyright year
+
+  Revision 1.11  2002/04/04 18:32:37  carl
   + added wdosx support (patch from Pavel)
-
-  Revision 1.10  2001/08/07 18:47:12  peter
-    * merged netbsd start
-    * profile for win32
-
-  Revision 1.9  2001/04/18 22:01:53  peter
-    * registration of targets and assemblers
-
-  Revision 1.8  2001/03/13 21:01:14  peter
-    * string fixes
-
-  Revision 1.7  2001/02/20 21:41:17  peter
-    * new fixfilename, findfile for unix. Look first for lowercase, then
-      NormalCase and last for UPPERCASE names.
-
-  Revision 1.6  2000/12/25 00:07:25  peter
-    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
-      tlinkedlist objects)
-
-  Revision 1.5  2000/09/24 15:06:14  peter
-    * use defines.inc
-
-  Revision 1.4  2000/08/27 16:11:50  peter
-    * moved some util functions from globals,cobjects to cutils
-    * splitted files into finput,fmodule
-
-  Revision 1.3  2000/08/04 22:00:51  peter
-    * merges from fixes
-
-  Revision 1.2  2000/07/13 11:32:38  michael
-  + removed logs
 
 }

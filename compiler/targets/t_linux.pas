@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Peter Vreman
+    Copyright (c) 1998-2002 by Peter Vreman
 
     This unit implements support import,export,link routines
     for the Linux targets
@@ -849,7 +849,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.23  2002-05-14 17:28:10  peter
+  Revision 1.24  2002-05-14 19:35:01  peter
+    * removed old logs and updated copyright year
+
+  Revision 1.23  2002/05/14 17:28:10  peter
     * synchronized cpubase between powerpc and i386
     * moved more tables from cpubase to cpuasm
     * tai_align_abstract moved to tainst, cpuasm must define
@@ -890,93 +893,5 @@ end.
 
   Revision 1.15  2002/01/09 07:38:37  michael
   + Patch from Peter for library imports
-
-  Revision 1.14  2001/11/02 22:58:12  peter
-    * procsym definition rewrite
-
-  Revision 1.13  2001/09/18 11:32:00  michael
-  * Fixes win32 linking problems with import libraries
-  * LINKLIB Libraries are now looked for using C file extensions
-  * get_exepath fix
-
-  Revision 1.12  2001/09/17 21:29:16  peter
-    * merged netbsd, fpu-overflow from fixes branch
-
-  Revision 1.11  2001/08/07 18:47:15  peter
-    * merged netbsd start
-    * profile for win32
-
-  Revision 1.10  2001/07/01 20:16:20  peter
-    * alignmentinfo record added
-    * -Oa argument supports more alignment settings that can be specified
-      per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN
-      RECORDMAX,LOCALMIN,LOCALMAX. It is possible to set the mimimum
-      required alignment and the maximum usefull alignment. The final
-      alignment will be choosen per variable size dependent on these
-      settings
-
-  Revision 1.9  2001/06/28 19:46:25  peter
-    * added override and virtual for constructors
-
-  Revision 1.8  2001/06/04 11:51:06  peter
-    * C linking fixed
-
-  Revision 1.7  2001/06/03 15:15:31  peter
-    * dllprt0 stub for linux shared libs
-    * pass -init and -fini for linux shared libs
-    * libprefix splitted into staticlibprefix and sharedlibprefix
-
-  Revision 1.6  2001/06/02 19:22:44  peter
-    * extradefines field added
-
-  Revision 1.5  2001/04/21 15:34:01  peter
-    * fixed writing of end objects to not output an empty INPUT()
-
-  Revision 1.4  2001/04/18 22:02:04  peter
-    * registration of targets and assemblers
-
-  Revision 1.3  2001/04/13 01:22:21  peter
-    * symtable change to classes
-    * range check generation and errors fixed, make cycle DEBUG=1 works
-    * memory leaks fixed
-
-  Revision 1.2  2001/03/22 10:08:12  michael
-  + .ctor patch merged from fixbranch
-
-  Revision 1.1  2001/02/26 19:43:11  peter
-    * moved target units to subdir
-
-  Revision 1.11  2001/02/20 21:41:17  peter
-    * new fixfilename, findfile for unix. Look first for lowercase, then
-      NormalCase and last for UPPERCASE names.
-
-  Revision 1.10  2000/12/30 22:53:25  peter
-    * export with the case provided in the exports section
-
-  Revision 1.9  2000/12/25 00:07:30  peter
-    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
-      tlinkedlist objects)
-
-  Revision 1.8  2000/10/31 22:02:54  peter
-    * symtable splitted, no real code changes
-
-  Revision 1.7  2000/09/24 21:33:47  peter
-    * message updates merges
-
-  Revision 1.6  2000/09/24 15:06:31  peter
-    * use defines.inc
-
-  Revision 1.5  2000/09/10 20:26:55  peter
-    * bsd patches from marco
-
-  Revision 1.4  2000/08/27 16:11:54  peter
-    * moved some util functions from globals,cobjects to cutils
-    * splitted files into finput,fmodule
-
-  Revision 1.3  2000/07/13 12:08:28  michael
-  + patched to 1.1.0 with former 1.09patch from peter
-
-  Revision 1.2  2000/07/13 11:32:50  michael
-  + removed logs
 
 }

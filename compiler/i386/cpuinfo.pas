@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl
+    Copyright (c) 1998-2002 by Florian Klaempfl
 
     Basic Processor information
 
@@ -51,7 +51,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.7  2002-04-20 21:37:07  carl
+  Revision 1.8  2002-05-14 19:34:58  peter
+    * removed old logs and updated copyright year
+
+  Revision 1.7  2002/04/20 21:37:07  carl
   + generic FPC_CHECKPOINTER
   + first parameter offset in stack now portable
   * rename some constants
@@ -74,33 +77,5 @@ end.
       (this is compatible with Kylix). This saves a lot of push/pop especially
       with string operations
     * adapted some routines to use the new cg methods
-
-  Revision 1.4  2001/09/02 21:18:29  peter
-    * split constsym.value in valueord,valueordptr,valueptr. The valueordptr
-      is used for holding target platform pointer values. As those can be
-      bigger than the source platform.
-
-  Revision 1.3  2001/06/03 20:21:08  peter
-    * Kylix fixes, mostly case names of units
-
-  Revision 1.2  2001/02/08 13:09:03  jonas
-    * fixed web bug 1396: tpointerord is now a cardinal instead of a longint,
-      but added a hack in ncnv so that pointer(-1) still works
-
-  Revision 1.1  2000/10/15 09:39:37  peter
-    * moved cpu*.pas to i386/
-    * renamed n386 to common cpunode
-
-  Revision 1.5  2000/09/24 15:06:14  peter
-    * use defines.inc
-
-  Revision 1.4  2000/08/16 13:06:06  florian
-    + support of 64 bit integer constants
-
-  Revision 1.3  2000/08/12 06:45:08  florian
-    + type TConstExprInt added
-
-  Revision 1.2  2000/07/13 11:32:39  michael
-  + removed logs
 
 }

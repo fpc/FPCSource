@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl
+    Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit implements the first loading and searching of the modules
 
@@ -1173,7 +1173,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.14  2002-05-12 16:53:05  peter
+  Revision 1.15  2002-05-14 19:34:41  peter
+    * removed old logs and updated copyright year
+
+  Revision 1.14  2002/05/12 16:53:05  peter
     * moved entry and exitcode to ncgutil and cgobj
     * foreach gets extra argument for passing local data to the
       iterator function
@@ -1200,37 +1203,4 @@ end.
   Revision 1.11  2002/01/19 14:20:13  peter
     * check for -Un when loading ppu with wrong name
 
-  Revision 1.10  2001/08/19 09:39:27  peter
-    * local browser support fixed
-
-  Revision 1.9  2001/06/18 20:36:23  peter
-    * -Ur switch (merged)
-    * masm fixes (merged)
-    * quoted filenames for go32v2 and win32
-
-  Revision 1.8  2001/06/04 11:49:08  peter
-    * store used units in original type in ppu
-
-  Revision 1.7  2001/05/19 23:05:19  peter
-    * support uses <unit> in <file> construction
-
-  Revision 1.6  2001/05/19 21:08:59  peter
-    * skip program when checking loaded_units for a unit
-
-  Revision 1.5  2001/05/19 13:22:47  peter
-    * fixed crash with invalid ppu version detected
-
-  Revision 1.4  2001/05/09 14:11:10  jonas
-    * range check error fixes from Peter
-
-  Revision 1.3  2001/05/08 21:06:30  florian
-    * some more support for widechars commited especially
-      regarding type casting and constants
-
-  Revision 1.2  2001/05/07 11:53:21  jonas
-    * fix from Peter for short_on_file_handles code
-
-  Revision 1.1  2001/05/06 14:49:17  peter
-    * ppu object to class rewrite
-    * move ppu read and write stuff to fppu
 }

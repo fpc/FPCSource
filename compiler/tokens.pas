@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl, Pierre Muller
+    Copyright (c) 1998-2002 by Florian Klaempfl, Pierre Muller
 
     Tokens used by the compiler
 
@@ -497,69 +497,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.15  2001-10-24 11:51:39  marco
-   * Make new/dispose system functions instead of keywords
-
-  Revision 1.14  2001/10/23 21:49:43  peter
-    * $calling directive and -Cc commandline patch added
-      from Pavel Ozerski
-
-  Revision 1.13  2001/08/01 15:07:29  jonas
-    + "compilerproc" directive support, which turns both the public and mangled
-      name to lowercase(declaration_name). This prevents a normal user from
-      accessing the routine, but they can still be easily looked up within
-      the compiler. This is used for helper procedures and should facilitate
-      the writing of more processor independent code in the code generator
-      itself (mostly written by Peter)
-    + new "createintern" constructor for tcal nodes to create a call to
-      helper exported using the "compilerproc" directive
-    + support for high(dynamic_array) using the the above new things
-    + definition of 'HASCOMPILERPROC' symbol (to be able to check in the
-      compiler and rtl whether the "compilerproc" directive is supported)
-
-  Revision 1.12  2001/07/30 20:59:28  peter
-    * m68k updates from v10 merged
-
-  Revision 1.11  2001/06/03 21:57:38  peter
-    + hint directive parsing support
-
-  Revision 1.10  2001/05/06 17:12:43  jonas
-    - commented out an unused field in tokenrec
-
-  Revision 1.9  2001/05/04 15:52:04  florian
-    * some Delphi incompatibilities fixed:
-
-       - out, dispose and new can be used as idenfiers now
-
-       - const p = apointerype(nil); is supported now
-
-    + support for const p = apointertype(pointer(1234)); added
-
-  Revision 1.8  2001/03/22 22:35:43  florian
-    + support for type a = (a=1); in Delphi mode added
-    + procedure p(); in Delphi mode supported
-    + on isn't keyword anymore, it can be used as
-      id etc. now
-
-  Revision 1.7  2000/11/29 00:30:42  florian
-    * unused units removed from uses clause
-    * some changes for widestrings
-
-  Revision 1.6  2000/11/09 17:46:56  florian
-    * System.TypeInfo fixed
-    + System.Finalize implemented
-    + some new keywords for interface support added
-
-  Revision 1.5  2000/10/14 10:14:56  peter
-    * moehrendorf oct 2000 rewrite
-
-  Revision 1.4  2000/09/24 15:06:32  peter
-    * use defines.inc
-
-  Revision 1.3  2000/07/13 12:08:28  michael
-  + patched to 1.1.0 with former 1.09patch from peter
-
-  Revision 1.2  2000/07/13 11:32:52  michael
-  + removed logs
+  Revision 1.16  2002-05-14 19:34:52  peter
+    * removed old logs and updated copyright year
 
 }

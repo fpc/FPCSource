@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl
+    Copyright (c) 1998-2002 by Florian Klaempfl
 
     Contains the base types for the PowerPC
 
@@ -588,7 +588,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  2002-05-14 17:28:10  peter
+  Revision 1.12  2002-05-14 19:35:01  peter
+    * removed old logs and updated copyright year
+
+  Revision 1.11  2002/05/14 17:28:10  peter
     * synchronized cpubase between powerpc and i386
     * moved more tables from cpubase to cpuasm
     * tai_align_abstract moved to tainst, cpuasm must define
@@ -605,94 +608,5 @@ end.
 
   Revision 1.7  2002/04/06 18:13:02  jonas
     * several powerpc-related additions and fixes
-
-  Revision 1.6  2001/12/30 17:24:48  jonas
-    * range checking is now processor independent (part in cgobj, part in
-    cg64f32) and should work correctly again (it needed some changes after
-    the changes of the low and high of tordef's to int64)
-  * maketojumpbool() is now processor independent (in ncgutil)
-  * getregister32 is now called getregisterint
-
-  Revision 1.5  2001/12/29 15:28:58  jonas
-    * powerpc/cgcpu.pas compiles :)
-    * several powerpc-related fixes
-    * cpuasm unit is now based on common tainst unit
-    + nppcmat unit for powerpc (almost complete)
-
-  Revision 1.4  2001/09/28 20:40:05  jonas
-    * several additions, almost complete (only some problems with resflags left)
-
-  Revision 1.3  2001/09/06 15:25:56  jonas
-    * changed type of tcg from object to class ->  abstract methods are now
-      a lot cleaner :)
-    + more updates: load_*_loc methods, op_*_* methods, g_flags2reg method
-      (if possible with geenric implementation and necessary ppc
-       implementations)
-    * worked a bit further on cgflw, now working on exitnode
-
-  Revision 1.2  2001/08/26 13:31:04  florian
-    * some cg reorganisation
-    * some PPC updates
-
-  Revision 1.2  2001/08/26 13:29:34  florian
-    * some cg reorganisation
-    * some PPC updates
-
-  Revision 1.1  2000/07/13 06:30:12  michael
-    + Initial import
-
-  Revision 1.15  2000/05/01 11:04:49  jonas
-    * changed NOT to A_NOP
-
-  Revision 1.14  2000/04/29 09:01:06  jonas
-    * nmem compiles again (at least for powerpc)
-
-  Revision 1.13  2000/03/26 16:38:06  jonas
-    * frame_pointer = stackpointer instead of R_NO
-
-  Revision 1.12  2000/01/07 01:14:58  peter
-    * updated copyright to 2000
-
-  Revision 1.11  1999/12/24 22:48:10  jonas
-    * compiles again
-
-  Revision 1.10  1999/11/09 22:57:09  peter
-    * compiles again both i386,alpha both with optimizer
-
-  Revision 1.9  1999/10/20 12:21:34  jonas
-    * changed scratch_registers to (R_11,_R12,R_30) because R_0 is a special
-      case and R_31 is used as some kind of frame pointer under LinuxPPC
-
-  Revision 1.8  1999/10/14 14:57:55  florian
-    - removed the hcodegen use in the new cg, use cgbase instead
-
-  Revision 1.7  1999/09/15 20:35:47  florian
-    * small fix to operator overloading when in MMX mode
-    + the compiler uses now fldz and fld1 if possible
-    + some fixes to floating point registers
-    + some math. functions (arctan, ln, sin, cos, sqrt, sqr, pi) are now inlined
-    * .... ???
-
-  Revision 1.6  1999/09/03 13:11:59  jonas
-    * several changes to the way conditional branches are handled\n  * some typos fixed
-
-  Revision 1.5  1999/08/23 23:27:54  pierre
-    + dummy InitCpu/DoneCpu
-
-  Revision 1.4  1999/08/06 16:41:12  jonas
-    * PowerPC compiles again, several routines implemented in cgcpu.pas
-    * added constant to cpubase of alpha and powerpc for maximum
-      number of operands
-
-  Revision 1.3  1999/08/05 14:58:18  florian
-    * some fixes for the floating point registers
-    * more things for the new code generator
-
-  Revision 1.2  1999/08/04 12:59:25  jonas
-    * all tokes now start with an underscore
-    * PowerPC compiles!!
-
-  Revision 1.1  1999/08/03 23:37:53  jonas
-    + initial implementation for PowerPC based on the Alpha stuff
 
 }

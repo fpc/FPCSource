@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 2002 Pavel ??????
+    Copyright (c) 2001-2002 Pavel
 
     This unit implements support import,export,link routines
     for the (i386) WDOSX target
@@ -165,7 +165,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2002-05-12 16:53:18  peter
+  Revision 1.6  2002-05-14 19:35:01  peter
+    * removed old logs and updated copyright year
+
+  Revision 1.5  2002/05/12 16:53:18  peter
     * moved entry and exitcode to ncgutil and cgobj
     * foreach gets extra argument for passing local data to the
       iterator function

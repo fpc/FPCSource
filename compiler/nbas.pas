@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 2000-2002 by Florian Klaempfl
+    Copyright (c) 2000 by Florian Klaempfl
 
     This unit implements some basic nodes
 
@@ -22,15 +22,12 @@
 }
 unit nbas;
 
-{$i fpcdefs.inc}
+{$i defines.inc}
 
 interface
 
     uses
-       cpubase,
-       aasmbase,aasmtai,aasmcpu,
-       node,
-       symtype,symppu;
+       aasm,symtype,node,cpubase;
 
     type
        tnothingnode = class(tnode)
@@ -44,7 +41,6 @@ interface
           constructor create;virtual;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
-          procedure mark_write;override;
        end;
        terrornodeclass = class of terrornode;
 
@@ -52,9 +48,6 @@ interface
           p_asm : taasmoutput;
           constructor create(p : taasmoutput);virtual;
           destructor destroy;override;
-          constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
-          procedure ppuwrite(ppufile:tcompilerppufile);override;
-          procedure derefimpl;override;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
@@ -67,18 +60,15 @@ interface
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
 {$ifdef extdebug}
-          procedure _dowrite;override;
+          procedure dowrite;override;
 {$endif extdebug}
        end;
        tstatementnodeclass = class of tstatementnode;
 
        tblocknode = class(tunarynode)
-          constructor create(l : tnode;releasetemp : boolean);virtual;
+          constructor create(l : tnode);virtual;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
-{$ifdef state_tracking}
-          function track_state_pass(exec_known:boolean):boolean;override;
-{$endif state_tracking}
        end;
        tblocknodeclass = class of tblocknode;
 
@@ -89,11 +79,10 @@ interface
        ttempinfo = record
          { set to the copy of a tempcreate pnode (if it gets copied) so that the }
          { refs and deletenode can hook to this copy once they get copied too    }
-         hookoncopy                 : ptempinfo;
-         ref                        : treference;
-         restype                    : ttype;
-         valid                      : boolean;
-         nextref_set_hookoncopy_nil : boolean;
+         hookoncopy : ptempinfo;
+         ref        : treference;
+         restype    : ttype;
+         valid      : boolean;
        end;
 
        { a node which will create a (non)persistent temp of a given type with a given  }
@@ -124,7 +113,6 @@ interface
           function getcopy: tnode; override;
           function pass_1 : tnode; override;
           function det_resulttype : tnode; override;
-          procedure mark_write;override;
           function docompare(p: tnode): boolean; override;
          protected
           tempinfo: ptempinfo;
@@ -161,7 +149,7 @@ interface
 
        { Create a blocknode and statement node for multiple statements
          generated internally by the parser }
-       function  internalstatements(var laststatement:tstatementnode;releasetemp : boolean):tblocknode;
+       function  internalstatements(var laststatement:tstatementnode):tblocknode;
        procedure addstatement(var laststatement:tstatementnode;n:tnode);
 
 
@@ -170,9 +158,9 @@ implementation
     uses
       cutils,
       verbose,globals,globtype,systems,
-      symconst,symdef,symsym,defutil,defcmp,
+      symconst,symdef,symsym,types,
       pass_1,
-      nld,ncal,nflw,rgobj,cginfo,cgbase
+      ncal,nflw,rgobj,cgbase
       ;
 
 
@@ -180,20 +168,20 @@ implementation
                                      Helpers
 *****************************************************************************}
 
-    function internalstatements(var laststatement:tstatementnode;releasetemp : boolean):tblocknode;
+    function internalstatements(var laststatement:tstatementnode):tblocknode;
       begin
         { create dummy initial statement }
-        laststatement := cstatementnode.create(cnothingnode.create,nil);
-        internalstatements := cblocknode.create(laststatement,releasetemp);
+        laststatement := cstatementnode.create(nil,cnothingnode.create);
+        internalstatements := cblocknode.create(laststatement);
       end;
 
 
     procedure addstatement(var laststatement:tstatementnode;n:tnode);
       begin
-        if assigned(laststatement.right) then
+        if assigned(laststatement.left) then
          internalerror(200204201);
-        laststatement.right:=cstatementnode.create(n,nil);
-        laststatement:=tstatementnode(laststatement.right);
+        laststatement.left:=cstatementnode.create(nil,n);
+        laststatement:=tstatementnode(laststatement.left);
       end;
 
 
@@ -203,21 +191,18 @@ implementation
 
     constructor tnothingnode.create;
       begin
-        inherited create(nothingn);
+         inherited create(nothingn);
       end;
-
 
     function tnothingnode.det_resulttype:tnode;
       begin
-        result:=nil;
-        resulttype:=voidtype;
+         result:=nil;
+         resulttype:=voidtype;
       end;
-
 
     function tnothingnode.pass_1 : tnode;
       begin
-        result:=nil;
-        expectloc:=LOC_VOID;
+         result:=nil;
       end;
 
 
@@ -231,7 +216,6 @@ implementation
          inherited create(errorn);
       end;
 
-
     function terrornode.det_resulttype:tnode;
       begin
          result:=nil;
@@ -240,17 +224,10 @@ implementation
          resulttype:=generrortype;
       end;
 
-
     function terrornode.pass_1 : tnode;
       begin
          result:=nil;
-         expectloc:=LOC_VOID;
          codegenerror:=true;
-      end;
-
-
-    procedure terrornode.mark_write;
-      begin
       end;
 
 {*****************************************************************************
@@ -268,54 +245,54 @@ implementation
          result:=nil;
          resulttype:=voidtype;
 
-         { left is the statement itself calln assignn or a complex one }
-         resulttypepass(left);
+         { right is the statement itself calln assignn or a complex one }
+         resulttypepass(right);
          if (not (cs_extsyntax in aktmoduleswitches)) and
-            assigned(left.resulttype.def) and
-            not((left.nodetype=calln) and
-                { don't complain when funcretrefnode is set, because then the
-                  value is already used. And also not for constructors }
-                (assigned(tcallnode(left).funcretrefnode) or
-                 (tcallnode(left).procdefinition.proctypeoption=potype_constructor))) and
-            not(is_void(left.resulttype.def)) then
+            assigned(right.resulttype.def) and
+            not((right.nodetype=calln) and
+                (tcallnode(right).procdefinition.proctypeoption=potype_constructor)) and
+            not(is_void(right.resulttype.def)) then
            CGMessage(cg_e_illegal_expression);
          if codegenerror then
            exit;
 
-         { right is the next statement in the list }
-         if assigned(right) then
-           resulttypepass(right);
+         { left is the next in the list }
+         resulttypepass(left);
          if codegenerror then
            exit;
       end;
-
 
     function tstatementnode.pass_1 : tnode;
       begin
          result:=nil;
          { no temps over several statements }
-      {$ifndef newra}
          rg.cleartempgen;
-      {$endif}
-         { left is the statement itself calln assignn or a complex one }
+         { right is the statement itself calln assignn or a complex one }
+         firstpass(right);
+         if codegenerror then
+           exit;
+         location.loc:=right.location.loc;
+         registers32:=right.registers32;
+         registersfpu:=right.registersfpu;
+{$ifdef SUPPORT_MMX}
+         registersmmx:=right.registersmmx;
+{$endif SUPPORT_MMX}
+         { left is the next in the list }
          firstpass(left);
          if codegenerror then
            exit;
-         expectloc:=left.expectloc;
-         registers32:=left.registers32;
-         registersfpu:=left.registersfpu;
+         if right.registers32>registers32 then
+           registers32:=right.registers32;
+         if right.registersfpu>registersfpu then
+           registersfpu:=right.registersfpu;
 {$ifdef SUPPORT_MMX}
-         registersmmx:=left.registersmmx;
-{$endif SUPPORT_MMX}
-         { right is the next in the list }
-         if assigned(right) then
-           firstpass(right);
-         if codegenerror then
-           exit;
+         if right.registersmmx>registersmmx then
+           registersmmx:=right.registersmmx;
+{$endif}
       end;
 
 {$ifdef extdebug}
-    procedure tstatementnode._dowrite;
+    procedure tstatementnode.dowrite;
 
       begin
          { can't use inherited dowrite, because that will use the
@@ -324,11 +301,11 @@ implementation
          writeln(',');
          { write the statement }
          writenodeindention:=writenodeindention+'    ';
-         writenode(left);
+         writenode(right);
          writeln(')');
          delete(writenodeindention,1,4);
          { go on with the next statement }
-         writenode(right);
+         writenode(left);
       end;
 {$endif}
 
@@ -336,12 +313,10 @@ implementation
                              TBLOCKNODE
 *****************************************************************************}
 
-    constructor tblocknode.create(l : tnode;releasetemp : boolean);
+    constructor tblocknode.create(l : tnode);
 
       begin
          inherited create(blockn,l);
-         if releasetemp then
-           include(flags,nf_releasetemps);
       end;
 
     function tblocknode.det_resulttype:tnode;
@@ -354,29 +329,25 @@ implementation
          hp:=tstatementnode(left);
          while assigned(hp) do
            begin
-              if assigned(hp.left) then
+              if assigned(hp.right) then
                 begin
                    codegenerror:=false;
-                   resulttypepass(hp.left);
+                   resulttypepass(hp.right);
                    if (not (cs_extsyntax in aktmoduleswitches)) and
-                      assigned(hp.left.resulttype.def) and
-                      not((hp.left.nodetype=calln) and
-                          { don't complain when funcretrefnode is set, because then the
-                            value is already used. And also not for constructors }
-                          (assigned(tcallnode(hp.left).funcretrefnode) or
-                           (tcallnode(hp.left).procdefinition.proctypeoption=potype_constructor))) and
-                      not(is_void(hp.left.resulttype.def)) then
-                     CGMessagePos(hp.left.fileinfo,cg_e_illegal_expression);
+                      assigned(hp.right.resulttype.def) and
+                      not((hp.right.nodetype=calln) and
+                          (tcallnode(hp.right).procdefinition.proctypeoption=potype_constructor)) and
+                      not(is_void(hp.right.resulttype.def)) then
+                     CGMessage(cg_e_illegal_expression);
                    { the resulttype of the block is the last type that is
                      returned. Normally this is a voidtype. But when the
                      compiler inserts a block of multiple statements then the
                      last entry can return a value }
-                   resulttype:=hp.left.resulttype;
+                   resulttype:=hp.right.resulttype;
                 end;
-              hp:=tstatementnode(hp.right);
+              hp:=tstatementnode(hp.left);
            end;
       end;
-
 
     function tblocknode.pass_1 : tnode;
       var
@@ -384,7 +355,6 @@ implementation
          count : longint;
       begin
          result:=nil;
-         expectloc:=LOC_VOID;
          count:=0;
          hp:=tstatementnode(left);
          while assigned(hp) do
@@ -399,54 +369,51 @@ implementation
                    if {ret_in_acc(aktprocdef.rettype.def) and }
                       (is_ordinal(aktprocdef.rettype.def) or
                        is_smallset(aktprocdef.rettype.def)) and
-                      assigned(hp.right) and
-                      assigned(tstatementnode(hp.right).left) and
-                      (tstatementnode(hp.right).left.nodetype=exitn) and
-                      (hp.left.nodetype=assignn) and
+                      assigned(hp.left) and
+                      assigned(tstatementnode(hp.left).right) and
+                      (tstatementnode(hp.left).right.nodetype=exitn) and
+                      (hp.right.nodetype=assignn) and
                       { !!!! this tbinarynode should be tassignmentnode }
-                      (tbinarynode(hp.left).left.nodetype=funcretn) then
+                      (tbinarynode(hp.right).left.nodetype=funcretn) then
                       begin
-                         if assigned(texitnode(tstatementnode(hp.right).left).left) then
+                         if assigned(texitnode(tstatementnode(hp.left).right).left) then
                            CGMessage(cg_n_inefficient_code)
                          else
                            begin
-                              texitnode(tstatementnode(hp.right).left).left:=tassignmentnode(hp.left).right;
-                              tassignmentnode(hp.left).right:=nil;
-                              hp.left.free;
-                              hp.left:=nil;
+                              texitnode(tstatementnode(hp.left).right).left:=tstatementnode(hp.right).right;
+                              tstatementnode(hp.right).right:=nil;
+                              hp.right.free;
+                              hp.right:=nil;
                            end;
                       end
                    { warning if unreachable code occurs and elimate this }
-                   else if (hp.left.nodetype in
+                   else if (hp.right.nodetype in
                      [exitn,breakn,continuen,goton]) and
                      { statement node (JM) }
-                     assigned(hp.right) and
+                     assigned(hp.left) and
                      { kind of statement! (JM) }
-                     assigned(tstatementnode(hp.right).left) and
-                     (tstatementnode(hp.right).left.nodetype<>labeln) then
+                     assigned(tstatementnode(hp.left).right) and
+                     (tstatementnode(hp.left).right.nodetype<>labeln) then
                      begin
                         { use correct line number }
-                        aktfilepos:=hp.right.fileinfo;
-                        hp.right.free;
-                        hp.right:=nil;
+                        aktfilepos:=hp.left.fileinfo;
+                        hp.left.free;
+                        hp.left:=nil;
                         CGMessage(cg_w_unreachable_code);
                         { old lines }
-                        aktfilepos:=hp.left.fileinfo;
+                        aktfilepos:=hp.right.fileinfo;
                      end;
                 end;
-              if assigned(hp.left) then
+              if assigned(hp.right) then
                 begin
-                {$ifndef newra}
                    rg.cleartempgen;
-                {$endif}
                    codegenerror:=false;
-                   firstpass(hp.left);
+                   firstpass(hp.right);
 
-                   hp.expectloc:=hp.left.expectloc;
-                   hp.registers32:=hp.left.registers32;
-                   hp.registersfpu:=hp.left.registersfpu;
+                   hp.registers32:=hp.right.registers32;
+                   hp.registersfpu:=hp.right.registersfpu;
 {$ifdef SUPPORT_MMX}
-                   hp.registersmmx:=hp.left.registersmmx;
+                   hp.registersmmx:=hp.right.registersmmx;
 {$endif SUPPORT_MMX}
                 end
               else
@@ -460,28 +427,12 @@ implementation
               if hp.registersmmx>registersmmx then
                 registersmmx:=hp.registersmmx;
 {$endif}
-              expectloc:=hp.expectloc;
+              location.loc:=hp.location.loc;
               inc(count);
-              hp:=tstatementnode(hp.right);
+              hp:=tstatementnode(hp.left);
            end;
       end;
 
-{$ifdef state_tracking}
-      function Tblocknode.track_state_pass(exec_known:boolean):boolean;
-
-      var hp:Tstatementnode;
-
-      begin
-        track_state_pass:=false;
-        hp:=Tstatementnode(left);
-        while assigned(hp) do
-            begin
-                if hp.left.track_state_pass(exec_known) then
-                    track_state_pass:=true;
-                hp:=Tstatementnode(hp.right);
-            end;
-      end;
-{$endif state_tracking}
 
 {*****************************************************************************
                              TASMNODE
@@ -500,52 +451,6 @@ implementation
          p_asm.free;
         inherited destroy;
       end;
-
-
-    constructor tasmnode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
-      var
-        hp : tai;
-      begin
-        inherited ppuload(t,ppufile);
-        p_asm:=taasmoutput.create;
-        repeat
-          hp:=ppuloadai(ppufile);
-          if hp=nil then
-           break;
-          p_asm.concat(hp);
-        until false;
-      end;
-
-
-    procedure tasmnode.ppuwrite(ppufile:tcompilerppufile);
-      var
-        hp : tai;
-      begin
-        inherited ppuwrite(ppufile);
-        hp:=tai(p_asm.first);
-        while assigned(hp) do
-         begin
-           ppuwriteai(ppufile,hp);
-           hp:=tai(hp.next);
-         end;
-        { end is marked by a nil }
-        ppuwriteai(ppufile,nil);
-      end;
-
-
-    procedure tasmnode.derefimpl;
-      var
-        hp : tai;
-      begin
-        inherited derefimpl;
-        hp:=tai(p_asm.first);
-        while assigned(hp) do
-         begin
-           hp.derefimpl;
-           hp:=tai(hp.next);
-         end;
-      end;
-
 
     function tasmnode.getcopy: tnode;
       var
@@ -570,10 +475,8 @@ implementation
     function tasmnode.pass_1 : tnode;
       begin
          result:=nil;
-         expectloc:=LOC_VOID;
-         procinfo.flags:=procinfo.flags or pi_uses_asm;
+         procinfo^.flags:=procinfo^.flags or pi_uses_asm;
       end;
-
 
     function tasmnode.docompare(p: tnode): boolean;
       begin
@@ -581,14 +484,13 @@ implementation
         docompare := false;
       end;
 
-
 {*****************************************************************************
                           TEMPCREATENODE
 *****************************************************************************}
 
     constructor ttempcreatenode.create(const _restype: ttype; _size: longint; _persistent: boolean);
       begin
-        inherited create(tempcreaten);
+        inherited create(tempn);
         size := _size;
         new(tempinfo);
         fillchar(tempinfo^,sizeof(tempinfo^),0);
@@ -607,24 +509,17 @@ implementation
         fillchar(n.tempinfo^,sizeof(n.tempinfo^),0);
         n.tempinfo^.restype := tempinfo^.restype;
 
-        { when the tempinfo has already a hookoncopy then it is not
-          reset by a tempdeletenode }
-        if assigned(tempinfo^.hookoncopy) then
-          internalerror(200211262);
-
         { signal the temprefs that the temp they point to has been copied, }
         { so that if the refs get copied as well, they can hook themselves }
         { to the copy of the temp                                          }
         tempinfo^.hookoncopy := n.tempinfo;
-        tempinfo^.nextref_set_hookoncopy_nil := false;
 
         result := n;
       end;
 
     function ttempcreatenode.pass_1 : tnode;
       begin
-         result := nil;
-         expectloc:=LOC_VOID;
+        result := nil;
       end;
 
     function ttempcreatenode.det_resulttype: tnode;
@@ -639,7 +534,7 @@ implementation
         result :=
           inherited docompare(p) and
           (ttempcreatenode(p).size = size) and
-          equal_defs(ttempcreatenode(p).tempinfo^.restype.def,tempinfo^.restype.def);
+          is_equal(ttempcreatenode(p).tempinfo^.restype.def,tempinfo^.restype.def);
       end;
 
 {*****************************************************************************
@@ -664,7 +559,6 @@ implementation
         n: ttemprefnode;
       begin
         n := ttemprefnode(inherited getcopy);
-        n.offset := offset;
 
         if assigned(tempinfo^.hookoncopy) then
           { if the temp has been copied, assume it becomes a new }
@@ -672,12 +566,6 @@ implementation
           begin
             { hook the ref to the copied temp }
             n.tempinfo := tempinfo^.hookoncopy;
-            { if we passed a ttempdeletenode that changed the temp }
-            { from a persistent one into a normal one, we must be  }
-            { the last reference (since our parent should free the }
-            { temp (JM)                                            }
-            if (tempinfo^.nextref_set_hookoncopy_nil) then
-              tempinfo^.hookoncopy := nil;
           end
         else
           { if the temp we refer to hasn't been copied, assume }
@@ -691,7 +579,7 @@ implementation
 
     function ttemprefnode.pass_1 : tnode;
       begin
-        expectloc:=LOC_REFERENCE;
+        location.loc:=LOC_REFERENCE;
         result := nil;
       end;
 
@@ -708,16 +596,8 @@ implementation
       begin
         result :=
           inherited docompare(p) and
-          (ttemprefnode(p).tempinfo = tempinfo) and
-          (ttemprefnode(p).offset = offset);
+          (ttemprefnode(p).tempinfo = tempinfo);
       end;
-
-    procedure Ttemprefnode.mark_write;
-
-    begin
-      include(flags,nf_write);
-    end;
-
 
 {*****************************************************************************
                              TEMPDELETENODE
@@ -725,7 +605,7 @@ implementation
 
     constructor ttempdeletenode.create(const temp: ttempcreatenode);
       begin
-        inherited create(tempdeleten);
+        inherited create(temprefn);
         tempinfo := temp.tempinfo;
         release_to_normal := false;
         if not temp.persistent then
@@ -734,7 +614,7 @@ implementation
 
     constructor ttempdeletenode.create_normal_temp(const temp: ttempcreatenode);
       begin
-        inherited create(tempdeleten);
+        inherited create(temprefn);
         tempinfo := temp.tempinfo;
         release_to_normal := true;
       end;
@@ -744,7 +624,6 @@ implementation
         n: ttempdeletenode;
       begin
         n := ttempdeletenode(inherited getcopy);
-        n.release_to_normal := release_to_normal;
 
         if assigned(tempinfo^.hookoncopy) then
           { if the temp has been copied, assume it becomes a new }
@@ -752,13 +631,6 @@ implementation
           begin
             { hook the tempdeletenode to the copied temp }
             n.tempinfo := tempinfo^.hookoncopy;
-            { the temp shall not be used, reset hookoncopy    }
-            { Only if release_to_normal is false, otherwise   }
-            { the temp can still be referenced once more (JM) }
-            if (not release_to_normal) then
-              tempinfo^.hookoncopy:=nil
-            else
-              tempinfo^.nextref_set_hookoncopy_nil := true;
           end
         else
           { if the temp we refer to hasn't been copied, we have a }
@@ -770,8 +642,7 @@ implementation
 
     function ttempdeletenode.pass_1 : tnode;
       begin
-         expectloc:=LOC_VOID;
-         result := nil;
+        result := nil;
       end;
 
     function ttempdeletenode.det_resulttype: tnode;
@@ -804,116 +675,8 @@ begin
 end.
 {
   $Log$
-  Revision 1.46  2002-04-25 20:15:39  florian
-    * block nodes within expressions shouldn't release the used registers,
-      fixed using a flag till the new rg is ready
-
-  Revision 1.45  2003/04/23 08:41:34  jonas
-    * fixed ttemprefnode.compare and .getcopy to take offset field into
-      account
-
-  Revision 1.44  2003/04/22 23:50:22  peter
-    * firstpass uses expectloc
-    * checks if there are differences between the expectloc and
-      location.loc from secondpass in EXTDEBUG
-
-  Revision 1.43  2003/04/21 15:00:22  jonas
-    * fixed tstatementnode.det_resulttype and tststatementnode.pass_1
-    * fixed some getcopy issues with ttemp*nodes
-
-  Revision 1.42  2003/04/17 07:50:24  daniel
-    * Some work on interference graph construction
-
-  Revision 1.41  2003/04/12 14:53:59  jonas
-    * ttempdeletenode.create now sets the nodetype to tempdeleten instead of
-      temprefn
-
-  Revision 1.40  2003/03/17 20:30:46  peter
-    * errornode.mark_write added
-
-  Revision 1.39  2003/01/03 12:15:55  daniel
-    * Removed ifdefs around notifications
-      ifdefs around for loop optimizations remain
-
-  Revision 1.38  2002/11/27 02:37:12  peter
-    * case statement inlining added
-    * fixed inlining of write()
-    * switched statementnode left and right parts so the statements are
-      processed in the correct order when getcopy is used. This is
-      required for tempnodes
-
-  Revision 1.37  2002/11/25 17:43:17  peter
-    * splitted defbase in defutil,symutil,defcmp
-    * merged isconvertable and is_equal into compare_defs(_ext)
-    * made operator search faster by walking the list only once
-
-  Revision 1.36  2002/10/05 15:15:19  peter
-    * don't complain in X- mode for internal generated function calls
-      with funcretrefnode set
-    * give statement error at the correct line position instead of the
-      block begin
-
-  Revision 1.35  2002/09/01 08:01:16  daniel
-   * Removed sets from Tcallnode.det_resulttype
-   + Added read/write notifications of variables. These will be usefull
-     for providing information for several optimizations. For example
-     the value of the loop variable of a for loop does matter is the
-     variable is read after the for loop, but if it's no longer used
-     or written, it doesn't matter and this can be used to optimize
-     the loop code generation.
-
-  Revision 1.34  2002/08/18 20:06:23  peter
-    * inlining is now also allowed in interface
-    * renamed write/load to ppuwrite/ppuload
-    * tnode storing in ppu
-    * nld,ncon,nbas are already updated for storing in ppu
-
-  Revision 1.33  2002/08/17 22:09:44  florian
-    * result type handling in tcgcal.pass_2 overhauled
-    * better tnode.dowrite
-    * some ppc stuff fixed
-
-  Revision 1.32  2002/08/17 09:23:34  florian
-    * first part of procinfo rewrite
-
-  Revision 1.31  2002/08/15 19:10:35  peter
-    * first things tai,tnode storing in ppu
-
-  Revision 1.30  2002/07/20 11:57:53  florian
-    * types.pas renamed to defbase.pas because D6 contains a types
-      unit so this would conflicts if D6 programms are compiled
-    + Willamette/SSE2 instructions to assembler added
-
-  Revision 1.29  2002/07/19 11:41:35  daniel
-  * State tracker work
-  * The whilen and repeatn are now completely unified into whilerepeatn. This
-    allows the state tracker to change while nodes automatically into
-    repeat nodes.
-  * Resulttypepass improvements to the notn. 'not not a' is optimized away and
-    'not(a>b)' is optimized into 'a<=b'.
-  * Resulttypepass improvements to the whilerepeatn. 'while not a' is optimized
-    by removing the notn and later switchting the true and falselabels. The
-    same is done with 'repeat until not a'.
-
-  Revision 1.28  2002/07/14 18:00:43  daniel
-  + Added the beginning of a state tracker. This will track the values of
-    variables through procedures and optimize things away.
-
-  Revision 1.27  2002/07/01 18:46:22  peter
-    * internal linker
-    * reorganized aasm layer
-
-  Revision 1.26  2002/06/24 12:43:00  jonas
-    * fixed errors found with new -CR code from Peter when cycling with -O2p3r
-
-  Revision 1.25  2002/05/18 13:34:09  peter
-    * readded missing revisions
-
-  Revision 1.24  2002/05/16 19:46:37  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
+  Revision 1.23  2002-05-14 19:34:41  peter
+    * removed old logs and updated copyright year
 
   Revision 1.22  2002/04/23 19:16:34  peter
     * add pinline unit that inserts compiler supported functions using

@@ -1,6 +1,6 @@
  {
     $Id$
-    Copyright (c) 1998-2000 by Jonas Maebe, member of the Free Pascal
+    Copyright (c) 1998-2002 by Jonas Maebe, member of the Free Pascal
     Development Team
 
     This unit contains several types and constants necessary for the
@@ -117,20 +117,7 @@ End.
 
 {
  $Log$
- Revision 1.1  2001-08-26 13:31:04  florian
-   * some cg reorganisation
-   * some PPC updates
-
- Revision 1.1  2000/07/13 06:30:12  michael
- + Initial import
-
- Revision 1.3  2000/03/26 16:38:27  jonas
-   + basic properties
-
- Revision 1.2  2000/01/07 01:14:57  peter
-   * updated copyright to 2000
-
- Revision 1.1  1999/11/09 22:57:09  peter
-   * compiles again both i386,alpha both with optimizer
+ Revision 1.2  2002-05-14 19:35:00  peter
+   * removed old logs and updated copyright year
 
 }

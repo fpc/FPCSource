@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl
+    Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit implements the first loading and searching of the modules
 
@@ -584,77 +584,14 @@ uses
 end.
 {
   $Log$
-  Revision 1.21  2002-04-04 19:05:55  peter
+  Revision 1.22  2002-05-14 19:34:41  peter
+    * removed old logs and updated copyright year
+
+  Revision 1.21  2002/04/04 19:05:55  peter
     * removed unused units
     * use tlocation.size in cg.a_*loc*() routines
 
   Revision 1.20  2002/03/28 20:46:59  carl
   - remove go32v1 support
-
-  Revision 1.19  2001/11/06 14:53:48  jonas
-    * compiles again with -dmemdebug
-
-  Revision 1.18  2001/08/04 10:23:54  peter
-    * updates so it works with the ide
-
-  Revision 1.17  2001/06/04 11:49:08  peter
-    * store used units in original type in ppu
-
-  Revision 1.16  2001/06/03 15:15:31  peter
-    * dllprt0 stub for linux shared libs
-    * pass -init and -fini for linux shared libs
-    * libprefix splitted into staticlibprefix and sharedlibprefix
-
-  Revision 1.15  2001/05/09 14:11:10  jonas
-    * range check error fixes from Peter
-
-  Revision 1.14  2001/05/06 14:49:16  peter
-    * ppu object to class rewrite
-    * move ppu read and write stuff to fppu
-
-  Revision 1.13  2001/04/18 22:01:53  peter
-    * registration of targets and assemblers
-
-  Revision 1.12  2001/04/13 18:08:37  peter
-    * scanner object to class
-
-  Revision 1.11  2001/04/13 01:22:07  peter
-    * symtable change to classes
-    * range check generation and errors fixed, make cycle DEBUG=1 works
-    * memory leaks fixed
-
-  Revision 1.10  2001/04/02 21:20:29  peter
-    * resulttype rewrite
-
-  Revision 1.9  2001/03/13 18:45:06  peter
-    * fixed some memory leaks
-
-  Revision 1.8  2001/03/06 18:28:02  peter
-    * patch from Pavel with a new and much faster DLL Scanner for
-      automatic importing so $linklib works for DLLs. Thanks Pavel!
-
-  Revision 1.7  2001/02/20 21:41:15  peter
-    * new fixfilename, findfile for unix. Look first for lowercase, then
-      NormalCase and last for UPPERCASE names.
-
-  Revision 1.6  2000/12/25 00:07:25  peter
-    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
-      tlinkedlist objects)
-
-  Revision 1.5  2000/11/07 20:48:33  peter
-    * removed ref_count from pinputfile it's not used
-
-  Revision 1.4  2000/10/31 22:02:46  peter
-    * symtable splitted, no real code changes
-
-  Revision 1.3  2000/10/15 07:47:51  peter
-    * unit names and procedure names are stored mixed case
-
-  Revision 1.2  2000/09/24 15:06:16  peter
-    * use defines.inc
-
-  Revision 1.1  2000/08/27 16:11:50  peter
-    * moved some util functions from globals,cobjects to cutils
-    * splitted files into finput,fmodule
 
 }

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Jonas Maebe, member of the Free Pascal
+    Copyright (c) 1998-2002 by Jonas Maebe, member of the Free Pascal
     Development Team
 
     This unit contains the common subexpression elimination object of the
@@ -850,7 +850,10 @@ End.
 
 {
   $Log$
-  Revision 1.4  2002-04-20 21:32:23  carl
+  Revision 1.5  2002-05-14 19:34:39  peter
+    * removed old logs and updated copyright year
+
+  Revision 1.4  2002/04/20 21:32:23  carl
   + generic FPC_CHECKPOINTER
   + first parameter offset in stack now portable
   * rename some constants
@@ -864,37 +867,5 @@ End.
 
   Revision 1.2  2002/04/14 16:49:30  carl
   + att_reg2str -> gas_reg2str
-
-  Revision 1.1  2001/08/26 13:36:35  florian
-    * some cg reorganisation
-    * some PPC updates
-
-  Revision 1.1  2000/07/13 06:30:07  michael
-  + Initial import
-
-  Revision 1.5  2000/02/28 17:23:58  daniel
-  * Current work of symtable integration committed. The symtable can be
-    activated by defining 'newst', but doesn't compile yet. Changes in type
-    checking and oop are completed. What is left is to write a new
-    symtablestack and adapt the parser to use it.
-
-  Revision 1.4  2000/01/07 01:14:51  peter
-    * updated copyright to 2000
-
-  Revision 1.3  1999/08/25 12:00:10  jonas
-    * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
-
-  Revision 1.2  1999/08/23 14:41:13  jonas
-    + checksequence (processor independent)\n  + processor independent part of docse
-
-  Revision 1.1  1999/08/18 14:32:21  jonas
-    + compilable!
-    + dataflow analyzer finished
-    + start of CSE units
-    + aoptbase which contains a base object for all optimizer objects
-    * some constants and type definitions moved around to avoid circular
-      dependencies
-    * moved some methods from base objects to specialized objects because
-      they're not used anywhere else
 
 }

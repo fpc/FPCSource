@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Michael Van Canneyt
+    Copyright (c) 1998-2002 by Michael Van Canneyt
 
     Contains a generic assembler instruction object;
 
@@ -296,7 +296,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  2002-05-14 17:28:09  peter
+  Revision 1.7  2002-05-14 19:34:52  peter
+    * removed old logs and updated copyright year
+
+  Revision 1.6  2002/05/14 17:28:09  peter
     * synchronized cpubase between powerpc and i386
     * moved more tables from cpubase to cpuasm
     * tai_align_abstract moved to tainst, cpuasm must define
@@ -315,42 +318,5 @@ end.
       (this is compatible with Kylix). This saves a lot of push/pop especially
       with string operations
     * adapted some routines to use the new cg methods
-
-  Revision 1.3  2001/12/29 16:29:08  jonas
-    * fixed stupid copy-paste bug
-
-  Revision 1.2  2001/12/29 15:28:57  jonas
-    * powerpc/cgcpu.pas compiles :)
-    * several powerpc-related fixes
-    * cpuasm unit is now based on common tainst unit
-    + nppcmat unit for powerpc (almost complete)
-
-  Revision 1.1  2001/08/26 13:36:52  florian
-    * some cg reorganisation
-    * some PPC updates
-
-  Revision 1.1  2000/07/13 06:30:08  michael
-  + Initial import
-
-  Revision 1.6  2000/01/07 01:14:54  peter
-    * updated copyright to 2000
-
-  Revision 1.5  1999/09/10 18:48:11  florian
-    * some bug fixes (e.g. must_be_valid and procinfo.funcret_is_valid)
-    * most things for stored properties fixed
-
-  Revision 1.4  1999/09/03 13:10:11  jonas
-    * condition is now zeroed using fillchar
-      because on powerpc it's a record now
-
-  Revision 1.3  1999/08/26 14:52:59  jonas
-    * added segprefix field for i386 in taicpu_abstract object
-
-  Revision 1.2  1999/08/06 16:38:37  jonas
-    * declared getcopy virtual, since it's already declared as such
-      in cobjects.pas (FPC doesn't error on that, TP does)
-
-  Revision 1.1  1999/08/06 16:04:05  michael
-  + introduced taicpu_abstract
 
 }

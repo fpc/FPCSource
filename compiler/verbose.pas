@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Peter Vreman
+    Copyright (c) 1998-2002 by Peter Vreman
 
     This unit handles the verbose management
 
@@ -680,67 +680,7 @@ var
 end.
 {
   $Log$
-  Revision 1.16  2001-08-20 10:58:49  florian
-    * renamed messages unit to cmsgs to avoid conflicts with the
-      win32 messages unit
-
-  Revision 1.15  2001/08/04 10:23:55  peter
-    * updates so it works with the ide
-
-  Revision 1.14  2001/05/27 14:30:55  florian
-    + some widestring stuff added
-
-  Revision 1.13  2001/04/13 01:22:17  peter
-    * symtable change to classes
-    * range check generation and errors fixed, make cycle DEBUG=1 works
-    * memory leaks fixed
-
-  Revision 1.12  2001/03/13 20:59:56  peter
-    * message loading fixes from Sergey (merged)
-
-  Revision 1.11  2000/12/26 15:58:29  peter
-    * check for verbosity in verbose instead of comphook
-
-  Revision 1.10  2000/12/25 00:07:30  peter
-    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
-      tlinkedlist objects)
-
-  Revision 1.9  2000/12/07 17:19:45  jonas
-    * new constant handling: from now on, hex constants >$7fffffff are
-      parsed as unsigned constants (otherwise, $80000000 got sign extended
-      and became $ffffffff80000000), all constants in the longint range
-      become longints, all constants >$7fffffff and <=cardinal($ffffffff)
-      are cardinals and the rest are int64's.
-    * added lots of longint typecast to prevent range check errors in the
-      compiler and rtl
-    * type casts of symbolic ordinal constants are now preserved
-    * fixed bug where the original resulttype wasn't restored correctly
-      after doing a 64bit rangecheck
-
-  Revision 1.8  2000/11/29 00:30:43  florian
-    * unused units removed from uses clause
-    * some changes for widestrings
-
-  Revision 1.7  2000/10/31 22:02:55  peter
-    * symtable splitted, no real code changes
-
-  Revision 1.6  2000/09/24 21:33:48  peter
-    * message updates merges
-
-  Revision 1.5  2000/09/24 15:06:33  peter
-    * use defines.inc
-
-  Revision 1.4  2000/08/27 16:11:55  peter
-    * moved some util functions from globals,cobjects to cutils
-    * splitted files into finput,fmodule
-
-  Revision 1.3  2000/08/13 12:54:55  peter
-    * class member decl wrong then no other error after it
-    * -vb has now also line numbering
-    * -vb is also used for interface/implementation different decls and
-      doesn't list the current function (merged)
-
-  Revision 1.2  2000/07/13 11:32:54  michael
-  + removed logs
+  Revision 1.17  2002-05-14 19:34:52  peter
+    * removed old logs and updated copyright year
 
 }

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl
+    Copyright (c) 1998-2002 by Florian Klaempfl
 
     Commandline compiler for Free Pascal
 
@@ -168,32 +168,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2002-03-24 19:06:29  carl
+  Revision 1.11  2002-05-14 19:34:49  peter
+    * removed old logs and updated copyright year
+
+  Revision 1.10  2002/03/24 19:06:29  carl
   + patch for SPARC from Mazen NEIFER
 
-  Revision 1.9  2001/11/14 01:12:45  florian
-    * variant paramter passing and functions results fixed
-
-  Revision 1.8  2001/08/26 13:36:46  florian
-    * some cg reorganisation
-    * some PPC updates
-
-  Revision 1.7  2001/02/26 19:44:53  peter
-    * merged generic m68k updates from fixes branch
-
-  Revision 1.6  2000/11/29 00:30:37  florian
-    * unused units removed from uses clause
-    * some changes for widestrings
-
-  Revision 1.5  2000/11/13 15:26:12  marco
-   * Renamefest
-
-  Revision 1.4  2000/10/01 21:15:55  pierre
-   * lineinfo explicit load not needed anymore
-
-  Revision 1.3  2000/09/24 15:06:23  peter
-    * use defines.inc
-
-  Revision 1.2  2000/07/13 11:32:45  michael
-  + removed logs
 }

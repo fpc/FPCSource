@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl
+    Copyright (c) 1998-2002 by Florian Klaempfl
 
     Helper routines for the PowerPC code generator
 
@@ -66,11 +66,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2002-04-06 18:13:02  jonas
+  Revision 1.3  2002-05-14 19:35:01  peter
+    * removed old logs and updated copyright year
+
+  Revision 1.2  2002/04/06 18:13:02  jonas
     * several powerpc-related additions and fixes
-
-  Revision 1.1  2001/09/29 21:33:12  jonas
-    + implemented bool_to_int and int_to_int (+ helper in nppcutil)
-
 
 }

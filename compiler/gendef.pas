@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl
+    Copyright (c) 1998-2002 by Florian Klaempfl
 
     Generation of a .def file for needed for Os2/Win32
 
@@ -160,26 +160,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  2002-04-04 18:36:46  carl
+  Revision 1.8  2002-05-14 19:34:41  peter
+    * removed old logs and updated copyright year
+
+  Revision 1.7  2002/04/04 18:36:46  carl
   + added wdosx support (patch from Pavel)
-
-  Revision 1.6  2001/04/13 01:22:07  peter
-    * symtable change to classes
-    * range check generation and errors fixed, make cycle DEBUG=1 works
-    * memory leaks fixed
-
-  Revision 1.5  2000/12/25 00:07:26  peter
-    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
-      tlinkedlist objects)
-
-  Revision 1.4  2000/09/24 15:06:16  peter
-    * use defines.inc
-
-  Revision 1.3  2000/08/27 16:11:50  peter
-    * moved some util functions from globals,cobjects to cutils
-    * splitted files into finput,fmodule
-
-  Revision 1.2  2000/07/13 11:32:41  michael
-  + removed logs
 
 }

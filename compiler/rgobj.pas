@@ -102,10 +102,10 @@ unit rgobj;
 
           {# reset the register allocator information (usable registers etc) }
           procedure cleartempgen;virtual;
-          
+
           {# convert a register to a specified register size, and return that register size }
           function makeregsize(reg: tregister; size: tcgsize): tregister; virtual;
-          
+
 
           { saves register variables (restoring happens automatically) }
           procedure saveregvars(list: taasmoutput; const s: tregisterset);
@@ -788,14 +788,14 @@ unit rgobj;
       begin
         rg.ungetreference(list,ref);
       end;
-      
+
  { on most processors , this routine does nothing, overriden currently  }
  { only by 80x86 processor.                                             }
- function trgobj.makeregsize(reg: tregister; size: tcgsize): tregister; 
+ function trgobj.makeregsize(reg: tregister; size: tcgsize): tregister;
    begin
      makeregsize := reg;
    end;
-      
+
 
 
 {****************************************************************************
@@ -855,7 +855,10 @@ end.
 
 {
   $Log$
-  Revision 1.8  2002-04-21 15:23:03  carl
+  Revision 1.9  2002-05-14 19:34:50  peter
+    * removed old logs and updated copyright year
+
+  Revision 1.8  2002/04/21 15:23:03  carl
   + makeregsize
   + changeregsize is now a local routine
 

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1999-2000 by Peter Vreman
+    Copyright (c) 1999-2002 by Peter Vreman
 
     List files needed by PPU
 
@@ -28,7 +28,7 @@ uses
 const
   Version   = 'Version 1.00';
   Title     = 'PPU-Files';
-  Copyright = 'Copyright (c) 1999-2000 by the Free Pascal Development Team';
+  Copyright = 'Copyright (c) 1999-2002 by the Free Pascal Development Team';
 
   PPUExt = 'ppu';
 
@@ -253,32 +253,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2001-05-06 14:49:19  peter
-    * ppu object to class rewrite
-    * move ppu read and write stuff to fppu
-
-  Revision 1.1  2001/04/25 22:40:07  peter
-    * compiler dependent utils in utils/ subdir
-
-  Revision 1.2  2000/11/06 13:16:19  michael
-  + merged fixes from Peter
-
-  Revision 1.1.2.1  2000/11/06 13:14:48  michael
-  + Fixes from Peter for slashes in filenames
-
-  Revision 1.1  2000/07/13 10:16:22  michael
-  + Initial import
-
-  Revision 1.4  2000/07/04 19:05:54  peter
-    * be optimistic: version 1.00 for some utils
-
-  Revision 1.3  2000/01/24 12:32:22  daniel
-    * use a linkedlist instead of ansistring
-
-  Revision 1.2  2000/01/07 16:46:04  daniel
-    * copyright 2000
-
-  Revision 1.1  1999/11/23 09:44:41  peter
-    * initial version
+  Revision 1.3  2002-05-14 19:35:02  peter
+    * removed old logs and updated copyright year
 
 }

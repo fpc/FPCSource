@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Peter Vreman and Florian Klaempfl
+    Copyright (c) 1998-2002 by Peter Vreman and Florian Klaempfl
 
     Convert i386ins.dat from Nasm to a .inc file for usage with
     the Free pascal compiler
@@ -429,7 +429,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:55  michael
-  + removed logs
- 
+  Revision 1.3  2002-05-14 19:35:02  peter
+    * removed old logs and updated copyright year
+
 }

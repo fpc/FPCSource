@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl
+    Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit implements an extended file management
 
@@ -687,46 +687,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.12  2002-04-04 18:34:00  carl
+  Revision 1.13  2002-05-14 19:34:41  peter
+    * removed old logs and updated copyright year
+
+  Revision 1.12  2002/04/04 18:34:00  carl
   + added wdosx support (patch from Pavel)
-
-  Revision 1.11  2001/08/04 10:23:54  peter
-    * updates so it works with the ide
-
-  Revision 1.10  2001/06/03 15:15:31  peter
-    * dllprt0 stub for linux shared libs
-    * pass -init and -fini for linux shared libs
-    * libprefix splitted into staticlibprefix and sharedlibprefix
-
-  Revision 1.9  2001/04/18 22:01:53  peter
-    * registration of targets and assemblers
-
-  Revision 1.8  2001/04/13 01:22:07  peter
-    * symtable change to classes
-    * range check generation and errors fixed, make cycle DEBUG=1 works
-    * memory leaks fixed
-
-  Revision 1.7  2001/03/13 18:43:17  peter
-    * made memdebug and heaptrc compilable again
-
-  Revision 1.6  2000/12/25 00:07:25  peter
-    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
-      tlinkedlist objects)
-
-  Revision 1.5  2000/11/07 20:48:33  peter
-    * removed ref_count from tinputfile it's not used
-
-  Revision 1.4  2000/10/31 22:02:46  peter
-    * symtable splitted, no real code changes
-
-  Revision 1.3  2000/10/14 21:52:54  peter
-    * fixed memory leaks
-
-  Revision 1.2  2000/09/24 15:06:16  peter
-    * use defines.inc
-
-  Revision 1.1  2000/08/27 16:11:50  peter
-    * moved some util functions from globals,cobjects to cutils
-    * splitted files into finput,fmodule
 
 }

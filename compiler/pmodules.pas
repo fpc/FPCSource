@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl
+    Copyright (c) 1998-2002 by Florian Klaempfl
 
     Handles the parsing and loading of the modules (ppufiles)
 
@@ -1383,7 +1383,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.64  2002-05-12 16:53:09  peter
+  Revision 1.65  2002-05-14 19:34:49  peter
+    * removed old logs and updated copyright year
+
+  Revision 1.64  2002/05/12 16:53:09  peter
     * moved entry and exitcode to ncgutil and cgobj
     * foreach gets extra argument for passing local data to the
       iterator function
@@ -1460,166 +1463,4 @@ end.
    * implicit result variable generation for assembler routines
    * removed m_tp modeswitch, use m_tp7 or not(m_fpc) instead
 
-  Revision 1.50  2001/12/09 03:34:58  carl
-  + Stack checking for solaris
-
-  Revision 1.49  2001/11/02 23:16:51  peter
-    * removed obsolete chainprocsym and test_procsym code
-
-  Revision 1.48  2001/11/02 22:58:05  peter
-    * procsym definition rewrite
-
-  Revision 1.47  2001/09/18 11:30:48  michael
-  * Fixes win32 linking problems with import libraries
-  * LINKLIB Libraries are now looked for using C file extensions
-  * get_exepath fix
-
-  Revision 1.46  2001/09/13 14:47:47  michael
-  + Committed patch from peter
-
-  Revision 1.45  2001/08/26 13:36:46  florian
-    * some cg reorganisation
-    * some PPC updates
-
-  Revision 1.44  2001/08/19 11:22:23  peter
-    * palmos support from v10 merged
-
-  Revision 1.43  2001/08/12 19:59:49  peter
-    * typo in extdebug msg
-
-  Revision 1.42  2001/08/06 21:40:47  peter
-    * funcret moved from tprocinfo to tprocdef
-
-  Revision 1.41  2001/08/05 12:26:52  peter
-    * beos fix (merged)
-
-  Revision 1.40  2001/08/04 10:23:54  peter
-    * updates so it works with the ide
-
-  Revision 1.38  2001/07/30 20:59:27  peter
-    * m68k updates from v10 merged
-
-  Revision 1.37  2001/06/18 20:36:25  peter
-    * -Ur switch (merged)
-    * masm fixes (merged)
-    * quoted filenames for go32v2 and win32
-
-  Revision 1.36  2001/06/06 21:58:16  peter
-    * Win32 fixes for Makefile so it doesn't require sh.exe
-
-  Revision 1.35  2001/06/03 21:57:36  peter
-    + hint directive parsing support
-
-  Revision 1.34  2001/06/03 15:15:31  peter
-    * dllprt0 stub for linux shared libs
-    * pass -init and -fini for linux shared libs
-    * libprefix splitted into staticlibprefix and sharedlibprefix
-
-  Revision 1.33  2001/05/19 23:05:19  peter
-    * support uses <unit> in <file> construction
-
-  Revision 1.32  2001/05/18 22:26:36  peter
-    * merged alignment for non-i386
-
-  Revision 1.31  2001/05/09 14:11:10  jonas
-    * range check error fixes from Peter
-
-  Revision 1.30  2001/05/06 14:49:17  peter
-    * ppu object to class rewrite
-    * move ppu read and write stuff to fppu
-
-  Revision 1.29  2001/04/18 22:01:57  peter
-    * registration of targets and assemblers
-
-  Revision 1.28  2001/04/13 18:08:37  peter
-    * scanner object to class
-
-  Revision 1.27  2001/04/13 01:22:12  peter
-    * symtable change to classes
-    * range check generation and errors fixed, make cycle DEBUG=1 works
-    * memory leaks fixed
-
-  Revision 1.26  2001/04/02 21:20:33  peter
-    * resulttype rewrite
-
-  Revision 1.25  2001/03/13 18:45:07  peter
-    * fixed some memory leaks
-
-  Revision 1.24  2001/03/06 18:28:02  peter
-    * patch from Pavel with a new and much faster DLL Scanner for
-      automatic importing so $linklib works for DLLs. Thanks Pavel!
-
-  Revision 1.23  2001/02/24 10:44:56  peter
-    * generate .rst from ppufilename instead of modulename
-
-  Revision 1.22  2001/02/21 19:37:19  peter
-    * moved deref to be done after loading of implementation units. prederef
-      is still done directly after loading of symbols and definitions.
-
-  Revision 1.21  2001/01/14 22:13:52  peter
-    * fixed crash with program name as a important unit name
-
-  Revision 1.20  2000/12/25 00:07:27  peter
-    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
-      tlinkedlist objects)
-
-  Revision 1.19  2000/11/29 00:30:36  florian
-    * unused units removed from uses clause
-    * some changes for widestrings
-
-  Revision 1.18  2000/11/01 23:04:37  peter
-    * tprocdef.fullprocname added for better casesensitve writing of
-      procedures
-
-  Revision 1.17  2000/10/31 22:02:50  peter
-    * symtable splitted, no real code changes
-
-  Revision 1.16  2000/10/21 14:36:26  peter
-    * merged pierres fixes
-
-  Revision 1.15  2000/10/15 09:08:58  peter
-    * use System for the systemunit instead of target dependent
-
-  Revision 1.14  2000/10/15 07:47:51  peter
-    * unit names and procedure names are stored mixed case
-
-  Revision 1.13  2000/10/04 14:51:08  pierre
-   * IsExe restored
-
-  Revision 1.12  2000/09/30 16:07:40  peter
-    * filepos when unit not found (merged)
-
-  Revision 1.11  2000/09/24 21:33:47  peter
-    * message updates merges
-
-  Revision 1.10  2000/09/24 15:06:22  peter
-    * use defines.inc
-
-  Revision 1.9  2000/08/31 07:53:02  michael
-  + Applied patch from Peter
-
-  Revision 1.8  2000/08/29 19:00:01  peter
-    * _init and _finalize procsyms also need a $ prefix
-
-  Revision 1.7  2000/08/27 20:19:39  peter
-    * store strings with case in ppu, when an internal symbol is created
-      a '$' is prefixed so it's not automatic uppercased
-
-  Revision 1.6  2000/08/27 16:11:52  peter
-    * moved some util functions from globals,cobjects to cutils
-    * splitted files into finput,fmodule
-
-  Revision 1.5  2000/08/25 08:48:22  jonas
-    * fixed bug with include files at the very beginning of .pp/.pas files
-      (wrong name used for generating exe/checking unit name) (merged from
-      fixes branch)
-
-  Revision 1.4  2000/08/21 11:27:44  pierre
-   * fix the stabs problems
-
-  Revision 1.3  2000/07/13 12:08:26  michael
-  + patched to 1.1.0 with former 1.09patch from peter
-
-  Revision 1.2  2000/07/13 11:32:45  michael
-  + removed logs
 }

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl
+    Copyright (c) 1998-2002 by Florian Klaempfl
 
     Generate i386 assembler for constants
 
@@ -85,7 +85,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2002-04-02 17:11:36  peter
+  Revision 1.14  2002-05-14 19:34:59  peter
+    * removed old logs and updated copyright year
+
+  Revision 1.13  2002/04/02 17:11:36  peter
     * tlocation,treference update
     * LOC_CONSTANT added for better constant handling
     * secondadd splitted in multiple routines
@@ -113,45 +116,4 @@ end.
     - list field removed of the tnode class because it's not used currently
       and can cause hard-to-find bugs
 
-  Revision 1.10  2001/08/26 13:36:57  florian
-    * some cg reorganisation
-    * some PPC updates
-
-  Revision 1.9  2001/07/08 21:00:18  peter
-    * various widestring updates, it works now mostly without charset
-      mapping supported
-
-  Revision 1.8  2001/04/13 01:22:18  peter
-    * symtable change to classes
-    * range check generation and errors fixed, make cycle DEBUG=1 works
-    * memory leaks fixed
-
-  Revision 1.7  2001/04/02 21:20:37  peter
-    * resulttype rewrite
-
-  Revision 1.6  2000/12/25 00:07:32  peter
-    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
-      tlinkedlist objects)
-
-  Revision 1.5  2000/11/29 00:30:47  florian
-    * unused units removed from uses clause
-    * some changes for widestrings
-
-  Revision 1.4  2000/11/20 15:31:38  jonas
-  *  longint typecast to assignment of constant to offset field
-
-  Revision 1.3  2000/11/13 14:44:36  jonas
-    * fixes so no more range errors with improved range checking code
-
-  Revision 1.2  2000/10/31 22:02:56  peter
-    * symtable splitted, no real code changes
-
-  Revision 1.1  2000/10/15 09:33:31  peter
-    * moved n386*.pas to i386/ cpu_target dir
-
-  Revision 1.2  2000/10/14 10:14:48  peter
-    * moehrendorf oct 2000 rewrite
-
-  Revision 1.1  2000/09/28 20:48:52  florian
-  *** empty log message ***
 }

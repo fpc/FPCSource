@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 2001 by Peter Vreman
+    Copyright (c) 2001-2002 by Peter Vreman
 
     This unit implements support import,export,link routines
     for the (i386) Amiga target
@@ -148,7 +148,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.8  2002-04-22 18:19:22  carl
+  Revision 1.9  2002-05-14 19:35:01  peter
+    * removed old logs and updated copyright year
+
+  Revision 1.8  2002/04/22 18:19:22  carl
   - remove use_bound_instruction field
 
   Revision 1.7  2002/04/20 21:43:18  carl
@@ -158,23 +161,5 @@ end.
 
   Revision 1.6  2002/04/15 19:16:57  carl
   - remove size_of_pointer field
-
-  Revision 1.5  2001/09/17 21:29:16  peter
-    * merged netbsd, fpu-overflow from fixes branch
-
-  Revision 1.4  2001/08/07 18:47:15  peter
-    * merged netbsd start
-    * profile for win32
-
-  Revision 1.3  2001/06/03 15:15:32  peter
-    * dllprt0 stub for linux shared libs
-    * pass -init and -fini for linux shared libs
-    * libprefix splitted into staticlibprefix and sharedlibprefix
-
-  Revision 1.2  2001/06/02 19:22:44  peter
-    * extradefines field added
-
-  Revision 1.1  2001/04/18 22:02:04  peter
-    * registration of targets and assemblers
 
 }

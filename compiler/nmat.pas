@@ -678,7 +678,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.31  2002-04-07 13:26:10  carl
+  Revision 1.32  2002-05-14 19:34:43  peter
+    * removed old logs and updated copyright year
+
+  Revision 1.31  2002/04/07 13:26:10  carl
   + change unit use
 
   Revision 1.30  2002/04/02 17:11:29  peter
@@ -698,97 +701,4 @@ end.
   Revision 1.28  2002/02/11 11:45:51  michael
   * Compilation without mmx support fixed from Peter
 
-  Revision 1.27  2001/12/29 15:27:24  jonas
-    * made 'mod powerof2' -> 'and' optimization processor independent
-
-  Revision 1.26  2001/12/27 15:33:58  jonas
-    * fixed fpuregister counting errors ("merged")
-
-  Revision 1.25  2001/11/02 22:58:02  peter
-    * procsym definition rewrite
-
-  Revision 1.24  2001/10/12 13:51:51  jonas
-    * fixed internalerror(10) due to previous fpu overflow fixes ("merged")
-    * fixed bug in n386add (introduced after compilerproc changes for string
-      operations) where calcregisters wasn't called for shortstring addnodes
-    * NOTE: from now on, the location of a binary node must now always be set
-       before you call calcregisters() for it
-
-  Revision 1.23  2001/09/05 15:22:09  jonas
-    * made multiplying, dividing and mod'ing of int64 and qword processor
-      independent with compilerprocs (+ small optimizations by using shift/and
-      where possible)
-
-  Revision 1.22  2001/09/02 21:12:07  peter
-    * move class of definitions into type section for delphi
-
-  Revision 1.21  2001/08/26 13:36:41  florian
-    * some cg reorganisation
-    * some PPC updates
-
-  Revision 1.20  2001/04/13 01:22:10  peter
-    * symtable change to classes
-    * range check generation and errors fixed, make cycle DEBUG=1 works
-    * memory leaks fixed
-
-  Revision 1.19  2001/04/05 21:00:27  peter
-    * fix constant not evaluation
-
-  Revision 1.18  2001/04/04 22:42:40  peter
-    * move constant folding into det_resulttype
-
-  Revision 1.17  2001/04/02 21:20:31  peter
-    * resulttype rewrite
-
-  Revision 1.16  2001/03/20 18:11:03  jonas
-    * not (cardinal) now has cardinal instead of longint result (bug reported
-      in mailinglist) ("merged")
-
-  Revision 1.15  2001/03/04 10:38:55  jonas
-    * fixed 'qword mod/div pos_const' to have qword result
-
-  Revision 1.14  2001/02/20 21:48:17  peter
-    * remove nasm hack
-
-  Revision 1.13  2001/01/06 18:28:39  peter
-    * fixed wrong notes about locals
-
-  Revision 1.12  2001/01/05 17:36:57  florian
-  * the info about exception frames is stored now on the stack
-  instead on the heap
-
-  Revision 1.11  2000/12/25 00:07:26  peter
-    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
-      tlinkedlist objects)
-
-  Revision 1.10  2000/12/16 15:54:01  jonas
-    * 'resulttype.def of cardinal shl/shr x' is cardinal instead of longint
-
-  Revision 1.9  2000/11/29 00:30:34  florian
-    * unused units removed from uses clause
-    * some changes for widestrings
-
-  Revision 1.8  2000/10/31 22:02:49  peter
-    * symtable splitted, no real code changes
-
-  Revision 1.7  2000/10/01 19:48:24  peter
-    * lot of compile updates for cg11
-
-  Revision 1.6  2000/09/27 21:33:22  florian
-    * finally nadd.pas compiles
-
-  Revision 1.5  2000/09/27 20:25:44  florian
-    * more stuff fixed
-
-  Revision 1.4  2000/09/24 15:06:19  peter
-    * use defines.inc
-
-  Revision 1.3  2000/09/22 22:48:54  florian
-    * some fixes
-
-  Revision 1.2  2000/09/22 22:09:54  florian
-    * more stuff converted
-
-  Revision 1.1  2000/09/20 21:35:12  florian
-    * initial revision
 }

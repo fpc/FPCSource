@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl
+    Copyright (c) 1998-2002 by Florian Klaempfl
 
     Does the parsing of the statements
 
@@ -1217,7 +1217,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.55  2002-05-06 19:56:42  carl
+  Revision 1.56  2002-05-14 19:34:49  peter
+    * removed old logs and updated copyright year
+
+  Revision 1.55  2002/05/06 19:56:42  carl
   + added more patches from Mazen for SPARC port
 
   Revision 1.54  2002/04/21 19:02:05  peter
@@ -1276,163 +1279,5 @@ end.
   Revision 1.45  2002/01/24 18:25:49  peter
    * implicit result variable generation for assembler routines
    * removed m_tp modeswitch, use m_tp7 or not(m_fpc) instead
-
-  Revision 1.44  2001/11/09 10:06:56  jonas
-    * allow recursive calls again in assembler procedure
-
-  Revision 1.43  2001/11/02 22:58:05  peter
-    * procsym definition rewrite
-
-  Revision 1.42  2001/10/26 22:36:42  florian
-    * fixed ranges in case statements with widechars
-
-  Revision 1.41  2001/10/25 21:22:37  peter
-    * calling convention rewrite
-
-  Revision 1.40  2001/10/24 11:51:39  marco
-   * Make new/dispose system functions instead of keywords
-
-  Revision 1.39  2001/10/17 22:41:04  florian
-    * several widechar fixes, case works now
-
-  Revision 1.38  2001/10/16 15:10:35  jonas
-    * fixed goto/label/try bugs
-
-  Revision 1.37  2001/09/22 11:11:43  peter
-    * "fpc -P?" command to query for used ppcXXX compiler
-
-  Revision 1.36  2001/09/06 10:21:50  jonas
-    * fixed superfluous generation of stackframes for assembler procedures
-      with no local vars or para's (this broke the backtrace printing in case
-      of an rte)
-
-  Revision 1.35  2001/09/03 13:19:12  jonas
-    * set funcretsym for assembler procedures too (otherwise using __RESULT
-      in assembler procedures causes a crash)
-
-  Revision 1.34  2001/08/26 13:36:46  florian
-    * some cg reorganisation
-    * some PPC updates
-
-  Revision 1.33  2001/08/23 14:28:36  jonas
-    + tempcreate/ref/delete nodes (allows the use of temps in the
-      resulttype and first pass)
-    * made handling of read(ln)/write(ln) processor independent
-    * moved processor independent handling for str and reset/rewrite-typed
-      from firstpass to resulttype pass
-    * changed names of helpers in text.inc to be generic for use as
-      compilerprocs + added "iocheck" directive for most of them
-    * reading of ordinals is done by procedures instead of functions
-      because otherwise FPC_IOCHECK overwrote the result before it could
-      be stored elsewhere (range checking still works)
-    * compilerprocs can now be used in the system unit before they are
-      implemented
-    * added note to errore.msg that booleans can't be read using read/readln
-
-  Revision 1.32  2001/08/06 21:40:47  peter
-    * funcret moved from tprocinfo to tprocdef
-
-  Revision 1.31  2001/06/03 21:57:37  peter
-    + hint directive parsing support
-
-  Revision 1.30  2001/05/17 13:25:24  jonas
-    * fixed web bugs 1480 and 1481
-
-  Revision 1.29  2001/05/04 15:52:04  florian
-    * some Delphi incompatibilities fixed:
-       - out, dispose and new can be used as idenfiers now
-       - const p = apointerype(nil); is supported now
-    + support for const p = apointertype(pointer(1234)); added
-
-  Revision 1.28  2001/04/21 12:03:11  peter
-    * m68k updates merged from fixes branch
-
-  Revision 1.27  2001/04/18 22:01:57  peter
-    * registration of targets and assemblers
-
-  Revision 1.26  2001/04/15 09:48:30  peter
-    * fixed crash in labelnode
-    * easier detection of goto and label in try blocks
-
-  Revision 1.25  2001/04/14 14:07:11  peter
-    * moved more code from pass_1 to det_resulttype
-
-  Revision 1.24  2001/04/13 01:22:13  peter
-    * symtable change to classes
-    * range check generation and errors fixed, make cycle DEBUG=1 works
-    * memory leaks fixed
-
-  Revision 1.23  2001/04/04 22:43:52  peter
-    * remove unnecessary calls to firstpass
-
-  Revision 1.22  2001/04/02 21:20:34  peter
-    * resulttype rewrite
-
-  Revision 1.21  2001/03/22 22:35:42  florian
-    + support for type a = (a=1); in Delphi mode added
-    + procedure p(); in Delphi mode supported
-    + on isn't keyword anymore, it can be used as
-      id etc. now
-
-  Revision 1.20  2001/03/11 22:58:50  peter
-    * getsym redesign, removed the globals srsym,srsymtable
-
-  Revision 1.19  2000/12/25 00:07:27  peter
-    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
-      tlinkedlist objects)
-
-  Revision 1.18  2000/12/23 19:59:35  peter
-    * object to class for ow/og objects
-    * split objectdata from objectoutput
-
-  Revision 1.17  2000/12/16 22:45:55  jonas
-    * fixed case statements with int64 values
-
-  Revision 1.16  2000/11/29 00:30:37  florian
-    * unused units removed from uses clause
-    * some changes for widestrings
-
-  Revision 1.15  2000/11/27 15:47:19  jonas
-    * fix for web bug 1251 (example 1)
-
-  Revision 1.14  2000/11/22 22:43:34  peter
-    * fixed crash with exception without sysutils (merged)
-
-  Revision 1.13  2000/11/04 14:25:21  florian
-    + merged Attila's changes for interfaces, not tested yet
-
-  Revision 1.12  2000/10/31 22:02:50  peter
-    * symtable splitted, no real code changes
-
-  Revision 1.11  2000/10/14 21:52:56  peter
-    * fixed memory leaks
-
-  Revision 1.10  2000/10/14 10:14:52  peter
-    * moehrendorf oct 2000 rewrite
-
-  Revision 1.9  2000/10/01 19:48:25  peter
-    * lot of compile updates for cg11
-
-  Revision 1.8  2000/09/24 21:19:50  peter
-    * delphi compile fixes
-
-  Revision 1.7  2000/09/24 15:06:24  peter
-    * use defines.inc
-
-  Revision 1.6  2000/08/27 16:11:52  peter
-    * moved some util functions from globals,cobjects to cutils
-    * splitted files into finput,fmodule
-
-  Revision 1.5  2000/08/12 15:41:15  peter
-    * fixed bug 1096 (merged)
-
-  Revision 1.4  2000/08/12 06:46:06  florian
-    + case statement for int64/qword implemented
-
-  Revision 1.3  2000/07/13 12:08:27  michael
-  + patched to 1.1.0 with former 1.09patch from peter
-
-  Revision 1.2  2000/07/13 11:32:45  michael
-  + removed logs
 
 }

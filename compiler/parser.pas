@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl
+    Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit does the parsing process
 
@@ -628,7 +628,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.30  2002-04-21 18:57:23  peter
+  Revision 1.31  2002-05-14 19:34:43  peter
+    * removed old logs and updated copyright year
+
+  Revision 1.30  2002/04/21 18:57:23  peter
     * fixed memleaks when file can't be opened
 
   Revision 1.29  2002/04/20 21:32:24  carl
@@ -650,95 +653,5 @@ end.
 
   Revision 1.27  2002/01/29 19:43:11  peter
     * update target_asm according to outputformat
-
-  Revision 1.26  2001/11/02 22:58:02  peter
-    * procsym definition rewrite
-
-  Revision 1.25  2001/10/25 21:22:35  peter
-    * calling convention rewrite
-
-  Revision 1.24  2001/10/23 21:49:42  peter
-    * $calling directive and -Cc commandline patch added
-      from Pavel Ozerski
-
-  Revision 1.23  2001/10/16 15:10:35  jonas
-    * fixed goto/label/try bugs
-
-  Revision 1.22  2001/08/26 13:36:43  florian
-    * some cg reorganisation
-    * some PPC updates
-
-  Revision 1.21  2001/07/30 20:59:27  peter
-    * m68k updates from v10 merged
-
-  Revision 1.20  2001/07/01 20:16:16  peter
-    * alignmentinfo record added
-    * -Oa argument supports more alignment settings that can be specified
-      per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN
-      RECORDMAX,LOCALMIN,LOCALMAX. It is possible to set the mimimum
-      required alignment and the maximum usefull alignment. The final
-      alignment will be choosen per variable size dependent on these
-      settings
-
-  Revision 1.19  2001/05/19 23:05:19  peter
-    * support uses <unit> in <file> construction
-
-  Revision 1.18  2001/05/06 14:49:17  peter
-    * ppu object to class rewrite
-    * move ppu read and write stuff to fppu
-
-  Revision 1.17  2001/04/18 22:01:54  peter
-    * registration of targets and assemblers
-
-  Revision 1.16  2001/04/15 09:48:30  peter
-    * fixed crash in labelnode
-    * easier detection of goto and label in try blocks
-
-  Revision 1.15  2001/04/13 18:08:37  peter
-    * scanner object to class
-
-  Revision 1.14  2001/04/13 01:22:10  peter
-    * symtable change to classes
-    * range check generation and errors fixed, make cycle DEBUG=1 works
-    * memory leaks fixed
-
-  Revision 1.13  2000/12/25 00:07:27  peter
-    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
-      tlinkedlist objects)
-
-  Revision 1.12  2000/12/24 12:24:38  peter
-    * moved preprocessfile into a conditional
-
-  Revision 1.11  2000/11/29 00:30:34  florian
-    * unused units removed from uses clause
-    * some changes for widestrings
-
-  Revision 1.10  2000/11/12 22:17:46  peter
-    * some realname updates for messages
-
-  Revision 1.9  2000/11/04 14:25:20  florian
-    + merged Attila's changes for interfaces, not tested yet
-
-  Revision 1.8  2000/10/31 22:02:49  peter
-    * symtable splitted, no real code changes
-
-  Revision 1.7  2000/10/14 10:14:51  peter
-    * moehrendorf oct 2000 rewrite
-
-  Revision 1.6  2000/10/01 19:48:25  peter
-    * lot of compile updates for cg11
-
-  Revision 1.5  2000/09/24 15:06:20  peter
-    * use defines.inc
-
-  Revision 1.4  2000/08/27 16:11:51  peter
-    * moved some util functions from globals,cobjects to cutils
-    * splitted files into finput,fmodule
-
-  Revision 1.3  2000/08/12 15:34:22  peter
-    + usedasmsymbollist to check and reset only the used symbols (merged)
-
-  Revision 1.2  2000/07/13 11:32:44  michael
-  + removed logs
 
 }

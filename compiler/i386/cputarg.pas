@@ -85,7 +85,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  2002-05-12 16:53:16  peter
+  Revision 1.7  2002-05-14 19:34:59  peter
+    * removed old logs and updated copyright year
+
+  Revision 1.6  2002/05/12 16:53:16  peter
     * moved entry and exitcode to ncgutil and cgobj
     * foreach gets extra argument for passing local data to the
       iterator function
@@ -110,11 +113,5 @@ end.
 
   Revision 1.3  2002/03/28 20:48:04  carl
   - remove go32v1 support
-
-  Revision 1.2  2001/06/03 15:12:47  peter
-    * t_beos target inclusion
-
-  Revision 1.1  2001/04/18 22:02:01  peter
-    * registration of targets and assemblers
 
 }

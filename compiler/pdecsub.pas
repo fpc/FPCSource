@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2001 by Florian Klaempfl, Daniel Mantione
+    Copyright (c) 1998-2002 by Florian Klaempfl, Daniel Mantione
 
     Does the parsing of the procedures/functions
 
@@ -1957,7 +1957,10 @@ const
 end.
 {
   $Log$
-  Revision 1.54  2002-05-12 16:53:08  peter
+  Revision 1.55  2002-05-14 19:34:48  peter
+    * removed old logs and updated copyright year
+
+  Revision 1.54  2002/05/12 16:53:08  peter
     * moved entry and exitcode to ncgutil and cgobj
     * foreach gets extra argument for passing local data to the
       iterator function
@@ -2020,198 +2023,4 @@ end.
   Revision 1.44  2002/01/06 21:54:07  peter
     * fixed external <dll> name <c-name> manglednames
 
-  Revision 1.43  2001/12/31 16:59:42  peter
-    * protected/private symbols parsing fixed
-
-  Revision 1.42  2001/12/06 17:57:36  florian
-    + parasym to tparaitem added
-
-  Revision 1.41  2001/11/02 22:58:03  peter
-    * procsym definition rewrite
-
-  Revision 1.40  2001/10/25 21:22:37  peter
-    * calling convention rewrite
-
-  Revision 1.39  2001/10/23 21:49:42  peter
-    * $calling directive and -Cc commandline patch added
-      from Pavel Ozerski
-
-  Revision 1.38  2001/10/01 13:38:44  jonas
-    * allow self parameter for normal procedures again (because Kylix allows
-      it too) ("merged")
-
-  Revision 1.37  2001/09/10 10:26:26  jonas
-    * fixed web bug 1593
-    * writing of procvar headers is more complete (mention var/const/out for
-      paras, add "of object" if applicable)
-    + error if declaring explicit self para as var/const
-    * fixed mangled name of procedures which contain an explicit self para
-    * parsing para's should be slightly faster because mangled name of
-      procedure is only updated once instead of after parsing each para
-      (all merged from fixes)
-
-  Revision 1.36  2001/08/26 13:36:45  florian
-    * some cg reorganisation
-    * some PPC updates
-
-  Revision 1.35  2001/08/23 14:28:36  jonas
-    + tempcreate/ref/delete nodes (allows the use of temps in the
-      resulttype and first pass)
-    * made handling of read(ln)/write(ln) processor independent
-    * moved processor independent handling for str and reset/rewrite-typed
-      from firstpass to resulttype pass
-    * changed names of helpers in text.inc to be generic for use as
-      compilerprocs + added "iocheck" directive for most of them
-    * reading of ordinals is done by procedures instead of functions
-      because otherwise FPC_IOCHECK overwrote the result before it could
-      be stored elsewhere (range checking still works)
-    * compilerprocs can now be used in the system unit before they are
-      implemented
-    * added note to errore.msg that booleans can't be read using read/readln
-
-  Revision 1.34  2001/08/22 21:16:21  florian
-    * some interfaces related problems regarding
-      mapping of interface implementions fixed
-
-  Revision 1.33  2001/08/19 21:11:20  florian
-    * some bugs fix:
-      - overload; with external procedures fixed
-      - better selection of routine to do an overloaded
-        type case
-      - ... some more
-
-  Revision 1.32  2001/08/19 11:22:23  peter
-    * palmos support from v10 merged
-
-  Revision 1.31  2001/08/05 13:18:50  peter
-    * turn pocall_inline off when inline is not supported
-
-  Revision 1.30  2001/08/01 15:07:29  jonas
-    + "compilerproc" directive support, which turns both the public and mangled
-      name to lowercase(declaration_name). This prevents a normal user from
-      accessing the routine, but they can still be easily looked up within
-      the compiler. This is used for helper procedures and should facilitate
-      the writing of more processor independent code in the code generator
-      itself (mostly written by Peter)
-    + new "createintern" constructor for tcal nodes to create a call to
-      helper exported using the "compilerproc" directive
-    + support for high(dynamic_array) using the the above new things
-    + definition of 'HASCOMPILERPROC' symbol (to be able to check in the
-      compiler and rtl whether the "compilerproc" directive is supported)
-
-  Revision 1.29  2001/07/09 21:11:14  peter
-    * fixed overload checking for delphi. Empty parameters are only
-      allowed in implementation and not when the forward declaration
-      contains overload directive
-
-  Revision 1.28  2001/07/01 20:16:16  peter
-    * alignmentinfo record added
-    * -Oa argument supports more alignment settings that can be specified
-      per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN
-      RECORDMAX,LOCALMIN,LOCALMAX. It is possible to set the mimimum
-      required alignment and the maximum usefull alignment. The final
-      alignment will be choosen per variable size dependent on these
-      settings
-
-  Revision 1.27  2001/06/04 18:12:26  peter
-    * fixed crash with procvar directive parsing. Be carefull as the procvar
-      directive parsing uses aktprocdef that is a tprocdef, but
-      for procvar the type is tprocvardef. So some fields are not available
-
-  Revision 1.26  2001/06/04 11:53:13  peter
-    + varargs directive
-
-  Revision 1.25  2001/06/03 21:57:36  peter
-    + hint directive parsing support
-
-  Revision 1.24  2001/05/08 21:06:31  florian
-    * some more support for widechars commited especially
-      regarding type casting and constants
-
-  Revision 1.23  2001/05/08 14:32:58  jonas
-    * fixed bug for overloaded operators with a return type that has a size
-      which isn't a multiple of the target_os.stackalignment (main branch
-      patch from Peter)
-
-  Revision 1.22  2001/05/04 15:52:03  florian
-    * some Delphi incompatibilities fixed:
-       - out, dispose and new can be used as idenfiers now
-       - const p = apointerype(nil); is supported now
-    + support for const p = apointertype(pointer(1234)); added
-
-  Revision 1.21  2001/04/18 22:01:57  peter
-    * registration of targets and assemblers
-
-  Revision 1.20  2001/04/13 20:05:16  peter
-    * better check for globalsymtable
-
-  Revision 1.19  2001/04/13 18:03:16  peter
-    * give error with local external procedure
-
-  Revision 1.18  2001/04/13 01:22:11  peter
-    * symtable change to classes
-    * range check generation and errors fixed, make cycle DEBUG=1 works
-    * memory leaks fixed
-
-  Revision 1.17  2001/04/04 22:43:52  peter
-    * remove unnecessary calls to firstpass
-
-  Revision 1.16  2001/04/02 21:20:33  peter
-    * resulttype rewrite
-
-  Revision 1.15  2001/03/24 12:18:11  florian
-    * procedure p(); is now allowed in all modes except TP
-
-  Revision 1.14  2001/03/22 22:35:42  florian
-    + support for type a = (a=1); in Delphi mode added
-    + procedure p(); in Delphi mode supported
-    + on isn't keyword anymore, it can be used as
-      id etc. now
-
-  Revision 1.13  2001/03/11 22:58:50  peter
-    * getsym redesign, removed the globals srsym,srsymtable
-
-  Revision 1.12  2001/03/06 18:28:02  peter
-    * patch from Pavel with a new and much faster DLL Scanner for
-      automatic importing so $linklib works for DLLs. Thanks Pavel!
-
-  Revision 1.11  2001/01/08 21:40:26  peter
-    * fixed crash with unsupported token overloading
-
-  Revision 1.10  2000/12/25 00:07:27  peter
-    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
-      tlinkedlist objects)
-
-  Revision 1.9  2000/11/29 00:30:35  florian
-    * unused units removed from uses clause
-    * some changes for widestrings
-
-  Revision 1.8  2000/11/26 23:45:34  florian
-    * pascal modifier in interfaces of units works now
-
-  Revision 1.7  2000/11/06 20:30:55  peter
-    * more fixes to get make cycle working
-
-  Revision 1.6  2000/11/04 14:25:20  florian
-    + merged Attila's changes for interfaces, not tested yet
-
-  Revision 1.5  2000/11/01 23:04:37  peter
-    * tprocdef.fullprocname added for better casesensitve writing of
-      procedures
-
-  Revision 1.4  2000/10/31 22:02:49  peter
-    * symtable splitted, no real code changes
-
-  Revision 1.3  2000/10/21 18:16:11  florian
-    * a lot of changes:
-       - basic dyn. array support
-       - basic C++ support
-       - some work for interfaces done
-       ....
-
-  Revision 1.2  2000/10/15 07:47:51  peter
-    * unit names and procedure names are stored mixed case
-
-  Revision 1.1  2000/10/14 10:14:51  peter
-    * moehrendorf oct 2000 rewrite
 }

@@ -25,7 +25,7 @@
   all which is related to allocating temporary memory
   space on the stack, as required, by the code generator.
 }
-  
+
 unit tgobj;
 
 {$i defines.inc}
@@ -76,13 +76,13 @@ unit tgobj;
 
           constructor create;
 
-          {# Clear and free the complete linked list of temporary memory 
-             locations. The list is set to nil.}          
+          {# Clear and free the complete linked list of temporary memory
+             locations. The list is set to nil.}
           procedure resettempgen;
-          {# Sets the first offset from the frame pointer or stack pointer where  
-             the temporary references will be allocated. It is to note that this 
-             value should always be negative. 
-             
+          {# Sets the first offset from the frame pointer or stack pointer where
+             the temporary references will be allocated. It is to note that this
+             value should always be negative.
+
              @param(l start offset where temps will start in stack)
           }
           procedure setfirsttemp(l : longint);
@@ -96,40 +96,40 @@ unit tgobj;
 
           { for parameter func returns }
           procedure normaltemptopersistant(pos : longint);
-          
-          {# Searches the list of currently allocated persistent memory space 
-             as the specified address @var(pos) , and if found, converts this memory 
+
+          {# Searches the list of currently allocated persistent memory space
+             as the specified address @var(pos) , and if found, converts this memory
              space to normal volatile memory space which can be freed and reused.
-             
+
              @param(pos offset from current frame pointer to memory area to convert)
-          }              
+          }
           procedure persistanttemptonormal(pos : longint);
 
           {procedure ungettemp(pos : longint;size : longint);}
           procedure ungetpersistanttemp(list: taasmoutput; pos : longint);
           procedure ungetpersistanttempreference(list: taasmoutput; const ref : treference);
 
-          {# This routine is used to assign and allocate extra temporary volatile memory space 
-             on the stack from a reference. @var(l) is the size of the persistent memory space to 
-             allocate, while @var(ref) is a reference entry which will be set to the correct offset 
+          {# This routine is used to assign and allocate extra temporary volatile memory space
+             on the stack from a reference. @var(l) is the size of the persistent memory space to
+             allocate, while @var(ref) is a reference entry which will be set to the correct offset
              and correct base register (which is the current @var(procinfo^.framepointer)) register.
-             The offset and base fields of ref will be set appropriately in this routine, and can be 
+             The offset and base fields of ref will be set appropriately in this routine, and can be
              considered valid on exit of this routine.
-             
+
              @param(l size of the area to allocate)
              @param(ref allocated reference)
           }
           procedure gettempofsizereference(list: taasmoutput; l : longint;var ref : treference);
-          {# Returns TRUE if the reference ref is allocated in temporary volatile memory space, 
+          {# Returns TRUE if the reference ref is allocated in temporary volatile memory space,
              otherwise returns FALSE.
-             
+
              @param(ref reference to verify)
           }
           function istemp(const ref : treference) : boolean;
-          {# Frees a reference @var(ref) which was allocated in the volatile temporary memory space. 
+          {# Frees a reference @var(ref) which was allocated in the volatile temporary memory space.
              The freed space can later be reallocated and reused. If this reference
              is not in the temporary memory, it is simply not freed.
-          }             
+          }
           procedure ungetiftemp(list: taasmoutput; const ref : treference);
           function getsizeoftemp(const ref: treference): longint;
 
@@ -677,7 +677,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.6  2002-04-15 19:08:22  carl
+  Revision 1.7  2002-05-14 19:34:52  peter
+    * removed old logs and updated copyright year
+
+  Revision 1.6  2002/04/15 19:08:22  carl
   + target_info.size_of_pointer -> pointer_size
   + some cleanup of unused types/variables
 
@@ -719,39 +722,5 @@ end.
       R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
     - list field removed of the tnode class because it's not used currently
       and can cause hard-to-find bugs
-
-  Revision 1.1  2000/07/13 06:30:09  michael
-  + Initial import
-
-  Revision 1.10  2000/02/17 14:48:36  florian
-     * updated to use old firstpass
-
-  Revision 1.9  2000/01/07 01:14:55  peter
-    * updated copyright to 2000
-
-  Revision 1.8  1999/10/14 14:57:54  florian
-    - removed the hcodegen use in the new cg, use cgbase instead
-
-  Revision 1.7  1999/10/12 21:20:47  florian
-    * new codegenerator compiles again
-
-  Revision 1.6  1999/09/10 18:48:11  florian
-    * some bug fixes (e.g. must_be_valid and procinfo.funcret_is_valid)
-    * most things for stored properties fixed
-
-  Revision 1.5  1999/08/06 16:04:06  michael
-  + introduced tainstruction
-
-  Revision 1.4  1999/08/03 00:33:23  michael
-  + Added cpuasm for alpha
-
-  Revision 1.3  1999/08/03 00:32:13  florian
-    * reg_vars and reg_pushes is now in tgobj
-
-  Revision 1.2  1999/08/02 23:13:22  florian
-    * more changes to compile for the Alpha
-
-  Revision 1.1  1999/08/02 17:14:12  florian
-    + changed the temp. generator to an object
 
 }

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by the Free Pascal development team
+    Copyright (c) 1998-2002 by the Free Pascal development team
 
     Basic Processor information for the PowerPC
 
@@ -44,24 +44,13 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.4  2002-05-13 19:52:46  peter
+  Revision 1.5  2002-05-14 19:35:01  peter
+    * removed old logs and updated copyright year
+
+  Revision 1.4  2002/05/13 19:52:46  peter
     * a ppcppc can be build again
 
   Revision 1.3  2002/04/07 13:43:11  carl
   - moved type constant
-
-  Revision 1.2  2001/12/29 15:28:58  jonas
-    * powerpc/cgcpu.pas compiles :)
-    * several powerpc-related fixes
-    * cpuasm unit is now based on common tainst unit
-    + nppcmat unit for powerpc (almost complete)
-
-  Revision 1.1  2001/08/26 13:31:04  florian
-    * some cg reorganisation
-    * some PPC updates
-
-  Revision 1.2  2001/08/26 13:29:34  florian
-    * some cg reorganisation
-    * some PPC updates
 
 }

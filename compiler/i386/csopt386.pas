@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Jonas Maebe, member of the Free Pascal
+    Copyright (c) 1998-2002 by Jonas Maebe, member of the Free Pascal
       development team
 
     This unit contains the common subexpression elimination procedure.
@@ -1984,7 +1984,10 @@ End.
 
 {
   $Log$
-  Revision 1.32  2002-04-21 15:32:59  carl
+  Revision 1.33  2002-05-14 19:34:59  peter
+    * removed old logs and updated copyright year
+
+  Revision 1.32  2002/04/21 15:32:59  carl
   * changeregsize -> rg.makeregsize
 
   Revision 1.31  2002/04/20 21:37:07  carl
@@ -2050,160 +2053,5 @@ End.
 
   Revision 1.24  2002/03/04 19:10:12  peter
     * removed compiler warnings
-
-  Revision 1.23  2001/12/04 15:58:13  jonas
-    * unnecessary loads of constants are now also remove by
-      removePrevNotUsedLoad()
-
-  Revision 1.22  2001/11/30 16:35:02  jonas
-    * added missing allocregbetween() call for a memtoreg() optimization
-
-  Revision 1.21  2001/10/27 10:20:43  jonas
-    + replace mem accesses to locations to which a reg was stored recently with that reg
-
-  Revision 1.20  2001/10/14 11:50:21  jonas
-    + also replace mem references in modify operands with regs
-
-  Revision 1.19  2001/10/12 13:58:05  jonas
-    + memory references are now replaced by register reads in "regular"
-      instructions (e.g. "addl ref1,%eax" will be replaced by "addl %ebx,%eax"
-      if %ebx contains ref1). Previously only complete load sequences were
-      optimized away, but not such small accesses in other instructions than
-      mov/movzx/movsx
-
-  Revision 1.18  2001/09/04 14:01:03  jonas
-    * commented out some inactive code in csopt386
-    + small improvement: lea is now handled the same as mov/zx/sx
-
-  Revision 1.17  2001/08/29 14:07:43  jonas
-    * the optimizer now keeps track of flags register usage. This fixes some
-      optimizer bugs with int64 calculations (because of the carry flag usage)
-    * fixed another bug which caused wrong optimizations with complex
-      array expressions
-
-  Revision 1.16  2001/08/26 13:36:55  florian
-    * some cg reorganisation
-    * some PPC updates
-
-  Revision 1.15  2001/04/06 16:24:38  jonas
-    * fixed bug due to short boolean evaluation
-
-  Revision 1.14  2001/04/02 21:20:36  peter
-    * resulttype rewrite
-
-  Revision 1.13  2001/01/10 08:52:40  michael
-  + Patch from jonas so 1.0.2 can be used to cycle
-
-  Revision 1.12  2001/01/07 15:51:17  jonas
-    * fixed crashing bug to due previous changes
-
-  Revision 1.11  2001/01/06 23:35:05  jonas
-    * fixed webbug 1323
-
-  Revision 1.10  2000/12/25 00:07:31  peter
-    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
-      tlinkedlist objects)
-
-  Revision 1.9  2000/12/05 09:33:42  jonas
-    * when searching for constants in registers, the returned register
-      sometimes didn't have the same size as the requested size
-
-  Revision 1.8  2000/11/29 00:30:43  florian
-    * unused units removed from uses clause
-    * some changes for widestrings
-
-  Revision 1.7  2000/11/28 16:32:11  jonas
-    + support for optimizing simple sequences with div/idiv/mul opcodes
-
-  Revision 1.6  2000/11/14 12:17:34  jonas
-    * fixed some bugs in checksequence
-
-  Revision 1.5  2000/11/09 12:34:44  jonas
-    * fixed range check error
-
-  Revision 1.4  2000/11/03 17:53:24  jonas
-    * some small improvements
-
-  Revision 1.3  2000/11/01 22:53:30  jonas
-    * register contents were not cleared if there was only 1 instruction
-
-      between de previous sequence and the current one
-
-  Revision 1.2  2000/10/24 10:40:53  jonas
-    + register renaming ("fixes" bug1088)
-    * changed command line options meanings for optimizer:
-        O2 now means peepholopts, CSE and register renaming in 1 pass
-        O3 is the same, but repeated until no further optimizations are
-          possible or until 5 passes have been done (to avoid endless loops)
-    * changed aopt386 so it does this looping
-    * added some procedures from csopt386 to the interface because they're
-      used by rropt386 as well
-    * some changes to csopt386 and daopt386 so that newly added instructions
-      by the CSE get optimizer info (they were simply skipped previously),
-      this fixes some bugs
-
-  Revision 1.1  2000/10/15 09:47:43  peter
-    * moved to i386/
-
-  Revision 1.14  2000/09/30 13:07:23  jonas
-    * fixed support for -Or with new features of CSE
-
-  Revision 1.13  2000/09/29 23:14:45  jonas
-    * search much further back for CSE sequences (non-conflicting stores are
-      now passed)
-    * remove more unnecessary loads of registers (especially the self pointer)
-
-  Revision 1.12  2000/09/26 11:49:41  jonas
-    * writes to register variables and to the self pointer now also count as
-      memore writes
-
-  Revision 1.11  2000/09/25 09:50:29  jonas
-    - removed TP conditional code
-
-  Revision 1.10  2000/09/24 15:06:14  peter
-    * use defines.inc
-
-  Revision 1.9  2000/09/22 15:01:59  jonas
-    * fixed some bugs in the previous improvements: in some cases, esi was
-      still being replaced before a conditional jump (the code that
-      detected conditional jumps sometimes skipped over them)
-
-  Revision 1.8  2000/09/20 15:00:58  jonas
-    + much improved CSE: the CSE now searches further back for sequences it
-      can reuse. After I've also implemented register renaming, the effect
-      should be even better (afaik web bug 1088 will then even be optimized
-      properly). I don't know about the slow down factor this adds. Maybe
-      a new optimization level should be introduced?
-
-  Revision 1.7  2000/08/25 19:40:45  jonas
-    * refined previous fix a bit, some instructions weren't being removed
-      while they could (merged from fixes branch)
-    * made checksequence a bit faster
-
-  Revision 1.6  2000/08/23 12:55:10  jonas
-    * fix for web bug 1112 and a bit of clean up in csopt386 (merged from
-      fixes branch)
-
-  Revision 1.5  2000/08/04 20:08:03  jonas
-    * improved detection of range of instructions which use a register
-      (merged from fixes branch)
-
-  Revision 1.4  2000/07/21 15:19:54  jonas
-    * daopt386: changes to getnextinstruction/getlastinstruction so they
-      ignore labels who have is_addr set
-    + daopt386/csopt386: remove loads of registers which are overwritten
-       before their contents are used (especially usefull for removing superfluous
-      maybe_loadself outputs and push/pops transformed by below optimization
-    + popt386: transform pop/pop/pop/.../push/push/push to sequences of
-      'movl x(%esp),%reg' (only active when compiling a go32v2 compiler
-      currently because I don't know whether it's safe to do this under Win32/
-      Linux (because of problems we had when using esp as frame pointer on
-      those os'es)
-
-  Revision 1.3  2000/07/14 05:11:48  michael
-  + Patch to 1.1
-
-  Revision 1.2  2000/07/13 11:32:39  michael
-  + removed logs
 
 }

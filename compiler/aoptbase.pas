@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Jonas Maebe, member of the Free Pascal
+    Copyright (c) 1998-2002 by Jonas Maebe, member of the Free Pascal
     Development Team
 
     This unit contains the base of all optimizer related objects
@@ -261,39 +261,13 @@ End.
 
 {
   $Log$
-  Revision 1.2  2002-05-14 17:28:09  peter
+  Revision 1.3  2002-05-14 19:34:38  peter
+    * removed old logs and updated copyright year
+
+  Revision 1.2  2002/05/14 17:28:09  peter
     * synchronized cpubase between powerpc and i386
     * moved more tables from cpubase to cpuasm
     * tai_align_abstract moved to tainst, cpuasm must define
       the tai_align class now, which may be empty
-
-  Revision 1.1  2001/08/26 13:36:35  florian
-    * some cg reorganisation
-    * some PPC updates
-
-  Revision 1.1  2000/07/13 06:30:07  michael
-  + Initial import
-
-  Revision 1.5  2000/01/07 01:14:51  peter
-    * updated copyright to 2000
-
-  Revision 1.4  1999/11/09 22:57:08  peter
-    * compiles again both i386,alpha both with optimizer
-
-  Revision 1.3  1999/09/08 15:01:31  jonas
-    * some small changes so the noew optimizer is again compilable
-
-  Revision 1.2  1999/08/23 14:41:12  jonas
-    + checksequence (processor independent)\n  + processor independent part of docse
-
-  Revision 1.1  1999/08/18 14:32:21  jonas
-    + compilable!
-    + dataflow analyzer finished
-    + start of CSE units
-    + aoptbase which contains a base object for all optimizer objects
-    * some constants and type definitions moved around to avoid circular
-      dependencies
-    * moved some methods from base objects to specialized objects because
-      they're not used anywhere else
 
 }

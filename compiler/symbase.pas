@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl, Pierre Muller
+    Copyright (c) 1998-2002 by Florian Klaempfl, Pierre Muller
 
     This unit handles the symbol tables
 
@@ -311,7 +311,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2002-05-12 16:53:10  peter
+  Revision 1.4  2002-05-14 19:34:50  peter
+    * removed old logs and updated copyright year
+
+  Revision 1.3  2002/05/12 16:53:10  peter
     * moved entry and exitcode to ncgutil and cgobj
     * foreach gets extra argument for passing local data to the
       iterator function
@@ -327,13 +330,5 @@ end.
       a rangecheck warning/error.
     * fixed pascal calling method with reversing also the high tree in
       the parast, detected by tcalcst3 test
-
-  Revision 1.2  2001/04/13 01:22:15  peter
-    * symtable change to classes
-    * range check generation and errors fixed, make cycle DEBUG=1 works
-    * memory leaks fixed
-
-  Revision 1.1  2000/10/31 22:02:51  peter
-    * symtable splitted, no real code changes
 
 }

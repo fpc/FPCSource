@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl and Peter Vreman
+    Copyright (c) 1998-2002 by Florian Klaempfl and Peter Vreman
 
     This module provides stream classes
 
@@ -610,12 +610,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2000-12-25 00:07:25  peter
-    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
-      tlinkedlist objects)
-
-  Revision 1.1  2000/12/24 12:25:31  peter
-    + cstreams unit
-    * dynamicarray object to class
+  Revision 1.3  2002-05-14 19:34:40  peter
+    * removed old logs and updated copyright year
 
 }

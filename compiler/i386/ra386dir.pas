@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl
+    Copyright (c) 1998-2002 by Florian Klaempfl
 
     Reads inline assembler and writes the lines direct to the output
 
@@ -304,7 +304,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.15  2002-05-12 16:53:18  peter
+  Revision 1.16  2002-05-14 19:35:00  peter
+    * removed old logs and updated copyright year
+
+  Revision 1.15  2002/05/12 16:53:18  peter
     * moved entry and exitcode to ncgutil and cgobj
     * foreach gets extra argument for passing local data to the
       iterator function
@@ -331,59 +334,5 @@ end.
 
   Revision 1.13  2002/04/14 17:01:52  carl
   + att_reg2str -> gas_reg2str
-
-  Revision 1.12  2001/11/02 22:58:11  peter
-    * procsym definition rewrite
-
-  Revision 1.11  2001/08/26 13:37:02  florian
-    * some cg reorganisation
-    * some PPC updates
-
-  Revision 1.10  2001/08/06 21:40:51  peter
-    * funcret moved from tprocinfo to tprocdef
-
-  Revision 1.9  2001/04/18 22:02:03  peter
-    * registration of targets and assemblers
-
-  Revision 1.8  2001/04/13 18:20:21  peter
-    * scanner object to class
-
-  Revision 1.7  2001/04/13 01:22:21  peter
-    * symtable change to classes
-    * range check generation and errors fixed, make cycle DEBUG=1 works
-    * memory leaks fixed
-
-  Revision 1.6  2001/04/02 21:20:40  peter
-    * resulttype rewrite
-
-  Revision 1.5  2001/03/11 22:58:52  peter
-    * getsym redesign, removed the globals srsym,srsymtable
-
-  Revision 1.4  2000/12/25 00:07:34  peter
-    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
-      tlinkedlist objects)
-
-  Revision 1.3  2000/11/29 00:30:50  florian
-    * unused units removed from uses clause
-    * some changes for widestrings
-
-  Revision 1.2  2000/10/31 22:02:57  peter
-    * symtable splitted, no real code changes
-
-  Revision 1.1  2000/10/15 09:47:43  peter
-    * moved to i386/
-
-  Revision 1.5  2000/10/14 10:14:52  peter
-    * moehrendorf oct 2000 rewrite
-
-  Revision 1.4  2000/09/24 15:06:26  peter
-    * use defines.inc
-
-  Revision 1.3  2000/08/27 16:11:52  peter
-    * moved some util functions from globals,cobjects to cutils
-    * splitted files into finput,fmodule
-
-  Revision 1.2  2000/07/13 11:32:48  michael
-  + removed logs
 
 }

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 2000-2002 by Florian Klaempfl
+    Copyright (c) 2000 by Florian Klaempfl
 
     Basic node handling
 
@@ -22,114 +22,110 @@
 }
 unit node;
 
-{$i fpcdefs.inc}
+{$i defines.inc}
 
 interface
 
     uses
        cclasses,
        globtype,globals,
-       cpubase,cginfo,
-       aasmbase,
-       symtype,symppu;
+       cpubase,
+       aasm,
+       symtype;
 
     type
        pconstset = ^tconstset;
-{$ifdef oldset}
        tconstset = array[0..31] of byte;
        pconst32bitset = ^tconst32bitset;
        tconst32bitset = array[0..7] of longint;
-{$else}
-       tconstset = set of 0..255;
-{$endif}
 
        tnodetype = (
-          emptynode,        {No node (returns nil when loading from ppu)}
-          addn,             {Represents the + operator}
-          muln,             {Represents the * operator}
-          subn,             {Represents the - operator}
-          divn,             {Represents the div operator}
-          symdifn,          {Represents the >< operator}
-          modn,             {Represents the mod operator}
-          assignn,          {Represents an assignment}
-          loadn,            {Represents the use of a variabele}
-          rangen,           {Represents a range (i.e. 0..9)}
-          ltn,              {Represents the < operator}
-          lten,             {Represents the <= operator}
-          gtn,              {Represents the > operator}
-          gten,             {Represents the >= operator}
-          equaln,           {Represents the = operator}
-          unequaln,         {Represents the <> operator}
-          inn,              {Represents the in operator}
-          orn,              {Represents the or operator}
-          xorn,             {Represents the xor operator}
-          shrn,             {Represents the shr operator}
-          shln,             {Represents the shl operator}
-          slashn,           {Represents the / operator}
-          andn,             {Represents the and operator}
-          subscriptn,       {Field in a record/object}
-          derefn,           {Dereferences a pointer}
-          addrn,            {Represents the @ operator}
-          doubleaddrn,      {Represents the @@ operator}
-          ordconstn,        {Represents an ordinal value}
-          typeconvn,        {Represents type-conversion/typecast}
-          calln,            {Represents a call node}
-          callparan,        {Represents a parameter}
-          realconstn,       {Represents a real value}
-          unaryminusn,      {Represents a sign change (i.e. -2)}
-          asmn,             {Represents an assembler node }
-          vecn,             {Represents array indexing}
-          pointerconstn,    {Represents a pointer constant}
-          stringconstn,     {Represents a string constant}
-          funcretn,         {Represents the function result var}
-          selfn,            {Represents the self parameter}
-          notn,             {Represents the not operator}
-          inlinen,          {Internal procedures (i.e. writeln)}
-          niln,             {Represents the nil pointer}
-          errorn,           {This part of the tree could not be
-                             parsed because of a compiler error}
-          typen,            {A type name. Used for i.e. typeof(obj)}
-          hnewn,            {The new operation, constructor call}
-          hdisposen,        {The dispose operation with destructor call}
-          setelementn,      {A set element(s) (i.e. [a,b] and also [a..b])}
-          setconstn,        {A set constant (i.e. [1,2])}
-          blockn,           {A block of statements}
-          statementn,       {One statement in a block of nodes}
-          ifn,              {An if statement}
-          breakn,           {A break statement}
-          continuen,        {A continue statement}
-          whilerepeatn,     {A while or repeat statement}
-          forn,             {A for loop}
-          exitn,            {An exit statement}
-          withn,            {A with statement}
-          casen,            {A case statement}
-          labeln,           {A label}
-          goton,            {A goto statement}
-          tryexceptn,       {A try except block}
-          raisen,           {A raise statement}
-          tryfinallyn,      {A try finally statement}
-          onn,              {For an on statement in exception code}
-          isn,              {Represents the is operator}
-          asn,              {Represents the as typecast}
-          caretn,           {Represents the ^ operator}
-          failn,            {Represents the fail statement}
-          starstarn,        {Represents the ** operator exponentiation }
-          procinlinen,      {Procedures that can be inlined }
+          addn,     {Represents the + operator.}
+          muln,     {Represents the * operator.}
+          subn,     {Represents the - operator.}
+          divn,     {Represents the div operator.}
+          symdifn,       {Represents the >< operator.}
+          modn,     {Represents the mod operator.}
+          assignn,       {Represents an assignment.}
+          loadn,           {Represents the use of a variabele.}
+          rangen,         {Represents a range (i.e. 0..9).}
+          ltn,       {Represents the < operator.}
+          lten,     {Represents the <= operator.}
+          gtn,       {Represents the > operator.}
+          gten,     {Represents the >= operator.}
+          equaln,         {Represents the = operator.}
+          unequaln,     {Represents the <> operator.}
+          inn,       {Represents the in operator.}
+          orn,       {Represents the or operator.}
+          xorn,     {Represents the xor operator.}
+          shrn,     {Represents the shr operator.}
+          shln,     {Represents the shl operator.}
+          slashn,         {Represents the / operator.}
+          andn,     {Represents the and operator.}
+          subscriptn,      {??? Field in a record/object?}
+          derefn,         {Dereferences a pointer.}
+          addrn,           {Represents the @ operator.}
+          doubleaddrn,     {Represents the @@ operator.}
+          ordconstn,       {Represents an ordinal value.}
+          typeconvn,       {Represents type-conversion/typecast.}
+          calln,           {Represents a call node.}
+          callparan,       {Represents a parameter.}
+          realconstn,      {Represents a real value.}
+          unaryminusn,     {Represents a sign change (i.e. -2).}
+          asmn,     {Represents an assembler node }
+          vecn,     {Represents array indexing.}
+          pointerconstn,
+          stringconstn,    {Represents a string constant.}
+          funcretn,     {Represents the function result var.}
+          selfn,           {Represents the self parameter.}
+          notn,     {Represents the not operator.}
+          inlinen,       {Internal procedures (i.e. writeln).}
+          niln,     {Represents the nil pointer.}
+          errorn,         {This part of the tree could not be
+                            parsed because of a compiler error.}
+          typen,           {A type name. Used for i.e. typeof(obj).}
+          hnewn,           {The new operation, constructor call.}
+          hdisposen,       {The dispose operation with destructor call.}
+          setelementn,     {A set element(s) (i.e. [a,b] and also [a..b]).}
+          setconstn,       {A set constant (i.e. [1,2]).}
+          blockn,         {A block of statements.}
+          statementn,      {One statement in a block of nodes.}
+          loopn,           { used in genloopnode, must be converted }
+          ifn,       {An if statement.}
+          breakn,         {A break statement.}
+          continuen,       {A continue statement.}
+          repeatn,       {A repeat until block.}
+          whilen,         {A while do statement.}
+          forn,     {A for loop.}
+          exitn,           {An exit statement.}
+          withn,           {A with statement.}
+          casen,           {A case statement.}
+          labeln,         {A label.}
+          goton,           {A goto statement.}
+          tryexceptn,      {A try except block.}
+          raisen,         {A raise statement.}
+          tryfinallyn,     {A try finally statement.}
+          onn,       { for an on statement in exception code }
+          isn,       {Represents the is operator.}
+          asn,       {Represents the as typecast.}
+          caretn,         {Represents the ^ operator.}
+          failn,           {Represents the fail statement.}
+          starstarn,       {Represents the ** operator exponentiation }
+          procinlinen,     {Procedures that can be inlined }
           arrayconstructorn, {Construction node for [...] parsing}
           arrayconstructorrangen, {Range element to allow sets in array construction tree}
-          tempcreaten,      { for temps in the result/firstpass }
-          temprefn,         { references to temps }
-          tempdeleten,      { for temps in the result/firstpass }
-          addoptn,          { added for optimizations where we cannot suppress }
-          nothingn,         {NOP, Do nothing}
-          loadvmtn,         {Load the address of the VMT of a class/object}
-          guidconstn,       {A GUID COM Interface constant }
-          rttin             {Rtti information so they can be accessed in result/firstpass}
+          tempn,     { for temps in the result/firstpass }
+          temprefn,  { references to temps }
+          { added for optimizations where we cannot suppress }
+          addoptn,
+          nothingn,
+          loadvmtn,
+          guidconstn,
+          rttin       { rtti information so they can be accessed in result/firstpass }
        );
 
       const
         nodetype2str : array[tnodetype] of string[20] = (
-          '<emptynode>',
           'addn',
           'muln',
           'subn',
@@ -161,7 +157,7 @@ interface
           'calln',
           'callparan',
           'realconstn',
-          'unaryminusn',
+          'umminusn',
           'asmn',
           'vecn',
           'pointerconstn',
@@ -179,10 +175,12 @@ interface
           'setconstn',
           'blockn',
           'statementn',
+          'loopn',
           'ifn',
           'breakn',
           'continuen',
-          'whilerepeatn',
+          'repeatn',
+          'whilen',
           'forn',
           'exitn',
           'withn',
@@ -201,9 +199,8 @@ interface
           'procinlinen',
           'arrayconstructn',
           'arrayconstructrangen',
-          'tempcreaten',
+          'tempn',
           'temprefn',
-          'tempdeleten',
           'addoptn',
           'nothingn',
           'loadvmtn',
@@ -213,22 +210,21 @@ interface
     type
        { all boolean field of ttree are now collected in flags }
        tnodeflags = (
+         nf_needs_truefalselabel,
          nf_swapable,    { tbinop operands can be swaped }
          nf_swaped,      { tbinop operands are swaped    }
          nf_error,
 
-         { general }
-         nf_write,       { Node is written to            }
-         nf_first_use,   { First node that uses a variable after declared }
-         nf_varstateset,
-         nf_isproperty,
-
          { flags used by tcallnode }
          nf_return_value_used,
-         nf_anon_inherited,
+         nf_static_call,
 
          { flags used by tcallparanode }
          nf_varargs_para,  { belongs this para to varargs }
+
+         { flags used by loop nodes }
+         nf_backward,  { set if it is a for ... downto ... do loop }
+         nf_varstate,  { do we need to parse childs to set var state }
 
          { taddrnode }
          nf_procvarload,
@@ -243,13 +239,13 @@ interface
 
          { tloadnode }
          nf_absolute,
-
-         { taddnode }
-         nf_is_currency,
+         nf_first,
 
          { tassignmentnode }
          nf_concat_string,
-         nf_use_strconcat,
+
+         { tfuncretnode }
+         nf_is_first_funcret, { 20th }
 
          { tarrayconstructnode }
          nf_cargs,
@@ -258,13 +254,20 @@ interface
          nf_novariaallowed,
 
          { ttypeconvnode }
-         nf_explicit,
+         nf_explizit,
 
          { tinlinenode }
          nf_inlineconst,
 
-         { tblocknode }
-         nf_releasetemps
+         { general }
+         nf_isproperty,
+         nf_varstateset,
+
+         { tasmnode }
+         nf_object_preserved,
+
+         { taddnode }
+         nf_use_strconcat
        );
 
        tnodeflagset = set of tnodeflags;
@@ -272,7 +275,7 @@ interface
     const
        { contains the flags which must be equal for the equality }
        { of nodes                                                }
-       flagsequal : tnodeflagset = [nf_error];
+       flagsequal : tnodeflagset = [nf_error,nf_static_call,nf_backward];
 
     type
        tnodelist = class
@@ -285,9 +288,7 @@ interface
           nodetype : tnodetype;
           { type of the current code block, general/const/type }
           blocktype : tblock_type;
-          { expected location of the result of this node (pass1) }
-          expectloc : tcgloc;
-          { the location of the result of this node (pass2) }
+          { the location of the result of this node }
           location : tlocation;
           { the parent node of this is node    }
           { this field is set by concattolist  }
@@ -306,14 +307,15 @@ interface
           maxfirstpasscount,
           firstpasscount : longint;
 {$endif extdebug}
-          constructor create(t:tnodetype);
+{$ifdef TEMPS_NOT_PUSH}
+          temp_offset: longint;
+{$endif TEMPS_NOT_PUSH}
+{          list : taasmoutput; }
+          constructor create(tt : tnodetype);
           { this constructor is only for creating copies of class }
           { the fields are copied by getcopy                      }
           constructor createforcopy;
-          constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);virtual;
           destructor destroy;override;
-          procedure ppuwrite(ppufile:tcompilerppufile);virtual;
-          procedure derefimpl;virtual;
 
           { toggles the flag }
           procedure toggleflag(f : tnodeflags);
@@ -327,14 +329,6 @@ interface
           function det_resulttype : tnode;virtual;abstract;
           { dermines the number of necessary temp. locations to evaluate
             the node }
-{$ifdef state_tracking}
-          { Does optimizations by keeping track of the variable states
-            in a procedure }
-          function track_state_pass(exec_known:boolean):boolean;virtual;
-{$endif}
-          { For a t1:=t2 tree, mark the part of the tree t1 that gets
-            written to (normally the loadnode) as write access. }
-          procedure mark_write;virtual;
           procedure det_temp;virtual;abstract;
 
           procedure pass_2;virtual;abstract;
@@ -351,9 +345,8 @@ interface
           { writes a node for debugging purpose, shouldn't be called }
           { direct, because there is no test for nil, use writenode  }
           { to write a complete tree                                 }
-          procedure dowrite;
+          procedure dowrite;virtual;
           procedure dowritenodetype;virtual;
-          procedure _dowrite;virtual;
 {$endif EXTDEBUG}
           procedure concattolist(l : tlinkedlist);virtual;
           function ischild(p : tnode) : boolean;virtual;
@@ -361,21 +354,22 @@ interface
           procedure set_tree_filepos(const filepos : tfileposinfo);
        end;
 
-       tnodeclass = class of tnode;
-
-       tnodeclassarray = array[tnodetype] of tnodeclass;
-
        { this node is the anchestor for all nodes with at least   }
        { one child, you have to use it if you want to use         }
        { true- and falselabel                                     }
+       tparentnode = class(tnode)
+{$ifdef newcg}
+          falselabel,truelabel : tasmlabel;
+{$endif newcg}
+       end;
+
+       tnodeclass = class of tnode;
+
        punarynode = ^tunarynode;
-       tunarynode = class(tnode)
+       tunarynode = class(tparentnode)
           left : tnode;
-          constructor create(t:tnodetype;l : tnode);
-          constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
+          constructor create(tt : tnodetype;l : tnode);
           destructor destroy;override;
-          procedure ppuwrite(ppufile:tcompilerppufile);override;
-          procedure derefimpl;override;
           procedure concattolist(l : tlinkedlist);override;
           function ischild(p : tnode) : boolean;override;
           function docompare(p : tnode) : boolean;override;
@@ -383,18 +377,15 @@ interface
           procedure insertintolist(l : tnodelist);override;
           procedure left_max;
 {$ifdef extdebug}
-          procedure _dowrite;override;
+          procedure dowrite;override;
 {$endif extdebug}
        end;
 
        pbinarynode = ^tbinarynode;
        tbinarynode = class(tunarynode)
           right : tnode;
-          constructor create(t:tnodetype;l,r : tnode);
-          constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
+          constructor create(tt : tnodetype;l,r : tnode);
           destructor destroy;override;
-          procedure ppuwrite(ppufile:tcompilerppufile);override;
-          procedure derefimpl;override;
           procedure concattolist(l : tlinkedlist);override;
           function ischild(p : tnode) : boolean;override;
           function docompare(p : tnode) : boolean;override;
@@ -403,14 +394,22 @@ interface
           procedure insertintolist(l : tnodelist);override;
           procedure left_right_max;
 {$ifdef extdebug}
-          procedure _dowrite;override;
+          procedure dowrite;override;
 {$endif extdebug}
        end;
 
+       pbinopnode = ^tbinopnode;
        tbinopnode = class(tbinarynode)
-          constructor create(t:tnodetype;l,r : tnode);virtual;
+          constructor create(tt : tnodetype;l,r : tnode);virtual;
           function docompare(p : tnode) : boolean;override;
        end;
+
+{$ifdef EXTDEBUG}
+     var
+       writenodeindention : string;
+
+     procedure writenode(t:tnode);
+{$endif EXTDEBUG}
 
 {$ifdef tempregdebug}
     type
@@ -419,102 +418,22 @@ interface
       curptree: pptree;
 {$endif tempregdebug}
 
-    var
-      { array with all class types for tnodes }
-      nodeclass : tnodeclassarray;
-{$ifdef EXTDEBUG}
-      { indention used when writing the tree to the screen }
-      writenodeindention : string;
-{$endif EXTDEBUG}
-
-
-    function ppuloadnode(ppufile:tcompilerppufile):tnode;
-    procedure ppuwritenode(ppufile:tcompilerppufile;n:tnode);
-{$ifdef EXTDEBUG}
-    procedure writenode(t:tnode);
-{$endif EXTDEBUG}
-
-
 implementation
 
     uses
-       cutils,verbose;
-
-    const
-      ppunodemarker = 255;
-
-
-{****************************************************************************
-                                 Helpers
- ****************************************************************************}
-
-    function ppuloadnode(ppufile:tcompilerppufile):tnode;
-      var
-        b : byte;
-        t : tnodetype;
-      begin
-        { marker }
-        b:=ppufile.getbyte;
-        if b<>ppunodemarker then
-          internalerror(200208151);
-        { load nodetype }
-        t:=tnodetype(ppufile.getbyte);
-        if t>high(tnodetype) then
-          internalerror(200208152);
-        if t<>emptynode then
-         begin
-           if not assigned(nodeclass[t]) then
-             internalerror(200208153);
-           //writeln('load: ',nodetype2str[t]);
-           { generate node of the correct class }
-           ppuloadnode:=nodeclass[t].ppuload(t,ppufile);
-         end
-        else
-         ppuloadnode:=nil;
-      end;
-
-
-    procedure ppuwritenode(ppufile:tcompilerppufile;n:tnode);
-      begin
-        { marker, read by ppuloadnode }
-        ppufile.putbyte(ppunodemarker);
-        { type, read by ppuloadnode }
-        if assigned(n) then
-         begin
-           ppufile.putbyte(byte(n.nodetype));
-           //writeln('write: ',nodetype2str[n.nodetype]);
-           n.ppuwrite(ppufile);
-         end
-        else
-         ppufile.putbyte(byte(emptynode));
-      end;
-
-
-{$ifdef EXTDEBUG}
-     procedure writenode(t:tnode);
-       begin
-         if assigned(t) then
-          t.dowrite
-         else
-          write(writenodeindention,'nil');
-         if writenodeindention='' then
-           writeln;
-       end;
-{$endif EXTDEBUG}
+       cutils;
 
 {****************************************************************************
                                  TNODE
  ****************************************************************************}
 
-    constructor tnode.create(t:tnodetype);
+    constructor tnode.create(tt : tnodetype);
 
       begin
          inherited create;
-         nodetype:=t;
+         nodetype:=tt;
          blocktype:=block_type;
-         { updated by firstpass }
-         expectloc:=LOC_INVALID;
-         { updated by secondpass }
+         { this allows easier error tracing }
          location.loc:=LOC_INVALID;
          { save local info }
          fileinfo:=aktfilepos;
@@ -536,48 +455,6 @@ implementation
 
       begin
       end;
-
-    constructor tnode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
-
-      begin
-        nodetype:=t;
-        { tnode fields }
-        blocktype:=tblock_type(ppufile.getbyte);
-        ppufile.getposinfo(fileinfo);
-        ppufile.getsmallset(localswitches);
-        ppufile.gettype(resulttype);
-        ppufile.getsmallset(flags);
-        { updated by firstpass }
-        expectloc:=LOC_INVALID;
-        { updated by secondpass }
-        location.loc:=LOC_INVALID;
-        registers32:=0;
-        registersfpu:=0;
-{$ifdef SUPPORT_MMX}
-        registersmmx:=0;
-{$endif SUPPORT_MMX}
-{$ifdef EXTDEBUG}
-        maxfirstpasscount:=0;
-        firstpasscount:=0;
-{$endif EXTDEBUG}
-      end;
-
-
-    procedure tnode.ppuwrite(ppufile:tcompilerppufile);
-      begin
-        ppufile.putbyte(byte(block_type));
-        ppufile.putposinfo(fileinfo);
-        ppufile.putsmallset(localswitches);
-        ppufile.puttype(resulttype);
-        ppufile.putsmallset(flags);
-      end;
-
-
-    procedure tnode.derefimpl;
-      begin
-        resulttype.resolve;
-      end;
-
 
     procedure tnode.toggleflag(f : tnodeflags);
 
@@ -601,6 +478,10 @@ implementation
     procedure tnode.concattolist(l : tlinkedlist);
 
       begin
+{$ifdef newcg}
+         //!!!!!!! l^.concat(self);
+         {$warning fixme}
+{$endif newcg}
       end;
 
     function tnode.ischild(p : tnode) : boolean;
@@ -609,61 +490,15 @@ implementation
          ischild:=false;
       end;
 
-
-    procedure tnode.mark_write;
-      begin
 {$ifdef EXTDEBUG}
-        Comment(V_Warning,'mark_write not implemented for '+nodetype2str[nodetype]);
-{$endif EXTDEBUG}
-      end;
-
-
-{$ifdef EXTDEBUG}
-    procedure tnode._dowrite;
-      const
-         loc2str : array[TCGLoc] of string[18] = (
-           'LOC_INVALID',
-           'LOC_VOID',
-           'LOC_CONSTANT',
-           'LOC_JUMP',
-           'LOC_FLAGS',
-           'LOC_CREFERENCE',
-           'LOC_REFERENCE',
-           'LOC_REGISTER',
-           'LOC_CREGISTER',
-           'LOC_FPUREGISTER',
-           'LOC_CFPUREGISTER',
-           'LOC_MMXREGISTER',
-           'LOC_CMMXREGISTER',
-           'LOC_SSEREGISTER',
-           'LOC_CSSEREGISTER',
-           'LOC_MMREGISTER',
-           'LOC_CMMREGISTER');
-
+    procedure tnode.dowrite;
       begin
         dowritenodetype;
-        if assigned(resulttype.def) then
-          write(',resulttype = "',resulttype.def.gettypename,'"')
-        else
-          write(',resulttype = <nil>');
-        write(',location.loc = ',loc2str[location.loc]);
-        write(',registersint = ',registers32);
-        write(',registersfpu = ',registersfpu);
       end;
 
     procedure tnode.dowritenodetype;
       begin
-          write(nodetype2str[nodetype]);
-      end;
-
-    procedure tnode.dowrite;
-      begin
-         write(writenodeindention,'(');
-         writenodeindention:=writenodeindention+'    ';
-         _dowrite;
-         writeln;
-         delete(writenodeindention,1,4);
-         write(writenodeindention,')');
+         write(writenodeindention,'(',nodetype2str[nodetype]);
       end;
 {$endif EXTDEBUG}
 
@@ -680,14 +515,6 @@ implementation
             (flags*flagsequal=p.flags*flagsequal) and
             docompare(p));
       end;
-
-{$ifdef state_tracking}
-    function Tnode.track_state_pass(exec_known:boolean):boolean;
-
-    begin
-    track_state_pass:=false;
-    end;
-{$endif state_tracking}
 
     function tnode.docompare(p : tnode) : boolean;
 
@@ -725,10 +552,6 @@ implementation
          getcopy:=p;
       end;
 
-{    procedure tnode.mark_write;
-      begin
-      end;}
-
     procedure tnode.insertintolist(l : tnodelist);
 
       begin
@@ -747,46 +570,23 @@ implementation
          fileinfo:=filepos;
       end;
 
+
 {****************************************************************************
                                  TUNARYNODE
  ****************************************************************************}
 
-    constructor tunarynode.create(t:tnodetype;l : tnode);
+    constructor tunarynode.create(tt : tnodetype;l : tnode);
 
       begin
-         inherited create(t);
+         inherited create(tt);
          left:=l;
       end;
-
-
-    constructor tunarynode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
-      begin
-        inherited ppuload(t,ppufile);
-        left:=ppuloadnode(ppufile);
-      end;
-
 
     destructor tunarynode.destroy;
       begin
         left.free;
         inherited destroy;
       end;
-
-
-    procedure tunarynode.ppuwrite(ppufile:tcompilerppufile);
-      begin
-        inherited ppuwrite(ppufile);
-        ppuwritenode(ppufile,left);
-      end;
-
-
-    procedure tunarynode.derefimpl;
-      begin
-        inherited derefimpl;
-        if assigned(left) then
-          left.derefimpl;
-      end;
-
 
     function tunarynode.docompare(p : tnode) : boolean;
 
@@ -816,12 +616,15 @@ implementation
       end;
 
 {$ifdef extdebug}
-    procedure tunarynode._dowrite;
+    procedure tunarynode.dowrite;
 
       begin
-         inherited _dowrite;
+         inherited dowrite;
          writeln(',');
+         writenodeindention:=writenodeindention+'    ';
          writenode(left);
+         write(')');
+         delete(writenodeindention,1,4);
       end;
 {$endif}
 
@@ -853,42 +656,18 @@ implementation
                             TBINARYNODE
  ****************************************************************************}
 
-    constructor tbinarynode.create(t:tnodetype;l,r : tnode);
+    constructor tbinarynode.create(tt : tnodetype;l,r : tnode);
 
       begin
-         inherited create(t,l);
+         inherited create(tt,l);
          right:=r
       end;
-
-
-    constructor tbinarynode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
-      begin
-        inherited ppuload(t,ppufile);
-        right:=ppuloadnode(ppufile);
-      end;
-
 
     destructor tbinarynode.destroy;
       begin
         right.free;
         inherited destroy;
       end;
-
-
-    procedure tbinarynode.ppuwrite(ppufile:tcompilerppufile);
-      begin
-        inherited ppuwrite(ppufile);
-        ppuwritenode(ppufile,right);
-      end;
-
-
-    procedure tbinarynode.derefimpl;
-      begin
-        inherited derefimpl;
-        if assigned(right) then
-          right.derefimpl;
-      end;
-
 
     procedure tbinarynode.concattolist(l : tlinkedlist);
 
@@ -974,12 +753,15 @@ implementation
       end;
 
 {$ifdef extdebug}
-    procedure tbinarynode._dowrite;
+    procedure tbinarynode.dowrite;
 
       begin
-         inherited _dowrite;
+         inherited dowrite;
          writeln(',');
+         writenodeindention:=writenodeindention+'    ';
          writenode(right);
+         write(')');
+         delete(writenodeindention,1,4);
       end;
 {$endif}
 
@@ -987,10 +769,10 @@ implementation
                             TBINOPYNODE
  ****************************************************************************}
 
-    constructor tbinopnode.create(t:tnodetype;l,r : tnode);
+    constructor tbinopnode.create(tt : tnodetype;l,r : tnode);
 
       begin
-         inherited create(t,l,r);
+         inherited create(tt,l,r);
       end;
 
     function tbinopnode.docompare(p : tnode) : boolean;
@@ -1003,146 +785,29 @@ implementation
             right.isequal(tbinopnode(p).left));
       end;
 
+
+{****************************************************************************
+                                 WRITENODE
+ ****************************************************************************}
+
+{$ifdef EXTDEBUG}
+     procedure writenode(t:tnode);
+     begin
+       if assigned(t) then
+        t.dowrite
+       else
+        write(writenodeindention,'nil');
+       if writenodeindention='' then
+        writeln;
+     end;
+{$endif EXTDEBUG}
+
+
 end.
 {
   $Log$
-  Revision 1.57  2002-04-25 20:15:39  florian
-    * block nodes within expressions shouldn't release the used registers,
-      fixed using a flag till the new rg is ready
-
-  Revision 1.56  2003/04/24 22:29:58  florian
-    * fixed a lot of PowerPC related stuff
-
-  Revision 1.55  2003/04/23 10:12:14  peter
-    * allow multi pass2 changed to global boolean instead of node flag
-
-  Revision 1.54  2003/04/22 23:50:23  peter
-    * firstpass uses expectloc
-    * checks if there are differences between the expectloc and
-      location.loc from secondpass in EXTDEBUG
-
-  Revision 1.53  2003/04/22 09:52:00  peter
-    * mark_write implemented for default with a warning in EXTDEBUG, this
-      is required for error recovery where the left node can be also a non
-      writable node
-
-  Revision 1.52  2003/04/10 17:57:52  peter
-    * vs_hidden released
-
-  Revision 1.51  2003/03/28 19:16:56  peter
-    * generic constructor working for i386
-    * remove fixed self register
-    * esi added as address register for i386
-
-  Revision 1.50  2003/03/17 16:54:41  peter
-    * support DefaultHandler and anonymous inheritance fixed
-      for message methods
-
-  Revision 1.49  2003/01/04 15:54:03  daniel
-    * Fixed mark_write for @ operator
-      (can happen when compiling @procvar:=nil (Delphi mode construction))
-
-  Revision 1.48  2003/01/03 21:03:02  peter
-    * made mark_write dummy instead of abstract
-
-  Revision 1.47  2003/01/03 12:15:56  daniel
-    * Removed ifdefs around notifications
-      ifdefs around for loop optimizations remain
-
-  Revision 1.46  2002/12/26 18:24:33  jonas
-  * fixed check for whether or not a high parameter was already generated
-  * no type checking/conversions for invisible parameters
-
-  Revision 1.45  2002/11/28 11:17:04  florian
-    * loop node flags from node flags splitted
-
-  Revision 1.44  2002/10/05 00:48:57  peter
-    * support inherited; support for overload as it is handled by
-      delphi. This is only for delphi mode as it is working is
-      undocumented and hard to predict what is done
-
-  Revision 1.43  2002/09/07 15:25:03  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.42  2002/09/03 16:26:26  daniel
-    * Make Tprocdef.defs protected
-
-  Revision 1.41  2002/09/01 13:28:38  daniel
-   - write_access fields removed in favor of a flag
-
-  Revision 1.40  2002/09/01 08:01:16  daniel
-   * Removed sets from Tcallnode.det_resulttype
-   + Added read/write notifications of variables. These will be usefull
-     for providing information for several optimizations. For example
-     the value of the loop variable of a for loop does matter is the
-     variable is read after the for loop, but if it's no longer used
-     or written, it doesn't matter and this can be used to optimize
-     the loop code generation.
-
-  Revision 1.39  2002/08/22 11:21:45  florian
-    + register32 is now written by tnode.dowrite
-    * fixed write of value of tconstnode
-
-  Revision 1.38  2002/08/19 19:36:44  peter
-    * More fixes for cross unit inlining, all tnodes are now implemented
-    * Moved pocall_internconst to po_internconst because it is not a
-      calling type at all and it conflicted when inlining of these small
-      functions was requested
-
-  Revision 1.37  2002/08/18 20:06:24  peter
-    * inlining is now also allowed in interface
-    * renamed write/load to ppuwrite/ppuload
-    * tnode storing in ppu
-    * nld,ncon,nbas are already updated for storing in ppu
-
-  Revision 1.36  2002/08/17 22:09:46  florian
-    * result type handling in tcgcal.pass_2 overhauled
-    * better tnode.dowrite
-    * some ppc stuff fixed
-
-  Revision 1.35  2002/08/15 19:10:35  peter
-    * first things tai,tnode storing in ppu
-
-  Revision 1.34  2002/08/09 19:15:41  carl
-     - removed newcg define
-
-  Revision 1.33  2002/07/23 12:34:30  daniel
-  * Readded old set code. To use it define 'oldset'. Activated by default
-    for ppc.
-
-  Revision 1.32  2002/07/22 11:48:04  daniel
-  * Sets are now internally sets.
-
-  Revision 1.31  2002/07/21 06:58:49  daniel
-  * Changed booleans into flags
-
-  Revision 1.30  2002/07/19 11:41:36  daniel
-  * State tracker work
-  * The whilen and repeatn are now completely unified into whilerepeatn. This
-    allows the state tracker to change while nodes automatically into
-    repeat nodes.
-  * Resulttypepass improvements to the notn. 'not not a' is optimized away and
-    'not(a>b)' is optimized into 'a<=b'.
-  * Resulttypepass improvements to the whilerepeatn. 'while not a' is optimized
-    by removing the notn and later switchting the true and falselabels. The
-    same is done with 'repeat until not a'.
-
-  Revision 1.29  2002/07/14 18:00:44  daniel
-  + Added the beginning of a state tracker. This will track the values of
-    variables through procedures and optimize things away.
-
-  Revision 1.28  2002/07/01 18:46:24  peter
-    * internal linker
-    * reorganized aasm layer
-
-  Revision 1.27  2002/05/18 13:34:10  peter
-    * readded missing revisions
-
-  Revision 1.26  2002/05/16 19:46:39  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
+  Revision 1.25  2002-05-14 19:34:43  peter
+    * removed old logs and updated copyright year
 
   Revision 1.24  2002/04/21 19:02:04  peter
     * removed newn and disposen nodes, the code is now directly
@@ -1170,5 +835,8 @@ end.
       R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
     - list field removed of the tnode class because it's not used currently
       and can cause hard-to-find bugs
+
+  Revision 1.21  2002/01/19 11:52:32  peter
+    * dynarr:=nil support added
 
 }

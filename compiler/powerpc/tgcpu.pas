@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (C) 1998-2000 by Florian Klaempfl
+    Copyright (C) 1998-2002 by Florian Klaempfl
 
     This unit handles the temporary variables stuff for PowerPC
 
@@ -170,30 +170,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2001-12-29 15:28:58  jonas
-    * powerpc/cgcpu.pas compiles :)
-    * several powerpc-related fixes
-    * cpuasm unit is now based on common tainst unit
-    + nppcmat unit for powerpc (almost complete)
+  Revision 1.3  2002-05-14 19:35:01  peter
+    * removed old logs and updated copyright year
 
-  Revision 1.1  2001/08/26 13:31:04  florian
-    * some cg reorganisation
-    * some PPC updates
-
-  Revision 1.2  2001/08/26 13:23:23  florian
-    * some cg reorganisation
-    * some PPC updates
-
-  Revision 1.1  2000/07/13 06:30:13  michael
-    + Initial import
-
-  Revision 1.3  2000/01/07 01:14:58  peter
-    * updated copyright to 2000
-
-  Revision 1.2  1999/08/04 12:59:26  jonas
-    * all tokes now start with an underscore
-    * PowerPC compiles!!
-
-  Revision 1.1  1999/08/03 23:37:53  jonas
-    + initial implementation for PowerPC based on the Alpha stuff
 }

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl
+    Copyright (c) 1998-2002 by Florian Klaempfl
 
     Helper routines for the i386 code generator
 
@@ -36,12 +36,7 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2001-08-26 13:31:04  florian
-    * some cg reorganisation
-    * some PPC updates
-
-  Revision 1.1  2001/08/26 13:29:33  florian
-    * some cg reorganisation
-    * some PPC updates
+  Revision 1.2  2002-05-14 19:35:01  peter
+    * removed old logs and updated copyright year
 
 }

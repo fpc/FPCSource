@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl
+    Copyright (c) 1998-2002 by Florian Klaempfl
 
     Generate assembler for memory related nodes which are
     the same for all (most?) processors
@@ -454,7 +454,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2002-05-12 16:53:07  peter
+  Revision 1.10  2002-05-14 19:34:42  peter
+    * removed old logs and updated copyright year
+
+  Revision 1.9  2002/05/12 16:53:07  peter
     * moved entry and exitcode to ncgutil and cgobj
     * foreach gets extra argument for passing local data to the
       iterator function
@@ -514,15 +517,5 @@ end.
       R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
     - list field removed of the tnode class because it's not used currently
       and can cause hard-to-find bugs
-
-  Revision 1.3  2001/12/31 09:53:15  jonas
-    * changed remaining "getregister32" calls to "getregisterint"
-
-  Revision 1.2  2001/11/02 22:58:02  peter
-    * procsym definition rewrite
-
-  Revision 1.1  2001/09/30 16:17:17  jonas
-    * made most constant and mem handling processor independent
-
 
 }

@@ -1,7 +1,7 @@
 {
     $Id$
     This program is part of the Free Pascal run time library.
-    Copyright (c) 1998-2000 by Peter Vreman
+    Copyright (c) 1998-2002 by Peter Vreman
 
     Convert a .msg file to an .inc file with a const array of char
     And for the lazy docwriters it can also generate some TeX output
@@ -745,7 +745,7 @@ begin
          'C' : Mode:=M_Char;
          'R' : Mode:=M_Renumber;
          'V' : begin
-                 Writeln('Msg2Inc ',version,' for Free Pascal (C) 1998-2000 Peter Vreman');
+                 Writeln('Msg2Inc ',version,' for Free Pascal (C) 1998-2002 Peter Vreman');
                  Writeln;
                  Halt;
                end;
@@ -805,19 +805,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2001-09-29 23:13:32  carl
-  * updated for UNIX compatiblity
-
-  Revision 1.6  2000/10/09 14:54:27  jonas
-    * fixed another range check error (merged from fixes branch)
-
-  Revision 1.5  2000/09/30 13:13:22  peter
-    * range check fix
-
-  Revision 1.3  2000/09/27 20:59:55  peter
-    * check for dup numbers
-
-  Revision 1.2  2000/07/13 11:32:55  michael
-  + removed logs
+  Revision 1.8  2002-05-14 19:35:02  peter
+    * removed old logs and updated copyright year
 
 }

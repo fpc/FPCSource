@@ -1,11 +1,11 @@
 {
     $Id$
-    Copyright (C) 1998-2000 by Florian Klaempfl
+    Copyright (C) 1998-2002 by Florian Klaempfl
 
     This unit implements some support functions
 
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published 
+    it under the terms of the GNU General Public License as published
     by the Free Software Foundation; either version 2 of the License, or
     (at your option) any later version.
 
@@ -18,12 +18,12 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
- 
+
 ****************************************************************************
 }
 {# This unit contains some generic support functions which are used
    in the different parts of the compiler.
-}   
+}
 unit cutils;
 
 {$i defines.inc}
@@ -49,7 +49,7 @@ interface
     function SwapWord(x : word): word;
     {# Return value @var(i) aligned on @var(a) boundary }
     function align(i,a:longint):longint;
-    
+
     function used_align(varalign,minalign,maxalign:longint):longint;
     function size_2_align(len : longint) : longint;
     procedure Replace(var s:string;s1:string;const s2:string);
@@ -68,7 +68,7 @@ interface
     procedure valint(S : string;var V : longint;var code : integer);
     {# Returns true if the string s is a number }
     function is_number(const s : string) : boolean;
-    {# Returns true if value is a power of 2, the actual  
+    {# Returns true if value is a power of 2, the actual
        exponent value is returned in power.
     }
     function ispowerof2(value : int64;var power : longint) : boolean;
@@ -84,15 +84,15 @@ interface
     { a pointer to this mem                                           }
     function stringdup(const s : string) : pstring;
 
-    {# Allocates memory for the string @var(s) and copies s as zero 
-       terminated string to that allocated memory and returns a pointer 
-       to that mem 
+    {# Allocates memory for the string @var(s) and copies s as zero
+       terminated string to that allocated memory and returns a pointer
+       to that mem
     }
     function  strpnew(const s : string) : pchar;
     procedure strdispose(var p : pchar);
 
-    {# makes the character @var(c) lowercase, with spanish, french and german 
-       character set 
+    {# makes the character @var(c) lowercase, with spanish, french and german
+       character set
     }
     function lowercase(c : char) : char;
 
@@ -765,7 +765,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.14  2002-04-12 17:16:35  carl
+  Revision 1.15  2002-05-14 19:34:40  peter
+    * removed old logs and updated copyright year
+
+  Revision 1.14  2002/04/12 17:16:35  carl
   + more documentation of basic unit
 
 }
