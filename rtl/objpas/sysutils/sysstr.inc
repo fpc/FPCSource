@@ -655,6 +655,14 @@ begin
 end ;
 {$ENDIF}
 
+
+function TryStrToInt(const s: string; var i : integer) : boolean;
+var Error : word;
+begin
+  Val(s, i, Error);
+  TryStrToInt:=Error=0
+end;
+
 {   StrToInt converts the string S to an integer value,
     if S does not represent a valid integer value EConvertError is raised  }
 
@@ -680,7 +688,16 @@ var Error: word;
 begin
   Val(S, result, Error);
   if Error <> 0 then raise EConvertError.createfmt(SInValidInteger,[S]);
-end ;
+end;
+
+
+function TryStrToInt64(const s: string; var i : int64) : boolean;
+var Error : word;
+begin
+  Val(s, i, Error);
+  TryStrToInt64:=Error=0
+end;
+
 
 
 {   StrToIntDef converts the string S to an integer value,
@@ -2175,7 +2192,10 @@ const
 
 {
   $Log$
-  Revision 1.13  2004-06-13 10:49:50  florian
+  Revision 1.14  2004-08-07 16:56:28  florian
+    + TryStrToInt* added
+
+  Revision 1.13  2004/06/13 10:49:50  florian
     * fixed some bootstrapping problems as well as some 64 bit stuff
 
   Revision 1.12  2004/06/12 13:57:18  michael

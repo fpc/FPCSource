@@ -118,8 +118,10 @@ function IntToStr(Value: QWord): string;
 function IntToHex(Value: integer; Digits: integer): string;
 function IntToHex(Value: Int64; Digits: integer): string;
 function StrToInt(const s: string): integer;
+function TryStrToInt(const s: string; var i : integer) : boolean;
 {$IFNDEF VIRTUALPASCAL}
 function StrToInt64(const s: string): int64;
+function TryStrToInt64(const s: string; var i : int64) : boolean;
 {$ENDIF}
 function StrToIntDef(const S: string; Default: integer): integer;
 {$IFNDEF VIRTUALPASCAL}
@@ -190,7 +192,10 @@ function BCDToInt(Value: integer): integer;
 
 {
   $Log$
-  Revision 1.7  2004-06-20 20:42:37  florian
+  Revision 1.8  2004-08-07 16:56:28  florian
+    + TryStrToInt* added
+
+  Revision 1.7  2004/06/20 20:42:37  florian
     * fixed bootstrapping problems
 
   Revision 1.6  2004/06/13 10:49:50  florian
