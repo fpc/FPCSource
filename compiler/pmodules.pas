@@ -812,6 +812,7 @@ implementation
          s1,s2  : ^string; {Saves stack space}
          force_init_final : boolean;
          pd : tprocdef;
+         unitname8 : string[8];
       begin
          consume(_UNIT);
          if compile_level=1 then
@@ -832,13 +833,14 @@ implementation
              { check for system unit }
              new(s2);
              s2^:=upper(SplitName(main_file.name^));
+             unitname8:=copy(current_module.modulename^,1,8);
              if (cs_check_unit_name in aktglobalswitches) and
                 (
                  not(
                      (current_module.modulename^=s2^) or
                      (
                       (length(current_module.modulename^)>8) and
-                      (copy(current_module.modulename^,1,8)=s2^)
+                      (unitname8=s2^)
                      )
                     )
                  or
@@ -1440,7 +1442,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.136  2004-01-04 21:08:09  jonas
+  Revision 1.137  2004-01-28 16:48:24  peter
+  use local string of 8 chars
+
+  Revision 1.136  2004/01/04 21:08:09  jonas
     * Never generate a "main" symbol for PASCALMAIN for Darwin and classic
       Mac OS, they use a C-main in their system unit
 
