@@ -1,9 +1,31 @@
+{
+    $Id$
+    This file is part Free Pascal
+    Copyright (c) 2000 by Florian Klaempfl
+    member of the Free Pascal development team
+
+    This file contains the strings for the FPC install program
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
+{$ifdef FPC}
 {$MODE OBJFPC}
+{$endif FPC}
 unit inststr;
 
   interface
 
+{$ifndef FPC}
+    const
+{$else FPC}
     resourcestring
+{$endif FPC}
        dialog_language_title = 'Please choose your language';
        dialog_language_english = 'English';
        dialog_language_dutch = 'Dutch';
@@ -16,6 +38,13 @@ unit inststr;
        dialog_enddialog_title = 'Installation Successfull';
 
        dialog_unzipdialog_title = 'Extracting Packages';
+
+       dialog_install_continue = '~C~ontinue';
+       dialog_install_quit = '~Q~uit';
+       dialog_install_basepath = '~B~ase path';
+       dialog_install_config = 'Con~f~ig';
+       dialog_install_createppc386cfg = 'create ppc386.cfg';
+       dialog_install_general = '~G~eneral';
 
        msg_nocomponents = 'No components selected.'#13#13'Abort installation?';
        msg_overwrite_cfg = 'Config %s already exists, continue writing default config?';
@@ -31,13 +60,40 @@ unit inststr;
        msg_file_not_found = 'File %s not found!';
        msg_no_lfn = 'The operating system doesn''t support LFN (long file names),'+
                     ' so some packages won''t be installed';
+       msg_corrupt_zip = 'File %s is probably corrupted!';
+       msg_space_warning = 'There %s enough space on the target '+
+                           'drive for all the selected components. Do you '+
+                           'want to change the installation path?';
+       msg_file_missing = 'File %s missing for the selected installation. '+
+                          'Installation hasn''t been completed.';
+       msg_extraction_error = 'Error (%s) while extracting. Disk full?'#13+
+                              #13#3'Try again?';
 
        menu_install = 'Free Pascal Installer';
 
        str_requires_lfn = ' (requires LFN support)';
        str_checking_lfn = 'Checking lfn usage for ';
        str_invalid = ' [INVALID]';
+       str_file = 'File: ';
+       str_extend_path = 'Extend your PATH variable with ';
+       str_ok = '~O~k';
+       str_is_not = 'is not';
+       str_might_not_be = 'might not be';
+       str_to_compile = 'To compile files enter ';
+       str_libpath = 'and your LIBPATH with ';
+       str_extend_libpath = 'Extend your LIBPATH with ';
+       str_dll = 'dll';
+       str_file2 = ' [file]';
+       str_continue = '~C~ontinue';
+       str_quit = '~Q~uit';
 
   implementation
 
 end.
+{
+  $Log$
+  Revision 1.2  2000-09-22 11:07:51  florian
+    + all language dependend strings are now resource strings
+    + the -Fr switch is now set in the ppc386.cfg
+
+}

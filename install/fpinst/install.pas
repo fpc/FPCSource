@@ -1,7 +1,7 @@
 {
     $Id$
-    This file is part of the Free Pascal run time library.
-    Copyright (c) 1993-98 by Florian Klaempfl
+    This file is part of Free Pascal
+    Copyright (c) 1993-2000 by Florian Klaempfl
     member of the Free Pascal development team
 
     This is the install program for Free Pascal
@@ -497,14 +497,16 @@ program install;
       again : boolean;
       fn,dir,wild : string;
       Cnt: integer;
+      params : array[0..0] of pointer;
+
     begin
        Disposestr(filetext^.text);
-       filetext^.Text:=NewStr(#3'File: '+s + #13#3' ');
+       filetext^.Text:=NewStr(#3+str_file+s+ #13#3' ');
        filetext^.drawview;
        if not(file_exists(s,startpath)) then
          begin
-            messagebox('File "'+s+'" missing for the selected installation. '+
-                       'Installation hasn''t been completed.',nil,mferror+mfokbutton);
+            params[0]:=@s;
+            messagebox(msg_file_missing,@params,mferror+mfokbutton);
             errorhalt;
          end;
 {$IFNDEF DLL}
@@ -523,8 +525,8 @@ program install;
          if (UnzipErr <> 0) then
            begin
               Str(UnzipErr,s);
-              if messagebox('Error (' + S + ') while extracting. Disk full?'#13+
-                            #13#3'Try again?',nil,mferror+mfyesbutton+mfnobutton)=cmNo then
+              params[0]:=@s;
+              if messagebox(msg_extraction_error,@params,mferror+mfyesbutton+mfnobutton)=cmNo then
                errorhalt
               else
                again:=true;
@@ -595,7 +597,7 @@ program install;
       if WPath then
        begin
          R.Assign(2, 3, 64, 5);
-         P:=new(pstatictext,init(r,'Extend your PATH variable with '''+S+''''));
+         P:=new(pstatictext,init(r,str_extend_path+''''+S+''''));
          insert(P);
        end;
 
@@ -603,9 +605,9 @@ program install;
       if WLibPath then
        begin
          if WPath then
-          S := 'and your LIBPATH with ''' + S + '\dll'''
+          S := str_libpath+'''' + S + '\'+str_dll+''''
          else
-          S := 'Extend your LIBPATH with ''' + S + '\dll''';
+          S := str_extend_libpath+'''' + S + '\'+str_dll+'''';
          R.Assign (2, YB - 13, 64, YB - 11);
          P := New (PStaticText, Init (R, S));
          Insert (P);
@@ -614,11 +616,11 @@ program install;
 {$ENDIF}
 
       R.Assign(2, YB - 11, 64, YB - 10);
-      P:=new(pstatictext,init(r,'To compile files enter '''+cfg.pack[1].ppc386+' [file]'''));
+      P:=new(pstatictext,init(r,str_to_compile+''''+cfg.pack[1].ppc386+str_file2+''''));
       insert(P);
 
       R.Assign (29, YB - 9, 39, YB - 7);
-      Control := New (PButton, Init (R,'~O~k', cmOK, bfDefault));
+      Control := New (PButton, Init (R,str_ok, cmOK, bfDefault));
       Insert (Control);
     end;
 
@@ -696,7 +698,7 @@ program install;
        inc(line,7);
        inc(line,1);
        r.assign((width div 2)-5,line,(width div 2)+5,line+2);
-       new(okbut,init(r,'~O~k',cmok,bfdefault));
+       new(okbut,init(r,str_ok,cmok,bfdefault));
 
       Insert(OkBut);
     end;
@@ -800,7 +802,7 @@ program install;
 
        r.move(0,2);
        r.b.x:=r.a.x+40;
-       new(labpath,init(r,'~B~ase path',f));
+       new(labpath,init(r,dialog_install_basepath,f));
        r.move(0,1);
        r.b.x:=r.a.x+40;
        r.b.y:=r.a.y+1;
@@ -808,11 +810,11 @@ program install;
 
        r.move(0,2);
        r.b.x:=r.a.x+40;
-       new(labcfg,init(r,'Con~f~ig',f));
+       new(labcfg,init(r,dialog_install_config,f));
        r.move(0,1);
        r.b.x:=r.a.x+40;
        r.b.y:=r.a.y+1;
-       new(cfgcb,init(r,newsitem('create ppc386.cfg',nil)));
+       new(cfgcb,init(r,newsitem(dialog_install_createppc386cfg,nil)));
        data.cfgval:=1;
 
        {-------- Pack Sheets ----------}
@@ -832,7 +834,7 @@ program install;
         packtd:=NewTabDef(cfg.pack[j].name,packcbs[j],NewTabItem(packcbs[j],nil),packtd);
 
        New(Tab, Init(TabR,
-         NewTabDef('~G~eneral',IlPath,
+         NewTabDef(dialog_install_general,IlPath,
            NewTabItem(TitleText,
            NewTabItem(LabPath,
            NewTabItem(ILPath,
@@ -846,11 +848,11 @@ program install;
 
        line:=tabr.b.y;
        r.assign((width div 2)-18,line,(width div 2)-4,line+2);
-       new(okbut,init(r,'~C~ontinue',cmok,bfdefault));
+       new(okbut,init(r,str_continue,cmok,bfdefault));
        Insert(OkBut);
 
        r.assign((width div 2)+4,line,(width div 2)+14,line+2);
-       new(cancelbut,init(r,'~Q~uit',cmcancel,bfnormal));
+       new(cancelbut,init(r,str_quit,cmcancel,bfnormal));
        Insert(CancelBut);
 
        Tab^.Select;
@@ -926,6 +928,7 @@ program install;
        c    : word;
        i,j  : longint;
        found : boolean;
+       params : array[0..0] of pointer;
 {$ifndef linux}
        DSize,Space,ASpace : longint;
        S: DirStr;
@@ -964,10 +967,12 @@ program install;
                          begin
                           ASpace := DiskSpaceN (package[i].zip);
                           if ASpace = -1 then
-                              MessageBox ('File ' + package[i].zip +
-                                            ' is probably corrupted!', nil,
-                                                        mferror + mfokbutton)
-                              else Inc (DSize, ASpace);
+                            begin
+                                params[0]:=@package[i].zip;
+                                MessageBox (msg_corrupt_zip,
+                                            @params,mferror + mfokbutton);
+                            end
+                          else Inc (DSize, ASpace);
                          end;
                        end;
                     end;
@@ -977,16 +982,15 @@ program install;
                   Space := DiskFree (byte (Upcase(S [1])) - 64) shr 10;
 
                   if Space < DSize then
-                   S := 'is not'
+                   S := str_is_not
                   else
                    S := '';
                   if (Space < DSize + 500) then
                    begin
                      if S = '' then
-                      S := 'might not be';
-                     if messagebox('There ' + S + ' enough space on the target ' +
-                                   'drive for all the selected components. Do you ' +
-                                   'want to change the installation path?',nil,
+                      S := str_might_not_be;
+                     params[0]:=@s;
+                     if messagebox(msg_space_warning,@params,
                                    mferror+mfyesbutton+mfnobutton) = cmYes then
                       Continue;
                    end;
@@ -1431,7 +1435,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2000-09-21 22:09:23  florian
+  Revision 1.5  2000-09-22 11:07:51  florian
+    + all language dependend strings are now resource strings
+    + the -Fr switch is now set in the ppc386.cfg
+
+  Revision 1.4  2000/09/21 22:09:23  florian
     + start of multilanguage support
 
   Revision 1.3  2000/09/17 14:44:12  hajny
