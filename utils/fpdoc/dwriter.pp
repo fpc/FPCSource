@@ -52,10 +52,21 @@ resourcestring
 
 
 type
+  // Phony element for pas pages.
+
+  TTopicElement = Class(TPaselement)
+    Constructor Create(const AName: String; AParent: TPasElement); override;
+    Destructor Destroy; override;
+    TopicNode : TDocNode;
+    Previous,
+    Next : TPasElement;
+    Subtopics : TList;
+  end;
 
   TFPDocWriter = class
   private
-    FEngine: TFPDocEngine;
+    FEngine : TFPDocEngine;
+    FTopics : TList;
   protected
 
     procedure Warning(AContext: TPasElement; const AMsg: String);
@@ -80,6 +91,7 @@ type
     procedure ConvertExtShortOrNonSectionBlocks(AContext: TPasElement;
       Node: TDOMNode);
     function ConvertSimpleBlock(AContext: TPasElement; Node: TDOMNode): Boolean;
+    Function FindTopicElement(Node : TDocNode): TTopicElement;
 
     procedure DescrWriteText(const AText: DOMString); virtual; abstract;
     procedure DescrBeginBold; virtual; abstract;
@@ -128,7 +140,9 @@ type
     procedure DescrEndTableCell; virtual; abstract;
   public
     constructor Create(AEngine: TFPDocEngine);
-    property Engine: TFPDocEngine read FEngine;
+    destructor Destroy;  override;
+    property Engine : TFPDocEngine read FEngine;
+    Property Topics : TList Read FTopics;
   end;
 
 
@@ -141,6 +155,35 @@ constructor TFPDocWriter.Create(AEngine: TFPDocEngine);
 begin
   inherited Create;
   FEngine := AEngine;
+  FTopics:=Tlist.Create;
+end;
+
+destructor TFPDocWriter.Destroy; 
+
+Var
+  i : integer;
+
+begin
+  For I:=0 to FTopics.Count-1 do
+    TTopicElement(FTopics[i]).Free;
+  FTopics.Free;
+  Inherited;
+end;
+
+Function TFPDocWriter.FindTopicElement(Node : TDocNode): TTopicElement;
+
+Var
+  I : Integer;
+  
+begin
+  Result:=Nil;
+  I:=FTopics.Count-1;
+  While (I>=0) and (Result=Nil) do
+    begin
+    If (TTopicElement(FTopics[i]).TopicNode=Node) Then
+      Result:=TTopicElement(FTopics[i]);
+    Dec(I);  
+    end;
 end;
 
 
@@ -752,13 +795,30 @@ begin
     Result := False;
 end;
 
+Constructor TTopicElement.Create(const AName: String; AParent: TPasElement); 
+
+begin
+  Inherited Create(AName,AParent);
+  SubTopics:=TList.Create;
+end;
+
+Destructor TTopicElement.Destroy;
+
+begin
+  // Actual subtopics are freed by TFPDocWriter Topics list.
+  SubTopics.Free;
+  Inherited;
+end;
 
 end.
 
 
 {
   $Log$
-  Revision 1.1  2003-03-17 23:03:20  michael
+  Revision 1.2  2004-06-06 10:53:02  michael
+  + Added Topic support
+
+  Revision 1.1  2003/03/17 23:03:20  michael
   + Initial import in CVS
 
   Revision 1.9  2003/03/13 22:02:13  sg

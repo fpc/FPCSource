@@ -143,8 +143,12 @@ type
     procedure WriteProperty(PropDecl: TPasProperty);
     procedure WriteExample(ADocNode: TDocNode);
     procedure WriteSeeAlso(ADocNode: TDocNode);
+    procedure WriteSeeAlso(ADocNode: TDocNode; InList : Boolean);
     procedure SortElementList(List : TList);
     Function  ShowMember(M : TPasElement) : boolean;
+    Procedure ProcessPackage;
+    Procedure ProcessTopics(DocNode : TDocNode; Alevel : Integer);
+    Procedure WriteTopicNode(Node : TDocNode; Level : Integer);
   public
     constructor Create(APackage: TPasPackage; AEngine: TFPDocEngine);
     procedure WriteDoc;
@@ -167,6 +171,43 @@ constructor TLaTeXWriter.Create(APackage: TPasPackage; AEngine: TFPDocEngine);
       AddLabel(TPasElement(AList[i]));
   end;
 
+  procedure AddTopicPages(AElement: TPasElement);
+
+  var
+    PreviousTopic,
+    TopicElement : TTopicElement;
+    DocNode,
+    TopicNode : TDocNode;
+
+  begin
+    DocNode:=Engine.FindDocNode(AElement);
+    If not Assigned(DocNode) then 
+      exit;
+    TopicNode:=DocNode.FirstChild;
+    PreviousTopic:=Nil;
+    While Assigned(TopicNode) do
+      begin
+      If TopicNode.TopicNode then
+        begin
+        TopicElement:=TTopicElement.Create(TopicNode.Name,AElement);
+        Topics.Add(TopicElement);
+        TopicElement.TopicNode:=TopicNode;
+        TopicElement.Previous:=PreviousTopic;
+        If Assigned(PreviousTopic) then
+          PreviousTopic.Next:=TopicElement;
+        PreviousTopic:=TopicElement;  
+        if AElement is TTopicElement then
+          TTopicElement(AElement).SubTopics.Add(TopicElement);
+        Engine.AddLink(TopicElement.PathName, GetLabel(TopicElement));
+        if AElement is TTopicElement then
+          TTopicElement(AElement).SubTopics.Add(TopicElement)
+        else // Only one level of recursion.
+          AddTopicPages(TopicElement);
+        end;
+      TopicNode:=TopicNode.NextSibling;
+      end;
+  end;
+
   procedure ScanModule(AModule: TPasModule);
   var
     i, j, k: Integer;
@@ -177,6 +218,7 @@ constructor TLaTeXWriter.Create(APackage: TPasPackage; AEngine: TFPDocEngine);
     DidAutolink: Boolean;
   begin
     AddLabel(AModule);
+    AddTopicPages(AModule);
     with AModule do
     begin
       AddList(AModule, InterfaceSection.ResStrings);
@@ -243,15 +285,93 @@ begin
 
   // Allocate label for the package itself, if a name is given (i.e. <> '#')
   if Length(Package.Name) > 1 then
+    begin
     AddLabel(Package);
-
+    AddTopicPages(Package);
+    end;
   for i := 0 to Package.Modules.Count - 1 do
     ScanModule(TPasModule(Package.Modules[i]));
+end;
+
+Procedure TLatexWriter.ProcessPackage;
+
+var
+  i: Integer;
+  UnitRef: TPasType;
+  DocNode: TDocNode;
+  First : Boolean;
+  
+begin
+  DocNode:=Engine.FindDocNode(Package);
+  if Assigned(DocNode) and not IsDescrNodeEmpty(DocNode.Descr) then
+    begin
+    WriteLnF('\section{%s}', [EscapeTex(SDocOverview)]);
+    WriteDescr(Package, DocNode.Descr);
+    Writeln('');
+    end;
+  WriteSeeAlso(DocNode,True);
+  ProcessTopics(DocNode,1);
+end;
+
+Procedure TlatexWriter.ProcessTopics(DocNode : TDocNode; Alevel : Integer);
+
+Var
+  Node : TDocNode;
+  First : Boolean;
+  
+begin
+  If Not Assigned(DocNode) then
+    Exit;
+  Node:=DocNode.FirstChild;
+  First:=True;
+  While Assigned(Node) do
+    begin
+    If Node.TopicNode then
+      begin
+      WriteTopicNode(Node,ALevel);
+      First:=False;
+      end;
+    Node:=Node.NextSibling;
+    end;
+end;
+
+Procedure TLatexWriter.WriteTopicNode(Node : TDocNode; Level : Integer);
+
+Var
+  Element : TTopicElement;
+  SubNode : TDocNode;
+  
+begin
+  Element:=FindTopicElement(Node);
+  If Not Assigned(Element) then 
+    Exit;
+  Case Level of
+    1 : Write('\section{');
+    2 : Write('\subsection{');
+    3 : Write('\subsubsection{');
+  end;
+  WriteDescr(Element,Node.ShortDescr);
+  Writeln('}');
+  WriteLabel(Element);
+  If Assigned(Node.Descr) then
+    WriteDescr(Element,Node.Descr);
+  WriteSeeAlso(Node,True);
+  If Level<3 then
+    begin
+    SubNode:=Node.FirstChild;
+    While Assigned(SubNode) do
+      begin
+      If SubNode.TopicNode then
+        WriteTopicNode(SubNode,Level+1);
+      SubNode:=SubNode.NextSibling;
+      end;
+    end;  
 end;
 
 procedure TLaTeXWriter.WriteDoc;
 var
   i : Integer;
+  DocNode : TDocNode;
   
 begin
   PackageName := LowerCase(Copy(Package.Name, 2, 255));
@@ -262,6 +382,7 @@ begin
   try
     WriteLn('% This file has been created automatically by FPDoc,');
     WriteLn('% (c) 2000-2003 by Areca Systems GmbH / Sebastian Guenther (sg@freepascal.org)');
+    ProcessPackage;
     for i := 0 to Package.Modules.Count - 1 do
     begin
       Module := TPasModule(Package.Modules[i]);
@@ -269,6 +390,9 @@ begin
       WriteLn('');
       WriteLnF('\chapter{%s}', [EscapeTex(Format(SDocUnitTitle, [Module.Name]))]);
       WriteLabel(Module);
+      DocNode:=Engine.FindDocNode(Module);
+      If Assigned(DocNode) then
+        ProcessTopics(DocNode,1);
       ProcessSection(Module.InterfaceSection);
     end;
   finally
@@ -900,30 +1024,49 @@ begin
 end;
 
 procedure TLateXWriter.WriteSeeAlso(ADocNode: TDocNode);
+
+begin
+  WriteSeeAlso(ADocNode,False);
+end;
+
+procedure TLateXWriter.WriteSeeAlso(ADocNode: TDocNode; InList : Boolean);
+
 var
   Node: TDOMNode;
   s: String;
+  First : Boolean;
+  
 begin
-  if Assigned(ADocNode) and Assigned(ADocNode.SeeAlso) and
-    Assigned(ADocNode.SeeAlso.FirstChild) then
-  begin
-    Writeln('\SeeAlso');
-    Node := ADocNode.SeeAlso.FirstChild;
-    while Assigned(Node) do
-    begin 
-      if (Node.NodeType = ELEMENT_NODE) and 
-        (Node.NodeName = 'link') then
+  if Not (Assigned(ADocNode) and Assigned(ADocNode.SeeAlso)) then 
+    Exit;
+  Node := ADocNode.SeeAlso.FirstChild;
+  First:=True;
+  while Assigned(Node) do
+    begin
+    if (Node.NodeType = ELEMENT_NODE) and 
+       (Node.NodeName = 'link') then
       begin
-        S:=TDomElement(Node)['id'];
-        DescrBeginLink(S);
-        Writeln(S);
-        DescrEndLink();
-        if Assigned(Node.NextSibling) Then
-          Writeln(',');
+      If First then
+        begin
+        If InList then
+          begin
+          Writeln('');
+          Writeln('\begin{FPCList}');
+          end;
+        Writeln('\SeeAlso');
+        First:=False;
+        end
+      else  
+        Writeln(',');
+      S:=TDomElement(Node)['id'];
+      DescrBeginLink(S);
+      Writeln(S);
+      DescrEndLink();
       end;  
-      Node:=Node.NextSibling;  
+    Node:=Node.NextSibling;  
     end;
-  end;   
+  If Inlist and Not First then
+    Writeln('\end{FPCList}');   
 end;
 
 procedure TLaTeXWriter.WriteClasses(ASection: TPasSection);
@@ -1302,7 +1445,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2003-03-18 19:28:44  michael
+  Revision 1.5  2004-06-06 10:53:02  michael
+  + Added Topic support
+
+  Revision 1.4  2003/03/18 19:28:44  michael
   + Some changes to output handling, more suitable for tex output
 
   Revision 1.3  2003/03/18 19:12:29  michael

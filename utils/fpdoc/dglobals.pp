@@ -73,6 +73,12 @@ resourcestring
   SDocValuesForEnum = 'Enumeration values for type %s';
   SDocSourcePosition = 'Source position: %s line %d';
 
+  // Topics
+  SDocRelatedTopics = 'Related topics';
+  SDocUp = 'Up';
+  SDocNext = 'Next';
+  SDocPrevious = 'Previous';
+  
 type
 
   // Assumes a list of TObject instances and frees them on destruction
@@ -132,6 +138,7 @@ type
     FSeeAlso: TDOMElement;
     FFirstExample: TDOMElement;
     FLink: String;
+    FTopicNode : Boolean;
   public
     constructor Create(const AName: String; ANode: TDOMElement);
     destructor Destroy; override;
@@ -151,6 +158,7 @@ type
     property SeeAlso: TDOMElement read FSeeAlso;
     property FirstExample: TDOMElement read FFirstExample;
     property Link: String read FLink;
+    Property TopicNode : Boolean Read FTopicNode;
   end;
 
 
@@ -848,7 +856,7 @@ begin
     exit;
   end;
 
-  if ALinkDest[1] = '#' then
+  if (ALinkDest[1] = '#') or (not assigned(AModule)) then
     Result := FindAbsoluteLink(ALinkDest)
   else
   begin
@@ -929,13 +937,31 @@ procedure TFPDocEngine.AddDocFile(const AFilename: String);
       Subnode := Subnode.NextSibling;
     end;
   end;
-
+  
+  Procedure ReadTopics(TopicNode : TDocNode);
+  
+  Var
+    SubNode : TDOMNode;
+    
+  begin
+    SubNode:=TopicNode.FNode.FirstChilD;
+    While Assigned(SubNode) do
+      begin
+      If (SubNode.NodeType=ELEMENT_NODE) and (SubNode.NodeName='topic') then
+        With ReadNode(TopicNode,TDomElement(SubNode)) do
+          // We could allow recursion here, but we won't, because it doesn't work on paper.
+          FTopicNode:=True;
+      SubNode:=Subnode.NextSibling;  
+      end;
+  end;
+  
 var
   i: Integer;
   Node, Subnode, Subsubnode: TDOMNode;
   Element: TDOMElement;
   Doc: TXMLDocument;
-  PackageDocNode, ModuleDocNode: TDocNode;
+  PackageDocNode, TopicNode,ModuleDocNode: TDocNode;
+  
 begin
   ReadXMLFile(Doc, AFilename);
   DescrDocs.Add(Doc);
@@ -943,30 +969,44 @@ begin
 
   Node := Doc.DocumentElement.FirstChild;
   while Assigned(Node) do
-  begin
-    if (Node.NodeType = ELEMENT_NODE) and (Node.NodeName = 'package') then
     begin
+    if (Node.NodeType = ELEMENT_NODE) and (Node.NodeName = 'package') then
+      begin
       PackageDocNode := ReadNode(RootDocNode, TDOMElement(Node));
-
       // Scan all 'module' elements within this package element
       Subnode := Node.FirstChild;
       while Assigned(Subnode) do
-      begin
-        if (Subnode.NodeType = ELEMENT_NODE) and
-	  (Subnode.NodeName = 'module') then
-	begin
-	  ModuleDocNode := ReadNode(PackageDocNode, TDOMElement(Subnode));
-
-	  // Scan all 'element' elements within this module element
-	  Subsubnode := Subnode.FirstChild;
-	  while Assigned(Subsubnode) do
-	  begin
-	    if (Subsubnode.NodeType = ELEMENT_NODE) and
-	      (Subsubnode.NodeName = 'element') then
-	      ReadNode(ModuleDocNode, TDOMElement(Subsubnode));
-	    Subsubnode := Subsubnode.NextSibling;
-	  end;
-	end;
+        begin
+        if (Subnode.NodeType = ELEMENT_NODE) then
+          begin
+          If (Subnode.NodeName = 'module') then
+            begin
+            ModuleDocNode := ReadNode(PackageDocNode, TDOMElement(Subnode));
+            // Scan all 'element' elements within this module element
+            Subsubnode := Subnode.FirstChild;
+	    while Assigned(Subsubnode) do
+              begin
+	      if (Subsubnode.NodeType = ELEMENT_NODE) then
+	        begin
+	        if (Subsubnode.NodeName = 'element') then
+	          ReadNode(ModuleDocNode, TDOMElement(Subsubnode))
+	        else if (SubSubNode.NodeName='topic') then
+	          begin
+	          TopicNode:=ReadNode(ModuleDocNode,TDomElement(SubSubNode));
+	          TopicNode.FTopicNode:=True;
+	          ReadTopics(TopicNode);
+	          end;  
+	        end;    
+	      Subsubnode := Subsubnode.NextSibling;
+	      end;
+	    end
+	  else if (SubNode.NodeName='topic') then
+	    begin
+	    TopicNode:=ReadNode(PackageDocNode,TDomElement(SubNode));  
+	    TopicNode.FTopicNode:=True;
+	    ReadTopics(TopicNode);
+	    end;
+	  end;   
         Subnode := Subnode.NextSibling;
       end;
     end;
@@ -976,10 +1016,12 @@ end;
 
 function TFPDocEngine.FindDocNode(AElement: TPasElement): TDocNode;
 begin
-  if AElement.InheritsFrom(TPasUnresolvedTypeRef) then
-    Result := FindDocNode(AElement.GetModule, AElement.Name)
-  else
-    Result := RootDocNode.FindChild(AElement.PathName);
+  Result:=Nil;
+  If Assigned(AElement) then
+    if AElement.InheritsFrom(TPasUnresolvedTypeRef) then
+      Result := FindDocNode(AElement.GetModule, AElement.Name)
+    else
+      Result := RootDocNode.FindChild(AElement.PathName);
 end;
 
 function TFPDocEngine.FindDocNode(ARefModule: TPasModule;
@@ -1094,7 +1136,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2003-11-28 12:51:37  sg
+  Revision 1.3  2004-06-06 10:53:02  michael
+  + Added Topic support
+
+  Revision 1.2  2003/11/28 12:51:37  sg
   * Added support for source references
 
   Revision 1.1  2003/03/17 23:03:20  michael

@@ -30,7 +30,9 @@ const
   ClassesSubindex = 4;
   ProcsSubindex = 5;
   VarsSubindex = 6;
-
+  // Maybe needed later for topic overview ??
+  TopicsSubIndex = 7;
+   
   // Subpage indices for classes
   PropertiesByInheritanceSubindex = 1;
   PropertiesByNameSubindex = 2;
@@ -173,6 +175,7 @@ type
     procedure AppendKw(Parent: TDOMNode; const AText: DOMString);
     function AppendPasSHFragment(Parent: TDOMNode; const AText: String;
       AShFlags: Byte): Byte;
+    Procedure AppendShortDescr(AContext : TPasElement;Parent: TDOMNode; DocNode : TDocNode);
     procedure AppendShortDescr(Parent: TDOMNode; Element: TPasElement);
     procedure AppendDescr(AContext: TPasElement; Parent: TDOMNode;
       DescrNode: TDOMElement; AutoInsertBlock: Boolean);
@@ -192,11 +195,15 @@ type
 
     procedure AppendTitle(const AText: DOMString);
     procedure AppendMenuBar(ASubpageIndex: Integer);
+    procedure AppendTopicMenuBar(Topic : TTopicElement);
     procedure AppendSourceRef(AElement: TPasElement);
     procedure FinishElementPage(AElement: TPasElement);
+    Procedure AppendSeeAlsoSection(AElement : TPasElement;DocNode : TDocNode);
+    Procedure AppendExampleSection(AElement : TPasElement;DocNode : TDocNode);
 
     procedure CreatePageBody(AElement: TPasElement; ASubpageIndex: Integer); virtual;
     procedure CreatePackagePageBody;
+    Procedure CreateTopicPageBody(AElement : TTopicElement);
     procedure CreateModulePageBody(AModule: TPasModule; ASubpageIndex: Integer);
     procedure CreateConstPageBody(AConst: TPasConst);
     procedure CreateTypePageBody(AType: TPasType);
@@ -204,6 +211,7 @@ type
     procedure CreateClassMemberPageBody(AElement: TPasElement);
     procedure CreateVarPageBody(AVar: TPasVariable);
     procedure CreateProcPageBody(AProc: TPasProcedureBase);
+    Procedure CreateTopicLinks(Node : TDocNode; PasElement : TPasElement);
   public
     constructor Create(AEngine: TFPDocEngine; AAllocator: TFileAllocator;
       APackage: TPasPackage);
@@ -280,19 +288,20 @@ begin
   else if AElement.ClassType = TPasModule then
     Result := LowerCase(AElement.Name) + PathDelim + 'index'
   else
-  begin
+    begin
     Result := LowerCase(AElement.PathName);
     i := 1;
-    if Result[1] = '#' then
-    begin
+    if (Length(Result)>0) and (Result[1]='#') then
+      begin
       while Result[i] <> '.' do
         Inc(i);
-      Result := Copy(Result, i + 1, Length(Result));
-    end;
+      Result:=Copy(Result,i+1,Length(Result));
+      end;
     i := 1;
-    while Result[i] <> '.' do
+    while (I<=Length(Result)) and (Result[i]<>'.') do
       Inc(i);
-    Result[i] := PathDelim;
+    If (I<=Length(Result)) and (I>0) then
+      Result[i]:= PathDelim;
   end;
 
   if ASubindex > 0 then
@@ -302,9 +311,18 @@ end;
 
 function TLongNameFileAllocator.GetRelativePathToTop(AElement: TPasElement): String;
 begin
-  if AElement.ClassType = TPasPackage then
+  if (AElement.ClassType=TPasPackage) then
     Result := ''
-  else
+  else if (AElement.ClassType=TTopicElement) then
+    begin
+    If (AElement.Parent.ClassType=TTopicElement) then
+      Result:='../'+GetRelativePathToTop(AElement.Parent)
+    else if (AElement.Parent.ClassType=TPasPackage) then
+      Result:=''
+    else if (AElement.Parent.ClassType=TPasModule) then
+      Result:='../';
+    end  
+  else 
     Result := '../';
 end;
 
@@ -325,6 +343,49 @@ constructor THTMLWriter.Create(AEngine: TFPDocEngine; AAllocator: TFileAllocator
     if ASubpageIndex = 0 then
       Engine.AddLink(AElement.PathName,
         Allocator.GetFilename(AElement, ASubpageIndex));
+  end;
+
+  procedure AddTopicPages(AElement: TPasElement);
+
+  var
+    PreviousTopic,
+    TopicElement : TTopicElement;
+    PageInfo : TPageInfo;
+    DocNode,
+    TopicNode : TDocNode;
+
+  begin
+    DocNode:=Engine.FindDocNode(AElement);
+    If not Assigned(DocNode) then 
+      exit;
+    TopicNode:=DocNode.FirstChild;
+    PreviousTopic:=Nil;
+    While Assigned(TopicNode) do
+      begin
+      If TopicNode.TopicNode then
+        begin
+        TopicElement:=TTopicElement.Create(TopicNode.Name,AElement);
+        Topics.Add(TopicElement);
+        TopicElement.TopicNode:=TopicNode;
+        TopicElement.Previous:=PreviousTopic;
+        If Assigned(PreviousTopic) then
+          PreviousTopic.Next:=TopicElement;
+        PreviousTopic:=TopicElement;  
+        if AElement is TTopicElement then
+          TTopicElement(AElement).SubTopics.Add(TopicElement);
+        PageInfo := TPageInfo.Create;
+        PageInfo.Element := TopicElement;
+        PageInfo.SubpageIndex := 0;
+        PageInfos.Add(PageInfo);
+        Allocator.AllocFilename(TopicElement,0);
+        Engine.AddLink(TopicElement.PathName, Allocator.GetFilename(TopicElement,0));
+        if AElement is TTopicElement then
+          TTopicElement(AElement).SubTopics.Add(TopicElement)
+        else // Only one level of recursion.
+          AddTopicPages(TopicElement);
+        end;
+      TopicNode:=TopicNode.NextSibling;
+      end;
   end;
 
   procedure AddPages(AElement: TPasElement; ASubpageIndex: Integer;
@@ -350,6 +411,7 @@ constructor THTMLWriter.Create(AEngine: TFPDocEngine; AAllocator: TFileAllocator
     DidAutolink: Boolean;
   begin
     AddPage(AModule, 0);
+    AddTopicPages(AModule);
     with AModule do
     begin
       if InterfaceSection.ResStrings.Count > 0 then
@@ -432,7 +494,10 @@ begin
 
   // Allocate page for the package itself, if a name is given (i.e. <> '#')
   if Length(Package.Name) > 1 then
+    begin
     AddPage(Package, 0);
+    AddTopicPages(Package);
+    end;
 
   for i := 0 to Package.Modules.Count - 1 do
     ScanModule(TPasModule(Package.Modules[i]));
@@ -1145,21 +1210,25 @@ begin
   FreeMem(Line);
 end;
 
-procedure THTMLWriter.AppendShortDescr(Parent: TDOMNode; Element: TPasElement);
-var
-  DocNode: TDocNode;
+Procedure THTMLWriter.AppendShortDescr(AContext: TPasElement; Parent: TDOMNode; DocNode : TDocNode);
+
 begin
-  DocNode := Engine.FindDocNode(Element);
   if Assigned(DocNode) and Assigned(DocNode.ShortDescr) then
-  begin
+    begin
     PushOutputNode(Parent);
     try
-      if not ConvertShort(Element, DocNode.ShortDescr) then
+      if not ConvertShort(AContext,TDomElement(DocNode.ShortDescr)) then
         WriteLn(SErrInvalidShortDescr);
     finally
       PopOutputNode;
     end;
-  end;
+    end;
+end;
+
+procedure THTMLWriter.AppendShortDescr(Parent: TDOMNode; Element: TPasElement);
+
+begin
+  AppendShortDescr(Element,Parent,Engine.FindDocNode(Element));
 end;
 
 procedure THTMLWriter.AppendDescr(AContext: TPasElement; Parent: TDOMNode;
@@ -1181,7 +1250,8 @@ procedure THTMLWriter.AppendDescrSection(AContext: TPasElement;
 begin
   if not IsDescrNodeEmpty(DescrNode) then
   begin
-    AppendText(CreateH2(Parent), ATitle);
+    If (ATitle<>'') then // Can be empty for topic.
+      AppendText(CreateH2(Parent), ATitle);
     AppendDescr(AContext, Parent, DescrNode, True);
   end;
 end;
@@ -1491,7 +1561,55 @@ begin
   AppendText(CreateH1(BodyElement), AText);
 end;
 
+procedure THTMLWriter.AppendTopicMenuBar(Topic : TTopicElement);
+
+var
+  TableEl, TREl, ParaEl, TitleEl: TDOMElement;
+
+  procedure AddLink(El : TPasElement; const AName: String);
+  begin
+    AppendText(ParaEl, '[');
+    AppendText(CreateLink(ParaEl, ResolveLinkWithinPackage(El,0)),AName);
+    AppendText(ParaEl, ']');
+  end;
+
+begin
+  TableEl := CreateEl(BodyElement, 'table');
+  TableEl['cellpadding'] := '4';
+  TableEl['cellspacing'] := '0';
+  TableEl['border'] := '0';
+  TableEl['width'] := '100%';
+  TableEl['class'] := 'bar';
+  TREl := CreateTR(TableEl);
+  ParaEl := CreateEl(CreateTD(TREl), 'b');
+  If Assigned(Topic.Previous) then
+    AddLink(Topic.Previous,SDocPrevious);
+  If Assigned(Topic.Parent) then
+    AddLink(Topic.Parent,SDocUp);
+  if Assigned(Topic.Next) then
+    AddLink(Topic.Next,SDocNext);
+  if Length(SearchPage) > 0 then
+    begin
+    AppendText(ParaEl, '[');
+    AppendText(CreateLink(ParaEl, SearchPage), SDocSearch);
+    AppendText(ParaEl, ']');
+    end;
+  ParaEl := CreateTD(TREl);
+  ParaEl['align'] := 'right';
+  TitleEl := CreateEl(ParaEl, 'span');
+  TitleEl['class'] := 'bartitle';
+  if Assigned(Module) then
+    AppendText(TitleEl, Format(SDocUnitTitle, [Module.Name]));
+  if Assigned(Package) then
+  begin
+    AppendText(TitleEl, ' (');
+    AppendHyperlink(TitleEl, Package);
+    AppendText(TitleEl, ')');
+  end;
+end;
+
 procedure THTMLWriter.AppendMenuBar(ASubpageIndex: Integer);
+
 var
   TableEl, TREl, ParaEl, TitleEl: TDOMElement;
 
@@ -1560,107 +1678,151 @@ begin
     [AElement.SourceFilename, AElement.SourceLinenumber]));
 end;
 
-procedure THTMLWriter.FinishElementPage(AElement: TPasElement);
+Procedure THTMLWriter.AppendSeeAlsoSection(AElement : TPasElement;DocNode : TDocNode);
+
 var
-  DocNode: TDocNode;
-  IsFirstSeeAlso: Boolean;
   Node: TDOMNode;
   TableEl, El, TREl, TDEl, ParaEl, NewEl, DescrEl: TDOMElement;
   s: String;
   f: Text;
+  IsFirstSeeAlso : Boolean;
+  
+begin
+  if Not (Assigned(DocNode) and Assigned(DocNode.SeeAlso)) then
+    Exit;
+  IsFirstSeeAlso := True;
+  Node:=DocNode.SeeAlso.FirstChild;
+  While Assigned(Node) do
+    begin
+    if (Node.NodeType=ELEMENT_NODE) and (Node.NodeName='link') then
+      begin
+       if IsFirstSeeAlso then
+         begin
+         IsFirstSeeAlso := False;
+         AppendText(CreateH2(BodyElement), SDocSeeAlso);
+         TableEl := CreateTable(BodyElement);
+         end;
+       El:=TDOMElement(Node);
+       TREl:=CreateTR(TableEl);
+       ParaEl:=CreatePara(CreateTD_vtop(TREl));
+       s:= ResolveLinkID(El['id']);
+       if Length(s)=0 then
+         begin
+         WriteLn(Format(SErrUnknownLinkID, [El['id']]));
+         NewEl := CreateEl(ParaEl,'b')
+         end 
+       else
+         NewEl := CreateLink(ParaEl,s);
+       AppendText(NewEl,El['id']);
+       DescrEl := Engine.FindShortDescr(AElement.GetModule, El['id']);
+       if Assigned(DescrEl) then
+         begin
+         AppendNbSp(CreatePara(CreateTD(TREl)), 2);
+         ParaEl := CreatePara(CreateTD(TREl));
+         ParaEl['class'] := 'cmt';
+         PushOutputNode(ParaEl);
+         try
+           ConvertShort(AElement, DescrEl);
+         finally
+           PopOutputNode;
+         end;  
+         end;
+       end; // Link node
+     Node := Node.NextSibling;
+     end; // While
+end;
+
+Procedure THTMLWriter.AppendExampleSection(AElement : TPasElement;DocNode : TDocNode);
+
+var
+  Node: TDOMNode;
+//  TableEl, El, TREl, TDEl, ParaEl, NewEl, DescrEl: TDOMElement;
+  s: String;
+  f: Text;
+  
+begin
+  if not (Assigned(DocNode) and Assigned(DocNode.FirstExample)) then
+    Exit;
+  Node := DocNode.FirstExample;
+  while Assigned(Node) do
+    begin
+    if (Node.NodeType = ELEMENT_NODE) and (Node.NodeName = 'example') then
+      begin
+      AppendText(CreateH2(BodyElement), SDocExample);
+      try
+        Assign(f, Engine.GetExampleFilename(TDOMElement(Node)));
+        Reset(f);
+        try
+          PushOutputNode(BodyElement);
+	  DescrBeginCode(False, TDOMElement(Node)['highlighter']);
+          while not EOF(f) do
+            begin
+            ReadLn(f, s);
+	    DescrWriteCodeLine(s);
+            end;
+	  DescrEndCode;
+          PopOutputNode;
+        finally
+          Close(f);
+        end;
+      except
+        on e: Exception do
+          begin
+          e.Message := '[example] ' + e.Message;
+          raise;
+          end;
+      end;
+      end;
+    Node := Node.NextSibling;
+    end;
+end;
+
+procedure THTMLWriter.FinishElementPage(AElement: TPasElement);
+
+var
+  DocNode: TDocNode;
+
 begin
   DocNode := Engine.FindDocNode(AElement);
-  if Assigned(DocNode) and Assigned(DocNode.Descr) then
-    AppendDescrSection(AElement, BodyElement, DocNode.Descr, SDocDescription);
-  // ###
+  If Assigned(DocNode) then
+    begin
+    // Description
+    if Assigned(DocNode.Descr) then
+      AppendDescrSection(AElement, BodyElement, DocNode.Descr, SDocDescription);
 
-  // Append "Errors" section
-  if Assigned(DocNode) and Assigned(DocNode.ErrorsDoc) then
-    AppendDescrSection(AElement, BodyElement, DocNode.ErrorsDoc, SDocErrors);
+    // Append "Errors" section
+    if Assigned(DocNode.ErrorsDoc) then
+      AppendDescrSection(AElement, BodyElement, DocNode.ErrorsDoc, SDocErrors);
 
-      // Append "See also" section
-      if Assigned(DocNode) and Assigned(DocNode.SeeAlso) then
-      begin
-        IsFirstSeeAlso := True;
-	Node := DocNode.SeeAlso.FirstChild;
-	while Assigned(Node) do
-	begin
-	  if (Node.NodeType = ELEMENT_NODE) and (Node.NodeName = 'link') then
-	  begin
-	    if IsFirstSeeAlso then
-	    begin
-	      IsFirstSeeAlso := False;
-	      AppendText(CreateH2(BodyElement), SDocSeeAlso);
-	      TableEl := CreateTable(BodyElement);
-	    end;
+    // Append "See also" section
+    AppendSeeAlsoSection(AElement,DocNode);
 
-	    El := TDOMElement(Node);
-	    TREl := CreateTR(TableEl);
-	    ParaEl := CreatePara(CreateTD_vtop(TREl));
-	    s := ResolveLinkID(El['id']);
-	    if Length(s) = 0 then
-	    begin
-	      WriteLn(Format(SErrUnknownLinkID, [El['id']]));
-	      NewEl := CreateEl(ParaEl, 'b')
-	    end else
-	      NewEl := CreateLink(ParaEl, s);
-	    AppendText(NewEl, El['id']);
+    // Append examples, if present
+    AppendExampleSection(AElement,DocNode);
+    end;
+end;
 
-	    DescrEl := Engine.FindShortDescr(AElement.GetModule, El['id']);
-	    if Assigned(DescrEl) then
-	    begin
-	      AppendNbSp(CreatePara(CreateTD(TREl)), 2);
-	      ParaEl := CreatePara(CreateTD(TREl));
-	      ParaEl['class'] := 'cmt';
+Procedure THTMLWriter.CreateTopicPageBody(AElement : TTopicElement);
 
-	      PushOutputNode(ParaEl);
-	      try
-		ConvertShort(AElement, DescrEl);
-	      finally
-		PopOutputNode;
-	      end;
-	    end;
-	  end;
-	  Node := Node.NextSibling;
-	end;
-      end;
-
-      // Append examples, if present
-      if Assigned(DocNode) and Assigned(DocNode.FirstExample) then
-      begin
-        Node := DocNode.FirstExample;
-	while Assigned(Node) do
-	begin
-	  if (Node.NodeType = ELEMENT_NODE) and (Node.NodeName = 'example') then
-	  begin
-	    AppendText(CreateH2(BodyElement), SDocExample);
-	    try
-	      Assign(f, Engine.GetExampleFilename(TDOMElement(Node)));
-	      Reset(f);
-	      try
-	        PushOutputNode(BodyElement);
-		DescrBeginCode(False, TDOMElement(Node)['highlighter']);
-	        while not EOF(f) do
-	        begin
-	          ReadLn(f, s);
-		  DescrWriteCodeLine(s);
-	        end;
-		DescrEndCode;
-	        PopOutputNode;
-	      finally
-	        Close(f);
-	      end;
-	    except
-	      on e: Exception do
-	      begin
-	        e.Message := '[example] ' + e.Message;
-	        raise;
-	      end;
-	    end;
-	  end;
-	  Node := Node.NextSibling;
-	end;
-      end;
+var
+  DocNode: TDocNode;
+  TableEl, TREl: TDOMElement;
+  I : Integer;
+  S : String;
+  
+begin
+  AppendTopicMenuBar(AElement);
+  DocNode:=AElement.TopicNode;
+  if Assigned(DocNode) then  // should always be true, but we're being careful.
+    begin
+    AppendShortDescr(AElement,TitleElement, DocNode);
+    AppendShortDescr(AElement,CreateH2(BodyElement), DocNode);
+    if Assigned(DocNode.Descr) then
+       AppendDescrSection(nil, BodyElement, DocNode.Descr, '');
+    AppendSeeAlsoSection(AElement,DocNode);
+    CreateTopicLinks(DocNode,AElement);
+    AppendExampleSection(AElement,DocNode);
+    end;
 end;
 
 procedure THTMLWriter.CreatePageBody(AElement: TPasElement;
@@ -1678,10 +1840,10 @@ begin
 
   if AElement.ClassType = TPasPackage then
     CreatePackagePageBody
-  else
-  begin
+  else 
+    begin
     Element := AElement;
-    while Element.ClassType <> TPasModule do
+    while (Element<>Nil) and (Element.ClassType<>TPasModule) do
       Element := Element.Parent;
     Module := TPasModule(Element);
 
@@ -1698,7 +1860,9 @@ begin
     else if AElement.ClassType = TPasVariable then
       CreateVarPageBody(TPasVariable(AElement))
     else if AElement.InheritsFrom(TPasProcedureBase) then
-      CreateProcPageBody(TPasProcedure(AElement));
+      CreateProcPageBody(TPasProcedure(AElement))
+    else if AElement.ClassType = TTopicELement then
+      CreateTopicPageBody(TTopicElement(AElement))
   end;
 end;
 
@@ -1724,8 +1888,43 @@ begin
   end;
 
   DocNode := Engine.FindDocNode(Package);
-  if Assigned(DocNode) and Assigned(DocNode.Descr) then
-    AppendDescrSection(nil, BodyElement, DocNode.Descr, SDocDescription);
+  if Assigned(DocNode) then
+    begin
+    if Assigned(DocNode.Descr) then
+       AppendDescrSection(nil, BodyElement, DocNode.Descr, SDocDescription);
+    CreateTopicLinks(DocNode,Package);
+    end;
+end;
+
+Procedure THTMLWriter.CreateTopicLinks(Node : TDocNode; PasElement : TPasElement);
+
+var
+  DocNode: TDocNode;
+  TableEl, TREl: TDOMElement;
+  First : Boolean;
+  ThisTopic: TPasElement;
+        
+begin
+  DocNode:=Node.FirstChild;
+  First:=True;
+  While Assigned(DocNode) do
+    begin
+    If DocNode.TopicNode then
+      begin
+      if first then
+        begin
+        First:=False;
+        AppendText(CreateH2(BodyElement), SDocRelatedTopics);
+        TableEl := CreateTable(BodyElement);
+        end;
+      TREl := CreateTR(TableEl);
+      ThisTopic:=FindTopicElement(DocNode);
+      if Assigned(ThisTopic) then
+        AppendHyperlink(CreateCode(CreatePara(CreateTD_vtop(TREl))), ThisTopic);
+      AppendShortDescrCell(TREl, ThisTopic);
+      end;
+    DocNode:=DocNode.NextSibling;
+    end;    
 end;
 
 procedure THTMLWriter.CreateModulePageBody(AModule: TPasModule;
@@ -1767,8 +1966,12 @@ procedure THTMLWriter.CreateModulePageBody(AModule: TPasModule;
     end;
 
     DocNode := Engine.FindDocNode(AModule);
-    if Assigned(DocNode) and Assigned(DocNode.Descr) then
-      AppendDescrSection(AModule, BodyElement, DocNode.Descr, SDocOverview);
+    if Assigned(DocNode) then
+      begin
+      if Assigned(DocNode.Descr) then
+        AppendDescrSection(AModule, BodyElement, DocNode.Descr, SDocOverview);
+      CreateTopicLinks(DocNode,AModule);
+      end;
   end;
 
   procedure CreateSimpleSubpage(const ATitle: DOMString; AList: TList);
@@ -2593,7 +2796,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2003-11-28 12:51:37  sg
+  Revision 1.6  2004-06-06 10:53:02  michael
+  + Added Topic support
+
+  Revision 1.5  2003/11/28 12:51:37  sg
   * Added support for source references
 
   Revision 1.4  2003/04/22 00:00:05  sg
