@@ -2219,12 +2219,26 @@ var
   function GetCharClass(C: char): TCharClass;
   var CC: TCharClass;
   begin
-    if C in WhiteSpaceChars then CC:=ccWhiteSpace else
-    if C in TabChars then CC:=ccTab else
-    if C in HashChars then CC:=ccHash else
-    if (LastCC=ccHexNumber) and (C in HexNumberChars) then CC:=ccHexNumber else
-    if C in NumberChars then CC:=ccNumber else
-    if (LastCC=ccNumber) and (C in RealNumberChars) then
+  (*
+     WhiteSpaceChars    {$ifdef USE_UNTYPEDSET}: set of char {$endif} = [#0,#32,#255];
+     TabChars           {$ifdef USE_UNTYPEDSET}: set of char {$endif} = [#9];
+     HashChars          {$ifdef USE_UNTYPEDSET}: set of char {$endif} = ['#'];
+     AlphaChars         {$ifdef USE_UNTYPEDSET}: set of char {$endif} = ['A'..'Z','a'..'z','_'];
+     NumberChars        {$ifdef USE_UNTYPEDSET}: set of char {$endif} = ['0'..'9'];
+     HexNumberChars     {$ifdef USE_UNTYPEDSET}: set of char {$endif} = ['0'..'9','A'..'F','a'..'f'];
+     RealNumberChars    {$ifdef USE_UNTYPEDSET}: set of char {$endif} = ['E','e','.'{,'+','-'}];
+  *)
+    if C in {$ifdef USE_UNTYPEDSET}[#0,#32,#255]{$else}WhiteSpaceChars{$endif} then
+      CC:=ccWhiteSpace
+    else if C in {$ifdef USE_UNTYPEDSET}[#9]{$else}TabChars{$endif} then
+      CC:=ccTab
+    else if C in {$ifdef USE_UNTYPEDSET}['#']{$else}HashChars{$endif} then
+      CC:=ccHash
+    else if (LastCC=ccHexNumber) and (C in {$ifdef USE_UNTYPEDSET}['0'..'9','A'..'F','a'..'f']{$else}HexNumberChars{$endif}) then
+      CC:=ccHexNumber
+    else if C in {$ifdef USE_UNTYPEDSET}['0'..'9']{$else}NumberChars{$endif} then
+      CC:=ccNumber
+    else if (LastCC=ccNumber) and (C in {$ifdef USE_UNTYPEDSET}['E','e','.']{$else}RealNumberChars{$endif}) then
       begin
         if (C='.') then
           begin
@@ -2240,8 +2254,8 @@ var
             else
               cc:=ccAlpha
           end;
-      end else
-    if C in AlphaChars then CC:=ccAlpha else
+      end
+    else if C in {$ifdef USE_UNTYPEDSET}['A'..'Z','a'..'z','_']{$else}AlphaChars{$endif} then CC:=ccAlpha else
       CC:=ccSymbol;
     GetCharClass:=CC;
   end;
@@ -7165,7 +7179,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.34  2002-09-11 11:23:48  pierre
+  Revision 1.35  2002-09-11 13:11:54  pierre
+   * speed up by using fixed char sets in GetCharClass
+
+  Revision 1.34  2002/09/11 11:23:48  pierre
    * more changes to speed syntax highlighting up
 
   Revision 1.33  2002/09/11 10:05:10  pierre
