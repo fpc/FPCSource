@@ -1457,7 +1457,7 @@ convutil$(PPUEXT) : $(OBJPASDIR)/convutil.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUE
 	$(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/convutil.pp
 strutils$(PPUEXT) : $(OBJPASDIR)/strutils.pp sysutils$(PPUEXT) objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/strutils.pp
-macpas$(PPUEXT) : $(INC)/macpas.pp system$(PPUEXT)
+macpas$(PPUEXT) : $(INC)/macpas.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(INC)/macpas.pp $(REDIR)
 ucomplex$(PPUEXT): $(INC)/ucomplex.pp math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT)
