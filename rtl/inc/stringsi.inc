@@ -4,7 +4,7 @@
     Copyright (c) 1999 by the Free Pascal development team
 
     Processor independent part for strings and sysutils units
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -17,7 +17,8 @@
     function strcat(dest,source : pchar) : pchar;
 
       begin
-         strcat:=strcopy(strend(dest),source);
+        strcopy(strend(dest),source);
+        strcat:=dest;
       end;
 
     function strlcat(dest,source : pchar;l : longint) : pchar;
@@ -27,8 +28,9 @@
 
       begin
          destend:=strend(dest);
-         l:=l-(destend-dest);
-         strlcat:=strlcopy(destend,source,l);
+         dec(l,destend-dest);
+         strlcopy(destend,source,l);
+         strlcat:=dest;
       end;
 
     function strmove(dest,source : pchar;l : longint) : pchar;
@@ -79,7 +81,10 @@
       end;
 {
   $Log$
-  Revision 1.2  1999-02-25 10:05:07  michael
+  Revision 1.3  1999-09-01 09:25:10  peter
+    * fixed return of strcat,strlcat
+
+  Revision 1.2  1999/02/25 10:05:07  michael
   + Added header and log
 
 }
