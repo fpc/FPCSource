@@ -355,7 +355,7 @@ begin
    Message1(general_i_targetos,target_os.name);
    Message1(general_u_exepath,exepath);
 {$ifdef linux}
-   Message1(general_u_gcclibpath,librarysearchpath);
+   Message1(general_u_gcclibpath,Linker.librarysearchpath);
 {$endif}
 
    start:=getrealtime;
@@ -379,7 +379,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  1998-05-04 17:54:28  peter
+  Revision 1.8  1998-05-08 09:21:57  michael
+  + Librarysearchpath is now a linker object field;
+
+  Revision 1.7  1998/05/04 17:54:28  peter
     + smartlinking works (only case jumptable left todo)
     * redesign of systems.pas to support assemblers and linkers
     + Unitname is now also in the PPU-file, increased version to 14
