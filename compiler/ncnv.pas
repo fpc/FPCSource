@@ -564,6 +564,7 @@ implementation
       begin
          n:=ttypeconvnode(inherited getcopy);
          n.convtype:=convtype;
+         n.totype:=totype;
          getcopy:=n;
       end;
 
@@ -2481,7 +2482,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.161  2004-11-02 12:55:16  peter
+  Revision 1.162  2004-11-02 20:15:53  jonas
+    * copy totype field in ttypeconvnode.getcopy()
+
+  Revision 1.161  2004/11/02 12:55:16  peter
     * nf_internal flag for internal inserted typeconvs. This will
       supress the generation of warning/hints
 
