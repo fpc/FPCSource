@@ -676,7 +676,9 @@ implementation
     constructor tailineinfo.create;
      begin
        inherited create;
-       fileinfo:=aktfilepos;
+       if (not inlining_procedure) and
+          (cs_gdb_valgrind in aktglobalswitches) then
+         fileinfo:=aktfilepos;
      end;
 
 
@@ -2000,7 +2002,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.76  2004-03-02 17:32:12  florian
+  Revision 1.77  2004-03-14 20:10:56  peter
+    * disable some debuginfo info when valgrind support is used
+
+  Revision 1.76  2004/03/02 17:32:12  florian
     * make cycle fixed
     + pic support for darwin
     + support of importing vars from shared libs on darwin implemented

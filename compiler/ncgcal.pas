@@ -1134,7 +1134,8 @@ implementation
          inlineexitcode:=TAAsmoutput.Create;
 
 {$ifdef GDB}
-         if (cs_debuginfo in aktmoduleswitches) then
+         if (cs_debuginfo in aktmoduleswitches) and
+            not(cs_gdb_valgrind in aktglobalswitches) then
            begin
              objectlibrary.getaddrlabel(startlabel);
              objectlibrary.getaddrlabel(endlabel);
@@ -1227,7 +1228,8 @@ implementation
            gen_free_localst(exprasmlist,tlocalsymtable(current_procinfo.procdef.localst));
 
 {$ifdef GDB}
-         if (cs_debuginfo in aktmoduleswitches) then
+         if (cs_debuginfo in aktmoduleswitches) and
+            not(cs_gdb_valgrind in aktglobalswitches) then
            begin
              cg.a_label(exprasmlist,endlabel);
              strpcopy(pp,'224,0,0,'+endlabel.name);
@@ -1264,7 +1266,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.163  2004-03-13 21:23:21  florian
+  Revision 1.164  2004-03-14 20:10:56  peter
+    * disable some debuginfo info when valgrind support is used
+
+  Revision 1.163  2004/03/13 21:23:21  florian
     * fixed inlining on arm
 
   Revision 1.162  2004/03/09 16:28:31  peter
