@@ -46,7 +46,7 @@ unit wincrt;
        windows,graph;
 
     const
-       keybuffersize = 16;
+       keybuffersize = 32;
 
     var
        keyboardhandling : TCriticalSection;
@@ -69,7 +69,13 @@ unit wincrt;
          inccyclic(nextfree);
          { skip old chars }
          if nexttoread=nextfree then
-           inccyclic(nexttoread);
+           begin
+              // special keys are started by #0
+              // so we've to remove two chars
+              if keybuffer[nexttoread]=#0 then
+                inccyclic(nexttoread);
+              inccyclic(nexttoread);
+           end;
          LeaveCriticalSection(keyboardhandling);
       end;
 
@@ -88,7 +94,7 @@ unit wincrt;
                 end;
               LeaveCriticalSection(keyboardhandling);
               { give other threads a chance }
-              Windows.Sleep(0);
+              Windows.Sleep(10);
            end;
       end;
 
@@ -122,6 +128,18 @@ unit wincrt;
       begin
       end;
 
+    procedure addextchar(c : char);
+
+      begin
+         addchar(#0);
+         addchar(c);
+      end;
+
+    const
+       altkey : boolean = false;
+       ctrlkey : boolean = false;
+       shiftkey : boolean = false;
+
     function msghandler(Window: hwnd; AMessage, WParam,
       LParam: Longint): Longint;
 
@@ -133,6 +151,54 @@ unit wincrt;
              end;
            WM_KEYDOWN:
              begin
+                case wparam of
+                   VK_LEFT:
+                     addextchar(#75);
+                   VK_RIGHT:
+                     addextchar(#77);
+                   VK_DOWN:
+                     addextchar(#80);
+                   VK_UP:
+                     addextchar(#72);
+                   VK_INSERT:
+                     addextchar(#82);
+                   VK_DELETE:
+                     addextchar(#83);
+                   VK_END:
+                     addextchar(#79);
+                   VK_HOME:
+                     addextchar(#71);
+                   VK_PRIOR:
+                     addextchar(#73);
+                   VK_NEXT:
+                     addextchar(#81);
+                   VK_F1..VK_F10:
+                     begin
+                        if ctrlkey then
+                          addextchar(chr(wparam+24))
+                        else if altkey then
+                          addextchar(chr(wparam+34))
+                        else
+                          addextchar(chr(wparam-11));
+                     end;
+                   VK_CONTROL:
+                     ctrlkey:=true;
+                   VK_MENU:
+                     altkey:=true;
+                   VK_SHIFT:
+                     shiftkey:=true;
+                end;
+             end;
+           WM_KEYUP:
+             begin
+                case wparam of
+                   VK_CONTROL:
+                     ctrlkey:=false;
+                   VK_MENU:
+                     altkey:=false;
+                   VK_SHIFT:
+                     shiftkey:=false;
+                end;
              end;
          end;
          msghandler:=0;
@@ -160,7 +226,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2000-03-05 13:07:58  florian
+  Revision 1.5  2000-03-27 12:56:55  florian
+    * special keys like arrows and function keys are supported now by readkey
+
+  Revision 1.4  2000/03/05 13:07:58  florian
     + some more functions added, also some dummies
 
   Revision 1.3  2000/01/07 16:41:53  daniel
