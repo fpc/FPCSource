@@ -14,6 +14,10 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+ 
+const
+   DefaultStackSize = 32768; { including 16384 margin for stackchecking }
+
 
 type
    TThreadFunc = function(parameter : pointer) : longint;
@@ -50,7 +54,10 @@ procedure LeaveCriticalsection(var cs : TRTLCriticalSection);
 
 {
   $Log$
-  Revision 1.8  2002-10-14 19:39:17  peter
+  Revision 1.9  2002-10-16 19:04:27  michael
+  + More system-independent thread routines
+
+  Revision 1.8  2002/10/14 19:39:17  peter
     * threads unit added for thread support
 
   Revision 1.7  2002/09/07 15:07:46  peter

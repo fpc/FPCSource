@@ -18,6 +18,20 @@
                            Threadvar initialization
 *****************************************************************************}
 
+    procedure InitThread(stklen:cardinal);
+      begin
+        SysResetFPU;
+        { ExceptAddrStack and ExceptObjectStack are threadvars       }
+        { so every thread has its on exception handling capabilities }
+        SysInitExceptions;
+        { Open all stdio fds again }
+        SysInitStdio;
+        InOutRes:=0;
+        // ErrNo:=0;
+        { Stack checking }
+        StackLength:=stklen;
+        StackBottom:=Sptr - StackLength;
+      end;
 
 {*****************************************************************************
                             Overloaded functions
@@ -67,7 +81,10 @@
 
 {
   $Log$
-  Revision 1.1  2002-10-14 19:39:17  peter
+  Revision 1.2  2002-10-16 19:04:27  michael
+  + More system-independent thread routines
+
+  Revision 1.1  2002/10/14 19:39:17  peter
     * threads unit added for thread support
 
 }

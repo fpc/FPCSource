@@ -85,11 +85,26 @@ begin
     copy_unit_threadvars (ThreadvarTablesTable.tables[i]);
 end;
 
+    procedure InitThreadVars(RelocProc : Pointer);
+      begin
+        { initialize threadvars }
+        init_all_unit_threadvars;
+        { allocate mem for main thread threadvars }
+        SysAllocateThreadVars;
+        { copy main thread threadvars }
+        copy_all_unit_threadvars;
+        { install threadvar handler }
+        fpc_threadvar_relocate_proc:=RelocProc;
+      end;
+
 {$endif HASTHREADVAR}
 
 {
   $Log$
-  Revision 1.1  2002-10-14 19:39:17  peter
+  Revision 1.2  2002-10-16 19:04:27  michael
+  + More system-independent thread routines
+
+  Revision 1.1  2002/10/14 19:39:17  peter
     * threads unit added for thread support
 
 }
