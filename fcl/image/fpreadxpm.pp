@@ -268,8 +268,12 @@ var l : TStringList;
       begin
       code := copy(s, p, cpp);
       inc(p,cpp);
-      color := Palette.indexof (code);
-      img.pixels[r-1,imgindex] := color;
+      for color := 0 to Palette.Count-1 do
+        { Can't use indexof, as compare must be case sensitive }
+        if code = Palette[color] then begin
+          img.pixels[r-1,imgindex] := color;
+          Break;
+        end;
       end;
   end;
 
