@@ -1337,8 +1337,8 @@ implementation
         hreflo,
         hrefhi,
         href     : treference;
-{$ifdef sparc}
         sizeleft : aint;
+{$ifdef sparc}
         tempref  : treference;
 {$endif sparc}
       begin
@@ -1376,22 +1376,28 @@ implementation
                   if not paramanager.param_use_paraloc(currpara.paraloc[calleeside]) then
                     begin
                       href:=currpara.localloc.reference;
-                      if (currpara.paraloc[calleeside].is_single_reference(paraloc)) then
+                      sizeleft:=currpara.paraloc[calleeside].intsize;
+                      while assigned(paraloc) do
                         begin
                           unget_para(paraloc^);
-                          gen_load_ref(paraloc^,href,currpara.paraloc[calleeside].intsize);
-                        end
-                      else
-                        begin
-                          while assigned(paraloc) do
+                          if (paraloc^.size=OS_NO) then
                             begin
-                              unget_para(paraloc^);
-                              if (paraloc^.size = OS_NO) then
+                              { Can only be a reference that contains the rest
+                                of the parameter }
+                              if (paraloc^.loc<>LOC_REFERENCE) or
+                                 assigned(paraloc^.next) then
                                 internalerror(2005013010);
+                              gen_load_ref(paraloc^,href,sizeleft);
+                              inc(href.offset,sizeleft);
+                              sizeleft:=0;
+                            end
+                          else
+                            begin
                               gen_load_ref(paraloc^,href,tcgsize2size[paraloc^.size]);
                               inc(href.offset,TCGSize2Size[paraloc^.size]);
-                              paraloc:=paraloc^.next;
+                              dec(sizeleft,TCGSize2Size[paraloc^.size]);
                             end;
+                          paraloc:=paraloc^.next;
                         end;
                     end;
                 end;
@@ -2401,7 +2407,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.261  2005-02-15 19:16:04  peter
+  Revision 1.262  2005-02-15 21:39:48  peter
+    * remove is_single_reference
+    * revert loading of ref-to-ref para valu
+
+  Revision 1.261  2005/02/15 19:16:04  peter
     * fix passing of 64bit values when using -Or
 
   Revision 1.260  2005/02/14 17:13:06  peter

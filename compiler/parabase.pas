@@ -63,7 +63,6 @@ unit parabase;
           procedure   reset;
           function    getcopy:tcgpara;
           procedure   check_simple_location;
-          function    is_single_reference(l: pcgparalocation): boolean;
           function    add_location:pcgparalocation;
           procedure   get_location(var newloc:tlocation);
        end;
@@ -177,14 +176,6 @@ implementation
       end;
 
 
-    function tcgpara.is_single_reference(l: pcgparalocation): boolean;
-      begin
-        result :=
-          (l^.loc = LOC_REFERENCE) and
-          not assigned(l^.next);
-      end;
-
-
     procedure tcgpara.check_simple_location;
       begin
         if not assigned(location) then
@@ -261,7 +252,11 @@ end.
 
 {
    $Log$
-   Revision 1.11  2005-02-14 17:13:07  peter
+   Revision 1.12  2005-02-15 21:39:48  peter
+     * remove is_single_reference
+     * revert loading of ref-to-ref para valu
+
+   Revision 1.11  2005/02/14 17:13:07  peter
      * truncate log
 
    Revision 1.10  2005/01/30 21:51:57  jonas

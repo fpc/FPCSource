@@ -705,7 +705,8 @@ implementation
                                  must contain a valid size field }
 
                                if (ppn.tempcgpara.size=OS_NO) and
-                                  not(ppn.tempcgpara.is_single_reference(tmpparaloc)) then
+                                  ((tmpparaloc^.loc<>LOC_REFERENCE) or
+                                   assigned(tmpparaloc^.next)) then
                                  internalerror(200501281);
                                reference_reset_base(href,callerparaloc^.reference.index,callerparaloc^.reference.offset);
                                { copy parameters in case they were moved to a temp. location because we've a fixed stack }
@@ -1225,7 +1226,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.200  2005-02-14 17:13:06  peter
+  Revision 1.201  2005-02-15 21:39:48  peter
+    * remove is_single_reference
+    * revert loading of ref-to-ref para valu
+
+  Revision 1.200  2005/02/14 17:13:06  peter
     * truncate log
 
   Revision 1.199  2005/01/30 21:51:57  jonas
