@@ -36,7 +36,8 @@ end;
 procedure TDataBase.Loaded;
 
 begin
-  //!! To be implemented.
+  inherited;
+  if FOpenAfterRead then SetConnected(true);
 end;
 
 procedure TDataBase.SetConnected (Value : boolean);
@@ -45,11 +46,21 @@ begin
   If Value<>FConnected then
     begin
     If Value then
-      DoInternalConnect
+      begin
+      if csLoading in ComponentState then
+        begin
+        FOpenAfterRead := true;
+        exit;
+        end
+      else
+        DoInternalConnect;
+      end
     else
       begin
       Closedatasets;
       DoInternalDisConnect;
+      if csloading in ComponentState then
+        FOpenAfterRead := false;
       end;
     FConnected:=Value;
     end;
@@ -193,7 +204,25 @@ end;
 
 {
   $Log$
-  Revision 1.4  2003-08-16 16:42:21  michael
+  Revision 1.5  2004-07-25 11:32:40  michael
+  * Patches from Joost van der Sluis
+    interbase.pp:
+        * Removed unused Fprepared
+        * Changed the error message 'database connect string not filled
+          in' to 'database connect string (databasename) not filled in'
+        * Preparestatement and execute now checks if transaction is
+          assigned (in stead of crashing if it isn't) and if the
+          transaction isn't started, it calls starttransaction.
+
+     dataset.inc:
+        * In DoInternalOpen the buffers are now initialised before the
+          dataset is set into browse-state
+
+     database.inc and db.pp:
+        * If the dataset is created from a stream, the database is opened
+          after the dataset is read completely
+
+  Revision 1.4  2003/08/16 16:42:21  michael
   + Fixes in TDBDataset etc. Changed MySQLDb to use database as well
 
   Revision 1.3  2002/09/07 15:15:22  peter

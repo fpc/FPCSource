@@ -204,7 +204,6 @@ type
     FRecordSize          : word;
     FCurrentRecord       : integer;
     FSQL                 : TStrings;
-    FPrepared            : boolean;
     FIsEOF               : boolean;
     FStatementType       : TStatementType;
     FLoadingFieldDefs    : boolean;
@@ -416,7 +415,7 @@ begin
     DPB := DPB + Chr(isc_dpb_lc_ctype) + Chr(Length(CharSet)) + CharSet;
 
   if (DatabaseName = '') then
-    raise EInterBaseError.Create('TIBDatabase.Open: Database connect string not filled in!');
+    raise EInterBaseError.Create('TIBDatabase.Open: Database connect string (DatabaseName) not filled in!');
   FIBDatabaseHandle := nil;
   if isc_attach_database(@FStatus, Length(DatabaseName), @DatabaseName[1], @FIBDatabaseHandle,
          Length(DPB), @DPB[1]) <> 0 then
@@ -635,6 +634,11 @@ var
   x   : integer;
   tr  : pointer;
 begin
+  if FTransaction = nil then
+    raise EDatabaseError.Create('TIBQuery.Execute: Transaction not set');
+  if not FTransaction.Active then
+    FTransaction.StartTransaction;
+
   tr := FTransaction.GetHandle;
 
   for x := 0 to FSQL.Count - 1 do
@@ -861,6 +865,10 @@ procedure TIBQuery.Execute;
 var
   tr : pointer;
 begin
+  if FTransaction = nil then
+    raise EDatabaseError.Create('TIBQuery.Execute: Transaction not set');
+  if not FTransaction.Active then
+    FTransaction.StartTransaction;
   tr := FTransaction.GetHandle;
   if isc_dsql_execute(@FStatus, @tr, @FStatement, 1, nil) <> 0 then
     CheckError('TIBQuery.Execute', FStatus);
@@ -1200,7 +1208,25 @@ end.
 
 {
   $Log$
-  Revision 1.12  2004-05-01 23:56:59  michael
+  Revision 1.13  2004-07-25 11:32:40  michael
+  * Patches from Joost van der Sluis
+    interbase.pp:
+        * Removed unused Fprepared
+        * Changed the error message 'database connect string not filled
+          in' to 'database connect string (databasename) not filled in'
+        * Preparestatement and execute now checks if transaction is
+          assigned (in stead of crashing if it isn't) and if the
+          transaction isn't started, it calls starttransaction.
+
+     dataset.inc:
+        * In DoInternalOpen the buffers are now initialised before the
+          dataset is set into browse-state
+
+     database.inc and db.pp:
+        * If the dataset is created from a stream, the database is opened
+          after the dataset is read completely
+
+  Revision 1.12  2004/05/01 23:56:59  michael
   + Published TDataset properties
 
   Revision 1.11  2003/12/07 23:13:34  sg

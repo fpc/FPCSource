@@ -323,9 +323,8 @@ begin
     InternalOpen;
     FBOF:=True;
 {$ifdef dsdebug}
-    Writeln ('Setting state to browse');
+    Writeln ('Setting buffer size');
 {$endif}
-    SetState(dsBrowse);
 {$ifdef dsdebug}
     Writeln ('Setting buffer size');
 {$endif}
@@ -338,6 +337,10 @@ begin
     *)
     RecalcBufListSize;
     //SetBufferCount(DefaultBufferCount);
+{$ifdef dsdebug}
+    Writeln ('Setting state to browse');
+{$endif}
+    SetState(dsBrowse);
     DoAfterOpen;
     DoAfterScroll;
   except
@@ -573,7 +576,7 @@ Var Shifted : boolean;
 
 begin
 {$ifdef dsdebug}
-  Writeln ('Getting previous record');
+  Writeln ('GetPriorRecord: Getting previous record');
 {$endif}
   Shifted:=FRecordCount>0;
   If Shifted Then
@@ -1076,7 +1079,7 @@ begin
     SetBookMarkFlag(Buffer,bfEOF);
     FRecordCount:=1;
 {$ifdef dsdebug}
-    Writeln ('getting prior records');
+    Writeln ('DoInsertAppend: getting prior records');
 {$endif}
     GetPriorRecords;
     // update active record.
@@ -1535,25 +1538,37 @@ Var Count,ShiftCount : Longint;
 
 begin
   // See if we can find the requested record.
+{$ifdef dsdebug}
+    Writeln ('Resync called');
+{$endif}
   If rmExact in Mode then
     begin
+{$ifdef dsdebug}
+    Writeln ('Exact resync');
+{$endif}
     { throw an exception if not found.
       Normally the descendant should do this if DoCheck is true. }
-    If GetRecord(Fbuffers[FRecordCount],gmcurrent,True)<>grOk Then
+    If GetRecord(Fbuffers[FRecordCount-1],gmcurrent,True)<>grOk Then
       DatabaseError(SNoSuchRecord,Self);
     end
   else
     { Can we find a record in the neighbourhood ?
       Use Shortcut evaluation for this, or we'll have some funny results. }
-    If (GetRecord(Fbuffers[FRecordCount],gmcurrent,True)<>grOk) and
-       (GetRecord(Fbuffers[FRecordCount],gmprior,True)<>grOk) and
-       (GetRecord(Fbuffers[FRecordCount],gmprior,True)<>grOk) then
+    If (GetRecord(Fbuffers[FRecordCount-1],gmcurrent,True)<>grOk) and
+       (GetRecord(Fbuffers[FRecordCount-1],gmprior,True)<>grOk) and
+       (GetRecord(Fbuffers[FRecordCount-1],gmprior,True)<>grOk) then
        begin
+{$ifdef dsdebug}
+       Writeln ('Resync: fuzzy resync');
+{$endif}
        // nothing found, invalidate buffer and bail out.
        ClearBuffers;
        DataEvent(deDatasetChange,0);
        Exit;
        end;
+{$ifdef dsdebug}
+   Writeln ('Resync: Center in  resync: ',(rmCenter in Mode));
+{$endif}
   If (rmCenter in Mode) then
     ShiftCount:=FbufferCount div 2
   else
@@ -1561,17 +1576,23 @@ begin
     ShiftCount:=FActiveRecord;
   // Reposition on 0
   ShiftBuffers(0,FRecordCount-1);
+{$ifdef dsdebug}
+    Writeln ('Resync: activating buffers');
+{$endif}
   ActivateBuffers;
   try
     Count:=0;
 {$ifdef dsdebug}
-    Writeln ('Getting previous',ShiftCount,' records');
+    Writeln ('Resync: Getting previous ',ShiftCount,' records');
 {$endif}
     While (Count<ShiftCount) and GetPriorRecord do
       Inc(Count);
     FActiveRecord:=Count;
     // fill rest of buffers, adjust ActiveBuffer.
-    SetCurrentRecord(FRecordCount);
+{$ifdef dsdebug}
+    Writeln ('Resync: Set current record to ',FRecordCount,' records');
+{$endif}
+    SetCurrentRecord(FRecordCount-1);
     GetNextRecords;
     Inc(FActiveRecord,GetPriorRecords);
   finally
@@ -1719,8 +1740,23 @@ end;
 
 {
   $Log$
-  Revision 1.14  2004-07-16 19:37:40  michael
-  + Fix in resync for empty table
+  Revision 1.15  2004-07-25 11:32:40  michael
+  * Patches from Joost van der Sluis
+    interbase.pp:
+        * Removed unused Fprepared
+        * Changed the error message 'database connect string not filled
+          in' to 'database connect string (databasename) not filled in'
+        * Preparestatement and execute now checks if transaction is
+          assigned (in stead of crashing if it isn't) and if the
+          transaction isn't started, it calls starttransaction.
+
+     dataset.inc:
+        * In DoInternalOpen the buffers are now initialised before the
+          dataset is set into browse-state
+
+     database.inc and db.pp:
+        * If the dataset is created from a stream, the database is opened
+          after the dataset is read completely
 
   Revision 1.13  2004/05/02 21:23:18  peter
     * use ptrint

@@ -1207,6 +1207,7 @@ type
     FOnLogin : TLoginEvent;
     FParams : TStrings;
     FSQLBased : Boolean;
+    FOpenAfterRead : boolean;
     Function GetDataSetCount : Longint;
     Function GetDataset(Index : longint) : TDBDataset;
     procedure SetConnected (Value : boolean);
@@ -1499,7 +1500,25 @@ end.
 
 {
   $Log$
-  Revision 1.18  2004-07-19 20:27:28  michael
+  Revision 1.19  2004-07-25 11:32:40  michael
+  * Patches from Joost van der Sluis
+    interbase.pp:
+        * Removed unused Fprepared
+        * Changed the error message 'database connect string not filled
+          in' to 'database connect string (databasename) not filled in'
+        * Preparestatement and execute now checks if transaction is
+          assigned (in stead of crashing if it isn't) and if the
+          transaction isn't started, it calls starttransaction.
+
+     dataset.inc:
+        * In DoInternalOpen the buffers are now initialised before the
+          dataset is set into browse-state
+
+     database.inc and db.pp:
+        * If the dataset is created from a stream, the database is opened
+          after the dataset is read completely
+
+  Revision 1.18  2004/07/19 20:27:28  michael
   + Fixes from Jesus Reyes to implement DisplayWith, DisplayLabel, Visibility
 
   Revision 1.17  2004/07/18 13:16:50  michael
