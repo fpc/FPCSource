@@ -36,6 +36,7 @@ unit ag386att;
         procedure WriteAsmList;virtual;
 {$ifdef GDB}
         procedure WriteFileLineInfo(var fileinfo : tfileposinfo);
+        procedure WriteFileEndInfo;
 {$endif}
       end;
 
@@ -333,6 +334,16 @@ unit ag386att;
            end;
           stabslastfileinfo:=fileinfo;
         end;
+
+      procedure ti386attasmlist.WriteFileEndInfo;
+
+        begin
+          AsmLn;
+          AsmWriteLn(ait_section2str(sec_code));
+          AsmWriteLn(#9'.stabs "",'+tostr(n_sourcefile)+',0,0,Letext');
+          AsmWriteLn('Letext:');
+        end;
+
 {$endif GDB}
 
 
@@ -859,6 +870,7 @@ unit ag386att;
       if not UseDeffileForExport and assigned(exportssection) then
         Writetree(exportssection);
       Writetree(resourcesection);
+      WriteFileEndInfo;
       countlabelref:=true;
 
       AsmLn;
@@ -872,7 +884,10 @@ unit ag386att;
 end.
 {
   $Log$
-  Revision 1.26  2000-02-09 13:22:42  peter
+  Revision 1.27  2000-02-18 12:31:07  pierre
+   * Reset file name to empty at end of code section
+
+  Revision 1.26  2000/02/09 13:22:42  peter
     * log truncated
 
   Revision 1.25  2000/02/07 17:51:20  peter

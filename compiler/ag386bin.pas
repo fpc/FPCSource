@@ -64,6 +64,7 @@ unit ag386bin;
         procedure emitstabs(s:string);
         procedure WriteFileLineInfo(var fileinfo : tfileposinfo);
         procedure StartFileLineInfo;
+        procedure EndFileLineInfo;
 {$endif}
         function  MaybeNextList(var hp:pai):boolean;
         function  TreePass0(hp:pai):pai;
@@ -337,6 +338,23 @@ unit ag386bin;
         fileinfo.fileindex:=1;
         fileinfo.line:=1;
         WriteFileLineInfo(fileinfo);
+      end;
+
+    procedure ti386binasmlist.EndFileLineInfo;
+      var
+        hp : pasmsymbol;
+      begin
+        objectalloc^.setsection(sec_code);
+        hp:=newasmsymbol('Letext');
+        if currpass=1 then
+          begin
+            hp^.settyp(AS_LOCAL);
+            hp^.setaddress(objectalloc^.currsec,objectalloc^.sectionsize,0);
+          end
+        else
+          objectoutput^.writesymbol(hp);
+        EmitStabs('"",'+tostr(n_sourcefile)+
+             ',0,0,Letext');
       end;
 {$endif GDB}
 
@@ -744,6 +762,9 @@ unit ag386bin;
            hp:=TreePass1(hp);
            MaybeNextList(hp);
          end;
+{$ifdef GDB}
+        EndFileLineInfo;
+{$endif GDB}
         { check for undefined labels }
         CheckAsmSymbolListUndefined;
         { set section sizes }
@@ -766,6 +787,9 @@ unit ag386bin;
            hp:=TreePass2(hp);
            MaybeNextList(hp);
          end;
+{$ifdef GDB}
+        EndFileLineInfo;
+{$endif GDB}
       end;
 
 
@@ -803,6 +827,9 @@ unit ag386bin;
            StartFileLineInfo;
 {$endif GDB}
            TreePass1(hp);
+{$ifdef GDB}
+           EndFileLineInfo;
+{$endif GDB}
            { check for undefined labels }
            CheckAsmSymbolListUndefined;
            { set section sizes }
@@ -855,6 +882,9 @@ unit ag386bin;
 
            if not MaybeNextList(hp) then
             break;
+{$ifdef GDB}
+        EndFileLineInfo;
+{$endif GDB}
          end;
       end;
 
@@ -931,7 +961,10 @@ unit ag386bin;
 end.
 {
   $Log$
-  Revision 1.36  2000-02-09 13:22:43  peter
+  Revision 1.37  2000-02-18 12:31:07  pierre
+   * Reset file name to empty at end of code section
+
+  Revision 1.36  2000/02/09 13:22:43  peter
     * log truncated
 
   Revision 1.35  2000/01/20 00:21:49  pierre
