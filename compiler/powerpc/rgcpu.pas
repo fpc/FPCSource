@@ -37,6 +37,8 @@ unit rgcpu;
        trgcpu = class(trgobj)
          function getexplicitregisterint(list: taasmoutput; reg: Tnewregister): tregister; override;
          procedure ungetregisterint(list: taasmoutput; reg: tregister); override;
+         function getexplicitregisterfpu(list : taasmoutput; r : Toldregister) : tregister;override;
+         procedure ungetregisterfpu(list: taasmoutput; r : tregister);override;
          procedure saveusedintregisters(list:Taasmoutput;
                                          var saved:Tpushedsavedint;
                                          const s:Tsupregset);override;
@@ -46,6 +48,7 @@ unit rgcpu;
          procedure cleartempgen; override;
         private
          usedpararegs: Tsupregset;
+         usedparafpuregs: tregisterset;
        end;
 
   implementation
@@ -55,8 +58,6 @@ unit rgcpu;
 
     function trgcpu.getexplicitregisterint(list: taasmoutput; reg: Tnewregister): tregister;
 
-    var r:Tregister;
-
       begin
         if ((reg shr 8) in [RS_R0,RS_R2..RS_R12]) and
            not((reg shr 8) in is_reg_var_int) then
@@ -64,10 +65,9 @@ unit rgcpu;
             if (reg shr 8) in usedpararegs then
               internalerror(2003060701);
             include(usedpararegs,reg shr 8);
-            r.enum:=R_INTREGISTER;
-            r.number:=reg;
-            cg.a_reg_alloc(list,r);
-            result := r;
+            result.enum:=R_INTREGISTER;
+            result.number:=reg;
+            cg.a_reg_alloc(list,result);
           end
         else result := inherited getexplicitregisterint(list,reg);
       end;
@@ -86,6 +86,37 @@ unit rgcpu;
           end
         else
           inherited ungetregisterint(list,reg);
+      end;
+
+
+    function trgcpu.getexplicitregisterfpu(list : taasmoutput; r : Toldregister) : tregister;
+      begin
+        if (r in [R_F1..R_F13]) and
+           not is_reg_var_other[r] then
+          begin
+            if r in usedparafpuregs then
+              internalerror(2003060902);
+            include(usedparafpuregs,r);
+            result.enum := r;
+            cg.a_reg_alloc(list,result);
+          end
+        else
+          result := inherited getexplicitregisterfpu(list,r);
+      end;
+
+
+    procedure trgcpu.ungetregisterfpu(list: taasmoutput; r : tregister);
+      begin
+        if (r.enum in [R_F1..R_F13]) and
+           not is_reg_var_other[r.enum] then
+          begin
+            if not(r.enum in usedparafpuregs) then
+              internalerror(2003060903);
+            exclude(usedparafpuregs,r.enum);
+            cg.a_reg_dealloc(list,r);
+          end
+        else
+          inherited ungetregisterfpu(list,r);
       end;
 
 
@@ -116,6 +147,7 @@ unit rgcpu;
       begin
         inherited cleartempgen;
         usedpararegs := [];
+        usedparafpuregs := [];
       end;
 
 initialization
@@ -124,7 +156,13 @@ end.
 
 {
   $Log$
-  Revision 1.8  2003-06-07 18:57:04  jonas
+  Revision 1.9  2003-06-09 14:54:26  jonas
+    * (de)allocation of registers for parameters is now performed properly
+      (and checked on the ppc)
+    - removed obsolete allocation of all parameter registers at the start
+      of a procedure (and deallocation at the end)
+
+  Revision 1.8  2003/06/07 18:57:04  jonas
     + added freeintparaloc
     * ppc get/freeintparaloc now check whether the parameter regs are
       properly allocated/deallocated (and get an extra list para)

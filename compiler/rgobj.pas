@@ -280,7 +280,7 @@ unit rgobj;
 
              @param(r specific register to allocate)
           }
-          function getexplicitregisterfpu(list : taasmoutput; r : Toldregister) : tregister;
+          function getexplicitregisterfpu(list : taasmoutput; r : Toldregister) : tregister;virtual;
 
           {# Deallocate any kind of register }
           procedure ungetregister(list: taasmoutput; r : tregister); virtual;
@@ -2463,7 +2463,13 @@ end.
 
 {
   $Log$
-  Revision 1.50  2003-06-03 21:11:09  peter
+  Revision 1.51  2003-06-09 14:54:26  jonas
+    * (de)allocation of registers for parameters is now performed properly
+      (and checked on the ppc)
+    - removed obsolete allocation of all parameter registers at the start
+      of a procedure (and deallocation at the end)
+
+  Revision 1.50  2003/06/03 21:11:09  peter
     * cg.a_load_* get a from and to size specifier
     * makeregsize only accepts newregister
     * i386 uses generic tcgnotnode,tcgunaryminus

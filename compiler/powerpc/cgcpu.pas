@@ -993,13 +993,6 @@ const
              r.number:=NR_R11;
              a_reg_alloc(list,r);
           end;
-        { allocate registers containing reg parameters }
-        r.enum := R_INTREGISTER;
-        for regcounter2 := RS_R3 to RS_R10 do
-          begin
-            r.number:=regcounter2 shl 8;
-            a_reg_alloc(list,r);
-          end;
 
 
         usesfpr:=false;
@@ -1227,13 +1220,6 @@ const
 
       begin
         localsize := 0;
-        { release parameter registers }
-        r.enum := R_INTREGISTER;
-        for regcounter2 := RS_R3 to RS_R10 do
-          begin
-            r.number:=regcounter2 shl 8;
-            a_reg_dealloc(list,r);
-          end;
         { AltiVec context restore, not yet implemented !!! }
 
         usesfpr:=false;
@@ -1545,16 +1531,6 @@ const
         a_reg_alloc(list,rsp);
         a_reg_alloc(list,r);
 
-        { allocate registers containing reg parameters }
-        r.enum := R_INTREGISTER;
-        for regcounter2 := RS_R3 to RS_R10 do
-          begin
-            r.number:=regcounter2 shl 8;
-            a_reg_alloc(list,r);
-          end;
-
-        {TODO: Allocate fp and altivec parameter registers also}
-
         { save return address in callers frame}
         r2.enum:=R_LR;
         list.concat(taicpu.op_reg_reg(A_MFSPR,r,r2));
@@ -1628,15 +1604,6 @@ const
         r,r2,rsp:Tregister;
         regcounter2: Tsuperregister;
       begin
-        { release parameter registers }
-        r.enum := R_INTREGISTER;
-        for regcounter2 := RS_R3 to RS_R10 do
-          begin
-            r.number := regcounter2 shl 8;
-            a_reg_dealloc(list,r);
-          end;
-        {TODO: Release fp and altivec parameter registers also}
-
         r.enum:=R_INTREGISTER;
         r.number:=NR_R0;
         rsp.enum:=R_INTREGISTER;
@@ -2565,7 +2532,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.106  2003-06-08 18:19:27  jonas
+  Revision 1.107  2003-06-09 14:54:26  jonas
+    * (de)allocation of registers for parameters is now performed properly
+      (and checked on the ppc)
+    - removed obsolete allocation of all parameter registers at the start
+      of a procedure (and deallocation at the end)
+
+  Revision 1.106  2003/06/08 18:19:27  jonas
     - removed duplicate identifier
 
   Revision 1.105  2003/06/07 18:57:04  jonas

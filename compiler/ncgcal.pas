@@ -132,6 +132,8 @@ implementation
          objectlibrary.getlabel(truelabel);
          objectlibrary.getlabel(falselabel);
          secondpass(left);
+         { allocate paraloc }
+         paramanager.allocparaloc(exprasmlist,paraitem.paraloc);
          { handle varargs first, because defcoll is not valid }
          if (nf_varargs_para in flags) then
            begin
@@ -918,6 +920,9 @@ implementation
             {$endif newra}
            end;
 
+         { free the resources allocated for the parameters }
+         paramanager.freeparalocs(exprasmlist,tparaitem(procdefinition.para.first));
+
          { Need to remove the parameters from the stack? }
          if (po_clearstack in procdefinition.procoptions) then
           begin
@@ -1407,7 +1412,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.89  2003-06-09 12:23:29  peter
+  Revision 1.90  2003-06-09 14:54:26  jonas
+    * (de)allocation of registers for parameters is now performed properly
+      (and checked on the ppc)
+    - removed obsolete allocation of all parameter registers at the start
+      of a procedure (and deallocation at the end)
+
+  Revision 1.89  2003/06/09 12:23:29  peter
     * init/final of procedure data splitted from genentrycode
     * use asmnode getposition to insert final at the correct position
       als for the implicit try...finally

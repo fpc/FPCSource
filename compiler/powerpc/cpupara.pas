@@ -38,6 +38,8 @@ unit cpupara;
           function push_addr_param(def : tdef;calloption : tproccalloption) : boolean;override;
           function getintparaloc(list: taasmoutput; nr : longint) : tparalocation;override;
           procedure freeintparaloc(list: taasmoutput; nr : longint); override;
+          procedure allocparaloc(list: taasmoutput; const loc: tparalocation);
+          procedure freeparaloc(list: taasmoutput; const loc: tparalocation);
           procedure create_param_loc_info(p : tabstractprocdef);override;
           function getfuncretparaloc(p : tabstractprocdef) : tparalocation;override;
        end;
@@ -89,6 +91,25 @@ unit cpupara;
              rg.ungetregisterint(list,r);
            end;
       end;
+
+
+    procedure tppcparamanager.allocparaloc(list: taasmoutput; const loc: tparalocation);
+      begin
+        if (loc.size in [OS_64,OS_S64]) and
+           (loc.loc in [LOC_REGISTER,LOC_CREGISTER])  then
+          rg.getexplicitregisterint(list,loc.registerhigh.number);
+        inherited allocparaloc(list,loc);
+      end;
+
+
+    procedure tppcparamanager.freeparaloc(list: taasmoutput; const loc: tparalocation);
+      begin
+        if (loc.size in [OS_64,OS_S64]) and
+           (loc.loc in [LOC_REGISTER,LOC_CREGISTER])  then
+          rg.ungetregisterint(list,loc.registerhigh);
+        inherited allocparaloc(list,loc);
+      end;
+
 
     function getparaloc(p : tdef) : tcgloc;
 
@@ -364,7 +385,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.36  2003-06-08 10:52:01  jonas
+  Revision 1.37  2003-06-09 14:54:26  jonas
+    * (de)allocation of registers for parameters is now performed properly
+      (and checked on the ppc)
+    - removed obsolete allocation of all parameter registers at the start
+      of a procedure (and deallocation at the end)
+
+  Revision 1.36  2003/06/08 10:52:01  jonas
     * zero paraloc tregisters, so that the alignment bytes are 0 (otherwise
       the crc of the ppu files can change between interface and
       implementation)

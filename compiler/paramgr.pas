@@ -75,9 +75,33 @@ unit paramgr;
           {# frees a parameter location allocated with getintparaloc
 
             @param(list Current assembler list)
-            @param(nr Parameter numver of routine, starting from 1)
+            @param(nr Parameter number of routine, starting from 1)
           }
           procedure freeintparaloc(list: taasmoutput; nr : longint); virtual;
+
+
+          {# allocate a parameter location created with create_param_loc_info
+
+            @param(list Current assembler list)
+            @param(loc Parameter location)
+          }
+          procedure allocparaloc(list: taasmoutput; const loc: tparalocation); virtual;
+
+          {# free a parameter location allocated with allocparaloc
+
+            @param(list Current assembler list)
+            @param(loc Parameter location)
+          }
+          procedure freeparaloc(list: taasmoutput; const loc: tparalocation); virtual;
+
+          {# free all parameters allocated with allocparaloc for a procedure
+
+            @param(list Current assembler list)
+            @param(paraitem First paraitem of the procedure)
+          }
+          procedure freeparalocs(list: taasmoutput; paraitem: tparaitem);
+
+
 
           {# This is used to populate the location information on all parameters
              for the routine. This is used for normal call resolution.
@@ -253,6 +277,46 @@ unit paramgr;
       end;
 
 
+    procedure tparamanager.allocparaloc(list: taasmoutput; const loc: tparalocation);
+      begin
+        case loc.loc of
+          LOC_REGISTER, LOC_CREGISTER:
+            rg.getexplicitregisterint(list,loc.register.number);
+          LOC_FPUREGISTER, LOC_CFPUREGISTER:
+            rg.getexplicitregisterfpu(list,loc.register.enum);
+          LOC_REFERENCE,LOC_CREFERENCE:
+            { do nothing by default, most of the time it's the framepointer }
+          else
+            internalerror(200306091);
+        end;
+      end;
+
+
+    procedure tparamanager.freeparaloc(list: taasmoutput; const loc: tparalocation);
+      begin
+        case loc.loc of
+          LOC_REGISTER, LOC_CREGISTER:
+            rg.ungetregisterint(list,loc.register);
+          LOC_FPUREGISTER, LOC_CFPUREGISTER:
+            rg.ungetregisterfpu(list,loc.register);
+          LOC_REFERENCE,LOC_CREFERENCE:
+            { do nothing by default, most of the time it's the framepointer }
+          else
+            internalerror(200306091);
+        end;
+      end;
+
+
+    procedure tparamanager.freeparalocs(list: taasmoutput; paraitem: tparaitem);
+      begin
+        while assigned(paraitem) do
+          begin
+            freeparaloc(list,paraitem.paraloc);
+            paraitem := tparaitem(paraitem.next);
+          end;
+      end;
+
+
     function tparamanager.getfuncretparaloc(p : tabstractprocdef) : tparalocation;
       begin
          result.loc:=LOC_REFERENCE;
@@ -395,7 +459,13 @@ end.
 
 {
    $Log$
-   Revision 1.42  2003-06-08 10:54:41  jonas
+   Revision 1.43  2003-06-09 14:54:26  jonas
+     * (de)allocation of registers for parameters is now performed properly
+       (and checked on the ppc)
+     - removed obsolete allocation of all parameter registers at the start
+       of a procedure (and deallocation at the end)
+
+   Revision 1.42  2003/06/08 10:54:41  jonas
      - disabled changing of LOC_*REGISTER to LOC_C*REGISTER in setparalocs,
        this is not necessary anymore (doesn't do anything anymore actually,
        except making sure the interface crc changes)
