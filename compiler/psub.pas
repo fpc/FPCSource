@@ -120,7 +120,9 @@ begin
     end;
 
 { method ? }
-  if not(parse_only) and try_to_consume(_POINT) then
+  if not(parse_only) and
+     (lexlevel=normal_function_level) and
+     try_to_consume(_POINT) then
    begin
      storepos:=tokenpos;
      tokenpos:=procstartfilepos;
@@ -1996,7 +1998,10 @@ end.
 
 {
   $Log$
-  Revision 1.53  2000-03-16 16:41:13  pierre
+  Revision 1.54  2000-03-23 22:17:51  pierre
+   * fix tf000008 bug
+
+  Revision 1.53  2000/03/16 16:41:13  pierre
    * fix for bug 807
 
   Revision 1.52  2000/03/15 23:10:00  pierre
