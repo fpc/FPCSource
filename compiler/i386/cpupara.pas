@@ -317,7 +317,15 @@ unit cpupara;
           and we save 6 register + 4 selectors }
         if po_interrupt in p.procoptions then
           inc(parasize,8+6*4+4*2);
-        { Assign fields }
+        { Offset is calculated like:
+           sub esp,12
+           mov [esp+8],para3
+           mov [esp+4],para2
+           mov [esp],para1
+           call function
+          That means the for pushes the para with the
+          highest offset (see para3) needs to be pushed first
+        }
         hp:=tparaitem(p.para.first);
         while assigned(hp) do
           begin
@@ -338,39 +346,34 @@ unit cpupara;
             hp.paraloc[side]:=paraloc;
             hp:=tparaitem(hp.next);
           end;
-        { Adapt offsets, for right-to-left calling we need to reverse the
-          offsets for the caller. For left-to-right calling we need to
-          reverse the offsets in the callee }
-        if (side=callerside) then
-          begin
-            if not(p.proccalloption in pushleftright_pocalls) then
-              begin
-                hp:=tparaitem(p.para.first);
-                while assigned(hp) do
-                  begin
-                    l:=push_size(hp.paratyp,hp.paratype.def,p.proccalloption);
-                    varalign:=used_align(size_2_align(l),paraalign,paraalign);
-                    l:=align(l,varalign);
-                    hp.paraloc[side].reference.offset:=parasize-hp.paraloc[side].reference.offset-l;
-                    hp:=tparaitem(hp.next);
-                  end;
-              end;
-          end
-        else
+        { Adapt offsets for left-to-right calling }
+        if p.proccalloption in pushleftright_pocalls then
           begin
             hp:=tparaitem(p.para.first);
             while assigned(hp) do
               begin
-                if (p.proccalloption in pushleftright_pocalls) then
-                  begin
-                    l:=push_size(hp.paratyp,hp.paratype.def,p.proccalloption);
-                    varalign:=used_align(size_2_align(l),paraalign,paraalign);
-                    l:=align(l,varalign);
-                    hp.paraloc[side].reference.offset:=parasize-hp.paraloc[side].reference.offset-l;
-                  end;
-                inc(hp.paraloc[side].reference.offset,target_info.first_parm_offset);
+                l:=push_size(hp.paratyp,hp.paratype.def,p.proccalloption);
+                varalign:=used_align(size_2_align(l),paraalign,paraalign);
+                l:=align(l,varalign);
+                hp.paraloc[side].reference.offset:=parasize-hp.paraloc[side].reference.offset-l;
+                if side=calleeside then
+                  inc(hp.paraloc[side].reference.offset,target_info.first_parm_offset);
                 hp:=tparaitem(hp.next);
               end;
+          end
+        else
+          begin
+            { Only need to adapt the callee side to include the
+              standard stackframe size }
+            if side=calleeside then
+              begin
+                hp:=tparaitem(p.para.first);
+                while assigned(hp) do
+                  begin
+                    inc(hp.paraloc[side].reference.offset,target_info.first_parm_offset);
+                    hp:=tparaitem(hp.next);
+                  end;
+               end;
           end;
         { We need to return the size allocated }
         result:=parasize;
@@ -497,7 +500,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.44  2003-11-23 17:05:16  peter
+  Revision 1.45  2003-11-28 17:24:22  peter
+    * reversed offset calculation for caller side so it works
+      correctly for interfaces
+
+  Revision 1.44  2003/11/23 17:05:16  peter
     * register calling is left-right
     * parameter ordering
     * left-right calling inserts result parameter last

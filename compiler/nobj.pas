@@ -1354,7 +1354,9 @@ implementation
           cg.a_op_const_reg(exprasmlist,OP_SUB,locpara.size,ioffset,locpara.register);
         LOC_REFERENCE:
           begin
-             reference_reset_base(href,locpara.reference.index,locpara.reference.offset);
+             { offset in the wrapper needs to be adjusted for the stored
+               return address }
+             reference_reset_base(href,locpara.reference.index,locpara.reference.offset+POINTER_SIZE);
              cg.a_op_const_ref(exprasmlist,OP_SUB,locpara.size,ioffset,href);
           end
         else
@@ -1368,7 +1370,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.55  2003-10-30 16:23:13  peter
+  Revision 1.56  2003-11-28 17:24:22  peter
+    * reversed offset calculation for caller side so it works
+      correctly for interfaces
+
+  Revision 1.55  2003/10/30 16:23:13  peter
     * don't search for overloads in parents for constructors
 
   Revision 1.54  2003/10/29 19:48:50  peter

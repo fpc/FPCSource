@@ -2363,9 +2363,18 @@ type
                       case hp.paraitem.paraloc[callerside].loc of
                         LOC_REFERENCE :
                           begin
+                            { Offset is calculated like:
+                               sub esp,12
+                               mov [esp+8],para3
+                               mov [esp+4],para2
+                               mov [esp],para1
+                               call function
+                              That means the for pushes the para with the
+                              highest offset (see para3) needs to be pushed first
+                            }
                             if (hpcurr.registers32>hp.registers32)
 {$ifdef x86}
-                               or (hpcurr.paraitem.paraloc[callerside].reference.offset<hp.paraitem.paraloc[callerside].reference.offset)
+                               or (hpcurr.paraitem.paraloc[callerside].reference.offset>hp.paraitem.paraloc[callerside].reference.offset)
 {$endif x86}
                                then
                               break;
@@ -2685,7 +2694,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.208  2003-11-23 17:05:15  peter
+  Revision 1.209  2003-11-28 17:24:22  peter
+    * reversed offset calculation for caller side so it works
+      correctly for interfaces
+
+  Revision 1.208  2003/11/23 17:05:15  peter
     * register calling is left-right
     * parameter ordering
     * left-right calling inserts result parameter last
