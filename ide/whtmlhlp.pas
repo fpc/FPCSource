@@ -135,9 +135,10 @@ type
 {      Anchor: TAnchor;}
       { Table stuff }
       CurrentTable : PTable;
-      procedure AddText(S: string);
+      procedure AddText(const S: string);
       procedure AddChar(C: char);
       procedure AddCharAt(C: char;AtPtr : sw_word);
+      function AddTextAt(const S: string;AtPtr : sw_word) : sw_word;
     end;
 
     PCustomHTMLHelpFile = ^TCustomHTMLHelpFile;
@@ -279,13 +280,10 @@ end;
 
 procedure TTable.TextInsert(Pos : sw_word;const S : string);
 var
-  i : longint;
+  i : sw_word;
 begin
-  for i:=1 to Length(S) do
-    begin
-      Renderer^.AddCharAt(S[i],Pos+i-1+GlobalOffset);
-    end;
-  GlobalOffset:=GlobalOffset+length(S);
+  i:=Renderer^.AddTextAt(S[i],Pos+GlobalOffset);
+  GlobalOffset:=GlobalOffset+i;
 end;
 
 procedure TTable.FormatTable;
@@ -349,7 +347,10 @@ begin
             begin
               TextBegin:=CurEl^.TextBegin;
               TextEnd:=CurEl^.TextEnd;
-              Length:=CurEl^.TextEnd-CurEl^.TextBegin;
+              While (TextEnd>TextBegin) and
+                    (Renderer^.Topic^.Text^[TextEnd+GlobalOffset]=ord(hscLineBreak)) do
+                dec(TextEnd);
+              Length:=TextEnd-TextBegin;
               Align:=CurEl^.Alignment;
             end;
           if WithBorder then
@@ -708,7 +709,7 @@ var Src,Alt,SrcLine: string;
     f : text;
     attr : byte;
     PA : PHTMLAnsiView;
-
+    StorePreformatted : boolean;
 begin
   if DocGetTagParam('SRC',src) then
     begin
@@ -724,11 +725,12 @@ begin
               PA:=New(PHTMLAnsiView,init(@self));
               PA^.LoadFile(src);
               if AnyCharsInLine then DocBreak;
+              StorePreformatted:=InPreformatted;
               InPreformatted:=true;
               {AddText('Image from '+src+hscLineBreak); }
               AddChar(hscInImage);
               PA^.CopyToHTML;
-              InPreformatted:=false;
+              InPreformatted:=StorePreformatted;
               AddChar(hscInImage);
               AddChar(hscNormText);
               if AnyCharsInLine then DocBreak;
@@ -763,7 +765,13 @@ begin
     end;
   if Alt<>'' then
     begin
+      StorePreformatted:=InPreformatted;
+      InPreformatted:=true;
+      AddChar(hscInImage);
       AddText('['+Alt+']');
+      AddChar(hscInImage);
+      AddChar(hscNormText);
+      InPreformatted:=StorePreformatted;
     end;
 end;
 
@@ -922,7 +930,8 @@ var
 begin
   if Entered then
     begin
-      if assigned(CurrentTable^.LastLine) and Assigned(CurrentTable^.LastLine^.LastEl) then
+      if assigned(CurrentTable^.LastLine) and Assigned(CurrentTable^.LastLine^.LastEl) and
+         (CurrentTable^.LastLine^.LastEl^.TextEnd=-1) then
         begin
           NewEl:=CurrentTable^.LastLine^.LastEl;
           NewEl^.TextEnd:=TextPtr;
@@ -933,6 +942,7 @@ begin
       New(NewEl,Init(PAlignEl));
       CurrentTable^.AddElement(NewEl);
       NewEl^.TextBegin:=TextPtr;
+      NewEl^.TextEnd:=-1;
       { AddText(' - ');}
     end
   else
@@ -975,11 +985,35 @@ begin
   Inc(TextPtr);
 end;
 
-procedure THTMLTopicRenderer.AddText(S: string);
+procedure THTMLTopicRenderer.AddText(const S: string);
 var I: sw_integer;
 begin
   for I:=1 to length(S) do
     AddChar(S[I]);
+end;
+
+function THTMLTopicRenderer.AddTextAt(const S: String;AtPtr : sw_word) : sw_word;
+var
+  i,slen,len : sw_word;
+begin
+  if (Topic=nil) or (TextPtr>=MaxBytes) then Exit;
+  slen:=length(s);
+  if TextPtr+slen>=MaxBytes then
+    slen:=MaxBytes-TextPtr;
+  if AtPtr>TextPtr then
+    AtPtr:=TextPtr
+  else
+    begin
+      len:=TextPtr-AtPtr;
+      Move(Topic^.Text^[AtPtr],Topic^.Text^[AtPtr+slen],len);
+    end;
+  for i:=1 to slen do
+    begin
+      Topic^.Text^[AtPtr]:=ord(S[i]);
+      Inc(TextPtr);
+      if (TextPtr=MaxBytes) then Exit;
+    end;
+  AddTextAt:=slen;
 end;
 
 function THTMLTopicRenderer.GetSectionColor(Section: THTMLSection; var Color: byte): boolean;
@@ -1233,7 +1267,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.6  2002-09-07 15:40:49  peter
+  Revision 1.7  2003-03-27 14:37:52  pierre
+   * try to enhance dispaly of new html docs
+
+  Revision 1.6  2002/09/07 15:40:49  peter
     * old logs removed and tabs fixed
 
   Revision 1.5  2002/04/23 09:55:22  pierre
