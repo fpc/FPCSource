@@ -312,7 +312,8 @@ implementation
                    begin
                       clear_location(pto^.location);
                       pto^.location.loc:=LOC_REFERENCE;
-                      gettempansistringreference(pto^.location.reference);
+                      if gettempansistringreference(pto^.location.reference) then
+                       decrstringref(cansistringdef,pto^.location.reference);
                       pushusedregisters(pushed,$ff);
                       emit_push_lea_loc(pfrom^.location);
                       emit_push_lea_loc(pto^.location);
@@ -489,7 +490,8 @@ implementation
              end;
            st_ansistring :
              begin
-               gettempansistringreference(pto^.location.reference);
+               if gettempansistringreference(pto^.location.reference) then
+                 decrstringref(cansistringdef,pto^.location.reference);
                release_loc(pfrom^.location);
                pushusedregisters(pushed,$ff);
                push_int(l);
@@ -534,7 +536,8 @@ implementation
              end;
            st_ansistring :
              begin
-               gettempansistringreference(pto^.location.reference);
+               if gettempansistringreference(pto^.location.reference) then
+                 decrstringref(cansistringdef,pto^.location.reference);
                release_loc(pfrom^.location);
                pushusedregisters(pushed,$ff);
                emit_pushw_loc(pfrom^.location);
@@ -1052,7 +1055,8 @@ implementation
            st_ansistring:
              begin
                 pto^.location.loc:=LOC_REFERENCE;
-                gettempansistringreference(pto^.location.reference);
+                if gettempansistringreference(pto^.location.reference) then
+                  decrstringref(cansistringdef,pto^.location.reference);
                 case pfrom^.location.loc of
                   LOC_REFERENCE,LOC_MEM:
                     begin
@@ -1296,7 +1300,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.74  1999-05-27 19:44:09  peter
+  Revision 1.75  1999-05-31 20:35:46  peter
+    * ansistring fixes, decr_ansistr called after all temp ansi reuses
+
+  Revision 1.74  1999/05/27 19:44:09  peter
     * removed oldasm
     * plabel -> pasmlabel
     * -a switches to source writing automaticly

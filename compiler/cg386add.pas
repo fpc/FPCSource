@@ -179,7 +179,8 @@ implementation
                         { push data }
                         clear_location(p^.location);
                         p^.location.loc:=LOC_MEM;
-                        gettempansistringreference(p^.location.reference);
+                        if gettempansistringreference(p^.location.reference) then
+                          decrstringref(cansistringdef,p^.location.reference);
                         emitpushreferenceaddr(p^.location.reference);
                         emit_push_loc(p^.right^.location);
                         emit_push_loc(p^.left^.location);
@@ -2110,7 +2111,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.62  1999-05-27 19:44:04  peter
+  Revision 1.63  1999-05-31 20:35:45  peter
+    * ansistring fixes, decr_ansistr called after all temp ansi reuses
+
+  Revision 1.62  1999/05/27 19:44:04  peter
     * removed oldasm
     * plabel -> pasmlabel
     * -a switches to source writing automaticly

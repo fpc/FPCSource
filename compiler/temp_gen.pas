@@ -76,7 +76,8 @@ unit temp_gen;
     function istemp(const ref : treference) : boolean;
     procedure ungetiftemp(const ref : treference);
     function ungetiftempansi(const ref : treference) : boolean;
-    procedure gettempansistringreference(var ref : treference);
+    function gettempansistringreference(var ref : treference):boolean;
+
 
   implementation
 
@@ -287,11 +288,13 @@ unit temp_gen;
       end;
 
 
-    function gettempansioffset : longint;
+    function gettempansistringreference(var ref : treference):boolean;
       var
-         ofs      : longint;
          foundslot,tl : ptemprecord;
       begin
+         { do a reset, because the reference isn't used }
+         reset_reference(ref);
+         ref.base:=procinfo.framepointer;
          { Reuse old ansi slot ? }
          foundslot:=nil;
          tl:=templist;
@@ -310,27 +313,22 @@ unit temp_gen;
          if assigned(foundslot) then
           begin
             foundslot^.temptype:=tt_ansistring;
-            ofs:=foundslot^.pos;
+            ref.offset:=foundslot^.pos;
+            { we're reusing an old slot then set the function result to true
+              so that we can call a decr_ansistr }
+            gettempansistringreference:=true;
           end
          else
           begin
-            ofs:=newtempofsize(target_os.size_of_pointer);
+            ref.offset:=newtempofsize(target_os.size_of_pointer);
 {$ifdef EXTDEBUG}
             templist^.posinfo:=aktfilepos;
 {$endif}
             templist^.temptype:=tt_ansistring;
+            { set result to false, we don't need an decr_ansistr }
+            gettempansistringreference:=false;
           end;
-         exprasmlist^.concat(new(paitempalloc,alloc(ofs,target_os.size_of_pointer)));
-         gettempansioffset:=ofs;
-      end;
-
-
-    procedure gettempansistringreference(var ref : treference);
-      begin
-         { do a reset, because the reference isn't used }
-         reset_reference(ref);
-         ref.offset:=gettempansioffset;
-         ref.base:=procinfo.framepointer;
+         exprasmlist^.concat(new(paitempalloc,alloc(ref.offset,target_os.size_of_pointer)));
       end;
 
 
@@ -526,7 +524,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.29  1999-05-27 19:45:26  peter
+  Revision 1.30  1999-05-31 20:35:47  peter
+    * ansistring fixes, decr_ansistr called after all temp ansi reuses
+
+  Revision 1.29  1999/05/27 19:45:26  peter
     * removed oldasm
     * plabel -> pasmlabel
     * -a switches to source writing automaticly
