@@ -364,8 +364,8 @@ Begin
    Begin
      Move(s[Pos],f.Bufptr^[f.BufPos],hbytes);
      f.BufPos:=f.BufPos+hbytes;
-     dec(copybytes,hbytes);
-     Inc(Pos,hbytes);
+     copybytes:=copybytes-hbytes;
+     pos:=pos+hbytes;
      FileFunc(f.InOutFunc)(f);
      hbytes:=f.BufSize-f.BufPos;
    End;
@@ -411,8 +411,8 @@ Begin
    Begin
      Move(p[Pos],f.Bufptr^[f.BufPos],hbytes);
      f.BufPos:=f.BufPos+hbytes;
-     dec(copybytes,hbytes);
-     Inc(Pos,hbytes);
+     copybytes:=copybytes-hbytes;
+     pos:=pos+hbytes;
      FileFunc(f.InOutFunc)(f);
      hbytes:=f.BufSize-f.BufPos;
    End;
@@ -711,7 +711,7 @@ Begin
       inc(Temp);
      { copy string. }
      Move (f.Bufptr^[f.BufPos],p^,Temp-f.BufPos);
-     Inc(Longint(p),Temp-f.BufPos);
+     longint(p):=longint(p)+(temp-f.bufpos);
      If pchar(p-1)^=#13 Then
       dec(p);
      { update f.BufPos }
@@ -744,7 +744,7 @@ Begin
       inc(Temp);
      { copy string. }
      Move (f.Bufptr^[f.BufPos],p^,Temp-f.BufPos);
-     Inc(Longint(p),Temp-f.BufPos);
+     longint(p):=longint(p)+(temp-f.bufpos);
      If pchar(p-1)^=#13 Then
       dec(p);
      { update f.BufPos }
@@ -959,7 +959,10 @@ End;
 
 {
   $Log$
-  Revision 1.10  1998-06-04 23:46:03  peter
+  Revision 1.11  1998-06-25 09:44:22  daniel
+  + RTLLITE directive to compile minimal RTL.
+
+  Revision 1.10  1998/06/04 23:46:03  peter
     * comp,extended are only i386 added support_comp,support_extended
 
   Revision 1.9  1998/06/02 16:47:56  pierre

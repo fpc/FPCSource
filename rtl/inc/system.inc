@@ -120,7 +120,7 @@ Procedure incr_ansi_ref (P : pointer);[Alias : 'INCR_ANSI_REF'];
 
 
 {****************************************************************************
-						 Run-Time Type Information (RTTI)
+		     Run-Time Type Information (RTTI)
 ****************************************************************************}
 
 
@@ -335,7 +335,7 @@ Begin
   halt(216);
 End;
 }
-
+{$ifndef RTLLITE}
 Procedure dump_stack(bp : Longint);
 
   Procedure dump_frame(addr : Longint);
@@ -361,6 +361,7 @@ Begin
    End;
 End;
 
+{$endif RTLLITE}
 
 Procedure Do_exit;[Public,Alias: '__EXIT'];
 {
@@ -376,14 +377,21 @@ Begin
      exitProc:=nil;
      current_exit();
    End;
-  If DoError Then
+  If erroraddr<>nil Then
    Begin
+{$ifndef RTLLITE}
      Writeln('Run time error  ',Errorcode,' at 0x',hexstr(Longint(Erroraddr),8));
      dump_stack(ErrorBase);
+{$else RTLLITE}
+     writeln('Runerror ',errorcode,' at ',longint(erroraddr));
+{$endif RTLLITE}
    End;
   Flush(stderr);
 
 End;
+
+
+{$ifndef RTLLITE}
 
 
 Type
@@ -422,9 +430,14 @@ Begin
   ExitProc:=@DoExitProc;
 End;
 
+{$endif RTLLITE}
+
 {
   $Log$
-  Revision 1.10  1998-06-15 15:16:26  daniel
+  Revision 1.11  1998-06-25 09:44:20  daniel
+  + RTLLITE directive to compile minimal RTL.
+
+  Revision 1.10  1998/06/15 15:16:26  daniel
 
   * RTLLITE conditional added to produce smaller RTL
 

@@ -140,6 +140,8 @@ begin
     upcase[i] := upcase (s[i]);
 end;
 
+{$ifndef RTLLITE}
+
 function lowercase(c : char) : char;
 {$IFDEF IBM_CHAR_SET}
 var
@@ -172,13 +174,6 @@ begin
      lowercase[i] := lowercase (s[i]);
 end;
 
- function space (b : byte): string;
-
- begin
-    space[0] := chr(b);
-    FillChar (Space[1],b,' ');
- end;
-
 function hexstr(val : longint;cnt : byte) : string;
 
 const
@@ -209,6 +204,14 @@ begin
    end;
 end;
 
+{$endif RTLLITE}
+
+ function space (b : byte): string;
+
+ begin
+    space[0] := chr(b);
+    FillChar (Space[1],b,' ');
+ end;
 
 {*****************************************************************************
                               Str() Helpers
@@ -300,7 +303,7 @@ begin
                 inc(code);
               until (code>=length(s)) or (s[code]<>'0');
               if length(s)-code>7 then
-               inc(code,8);
+               code:=code+8;
             end;
       '%' : begin
               base:=2;
@@ -331,9 +334,9 @@ begin
    begin
      u:=ord(s[code]);
      case u of
-       48..57 : dec(u,48);
-       65..70 : dec(u,55);
-      97..104 : dec(u,87);
+       48..57 : u:=u-48;
+       65..70 : u:=u-55;
+      97..104 : u:=u-87;
      else
       u:=16;
      end;
@@ -343,7 +346,7 @@ begin
         l:=0;
         exit;
       end;
-     inc(l,u);
+     l:=l+u;
      inc(code);
    end;
   code := 0;
@@ -676,9 +679,9 @@ begin
    begin
      u:=ord(s[code]);
      case u of
-       48..57 : dec(u,48);
-       65..70 : dec(u,55);
-      97..104 : dec(u,87);
+       48..57 : u:=u-48;
+       65..70 : u:=u-55;
+      97..104 : u:=u-87;
      else
       u:=16;
      end;
@@ -688,7 +691,7 @@ begin
         v:=0;
         exit;
       end;
-     inc(v,u);
+     v:=v+u;
      inc(code);
    end;
   code:=0;
@@ -710,7 +713,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  1998-06-04 23:45:59  peter
+  Revision 1.6  1998-06-25 09:44:19  daniel
+  + RTLLITE directive to compile minimal RTL.
+
+  Revision 1.5  1998/06/04 23:45:59  peter
     * comp,extended are only i386 added support_comp,support_extended
 
   Revision 1.4  1998/05/31 14:14:52  peter

@@ -206,11 +206,13 @@ Function  Pos(const substr:string;const s:string):byte;
 Function  Pos(C:Char;const s:string):byte;
 Function  upCase(c:Char):Char;
 Function  upCase(const s:string):string;
+{$ifndef RTLLITE}
 Function  lowerCase(c:Char):Char;
 Function  lowerCase(const s:string):string;
-Function  Space(b:byte):string;
 Function  hexStr(Val:Longint;cnt:byte):string;
 Function  binStr(Val:Longint;cnt:byte):string;
+{$endif RTLLITE}
+Function  Space(b:byte):string;
 Procedure Val(const s:string;Var l:Longint;Var code:Word);
 Procedure Val(const s:string;Var l:Longint;Var code:Integer);
 Procedure Val(const s:string;Var l:Longint);
@@ -373,17 +375,24 @@ Function Sptr:Longint;
 
 Function  Paramcount:Longint;
 Function  ParamStr(l:Longint):string;
+{$ifndef RTLLITE}
 Procedure Dump_Stack(bp:Longint);
+{$endif RTLLITE}
 Procedure RunError(w:Word);
 Procedure RunError;
 Procedure halt(errnum:byte);
-Procedure halt;
+{$ifndef RTLLITE}
 Procedure AddExitProc(Proc:TProcedure);
+{$endif RTLLITE}
+Procedure halt;
 
 
 {
   $Log$
-  Revision 1.12  1998-06-15 15:16:27  daniel
+  Revision 1.13  1998-06-25 09:44:21  daniel
+  + RTLLITE directive to compile minimal RTL.
+
+  Revision 1.12  1998/06/15 15:16:27  daniel
 
   * RTLLITE conditional added to produce smaller RTL
 
