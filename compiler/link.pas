@@ -177,6 +177,9 @@ begin
      exit;
    end;
   findobjectfile:=search(s,'.;'+unitsearchpath+';'+exepath,found)+s;
+  { if not found then check the object searchpath also }
+  if not found then
+   findobjectfile:=search(s,objectsearchpath,found)+s;
   if not(cs_link_extern in aktglobalswitches) and (not found) then
    Message1(exec_w_objfile_not_found,s);
 end;
@@ -547,7 +550,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.44  1999-01-27 13:07:58  pierre
+  Revision 1.45  1999-01-29 10:33:07  peter
+    * objectsearchpath is now also searched if an object is not found
+
+  Revision 1.44  1999/01/27 13:07:58  pierre
    * problem related with libc : go32v2 and linux differences
 
   Revision 1.43  1999/01/25 15:02:13  peter
