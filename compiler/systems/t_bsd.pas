@@ -55,7 +55,6 @@ implementation
       procedure generatesmartlib;override;
      private
       procedure darwinimportproc(aprocdef:tprocdef;const func,module : string;index : longint;const name : string);
-      procedure importvariable_str(const s:string;const name,module:string);
     end;
 
     timportlibbsd=class(timportlib)
@@ -149,26 +148,7 @@ implementation
 
     procedure timportlibdarwin.importvariable(vs:tvarsym;const name,module:string);
       begin
-        importvariable_str(vs.mangledname,name,module);
-      end;
-
-
-    procedure timportlibdarwin.importvariable_str(const s:string;const name,module:string);
-      var
-         hp1 : timportlist;
-         hp2 : tdarwinimported_item;
-      begin
-         { search for the module }
-         hp1:=timportlist(current_module.imports.first);
-         { generate a new item ? }
-         if not(assigned(hp1)) then
-           begin
-              hp1:=timportlist.create('imports');
-              current_module.imports.concat(hp1);
-           end;
-         hp2:=tdarwinimported_item.create_var(s,name);
-         hp2.procdef:=nil;
-         hp1.imported_items.concat(hp2);
+        { this is handled in the nppcld.pas tppcloadnode }
       end;
 
 
@@ -256,15 +236,6 @@ implementation
                       importsSection.concat(Tai_symbol.Create(l1,0));
                       importsSection.concat(Tai_direct.create(strpnew((#9+'.indirect_symbol ')+symname)));
                       importsSection.concat(tai_const_symbol.createname(strpnew('dyld_stub_binding_helper'),AT_FUNCTION,0));
-
-                    end
-                   else
-                    begin
-                      importsSection.concat(Tai_section.Create(sec_data));
-                      importsSection.concat(Tai_direct.create(strpnew('.non_lazy_symbol_pointer')));
-                      importsSection.concat(Tai_symbol.Createname(hp2.func^,AT_FUNCTION,0));
-                      importsSection.concat(Tai_direct.create(strpnew((#9+'.indirect_symbol ')+hp2.name^)));
-                      importsSection.concat(Tai_const.create_32bit(0));
                     end;
                    hp2:=tdarwinimported_item(hp2.next);
                 end;
@@ -760,7 +731,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.11  2004-03-02 00:36:33  olle
+  Revision 1.12  2004-03-05 22:17:11  jonas
+    * fixed importing of variables from shared libraries, but disabled
+      PIC support for now. You have to save/restore r31 when you us it! :)
+      Also, it's not necessary to support the imported variables
+
+  Revision 1.11  2004/03/02 00:36:33  olle
     * big transformation of Tai_[const_]Symbol.Create[data]name*
 
   Revision 1.10  2004/02/27 10:21:05  florian

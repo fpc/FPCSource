@@ -988,9 +988,12 @@ implementation
                     include(vs.varoptions,vo_is_dll_var)
                    else
                     include(vs.varoptions,vo_is_C_var);
-                   if (not is_dll) or
-                      (target_info.system <> system_powerpc_darwin) then
-                     vs.set_mangledname(C_Name);
+
+                   if (is_dll) and
+                      (target_info.system = system_powerpc_darwin) then
+                     C_Name := target_info.Cprefix+C_Name;
+                   vs.set_mangledname(C_Name);
+
                    if export_var then
                     begin
                       inc(vs.refs);
@@ -1167,7 +1170,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.70  2004-03-05 21:13:22  jonas
+  Revision 1.71  2004-03-05 22:17:11  jonas
+    * fixed importing of variables from shared libraries, but disabled
+      PIC support for now. You have to save/restore r31 when you us it! :)
+      Also, it's not necessary to support the imported variables
+
+  Revision 1.70  2004/03/05 21:13:22  jonas
     * fixed wrong name mangling for imported variables under Darwin
 
   Revision 1.69  2004/03/04 17:24:42  peter

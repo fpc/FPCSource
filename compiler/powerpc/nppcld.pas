@@ -68,8 +68,8 @@ unit nppcld;
                     end;
 
                   reference_reset_symbol(ref,l,0);
-                  ref.base:=current_procinfo.got;
-                  ref.relsymbol:=current_procinfo.gotlabel;
+{                  ref.base:=current_procinfo.got;
+                  ref.relsymbol:=current_procinfo.gotlabel;}
                   reference_reset_base(location.reference,cg.getaddressregister(exprasmlist),0);
                   cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,ref,location.reference.base);
                 end
@@ -87,7 +87,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2004-03-02 17:32:12  florian
+  Revision 1.2  2004-03-05 22:17:11  jonas
+    * fixed importing of variables from shared libraries, but disabled
+      PIC support for now. You have to save/restore r31 when you us it! :)
+      Also, it's not necessary to support the imported variables
+
+  Revision 1.1  2004/03/02 17:32:12  florian
     * make cycle fixed
     + pic support for darwin
     + support of importing vars from shared libs on darwin implemented
