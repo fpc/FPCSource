@@ -455,6 +455,7 @@ unit tree;
          freelabel(p^._at);
          freelabel(p^.statement);
          dispose(p);
+         p:=nil;
       end;
 
     procedure swaptree(p:Ptree);
@@ -1656,7 +1657,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.58  1998-12-11 00:04:02  peter
+  Revision 1.59  1998-12-15 10:23:32  peter
+    + -iSO, -iSP, -iTO, -iTP
+
+  Revision 1.58  1998/12/11 00:04:02  peter
     + globtype,tokens,version unit splitted from globals
 
   Revision 1.57  1998/12/04 10:18:13  florian

@@ -29,7 +29,7 @@ unit ppheap;
   implementation
 
     uses
-       globals,files;
+       globtype,globals,files;
 
     procedure ppextra_info(p : pointer);
       begin

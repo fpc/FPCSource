@@ -237,7 +237,7 @@ procedure UpdateReplacement(var s:string);
 begin
   Replace(s,'$FPCVER',version_string);
   Replace(s,'$FPCDATE',date_string);
-  Replace(s,'$FPCTARGET',target_string);
+  Replace(s,'$FPCTARGET',target_cpu_string);
 end;
 
 
@@ -429,7 +429,10 @@ end.
 
 {
   $Log$
-  Revision 1.31  1998-12-11 00:04:04  peter
+  Revision 1.32  1998-12-15 10:23:33  peter
+    + -iSO, -iSP, -iTO, -iTP
+
+  Revision 1.31  1998/12/11 00:04:04  peter
     + globtype,tokens,version unit splitted from globals
 
   Revision 1.30  1998/12/02 16:23:38  jonas

@@ -110,6 +110,7 @@ unit systems;
        tosinfo = packed record
           id        : tos;
           name      : string[30];
+          shortname : string[8];
           sharedlibext,
           staticlibext,
           sourceext,
@@ -210,11 +211,13 @@ implementation
        os_infos : array[1..oscnt] of tosinfo = (
           (
             id           : os_none;
-            name         : 'No operating system'
+            name         : 'No operating system';
+            shortname    : 'none'
           ),
           (
             id           : os_i386_go32v1;
             name         : 'GO32 V1 DOS extender';
+            shortname    : 'go32v1';
             sharedlibext : '.dll';
             staticlibext : '.a';
             sourceext    : '.pp';
@@ -234,6 +237,7 @@ implementation
           (
             id           : os_i386_go32v2;
             name         : 'GO32 V2 DOS extender';
+            shortname    : 'go32v2';
             sharedlibext : '.dll';
             staticlibext : '.a';
             sourceext    : '.pp';
@@ -253,6 +257,7 @@ implementation
           (
             id           : os_i386_linux;
             name         : 'Linux for i386';
+            shortname    : 'linux';
             sharedlibext : '.so';
             staticlibext : '.a';
             sourceext    : '.pp';
@@ -272,6 +277,7 @@ implementation
           (
             id           : os_i386_os2;
             name         : 'OS/2 via EMX';
+            shortname    : 'os2';
             sharedlibext : '.ao2';
             staticlibext : '.ao2';
             sourceext    : '.pas';
@@ -291,6 +297,7 @@ implementation
           (
             id           : os_i386_win32;
             name         : 'Win32 for i386';
+            shortname    : 'win32';
             sharedlibext : '.dll';
             staticlibext : '.aw';
             sourceext    : '.pp';
@@ -310,6 +317,7 @@ implementation
           (
             id           : os_m68k_amiga;
             name         : 'Commodore Amiga';
+            shortname    : 'amiga';
             sharedlibext : '.library';
             staticlibext : '.a';
             sourceext    : '.pp';
@@ -329,6 +337,7 @@ implementation
           (
             id           : os_m68k_atari;
             name         : 'Atari ST/STE';
+            shortname    : 'atari';
             sharedlibext : '.dll';
             staticlibext : '.a';
             sourceext    : '.pp';
@@ -348,6 +357,7 @@ implementation
           (
             id           : os_m68k_mac;
             name         : 'Macintosh m68k';
+            shortname    : 'mac';
             sharedlibext : '.dll';
             staticlibext : '.a';
             sourceext    : '.pp';
@@ -367,6 +377,7 @@ implementation
           (
             id           : os_m68k_linux;
             name         : 'Linux for m68k';
+            shortname    : 'linux';
             sharedlibext : '.so';
             staticlibext : '.a';
             sourceext    : '.pp';
@@ -386,6 +397,7 @@ implementation
           (
             id           : os_m68k_palmos;
             name         : 'PalmOS';
+            shortname    : 'palmos';
             sharedlibext : '.so';
             staticlibext : '.a';
             sourceext    : '.pp';
@@ -1213,7 +1225,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.52  1998-12-03 10:17:32  peter
+  Revision 1.53  1998-12-15 10:23:30  peter
+    + -iSO, -iSP, -iTO, -iTP
+
+  Revision 1.52  1998/12/03 10:17:32  peter
     * target_os.use_bound_instruction boolean
 
   Revision 1.51  1998/11/30 09:43:23  pierre

@@ -880,6 +880,9 @@ implementation
                 internalerror(8);
               end;
             end;
+           { generate an error if no resulttype is set }
+           if not assigned(p^.resulttype) then
+             p^.resulttype:=generrordef;
            must_be_valid:=store_valid;
            count_ref:=store_count_ref;
        end;
@@ -888,7 +891,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  1998-12-11 23:36:08  florian
+  Revision 1.12  1998-12-15 10:23:31  peter
+    + -iSO, -iSP, -iTO, -iTP
+
+  Revision 1.11  1998/12/11 23:36:08  florian
     + again more stuff for int64/qword:
          - comparision operators
          - code generation for: str, read(ln), write(ln)

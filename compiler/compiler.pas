@@ -98,6 +98,7 @@ implementation
 
 
 var
+  CompilerInitedAfterArgs,
   CompilerInited : boolean;
 
 {$ifdef USEEXCEPT}
@@ -120,14 +121,19 @@ procedure DoneCompiler;
 begin
   if not CompilerInited then
    exit;
+{ Free compiler if args are read }
+  if CompilerInitedAfterArgs then
+   begin
+     CompilerInitedAfterArgs:=false;
+     doneparser;
+     DoneImport;
+     DoneExport;
+   end;
+{ Free memory for the others }
   CompilerInited:=false;
-{ Free memory }
   DoneSymtable;
   DoneGlobals;
   linker.done;
-  doneparser;
-  DoneImport;
-  DoneExport;
 {$ifdef UseBrowser}
   DoneBrowser;
 {$endif UseBrowser}
@@ -136,23 +142,24 @@ end;
 
 procedure InitCompiler(const cmd:string);
 begin
-{$ifdef UseBrowser}
-   InitBrowser;
-{$endif UseBrowser}
   if CompilerInited then
    DoneCompiler;
 { inits which need to be done before the arguments are parsed }
   InitVerbose;
+{$ifdef UseBrowser}
+  InitBrowser;
+{$endif UseBrowser}
   InitGlobals;
   InitSymtable;
   linker.init;
+  CompilerInited:=true;
 { read the arguments }
   read_arguments(cmd);
 { inits which depend on arguments }
   initparser;
   InitImport;
   InitExport;
-  CompilerInited:=true;
+  CompilerInitedAfterArgs:=true;
 end;
 
 
@@ -236,6 +243,7 @@ begin
    Compile:=0
   else
    Compile:=1;
+
 { no message possible after this !! }
   DoneVerbose;
 end;
@@ -244,7 +252,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.15  1998-10-29 11:35:40  florian
+  Revision 1.16  1998-12-15 10:23:23  peter
+    + -iSO, -iSP, -iTO, -iTP
+
+  Revision 1.15  1998/10/29 11:35:40  florian
     * some dll support for win32
     * fixed assembler writing for PalmOS
 

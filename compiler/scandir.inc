@@ -554,7 +554,7 @@ const
              hs:=version_string
            else
             if hs='FPCTARGET' then
-             hs:=target_string
+             hs:=target_cpu_string
            else
             hs:=getenv(hs);
            if hs='' then
@@ -985,7 +985,10 @@ const
 
 {
   $Log$
-  Revision 1.43  1998-11-16 15:41:43  peter
+  Revision 1.44  1998-12-15 10:23:29  peter
+    + -iSO, -iSP, -iTO, -iTP
+
+  Revision 1.43  1998/11/16 15:41:43  peter
     * tp7 didn't like my ifopt H+ :(
 
   Revision 1.42  1998/11/16 12:18:04  peter
