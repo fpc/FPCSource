@@ -70,6 +70,7 @@ implementation
     var  r,r2,hreg1,hreg2:Tregister;
          power:longint;
          hl:Tasmlabel;
+         op:Tasmop;
          pushedregs:Tmaybesave;
 
     begin
@@ -81,111 +82,105 @@ implementation
       maybe_restore(exprasmlist,left.location,pushedregs);
       if codegenerror then
         exit;
-      location_copy(location,left.location);
 
       if is_64bitint(resulttype.def) then
+        { should be handled in pass_1 (JM) }
+        internalerror(200109052);
+      { put numerator in register }
+      location_reset(location,LOC_REGISTER,OS_INT);
+      location_force_reg(exprasmlist,left.location,OS_INT,false);
+      hreg1:=left.location.register;
+
+      if (nodetype=divn) and (right.nodetype=ordconstn) and
+         ispowerof2(tordconstnode(right).value,power) then
         begin
-          { should be handled in pass_1 (JM) }
-          internalerror(200109052);
+          { for signed numbers, the numerator must be adjusted before the
+            shift instruction, but not wih unsigned numbers! Otherwise,
+            "Cardinal($ffffffff) div 16" overflows! (JM) }
+          if is_signed(left.resulttype.def) Then
+            begin
+              if (aktOptProcessor <> class386) and
+                 not(cs_littlesize in aktglobalswitches) then
+                { use a sequence without jumps, saw this in
+                  comp.compilers (JM) }
+                begin
+                  { no jumps, but more operations }
+                  hreg2:=rg.getregisterint(exprasmlist,OS_INT);
+                  emit_reg_reg(A_MOV,S_L,hreg1,hreg2);
+                  {If the left value is signed, hreg2=$ffffffff, otherwise 0.}
+                  emit_const_reg(A_SAR,S_L,31,hreg2);
+                  {If signed, hreg2=right value-1, otherwise 0.}
+                  emit_const_reg(A_AND,S_L,tordconstnode(right).value-1,hreg2);
+                  { add to the left value }
+                  emit_reg_reg(A_ADD,S_L,hreg2,hreg1);
+                  { release EDX if we used it }
+                  rg.ungetregisterint(exprasmlist,hreg2);
+                  { do the shift }
+                  emit_const_reg(A_SAR,S_L,power,hreg1);
+                end
+              else
+                begin
+                  { a jump, but less operations }
+                  emit_reg_reg(A_TEST,S_L,hreg1,hreg1);
+                  objectlibrary.getlabel(hl);
+                  emitjmp(C_NS,hl);
+                  if power=1 then
+                    emit_reg(A_INC,S_L,hreg1)
+                  else
+                    emit_const_reg(A_ADD,S_L,tordconstnode(right).value-1,hreg1);
+                  cg.a_label(exprasmlist,hl);
+                  emit_const_reg(A_SAR,S_L,power,hreg1);
+                end
+            end
+          else
+            emit_const_reg(A_SHR,S_L,power,hreg1);
+          location.register:=hreg1;
         end
       else
         begin
-          { put numerator in register }
-          location_reset(location,LOC_REGISTER,OS_INT);
-          location_force_reg(exprasmlist,left.location,OS_INT,false);
-          hreg1:=left.location.register;
+          {Bring denominator to a register.}
+          rg.getexplicitregisterint(exprasmlist,NR_EAX);
+          r.enum:=R_INTREGISTER;
+          r.number:=NR_EAX;
+          r2.enum:=R_INTREGISTER;
+          r2.number:=NR_EDX;
+          emit_reg_reg(A_MOV,S_L,hreg1,r);
+          rg.ungetregisterint(exprasmlist,hreg1);
+          rg.getexplicitregisterint(exprasmlist,NR_EDX);
+          {Sign extension depends on the left type.}
+          if torddef(left.resulttype.def).typ=u32bit then
+            emit_reg_reg(A_XOR,S_L,r2,r2)
+          else
+            emit_none(A_CDQ,S_NO);
 
-          if (nodetype=divn) and (right.nodetype=ordconstn) and
-            ispowerof2(tordconstnode(right).value,power) then
+          {Division depends on the right type.}
+          if torddef(right.resulttype.def).typ=u32bit then
+            op:=A_DIV
+          else
+            op:=A_IDIV;
+
+          if right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
+            emit_ref(op,S_L,right.location.reference)
+          else
+            emit_reg(op,S_L,right.location.register);
+          location_release(exprasmlist,right.location);
+
+          {Copy the result into a new register. Release EAX & EDX.}
+          if nodetype=divn then
             begin
-              { for signed numbers, the numerator must be adjusted before the
-                shift instruction, but not wih unsigned numbers! Otherwise,
-                "Cardinal($ffffffff) div 16" overflows! (JM) }
-              if is_signed(left.resulttype.def) Then
-                begin
-                  if (aktOptProcessor <> class386) and
-                     not(CS_LittleSize in aktglobalswitches) then
-                    { use a sequence without jumps, saw this in
-                      comp.compilers (JM) }
-                    begin
-                      { no jumps, but more operations }
-                      hreg2:=rg.getregisterint(exprasmlist,OS_INT);
-                      emit_reg_reg(A_MOV,S_L,hreg1,hreg2);
-                      { if the left value is signed, hreg2 := $ffffffff,
-                        otherwise 0 }
-                      emit_const_reg(A_SAR,S_L,31,hreg2);
-                      { if signed, hreg2 := right value-1, otherwise 0 }
-                      emit_const_reg(A_AND,S_L,tordconstnode(right).value-1,hreg2);
-                      { add to the left value }
-                      emit_reg_reg(A_ADD,S_L,hreg2,hreg1);
-                      { release EDX if we used it }
-                      { also releas EDI }
-                      rg.ungetregisterint(exprasmlist,hreg2);
-                      { do the shift }
-                      emit_const_reg(A_SAR,S_L,power,hreg1);
-                    end
-                  else
-                    begin
-                      { a jump, but less operations }
-                      emit_reg_reg(A_TEST,S_L,hreg1,hreg1);
-                      objectlibrary.getlabel(hl);
-                      emitjmp(C_NS,hl);
-                      if power=1 then
-                        emit_reg(A_INC,S_L,hreg1)
-                      else
-                        emit_const_reg(A_ADD,S_L,tordconstnode(right).value-1,hreg1);
-                      cg.a_label(exprasmlist,hl);
-                      emit_const_reg(A_SAR,S_L,power,hreg1);
-                    end
-                end
-              else
-                emit_const_reg(A_SHR,S_L,power,hreg1);
-              location.register:=hreg1;
+              rg.ungetregisterint(exprasmlist,r2);
+              location.register:=rg.getregisterint(exprasmlist,OS_INT);
+              emit_reg_reg(A_MOV,S_L,r,location.register);
+              rg.ungetregisterint(exprasmlist,r);
             end
           else
             begin
-              {Bring denominator to a register.}
-              hreg2:=rg.getregisterint(exprasmlist,OS_INT);
-              if right.location.loc<>LOC_CREGISTER then
-                location_release(exprasmlist,right.location);
-              cg.a_load_loc_reg(exprasmlist,right.location,hreg2);
-              rg.getexplicitregisterint(exprasmlist,NR_EAX);
-              rg.getexplicitregisterint(exprasmlist,NR_EDX);
-              r.enum:=R_INTREGISTER;
-              r.number:=NR_EAX;
-              r2.enum:=R_INTREGISTER;
-              r2.number:=NR_EDX;
-              emit_reg_reg(A_MOV,S_L,hreg1,r);
-              rg.ungetregisterint(exprasmlist,hreg1);
-              {Sign extension depends on the left type.}
-              if torddef(left.resulttype.def).typ=u32bit then
-                emit_reg_reg(A_XOR,S_L,r2,r2)
-              else
-                emit_none(A_CDQ,S_NO);
-
-              {Division depends on the right type.}
-              if torddef(right.resulttype.def).typ=u32bit then
-                emit_reg(A_DIV,S_L,hreg2)
-              else
-                emit_reg(A_IDIV,S_L,hreg2);
-
-              rg.ungetregisterint(exprasmlist,hreg2);
-              if nodetype=divn then
-                begin
-                  rg.ungetregisterint(exprasmlist,r2);
-                  location.register:=rg.getregisterint(exprasmlist,OS_INT);
-                  emit_reg_reg(A_MOV,S_L,r,location.register);
-                  rg.ungetregisterint(exprasmlist,r);
-                end
-              else
-                begin
-                  rg.ungetregisterint(exprasmlist,r);
-                  location.register:=rg.getregisterint(exprasmlist,OS_INT);
-                  emit_reg_reg(A_MOV,S_L,r2,location.register);
-                  rg.ungetregisterint(exprasmlist,r2);
-                end;
+              rg.ungetregisterint(exprasmlist,r);
+              location.register:=rg.getregisterint(exprasmlist,OS_INT);
+              emit_reg_reg(A_MOV,S_L,r2,location.register);
+              rg.ungetregisterint(exprasmlist,r2);
             end;
-       end;
+        end;
     end;
 {$else}
     procedure ti386moddivnode.pass_2;
@@ -414,10 +409,175 @@ implementation
 
 
     function ti386shlshrnode.first_shlshr64bitint: tnode;
-      begin
-        result := nil;
-      end;
 
+    begin
+      result := nil;
+    end;
+
+{$ifdef newra}
+    procedure ti386shlshrnode.pass_2;
+
+    var hregister2,hregisterhigh,hregisterlow:Tregister;
+        r,r2:Tregister;
+        op:Tasmop;
+        l1,l2,l3:Tasmlabel;
+        pushedregs:Tmaybesave;
+
+    begin
+      secondpass(left);
+      maybe_save(exprasmlist,right.registers32,left.location,pushedregs);
+      secondpass(right);
+      maybe_restore(exprasmlist,left.location,pushedregs);
+
+      { determine operator }
+      if nodetype=shln then
+        op:=A_SHL
+      else
+        op:=A_SHR;
+
+      if is_64bitint(left.resulttype.def) then
+        begin
+          location_reset(location,LOC_REGISTER,OS_64);
+
+          { load left operator in a register }
+          location_force_reg(exprasmlist,left.location,OS_64,false);
+          hregisterhigh:=left.location.registerhigh;
+          hregisterlow:=left.location.registerlow;
+          if hregisterhigh.enum<>R_INTREGISTER then
+            internalerror(200302056);
+          if hregisterlow.enum<>R_INTREGISTER then
+            internalerror(200302056);
+
+          { shifting by a constant directly coded: }
+          if (right.nodetype=ordconstn) then
+            begin
+              { shrd/shl works only for values <=31 !! }
+              if Tordconstnode(right).value>31 then
+                begin
+                  if nodetype=shln then
+                    begin
+                      emit_reg_reg(A_XOR,S_L,hregisterhigh,hregisterhigh);
+                      if ((tordconstnode(right).value and 31) <> 0) then
+                        emit_const_reg(A_SHL,S_L,tordconstnode(right).value and 31,
+                                       hregisterlow);
+                    end
+                  else
+                    begin
+                      emit_reg_reg(A_XOR,S_L,hregisterlow,hregisterlow);
+                      if ((tordconstnode(right).value and 31) <> 0) then
+                        emit_const_reg(A_SHR,S_L,tordconstnode(right).value and 31,
+                                       hregisterhigh);
+                    end;
+                  location.registerhigh:=hregisterlow;
+                  location.registerlow:=hregisterhigh;
+                end
+              else
+                begin
+                  if nodetype=shln then
+                    begin
+                      emit_const_reg_reg(A_SHLD,S_L,tordconstnode(right).value and 31,
+                                         hregisterlow,hregisterhigh);
+                      emit_const_reg(A_SHL,S_L,tordconstnode(right).value and 31,
+                                     hregisterlow);
+                    end
+                  else
+                    begin
+                      emit_const_reg_reg(A_SHRD,S_L,tordconstnode(right).value and 31,
+                                         hregisterhigh,hregisterlow);
+                      emit_const_reg(A_SHR,S_L,tordconstnode(right).value and 31,
+                                     hregisterhigh);
+                    end;
+                  location.registerlow:=hregisterlow;
+                  location.registerhigh:=hregisterhigh;
+                end;
+            end
+          else
+            begin
+              { load right operators in a register }
+              rg.getexplicitregisterint(exprasmlist,NR_ECX);
+              hregister2.enum:=R_INTREGISTER;
+              hregister2.number:=NR_ECX;
+              cg.a_load_loc_reg(exprasmlist,right.location,hregister2);
+              if right.location.loc<>LOC_CREGISTER then
+                location_release(exprasmlist,right.location);
+
+              { left operator is already in a register }
+              { hence are both in a register }
+              { is it in the case ECX ? }
+              r.enum:=R_INTREGISTER;
+              r.number:=NR_ECX;
+              r2.enum:=R_INTREGISTER;
+              r2.number:=NR_CL;
+
+              { the damned shift instructions work only til a count of 32 }
+              { so we've to do some tricks here                           }
+              objectlibrary.getlabel(l1);
+              objectlibrary.getlabel(l2);
+              objectlibrary.getlabel(l3);
+              emit_const_reg(A_CMP,S_L,64,hregister2);
+              emitjmp(C_L,l1);
+              emit_reg_reg(A_XOR,S_L,hregisterlow,hregisterlow);
+              emit_reg_reg(A_XOR,S_L,hregisterhigh,hregisterhigh);
+              cg.a_jmp_always(exprasmlist,l3);
+              cg.a_label(exprasmlist,l1);
+              emit_const_reg(A_CMP,S_L,32,hregister2);
+              emitjmp(C_L,l2);
+              emit_const_reg(A_SUB,S_L,32,hregister2);
+              if nodetype=shln then
+                begin
+                  emit_reg_reg(A_SHL,S_L,r2,hregisterlow);
+                  emit_reg_reg(A_MOV,S_L,hregisterlow,hregisterhigh);
+                  emit_reg_reg(A_XOR,S_L,hregisterlow,hregisterlow);
+                  cg.a_jmp_always(exprasmlist,l3);
+                  cg.a_label(exprasmlist,l2);
+                  emit_reg_reg_reg(A_SHLD,S_L,r2,hregisterlow,hregisterhigh);
+                  emit_reg_reg(A_SHL,S_L,r2,hregisterlow);
+                end
+              else
+                begin
+                  emit_reg_reg(A_SHR,S_L,r2,hregisterhigh);
+                  emit_reg_reg(A_MOV,S_L,hregisterhigh,hregisterlow);
+                  emit_reg_reg(A_XOR,S_L,hregisterhigh,hregisterhigh);
+                  cg.a_jmp_always(exprasmlist,l3);
+                  cg.a_label(exprasmlist,l2);
+                  emit_reg_reg_reg(A_SHRD,S_L,r2,hregisterhigh,hregisterlow);
+                  emit_reg_reg(A_SHR,S_L,r2,hregisterhigh);
+                end;
+              cg.a_label(exprasmlist,l3);
+
+              rg.ungetregisterint(exprasmlist,hregister2);
+              location.registerlow:=hregisterlow;
+              location.registerhigh:=hregisterhigh;
+            end;
+        end
+      else
+        begin
+          { load left operators in a register }
+          location_copy(location,left.location);
+          location_force_reg(exprasmlist,location,OS_INT,false);
+             
+          r2.enum:=R_INTREGISTER;
+          r2.number:=NR_CL;
+
+          { shifting by a constant directly coded: }
+          if (right.nodetype=ordconstn) then
+            { l shl 32 should 0 imho, but neither TP nor Delphi do it in this way (FK)}
+            emit_const_reg(op,S_L,tordconstnode(right).value and 31,location.register)
+          else
+            begin
+              { load right operators in a ECX }
+              if right.location.loc<>LOC_CREGISTER then
+                location_release(exprasmlist,right.location);
+              hregister2:=rg.getexplicitregisterint(exprasmlist,NR_ECX);
+              cg.a_load_loc_reg(exprasmlist,right.location,hregister2);
+
+              { right operand is in ECX }
+              emit_reg_reg(op,S_L,r2,location.register);
+              rg.ungetregisterint(exprasmlist,hregister2);
+            end;
+        end;
+    end;
+{$else}
     procedure ti386shlshrnode.pass_2;
       var
          hregister2,hregister3,
@@ -692,6 +852,7 @@ implementation
                 end;
            end;
       end;
+{$endif}
 
 
 {*****************************************************************************
@@ -1008,7 +1169,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.46  2003-03-08 13:59:17  daniel
+  Revision 1.47  2003-03-08 20:36:41  daniel
+    + Added newra version of Ti386shlshrnode
+    + Added interference graph construction code
+
+  Revision 1.46  2003/03/08 13:59:17  daniel
     * Work to handle new register notation in ag386nsm
     + Added newra version of Ti386moddivnode
 

@@ -28,6 +28,47 @@
    references and registers which are used by
    the code generator.
 }
+
+{*******************************************************************************
+
+(applies to new register allocator)
+
+Register allocator introduction.
+
+Free Pascal uses a Chaitin style register allocator similair to the one
+described in the book "Modern compiler implementation in C" by Andrew W. Appel.,
+published by Cambridge University Press.
+
+Reading this book is recommended for a complete understanding. Here is a small
+introduction.
+
+The code generator thinks it has an infinite amount of registers. Our processor
+has a limited amount of registers. Therefore we must reduce the amount of
+registers until there are less enough to fit into the processors registers.
+
+Registers can interfere or not interfere. If two imaginary registers interfere
+they cannot be placed into the same psysical register. Reduction of registers
+is done by:
+
+- "coalescing" Two registers that do not interfere are combined
+   into one register.
+- "spilling" A register is changed into a memory location and the generated
+   code is modified to use the memory location instead of the register.
+
+Register allocation is a graph colouring problem. Each register is a colour, and 
+if two registers interfere there is a connection between them in the graph.
+
+In addition to the imaginary registers in the code generator, the psysical
+CPU registers are also present in this graph. This allows us to make
+interferences between imaginary registers and cpu registers. This is very
+usefull for describing archtectural constrains, like for example that
+the div instruction modifies edx, so variables that are in use at that time
+cannot be stored into edx. This can be modelled by making edx interfere
+with those variables.
+
+*******************************************************************************}
+
+
 unit rgobj;
 
   interface
@@ -58,6 +99,14 @@ unit rgobj;
 
        tpushedsaved = array[firstreg..lastreg] of tpushedsavedloc;
        Tpushedsavedint = array[first_supreg..last_supreg] of Tpushedsavedloc;
+
+      Tinterferencebitmap=array[Tsuperregister] of set of Tsuperregister;
+      Tinterferenceadjlist=array[Tsuperregister] of Pstring;
+      Tinterferencegraph=record
+        bitmap:Tinterferencebitmap;
+        adjlist:Tinterferenceadjlist;
+      end;
+      Pinterferencegraph=^Tinterferencegraph;
 
        {#
           This class implements the abstract register allocator
@@ -237,6 +286,9 @@ unit rgobj;
           procedure saveUnusedState(var state: pointer);virtual;
           procedure restoreUnusedState(var state: pointer);virtual;
        protected
+{$ifdef newra}
+          igraph:Tinterferencegraph;
+{$endif}
           { the following two contain the common (generic) code for all }
           { get- and ungetregisterxxx functions/procedures              }
           function getregistergen(list: taasmoutput; const lowreg, highreg: Toldregister;
@@ -259,6 +311,10 @@ unit rgobj;
 {$ifdef TEMPREGDEBUG}
           procedure testregisters;
 {$endif TEMPREGDEBUGx}
+{$ifdef newra}
+         procedure add_edge(u,v:Tsuperregister);
+         procedure add_edges_used(u:Tsuperregister);
+{$endif}
        end;
 
      const
@@ -353,6 +409,9 @@ unit rgobj;
        fillchar(reg_user,sizeof(reg_user),0);
        fillchar(reg_releaser,sizeof(reg_releaser),0);
 {$endif TEMPREGDEBUG}
+{$ifdef newra}
+       fillchar(igraph,sizeof(igraph),0);
+{$endif}
      end;
 
 
@@ -408,6 +467,9 @@ unit rgobj;
             list.concat(Tai_regalloc.alloc(r));
             result:=r;
             lastintreg:=i;
+{$ifdef newra}
+            add_edges_used(i);
+{$endif}
             exit;
           end;
       until i=lastintreg;
@@ -655,27 +717,37 @@ unit rgobj;
       end;
 
 
-    procedure trgobj.cleartempgen;
+    procedure Trgobj.cleartempgen;
 
-      begin
-         countunusedregsint:=countusableregsint;
-         countunusedregsfpu:=countusableregsfpu;
-         countunusedregsmm:=countusableregsmm;
-     {$ifdef newra}
-         unusedregsint:=[0..255];
-     {$else}
-         unusedregsint:=usableregsint;
-     {$endif}
-         unusedregsfpu:=usableregsfpu;
-         unusedregsmm:=usableregsmm;
-      end;
+    var i:Tsuperregister;
+
+    begin
+      countunusedregsint:=countusableregsint;
+      countunusedregsfpu:=countusableregsfpu;
+      countunusedregsmm:=countusableregsmm;
+   {$ifdef newra}
+      unusedregsint:=[0..255];
+   {$else}
+      unusedregsint:=usableregsint;
+   {$endif}
+      unusedregsfpu:=usableregsfpu;
+      unusedregsmm:=usableregsmm;
+   {$ifdef newra}
+      for i:=low(Tsuperregister) to high(Tsuperregister) do
+       if igraph.adjlist[i]<>nil then
+         dispose(igraph.adjlist[i]);
+      fillchar(igraph,sizeof(igraph),0);
+   {$endif}
+    end;
 
 
     procedure trgobj.ungetreference(list : taasmoutput; const ref : treference);
 
       begin
-         ungetregisterint(list,ref.base);
-         ungetregisterint(list,ref.index);
+         if ref.base.number<>NR_NO then
+           ungetregisterint(list,ref.base);
+       if ref.index.number<>NR_NO then
+           ungetregisterint(list,ref.index);
       end;
 
 
@@ -1098,6 +1170,48 @@ unit rgobj;
         state := nil;
       end;
 
+{$ifdef newra}
+    procedure Trgobj.add_edge(u,v:Tsuperregister);
+
+    {This procedure will add an edge to the virtual interference graph.}
+
+      procedure addadj(u,v:Tsuperregister);
+
+      begin
+        if igraph.adjlist[u]=nil then
+          begin
+            getmem(igraph.adjlist[u],16);
+            igraph.adjlist[u]^:='';
+          end
+        else if (length(igraph.adjlist[u]^) and 15)=15 then
+          reallocmem(igraph.adjlist[u],length(igraph.adjlist[u]^)+16);
+        igraph.adjlist[u]^:=igraph.adjlist[u]^+char(v);
+      end;
+
+    begin
+      if (u<>v) and not(v in igraph.bitmap[u]) then
+        begin
+          include(igraph.bitmap[u],v);
+          include(igraph.bitmap[v],u);
+          {Precoloured nodes are not stored in the interference graph.}
+          if not(u in [first_supreg..last_supreg]) then
+            addadj(u,v);
+          if not(v in [first_supreg..last_supreg]) then
+            addadj(v,u);
+        end;
+    end;
+
+    procedure Trgobj.add_edges_used(u:Tsuperregister);
+
+    var i:Tsuperregister;
+
+    begin
+      for i:=1 to 255 do
+        if not(i in unusedregsint) then
+          add_edge(u,i);
+    end;
+{$endif}
+
 
 {****************************************************************************
                                   TReference
@@ -1228,7 +1342,11 @@ end.
 
 {
   $Log$
-  Revision 1.28  2003-03-08 13:59:16  daniel
+  Revision 1.29  2003-03-08 20:36:41  daniel
+    + Added newra version of Ti386shlshrnode
+    + Added interference graph construction code
+
+  Revision 1.28  2003/03/08 13:59:16  daniel
     * Work to handle new register notation in ag386nsm
     + Added newra version of Ti386moddivnode
 

@@ -1029,9 +1029,13 @@ interface
            { right.location<>LOC_REGISTER }
            if (nodetype=subn) and (nf_swaped in flags) then
             begin
+{$ifdef newra}
+              r:=rg.getregisterint(exprasmlist,OS_INT);
+{$else}
               rg.getexplicitregisterint(exprasmlist,NR_EDI);
               r.enum:=R_INTREGISTER;
               r.number:=NR_EDI;
+{$endif}            
               cg64.a_load64low_loc_reg(exprasmlist,right.location,r);
               emit_reg_reg(op1,opsize,left.location.registerlow,r);
               emit_reg_reg(A_MOV,opsize,r,left.location.registerlow);
@@ -1636,7 +1640,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.57  2003-03-08 13:59:17  daniel
+  Revision 1.58  2003-03-08 20:36:41  daniel
+    + Added newra version of Ti386shlshrnode
+    + Added interference graph construction code
+
+  Revision 1.57  2003/03/08 13:59:17  daniel
     * Work to handle new register notation in ag386nsm
     + Added newra version of Ti386moddivnode
 
