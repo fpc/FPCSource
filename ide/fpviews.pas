@@ -975,7 +975,7 @@ begin
       if not _Is then
         begin
           LastC:=S[Length(S)];
-          if LastC in ['B','D','L','Q','S','T','V'] then
+          if LastC in ['B','D','L','Q','S','T','V','W'] then
             begin
               Delete(S,Length(S),1);
               Dec(Idx);
@@ -1157,6 +1157,8 @@ begin
       S:='{$';
     ssDirectiveSuffix :
       S:='}';
+    else
+      S:='';
   end;
   GetSpecSymbol:=S;
 end;
@@ -4175,7 +4177,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.5  2001-08-29 23:28:20  pierre
+  Revision 1.6  2001-09-25 22:46:50  pierre
+   highlight i386 movw in asm code correctly
+
+  Revision 1.5  2001/08/29 23:28:20  pierre
    * fix the tab garbage
 
   Revision 1.4  2001/08/09 23:17:50  pierre
