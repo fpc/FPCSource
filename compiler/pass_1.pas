@@ -4093,9 +4093,6 @@ unit pass_1;
                             hp:=p^.left;
                             while assigned(hp) do
                               begin
-                                if not assigned(hp^.left^.symtableentry) or 
-                                   (hp^.left^.symtableentry^.typ in [typesym]) then
-                                  Message(type_e_cant_read_write_type);
                                 if assigned(hp^.left^.resulttype) then
                                   begin
                                     isreal:=false;
@@ -5487,7 +5484,10 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.78  1998-09-08 13:36:24  peter
+  Revision 1.79  1998-09-08 13:50:17  peter
+    * removed last fix becasue it was not 100%
+
+  Revision 1.78  1998/09/08 13:36:24  peter
     + can't write type syms anymore
 
   Revision 1.77  1998/09/07 22:25:52  peter
