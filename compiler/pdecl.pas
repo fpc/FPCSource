@@ -526,6 +526,10 @@ implementation
                   tt.def.needs_inittable) then
                 generate_inittable(newtype);
 
+              { Always generate RTTI info for all types. This is to have typeinfo() return
+                the same pointer }
+              generate_rtti(newtype);
+
               { for objects we should write the vmt and interfaces.
                 This need to be done after the rtti has been written, because
                 it can contain a reference to that data (PFV)
@@ -537,9 +541,6 @@ implementation
                  { generate and check virtual methods, must be done
                    before RTTI is written }
                  ch.genvmt;
-                 { generate rtti info if published items are available }
-                 if (oo_can_have_published in tobjectdef(tt.def).objectoptions) then
-                   generate_rtti(newtype);
                  if is_interface(tobjectdef(tt.def)) then
                    ch.writeinterfaceids;
                  if (oo_has_vmt in tobjectdef(tt.def).objectoptions) then
@@ -655,7 +656,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.73  2003-12-10 16:37:01  peter
+  Revision 1.74  2003-12-12 12:09:40  marco
+   * always generate RTTI patch from peter
+
+  Revision 1.73  2003/12/10 16:37:01  peter
     * global property support for fpc modes
 
   Revision 1.72  2003/11/12 15:48:48  peter

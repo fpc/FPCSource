@@ -5569,10 +5569,11 @@ implementation
              end;
            fullrtti :
              begin
-               if objecttype in [odt_interfacecom,odt_interfacecorba] then
-                 rttiList.concat(Tai_const.Create_32bit(0))
+               if (oo_has_vmt in objectoptions) and
+                  not(objecttype in [odt_interfacecom,odt_interfacecorba]) then
+                 rttiList.concat(Tai_const_symbol.Createname(vmt_mangledname))
                else
-                 rttiList.concat(Tai_const_symbol.Createname(vmt_mangledname));
+                 rttiList.concat(Tai_const.Create_32bit(0));
 
                { write owner typeinfo }
                if assigned(childof) and (oo_can_have_published in childof.objectoptions) then
@@ -6117,7 +6118,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.191  2003-12-08 22:34:24  peter
+  Revision 1.192  2003-12-12 12:09:40  marco
+   * always generate RTTI patch from peter
+
+  Revision 1.191  2003/12/08 22:34:24  peter
     * tai_const.create_32bit changed to cardinal
 
   Revision 1.190  2003/11/10 22:02:52  peter

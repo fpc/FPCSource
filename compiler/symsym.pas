@@ -1511,15 +1511,15 @@ implementation
         ref:=_ref;
       end;
 
-    
+
     destructor tabsolutesym.destroy;
       begin
         if assigned(ref) then
           ref.free;
-        inherited destroy;  
+        inherited destroy;
       end;
-      
-      
+
+
     constructor tabsolutesym.ppuload(ppufile:tcompilerppufile);
       begin
          { Note: This needs to load everything of tvarsym.write }
@@ -1583,9 +1583,6 @@ implementation
 
 
     procedure tabsolutesym.deref;
-      var
-        srsym : tsym;
-        srsymtable : tsymtable;
       begin
          { inheritance of varsym.deref ! }
          vartype.resolve;
@@ -2596,20 +2593,8 @@ implementation
     function trttisym.mangledname : string;
       const
         prefix : array[trttitype] of string[5]=('RTTI_','INIT_');
-      var
-        s : string;
-        p : tsymtable;
       begin
-        s:='';
-        p:=owner;
-        while assigned(p) and (p.symtabletype=localsymtable) do
-         begin
-           s:=s+'_'+p.defowner.name;
-           p:=p.defowner.owner;
-         end;
-        if not(p.symtabletype in [globalsymtable,staticsymtable]) then
-         internalerror(200108265);
-        mangledname:=prefix[rttityp]+p.name^+s+'$_'+Copy(name,5,255);
+        result:=make_mangledname(prefix[rttityp],owner,Copy(name,5,255));
       end;
 
 
@@ -2699,7 +2684,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.137  2003-12-01 18:44:15  peter
+  Revision 1.138  2003-12-12 12:09:40  marco
+   * always generate RTTI patch from peter
+
+  Revision 1.137  2003/12/01 18:44:15  peter
     * fixed some crashes
     * fixed varargs and register calling probs
 
