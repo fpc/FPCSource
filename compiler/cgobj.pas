@@ -1358,8 +1358,6 @@ implementation
 
 
     procedure tcg.a_loadmm_reg_loc(list: taasmoutput; size: tcgsize; const reg: tregister; const loc: tlocation;shuffle : pmmshuffle);
-      var
-        tmpreg: tregister;
       begin
         case loc.loc of
           LOC_MMREGISTER,LOC_CMMREGISTER:
@@ -1567,6 +1565,7 @@ implementation
 
     procedure tcg.g_decrrefcount(list : taasmoutput;t: tdef; const ref: treference; loadref:boolean);
       var
+        hreg : tregister;
         href : treference;
         decrfunc : string;
         needrtti : boolean;
@@ -1627,7 +1626,18 @@ implementation
          end;
         { Temp locations need always to be reset to 0 }
         if tg.istemp(ref) then
-          a_load_const_ref(list,OS_ADDR,0,ref);
+          begin
+            if loadref then
+              begin
+                hreg:=getaddressregister(list);
+                a_load_ref_reg(list,OS_ADDR,OS_ADDR,ref,hreg);
+                reference_reset_base(href,hreg,0);
+                a_load_const_ref(list,OS_ADDR,0,href);
+                ungetregister(list,hreg);
+              end
+            else
+              a_load_const_ref(list,OS_ADDR,0,ref);
+          end;
       end;
 
 
@@ -1663,6 +1673,7 @@ implementation
 
     procedure tcg.g_finalize(list : taasmoutput;t : tdef;const ref : treference;loadref : boolean);
       var
+         hreg : tregister;
          href : treference;
          paraloc1,paraloc2 : tparalocation;
       begin
@@ -1671,7 +1682,23 @@ implementation
          if is_ansistring(t) or
             is_widestring(t) or
             is_interfacecom(t) then
-           g_decrrefcount(list,t,ref,loadref)
+           begin
+             g_decrrefcount(list,t,ref,loadref);
+             { Temp locations are already reset to 0 }
+             if not tg.istemp(ref) then
+               begin
+                 if loadref then
+                   begin
+                     hreg:=getaddressregister(list);
+                     a_load_ref_reg(list,OS_ADDR,OS_ADDR,ref,hreg);
+                     reference_reset_base(href,hreg,0);
+                     a_load_const_ref(list,OS_ADDR,0,href);
+                     ungetregister(list,hreg);
+                   end
+                 else
+                   a_load_const_ref(list,OS_ADDR,0,ref);
+               end;
+           end
          else
            begin
               reference_reset_symbol(href,tstoreddef(t).get_rtti_label(initrtti),0);
@@ -2112,7 +2139,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.151  2004-01-21 22:13:20  peter
+  Revision 1.152  2004-01-22 22:12:21  peter
+    * g_finalize needs to reset to nil after decr_ref
+    * support loadref in decr_ref reset to nil
+
+  Revision 1.151  2004/01/21 22:13:20  peter
     * decrrefcount resets temps to nil
 
   Revision 1.150  2004/01/21 21:01:34  peter
