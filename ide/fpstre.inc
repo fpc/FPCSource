@@ -605,6 +605,8 @@ const
 
       msg_userscreennotavailable = 'Sorry, user screen not available.';
       msg_cantsetscreenmode = #3'Impossible to set'#13#3'%dx%d mode';
+      msg_confirmnewscreenmode = 'Please, confirm that new mode'#13 +
+                                 'is displayed correctly';
       { Tools $PROMPT() dialog }
       dialog_programarguments = 'Program Arguments';
       label_enterprogramargument = '~E~nter program argument';
@@ -1058,7 +1060,10 @@ const
 
 {
   $Log$
-  Revision 1.24  2004-11-21 20:53:26  peter
+  Revision 1.25  2004-12-19 20:38:35  hajny
+    + confirmation box after video mode switch (bug 2933)
+
+  Revision 1.24  2004/11/21 20:53:26  peter
     * fixed breakpoint dialog
 
   Revision 1.23  2004/11/20 14:21:19  florian

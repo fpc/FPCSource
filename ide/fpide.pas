@@ -167,7 +167,7 @@ uses
   Video,Mouse,Keyboard,
   Compiler,Version,
   FVConsts,
-  Dos,Memory,Menus,Dialogs,StdDlg,
+  Dos,Memory,Menus,Dialogs,StdDlg,timeddlg,
   Systems,
   WUtils,WHlpView,WViews,WHTMLHlp,WHelp,WConsole,
   FPConst,FPVars,FPUtils,FPSwitch,FPIni,FPIntf,FPCompil,FPHelp,
@@ -1241,7 +1241,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.33  2004-11-20 14:21:19  florian
+  Revision 1.34  2004-12-19 20:38:35  hajny
+    + confirmation box after video mode switch (bug 2933)
+
+  Revision 1.33  2004/11/20 14:21:19  florian
     * implemented reload menu item
     * increased file history to 9 files
 

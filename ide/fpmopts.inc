@@ -889,7 +889,16 @@ begin
                  ScreenModeInfo[3]:=byte(VM.color);
 
                  ErrorBox(msg_cantsetscreenmode,@ScreenModeInfo);
-               end;
+               end
+             else
+               if TimedMessageBox (msg_confirmnewscreenmode, nil,
+                              mfConfirmation or mfOKCancel, 15) = cmCancel then
+                begin
+                 SetScreenVideoMode (OldScreenMode);
+                 ScreenModeInfo [1] := VM.Col;
+                 ScreenModeInfo [2] := VM.Row;
+                 ScreenModeInfo [3] := byte (VM.Color);
+                end;
            End;
        end;
      AutoSaveOptions:=CB1^.Value;
@@ -1367,7 +1376,10 @@ end;
 
 {
   $Log$
-  Revision 1.12  2004-11-08 20:28:26  peter
+  Revision 1.13  2004-12-19 20:38:35  hajny
+    + confirmation box after video mode switch (bug 2933)
+
+  Revision 1.12  2004/11/08 20:28:26  peter
     * Breakpoints are now deleted when removed from source, disabling is
       still possible from the breakpoint list
     * COMPILER_1_0, FVISION, GABOR defines removed, only support new
