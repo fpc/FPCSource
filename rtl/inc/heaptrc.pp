@@ -29,9 +29,13 @@ type
 procedure set_extra_info( size : longint;func : fill_extra_info_type);
 
 const
+  { tracing level
+    splitted in two if memory is released !! }
   tracesize = 8;
   quicktrace : boolean=true;
-  keepreleased : boolean=true;
+  { set this to true if you suspect that memory
+    is freed several times }
+  keepreleased : boolean=false;
 
 implementation
 
@@ -66,6 +70,8 @@ var
   freemem_cnt   : longint;
   getmem_size,
   freemem_size   : longint;
+  getmem8_size,
+  freemem8_size   : longint;
 
 
 {*****************************************************************************
@@ -154,6 +160,7 @@ var
   i,bp : longint;
 begin
   inc(getmem_size,size);
+  inc(getmem8_size,((size+7) div 8)*8);
 { Do the real GetMem, but alloc also for the info block }
   SysGetMem(p,size+sizeof(theap_mem_info)+extra_info_size);
 { Create the info block }
@@ -189,6 +196,7 @@ procedure TraceFreeMem(var p:pointer;size:longint);
   pp : pheap_mem_info;
 begin
   inc(freemem_size,size);
+  inc(freemem8_size,((size+7) div 8)*8);
   inc(size,sizeof(theap_mem_info)+extra_info_size);
   dec(p,sizeof(theap_mem_info)+extra_info_size);
   pp:=pheap_mem_info(p);
@@ -222,8 +230,11 @@ begin
   inc(freemem_cnt);
   { release the normal memory at least !! }
   { this way we keep all info about all released memory !! }
-  dec(size,sizeof(theap_mem_info));
-  inc(p,sizeof(theap_mem_info));
+  if keepreleased then
+    begin
+       dec(size,sizeof(theap_mem_info)+extra_info_size);
+       inc(p,sizeof(theap_mem_info)+extra_info_size);
+    end;
   SysFreeMem(p,size);
 end;
 
@@ -239,9 +250,13 @@ var
 begin
   pp:=heap_mem_root;
   Writeln(stderr,'Heap dump by heaptrc unit');
-  Writeln(stderr,getmem_cnt, ' memory blocks allocated : ',getmem_size);
-  Writeln(stderr,freemem_cnt,' memory blocks freed     : ',freemem_size);
+  Writeln(stderr,getmem_cnt, ' memory blocks allocated : ',getmem_size,'/',getmem8_size);
+  Writeln(stderr,freemem_cnt,' memory blocks freed     : ',freemem_size,'/',freemem8_size);
   Writeln(stderr,getmem_cnt-freemem_cnt,' unfreed memory blocks : ',getmem_size-freemem_size);
+  Writeln(stderr,'True heap size : ',system.HeapSize);
+  Writeln(stderr,'True free heap : ',MemAvail);
+  Writeln(stderr,'Should be : ',system.HeapSize-(getmem8_size-freemem8_size)-
+    (getmem_cnt-freemem_cnt)*(sizeof(theap_mem_info)+extra_info_size));
   i:=getmem_cnt-freemem_cnt;
   while pp<>nil do
    begin
@@ -321,7 +336,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  1998-10-08 14:49:05  pierre
+  Revision 1.5  1998-10-09 11:59:31  pierre
+    * changed default to keepreleased=false
+      (allows to compile pp in one call without reaching the
+      64Mb limit of Windows 95 dos box)
+    * corrected so typo errors
+
+  Revision 1.4  1998/10/08 14:49:05  pierre
    + added possibility for more info
 
   Revision 1.3  1998/10/06 17:09:13  pierre
