@@ -1,0 +1,22 @@
+#
+#   Makefile.fpc for interbase dataset
+#
+
+[targets]
+units=interbase
+programs=testib
+
+[defaults]
+defaultcpu=i386
+
+[require]
+options=-S2
+packages=fcl ibase
+
+[dirs]
+fpcdir=../..
+targetdir=.
+unitdir=..
+
+[libs]
+libgcc=1

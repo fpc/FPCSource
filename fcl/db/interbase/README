@@ -1,0 +1,23 @@
+This is first working release of TDatabase and TDataset 
+implementation for Interbase SQL server.
+
+Compiling the units:
+
+Run 'make; make examples' command, if something goes wrong, look if you have
+
+  1) unit ibase60 in compiler path
+  2) gds.so.0 library in /usr/lib
+  
+Command 'sh mkdb' creates testing database in current directory.
+  
+Unit interbase.pp was made and tested on Linux, on ib60 server,
+I don't know if it's working on other OS platforms or other
+versions of IB server.
+
+Unit in these days provides objective connectivity to IB server, 
+basic SQL statement support. It's still buggy, so volunteers
+and contributors are welcome. It supports SQL dialect 1 only 
+(You cannot use date & time datatypes in tables).
+
+Pavel Stingl
+stingp1.eti@mail.cez.cz
