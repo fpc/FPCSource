@@ -567,7 +567,7 @@ begin
                        LineStart:=0;
                        LineAlign:=laLeft;
                      end;
-              #1 : Break;
+              #1 : {Break};
               hscLink :
                    begin
                      CheckZeroLevel;
@@ -1386,7 +1386,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.3  2001-09-24 23:54:46  pierre
+  Revision 1.4  2001-09-26 22:46:04  pierre
+   * remove break for #1 in THelpTopic.Rebuild
+
+  Revision 1.3  2001/09/24 23:54:46  pierre
    * save text position to allow correct cursor placement when zooming
 
   Revision 1.2  2001/08/05 02:01:49  peter
