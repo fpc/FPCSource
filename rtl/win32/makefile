@@ -53,17 +53,25 @@ ifndef PPUMOVE
 PPUMOVE=ppumove
 endif
 
-# Set this to 'shared' or 'static'
-LIBTYPE=shared
+# Use smartlinking ?
+ifndef SMARTLINK
+SMARTLINK=NO
+endif
 
-# AOUT should be defined in main makefile.
-# But you can set it here too.
-# AOUT = -DAOUT
+# Name of library ?
+# If this is set, all units will be put in the same library.
+# If it is empty (default), the units will be left in separate files.
+ifndef LIBNAME
+LIBNAME=
+#LIBNAME=fpc
+endif
 
-# Do you want to link to the C library ?
-# Standard it is NO. You can set it to YES to link in th C library.
-ifndef LINK_TO_C
-LINK_TO_C=NO
+# Should the library be shared or static (only if LIBNAME is set).
+# Set this to 'shared' or 'static' to create a librrary
+# Setting this to shared will disable smart linking.
+ifndef	LIBTYPE
+LIBTYPE=
+#LIBTYPE=static
 endif
 
 #####################################################################
@@ -108,13 +116,15 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 # System dependent
 #####################################################################
 
+# Override extensions
 PPUEXT=.ppw
+SHAREDLIBEXT=.dll
 
 # Define Linux Units
 SYSTEMPPU=syswin32$(PPUEXT)
 OBJECTS=strings objpas \
 	dos \
-        base messages defines
+	base messages defines
 
 # Add Prefix and Suffixes
 PPUOBJECTS=$(addsuffix $(PPUEXT), $(OBJECTS))
@@ -131,6 +141,7 @@ install : all
 
 clean :
 	-$(DEL) *$(OEXT) *$(ASMEXT) *$(PPUEXT) log
+	-$(DELTREE) *$(SMARTEXT)
 
 #####################################################################
 # Files
@@ -190,24 +201,43 @@ dos$(PPUEXT) : $(DOSDEPS) $(INC)/filerec.inc $(INC)/textrec.inc $(SYSTEMPPU)
 # Libs
 #####################################################################
 
-libs	: all libfpc$(LIBEXT)
+staticlib:
+	make clean
+	make all SMARTLINK=YES LIBNAME=fpc LIBTYPE=static
 
-libfpc.so:
-	$(PPUMOVE) -o fpc *.ppu
+sharedlib:
+	make clean
+	make all
+	$(PPUMOVE) -o fpc $(SHAREDLIBFILES)
 
-libfpc.a:
-	$(PPUMOVE) -s -o fpc *.ppu
+staticlibinstall: staticlib
+	$(MKDIR) $(STATIC_LIBINSTALLDIR)
+	$(MKDIR) $(STATIC_UNITINSTALLDIR)
+	$(INSTALLEXE) libfpc$(STATICLIBEXT) $(STATIC_LIBINSTALLDIR)
+	$(INSTALL) *$(PPUEXT) *$(OEXT) $(STATIC_UNITINSTALLDIR)
 
-libinstall : libs
-	$(INSTALLEXE) libfpc$(LIBEXT) $(LIBINSTALLDIR)
-	$(INSTALL) *$(PPLEXT) $(UNITINSTALLDIR)
+sharedlibinstall: sharedlib
+	$(MKDIR) $(SHARED_LIBINSTALLDIR)
+	$(MKDIR) $(SHARED_UNITINSTALLDIR)
+	$(INSTALLEXE) libfpc$(SHAREDLIBEXT) $(SHARED_LIBINSTALLDIR)
+	$(INSTALL) *$(PPUEXT) *$(OEXT) $(SHARED_UNITINSTALLDIR)
 	ldconfig
 
+libinstall: staticlibinstall
+
 libsclean : clean
-	-$(DEL) *.a *.so *$(PPLEXT)
+	-$(DEL) *$(SMARTLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT)
 
 #####################################################################
 # Default targets
 #####################################################################
 
 include $(CFG)/makefile.def
+
+#
+# $Log$
+# Revision 1.7  1998-08-21 15:17:01  peter
+#   * win32 compiles a bit better, no growheap crash
+#
+#
+

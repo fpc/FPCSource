@@ -657,8 +657,8 @@ implementation
             link        : link_ldw;
             assem       : as_asw;
             ar          : ar_arw;
-            heapsize    : 1024*1024;
-            stacksize   : 16384
+            heapsize    : 8192*1024;   { Until growing heap works !! (PFV) }
+            stacksize   : 32768
           )
 {$endif i386}
 {$ifdef m68k}
@@ -876,7 +876,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.26  1998-08-19 16:07:55  jonas
+  Revision 1.27  1998-08-21 15:16:57  peter
+    * win32 compiles a bit better, no growheap crash
+
+  Revision 1.26  1998/08/19 16:07:55  jonas
     * changed optimizer switches + cleanup of DestroyRefs in daopt386.pas
 
   Revision 1.25  1998/08/18 09:24:45  pierre

@@ -47,14 +47,15 @@ endif
 # If it is empty (default), the units will be left in separate files.
 ifndef LIBNAME
 LIBNAME=
-endif
 #LIBNAME=fpc
+endif
 
 # Should the library be shared or static (only if LIBNAME is set).
 # Set this to 'shared' or 'static' to create a librrary
 # Setting this to shared will disable smart linking.
 ifndef  LIBTYPE
 LIBTYPE=
+#LIBTYPE=static
 endif
 
 # What compiler to use ?
@@ -193,7 +194,8 @@ install :
 	$(INSTALL) *$(PPUEXT) *$(OEXT) $(UNITINSTALLDIR)
 
 clean :
-	-$(DEL) *.sl/ *$(OEXT) *$(ASMEXT) *$(PPUEXT) *.PPS log
+        -$(DEL) *$(OEXT) *$(ASMEXT) *$(PPUEXT) *.PPS log
+        -$(DELTREE) *$(SMARTEXT)
 
 #####################################################################
 # Files
@@ -309,21 +311,20 @@ sharedlib:
 staticlibinstall: staticlib
 	$(MKDIR) $(STATIC_LIBINSTALLDIR)
 	$(MKDIR) $(STATIC_UNITINSTALLDIR)
-	$(INSTALLEXE) libfpc.a $(STATIC_LIBINSTALLDIR)
-	$(INSTALL) *$(PPUEXT) *.o $(STATIC_UNITINSTALLDIR)
+        $(INSTALLEXE) libfpc$(STATICLIBEXT) $(STATIC_LIBINSTALLDIR)
+        $(INSTALL) *$(PPUEXT) *$(OEXT) $(STATIC_UNITINSTALLDIR)
 
 sharedlibinstall: sharedlib
 	$(MKDIR) $(SHARED_LIBINSTALLDIR)
 	$(MKDIR) $(SHARED_UNITINSTALLDIR)
-	$(INSTALLEXE) libfpc.so $(SHARED_LIBINSTALLDIR)
-	$(INSTALL) *$(PPUEXT) *.o $(SHARED_UNITINSTALLDIR)
+        $(INSTALLEXE) libfpc$(SHAREDLIBEXT) $(SHARED_LIBINSTALLDIR)
+        $(INSTALL) *$(PPUEXT) *$(OEXT) $(SHARED_UNITINSTALLDIR)
 	ldconfig
 
 libinstall: staticlibinstall sharedlibinstall
 
 libsclean : clean
-	-$(DEL) *.a *.so *$(PPLEXT)
-
+        -$(DEL) *$(SMARTLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT)
 
 #####################################################################
 # Default targets
@@ -333,7 +334,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.20  1998-08-18 08:35:06  peter
+# Revision 1.21  1998-08-21 15:17:00  peter
+#   * win32 compiles a bit better, no growheap crash
+#
+# Revision 1.20  1998/08/18 08:35:06  peter
 #   * updated for new lib options
 #
 # Revision 1.19  1998/08/17 09:30:00  peter

@@ -177,6 +177,11 @@ PPDEFS:=-d$(CPU) -dGDB -dFPC
 # Set the needed compiler options
 PPOPTS:=$(OPT) $(PPDEFS) -Sg -T$(TARGET)
 
+# for win32 create at least 8 mb heap
+ifdef Win32
+PPOPTS:=$(PPOPTS) -Ch8000000
+endif
+
 # Unitdir specified ?
 ifneq ("$(UNITDIR)", "")
 PPOPTS:=$(PPOPTS) -Up$(UNITDIR)
@@ -451,7 +456,10 @@ $(M68KEXENAME):
 # Test of log at the end
 # does CVS add # at start of each line ??
 # $Log$
-# Revision 1.26  1998-08-21 14:08:46  pierre
+# Revision 1.27  1998-08-21 15:16:56  peter
+#   * win32 compiles a bit better, no growheap crash
+#
+# Revision 1.26  1998/08/21 14:08:46  pierre
 #   + TEST_FUNCRET now default (old code removed)
 #     works also for m68k (at least compiles)
 #
