@@ -161,7 +161,7 @@ clean: cleanall
 # Installation
 #
 
-ifndef UNIXINSTALLDIR
+ifndef UNIXHier
 override INSTALL_DATADIR=$(INSTALL_BINDIR)
 endif
 
@@ -184,7 +184,10 @@ clean_compiler:
 
 #
 # $Log$
-# Revision 1.27  2004-11-11 15:20:52  florian
+# Revision 1.28  2004-12-20 18:58:46  peter
+#   * UnixHier
+#
+# Revision 1.27  2004/11/11 15:20:52  florian
 #   * applied Peter's patch from yesterday
 #
 # Revision 1.26  2004/11/05 19:10:18  peter

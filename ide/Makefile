@@ -1998,7 +1998,7 @@ nogdb:
 	$(MAKE) buildfp NOGDB=1
 all: gdb
 clean: cleanall
-ifndef UNIXINSTALLDIR
+ifndef UNIXHier
 override INSTALL_DATADIR=$(INSTALL_BINDIR)
 endif
 install: fpc_install
