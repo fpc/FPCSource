@@ -4969,21 +4969,19 @@
           dwSize : DWORD;
           dwFlags : DWORD;
           hInstance : HINST;
-          u1 : record
-              case longint of
-                 0 : ( pszTemplate : LPCTSTR );
-                 1 : ( pResource : LPCDLGTEMPLATE );
-              end;
-          u2 : record
-              case longint of
-                 0 : ( hIcon : HICON );
-                 1 : ( pszIcon : LPCTSTR );
-              end;
-          pszTitle : LPCTSTR;
-          pfnDlgProc : DLGPROC;
-          lParam : LPARAM;
-          pfnCallback : LPFNPSPCALLBACK;
-          pcRefParent : ^UINT;
+          case longint of
+            0 : (pszTemplate : LPCTSTR);
+            1 : (pResource : LPCDLGTEMPLATE;
+                 case longint of
+                    0 : (hIcon : HICON);
+                    1 : (pszIcon : LPCTSTR;
+                         pszTitle : LPCTSTR;
+                         pfnDlgProc : DLGPROC;
+                         lParam : LPARAM;
+                         pfnCallback : LPFNPSPCALLBACK;
+                         pcRefParent : ^UINT;
+                        );
+                );
        end;
      LPPROPSHEETPAGE = ^PROPSHEETPAGE;
      LPCPROPSHEETPAGE = ^PROPSHEETPAGE;
@@ -5000,24 +4998,29 @@
           dwFlags : DWORD;
           hwndParent : HWND;
           hInstance : HINST;
-          u1 : record
-              case longint of
-                 0 : ( hIcon : HICON );
-                 1 : ( pszIcon : LPCTSTR );
-              end;
-          pszCaption : LPCTSTR;
-          nPages : UINT;
-          u2 : record
-              case longint of
-                 0 : ( nStartPage : UINT );
-                 1 : ( pStartPage : LPCTSTR );
-              end;
-          u3 : record
-              case longint of
-                 0 : ( ppsp : LPCPROPSHEETPAGE );
-                 1 : ( phpage : ^HPROPSHEETPAGE );
-              end;
-          pfnCallback : PFNPROPSHEETCALLBACK;
+          case longint of
+              0 : (hIcon : HICON);
+              1 : (pszIcon : LPCTSTR;
+          	   pszCaption : LPCTSTR;
+                   nPages : UINT;
+                   case longint of
+                      0 : (nStartPage : UINT);
+          	      1 : (pStartPage : LPCTSTR;
+                           case longint of
+          	              0 : (ppsp : LPCPROPSHEETPAGE);
+                              1 : (phpage : ^HPROPSHEETPAGE;
+                                   pfnCallback : PFNPROPSHEETCALLBACK;
+                                   case longint of
+                                     0 : (hbmWatermark : HBITMAP);
+                                     1 : (pszbmWatermark : LPCTSTR;
+                                          hplWatermark : HPALETTE;
+                                          case longint of
+                                             0 : (hbmHeader : HBITMAP);
+                                             1 : (pszbmHeader: PAnsiChar);
+                                         );
+                                  );
+                          );
+                  );
        end;
      LPPROPSHEETHEADER = ^PROPSHEETHEADER;
      LPCPROPSHEETHEADER = ^PROPSHEETHEADER;
@@ -7003,7 +7006,10 @@ type
 
 {
   $Log$
-  Revision 1.11  2002-01-19 11:58:21  peter
+  Revision 1.12  2002-02-07 13:04:40  florian
+    * some property sheet related structs fixed
+
+  Revision 1.11  2002/01/19 11:58:21  peter
     * more functions from webbugs
 
   Revision 1.10  2001/08/19 09:27:52  florian
