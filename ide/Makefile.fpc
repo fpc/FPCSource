@@ -2,20 +2,15 @@
 #   Makefile.fpc for FP IDE
 #
 
-[targets]
+[package]
+name=ide
+version=1.0.5
+
+[target]
 dirs=fake text
 
-[install]
-packagename=ide
-sourcesubdirs=0
-
-[sections]
-none=1
-zipsourceinstall=1
-
-[defaults]
-defaultinstalldir=text
-
+[default]
+dir=text
 
 [rules]
 .PHONY: gdb full fullgdb clean_compiler
@@ -24,13 +19,19 @@ all:
         $(MAKE) -C text all
 
 gdb:
-        $(MAKE) -C text all GDB=1
+        $(MAKE) -C text gdb
 
 full:
-        $(MAKE) -C text all FULL=1 "NEEDOPT+=-Sg -dGDB -dBROWSERCOL"
+        $(MAKE) -C text full
 
 fullgdb:
-        $(MAKE) -C text all FULL=1 GDB=1 "NEEDOPT+=-Sg -dGDB -dBROWSERCOL"
+        $(MAKE) -C text fullgdb
+
+# Also clean the fake dir
+clean: fpc_clean fake_clean
+
+distclean: fpc_distclean fake_distclean
+
 
 #
 # Misc
