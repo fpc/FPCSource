@@ -31,6 +31,9 @@ program FP;
 (**********************************************************************)
 
 uses
+{$ifdef EXTDEBUG}
+  checkmem,
+{$endif EXTDEBUG}
 {$ifdef WITH_GDB}
 {$ifdef win32}
   fpcygwin,
@@ -497,7 +500,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.20  2003-01-28 16:53:47  pierre
+  Revision 1.21  2003-01-29 00:30:53  pierre
+   * load CheckMem as first if EXTDEBUG is defined
+
+  Revision 1.20  2003/01/28 16:53:47  pierre
    * only include fpcygwin if libgdb is linked in
 
   Revision 1.19  2003/01/14 16:24:52  pierre
