@@ -1178,7 +1178,7 @@ Begin
       Begin
         { Check if there is already a base (mostly ebp,esp) than this is
           not allowed,becuase it will give crashing code }
-        if not((opr.ref.base.enum=R_NO) or 
+        if not((opr.ref.base.enum=R_NO) or
                ((opr.ref.base.enum=R_INTREGISTER) and (opr.ref.base.number=NR_NO))) then
           message(asmr_e_cannot_index_relative_var);
         opr.ref.base:=actasmregister;
@@ -1595,7 +1595,10 @@ Begin
              Message(asmr_e_invalid_operand_type);
            opr.typ:=OPR_REGISTER;
            opr.reg:=tempreg;
-           size:=reg2opsize[tempreg.enum];
+           if opr.reg.enum=R_INTREGISTER then
+              size:=subreg2opsize[opr.reg.number and $ff]
+           else
+              size:=reg2opsize[opr.reg.enum];
          end
         else
          Message(asmr_e_syn_operand);
@@ -2135,7 +2138,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.38  2003-02-19 22:00:16  daniel
+  Revision 1.39  2003-02-20 15:52:58  pierre
+   * fix a range check error
+
+  Revision 1.38  2003/02/19 22:00:16  daniel
     * Code generator converted to new register notation
     - Horribily outdated todo.txt removed
 
