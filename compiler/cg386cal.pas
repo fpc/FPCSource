@@ -562,6 +562,17 @@ implementation
                                     else
                                       { this is a member call, so ESI isn't modfied }
                                       loadesi:=false;
+
+                                    { a class destructor needs a flag }
+                                    if pobjectdef(p^.methodpointer^.resulttype)^.isclass and
+                                        assigned(aktprocsym) and
+                                        ((aktprocsym^.definition^.options and
+                                        (podestructor))<>0) then
+                                        begin
+                                           push_int(0);
+                                           exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_ESI)));
+                                        end;
+
                                     if not(is_con_or_destructor and
                                       pobjectdef(p^.methodpointer^.resulttype)^.isclass and
                                         assigned(aktprocsym) and
@@ -581,8 +592,13 @@ implementation
 
                                           CGMessage(cg_w_member_cd_call_from_method);
                                       end;
-                                    if is_con_or_destructor then
-                                      push_int(0)
+                                    { class destructors get there flag below }
+                                    if is_con_or_destructor and
+                                        not(pobjectdef(p^.methodpointer^.resulttype)^.isclass and
+                                        assigned(aktprocsym) and
+                                        ((aktprocsym^.definition^.options and
+                                        (podestructor))<>0)) then
+                                      push_int(0);
                                  end;
                                hnewn:
                                  begin
@@ -654,8 +670,14 @@ implementation
                                          exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,r,R_ESI)));
                                       end;
 
+                                    { direct call to destructor: don't remove data! }
+                                    if ((p^.procdefinition^.options and podestructor)<>0) and
+                                      (p^.methodpointer^.resulttype^.deftype=objectdef) and
+                                      (pobjectdef(p^.methodpointer^.resulttype)^.isclass) then
+                                      exprasmlist^.concat(new(pai386,op_const(A_PUSH,S_L,1)));
+
                                     { direct call to class constructor, don't allocate memory }
-                                    if is_con_or_destructor and
+                                    if ((p^.procdefinition^.options and poconstructor)<>0) and
                                       (p^.methodpointer^.resulttype^.deftype=objectdef) and
                                       (pobjectdef(p^.methodpointer^.resulttype)^.isclass) then
                                       exprasmlist^.concat(new(pai386,op_const(A_PUSH,S_L,0)))
@@ -1236,7 +1258,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.60  1999-01-28 23:56:44  florian
+  Revision 1.61  1999-02-02 11:04:36  florian
+    * class destructors fixed, class instances weren't disposed correctly
+
+  Revision 1.60  1999/01/28 23:56:44  florian
     * the reference in the result location of a function call wasn't resetted =>
       problem with unallowed far pointer, is solved now
 

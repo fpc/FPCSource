@@ -18,3 +18,6 @@ Changes in the syntax or semantic of FPC:
              on previously accepted code (PM)
   01/02/99:  c styled comments are supported (/* ... */), mainly
              for the Sibyl sources of Medigo (FK) 
+  02/02/99:  class destructors take now two parameters: flag
+             if the helper routine should free the instance and
+             self pointer (FK)
