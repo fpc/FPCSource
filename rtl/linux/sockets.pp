@@ -491,7 +491,7 @@ end;
 
 
 
-Function DoConnect(Sock:longint;const addr: TInetSockAddr):Boolean;
+Function DoConnect(Sock:longint;const addr: TInetSockAddr): Longint;
 
 begin
   DoConnect:=Connect(Sock,Addr,SizeOF(TInetSockAddr));
@@ -500,10 +500,14 @@ end;
 
 
 Function Connect(Sock:longint;const addr: TInetSockAddr;var SockIn,SockOut:text):Boolean;
+
+Var FD : Longint;
+
 begin
-  if DoConnect(Sock,addr) then
+  FD:=DoConnect(Sock,addr);
+  If Not(FD<0) then
    begin
-     Sock2Text(Sock,SockIn,SockOut);
+     Sock2Text(FD,SockIn,SockOut);
      Connect:=true;
    end
   else
@@ -513,10 +517,14 @@ end;
 
 
 Function Connect(Sock:longint;const addr:TInetSockAddr;var SockIn,SockOut:file):Boolean;
+
+Var FD : Longint;
+
 begin
-  if DoConnect(Sock,addr) then
+  FD:=DoConnect(Sock,addr);
+  If Not (FD<0) then
    begin
-     Sock2File(Sock,SockIn,SockOut);
+     Sock2File(FD,SockIn,SockOut);
      Connect:=true;
    end
   else
@@ -562,7 +570,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  1999-06-08 16:08:33  michael
+  Revision 1.6  1999-06-08 18:19:24  michael
+  + Fixes for connect calls
+
+  Revision 1.5  1999/06/08 16:08:33  michael
   + completed (hopefully) Fix by stian (my_wave@ypsilonia.net)
 
   Revision 1.4  1999/06/08 16:05:08  michael
