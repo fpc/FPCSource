@@ -293,6 +293,10 @@ implementation
             target_m68k_PalmOS:
               ;
 {$endif m68k}
+{$IFDEF SPARC}
+            target_SPARC_Linux:
+              ;
+{$ENDIF SPARC}
          else
            bssSegment.concat(Tai_datablock.Create_global('HEAP',heapsize));
          end;
@@ -1388,7 +1392,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.62  2002-04-20 21:32:24  carl
+  Revision 1.63  2002-05-06 19:54:50  carl
+  + added more patches from Mazen for SPARC port
+
+  Revision 1.62  2002/04/20 21:32:24  carl
   + generic FPC_CHECKPOINTER
   + first parameter offset in stack now portable
   * rename some constants

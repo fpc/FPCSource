@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2002 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     Does the parsing of the statements
 
@@ -22,7 +22,7 @@
 }
 unit pstatmnt;
 
-{$i fpcdefs.inc}
+{$i defines.inc}
 
 interface
     uses
@@ -42,12 +42,11 @@ implementation
        cutils,
        { global }
        globtype,globals,verbose,
-       systems,cpuinfo,
+       systems,cpuinfo,cpuasm,
        { aasm }
-       cpubase,aasmbase,aasmtai,aasmcpu,
+       cpubase,aasm,
        { symtable }
-       symconst,symbase,symtype,symdef,symsym,symtable,defutil,defcmp,
-       paramgr,
+       symconst,symbase,symtype,symdef,symsym,symtable,types,
        { pass 1 }
        pass_1,htypechk,
        nbas,nmat,nadd,ncal,nmem,nset,ncnv,ninl,ncon,nld,nflw,
@@ -55,9 +54,7 @@ implementation
        scanner,
        pbase,pexpr,
        { codegen }
-       tgobj,rgobj,cgbase
-       ,ncgutil
-       ,radirect
+       rgobj,cgbase
 {$ifdef i386}
   {$ifndef NoRa386Int}
        ,ra386int
@@ -65,9 +62,19 @@ implementation
   {$ifndef NoRa386Att}
        ,ra386att
   {$endif NoRa386Att}
-{$else}
-       ,rasm
+  {$ifndef NoRa386Dir}
+       ,ra386dir
+  {$endif NoRa386Dir}
 {$endif i386}
+{$ifdef m68k}
+  {$ifndef NoRa68kMot}
+       ,ra68kmot
+  {$endif NoRa68kMot}
+{$endif m68k}
+       { codegen }
+{$ifdef newcg}
+       ,cgbase
+{$endif newcg}
        ;
 
 
@@ -105,20 +112,20 @@ implementation
            begin
               if first=nil then
                 begin
-                   last:=cstatementnode.create(statement,nil);
+                   last:=cstatementnode.create(nil,statement);
                    first:=last;
                 end
               else
                 begin
-                   last.right:=cstatementnode.create(statement,nil);
-                   last:=tstatementnode(last.right);
+                   last.left:=cstatementnode.create(nil,statement);
+                   last:=tstatementnode(last.left);
                 end;
               if not try_to_consume(_SEMICOLON) then
                 break;
               consume_emptystats;
            end;
          consume(_END);
-         statements_til_end:=cblocknode.create(first,true);
+         statements_til_end:=cblocknode.create(first);
       end;
 
 
@@ -172,7 +179,7 @@ implementation
            hcaselabel^.greater:=nil;
            hcaselabel^.statement:=aktcaselabel;
            hcaselabel^.firstlabel:=first;
-           objectlibrary.getlabel(hcaselabel^._at);
+           getlabel(hcaselabel^._at);
            hcaselabel^._low:=l;
            hcaselabel^._high:=h;
            insertlabel(root);
@@ -187,9 +194,7 @@ implementation
          consume(_CASE);
          caseexpr:=comp_expr(true);
        { determines result type }
-       {$ifndef newra}
          rg.cleartempgen;
-       {$endif}
          do_resulttypepass(caseexpr);
          casedeferror:=false;
          casedef:=caseexpr.resulttype.def;
@@ -199,7 +204,7 @@ implementation
             CGMessage(type_e_ordinal_expr_expected);
             { create a correct tree }
             caseexpr.free;
-            caseexpr:=cordconstnode.create(0,u32bittype,false);
+            caseexpr:=cordconstnode.create(0,u32bittype);
             { set error flag so no rangechecks are done }
             casedeferror:=true;
           end;
@@ -209,7 +214,7 @@ implementation
          root:=nil;
          instruc:=nil;
          repeat
-           objectlibrary.getlabel(aktcaselabel);
+           getlabel(aktcaselabel);
            firstlabel:=true;
 
            { maybe an instruction has more case labels }
@@ -276,13 +281,13 @@ implementation
            p:=clabelnode.createcase(aktcaselabel,statement);
 
            { concats instruction }
-           instruc:=cstatementnode.create(p,instruc);
+           instruc:=cstatementnode.create(instruc,p);
 
-           if not(token in [_ELSE,_OTHERWISE,_END]) then
+           if not((token=_ELSE) or (token=_OTHERWISE) or (token=_END)) then
              consume(_SEMICOLON);
-         until (token in [_ELSE,_OTHERWISE,_END]);
+         until (token=_ELSE) or (token=_OTHERWISE) or (token=_END);
 
-         if (token in [_ELSE,_OTHERWISE]) then
+         if (token=_ELSE) or (token=_OTHERWISE) then
            begin
               if not try_to_consume(_ELSE) then
                 consume(_OTHERWISE);
@@ -317,13 +322,13 @@ implementation
            begin
               if first=nil then
                 begin
-                   last:=cstatementnode.create(statement,nil);
+                   last:=cstatementnode.create(nil,statement);
                    first:=last;
                 end
               else
                 begin
-                   tstatementnode(last).right:=cstatementnode.create(statement,nil);
-                   last:=tstatementnode(last).right;
+                   tstatementnode(last).left:=cstatementnode.create(nil,statement);
+                   last:=tstatementnode(last).left;
                 end;
               if not try_to_consume(_SEMICOLON) then
                 break;
@@ -332,9 +337,9 @@ implementation
          consume(_UNTIL);
          dec(statement_level);
 
-         first:=cblocknode.create(first,true);
+         first:=cblocknode.create(first);
          p_e:=comp_expr(true);
-         repeat_statement:=genloopnode(whilerepeatn,p_e,first,nil,true);
+         repeat_statement:=genloopnode(repeatn,p_e,first,nil,false);
       end;
 
 
@@ -348,7 +353,7 @@ implementation
          p_e:=comp_expr(true);
          consume(_DO);
          p_a:=statement;
-         while_statement:=genloopnode(whilerepeatn,p_e,p_a,nil,false);
+         while_statement:=genloopnode(whilen,p_e,p_a,nil,false);
       end;
 
 
@@ -490,7 +495,7 @@ implementation
          paddr:=nil;
          pframe:=nil;
          consume(_RAISE);
-         if not(token in endtokens) then
+         if not(token in [_SEMICOLON,_END]) then
            begin
               { object }
               pobj:=comp_expr(true);
@@ -526,7 +531,7 @@ implementation
          oldaktexceptblock: integer;
 
       begin
-         procinfo.flags:=procinfo.flags or pi_uses_exceptions;
+         procinfo^.flags:=procinfo^.flags or pi_uses_exceptions;
 
          p_default:=nil;
          p_specific:=nil;
@@ -543,19 +548,19 @@ implementation
            begin
               if first=nil then
                 begin
-                   last:=cstatementnode.create(statement,nil);
+                   last:=cstatementnode.create(nil,statement);
                    first:=last;
                 end
               else
                 begin
-                   tstatementnode(last).right:=cstatementnode.create(statement,nil);
-                   last:=tstatementnode(last).right;
+                   tstatementnode(last).left:=cstatementnode.create(nil,statement);
+                   last:=tstatementnode(last).left;
                 end;
               if not try_to_consume(_SEMICOLON) then
                 break;
               consume_emptystats;
            end;
-         p_try_block:=cblocknode.create(first,true);
+         p_try_block:=cblocknode.create(first);
 
          if try_to_consume(_FINALLY) then
            begin
@@ -685,18 +690,19 @@ implementation
                      if not try_to_consume(_SEMICOLON) then
                         break;
                      consume_emptystats;
-                   until (token in [_END,_ELSE]);
-                   if try_to_consume(_ELSE) then
+                   until (token=_END) or (token=_ELSE);
+                   if token=_ELSE then
+                     { catch the other exceptions }
                      begin
-                       { catch the other exceptions }
-                       p_default:=statements_til_end;
+                        consume(_ELSE);
+                        p_default:=statements_til_end;
                      end
                    else
                      consume(_END);
                 end
               else
+                { catch all exceptions }
                 begin
-                   { catch all exceptions }
                    p_default:=statements_til_end;
                 end;
               dec(statement_level);
@@ -708,13 +714,34 @@ implementation
       end;
 
 
+    function exit_statement : tnode;
+
+      var
+         p : tnode;
+
+      begin
+         consume(_EXIT);
+         if try_to_consume(_LKLAMMER) then
+           begin
+              p:=comp_expr(true);
+              consume(_RKLAMMER);
+              if (block_type=bt_except) then
+                Message(parser_e_exit_with_argument_not__possible);
+              if is_void(aktprocdef.rettype.def) then
+                Message(parser_e_void_function);
+           end
+         else
+           p:=nil;
+         p:=cexitnode.create(p);
+         do_resulttypepass(p);
+         exit_statement:=p;
+      end;
+
+
     function _asm_statement : tnode;
       var
         asmstat : tasmnode;
-        Marker  : tai;
-        r       : tregister;
-        found   : boolean;
-        hs      : string;
+        Marker : tai;
       begin
          Inside_asm_statement:=true;
          case aktasmmode of
@@ -729,11 +756,8 @@ implementation
            asmmode_i386_intel:
              asmstat:=tasmnode(ra386int.assemble);
   {$endif NoRA386Int}
-{$else not i386}
-           asmmode_standard:
-             asmstat:=tasmnode(rasm.assemble);
-{$endif i386}
-           asmmode_direct:
+  {$ifndef NoRA386Dir}
+           asmmode_i386_direct:
              begin
                if not target_asm.allowdirect then
                  Message(parser_f_direct_assembler_not_allowed);
@@ -743,9 +767,16 @@ implementation
                     Message(parser_w_inlining_disabled);
                     aktprocdef.proccalloption:=pocall_fpccall;
                  End;
-               asmstat:=tasmnode(radirect.assemble);
+               asmstat:=tasmnode(ra386dir.assemble);
              end;
-
+  {$endif NoRA386Dir}
+{$endif}
+{$ifdef m68k}
+  {$ifndef NoRA68kMot}
+           asmmode_m68k_mot:
+             asmstat:=tasmnode(ra68kmot.assemble);
+  {$endif NoRA68kMot}
+{$endif}
          else
            Message(parser_f_assembler_reader_not_supported);
          end;
@@ -756,34 +787,75 @@ implementation
          { END is read }
          if try_to_consume(_LECKKLAMMER) then
            begin
-             if token<>_RECKKLAMMER then
-              begin
+              { it's possible to specify the modified registers }
+              include(asmstat.flags,nf_object_preserved);
+              if token<>_RECKKLAMMER then
                 repeat
-                  { it's possible to specify the modified registers }
-                  hs:=upper(pattern);
-                  found:=false;
-                  for r.enum:=firstreg to lastreg do
-                   if hs=upper(std_reg2str[r.enum]) then
+                { uppercase, because it's a CSTRING }
+                  uppervar(pattern);
+{$ifdef i386}
+                  if pattern='EAX' then
+                    include(rg.usedinproc,R_EAX)
+                  else if pattern='EBX' then
+                    include(rg.usedinproc,R_EBX)
+                  else if pattern='ECX' then
+                    include(rg.usedinproc,R_ECX)
+                  else if pattern='EDX' then
+                    include(rg.usedinproc,R_EDX)
+                  else if pattern='ESI' then
                     begin
-                      include(rg.usedinproc,r.enum);
-                      include(rg.usedbyproc,r.enum);
-                      found:=true;
-                      break;
-                    end;
-                  if not(found) then
-                    Message(asmr_e_invalid_register);
+                       include(rg.usedinproc,R_ESI);
+                       exclude(asmstat.flags,nf_object_preserved);
+                    end
+                  else if pattern='EDI' then
+                    include(rg.usedinproc,R_EDI)
+{$endif i386}
+{$ifdef m68k}
+                  if pattern='D0' then
+                    include(rg.usedinproc,R_D0)
+                  else if pattern='D1' then
+                    include(rg.usedinproc,R_D1)
+                  else if pattern='D2' then
+                    include(rg.usedinproc,R_D2)
+                  else if pattern='D3' then
+                    include(rg.usedinproc,R_D3)
+                  else if pattern='D4' then
+                    include(rg.usedinproc,R_D4)
+                  else if pattern='D5' then
+                    include(rg.usedinproc,R_D5)
+                  else if pattern='D6' then
+                    include(rg.usedinproc,R_D6)
+                  else if pattern='D7' then
+                    include(rg.usedinproc,R_D7)
+                  else if pattern='A0' then
+                    include(rg.usedinproc,R_A0)
+                  else if pattern='A1' then
+                    include(rg.usedinproc,R_A1)
+                  else if pattern='A2' then
+                    include(rg.usedinproc,R_A2)
+                  else if pattern='A3' then
+                    include(rg.usedinproc,R_A3)
+                  else if pattern='A4' then
+                    include(rg.usedinproc,R_A4)
+                  else if pattern='A5' then
+                    include(rg.usedinproc,R_A5)
+{$endif m68k}
+{$ifdef powerpc}
+                  if pattern<>'' then
+                    internalerror(200108251)
+{$endif powerpc}
+{$IFDEF SPARC}
+                  if pattern<>'' then
+                    internalerror(200108251)
+{$ENDIF SPARC}
+                  else consume(_RECKKLAMMER);
                   consume(_CSTRING);
                   if not try_to_consume(_COMMA) then
                     break;
                 until false;
-              end;
-             consume(_RECKKLAMMER);
+              consume(_RECKKLAMMER);
            end
-         else
-           begin
-              rg.usedbyproc := ALL_REGISTERS;
-              rg.usedinproc := ALL_REGISTERS;
-           end;
+         else rg.usedinproc := ALL_REGISTERS;
 
          { mark the start and the end of the assembler block
            this is needed for the optimizer }
@@ -881,6 +953,8 @@ implementation
                 consume(_FAIL);
                 code:=cfailnode.create;
              end;
+           _EXIT :
+             code:=exit_statement;
            _ASM :
              code:=_asm_statement;
            _EOF :
@@ -922,7 +996,7 @@ implementation
              { with a separate statement for each read/write operation (JM)    }
              { the same is true for val() if the third parameter is not 32 bit }
              if not(p.nodetype in [nothingn,calln,assignn,breakn,inlinen,
-                                   continuen,labeln,blockn,exitn]) then
+                                   continuen,labeln,blockn]) then
                Message(cg_e_illegal_expression);
 
              { specify that we don't use the value returned by the call }
@@ -959,13 +1033,13 @@ implementation
            begin
               if first=nil then
                 begin
-                   last:=cstatementnode.create(statement,nil);
+                   last:=cstatementnode.create(nil,statement);
                    first:=last;
                 end
               else
                 begin
-                   tstatementnode(last).right:=cstatementnode.create(statement,nil);
-                   last:=tstatementnode(last).right;
+                   tstatementnode(last).left:=cstatementnode.create(nil,statement);
+                   last:=tstatementnode(last).left;
                 end;
               if (token in [_END,_FINALIZATION]) then
                 break
@@ -990,7 +1064,7 @@ implementation
 
          dec(statement_level);
 
-         last:=cblocknode.create(first,true);
+         last:=cblocknode.create(first);
          last.set_tree_filepos(filepos);
          statement_block:=last;
       end;
@@ -1011,15 +1085,11 @@ implementation
         parafixup,
         i : longint;
       begin
-        { we don't need to allocate space for the locals }
-        aktprocdef.localst.datasize:=0;
-        procinfo.firsttemp_offset:=0;
         { replace framepointer with stackpointer }
-        procinfo.framepointer.enum:=R_INTREGISTER;
-        procinfo.framepointer.number:=NR_STACK_POINTER_REG;
+        procinfo^.framepointer:=STACK_POINTER_REG;
         { set the right value for parameters }
         dec(aktprocdef.parast.address_fixup,pointer_size);
-        dec(procinfo.para_offset,pointer_size);
+        dec(procinfo^.para_offset,pointer_size);
         { replace all references to parameters in the instructions,
           the parameters can be identified by the parafixup option
           that is set. For normal user coded [ebp+4] this field is not
@@ -1040,8 +1110,7 @@ implementation
                        ref_parafixup :
                          begin
                            ref^.offsetfixup:=parafixup;
-                           ref^.base.enum:=R_INTREGISTER;
-                           ref^.base.number:=NR_STACK_POINTER_REG;
+                           ref^.base:=STACK_POINTER_REG;
                          end;
                      end;
                    end;
@@ -1073,34 +1142,57 @@ implementation
 
       var
         p : tnode;
+        haslocals,hasparas : boolean;
       begin
-         { Rename the funcret so that recursive calls are possible }
-         if not is_void(aktprocdef.rettype.def) then
-           symtablestack.rename(aktprocdef.funcretsym.name,'$result');
+         { retrieve info about locals and paras before a result
+           is inserted in the symtable }
+         haslocals:=(aktprocdef.localst.datasize>0);
+         hasparas:=(aktprocdef.parast.datasize>0);
 
+         { temporary space is set, while the BEGIN of the procedure }
+         if symtablestack.symtabletype=localsymtable then
+           procinfo^.firsttemp_offset := -symtablestack.datasize
+         else
+           procinfo^.firsttemp_offset := 0;
+
+         { assembler code does not allocate }
+         { space for the return value       }
+         if not is_void(aktprocdef.rettype.def) then
+           begin
+              aktprocdef.funcretsym:=tfuncretsym.create(aktprocsym.name,aktprocdef.rettype);
+              { insert in local symtable }
+              { but with another name, so that recursive calls are possible }
+              symtablestack.insert(aktprocdef.funcretsym);
+              symtablestack.rename(aktprocdef.funcretsym.name,'$result');
+              { update the symtablesize back to 0 if there were no locals }
+              if not haslocals then
+               symtablestack.datasize:=0;
+              { set the used flag for the return }
+              if ret_in_acc(aktprocdef.rettype.def) then
+                 include(rg.usedinproc,accumulator);
+            end;
          { force the asm statement }
          if token<>_ASM then
            consume(_ASM);
-         procinfo.Flags := procinfo.Flags Or pi_is_assembler;
+         procinfo^.Flags := procinfo^.Flags Or pi_is_assembler;
          p:=_asm_statement;
 
 
          { set the framepointer to esp for assembler functions when the
            following conditions are met:
-           - if the are no local variables (except the allocated result)
-           - if the are no parameters
+           - if the are no local variables
            - no reference to the result variable (refcount<=1)
            - result is not stored as parameter
            - target processor has optional frame pointer save
              (vm, i386, vm only currently)
          }
          if (po_assembler in aktprocdef.procoptions) and
-            (aktprocdef.parast.datasize=0) and
-            (aktprocdef.localst.datasize=aktprocdef.rettype.def.size) and
+            (not haslocals) and
+            (not hasparas) and
             (aktprocdef.owner.symtabletype<>objectsymtable) and
             (not assigned(aktprocdef.funcretsym) or
              (tfuncretsym(aktprocdef.funcretsym).refcount<=1)) and
-            not(paramanager.ret_in_param(aktprocdef.rettype.def,aktprocdef.proccalloption)) and
+            not(ret_in_param(aktprocdef.rettype.def)) and
             (target_cpu in [cpu_i386,cpu_m68k,cpu_vm])
 {$ifdef CHECKFORPUSH}
             and not(UsesPush(tasmnode(p)))
@@ -1108,11 +1200,11 @@ implementation
             then
            OptimizeFramePointer(tasmnode(p));
 
-        { Flag the result as assigned when it is returned in a
-          register.
-        }
+        { Flag the result as assigned when it is returned in the
+          accumulator or on the fpu stack }
         if assigned(aktprocdef.funcretsym) and
-           paramanager.ret_in_reg(aktprocdef.rettype.def,aktprocdef.proccalloption) then
+           (is_fpu(aktprocdef.rettype.def) or
+           ret_in_acc(aktprocdef.rettype.def)) then
           tfuncretsym(aktprocdef.funcretsym).funcretstate:=vs_assigned;
 
         { because the END is already read we need to get the
@@ -1125,158 +1217,222 @@ implementation
 end.
 {
   $Log$
-  Revision 1.90  2002-04-25 20:15:40  florian
-    * block nodes within expressions shouldn't release the used registers,
-      fixed using a flag till the new rg is ready
+  Revision 1.55  2002-05-06 19:56:42  carl
+  + added more patches from Mazen for SPARC port
 
-  Revision 1.89  2003/04/25 08:25:26  daniel
-    * Ifdefs around a lot of calls to cleartempgen
-    * Fixed registers that are allocated but not freed in several nodes
-    * Tweak to register allocator to cause less spills
-    * 8-bit registers now interfere with esi,edi and ebp
-      Compiler can now compile rtl successfully when using new register
-      allocator
+  Revision 1.54  2002/04/21 19:02:05  peter
+    * removed newn and disposen nodes, the code is now directly
+      inlined from pexpr
+    * -an option that will write the secondpass nodes to the .s file, this
+      requires EXTDEBUG define to actually write the info
+    * fixed various internal errors and crashes due recent code changes
 
-  Revision 1.88  2003/03/28 19:16:57  peter
-    * generic constructor working for i386
-    * remove fixed self register
-    * esi added as address register for i386
+  Revision 1.53  2002/04/20 21:32:24  carl
+  + generic FPC_CHECKPOINTER
+  + first parameter offset in stack now portable
+  * rename some constants
+  + move some cpu stuff to other units
+  - remove unused constents
+  * fix stacksize for some targets
+  * fix generic size problems which depend now on EXTEND_SIZE constant
 
-  Revision 1.87  2003/03/17 18:55:30  peter
-    * allow more tokens instead of only semicolon after inherited
+  Revision 1.52  2002/04/16 16:11:17  peter
+    * using inherited; without a parent having the same function
+      will do nothing like delphi
 
-  Revision 1.86  2003/02/19 22:00:14  daniel
-    * Code generator converted to new register notation
-    - Horribily outdated todo.txt removed
+  Revision 1.51  2002/04/15 19:01:28  carl
+  + target_info.size_of_pointer -> pointer_Size
 
-  Revision 1.85  2003/01/08 18:43:56  daniel
-   * Tregister changed into a record
+  Revision 1.50  2002/04/14 16:53:54  carl
+  + asm statement uses ALL_REGISTERS
 
-  Revision 1.84  2003/01/01 21:05:24  peter
-    * fixed assembler methods stackpointer optimization that was
-      broken after the previous change
+  Revision 1.49  2002/03/31 20:26:36  jonas
+    + a_loadfpu_* and a_loadmm_* methods in tcg
+    * register allocation is now handled by a class and is mostly processor
+      independent (+rgobj.pas and i386/rgcpu.pas)
+    * temp allocation is now handled by a class (+tgobj.pas, -i386\tgcpu.pas)
+    * some small improvements and fixes to the optimizer
+    * some register allocation fixes
+    * some fpuvaroffset fixes in the unary minus node
+    * push/popusedregisters is now called rg.save/restoreusedregisters and
+      (for i386) uses temps instead of push/pop's when using -Op3 (that code is
+      also better optimizable)
+    * fixed and optimized register saving/restoring for new/dispose nodes
+    * LOC_FPU locations now also require their "register" field to be set to
+      R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
+    - list field removed of the tnode class because it's not used currently
+      and can cause hard-to-find bugs
 
-  Revision 1.83  2002/12/29 18:59:34  peter
-    * fixed parsing of declarations before asm statement
+  Revision 1.48  2002/03/11 19:10:28  peter
+    * Regenerated with updated fpcmake
 
-  Revision 1.82  2002/12/27 18:18:56  peter
-    * check for else after empty raise statement
+  Revision 1.47  2002/03/04 17:54:59  peter
+    * allow oridinal labels again
 
-  Revision 1.81  2002/11/27 02:37:14  peter
-    * case statement inlining added
-    * fixed inlining of write()
-    * switched statementnode left and right parts so the statements are
-      processed in the correct order when getcopy is used. This is
-      required for tempnodes
+  Revision 1.46  2002/01/29 21:32:03  peter
+    * allow accessing locals in other lexlevel when the current assembler
+      routine doesn't have locals.
 
-  Revision 1.80  2002/11/25 17:43:22  peter
-    * splitted defbase in defutil,symutil,defcmp
-    * merged isconvertable and is_equal into compare_defs(_ext)
-    * made operator search faster by walking the list only once
+  Revision 1.45  2002/01/24 18:25:49  peter
+   * implicit result variable generation for assembler routines
+   * removed m_tp modeswitch, use m_tp7 or not(m_fpc) instead
 
-  Revision 1.79  2002/11/18 17:31:58  peter
-    * pass proccalloption to ret_in_xxx and push_xxx functions
+  Revision 1.44  2001/11/09 10:06:56  jonas
+    * allow recursive calls again in assembler procedure
 
-  Revision 1.78  2002/09/07 19:34:08  florian
-    + tcg.direction is used now
+  Revision 1.43  2001/11/02 22:58:05  peter
+    * procsym definition rewrite
 
-  Revision 1.77  2002/09/07 15:25:07  peter
-    * old logs removed and tabs fixed
+  Revision 1.42  2001/10/26 22:36:42  florian
+    * fixed ranges in case statements with widechars
 
-  Revision 1.76  2002/09/07 12:16:03  carl
-    * second part bug report 1996 fix, testrange in cordconstnode
-      only called if option is set (also make parsing a tiny faster)
+  Revision 1.41  2001/10/25 21:22:37  peter
+    * calling convention rewrite
 
-  Revision 1.75  2002/09/02 18:40:52  peter
-    * fixed parsing of register names with lowercase
+  Revision 1.40  2001/10/24 11:51:39  marco
+   * Make new/dispose system functions instead of keywords
 
-  Revision 1.74  2002/09/01 14:43:12  peter
-    * fixed direct assembler for i386
+  Revision 1.39  2001/10/17 22:41:04  florian
+    * several widechar fixes, case works now
 
-  Revision 1.73  2002/08/25 19:25:20  peter
-    * sym.insert_in_data removed
-    * symtable.insertvardata/insertconstdata added
-    * removed insert_in_data call from symtable.insert, it needs to be
-      called separatly. This allows to deref the address calculation
-    * procedures now calculate the parast addresses after the procedure
-      directives are parsed. This fixes the cdecl parast problem
-    * push_addr_param has an extra argument that specifies if cdecl is used
-      or not
+  Revision 1.38  2001/10/16 15:10:35  jonas
+    * fixed goto/label/try bugs
 
-  Revision 1.72  2002/08/17 09:23:40  florian
-    * first part of procinfo rewrite
+  Revision 1.37  2001/09/22 11:11:43  peter
+    * "fpc -P?" command to query for used ppcXXX compiler
 
-  Revision 1.71  2002/08/16 14:24:58  carl
-    * issameref() to test if two references are the same (then emit no opcodes)
-    + ret_in_reg to replace ret_in_acc
-      (fix some register allocation bugs at the same time)
-    + save_std_register now has an extra parameter which is the
-      usedinproc registers
+  Revision 1.36  2001/09/06 10:21:50  jonas
+    * fixed superfluous generation of stackframes for assembler procedures
+      with no local vars or para's (this broke the backtrace printing in case
+      of an rte)
 
-  Revision 1.70  2002/08/11 14:32:27  peter
-    * renamed current_library to objectlibrary
+  Revision 1.35  2001/09/03 13:19:12  jonas
+    * set funcretsym for assembler procedures too (otherwise using __RESULT
+      in assembler procedures causes a crash)
 
-  Revision 1.69  2002/08/11 13:24:12  peter
-    * saving of asmsymbols in ppu supported
-    * asmsymbollist global is removed and moved into a new class
-      tasmlibrarydata that will hold the info of a .a file which
-      corresponds with a single module. Added librarydata to tmodule
-      to keep the library info stored for the module. In the future the
-      objectfiles will also be stored to the tasmlibrarydata class
-    * all getlabel/newasmsymbol and friends are moved to the new class
+  Revision 1.34  2001/08/26 13:36:46  florian
+    * some cg reorganisation
+    * some PPC updates
 
-  Revision 1.68  2002/08/10 14:46:30  carl
-    + moved target_cpu_string to cpuinfo
-    * renamed asmmode enum.
-    * assembler reader has now less ifdef's
-    * move from nppcmem.pas -> ncgmem.pas vec. node.
+  Revision 1.33  2001/08/23 14:28:36  jonas
+    + tempcreate/ref/delete nodes (allows the use of temps in the
+      resulttype and first pass)
+    * made handling of read(ln)/write(ln) processor independent
+    * moved processor independent handling for str and reset/rewrite-typed
+      from firstpass to resulttype pass
+    * changed names of helpers in text.inc to be generic for use as
+      compilerprocs + added "iocheck" directive for most of them
+    * reading of ordinals is done by procedures instead of functions
+      because otherwise FPC_IOCHECK overwrote the result before it could
+      be stored elsewhere (range checking still works)
+    * compilerprocs can now be used in the system unit before they are
+      implemented
+    * added note to errore.msg that booleans can't be read using read/readln
 
-  Revision 1.67  2002/08/09 19:11:44  carl
-    + reading of used registers in assembler routines is now
-      cpu-independent
+  Revision 1.32  2001/08/06 21:40:47  peter
+    * funcret moved from tprocinfo to tprocdef
 
-  Revision 1.66  2002/08/06 20:55:22  florian
-    * first part of ppc calling conventions fix
+  Revision 1.31  2001/06/03 21:57:37  peter
+    + hint directive parsing support
 
-  Revision 1.65  2002/07/28 20:45:22  florian
-    + added direct assembler reader for PowerPC
+  Revision 1.30  2001/05/17 13:25:24  jonas
+    * fixed web bugs 1480 and 1481
 
-  Revision 1.64  2002/07/20 11:57:56  florian
-    * types.pas renamed to defbase.pas because D6 contains a types
-      unit so this would conflicts if D6 programms are compiled
-    + Willamette/SSE2 instructions to assembler added
+  Revision 1.29  2001/05/04 15:52:04  florian
+    * some Delphi incompatibilities fixed:
+       - out, dispose and new can be used as idenfiers now
+       - const p = apointerype(nil); is supported now
+    + support for const p = apointertype(pointer(1234)); added
 
-  Revision 1.63  2002/07/19 11:41:36  daniel
-  * State tracker work
-  * The whilen and repeatn are now completely unified into whilerepeatn. This
-    allows the state tracker to change while nodes automatically into
-    repeat nodes.
-  * Resulttypepass improvements to the notn. 'not not a' is optimized away and
-    'not(a>b)' is optimized into 'a<=b'.
-  * Resulttypepass improvements to the whilerepeatn. 'while not a' is optimized
-    by removing the notn and later switchting the true and falselabels. The
-    same is done with 'repeat until not a'.
+  Revision 1.28  2001/04/21 12:03:11  peter
+    * m68k updates merged from fixes branch
 
-  Revision 1.62  2002/07/16 15:34:20  florian
-    * exit is now a syssym instead of a keyword
+  Revision 1.27  2001/04/18 22:01:57  peter
+    * registration of targets and assemblers
 
-  Revision 1.61  2002/07/11 14:41:28  florian
-    * start of the new generic parameter handling
+  Revision 1.26  2001/04/15 09:48:30  peter
+    * fixed crash in labelnode
+    * easier detection of goto and label in try blocks
 
-  Revision 1.60  2002/07/04 20:43:01  florian
-    * first x86-64 patches
+  Revision 1.25  2001/04/14 14:07:11  peter
+    * moved more code from pass_1 to det_resulttype
 
-  Revision 1.59  2002/07/01 18:46:25  peter
-    * internal linker
-    * reorganized aasm layer
+  Revision 1.24  2001/04/13 01:22:13  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
 
-  Revision 1.58  2002/05/18 13:34:13  peter
-    * readded missing revisions
+  Revision 1.23  2001/04/04 22:43:52  peter
+    * remove unnecessary calls to firstpass
 
-  Revision 1.57  2002/05/16 19:46:44  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
+  Revision 1.22  2001/04/02 21:20:34  peter
+    * resulttype rewrite
+
+  Revision 1.21  2001/03/22 22:35:42  florian
+    + support for type a = (a=1); in Delphi mode added
+    + procedure p(); in Delphi mode supported
+    + on isn't keyword anymore, it can be used as
+      id etc. now
+
+  Revision 1.20  2001/03/11 22:58:50  peter
+    * getsym redesign, removed the globals srsym,srsymtable
+
+  Revision 1.19  2000/12/25 00:07:27  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.18  2000/12/23 19:59:35  peter
+    * object to class for ow/og objects
+    * split objectdata from objectoutput
+
+  Revision 1.17  2000/12/16 22:45:55  jonas
+    * fixed case statements with int64 values
+
+  Revision 1.16  2000/11/29 00:30:37  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.15  2000/11/27 15:47:19  jonas
+    * fix for web bug 1251 (example 1)
+
+  Revision 1.14  2000/11/22 22:43:34  peter
+    * fixed crash with exception without sysutils (merged)
+
+  Revision 1.13  2000/11/04 14:25:21  florian
+    + merged Attila's changes for interfaces, not tested yet
+
+  Revision 1.12  2000/10/31 22:02:50  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.11  2000/10/14 21:52:56  peter
+    * fixed memory leaks
+
+  Revision 1.10  2000/10/14 10:14:52  peter
+    * moehrendorf oct 2000 rewrite
+
+  Revision 1.9  2000/10/01 19:48:25  peter
+    * lot of compile updates for cg11
+
+  Revision 1.8  2000/09/24 21:19:50  peter
+    * delphi compile fixes
+
+  Revision 1.7  2000/09/24 15:06:24  peter
+    * use defines.inc
+
+  Revision 1.6  2000/08/27 16:11:52  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.5  2000/08/12 15:41:15  peter
+    * fixed bug 1096 (merged)
+
+  Revision 1.4  2000/08/12 06:46:06  florian
+    + case statement for int64/qword implemented
+
+  Revision 1.3  2000/07/13 12:08:27  michael
+  + patched to 1.1.0 with former 1.09patch from peter
+
+  Revision 1.2  2000/07/13 11:32:45  michael
+  + removed logs
 
 }
