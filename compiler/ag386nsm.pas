@@ -340,7 +340,7 @@ unit ag386nsm;
       ait_const2str:array[ait_const_32bit..ait_const_8bit] of string[8]=
         (#9'DD'#9,#9'DW'#9,#9'DB'#9);
 
-      ait_section2nasmstr : array[tsection] of string[6]=
+      ait_section2nasmstr : array[tsection] of string[8]=
        ('','.text','.data','.bss',
         '.idata2','.idata4','.idata5','.idata6','.idata7','.edata',
         '.stab','.stabstr','');
@@ -751,7 +751,11 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.22  1999-03-02 02:56:11  peter
+  Revision 1.23  1999-03-04 13:55:39  pierre
+    * some m68k fixes (still not compilable !)
+    * new(tobj) does not give warning if tobj has no VMT !
+
+  Revision 1.22  1999/03/02 02:56:11  peter
     + stabs support for binary writers
     * more fixes and missing updates from the previous commit :(
 

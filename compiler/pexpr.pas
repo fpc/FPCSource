@@ -1424,8 +1424,12 @@ unit pexpr;
 
                  if (pd^.deftype<>pointerdef) then
                    Message(type_e_pointer_type_expected)
-                 else if (ppointerdef(pd)^.definition^.deftype<>objectdef) then
+                 else if {(ppointerdef(pd)^.definition^.deftype<>objectdef)}
+                       token=RKLAMMER then
                   begin
+                    if (ppointerdef(pd)^.definition^.deftype=objectdef) and
+                       ((pobjectdef(ppointerdef(pd)^.definition)^.options and oo_hasvmt) <> 0)  then
+                     Message(parser_w_use_extended_syntax_for_objects);
                     p1:=gensinglenode(newn,nil);
                     p1^.resulttype:=pd2;
                     consume(RKLAMMER);
@@ -1932,7 +1936,11 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.85  1999-02-22 15:09:39  florian
+  Revision 1.86  1999-03-04 13:55:44  pierre
+    * some m68k fixes (still not compilable !)
+    * new(tobj) does not give warning if tobj has no VMT !
+
+  Revision 1.85  1999/02/22 15:09:39  florian
     * behaviaor of PROTECTED and PRIVATE fixed, works now like TP/Delphi
 
   Revision 1.84  1999/02/22 02:15:26  peter

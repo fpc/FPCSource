@@ -934,7 +934,8 @@ unit pstatmnt;
                  end
                else
                  begin
-                    if (ppointerdef(p^.resulttype)^.definition^.deftype=objectdef) then
+                    if (ppointerdef(p^.resulttype)^.definition^.deftype=objectdef) and
+                       ((pobjectdef(ppointerdef(p^.resulttype)^.definition)^.options and oo_hasvmt) <> 0)  then
                      Message(parser_w_use_extended_syntax_for_objects);
 
                      case ht of
@@ -1285,7 +1286,11 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.69  1999-03-02 02:56:15  peter
+  Revision 1.70  1999-03-04 13:55:45  pierre
+    * some m68k fixes (still not compilable !)
+    * new(tobj) does not give warning if tobj has no VMT !
+
+  Revision 1.69  1999/03/02 02:56:15  peter
     + stabs support for binary writers
     * more fixes and missing updates from the previous commit :(
 

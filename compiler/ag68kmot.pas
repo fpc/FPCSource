@@ -247,7 +247,7 @@ unit ag68kmot;
 
     const
       section2str : array[tsection] of string[6]=
-       ('','CODE','DATA','BSS','','');
+       ('','CODE','DATA','BSS','','','','','','','','');
 
     procedure tm68kmotasmlist.WriteTree(p:paasmoutput);
     var
@@ -542,7 +542,11 @@ ait_labeled_instruction :
 end.
 {
   $Log$
-  Revision 1.16  1998-12-11 00:02:41  peter
+  Revision 1.17  1999-03-04 13:55:41  pierre
+    * some m68k fixes (still not compilable !)
+    * new(tobj) does not give warning if tobj has no VMT !
+
+  Revision 1.16  1998/12/11 00:02:41  peter
     + globtype,tokens,version unit splitted from globals
 
   Revision 1.15  1998/11/30 09:42:58  pierre

@@ -549,7 +549,7 @@ implementation
             asmbin : '';
             asmcmd : '';
             externals : true;
-            labelprefix : 'L';
+            labelprefix : '.L';
             comment : ''
           )
 {$endif i386}
@@ -914,7 +914,7 @@ implementation
             exeext      : '';
             os          : os_m68k_Amiga;
             link        : link_m68k_ld;
-            assem       : as_m68k_o;
+            assem       : as_m68k_as;
             ar          : ar_m68k_ar;
             res         : res_none;
             heapsize    : 128*1024;
@@ -938,7 +938,7 @@ implementation
             exeext      : '.ttp';
             os          : os_m68k_Atari;
             link        : link_m68k_ld;
-            assem       : as_m68k_o;
+            assem       : as_m68k_as;
             ar          : ar_m68k_ar;
             res         : res_none;
             heapsize    : 16*1024;
@@ -986,7 +986,7 @@ implementation
             exeext      : '';
             os          : os_m68k_Linux;
             link        : link_m68k_ld;
-            assem       : as_m68k_o;
+            assem       : as_m68k_as;
             ar          : ar_m68k_ar;
             res         : res_none;
             heapsize    : 128*1024;
@@ -1010,7 +1010,7 @@ implementation
             exeext      : '';
             os          : os_m68k_PalmOS;
             link        : link_m68k_ld;
-            assem       : as_m68k_o;
+            assem       : as_m68k_as;
             ar          : ar_m68k_ar;
             res         : res_none;
             heapsize    : 128*1024;
@@ -1354,7 +1354,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.61  1999-03-03 11:41:51  pierre
+  Revision 1.62  1999-03-04 13:55:48  pierre
+    * some m68k fixes (still not compilable !)
+    * new(tobj) does not give warning if tobj has no VMT !
+
+  Revision 1.61  1999/03/03 11:41:51  pierre
     + stabs info corrected to give results near to GAS output
     * local labels (with .L are not stored in object anymore)
       so we get the same number of symbols as from GAS !

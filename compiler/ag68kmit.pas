@@ -258,8 +258,9 @@ unit ag68kmit;
       ait_const2str:array[ait_const_32bit..ait_const_8bit] of string[8]=
         (#9'.long'#9,#9'.short'#9,#9'.byte'#9);
 
-      ait_section2str : array[tsection] of string[6]=
-       ('','.text','.data','.bss','.idata','.edata');
+      ait_section2str : array[tsection] of string[8]=
+       ('','.text','.data','.bss','.idata2','.idata4','.idata5','.idata6','.idata7',
+        '.edata','.stab','.stabstr');
 
     procedure tm68kmitasmlist.WriteTree(p:paasmoutput);
     var
@@ -665,7 +666,11 @@ ait_stab_function_name : funcname:=pai_stab_function_name(hp)^.str;
 end.
 {
   $Log$
-  Revision 1.19  1998-12-23 22:53:45  peter
+  Revision 1.20  1999-03-04 13:55:40  pierre
+    * some m68k fixes (still not compilable !)
+    * new(tobj) does not give warning if tobj has no VMT !
+
+  Revision 1.19  1998/12/23 22:53:45  peter
     * don't count ait_marker for lineinfo
 
   Revision 1.18  1998/12/11 00:02:40  peter
