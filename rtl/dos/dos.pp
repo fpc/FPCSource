@@ -328,7 +328,7 @@ unit dos;
             jmp        int86
     int86_retjmp:
             pushf
-            pushl	%ebp
+            pushl       %ebp
             pushl       %eax
             movl        %esp,%ebp
             // calc EBP new
@@ -342,8 +342,8 @@ unit dos;
             movl        %ecx,8(%eax)
             movl        %edx,12(%eax)
             // restore EBP
-            popl	%edx
-            movl	%edx,16(%eax)
+            popl        %edx
+            movl        %edx,16(%eax)
             movl        %esi,20(%eax)
             movl        %edi,24(%eax)
             // ignore ES and DS
@@ -367,15 +367,15 @@ unit dos;
       {
         Table 0931
         Format of EXEC parameter block for AL=00h,01h,04h:
-        Offset	Size	Description
-         00h	WORD	segment of environment to copy for child process (copy caller's
-		          environment if 0000h)
+        Offset  Size    Description
+         00h    WORD    segment of environment to copy for child process (copy caller's
+                          environment if 0000h)
          this does not seem to work (PM)
-         02h	DWORD	pointer to command tail to be copied into child's PSP
-         06h	DWORD	pointer to first FCB to be copied into child's PSP
-         0Ah	DWORD	pointer to second FCB to be copied into child's PSP
-         0Eh	DWORD	(AL=01h) will hold subprogram's initial SS:SP on return
-         12h	DWORD	(AL=01h) will hold entry point (CS:IP) on return
+         02h    DWORD   pointer to command tail to be copied into child's PSP
+         06h    DWORD   pointer to first FCB to be copied into child's PSP
+         0Ah    DWORD   pointer to second FCB to be copied into child's PSP
+         0Eh    DWORD   (AL=01h) will hold subprogram's initial SS:SP on return
+         12h    DWORD   (AL=01h) will hold entry point (CS:IP) on return
         INT 21 4B--
 
         Copied from Ralf Brown's Interrupt List
@@ -383,17 +383,17 @@ unit dos;
 
       type
          realptr = record
-	    ofs,seg : word;
-  	 end;
+            ofs,seg : word;
+         end;
 
          texecblock = record
-	    envseg : word;
-	    comtail : realptr;
-	    firstFCB : realptr;
-	    secondFCB : realptr;
-	    iniStack : realptr;
-	    iniCSIP : realptr;
- 	 end;
+            envseg : word;
+            comtail : realptr;
+            firstFCB : realptr;
+            secondFCB : realptr;
+            iniStack : realptr;
+            iniCSIP : realptr;
+         end;
 
       var current_dos_buffer_pos : longint;
       function paste_to_dos(src : string) : boolean;
@@ -414,7 +414,7 @@ unit dos;
       var
          i,la_env,la_p,la_c,la_e,fcb1_la,fcb2_la : longint;
          arg_ofs : longint;
-	      execblock : texecblock;
+              execblock : texecblock;
 
       begin
          la_env:=transfer_buffer;
@@ -432,7 +432,7 @@ unit dos;
          paste_to_dos(p);
          la_c:=current_dos_buffer_pos;
          paste_to_dos(c);
-	      la_e:=current_dos_buffer_pos;
+              la_e:=current_dos_buffer_pos;
          fcb1_la:=la_e;
          la_e:=la_e+16;
          fcb2_la:=la_e;
@@ -463,17 +463,17 @@ unit dos;
          dosregs.es:=fcb2_la div 16;
          dosregs.di:=fcb2_la mod 16;
          msdos(dosregs);
-     	   with execblock do
-      	  begin
-      	     envseg:=la_env div 16;
-      	     comtail.seg:=la_c div 16;
-      	     comtail.ofs:=la_c mod 16;
-      	     firstFCB.seg:=fcb1_la div 16;
-      	     firstFCB.ofs:=fcb1_la mod 16;
-      	     secondFCB.seg:=fcb2_la div 16;
-      	     secondFCB.ofs:=fcb2_la mod 16;
-      	  end;
-       	seg_move(get_ds,longint(@execblock),dosmemselector,la_e,sizeof(texecblock));
+           with execblock do
+          begin
+             envseg:=la_env div 16;
+             comtail.seg:=la_c div 16;
+             comtail.ofs:=la_c mod 16;
+             firstFCB.seg:=fcb1_la div 16;
+             firstFCB.ofs:=fcb1_la mod 16;
+             secondFCB.seg:=fcb2_la div 16;
+             secondFCB.ofs:=fcb2_la mod 16;
+          end;
+        seg_move(get_ds,longint(@execblock),dosmemselector,la_e,sizeof(texecblock));
          dosregs.edx:=la_p mod 16;
          dosregs.ds:=la_p div 16;
          dosregs.ebx:=la_e mod 16;
@@ -483,7 +483,7 @@ unit dos;
          if (dosregs.flags and 1) <> 0 then
            begin
               doserror:=dosregs.ax;
-   	        lastdosexitcode:=0;
+                lastdosexitcode:=0;
               exit;
            end
          else
@@ -711,7 +711,7 @@ unit dos;
            dosmemput(transfer_buffer div 16,
              (transfer_buffer mod 16) +Sizeof(searchrec)+1,path^,strlen(path)+1);
            dosregs.ds:=transfer_buffer div 16;
-	   dosregs.ah:=$4e;
+           dosregs.ah:=$4e;
            msdos(dosregs);
            copyfromdos(f,sizeof(searchrec));
            if dosregs.flags and carryflag<>0 then
@@ -765,9 +765,9 @@ unit dos;
            copytodos(f,sizeof(searchrec));
            dosregs.edx:=transfer_buffer mod 16;
            dosregs.ds:=transfer_buffer div 16;
-	        dosregs.ah:=$1a;
+                dosregs.ah:=$1a;
            msdos(dosregs);
-	        dosregs.ah:=$4f;
+                dosregs.ah:=$4f;
            msdos(dosregs);
            copyfromdos(f,sizeof(searchrec));
            if dosregs.flags and carryflag <> 0 then
@@ -830,34 +830,13 @@ unit dos;
       end;
 {$endif go32v2}
 
-    type
-       ppchar = ^pchar;
-
-{$ifdef GO32V1}
-
-    function envs : ppchar;
-
-      begin
-         asm
-            movl _environ,%eax
-            leave
-            ret
-         end ['EAX'];
-      end;
-
-{$endif}
-
     function envcount : longint;
 
       var
          hp : ppchar;
 
       begin
-{$ifdef GO32V2}
          hp:=environ;
-{$else GO32V2}
-         hp:=envs;
-{$endif}
          envcount:=0;
          while assigned(hp^) do
            begin
@@ -878,11 +857,7 @@ unit dos;
               envstr:='';
               exit;
            end;
-{$ifdef GO32V2}
          hp:=environ+4*(index-1);
-{$else GO32V2}
-         hp:=envs+4*(index-1);
-{$endif GO32V2}
          envstr:=strpas(hp^);
       end;
 
@@ -950,24 +925,11 @@ unit dos;
 
     function fexpand(const path : pathstr) : pathstr;
 
-      function get_current_drive : byte;
-      
-        var
-           r : registers;
-           
-        begin
-           r.ah:=$19;
-           msdos(r);
-           get_current_drive:=r.al;
-        end;           
-
        var
           s,pa : string[79];
           i,j : byte;
 
        begin
-          { There are differences between FPKPascal and Turbo Pascal
-            e.g. for the string 'D:\DEMO\..\HELLO' which isn't handled }
           getdir(0,s);
           pa:=upcase(path);
           { allow slash as backslash }
@@ -984,7 +946,7 @@ unit dos;
                    pa:=pa[1]+':\'+copy (pa,3,length(pa))
             end
           else
-            if pa[1]='\' then 
+            if pa[1]='\' then
               pa:=s[1]+':'+pa
             else if s[0]=#3 then
               pa:=s+pa
@@ -1118,8 +1080,11 @@ end.
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:41  root
-  Initial revision
+  Revision 1.2  1998-03-26 12:23:49  peter
+    * envrion is now the same for go32v1 and go32v2
+
+  Revision 1.1.1.1  1998/03/25 11:18:41  root
+  * Restored version
 
   Revision 1.10  1998/03/12 04:02:32  carl
     * bugfix of Range Check error in FExpand
@@ -1137,7 +1102,7 @@ end.
   + Added log at the end
 
 
-  
+
   Working file: rtl/dos/dos.pp
   description:
   ----------------------------
