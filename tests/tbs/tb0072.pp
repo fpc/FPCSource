@@ -29,6 +29,12 @@ asm
   mr r6,y
 end;
 {$endif CPUPOWERPC}
+{$ifdef CPUARM}
+asm
+  mov r2,x
+  mov r3,y
+end;
+{$endif CPUARM}
 
 {procedure nothing(x,y: longint);
 begin

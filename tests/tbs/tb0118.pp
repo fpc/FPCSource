@@ -46,6 +46,16 @@ asm
   li r12,0
 end;
 {$endif CPUPOWERPC}
+{$ifdef CPUARM}
+asm
+  // doesn't matter, there is no static register used anymore for self,
+  // and self is now loaded on-demand instead of always
+  mov r0,0
+  mov r1,0
+  mov r2,0
+  mov r3,0
+end;
+{$endif CPUARM}
 
 
 var
