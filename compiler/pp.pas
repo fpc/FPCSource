@@ -30,6 +30,7 @@
   I386                generate a compiler for the Intel i386+
   M68K                generate a compiler for the M68000
   USEOVERLAY          compiles a TP version which uses overlays
+  DEBUG               version with debug code is generated
   EXTDEBUG            some extra debug code is executed
   SUPPORT_MMX         only i386: releases the compiler switch
                       MMX which allows the compiler to generate
@@ -124,15 +125,11 @@ uses
     {$define NOCATCH}
   {$endif DEBUG}
   catch,
-  {$ifdef nocatch}
-  lineinfo,
-  {$endif nocatch}
 {$endif}
-{$ifdef win32}
-  {$ifdef DEBUG}
-  lineinfo,
-  {$endif DEBUG}
-{$endif}
+{ we've now a lineinfo unit for all OSes }
+{$ifdef DEBUG}
+lineinfo,
+{$endif DEBUG}
 {$endif FPC}
   globals,compiler
 {$ifdef logmemblocks}
@@ -288,7 +285,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.58  2000-03-16 10:29:06  florian
+  Revision 1.59  2000-03-20 09:36:23  florian
+    * using the directive DEBUG when compiling the compiler will include now
+      the lineinfo unit on all targets
+
+  Revision 1.58  2000/03/16 10:29:06  florian
     * disk full runerror writes now a nice message
 
   Revision 1.57  2000/03/14 16:30:14  pierre
