@@ -1,4 +1,4 @@
-{ Program to test system unit setstring routines 
+{ Program to test system unit setstring routines
   Tested against Delphi 3 and (where possible)
   against Borland Pascal v7.01
   Copyright (c) 2002 Carl Eric Codere
@@ -20,21 +20,21 @@ program tsetstr;
 {$ifdef fpc}
   uses strings;
 {$else}
-  uses sysutils;
+  uses SysUtils;
 {$endif}
 const
   HELLO_STRING = 'Hello my little world!';
   PCHAR_NULL = nil;
   PCHAR_EMPTY : pchar = #0;
   PCHAR_NORMAL : pchar = HELLO_STRING;
-  
+
 
 var
    str1 : shortstring;
    str2 : ansistring;
-{$ifdef haswidestring}   
+{$ifdef haswidestring}
    str3 : widestring;
-{$endif}   
+{$endif}
 
 procedure fail;
  begin
@@ -71,7 +71,7 @@ begin
   setstring(str1,PCHAR_NORMAL,512);
   if str1 <> '' then
     _failed := true;
-  str1:='';  
+  str1:='';
   setstring(str1,PCHAR_NORMAL,strlen(PCHAR_NORMAL));
   if str1 <> HELLO_STRING then
     _failed := true;
@@ -106,7 +106,7 @@ begin
   setstring(str2, PCHAR_NORMAL, 0);
   if str2 <> '' then
     _failed := true;
-  str2:='';  
+  str2:='';
   setstring(str2,PCHAR_NORMAL,strlen(PCHAR_NORMAL));
   if str2 <> HELLO_STRING then
     _failed := true;
@@ -141,7 +141,7 @@ begin
   setstring(str3, PCHAR_NORMAL, 0);
   if str3 <> '' then
     _failed := true;
-  str3:='';  
+  str3:='';
   setstring(str3,PCHAR_NORMAL,strlen(PCHAR_NORMAL));
   if str3 <> HELLO_STRING then
     _failed := true;
@@ -156,13 +156,16 @@ Begin
   test_shortstring;
   test_ansistring;
 {$ifdef haswidestring}
-  test_widestring; 
+  test_widestring;
 {$endif}
 end.
 
 {
   $Log$
-  Revision 1.1  2002-10-20 11:44:15  carl
+  Revision 1.2  2002-12-16 20:40:36  peter
+    * win32 fix
+
+  Revision 1.1  2002/10/20 11:44:15  carl
     + setstring testing
     * args checking is not interactive
     + zero and negative length checking for move/fillchar

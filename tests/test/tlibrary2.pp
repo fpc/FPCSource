@@ -14,7 +14,14 @@
 
 {$ifdef supported}
 
-procedure test;external 'libtlibrary.so' name 'TestName';
+const
+{$ifdef win32}
+  libname='tlibrary.dll';
+{$else}
+  libname='libtlibrary.so';
+{$endif}
+
+procedure test;external libname name 'TestName';
 
 begin
   test;
