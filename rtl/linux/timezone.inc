@@ -224,23 +224,39 @@ begin
   fdclose(f);
 end;
 
-
+Const
+  // Debian system; contains location of timezone file.
+  TimeZoneLocationFile = '/etc/timezone'; 
+  // SuSE has link in /usr/lib/zoneinfo/localtime to /etc/localtime
+  // RedHat uses /etc/localtime
+  TimeZoneFile = '/usr/lib/zoneinfo/localtime'; 
+  AltTimeZoneFile = '/etc/localtime'; 
+  
 function GetTimezoneFile:string;
 var
   f,len : longint;
   s : string;
+  info : stat;
+  
 begin
   GetTimezoneFile:='';
-  f:=fdopen('/etc/timezone',Open_RdOnly);
-  if f=0 then
-   exit;
-  len:=fdread(f,s[1],high(s));
-  s[0]:=chr(len);
-  len:=pos(#10,s);
-  if len<>0 then
-   s[0]:=chr(len-1);
-  fdclose(f);
-  GetTimezoneFile:=s;
+  f:=fdopen(TimeZoneLocationFile,Open_RdOnly);
+  if f>0 then
+    begin
+    len:=fdread(f,s[1],high(s));
+    s[0]:=chr(len);
+    len:=pos(#10,s);
+    if len<>0 then
+     s[0]:=chr(len-1);
+    fdclose(f);
+    GetTimezoneFile:=s;
+    end
+  // Try SuSE  
+  else if fstat(TimeZoneFile,info) then
+    GetTimeZoneFile:=TimeZoneFile
+  // Try RedHat  
+  else If fstat(AltTimeZoneFile,Info) then
+      GetTimeZoneFile:=AltTimeZoneFile;
 end;
 
 
@@ -270,7 +286,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  1999-12-02 11:25:31  peter
+  Revision 1.3  1999-12-04 13:50:43  michael
+  + Now time zone also works on SuSE and RedHat
+
+  Revision 1.2  1999/12/02 11:25:31  peter
     * timezone.inc dep for linux.ppu
     * fixed sigsegvs with wrong timezone settigns
 
