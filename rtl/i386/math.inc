@@ -121,36 +121,38 @@
   {$else}
     function exp(d : ValReal) : ValReal;assembler;[internconst:fpc_in_const_exp];
   {$endif}
-       asm
-            // comes from DJ GPP
-            fldt        d
-            fldl2e
-            fmulp       %st,%st(1)
-            fstcw      .LCW1
-            fstcw      .LCW2
-            andw        $0xf3ff,.LCW2
-            orw         $0x0400,.LCW2
-            fldcw      .LCW2
-            fld         %st(0)
-            frndint
-            fldcw      .LCW1
-            fxch        %st(1)
-            fsub        %st(1),%st
-            f2xm1
-            fld1
-            faddp       %st,%st(1)
-            fscale
-            fstp        %st(1)
-            jmp         .LCW3
-            // store some help data in the data segment
-        .data
-        .LCW1:
-            .word       0
-        .LCW2:
-            .word       0
-        .text
-        .LCW3:
-      end;
+      asm
+        // comes from DJ GPP
+        fldt        d
+        fldl2e
+        fmulp       %st,%st(1)
+        fstcw      .LCW1
+        fstcw      .LCW2
+        fwait
+        andw        $0xf3ff,.LCW2
+        orw         $0x0400,.LCW2
+        fldcw      .LCW2
+        fld         %st(0)
+        frndint
+        fldcw      .LCW1
+        fxch        %st(1)
+        fsub        %st(1),%st
+        f2xm1
+        fld1
+        faddp       %st,%st(1)
+        fscale
+        fstp        %st(1)
+        fclex
+        jmp         .LCW3
+        // store some help data in the data segment
+    .data
+    .LCW1:
+        .word       0
+    .LCW2:
+        .word       0
+    .text
+    .LCW3:
+     end;
 
 
     {$define FPC_SYSTEM_HAS_FRAC}
@@ -160,21 +162,19 @@
     function frac(d : ValReal) : ValReal;assembler;[internconst:fpc_in_const_frac];
   {$endif}
       asm
-            subl $16,%esp
-            fnstcw -4(%ebp)
-            fwait
-            movw -4(%ebp),%cx
-            orw $0x0c3f,%cx
-            movw %cx,-8(%ebp)
-            fldcw -8(%ebp)
-            fwait
-            fldt d
-            frndint
-            fldt d
-            fsub %st(1),%st
-            fstp %st(1)
-            fclex
-            fldcw -4(%ebp)
+        subl $16,%esp
+        fnstcw -4(%ebp)
+        fwait
+        movw -4(%ebp),%cx
+        orw $0x0f00,%cx
+        movw %cx,-8(%ebp)
+        fldcw -8(%ebp)
+        fldt d
+        frndint
+        fldt d
+        fsub %st(1),%st
+        fstp %st(1)
+        fldcw -4(%ebp)
       end;
 
 
@@ -185,18 +185,18 @@
     function int(d : ValReal) : ValReal;assembler;[internconst:fpc_in_const_int];
   {$endif}
       asm
-            subl $16,%esp
-            fnstcw -4(%ebp)
-            fwait
-            movw -4(%ebp),%cx
-            orw $0x0c3f,%cx
-            movw %cx,-8(%ebp)
-            fldcw -8(%ebp)
-            fwait
-            fldt d
-            frndint
-            fclex
-            fldcw -4(%ebp)
+        subl $16,%esp
+        fnstcw -4(%ebp)
+        fwait
+        movw -4(%ebp),%cx
+        orw $0x0f00,%cx
+        movw %cx,-8(%ebp)
+        fldcw -8(%ebp)
+        fwait
+        fldt d
+        frndint
+        fwait
+        fldcw -4(%ebp)
       end;
 
 
@@ -212,19 +212,18 @@
         newcw : word;
         res   : int64;
       asm
-            fnstcw oldcw
-            fwait
-            movw oldcw,%cx
-            orw $0x0c3f,%cx
-            movw %cx,newcw
-            fldcw newcw
-            fwait
-            fldt d
-            fistpq res
-            movl res,%eax
-            movl res+4,%edx
-            fclex
-            fldcw oldcw
+        fnstcw oldcw
+        fwait
+        movw oldcw,%cx
+        orw $0x0f00,%cx
+        movw %cx,newcw
+        fldcw newcw
+        fldt d
+        fistpq res
+        fwait
+        movl res,%eax
+        movl res+4,%edx
+        fldcw oldcw
       end;
 
 
@@ -240,22 +239,13 @@
     {$endif hascompilerproc}
   {$endif}
       var
-        oldcw,
-        newcw : word;
         res   : int64;
       asm
-            fnstcw oldcw
-            fwait
-            movw $0x1372,newcw
-            fclex
-            fldcw newcw
-            fwait
-            fldt d
-            fistpq res
-            movl res,%eax
-            movl res+4,%edx
-            fclex
-            fldcw oldcw
+        fldt d
+        fistpq res
+        fwait
+        movl res,%eax
+        movl res+4,%edx
       end;
 
 
@@ -288,7 +278,10 @@
 
 {
   $Log$
-  Revision 1.23  2005-03-09 20:50:11  florian
+  Revision 1.24  2005-03-13 17:14:46  florian
+    * some floating point routines improved
+
+  Revision 1.23  2005/03/09 20:50:11  florian
     * C. Western: utf-8 reading from resource files
 
   Revision 1.22  2005/02/14 17:13:22  peter
