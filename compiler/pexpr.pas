@@ -650,6 +650,7 @@ implementation
                  end;
               end;
              p1:=ccallnode.create(para,tprocsym(sym),st,p1);
+             include(p1.flags,nf_auto_inherited);
            end
         else
            begin
@@ -914,6 +915,7 @@ implementation
                       do_resulttypepass(p1);
                       { now we know the real method e.g. we can check for a class method }
                       if isclassref and
+                         (p1.nodetype=calln) and
                          assigned(tcallnode(p1).procdefinition) and
                          not(po_classmethod in tcallnode(p1).procdefinition.procoptions) and
                          not(tcallnode(p1).procdefinition.proctypeoption=potype_constructor) then
@@ -2261,7 +2263,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.85  2002-10-04 21:13:59  peter
+  Revision 1.86  2002-10-05 00:48:57  peter
+    * support inherited; support for overload as it is handled by
+      delphi. This is only for delphi mode as it is working is
+      undocumented and hard to predict what is done
+
+  Revision 1.85  2002/10/04 21:13:59  peter
     * ignore vecn,subscriptn when checking for a procvar loadn
 
   Revision 1.84  2002/10/02 20:51:22  peter

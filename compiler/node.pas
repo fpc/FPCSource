@@ -222,6 +222,7 @@ interface
          { flags used by tcallnode }
          nf_return_value_used,
          nf_static_call,
+         nf_auto_inherited,
 
          { flags used by tcallparanode }
          nf_varargs_para,  { belongs this para to varargs }
@@ -978,7 +979,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.43  2002-09-07 15:25:03  peter
+  Revision 1.44  2002-10-05 00:48:57  peter
+    * support inherited; support for overload as it is handled by
+      delphi. This is only for delphi mode as it is working is
+      undocumented and hard to predict what is done
+
+  Revision 1.43  2002/09/07 15:25:03  peter
     * old logs removed and tabs fixed
 
   Revision 1.42  2002/09/03 16:26:26  daniel

@@ -148,7 +148,7 @@ implementation
       verbose,globals,
       symconst,paramgr,defbase,
       htypechk,pass_1,cpuinfo,cpubase,
-      ncnv,nld,ninl,nadd,ncon,
+      nbas,ncnv,nld,ninl,nadd,ncon,
       rgobj,cgbase
       ;
 
@@ -1468,6 +1468,7 @@ implementation
 
       var
         i,j : longint;
+        has_overload_directive,
         found,
         is_const : boolean;
         bestord  : torddef;
@@ -1476,6 +1477,7 @@ implementation
       begin
          result:=nil;
          procs:=nil;
+         has_overload_directive:=false;
 
          oldcallprocdef:=aktcallprocdef;
          aktcallprocdef:=nil;
@@ -1565,13 +1567,17 @@ implementation
                             hp^.nextpara:=hp^.firstpara;
                             procs:=hp;
                          end;
-                     end;
+                      end;
+
+                   { remember if the procedure is declared with the overload directive,
+                     it's information is still needed also after all procs are removed }
+                   has_overload_directive:=(po_overload in symtableprocentry.first_procdef.procoptions);
 
                    { when the definition has overload directive set, we search for
                      overloaded definitions in the symtablestack. The found
                      entries are only added to the procs list and not the procsym, because
                      the list can change in every situation }
-                   if (po_overload in symtableprocentry.first_procdef.procoptions) and
+                   if has_overload_directive and
                       (symtableprocentry.owner.symtabletype<>objectsymtable) then
                      begin
                        srsymtable:=symtableprocentry.owner.next;
@@ -1638,24 +1644,42 @@ implementation
                      with the parameter size }
                    if not assigned(procs) then
                     begin
-                      { in tp mode we can try to convert to procvar if
-                        there are no parameters specified }
-                      if not(assigned(left)) and
-                         (m_tp_procvar in aktmodeswitches) then
-                        begin
-                          hpt:=cloadnode.create(tprocsym(symtableprocentry),symtableproc);
-                          if (symtableprocentry.owner.symtabletype=objectsymtable) and
-                             assigned(methodpointer) then
-                            tloadnode(hpt).set_mp(methodpointer.getcopy);
-                          resulttypepass(hpt);
-                          result:=hpt;
-                        end
+                      { when it's an auto inherited call and there
+                        is no procedure found, but the procedures
+                        were defined with overload directive and at
+                        least two procedures are defined then we ignore
+                        this inherited by inserting a nothingn. Only
+                        do this ugly hack in Delphi mode as it looks more
+                        like a bug. It's also not documented }
+                      if (m_delphi in aktmodeswitches) and
+                         (nf_auto_inherited in flags) and
+                         (has_overload_directive) and
+                         (symtableprocentry.procdef_count>=2) then
+                        result:=cnothingnode.create
                       else
                         begin
-                          if assigned(left) then
-                           aktfilepos:=left.fileinfo;
-                          CGMessage(parser_e_wrong_parameter_size);
-                          symtableprocentry.write_parameter_lists(nil);
+                          { in tp mode we can try to convert to procvar if
+                            there are no parameters specified. Only try it
+                            when there is only one proc definition, else the
+                            loadnode will give a strange error }
+                          if not(assigned(left)) and
+                             (m_tp_procvar in aktmodeswitches) and
+                             (symtableprocentry.procdef_count=1) then
+                            begin
+                              hpt:=cloadnode.create(tprocsym(symtableprocentry),symtableproc);
+                              if (symtableprocentry.owner.symtabletype=objectsymtable) and
+                                 assigned(methodpointer) then
+                                tloadnode(hpt).set_mp(methodpointer.getcopy);
+                              resulttypepass(hpt);
+                              result:=hpt;
+                            end
+                          else
+                            begin
+                              if assigned(left) then
+                               aktfilepos:=left.fileinfo;
+                              CGMessage(parser_e_wrong_parameter_size);
+                              symtableprocentry.write_parameter_lists(nil);
+                            end;
                         end;
                       goto errorexit;
                     end;
@@ -2604,7 +2628,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.101  2002-09-16 14:11:12  peter
+  Revision 1.102  2002-10-05 00:48:57  peter
+    * support inherited; support for overload as it is handled by
+      delphi. This is only for delphi mode as it is working is
+      undocumented and hard to predict what is done
+
+  Revision 1.101  2002/09/16 14:11:12  peter
     * add argument to equal_paras() to support default values or not
 
   Revision 1.100  2002/09/15 17:49:59  peter
