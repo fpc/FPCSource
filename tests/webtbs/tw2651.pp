@@ -4,6 +4,7 @@
 { Submitted by "Sergey Kosarevsky" on  2003-08-23 }
 { e-mail: netsurfer@au.ru }
 {$mode objfpc}
+{$inline on}
 
 Type tMyClass=Class
         Class Procedure InlineProc;Inline;
