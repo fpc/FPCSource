@@ -74,6 +74,15 @@ var
 { Thread count for DLL }
 const
   Thread_count : longint = 0;
+type
+  TDLL_Process_Entry_Hook = function (dllparam : longint) : longbool;
+  TDLL_Entry_Hook = procedure (dllparam : longint);
+
+const
+  Dll_Process_Attach_Hook : TDLL_Process_Entry_Hook = nil;
+  Dll_Process_Detach_Hook : TDLL_Entry_Hook = nil;
+  Dll_Thread_Attach_Hook : TDLL_Entry_Hook = nil;
+  Dll_Thread_Detach_Hook : TDLL_Entry_Hook = nil;
 
 implementation
 
@@ -807,7 +816,9 @@ Const
      DLL_PROCESS_DETACH = 0;
      DLL_THREAD_DETACH = 3;
 
-procedure Dll_entry;[public, alias : '_FPC_DLL_Entry'];
+function Dll_entry : longbool;[public, alias : '_FPC_DLL_Entry'];
+var
+  res : longbool;
   begin
      IsLibrary:=true;
      case DLLreason of
@@ -819,18 +830,40 @@ procedure Dll_entry;[public, alias : '_FPC_DLL_Entry'];
              xorl %edi,%edi
              movw %ss,%di
              movl %edi,_SS
-             call PASCALMAIN
            end;
+           if assigned(Dll_Process_Attach_Hook) then
+             begin
+               res:=Dll_Process_Attach_Hook(DllParam);
+               if not res then
+                 begin
+                   Dll_entry:=false;
+                   exit;
+                 end;
+             end;
+           PASCALMAIN;
+           Dll_entry:=true;
          end;
        DLL_THREAD_ATTACH :
-         inc(Thread_count);
+         begin
+           inc(Thread_count);
+           if assigned(Dll_Thread_Attach_Hook) then
+             Dll_Thread_Attach_Hook(DllParam);
+           Dll_entry:=true; { return value is ignored }
+         end;
        DLL_THREAD_DETACH :
-         dec(Thread_count);
+         begin
+           dec(Thread_count);
+           if assigned(Dll_Thread_Detach_Hook) then
+             Dll_Thread_Detach_Hook(DllParam);
+           Dll_entry:=true; { return value is ignored }
+         end;
        DLL_PROCESS_DETACH :
          begin
-           asm
-             call FPC_DO_EXIT
-           end;
+           inc(Thread_count);
+           Dll_entry:=true; { return value is ignored }
+           FPC_DO_EXIT;
+           if assigned(Dll_Process_Detach_Hook) then
+             Dll_Process_Detach_Hook(DllParam);
          end;
      end;
   end;
@@ -1128,7 +1161,10 @@ end.
 
 {
   $Log$
-  Revision 1.49  1999-11-18 22:19:57  pierre
+  Revision 1.50  1999-11-20 00:16:44  pierre
+   + DLL Hooks for the four callings added
+
+  Revision 1.49  1999/11/18 22:19:57  pierre
    * bug fix for web bug703 and 704
 
   Revision 1.48  1999/11/09 22:34:00  pierre
