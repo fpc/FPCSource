@@ -1,5 +1,5 @@
 #
-#   Makefile.fpc for h2pas
+#   Makefile.fpc for fprcp
 #
 
 [targets]
@@ -11,9 +11,6 @@ units=comments expr pasprep
 [dirs]
 fpcdir=../..
 
-[defaults]
-
 
 [rules]
-
-fpcrp$(EXEEXT): fpcrp$(PASEXT) comments$(PASEXT) pexpr$(PASEXPR) pasprep$(PASEXPR)
+fpcrp$(EXEEXT): fpcrp$(PASEXT) comments$(PASEXT) pexpr$(PASEXT) pasprep$(PASEXT)

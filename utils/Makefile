@@ -174,7 +174,7 @@ endif
 
 # Targets
 
-override DIROBJECTS+=$(wildcard tply h2pas)
+override DIROBJECTS+=$(wildcard tply h2pas fprcp)
 override EXEOBJECTS+=ppufiles ppudump ppumove ppdep ptop rstconv data2inc fpcmake delp bin2obj
 
 # Clean
@@ -1253,6 +1253,7 @@ endif
 
 OBJECTDIRTPLY=1
 OBJECTDIRH2PAS=1
+OBJECTDIRFPRCP=1
 
 # Dir tply
 
@@ -1354,6 +1355,57 @@ h2pas_require:
 
 h2pas_info:
 	$(MAKE) -C h2pas info
+endif
+
+# Dir fprcp
+
+ifdef OBJECTDIRFPRCP
+.PHONY:  fprcp_all fprcp_debug fprcp_examples fprcp_test fprcp_smart fprcp_shared fprcp_showinstall fprcp_install fprcp_sourceinstall fprcp_zipinstall fprcp_zipinstalladd fprcp_clean fprcp_cleanall fprcp_require fprcp_info
+
+fprcp_all:
+	$(MAKE) -C fprcp all
+
+fprcp_debug:
+	$(MAKE) -C fprcp debug
+
+fprcp_examples:
+	$(MAKE) -C fprcp examples
+
+fprcp_test:
+	$(MAKE) -C fprcp test
+
+fprcp_smart:
+	$(MAKE) -C fprcp smart
+
+fprcp_shared:
+	$(MAKE) -C fprcp shared
+
+fprcp_showinstall:
+	$(MAKE) -C fprcp showinstall
+
+fprcp_install:
+	$(MAKE) -C fprcp install
+
+fprcp_sourceinstall:
+	$(MAKE) -C fprcp sourceinstall
+
+fprcp_zipinstall:
+	$(MAKE) -C fprcp zipinstall
+
+fprcp_zipinstalladd:
+	$(MAKE) -C fprcp zipinstalladd
+
+fprcp_clean:
+	$(MAKE) -C fprcp clean
+
+fprcp_cleanall:
+	$(MAKE) -C fprcp cleanall
+
+fprcp_require:
+	$(MAKE) -C fprcp require
+
+fprcp_info:
+	$(MAKE) -C fprcp info
 endif
 
 #####################################################################

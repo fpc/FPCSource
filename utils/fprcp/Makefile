@@ -1072,5 +1072,4 @@ endif
 # Users rules
 #####################################################################
 
-
-fpcrp$(EXEEXT): fpcrp$(PASEXT) comments$(PASEXT) pexpr$(PASEXPR) pasprep$(PASEXPR)
+fpcrp$(EXEEXT): fpcrp$(PASEXT) comments$(PASEXT) pexpr$(PASEXT) pasprep$(PASEXT)
