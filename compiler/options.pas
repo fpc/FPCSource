@@ -380,7 +380,7 @@ begin
 
   { only parse define,undef,target,verbosity and link options the firsttime }
   if firstpass and
-     not((opt[1]='-') and (opt[2] in ['i','d','v','V','T','u','n','X'])) then
+     not((opt[1]='-') and (opt[2] in ['i','d','v','T','u','n','X'])) then
    exit;
 
   Message1(option_handling_option,opt);
@@ -411,9 +411,18 @@ begin
                       include(initglobalswitches,cs_asm_tempalloc);
                     'n' :
                       include(initglobalswitches,cs_asm_nodes);
+                    'p' :
+                      begin
+                        exclude(initglobalswitches,cs_asm_leave);
+                        if UnsetBool(More, 0) then
+                          exclude(initglobalswitches,cs_asm_pipe)
+                        else
+                          include(initglobalswitches,cs_asm_pipe);
+                      end;
                     '-' :
                       initglobalswitches:=initglobalswitches -
-                          [cs_asm_leave, cs_asm_source,cs_asm_regalloc, cs_asm_tempalloc, cs_asm_nodes];
+                          [cs_asm_leave, cs_asm_source,cs_asm_regalloc, cs_asm_tempalloc,
+                           cs_asm_nodes, cs_asm_pipe];
                     else
                       IllegalPara(opt);
                   end;
@@ -854,13 +863,7 @@ begin
              end;
 
 {$ifdef Unix}
-           'P' :
-             begin
-               if UnsetBool(More, 0) then
-                 exclude(initglobalswitches,cs_asm_pipe)
-               else
-                 include(initglobalswitches,cs_asm_pipe);
-             end;
+           'P' : ; { Ignore used by fpc.pp }
 {$endif Unix}
 
            's' :
@@ -1024,8 +1027,7 @@ begin
                  IllegalPara(opt);
              end;
 
-           'V' :
-             PrepareReport;
+           'V' : ; { Ignore used by fpc }
 
            'W' :
              begin
@@ -1117,8 +1119,8 @@ begin
                         LinkTypeSetExplicitly:=true;
                       end;
                     'P' : Begin
-			     utilsprefix:=Copy(more,2,length(More)-1);
-			     More:='';
+                             utilsprefix:=Copy(more,2,length(More)-1);
+                             More:='';
                           End;
                     'S' :
                       begin
@@ -1978,7 +1980,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.107  2003-10-03 14:16:48  marco
+  Revision 1.108  2003-10-08 19:17:43  peter
+    * -P to -ap
+    * -V to -vv
+
+  Revision 1.107  2003/10/03 14:16:48  marco
    * -XP<prefix> support
 
   Revision 1.106  2003/09/17 21:37:07  olle

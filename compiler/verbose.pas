@@ -271,6 +271,7 @@ var
                          status.verbosity:=status.verbosity and (not V_Executable)
                        else
                          status.verbosity:=status.verbosity or V_Executable;
+                 'v' : PrepareReport;
                  end;
                 inc(i);
              end;
@@ -821,7 +822,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.27  2003-10-01 20:34:49  peter
+  Revision 1.28  2003-10-08 19:17:43  peter
+    * -P to -ap
+    * -V to -vv
+
+  Revision 1.27  2003/10/01 20:34:49  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose
