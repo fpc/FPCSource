@@ -466,9 +466,9 @@ var
     end;
 
   begin
+    GetfinalDestination := false;
     if level > 20 then
       exit;
-    GetfinalDestination := false;
     p1 := dfa.getlabelwithsym(tasmlabel(hp.oper[0]^.ref^.symbol));
     if assigned(p1) then
       begin
@@ -2003,7 +2003,11 @@ end.
 
 {
   $Log$
-  Revision 1.67  2005-02-14 17:13:10  peter
+  Revision 1.68  2005-02-25 20:50:53  jonas
+    * fixed uninitialised function result in getfinaldestination() when
+      maximum recursion reached
+
+  Revision 1.67  2005/02/14 17:13:10  peter
     * truncate log
 
 }

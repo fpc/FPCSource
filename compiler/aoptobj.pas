@@ -908,9 +908,9 @@ Unit AoptObj;
           l: tasmlabel;
 
       begin
+        GetfinalDestination := false;
         if level > 20 then
           exit;
-        GetfinalDestination := false;
         p1 := getlabelwithsym(tasmlabel(hp.oper[0]^.ref^.symbol));
         if assigned(p1) then
           begin
@@ -1085,7 +1085,11 @@ End.
 
 {
  $Log$
- Revision 1.15  2005-02-14 17:13:06  peter
+ Revision 1.16  2005-02-25 20:50:53  jonas
+   * fixed uninitialised function result in getfinaldestination() when
+     maximum recursion reached
+
+ Revision 1.15  2005/02/14 17:13:06  peter
    * truncate log
 
 }
