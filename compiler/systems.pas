@@ -921,7 +921,7 @@ implementation
             assemsrc    : as_i386_as;
             ar    : ar_i386_ar;
             res  : res_none;
-            heapsize    : 2048*1024;
+            heapsize    : 256*1024;
             maxheapsize : 32768*1024;
             stacksize   : 16384
           ),
@@ -946,7 +946,7 @@ implementation
             assemsrc    : as_i386_as;
             ar    : ar_i386_ar;
             res  : res_none;
-            heapsize    : 2048*1024;
+            heapsize    : 256*1024;
             maxheapsize : 32768*1024;
             stacksize   : 16384
           ),
@@ -971,7 +971,7 @@ implementation
             assemsrc    : as_i386_as;
             ar    : ar_i386_ar;
             res  : res_none;
-            heapsize    : 2048*1024;
+            heapsize    : 256*1024;
             maxheapsize : 32768*1024;
             stacksize   : 8192
           ),
@@ -1021,7 +1021,7 @@ implementation
             assemsrc    : as_i386_asw;
             ar    : ar_i386_arw;
             res  : res_i386_windres;
-            heapsize    : 2048*1024;
+            heapsize    : 256*1024;
             maxheapsize : 32*1024*1024;
             stacksize   : 32*1024*1024
           )
@@ -1492,7 +1492,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.77  1999-05-27 19:45:10  peter
+  Revision 1.78  1999-05-31 20:34:00  peter
+    * changed heapsize to 256k
+
+  Revision 1.77  1999/05/27 19:45:10  peter
     * removed oldasm
     * plabel -> pasmlabel
     * -a switches to source writing automaticly
