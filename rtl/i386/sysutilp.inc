@@ -20,7 +20,7 @@
 
 {$ASMMODE ATT}
 
-function InterLockedDecrement (var Target: integer) : Integer; assembler;
+function InterLockedDecrement (var Target: longint) : longint; assembler;
 asm
 {$ifdef REGCALL}
         movl    $-1,%edx
@@ -35,7 +35,7 @@ asm
 end;
 
 
-function InterLockedIncrement (var Target: integer) : Integer; assembler;
+function InterLockedIncrement (var Target: longint) : longint; assembler;
 asm
 {$ifdef REGCALL}
         movl    $1,%edx
@@ -50,7 +50,7 @@ asm
 end;
 
 
-function InterLockedExchange (var Target: integer;Source : integer) : Integer; assembler;
+function InterLockedExchange (var Target: longint;Source : longint) : longint; assembler;
 asm
 {$ifdef REGCALL}
         xchgl   (%eax),%edx
@@ -63,7 +63,7 @@ asm
 end;
 
 
-function InterLockedExchangeAdd (var Target: integer;Source : integer) : Integer; assembler;
+function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint; assembler;
 asm
 {$ifdef REGCALL}
         xchgl   %eax,%edx
@@ -78,7 +78,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  2003-12-23 22:23:34  peter
+  Revision 1.5  2004-03-05 12:17:50  marco
+   * interlocked* changed to longints, including winapi. (which was a bug)
+
+  Revision 1.4  2003/12/23 22:23:34  peter
     * increment should use ofcourse use 1 instead of -1
 
   Revision 1.3  2003/11/11 21:08:17  peter

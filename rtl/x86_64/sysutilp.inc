@@ -18,7 +18,7 @@
   This include contains cpu-specific routines
   ---------------------------------------------------------------------}
 
-function InterLockedDecrement (var Target: integer) : Integer; assembler;
+function InterLockedDecrement (var Target: longint) : longint; assembler;
 asm
         movl    $-1,%edx
         xchgl   %edx,%eax
@@ -28,7 +28,7 @@ asm
 end;
 
 
-function InterLockedIncrement (var Target: integer) : Integer; assembler;
+function InterLockedIncrement (var Target: longint) : longint; assembler;
 asm
         movl    $1,%edx
         xchgl   %edx,%eax
@@ -38,14 +38,14 @@ asm
 end;
 
 
-function InterLockedExchange (var Target: integer;Source : integer) : Integer; assembler;
+function InterLockedExchange (var Target: longint;Source : longint) : longint; assembler;
 asm
         xchgl   (%rax),%edx
         movl    %edx,%eax
 end;
 
 
-function InterLockedExchangeAdd (var Target: integer;Source : integer) : Integer; assembler;
+function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint; assembler;
 asm
         xchgl   %eax,%edx
         lock
@@ -55,7 +55,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  2004-02-20 22:15:16  florian
+  Revision 1.2  2004-03-05 12:17:50  marco
+   * interlocked* changed to longints, including winapi. (which was a bug)
+
+  Revision 1.1  2004/02/20 22:15:16  florian
     + x86_64 dependend sysutils part added
     * some 64 bit adaptions
 }

@@ -18,7 +18,7 @@
   This include contains cpu-specific routines
   ---------------------------------------------------------------------}
 
-function InterLockedDecrement (var Target: integer) : Integer; assembler;
+function InterLockedDecrement (var Target: longint) : longint; assembler;
 asm
 {$warning FIXME}
 end;
@@ -37,7 +37,7 @@ end;
 *)
 
 
-function InterLockedIncrement (var Target: integer) : Integer; assembler;
+function InterLockedIncrement (var Target: longint) : longint; assembler;
 asm
 {$warning FIXME}
 end;
@@ -55,7 +55,7 @@ InterLockedIncLoop:
 end;
 *)
 
-function InterLockedExchange (var Target: integer;Source : integer) : Integer; assembler;
+function InterLockedExchange (var Target: longint;Source : longint) : longint; assembler;
 asm
 {$warning FIXME}
 end;
@@ -73,7 +73,7 @@ end;
 *)
 
 
-function InterLockedExchangeAdd (var Target: integer;Source : integer) : Integer; assembler;
+function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint; assembler;
 asm
 {$warning FIXME}
 end;
@@ -93,7 +93,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  2003-09-01 20:46:32  peter
+  Revision 1.2  2004-03-05 12:17:50  marco
+   * interlocked* changed to longints, including winapi. (which was a bug)
+
+  Revision 1.1  2003/09/01 20:46:32  peter
     * new dummies
 
 }

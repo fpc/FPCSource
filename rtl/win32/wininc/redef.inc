@@ -611,9 +611,9 @@ function InsertMenuItemA(p1: HMENU; p2: UINT; p3: BOOL; const p4: TMenuItemInfoA
 {$ifdef support_smartlink}
 function InterlockedCompareExchange(var Destination: Pointer; Exchange: Pointer; Comperand: Pointer): Pointer;external 'kernel32' name 'InterlockedCompareExchange';
 {$endif support_smartlink}
-function InterlockedDecrement(var Addend: Integer): Integer; external 'kernel32' name 'InterlockedDecrement';
-function InterlockedExchange(var Target: Integer; Value: Integer): Integer; external 'kernel32' name 'InterlockedExchange';
-function InterlockedIncrement(var Addend: Integer): Integer; external 'kernel32' name 'InterlockedIncrement';
+function InterlockedDecrement(var Addend: longint): longint; external 'kernel32' name 'InterlockedDecrement';
+function InterlockedExchange(var Target: longint; Value: longint): longint; external 'kernel32' name 'InterlockedExchange';
+function InterlockedIncrement(var Addend: longint): longint; external 'kernel32' name 'InterlockedIncrement';
 function IntersectRect(var lprcDst: TRect; const lprcSrc1, lprcSrc2: TRect): BOOL; external 'user32' name 'IntersectRect';
 //function InvertRect(hDC: HDC; const lprc: TRect): BOOL; external 'user32' name 'InvertRect';
 function IsDialogMessage(hDlg: HWND; var lpMsg: TMsg): BOOL;external 'user32' name 'IsDialogMessageA';
@@ -1052,7 +1052,10 @@ end;
 
 {
   $Log$
-  Revision 1.19  2004-02-08 17:13:11  marco
+  Revision 1.20  2004-03-05 12:17:50  marco
+   * interlocked* changed to longints, including winapi. (which was a bug)
+
+  Revision 1.19  2004/02/08 17:13:11  marco
    * getsystemtimeasfiletime
 
   Revision 1.18  2004/02/07 00:21:10  marco

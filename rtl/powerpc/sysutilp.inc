@@ -18,7 +18,7 @@
   This include contains cpu-specific routines
   ---------------------------------------------------------------------}
 
-function InterLockedDecrement (var Target: integer) : Integer; assembler;
+function InterLockedDecrement (var Target: longint) : longint; assembler;
 { input:  address of target in r3 }
 { output: target-1 in r3          }
 { side-effect: target := target-1 }
@@ -32,7 +32,7 @@ asm
 end;
 
 
-function InterLockedIncrement (var Target: integer) : Integer; assembler;
+function InterLockedIncrement (var Target: longint) : longint; assembler;
 { input:  address of target in r3 }
 { output: target+1 in r3          }
 { side-effect: target := target+1 }
@@ -46,7 +46,7 @@ asm
 end;
 
 
-function InterLockedExchange (var Target: integer;Source : integer) : Integer; assembler;
+function InterLockedExchange (var Target: longint;Source : longint) : longint; assembler;
 { input:  address of target in r3, source in r4 }
 { output: target in r3                          }
 { side-effect: target := source                 }
@@ -59,7 +59,7 @@ asm
 end;
 
 
-function InterLockedExchangeAdd (var Target: integer;Source : integer) : Integer; assembler;
+function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint; assembler;
 { input:  address of target in r3, source in r4 }
 { output: target in r3                          }
 { side-effect: target := target+source          }
@@ -75,7 +75,10 @@ end;
 
 {
   $Log$
-  Revision 1.7  2004-01-04 20:09:36  jonas
+  Revision 1.8  2004-03-05 12:17:50  marco
+   * interlocked* changed to longints, including winapi. (which was a bug)
+
+  Revision 1.7  2004/01/04 20:09:36  jonas
     * renamed "r0" usages as base register to 0
 
   Revision 1.6  2003/12/28 20:55:57  jonas
@@ -84,7 +87,7 @@ end;
   Revision 1.5  2003/11/29 16:27:19  jonas
     * fixed several ppc assembler reader related problems
     * local vars in assembler procedures now start at offset 4
-    * fixed second_int_to_bool (apparently an integer can be in  LOC_JUMP??)
+    * fixed second_int_to_bool (apparently an longint can be in  LOC_JUMP??)
 
   Revision 1.4  2003/08/24 20:50:11  olle
     * changed used scratchreg from r0 to r10
