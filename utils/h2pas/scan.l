@@ -527,17 +527,17 @@ D [0-9]
                           if not stripinfo then
                             writeln(outfile,'{ C++ end of extern C conditionnal removed }');
                         end;
-"#else"                 begin
+"#"[ \t]*"else"         begin
                            writeln(outfile,'{$else}');
                            block_type:=bt_no;
                            flush(outfile);
                         end;
-"#endif"                begin
+"#"[ \t]*"endif"        begin
                            writeln(outfile,'{$endif}');
                            block_type:=bt_no;
                            flush(outfile);
                         end;
-"#elif"                 begin
+"#"[ \t]*"elif"         begin
                            if not stripinfo then
                              write(outfile,'(*** was #elif ****)');
                            write(outfile,'{$else');
@@ -546,33 +546,33 @@ D [0-9]
                            block_type:=bt_no;
                            flush(outfile);
                         end;
-"#undef"                begin
+"#"[ \t]*"undef"        begin
                            write(outfile,'{$undef');
                            copy_until_eol;
                            writeln(outfile,'}');
                            flush(outfile);
                         end;
-"#error"                begin
+"#"[ \t]*"error"        begin
                            write(outfile,'{$error');
                            copy_until_eol;
                            writeln(outfile,'}');
                            flush(outfile);
                         end;
-"#include"              begin
+"#"[ \t]*"include"      begin
                            write(outfile,'{$include');
                            copy_until_eol;
                            writeln(outfile,'}');
                            flush(outfile);
                            block_type:=bt_no;
                         end;
-"#if"                   begin
+"#"[ \t]*"if"           begin
                            write(outfile,'{$if');
                            copy_until_eol;
                            writeln(outfile,'}');
                            flush(outfile);
                            block_type:=bt_no;
                         end;
-"#pragma"               begin
+"#"[ \t]*"pragma"       begin
                            if not stripinfo then
                             begin
                               write(outfile,'(** unsupported pragma');
@@ -585,7 +585,7 @@ D [0-9]
                             skip_until_eol;
                            block_type:=bt_no;
                         end;
-"#define"               begin
+"#"[ \t]*"define"       begin
                            in_define:=true;
                            in_space_define:=1;
                            return(DEFINE);
