@@ -1,1 +1,99 @@
-# Make file for MPW make.# To run it, use:#   Make <target> -f MPWMake > Makeout ; Makeout# where <target> should be replaced with actual make target.FPC = {FPCDIR}bin:ppcppcREDIR = -FE::units:powerpc-macos:SYSDEPS = DOSDEPS =all Ä  "{FPC}" {OPT} {REDIR} -Us -Fi::inc -Fi::powerpc system.pp  "{FPC}" {OPT} {REDIR} -Fi::inc -Fi::powerpc ::inc:strings.pp  "{FPC}" {OPT} {REDIR} -Fi::inc -Fi::powerpc ::objpas:objpas.pp  "{FPC}" {OPT} {REDIR} -Fi::inc -Fi::powerpc ::inc:macpas.pp  "{FPC}" {OPT} {REDIR} -Fi::inc ::unix:unixutil.pp  "{FPC}" {OPT} {REDIR} -Fi::inc -Fi::powerpc dos.pp  "{FPC}" {OPT} {REDIR} -Fi::inc -Fi::powerpc ::inc:objects.pp  "{FPC}" {OPT} {REDIR} -Fi::inc -Fi::powerpc ::inc:getopts.pp  "{FPC}" {OPT} {REDIR} -Fi::inc -Fi::powerpc ::inc:heaptrc.pp  "{FPC}" {OPT} {REDIR} -Fi::inc -Fi::powerpc ::inc:charset.pp  "{FPC}" {OPT} {REDIR} -Fi::inc -Fi::powerpc ::inc:cmem.pp  "{FPC}" {OPT} {REDIR} -Fi::inc -Fi::powerpc ::inc:matrix.pp  "{FPC}" {OPT} {REDIR} -Fi::inc -Fi::powerpc macostp.pp  "{FPC}" {OPT} {REDIR} -Fi::inc -Fi::powerpc macutils.ppclean Ä  Set Exit 0	Delete -y fpcmade.powerpc-macos	Delete -y Å_ppas	Delete -y ::units:powerpc-macos:Å.ppu	Delete -y ::units:powerpc-macos:Å.o	Delete -y ::units:powerpc-macos:Å.s	Delete -y ::units:powerpc-macos:Å.xcoff  Set Exit 1install Ä  If {FPCDIR} == ''    Set -e FPCDIR `GetFileName -wd -m 'Select where to install the FreePascal folder'`FreePascal:    Echo "Set -e FPCDIR ¶'{FPCDIR}¶'" > "{MPW}Startup Items:FPC Startup"  End  Set Exit 0  NewFolder "{FPCDIR}" ³ Dev:Null  Delete -y "{FPCDIR}units:" ³ Dev:Null  Set Exit 1  NewFolder "{FPCDIR}units:"  NewFolder "{FPCDIR}units:rtl:"  Duplicate -y ::units:powerpc-macos:Å.ppu ::units:powerpc-macos:Å.o "{FPCDIR}units:rtl:"#system.ppu Ä system.pp macostp.inc macutils.inc {SYSDEPS}#  "{FPC}" {OPT} {REDIR} -Us -Fi::inc -Fi::powerpc system.pp#strings.ppu Ä ::inc:strings.pp system.ppu#  "{FPC}" {OPT} {REDIR} -Fi::inc -Fi::powerpc ::inc:strings.pp#objpas.ppu Ä ::objpas:objpas.pp system.ppu#  "{FPC}" {OPT} {REDIR} -Fi::inc -Fi::powerpc ::objpas:objpas.pp#macpas.ppu Ä ::inc:macpas.pp system.ppu#  "{FPC}" {OPT} {REDIR} -Fi::inc -Fi::powerpc ::inc:macpas.pp#dos.ppu Ä dos.pp {DOSDEPS} macutils.ppu unixutil.ppu system.ppu#  "{FPC}" {OPT} {REDIR} -Fi::inc -Fi::powerpc dos.pp#objects.ppu Ä ::inc:objects.pp system.ppu#  "{FPC}" {OPT} {REDIR} -Fi::inc -Fi::powerpc ::inc:objects.pp#getopts.ppu Ä ::inc:getopts.pp strings.ppu system.ppu#  "{FPC}" {OPT} {REDIR} -Fi::inc -Fi::powerpc ::inc:getopts.pp#heaptrc.ppu Ä ::inc:heaptrc.pp system.ppu#  "{FPC}" {OPT} {REDIR} -Fi::inc -Fi::powerpc ::inc:heaptrc.pp#unixutil.ppu Ä ::unix:unixutil.pp#  "{FPC}" {OPT} {REDIR} ::inc:unixutil.pp#charset.ppu Ä ::inc:charset.pp system.ppu#  "{FPC}" {OPT} {REDIR} -Fi::inc -Fi::powerpc ::inc:charset.pp#cmem.ppu Ä ::inc:cmem.pp system.ppu#  "{FPC}" {OPT} {REDIR} -Fi::inc -Fi::powerpc ::inc:cmem.pp#matrix.ppu Ä ::inc:matrix.pp system.ppu#  "{FPC}" {OPT} {REDIR} -Fi::inc -Fi::powerpc ::inc:matrix.pp#macostp.ppu Ä macostp.pp macostp.inc system.ppu#  "{FPC}" {OPT} {REDIR} -Fi::inc -Fi::powerpc macostp.pp#macutils.ppu Ä macutils.pp macutils.inc macostp.ppu system.ppu#  "{FPC}" {OPT} {REDIR} -Fi::inc -Fi::powerpc macutils.pp#all Ä system.ppu strings.ppu objpas.ppu macpas.ppu dos.ppu ¶#      objects.ppu getopts.ppu heaptrc.ppu unixutil.ppu charset.ppu ¶#      cmem.ppu matrix.ppu macostp.ppu macutils.ppu
+# Make file for MPW make.
+# To run it, use:
+#   Make <target> -f MPWMake > Makeout ; Makeout
+# where <target> should be replaced with actual make target.
+
+FPC = {FPCDIR}bin:ppcppc
+REDIR = -FE::units:powerpc-macos:
+SYSDEPS = 
+DOSDEPS =
+
+all Ä
+  Set Exit 0
+  NewFolder "::units:" ³ Dev:Null
+  NewFolder "::units:powerpc-macos:" ³ Dev:Null
+  Set Exit 1
+  "{FPC}" {OPT} {REDIR} -Us -Fi::inc -Fi::powerpc system.pp
+  "{FPC}" {OPT} {REDIR} -Fi::inc -Fi::powerpc ::inc:strings.pp
+  "{FPC}" {OPT} {REDIR} -Fi::inc -Fi::powerpc ::objpas:objpas.pp
+  "{FPC}" {OPT} {REDIR} -Fi::inc -Fi::powerpc ::inc:macpas.pp
+  "{FPC}" {OPT} {REDIR} -Fi::inc ::unix:unixutil.pp
+  "{FPC}" {OPT} {REDIR} -Fi::inc -Fi::powerpc dos.pp
+  "{FPC}" {OPT} {REDIR} -Fi::inc -Fi::powerpc ::inc:objects.pp
+  "{FPC}" {OPT} {REDIR} -Fi::inc -Fi::powerpc ::inc:getopts.pp
+  "{FPC}" {OPT} {REDIR} -Fi::inc -Fi::powerpc ::inc:heaptrc.pp
+  "{FPC}" {OPT} {REDIR} -Fi::inc -Fi::powerpc ::inc:charset.pp
+  "{FPC}" {OPT} {REDIR} -Fi::inc -Fi::powerpc ::inc:cmem.pp
+  "{FPC}" {OPT} {REDIR} -Fi::inc -Fi::powerpc ::inc:matrix.pp
+  "{FPC}" {OPT} {REDIR} -Fi::inc -Fi::powerpc macostp.pp
+  "{FPC}" {OPT} {REDIR} -Fi::inc -Fi::powerpc macutils.pp
+
+clean Ä
+  Set Exit 0
+	Delete -y fpcmade.powerpc-macos
+	Delete -y Å_ppas
+	Delete -y ::units:powerpc-macos:Å.ppu
+	Delete -y ::units:powerpc-macos:Å.o
+	Delete -y ::units:powerpc-macos:Å.s
+	Delete -y ::units:powerpc-macos:Å.xcoff
+  Set Exit 1
+
+install Ä
+  If {FPCDIR} == ''
+    Set -e FPCDIR `GetFileName -wd -m 'Select where to install the FreePascal folder'`FreePascal:
+    Echo "Set -e FPCDIR ¶'{FPCDIR}¶'" > "{MPW}Startup Items:FPC Startup"
+  End
+  Set Exit 0
+  NewFolder "{FPCDIR}" ³ Dev:Null
+  Delete -y "{FPCDIR}units:" ³ Dev:Null
+  Set Exit 1
+  NewFolder "{FPCDIR}units:"
+  NewFolder "{FPCDIR}units:rtl:"
+  Duplicate -y ::units:powerpc-macos:Å.ppu ::units:powerpc-macos:Å.o "{FPCDIR}units:rtl:"
+
+
+#system.ppu Ä system.pp macostp.inc macutils.inc {SYSDEPS}
+#  "{FPC}" {OPT} {REDIR} -Us -Fi::inc -Fi::powerpc system.pp
+
+#strings.ppu Ä ::inc:strings.pp system.ppu
+#  "{FPC}" {OPT} {REDIR} -Fi::inc -Fi::powerpc ::inc:strings.pp
+
+#objpas.ppu Ä ::objpas:objpas.pp system.ppu
+#  "{FPC}" {OPT} {REDIR} -Fi::inc -Fi::powerpc ::objpas:objpas.pp
+
+#macpas.ppu Ä ::inc:macpas.pp system.ppu
+#  "{FPC}" {OPT} {REDIR} -Fi::inc -Fi::powerpc ::inc:macpas.pp
+
+#dos.ppu Ä dos.pp {DOSDEPS} macutils.ppu unixutil.ppu system.ppu
+#  "{FPC}" {OPT} {REDIR} -Fi::inc -Fi::powerpc dos.pp
+
+#objects.ppu Ä ::inc:objects.pp system.ppu
+#  "{FPC}" {OPT} {REDIR} -Fi::inc -Fi::powerpc ::inc:objects.pp
+
+#getopts.ppu Ä ::inc:getopts.pp strings.ppu system.ppu
+#  "{FPC}" {OPT} {REDIR} -Fi::inc -Fi::powerpc ::inc:getopts.pp
+
+#heaptrc.ppu Ä ::inc:heaptrc.pp system.ppu
+#  "{FPC}" {OPT} {REDIR} -Fi::inc -Fi::powerpc ::inc:heaptrc.pp
+
+#unixutil.ppu Ä ::unix:unixutil.pp
+#  "{FPC}" {OPT} {REDIR} ::inc:unixutil.pp
+
+#charset.ppu Ä ::inc:charset.pp system.ppu
+#  "{FPC}" {OPT} {REDIR} -Fi::inc -Fi::powerpc ::inc:charset.pp
+
+#cmem.ppu Ä ::inc:cmem.pp system.ppu
+#  "{FPC}" {OPT} {REDIR} -Fi::inc -Fi::powerpc ::inc:cmem.pp
+
+#matrix.ppu Ä ::inc:matrix.pp system.ppu
+#  "{FPC}" {OPT} {REDIR} -Fi::inc -Fi::powerpc ::inc:matrix.pp
+
+#macostp.ppu Ä macostp.pp macostp.inc system.ppu
+#  "{FPC}" {OPT} {REDIR} -Fi::inc -Fi::powerpc macostp.pp
+
+#macutils.ppu Ä macutils.pp macutils.inc macostp.ppu system.ppu
+#  "{FPC}" {OPT} {REDIR} -Fi::inc -Fi::powerpc macutils.pp
+
+#all Ä system.ppu strings.ppu objpas.ppu macpas.ppu dos.ppu ¶
+#      objects.ppu getopts.ppu heaptrc.ppu unixutil.ppu charset.ppu ¶
+#      cmem.ppu matrix.ppu macostp.ppu macutils.ppu
