@@ -51,7 +51,8 @@ uses Views,MsgBox,Validate,
 {$else}
      Commands,
 {$endif}
-     WEditor, FPCompil, FPVars, FPSymbol, BrowCol,
+     systems, BrowCol,
+     WEditor, FPCompil, FPVars, FPSymbol,
      App,FPConst,FPString,FPViews;
 
 {$ifndef NOOBJREG}
@@ -197,7 +198,9 @@ var
     { this is wrong because it inserted args or locals of proc
       in the globals list !! PM}
     if (P^.Items<>nil) and (level=1) and
-        (not OnlyStandard or (Pos(P^.GetName+',',UpStandardUnits)>0)) then
+        (not OnlyStandard or (Pos(P^.GetName+',',UpStandardUnits)>0) or
+        { don't exclude system unit ... }
+        (Pos('SYS',P^.GetName)>0)) then
       InsertItemsInS(P^.Items);
     Dec(level);
   end;
@@ -348,7 +351,7 @@ begin
   { Standard/all units booleans }
   Items:=nil;
   Items:=NewSItem('Add standard units', Items);
-  Items:=NewSItem('Add available units', Items);
+  Items:=NewSItem('Add all units', Items);
   Items:=NewSItem('Show only unique', Items);
   R.Copy(R3); R.A.Y:=R.B.Y-5;R.B.Y:=R.A.Y+3; Inc(R.A.X,18); Dec(R.B.X);
   New(CB, Init(R, Items));
@@ -358,9 +361,9 @@ begin
   R2.Copy(R); R2.Move(0,-1); R2.B.Y:=R2.A.Y+1;
   If ShowOnlyUnique then
     CB^.Press(0);
-  If UseStandardUnitsInCodeComplete then
-    CB^.Press(1);
   If UseAllUnitsInCodeComplete then
+    CB^.Press(1);
+  If UseStandardUnitsInCodeComplete then
     CB^.Press(2);
 
   { Standard unit name boolean }
@@ -442,8 +445,8 @@ begin
       CodeCompleteWords:=C;
       CodeCompleteCase:=TCodeCompleteCase(RB^.Value);
       ShowOnlyUnique:=CB^.Mark(0);
-      UseStandardUnitsInCodeComplete:=CB^.Mark(1);
-      UseAllUnitsInCodeComplete:=CB^.Mark(2);
+      UseAllUnitsInCodeComplete:=CB^.Mark(1);
+      UseStandardUnitsInCodeComplete:=CB^.Mark(2);
       if UseStandardUnitsInCodeComplete and (not UseAllUnitsInCodeComplete or not assigned(UnitsCodeCompleteWords)) and
          ((StandardUnits<>GetStr(InputL^.Data)) or not assigned(UnitsCodeCompleteWords)) then
         begin
