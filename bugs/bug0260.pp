@@ -15,6 +15,10 @@ program test;
         l : longint;
       end;
       
+      obj4 = object(obj3)
+        procedure writeit;virtual;
+      end;
+      
       constructor obj1.init;
         begin
         end;
@@ -24,6 +28,10 @@ program test;
         end;
         
       procedure obj2.writeit;
+        begin
+        end;
+        
+      procedure obj4.writeit;
         begin
         end;
         
