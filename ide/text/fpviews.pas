@@ -1726,6 +1726,7 @@ end;
 procedure TMessageListBox.GotoSource;
 var W: PSourceWindow;
     P: PMessageItem;
+    R:TRect;
     Row,Col: sw_integer;
 begin
   Message(Application,evBroadcast,cmClearLineHighlights,@Self);
@@ -1736,8 +1737,14 @@ begin
   if P^.Row>0 then Row:=P^.Row-1 else Row:=0;
   if P^.Col>0 then Col:=P^.Col-1 else Col:=0;
   W:=TryToOpenFile(nil,P^.GetModuleName,Col,Row,true);
-  Message(Owner,evCommand,cmClose,nil);
-  W^.Select;
+  if assigned(W) then
+    begin
+      Message(Owner,evCommand,cmClose,nil);
+      W^.GetExtent(R);
+      if (P^.TClass<>0) then
+        W^.Editor^.SetErrorMessage(P^.GetText(R.B.X-R.A.X));
+      W^.Select;
+    end;
   Desktop^.UnLock;
 end;
 
@@ -3103,7 +3110,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.57  2000-02-04 00:03:30  pierre
+  Revision 1.58  2000-02-06 23:42:47  pierre
+   + Use ErrorLine on GotoSource
+
+  Revision 1.57  2000/02/04 00:03:30  pierre
    + SelectInDebugSession lets CPU and watches in front
 
   Revision 1.56  2000/02/02 22:51:49  pierre
