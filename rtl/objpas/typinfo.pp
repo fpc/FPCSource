@@ -192,10 +192,12 @@ Function FindPropInfo(AClass:TClass;const PropName: string): PPropInfo;
 Procedure GetPropInfos(TypeInfo : PTypeInfo;PropList : PPropList);
 {$ifdef ver1_0}
 Function  GetPropList(TypeInfo : PTypeInfo;TypeKinds : TTypeKinds; PropList : PPropList;Sorted : boolean):longint;
+Function GetPropList(TypeInfo: PTypeInfo; var PropList: PPropList): SizeInt;
 {$else}
 Function  GetPropList(TypeInfo : PTypeInfo;TypeKinds : TTypeKinds; PropList : PPropList;Sorted : boolean = true):longint;
-{$endif}
 Function GetPropList(TypeInfo: PTypeInfo; out PropList: PPropList): SizeInt;
+{$endif}
+
 
 // Property information routines.
 Function IsStoredProp(Instance: TObject;PropInfo : PPropInfo) : Boolean;
@@ -644,7 +646,11 @@ begin
 end;
 
 
+{$ifdef ver1_0}
+Function GetPropList(TypeInfo: PTypeInfo; var PropList: PPropList): SizeInt;
+{$else}
 Function GetPropList(TypeInfo: PTypeInfo; out PropList: PPropList): SizeInt;
+{$endif}
   begin
     result:=GetTypeData(TypeInfo)^.Propcount;
     if result>0 then
@@ -1530,7 +1536,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.38  2005-02-26 11:37:01  florian
+  Revision 1.39  2005-02-26 20:59:38  florian
+    * fixed 1.0.10 issue
+
+  Revision 1.38  2005/02/26 11:37:01  florian
     + overload of GetPropList added
 
   Revision 1.37  2005/02/22 12:14:56  marco
