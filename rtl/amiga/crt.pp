@@ -1,8 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1997 by Nils Sjoholm
-    member of the Amiga RTL development team.
+    Copyright (c) 1998 by Nils Sjoholm
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -14,90 +13,118 @@
  **********************************************************************}
 
 
+
 unit Crt;
+Interface
 
-INTERFACE
+Const
+{ Controlling consts }
+  Flushing=false;                       {if true then don't buffer output}
+  ScreenWidth  = 80;
+  ScreenHeight = 25;
 
-    const
-       { screen modes }
-       bw40 = 0;
-       co40 = 1;
-       bw80 = 2;
-       co80 = 3;
-       mono = 7;
-       font8x8 = 256;
+{ CRT modes }
+  BW40          = 0;            { 40x25 B/W on Color Adapter }
+  CO40          = 1;            { 40x25 Color on Color Adapter }
+  BW80          = 2;            { 80x25 B/W on Color Adapter }
+  CO80          = 3;            { 80x25 Color on Color Adapter }
+  Mono          = 7;            { 80x25 on Monochrome Adapter }
+  Font8x8       = 256;          { Add-in for ROM font }
 
-       { screen color, fore- and background }
-       black = 0;
-       blue = 1;
-       green = 2;
-       cyan = 3;
-       red = 4;
-       magenta = 5;
-       brown = 6;
-       lightgray = 7;
+{ Mode constants for 3.0 compatibility }
+  C40           = CO40;
+  C80           = CO80;
 
-       { only foreground }
-       darkgray = 8;
-       lightblue = 9;
-       lightgreen = 10;
-       lightcyan = 11;
-       lightred = 12;
-       lightmagenta = 13;
-       yellow = 14;
-       white = 15;
+{
+  When using this color constants on the Amiga
+  you can bet that they don't work as expected.
+  You never know what color the user has on
+  his Amiga. Perhaps we should do a check of
+  the number of bitplanes (for number of colors)
 
-       { blink flag }
-       blink = $80;
+  The normal 4 first pens for an Amiga are
 
-    var
-       { for compatibility }
-       checkbreak,checkeof,checksnow : boolean;
+  0 LightGrey
+  1 Black
+  2 White
+  3 Blue
 
-       { works in another way than in TP }
-       { true: cursor is set with direct port access }
-       { false: cursor is set with a bios call       }
-       directvideo : boolean;
+}
 
-       lastmode : word; { screen mode}
-       textattr : byte; { current text attribute }
-       windmin : word; { upper right corner of the CRT window }
-       windmax : word; { lower left corner of the CRT window }
+{ Foreground and background color constants  }
+  Black         = 1;  { normal pen for amiga }
+  Blue          = 3;  { windowborder color   }
+  Green         = 15;
+  Cyan          = 7;
+  Red           = 4;
+  Magenta       = 5;
+  Brown         = 6;
+  LightGray     = 0;  { canvas color         }
 
-    function keypressed : boolean;
-    function readkey : char;
-    procedure gotoxy(x,y : integer);
-    procedure window(left,top,right,bottom : byte);
-    procedure clrscr;
-    procedure textcolor(color : byte);
-    procedure textbackground(color : byte);
-    procedure assigncrt(var f : text);
-    function wherex : integer;
-    function wherey : integer;
-    procedure delline;
-    procedure delline(line : byte);
-    procedure clreol;
-    procedure insline;
-    procedure cursoron;
-    procedure cursoroff;
-    procedure cursorbig;
-    procedure lowvideo;
-    procedure highvideo;
-    procedure nosound;
-    procedure sound(hz : word);
-    procedure delay(ms : longint);
-    procedure textmode(mode : integer);
-    procedure normvideo;
+{ Foreground color constants }
+  DarkGray      = 8;
+  LightBlue     = 9;
+  LightGreen    = 10;
+  LightCyan     = 11;
+  LightRed      = 12;
+  LightMagenta  = 13;
+  Yellow        = 14;
+  White         = 2;  { third color on amiga }
 
-  implementation
+{ Add-in for blinking }
+  Blink         = 128;
+
+{Other Defaults}
+
+  TextAttr   : Byte = $07;
+  LastMode   : Word = 3;
+  WindMin    : Word = $0;
+  WindMax    : Word = $184f;
+var
+  { CheckBreak have to make this one to a function for Amiga }
+  CheckEOF,
+  CheckSnow,
+  DirectVideo: Boolean;
+
+Procedure AssignCrt(Var F: Text);
+Function  KeyPressed: Boolean;
+Function  ReadKey: Char;
+Procedure TextMode(Mode: Integer);
+Procedure Window(X1, Y1, X2, Y2: Integer);
+Procedure GoToXy(X: Integer; Y: Integer);
+Function  WhereX: Integer;
+Function  WhereY: Integer;
+Procedure ClrScr;
+Procedure ClrEol;
+Procedure InsLine;
+Procedure DelLine;
+Procedure TextColor(Color: Byte);
+Procedure TextBackground(Color: Byte);
+Procedure LowVideo;
+Procedure HighVideo;
+Procedure NormVideo;
+Procedure Delay(DTime: Word);
+Procedure Sound(Hz: Word);
+Procedure NoSound;
+
+{ Extra functions }
+
+Procedure CursorOn;
+Procedure CursorOff;
+Function CheckBreak: Boolean;
+
+Implementation
+
+{
+  The definitions of TextRec and FileRec are in separate files.
+}
+{$i textrec.inc}
+{$i filerec.inc}
 
 Type
 
-{$PACKRECORDS 4}
-{ returned by Info(), must be on a 4 byte boundary }
-
     pInfoData = ^tInfoData;
-    tInfoData = record
+    tInfoData = packed record
         id_NumSoftErrors        : Longint;      { number of soft errors on disk }
         id_UnitNumber           : Longint;      { Which unit disk is (was) mounted on }
         id_DiskState            : Longint;      { See defines below }
@@ -112,7 +139,7 @@ Type
 { *  List Node Structure.  Each member in a list starts with a Node * }
 
   pNode = ^tNode;
-  tNode = Record
+  tNode = packed Record
     ln_Succ,                { * Pointer to next (successor) * }
     ln_Pred  : pNode;       { * Pointer to previous (predecessor) * }
     ln_Type  : Byte;
@@ -120,12 +147,10 @@ Type
     ln_Name  : PChar;       { * ID string, null terminated * }
   End;  { * Note: Integer aligned * }
 
-{$PACKRECORDS NORMAL}
-
 { normal, full featured list }
 
     pList = ^tList;
-    tList = record
+    tList = packed record
     lh_Head     : pNode;
     lh_Tail     : pNode;
     lh_TailPred : pNode;
@@ -134,7 +159,7 @@ Type
     end;
 
     pMsgPort = ^tMsgPort;
-    tMsgPort = record
+    tMsgPort = packed record
     mp_Node     : tNode;
     mp_Flags    : Byte;
     mp_SigBit   : Byte;      { signal bit number    }
@@ -143,14 +168,14 @@ Type
     end;
 
     pMessage = ^tMessage;
-    tMessage = record
+    tMessage = packed record
     mn_Node       : tNode;
     mn_ReplyPort  : pMsgPort;   { message reply port }
     mn_Length     : Word;       { message len in bytes }
     end;
 
     pIOStdReq = ^tIOStdReq;
-    tIOStdReq = record
+    tIOStdReq = packed record
     io_Message  : tMessage;
     io_Device   : Pointer;      { device node pointer  }
     io_Unit     : Pointer;      { unit (driver private)}
@@ -162,9 +187,9 @@ Type
     io_Data     : Pointer;      { points to data area }
     io_Offset   : Longint;      { offset for block structured devices }
     end;
-                                    
+
     pIntuiMessage = ^tIntuiMessage;
-    tIntuiMessage = record
+    tIntuiMessage = packed record
         ExecMessage     : tMessage;
         Class_          : Longint;
         Code            : Word;
@@ -179,7 +204,7 @@ Type
     end;
 
     pWindow = ^tWindow;
-    tWindow = record
+    tWindow = packed record
         NextWindow      : pWindow;      { for the linked list in a screen }
         LeftEdge,
         TopEdge         : Integer;      { screen dimensions of window }
@@ -230,10 +255,10 @@ Type
         IFont           : Pointer;
         MoreFlags       : Longint;
     end;
-                                                    
-              
+
+
     pConUnit = ^tConUnit;
-    tConUnit = record
+    tConUnit = packed record
         cu_MP   : tMsgPort;
         cu_Window       : Pointer;      { (WindowPtr) intuition window bound to this unit }
         cu_XCP          : Integer;      { character position }
@@ -270,113 +295,157 @@ Type
         cu_Modes        : Array [0..(22+7) div 8 - 1] of Byte;
         cu_RawEvents    : Array [0..($15+7) div 8 - 1] of Byte;
     end;
-                                                           
+
 const
-   
-   
+
+
    CD_CURRX =  1;
    CD_CURRY =  2;
    CD_MAXX  =  3;
    CD_MAXY  =  4;
 
+   CSI      = chr($9b);
 
-function AllocVec( size, reqm : Longint ): Pointer; Assembler;
-asm
-    MOVE.L  A6,-(A7)
-    MOVE.L  _ExecBase,A6
-    MOVE.L  size,d0
-    MOVE.L  reqm,d1
-    JSR -684(A6)
-    MOVE.L  (A7)+,A6
+   SIGBREAKF_CTRL_C = 4096;
+
+function AllocVec( size, reqm : Longint ): Pointer;
+begin
+   asm
+       MOVE.L  A6,-(A7)
+       MOVE.L  size,d0
+       MOVE.L  reqm,d1
+       MOVE.L  _ExecBase, A6
+       JSR -684(A6)
+       MOVE.L  (A7)+,A6
+       MOVE.L  d0,@RESULT
+   end;
 end;
+
 
 function DoPkt(ID : pMsgPort;
                Action, Param1, Param2,
-               Param3, Param4, Param5 : Longint) : Longint; Assembler;
-asm
-    MOVEM.L d2/d3/d4/d5/d6/d7/a6,-(A7)
-    MOVE.L  _DOSBase,A6
-    MOVE.L  ID,d1
-    MOVE.L  Action,d2
-    MOVE.L  Param1,d3
-    MOVE.L  Param2,d4
-    MOVE.L  Param3,d5
-    MOVE.L  Param4,d6
-    MOVE.L  Param5,d7
-    JSR -240(A6)
-    MOVEM.L (A7)+,d2/d3/d4/d5/d6/d7/a6
+               Param3, Param4, Param5 : Longint) : Longint;
+begin
+   asm
+       MOVEM.L d2/d3/d4/d5/d6/d7/a6,-(A7)
+       MOVE.L  ID,d1
+       MOVE.L  Action,d2
+       MOVE.L  Param1,d3
+       MOVE.L  Param2,d4
+       MOVE.L  Param3,d5
+       MOVE.L  Param4,d6
+       MOVE.L  Param5,d7
+       MOVE.L  _DOSBase,A6
+       JSR -240(A6)
+       MOVEM.L (A7)+,d2/d3/d4/d5/d6/d7/a6
+       MOVE.L  d0,@RESULT
+   end;
 end;
 
-procedure FreeVec( memory : Pointer ); Assembler;
-asm
-    MOVE.L  A6,-(A7)
-    MOVE.L  _ExecBase,A6
-    MOVE.L  memory,a1
-    JSR -690(A6)
-    MOVE.L  (A7)+,A6
+procedure FreeVec( memory : Pointer );
+begin
+   asm
+       MOVE.L  A6,-(A7)
+       MOVE.L  memory,a1
+       MOVE.L  _ExecBase,A6
+       JSR -690(A6)
+       MOVE.L  (A7)+,A6
+   end;
 end;
-                                      
 
-function GetConsoleTask : pMsgPort; Assembler;
-asm
-    MOVE.L  A6,-(A7)
-    MOVE.L  _DOSBase,A6
-    JSR -510(A6)
-    MOVE.L  (A7)+,A6
-end;
-                            
 
-function GetMsg(port : pMsgPort): pMessage; Assembler;
-asm
-    MOVE.L  A6,-(A7)
-    MOVE.L  _ExecBase,A6
-    MOVE.L  port,a0
-    JSR -372(A6)
-    MOVE.L  (A7)+,A6
+function GetConsoleTask : pMsgPort;
+begin
+   asm
+       MOVE.L  A6,-(A7)
+       MOVE.L  _DOSBase,A6
+       JSR -510(A6)
+       MOVE.L  (A7)+,A6
+       MOVE.L  d0,@RESULT
+   end;
 end;
-                                
+
+
+function GetMsg(port : pMsgPort): pMessage;
+begin
+   asm
+       MOVE.L  A6,-(A7)
+       MOVE.L  port,a0
+       MOVE.L  _ExecBase,A6
+       JSR -372(A6)
+       MOVE.L  (A7)+,A6
+       MOVE.L  d0,@RESULT
+   end;
+end;
+
 function ModifyIDCMP(window : pWindow;
-                     IDCMPFlags : Longint) : Boolean; Assembler;
-asm
-    MOVE.L  A6,-(A7)
-    MOVE.L  _IntuitionBase,A6
-    MOVE.L  window,a0
-    MOVE.L  IDCMPFlags,d0
-    JSR -150(A6)
-    MOVE.L  (A7)+,A6
-    TST.L   d0
-    SNE     d0
-end;
-                                                    
-procedure ReplyMsg(mess : pMessage); Assembler;
-asm
-    MOVE.L  A6,-(A7)
-    MOVE.L  _ExecBase,A6
-    MOVE.L  mess,a1
-    JSR -378(A6)
-    MOVE.L  (A7)+,A6
-end;
-                               
-
-function WaitPort(port : pMsgPort): pMessage; Assembler;
-asm
-    MOVE.L  A6,-(A7)
-    MOVE.L  _ExecBase,A6
-    MOVE.L  port,a0
-    JSR -384(A6)
-    MOVE.L  (A7)+,A6
-end;
-                        
-procedure Delay_(ticks : Integer); Assembler;
-asm
-    MOVE.L  A6,-(A7)
-    MOVE.L  _DOSBase,A6
-    MOVE.L  ticks,d1
-    JSR -198(A6)
-    MOVE.L  (A7)+,A6
+                     IDCMPFlags : Longint) : Boolean;
+begin
+   asm
+       MOVE.L  A6,-(A7)
+       MOVE.L  window,a0
+       MOVE.L  IDCMPFlags,d0
+       MOVE.L  _IntuitionBase,A6
+       JSR -150(A6)
+       MOVE.L  (A7)+,A6
+       TST.L   d0
+       bne     @success
+       bra     @end
+   @success:
+       move.b  #1,d0
+   @end:
+       move.b  d0,@RESULT
+   end;
 end;
 
-   
+procedure ReplyMsg(mess : pMessage);
+begin
+   asm
+       MOVE.L  A6,-(A7)
+       MOVE.L  mess,a1
+       MOVE.L  _ExecBase,A6
+       JSR -378(A6)
+       MOVE.L  (A7)+,A6
+   end;
+end;
+
+
+function WaitPort(port : pMsgPort): pMessage;
+begin
+   asm
+       MOVE.L  A6,-(A7)
+       MOVE.L  port,a0
+       MOVE.L  _ExecBase,A6
+       JSR -384(A6)
+       MOVE.L  (A7)+,A6
+       MOVE.L  d0,@RESULT
+   end;
+end;
+
+procedure Delay_(ticks : Longint);
+begin
+   asm
+       MOVE.L  A6,-(A7)
+       MOVE.L  ticks,d1
+       MOVE.L  _DOSBase,A6
+       JSR -198(A6)
+       MOVE.L  (A7)+,A6
+   end;
+end;
+
+function SetSignal(newSignals, signalMask : Longint) : Longint;
+begin
+   asm
+       MOVE.L  A6,-(A7)
+       MOVE.L  newSignals,d0
+       MOVE.L  signalMask,d1
+       MOVE.L  _ExecBase,A6
+       JSR -306(A6)
+       MOVE.L  (A7)+,A6
+       MOVE.L  d0,@RESULT
+   end;
+end;
+
 function OpenInfo : pInfoData;
 var
    port     :  pMsgPort;
@@ -384,17 +453,17 @@ var
    bptr, d4, d5, d6, d7 :  Longint;
 begin
    info  := pInfoData(AllocVec(SizeOf(tInfoData), 1));
-   
+
    if info <> nil then begin
       port  := GetConsoleTask;
       bptr  := Longint(info) shr 2;
-      
+
       if port <> nil then begin
          if DoPkt(port, $19, bptr, d4, d5, d6, d7) <> 0 then info := pInfoData(bptr shl 2)
          else port := nil;
       end;
-      
-      if port = nil then begin   
+
+      if port = nil then begin
          FreeVec(info);
          info := nil;
       end;
@@ -419,7 +488,7 @@ var
 begin
    pos   := 1;
    info  := OpenInfo;
-   
+
    if info <> nil then begin
       theunit  := pConUnit((pIoStdReq(info^.id_InUse))^.io_Unit);
 
@@ -429,21 +498,21 @@ begin
          CD_MAXX  :  pos   := theunit^.cu_XMax;
          CD_MAXY  :  pos   := theunit^.cu_YMax;
       end;
-      
+
       CloseInfo(info);
    end;
-   
+
    ConData := pos + 1;
 end;
 
-function wherex : integer;
+function WhereX : integer;
 begin
-   wherex := ConData(CD_CURRX);
+   WhereX := ConData(CD_CURRX);
 end;
 
-function wherey : integer;
+function WhereY : integer;
 begin
-   wherey := ConData(CD_CURRY);
+   WhereY := ConData(CD_CURRY);
 end;
 
 function maxx : integer;
@@ -456,33 +525,33 @@ begin
    maxy := ConData(CD_MAXY);
 end;
 
-procedure gotoxy(x, y : integer);
+procedure GotoXY(x, y : integer);
 var
    mx, my : integer;
 begin
    mx := maxx;
    my := maxy;
-   
+
    if x < 1 then x := wherex
    else if x > mx then x := mx;
-   
+
    if y < 1 then y := wherey
    else if y > my then y := my;
-   
-   Write($9b, y, ';', x, 'H');
+
+   Write(CSI, y, ';', x, 'H');
 end;
 
-procedure cursoroff;
+procedure CursorOff;
 begin
-   Write($9b,'0 p');
+   Write(CSI,'0 p');
 end;
 
-procedure cursoron;
+procedure CursorOn;
 begin
-   Write($9b,'1 p');
+   Write(CSI,'1 p');
 end;
 
-procedure clrscr;
+procedure ClrScr;
 begin
    Write(Chr($0c));
 end;
@@ -497,7 +566,7 @@ var
    imsg  :  pIntuiMessage;
    msg   :  pMessage;
    key   :  char;
-   idcmp, vanil   :  longint;
+   idcmp, vanil   :  Longint;
 begin
    key   := #0;
    info  := OpenInfo;
@@ -516,7 +585,7 @@ begin
          if (imsg^.Class_ = IDCMP_VANILLAKEY) or (imsg^.Class_ = IDCMP_RAWKEY) then key := char(imsg^.Code);
 
          ReplyMsg(pMessage(imsg));
-      until key <> char(0);
+      until key <> #0;
 
       repeat
          msg   := GetMsg(win^.UserPort);
@@ -532,22 +601,60 @@ begin
    ReadKey := key;
 end;
 
-procedure textcolor(fgpen : byte);
+function KeyPressed : Boolean;
+const
+   IDCMP_VANILLAKEY = $00200000;
+   IDCMP_RAWKEY     = $00000400;
+var
+   info  :  pInfoData;
+   win   :  pWindow;
+   imsg  :  pIntuiMessage;
+   msg   :  pMessage;
+   idcmp, vanil   :  Longint;
+   ispressed : Boolean;
 begin
-   Write($9b, '3', fgpen, 'm');
+   ispressed := False;
+   info  := OpenInfo;
+
+   if info <> nil then begin
+      win   := pWindow(pConUnit((pIoStdReq(info^.id_InUse))^.io_Unit)^.cu_Window);
+      idcmp := win^.IDCMPFlags;
+      vanil := IDCMP_VANILLAKEY or IDCMP_RAWKEY;
+
+      ModifyIDCMP(win, (idcmp or vanil));
+
+      msg   := WaitPort(win^.UserPort);
+      imsg  := pIntuiMessage(GetMsg(win^.UserPort));
+
+      if (imsg^.Class_ = IDCMP_VANILLAKEY) or (imsg^.Class_ = IDCMP_RAWKEY) then ispressed := true;
+
+      ReplyMsg(pMessage(imsg));
+
+      repeat
+         msg   := GetMsg(win^.UserPort);
+
+         if msg <> nil then ReplyMsg(msg);
+      until msg = nil;
+
+      ModifyIDCMP(win, idcmp);
+
+      CloseInfo(info);
+   end;
+
+   KeyPressed := ispressed;
 end;
 
-procedure textbackground(bgpen : byte);
+procedure TextColor(color : byte);
 begin
-   Write($9b, '4', bgpen, 'm');
+   Write(CSI, '3', color, 'm');
 end;
 
-function keypressed : boolean;
+procedure TextBackground(color : byte);
 begin
-   keypressed := true;
+   Write(CSI, '4', color, 'm');
 end;
 
-procedure window(left,top,right,bottom : byte);
+procedure window(X1,Y1,X2,Y2 : Integer);
 begin
 end;
 
@@ -555,24 +662,19 @@ procedure assigncrt(var f : text);
 begin
 end;
 
-procedure delline;
+procedure DelLine;
 begin
-   Write($9b,'X');
+   Write(CSI,'X');
 end;
 
-procedure delline(line : byte);
+procedure ClrEol;
 begin
-   Write($9b,'X');
+   Write(CSI,'K');
 end;
 
-procedure clreol;
+procedure InsLine;
 begin
-   Write($9b,'K');
-end;
-
-procedure insline;
-begin
-   Write($9b,'1 L');
+   Write(CSI,'1 L');
 end;
 
 procedure cursorbig;
@@ -595,20 +697,20 @@ procedure sound(hz : word);
 begin
 end;
 
-{  MsDos have 1000 ticks per second
-   and Amiga only 50, so we have to
-   do some calcs here.
-   The min value this procedure will
-   handle is 20, (less you will get 0)
-   this will be 1 tick in Amiga. If
-   you want to use amigados delay just
-   use Delay_.   }
-procedure delay(ms : longint);
+procedure delay(DTime : Word);
 var
-    dummy : integer;
+    dummy : Longint;
 begin
-    dummy := trunc((real(ms) / 1000.0) * 50.0);
+    dummy := trunc((real(DTime) / 1000.0) * 50.0);
     Delay_(dummy);
+end;
+
+function CheckBreak : boolean;
+begin
+   if (SetSignal(0, 0) and SIGBREAKF_CTRL_C) = SIGBREAKF_CTRL_C then
+      CheckBreak := true
+   else
+      CheckBreak := false;
 end;
 
 procedure textmode(mode : integer);
