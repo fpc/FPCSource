@@ -110,8 +110,10 @@ endif
 #
 
 utils:
-        $(MAKE) -C utils
+        $(MAKE) -C utils utils
 
+utilsdb:
+        $(MAKE) -C utils utilsdb
 
 ifndef DBDIGEST
 DBDIGEST=utils/dbdigest
@@ -300,7 +302,7 @@ distclean: clean fpc_distclean
 digest : utils
         -$(DIGEST) $(LOG)
 
-dbdigest: utils
+dbdigest: utilsdb
         -$(DBDIGEST) -v $(TEST_FPC_VERSION) -o $(TEST_OS_TARGET) -c $(TEST_CPU_TARGET) -l $(LOG) $(DBDIGESTOPT)
 
 all : allexectests

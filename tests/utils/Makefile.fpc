@@ -9,16 +9,18 @@ fpcpackage=y
 fpcdir=../..
 
 [require]
-packages = mysql
+# We depend on the installed compiler with it's fpc.cfg
+nortl=y
 
 [target]
-programs = dotest fail testfail digest dbdigest
+programs=dotest fail testfail digest $(DBDIGEST)
+
+[clean]
+programs=dbdigest
 
 [rules]
 
-# To always clean dbdigest regardless of USESQL
-clean: fpc_clean
-        -$(DEL) dbdigest$(EXEEXT)
+utils: all
 
-cleanall: fpc_cleanall
-        -$(DEL) dbdigest$(EXEEXT)
+utilsdb:
+        $(MAKE) utils DBDIGEST=dbdigest

@@ -30,8 +30,9 @@ end;
 
 procedure ShowHeap;
 var
-  hstatus : THeapstatus;
+  hstatus : TFPCHeapstatus;
 begin
+   hstatus:=GetFPCHeapStatus;
    WriteLn ('Used: ', hstatus.CurrHeapUsed, '   Free: ', hstatus.CurrHeapFree,'   Size: ',hstatus.CurrHeapSize);
 end;
 

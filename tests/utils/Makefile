@@ -231,103 +231,103 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_PROGRAMS+=dotest fail testfail digest dbdigest
+override TARGET_PROGRAMS+=dotest fail testfail digest $(DBDIGEST)
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_PROGRAMS+=dotest fail testfail digest dbdigest
+override TARGET_PROGRAMS+=dotest fail testfail digest $(DBDIGEST)
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_PROGRAMS+=dotest fail testfail digest dbdigest
+override TARGET_PROGRAMS+=dotest fail testfail digest $(DBDIGEST)
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_PROGRAMS+=dotest fail testfail digest dbdigest
+override TARGET_PROGRAMS+=dotest fail testfail digest $(DBDIGEST)
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_PROGRAMS+=dotest fail testfail digest dbdigest
+override TARGET_PROGRAMS+=dotest fail testfail digest $(DBDIGEST)
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_PROGRAMS+=dotest fail testfail digest dbdigest
+override TARGET_PROGRAMS+=dotest fail testfail digest $(DBDIGEST)
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_PROGRAMS+=dotest fail testfail digest dbdigest
+override TARGET_PROGRAMS+=dotest fail testfail digest $(DBDIGEST)
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_PROGRAMS+=dotest fail testfail digest dbdigest
+override TARGET_PROGRAMS+=dotest fail testfail digest $(DBDIGEST)
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_PROGRAMS+=dotest fail testfail digest dbdigest
+override TARGET_PROGRAMS+=dotest fail testfail digest $(DBDIGEST)
 endif
 ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_PROGRAMS+=dotest fail testfail digest dbdigest
+override TARGET_PROGRAMS+=dotest fail testfail digest $(DBDIGEST)
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_PROGRAMS+=dotest fail testfail digest dbdigest
+override TARGET_PROGRAMS+=dotest fail testfail digest $(DBDIGEST)
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_PROGRAMS+=dotest fail testfail digest dbdigest
+override TARGET_PROGRAMS+=dotest fail testfail digest $(DBDIGEST)
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_PROGRAMS+=dotest fail testfail digest dbdigest
+override TARGET_PROGRAMS+=dotest fail testfail digest $(DBDIGEST)
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_PROGRAMS+=dotest fail testfail digest dbdigest
+override TARGET_PROGRAMS+=dotest fail testfail digest $(DBDIGEST)
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_PROGRAMS+=dotest fail testfail digest dbdigest
+override TARGET_PROGRAMS+=dotest fail testfail digest $(DBDIGEST)
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_PROGRAMS+=dotest fail testfail digest dbdigest
+override TARGET_PROGRAMS+=dotest fail testfail digest $(DBDIGEST)
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_PROGRAMS+=dotest fail testfail digest dbdigest
+override TARGET_PROGRAMS+=dotest fail testfail digest $(DBDIGEST)
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_PROGRAMS+=dotest fail testfail digest dbdigest
+override TARGET_PROGRAMS+=dotest fail testfail digest $(DBDIGEST)
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_PROGRAMS+=dotest fail testfail digest dbdigest
+override TARGET_PROGRAMS+=dotest fail testfail digest $(DBDIGEST)
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_PROGRAMS+=dotest fail testfail digest dbdigest
+override TARGET_PROGRAMS+=dotest fail testfail digest $(DBDIGEST)
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_PROGRAMS+=dotest fail testfail digest dbdigest
+override TARGET_PROGRAMS+=dotest fail testfail digest $(DBDIGEST)
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_PROGRAMS+=dotest fail testfail digest dbdigest
+override TARGET_PROGRAMS+=dotest fail testfail digest $(DBDIGEST)
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_PROGRAMS+=dotest fail testfail digest dbdigest
+override TARGET_PROGRAMS+=dotest fail testfail digest $(DBDIGEST)
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_PROGRAMS+=dotest fail testfail digest dbdigest
+override TARGET_PROGRAMS+=dotest fail testfail digest $(DBDIGEST)
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_PROGRAMS+=dotest fail testfail digest dbdigest
+override TARGET_PROGRAMS+=dotest fail testfail digest $(DBDIGEST)
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_PROGRAMS+=dotest fail testfail digest dbdigest
+override TARGET_PROGRAMS+=dotest fail testfail digest $(DBDIGEST)
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_PROGRAMS+=dotest fail testfail digest dbdigest
+override TARGET_PROGRAMS+=dotest fail testfail digest $(DBDIGEST)
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_PROGRAMS+=dotest fail testfail digest dbdigest
+override TARGET_PROGRAMS+=dotest fail testfail digest $(DBDIGEST)
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_PROGRAMS+=dotest fail testfail digest dbdigest
+override TARGET_PROGRAMS+=dotest fail testfail digest $(DBDIGEST)
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_PROGRAMS+=dotest fail testfail digest dbdigest
+override TARGET_PROGRAMS+=dotest fail testfail digest $(DBDIGEST)
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_PROGRAMS+=dotest fail testfail digest dbdigest
+override TARGET_PROGRAMS+=dotest fail testfail digest $(DBDIGEST)
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_PROGRAMS+=dotest fail testfail digest dbdigest
+override TARGET_PROGRAMS+=dotest fail testfail digest $(DBDIGEST)
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_PROGRAMS+=dotest fail testfail digest dbdigest
+override TARGET_PROGRAMS+=dotest fail testfail digest $(DBDIGEST)
 endif
 override INSTALL_FPCPACKAGE=y
 ifdef REQUIRE_UNITSDIR
@@ -522,32 +522,6 @@ endif
 endif
 else
 CROSSBINDIR=
-endif
-ifeq ($(OS_SOURCE),linux)
-ifndef GCCLIBDIR
-ifeq ($(CPU_TARGET),i386)
-ifneq ($(findstring x86_64,$(shell uname -a)),)
-ifeq ($(BINUTILSPREFIX),)
-GCCLIBDIR:=$(shell dirname `gcc -m32 -print-libgcc-file-name`)
-endif
-endif
-endif
-endif
-ifndef GCCLIBDIR
-CROSSGCC=$(strip $(wildcard $(addsuffix /$(BINUTILSPREFIX)gcc$(SRCEXEEXT),$(SEARCHPATH))))
-ifneq ($(CROSSGCC),)
-GCCLIBDIR:=$(shell dirname `$(CROSSGCC) -print-libgcc-file-name`)
-endif
-endif
-ifndef OTHERLIBDIR
-OTHERLIBDIR:=$(shell grep -v "^\#" /etc/ld.so.conf | awk '{ ORS=" "; print $1 }')
-endif
-endif
-ifdef inUnix
-ifeq ($(OS_SOURCE),netbsd)
-OTHERLIBDIR+=/usr/pkg/lib
-endif
-export GCCLIBDIR OTHERLIB
 endif
 BATCHEXT=.bat
 LOADEREXT=.as
@@ -1084,191 +1058,6 @@ else
 TAROPT=vz
 TAREXT=.tar.gz
 endif
-override REQUIRE_PACKAGES=rtl mysql
-ifeq ($(FULL_TARGET),i386-linux)
-REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_MYSQL=1
-endif
-ifeq ($(FULL_TARGET),i386-go32v2)
-REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_MYSQL=1
-endif
-ifeq ($(FULL_TARGET),i386-win32)
-REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_MYSQL=1
-endif
-ifeq ($(FULL_TARGET),i386-os2)
-REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_MYSQL=1
-endif
-ifeq ($(FULL_TARGET),i386-freebsd)
-REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_MYSQL=1
-endif
-ifeq ($(FULL_TARGET),i386-beos)
-REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_MYSQL=1
-endif
-ifeq ($(FULL_TARGET),i386-netbsd)
-REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_MYSQL=1
-endif
-ifeq ($(FULL_TARGET),i386-solaris)
-REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_MYSQL=1
-endif
-ifeq ($(FULL_TARGET),i386-qnx)
-REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_MYSQL=1
-endif
-ifeq ($(FULL_TARGET),i386-netware)
-REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_MYSQL=1
-endif
-ifeq ($(FULL_TARGET),i386-openbsd)
-REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_MYSQL=1
-endif
-ifeq ($(FULL_TARGET),i386-wdosx)
-REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_MYSQL=1
-endif
-ifeq ($(FULL_TARGET),i386-emx)
-REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_MYSQL=1
-endif
-ifeq ($(FULL_TARGET),i386-watcom)
-REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_MYSQL=1
-endif
-ifeq ($(FULL_TARGET),i386-netwlibc)
-REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_MYSQL=1
-endif
-ifeq ($(FULL_TARGET),m68k-linux)
-REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_MYSQL=1
-endif
-ifeq ($(FULL_TARGET),m68k-freebsd)
-REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_MYSQL=1
-endif
-ifeq ($(FULL_TARGET),m68k-netbsd)
-REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_MYSQL=1
-endif
-ifeq ($(FULL_TARGET),m68k-amiga)
-REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_MYSQL=1
-endif
-ifeq ($(FULL_TARGET),m68k-atari)
-REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_MYSQL=1
-endif
-ifeq ($(FULL_TARGET),m68k-openbsd)
-REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_MYSQL=1
-endif
-ifeq ($(FULL_TARGET),m68k-palmos)
-REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_MYSQL=1
-endif
-ifeq ($(FULL_TARGET),powerpc-linux)
-REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_MYSQL=1
-endif
-ifeq ($(FULL_TARGET),powerpc-netbsd)
-REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_MYSQL=1
-endif
-ifeq ($(FULL_TARGET),powerpc-macos)
-REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_MYSQL=1
-endif
-ifeq ($(FULL_TARGET),powerpc-darwin)
-REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_MYSQL=1
-endif
-ifeq ($(FULL_TARGET),powerpc-morphos)
-REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_MYSQL=1
-endif
-ifeq ($(FULL_TARGET),sparc-linux)
-REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_MYSQL=1
-endif
-ifeq ($(FULL_TARGET),sparc-netbsd)
-REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_MYSQL=1
-endif
-ifeq ($(FULL_TARGET),sparc-solaris)
-REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_MYSQL=1
-endif
-ifeq ($(FULL_TARGET),x86_64-linux)
-REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_MYSQL=1
-endif
-ifeq ($(FULL_TARGET),x86_64-freebsd)
-REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_MYSQL=1
-endif
-ifeq ($(FULL_TARGET),arm-linux)
-REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_MYSQL=1
-endif
-ifdef REQUIRE_PACKAGES_RTL
-PACKAGEDIR_RTL:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /rtl/Makefile.fpc,$(PACKAGESDIR))))))
-ifneq ($(PACKAGEDIR_RTL),)
-ifneq ($(wildcard $(PACKAGEDIR_RTL)/units/$(TARGETSUFFIX)),)
-UNITDIR_RTL=$(PACKAGEDIR_RTL)/units/$(TARGETSUFFIX)
-else
-UNITDIR_RTL=$(PACKAGEDIR_RTL)
-endif
-ifdef CHECKDEPEND
-$(PACKAGEDIR_RTL)/$(FPCMADE):
-	$(MAKE) -C $(PACKAGEDIR_RTL) $(FPCMADE)
-override ALLDEPENDENCIES+=$(PACKAGEDIR_RTL)/$(FPCMADE)
-endif
-else
-PACKAGEDIR_RTL=
-UNITDIR_RTL:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /rtl/Package.fpc,$(UNITSDIR)))))
-ifneq ($(UNITDIR_RTL),)
-UNITDIR_RTL:=$(firstword $(UNITDIR_RTL))
-else
-UNITDIR_RTL=
-endif
-endif
-ifdef UNITDIR_RTL
-override COMPILER_UNITDIR+=$(UNITDIR_RTL)
-endif
-endif
-ifdef REQUIRE_PACKAGES_MYSQL
-PACKAGEDIR_MYSQL:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /mysql/Makefile.fpc,$(PACKAGESDIR))))))
-ifneq ($(PACKAGEDIR_MYSQL),)
-ifneq ($(wildcard $(PACKAGEDIR_MYSQL)/units/$(TARGETSUFFIX)),)
-UNITDIR_MYSQL=$(PACKAGEDIR_MYSQL)/units/$(TARGETSUFFIX)
-else
-UNITDIR_MYSQL=$(PACKAGEDIR_MYSQL)
-endif
-ifdef CHECKDEPEND
-$(PACKAGEDIR_MYSQL)/$(FPCMADE):
-	$(MAKE) -C $(PACKAGEDIR_MYSQL) $(FPCMADE)
-override ALLDEPENDENCIES+=$(PACKAGEDIR_MYSQL)/$(FPCMADE)
-endif
-else
-PACKAGEDIR_MYSQL=
-UNITDIR_MYSQL:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /mysql/Package.fpc,$(UNITSDIR)))))
-ifneq ($(UNITDIR_MYSQL),)
-UNITDIR_MYSQL:=$(firstword $(UNITDIR_MYSQL))
-else
-UNITDIR_MYSQL=
-endif
-endif
-ifdef UNITDIR_MYSQL
-override COMPILER_UNITDIR+=$(UNITDIR_MYSQL)
-endif
-endif
 ifndef NOCPUDEF
 override FPCOPTDEF=$(CPU_TARGET)
 endif
@@ -1375,12 +1164,6 @@ ifeq ($(OS_TARGET),linux)
 ifeq ($(FPC_VERSION),1.0.6)
 override FPCOPTDEF+=HASUNIX
 endif
-endif
-ifdef GCCLIBDIR
-override FPCOPT+=-Fl$(GCCLIBDIR)
-endif
-ifdef OTHERLIBDIR
-override FPCOPT+=$(addprefix -Fl,$(OTHERLIBDIR))
 endif
 ifdef OPT
 override FPCOPT+=$(OPT)
@@ -1724,14 +1507,15 @@ zipinstall:
 zipsourceinstall:
 zipexampleinstall:
 zipdistinstall:
+clean: fpc_clean
 distclean: fpc_distclean
+cleanall: fpc_cleanall
 info: fpc_info
 makefiles: fpc_makefiles
-.PHONY: all debug smart release units examples shared install sourceinstall exampleinstall distinstall zipinstall zipsourceinstall zipexampleinstall zipdistinstall distclean info makefiles
+.PHONY: all debug smart release units examples shared install sourceinstall exampleinstall distinstall zipinstall zipsourceinstall zipexampleinstall zipdistinstall clean distclean cleanall info makefiles
 ifneq ($(wildcard fpcmake.loc),)
 include fpcmake.loc
 endif
-clean: fpc_clean
-	-$(DEL) dbdigest$(EXEEXT)
-cleanall: fpc_cleanall
-	-$(DEL) dbdigest$(EXEEXT)
+utils: all
+utilsdb:
+	$(MAKE) utils DBDIGEST=dbdigest
