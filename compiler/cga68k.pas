@@ -587,6 +587,7 @@ begin
               procinfo.aktentrycode^.insert(new(pai68k,op_csymbol(A_JSR,S_NO,
               newcsymbol('FPC_HELP_CONSTRUCTOR',0))));
               concat_external('FPC_HELP_CONSTRUCTOR',EXT_NEAR);
+              procinfo.aktentrycode^.insert(new(pai68k,op_const_reg(A_MOVE,S_L,procinfo._class^.vmt_offset,R_D0)));
              end;
         end;
     { don't load ESI, does the caller }
@@ -1344,7 +1345,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.23  1998-10-14 11:28:22  florian
+  Revision 1.24  1998-10-15 12:37:42  pierre
+    + passes vmt offset to HELP_CONSTRUCTOR for objects
+
+  Revision 1.23  1998/10/14 11:28:22  florian
     * emitpushreferenceaddress gets now the asmlist as parameter
     * m68k version compiles with -duseansistrings
 
