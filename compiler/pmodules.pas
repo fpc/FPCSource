@@ -431,8 +431,6 @@ unit pmodules;
            { only reassemble ? }
              if (current_module^.do_assemble) then
               OnlyAsm;
-           { add the files for the linker }
-             Linker.AddModuleFiles(current_module);
            end;
          if assigned(current_module^.ppufile) then
            begin
@@ -1191,15 +1189,13 @@ unit pmodules;
           { assemble }
             create_objectfile;
           end;
-
-         { add the files for the linker from current_module }
-         Linker.AddModuleFiles(current_module);
       end;
 
 
     procedure proc_program(islibrary : boolean);
       var
          st    : psymtable;
+         hp    : pmodule;
          names : Tstringcontainer;
       begin
          DLLsource:=islibrary;
@@ -1341,14 +1337,20 @@ unit pmodules;
          { assemble and link }
          create_objectfile;
 
-         { add the files for the linker from current_module }
-         Linker.AddModuleFiles(current_module);
-
          { create the executable when we are at level 1 }
          if (compile_level=1) then
           begin
+            { insert all .o files from all loaded units }
+            hp:=pmodule(loaded_units.first);
+            while assigned(hp) do
+             begin
+               Linker.AddModuleFiles(hp);
+               hp:=pmodule(hp^.next);
+             end;
+            { write .def file }
             if (cs_link_deffile in aktglobalswitches) then
              deffile.writefile;
+            { finally we can create a executable }
             if (not current_module^.is_unit) then
              Linker.MakeExecutable;
           end;
@@ -1357,7 +1359,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.115  1999-04-26 18:29:58  peter
+  Revision 1.116  1999-04-26 23:22:42  peter
+    * fixed double .o file insertion
+
+  Revision 1.115  1999/04/26 18:29:58  peter
     * farpointerdef moved into pointerdef.is_far
 
   Revision 1.114  1999/04/26 13:31:39  peter
