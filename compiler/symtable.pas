@@ -1857,7 +1857,7 @@ implementation
               the user. (Under delphi it can still be accessed using result) (PFV) }
             if (hsym^.typ=funcretsym) and
                (m_tp in aktmodeswitches) then
-             hsym^.setname('hidden'+hsym^.name)
+             hsym^.owner^.rename(hsym^.name,'hidden'+hsym^.name)
             else
              begin
                DuplicateSym(hsym);
@@ -2925,7 +2925,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.98  2000-06-14 16:51:18  peter
+  Revision 1.99  2000-06-14 19:00:58  peter
+    * rename the result of a function to hide it instead of using setname
+
+  Revision 1.98  2000/06/14 16:51:18  peter
     * removed unused label i left in when testing
 
   Revision 1.97  2000/06/09 21:34:40  peter
