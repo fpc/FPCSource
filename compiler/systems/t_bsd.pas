@@ -58,6 +58,7 @@ implementation
       Glibc2,
       Glibc21,
       LdSupportsNoResponseFile : boolean;
+      LibrarySuffix : Char;
       Function  WriteResponseFile(isdll:boolean) : Boolean;
     public
       constructor Create;override;
@@ -205,8 +206,7 @@ procedure TLinkerBSD.SetDefaultInfo;
   This will also detect which libc version will be used
 }
 begin
-  Glibc2:=false;
-  Glibc21:=false;
+  LibrarySuffix:=' ';
 {$ifdef NETBSD}
 {$ifdef M68K}
   LdSupportsNoResponseFile:=true;
@@ -279,9 +279,12 @@ begin
   if cs_profile in aktmoduleswitches then
    begin
      prtobj:=gprtobj;
+{
      if not glibc2 then
       AddSharedLibrary('gmon');
+}
      AddSharedLibrary('c');
+     LibrarySuffix:='p';
      linklibc:=true;
    end
   else
@@ -374,7 +377,12 @@ begin
       end;
      { be sure that libc is the last lib }
      if linklibc then
-      LinkRes.Add('-lc');
+       Begin
+         If LibrarySuffix=' ' Then
+          LinkRes.Add('-lc')
+         else
+          LinkRes.Add('-lc_'+LibrarySuffix)
+       end;
      { when we have -static for the linker the we also need libgcc }
      if (cs_link_staticflag in aktglobalswitches) then
       LinkRes.Add('-lgcc');
@@ -437,6 +445,8 @@ begin
      ((Info.DynamicLinker<>'') and (not SharedLibFiles.Empty)) then
    DynLinkStr:='-dynamic-linker='+Info.DynamicLinker;
 
+  if CShared Then
+   DynLinKStr:=DynLinkStr+' --shared';
 { Write used files and libraries }
   WriteResponseFile(false);
 
@@ -530,7 +540,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.4  2003-10-11 19:32:04  marco
+  Revision 1.5  2003-10-30 18:35:30  marco
+   * librarysuffix + profiling
+
+  Revision 1.4  2003/10/11 19:32:04  marco
    * -Xd
 
   Revision 1.3  2003/10/03 14:16:48  marco

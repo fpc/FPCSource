@@ -435,7 +435,13 @@ begin
    StripStr:='-s';
   If (cs_profile in aktmoduleswitches) or
      ((Info.DynamicLinker<>'') and (not SharedLibFiles.Empty)) then
-   DynLinkStr:='-dynamic-linker='+Info.DynamicLinker;
+   begin
+     DynLinkStr:='-dynamic-linker='+Info.DynamicLinker;
+     if cshared Then
+       DynLinkStr:='--shared ' + DynLinkStr;
+     if rlinkpath<>'' Then
+       DynLinkStr:='--rpath-link '+rlinkpath + ' '+ DynLinkStr;
+   End;
 
 { Write used files and libraries }
   WriteResponseFile(false);
@@ -556,7 +562,10 @@ end.
 
 {
   $Log$
-  Revision 1.11  2003-10-11 19:32:04  marco
+  Revision 1.12  2003-10-30 18:35:30  marco
+   * librarysuffix + profiling
+
+  Revision 1.11  2003/10/11 19:32:04  marco
    * -Xd
 
   Revision 1.10  2003/10/03 14:16:48  marco
