@@ -253,6 +253,50 @@ Begin
                       Pai386(p)^.op1 := Pai386(p)^.op2;
                     End;
                 End;
+              A_FLD:
+                Begin
+                  If (Pai386(p)^.op1t = top_ref) And
+                     GetLastInstruction(p, hp1) And
+                     (hp1^.typ = Ait_Instruction) And
+                     ((Pai386(hp1)^._operator = A_FLD) Or
+                      (Pai386(hp1)^._operator = A_FST)) And
+                     (Pai386(hp1)^.size = Pai386(p)^.size) And
+                     (Pai386(hp1)^.op1t = top_ref) And
+                     RefsEqual(TReference(Pai386(p)^.Op1^), TReference(Pai386(hp1)^.Op1^)) Then
+  { we have "fld/fst mem1; fld mem1 }
+                    If GetNextInstruction(p, hp2) And
+                       (hp2^.typ = Ait_Instruction) And
+                       (Pai386(hp2)^._operator in [A_FMULP, A_FADDP]) And
+                       (Pai386(hp2)^.Op1t = top_reg) And
+                       (Pai386(hp2)^.Op2t = top_reg) And
+                       (TRegister(Pai386(hp2)^.Op1) = R_ST) And
+                       (TRegister(Pai386(hp2)^.Op2) = R_ST1) Then
+                  { change                      to
+                      fld/fst   mem1              fld/fst   mem1
+                      fld       mem1              fadd/
+                      faddp/                       fmul     st, st
+                       fmulp  st, st1 }
+                      Begin
+                        AsmL^.Remove(p);
+                        Dispose(p, Done);
+                        p := hp1;
+                        If (Pai386(hp2)^._operator = A_FADDP)
+                          Then Pai386(hp2)^._operator := A_FADD
+                          Else Pai386(hp2)^._operator := A_FMUL;
+                        Pai386(hp2)^.op2 := Pointer(R_ST);
+                      End
+                    Else
+                  { change              to
+                      fldl/fstl mem1         fldl/fstl mem1
+                      fldl      mem1         fldl      st}
+                      If (Pai386(p)^.Size in [S_FS,S_FL]) Then
+                        Begin
+                          Pai386(p)^.Size := S_FL;
+                          Clear_Reference(TReference(Pai386(p)^.Op1^));
+                          Pai386(p)^.Op1 := Pointer(R_ST);
+                          Pai386(p)^.Opxt := top_reg;
+                      End;
+                End;
               A_FSTP:
                 Begin
                   If (Pai386(p)^.op1t = top_ref) And
@@ -1434,7 +1478,11 @@ End.
 
 {
  $Log$
- Revision 1.18  1998-10-05 14:41:14  jonas
+ Revision 1.19  1998-10-23 15:38:23  jonas
+   + some small FPU peephole optimizations (use value in FP regs instead of loading it
+      from memory if possible, mostly with var1+var1 and var1*var1)
+
+ Revision 1.18  1998/10/05 14:41:14  jonas
    * fixed small memory leak
    * fixed small inefficiency
    * tested multiple line comments ability of my new MacCVS client :)
