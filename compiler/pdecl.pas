@@ -1425,8 +1425,6 @@ unit pdecl;
                       parse_only:=true;
                       constructor_head;
 {$ifdef OLDOBJECTOPTIONS}
-                      parse_object_proc_directives(aktprocsym);
-{$else OLDOBJECTOPTIONS}
                       case idtoken of
                        _DYNAMIC,
                        _VIRTUAL : begin
@@ -1450,6 +1448,8 @@ unit pdecl;
                                     consume(SEMICOLON);
                                   end;
                       end;
+{$else OLDOBJECTOPTIONS}
+                      parse_object_proc_directives(aktprocsym);
 {$endif def OLDOBJECTOPTIONS}
                       parse_only:=oldparse_only;
                     end;
@@ -1463,8 +1463,6 @@ unit pdecl;
                       parse_only:=true;
                       destructor_head;
 {$ifdef OLDOBJECTOPTIONS}
-                      parse_object_proc_directives(aktprocsym);
-{$else OLDOBJECTOPTIONS}
                       case idtoken of
                        _DYNAMIC,
                        _VIRTUAL : begin
@@ -1480,6 +1478,8 @@ unit pdecl;
                                       pooverridingmethod or povirtualmethod;
                                   end;
                       end;
+{$else OLDOBJECTOPTIONS}
+                      parse_object_proc_directives(aktprocsym);
 {$endif def OLDOBJECTOPTIONS}
                       parse_only:=oldparse_only;
                     end;
@@ -1600,9 +1600,11 @@ unit pdecl;
               genvmt(aktclass);
            end;
 
+{$ifndef STORENUMBER}
          { number symbols and defs }
          symtablestack^.number_defs;
          symtablestack^.number_symbols;
+{$endif}
 
          { restore old state }
          symtablestack:=symtablestack^.next;
@@ -1638,9 +1640,11 @@ unit pdecl;
          consume(_END);
          typecanbeforward:=storetypeforwardsallowed;
 
+{$ifndef STORENUMBER}
          { number symbols and defs }
          symtablestack^.number_defs;
          symtablestack^.number_symbols;
+{$endif}
 
          symtablestack:=symtable^.next;
          record_dec:=new(precdef,init(symtable));
@@ -1828,46 +1832,25 @@ unit pdecl;
              if pt^.treetype=typen then
                begin
                  case pt^.resulttype^.deftype of
-               enumdef : begin
-                           lowval:=penumdef(pt^.resulttype)^.min;
-                           highval:=penumdef(pt^.resulttype)^.max;
-                           arraytype:=pt^.resulttype;
-                         end;
-                orddef : begin
-                           case porddef(pt^.resulttype)^.typ of
-                            s8bit,u8bit,
-                          s16bit,u16bit,
-                                 s32bit : begin
-                                            lowval:=porddef(pt^.resulttype)^.low;
-                                            highval:=porddef(pt^.resulttype)^.high;
-                                            arraytype:=pt^.resulttype;
-                                          end;
-
-                               bool8bit,
-                              bool16bit,
-                              bool32bit : begin
-                                            lowval:=0;
-                                            highval:=1;
-                                            arraytype:=pt^.resulttype;
-                                          end;
-                                  uchar : begin
-                                            lowval:=0;
-                                            highval:=255;
-                                            arraytype:=pt^.resulttype;
-                                          end;
-                           else
-                             Message(sym_e_error_in_type_def);
-                           end;
-                         end;
-                 else
-                   Message(sym_e_error_in_type_def);
-                 end
+                   enumdef :
+                     begin
+                       lowval:=penumdef(pt^.resulttype)^.min;
+                       highval:=penumdef(pt^.resulttype)^.max;
+                       arraytype:=pt^.resulttype;
+                     end;
+                   orddef :
+                     begin
+                       lowval:=porddef(pt^.resulttype)^.low;
+                       highval:=porddef(pt^.resulttype)^.high;
+                       arraytype:=pt^.resulttype;
+                     end;
+                   else
+                     Message(sym_e_error_in_type_def);
+                 end;
                end
-
              else
                begin
                   do_firstpass(pt);
-
                   if (pt^.treetype=rangen) then
                    begin
                      if (pt^.left^.treetype=ordconstn) and
@@ -2240,7 +2223,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.106  1999-04-07 15:31:15  pierre
+  Revision 1.107  1999-04-14 09:14:50  peter
+    * first things to store the symbol/def number in the ppu
+
+  Revision 1.106  1999/04/07 15:31:15  pierre
     * all formaldefs are now a sinlge definition
       cformaldef (this was necessary for double_checksum)
     + small part of double_checksum code

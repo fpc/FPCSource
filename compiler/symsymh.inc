@@ -34,7 +34,12 @@
 
        { this object is the base for all symbol objects }
        psym = ^tsym;
+{$ifdef STORENUMBER}
+       tsym = object(tindexobject)
+{$else}
        tsym = object
+          indexnb    : longint;
+{$endif}
           typ        : tsymtyp;
           _name      : pchar;
           left,right : psym;
@@ -44,7 +49,6 @@
           speedvalue : longint;
           properties : symprop;
           owner      : psymtable;
-          indexnb    : longint;
           fileinfo   : tfileposinfo;
 {$ifdef GDB}
           isstabwritten : boolean;
@@ -306,7 +310,7 @@
        tenumsym = object(tsym)
           value : longint;
           definition : penumdef;
-          next : penumsym;
+          nextenum : penumsym;
           constructor init(const n : string;def : penumdef;v : longint);
           constructor load;
           procedure write;virtual;
@@ -334,7 +338,10 @@
 
 {
   $Log$
-  Revision 1.17  1999-03-31 13:55:23  peter
+  Revision 1.18  1999-04-14 09:15:03  peter
+    * first things to store the symbol/def number in the ppu
+
+  Revision 1.17  1999/03/31 13:55:23  peter
     * assembler inlining working for ag386bin
 
   Revision 1.16  1999/03/24 23:17:29  peter

@@ -89,10 +89,10 @@ implementation
                end;
              enumdef:
                begin
-                  enum:=Penumdef(Adef)^.first;
+                  enum:=Penumdef(Adef)^.firstenum;
                   if p^.inlinenumber=in_high_x then
-                    while enum^.next<>nil do
-                      enum:=enum^.next;
+                    while enum^.nextenum<>nil do
+                      enum:=enum^.nextenum;
                   hp:=genenumnode(enum);
                   disposetree(p);
                   p:=hp;
@@ -1064,7 +1064,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.23  1999-04-08 10:16:48  peter
+  Revision 1.24  1999-04-14 09:15:07  peter
+    * first things to store the symbol/def number in the ppu
+
+  Revision 1.23  1999/04/08 10:16:48  peter
     * funcret_valid flag is set for inline functions
 
   Revision 1.22  1999/03/26 00:05:48  peter

@@ -31,11 +31,15 @@
                    classrefdef,farpointerdef);
 
        pdef = ^tdef;
+{$ifdef STORENUMBER}
+       tdef = object(tindexobject)
+{$else}
        tdef = object
-          deftype  : tdeftype;
           indexnb  : longint;
-          savesize : longint;
           next     : pdef;
+{$endif}
+          deftype  : tdeftype;
+          savesize : longint;
           owner    : psymtable;
           sym      : ptypesym;  { which type the definition was generated this def }
 
@@ -59,8 +63,8 @@
           { registers enumdef inside objects or
             record directly in the owner symtable !! }
           procedure correct_owner_symtable;
+          function  typename:string;
           procedure write;virtual;
-          procedure writename;
           function  size:longint;virtual;
 {$ifdef GDB}
           function  NumberString:string;
@@ -70,6 +74,7 @@
           procedure concatstabto(asmlist : paasmoutput);virtual;
 {$endif GDB}
           procedure deref;virtual;
+          procedure symderef;virtual;
 
           { init. tables }
           function  needs_inittable : boolean;virtual;
@@ -83,6 +88,7 @@
           procedure write_child_init_data;virtual;
 
           { rtti }
+          procedure write_rtti_name;
           function  get_rtti_label : string;virtual;
           procedure generate_rtti;virtual;
           procedure write_rtti_data;virtual;
@@ -462,7 +468,7 @@
           minval,
           maxval    : longint;
           has_jumps : boolean;
-          first     : penumsym;
+          firstenum : penumsym;
           basedef   : penumdef;
           constructor init;
           constructor init_subrange(_basedef:penumdef;_min,_max:longint);
@@ -506,7 +512,10 @@
 
 {
   $Log$
-  Revision 1.19  1999-04-08 15:57:52  peter
+  Revision 1.20  1999-04-14 09:15:00  peter
+    * first things to store the symbol/def number in the ppu
+
+  Revision 1.19  1999/04/08 15:57:52  peter
     + subrange checking for readln()
 
   Revision 1.18  1999/03/02 18:24:21  peter

@@ -382,7 +382,7 @@ unit pstatmnt;
              objectdef : begin
                            obj:=pobjectdef(p^.resulttype);
                            withsymtable:=new(pwithsymtable,init);
-                           withsymtable^.root:=obj^.publicsyms^.root;
+                           withsymtable^.searchroot:=obj^.publicsyms^.searchroot;
                            withsymtable^.defowner:=obj;
                            symtab:=withsymtable;
 {$ifndef NODIRECTWITH}
@@ -398,7 +398,7 @@ unit pstatmnt;
                             begin
                               symtab^.next:=new(pwithsymtable,init);
                               symtab:=symtab^.next;
-                              symtab^.root:=obj^.publicsyms^.root;
+                              symtab^.searchroot:=obj^.publicsyms^.searchroot;
 {$ifndef NODIRECTWITH}
                               if (p^.treetype=loadn) and
                                  (p^.symtable=aktprocsym^.definition^.localst) then
@@ -417,7 +417,7 @@ unit pstatmnt;
                            symtab:=precdef(p^.resulttype)^.symtable;
                            levelcount:=1;
                            withsymtable:=new(pwithsymtable,init);
-                           withsymtable^.root:=symtab^.root;
+                           withsymtable^.searchroot:=symtab^.searchroot;
                            withsymtable^.next:=symtablestack;
 {$ifndef NODIRECTWITH}
                               if (p^.treetype=loadn) and
@@ -1291,7 +1291,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.74  1999-04-09 12:22:06  pierre
+  Revision 1.75  1999-04-14 09:14:53  peter
+    * first things to store the symbol/def number in the ppu
+
+  Revision 1.74  1999/04/09 12:22:06  pierre
    * bug found by Peter for DirectWith code fixed
 
   Revision 1.73  1999/04/06 11:21:57  peter

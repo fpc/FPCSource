@@ -709,7 +709,7 @@ do_jmp:
 
          { what a hack ! }
          if assigned(p^.exceptsymtable) then
-           pvarsym(p^.exceptsymtable^.root)^.address:=ref.offset;
+           pvarsym(p^.exceptsymtable^.searchroot)^.address:=ref.offset;
 
          exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,
            R_EAX,newreference(ref))));
@@ -797,7 +797,10 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.30  1999-03-05 16:14:59  peter
+  Revision 1.31  1999-04-14 09:14:46  peter
+    * first things to store the symbol/def number in the ppu
+
+  Revision 1.30  1999/03/05 16:14:59  peter
     * fixed exit() with word/byte return
 
   Revision 1.29  1999/02/25 21:02:26  peter

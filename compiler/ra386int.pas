@@ -3387,20 +3387,26 @@ Begin
 
       AS_DW :
         Begin
+          inexpression:=true;
           Consume(AS_DW);
           BuildConstant($ffff);
+          inexpression:=false;
         end;
 
       AS_DB :
         Begin
+          inexpression:=true;
           Consume(AS_DB);
           BuildConstant($ff);
+          inexpression:=false;
         end;
 
       AS_DD :
         Begin
+          inexpression:=true;
           Consume(AS_DD);
           BuildConstant($ffffffff);
+          inexpression:=false;
         end;
 
       AS_OPCODE :
@@ -3474,7 +3480,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.24  1999-03-26 00:05:41  peter
+  Revision 1.25  1999-04-14 09:14:56  peter
+    * first things to store the symbol/def number in the ppu
+
+  Revision 1.24  1999/03/26 00:05:41  peter
     * released valintern
     + deffile is now removed when compiling is finished
     * ^( compiles now correct

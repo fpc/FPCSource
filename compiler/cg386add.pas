@@ -570,10 +570,8 @@ implementation
          firstcomplex(p);
 
          { handling boolean expressions extra: }
-         if ((p^.left^.resulttype^.deftype=orddef) and
-            (porddef(p^.left^.resulttype)^.typ in [bool8bit,bool16bit,bool32bit])) or
-            ((p^.right^.resulttype^.deftype=orddef) and
-            (porddef(p^.right^.resulttype)^.typ in [bool8bit,bool16bit,bool32bit])) then
+         if is_boolean(p^.left^.resulttype) and
+            is_boolean(p^.right^.resulttype) then
            begin
              if (porddef(p^.left^.resulttype)^.typ=bool8bit) or
                 (porddef(p^.right^.resulttype)^.typ=bool8bit) then
@@ -1902,7 +1900,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.47  1999-04-12 19:09:08  florian
+  Revision 1.48  1999-04-14 09:14:45  peter
+    * first things to store the symbol/def number in the ppu
+
+  Revision 1.47  1999/04/12 19:09:08  florian
   * comparsions for small enumerations type are now generated
     correct
 

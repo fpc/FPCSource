@@ -26,6 +26,11 @@
 
     constructor tsym.init(const n : string);
       begin
+{$ifdef STORENUMBER}
+         inherited init;
+{$else}
+         indexnb:=0;
+{$endif}
          left:=nil;
          right:=nil;
 {$ifdef nextfield}
@@ -52,6 +57,10 @@
     constructor tsym.load;
 
       begin
+{$ifdef STORENUMBER}
+         inherited init;
+         indexnr:=readlong;
+{$endif}
          left:=nil;
          right:=nil;
          setname(readstring);
@@ -158,15 +167,20 @@
            strdispose(_name);
          if assigned(defref) then
            dispose(defref,done);
+{$ifndef STORENUMBER}
          if assigned(left) then
            dispose(left,done);
          if assigned(right) then
            dispose(right,done);
+{$endif}
       end;
 
 
     procedure tsym.write;
       begin
+{$ifdef STORENUMBER}
+         writelong(indexnr);
+{$endif}
          writestring(name);
          if object_options then
            writebyte(byte(properties));
@@ -1637,7 +1651,7 @@
          typ:=enumsym;
          definition:=penumdef(readdefref);
          value:=readlong;
-         next := Nil;
+         nextenum := Nil;
       end;
 
 
@@ -1652,25 +1666,25 @@
       var
          sym : penumsym;
       begin
-         sym := definition^.first;
+         sym := definition^.firstenum;
          if sym = nil then
           begin
-            definition^.first := @self;
-            next := nil;
+            definition^.firstenum := @self;
+            nextenum := nil;
             exit;
           end;
          { reorder the symbols in increasing value }
          if value < sym^.value then
           begin
-            next := sym;
-            definition^.first := @self;
+            nextenum := sym;
+            definition^.firstenum := @self;
           end
          else
           begin
-            while (sym^.value <= value) and assigned(sym^.next) do
-             sym := sym^.next;
-            next := sym^.next;
-            sym^.next := @self;
+            while (sym^.value <= value) and assigned(sym^.nextenum) do
+             sym := sym^.nextenum;
+            nextenum := sym^.nextenum;
+            sym^.nextenum := @self;
           end;
       end;
 
@@ -1870,7 +1884,10 @@
 
 {
   $Log$
-  Revision 1.77  1999-04-08 10:11:32  pierre
+  Revision 1.78  1999-04-14 09:15:02  peter
+    * first things to store the symbol/def number in the ppu
+
+  Revision 1.77  1999/04/08 10:11:32  pierre
    + enable uninitilized warnings for static symbols
 
   Revision 1.76  1999/03/31 13:55:21  peter

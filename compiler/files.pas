@@ -211,7 +211,7 @@ unit files;
           u : pmodule;
           constructor init(_u : pmodule);
        end;
-       
+
     var
        main_module    : pmodule;     { Main module of the program }
        current_module : pmodule;     { Current module which is compiled }
@@ -922,9 +922,11 @@ uses
 
     procedure tmodule.reset;
 
+{$ifdef Double_checksum}
       var
          pm : pdependent_unit;
-         
+{$endif}
+
       begin
         if assigned(scanner) then
           pscannerfile(scanner)^.invalid:=true;
@@ -1192,7 +1194,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.89  1999-04-07 15:39:29  pierre
+  Revision 1.90  1999-04-14 09:14:48  peter
+    * first things to store the symbol/def number in the ppu
+
+  Revision 1.89  1999/04/07 15:39:29  pierre
     + double_checksum code added
 
   Revision 1.88  1999/03/25 16:55:29  peter

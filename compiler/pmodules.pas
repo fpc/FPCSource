@@ -22,6 +22,8 @@
 }
 unit pmodules;
 
+{$define STORENUMBER}
+
 { define TEST_IMPL does not work well }
 { replaced by $define  Double_checksum}
 { other way to get correct type info, in test (PM) }
@@ -472,7 +474,7 @@ unit pmodules;
                   current_module^.compiled:=true;
                 end;
 {$else Double_Checksum}
-               ;               
+               ;
 {$endif Double_checksum}
               { the next unit }
               hp:=pmodule(hp^.next);
@@ -982,9 +984,12 @@ unit pmodules;
          { to reinsert it after loading the implementation units }
          symtablestack:=unitst^.next;
 
+{$ifndef STORENUMBER}
          { number the definitions, so a deref from other units works }
          refsymtable^.number_defs;
          refsymtable^.number_symbols;
+{$endif}
+
          { we don't want implementation units symbols in unitsymtable !! PM }
          refsymtable:=st;
 
@@ -1341,7 +1346,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.107  1999-04-08 10:53:54  michael
+  Revision 1.108  1999-04-14 09:14:52  peter
+    * first things to store the symbol/def number in the ppu
+
+  Revision 1.107  1999/04/08 10:53:54  michael
   * Fixed forgotten ;
 
   Revision 1.106  1999/04/07 15:39:30  pierre

@@ -117,7 +117,11 @@
             current_ppu^.putword(p^.owner^.unitid)
            else
             current_ppu^.putword(p^.owner^.unitid);
+{$ifdef STORENUMBER}
+           current_ppu^.putword(p^.indexnr);
+{$else}
            current_ppu^.putword(p^.indexnb);
+{$endif}
          end;
       end;
 
@@ -136,7 +140,11 @@
             current_ppu^.putword(p^.owner^.unitid)
            else
             current_ppu^.putword(p^.owner^.unitid);
+{$ifdef STORENUMBER}
+           current_ppu^.putword(p^.indexnr);
+{$else}
            current_ppu^.putword(p^.indexnb);
+{$endif}
          end;
       end;
 
@@ -246,7 +254,7 @@
            end;
 {$endif def Test_Double_checksum}
 {$endif Double_checksum}
-         
+
          current_ppu^.change_endian:=source_os.endian<>target_os.endian;
        { write symbols and definitions }
          unittable^.writeasunit;
@@ -508,7 +516,10 @@
 
 {
   $Log$
-  Revision 1.35  1999-04-07 15:39:35  pierre
+  Revision 1.36  1999-04-14 09:15:01  peter
+    * first things to store the symbol/def number in the ppu
+
+  Revision 1.35  1999/04/07 15:39:35  pierre
     + double_checksum code added
 
   Revision 1.34  1999/03/02 13:49:19  peter

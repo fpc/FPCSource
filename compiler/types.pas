@@ -770,7 +770,7 @@ implementation
               { pointers are equal.                                      }
               if (def1^.deftype = enumdef) and (def2^.deftype =enumdef) then
                 Begin
-                  if penumdef(def1)^.first = penumdef(def2)^.first then
+                  if penumdef(def1)^.firstenum = penumdef(def2)^.firstenum then
                      is_subequal := TRUE;
                 end;
             end;
@@ -781,7 +781,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.56  1999-03-24 23:17:42  peter
+  Revision 1.57  1999-04-14 09:15:08  peter
+    * first things to store the symbol/def number in the ppu
+
+  Revision 1.56  1999/03/24 23:17:42  peter
     * fixed bugs 212,222,225,227,229,231,233
 
   Revision 1.55  1999/03/09 11:45:42  pierre

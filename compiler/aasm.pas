@@ -83,7 +83,7 @@ unit aasm;
        TAsmsymtype=(AS_EXTERNAL,AS_LOCAL,AS_GLOBAL);
 
        pasmsymbol = ^tasmsymbol;
-       tasmsymbol = object(tnamed_object)
+       tasmsymbol = object(tdictionaryobject)
          idx     : longint;
          section : tsection;
          address,
@@ -880,7 +880,7 @@ uses
       end;
 
 
-    procedure ResetAsmSym(p:Pnamed_object);{$ifndef FPC}far;{$endif}
+    procedure ResetAsmSym(p:Pdictionaryobject);{$ifndef FPC}far;{$endif}
       begin
         pasmsymbol(p)^.reset;
       end;
@@ -1013,7 +1013,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.37  1999-03-10 13:25:42  pierre
+  Revision 1.38  1999-04-14 09:14:44  peter
+    * first things to store the symbol/def number in the ppu
+
+  Revision 1.37  1999/03/10 13:25:42  pierre
     section order changed to get closer output from coff writer
 
   Revision 1.36  1999/03/08 14:51:04  peter

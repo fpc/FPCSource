@@ -162,37 +162,43 @@ unit cobjects;
           procedure clear;
        end;
 
-       Pnamed_object=^Tnamed_object;
+
        Pdictionary=^Tdictionary;
-       Pdictionaryhasharray=^Tdictionaryhasharray;
 
-       Tdictionaryhasharray=array[0..hasharraysize-1] of Pnamed_object;
-
-       Tcallback = procedure(p:Pnamed_object);
-
-       Tdictionary=object
-           root:Pnamed_object;
-           hasharray:Pdictionaryhasharray;
-           replace_existing : boolean;
-           constructor init(usehash:boolean);
-           procedure clear;virtual;
-           procedure foreach(proc2call:Tcallback);
-           function insert(obj:Pnamed_object):Pnamed_object;virtual;
-           function search(const s:string):Pnamed_object;
-           function speedsearch(const s:string;
-            speedvalue:longint):Pnamed_object;virtual;
-           destructor done;virtual;
+       Pdictionaryobject=^Tdictionaryobject;
+       Tdictionaryobject=object
+         _name      : Pstring;
+         speedvalue : longint;
+         left,right : Pdictionaryobject;
+         owner      : Pdictionary;
+         constructor init(const n:string);
+         destructor  done;virtual;
+         function name:string;
        end;
 
-        Tnamed_object=object
-            _name:Pstring;
-            left,right:Pnamed_object;
-            speedvalue:longint;
-            owner:Pdictionary;
-            constructor init(const n:string);
-            destructor done;virtual;
-            function name:string;
-        end;
+       Pdictionaryhasharray=^Tdictionaryhasharray;
+       Tdictionaryhasharray=array[0..hasharraysize-1] of Pdictionaryobject;
+
+       Tdictionarycallback = procedure(p:Pdictionaryobject);
+
+       Tdictionary=object
+         noclear   : boolean;
+         replace_existing : boolean;
+         constructor init(usehash:boolean);
+         procedure clear;virtual;
+         procedure foreach(proc2call:Tdictionarycallback);
+         function insert(obj:Pdictionaryobject):Pdictionaryobject;virtual;
+         function rename(const olds,news : string):pdictionaryobject;
+         function search(const s:string):Pdictionaryobject;
+         function speedsearch(const s:string;speedvalue:longint):Pdictionaryobject;virtual;
+         destructor done;virtual;
+       private
+         root      : Pdictionaryobject;
+         hasharray : Pdictionaryhasharray;
+         function  insertnode(newnode:pdictionaryobject;var currnode:pdictionaryobject):pdictionaryobject;
+         procedure inserttree(currtree,currroot:pdictionaryobject);
+       end;
+
 
        pdynamicarray = ^tdynamicarray;
        tdynamicarray = object
@@ -215,6 +221,38 @@ unit cobjects;
          procedure readpos(pos:longint;var d;len:longint);
        end;
 
+      pindexobject=^tindexobject;
+      tindexobject=object
+        indexnr : longint;
+        next    : pindexobject;
+        constructor init;
+        destructor  done;virtual;
+      end;
+
+      tindexcallback=procedure(p:pindexobject);
+
+      tindexobjectarray=array[1..16000] of pindexobject;
+      pindexobjectarray=^tindexobjectarray;
+
+      pindexarray=^tindexarray;
+      tindexarray=object
+        first : pindexobject;
+        count : longint;
+        constructor init(Agrowsize:longint);
+        destructor  done;
+        procedure clear;
+        procedure foreach(proc2call : tindexcallback);
+        procedure delete(p:pindexobject);
+        procedure deletenr(p:pindexobject);
+        procedure insert(p:pindexobject);
+        procedure insertnr(p:pindexobject);
+        function  search(nr:longint):pindexobject;
+      private
+        growsize,
+        size  : longint;
+        data  : pindexobjectarray;
+        procedure grow(gsize:longint);
+      end;
 
 {$ifdef BUFFEREDFILE}
        { this is implemented to allow buffered binary I/O }
@@ -472,7 +510,7 @@ end;
 
 function TStringQueue.Get:string;
 var
-  hp : pstringitem;
+  newnode : pstringitem;
 begin
   if first=nil then
    begin
@@ -481,50 +519,50 @@ begin
    end;
   Get:=first^.data^;
   stringdispose(first^.data);
-  hp:=first;
+  newnode:=first;
   first:=first^.next;
-  dispose(hp);
+  dispose(newnode);
 end;
 
 
 procedure TStringQueue.Insert(const s:string);
 var
-  hp : pstringitem;
+  newnode : pstringitem;
 begin
-  new(hp);
-  hp^.next:=first;
-  hp^.data:=stringdup(s);
-  first:=hp;
+  new(newnode);
+  newnode^.next:=first;
+  newnode^.data:=stringdup(s);
+  first:=newnode;
   if last=nil then
-   last:=hp;
+   last:=newnode;
 end;
 
 
 procedure TStringQueue.Concat(const s:string);
 var
-  hp : pstringitem;
+  newnode : pstringitem;
 begin
-  new(hp);
-  hp^.next:=nil;
-  hp^.data:=stringdup(s);
+  new(newnode);
+  newnode^.next:=nil;
+  newnode^.data:=stringdup(s);
   if first=nil then
-   first:=hp
+   first:=newnode
   else
-   last^.next:=hp;
-  last:=hp;
+   last^.next:=newnode;
+  last:=newnode;
 end;
 
 
 procedure TStringQueue.Clear;
 var
-  hp : pstringitem;
+  newnode : pstringitem;
 begin
   while (first<>nil) do
    begin
-     hp:=first;
+     newnode:=first;
      stringdispose(first^.data);
      first:=first^.next;
-     dispose(hp);
+     dispose(newnode);
    end;
 end;
 
@@ -568,60 +606,60 @@ end;
 
     procedure tstringcontainer.insert(const s : string);
       var
-        hp : pstringitem;
+        newnode : pstringitem;
       begin
          if not(doubles) then
            begin
-              hp:=root;
-              while assigned(hp) do
+              newnode:=root;
+              while assigned(newnode) do
                 begin
-                   if hp^.data^=s then exit;
-                   hp:=hp^.next;
+                   if newnode^.data^=s then exit;
+                   newnode:=newnode^.next;
                 end;
            end;
-         new(hp);
-         hp^.next:=nil;
-         hp^.data:=stringdup(s);
-         if root=nil then root:=hp
-           else last^.next:=hp;
-         last:=hp;
+         new(newnode);
+         newnode^.next:=nil;
+         newnode^.data:=stringdup(s);
+         if root=nil then root:=newnode
+           else last^.next:=newnode;
+         last:=newnode;
       end;
 
 
     procedure tstringcontainer.insert_with_tokeninfo(const s : string; const file_info : tfileposinfo);
       var
-         hp : pstringitem;
+         newnode : pstringitem;
       begin
          if not(doubles) then
            begin
-              hp:=root;
-              while assigned(hp) do
+              newnode:=root;
+              while assigned(newnode) do
                 begin
-                   if hp^.data^=s then exit;
-                   hp:=hp^.next;
+                   if newnode^.data^=s then exit;
+                   newnode:=newnode^.next;
                 end;
            end;
-         new(hp);
-         hp^.next:=nil;
-         hp^.data:=stringdup(s);
-         hp^.fileinfo:=file_info;
-         if root=nil then root:=hp
-           else last^.next:=hp;
-         last:=hp;
+         new(newnode);
+         newnode^.next:=nil;
+         newnode^.data:=stringdup(s);
+         newnode^.fileinfo:=file_info;
+         if root=nil then root:=newnode
+           else last^.next:=newnode;
+         last:=newnode;
       end;
 
 
     procedure tstringcontainer.clear;
       var
-         hp : pstringitem;
+         newnode : pstringitem;
       begin
-         hp:=root;
-         while assigned(hp) do
+         newnode:=root;
+         while assigned(newnode) do
            begin
-              stringdispose(hp^.data);
-              root:=hp^.next;
-              dispose(hp);
-              hp:=root;
+              stringdispose(newnode^.data);
+              root:=newnode^.next;
+              dispose(newnode);
+              newnode:=root;
            end;
          last:=nil;
          root:=nil;
@@ -630,24 +668,24 @@ end;
 
     function tstringcontainer.get : string;
       var
-         hp : pstringitem;
+         newnode : pstringitem;
       begin
          if root=nil then
           get:=''
          else
           begin
             get:=root^.data^;
-            hp:=root;
+            newnode:=root;
             root:=root^.next;
-            stringdispose(hp^.data);
-            dispose(hp);
+            stringdispose(newnode^.data);
+            dispose(newnode);
           end;
       end;
 
 
     function tstringcontainer.get_with_tokeninfo(var file_info : tfileposinfo) : string;
       var
-         hp : pstringitem;
+         newnode : pstringitem;
       begin
          if root=nil then
           begin
@@ -659,29 +697,29 @@ end;
          else
           begin
             get_with_tokeninfo:=root^.data^;
-            hp:=root;
+            newnode:=root;
             root:=root^.next;
-            stringdispose(hp^.data);
-            file_info:=hp^.fileinfo;
-            dispose(hp);
+            stringdispose(newnode^.data);
+            file_info:=newnode^.fileinfo;
+            dispose(newnode);
           end;
       end;
 
 
     function tstringcontainer.find(const s:string):boolean;
       var
-         hp : pstringitem;
+         newnode : pstringitem;
       begin
         find:=false;
-        hp:=root;
-        while assigned(hp) do
+        newnode:=root;
+        while assigned(newnode) do
          begin
-           if hp^.data^=s then
+           if newnode^.data^=s then
             begin
               find:=true;
               exit;
             end;
-           hp:=hp^.next;
+           newnode:=newnode^.next;
          end;
       end;
 
@@ -750,14 +788,14 @@ end;
 
     procedure tlinkedlist.clear;
       var
-         hp : plinkedlist_item;
+         newnode : plinkedlist_item;
       begin
-         hp:=first;
-         while assigned(hp) do
+         newnode:=first;
+         while assigned(newnode) do
            begin
-              first:=hp^.next;
-              dispose(hp,done);
-              hp:=first;
+              first:=newnode^.next;
+              dispose(newnode,done);
+              newnode:=first;
            end;
       end;
 
@@ -875,29 +913,29 @@ end;
 
     procedure tlinkedlist.concatlistcopy(p : plinkedlist);
       var
-        hp,hp2 : plinkedlist_item;
+        newnode,newnode2 : plinkedlist_item;
       begin
-         hp:=p^.first;
-         while assigned(hp) do
+         newnode:=p^.first;
+         while assigned(newnode) do
           begin
-            hp2:=hp^.getcopy;
-            if assigned(hp2) then
+            newnode2:=newnode^.getcopy;
+            if assigned(newnode2) then
              begin
                if not(assigned(first)) then
                 begin
-                  first:=hp2;
-                  hp2^.previous:=nil;
-                  hp2^.next:=nil;
+                  first:=newnode2;
+                  newnode2^.previous:=nil;
+                  newnode2^.next:=nil;
                 end
                else
                 begin
-                  last^.next:=hp2;
-                  hp2^.previous:=last;
-                  hp2^.next:=nil;
+                  last^.next:=newnode2;
+                  newnode2^.previous:=last;
+                  newnode2^.next:=nil;
                 end;
-               last:=hp2;
+               last:=newnode2;
              end;
-            hp:=hp^.next;
+            newnode:=newnode^.next;
           end;
       end;
 
@@ -907,10 +945,10 @@ end;
       end;
 
 {****************************************************************************
-                               TNAMED_OBJECT
+                               Tdictionaryobject
  ****************************************************************************}
 
-constructor Tnamed_object.init(const n:string);
+constructor Tdictionaryobject.init(const n:string);
 begin
   left:=nil;
   right:=nil;
@@ -918,7 +956,7 @@ begin
   speedvalue:=getspeedvalue(n);
 end;
 
-destructor Tnamed_object.done;
+destructor Tdictionaryobject.done;
 begin
   stringdispose(_name);
   if assigned(left) then
@@ -927,7 +965,7 @@ begin
     dispose(right,done);
 end;
 
-function Tnamed_object.name:string;
+function Tdictionaryobject.name:string;
 begin
   name:=_name^;
 end;
@@ -937,186 +975,263 @@ end;
                                TDICTIONARY
 ****************************************************************************}
 
-constructor Tdictionary.init(usehash:boolean);
+    constructor Tdictionary.init(usehash:boolean);
+      begin
+        root:=nil;
+        hasharray:=nil;
+        noclear:=false;
+        replace_existing:=false;
+        if usehash then
+         begin
+           new(hasharray);
+           fillchar(hasharray^,sizeof(hasharray^),0);
+         end;
+      end;
 
-begin
-    root:=nil;
-    hasharray:=nil;
-    replace_existing:=false;
-    if usehash then
-        begin
-            new(hasharray);
-            fillchar(hasharray^,sizeof(hasharray^),0);
-        end;
-end;
 
-procedure Tdictionary.clear;
+    destructor Tdictionary.done;
+      begin
+        clear;
+        if assigned(hasharray) then
+         dispose(hasharray);
+      end;
 
-var w:longint;
 
-begin
-    {remove no entry from a withsymtable as it is only a pointer to the
-     recorddef  or objectdef symtable }
-    { remove all entry from a symbol table }
-    if assigned(root) then
-        dispose(root,done);
-    if assigned(hasharray) then
-        for w:=0 to hasharraysize-1 do
-            if assigned(hasharray^[w]) then
-                begin
-                    dispose(hasharray^[w],done);
-                    hasharray^[w]:=nil;
-                end;
-end;
-
-procedure Tdictionary.foreach(proc2call:Tcallback);
-
-    procedure a(p:Pnamed_object);
-
-    { must be preorder, because it's used by reading in }
-    { a PPU file                                        }
-
-    begin
-        proc2call(p);
-        if assigned(p^.left) then
-            a(p^.left);
-        if assigned(p^.right) then
-            a(p^.right);
-    end;
-
-var i:longint;
-
-begin
-    if assigned(hasharray) then
-        begin
-            for i:=0 to hasharraysize-1 do
-                if assigned(hasharray^[i]) then
-                    a(hasharray^[i]);
-        end
-    else
+    procedure Tdictionary.clear;
+      var
+        w : longint;
+      begin
         if assigned(root) then
-            a(root);
-end;
+          dispose(root,done);
+        if assigned(hasharray) then
+         for w:=0 to hasharraysize-1 do
+          if assigned(hasharray^[w]) then
+           begin
+             dispose(hasharray^[w],done);
+             hasharray^[w]:=nil;
+           end;
+      end;
 
 
-function Tdictionary.insert(obj:Pnamed_object):Pnamed_object;
+    procedure Tdictionary.foreach(proc2call:Tdictionarycallback);
 
-    function _insert(var osym:Pnamed_object):Pnamed_object;
+        procedure a(p:Pdictionaryobject);
+        begin
+          proc2call(p);
+          if assigned(p^.left) then
+           a(p^.left);
+          if assigned(p^.right) then
+           a(p^.right);
+        end;
 
-    {To prevent TP from allocating temp space for temp strings, we allocate
-     some temp strings manually. We can use two temp strings, plus a third
-     one that TP adds, where TP alone needs five temp strings!. Storing
-     these on the heap saves even more, totally 1016 bytes per recursion!}
+      var
+        i : longint;
+      begin
+        if assigned(hasharray) then
+         begin
+           for i:=0 to hasharraysize-1 do
+            if assigned(hasharray^[i]) then
+             a(hasharray^[i]);
+         end
+        else
+         if assigned(root) then
+          a(root);
+      end;
 
-    var s1,s2:^string;
 
-    begin
-        if osym=nil then
-            begin
-                osym:=obj;
-                _insert:=osym;
-            end
+    function Tdictionary.insert(obj:Pdictionaryobject):Pdictionaryobject;
+      begin
+        obj^.owner:=@self;
+        obj^.speedvalue:=getspeedvalue(obj^._name^);
+        if assigned(hasharray) then
+         insert:=insertnode(obj,hasharray^[obj^.speedvalue mod hasharraysize])
+        else
+         insert:=insertnode(obj,root);
+      end;
+
+
+    function tdictionary.insertnode(newnode:pdictionaryobject;var currnode:pdictionaryobject):pdictionaryobject;
+      var
+        s1,s2:^string;
+      begin
+        if currnode=nil then
+         begin
+           currnode:=newnode;
+           insertnode:=currnode;
+         end
         { first check speedvalue, to allow a fast insert }
         else
-            if osym^.speedvalue>obj^.speedvalue then
-                _insert:=_insert(osym^.right)
-            else
-                if osym^.speedvalue<obj^.speedvalue then
-                    _insert:=_insert(osym^.left)
-                else
-                    begin
-                        new(s1);
-                        new(s2);
-                        s1^:=osym^._name^;
-                        s2^:=obj^._name^;
-                        if s1^>s2^ then
-                            begin
-                                dispose(s2);
-                                dispose(s1);
-                                _insert:=_insert(osym^.right);
-                            end
-                        else
-                            if s1^<s2^ then
-                                begin
-                                    dispose(s2);
-                                    dispose(s1);
-                                    _insert:=_insert(osym^.left);
-                                end
-                            else
-                                begin
-                                    dispose(s2);
-                                    dispose(s1);
-                                    if replace_existing and
-                                       assigned(osym) then
-                                      begin
-                                        obj^.left:=osym^.left;
-                                        obj^.right:=osym^.right;
-                                        osym:=obj;
-                                        _insert:=obj;
-                                      end
-                                    else
-                                      _insert:=osym;
-                                end;
-                    end;
-    end;
-
-begin
-    obj^.owner:=@self;
-    obj^.speedvalue:=getspeedvalue(obj^._name^);
-    if assigned(hasharray) then
-        insert:=_insert(hasharray^[obj^.speedvalue mod hasharraysize])
-    else
-        insert:=_insert(root);
-end;
-
-
-function Tdictionary.search(const s:string):Pnamed_object;
-
-begin
-    search:=speedsearch(s,getspeedvalue(s));
-end;
-
-function Tdictionary.speedsearch(const s:string;
-                                 speedvalue:longint):Pnamed_object;
-
-var hp:Pnamed_object;
-
-begin
-    if assigned(hasharray) then
-        hp:=hasharray^[speedvalue mod hasharraysize]
-    else
-        hp:=root;
-        while assigned(hp) do
+         if currnode^.speedvalue>newnode^.speedvalue then
+          insertnode:=insertnode(newnode,currnode^.right)
+        else
+         if currnode^.speedvalue<newnode^.speedvalue then
+          insertnode:=insertnode(newnode,currnode^.left)
+        else
+         begin
+           new(s1);
+           new(s2);
+           s1^:=currnode^._name^;
+           s2^:=newnode^._name^;
+           if s1^>s2^ then
             begin
-                if speedvalue>hp^.speedvalue then
-                    hp:=hp^.left
+              dispose(s2);
+              dispose(s1);
+              insertnode:=insertnode(newnode,currnode^.right);
+            end
+           else
+            if s1^<s2^ then
+             begin
+               dispose(s2);
+               dispose(s1);
+               insertnode:=insertnode(newnode,currnode^.left);
+             end
+           else
+            begin
+              dispose(s2);
+              dispose(s1);
+              if replace_existing and
+                 assigned(currnode) then
+                begin
+                  newnode^.left:=currnode^.left;
+                  newnode^.right:=currnode^.right;
+                  currnode:=newnode;
+                  insertnode:=newnode;
+                end
+              else
+               insertnode:=currnode;
+             end;
+         end;
+      end;
+
+
+    procedure tdictionary.inserttree(currtree,currroot:pdictionaryobject);
+      begin
+        if assigned(currtree) then
+         begin
+           inserttree(currtree^.left,currroot);
+           inserttree(currtree^.right,currroot);
+           insertnode(currtree,currroot);
+         end;
+      end;
+
+
+    function tdictionary.rename(const olds,news : string):pdictionaryobject;
+      var
+        spdval : longint;
+        lasthp,
+        hp,hp2,hp3 : pdictionaryobject;
+      begin
+        spdval:=getspeedvalue(olds);
+        if assigned(hasharray) then
+         hp:=hasharray^[spdval mod hasharraysize]
+        else
+         hp:=root;
+        lasthp:=nil;
+        while assigned(hp) do
+          begin
+            if spdval>hp^.speedvalue then
+             begin
+               lasthp:=hp;
+               hp:=hp^.left
+             end
+            else
+             if spdval<hp^.speedvalue then
+              begin
+                lasthp:=hp;
+                hp:=hp^.right
+              end
+            else
+             begin
+               if (hp^.name=olds) then
+                begin
+                  { get in hp2 the replacer for the root or hasharr }
+                  hp2:=hp^.left;
+                  hp3:=hp^.right;
+                  if not assigned(hp2) then
+                   begin
+                     hp2:=hp^.right;
+                     hp3:=hp^.left;
+                   end;
+                  { remove entry from the tree }
+                  if assigned(lasthp) then
+                   begin
+                     if lasthp^.left=hp then
+                      lasthp^.left:=hp2
+                     else
+                      lasthp^.right:=hp2;
+                   end
+                  else
+                   begin
+                     if assigned(hasharray) then
+                      hasharray^[spdval mod hasharraysize]:=hp2
+                     else
+                      root:=hp2;
+                   end;
+                  { reinsert the hp3 in the tree from hp2 }
+                  inserttree(hp3,hp2);
+                  { reinsert }
+                  stringdispose(hp^._name);
+                  hp^._name:=stringdup(news);
+                  hp^.speedvalue:=getspeedvalue(news);
+                  if assigned(hasharray) then
+                   rename:=insertnode(hp,hasharray^[hp^.speedvalue mod hasharraysize])
+                  else
+                   rename:=insertnode(hp,root);
+                  exit;
+                end
+               else
+                if olds>hp^.name then
+                 begin
+                   lasthp:=hp;
+                   hp:=hp^.left
+                 end
                 else
-                    if speedvalue<hp^.speedvalue then
-                        hp:=hp^.right
-                    else
-                        begin
-                            if (hp^._name^=s) then
-                                begin
-                                    speedsearch:=hp;
-                                    exit;
-                                end
-                            else
-                                if s>hp^._name^ then
-                                    hp:=hp^.left
-                                else
-                                    hp:=hp^.right;
-                        end;
+                 begin
+                   lasthp:=hp;
+                   hp:=hp^.right;
+                 end;
+             end;
+          end;
+      end;
+
+
+    function Tdictionary.search(const s:string):Pdictionaryobject;
+      begin
+        search:=speedsearch(s,getspeedvalue(s));
+      end;
+
+
+    function Tdictionary.speedsearch(const s:string;speedvalue:longint):Pdictionaryobject;
+      var
+        newnode:Pdictionaryobject;
+      begin
+        if assigned(hasharray) then
+         newnode:=hasharray^[speedvalue mod hasharraysize]
+        else
+         newnode:=root;
+        while assigned(newnode) do
+         begin
+           if speedvalue>newnode^.speedvalue then
+            newnode:=newnode^.left
+           else
+            if speedvalue<newnode^.speedvalue then
+             newnode:=newnode^.right
+           else
+            begin
+              if (newnode^._name^=s) then
+               begin
+                 speedsearch:=newnode;
+                 exit;
+               end
+              else
+               if s>newnode^._name^ then
+                newnode:=newnode^.left
+              else
+               newnode:=newnode^.right;
             end;
+         end;
         speedsearch:=nil;
-end;
-
-destructor Tdictionary.done;
-
-begin
-    clear;
-    if assigned(hasharray) then
-        dispose(hasharray);
-end;
+      end;
 
 
 {****************************************************************************
@@ -1133,6 +1248,15 @@ end;
         growcount:=Agrow;
         grow;
       end;
+
+
+    destructor tindexarray.done;
+      begin
+        clear;
+        if assigned(data) then
+         freemem(data,size*4);
+      end;
+
 
     function  tdynamicarray.size:longint;
       begin
@@ -1228,6 +1352,163 @@ end;
       begin
         if assigned(data) then
          freemem(data,size);
+      end;
+
+
+{****************************************************************************
+                               tindexobject
+ ****************************************************************************}
+
+    constructor tindexobject.init;
+      begin
+        indexnr:=-1;
+        next:=nil;
+      end;
+
+    destructor tindexobject.done;
+      begin
+      end;
+
+
+{****************************************************************************
+                               tindexarray
+ ****************************************************************************}
+
+
+    constructor tindexarray.init(Agrowsize:longint);
+      begin
+        growsize:=Agrowsize;
+        size:=0;
+        count:=0;
+        data:=nil;
+        first:=nil;
+      end;
+
+
+    function tindexarray.search(nr:longint):pindexobject;
+      begin
+        if nr<=count then
+         search:=data^[nr]
+        else
+         search:=nil;
+      end;
+
+
+    procedure tindexarray.clear;
+      var
+        i : longint;
+      begin
+        for i:=1to count do
+         if assigned(data^[i]) then
+          begin
+            dispose(data^[i],done);
+            data^[i]:=nil;
+          end;
+        count:=0;
+      end;
+
+
+    procedure tindexarray.foreach(proc2call : tindexcallback);
+      var
+        i : longint;
+      begin
+        for i:=1to count do
+         if assigned(data^[i]) then
+          proc2call(data^[i]);
+      end;
+
+
+    procedure tindexarray.grow(gsize:longint);
+      var
+        osize : longint;
+        odata : pindexobjectarray;
+      begin
+        osize:=size;
+        odata:=data;
+        inc(size,gsize);
+        getmem(data,size*4);
+        if assigned(odata) then
+         begin
+           move(odata^,data^,osize*4);
+           freemem(odata,osize*4);
+         end;
+        fillchar(data^[osize+1],gsize*4,0);
+      end;
+
+
+    procedure tindexarray.deletenr(p:pindexobject);
+      var
+        i : longint;
+      begin
+        { update linked list }
+        i:=p^.indexnr;
+        while (i>0) do
+         begin
+           dec(i);
+           if (i>0) and assigned(data^[i]) then
+            begin
+              data^[i]^.next:=data^[p^.indexnr]^.next;
+              break;
+            end;
+         end;
+        if i=0 then
+         first:=p;
+        { remove entry }
+        p^.next:=nil;
+        data^[p^.indexnr]:=nil;
+      end;
+
+
+    procedure tindexarray.delete(p:pindexobject);
+      begin
+        deletenr(p);
+        dispose(p,done);
+      end;
+
+
+    procedure tindexarray.insertnr(p:pindexobject);
+      var
+        i  : longint;
+      begin
+        if p^.indexnr>count then
+         count:=p^.indexnr;
+        if count>size then
+         grow(((count div growsize)+1)*growsize);
+        data^[p^.indexnr]:=p;
+        { update linked list backward }
+        i:=p^.indexnr;
+        while (i>0) do
+         begin
+           dec(i);
+           if (i>0) and assigned(data^[i]) then
+            begin
+              data^[i]^.next:=p;
+              break;
+            end;
+         end;
+        if i=0 then
+         first:=p;
+        { update linked list forward }
+        i:=p^.indexnr;
+        while (i<=count) do
+         begin
+           inc(i);
+           if (i<=count) and assigned(data^[i]) then
+            begin
+              p^.next:=data^[i];
+              exit;
+            end;
+         end;
+        if i>count then
+         p^.next:=nil;
+      end;
+
+
+    procedure tindexarray.insert(p:pindexobject);
+      begin
+        inc(count);
+        p^.indexnr:=count;
+        insertnr(p);
       end;
 
 
@@ -1619,7 +1900,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.23  1999-04-08 20:59:39  florian
+  Revision 1.24  1999-04-14 09:14:47  peter
+    * first things to store the symbol/def number in the ppu
+
+  Revision 1.23  1999/04/08 20:59:39  florian
     * fixed problem with default properties which are a class
     * case bug (from the mailing list with -O2) fixed, the
       distance of the case labels can be greater than the positive
@@ -1629,7 +1913,7 @@ end.
     * assembler inlining working for ag386bin
 
   Revision 1.21  1999/03/19 16:35:29  pierre
-   * Tnamed_object done also removed left and right
+   * Tdictionaryobject done also removed left and right
 
   Revision 1.20  1999/03/18 20:30:45  peter
     + .a writer

@@ -67,11 +67,15 @@
 
     constructor tdef.init;
       begin
+{$ifdef STORENUMBER}
+         inherited init;
+{$else}
+         indexnb := 0;
+         next := nil;
+{$endif}
          deftype:=abstractdef;
          owner := nil;
-         next := nil;
          sym := nil;
-         indexnb := 0;
          savesize := 0;
          if registerdef then
            symtablestack^.registerdef(@self);
@@ -99,8 +103,6 @@
     constructor tdef.load;
       begin
          deftype:=abstractdef;
-         indexnb := 0;
-         sym := nil;
          next := nil;
          owner := nil;
          has_rtti:=false;
@@ -121,6 +123,14 @@
            end;
          lastglobaldef := @self;
          nextglobal := nil;
+      { load }
+{$ifdef STORENUMBER}
+         indexnr:=readlong;
+         sym:=ptypesym(readsymref);
+{$else}
+         indexnb := 0;
+         sym:=nil;
+{$endif}
       end;
 
 
@@ -160,14 +170,27 @@
          if assigned(owner) and
             (owner^.symtabletype in [recordsymtable,objectsymtable]) then
            begin
+{$ifdef STORENUMBER}
+              owner^.defindex^.delete(@self);
+{$else}
               { no other definition
                  has been inserted !! (PM) }
               owner^.rootdef:=next;
+{$endif}
               st:=owner;
               while (st^.symtabletype in [recordsymtable,objectsymtable]) do
                 st:=st^.next;
               st^.registerdef(@self);
            end;
+      end;
+
+
+    function tdef.typename:string;
+      begin
+        if assigned(sym) then
+         typename:=sym^.name
+        else
+         typename:='unknown';
       end;
 
 
@@ -200,6 +223,10 @@
 
     procedure tdef.write;
       begin
+{$ifdef STORENUMBER}
+        writelong(indexnr);
+        writesymref(sym);
+{$endif}
 {$ifdef GDB}
         if globalnb = 0 then
           begin
@@ -353,6 +380,12 @@
       end;
 
 
+    procedure tdef.symderef;
+      begin
+        resolvesym(psym(sym));
+      end;
+
+
     { rtti generation }
     procedure tdef.generate_rtti;
       begin
@@ -409,7 +442,7 @@
       end;
 
 
-    procedure tdef.writename;
+    procedure tdef.write_rtti_name;
       var
          str : string;
       begin
@@ -663,7 +696,7 @@
          has_jumps:=false;
          basedef:=nil;
          rangenr:=0;
-         first:=nil;
+         firstenum:=nil;
          correct_owner_symtable;
       end;
 
@@ -677,9 +710,9 @@
          calcsavesize;
          has_jumps:=false;
          rangenr:=0;
-         first:=basedef^.first;
-         while assigned(first) and (penumsym(first)^.value<>minval) do
-          first:=first^.next;
+         firstenum:=basedef^.firstenum;
+         while assigned(firstenum) and (penumsym(firstenum)^.value<>minval) do
+          firstenum:=firstenum^.nextenum;
          correct_owner_symtable;
       end;
 
@@ -693,7 +726,7 @@
          maxval:=readlong;
          savesize:=readlong;
          has_jumps:=false;
-         first:=Nil;
+         firstenum:=Nil;
       end;
 
 
@@ -793,7 +826,7 @@
         memsize := memsizeinc;
         getmem(st,memsize);
         strpcopy(st,'e');
-        p := first;
+        p := firstenum;
         while assigned(p) do
           begin
             s :=p^.name+':'+tostr(p^.value)+',';
@@ -809,7 +842,7 @@
                 memsize := memsize+memsizeinc;
                 strpcopy(strend(st),s);
               end;
-            p := p^.next;
+            p := p^.nextenum;
           end;
         strpcopy(strend(st),';');
         stabstring := strnew(st);
@@ -846,12 +879,12 @@
            rttilist^.concat(new(pai_const_symbol,init(basedef^.get_rtti_label)))
          else
            rttilist^.concat(new(pai_const,init_32bit(0)));
-         hp:=first;
+         hp:=firstenum;
          while assigned(hp) do
            begin
               rttilist^.concat(new(pai_const,init_8bit(length(hp^.name))));
               rttilist^.concat(new(pai_string,init(hp^.name)));
-              hp:=hp^.next;
+              hp:=hp^.nextenum;
            end;
          rttilist^.concat(new(pai_const,init_8bit(0)));
       end;
@@ -1700,7 +1733,7 @@
     procedure tarraydef.write_rtti_data;
       begin
          rttilist^.concat(new(pai_const,init_8bit(13)));
-         writename;
+         write_rtti_name;
          { size of elements }
          rttilist^.concat(new(pai_const,init_32bit(definition^.size)));
          { count of elements }
@@ -1782,13 +1815,17 @@
          oldrecsyms:=aktrecordsymtable;
          aktrecordsymtable:=symtable;
          { now dereference the definitions }
+{$ifdef STORENUMBER}
+         hp:=pdef(symtable^.defindex^.first);
+{$else}
          hp:=symtable^.rootdef;
+{$endif}
          while assigned(hp) do
            begin
               hp^.deref;
               { set owner }
               hp^.owner:=symtable;
-              hp:=hp^.next;
+              hp:=pdef(hp^.next);
            end;
          {$ifdef tp}
            symtable^.foreach(derefsym);
@@ -1877,7 +1914,7 @@
           symtable^.foreach(@addname);
         {$endif}
 {$else nonextfield}
-         cur:=symtable^.root;
+         cur:=symtable^.searchroot;
          while assigned(cur) do
            begin
               addname(cur);
@@ -1964,7 +2001,7 @@
     procedure trecdef.write_rtti_data;
       begin
          rttilist^.concat(new(pai_const,init_8bit(14)));
-         writename;
+         write_rtti_name;
          rttilist^.concat(new(pai_const,init_32bit(size)));
          count:=0;
          symtable^.foreach(count_fields);
@@ -1976,7 +2013,7 @@
     procedure trecdef.write_init_data;
       begin
          rttilist^.concat(new(pai_const,init_8bit(14)));
-         writename;
+         write_rtti_name;
          rttilist^.concat(new(pai_const,init_32bit(size)));
          count:=0;
          symtable^.foreach(count_inittable_fields);
@@ -2951,15 +2988,17 @@ Const local_symtable_index : longint = $8001;
          oldrecsyms:=aktrecordsymtable;
          aktrecordsymtable:=publicsyms;
          { nun die Definitionen dereferenzieren }
+{$ifdef STORENUMBER}
+         hp:=pdef(publicsyms^.symindex^.first);
+{$else}
          hp:=publicsyms^.rootdef;
+{$endif}
          while assigned(hp) do
            begin
               hp^.deref;
-
               { set owner }
               hp^.owner:=publicsyms;
-
-              hp:=hp^.next;
+              hp:=pdef(hp^.next);
            end;
 {$ifdef tp}
          publicsyms^.foreach(derefsym);
@@ -3150,7 +3189,7 @@ Const local_symtable_index : longint = $8001;
           publicsyms^.foreach(@addname);
         {$endif}
 {$else nonextfield}
-         cur:=publicsyms^.root;
+         cur:=publicsyms^.searchroot;
          while assigned(cur) do
            begin
               addname(cur);
@@ -3170,7 +3209,7 @@ Const local_symtable_index : longint = $8001;
           publicsyms^.foreach(@addprocname);
         {$endif tp }
 {$else nonextfield}
-         cur:=publicsyms^.root;
+         cur:=publicsyms^.searchroot;
          while assigned(cur) do
            begin
               addprocname(cur);
@@ -3433,7 +3472,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.100  1999-04-08 15:57:51  peter
+  Revision 1.101  1999-04-14 09:14:58  peter
+    * first things to store the symbol/def number in the ppu
+
+  Revision 1.100  1999/04/08 15:57:51  peter
     + subrange checking for readln()
 
   Revision 1.99  1999/04/07 15:39:32  pierre
