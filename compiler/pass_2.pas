@@ -461,7 +461,7 @@ implementation
       end;
 
     var
-       { the array ranges are oveestimated !!!  }
+       { the array ranges are overestimated !!!  }
        { max(maxvarregs,maxfpuvarregs) would be }
        { enough                                 }
        regvars : array[1..maxvarregs+maxfpuvarregs] of pvarsym;
@@ -487,7 +487,7 @@ implementation
               { walk through all momentary register variables }
               for i:=1 to maxvarregs do
                 begin
-                   if (regvars[i]=nil) or ((j>regvars_refs[i]) and (j>0)) then
+                   if ((regvars[i]=nil) or (j>regvars_refs[i])) and (j>0) then
                      begin
                         for k:=maxvarregs-1 downto i do
                           begin
@@ -525,7 +525,7 @@ implementation
               { walk through all momentary register variables }
               for i:=1 to maxfpuvarregs do
                 begin
-                   if (regvars[i]=nil) or ((j>regvars_refs[i]) and (j>0)) then
+                   if ((regvars[i]=nil) or (j>regvars_refs[i])) and (j>0) then
                      begin
                         for k:=maxfpuvarregs-1 downto i do
                           begin
@@ -544,6 +544,12 @@ implementation
            end;
       end;
 
+    procedure clearrefs(p : pnamedindexobject);
+
+      begin
+         if (psym(p)^.typ=varsym) then
+           pvarsym(p)^.refs:=0;
+      end;
 
     procedure generatecode(var p : ptree);
       var
@@ -565,6 +571,8 @@ implementation
          clearregistercount;
          use_esp_stackframe:=false;
          aktexceptblock:=nil;
+         symtablestack^.foreach(@clearrefs);
+         symtablestack^.next^.foreach(@clearrefs);
          if not(do_firstpass(p)) then
            begin
               { max. optimizations     }
@@ -835,7 +843,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.60  2000-03-19 08:17:36  peter
+  Revision 1.61  2000-03-26 10:50:04  florian
+    * improved allocation rules for integer register variables
+
+  Revision 1.60  2000/03/19 08:17:36  peter
     * tp7 fix
 
   Revision 1.59  2000/03/01 00:01:14  pierre
