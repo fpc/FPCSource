@@ -7,9 +7,9 @@ uses
   strings;
 
 {$ifdef win32}
-{$linklib msvcrt}
-procedure printf(const formatstr : pchar; const args : array of const);cdecl; external name 'printf';
-procedure sprintf(p : pchar;const formatstr : pchar; const args : array of const);cdecl; external name 'sprintf';
+{ $linklib msvcrt}
+procedure printf(const formatstr : pchar; const args : array of const);cdecl; external 'msvcrt.dll' name 'printf';
+procedure sprintf(p : pchar;const formatstr : pchar; const args : array of const);cdecl; external 'msvcrt.dll' name 'sprintf';
 const
   int64prefix='I64';
 {$else}
