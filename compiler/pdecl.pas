@@ -1770,6 +1770,11 @@ unit pdecl;
                       begin
                         lowval:=pt^.left^.value;
                         highval:=pt^.right^.value;
+                        if highval<lowval then
+                         begin
+                           Message(parser_e_array_lower_less_than_upper_bound);
+                           highval:=lowval;
+                         end;
                         arraytype:=pt^.right^.resulttype;
                       end
                      else
@@ -2129,7 +2134,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.92  1999-01-14 21:49:58  peter
+  Revision 1.93  1999-01-15 13:08:23  peter
+    * error if upper<lower in array decl
+
+  Revision 1.92  1999/01/14 21:49:58  peter
     * fixed forwardpointer problem with multiple forwards for the same
       typesym. It now uses a linkedlist instead of a single pointer
 
