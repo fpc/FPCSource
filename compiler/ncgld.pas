@@ -432,6 +432,7 @@ implementation
            if (right.resulttype.def.needs_inittable) and
               (right.nodetype<>stringconstn) then
             begin
+              location_force_mem(exprasmlist,right.location);
               location_get_data_ref(exprasmlist,right.location,href,false);
               cg.g_incrrefcount(exprasmlist,right.resulttype.def,href);
             end;
@@ -481,6 +482,7 @@ implementation
            if (right.resulttype.def.needs_inittable) and
               (right.nodetype<>stringconstn) then
              begin
+               location_force_mem(exprasmlist,right.location);
                location_get_data_ref(exprasmlist,right.location,href,false);
                cg.g_incrrefcount(exprasmlist,right.resulttype.def,href);
              end;
@@ -954,7 +956,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.136  2005-01-23 17:14:21  florian
+  Revision 1.137  2005-02-10 21:54:36  peter
+    * data with inittables need to have a memory location assigned
+      for incrref
+
+  Revision 1.136  2005/01/23 17:14:21  florian
     + optimized code generation on sparc
     + some stuff for pic code on sparc added
 
