@@ -1068,6 +1068,7 @@ begin
                    len:=getlongint;
                    getmem(pc,len+1);
                    getdata(pc^,len);
+                   (pc+len)^:= #0;
                    writeln(space,'      Length: ',len);
                    writeln(space,'       Value: "',pc,'"');
                    freemem(pc,len+1);
@@ -1983,7 +1984,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.56  2004-09-27 18:04:11  olle
+  Revision 1.57  2004-11-02 22:17:25  olle
+    * fixed possible problem with null termination
+
+  Revision 1.56  2004/09/27 18:04:11  olle
     + added -h option to show help
 
   Revision 1.55  2004/09/04 21:11:49  armin
