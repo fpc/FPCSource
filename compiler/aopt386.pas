@@ -21,6 +21,13 @@
 
  ****************************************************************************
 }
+{$ifdef newOptimizations}
+{$define foropt}
+{$define replacereg}
+{$define arithopt}
+{$define foldarithops}
+{$endif newOptimizations}
+
 Unit aopt386;
 
 Interface
@@ -94,7 +101,12 @@ End.
 
 {
  $Log$
- Revision 1.29  1999-10-23 14:44:24  jonas
+ Revision 1.30  1999-11-27 23:50:22  jonas
+   + if you define "newOptimizations", all extra optimizations that
+     require conditional defines will be activated (ie., it's equivalent
+     to "-dreplacereg -darithopt -dforopt -dfoldarithops")
+
+ Revision 1.29  1999/10/23 14:44:24  jonas
    * finally got around making GetNextInstruction return false when
      the current pai object is a AsmBlockStart marker
    * changed a loop in aopt386 which was incompatible with this change
