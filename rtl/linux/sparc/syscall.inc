@@ -44,6 +44,7 @@ asm
         ld      [%o3],%o4
         or      %o0,%lo(Errno),%o0
         call    %o4
+        nop
 .LNoThread:
         st      %o0,[%o2]
         ba      .LReturn
@@ -85,6 +86,7 @@ asm
         ld      [%o3],%o1
         or      %o0,%lo(Errno),%o0
         call    %o1
+        nop
 .LNoThread:
         st      %o0,[%o2]
         mov     -1,%o0
@@ -118,6 +120,7 @@ asm
         ld      [%o3],%o1
         or      %o0,%lo(Errno),%o0
         call    %o1
+        nop
 .LNoThread:
         st      %o0,[%o2]
         mov     -1,%o0
@@ -152,6 +155,7 @@ asm
         ld      [%o3],%o1
         or      %o0,%lo(Errno),%o0
         call    %o1
+        nop
 .LNoThread:
         st      %o0,[%o2]
         mov     -1,%o0
@@ -187,6 +191,7 @@ asm
         ld      [%o3],%o1
         or      %o0,%lo(Errno),%o0
         call    %o1
+        nop
 .LNoThread:
         st      %o0,[%o2]
         mov     -1,%o0
@@ -223,6 +228,7 @@ asm
         ld      [%o3],%o1
         or      %o0,%lo(Errno),%o0
         call    %o1
+        nop
 .LNoThread:
         st      %o0,[%o2]
         mov     -1,%o0
@@ -260,6 +266,7 @@ asm
         ld      [%o3],%o1
         or      %o0,%lo(Errno),%o0
         call    %o1
+        nop
 .LNoThread:
         st      %o0,[%o2]
         mov     -1,%o0
@@ -298,6 +305,7 @@ asm
         ld      [%o3],%o1
         or      %o0,%lo(Errno),%o0
         call    %o1
+        nop
 .LNoThread:
         st      %o0,[%o2]
         mov     -1,%o0
@@ -308,7 +316,10 @@ end;
 
 {
   $Log$
-  Revision 1.14  2004-08-22 12:34:11  florian
+  Revision 1.15  2004-11-06 22:48:16  florian
+    * fixed errno setting in mt sparc/linux mt programs
+
+  Revision 1.14  2004/08/22 12:34:11  florian
     * fixed fork for sparc
 
   Revision 1.13  2004/07/02 19:29:19  peter

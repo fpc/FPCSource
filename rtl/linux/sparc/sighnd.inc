@@ -36,7 +36,6 @@ begin
   case sig of
     SIGFPE :
         begin
-          { don't know how to find the different causes, maybe via xer? }
           res := 207;
           case  siginfo^.si_code of
             FPE_INTDIV:
@@ -70,7 +69,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  2004-08-04 19:27:10  florian
+  Revision 1.5  2004-11-06 22:48:16  florian
+    * fixed errno setting in mt sparc/linux mt programs
+
+  Revision 1.4  2004/08/04 19:27:10  florian
     * fixed floating point and integer exception handling on sparc/linux
 
   Revision 1.3  2004/05/31 20:25:04  peter
