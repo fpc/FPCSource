@@ -254,7 +254,7 @@ begin
   InitCompiler(cmd);
 
 { show some info }
-  Message1(general_t_compilername,FixFileName(paramstr(0)));
+  Message1(general_t_compilername,FixFileName(system.paramstr(0)));
   Message1(general_d_sourceos,source_os.name);
   Message1(general_i_targetos,target_os.name);
   Message1(general_t_exepath,exepath);
@@ -321,7 +321,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.14  2000-12-25 00:07:25  peter
+  Revision 1.15  2000-12-26 15:57:25  peter
+    * use system.paramstr()
+
+  Revision 1.14  2000/12/25 00:07:25  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 

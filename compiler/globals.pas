@@ -1160,7 +1160,7 @@ implementation
        exepath:=dos.getenv('PPC_EXEC_PATH');
 {$endif delphi}
        if exepath='' then
-        fsplit(FixFileName(paramstr(0)),exepath,hs1,hs2);
+        fsplit(FixFileName(system.paramstr(0)),exepath,hs1,hs2);
 {$ifdef need_path_search}
        if exepath='' then
         begin
@@ -1278,7 +1278,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.21  2000-12-25 00:07:26  peter
+  Revision 1.22  2000-12-26 15:57:25  peter
+    * use system.paramstr()
+
+  Revision 1.21  2000/12/25 00:07:26  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 
