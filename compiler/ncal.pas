@@ -1706,7 +1706,9 @@ implementation
                end;
            end;
          { a fpu can be used in any procedure !! }
+{$ifdef i386}
          registersfpu:=procdefinition.fpu_used;
+{$endif i386}
          { if this is a call to a method calc the registers }
          if (methodpointer<>nil) then
            begin
@@ -1904,7 +1906,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.85  2002-08-17 09:23:34  florian
+  Revision 1.86  2002-08-17 22:09:44  florian
+    * result type handling in tcgcal.pass_2 overhauled
+    * better tnode.dowrite
+    * some ppc stuff fixed
+
+  Revision 1.85  2002/08/17 09:23:34  florian
     * first part of procinfo rewrite
 
   Revision 1.84  2002/08/16 14:24:57  carl

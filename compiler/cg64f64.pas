@@ -174,10 +174,28 @@ unit cg64f64;
       begin
       end;
 
+    procedure tcg.a_reg_alloc(list : taasmoutput;r : tregister64);
+
+      begin
+         list.concat(tai_regalloc.alloc(r));
+      end;
+
+    procedure tcg.a_reg_dealloc(list : taasmoutput;r : tregister64);
+
+      begin
+         list.concat(tai_regalloc.dealloc(r));
+      end;
+
+
 end.
 {
   $Log$
-  Revision 1.2  2002-07-01 16:23:52  peter
+  Revision 1.3  2002-08-17 22:09:43  florian
+    * result type handling in tcgcal.pass_2 overhauled
+    * better tnode.dowrite
+    * some ppc stuff fixed
+
+  Revision 1.2  2002/07/01 16:23:52  peter
     * cg64 patch
     * basics for currency
     * asnode updates for class and interface (not finished)

@@ -75,6 +75,7 @@ interface
         { in case of constant put it to the left }
         if (left.nodetype=ordconstn) then
          swapleftright;
+
         secondpass(left);
 
         { are too few registers free? }
@@ -198,7 +199,7 @@ interface
         if (right.location.loc = LOC_CONSTANT) then
           begin
 {$ifdef extdebug}
-            if (high(right.location.valueqword) <> 0) then
+            if (right.location.size in [OS_64,OS_S64]) and (hi(right.location.valueqword)<>0) and ((hi(right.location.valueqword)<>-1) or unsigned) then
               internalerror(2002080301);
 {$endif extdebug}
             if (nodetype in [equaln,unequaln]) then
@@ -496,8 +497,8 @@ interface
           end
         else
           begin
-            exprasmlist.concat(taicpu.op_reg_reg(op,
-              left.location.register,right.location.register))
+            exprasmlist.concat(taicpu.op_reg_reg_reg(op,
+              location.resflags.cr,left.location.register,right.location.register))
           end;
 
         clear_left_right(cmpop);
@@ -1302,7 +1303,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2002-08-14 18:41:48  jonas
+  Revision 1.13  2002-08-17 22:09:47  florian
+    * result type handling in tcgcal.pass_2 overhauled
+    * better tnode.dowrite
+    * some ppc stuff fixed
+
+  Revision 1.12  2002/08/14 18:41:48  jonas
     - remove valuelow/valuehigh fields from tlocation, because they depend
       on the endianess of the host operating system -> difficult to get
       right. Use lo/hi(location.valueqword) instead (remember to use

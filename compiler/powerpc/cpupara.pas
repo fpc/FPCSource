@@ -35,7 +35,7 @@ unit cpupara;
        tppcparamanager = class(tparamanager)
           function getintparaloc(nr : longint) : tparalocation;override;
           procedure create_param_loc_info(p : tabstractprocdef);override;
-          function getfuncretloc(p : tabstractprocdef) : tparalocation;override;
+          function getfuncretparaloc(p : tabstractprocdef) : tparalocation;override;
        end;
 
   implementation
@@ -214,11 +214,11 @@ unit cpupara;
            end;
       end;
 
-    function tppcparamanager.getfuncretloc(p : tabstractprocdef) : tparalocation;
+    function tppcparamanager.getfuncretparaloc(p : tabstractprocdef) : tparalocation;
 
       begin
-         getfuncretloc.loc:=LOC_REGISTER;
-         getfuncretloc.register:=R_3;
+         getfuncretparaloc.loc:=LOC_REGISTER;
+         getfuncretparaloc.register:=R_3;
       end;
 
 begin
@@ -226,7 +226,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2002-08-13 21:40:58  florian
+  Revision 1.7  2002-08-17 22:09:47  florian
+    * result type handling in tcgcal.pass_2 overhauled
+    * better tnode.dowrite
+    * some ppc stuff fixed
+
+  Revision 1.6  2002/08/13 21:40:58  florian
     * more fixes for ppc calling conventions
 
   Revision 1.5  2002/07/30 20:50:44  florian

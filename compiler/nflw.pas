@@ -39,7 +39,7 @@ interface
           function getcopy : tnode;override;
           procedure insertintolist(l : tnodelist);override;
 {$ifdef extdebug}
-          procedure dowrite;override;
+          procedure _dowrite;override;
 {$endif extdebug}
           function docompare(p: tnode): boolean; override;
        end;
@@ -256,9 +256,9 @@ implementation
       begin
       end;
 {$ifdef extdebug}
-    procedure tloopnode.dowrite;
+    procedure tloopnode._dowrite;
       begin
-        inherited dowrite;
+        inherited _dowrite;
         writenodeindention:=writenodeindention+'    ';
         writenode(t1);
         writenode(t2);
@@ -1244,7 +1244,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.45  2002-08-17 09:23:37  florian
+  Revision 1.46  2002-08-17 22:09:46  florian
+    * result type handling in tcgcal.pass_2 overhauled
+    * better tnode.dowrite
+    * some ppc stuff fixed
+
+  Revision 1.45  2002/08/17 09:23:37  florian
     * first part of procinfo rewrite
 
   Revision 1.44  2002/07/21 06:58:49  daniel

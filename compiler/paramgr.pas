@@ -2,7 +2,7 @@
     $Id$
     Copyright (c) 2002 by Florian Klaempfl
 
-    PowerPC specific calling conventions
+    Generic calling convention handling
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -70,7 +70,7 @@ unit paramgr;
             Returns the location where the invisible parameter for structured
             function results will be passed.
           }
-          function getfuncretloc(p : tabstractprocdef) : tparalocation;virtual;abstract;
+          function getfuncretparaloc(p : tabstractprocdef) : tparalocation;virtual;abstract;
           { Returns the self pointer location for the given tabstractprocdef,
             when the stack frame is already created. This is used by the code
             generating the wrappers for implemented interfaces.
@@ -84,7 +84,7 @@ unit paramgr;
 
             @param(def The definition of the result type of the function)
           }
-          function getfuncresultlocreg(def : tdef): tparalocation; virtual;
+          function getfuncresultloc(def : tdef): tparalocation; virtual;
        end;
 
     procedure setparalocs(p : tprocdef);
@@ -169,21 +169,21 @@ unit paramgr;
       end;
 
 
-    function tparamanager.getfuncresultlocreg(def : tdef): tparalocation;
+    function tparamanager.getfuncresultloc(def : tdef): tparalocation;
       begin
          fillchar(result,sizeof(tparalocation),0);
          if is_void(def) then exit;
 
          result.size := def_cgsize(def);
-         case aktprocdef.rettype.def.deftype of
+         case def.deftype of
            orddef,
            enumdef :
              begin
                result.loc := LOC_REGISTER;
                if result.size in [OS_64,OS_S64] then
                 begin
-                  result.registerhigh:=accumulatorhigh;
-                  result.register:=accumulator;
+                  result.register64.reghi:=accumulatorhigh;
+                  result.register64.reglo:=accumulator;
                 end
                else
                   result.register:=accumulator;
@@ -198,7 +198,7 @@ unit paramgr;
              end;
           else
              begin
-                if ret_in_acc(def) then
+                if ret_in_reg(def) then
                   begin
                     result.loc := LOC_REGISTER;
                     result.register := accumulator;
@@ -238,7 +238,7 @@ unit paramgr;
         }
         if not paramanager.ret_in_reg(def) then
           exit;
-        paramloc := paramanager.getfuncresultlocreg(def);
+        paramloc := paramanager.getfuncresultloc(def);
         case paramloc.loc of
           LOC_FPUREGISTER,
           LOC_CFPUREGISTER,
@@ -302,7 +302,12 @@ end.
 
 {
    $Log$
-   Revision 1.13  2002-08-17 09:23:38  florian
+   Revision 1.14  2002-08-17 22:09:47  florian
+     * result type handling in tcgcal.pass_2 overhauled
+     * better tnode.dowrite
+     * some ppc stuff fixed
+
+   Revision 1.13  2002/08/17 09:23:38  florian
      * first part of procinfo rewrite
 
    Revision 1.12  2002/08/16 14:24:58  carl

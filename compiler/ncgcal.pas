@@ -1,5 +1,5 @@
 {
-    $Id$
+    Id: ncgcal.pas,v 1.10 2002/08/17 09:23:35 florian Exp $
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Generate i386 assembler for in call nodes
@@ -280,6 +280,7 @@ implementation
          funcretref,refcountedtemp : treference;
          tmpreg : tregister;
          hregister : tregister;
+         hregister64 : tregister64;
          oldpushedparasize : longint;
          { true if ESI must be loaded again after the subroutine }
          loadesi : boolean;
@@ -317,6 +318,7 @@ implementation
          pop_allowed : boolean;
          release_tmpreg : boolean;
          constructorfailed : tasmlabel;
+         resultloc : tparalocation;
 
       label
          dont_call;
@@ -551,7 +553,7 @@ implementation
                end
              else
                cg.a_paramaddr_ref(exprasmlist,funcretref,
-                 paramanager.getfuncretloc(procdefinition));
+                 paramanager.getfuncretparaloc(procdefinition));
            end;
 
          { procedure variable or normal function call ? }
@@ -1142,13 +1144,10 @@ implementation
               end
             else
             { we have only to handle the result if it is used }
-             if (nf_return_value_used in flags) then
+             if (nf_return_value_used in flags) and paramanager.ret_in_reg(resulttype.def) then
               begin
-                case resulttype.def.deftype of
-                  enumdef,
-                  orddef :
-                    begin
-                      cgsize:=def_cgsize(resulttype.def);
+                 resultloc:=paramanager.getfuncresultloc(resulttype.def);
+{$ifdef dummy}
                       { an object constructor is a function with boolean result }
                       if (inlined or (right=nil)) and
                          (procdefinition.proctypeoption=potype_constructor) then
@@ -1157,61 +1156,51 @@ implementation
                           cgsize:=OS_INT
                          else
                           begin
-{$ifdef dummy}
                             cgsize:=OS_NO;
                             { this fails if popsize > 0 PM }
                             location_reset(location,LOC_FLAGS,OS_NO);
                             location.resflags:=F_NE;
-{$endif dummy}
                           end;
                        end;
-
-                      if cgsize<>OS_NO then
-                       begin
+{$endif dummy}
+                 cgsize:=resultloc.size;
+                 case resultloc.loc of
+                    LOC_REGISTER:
+                      begin
                          location_reset(location,LOC_REGISTER,cgsize);
-                         cg.a_reg_alloc(exprasmlist,accumulator);
                          if cgsize in [OS_64,OS_S64] then
-                          begin
-                            cg.a_reg_alloc(exprasmlist,accumulatorhigh);
-                            if accumulatorhigh in rg.unusedregsint then
-                              begin
-                                 location.registerhigh:=rg.getexplicitregisterint(exprasmlist,accumulatorhigh);
-                                 location.registerlow:=rg.getexplicitregisterint(exprasmlist,accumulator);
-                              end
-                            else
-                              begin
-                                 location.registerhigh:=rg.getexplicitregisterint(exprasmlist,accumulatorhigh);
-                                 location.registerlow:=rg.getexplicitregisterint(exprasmlist,accumulator);
-                              end;
-                            cg64.a_load64_reg_reg(exprasmlist,joinreg64(accumulator,accumulatorhigh),
-                                location.register64);
-                          end
+                           begin
+                              cg64.a_reg_alloc(exprasmlist,resultloc.register64);
+                              {  FIX ME !!!
+                              location.register:=rg.getexplicitregisterint(exprasmlist,resultloc.register64);
+                              }
+                              location.register64.reglo:=rg.getexplicitregisterint(exprasmlist,resultloc.register64.reglo);
+                              location.register64.reghi:=rg.getexplicitregisterint(exprasmlist,resultloc.register64.reghi);
+                              cg64.a_load64_reg_reg(exprasmlist,resultloc.register64,location.register64);
+                           end
                          else
-                          begin
-                            location.register:=rg.getexplicitregisterint(exprasmlist,accumulator);
-                            hregister:=rg.makeregsize(accumulator,cgsize);
-                            location.register:=rg.makeregsize(location.register,cgsize);
-                            cg.a_load_reg_reg(exprasmlist,cgsize,hregister,location.register);
-                          end;
-                       end;
-                    end;
-                  floatdef :
-                    begin
-{$ifdef dummy}
-                      location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
-                      location.register:=R_ST;
-                      inc(trgcpu(rg).fpuvaroffset);
-{$endif dummy}
-
-                    end;
-                  else
-                    begin
-                      location_reset(location,LOC_REGISTER,OS_INT);
-                      location.register:=rg.getexplicitregisterint(exprasmlist,accumulator);
-                      cg.a_load_reg_reg(exprasmlist,OS_INT,accumulator,location.register);
-                    end;
-                end;
-             end;
+                           begin
+                              cg.a_reg_alloc(exprasmlist,resultloc.register);
+                              location.register:=rg.getexplicitregisterint(exprasmlist,resultloc.register);
+                              hregister:=rg.makeregsize(resultloc.register,cgsize);
+                              location.register:=rg.makeregsize(location.register,cgsize);
+                              cg.a_load_reg_reg(exprasmlist,cgsize,hregister,location.register);
+                           end;
+                      end;
+                    LOC_FPUREGISTER:
+                      begin
+                         location_reset(location,LOC_FPUREGISTER,cgsize);
+                         cg.a_reg_alloc(exprasmlist,resultloc.register);
+                         location.register:=rg.getexplicitregisterfpu(exprasmlist,resultloc.register);
+                         cg.a_loadfpu_reg_reg(exprasmlist,resultloc.register,location.register);
+{$ifdef x86}
+                         inc(trgcpu(rg).fpuvaroffset);
+{$endif x86}
+                      end;
+                    else
+                      internalerror(2002081701);
+                 end;
+              end;
           end;
 
          { perhaps i/o check ? }
@@ -1475,7 +1464,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2002-08-17 09:23:35  florian
+  Revision 1.11  2002-08-17 22:09:44  florian
+    * result type handling in tcgcal.pass_2 overhauled
+    * better tnode.dowrite
+    * some ppc stuff fixed
+
+  Revision 1.10  2002/08/17 09:23:35  florian
     * first part of procinfo rewrite
 
   Revision 1.9  2002/08/13 21:40:55  florian

@@ -60,7 +60,7 @@ interface
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
 {$ifdef extdebug}
-          procedure dowrite;override;
+          procedure _dowrite;override;
 {$endif extdebug}
        end;
        tstatementnodeclass = class of tstatementnode;
@@ -295,7 +295,7 @@ implementation
       end;
 
 {$ifdef extdebug}
-    procedure tstatementnode.dowrite;
+    procedure tstatementnode._dowrite;
 
       begin
          { can't use inherited dowrite, because that will use the
@@ -694,7 +694,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.32  2002-08-17 09:23:34  florian
+  Revision 1.33  2002-08-17 22:09:44  florian
+    * result type handling in tcgcal.pass_2 overhauled
+    * better tnode.dowrite
+    * some ppc stuff fixed
+
+  Revision 1.32  2002/08/17 09:23:34  florian
     * first part of procinfo rewrite
 
   Revision 1.31  2002/08/15 19:10:35  peter

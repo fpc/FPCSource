@@ -351,8 +351,9 @@ interface
           { writes a node for debugging purpose, shouldn't be called }
           { direct, because there is no test for nil, use writenode  }
           { to write a complete tree                                 }
-          procedure dowrite;virtual;
+          procedure dowrite;
           procedure dowritenodetype;virtual;
+          procedure _dowrite;virtual;
 {$endif EXTDEBUG}
           procedure concattolist(l : tlinkedlist);virtual;
           function ischild(p : tnode) : boolean;virtual;
@@ -381,7 +382,7 @@ interface
           procedure insertintolist(l : tnodelist);override;
           procedure left_max;
 {$ifdef extdebug}
-          procedure dowrite;override;
+          procedure _dowrite;override;
 {$endif extdebug}
        end;
 
@@ -400,7 +401,7 @@ interface
           procedure insertintolist(l : tnodelist);override;
           procedure left_right_max;
 {$ifdef extdebug}
-          procedure dowrite;override;
+          procedure _dowrite;override;
 {$endif extdebug}
        end;
 
@@ -466,7 +467,7 @@ implementation
          else
           write(writenodeindention,'nil');
          if writenodeindention='' then
-          writeln;
+           writeln;
        end;
 {$endif EXTDEBUG}
 
@@ -572,14 +573,27 @@ implementation
       end;
 
 {$ifdef EXTDEBUG}
-    procedure tnode.dowrite;
+    procedure tnode._dowrite;
       begin
         dowritenodetype;
+        system.write(',resulttype = "',resulttype.def.gettypename,'"');
+        system.write(',location.loc = ',ord(location.loc));
+        system.write(',registersfpu = ',registersfpu);
       end;
 
     procedure tnode.dowritenodetype;
       begin
-         write(writenodeindention,'(',nodetype2str[nodetype]);
+          system.write(nodetype2str[nodetype]);
+      end;
+
+    procedure tnode.dowrite;
+      begin
+         system.write(writenodeindention,'(');
+         writenodeindention:=writenodeindention+'    ';
+         _dowrite;
+         writeln(writenodeindention);
+         delete(writenodeindention,1,4);
+         system.write(writenodeindention,')');
       end;
 {$endif EXTDEBUG}
 
@@ -721,15 +735,12 @@ implementation
       end;
 
 {$ifdef extdebug}
-    procedure tunarynode.dowrite;
+    procedure tunarynode._dowrite;
 
       begin
-         inherited dowrite;
+         inherited _dowrite;
          writeln(',');
-         writenodeindention:=writenodeindention+'    ';
          writenode(left);
-         write(')');
-         delete(writenodeindention,1,4);
       end;
 {$endif}
 
@@ -874,15 +885,12 @@ implementation
       end;
 
 {$ifdef extdebug}
-    procedure tbinarynode.dowrite;
+    procedure tbinarynode._dowrite;
 
       begin
-         inherited dowrite;
+         inherited _dowrite;
          writeln(',');
-         writenodeindention:=writenodeindention+'    ';
          writenode(right);
-         write(')');
-         delete(writenodeindention,1,4);
       end;
 {$endif}
 
@@ -906,11 +914,15 @@ implementation
             right.isequal(tbinopnode(p).left));
       end;
 
-
 end.
 {
   $Log$
-  Revision 1.35  2002-08-15 19:10:35  peter
+  Revision 1.36  2002-08-17 22:09:46  florian
+    * result type handling in tcgcal.pass_2 overhauled
+    * better tnode.dowrite
+    * some ppc stuff fixed
+
+  Revision 1.35  2002/08/15 19:10:35  peter
     * first things tai,tnode storing in ppu
 
   Revision 1.34  2002/08/09 19:15:41  carl

@@ -54,7 +54,7 @@ interface
           function det_resulttype:tnode;override;
           function docompare(p: tnode) : boolean; override;
        {$ifdef extdebug}
-          procedure dowrite;override;
+          procedure _dowrite;override;
        {$endif}
        end;
        tordconstnodeclass = class of tordconstnode;
@@ -268,7 +268,7 @@ implementation
     function is_emptyset(p : tnode):boolean;
 
     begin
-        is_emptyset:=(p.nodetype=setconstn) and 
+        is_emptyset:=(p.nodetype=setconstn) and
 	 (Tsetconstnode(p).value_set^=[]);
     end;
 {$endif}
@@ -410,11 +410,11 @@ implementation
       end;
 
 {$ifdef extdebug}
-    procedure Tordconstnode.dowrite;
+    procedure Tordconstnode._dowrite;
 
     begin
-	inherited dowrite;
-	write('[',value,']');
+	inherited _dowrite;
+        system.write(writenodeindention,',value = ',value);
     end;
 {$endif}
 
@@ -750,7 +750,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.37  2002-07-23 12:34:30  daniel
+  Revision 1.38  2002-08-17 22:09:45  florian
+    * result type handling in tcgcal.pass_2 overhauled
+    * better tnode.dowrite
+    * some ppc stuff fixed
+
+  Revision 1.37  2002/07/23 12:34:30  daniel
   * Readded old set code. To use it define 'oldset'. Activated by default
     for ppc.
 

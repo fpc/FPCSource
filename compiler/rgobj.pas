@@ -152,6 +152,11 @@ unit rgobj;
              @param(r specific register to allocate)
           }
           function getexplicitregisterint(list: taasmoutput; r : tregister) : tregister;virtual;
+          {# Tries to allocate the passed fpu register, if possible
+
+             @param(r specific register to allocate)
+          }
+          function getexplicitregisterfpu(list : taasmoutput; r : tregister) : tregister;
 
           {# Deallocate any kind of register }
           procedure ungetregister(list: taasmoutput; r : tregister); virtual;
@@ -423,12 +428,37 @@ unit rgobj;
       end;
 
 
+    { tries to allocate the passed register, if possible }
+    function trgobj.getexplicitregisterfpu(list : taasmoutput; r : tregister) : tregister;
+
+      begin
+         if r in unusedregsfpu then
+           begin
+              dec(countunusedregsfpu);
+{$ifdef TEMPREGDEBUG}
+              if curptree^^.usableregs-countunusedregsint>curptree^^.registers32 then
+                internalerror(10);
+              reg_user[r]:=curptree^;
+{$endif TEMPREGDEBUG}
+              exclude(unusedregsint,r);
+              include(usedinproc,r);
+              include(usedbyproc,r);
+              list.concat(tai_regalloc.alloc(r));
+              getexplicitregisterfpu:=r;
+{$ifdef TEMPREGDEBUG}
+              testregisters32;
+{$endif TEMPREGDEBUG}
+           end
+         else
+           getexplicitregisterfpu:=getregisterfpu(list);
+      end;
+
     function trgobj.getregisterfpu(list: taasmoutput) : tregister;
       begin
         if countunusedregsfpu=0 then
-           internalerror(10);
-       result := getregistergen(list,firstsavefpureg,lastsavefpureg,
-                   unusedregsfpu,countunusedregsfpu);
+          internalerror(10);
+        result := getregistergen(list,firstsavefpureg,lastsavefpureg,
+          unusedregsfpu,countunusedregsfpu);
       end;
 
 
@@ -963,7 +993,12 @@ end.
 
 {
   $Log$
-  Revision 1.17  2002-08-17 09:23:42  florian
+  Revision 1.18  2002-08-17 22:09:47  florian
+    * result type handling in tcgcal.pass_2 overhauled
+    * better tnode.dowrite
+    * some ppc stuff fixed
+
+  Revision 1.17  2002/08/17 09:23:42  florian
     * first part of procinfo rewrite
 
   Revision 1.16  2002/08/06 20:55:23  florian

@@ -46,7 +46,7 @@ interface
           function  det_resulttype:tnode;override;
           function  docompare(p: tnode): boolean; override;
        {$ifdef extdebug}
-          procedure dowrite;override;
+          procedure _dowrite;override;
        {$endif}
        end;
        tloadnodeclass = class of tloadnode;
@@ -405,11 +405,12 @@ implementation
       end;
 
 {$ifdef extdebug}
-    procedure Tloadnode.dowrite;
+    procedure Tloadnode._dowrite;
 
     begin
-	inherited dowrite;
-	write('[',symtableentry.name,']');
+        inherited _dowrite;
+        writeln(',');
+        system.write(writenodeindention,'symbol = ',symtableentry.name);
     end;
 {$endif}
 
@@ -995,7 +996,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.50  2002-08-17 09:23:37  florian
+  Revision 1.51  2002-08-17 22:09:46  florian
+    * result type handling in tcgcal.pass_2 overhauled
+    * better tnode.dowrite
+    * some ppc stuff fixed
+
+  Revision 1.50  2002/08/17 09:23:37  florian
     * first part of procinfo rewrite
 
   Revision 1.49  2002/07/20 11:57:54  florian

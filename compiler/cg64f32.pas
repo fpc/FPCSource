@@ -42,6 +42,8 @@ unit cg64f32;
          to handle 64-bit integers.
       }
       tcg64f32 = class(tcg64)
+        procedure a_reg_alloc(list : taasmoutput;r : tregister64);override;
+        procedure a_reg_dealloc(list : taasmoutput;r : tregister64);override;
         procedure a_load64_const_ref(list : taasmoutput;value : qword;const ref : treference);override;
         procedure a_load64_reg_ref(list : taasmoutput;reg : tregister64;const ref : treference);override;
         procedure a_load64_ref_reg(list : taasmoutput;const ref : treference;reg : tregister64);override;
@@ -90,6 +92,20 @@ unit cg64f32;
       begin
          result.reglo:=reglo;
          result.reghi:=reghi;
+      end;
+
+    procedure tcg64f32.a_reg_alloc(list : taasmoutput;r : tregister64);
+
+      begin
+         list.concat(tai_regalloc.alloc(r.reglo));
+         list.concat(tai_regalloc.alloc(r.reghi));
+      end;
+
+    procedure tcg64f32.a_reg_dealloc(list : taasmoutput;r : tregister64);
+
+      begin
+         list.concat(tai_regalloc.dealloc(r.reglo));
+         list.concat(tai_regalloc.dealloc(r.reghi));
       end;
 
     procedure tcg64f32.a_load64_reg_ref(list : taasmoutput;reg : tregister64;const ref : treference);
@@ -617,7 +633,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.25  2002-08-14 18:41:47  jonas
+  Revision 1.26  2002-08-17 22:09:43  florian
+    * result type handling in tcgcal.pass_2 overhauled
+    * better tnode.dowrite
+    * some ppc stuff fixed
+
+  Revision 1.25  2002/08/14 18:41:47  jonas
     - remove valuelow/valuehigh fields from tlocation, because they depend
       on the endianess of the host operating system -> difficult to get
       right. Use lo/hi(location.valueqword) instead (remember to use

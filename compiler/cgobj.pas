@@ -410,6 +410,10 @@ unit cgobj;
        for 64 Bit operations.
     }
     tcg64 = class
+        { Allocates 64 Bit register r by inserting a pai_realloc record }
+        procedure a_reg_alloc(list : taasmoutput;r : tregister64);virtual;abstract;
+        { Deallocates 64 Bit register r by inserting a pa_regdealloc record}
+        procedure a_reg_dealloc(list : taasmoutput;r : tregister64);virtual;abstract;
         procedure a_load64_const_ref(list : taasmoutput;value : qword;const ref : treference);virtual;abstract;
         procedure a_load64_reg_ref(list : taasmoutput;reg : tregister64;const ref : treference);virtual;abstract;
         procedure a_load64_ref_reg(list : taasmoutput;const ref : treference;reg : tregister64);virtual;abstract;
@@ -814,7 +818,8 @@ unit cgobj;
           LOC_FPUREGISTER, LOC_CFPUREGISTER:
             a_loadfpu_reg_reg(list,loc.register,reg);
           else
-            internalerror(200203301);
+            runerror(226);
+            // internalerror(200203301);
         end;
       end;
 
@@ -1548,7 +1553,12 @@ finalization
 end.
 {
   $Log$
-  Revision 1.51  2002-08-17 09:23:33  florian
+  Revision 1.52  2002-08-17 22:09:43  florian
+    * result type handling in tcgcal.pass_2 overhauled
+    * better tnode.dowrite
+    * some ppc stuff fixed
+
+  Revision 1.51  2002/08/17 09:23:33  florian
     * first part of procinfo rewrite
 
   Revision 1.50  2002/08/16 14:24:57  carl
