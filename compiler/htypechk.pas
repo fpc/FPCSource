@@ -619,7 +619,7 @@ implementation
                         { Give warning/note for uninitialized locals }
                         if assigned(hsym.owner) and
                            not(vo_is_external in hsym.varoptions) and
-                           (hsym.owner.symtabletype=localsymtable) and
+                           (hsym.owner.symtabletype in [localsymtable,staticsymtable]) and
                            (hsym.owner=current_procinfo.procdef.localst) then
                           begin
                             if (vo_is_funcret in hsym.varoptions) then
@@ -943,7 +943,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.72  2003-10-28 15:36:01  peter
+  Revision 1.73  2003-10-30 17:42:48  peter
+    * also check for uninited vars in staticsymtable
+
+  Revision 1.72  2003/10/28 15:36:01  peter
     * absolute to object field supported, fixes tb0458
 
   Revision 1.71  2003/10/21 18:16:13  peter
