@@ -1031,14 +1031,17 @@ implementation
          else
            if (def1^.deftype=arraydef) and (def2^.deftype=arraydef) then
              begin
-               if is_open_array(def1) or is_open_array(def2) or
-                  is_array_of_const(def1) or is_array_of_const(def2) then
+               if is_array_of_const(def1) or is_array_of_const(def2) then
                 begin
-                  if parraydef(def1)^.IsArrayOfConst or parraydef(def2)^.IsArrayOfConst then
-                   b:=true
-                  else
-                   b:=is_equal(parraydef(def1)^.elementtype.def,parraydef(def2)^.elementtype.def);
+                  b:=(is_array_of_const(def1) and is_array_of_const(def2)) or
+                     (is_array_of_const(def1) and is_array_constructor(def2)) or
+                     (is_array_of_const(def2) and is_array_constructor(def1));
                 end
+               else
+                if is_open_array(def1) or is_open_array(def2) then
+                 begin
+                   b:=is_equal(parraydef(def1)^.elementtype.def,parraydef(def2)^.elementtype.def);
+                 end
                else
                 begin
                   b:=not(m_tp in aktmodeswitches) and
@@ -1140,7 +1143,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  2000-08-19 19:51:03  peter
+  Revision 1.9  2000-09-10 20:16:21  peter
+    * array of const isn't equal with array of <type> (merged)
+
+  Revision 1.8  2000/08/19 19:51:03  peter
     * fixed bug with comparing constsym strings
 
   Revision 1.7  2000/08/16 13:06:07  florian
