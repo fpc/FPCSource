@@ -31,6 +31,32 @@ independent. It can be used to write on the screen in a system-independent
 way, which should be optimal on all platforms for which the unit is
 implemented.
 
+The working of the \file{Video} is simple: After calling \seep{InitVideo},
+the array \var{VideoBuf} contains a representation of the video screen of
+size \var{ScreenWidth*ScreenHeight}, going from left to right and top to
+bottom when walking the array elements: \var{VideoBuf[0]} contains the 
+character and color code of the top-left character on the screen.
+\var{VideoBuf[ScreenWidth]} contains the data for the character in the
+first columnd of the second row on the screen, and so on.
+
+The contents of the \var{VideoBuf} array may be modified: This is 'writing'
+to the screen. As soon as everything that needs to be written in the array
+is in the \var{VideoBuf} array, calling \var{UpdateScreen} will copy the
+contents of the array screen to the screen, in a manner that is as efficient
+as possible.
+
+The updating of the screen can be prohibited to optimize performance; To
+this end, the \seep{LockScreenUpdate} function can be used: This will
+increment an internal counter. As long as the counter different from zero,
+calling \seep{UpdateScreen} will not do anything. The counter can be
+lowered with \seep{UnLockscreenUpdate}. When it reaches zero, the next call
+to \seep{UpdateScreen} will actually update the screen. This is useful when
+having nested procedures that do a lot of screen writing.
+
+The video unit also presents an interface for custom screen drivers, thus
+it is possible to override the default screen driver with a custom screen 
+driver, see the \seep{SetVideoDriver} call.
+
 \section{Constants, Type and variables }
 
 \subsection{Constants}
@@ -176,16 +202,6 @@ CursorX, CursorY : Word;
 \var{ScreenColor} indicates whether the current screen supports colors.
 \var{CursorX,CursorY} contain the current cursor position.
 
-The \var{LockUpdateScreen} variable can be incremented to prevent the 
-\seep{UpdateScreen} procedure from actually updating the screen. The 
-\var{UpdateScreen} procedure will only update the screen when the
-\var{LockUpdateScreen} variable is zero. This mechanism can be used
-to optimize the screen updating routines when various updates are 
-performed at once.
-\begin{verbatim}
-LockUpdateScreen : Word;
-CursorLines  : Byte;
-\end{verbatim}
 The following variables form the heart of the \file{Video} unit: The
 \var{VideoBuf} array represents the physical screen. Writing to this
 array and calling \seep{UpdateScreen} will write the actual characters
@@ -216,15 +232,20 @@ None.
 \Declaration
 function  DefaultErrorHandler(AErrorCode: Longint; AErrorInfo: Pointer): TErrorHandlerReturnValue; 
 \Description
-{ Default error handler, simply sets error code, and returns errContinue }
+\var{DefaultErrorHandler} is the default error handler used by the video
+driver. It simply sets the error code \var{AErrorCode} and \var{AErrorInfo} 
+in the global variables \var{ErrorCode} and \var{ErrorInfo} and returns 
+\var{errContinue}.
 \Errors
+None.
 \SeeAlso
 \end{procedure}
 
 \begin{procedure}{DefaultVideoModeSelector}
 \Declaration
-function  DefaultVideoModeSelector(const VideoMode: TVideoMode; Params: Longint): Boolean;
+function DefaultVideoModeSelector(const VideoMode: TVideoMode; Params: Longint): Boolean;
 \Description
+Needs to be removed from the API.
 \Errors
 \SeeAlso
 \end{procedure}
@@ -233,7 +254,11 @@ function  DefaultVideoModeSelector(const VideoMode: TVideoMode; Params: Longint)
 \Declaration
 procedure DoneVideo; 
 \Description
-{ Deinitializes the video subsystem }
+\var{DoneVideo} disables the Video driver if the video driver is active. If
+the videodriver was already disabled or not yet initialized, it does
+nothing. Disabling the driver means it will clean up any allocated
+resources, possibly restore the screen in the state it was before
+\var{InitVideo} was called.
 \Errors
 \SeeAlso
 \end{procedure}
