@@ -17,8 +17,8 @@
 # Configuration section
 #####################################################################
 
-ifndef LANGUAGE
-LANGUAGE=e
+ifndef FPCLANG
+FPCLANG=e
 endif
 
 # Local defines for the compiler only
@@ -141,7 +141,7 @@ override RTLOPTS+=$(OPT)
 # Setup Targets
 #####################################################################
 
-MSGFILE=error$(LANGUAGE).msg
+MSGFILE=error$(FPCLANG).msg
 
 ifeq ($(OS_TARGET),win32)
 ifdef CMP
@@ -383,7 +383,10 @@ $(M68KEXENAME): $(PASFILES) $(INCFILES)
 
 #
 # $Log$
-# Revision 1.25  1999-04-07 15:26:50  pierre
+# Revision 1.26  1999-04-09 10:14:19  peter
+#   * renamed language -> fpclang
+#
+# Revision 1.25  1999/04/07 15:26:50  pierre
 #  + added COMPLETE env for triple compilation test
 #
 # Revision 1.24  1999/04/01 22:05:16  peter
