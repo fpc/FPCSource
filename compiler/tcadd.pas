@@ -518,7 +518,9 @@ implementation
                  convdone:=true;
                end
               { is there a 64 bit type ? }
-             else if (porddef(rd)^.typ=s64bit) or (porddef(ld)^.typ=s64bit) then
+             else if ((porddef(rd)^.typ=s64bit) or (porddef(ld)^.typ=s64bit)) and
+               { the / operator is handled later }
+               (p^.treetype<>slashn) then
                begin
                   if (porddef(ld)^.typ<>s64bit) then
                     begin
@@ -533,7 +535,9 @@ implementation
                   calcregisters(p,2,0,0);
                   convdone:=true;
                end
-             else if (porddef(rd)^.typ=u64bit) or (porddef(ld)^.typ=u64bit) then
+             else if ((porddef(rd)^.typ=u64bit) or (porddef(ld)^.typ=u64bit)) and
+               { the / operator is handled later }
+               (p^.treetype<>slashn) then
                begin
                   if (porddef(ld)^.typ<>u64bit) then
                     begin
@@ -550,7 +554,9 @@ implementation
                end
              else
               { is there a cardinal? }
-              if (porddef(rd)^.typ=u32bit) or (porddef(ld)^.typ=u32bit) then
+              if ((porddef(rd)^.typ=u32bit) or (porddef(ld)^.typ=u32bit)) and
+               { the / operator is handled later }
+               (p^.treetype<>slashn) then
                begin
                  { convert constants to u32bit }
 {$ifndef cardinalmulfix}
@@ -1260,7 +1266,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.71  2000-03-18 15:01:19  jonas
+  Revision 1.72  2000-03-20 10:16:51  florian
+   * fixed <dword>/<dword>, <int64>/<int64> and <qword>/<qword>
+
+  Revision 1.71  2000/03/18 15:01:19  jonas
     * moved a $maxfpuregisters directive a bit up because it was being
       ignored
 
