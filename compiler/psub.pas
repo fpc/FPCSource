@@ -942,7 +942,7 @@ implementation
         currpara : tparavarsym;
       begin
         result := false;
-        if (po_assembler in procdef.procoptions) then
+        if (pi_has_assembler_block in current_procinfo.flags) then
           exit;
         for i:=0 to procdef.paras.count-1 do
           begin
@@ -1464,7 +1464,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.225  2004-12-15 21:08:15  peter
+  Revision 1.226  2004-12-27 14:41:09  jonas
+    - disable inlining for any procedure that contains assembler. Could
+      be enabled again if the procedure has neither local variables nor
+      parameters.
+
+  Revision 1.225  2004/12/15 21:08:15  peter
     * disable inlining across units when the inline procedure references
       a variable or procedure in the static symtable
 
