@@ -1627,10 +1627,13 @@ End;
 function removeInstructs(asmL: TAAsmoutput; first, last: Tai): boolean;
 { Removes the marked instructions and disposes the PTaiProps of the other }
 { instructions                                                            }
-Var p, hp1: Tai;
+Var
+  p, hp1: Tai;
+  nopropinfolevel: longint;
 begin
   removeInstructs := false;
   p := First;
+  nopropinfolevel := 0;
   While (p <> Last) Do
     Begin
       If (p.typ = ait_marker) and
@@ -1639,21 +1642,30 @@ begin
           hp1 := Tai(p.next);
           asmL.remove(p);
           p.free;
-          while not((hp1.typ = ait_marker) and
-                    (Tai_marker(p).kind = noPropInfoEnd)) do
+          nopropinfolevel := 1;
+          while (nopropinfolevel <> 0) do
             begin
               p := Tai(hp1.next);
 {$ifndef noinstremove}
               { allocregbetween can insert new ait_regalloc objects }
               { without optinfo                                     }
-              if assigned(hp1.optinfo) then
+              if (hp1.typ = ait_marker) then
+                begin
+                  case Tai_marker(hp1).kind of
+                    { they can be nested! }
+                    noPropInfoStart: inc(nopropinfolevel);
+                    noPropInfoEnd: dec(nopropinfolevel);
+                  end;
+                  asmL.remove(hp1);
+                  hp1.free;
+                end
+              else if assigned(hp1.optinfo) then
                 if pTaiprop(hp1.optinfo)^.canBeRemoved then
                   begin
                     dispose(pTaiprop(hp1.optinfo));
                     hp1.optinfo := nil;
                     asmL.remove(hp1);
                     hp1.free;
-                    hp1 := p;
                   end
                 else
 {$endif noinstremove}
@@ -1702,7 +1714,10 @@ End.
 
 {
   $Log$
-  Revision 1.11  2001-01-06 23:35:05  jonas
+  Revision 1.12  2001-01-07 15:51:17  jonas
+    * fixed crashing bug to due previous changes
+
+  Revision 1.11  2001/01/06 23:35:05  jonas
     * fixed webbug 1323
 
   Revision 1.10  2000/12/25 00:07:31  peter
