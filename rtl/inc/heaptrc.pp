@@ -86,6 +86,7 @@ type
     sig      : longint;
 {$ifdef EXTRA}
     release_sig : longint;
+    next_valid : pheap_mem_info;
 {$endif EXTRA}
     calls    : array [1..tracesize] of longint;
     extra_info : record
@@ -97,6 +98,8 @@ var
   ownfile : text;
 {$ifdef EXTRA}
   error_file : text;
+  heap_valid_first,
+  heap_valid_last : pheap_mem_info;
 {$endif EXTRA}
   heap_mem_root : pheap_mem_info;
   getmem_cnt,
@@ -351,6 +354,14 @@ begin
    heap_mem_root^.next:=pheap_mem_info(p);
   pheap_mem_info(p)^.previous:=heap_mem_root;
   pheap_mem_info(p)^.next:=nil;
+{$ifdef EXTRA}
+  pheap_mem_info(p)^.next_valid:=nil;
+  if assigned(heap_valid_last) then
+    heap_valid_last^.next_valid:=pheap_mem_info(p);
+  heap_valid_last:=pheap_mem_info(p);
+  if not assigned(heap_valid_first) then
+    heap_valid_first:=pheap_mem_info(p);
+{$endif EXTRA}
   heap_mem_root:=p;
   if assigned(fill_extra_info) then
     fill_extra_info(@pheap_mem_info(p)^.extra_info);
@@ -369,7 +380,7 @@ end;
 procedure TraceFreeMem(var p:pointer;size:longint);
 
   var i,bp, ppsize : longint;
-  pp : pheap_mem_info;
+  pp,pp2 : pheap_mem_info;
 begin
   inc(freemem_size,size);
   inc(freemem8_size,((size+7) div 8)*8);
@@ -442,6 +453,26 @@ begin
       fillchar(p^,size,#240); { $F0 will lead to GFP if used as pointer ! }
       { We want to check if the memory was changed after release !! }
        pp^.release_sig:=calculate_release_sig(pp);
+       if pp=heap_valid_first then
+         begin
+            heap_valid_first:=pp^.next_valid;
+            if pp=heap_valid_last then
+              heap_valid_last:=nil;
+            exit;
+         end;
+       pp2:=heap_valid_first;
+       while assigned(pp2) do
+         begin
+            if pp2^.next_valid=pp then
+              begin
+                 pp2^.next_valid:=pp^.next_valid;
+                 if pp=heap_valid_last then
+                   heap_valid_last:=pp2;
+                 exit;
+              end
+            else
+              pp2:=pp2^.next_valid;
+         end;
        exit;
 {$endif EXTRA}
     end;
@@ -459,6 +490,9 @@ var
    __stkbottom : cardinal;external name '__stkbottom';
    edata : cardinal; external name 'edata';
 {$endif go32v2}
+
+var
+   heap_at_init : pointer;
    
 procedure CheckPointer(p : pointer);[public, alias : 'FPC_CHECKPOINTER'];
 var
@@ -475,7 +509,6 @@ begin
   if p=nil then
     goto _exit;
 
-  pp:=heap_mem_root;
   i:=0;
 
 {$ifdef go32v2}
@@ -491,7 +524,7 @@ begin
   if cardinal(p)<=data_end then
     goto _exit;
   { .bss section }
-  if cardinal(p)<=cardinal(heaporg) then
+  if cardinal(p)<=cardinal(heap_at_init) then
     goto _exit;
   { stack can be above heap !! }
 
@@ -503,6 +536,33 @@ begin
   
   if p>=heapptr then
     runerror(216);
+  { first try valid list faster }
+  
+{$ifdef EXTRA}
+  pp:=heap_valid_first;
+  while pp<>nil do
+   begin
+     { inside this valid block ! }
+     if (cardinal(p)>=cardinal(pp)+sizeof(theap_mem_info)+extra_info_size) and
+        (cardinal(p)<=cardinal(pp)+sizeof(theap_mem_info)+extra_info_size+pp^.size) then
+       begin
+          { check allocated block }
+          if ((pp^.sig=$DEADBEEF) and not usecrc) or
+             ((pp^.sig=calculate_sig(pp)) and usecrc) then
+            goto _exit;
+       end
+     else
+       pp:=pp^.next_valid;
+     inc(i);
+     if i>getmem_cnt-freemem_cnt then
+      begin
+         writeln(ptext^,'error in linked list of heap_mem_info');
+         halt(1);
+      end;
+   end;
+  i:=0;
+{$endif EXTRA}
+  pp:=heap_mem_root;
   while pp<>nil do
    begin
      { inside this block ! }
@@ -691,10 +751,16 @@ begin
 {$endif EXTRA}
   SaveExit:=ExitProc;
   ExitProc:=@TraceExit;
+  Heap_at_init:=HeapPtr;
 end.
 {
   $Log$
-  Revision 1.15  1999-05-18 22:15:55  pierre
+  Revision 1.16  1999-05-23 00:07:17  pierre
+    * support for heap allocated before TraceGetMem is used in
+      FPC_CHECKPOINTER
+    * faster CHECKPOINTER routine (list of valid blocks only !)
+
+  Revision 1.15  1999/05/18 22:15:55  pierre
    * allow for .bss section below heaporg in go32v2 code
 
   Revision 1.14  1999/05/16 23:56:09  pierre
