@@ -2639,12 +2639,6 @@ implementation
               _resultsize:=newsize;
           end;
 
-{$ifdef m68k}
-        { 68000 (only) CPU's only accept 32K arrays }
-        if (_resultsize > 32767) and
-           (aktoptprocessor = MC68000) then
-          Message(sym_w_segment_too_large);
-{$endif}
         size := _resultsize;
       end;
 
@@ -2917,12 +2911,6 @@ implementation
         _resultsize : longint;
       begin
         _resultsize:=symtable.datasize;
-{$ifdef m68k}
-        { 68000 (only) CPU's only accept 32K arrays }
-        if (_resultsize > 32767) and
-           (aktoptprocessor = MC68000) then
-          Message(sym_w_segment_too_large);
-{$endif}
         size:=_resultsize;
       end;
 
@@ -4396,11 +4384,6 @@ implementation
           _resultsize:=POINTER_SIZE
         else
           _resultsize:=symtable.datasize;
-{$ifdef m68k}
-        { 68000 (only) CPU's only accept 32K arrays }
-        if (_resultsize > 32767) and (aktoptprocessor = MC68000) then
-            Message(sym_w_segment_too_large);
-{$endif}
         size := _resultsize;
       end;
 
@@ -5517,7 +5500,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.113  2002-11-27 20:04:09  peter
+  Revision 1.114  2002-12-01 22:05:27  carl
+    * no more warnings for structures over 32K since this is
+      handled correctly in this version of the compiler.
+
+  Revision 1.113  2002/11/27 20:04:09  peter
     * tvarsym.get_push_size replaced by paramanager.push_size
 
   Revision 1.112  2002/11/25 21:05:53  carl
