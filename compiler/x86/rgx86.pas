@@ -35,6 +35,13 @@ unit rgx86;
       cclasses,globtype,cgbase,rgobj;
 
     type
+       trgx86 = class(trgobj)
+         function instr_spill_register(list:Taasmoutput;
+                                       instr:taicpu_abstract;
+                                       const r:Tsuperregisterset;
+                                       const spilltemplist:Tspill_temp_list): boolean;override;
+       end;
+
        tpushedsavedloc = record
          case byte of
            0: (pushed: boolean);
@@ -88,7 +95,8 @@ implementation
 
     uses
        systems,
-       verbose;
+       verbose,
+       aasmcpu;
 
     const
        { This value is used in tsaved. If the array value is equal
@@ -97,7 +105,386 @@ implementation
 
 
 {******************************************************************************
-                                    Trgobj
+                                    Trgcpu
+******************************************************************************}
+
+    function trgx86.instr_spill_register(list:Taasmoutput;
+                                         instr:taicpu_abstract;
+                                         const r:Tsuperregisterset;
+                                         const spilltemplist:Tspill_temp_list): boolean;
+    {
+      Spill the registers in r in this instruction. Returns true if any help
+      registers are used. This procedure has become one big hack party, because
+      of the huge amount of situations you can have. The irregularity of the i386
+      instruction set doesn't help either. (DM)
+    }
+    var i:byte;
+        supreg:Tsuperregister;
+        subreg:Tsubregister;
+        helpreg:Tregister;
+        helpins:Taicpu;
+        op:Tasmop;
+        hopsize:Topsize;
+        pos:Tai;
+
+    begin
+      {Situation examples are in intel notation, so operand order:
+       mov    eax       ,    ebx
+              ^^^            ^^^
+              oper[1]        oper[0]
+      (DM)}
+      result:=false;
+      with taicpu(instr) do
+       begin
+         case ops of
+           1:
+             begin
+               if (oper[0]^.typ=top_reg) and
+                  (getregtype(oper[0]^.reg)=regtype) then
+                 begin
+                   supreg:=getsupreg(oper[0]^.reg);
+                   if supregset_in(r,supreg) then
+                     begin
+                       {Situation example:
+                        push r20d              ; r20d must be spilled into [ebp-12]
+
+                       Change into:
+                        push [ebp-12]          ; Replace register by reference }
+   {                    hopsize:=reg2opsize(oper[0].reg);}
+                       oper[0]^.typ:=top_ref;
+                       new(oper[0]^.ref);
+                       oper[0]^.ref^:=spilltemplist[supreg];
+   {                    oper[0]^.ref^.size:=hopsize;}
+                     end;
+                 end;
+               if oper[0]^.typ=top_ref then
+                 begin
+                   supreg:=getsupreg(oper[0]^.ref^.base);
+                   if supregset_in(r,supreg) then
+                     begin
+                       {Situation example:
+                        push [r21d+4*r22d]        ; r21d must be spilled into [ebp-12]
+
+                        Change into:
+
+                        mov r23d,[ebp-12]         ; Use a help register
+                        push [r23d+4*r22d]        ; Replace register by helpregister }
+                       subreg:=getsubreg(oper[0]^.ref^.base);
+                       if oper[0]^.ref^.index=NR_NO then
+                         pos:=Tai(previous)
+                       else
+                         pos:=get_insert_pos(Tai(previous),getsupreg(oper[0]^.ref^.index),RS_INVALID,RS_INVALID);
+                       getregisterinline(list,pos,subreg,helpreg);
+                       result:=true;
+                       helpins:=Taicpu.op_ref_reg(A_MOV,reg2opsize(oper[0]^.ref^.base),spilltemplist[supreg],helpreg);
+                       if pos=nil then
+                         list.insertafter(helpins,list.first)
+                       else
+                         list.insertafter(helpins,pos.next);
+                       ungetregisterinline(list,helpins,helpreg);
+                       forward_allocation(Tai(helpins.next),instr);
+                       oper[0]^.ref^.base:=helpreg;
+                     end;
+                   supreg:=getsupreg(oper[0]^.ref^.index);
+                   if supregset_in(r,supreg) then
+                     begin
+                       {Situation example:
+                        push [r21d+4*r22d]        ; r22d must be spilled into [ebp-12]
+
+                        Change into:
+
+                        mov r23d,[ebp-12]         ; Use a help register
+                        push [r21d+4*r23d]        ; Replace register by helpregister }
+                       subreg:=getsubreg(oper[0]^.ref^.index);
+                       if oper[0]^.ref^.base=NR_NO then
+                         pos:=Tai(instr.previous)
+                       else
+                         pos:=get_insert_pos(Tai(instr.previous),getsupreg(oper[0]^.ref^.base),RS_INVALID,RS_INVALID);
+                       getregisterinline(list,pos,subreg,helpreg);
+                       result:=true;
+                       helpins:=Taicpu.op_ref_reg(A_MOV,reg2opsize(oper[0]^.ref^.index),spilltemplist[supreg],helpreg);
+                       if pos=nil then
+                         list.insertafter(helpins,list.first)
+                       else
+                         list.insertafter(helpins,pos.next);
+                       ungetregisterinline(list,helpins,helpreg);
+                       forward_allocation(Tai(helpins.next),instr);
+                       oper[0]^.ref^.index:=helpreg;
+                     end;
+                   end;
+             end;
+           2:
+             begin
+               { First spill the registers from the references. This is
+                 required because the reference can be moved from this instruction
+                 to a MOV instruction when spilling of the register operand is done }
+               for i:=0 to 1 do
+                 if oper[i]^.typ=top_ref then
+                   begin
+                     supreg:=getsupreg(oper[i]^.ref^.base);
+                     if supregset_in(r,supreg) then
+                       begin
+                         {Situation example:
+                          add r20d,[r21d+4*r22d]    ; r21d must be spilled into [ebp-12]
+
+                          Change into:
+
+                          mov r23d,[ebp-12]         ; Use a help register
+                          add r20d,[r23d+4*r22d]    ; Replace register by helpregister }
+                         subreg:=getsubreg(oper[i]^.ref^.base);
+                         if i=1 then
+                           pos:=get_insert_pos(Tai(instr.previous),getsupreg(oper[i]^.ref^.index),getsupreg(oper[0]^.reg),RS_INVALID)
+                         else
+                           pos:=get_insert_pos(Tai(instr.previous),getsupreg(oper[i]^.ref^.index),RS_INVALID,RS_INVALID);
+                         getregisterinline(list,pos,subreg,helpreg);
+                         result:=true;
+                         helpins:=Taicpu.op_ref_reg(A_MOV,reg2opsize(oper[i]^.ref^.base),spilltemplist[supreg],helpreg);
+                         if pos=nil then
+                           list.insertafter(helpins,list.first)
+                         else
+                           list.insertafter(helpins,pos.next);
+                         oper[i]^.ref^.base:=helpreg;
+                         ungetregisterinline(list,helpins,helpreg);
+                         forward_allocation(Tai(helpins.next),instr);
+                     end;
+                     supreg:=getsupreg(oper[i]^.ref^.index);
+                     if supregset_in(r,supreg) then
+                       begin
+                         {Situation example:
+                          add r20d,[r21d+4*r22d]    ; r22d must be spilled into [ebp-12]
+
+                          Change into:
+
+                          mov r23d,[ebp-12]         ; Use a help register
+                          add r20d,[r21d+4*r23d]    ; Replace register by helpregister }
+                         subreg:=getsubreg(oper[i]^.ref^.index);
+                         if i=1 then
+                           pos:=get_insert_pos(Tai(instr.previous),getsupreg(oper[i]^.ref^.base),
+                                               getsupreg(oper[0]^.reg),RS_INVALID)
+                         else
+                           pos:=get_insert_pos(Tai(instr.previous),getsupreg(oper[i]^.ref^.base),RS_INVALID,RS_INVALID);
+                         getregisterinline(list,pos,subreg,helpreg);
+                         result:=true;
+                         helpins:=Taicpu.op_ref_reg(A_MOV,reg2opsize(oper[i]^.ref^.index),spilltemplist[supreg],helpreg);
+                         if pos=nil then
+                           list.insertafter(helpins,list.first)
+                         else
+                           list.insertafter(helpins,pos.next);
+                         oper[i]^.ref^.index:=helpreg;
+                         ungetregisterinline(list,helpins,helpreg);
+                         forward_allocation(Tai(helpins.next),instr);
+                       end;
+                   end;
+               if (oper[0]^.typ=top_reg) and
+                  (getregtype(oper[0]^.reg)=regtype) then
+                 begin
+                   supreg:=getsupreg(oper[0]^.reg);
+                   subreg:=getsubreg(oper[0]^.reg);
+                   if supregset_in(r,supreg) then
+                     if oper[1]^.typ=top_ref then
+                       begin
+                         {Situation example:
+                          add [r20d],r21d      ; r21d must be spilled into [ebp-12]
+
+                          Change into:
+
+                          mov r22d,[ebp-12]    ; Use a help register
+                          add [r20d],r22d      ; Replace register by helpregister }
+                         pos:=get_insert_pos(Tai(instr.previous),getsupreg(oper[0]^.reg),
+                                             getsupreg(oper[1]^.ref^.base),getsupreg(oper[1]^.ref^.index));
+                         getregisterinline(list,pos,subreg,helpreg);
+                         result:=true;
+                         helpins:=Taicpu.op_ref_reg(A_MOV,reg2opsize(oper[0]^.reg),spilltemplist[supreg],helpreg);
+                         if pos=nil then
+                           list.insertafter(helpins,list.first)
+                         else
+                           list.insertafter(helpins,pos.next);
+                         oper[0]^.reg:=helpreg;
+                         ungetregisterinline(list,helpins,helpreg);
+                         forward_allocation(Tai(helpins.next),instr);
+                       end
+                     else
+                       begin
+                         {Situation example:
+                          add r20d,r21d        ; r21d must be spilled into [ebp-12]
+
+                          Change into:
+
+                          add r20d,[ebp-12]    ; Replace register by reference }
+                         oper[0]^.typ:=top_ref;
+                         new(oper[0]^.ref);
+                         oper[0]^.ref^:=spilltemplist[supreg];
+                       end;
+                 end;
+               if (oper[1]^.typ=top_reg) and
+                  (getregtype(oper[1]^.reg)=regtype) then
+                 begin
+                   supreg:=getsupreg(oper[1]^.reg);
+                   subreg:=getsubreg(oper[1]^.reg);
+                   if supregset_in(r,supreg) then
+                     begin
+                       if oper[0]^.typ=top_ref then
+                         begin
+                           {Situation example:
+                            add r20d,[r21d]      ; r20d must be spilled into [ebp-12]
+
+                            Change into:
+
+                            mov r22d,[r21d]      ; Use a help register
+                            add [ebp-12],r22d    ; Replace register by helpregister }
+                           pos:=get_insert_pos(Tai(instr.previous),getsupreg(oper[0]^.ref^.base),
+                                               getsupreg(oper[0]^.ref^.index),RS_INVALID);
+                           getregisterinline(list,pos,subreg,helpreg);
+                           result:=true;
+                           op:=A_MOV;
+                           hopsize:=opsize;  {Save old value...}
+                           if (opcode=A_MOVZX) or (opcode=A_MOVSX) or (opcode=A_LEA) then
+                             begin
+                               {Because 'movzx memory,register' does not exist...}
+                               op:=opcode;
+                               opcode:=A_MOV;
+                               opsize:=reg2opsize(oper[1]^.reg);
+                             end;
+                           helpins:=Taicpu.op_ref_reg(op,hopsize,oper[0]^.ref^,helpreg);
+                           if pos=nil then
+                             list.insertafter(helpins,list.first)
+                           else
+                             list.insertafter(helpins,pos.next);
+                           dispose(oper[0]^.ref);
+                           oper[0]^.typ:=top_reg;
+                           oper[0]^.reg:=helpreg;
+                           oper[1]^.typ:=top_ref;
+                           new(oper[1]^.ref);
+                           oper[1]^.ref^:=spilltemplist[supreg];
+                           ungetregisterinline(list,helpins,helpreg);
+                           forward_allocation(Tai(helpins.next),instr);
+                         end
+                       else
+                         begin
+                           {Situation example:
+                            add r20d,r21d        ; r20d must be spilled into [ebp-12]
+
+                            Change into:
+
+                            add [ebp-12],r21d    ; Replace register by reference }
+                           if (opcode=A_MOVZX) or (opcode=A_MOVSX) then
+                             begin
+                               {Because 'movzx memory,register' does not exist...}
+                               result:=true;
+                               op:=opcode;
+                               hopsize:=opsize;
+                               opcode:=A_MOV;
+                               opsize:=reg2opsize(oper[1]^.reg);
+                               pos:=get_insert_pos(Tai(instr.previous),getsupreg(oper[0]^.reg),RS_INVALID,RS_INVALID);
+                               getregisterinline(list,pos,subreg,helpreg);
+                               helpins:=Taicpu.op_reg_reg(op,hopsize,oper[0]^.reg,helpreg);
+                               if pos=nil then
+                                 list.insertafter(helpins,list.first)
+                               else
+                                 list.insertafter(helpins,pos.next);
+                               oper[0]^.reg:=helpreg;
+                               ungetregisterinline(list,helpins,helpreg);
+                               forward_allocation(Tai(helpins.next),instr);
+                             end;
+                           oper[1]^.typ:=top_ref;
+                           new(oper[1]^.ref);
+                           oper[1]^.ref^:=spilltemplist[supreg];
+                         end;
+                     end;
+                 end;
+
+               { The i386 instruction set never gets boring...
+                 some opcodes do not support a memory location as destination }
+               if (oper[1]^.typ=top_ref) and
+                  (
+                   (oper[0]^.typ=top_const) or
+                   ((oper[0]^.typ=top_reg) and
+                    (getregtype(oper[0]^.reg)=regtype))
+                  ) then
+                 begin
+                   case opcode of
+                     A_IMUL :
+                       begin
+                         {Yikes! We just changed the destination register into
+                          a memory location above here.
+
+                          Situation examples:
+
+                          imul [ebp-12],r21d    ; We need a help register
+                          imul [ebp-12],<const> ; We need a help register
+
+                          Change into:
+
+                          mov r22d,[ebp-12]    ; Use a help instruction (only for IMUL)
+                          imul r22d,r21d       ; Replace reference by helpregister
+                          mov [ebp-12],r22d    ; Use another help instruction}
+                         getregisterinline(list,Tai(previous),subreg,helpreg);
+                         result:=true;
+                         {First help instruction.}
+                         helpins:=Taicpu.op_ref_reg(A_MOV,opsize,oper[1]^.ref^,helpreg);
+                         if previous=nil then
+                           list.insert(helpins)
+                         else
+                           list.insertafter(helpins,previous);
+                         {Second help instruction.}
+                         helpins:=Taicpu.op_reg_ref(A_MOV,opsize,helpreg,oper[1]^.ref^);
+                         dispose(oper[1]^.ref);
+                         oper[1]^.typ:=top_reg;
+                         oper[1]^.reg:=helpreg;
+                         list.insertafter(helpins,instr);
+                         ungetregisterinline(list,instr,helpreg);
+                       end;
+                   end;
+                 end;
+
+               { The i386 instruction set never gets boring...
+                 some opcodes do not support a memory location as source }
+               if (oper[0]^.typ=top_ref) and
+                  (oper[1]^.typ=top_reg) and
+                  (getregtype(oper[1]^.reg)=regtype) then
+                 begin
+                   case opcode of
+                     A_BT,A_BTS,
+                     A_BTC,A_BTR :
+                       begin
+                         {Yikes! We just changed the source register into
+                          a memory location above here.
+
+                          Situation example:
+
+                          bt  r21d,[ebp-12]   ; We need a help register
+
+                          Change into:
+
+                          mov r22d,[ebp-12]    ; Use a help instruction (only for IMUL)
+                          bt  r21d,r22d        ; Replace reference by helpregister}
+                         getregisterinline(list,Tai(previous),subreg,helpreg);
+                         result:=true;
+                         {First help instruction.}
+                         helpins:=Taicpu.op_ref_reg(A_MOV,opsize,oper[0]^.ref^,helpreg);
+                         if previous=nil then
+                           list.insert(helpins)
+                         else
+                           list.insertafter(helpins,previous);
+                         dispose(oper[0]^.ref);
+                         oper[0]^.typ:=top_reg;
+                         oper[0]^.reg:=helpreg;
+                         ungetregisterinline(list,helpins,helpreg);
+                       end;
+                   end;
+                 end;
+             end;
+           3:
+             begin
+               {$warning todo!!}
+             end;
+         end;
+       end;
+    end;
+
+
+{******************************************************************************
+                                  Trgx86fpu
 ******************************************************************************}
 
     constructor Trgx86fpu.create;
@@ -228,7 +615,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2003-12-24 00:12:57  florian
+  Revision 1.2  2004-01-12 16:37:59  peter
+    * moved spilling code from taicpu to rg
+
+  Revision 1.1  2003/12/24 00:12:57  florian
     * rg unified for i386/x86-64
 
   Revision 1.40  2003/10/17 15:08:34  peter

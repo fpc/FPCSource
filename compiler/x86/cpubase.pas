@@ -433,7 +433,7 @@ implementation
     function reg2opsize(r:Tregister):topsize;
       const
         subreg2opsize : array[tsubregister] of topsize =
-          (S_NO,S_B,S_B,S_W,S_L,S_D,S_NO);
+          (S_NO,S_B,S_B,S_W,S_L,S_D,S_NO,S_NO);
       begin
         reg2opsize:=S_L;
         case getregtype(r) of
@@ -535,7 +535,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.34  2003-12-26 13:19:16  florian
+  Revision 1.35  2004-01-12 16:37:59  peter
+    * moved spilling code from taicpu to rg
+
+  Revision 1.34  2003/12/26 13:19:16  florian
     * rtl and compiler compile with -Cfsse2
 
   Revision 1.33  2003/12/25 01:07:09  florian
