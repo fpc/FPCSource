@@ -15,13 +15,19 @@ Var LinuxMode : longint;
     
 BEGIN
   LinuxMode:=0;
-  if (Mode and stCreate)=stCreate then
+  if Mode=stCreate then
+  Begin
      LinuxMode:=Open_Creat;
-  Case (Mode and 3) of
-  0 : LinuxMode:=LinuxMode or Open_RdOnly;
-  1 : LinuxMode:=LinuxMode or Open_WrOnly;
-  2 : LinuxMode:=LinuxMode or Open_RdWr;
-  end;
+     LinuxMode:=LinuxMode or Open_RdWr;
+  end
+  else
+   Begin
+     Case (Mode and 3) of
+      0 : LinuxMode:=LinuxMode or Open_RdOnly;
+      1 : LinuxMode:=LinuxMode or Open_WrOnly;
+      2 : LinuxMode:=LinuxMode or Open_RdWr;
+     end;
+   end;
   FileOpen:=SYS_Open (pchar(@FileName[0]),LinuxMode,438 {666 octal});
   If FileOpen=-1 then FileOpen:=0;
   DosStreamError:=Errno;
