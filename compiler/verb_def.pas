@@ -101,7 +101,11 @@ begin
         if (status.compiledlines=1) then
           WriteLn(memavail shr 10,' Kb Free');
         if (status.currentline mod 100=0) then
+{$ifdef FPC}
           WriteLn(status.currentline,' ',memavail shr 10,'/',system.heapsize shr 10,' Kb Free');
+{$else}
+          WriteLn(status.currentline,' ',memavail shr 10,' Kb Free');
+{$endif}
       end
      else
    { Message }
@@ -176,7 +180,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  1998-06-16 11:32:19  peter
+  Revision 1.11  1998-06-19 15:40:00  peter
+    * bp7 fix
+
+  Revision 1.10  1998/06/16 11:32:19  peter
     * small cosmetic fixes
 
   Revision 1.9  1998/05/23 01:21:33  peter
