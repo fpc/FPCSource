@@ -4141,6 +4141,19 @@ and marks the file as closed.}
 \latex{\inputlisting{refex/ex5.pp}}
 \html{\input{refex/ex5.tex}}
 
+\function{BinStr}{Value : longint; cnt : byte)}{String}
+{\var{BinStr} returns a string with the binary representation
+of \var{Value}. The string has at most \var{cnt} characters.
+(i.e. only the \var{cnt} rightmost bits are taken into account)
+
+To have a complete representation of any longint-type value, you need 32
+bits, i.e. \var{cnt=32}
+}{None.}{\seep{Str},seep{Val},\seef{HexStr}}
+
+\latex{\inputlisting{refex/ex82.pp}}
+\html{\input{refex/ex82.tex}}
+
+
 \procedure{Blockread}{(Var F : File; Var Buffer; Var Count : Longint [; var
 Result : Longint])}
 {\var{Blockread} reads \var{count} or less records from file \var{F}. The
@@ -4435,6 +4448,18 @@ omitted, zero is returned.}
 
 \latex{\inputlisting{refex/ex30.pp}}
 \html{\input{refex/ex30.tex}}
+
+\function{HexStr}{Value : longint; cnt : byte)}{String}
+{\var{HexStr} returns a string with the hexadecimal representation
+of \var{Value}. The string has at most \var{cnt} charaters.
+ (i.e. only the \var{cnt} rightmost nibbles are taken into account)
+
+To have a complete representation of a Longint-type value, you need 8
+nibbles, i.e. \var{cnt=8}.
+}{None.}{\seep{Str},seep{Val},\seef{BinStr}}
+
+\latex{\inputlisting{refex/ex81.pp}}
+\html{\input{refex/ex81.tex}}
 
 \function{Hi}{(X : Ordinal type)}{Word or byte}
 {\var{Hi} returns the high byte or word from \var{X}, depending on the size
