@@ -2,12 +2,11 @@ Source: fpc
 Section: devel
 Priority: optional
 Maintainer: Peter Vreman <pfv@cooldown.demon.nl>
-Standards-Version: 2.5.0.0
+Standards-Version: 2.5.1.0
 
 Package: fp-compiler
 Architecture: i386
-Recommends:
-Depends: fp-rtl (= 0.99.12)
+Depends: fp-rtl (= 0.99.11-1)
 Suggests: fp-utils
 Replaces: fpc
 Description: Free Pascal Compiler
@@ -21,13 +20,15 @@ Description: Free Pascal Compiler
  
 Package: fp-rtl
 Architecture: i386
-Recommends: fp-compiler (= 0.99.12)
+Recommends: fp-compiler (= 0.99.11-1)
+Replaces: fpc
 Description: Free Pascal Runtime Library
  Runtime Libraries for the Free Pascal Compiler.
  
 Package: fp-utils
 Architecture: i386
-Recommends: fp-compiler (= 0.99.12)
+Recommends: fp-compiler (= 0.99.11-1)
+Replaces: fpc
 Description: Free Pascal Utils
  This package contains some handy utils for usage with the Free Pascal
  Compiler:
@@ -37,3 +38,27 @@ Description: Free Pascal Utils
    - ppudump : Dump the information stored in a .ppu (unit) file
    - ppumove : Place multiple units in a shared library
   
+Package: fp-fcl
+Architecture: i386
+Depends: fp-compiler (= 0.99.11-1), fp-rtl (= 0.99.11-1)
+Description: Free Pascal Free Component Library
+ Free Component Library for the Free Pascal Compiler.
+ 
+Package: fp-gtk
+Architecture: i386
+Depends: fp-compiler (= 0.99.11-1), fp-rtl (= 0.99.11-1)
+Description: Free Pascal GTK Bindings
+ GTK 1.2.x bindings for the Free Pascal Compiler.
+ 
+Package: fp-api
+Architecture: i386
+Depends: fp-compiler (= 0.99.11-1), fp-rtl (= 0.99.11-1)
+Description: Free Pascal API Units
+ API Units needed by Free Vision.
+ 
+Package: fp-fv
+Architecture: i386
+Depends: fp-compiler (= 0.99.11-1), fp-rtl (= 0.99.11-1), fp-api (= 0.99.11-1)
+Description: Free Pascal Free Vision
+ Free Turbo Vision clone for the Free Pascal Compiler.
+ 

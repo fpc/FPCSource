@@ -19,13 +19,14 @@ build-stamp:
 	@echo "--- Building"
 	dh_testdir
 
-# First make a new Compiler which will be used in the next compiles
-	$(MAKE) rtl_all compiler_all
-	$(MAKE) rtl_clean compiler_clean
-# Compile everything with the new compiler, the RTL must be the first
-	$(MAKE) rtl_all PP=$(NEWPP)
-	$(MAKE) compiler_all PP=$(NEWPP)
+# First make a new Compiler and RTL using a make cycle
+	$(MAKE) compiler_cycle
 	$(MAKE) utils_all PP=$(NEWPP)
+
+	$(MAKE) fcl_all PP=$(NEWPP)
+	$(MAKE) gtk_all PP=$(NEWPP)
+	$(MAKE) api_all PP=$(NEWPP)
+	$(MAKE) fv_all PP=$(NEWPP)
 
 	touch build-stamp
 
@@ -33,11 +34,18 @@ clean:
 	@echo "--- Cleaning"
 	dh_testdir
 	dh_testroot
-	rm -f build-stamp install-stamp
 
+	rm -f build-stamp install-stamp
+	rm -rf ${BUILD_DIR}
+	
 	$(MAKE) compiler_clean
 	$(MAKE) rtl_clean
 	$(MAKE) utils_clean
+
+	$(MAKE) fcl_clean
+	$(MAKE) gtk_clean
+	$(MAKE) api_clean
+	$(MAKE) fv_clean
 
 	dh_clean
 
@@ -52,6 +60,11 @@ install-stamp: build
 	$(MAKE) compiler_install PP=$(NEWPP) PREFIXINSTALLDIR=${INSTALL_DIR}/usr
 	$(MAKE) rtl_install PP=$(NEWPP) PREFIXINSTALLDIR=${INSTALL_DIR}/usr
 	$(MAKE) utils_install PP=$(NEWPP) PREFIXINSTALLDIR=${INSTALL_DIR}/usr
+
+	$(MAKE) fcl_install PP=$(NEWPP) PREFIXINSTALLDIR=${INSTALL_DIR}/usr
+	$(MAKE) gtk_install PP=$(NEWPP) PREFIXINSTALLDIR=${INSTALL_DIR}/usr
+	$(MAKE) api_install PP=$(NEWPP) PREFIXINSTALLDIR=${INSTALL_DIR}/usr
+	$(MAKE) fv_install PP=$(NEWPP) PREFIXINSTALLDIR=${INSTALL_DIR}/usr
 	
 	touch install-stamp
 
@@ -61,7 +74,11 @@ binary-indep:
 binary-arch: install \
 	fp-compiler \
 	fp-rtl \
-	fp-utils
+	fp-utils \
+	fp-fcl \
+	fp-gtk \
+	fp-api \
+	fp-fv
 
 fp-compiler:
 	@echo "--- Building: $@"
@@ -76,19 +93,7 @@ fp-compiler:
 	dh_md5sums		-p$@ -P$(BUILD_DIR)/$@
 	dh_builddeb		-p$@ -P$(BUILD_DIR)/$@
 
-fp-rtl:
-	@echo "--- Building: $@"
-	dh_installdocs		-p$@ -P$(BUILD_DIR)/$@
-#	dh_installchangelogs	-p$@ -P$(BUILD_DIR)/$@ src/ChangeLog
-	dh_movefiles		-p$@ -P$(BUILD_DIR)/$@
-	dh_compress		-p$@ -P$(BUILD_DIR)/$@
-	dh_fixperms		-p$@ -P$(BUILD_DIR)/$@
-	dh_installdeb	 	-p$@ -P$(BUILD_DIR)/$@
-	dh_gencontrol	 	-p$@ -P$(BUILD_DIR)/$@
-	dh_md5sums		-p$@ -P$(BUILD_DIR)/$@
-	dh_builddeb		-p$@ -P$(BUILD_DIR)/$@
-
-fp-utils:
+fp-rtl fp-utils fp-fcl fp-gtk fp-fv fp-api:
 	@echo "--- Building: $@"
 	dh_installdocs		-p$@ -P$(BUILD_DIR)/$@
 	dh_installchangelogs	-p$@ -P$(BUILD_DIR)/$@
