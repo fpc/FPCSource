@@ -953,7 +953,7 @@ implementation
                  end
                 else
                  begin
-                   identifier_not_found(s);
+                   Message1(sym_e_label_used_and_not_defined,s);
                    p:=cnothingnode.create;
                  end;
               end;
@@ -1175,7 +1175,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.100  2003-05-17 13:30:08  jonas
+  Revision 1.101  2003-05-23 15:15:36  peter
+    * better error for undefined ordinal labels
+
+  Revision 1.100  2003/05/17 13:30:08  jonas
     * changed tt_persistant to tt_persistent :)
     * tempcreatenode now doesn't accept a boolean anymore for persistent
       temps, but a ttemptype, so you can also create ansistring temps etc
