@@ -175,9 +175,6 @@ const
  ilQueryEAs      = 3;
  ilQueryFullName = 5;
 
-{This is the correct way to call external assembler procedures.}
-procedure syscall;external name '___SYSCALL';
-
 function DosSetFileInfo (Handle: longint; InfoLevel: cardinal; AFileStatus: PFileStatus;
         FileStatusLen: cardinal): cardinal; cdecl; external 'DOSCALLS' index 218;
 
@@ -225,6 +222,28 @@ function DosSetPathInfo(FileName:PChar;InfoLevel:longint;
                         Options:longint):longint; cdecl;
     external 'DOSCALLS' index 219;
 
+function DosOpen(FileName:PChar;var Handle:longint;var Action: Longint;
+                 InitSize,Attrib,OpenFlags,FileMode:cardinal;
+                 EA:Pointer):longint; cdecl;
+    external 'DOSCALLS' index 273;
+
+function DosClose(Handle:longint): longint; cdecl;
+    external 'DOSCALLS' index 257;
+
+function DosRead(Handle:longint; var Buffer; Count:longint;
+                 var ActCount:longint):longint; cdecl;
+    external 'DOSCALLS' index 281;
+function DosWrite(Handle:longint; const Buffer; Count:longint;
+                  var ActCount:longint):longint; cdecl;
+    external 'DOSCALLS' index 282;
+
+function DosSetFilePtr(Handle:longint;Pos:longint;Method:cardinal;
+                       var PosActual:longint):longint; cdecl;
+    external 'DOSCALLS' index 256;
+
+function DosSetFileSize(Handle:longint;Size:cardinal):longint; cdecl;
+    external 'DOSCALLS' index 272;
+
 type
   TDT=packed record
     Hour,
@@ -258,34 +277,39 @@ const
  FindResvdMask = $00003737; {Allowed bits in attribute
                              specification for DosFindFirst call.}
 
-{$ASMMODE INTEL}
-function FileOpen (const FileName: string; Mode: integer): longint; assembler;
-asm
- push ebx
- mov eax, Mode
-(* DenyAll if sharing not specified. *)
- test eax, 112
- jnz @FOpen1
- or eax, 16
-@FOpen1:
- mov ecx, eax
- mov eax, 7F2Bh
- mov edx, FileName
- call syscall
- pop ebx
-end {['eax', 'ebx', 'ecx', 'edx']};
+function FileOpen (const FileName: string; Mode: integer): longint;
+Var
+  Rc, Action, Handle: Longint;
+  P: PChar;
+begin
+  P:=StrAlloc(length(FileName)+1);
+  StrPCopy(P, FileName);
+(* DenyNone if sharing not specified. *)
+  if Mode and 112 = 0 then Mode:=Mode or 64;
+  Rc:=DosOpen(P, Handle, Action, 0, 0, 1, Mode, nil);
+  StrDispose(P);
+  If Rc=0 then
+    FileOpen:=Handle
+  else
+    FileOpen:=-RC;
+end;
 
-
-function FileCreate (const FileName: string): longint; assembler;
-asm
- push ebx
- mov eax, 7F2Bh
- mov ecx, ofReadWrite or faCreate or doDenyRW   (* Sharing to DenyAll *)
- mov edx, FileName
- call syscall
- pop ebx
-end {['eax', 'ebx', 'ecx', 'edx']};
-
+function FileCreate (const FileName: string): longint;
+Const
+  Mode = ofReadWrite or faCreate or doDenyRW;   (* Sharing to DenyAll *)
+Var
+  RC, Action, Handle: Longint;
+  P: PChar;
+Begin
+  P:=StrAlloc(length(FileName)+1);
+  StrPCopy(P, FileName);
+  RC:=DosOpen(P, Handle, Action, 0, 0, $12, Mode, Nil);
+  StrDispose(P);
+  If RC=0 then
+    FileCreate:=Handle
+  else
+    FileCreate:=-RC;
+End;
 
 function FileCreate (const FileName: string; Mode: longint): longint;
 begin
@@ -294,50 +318,30 @@ end;
 
 
 function FileRead (Handle: longint; var Buffer; Count: longint): longint;
-                                                                     assembler;
-asm
- push ebx
- mov eax, 3F00h
- mov ebx, Handle
- mov ecx, Count
- mov edx, Buffer
- call syscall
- jnc @FReadEnd
- mov eax, -1
-@FReadEnd:
- pop ebx
-end {['eax', 'ebx', 'ecx', 'edx']};
-
+Var
+  T: Longint;
+begin
+  DosRead(Handle, Buffer, Count, T);
+  FileRead:=T;
+end;
 
 function FileWrite (Handle: longint; const Buffer; Count: longint): longint;
-                                                                     assembler;
-asm
- push ebx
- mov eax, 4000h
- mov ebx, Handle
- mov ecx, Count
- mov edx, Buffer
- call syscall
- jnc @FWriteEnd
- mov eax, -1
-@FWriteEnd:
- pop ebx
-end {['eax', 'ebx', 'ecx', 'edx']};
+Var
+  T: Longint;
+begin
+  DosWrite(Handle, Buffer, Count, T);
+  FileWrite:=T;
+end;
 
-
-function FileSeek (Handle, FOffset, Origin: longint): longint; assembler;
-asm
- push ebx
- mov eax, Origin
- mov ah, 42h
- mov ebx, Handle
- mov edx, FOffset
- call syscall
- jnc @FSeekEnd
- mov eax, -1
-@FSeekEnd:
- pop ebx
-end {['eax', 'ebx', 'edx']};
+function FileSeek (Handle, FOffset, Origin: longint): longint;
+var
+  npos: longint;
+begin
+  if DosSetFilePtr(Handle, FOffset, Origin, npos)=0 Then
+    FileSeek:=npos
+  else
+    FileSeek:=-1;
+end;
 
 function FileSeek (Handle: longint; FOffset, Origin: Int64): Int64;
 begin
@@ -345,39 +349,16 @@ begin
   Result:=FileSeek(Handle,Longint(Foffset),Longint(Origin));
 end;
 
-procedure FileClose (Handle: longint); assembler;
-asm
- push ebx
- mov eax, Handle
- cmp eax, 2
- jbe @FCloseEnd
- mov ebx, eax
- mov eax, 3E00h
- call syscall
-@FCloseEnd:
- pop ebx
-end {['eax', 'ebx']};
+procedure FileClose (Handle: longint);
+begin
+  DosClose(Handle);
+end;
 
-
-function FileTruncate (Handle, Size: longint): boolean; assembler;
-asm
- push ebx
- mov eax, 7F25h
- mov ebx, Handle
- mov edx, Size
- call syscall
- jc @FTruncEnd
- mov eax, 4202h
- mov ebx, Handle
- mov edx, 0
- call syscall
- mov eax, 0
- jnc @FTruncEnd
- dec eax
-@FTruncEnd:
- pop ebx
-end {['eax', 'ebx', 'ecx', 'edx']};
-
+function FileTruncate (Handle, Size: longint): boolean;
+begin
+  FileTruncate:=DosSetFileSize(Handle, Size)=0;
+  FileSeek(Handle, 0, 2);
+end;
 
 function FileAge (const FileName: string): longint;
 var Handle: longint;
@@ -437,82 +418,78 @@ end;
 
 
 function FindNext (var Rslt: TSearchRec): longint;
-
-var SR: PSearchRec;
-    FStat: PFileFindBuf3;
-    Count: cardinal;
-    Err: cardinal;
-
+var
+  SR: PSearchRec;
+  FStat: PFileFindBuf3;
+  Count: cardinal;
+  Err: cardinal;
 begin
-            New (FStat);
-            Count := 1;
-            Err := DosFindNext (Rslt.FindHandle, FStat, SizeOf (FStat^),
-                                                                        Count);
-            if (Err = 0) and (Count = 0) then Err := 18;
-            FindNext := -Err;
-            if Err = 0 then
-                begin
-                    Rslt.Name := FStat^.Name;
-                    Rslt.Size := FStat^.FileSize;
-                    Rslt.Attr := FStat^.AttrFile;
-                    Rslt.ExcludeAttr := 0;
-                    TRec (Rslt.Time).T := FStat^.TimeLastWrite;
-                    TRec (Rslt.Time).D := FStat^.DateLastWrite;
-                end;
-            Dispose (FStat);
+  New (FStat);
+  Count := 1;
+  Err := DosFindNext (Rslt.FindHandle, FStat, SizeOf (FStat^),
+                                                              Count);
+  if (Err = 0) and (Count = 0) then Err := 18;
+  FindNext := -Err;
+  if Err = 0 then
+  begin
+    Rslt.Name := FStat^.Name;
+    Rslt.Size := FStat^.FileSize;
+    Rslt.Attr := FStat^.AttrFile;
+    Rslt.ExcludeAttr := 0;
+    TRec (Rslt.Time).T := FStat^.TimeLastWrite;
+    TRec (Rslt.Time).D := FStat^.DateLastWrite;
+  end;
+  Dispose (FStat);
 end;
 
 
 procedure FindClose (var F: TSearchrec);
-
-var SR: PSearchRec;
-
+var
+  SR: PSearchRec;
 begin
-    DosFindClose (F.FindHandle);
-    F.FindHandle := 0;
+  DosFindClose (F.FindHandle);
+  F.FindHandle := 0;
 end;
 
-
-function FileGetDate (Handle: longint): longint; assembler;
-asm
- push ebx
- mov ax, 5700h
- mov ebx, Handle
- call syscall
- mov eax, -1
- jc @FGetDateEnd
- mov ax, dx
- shld eax, ecx, 16
-@FGetDateEnd:
- pop ebx
-end {['eax', 'ebx', 'ecx', 'edx']};
-
+function FileGetDate (Handle: longint): longint;
+var
+  FStat: TFileStatus3;
+  Time: Longint;
+begin
+  DosError := DosQueryFileInfo(Handle, ilStandard, @FStat, SizeOf(FStat));
+  if DosError=0 then
+  begin
+    Time := FStat.TimeLastWrite + longint (FStat.DateLastWrite) shl 16;
+    if Time = 0 then
+      Time := FStat.TimeCreation + longint (FStat.DateCreation) shl 16;
+  end else
+    Time:=0;
+  FileGetDate:=Time;
+end;
 
 function FileSetDate (Handle, Age: longint): longint;
-var FStat: PFileStatus0;
-    RC: cardinal;
+var
+  FStat: PFileStatus0;
+  RC: cardinal;
 begin
-            New (FStat);
-            RC := DosQueryFileInfo (Handle, ilStandard, FStat,
-                                                              SizeOf (FStat^));
-            if RC <> 0 then
-                FileSetDate := -1
-            else
-                begin
-                    FStat^.DateLastAccess := Hi (Age);
-                    FStat^.DateLastWrite := Hi (Age);
-                    FStat^.TimeLastAccess := Lo (Age);
-                    FStat^.TimeLastWrite := Lo (Age);
-                    RC := DosSetFileInfo (Handle, ilStandard, FStat,
-                                                              SizeOf (FStat^));
-                    if RC <> 0 then
-                        FileSetDate := -1
-                    else
-                        FileSetDate := 0;
-                end;
-            Dispose (FStat);
+  New (FStat);
+  RC := DosQueryFileInfo (Handle, ilStandard, FStat, SizeOf (FStat^));
+  if RC <> 0 then
+    FileSetDate := -1
+  else
+  begin
+    FStat^.DateLastAccess := Hi (Age);
+    FStat^.DateLastWrite := Hi (Age);
+    FStat^.TimeLastAccess := Lo (Age);
+    FStat^.TimeLastWrite := Lo (Age);
+    RC := DosSetFileInfo (Handle, ilStandard, FStat, SizeOf (FStat^));
+    if RC <> 0 then
+      FileSetDate := -1
+    else
+      FileSetDate := 0;
+  end;
+  Dispose (FStat);
 end;
-
 
 function FileGetAttr (const FileName: string): longint;
 var
@@ -570,8 +547,6 @@ End;
 {****************************************************************************
                               Disk Functions
 ****************************************************************************}
-
-{$ASMMODE ATT}
 
 function DiskFree (Drive: byte): int64;
 
@@ -637,20 +612,13 @@ begin
 end;
 
 
-{$ASMMODE INTEL}
-function DirectoryExists (const Directory: string): boolean; assembler;
-asm
- mov ax, 4300h
- mov edx, Directory
- call syscall
- mov eax, 0
- jc @FExistsEnd
- test cx, 10h
- jz @FExistsEnd
- inc eax
-@FExistsEnd:
-end {['eax', 'ecx', 'edx']};
-
+function DirectoryExists (const Directory: string): boolean;
+var
+  SR: TSearchRec;
+begin
+  DirectoryExists:=FindFirst(Directory, faDirectory, SR)=0;
+  FindClose(SR);
+end;
 
 {****************************************************************************
                               Time Functions
@@ -672,8 +640,6 @@ begin
     MilliSecond:=DT.Sec100;
   end;
 end;
-
-{$asmmode default}
 
 {****************************************************************************
                               Misc Functions
@@ -770,7 +736,10 @@ end.
 
 {
   $Log$
-  Revision 1.37  2003-11-05 09:14:00  yuri
+  Revision 1.38  2003-11-23 15:50:07  yuri
+  * Now native
+
+  Revision 1.37  2003/11/05 09:14:00  yuri
   * exec fix
   * unused units removed
 
