@@ -22,6 +22,8 @@ interface
 {$linklib c}
 {$packrecords c}
 
+const curseslib = 'ncurses';
+
 const
   { boolean values }
   auto_left_margin              = 0;
@@ -600,7 +602,11 @@ type
   WriterFunc = function (P: PChar): Longint;
 
 var
-  cur_term : TerminalCommon_ptr1; external name 'cur_term';
+{$ifndef darwin}
+  cur_term : TerminalCommon_ptr1; cvar; external;
+{$else darwin}
+  cur_term : TerminalCommon_ptr1; external curseslib name '_cur_term';
+{$endif darwin}
   cur_term_booleans: ^TT_BoolArray;
   cur_term_numbers: ^TT_WordArray;
   cur_term_strings: ^TT_PCharArray;
@@ -665,13 +671,13 @@ begin
   tputs := F(P);
 end;
 
-function set_curterm(term: TerminalCommon_ptr1): TerminalCommon_ptr1; cdecl; external;
+function set_curterm(term: TerminalCommon_ptr1): TerminalCommon_ptr1; cdecl; external curseslib;
 
-procedure use_env(B: Longint); cdecl; external;
+procedure use_env(B: Longint); cdecl; external curseslib;
 
-function restartterm(Term: PChar; fd: Longint; var ErrCode: Longint): Longint; cdecl; external;
+function restartterm(Term: PChar; fd: Longint; var ErrCode: Longint): Longint; cdecl; external curseslib;
 
-function setuptermC(Term: PChar; fd: Longint; var ErrCode: Longint): Longint; cdecl; external name 'setupterm';
+function setuptermC(Term: PChar; fd: Longint; var ErrCode: Longint): Longint; cdecl; external curseslib name 'setupterm';
 
 function setupterm(Term: PChar; fd: Longint; var ErrCode: Longint): Longint;
 var
@@ -706,7 +712,7 @@ begin
     end;
 end;
 
-function del_curtermC(term: TerminalCommon_ptr1): Longint; cdecl; external name 'del_curterm';
+function del_curtermC(term: TerminalCommon_ptr1): Longint; cdecl; external curseslib name 'del_curterm';
 
 function del_curterm(term: TerminalCommon_ptr1): Longint;
 var
@@ -741,7 +747,11 @@ function tparam(const char *, char *, int, ...): PChar; cdecl; external;}
 end.
 {
   $Log$
-  Revision 1.4  2003-09-14 20:15:01  marco
+  Revision 1.5  2004-02-06 22:35:50  jonas
+    + some darwin support, doesn't work yet because of imported variables
+      problem
+
+  Revision 1.4  2003/09/14 20:15:01  marco
    * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
 
   Revision 1.3  2002/09/07 16:01:28  peter
