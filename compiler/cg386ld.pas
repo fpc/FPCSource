@@ -254,8 +254,6 @@ implementation
          hregister : tregister;
          loc : tloc;
          r : preference;
-         pushed : tpushed;
-
       begin
          otlabel:=truelabel;
          oflabel:=falselabel;
@@ -583,7 +581,7 @@ implementation
         vtWideString = 15;
         vtInt64      = 16;
 
-    procedure emit_mov_value_ref(const t:tlocation;const ref:treference);
+    procedure emit_mov_loc_ref(const t:tlocation;const ref:treference);
       begin
         case t.loc of
           LOC_REGISTER,
@@ -610,7 +608,7 @@ implementation
       end;
 
 
-    procedure emit_mov_addr_ref(const t:tlocation;const ref:treference);
+    procedure emit_lea_loc_ref(const t:tlocation;const ref:treference);
       begin
         case t.loc of
                LOC_MEM,
@@ -635,12 +633,11 @@ implementation
       var
         hp    : ptree;
         href  : treference;
-        hreg  : tregister;
         lt    : pdef;
         vtype : longint;
       begin
         clear_reference(p^.location.reference);
-        gettempofsizereference(parraydef(p^.resulttype)^.highrange*8,p^.location.reference);
+        gettempofsizereference((parraydef(p^.resulttype)^.highrange+1)*8,p^.location.reference);
         hp:=p;
         href:=p^.location.reference;
         while assigned(hp) do
@@ -663,30 +660,39 @@ implementation
                        else
                         if (lt^.deftype=orddef) and (porddef(lt)^.typ=uchar) then
                          vtype:=vtChar;
-                       emit_mov_value_ref(hp^.left^.location,href);
+                       emit_mov_loc_ref(hp^.left^.location,href);
                      end;
+          floatdef : begin
+                       vtype:=vtExtended;
+                       emit_lea_loc_ref(hp^.left^.location,href);
+                     end;
+        procvardef,
         pointerdef : begin
                        if is_pchar(lt) then
                         vtype:=vtPChar
                        else
                         vtype:=vtPointer;
-                       emit_mov_value_ref(hp^.left^.location,href);
+                       emit_mov_loc_ref(hp^.left^.location,href);
                      end;
        classrefdef : begin
                        vtype:=vtClass;
-                       emit_mov_value_ref(hp^.left^.location,href);
+                       emit_mov_loc_ref(hp^.left^.location,href);
+                     end;
+         objectdef : begin
+                       vtype:=vtObject;
+                       emit_mov_loc_ref(hp^.left^.location,href);
                      end;
          stringdef : begin
                        if is_shortstring(lt) then
                         begin
                           vtype:=vtString;
-                          emit_mov_addr_ref(hp^.left^.location,href);
+                          emit_lea_loc_ref(hp^.left^.location,href);
                         end
                        else
                         if is_ansistring(lt) then
                          begin
                            vtype:=vtAnsiString;
-                           emit_mov_value_ref(hp^.left^.location,href);
+                           emit_mov_loc_ref(hp^.left^.location,href);
                          end;
                      end;
            end;
@@ -707,7 +713,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.18  1998-09-23 09:58:48  peter
+  Revision 1.19  1998-09-23 17:49:59  peter
+    * high(arrayconstructor) is now correct
+    * procvardef support for variant record
+
+  Revision 1.18  1998/09/23 09:58:48  peter
     * first working array of const things
 
   Revision 1.17  1998/09/20 18:00:19  florian

@@ -338,6 +338,12 @@ unit pass_1;
            while assigned(hp) do
             begin
               firstpass(hp^.left);
+              case hp^.left^.resulttype^.deftype of
+               floatdef : begin
+                            gentypeconvnode(hp^.left,s80floatdef);
+                            firstpass(hp^.left);
+                          end;
+              end;
               if (pd=nil) then
                pd:=hp^.left^.resulttype
               else
@@ -349,11 +355,9 @@ unit pass_1;
               inc(len);
               hp:=hp^.right;
             end;
-           if len=0 then
-            Internalerror(4235);
          end;
         calcregisters(p,0,0,0);
-        p^.resulttype:=new(parraydef,init(0,len,pd));
+        p^.resulttype:=new(parraydef,init(0,len-1,pd));
         parraydef(p^.resulttype)^.IsConstructor:=true;
         parraydef(p^.resulttype)^.IsVariant:=varia;
         p^.location.loc:=LOC_REFERENCE;
@@ -5790,7 +5794,11 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.92  1998-09-23 15:46:37  florian
+  Revision 1.93  1998-09-23 17:50:00  peter
+    * high(arrayconstructor) is now correct
+    * procvardef support for variant record
+
+  Revision 1.92  1998/09/23 15:46:37  florian
     * problem with with and classes fixed
 
   Revision 1.91  1998/09/23 12:03:53  peter
