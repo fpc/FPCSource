@@ -1,4 +1,5 @@
 {$asmmode intel}
+{$inline on}
 
 procedure DoIt;
 begin
