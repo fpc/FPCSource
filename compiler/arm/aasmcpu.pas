@@ -219,7 +219,7 @@ implementation
          loadreg(0,_op1);
          loadreg(1,_op2);
          loadreg(2,_op3);
-         loadreg(3,_op3);
+         loadreg(3,_op4);
       end;
 
 
@@ -507,7 +507,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.38  2005-02-14 17:13:09  peter
+  Revision 1.39  2005-02-15 19:53:41  florian
+    * don't generate overflow results if they aren't necessary
+    * fixed op_reg_reg_reg_reg on arm
+
+  Revision 1.38  2005/02/14 17:13:09  peter
     * truncate log
 
   Revision 1.37  2005/02/13 18:55:19  florian

@@ -88,6 +88,9 @@ unit cgcpu;
         procedure a_loadaddr_ref_reg(list : taasmoutput;const ref : treference;r : tregister);override;
 
         procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aint);override;
+        procedure g_concatcopy_unaligned(list : taasmoutput;const source,dest : treference;len : aint);override;
+        procedure g_concatcopy_move(list : taasmoutput;const source,dest : treference;len : aint);
+        procedure g_concatcopy_internal(list : taasmoutput;const source,dest : treference;len : aint;aligned : boolean);
 
         procedure g_overflowcheck(list: taasmoutput; const l: tlocation; def: tdef); override;
         procedure g_overflowCheck_loc(List:TAasmOutput;const Loc:TLocation;def:TDef;ovloc : tlocation);override;
@@ -498,7 +501,7 @@ unit cgcpu;
                       shifterop_reset(so);
                       so.shiftmode:=SM_ASR;
                       so.shiftimm:=31;
-                      list.concat(taicpu.op_reg_reg_shifterop(A_CMP,overflowreg,overflowreg,so));
+                      list.concat(taicpu.op_reg_reg_shifterop(A_CMP,overflowreg,dst,so));
                     end
                   else
                     list.concat(taicpu.op_reg_const(A_CMP,overflowreg,0));
@@ -1149,7 +1152,37 @@ unit cgcpu;
       end;
 
 
-    procedure tcgarm.g_concatcopy(list : taasmoutput;const source,dest : treference;len : aint);
+    procedure tcgarm.g_concatcopy_move(list : taasmoutput;const source,dest : treference;len : aint);
+      var
+        paraloc1,paraloc2,paraloc3 : TCGPara;
+      begin
+        paraloc1.init;
+        paraloc2.init;
+        paraloc3.init;
+        paramanager.getintparaloc(pocall_default,1,paraloc1);
+        paramanager.getintparaloc(pocall_default,2,paraloc2);
+        paramanager.getintparaloc(pocall_default,3,paraloc3);
+        paramanager.allocparaloc(list,paraloc3);
+        a_param_const(list,OS_INT,len,paraloc3);
+        paramanager.allocparaloc(list,paraloc2);
+        a_paramaddr_ref(list,dest,paraloc2);
+        paramanager.allocparaloc(list,paraloc2);
+        a_paramaddr_ref(list,source,paraloc1);
+        paramanager.freeparaloc(list,paraloc3);
+        paramanager.freeparaloc(list,paraloc2);
+        paramanager.freeparaloc(list,paraloc1);
+        alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+        alloccpuregisters(list,R_FPUREGISTER,paramanager.get_volatile_registers_fpu(pocall_default));
+        a_call_name(list,'FPC_MOVE');
+        dealloccpuregisters(list,R_FPUREGISTER,paramanager.get_volatile_registers_fpu(pocall_default));
+        dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+        paraloc3.done;
+        paraloc2.done;
+        paraloc1.done;
+      end;
+
+
+    procedure tcgarm.g_concatcopy_internal(list : taasmoutput;const source,dest : treference;len : aint;aligned : boolean);
       var
         srcref,dstref:treference;
         srcreg,destreg,countreg,r:tregister;
@@ -1172,8 +1205,8 @@ unit cgcpu;
           dstref.offset:=size;
           r:=getintregister(list,size2opsize[size]);
           a_load_ref_reg(list,size2opsize[size],size2opsize[size],srcref,r);
-          a_load_reg_ref(list,size2opsize[size],size2opsize[size],r,dstref);
           list.concat(setoppostfix(taicpu.op_reg_reg_const(A_SUB,countreg,countreg,1),PF_S));
+          a_load_reg_ref(list,size2opsize[size],size2opsize[size],r,dstref);
           list.concat(setcondition(taicpu.op_sym(A_B,l),C_NE));
           { keep the registers alive }
           list.concat(taicpu.op_reg_reg(A_MOV,countreg,countreg));
@@ -1189,7 +1222,7 @@ unit cgcpu;
         srcref:=source;
         if cs_littlesize in aktglobalswitches then
           helpsize:=8;
-        if (len<=helpsize) then
+        if (len<=helpsize) and aligned then
           begin
             copysize:=4;
             cgsize:=OS_32;
@@ -1249,6 +1282,18 @@ unit cgcpu;
                 end;
 }
           end;
+      end;
+
+
+    procedure tcgarm.g_concatcopy_unaligned(list : taasmoutput;const source,dest : treference;len : aint);
+      begin
+        g_concatcopy_internal(list,source,dest,len,false);
+      end;
+
+
+    procedure tcgarm.g_concatcopy(list : taasmoutput;const source,dest : treference;len : aint);
+      begin
+        g_concatcopy_internal(list,source,dest,len,true);
       end;
 
 
@@ -1624,7 +1669,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.69  2005-02-14 17:13:09  peter
+  Revision 1.70  2005-02-15 19:53:41  florian
+    * don't generate overflow results if they aren't necessary
+    * fixed op_reg_reg_reg_reg on arm
+
+  Revision 1.69  2005/02/14 17:13:09  peter
     * truncate log
 
   Revision 1.68  2005/02/13 18:55:19  florian

@@ -509,18 +509,21 @@ interface
                   if right.location.loc <> LOC_CONSTANT then
                     // reg64 - reg64
                     cg.a_op_reg_reg_reg_checkoverflow(exprasmlist,OP_SUB,location.size,
-                      right.location.register,left.location.register,location.register,checkoverflow,ovloc)
+                      right.location.register,left.location.register,location.register,
+                      checkoverflow and (cs_check_overflow in aktlocalswitches),ovloc)
                   else
                     // reg64 - const64
                     cg.a_op_const_reg_reg_checkoverflow(exprasmlist,OP_SUB,location.size,
-                      right.location.value,left.location.register,location.register,checkoverflow,ovloc);
+                      right.location.value,left.location.register,location.register,
+                      checkoverflow and (cs_check_overflow in aktlocalswitches),ovloc);
                 end
               else
                 begin
                   // const64 - reg64
                   location_force_reg(exprasmlist,left.location,left.location.size,true);
                   cg.a_op_reg_reg_reg_checkoverflow(exprasmlist,OP_SUB,location.size,
-                    right.location.register,left.location.register,location.register,checkoverflow,ovloc);
+                    right.location.register,left.location.register,location.register,
+                    checkoverflow and (cs_check_overflow in aktlocalswitches),ovloc);
                 end;
             end;
           else
@@ -532,10 +535,12 @@ interface
             begin
               if (right.location.loc = LOC_CONSTANT) then
                 cg64.a_op64_const_reg_reg_checkoverflow(exprasmlist,op,location.size,right.location.value64,
-                  left.location.register64,location.register64,checkoverflow,ovloc)
+                  left.location.register64,location.register64,
+                  checkoverflow and (cs_check_overflow in aktlocalswitches),ovloc)
               else
                 cg64.a_op64_reg_reg_reg_checkoverflow(exprasmlist,op,location.size,right.location.register64,
-                  left.location.register64,location.register64,checkoverflow,ovloc);
+                  left.location.register64,location.register64,
+                  checkoverflow and (cs_check_overflow in aktlocalswitches),ovloc);
             end;
           subn:
             begin
@@ -548,12 +553,14 @@ interface
                     // reg64 - reg64
                     cg64.a_op64_reg_reg_reg_checkoverflow(exprasmlist,OP_SUB,location.size,
                       right.location.register64,left.location.register64,
-                      location.register64,checkoverflow,ovloc)
+                      location.register64,
+                      checkoverflow and (cs_check_overflow in aktlocalswitches),ovloc)
                   else
                     // reg64 - const64
                     cg64.a_op64_const_reg_reg_checkoverflow(exprasmlist,OP_SUB,location.size,
                       right.location.value64,left.location.register64,
-                      location.register64,checkoverflow,ovloc)
+                      location.register64,
+                      checkoverflow and (cs_check_overflow in aktlocalswitches),ovloc)
                 end
               else
                 begin
@@ -561,7 +568,8 @@ interface
                   location_force_reg(exprasmlist,left.location,left.location.size,true);
                   cg64.a_op64_reg_reg_reg_checkoverflow(exprasmlist,OP_SUB,location.size,
                     right.location.register64,left.location.register64,
-                    location.register64,checkoverflow,ovloc);
+                    location.register64,
+                    checkoverflow and (cs_check_overflow in aktlocalswitches),ovloc);
                 end;
             end;
           else
@@ -672,11 +680,11 @@ interface
           if (right.location.loc >LOC_CONSTANT) then
             cg.a_op_reg_reg_reg_checkoverflow(exprasmlist,cgop,location.size,
                left.location.register,right.location.register,
-               location.register,checkoverflow,ovloc)
+               location.register,checkoverflow and (cs_check_overflow in aktlocalswitches),ovloc)
           else
             cg.a_op_const_reg_reg_checkoverflow(exprasmlist,cgop,location.size,
                right.location.value,left.location.register,
-               location.register,checkoverflow,ovloc);
+               location.register,checkoverflow and (cs_check_overflow in aktlocalswitches),ovloc);
         end
       else  { subtract is a special case since its not commutative }
         begin
@@ -687,11 +695,11 @@ interface
               if right.location.loc<>LOC_CONSTANT then
                 cg.a_op_reg_reg_reg_checkoverflow(exprasmlist,OP_SUB,location.size,
                     right.location.register,left.location.register,
-                    location.register,checkoverflow,ovloc)
+                    location.register,checkoverflow and (cs_check_overflow in aktlocalswitches),ovloc)
               else
                 cg.a_op_const_reg_reg_checkoverflow(exprasmlist,OP_SUB,location.size,
                   aword(right.location.value),left.location.register,
-                  location.register,checkoverflow,ovloc);
+                  location.register,checkoverflow and (cs_check_overflow in aktlocalswitches),ovloc);
             end
           else
             begin
@@ -699,7 +707,7 @@ interface
               cg.a_load_const_reg(exprasmlist,location.size,
                 aword(left.location.value),tmpreg);
               cg.a_op_reg_reg_reg_checkoverflow(exprasmlist,OP_SUB,location.size,
-                right.location.register,tmpreg,location.register,checkoverflow,ovloc);
+                right.location.register,tmpreg,location.register,checkoverflow and (cs_check_overflow in aktlocalswitches),ovloc);
             end;
         end;
 
@@ -781,7 +789,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.43  2005-02-14 17:13:06  peter
+  Revision 1.44  2005-02-15 19:53:41  florian
+    * don't generate overflow results if they aren't necessary
+    * fixed op_reg_reg_reg_reg on arm
+
+  Revision 1.43  2005/02/14 17:13:06  peter
     * truncate log
 
   Revision 1.42  2005/02/13 19:12:05  florian
