@@ -112,7 +112,7 @@ implementation
         location_force_mem(exprasmlist,left.location);
         location.register:=cg.getfpuregister(exprasmlist,location.size);
         { Load memory in fpu register }
-        cg.a_loadfpu_ref_reg(exprasmlist,location.size,left.location.reference,location.register);
+        cg.a_loadfpu_ref_reg(exprasmlist,OS_F32,left.location.reference,location.register);
         tg.ungetiftemp(exprasmlist,left.location.reference);
 
         { Convert value in fpu register from integer to float }
@@ -235,7 +235,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.27  2004-08-01 19:01:10  florian
+  Revision 1.28  2004-08-22 20:11:38  florian
+    * morphos now takes any pointer var. as libbase
+    * alignment for sparc fixed
+    * int -> double conversion on sparc fixed
+
+  Revision 1.27  2004/08/01 19:01:10  florian
     * float to float and int to float fixed
 
   Revision 1.26  2004/06/20 08:55:32  florian

@@ -45,9 +45,9 @@ type
 
 const
 {$ifdef ansistring_bits}
-  CurrentPPUVersion=43;
+  CurrentPPUVersion=44;
 {$else}
-  CurrentPPUVersion=43;
+  CurrentPPUVersion=44;
 {$endif}
 
 { buffer sizes }
@@ -153,7 +153,7 @@ type
 
   tppuerror=(ppuentrytoobig,ppuentryerror);
 
-  tppuheader=packed record { 36 bytes }
+  tppuheader=record
     id       : array[1..3] of char; { = 'PPU' }
     ver      : array[1..3] of char;
     compiler : word;
@@ -1053,7 +1053,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.54  2004-08-17 16:29:21  jonas
+  Revision 1.55  2004-08-22 20:11:38  florian
+    * morphos now takes any pointer var. as libbase
+    * alignment for sparc fixed
+    * int -> double conversion on sparc fixed
+
+  Revision 1.54  2004/08/17 16:29:21  jonas
     + padalgingment field for recordsymtables (saved by recorddefs)
     + support for Macintosh PowerPC alignment (if the first field of a record
       or union has an alignment > 4, then the record or union size must be

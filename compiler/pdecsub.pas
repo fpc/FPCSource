@@ -1174,8 +1174,9 @@ begin
       if consume_sym(sym,symtable) then
         begin
           if (sym.typ=varsym) and
-            (is_voidpointer(tvarsym(sym).vartype.def) or
-             is_32bitint(tvarsym(sym).vartype.def)) then
+            ((tvarsym(sym).vartype.def.deftype=pointerdef) or
+              is_32bitint(tvarsym(sym).vartype.def)
+            ) then
             begin
               tprocdef(pd).libsym:=sym;
               pd.concatpara(nil,tvarsym(sym).vartype,tvarsym(sym),nil,true);
@@ -2274,7 +2275,12 @@ const
 end.
 {
   $Log$
-  Revision 1.187  2004-08-22 11:24:27  peter
+  Revision 1.188  2004-08-22 20:11:38  florian
+    * morphos now takes any pointer var. as libbase
+    * alignment for sparc fixed
+    * int -> double conversion on sparc fixed
+
+  Revision 1.187  2004/08/22 11:24:27  peter
     * don't insert result variables for constructor/destructors
 
   Revision 1.186  2004/08/13 17:53:37  jonas

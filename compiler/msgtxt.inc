@@ -291,7 +291,7 @@ const msgtxt : array[0..000153,1..240] of char=(
   '03197_E_Each argument must have',' it'#039's own location'#000+
   '03198_E_Each argument must have an explicit location'#000+
   '03199_E_Unknown argument location'#000+
-  '03200_E_32 Bit Integer or Pointer Variable expected'#000+
+  '03200_E_32 Bit-Integer or pointer variable expected'#000+
   '03201_E_Goto statements aren'#039't allowed between different procedure'+
   's'#000+
   '03202_E_Expres','sion too complicated - FPU stack overflow'#000+
