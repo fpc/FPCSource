@@ -147,7 +147,7 @@ implementation
         { set result location }
         location.loc:=LOC_REGISTER;
         location.register:=resultreg;
-        cg.g_overflowcheck(exprasmlist,self);
+        cg.g_overflowcheck(exprasmlist,Location,ResultType.Def);
       end;
 
 
@@ -352,7 +352,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2003-06-01 21:38:07  peter
+  Revision 1.10  2003-06-04 20:59:37  mazen
+  + added size of destination in code gen methods
+  + making g_overflowcheck declaration same as
+    ancestor's method declaration
+
+  Revision 1.9  2003/06/01 21:38:07  peter
     * getregisterfpu size parameter added
     * op_const_reg size parameter added
     * sparc updates

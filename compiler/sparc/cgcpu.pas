@@ -30,7 +30,7 @@ interface
        cginfo,cgbase,cgobj,cg64f32,
        aasmbase,aasmtai,aasmcpu,
        cpubase,cpuinfo,
-       node,symconst;
+       node,symconst,SymType;
 
     type
       TCgSparc=class(tcg)
@@ -54,9 +54,9 @@ interface
         { move instructions }
         procedure a_load_const_reg(list:TAasmOutput;size:tcgsize;a:aword;reg:tregister);override;
         procedure a_load_const_ref(list:TAasmOutput;size:tcgsize;a:aword;const ref:TReference);override;
-        procedure a_load_reg_ref(list:TAasmOutput;size:tcgsize;reg:tregister;const ref:TReference);override;
-        procedure a_load_ref_reg(list:TAasmOutput;size:tcgsize;const ref:TReference;reg:tregister);override;
-        procedure a_load_reg_reg(list:TAasmOutput;fromsize,tosize:tcgsize;reg1,reg2:tregister);override;
+        procedure a_load_reg_ref(list:TAasmOutput;FromSize,ToSize:TCgSize;reg:TRegister;const ref:TReference);override;
+        procedure a_load_ref_reg(list:TAasmOutput;FromSize,ToSize:TCgSize;const ref:TReference;reg:tregister);override;
+        procedure a_load_reg_reg(list:TAasmOutput;FromSize,ToSize:TCgSize;reg1,reg2:tregister);override;
         procedure a_loadaddr_ref_reg(list:TAasmOutput;const ref:TReference;r:tregister);override;
         { fpu move instructions }
         procedure a_loadfpu_reg_reg(list:TAasmOutput;reg1, reg2:tregister);override;
@@ -69,7 +69,7 @@ interface
         procedure a_jmp_cond(list:TAasmOutput;cond:TOpCmp;l:tasmlabel);{ override;}
         procedure a_jmp_flags(list:TAasmOutput;const f:TResFlags;l:tasmlabel);override;
         procedure g_flags2reg(list:TAasmOutput;Size:TCgSize;const f:tresflags;reg:TRegister);override;
-        procedure g_overflowCheck(List:TAasmOutput;const p:TNode);override;
+        procedure g_overflowCheck(List:TAasmOutput;const Loc:TLocation;def:TDef);override;
         procedure g_stackframe_entry(list:TAasmOutput;localsize:LongInt);override;
         procedure g_restore_all_registers(list:TAasmOutput;accused,acchiused:boolean);override;
         procedure g_restore_frame_pointer(list:TAasmOutput);override;
@@ -250,7 +250,7 @@ implementation
         with LocPara do
           case loc of
             LOC_REGISTER,LOC_CREGISTER:
-              a_load_ref_reg(list,sz,r,Register);
+              a_load_ref_reg(list,sz,sz,r,Register);
             LOC_REFERENCE:
               begin
                 { Code conventions need the parameters being allocated in %o6+92. See
@@ -261,8 +261,8 @@ implementation
                 ref.base:=locpara.reference.index;
                 ref.offset:=locpara.reference.offset;
                 tmpreg := get_scratch_reg_int(list,sz);
-                a_load_ref_reg(list,sz,r,tmpreg);
-                a_load_reg_ref(list,sz,tmpreg,ref);
+                a_load_ref_reg(list,sz,sz,r,tmpreg);
+                a_load_reg_ref(list,sz,sz,tmpreg,ref);
                 free_scratch_reg(list,tmpreg);
               end;
             LOC_FPUREGISTER,LOC_CFPUREGISTER:
@@ -297,7 +297,7 @@ implementation
               ref.offset := locpara.reference.offset;
               tmpreg := get_scratch_reg_address(list);
               a_loadaddr_ref_reg(list,r,tmpreg);
-              a_load_reg_ref(list,OS_ADDR,tmpreg,ref);
+              a_load_reg_ref(list,OS_ADDR,OS_ADDR,tmpreg,ref);
               free_scratch_reg(list,tmpreg);
             end;
           else
@@ -350,18 +350,18 @@ implementation
           begin
             zeroreg.enum:=R_INTREGISTER;
             zeroreg.number:=NR_G0;
-            a_load_reg_ref(list,size,zeroreg,ref);
+            a_load_reg_ref(list,size,size,zeroreg,ref);
           end
         else
           inherited a_load_const_ref(list,size,a,ref);
       end;
 
 
-    procedure TCgSparc.a_load_reg_ref(list:TAasmOutput;size:TCGSize;reg:tregister;const Ref:TReference);
+    procedure TCgSparc.a_load_reg_ref(list:TAasmOutput;FromSize,ToSize:TCGSize;reg:tregister;const Ref:TReference);
       var
         op:tasmop;
       begin
-        case size of
+        case ToSize of
           { signed integer registers }
           OS_8,
           OS_S8:
@@ -379,11 +379,11 @@ implementation
       end;
 
 
-    procedure TCgSparc.a_load_ref_reg(list:TAasmOutput;size:TCgSize;const ref:TReference;reg:tregister);
+    procedure TCgSparc.a_load_ref_reg(list:TAasmOutput;FromSize,ToSize:TCgSize;const ref:TReference;reg:tregister);
       var
         op:tasmop;
       begin
-        case size of
+        case Fromsize of
           { signed integer registers }
           OS_S8:
             Op:=A_LDSB;{Load Signed Byte}
@@ -613,32 +613,28 @@ implementation
       end;
 
 
-    procedure TCgSparc.a_jmp_always(List:TAasmOutput;l:TAsmLabel);
-      begin
-        List.Concat(TAiCpu.op_sym(A_BA,objectlibrary.newasmsymbol(l.name)));
-      end;
-
-
-    procedure TCgSparc.a_jmp_cond(list:TAasmOutput;cond:TOpCmp;l:TAsmLabel);
-      var
-        ai:TAiCpu;
-      begin
-        ai:=TAiCpu.Op_sym(A_BA,l);
-        ai.SetCondition(TOpCmp2AsmCond[cond]);
-        list.Concat(ai);
-        list.Concat(TAiCpu.Op_none(A_NOP));
-      end;
-
-
-    procedure TCgSparc.a_jmp_flags(list:TAasmOutput;const f:TResFlags;l:tasmlabel);
-      var
-        ai:taicpu;
-      begin
-        ai := Taicpu.op_sym(A_BA,l);
-        ai.SetCondition(flags_to_cond(f));
-        list.Concat(ai);
-        list.Concat(TAiCpu.Op_none(A_NOP));
-      end;
+procedure TCgSparc.a_jmp_always(List:TAasmOutput;l:TAsmLabel);
+  begin
+    List.Concat(TAiCpu.op_sym(A_BA,objectlibrary.newasmsymbol(l.name)));
+  end;
+procedure TCgSparc.a_jmp_cond(list:TAasmOutput;cond:TOpCmp;l:TAsmLabel);
+  var
+    ai:TAiCpu;
+  begin
+    ai:=TAiCpu.Op_sym(A_BA,l);
+    ai.SetCondition(TOpCmp2AsmCond[cond]);
+    list.Concat(ai);
+    list.Concat(TAiCpu.Op_none(A_NOP));
+  end;
+procedure TCgSparc.a_jmp_flags(list:TAasmOutput;const f:TResFlags;l:tasmlabel);
+  var
+    ai:taicpu;
+  begin
+    ai := Taicpu.op_sym(A_BA,l);
+    ai.SetCondition(flags_to_cond(f));
+    list.Concat(ai);
+    list.Concat(TAiCpu.Op_none(A_NOP));
+  end;
 
 
     procedure TCgSparc.g_flags2reg(list:TAasmOutput;Size:TCgSize;const f:tresflags;reg:TRegister);
@@ -652,29 +648,30 @@ implementation
         list.Concat(ai);
         list.Concat(TAiCpu.Op_none(A_NOP));
       end;
-
-
-    procedure TCgSparc.g_overflowCheck(List:TAasmOutput;const p:TNode);
-      var
-        hl:TAsmLabel;
+procedure TCgSparc.g_overflowCheck(List:TAasmOutput;const Loc:TLocation;def:TDef);
+  var
+    hl : tasmlabel;
+    r:Tregister;
+  begin
+    if not(cs_check_overflow in aktlocalswitches)
+    then
+      exit;
+    objectlibrary.getlabel(hl);
+    if not((def.deftype=pointerdef)or
+          ((def.deftype=orddef)and
+           (torddef(def).typ in [u64bit,u16bit,u32bit,u8bit,uchar,bool8bit,bool16bit,bool32bit])))
+    then
       begin
-        if not(cs_check_overflow in aktlocalswitches) then
-          exit;
-        objectlibrary.getlabel(hl);
-        if not((p.resulttype.def.deftype=pointerdef) or
-           ((p.resulttype.def.deftype=orddef) and
-            (torddef(p.resulttype.def).typ in [u64bit,u16bit,u32bit,u8bit,uchar,
-                                             bool8bit,bool16bit,bool32bit]))) then
-          begin
-{$warning TODO Overflow check}
-            a_jmp_always(list,hl)
-          end
-        else
-          a_jmp_cond(list,OC_NONE,hl);
-        a_call_name(list,'FPC_OVERFLOW');
-        a_label(list,hl);
-      end;
-
+        //r.enum:=R_CR7;
+        //list.concat(taicpu.op_reg(A_MCRXR,r));
+        //a_jmp_cond(list,A_BA,C_OV,hl)
+        a_jmp_always(list,hl)
+      end
+    else
+      a_jmp_cond(list,OC_AE,hl);
+    a_call_name(list,'FPC_OVERFLOW');
+    a_label(list,hl);
+  end;
 
   { *********** entry/exit code and address loading ************ }
 
@@ -767,7 +764,7 @@ implementation
             begin
               if len < 8 then
                 begin
-                  a_load_ref_ref(list,int_cgsize(len),source,dest);
+                  a_load_ref_ref(list,int_cgsize(len),int_cgsize(len),source,dest);
                   if delsource then
                     reference_release(list,source);
                 end
@@ -790,7 +787,7 @@ implementation
         if loadref then
           begin
             src.base := get_scratch_reg_address(list);
-            a_load_ref_reg(list,OS_32,source,src.base);
+            a_load_ref_reg(list,OS_32,OS_32,source,src.base);
             orgsrc := false;
           end
         else
@@ -876,8 +873,8 @@ implementation
             r.enum:=R_INTREGISTER;
             r.number:=NR_O0;
             a_reg_alloc(list,r);
-            a_load_ref_reg(list,OS_32,src,r);
-            a_load_reg_ref(list,OS_32,r,dst);
+            a_load_ref_reg(list,OS_32,OS_32,src,r);
+            a_load_reg_ref(list,OS_32,OS_32,r,dst);
             inc(src.offset,4);
             inc(dst.offset,4);
             a_reg_dealloc(list,r);
@@ -888,8 +885,8 @@ implementation
             r.enum:=R_INTREGISTER;
             r.number:=NR_O0;
             a_reg_alloc(list,r);
-            a_load_ref_reg(list,OS_16,src,r);
-            a_load_reg_ref(list,OS_16,r,dst);
+            a_load_ref_reg(list,OS_16,OS_16,src,r);
+            a_load_reg_ref(list,OS_16,OS_16,r,dst);
             inc(src.offset,2);
             inc(dst.offset,2);
             a_reg_dealloc(list,r);
@@ -899,8 +896,8 @@ implementation
             r.enum:=R_INTREGISTER;
             r.number:=NR_O0;
             a_reg_alloc(list,r);
-            a_load_ref_reg(list,OS_8,src,r);
-            a_load_reg_ref(list,OS_8,r,dst);
+            a_load_ref_reg(list,OS_8,OS_8,src,r);
+            a_load_reg_ref(list,OS_8,OS_8,r,dst);
             a_reg_dealloc(list,r);
           end;
         if orgsrc then
@@ -999,7 +996,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.56  2003-06-01 21:38:06  peter
+  Revision 1.57  2003-06-04 20:59:37  mazen
+  + added size of destination in code gen methods
+  + making g_overflowcheck declaration same as
+    ancestor's method declaration
+
+  Revision 1.56  2003/06/01 21:38:06  peter
     * getregisterfpu size parameter added
     * op_const_reg size parameter added
     * sparc updates

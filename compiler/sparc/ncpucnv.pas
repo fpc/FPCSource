@@ -160,7 +160,7 @@ procedure TSparctypeconvnode.second_int_to_bool;
             begin
               reference_release(exprasmlist,left.location.reference);
               hreg2:=rg.getregisterint(exprasmlist,opsize);
-              cg.a_load_ref_reg(exprasmlist,opsize,left.location.reference,hreg2);
+              cg.a_load_ref_reg(exprasmlist,OpSize,OpSize,left.location.reference,hreg2);
             end
           else
             hreg2 := left.location.register;
@@ -258,7 +258,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2003-06-01 21:38:06  peter
+  Revision 1.17  2003-06-04 20:59:37  mazen
+  + added size of destination in code gen methods
+  + making g_overflowcheck declaration same as
+    ancestor's method declaration
+
+  Revision 1.16  2003/06/01 21:38:06  peter
     * getregisterfpu size parameter added
     * op_const_reg size parameter added
     * sparc updates
