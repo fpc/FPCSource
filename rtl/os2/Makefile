@@ -1395,7 +1395,7 @@ rtlconst$(PPUEXT) : $(OBJPASDIR)/rtlconst.pp
 sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/sysconst.pp
 dateutil$(PPUEXT) : $(OBJPASDIR)/dateutil.pp
-	$(COMPILER) $(OBJPASDIR)/dateutil.pp
+        $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/dateutil.pp
 ucomplex$(PPUEXT): $(INC)/ucomplex.pp math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT)
 mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)

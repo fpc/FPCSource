@@ -1363,7 +1363,7 @@ rtlconst$(PPUEXT) : $(OBJPASDIR)/rtlconst.pp
 sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/sysconst.pp
 dateutils$(PPUEXT) : $(OBJPASDIR)/dateutils.pp
-	$(COMPILER) $(OBJPASDIR)/dateutils.pp
+        $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/dateutils.pp
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT)
 mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMUNIT)$(PPUEXT)

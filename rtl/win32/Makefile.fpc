@@ -204,7 +204,7 @@ sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUE
         $(COMPILER) $(OBJPASDIR)/sysconst.pp
 
 dateutils$(PPUEXT) : $(OBJPASDIR)/dateutils.pp
-        $(COMPILER) $(OBJPASDIR)/dateutils.pp
+        $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/dateutils.pp
 
 #
 # Other system-independent RTL Units
