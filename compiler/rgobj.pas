@@ -22,6 +22,9 @@
 
 {$i fpcdefs.inc}
 
+{ Allow duplicate allocations, can be used to get the .s file written }
+{ $define ALLOWDUPREG}
+
 {# @abstract(Abstract register allocator unit)
    This unit contains services to allocate, free
    references and registers which are used by
@@ -357,13 +360,13 @@ unit rgobj;
           coalesced_moves,constrained_moves:Tlinkedlist;
           { the following two contain the common (generic) code for all }
           { get- and ungetregisterxxx functions/procedures              }
-          function getregistergenother(list: taasmoutput; const lowreg, highreg: Tregisterindex;
-              var unusedregs:Totherregisterset;var countunusedregs:byte): tregister;
+          function getregistergenother(list: taasmoutput; const lowreg, highreg: tsuperregister;
+              var unusedregs:Tsuperregisterset;var countunusedregs:byte): tregister;
           function getregistergenint(list:Taasmoutput;subreg:Tsubregister;
                                      const lowreg,highreg:Tsuperregister;
                                      var fusedinproc,unusedregs:Tsuperregisterset):Tregister;
           procedure ungetregistergen(list: taasmoutput; r: tregister;
-              const usableregs:totherregisterset;var unusedregs: totherregisterset; var countunusedregs: byte);
+              const usableregs:tsuperregisterset;var unusedregs: tsuperregisterset; var countunusedregs: byte);
           procedure ungetregistergenint(list:taasmoutput;r:Tregister;
                                         const usableregs:Tsuperregisterset;
                                         var unusedregs:Tsuperregisterset);
@@ -488,20 +491,21 @@ unit rgobj;
      end;
 
 
-    function trgobj.getregistergenother(list: taasmoutput; const lowreg, highreg: Tregisterindex;
-        var unusedregs: totherregisterset; var countunusedregs: byte): tregister;
+    function trgobj.getregistergenother(list: taasmoutput; const lowreg, highreg: tsuperregister;
+        var unusedregs: tsuperregisterset; var countunusedregs: byte): tregister;
       var
-        i: tregisterindex;
+        i: tsuperregister;
         r: Tregister;
       begin
-         for i:=low(tregisterindex) to high(tregisterindex) do
+         for i:=lowreg to highreg do
            begin
               if i in unusedregs then
                 begin
                    exclude(unusedregs,i);
                    include(used_in_proc_other,i);
                    dec(countunusedregs);
-                   r:=regnumber_table[i];
+{$warning Only FPU Registers supported}
+                   r:=newreg(R_FPUREGISTER,i,R_SUBNONE);
                    list.concat(tai_regalloc.alloc(r));
                    result := r;
                    exit;
@@ -545,19 +549,19 @@ unit rgobj;
 
 
     procedure trgobj.ungetregistergen(list: taasmoutput; r: tregister;
-        const usableregs: totherregisterset; var unusedregs: totherregisterset; var countunusedregs: byte);
+        const usableregs: tsuperregisterset; var unusedregs: tsuperregisterset; var countunusedregs: byte);
       var
-        regidx : tregisterindex;
+        supreg : tsuperregister;
       begin
-         regidx:=findreg_by_number(r);
+         supreg:=getsupreg(r);
          { takes much time }
-         if not(regidx in usableregs) then
+         if not(supreg in usableregs) then
            exit;
-         if (regidx in unusedregs) then
+         if (supreg in unusedregs) then
            exit
          else
           inc(countunusedregs);
-        include(unusedregs,regidx);
+        include(unusedregs,supreg);
         list.concat(tai_regalloc.dealloc(r));
       end;
 
@@ -623,7 +627,10 @@ unit rgobj;
           add_edges_used(supreg);
          end
        else
-         internalerror(200301103);
+{$ifndef ALLOWDUPREG}
+         internalerror(200301103)
+{$endif ALLOWDUPREG}
+         ;
        getexplicitregisterint:=r;
     end;
 
@@ -647,7 +654,10 @@ unit rgobj;
               end;
          end
        else
-         internalerror(200305061);
+{$ifndef ALLOWDUPREG}
+         internalerror(200305061)
+{$endif ALLOWDUPREG}
+       ;
     end;
 
     procedure Trgobj.deallocexplicitregistersint(list:Taasmoutput;r:Tsuperregisterset);
@@ -667,22 +677,24 @@ unit rgobj;
               end;
          end
        else
-         internalerror(200305062);
+{$ifndef ALLOWDUPREG}
+         internalerror(200305061)
+{$endif ALLOWDUPREG}
+         ;
     end;
 
 
     { tries to allocate the passed register, if possible }
     function trgobj.getexplicitregisterfpu(list : taasmoutput; r : Tregister) : tregister;
-
-      var regidx : tregisterindex;
-
+      var
+        supreg : tsuperregister;
       begin
-         regidx:=findreg_by_number(r);
-         if regidx in unusedregsfpu then
+         supreg:=getsupreg(r);
+         if supreg in unusedregsfpu then
            begin
               dec(countunusedregsfpu);
-              exclude(unusedregsfpu,regidx);
-              include(used_in_proc_other,regidx);
+              exclude(unusedregsfpu,supreg);
+              include(used_in_proc_other,supreg);
               list.concat(tai_regalloc.alloc(r));
               getexplicitregisterfpu:=r;
            end
@@ -697,7 +709,7 @@ unit rgobj;
         if countunusedregsfpu=0 then
           internalerror(10);
 {$warning TODO firstsavefpureg}
-        result := getregistergenother(list,{firstsavefpureg,lastsavefpureg,}0,0,
+        result := getregistergenother(list,firstsavefpureg,lastsavefpureg,
           unusedregsfpu,countunusedregsfpu);
       end;
 
@@ -714,8 +726,7 @@ unit rgobj;
       begin
         if countunusedregsmm=0 then
            internalerror(10);
-{$warning TODO firstsavemmreg}
-       result := getregistergenother(list,{firstsavemmreg,lastsavemmreg,}0,0,
+       result := getregistergenother(list,firstsavemmreg,lastsavemmreg,
                    unusedregsmm,countunusedregsmm);
       end;
 
@@ -2009,7 +2020,6 @@ unit rgobj;
     {Returns true if any help registers have been used.}
 
     var i:byte;
-        r:Tsuperregister;
         p,q:Tai;
         regs_to_spill_set:Tsuperregisterset;
         spill_temps:^Tspill_temp_list;
@@ -2200,7 +2210,10 @@ end.
 
 {
   $Log$
-  Revision 1.69  2003-09-03 15:55:01  peter
+  Revision 1.70  2003-09-03 21:06:45  peter
+    * fixes for FPU register allocation
+
+  Revision 1.69  2003/09/03 15:55:01  peter
     * NEWRA branch merged
 
   Revision 1.68  2003/09/03 11:18:37  florian
