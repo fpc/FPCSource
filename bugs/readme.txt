@@ -311,6 +311,7 @@ Fixed bugs:
   bug0255.pp   internal error 10 with in and function calls         OK 0.99.12 (FK)
   bug0256.pp   problem with conditionnals in TP mode                OK 0.99.11 (PM)
   bug0257.pp   problem with procvars in tp mode                     OK 0.99.11 (PM)
+  bug0258.pp   bug in small const set extension to large sets       OK 0.99.12 (PM)
 
 
 Unproducable bugs:
@@ -346,4 +347,5 @@ bug0244.pp   nested procedures can't have same name as global ones (same as bug0
 bug0245.pp   assigning pointers to address of consts is allowed (refused by BP !)
 bug0246.pp   const para can be changed without error
 bug0252.pp   typecasting not possible within typed const
-bug0258.pp   bug in small const set extension to large sets
+bug0259.pp   problem with optimizer for real math (use -O1)
+bug0260.pp   problem with VMT generation if non virtual method has a virtual overload
