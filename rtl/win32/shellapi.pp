@@ -861,9 +861,9 @@ Function SHGetNewLinkInfo (pszLinkTo:LPCWSTR;pszDir:LPCWSTR; pszName:LPWSTR; pfM
        SHGNLI_PIDL              = $000000001;    { pszLinkTo is a pidl }
        SHGNLI_PREFIXNAME        = $000000002;    { Make name "Shortcut to xxx" }
        SHGNLI_NOUNIQUE          = $000000004;    { don't do the unique name generation }
-{$if (_WIN32_IE >= 0x0501)}
+// {if (_WIN32_IE >= 0x0501)}
        SHGNLI_NOLNK             = $000000008;    { don't add ".lnk" extension }
-{$endif}
+// {$endif}
     { _WIN2_IE >= 0x0501 }
 //
 // End SHGetFileInfo
