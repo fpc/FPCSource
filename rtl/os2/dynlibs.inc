@@ -41,7 +41,7 @@ var
  ErrPath: array [0..259] of char;
  Handle: longint;
 begin
- if DosLoadModule (@ErrPath, SizeOf (ErrPath), PChar (Name), Handle) <> 0
+ if DosLoadModule (@ErrPath, SizeOf (ErrPath), PChar (Name), Handle) = 0
                                 then Result := Handle else Result := NilHandle;
 end;
 
@@ -62,7 +62,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2002-09-07 16:01:24  peter
+  Revision 1.4  2004-10-24 11:44:27  hajny
+    * wrong condition for DosLoadModule
+
+  Revision 1.3  2002/09/07 16:01:24  peter
     * old logs removed and tabs fixed
 
 }
