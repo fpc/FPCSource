@@ -15,7 +15,7 @@
 
  **********************************************************************}
 
-function sys_uname(var name:utsname):cint;  external name 'FPC_SYSC_UNAME';
+function sys_uname(var name:utsname):cint; [public,alias:'FPC_SYSC_UNAME'];
 
 Var
         mib  : array[0..1] of cint;
@@ -57,7 +57,7 @@ Begin
         sys_Uname:=rval;
 end;
 
-function GetDomainName(Name:PChar; NameLen:Cint):cint;  external name 'FPC_SYSC_GETDOMAINNAME';
+function GetDomainName(Name:PChar; NameLen:Cint):cint; [public,alias:'FPC_SYSC_GETDOMAINNAME'];
 
 Const Mib_GetDomainName : array[0..1] of cint=(CTL_KERN,KERN_NISDOMAINNAME);
 
@@ -71,7 +71,7 @@ begin
           GetDomainName:=0;
 end;          
 
-function GetHostName(Name:PChar; NameLen:Cint):cint;  external name 'FPC_SYSC_GETHOSTNAME';
+function GetHostName(Name:PChar; NameLen:Cint):cint;[public,alias:'FPC_SYSC_GETHOSTNAME'];
 
 Const Mib_GetHostName : array[0..1] of cint=(CTL_KERN,KERN_HOSTNAME);
 
@@ -87,7 +87,10 @@ End;
 
 {
  $Log$
- Revision 1.4  2002-09-08 16:20:27  marco
+ Revision 1.5  2002-10-25 15:46:48  marco
+  * Should be alias.
+
+ Revision 1.4  2002/09/08 16:20:27  marco
   * Forgot external name's
 
  Revision 1.3  2002/09/08 16:11:59  marco
