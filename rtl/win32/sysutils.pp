@@ -56,8 +56,8 @@ Var
   FN : string;
 begin
   FN:=FileName+#0;
-  result := CreateFile(@FN[1], AccessMode[Mode and 3],
-                       ShareMode[(Mode and $F0) shr 4], nil, OPEN_EXISTING,
+  result := CreateFile(@FN[1], dword(AccessMode[Mode and 3]),
+                       dword(ShareMode[(Mode and $F0) shr 4]), nil, OPEN_EXISTING,
                        FILE_ATTRIBUTE_NORMAL, 0);
 end;
 
@@ -686,7 +686,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.10  2001-10-25 21:23:49  peter
+  Revision 1.11  2001-12-11 23:10:18  carl
+  * Range check error fix
+
+  Revision 1.10  2001/10/25 21:23:49  peter
     * added 64bit fileseek
 
   Revision 1.9  2001/06/03 15:18:01  peter
