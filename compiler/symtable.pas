@@ -1937,7 +1937,8 @@ implementation
 
          { write static symtable
            needed for local debugging of unit functions }
-        if (current_module^.flags and uf_local_browser)<>0 then
+        if ((current_module^.flags and uf_local_browser)<>0) and
+           assigned(current_module^.localsymtable) then
           psymtable(current_module^.localsymtable)^.write;
       { write all browser section }
         if (current_module^.flags and uf_has_browser)<>0 then
@@ -1953,7 +1954,8 @@ implementation
            current_ppu^.writeentry(ibendbrowser);
            current_ppu^.do_crc:=true;
          end;
-        if (current_module^.flags and uf_local_browser)<>0 then
+        if ((current_module^.flags and uf_local_browser)<>0) and
+           assigned(current_module^.localsymtable) then
           psymtable(current_module^.localsymtable)^.write_browser;
 
       { the last entry ibend is written automaticly }
@@ -2348,7 +2350,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.42  1999-08-13 21:33:13  peter
+  Revision 1.43  1999-08-27 10:39:24  pierre
+   * uf_local_browser made problem when computing interface CRC
+
+  Revision 1.42  1999/08/13 21:33:13  peter
     * support for array constructors extended and more error checking
 
   Revision 1.41  1999/08/13 14:24:22  pierre
