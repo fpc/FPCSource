@@ -221,25 +221,25 @@ endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override TARGET_DIRS+=paszlib pasjpeg regexpr netdb md5
 ifeq ($(OS_TARGET),linux)
-override TARGET_DIRS+=inet gdbint libasync mysql ibase postgres oracle odbc pthreads sqlite libc
+override TARGET_DIRS+=gdbint libasync mysql ibase postgres oracle odbc pthreads sqlite libc
 endif
 ifeq ($(OS_TARGET),go32v2)
 override TARGET_DIRS+=gdbint
 endif
 ifeq ($(OS_TARGET),win32)
-override TARGET_DIRS+=inet gdbint mysql ibase odbc sqlite
+override TARGET_DIRS+=gdbint mysql ibase odbc sqlite
 endif
 ifeq ($(OS_TARGET),freebsd)
-override TARGET_DIRS+=inet gdbint libasync mysql ibase postgres oracle odbc sqlite pthreads
+override TARGET_DIRS+=gdbint libasync mysql ibase postgres oracle odbc sqlite pthreads
 endif
 ifeq ($(OS_TARGET),netbsd)
-override TARGET_DIRS+=inet gdbint libasync mysql ibase postgres oracle odbc
+override TARGET_DIRS+=gdbint libasync mysql ibase postgres oracle odbc
 endif
 ifeq ($(OS_TARGET),openbsd)
-override TARGET_DIRS+=inet gdbint libasync mysql ibase postgres oracle odbc
+override TARGET_DIRS+=gdbint libasync mysql ibase postgres oracle odbc
 endif
 ifeq ($(OS_TARGET),darwin)
-override TARGET_DIRS+=inet libasync mysql ibase postgres oracle odbc sqlite pthreads
+override TARGET_DIRS+=libasync mysql ibase postgres oracle odbc sqlite pthreads
 endif
 override INSTALL_FPCPACKAGE=y
 override INSTALL_FPCSUBDIR=packages/base
@@ -1473,7 +1473,6 @@ TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_NETDB=1
 TARGET_DIRS_MD5=1
 ifeq ($(OS_TARGET),linux)
-TARGET_DIRS_INET=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_LIBASYNC=1
 TARGET_DIRS_MYSQL=1
@@ -1489,7 +1488,6 @@ ifeq ($(OS_TARGET),go32v2)
 TARGET_DIRS_GDBINT=1
 endif
 ifeq ($(OS_TARGET),win32)
-TARGET_DIRS_INET=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_MYSQL=1
 TARGET_DIRS_IBASE=1
@@ -1497,7 +1495,6 @@ TARGET_DIRS_ODBC=1
 TARGET_DIRS_SQLITE=1
 endif
 ifeq ($(OS_TARGET),freebsd)
-TARGET_DIRS_INET=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_LIBASYNC=1
 TARGET_DIRS_MYSQL=1
@@ -1509,7 +1506,6 @@ TARGET_DIRS_SQLITE=1
 TARGET_DIRS_PTHREADS=1
 endif
 ifeq ($(OS_TARGET),netbsd)
-TARGET_DIRS_INET=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_LIBASYNC=1
 TARGET_DIRS_MYSQL=1
@@ -1519,7 +1515,6 @@ TARGET_DIRS_ORACLE=1
 TARGET_DIRS_ODBC=1
 endif
 ifeq ($(OS_TARGET),openbsd)
-TARGET_DIRS_INET=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_LIBASYNC=1
 TARGET_DIRS_MYSQL=1
@@ -1529,7 +1524,6 @@ TARGET_DIRS_ORACLE=1
 TARGET_DIRS_ODBC=1
 endif
 ifeq ($(OS_TARGET),darwin)
-TARGET_DIRS_INET=1
 TARGET_DIRS_LIBASYNC=1
 TARGET_DIRS_MYSQL=1
 TARGET_DIRS_IBASE=1
@@ -1763,51 +1757,6 @@ md5_makefiles:
 md5:
 	$(MAKE) -C md5 all
 .PHONY: md5_all md5_debug md5_smart md5_release md5_units md5_examples md5_shared md5_install md5_sourceinstall md5_exampleinstall md5_distinstall md5_zipinstall md5_zipsourceinstall md5_zipexampleinstall md5_zipdistinstall md5_clean md5_distclean md5_cleanall md5_info md5_makefiles md5
-endif
-ifdef TARGET_DIRS_INET
-inet_all:
-	$(MAKE) -C inet all
-inet_debug:
-	$(MAKE) -C inet debug
-inet_smart:
-	$(MAKE) -C inet smart
-inet_release:
-	$(MAKE) -C inet release
-inet_units:
-	$(MAKE) -C inet units
-inet_examples:
-	$(MAKE) -C inet examples
-inet_shared:
-	$(MAKE) -C inet shared
-inet_install:
-	$(MAKE) -C inet install
-inet_sourceinstall:
-	$(MAKE) -C inet sourceinstall
-inet_exampleinstall:
-	$(MAKE) -C inet exampleinstall
-inet_distinstall:
-	$(MAKE) -C inet distinstall
-inet_zipinstall:
-	$(MAKE) -C inet zipinstall
-inet_zipsourceinstall:
-	$(MAKE) -C inet zipsourceinstall
-inet_zipexampleinstall:
-	$(MAKE) -C inet zipexampleinstall
-inet_zipdistinstall:
-	$(MAKE) -C inet zipdistinstall
-inet_clean:
-	$(MAKE) -C inet clean
-inet_distclean:
-	$(MAKE) -C inet distclean
-inet_cleanall:
-	$(MAKE) -C inet cleanall
-inet_info:
-	$(MAKE) -C inet info
-inet_makefiles:
-	$(MAKE) -C inet makefiles
-inet:
-	$(MAKE) -C inet all
-.PHONY: inet_all inet_debug inet_smart inet_release inet_units inet_examples inet_shared inet_install inet_sourceinstall inet_exampleinstall inet_distinstall inet_zipinstall inet_zipsourceinstall inet_zipexampleinstall inet_zipdistinstall inet_clean inet_distclean inet_cleanall inet_info inet_makefiles inet
 endif
 ifdef TARGET_DIRS_GDBINT
 gdbint_all:

@@ -4,17 +4,17 @@
 
 [target]
 dirs=paszlib pasjpeg regexpr netdb md5
-dirs_linux=inet gdbint libasync mysql ibase postgres oracle odbc \
+dirs_linux=gdbint libasync mysql ibase postgres oracle odbc \
             pthreads sqlite libc
-dirs_win32=inet gdbint mysql ibase odbc sqlite
+dirs_win32=gdbint mysql ibase odbc sqlite
 dirs_go32v2=gdbint
-dirs_netbsd=inet gdbint libasync \
+dirs_netbsd=gdbint libasync \
             mysql ibase postgres oracle odbc 
-dirs_openbsd=inet gdbint libasync \
+dirs_openbsd=gdbint libasync \
             mysql ibase postgres oracle odbc 
-dirs_freebsd=inet gdbint libasync \
+dirs_freebsd=gdbint libasync \
              mysql ibase postgres oracle odbc sqlite pthreads
-dirs_darwin=inet libasync \
+dirs_darwin=libasync \
              mysql ibase postgres oracle odbc sqlite pthreads
 
 [install]
