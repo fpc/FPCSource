@@ -60,7 +60,8 @@ implementation
 
       begin
          if (p^.symtable^.symtabletype=withsymtable) and
-            (pwithsymtable(p^.symtable)^.direct_with) then
+            (pwithsymtable(p^.symtable)^.direct_with) and
+            (p^.symtableentry^.typ=varsym) then
            begin
               p1:=getcopy(ptree(pwithsymtable(p^.symtable)^.withrefnode));
               p1:=gensubscriptnode(pvarsym(p^.symtableentry),p1);
@@ -453,7 +454,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.33  1999-05-27 19:45:21  peter
+  Revision 1.34  1999-06-01 19:26:39  peter
+    * fixed bug 249
+
+  Revision 1.33  1999/05/27 19:45:21  peter
     * removed oldasm
     * plabel -> pasmlabel
     * -a switches to source writing automaticly
