@@ -62,7 +62,7 @@ interface
     function PadSpace(const s:string;len:longint):string;
     function GetToken(var s:string;endchar:char):string;
     procedure uppervar(var s : string);
-    function hexstr(val : cardinal;cnt : longint) : string;
+    function hexstr(val : cardinal;cnt : cardinal) : string;
     function tostru(i:cardinal) : string;
     function tostr(i : longint) : string;
     function int64tostr(i : int64) : string;
@@ -329,7 +329,7 @@ uses
       end;
 
 
-    function hexstr(val : cardinal;cnt : longint) : string;
+    function hexstr(val : cardinal;cnt : cardinal) : string;
       const
         HexTbl : array[0..15] of char='0123456789ABCDEF';
       var
@@ -803,7 +803,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.20  2002-07-07 11:13:34  carl
+  Revision 1.21  2002-07-26 11:16:35  jonas
+    * fixed (actual and potential) range errors
+
+  Revision 1.20  2002/07/07 11:13:34  carl
     * range check error fix (patch from Sergey)
 
   Revision 1.19  2002/07/07 09:52:32  florian

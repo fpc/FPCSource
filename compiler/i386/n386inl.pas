@@ -275,7 +275,7 @@ implementation
          scratch_reg : boolean;
          hregister : tregister;
          asmop : tasmop;
-         L : longint;
+         L : cardinal;
          pushedregs : TMaybesave;         
          cgop : topcg;
         begin
@@ -284,7 +284,7 @@ implementation
           if tcallparanode(tcallparanode(left).right).left.nodetype=ordconstn then
             begin
               { calculate bit position }
-              l:=1 shl (tordconstnode(tcallparanode(tcallparanode(left).right).left).value mod 32);
+              l:=cardinal(1 shl (tordconstnode(tcallparanode(tcallparanode(left).right).left).value mod 32));
 
               { determine operator }
               if inlinenumber=in_include_x_y then
@@ -354,7 +354,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.50  2002-07-25 18:02:33  carl
+  Revision 1.51  2002-07-26 11:16:35  jonas
+    * fixed (actual and potential) range errors
+
+  Revision 1.50  2002/07/25 18:02:33  carl
    + added generic inline nodes
 
   Revision 1.49  2002/07/20 11:58:02  florian
