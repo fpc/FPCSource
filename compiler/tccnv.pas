@@ -654,15 +654,19 @@ implementation
                begin
                  if is_procsym_call(p^.left) then
                   begin
-                    if p^.left^.right=nil then
-                     begin
-                       p^.left^.treetype:=loadn;
-                       { are at same offset so this could be spared, but
-                       it more secure to do it anyway }
-                       p^.left^.symtableentry:=p^.left^.symtableprocentry;
-                       p^.left^.resulttype:=pprocsym(p^.left^.symtableentry)^.definition;
+                    {if p^.left^.right=nil then
+                     begin}
+                       if (p^.left^.symtableprocentry^.owner^.symtabletype=objectsymtable) and
+                          (pobjectdef(p^.left^.symtableprocentry^.owner^.defowner)^.is_class) then
+                        hp:=genloadmethodcallnode(pprocsym(p^.left^.symtableprocentry),p^.left^.symtableproc,
+                              getcopy(p^.left^.methodpointer))
+                       else
+                        hp:=genloadcallnode(pprocsym(p^.left^.symtableprocentry),p^.left^.symtableproc);
+                       disposetree(p^.left);
+                       firstpass(hp);
+                       p^.left:=hp;
                        aprocdef:=pprocdef(p^.left^.resulttype);
-                     end
+                   (*  end
                     else
                      begin
                        p^.left^.right^.treetype:=loadn;
@@ -686,7 +690,7 @@ implementation
                           putnode(hp);
                           exit;
                         end;
-                     end;
+                     end; *)
                   end
                  else
                   begin
@@ -924,7 +928,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.45  1999-08-07 14:21:04  florian
+  Revision 1.46  1999-08-13 15:43:59  peter
+    * fixed proc->procvar conversion for tp_procvar mode, it now uses
+      also the genload(method)call() function
+
+  Revision 1.45  1999/08/07 14:21:04  florian
     * some small problems fixed
 
   Revision 1.44  1999/08/04 13:03:14  jonas
