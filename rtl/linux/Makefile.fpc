@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 loaders=prt0 dllprt0 cprt0 gprt0 cprt21 gprt21
-units=$(SYSTEMUNIT) baseunix systhrds objpas strings \
+units=$(SYSTEMUNIT) baseunix strings systhrds objpas syscall unixutil \
       heaptrc lineinfo \
       $(LINUXUNIT) unix initc $(CPU_UNITS) \
       dos crt objects printer ggigraph \
@@ -39,7 +39,7 @@ targetdir=.
 libname=libfprtl.so
 libversion=1.0
 libunits=$(SYSTEMUNIT) objpas strings \
-      unix ports \
+      unix  ports \
       dos crt objects printer \
       sysutils typinfo math \
       cpu mmx getopts heaptrc \
@@ -52,7 +52,7 @@ PROCINC=$(RTL)/$(CPU_TARGET)
 UNIXINC=$(RTL)/unix
 
 ifeq ($(CPU_TARGET),i386)
-CPU_UNITS=ports cpu mmx graph
+CPU_UNITS=x86 ports cpu mmx graph
 else
 CPU_UNITS=
 endif
@@ -61,7 +61,7 @@ UNITPREFIX=rtl
 
 ifeq ($(findstring 1.0.,$(FPC_VERSION)),)
 SYSTEMUNIT=system
-LINUXUNIT=
+LINUXUNIT=linux
 PRT0=prt0
 else
 SYSTEMUNIT=syslinux
