@@ -264,16 +264,6 @@ begin
         if p[i]='/' then p[i]:='\';
 end;
 
-function do_isdevice(handle:longint):boolean;
-begin
-  if (handle=stdoutputhandle) or (handle=stdinputhandle) or
-  (handle=stderrorhandle) then
-    do_isdevice:=FALSE;
-  else
-    do_isdevice:=TRUE;
-end;
-
-
 procedure do_close(h:longint);
 
 begin
@@ -575,25 +565,22 @@ begin
 end;
 
 
-procedure mkdir(const s : string);[IOCheck];
+procedure mkdir(const s : string);
 
 begin
-    If InOutRes <> 0 then exit;
     DosDir($39,s);
 end;
 
 
-procedure rmdir(const s : string);[IOCheck];
+procedure rmdir(const s : string);
 
 begin
-    If InOutRes <> 0 then exit;
     DosDir($3a,s);
 end;
 
-procedure chdir(const s : string);[IOCheck];
+procedure chdir(const s : string);
 
 begin
-    If InOutRes <> 0 then exit;
     DosDir($3b,s);
 end;
 

@@ -91,19 +91,21 @@ interface
 uses    strings;
 
 type    Pstring=^string;
-{$ELSE} {$IFDEF FVISION_PSTRING}
-uses    strings,objects;
 {$ELSE}
+ {$IFDEF FVISION_PSTRING}
+uses    strings,objects;
+ {$ELSE}
     {$ERROR Pstring source unknown.}
+ {$ENDIF}
 {$ENDIF}
 
-{$ifdef FPK}
+{$ifdef FPC}
     {$packrecords 1}
-{$endif FPK}
+{$endif FPC}
 
 type    Tbytearray=array[0..$fff0] of byte;
         Pbytearray=^Tbytearray;
-        Tchararray=array[0..$fff0] of byte;
+        Tchararray=array[0..$fff0] of char;
         Pchararray=^Tchararray;
         Twordarray=array[0..$7ff8] of word;
         Pwordarray=^Twordarray;
@@ -594,7 +596,7 @@ The filename must consist of the driveletter followed by a semicolon.}
 function dosopen(filenaam:Pchar;var handle,action:longint;
                  initsize:longint;attrib,openflags,filemode:longint;
                  ea:PEAop2):word;
-{This variant of dosOpen always creates or overwrites a file.}
+{This variant of dosopen always creates or overwrites a file.}
 function doscreate(filenaam:Pchar;var handle:longint;
                    attrib,openmode:longint):word;
 {This variant of dosOpen always opens an existing file.}
@@ -643,7 +645,7 @@ function dossetfileptr(handle:word;pos:longint;method:longint;
  actual position.}
 function dossetfileptr(handle:word;pos:longint):word;
 {This variant returns the current filepointer.}
-function dosgetfileptr(handle:word;posactual:longint):word;
+function dosgetfileptr(handle:word;var posactual:longint):word;
 
 {Use dosqueryfileinfo or dosquerypathinfo to get the size of a file.}
 
@@ -1588,9 +1590,9 @@ const   pt16bit=0;
  naam           = Must be nil for Pchar or '' for string variant if ordinal
                   is zero. Otherwise it contains the procname.
  proctype       = One of the ptxxxx constants.}
-function dosqueryproctype(handle:longint;ordinal:longint;naam:Pchar;
+function dosqueryproctype(handle,ordinal:longint;naam:Pchar;
                           var proctype:longint):word;
-function dosqueryproctype(handle:longint;ordinal:longint;naam:string;
+function dosqueryproctype(handle,ordinal:longint;const naam:string;
                           var proctype:longint):word;
 
 {****************************************************************************
@@ -2034,15 +2036,15 @@ type    Pinserttable=^Tinserttable;
 function dosgetmessage(table:Pinserttable;tablesize:longint;buf:Pchar;
                        bufsize,msgnumber:longint;filenaam:Pchar;
                        var msgsize:longint):word;
-{And a variant using strings and open arrays.}
+{And a variant using strings and open arrays.
 function dosgetmessage(const table:array of Pstring;var buf:string;
-                       bufsize,msgnumber:longint;const filenaam:Pchar):word;
+                       bufsize,msgnumber:longint;const filenaam:Pchar):word;}
 
 {And a variant using strings, but with a Pchar buffer, because of long
- messages, and open arrays.}
+ messages, and open arrays.
 function dosgetmessage(const table:array of Pstring;buf:Pchar;
                        bufsize,msgnumber:longint;const filenaam:string;
-                       msgsize:longint):word;
+                       msgsize:longint):word;}
 
 {Insert textstrings into a message. The message must be loaded before with
  dosGetMessage. This function is used when the insert strings are not yet
@@ -2058,17 +2060,17 @@ function dosinsertmessage(table:Pinserttable;tablesize:longint;
                           message:Pchar;srcmessagesize:longint;
                           buf:Pchar;bufsize:longint;
                           var dstmessagesize:longint):word;
-{And a variant using strings and open arrays.}
+{And a variant using strings and open arrays.
 function dosinsertmessage(table:array of Pstring;
                           const message:string;
-                          var buf:openstring):word;
+                          var buf:openstring):word;}
 
 {And a variant using strings, but with a Pchar buffer, because of long
- messages, and open arrays.}
+ messages, and open arrays.
 function dosinsertmessage(table:array of Pstring;
                           message:Pchar;srcmessagesize:longint;
                           buf:Pchar;bufsize:longint;
-                          var dstmessagesize:longint):word;
+                          var dstmessagesize:longint):word;}
 
 {Write a message to a file.
  handle         = Handle of file.
@@ -2388,6 +2390,9 @@ procedure flattosel;
 implementation
 {***************************************************************************}
 
+{$l code2.oo2}
+{$l code3.oo2}
+
 function doscreatethread(var tid:longint;address:Tthreadentry;
                           Aparam:pointer;flags:longint;
                           stacksize:longint):word;
@@ -2457,16 +2462,16 @@ var t,t2:array[0..255] of char;
 
 begin
     strPcopy(@t,filenaam);
-    dosexecpgm:=dosexecpgm(@t2,execflag,args,env,res,@t);;
+    dosexecpgm:=dosexecpgm(@t2,sizeof(t2),execflag,args,env,res,@t);;
     objnaam:=strpas(@t2);
 end;
 
-function doswaitchild(action:longint;option:longint;var res:resultcodes;
+function doswaitchild(action:longint;option:longint;var res:Tresultcodes;
                       var termpid:longint;pid:longint):word;
 
 external 'DOSCALLS' index 280;
 
-function dossetpriority(scope,class,delta,portid:longint):word;
+function dossetpriority(scope,trclass,delta,portid:longint):word;
 
 external 'DOSCALLS' index 236;
 
@@ -2530,10 +2535,11 @@ function doscreate(const filenaam:string;var handle:longint;
                    attrib,openmode:longint):word;
 
 var t:array[0..255] of char;
+    action:longint;
 
 begin
     strPcopy(@t,filenaam);
-    doscreate:=dosopen(t,handle,action,0,attrib,18,openmode,nil);
+    doscreate:=dosopen(@t,handle,action,0,attrib,18,openmode,nil);
 end;
 
 function dosopen(const filenaam:string;var handle:longint;
@@ -2618,7 +2624,7 @@ var t,t2,t3:array[0..255] of char;
 begin
     strPcopy(@t,source);
     strPcopy(@t2,edit);
-    doseditname:=doseditname(metalevel,@t,@t2,@t3);
+    doseditname:=doseditname(metalevel,@t,@t2,@t3,sizeof(t3));
     target:=strpas(@t3);
 end;
 
@@ -2647,7 +2653,7 @@ var t,t2:array[0..255] of char;
 begin
     strPcopy(@t,oud);
     strPcopy(@t2,nieuw);
-    doscopy:=doscopy(@t,@t2);
+    doscopy:=doscopy(@t,@t2,option);
 end;
 
 function dosdelete(filenaam:Pchar):word;
@@ -2659,7 +2665,7 @@ function dosdelete(const filenaam:string):word;
 var t:array[0..255] of char;
 
 begin
-    strPcopy(@t,filanaam);
+    strPcopy(@t,filenaam);
     dosdelete:=dosdelete(@t);
 end;
 
@@ -2777,7 +2783,7 @@ begin
      count,infolevel);
 end;
 
-function dosfindnext(handle:longint;Afilestatus:Pfilefindbuf;
+function dosfindnext(handle:longint;Afilestatus:Pfilestatus;
                      cbfilestatus:longint;var count:longint):word;
 
 external 'DOSCALLS' index 265;
@@ -2829,7 +2835,7 @@ function dosenumattribute(handle:longint;
                           var count:longint;infolevel:longint):word;
 
 begin
-    dosenumatrribute:=dosenumattribute(0,@handle,entry,buf,bufsize,count,
+    dosenumattribute:=dosenumattribute(0,@handle,entry,buf,bufsize,count,
      infolevel);
 end;
 
@@ -2852,10 +2858,12 @@ external 'DOSCALLS' index 227;
 function dosscanenv(const naam:string;var value:string):word;
 
 var t:array[0..255] of char;
+    p:Pchar;
 
 begin
     strPcopy(@t,naam);
-    dosscanenv:=dosscanenv(@t,value);
+    dosscanenv:=dosscanenv(@t,p);
+    value:=strpas(p);
 end;
 
 function dossearchpath(flag:longint;dirlist,filenaam:Pchar;
@@ -2871,7 +2879,7 @@ var t1,t2,t3:array[0..255] of char;
 begin
     strPcopy(@t1,dirlist);
     strPcopy(@t2,filenaam);
-    dossearchpath:=dossearchpath(flag,@t1,@t2,@t3);
+    dossearchpath:=dossearchpath(flag,@t1,@t2,@t3,sizeof(t3));
     fullname:=strpas(@t3);
 end;
 
@@ -2996,7 +3004,7 @@ var t:array[0..255] of char;
 
 begin
     strPcopy(@t,naam);
-    getnamedsharedmem:=getnamedsharedmem(p,@t,flag);
+    dosgetnamedsharedmem:=dosgetnamedsharedmem(p,@t,flag);
 end;
 
 function dosallocsharedmem(var p:pointer;naam:Pchar;size,flag:longint):word;
@@ -3012,10 +3020,10 @@ begin
     if naam<>'' then
         begin
             strPcopy(@t,naam);
-            dosallocsharedmem:=dosallocsharedmem(p,naam,cb,flag);
+            dosallocsharedmem:=dosallocsharedmem(p,naam,size,flag);
         end
     else
-        dosallocsharedmem:=dosallocsharedmem(p,nil,flag);
+        dosallocsharedmem:=dosallocsharedmem(p,nil,size,flag);
 end;
 
 function dosquerymem(p:pointer;var size,flag:longint):word;
@@ -3064,7 +3072,7 @@ external 'DOSCALLS' index 325;
 
 function dosopeneventsem(const naam:string;var handle:longint):word;
 
-var t:array[0...255] of char;
+var t:array[0..255] of char;
 
 begin
     strPcopy(@t,naam);
@@ -3105,7 +3113,7 @@ begin
     if naam<>'' then
         begin
             strPcopy(@t,naam);
-            doscreatemutextsem:=doscreatemutexsem(@t,handle,attr,state);
+            doscreatemutexsem:=doscreatemutexsem(@t,handle,attr,state);
         end
     else
         doscreatemutexsem:=doscreatemutexsem(nil,handle,attr,state);
@@ -3121,7 +3129,7 @@ var t:array[0..255] of char;
 
 begin
     strPcopy(@t,naam);
-    dosopenmutex:=dosmutexsem(@t,handle);
+    dosopenmutexsem:=dosopenmutexsem(@t,handle);
 end;
 
 function dosclosemutexsem(handle:longint):word;
@@ -3205,12 +3213,12 @@ function dossetdatetime(var buf:Tdatetime):word;
 
 external 'DOSCALLS' index 292;
 
-function dosasynctimer(msec:longint;hsem:SEMhandle;
+function dosasynctimer(msec:longint;hsem:longint;
                        var TIMhandle:longint):word;
 
 external 'DOSCALLS' index 350;
 
-function dosstarttimer(msec:longint;hsem:SEMhandle;
+function dosstarttimer(msec:longint;hsem:longint;
                        var TIMhandle:longint):word;
 
 external 'DOSCALLS' index 351;
@@ -3232,14 +3240,14 @@ function dosloadmodule(objnaam:Pchar;objlen:longint;DLLnaam:Pchar;
 
 external 'DOSCALLS' index 318;
 
-function dosloadmodule(var objnaam:string;objlen:lognint;
+function dosloadmodule(var objnaam:string;objlen:longint;
                        const DLLnaam:string;var handle:longint):word;
 
 var t1,t2:array[0..255] of char;
 
 begin
     strPcopy(@t2,DLLnaam);
-    dosloadmodule:=dosloadmodule(@t1,objlen,DLLnaam,handle);
+    dosloadmodule:=dosloadmodule(@t1,objlen,@t2,handle);
     objnaam:=strpas(@t1);
 end;
 
@@ -3307,10 +3315,10 @@ begin
     if naam<>'' then
         begin
             strPcopy(@t1,naam);
-            dosqueryproctype(handle,ordinal,@t1,proctype);
+            dosqueryproctype:=dosqueryproctype(handle,ordinal,@t1,proctype);
         end
     else
-        dosqueryproctype(handle,ordinal,nil,proctype);
+        dosqueryproctype:=dosqueryproctype(handle,ordinal,nil,proctype);
 end;
 
 function dosgetresource(handle,restype,resnaam:longint;var p:pointer):word;
@@ -3330,7 +3338,7 @@ function dosqueryctryinfo(cb:longint;var country:Tcountrycode;
 
 external 'NLS' index 5;
 
-function dosqueryDBCSenv(cb:longint;var country:Pcountrycode;buf:Pchar):word;
+function dosqueryDBCSenv(cb:longint;var country:Tcountrycode;buf:Pchar):word;
 
 external 'NLS' index 6;
 
@@ -3372,7 +3380,7 @@ function dosunsetexceptionhandler(var regrec:Texceptionregistrationrecord
 
 external 'DOSCALLS' index 355;
 
-function dosraiseexception(var except:Texceptionreportrecord):word;
+function dosraiseexception(var excpt:Texceptionreportrecord):word;
 
 external 'DOSCALLS' index 356;
 
@@ -3429,7 +3437,7 @@ external 'QUECALLS' index 15;
 function dosopenqueue(var parent_pid:longint;var handle:longint;
                       const naam:string):word;
 
-var strPcopy(@t1,naam);
+var t1:array[0..255] of char;
 
 begin
     strPcopy(@t1,naam);
@@ -3439,7 +3447,7 @@ end;
 function dospeekqueue(handle:longint;var reqbuffer:Trequestdata;
                       var datalen:longint;var dataptr:pointer;
                       var element:longint;wait:longint;
-                      var priority:byte;Asem:SEMhandle):word;
+                      var priority:byte;Asem:longint):word;
 
 external 'QUECALLS' index 13;
 
@@ -3454,7 +3462,7 @@ external 'QUECALLS' index 12;
 function dosreadqueue(handle:longint;var reqbuffer:Trequestdata;
                       var datalen:longint;var dataptr:pointer;
                       element,wait:longint;var priority:byte;
-                      Asem:semhandle):word;
+                      Asem:longint):word;
 
 external 'QUECALLS' index 9;
 
@@ -3467,7 +3475,7 @@ function doserror(error:longint):word;
 
 external 'DOSCALLS' index 212;
 
-procedure doserrclass(code:longint;var class,action,locus:longint);
+procedure doserrclass(code:longint;var _class,action,locus:longint);
 
 external 'DOSCALLS' index 211;
 
@@ -3484,8 +3492,8 @@ function dosgetmessage(table:Pinserttable;tablesize:longint;buf:Pchar;
 
 external name 'DosGetMessage';  {Procedure is in code2.so2.}
 
-function dosgetmessage(const table:array of Pstring;var buf:openstring;
-                       msgnumber:longint;const filenaam:string):word;
+(*function dosgetmessage(const table:array of Pstring;var buf:openstring;
+                        msgnumber:longint;const filenaam:string):word;
 
 {Hmm. This takes too much stackspace. Let's use the
  heap instead.}
@@ -3537,94 +3545,189 @@ begin
             {Step 7: Free the memory.}
             freemem(buffer,s);
         end;
-end;
+end;*)
 
-function dosgetmessage(const table:array of Pstring;buf:Pchar;
+{function dosgetmessage(const table:array of Pstring;buf:Pchar;
                        bufsize,msgnumber:longint;const filenaam:string;
-                       msgsize:longint):word;
+                       msgsize:longint):word;}
 
 function dosinsertmessage(table:Pinserttable;tablesize:longint;
                           message:Pchar;srcmessagesize:longint;
                           buf:Pchar;bufsize:longint;
                           var dstmessagesize:longint):word;
 
-function dosinsertmessage(table:array of Pstring;
+external 'MSG' index 4;
+
+{function dosinsertmessage(table:array of Pstring;
                           const message:string;
                           var buf:openstring):word;
 
 function dosinsertmessage(table:array of Pstring;
                           message:Pchar;srcmessagesize:longint;
                           buf:Pchar;bufsize:longint;
-                          var dstmessagesize:longint):word;
+                          var dstmessagesize:longint):word;}
 
 function dosputmessage(handle,size:longint;buf:Pchar):word;
+
+external 'MSG' index 5;
+
 function dosputmessage(handle:longint;const buf:string):word;
+
+begin
+    dosputmessage:=dosputmessage(handle,length(buf),@buf[1]);
+end;
+
+function dosIquerymessageCP(var buf;bufsize:longint;filenaam:Pchar;
+                            var infosize:longint;messeg:pointer):word;
+
+external 'MSG' index 8;
 
 function dosquerymessageCP(var buf;bufsize:longint;filenaam:Pchar;
                            var infosize:longint):word;
+
+external name 'DosQueryMessageCP';
+
 function dosquerymessageCP(var buf;bufsize:longint;const filenaam:string;
                            var infosize:longint):word;
+
+var t:array[0..255] of char;
+
+begin
+    strPcopy(@t,filenaam);
+    dosquerymessageCP:=dosquerymessageCP(buf,bufsize,@t,infosize);
+end;
 
 function dosstartsession(const Astartdata:Tstartdata;
                          var sesid,pid:longint):word;
 
+external 'SESMGR' index 37;
+
 function dossetsession(sesid:longint;const Astatus:Tstatusdata):word;
+
+external 'SESMGR' index 39;
 
 function dosselectsession(sesid:longint):word;
 
+external 'SESMGR' index 38;
+
 function dosstopsession(scope,sesid:longint):word;
+
+external 'SESMGR' index 40;
 
 function doscreatepipe(var readhandle,writehandle:longint;
                        size:longint):word;
 
+external 'DOSCALLS' index 239;
+
 function doscreatenpipe(naam:Pchar;var handle:longint;openmode,pipemode,
                         outbufsize,inbufsize,msec:longint):word;
 
+external 'DOSCALLS' index 243;
+
 function doscreatenpipe(const naam:string;var handle:longint;openmode,
                         pipemode,outbufsize,inbufsize,msec:longint):word;
+
+var t:array[0..255] of char;
+
+begin
+    strPcopy(@t,naam);
+    doscreatenpipe:=doscreatenpipe(@t,handle,openmode,pipemode,outbufsize,
+     inbufsize,msec);
+end;
 
 function doscallnpipe(naam:Pchar;var input;inputsize:longint;
                       var output;outputsize:longint;var readbytes:longint;
                       msec:longint):word;
 
+external 'DOSCALLS' index 240;
+
 function doscallnpipe(const naam:string;var input;inputsize:longint;
                       var output;outputsize:longint;var readbytes:longint;
                       msec:longint):word;
 
+var t:array[0..255] of char;
+
+begin
+    strPcopy(@t,naam);
+    doscallnpipe:=doscallnpipe(@t,input,inputsize,output,outputsize,
+     readbytes,msec);
+end;
+
 function dosconnectnpipe(handle:longint):word;
 
+external 'DOSCALLS' index 241;
+
 function dosdisconnectnpipe(handle:longint):word;
+
+external 'DOSCALLS' index 242;
 
 function dospeeknpipe(handle:longint;var buffer;bufsize:longint;
                       var readbytes:longint;var avail:Tavaildata;
                       var state:longint):word;
 
+external 'DOSCALLS' index 244;
+
 function dosquerynphstate(handle:longint;var state:longint):word;
+
+external 'DOSCALLS' index 245;
 
 function dosquerynpipeinfo(handle,infolevel:longint;var buffer;
                            bufsize:longint):word;
 
+external 'DOSCALLS' index 248;
+
 function dosquerynpipesemstate(semhandle:longint;var semarray;
                                bufsize:longint):word;
 
+external 'DOSCALLS' index 249;
+
 function dossetnphstate(handle,state:longint):word;
 
+external 'DOSCALLS' index 250;
+
 function dossetnpipesem(pipehandle,semhandle,key:longint):word;
+
+external 'DOSCALLS' index 251;
 
 function dostransactnpipe(handle:longint;var outbuf;outsize:longint;
                           var inbuf;insize:longint;
                           var readbytes:longint):word;
 
+external 'DOSCALLS' index 252;
+
 function doswaitnpipe(naam:Pchar;msec:longint):word;
+
+external 'DOSCALLS' index 253;
 
 function doswaitnpipe(const naam:string;msec:longint):word;
 
+var t:array[0..255] of char;
+
+begin
+    strPcopy(@t,naam);
+    doswaitnpipe:=doswaitnpipe(@t,msec);
+end;
+
 function dosopenVDD(naam:Pchar;var handle:longint):word;
+
+external 'DOSCALLS' index 308;
 
 function dosrequestVDD(handle,sgroup,cmd:longint;
                        insize:longint;var inbuffer;
                        outsize:longint;var outbuffer):word;
 
+external 'DOSCALLS' index 309;
+
 function doscloseVDD(handle:longint):word;
+
+external 'DOSCALLS' index 310;
+
+procedure seltoflat;
+
+external 'DOSCALLS' index 425;
+
+procedure flattosel;
+
+external 'DOSCALLS' index 426;
 
 end.

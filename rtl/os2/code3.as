@@ -1,16 +1,18 @@
-/ code3.s (emx+gcc) -- Copyright (c) 1992-1996 by Eberhard Mattes
+/ code2.as (emx+fpk) -- Copyright (c) 1992-1996 by Eberhard Mattes
+/                       Changed for FPK-Pascal in 1998 by Dani‰l Mantione.
+/                       This code is _not_ under the Library GNU Public
+/                       License, because the original is not. See copying.emx
+/                       for details. You should have received it with this
+/                       product, write the author if you haven't.
 
-#include <emx/asm386.h>
+        .globl  DosQueryMessageCP
 
-        .globl  _DosQueryMessageCP
-
-_DosQueryMessageCP:
-        PROFILE_NOFRAME
+DosQueryMessageCP:
         pushl   0(%esp)
-        movl    $__msgseg32, %eax
+        movl    $_msgseg32, %eax
         xchgl   20(%esp), %eax
         xchgl   16(%esp), %eax
         xchgl   12(%esp), %eax
         xchgl   8(%esp), %eax
         movl    %eax, 4(%esp)
-        jmp     _DosIQueryMessageCP
+        jmp     _DOSCALLS$$_DOSIQUERYMESSAGECP$$$$$LONGINT$PCHAR$LONGINT$POINTER
