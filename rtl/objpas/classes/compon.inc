@@ -17,7 +17,7 @@
 {****************************************************************************}
 
 Type
-  Longrec = Record
+  Longrec = Packed Record
     Hi,lo : word;
     end;
 
@@ -533,7 +533,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  2003-10-06 21:01:06  peter
+  Revision 1.2  2004-01-12 17:44:22  peter
+    * LongRec is a packed record
+
+  Revision 1.1  2003/10/06 21:01:06  peter
     * moved classes unit to rtl
 
   Revision 1.9  2003/04/27 21:16:11  sg
