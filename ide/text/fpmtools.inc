@@ -14,6 +14,16 @@
 
  **********************************************************************}
 
+procedure TIDEApp.DoAsciiTable;
+var
+  P: PAsciiChart;
+begin
+  P := New(PAsciiChart, Init);
+  P^.HelpCtx := hcAsciiTable;
+  InsertWindow(P);
+end;
+
+
 procedure TIDEApp.Calculator;
 begin
   with CalcWindow^ do
@@ -127,7 +137,14 @@ begin
 end;
 {
   $Log$
-  Revision 1.6  1999-02-05 13:51:42  peter
+  Revision 1.7  1999-02-20 15:18:31  peter
+    + ctrl-c capture with confirm dialog
+    + ascii table in the tools menu
+    + heapviewer
+    * empty file fixed
+    * fixed callback routines in fpdebug to have far for tp7
+
+  Revision 1.6  1999/02/05 13:51:42  peter
     * unit name of FPSwitches -> FPSwitch which is easier to use
     * some fixes for tp7 compiling
 

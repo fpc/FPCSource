@@ -17,14 +17,16 @@ unit fpide;
 interface
 
 uses
-  Drivers,Views,App,
+  Drivers,Views,App,Gadgets,
   {$ifdef EDITORS}Editors,{$else}WEditor,{$endif}
   Comphook,
   FPViews;
 
 type
     TIDEApp = object(TApplication)
+      Heap : PHeapView;
       constructor Init;
+      procedure   Idle;virtual;
       procedure   InitMenuBar; virtual;
       procedure   InitStatusLine; virtual;
       procedure   Open(FileName: string);
@@ -60,6 +62,7 @@ type
       procedure DoOpenGDBWindow;
       procedure DoToggleBreak;
       procedure Information;
+      procedure DoAsciiTable;
       procedure Calculator;
       procedure ExecuteTool(Idx: integer);
       procedure SetSwitchesMode;
@@ -112,6 +115,7 @@ uses
 {$endif}
   Video,Mouse,Keyboard,
   Dos,Objects,Memory,Menus,Dialogs,StdDlg,ColorSel,Commands,HelpCtx,
+  AsciiTab,
   Systems,BrowCol,
   WHelp,WHlpView,WINI,
   FPConst,FPVars,FPUtils,FPSwitch,FPIni,FPIntf,FPCompile,FPHelp,
@@ -129,6 +133,8 @@ begin
 end;
 
 constructor TIDEApp.Init;
+var
+  R : TRect;
 begin
   {$ifndef EDITORS}
   UseSyntaxHighlight:=IDEUseSyntaxHighlight;
@@ -144,6 +150,18 @@ begin
   Desktop^.Insert(ProgramInfoWindow);
   Message(@Self,evBroadcast,cmUpdate,nil);
   CurDirChanged;
+{ heap viewer }
+  GetExtent(R);
+  Dec(R.B.X);
+  R.A.X := R.B.X - 9; R.A.Y := R.B.Y - 1;
+  Heap := New(PHeapView, InitKb(R));
+  Insert(Heap);
+end;
+
+procedure TIDEApp.Idle;
+begin
+  inherited Idle;
+  Heap^.Update;
 end;
 
 procedure TIDEApp.InitMenuBar;
@@ -216,7 +234,8 @@ begin
       NewLine(
       NewItem('~G~rep', 'Shift+F2', kbShiftF2, cmGrep, hcGrep,
       NewItem('~C~alculator', '', kbNoKey, cmCalculator, hcCalculator,
-      nil))))),
+      NewItem('Ascii ~t~able', '', kbNoKey, cmAsciiTable, hcAsciiTable,
+      nil)))))),
     NewSubMenu('~O~ptions', hcOptionsMenu, NewMenu(
       NewItem('Mode~.~..','', kbNoKey, cmSwitchesMode, hcSwitchesMode,
       NewItem('~C~ompiler...','', kbNoKey, cmCompiler, hcCompiler,
@@ -375,6 +394,7 @@ begin
              cmSaveINI       : SaveINI;
              cmSaveAsINI     : SaveAsINI;
            { -- Tools menu -- }
+             cmAsciiTable    : DoAsciiTable;
              cmCalculator    : Calculator;
              cmGrep          : Grep;
              cmToolsBase+1..
@@ -662,7 +682,14 @@ end;
 END.
 {
   $Log$
-  Revision 1.16  1999-02-18 13:44:31  peter
+  Revision 1.17  1999-02-20 15:18:30  peter
+    + ctrl-c capture with confirm dialog
+    + ascii table in the tools menu
+    + heapviewer
+    * empty file fixed
+    * fixed callback routines in fpdebug to have far for tp7
+
+  Revision 1.16  1999/02/18 13:44:31  peter
     * search fixed
     + backward search
     * help fixes

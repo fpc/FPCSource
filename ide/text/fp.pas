@@ -22,11 +22,7 @@ uses
   Dos,
   BrowCol,
   FPIni,FPViews,FPConst,FPVars,FPUtils,FPIde,FPHelp,FPSwitch,FPUsrScr,
-  FPTools,FPDebug,FPTemplt
-{$ifdef TEMPHEAP}
-  ,dpmiexcp
-{$endif TEMPHEAP}
-  ;
+  FPTools,FPDebug,FPTemplt,FPCatch;
 
 
 procedure ProcessParams(BeforeINI: boolean);
@@ -111,7 +107,14 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.11  1999-02-18 13:44:30  peter
+  Revision 1.12  1999-02-20 15:18:25  peter
+    + ctrl-c capture with confirm dialog
+    + ascii table in the tools menu
+    + heapviewer
+    * empty file fixed
+    * fixed callback routines in fpdebug to have far for tp7
+
+  Revision 1.11  1999/02/18 13:44:30  peter
     * search fixed
     + backward search
     * help fixes

@@ -78,7 +78,7 @@ const
      cmResetDebugger     = 228;
      cmContToCursor      = 229;
      cmOpenGDBWindow     = 230;
-     
+
      cmNotImplemented    = 1000;
      cmNewFromTemplate   = 1001;
 
@@ -99,6 +99,7 @@ const
      cmUserScreenWindow  = 1651;
      cmEvaluate          = 1652;
      cmCalculator        = 1653;
+     cmAsciiTable        = 1654;
 
      cmToolsMessages     = 1700;
      cmToolsBase         = 1800;
@@ -172,6 +173,7 @@ const
      hcSaveINI           = hcShift+cmSaveINI;
      hcSaveAsINI         = hcShift+cmSaveAsINI;
      hcCalculator        = hcShift+cmCalculator;
+     hcAsciiTable        = hcShift+cmAsciiTable;
      hcGrep              = hcShift+cmGrep;
      hcSwitchesMode      = hcShift+cmSwitchesMode;
      hcAbout             = hcShift+cmAbout;
@@ -254,7 +256,7 @@ const
         #6#12;
 
      CGDBInputLine     = #9#9#10#11#12;
-     
+
      CIDEAppColor = CAppColor +
          { CIDEHelpDialog }
 {128-143}#$70#$7F#$7A#$13#$13#$70#$70#$7F#$7E#$20#$2B#$2F#$78#$2E#$70#$30 + { 1-16}
@@ -273,7 +275,14 @@ implementation
 END.
 {
   $Log$
-  Revision 1.10  1999-02-11 19:07:19  pierre
+  Revision 1.11  1999-02-20 15:18:28  peter
+    + ctrl-c capture with confirm dialog
+    + ascii table in the tools menu
+    + heapviewer
+    * empty file fixed
+    * fixed callback routines in fpdebug to have far for tp7
+
+  Revision 1.10  1999/02/11 19:07:19  pierre
     * GDBWindow redesigned :
       normal editor apart from
       that any kbEnter will send the line (for begin to cursor)

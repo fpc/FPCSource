@@ -409,6 +409,7 @@ end;
 function THelpFile.LoadIndex: boolean;
 begin
   Abstract;
+  LoadIndex:=false;
 end;
 
 function THelpFile.SearchTopic(HelpCtx: THelpCtx): PTopic;
@@ -421,6 +422,7 @@ end;
 function THelpFile.ReadTopic(T: PTopic): boolean;
 begin
   Abstract;
+  ReadTopic:=false;
 end;
 
 procedure THelpFile.MaintainTopicCache;
@@ -943,7 +945,14 @@ end;
 END.
 {
   $Log$
-  Revision 1.5  1999-02-19 15:43:22  peter
+  Revision 1.6  1999-02-20 15:18:35  peter
+    + ctrl-c capture with confirm dialog
+    + ascii table in the tools menu
+    + heapviewer
+    * empty file fixed
+    * fixed callback routines in fpdebug to have far for tp7
+
+  Revision 1.5  1999/02/19 15:43:22  peter
     * compatibility fixes for FV
 
   Revision 1.4  1999/02/18 13:44:37  peter

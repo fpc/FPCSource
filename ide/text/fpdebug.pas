@@ -128,7 +128,8 @@ begin
 end;
 
 procedure TDebugController.InsertBreakpoints;
-  procedure DoInsert(PB : PBreakpoint);
+
+  procedure DoInsert(PB : PBreakpoint);{$ifndef FPC}far;{$endif}
   begin
     PB^.Insert;
   end;
@@ -139,16 +140,18 @@ end;
 
 
 procedure TDebugController.RemoveBreakpoints;
-  procedure DoDelete(PB : PBreakpoint);
+
+  procedure DoDelete(PB : PBreakpoint);{$ifndef FPC}far;{$endif}
     begin
       PB^.Remove;
     end;
+
 begin
    BreakpointCollection^.ForEach(@DoDelete);
 end;
 
 procedure TDebugController.ResetBreakpointsValues;
-  procedure DoResetVal(PB : PBreakpoint);
+  procedure DoResetVal(PB : PBreakpoint);{$ifndef FPC}far;{$endif}
     begin
       PB^.ResetValues;
     end;
@@ -544,7 +547,7 @@ end;
 
 procedure TBreakpointCollection.ShowBreakpoints(W : PSourceWindow);
 
-  procedure SetInSource(P : PBreakpoint);
+  procedure SetInSource(P : PBreakpoint);{$ifndef FPC}far;{$endif}
   begin
     If assigned(P^.FileName) and (P^.FileName^=W^.Editor^.FileName) then
       W^.Editor^.SetLineBreakState(P^.Line,P^.state=bs_enabled);
@@ -556,7 +559,7 @@ end;
 
 function TBreakpointCollection.GetType(typ : BreakpointType;Const s : String) : PBreakpoint;
 
-  function IsThis(P : PBreakpoint) : boolean;
+  function IsThis(P : PBreakpoint) : boolean;{$ifndef FPC}far;{$endif}
   begin
     IsThis:=(P^.typ=typ) and (P^.Name^=S);
   end;
@@ -569,7 +572,7 @@ function TBreakpointCollection.ToggleFileLine(Const FileName: String;LineNr : Lo
 
 var PB : PBreakpoint;
 
-  function IsThere(P : PBreakpoint) : boolean;
+  function IsThere(P : PBreakpoint) : boolean;{$ifndef FPC}far;{$endif}
   begin
     IsThere:=(P^.typ=bt_file_line) and (P^.FileName^=FileName) and (P^.Line=LineNr);
   end;
@@ -676,7 +679,14 @@ end.
 
 {
   $Log$
-  Revision 1.14  1999-02-16 12:47:36  pierre
+  Revision 1.15  1999-02-20 15:18:29  peter
+    + ctrl-c capture with confirm dialog
+    + ascii table in the tools menu
+    + heapviewer
+    * empty file fixed
+    * fixed callback routines in fpdebug to have far for tp7
+
+  Revision 1.14  1999/02/16 12:47:36  pierre
    * GDBWindow does not popup on F7 or F8 anymore
 
   Revision 1.13  1999/02/16 10:43:54  peter

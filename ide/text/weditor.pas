@@ -778,10 +778,12 @@ end;
                             PLine,TLineCollection
 *****************************************************************************}
 
-function NewLine(S: string): PLine;
-var P: PLine;
+function NewLine(const S: string): PLine;
+var
+  P: PLine;
 begin
-  New(P); FillChar(P^,SizeOf(P^),0);
+  New(P);
+  FillChar(P^,SizeOf(P^),0);
   P^.Text:=NewStr(S);
   NewLine:=P;
 end;
@@ -883,6 +885,8 @@ constructor TCodeEditor.Init(var Bounds: TRect; AHScrollBar, AVScrollBar:
 begin
   inherited Init(Bounds,AHScrollBar,AVScrollBar);
   New(Lines, Init(500,1000));
+  { we have always need at least 1 line }
+  Lines^.Insert(NewLine(''));
   SetState(sfCursorVis,true);
   SetFlags(DefaultCodeEditorFlags); TabSize:=DefaultTabSize;
   SetHighlightRow(-1);
@@ -1683,50 +1687,66 @@ begin
 end;
 
 function TCodeEditor.InsertLine: Sw_integer;
-var Ind: Sw_integer;
-    S,IndentStr: string;
-procedure CalcIndent(LineOver: Sw_integer);
-begin
-  if (LineOver<0) or (LineOver>GetLineCount) then Ind:=0 else
+var
+  SelBack,Ind: Sw_integer;
+  S,IndentStr: string;
+
+  procedure CalcIndent(LineOver: Sw_integer);
   begin
-    IndentStr:=GetLineText(LineOver);
-    Ind:=0;
-    while (Ind<length(IndentStr)) and (IndentStr[Ind+1]=' ') do
-     Inc(Ind);
+    if (LineOver<0) or (LineOver>GetLineCount) then Ind:=0 else
+    begin
+      IndentStr:=GetLineText(LineOver);
+      Ind:=0;
+      while (Ind<length(IndentStr)) and (IndentStr[Ind+1]=' ') do
+       Inc(Ind);
+    end;
+    IndentStr:=CharStr(' ',Ind);
   end;
-  IndentStr:=CharStr(' ',Ind);
-end;
-var SelBack: integer;
+
 begin
-  if IsReadOnly then begin InsertLine:=-1; Exit; end;
-  if CurPos.Y<GetLineCount then S:=GetLineText(CurPos.Y) else S:='';
+  if IsReadOnly then
+   begin
+     InsertLine:=-1;
+     Exit;
+   end;
+  if CurPos.Y<GetLineCount then
+    S:=GetLineText(CurPos.Y)
+  else
+    S:='';
   if Overwrite=false then
-  begin
-    SelBack:=0;
-    if GetLineCount>0 then
-    begin
-      S:=GetDisplayText(CurPos.Y);
-      SelBack:=length(S)-SelEnd.X;
-      SetDisplayText(CurPos.Y,RTrim(S));
-    end;
-    CalcIndent(CurPos.Y);
-    Lines^.AtInsert(CurPos.Y+1,NewLine(IndentStr+copy(S,CurPos.X+1,255)));
-    LimitsChanged;
-    SetDisplayText(CurPos.Y,copy(S,1,CurPos.X-1+1));
-    if PointOfs(SelStart)<>PointOfs(SelEnd) then { !!! check it - it's buggy !!! }
-      begin SelEnd.Y:=CurPos.Y+1; SelEnd.X:=length(GetLineText(CurPos.Y+1))-SelBack; end;
-    UpdateAttrs(CurPos.Y,attrAll);
-    SetCurPtr(Ind,CurPos.Y+1);
-  end else
-  begin
-    if CurPos.Y=GetLineCount-1 then
-    CalcIndent(CurPos.Y);
-    begin
-      Lines^.Insert(NewLine(IndentStr));
-      LimitsChanged;
-    end;
-    SetCurPtr(Ind,CurPos.Y+1);
-  end;
+   begin
+     SelBack:=0;
+     if GetLineCount>0 then
+      begin
+        S:=GetDisplayText(CurPos.Y);
+        SelBack:=length(S)-SelEnd.X;
+        SetDisplayText(CurPos.Y,RTrim(S));
+        CalcIndent(CurPos.Y);
+        Lines^.AtInsert(CurPos.Y+1,NewLine(IndentStr+copy(S,CurPos.X+1,255)));
+      end
+     else
+      begin
+        CalcIndent(0);
+        Lines^.Insert(NewLine(IndentStr));
+      end;
+     LimitsChanged;
+     SetDisplayText(CurPos.Y,copy(S,1,CurPos.X-1+1));
+     if PointOfs(SelStart)<>PointOfs(SelEnd) then { !!! check it - it's buggy !!! }
+      begin
+        SelEnd.Y:=CurPos.Y+1;
+        SelEnd.X:=length(GetLineText(CurPos.Y+1))-SelBack;
+      end;
+     UpdateAttrs(CurPos.Y,attrAll);
+     SetCurPtr(Ind,CurPos.Y+1);
+   end
+  else
+   begin
+     if CurPos.Y=GetLineCount-1 then
+      CalcIndent(CurPos.Y);
+     Lines^.Insert(NewLine(IndentStr));
+     LimitsChanged;
+     SetCurPtr(Ind,CurPos.Y+1);
+   end;
   DrawLines(CurPos.Y);
 end;
 
@@ -1739,11 +1759,11 @@ begin
    begin
      if CurPos.Y>0 then
       begin
-   S:=GetLineText(CurPos.Y-1);
-   SetLineText(CurPos.Y-1,S+GetLineText(CurPos.Y));
-   Lines^.AtDelete(CurPos.Y);
-   LimitsChanged;
-   SetCurPtr(length(S),CurPos.Y-1);
+        S:=GetLineText(CurPos.Y-1);
+        SetLineText(CurPos.Y-1,S+GetLineText(CurPos.Y));
+        Lines^.AtDelete(CurPos.Y);
+        LimitsChanged;
+        SetCurPtr(length(S),CurPos.Y-1);
       end;
    end
   else
@@ -2833,12 +2853,17 @@ begin
   Reset(f);
   {$ifdef TPUNIXLF}OnlyLF:=true;{$endif}
   OK:=(IOResult=0);
-  while OK and (Eof(f)=false) and (GetLineCount<MaxLineCount) do
-  begin
-    readln(f,S);
-    OK:=OK and (IOResult=0);
-    if OK then AddLine(S);
-  end;
+  if Eof(f) then
+   AddLine('')
+  else
+   begin
+     while OK and (Eof(f)=false) and (GetLineCount<MaxLineCount) do
+     begin
+       readln(f,S);
+       OK:=OK and (IOResult=0);
+       if OK then AddLine(S);
+     end;
+   end;
   FileMode:=FM;
   Close(F);
   EatIO;
@@ -3217,7 +3242,14 @@ end;
 END.
 {
   $Log$
-  Revision 1.20  1999-02-18 17:27:57  pierre
+  Revision 1.21  1999-02-20 15:18:33  peter
+    + ctrl-c capture with confirm dialog
+    + ascii table in the tools menu
+    + heapviewer
+    * empty file fixed
+    * fixed callback routines in fpdebug to have far for tp7
+
+  Revision 1.20  1999/02/18 17:27:57  pierre
    * find/replace dialogs need packed records !!
 
   Revision 1.19  1999/02/18 13:44:36  peter

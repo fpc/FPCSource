@@ -128,6 +128,7 @@ end;
 function TTextFile.GetLine(Idx: sw_integer; var S: string): boolean;
 begin
   Abstract;
+  GetLine:=false;
 end;
 
 constructor TDOSTextFile.Init(AFileName: string);
@@ -288,6 +289,7 @@ begin
 
     end;
   if WasThereAnyText then DocSoftBreak;
+  ProcessLine:=true;
 end;
 
 procedure TSGMLParser.DocSoftBreak;

@@ -93,7 +93,7 @@ const
 procedure TCalcButton.HandleEvent(var Event: TEvent);
 var
   Call : boolean;
-  i : Sw_Word;
+  i : longint;
 begin
   Call:=true;
   case Event.What of
@@ -423,7 +423,14 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  1998-12-22 14:27:54  peter
+  Revision 1.2  1999-02-20 15:18:27  peter
+    + ctrl-c capture with confirm dialog
+    + ascii table in the tools menu
+    + heapviewer
+    * empty file fixed
+    * fixed callback routines in fpdebug to have far for tp7
+
+  Revision 1.1  1998/12/22 14:27:54  peter
     * moved
 
   Revision 1.2  1998/12/22 10:39:39  peter

@@ -72,19 +72,22 @@ Type
 
 Var
   PrefSeg      : Word;
+{$IfDef MsDos}
   MinBlockSize : Word;
-  FName        : PathStr;
-  F,FE         : File;
   MyBlockSize  : Word;
+{$endif}
+  F,FE         : File;
   RedirChanged : Boolean;
   RedirErrorChanged : Boolean;
-  Handles      : PHandles;
   OldHandle,OldErrorHandle    : Byte;
+{$ifdef UseDUP}
   TempH, TempErrorH : longint;
+{$endif}
 {$ifdef FPC}
   HandlesOffset : word;
+{$else}
+  Handles      : PHandles;
 {$endif FPC}
-
 
 function dup(fh : longint) : longint;
   var
@@ -377,7 +380,14 @@ Begin
 End.
 {
   $Log$
-  Revision 1.6  1999-02-05 13:51:43  peter
+  Revision 1.7  1999-02-20 15:18:32  peter
+    + ctrl-c capture with confirm dialog
+    + ascii table in the tools menu
+    + heapviewer
+    * empty file fixed
+    * fixed callback routines in fpdebug to have far for tp7
+
+  Revision 1.6  1999/02/05 13:51:43  peter
     * unit name of FPSwitches -> FPSwitch which is easier to use
     * some fixes for tp7 compiling
 
