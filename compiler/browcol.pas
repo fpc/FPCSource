@@ -771,7 +771,10 @@ var S: string;
 begin
   case Typ of
     abstractsym  : S:='abst';
-    varsym       : S:='var';
+    fieldvarsym  : S:='member';
+    globalvarsym,
+    localvarsym,
+    paravarsym   : S:='var';
     typesym      : S:='type';
     procsym      : if VType=nil then
                      S:='proc'
@@ -784,7 +787,7 @@ begin
     errorsym     : S:='error';
     syssym       : S:='sys';
     labelsym     : S:='label';
-    absolutesym  : S:='abs';
+    absolutevarsym : S:='abs';
     propertysym  : S:='prop';
     macrosym     : S:='macro';
   else S:='';
@@ -1431,8 +1434,10 @@ end;
       begin
         New(Symbol, Init(Sym.Name,Sym.Typ,'',nil));
         case Sym.Typ of
-          varsym :
-             with tvarsym(sym) do
+          globalvarsym,
+          localvarsym,
+          paravarsym :
+             with tabstractvarsym(sym) do
              begin
                if assigned(vartype.def) then
                  if assigned(vartype.def.typesym) then
@@ -1447,13 +1452,15 @@ end;
                    Symbol^.Flags:=(Symbol^.Flags or sfPointer);
                    Symbol^.RelatedTypeID:=Ptrint(tpointerdef(vartype.def).pointertype.def);
                  end;
-               if  Table.symtabletype in [recordsymtable,objectsymtable] then
-                 MemInfo.Addr:=fieldoffset
+               if typ=fieldvarsym then
+                 MemInfo.Addr:=tfieldvarsym(sym).fieldoffset
                else
-                 if localloc.loc=LOC_REFERENCE then
-                   MemInfo.Addr:=localloc.reference.offset
-                 else
-                   MemInfo.Addr:=0;
+                 begin
+                   if tabstractnormalvarsym(sym).localloc.loc=LOC_REFERENCE then
+                     MemInfo.Addr:=tabstractnormalvarsym(sym).localloc.reference.offset
+                   else
+                     MemInfo.Addr:=0;
+                 end;
                if assigned(vartype.def) and (vartype.def.deftype=arraydef) then
                  begin
                    if tarraydef(vartype.def).highrange<tarraydef(vartype.def).lowrange then
@@ -1465,6 +1472,20 @@ end;
                  MemInfo.Size:=getsize;
                { this is not completely correct... }
                MemInfo.PushSize:=paramanager.push_size(varspez,vartype.def,pocall_default);
+               Symbol^.SetMemInfo(MemInfo);
+             end;
+          fieldvarsym :
+             with tfieldvarsym(sym) do
+             begin
+               if assigned(vartype.def) and (vartype.def.deftype=arraydef) then
+                 begin
+                   if tarraydef(vartype.def).highrange<tarraydef(vartype.def).lowrange then
+                     MemInfo.Size:=-1
+                   else
+                     MemInfo.Size:=getsize;
+                 end
+               else
+                 MemInfo.Size:=getsize;
                Symbol^.SetMemInfo(MemInfo);
              end;
           constsym :
@@ -1690,7 +1711,7 @@ begin
         C^.Insert(P);
       if (P^.typ=typesym) then
         D^.Insert(P);
-      if (P^.typ=varsym) and ((P^.flags and sfPointer)<>0) then
+      if (P^.typ in [globalvarsym,localvarsym,paravarsym]) and ((P^.flags and sfPointer)<>0) then
         E^.Insert(P);
       if P^.Items<>nil then
         InsertSymbolCollection(P^.Items);
@@ -2122,7 +2143,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.40  2004-10-14 16:53:26  mazen
+  Revision 1.41  2004-11-09 16:46:05  peter
+    * fixed compile
+
+  Revision 1.40  2004/10/14 16:53:26  mazen
   * use SysUtils unit instead of Dos Unit
   + overload Replace to use AnsiString
 
