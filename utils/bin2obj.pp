@@ -19,8 +19,8 @@ program bin2obj;
 {$mode objfpc}
 
 uses classes,getopts, iostream,zstream,idea,sysutils
-{$ifdef linux}
-  ,linux
+{$ifdef unix}
+  ,unix
 {$else}
   ,dos
 {$endif}
@@ -173,7 +173,7 @@ Var OutStream : TStream;
   Procedure WriteStrLn(Const St : String);
 
   Const
-  {$ifdef linux}
+  {$ifdef unix}
      Eoln : String = #10;
   {$else}
      Eoln : String = #13#10;
@@ -246,7 +246,7 @@ end;
 Procedure CompileTheUNit;
 
 begin
-{$ifdef linux}
+{$ifdef unix}
   Shell('ppc386 -Un '+UnitName);
 {$else}
   Exec('ppc386',' -Un '+UnitName);
@@ -263,7 +263,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-07-13 10:16:21  michael
+  Revision 1.2  2001-01-29 21:48:26  peter
+    * linux -> unix
+
+  Revision 1.1  2000/07/13 10:16:21  michael
   + Initial import
 
   Revision 1.4  2000/07/04 19:05:54  peter

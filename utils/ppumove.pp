@@ -24,11 +24,11 @@
 {$endif}
 Program ppumove;
 uses
-{$ifdef linux}
-  linux,
-{$else linux}
+{$ifdef unix}
+  unix,
+{$else unix}
   dos,
-{$endif linux}
+{$endif unix}
   ppu,
   getopts;
 
@@ -42,13 +42,13 @@ const
   PPUExt = 'ppu';
   ObjExt = 'o';
   StaticLibExt ='a';
-{$ifdef Linux}
+{$ifdef unix}
   SharedLibExt ='so';
   BatchExt     ='.sh';
 {$else}
   SharedLibExt ='dll';
   BatchExt     ='.bat';
-{$endif Linux}
+{$endif unix}
 
   { link options }
   link_none    = $0;
@@ -108,8 +108,8 @@ begin
      Shell:=0;
      exit;
    end;
-{$ifdef Linux}
-  Shell:=Linux.shell(s);
+{$ifdef unix}
+  Shell:=unix.shell(s);
 {$else}
   exec(getenv('COMSPEC'),'/C '+s);
   Shell:=DosExitCode;
@@ -122,13 +122,13 @@ Function FileExists (Const F : String) : Boolean;
   Returns True if the file exists, False if not.
 }
 Var
-{$ifdef linux}
+{$ifdef unix}
   info : Stat;
 {$else}
   info : searchrec;
 {$endif}
 begin
-{$ifdef linux}
+{$ifdef unix}
   FileExists:=FStat (F,Info);
 {$else}
   FindFirst (F,anyfile,Info);
@@ -215,7 +215,7 @@ begin
 { Remove the lib file, it's extracted so it can be created with ease }
   if PPLExt=PPUExt then
    Shell('rm '+libfn);
-{$ifdef linux}
+{$ifdef unix}
   ExtractLib:=n+'.sl/*';
 {$else}
   ExtractLib:=n+'.sl\*';
@@ -403,12 +403,12 @@ Function DoFile(const FileName:String):Boolean;
 {
   Process a file, mainly here for wildcard support under Dos
 }
-{$ifndef linux}
+{$ifndef unix}
 var
   dir : searchrec;
 {$endif}
 begin
-{$ifdef linux}
+{$ifdef unix}
   DoFile:=DoPPU(FileName,ForceExtension(FileName,PPLExt));
 {$else}
   DoFile:=false;
@@ -468,7 +468,7 @@ begin
   If Err then
    Error('Fatal: Library building stage failed.',true);
 { fix permission to 644, so it's not 755 }
-{$ifdef Linux}
+{$ifdef unix}
   ChMod(OutputFile,420);
 {$endif}
 { Rename to the destpath }
@@ -551,7 +551,7 @@ begin
      Writeln;
    end;
 { Check if shared is allowed }
-{$ifndef linux}
+{$ifndef unix}
   if arbin<>'arw' then
    begin
      Writeln('Warning: shared library not supported for Go32, switching to static library');
@@ -566,10 +566,10 @@ begin
   if OutputFile='' then
    OutPutFile:=Paramstr(OptInd);
 { fix filename }
-{$ifdef linux}
+{$ifdef unix}
   if Copy(OutputFile,1,3)<>'lib' then
    OutputFile:='lib'+OutputFile;
-  { For linux skip replacing the extension if a full .so.X.X if specified }
+  { For unix skip replacing the extension if a full .so.X.X if specified }
   i:=pos('.so.',Outputfile);
   if i<>0 then
    OutputFileForLink:=Copy(Outputfile,4,i-4)
@@ -600,7 +600,7 @@ begin
      if Not Quiet then
       Writeln('Writing pmove'+BatchExt);
      Close(BatchFile);
-{$ifdef Linux}
+{$ifdef unix}
      ChMod('pmove'+BatchExt,493);
 {$endif}
    end;
@@ -610,14 +610,17 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 10:16:22  michael
+  Revision 1.2  2001-01-29 21:48:26  peter
+    * linux -> unix
+
+  Revision 1.1  2000/07/13 10:16:22  michael
   + Initial import
 
   Revision 1.11  2000/07/04 19:05:54  peter
     * be optimistic: version 1.00 for some utils
 
   Revision 1.10  2000/05/17 18:30:57  peter
-    * libname fixes for linux
+    * libname fixes for unix
 
   Revision 1.9  2000/02/09 16:44:15  peter
     * log truncated
@@ -635,7 +638,7 @@ end.
     * fsplit var type fixes
 
   Revision 1.4  1999/07/28 16:53:58  peter
-    * updated for new linking, but still doesn't work because ld-linux.so.2
+    * updated for new linking, but still doesn't work because ld-unix.so.2
       requires some more crt*.o files
 
 }
