@@ -230,7 +230,7 @@ endif
 endif
 OBJPASDIR=$(RTL)/objpas
 GRAPHDIR=$(INC)/graph
-override TARGET_UNITS+=system strings objpas objects heaptrc getopts
+override TARGET_UNITS+=system strings objpas heaptrc getopts
 override INSTALL_FPCPACKAGE=y
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC)
