@@ -558,103 +558,74 @@ interface
                   end;
                  LasTSec:=tai_section(hp).sec;
                end;
-             ait_align:
-               begin
-                  case tai_align(hp).aligntype of
-                    1:AsmWriteLn(#9'ALIGN 0');
-                    2:AsmWriteLn(#9'ALIGN 1');
-                    4:AsmWriteLn(#9'ALIGN 2');
-                    otherwise internalerror(10000);
-                  end;
+            ait_align:
+              begin
+                 case tai_align(hp).aligntype of
+                   1:AsmWriteLn(#9'ALIGN 0');
+                   2:AsmWriteLn(#9'ALIGN 1');
+                   4:AsmWriteLn(#9'ALIGN 2');
+                   otherwise internalerror(10000);
+                 end;
+              end;
+            ait_datablock:
+              begin
+                 s:= tai_datablock(hp).sym.name;
+                 replaced:= ReplaceForbiddenChars(s);
+                 if tai_datablock(hp).is_global then
+                   if replaced then
+                     AsmWriteLn(#9'EXPORT'#9+s+' => '''+tai_datablock(hp).sym.name+'''')
+                   else
+                     AsmWriteLn(#9'EXPORT'#9+s);
+                 AsmWriteLn(PadTabs(s,#0)+'DS.B '+tostr(tai_datablock(hp).size));
+                 {TODO: ? PadTabs(s,#0) }
+              end;
+            ait_const_32bit,
+            ait_const_8bit,
+            ait_const_16bit :
+              begin
+                 AsmWrite(ait_const2str[hp.typ]+tostr(tai_const(hp).value));
+                 consttyp:=hp.typ;
+                 l:=0;
+                 repeat
+                   found:=(not (tai(hp.next)=nil)) and (tai(hp.next).typ=consttyp);
+                   if found then
+                    begin
+                      hp:=tai(hp.next);
+                      s:=','+tostr(tai_const(hp).value);
+                      AsmWrite(s);
+                      inc(l,length(s));
+                    end;
+                 until (not found) or (l>line_length);
+                 AsmLn;
                end;
-             ait_datablock:
-               begin
-                  s:= tai_datablock(hp).sym.name;
-                  replaced:= ReplaceForbiddenChars(s);
-                  if tai_datablock(hp).is_global then
-                    if replaced then
-                      AsmWriteLn(#9'EXPORT'#9+s+' => '''+tai_datablock(hp).sym.name+'''')
-                    else
-                      AsmWriteLn(#9'EXPORT'#9+s);
-                  AsmWriteLn(PadTabs(s,#0)+'DS.B '+tostr(tai_datablock(hp).size));
-                  {TODO: ? PadTabs(s,#0) }
+            ait_const_symbol:
+              begin
+                 AsmWriteLn(#9#9'DD'#9'offset '+tai_const_symbol(hp).sym.name);
+                 if tai_const_symbol(hp).offset>0 then
+                   AsmWrite('+'+tostr(tai_const_symbol(hp).offset))
+                 else if tai_const_symbol(hp).offset<0 then
+                   AsmWrite(tostr(tai_const_symbol(hp).offset));
+                 AsmLn;
                end;
-             ait_const_32bit,
-             ait_const_8bit,
-             ait_const_16bit :
-               begin
-                       AsmWrite(ait_const2str[hp.typ]+tostr(tai_const(hp).value));
-                       consttyp:=hp.typ;
-                       l:=0;
-                       repeat
-                         found:=(not (tai(hp.next)=nil)) and (tai(hp.next).typ=consttyp);
-                         if found then
-                          begin
-                            hp:=tai(hp.next);
-                            s:=','+tostr(tai_const(hp).value);
-                            AsmWrite(s);
-                            inc(l,length(s));
-                          end;
-                       until (not found) or (l>line_length);
-                       AsmLn;
-                     end;
-  ait_const_symbol : begin
-                       AsmWriteLn(#9#9'DD'#9'offset '+tai_const_symbol(hp).sym.name);
-                       if tai_const_symbol(hp).offset>0 then
-                         AsmWrite('+'+tostr(tai_const_symbol(hp).offset))
-                       else if tai_const_symbol(hp).offset<0 then
-                         AsmWrite(tostr(tai_const_symbol(hp).offset));
-                       AsmLn;
-                     end;
-        ait_real_32bit : AsmWriteLn(#9'DC.L'#9'"'+single2str(tai_real_32bit(hp).value)+'"');
-        ait_real_64bit : AsmWriteLn(#9'DC.D'#9'"'+double2str(tai_real_64bit(hp).value)+'"');
-        ait_string : begin
-                       {NOTE When a single quote char is encountered, it is
-                       replaced with a numeric ascii value. It could also
-                       have been replaced with the escape seq of double quotes.}
-                       counter := 0;
-                       lines := tai_string(hp).len div line_length;
-                     { separate lines in different parts }
-                       if tai_string(hp).len > 0 then
-                        Begin
-                          for j := 0 to lines-1 do
-                           begin
-                             AsmWrite(#9'DC.B'#9);
-                             quoted:=false;
-                             for i:=counter to counter+line_length do
-                                begin
-                                  { it is an ascii character. }
-                                  if (ord(tai_string(hp).str[i])>31) and
-                                     (ord(tai_string(hp).str[i])<128) and
-                                     (tai_string(hp).str[i]<>'''') then
-                                      begin
-                                        if not(quoted) then
-                                            begin
-                                              if i>counter then
-                                                AsmWrite(',');
-                                              AsmWrite('''');
-                                            end;
-                                        AsmWrite(tai_string(hp).str[i]);
-                                        quoted:=true;
-                                      end { if > 31 and < 128 and ord('"') }
-                                  else
-                                      begin
-                                          if quoted then
-                                              AsmWrite('''');
-                                          if i>counter then
-                                              AsmWrite(',');
-                                          quoted:=false;
-                                          AsmWrite(tostr(ord(tai_string(hp).str[i])));
-                                      end;
-                               end; { end for i:=0 to... }
-                             if quoted then AsmWrite('''');
-                               AsmWrite(target_info.newline);
-                             counter := counter+line_length;
-                          end; { end for j:=0 ... }
-                        { do last line of lines }
-                        AsmWrite(#9'DC.B'#9);
-                        quoted:=false;
-                        for i:=counter to tai_string(hp).len-1 do
+            ait_real_32bit:
+              AsmWriteLn(#9'DC.L'#9'"'+single2str(tai_real_32bit(hp).value)+'"');
+            ait_real_64bit:
+              AsmWriteLn(#9'DC.D'#9'"'+double2str(tai_real_64bit(hp).value)+'"');
+            ait_string:
+              begin
+                 {NOTE When a single quote char is encountered, it is
+                 replaced with a numeric ascii value. It could also
+                 have been replaced with the escape seq of double quotes.}
+                 counter := 0;
+                 lines := tai_string(hp).len div line_length;
+                 { separate lines in different parts }
+                 if tai_string(hp).len > 0 then
+                  Begin
+                    for j := 0 to lines-1 do
+                     begin
+                       AsmWrite(#9'DC.B'#9);
+                       quoted:=false;
+                       for i:=counter to counter+line_length do
                           begin
                             { it is an ascii character. }
                             if (ord(tai_string(hp).str[i])>31) and
@@ -669,62 +640,116 @@ interface
                                       end;
                                   AsmWrite(tai_string(hp).str[i]);
                                   quoted:=true;
-                                end { if > 31 and < 128 and " }
+                                end { if > 31 and < 128 and ord('"') }
                             else
                                 begin
-                                  if quoted then
-                                    AsmWrite('''');
-                                  if i>counter then
-                                      AsmWrite(',');
-                                  quoted:=false;
-                                  AsmWrite(tostr(ord(tai_string(hp).str[i])));
+                                    if quoted then
+                                        AsmWrite('''');
+                                    if i>counter then
+                                        AsmWrite(',');
+                                    quoted:=false;
+                                    AsmWrite(tostr(ord(tai_string(hp).str[i])));
                                 end;
-                          end; { end for i:=0 to... }
-                        if quoted then
-                          AsmWrite('''');
-                        end;
-                       AsmLn;
-                     end;
-         ait_label : begin
-                       if tai_label(hp).l.is_used then
-                        begin
-                          s:= tai_label(hp).l.name;
-                          ReplaceForbiddenChars(s);
-                          AsmWrite(s);
-                          {if assigned(hp.next) and not(tai(hp.next).typ in
-                             [ait_const_32bit,ait_const_16bit,ait_const_8bit,
-                              ait_const_symbol,ait_const_rva,
-                              ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit,ait_string]) then
-                           AsmWriteLn(':')
-                          else
-                           DoNotSplitLine:=true;}
-                          AsmWriteLn(':');
-                        end;
-                     end;
-        ait_direct : begin
-                       AsmWritePChar(tai_direct(hp).str);
-                       AsmLn;
-                     end;
-        ait_symbol : begin
-                       s:= tai_label(hp).l.name;
-                       replaced:= ReplaceForbiddenChars(s);
+                         end; { end for i:=0 to... }
+                       if quoted then AsmWrite('''');
+                         AsmWrite(target_info.newline);
+                       counter := counter+line_length;
+                    end; { end for j:=0 ... }
+                  { do last line of lines }
+                  AsmWrite(#9'DC.B'#9);
+                  quoted:=false;
+                  for i:=counter to tai_string(hp).len-1 do
+                    begin
+                      { it is an ascii character. }
+                      if (ord(tai_string(hp).str[i])>31) and
+                         (ord(tai_string(hp).str[i])<128) and
+                         (tai_string(hp).str[i]<>'''') then
+                          begin
+                            if not(quoted) then
+                                begin
+                                  if i>counter then
+                                    AsmWrite(',');
+                                  AsmWrite('''');
+                                end;
+                            AsmWrite(tai_string(hp).str[i]);
+                            quoted:=true;
+                          end { if > 31 and < 128 and " }
+                      else
+                          begin
+                            if quoted then
+                              AsmWrite('''');
+                            if i>counter then
+                                AsmWrite(',');
+                            quoted:=false;
+                            AsmWrite(tostr(ord(tai_string(hp).str[i])));
+                          end;
+                    end; { end for i:=0 to... }
+                  if quoted then
+                    AsmWrite('''');
+                  end;
+                 AsmLn;
+              end;
+            ait_label:
+              begin
+                 if tai_label(hp).l.is_used then
+                  begin
+                    s:= tai_label(hp).l.name;
+                    ReplaceForbiddenChars(s);
+                    AsmWrite(s);
+                    {if assigned(hp.next) and not(tai(hp.next).typ in
+                       [ait_const_32bit,ait_const_16bit,ait_const_8bit,
+                        ait_const_symbol,ait_const_rva,
+                        ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit,ait_string]) then
+                     AsmWriteLn(':')
+                    else
+                     DoNotSplitLine:=true;}
+                    AsmWriteLn(':');
+                  end;
+               end;
+             ait_direct:
+               begin
+                  AsmWritePChar(tai_direct(hp).str);
+                  AsmLn;
+               end;
+             ait_symbol:
+               begin
+                  s:= tai_label(hp).l.name;
+                  replaced:= ReplaceForbiddenChars(s);
+                  if tai_label(hp).l.typ=AT_FUNCTION then
+                    begin
+                       if replaced then
+                         begin
+                            AsmWriteLn(#9'export'#9'.'+s+'[PR] => ''.'+tai_symbol(hp).sym.name+'[PR]''');
+                            AsmWriteLn(#9'export'#9+s+'[DS] => '''+tai_symbol(hp).sym.name+'[DS]''');
+                            AsmWriteLn(#9'csect'#9'.'+s+'[PR]');
+                         end
+                       else
+                         begin
+                            AsmWriteLn(#9'export'#9'.'+s+'[PR]');
+                            AsmWriteLn(#9'export'#9+s+'[DS]');
+                            AsmWriteLn(#9'csect'#9'.'+s+'[PR]');
+                         end;
+                       AsmWriteLn(#9'toc');
+                       AsmWriteLn(#9'tc'#9+s+'[TC],'+s+'[DS]');
+                       AsmWrite('.');
+                       AsmWrite(s);
+                       AsmWriteLn(':');
+                    end
+                  else
+                    begin
                        if tai_symbol(hp).is_global then
                          if replaced then
-                           AsmWriteLn(#9'EXPORT'#9+s+' => '''+tai_symbol(hp).sym.name+'''')
+                           AsmWriteLn(#9'export'#9+s+' => '''+tai_symbol(hp).sym.name+'''')
                          else
-                           AsmWriteLn(#9'EXPORT'#9+s);
+                           AsmWriteLn(#9'export'#9+s);
                        AsmWrite(s);
-                       {if assigned(hp.next) and not(tai(hp.next).typ in
-                          [ait_const_32bit,ait_const_16bit,ait_const_8bit,
-                           ait_const_symbol,ait_const_rva,
-                           ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit,ait_string]) then}
-                       AsmWriteLn(':')
-                     end;
-    ait_symbol_end : begin
-                     end;
-   ait_instruction : begin
-                        AsmWriteLn(GetInstruction(hp));
-                     end;
+                       AsmWriteLn(':');
+                    end;
+                end;
+              ait_symbol_end:
+                ;
+              ait_instruction:
+                AsmWriteLn(GetInstruction(hp));
 {$ifdef GDB}
              ait_stabn,
              ait_stabs,
@@ -791,30 +816,30 @@ ait_stab_function_name : ;
       begin
         if tasmsymbol(p).defbind=AB_EXTERNAL then
           begin
-            {currentasmlist.AsmWriteln(#9'IMPORT'#9+p.name);}
+            {currentasmlist.AsmWriteln(#9'import'#9+p.name);}
             s:= p.name;
             case tasmsymbol(p).typ of
               AT_FUNCTION:
                 begin
                    if ReplaceForbiddenChars(s) then
                      begin
-                        currentasmlist.AsmWriteLn(#9'IMPORT'#9'.'+s+' <= ''.'+p.name+'[PR]''');
-                        currentasmlist.AsmWriteLn(#9'IMPORT'#9+s+' <= '''+p.name+'[DS]''');
+                        currentasmlist.AsmWriteLn(#9'import'#9'.'+s+' <= ''.'+p.name+'[PR]''');
+                        currentasmlist.AsmWriteLn(#9'import'#9+s+' <= '''+p.name+'[DS]''');
                      end
                    else
                      begin
-                        currentasmlist.AsmWriteLn(#9'IMPORT'#9'.'+s+'[PR]');
-                        currentasmlist.AsmWriteLn(#9'IMPORT'#9+s+'[DS]');
+                        currentasmlist.AsmWriteLn(#9'import'#9'.'+s+'[PR]');
+                        currentasmlist.AsmWriteLn(#9'import'#9+s+'[DS]');
                      end;
-                   currentasmlist.AsmWriteLn(#9'TOC');
-                   currentasmlist.AsmWriteLn(#9'TC'#9+s+'[TC],'+s+'[DS]');
+                   currentasmlist.AsmWriteLn(#9'toc');
+                   currentasmlist.AsmWriteLn(#9'tc'#9+s+'[TC],'+s+'[DS]');
                 end
               else
                 begin
                    if ReplaceForbiddenChars(s) then
-                     currentasmlist.AsmWriteLn(#9'IMPORT'#9+s+' <= '''+p.name+'''')
+                     currentasmlist.AsmWriteLn(#9'import'#9+s+' <= '''+p.name+'''')
                    else
-                     currentasmlist.AsmWriteLn(#9'IMPORT'#9+s);
+                     currentasmlist.AsmWriteLn(#9'import'#9+s);
                 end;
             end;
           end;
@@ -928,7 +953,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.7  2002-10-02 22:14:15  florian
+  Revision 1.8  2002-10-06 22:46:20  florian
+    * fixed function exporting
+
+  Revision 1.7  2002/10/02 22:14:15  florian
     * improve function imports
 
   Revision 1.6  2002/09/27 21:09:49  florian
