@@ -2217,8 +2217,8 @@ var
   begin
     C:=0;
     WordS:=copy(LineText,StartX,EndX-StartX+1);
-    if IsAsmSuffix(WordS) and (InAsm=true) and (InComment=false) and
-       (InString=false) and (InDirective=false) then InAsm:=false;
+    if (InAsm=true) and (InComment=false) and (InString=false) and
+        (InDirective=false) and IsAsmSuffix(WordS) then InAsm:=false;
     if InDirective then C:=coDirectiveColor else
     if InComment then C:=coCommentColor else
     if InString then C:=coStringColor else
@@ -2254,8 +2254,8 @@ var
     end;
     if EndX+1>=StartX then
       FillChar(Format[StartX],EndX+1-StartX,C);
-    if IsAsmPrefix(WordS) and (InString=false) and
-       (InAsm=false) and (InComment=false) and (InDirective=false) then
+    if (InString=false) and (InAsm=false) and (InComment=false) and
+       (InDirective=false) and IsAsmPrefix(WordS) then
       InAsm:=true;
   end;
 
@@ -2284,11 +2284,11 @@ var
            if length(SymbolConcat)>=High(SymbolConcat) then
              Delete(SymbolConcat,1,1);
            SymbolConcat:=SymbolConcat+C;
-           if IsCommentSuffix and (InComment) then
+           if  InComment and IsCommentSuffix then
               Inc(EX) else
-           if IsStringSuffix and (InString) then
+           if InString and IsStringSuffix  then
               Inc(EX) else
-           if IsDirectiveSuffix and (InDirective) then
+           if InDirective and IsDirectiveSuffix then
               Inc(EX);
          end;
         if CC=ccRealNumber then
@@ -2305,12 +2305,17 @@ var
           ccNumber :
             if (LastCC<>ccAlpha) then;
           ccSymbol :
-              if IsDirectivePrefix and (InComment=true) and (CurrentCommentType=1) and
-                 (InDirective=false) then
-                 begin InDirective:=true; InComment:=false; Dec(ClassStart,length(MatchingSymbol)-1); end else
-              if IsDirectiveSuffix and (InComment=false) and (InDirective=true) then
-                 InDirective:=false else
-              if IsCommentPrefix and (InComment=false) and (InString=false) then
+              if (InComment=true) and (CurrentCommentType=1) and
+                 (InDirective=false)  and IsDirectivePrefix then
+                begin
+                  InDirective:=true;
+                  InComment:=false;
+                  Dec(ClassStart,length(MatchingSymbol)-1);
+                end
+              else if (InComment=false) and
+                (InDirective=true) and IsDirectiveSuffix then
+                 InDirective:=false
+              else if (InComment=false) and (InString=false) and IsCommentPrefix then
                 begin
                   InComment:=true;
                   CurrentCommentType:=SymbolIndex;
@@ -2323,12 +2328,17 @@ var
                   if MatchingSymbol[length(MatchingSymbol)]=Editor^.GetSpecSymbol(ssCommentSuffix,SymbolIndex)[1] then
                     Delete(SymbolConcat,1,length(MatchingSymbol));
                 end
-              else
-             if IsCommentSuffix and (InComment) then
-               begin InComment:=false; InString:=false; end else
-             if IsStringPrefix and (InComment=false) and (InString=false) then
-               begin InString:=true; Dec(ClassStart,length(MatchingSymbol)-1); end else
-             if IsStringSuffix and (InComment=false) and (InString=true) then
+              else if InComment and IsCommentSuffix then
+                begin
+                  InComment:=false;
+                  InString:=false;
+                end
+              else if (InComment=false) and (InString=false) and IsStringPrefix then
+                begin
+                  InString:=true;
+                  Dec(ClassStart,length(MatchingSymbol)-1);
+                end
+              else if (InComment=false) and (InString=true) and IsStringSuffix then
                InString:=false;
         end;
         if MatchedSymbol and (InComment=false) then
@@ -7116,7 +7126,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.31  2002-09-10 12:19:14  pierre
+  Revision 1.32  2002-09-11 08:39:44  pierre
+   * avoid lots of useless calls by reordering conditions in DoUpdateAttrs
+
+  Revision 1.31  2002/09/10 12:19:14  pierre
    * use faster method for loading files by default
 
   Revision 1.30  2002/09/09 06:58:28  pierre
