@@ -1160,7 +1160,11 @@ end;
         FSplit(s,p,n,e);
       { Programs have the name program to don't conflict with dup id's }
         if _is_unit then
+{$ifdef UNITALIASES}
           modulename:=stringdup(GetUnitAlias(Upper(n)))
+{$else}
+          modulename:=stringdup(Upper(n))
+{$endif}
         else
           modulename:=stringdup('PROGRAM');
         mainsource:=stringdup(s);
@@ -1340,7 +1344,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.106  1999-11-04 10:54:02  peter
+  Revision 1.107  1999-11-04 23:13:25  peter
+    * moved unit alias support into ifdef
+
+  Revision 1.106  1999/11/04 10:54:02  peter
     + -Ua<oldname>=<newname> unit alias support
 
   Revision 1.105  1999/10/28 13:14:00  pierre

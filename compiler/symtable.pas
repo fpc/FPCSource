@@ -365,8 +365,7 @@ unit symtable;
           'lower_or_equal','as','is','in','sym_diff',
           'starstar','assign');
 
-{*** Unit aliases ***}
-
+{$ifdef UNITALIASES}
     type
        punit_alias = ^tunit_alias;
        tunit_alias = object(tnamedindexobject)
@@ -374,12 +373,12 @@ unit symtable;
           constructor init(const n:string);
           destructor  done;virtual;
        end;
-
     var
        unitaliases : pdictionary;
 
     procedure addunitalias(const n:string);
     function getunitalias(const n:string):string;
+{$endif UNITALIASES}
 
 
 {****************************************************************************
@@ -2234,6 +2233,7 @@ implementation
         end;
 
 
+{$ifdef UNITALIASES}
 {****************************************************************************
                               TUNIT_ALIAS
  ****************************************************************************}
@@ -2273,6 +2273,7 @@ implementation
         else
          getunitalias:=n;
       end;
+{$endif UNITALIASES}
 
 
 {****************************************************************************
@@ -2379,8 +2380,10 @@ implementation
      { create error syms and def }
         generrorsym:=new(perrorsym,init);
         generrordef:=new(perrordef,init);
+{$ifdef UNITALIASES}
      { unit aliases }
         unitaliases:=new(pdictionary,init);
+{$endif}
      end;
 
 
@@ -2388,7 +2391,9 @@ implementation
       begin
         dispose(generrorsym,done);
         dispose(generrordef,done);
+{$ifdef UNITALIASES}
         dispose(unitaliases,done);
+{$endif}
 {$ifndef Delphi}
 {$ifdef TP}
       { close the stream }
@@ -2401,7 +2406,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.55  1999-11-04 10:54:02  peter
+  Revision 1.56  1999-11-04 23:13:25  peter
+    * moved unit alias support into ifdef
+
+  Revision 1.55  1999/11/04 10:54:02  peter
     + -Ua<oldname>=<newname> unit alias support
 
   Revision 1.54  1999/10/26 12:30:46  peter

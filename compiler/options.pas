@@ -679,10 +679,12 @@ begin
               'U' : begin
                       for j:=1 to length(more) do
                        case more[j] of
+{$ifdef UNITALIASES}
                         'a' : begin
                                 AddUnitAlias(Copy(More,j+1,255));
                                 break;
                               end;
+{$endif UNITALIASES}
                         'n' : initglobalswitches:=initglobalswitches-[cs_check_unit_name];
                         'p' : begin
                                 Message2(option_obsolete_switch_use_new,'-Up','-Fu');
@@ -1249,7 +1251,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.31  1999-11-04 10:54:03  peter
+  Revision 1.32  1999-11-04 23:13:25  peter
+    * moved unit alias support into ifdef
+
+  Revision 1.31  1999/11/04 10:54:03  peter
     + -Ua<oldname>=<newname> unit alias support
 
   Revision 1.30  1999/11/03 23:43:09  peter
