@@ -223,7 +223,7 @@
            if assigned(debuglist) and not is_def_stab_written then
              concatstabto(debuglist);
         end;
-      if not use_dbx then
+      if not (cs_gdb_dbx in aktglobalswitches) then
         begin
            if globalnb = 0 then
              set_globalnb;
@@ -288,10 +288,10 @@
     procedure tdef.concatstabto(asmlist : paasmoutput);
      var stab_str : pchar;
     begin
-    if ((sym = nil) or sym^.isusedinstab or use_dbx)
+    if ((sym = nil) or sym^.isusedinstab or (cs_gdb_dbx in aktglobalswitches))
       and not is_def_stab_written then
       begin
-      If use_dbx then
+      If cs_gdb_dbx in aktglobalswitches then
         begin
            { otherwise you get two of each def }
            If assigned(sym) then
@@ -1163,7 +1163,8 @@
     procedure tfiledef.concatstabto(asmlist : paasmoutput);
       begin
       { most file defs are unnamed !!! }
-      if ((sym = nil) or sym^.isusedinstab or use_dbx) and not is_def_stab_written then
+      if ((sym = nil) or sym^.isusedinstab or (cs_gdb_dbx in aktglobalswitches)) and
+         not is_def_stab_written then
         begin
         if assigned(typed_as) then forcestabto(asmlist,typed_as);
         inherited concatstabto(asmlist);
@@ -1220,7 +1221,8 @@
       var st,nb : string;
           sym_line_no : longint;
       begin
-      if ( (sym=nil) or sym^.isusedinstab or use_dbx) and not is_def_stab_written then
+      if ( (sym=nil) or sym^.isusedinstab or (cs_gdb_dbx in aktglobalswitches)) and
+         not is_def_stab_written then
         begin
         if assigned(definition) then
           if definition^.deftype in [recorddef,objectdef] then
@@ -1379,7 +1381,7 @@
 
     procedure tsetdef.concatstabto(asmlist : paasmoutput);
       begin
-      if ( not assigned(sym) or sym^.isusedinstab or use_dbx) and
+      if ( not assigned(sym) or sym^.isusedinstab or (cs_gdb_dbx in aktglobalswitches)) and
           not is_def_stab_written then
         begin
           if assigned(setof) then
@@ -1546,7 +1548,7 @@
 
     procedure tarraydef.concatstabto(asmlist : paasmoutput);
       begin
-      if (not assigned(sym) or sym^.isusedinstab or use_dbx)
+      if (not assigned(sym) or sym^.isusedinstab or (cs_gdb_dbx in aktglobalswitches))
         and not is_def_stab_written then
         begin
         {when array are inserted they have no definition yet !!}
@@ -1779,7 +1781,7 @@
 
     procedure trecdef.concatstabto(asmlist : paasmoutput);
       begin
-        if (not assigned(sym) or sym^.isusedinstab or use_dbx) and
+        if (not assigned(sym) or sym^.isusedinstab or (cs_gdb_dbx in aktglobalswitches)) and
            (not is_def_stab_written) then
           inherited concatstabto(asmlist);
       end;
@@ -2063,7 +2065,7 @@
 
     procedure tabstractprocdef.concatstabto(asmlist : paasmoutput);
       begin
-         if (not assigned(sym) or sym^.isusedinstab or use_dbx)
+         if (not assigned(sym) or sym^.isusedinstab or (cs_gdb_dbx in aktglobalswitches))
             and not is_def_stab_written then
            begin
               if assigned(retdef) then forcestabto(asmlist,retdef);
@@ -2538,7 +2540,7 @@
 
     procedure tprocvardef.concatstabto(asmlist : paasmoutput);
       begin
-         if ( not assigned(sym) or sym^.isusedinstab or use_dbx)
+         if ( not assigned(sym) or sym^.isusedinstab or (cs_gdb_dbx in aktglobalswitches))
            and not is_def_stab_written then
            inherited concatstabto(asmlist);
          is_def_stab_written:=true;
@@ -3230,7 +3232,10 @@
 
 {
   $Log$
-  Revision 1.78  1998-12-08 09:06:30  pierre
+  Revision 1.79  1998-12-08 10:18:12  peter
+    + -gh for heaptrc unit
+
+  Revision 1.78  1998/12/08 09:06:30  pierre
    + constructor destructor info for gdbpas
 
   Revision 1.77  1998/12/01 23:37:39  pierre

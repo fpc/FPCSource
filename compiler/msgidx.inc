@@ -516,7 +516,7 @@ type tmsgconst=(
   ol020,
   ol021,
   ol022,
-  ol0239,
+  ol023,
   ol024,
   ol025,
   ol026,
@@ -622,6 +622,7 @@ type tmsgconst=(
   ol126,
   ol127,
   ol128,
+  ol129,
   ol_end,
 endmsgconst
 );

@@ -525,6 +525,17 @@ unit pmodules;
            current_module^.used_units.concat(new(pused_unit,init(hp,true)));
            refsymtable^.insert(new(punitsym,init('PROFILE',hp^.globalsymtable)));
          end;
+      { Heaptrc unit? (not needed for units), this is here to be sure that it is really
+        loaded as first unit }
+        if (cs_gdb_heaptrc in aktglobalswitches) and not(current_module^.is_unit)then
+         begin
+           hp:=loadunit('HEAPTRC',false);
+           psymtable(hp^.globalsymtable)^.next:=symtablestack;
+           symtablestack:=hp^.globalsymtable;
+           { add to the used units }
+           current_module^.used_units.concat(new(pused_unit,init(hp,true)));
+           refsymtable^.insert(new(punitsym,init('HEAPTRC',hp^.globalsymtable)));
+         end;
       { save default symtablestack }
         defaultsymtablestack:=symtablestack;
       end;
@@ -657,7 +668,7 @@ unit pmodules;
            end;
 {$EndIf GDB}
         end;
-        
+
     procedure parse_implementation_uses(symt:Psymtable);
       begin
          if token=_USES then
@@ -1217,7 +1228,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.87  1998-12-01 23:40:53  pierre
+  Revision 1.88  1998-12-08 10:18:11  peter
+    + -gh for heaptrc unit
+
+  Revision 1.87  1998/12/01 23:40:53  pierre
    * new try for correct debug info generation
 
   Revision 1.86  1998/11/30 09:43:22  pierre

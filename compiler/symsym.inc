@@ -1207,7 +1207,7 @@
        if (owner^.symtabletype = objectsymtable) and
           ((properties and sp_static)<>0) then
          begin
-            if use_gsym then st := 'G' else st := 'S';
+            if (cs_gdb_gsym in aktglobalswitches) then st := 'G' else st := 'S';
             stabstring := strpnew('"'+owner^.name^+'__'+name+':'+
                      +definition^.numberstring+'",'+
                      tostr(N_LCSYM)+',0,'+tostr(fileinfo.line)+','+mangledname);
@@ -1219,7 +1219,7 @@
               because with G GDB doesn't look at the address field
               but searches the same name or with a leading underscore
               but these names don't exist in pascal !}
-            if use_gsym then st := 'G' else st := 'S';
+            if (cs_gdb_gsym in aktglobalswitches) then st := 'G' else st := 'S';
             stabstring := strpnew('"'+name+':'+st
                      +definition^.numberstring+'",'+
                      tostr(N_LCSYM)+',0,'+tostr(fileinfo.line)+','+mangledname);
@@ -1406,7 +1406,7 @@
     var
       st : char;
     begin
-    if use_gsym and (owner^.symtabletype in [unitsymtable,globalsymtable]) then
+    if (cs_gdb_gsym in aktglobalswitches) and (owner^.symtabletype in [unitsymtable,globalsymtable]) then
       st := 'G'
     else
       st := 'S';
@@ -1803,7 +1803,10 @@
 
 {
   $Log$
-  Revision 1.63  1998-11-28 16:20:56  peter
+  Revision 1.64  1998-12-08 10:18:15  peter
+    + -gh for heaptrc unit
+
+  Revision 1.63  1998/11/28 16:20:56  peter
     + support for dll variables
 
   Revision 1.62  1998/11/27 14:50:48  peter

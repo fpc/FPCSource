@@ -177,7 +177,7 @@
          with Current_Module^ do
           begin
             if (cs_create_staticlib in aktmoduleswitches) or
-	       (cs_smartlink in aktmoduleswitches) then
+               (cs_smartlink in aktmoduleswitches) then
              begin
                flags:=flags or uf_static_linked;
                if SplitName(ppufilename^)<>SplitName(staticlibfilename^) then
@@ -192,7 +192,7 @@
             if cs_smartlink in aktmoduleswitches then
              flags:=flags or uf_smartlink;
 {$ifdef GDB}
-            if use_dbx then
+            if cs_gdb_dbx in aktglobalswitches then
              flags:=flags or uf_has_dbx;
 {$endif GDB}
             if target_os.endian=endian_big then
@@ -448,7 +448,10 @@
 
 {
   $Log$
-  Revision 1.26  1998-11-26 14:36:02  peter
+  Revision 1.27  1998-12-08 10:18:14  peter
+    + -gh for heaptrc unit
+
+  Revision 1.26  1998/11/26 14:36:02  peter
     * set also library flag if smartlinking and outputname is different
 
   Revision 1.25  1998/10/26 09:35:47  peter
