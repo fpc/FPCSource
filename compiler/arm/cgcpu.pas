@@ -233,6 +233,7 @@ unit cgcpu;
       var
          r : tregister;
       begin
+        list.concat(taicpu.op_reg_reg(A_MOV,NR_R14,NR_PC));
         list.concat(taicpu.op_reg_reg(A_MOV,NR_PC,reg));
         if not(pi_do_call in current_procinfo.flags) then
           internalerror(2003060704);
@@ -775,7 +776,7 @@ unit cgcpu;
         reference_reset(ref);
         ref.index:=NR_STACK_POINTER_REG;
         ref.addressmode:=AM_PREINDEXED;
-        list.concat(setoppostfix(taicpu.op_ref_regset(A_STM,ref,rg[R_INTREGISTER].used_in_proc-[RS_R0..RS_R3]+[RS_R11,RS_R12,RS_R14,RS_R15]),PF_DB));
+        list.concat(setoppostfix(taicpu.op_ref_regset(A_STM,ref,rg[R_INTREGISTER].used_in_proc-[RS_R0..RS_R3]+[RS_R11,RS_R12,RS_R14,RS_R15]),PF_FD));
 
         list.concat(taicpu.op_reg_reg_const(A_SUB,NR_FRAME_POINTER_REG,NR_R12,4));
 
@@ -807,7 +808,7 @@ unit cgcpu;
             { restore int registers and return }
             reference_reset(ref);
             ref.index:=NR_FRAME_POINTER_REG;
-            list.concat(setoppostfix(taicpu.op_ref_regset(A_LDM,ref,rg[R_INTREGISTER].used_in_proc-[RS_R0..RS_R3]+[RS_R11,RS_R13,RS_R15]),PF_DB));
+            list.concat(setoppostfix(taicpu.op_ref_regset(A_LDM,ref,rg[R_INTREGISTER].used_in_proc-[RS_R0..RS_R3]+[RS_R11,RS_R13,RS_R15]),PF_EA));
           end;
       end;
 
@@ -1198,7 +1199,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.29  2003-12-26 14:02:30  peter
+  Revision 1.30  2004-01-20 23:18:00  florian
+    * fixed a_call_reg
+    + implemented paramgr.get_volative_registers
+
+  Revision 1.29  2003/12/26 14:02:30  peter
     * sparc updates
     * use registertype in spill_register
 

@@ -30,11 +30,13 @@ unit cpupara;
     uses
        globtype,
        aasmtai,
-       cpubase,
+       cpubase,cgbase,
        symconst,symbase,symtype,symdef,paramgr;
 
     type
        tarmparamanager = class(tparamanager)
+          function get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;override;
+          function get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;override;
           function push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
           function getintparaloc(calloption : tproccalloption; nr : longint) : tparalocation;override;
           // procedure freeintparaloc(list: taasmoutput; nr : longint); override;
@@ -46,9 +48,22 @@ unit cpupara;
 
     uses
        verbose,systems,
-       cpuinfo,cgbase,
+       cpuinfo,
        rgobj,
        defutil,symsym;
+
+
+    function tarmparamanager.get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;
+      begin
+        result:=VOLATILE_INTREGISTERS;
+      end;
+
+
+    function tarmparamanager.get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;
+      begin
+        result:=VOLATILE_FPUREGISTERS;
+      end;
+
 
     function tarmparamanager.getintparaloc(calloption : tproccalloption; nr : longint) : tparalocation;
       begin
@@ -336,7 +351,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2003-12-18 17:06:21  florian
+  Revision 1.12  2004-01-20 23:18:00  florian
+    * fixed a_call_reg
+    + implemented paramgr.get_volative_registers
+
+  Revision 1.11  2003/12/18 17:06:21  florian
     * arm compiler compilation fixed
 
   Revision 1.10  2003/12/03 17:39:05  florian
