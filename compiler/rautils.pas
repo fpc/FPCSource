@@ -1453,9 +1453,14 @@ end;
         begin
           case sym^.typ of
          varsym : begin
-                    l:=pvarsym(sym)^.address;
-                    { set offset }
-                    inc(l,aktprocsym^.definition^.parast^.call_offset);
+                    if pvarsym(sym)^.islocalcopy then
+                     l:=-pvarsym(sym)^.address
+                    else
+                     begin
+                       l:=pvarsym(sym)^.address;
+                       { set offset }
+                       inc(l,aktprocsym^.definition^.parast^.call_offset);
+                     end;
                     pvarsym(sym)^.is_valid:=1;
                     instr.operands[operandnum].ref.base := procinfo.framepointer;
                     instr.operands[operandnum].ref.offset := l;
@@ -1804,7 +1809,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  1999-01-27 13:04:11  pierre
+  Revision 1.3  1999-02-16 00:47:28  peter
+    * fixed local copies of value para's
+
+  Revision 1.2  1999/01/27 13:04:11  pierre
    * bug with static vars in assembler readers
 
   Revision 1.1  1999/01/10 15:38:00  peter
