@@ -172,20 +172,20 @@ Function msgctl(msqid:longint; cmd: longint; buf: PMSQid_ds): Boolean;
   ----------------------------------------------------------------------}
 
 const
-     SEM_UNDO = $1000;
-     GETPID = 11;
-     GETVAL = 12;
-     GETALL = 13;
-     GETNCNT = 14;
-     GETZCNT = 15;
-     SETVAL = 16;
-     SETALL = 17;
+  SEM_UNDO = $1000;
+  GETPID = 11;
+  GETVAL = 12;
+  GETALL = 13;
+  GETNCNT = 14;
+  GETZCNT = 15;
+  SETVAL = 16;
+  SETALL = 17;
 
-     SEMMNI = 128;
-     SEMMSL = 32;
-     SEMMNS = (SEMMNI * SEMMSL);
-     SEMOPM = 32;
-     SEMVMX = 32767;
+  SEMMNI = 128;
+  SEMMSL = 32;
+  SEMMNS = (SEMMNI * SEMMSL);
+  SEMOPM = 32;
+  SEMVMX = 32767;
 
 type
   PSEMid_ds = ^PSEMid_ds;
@@ -234,7 +234,7 @@ type
 
 Function semget(key:Tkey; nsems:longint; semflg:longint): longint;
 Function semop(semid:longint; sops: pointer; nsops: cardinal): Boolean;
-Function semctl(semid:longint; semnum:longint; cmd:longint; arg: tsemun): longint;
+Function semctl(semid:longint; semnum:longint; cmd:longint; var arg: tsemun): longint;
 
 implementation
 
@@ -360,7 +360,7 @@ begin
   semop:=ipccall (CALL_SEMOP,semid,Longint(nsops),0,Pointer(sops))=0;
 end;
 
-Function semctl(semid:longint; semnum:longint; cmd:longint; arg: tsemun): longint;
+Function semctl(semid:longint; semnum:longint; cmd:longint; var arg: tsemun): longint;
 begin
   semctl:=ipccall(CALL_SEMCTL,semid,semnum,cmd,@arg);
 end;
