@@ -9,7 +9,7 @@ units=$(SYSTEMUNIT) objpas strings \
       sockets initc \
       dos crt objects graph \
       sysutils typinfo math \
-      cpu mmx getopts heaptrc
+      cpu mmx getopts heaptrc wincrt winmouse
 
 [packages]
 rtl=0
@@ -110,6 +110,10 @@ sockets$(PPUEXT) : sockets.pp windows$(PPUEXT) winsock$(PPUEXT) $(SYSTEMPPU) \
                    $(INC)/sockets.inc $(INC)/socketsh.inc
 
 initc$(PPUEXT) : initc.pp $(SYSTEMPPU)
+
+wincrt$(PPUEXT) : wincrt.pp $(SYSTEMPPU) windows$(PPUEXT) graph$(PPUEXT)
+
+winmouse$(PPUEXT) : winmouse.pp $(SYSTEMPPU) windows$(PPUEXT) graph$(PPUEXT)
 
 #
 # TP7 Compatible RTL Units

@@ -37,7 +37,6 @@ var
    graphdrawing : tcriticalsection;
    bitmapdc : hdc;
    oldbitmap : hgdiobj;
-   mainwindow : HWnd;
    pal : ^rgbrec;
    SavePtr : pointer; { we don't use that pointer }
    MessageThreadHandle : Handle;
@@ -305,6 +304,26 @@ begin
   WindowProc := 0;
 
   case AMessage of
+    wm_lbuttondown,
+    wm_rbuttondown,
+    wm_mbuttondown,
+    wm_lbuttonup,
+    wm_rbuttonup,
+    wm_mbuttonup,
+    wm_lbuttondblclk,
+    wm_rbuttondblclk,
+    wm_mbuttondblclk,
+    wm_nclbuttondown,
+    wm_ncrbuttondown,
+    wm_ncmbuttondown,
+    wm_nclbuttonup,
+    wm_ncrbuttonup,
+    wm_ncmbuttonup,
+    wm_nclbuttondblclk,
+    wm_ncrbuttondblclk,
+    wm_ncmbuttondblclk:
+      if assigned(mousemessagehandler) then
+        WindowProc:=mousemessagehandler(window,amessage,wparam,lparam);
     wm_keydown,
     wm_keyup,
     wm_char:
@@ -356,7 +375,7 @@ function WinRegister: Boolean;
 var
   WindowClass: WndClass;
 begin
-  WindowClass.Style := cs_hRedraw or cs_vRedraw;
+  WindowClass.Style := graphwindowstyle;
   WindowClass.lpfnWndProc := WndProc(@WindowProc);
   WindowClass.cbClsExtra := 0;
   WindowClass.cbWndExtra := 0;
@@ -521,7 +540,10 @@ function queryadapterinfo : pmodeinfo;
 
 {
   $Log$
-  Revision 1.1  1999-11-08 11:15:22  peter
+  Revision 1.2  1999-11-29 22:03:39  florian
+    * first implementation of winmouse unit
+
+  Revision 1.1  1999/11/08 11:15:22  peter
     * move graph.inc to the target dir
 
   Revision 1.1  1999/11/03 20:23:02  florian

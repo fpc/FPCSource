@@ -118,6 +118,7 @@ unit wincrt;
 
       begin
          exitproc:=oldexitproc;
+         charmessagehandler:=nil;
          DeleteCriticalSection(keyboardhandling);
       end;
 begin
@@ -130,7 +131,9 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  1999-11-24 22:33:15  florian
-    + created from extgraph
+  Revision 1.2  1999-11-29 22:03:39  florian
+    * first implementation of winmouse unit
 
+  Revision 1.1  1999/11/24 22:33:15  florian
+    + created from extgraph
 }

@@ -15,9 +15,25 @@
  **********************************************************************}
 
 
+  var
+    { this procedure allows to hook keyboard messages }
+    charmessagehandler : function(Window: hwnd; AMessage, WParam,
+                                  LParam: Longint): Longint;
+    { this procedure allows to hook mouse messages }
+    mousemessagehandler : function(Window: hwnd; AMessage, WParam,
+                                   LParam: Longint): Longint;
+   mainwindow : HWnd;
+
+  const
+    { predefined window style }
+    graphwindowstyle : DWord = cs_hRedraw or cs_vRedraw;
+ 
+
 {
   $Log$
-  Revision 1.1  1999-11-08 15:01:39  peter
-    * fpcmake support
+  Revision 1.2  1999-11-29 22:03:39  florian
+    * first implementation of winmouse unit
 
+  Revision 1.1  1999/11/08 15:01:39  peter
+    * fpcmake support
 }
