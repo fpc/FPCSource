@@ -246,7 +246,7 @@ implementation
                   pend:=p1+sym1^.len;
                   while (p1<pend) do
                    begin
-                     if p1<>p2 then
+                     if p1^<>p2^ then
                       break;
                      inc(p1);
                      inc(p2);
@@ -305,16 +305,16 @@ implementation
                         equal_paras:=false;
                         exit;
                      end;
-		   { also check default value if both have it declared }
-		   if assigned(def1^.defaultvalue) and
-		      assigned(def2^.defaultvalue) then
-		    begin
-		      if not equal_constsym(pconstsym(def1^.defaultvalue),pconstsym(def2^.defaultvalue)) then
-		       begin
-		         equal_paras:=false;
-			 exit;
-		       end; 	   
-		    end;
+                   { also check default value if both have it declared }
+                   if assigned(def1^.defaultvalue) and
+                      assigned(def2^.defaultvalue) then
+                    begin
+                      if not equal_constsym(pconstsym(def1^.defaultvalue),pconstsym(def2^.defaultvalue)) then
+                       begin
+                         equal_paras:=false;
+                         exit;
+                       end;
+                    end;
                 end;
               end;
               def1:=pparaitem(def1^.next);
@@ -1140,7 +1140,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  2000-08-16 13:06:07  florian
+  Revision 1.8  2000-08-19 19:51:03  peter
+    * fixed bug with comparing constsym strings
+
+  Revision 1.7  2000/08/16 13:06:07  florian
     + support of 64 bit integer constants
 
   Revision 1.6  2000/08/13 13:07:18  peter
