@@ -53,7 +53,8 @@ BEGIN
 
   for i := 0 to 255
   do begin
-    col := i shl 16 + (i div 2) shl 8 + (i div 3);
+    { new grpah unit used word type for colors }
+    col := {i shl 16 + }(i) shl 8 + (i div 2);
     for yi := 0 to 20 do
       PutPixel (i,yi,col);
     SetColor (col);
@@ -71,7 +72,10 @@ END.
 
 {
   $Log$
-  Revision 1.1  1999-12-02 17:37:38  peter
+  Revision 1.2  2000-04-14 05:44:22  pierre
+   * adapted to new graph unit
+
+  Revision 1.1  1999/12/02 17:37:38  peter
     * moved *.pp into subdirs
     * fpcmaked
 
