@@ -16,6 +16,20 @@
                 A platform independent FExpand implementation
 ****************************************************************************}
 
+{$IFDEF FPC_FEXPAND_VOLUMES}
+ {$IFNDEF FPC_FEXPAND_DRIVES}
+  (* Volumes are just a special case of drives. *)
+  {$DEFINE FPC_FEXPAND_DRIVES}
+ {$ENDIF FPC_FEXPAND_DRIVES}
+{$ENDIF FPC_FEXPAND_VOLUMES}
+
+{$IFDEF FPC_FEXPAND_DIRSEP_IS_UPDIR}
+ {$IFNDEF FPC_FEXPAND_DRIVESEP_IS_ROOT}
+  (* If DriveSeparator is used for upper directory,       *)
+  (* it cannot be used for marking root at the same time. *)
+  {$DEFINE FPC_FEXPAND_DRIVESEP_IS_ROOT}
+ {$ENDIF FPC_FEXPAND_DRIVESEP_IS_ROOT}
+{$ENDIF FPC_FEXPAND_DIRSEP_IS_UPDIR}
 
 procedure GetDirIO (DriveNr: byte; var Dir: OpenString);
 
@@ -33,6 +47,7 @@ end;
 
 
 {$IFDEF FPC_FEXPAND_VOLUMES}
+{$IFNDEF FPC_FEXPAND_NO_DEFAULT_PATHS}
 procedure GetDirIO (const VolumeName: OpenString; var Dir: OpenString);
 
 var
@@ -40,13 +55,10 @@ var
 begin
   OldInOutRes := InOutRes;
   InOutRes := 0;
-{$IFDEF FPC_FEXPAND_NO_DEFAULT_PATHS}
-  GetDir (0, Dir);
-{$ELSE FPC_FEXPAND_NO_DEFAULT_PATHS}
   GetDir (VolumeName, Dir);
-{$ENDIF FPC_FEXPAND_NO_DEFAULT_PATHS}
   InOutRes := OldInOutRes;
 end;
+{$ENDIF FPC_FEXPAND_NO_DEFAULT_PATHS}
 {$ENDIF FPC_FEXPAND_VOLUMES}
 
 
@@ -55,8 +67,10 @@ function FExpand (const Path: PathStr): PathStr;
 (* LFNSupport boolean constant, variable or function must be declared for all
    the platforms, at least locally in the Dos unit implementation part.
    In addition, FPC_FEXPAND_UNC, FPC_FEXPAND_DRIVES, FPC_FEXPAND_GETENV_PCHAR,
-   FPC_FEXPAND_TILDE, FPC_FEXPAND_VOLUMES and FPC_FEXPAND_NO_DEFAULT_PATHS
-   conditionals might be defined to specify FExpand behaviour.
+   FPC_FEXPAND_TILDE, FPC_FEXPAND_VOLUMES, FPC_FEXPAND_NO_DEFAULT_PATHS,
+   FPC_FEXPAND_DRIVESEP_IS_ROOT, FPC_FEXPAND_NO_CURDIR,
+   FPC_FEXPAND_NO_DOTS_UPDIR and FPC_FEXPAND_DIRSEP_IS_UPDIR conditionals might
+   be defined to specify FExpand behaviour.
 *)
 
 {$IFDEF FPC_FEXPAND_DRIVES}
@@ -81,10 +95,15 @@ begin
 {$IFDEF FPC_FEXPAND_UNC}
     RootNotNeeded := false;
 {$ENDIF FPC_FEXPAND_UNC}
+
+(* First convert the path to uppercase if appropriate for current platform. *)
     if FileNameCaseSensitive then
         Pa := Path
     else
         Pa := UpCase (Path);
+
+(* Allow both '/' and '\' as directory separators *)
+(* by converting all to the native one.           *)
     if DirectorySeparator = '\' then
     {Allow slash as backslash}
         begin
@@ -99,17 +118,22 @@ begin
                 if Pa [I] = '\' then
                     Pa [I] := DirectorySeparator;
         end;
+
+(* PathStart is amount of characters to strip to get beginning *)
+(* of path without volume/drive specification.                 *)
 {$IFDEF FPC_FEXPAND_DRIVES}
  {$IFDEF FPC_FEXPAND_VOLUMES}
-  {$IFDEF FPC_FEXPAND_NO_DEFAULT_PATHS}
+  {$IFDEF FPC_FEXPAND_DRIVESEP_IS_ROOT}
     PathStart := Pos (DriveSeparator, Pa);
-  {$ELSE FPC_FEXPAND_NO_DEFAULT_PATHS}
+  {$ELSE FPC_FEXPAND_DRIVESEP_IS_ROOT}
     PathStart := Succ (Pos (DriveSeparator, Pa));
-  {$ENDIF FPC_FEXPAND_NO_DEFAULT_PATHS}
+  {$ENDIF FPC_FEXPAND_DRIVESEP_IS_ROOT}
  {$ELSE FPC_FEXPAND_VOLUMES}
     PathStart := 3;
  {$ENDIF FPC_FEXPAND_VOLUMES}
 {$ENDIF FPC_FEXPAND_DRIVES}
+
+(* Expand tilde to home directory if appropriate. *)
 {$IFDEF FPC_FEXPAND_TILDE}
     {Replace ~/ with $HOME/}
     if (Length (Pa) >= 1) and (Pa [1] = '~') and
@@ -130,6 +154,8 @@ begin
                     Pa := S + Copy (Pa, 2, Pred (Length (Pa)));
         end;
 {$ENDIF FPC_FEXPAND_TILDE}
+
+(* Do we have a drive/volume specification? *)
 {$IFDEF FPC_FEXPAND_VOLUMES}
     if PathStart > 1 then
 {$ELSE FPC_FEXPAND_VOLUMES}
@@ -137,6 +163,9 @@ begin
                                                  (Pa [2] = DriveSeparator) then
 {$ENDIF FPC_FEXPAND_VOLUMES}
         begin
+
+(* We need to know current directory on given *)
+(* volume/drive _if_ such a thing is defined. *)
 {$IFDEF FPC_FEXPAND_DRIVES}
  {$IFNDEF FPC_FEXPAND_NO_DEFAULT_PATHS}
   {$IFDEF FPC_FEXPAND_VOLUMES}
@@ -147,9 +176,15 @@ begin
                 Pa [1] := Chr (Ord (Pa [1]) and not ($20));
             GetDirIO (Ord (Pa [1]) - Ord ('A') + 1, S);
   {$ENDIF FPC_FEXPAND_VOLUMES}
+
+(* Do we have more than just drive/volume specification? *)
             if Length (Pa) = Pred (PathStart) then
+
+(* If not, just use the current directory for that drive/volume. *)
                 Pa := S
             else
+
+(* If yes, find out whether the following path is relative or absolute. *)
                 if Pa [PathStart] <> DirectorySeparator then
   {$IFDEF FPC_FEXPAND_VOLUMES}
                     if Copy (Pa, 1, PathStart - 2) = Copy (S, 1, PathStart - 2)
@@ -177,6 +212,9 @@ begin
         end
     else
 {$ELSE FPC_FEXPAND_DRIVES}
+
+(* If drives are not supported, but a drive *)
+(* was supplied anyway, ignore (remove) it. *)
             Delete (Pa, 1, 2);
         end;
     {Check whether we don't have an absolute path already}
@@ -184,14 +222,34 @@ begin
                                                  (Length (Pa) < PathStart) then
 {$ENDIF FPC_FEXPAND_DRIVES}
         begin
+
+(* Get current directory on selected drive/volume. *)
             GetDirIO (0, S);
+{$IFDEF FPC_FEXPAND_VOLUMES}
+ {$IFDEF FPC_FEXPAND_DRIVESEP_IS_ROOT}
+            PathStart := Pos (DriveSeparator, S);
+ {$ELSE FPC_FEXPAND_DRIVESEP_IS_ROOT}
+            PathStart := Succ (Pos (DriveSeparator, S));
+ {$ENDIF FPC_FEXPAND_DRIVESEP_IS_ROOT}
+{$ENDIF FPC_FEXPAND_VOLUMES}
+
+(* Do we have an absolute path? *)
 {$IFDEF FPC_FEXPAND_DRIVES}
- {$IFDEF FPC_FEXPAND_NO_DEFAULT_PATHS}
-                PathStart := Pos (DriveSeparator, S);
- {$ELSE FPC_FEXPAND_NO_DEFAULT_PATHS}
-            if (Length (Pa) > 0) and (Pa [1] = DirectorySeparator) then
+            if (Length (Pa) > 0)
+ {$IFDEF FPC_FEXPAND_DRIVESEP_IS_ROOT}
+                                 and (Pa [1] = DriveSeparator)
+ {$ELSE FPC_FEXPAND_DRIVESEP_IS_ROOT}
+                                 and (Pa [1] = DirectorySeparator)
+ {$ENDIF FPC_FEXPAND_DRIVESEP_IS_ROOT}
+ {$IFDEF FPC_FEXPAND_DIRSEP_IS_UPDIR}
+  {$IFNDEF FPC_FEXPAND_UNC}
+              or (Length (Pa) > 1) and (Pa [1] = DirectorySeparator)
+                                    and (Pa [2] = DirectorySeparator)
+  {$ENDIF FPC_FEXPAND_UNC}
+ {$ENDIF FPC_FEXPAND_DIRSEP_IS_UPDIR}
+                                                                   then
                 begin
-  {$IFDEF FPC_FEXPAND_UNC}
+ {$IFDEF FPC_FEXPAND_UNC}
                     {Do not touch network drive names}
                     if (Length (Pa) > 1) and (Pa [2] = DirectorySeparator)
                                                             and LFNSupport then
@@ -220,33 +278,56 @@ begin
                                     end;
                         end
                     else
-  {$ENDIF FPC_FEXPAND_UNC}
-  {$IFDEF FPC_FEXPAND_VOLUMES}
+ {$ENDIF FPC_FEXPAND_UNC}
+ {$IFDEF FPC_FEXPAND_VOLUMES}
                         begin
                             I := Pos (DriveSeparator, S);
+  {$IFDEF FPC_FEXPAND_DIRSEP_IS_UPDIR}
+   {$IFDEF FPC_FEXPAND_DRIVESEP_IS_ROOT}
+                            if (Pa [1] = DriveSeparator) then
+                                Delete (Pa, 1, 1);
+   {$ENDIF FPC_FEXPAND_DRIVESEP_IS_ROOT}
+                            Pa := Copy (S, 1, I) + Pa;
+                            PathStart := I;
+  {$ELSE FPC_FEXPAND_DIRSEP_IS_UPDIR}
                             Pa := Copy (S, 1, Pred (I)) + DriveSeparator + Pa;
                             PathStart := Succ (I);
+  {$ENDIF FPC_FEXPAND_DIRSEP_IS_UPDIR}
                         end;
-  {$ELSE FPC_FEXPAND_VOLUMES}
+ {$ELSE FPC_FEXPAND_VOLUMES}
                         Pa := S [1] + DriveSeparator + Pa;
-  {$ENDIF FPC_FEXPAND_VOLUMES}
+ {$ENDIF FPC_FEXPAND_VOLUMES}
                 end
             else
- {$ENDIF FPC_FEXPAND_NO_DEFAULT_PATHS}
 {$ENDIF FPC_FEXPAND_DRIVES}
+
                 (* We already have a slash if root is the curent directory. *)
                 if Length (S) = PathStart then
                     Pa := S + Pa
                 else
-                    (* We need an ending slash if FExpand was called
-                    with an empty string for compatibility. *)
+
+                    (* We need an ending slash if FExpand was called  *)
+                    (* with an empty string for compatibility, except *)
+                    (* for platforms where this is invalid.           *)
                     if Length (Pa) = 0 then
+{$IFDEF FPC_FEXPAND_DIRSEP_IS_UPDIR}
+                        Pa := S
+{$ELSE FPC_FEXPAND_DIRSEP_IS_UPDIR}
                         Pa := S + DirectorySeparator
+{$ENDIF FPC_FEXPAND_DIRSEP_IS_UPDIR}
                     else
+ {$IFDEF FPC_FEXPAND_DIRSEP_IS_UPDIR}
+                        if Pa [1] = DirectorySeparator then
+                            Pa := S + Pa
+                        else
+ {$ENDIF FPC_FEXPAND_DIRSEP_IS_UPDIR}
                         Pa := S + DirectorySeparator + Pa;
         end;
+
     {Get string of directories to only process relative references on this one}
     Dirs := Copy (Pa, Succ (PathStart), Length (Pa) - PathStart);
+
+{$IFNDEF FPC_FEXPAND_NO_CURDIR}
     {First remove all references to '\.\'}
     I := Pos (DirectorySeparator + '.' + DirectorySeparator, Dirs);
     while I <> 0 do
@@ -254,6 +335,9 @@ begin
             Delete (Dirs, I, 2);
             I := Pos (DirectorySeparator + '.' + DirectorySeparator, Dirs);
         end;
+{$ENDIF FPC_FEXPAND_NO_CURDIR}
+
+{$IFNDEF FPC_FEXPAND_NO_DOTS_UPDIR}
     {Now remove also all references to '\..\' + of course previous dirs..}
     I := Pos (DirectorySeparator + '..' + DirectorySeparator, Dirs);
     while I <> 0 do
@@ -264,6 +348,7 @@ begin
             Delete (Dirs, Succ (J), I - J + 3);
             I := Pos (DirectorySeparator + '..' + DirectorySeparator, Dirs);
         end;
+
     {Then remove also a reference to '\..' at the end of line
     + the previous directory, of course,...}
     I := Pos (DirectorySeparator + '..', Dirs);
@@ -277,6 +362,25 @@ begin
             else
                 Delete (Dirs, Succ (J), I - J + 2);
         end;
+{$ENDIF FPC_FEXPAND_NO_DOTS_UPDIR}
+
+{$IFDEF FPC_FEXPAND_DIRSEP_IS_UPDIR}
+    (* Remove a reference to '/' at the end *)
+    (* of line + the previous directory.    *)
+    I := Length (Dirs);
+    if (I > 0) and (Dirs [I] = DirectorySeparator) then
+        begin
+            J := Pred (I);
+            while (J > 0) and (Dirs [J] <> DirectorySeparator) do
+                Dec (J);
+            if (J = 0) then
+                Dirs := ''
+            else
+                Delete (Dirs, J, Succ (I - J));
+        end;
+{$ENDIF FPC_FEXPAND_DIRSEP_IS_UPDIR}
+
+{$IFNDEF FPC_FEXPAND_NO_CURDIR}
     {...and also a possible reference to '\.'}
     if (Length (Dirs) = 1) then
         begin
@@ -288,27 +392,49 @@ begin
         if (Length (Dirs) <> 0) and (Dirs [Length (Dirs)] = '.') and
                         (Dirs [Pred (Length (Dirs))] = DirectorySeparator) then
             Dec (Dirs [0], 2);
+
     {Finally remove '.\' at the beginning of the string of directories...}
     while (Length (Dirs) >= 2) and (Dirs [1] = '.')
                                          and (Dirs [2] = DirectorySeparator) do
         Delete (Dirs, 1, 2);
+{$ENDIF FPC_FEXPAND_NO_CURDIR}
+
+{$IFDEF FPC_FEXPAND_DIRSEP_IS_UPDIR}
+    (* Remove possible (invalid) references to '/' at the beginning. *)
+    while (Length (Dirs) >= 1) and (Dirs [1] = '/') do
+        Delete (Dirs, 1, 1);
+{$ENDIF FPC_FEXPAND_DIRSEP_IS_UPDIR}
+
+{$IFNDEF FPC_FEXPAND_NO_DOTS_UPDIR}
     {...and possible (invalid) references to '..\' as well}
     while (Length (Dirs) >= 3) and (Dirs [1] = '.') and (Dirs [2] = '.') and
                                              (Dirs [3] = DirectorySeparator) do
         Delete (Dirs, 1, 3);
+{$ENDIF FPC_FEXPAND_NO_DOTS_UPDIR}
+
     {Two special cases - '.' and '..' alone}
-    if (Length (Dirs) = 1) and (Dirs [1] = '.') or
-             (Length (Dirs) = 2) and (Dirs [1] = '.') and (Dirs [2] = '.') then
+{$IFNDEF FPC_FEXPAND_NO_CURDIR}
+    if (Length (Dirs) = 1) and (Dirs [1] = '.') then
         Dirs := '';
+{$ENDIF FPC_FEXPAND_NO_CURDIR}
+{$IFNDEF FPC_FEXPAND_NO_DOTS_UPDIR}
+    if (Length (Dirs) = 2) and (Dirs [1] = '.') and (Dirs [2] = '.') then
+        Dirs := '';
+{$ENDIF FPC_FEXPAND_NO_DOTS_UPDIR}
+
     {Join the parts back to create the complete path}
     if Length (Dirs) = 0 then
         begin
             Pa := Copy (Pa, 1, PathStart);
+{$IFNDEF FPC_FEXPAND_DRIVESEP_IS_ROOT}
             if Pa [PathStart] <> DirectorySeparator then
                 Pa := Pa + DirectorySeparator;
+{$ENDIF FPC_FEXPAND_DRIVESEP_IS_ROOT}
         end
     else
         Pa := Copy (Pa, 1, PathStart) + Dirs;
+
+{$IFNDEF FPC_FEXPAND_DIRSEP_IS_UPDIR}
     {Remove ending \ if not supplied originally, the original string
     wasn't empty (to stay compatible) and if not really needed}
     if (Pa [Length (Pa)] = DirectorySeparator)
@@ -318,12 +444,17 @@ begin
                      (Length (Path) <> 0)
                           and (Path [Length (Path)] <> DirectorySeparator) then
         Dec (Pa [0]);
+{$ENDIF FPC_FEXPAND_DIRSEP_IS_UPDIR}
+
     FExpand := Pa;
 end;
 
 {
   $Log$
-  Revision 1.13  2002-11-25 21:03:57  hajny
+  Revision 1.14  2002-12-01 20:46:44  hajny
+    * Amiga support hopefully finished
+
+  Revision 1.13  2002/11/25 21:03:57  hajny
     * Amiga fixes (among others)
 
   Revision 1.12  2002/11/24 15:49:22  hajny
