@@ -1,5 +1,5 @@
-#include "demo.h"
-//#include "demo.pas"
+// #include "demo.h"
+#include "demo.pp"
 MENU1 MENU
 BEGIN
     POPUP        "&File"
