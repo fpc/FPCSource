@@ -2210,6 +2210,12 @@ When checked, the list of code-completion words is saved. On by default.
 When checked, the defined code-templates are saved. On by default.
 \end{description}
 
+\begin{remark}
+The format of the desktop file changes between editor versions, so
+when installing a new version, it may be necessary to delete the
+\file{fp.dsk} files wherever the IDE searches for them.
+\end{remark}
+
 %
 % Editor customization
 %
@@ -2634,7 +2640,10 @@ Undo & \key{Alt-Backspace} & \\
 \end{FPCltable}
 %
 %  $Log$
-%  Revision 1.7  2003-03-17 18:19:59  michael
+%  Revision 1.8  2003-11-09 13:42:41  michael
+%  + Added note suggested by Florian that fp.dsk files may change between releases
+%
+%  Revision 1.7  2003/03/17 18:19:59  michael
 %  + fixed some chars that confused tex4ht.
 %
 %  Revision 1.6  2003/03/16 15:22:18  peter
