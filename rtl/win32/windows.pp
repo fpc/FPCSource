@@ -70,6 +70,7 @@ function FileTimeToLocalFileTime(const lpFileTime:TFILETIME; var LocalFileTime :
 function FileTimeToSystemTime(const lpFileTime:TFILETIME; var lpSystemTime:TSYSTEMTIME):WINBOOL; external 'kernel32' name 'FileTimeToSystemTime';
 function DosDateTimeToFileTime(wFatDate:WORD; wFatTime:WORD; var lpFileTime:tFILETIME):WINBOOL; external 'kernel32' name 'DosDateTimeToFileTime';
 function SystemTimeToFileTime(const lSystemTime:tSYSTEMTIME;var FileTime:tFILETIME):WINBOOL;external 'kernel32' name 'SystemTimeToFileTime';
+function GetStringTypeExA(Locale:LCID; dwInfoType:DWORD; lpSrcStr:LPCSTR;cchSrc:longint;var CharType:WORD):WINBOOL; external 'kernel32' name 'GetStringTypeExA';
 
 {MvdV: Lazarus mwedit templates}
 function ExtTextOut(_para1:HDC; _para2:longint; _para3:longint; _para4:UINT; _para5:pRECT;
@@ -81,7 +82,10 @@ function SetScrollInfo(_para1:HWND; _para2:longint; const _para3:TSCROLLINFO; _p
 end.
 {
   $Log$
-  Revision 1.10  2000-04-22 19:51:08  marco
+  Revision 1.11  2000-05-17 11:00:29  marco
+   * JCL alias
+
+  Revision 1.10  2000/04/22 19:51:08  marco
    * Forgot to remove the tpoint stuff.
 
   Revision 1.9  2000/04/22 17:46:05  marco
