@@ -71,7 +71,9 @@ const
     ReAllocMem: @SysReAllocMem;
     MemSize: @SysMemSize;
     GetHeapStatus: @SysGetHeapStatus;
-    GetFPCHeapStatus: @SysFPCGetHeapStatus;
+{$ifdef HASGETFPCHEAPSTATUS}
+    GetFPCHeapStatus: @SysGetFPCHeapStatus;
+{$endif HASGETFPCHEAPSTATUS}
   );
 
   MemoryMutexManager: TMemoryMutexManager = (
@@ -129,7 +131,11 @@ type
   pfreelists   = ^tfreelists;
 
 var
+{$ifdef HASGETFPCHEAPSTATUS}
   internal_status : TFPCHeapStatus;
+{$else HASGETFPCHEAPSTATUS}
+  internal_status : THeapStatus;
+{$endif HASGETFPCHEAPSTATUS}
 
   freelists_fixed    : tfreelists;
   freelist_var       : pmemchunk_var;
@@ -260,6 +266,7 @@ begin
 end;
 
 
+{$ifdef HASGETFPCHEAPSTATUS}
 function GetHeapStatus:THeapStatus;
 begin
   if IsMultiThread and MemoryManager.NeedLock then
@@ -294,6 +301,24 @@ begin
      Result:=MemoryManager.GetFPCHeapStatus();
    end;
 end;
+{$else HASGETFPCHEAPSTATUS}
+procedure GetHeapStatus(var status:THeapStatus);
+begin
+  if IsMultiThread and MemoryManager.NeedLock then
+   begin
+     try
+       MemoryMutexManager.MutexLock;
+       MemoryManager.GetHeapStatus(status);
+     finally
+       MemoryMutexManager.MutexUnlock;
+     end;
+   end
+  else
+   begin
+     MemoryManager.GetHeapStatus(status);
+   end;
+end;
+{$endif HASGETFPCHEAPSTATUS}
 
 
 
@@ -486,7 +511,8 @@ end;
                                GetHeapStatus
 *****************************************************************************}
 
-function SysFPCGetHeapStatus:TFPCHeapStatus;
+{$ifdef HASGETFPCHEAPSTATUS}
+function SysGetFPCHeapStatus:TFPCHeapStatus;
 begin
   internal_status.CurrHeapFree:=internal_status.CurrHeapSize-internal_status.CurrHeapUsed;
   result:=internal_status;
@@ -501,12 +527,19 @@ begin
   result.TotalAddrSpace   :=0;
   result.TotalUncommitted :=0;
   result.TotalCommitted   :=0;
-  result.FreeSmall 	  :=0;
-  result.FreeBig 	  :=0;
-  result.Unused 	  :=0;
-  result.Overhead 	  :=0;
+  result.FreeSmall        :=0;
+  result.FreeBig          :=0;
+  result.Unused           :=0;
+  result.Overhead         :=0;
   result.HeapErrorCode    :=0;
 end;
+{$else}
+procedure SysGetHeapStatus(var status:THeapStatus);
+begin
+  internal_status.CurrHeapFree:=internal_status.CurrHeapSize-internal_status.CurrHeapUsed;
+  status:=internal_status;
+end;
+{$endif HASGETFPCHEAPSTATUS}
 
 
 
@@ -1322,7 +1355,10 @@ end;
 
 {
   $Log$
-  Revision 1.46  2005-03-02 14:25:19  marco
+  Revision 1.47  2005-03-04 16:49:34  peter
+    * fix getheapstatus bootstrapping
+
+  Revision 1.46  2005/03/02 14:25:19  marco
    * small typo fix on last commit
 
   Revision 1.45  2005/03/02 10:46:10  marco

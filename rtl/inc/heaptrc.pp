@@ -854,14 +854,22 @@ var
   pp : pheap_mem_info;
   i : ptrint;
   ExpectedHeapFree : ptrint;
+{$ifdef HASGETFPCHEAPSTATUS}  
   status : TFPCHeapStatus;
+{$else HASGETFPCHEAPSTATUS}  
+  status : THeapStatus;
+{$endif HASGETFPCHEAPSTATUS}  
 begin
   pp:=heap_mem_root;
   Writeln(ptext^,'Heap dump by heaptrc unit');
   Writeln(ptext^,getmem_cnt, ' memory blocks allocated : ',getmem_size,'/',getmem8_size);
   Writeln(ptext^,freemem_cnt,' memory blocks freed     : ',freemem_size,'/',freemem8_size);
   Writeln(ptext^,getmem_cnt-freemem_cnt,' unfreed memory blocks : ',getmem_size-freemem_size);
-  status:=SysFPCGetHeapStatus;
+{$ifdef HASGETFPCHEAPSTATUS}  
+  status:=SysGetFPCHeapStatus;
+{$else HASGETFPCHEAPSTATUS}  
+  SysGetHeapStatus(status);
+{$endif HASGETFPCHEAPSTATUS}  
   Write(ptext^,'True heap size : ',status.CurrHeapSize);
   if EntryMemUsed > 0 then
     Writeln(ptext^,' (',EntryMemUsed,' used in System startup)')
@@ -938,6 +946,7 @@ end;
                             No specific tracing calls
 *****************************************************************************}
 
+{$ifdef HASGETFPCHEAPSTATUS}  
 function TraceGetHeapStatus:THeapStatus;
 begin
   TraceGetHeapStatus:=SysGetHeapStatus;
@@ -945,8 +954,14 @@ end;
 
 function TraceGetFPCHeapStatus:TFPCHeapStatus;
 begin
-    TraceGetFPCHeapStatus:=SysFPCGetHeapStatus;
+    TraceGetFPCHeapStatus:=SysGetFPCHeapStatus;
 end;
+{$else HASGETFPCHEAPSTATUS}  
+procedure TraceGetHeapStatus(var status:THeapStatus);
+begin
+  SysGetHeapStatus(status);
+end;
+{$endif HASGETFPCHEAPSTATUS}  
 
 
 {*****************************************************************************
@@ -997,16 +1012,28 @@ const
     AllocMem : @TraceAllocMem;
     ReAllocMem : @TraceReAllocMem;
     MemSize : @TraceMemSize;
+{$ifdef HASGETFPCHEAPSTATUS}  
     GetHeapStatus : @TraceGetHeapStatus;
     GetFPCHeapStatus : @TraceGetFPCHeapStatus;
+{$else HASGETFPCHEAPSTATUS}  
+    GetHeapStatus : @TraceGetHeapStatus;
+{$endif HASGETFPCHEAPSTATUS}  
   );
 
 
 procedure TraceInit;
 var
+{$ifdef HASGETFPCHEAPSTATUS}  
   initheapstatus : TFPCHeapStatus;
+{$else HASGETFPCHEAPSTATUS}  
+  initheapstatus : THeapStatus;
+{$endif HASGETFPCHEAPSTATUS}  
 begin
-  initheapstatus:=SysFPCGetHeapStatus;
+{$ifdef HASGETFPCHEAPSTATUS}  
+  initheapstatus:=SysGetFPCHeapStatus;
+{$else HASGETFPCHEAPSTATUS}  
+  SysGetHeapStatus(initheapstatus);
+{$endif HASGETFPCHEAPSTATUS}  
   EntryMemUsed:=initheapstatus.CurrHeapUsed;
   MakeCRC32Tbl;
   SetMemoryManager(TraceManager);
@@ -1151,7 +1178,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.40  2005-02-28 15:38:38  marco
+  Revision 1.41  2005-03-04 16:49:34  peter
+    * fix getheapstatus bootstrapping
+
+  Revision 1.40  2005/02/28 15:38:38  marco
    * getFPCheapstatus  (no, FPC HEAP, not FP CHEAP!)
 
   Revision 1.39  2005/02/14 17:13:22  peter
