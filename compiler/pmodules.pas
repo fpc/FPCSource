@@ -178,10 +178,11 @@ unit pmodules;
       var
         pu           : pused_unit;
         loaded_unit  : pmodule;
-        nextmapentry : longint;
+        nextmapentry,firstimplementation : longint;
       begin
       { init the map }
         new(current_module^.map);
+        fillchar(current_module^.map^,sizeof(tunitmap),#0);
         nextmapentry:=1;
       { load the used units from interface }
         pu:=pused_unit(current_module^.used_units.first);
@@ -209,6 +210,7 @@ unit pmodules;
             end;
            pu:=pused_unit(pu^.next);
          end;
+        firstimplementation:=nextmapentry;
       { ok, now load the unit }
         current_module^.symtable:=new(punitsymtable,loadasunit);
       { if this is the system unit insert the intern symbols }
@@ -239,16 +241,23 @@ unit pmodules;
                  current_module^.do_compile:=true;
                  exit;
                end;
+{$endif TEST_IMPL}
             { setup the map entry for deref }
               current_module^.map^[nextmapentry]:=loaded_unit^.symtable;
               inc(nextmapentry);
               if nextmapentry>maxunits then
                Message(unit_f_too_much_units);
-{$endif TEST_IMPL}
             end;
            pu:=pused_unit(pu^.next);
          end;
-      { remove the map, it's not needed anymore }
+{$ifdef UseBrowser}
+        if cs_browser in aktmoduleswitches then
+          begin
+             punitsymtable(current_module^.symtable)^.
+               load_implementation_refs(firstimplementation);
+          end;
+{$endif UseBrowser}
+        { remove the map, it's not needed anymore }
         dispose(current_module^.map);
         current_module^.map:=nil;
       end;
@@ -916,7 +925,11 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.48  1998-09-09 15:33:07  peter
+  Revision 1.49  1998-09-18 08:01:36  pierre
+    + improvement on the usebrowser part
+      (does not work correctly for now)
+
+  Revision 1.48  1998/09/09 15:33:07  peter
     * fixed in_global to allow directives also after interface token
 
   Revision 1.47  1998/09/09 11:50:55  pierre

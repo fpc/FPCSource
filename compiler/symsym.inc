@@ -1545,8 +1545,6 @@
 {$ifdef UseBrowser}
 
     procedure ttypesym.load_references;
-      var
-        prdef : pdef;
       begin
          inherited load_references;
          if (definition^.deftype=recorddef) then
@@ -1556,10 +1554,21 @@
       end;
 
     procedure ttypesym.write_references;
-      var
-        prdef : pdef;
       begin
-         inherited write_references;
+        if lastwritten<>lastref then
+          begin
+             inherited write_references;
+          end
+         { write address of this symbol if record or object
+           even if no real refs are there
+           because we need it for the symtable }
+         else if (definition^.deftype=recorddef) or
+                 (definition^.deftype=objectdef) then
+          begin
+             writesymref(@self);
+             current_ppu^.writeentry(ibsymref);
+          end;
+             
          if (definition^.deftype=recorddef) then
             precdef(definition)^.symtable^.write_browser;
          if (definition^.deftype=objectdef) then
@@ -1646,7 +1655,11 @@
 
 {
   $Log$
-  Revision 1.42  1998-09-07 19:33:25  florian
+  Revision 1.43  1998-09-18 08:01:38  pierre
+    + improvement on the usebrowser part
+      (does not work correctly for now)
+
+  Revision 1.42  1998/09/07 19:33:25  florian
     + some stuff for property rtti added:
        - NameIndex of the TPropInfo record is now written correctly
        - the DEFAULT/NODEFAULT keyword is supported now

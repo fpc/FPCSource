@@ -303,48 +303,46 @@ unit parser;
 {!!! No check for unused macros yet !!! }
          dispose(macros,done);
 
-       { restore scanner }
-         c:=oldc;
-         pattern:=oldpattern;
-         orgpattern:=oldorgpattern;
-         token:=oldtoken;
-         tokenpos:=oldtokenpos;
-         block_type:=old_block_type;
-         current_scanner:=oldcurrent_scanner;
-       { restore cg }
-         nextlabelnr:=oldnextlabelnr;
-         parse_only:=oldparse_only;
-       { restore asmlists }
-         exprasmlist:=oldexprasmlist;
-         datasegment:=olddatasegment;
-         bsssegment:=oldbsssegment;
-         codesegment:=oldcodesegment;
-         consts:=oldconsts;
-         debuglist:=olddebuglist;
-         externals:=oldexternals;
-         internals:=oldinternals;
-         importssection:=oldimports;
-         exportssection:=oldexports;
-         resourcesection:=oldresource;
-         rttilist:=oldrttilist;
-       { restore symtable state }
          if (compile_level>1) then
            begin
-             refsymtable:=oldrefsymtable;
-             symtablestack:=oldsymtablestack;
+              { restore scanner }
+              c:=oldc;
+              pattern:=oldpattern;
+              orgpattern:=oldorgpattern;
+              token:=oldtoken;
+              tokenpos:=oldtokenpos;
+              block_type:=old_block_type;
+              current_scanner:=oldcurrent_scanner;
+              { restore cg }
+              nextlabelnr:=oldnextlabelnr;
+              parse_only:=oldparse_only;
+              { restore asmlists }
+              exprasmlist:=oldexprasmlist;
+              datasegment:=olddatasegment;
+              bsssegment:=oldbsssegment;
+              codesegment:=oldcodesegment;
+              consts:=oldconsts;
+              debuglist:=olddebuglist;
+              externals:=oldexternals;
+              internals:=oldinternals;
+              importssection:=oldimports;
+              exportssection:=oldexports;
+              resourcesection:=oldresource;
+              rttilist:=oldrttilist;
+              { restore symtable state }
+              refsymtable:=oldrefsymtable;
+              symtablestack:=oldsymtablestack;
+              macros:=oldmacros;
+              aktprocsym:=oldaktprocsym;
+              procprefix:=oldprocprefix;
+              aktlocalswitches:=oldaktlocalswitches;
+              aktmoduleswitches:=oldaktmoduleswitches;
+              aktpackrecords:=oldaktpackrecords;
+              aktoutputformat:=oldaktoutputformat;
+              aktoptprocessor:=oldaktoptprocessor;
+              aktasmmode:=oldaktasmmode;
+              aktfilepos:=oldaktfilepos;
            end;
-         macros:=oldmacros;
-         aktprocsym:=oldaktprocsym;
-         procprefix:=oldprocprefix;
-       { restore current state }
-         aktlocalswitches:=oldaktlocalswitches;
-         aktmoduleswitches:=oldaktmoduleswitches;
-         aktpackrecords:=oldaktpackrecords;
-         aktoutputformat:=oldaktoutputformat;
-         aktoptprocessor:=oldaktoptprocessor;
-         aktasmmode:=oldaktasmmode;
-         aktfilepos:=oldaktfilepos;
-
        { Shut down things when the last file is compiled }
          if (compile_level=1) then
           begin
@@ -359,9 +357,7 @@ unit parser;
             if cs_browser in aktmoduleswitches then
              begin
                Message1(parser_i_writing_browser_log,Browse.Fname);
-               Browse.CreateLog;
                write_browser_log;
-               Browse.CloseLog;
              end;
 {$endif UseBrowser}
           end;
@@ -372,7 +368,11 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.44  1998-09-10 15:25:34  daniel
+  Revision 1.45  1998-09-18 08:01:35  pierre
+    + improvement on the usebrowser part
+      (does not work correctly for now)
+
+  Revision 1.44  1998/09/10 15:25:34  daniel
   + Added maxheapsize.
   * Corrected semi-bug in calling the assembler and the linker
 

@@ -58,6 +58,8 @@ const
   ibdbxcount       = 9;
   ibsymref         = 10;
   ibdefref         = 11;
+  ibendsymtablebrowser = 12;
+  ibbeginsymtablebrowser = 13;
   {syms}
   ibtypesym       = 20;
   ibprocsym       = 21;
@@ -770,7 +772,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.11  1998-09-11 15:16:47  peter
+  Revision 1.12  1998-09-18 08:01:37  pierre
+    + improvement on the usebrowser part
+      (does not work correctly for now)
+
+  Revision 1.11  1998/09/11 15:16:47  peter
     * merge fixes
 
   Revision 1.10.2.1  1998/09/11 15:15:04  peter
