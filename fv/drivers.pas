@@ -1342,8 +1342,9 @@ VAR W, ResultLength : integer;
      While (FormatIndex <= Length(Format)) Do begin   { While length valid }
        if ResultLength>=High(Result) then
          exit;
-       While (Format[FormatIndex] <> '%') and         { Param char not found }
-       (FormatIndex <= Length(Format)) Do begin       { Length still valid }
+       While (FormatIndex <= Length(Format)) and
+             (Format[FormatIndex] <> '%')          { Param char not found }
+        Do begin
          Result[ResultLength+1] := Format[FormatIndex]; { Transfer character }
          Inc(ResultLength);                           { One character added }
          Inc(FormatIndex);                            { Next param char }
@@ -1471,7 +1472,10 @@ BEGIN
 END.
 {
  $Log$
- Revision 1.46  2004-12-04 18:40:47  peter
+ Revision 1.47  2004-12-04 23:06:52  peter
+   * fix valgrind warning in formatstr
+
+ Revision 1.46  2004/12/04 18:40:47  peter
    * FormatStr fixed to prevent buffer overflows
 
  Revision 1.45  2004/11/24 21:03:05  florian
