@@ -332,7 +332,7 @@ end;
 
 function CloseDir(p:pdir):integer;
 begin
-  closedir:=sys_close(p^.fd)
+  closedir:=sys_close(p^.fd);
   dispose(p^.buf);
   dispose(p);
 end;
@@ -370,7 +370,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  1999-07-28 12:15:16  michael
+  Revision 1.6  1999-07-28 17:37:06  michael
+  * forgot ;
+
+  Revision 1.5  1999/07/28 12:15:16  michael
   * Memory leak fixed in CloseDir, by Sebastian Guenther
 
   Revision 1.4  1999/07/28 12:14:37  michael
