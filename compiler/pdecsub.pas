@@ -59,8 +59,6 @@ interface
     function  parse_proc_head(aclass:tobjectdef;potype:tproctypeoption;var pd:tprocdef):boolean;
     function  parse_proc_dec(aclass:tobjectdef):tprocdef;
 
-    procedure change_forward_to_external(pd:tabstractprocdef);
-
 implementation
 
     uses
@@ -2235,7 +2233,10 @@ const
 end.
 {
   $Log$
-  Revision 1.172  2004-05-03 10:06:38  olle
+  Revision 1.173  2004-05-03 20:02:42  jonas
+    - removed change_forward_to_external() declaration
+
+  Revision 1.172  2004/05/03 10:06:38  olle
     + added language constructs UNIV, C, ... for mode mac
     * consolidated macro expression to conform to Pascal
     * macro true is defined as <> 0
