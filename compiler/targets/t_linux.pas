@@ -297,14 +297,6 @@ begin
      if s<>'' then
       LinkRes.AddFileName(s);
    end;
-  { objects which must be at the end }
-  if linklibc then
-   begin
-     if librarysearchpath.FindFile('crtend.o',s) then
-      LinkRes.AddFileName(s);
-     if librarysearchpath.FindFile('crtn.o',s) then
-      LinkRes.AddFileName(s);
-   end;
   LinkRes.Add(')');
 
   { Write staticlibraries }
@@ -348,6 +340,17 @@ begin
       LinkRes.Add('-lgcc');
      if linkdynamic and (Info.DynamicLinker<>'') then
       LinkRes.AddFileName(Info.DynamicLinker);
+     LinkRes.Add(')');
+   end;
+
+  { objects which must be at the end }
+  if linklibc then
+   begin
+     LinkRes.Add('INPUT(');
+     if librarysearchpath.FindFile('crtend.o',s) then
+      LinkRes.AddFileName(s);
+     if librarysearchpath.FindFile('crtn.o',s) then
+      LinkRes.AddFileName(s);
      LinkRes.Add(')');
    end;
 { Write and Close response }
@@ -442,7 +445,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2001-02-26 19:43:11  peter
+  Revision 1.2  2001-03-22 10:08:12  michael
+  + .ctor patch merged from fixbranch
+
+  Revision 1.1  2001/02/26 19:43:11  peter
     * moved target units to subdir
 
   Revision 1.11  2001/02/20 21:41:17  peter
