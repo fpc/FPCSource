@@ -576,11 +576,14 @@ implementation
     function inline_copy : tnode;
       var
         copynode,
+        lowppn,
+        highppn,
         npara,
         paras   : tnode;
         temp    : ttempcreatenode;
         ppn     : tcallparanode;
         paradef : tdef;
+        counter : integer;
         newstatement : tstatementnode;
       begin
         { for easy exiting if something goes wrong }
@@ -595,10 +598,15 @@ implementation
            exit;
          end;
 
-        { determine copy function to use based on the first argument }
+        { determine copy function to use based on the first argument,
+          also count the number of arguments in this loop }
+        counter:=1;
         ppn:=tcallparanode(paras);
         while assigned(ppn.right) do
-         ppn:=tcallparanode(ppn.right);
+         begin
+           inc(counter);
+           ppn:=tcallparanode(ppn.right);
+         end;
         paradef:=ppn.left.resulttype.def;
         if is_ansistring(paradef) then
           copynode:=ccallnode.createintern('fpc_ansistr_copy',paras)
@@ -611,8 +619,8 @@ implementation
         else
          if is_dynamic_array(paradef) then
           begin
-            { Copy(dynarr) has only 1 argument }
-            if assigned(tcallparanode(paras).right) then
+            { Only allow 1 or 3 arguments }
+            if (counter<>1) and (counter<>3) then
              begin
                CGMessage(parser_e_wrong_parameter_size);
                exit;
@@ -621,6 +629,18 @@ implementation
             { create statements with call }
             copynode:=internalstatements(newstatement);
 
+            if (counter=3) then
+             begin
+               highppn:=tcallparanode(paras).left.getcopy;
+               lowppn:=tcallparanode(tcallparanode(paras).right).left.getcopy;
+             end
+            else
+             begin
+               { use special -1,-1 argument to copy the whole array }
+               highppn:=cordconstnode.create(-1,s32bittype,false);
+               lowppn:=cordconstnode.create(-1,s32bittype,false);
+             end;
+
             { create temp for result, we've to use a temp because a dynarray
               type is handled differently from a pointer so we can't
               use createinternres() and a function }
@@ -628,16 +648,19 @@ implementation
             addstatement(newstatement,temp);
 
             { create call to fpc_dynarray_copy }
-            npara:=ccallparanode.create(caddrnode.create
+            npara:=ccallparanode.create(highppn,
+                   ccallparanode.create(lowppn,
+                   ccallparanode.create(caddrnode.create
                       (crttinode.create(tstoreddef(ppn.left.resulttype.def),initrtti)),
                    ccallparanode.create
                       (ctypeconvnode.create_explicit(ppn.left,voidpointertype),
                    ccallparanode.create
-                      (ctemprefnode.create(temp),nil)));
+                      (ctemprefnode.create(temp),nil)))));
             addstatement(newstatement,ccallnode.createintern('fpc_dynarray_copy',npara));
 
-            { return the reference to the created temp, and
-              convert the type of the temp to the dynarray type }
+            { convert the temp to normal and return the reference to the
+              created temp, and convert the type of the temp to the dynarray type }
+            addstatement(newstatement,ctempdeletenode.create_normal_temp(temp));
             addstatement(newstatement,ctypeconvnode.create_explicit(ctemprefnode.create(temp),ppn.left.resulttype));
 
             ppn.left:=nil;
@@ -657,7 +680,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  2002-11-25 17:43:22  peter
+  Revision 1.11  2002-11-26 22:59:09  peter
+    * fix Copy(array,x,y)
+
+  Revision 1.10  2002/11/25 17:43:22  peter
     * splitted defbase in defutil,symutil,defcmp
     * merged isconvertable and is_equal into compare_defs(_ext)
     * made operator search faster by walking the list only once
