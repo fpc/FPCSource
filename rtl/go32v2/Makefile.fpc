@@ -9,7 +9,7 @@ units=$(SYSTEMUNIT) objpas strings \
       dos crt objects printer graph \
       sysutils math typinfo \
       cpu mmx getopts heaptrc lineinfo \
-      msmouse
+      msmouse varutils
 rst=math
 
 [require]
@@ -152,6 +152,10 @@ typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
 
 math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/math.pp $(REDIR)
+
+varutils$(PPUEXT) : $(OBJPASDIR)/cvarutil.pp $(OBJPASDIR)/varutils.inc \
+                    $(OBJPASDIR)/varutilh.inc varutils.pp
+        $(COMPILER) -I$(OBJPASDIR) varutils.pp $(REDIR)
 
 #
 # Other system-independent RTL Units

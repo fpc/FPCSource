@@ -3,8 +3,8 @@
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team
 
-    Windows import statements for variant support.
-    
+    Interface and OS-dependent part of variant support
+       
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -13,6 +13,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+
+{$MODE ObjFPC}
+
+Unit varutils;
+
+Interface
+
+Uses sysutils;
+
+{$i varutilh.inc}
+
+Implementation
+
+{$i cvarutil.inc}
+
 { ---------------------------------------------------------------------
     Windows external definitions.
   ---------------------------------------------------------------------}
@@ -51,9 +66,14 @@ function SafeArrayRedim(psa: PVarArray; const NewBound: TVarArrayBound): HRESULT
 function SafeArrayUnaccessData(psa: PVarArray): HRESULT; stdcall;external oleaut;
 function SafeArrayUnlock(psa: PVarArray): HRESULT; stdcall;external oleaut;
 
+end.
+
 {
   $Log$
-  Revision 1.2  2000-08-29 17:35:55  michael
+  Revision 1.1  2000-08-29 18:16:22  michael
+  + new include files
+
+  Revision 1.2  2000/08/29 17:35:55  michael
   + Compiles on win32 also now
 
   Revision 1.1  2000/08/29 08:23:14  michael

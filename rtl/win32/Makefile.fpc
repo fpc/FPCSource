@@ -160,8 +160,9 @@ typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
 math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/math.pp $(REDIR)
 
-varutils$(PPUEXT) : $(OBJPASDIR)/varutils.pp varutils.inc
-        $(COMPILER) -I. -I$(OBJPASDIR) $(OBJPASDIR)/varutils.pp $(REDIR)
+varutils$(PPUEXT) : varutils.pp $(OBJPASDIR)/cvarutil.inc \
+                    $(OBJPASDIR)/varutilh.inc
+        $(COMPILER) -I$(OBJPASDIR) varutils.pp $(REDIR)
 
 #
 # Other system-independent RTL Units
