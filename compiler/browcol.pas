@@ -872,8 +872,6 @@ begin
 end;
 
 
-procedure CreateBrowserCol;
-
   procedure ProcessSymTable(OwnerSym: PSymbol; var Owner: PSymbolCollection; Table: PSymTable);
   var I,J,defcount,symcount: longint;
       Ref: PRef;
@@ -1116,7 +1114,9 @@ procedure CreateBrowserCol;
   end;
   procedure ProcessDefIfStruct(definition: pdef);
   begin
-    if assigned(definition) then
+    { still led to infinite recursions
+      only usefull for unamed types PM }
+    if assigned(definition) and not assigned(definition^.sym) then
     begin
       case definition^.deftype of
         recorddef :
@@ -1266,6 +1266,7 @@ procedure CreateBrowserCol;
       end;
   end;
 
+procedure CreateBrowserCol;
 var
   T: PSymTable;
   UnitS: PSymbol;
@@ -1633,6 +1634,7 @@ begin
   Dispose(PD, Done);
 
   BuildObjectInfo;
+  LoadBrowserCol:=(S^.Status=stOK);
 end;
 
 procedure StorePointers(S: PStream; C: PCollection);
@@ -1690,7 +1692,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  1999-08-16 18:25:49  peter
+  Revision 1.23  1999-09-07 15:07:49  pierre
+   * avoid some infinite recursions
+
+  Revision 1.22  1999/08/16 18:25:49  peter
     * fixes from gabor
 
   Revision 1.21  1999/08/09 14:09:04  peter
