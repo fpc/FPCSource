@@ -23,6 +23,9 @@ interface
   procedure  ChangeDebuggeeWindowTitleTo(State : DebuggeeState);
 
   function CygDrivePrefix : string;
+const
+
+  main_pid_valid : boolean = false;
 
 implementation
 
@@ -88,20 +91,34 @@ begin
     RegCloseKey(Key);
 end;
 
+const
+  MaxTitleLength = 512;
+  main_pid : longint = 0;
+
+
 function GetWindowHandle(H : HWND; state : LPARAM) : WINBOOL;stdcall;
    var pTitle, pEnd, pNewTitle : pchar;
        len : longint;
    begin
      GetWindowHandle:=true;
-     GetMem(pTitle,256);
+     GetMem(pTitle,MaxTitleLength);
      { we want all windows !! }
-     if GetWindowThreadProcessId(H,nil)=inferior_pid then
+     if (GetWindowThreadProcessId(H,nil)=inferior_pid) or
+     main_pid_valid and (GetWindowThreadProcessId(H,nil)=main_pid) then
        begin
-         len:=GetWindowText(H,pTitle,256);
+         if not main_pid_valid then
+           begin
+             main_pid:=inferior_pid;
+             main_pid_valid:=true;
+           end;
+         len:=GetWindowText(H,pTitle,MaxTitleLength);
          if DebuggeeState(State) = Stopped_State then
            begin
              GetMem(pNewTitle,len+50);
              pEnd:=strpos(pTitle,'... running under FP debugger');
+             if assigned(pEnd) then
+               pEnd^:=#0;
+             pEnd:=strpos(pTitle,'... stopped by FP debugger');
              if assigned(pEnd) then
                pEnd^:=#0;
              strcopy(pNewTitle,pTitle);
@@ -115,13 +132,16 @@ function GetWindowHandle(H : HWND; state : LPARAM) : WINBOOL;stdcall;
              pEnd:=strpos(pTitle,'... stopped by FP debugger');
              if assigned(pEnd) then
                pEnd^:=#0;
+             pEnd:=strpos(pTitle,'... running under FP debugger');
+             if assigned(pEnd) then
+               pEnd^:=#0;
              strcopy(pNewTitle,pTitle);
              strcat(pNewTitle,'... running under FP debugger');
              SetWindowText(H,pNewTitle);
              FreeMem(pNewTitle,len+50);
            end;
        end;
-     FreeMem(pTitle,256);
+     FreeMem(pTitle,MaxTitleLength);
    end;
 
  procedure  ChangeDebuggeeWindowTitleTo(State : DebuggeeState);
