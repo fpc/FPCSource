@@ -919,7 +919,7 @@ procedure TFastBufStream.Readline(var s:string;var linecomplete,hasCR : boolean)
             s[i]:=c;
         end;
      end;
-    if CharsInS and (i<>High(S)) then
+    if CharsInS then
       begin
         if c=#10 then
           Seek(StartPos+i+1)
@@ -1363,7 +1363,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.15  2002-09-11 08:30:38  pierre
+  Revision 1.16  2002-09-11 12:10:03  pierre
+   * fix bug in new readline method on line overflow
+
+  Revision 1.15  2002/09/11 08:30:38  pierre
    * avoid a lot of useless calls in readline method
 
   Revision 1.14  2002/09/10 12:19:14  pierre
