@@ -2,7 +2,7 @@
     $Id$
 
     fpAsync: Asynchronous event management for Free Pascal
-    Copyright (C) 2001 by
+    Copyright (C) 2001-2002 by
       Areca Systems GmbH / Sebastian Guenther, sg@freepascal.org
 
     Common implementation
@@ -64,6 +64,12 @@ begin
 end;
 
 
+constructor EAsyncError.Create(AErrorCode: TAsyncResult);
+begin
+  inherited Create(Format('Async I/O error %d', [Ord(AErrorCode)]));
+  FErrorCode := AErrorCode;
+end;
+
 
 constructor TEventLoop.Create;
 begin
@@ -120,7 +126,6 @@ begin
   UserData^.Sender := ASender;
   UserData^.TimerHandle :=
     asyncAddTimer(Handle, AMSec, APeriodic, @EventHandler, UserData);
-  Result := UserData;
 end;
 
 procedure TEventLoop.RemoveTimerNotify(AHandle: Pointer);
@@ -135,7 +140,7 @@ end;
 procedure TEventLoop.SetIOCallback(AHandle: Integer; ACallback: TAsyncCallback;
   AUserData: Pointer);
 begin
-  asyncSetIOCallback(Handle, AHandle, ACallback, AUserData);
+  CheckResult(asyncSetIOCallback(Handle, AHandle, ACallback, AUserData));
 end;
 
 procedure TEventLoop.ClearIOCallback(AHandle: Integer);
@@ -147,13 +152,20 @@ function TEventLoop.SetIONotify(AHandle: Integer; ANotify: TNotifyEvent;
   ASender: TObject): Pointer;
 var
   UserData: PNotifyData;
+  ResultCode: TAsyncResult;
 begin
   UserData := AddNotifyData(Self);
   UserData^.Notify := ANotify;
   UserData^.Sender := ASender;
   UserData^.FileHandle := AHandle;
-  asyncSetIOCallback(Handle, AHandle, @EventHandler, UserData);
-  Result := UserData;
+  ResultCode := asyncSetIOCallback(Handle, AHandle, @EventHandler, UserData);
+  if ResultCode <> asyncOK then
+  begin
+    FreeNotifyData(Self, UserData);
+    raise EAsyncError.Create(ResultCode);
+  end else
+    Result := UserData;
+  {$IFDEF fpAsyncDebug}WriteLn('TEventLoop.SetIONotify: Filehandle=', AHandle, ', Result=', Integer(Result));{$ENDIF}
 end;
 
 procedure TEventLoop.ClearIONotify(AHandle: Pointer);
@@ -161,6 +173,7 @@ var
   Data: PNotifyData;
 begin
   Data := PNotifyData(AHandle);
+  {$IFDEF fpAsyncDebug}WriteLn('TEventLoop.ClearIONotify: Filehandle=', Data^.FileHandle, ', Data=', Integer(AHandle));{$ENDIF}
   asyncClearIOCallback(Handle, Data^.FileHandle);
   FreeNotifyData(Self, Data);
 end;
@@ -168,7 +181,8 @@ end;
 procedure TEventLoop.SetDataAvailableCallback(AHandle: Integer; ACallback: TAsyncCallback;
   AUserData: Pointer);
 begin
-  asyncSetDataAvailableCallback(Handle, AHandle, ACallback, AUserData);
+  CheckResult(asyncSetDataAvailableCallback(Handle, AHandle,
+    ACallback, AUserData));
 end;
 
 procedure TEventLoop.ClearDataAvailableCallback(AHandle: Integer);
@@ -180,13 +194,21 @@ function TEventLoop.SetDataAvailableNotify(AHandle: Integer; ANotify: TNotifyEve
   ASender: TObject): Pointer;
 var
   UserData: PNotifyData;
+  ResultCode: TAsyncResult;
 begin
   UserData := AddNotifyData(Self);
   UserData^.Notify := ANotify;
   UserData^.Sender := ASender;
   UserData^.FileHandle := AHandle;
-  asyncSetDataAvailableCallback(Handle, AHandle, @EventHandler, UserData);
-  Result := UserData;
+  ResultCode := asyncSetDataAvailableCallback(Handle, AHandle,
+    @EventHandler, UserData);
+  if ResultCode <> asyncOK then
+  begin
+    FreeNotifyData(Self, UserData);
+    raise EAsyncError.Create(ResultCode);
+  end else
+    Result := UserData;
+  {$IFDEF fpAsyncDebug}WriteLn('TEventLoop.SetDataAvailableNotify: Filehandle=', AHandle, ', Result=', Integer(Result));{$ENDIF}
 end;
 
 procedure TEventLoop.ClearDataAvailableNotify(AHandle: Pointer);
@@ -194,6 +216,7 @@ var
   Data: PNotifyData;
 begin
   Data := PNotifyData(AHandle);
+  {$IFDEF fpAsyncDebug}WriteLn('TEventLoop.ClearDataAvailableNotify: Filehandle=', Data^.FileHandle, ', Data=', Integer(AHandle));{$ENDIF}
   asyncClearDataAvailableCallback(Handle, Data^.FileHandle);
   FreeNotifyData(Self, Data);
 end;
@@ -201,7 +224,7 @@ end;
 procedure TEventLoop.SetCanWriteCallback(AHandle: Integer; ACallback: TAsyncCallback;
   AUserData: Pointer);
 begin
-  asyncSetCanWriteCallback(Handle, AHandle, ACallback, AUserData);
+  CheckResult(asyncSetCanWriteCallback(Handle, AHandle, ACallback, AUserData));
 end;
 
 procedure TEventLoop.ClearCanWriteCallback(AHandle: Integer);
@@ -213,13 +236,21 @@ function TEventLoop.SetCanWriteNotify(AHandle: Integer; ANotify: TNotifyEvent;
   ASender: TObject): Pointer;
 var
   UserData: PNotifyData;
+  ResultCode: TAsyncResult;
 begin
   UserData := AddNotifyData(Self);
   UserData^.Notify := ANotify;
   UserData^.Sender := ASender;
   UserData^.FileHandle := AHandle;
-  asyncSetCanWriteCallback(Handle, AHandle, @EventHandler, UserData);
-  Result := UserData;
+  ResultCode := asyncSetCanWriteCallback(Handle, AHandle,
+    @EventHandler, UserData);
+  if ResultCode <> asyncOK then
+  begin
+    FreeNotifyData(Self, UserData);
+    raise EAsyncError.Create(ResultCode);
+  end else
+    Result := UserData;
+  {$IFDEF fpAsyncDebug}WriteLn('TEventLoop.SetCanWriteNotify: Filehandle=', AHandle, ', Result=', Integer(Result));{$ENDIF}
 end;
 
 procedure TEventLoop.ClearCanWriteNotify(AHandle: Pointer);
@@ -227,6 +258,7 @@ var
   Data: PNotifyData;
 begin
   Data := PNotifyData(AHandle);
+  {$IFDEF fpAsyncDebug}WriteLn('TEventLoop.ClearCanWriteNotify: Filehandle=', Data^.FileHandle, ', Data=', Integer(AHandle));{$ENDIF}
   asyncClearCanWriteCallback(Handle, Data^.FileHandle);
   FreeNotifyData(Self, Data);
 end;
@@ -234,6 +266,12 @@ end;
 function TEventLoop.TimerTicks: Int64;
 begin
   Result := asyncGetTicks;
+end;
+
+procedure TEventLoop.CheckResult(AResultCode: TAsyncResult);
+begin
+  if AResultCode <> asyncOK then
+    raise EAsyncError.Create(AResultCode);
 end;
 
 function TEventLoop.GetIsRunning: Boolean;
@@ -250,6 +288,168 @@ begin
   end else
     if AIsRunning then
       Break;
+end;
+
+
+// -------------------------------------------------------------------
+//   TGenericLineReader
+// -------------------------------------------------------------------
+
+destructor TGenericLineReader.Destroy;
+begin
+  if Assigned(RealBuffer) then
+  begin
+    FreeMem(RealBuffer);
+    RealBuffer := nil;
+  end;
+  inherited Destroy;
+end;
+
+procedure TGenericLineReader.Run;
+var
+  NewData: array[0..1023] of Byte;
+  p: PChar;
+  BytesRead, OldBufSize, CurBytesInBuffer, LastEndOfLine, i, LineLength: Integer;
+  line: String;
+  FirstRun: Boolean;
+begin
+  FirstRun := True;
+  while True do
+  begin
+    BytesRead := Read(NewData, SizeOf(NewData));
+    //WriteLn('Linereader: ', BytesRead, ' bytes read');
+    if BytesRead <= 0 then begin
+      if FirstRun then
+        NoData;
+      break;
+    end;
+    FirstRun := False;
+    OldBufSize := FBytesInBuffer;
+
+    // Append the new received data to the read buffer
+    Inc(FBytesInBuffer, BytesRead);
+    ReallocMem(RealBuffer, FBytesInBuffer);
+    Move(NewData, RealBuffer[OldBufSize], BytesRead);
+
+    {Process all potential lines in the current buffer. Attention: FBuffer and
+     FBytesInBuffer MUST be updated for each line, as they can be accessed from
+     within the FOnLine handler!}
+    LastEndOfLine := 0;
+    if OldBufSize > 0 then
+      i := OldBufSize - 1
+    else
+      i := 0;
+
+    CurBytesInBuffer := FBytesInBuffer;
+
+    while i <= CurBytesInBuffer - 2 do
+    begin
+      if (RealBuffer[i] = #13) or (RealBuffer[i] = #10) then
+      begin
+        LineLength := i - LastEndOfLine;
+	SetLength(line, LineLength);
+	if LineLength > 0 then
+	  Move(RealBuffer[LastEndOfLine], line[1], LineLength);
+
+	if ((RealBuffer[i] = #13) and (RealBuffer[i + 1] = #10)) or
+	   ((RealBuffer[i] = #10) and (RealBuffer[i + 1] = #13)) then
+	  Inc(i);
+	LastEndOfLine := i + 1;
+
+	if Assigned(FOnLine) then begin
+	  FBuffer := RealBuffer + LastEndOfLine;
+	  FBytesInBuffer := CurBytesInBuffer - LastEndOfLine;
+	  FOnLine(line);
+	  // Check if <this> has been destroyed by FOnLine:
+	  if not Assigned(FBuffer) then exit;
+	end;
+      end;
+      Inc(i);
+    end;
+
+    FBytesInBuffer := CurBytesInBuffer;
+
+    if LastEndOfLine > 0 then
+    begin
+      // Remove all processed lines from the buffer
+      Dec(FBytesInBuffer, LastEndOfLine);
+      GetMem(p, FBytesInBuffer);
+      Move(RealBuffer[LastEndOfLine], p^, FBytesInBuffer);
+      if Assigned(RealBuffer) then
+        FreeMem(RealBuffer);
+      RealBuffer := p;
+    end;
+    FBuffer := RealBuffer;
+  end;
+end;
+
+
+// -------------------------------------------------------------------
+//   TAsyncStreamLineReader
+// -------------------------------------------------------------------
+
+constructor TAsyncStreamLineReader.Create(AEventLoop: TEventLoop;
+  AStream: THandleStream);
+begin
+  Self.Create(AEventLoop, AStream, AStream);
+end;
+
+constructor TAsyncStreamLineReader.Create(AEventLoop: TEventLoop;
+  ADataStream: TStream; ABlockingStream: THandleStream);
+begin
+  ASSERT(Assigned(ADataStream) and Assigned(ABlockingStream));
+
+  inherited Create;
+  FEventLoop := AEventLoop;
+  FDataStream := ADataStream;
+  FBlockingStream := ABlockingStream;
+  NotifyHandle := EventLoop.SetDataAvailableNotify(
+    FBlockingStream.Handle, @StreamDataAvailable, nil);
+end;
+
+destructor TAsyncStreamLineReader.Destroy;
+begin
+  if Assigned(NotifyHandle) then
+    EventLoop.ClearDataAvailableNotify(NotifyHandle);
+  inherited Destroy;
+end;
+
+procedure TAsyncStreamLineReader.StopAndFree;
+begin
+  DoStopAndFree := True;
+end;
+
+function TAsyncStreamLineReader.Read(var ABuffer; count: Integer): Integer;
+begin
+  Result := FDataStream.Read(ABuffer, count);
+end;
+
+procedure TAsyncStreamLineReader.NoData;
+var
+  s: String;
+begin
+  if (FDataStream = FBlockingStream) or (FDataStream.Position = FDataStream.Size) then begin
+
+    if (FBytesInBuffer > 0) and Assigned(FOnLine) then begin
+      if FBuffer[FBytesInBuffer - 1] in [#13, #10] then
+        Dec(FBytesInBuffer);
+      SetLength(s, FBytesInBuffer);
+      Move(FBuffer^, s[1], FBytesInBuffer);
+      FOnLine(s);
+    end;
+
+    EventLoop.ClearDataAvailableNotify(NotifyHandle);
+    NotifyHandle := nil;
+    if Assigned(FOnEOF) then
+      FOnEOF(Self);
+  end;
+end;
+
+procedure TAsyncStreamLineReader.StreamDataAvailable(UserData: TObject);
+begin
+  Run;
+  if DoStopAndFree then
+    Free;
 end;
 
 
@@ -350,24 +550,26 @@ end;
 
 procedure TAsyncWriteStream.WritingFailed;
 begin
-  if (FDataStream <> FBlockingStream) and Assigned(FNotifyHandle) then
+  if (FDataStream <> FBlockingStream) and Assigned(NotifyHandle) then
   begin
-    FManager.ClearCanWriteNotify(FNotifyHandle);
-    FNotifyHandle := nil;
+    EventLoop.ClearCanWriteNotify(NotifyHandle);
+    NotifyHandle := nil;
   end;
 end;
 
 procedure TAsyncWriteStream.WantWrite;
 begin
-  FNotifyHandle := FManager.SetCanWriteNotify(FBlockingStream.Handle, @CanWrite, nil);
+  if not Assigned(NotifyHandle) then
+    NotifyHandle := EventLoop.SetCanWriteNotify(FBlockingStream.Handle,
+      @CanWrite, nil);
 end;
 
 procedure TAsyncWriteStream.BufferEmpty;
 begin
-  if Assigned(FNotifyHandle) then
+  if Assigned(NotifyHandle) then
   begin
-    FManager.ClearCanWriteNotify(FNotifyHandle);
-    FNotifyHandle := nil;
+    EventLoop.ClearCanWriteNotify(NotifyHandle);
+    NotifyHandle := nil;
   end;
   inherited BufferEmpty;
 end;
@@ -377,33 +579,37 @@ begin
   Run;
 end;
 
-constructor TAsyncWriteStream.Create(AManager: TEventLoop; AStream: THandleStream);
+constructor TAsyncWriteStream.Create(AEventLoop: TEventLoop;
+  AStream: THandleStream);
 begin
-  Self.Create(AManager, AStream, AStream);
+  Self.Create(AEventLoop, AStream, AStream);
 end;
 
-constructor TAsyncWriteStream.Create(AManager: TEventLoop;
+constructor TAsyncWriteStream.Create(AEventLoop: TEventLoop;
   ADataStream: TStream; ABlockingStream: THandleStream);
 begin
   ASSERT(Assigned(ADataStream) and Assigned(ABlockingStream));
 
   inherited Create;
-  FManager := AManager;
+  FEventLoop := AEventLoop;
   FDataStream := ADataStream;
   FBlockingStream := ABlockingStream;
 end;
 
 destructor TAsyncWriteStream.Destroy;
 begin
-  if Assigned(FNotifyHandle) then
-    FManager.ClearCanWriteNotify(FNotifyHandle);
+  if Assigned(NotifyHandle) then
+    EventLoop.ClearCanWriteNotify(NotifyHandle);
   inherited Destroy;
 end;
 
 
 {
   $Log$
-  Revision 1.2  2002-09-07 15:42:57  peter
+  Revision 1.3  2002-09-15 15:45:38  sg
+  * Added stream line reader classes
+
+  Revision 1.2  2002/09/07 15:42:57  peter
     * old logs removed and tabs fixed
 
   Revision 1.1  2002/01/29 17:55:02  peter

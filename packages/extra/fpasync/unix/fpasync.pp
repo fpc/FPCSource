@@ -2,7 +2,7 @@
     $Id$
 
     fpAsync: Asynchronous event management for Free Pascal
-    Copyright (C) 2001 by
+    Copyright (C) 2001-2002 by
       Areca Systems GmbH / Sebastian Guenther, sg@freepascal.org
 
     Unix implementation
@@ -18,10 +18,11 @@
 unit fpAsync;
 
 {$MODE objfpc}
+{$H+}
 
 interface
 
-uses Classes, libasync;
+uses SysUtils, Classes, libasync;
 
 type
 
@@ -41,7 +42,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2002-09-07 15:42:57  peter
+  Revision 1.3  2002-09-15 15:45:38  sg
+  * Added stream line reader classes
+
+  Revision 1.2  2002/09/07 15:42:57  peter
     * old logs removed and tabs fixed
 
   Revision 1.1  2002/01/29 17:55:02  peter

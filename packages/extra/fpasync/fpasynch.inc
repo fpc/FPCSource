@@ -2,7 +2,7 @@
     $Id$
 
     fpAsync: Asynchronous event management for Free Pascal
-    Copyright (C) 2001 by
+    Copyright (C) 2001-2002 by
       Areca Systems GmbH / Sebastian Guenther, sg@freepascal.org
 
     Common interface
@@ -17,12 +17,22 @@
 
 type
 
+  EAsyncError = class(Exception)
+  private
+    FErrorCode: TAsyncResult;
+  public
+    constructor Create(AErrorCode: TAsyncResult);
+    property ErrorCode: TAsyncResult read FErrorCode;
+  end;
+
   TEventLoop = class
   private
     FData: TAsyncData;
     FFirstNotifyData: Pointer;
     function GetIsRunning: Boolean;
     procedure SetIsRunning(AIsRunning: Boolean);
+  protected
+    procedure CheckResult(AResultCode: TAsyncResult);
   public
     constructor Create;
     destructor Destroy; override;
@@ -71,6 +81,56 @@ type
 
 
 // -------------------------------------------------------------------
+//   Asynchronous line reader
+// -------------------------------------------------------------------
+
+  TLineNotify = procedure(const ALine: String) of object;
+
+  TGenericLineReader = class
+  protected
+    RealBuffer, FBuffer: PChar;
+    FBytesInBuffer: Integer;
+    FOnLine: TLineNotify;
+
+    function  Read(var ABuffer; count: Integer): Integer; virtual; abstract;
+    procedure NoData; virtual; abstract;
+
+  public
+    destructor Destroy; override;
+    procedure Run;		// Process as many lines as possible
+
+    property Buffer: PChar read FBuffer;
+    property BytesInBuffer: Integer read FBytesInBuffer;
+    property OnLine: TLineNotify read FOnLine write FOnLine;
+  end;
+
+  TAsyncStreamLineReader = class(TGenericLineReader)
+  protected
+    FEventLoop: TEventLoop;
+    FDataStream: TStream;
+    FBlockingStream: THandleStream;
+    FOnEOF: TNotifyEvent;
+    NotifyHandle: Pointer;
+    DoStopAndFree: Boolean;
+
+    function  Read(var ABuffer; count: Integer): Integer; override;
+    procedure NoData; override;
+    procedure StreamDataAvailable(UserData: TObject);
+  public
+    constructor Create(AEventLoop: TEventLoop; AStream: THandleStream);
+    constructor Create(AEventLoop: TEventLoop; ADataStream: TStream;
+      ABlockingStream: THandleStream);
+    destructor Destroy; override;
+    procedure StopAndFree;	// Destroy instance after run
+
+    property EventLoop: TEventLoop read FEventLoop;
+    property DataStream: TStream read FDataStream;
+    property BlockingStream: THandleStream read FBlockingStream;
+    property OnEOF: TNotifyEvent read FOnEOF write FOnEOF;
+  end;
+
+
+// -------------------------------------------------------------------
 //   Asynchronous write buffers
 // -------------------------------------------------------------------
 
@@ -101,10 +161,10 @@ type
 
   TAsyncWriteStream = class(TWriteBuffer)
   protected
-    FManager: TEventLoop;
+    FEventLoop: TEventLoop;
     FDataStream: TStream;
     FBlockingStream: THandleStream;
-    FNotifyHandle: Pointer;
+    NotifyHandle: Pointer;
 
     function  DoRealWrite(const ABuffer; Count: Integer): Integer; override;
     procedure WritingFailed; override;
@@ -112,11 +172,12 @@ type
     procedure BufferEmpty; override;
     procedure CanWrite(UserData: TObject);
   public
-    constructor Create(AManager: TEventLoop; AStream: THandleStream);
-    constructor Create(AManager: TEventLoop;
+    constructor Create(AEventLoop: TEventLoop; AStream: THandleStream);
+    constructor Create(AEventLoop: TEventLoop;
       ADataStream: TStream; ABlockingStream: THandleStream);
     destructor Destroy; override;
 
+    property EventLoop: TEventLoop read FEventLoop;
     property DataStream: TStream read FDataStream;
     property BlockingStream: THandleStream read FBlockingStream;
   end;
@@ -124,7 +185,10 @@ type
 
 {
   $Log$
-  Revision 1.2  2002-09-07 15:42:57  peter
+  Revision 1.3  2002-09-15 15:45:38  sg
+  * Added stream line reader classes
+
+  Revision 1.2  2002/09/07 15:42:57  peter
     * old logs removed and tabs fixed
 
   Revision 1.1  2002/01/29 17:55:02  peter
