@@ -107,7 +107,7 @@ implementation
                end;
             in_assigned_x :
               begin
-//                 second_Assigned;
+                 second_Assigned;
               end;
             in_include_x_y,
             in_exclude_x_y:
@@ -583,7 +583,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  2002-07-30 20:50:43  florian
+  Revision 1.8  2002-07-31 07:54:59  jonas
+    * re-enabled second_assigned()
+
+  Revision 1.7  2002/07/30 20:50:43  florian
     * the code generator knows now if parameters are in registers
 
   Revision 1.6  2002/07/29 21:23:42  florian
