@@ -237,6 +237,13 @@
  A macro declaration has been found, but macro support is currently off,
  so the declaration will be ignored. To turn macro support on compile with
  -Sm on the commandline or add \var{\{\$MACRO ON\}} in the source
+\item [Warning: APPID is only supported for PalmOS]
+ The \var{\{\$APPID\}} directive is only supported for the PalmOS target.
+\item [Warning: APPNAME is only supported for PalmOS]
+ The \var{\{\$APPNAME\}} directive is only supported for the PalmOS target.
+\item [Error: Constant strings can't be longer than 255 chars]
+ A single string constant can contain at most 255 chars. Try splitting up the
+ string in multiple smaller parts and concatenate them with a + operator.
  \end{description}
  \section{Parser messages}
  This section lists all parser messages. The parser takes care of the
@@ -744,8 +751,8 @@
  Parameters are declared as call by reference using the \var{var}-directive
 \item [Error: Duplicate message label: arg1]
  A label for a message is used twice in one object/class
-\item [Error: Self can be only an explicit parameter in message handlers]
- The self parameter can be passed only explicitly in a method which
+\item [Error: Self can only be an explicit parameter in mehtods that are message handlers]
+ The self parameter can only be passed explicitly to a method which
  is declared as message method handler.
 \item [Error: Threadvars can be only static or global]
  Threadvars must be static or global, you can't declare a thread
@@ -816,6 +823,24 @@
  currently supporting export of variables is Win32.
 \item [Error: Type "arg1" can't be used as array index type]
  Types like DWord or Int64 aren't allowed as array index type
+\item [Warning: Some fields coming before "arg1" weren't initialized]
+ In Delphi mode, not all fields of a typed constant record have to be
+ initialized, but the compiler warns you when it detects such situations.
+\item [Error: Some fields coming before "arg1" weren't initialized]
+ In all syntax modes but Delphi mode, you can't leave some fields uninitialized
+ in the middle of a typed constant record
+\item [Hint: Some fields coming after "arg1" weren't initialized]
+ You can leave some fields at the end of a type constant record uninitialized
+ (the compiler will initialize them to zero automatically), but then the
+ compiler gives you a hint when it detects such situations.
+\item [Error: Self must be a normal (call-by-value) parameter]
+ You can't declare self as a const or var parameter, it must always be
+ a call-by-value parameter
+\item [Error: Typed constants of the type "procedure of object" can only be initialized with NIL]
+ You can't assign the address of a method to a typed constant which has a
+ 'procedure of object' type, because such a constant requires two addresses:
+ that of the method (which is known at compile time) and that of the object or
+ class instance it operates on (which can not be known at compile time).
  \end{description}
  \section{Type checking errors}
  This section lists all errors that can occur when type checking is
@@ -954,11 +979,23 @@
 \item [Error: Array type required]
  If you are accessing a variable using an index '[<x>]' then
  the type must be an array. In FPC mode also a pointer is allowed.
-\item [Hint: Mixing signed expressions and cardinals results in a (slower) 64bit evaluation]
- If you divide/multiply a signed number by a cardinal (or vice versa),
+\item [Warning: Mixing signed expressions and cardinals gives a 64bit result]
+ If you divide (or calculate the modulus of) a signed expression by a cardinal (or vice versa),
  or if you have overflow and/or range checking turned on and use an arithmetical
- expression in which both signed numbers and cardinals appear, then everything has
- to be evaluated in 64bit which is slower than normal 32bit arithmetics.
+ expression (+, -, *, div, mod) in which both signed numbers and cardinals appear,
+ then everything has to be evaluated in 64bit which is slower than normal
+ 32bit arithmetics. You can avoid this by typecasting one operand so it
+ matches the resulttype of the other one.
+\item [Warning: Mixing signed expressions and cardinals here may cause a range check error]
+ If you use a binary operator (and, or, xor) and one of
+ the operands is a cardinal while the other one is a signed expression, then,
+ if range checking is turned on, you may get a range check error because in
+ such a case both operands are converted to cardinal before the operation is
+ carried out. You can avoid this by typecasting one operand so it
+ matches the resulttype of the other one.
+\item [Error: Typecast has different size (arg1 -> arg2) in assignment]
+ Type casting to a type with a different size is not allowed when the variable is
+ used for assigning.
  \end{description}
  \section{Symbol handling}
  This section lists all the messages that concern the handling of symbols.
@@ -1259,23 +1296,23 @@
 \item [Error: Can't create archive file: arg1]
  The mentioned file can't be create. Check if you've
  permission to create this file
-\item [Warning: Assembler arg1 not found, switching to external assembling]
+\item [Error: Assembler arg1 not found, switching to external assembling]
 \item [Using assembler: arg1]
-\item [Warning: Error while assembling exitcode arg1]
-\item [Warning: Can't call the assembler, error arg1 switching to external assembling]
+\item [Error: Error while assembling exitcode arg1]
+\item [Error: Can't call the assembler, error arg1 switching to external assembling]
 \item [Info: Assembling arg1]
 \item [Info: Assembling smartlink arg1]
 \item [Warning: Object arg1 not found, Linking may fail !]
 \item [Warning: Library arg1 not found, Linking may fail !]
-\item [Warning: Error while linking]
-\item [Warning: Can't call the linker, switching to external linking]
+\item [Error: Error while linking]
+\item [Error: Can't call the linker, switching to external linking]
 \item [Info: Linking arg1]
-\item [Warning: Util arg1 not found, switching to external linking]
+\item [Error: Util arg1 not found, switching to external linking]
 \item [Using util arg1]
 \item [Error: Creation of Executables not supported]
 \item [Error: Creation of Dynamic/Shared Libraries not supported]
 \item [Info: Closing script arg1]
-\item [Warning: resource compiler not found, switching to external mode]
+\item [Error: resource compiler not found, switching to external mode]
 \item [Info: Compiling resource arg1]
 \item [unit arg1 can't be static linked, switching to smart linking]
 \item [unit arg1 can't be smart linked, switching to static linking]
@@ -1313,7 +1350,7 @@
  This unit file was compiled for a different processor type, and
  cannot be read
 \item [PPU is compiled for an other target]
- This unit file was compiled for a different processor type, and
+ This unit file was compiled for a different target, and
  cannot be read
 \item [PPU Source: arg1]
  When you use the \var{-vu} flag, the unit CRC check is shown.
@@ -1345,6 +1382,9 @@
 \item [Fatal: Can't compile unit arg1, no sources available]
  A unit was found that needs to be recompiled, but no sources are
  available.
+\item [Warning: Can't recompile unit arg1, but found modifed include files]
+ A unit was found to have modified include files, but
+ some source files were not found, so recompilation is impossible.
 \item [Fatal: Can't find unit arg1]
  You tried to use a unit of which the PPU file isn't found by the
  compiler. Check your config files for the unit pathes
@@ -1400,6 +1440,7 @@
  the same conditionals are set for the recompiliation. The compiler has
  found a conditional that was used the last time the unit was compiled, but
  the conditional is currently not defined.
+\item [Hint: File arg1 is newer than Release PPU file arg2]
  \end{description}
 
  \section{Command-line handling errors}
@@ -1426,7 +1467,7 @@
  You can only nest up to 16 config files.
 \item [Fatal: Unable to open file arg1]
  The option file cannot be found.
-\item [Note: Reading further options from arg1]
+\item [Reading further options from arg1]
  Displayed when you have notes turned on, and the compiler switches
  to another options file.
 \item [Warning: Target is already set to: arg1]
@@ -1468,4 +1509,5 @@
  The assembler output selected can not generate
  object files with the correct format. Therefore, the
  default assembler for this target is used instead.
+\item [*** press enter ***]
 \end{description}
