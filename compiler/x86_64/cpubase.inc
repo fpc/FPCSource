@@ -51,30 +51,7 @@ const
 *****************************************************************************}
 
     const
-      firstsaveintreg = RS_RAX;
-      lastsaveintreg  = RS_R15;
-      firstsavefpureg = RS_INVALID;
-      lastsavefpureg  = RS_INVALID;
-      firstsavemmreg  = RS_MM0;
-      lastsavemmreg   = RS_MM15;
-
-      general_registers = [RS_EAX,RS_EBX,RS_ECX,RS_EDX];
-      general_superregisters = [RS_RAX,RS_RBX,RS_RCX,RS_RDX];
-
-      usableregsint = [first_int_imreg..last_int_imreg];
       c_countusableregsint = 4;
-
-      maxaddrregs = 0;
-      usableregsaddr = [];
-      c_countusableregsaddr = 0;
-
-      maxvarregs = 4;
-      varregs : array[1..maxvarregs] of tsuperregister =
-         (RS_EBX,RS_EDX,RS_ECX,RS_EAX);
-
-      maxfpuvarregs = 8;
-      fpuvarregs : Array [1..maxfpuvarregs] of Tsuperregister =
-                (RS_MM8,RS_MM9,RS_MM10,RS_MM11,RS_MM12,RS_MM13,RS_MM14,RS_MM15);
 
 {*****************************************************************************
                                GDB Information
@@ -112,7 +89,7 @@ const
       RS_STACK_POINTER_REG = RS_RSP;
       NR_STACK_POINTER_REG = NR_RSP;
       {# Frame pointer register }
-      RS_FRAME_POINTER_REG = RS_EBP;
+      RS_FRAME_POINTER_REG = RS_RBP;
       NR_FRAME_POINTER_REG = NR_RBP;
       { Register for addressing absolute data in a position independant way,
         such as in PIC code. The exact meaning is ABI specific. For
@@ -158,7 +135,10 @@ const
 
 {
   $Log$
-  Revision 1.8  2003-09-25 13:13:32  florian
+  Revision 1.9  2003-12-22 19:00:17  florian
+    * fixed some x86-64 issues
+
+  Revision 1.8  2003/09/25 13:13:32  florian
     * more x86-64 fixes
 
   Revision 1.7  2003/09/24 17:12:02  florian

@@ -831,7 +831,7 @@ implementation
               if (locpara.size in [OS_S64,OS_64]) then
                 begin
 {$ifdef cpu64bit}
-                  ungetregisterint(list,locpara.register64);
+                  ungetregister(list,locpara.register64);
 {$else cpu64bit}
                   getexplicitregister(list,locpara.registerlow);
                   getexplicitregister(list,locpara.registerhigh);
@@ -1986,7 +1986,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.141  2003-12-21 19:42:42  florian
+  Revision 1.142  2003-12-22 19:00:17  florian
+    * fixed some x86-64 issues
+
+  Revision 1.141  2003/12/21 19:42:42  florian
     * fixed ppc inlining stuff
     * fixed wrong unit writing
     + added some sse stuff

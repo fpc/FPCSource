@@ -49,7 +49,8 @@ Type
    ts32real = single;
    ts64real = double;
    ts80real = extended;
-   ts64comp = extended;
+   ts128real = type extended;
+   ts64comp = type extended;
 
    pbestreal=^bestreal;
 
@@ -106,7 +107,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.8  2003-12-20 12:38:51  florian
+  Revision 1.9  2003-12-22 19:00:17  florian
+    * fixed some x86-64 issues
+
+  Revision 1.8  2003/12/20 12:38:51  florian
     * some x86-64 compilation fixe
 
   Revision 1.7  2003/09/24 17:12:02  florian

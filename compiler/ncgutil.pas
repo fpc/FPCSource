@@ -31,9 +31,9 @@ interface
       globtype,
       cpubase,cgbase,
       aasmbase,aasmtai,aasmcpu,
-      symconst,symbase,symdef,symsym,symtype,symtable,
+      symconst,symbase,symdef,symsym,symtype,symtable
 {$ifndef cpu64bit}
-      cg64f32
+      ,cg64f32
 {$endif cpu64bit}
       ;
 
@@ -501,7 +501,7 @@ implementation
               else
                begin
                  location_release(list,l);
-                 hregister:=cg.getregisterint(list,OS_INT);
+                 hregister:=cg.getintregister(list,OS_INT);
                end;
               { load value in low register }
               case l.loc of
@@ -543,7 +543,7 @@ implementation
               else
                begin
                  location_release(list,l);
-                 hregister:=cg.getregisterint(list,OS_INT);
+                 hregister:=cg.getintregister(list,OS_INT);
                end;
             end;
            hregister:=cg.makeregsize(hregister,dst_size);
@@ -2001,7 +2001,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.174  2003-12-07 16:28:30  jonas
+  Revision 1.175  2003-12-22 19:00:17  florian
+    * fixed some x86-64 issues
+
+  Revision 1.174  2003/12/07 16:28:30  jonas
     * fixed typo found by Charlie
 
   Revision 1.173  2003/12/06 01:15:22  florian

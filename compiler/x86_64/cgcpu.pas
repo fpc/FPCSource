@@ -29,7 +29,7 @@ unit cgcpu;
   interface
 
     uses
-       cginfo,cgbase,cgobj,cg64f64,cgx86,
+       cgbase,cgobj,cg64f64,cgx86,
        aasmbase,aasmtai,aasmcpu,
        cpubase,cpuinfo,cpupara,
        node,symconst;
@@ -192,7 +192,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2003-09-25 13:13:32  florian
+  Revision 1.6  2003-12-22 19:00:17  florian
+    * fixed some x86-64 issues
+
+  Revision 1.5  2003/09/25 13:13:32  florian
     * more x86-64 fixes
 
   Revision 1.4  2003/04/30 15:45:35  florian

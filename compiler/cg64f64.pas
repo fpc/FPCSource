@@ -34,7 +34,7 @@ unit cg64f64;
     uses
        aasmbase,aasmtai,aasmcpu,
        cpuinfo, cpubase,
-       cginfo, cgobj,
+       cgbase,cgobj,
        symtype;
 
     type
@@ -223,7 +223,10 @@ unit cg64f64;
 end.
 {
   $Log$
-  Revision 1.8  2003-06-03 21:11:09  peter
+  Revision 1.9  2003-12-22 19:00:17  florian
+    * fixed some x86-64 issues
+
+  Revision 1.8  2003/06/03 21:11:09  peter
     * cg.a_load_* get a from and to size specifier
     * makeregsize only accepts newregister
     * i386 uses generic tcgnotnode,tcgunaryminus
