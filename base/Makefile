@@ -18,6 +18,18 @@
 
 MODULES=compiler rtl api fv gdb ide
 
+ifndef RTLDIR
+RTLDIR=rtl
+endif
+
+ifndef FCLDIR
+FCLDIR=fcl
+endif
+
+ifndef GTKDIR
+GTKDIR=gtk
+endif
+
 ifndef APIDIR
 APIDIR=api
 endif
@@ -156,7 +168,7 @@ compiler_sharedinstall:
 # RTL
 #######################################
 
-RTLDIR=rtl/$(OS_TARGET)
+override RTLDIR:=$(RTLDIR)/$(OS_TARGET)
 
 rtl_all:
 	$(MAKE) -C $(RTLDIR) all
@@ -172,6 +184,49 @@ rtl_staticinstall:
 
 rtl_sharedinstall:
 	$(MAKE) -C $(RTLDIR) sharedlibinstall
+
+
+#######################################
+# FCL
+#######################################
+
+override FCLDIR:=$(FCLDIR)/$(OS_TARGET)
+
+fcl_all: rtl_all
+	$(MAKE) -C $(FCLDIR) all
+
+fcl_clean:
+	$(MAKE) -C $(FCLDIR) clean
+
+fcl_install:
+	$(MAKE) -C $(FCLDIR) install
+
+fcl_staticinstall:
+	$(MAKE) -C $(FCLDIR) staticlibinstall
+
+fcl_sharedinstall:
+	$(MAKE) -C $(FCLDIR) sharedlibinstall
+
+
+#######################################
+# GTK
+#######################################
+
+gtk_all: rtl_all
+	$(MAKE) -C $(GTKDIR) all
+
+gtk_clean:
+	$(MAKE) -C $(GTKDIR) clean
+
+gtk_install:
+	$(MAKE) -C $(GTKDIR) install
+
+gtk_staticinstall:
+	$(MAKE) -C $(GTKDIR) staticlibinstall
+
+gtk_sharedinstall:
+	$(MAKE) -C $(GTKDIR) sharedlibinstall
+
 
 
 #######################################
@@ -313,14 +368,25 @@ fvzip: rtl_clean api_clean fv_clean
 	$(MAKE) fv_all
 	$(MAKE) -C $(FVDIR) fpc_zipinstalladd ZIPNAME=fv-$(PACKAGESUFFIX)
 
-compilerzip: #compiler_clean rtl_clean
+fclzip: rtl_clean fcl_clean
+	$(MAKE) fcl_all
+	$(MAKE) -C $(FCLDIR) fpc_zipinstall ZIPNAME=fcl-$(PACKAGESUFFIX)
+
+gtkzip: rtl_clean gtk_clean
+	$(MAKE) gtk_all
+	$(MAKE) -C $(GTKDIR) fpc_zipinstall ZIPNAME=gtk-$(PACKAGESUFFIX)
+
+compilerzip: compiler_clean rtl_clean
 	$(MAKE) compiler_all
 	$(MAKE) -C compiler fpc_zipinstall ZIPTARGET=quickinstall ZIPNAME=compiler-$(PACKAGESUFFIX)
 	$(MAKE) -C $(RTLDIR) fpc_zipinstalladd ZIPNAME=compiler-$(PACKAGESUFFIX)
 
 #
 # $Log$
-# Revision 1.10  1999-04-01 22:16:02  peter
+# Revision 1.11  1999-04-08 10:16:16  peter
+#   * zipinstall for linux with .tar.gz
+#
+# Revision 1.10  1999/04/01 22:16:02  peter
 #   * renamed ide zips
 #
 # Revision 1.9  1999/03/18 11:19:31  peter

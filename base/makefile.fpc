@@ -301,10 +301,7 @@ endif
 endif
 
 # ZipProg, you can't use Zip as the var name (PFV)
-ifndef ZIPPROG
-ifdef inlinux
-export ZIPPROG=tar cvz --file
-else
+ifndef ZIPPROGNEW
 ZIPPROG=$(strip $(wildcard $(addsuffix /zip$(EXEEXT),$(SEARCHPATH))))
 ifeq ($(ZIPPROG),)
 ZIPPROG=
@@ -312,11 +309,8 @@ else
 export ZIPPROG:=$(firstword $(ZIPPROG)) -D9 -r
 endif
 endif
-endif
 
-ifdef inlinux
-ZIPEXT=.tar.gz
-else
+ifndef ZIPEXT
 ZIPEXT=.zip
 endif
 
@@ -579,7 +573,7 @@ endif
 
 # Linux
 ifeq ($(OS_TARGET),linux)
-PACKAGESUFFIX=lin
+PACKAGESUFFIX=linux
 endif
 
 # Win32
@@ -590,7 +584,7 @@ ASMEXT=.sw
 SMARTEXT=.slw
 STATICLIBEXT=.aw
 SHAREDLIBEXT=.dll
-PACKAGESUFFIX=w32
+PACKAGESUFFIX=win32
 endif
 
 # OS/2
@@ -795,7 +789,9 @@ endif
 
 # Add .zip/.tar.gz extension
 ifdef ZIPNAME
+ifndef inlinux
 override ZIPNAME:=$(ZIPNAME)$(ZIPEXT)
+endif
 endif
 
 # Default target which is call before zipping
@@ -810,20 +806,31 @@ ifndef ZIPNAME
 	@exit
 else
 	$(MAKE) $(ZIPTARGET) BASEINSTALLDIR=$(PACKDIR)
-	cd $(PACKDIR)
-	$(ZIPPROG) $(PACKAGEDIR)/$(ZIPNAME) *
-	cd $(BASEDIR)
+ifdef inlinux
+	gzip -d $(PACKAGEDIR)/$(ZIPNAME).tar.gz
+	cd $(PACKDIR) ; tar rv --file $(PACKAGEDIR)/$(ZIPNAME).tar * ; cd $(BASEDIR)
+	gzip $(PACKAGEDIR)/$(ZIPNAME).tar
+else
+	cd $(PACKDIR) ; $(ZIPPROG) $(PACKAGEDIR)/$(ZIPNAME) * ; cd $(BASEDIR)
+endif
 	$(DELTREE) $(PACKDIR)
 endif
 
-# This will remove the zipfile
-fpc_zipinstalldel:
-ifdef ZIPNAME
-	$(DEL) $(PACKAGEDIR)/$(ZIPNAME)
-endif
-
 # First remove the zip and then install
-fpc_zipinstall: fpc_zipinstalldel fpc_zipinstalladd
+fpc_zipinstall:
+ifndef ZIPNAME
+	@$(ECHO) Please specify ZIPNAME!
+	@exit
+else
+	$(DEL) $(PACKAGEDIR)/$(ZIPNAME)
+	$(MAKE) $(ZIPTARGET) BASEINSTALLDIR=$(PACKDIR)
+ifdef inlinux
+	cd $(PACKDIR) ; tar cvz --file $(PACKAGEDIR)/$(ZIPNAME).tar.gz * ; cd $(BASEDIR)
+else
+	cd $(PACKDIR) ; $(ZIPPROG) $(PACKAGEDIR)/$(ZIPNAME) * ; cd $(BASEDIR)
+endif
+	$(DELTREE) $(PACKDIR)
+endif
 
 
 #####################################################################
@@ -962,7 +969,10 @@ endif
 
 #
 # $Log$
-# Revision 1.13  1999-04-01 22:52:28  peter
+# Revision 1.14  1999-04-08 10:16:17  peter
+#   * zipinstall for linux with .tar.gz
+#
+# Revision 1.13  1999/04/01 22:52:28  peter
 #   * don't override pasext if set
 #
 # Revision 1.12  1999/03/29 16:04:58  peter
