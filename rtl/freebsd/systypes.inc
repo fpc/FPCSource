@@ -1,5 +1,9 @@
 {
+<<<<<<< systypes.inc
     $Id$
+=======
+    $Id$
+>>>>>>> 1.1.2.2
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Michael Van Canneyt,
     member of the Free Pascal development team.
@@ -133,6 +137,10 @@ type
   ptimeval=^timeval;
   TTimeVal=timeval;
 
+  timespec = packed record
+    tv_sec,tv_nsec:{longint or int64 ?}int64;
+  end;
+
   timezone = packed record
     minuteswest,dsttime:longint;
   end;
@@ -152,38 +160,12 @@ type
 
 {
   $Log$
-  Revision 1.2  2000-09-18 13:42:35  marco
+  Revision 1.3  2000-10-26 23:00:12  peter
+    * fixes merges
+
+  Revision 1.2  2000/09/18 13:42:35  marco
    * FreeBSD support into 1.1
 
   Revision 1.4  2000/09/11 14:38:10  marco
    * 14 april version killed, and replaced by newer fixes branch version
-
-  Revision 1.1.2.1  2000/09/10 16:12:14  marco
-  Initial signals, sockets and clone
-
-  Revision 1.1  2000/07/13 06:30:33  michael
-  + Initial import
-
-  Revision 1.8  2000/04/16 16:08:30  marco
-   * Updated PDir to BSD libc layout. (which is totally different from Linux)
-
-  Revision 1.7  2000/04/10 15:46:52  marco
-   * worked all day. probably a lot changed
-
-  Revision 1.5  2000/03/17 12:58:57  marco
-   * some changes to ftruncate based procs. Added a "0" as extra parameter
-
-  Revision 1.4  2000/02/04 16:55:47  marco
-   * Fixed tdir, some params need to be 32-bit
-
-  Revision 1.3  2000/02/03 17:05:55  marco
-
-   * Some types fixed/ported.
-
-  Revision 1.2  2000/02/02 16:45:38  marco
-   * Typo in STAT record
-
-  Revision 1.1  2000/02/02 16:36:09  marco
-   * Initial version. Copy of linux version, with BSD stat.
-
 }

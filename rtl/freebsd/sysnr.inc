@@ -308,41 +308,20 @@ syscall_nr_getdirentries                =196;
  syscall_nr_utimes                      = 138;
  syscall_nr_waitpid                     =   7;
  syscall_nr_write                       =   4;
- syscall_nr_munmap                      = 73;
- syscall_nr_getsockopt                  =118;
- syscall_nr_rfork                       =251;
+ syscall_nr_munmap                      =  73;
+ syscall_nr_getsockopt                  = 118;
+ syscall_nr_rfork                       = 251;
+ syscall_nr_nanosleep                   = 240;
 
 
 {
   $Log$
-  Revision 1.2  2000-09-18 13:42:35  marco
+  Revision 1.3  2000-10-26 23:00:12  peter
+    * fixes merges
+
+  Revision 1.2  2000/09/18 13:42:35  marco
    * FreeBSD support into 1.1
 
   Revision 1.4  2000/09/11 14:38:10  marco
    * 14 april version killed, and replaced by newer fixes branch version
-
-  Revision 1.1.2.1  2000/09/10 16:12:14  marco
-  Initial signals, sockets and clone
-
-  Revision 1.1  2000/07/13 06:30:33  michael
-  + Initial import
-
-  Revision 1.4  2000/04/10 15:46:52  marco
-   * worked all day. probably a lot changed
-
-  Revision 1.2  2000/04/05 13:59:10  marco
-   * added constants for syscall.inc
-
-  Revision 1.1  2000/04/05 13:06:24  marco
-   * Initial version. (copied from linux.) Patch for BSD not ready yeT
-
-  Revision 1.5  2000/02/09 16:59:32  peter
-    * truncated log
-
-  Revision 1.4  2000/01/07 16:41:41  daniel
-    * copyright 2000
-
-  Revision 1.3  2000/01/07 16:32:28  daniel
-    * copyright 2000 added
-
 }
