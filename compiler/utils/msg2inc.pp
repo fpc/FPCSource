@@ -41,8 +41,8 @@ var
   enumsize,
   msgsize    : longint;
 
-  msgidxmax  : array[1..msgparts] of longint;
-  msgs       : array[1..msgparts,1..1000] of boolean;
+  msgidxmax  : array[0..msgparts] of longint;
+  msgs       : array[0..msgparts,0..999] of boolean;
 
 procedure LoadMsgFile(const fn:string);
 var
@@ -114,7 +114,9 @@ begin
               { update the max index }
               val(number,num,code);
               numpart:=num div 1000;
-              numidx:=succ(num mod 1000);
+              if numpart=0 then
+               err('number should be > 1000');
+              numidx:=num mod 1000;
               { duplicate ? }
               if msgs[numpart,numidx] then
                err('duplicate number found');
@@ -266,8 +268,7 @@ begin
   write(t,'    ');
   for i:=1to 20 do
    begin
-     { no +1 anymore because we now have succ(number mod 1000) (JM) }
-     write(t,msgidxmax[i]);
+     write(t,msgidxmax[i]+1);
      if i<20 then
       write(t,',');
      if i=10 then
@@ -804,13 +805,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2000-09-28 11:57:03  jonas
-    * fixed range errors (merged from fixes branch)
+  Revision 1.5  2000-09-30 13:13:22  peter
+    * range check fix
 
   Revision 1.3  2000/09/27 20:59:55  peter
     * check for dup numbers
 
   Revision 1.2  2000/07/13 11:32:55  michael
   + removed logs
- 
+
 }
