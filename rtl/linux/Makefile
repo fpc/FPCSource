@@ -137,7 +137,7 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 SYSTEMPPU=syslinux$(PPUEXT)
 OBJECTS=strings linux \
 	dos crt objects printer \
-	getopts errors sockets graph
+	getopts heaptrc errors sockets graph
 
 # Which units may be placed in the shared lib file
 SHAREDLIBFILES=syslinux strings linux objpas sysutils math \
@@ -280,6 +280,12 @@ getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMPPU)
 	$(COMPILER) getopts $(REDIR)
 	$(DEL) getopts.pp
 
+heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMPPU)
+	$(COPY) $(INC)/heaptrc.pp .
+	$(COMPILER) heaptrc $(REDIR)
+	$(DEL) heaptrc.pp
+
+
 #####################################################################
 # Libs
 #####################################################################
@@ -322,7 +328,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.4  1998-10-02 09:26:01  peter
+# Revision 1.5  1998-10-06 22:10:31  peter
+#   + heaptrc
+#
+# Revision 1.4  1998/10/02 09:26:01  peter
 #   * fixed rtl path
 #
 # Revision 1.3  1998/09/15 12:09:10  peter

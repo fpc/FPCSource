@@ -70,7 +70,7 @@ include $(CFG)/makefile.cfg
 SYSTEMPPU=syswin32$(PPUEXT)
 OBJECTS=strings dos \
 	windows \
-	cpu mmx getopts
+	cpu mmx getopts heaptrc
 
 # Files used by windows.pp
 WINDOWS_FILES=base errors defines \
@@ -194,6 +194,11 @@ getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMPPU)
 	$(COPY) $(INC)/getopts.pp .
 	$(COMPILER) getopts.pp $(REDIR)
 	$(DEL) getopts.pp
+
+heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMPPU)
+	$(COPY) $(INC)/heaptrc.pp .
+	$(COMPILER) heaptrc $(REDIR)
+	$(DEL) heaptrc.pp
 
 
 #####################################################################
@@ -367,7 +372,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.5  1998-10-02 09:26:05  peter
+# Revision 1.6  1998-10-06 22:10:32  peter
+#   + heaptrc
+#
+# Revision 1.5  1998/10/02 09:26:05  peter
 #   * fixed rtl path
 #
 # Revision 1.4  1998/09/16 16:47:35  peter

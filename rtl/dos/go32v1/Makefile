@@ -72,7 +72,7 @@ include $(CFG)/makefile.cfg
 SYSTEMPPU=system$(PPUEXT)
 OBJECTS=strings go32 \
 	dos crt objects printer \
-	cpu mmx mouse getopts graph \
+	cpu mmx mouse getopts heaptrc graph \
 
 LOADERS=prt0
 
@@ -210,6 +210,11 @@ getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMPPU)
 	$(COMPILER) getopts.pp $(REDIR)
 	$(DEL) getopts.pp
 
+heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMPPU)
+	$(COPY) $(INC)/heaptrc.pp .
+	$(COMPILER) heaptrc $(REDIR)
+	$(DEL) heaptrc.pp
+
 PPIFILES:=$(wildcard $(PPI)/*.ppi)
 graph$(PPUEXT) : ../graph.pp go32$(PPUEXT) $(SYSTEMPPU) mmx$(PPUEXT) $(PPIFILES)
 	$(COPY) ../graph.pp .
@@ -250,7 +255,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.4  1998-10-02 09:25:59  peter
+# Revision 1.5  1998-10-06 22:10:29  peter
+#   + heaptrc
+#
+# Revision 1.4  1998/10/02 09:25:59  peter
 #   * fixed rtl path
 #
 # Revision 1.3  1998/09/16 16:47:26  peter
