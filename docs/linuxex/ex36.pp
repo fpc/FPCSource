@@ -2,15 +2,15 @@ Program Example36;
 
 { Program to demonstrate the AssignPipe function. }
 
-Uses linux;
+Uses BaseUnix,Unix;
 
 Var pipi,pipo : Text;
     s : String;
     
 begin
   Writeln ('Assigning Pipes.');
-  If Not assignpipe(pipi,pipo) then
-    Writeln('Error assigning pipes !',LinuxError);
+  If assignpipe(pipi,pipo)<>0 then
+    Writeln('Error assigning pipes !',fpgeterrno);
   Writeln ('Writing to pipe, and flushing.');
   Writeln (pipo,'This is a textstring');close(pipo);
   Writeln ('Reading from pipe.');

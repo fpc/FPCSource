@@ -2,7 +2,7 @@ Program Example38;
 
 { Program to demonstrate the AssignStream function. }
 
-Uses linux;
+Uses BaseUnix,Unix;
 
 Var Si,So : Text;
     S : String;
@@ -13,7 +13,7 @@ begin
     begin
     Writeln ('Calling son');
     Assignstream (Si,So,'./ex38 -son');
-    if linuxerror<>0 then 
+    if fpgeterrno<>0 then 
       begin
       writeln ('AssignStream failed !');
       halt(1);

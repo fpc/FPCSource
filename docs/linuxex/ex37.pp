@@ -2,7 +2,7 @@ Program Example37;
 
 { Program to demonstrate the Popen function. }
 
-uses linux;
+uses BaseUnix,Unix;
 
 var f : text;
     i : longint;
@@ -19,10 +19,10 @@ begin
   writeln (f,'exit 2');
   writeln (f);
   close (f);
-  chmod ('test21a',octal (755));
+  fpchmod ('test21a',&755);
   popen (f,'./test21a arg1 arg2','W');
-  if linuxerror<>0 then 
-     writeln ('error from POpen : Linuxerror : ', Linuxerror);
+  if fpgeterrno<>0 then 
+     writeln ('error from POpen : errno : ', fpgeterrno);
   for i:=1 to 10 do 
     writeln (f,'This is written to the pipe, and should appear on stdout.');
   Flush(f);

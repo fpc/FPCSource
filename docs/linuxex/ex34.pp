@@ -2,7 +2,7 @@ Program Example33;
 
 { Program to demonstrate the SelectText function. }
 
-Uses linux;
+Uses Unix;
 
 Var tv : TimeVal;
     
@@ -13,8 +13,8 @@ begin
   { Get rid of <ENTER> in buffer }
   readln;
   Writeln ('Press <ENTER> key in less than 2 seconds...');
-  tv.sec:=2;
-  tv.usec:=0;
+  tv.tv_sec:=2;
+  tv.tv_sec:=0;
   if SelectText (Input,@tv)>0 then 
     Writeln ('Thank you !')
   else
