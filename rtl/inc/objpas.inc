@@ -161,14 +161,24 @@
         var
            intftable : pinterfacetable;
            i : longint;
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+           IOffset : longint;
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
         begin
           while assigned(objclass) do
             begin
                intftable:=pinterfacetable((pointer(objclass)+vmtIntfTable)^);
                if assigned(intftable) then
                  for i:=0 to intftable^.EntryCount-1 do
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+                   begin
+                     move(intftable^.Entries[i].IOffset,IOffset,sizeof(longint));
+                     move(pointer(intftable^.Entries[i].VTable),ppointer(@(PChar(instance)[IOffset]))^,sizeof(pointer));
+                   end;
+{$else FPC_REQUIRES_PROPER_ALIGNMENT}
                    ppointer(@(PChar(instance)[intftable^.Entries[i].IOffset]))^:=
                      pointer(intftable^.Entries[i].VTable);
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
                objclass:=pclass(pointer(objclass)+vmtParent)^;
             end;
         end;
@@ -737,7 +747,10 @@
 
 {
   $Log$
-  Revision 1.35  2004-03-21 22:41:29  florian
+  Revision 1.36  2004-03-22 22:19:36  florian
+    * more alignment fixes
+
+  Revision 1.35  2004/03/21 22:41:29  florian
     * CleanupInstance takes now care of FPC_REQUIRES_PROPER_ALIGNMENT
 
   Revision 1.34  2004/02/26 16:19:01  peter
