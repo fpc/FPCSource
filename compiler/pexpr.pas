@@ -490,7 +490,6 @@ implementation
               if token=_LKLAMMER then
                begin
                  consume(_LKLAMMER);
-                 in_args:=true;
                  paras:=parse_paras(false,false);
                  consume(_RKLAMMER);
                end
@@ -521,7 +520,6 @@ implementation
               if token=_LKLAMMER then
                begin
                  consume(_LKLAMMER);
-                 in_args:=true;
                  paras:=parse_paras(true,false);
                  consume(_RKLAMMER);
                end
@@ -534,7 +532,6 @@ implementation
           in_str_x_string :
             begin
               consume(_LKLAMMER);
-              in_args:=true;
               paras:=parse_paras(true,false);
               consume(_RKLAMMER);
               p1 := geninlinenode(l,false,paras);
@@ -2251,7 +2248,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.74  2002-07-26 21:15:41  florian
+  Revision 1.75  2002-08-01 16:37:47  jonas
+    - removed some superfluous "in_paras := true" statements
+
+  Revision 1.74  2002/07/26 21:15:41  florian
     * rewrote the system handling
 
   Revision 1.73  2002/07/23 09:51:23  daniel
