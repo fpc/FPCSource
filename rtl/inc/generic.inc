@@ -615,7 +615,7 @@ begin
         inc(src);
       end;
     { ansistring}
-    1: len := length(ansistring(src));
+    1: len := length(ansistring(pointer(src)));
     { longstring }
     2:;
     { widestring }
@@ -777,7 +777,11 @@ end;
 
 {
   $Log$
-  Revision 1.6  2001-03-03 12:41:22  jonas
+  Revision 1.7  2001-03-05 17:10:40  jonas
+    * changed typecast in FPC_STR_TO_CHARARRAY so that no temp ansistring is
+      generated anymore (merged)
+
+  Revision 1.6  2001/03/03 12:41:22  jonas
     * simplified and optimized range checking code, FPC_BOUNDCHECK is no longer necessary
 
   Revision 1.5  2000/10/01 13:17:35  michael
