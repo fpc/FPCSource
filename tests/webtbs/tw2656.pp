@@ -1,3 +1,4 @@
+{ %KNOWNCOMPILEERROR=Operator precedence is not influenced by types }
 { Source provided for Free Pascal Bug Report 2656 }
 { Submitted by "marco" on  2003-08-27 }
 { e-mail: marco@freepascal.org }
