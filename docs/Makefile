@@ -34,7 +34,7 @@ endif
 
 ifndef DOCINSTALLDIR
 DOCINSTALLDIR:=$(PREFIXINSTALLDIR)/doc/fpc-$(shell ppc386 -iV)
-endif 
+endif
 
 FPDOC=fpdoc
 
@@ -244,7 +244,7 @@ ifndef INSTALLDEBUG
 endif
 	touch progex.chk
 
-messages: 
+messages:
 	msg2inc -TE ../compiler/errore.msg messages.tex
 
 #
@@ -401,7 +401,7 @@ endif
 	touch prog.chk
 
 internal: internal.chk
-internal.chk: htex.chk 
+internal.chk: htex.chk
 ifdef INSTALLDEBUG
 	mkdir internal
 	cp internal.tex internal/index.html
@@ -505,7 +505,7 @@ txtdist: txt
 DOCPREFIX=doc
 BASEDIR=$(shell pwd)
 
-htmltar: 
+htmltar:
 	$(MAKE) htmlinstall DOCINSTALLDIR=$(DOCPREFIX)
 	cd $(DOCPREFIX) ; tar cz * > $(BASEDIR)/fpcdoc.tar.gz ; cd $(BASEDIR)
 	rm -rf $(DOCPREFIX)
@@ -541,7 +541,6 @@ examples:
 	$(MAKE) -C printex
 	$(MAKE) -C refex
 	$(MAKE) -C stringex
-	$(MAKE) -C ipcex
 	$(MAKE) -C objectex
 	$(MAKE) -C sysutex
 	$(MAKE) -C typinfex
@@ -559,7 +558,10 @@ linuxexamples: examples
 
 #
 # $Log$
-# Revision 1.12  2002-03-12 22:13:42  michael
+# Revision 1.13  2002-03-19 14:33:18  pierre
+#  * remove ipcex directory target from examples
+#
+# Revision 1.12  2002/03/12 22:13:42  michael
 # + Now pics directory is included in HTML
 #
 # Revision 1.11  2001/11/05 20:10:05  michael
