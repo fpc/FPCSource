@@ -2,7 +2,7 @@
     This file is part of the Free Pascal run time library.
 
     A file in Amiga system run time library.
-    Copyright (c) 1998 by Nils Sjoholm
+    Copyright (c) 1998-2002 by Nils Sjoholm
     member of the Amiga RTL development team.
 
     See the file COPYING.FPC, included in this distribution,
@@ -13,6 +13,27 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+
+{
+    History:
+
+    Found a bug in tFileRequester, rt_ArgList had pWBArg as arg
+    should be pWBArgList. Fixed
+    27 Oct 1998.
+
+    Added autoopening of asl.library.
+    28 Oct 1998.
+
+    Added MessageBox for error report.
+    31 Jul 2000.
+
+    Added functions and procedures with array of const.
+    For use with fpc 1.0.7 They are in systemvartags.
+    11 Nov 2002.
+    
+    nils.sjoholm@mailbox.swipnet.se
+}
+
 
 UNIT asl;
 
@@ -56,7 +77,7 @@ Type
            rf_Height      : Integer;          { Preferred window size  }
            rf_Reserved2   : Array[0..1] Of Byte;
            rf_NumArgs     : LongInt;       { A-la WB Args, FOR multiselects }
-           rf_ArgList     : pWBArg
+           rf_ArgList     : pWBArgList;
            rf_UserData    : Pointer;       { Applihandle (you may write!!) }
            rf_Reserved3   : Array[0..7] Of Byte;
            rf_Pat         : STRPTR;        { Pattern match pointer }
@@ -408,6 +429,7 @@ Const
 
 
 VAR AslBase : pLibrary;
+   
 
 FUNCTION AllocAslRequest(reqType : ULONG; tagList : pTagItem) : POINTER;
 FUNCTION AllocFileRequest : pFileRequester;
@@ -416,7 +438,10 @@ PROCEDURE FreeAslRequest(requester : POINTER);
 PROCEDURE FreeFileRequest(fileReq : pFileRequester);
 FUNCTION RequestFile(fileReq : pFileRequester) : BOOLEAN;
 
+
 IMPLEMENTATION
+
+uses msgbox;
 
 FUNCTION AllocAslRequest(reqType : ULONG; tagList : pTagItem) : POINTER;
 BEGIN
@@ -495,4 +520,43 @@ BEGIN
   END;
 END;
 
+var
+    asl_exit : Pointer;
+
+procedure CloseAslLibrary;
+begin
+    ExitProc := asl_exit;
+    if AslBase <> nil then begin
+       CloseLibrary(AslBase);
+       AslBase := nil;
+    end;
+end;
+
+const
+    VERSION : string[2] = '37';
+
+begin
+    AslBase := nil;
+    AslBase := OpenLibrary(ASLNAME,37);
+    if AslBase <> nil then begin
+       asl_exit := ExitProc;
+       ExitProc := @CloseAslLibrary;
+    end else begin
+        MessageBox('FPC Pascal Error',
+                   'Can''t open asl.library version ' +
+                   VERSION +
+                   chr(10) + 
+                   'Deallocating resources and closing down',
+                   'Oops');
+       halt(20);
+    end;
+
 END. (* UNIT ASL *)
+
+{
+  $Log$
+  Revision 1.2  2002-11-18 20:50:45  nils
+    * update check internal log
+
+}
+  

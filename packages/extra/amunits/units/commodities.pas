@@ -2,7 +2,7 @@
     This file is part of the Free Pascal run time library.
 
     A file in Amiga system run time library.
-    Copyright (c) 1998 by Nils Sjoholm
+    Copyright (c) 1998-2002 by Nils Sjoholm
     member of the Amiga RTL development team.
 
     See the file COPYING.FPC, included in this distribution,
@@ -13,12 +13,22 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{
+    History:
+    Added overlay functions for Pchar->Strings, functions
+    and procedures.
+
+    14 Jul 2000.
+    nils.sjoholm@mailbox.swipnet.se
+}
 
 unit commodities;
 
 INTERFACE
 
+
 uses exec, inputevent, keymap;
+
 
 
 {    **************
@@ -234,7 +244,15 @@ PROCEDURE SetFilter(filter : pCxObj; text : pCHAR);
 PROCEDURE SetFilterIX(filter : pCxObj; ix : pInputXpression);
 PROCEDURE SetTranslate(translator : pCxObj; events : pInputEvent);
 
+{ overlay functions}
+
+FUNCTION ParseIX(description : string; ix : pInputXpression) : LONGINT;
+PROCEDURE SetFilter(filter : pCxObj; text : string);
+
+
 IMPLEMENTATION
+
+uses pastoc;
 
 FUNCTION ActivateCxObj(co : pCxObj; tru : LONGINT) : LONGINT;
 BEGIN
@@ -559,7 +577,25 @@ BEGIN
   END;
 END;
 
+
+FUNCTION ParseIX(description : string; ix : pInputXpression) : LONGINT;
+begin
+      ParseIX := ParseIX(pas2c(description),ix);
+end;
+
+PROCEDURE SetFilter(filter : pCxObj; text : string);
+begin
+      SetFilter(filter,pas2c(text));
+end;
+
+
 END. (* UNIT COMMODITIES *)
 
 
+{
+  $Log$
+  Revision 1.2  2002-11-18 20:52:02  nils
+    * update check internal log
 
+}
+  

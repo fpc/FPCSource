@@ -2,7 +2,7 @@
     This file is part of the Free Pascal run time library.
 
     A file in Amiga system run time library.
-    Copyright (c) 1998 by Nils Sjoholm
+    Copyright (c) 1998-2002 by Nils Sjoholm
     member of the Amiga RTL development team.
 
     See the file COPYING.FPC, included in this distribution,
@@ -13,6 +13,14 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{
+    History:
+    
+    Typo in ExpansionBase Record.
+    11 Nov. 2002
+    
+    nils.sjoholm@mailbox.swipnet.se
+}    
 
 
 unit expansionbase;
@@ -44,7 +52,7 @@ Type
         Flags           : Byte;
         eb_Private01    : Byte;
         eb_Private02    : ULONG;
-        eb_Private02    : ULONG;
+        eb_Private03    : ULONG;
         eb_Private04    : tCurrentBinding;
         eb_Private05    : tList;
         MountList       : tList;
@@ -87,7 +95,14 @@ IMPLEMENTATION
 
 end.
 
+{
+  $Log$
+  Revision 1.2  2002-11-18 20:53:16  nils
+    * update check internal log
 
+}
+
+  
 
 
 

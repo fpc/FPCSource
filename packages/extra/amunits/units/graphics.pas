@@ -2,7 +2,7 @@
     This file is part of the Free Pascal run time library.
 
     A file in Amiga system run time library.
-    Copyright (c) 1998 by Nils Sjoholm
+    Copyright (c) 1998-2002 by Nils Sjoholm
     member of the Amiga RTL development team.
 
     See the file COPYING.FPC, included in this distribution,
@@ -13,6 +13,34 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+
+ {
+    History:
+
+    Found bugs in,
+    WritePixelArray8,
+    WritePixelLine8,
+    ReadPixelArray8,
+    ReadPixelLine8,
+    WriteChunkyPixels.
+    They all had one argument(array_) defined as pchar,
+    should be pointer, fixed.
+    20 Aug 2000.
+
+    InitTmpRas had wrong define for the buffer arg.
+    Changed from pchar to PLANEPTR.
+    23 Aug 2000.
+
+    Compiler had problems with Text, changed to GText.
+    24 Aug 2000.
+    
+    Added functions and procedures with array of const.
+    For use with fpc 1.0.7. They are in systemvartags.
+    11 Nov 2002.
+
+    nils.sjoholm@mailbox.swipnet.se
+
+}
 
 unit graphics;
 
@@ -2282,7 +2310,7 @@ PROCEDURE InitGels(head : pVSprite; tail : pVSprite; gelsInfo : pGelsInfo);
 PROCEDURE InitGMasks(anOb : pAnimOb);
 PROCEDURE InitMasks(vSprite : pVSprite);
 PROCEDURE InitRastPort(rp : pRastPort);
-FUNCTION InitTmpRas(tmpRas : pTmpRas; buffer : pCHAR; size : LONGINT) : pTmpRas;
+FUNCTION InitTmpRas(tmpRas : pTmpRas; buffer : PLANEPTR; size : LONGINT) : pTmpRas;
 PROCEDURE InitView(view : pView);
 PROCEDURE InitVPort(vp : pViewPort);
 PROCEDURE LoadRGB32(vp : pViewPort; table : POINTER);
@@ -2307,8 +2335,8 @@ PROCEDURE PolyDraw(rp : pRastPort; count : LONGINT; polyTable : POINTER);
 PROCEDURE QBlit(blit : pbltnode);
 PROCEDURE QBSBlit(blit : pbltnode);
 FUNCTION ReadPixel(rp : pRastPort; x : LONGINT; y : LONGINT) : ULONG;
-FUNCTION ReadPixelArray8(rp : pRastPort; xstart : ULONG; ystart : ULONG; xstop : ULONG; ystop : ULONG; array_ : pCHAR; temprp : pRastPort) : LONGINT;
-FUNCTION ReadPixelLine8(rp : pRastPort; xstart : ULONG; ystart : ULONG; width : ULONG; array_ : pCHAR; tempRP : pRastPort) : LONGINT;
+FUNCTION ReadPixelArray8(rp : pRastPort; xstart : ULONG; ystart : ULONG; xstop : ULONG; ystop : ULONG; array_ : pointer; temprp : pRastPort) : LONGINT;
+FUNCTION ReadPixelLine8(rp : pRastPort; xstart : ULONG; ystart : ULONG; width : ULONG; array_ : pointer; tempRP : pRastPort) : LONGINT;
 PROCEDURE RectFill(rp : pRastPort; xMin : LONGINT; yMin : LONGINT; xMax : LONGINT; yMax : LONGINT);
 PROCEDURE ReleasePen(cm : pColorMap; n : ULONG);
 PROCEDURE RemFont(textFont : pTextFont);
@@ -2338,8 +2366,8 @@ FUNCTION SetWriteMask(rp : pRastPort; msk : ULONG) : ULONG;
 PROCEDURE SortGList(rp : pRastPort);
 PROCEDURE StripFont(font : pTextFont);
 PROCEDURE SyncSBitMap(layer : pLayer);
-FUNCTION Text(rp : pRastPort; string_ : pCHAR; count : ULONG) : LONGINT;
-FUNCTION TextExtent(rp : pRastPort; string_ : pCHAR; count : LONGINT; textExtent : pTextExtent) : INTEGER;
+FUNCTION GText(rp : pRastPort; string_ : pCHAR; count : ULONG) : LONGINT;
+FUNCTION TextExtent(rp : pRastPort; string_ : pCHAR; count : LONGINT; _textExtent : pTextExtent) : INTEGER;
 FUNCTION TextFit(rp : pRastPort; string_ : pCHAR; strLen : ULONG; textExtent : pTextExtent; constrainingExtent : pTextExtent; strDirection : LONGINT; constrainingBitWidth : ULONG; constrainingBitHeight : ULONG) : ULONG;
 FUNCTION TextLength(rp : pRastPort; string_ : pCHAR; count : ULONG) : INTEGER;
 FUNCTION UCopperListInit(uCopList : pUCopList; n : LONGINT) : pCopList;
@@ -2350,10 +2378,10 @@ PROCEDURE WaitBlit;
 PROCEDURE WaitBOVP(vp : pViewPort);
 PROCEDURE WaitTOF;
 FUNCTION WeighTAMatch(reqTextAttr : pTextAttr; targetTextAttr : pTextAttr; targetTags : pTagItem) : INTEGER;
-PROCEDURE WriteChunkyPixels(rp : pRastPort; xstart : ULONG; ystart : ULONG; xstop : ULONG; ystop : ULONG; array_ : pCHAR; bytesperrow : LONGINT);
+PROCEDURE WriteChunkyPixels(rp : pRastPort; xstart : ULONG; ystart : ULONG; xstop : ULONG; ystop : ULONG; array_ : pointer; bytesperrow : LONGINT);
 FUNCTION WritePixel(rp : pRastPort; x : LONGINT; y : LONGINT) : LONGINT;
-FUNCTION WritePixelArray8(rp : pRastPort; xstart : ULONG; ystart : ULONG; xstop : ULONG; ystop : ULONG; array_ : pCHAR; temprp : pRastPort) : LONGINT;
-FUNCTION WritePixelLine8(rp : pRastPort; xstart : ULONG; ystart : ULONG; width : ULONG; array_ : pCHAR; tempRP : pRastPort) : LONGINT;
+FUNCTION WritePixelArray8(rp : pRastPort; xstart : ULONG; ystart : ULONG; xstop : ULONG; ystop : ULONG; array_ : pointer; temprp : pRastPort) : LONGINT;
+FUNCTION WritePixelLine8(rp : pRastPort; xstart : ULONG; ystart : ULONG; width : ULONG; array_ : pointer; tempRP : pRastPort) : LONGINT;
 FUNCTION XorRectRegion(region : pRegion; rectangle : pRectangle) : BOOLEAN;
 FUNCTION XorRegionRegion(srcRegion : pRegion; destRegion : pRegion) : BOOLEAN;
 
@@ -2378,6 +2406,8 @@ PROCEDURE ON_VBLANK (cust: pCustom);
 
 
 IMPLEMENTATION
+
+uses msgbox;
 
 PROCEDURE BNDRYOFF (w: pRastPort);
 BEGIN
@@ -3641,7 +3671,7 @@ BEGIN
   END;
 END;
 
-FUNCTION InitTmpRas(tmpRas : pTmpRas; buffer : pCHAR; size : LONGINT) : pTmpRas;
+FUNCTION InitTmpRas(tmpRas : pTmpRas; buffer : PLANEPTR; size : LONGINT) : pTmpRas;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -3960,7 +3990,7 @@ BEGIN
   END;
 END;
 
-FUNCTION ReadPixelArray8(rp : pRastPort; xstart : ULONG; ystart : ULONG; xstop : ULONG; ystop : ULONG; array_ : pCHAR; temprp : pRastPort) : LONGINT;
+FUNCTION ReadPixelArray8(rp : pRastPort; xstart : ULONG; ystart : ULONG; xstop : ULONG; ystop : ULONG; array_ : pointer; temprp : pRastPort) : LONGINT;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -3978,7 +4008,7 @@ BEGIN
   END;
 END;
 
-FUNCTION ReadPixelLine8(rp : pRastPort; xstart : ULONG; ystart : ULONG; width : ULONG; array_ : pCHAR; tempRP : pRastPort) : LONGINT;
+FUNCTION ReadPixelLine8(rp : pRastPort; xstart : ULONG; ystart : ULONG; width : ULONG; array_ : pointer; tempRP : pRastPort) : LONGINT;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -4373,7 +4403,7 @@ BEGIN
   END;
 END;
 
-FUNCTION Text(rp : pRastPort; string_ : pCHAR; count : ULONG) : LONGINT;
+FUNCTION GText(rp : pRastPort; string_ : pCHAR; count : ULONG) : LONGINT;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -4387,14 +4417,14 @@ BEGIN
   END;
 END;
 
-FUNCTION TextExtent(rp : pRastPort; string_ : pCHAR; count : LONGINT; textExtent : pTextExtent) : INTEGER;
+FUNCTION TextExtent(rp : pRastPort; string_ : pCHAR; count : LONGINT; _textExtent : pTextExtent) : INTEGER;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
     MOVEA.L rp,A1
     MOVEA.L string_,A0
     MOVE.L  count,D0
-    MOVEA.L textExtent,A2
+    MOVEA.L _textExtent,A2
     MOVEA.L GfxBase,A6
     JSR -690(A6)
     MOVEA.L (A7)+,A6
@@ -4531,7 +4561,7 @@ BEGIN
   END;
 END;
 
-PROCEDURE WriteChunkyPixels(rp : pRastPort; xstart : ULONG; ystart : ULONG; xstop : ULONG; ystop : ULONG; array_ : pCHAR; bytesperrow : LONGINT);
+PROCEDURE WriteChunkyPixels(rp : pRastPort; xstart : ULONG; ystart : ULONG; xstop : ULONG; ystop : ULONG; array_ : pointer; bytesperrow : LONGINT);
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -4562,7 +4592,7 @@ BEGIN
   END;
 END;
 
-FUNCTION WritePixelArray8(rp : pRastPort; xstart : ULONG; ystart : ULONG; xstop : ULONG; ystop : ULONG; array_ : pCHAR; temprp : pRastPort) : LONGINT;
+FUNCTION WritePixelArray8(rp : pRastPort; xstart : ULONG; ystart : ULONG; xstop : ULONG; ystop : ULONG; array_ : pointer; temprp : pRastPort) : LONGINT;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -4580,7 +4610,7 @@ BEGIN
   END;
 END;
 
-FUNCTION WritePixelLine8(rp : pRastPort; xstart : ULONG; ystart : ULONG; width : ULONG; array_ : pCHAR; tempRP : pRastPort) : LONGINT;
+FUNCTION WritePixelLine8(rp : pRastPort; xstart : ULONG; ystart : ULONG; width : ULONG; array_ : pointer; tempRP : pRastPort) : LONGINT;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -4629,9 +4659,47 @@ BEGIN
   END;
 END;
 
+var
+    GfxBase_exit : Pointer;
+
+procedure CloseGfxBaseLibrary;
+begin
+    ExitProc := GfxBase_exit;
+    if GfxBase <> nil then begin
+       CloseLibrary(GfxBase);
+       GfxBase := nil;
+    end;
+end;
+
+const
+    VERSION : string[2] = '37';
+
+begin
+    GfxBase := nil;
+    GfxBase := OpenLibrary(GRAPHICSNAME,37);
+    if GfxBase <> nil then begin
+       GfxBase_exit := ExitProc;
+       ExitProc := @CloseGfxBaseLibrary;
+    end else begin
+        MessageBox('FPC Pascal Error',
+                   'Can''t open graphics.library version ' +
+                   VERSION +
+                   chr(10) + 
+                   'Deallocating resources and closing down',
+                   'Oops');
+       halt(20);
+    end;
+
 END. (* UNIT GRAPHICS *)
 
+{
+  $Log$
+  Revision 1.2  2002-11-18 20:54:01  nils
+    * update check internal log
 
+}
+
+  
 
 
 

@@ -2,7 +2,7 @@
     This file is part of the Free Pascal run time library.
 
     A file in Amiga system run time library.
-    Copyright (c) 1998 by Nils Sjoholm
+    Copyright (c) 1998-2002 by Nils Sjoholm
     member of the Amiga RTL development team.
 
     See the file COPYING.FPC, included in this distribution,
@@ -13,6 +13,16 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+
+{
+    History:
+
+    Added functions and procedures with array of const.
+    For use with fpc 1.0.7. Thay are in systemvartags.
+    11 Nov 2001.
+    
+    nils.sjoholm@mailbox.swipnet.se
+}
 
 unit datatypes;
 
@@ -1067,6 +1077,7 @@ PROCEDURE ReleaseDataType(dt : pDataType);
 FUNCTION RemoveDTObject(win : pWindow; o : pObject_) : LONGINT;
 FUNCTION SetDTAttrsA(o : pObject_; win : pWindow; req : pRequester; attrs : pTagItem) : ULONG;
 
+
 IMPLEMENTATION
 
 FUNCTION AddDTObject(win : pWindow; req : pRequester; o : pObject_; pos : LONGINT) : LONGINT;
@@ -1270,5 +1281,12 @@ END;
 END. (* UNIT DATATYPES *)
 
 
+{
+  $Log$
+  Revision 1.2  2002-11-18 20:52:28  nils
+    * update check internal log
 
+}
+
+  
 

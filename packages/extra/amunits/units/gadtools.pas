@@ -2,7 +2,7 @@
     This file is part of the Free Pascal run time library.
 
     A file in Amiga system run time library.
-    Copyright (c) 1998 by Nils Sjoholm
+    Copyright (c) 1998-2002 by Nils Sjoholm
     member of the Amiga RTL development team.
 
     See the file COPYING.FPC, included in this distribution,
@@ -13,6 +13,25 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{
+    History:
+
+    Added autoopening of gadtools.library.
+    15 Jul 2000.
+
+    Added MessageBox for error report.
+    31 Jul 2000.
+
+    Added the macros GTMENUITEM_USERDATA and GTMENU_USERDATA.
+    19 Aug 2000.
+
+    Added functions and procedures with array of const.
+    For use with fpc 1.0. They are in systemvartags.
+    11 Nov 2002.
+
+    nils.sjoholm@mailbox.swipnet.se
+
+}
 
 unit gadtools;
 
@@ -45,7 +64,7 @@ CONST
  NUM_KINDS     =  14;
 
  GADTOOLSNAME   : PChar = 'gadtools.library';
-
+ 
 
 {------------------------------------------------------------------------}
 
@@ -455,7 +474,22 @@ PROCEDURE GT_SetGadgetAttrsA(gad : pGadget; win : pWindow; req : pRequester; tag
 FUNCTION LayoutMenuItemsA(firstitem : pMenuItem; vi : POINTER; taglist : pTagItem) : BOOLEAN;
 FUNCTION LayoutMenusA(firstmenu : pMenu; vi : POINTER; taglist : pTagItem) : BOOLEAN;
 
+function GTMENUITEM_USERDATA(menuitem : pMenuItem): pointer;
+function GTMENU_USERDATA(menu : pMenu): pointer;
+
 IMPLEMENTATION
+
+uses msgbox;
+
+function GTMENUITEM_USERDATA(menuitem : pMenuItem): pointer;
+begin
+    GTMENUITEM_USERDATA := pointer((pMenuItem(menuitem)+1));
+end;
+
+function GTMENU_USERDATA(menu : pMenu): pointer;
+begin
+    GTMENU_USERDATA := pointer((pMenu(menu)+1));
+end;
 
 FUNCTION CreateContext(glistptr : pGadget): pGadget;
 BEGIN
@@ -704,7 +738,45 @@ BEGIN
   END;
 END;
 
+var
+  gadtools_exit : Pointer;
+
+procedure CloseGadToolsLibrary;
+begin
+    ExitProc := gadtools_exit;
+    if GadToolsBase <> nil then begin
+        CloseLibrary(GadToolsBase);
+        GadToolsBase := nil;
+    end;
+end;
+
+const
+   VERSION        : string[2] = '37';
+   LIBVERSION     = 37;
+
+begin
+    GadToolsBase := nil;
+    GadToolsBase := OpenLibrary(GADTOOLSNAME,LIBVERSION);
+    if GadToolsBase <> nil then begin
+         gadtools_Exit := ExitProc;
+         ExitProc := @CloseGadToolsLibrary;
+    end else begin
+         MessageBox('FPC Pascal Error',
+                    'Can''t open gadtools.library version ' + 
+                    VERSION +
+                    chr(10) + 
+                    'Deallocating resources and closing down',
+                    'Oops');
+         halt(20);
+    end;
 END. (* UNIT GADTOOLS *)
 
 
+{
+  $Log$
+  Revision 1.2  2002-11-18 20:53:34  nils
+    * update check internal log
 
+}
+
+  

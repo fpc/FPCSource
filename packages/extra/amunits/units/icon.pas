@@ -2,7 +2,7 @@
     This file is part of the Free Pascal run time library.
 
     A file in Amiga system run time library.
-    Copyright (c) 1998 by Nils Sjoholm
+    Copyright (c) 1998-2002 by Nils Sjoholm
     member of the Amiga RTL development team.
 
     See the file COPYING.FPC, included in this distribution,
@@ -13,12 +13,24 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{
+    History:
+    Added overlay functions for Pchar->Strings, functions
+    and procedures.
+    14 Jul 2000.
 
+    Removed amigaoverlays, use smartlink instead.
+    05 Nov 2002.
+
+    nils.sjoholm@mailbox.swipnet.se
+}
 unit icon;
 
 INTERFACE
 
+
 uses exec, workbench;
+
 
 Const
 
@@ -39,7 +51,24 @@ FUNCTION MatchToolValue(typeString : pCHAR; value : pCHAR) : BOOLEAN;
 FUNCTION PutDefDiskObject(diskObject : pDiskObject) : BOOLEAN;
 FUNCTION PutDiskObject(name : pCHAR; diskobj : pDiskObject) : BOOLEAN;
 
+
+FUNCTION BumpRevision(newname : string; oldname : pCHAR) : pCHAR;
+FUNCTION BumpRevision(newname : pCHar; oldname : string) : pCHAR;
+FUNCTION BumpRevision(newname : string; oldname : string) : pCHAR;
+FUNCTION DeleteDiskObject(name : string) : BOOLEAN;
+FUNCTION FindToolType(toolTypeArray : POINTER; typeName : string) : pCHAR;
+FUNCTION GetDiskObject(name : string) : pDiskObject;
+FUNCTION GetDiskObjectNew(name : string) : pDiskObject;
+FUNCTION MatchToolValue(typeString : string; value : pCHAR) : BOOLEAN;
+FUNCTION MatchToolValue(typeString : pCHAR; value : string) : BOOLEAN;
+FUNCTION MatchToolValue(typeString : string; value : string) : BOOLEAN;
+FUNCTION PutDiskObject(name : string; diskobj : pDiskObject) : BOOLEAN;
+
+
 IMPLEMENTATION
+
+
+uses pastoc;
 
 FUNCTION AddFreeList(freelist : pFreeList; mem : POINTER; size : ULONG) : BOOLEAN;
 BEGIN
@@ -204,7 +233,71 @@ BEGIN
   END;
 END;
 
+
+FUNCTION BumpRevision(newname : string; oldname : pCHAR) : pCHAR;
+begin
+      BumpRevision := BumpRevision(pas2c(newname),oldname);
+end;
+
+FUNCTION BumpRevision(newname : pCHar; oldname : string) : pCHAR;
+begin
+      BumpRevision := BumpRevision(newname,pas2c(oldname));
+end;
+
+FUNCTION BumpRevision(newname : string; oldname : string) : pCHAR;
+begin
+      BumpRevision := BumpRevision(pas2c(newname),pas2c(oldname));
+end;
+
+FUNCTION DeleteDiskObject(name : string) : BOOLEAN;
+begin
+      DeleteDiskObject := DeleteDiskObject(pas2c(name));
+end;
+
+FUNCTION FindToolType(toolTypeArray : POINTER; typeName : string) : pCHAR;
+begin
+      FindToolType := FindToolType(toolTypeArray,pas2c(typeName));
+end;
+
+FUNCTION GetDiskObject(name : string) : pDiskObject;
+begin
+      GetDiskObject := GetDiskObject(pas2c(name));
+end;
+
+FUNCTION GetDiskObjectNew(name : string) : pDiskObject;
+begin
+      GetDiskObjectNew := GetDiskObjectNew(pas2c(name)); 
+end;
+
+FUNCTION MatchToolValue(typeString : string; value : pCHAR) : BOOLEAN;
+begin
+       MatchToolValue := MatchToolValue(pas2c(typeString),value);
+end;
+
+FUNCTION MatchToolValue(typeString : pCHAR; value : string) : BOOLEAN;
+begin
+       MatchToolValue := MatchToolValue(typeString,pas2c(value));
+end;
+
+FUNCTION MatchToolValue(typeString : string; value : string) : BOOLEAN;
+begin
+       MatchToolValue := MatchToolValue(pas2c(typeString),pas2c(value));
+end;
+
+FUNCTION PutDiskObject(name : string; diskobj : pDiskObject) : BOOLEAN;
+begin
+       PutDiskObject := PutDiskObject(pas2c(name),diskobj);
+end;
+
+
 END. (* UNIT ICON *)
 
+{
+  $Log$
+  Revision 1.2  2002-11-18 20:54:32  nils
+    * update check internal log
 
+}
+
+  
 
