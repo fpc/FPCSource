@@ -333,6 +333,24 @@ begin
               if not inexpression then
                exit;
             end;
+           { support st(X) for fpu registers }
+           if (actasmpattern = 'ST') and (c='(') then
+            Begin
+              actasmpattern:=actasmpattern+c;
+              c:=current_scanner^.asmgetchar;
+              if c in ['0'..'9'] then
+               actasmpattern:=actasmpattern + c
+              else
+               Message(asmr_e_invalid_fpu_register);
+              c:=current_scanner^.asmgetchar;
+              if c <> ')' then
+               Message(asmr_e_invalid_fpu_register)
+              else
+               Begin
+                 actasmpattern:=actasmpattern + c;
+                 c:=current_scanner^.asmgetchar;
+               end;
+            end;
            if is_register(actasmpattern) then
             exit;
            if is_asmdirective(actasmpattern) then
@@ -1640,7 +1658,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.37.2.1  1999-06-21 16:43:00  peter
+  Revision 1.37.2.2  1999-06-22 14:20:22  peter
+    * fixed parsing and writing of fpureg
+
+  Revision 1.37.2.1  1999/06/21 16:43:00  peter
     * fixed label and opcode on the same line
 
   Revision 1.37  1999/06/08 11:52:00  peter
