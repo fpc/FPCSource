@@ -1,0 +1,340 @@
+%
+%   $Id$
+%   This file is part of the FPC documentation.
+%   Copyright (C) 1998, by Michael Van Canneyt
+%
+%   The FPC documentation is free text; you can redistribute it and/or
+%   modify it under the terms of the GNU Library General Public License as
+%   published by the Free Software Foundation; either version 2 of the
+%   License, or (at your option) any later version.
+%
+%   The FPC Documentation is distributed in the hope that it will be useful,
+%   but WITHOUT ANY WARRANTY; without even the implied warranty of
+%   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+%   Library General Public License for more details.
+%
+%   You should have received a copy of the GNU Library General Public
+%   License along with the FPC documentation; see the file COPYING.LIB.  If not,
+%   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+%   Boston, MA 02111-1307, USA. 
+%
+\chapter{The IPC unit.}
+This chapter describes the IPC unit for Free Pascal. It was written for
+\linux by Micha\"el Van Canneyt. It gives all the functionality of system V 
+Inter-Process Communication: shared memory, semaphores and messages.
+
+The chapter is divided in 2 sections:
+\begin{itemize}
+\item The first section lists types, constants and variables from the
+interface part of the unit.
+\item The second section describes the functions defined in the unit.
+\end{itemize}
+\section {Types, Constants and variables : }
+\subsection{Variables}
+
+\begin{verbatim}
+Var
+  IPCerror : longint;
+\end{verbatim}
+The \var{IPCerror} variable is used to report errors, by all calls.
+\subsection{Constants}
+
+\begin{verbatim}
+Const 
+  IPC_CREAT  =  1 shl 9;  { create if key is nonexistent }
+  IPC_EXCL   =  2 shl 9;  { fail if key exists }
+  IPC_NOWAIT =  4 shl 9;  { return error on wait }
+\end{verbatim}
+These constants are used in the various \var{xxxget} calls.
+\begin{verbatim}
+  IPC_RMID = 0;     { remove resource }
+  IPC_SET  = 1;     { set ipc_perm options }
+  IPC_STAT = 2;     { get ipc_perm options }
+  IPC_INFO = 3;     { see ipcs }
+\end{verbatim}
+These constants can be passed to the various \var{xxxctl} calls.
+\begin{verbatim}
+const
+  MSG_NOERROR = 1 shl 12;
+  MSG_EXCEPT  = 2 shl 12;
+  MSGMNI = 128;
+  MSGMAX = 4056;
+  MSGMNB = 16384;
+\end{verbatim}
+These constants are used in the messaging system, they are not for use by
+the programmer.
+\begin{verbatim}
+const
+  SEM_UNDO = $1000;
+  GETPID = 11;
+  GETVAL = 12;
+  GETALL = 13;
+  GETNCNT = 14;
+  GETZCNT = 15;
+  SETVAL = 16;
+  SETALL = 17;
+\end{verbatim}
+These constants call be specified in the \seef{semop} call.
+\begin{verbatim}
+  SEMMNI = 128;
+  SEMMSL = 32;
+  SEMMNS = (SEMMNI * SEMMSL);
+  SEMOPM = 32;
+  SEMVMX = 32767;
+\end{verbatim}
+These constanst are used internally by the semaphore system, they should not
+be used by the programmer.
+\begin{verbatim}
+const
+  SHM_R      = 4 shl 6;
+  SHM_W      = 2 shl 6;
+  SHM_RDONLY = 1 shl 12;
+  SHM_RND    = 2 shl 12;
+  SHM_REMAP  = 4 shl 12;
+  SHM_LOCK   = 11;
+  SHM_UNLOCK = 12;
+\end{verbatim}
+These constants are used in the \seef{shmctl} call.
+
+\subsection{Types}
+
+\begin{verbatim}
+Type 
+   TKey   = Longint;
+\end{verbatim}
+\var{TKey} is the type returned by the \seef{ftok} key generating function.
+\begin{verbatim}
+type
+  PIPC_Perm = ^TIPC_Perm;
+  TIPC_Perm = record
+    key : TKey;
+    uid, 
+    gid,
+    cuid,
+    cgid,
+    mode,
+    seq : Word;   
+  end;
+\end{verbatim}
+The \var{TIPC\_Perm} structure is used in all IPC systems to specify the
+permissions.
+
+\begin{verbatim}
+Type  
+  PShmid_DS = ^TShmid_ds; 
+  TShmid_ds = record
+    shm_perm  : TIPC_Perm;
+    shm_segsz : longint;
+    shm_atime : longint;
+    shm_dtime : longint;
+    shm_ctime : longint;
+    shm_cpid  : word;
+    shm_lpid  : word;
+    shm_nattch : integer;
+    shm_npages : word;
+    shm_pages  : Pointer;
+    attaches   : pointer;
+  end;
+
+
+type
+  PSHMinfo = ^TSHMinfo;
+  TSHMinfo = record
+    shmmax : longint;
+    shmmin : longint;
+    shmmni : longint;
+    shmseg : longint;
+    shmall : longint;
+  end;
+
+type
+  PMSG = ^TMSG;
+  TMSG = record
+    msg_next  : PMSG;
+    msg_type  : Longint;
+    msg_spot  : PChar;
+    msg_stime : Longint;
+    msg_ts    : Integer;
+  end;
+
+type
+
+  PMSQid_ds = ^TMSQid_ds;
+  TMSQid_ds = record
+    msg_perm   : TIPC_perm;
+    msg_first  : PMsg;
+    msg_last   : PMsg;
+    msg_stime  : Longint;
+    msg_rtime  : Longint;
+    msg_ctime  : Longint;
+    wwait      : Pointer;
+    rwait      : pointer;
+    msg_cbytes : word;
+    msg_qnum   : word;
+    msg_qbytes : word;
+    msg_lspid  : word;
+    msg_lrpid  : word;
+  end;
+
+  PMSGbuf = ^TMSGbuf;
+  TMSGbuf = record
+    mtype : longint;
+    mtext : array[0..0] of char;
+  end;
+
+  PMSGinfo = ^TMSGinfo;
+  TMSGinfo = record
+    msgpool : Longint;
+    msgmap  : Longint;
+    msgmax  : Longint;
+    msgmnb  : Longint;
+    msgmni  : Longint;
+    msgssz  : Longint;
+    msgtql  : Longint;
+    msgseg  : Word;
+  end;
+
+type
+  PSEMid_ds = ^PSEMid_ds;
+  TSEMid_ds = record
+    sem_perm : tipc_perm;
+    sem_otime : longint;
+    sem_ctime : longint;
+    sem_base         : pointer;
+    sem_pending      : pointer;
+    sem_pending_last : pointer;
+    undo             : pointer;
+    sem_nsems : word;
+  end;
+
+  PSEMbuf = ^TSEMbuf;
+  TSEMbuf = record
+    sem_num : word;
+    sem_op  : integer;
+    sem_flg : integer;
+  end;
+
+
+  PSEMinfo = ^TSEMinfo;
+  TSEMinfo = record
+    semmap : longint;
+    semmni : longint;
+    semmns : longint;
+    semmnu : longint;
+    semmsl : longint;
+    semopm : longint;
+    semume : longint;
+    semusz : longint;
+    semvmx : longint;
+    semaem : longint;
+  end;
+
+  PSEMun = ^TSEMun;
+  TSEMun = record
+   case longint of
+      0 : ( val : longint );
+      1 : ( buf : PSEMid_ds );
+      2 : ( arr : Pointer );
+      3 : ( padbuf : PSeminfo );
+      4 : ( padpad : pointer );
+   end;
+\end{verbatim}
+
+\section{Functions and procedures}
+
+\begin{function}{ftok}
+\Declaration
+Function ftok (Path : String; ID : char) : TKey;
+\Description
+\Errors
+\SeeAlso
+\end{function}
+
+\begin{function}{msgget}
+\Declaration
+Function msgget(key: TKey; msgflg:longint):longint;	
+\Description
+\Errors
+\SeeAlso
+\end{function}
+
+\begin{function}{msgsnd}
+\Declaration
+Function msgsnd(msqid:longint; msgp: PMSGBuf; msgsz: longint; msgflg:longint): Boolean;
+\Description
+\Errors
+\SeeAlso
+\end{function}
+
+\begin{function}{msgrcv}
+\Declaration
+Function msgrcv(msqid:longint; msgp: PMSGBuf; msgsz: longint; msgtyp:longint; msgflg:longint): Boolean;
+\Description
+\Errors
+\SeeAlso
+\end{function}
+
+\begin{function}{msgctl}
+\Declaration
+Function msgctl(msqid:longint; cmd: longint; buf: PMSQid\_ds): Boolean;
+\Description
+\Errors
+\SeeAlso
+\end{function}
+
+\begin{function}{semget}
+\Declaration
+Function semget(key:Tkey; nsems:longint; semflg:longint): longint;
+\Description
+\Errors
+\SeeAlso
+\end{function}
+
+\begin{function}{semop}
+\Declaration
+Function semop(semid:longint; sops: pointer; nsops: cardinal): Boolean;
+\Description
+\Errors
+\SeeAlso
+\end{function}
+
+\begin{function}{semctl}
+\Declaration
+Function semctl(semid:longint; semnum:longint; cmd:longint; var arg: tsemun): longint;
+\Description
+\Errors
+\SeeAlso
+\end{function}
+
+\begin{function}{shmget}
+\Declaration
+Function shmget(key: Tkey; size:longint; flag:longint):longint;
+\Description
+\Errors
+\SeeAlso
+\end{function}
+
+\begin{function}{shmat}
+\Declaration
+Function shmat (shmid:longint; shmaddr:pchar; shmflg:longint):pchar;
+\Description
+\Errors
+\SeeAlso
+\end{function}
+
+\begin{function}{shmdt}
+\Declaration
+Function shmdt (shmaddr:pchar):boolean;
+\Description
+\Errors
+\SeeAlso
+\end{function}
+
+\begin{function}{shmctl}
+\Declaration
+Function shmctl(shmid:longint; cmd:longint; buf: pshmid\_ds): Boolean;
+\Description
+\Errors
+\SeeAlso
+\end{function}
+
