@@ -130,6 +130,7 @@ function VESAGetMode(var Mode: word): boolean;
 function VESASelectMemoryWindow(Window: byte; Position: word): boolean;
 function VESAReturnMemoryWindow(Window: byte; var Position: word): boolean;
 function RegisterVesaVideoMode(Mode : word) : boolean;
+Procedure FreeVesaModes;
 
 implementation
 
@@ -658,6 +659,18 @@ begin
   VesaGetVideoModeCount:=SysGetVideoModeCount()+VesaRegisteredModes;
 end;
 
+Procedure FreeVesaModes;
+var
+  VH : PVesaVideoMode;
+begin
+  VH:=VesaVideoModeHead;
+  While assigned(VH) do
+    begin
+      VesaVideoModeHead:=VH^.Next;
+      FreeMem(VH,Sizeof(TVesaVideoMode));
+      VH:=VesaVideoModeHead;
+    end;
+end;
 
 Var
   Driver : TVideoDriver;
@@ -702,7 +715,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.6  2001-10-12 21:50:15  pierre
+  Revision 1.7  2002-05-29 22:39:51  pierre
+   + FreeVesaModes
+
+  Revision 1.6  2001/10/12 21:50:15  pierre
    * always remove cursor before updating the cursor cell
 
   Revision 1.5  2001/10/12 14:22:45  pierre
