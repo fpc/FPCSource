@@ -217,9 +217,9 @@ do
 
   # cross install? 
   if [ cross != '' ]; then
-    if [ `which fpc` = '' ]; then
+    if [ "`which fpc 2>/dev/null`" = '' ]; then
       echo "No native FPC found."
-      echo "For a proper installation of a cross FPC the installation of a native FPC is required"
+      echo "For a proper installation of a cross FPC the installation of a native FPC is required."
       exit 1
     else
       if [ `fpc -iV` != $VERSION ]; then
