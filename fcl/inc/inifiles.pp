@@ -72,7 +72,7 @@ type
     function KeyByName(AName: string): TIniFileKey;
   public
     destructor Destroy; override;
-    procedure Clear;
+    procedure Clear;override;
     property Items[Index: integer]: TIniFileKey read GetItem; default;
   end;
 
@@ -92,7 +92,7 @@ type
     function SectionByName(AName: string): TIniFileSection;
   public
     destructor Destroy; override;
-    procedure Clear;
+    procedure Clear;override;
     property Items[Index: integer]: TIniFileSection read GetItem; default;
   end;
 
@@ -786,7 +786,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2002-06-13 17:28:41  michael
+  Revision 1.5  2002-08-13 06:51:06  michael
+  + Fixed memory leak reported by A. Chuchko (bug report 2079)
+
+  Revision 1.4  2002/06/13 17:28:41  michael
   + Destructor was not freeing all memory. This is now fixed.
 
   Revision 1.3  2000/11/26 22:43:02  michael
