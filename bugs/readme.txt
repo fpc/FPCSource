@@ -157,6 +157,7 @@ Fixed bugs:
   bug0139.pp   Cannot access protected method of ancestor class from other unit. OK 0.99.6
   bug0140.pp   Shows that interdependent units still are not OK.     OK 0.99.6 (PFV)
   bug0141.pp   Wrong Class sizes when using forwardly defined classes. OK 0.99.6
+  bug0147.pp   function b; is not allowed in implementation          OK 0.99.7 (PFV)
 
 Unproducable bugs:
 ------------------
@@ -195,7 +196,6 @@ bug0143.pp   cannot concat string and array of char in $X+ mode
 bug0144.pp   problem with 'with object do'
 bug0145.pp   typed files with huges records (needs filerec.size:longint)
 bug0146.pp   no sizeof() for var arrays and the size is pushed incorrect
-bug0147.pp   function b; is not allowed in implementation
 bug0148.pp   crash when setting function result of a declared but not yet
              implemented function in another function
 bug0149.pp   (a, b) compile bug0149b twice and you'll get a crash

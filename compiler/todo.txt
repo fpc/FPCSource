@@ -67,4 +67,4 @@ compiler version and your short cut.
 - fix all bugs of the bug directory
 - include/exclude
 - make dec/inc internal
-- make length internal
+	- make length internal.................................... 0.99.6 (PFV)
