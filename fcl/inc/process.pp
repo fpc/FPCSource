@@ -64,11 +64,6 @@ Const
   STARTF_USEHOTKEY        = $200; // Ignored
 
 Type
-  PPoint = ^TPoint;
-  TPoint = packed record
-    X: Longint;
-    Y: Longint;
-  end;
 
   PRect = ^TRect;
   TRect = packed record
@@ -915,7 +910,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  2001-12-11 11:15:15  marco
+  Revision 1.9  2001-12-13 18:34:59  michael
+    * Removed TPoint declaration, it conflicts with classes definition
+
+  Revision 1.8  2001/12/11 11:15:15  marco
    * ifdef linux -> Unix fix
 
   Revision 1.7  2001/11/24 20:43:56  carl
