@@ -452,7 +452,7 @@ function StrToCard(const S: string): cardinal;
 var L: cardinal;
     C: integer;
 begin
-  Val(S,L,C); if C<>0 then L:=-1;
+  Val(S,L,C); if C<>0 then L:=$ffffffff;
   LastStrToCardResult:=C;
   StrToCard:=L;
 end;
@@ -1269,7 +1269,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.8  2002-04-02 13:23:02  pierre
+  Revision 1.9  2002-05-13 13:44:33  peter
+    * fixed range error
+
+  Revision 1.8  2002/04/02 13:23:02  pierre
    + HextToCard StrToCard new functions
 
   Revision 1.7  2002/03/22 16:43:27  pierre
