@@ -121,15 +121,33 @@ end;
   {                    Routines for the tokenizing                     }
   {---------------------------------------------------------------------}
 
+function is_fpuopcode(op:tasmop):boolean;
+{$ifndef NOAG386BIN}
+var
+  i : longint;
+{$endif}
+begin
+  is_fpuopcode:=false;
+{$ifndef NOAG386BIN}
+  i:=InsTabCache^[ActOpcode];
+  if i<>-1 then
+   is_fpuopcode:=((instab[i].flags and IF_FPU)=IF_FPU);
+{$endif}
+end;
+
+
 function is_asmopcode(const s: string):boolean;
 const
   { We need first to check the long prefixes, else we get probs
     with things like movsbl }
-  att_sizesuffixstr : array[0..8] of string[2] = (
-    '','BW','BL','WL','B','W','L','Q','T'
+  att_sizesuffixstr : array[0..9] of string[2] = (
+    '','BW','BL','WL','B','W','L','S','Q','T'
   );
-  att_sizesuffix : array[0..8] of topsize = (
-    S_NO,S_BW,S_BL,S_WL,S_B,S_W,S_L,S_IQ,S_FX
+  att_sizesuffix : array[0..9] of topsize = (
+    S_NO,S_BW,S_BL,S_WL,S_B,S_W,S_L,S_FS,S_IQ,S_FX
+  );
+  att_sizefpusuffix : array[0..9] of topsize = (
+    S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_FL,S_FS,S_IQ,S_FX
   );
 var
   i    : tasmop;
@@ -157,8 +175,11 @@ Begin
         for i:=firstop to lastop do
          if (length(hid) > 0) and (hid=iasmops^[i]) then
           begin
-            actopsize:=att_sizesuffix[sufidx];
             actopcode:=i;
+            if is_fpuopcode(actopcode) then
+             actopsize:=att_sizefpusuffix[sufidx]
+            else
+             actopsize:=att_sizesuffix[sufidx];
             actasmtoken:=AS_OPCODE;
             is_asmopcode:=TRUE;
             exit;
@@ -176,7 +197,10 @@ Begin
                   if Cond=Upper(cond2str[cnd]) then
                    begin
                      actopcode:=CondASmOp[j];
-                     actopsize:=att_sizesuffix[sufidx];
+                     if is_fpuopcode(actopcode) then
+                      actopsize:=att_sizefpusuffix[sufidx]
+                     else
+                      actopsize:=att_sizesuffix[sufidx];
                      actcondition:=cnd;
                      actasmtoken:=AS_OPCODE;
                      is_asmopcode:=TRUE;
@@ -1976,7 +2000,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.66  2000-01-07 01:14:34  peter
+  Revision 1.67  2000-01-20 23:35:01  peter
+    * fixed fldl where suffix would get S_L instead of S_FL
+
+  Revision 1.66  2000/01/07 01:14:34  peter
     * updated copyright to 2000
 
   Revision 1.65  1999/12/12 12:57:59  peter
