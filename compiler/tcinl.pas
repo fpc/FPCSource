@@ -40,7 +40,7 @@ implementation
       ,i386,tgeni386
 {$endif}
 {$ifdef m68k}
-      ,m68k,tgenm68k
+      ,m68k,tgen68k
 {$endif}
       ;
 
@@ -848,7 +848,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  1998-10-05 12:32:49  peter
+  Revision 1.4  1998-10-06 20:49:11  peter
+    * m68k compiler compiles again
+
+  Revision 1.3  1998/10/05 12:32:49  peter
     + assert() support
 
   Revision 1.2  1998/10/02 09:24:23  peter

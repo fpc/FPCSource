@@ -42,7 +42,7 @@ implementation
       ,i386,tgeni386
 {$endif}
 {$ifdef m68k}
-      ,m68k,tgeni386
+      ,m68k,tgen68k
 {$endif}
 {$ifdef UseBrowser}
       ,browser
@@ -921,7 +921,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  1998-10-02 09:24:22  peter
+  Revision 1.7  1998-10-06 20:49:09  peter
+    * m68k compiler compiles again
+
+  Revision 1.6  1998/10/02 09:24:22  peter
     * more constant expression evaluators
 
   Revision 1.5  1998/09/28 11:22:17  pierre

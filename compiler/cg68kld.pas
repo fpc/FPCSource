@@ -40,6 +40,7 @@ interface
     procedure secondload(var p : ptree);
     procedure secondassignment(var p : ptree);
     procedure secondfuncret(var p : ptree);
+    procedure secondarrayconstruct(var p : ptree);
 
 
 implementation
@@ -476,11 +477,40 @@ implementation
            end;
       end;
 
+{*****************************************************************************
+                           SecondArrayConstruct
+*****************************************************************************}
+
+      const
+        vtInteger    = 0;
+        vtBoolean    = 1;
+        vtChar       = 2;
+        vtExtended   = 3;
+        vtString     = 4;
+        vtPointer    = 5;
+        vtPChar      = 6;
+        vtObject     = 7;
+        vtClass      = 8;
+        vtWideChar   = 9;
+        vtPWideChar  = 10;
+        vtAnsiString = 11;
+        vtCurrency   = 12;
+        vtVariant    = 13;
+        vtInterface  = 14;
+        vtWideString = 15;
+        vtInt64      = 16;
+
+    procedure secondarrayconstruct(var p : ptree);
+      begin
+      end;
 
 end.
 {
   $Log$
-  Revision 1.2  1998-09-17 09:42:27  peter
+  Revision 1.3  1998-10-06 20:48:59  peter
+    * m68k compiler compiles again
+
+  Revision 1.2  1998/09/17 09:42:27  peter
     + pass_2 for cg386
     * Message() -> CGMessage() for pass_1/pass_2
 

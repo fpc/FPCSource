@@ -42,7 +42,7 @@ implementation
       ,i386,tgeni386
 {$endif}
 {$ifdef m68k}
-      ,m68k,tgenm68k
+      ,m68k,tgen68k
 {$endif}
       ;
 
@@ -219,7 +219,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  1998-09-23 20:42:24  peter
+  Revision 1.2  1998-10-06 20:49:13  peter
+    * m68k compiler compiles again
+
+  Revision 1.1  1998/09/23 20:42:24  peter
     * splitted pass_1
 
 }

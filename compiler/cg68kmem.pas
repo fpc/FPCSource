@@ -555,7 +555,7 @@ implementation
                         new(hp);
                         reset_reference(hp^);
                         parraydef(p^.left^.resulttype)^.genrangecheck;
-                        hp^.symbol:=stringdup('R_'+tostr(parraydef(p^.left^.resulttype)^.rangenr));
+                        hp^.symbol:=stringdup(parraydef(p^.left^.resulttype)^.getrangecheckstring);
                         emit_bounds_check(hp^,ind);
                      end;
                 end;
@@ -691,7 +691,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  1998-09-17 09:42:28  peter
+  Revision 1.6  1998-10-06 20:49:00  peter
+    * m68k compiler compiles again
+
+  Revision 1.5  1998/09/17 09:42:28  peter
     + pass_2 for cg386
     * Message() -> CGMessage() for pass_1/pass_2
 

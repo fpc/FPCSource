@@ -1227,10 +1227,8 @@ implementation
          emitl(A_LABEL,l2); }
       end;
 
-    procedure second_pchar_to_ansistring(p,hp : ptree;convtyp : tconverttype);
-
+    procedure second_pchar_to_string(p,hp : ptree;convtyp : tconverttype);
       begin
-         p^.location.loc:=LOC_REGISTER;
          internalerror(12121);
       end;
 
@@ -1243,7 +1241,6 @@ implementation
 ****************************************************************************}
 
     procedure secondtypeconv(var p : ptree);
-
       const
          secondconvert : array[tconverttype] of
            tsecondconvproc = (second_nothing,second_nothing,
@@ -1272,7 +1269,8 @@ implementation
            second_nothing,
            second_load_smallset,
            second_ansistring_to_pchar,
-           second_pchar_to_ansistring);
+           second_pchar_to_string,
+           second_nothing);
 
       begin
          { this isn't good coding, I think tc_bool_2_int, shouldn't be }
@@ -1376,7 +1374,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  1998-09-17 09:42:23  peter
+  Revision 1.6  1998-10-06 20:48:56  peter
+    * m68k compiler compiles again
+
+  Revision 1.5  1998/09/17 09:42:23  peter
     + pass_2 for cg386
     * Message() -> CGMessage() for pass_1/pass_2
 

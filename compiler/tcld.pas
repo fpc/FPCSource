@@ -44,7 +44,7 @@ implementation
       ,i386,tgeni386
 {$endif}
 {$ifdef m68k}
-      ,m68k,tgenm68k
+      ,m68k,tgen68k
 {$endif}
       ;
 
@@ -399,7 +399,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  1998-09-28 11:07:40  peter
+  Revision 1.5  1998-10-06 20:49:12  peter
+    * m68k compiler compiles again
+
+  Revision 1.4  1998/09/28 11:07:40  peter
     + floatdef support for array of const
 
   Revision 1.3  1998/09/27 10:16:27  florian

@@ -502,40 +502,15 @@ implementation
          ispushed : boolean;
          hregister : tregister;
          otlabel,oflabel,filenamestring : plabel;
-
+         oldpushedparasize : longint;
       begin
       { save & reset pushedparasize }
          oldpushedparasize:=pushedparasize;
          pushedparasize:=0;
          case p^.inlinenumber of
-            in_assert_x:
+            in_assert_x_y:
               begin
-{ !!!!!!!!! }
-(*               otlabel:=truelabel;
-                 oflabel:=falselabel;
-                 getlabel(truelabel);
-                 getlabel(falselabel);
-                 getlabel(filenamestring);
-                 secondpass(p^.left);
-                 if codegenerror then
-                   exit;
-                 if cs_do_assertion in aktlocalswitches then
-                   begin
-                      maketojumpbool(p^.left);
-                      emitl(A_LABEL,falselabel);
-                      exprasmlist^.concat(new(pai386,op_const(A_PUSH,S_L,
-                        p^.fileinfo.line)));
-                      { generate string }
-                      { push string
-                      exprasmlist^.concat(new(pai386,op_const(A_PUSH,S_L,
-                        p^.fileinfo.line)));
-                      }
-                      emitcall('FPC_DO_ASSERT',true);
-                      emitl(A_LABEL,truelabel);
-
-                   end;
-                 truelabel:=otlabel;
-                 falselabel:=oflabel; *)
+               { !!!!!!!!! }
               end;
             in_lo_word,
             in_hi_word :
@@ -907,7 +882,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  1998-09-20 12:26:39  peter
+  Revision 1.6  1998-10-06 20:48:58  peter
+    * m68k compiler compiles again
+
+  Revision 1.5  1998/09/20 12:26:39  peter
     * merged fixes
 
   Revision 1.4  1998/09/17 09:42:26  peter

@@ -45,7 +45,7 @@ implementation
       ,i386,tgeni386
 {$endif}
 {$ifdef m68k}
-      ,m68k,tgenm68k
+      ,m68k,tgen68k
 {$endif}
       ;
 
@@ -350,7 +350,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.95  1998-09-24 15:13:44  peter
+  Revision 1.96  1998-10-06 20:49:07  peter
+    * m68k compiler compiles again
+
+  Revision 1.95  1998/09/24 15:13:44  peter
     * fixed type node which was always set to void :(
 
   Revision 1.94  1998/09/23 20:42:22  peter
