@@ -1123,6 +1123,8 @@
                  end;
                staticsymtable :
                  begin
+                   { enable unitilized warning for local symbols }
+                   is_valid := 0;
                    if (cs_smartlink in aktmoduleswitches) then
                      bsssegment^.concat(new(pai_cut,init));
 {$ifdef GDB}
@@ -1868,7 +1870,10 @@
 
 {
   $Log$
-  Revision 1.76  1999-03-31 13:55:21  peter
+  Revision 1.77  1999-04-08 10:11:32  pierre
+   + enable uninitilized warnings for static symbols
+
+  Revision 1.76  1999/03/31 13:55:21  peter
     * assembler inlining working for ag386bin
 
   Revision 1.75  1999/03/24 23:17:27  peter
