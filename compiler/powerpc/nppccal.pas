@@ -31,6 +31,7 @@ interface
 
     type
        tppccallnode = class(tcgcallnode)
+         procedure extra_call_code;override;
        end;
 
 
@@ -54,12 +55,28 @@ implementation
       ncgutil,cgobj,tgobj,regvars,rgobj,rgcpu,
       cg64f32,cgcpu,cpupi,procinfo;
 
+
+    procedure tppccallnode.extra_call_code;
+      begin
+        if assigned(varargsparas) then
+          begin
+            if va_uses_float_reg in varargsparas.varargsinfo then
+              exprasmlist.concat(taicpu.op_const_const_const(A_CREQV,6,6,6))
+            else
+              exprasmlist.concat(taicpu.op_const_const_const(A_CRXOR,6,6,6));
+          end;
+      end;
+
+
 begin
    ccallnode:=tppccallnode;
 end.
 {
   $Log$
-  Revision 1.22  2003-10-01 20:34:49  peter
+  Revision 1.23  2003-12-28 22:09:12  florian
+    + setting of bit 6 of cr for c var args on ppc implemented
+
+  Revision 1.22  2003/10/01 20:34:49  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

@@ -41,7 +41,7 @@ unit cpupara;
           function push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
           function getintparaloc(calloption : tproccalloption; nr : longint) : tparalocation;override;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
-          function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tlinkedlist):longint;override;
+          function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargspara):longint;override;
          private
            procedure init_values(var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword);
            function create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; firstpara: tparaitem;
@@ -293,7 +293,7 @@ unit cpupara;
                   hp.paraloc[side].size := OS_ADDR;
                   break;
                 end;
-                
+
               if (hp.paratyp in [vs_var,vs_out]) then
                 begin
                   paradef := voidpointertype.def;
@@ -400,15 +400,16 @@ unit cpupara;
       end;
 
 
-    function tppcparamanager.create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tlinkedlist):longint;
+    function tppcparamanager.create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargspara):longint;
       var
         cur_stack_offset: aword;
         parasize, l: longint;
-        curintreg, curfloatreg, curmmreg: tsuperregister;
+        curintreg, firstfloatreg, curfloatreg, curmmreg: tsuperregister;
         hp: tparaitem;
         paraloc: tparalocation;
       begin
         init_values(curintreg,curfloatreg,curmmreg,cur_stack_offset);
+        firstfloatreg:=curfloatreg;
 
         result := create_paraloc_info_intern(p,callerside,tparaitem(p.para.first),curintreg,curfloatreg,curmmreg,cur_stack_offset);
         if (p.proccalloption in [pocall_cdecl,pocall_cppdecl]) then
@@ -432,6 +433,8 @@ unit cpupara;
               end;
             result := parasize;
           end;
+        if curfloatreg<>firstfloatreg then
+          include(varargspara.varargsinfo,va_uses_float_reg);
       end;
 
 
@@ -440,7 +443,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.54  2003-12-28 15:33:06  jonas
+  Revision 1.55  2003-12-28 22:09:12  florian
+    + setting of bit 6 of cr for c var args on ppc implemented
+
+  Revision 1.54  2003/12/28 15:33:06  jonas
     * hopefully fixed varargs (both Pascal- and C-style)
 
   Revision 1.53  2003/12/16 21:49:47  florian

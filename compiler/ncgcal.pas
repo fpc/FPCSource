@@ -66,6 +66,7 @@ interface
           function  align_parasize:longint;virtual;
           procedure pop_parasize(pop_size:longint);virtual;
           procedure extra_interrupt_code;virtual;
+          procedure extra_call_code;virtual;
        public
           procedure pass_2;override;
        end;
@@ -409,6 +410,11 @@ implementation
 *****************************************************************************}
 
     procedure tcgcallnode.extra_interrupt_code;
+      begin
+      end;
+
+
+    procedure tcgcallnode.extra_call_code;
       begin
       end;
 
@@ -785,6 +791,7 @@ implementation
                      cg.allocexplicitregisters(exprasmlist,R_MMREGISTER,paramanager.get_volatile_registers_mm(procdefinition.proccalloption));
 
                    { call method }
+                   extra_call_code;
                    cg.a_call_reg(exprasmlist,pvreg);
                 end
               else
@@ -807,6 +814,7 @@ implementation
                     extra code }
                   if (po_interrupt in procdefinition.procoptions) then
                     extra_interrupt_code;
+                  extra_call_code;
                   cg.a_call_name(exprasmlist,tprocdef(procdefinition).mangledname);
                end;
            end
@@ -847,6 +855,7 @@ implementation
                 extra_interrupt_code;
               {$warning fixme regvars.}
 {              rg.saveotherregvars(exprasmlist,ALL_OTHERREGISTERS);}
+              extra_call_code;
               cg.a_call_reg(exprasmlist,pvreg);
            end;
 
@@ -1145,7 +1154,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.148  2003-12-26 13:19:16  florian
+  Revision 1.149  2003-12-28 22:09:12  florian
+    + setting of bit 6 of cr for c var args on ppc implemented
+
+  Revision 1.148  2003/12/26 13:19:16  florian
     * rtl and compiler compile with -Cfsse2
 
   Revision 1.147  2003/12/21 19:42:42  florian

@@ -35,6 +35,14 @@ unit paramgr;
        symconst,symtype,symdef;
 
     type
+       tvarargsinfo = (
+         va_uses_float_reg
+       );
+
+       tvarargspara = class(tlinkedlist)
+          varargsinfo : set of tvarargsinfo;
+       end;
+
        {# This class defines some methods to take care of routine
           parameters. It should be overriden for each new processor
        }
@@ -107,7 +115,7 @@ unit paramgr;
             for the routine that are passed as varargs. It returns
             the size allocated on the stack (including the normal parameters)
           }
-          function  create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tlinkedlist):longint;virtual;abstract;
+          function  create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargspara):longint;virtual;abstract;
 
           { Return the location of the low and high part of a 64bit parameter }
           procedure splitparaloc64(const locpara:tparalocation;var loclopara,lochipara:tparalocation);virtual;
@@ -450,7 +458,10 @@ end.
 
 {
    $Log$
-   Revision 1.67  2003-12-06 01:15:22  florian
+   Revision 1.68  2003-12-28 22:09:12  florian
+     + setting of bit 6 of cr for c var args on ppc implemented
+
+   Revision 1.67  2003/12/06 01:15:22  florian
      * reverted Peter's alloctemp patch; hopefully properly
 
    Revision 1.66  2003/12/03 23:13:20  peter

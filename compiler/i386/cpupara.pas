@@ -50,7 +50,7 @@ unit cpupara;
           }
           function getintparaloc(calloption : tproccalloption; nr : longint) : tparalocation;override;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
-          function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tlinkedlist):longint;override;
+          function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargspara):longint;override;
        private
           procedure create_funcret_paraloc_info(p : tabstractprocdef; side: tcallercallee);
           function create_stdcall_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;
@@ -255,7 +255,7 @@ unit cpupara;
       end;
 
 
-    function ti386paramanager.create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tlinkedlist):longint;
+    function ti386paramanager.create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargspara):longint;
       var
         hp : tparaitem;
         paraloc : tparalocation;
@@ -487,7 +487,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.47  2003-12-03 23:13:20  peter
+  Revision 1.48  2003-12-28 22:09:12  florian
+    + setting of bit 6 of cr for c var args on ppc implemented
+
+  Revision 1.47  2003/12/03 23:13:20  peter
     * delayed paraloc allocation, a_param_*() gets extra parameter
       if it needs to allocate temp or real paralocation
     * optimized/simplified int-real loading

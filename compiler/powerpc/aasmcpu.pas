@@ -58,6 +58,7 @@ uses
          constructor op_reg_reg_ref(op : tasmop;_op1,_op2 : tregister; const _op3: treference);
          constructor op_const_reg_reg(op : tasmop;_op1 : longint;_op2, _op3 : tregister);
          constructor op_const_reg_const(op : tasmop;_op1 : longint;_op2 : tregister;_op3 : longint);
+         constructor op_const_const_const(op : tasmop;_op1 : longint;_op2 : longint;_op3 : longint);
 
          constructor op_reg_reg_reg_reg(op : tasmop;_op1,_op2,_op3,_op4 : tregister);
          constructor op_reg_bool_reg_reg(op : tasmop;_op1: tregister;_op2:boolean;_op3,_op4:tregister);
@@ -239,6 +240,16 @@ uses cutils,rgobj;
       end;
 
 
+     constructor taicpu.op_const_const_const(op : tasmop;_op1 : longint;_op2 : longint;_op3 : longint);
+      begin
+         inherited create(op);
+         ops:=3;
+         loadconst(0,aword(_op1));
+         loadconst(1,aword(_op2));
+         loadconst(2,aword(_op3));
+      end;
+
+
      constructor taicpu.op_reg_reg_reg_reg(op : tasmop;_op1,_op2,_op3,_op4 : tregister);
       begin
          inherited create(op);
@@ -406,7 +417,10 @@ uses cutils,rgobj;
 end.
 {
   $Log$
-  Revision 1.22  2003-12-26 14:02:30  peter
+  Revision 1.23  2003-12-28 22:09:12  florian
+    + setting of bit 6 of cr for c var args on ppc implemented
+
+  Revision 1.22  2003/12/26 14:02:30  peter
     * sparc updates
     * use registertype in spill_register
 

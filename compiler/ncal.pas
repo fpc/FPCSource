@@ -29,6 +29,7 @@ interface
     uses
        cutils,cclasses,
        globtype,cpuinfo,
+       paramgr,
        node,nbas,
        {$ifdef state_tracking}
        nstate,
@@ -93,7 +94,7 @@ interface
           { inline function body }
           inlinecode : tnode;
           { varargs tparaitems }
-          varargsparas : tlinkedlist;
+          varargsparas : tvarargspara;
           { node that specifies where the result should be put for calls }
           { that return their result in a parameter                      }
           property funcretnode: tnode read _funcretnode write setfuncretnode;
@@ -186,7 +187,7 @@ implementation
     uses
       systems,
       verbose,globals,
-      symconst,paramgr,defutil,defcmp,
+      symconst,defutil,defcmp,
       htypechk,pass_1,
       ncnv,nld,ninl,nadd,ncon,nmem,
       procinfo,
@@ -1057,7 +1058,7 @@ type
          n.inlinecode:=nil;
         if assigned(varargsparas) then
          begin
-           n.varargsparas:=tlinkedlist.create;
+           n.varargsparas:=tvarargspara.create;
            hp:=tparaitem(varargsparas.first);
            while assigned(hp) do
             begin
@@ -1943,7 +1944,7 @@ type
             if nf_varargs_para in pt.flags then
               begin
                 if not assigned(varargsparas) then
-                  varargsparas:=tlinkedlist.create;
+                  varargsparas:=tvarargspara.create;
                 varargspara:=tparaitem.create;
                 varargspara.paratyp:=vs_value;
                 varargspara.paratype:=pt.resulttype;
@@ -2701,7 +2702,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.216  2003-12-21 19:42:42  florian
+  Revision 1.217  2003-12-28 22:09:12  florian
+    + setting of bit 6 of cr for c var args on ppc implemented
+
+  Revision 1.216  2003/12/21 19:42:42  florian
     * fixed ppc inlining stuff
     * fixed wrong unit writing
     + added some sse stuff
