@@ -401,7 +401,7 @@ patch : $(PATCHFILES)
 
 diffclean :
 	-del *.dif
-	-del *.di3
+	-del *.d3*
 	-del *.new
 
 rtl :
@@ -409,121 +409,10 @@ rtl :
 
 rtlclean :
 	make -C $(UNITDIR) clean
-
-################################################
-##  Just an easy way to handle the diffs
-##  I just use the tiny program cpne.pp
-##  that copy to directory toflor all .dif files
-##  that are not empty
-##  empty files are deleted
-##  I did not find any direct way to do this !! (PM)
-#################################################
-
-#########################
-# When	making zip files
-#########################
-
-# Zip program
-ifdef inlinux
-ZIP = zip
-else
-ZIP = c:/pak/zip/zip386
-endif
-
-# Unzip program
-ifdef inlinux
-UNZIP = unzp
-else
-UNZIP= c:/pak/zip/unzip
-endif
-
-DIF=v97
-
-toflor : diff
-	-rm toflor/*.dif
-	cpne *.dif toflor
-	cp Makefile toflor/Makefile
-	cp cpne.pp toflor/cpne.pp
-	cd toflor
-	zip dif2$(DIF) *.dif Makefile cpne.pp
-	cd ..
-
-src_comp.zip : $(SOURCEFILES)
-	$(ZIP) -u src_comp $(SOURCEFILES)
-
-#####################################################################
-# Distribution
-#####################################################################
-
-dist :
-	mkdir $(DISTDIR)/compiler
-	cp *.pas *.inc makecfg Makefile depend errorE.msg $(DISTDIR)/compiler
-
-#################################################
-# Obsolete
-# does not contains all directories
-#################################################
-rtlzip :
-	echo rtl\Makefile >rtl.cfg
-	echo rtl\readme >>rtl.cfg
-	echo rtl\cfg\Makefile >>rtl.cfg
-	echo rtl\cfg\readme >>rtl.cfg
-	echo rtl\cfg\*.cfg >>rtl.cfg
-	echo rtl\inc\Makefile >>rtl.cfg
-	echo rtl\inc\readme >>rtl.cfg
-	echo rtl\inc\*.pp >>rtl.cfg
-	echo rtl\inc\*.inc >>rtl.cfg
-	echo rtl\i386\Makefile >>rtl.cfg
-	echo rtl\i386\readme >>rtl.cfg
-	echo rtl\i386\*.pp >>rtl.cfg
-	echo rtl\i386\*.inc >>rtl.cfg
-	echo rtl\m68k\Makefile >>rtl.cfg
-	echo rtl\m68k\readme >>rtl.cfg
-	echo rtl\m68k\*.pp >>rtl.cfg
-	echo rtl\m68k\*.inc >>rtl.cfg
-	echo rtl\template\Makefile >>rtl.cfg
-	echo rtl\template\readme >>rtl.cfg
-	echo rtl\template\*.pp >>rtl.cfg
-	echo rtl\template\*.pas >>rtl.cfg
-	echo rtl\template\*.inc >>rtl.cfg
-	echo rtl\dos\Makefile >>rtl.cfg
-	echo rtl\dos\readme >>rtl.cfg
-	echo rtl\dos\*.pp >>rtl.cfg
-	echo rtl\dos\*.inc >>rtl.cfg
-	echo rtl\dos\ppi\Makefile >>rtl.cfg
-	echo rtl\dos\ppi\readme >>rtl.cfg
-	echo rtl\dos\ppi\*.ppi >>rtl.cfg
-	echo rtl\dos\go32v2\Makefile >>rtl.cfg
-	echo rtl\dos\go32v2\readme >>rtl.cfg
-	echo rtl\dos\go32v2\*.pp >>rtl.cfg
-	echo rtl\dos\go32v2\*.inc >>rtl.cfg
-	echo rtl\dos\go32v2\sbrk16.a* >>rtl.cfg
-	echo rtl\dos\go32v2\exit16.a* >>rtl.cfg
-	echo rtl\dos\go32v2\v2prt0.as >>rtl.cfg
-	echo rtl\dos\go32v2\exceptn.as >>rtl.cfg
-	echo rtl\dos\go32v1\Makefile >>rtl.cfg
-	echo rtl\dos\go32v1\readme >>rtl.cfg
-	echo rtl\dos\go32v1\*.pp >>rtl.cfg
-	echo rtl\dos\go32v1\*.inc >>rtl.cfg
-	echo rtl\dos\go32v1\prt0.as >>rtl.cfg
-	echo rtl\linux\Makefile >>rtl.cfg
-	echo rtl\linux\readme >>rtl.cfg
-	echo rtl\linux\*.pp >>rtl.cfg
-	echo rtl\linux\*.inc >>rtl.cfg
-	echo rtl\linux\prt*.as >>rtl.cfg
-	echo rtl\os2\Makefile >>rtl.cfg
-	echo rtl\os2\readme >>rtl.cfg
-	echo rtl\os2\*.pas >>rtl.cfg
-	echo rtl\os2\*.inc >>rtl.cfg
-	echo rtl\os2\*.imp >>rtl.cfg
-	echo rtl\os2\*.a >>rtl.cfg
-	echo rtl\os2\*.btm >>rtl.cfg
-	echo rtl\os2\*.cmd >>rtl.cfg
-	echo rtl\os2\prt*.as >>rtl.cfg
-	echo rtl\os2\dosini*.as >>rtl.cfg
-	echo rtl.cfg >>rtl.cfg
-	echo rtl.txt >>rtl.cfg
-	echo Makefile >>rtl.cfg
-	cd ..
-	$(ZIP) -u rtl @rtl.cfg
-	$(UNZIP) -v rtl >rtl.lst
+# Test of log at the end
+# does CVS add # at start of each line ??
+# $Log$
+# Revision 1.8  1998-04-06 12:28:23  pierre
+#   Test of makefile log !
+#
+# End of log
