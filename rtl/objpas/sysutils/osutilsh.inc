@@ -20,6 +20,8 @@ Function GetLastOSError : Integer;
 {$endif}
 Procedure RaiseLastOSError;
 Function GetEnvironmentVariable(Const EnvVar : String) : String;
+Function GetEnvironmentVariableCount : Integer;
+Function GetEnvironmentString(Index : Integer) : String;
 {$IFDEF HAS_SLEEP}
 procedure Sleep(milliseconds: Cardinal);
 {$ENDIF}
@@ -53,7 +55,10 @@ Var
 
 {
   $Log$
-  Revision 1.8  2004-10-10 10:28:34  michael
+  Revision 1.9  2004-12-11 11:33:15  michael
+  + Added GetEnvironmentVariableCount and GetEnvironmentString calls
+
+  Revision 1.8  2004/10/10 10:28:34  michael
   + Implementation of GetTempDir and GetTempFileName
 
   Revision 1.7  2004/08/05 07:28:01  michael

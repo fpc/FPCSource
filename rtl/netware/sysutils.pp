@@ -508,6 +508,20 @@ begin
   Result:=StrPas(_getenv(PChar(EnvVar)));
 end;
 
+Function GetEnvironmentVariableCount : Integer;
+
+begin
+  // Result:=FPCCountEnvVar(EnvP);
+  Result:=0;
+end;
+  
+Function GetEnvironmentString(Index : Integer) : String;
+  
+begin
+  // Result:=FPCGetEnvStrFromP(Envp,Index);
+  Result:=''; 
+end;
+   
 
 function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString):integer;
 
@@ -564,7 +578,10 @@ end.
 {
 
   $Log$
-  Revision 1.16  2004-08-01 20:02:48  armin
+  Revision 1.17  2004-12-11 11:32:44  michael
+  + Added GetEnvironmentVariableCount and GetEnvironmentString calls
+
+  Revision 1.16  2004/08/01 20:02:48  armin
   * changed dir separator from \ to /
   * long namespace by default
   * dos.exec implemented

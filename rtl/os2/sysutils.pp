@@ -875,6 +875,18 @@ begin
     GetEnvironmentVariable := StrPas (GetEnvPChar (EnvVar));
 end;
 
+Function GetEnvironmentVariableCount : Integer;
+
+begin
+  Result:=FPCCountEnvVar(EnvP);
+end;
+
+Function GetEnvironmentString(Index : Integer) : String;
+
+begin
+  Result:=FPCGetEnvStrFromP(Envp,Index);
+end;
+
 
 procedure Sleep (Milliseconds: cardinal);
 
@@ -1018,7 +1030,10 @@ end.
 
 {
   $Log$
-  Revision 1.46  2004-12-06 22:11:47  hajny
+  Revision 1.47  2004-12-11 11:32:44  michael
+  + Added GetEnvironmentVariableCount and GetEnvironmentString calls
+
+  Revision 1.46  2004/12/06 22:11:47  hajny
     * one more fix for ExecuteProcess
 
   Revision 1.45  2004/12/06 18:50:21  hajny

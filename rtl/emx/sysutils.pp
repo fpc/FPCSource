@@ -1092,6 +1092,20 @@ begin
     GetEnvironmentVariable := StrPas (GetEnvPChar (EnvVar));
 end;
 
+Function GetEnvironmentVariableCount : Integer;
+
+begin
+  // Result:=FPCCountEnvVar(EnvP);
+  Result:=0;
+end;
+  
+Function GetEnvironmentString(Index : Integer) : String;
+  
+begin
+  // Result:=FPCGetEnvStrFromP(Envp,Index);
+  Result:='';
+end;
+    
 
 {$ASMMODE INTEL}
 procedure Sleep (Milliseconds: cardinal);
@@ -1207,7 +1221,10 @@ end.
 
 {
   $Log$
-  Revision 1.16  2004-02-22 15:01:49  hajny
+  Revision 1.17  2004-12-11 11:32:44  michael
+  + Added GetEnvironmentVariableCount and GetEnvironmentString calls
+
+  Revision 1.16  2004/02/22 15:01:49  hajny
     * lots of fixes (regcall, THandle, string operations in sysutils, longint2cardinal according to OS/2 docs, dosh.inc, ...)
 
   Revision 1.15  2004/02/15 21:26:37  hajny

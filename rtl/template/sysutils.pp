@@ -249,6 +249,18 @@ begin
   Result:=StrPas(beos.Getenv(PChar(EnvVar)));
 end;
 
+Function GetEnvironmentVariableCount : Integer;
+
+begin
+  Result:=FPCCountEnvVar(EnvP);
+end;
+  
+Function GetEnvironmentString(Index : Integer) : String;
+  
+begin
+  Result:=FPCGetEnvStrFromP(Envp,Index);
+end;
+    
 function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString):integer;
 
 var
@@ -304,7 +316,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.5  2004-02-15 21:36:10  hajny
+  Revision 1.6  2004-12-11 11:32:44  michael
+  + Added GetEnvironmentVariableCount and GetEnvironmentString calls
+
+  Revision 1.5  2004/02/15 21:36:10  hajny
     * overloaded ExecuteProcess added, EnvStr param changed to longint
 
   Revision 1.4  2004/01/20 23:12:49  hajny

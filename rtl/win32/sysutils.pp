@@ -675,6 +675,45 @@ begin
    FreeEnvironmentStrings(p);
 end;
 
+Function GetEnvironmentVariableCount : Integer;
+
+var
+  hp,p : pchar;
+begin
+  Result:=0;
+  p:=GetEnvironmentStrings;
+  hp:=p;
+  If (Hp<>Nil) then
+    while hp^<>#0 do
+      begin
+      Inc(Result);
+      hp:=hp+strlen(hp)+1;
+      end;
+  FreeEnvironmentStrings(p);
+end;
+    
+Function GetEnvironmentString(Index : Integer) : String;
+    
+var
+  hp,p : pchar;
+begin
+  Result:='';
+  p:=GetEnvironmentStrings;
+  hp:=p;
+  If (Hp<>Nil) then
+    begin
+    while hp^<>#0 and (Index>1) do
+      begin
+      Dex(Index);
+      hp:=hp+strlen(hp)+1;
+      end;
+    If (hp^<>#0) then
+      Result:=StrPas(HP);  
+    end;  
+  FreeEnvironmentStrings(p);
+end;
+        
+
 function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString):integer;
 var
   SI: TStartupInfo;
@@ -966,7 +1005,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.37  2004-08-06 13:23:21  michael
+  Revision 1.38  2004-12-11 11:32:44  michael
+  + Added GetEnvironmentVariableCount and GetEnvironmentString calls
+
+  Revision 1.37  2004/08/06 13:23:21  michael
   + Ver 1.0 does not handle initialized variables well
 
   Revision 1.36  2004/08/05 12:55:29  michael

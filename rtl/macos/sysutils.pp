@@ -622,6 +622,20 @@ begin
   *)
 end;
 
+Function GetEnvironmentVariableCount : Integer;
+
+begin
+  // Result:=FPCCountEnvVar(EnvP);
+  Result:=0;
+end;
+
+Function GetEnvironmentString(Index : Integer) : String;
+
+begin
+  // Result:=FPCGetEnvStrFromP(Envp,Index);
+  Result:='';
+end;
+
 function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString):integer;
 var
   s: AnsiString;
@@ -685,7 +699,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2004-10-14 16:27:11  mazen
+  Revision 1.4  2004-12-11 11:32:44  michael
+  + Added GetEnvironmentVariableCount and GetEnvironmentString calls
+
+  Revision 1.3  2004/10/14 16:27:11  mazen
   * First implementation of ExecuteProcess
 
   Revision 1.2  2004/09/30 10:42:05  mazen

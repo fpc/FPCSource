@@ -739,27 +739,23 @@ end;
 ****************************************************************************}
 
 Function GetEnvironmentVariable(Const EnvVar : String) : String;
-var
-  hp      : ppchar;
-  lenvvar,hs    : string;
-  eqpos : longint;
+
 begin
-  lenvvar:=upcase(envvar);
-  hp:=envp;
-  Result:='';
-  while assigned(hp^) do
-   begin
-     hs:=strpas(hp^);
-     eqpos:=pos('=',hs);
-     if upcase(copy(hs,1,eqpos-1))=lenvvar then
-      begin
-        Result:=copy(hs,eqpos+1,length(hs)-eqpos);
-        exit;
-      end;
-     inc(hp);
-   end;
+  Result:=FPCGetEnvVarFromP(envp,EnvVar);
 end;
 
+Function GetEnvironmentVariableCount : Integer;
+
+begin
+  Result:=FPCCountEnvVar(EnvP);
+end;
+    
+Function GetEnvironmentString(Index : Integer) : String;
+    
+begin
+  Result:=FPCGetEnvStrFromP(Envp,Index);
+end;
+       
 
 function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString):integer;
 var
@@ -879,7 +875,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.24  2004-02-15 21:34:06  hajny
+  Revision 1.25  2004-12-11 11:32:44  michael
+  + Added GetEnvironmentVariableCount and GetEnvironmentString calls
+
+  Revision 1.24  2004/02/15 21:34:06  hajny
     * overloaded ExecuteProcess added, EnvStr param changed to longint
 
   Revision 1.23  2004/01/25 13:05:08  jonas

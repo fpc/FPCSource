@@ -874,6 +874,19 @@ begin
   Result:=StrPas(BaseUnix.FPGetenv(PChar(EnvVar)));
 end;
 
+Function GetEnvironmentVariableCount : Integer;
+
+begin
+  Result:=FPCCountEnvVar(EnvP);
+end;
+
+Function GetEnvironmentString(Index : Integer) : String;
+
+begin
+  Result:=FPCGetEnvStrFromP(Envp,Index);
+end;
+
+
 {$define FPC_USE_FPEXEC}  // leave the old code under IFDEF for a while.
 function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString):integer;
 var
@@ -1091,7 +1104,10 @@ end.
 {
 
   $Log$
-  Revision 1.54  2004-11-14 15:10:44  marco
+  Revision 1.55  2004-12-11 11:32:44  michael
+  + Added GetEnvironmentVariableCount and GetEnvironmentString calls
+
+  Revision 1.54  2004/11/14 15:10:44  marco
    * resolution of now increased to ms
 
   Revision 1.53  2004/11/06 17:24:07  marco

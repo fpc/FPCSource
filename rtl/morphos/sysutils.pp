@@ -424,7 +424,20 @@ Function GetEnvironmentVariable(Const EnvVar : String) : String;
 begin
   Result:=Dos.Getenv(shortstring(EnvVar));
 end;
+Function GetEnvironmentVariableCount : Integer;
 
+begin
+  // Result:=FPCCountEnvVar(EnvP);
+  Result:=Dos.envCount;
+end;
+    
+Function GetEnvironmentString(Index : Integer) : String;
+    
+begin
+  // Result:=FPCGetEnvStrFromP(Envp,Index);
+  Result:=Dos.EnvStr(Index);
+end;
+        
 function ExecuteProcess (const Path: AnsiString; const ComLine: AnsiString):
                                                                        integer;
 var
@@ -475,7 +488,10 @@ Finalization
 end.
 {
     $Log$
-    Revision 1.1  2004-06-06 00:58:02  karoly
+    Revision 1.2  2004-12-11 11:32:44  michael
+    + Added GetEnvironmentVariableCount and GetEnvironmentString calls
+
+    Revision 1.1  2004/06/06 00:58:02  karoly
       * initial revision
 
 }

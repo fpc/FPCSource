@@ -532,6 +532,22 @@ begin
   Result:=Dos.Getenv(shortstring(EnvVar));
 end;
 
+Function GetEnvironmentVariableCount : Integer;
+
+begin
+  // Bad bad bad...
+  Result:=Dos.EnvCount;
+  // Result:=FPCCountEnvVar(EnvP);
+end;
+    
+Function GetEnvironmentString(Index : Integer) : String;
+    
+begin
+  // Bad bad bad...
+  Result:=Dos.EnvStr(Index);
+  // Result:=FPCGetEnvStrFromP(Envp,Index);
+end;
+        
 
 {****************************************************************************
                               Initialization code
@@ -545,7 +561,10 @@ Finalization
 end.
 {
     $Log$
-    Revision 1.9  2003-11-26 20:00:19  florian
+    Revision 1.10  2004-12-11 11:32:44  michael
+    + Added GetEnvironmentVariableCount and GetEnvironmentString calls
+
+    Revision 1.9  2003/11/26 20:00:19  florian
       * error handling for Variants improved
 
     Revision 1.8  2003/10/25 23:43:59  hajny

@@ -15,6 +15,67 @@
  **********************************************************************}
 
 { ---------------------------------------------------------------------
+    Environment variable auxiliary routines
+  ---------------------------------------------------------------------}
+Const
+  FPC_EnvCount : Integer = -1;
+ 
+Function FPCCountEnvVar(EP : PPChar) : integer;
+
+begin
+  If (FPC_EnvCount=-1) then
+    begin
+    FPC_EnvCount:=0;
+    If (EP<>Nil) then
+      While (EP^<>Nil) do
+        begin
+        Inc(FPC_EnvCount);
+        Inc(EP); 
+        end;
+    end;
+  Result:=FPC_EnvCount;
+end;
+
+Function FPCGetEnvVarFromP(EP : PPChar; EnvVar : String) : String;
+
+var
+  hp         : ppchar;
+  lenvvar,hs : string;
+  eqpos      : longint;
+
+begin
+  lenvvar:=upcase(envvar);
+  hp:=EP;
+  Result:='';
+  If (hp<>Nil) then
+    while assigned(hp^) do
+     begin
+       hs:=strpas(hp^);
+       eqpos:=pos('=',hs);
+       if upcase(copy(hs,1,eqpos-1))=lenvvar then
+        begin
+          Result:=copy(hs,eqpos+1,length(hs)-eqpos);
+          exit;
+        end;
+       inc(hp);
+     end;
+end;
+
+Function FPCGetEnvStrFromP(EP : PPChar; Index : Integer) : String;
+
+begin
+  Result:='';
+  while assigned(EP^) and (Index>1) do
+    begin
+    Dec(Index);
+    inc(EP);
+    end;
+  If Assigned(EP^) then
+    Result:=StrPas(EP^);
+end;
+
+  
+{ ---------------------------------------------------------------------
     Application name
   ---------------------------------------------------------------------}
   
@@ -146,7 +207,10 @@ end;
 
 {  
   $Log$
-  Revision 1.2  2004-10-10 10:28:34  michael
+  Revision 1.3  2004-12-11 11:33:15  michael
+  + Added GetEnvironmentVariableCount and GetEnvironmentString calls
+
+  Revision 1.2  2004/10/10 10:28:34  michael
   + Implementation of GetTempDir and GetTempFileName
 
   Revision 1.1  2004/08/05 07:28:01  michael
