@@ -250,7 +250,7 @@ type
     s: String;
     ArraySizeProp: TPasProperty;
   begin
-    SetLength(Result.ConverterName, 0);
+    FillChar(Result, SizeOf(Result), 0);
     Result.ArgIsParent := False;
 
     if Element.ClassType = TPasProperty then
@@ -871,7 +871,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2003-11-22 12:08:32  sg
+  Revision 1.5  2004-02-02 16:53:07  sg
+  * Small fix in GetConversionInfo (result was not fully cleared)
+
+  Revision 1.4  2003/11/22 12:08:32  sg
   * Better error reporting with line numbers
   * Array properties: The size property now can just match the name of the
     array property as well; so it now also works without a plural "s" after
