@@ -28,6 +28,7 @@ unit Tcl80;
 {$IFNDEF WIN32}
   {$LINKLIB c}
   {$LINKLIB m}
+  {$define USE_C}
 {$ENDIF}
 
 {$PACKRECORDS C}
