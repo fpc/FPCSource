@@ -37,9 +37,16 @@
 Type
   PAnsiRec = ^TAnsiRec;
   TAnsiRec = Packed Record
+{$ifndef hascompilerproc}
+    Maxlen,
+    len,
+    ref   : Longint;
+    First : Char;
+{$else}
     Ref,
     Len   : SizeInt;
     First : Char;
+{$endif}
   end;
 
 Const
@@ -372,18 +379,22 @@ Var
   MaxI,Temp : SizeInt;
 begin
   if pointer(S1)=pointer(S2) then
-   begin
-     fpc_AnsiStr_Compare:=0;
-     exit;
-   end;
+    begin
+      result:=0;
+      exit;
+    end;
   Maxi:=Length(S1);
   temp:=Length(S2);
   If MaxI>Temp then
-   MaxI:=Temp;
-  Temp:=CompareByte(S1[1],S2[1],MaxI);
-  if temp=0 then
-   temp:=Length(S1)-Length(S2);
-  fpc_AnsiStr_Compare:=Temp;
+    MaxI:=Temp;
+  if MaxI>0 then
+    begin
+      result:=CompareByte(S1[1],S2[1],MaxI);
+      if result=0 then
+        result:=Length(S1)-Length(S2);
+    end
+  else
+    result:=Length(S1)-Length(S2);
 end;
 
 
@@ -868,7 +879,10 @@ end;
 
 {
   $Log$
-  Revision 1.53  2005-01-25 18:50:45  peter
+  Revision 1.54  2005-01-28 19:50:51  peter
+  1.0.x fixes
+
+  Revision 1.53  2005/01/25 18:50:45  peter
     * 1.0.x fix
 
   Revision 1.52  2005/01/09 10:38:59  florian
