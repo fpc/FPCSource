@@ -505,6 +505,9 @@ TYPE
          procedure(ColorNum: smallint; var
             RedValue, GreenValue, BlueValue: smallint);
 
+       { allows to speed up the drawing of bitmap font }
+       DrawBitmapCharHorizProc = procedure(x,y : longint;charsize : word;const s : string);
+
 
 TYPE
     {-----------------------------------}
@@ -551,6 +554,7 @@ TYPE
       HLine          : HLineProc;
       VLine          : VLineProc;
       InitMode       : InitModeProc;
+      DrawBitmapCharHoriz : DrawBitmapCharHorizProc;
       next: PModeInfo;
     end;
 
@@ -558,6 +562,7 @@ TYPE
 
 VAR
   DirectPutPixel : DefPixelProc;
+  DrawBitmapCharHoriz : DrawBitmapCharHorizProc;
   ClearViewPort  : ClrViewProc;
   PutPixel       : PutPixelProc;
   PutImage       : PutImageProc;
@@ -674,7 +679,11 @@ Function GetDriverName: string;
 
 {
   $Log$
-  Revision 1.1  2000-03-19 11:20:13  peter
+  Revision 1.2  2000-03-24 18:16:33  florian
+    * introduce a DrawBitmapCharHoriz procedure variable to accelerate output on
+      win32
+
+  Revision 1.1  2000/03/19 11:20:13  peter
     * graph unit include is now independent and the dependent part
       is now in graph.pp
     * ggigraph unit for linux added

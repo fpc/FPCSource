@@ -352,6 +352,59 @@
             end;
       end;
 
+    procedure DrawBitmapCharHorizDefault(x,y : longint;charsize : word;const s : string);
+
+      var
+         cnt1,cnt2,cnt3,cnt4,j,k,i,xpos,c : longint;
+         fontbitmap    : TBitmapChar;
+
+      begin
+         c:=length(s);
+         for i:=0 to c-1 do
+           begin
+              xpos:=x+(i*8)*Charsize;
+              { we copy the character bitmap before accessing it }
+              { this improves speed on non optimizing compilers  }
+              { since it is one less address calculation.        }
+              Fontbitmap:=TBitmapChar(DefaultFontData[s[i+1]]);
+              { no scaling }
+              if CharSize = 1 then
+               Begin
+                 for j:=0 to 7 do
+                    for k:=0 to 7 do
+                      if Fontbitmap[j,k]<>0 then
+                        PutPixel(xpos+k,j+y,CurrentColor);
+               end
+              else
+               { perform scaling of bitmap font }
+               Begin
+                 j:=0;
+                 cnt3:=0;
+
+                 while j <= 7 do
+                 begin
+                   { X-axis scaling }
+                   for cnt4 := 0 to charsize-1 do
+                    begin
+                      k:=0;
+                      cnt2 := 0;
+                      while k <= 7  do
+                         begin
+                           for cnt1 := 0 to charsize-1 do
+                             begin
+                                If FontBitmap[j,k] <> 0 then
+                                    PutPixel(xpos+cnt1+cnt2,y+cnt3+cnt4,CurrentColor);
+                             end;
+                             Inc(k);
+                             Inc(cnt2,charsize);
+                         end;
+                    end;
+                   Inc(j);
+                   Inc(cnt3,charsize);
+                 end;
+               end;
+           end;
+      end;
 
     procedure OutTextXY(x,y : smallint;const TextString : string);
 
@@ -363,13 +416,13 @@
          i,j,k,c       : longint;
          xpos,ypos     : longint;
          counter       : longint;
-         FontBitmap    : TBitmapChar;
          cnt1,cnt2     : smallint;
          cnt3,cnt4     : smallint;
          charsize      : word;
          WriteMode     : word;
          curX2, curY2, xpos2, ypos2, x2, y2: graph_float;
          oldvalues     : linesettingstype;
+         fontbitmap    : TBitmapChar;
          chr           : char;
 
       begin
@@ -390,52 +443,7 @@
            Dec(c);
            if CurrentTextInfo.direction=HorizDir then
            { Horizontal direction }
-            begin
-              for i:=0 to c do
-              begin
-                chr := TextString[i+1];
-                xpos:=x+(i shl 3)*Charsize;
-                { we copy the character bitmap before accessing it }
-                { this improves speed on non optimizing compilers  }
-                { since it is one less address calculation.        }
-                Fontbitmap:=TBitmapChar(DefaultFontData[chr]);
-                { no scaling }
-                if CharSize = 1 then
-                 Begin
-                   for j:=0 to 7 do
-                      for k:=0 to 7 do
-                        if Fontbitmap[j,k] <> 0 then PutPixel(xpos+k,j+y,CurrentColor);
-                 end
-                else
-                 { perform scaling of bitmap font }
-                 Begin
-                   j:=0;
-                   cnt3:=0;
-
-                   while j <= 7 do
-                   begin
-                     { X-axis scaling }
-                     for cnt4 := 0 to charsize-1 do
-                      begin
-                        k:=0;
-                        cnt2 := 0;
-                        while k <= 7  do
-                           begin
-                             for cnt1 := 0 to charsize-1 do
-                               begin
-                                  If FontBitmap[j,k] <> 0 then
-                                      PutPixel(xpos+cnt1+cnt2,y+cnt3+cnt4,CurrentColor);
-                               end;
-                               Inc(k);
-                               Inc(cnt2,charsize);
-                           end;
-                      end;
-                     Inc(j);
-                     Inc(cnt3,charsize);
-                   end;
-                 end;
-              end;
-            end
+              DrawBitmapCharHoriz(x,y,charsize,TextString)
            else
            { Vertical direction }
             begin
@@ -727,7 +735,11 @@
 
 {
 $Log$
-Revision 1.15  2000-02-27 14:41:25  peter
+Revision 1.16  2000-03-24 18:16:33  florian
+  * introduce a DrawBitmapCharHoriz procedure variable to accelerate output on
+    win32
+
+Revision 1.15  2000/02/27 14:41:25  peter
   * removed warnings/notes
 
 Revision 1.14  2000/01/07 16:41:38  daniel

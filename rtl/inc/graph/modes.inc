@@ -309,7 +309,8 @@
          SetVisualPage := modeInfo^.SetVisualPage;
       if assigned(modeInfo^.SetActivePage) then
          SetActivePage := modeInfo^.SetActivePage;
-
+      if assigned(modeInfo^.DrawBitmapCharHoriz) then
+         DrawBitmapCharHoriz:=modeInfo^.DrawBitmapCharHoriz;
 
       IntCurrentMode := modeinfo^.ModeNumber;
       IntCurrentDriver := modeinfo^.DriverNumber;
@@ -362,7 +363,11 @@
 
 {
 $Log$
-Revision 1.20  2000-03-24 13:01:15  florian
+Revision 1.21  2000-03-24 18:16:33  florian
+  * introduce a DrawBitmapCharHoriz procedure variable to accelerate output on
+    win32
+
+Revision 1.20  2000/03/24 13:01:15  florian
   * ClearViewPort fixed
 
 Revision 1.19  2000/01/07 16:41:39  daniel

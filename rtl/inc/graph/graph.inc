@@ -1400,6 +1400,8 @@ end;
    end;
 
 
+  procedure DrawBitmapCharHorizDefault(x,y : longint;charsize : word;const s : string);forward;
+
   Procedure DefaultHooks;
   {********************************************************}
   { Procedure DefaultHooks()                               }
@@ -1433,6 +1435,7 @@ end;
     PatternLine := {$ifdef fpc}@{$endif}PatternLineDefault;
     HLine := {$ifdef fpc}@{$endif}HLineDefault;
     VLine := {$ifdef fpc}@{$endif}VLineDefault;
+    DrawBitmapCharHoriz := {$ifdef fpc}@{$endif}DrawBitmapCharHorizDefault;
   end;
 
   Procedure InitVars;
@@ -2314,7 +2317,11 @@ begin
 end;
 {
   $Log$
-  Revision 1.29  2000-03-24 13:01:15  florian
+  Revision 1.30  2000-03-24 18:16:32  florian
+    * introduce a DrawBitmapCharHoriz procedure variable to accelerate output on
+      win32
+
+  Revision 1.29  2000/03/24 13:01:15  florian
     * ClearViewPort fixed
 
   Revision 1.28  2000/03/19 11:20:13  peter
