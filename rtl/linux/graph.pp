@@ -1354,20 +1354,8 @@ end;
 
 procedure PieSlice(X, Y: Integer; StAngle, EndAngle, Radius: Word);
 
-Var   i,tmpcolor: Word;
-      ac : arccoordstype;
-      
 Begin
- tmpcolor:=thecolor;
- setcolor(thefillcolor);
- For i:= 0 To Radius Do
-  Arc (X, Y, StAngle, EndAngle, i);
- setcolor(tmpcolor);
- { Border using current color}
- arc (X,y,stangle,endangle,Radius);
- getarccoords(ac);
- Line (x,y,ac.xstart,ac.ystart);
- Line (x,y,ac.xend,ac.yend);
+ sector (x,y,stangle,endangle,radius,radius);
 end;
 
 procedure Sector(X, Y: Integer;
@@ -1375,25 +1363,23 @@ procedure Sector(X, Y: Integer;
 
 Var I,tmpcolor : longint;
     tmpang : real;
-    tmpx,tmpy : Integer;
+    ac : arccoordstype;
     
 begin
  tmpcolor:=Thecolor;
  SetColor(TheFillColor);
  For i:= stangle to endangle Do
-  Begin
+   Begin
    tmpAng:= i*Pi/180;
-   curX:= Round (xRadius*Cos (tmpAng));
-   curY:= Round (YRadius*Sin (tmpAng));
-   tmpX:= X - curx;
-   tmpy:= Y + cury;
-   curx:=x+curx;
-   cury:=y-cury;
-   Line (curX, curY,tmpx,tmpy);
+   curX:= x+Round (xRadius*Cos (tmpAng));
+   curY:= y-Round (YRadius*Sin (tmpAng));
+   Line (x,y,curX, curY);
    PutPixel (curx,cury,tmpcolor);
-   PutPixel (tmpx,tmpy,tmpcolor);
-  End;
-  SetColor(tmpcolor);
+   End;
+ SetColor(tmpcolor);
+ getarccoords(ac);
+ Line (x,y,ac.xstart,ac.ystart);
+ Line (x,y,ac.xend,ac.yend);
 end;
 
 { Color routines
@@ -1503,7 +1489,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  1998-08-12 13:25:33  michael
+  Revision 1.5  1998-08-12 14:01:08  michael
+  small fix in sector, pieslice replaced by call to sector
+
+  Revision 1.4  1998/08/12 13:25:33  michael
   + added arc,ellipse,fillelipse,sector,pieslice
 
   Revision 1.3  1998/08/10 09:01:58  michael
