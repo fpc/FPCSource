@@ -822,7 +822,7 @@ If a reference count reaches zero, then the memory occupied by the
 string is deallocated automatically, so no memory leaks arise.
 
 When an ansistring is declared, the \fpc compiler initially
-allocates just memory for a pointer, not more. This pinter is guaranteed
+allocates just memory for a pointer, not more. This pointer is guaranteed
 to be nil, meaning that the string is initially empty. This is
 true for local, global or part of a structure (arrays, records or objects).
 
@@ -831,8 +831,8 @@ This does introduce an overhead. For instance, declaring
 Var
   A : Array[1..100000] of string;
 \end{verbatim}
-Will copy 1000000 times \var{nil} into A. When A goes out of scope, then
-the 100000 strings will be dereferenced one by one. All this happens
+Will copy 100,000 times \var{nil} into \var{A}. When \var{A} goes out of scope, then
+the 100,000 strings will be dereferenced one by one. All this happens
 invisibly for the programmer, but when considering performance issues,
 this is important.
 
@@ -1049,7 +1049,7 @@ Type
 \end{verbatim}
 \end{remark}
 The size of a record is the sum of the sizes of its fields, each size of a
-field is rounded up to two. If the record contains a variant part, the size
+field is rounded up to a power of two. If the record contains a variant part, the size
 of the variant part is the size of the biggest variant, plus the size of the
 tag field type {\em if an identifier was declared for it}. Here also, the size of
 each part is first rounded up to two. So in the above example,
@@ -1569,8 +1569,10 @@ object. You can ignore this warning, but it's better programming practice to
 use the extended syntax to create instances of an object.
 Similarly, the \var{Dispose} procedure accepts the name of a destructor. The
 destructor will then be called, before removing the object from the heap.
-In view of the compiler warning remark, the now following Delphi approach may
-be considered a more natural way of object-oriented programming.
+
+In view of the compiler warning remark, the following chapter presents the
+Delphi approach to object-oriented programming, and may be considered a 
+more natural way of object-oriented programming.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Methods
@@ -3405,7 +3407,7 @@ must always contain 2 parameters. The result type of the comparision
 operator must be \var{Boolean}.
 
 The statement block contains the necessary statements to determine the
-result of the operation. It can contain artbitrary large pieces of code;
+result of the operation. It can contain arbitrary large pieces of code;
 it is executed whenever the operation is encountered in some expression.
 The result of the statement block must always be defined; error conditions
 are not checked bythe compiler, and the code must take care of all possible
@@ -3435,6 +3437,22 @@ at the left of the assignment statement, the single parameter to the
 assignment operator must have the same type as the expression at the 
 right of the assignment operator.
 
+This system can be used to declare a new type, and define an assignment for
+that type. For instance, to be able to assign a newly defined type 'Complex'
+\begin{verbatim}
+Var 
+  C,Z : Complex; // New type complex
+
+begin
+  Z:=C;  // assignments between complex types.
+end;
+\end{verbatim}
+You would have to define the following assignment operator: 
+\begin{verbatim}
+Operator := (C : Complex) z : complex;
+\end{verbatim}
+
+
 To be able to assign a real type to a complex type as follows:
 \begin{verbatim}
 var 
@@ -3446,7 +3464,6 @@ begin
 end;
 \end{verbatim}
 the following assignment operator must be defined: 
-
 \begin{verbatim}
 Operator := (r : real) z : complex;
 \end{verbatim}
@@ -3839,7 +3856,8 @@ of the given record type.
 A component identifier is valid in the following places:
 \begin{enumerate}
 \item From the point of declaration to the end of the class definition.
-\item In all descendent types of this class.
+\item In all descendent types of this class, unless it is in the private
+part of the class declaration.
 \item In all method declaration blocks of this class and descendent classes.
 \item In a with statement that operators on a variable of the given class's
 definition.
@@ -4393,9 +4411,11 @@ None
 \seep{New}
 \end{function}
 
+\FPCexample{ex96}
+
 \begin{function}{BinStr}
 \Declaration
-Function BinStr Value : longint; cnt : byte) : String;
+Function BinStr (Value : longint; cnt : byte) : String;
 
 \Description
 \var{BinStr} returns a string with the binary representation
