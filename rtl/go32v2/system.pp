@@ -1029,7 +1029,7 @@ begin
    begin
     Increase_file_handle_count:=false;
     Dec (FileHandleCount, 10);
-   end;
+   end
   else
     Increase_file_handle_count:=true;
 end;
@@ -1417,7 +1417,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.39  2000-06-04 14:14:10  hajny
+  Revision 1.40  2000-06-05 06:20:44  pierre
+   * some typo corrected !
+
+  Revision 1.39  2000/06/04 14:14:10  hajny
     * FileHandleCount decreased upon unsuccessful increase attempt
 
   Revision 1.38  2000/05/18 07:18:28  pierre
