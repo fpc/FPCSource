@@ -319,6 +319,8 @@ Fixed bugs:
   bug0264.pp   methodpointer bugs                                   OK 0.99.12b (FK)
   bug0267.pp   parameters after methodpointer are wrong             OK 0.99.12b (FK)
   bug0269.pp   wrong linenumber for repeat until when type mismatch OK 0.99.12b (PM)
+  bug0278.pp   (* in conditional code is handled wrong for tp,delphi OK 0.99.13 (PFV)
+
 
 Unproducable bugs:
 ------------------
@@ -363,3 +365,7 @@ bug0271.pp   abstract methods can't be assigned to methodpointers
 bug0272.pp   No error issued if wrong parameter in function inside a second function
 bug0273.pp   small array pushing to array of char procedure is wrong
 bug0274.pp   @(proc) is not allowed
+bug0275.pp   too many warnings
+bug0276.pp   Asm, intel reference parsing incompatibility
+bug0277.pp   typecasting with const not possible
+bug0279.pp   crash with ansistring and new(^ansistring)
