@@ -1635,7 +1635,7 @@ Uses Strings;
 {$endif}
 
 
-Procedure Do_SysCall( callnr:longint;var regs : SysCallregs );assembler;
+Procedure Do_SysCall( callnr:longint;var regs : SysCallregs );assembler; stdcall;
 {
   This function puts the registers in place, does the call, and then
   copies back the registers as they are after the SysCall.
@@ -5908,7 +5908,10 @@ End.
 
 {
   $Log$
-  Revision 1.11  2003-12-10 09:36:16  mazen
+  Revision 1.12  2004-02-19 19:34:04  marco
+   * stdcall to syscall
+
+  Revision 1.11  2003/12/10 09:36:16  mazen
   + added explicit ATT mode request for assembler  input
 
   Revision 1.10  2003/11/10 16:54:28  marco
