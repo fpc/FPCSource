@@ -668,6 +668,7 @@ implementation
         { first write all global/local symbols to a temp list. This will flag
           all required tdefs. Afterwards this list will be added }
         vardebuglist:=taasmoutput.create;
+        new_section(vardebuglist,sec_data,'',0);
         if assigned(current_module.globalsymtable) then
           tglobalsymtable(current_module.globalsymtable).concatstabto(vardebuglist);
         if assigned(current_module.localsymtable) then
@@ -753,17 +754,17 @@ implementation
                    (pd.localst.symtabletype<>staticsymtable) and
                    not((pd.proccalloption=pocall_inline) or
                        ((current_module.flags and uf_local_browser)<>0)) then
-                  begin     
+                  begin
                     free_localsymtables(pd.localst);
                     pd.localst.free;
                     pd.localst:=nil;
-                  end;  
+                  end;
               end;
              def:=tstoreddef(def.indexnext);
           end;
       end;
-      
-      
+
+
     procedure parse_implementation_uses;
       begin
          if token=_USES then
@@ -1253,7 +1254,7 @@ implementation
          { release all local symtables that are not needed anymore }
          free_localsymtables(current_module.globalsymtable);
          free_localsymtables(current_module.localsymtable);
-         
+
          { remove static symtable (=refsymtable) here to save some mem }
          if not (cs_local_browser in aktmoduleswitches) then
            begin
@@ -1402,15 +1403,15 @@ implementation
           end
          else
           begin
-	    if (target_info.system = system_i386_netware) or
-	       (target_info.system = system_i386_netwlibc) then
-	    begin
+            if (target_info.system = system_i386_netware) or
+               (target_info.system = system_i386_netwlibc) then
+            begin
               pd:=create_main_proc('PASCALMAIN',potype_proginit,st); { main is need by the netware rtl }
-	    end else
-	    begin
-	      pd:=create_main_proc('main',potype_proginit,st);
+            end else
+            begin
+              pd:=create_main_proc('main',potype_proginit,st);
               pd.aliasnames.insert('PASCALMAIN');
-	    end;
+            end;
           end;
          tcgprocinfo(current_procinfo).parse_body;
          tcgprocinfo(current_procinfo).generate_code;
@@ -1513,10 +1514,10 @@ implementation
 
          { assemble and link }
          create_objectfile;
-         
+
          { release all local symtables that are not needed anymore }
          free_localsymtables(current_module.localsymtable);
-         
+
          { leave when we got an error }
          if (Errorcount>0) and not status.skip_error then
           begin
@@ -1563,7 +1564,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.164  2004-09-14 16:33:46  peter
+  Revision 1.165  2004-10-04 18:26:51  peter
+    * debuginfo fixes
+
+  Revision 1.164  2004/09/14 16:33:46  peter
     * release localsymtables when module is compiled
 
   Revision 1.163  2004/09/04 21:18:47  armin

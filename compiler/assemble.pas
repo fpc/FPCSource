@@ -783,8 +783,8 @@ Implementation
                   end;
               end;
           end;
-        { External .bss (AB_COMMON) need a symbol relocation }
-        if assigned(ps) and (ps.currbind=AB_COMMON) then
+        { External references (AB_EXTERNAL and AB_COMMON) need a symbol relocation }
+        if assigned(ps) and (ps.currbind in [AB_EXTERNAL,AB_COMMON]) then
           begin
             if currpass=2 then
               begin
@@ -1629,7 +1629,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.75  2004-10-04 15:48:11  peter
+  Revision 1.76  2004-10-04 18:26:51  peter
+    * debuginfo fixes
+
+  Revision 1.75  2004/10/04 15:48:11  peter
     * AB_COMMON symbols need special relocation in stabs
 
   Revision 1.74  2004/08/27 20:53:52  peter
