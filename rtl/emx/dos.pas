@@ -94,9 +94,6 @@ Type
 
 {OS/2 specific functions}
 
-function exec(path:pathstr;runflags:execrunflags;winflags:execwinflags;
-              const comline:comstr):longint;
-
 function GetEnvPChar (EnvVar: string): PChar;
 
 
@@ -962,8 +959,7 @@ begin
 end;
 {$ASMMODE ATT}
 
-function GetEnv (const EnvVar: string): string;
-(* The assembler version is more than three times as fast as Pascal. *)
+function GetEnv (EnvVar: string): string;
 begin
  GetEnv := StrPas (GetEnvPChar (EnvVar));
 end;
@@ -1201,6 +1197,16 @@ procedure SetIntVec (IntNo: byte; Vector: pointer);
 begin
 end;
 
+function  GetShortName(var p : String) : boolean;
+begin
+  GetShortName:=true;
+end;
+
+function  GetLongName(var p : String) : boolean;
+begin
+  GetLongName:=true;
+end;
+
 
 
 begin
@@ -1211,7 +1217,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2004-02-17 17:37:26  daniel
+  Revision 1.13  2004-02-22 15:01:49  hajny
+    * lots of fixes (regcall, THandle, string operations in sysutils, longint2cardinal according to OS/2 docs, dosh.inc, ...)
+
+  Revision 1.12  2004/02/17 17:37:26  daniel
     * Enable threadvars again
 
   Revision 1.11  2004/02/16 22:16:58  hajny

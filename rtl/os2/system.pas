@@ -187,31 +187,31 @@ procedure DosExit(Action, Result: cardinal); cdecl;
     external 'DOSCALLS' index 234;
 
 // EAs not used in System unit
-function DosOpen(FileName:PChar;var Handle:longint;var Action:cardinal;
+function DosOpen(FileName:PChar;var Handle: THandle;var Action:cardinal;
                  InitSize,Attrib,OpenFlags,FileMode:cardinal;
-                 EA:Pointer):longint; cdecl;
+                 EA:Pointer): cardinal; cdecl;
     external 'DOSCALLS' index 273;
 
-function DosClose(Handle:longint): longint; cdecl;
+function DosClose(Handle: THandle): cardinal; cdecl;
     external 'DOSCALLS' index 257;
 
-function DosRead(Handle:longint; Buffer: Pointer;Count:longint;
-                 var ActCount:longint):longint; cdecl;
+function DosRead(Handle: THandle; Buffer: Pointer; Count: cardinal;
+                                      var ActCount: cardinal): cardinal; cdecl;
     external 'DOSCALLS' index 281;
 
-function DosWrite(Handle:longint; Buffer: Pointer;Count:longint;
-                  var ActCount:longint):longint; cdecl;
+function DosWrite(Handle: THandle; Buffer: Pointer;Count: cardinal;
+                                      var ActCount: cardinal): cardinal; cdecl;
     external 'DOSCALLS' index 282;
 
-function DosSetFilePtr(Handle:longint;Pos:longint;Method:cardinal;
-                       var PosActual:longint):longint; cdecl;
+function DosSetFilePtr(Handle: THandle; Pos:longint; Method:cardinal;
+                                     var PosActual: cardinal): cardinal; cdecl;
     external 'DOSCALLS' index 256;
 
-function DosSetFileSize(Handle:longint;Size:cardinal):longint; cdecl;
+function DosSetFileSize(Handle: THandle; Size: cardinal): cardinal; cdecl;
     external 'DOSCALLS' index 272;
 
-function DosQueryHType(Handle:longint;var HandType:longint;
-                       var Attr:longint):longint; cdecl;
+function DosQueryHType(Handle: THandle; var HandType: cardinal;
+                                          var Attr: cardinal): cardinal; cdecl;
     external 'DOSCALLS' index 224;
 
 type
@@ -227,7 +227,7 @@ type
     WeekDay: byte;
   end;
 
-function DosGetDateTime(var Buf:TSysDateTime):longint; cdecl;
+function DosGetDateTime(var Buf:TSysDateTime): cardinal; cdecl;
     external 'DOSCALLS' index 230;
 
    { converts an OS/2 error code to a TP compatible error }
@@ -480,10 +480,10 @@ end;
               versions of OS/2.
  Flags      = One or more of the mfXXXX constants.}
 
-function DosAllocMem(var P:pointer;Size,Flag:cardinal):longint; cdecl;
+function DosAllocMem(var P:pointer;Size,Flag:cardinal): cardinal; cdecl;
 external 'DOSCALLS' index 299;
 
-function DosSetMem(P:pointer;Size,Flag:cardinal):longint; cdecl;
+function DosSetMem(P:pointer;Size,Flag:cardinal): cardinal; cdecl;
 external 'DOSCALLS' index 305;
 
 var
@@ -584,13 +584,13 @@ end;
 
 function do_read(h,addr,len:longint):longint;
 Var
-  T: Longint;
+  T: cardinal;
 begin
 {$ifdef IODEBUG}
   write('do_read: handle=', h, ', addr=', addr, ', length=', len);
 {$endif}
   InOutRes:=DosRead(H, Pointer(Addr), Len, T);
-  do_read:=T;
+  do_read:= longint (T);
 {$ifdef IODEBUG}
   writeln(', actual_len=', t, ', InOutRes=', InOutRes);
 {$endif}
@@ -598,13 +598,13 @@ end;
 
 function do_write(h,addr,len:longint) : longint;
 Var
-  T: Longint;
+  T: cardinal;
 begin
 {$ifdef IODEBUG}
   write('do_write: handle=', h, ', addr=', addr, ', length=', len);
 {$endif}
   InOutRes:=DosWrite(H, Pointer(Addr), Len, T);
-  do_write:=T;
+  do_write:= longint (T);
 {$ifdef IODEBUG}
   writeln(', actual_len=', t, ', InOutRes=', InOutRes);
 {$endif}
@@ -612,10 +612,10 @@ end;
 
 function do_filepos(handle:longint): longint;
 var
-  PosActual: Longint;
+  PosActual: cardinal;
 begin
   InOutRes:=DosSetFilePtr(Handle, 0, 1, PosActual);
-  do_filepos:=PosActual;
+  do_filepos:=longint (PosActual);
 {$ifdef IODEBUG}
   writeln('do_filepos: handle=', Handle, ', actual_pos=', PosActual, ', InOutRes=', InOutRes);
 {$endif}
@@ -623,7 +623,7 @@ end;
 
 procedure do_seek(handle,pos:longint);
 var
-  PosActual: Longint;
+  PosActual: cardinal;
 begin
   InOutRes:=DosSetFilePtr(Handle, Pos, 0 {ZeroBased}, PosActual);
 {$ifdef IODEBUG}
@@ -633,17 +633,17 @@ end;
 
 function do_seekend(handle:longint):longint;
 var
-  PosActual: Longint;
+  PosActual: cardinal;
 begin
   InOutRes:=DosSetFilePtr(Handle, 0, 2 {EndBased}, PosActual);
-  do_seekend:=PosActual;
+  do_seekend:=longint (PosActual);
 {$ifdef IODEBUG}
   writeln('do_seekend: handle=', Handle, ', actual_pos=', PosActual, ', InOutRes=', InOutRes);
 {$endif}
 end;
 
 function do_filesize(handle:longint):longint;
-var aktfilepos:longint;
+var aktfilepos: cardinal;
 begin
   aktfilepos:=do_filepos(handle);
   do_filesize:=do_seekend(handle);
@@ -778,7 +778,7 @@ end;
 
 function do_isdevice (Handle: longint): boolean;
 var
-  HT, Attr: longint;
+  HT, Attr: cardinal;
 begin
   do_isdevice:=false;
   If DosQueryHType(Handle, HT, Attr)<>0 then exit;
@@ -1471,7 +1471,10 @@ the compiler, of course, but more should get allocated dynamically on demand.
 end.
 {
   $Log$
-  Revision 1.66  2004-02-16 22:18:44  hajny
+  Revision 1.67  2004-02-22 15:01:49  hajny
+    * lots of fixes (regcall, THandle, string operations in sysutils, longint2cardinal according to OS/2 docs, dosh.inc, ...)
+
+  Revision 1.66  2004/02/16 22:18:44  hajny
     * LastDosExitCode changed back from threadvar temporarily
 
   Revision 1.65  2004/02/02 03:24:09  yuri

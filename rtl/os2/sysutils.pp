@@ -82,7 +82,7 @@ type
             FileAlloc:cardinal;         {Amount of space the file really
                                          occupies on disk.}
             AttrFile:cardinal;          {Attributes of file.}
-            Name:string;                {Also possible to use as ASCIIZ.
+            Name:shortstring;           {Also possible to use as ASCIIZ.
                                          The byte following the last string
                                          character is always zero.}
         end;
@@ -101,7 +101,7 @@ type
                                          occupies on disk.}
             AttrFile:cardinal;          {Attributes of file.}
             cbList:longint;             {Size of the file's extended attributes.}
-            Name:string;                {Also possible to use as ASCIIZ.
+            Name:shortstring;           {Also possible to use as ASCIIZ.
                                          The byte following the last string
                                          character is always zero.}
         end;
@@ -316,29 +316,29 @@ const
                                   the size and placement.}
 
 
-function DosSetFileInfo (Handle: longint; InfoLevel: cardinal; AFileStatus: PFileStatus;
+function DosSetFileInfo (Handle: THandle; InfoLevel: cardinal; AFileStatus: PFileStatus;
         FileStatusLen: cardinal): cardinal; cdecl; external 'DOSCALLS' index 218;
 
 function DosQueryFSInfo (DiskNum, InfoLevel: cardinal; var Buffer: TFSInfo;
                BufLen: cardinal): cardinal; cdecl; external 'DOSCALLS' index 278;
 
-function DosQueryFileInfo (Handle: longint; InfoLevel: cardinal;
+function DosQueryFileInfo (Handle: THandle; InfoLevel: cardinal;
            AFileStatus: PFileStatus; FileStatusLen: cardinal): cardinal; cdecl;
                                                  external 'DOSCALLS' index 279;
 
 function DosScanEnv (Name: PChar; var Value: PChar): cardinal; cdecl;
                                                  external 'DOSCALLS' index 227;
 
-function DosFindFirst (FileMask: PChar; var Handle: longint; Attrib: cardinal;
+function DosFindFirst (FileMask: PChar; var Handle: THandle; Attrib: cardinal;
                        AFileStatus: PFileStatus; FileStatusLen: cardinal;
                     var Count: cardinal; InfoLevel: cardinal): cardinal; cdecl;
                                                  external 'DOSCALLS' index 264;
 
-function DosFindNext (Handle: longint; AFileStatus: PFileStatus;
+function DosFindNext (Handle: THandle; AFileStatus: PFileStatus;
                 FileStatusLen: cardinal; var Count: cardinal): cardinal; cdecl;
                                                  external 'DOSCALLS' index 265;
 
-function DosFindClose (Handle: longint): cardinal; cdecl;
+function DosFindClose (Handle: THandle): cardinal; cdecl;
                                                  external 'DOSCALLS' index 263;
 
 function DosQueryCtryInfo (Size: cardinal; var Country: TCountryCode;
@@ -348,42 +348,42 @@ function DosQueryCtryInfo (Size: cardinal; var Country: TCountryCode;
 function DosMapCase (Size: cardinal; var Country: TCountryCode;
                       AString: PChar): cardinal; cdecl; external 'NLS' index 7;
 
-function DosDelete(FileName:PChar): Longint; cdecl;
+function DosDelete(FileName:PChar): cardinal; cdecl;
     external 'DOSCALLS' index 259;
 
-function DosMove(OldFile, NewFile:PChar): Longint; cdecl;
+function DosMove(OldFile, NewFile:PChar): cardinal; cdecl;
     external 'DOSCALLS' index 271;
 
 function DosQueryPathInfo(FileName:PChar;InfoLevel:cardinal;
-                 AFileStatus:PFileStatus;FileStatusLen:cardinal): Longint; cdecl;
+              AFileStatus:PFileStatus;FileStatusLen:cardinal): cardinal; cdecl;
     external 'DOSCALLS' index 223;
 
-function DosSetPathInfo(FileName:PChar;InfoLevel:longint;
+function DosSetPathInfo(FileName:PChar;InfoLevel:cardinal;
                         AFileStatus:PFileStatus;FileStatusLen,
-                        Options:longint):longint; cdecl;
+                        Options:cardinal):cardinal; cdecl;
     external 'DOSCALLS' index 219;
 
-function DosOpen(FileName:PChar;var Handle:longint;var Action: Longint;
+function DosOpen(FileName:PChar;var Handle: THandle; var Action: cardinal;
                  InitSize,Attrib,OpenFlags,FileMode:cardinal;
-                 EA:Pointer):longint; cdecl;
+                 EA:Pointer):cardinal; cdecl;
     external 'DOSCALLS' index 273;
 
-function DosClose(Handle:longint): longint; cdecl;
+function DosClose(Handle: THandle): cardinal; cdecl;
     external 'DOSCALLS' index 257;
 
-function DosRead(Handle:longint; var Buffer; Count:longint;
-                 var ActCount:longint):longint; cdecl;
+function DosRead(Handle:THandle; var Buffer; Count: cardinal;
+                                      var ActCount: cardinal): cardinal; cdecl;
     external 'DOSCALLS' index 281;
 
-function DosWrite(Handle:longint; Buffer: pointer; Count:longint;
-                  var ActCount:longint):longint; cdecl;
+function DosWrite(Handle: THandle; Buffer: pointer; Count: cardinal;
+                                      var ActCount: cardinal): cardinal; cdecl;
     external 'DOSCALLS' index 282;
 
-function DosSetFilePtr(Handle:longint;Pos:longint;Method:cardinal;
-                       var PosActual:longint):longint; cdecl;
+function DosSetFilePtr(Handle: THandle; Pos: longint; Method: cardinal;
+                                     var PosActual: cardinal): cardinal; cdecl;
     external 'DOSCALLS' index 256;
 
-function DosSetFileSize(Handle:longint;Size:cardinal):longint; cdecl;
+function DosSetFileSize (Handle: THandle; Size: cardinal): cardinal; cdecl;
     external 'DOSCALLS' index 272;
 
 procedure DosSleep (MSec: cardinal); cdecl; external 'DOSCALLS' index 229;
@@ -421,7 +421,7 @@ type
     WeekDay: byte;
   end;
 
-function DosGetDateTime(var Buf: TDT):longint; cdecl;
+function DosGetDateTime(var Buf: TDT): cardinal; cdecl;
     external 'DOSCALLS' index 230;
 
 
@@ -443,15 +443,12 @@ const
 
 function FileOpen (const FileName: string; Mode: integer): longint;
 Var
-  Rc, Action, Handle: Longint;
-  P: PChar;
+  Handle: THandle;
+  Rc, Action: cardinal;
 begin
-  P:=StrAlloc(length(FileName)+1);
-  StrPCopy(P, FileName);
 (* DenyNone if sharing not specified. *)
   if Mode and 112 = 0 then Mode:=Mode or 64;
-  Rc:=DosOpen(P, Handle, Action, 0, 0, 1, Mode, nil);
-  StrDispose(P);
+  Rc:=DosOpen(PChar (FileName), Handle, Action, 0, 0, 1, Mode, nil);
   If Rc=0 then
     FileOpen:=Handle
   else
@@ -462,13 +459,10 @@ function FileCreate (const FileName: string): longint;
 Const
   Mode = ofReadWrite or faCreate or doDenyRW;   (* Sharing to DenyAll *)
 Var
-  RC, Action, Handle: Longint;
-  P: PChar;
+  Handle: THandle;
+  RC, Action: cardinal;
 Begin
-  P:=StrAlloc(length(FileName)+1);
-  StrPCopy(P, FileName);
-  RC:=DosOpen(P, Handle, Action, 0, 0, $12, Mode, Nil);
-  StrDispose(P);
+  RC:=DosOpen(PChar (FileName), Handle, Action, 0, 0, $12, Mode, Nil);
   If RC=0 then
     FileCreate:=Handle
   else
@@ -483,26 +477,26 @@ end;
 
 function FileRead (Handle: longint; var Buffer; Count: longint): longint;
 Var
-  T: Longint;
+  T: cardinal;
 begin
   DosRead(Handle, Buffer, Count, T);
-  FileRead:=T;
+  FileRead := longint (T);
 end;
 
 function FileWrite (Handle: longint; const Buffer; Count: longint): longint;
 Var
-  T: Longint;
+  T: cardinal;
 begin
   DosWrite (Handle, @Buffer, Count, T);
-  FileWrite:=T;
+  FileWrite := longint (T);
 end;
 
 function FileSeek (Handle, FOffset, Origin: longint): longint;
 var
-  npos: longint;
+  npos: cardinal;
 begin
-  if DosSetFilePtr(Handle, FOffset, Origin, npos)=0 Then
-    FileSeek:=npos
+  if DosSetFilePtr (Handle, FOffset, Origin, npos) = 0 Then
+    FileSeek:= longint (npos)
   else
     FileSeek:=-1;
 end;
@@ -541,9 +535,10 @@ end;
 function FileExists (const FileName: string): boolean;
 var
   SR: TSearchRec;
+  RC: longint;
 begin
   FileExists:=False;
-  if FindFirst(FileName, faAnyFile, SR)=0 then FileExists:=True;
+  if FindFirst (FileName, faAnyFile, SR)=0 then FileExists:=True;
   FindClose(SR);
 end;
 
@@ -558,14 +553,14 @@ var SR: PSearchRec;
     FStat: PFileFindBuf3;
     Count: cardinal;
     Err: cardinal;
+    I: cardinal;
 
 begin
   New (FStat);
   Rslt.FindHandle := $FFFFFFFF;
   Count := 1;
   Err := DosFindFirst (PChar (Path), Rslt.FindHandle,
-               Attr and FindResvdMask, FStat, SizeOf (FStat^), Count,
-                                                          ilStandard);
+            Attr and FindResvdMask, FStat, SizeOf (FStat^), Count, ilStandard);
   if (Err = 0) and (Count = 0) then Err := 18;
   FindFirst := -Err;
   if Err = 0 then
@@ -658,13 +653,9 @@ end;
 function FileGetAttr (const FileName: string): longint;
 var
   FS: PFileStatus3;
-  S: PChar;
 begin
   New(FS);
-  S:=StrAlloc(length(FileName)+1);
-  StrPCopy(S, FileName);
-  Result:=-DosQueryPathInfo(S, ilStandard, FS, SizeOf(FS^));
-  StrDispose(S);
+  Result:=-DosQueryPathInfo(PChar (FileName), ilStandard, FS, SizeOf(FS^));
   If Result=0 Then Result:=FS^.attrFile;
   Dispose(FS);
 end;
@@ -672,40 +663,23 @@ end;
 function FileSetAttr (const Filename: string; Attr: longint): longint;
 Var
   FS: PFileStatus3;
-  S: PChar;
 Begin
   New(FS);
   FillChar(FS, SizeOf(FS^), 0);
-  FS^.attrFile:=Attr;
-  S:=StrAlloc(length(FileName)+1);
-  StrPCopy(S, FileName);
-  Result:=-DosSetPathInfo(S, ilStandard, FS, SizeOf(FS^), 0);
-  StrDispose(S);
+  FS^.AttrFile:=Attr;
+  Result:=-DosSetPathInfo(PChar (FileName), ilStandard, FS, SizeOf(FS^), 0);
   Dispose(FS);
 end;
 
 
 function DeleteFile (const FileName: string): boolean;
-Var
-  S: PChar;
 Begin
-  S:=StrAlloc(length(FileName)+1);
-  StrPCopy(S, FileName);
-  Result:=(DosDelete(S)=0);
-  StrDispose(S);
+  Result:=(DosDelete(PChar (FileName))=0);
 End;
 
 function RenameFile (const OldName, NewName: string): boolean;
-Var
-  S1, S2: PChar;
 Begin
-  S1:=StrAlloc(length(OldName)+1);
-  StrPCopy(S1, OldName);
-  S2:=StrAlloc(length(NewName)+1);
-  StrPCopy(S2, NewName);
-  Result:=(DosMove(S1, S2)=0);
-  StrDispose(S1);
-  StrDispose(S2);
+  Result:=(DosMove(PChar (OldName), PChar (NewName))=0);
 End;
 
 {****************************************************************************
@@ -752,6 +726,7 @@ end;
 function SetCurrentDir (const NewDir: string): boolean;
 begin
 {$I-}
+{$WARNING Should be rewritten to avoid unit dos dependancy!}
  ChDir (NewDir);
  Result := (IOResult = 0);
 {$I+}
@@ -761,6 +736,7 @@ end;
 function CreateDir (const NewDir: string): boolean;
 begin
 {$I-}
+{$WARNING Should be rewritten to avoid unit dos dependancy!}
  MkDir (NewDir);
  Result := (IOResult = 0);
 {$I+}
@@ -770,6 +746,7 @@ end;
 function RemoveDir (const Dir: string): boolean;
 begin
 {$I-}
+{$WARNING Should be rewritten to avoid unit dos dependancy!}
  RmDir (Dir);
  Result := (IOResult = 0);
  {$I+}
@@ -977,7 +954,10 @@ end.
 
 {
   $Log$
-  Revision 1.42  2004-02-15 21:36:10  hajny
+  Revision 1.43  2004-02-22 15:01:49  hajny
+    * lots of fixes (regcall, THandle, string operations in sysutils, longint2cardinal according to OS/2 docs, dosh.inc, ...)
+
+  Revision 1.42  2004/02/15 21:36:10  hajny
     * overloaded ExecuteProcess added, EnvStr param changed to longint
 
   Revision 1.41  2004/02/15 08:02:44  yuri

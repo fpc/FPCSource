@@ -82,7 +82,7 @@ type
             FileAlloc:cardinal;         {Amount of space the file really
                                          occupies on disk.}
             AttrFile:cardinal;          {Attributes of file.}
-            Name:string;                {Also possible to use as ASCIIZ.
+            Name:shortstring;           {Also possible to use as ASCIIZ.
                                          The byte following the last string
                                          character is always zero.}
         end;
@@ -101,7 +101,7 @@ type
                                          occupies on disk.}
             AttrFile:cardinal;          {Attributes of file.}
             cbList:longint;             {Size of the file's extended attributes.}
-            Name:string;                {Also possible to use as ASCIIZ.
+            Name:shortstring;           {Also possible to use as ASCIIZ.
                                          The byte following the last string
                                          character is always zero.}
         end;
@@ -393,15 +393,19 @@ const
 function FileOpen (const FileName: string; Mode: integer): longint; assembler;
 asm
  push ebx
-        mov eax, Mode
-(* DenyAll if sharing not specified. *)
-        test eax, 112
-        jnz @FOpen1
-        or eax, 16
-@FOpen1:
-        mov ecx, eax
-        mov eax, 7F2Bh
+{$IFDEF REGCALL}
+ mov ecx, edx
+ mov edx, eax
+{$ELSE REGCALL}
+ mov ecx, Mode
  mov edx, FileName
+{$ENDIF REGCALL}
+(* DenyAll if sharing not specified. *)
+ test ecx, 112
+ jnz @FOpen1
+ or ecx, 16
+@FOpen1:
+ mov eax, 7F2Bh
  call syscall
  pop ebx
 end {['eax', 'ebx', 'ecx', 'edx']};
@@ -410,9 +414,13 @@ end {['eax', 'ebx', 'ecx', 'edx']};
 function FileCreate (const FileName: string): longint; assembler;
 asm
  push ebx
-        mov eax, 7F2Bh
-        mov ecx, ofReadWrite or faCreate or doDenyRW   (* Sharing to DenyAll *)
+{$IFDEF REGCALL}
+ mov edx, eax
+{$ELSE REGCALL}
  mov edx, FileName
+{$ENDIF REGCALL}
+ mov eax, 7F2Bh
+ mov ecx, ofReadWrite or faCreate or doDenyRW   (* Sharing to DenyAll *)
  call syscall
  pop ebx
 end {['eax', 'ebx', 'ecx', 'edx']};
@@ -428,13 +436,17 @@ function FileRead (Handle: longint; var Buffer; Count: longint): longint;
                                                                      assembler;
 asm
  push ebx
-    mov eax, 3F00h
-    mov ebx, Handle
-    mov ecx, Count
-    mov edx, Buffer
-    call syscall
-    jnc @FReadEnd
-    mov eax, -1
+{$IFDEF REGCALL}
+ mov ebx, eax
+{$ELSE REGCALL}
+ mov ebx, Handle
+ mov ecx, Count
+ mov edx, Buffer
+{$ENDIF REGCALL}
+ mov eax, 3F00h
+ call syscall
+ jnc @FReadEnd
+ mov eax, -1
 @FReadEnd:
  pop ebx
 end {['eax', 'ebx', 'ecx', 'edx']};
@@ -444,13 +456,17 @@ function FileWrite (Handle: longint; const Buffer; Count: longint): longint;
                                                                      assembler;
 asm
  push ebx
-    mov eax, 4000h
-    mov ebx, Handle
-    mov ecx, Count
-    mov edx, Buffer
-    call syscall
-    jnc @FWriteEnd
-    mov eax, -1
+{$IFDEF REGCALL}
+ mov ebx, eax
+{$ELSE REGCALL}
+ mov ebx, Handle
+ mov ecx, Count
+ mov edx, Buffer
+{$ENDIF REGCALL}
+ mov eax, 4000h
+ call syscall
+ jnc @FWriteEnd
+ mov eax, -1
 @FWriteEnd:
  pop ebx
 end {['eax', 'ebx', 'ecx', 'edx']};
@@ -459,13 +475,18 @@ end {['eax', 'ebx', 'ecx', 'edx']};
 function FileSeek (Handle, FOffset, Origin: longint): longint; assembler;
 asm
  push ebx
-    mov eax, Origin
-    mov ah, 42h
-    mov ebx, Handle
-    mov edx, FOffset
-    call syscall
-    jnc @FSeekEnd
-    mov eax, -1
+{$IFDEF REGCALL}
+ mov ebx, eax
+ mov eax, ecx
+{$ELSE REGCALL}
+ mov ebx, Handle
+ mov eax, Origin
+ mov edx, FOffset
+{$ENDIF REGCALL}
+ mov ah, 42h
+ call syscall
+ jnc @FSeekEnd
+ mov eax, -1
 @FSeekEnd:
  pop ebx
 end {['eax', 'ebx', 'edx']};
@@ -492,18 +513,23 @@ end;
 function FileTruncate (Handle, Size: longint): boolean; assembler;
 asm
  push ebx
-    mov eax, 7F25h
-    mov ebx, Handle
-    mov edx, Size
-    call syscall
-    jc @FTruncEnd
-    mov eax, 4202h
-    mov ebx, Handle
-    mov edx, 0
-    call syscall
-    mov eax, 0
-    jnc @FTruncEnd
-    dec eax
+{$IFDEF REGCALL}
+ mov ebx, eax
+{$ELSE REGCALL}
+ mov ebx, Handle
+ mov edx, Size
+{$ENDIF REGCALL}
+ mov eax, 7F25h
+ push ebx
+ call syscall
+ pop ebx
+ jc @FTruncEnd
+ mov eax, 4202h
+ mov edx, 0
+ call syscall
+ mov eax, 0
+ jnc @FTruncEnd
+ dec eax
 @FTruncEnd:
  pop ebx
 end {['eax', 'ebx', 'ecx', 'edx']};
@@ -525,14 +551,18 @@ end;
 
 function FileExists (const FileName: string): boolean; assembler;
 asm
- mov ax, 4300h
+{$IFDEF REGCALL}
+ mov edx, eax
+{$ELSE REGCALL}
  mov edx, FileName
-    call syscall
-    mov eax, 0
-    jc @FExistsEnd
-    test cx, 18h
-    jnz @FExistsEnd
-    inc eax
+{$ENDIF REGCALL}
+ mov ax, 4300h
+ call syscall
+ mov eax, 0
+ jc @FExistsEnd
+ test cx, 18h
+ jnz @FExistsEnd
+ inc eax
 @FExistsEnd:
 end {['eax', 'ecx', 'edx']};
 
@@ -551,25 +581,25 @@ var SR: PSearchRec;
 
 begin
     if os_mode = osOS2 then
-begin
-  New (FStat);
-  Rslt.FindHandle := $FFFFFFFF;
-  Count := 1;
-  Err := DosFindFirst (PChar (Path), Rslt.FindHandle,
-               Attr and FindResvdMask, FStat, SizeOf (FStat^), Count,
-                                                          ilStandard);
-  if (Err = 0) and (Count = 0) then Err := 18;
-  FindFirst := -Err;
-  if Err = 0 then
-  begin
-    Rslt.Name := FStat^.Name;
-    Rslt.Size := FStat^.FileSize;
-    Rslt.Attr := FStat^.AttrFile;
-    Rslt.ExcludeAttr := 0;
-    TRec (Rslt.Time).T := FStat^.TimeLastWrite;
-    TRec (Rslt.Time).D := FStat^.DateLastWrite;
-  end;
-  Dispose (FStat);
+        begin
+            New (FStat);
+            Rslt.FindHandle := $FFFFFFFF;
+            Count := 1;
+            Err := DosFindFirst (PChar (Path), Rslt.FindHandle,
+                   Attr and FindResvdMask, FStat, SizeOf (FStat^), Count,
+                                                                   ilStandard);
+            if (Err = 0) and (Count = 0) then Err := 18;
+            FindFirst := -Err;
+            if Err = 0 then
+                begin
+                    Rslt.Name := FStat^.Name;
+                    Rslt.Size := FStat^.FileSize;
+                    Rslt.Attr := FStat^.AttrFile;
+                    Rslt.ExcludeAttr := 0;
+                    TRec (Rslt.Time).T := FStat^.TimeLastWrite;
+                    TRec (Rslt.Time).D := FStat^.DateLastWrite;
+                end;
+            Dispose (FStat);
         end
     else
         begin
@@ -600,7 +630,7 @@ var SR: PSearchRec;
 
 begin
     if os_mode = osOS2 then
-begin
+        begin
             New (FStat);
             Count := 1;
             Err := DosFindNext (Rslt.FindHandle, FStat, SizeOf (FStat^),
@@ -645,7 +675,7 @@ var SR: PSearchRec;
 begin
     if os_mode = osOS2 then
         begin
-    DosFindClose (F.FindHandle);
+            DosFindClose (F.FindHandle);
         end
     else
         begin
@@ -660,13 +690,17 @@ end;
 function FileGetDate (Handle: longint): longint; assembler;
 asm
  push ebx
-    mov ax, 5700h
-    mov ebx, Handle
-    call syscall
-    mov eax, -1
-    jc @FGetDateEnd
-    mov ax, dx
-    shld eax, ecx, 16
+{$IFDEF REGCALL}
+ mov ebx, eax
+{$ELSE REGCALL}
+ mov ebx, Handle
+{$ENDIF REGCALL}
+ mov ax, 5700h
+ call syscall
+ mov eax, -1
+ jc @FGetDateEnd
+ mov ax, dx
+ shld eax, ecx, 16
 @FGetDateEnd:
  pop ebx
 end {['eax', 'ebx', 'ecx', 'edx']};
@@ -717,36 +751,49 @@ end;
 
 function FileGetAttr (const FileName: string): longint; assembler;
 asm
- mov ax, 4300h
+{$IFDEF REGCALL}
+ mov edx, eax
+{$ELSE REGCALL}
  mov edx, FileName
-    call syscall
-    jnc @FGetAttrEnd
-    mov eax, -1
+{$ENDIF REGCALL}
+ mov ax, 4300h
+ call syscall
+ jnc @FGetAttrEnd
+ mov eax, -1
 @FGetAttrEnd:
 end {['eax', 'edx']};
 
 
 function FileSetAttr (const Filename: string; Attr: longint): longint; assembler;
 asm
-    mov ax, 4301h
-    mov ecx, Attr
+{$IFDEF REGCALL}
+ mov ecx, edx
+ mov edx, eax
+{$ELSE REGCALL}
+ mov ecx, Attr
  mov edx, FileName
-    call syscall
-    mov eax, 0
-    jnc @FSetAttrEnd
-    mov eax, -1
+{$ENDIF REGCALL}
+ mov ax, 4301h
+ call syscall
+ mov eax, 0
+ jnc @FSetAttrEnd
+ mov eax, -1
 @FSetAttrEnd:
 end {['eax', 'ecx', 'edx']};
 
 
 function DeleteFile (const FileName: string): boolean; assembler;
 asm
-    mov ax, 4100h
+{$IFDEF REGCALL}
+ mov edx, eax
+{$ELSE REGCALL}
  mov edx, FileName
-    call syscall
-    mov eax, 0
-    jc @FDeleteEnd
-    inc eax
+{$ENDIF REGCALL}
+ mov ax, 4100h
+ call syscall
+ mov eax, 0
+ jc @FDeleteEnd
+ inc eax
 @FDeleteEnd:
 end {['eax', 'edx']};
 
@@ -754,13 +801,18 @@ end {['eax', 'edx']};
 function RenameFile (const OldName, NewName: string): boolean; assembler;
 asm
  push edi
-    mov ax, 5600h
-    mov edx, OldName
-    mov edi, NewName
-    call syscall
-    mov eax, 0
-    jc @FRenameEnd
-    inc eax
+{$IFDEF REGCALL}
+ mov edx, eax
+ mov edi, edx
+{$ELSE REGCALL}
+ mov edx, OldName
+ mov edi, NewName
+{$ENDIF REGCALL}
+ mov ax, 5600h
+ call syscall
+ mov eax, 0
+ jc @FRenameEnd
+ inc eax
 @FRenameEnd:
  pop edi
 end {['eax', 'edx', 'edi']};
@@ -810,7 +862,7 @@ begin
                    int64 (FI.Sectors_Per_Cluster) * int64 (FI.Bytes_Per_Sector)
             else
                 DiskFree := -1;
-end;
+        end;
 end;
 
 function DiskSize (Drive: byte): int64;
@@ -852,7 +904,7 @@ begin
                    int64 (FI.Sectors_Per_Cluster) * int64 (FI.Bytes_Per_Sector)
             else
                 DiskSize := -1;
-end;
+        end;
 end;
 
 
@@ -892,14 +944,18 @@ end;
 {$ASMMODE INTEL}
 function DirectoryExists (const Directory: string): boolean; assembler;
 asm
+{$IFDEF REGCALL}
+ mov edx, eax
+{$ELSE REGCALL}
+ mov edx, Directory
+{$ENDIF REGCALL}
  mov ax, 4300h
-    mov edx, Directory
-    call syscall
-    mov eax, 0
-    jc @FExistsEnd
-    test cx, 10h
-    jz @FExistsEnd
-    inc eax
+ call syscall
+ mov eax, 0
+ jc @FExistsEnd
+ test cx, 10h
+ jz @FExistsEnd
+ inc eax
 @FExistsEnd:
 end {['eax', 'ecx', 'edx']};
 
@@ -912,30 +968,37 @@ procedure GetLocalTime (var SystemTime: TSystemTime); assembler;
 asm
 (* Expects the default record alignment (word)!!! *)
  push edi
-    mov ah, 2Ah
-    call syscall
-    mov edi, SystemTime
-    mov ax, cx
-    stosw
-    xor eax, eax
-    mov al, 10
-    mul dl
-    shl eax, 16
-    mov al, dh
-    stosd
-    push edi
-    mov ah, 2Ch
-    call syscall
-    pop edi
-    xor eax, eax
-    mov al, cl
-    shl eax, 16
-    mov al, ch
-    stosd
-    mov al, dl
-    shl eax, 16
-    mov al, dh
-    stosd
+{$IFDEF REGCALL}
+ push eax
+{$ENDIF REGCALL}
+ mov ah, 2Ah
+ call syscall
+{$IFDEF REGCALL}
+ pop eax
+{$ELSE REGCALL}
+ mov edi, SystemTime
+{$ENDIF REGCALL}
+ mov ax, cx
+ stosw
+ xor eax, eax
+ mov al, 10
+ mul dl
+ shl eax, 16
+ mov al, dh
+ stosd
+ push edi
+ mov ah, 2Ch
+ call syscall
+ pop edi
+ xor eax, eax
+ mov al, cl
+ shl eax, 16
+ mov al, ch
+ stosd
+ mov al, dl
+ shl eax, 16
+ mov al, dh
+ stosd
  pop edi
 end {['eax', 'ecx', 'edx', 'edi']};
 {$asmmode default}
@@ -1144,7 +1207,10 @@ end.
 
 {
   $Log$
-  Revision 1.15  2004-02-15 21:26:37  hajny
+  Revision 1.16  2004-02-22 15:01:49  hajny
+    * lots of fixes (regcall, THandle, string operations in sysutils, longint2cardinal according to OS/2 docs, dosh.inc, ...)
+
+  Revision 1.15  2004/02/15 21:26:37  hajny
     * overloaded ExecuteProcess added, EnvStr param changed to longint
 
   Revision 1.14  2004/01/20 23:05:31  hajny

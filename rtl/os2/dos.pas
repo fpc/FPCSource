@@ -669,12 +669,13 @@ end;
 function  GetShortName(var p : String) : boolean;
 begin
   GetShortName:=true;
+{$WARNING EA .shortname support (see FAT32 driver) should be probably added here!}
 end;
 
 function  GetLongName(var p : String) : boolean;
 begin
   GetLongName:=true;
-{$WARNING EA .longname support should be probably added here}
+{$WARNING EA .longname support should be probably added here!}
 end;
 
 
@@ -684,7 +685,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.38  2004-02-17 17:37:26  daniel
+  Revision 1.39  2004-02-22 15:01:49  hajny
+    * lots of fixes (regcall, THandle, string operations in sysutils, longint2cardinal according to OS/2 docs, dosh.inc, ...)
+
+  Revision 1.38  2004/02/17 17:37:26  daniel
     * Enable threadvars again
 
   Revision 1.37  2004/02/16 22:16:59  hajny
