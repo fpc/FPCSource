@@ -305,11 +305,11 @@ unit cgx86;
            OS_64,OS_S64:
              case s1 of
                OS_8,OS_S8:
-                 s3 := S_BQ;
+                 s3 := S_BL;
                OS_16,OS_S16:
-                 s3 := S_WQ;
+                 s3 := S_WL;
                OS_32,OS_S32:
-                 s3 := S_LQ;
+                 s3 := S_L;
                OS_64,OS_S64:
                  s3 := S_Q;
                else
@@ -573,6 +573,13 @@ unit cgx86;
           S_BW,S_BL,S_WL :
             begin
               tmpreg:=getintregister(list,tosize);
+{$ifdef x86_64}
+              { zero extensions to 64 bit on the x86_64 are simply done by writting to the lower 32 bit
+                which clears the upper 64 bit too, so it could be that s is S_L while the reg is
+                64 bit (FK) }
+              if s in [S_BL,S_WL,S_L] then
+                tmpreg:=makeregsize(tmpreg,OS_32);
+{$endif x86_64}
               list.concat(taicpu.op_reg_reg(op,s,reg,tmpreg));
               a_load_reg_ref(list,tosize,tosize,tmpreg,ref);
               ungetregister(list,tmpreg);
@@ -590,6 +597,13 @@ unit cgx86;
       begin
         check_register_size(tosize,reg);
         sizes2load(fromsize,tosize,op,s);
+{$ifdef x86_64}
+        { zero extensions to 64 bit on the x86_64 are simply done by writting to the lower 32 bit
+          which clears the upper 64 bit too, so it could be that s is S_L while the reg is
+          64 bit (FK) }
+        if s in [S_BL,S_WL,S_L] then
+          reg:=makeregsize(reg,OS_32);
+{$endif x86_64}
         list.concat(taicpu.op_ref_reg(op,s,ref,reg));
       end;
 
@@ -603,9 +617,16 @@ unit cgx86;
         check_register_size(fromsize,reg1);
         check_register_size(tosize,reg2);
         sizes2load(fromsize,tosize,op,s);
+{$ifdef x86_64}
+        { zero extensions to 64 bit on the x86_64 are simply done by writting to the lower 32 bit
+          which clears the upper 64 bit too, so it could be that s is S_L while the reg is
+          64 bit (FK) }
+        if s in [S_BL,S_WL,S_L] then
+          reg2:=makeregsize(reg2,OS_32);
+{$endif x86_64}
         instr:=taicpu.op_reg_reg(op,s,reg1,reg2);
-        {Notify the register allocator that we have written a move instruction so
-         it can try to eliminate it.}
+        { Notify the register allocator that we have written a move instruction so
+          it can try to eliminate it. }
         add_move_instruction(instr);
         list.concat(instr);
       end;
@@ -1823,7 +1844,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.107  2004-02-05 18:28:37  peter
+  Revision 1.108  2004-02-06 14:37:48  florian
+    * movz*q fixed
+
+  Revision 1.107  2004/02/05 18:28:37  peter
     * x86_64 fixes for opsize
 
   Revision 1.106  2004/02/04 22:01:13  peter
