@@ -569,9 +569,9 @@ implementation
              aktclass:=new(pobjectdef,init(classtype,n,nil));
            { is the current class tobject?   }
            { so you could define your own tobject }
-           if (cs_compilesystem in aktmoduleswitches) and (classtype=odt_class) and (n='TOBJECT') then
+           if (cs_compilesystem in aktmoduleswitches) and (classtype=odt_class) and (upper(n)='TOBJECT') then
              class_tobject:=aktclass
-           else if (cs_compilesystem in aktmoduleswitches) and (classtype=odt_interfacecom) and (n='IUNKNOWN') then
+           else if (cs_compilesystem in aktmoduleswitches) and (classtype=odt_interfacecom) and (upper(n)='IUNKNOWN') then
              interface_iunknown:=aktclass
            else
              begin
@@ -809,7 +809,7 @@ implementation
                         if n='' then
                           Message(parser_f_no_anonym_objects);
                         aktclass:=new(pobjectdef,init(odt_class,n,nil));
-                        if (cs_compilesystem in aktmoduleswitches) and (n='TOBJECT') then
+                        if (cs_compilesystem in aktmoduleswitches) and (upper(n)='TOBJECT') then
                           class_tobject:=aktclass;
                         aktclass^.objecttype:=odt_class;
                         include(aktclass^.objectoptions,oo_is_forward);
@@ -1157,7 +1157,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  2000-11-04 17:31:00  florian
+  Revision 1.7  2000-11-04 18:03:57  florian
+    * fixed upper/lower case problem
+
+  Revision 1.6  2000/11/04 17:31:00  florian
     * fixed some problems of previous commit
 
   Revision 1.5  2000/11/04 14:25:20  florian
