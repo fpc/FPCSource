@@ -1357,77 +1357,13 @@ unit pdecl;
                       oldparse_only:=parse_only;
                       parse_only:=true;
                       parse_proc_dec;
-                      if idtoken=_MESSAGE then
-                        begin
-                           { check parameter type }
-                           if ((aktprocsym^.definition^.options and pocontainsself)=0) and
-                              (assigned(aktprocsym^.definition^.para1^.next) or
-                             (aktprocsym^.definition^.para1^.paratyp<>vs_var)) then
-                             Message(parser_e_ill_msg_param);
-                           consume(idtoken);
-                           pt:=comp_expr(true);
-                           do_firstpass(pt);
-                           if pt^.treetype=stringconstn then
-                             begin
-                                aktclass^.options:=aktclass^.options or oo_hasmsgstr;
-                                aktprocsym^.definition^.options:=
-                                  aktprocsym^.definition^.options or pomsgstr;
-                                aktprocsym^.definition^.messageinf.str:=strnew(pt^.value_str);
-                             end
-                           else if is_constintnode(pt) then
-                             begin
+                      parse_object_proc_directives(aktprocsym);
+                      if (aktprocsym^.definition^.options and pomsgint)<>0 then
                                 aktclass^.options:=aktclass^.options or oo_hasmsgint;
-                                aktprocsym^.definition^.options:=
-                                  aktprocsym^.definition^.options or pomsgint;
-                                aktprocsym^.definition^.messageinf.i:=pt^.value;
-                             end
-                           else
-                             Message(parser_e_ill_msg_expr);
-                           disposetree(pt);
-                           consume(SEMICOLON);
-                        end
-                      else
-                        begin
-{$ifdef OLDOBJECTOPTIONS}
-                           case idtoken of
-                            _DYNAMIC,
-                            _VIRTUAL : begin
-                                         if actmembertype=sp_private then
-                                           Message(parser_w_priv_meth_not_virtual);
-                                         consume(idtoken);
-                                         consume(SEMICOLON);
-                                         aktprocsym^.definition^.options:=aktprocsym^.definition^.options or povirtualmethod;
-                                         aktclass^.options:=aktclass^.options or oo_hasvirtual;
-                                       end;
-                           _OVERRIDE : begin
-                                         consume(_OVERRIDE);
-                                         consume(SEMICOLON);
-                                         aktprocsym^.definition^.options:=aktprocsym^.definition^.options or
-                                           pooverridingmethod or povirtualmethod;
-                                       end;
-                           end;
-                           if idtoken=_ABSTRACT then
-                             begin
+                      if (aktprocsym^.definition^.options and pomsgstr)<>0 then
+                        aktclass^.options:=aktclass^.options or oo_hasmsgstr;
                                 if (aktprocsym^.definition^.options and povirtualmethod)<>0 then
-                                  aktprocsym^.definition^.options:=aktprocsym^.definition^.options or poabstractmethod
-                                else
-                                  Message(parser_e_only_virtual_methods_abstract);
-                                consume(_ABSTRACT);
-                                consume(SEMICOLON);
-                                { the method is defined }
-                                aktprocsym^.definition^.forwarddef:=false;
-                             end;
-                           if (cs_static_keyword in aktglobalswitches) and (idtoken=_STATIC) then
-                            begin
-                              consume(_STATIC);
-                              consume(SEMICOLON);
-                              aktprocsym^.properties:=aktprocsym^.properties or sp_static;
-                              aktprocsym^.definition^.options:=aktprocsym^.definition^.options or postaticmethod;
-                            end;
-{$else OLDOBJECTOPTIONS}
-                          parse_object_proc_directives(aktprocsym);
-{$endif def OLDOBJECTOPTIONS}
-                        end;
+                        aktclass^.options:=aktclass^.options or oo_hasvirtual;
                       parse_only:=oldparse_only;
                     end;
      _CONSTRUCTOR : begin
@@ -1436,33 +1372,9 @@ unit pdecl;
                       oldparse_only:=parse_only;
                       parse_only:=true;
                       constructor_head;
-{$ifdef OLDOBJECTOPTIONS}
-                      case idtoken of
-                       _DYNAMIC,
-                       _VIRTUAL : begin
-                                    if not(aktclass^.isclass) then
-                                     Message(parser_e_constructor_cannot_be_not_virtual)
-                                    else
-                                     begin
-                                       aktprocsym^.definition^.options:=aktprocsym^.definition^.options or povirtualmethod;
-                                       aktclass^.options:=aktclass^.options or oo_hasvirtual;
-                                     end;
-                                    consume(idtoken);
-                                    consume(SEMICOLON);
-                                  end;
-                      _OVERRIDE : begin
-                                    if (aktclass^.options and oo_is_class=0) then
-                                      Message(parser_e_constructor_cannot_be_not_virtual)
-                                    else
-                                      aktprocsym^.definition^.options:=aktprocsym^.definition^.options or
-                                        pooverridingmethod or povirtualmethod;
-                                    consume(_OVERRIDE);
-                                    consume(SEMICOLON);
-                                  end;
-                      end;
-{$else OLDOBJECTOPTIONS}
                       parse_object_proc_directives(aktprocsym);
-{$endif def OLDOBJECTOPTIONS}
+                      if (aktprocsym^.definition^.options and povirtualmethod)<>0 then
+                        aktclass^.options:=aktclass^.options or oo_hasvirtual;
                       parse_only:=oldparse_only;
                     end;
       _DESTRUCTOR : begin
@@ -1474,25 +1386,9 @@ unit pdecl;
                       oldparse_only:=parse_only;
                       parse_only:=true;
                       destructor_head;
-{$ifdef OLDOBJECTOPTIONS}
-                      case idtoken of
-                       _DYNAMIC,
-                       _VIRTUAL : begin
-                                    consume(idtoken);
-                                    consume(SEMICOLON);
-                                    aktprocsym^.definition^.options:=aktprocsym^.definition^.options or povirtualmethod;
-                                    aktclass^.options:=aktclass^.options or oo_hasvirtual;
-                                  end;
-                      _OVERRIDE : begin
-                                    consume(_OVERRIDE);
-                                    consume(SEMICOLON);
-                                    aktprocsym^.definition^.options:=aktprocsym^.definition^.options or
-                                      pooverridingmethod or povirtualmethod;
-                                  end;
-                      end;
-{$else OLDOBJECTOPTIONS}
                       parse_object_proc_directives(aktprocsym);
-{$endif def OLDOBJECTOPTIONS}
+                      if (aktprocsym^.definition^.options and povirtualmethod)<>0 then
+                        aktclass^.options:=aktclass^.options or oo_hasvirtual;
                       parse_only:=oldparse_only;
                     end;
              _END : begin
@@ -2219,7 +2115,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.127  1999-06-02 22:44:10  pierre
+  Revision 1.127.2.1  1999-07-02 12:59:49  peter
+    * fixed parsing of message directive
+
+  Revision 1.127  1999/06/02 22:44:10  pierre
    * previous wrong log corrected
 
   Revision 1.126  1999/06/02 22:25:42  pierre
