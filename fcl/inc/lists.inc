@@ -61,29 +61,10 @@ Var NewList,ToFree : PPointerList;
 begin
   If (NewCapacity<0) or (NewCapacity>MaxListSize) then
      Error (SListCapacityError,NewCapacity);
-  If NewCapacity>FCapacity then
-    begin
-    GetMem (NewList,NewCapacity*SizeOf(Pointer));
-    If NewList=Nil then
-      //!! Find another one here !!
-      Error (SListCapacityError,NewCapacity);
-    If Assigned(FList) then
-      begin
-      System.Move (FList^,NewList^,FCapacity*Sizeof(Pointer));
-      FillWord (NewList^[FCapacity],(NewCapacity-FCapacity)*WordRatio, 0);
-      FreeMem (Flist,FCapacity*SizeOf(Pointer));
-      end;
-    Flist:=NewList;
-    FCapacity:=NewCapacity;
-    end
-  else if NewCapacity<FCapacity then
-    begin
-    If NewCapacity<0 then
-      Error (SListCapacityError,NEwCapacity);
-    ToFree:=Flist+NewCapacity*SizeOf(Pointer);
-    FreeMem (ToFree, (FCapacity-NewCapacity)*SizeOf(Pointer));
-    FCapacity:=NewCapacity;
-    end;
+  if NewCapacity=FCapacity then
+    exit;
+  ReallocMem(FList,SizeOf(Pointer)*NewCapacity);
+  FCapacity:=NewCapacity;
 end;
 
 
@@ -419,7 +400,31 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:59  michael
-  + removed logs
- 
+  Revision 1.1.2.1  2000-09-14 18:37:10  michael
+  + Fixed setcapacity
+
+  Revision 1.1  2000/07/13 06:31:31  michael
+  + Initial import
+
+  Revision 1.12  2000/06/27 15:55:19  lazarus
+  Added TThreadlist code.   Shane
+
+  Revision 1.11  2000/03/20 14:30:03  pierre
+   * fix of 877
+
+  Revision 1.10  2000/01/07 01:24:33  peter
+    * updated copyright to 2000
+
+  Revision 1.9  2000/01/06 01:20:33  peter
+    * moved out of packages/ back to topdir
+
+  Revision 1.1  2000/01/03 19:33:07  peter
+    * moved to packages dir
+
+  Revision 1.7  1999/04/13 12:46:16  michael
+  + Some bug fixes by Romio
+
+  Revision 1.6  1999/04/08 10:18:52  peter
+    * makefile updates
+
 }
