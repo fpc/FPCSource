@@ -28,9 +28,9 @@ procedure WriteXMLFile(doc: TXMLDocument; const AFileName: String); overload;
 procedure WriteXMLFile(doc: TXMLDocument; var AFile: Text); overload;
 procedure WriteXMLFile(doc: TXMLDocument; AStream: TStream); overload;
 
-procedure WriteXML(Element: TDOMElement; const AFileName: String); overload;
-procedure WriteXML(Element: TDOMElement; var AFile: Text); overload;
-procedure WriteXML(Element: TDOMElement; AStream: TStream); overload;
+procedure WriteXML(Element: TDOMNode; const AFileName: String); overload;
+procedure WriteXML(Element: TDOMNode; var AFile: Text); overload;
+procedure WriteXML(Element: TDOMNode; AStream: TStream); overload;
 
 
 // ===================================================================
@@ -523,7 +523,7 @@ begin
 end;
 
 
-procedure WriteXML(Element: TDOMElement; const AFileName: String);
+procedure WriteXML(Element: TDOMNode; const AFileName: String);
 {$IFDEF UsesFPCWidestrings}
 var
   OldWideStringManager: TWideStringManager;
@@ -546,7 +546,7 @@ begin
   {$ENDIF}
 end;
 
-procedure WriteXML(Element: TDOMElement; var AFile: Text);
+procedure WriteXML(Element: TDOMNode; var AFile: Text);
 {$IFDEF UsesFPCWidestrings}
 var
   OldWideStringManager: TWideStringManager;
@@ -568,7 +568,7 @@ begin
   {$ENDIF}
 end;
 
-procedure WriteXML(Element: TDOMElement; AStream: TStream);
+procedure WriteXML(Element: TDOMNode; AStream: TStream);
 {$IFDEF UsesFPCWidestrings}
 var
   OldWideStringManager: TWideStringManager;
@@ -593,7 +593,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.15  2004-11-05 22:32:28  peter
+  Revision 1.16  2005-01-08 01:32:06  michael
+  + Fixed writing of fragments
+
+  Revision 1.15  2004/11/05 22:32:28  peter
     * merged xml updates from lazarus
 
 }
