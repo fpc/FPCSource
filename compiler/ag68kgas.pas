@@ -75,7 +75,11 @@ unit ag68kgas;
         c  : comp;
         dd : pdouble;
       begin
+      {$ifdef TP}
+         c:=d;
+      {$else}
          c:=comp(d);
+      {$endif}
          dd:=pdouble(@c); { this makes a bitwise copy of c into a double }
          comp2str:=double2str(dd^);
       end;
@@ -535,7 +539,7 @@ ait_stab_function_name : funcname:=pai_stab_function_name(hp)^.str;
                            hp:=pai(hp^.next);
                         end;
                      end;
-{$endif SMARTLINK}              
+{$endif SMARTLINK}
 
          else
           internalerror(10000);
@@ -608,7 +612,10 @@ ait_stab_function_name : funcname:=pai_stab_function_name(hp)^.str;
 end.
 {
   $Log$
-  Revision 1.4  1998-06-04 23:51:28  peter
+  Revision 1.5  1998-06-05 17:46:04  peter
+    * tp doesn't like comp() typecast
+
+  Revision 1.4  1998/06/04 23:51:28  peter
     * m68k compiles
     + .def file creation moved to gendef.pas so it could also be used
       for win32

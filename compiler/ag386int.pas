@@ -75,7 +75,11 @@ unit ag386int;
         c  : comp;
         dd : pdouble;
       begin
+      {$ifdef TP}
+         c:=d;
+      {$else}
          c:=comp(d);
+       {$endif}
          dd:=pdouble(@c); { this makes a bitwise copy of c into a double }
          comp2str:=double2str(dd^);
       end;
@@ -554,7 +558,10 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.10  1998-05-25 17:11:36  pierre
+  Revision 1.11  1998-06-05 17:46:02  peter
+    * tp doesn't like comp() typecast
+
+  Revision 1.10  1998/05/25 17:11:36  pierre
     * firstpasscount bug fixed
       now all is already set correctly the first time
       under EXTDEBUG try -gp to skip all other firstpasses

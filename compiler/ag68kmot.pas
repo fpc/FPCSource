@@ -64,7 +64,11 @@ unit ag68kmot;
         c  : comp;
         dd : pdouble;
       begin
+      {$ifdef TP}
+         c:=d;
+      {$else}
          c:=comp(d);
+      {$endif}
          dd:=pdouble(@c); { this makes a bitwise copy of c into a double }
          comp2str:=double2str(dd^);
       end;
@@ -532,7 +536,10 @@ ait_labeled_instruction :
 end.
 {
   $Log$
-  Revision 1.4  1998-06-04 23:51:30  peter
+  Revision 1.5  1998-06-05 17:46:06  peter
+    * tp doesn't like comp() typecast
+
+  Revision 1.4  1998/06/04 23:51:30  peter
     * m68k compiles
     + .def file creation moved to gendef.pas so it could also be used
       for win32

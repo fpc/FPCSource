@@ -79,7 +79,11 @@ unit ag386nsm;
         c  : comp;
         dd : pdouble;
       begin
+      {$ifdef TP}
+         c:=d;
+      {$else}
          c:=comp(d);
+       {$endif}
          dd:=pdouble(@c); { this makes a bitwise copy of c into a double }
          comp2str:=double2str(dd^);
       end;
@@ -541,7 +545,10 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.3  1998-05-28 17:24:27  peter
+  Revision 1.4  1998-06-05 17:46:03  peter
+    * tp doesn't like comp() typecast
+
+  Revision 1.3  1998/05/28 17:24:27  peter
     - $R- for tp to solve range errors with in[]
 
   Revision 1.2  1998/05/25 17:11:37  pierre
