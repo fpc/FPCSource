@@ -83,15 +83,27 @@ Type
     end;
   pSockAddr = ^TSockAddr;
 
-  TInetSockAddr = packed Record
-  {$ifdef SOCK_HAS_SINLEN}
+TInetSockAddr = packed Record
+    case boolean of   
+     false : (
+  {$ifdef SOCK_HAS_SINLEN} 
      sin_len     : cuchar;
   {$endif}
      sin_family  : sa_family_t;
-     sin_port    : cushort;
+     sin_port    : cushort;   
      sin_addr    : in_addr;
+     xpad         : array [0..7] of char; { to get to the size of sockaddr... }
+      );
+   true: (
+  {$ifdef SOCK_HAS_SINLEN}
+     len     : cuchar;
+  {$endif}
+     family  : sa_family_t;
+     port    : cushort;
+     addr    : cardinal;
      pad         : array [0..7] of char; { to get to the size of sockaddr... }
-  end;
+      );                
+    end;
   pInetSockAddr = ^TInetSockAddr;
 
   Tin6_addr = packed record
@@ -174,7 +186,10 @@ Function Connect(Sock:longint;const addr:TInetSockAddr;var SockIn,SockOut:file):
 
 {
   $Log$
-  Revision 1.13  2004-03-16 18:03:37  marco
+  Revision 1.14  2004-03-16 19:15:57  marco
+   * sockaddr is now a union between the old and new struct as grace period
+
+  Revision 1.13  2004/03/16 18:03:37  marco
    * first changes sockets units
 
   Revision 1.12  2003/11/23 11:00:07  michael
