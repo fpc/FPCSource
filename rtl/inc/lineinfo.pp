@@ -546,7 +546,7 @@ begin
          end;
       end;
    end;
-  LoadElf32:=(stabofs<>-1) and (stabstrofs<>-1);
+  LoadElf32Beos:=(stabofs<>-1) and (stabstrofs<>-1);
 end;
 {$endif beos}
 
@@ -781,7 +781,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.13  2003-01-14 16:17:37  peter
+  Revision 1.14  2003-02-01 22:31:34  marco
+   * Last change broke beos. Fixed.
+
+  Revision 1.13  2003/01/14 16:17:37  peter
     * remove wrong hasunix, replaced with elf32 define which
       is set for freebsd,netbsd,linux or sunos
 
