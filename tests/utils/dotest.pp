@@ -36,6 +36,13 @@ const
 
 var
   Config : TConfig;
+  CompilerLogFile,
+  ExeLogFile,
+  LongLogfile,
+  FailLogfile,
+  RTLUnitsDir,
+  TestOutputDir,
+  OutputDir : string;
   CompilerBin : string;
   CompilerCPU : string;
   CompilerTarget : string;
@@ -45,14 +52,13 @@ var
   TestName : string;
 
 const
-  LongLogfile : string[32] = 'longlog';
-  FailLogfile : string[32] = 'faillist';
   DoGraph : boolean = false;
   DoInteractive : boolean = false;
   DoExecute : boolean = false;
   DoKnown : boolean = false;
   DoAll : boolean = false;
   DoUsual : boolean = true;
+  TargetDir : string = '';
   ExtraCompilerOpts : string = '';
   DelExecutable : boolean = false;
   RemoteAddr : string = '';
@@ -71,6 +77,19 @@ Var
 begin
   FindFirst (F,anyfile,Info);
   FileExists:=DosError=0;
+  FindClose (Info);
+end;
+
+
+Function PathExists (Const F : String) : Boolean;
+{
+  Returns True if the file exists, False if not.
+}
+Var
+  info : searchrec;
+begin
+  FindFirst (F,anyfile,Info);
+  PathExists:=(DosError=0) and (Info.Attr and Directory=Directory);
   FindClose (Info);
 end;
 
@@ -189,6 +208,30 @@ begin
    ForceExtension:=Copy(Hstr,1,j-1)+'.'+Ext
   else
    ForceExtension:=Copy(Hstr,1,j-1);
+end;
+
+
+procedure mkdirtree(const s:string);
+var
+  hs : string;
+begin
+  if s='' then
+    exit;
+  if s[length(s)] in ['\','/'] then
+    hs:=Copy(s,1,length(s)-1)
+  else
+    hs:=s;  
+  if not PathExists(hs) then
+    begin
+      { Try parent first }
+      mkdirtree(SplitPath(hs));
+      { make this dir }
+      Verbose(V_Debug,'Making Directory '+s);
+      {$I-}
+       mkdir(s);
+      {$I+}
+      ioresult;
+    end;
 end;
 
 
@@ -347,7 +390,7 @@ begin
   else
     GetCompilerVersion:=true;
   if GetCompilerVersion then
-    Verbose(V_Debug,'Current Compiler Version: "'+CompilerVersion+'"');
+    Verbose(V_Debug,'Compiler Version: "'+CompilerVersion+'"');
 end;
 
 
@@ -358,7 +401,7 @@ begin
   else
     GetCompilerCPU:=true;
   if GetCompilerCPU then
-    Verbose(V_Debug,'Current Compiler CPU: "'+CompilerCPU+'"');
+    Verbose(V_Debug,'Compiler CPU: "'+CompilerCPU+'"');
 end;
 
 
@@ -369,7 +412,25 @@ begin
   else
     GetCompilerTarget:=true;
   if GetCompilerTarget then
-    Verbose(V_Debug,'Current Compiler Target: "'+CompilerTarget+'"');
+    Verbose(V_Debug,'Compiler Target: "'+CompilerTarget+'"');
+end;
+
+
+function GetCompilerFullTarget:string;
+begin
+  GetCompilerFullTarget:=CompilerCPU+'-'+CompilerTarget;
+end;
+
+
+function OutputFileName(Const s,ext:String):String;
+begin
+  OutputFileName:=OutputDir+'/'+ForceExtension(s,ext);
+end;
+
+
+function TestOutputFileName(Const s,ext:String):String;
+begin
+  TestOutputFileName:=TestOutputDir+'/'+ForceExtension(SplitFileName(s),ext);
 end;
 
 
@@ -401,13 +462,14 @@ end;
 
 function RunCompiler:boolean;
 var
-  outname,
-  args : string;
+  args    : string;
   execres : boolean;
 begin
   RunCompiler:=false;
-  OutName:=ForceExtension(PPFile,'log');
-  args:='-n -Fuunits '+ExtraCompilerOpts;
+  args:='-n -Fu'+RTLUnitsDir;
+  args:=args+' -FE'+TestOutputDir;
+  if ExtraCompilerOpts<>'' then
+   args:=args+ExtraCompilerOpts;
 {$ifdef unix}
   { Add runtime library path to current dir to find .so files }
   if Config.NeedLibrary then
@@ -418,7 +480,7 @@ begin
   args:=args+' '+ppfile;
   Verbose(V_Debug,'Executing '+compilerbin+' '+args);
   { also get the output from as and ld that writes to stderr sometimes }
-  execres:=ExecuteRedir(CompilerBin,args,'',OutName,'stdout');
+  execres:=ExecuteRedir(CompilerBin,args,'',CompilerLogFile,'stdout');
   Verbose(V_Debug,'Exitcode '+ToStr(ExecuteResult));
 
   { Error during execution? }
@@ -428,15 +490,15 @@ begin
       AddLog(ResLogFile,failed_to_compile+PPFileInfo);
       AddLog(LongLogFile,line_separation);
       AddLog(LongLogFile,failed_to_compile+PPFileInfo);
-      CopyFile(OutName,LongLogFile,true);
+      CopyFile(CompilerLogFile,LongLogFile,true);
       { avoid to try again }
-      AddLog(ForceExtension(PPFile,'elg'),failed_to_compile+PPFileInfo);
+      AddLog(ExeLogFile,failed_to_compile+PPFileInfo);
       Verbose(V_Abort,'IOStatus: '+ToStr(IOStatus));
       exit;
     end;
 
   { Check for internal error }
-  if ExitWithInternalError(OutName) then
+  if ExitWithInternalError(CompilerLogFile) then
    begin
      AddLog(FailLogFile,TestName);
      if Config.Note<>'' then
@@ -446,9 +508,9 @@ begin
      AddLog(LongLogFile,failed_to_compile+PPFileInfo);
      if Config.Note<>'' then
       AddLog(LongLogFile,Config.Note);
-     CopyFile(OutName,LongLogFile,true);
+     CopyFile(CompilerLogFile,LongLogFile,true);
      { avoid to try again }
-     AddLog(ForceExtension(PPFile,'elg'),'Failed to compile '++PPFileInfo);
+     AddLog(ExeLogFile,'Failed to compile '++PPFileInfo);
      Verbose(V_Abort,'Internal error in compiler');
      exit;
    end;
@@ -460,7 +522,7 @@ begin
       begin
         AddLog(ResLogFile,success_compilation_failed+PPFileInfo);
         { avoid to try again }
-        AddLog(ForceExtension(PPFile,'elg'),success_compilation_failed+PPFileInfo);
+        AddLog(ExeLogFile,success_compilation_failed+PPFileInfo);
         RunCompiler:=true;
       end
      else
@@ -472,10 +534,10 @@ begin
         AddLog(LongLogFile,line_separation);
         AddLog(LongLogFile,failed_compilation_successful+PPFileInfo);
         { avoid to try again }
-        AddLog(ForceExtension(PPFile,'elg'),failed_compilation_successful+PPFileInfo);
+        AddLog(ExeLogFile,failed_compilation_successful+PPFileInfo);
         if Config.Note<>'' then
           AddLog(LongLogFile,Config.Note);
-        CopyFile(OutName,LongLogFile,true);
+        CopyFile(CompilerLogFile,LongLogFile,true);
       end;
    end
   else
@@ -489,7 +551,7 @@ begin
         AddLog(LongLogFile,line_separation);
         AddLog(LongLogFile,known_problem+Config.KnownCompileNote);
         AddLog(LongLogFile,failed_to_compile+PPFileInfo+' ('+ToStr(ExecuteResult)+')');
-        Copyfile(OutName,LongLogFile,true);
+        Copyfile(CompilerLogFile,LongLogFile,true);
         Verbose(V_Abort,known_problem+'exitcode: '+ToStr(ExecuteResult));
       end
      else if ExecuteResult<>0 then
@@ -502,9 +564,9 @@ begin
         AddLog(LongLogFile,failed_to_compile+PPFileInfo);
         if Config.Note<>'' then
           AddLog(LongLogFile,Config.Note);
-        CopyFile(OutName,LongLogFile,true);
+        CopyFile(CompilerLogFile,LongLogFile,true);
         { avoid to try again }
-        AddLog(ForceExtension(PPFile,'elg'),failed_to_compile+PPFileInfo);
+        AddLog(ExeLogFile,failed_to_compile+PPFileInfo);
         Verbose(V_Abort,'Exitcode: '+ToStr(ExecuteResult)+' (expected 0)');
       end
      else
@@ -538,6 +600,7 @@ begin
       begin
         delete(s,1,i+14-1);
         val(s,ExecuteResult,code);
+        if code=0 then;
         CheckTestExitCode:=true;
         break;
       end;
@@ -548,7 +611,8 @@ end;
 
 function RunExecutable:boolean;
 var
-  outname,
+  OldDir,
+  FullExeLogFile,
   TestRemoteExe,
   TestExe  : string;
   execres  : boolean;
@@ -556,7 +620,7 @@ var
   function ExecuteRemote(const prog,args:string):boolean;
   begin
     Verbose(V_Debug,'RemoteExecuting '+Prog+' '+args);
-    ExecuteRemote:=ExecuteRedir(prog,args,'',OutName,'stdout');
+    ExecuteRemote:=ExecuteRedir(prog,args,'',EXELogFile,'stdout');
   end;
 
 begin
@@ -564,10 +628,9 @@ begin
   execres:=true;
   { when remote testing, leave extension away }
   if RemoteAddr='' then
-    TestExe:=ForceExtension(PPFile,ExeExt)
+    TestExe:=OutputFileName(PPFile,ExeExt)
   else
-    TestExe:=ForceExtension(PPFile,'');
-  OutName:=ForceExtension(PPFile,'elg');
+    TestExe:=OutputFileName(PPFile,'');
   if RemoteAddr<>'' then
     begin
       { We don't want to create subdirs, remove paths from the test }
@@ -579,16 +642,28 @@ begin
       execres:=ExecuteRemote(rshprog,RemotePara+' '+RemoteAddr+' '+rquote+'chmod 755 '+TestRemoteExe+
         ' ; cd '+RemotePath+' ; '+TestRemoteExe+' ; echo "TestExitCode: $?"'+rquote);
       { Check for TestExitCode error in output, sets ExecuteResult }
-      CheckTestExitCode(OutName);
+      CheckTestExitCode(EXELogFile);
     end
   else
     begin
+      { Get full name out log file, because we change the directory during
+        execution }
+      FullExeLogFile:=FExpand(EXELogFile);
       Verbose(V_Debug,'Executing '+TestExe);
-      { don't redirect interactive and graph programs .. }
+      {$I-}
+       GetDir(0,OldDir);
+       ChDir(TestOutputDir);
+      {$I+}
+      ioresult;
+      { don't redirect interactive and graph programs }
       if Config.IsInteractive or Config.UsesGraph then
-        execres:=ExecuteRedir(TestExe,'','','','')
+        execres:=ExecuteRedir(SplitFileName(TestExe),'','','','')
       else
-        execres:=ExecuteRedir(TestExe,'','',OutName,'stdout');
+        execres:=ExecuteRedir(SplitFileName(TestExe),'','',FullExeLogFile,'stdout');
+      {$I-}
+       ChDir(OldDir);
+      {$I+}
+      ioresult;
     end;
 
   { Error during execution? }
@@ -599,9 +674,9 @@ begin
       AddLog(ResLogFile,failed_to_run+PPFileInfo);
       AddLog(LongLogFile,line_separation);
       AddLog(LongLogFile,failed_to_run+PPFileInfo);
-      CopyFile(OutName,LongLogFile,true);
+      CopyFile(EXELogFile,LongLogFile,true);
       { avoid to try again }
-      AddLog(ForceExtension(PPFile,'elg'),failed_to_run+PPFileInfo);
+      AddLog(ExeLogFile,failed_to_run+PPFileInfo);
       Verbose(V_Abort,'IOStatus: '+ToStr(IOStatus));
       exit;
     end;
@@ -616,7 +691,7 @@ begin
          AddLog(LongLogFile,line_separation);
          AddLog(LongLogFile,known_problem+Config.KnownRunNote);
          AddLog(LongLogFile,failed_to_run+PPFileInfo+' ('+ToStr(ExecuteResult)+')');
-         Copyfile(OutName,LongLogFile,true);
+         Copyfile(EXELogFile,LongLogFile,true);
          Verbose(V_Abort,known_problem+'exitcode: '+ToStr(ExecuteResult)+' (expected '+ToStr(Config.ResultCode)+')');
        end
      else
@@ -625,7 +700,7 @@ begin
          AddLog(ResLogFile,failed_to_run+PPFileInfo);
          AddLog(LongLogFile,line_separation);
          AddLog(LongLogFile,failed_to_run+PPFileInfo+' ('+ToStr(ExecuteResult)+')');
-         Copyfile(OutName,LongLogFile,true);
+         Copyfile(EXELogFile,LongLogFile,true);
          Verbose(V_Abort,'Exitcode: '+ToStr(ExecuteResult)+' (expected '+ToStr(Config.ResultCode)+')');
        end
    end
@@ -775,11 +850,42 @@ end;
 
 procedure RunTest;
 var
+  PPDir : string;
   Res : boolean;
-  OutName : string;
 begin
   Res:=GetConfig(ppfile,Config);
-  OutName:=ForceExtension(PPFile,'elg');
+
+  if Res then
+    begin
+      Res:=GetCompilerCPU;
+      Res:=GetCompilerTarget;
+      RTLUnitsDir:='units/'+GetCompilerFullTarget;
+      if not PathExists(RTLUnitsDir) then
+        Verbose(V_Abort,'Unit path "'+RTLUnitsDir+'" does not exists');
+      OutputDir:='output/'+GetCompilerFullTarget;
+      if not PathExists(OutputDir) then
+        Verbose(V_Abort,'Output path "'+OutputDir+'" does not exists');
+      { Global log files }
+      ResLogFile:=OutputFileName('log','');
+      LongLogFile:=OutputFileName('longlog','');
+      FailLogFile:=OutputFileName('faillist','');
+      { Make subdir in output if needed }
+      PPDir:=SplitPath(PPFile);
+      if PPDir[length(PPDir)] in ['/','\'] then
+        Delete(PPDir,length(PPDir),1);
+      if PPDir<>'' then
+        begin
+          TestOutputDir:=OutputDir+'/'+PPDir;
+          mkdirtree(TestOutputDir);
+        end
+      else
+        TestOutputDir:=OutputDir;
+      { Per test logfiles }
+      CompilerLogFile:=TestOutputFileName(SplitFileName(PPFile),'log');
+      ExeLogFile:=TestOutputFileName(SplitFileName(PPFile),'elg');
+      Verbose(V_Debug,'Using Compiler logfile: '+CompilerLogFile);
+      Verbose(V_Debug,'Using Execution logfile: '+ExeLogFile);
+    end;
 
   if Res then
    begin
@@ -787,7 +893,7 @@ begin
       begin
         AddLog(ResLogFile,skipping_graph_test+PPFileInfo);
         { avoid a second attempt by writing to elg file }
-        AddLog(OutName,skipping_graph_test+PPFileInfo);
+        AddLog(EXELogFile,skipping_graph_test+PPFileInfo);
         Verbose(V_Abort,skipping_graph_test);
         Res:=false;
       end;
@@ -798,7 +904,7 @@ begin
      if Config.IsInteractive and (not DoInteractive) then
       begin
         { avoid a second attempt by writing to elg file }
-        AddLog(OutName,skipping_interactive_test+PPFileInfo);
+        AddLog(EXELogFile,skipping_interactive_test+PPFileInfo);
         AddLog(ResLogFile,skipping_interactive_test+PPFileInfo);
         Verbose(V_Abort,skipping_interactive_test);
         Res:=false;
@@ -810,7 +916,7 @@ begin
      if Config.IsKnownCompileError and (not DoKnown) then
       begin
         { avoid a second attempt by writing to elg file }
-        AddLog(OutName,skipping_known_bug+PPFileInfo);
+        AddLog(EXELogFile,skipping_known_bug+PPFileInfo);
         AddLog(ResLogFile,skipping_known_bug+PPFileInfo);
         Verbose(V_Abort,skipping_known_bug);
         Res:=false;
@@ -831,7 +937,7 @@ begin
         if CompilerVersion<Config.MinVersion then
          begin
            { avoid a second attempt by writing to elg file }
-           AddLog(OutName,skipping_compiler_version_too_low+PPFileInfo);
+           AddLog(EXELogFile,skipping_compiler_version_too_low+PPFileInfo);
            AddLog(ResLogFile,skipping_compiler_version_too_low+PPFileInfo);
            Verbose(V_Abort,'Compiler version too low '+CompilerVersion+' < '+Config.MinVersion);
            Res:=false;
@@ -848,7 +954,7 @@ begin
         if CompilerVersion>Config.MaxVersion then
          begin
            { avoid a second attempt by writing to elg file }
-           AddLog(OutName,skipping_compiler_version_too_high+PPFileInfo);
+           AddLog(EXELogFile,skipping_compiler_version_too_high+PPFileInfo);
            AddLog(ResLogFile,skipping_compiler_version_too_high+PPFileInfo);
            Verbose(V_Abort,'Compiler version too high '+CompilerVersion+' > '+Config.MaxVersion);
            Res:=false;
@@ -861,11 +967,10 @@ begin
      if Config.NeedCPU<>'' then
       begin
         Verbose(V_Debug,'Required compiler cpu: '+Config.NeedCPU);
-        Res:=GetCompilerCPU;
         if not IsInList(CompilerCPU,Config.NeedCPU) then
          begin
            { avoid a second attempt by writing to elg file }
-           AddLog(OutName,skipping_other_cpu+PPFileInfo);
+           AddLog(EXELogFile,skipping_other_cpu+PPFileInfo);
            AddLog(ResLogFile,skipping_other_cpu+PPFileInfo);
            Verbose(V_Abort,'Compiler cpu "'+CompilerCPU+'" is not in list "'+Config.NeedCPU+'"');
            Res:=false;
@@ -878,11 +983,10 @@ begin
      if Config.SkipCPU<>'' then
       begin
         Verbose(V_Debug,'Skip compiler cpu: '+Config.NeedCPU);
-        Res:=GetCompilerCPU;
         if IsInList(CompilerCPU,Config.SkipCPU) then
          begin
            { avoid a second attempt by writing to elg file }
-           AddLog(OutName,skipping_other_cpu+PPFileInfo);
+           AddLog(EXELogFile,skipping_other_cpu+PPFileInfo);
            AddLog(ResLogFile,skipping_other_cpu+PPFileInfo);
            Verbose(V_Abort,'Compiler cpu "'+CompilerCPU+'" is in list "'+Config.SkipCPU+'"');
            Res:=false;
@@ -895,11 +999,10 @@ begin
      if Config.NeedTarget<>'' then
       begin
         Verbose(V_Debug,'Required compiler target: '+Config.NeedTarget);
-        Res:=GetCompilerTarget;
         if not IsInList(CompilerTarget,Config.NeedTarget) then
          begin
            { avoid a second attempt by writing to elg file }
-           AddLog(OutName,skipping_other_target+PPFileInfo);
+           AddLog(EXELogFile,skipping_other_target+PPFileInfo);
            AddLog(ResLogFile,skipping_other_target+PPFileInfo);
            Verbose(V_Abort,'Compiler target "'+CompilerTarget+'" is not in list "'+Config.NeedTarget+'"');
            Res:=false;
@@ -912,11 +1015,10 @@ begin
      if Config.SkipTarget<>'' then
       begin
         Verbose(V_Debug,'Skip compiler target: '+Config.NeedTarget);
-        Res:=GetCompilerTarget;
         if IsInList(CompilerTarget,Config.SkipTarget) then
          begin
            { avoid a second attempt by writing to elg file }
-           AddLog(OutName,skipping_other_target+PPFileInfo);
+           AddLog(EXELogFile,skipping_other_target+PPFileInfo);
            AddLog(ResLogFile,skipping_other_target+PPFileInfo);
            Verbose(V_Abort,'Compiler target "'+CompilerTarget+'" is in list "'+Config.SkipTarget+'"');
            Res:=false;
@@ -936,14 +1038,14 @@ begin
      if (Config.NoRun) then
       begin
         { avoid a second attempt by writing to elg file }
-        AddLog(OutName,skipping_run_test+PPFileInfo);
+        AddLog(EXELogFile,skipping_run_test+PPFileInfo);
         AddLog(ResLogFile,skipping_run_test+PPFileInfo);
         Verbose(V_Debug,skipping_run_test);
       end
      else if Config.IsKnownRunError and (not DoKnown) then
       begin
         { avoid a second attempt by writing to elg file }
-        AddLog(OutName,skipping_known_bug+PPFileInfo);
+        AddLog(EXELogFile,skipping_known_bug+PPFileInfo);
         AddLog(ResLogFile,skipping_known_bug+PPFileInfo);
         Verbose(V_Abort,skipping_known_bug);
       end
@@ -951,11 +1053,11 @@ begin
       begin
         if (not Config.ShouldFail) and DoExecute then
          begin
-           if FileExists(ForceExtension(PPFile,'ppu')) or
-              FileExists(ForceExtension(PPFile,'ppo')) or
-              FileExists(ForceExtension(PPFile,'ppw')) then
+           if FileExists(TestOutputFilename(PPFile,'ppu')) or
+              FileExists(TestOutputFilename(PPFile,'ppo')) or
+              FileExists(TestOutputFilename(PPFile,'ppw')) then
              begin
-               AddLog(ForceExtension(PPFile,'elg'),skipping_run_unit+PPFileInfo);
+               AddLog(ExeLogFile,skipping_run_unit+PPFileInfo);
                AddLog(ResLogFile,skipping_run_unit+PPFileInfo);
                Verbose(V_Debug,'Unit found, skipping run test')
              end
@@ -973,7 +1075,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.38  2004-09-30 15:38:59  peter
+  Revision 1.39  2004-11-09 17:26:28  peter
+    * use separate output dirs
+    * same tree can be used for multiple targets
+
+  Revision 1.38  2004/09/30 15:38:59  peter
     * chdir to remote path before executing test
 
   Revision 1.37  2004/07/03 18:28:21  florian

@@ -53,6 +53,7 @@ endif
 ifndef TEST_OS_TARGET
 TEST_OS_TARGET:=$(word 5,$(TEST_FPC_COMPILERINFO))
 endif
+TEST_FULL_TARGET=$(TEST_CPU_TARGET)-$(TEST_OS_TARGET)
 
 ifndef TEST_CCOMPILER
 ifeq ($(CPU_TARGET),$(TEST_CPU_TARGET))
@@ -65,21 +66,24 @@ endif
 endif
 endif
 
+# Target dir where the ppu and binaries are created
+TEST_OUTPUTDIR=output/$(FULL_TARGET)
+
 
 ################################
 # Misc
 #
 
 ifndef FAILLIST
-export FAILLIST:=faillist
+export FAILLIST:=$(TEST_OUTPUTDIR)/faillist
 endif
 
 ifndef LONGLOG
-export LONGLOG:=longlog
+export LONGLOG:=$(TEST_OUTPUTDIR)/longlog
 endif
 
 ifndef LOG
-export LOG:=log
+export LOG:=$(TEST_OUTPUTDIR)/log
 endif
 
 
@@ -136,18 +140,20 @@ units:
 # Copy test environment dependent files ctest.o to test/cg etc
 #
 
-copyfiles:
+copyfiles: $(TEST_OUTPUTDIR)
         $(COPY) test/cg/obj/$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)/ctest.o test/cg
-        $(COPY) test/units/system/test*.txt .
+        $(COPY) test/units/system/test*.txt $(TEST_OUTPUTDIR)/tests/units/system
 
 ################################
 # Preparation for tests
 #
 
-testprep: testprep-stamp.$(TEST_OS_TARGET)
-testprep-stamp.$(TEST_OS_TARGET): utils units copyfiles
-        $(ECHO) $(DATE) > testprep-stamp.$(TEST_OS_TARGET)
+testprep: testprep-stamp.$(TEST_FULL_TARGET)
+testprep-stamp.$(TEST_FULL_TARGET): $(TEST_OUTPUTDIR) utils units copyfiles
+        $(ECHO) $(DATE) > testprep-stamp.$(TEST_FULL_TARGET)
 
+$(TEST_OUTPUTDIR):
+        $(MKDIRTREE) $@
 
 ################################
 # Dotest options
@@ -162,7 +168,7 @@ endif
 ifneq ($(OS_TARGET),$(TEST_OS_TARGET))
 override DOTESTOPT+=-Y-T$(TEST_OS_TARGET)
 endif
-ifneq ($(TEST_BINUTILSPREFIX),) 
+ifneq ($(TEST_BINUTILSPREFIX),)
 override DOTESTOPT+=-Y-XP$(TEST_BINUTILSPREFIX) -Y-Xd
 endif
 ifdef TEST_RSH
@@ -217,6 +223,9 @@ endif
 
 DIRS=webtbs webtbf tbs tbf $(TESTDIRS)
 
+vpath %.log $(TEST_OUTPUTDIR)
+vpath %.elg $(TEST_OUTPUTDIR)
+
 %.log : %.pp
         $(DOTEST) $(DOTESTOPT) $<
 
@@ -263,35 +272,18 @@ allexectests: allexectest allexectbs allexectbf allexecwebtbs allexecwebtbf
 .PHONY: clean distclean clean_test
 
 clean_test:
-        -$(DEL) $(addsuffix /*$(PPUEXT),$(DIRS))
-        -$(DEL) $(addsuffix /*$(OEXT),$(DIRS))
-        -$(DEL) $(addsuffix /*.rst,$(DIRS))
-        -$(DEL) $(addsuffix /*$(SHAREDLIBEXT),$(DIRS))
-        -$(DEL) $(addsuffix /*.log,$(DIRS))
-        -$(DEL) $(addsuffix /*.elg,$(DIRS))
-        -$(DEL) $(addsuffix /*$(ASMEXT),$(DIRS))
-        -$(DEL) $(addsuffix /*_ppas$(BATCHEXT),$(DIRS))
-ifeq ($(EXEEXT),)
-        -$(DEL) $(wildcard $(patsubst %.pp,%$(EXEEXT),$(wildcard $(addsuffix /t*.pp,$(DIRS)))))
-else
-        -$(DEL) $(addsuffix /*$(EXEEXT),$(DIRS))
-endif
-ifdef DEBUGSYMEXT
-        -$(DEL) $(addsuffix /*$(DEBUGSYMEXT),$(DIRS))
-endif
-        -$(DEL) test*.txt *.tmp *$(SHAREDLIBEXT) *$(OEXT) *$(PPUEXT) core
+        -$(DELTREE) output/$(TEST_FULL_TARGET)
         -$(DEL) $(LOG) $(LONGLOG) $(FAILLIST)
-        -$(DEL) ppas$(SRCBATCHEXT) gmon.out testprep-stamp.*
-#          Needed when link on target:
-        -$(DEL) *_ppas$(BATCHEXT)
-
+        -$(DEL) core gmon.out testprep-stamp.$(TEST_FULL_TARGET)
 
 clean:
         $(MAKE) clean_test CPU_TARGET=$(TEST_CPU_TARGET) OS_TARGET=$(TEST_OS_TARGET)
         $(MAKE) -C units clean CPU_TARGET=$(TEST_CPU_TARGET) OS_TARGET=$(TEST_OS_TARGET)
 
 distclean: clean fpc_distclean
+        $(DELTREE) output
         $(MAKE) -C utils distclean
+        -$(DEL) testprep-stamp.*
 
 #cleanall: clean
 #        $(MAKE) -C utils cleanall
@@ -300,17 +292,17 @@ distclean: clean fpc_distclean
 # Main rules
 #
 
-.PHONY: all full rundigest dailytest onlyknown onlygraph onlyinteractive
+.PHONY: all full digest dailytest onlyknown onlygraph onlyinteractive
 
-rundigest : utils
-        -$(DIGEST)
+digest : utils
+        -$(DIGEST) $(LOG)
 ifeq ($(USESQL),YES)
-        -$(DBDIGEST) -v $(TEST_FPC_VERSION) -o $(TEST_OS_TARGET) -c $(TEST_CPU_TARGET) $(DBDIGESTOPT)
+        -$(DBDIGEST) -v $(TEST_FPC_VERSION) -o $(TEST_OS_TARGET) -c $(TEST_CPU_TARGET) -l $(LOG) $(DBDIGESTOPT)
 endif
 
 all : allexectests
 
-full : clean allexectests rundigest
+full : clean allexectests digest
 
 onlyknown :
         $(MAKE) full "DOTESTOPT= $(DOTESTOPT) -k-"
@@ -322,9 +314,9 @@ onlyinteractive :
         $(MAKE) "DOTESTOPT= $(DOTESTOPT) -i-"
 
 info :
-        @$(ECHO) This Makefile allows to test the compiler
+        @$(ECHO) "This Makefile allows to test the compiler"
         @$(ECHO)
-        @$(ECHO) Targets:
+        @$(ECHO) "Targets:"
         @$(ECHO) "  all   - continue all tests"
         @$(ECHO) "  full  - clean and run all tests"
         @$(ECHO) "  dailytest - run full and save results"
@@ -332,14 +324,14 @@ info :
         @$(ECHO) "  onlyknown - run only known bugs"
         @$(ECHO) "  onlygraph - run only graph tests"
         @$(ECHO) "  onlyinteractive - run only interactive tests"
-        @$(ECHO) "  rundigest - compute and print test statistics"
+        @$(ECHO) "  digest    - compute and print test statistics"
         @$(ECHO)
-        @$(ECHO) Driver environment:
-        @$(ECHO) "  $(OS_TARGET)-$(CPU_TARGET)"
+        @$(ECHO) "Host environment:"
+        @$(ECHO) "  $(FULL_TARGET)"
         @$(ECHO) "  compiler: $(FPC) ver: $(FPC_VERSION)"
         @$(ECHO)
-        @$(ECHO) Test environment:
-        @$(ECHO) "  $(TEST_OS_TARGET)-$(TEST_CPU_TARGET)"
+        @$(ECHO) "Test environment:"
+        @$(ECHO) "  $(TEST_FULL_TARGET)"
         @$(ECHO) "  compiler: $(TEST_FPC) ver: $(TEST_FPC_VERSION)"
 
 override DATESUFFIX:=$(shell $(DATE) +%Y.%m.%d)
@@ -351,16 +343,3 @@ endif
 ifneq ($(wildcard lastdate.txt),)
 LASTDATESUFFIX:=$(shell cat lastdate.txt)
 endif
-
-
-dailytest : full
-        $(COPY) faillist faillist.$(DATESUFFIX)
-        $(COPY) log log.$(DATESUFFIX)
-        $(COPY) longlog longlog.$(DATESUFFIX)
-        -$(DIGEST) > digest.$(DATESUFFIX)
-ifdef LASTDATESUFFIX
-        -diff -u log.$(LASTDATESUFFIX) log.$(DATESUFFIX) > difflog.$(DATESUFFIX)
-        -diff -u digest.$(LASTDATESUFFIX) digest.$(DATESUFFIX) > diffdigest.$(DATESUFFIX)
-        -diff -u faillist.$(LASTDATESUFFIX) faillist.$(DATESUFFIX) > difflist.$(DATESUFFIX)
-endif
-        @$(ECHO) $(DATESUFFIX) > lastdate.txt
