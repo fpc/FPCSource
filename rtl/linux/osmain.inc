@@ -469,12 +469,6 @@ begin
                     ((d^.d_name[1]='.') and (d^.d_name[2]=#0))))) then
               name:='/'+strpas(d^.d_name);
           end;
-       end
-      else
-       begin
-         { Ignore possible broken symlinks }
-         if (Errno<>ESysENOENT) then
-          Exit;
        end;
     until (name<>'');
     If Fpclosedir(dirstream)<0 THen
@@ -600,7 +594,10 @@ End.
 *)
 {
  $Log$
- Revision 1.9  2003-12-14 14:28:36  peter
+ Revision 1.10  2003-12-21 20:30:49  peter
+   * don't exit in getdir when fpstat gives a failure
+
+ Revision 1.9  2003/12/14 14:28:36  peter
    * only check errno if the syscall failed
 
  Revision 1.8  2003/11/01 01:58:11  marco
