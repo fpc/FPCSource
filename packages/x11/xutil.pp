@@ -6,7 +6,8 @@ interface
 uses
   x,xlib;
 
-{$linklib x11}
+{$LinkLib C}
+{$LinkLib X11}
 
 {
   Bitmask returned by XParseGeometry().  Each bit tells if the corresponding
@@ -886,7 +887,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.3  2000-02-27 13:11:31  peter
+  Revision 1.4  2000-02-27 14:39:54  peter
+    * added explicit linklib c
+
+  Revision 1.3  2000/02/27 13:11:31  peter
     * cleanup, removed warnings
     * external decls moved from implementation to interface
 
