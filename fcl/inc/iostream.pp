@@ -15,94 +15,84 @@
 
 unit iostream;
 
-Interface
+interface
 
-Uses Classes;
+uses Classes;
 
-Type
+type
+  TIOSType = (iosInput,iosOutPut,iosError);
+  EIOStreamError = class(EStreamError);
 
-  TiosType = (iosInput,iosOutPut,iosError);
-  EIOStreamError = Class(EStreamError);
+  TIOStream = class(THandleStream)
+  private
+    FType,
+    FPos : LongInt;
+    zIOSType : TIOSType;
+  public
+    constructor Create(aIOSType : TiosType);
+    function Read(var Buffer; Count : LongInt) : Longint; override;
+    function Write(const Buffer; Count : LongInt) : LongInt; override;
+    procedure SetSize(NewSize: Longint); override;
+    function Seek(Offset: Longint; Origin: Word): Longint; override;
+    end;
 
-  TIOStream = Class(THandleStream)
-    Private
-      FType,
-      FPos : Longint;
-    Public
-      Constructor Create(IOSType : TiosType);
-      Function Read(var Buffer; Count: Longint): Longint;override;
-      Function Write(const Buffer; Count: Longint): Longint;override;
-      Procedure SetSize(NewSize: Longint); override;
-      Function Seek(Offset: Longint; Origin: Word): Longint; override;
-   end;
+implementation
 
-Implementation
-
-Const
+const
   SReadOnlyStream = 'Cannot write to an input stream.';
   SWriteOnlyStream = 'Cannot read from an output stream.';
   SInvalidOperation = 'Cannot perform this operation on a IOStream.';
 
-Constructor TIOStream.Create(IOSType : TiosType);
-
+constructor TIOStream.Create(aIOSType : TIOSType);
 begin
 {$ifdef win32}
-  Case IOSType of
-    iosOutput : FType:=Stdoutputhandle;
-    iosInput : FType:=Stdinputhandle;
-    iosError : FType:=StdErrorHandle;
+  case aIOSType of
+    iosInput : FType := StdInputHandle;
+    iosOutput : FType := StdOutputHandle;
+    iosError : FType := StdErrorHandle;
   end;
 {$else}
-  FType:=Ord(IOSType);
+  FType := Ord(aIOSType);
 {$endif}
-  Inherited Create(Ftype);
+  inherited Create(FType);
+  zIOSType := aIOSType;
 end;
 
-
-Function TIOStream.Read(var Buffer; Count: Longint): Longint;
-
+function TIOStream.Read(var Buffer; Count : LongInt) : Longint;
 begin
-  If Ftype>0 then
-    Raise EIOStreamError.Create(SWriteOnlyStream)
-  else
-    begin
-    Result:=Inherited Read(Buffer,Count);
-    Inc(FPos,Result);
-    end;
+  if (zIOSType = iosOutput) then
+    raise EIOStreamError.Create(SWriteOnlyStream)
+  else begin
+    result := inherited Read(Buffer,Count);
+    inc(FPos,result);
+  end;
 end;
 
-
-Function TIOStream.Write(const Buffer; Count: Longint): Longint;
-
+function TIOStream.Write(const Buffer; Count : LongInt) : LongInt;
 begin
-  If Ftype=0 then
-    Raise EIOStreamError.Create(SReadOnlyStream)
-  else
-    begin
-    Result:=Inherited Write(Buffer,Count);
-    Inc(FPos,Result);
-    end;
+  if (zIOSType = iosInput) then
+    raise EIOStreamError.Create(SReadOnlyStream)
+  else begin
+    result := inherited Write(Buffer,Count);
+    inc(FPos,result);
+  end;
 end;
 
-
-Procedure TIOStream.SetSize(NewSize: Longint);
-
+procedure TIOStream.SetSize(NewSize: Longint);
 begin
-  Raise EIOStreamError.Create(SInvalidOperation);
+  raise EIOStreamError.Create(SInvalidOperation);
 end;
 
-
-Function TIOStream.Seek(Offset: Longint; Origin: Word): Longint;
-
-Const BufSize = 100;
-
-Var Buf : array[1..BufSize] of Byte;
-
+function TIOStream.Seek(Offset: Longint; Origin: Word): Longint;
+const
+  BufSize = 100;
+var
+  Buf : array[1..BufSize] of Byte;
 begin
   If (Origin=soFromCurrent) and (Offset=0) then
      result:=FPos;
   { Try to fake seek by reading and discarding }
-  if (Ftype>0) or
+  if (zIOSType = iosOutput) or
      Not((Origin=soFromCurrent) and (Offset>=0) or
          ((Origin=soFrombeginning) and (OffSet>=FPos))) then
      Raise EIOStreamError.Create(SInvalidOperation);
@@ -120,7 +110,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2002-09-07 15:15:24  peter
+  Revision 1.4  2005-02-14 16:39:51  peter
+    * fixed stdinput reading under win32
+
+  Revision 1.3  2002/09/07 15:15:24  peter
     * old logs removed and tabs fixed
 
 }
