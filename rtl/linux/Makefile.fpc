@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 loaders=prt0 dllprt0 cprt0 gprt0 cprt21 gprt21
-units=$(SYSTEMUNIT) systhrds objpas strings \
+units=$(SYSTEMUNIT) baseunix systhrds objpas strings \
       heaptrc lineinfo \
       $(LINUXUNIT) unix initc $(CPU_UNITS) \
       dos crt objects printer ggigraph \
@@ -155,12 +155,17 @@ unix$(PPUEXT) : unix.pp strings$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
                  syscalls.inc systypes.inc sysconst.inc $(UNIXINC)/timezone.inc $(SYSTEMUNIT)$(PPUEXT) \
                  unixsysc.inc
 
+baseunix$(PPUEXT) : $(UNIXINC)/errno.inc bunxtype.inc ptypes.inc ctypes.inc \
+	signal.inc $(UNIXINC)/bunxh.inc bunxmain.inc ostypes.inc \
+	bunxfunc.inc $(CPU_TARGET)/syscallh.inc sysnr.inc \
+	ostypes.inc ossysch.inc bunxmacr.inc $(UNIXINC)/gensigset.inc \
+	$(UNIXINC)/genfuncs.inc $(SYSTEMUNIT)$(PPUEXT)
+
 ports$(PPUEXT) : ports.pp unix$(PPUEXT) objpas$(PPUEXT)
 
 dl$(PPUEXT) : $(UNIXINC)/dl.pp $(SYSTEMUNIT)$(PPUEXT)
 
 dynlibs$(PPUEXT) : $(INC)/dynlibs.pp $(UNIXINC)/dynlibs.inc dl$(PPUEXT) objpas$(PPUEXT)
-
 
 #
 # TP7 Compatible RTL Units
@@ -246,3 +251,5 @@ ipc$(PPUEXT) : ipc.pp unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 terminfo$(PPUEXT) : terminfo.pp unix$(PPUEXT)
 
 callspec$(PPUEXT) : $(INC)/callspec.pp $(SYSTEMUNIT)$(PPUEXT)
+
+
