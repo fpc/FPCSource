@@ -1974,8 +1974,14 @@ implementation
                       begin
                         case localloc.loc of
                           LOC_REFERENCE :
-                            list.concat(Tai_comment.Create(strpnew('Para '+realname+' located at '+
-                                std_regname(localloc.reference.index)+tostr_with_plus(localloc.reference.offset))));
+                            begin
+                              list.concat(Tai_comment.Create(strpnew('Para '+realname+' located at '+
+                                  std_regname(localloc.reference.index)+tostr_with_plus(localloc.reference.offset))));
+{$ifdef powerpc}
+                              localloc.size:=paraitem.paraloc[calleeside].size;
+                              tg.GetLocal(list,tcgsize2size[localloc.size],vartype.def,localloc.reference);
+{$endif powerpc}
+                            end;
                         end;
                       end;
                   end;
@@ -2060,7 +2066,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.182  2004-01-13 18:08:58  florian
+  Revision 1.183  2004-01-17 15:55:10  jonas
+    * fixed allocation of parameters passed by reference for powerpc in
+      callee
+
+  Revision 1.182  2004/01/13 18:08:58  florian
     * x86-64 compilation fixed
 
   Revision 1.181  2004/01/12 22:11:38  peter

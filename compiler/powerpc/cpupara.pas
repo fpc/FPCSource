@@ -380,6 +380,9 @@ unit cpupara;
                  else
                    internalerror(2002071002);
               end;
+{
+              this is filled in in ncgutil
+
               if side = calleeside then
                 begin
                   if (paraloc.loc = LOC_REFERENCE) then
@@ -389,6 +392,7 @@ unit cpupara;
                       inc(paraloc.reference.offset,current_procinfo.calc_stackframe_size);
                     end;
                 end;
+}
               hp.paraloc[side]:=paraloc;
               hp:=tparaitem(hp.next);
            end;
@@ -442,7 +446,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.56  2004-01-15 14:01:18  florian
+  Revision 1.57  2004-01-17 15:55:11  jonas
+    * fixed allocation of parameters passed by reference for powerpc in
+      callee
+
+  Revision 1.56  2004/01/15 14:01:18  florian
     + x86 instruction tables for x86-64 extended
 
   Revision 1.55  2003/12/28 22:09:12  florian
