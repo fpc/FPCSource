@@ -2,27 +2,27 @@ Extra Required tools
 ********************
 
 ppufiles.exe    from utils/
-upx.exe         latest version, currently 1.01
+upx.exe         latest version, currently 1.02 (available in makego32.zip)
+zip.exe         the Info-Zip release
 
-
-Setting up the directory layout
+Getting the sources
 *******************************
 
-For all releases you need to checkout the following modules:
+You need to checkout the fpc module from CVS, you can use a tag to retrieve
+a specific release or fixes branch:
 
-base
-compiler
-rtl
-fcl
-api
-fv
-ide
-install
-docs
-utils
-packages
+RELEASE_1_0_0	1.00 Release
+RELEASE_1_0_2	1.0.2 Release
+RELEASE_1_0_4	1.0.4 Release
+FIXES_1_0_0	1.0.x Fixes Branch
 
-then copy the base/Makefile* to the topdir
+To checkout the main (development) branch use:
+
+cvs -z3 co fpc
+
+To checkout a specific version use, <tag> is one of the tags above:
+
+cvs -z3 co -d <tag> fpc
 
 
 Creating *src.zip files

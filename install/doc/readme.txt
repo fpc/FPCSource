@@ -1,7 +1,7 @@
 
                             Free Pascal Compiler
 
-                               Version 1.02
+                               Version 1.0.4
 
 
 ****************************************************************************
@@ -85,8 +85,8 @@ OS/2 and DOS (extender EMX):
 * Quick start
 ****************************************************************************
 
-Download dos100.zip (version for DOS) or w32100.zip (version for
-Win9x/NT) or os2100.zip (EMX version - for OS/2 and DOS) and unzip it
+Download dos104.zip (version for DOS) or w32104.zip (version for
+Win9x/NT) or os2104.zip (EMX version - for OS/2 and DOS) and unzip it
 into a temporary directory.
 
 Start the install program INSTALL.EXE and follow the instructions.
@@ -107,7 +107,7 @@ All standard packages contain a part that is specific for the target platform
 and a few files which are target independent. All files are also available
 as separate files to reduce file size if the default file is too big.
 
-dos102.zip specific:
+dos104.zip specific:
 ----------------------
   basego32.zip    contains a DOS (Go32V2) compiler, runtime library and
                   additional files
@@ -129,7 +129,7 @@ dos102.zip specific:
       UPX 1.01
   gdbgo32.zip     contains the GNU Debugger 4.18 with pascal support for Go32V2
 
-w32102.zip specific:
+w32104.zip specific:
 ----------------------
   basew32.zip     contains a Win32 compiler, runtime library and
                   additional files
@@ -154,7 +154,7 @@ w32102.zip specific:
       UPX 1.01
   gdbw32.zip      contains the GNU Debugger 4.18 with pascal support for Win32
 
-os2102.zip specific:
+os2104.zip specific:
 ----------------------
   baseemx.zip     contains an EMX (OS/2 and DOS) compiler, runtime library and
                   additional files
@@ -183,7 +183,7 @@ os2102.zip specific:
   gdbemx.zip      contains the GNU Debugger 4.16 for EMX,
                   PMGDB (Presentation Manager add-on for GDB) and GPROF 2.9.1
 
-common files in dos102.zip, w32102.zip and os2102.zip:
+common files in dos104.zip, w32104.zip and os2104.zip:
 ------------------------------------------------------------
   demo.zip        contains some demo files
   doc-pdf.zip     contains the documentation in PDF format
@@ -192,7 +192,7 @@ common files in dos102.zip, w32102.zip and os2102.zip:
   readme.txt      this readme file
   whatsnew.txt    what's been changed
 
-Optional source package src102.zip:
+Optional source package src104.zip:
 -------------------------------------
   basesrc.zip     contains the basic Makefiles needed for the source tree
   compsrc.zip     contains the compiler sources
@@ -268,7 +268,7 @@ it is possible to to make your own version of the fpc compiler/rtl
 and to modify it. You are of course free to do this
 so long as you observe the licence conditions. In order to make the
 compiler/rtl & ides in a resonable time (eg <30 minutes) you'll need at least
-32M of physical memory (64M is better) memory and at least a 200 Mhx processor
+32M of physical memory (64M is better) memory and at least a 200 Mhz processor
 and at least 20 Mbytes of free disk space. You'll also need
 some knowledge of making files & programming... it is not
 difficult but it isn't easy either!
