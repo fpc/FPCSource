@@ -19,24 +19,24 @@ uses
   dpmiexcp,
 {$endif go32v2}
    graph;
-   
+
 
 const max = 1000;
       maxint = 10000*max;
-      
+
 
 var x : array[0..max-1] of longint;
     y : array[-100..100] of longint;
-    
+
     mean,level,i : longint;
     maxcount,delta,maximum,minimum : longint;
     st,st2 : string;
     gm,gd : integer;
     color : longint;
-    
+
 begin
 
-{$ifdef FPC}
+{$ifdef go32v2}
    gm:=G640x400x256;
    gd:=$ff;
 {$else }
@@ -50,10 +50,10 @@ begin
    color:=blue;
 
    mean:=maxint div max;
-   
+
    for level:=0 to 10 do
      begin
-     
+
         for i:=0 to max-1 do
           x[i]:=0;
         for i:=-100 to 100 do
@@ -93,9 +93,9 @@ begin
             maxcount:=y[i];
         if maxcount=0 then
           inc(maxcount);
-          
+
         OutTextXY(GetMaxX div 2,GetMaxY-30,'Random Test Program');
-        
+
         str(level,st);
         st:='Level '+st;
         OutTextXY(30,GetMaxY-60,st);
@@ -103,7 +103,7 @@ begin
         str(minimum,st2);
         st:='Maximum = '+st+' Minimum ='+st2;
         OutTextXY(30,GetMaxY-30,st);
-        
+
         for i:=0 to max-1 do
           putpixel( (i*getmaxX) div max,
             GetMaxY-(x[i]*getMaxY) div (2*mean), color);
@@ -127,10 +127,13 @@ begin
      end;
    CloseGraph;
 end.
-        
+
 {
   $Log$
-  Revision 1.2  1998-11-23 23:44:52  pierre
+  Revision 1.3  1999-01-25 20:23:13  peter
+    * linux updates
+
+  Revision 1.2  1998/11/23 23:44:52  pierre
    + several bugs converted
 
 }

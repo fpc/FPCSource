@@ -1,3 +1,4 @@
+{$mode objfpc}
 type
    to1 = class
        function GetCaps1 : Longint;virtual;abstract;

@@ -1,4 +1,4 @@
-{$OPT= -Tamiga}
+{ $OPT= -Tamiga }
 
 unit tbs0102;
   interface

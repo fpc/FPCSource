@@ -1,4 +1,4 @@
-{ $OPT=-Cr }
+{ $OPT=-St -Cr }
 program test;
 
 {$ifdef go32v2}
@@ -61,7 +61,7 @@ end;
   var other1 : TOtherClass;
   begin
      with other1 do
-          Init;  
+          Init;
      with base1 do
           Init;
      with other1 do
@@ -69,21 +69,21 @@ end;
            Writeln('number of objects = ',st_count);
            base_arg:=2;
            other_arg:=6;
-           Run;  
+           Run;
         end;
      { test if changed !! }
-     
+
      if (other1.base_arg<>2) or (other1.other_arg<>6) then
        Halt(1);
-       
+
      with base1 do
         begin
-           Run;  
+           Run;
            Done;
         end;
      other1.done;
    end;
-  
+
 var     base            : Tbaseclass;
         other           : Totherclass;
         testfield       : longint;

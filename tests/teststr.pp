@@ -1,10 +1,47 @@
 { $OPT=-Fu../rtl/utils
   $Id$
-  
+
   Program to test string functions and speed of the functions
 }
 program TestStr;
+{$ifdef timer}
 uses Timer;
+{$else}
+type
+  TTimer = Object
+    TotalMSec,
+    StartMSec : longint;
+    constructor init;
+    procedure reset;
+    procedure start;
+    procedure stop;
+    Function MSec:longint;
+  end;
+
+procedure TTimer.Reset;
+begin
+end;
+
+procedure TTimer.Start;
+begin
+end;
+
+
+procedure TTimer.Stop;
+begin
+end;
+
+
+Function TTimer.MSec:longint;
+begin
+  MSec:=0;
+end;
+
+Constructor TTimer.Init;
+begin
+end;
+
+{$endif}
 
 const
   TestSize=10; {Use at least 10 for reasonable results}
@@ -21,7 +58,6 @@ var
   CmpBen,
   MixBen     : BenType;
   t          : TTimer;
-
 
 function TestOK:boolean;
 Const
@@ -87,7 +123,7 @@ procedure TestSpeed(Row,Len:byte);
 var
   l      : longint;
   hstr,
-  OrgStr : string;
+  OrgStr : string[10];
 begin
   HeadBen[Row]:=Len;
   OrgStr:='';

@@ -10,18 +10,19 @@
  uses linux;
 {$endif linux}
 
-  function our_sig(l : longint) : longint;
+  function our_sig(l : longint) : longint;{$ifdef linux}cdecl;{$endif}
     begin
        { If we land here the program works correctly !! }
        Writeln('Bound check error signal recieved');
+       our_sig:=0;
        Halt(0);
     end;
-    
+
 Var
  Sel: Word;
  v: longint;
 Begin
- Signal(SIGSEGV,our_sig);
+ Signal(SIGSEGV,signalhandler(our_sig));
  v:=$00ffffff;
  Sel:=word(v);
  writeln(sel);

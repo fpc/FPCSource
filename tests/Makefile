@@ -20,9 +20,9 @@ else
 
 EXEEXT=
 getreturncode : 
-	getret $(COMMAND) !> $(FILE).log !2>$(FILE).log
+	getret $(COMMAND) > $(FILE).log 2>$(FILE).log
 	cp retcode $(FILE).$(RESEXT)
-	@echo Return code of $(FILE) is $(cat retcode)
+	@echo "Return code of $(FILE) is $(cat retcode)"
 endif
 	
 
@@ -43,12 +43,12 @@ endif
 
 ifeq ($(RETVAL),0)
 testsuccess:
-	@echo Test for $(FILE) success (compiles)
-	@echo Test for $(FILE) success (compiles) >>log
+	@echo "Test for $(FILE) success (compiles)"
+	@echo "Test for $(FILE) success (compiles)" >>log
 else
 testsuccess:
-	@echo Test for $(FILE) fails (does not compile) error $(RETVAL)
-	@echo Test for $(FILE) fails (does not compile) error $(RETVAL)>>log
+	@echo "Test for $(FILE) fails (does not compile) error $(RETVAL)"
+	@echo "Test for $(FILE) fails (does not compile) error $(RETVAL)" >>log
 	@echo $(FILE) >> ts_fail
 	@echo $(FILE) >> faillist
 endif
@@ -65,17 +65,17 @@ endif
 
 ifeq ($(EXERETVAL),0)
 testexecsuccess:
-	@echo Test for exec $(FILE) success (runs without error)
-	@echo Test for $(FILE) success (runs without error) >>log
+	@echo "Test for exec $(FILE) success (runs without error)"
+	@echo "Test for $(FILE) success (runs without error)" >>log
 else
 testexecsuccess:
-	@echo Test for exec $(FILE) fails exec error $(EXERETVAL)
-	@echo Test for exec $(FILE) fails exec error $(EXERETVAL)>>log
+	@echo "Test for exec $(FILE) fails exec error $(EXERETVAL)"
+	@echo "Test for exec $(FILE) fails exec error $(EXERETVAL)" >>log
 endif
 	
 ifeq ($(wildcard $(FILE)$(EXEEXT)*),$(FILE)$(EXEEXT))
 testexec:
-	@echo Testing $(FILE)$(EXEEXT)
+	@echo "Testing $(FILE)$(EXEEXT)"
 ifdef NOREDIR
 	getret $(FILE)$(EXEEXT)
 else
@@ -85,7 +85,7 @@ endif
 	$(MAKE) testexecsuccess 'FILE=$(FILE)' 'EXCFILE=$(FILE).exc'
 else
 testexec:
-	@echo No exefile $(FILE)$(EXEEXT)
+	@echo "No exefile $(FILE)$(EXEEXT)"
 	@echo $(FILE) >> faillist
 endif
 
@@ -96,12 +96,12 @@ test_exc :
 	
 ifneq ($(RETVAL),0)
 testfail:
-	@echo Test for $(FILE) success (does not compile) error $(RETVAL)
-	@echo Test for $(FILE) success (does not compile) error $(RETVAL)>> log
+	@echo "Test for $(FILE) success (does not compile) error $(RETVAL)"
+	@echo "Test for $(FILE) success (does not compile) error $(RETVAL)" >> log
 else
 testfail:
-	@echo Test for $(FILE) fails (does compile and should not)
-	@echo Test for $(FILE) fails (does compile and should not) >> log
+	@echo "Test for $(FILE) fails (does compile and should not)"
+	@echo "Test for $(FILE) fails (does compile and should not)" >> log
 	@echo $(FILE) >> tf_fail
 	@echo $(FILE) >> faillist
 endif
@@ -219,8 +219,13 @@ info :
 	@echo created behave like the should
 	@echo run \'make tesiexec\' to test executables 
 	@echo that require interactive mode
+
+#
 # $Log$
-# Revision 1.12  1999-01-19 18:01:43  pierre
+# Revision 1.1  1999-01-25 20:23:04  peter
+#   * linux updates
+#
+# Revision 1.12  1999/01/19 18:01:43  pierre
 #  local change removed
 #
 # Revision 1.11  1999/01/19 17:34:01  pierre
@@ -254,4 +259,3 @@ info :
 # Revision 1.3  1998/10/21 12:12:09  pierre
 # Log inserted
 #
-
