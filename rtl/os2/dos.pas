@@ -619,11 +619,7 @@ begin
             leave
             ret
          .LDISKFREE1:
-{$ifdef NOATTCDQ}
             cltd
-{$else}
-            cwde
-{$endif}
             leave
             ret
         end
@@ -661,11 +657,7 @@ begin
             leave
             ret
         .LDISKSIZE1:
-{$ifdef NOATTCDQ}
             cltd
-{$else}
-            cwde
-{$endif}
             leave
             ret
         end
@@ -988,7 +980,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  1998-12-10 16:05:39  daniel
+  Revision 1.11  1999-01-18 16:22:51  jonas
+    - removed "noattcdq" define
+
+  Revision 1.10  1998/12/10 16:05:39  daniel
   * Fsearch bug fixed
 
   Revision 1.9  1998/12/07 18:55:41  jonas
