@@ -342,6 +342,12 @@ unit symtable;
 {$ifdef m68k}
        bestrealdef : ^pfloatdef = @s64floatdef;
 {$endif}
+{$ifdef alpha}
+       bestrealdef : ^pfloatdef = @s64floatdef;
+{$endif}
+{$ifdef powerpc}
+       bestrealdef : ^pfloatdef = @s64floatdef;
+{$endif}
 
     var
 
@@ -2342,7 +2348,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.32  1999-08-01 23:09:27  michael
+  Revision 1.33  1999-08-03 00:03:24  florian
+    * added bestrealdef for alpha and powerpc
+
+  Revision 1.32  1999/08/01 23:09:27  michael
   * procbase -> cpubase
 
   Revision 1.31  1999/08/01 23:04:50  michael
