@@ -606,14 +606,11 @@ implementation
          if assigned(p^.left) and assigned(p^.right) then
             begin
                firstpass(p^.left);
-               { is this correct ?  At least after is like if used }
+               { is this correct ?  At least after is like if used
                set_varstate(p^.left,false);
-               p^.varstateset:=false;
-               { incrementing the para level is a dirty trick
-                 to get set_varstate to set p^.left var as used PM }
-               inc(parsing_para_level);
+                 already done in _with_statment }
+               p^.left^.varstateset:=false;
                set_varstate(p^.left,true);
-               dec(parsing_para_level);
                if codegenerror then
                  exit;
                symtable:=p^.withsymtable;
@@ -644,7 +641,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.39  2000-01-10 00:42:44  pierre
+  Revision 1.40  2000-01-10 16:38:43  pierre
+   * suppress wrong warning for with vars
+
+  Revision 1.39  2000/01/10 00:42:44  pierre
    * fix for bug 776
 
   Revision 1.38  2000/01/07 09:36:24  pierre
