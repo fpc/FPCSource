@@ -35,8 +35,11 @@ Const
   SInactiveDataset = 'Operation cannot be performed on an inactive dataset';
   SActiveDataset = 'Operation cannot be performed on an active dataset';
   SNoDatasets = 'No datasets are attached to the database';
+  SNoTransactions = 'No transactions are attached to the database';
   SDatasetRegistered = 'Dataset already registered : "%s"';
+  STransactionRegistered = 'Transaction already registered : "%s"';
   SNoDatasetRegistered = 'No such dataset registered : "%s"';
+  SNoTransactionRegistered = 'No such transaction registered : "%s"';
   SNotConnected = 'Operation cannot be performed on an disconnected database';
   SConnected = 'Operation cannot be performed on an connected database';
   SUniDirectional = 'Operation cannot be performed on an unidirectional dataset';
@@ -49,7 +52,20 @@ Const
 
 {
   $Log$
-  Revision 1.6  2004-08-13 07:06:02  michael
+  Revision 1.7  2004-09-26 16:55:24  michael
+  * big patch from Joost van der Sluis
+   bufdataset.inc:
+    fix getrecord (prior)
+    getcanmodify default false
+  database.inc / db.inc:
+    Added transactions
+  dataset.inc:
+    raise error if trying to insert into an readonly dataset
+  db.inc:
+    remove published properties from bufdataset
+    changed ancestor of tbufdataset to tdbdataset
+
+  Revision 1.6  2004/08/13 07:06:02  michael
   + Rework of buffer management by Joost Van der Sluis
 
   Revision 1.5  2003/08/16 16:42:21  michael

@@ -1006,6 +1006,8 @@ Procedure TDataset.Delete;
 
 
 begin
+  If Not CanModify then
+    DatabaseError(SDatasetReadOnly,Self);
   if State in [dsInsert] then
   begin
     Cancel;
@@ -1721,7 +1723,20 @@ end;
 
 {
   $Log$
-  Revision 1.23  2004-09-15 12:22:33  michael
+  Revision 1.24  2004-09-26 16:55:24  michael
+  * big patch from Joost van der Sluis
+   bufdataset.inc:
+    fix getrecord (prior)
+    getcanmodify default false
+  database.inc / db.inc:
+    Added transactions
+  dataset.inc:
+    raise error if trying to insert into an readonly dataset
+  db.inc:
+    remove published properties from bufdataset
+    changed ancestor of tbufdataset to tdbdataset
+
+  Revision 1.23  2004/09/15 12:22:33  michael
   Suggested fix from Luiz Americo to .resync method
 
   Revision 1.22  2004/08/30 12:02:17  michael

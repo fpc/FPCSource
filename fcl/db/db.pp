@@ -1184,13 +1184,29 @@ type
   TDBDataset = Class(TDataset)
     Private
       FDatabase : TDatabase;
-      Procedure SetDatabase (Value : TDatabase);
     Protected
+      Procedure SetDatabase (Value : TDatabase); virtual;
       Procedure CheckDatabase;
     Public
       Destructor destroy; override;
       Property DataBase : TDatabase Read FDatabase Write SetDatabase;
     end;
+
+ { TDBTransaction }
+
+  TDBTransactionClass = Class of TDBTransaction;
+  TDBTransaction = Class(TComponent)
+    Private
+      FDatabase : TDatabase;
+      Procedure SetDatabase (Value : TDatabase);
+    Protected
+      Procedure CheckDatabase;
+    Public
+      procedure EndTransaction; virtual; abstract;
+      Destructor destroy; override;
+      Property DataBase : TDatabase Read FDatabase Write SetDatabase;
+    end;
+
 
   { TDatabase }
 
@@ -1204,6 +1220,7 @@ type
     FConnected : Boolean;
     FDataBaseName : String;
     FDataSets : TList;
+    FTransactions : TList;
     FDirectory : String;
     FKeepConnection : Boolean;
     FLoginPrompt : Boolean;
@@ -1212,11 +1229,16 @@ type
     FSQLBased : Boolean;
     FOpenAfterRead : boolean;
     Function GetDataSetCount : Longint;
+    Function GetTransactionCount : Longint;
     Function GetDataset(Index : longint) : TDBDataset;
+    Function GetTransaction(Index : longint) : TDBTransaction;
     procedure SetConnected (Value : boolean);
     procedure RegisterDataset (DS : TDBDataset);
+    procedure RegisterTransaction (TA : TDBTransaction);
     procedure UnRegisterDataset (DS : TDBDataset);
+    procedure UnRegisterTransaction(TA : TDBTransaction);
     procedure RemoveDataSets;
+    procedure RemoveTransactions;
   protected
     Procedure CheckConnected;
     Procedure CheckDisConnected;
@@ -1230,10 +1252,13 @@ type
     procedure Close;
     procedure Open;
     procedure CloseDataSets;
+    procedure CloseTransactions;
     procedure StartTransaction; virtual; abstract;
     procedure EndTransaction; virtual; abstract;
     property DataSetCount: Longint read GetDataSetCount;
     property DataSets[Index: Longint]: TDBDataSet read GetDataSet;
+    property TransactionCount: Longint read GetTransactionCount;
+    property Transactions[Index: Longint]: TDBTransaction read GetTransaction;
     property Directory: string read FDirectory write FDirectory;
     property IsSQLBased: Boolean read FSQLBased;
   published
@@ -1253,7 +1278,7 @@ type
     BookmarkFlag : TBookmarkFlag;
   end;
 
-  TBufDataset = class(TDataSet)
+  TBufDataset = class(TDBDataSet)
   private
     FBBuffers : TBufferArray;
     FBRecordCount : integer;
@@ -1265,6 +1290,7 @@ type
   protected
     function  AllocRecordBuffer: PChar; override;
     procedure FreeRecordBuffer(var Buffer: PChar); override;
+    function  GetCanModify: Boolean; override;
     function GetRecord(Buffer: PChar; GetMode: TGetMode; DoCheck: Boolean): TGetResult; override;
     procedure InternalOpen; override;
     procedure InternalClose; override;
@@ -1284,35 +1310,6 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-  published
-    // redeclared data set properties
-    property Active;
-//    property FieldDefs stored FieldDefsStored;
-    property Filter;
-    property Filtered;
-    property FilterOptions;
-    property BeforeOpen;
-    property AfterOpen;
-    property BeforeClose;
-    property AfterClose;
-    property BeforeInsert;
-    property AfterInsert;
-    property BeforeEdit;
-    property AfterEdit;
-    property BeforePost;
-    property AfterPost;
-    property BeforeCancel;
-    property AfterCancel;
-    property BeforeDelete;
-    property AfterDelete;
-    property BeforeScroll;
-    property AfterScroll;
-    property OnCalcFields;
-    property OnDeleteError;
-    property OnEditError;
-    property OnFilterRecord;
-    property OnNewRecord;
-    property OnPostError;
   end;
 
 
@@ -1575,7 +1572,20 @@ end.
 
 {
   $Log$
-  Revision 1.23  2004-08-31 09:51:27  michael
+  Revision 1.24  2004-09-26 16:55:24  michael
+  * big patch from Joost van der Sluis
+   bufdataset.inc:
+    fix getrecord (prior)
+    getcanmodify default false
+  database.inc / db.inc:
+    Added transactions
+  dataset.inc:
+    raise error if trying to insert into an readonly dataset
+  db.inc:
+    remove published properties from bufdataset
+    changed ancestor of tbufdataset to tdbdataset
+
+  Revision 1.23  2004/08/31 09:51:27  michael
   + Initial TBufDataset by Joost van der Sluis
 
   Revision 1.22  2004/08/23 07:30:19  michael

@@ -32,6 +32,12 @@ begin
   inherited destroy;
 end;
 
+Function TBufDataset.GetCanModify: Boolean;
+
+begin
+  Result:= False;
+end;
+
 function TBufDataset.AllocRecordBuffer: PChar;
 
 begin
@@ -84,13 +90,13 @@ end;
 
 function TBufDataset.GetRecord(Buffer: PChar; GetMode: TGetMode; DoCheck: Boolean): TGetResult;
 begin
-  if FIsEOF then
-    Result := grEOF
-  else begin
+  begin
     Result := grOK;
     case GetMode of
       gmPrior :
-        if FBCurrentRecord <= 0 then
+        if FIsBOF then
+          result := grBOF
+        else if FBCurrentRecord <= 0 then
           begin
           Result := grBOF;
           FBCurrentRecord := -1;
@@ -104,7 +110,9 @@ begin
         if (FBCurrentRecord < 0) or (FBCurrentRecord >= RecordCount) then
           Result := grError;
       gmNext :
-        if FBCurrentRecord >= (FBRecordCount - 1) then
+        if FIsEOF then
+          result := grEOF
+        else if FBCurrentRecord >= (FBRecordCount - 1) then
           begin
           if getnextpacket > 0 then
             begin

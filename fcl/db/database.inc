@@ -58,6 +58,7 @@ begin
     else
       begin
       Closedatasets;
+      Closetransactions;
       DoInternalDisConnect;
       if csloading in ComponentState then
         FOpenAfterRead := false;
@@ -79,6 +80,7 @@ begin
   Inherited Create(AOwner);
   FParams:=TStringlist.Create;
   FDatasets:=TList.Create;
+  FTransactions:=TList.Create;
 end;
 
 destructor TDatabase.Destroy;
@@ -86,7 +88,9 @@ destructor TDatabase.Destroy;
 begin
   Connected:=False;
   RemoveDatasets;
+  RemoveTransactions;
   FDatasets.Free;
+  FTransactions.Free;
   FParams.Free;
   Inherited Destroy;
 end;
@@ -109,6 +113,18 @@ begin
     end;
 end;
 
+procedure TDatabase.CloseTransactions;
+
+Var I : longint;
+
+begin
+  If Assigned(FTransactions) then
+    begin
+    For I:=FTransactions.Count-1 downto 0 do
+      TDBTransaction(FTransactions[i]).EndTransaction;
+    end;
+end;
+
 procedure TDatabase.RemoveDataSets;
 
 Var I : longint;
@@ -117,6 +133,16 @@ begin
   If Assigned(FDatasets) then
     For I:=FDataSets.Count-1 downto 0 do
       TDBDataset(FDataSets[i]).Database:=Nil;
+end;
+
+procedure TDatabase.RemoveTransactions;
+
+Var I : longint;
+
+begin
+  If Assigned(FTransactions) then
+    For I:=FTransactions.Count-1 downto 0 do
+      TDBTransaction(FTransactions[i]).Database:=Nil;
 end;
 
 procedure TDatabase.Open;
@@ -135,6 +161,14 @@ begin
     Result:=0;
 end;
 
+Function TDatabase.GetTransactionCount : Longint;
+
+begin
+  If Assigned(FTransactions) Then
+    Result:=FTransactions.Count
+  else
+    Result:=0;
+end;
 
 Function TDatabase.GetDataset(Index : longint) : TDBDataset;
 
@@ -143,6 +177,15 @@ begin
     Result:=TDBDataset(FDatasets[Index])
   else
     DatabaseError(SNoDatasets);
+end;
+
+Function TDatabase.GetTransaction(Index : longint) : TDBtransaction;
+
+begin
+  If Assigned(FTransactions) then
+    Result:=TDBTransaction(FTransactions[Index])
+  else
+    DatabaseError(SNoTransactions);
 end;
 
 procedure TDatabase.RegisterDataset (DS : TDBDataset);
@@ -157,6 +200,18 @@ begin
     DatabaseErrorFmt(SDatasetRegistered,[DS.Name]);
 end;
 
+procedure TDatabase.RegisterTransaction (TA : TDBTransaction);
+
+Var I : longint;
+
+begin
+  I:=FTransactions.IndexOf(TA);
+  If I=-1 then
+    FTransactions.Add(TA)
+  else
+    DatabaseErrorFmt(STransactionRegistered,[TA.Name]);
+end;
+
 procedure TDatabase.UnRegisterDataset (DS : TDBDataset);
 
 Var I : longint;
@@ -168,6 +223,19 @@ begin
   else
     DatabaseErrorFmt(SNoDatasetRegistered,[DS.Name]);
 end;
+
+procedure TDatabase.UnRegisterTransaction (TA : TDBTransaction);
+
+Var I : longint;
+
+begin
+  I:=FTransactions.IndexOf(TA);
+  If I<>-1 then
+    FTransactions.Delete(I)
+  else
+    DatabaseErrorFmt(SNoTransactionRegistered,[TA.Name]);
+end;
+
 
 { ---------------------------------------------------------------------
     TDBdataset
@@ -201,10 +269,55 @@ begin
   Inherited;
 end;
 
+{ ---------------------------------------------------------------------
+    TDBTransaction
+  ---------------------------------------------------------------------}
+
+Procedure TDBTransaction.SetDatabase (Value : TDatabase);
+
+begin
+//  CheckInactive;
+  If Value<>FDatabase then
+    begin
+    If Assigned(FDatabase) then
+      FDatabase.UnregisterTransaction(Self);
+    If Value<>Nil Then
+      Value.RegisterTransaction(Self);
+    FDatabase:=Value;
+    end;
+end;
+
+Procedure TDBTransaction.CheckDatabase;
+
+begin
+  If (FDatabase=Nil) then
+    DatabaseError(SErrNoDatabaseAvailable,Self)
+end;
+
+Destructor TDBTransaction.Destroy;
+
+begin
+  Database:=Nil;
+  Inherited;
+end;
+
 
 {
   $Log$
-  Revision 1.5  2004-07-25 11:32:40  michael
+  Revision 1.6  2004-09-26 16:55:24  michael
+  * big patch from Joost van der Sluis
+   bufdataset.inc:
+    fix getrecord (prior)
+    getcanmodify default false
+  database.inc / db.inc:
+    Added transactions
+  dataset.inc:
+    raise error if trying to insert into an readonly dataset
+  db.inc:
+    remove published properties from bufdataset
+    changed ancestor of tbufdataset to tdbdataset
+
+  Revision 1.5  2004/07/25 11:32:40  michael
   * Patches from Joost van der Sluis
     interbase.pp:
         * Removed unused Fprepared
