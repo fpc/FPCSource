@@ -906,8 +906,9 @@ type
       begin
         inherited derefimpl;
         symtableprocentry:=tprocsym(symtableprocentryderef.resolve);
-        symtableproc:=symtableprocentry.owner;
-        procdefinition:=tprocdef(procdefinitionderef.resolve);
+        if assigned(symtableprocentry) then
+          symtableproc:=symtableprocentry.owner;
+        procdefinition:=tabstractprocdef(procdefinitionderef.resolve);
         if assigned(methodpointer) then
           methodpointer.derefimpl;
         if assigned(methodpointerinit) then
@@ -2133,7 +2134,7 @@ type
              st:=procdefinition.owner;
              if (st.symtabletype=objectsymtable) then
                st:=st.defowner.owner;
-             if (pi_inline_local_only in tprocdef(procdefinition).inlininginfo^.flags) and
+             if (pi_uses_static_symtable in tprocdef(procdefinition).inlininginfo^.flags) and
                 (st.unitid<>0) then
                begin
                  Comment(V_lineinfo+V_Debug,'Not inlining "'+tprocdef(procdefinition).procsym.realname+'", references static symtable');
@@ -2449,7 +2450,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.272  2004-12-26 16:22:01  peter
+  Revision 1.273  2004-12-27 16:36:10  peter
+    * fix crash with callnode.ppuload when symtableproc=nil
+
+  Revision 1.272  2004/12/26 16:22:01  peter
     * fix lineinfo for with blocks
 
   Revision 1.271  2004/12/15 21:08:15  peter
