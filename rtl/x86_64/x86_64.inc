@@ -245,14 +245,14 @@ Procedure FillChar(var x;count:longint;value:byte);assembler;
   end;
 *)
 
-{$define FPC_SYSTEM_HAS_DECLOCKED}
+
+{$define FPC_SYSTEM_HAS_DECLOCKED_LONGINT}
 { does a thread save inc/dec }
 function declocked(var l : longint) : boolean;assembler;
   asm
      {
        l: %rdi
      }
-{$ifdef MT}
      { this check should be done because a lock takes a lot }
      { of time!                                             }
      cmpb       $0,IsMultithread
@@ -261,20 +261,39 @@ function declocked(var l : longint) : boolean;assembler;
      decl       (%rdi)
      jmp        .Ldeclockedend
 .Ldeclockednolock:
-{$endif MT}
      decl       (%rdi)
 .Ldeclockedend:
      setzb      %al
   end;
 
-{$define FPC_SYSTEM_HAS_INCLOCKED}
+
+{$define FPC_SYSTEM_HAS_DECLOCKED_INT64}
+function declocked(var l : int64) : boolean;assembler;
+  asm
+     {
+       l: %rdi
+     }
+     { this check should be done because a lock takes a lot }
+     { of time!                                             }
+     cmpb       $0,IsMultithread
+     jz         .Ldeclockednolock
+     lock
+     decq       (%rdi)
+     jmp        .Ldeclockedend
+.Ldeclockednolock:
+     decq       (%rdi)
+.Ldeclockedend:
+     setzb      %al
+  end;
+
+
+{$define FPC_SYSTEM_HAS_INCLOCKED_LONGINT}
 procedure inclocked(var l : longint);assembler;
 
   asm
      {
        l: %rdi
      }
-{$ifdef MT}
      { this check should be done because a lock takes a lot }
      { of time!                                             }
      cmpb       $0,IsMultithread
@@ -283,10 +302,30 @@ procedure inclocked(var l : longint);assembler;
      incl       (%rdi)
      jmp        .Linclockedend
 .Linclockednolock:
-{$endif MT}
      incl       (%rdi)
 .Linclockedend:
   end;
+
+
+{$define FPC_SYSTEM_HAS_INCLOCKED_INT64}
+procedure inclocked(var l : int64);assembler;
+
+  asm
+     {
+       l: %rdi
+     }
+     { this check should be done because a lock takes a lot }
+     { of time!                                             }
+     cmpb       $0,IsMultithread
+     jz         .Linclockednolock
+     lock
+     incq       (%rdi)
+     jmp        .Linclockedend
+.Linclockednolock:
+     incl       (%rdi)
+.Linclockedend:
+  end;
+
 
 {****************************************************************************
                                   FPU
@@ -306,7 +345,10 @@ const
 
 {
   $Log$
-  Revision 1.10  2004-04-26 15:55:01  peter
+  Revision 1.11  2004-04-29 19:50:13  peter
+    * x86-64 fixes
+
+  Revision 1.10  2004/04/26 15:55:01  peter
     * FPC_MOVE alias
 
   Revision 1.9  2004/04/22 20:20:16  peter

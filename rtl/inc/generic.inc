@@ -1043,20 +1043,39 @@ end;
 
 {$endif ndef FPC_SYSTEM_HAS_SQR_INT64}
 
-{$ifndef FPC_SYSTEM_HAS_DECLOCKED}
+{$ifndef FPC_SYSTEM_HAS_DECLOCKED_LONGINT}
 function declocked(var l:longint):boolean;
   begin
     Dec(l);
     declocked:=(l=0);
   end;
-{$endif FPC_SYSTEM_HAS_DECLOCKED}
+{$endif FPC_SYSTEM_HAS_DECLOCKED_LONGINT}
 
-{$ifndef FPC_SYSTEM_HAS_INCLOCKED}
+
+{$ifndef FPC_SYSTEM_HAS_DECLOCKED_INT64}
+function declocked(var l:int64):boolean;
+  begin
+    Dec(l);
+    declocked:=(l=0);
+  end;
+{$endif FPC_SYSTEM_HAS_DECLOCKED_INT64}
+
+
+{$ifndef FPC_SYSTEM_HAS_INCLOCKED_LONGINT}
 procedure inclocked(var l:longint);
   begin
     Inc(l);
   end;
-{$endif FPC_SYSTEM_HAS_INCLOCKED}
+{$endif FPC_SYSTEM_HAS_INCLOCKED_LONGINT}
+
+
+{$ifndef FPC_SYSTEM_HAS_INCLOCKED_INT64}
+procedure inclocked(var l:int64);
+  begin
+    Inc(l);
+  end;
+{$endif FPC_SYSTEM_HAS_INCLOCKED_INT64}
+
 
 {$ifndef FPC_SYSTEM_HAS_SPTR}
 {_$error Sptr must be defined for each processor }
@@ -1139,7 +1158,10 @@ end;
 
 {
   $Log$
-  Revision 1.72  2004-04-28 21:01:29  florian
+  Revision 1.73  2004-04-29 19:50:13  peter
+    * x86-64 fixes
+
+  Revision 1.72  2004/04/28 21:01:29  florian
     * tvmt fixed (longint -> ptrint)
 
   Revision 1.71  2004/04/28 20:48:20  peter
