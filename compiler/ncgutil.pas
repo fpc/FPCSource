@@ -1796,6 +1796,9 @@ implementation
                     if not(po_assembler in current_procinfo.procdef.procoptions) then
                       begin
                         case paraitem.paraloc[calleeside].location^.loc of
+{$ifdef powerpc}
+                          LOC_REFERENCE,
+{$endif powerpc}
                           LOC_MMREGISTER,
                           LOC_FPUREGISTER,
                           LOC_REGISTER:
@@ -1831,17 +1834,17 @@ implementation
                                 localloc.register:=cg.getregisterint(list,localloc.size);
                                 *)
                               localloc.loc:=LOC_REFERENCE;
-                              localloc.size:=paraitem.paraloc[calleeside].size;
-                              tg.GetLocal(list,tcgsize2size[localloc.size],vartype.def,localloc.reference);
+                              if paramanager.push_addr_param(paraitem.paratyp,vartype.def,current_procinfo.procdef.proccalloption) then
+                                begin
+                                  localloc.size:=OS_ADDR;
+                                  tg.GetLocal(list,tcgsize2size[localloc.size],voidpointertype.def,localloc.reference);
+                                end
+                              else
+                                begin
+                                  localloc.size:=paraitem.paraloc[calleeside].size;
+                                  tg.GetLocal(list,tcgsize2size[localloc.size],vartype.def,localloc.reference);
+                                end;
                             end;
-{$ifdef powerpc}
-                          LOC_REFERENCE:
-                            begin
-                              localloc.loc := LOC_REFERENCE;
-                              localloc.size:=paraitem.paraloc[calleeside].size;
-                              tg.GetLocal(list,tcgsize2size[localloc.size],vartype.def,localloc.reference);
-                            end;
-{$endif powerpc}
                           else
                             paraitem.paraloc[calleeside].get_location(localloc);
                         end;
@@ -2094,7 +2097,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.220  2004-10-08 17:09:43  peter
+  Revision 1.221  2004-10-08 20:52:07  florian
+    * fixed storage of parameters passed by ref.
+
+  Revision 1.220  2004/10/08 17:09:43  peter
     * tvarsym.varregable added, split vo_regable from varoptions
 
   Revision 1.219  2004/09/27 15:14:08  peter
