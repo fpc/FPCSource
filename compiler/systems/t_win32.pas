@@ -874,10 +874,10 @@ Var
   HPath   : TStringListItem;
   s,s2    : string;
   i       : integer;
-  linklibc : boolean;
+  linklibcygwin : boolean;
 begin
   WriteResponseFile:=False;
-  linklibc:=false;
+  linklibcygwin:=(SharedLibFiles.Find('cygwin')<>nil);
 
   { Open link.res file }
   LinkRes:=TLinkRes.Create(outputexedir+Info.ResName);
@@ -905,7 +905,13 @@ begin
   if (cs_profile in aktmoduleswitches) then
    LinkRes.AddFileName(MaybeQuoted(FindObjectFile('gprt0','',false)))
   else
-   LinkRes.AddFileName(MaybeQuoted(FindObjectFile('wprt0','',false)));
+   begin
+     if linklibcygwin then
+      LinkRes.AddFileName(MaybeQuoted(FindObjectFile('wcygprt0','',false)))
+     else
+      LinkRes.AddFileName(MaybeQuoted(FindObjectFile('wprt0','',false)));
+   end;
+
   while not ObjectFiles.Empty do
    begin
      s:=ObjectFiles.GetFirst;
@@ -949,22 +955,11 @@ begin
           end;
         if pos(target_info.sharedlibprefix,s)=1 then
           s:=copy(s,length(target_info.sharedlibprefix)+1,255);
-        if s<>'c' then
-         begin
-           i:=Pos(target_info.sharedlibext,S);
-           if i>0 then
-            Delete(S,i,255);
-           LinkRes.Add('-l'+s);
-         end
-        else
-         begin
-           LinkRes.Add('-l'+s);
-           linklibc:=true;
-         end;
+        i:=Pos(target_info.sharedlibext,S);
+        if i>0 then
+         Delete(S,i,255);
+        LinkRes.Add('-l'+s);
       end;
-     { be sure that libc is the last lib }
-     if linklibc then
-      LinkRes.Add('-lc');
      LinkRes.Add(')');
    end;
 
@@ -1617,7 +1612,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.40  2004-10-25 15:38:41  peter
+  Revision 1.41  2004-11-04 17:12:52  peter
+  linking with cygwin fixed
+
+  Revision 1.40  2004/10/25 15:38:41  peter
     * heap and heapsize removed
     * checkpointer fixes
 
