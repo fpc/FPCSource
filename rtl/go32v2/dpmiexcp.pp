@@ -13,6 +13,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+
+{$GOTO ON}
+
 Unit DPMIExcp;
 
 { If linking to C code we must avoid loading of the dpmiexcp.o
@@ -890,7 +893,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2000-01-07 16:41:31  daniel
+  Revision 1.10  2000-01-10 12:14:57  pierre
+   * add $goto on to avoid problems
+
+  Revision 1.9  2000/01/07 16:41:31  daniel
     * copyright 2000
 
   Revision 1.8  2000/01/07 16:32:23  daniel
