@@ -10,6 +10,7 @@ dirs_linux=zlib ncurses x11 gtk syslog \
            utmp paszlib gdbint cmem regexpr zip
 dirs_win32=uncgi gtk gdbint ibase mysql zlib paszlib zip regexpr opengl
 dirs_go32v2=uncgi gdbint paszlib zip regexpr
+dirs_os2=uncgi paszlib zip regexpr
 dirs_freebsd=zlib ncurses x11 gtk syslog \
            inet uncgi \
            mysql ibase postgres \
@@ -38,6 +39,9 @@ pkgs_win32=bas{paszlib,regexpr} \
 pkgs_go32v2=bas{paszlib,regexpr} \
             net{uncgi} \
             mis{gdbint,zip}
+pkgs_os2=bas{paszlib,regexpr} \
+            net{uncgi} \
+            mis{zip}
 
 [install]
 packagename=packages

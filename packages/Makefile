@@ -164,6 +164,9 @@ endif
 ifeq ($(OS_TARGET),freebsd)
 override DIROBJECTS+=$(wildcard zlib ncurses x11 gtk syslog inet uncgi mysql ibase postgres opengl forms svgalib ggi utmp paszlib gdbint cmem regexpr zip)
 endif
+ifeq ($(OS_TARGET),os2)
+override DIROBJECTS+=$(wildcard uncgi paszlib zip regexpr)
+endif
 
 # Clean
 
@@ -341,6 +344,11 @@ ifeq ($(OS_TARGET),go32v2)
 PKGBAS=paszlib regexpr
 PKGNET=uncgi
 PKGMIS=gdbint zip
+endif
+ifeq ($(OS_TARGET),os2)
+PKGBAS=paszlib regexpr
+PKGNET=uncgi
+PKGMIS=zip
 endif
 ifeq ($(OS_TARGET),win32)
 PKGBAS=paszlib regexpr
@@ -1040,6 +1048,12 @@ endif
 ifeq ($(OS_TARGET),go32v2)
 OBJECTDIRUNCGI=1
 OBJECTDIRGDBINT=1
+OBJECTDIRPASZLIB=1
+OBJECTDIRZIP=1
+OBJECTDIRREGEXPR=1
+endif
+ifeq ($(OS_TARGET),os2)
+OBJECTDIRUNCGI=1
 OBJECTDIRPASZLIB=1
 OBJECTDIRZIP=1
 OBJECTDIRREGEXPR=1
