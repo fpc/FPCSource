@@ -95,6 +95,7 @@ const
       edReadBlock     = 15;
       edFileOnDiskChanged = 16;
       edChangedOnloading = 17;
+      edSaveError     = 18;
 
       ffmOptions      = $0007; ffsOptions     = 0;
       ffmDirection    = $0008; ffsDirection   = 3;
@@ -269,6 +270,7 @@ type
       TabSize    : integer;
       HighlightRow: sw_integer;
       DebuggerRow: sw_integer;
+      ChangedLine : sw_integer;
       UndoList    : PEditorActionCollection;
       RedoList    : PEditorActionCollection;
       CompleteState: TCompleteState;
@@ -348,7 +350,6 @@ type
       LastSyntaxedLine : sw_integer;
       SyntaxComplete : boolean;
 {$endif TEST_PARTIAL_SYNTAX}
-      ChangedLine : sw_integer;
       ErrorMessage: PString;
       Bookmarks   : array[0..9] of TEditorBookmark;
       LockFlag    : integer;
@@ -5092,7 +5093,7 @@ function TFileEditor.LoadFile: boolean;
 var S: PBufStream;
     OK: boolean;
 begin
-  New(S, Init(GetShortName(FileName),stOpenRead,EditorTextBufSize));
+  New(S, Init(FileName,stOpenRead,EditorTextBufSize));
   OK:=Assigned(S);
 {$ifdef TEST_PARTIAL_SYNTAX}
   SyntaxComplete:=false;
@@ -5125,7 +5126,7 @@ begin
         end;
     end;
 {$I-}
-  if IsFlagSet(efBackupFiles) then
+  if IsFlagSet(efBackupFiles) and ExistsFile(FileName) then
   begin
      BAKName:=DirAndNameOf(FileName)+'.bak';
      Assign(f,BAKName);
@@ -5137,12 +5138,25 @@ begin
   end;
 {$I+}
   New(S, Init(FileName,stCreate,EditorTextBufSize));
-  OK:=Assigned(S);
+  OK:=Assigned(S) and (S^.Status=stOK);
   if OK then OK:=SaveToStream(S);
   if Assigned(S) then Dispose(S, Done);
-  if OK then SetModified(false);
+  if OK then
+    SetModified(false)
+  { Restore the original }
+  else if IsFlagSet(efBackupFiles) and ExistsFile(BakName) then
+    begin
+{$I-}
+     Assign(f,BakName);
+     Rename(F,FileName);
+     EatIO;
+{$I+}
+    end;
   { don't forget to update the OnDiskLoadTime value }
-  OnDiskLoadTime:=GetFileTime(FileName);
+  if OK then
+    OnDiskLoadTime:=GetFileTime(FileName);
+  if not OK then
+    EditorDialog(edSaveError,@FileName);
   SaveFile:=OK;
 end;
 
@@ -5479,6 +5493,9 @@ begin
     edWriteError:
       StdEditorDialog := MessageBox('Error writing file %s.',
    @Info, mfInsertInApp+ mfError + mfOkButton);
+    edSaveError:
+      StdEditorDialog := MessageBox('Error saving file %s.',
+   @Info, mfInsertInApp+ mfError + mfOkButton);
     edCreateError:
       StdEditorDialog := MessageBox('Error creating file %s.',
    @Info, mfInsertInApp+ mfError + mfOkButton);
@@ -5616,7 +5633,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.83  2000-03-14 13:38:03  pierre
+  Revision 1.84  2000-03-20 19:19:44  pierre
+   * LFN support in streams
+
+  Revision 1.83  2000/03/14 13:38:03  pierre
    * max number of line changed and warning added
 
   Revision 1.82  2000/03/02 22:33:36  pierre

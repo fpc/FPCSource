@@ -529,7 +529,7 @@ var OK,VOK: boolean;
     VM : TVideoMode;
 begin
   PushStatus('Reading desktop file...');
-  New(F, LoadFile(GetShortName(DesktopPath)));
+  New(F, LoadFile(DesktopPath));
 
   OK:=false;
 
@@ -569,7 +569,7 @@ var OK: boolean;
 begin
   TempPath:=DirOf(DesktopPath)+DesktopTempName;
   PushStatus('Writing desktop file...');
-  New(F, CreateFile(GetShortName(TempPath)));
+  New(F, CreateFile(TempPath));
 
   if Assigned(Clipboard) then
     if (DesktopFileFlags and dfClipboardContent)<>0 then
@@ -618,7 +618,7 @@ begin
   WriteSymbolsFile:=false;
   If not assigned(Modules) then
     exit;
-  New(F, CreateFile(GetShortName(FileName)));
+  New(F, CreateFile(FileName));
   OK:=Assigned(F);
   if OK and ((DesktopFileFlags and dfSymbolInformation)<>0) then
     OK:=OK and WriteSymbols(F);
@@ -635,7 +635,7 @@ begin
   { Don't read again !! }
   If assigned(Modules) then
     exit;
-  New(F, LoadFile(GetShortName(FileName)));
+  New(F, LoadFile(FileName));
   OK:=Assigned(F);
   if OK and ((DesktopFileFlags and dfSymbolInformation)<>0) then
       OK:=OK and ReadSymbols(F);
@@ -647,7 +647,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.23  2000-03-13 20:36:52  pierre
+  Revision 1.24  2000-03-20 19:19:46  pierre
+   * LFN support in streams
+
+  Revision 1.23  2000/03/13 20:36:52  pierre
    * Breakpoints saved and loaded before sources
 
   Revision 1.22  2000/02/07 12:03:48  pierre

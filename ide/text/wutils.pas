@@ -104,6 +104,7 @@ function DirAndNameOf(const S: string): string;
 function GetFileTime(const FileName: string): longint;
 { copied from compiler global unit }
 function GetShortName(const n:string):string;
+function GetLongName(const n:string):string;
 
 function EatIO: integer;
 
@@ -374,31 +375,61 @@ end;
 
 function GetShortName(const n:string):string;
 {$ifdef win32}
-      var
-        hs,hs2 : string;
-        i : longint;
+var
+  hs,hs2 : string;
+  i : longint;
 {$endif}
 {$ifdef go32v2}
-      var
-        hs : string;
+var
+  hs : string;
 {$endif}
-      begin
-        GetShortName:=n;
+begin
+  GetShortName:=n;
 {$ifdef win32}
-        hs:=n+#0;
-        i:=Windows.GetShortPathName(@hs[1],@hs2[1],high(hs2));
-        if (i>0) and (i<=high(hs2)) then
-          begin
-            hs2[0]:=chr(strlen(@hs2[1]));
-            GetShortName:=hs2;
-          end;
+  hs:=n+#0;
+  i:=Windows.GetShortPathName(@hs[1],@hs2[1],high(hs2));
+  if (i>0) and (i<=high(hs2)) then
+    begin
+      hs2[0]:=chr(strlen(@hs2[1]));
+      GetShortName:=hs2;
+    end;
 {$endif}
 {$ifdef go32v2}
-        hs:=n;
-        if Dos.GetShortName(hs) then
-         GetShortName:=hs;
+  hs:=n;
+  if Dos.GetShortName(hs) then
+   GetShortName:=hs;
 {$endif}
-      end;
+end;
+
+function GetLongName(const n:string):string;
+{$ifdef win32}
+var
+  hs : string;
+  hs2 : Array [0..255] of char;
+  i : longint;
+  j : pchar;
+{$endif}
+{$ifdef go32v2}
+var
+  hs : string;
+{$endif}
+begin
+  GetLongName:=n;
+{$ifdef win32}
+  hs:=n+#0;
+  i:=Windows.GetFullPathName(@hs[1],256,hs2,j);
+  if (i>0) and (i<=255) then
+    begin
+      hs:=strpas(hs2);
+      GetLongName:=hs;
+    end;
+{$endif}
+{$ifdef go32v2}
+  hs:=n;
+  if Dos.GetLongName(hs) then
+   GetLongName:=hs;
+{$endif}
+end;
 
 
 function EatIO: integer;
@@ -628,7 +659,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.16  2000-03-14 13:36:12  pierre
+  Revision 1.17  2000-03-20 19:19:45  pierre
+   * LFN support in streams
+
+  Revision 1.16  2000/03/14 13:36:12  pierre
    * error for unexistant file in GetFileTime fixed
 
   Revision 1.15  2000/02/07 11:45:11  pierre

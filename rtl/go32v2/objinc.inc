@@ -43,7 +43,49 @@ BEGIN
          { get linear address from system unit }
          regs.realedx:=tb mod 16;
          regs.realds:=tb div 16;
-         regs.realeax := Mode;
+         if LFNSupport then
+           begin
+             if (mode = stCreate) then
+               begin
+                 regs.realeax := $716C;
+                 regs.realesi:=tb mod 16;
+                 regs.realebx:=$2002;
+                 regs.realecx:=$20;
+                 regs.realedi:=0;
+                 regs.realedx:=$12;
+               end
+             else if (mode = stOpenRead) then
+               begin
+                 regs.realeax := $716C;
+                 regs.realesi:=tb mod 16;
+                 regs.realebx:=$2000;
+                 regs.realecx:=$20;
+                 regs.realedi:=0;
+                 regs.realedx:=$1;
+               end
+             else if (mode = stOpenWrite) then
+               begin
+                 regs.realeax := $716C;
+                 regs.realesi:=tb mod 16;
+                 regs.realebx:=$2001;
+                 regs.realecx:=$20;
+                 regs.realedi:=0;
+                 regs.realedx:=$11;
+               end
+             else if (mode = stOpen) then
+               begin
+                 regs.realeax := $716C;
+                 regs.realesi:=tb mod 16;
+                 regs.realebx:=$2002;
+                 regs.realecx:=$20;
+                 regs.realedi:=0;
+                 regs.realedx:=$11;
+               end
+             else
+               regs.realeax := Mode;
+           end
+         else
+           regs.realeax := Mode;
          regs.realecx:=0;
          sysrealintr($21,regs);
          if (regs.realflags and 1) <> 0 then
@@ -131,7 +173,10 @@ END;
 
 {
   $Log$
-  Revision 1.4  2000-02-09 16:59:29  peter
+  Revision 1.5  2000-03-20 19:19:44  pierre
+   * LFN support in streams
+
+  Revision 1.4  2000/02/09 16:59:29  peter
     * truncated log
 
   Revision 1.3  2000/01/07 16:41:32  daniel
