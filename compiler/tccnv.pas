@@ -148,6 +148,7 @@ implementation
                         pd:=p2^.resulttype;
                       if not(is_equal(pd,p2^.resulttype)) then
                        begin
+                         aktfilepos:=p2^.fileinfo;
                          CGMessage(type_e_typeconflict_in_set);
                          disposetree(p2);
                        end
@@ -161,7 +162,10 @@ implementation
                                firstpass(p3);
                              end;
                             if not(is_equal(pd,p3^.resulttype)) then
-                              CGMessage(type_e_typeconflict_in_set)
+                              begin
+                                 aktfilepos:=p3^.fileinfo;
+                                 CGMessage(type_e_typeconflict_in_set);
+                              end
                             else
                               begin
                                 if (p2^.treetype=ordconstn) and (p3^.treetype=ordconstn) then
@@ -262,6 +266,8 @@ implementation
 
 
     procedure first_string_to_string(var p : ptree);
+      var
+        hp : ptree;
       begin
          if pstringdef(p^.resulttype)^.string_typ<>
             pstringdef(p^.left^.resulttype)^.string_typ then
@@ -269,9 +275,12 @@ implementation
               if p^.left^.treetype=stringconstn then
                 begin
                    p^.left^.stringtype:=pstringdef(p^.resulttype)^.string_typ;
-                   { we don't have to do anything, the const }
-                   { node generates an ansistring           }
-                   p^.convtyp:=tc_equal;
+                   p^.left^.resulttype:=p^.resulttype;
+                   { remove typeconv node }
+                   hp:=p;
+                   p:=p^.left;
+                   putnode(hp);
+                   exit;
                 end
               else
                 procinfo.flags:=procinfo.flags or pi_do_call;
@@ -915,19 +924,19 @@ implementation
 end.
 {
   $Log$
-  Revision 1.38  1999-06-17 13:19:58  pierre
-   * merged from 0_99_12 branch
+  Revision 1.39  1999-06-28 19:30:07  peter
+    * merged
+
+  Revision 1.35.2.5  1999/06/28 19:07:47  peter
+    * remove cstring->string typeconvs after updating cstringn
+
+  Revision 1.35.2.4  1999/06/28 00:33:50  pierre
+   * better error position bug0269
 
   Revision 1.35.2.3  1999/06/17 12:51:48  pierre
    * changed is_assignment_overloaded into
       function assignment_overloaded : pprocdef
       to allow overloading of assignment with only different result type
-
-  Revision 1.37  1999/06/15 18:58:35  peter
-    * merged
-
-  Revision 1.36  1999/06/13 22:41:06  peter
-    * merged from fixes
 
   Revision 1.35.2.2  1999/06/15 18:54:53  peter
     * more procvar fixes

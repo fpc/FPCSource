@@ -217,7 +217,8 @@ uses
            typ:=top_symbol;
          end;
         { Mark the symbol as used }
-        inc(s^.refs);
+        if assigned(s) then
+         inc(s^.refs);
       end;
 
     procedure tai386.loadref(opidx:longint;p:preference);
@@ -1520,7 +1521,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.12  1999-06-14 11:15:01  pierre
+  Revision 1.13  1999-06-28 19:30:06  peter
+    * merged
+
+  Revision 1.12.2.1  1999/06/28 19:18:53  peter
+    * fixed loadsym with sym=nil
+
+  Revision 1.12  1999/06/14 11:15:01  pierre
    * -O2 real multiplication bug correction
 
   Revision 1.11  1999/05/30 11:57:43  peter
