@@ -69,7 +69,7 @@ UNITOBJECTS=$(SYSTEMUNIT) strings linux \
             dos crt objects printer ports \
             objpas sysutils typinfo math \
             cpu mmx getopts heaptrc \
-            errors sockets ipc graph
+            errors sockets graph
 
 
 #####################################################################
@@ -251,7 +251,10 @@ libsclean: fpc_libsclean
 
 #
 # $Log$
-# Revision 1.17  1999-03-16 00:47:09  peter
+# Revision 1.18  1999-03-22 13:09:10  peter
+#   - ipc unit because it crashes on 0.99.10
+#
+# Revision 1.17  1999/03/16 00:47:09  peter
 #   * makefile.fpc targets start with fpc_
 #   * small updates for install scripts
 #
