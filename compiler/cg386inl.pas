@@ -731,9 +731,9 @@ implementation
             of the result to allow proper range checking}
            If (dest_para^.resulttype^.deftype = orddef) Then
               Case PordDef(dest_para^.resulttype)^.typ of
-                s8bit: exprasmlist^.concat(new(pai386,op_const(A_PUSH,S_W,1)));
-                s16bit: exprasmlist^.concat(new(pai386,op_const(A_PUSH,S_W,2)));
-                s32bit: exprasmlist^.concat(new(pai386,op_const(A_PUSH,S_W,4)));
+                s8bit: exprasmlist^.concat(new(pai386,op_const(A_PUSH,S_L,1)));
+                s16bit: exprasmlist^.concat(new(pai386,op_const(A_PUSH,S_L,2)));
+                s32bit: exprasmlist^.concat(new(pai386,op_const(A_PUSH,S_L,4)));
               End;
 
            case pstringdef(node^.resulttype)^.string_typ of
@@ -1270,7 +1270,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.32  1999-03-26 00:05:26  peter
+  Revision 1.33  1999-03-26 00:24:15  peter
+    * last para changed to long for easier pushing with 4 byte aligns
+
+  Revision 1.32  1999/03/26 00:05:26  peter
     * released valintern
     + deffile is now removed when compiling is finished
     * ^( compiles now correct

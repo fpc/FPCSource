@@ -394,7 +394,7 @@ end;
 
 {$IfDef ValInternCompiled}
 
-Function ValSignedInt(DestSize: Byte; Const S: ShortString; var Code: TMaxSInt): TMaxSInt; [public, alias:'FPC_VAL_SINT_SSTRING'];
+Function ValSignedInt(DestSize: longint; Const S: ShortString; var Code: TMaxSInt): TMaxSInt; [public, alias:'FPC_VAL_SINT_SSTRING'];
 var
   u: TMaxSInt;
   base : byte;
@@ -1208,7 +1208,10 @@ end;
 
 {
   $Log$
-  Revision 1.22  1999-03-16 17:49:36  jonas
+  Revision 1.23  1999-03-26 00:24:16  peter
+    * last para changed to long for easier pushing with 4 byte aligns
+
+  Revision 1.22  1999/03/16 17:49:36  jonas
     * changes for internal Val code (do a "make cycle OPT=-dvalintern" to test)
     * in text.inc: changed RTE 106 when read integer values are out of bounds to RTE 201
     * in systemh.inc: disabled "support_fixed" for the i386 because it gave internal errors,
