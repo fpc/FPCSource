@@ -247,6 +247,9 @@ unit globals;
 
   implementation
 
+    uses
+      comphook;
+      
     procedure strdispose(var p : pchar);
 
       begin
@@ -327,7 +330,7 @@ unit globals;
          (* if (p<>nil) {and
             ((p<heaporg) or
             (p>heapptr))} then
-           runerror(230); *)
+           do_internalerror(230); *)
 {$else}
     {$ifdef DPMI}
          assigned:=(p<>nil);
@@ -340,7 +343,7 @@ unit globals;
          if (lp<>0) and
             ((lp<longint(seg(heaporg^))*16+longint(ofs(heaporg^))) or
             (lp>longint(seg(heapptr^))*16+longint(ofs(heapptr^)))) then
-           runerror(230);
+           do_internalerror(230);
     {$endif DPMI}
 {$endif FPC}
          assigned:=(p<>nil);
@@ -1146,7 +1149,7 @@ unit globals;
 
    procedure abstract;
      begin
-        runerror(255);
+        do_internalerror(255);
      end;
 
 
@@ -1250,7 +1253,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  1999-08-30 10:17:56  peter
+  Revision 1.23  1999-09-07 15:11:00  pierre
+   * use do_internalerror insetead of runerror
+
+  Revision 1.22  1999/08/30 10:17:56  peter
     * fixed crash in psub
     * ansistringcompare fixed
     * support for #$0b8
@@ -1503,7 +1509,7 @@ end.
   Revision 1.75  1998/10/13 08:19:32  pierre
     + source_os is now set correctly for cross-processor compilers
       (tos contains all target_infos and
-       we use CPU86 and CPU68 conditionnals to
+       we use CPU86 and CPU68 conditionals to
        get the source operating system
        this only works if you do not undefine
        the source target  !!)
