@@ -86,6 +86,7 @@ unit compiler;
 interface
 
 { Use exception catching so the compiler goes futher after a Stop }
+{$ifndef NOUSEEXCEPT}
 {$ifdef i386}
   {$define USEEXCEPT}
 {$endif}
@@ -95,6 +96,7 @@ interface
     {$undef USEEXCEPT}
   {$endif}
 {$endif}
+{$endif ndef NOUSEEXCEPT}
 
 uses
 {$ifdef fpc}
@@ -339,7 +341,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.47  2000-03-18 15:05:33  jonas
+  Revision 1.48  2000-04-05 21:18:04  pierre
+   * set NOUSEEXCEPT to remove use of setjump/longjump
+
+  Revision 1.47  2000/03/18 15:05:33  jonas
     + added $maxfpuregisters 0 for compile() procedure
 
   Revision 1.46  2000/02/09 13:22:50  peter
