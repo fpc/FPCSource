@@ -42,9 +42,6 @@ unit pbase;
 
 
     var
-       { contains the current token to be processes }
-       token : ttoken;
-
        { size of data segment, set by proc_unit or proc_program }
        datasize : longint;
 
@@ -65,11 +62,11 @@ unit pbase;
        ignore_equal : boolean;
 
 
+    function tokenstring(i : ttoken):string;
+
     { consumes token i, if the current token is unequal i }
     { a syntax error is written                           }
     procedure consume(i : ttoken);
-
-    function tokenstring(i : ttoken) : string;
 
     { consumes all tokens til atoken (for error recovering }
     procedure consume_all_until(atoken : ttoken);
@@ -94,57 +91,37 @@ unit pbase;
     uses
        files,scanner,systems,verbose;
 
-      { ttoken = (PLUS,MINUS,STAR,SLASH,EQUAL,GT,
-                 LT,LTE,GTE,SYMDIF,STARSTAR,ASSIGNMENT,CARET,
-                 LECKKLAMMER,RECKKLAMMER,
-                 POINT,COMMA,LKLAMMER,RKLAMMER,COLON,SEMICOLON,
-                 KLAMMERAFFE,UNEQUAL,POINTPOINT,
-                 ID,REALNUMBER,_EOF,INTCONST,CSTRING,CCHAR,DOUBLEADDR,}
-      const tokens : array[PLUS..DOUBLEADDR] of string[12] = (
-                 '+','-','*','/','=','>','<','>=','<=','is','as','in',
-                 '><','**',':=','^','<>','[',']','.',',','(',')',':',';',
-                 '@','..',
-                 'identifier','const real.','end of file',
-                 'ord const','const string','const char','@@');
-
-    function tokenstring(i : ttoken) : string;
-      var
-        j : longint;
+    function tokenstring(i : ttoken):string;
       begin
-         if i<_AND then
-           tokenstring:=tokens[i]
-         else
-           begin
-             for j:=1 to anz_keywords do
-              if keyword_token[j]=i then
-               tokenstring:=keyword[j];
-           end;
+        tokenstring:=tokens[i].str;
       end;
-
 
     { consumes token i, write error if token is different }
     procedure consume(i : ttoken);
       begin
-        if token<>i then
-          Message1(scan_f_syn_expected,tokenstring(i))
+        if (token<>i) and (idtoken<>i) then
+          Message2(scan_f_syn_expected,tokens[i].str,tokens[token].str)
         else
           begin
             if token=_END then
               last_endtoken_filepos:=tokenpos;
-            token:=current_scanner^.yylex;
+            current_scanner^.readtoken;
           end;
       end;
 
 
     procedure consume_all_until(atoken : ttoken);
       begin
-         while (token<>atoken) and (token<>_EOF) do
-           consume(token);
-         { this will create an error if the token is _EOF }
-         if token<>atoken then
-           consume(atoken);
-         { this error is fatal as we have read the whole file }
-         Message(scan_f_end_of_file);
+         while (token<>atoken) and (idtoken<>atoken) do
+          begin
+            Consume(token);
+            if token=_EOF then
+             begin
+               Consume(atoken);
+               Message(scan_f_end_of_file);
+               exit;
+             end;
+          end;
       end;
 
 
@@ -203,7 +180,10 @@ end.
 
 {
   $Log$
-  Revision 1.16  1998-09-23 15:39:08  pierre
+  Revision 1.17  1998-09-26 17:45:31  peter
+    + idtoken and only one token table
+
+  Revision 1.16  1998/09/23 15:39:08  pierre
     * browser bugfixes
       was adding a reference when looking for the symbol
       if -bSYM_NAME was used

@@ -431,8 +431,9 @@
 
 
     procedure tprocsym.deref;
-      var t : ttoken;
-          last : pprocdef;
+      var
+        t    : ttoken;
+        last : pprocdef;
       begin
          resolvedef(pdef(definition));
          if (definition^.options and pooperator) <> 0 then
@@ -440,7 +441,7 @@
               last:=definition;
               while assigned(last^.nextoverloaded) do
                 last:=last^.nextoverloaded;
-              for t:=PLUS to last_overloaded do
+              for t:=first_overloaded to last_overloaded do
               if (name=overloaded_names[t]) then
                 begin
                    if assigned(overloaded_operators[t]) then
@@ -1715,7 +1716,10 @@
 
 {
   $Log$
-  Revision 1.47  1998-09-24 15:11:17  peter
+  Revision 1.48  1998-09-26 17:45:44  peter
+    + idtoken and only one token table
+
+  Revision 1.47  1998/09/24 15:11:17  peter
     * fixed enum for not GDB
 
   Revision 1.46  1998/09/23 15:39:13  pierre

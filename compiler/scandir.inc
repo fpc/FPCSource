@@ -337,8 +337,6 @@ const
 
     procedure dir_define(t:tdirectivetoken);
       var
-        ht  : ttoken;
-        hs2,
         hs  : string;
         mac : pmacrosym;
         macropos : longint;
@@ -368,11 +366,8 @@ const
         if (cs_support_macro in aktmoduleswitches) then
           begin
           { key words are never substituted }
-             hs2:=pattern;
-             pattern:=hs;
-             if is_keyword(ht) then
+             if is_keyword(hs) then
               Message(scan_e_keyword_cant_be_a_macro);
-             pattern:=hs2;
            { !!!!!! handle macro params, need we this? }
              current_scanner^.skipspace;
            { may be a macro? }
@@ -935,7 +930,10 @@ const
 
 {
   $Log$
-  Revision 1.32  1998-09-24 23:49:19  peter
+  Revision 1.33  1998-09-26 17:45:40  peter
+    + idtoken and only one token table
+
+  Revision 1.32  1998/09/24 23:49:19  peter
     + aktmodeswitches
 
   Revision 1.31  1998/09/18 16:03:44  florian

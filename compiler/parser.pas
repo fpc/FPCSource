@@ -98,6 +98,7 @@ unit parser;
     procedure compile(const filename:string;compile_system:boolean);
       var
        { scanner }
+         oldidtoken,
          oldtoken       : ttoken;
          oldtokenpos    : tfileposinfo;
          oldc           : char;
@@ -155,6 +156,7 @@ unit parser;
          oldpattern:=pattern;
          oldorgpattern:=orgpattern;
          oldtoken:=token;
+         oldidtoken:=idtoken;
          old_block_type:=block_type;
          oldtokenpos:=tokenpos;
          oldcurrent_scanner:=current_scanner;
@@ -235,7 +237,7 @@ unit parser;
 
        { startup scanner }
          current_scanner:=new(pscannerfile,Init(filename));
-         token:=current_scanner^.yylex;
+         current_scanner^.readtoken;
 
        { init code generator for a new module }
          codegen_newmodule;
@@ -302,6 +304,7 @@ unit parser;
               pattern:=oldpattern;
               orgpattern:=oldorgpattern;
               token:=oldtoken;
+              idtoken:=oldidtoken;
               tokenpos:=oldtokenpos;
               block_type:=old_block_type;
               current_scanner:=oldcurrent_scanner;
@@ -371,7 +374,10 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.50  1998-09-24 23:49:08  peter
+  Revision 1.51  1998-09-26 17:45:30  peter
+    + idtoken and only one token table
+
+  Revision 1.50  1998/09/24 23:49:08  peter
     + aktmodeswitches
 
   Revision 1.49  1998/09/23 15:39:07  pierre

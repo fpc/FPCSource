@@ -36,95 +36,8 @@ unit scanner;
 {$else}
        maxmacrolen=16*1024;
 {$endif}
-
-       id_len = 14;
        Newline = #10;
 
-    type
-       ident = string[id_len];
-
-    const
-      max_keywords = 70;
-      anz_keywords : longint = max_keywords;
-
-      { the following keywords are no keywords in TP, they
-        are internal procedures
-
-      CONTINUE, DISPOSE, EXIT, FAIL, FALSE, NEW, SELF
-      TRUE
-      }
-      { INLINE is a keyword in TP, but only an modifier in FPC }
-      keyword : array[1..max_keywords] of ident = (
-{        'ABSOLUTE',}
-         'AND',
-         'ARRAY','AS','ASM',
-{        'ASSEMBLER',}
-         'BEGIN',
-         'CASE','CLASS',
-         'CONST','CONSTRUCTOR',
-         'DESTRUCTOR','DISPOSE','DIV','DO','DOWNTO','ELSE','END',
-         'EXCEPT',
-         'EXIT',
-{        'EXPORT',}
-         'EXPORTS',
-{        'EXTERNAL',}
-         'FAIL','FALSE',
-{        'FAR',}
-         'FILE','FINALIZATION','FINALLY','FOR',
-{        'FORWARD',}
-         'FUNCTION','GOTO','IF','IMPLEMENTATION','IN',
-         'INHERITED','INITIALIZATION',
-{        'INLINE',} {INLINE is a reserved word in TP. Why?}
-         'INTERFACE',
-{        'INTERRUPT',}
-         'IS',
-         'LABEL','LIBRARY','MOD',
-{        'NEAR',}
-         'NEW','NIL','NOT','OBJECT',
-         'OF','ON','OPERATOR','OR','OTHERWISE','PACKED',
-         'PROCEDURE','PROGRAM','PROPERTY',
-         'RAISE','RECORD','REPEAT','SELF',
-         'SET','SHL','SHR','STRING','THEN','TO',
-         'TRUE','TRY','TYPE','UNIT','UNTIL',
-         'USES','VAR',
-{        'VIRTUAL',}
-         'WHILE','WITH','XOR');
-
-       keyword_token : array[1..max_keywords] of ttoken = (
-{        _ABSOLUTE,}
-         _AND,
-         _ARRAY,_AS,_ASM,
-{        _ASSEMBLER,}
-         _BEGIN,
-         _CASE,_CLASS,
-         _CONST,_CONSTRUCTOR,
-         _DESTRUCTOR,_DISPOSE,_DIV,_DO,_DOWNTO,
-         _ELSE,_END,_EXCEPT,
-         _EXIT,
-{        _EXPORT,}
-         _EXPORTS,
-{        _EXTERNAL,}
-         _FAIL,_FALSE,
-{        _FAR,}
-         _FILE,_FINALIZATION,_FINALLY,_FOR,
-{        _FORWARD,}
-         _FUNCTION,_GOTO,_IF,_IMPLEMENTATION,_IN,
-         _INHERITED,_INITIALIZATION,
-{        _INLINE,}
-         _INTERFACE,
-{        _INTERRUPT,}
-         _IS,
-         _LABEL,_LIBRARY,_MOD,
-{        _NEAR,}
-         _NEW,_NIL,_NOT,_OBJECT,
-         _OF,_ON,_OPERATOR,_OR,_OTHERWISE,_PACKED,
-         _PROCEDURE,_PROGRAM,_PROPERTY,
-         _RAISE,_RECORD,_REPEAT,_SELF,
-         _SET,_SHL,_SHR,_STRING,_THEN,_TO,
-         _TRUE,_TRY,_TYPE,_UNIT,_UNTIL,
-         _USES,_VAR,
-{        _VIRTUAL,}
-         _WHILE,_WITH,_XOR);
 
     type
        pmacrobuffer = ^tmacrobuffer;
@@ -194,7 +107,7 @@ unit scanner;
           procedure skipcomment;
           procedure skipdelphicomment;
           procedure skipoldtpcomment;
-          function  yylex:ttoken;
+          procedure readtoken;
           function  readpreproc:ttoken;
           function  asmgetchar:char;
        end;
@@ -205,8 +118,6 @@ unit scanner;
         pattern        : string;
         current_scanner : pscannerfile;
 
-    { changes to keywords to be tp compatible }
-    procedure change_to_tp_keywords;
 
 implementation
 
@@ -216,62 +127,53 @@ implementation
 {*****************************************************************************
                               Helper routines
 *****************************************************************************}
+    type
+      tokenidxrec=record
+        first,last : ttoken;
+      end;
+    var
+      tokenidx:array[2..tokenidlen] of tokenidxrec;
 
-    function is_keyword(var token : ttoken) : boolean;
+
+    procedure create_tokenidx;
+    { create an index with the first and last token for every possible token
+      length, so a search only will be done in that small part }
       var
-         high,low,mid : longint;
+        t : ttoken;
       begin
-         low:=1;
-         high:=anz_keywords;
-         while low<high do
-          begin
-            mid:=(high+low+1) shr 1;
-            if pattern<keyword[mid] then
-             high:=mid-1
-            else
-             low:=mid;
-          end;
-         if pattern=keyword[high] then
-          begin
-            token:=keyword_token[high];
-            is_keyword:=true;
-          end
-         else
-          is_keyword:=false;
+        for t:=low(ttoken) to high(ttoken) do
+         begin
+           if not tokens[t].special then
+            begin
+              if ord(tokenidx[length(tokens[t].str)].first)=0 then
+               tokenidx[length(tokens[t].str)].first:=t;
+              tokenidx[length(tokens[t].str)].last:=t;
+            end;
+         end;
       end;
 
 
-    procedure remove_keyword(const s : string);
+    function is_keyword(const s:string):boolean;
       var
-         i,j : longint;
+        low,high,mid : longint;
       begin
-         for i:=1 to anz_keywords do
-           begin
-              if keyword[i]=s then
-                begin
-                   for j:=i to anz_keywords-1 do
-                     begin
-                        keyword[j]:=keyword[j+1];
-                        keyword_token[j]:=keyword_token[j+1];
-                     end;
-                   dec(anz_keywords);
-                   break;
-                end;
-           end;
-      end;
-
-
-    procedure change_to_tp_keywords;
-      const
-        non_tp : array[0..14] of string[id_len] = (
-           'AS','CLASS','EXCEPT','FINALLY','INITIALIZATION','IS',
-           'ON','OPERATOR','OTHERWISE','PROPERTY','RAISE','TRY',
-           'EXPORTS','LIBRARY','FINALIZATION');
-      var
-        i : longint;
-      begin
-        for i:=0 to 13 do
-         remove_keyword(non_tp[i]);
+        if not (length(s) in [2..tokenidlen]) then
+         begin
+           is_keyword:=false;
+           exit;
+         end;
+        low:=ord(tokenidx[length(s)].first);
+        high:=ord(tokenidx[length(s)].last);
+        while low<high do
+         begin
+           mid:=(high+low+1) shr 1;
+           if pattern<tokens[ttoken(mid)].str then
+            high:=mid-1
+           else
+            low:=mid;
+         end;
+        is_keyword:=(pattern=tokens[ttoken(high)].str) and
+                    (tokens[ttoken(high)].keyword in aktmodeswitches);
       end;
 
 
@@ -943,10 +845,10 @@ implementation
       end;
 
 
-    function tscannerfile.yylex : ttoken;
+    procedure tscannerfile.readtoken;
       var
-        y       : ttoken;
         code    : integer;
+        low,high,mid,
         l       : longint;
         mac     : pmacrosym;
         asciinr : string[3];
@@ -966,20 +868,20 @@ implementation
                     case c of
                      '.' : begin
                              readchar;
-                             yylex:=POINTPOINT;
+                             token:=POINTPOINT;
                              goto exit_label;
                            end;
                      ')' : begin
                              readchar;
-                             yylex:=RECKKLAMMER;
+                             token:=RECKKLAMMER;
                              goto exit_label;
                            end;
                     end;
-                    yylex:=POINT;
+                    token:=POINT;
                     goto exit_label;
                   end;
               2 : begin { first char was a Caret }
-                    yylex:=CARET;
+                    token:=CARET;
                     readchar;
                     goto exit_label;
                   end;
@@ -1003,9 +905,30 @@ implementation
         if c in ['_','A'..'Z','a'..'z'] then
          begin
            readstring;
-           if (length(pattern) in [2..id_len]) and is_keyword(y) then
-            yylex:=y
-           else
+           token:=ID;
+           idtoken:=ID;
+         { keyword or any other known token ? }
+           if (length(pattern) in [2..tokenidlen]) then
+            begin
+              low:=ord(tokenidx[length(pattern)].first);
+              high:=ord(tokenidx[length(pattern)].last);
+              while low<high do
+               begin
+                 mid:=(high+low+1) shr 1;
+                 if pattern<tokens[ttoken(mid)].str then
+                  high:=mid-1
+                 else
+                  low:=mid;
+               end;
+              if pattern=tokens[ttoken(high)].str then
+               begin
+                 if tokens[ttoken(high)].keyword in aktmodeswitches then
+                  token:=ttoken(high);
+                 idtoken:=ttoken(high);
+               end;
+            end;
+         { Only process identifiers and not keywords }
+           if token=ID then
             begin
             { this takes some time ... }
               if (cs_support_macro in aktmoduleswitches) then
@@ -1021,33 +944,31 @@ implementation
                     inc(yylexcount);
                     if yylexcount>16 then
                      Message(scan_w_macro_deep_ten);
-                  {$ifdef TP}
-                    yylex:=yylex;
-                  {$else}
-                    yylex:=yylex();
-                  {$endif}
+                    readtoken;
                   { that's all folks }
                     dec(yylexcount);
                     exit;
                   end;
                end;
-              yylex:=ID;
             end;
+         { a following caret, then set special handling }
            if (c='^') then
             do_special:=2;
+         { return token }
            goto exit_label;
          end
         else
          begin
+           idtoken:=NOID;
            case c of
                 '$' : begin
                          readnumber;
-                         yylex:=INTCONST;
+                         token:=INTCONST;
                          goto exit_label;
                       end;
                 '%' : begin
                          readnumber;
-                         yylex:=INTCONST;
+                         token:=INTCONST;
                          goto exit_label;
                       end;
            '0'..'9' : begin
@@ -1061,7 +982,7 @@ implementation
                               if not(c in ['0'..'9']) then
                                begin
                                  do_special:=1;
-                                 yylex:=INTCONST;
+                                 token:=INTCONST;
                                  goto exit_label;
                                end;
                               pattern:=pattern+'.';
@@ -1089,25 +1010,25 @@ implementation
                                  readchar;
                                end;
                             end;
-                           yylex:=REALNUMBER;
+                           token:=REALNUMBER;
                            goto exit_label;
                          end;
-                        yylex:=INTCONST;
+                        token:=INTCONST;
                         goto exit_label;
                       end;
                 ';' : begin
                         readchar;
-                        yylex:=SEMICOLON;
+                        token:=SEMICOLON;
                         goto exit_label;
                       end;
                 '[' : begin
                         readchar;
-                        yylex:=LECKKLAMMER;
+                        token:=LECKKLAMMER;
                         goto exit_label;
                       end;
                 ']' : begin
                         readchar;
-                        yylex:=RECKKLAMMER;
+                        token:=RECKKLAMMER;
                         goto exit_label;
                       end;
                 '(' : begin
@@ -1115,25 +1036,21 @@ implementation
                         case c of
                          '*' : begin
                                  skipoldtpcomment;
-                               {$ifndef TP}
-                                 yylex:=yylex();
-                               {$else}
-                                 yylex:=yylex;
-                               {$endif}
+                                 readtoken;
                                  exit;
                                end;
                          '.' : begin
                                  readchar;
-                                 yylex:=LECKKLAMMER;
+                                 token:=LECKKLAMMER;
                                  goto exit_label;
                                end;
                         end;
-                        yylex:=LKLAMMER;
+                        token:=LKLAMMER;
                         goto exit_label;
                       end;
                 ')' : begin
                         readchar;
-                        yylex:=RKLAMMER;
+                        token:=RKLAMMER;
                         goto exit_label;
                       end;
                 '+' : begin
@@ -1141,10 +1058,10 @@ implementation
                         if (c='=') and (cs_support_c_operators in aktmoduleswitches) then
                          begin
                            readchar;
-                           yylex:=_PLUSASN;
+                           token:=_PLUSASN;
                            goto exit_label;
                          end;
-                        yylex:=PLUS;
+                        token:=PLUS;
                         goto exit_label;
                       end;
                 '-' : begin
@@ -1152,10 +1069,10 @@ implementation
                         if (c='=') and (cs_support_c_operators in aktmoduleswitches) then
                          begin
                            readchar;
-                           yylex:=_MINUSASN;
+                           token:=_MINUSASN;
                            goto exit_label;
                          end;
-                        yylex:=MINUS;
+                        token:=MINUS;
                         goto exit_label;
                       end;
                 ':' : begin
@@ -1163,10 +1080,10 @@ implementation
                         if c='=' then
                          begin
                            readchar;
-                           yylex:=ASSIGNMENT;
+                           token:=ASSIGNMENT;
                            goto exit_label;
                          end;
-                        yylex:=COLON;
+                        token:=COLON;
                         goto exit_label;
                       end;
                 '*' : begin
@@ -1174,16 +1091,16 @@ implementation
                         if (c='=') and (cs_support_c_operators in aktmoduleswitches) then
                          begin
                            readchar;
-                           yylex:=_STARASN;
+                           token:=_STARASN;
                          end
                         else
                          if c='*' then
                           begin
                             readchar;
-                            yylex:=STARSTAR;
+                            token:=STARSTAR;
                           end
                         else
-                         yylex:=STAR;
+                         token:=STAR;
                         goto exit_label;
                       end;
                 '/' : begin
@@ -1193,26 +1110,22 @@ implementation
                                  if (cs_support_c_operators in aktmoduleswitches) then
                                   begin
                                     readchar;
-                                    yylex:=_SLASHASN;
+                                    token:=_SLASHASN;
                                     goto exit_label;
                                   end;
                                end;
                          '/' : begin
                                  skipdelphicomment;
-                               {$ifndef TP}
-                                 yylex:=yylex();
-                               {$else TP}
-                                 yylex:=yylex;
-                               {$endif TP}
+                                 readtoken;
                                  exit;
                                end;
                         end;
-                        yylex:=SLASH;
+                        token:=SLASH;
                         goto exit_label;
                       end;
                 '=' : begin
                         readchar;
-                        yylex:=EQUAL;
+                        token:=EQUAL;
                         goto exit_label;
                       end;
                 '.' : begin
@@ -1220,16 +1133,16 @@ implementation
                         case c of
                          '.' : begin
                                  readchar;
-                                 yylex:=POINTPOINT;
+                                 token:=POINTPOINT;
                                  goto exit_label;
                                end;
                          ')' : begin
                                  readchar;
-                                 yylex:=RECKKLAMMER;
+                                 token:=RECKKLAMMER;
                                  goto exit_label;
                                end;
                         end;
-                        yylex:=POINT;
+                        token:=POINT;
                         goto exit_label;
                       end;
                 '@' : begin
@@ -1237,15 +1150,15 @@ implementation
                         if c='@' then
                          begin
                            readchar;
-                           yylex:=DOUBLEADDR;
+                           token:=DOUBLEADDR;
                          end
                         else
-                         yylex:=KLAMMERAFFE;
+                         token:=KLAMMERAFFE;
                         goto exit_label;
                       end;
                 ',' : begin
                         readchar;
-                        yylex:=COMMA;
+                        token:=COMMA;
                         goto exit_label;
                       end;
       '''','#','^' :  begin
@@ -1260,7 +1173,7 @@ implementation
                             end
                            else
                             begin
-                              yylex:=CARET;
+                              token:=CARET;
                               goto exit_label;
                             end;
                          end
@@ -1325,9 +1238,9 @@ implementation
                         until false;
                       { strings with length 1 become const chars }
                         if length(pattern)=1 then
-                         yylex:=CCHAR
+                         token:=CCHAR
                         else
-                         yylex:=CSTRING;
+                         token:=CSTRING;
                         goto exit_label;
                       end;
                 '>' : begin
@@ -1335,21 +1248,21 @@ implementation
                         case c of
                          '=' : begin
                                  readchar;
-                                 yylex:=GTE;
+                                 token:=GTE;
                                  goto exit_label;
                                end;
                          '>' : begin
                                  readchar;
-                                 yylex:=_SHR;
+                                 token:=_SHR;
                                  goto exit_label;
                                end;
                          '<' : begin { >< is for a symetric diff for sets }
                                  readchar;
-                                 yylex:=SYMDIF;
+                                 token:=SYMDIF;
                                  goto exit_label;
                                end;
                         end;
-                        yylex:=GT;
+                        token:=GT;
                         goto exit_label;
                       end;
                 '<' : begin
@@ -1357,25 +1270,25 @@ implementation
                         case c of
                          '>' : begin
                                  readchar;
-                                 yylex:=UNEQUAL;
+                                 token:=UNEQUAL;
                                  goto exit_label;
                                end;
                          '=' : begin
                                  readchar;
-                                 yylex:=LTE;
+                                 token:=LTE;
                                  goto exit_label;
                                end;
                          '<' : begin
                                  readchar;
-                                 yylex:=_SHL;
+                                 token:=_SHL;
                                  goto exit_label;
                                end;
                         end;
-                        yylex:=LT;
+                        token:=LT;
                         goto exit_label;
                       end;
                 #26 : begin
-                        yylex:=_EOF;
+                        token:=_EOF;
                         goto exit_label;
                       end;
            else
@@ -1506,10 +1419,15 @@ exit_label:
          end;
       end;
 
+begin
+  create_tokenidx;
 end.
 {
   $Log$
-  Revision 1.53  1998-09-24 23:49:20  peter
+  Revision 1.54  1998-09-26 17:45:41  peter
+    + idtoken and only one token table
+
+  Revision 1.53  1998/09/24 23:49:20  peter
     + aktmodeswitches
 
   Revision 1.52  1998/09/18 16:03:45  florian

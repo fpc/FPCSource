@@ -1000,11 +1000,6 @@ unit pstatmnt;
             _UNTIL,
             _END:
               code:=genzeronode(niln);
-            _CONTINUE:
-              begin
-                 consume(_CONTINUE);
-                 code:=genzeronode(continuen);
-              end;
             _FAIL : begin
                        { internalerror(100); }
                        if (aktprocsym^.definition^.options and poconstructor)=0 then
@@ -1012,13 +1007,6 @@ unit pstatmnt;
                        consume(_FAIL);
                        code:=genzeronode(failn);
                     end;
-            {
-            _BREAK:
-              begin
-                 consume(_BREAK);
-                 code:=genzeronode(breakn);
-              end;
-             }
             _EXIT : code:=exit_statement;
             _ASM : begin
                       code:=_asm_statement;
@@ -1226,7 +1214,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.41  1998-09-24 23:49:15  peter
+  Revision 1.42  1998-09-26 17:45:38  peter
+    + idtoken and only one token table
+
+  Revision 1.41  1998/09/24 23:49:15  peter
     + aktmodeswitches
 
   Revision 1.40  1998/09/23 21:53:04  florian

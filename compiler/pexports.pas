@@ -86,21 +86,21 @@ unit pexports;
                         if (srsym^.typ<>procsym) or
                           ((pprocdef(pprocsym(srsym)^.definition)^.options and poexports)=0) then
                           Message(parser_e_illegal_symbol_exported);
-                        if (token=ID) and (pattern='INDEX') then
+                        if (idtoken=_INDEX) then
                           begin
-                             consume(ID);
+                             consume(_INDEX);
                              val(pattern,hp^.index,code);
                              consume(INTCONST);
                           end;
-                        if (token=ID) and (pattern='NAME') then
+                        if (idtoken=_NAME) then
                           begin
-                             consume(ID);
+                             consume(_NAME);
                              hp^.name:=stringdup(pattern);
                              consume(ID);
                           end;
-                        if (token=ID) and (pattern='RESIDENT') then
+                        if (idtoken=_RESIDENT) then
                           begin
-                             consume(ID);
+                             consume(_RESIDENT);
                              hp^.options:=hp^.options or eo_resident;
                           end;
                      end;
@@ -123,39 +123,7 @@ end.
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:15  root
-  Initial revision
-
-  Revision 1.7  1998/03/10 01:17:24  peter
-    * all files have the same header
-    * messages are fully implemented, EXTDEBUG uses Comment()
-    + AG... files for the Assembler generation
-
-  Revision 1.6  1998/03/06 00:52:42  peter
-    * replaced all old messages from errore.msg, only ExtDebug and some
-      Comment() calls are left
-    * fixed options.pas
-
-  Revision 1.5  1998/03/02 01:49:01  peter
-    * renamed target_DOS to target_GO32V1
-    + new verbose system, merged old errors and verbose units into one new
-      verbose.pas, so errors.pas is obsolete
-
-  Revision 1.4  1998/02/13 10:35:24  daniel
-  * Made Motorola version compilable.
-  * Fixed optimizer
-
-  Revision 1.3  1998/01/12 13:02:41  florian
-    + items of exports are now seperated by ,
-
-  Revision 1.2  1998/01/12 12:11:35  florian
-    + unit qualifier is now allowed to specify exported symbols
-    + exports starts now a list of symbols to export
-
-  Revision 1.1  1998/01/11 10:58:07  florian
-    + pexports in lowercase commited
-
-  Revision 1.1  1998/01/11 10:54:19  florian
-    + generic library support
+  Revision 1.2  1998-09-26 17:45:35  peter
+    + idtoken and only one token table
 
 }

@@ -1544,79 +1544,92 @@ unit pexpr;
 
     type
       Toperator_precedence=(opcompare,opaddition,opmultiply);
+      Ttok2nodeRec=record
+        tok : ttoken;
+        nod : ttreetyp;
+      end;
 
     const
-      tok2node:array[PLUS.._XOR] of Ttreetyp=
-                    (addn,subn,muln,slashn,equaln,gtn,ltn,gten,lten,
-                     isn,asn,inn,
-                     symdifn,starstarn,nothingn,caretn,unequaln,nothingn,
-                     nothingn,nothingn,nothingn,nothingn,nothingn,
-                     nothingn,nothingn,nothingn,nothingn,nothingn,
-                     nothingn,nothingn,nothingn,nothingn,nothingn,
-                     nothingn,andn,nothingn,nothingn,nothingn,
-                     nothingn,nothingn,nothingn,nothingn,nothingn,
-                     nothingn,nothingn,divn,nothingn,nothingn,
-                     nothingn,nothingn,nothingn,nothingn,nothingn,
-                     nothingn,nothingn,nothingn,nothingn,nothingn,
-                     nothingn,nothingn,nothingn,nothingn,nothingn,
-                     modn,nothingn,nothingn,nothingn,nothingn,
-                     nothingn,nothingn,orn,
-                     nothingn,nothingn,nothingn,nothingn,nothingn,
-                     nothingn,nothingn,shln,shrn,
-                     nothingn,nothingn,nothingn,nothingn,nothingn,
-                     nothingn,nothingn,nothingn,nothingn,nothingn,
-                     nothingn,xorn);
-            operator_levels:array[Toperator_precedence] of set of Ttoken=
-                    ([LT,LTE,GT,GTE,EQUAL,UNEQUAL,_IN,_IS],
-                     [PLUS,MINUS,_OR,_XOR],
-                     [CARET,SYMDIF,STARSTAR,STAR,SLASH,_DIV,_MOD,_AND,_SHL,_SHR,_AS]);
+      tok2nodes=23;
+      tok2node:array[1..tok2nodes] of ttok2noderec=(
+        (tok:PLUS    ;nod:addn),
+        (tok:MINUS   ;nod:subn),
+        (tok:STAR    ;nod:muln),
+        (tok:SLASH   ;nod:slashn),
+        (tok:EQUAL   ;nod:equaln),
+        (tok:GT      ;nod:gtn),
+        (tok:LT      ;nod:ltn),
+        (tok:GTE     ;nod:gten),
+        (tok:LTE     ;nod:lten),
+        (tok:SYMDIF  ;nod:symdifn),
+        (tok:STARSTAR;nod:starstarn),
+        (tok:CARET   ;nod:caretn),
+        (tok:UNEQUAL ;nod:unequaln),
+        (tok:_AS     ;nod:asn),
+        (tok:_IN     ;nod:inn),
+        (tok:_IS     ;nod:isn),
+        (tok:_OR     ;nod:orn),
+        (tok:_AND    ;nod:andn),
+        (tok:_DIV    ;nod:divn),
+        (tok:_MOD    ;nod:modn),
+        (tok:_SHL    ;nod:shln),
+        (tok:_SHR    ;nod:shrn),
+        (tok:_XOR    ;nod:xorn)
+      );
+      operator_levels:array[Toperator_precedence] of set of Ttoken=
+         ([LT,LTE,GT,GTE,EQUAL,UNEQUAL,_IN,_IS],
+          [PLUS,MINUS,_OR,_XOR],
+          [CARET,SYMDIF,STARSTAR,STAR,SLASH,_DIV,_MOD,_AND,_SHL,_SHR,_AS]);
 
     function sub_expr(pred_level:Toperator_precedence;accept_equal : boolean):Ptree;
-
     {Reads a subexpression while the operators are of the current precedence
      level, or any higher level. Replaces the old term, simpl_expr and
      simpl2_expr.}
-
-    var p1,p2:Ptree;
-        oldt:Ttoken;
-         filepos : tfileposinfo;
-
-
-    begin
-{        if pred_level=high(Toperator_precedence) then }
-         if pred_level=opmultiply then
-         { this IS wrong   !!! PM
-            p1:=factor(getprocvar)}
-            p1:=factor(false)
+      var
+        low,high,mid : longint;
+        p1,p2   : Ptree;
+        oldt    : Ttoken;
+        filepos : tfileposinfo;
+      begin
+        if pred_level=opmultiply then
+          p1:=factor(false)
         else
-            p1:=sub_expr(succ(pred_level),true);
+          p1:=sub_expr(succ(pred_level),true);
         repeat
-            { aweful hack to support const a : 1..2=1; }
-            { disadvantage of tables :) FK             }
-            if (token in operator_levels[pred_level]) and
-               ((token<>EQUAL) or accept_equal) then
-                begin
-                    oldt:=token;
-                    filepos:=tokenpos;
-
-                    consume(token);
-{                    if pred_level=high(Toperator_precedence) then }
-                    if pred_level=opmultiply then
-                        p2:=factor(false)
-                    else
-                        p2:=sub_expr(succ(pred_level),true);
-                    p1:=gennode(tok2node[oldt],p1,p2);
-                    set_tree_filepos(p1,filepos);
-
-                end
-            else
-                break;
+          if (token in operator_levels[pred_level]) and
+             ((token<>EQUAL) or accept_equal) then
+           begin
+             oldt:=token;
+             filepos:=tokenpos;
+             consume(token);
+             if pred_level=opmultiply then
+               p2:=factor(false)
+             else
+               p2:=sub_expr(succ(pred_level),true);
+             low:=1;
+             high:=tok2nodes;
+             while (low<high) do
+              begin
+                mid:=(low+high+1) shr 1;
+                if oldt<tok2node[mid].tok then
+                 high:=mid-1
+                else
+                 low:=mid;
+              end;
+             if tok2node[high].tok=oldt then
+              p1:=gennode(tok2node[high].nod,p1,p2)
+             else
+              p1:=gennode(nothingn,p1,p2);
+             set_tree_filepos(p1,filepos);
+           end
+          else
+           break;
         until false;
         sub_expr:=p1;
-    end;
+      end;
+
 
     function comp_expr(accept_equal : boolean):Ptree;
-
       var
          oldafterassignment : boolean;
 
@@ -1748,7 +1761,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.55  1998-09-24 23:49:10  peter
+  Revision 1.56  1998-09-26 17:45:36  peter
+    + idtoken and only one token table
+
+  Revision 1.55  1998/09/24 23:49:10  peter
     + aktmodeswitches
 
   Revision 1.54  1998/09/23 15:46:39  florian

@@ -235,9 +235,7 @@ unit pdecl;
           consume(ID);
        { read vars }
          while (token=ID) and
-           not(is_object and
-              ((pattern='PUBLIC') or (pattern='PRIVATE') or
-               (pattern='PUBLISHED') or (pattern='PROTECTED'))) do
+               not(is_object and (idtoken in [_PUBLIC,_PRIVATE,_PUBLISHED,_PROTECTED])) do
            begin
              C_name:=orgpattern;
              sc:=idlist;
@@ -267,10 +265,10 @@ unit pdecl;
                   symdone:=true;
                end;
            { check for absolute }
-             if not symdone and (token=ID) and
-                (pattern='ABSOLUTE') and not(is_record or is_object) then
+             if not symdone and
+                (idtoken=_ABSOLUTE) and not(is_record or is_object) then
               begin
-                consume(ID);
+                consume(_ABSOLUTE);
               { only allowed for one var }
                 s:=sc^.get_with_tokeninfo(declarepos);
                 if not sc^.empty then
@@ -347,6 +345,7 @@ unit pdecl;
              { for a record there doesn't need to be a ; before the END or ) }
              if not((is_record or is_object) and (token in [_END,RKLAMMER])) then
                consume(SEMICOLON);
+             { procvar handling }
              if (p^.deftype=procvardef) and (p^.sym=nil) then
                begin
                   newtype:=new(ptypesym,init('unnamed',p));
@@ -361,10 +360,7 @@ unit pdecl;
                 { Check for C Variable declarations }
                 if (cs_support_c_var in aktmoduleswitches) and
                    not(is_record or is_object) and
-                   ((pattern='EXPORT') or
-                    (pattern='EXTERNAL') or
-                    (pattern='PUBLIC') or
-                    (pattern='CVAR')) then
+                   (idtoken in [_EXPORT,_EXTERNAL,_PUBLIC,_CVAR]) then
                  begin
                    { only allowed for one var }
                    s:=sc^.get_with_tokeninfo(declarepos);
@@ -376,21 +372,21 @@ unit pdecl;
                    extern_csym:=false;
                    export_Csym:=false;
                    { cdecl }
-                   if pattern='CVAR' then
+                   if idtoken=_CVAR then
                     begin
-                      consume(ID);
+                      consume(_CVAR);
                       consume(SEMICOLON);
                       is_cdecl:=true;
                       C_name:=target_os.Cprefix+C_name;
                     end;
                    { external }
-                   if pattern='EXTERNAL' then
+                   if idtoken=_EXTERNAL then
                     begin
-                      consume(ID);
+                      consume(_EXTERNAL);
                       extern_csym:=true;
                     end;
                    { export }
-                   if (pattern='EXPORT') or (pattern='PUBLIC') then
+                   if idtoken in [_EXPORT,_PUBLIC] then
                     begin
                       consume(ID);
                       if extern_csym then
@@ -401,10 +397,7 @@ unit pdecl;
                  { external and export need a name after when no cdecl is used }
                    if not is_cdecl then
                     begin
-                      if (token=ID) and (pattern='NAME') then
-                       consume(ID)
-                      else
-                       Message(parser_e_name_keyword_expected);
+                      consume(_NAME);
                       C_name:=pattern;
                     { allow also char }
                       if token=CCHAR then
@@ -432,12 +425,12 @@ unit pdecl;
                    symdone:=true;
                  end
                 else
-                 if (is_object) and (cs_static_keyword in aktglobalswitches) and (pattern='STATIC') then
+                 if (is_object) and (cs_static_keyword in aktglobalswitches) and (idtoken=_STATIC) then
                   begin
                     current_object_option:=current_object_option or sp_static;
                     insert_syms(symtablestack,sc,p);
                     current_object_option:=current_object_option - sp_static;
-                    consume(ID);
+                    consume(_STATIC);
                     consume(SEMICOLON);
                     symdone:=true;
                   end;
@@ -807,9 +800,9 @@ unit pdecl;
                   begin
                      consume(COLON);
                      p^.proptype:=single_type(hs);
-                     if (token=ID) and (pattern='INDEX') then
+                     if (idtoken=_INDEX) then
                        begin
-                          consume(ID);
+                          consume(_INDEX);
                           p^.options:=p^.options or ppo_indexed;
                           if token=INTCONST then
                             val(pattern,p^.index,code);
@@ -857,9 +850,9 @@ unit pdecl;
                 datacoll^.data:=p^.proptype;
                 datacoll^.next:=nil;
 
-                if (token=ID) and (pattern='READ') then
+                if (idtoken=_READ) then
                   begin
-                     consume(ID);
+                     consume(_READ);
                      sym:=search_class_member(aktclass,pattern);
                      if not(assigned(sym)) then
                        Message1(sym_e_unknown_id,pattern)
@@ -894,9 +887,9 @@ unit pdecl;
                        end;
                      consume(ID);
                   end;
-                if (token=ID) and (pattern='WRITE') then
+                if (idtoken=_WRITE) then
                   begin
-                     consume(ID);
+                     consume(_WRITE);
                      sym:=search_class_member(aktclass,pattern);
                      if not(assigned(sym)) then
                        Message1(sym_e_unknown_id,pattern)
@@ -929,14 +922,14 @@ unit pdecl;
                        end;
                      consume(ID);
                   end;
-                if (token=ID) and (pattern='STORED') then
+                if (idtoken=_STORED) then
                   begin
-                     consume(ID);
+                     consume(_STORED);
                      { !!!!!!!! }
                   end;
-                if (token=ID) and (pattern='DEFAULT') then
+                if (idtoken=_DEFAULT) then
                   begin
-                     consume(ID);
+                     consume(_DEFAULT);
                      if not(is_ordinal(p^.proptype) or
                        ((p^.proptype^.deftype=setdef) and
                         (psetdef(p^.proptype)^.settype=smallset)
@@ -956,17 +949,17 @@ unit pdecl;
                        p^.default:=pt^.value;
                      disposetree(pt);
                   end
-                else if (token=ID) and (pattern='NODEFAULT') then
+                else if (idtoken=_NODEFAULT) then
                   begin
-                     consume(ID);
+                     consume(_NODEFAULT);
                      p^.default:=0;
                   end;
                 symtablestack^.insert(p);
                 { default property ? }
                 consume(SEMICOLON);
-                if (token=ID) and (pattern='DEFAULT') then
+                if (idtoken=_DEFAULT) then
                   begin
-                     consume(ID);
+                     consume(_DEFAULT);
                      p2:=search_default_property(aktclass);
                      if assigned(p2) then
                        message1(parser_e_only_one_default_property,
@@ -1218,37 +1211,32 @@ unit pdecl;
                 aktclass^.options:=aktclass^.options or oo_hasprotected;
               case token of
                ID : begin
-                      if (pattern='PRIVATE') then
-                       begin
-                         consume(ID);
-                         actmembertype:=sp_private;
-                         current_object_option:=sp_private;
-                       end
+                      case idtoken of
+                       _PRIVATE : begin
+                                    consume(_PRIVATE);
+                                    actmembertype:=sp_private;
+                                    current_object_option:=sp_private;
+                                  end;
+                     _PROTECTED : begin
+                                    consume(_PROTECTED);
+                                    current_object_option:=sp_protected;
+                                    actmembertype:=sp_protected;
+                                  end;
+                        _PUBLIC : begin
+                                    consume(_PUBLIC);
+                                    current_object_option:=sp_public;
+                                    actmembertype:=sp_public;
+                                  end;
+                     _PUBLISHED : begin
+                                    if (aktclass^.options and oo_can_have_published)=0 then
+                                     Message(parser_e_cant_have_published);
+                                    consume(_PUBLISHED);
+                                    current_object_option:=sp_published;
+                                    actmembertype:=sp_published;
+                                  end;
                       else
-                       if (pattern='PROTECTED') then
-                        begin
-                          consume(ID);
-                          current_object_option:=sp_protected;
-                          actmembertype:=sp_protected;
-                        end
-                      else
-                       if (pattern='PUBLIC') then
-                        begin
-                          consume(ID);
-                          current_object_option:=sp_public;
-                          actmembertype:=sp_public;
-                        end
-                      else
-                       if (pattern='PUBLISHED') then
-                        begin
-                          if (aktclass^.options and oo_can_have_published)=0 then
-                           Message(parser_e_cant_have_published);
-                          consume(ID);
-                          current_object_option:=sp_published;
-                          actmembertype:=sp_published;
-                        end
-                      else
-                       read_var_decs(false,true);
+                        read_var_decs(false,true);
+                      end;
                     end;
         _PROPERTY : property_dec;
        _PROCEDURE,
@@ -1258,44 +1246,39 @@ unit pdecl;
                       parse_only:=true;
                       proc_head;
                       parse_only:=oldparse_only;
-                      if (token=ID) then
+                      case idtoken of
+                       _DYNAMIC,
+                       _VIRTUAL : begin
+                                    if actmembertype=sp_private then
+                                      Message(parser_w_priv_meth_not_virtual);
+                                    consume(idtoken);
+                                    consume(SEMICOLON);
+                                    aktprocsym^.definition^.options:=aktprocsym^.definition^.options or povirtualmethod;
+                                    aktclass^.options:=aktclass^.options or oo_hasvirtual;
+                                  end;
+                      _OVERRIDE : begin
+                                    consume(_OVERRIDE);
+                                    consume(SEMICOLON);
+                                    aktprocsym^.definition^.options:=aktprocsym^.definition^.options or
+                                      pooverridingmethod or povirtualmethod;
+                                  end;
+                      _ABSTRACT : begin
+                                    if (aktprocsym^.definition^.options and povirtualmethod)<>0 then
+                                      aktprocsym^.definition^.options:=aktprocsym^.definition^.options or poabstractmethod
+                                    else
+                                      Message(parser_e_only_virtual_methods_abstract);
+                                    consume(_ABSTRACT);
+                                    consume(SEMICOLON);
+                                    { the method is defined }
+                                    aktprocsym^.definition^.forwarddef:=false;
+                                  end;
+                      end;
+                      if (cs_static_keyword in aktglobalswitches) and (idtoken=_STATIC) then
                        begin
-                         if (pattern='VIRTUAL') or (pattern='DYNAMIC') then
-                          begin
-                            if actmembertype=sp_private then
-                             Message(parser_w_priv_meth_not_virtual);
-                            consume(ID);
-                            consume(SEMICOLON);
-                            aktprocsym^.definition^.options:=aktprocsym^.definition^.options or povirtualmethod;
-                            aktclass^.options:=aktclass^.options or oo_hasvirtual;
-                          end
-                         else
-                          if (pattern='OVERRIDE') then
-                           begin
-                             consume(ID);
-                             consume(SEMICOLON);
-                             aktprocsym^.definition^.options:=aktprocsym^.definition^.options or
-                               pooverridingmethod or povirtualmethod;
-                           end;
-                      { Delphi II extension }
-                         if (pattern='ABSTRACT') then
-                          begin
-                            consume(ID);
-                            consume(SEMICOLON);
-                            if (aktprocsym^.definition^.options and povirtualmethod)<>0 then
-                             aktprocsym^.definition^.options:=aktprocsym^.definition^.options or poabstractmethod
-                            else
-                             Message(parser_e_only_virtual_methods_abstract);
-                          { the method is defined }
-                            aktprocsym^.definition^.forwarddef:=false;
-                          end;
-                         if (cs_static_keyword in aktglobalswitches) and (pattern='STATIC') then
-                          begin
-                            consume(ID);
-                            consume(SEMICOLON);
-                            aktprocsym^.properties:=aktprocsym^.properties or sp_static;
-                            aktprocsym^.definition^.options:=aktprocsym^.definition^.options or postaticmethod;
-                          end;
+                         consume(_STATIC);
+                         consume(SEMICOLON);
+                         aktprocsym^.properties:=aktprocsym^.properties or sp_static;
+                         aktprocsym^.definition^.options:=aktprocsym^.definition^.options or postaticmethod;
                        end;
                     end;
      _CONSTRUCTOR : begin
@@ -1305,61 +1288,55 @@ unit pdecl;
                       parse_only:=true;
                       constructor_head;
                       parse_only:=oldparse_only;
-                      if (token=ID) then
-                       begin
-                         if (pattern='VIRTUAL') or (pattern='DYNAMIC') then
-                          begin
-                            consume(ID);
-                            consume(SEMICOLON);
-                            if not(aktclass^.isclass) then
-                             Message(parser_e_constructor_cannot_be_not_virtual)
-                            else
-                             begin
-                               aktprocsym^.definition^.options:=aktprocsym^.definition^.options or povirtualmethod;
-                               aktclass^.options:=aktclass^.options or oo_hasvirtual;
-                             end;
-                          end
-                         else
-                          if (pattern='OVERRIDE') then
-                           begin
-                             consume(ID);
-                             consume(SEMICOLON);
-                             if (aktclass^.options and oois_class=0) then
-                              Message(parser_e_constructor_cannot_be_not_virtual)
-                             else
-                              aktprocsym^.definition^.options:=aktprocsym^.definition^.options or
-                                pooverridingmethod or povirtualmethod;
-                          end;
-                       end;
+                      case idtoken of
+                       _DYNAMIC,
+                       _VIRTUAL : begin
+                                    if not(aktclass^.isclass) then
+                                     Message(parser_e_constructor_cannot_be_not_virtual)
+                                    else
+                                     begin
+                                       aktprocsym^.definition^.options:=aktprocsym^.definition^.options or povirtualmethod;
+                                       aktclass^.options:=aktclass^.options or oo_hasvirtual;
+                                     end;
+                                    consume(idtoken);
+                                    consume(SEMICOLON);
+                                  end;
+                      _OVERRIDE : begin
+                                    if (aktclass^.options and oois_class=0) then
+                                      Message(parser_e_constructor_cannot_be_not_virtual)
+                                    else
+                                      aktprocsym^.definition^.options:=aktprocsym^.definition^.options or
+                                        pooverridingmethod or povirtualmethod;
+                                    consume(_OVERRIDE);
+                                    consume(SEMICOLON);
+                                  end;
+                      end;
                     end;
       _DESTRUCTOR : begin
                       if there_is_a_destructor then
-                       Message(parser_n_only_one_destructor);
+                        Message(parser_n_only_one_destructor);
                       there_is_a_destructor:=true;
                       if actmembertype<>sp_public then
-                       Message(parser_w_destructor_should_be_public);
+                        Message(parser_w_destructor_should_be_public);
                       oldparse_only:=parse_only;
                       parse_only:=true;
                       destructor_head;
                       parse_only:=oldparse_only;
-                      if (token=ID) then
-                       begin
-                         if (pattern='VIRTUAL') or (pattern='DYNAMIC') then
-                          begin
-                            consume(ID);
-                            consume(SEMICOLON);
-                            aktprocsym^.definition^.options:=aktprocsym^.definition^.options or povirtualmethod;
-                            aktclass^.options:=aktclass^.options or oo_hasvirtual;
-                          end
-                         else
-                          if (pattern='OVERRIDE') then
-                           begin
-                             consume(ID);
-                             consume(SEMICOLON);
-                             aktprocsym^.definition^.options:=aktprocsym^.definition^.options or
-                               pooverridingmethod or povirtualmethod;
-                           end;
-                       end;
+                      case idtoken of
+                       _DYNAMIC,
+                       _VIRTUAL : begin
+                                    consume(idtoken);
+                                    consume(SEMICOLON);
+                                    aktprocsym^.definition^.options:=aktprocsym^.definition^.options or povirtualmethod;
+                                    aktclass^.options:=aktclass^.options or oo_hasvirtual;
+                                  end;
+                      _OVERRIDE : begin
+                                    consume(_OVERRIDE);
+                                    consume(SEMICOLON);
+                                    aktprocsym^.definition^.options:=aktprocsym^.definition^.options or
+                                      pooverridingmethod or povirtualmethod;
+                                  end;
+                      end;
                     end;
              _END : begin
                       consume(_END);
@@ -2059,7 +2036,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.58  1998-09-25 00:04:01  florian
+  Revision 1.59  1998-09-26 17:45:33  peter
+    + idtoken and only one token table
+
+  Revision 1.58  1998/09/25 00:04:01  florian
     * problems when calling class methods fixed
 
   Revision 1.57  1998/09/24 23:49:09  peter
