@@ -126,19 +126,25 @@ implementation
 
                   { low/high of torddef are longints, so we need special }
                   { handling for cardinal and 64bit types (JM)           }
-                  if is_signed(adef) then
-                    if is_64bitint(adef) and
-                       (inlinenumber=in_low_x) then
-                      v := int64($80000000) shl 32
-                    else
-                      v := (int64($7fffffff) shl 32) or $ffffffff
-                  else
-                    if is_64bitint(adef) then
-                      { we have to use a dirty trick for high(qword), }
-                      { because it's bigger than high(v)  (JM)        }
-                      v := 0
-                    else
-                      v := cardinal(v);
+                  if is_64bitint(adef) then
+                   begin
+                     if is_signed(adef) then
+                      begin
+                        if (inlinenumber=in_low_x) then
+                         v := int64($80000000) shl 32
+                        else
+                         v := (int64($7fffffff) shl 32) or $ffffffff
+                      end
+                     else
+                      begin
+                        { we have to use a dirty trick for high(qword), }
+                        { because it's bigger than high(v)  (JM)        }
+                        if (inlinenumber=in_low_x) then
+                         v := 0
+                        else
+                         v := cardinal(v);
+                      end;
+                   end;
                   hp:=genordinalconstnode(v,adef);
                   firstpass(hp);
                   { fix high(qword) }
@@ -1529,7 +1535,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.25  2001-02-21 12:57:46  jonas
+  Revision 1.26  2001-02-21 20:50:59  peter
+    * fix to compile again, but high(cardinal) with $R+ still fails!
+
+  Revision 1.25  2001/02/21 12:57:46  jonas
     * fixed high/low for cardinal, int64 and qword
 
   Revision 1.24  2001/01/06 19:54:11  peter
