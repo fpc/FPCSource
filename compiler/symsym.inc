@@ -41,10 +41,13 @@
 {$ifdef UseBrowser}
          defref:=nil;
          lastwritten:=nil;
-         if make_ref then
-           add_new_ref(defref,@tokenpos);
+         refcount:=0;
+         if (cs_browser in aktswitches) and make_ref then
+          begin
+            defref:=new(pref,init(defref,@tokenpos));
+            inc(refcount);
+          end;
          lastref:=defref;
-         refcount:=1;
 {$endif UseBrowser}
       end;
 
@@ -55,6 +58,7 @@
          right:=nil;
          setname(readstring);
          typ:=abstractsym;
+         line_no:=0;
          if object_options then
            properties:=symprop(readbyte)
          else
@@ -64,16 +68,10 @@
          defref:=nil;
          lastwritten:=nil;
          refcount:=0;
-         if (current_module^.flags and uf_uses_browser)<>0 then
-           { references do not change the ppu caracteristics      }
-           { this only save the references to variables/functions }
-           { defined in the unit what about the others            }
-           load_references;
 {$endif UseBrowser}
 {$ifdef GDB}
          isstabwritten := false;
 {$endif GDB}
-         line_no:=0;
       end;
 
 {$ifdef UseBrowser}
@@ -82,98 +80,51 @@
 
     procedure tsym.load_references;
       var
-        fileindex : word;
-        b         : byte;
-        l,c       : longint;
+        pos : tfileposinfo;
       begin
-         b:=readentry;
-         if b=ibref then
-          begin
-            while (not ppufile^.endofentry) do
-             begin
-               fileindex:=readword;
-               l:=readlong;
-               c:=readword;
-               inc(refcount);
-               lastref:=new(pref,load(lastref,fileindex,l,c));
-               if refcount=1 then
-                defref:=lastref;
-             end;
-          end
-         else
-          Message(unit_f_ppu_read_error);
-         lastwritten:=lastref;
+        while (not ppufile^.endofentry) do
+         begin
+           readposinfo(pos);
+           inc(refcount);
+           lastref:=new(pref,init(lastref,@pos));
+           if refcount=1 then
+            defref:=lastref;
+         end;
+        lastwritten:=lastref;
       end;
 
     procedure tsym.write_references;
       var
-        ref : pref;
+        ref   : pref;
+        prdef : pdef;
       begin
-      { references do not change the ppu caracteristics      }
-      { this only save the references to variables/functions }
-      { defined in the unit what about the others            }
-         ppufile^.do_crc:=false;
-         if assigned(lastwritten) then
-           ref:=lastwritten
-         else
-           ref:=defref;
-         while assigned(ref) do
-           begin
-              writeposinfo(ref^.posinfo);
-              ref:=ref^.nextref;
-           end;
-         lastwritten:=lastref;
-         ppufile^.writeentry(ibref);
-         ppufile^.do_crc:=true;
-      end;
-
-
-    procedure load_external_references;
-      var b     : byte;
-          sym   : psym;
-          prdef : pdef;
-      begin
-        b:=readentry;
-        if b=ibextsymref then
-         begin
-           sym:=readsymref;
-           resolvesym(sym);
-           sym^.load_references;
-         end;
-         ibextdefref : begin
-                         prdef:=readdefref;
-                         resolvedef(prdef);
-                         if prdef^.deftype<>procdef then
-                          Message(unit_f_ppu_read_error);
-                         pprocdef(prdef)^.load_references;
-                       end;
+        if lastwritten=lastref then
+          exit;
+      { write address to this symbol }
+        writesymref(@self);
+      { write symbol refs }
+        if assigned(lastwritten) then
+          ref:=lastwritten
         else
-          Message(unit_f_ppu_read_error);
-        end;
-      end;
-
-    procedure tsym.write_external_references;
-      var ref : pref;
-          prdef : pdef;
-      begin
-         ppufile^.do_crc:=false;
-         if lastwritten=lastref then
-           exit;
-         writesymref(@self);
-         writeentry(ibextsymref);
-
-         write_references;
-
-         if typ=procsym then
-           begin
-              prdef:=pprocsym(@self)^.definition;
-              while assigned(prdef) do
-                begin
-                   pprocdef(prdef)^.write_external_references;
-                   prdef:=pprocdef(prdef)^.nextoverloaded;
-                end;
-           end;
-         ppufile^.do_crc:=true;
+          ref:=defref;
+        while assigned(ref) do
+         begin
+           writeposinfo(ref^.posinfo);
+           ref:=ref^.nextref;
+         end;
+        lastwritten:=lastref;
+        ppufile^.writeentry(ibsymref);
+      { when it's a procsym then write also the refs to the definition
+        due the overloading }
+        if typ=procsym then
+         begin
+           prdef:=pprocsym(@self)^.definition;
+           while assigned(prdef) do
+            begin
+              pprocdef(prdef)^.write_references;
+              prdef:=pprocdef(prdef)^.nextoverloaded;
+            end;
+         end;
       end;
 
 {$else NEWPPU}
@@ -228,37 +179,6 @@
       end;
 
 
-    procedure load_external_references;
-
-      var b : byte;
-          sym : psym;
-          prdef : pdef;
-      begin
-         b:=readbyte;
-         while (b=ibextsymref) or (b=ibextdefref) do
-           begin
-              if b=ibextsymref then
-                begin
-                   sym:=readsymref;
-                   resolvesym(sym);
-                   sym^.load_references;
-                   b:=readbyte;
-                end
-              else
-              if b=ibextdefref then
-                begin
-                   prdef:=readdefref;
-                   resolvedef(prdef);
-                   if prdef^.deftype<>procdef then
-                    Message(unit_f_ppu_read_error);
-                   pprocdef(prdef)^.load_references;
-                   b:=readbyte;
-                end;
-           end;
-         if b <> ibend then
-           Message(unit_f_ppu_read_error);
-      end;
-
     procedure tsym.write_external_references;
       var ref : pref;
           prdef : pdef;
@@ -296,44 +216,48 @@
 
 {$endif NEWPPU}
 
-    procedure tsym.write_ref_to_file(var f : text);
-
-      var ref : pref;
-         i : longint;
-
+    procedure tsym.add_to_browserlog;
+      var
+        prdef : pprocdef;
       begin
-         ref:=defref;
-         if assigned(ref) then
-           begin
-              for i:=1 to reffile_indent do
-                system.write(f,' ');
-              writeln(f,'***',name,'***');
-           end;
-         inc(reffile_indent,2);
-         while assigned(ref) do
-           begin
-              for i:=1 to reffile_indent do
-                system.write(f,' ');
-              writeln(f,ref^.get_file_line);
-              ref:=ref^.nextref;
-           end;
-         dec(reffile_indent,2);
+        if assigned(defref) then
+         begin
+           Browse.AddLog('***'+name+'***');
+           Browse.AddLogRefs(defref);
+         end;
+      { when it's a procsym then write also the refs to the definition
+        due the overloading }
+        if typ=procsym then
+         begin
+           prdef:=pprocsym(@self)^.definition;
+           while assigned(prdef) do
+            begin
+              pprocdef(prdef)^.add_to_browserlog;
+              prdef:=pprocdef(prdef)^.nextoverloaded;
+            end;
+         end;
       end;
 {$endif UseBrowser}
 
-    destructor tsym.done;
 
+    destructor tsym.done;
       begin
 {$ifdef tp}
          if not(use_big) then
 {$endif tp}
            strdispose(_name);
-         if assigned(left) then dispose(left,done);
-         if assigned(right) then dispose(right,done);
+{$ifdef UseBrowser}
+         if assigned(defref) then
+          dispose(defref,done);
+{$endif UseBrowser}
+         if assigned(left) then
+           dispose(left,done);
+         if assigned(right) then
+           dispose(right,done);
       end;
 
-    destructor tsym.single_done;
 
+    destructor tsym.single_done;
       begin
 {$ifdef tp}
          if not(use_big) then
@@ -348,8 +272,8 @@
          if object_options then
            writebyte(byte(properties));
 {$ifdef UseBrowser}
-         if (current_module^.flags and uf_uses_browser)<>0 then
-           write_references;
+{         if cs_browser in aktswitches then
+           write_references; }
 {$endif UseBrowser}
       end;
 
@@ -462,9 +386,13 @@
 ****************************************************************************}
 
     constructor tunitsym.init(const n : string;ref : punitsymtable);
-
+      var
+        old_make_ref : boolean;
       begin
-         tsym.init(n);
+         old_make_ref:=make_ref;
+         make_ref:=false;
+         inherited init(n);
+         make_ref:=old_make_ref;
          typ:=unitsym;
          unitsymtable:=ref;
          prevsym:=ref^.unitsym;
@@ -627,8 +555,8 @@
 
     constructor tprogramsym.init(const n : string);
       begin
-         tsym.init(n);
-         typ:=programsym;
+        inherited init(n);
+        typ:=programsym;
       end;
 
 {****************************************************************************
@@ -637,8 +565,8 @@
 
     constructor terrorsym.init;
       begin
-         tsym.init('');
-         typ:=errorsym;
+        inherited init('');
+        typ:=errorsym;
       end;
 
 {****************************************************************************
@@ -875,15 +803,14 @@
          _mangledname:=nil;
          varspez:=vs_value;
          address:=0;
-		 refs:=0;
-		 var_options:=0;
+         refs:=0;
          is_valid := 1;
+         var_options:=0;
          { can we load the value into a register ? }
          case p^.deftype of
         pointerdef,
            enumdef,
-        procvardef :
-          var_options:=var_options or vo_regable;
+        procvardef : var_options:=var_options or vo_regable;
             orddef : case porddef(p)^.typ of
                        u8bit,u16bit,u32bit,
                        bool8bit,bool16bit,bool32bit,
@@ -907,7 +834,8 @@
          varspez:=tvarspez(readbyte);
          if read_member then
            address:=readlong
-         else address:=0;
+         else
+           address:=0;
          definition:=readdefref;
          refs := 0;
          is_valid := 1;
@@ -924,7 +852,7 @@
          var_options:=var_options or vo_is_C_var;
          _mangledname:=strpnew(target_os.Cprefix+mangled);
       end;
-      
+
     constructor tvarsym.load_C;
 
       begin
@@ -1028,7 +956,7 @@
             { the data filed is generated in parser.pas
               with a tobject_FIELDNAME variable }
             { this symbol can't be loaded to a register }
-            var_options:=var_options or vo_regable;
+            var_options:=var_options and not vo_regable;
          end
        else if not(read_member) then
          begin
@@ -1071,7 +999,8 @@
                 if cs_debuginfo in aktswitches then
                    concatstabto(bsssegment);
 {$endif GDB}
-                if (cs_smartlink in aktswitches) then
+                if (cs_smartlink in aktswitches) or
+                   ((var_options and vo_is_c_var)<>0) then
                   bsssegment^.concat(new(pai_datablock,init_global(mangledname,l)))
                 else
                   bsssegment^.concat(new(pai_datablock,init(mangledname,l)));
@@ -1248,7 +1177,7 @@
          strdispose(_mangledname);
          inherited done;
       end;
-      
+
 
 {****************************************************************************
                              TTYPEDCONSTSYM
@@ -1742,10 +1671,21 @@
 
 {
   $Log$
-  Revision 1.11  1998-06-15 13:31:21  daniel
+  Revision 1.12  1998-06-15 14:23:44  daniel
 
+  * Reverted my changes.
 
-  * Fixes to make it compilable under BP again.
+  Revision 1.10  1998/06/13 00:10:18  peter
+    * working browser and newppu
+    * some small fixes against crashes which occured in bp7 (but not in
+      fpc?!)
+
+  Revision 1.9  1998/06/12 16:15:35  pierre
+    * external name 'C_var';
+      export name 'intern_C_var';
+      cdecl;
+      cdecl;external;
+      are now supported only with -Sv switch
 
   Revision 1.8  1998/06/11 10:11:59  peter
     * -gb works again
