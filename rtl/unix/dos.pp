@@ -378,8 +378,9 @@ Const
     '/fd1/.',
     '/.'
     );
+const
+  Drives   : byte = 4;
 var
-  Drives   : byte;
   DriveStr : array[4..26] of pchar;
 
 Procedure AddDisk(const path:string);
@@ -879,7 +880,10 @@ End.
 
 {
   $Log$
-  Revision 1.3  2001-01-21 20:21:40  marco
+  Revision 1.4  2001-05-06 14:23:21  peter
+    * fixed adddisk
+
+  Revision 1.3  2001/01/21 20:21:40  marco
    * Rename fest II. Rtl OK
 
   Revision 1.2  2000/09/18 13:14:50  marco
@@ -890,5 +894,5 @@ End.
 
   Revision 1.2  2000/07/13 11:33:48  michael
   + removed logs
- 
+
 }
