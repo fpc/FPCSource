@@ -112,7 +112,6 @@ var I: integer;
     S: string;
     LS: PFPHTMLFileLinkScanner;
     BS: PBufStream;
-{    Version: word;}
 begin
   case Event.What of
     evKeyDown :
@@ -136,7 +135,7 @@ begin
             New(D, Init(HelpFileExts,
               dialog_installhelpfile,
               label_installhelpfile_filename,
-              fdOpenButton,0));
+              fdOpenButton,hidOpenHelpFile));
             Re:=Desktop^.ExecView(D);
             if Re<>cmCancel then
             begin
@@ -157,7 +156,7 @@ begin
                     ShowMessage(msg_pleasewaitwhilecreatingindex);
                     S:='HTML Index';
                     PushStatus(FormatStrStr(msg_buildingindexfile,FileName));
-                    New(LS, Init);
+                    New(LS, Init(DirOf(FileName)));
                     LS^.ProcessDocument(FileName,[soSubDocsOnly]);
                     if LS^.GetDocumentCount=0 then
                       begin
@@ -181,8 +180,6 @@ begin
                             end
                           else
                             begin
-{                              Version:=HTMLIndexVersion;
-                              BS^.Write(Version,sizeof(Version));}
                               LS^.StoreDocuments(BS^);
                               if BS^.Status<>stOK then
                                 begin
@@ -252,7 +249,13 @@ end;
 
 {
   $Log$
-  Revision 1.1  2000-07-13 09:48:35  michael
+  Revision 1.2  2000-10-31 22:35:54  pierre
+   * New big merge from fixes branch
+
+  Revision 1.1.2.1  2000/10/18 21:53:27  pierre
+   * several Gabor fixes
+
+  Revision 1.1  2000/07/13 09:48:35  michael
   + Initial import
 
   Revision 1.11  2000/05/29 10:44:57  pierre

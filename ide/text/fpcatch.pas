@@ -26,10 +26,15 @@ uses
 uses
   dpmiexcp;
 {$endif}
+{$ifdef win32}
+uses
+  signals;
+{$endif}
 
 {$ifdef HasSignal}
 Var
-  NewSignal,OldSigSegm,OldSigInt : SignalHandler;
+  NewSignal,OldSigSegm,OldSigILL,
+  OldSigInt,OldSigFPE : SignalHandler;
 {$endif}
 
 Const
@@ -43,7 +48,7 @@ uses
   drivers,
 {$endif FPC}
   app,commands,msgbox,
-  FPString,FPIDE;
+  FPString,FPCompil,FPIDE;
 
 
 {$ifdef HasSignal}
@@ -56,8 +61,32 @@ var MustQuit: boolean;
 begin
   case Sig of
    SIGSEGV : begin
+               if StopJmpValid then
+                 LongJmp(StopJmp,SIGSEGV);
                if Assigned(Application) then IDEApp.Done;
-               Writeln('Internal Error caught');
+               Writeln('Internal SIGSEGV Error caught');
+{$ifndef DEBUG}
+               Halt;
+{$else DEBUG}
+               RunError(216);
+{$endif DEBUG}
+             end;
+    SIGFPE : begin
+                if StopJmpValid then
+                  LongJmp(StopJmp,SIGFPE);
+               if Assigned(Application) then IDEApp.Done;
+               Writeln('Internal SIGFPE Error caught');
+{$ifndef DEBUG}
+               Halt;
+{$else DEBUG}
+               RunError(207);
+{$endif DEBUG}
+             end;
+    SIGILL : begin
+                if StopJmpValid then
+                  LongJmp(StopJmp,SIGILL);
+               if Assigned(Application) then IDEApp.Done;
+               Writeln('Internal SIGILL Error caught');
 {$ifndef DEBUG}
                Halt;
 {$else DEBUG}
@@ -65,6 +94,8 @@ begin
 {$endif DEBUG}
              end;
     SIGINT : begin
+               if StopJmpValid then
+                 LongJmp(StopJmp,SIGINT);
                IF NOT CtrlCPressed and Assigned(Application) then
                  begin
                    MustQuit:=false;
@@ -107,12 +138,20 @@ begin
 {$endif TP}
   OldSigSegm:=Signal (SIGSEGV,NewSignal);
   OldSigInt:=Signal (SIGINT,NewSignal);
+  OldSigFPE:=Signal (SIGFPE,NewSignal);
+  OldSigILL:=Signal (SIGILL,NewSignal);
 {$endif}
 end.
 
 {
   $Log$
-  Revision 1.1  2000-07-13 09:48:34  michael
+  Revision 1.2  2000-10-31 22:35:54  pierre
+   * New big merge from fixes branch
+
+  Revision 1.1.2.1  2000/10/31 07:52:55  pierre
+   * recover gracefully if compiler generates a signal
+
+  Revision 1.1  2000/07/13 09:48:34  michael
   + Initial import
 
   Revision 1.6  2000/06/22 09:07:11  pierre

@@ -44,6 +44,7 @@ const
      FPErrFileName        = 'fp___.err';
      GDBOutFileName       = 'gdb___.out';
      GDBOutPutFileName    = 'gdb___.txt';
+     GDBPrompt            = 'gdb>';
      DesktopTempName      = 'fp___.dsk';
      GrepOutName          = 'grep$$.out';
      GrepErrName          = 'grep$$.err';
@@ -52,8 +53,9 @@ const
      HTMLExt              = '.htm';
      TemplateExt          = '.pt';
      NGExt                = '.ng';
+     INFExt               = '.inf';
      WinHelpExt           = '.hlp';
-     HelpFileExts         = '*.tph;*.htm*;*'+HTMLIndexExt+';*'+NGExt+';*'+WinHelpExt;
+     HelpFileExts         = '*.tph;*.htm*;*'+HTMLIndexExt+';*'+NGExt+';*'+WinHelpExt+';*'+INFExt;
 
      EnterSign            = #17#196#217;
 
@@ -99,6 +101,16 @@ const
      { Desktop Location constants }
      dlCurrentDir         = $00;
      dlConfigFileDir      = $01;
+
+     { History ids }
+     hidRunParameters     = 200;
+     hidOpenSourceFile    = 201;
+     hidPrimaryFile       = 202;
+     hidOpenIniFile       = 203;
+     hidSaveIniFile       = hidOpenIniFile;
+     hidOpenHelpFile      = 204;
+     hidConditionalDefines= 205;
+     hidCompilerArgs      = 206;
 
      { Command constants }
      cmShowClipboard     = 201;
@@ -408,7 +420,19 @@ implementation
 END.
 {
   $Log$
-  Revision 1.2  2000-08-22 09:41:39  pierre
+  Revision 1.3  2000-10-31 22:35:54  pierre
+   * New big merge from fixes branch
+
+  Revision 1.1.2.5  2000/10/26 00:04:35  pierre
+   + gdb prompt and FPC_BREAK_ERROR stop
+
+  Revision 1.1.2.4  2000/10/18 21:53:26  pierre
+   * several Gabor fixes
+
+  Revision 1.1.2.3  2000/09/18 13:20:54  pierre
+   New bunch of Gabor changes
+
+  Revision 1.2  2000/08/22 09:41:39  pierre
    * first big merge from fixes branch
 
   Revision 1.1.2.2  2000/08/16 18:46:14  peter

@@ -18,11 +18,9 @@ unit FPDesk;
 interface
 
 const
-     DesktopVersion     = $0007; { <- if you change any Load&Store methods,
+     DesktopVersion     = $0008; { <- if you change any Load&Store methods,
                                       default object properties (Options,State)
                                       then you should also change this }
-     HTMLIndexVersion   = DesktopVersion;
-
      ResDesktopFlags    = 'FLAGS';
      ResVideo           = 'VIDEOMODE';
      ResHistory         = 'HISTORY';
@@ -273,6 +271,7 @@ var W: PWindow;
     SW: PSourceWindow absolute W;
     St: string;
     TP,TP2: TPoint;
+    L: longint;
     R: TRect;
 begin
   XDataOfs:=0;
@@ -291,6 +290,7 @@ begin
           end
         else
         begin
+          GetData(L,sizeof(L)); SW^.Editor^.SetFlags(L);
           GetData(TP,sizeof(TP)); GetData(TP2,sizeof(TP2));
           SW^.Editor^.SetSelection(TP,TP2);
           GetData(TP,sizeof(TP)); SW^.Editor^.SetCurPtr(TP.X,TP.Y);
@@ -388,6 +388,7 @@ var W: PWindow;
     XData: array[0..1024] of byte;
     St: string;
     TP: TPoint;
+    L: longint;
 procedure AddData(const B; Size: word);
 begin
   Move(B,XData[XDataOfs],Size);
@@ -424,6 +425,7 @@ begin
     hcSourceWindow :
       begin
         St:=SW^.Editor^.FileName; AddData(St,length(St)+1);
+        L:=SW^.Editor^.GetFlags; AddData(L,sizeof(L));
         TP:=SW^.Editor^.SelStart; AddData(TP,sizeof(TP));
         TP:=SW^.Editor^.SelEnd; AddData(TP,sizeof(TP));
         TP:=SW^.Editor^.CurPos; AddData(TP,sizeof(TP));
@@ -795,7 +797,16 @@ end;
 END.
 {
   $Log$
-  Revision 1.2  2000-08-22 09:41:39  pierre
+  Revision 1.3  2000-10-31 22:35:54  pierre
+   * New big merge from fixes branch
+
+  Revision 1.1.2.3  2000/10/18 21:53:26  pierre
+   * several Gabor fixes
+
+  Revision 1.1.2.2  2000/09/18 13:20:54  pierre
+   New bunch of Gabor changes
+
+  Revision 1.2  2000/08/22 09:41:39  pierre
    * first big merge from fixes branch
 
   Revision 1.1.2.1  2000/07/20 11:02:15  michael

@@ -44,6 +44,7 @@
   {$undef SUPPORTVESA}
   {$define SUPPORTREDIR}
   {$define WinClipSupported}
+  {$define HasSignal}
 {$endif}
 
 { --- Exclude debugger support --- }
@@ -107,6 +108,7 @@
   {$undef EXEDEBUG}
   {$undef USERESSTRINGS}
   {.$define LANG_HUN}
+  {$undef WinClipSupported}
 {$endif}
 
 {$ifdef NOWINCLIP}

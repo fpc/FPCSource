@@ -22,7 +22,10 @@ begin
    begin
      InitDebugger;
      if not assigned(Debugger) then
-      exit;
+      begin
+        NoDebugger;
+        exit;
+      end;
    end;
   if not Debugger^.IsRunning then
     Debugger^.StartTrace
@@ -49,7 +52,10 @@ begin
    begin
      InitDebugger;
      if not assigned(Debugger) then
-       exit;
+      begin
+        NoDebugger;
+        exit;
+      end;
    end;
   if not debugger^.IsRunning then
     Debugger^.StartTrace
@@ -77,7 +83,10 @@ begin
    begin
      InitDebugger;
      if not assigned(Debugger) then
-       exit;
+      begin
+        NoDebugger;
+        exit;
+      end;
    end;
   if not debugger^.IsRunning then
     Debugger^.Run
@@ -164,10 +173,12 @@ begin
   with D^ do
   begin
     GetExtent(R); R.Grow(-2,-1); Inc(R.A.Y); R.B.Y:=R.A.Y+1;
-    R2.Copy(R); R2.A.X:=16;
+    R2.Copy(R); R2.A.X:=16; Dec(R2.B.X,4);
     New(IL, Init(R2, 255));
     IL^.Data^:=GetRunParameters;
     Insert(IL);
+    R2.Copy(R); R2.A.X:=R2.B.X-3; R2.B.X:=R2.A.X+3;
+    Insert(New(PHistory, Init(R2, IL, hidRunParameters)));
     R2.Copy(R); R2.B.X:=16;
     Insert(New(PLabel, Init(R2, label_parameters_parameter, IL)));
   end;
@@ -216,7 +227,10 @@ begin
         begin
           InitDebugger;
           if not assigned(Debugger) then
-            exit;
+            begin
+              NoDebugger;
+              exit;
+            end;
         end;
       Debugger^.Command('tbreak '+GDBFileName(NameAndExtOf(FileName))+':'+IntToStr(LineNr));
       Debugger^.Continue;
@@ -270,7 +284,16 @@ end;
 
 {
   $Log$
-  Revision 1.1  2000-07-13 09:48:35  michael
+  Revision 1.2  2000-10-31 22:35:54  pierre
+   * New big merge from fixes branch
+
+  Revision 1.1.2.2  2000/10/18 21:53:27  pierre
+   * several Gabor fixes
+
+  Revision 1.1.2.1  2000/10/09 16:28:25  pierre
+   * several linux enhancements
+
+  Revision 1.1  2000/07/13 09:48:35  michael
   + Initial import
 
   Revision 1.32  2000/05/02 08:42:28  pierre

@@ -618,7 +618,7 @@ begin
             FName:=DefaultFileName
           else
             FName:=TopicLinks^.At(LinkNo-1)^;
-          P:=NewTopic(ID,HelpCtx,0,FName);
+          P:=NewTopic(ID,HelpCtx,0,FName,nil,0);
           Topics^.Insert(P);
         end;
     end;
@@ -709,7 +709,7 @@ begin
       Alias:=Trim(copy(Alias,1,HelpFacility^.IndexTabSize-4-2))+'..';
   FormatAlias:=Alias;
 end;
-procedure AddDoc(P: PHTMLLinkScanDocument); {$ifndef FPC}far;{$endif}
+(*procedure AddDoc(P: PHTMLLinkScanDocument); {$ifndef FPC}far;{$endif}
 var I: sw_integer;
     TLI: THelpCtx;
 begin
@@ -719,21 +719,30 @@ begin
     TLI:=EncodeHTMLCtx(ID,TLI+1);
     IndexEntries^.Insert(NewIndexEntry(FormatAlias(P^.GetAlias(I-1)),ID,TLI));
   end;
-end;
+end;*)
 var S: PBufStream;
-    DC: PHTMLLinkScanDocumentCollection;
+    LS: PHTMLLinkScanner;
     OK: boolean;
+    TLI: THelpCtx;
+    I,J: sw_integer;
 begin
   New(S, Init(IndexFileName,stOpenRead,4096));
   OK:=Assigned(S);
   if OK then
   begin
-    New(DC, Load(S^));
-    OK:=Assigned(DC);
+    New(LS, LoadDocuments(S^));
+    OK:=Assigned(LS);
     if OK then
     begin
-      DC^.ForEach(@AddDoc);
-      Dispose(DC, Done);
+      LS^.SetBaseDir(DirOf(IndexFileName));
+      for I:=0 to LS^.GetDocumentCount-1 do
+       for J:=0 to LS^.GetDocumentAliasCount(I)-1 do
+        begin
+          TLI:=TopicLinks^.AddItem(LS^.GetDocumentURL(I));
+          TLI:=EncodeHTMLCtx(ID,TLI+1);
+          IndexEntries^.Insert(NewIndexEntry(FormatAlias(LS^.GetDocumentAlias(I,J)),ID,TLI));
+        end;
+      Dispose(LS, Done);
     end;
     Dispose(S, Done);
   end;
@@ -743,7 +752,16 @@ end;
 END.
 {
   $Log$
-  Revision 1.1  2000-07-13 09:48:37  michael
+  Revision 1.2  2000-10-31 22:35:56  pierre
+   * New big merge from fixes branch
+
+  Revision 1.1.2.2  2000/10/18 21:53:27  pierre
+   * several Gabor fixes
+
+  Revision 1.1.2.1  2000/09/18 13:20:56  pierre
+   New bunch of Gabor changes
+
+  Revision 1.1  2000/07/13 09:48:37  michael
   + Initial import
 
   Revision 1.15  2000/06/22 09:07:15  pierre

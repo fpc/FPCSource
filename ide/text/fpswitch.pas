@@ -624,7 +624,8 @@ function TSwitches.ReadItemsCfg(const s:string):boolean;
   function checkitem(P:PSwitchItem):boolean;{$ifndef FPC}far;{$endif}
   begin
     { empty items are not equivalent to others !! }
-    CheckItem:=((S='') and (P^.Param='')) or
+    { but -dGDB didn't work because of this PM }
+    CheckItem:=((P^.Param='') and ((S='') or (P^.typ=ot_String))) or
                ((Length(P^.Param)>0) and (P^.Param=Copy(s,1,length(P^.Param))));
   end;
 
@@ -1139,7 +1140,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2000-08-22 09:41:40  pierre
+  Revision 1.3  2000-10-31 22:35:55  pierre
+   * New big merge from fixes branch
+
+  Revision 1.1.2.4  2000/10/26 10:17:10  pierre
+   * fix reading of -dGDB switch in cfg file
+
+  Revision 1.2  2000/08/22 09:41:40  pierre
    * first big merge from fixes branch
 
   Revision 1.1.2.3  2000/08/04 14:05:19  michael
@@ -1271,4 +1278,3 @@ end.
     + Run program
 
 }
-

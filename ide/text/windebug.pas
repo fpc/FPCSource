@@ -67,7 +67,7 @@ uses
 
  procedure  ChangeDebuggeeWindowTitleTo(State : DebuggeeState);
    begin
-     EnumThreadWindows(inferior_pid,EnumWindowsProc(@GetWindowHandle),longint(State));
+     EnumWindows(EnumWindowsProc(@GetWindowHandle),longint(State));
    end;
 
 end.

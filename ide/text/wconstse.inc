@@ -61,6 +61,8 @@
     msg_invalidmarkindex = 'Invalid mark index (%d)';
     msg_marknotset = 'Mark %d not set.';
 
+    msg_foldboundsarenotvalid = 'Fold bounds are not valid';
+
     msg_notenoughmemoryforthisoperation = 'Not enough memory for this operation.';
     msg_errorreadingfile = 'Error reading file %s.';
     msg_errorwritingfile = 'Error writing file %s.';
@@ -101,7 +103,13 @@
 
 {
   $Log$
-  Revision 1.1  2000-07-13 09:48:37  michael
+  Revision 1.2  2000-10-31 22:35:55  pierre
+   * New big merge from fixes branch
+
+  Revision 1.1.2.1  2000/09/18 13:20:55  pierre
+   New bunch of Gabor changes
+
+  Revision 1.1  2000/07/13 09:48:37  michael
   + Initial import
 
   Revision 1.1  2000/06/16 09:30:01  pierre

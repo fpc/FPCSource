@@ -180,6 +180,8 @@ type
       function   Valid(Command: Word): Boolean; virtual;
       procedure  AddLine(const S: string); virtual;
       procedure  AddErrorLine(const S: string); virtual;
+      { Syntax highlight }
+      function  IsReservedWord(const S: string): boolean; virtual;
     private
       Silent,
       AutoRepeat,
@@ -200,6 +202,8 @@ type
       function    GetPalette: PPalette;virtual;
       constructor Load(var S: TStream);
       procedure   Store(var S: TStream);
+      procedure   SetState(AState: Word; Enable: Boolean); virtual;
+      procedure   UpdateCommands; virtual;
       destructor  Done; virtual;
     end;
 
@@ -443,7 +447,7 @@ implementation
 
 uses
   Video,Strings,Keyboard,Validate,
-  Tokens,Version,
+  globtype,Tokens,Version,
 {$ifndef NODEBUG}
   gdbint,
 {$endif NODEBUG}
@@ -641,7 +645,7 @@ begin
 {$ifdef EDITORS}
     S:='';
 {$else}
-    S:=GetLineText(CurPos.Y);
+    S:=GetDisplayText(CurPos.Y);
     PS:=CurPos.X; while (PS>0) and (Upcase(S[PS]) in AlphaNum) do Dec(PS);
     PE:=CurPos.X; while (PE<length(S)) and (Upcase(S[PE+1]) in (AlphaNum+ValidSpecChars)) do Inc(PE);
     S:=Trim(copy(S,PS+1,PE-PS));
@@ -711,7 +715,7 @@ begin
   Count:=0;
   for I:=ord(Low(tToken)) to ord(High(tToken)) do
   with TokenInfo^[TToken(I)] do
-     if (str<>'') and (str[1] in['A'..'Z']) then
+     if (str<>'') and (str[1] in['A'..'Z']) and (keyword=m_all) then
        Inc(Count);
   GetReservedWordCount:=Count;
 end;
@@ -727,7 +731,7 @@ begin
   while (I<=ord(High(tToken))) and (Idx=-1) do
    with TokenInfo^[TToken(I)] do
     begin
-      if (str<>'') and (str[1] in['A'..'Z']) then
+      if (str<>'') and (str[1] in['A'..'Z']) and (keyword=m_all) then
         begin
           Inc(Count);
           if Count=Index then
@@ -804,6 +808,7 @@ begin
   { we have a crash here because of the TStatusLine
     that can also have one of these values
     but is not a Window object PM }
+  if P<>pointer(StatusLine) then
   if IsWindow(P) then
     W:=PWindow(P);
   OK:=(W<>nil);
@@ -815,9 +820,9 @@ begin
 end;
 var W: PView;
 begin
-  { W:=Application^.FirstThat(@Match);
-    This is wrong because TStatusLine is also considered PM }
-  W:=Desktop^.FirstThat(@Match);
+  W:=Application^.FirstThat(@Match);
+{    This is wrong because TStatusLine is also considered PM }
+  if not Assigned(W) then W:=Desktop^.FirstThat(@Match);
   { But why do we need to check all ??
     Probably because of the ones which were not inserted into
     Desktop as the Messages view
@@ -1388,7 +1393,7 @@ begin
   if LoadFile then
     begin
       if Editor^.LoadFile=false then
-        ErrorBox(FormatStrStr(msg_errorreadingfile,''),nil)
+        ErrorBox(FormatStrStr(msg_errorreadingfile,AFileName),nil)
       else if Editor^.GetModified then
         begin
           PA[1]:=@AFileName;
@@ -1485,8 +1490,7 @@ begin
     SetCmdState(SourceCmds+CompileCmds,Active);
     SetCmdState(EditorCmds,Active);
   end;
-  if Active=false then
-     SetCmdState(ToClipCmds+FromClipCmds+NulClipCmds+UndoCmd+RedoCmd,false);
+  SetCmdState(ToClipCmds+FromClipCmds+NulClipCmds+UndoCmd+RedoCmd,Active);
   Message(Application,evBroadcast,cmCommandSetChanged,nil);
 end;
 
@@ -1591,27 +1595,61 @@ begin
    LimitsChanged;
 end;
 
+const
+  GDBReservedCount = 6;
+  GDBReservedLongest = 3;
+  GDBReserved : array[1..GDBReservedCount] of String[GDBReservedLongest] =
+  ('gdb','b','n','s','f','bt');
+
+function IsGDBReservedWord(const S : string) : boolean;
+var
+  i : longint;
+begin
+  for i:=1 to GDBReservedCount do
+    if (S=GDBReserved[i]) then
+      begin
+        IsGDBReservedWord:=true;
+        exit;
+      end;
+  IsGDBReservedWord:=false;
+end;
+
+function TGDBSourceEditor.IsReservedWord(const S: string): boolean;
+begin
+  IsReservedWord:=IsGDBReservedWord(S);
+end;
+
 function TGDBSourceEditor.InsertNewLine: Sw_integer;
 Var
   S : string;
+  CommandCalled : boolean;
 
 begin
   if IsReadOnly then begin InsertNewLine:=-1; Exit; end;
   if CurPos.Y<GetLineCount then S:=GetDisplayText(CurPos.Y) else S:='';
   s:=Copy(S,1,CurPos.X);
+  CommandCalled:=false;
+  if Pos(GDBPrompt,S)=1 then
+    Delete(S,1,length(GDBPrompt));
   if assigned(Debugger) then
     if S<>'' then
       begin
         LastCommand:=S;
         { should be true only if we are at the end ! }
         IgnoreStringAtEnd:=(CurPos.Y=GetLineCount-1) and
-          (CurPos.X=length(GetDisplayText(GetLineCount-1)));
+          (CurPos.X>=length(RTrim(GetDisplayText(GetLineCount-1))));
         Debugger^.Command(S);
+        CommandCalled:=true;
         IgnoreStringAtEnd:=false;
       end
-    else if AutoRepeat then
-      Debugger^.Command(LastCommand);
+    else if AutoRepeat and (CurPos.Y=GetLineCount-1) then
+      begin
+        Debugger^.Command(LastCommand);
+        CommandCalled:=true;
+      end;
   InsertNewLine:=inherited InsertNewLine;
+  If CommandCalled then
+    InsertText(GDBPrompt);
 end;
 
 
@@ -1634,6 +1672,7 @@ begin
   GetExtent(R); R.Grow(-1,-1);
   New(Editor, Init(R, HSB, VSB, nil, GDBOutputFile));
   Editor^.GrowMode:=gfGrowHiX+gfGrowHiY;
+  Editor^.SetFlags(efInsertMode+efSyntaxHighlight+efNoIndent+efExpandAllTabs);
   if ExistsFile(GDBOutputFile) then
     begin
       if Editor^.LoadFile=false then
@@ -1704,7 +1743,7 @@ procedure TGDBWindow.WriteText(Buf : pchar;IsError : boolean);
 begin
   p:=buf;
   DeskTop^.Lock;
-  While assigned(p) do
+  While assigned(p) and (p^<>#0) do
     begin
        pe:=strscan(p,#10);
        if pe<>nil then
@@ -1721,12 +1760,36 @@ begin
          p:=nil
        else
          begin
-           p:=pe;
-           inc(p);
+           if pe-p > High(s) then
+             p:=p+High(s)-1
+           else
+             begin
+               p:=pe;
+               inc(p);
+             end;
          end;
     end;
   DeskTop^.Unlock;
   Editor^.Draw;
+end;
+
+procedure TGDBWindow.SetState(AState: Word; Enable: Boolean);
+var OldState: word;
+begin
+  OldState:=State;
+  inherited SetState(AState,Enable);
+  if ((AState and sfActive)<>0) and (((OldState xor State) and sfActive)<>0) then
+    UpdateCommands;
+end;
+
+procedure TGDBWindow.UpdateCommands;
+var Active: boolean;
+begin
+  Active:=GetState(sfActive);
+  SetCmdState([cmSaveAs,cmHide],Active);
+  SetCmdState(EditorCmds,Active);
+  SetCmdState(ToClipCmds+FromClipCmds+NulClipCmds+UndoCmd+RedoCmd,Active);
+  Message(Application,evBroadcast,cmCommandSetChanged,nil);
 end;
 
 
@@ -3501,7 +3564,28 @@ end;
 END.
 {
   $Log$
-  Revision 1.2  2000-08-22 09:41:41  pierre
+  Revision 1.3  2000-10-31 22:35:55  pierre
+   * New big merge from fixes branch
+
+  Revision 1.1.2.12  2000/10/31 07:54:24  pierre
+   enhance GDB Window
+
+  Revision 1.1.2.11  2000/10/26 00:04:36  pierre
+   + gdb prompt and FPC_BREAK_ERROR stop
+
+  Revision 1.1.2.10  2000/10/24 00:21:59  pierre
+   * fix the greyed save after window list box
+
+  Revision 1.1.2.9  2000/10/20 13:29:29  pierre
+   * fix bug 1184, only keyowrd for all mode are highlighted
+
+  Revision 1.1.2.8  2000/10/20 09:55:00  pierre
+   * fix GetEditorCurWord if tabs present
+
+  Revision 1.1.2.7  2000/10/18 21:53:27  pierre
+   * several Gabor fixes
+
+  Revision 1.2  2000/08/22 09:41:41  pierre
    * first big merge from fixes branch
 
   Revision 1.1.2.6  2000/08/21 21:23:27  pierre

@@ -1,3 +1,41 @@
+Gabor's log to 18/10/2000 commits
+========================= Improvements ================================
+
+ [+] HTML keyword index file stores now relative paths, thus it can be
+     moved/copied freely as long as relative paths are preserved
+ [+] history lists added at several points (like run parameters, ini
+     file name, compiler conditionals, etc.)
+
+Gabor's log to 18/09/2000 commits
+========================= Already fixed ================================
+
+ [*] editor flags weren't stored in desktop file
+ [*] TFastBufStream contained a bug which showed up when using non-linear
+     (eg. "random") reads, and resulted in returning data from wrong file
+     position
+
+========================= Improvements ================================
+
+ [+] added support for OS/2 help files (.INF) to the help system
+ [+] started implementing fold support (it's not yet fully functional!!!)
+
+     Folds enable you to hide specific parts of the documents (independantly
+     of each other). When a fold is hidden only it's first line (the fold
+     header) is show - all other lines (the fold body) and all subfolds do
+     not appear on screen. Folds can be also nested.
+     This is very useful for ex. to hide the implementation part of a
+     procedure, while leaving the procedure header still visible. This greatly
+     simplyfies navigation in the source file by temporarily hiding currently
+     unused content.
+     Fold information could be (optionally) gerenated automatically by the
+     compiler, according to the control/syntax-tree of the program.
+
+     Folds can be created manually by selecting an area and the pressing
+     Ctrl-K-A. Valids are fold areas that do not cross bounds of already
+     existing folds.
+     Fold bodies can be hidden with Ctrl-Gray-, shown with Ctrl-Gray+.
+     Pressing Ctrl-Gray* toggles the visibility of a fold body.
+
 Gabor's log to 10/8/2000 commits
 ========================= Already fixed ================================
 

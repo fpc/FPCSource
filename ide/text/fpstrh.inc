@@ -378,6 +378,7 @@ const
       label_editor_autoclosingbrackets = 'Aut~o~matikus z r¢jelez‚se';
       label_editor_keeptrailingspaces = 'Z r¢ sz”~k~”z”k megtart sa';
       label_editor_codecomplete = 'Co~d~eComplete enged‚lyezve';
+      label_editor_folds = '"~H~ajtogat s" enged‚lyezve';
       label_editor_editoroptions = 'Sz~e~rkeszt‹ opci¢k';
       label_editor_tabsize = '~T~ab m‚rete';
       label_editor_highlightextensions = 'Kieme~l~‚s a k”vetkez‹ kiterjeszt‚sek eset‚n';
@@ -558,6 +559,8 @@ const
       msg_errorprocessingfilteredoutput = 'Hiba a szûrt kimenet feldolgoz sa k”zben.';
       msg_errorexecutingfilter = 'Hiba a szûr‹ futtat sa k”zben'; {%s}
       msg_errorexecutingtool = 'Hiba a %s eszk”z futtat sa k”zben';
+      msg_errorexecutingshell = 'Nem tudom futtatni a shell-t';
+
       msg_filterexecutionsuccessfulexitcodeis = 'Szûr‹ futtat sa sikeres. Kil‚p‚si k¢d = %d';
       msg_toolexecutionsuccessfulexitcodeis = 'Eszk”z futtat sa sikeres. Kil‚p‚si k¢d = %d';
 
@@ -759,7 +762,7 @@ const
       opt_listsource = 'Forr s ~l~ist z sa';
       opt_listregisterallocation = '~r~egister-foglal s list.';
       opt_listtempallocation = ' ~t~meneti foglal s list.';
-      opt_usedefaultas = 'Use ~d~efault output'; { NOT TRANSLATED }
+      opt_usedefaultas = '~D~efault kimeneti form tum haszn lata';
       opt_usegnuas = '~G~NU as haszn lata';
       opt_usenasmcoff = '~N~ASM coff haszn lata';
       opt_usenasmelf = 'Use NASM ~e~lf haszn lata';
@@ -980,7 +983,20 @@ const
 
 {
   $Log$
-  Revision 1.2  2000-08-22 09:41:40  pierre
+  Revision 1.3  2000-10-31 22:35:55  pierre
+   * New big merge from fixes branch
+
+
+  Revision 1.1.2.6  2000/10/18 21:53:27  pierre
+   * several Gabor fixes
+
+  Revision 1.1.2.5  2000/10/04 13:30:50  pierre
+   * DosShell for linux
+
+  Revision 1.1.2.4  2000/09/18 13:20:54  pierre
+   New bunch of Gabor changes
+
+  Revision 1.2  2000/08/22 09:41:40  pierre
    * first big merge from fixes branch
 
   Revision 1.1.2.3  2000/08/16 18:46:14  peter

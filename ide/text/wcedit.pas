@@ -102,7 +102,7 @@ type
       procedure   SetLineText(I: sw_integer;const S: string); virtual;
       procedure   DeleteAllLines; virtual;
       procedure   DeleteLine(I: sw_integer); virtual;
-      procedure   InsertLine(LineNo: sw_integer; const S: string); virtual;
+      function    InsertLine(LineNo: sw_integer; const S: string): PCustomLine; virtual;
       procedure   AddLine(const S: string); virtual;
       procedure   GetContent(ALines: PUnsortedStringCollection); virtual;
       procedure   SetContent(ALines: PUnsortedStringCollection); virtual;
@@ -130,6 +130,8 @@ type
       CompleteState: TCompleteState;
       ErrorMessage: PString;
       IndicatorDrawCalled  : boolean;
+      Folds      : PFoldCollection;
+      MaxFoldLevel: sw_integer;
       constructor Init(var Bounds: TRect; AHScrollBar, AVScrollBar:
           PScrollBar; AIndicator: PIndicator; ACore: PCodeEditorCore);
     public
@@ -174,7 +176,7 @@ type
       procedure   SetLineFormat(I: sw_integer;const S: string); virtual;
       procedure   DeleteAllLines; virtual;
       procedure   DeleteLine(I: sw_integer); virtual;
-      procedure   InsertLine(LineNo: sw_integer; const S: string); virtual;
+      function    InsertLine(LineNo: sw_integer; const S: string): PCustomLine; virtual;
       procedure   AddLine(const S: string); virtual;
       function    GetErrorMessage: string; virtual;
       procedure   SetErrorMessage(const S: string); virtual;
@@ -204,6 +206,12 @@ type
       procedure   JumpToLastCursorPos; virtual;
       procedure   Undo; virtual;
       procedure   Redo; virtual;
+     { Fold support }
+      function    GetMaxFoldLevel: sw_integer; virtual;
+      function    GetFoldCount: sw_integer; virtual;
+      function    GetFold(Index: sw_integer): PFold; virtual;
+      procedure   RegisterFold(AFold: PFold); virtual;
+      procedure   UnRegisterFold(AFold: PFold); virtual;
     end;
 
     PFileEditor = ^TFileEditor;
@@ -233,7 +241,7 @@ const
      DefaultCodeEditorFlags : longint =
        efBackupFiles+efInsertMode+efAutoIndent+efPersistentBlocks+
        {efUseTabCharacters+}efBackSpaceUnindents+efSyntaxHighlight+
-       efExpandAllTabs+efCodeComplete;
+       efExpandAllTabs+efCodeComplete{+efFolds};
      DefaultTabSize     : integer = 8;
      UseSyntaxHighlight : function(Editor: PFileEditor): boolean = DefUseSyntaxHighlight;
      UseTabsPattern     : function(Editor: PFileEditor): boolean = DefUseTabsPattern;
@@ -520,7 +528,7 @@ var
 begin
   DF:='';
   DT:='';
-  if LineNo<GetLineCount then
+  if (0<=LineNo) and (LineNo<GetLineCount) then
    begin
      L:=GetLine(LineNo);
      DF:=IGetLineFormat(Binding,LineNo);
@@ -546,7 +554,7 @@ var P: PCustomLine;
     LI: PEditorLineInfo;
     S: string;
 begin
-  if LineNo<GetLineCount then P:=GetLine(LineNo) else P:=nil;
+  if (0<=LineNo) and (LineNo<GetLineCount) then P:=GetLine(LineNo) else P:=nil;
   if P=nil then LI:=nil else
     LI:=P^.GetEditorInfo(Binding^.Editor);
   if LI=nil then S:='' else S:=LI^.GetFormat;
@@ -557,7 +565,7 @@ procedure TCodeEditorCore.ISetLineFormat(Binding: PEditorBinding; LineNo: sw_int
 var P: PCustomLine;
     LI: PEditorLineInfo;
 begin
-  if LineNo<GetLineCount then
+  if (LineNo<GetLineCount) then
   begin
     P:=GetLine(LineNo);
     if P=nil then LI:=nil else LI:=P^.GetEditorInfo(Binding^.Editor);
@@ -586,9 +594,12 @@ begin
     end;
 end;
 
-procedure TCodeEditorCore.InsertLine(LineNo: sw_integer; const S: string);
+function TCodeEditorCore.InsertLine(LineNo: sw_integer; const S: string): PCustomLine;
+var L: PLine;
 begin
-  LinesInsert(LineNo, New(PLine, Init(@Self,S,0)));
+  L:=New(PLine, Init(@Self,S,0));
+  LinesInsert(LineNo, L);
+  InsertLine:=L;
 end;
 
 procedure TCodeEditorCore.AddLine(const S: string);
@@ -776,6 +787,7 @@ constructor TCodeEditor.Init(var Bounds: TRect; AHScrollBar, AVScrollBar:
           PScrollBar; AIndicator: PIndicator; ACore: PCodeEditorCore);
 begin
   inherited Init(Bounds,AHScrollBar,AVScrollBar);
+  New(Folds, Init(100,100));
   if ACore=nil then ACore:=New(PCodeEditorCore, Init);
   Core:=ACore;
   Core^.BindEditor(@Self);
@@ -939,14 +951,52 @@ begin
   Core^.DeleteLine(I);
 end;
 
-procedure TCodeEditor.InsertLine(LineNo: sw_integer; const S: string);
+function TCodeEditor.InsertLine(LineNo: sw_integer; const S: string): PCustomLine;
 begin
-  Core^.InsertLine(LineNo,S);
+  InsertLine:=Core^.InsertLine(LineNo,S);
 end;
 
 procedure TCodeEditor.AddLine(const S: string);
 begin
   Core^.AddLine(S);
+end;
+
+function TCodeEditor.GetMaxFoldLevel: sw_integer;
+begin
+  GetMaxFoldLevel:=MaxFoldLevel;
+end;
+
+procedure TCodeEditor.RegisterFold(AFold: PFold);
+var L: sw_integer;
+begin
+  if Assigned(Folds) then
+  begin
+    Folds^.Insert(AFold);
+    L:=AFold^.GetLevel+1;
+    if L>MaxFoldLevel then MaxFoldLevel:=L;
+  end;
+end;
+
+procedure TCodeEditor.UnRegisterFold(AFold: PFold);
+begin
+  if Assigned(Folds) then
+  begin
+    Folds^.Delete(AFold);
+    if Folds^.Count=0 then
+      MaxFoldLevel:=0
+    else
+      MaxFoldLevel:=inherited GetMaxFoldLevel+1;
+  end;
+end;
+
+function TCodeEditor.GetFoldCount: sw_integer;
+begin
+  GetFoldCount:=Folds^.Count;
+end;
+
+function TCodeEditor.GetFold(Index: sw_integer): PFold;
+begin
+  GetFold:=Folds^.At(Index);
 end;
 
 {function TCodeEditor.GetLineTextPos(Line,X: integer): integer;
@@ -1206,8 +1256,9 @@ begin
             eaDeleteLine :
               begin
                 SetCurPtr(EndPos.X,EndPos.Y);
-                DelEnd;{ wrong for eaCut at least }
+                SetMinMax(EndPos.Y);
                 InsertNewLine;
+                {DelEnd; wrong for eaCut at least }
                 SetCurPtr(StartPos.X,StartPos.Y);
                 SetLineText(StartPos.Y,Copy(GetDisplayText(StartPos.Y),1,StartPos.X)+GetStr(Text));
                 SetMinMax(StartPos.Y);
@@ -1303,7 +1354,7 @@ begin
           begin
             SetCurPtr(StartPos.X,StartPos.Y);
             InsertNewLine;
-            SetCurPtr(StartPos.X,StartPos.Y);
+            SetCurPtr(0,StartPos.Y+1);
             InsertText(GetStr(Text));
             SetCurPtr(EndPos.X,EndPos.Y);
           end;
@@ -1312,8 +1363,9 @@ begin
             SetCurPtr(StartPos.X,StartPos.Y);
             DeleteLine(StartPos.Y);
             SetCurPtr(EndPos.X,EndPos.Y);
-            SetDisplayText(StartPos.Y,RExpand(
-              copy(GetDisplayText(StartPos.Y),1,StartPos.X),StartPos.X)
+            if EndPos.Y=StartPos.Y-1 then
+            SetDisplayText(EndPos.Y,RExpand(
+              copy(GetDisplayText(EndPos.Y),1,EndPos.X),EndPos.X)
               +GetStr(Text));
             SetCurPtr(EndPos.X,EndPos.Y);
           end;
@@ -1517,6 +1569,7 @@ begin
     DisposeStr(CodeCompleteFrag);
   if Assigned(CodeCompleteWord) then
     DisposeStr(CodeCompleteWord);
+  if Assigned(Folds) then Dispose(Folds, Done); Folds:=nil;
 end;
 
 constructor TFileEditor.Init(var Bounds: TRect; AHScrollBar, AVScrollBar:
@@ -1753,6 +1806,14 @@ end;
 
 END.
 {
- $Log $
+ $Log$
+ Revision 1.3  2000-10-31 22:35:55  pierre
+  * New big merge from fixes branch
+
+ Revision 1.1.2.4  2000/10/24 23:06:30  pierre
+  * some Undo/redo fixes
+
+ Revision 1.1.2.3  2000/09/18 13:20:55  pierre
+  New bunch of Gabor changes
 
 }

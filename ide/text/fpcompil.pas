@@ -102,11 +102,24 @@ procedure ParseUserScreen;
 
 procedure RegisterFPCompile;
 
+{$ifndef GABOR}
+var
+  StopJmp : Jmp_Buf;
+const
+  StopJmpValid : boolean = false;
+{$endif}
+
 implementation
 
 uses
 {$ifdef linux}
   Linux,
+{$endif}
+{$ifdef go32v2}
+  dpmiexcp,
+{$endif}
+{$ifdef win32}
+  signals,
 {$endif}
   Dos,Video,
   App,Commands,tokens,
@@ -571,9 +584,14 @@ begin
   CompilerStatus:=false;
 end;
 
-
 procedure CompilerStop; {$ifndef FPC}far;{$endif}
 begin
+{$ifndef GABOR}
+  if StopJmpValid then
+    Longjmp(StopJmp,1)
+  else
+    Halt(1);
+{$endif}
 end;
 
 Function  CompilerGetNamedFileTime(const filename : string) : Longint; {$ifndef FPC}far;{$endif}
@@ -596,7 +614,7 @@ begin
   if Assigned(W) and (W^.Editor^.GetModified) then
     f:=new(PFPInputFile, Init(W^.Editor))
   else
-    f:=def_openinputfile(filename);
+    f:={$ifndef GABOR}def_openinputfile(filename){$else}nil{$endif};
   CompilerOpenInputFile:=f;
 end;
 
@@ -694,7 +712,7 @@ procedure DoCompile(Mode: TCompileMode);
 var
   s,FileName: string;
   ErrFile : Text;
-  Error,LinkErrorCount : longint;
+  JmpRet,Error,LinkErrorCount : longint;
   E : TEvent;
   DummyView: PView;
 const
@@ -749,7 +767,7 @@ begin
   do_status:=CompilerStatus;
   do_stop:=CompilerStop;
   do_comment:=CompilerComment;
-  do_openinputfile:=CompilerOpenInputFile;
+  {$ifndef GABOR}do_openinputfile:=CompilerOpenInputFile;{$endif}
   do_getnamedfiletime:=CompilerGetNamedFileTime;
 {$else not TP}
   do_status:=@CompilerStatus;
@@ -782,11 +800,37 @@ begin
     DeleteFile will just retrun the errorcode }
   DeleteFile(GetExePath+PpasFile+source_os.scriptext);
   SetStatus('Compiling...');
-  FpIntF.Compile(FileName,SwitchesPath);
-  SetStatus('Finished compiling...');
+{$ifndef GABOR}
+  StopJmpValid:=true;
+  JmpRet:=SetJmp(StopJmp);
+  if JmpRet=0 then
+    begin
+      FpIntF.Compile(FileName,SwitchesPath);
+      SetStatus('Finished compiling...');
+    end
+  else
+    begin
+      Inc(status.errorCount);
+{$ifdef HasSignal}
+      Case JmpRet of
+        SIGINT : s := 'Interrupted by Ctrl-C';
+        SIGILL : s := 'Illegal instruction';
+        SIGSEGV : s := 'Signal Segmentation violation';
+        SIGFPE : s:='Floating point signal';
+        else
+          s:='Undetermined signal '+inttostr(JmpRet);
+      end;
+      CompilerMessageWindow^.AddMessage(V_error,s+' during compilation','',0,0);
+{$endif HasSignal}
+      CompilerMessageWindow^.AddMessage(V_error,'Long jumped out of compilation...','',0,0);
+      SetStatus('Long jumped out of compilation...');
+    end;
+  StopJmpValid:=false;
+{$endif}
   { tokens are created and distroed by compiler.compile !! PM }
   InitTokens;
-  if LinkAfter and ExistsFile(GetExePath+PpasFile+source_os.scriptext) and
+  if LinkAfter and
+     ExistsFile(GetExePath+PpasFile+source_os.scriptext) and
      (CompilationPhase<>cpAborted) and
      (status.errorCount=0) then
     begin
@@ -1054,8 +1098,23 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2000-10-04 15:01:11  pierre
+  Revision 1.5  2000-10-31 22:35:54  pierre
+   * New big merge from fixes branch
+
+  Revision 1.1.2.8  2000/10/31 07:51:58  pierre
+   * recover gracefully if compiler generates a signal
+
+  Revision 1.1.2.7  2000/10/18 21:53:26  pierre
+   * several Gabor fixes
+
+  Revision 1.1.2.6  2000/10/09 16:28:24  pierre
+   * several linux enhancements
+
+  Revision 1.4  2000/10/04 15:01:11  pierre
    * fix IsExe problem
+
+  Revision 1.1.2.5  2000/10/03 16:15:57  pierre
+   * Use LongJmp in CompilerStop
 
   Revision 1.3  2000/09/01 21:33:25  peter
     * files to finput

@@ -2,7 +2,6 @@
 {$R-}
 
 program TestProgram;
-
 uses
 {$ifdef go32v2}
   dpmiexcp,
@@ -17,6 +16,8 @@ const A =  1234;
       ConstSet = ['A'..'Z'];
       ConstSet2 = [15..254];
       ConstFloat = 3.1415;
+
+{$i empty.inc}
 
 type
       PObj = ^TObj;

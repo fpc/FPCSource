@@ -66,7 +66,7 @@ const
 implementation
 
 uses Objects,Views,App,MsgBox,Commands,
-     WUtils,WHTMLHlp,WNGHelp,
+     WUtils,WHTMLHlp,WNGHelp,WOS2Help,
      FPString,FPConst,FPVars,FPUtils;
 
 const
@@ -290,6 +290,14 @@ procedure InitHelpSystem;
     {$IFDEF DEBUG}SetStatus(msg_LoadingHelpFile);{$ENDIF}
   end;
 
+  procedure AddOS2File(HelpFile: string);
+  begin
+    {$IFDEF DEBUG}SetStatus(msg_LoadingHelpFile+' ('+SmartPath(HelpFile)+')');{$ENDIF}
+    if HelpFacility^.AddOS2HelpFile(HelpFile)=false then
+      ErrorBox(FormatStrStr(msg_failedtoloadhelpfile,HelpFile),nil);
+    {$IFDEF DEBUG}SetStatus(msg_LoadingHelpFile);{$ENDIF}
+  end;
+
   procedure AddWinHelpFile(HelpFile: string);
   begin
     {$IFDEF DEBUG}SetStatus(msg_LoadingHelpFile+' ('+SmartPath(HelpFile)+')');{$ENDIF}
@@ -325,6 +333,8 @@ begin
           AddHTMLIndexFile(S) else
       if UpcaseStr(ExtOf(S))=UpcaseStr(NGExt) then
           AddNGFile(S) else
+      if UpcaseStr(ExtOf(S))=UpcaseStr(INFExt) then
+          AddOS2File(S) else
       if UpcaseStr(ExtOf(S))=UpcaseStr(WinHelpExt) then
           AddWinHelpFile(S) else
         AddOAFile(S);
@@ -488,10 +498,23 @@ begin
   FPNGGetAttrColor:=OK;
 end;
 
+function FPINFGetAttrColor(TextStyle, TextColor: byte; var Color: byte): boolean;
+var OK: boolean;
+begin
+  OK:=false;
+  case TextColor of
+    1 : OK:=FPHTMLGetSectionColor(hsHeading1,Color);
+    2 : OK:=FPHTMLGetSectionColor(hsHeading2,Color);
+    3 : OK:=FPHTMLGetSectionColor(hsHeading3,Color);
+  end;
+  FPINFGetAttrColor:=OK;
+end;
+
 procedure InitHelpFiles;
 begin
   HTMLGetSectionColor:={$ifdef FPC}@{$endif}FPHTMLGetSectionColor;
   NGGetAttrColor:={$ifdef FPC}@{$endif}FPNGGetAttrColor;
+  INFGetAttrColor:={$ifdef FPC}@{$endif}FPINFGetAttrColor;
   New(HelpFiles, Init(10,10));
 end;
 
@@ -518,7 +541,13 @@ end;
 END.
 {
   $Log$
-  Revision 1.2  2000-08-22 09:41:39  pierre
+  Revision 1.3  2000-10-31 22:35:54  pierre
+   * New big merge from fixes branch
+
+  Revision 1.1.2.2  2000/09/18 13:20:54  pierre
+   New bunch of Gabor changes
+
+  Revision 1.2  2000/08/22 09:41:39  pierre
    * first big merge from fixes branch
 
   Revision 1.1.2.1  2000/08/15 03:40:53  peter

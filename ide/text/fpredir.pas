@@ -679,7 +679,14 @@ end;
     SwapVectors;
     { Must use shell() for linux for the wildcard expansion (PFV) }
 {$ifdef linux}
-    Shell(Progname+' '+Comline);
+    IOStatus:=0;
+    ExecuteResult:=Shell(Progname+' '+Comline);
+    { Signal that causes the stop of the shell }
+    IOStatus:=ExecuteResult and $7F;
+    { Exit Code seems to be in the second byte,
+      is this also true for BSD ??
+      $80 bit is a CoreFlag apparently }
+    ExecuteResult:=(ExecuteResult and $ff00) shr 8;
 {$else}
 {$ifdef win32}
     StoreInherit:=ExecInheritsHandles;
@@ -690,9 +697,9 @@ end;
 {$ifdef win32}
     ExecInheritsHandles:=StoreInherit;
 {$endif win32}
-{$endif}
     IOStatus:=DosError;
     ExecuteResult:=DosExitCode;
+{$endif}
     SwapVectors;
 {$IfDef MsDos}
   Fullheap;
@@ -718,7 +725,13 @@ Begin
 End.
 {
   $Log$
-  Revision 1.1  2000-07-13 09:48:35  michael
+  Revision 1.2  2000-10-31 22:35:54  pierre
+   * New big merge from fixes branch
+
+  Revision 1.1.2.1  2000/10/04 13:29:59  pierre
+   * Get ExitCode for DosExecute in linux
+
+  Revision 1.1  2000/07/13 09:48:35  michael
   + Initial import
 
   Revision 1.25  2000/05/17 10:19:53  pierre

@@ -83,7 +83,7 @@ var
   D : PFileDialog;
   FileName : string;
 begin
-  New(D, Init('*.pri;*.pas',label_primaryfile_primaryfile,'*.pri;*.pas',fdOpenButton,0));
+  New(D, Init('*.pri;*.pas',label_primaryfile_primaryfile,'*.pri;*.pas',fdOpenButton,hidPrimaryFile));
   if Desktop^.ExecView(D)<>cmCancel then
   begin
     D^.GetFileName(FileName);
@@ -128,7 +128,13 @@ end;
 
 {
   $Log$
-  Revision 1.1  2000-07-13 09:48:35  michael
+  Revision 1.2  2000-10-31 22:35:54  pierre
+   * New big merge from fixes branch
+
+  Revision 1.1.2.1  2000/10/18 21:53:27  pierre
+   * several Gabor fixes
+
+  Revision 1.1  2000/07/13 09:48:35  michael
   + Initial import
 
   Revision 1.9  2000/05/02 08:42:28  pierre

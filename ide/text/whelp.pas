@@ -171,6 +171,8 @@ type
         Param         : PString;
         StartNamedMark: integer;
         NamedMarks    : PUnsortedStringCollection;
+        ExtData       : pointer;
+        ExtDataSize   : longint;
         function LinkSize: sw_word;
         function GetNamedMarkIndex(const MarkName: string): sw_integer;
       end;
@@ -203,7 +205,8 @@ type
         IndexEntries : PUnsortedIndexEntryCollection;
         constructor Init(AID: word);
         function    LoadTopic(HelpCtx: THelpCtx): PTopic; virtual;
-        procedure   AddTopic(HelpCtx: THelpCtx; Pos: longint; const Param: string);
+        procedure   AddTopic(HelpCtx: THelpCtx; Pos: longint; const Param: string;
+                    ExtData: pointer; ExtDataSize: longint);
         procedure   AddIndexEntry(const Text: string; AHelpCtx: THelpCtx);
         destructor  Done; virtual;
       public
@@ -250,6 +253,7 @@ type
         function    AddOAHelpFile(const FileName: string): boolean;
         function    AddHTMLHelpFile(const FileName, TOCEntry: string): boolean;
         function    AddNGHelpFile(const FileName: string): boolean;
+        function    AddOS2HelpFile(const FileName: string): boolean;
         function    AddWinHelpFile(const FileName: string): boolean;
         function    AddHTMLIndexHelpFile(const FileName: string): boolean;
         function    LoadTopic(SourceFileID: word; Context: THelpCtx): PTopic; virtual;
@@ -269,7 +273,8 @@ const TopicCacheSize    : sw_integer = 10;
       HelpFacility      : PHelpFacility = nil;
       MaxHelpTopicSize  : sw_word = {$ifdef FPC}3*65520{$else}65520{$endif};
 
-function  NewTopic(FileID: byte; HelpCtx: THelpCtx; Pos: longint; Param: string): PTopic;
+function  NewTopic(FileID: byte; HelpCtx: THelpCtx; Pos: longint; Param: string;
+          ExtData: pointer; ExtDataSize: longint): PTopic;
 procedure DisposeTopic(P: PTopic);
 
 procedure RenderTopic(Lines: PUnsortedStringCollection; T: PTopic);
@@ -287,7 +292,7 @@ uses
 {$ifdef Linux}
   linux,
 {$endif Linux}
-  WConsts,WHTMLHlp,WNGHelp,WWinHelp;
+  WConsts,WHTMLHlp,WNGHelp,WWinHelp,WOS2Help;
 
 
 Function GetDosTicks:longint; { returns ticks at 18.2 Hz, just like DOS }
@@ -323,12 +328,19 @@ begin
   FillChar(R, SizeOf(R), 0);
 end;
 
-function NewTopic(FileID: byte; HelpCtx: THelpCtx; Pos: longint; Param: string): PTopic;
+function NewTopic(FileID: byte; HelpCtx: THelpCtx; Pos: longint; Param: string;
+         ExtData: pointer; ExtDataSize: longint): PTopic;
 var P: PTopic;
 begin
   New(P); FillChar(P^,SizeOf(P^), 0);
   P^.HelpCtx:=HelpCtx; P^.FileOfs:=Pos; P^.FileID:=FileID;
   P^.Param:=NewStr(Param);
+  if Assigned(ExtData) and (ExtDataSize>0) then
+  begin
+    P^.ExtDataSize:=ExtDataSize;
+    GetMem(P^.ExtData,ExtDataSize);
+    Move(ExtData^,P^.ExtData^,ExtDataSize);
+  end;
   New(P^.NamedMarks, Init(100,100));
   NewTopic:=P;
 end;
@@ -344,6 +356,8 @@ begin
        FreeMem(P^.Links,P^.LinkSize);
     P^.Links:=nil;
     if P^.Param<>nil then DisposeStr(P^.Param); P^.Param:=nil;
+    if Assigned(P^.ExtData) then
+      FreeMem(P^.ExtData{$ifndef FPC},P^.ExtDataSize{$endif});
     if Assigned(P^.NamedMarks) then Dispose(P^.NamedMarks, Done); P^.NamedMarks:=nil;
     Dispose(P);
   end;
@@ -367,6 +381,12 @@ begin
   begin
     New(NT^.NamedMarks, Init(T^.NamedMarks^.Count,10));
     T^.NamedMarks^.ForEach(@CloneMark);
+  end;
+  NT^.ExtDataSize:=T^.ExtDataSize;
+  if Assigned(T^.ExtData) and (T^.ExtDataSize>0) then
+  begin
+    GetMem(NT^.ExtData,NT^.ExtDataSize);
+    Move(T^.ExtData^,NT^.ExtData^,NT^.ExtDataSize);
   end;
   CloneTopic:=NT;
 end;
@@ -401,7 +421,8 @@ begin
 end;
 
 procedure BuildTopic(Lines: PUnsortedStringCollection; T: PTopic);
-var Size,CurPtr,I,MSize: sw_word;
+var Size,CurPtr,MSize: sw_word;
+    I: sw_integer;
     S: string;
 begin
   CurPtr:=0;
@@ -563,9 +584,9 @@ begin
   New(IndexEntries, Init(2000,1000));
 end;
 
-procedure THelpFile.AddTopic(HelpCtx: THelpCtx; Pos: longint; const Param: string);
+procedure THelpFile.AddTopic(HelpCtx: THelpCtx; Pos: longint; const Param: string; ExtData: pointer; ExtDataSize: longint);
 begin
-  Topics^.Insert(NewTopic(ID,HelpCtx,Pos,Param));
+  Topics^.Insert(NewTopic(ID,HelpCtx,Pos,Param,ExtData,ExtDataSize));
 end;
 
 procedure THelpFile.AddIndexEntry(const Text: string; AHelpCtx: THelpCtx);
@@ -736,7 +757,7 @@ begin
     if (L=-1) and (Header.MainIndexScreen>0) then
        L:=GetCtxPos(Contexts[Header.MainIndexScreen]);
     if (L>0) then
-      AddTopic(I,L,'');
+      AddTopic(I,L,'',nil,0);
   end;
   DisposeRecord(R);
   TopicsRead:=OK;
@@ -1060,6 +1081,13 @@ begin
   AddNGHelpFile:=AddFile(H);;
 end;
 
+function THelpFacility.AddOS2HelpFile(const FileName: string): boolean;
+var H: PHelpFile;
+begin
+  H:=New(POS2HelpFile, Init(FileName, LastID+1));
+  AddOS2HelpFile:=AddFile(H);;
+end;
+
 function THelpFacility.AddWinHelpFile(const FileName: string): boolean;
 var H: PHelpFile;
 begin
@@ -1213,7 +1241,7 @@ begin
   New(Keywords, Init(5000,5000));
   HelpFiles^.ForEach(@InsertKeywordsOfFile);
   New(Lines, Init((Keywords^.Count div 2)+100,1000));
-  T:=NewTopic(0,0,0,'');
+  T:=NewTopic(0,0,0,'',nil,0);
   if HelpFiles^.Count=0 then
     begin
       AddLine('');
@@ -1267,7 +1295,13 @@ end;
 END.
 {
   $Log$
-  Revision 1.1  2000-07-13 09:48:37  michael
+  Revision 1.2  2000-10-31 22:35:56  pierre
+   * New big merge from fixes branch
+
+  Revision 1.1.2.1  2000/09/18 13:20:56  pierre
+   New bunch of Gabor changes
+
+  Revision 1.1  2000/07/13 09:48:37  michael
   + Initial import
 
   Revision 1.26  2000/07/03 08:54:54  pierre

@@ -1535,9 +1535,18 @@ begin
   while (P<>nil) do
   begin
     if IsSubMenu(P) then
-       P^.Disabled:=not UpdateMenu(P^.SubMenu);
-    if (IsSeparator(P)=false) and (P^.Disabled=false) and (Application^.CommandEnabled(P^.Command)=true) then
-       IsEnabled:=true;
+       begin
+         P^.Disabled:=not UpdateMenu(P^.SubMenu);
+         if not P^.Disabled then
+           IsEnabled:=true;
+       end
+    else if (IsSeparator(P)=false) {and (P^.Disabled=false)} and
+       (Application^.CommandEnabled(P^.Command)=true) then
+       begin
+         p^.disabled:=not Application^.CommandEnabled(P^.Command);
+         if not p^.disabled then
+           IsEnabled:=true;
+       end;
     P:=P^.Next;
   end;
   UpdateMenu:=IsEnabled;
@@ -2416,7 +2425,13 @@ end;
 END.
 {
   $Log$
-  Revision 1.2  2000-08-22 09:41:42  pierre
+  Revision 1.3  2000-10-31 22:35:56  pierre
+   * New big merge from fixes branch
+
+  Revision 1.1.2.3  2000/10/24 00:21:59  pierre
+   * fix the greyed save after window list box
+
+  Revision 1.2  2000/08/22 09:41:42  pierre
    * first big merge from fixes branch
 
   Revision 1.1.2.2  2000/08/16 18:46:15  peter

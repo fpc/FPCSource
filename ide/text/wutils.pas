@@ -21,9 +21,19 @@ interface
 
 
 uses
+{$ifdef win32}
+  windows,
+{$endif win32}
+{$ifdef linux}
+  linux,
+{$endif linux}
   Dos,Objects;
 
 const
+      kbCtrlGrayPlus         = $9000;
+      kbCtrlGrayMinus        = $8e00;
+      kbCtrlGrayMul          = $9600;
+
   TempFirstChar = {$ifndef Linux}'~'{$else}'_'{$endif};
   TempExt       = '.tmp';
   TempNameLen   = 8;
@@ -169,9 +179,6 @@ procedure RegisterWUtils;
 implementation
 
 uses
-{$ifdef win32}
-  windows,
-{$endif win32}
 {$IFDEF OS2}
   DosCalls,
 {$ENDIF OS2}
@@ -757,7 +764,7 @@ begin
   if (RelOfs<0) or (RelOfs>=BufEnd) or (BufEnd=0) then
     begin
       inherited Seek(Pos);
-      BasePos:=Pos;
+      BasePos:=Pos-BufPtr;
     end
   else
     begin
@@ -1114,7 +1121,12 @@ begin
 end;
 {$endif}
 {$ifdef Linux}
+  var
+    req,rem : timespec;
 begin
+  req.tv_sec:=0;
+  req.tv_nsec:=10000000;{ 10 ms }
+  nanosleep(req,rem);
 end;
 {$endif}
 {$IFDEF OS2}
@@ -1124,6 +1136,15 @@ end;
 {$ENDIF}
 {$ifdef Win32}
 begin
+  { if the return value of this call is non zero then
+    it means that a ReadFileEx or WriteFileEx have completed
+    unused for now ! }
+  { wait for 10 ms }
+  if SleepEx(10,true)=WAIT_IO_COMPLETION then
+    begin
+      { here we should handle the completion of the routines
+        if we use them }
+    end;
 end;
 {$endif}
 {$undef DOS}
@@ -1140,11 +1161,23 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.4  2000-10-28 17:20:42  hajny
+  Revision 1.5  2000-10-31 22:35:56  pierre
+   * New big merge from fixes branch
+
+  Revision 1.4  2000/10/28 17:20:42  hajny
     * lower the CPU use on OS/2
+
+  Revision 1.1.2.6  2000/10/24 12:31:40  pierre
+   * fix the last commit for linux
+
+  Revision 1.1.2.5  2000/10/24 12:24:03  pierre
+   + GiveUpTimeSlice for linux and win32
 
   Revision 1.3  2000/10/11 20:07:23  hajny
     * compilable for the OS/2 target now
+
+  Revision 1.1.2.4  2000/09/18 13:20:56  pierre
+   New bunch of Gabor changes
 
   Revision 1.2  2000/08/22 09:41:42  pierre
    * first big merge from fixes branch

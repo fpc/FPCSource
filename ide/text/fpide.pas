@@ -157,7 +157,7 @@ uses
   Video,Mouse,Keyboard,
   Dos,Memory,Menus,Dialogs,StdDlg,ColorSel,Commands,HelpCtx,
   Systems,
-  WUtils,WHlpView,WViews,
+  WUtils,WHlpView,WViews,WHTMLHlp,
   FPConst,FPVars,FPUtils,FPSwitch,FPIni,FPIntf,FPCompil,FPHelp,
   FPTemplt,FPCalc,FPUsrScr,FPTools,{$ifndef NODEBUG}FPDebug,{$endif}FPRedir,
   FPDesk,FPCodCmp,FPCodTmp;
@@ -843,6 +843,17 @@ begin
       ExecuteRedir(GetEnv('COMSPEC'),'/C '+ProgramPath+' '+Params,InFile,OutFile,'stderr');
 {$endif linux}
 
+{$ifdef linux}
+    if (DebuggeeTTY='') and (OutFile='') then
+      begin
+        Write(' Press any key to return to IDE');
+        InitKeyBoard;
+        Keyboard.GetKeyEvent;
+        while (Keyboard.PollKeyEvent<>0) do
+         Keyboard.GetKeyEvent;
+        DoneKeyboard;
+      end;
+{$endif}
     if ExecType<>exNoSwap then
       ShowIDEScreen;
   end;
@@ -975,8 +986,30 @@ begin
 end;
 
 procedure TIDEApp.DosShell;
+var
+  s : string;
 begin
-  DoExecute(GetEnv('COMSPEC'), '', '', '', exDosShell);
+{$ifdef linux}
+  s:=GetEnv('SHELL');
+  if s='' then
+    if ExistsFile('bin/sh') then
+      s:='bin/sh';
+{$else}
+  s:=GetEnv('COMSPEC');
+  if s='' then
+    if ExistsFile('c:\command.com') then
+      s:='c:\command.com'
+    else
+      begin
+        s:='command.com';
+        if Not LocateExeFile(s) then
+          s:='';
+      end;
+{$endif}
+  if s='' then
+    ErrorBox(msg_errorexecutingshell,nil)
+  else
+    DoExecute(s, '', '', '', exDosShell);
 end;
 
 procedure TIDEApp.ShowReadme;
@@ -1082,9 +1115,24 @@ end;
 END.
 {
   $Log$
-  Revision 1.3  2000-09-22 15:24:04  jonas
+  Revision 1.4  2000-10-31 22:35:54  pierre
+   * New big merge from fixes branch
+
+  Revision 1.1.2.11  2000/10/18 21:53:27  pierre
+   * several Gabor fixes
+
+  Revision 1.1.2.10  2000/10/09 16:28:25  pierre
+   * several linux enhancements
+
+  Revision 1.1.2.9  2000/10/04 13:30:50  pierre
+   * DosShell for linux
+
+  Revision 1.3  2000/09/22 15:24:04  jonas
     * Linux now also uses the DosExecute and ExecuteRedir procedures
       (merged from fixes branch)
+
+  Revision 1.1.2.8  2000/09/22 15:19:04  jonas
+    * Linux now also uses the DosExecute and ExecuteRedir procedures
 
   Revision 1.2  2000/08/22 09:41:39  pierre
    * first big merge from fixes branch

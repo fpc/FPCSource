@@ -13,6 +13,7 @@
 
  **********************************************************************}
 {$I globdir.inc}
+{$ifdef TP}{$L-}{$endif}
 unit WEditor;
 
 interface
@@ -20,7 +21,6 @@ interface
 uses
   Dos,Objects,Drivers,Views,Menus,Commands,
   WUtils;
-
 
 const
       cmFileNameChanged      = 51234;
@@ -53,6 +53,10 @@ const
       cmBrowseAtCursor       = 51261;
       cmInsertOptions        = 51262;
       cmToggleCase           = 51263;
+      cmCreateFold           = 51264;
+      cmToggleFold           = 51265;
+      cmCollapseFold         = 51266;
+      cmExpandFold           = 51267;
 
       EditorTextBufSize = {$ifdef FPC}32768{$else} 4096{$endif};
       MaxLineLength     = 255;
@@ -75,6 +79,8 @@ const
       efExpandAllTabs       = $00001000;
       efKeepTrailingSpaces  = $00002000;
       efCodeComplete        = $00004000;
+      efFolds               = $00008000;
+      efNoIndent            = $00010000;
       efStoreContent        = $80000000;
 
       attrAsm       = 1;
@@ -152,12 +158,13 @@ const
       eaCut               = 7;
       eaPaste             = 8;
       eaPasteWin          = 9;
-      eaClear             = 10;
+      eaDelChar           = 10;
+      eaClear             = 11;
       LastAction          = eaClear;
 
       ActionString : array [0..LastAction] of string[8] =
         ('','Move','InsLine','InsText','DelLine','DelText',
-         'SelCh','Cut','Paste','PasteWin','Clear');
+         'SelCh','Cut','Paste','PasteWin','DelChar','Clear');
 
       CIndicator    = #2#3#1;
       CEditor       = #33#34#35#36#37#38#39#40#41#42#43#44#45#46#47#48#49;
@@ -167,8 +174,39 @@ const
 
 type
     PCustomCodeEditor = ^TCustomCodeEditor;
-
     PEditorLineInfo = ^TEditorLineInfo;
+    PFoldCollection = ^TFoldCollection;
+
+    PFold = ^TFold;
+    TFold = object(TObject)
+      constructor Init(AEditor: PCustomCodeEditor; AParentFold: PFold; ACollapsed: boolean);
+      procedure   AddReference(P: PObject);
+      procedure   RemoveReference(P: PObject);
+      procedure   AddLineReference(Line: PEditorLineInfo);
+      procedure   RemoveLineReference(Line: PEditorLineInfo);
+      procedure   AddChildReference(Fold: PFold);
+      procedure   RemoveChildReference(Fold: PFold);
+      function    CanDispose: boolean;
+      function    IsCollapsed: boolean;
+      function    IsParent(AFold: PFold): boolean;
+      function    GetLineCount: sw_integer;
+      procedure   Collapse(ACollapse: boolean);
+      procedure   Changed;
+      function    GetLevel: sw_integer;
+      destructor  Done; virtual;
+    public
+      ParentFold: PFold;
+      Collapsed_: boolean;
+      ReferenceCount: sw_integer;
+      Editor: PCustomCodeEditor;
+      LineCount_: sw_integer;
+      Childs: PFoldCollection;
+    end;
+
+    TFoldCollection = object(TCollection)
+      function At(Index: sw_Integer): PFold;
+    end;
+
     TEditorLineInfo = object(TObject)
       Editor: PCustomCodeEditor;
       Format : PString;
@@ -180,10 +218,12 @@ type
       BeginsWithDirective,
       EndsWithDirective : boolean;
       BeginCommentType,EndCommentType : byte;
+      Fold: PFold;
       constructor Init(AEditor: PCustomCodeEditor);
       destructor  Done; virtual;
       function    GetFormat: string;
       procedure   SetFormat(const AFormat: string);
+      procedure   SetFold(AFold: PFold);
       { Syntax information is now generated separately for each editor instance.
         This is not neccessary for a one-language IDE, but this unit contains
         a _generic_ editor object, which should be (and is) as flexible as
@@ -365,7 +405,7 @@ type
       procedure   SetLineFormat(Editor: PCustomCodeEditor; I: sw_integer;const S: string); virtual;
    {a}procedure   DeleteAllLines; virtual;
    {a}procedure   DeleteLine(I: sw_integer); virtual;
-   {a}procedure   InsertLine(LineNo: sw_integer; const S: string); virtual;
+   {a}function    InsertLine(LineNo: sw_integer; const S: string): PCustomLine; virtual;
    {a}procedure   AddLine(const S: string); virtual;
    {a}procedure   GetContent(ALines: PUnsortedStringCollection); virtual;
    {a}procedure   SetContent(ALines: PUnsortedStringCollection); virtual;
@@ -427,6 +467,7 @@ type
    {a}function    GetLastSyntaxedLine: sw_integer; virtual;
    {a}procedure   SetLastSyntaxedLine(ALine: sw_integer); virtual;
       function    IsFlagSet(AFlag: longint): boolean;
+      function    GetReservedColCount: sw_integer; virtual;
    {a}function    GetTabSize: integer; virtual;
    {a}procedure   SetTabSize(ATabSize: integer); virtual;
    {a}function    IsReadOnly: boolean; virtual;
@@ -460,7 +501,7 @@ type
    {a}procedure   SetLineFormat(I: sw_integer;const S: string); virtual;
    {a}procedure   DeleteAllLines; virtual;
    {a}procedure   DeleteLine(I: sw_integer); virtual;
-   {a}procedure   InsertLine(LineNo: sw_integer; const S: string); virtual;
+   {a}function    InsertLine(LineNo: sw_integer; const S: string): PCustomLine; virtual;
    {a}procedure   AddLine(const S: string); virtual;
    {a}function    GetErrorMessage: string; virtual;
    {a}procedure   SetErrorMessage(const S: string); virtual;
@@ -506,6 +547,22 @@ type
       function    GetCompleteState: TCompleteState; virtual;
       procedure   SetCompleteState(AState: TCompleteState); virtual;
       procedure   ClearCodeCompleteWord; virtual;
+     { Fold support }
+      function    GetMaxFoldLevel: sw_integer; virtual;
+      function    GetFoldStringWidth: sw_integer; virtual;
+      procedure   GetFoldStrings(EditorLine: sw_integer; var Prefix, Suffix: openstring); virtual;
+   {a}function    GetFoldCount: sw_integer; virtual;
+   {a}function    GetFold(Index: sw_integer): PFold; virtual;
+   {a}procedure   RegisterFold(AFold: PFold); virtual;
+   {a}procedure   UnRegisterFold(AFold: PFold); virtual;
+      function    ViewToEditorLine(ViewLine: sw_integer): sw_integer;
+      function    EditorToViewLine(EditorLine: sw_integer): sw_integer;
+      procedure   ViewToEditorPoint(P: TPoint; var NP: TPoint);
+      procedure   EditorToViewPoint(P: TPoint; var NP: TPoint);
+     { Fold support }
+      function    CreateFold(StartY,EndY: sw_integer; Collapsed: boolean): boolean; virtual;
+      procedure   FoldChanged(Fold: PFold); virtual;
+      procedure   RemoveAllFolds; virtual;
    public
       { Syntax highlight }
    {a}function    UpdateAttrs(FromLine: sw_integer; Attrs: byte): sw_integer; virtual;
@@ -535,6 +592,9 @@ type
       procedure   HideHighlight;
       function    ShouldExtend: boolean;
       function    ValidBlock: boolean;
+      function    GetLineFold(EditorLine: sw_integer): PFold;
+      function    IsLineVisible(EditorLine: sw_integer): boolean; virtual;
+      function    NextVisibleLine(StartLine: sw_integer; Down: boolean): sw_integer;
     public
       { Editor primitives }
       procedure   SelectAll(Enable: boolean); virtual;
@@ -563,6 +623,10 @@ type
       procedure DefineMark(MarkIdx: integer); virtual;
       procedure JumpToLastCursorPos; virtual;
       procedure FindMatchingDelimiter(ScanForward: boolean); virtual;
+      procedure CreateFoldFromBlock; virtual;
+      procedure ToggleFold; virtual;
+      procedure CollapseFold; virtual;
+      procedure ExpandFold; virtual;
       procedure UpperCase; virtual;
       procedure LowerCase; virtual;
       procedure WordLowerCase; virtual;
@@ -700,7 +764,7 @@ const
      kbShift = kbLeftShift+kbRightShift;
 
 const
-  FirstKeyCount = 41;
+  FirstKeyCount = 46;
   FirstKeys: array[0..FirstKeyCount * 2] of Word = (FirstKeyCount,
     Ord(^A), cmWordLeft, Ord(^B), cmJumpLine, Ord(^C), cmPageDown,
     Ord(^D), cmCharRight, Ord(^E), cmLineUp,
@@ -716,13 +780,15 @@ const
     Ord(^Y), cmDelLine, kbLeft, cmCharLeft,
     kbRight, cmCharRight, kbCtrlLeft, cmWordLeft,
     kbCtrlRight, cmWordRight, kbHome, cmLineStart,
+    kbCtrlHome, cmWindowStart, kbCtrlEnd, cmWindowEnd,
     kbEnd, cmLineEnd, kbUp, cmLineUp,
     kbDown, cmLineDown, kbPgUp, cmPageUp,
     kbPgDn, cmPageDown, kbCtrlPgUp, cmTextStart,
     kbCtrlPgDn, cmTextEnd, kbIns, cmInsMode,
     kbDel, cmDelChar, kbShiftIns, cmPaste,
     kbShiftDel, cmCut, kbCtrlIns, cmCopy,
-    kbCtrlDel, cmClear);
+    kbCtrlDel, cmClear,
+    kbCtrlGrayMul, cmToggleFold, kbCtrlGrayMinus, cmCollapseFold, kbCtrlGrayPlus, cmExpandFold);
   QuickKeyCount = 29;
   QuickKeys: array[0..QuickKeyCount * 2] of Word = (QuickKeyCount,
     Ord('A'), cmReplace, Ord('C'), cmTextEnd,
@@ -739,7 +805,7 @@ const
     Ord('3'), cmJumpMark3, Ord('4'), cmJumpMark4, Ord('5'), cmJumpMark5,
     Ord('6'), cmJumpMark6, Ord('7'), cmJumpMark7, Ord('8'), cmJumpMark8,
     Ord('9'), cmJumpMark9);
-  BlockKeyCount = 29;
+  BlockKeyCount = 30;
   BlockKeys: array[0..BlockKeyCount * 2] of Word = (BlockKeyCount,
     Ord('B'), cmStartSelect, Ord('C'), cmCopyBlock,
     Ord('H'), cmHideSelect, Ord('K'), cmEndSelect,
@@ -751,7 +817,7 @@ const
     Ord('N'), cmUpperCase, Ord('O'), cmLowerCase,
     Ord('D'), cmActivateMenu,
     Ord('E'), cmWordLowerCase, Ord('F'), cmWordUpperCase,
-    Ord('S'), cmSave,
+    Ord('S'), cmSave, Ord('A'), cmCreateFold,
     Ord('0'), cmSetMark0, Ord('1'), cmSetMark1, Ord('2'), cmSetMark2,
     Ord('3'), cmSetMark3, Ord('4'), cmSetMark4, Ord('5'), cmSetMark5,
     Ord('6'), cmSetMark6, Ord('7'), cmSetMark7, Ord('8'), cmSetMark8,
@@ -1263,6 +1329,129 @@ begin
   At:=inherited At(Index);
 end;
 
+constructor TFold.Init(AEditor: PCustomCodeEditor; AParentFold: PFold; ACollapsed: boolean);
+begin
+  inherited Init;
+  New(Childs, Init(10,10));
+  Editor:=AEditor;
+  ParentFold:=AParentFold;
+  if Assigned(ParentFold) then
+    ParentFold^.AddChildReference(@Self);
+  Collapsed_:=ACollapsed;
+  if Assigned(AEditor) then
+    Editor^.RegisterFold(@Self);
+end;
+
+procedure TFold.AddReference(P: PObject);
+begin
+  Inc(ReferenceCount);
+end;
+
+procedure TFold.RemoveReference(P: PObject);
+begin
+  Dec(ReferenceCount);
+  if CanDispose then
+    Free;
+end;
+
+procedure TFold.AddLineReference(Line: PEditorLineInfo);
+begin
+  Inc(LineCount_);
+  AddReference(Line);
+end;
+
+procedure TFold.RemoveLineReference(Line: PEditorLineInfo);
+begin
+  Dec(LineCount_);
+  RemoveReference(Line);
+end;
+
+procedure TFold.AddChildReference(Fold: PFold);
+begin
+  Childs^.Insert(Fold);
+  AddReference(Fold);
+end;
+
+procedure TFold.RemoveChildReference(Fold: PFold);
+begin
+  Childs^.Delete(Fold);
+  RemoveReference(Fold);
+end;
+
+function TFold.CanDispose: boolean;
+begin
+  CanDispose:=ReferenceCount<=0;
+end;
+
+function TFold.IsCollapsed: boolean;
+var C: boolean;
+begin
+  C:=Collapsed_;
+  if Assigned(ParentFold) then C:=C or ParentFold^.IsCollapsed;
+  IsCollapsed:=C;
+end;
+
+function TFold.IsParent(AFold: PFold): boolean;
+var P: boolean;
+begin
+  P:=(ParentFold=AFold);
+  if Assigned(ParentFold) then P:=P or ParentFold^.IsParent(AFold);
+  IsParent:=P;
+end;
+
+function TFold.GetLineCount: sw_integer;
+var Count: sw_integer;
+procedure AddIt(P: PFold); {$ifndef FPC}far;{$endif}
+begin
+  Inc(Count,P^.GetLineCount);
+end;
+begin
+  Count:=LineCount_;
+  if assigned(Childs) then Childs^.ForEach(@AddIt);
+  GetLineCount:=Count;
+end;
+
+procedure TFold.Collapse(ACollapse: boolean);
+begin
+  if ACollapse<>Collapsed_ then
+  begin
+    Collapsed_:=ACollapse;
+    if (not Collapsed_) and Assigned(ParentFold) then
+      ParentFold^.Collapse(false);
+    Changed;
+  end;
+end;
+
+procedure TFold.Changed;
+begin
+  if Assigned(Editor) then
+    Editor^.FoldChanged(@Self);
+end;
+
+function TFold.GetLevel: sw_integer;
+var Level: sw_integer;
+begin
+  Level:=0;
+  if Assigned(ParentFold) then
+    Inc(Level,1+ParentFold^.GetLevel);
+  GetLevel:=Level;
+end;
+
+destructor TFold.Done;
+begin
+  if Assigned(ParentFold) then
+    ParentFold^.RemoveChildReference(@Self);
+  if Assigned(Editor) then
+    Editor^.UnRegisterFold(@Self);
+  Childs^.DeleteAll; Dispose(Childs, Done);
+  inherited Done;
+end;
+
+function TFoldCollection.At(Index: sw_Integer): PFold;
+begin
+  At:=inherited At(Index);
+end;
+
 constructor TEditorLineInfo.Init(AEditor: PCustomCodeEditor);
 begin
   inherited Init;
@@ -1279,9 +1468,19 @@ begin
   SetStr(Format,AFormat);
 end;
 
+procedure TEditorLineInfo.SetFold(AFold: PFold);
+begin
+  if Assigned(Fold) then
+    Fold^.RemoveLineReference(@Self);
+  Fold:=AFold;
+  if Assigned(Fold) then
+    Fold^.AddLineReference(@Self);
+end;
+
 destructor TEditorLineInfo.Done;
 begin
   if Format<>nil then DisposeStr(Format); Format:=nil;
+  SetFold(nil);
   inherited Done;
 end;
 
@@ -1710,9 +1909,10 @@ begin
   Abstract;
 end;
 
-procedure TCustomCodeEditorCore.InsertLine(LineNo: sw_integer; const S: string);
+function TCustomCodeEditorCore.InsertLine(LineNo: sw_integer; const S: string): PCustomLine;
 begin
   Abstract;
+  InsertLine:=nil; { eliminate compiler warning }
 end;
 
 procedure TCustomCodeEditorCore.AddLine(const S: string);
@@ -2223,7 +2423,6 @@ begin
   GetRedoActionCount:=0;
 end;
 
-
 destructor TCustomCodeEditorCore.Done;
 begin
 {$ifdef DEBUG}
@@ -2466,9 +2665,10 @@ begin
   Abstract;
 end;
 
-procedure TCustomCodeEditor.InsertLine(LineNo: sw_integer; const S: string);
+function TCustomCodeEditor.InsertLine(LineNo: sw_integer; const S: string): PCustomLine;
 begin
   Abstract;
+  InsertLine:=nil; { eliminate compiler warning }
 end;
 
 procedure TCustomCodeEditor.AddLine(const S: string);
@@ -2744,25 +2944,91 @@ begin
   GetCodeCompleteWord:='';
 end;
 
+function TCustomCodeEditor.CreateFold(StartY,EndY: sw_integer; Collapsed: boolean): boolean;
+var F,ParentF: PFold;
+    L: PCustomLine;
+    EI: PEditorLineInfo;
+    Y: sw_integer;
+    OK: boolean;
+begin
+  OK:=true;
+  Lock;
+  for Y:=StartY to EndY do
+  begin
+    L:=GetLine(Y); EI:=L^.GetEditorInfo(@Self);
+    if Y=StartY then
+      ParentF:=EI^.Fold
+    else
+      OK:=OK and (EI^.Fold=ParentF);
+    if not OK then
+      Break;
+  end;
+  if OK then
+  begin
+    New(F, Init(@Self,ParentF,Collapsed));
+    for Y:=StartY to EndY do
+      GetLine(Y)^.GetEditorInfo(@Self)^.SetFold(F);
+    DrawView;
+  end;
+  UnLock;
+  CreateFold:=OK;
+end;
+
+procedure TCustomCodeEditor.FoldChanged(Fold: PFold);
+var F: PFold;
+    I: sw_integer;
+begin
+  for I:=0 to GetFoldCount-1 do
+  begin
+    F:=GetFold(I);
+    if F^.ParentFold=Fold then
+      FoldChanged(F);
+  end;
+  if Fold^.IsCollapsed then
+  begin
+    F:=GetLineFold(CurPos.Y); I:=CurPos.Y;
+    if F=Fold then
+    begin
+     while GetLineFold(I-1)=Fold do
+       Dec(I);
+     if I<>CurPos.Y then
+       SetCurPtr(CurPos.X,I);
+    end;
+  end;
+  DrawView;
+end;
+
+procedure TCustomCodeEditor.RemoveAllFolds;
+var I: sw_integer;
+begin
+  for I:=0 to GetLineCount-1 do
+   with GetLine(I)^ do
+    with GetEditorInfo(@Self)^ do
+     SetFold(nil);
+  DrawView;
+end;
+
 procedure TCustomCodeEditor.AdjustSelection(DeltaX, DeltaY: sw_integer);
 begin
   AdjustSelectionPos(CurPos.X,CurPos.Y,DeltaX,DeltaY);
 end;
 
 procedure TCustomCodeEditor.TrackCursor(Center: boolean);
-var D: TPoint;
+var D,CP: TPoint;
 begin
   D:=Delta;
-  if CurPos.Y<Delta.Y then D.Y:=CurPos.Y else
-   if CurPos.Y>Delta.Y+Size.Y-1 then D.Y:=CurPos.Y-Size.Y+1;
-  if CurPos.X<Delta.X then D.X:=CurPos.X else
-   if CurPos.X>Delta.X+Size.X-1 then D.X:=CurPos.X-Size.X+1;
+  EditorToViewPoint(D,D); EditorToViewPoint(CurPos,CP);
+  if CP.Y<Delta.Y then D.Y:=CP.Y else
+   if CP.Y>Delta.Y+Size.Y-1 then D.Y:=CP.Y-Size.Y+1;
+  if CP.X<Delta.X then D.X:=CP.X else
+   if CP.X>Delta.X+Size.X-1 then D.X:=CP.X-Size.X+1;
   if {((Delta.X<>D.X) or (Delta.Y<>D.Y)) and }Center then
   begin
      { loose centering for debugger PM }
-     while (CurPos.Y-D.Y)<(Size.Y div 3) do Dec(D.Y);
-     while (CurPos.Y-D.Y)>2*(Size.Y div 3) do Inc(D.Y);
+     while (CP.Y-D.Y)<(Size.Y div 3) do Dec(D.Y);
+     while (CP.Y-D.Y)>2*(Size.Y div 3) do Inc(D.Y);
   end;
+  ViewToEditorPoint(D,D);
   if (Delta.X<>D.X) or (Delta.Y<>D.Y) then
     ScrollTo(D.X,D.Y);
   DrawCursor;
@@ -2792,6 +3058,9 @@ begin
   if ((OldFlags xor GetFlags) and efCodeComplete)<>0 then
     ClearCodeCompleteWord;
   SetInsertMode(IsFlagSet(efInsertMode));
+  if ((OldFlags xor GetFlags) and efFolds)<>0 then
+    if not IsFlagSet(efFolds) then
+      RemoveAllFolds;
   if IsFlagSet(efSyntaxHighlight) then
     UpdateAttrs(0,attrAll) else
   for I:=0 to GetLineCount-1 do
@@ -2807,7 +3076,7 @@ end;
 
 procedure TCustomCodeEditor.DoLimitsChanged;
 begin
-  SetLimit(MaxLineLength+1,GetLineCount);
+  SetLimit(MaxLineLength+1,EditorToViewLine(GetLineCount));
 end;
 
 procedure TCustomCodeEditor.BindingsChanged;
@@ -2898,6 +3167,7 @@ var DontClear : boolean;
   begin
     MakeLocal(Event.Where,P);
     Inc(P.X,Delta.X); Inc(P.Y,Delta.Y);
+    Dec(P.X,GetReservedColCount);
   end;
 type TCCAction = (ccCheck,ccClear,ccDontCare);
 var
@@ -3052,6 +3322,10 @@ begin
           cmWordUpperCase : WordUpperCase;
           cmInsertOptions : InsertOptions;
           cmToggleCase    : ToggleCase;
+          cmCreateFold    : CreateFoldFromBlock;
+          cmToggleFold    : ToggleFold;
+          cmExpandFold    : ExpandFold;
+          cmCollapseFold  : CollapseFold;
           cmJumpMark0..cmJumpMark9 : JumpMark(Event.Command-cmJumpMark0);
           cmSetMark0..cmSetMark9 : DefineMark(Event.Command-cmSetMark0);
           cmSelectWord  : SelectWord;
@@ -3191,16 +3465,27 @@ begin
     Message(GetCommandTarget,evCommand,Re,@Self);
 end;
 
+function TCustomCodeEditor.GetReservedColCount: sw_integer;
+var LSX: sw_integer;
+begin
+  if IsFlagSet(efFolds) then LSX:=GetFoldStringWidth else LSX:=0;
+  GetReservedColCount:=LSX;
+end;
+
 procedure TCustomCodeEditor.Draw;
+function GetEIFold(EI: PEditorLineInfo): PFold;
+begin
+  if Assigned(EI) then GetEIFold:=EI^.Fold else GetEIFold:=nil;
+end;
 var SelectColor,
     HighlightColColor,
     HighlightRowColor,
     ErrorMessageColor  : word;
     B: TDrawBuffer;
-    X,Y,AX,AY,MaxX: sw_integer;
+    I,X,Y,AX,AY,MaxX,LSX: sw_integer;
     PX: TPoint;
     LineCount: sw_integer;
-    Line: PCustomLine;
+    Line,PrevLine: PCustomLine;
     LineText,Format: string;
     isBreak : boolean;
     C: char;
@@ -3222,6 +3507,10 @@ begin
     Color:=(Color and $F0) or $F;
   CombineColors:=Color;
 end;
+var PrevEI,EI: PEditorLineInfo;
+    FoldPrefix,FoldSuffix: string;
+{    SkipLine: boolean;}
+{    FoldStartLine: sw_integer;}
 begin
   if LockFlag>0 then
     begin
@@ -3257,106 +3546,133 @@ begin
   If GetLastSyntaxedLine<Delta.Y+Size.Y then
     UpdateAttrsRange(GetLastSyntaxedLine,Delta.Y+Size.Y,AttrAll);
 {$endif TEST_PARTIAL_SYNTAX}
+  LSX:=GetReservedColCount;
+  PrevLine:=nil; PrevEI:=nil; {FoldStartLine:=-1;}
+  Y:=0; AY:=Delta.Y;
   for Y:=0 to Size.Y-1 do
-  if Y=ErrorLine then
   begin
-    MoveChar(B,' ',ErrorMessageColor,Size.X);
-    MoveStr(B,ErrorMsg,ErrorMessageColor);
-    WriteLine(0,Y,Size.X,1,B);
-  end else
-  begin
-    AY:=Delta.Y+Y;
-    Color:=ColorTab[coTextColor];
-    FillChar(FreeFormat,SizeOf(FreeFormat),1);
-    MoveChar(B,' ',Color,Size.X);
-    if AY<LineCount then
-     begin
-       Line:=GetLine(AY);
-       IsBreak:=GetLine(AY)^.IsFlagSet(lfBreakpoint);
-     end
+    if Y=ErrorLine then
+      begin
+        MoveChar(B,' ',ErrorMessageColor,Size.X);
+        MoveStr(B,ErrorMsg,ErrorMessageColor);
+        WriteLine(0,Y,Size.X,1,B);
+      end
     else
-     begin
-       Line:=nil;
-       IsBreak:=false;
-     end;
-    GetDisplayTextFormat(AY,LineText,Format);
+      begin
+        AY:=ViewToEditorLine(Delta.Y+Y);
+        if (0<=AY) and (AY<LineCount) then
+          begin
+            Line:=GetLine(AY);
+            IsBreak:=GetLine(AY)^.IsFlagSet(lfBreakpoint);
+            EI:=Line^.GetEditorInfo(@Self);
+          end
+        else
+          begin
+            Line:=nil;
+            IsBreak:=false;
+            EI:=nil;
+          end;
 
-{    if FlagSet(efSyntaxHighlight) then MaxX:=length(LineText)+1
-       else }MaxX:=Size.X+Delta.X;
-    for X:=1 to Min(MaxX,High(LineText)) do
-    begin
-      AX:=Delta.X+X-1;
-      if X<=length(LineText) then C:=LineText[X] else C:=' ';
+        begin
+          Color:=ColorTab[coTextColor];
+          FillChar(FreeFormat,SizeOf(FreeFormat),1);
+          MoveChar(B,' ',Color,Size.X);
+          GetDisplayTextFormat(AY,LineText,Format);
 
-      PX.X:=AX-Delta.X; PX.Y:=AY;
-      if (Highlight.A.X<>Highlight.B.X) or (Highlight.A.Y<>Highlight.B.Y) then
-      begin
-    if (PointOfs(Highlight.A)<=PointOfs(PX)) and (PointOfs(PX)<PointOfs(Highlight.B)) then
-    begin
-       Color:=SelectColor;
-       FreeFormat[X]:=false;
-    end;
-      end else
-      { no highlight }
-      begin
-   if IsFlagSet(efVerticalBlocks) then
-      begin
-        if (SelStart.X<=AX) and (AX<=SelEnd.X) and
-      (SelStart.Y<=AY) and (AY<=SelEnd.Y) then
-      begin Color:=SelectColor; FreeFormat[X]:=false; end;
-      end else
-    if PointOfs(SelStart)<>PointOfs(SelEnd) then
-     if (PointOfs(SelStart)<=PointOfs(PX)) and (PointOfs(PX)<PointOfs(SelEnd)) then
-        begin Color:=SelectColor; FreeFormat[X]:=false; end;
-      end;
-    if FreeFormat[X] then
-     if X<=length(Format) then
-       {Color:=ColorTab[ord(Format[X])] else Color:=ColorTab[coTextColor];
-         this give BoundsCheckError with -Cr quite often PM }
-       Color:=ColorTab[ord(Format[X]) mod (coLastColor + 1)] else Color:=ColorTab[coTextColor];
+      {    if FlagSet(efSyntaxHighlight) then MaxX:=length(LineText)+1
+             else }MaxX:=Size.X+Delta.X;
+          for X:=1 to Min(MaxX,High(LineText)) do
+          begin
+            AX:=Delta.X+X-1;
+            if X<=length(LineText) then C:=LineText[X] else C:=' ';
 
-    if IsFlagSet(efHighlightRow) and
-       (PX.Y=CurPos.Y) then
-      begin
-        Color:=CombineColors(Color,HighlightRowColor);
-        FreeFormat[X]:=false;
-      end;
-    if IsFlagSet(efHighlightColumn) and (PX.X=CurPos.X) then
-      begin
-        Color:=CombineColors(Color,HighlightColColor);
-        FreeFormat[X]:=false;
-      end;
+            PX.X:=AX-Delta.X; PX.Y:=AY;
+            if (Highlight.A.X<>Highlight.B.X) or (Highlight.A.Y<>Highlight.B.Y) then
+             { there's a highlight }
+              begin
+                if (PointOfs(Highlight.A)<=PointOfs(PX)) and (PointOfs(PX)<PointOfs(Highlight.B)) then
+                  begin
+                    Color:=SelectColor;
+                    FreeFormat[X]:=false;
+                  end;
+              end
+            else
+             { no highlight }
+              begin
+                if IsFlagSet(efVerticalBlocks) then
+                  begin
+                    if (SelStart.X<=AX) and (AX<=SelEnd.X) and
+                       (SelStart.Y<=AY) and (AY<=SelEnd.Y) then
+                      begin
+                        Color:=SelectColor; FreeFormat[X]:=false;
+                      end;
+                  end
+                else
+                  if PointOfs(SelStart)<>PointOfs(SelEnd) then
+                   if (PointOfs(SelStart)<=PointOfs(PX)) and (PointOfs(PX)<PointOfs(SelEnd)) then
+                    begin
+                      Color:=SelectColor; FreeFormat[X]:=false;
+                    end;
+              end; { no highlight }
+            if FreeFormat[X] then
+             if X<=length(Format) then
+               {Color:=ColorTab[ord(Format[X])] else Color:=ColorTab[coTextColor];
+                 this give BoundsCheckError with -Cr quite often PM }
+               Color:=ColorTab[ord(Format[X]) mod (coLastColor + 1)] else Color:=ColorTab[coTextColor];
 
-    if Assigned(Line) and Line^.IsFlagSet(lfHighlightRow) then
-      begin
-        Color:=CombineColors(Color,HighlightRowColor);
-        FreeFormat[X]:=false;
-      end;
-    if isbreak then
-      begin
-        Color:=ColorTab[coBreakColor];
-        FreeFormat[X]:=false;
-      end;
-    if Assigned(Line) and Line^.isFlagSet(lfDebuggerRow) then
-      begin
-        Color:=CombineColors(Color,HighlightRowColor);
-        FreeFormat[X]:=false;
-      end;
+            if IsFlagSet(efHighlightRow) and
+               (PX.Y=CurPos.Y) then
+              begin
+                Color:=CombineColors(Color,HighlightRowColor);
+                FreeFormat[X]:=false;
+              end;
+            if IsFlagSet(efHighlightColumn) and (PX.X=CurPos.X) then
+              begin
+                Color:=CombineColors(Color,HighlightColColor);
+                FreeFormat[X]:=false;
+              end;
 
-      if (0<=X-1-Delta.X) and (X-1-Delta.X<MaxViewWidth) then
-      MoveChar(B[X-1-Delta.X],C,Color,1);
-    end;
-    WriteLine(0,Y,Size.X,1,B);
-  end;
+            if Assigned(Line) and Line^.IsFlagSet(lfHighlightRow) then
+              begin
+                Color:=CombineColors(Color,HighlightRowColor);
+                FreeFormat[X]:=false;
+              end;
+            if isbreak then
+              begin
+                Color:=ColorTab[coBreakColor];
+                FreeFormat[X]:=false;
+              end;
+            if Assigned(Line) and Line^.isFlagSet(lfDebuggerRow) then
+              begin
+                Color:=CombineColors(Color,HighlightRowColor);
+                FreeFormat[X]:=false;
+              end;
+
+            if (0<=LSX+X-1-Delta.X) and (LSX+X-1-Delta.X<MaxViewWidth) then
+              MoveChar(B[LSX+X-1-Delta.X],C,Color,1);
+          end; { for X:=1 to ... }
+          if IsFlagSet(efFolds) then
+          begin
+            GetFoldStrings(AY,FoldPrefix,FoldSuffix);
+            MoveStr(B[0],FoldPrefix,ColorTab[coTextColor]);
+            if FoldSuffix<>'' then
+              MoveStr(B[Size.X-1-length(FoldSuffix)],FoldSuffix,ColorTab[coTextColor]);
+          end;
+          WriteLine(0,Y,Size.X,1,B);
+        end; { if not SkipLine ... }
+      end; { not errorline }
+    PrevEI:=EI; PrevLine:=Line;
+  end; { while (Y<Size.Y) ... }
   DrawCursor;
 end;
 
 procedure TCustomCodeEditor.DrawCursor;
+var LSX: sw_integer;
 begin
   if lockflag>0 then
     DrawCursorCalled:=true
   else
-    SetCursor(CurPos.X-Delta.X,CurPos.Y-Delta.Y);
+    SetCursor(GetReservedColCount+CurPos.X-Delta.X,EditorToViewLine(CurPos.Y)-Delta.Y);
   SetState(sfCursorIns,Overwrite);
 end;
 
@@ -3427,6 +3743,58 @@ function TCustomCodeEditor.GetRedoActionCount: sw_integer;
 begin
   { Abstract }
   GetRedoActionCount:=0;
+end;
+
+function TCustomCodeEditor.GetMaxFoldLevel: sw_integer;
+var Max,L,I: sw_integer;
+begin
+  Max:=0;
+  for I:=0 to GetFoldCount-1 do
+  begin
+    L:=GetFold(I)^.GetLevel;
+    if L>Max then Max:=L;
+  end;
+  GetMaxFoldLevel:=Max;
+end;
+
+function TCustomCodeEditor.GetFoldStringWidth: sw_integer;
+begin
+  GetFoldStringWidth:=GetMaxFoldLevel;
+end;
+
+procedure TCustomCodeEditor.GetFoldStrings(EditorLine: sw_integer; var Prefix, Suffix: openstring);
+var F: PFold;
+    C: char;
+begin
+  Prefix:=CharStr(' ',GetFoldStringWidth); Suffix:='';
+  F:=GetLineFold(EditorLine);
+  if Assigned(F) then
+  begin
+    if F^.Collapsed_ then C:=#27 else C:=#26;
+    Prefix[1+F^.GetLevel]:=C;
+    if F^.Collapsed_ then
+      Suffix:='('+IntToStr(F^.GetLineCount)+')';
+  end;
+end;
+
+function TCustomCodeEditor.GetFoldCount: sw_integer;
+begin
+  GetFoldCount:=0;
+end;
+
+function TCustomCodeEditor.GetFold(Index: sw_integer): PFold;
+begin
+  GetFold:=nil;
+end;
+
+procedure TCustomCodeEditor.RegisterFold(AFold: PFold);
+begin
+  Abstract;
+end;
+
+procedure TCustomCodeEditor.UnRegisterFold(AFold: PFold);
+begin
+  Abstract;
 end;
 
 procedure TCustomCodeEditor.Indent;
@@ -3600,28 +3968,65 @@ begin
     SetCurPtr(0,CurPos.Y);
 end;
 
-procedure TCustomCodeEditor.LineUp;
+function TCustomCodeEditor.NextVisibleLine(StartLine: sw_integer; Down: boolean): sw_integer;
+var Count,NL: sw_integer;
 begin
-  if CurPos.Y>0 then
-     SetCurPtr(CurPos.X,CurPos.Y-1);
+  if Down then
+    begin
+      Count:=GetLineCount;
+      NL:=StartLine;
+      while (NL<Count-1) and not IsLineVisible(NL) do
+        Inc(NL);
+      if NL>=Count then
+        NL:=-1;
+    end
+  else
+    begin
+      NL:=StartLine;
+      while (NL>0) and not IsLineVisible(NL) do
+        Dec(NL);
+    end;
+  if not IsLineVisible(NL) then
+    NL:=-1;
+  NextVisibleLine:=NL;
+end;
+
+procedure TCustomCodeEditor.LineUp;
+var NL: sw_integer;
+begin
+  NL:=NextVisibleLine(CurPos.Y-1,false);
+  if NL<>-1 then
+    SetCurPtr(CurPos.X,NL);
 end;
 
 procedure TCustomCodeEditor.LineDown;
+var NL: sw_integer;
 begin
-  if (CurPos.Y<GetLineCount-1) then
-     SetCurPtr(CurPos.X,CurPos.Y+1);
+  NL:=NextVisibleLine(CurPos.Y+1,true);
+  if NL<>-1 then
+    SetCurPtr(CurPos.X,NL);
 end;
 
 procedure TCustomCodeEditor.PageUp;
+var NL: sw_integer;
 begin
   ScrollTo(Delta.X,Max(Delta.Y-Size.Y,0));
-  SetCurPtr(CurPos.X,Max(0,CurPos.Y-(Size.Y)));
+  NL:=Max(CurPos.Y-(Size.Y),0);
+  if not IsLineVisible(NL) then
+    NL:=NextVisibleLine(NL,false);
+  if NL>=0 then
+    SetCurPtr(CurPos.X,Max(0,NL));
 end;
 
 procedure TCustomCodeEditor.PageDown;
+var NL: sw_integer;
 begin
   ScrollTo(Delta.X,Min(Delta.Y+Size.Y,GetLineCount-1));
-  SetCurPtr(CurPos.X,Min(GetLineCount-1,CurPos.Y+(Size.Y{-1})));
+  NL:=Min(CurPos.Y+(Size.Y{-1}),GetLineCount-1);
+  if not IsLineVisible(NL) then
+    NL:=NextVisibleLine(NL,true);
+  if NL>=0 then
+    SetCurPtr(CurPos.X,Min(GetLineCount-1,NL));
 end;
 
 procedure TCustomCodeEditor.TextStart;
@@ -3731,6 +4136,44 @@ begin
   ChangeCaseArea(StartP,EndP,caToUpperCase);
 end;
 
+procedure TCustomCodeEditor.CreateFoldFromBlock;
+var StartY,EndY: sw_integer;
+begin
+  if not IsFlagSet(efFolds) then Exit;
+  if not ValidBlock then Exit;
+  StartY:=SelStart.Y; EndY:=SelEnd.Y;
+  if SelEnd.X=0 then Dec(EndY);
+  if CreateFold(StartY,EndY,false)=false then
+    ErrorBox(msg_foldboundsarenotvalid,nil);
+end;
+
+procedure TCustomCodeEditor.ToggleFold;
+var F: PFold;
+begin
+  if not IsFlagSet(efFolds) then Exit;
+  F:=GetLineFold(CurPos.Y);
+  if Assigned(F) then
+    F^.Collapse(not F^.Collapsed_);
+end;
+
+procedure TCustomCodeEditor.ExpandFold;
+var F: PFold;
+begin
+  if not IsFlagSet(efFolds) then Exit;
+  F:=GetLineFold(CurPos.Y);
+  if Assigned(F) then
+    F^.Collapse(false);
+end;
+
+procedure TCustomCodeEditor.CollapseFold;
+var F: PFold;
+begin
+  if not IsFlagSet(efFolds) then Exit;
+  F:=GetLineFold(CurPos.Y);
+  if Assigned(F) then
+    F^.Collapse(true);
+end;
+
 procedure TCustomCodeEditor.ChangeCaseArea(StartP,EndP: TPoint; CaseAction: TCaseAction);
 var Y,X: sw_integer;
     X1,X2: sw_integer;
@@ -3770,6 +4213,101 @@ procedure TCustomCodeEditor.InsertOptions;
 begin
   { Abstract }
   NotImplemented;
+end;
+
+function TCustomCodeEditor.GetLineFold(EditorLine: sw_integer): PFold;
+var L: PCustomLine;
+    LI: PEditorLineInfo;
+    F: PFold;
+begin
+  F:=nil; LI:=nil;
+  if IsFlagSet(efFolds) then
+  if (0<=EditorLine) and (EditorLine<GetLineCount) then
+  begin
+    L:=GetLine(EditorLine);
+    if Assigned(L) then LI:=L^.GetEditorInfo(@Self);
+    if Assigned(LI) then F:=LI^.Fold;
+  end;
+  GetLineFold:=F;
+end;
+
+function TCustomCodeEditor.IsLineVisible(EditorLine: sw_integer): boolean;
+var V: boolean;
+    F,PrevF: PFold;
+    FoldHeadline: boolean;
+begin
+  V:=true;
+  if IsFlagSet(efFolds) then
+    begin
+      F:=GetLineFold(EditorLine);
+      if Assigned(F) then
+      begin
+        PrevF:=GetLineFold(EditorLine-1);
+        FoldHeadline:=false;
+        if (PrevF<>F) and ((PrevF=nil) or (not PrevF^.IsParent(F))) then
+          FoldHeadline:=true;
+        if FoldHeadline then
+          begin
+            if Assigned(F^.ParentFold) and (F^.ParentFold^.IsCollapsed) then
+              V:=false;
+          end
+        else
+          if F^.IsCollapsed then
+            V:=false;
+      end;
+    end;
+  IsLineVisible:=V;
+end;
+
+function TCustomCodeEditor.ViewToEditorLine(ViewLine: sw_integer): sw_integer;
+var I,Line,Count: sw_integer;
+begin
+  if not IsFlagSet(efFolds) then
+    Line:=ViewLine
+  else
+    begin
+      Count:=GetLineCount;
+      I:=0; Line:=-1;
+      while (Line<ViewLine) and (I<Count) do
+      begin
+        if IsLineVisible(I) then
+          Inc(Line);
+        Inc(I);
+      end;
+      if Line<>ViewLine then
+        Line:=-1
+      else
+        Line:=I-1;
+    end;
+  ViewToEditorLine:=Line;
+end;
+
+function TCustomCodeEditor.EditorToViewLine(EditorLine: sw_integer): sw_integer;
+var I,Line: sw_integer;
+    F: PFold;
+begin
+  if not IsFlagSet(efFolds) then
+    Line:=EditorLine
+  else
+    begin
+      Line:=-1;
+      for I:=0 to EditorLine do
+        if IsLineVisible(I) then
+          Inc(Line);
+    end;
+  EditorToViewLine:=Line;
+end;
+
+procedure TCustomCodeEditor.ViewToEditorPoint(P: TPoint; var NP: TPoint);
+begin
+  NP.X:=P.X-GetReservedColCount;
+  NP.Y:=ViewToEditorLine(P.Y);
+end;
+
+procedure TCustomCodeEditor.EditorToViewPoint(P: TPoint; var NP: TPoint);
+begin
+  NP.X:=P.X+GetReservedColCount;
+  NP.Y:=EditorToViewLine(P.Y);
 end;
 
 procedure TCustomCodeEditor.FindMatchingDelimiter(ScanForward: boolean);
@@ -3856,9 +4394,13 @@ var Ind: Sw_integer;
     S,IndentStr: string;
 procedure CalcIndent(LineOver: Sw_integer);
 begin
-  if (LineOver<0) or (LineOver>GetLineCount) then Ind:=0 else
+  if (LineOver<0) or (LineOver>GetLineCount) or ((GetFlags and efNoIndent)<>0) then
+    Ind:=0 else
   begin
-    IndentStr:=GetLineText(LineOver);
+    repeat
+      IndentStr:=GetDisplayText(LineOver);
+      Dec(LineOver);
+    until (LineOver<0) or (IndentStr<>'');
     Ind:=0;
     while (Ind<length(IndentStr)) and (IndentStr[Ind+1]=' ') do
      Inc(Ind);
@@ -3868,6 +4410,8 @@ end;
 var {SelBack: sw_integer;}
     SCP: TPoint;
     HoldUndo : Boolean;
+    L,NewL: PCustomLine;
+    EI,NewEI: PEditorLineInfo;
 begin
   if IsReadOnly then begin InsertNewLine:=-1; Exit; end;
   Lock;
@@ -3877,6 +4421,13 @@ begin
   if CurPos.Y<GetLineCount then S:=GetLineText(CurPos.Y) else S:='';
   if Overwrite=false then
   begin
+    if CurPos.Y<GetLineCount then
+      begin
+        L:=GetLine(CurPos.Y);
+        EI:=L^.GetEditorInfo(@Self);
+      end
+    else
+      EI:=nil;
 {    SelBack:=0;}
     if GetLineCount>0 then
     begin
@@ -3886,12 +4437,20 @@ begin
     end;
     SetDisplayText(CurPos.Y,copy(S,1,CurPos.X-1+1));
     CalcIndent(CurPos.Y);
-    InsertLine(CurPos.Y+1,IndentStr+copy(S,CurPos.X+1,High(S)));
+    NewL:=InsertLine(CurPos.Y+1,IndentStr+copy(S,CurPos.X+1,High(S)));
     LimitsChanged;
 (*    if PointOfs(SelStart)<>PointOfs(SelEnd) then { !!! check it - it's buggy !!! }
       begin SelEnd.Y:=CurPos.Y+1; SelEnd.X:=length(GetLineText(CurPos.Y+1))-SelBack; end;*)
     UpdateAttrs(CurPos.Y,attrAll);
     SetCurPtr(Ind,CurPos.Y+1);
+    NewEI:=NewL^.GetEditorInfo(@Self);
+    if Assigned(EI) and Assigned(NewEI) then
+    begin
+      NewEI^.SetFold(EI^.Fold);
+      if Assigned(EI^.Fold) then
+        if EI^.Fold^.IsCollapsed then
+          EI^.Fold^.Collapse(false);
+    end;
 {$ifdef Undo}
      SetStoreUndo(HoldUndo);
      Addaction(eaInsertLine,SCP,CurPos,IndentStr);
@@ -4020,7 +4579,10 @@ begin
         SetLineText(CurPos.Y,S+CharStr(' ',CurPOS.X-Length(S))+GetLineText(CurPos.Y+1));
         SetStoreUndo(HoldUndo);
         SCP.X:=0;SCP.Y:=CurPos.Y+1;
+        AddGroupedAction(eaDelChar);
+        AddAction(eaMoveCursor,CurPos,SCP,'');
         AddAction(eaDeleteLine,SCP,CurPos,GetLineText(CurPos.Y+1));
+        CloseGroupedAction(eaDelChar);
         SetStoreUndo(false);
         DeleteLine(CurPos.Y+1);
         LimitsChanged;
@@ -4116,30 +4678,25 @@ end;
 procedure TCustomCodeEditor.DelLine;
 var
   HoldUndo : boolean;
-{  SP : TPoint;}
+  SP : TPoint;
+  S : String;
 begin
   if IsReadOnly then Exit;
   Lock;
   if GetLineCount>0 then
   begin
-{    SP:=CurPos;}
-    DeleteLine(CurPos.Y);
+    SP:=CurPos;
+    S:=GetLineText(CurPos.Y);
     HoldUndo:=GetStoreUndo;
     SetStoreUndo(false);
+    DeleteLine(CurPos.Y);
     LimitsChanged;
     AdjustSelection(0,-1);
     SetCurPtr(0,CurPos.Y);
     UpdateAttrs(Max(0,CurPos.Y-1),attrAll);
     DrawLines(CurPos.Y);
-  { put this back !!!!!!
-    If HoldUndo then
-      with Core^.UndoList^.At(Core^.UndoList^.count-1)^ do
-        begin
-          EndPos:=CurPos;
-          StartPos:=SP;
-        end;
-   }
     SetStoreUndo(HoldUndo);
+    AddAction(eaDeleteLine,SP,CurPos,S);
     SetModified(true);
   end;
   Unlock;
@@ -5182,6 +5739,7 @@ end;
 procedure TCustomCodeEditor.SetCurPtr(X,Y: sw_integer);
 var OldPos{,OldSEnd,OldSStart}: TPoint;
     Extended: boolean;
+    F: PFold;
 begin
   Lock;
   X:=Max(0,Min(MaxLineLength+1,X));
@@ -5192,6 +5750,12 @@ begin
   CurPos.X:=X;
   CurPos.Y:=Y;
   TrackCursor(false);
+  if not IsLineVisible(CurPos.Y) then
+  begin
+    F:=GetLineFold(CurPos.Y);
+    if Assigned(F) then
+      F^.Collapse(false);
+  end;
   if (NoSelect=false) and (ShouldExtend) then
   begin
     CheckSels;
@@ -5897,7 +6461,31 @@ end;
 END.
 {
   $Log$
-  Revision 1.2  2000-08-22 09:41:41  pierre
+  Revision 1.3  2000-10-31 22:35:55  pierre
+   * New big merge from fixes branch
+
+  Revision 1.1.2.11  2000/10/31 08:12:45  pierre
+   * fix for bug 1161
+
+  Revision 1.1.2.10  2000/10/31 07:50:02  pierre
+   + efNoIndent to avoid any indentation
+
+  Revision 1.1.2.9  2000/10/26 00:02:40  pierre
+   * Undo improovments
+
+  Revision 1.1.2.8  2000/10/24 23:06:30  pierre
+   * some Undo/redo fixes
+
+  Revision 1.1.2.7  2000/10/20 13:40:34  pierre
+   * avoid crash if paste win clipboard on empty editor
+
+  Revision 1.1.2.6  2000/09/19 19:54:09  pierre
+   * fix for bug 1141 by Gabor
+
+  Revision 1.1.2.5  2000/09/18 13:20:55  pierre
+   New bunch of Gabor changes
+
+  Revision 1.2  2000/08/22 09:41:41  pierre
    * first big merge from fixes branch
 
   Revision 1.1.2.4  2000/08/15 03:40:54  peter

@@ -99,7 +99,7 @@ begin
        end;
      if FileDir<>'' then
        ChDir(TrimEndSlash(FileDir));
-     New(D, Init(OpenExts,dialog_openafile,label_filetoopen,fdOpenButton,0));
+     New(D, Init(OpenExts,dialog_openafile,label_filetoopen,fdOpenButton,hidOpenSourceFile));
      OpenIt:=Desktop^.ExecView(D)<>cmCancel;
      { if I go to root under go32v2 and there is no
        floppy I get a InOutRes = 152
@@ -138,7 +138,7 @@ begin
    begin
      ClearFormatParams; AddFormatParamStr(FileName);
      FormatStr(S,label_lookingfor,FormatParams);
-     New(D, Init(FileName,dialog_openafile,S,fdOpenButton,0));
+     New(D, Init(FileName,dialog_openafile,S,fdOpenButton,hidOpenSourceFile));
      OpenIt:=Desktop^.ExecView(D)<>cmCancel;
      if OpenIt then
        Begin
@@ -199,7 +199,13 @@ end;
 
 {
   $Log$
-  Revision 1.1  2000-07-13 09:48:35  michael
+  Revision 1.2  2000-10-31 22:35:54  pierre
+   * New big merge from fixes branch
+
+  Revision 1.1.2.1  2000/10/18 21:53:27  pierre
+   * several Gabor fixes
+
+  Revision 1.1  2000/07/13 09:48:35  michael
   + Initial import
 
   Revision 1.21  2000/06/16 08:50:41  pierre

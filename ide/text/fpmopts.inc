@@ -60,7 +60,7 @@ begin
 end;
 
 procedure TIDEApp.DoCompilerSwitch;
-var R,R2,TabR,TabIR: TRect;
+var R,R2,R3,TabR,TabIR: TRect;
     D: PCenterDialog;
     CB1,CB2,CB3,CB4,CB5: PCheckBoxes;
     RB1,{RB2,}RB3,RB4,RB5,RB6: PRadioButtons;
@@ -283,10 +283,12 @@ begin
     Insert(Tab);
 
     { conditionnals }
-    R2.Copy(TabR); R2.A.Y:=R2.B.Y+1; R2.B.Y:=R2.A.Y+1;
+    R2.Copy(TabR); R2.A.Y:=R2.B.Y+1; R2.B.Y:=R2.A.Y+1; Dec(R2.B.X,4);
     New(IL, Init(R2, 128));
     IL^.Data^:=ConditionalSwitches^.GetStringItem(0);
     Insert(IL);
+    R3.Copy(R2); R3.A.X:=R2.B.X+1; R3.B.X:=R3.A.X+3;
+    Insert(New(PHistory, Init(R3, IL, hidConditionalDefines)));
     R2.Move(0,-1);
     Insert(New(PLabel, Init(R2,ConditionalSwitches^.ItemName(0), IL)));
   end;
@@ -420,7 +422,7 @@ end;
 
 procedure TIDEApp.DoDebuggerSwitch;
 
-var R,R2: TRect;
+var R,R2,R3: TRect;
     D: PCenterDialog;
     RB : PRadioButtons;
     CB: PCheckBoxes;
@@ -475,9 +477,12 @@ begin
 
     {custom }
     Inc(R2.A.Y,1+DebugInfoSwitches^.ItemCount+1); R2.B.Y:=R2.A.Y+1;
-    New(IL2, Init(R2, 255));
+    R3.Copy(R2); Dec(R3.B.X,4);
+    New(IL2, Init(R3, 255));
     IL2^.Data^:=CustomArg[SwitchesMode];
     Insert(IL2);
+    R3.Copy(R2); R3.A.X:=R3.B.X-3; R3.B.X:=R3.A.X+3;
+    Insert(New(PHistory, Init(R3, IL2, hidCompilerArgs)));
     R2.Move(0,-1);
     Insert(New(PLabel, Init(R2,label_debugger_compilerargs, IL2)));
 {$ifdef win32}
@@ -821,12 +826,13 @@ begin
   if (EFlags and efAutoBrackets      )<>0 then EFValue:=EFValue or (1 shl 11);
   if (EFlags and efKeepTrailingSpaces)<>0 then EFValue:=EFValue or (1 shl 12);
   if (EFlags and efCodeComplete      )<>0 then EFValue:=EFValue or (1 shl 13);
+  if (EFlags and efFolds             )<>0 then EFValue:=EFValue or (1 shl 14);
 
-  R.Assign(0,0,66,19);
+  R.Assign(0,0,66,20);
   New(D, Init(R, Title));
   with D^ do
   begin
-    GetExtent(R); R.Grow(-2,-2); R.B.Y:=R.A.Y+8;
+    GetExtent(R); R.Grow(-2,-2); R.B.Y:=R.A.Y+9;
     R2.Copy(R); Inc(R2.A.Y);
     New(CB, Init(R2,
       NewSItem(label_editor_backupfiles,
@@ -843,7 +849,8 @@ begin
       NewSItem(label_editor_autoclosingbrackets,
       NewSItem(label_editor_keeptrailingspaces,
       NewSItem(label_editor_codecomplete,
-      nil))))))))))))))));
+      NewSItem(label_editor_folds,
+      nil)))))))))))))))));
     CB^.Value:=EFValue;
     Insert(CB);
     R2.Move(0,-1); R2.B.Y:=R2.A.Y+1;
@@ -893,6 +900,7 @@ begin
     if (CB^.Value and (1 shl 11))<>0 then EFlags:=EFlags or efAutoBrackets;
     if (CB^.Value and (1 shl 12))<>0 then EFlags:=EFlags or efKeepTrailingSpaces;
     if (CB^.Value and (1 shl 13))<>0 then EFlags:=EFlags or efCodeComplete;
+    if (CB^.Value and (1 shl 14))<>0 then EFlags:=EFlags or efFolds;
     TabSize:=StrToInt(IL^.Data^);
     if Editor=nil then
        begin
@@ -1178,7 +1186,7 @@ procedure TIDEApp.OpenINI;
 var D: PFileDialog;
     FileName: string;
 begin
-  New(D, Init(INIFileName,dialog_openoptions,INIFileName,fdOpenButton,0));
+  New(D, Init(INIFileName,dialog_openoptions,INIFileName,fdOpenButton,hidOpenIniFile));
   if Desktop^.ExecView(D)<>cmCancel then
     begin
       D^.GetFileName(FileName);
@@ -1203,7 +1211,7 @@ var D: PFileDialog;
     FileName: string;
     CanWrite: boolean;
 begin
-  New(D, Init(INIFileName,dialog_saveoptions,INIFileName,fdOpenButton,0));
+  New(D, Init(INIFileName,dialog_saveoptions,INIFileName,fdOpenButton,hidSaveIniFile));
   if Desktop^.ExecView(D)<>cmCancel then
     begin
       D^.GetFileName(FileName);
@@ -1223,7 +1231,16 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-08-22 09:41:39  pierre
+  Revision 1.3  2000-10-31 22:35:54  pierre
+   * New big merge from fixes branch
+
+  Revision 1.1.2.4  2000/10/18 21:53:27  pierre
+   * several Gabor fixes
+
+  Revision 1.1.2.3  2000/09/18 13:20:54  pierre
+   New bunch of Gabor changes
+
+  Revision 1.2  2000/08/22 09:41:39  pierre
    * first big merge from fixes branch
 
   Revision 1.1.2.2  2000/08/04 14:05:18  michael

@@ -360,7 +360,7 @@ begin
     begin
 {      Inc(NextHelpCtx);}
       AddIndexEntry(S,P^.FilePos);
-      AddTopic(P^.FilePos,P^.FilePos,'');
+      AddTopic(P^.FilePos,P^.FilePos,'',nil,0);
     end;
 end;
 var OK: boolean;
@@ -508,7 +508,13 @@ end;
 END.
 {
   $Log$
-  Revision 1.1  2000-07-13 09:48:37  michael
+  Revision 1.2  2000-10-31 22:35:56  pierre
+   * New big merge from fixes branch
+
+  Revision 1.1.2.1  2000/09/18 13:20:56  pierre
+   New bunch of Gabor changes
+
+  Revision 1.1  2000/07/13 09:48:37  michael
   + Initial import
 
   Revision 1.3  2000/07/03 08:54:54  pierre

@@ -92,6 +92,7 @@ type
       procedure   SwitchBack; virtual;
     private
       IDE_screen: pvideobuf;
+      IDE_size : longint;
     end;
 {$endif}
 
@@ -496,7 +497,8 @@ procedure TLinuxScreen.Capture;
 begin
   if assigned(IDE_screen) then
     dispose(IDE_screen);
-  new(IDE_screen);
+  getmem(IDE_screen,videobufsize);
+  Ide_size:=videobufsize;
   move(videobuf^,IDE_screen^,videobufsize);
 end;
 
@@ -511,7 +513,7 @@ begin
   if IDE_screen = nil then
     exit;
   move(IDE_screen^,videobuf^,videobufsize);
-  dispose(IDE_screen);
+  freemem(IDE_screen,Ide_size);
   IDE_screen := nil;
 end;
 
@@ -727,7 +729,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2000-09-18 16:42:56  jonas
+  Revision 1.5  2000-10-31 22:35:55  pierre
+   * New big merge from fixes branch
+
+  Revision 1.1.2.3  2000/10/10 21:24:56  pierre
+   * avoid writing past IDE_screen buffer length
+
+  Revision 1.4  2000/09/18 16:42:56  jonas
     * for some reason, tlinuxscreen.switchto() contained some saving code
       while it should've been empty (like in the fixes branch)
 
@@ -737,6 +745,12 @@ end.
   Revision 1.2  2000/08/21 10:57:01  jonas
     * IDE screen saving/restoring implemented for Linux (merged from fixes
       branch)
+
+  Revision 1.1.2.2  2000/08/21 12:10:19  jonas
+    * fixed errors in my previous commit, it now works properly
+
+  Revision 1.1.2.1  2000/08/21 10:51:13  jonas
+    * IDE screen saving/restoring implemented for Linux
 
   Revision 1.1  2000/07/13 09:48:36  michael
   + Initial import

@@ -313,7 +313,9 @@ begin
     be overruled with the parameter loading }
   SetPrimaryFile(INIFile^.GetEntry(secCompile,iePrimaryFile,PrimaryFile));
   SetRunParameters(INIFile^.GetEntry(secRun,ieRunParameters,GetRunParameters));
+{$ifndef GABOR}
   DebuggeeTTY := INIFile^.GetEntry(secRun,ieDebuggeeRedir,DebuggeeTTY);
+{$endif}
   { Compile }
   S:=INIFile^.GetEntry(secCompile,ieCompileMode,'');
   for ts:=low(TSwitchMode) to high(TSwitchMode) do
@@ -491,8 +493,10 @@ begin
 *)
   { Run }
   INIFile^.SetEntry(secRun,ieRunParameters,GetRunParameters);
+{$ifndef GABOR}
   If DebuggeeTTY<>'' then
     INIFile^.SetEntry(secRun,ieDebuggeeRedir,DebuggeeTTY);
+{$endif}
   { Compile }
   INIFile^.SetEntry(secCompile,iePrimaryFile,PrimaryFile);
   INIFile^.SetEntry(secCompile,ieCompileMode,SwitchesModeStr[SwitchesMode]);
@@ -574,11 +578,20 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2000-10-06 23:00:13  pierre
+  Revision 1.5  2000-10-31 22:35:54  pierre
+   * New big merge from fixes branch
+
+  Revision 1.4  2000/10/06 23:00:13  pierre
    * remove comment conflit
+
+  Revision 1.1.2.4  2000/10/18 21:53:27  pierre
+   * several Gabor fixes
 
   Revision 1.3  2000/10/06 22:58:59  pierre
    * fixes for linux GDB tty command (merged)
+
+  Revision 1.1.2.3  2000/10/06 22:52:35  pierre
+   * fixes for linux GDB tty command
 
   Revision 1.2  2000/08/22 09:41:39  pierre
    * first big merge from fixes branch

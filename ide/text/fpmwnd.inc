@@ -227,11 +227,28 @@ begin
   New(W,Init);
   ExecView(W);
   Dispose(W,Done);
+  if assigned(Desktop^.Current) then
+    begin
+      Desktop^.Lock;
+      { force correct commands to be enabled }
+      Desktop^.Current^.SetState(sfActive,false);
+      Desktop^.Current^.SetState(sfActive,true);
+      Desktop^.UnLock;
+    end;
 end;
 
 {
   $Log$
-  Revision 1.2  2000-08-22 09:41:40  pierre
+  Revision 1.3  2000-10-31 22:35:54  pierre
+   * New big merge from fixes branch
+
+  Revision 1.1.2.3  2000/10/31 07:44:33  pierre
+   * Window List problem solved in a different way
+
+  Revision 1.1.2.2  2000/10/24 00:21:59  pierre
+   * fix the greyed save after window list box
+
+  Revision 1.2  2000/08/22 09:41:40  pierre
    * first big merge from fixes branch
 
   Revision 1.1.2.1  2000/08/15 03:40:53  peter

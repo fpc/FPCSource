@@ -36,6 +36,7 @@ type
      { no need to switch if using another terminal }
      NoSwitch : boolean;
      RunCount : longint;
+     FPCBreakErrorNumber : longint;
     constructor Init(const exefn:string);
     destructor  Done;
     procedure DoSelectSourceline(const fn:string;line:longint);virtual;
@@ -347,6 +348,9 @@ uses
 {$ifdef win32}
   Windebug,
 {$endif win32}
+{$ifdef linux}
+  Linux,FileCtrl,
+{$endif linux}
   Systems,
   FPString,FPVars,FPUtils,FPConst,FPSwitch,
   FPIntf,FPCompil,FPIde,FPHelp,
@@ -513,6 +517,8 @@ begin
   LoadFile(f);
   SetArgs(GetRunParameters);
   Debugger:=@self;
+  Command('b FPC_BREAK_ERROR');
+  FPCBreakErrorNumber:=stop_breakpoint_number;
 {$ifndef GABOR}
   switch_to_user:=true;
 {$endif}
@@ -605,7 +611,11 @@ begin
       Command('tty '+DebuggeeTTY);
       NoSwitch:= true;
     end
-  else NoSwitch := false;
+  else
+    begin
+      Command('tty '+TTYName(stdin));
+      NoSwitch := false;
+    end;
 {$endif linux}
   { Switch to user screen to get correct handles }
   UserScreen;
@@ -829,8 +839,18 @@ begin
   if BreakIndex>0 then
     begin
       PB:=BreakpointsCollection^.GetGDB(BreakIndex);
+      if (BreakIndex=FPCBreakErrorNumber) then
+        begin
+          { Procedure HandleErrorAddrFrame
+             (Errno : longint;addr,frame : longint);
+             [public,alias:'FPC_BREAK_ERROR']; }
+          {
+          Error:=GetLongintFrom(GetFramePointer+OffsetFirstArg);
+          Addr:=GetPointerFrom(GetFramePointer+OffsetSecondArg);}
+          WarningBox(#3'Run Time Error',nil);
+        end
       { For watch we should get old and new value !! }
-      if (Not assigned(GDBWindow) or not GDBWindow^.GetState(sfActive)) and
+      else if (Not assigned(GDBWindow) or not GDBWindow^.GetState(sfActive)) and
          (PB^.typ<>bt_file_line) and (PB^.typ<>bt_function) then
         begin
            Command('p '+GetStr(PB^.Name));
@@ -3354,8 +3374,26 @@ end.
 
 {
   $Log$
-  Revision 1.3  2000-10-06 22:58:59  pierre
+  Revision 1.4  2000-10-31 22:35:54  pierre
+   * New big merge from fixes branch
+
+  Revision 1.1.2.7  2000/10/31 07:47:54  pierre
+   * start to support FPC_BREAK_ERROR
+
+  Revision 1.1.2.6  2000/10/26 00:04:35  pierre
+   + gdb prompt and FPC_BREAK_ERROR stop
+
+  Revision 1.1.2.5  2000/10/09 19:48:15  pierre
+   * wrong commit corrected
+
+  Revision 1.1.2.4  2000/10/09 16:28:24  pierre
+   * several linux enhancements
+
+  Revision 1.3  2000/10/06 22:58:59  pierre
    * fixes for linux GDB tty command (merged)
+
+  Revision 1.1.2.3  2000/10/06 22:52:34  pierre
+   * fixes for linux GDB tty command
 
   Revision 1.2  2000/08/22 09:41:39  pierre
    * first big merge from fixes branch

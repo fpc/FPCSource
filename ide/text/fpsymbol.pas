@@ -1343,7 +1343,7 @@ begin
       Insert(MemInfoView);
       MemInfoView^.MyBW:=@Self;
     end;
-  if TypeOf(ASym^)=TypeOf(TModuleSymbol) then
+  if Assigned(Asym) and (TypeOf(ASym^)=TypeOf(TModuleSymbol)) then
   with PModuleSymbol(Sym)^ do
     begin
       New(UnitInfo, Init(R));
@@ -1695,7 +1695,13 @@ end;
 END.
 {
   $Log$
-  Revision 1.1  2000-07-13 09:48:36  michael
+  Revision 1.2  2000-10-31 22:35:55  pierre
+   * New big merge from fixes branch
+
+  Revision 1.1.2.1  2000/09/27 21:06:11  pierre
+   * fix GPF in tbrowserwindow.init
+
+  Revision 1.1  2000/07/13 09:48:36  michael
   + Initial import
 
   Revision 1.30  2000/07/05 10:19:07  pierre

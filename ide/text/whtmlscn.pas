@@ -20,7 +20,13 @@ interface
 uses Objects,
      WHTML;
 
+const
+     HTMLIndexMagicNo = ord('H')+ord('H') shl 8+ord('I') shl 16+ord('X') shl 24;
+     HTMLIndexVersion = 1;
+
 type
+     PHTMLLinkScanner = ^THTMLLinkScanner;
+
      TCustomHTMLLinkScanner = object(THTMLParser)
        function    DocAddTextChar(C: char): boolean; virtual;
        procedure   DocAnchor(Entered: boolean); virtual;
@@ -52,23 +58,31 @@ type
 
      PHTMLLinkScanDocumentCollection = ^THTMLLinkScanDocumentCollection;
      THTMLLinkScanDocumentCollection = object(TSortedCollection)
-       function Compare(Key1, Key2: Pointer): sw_Integer; virtual;
-       function At(Index: sw_Integer): PHTMLLinkScanDocument;
-       function SearchDocument(const DocName: string): PHTMLLinkScanDocument;
+       constructor Init(AScanner: PHTMLLinkScanner; ALimit, ADelta: Integer);
+       function    Compare(Key1, Key2: Pointer): sw_Integer; virtual;
+       function    At(Index: sw_Integer): PHTMLLinkScanDocument;
+       function    SearchDocument(const DocName: string): PHTMLLinkScanDocument;
+     private
+       Scanner: PHTMLLinkScanner;
      end;
 
      THTMLLinkScanner = object(TCustomHTMLLinkScanner)
-       constructor Init;
+       constructor Init(const ABaseDir: string);
+       procedure   SetBaseDir(const ABaseDir: string);
        function    GetDocumentCount: sw_integer;
        function    GetDocumentURL(DocIndex: sw_integer): string;
        function    GetDocumentAliasCount(DocIndex: sw_integer): sw_integer;
        function    GetDocumentAlias(DocIndex, AliasIndex: sw_integer): string;
+       constructor LoadDocuments(var S: TStream);
        procedure   StoreDocuments(var S: TStream);
        destructor  Done; virtual;
      public
        procedure   AddLink(const LinkText, LinkURL: string); virtual;
      private
        Documents: PHTMLLinkScanDocumentCollection;
+       BaseDir: PString;
+       function    ExpandChildURL(const S: string): string;
+       function    NormalizeChildURL(const S: string): string;
      end;
 
      THTMLLinkScanState = (ssScheduled,ssProcessing,ssScanned);
@@ -96,7 +110,7 @@ type
      THTMLLinkScanOptions = set of THTMLLinkScanOption;
 
      THTMLFileLinkScanner = object(THTMLLinkScanner)
-       constructor Init;
+       constructor Init(const ABaseDir: string);
        procedure   ProcessDocument(const DocumentURL: string; AOptions: THTMLLinkScanOptions);
        destructor  Done; virtual;
      public
@@ -227,13 +241,22 @@ begin
   if Assigned(DocName) then DisposeStr(DocName); DocName:=nil;
 end;
 
+constructor THTMLLinkScanDocumentCollection.Init(AScanner: PHTMLLinkScanner; ALimit, ADelta: Integer);
+begin
+  inherited Init(ALimit,ADelta);
+  Scanner:=AScanner;
+end;
+
 function THTMLLinkScanDocumentCollection.Compare(Key1, Key2: Pointer): sw_Integer;
 var R: sw_integer;
     K1: PHTMLLinkScanDocument absolute Key1;
     K2: PHTMLLinkScanDocument absolute Key2;
     S1,S2: string;
 begin
-  S1:=UpcaseStr(K1^.GetName); S2:=UpcaseStr(K2^.GetName);
+  S1:=K1^.GetName; S2:=K2^.GetName;
+  if Assigned(Scanner) then
+   begin S1:=Scanner^.ExpandChildURL(S1); S2:=Scanner^.ExpandChildURL(S2); end;
+  S1:=UpcaseStr(S1); S2:=UpcaseStr(S2);
   if S1<S2 then R:=-1 else
   if S1>S2 then R:= 1 else
   R:=0;
@@ -256,10 +279,17 @@ begin
   SearchDocument:=P;
 end;
 
-constructor THTMLLinkScanner.Init;
+constructor THTMLLinkScanner.Init(const ABaseDir: string);
 begin
   inherited Init;
-  New(Documents, Init(50,100));
+  New(Documents, Init(@Self,50,100));
+  SetBaseDir(ABaseDir);
+end;
+
+procedure THTMLLinkScanner.SetBaseDir(const ABaseDir: string);
+begin
+  if Assigned(BaseDir) then DisposeStr(BaseDir);
+  BaseDir:=NewStr(CompleteDir(ABaseDir));
 end;
 
 function THTMLLinkScanner.GetDocumentCount: sw_integer;
@@ -267,9 +297,24 @@ begin
   GetDocumentCount:=Documents^.Count;
 end;
 
+function THTMLLinkScanner.ExpandChildURL(const S: string): string;
+begin
+  ExpandChildURL:=CompleteURL(GetStr(BaseDir),S);
+end;
+
+function THTMLLinkScanner.NormalizeChildURL(const S: string): string;
+var URL: string;
+begin
+  URL:=S;
+  if GetStr(BaseDir)<>'' then
+   if copy(UpcaseStr(S),1,length(GetStr(BaseDir)))=UpcaseStr(GetStr(BaseDir)) then
+     URL:=copy(S,length(GetStr(BaseDir))+1,length(S));
+  NormalizeChildURL:=URL;
+end;
+
 function THTMLLinkScanner.GetDocumentURL(DocIndex: sw_integer): string;
 begin
-  GetDocumentURL:=Documents^.At(DocIndex)^.GetName;
+  GetDocumentURL:=ExpandChildURL(Documents^.At(DocIndex)^.GetName);
 end;
 
 function THTMLLinkScanner.GetDocumentAliasCount(DocIndex: sw_integer): sw_integer;
@@ -288,14 +333,45 @@ begin
   D:=Documents^.SearchDocument(LinkURL);
   if D=nil then
   begin
-    New(D, Init(LinkURL));
+    New(D, Init(NormalizeChildURL(LinkURL)));
     Documents^.Insert(D);
   end;
   D^.AddAlias(LinkText);
 end;
 
-procedure THTMLLinkScanner.StoreDocuments(var S: TStream);
+constructor THTMLLinkScanner.LoadDocuments(var S: TStream);
+var P,L: longint;
+    OK: boolean;
+    PS: PString;
 begin
+  OK:=false;
+  P:=S.GetPos;
+  S.Read(L,sizeof(L));
+  if (S.Status=stOK) and (L=HTMLIndexMagicNo) then
+  begin
+    S.Read(L,sizeof(L));
+    OK:=(S.Status=stOK);
+  end;
+  if not OK then
+    begin
+      S.Reset;
+      S.Seek(P);
+    end
+  else
+    BaseDir:=S.ReadStr;
+  New(Documents, Load(S));
+  if not Assigned(Documents) then
+    Fail;
+end;
+
+procedure THTMLLinkScanner.StoreDocuments(var S: TStream);
+var L: longint;
+begin
+  L:=HTMLIndexMagicNo;
+  S.Write(L,sizeof(L));
+  L:=HTMLIndexVersion;
+  S.Write(L,sizeof(L));
+  S.WriteStr(BaseDir);
   Documents^.Store(S);
 end;
 
@@ -303,6 +379,7 @@ destructor THTMLLinkScanner.Done;
 begin
   inherited Done;
   if Assigned(Documents) then Dispose(Documents, Done); Documents:=nil;
+  if Assigned(BaseDir) then DisposeStr(BaseDir); BaseDir:=nil;
 end;
 
 constructor THTMLLinkScanFile.Init(const ADocumentURL: string);
@@ -368,9 +445,9 @@ begin
   FindFileWithState:=P;
 end;
 
-constructor THTMLFileLinkScanner.Init;
+constructor THTMLFileLinkScanner.Init(const ABaseDir: string);
 begin
-  inherited Init;
+  inherited Init(ABaseDir);
   New(DocumentFiles, Init(50,100));
 end;
 
@@ -453,7 +530,13 @@ end;
 END.
 {
   $Log$
-  Revision 1.1  2000-07-13 09:48:37  michael
+  Revision 1.2  2000-10-31 22:35:56  pierre
+   * New big merge from fixes branch
+
+  Revision 1.1.2.1  2000/10/18 21:53:28  pierre
+   * several Gabor fixes
+
+  Revision 1.1  2000/07/13 09:48:37  michael
   + Initial import
 
   Revision 1.7  2000/06/22 09:07:15  pierre
