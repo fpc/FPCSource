@@ -26,7 +26,7 @@ var prio : cint;
 begin
   fpseterrno(0);
   prio:=fpgetpriority(PRIO_PROCESS,0);
-  if (prio=-1) and (errno<>0) then
+  if (prio=-1) and (fpgeterrno<>0) then
       exit(-1);
   fpNice:=fpSetPriority(Prio_Process,0,prio+N);
 end;
@@ -118,7 +118,10 @@ end;
 
 {
    $Log$
-   Revision 1.5  2004-04-22 16:22:10  marco
+   Revision 1.6  2004-07-03 22:48:49  marco
+    * small fix for 1.0.x cycling
+
+   Revision 1.5  2004/04/22 16:22:10  marco
     * fpnice fixes
 
    Revision 1.4  2004/01/01 17:07:21  marco
