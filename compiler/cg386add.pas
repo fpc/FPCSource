@@ -1015,6 +1015,8 @@ implementation
                        popedx:=false;
                        { here you need to free the symbol first }
                        clear_location(p^.location);
+                       release_loc(p^.right^.location);
+                       release_loc(p^.left^.location);
                        p^.location.register:=getregister32;
                        p^.location.loc:=LOC_REGISTER;
 {$IfNDef NoShlMul}
@@ -2122,7 +2124,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.72  1999-08-04 13:45:17  florian
+  Revision 1.73  1999-08-07 11:29:26  peter
+    * better fix for muln register allocation
+
+  Revision 1.72  1999/08/04 13:45:17  florian
     + floating point register variables !!
     * pairegalloc is now generated for register variables
 
