@@ -127,7 +127,12 @@ function Compile(const cmd:string):longint;
 
 implementation
 
-
+uses
+{$ifdef m68k}
+  m68k;
+{$else}
+  cpubase;
+{$endif}
 var
   CompilerInitedAfterArgs,
   CompilerInited : boolean;
@@ -166,6 +171,7 @@ begin
      DoneImport;
      DoneExport;
      DoneLinker;
+     DoneCpu;
    end;
 { Free memory for the others }
   CompilerInited:=false;
@@ -201,6 +207,7 @@ begin
   InitImport;
   InitExport;
   InitLinker;
+  InitCpu;
   CompilerInitedAfterArgs:=true;
 end;
 
@@ -221,17 +228,7 @@ var
   recoverpos : jmp_buf;
   olddo_stop : tstopprocedure;
 {$endif}
-{$IfDef Extdebug}
-{$ifdef FPC}
-  EntryMemUsed : longint;
-{$endif FPC}
-{$EndIf}
 begin
-{$ifdef EXTDEBUG}
-{$ifdef FPC}
-  EntryMemUsed:=system.HeapSize-MemAvail;
-{$endif FPC}
-{$endif}
 
 { Initialize the compiler }
   InitCompiler(cmd);
@@ -280,13 +277,6 @@ begin
 { no message possible after this !!    }
   DoneCompiler;
 
-{$ifdef EXTDEBUG}
-{$ifdef FPC}
-  Writeln('Memory Lost = '+tostr(system.HeapSize-MemAvail+EntryMemUsed));
-{$endif FPC}
-  Writeln('Repetitive firstpass = '+tostr(firstpass_several)+'/'+tostr(total_of_firstpass));
-{$endif EXTDEBUG}
-
 { Set the return value if an error has occurred }
   if status.errorcount=0 then
    Compile:=0
@@ -294,13 +284,23 @@ begin
    Compile:=1;
 
   DoneVerbose;
+{$ifdef EXTDEBUG}
+{$ifdef FPC}
+  Writeln('Memory Lost = '+tostr(system.HeapSize-MemAvail-EntryMemUsed));
+{$endif FPC}
+  Writeln('Repetitive firstpass = '+tostr(firstpass_several)+'/'+tostr(total_of_firstpass));
+{$endif EXTDEBUG}
+
 end;
 
 
 end.
 {
   $Log$
-  Revision 1.30  1999-08-11 17:26:31  peter
+  Revision 1.31  1999-08-20 10:17:01  michael
+  + Patch from pierre
+
+  Revision 1.30  1999/08/11 17:26:31  peter
     * tlinker object is now inherited for win32 and dos
     * postprocessexecutable is now a method of tlinker
 
