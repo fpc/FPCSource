@@ -33,11 +33,13 @@ Uses
   {$endif}
 {$endif}
 {$ifdef linux}
+ {$ifndef freebsd}
   {$ifdef ver1_0}
     linux,
   {$else}
     unix,
   {$endif}
+ {$endif}
 {$endif}
   ncurses;
 
@@ -53,7 +55,10 @@ Begin
 End. { of Unit nCrt }
 {
   $Log$
-  Revision 1.5  2001-04-08 12:27:55  peter
+  Revision 1.6  2001-04-19 12:40:56  marco
+   * Fixed freebsd thingy
+
+  Revision 1.5  2001/04/08 12:27:55  peter
     * made it compilable with both 1.0.x and 1.1
 
   Revision 1.4  2001/01/21 21:38:52  marco
