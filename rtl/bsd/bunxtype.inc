@@ -190,6 +190,18 @@ CONST
     WUNTRACED =          2;     { report status of stopped children }
 
 
+  { For File control mechanism }
+  F_GetFd  = 1;
+  F_SetFd  = 2;
+  F_GetFl  = 3;
+  F_SetFl  = 4;
+  F_GetLk  = 5;
+  F_SetLk  = 6;
+  F_SetLkW = 7;
+  F_SetOwn = 8;
+  F_GetOwn = 9;
+
+
 
     {*************************************************************************}
     {                               SIGNALS                                   }
@@ -202,7 +214,10 @@ CONST
 
 {
   $Log$
-  Revision 1.4  2003-09-14 20:15:01  marco
+  Revision 1.5  2003-11-19 17:11:40  marco
+   * termio unit
+
+  Revision 1.4  2003/09/14 20:15:01  marco
    * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
 
   Revision 1.3  2003/08/21 22:23:34  olle

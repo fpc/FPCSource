@@ -12,9 +12,9 @@ fpcpackage=y
 loaders=prt0 cprt0 gprt0
 units=$(SYSTEMUNIT) objpas strings syscall baseunix unixutil \
       unix initc  \
-      dos dl crt objects printer \
+      dos dl termio objects printer \
       sysutils typinfo systhrds classes math varutils \
-      cpu mmx charset ucomplex getopts heaptrc lineinfo \
+      cpu mmx charset ucomplex crt getopts heaptrc lineinfo \
       errors sockets gpm ipc terminfo \
       video mouse keyboard console serial variants types sysctl
 rsts=math varutils typinfo classes variants

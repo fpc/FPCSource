@@ -23,7 +23,7 @@ interface
 implementation
 
 uses
-  BaseUnix, Unix, Strings, TermInfo;
+  BaseUnix, Strings, TermInfo, termio;
 
 {$i video.inc}
 
@@ -534,10 +534,10 @@ begin
 end;
 
 var
-  InitialVideoTio, preInitVideoTio, postInitVideoTio: Unix.termios;
+  InitialVideoTio, preInitVideoTio, postInitVideoTio: termio.termios;
   inputRaw, outputRaw: boolean;
 
-procedure saveRawSettings(const tio: Unix.termios);
+procedure saveRawSettings(const tio: termio.termios);
 Begin
   with tio do
    begin
@@ -552,7 +552,7 @@ Begin
    end;
 end;
 
-procedure restoreRawSettings(tio: Unix.termios);
+procedure restoreRawSettings(tio: termio.termios);
 begin
   with tio do
     begin
@@ -596,7 +596,7 @@ end;
 
 procedure prepareDoneVideo;
 var
-  tio: Unix.termios;
+  tio: termio.termios;
 begin
   TCGetAttr(1,tio);
   saveRawSettings(tio);
@@ -641,7 +641,7 @@ begin
         Case ThisTTY[9] of
          '0'..'9' : begin { running Linux on native console or native-emulation }
                      FName:='/dev/vcsa' + ThisTTY[9];
-                     TTYFd:=fpOpen(FName, &666, Open_RdWr); { open console }
+                     TTYFd:=fpOpen(FName, &666, O_RdWr); { open console }
                      IF TTYFd <>-1 Then
                        Console:=ttyLinux;
                     end;
@@ -898,7 +898,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.19  2003-11-17 10:05:51  marco
+  Revision 1.20  2003-11-19 17:11:40  marco
+   * termio unit
+
+  Revision 1.19  2003/11/17 10:05:51  marco
    * threads for FreeBSD. Not working tho
 
   Revision 1.18  2003/10/26 15:32:25  marco

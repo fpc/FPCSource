@@ -10,7 +10,7 @@ unit Serial;
 
 interface
 
-uses BaseUnix,Unix;
+uses BaseUnix,termio,unix;
 
 type
 
@@ -70,7 +70,7 @@ implementation
 
 function SerOpen(const DeviceName: String): TSerialHandle;
 begin
-  Result := fpopen(DeviceName, OPEN_RDWR or OPEN_NOCTTY);
+  Result := fpopen(DeviceName, O_RDWR or O_NOCTTY);
 end;
 
 procedure SerClose(Handle: TSerialHandle);
@@ -215,7 +215,10 @@ end.
 
 {
   $Log$
-  Revision 1.9  2003-11-19 10:54:32  marco
+  Revision 1.10  2003-11-19 17:11:40  marco
+   * termio unit
+
+  Revision 1.9  2003/11/19 10:54:32  marco
    * some simple restructures
 
   Revision 1.8  2003/09/14 20:15:01  marco

@@ -111,7 +111,7 @@ procedure CursorOff;
 
 Implementation
 
-uses BaseUnix ,unix;
+uses BaseUnix ,unix, termio;
 
 {
   The definitions of TextRec and FileRec are in separate files.
@@ -1509,10 +1509,10 @@ end;
 ******************************************************************************}
 
 var
-  OldIO : Unix.TermIos;
+  OldIO : termio.TermIos;
   inputRaw, outputRaw: boolean;
 
-procedure saveRawSettings(const tio: Unix.termios);
+procedure saveRawSettings(const tio: termio.termios);
 Begin
   with tio do
    begin
@@ -1527,7 +1527,7 @@ Begin
    end;
 end;
 
-procedure restoreRawSettings(tio: Unix.termios);
+procedure restoreRawSettings(tio: termio.termios);
 begin
   with tio do
     begin
@@ -1681,7 +1681,10 @@ Finalization
 End.
 {
   $Log$
-  Revision 1.14  2003-11-17 10:05:51  marco
+  Revision 1.15  2003-11-19 17:11:40  marco
+   * termio unit
+
+  Revision 1.14  2003/11/17 10:05:51  marco
    * threads for FreeBSD. Not working tho
 
   Revision 1.13  2003/09/16 20:52:24  marco

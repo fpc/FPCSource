@@ -27,7 +27,7 @@ uses
     linux,
   {$else}
     baseunix,
-    unix,
+    termio,
   {$endif}
 {$endif}
   video,Objects;
@@ -783,7 +783,7 @@ begin
             '0'..'9' :
               begin { running Linux on native console or native-emulation }
                 FName:='/dev/vcsa' + ThisTTY[9];
-                TTYFd:={$ifdef ver1_0}fdOpen{$else}fpOpen{$endif}(FName, &666, Open_RdWr); { open console }
+                TTYFd:={$ifdef ver1_0}fdOpen{$else}fpOpen{$endif}(FName, &666, O_RdWr); { open console }
                 If TTYFd <>-1 Then
                   Console:=ttyLinux;
               end;
@@ -1441,7 +1441,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.30  2003-11-17 10:05:51  marco
+  Revision 1.31  2003-11-19 17:11:40  marco
+   * termio unit
+
+  Revision 1.30  2003/11/17 10:05:51  marco
    * threads for FreeBSD. Not working tho
 
   Revision 1.29  2003/11/14 21:52:58  marco

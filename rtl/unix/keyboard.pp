@@ -42,7 +42,7 @@ uses
   Strings,
   TermInfo,
 {$endif NotUseTree}
-  Unix,baseUnix;
+  termio,baseUnix;
 
 {$i keyboard.inc}
 
@@ -1532,7 +1532,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2003-11-17 10:05:51  marco
+  Revision 1.17  2003-11-19 17:11:40  marco
+   * termio unit
+
+  Revision 1.16  2003/11/17 10:05:51  marco
    * threads for FreeBSD. Not working tho
 
   Revision 1.15  2003/09/16 16:13:56  marco

@@ -81,13 +81,15 @@ function FPsysctlnametomib (Name: pchar; mibp:plongint;sizep:psize_t):cint;
 
 Implementation
 
+Uses Syscall;
+
 {temporarily}
 {$ifdef FreeBSD}
 CONST  syscall_nr___sysctl                    = 202;
 {$endif}
 
-{$I sysnr.inc}
-{$I syscallh.inc}
+{I sysnr.inc}
+{I syscallh.inc}
 
 function FPsysctl (Name: pchar; namelen:cuint; oldp:pointer;oldlenp:psize_t; newp:pointer;newlen:size_t):cint;
 
@@ -138,7 +140,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2003-01-05 19:01:28  marco
+  Revision 1.5  2003-11-19 17:11:40  marco
+   * termio unit
+
+  Revision 1.4  2003/01/05 19:01:28  marco
    * FreeBSD compiles now with baseunix mods.
 
   Revision 1.3  2002/09/07 16:01:17  peter

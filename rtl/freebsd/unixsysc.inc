@@ -75,10 +75,10 @@ begin
  do_syscall(syscall_nr_gettimeofday,longint(@tv),longint(@tz));
 end;
 }
-Function  fdFlush (fd : cint) : cint;
+Function  fsync (fd : cint) : cint;
 
 begin
-  fdflush:=do_syscall(syscall_nr_fsync,fd);
+  fsync:=do_syscall(syscall_nr_fsync,fd);
 end;
 
 Function  Flock (fd,mode : longint) : cint;
@@ -246,7 +246,10 @@ end;
 
 {
   $Log$
-  Revision 1.15  2003-11-19 10:12:02  marco
+  Revision 1.16  2003-11-19 17:11:40  marco
+   * termio unit
+
+  Revision 1.15  2003/11/19 10:12:02  marco
    * more cleanups
 
   Revision 1.14  2003/11/17 10:05:51  marco

@@ -30,7 +30,7 @@ Uses
     linux,
   {$else}
     baseunix,
-    unix,
+    termio,
   {$endif}
 {$endif}
   ncurses;
@@ -47,7 +47,10 @@ Begin
 End. { of Unit nCrt }
 {
   $Log$
-  Revision 1.4  2003-09-27 12:19:20  peter
+  Revision 1.5  2003-11-19 17:11:40  marco
+   * termio unit
+
+  Revision 1.4  2003/09/27 12:19:20  peter
     * fixed for unix
 
   Revision 1.3  2002/09/07 15:43:01  peter

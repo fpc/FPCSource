@@ -22,7 +22,7 @@ interface
 {$Ifdef ver1_0}
      linux;
 {$else}
-     Unix;
+     termio;
 {$endif}
 {$endif UNIX}
 
@@ -80,7 +80,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2002-10-12 19:42:01  hajny
+  Revision 1.6  2003-11-19 17:11:40  marco
+   * termio unit
+
+  Revision 1.5  2002/10/12 19:42:01  hajny
     + OS/2 support
 
   Revision 1.4  2002/09/07 15:40:48  peter

@@ -24,7 +24,7 @@ Uses UnixUtil,BaseUnix;
 
 {Get error numbers, some more signal definitions and other OS dependant
  types (that are not POSIX) }
-{$i errno.inc}
+{i errno.inc}
 {$I signal.inc}
 {$i ostypes.inc}
 
@@ -51,13 +51,6 @@ Type
     next : pglob;
   end;
 
-{********************
-   IOCtl(TermIOS)
-********************}
-
-{Is too freebsd/Linux specific}
-
-{$I termios.inc}
 
 {******************************************************************************
                             Procedure/Functions
@@ -156,25 +149,6 @@ Function  GetDomainName:String;
 Function  GetHostName:String;
 {$endif}
 
-{**************************
-  IOCtl/Termios Functions
-***************************}
-
-Function  TCGetAttr (fd:cint;var tios:TermIOS):cint;
-Function  TCSetAttr (fd:cint;OptAct:cint;const tios:TermIOS):cint;
-Procedure CFSetISpeed (var tios:TermIOS;speed:Cardinal);
-Procedure CFSetOSpeed (var tios:TermIOS;speed:Cardinal);
-Procedure CFMakeRaw   (var tios:TermIOS);
-Function  TCSendBreak (fd,duration:cint):cint;
-Function  TCSetPGrp   (fd,id:cint)  :cint;
-Function  TCGetPGrp   (fd:cint;var id:cint):cint;
-Function  TCFlush     (fd,qsel:cint):cint;
-Function  TCDrain     (fd:cint)     :cint;
-Function  TCFlow      (fd,act:cint) :cint;
-Function  IsATTY      (Handle:cint) :cint;
-Function  IsATTY      (var f:text)  :cint;
-function  TTYname     (Handle:cint):string;
-function  TTYname     (var F:Text) :string;
 
 {**************************
      Memory functions
@@ -1230,241 +1204,6 @@ begin
   fpKill(fpGetPid,Sig);
 end;
 
-{******************************************************************************
-                         IOCtl and Termios calls
-******************************************************************************}
-
-Function TCGetAttr(fd:cint;var tios:TermIOS):cint;
-begin
- {$ifndef BSD}
-  TCGetAttr:=fpIOCtl(fd,TCGETS,@tios);
- {$else}
-  TCGETAttr:=fpIoCtl(Fd,TIOCGETA,@tios);
- {$endif}
-end;
-
-
-Function TCSetAttr(fd:cint;OptAct:cint;const tios:TermIOS):cint;
-var
-  nr:cint;
-begin
- {$ifndef BSD}
-  case OptAct of
-   TCSANOW   : nr:=TCSETS;
-   TCSADRAIN : nr:=TCSETSW;
-   TCSAFLUSH : nr:=TCSETSF;
- {$else}
-  case OptAct of
-   TCSANOW   : nr:=TIOCSETA;
-   TCSADRAIN : nr:=TIOCSETAW;
-   TCSAFLUSH : nr:=TIOCSETAF;
-  {$endif}
-  else
-   begin
-     fpsetErrNo(ESysEINVAL);
-     TCSetAttr:=-1;
-     exit;
-   end;
-  end;
-  TCSetAttr:=fpIOCtl(fd,nr,@Tios);
-end;
-
-
-Procedure CFSetISpeed(var tios:TermIOS;speed:Cardinal);
-begin
- {$ifndef BSD}
-  tios.c_cflag:=(tios.c_cflag and (not CBAUD)) or speed;
- {$else}
-  tios.c_ispeed:=speed; {Probably the Bxxxx speed constants}
- {$endif}
-end;
-
-
-Procedure CFSetOSpeed(var tios:TermIOS;speed:Cardinal);
-begin
-  {$ifndef BSD}
-   CFSetISpeed(tios,speed);
-  {$else}
-   tios.c_ospeed:=speed;
-  {$endif}
-end;
-
-
-
-Procedure CFMakeRaw(var tios:TermIOS);
-begin
- {$ifndef BSD}
-  with tios do
-   begin
-     c_iflag:=c_iflag and (not (IGNBRK or BRKINT or PARMRK or ISTRIP or
-                                INLCR or IGNCR or ICRNL or IXON));
-     c_oflag:=c_oflag and (not OPOST);
-     c_lflag:=c_lflag and (not (ECHO or ECHONL or ICANON or ISIG or IEXTEN));
-     c_cflag:=(c_cflag and (not (CSIZE or PARENB))) or CS8;
-   end;
- {$else}
-  with tios do
-   begin
-     c_iflag:=c_iflag and (not (IMAXBEL or IXOFF or INPCK or BRKINT or
-                PARMRK or ISTRIP or INLCR or IGNCR or ICRNL or IXON or
-                IGNPAR));
-     c_iflag:=c_iflag OR IGNBRK;
-     c_oflag:=c_oflag and (not OPOST);
-     c_lflag:=c_lflag and (not (ECHO or ECHOE or ECHOK or ECHONL or ICANON or
-                                ISIG or IEXTEN or NOFLSH or TOSTOP or PENDIN));
-     c_cflag:=(c_cflag and (not (CSIZE or PARENB))) or (CS8 OR cread);
-     c_cc[VMIN]:=1;
-     c_cc[VTIME]:=0;
-   end;
- {$endif}
-end;
-
-Function TCSendBreak(fd,duration:cint):cint;
-begin
-  {$ifndef BSD}
-  TCSendBreak:=fpIOCtl(fd,TCSBRK,pointer(duration));
-  {$else}
-  TCSendBreak:=fpIOCtl(fd,TIOCSBRK,0);
-  {$endif}
-end;
-
-
-Function TCSetPGrp(fd,id:cint):cint;
-begin
-  TCSetPGrp:=fpIOCtl(fd,TIOCSPGRP,pointer(id));
-end;
-
-
-Function TCGetPGrp(fd:cint;var id:cint):cint;
-begin
-  TCGetPGrp:=fpIOCtl(fd,TIOCGPGRP,@id);
-end;
-
-Function TCDrain(fd:cint):cint;
-begin
- {$ifndef BSD}
-  TCDrain:=fpIOCtl(fd,TCSBRK,pointer(1));
- {$else}
-  TCDrain:=fpIOCtl(fd,TIOCDRAIN,0); {Should set timeout to 1 first?}
- {$endif}
-end;
-
-
-Function TCFlow(fd,act:cint):cint;
-begin
-  {$ifndef BSD}
-   TCFlow:=fpIOCtl(fd,TCXONC,pointer(act));
-  {$else}
-    case act OF
-     TCOOFF :  TCFlow:=fpIoctl(fd,TIOCSTOP,0);
-     TCOOn  :  TCFlow:=fpIOctl(Fd,TIOCStart,0);
-     TCIOFF :  {N/I}
-    end;
-  {$endif}
-end;
-
-Function TCFlush(fd,qsel:cint):cint;
-begin
- {$ifndef BSD}
-  TCFlush:=fpIOCtl(fd,TCFLSH,pointer(qsel));
- {$else}
-  TCFlush:=fpIOCtl(fd,TIOCFLUSH,pointer(qsel));
- {$endif}
-end;
-
-Function IsATTY (Handle:cint):cint;
-{
-  Check if the filehandle described by 'handle' is a TTY (Terminal)
-}
-var
-  t : Termios;
-begin
- IsAtty:=TCGetAttr(Handle,t);
-end;
-
-
-Function IsATTY(var f: text):cint;
-{
-  Idem as previous, only now for text variables.
-}
-begin
-  IsATTY:=IsaTTY(textrec(f).handle);
-end;
-
-
-function TTYName(Handle:cint):string;
-{
-  Return the name of the current tty described by handle f.
-  returns empty string in case of an error.
-}
-var
-  mydev     : dev_t;
-  myino     : ino_t;
-  st        : stat;
-
-  function mysearch(n:string): boolean;
-  {searches recursively for the device in the directory given by n,
-    returns true if found and sets the name of the device in ttyname}
-  var dirstream : pdir;
-      d         : pdirent;
-      name      : string;
-      st        : stat;
-  begin
-    dirstream:=fpopendir(n);
-    if (dirstream=nil) then
-     exit(false);
-    d:=fpReaddir(dirstream^);
-    while (d<>nil) do
-     begin
-       name:=n+'/'+strpas(@(d^.d_name));
-     //  fpstat(name,st);
-       if fpstat(name,st)=0 then
-        begin
-          if (fpS_ISDIR(st.st_mode)) and  { if it is a directory }
-             (strpas(@(d^.d_name))<>'.') and    { but not ., .. and fd subdirs }
-             (strpas(@(d^.d_name))<>'..') and
-             (strpas(@(d^.d_name))<>'') and
-             (strpas(@(d^.d_name))<>'fd') then
-           begin                      {we found a directory, search inside it}
-             if mysearch(name) then
-              begin                 {the device is here}
-                fpclosedir(dirstream^);  {then don't continue searching}
-                mysearch:=true;
-                exit;
-              end;
-           end
-          else if (ino_t(d^.d_fileno)=myino) and (st.st_dev=mydev) then
-           begin
-             fpclosedir(dirstream^);
-             ttyname:=name;
-             mysearch:=true;
-             exit;
-           end;
-        end;
-       d:=fpReaddir(dirstream^);
-     end;
-    fpclosedir(dirstream^);
-    mysearch:=false;
-  end;
-
-begin
-  TTYName:='';
-  if (fpfstat(handle,st)=-1) and (isatty (handle)<>-1) then
-   exit;
-  mydev:=st.st_dev;
-  myino:=st.st_ino;
-  mysearch('/dev');
-end;
-
-
-function TTYName(var F:Text):string;
-{
-  Idem as previous, only now for text variables;
-}
-begin
-  TTYName:=TTYName(textrec(f).handle);
-end;
-
 
 {******************************************************************************
                              Utility calls
@@ -1641,7 +1380,10 @@ End.
 
 {
   $Log$
-  Revision 1.50  2003-11-19 10:54:32  marco
+  Revision 1.51  2003-11-19 17:11:40  marco
+   * termio unit
+
+  Revision 1.50  2003/11/19 10:54:32  marco
    * some simple restructures
 
   Revision 1.49  2003/11/17 11:28:08  marco

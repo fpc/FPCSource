@@ -1821,7 +1821,7 @@ function physicalconsole(fd:longint) : boolean;
 
 IMPLEMENTATION
 
-Uses BaseUnix,Unix;
+Uses BaseUnix,termio;
 
 function physicalconsole(fd:longint) : boolean;
 

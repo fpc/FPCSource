@@ -338,7 +338,7 @@ uses
   {$ifdef VER1_0}
     Linux,
   {$else}
-    Unix,
+    termio,
   {$endif}
 {$endif Unix}
   Systems,Globals,
@@ -3603,7 +3603,10 @@ end.
 
 {
   $Log$
-  Revision 1.47  2003-11-17 10:05:51  marco
+  Revision 1.48  2003-11-19 17:11:39  marco
+   * termio unit
+
+  Revision 1.47  2003/11/17 10:05:51  marco
    * threads for FreeBSD. Not working tho
 
   Revision 1.46  2003/03/30 12:12:12  armin
