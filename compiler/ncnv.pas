@@ -792,7 +792,7 @@ implementation
            if is_currency(resulttype.def) then
              v:=v*10000;
            if (resulttype.def.deftype=pointerdef) then
-             result:=cpointerconstnode.create(v,resulttype)
+             result:=cpointerconstnode.create(TConstPtrUInt(v),resulttype)
            else
              begin
                if is_currency(left.resulttype.def) then
@@ -2413,7 +2413,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.132  2003-12-08 22:35:28  peter
+  Revision 1.133  2003-12-22 23:11:15  peter
+    * fix rangecheck error
+
+  Revision 1.132  2003/12/08 22:35:28  peter
     * again procvar fixes
 
   Revision 1.131  2003/11/22 00:31:52  jonas
