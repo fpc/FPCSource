@@ -39,6 +39,7 @@ asm
   jmp   .LNoThread
 .LThread:
   movl  %eax,%ebx
+  movl Errno,%eax
   call  *%ecx
   movl  %ebx,(%eax)
 .LNoThread:
@@ -351,7 +352,10 @@ end;
 
 {
   $Log$
-  Revision 1.14  2004-03-10 21:41:53  jonas
+  Revision 1.15  2004-05-28 21:41:49  marco
+   * added mov errno,%eax
+
+  Revision 1.14  2004/03/10 21:41:53  jonas
     * fixed syscall return value checking
 
   Revision 1.13  2004/03/03 22:10:48  peter
