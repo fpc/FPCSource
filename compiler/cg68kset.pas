@@ -86,7 +86,7 @@ implementation
          hr : tregister;
          setparts:array[1..8] of Tsetpart;
          i,numparts:byte;
-         href,href2:Treference;
+         {href,href2:Treference;}
          l,l2 : plabel;
          hl,hl1 : plabel;
          hl2, hl3: plabel;
@@ -320,19 +320,19 @@ implementation
                         p^.location.resflags:=F_C
                       else
                         p^.location.resflags:=F_E;
-                      href.symbol := nil;
-                      clear_reference(href);
+                      {href.symbol := nil;
+                      clear_reference(href);}
                       getlabel(l);
-                      href.symbol:=stringdup(lab2str(l));
+                      {href.symbol:=stringdup(lab2str(l));}
                       for i:=1 to numparts do
                           if setparts[i].range then
                              begin
                                   {Check if left is in a range.}
                                   {Get a label to jump over the check.}
-                                  href2.symbol := nil;
-                                  clear_reference(href2);
+                                  {href2.symbol := nil;
+                                  clear_reference(href2);}
                                   getlabel(l2);
-                                  href.symbol:=stringdup(lab2str(l2));
+                                  {href.symbol:=stringdup(lab2str(l2));}
                                   if setparts[i].start=setparts[i].stop-1 then
                                   begin
                                     case p^.left^.location.loc of
@@ -812,7 +812,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  1998-09-17 09:42:29  peter
+  Revision 1.6  1998-10-13 16:50:11  pierre
+    * undid some changes of Peter that made the compiler wrong
+      for m68k (I had to reinsert some ifdefs)
+    * removed several memory leaks under m68k
+    * removed the meory leaks for assembler readers
+    * cross compiling shoud work again better
+      ( crosscompiling sysamiga works
+       but as68k still complain about some code !)
+
+  Revision 1.5  1998/09/17 09:42:29  peter
     + pass_2 for cg386
     * Message() -> CGMessage() for pass_1/pass_2
 

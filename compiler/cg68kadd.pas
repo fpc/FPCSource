@@ -1242,12 +1242,14 @@ implementation
                                      gtn : flags := F_G;
                                      gten: flags := F_GE;
                                  end;
+                             clear_location(p^.location);
                              p^.location.loc := LOC_FLAGS;
                              p^.location.resflags := flags;
                              cmpop := false;
                           end
                          else
                          begin
+                             clear_location(p^.location);
                              p^.location.loc := LOC_FPU;
                              if p^.left^.location.loc = LOC_FPU then
                              { copy fpu register result . }
@@ -1270,7 +1272,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  1998-10-13 08:19:25  pierre
+  Revision 1.10  1998-10-13 16:50:03  pierre
+    * undid some changes of Peter that made the compiler wrong
+      for m68k (I had to reinsert some ifdefs)
+    * removed several memory leaks under m68k
+    * removed the meory leaks for assembler readers
+    * cross compiling shoud work again better
+      ( crosscompiling sysamiga works
+       but as68k still complain about some code !)
+
+  Revision 1.9  1998/10/13 08:19:25  pierre
     + source_os is now set correctly for cross-processor compilers
       (tos contains all target_infos and
        we use CPU86 and CPU68 conditionnals to

@@ -76,6 +76,7 @@ implementation
                   exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,newreference(p^.left^.location.reference),
                     hreg1)));
                 end;
+              clear_location(p^.left^.location);
               p^.left^.location.loc:=LOC_REGISTER;
               p^.left^.location.register:=hreg1;
            end
@@ -183,6 +184,7 @@ implementation
          { this registers are always used when div/mod are present }
          usedinproc:=usedinproc or ($800 shr word(R_D1));
          usedinproc:=usedinproc or ($800 shr word(R_D0));
+         clear_location(p^.location);
          p^.location.loc:=LOC_REGISTER;
          p^.location.register:=hreg1;
       end;
@@ -446,7 +448,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  1998-09-14 10:44:01  peter
+  Revision 1.3  1998-10-13 16:50:10  pierre
+    * undid some changes of Peter that made the compiler wrong
+      for m68k (I had to reinsert some ifdefs)
+    * removed several memory leaks under m68k
+    * removed the meory leaks for assembler readers
+    * cross compiling shoud work again better
+      ( crosscompiling sysamiga works
+       but as68k still complain about some code !)
+
+  Revision 1.2  1998/09/14 10:44:01  peter
     * all internal RTL functions start with FPC_
 
   Revision 1.1  1998/09/01 09:07:09  peter

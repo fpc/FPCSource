@@ -884,7 +884,7 @@ implementation
                          new(ref);
                          reset_reference(ref^);
                          ref^.base := R_A1;
-                         exprasmlist^.concat(new(pai68k,op_ref(A_JSR,S_NO,newreference(ref^))));
+                         exprasmlist^.concat(new(pai68k,op_ref(A_JSR,S_NO,ref)));
                        end
                        else
                        begin
@@ -893,7 +893,7 @@ implementation
                          new(ref);
                          reset_reference(ref^);
                          ref^.base := R_A1;
-                         exprasmlist^.concat(new(pai68k,op_ref(A_JSR,S_NO,newreference(ref^))));
+                         exprasmlist^.concat(new(pai68k,op_ref(A_JSR,S_NO,ref)));
                        end;
                        del_reference(p^.right^.location.reference);
                     end;
@@ -1047,7 +1047,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  1998-10-13 08:19:27  pierre
+  Revision 1.8  1998-10-13 16:50:04  pierre
+    * undid some changes of Peter that made the compiler wrong
+      for m68k (I had to reinsert some ifdefs)
+    * removed several memory leaks under m68k
+    * removed the meory leaks for assembler readers
+    * cross compiling shoud work again better
+      ( crosscompiling sysamiga works
+       but as68k still complain about some code !)
+
+  Revision 1.7  1998/10/13 08:19:27  pierre
     + source_os is now set correctly for cross-processor compilers
       (tos contains all target_infos and
        we use CPU86 and CPU68 conditionnals to

@@ -255,7 +255,8 @@ implementation
 
               emit_bounds_check(hpp^, hregister);
               end;
-               p^.location.loc:=LOC_REGISTER;
+              clear_location(p^.location);
+              p^.location.loc:=LOC_REGISTER;
               p^.location.register:=hregister;
               exit;
            end
@@ -275,6 +276,7 @@ implementation
                      hregister:=getregister32;
                      exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,newreference(hp^.location.reference),hregister)));
                  end;
+              clear_location(p^.location);
               p^.location.loc:=LOC_REGISTER;
               p^.location.register:=hregister;
               exit;
@@ -435,6 +437,7 @@ implementation
               end;
          end; { end elseif }
 
+         clear_location(p^.location);
          p^.location.loc:=LOC_REGISTER;
          p^.location.register:=hregister;
          maybe_rangechecking(p,p^.left^.resulttype,p^.resulttype);
@@ -598,6 +601,7 @@ implementation
     procedure second_cstring_charpointer(p,hp : ptree;convtyp : tconverttype);
 
       begin
+         clear_location(p^.location);
          p^.location.loc:=LOC_REGISTER;
          p^.location.register:=getregister32;
          inc(p^.left^.location.reference.offset);
@@ -616,6 +620,7 @@ implementation
 
       begin
          del_reference(p^.left^.location.reference);
+         clear_location(p^.location);
          p^.location.loc:=LOC_REGISTER;
          p^.location.register:=getregister32;
          exprasmlist^.concat(new(pai68k,op_ref_reg(A_LEA,S_L,newreference(p^.left^.location.reference),
@@ -627,6 +632,7 @@ implementation
       var
        reg: tregister;
       begin
+         clear_location(p^.location);
          p^.location.loc:=LOC_REFERENCE;
          clear_reference(p^.location.reference);
          { here, after doing some arithmetic on the pointer }
@@ -669,6 +675,7 @@ implementation
       begin
          { this is a type conversion which copies the data, so we can't }
          { return a reference                                             }
+         clear_location(p^.location);
          p^.location.loc:=LOC_MEM;
 
          { first get the memory for the string }
@@ -707,6 +714,9 @@ implementation
          p^.left:=p;
          loadstring(p);
          p^.left:=nil; { reset left tree, which is empty }
+         { p^.right is not disposed for typeconv !! PM }
+         disposetree(p^.right);
+         p^.right:=nil;
       end;
 
     procedure second_int_real(p,hp : ptree;convtyp : tconverttype);
@@ -790,6 +800,7 @@ implementation
              exprasmlist^.concat(new(pai68k,op_reg_reg(A_FMOVE,S_L,p^.left^.location.fpureg,rreg)));
            end;
          end;
+         clear_location(p^.location);
          p^.location.loc:=LOC_REGISTER;
          p^.location.register:=rreg;
       end;
@@ -933,6 +944,7 @@ implementation
 
          if (cs_fp_emulation in aktmoduleswitches) then
          begin
+           clear_location(p^.location);
            p^.location.loc:=LOC_FPU;
            p^.location.fpureg := getregister32;
            exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,newreference(r),
@@ -940,6 +952,7 @@ implementation
          end
          else
          begin
+           clear_location(p^.location);
            p^.location.loc:=LOC_FPU;
            p^.location.fpureg := getfloatreg;
            exprasmlist^.concat(new(pai68k,op_ref_reg(A_FMOVE,S_L,newreference(r),
@@ -1002,6 +1015,7 @@ implementation
          exprasmlist^.concat(new(pai68k,op_const_reg(A_MOVEQ,S_L,16,R_D1)));
          exprasmlist^.concat(new(pai68k,op_reg_reg(A_LSL,S_L,R_D1,hregister)));
 
+         clear_location(p^.location);
          p^.location.loc:=LOC_REGISTER;
          p^.location.register:=hregister;
       end;
@@ -1011,6 +1025,7 @@ implementation
 
      begin
         secondpass(hp);
+        clear_location(p^.location);
         p^.location.loc:=LOC_REGISTER;
         del_reference(hp^.location.reference);
         p^.location.register:=getregister32;
@@ -1034,6 +1049,7 @@ implementation
          getlabel(truelabel);
          getlabel(falselabel);
          secondpass(hp);
+         clear_location(p^.location);
          p^.location.loc:=LOC_REGISTER;
          del_reference(hp^.location.reference);
          hregister:=getregister32;
@@ -1133,6 +1149,7 @@ implementation
      var
         hregister : tregister;
      begin
+         clear_location(p^.location);
          p^.location.loc:=LOC_REGISTER;
          del_reference(hp^.location.reference);
          case hp^.location.loc of
@@ -1182,6 +1199,7 @@ implementation
         emitcall('FPC_SET_LOAD_SMALL',true);
         maybe_loada5;
         popusedregisters(pushedregs);
+        clear_location(p^.location);
         p^.location.loc:=LOC_MEM;
         stringdispose(p^.location.reference.symbol);
         p^.location.reference:=href;
@@ -1197,6 +1215,7 @@ implementation
         InternalError(342132);
 {!!!!!!!!!!!
 
+         clear_location(p^.location);
          p^.location.loc:=LOC_REGISTER;
          getlabel(l1);
          getlabel(l2);
@@ -1305,6 +1324,7 @@ implementation
          { save all used registers }
          pushusedregisters(pushed,$ffff);
          secondpass(p^.left);
+         clear_location(p^.location);
          p^.location.loc:=LOC_FLAGS;
          p^.location.resflags:=F_NE;
 
@@ -1374,7 +1394,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  1998-10-06 20:48:56  peter
+  Revision 1.7  1998-10-13 16:50:06  pierre
+    * undid some changes of Peter that made the compiler wrong
+      for m68k (I had to reinsert some ifdefs)
+    * removed several memory leaks under m68k
+    * removed the meory leaks for assembler readers
+    * cross compiling shoud work again better
+      ( crosscompiling sysamiga works
+       but as68k still complain about some code !)
+
+  Revision 1.6  1998/10/06 20:48:56  peter
     * m68k compiler compiles again
 
   Revision 1.5  1998/09/17 09:42:23  peter

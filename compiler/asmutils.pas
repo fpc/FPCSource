@@ -155,6 +155,7 @@ Type
       { the size of the instruction.                                    }
       stropsize: topsize;
       procedure init;
+      procedure done;
       { sets up the prefix field with the instruction pointed to in s }
       procedure addprefix(tok: tasmop);
       { sets up the instruction with the instruction pointed to in s }
@@ -798,6 +799,21 @@ end;
    getprefix := prefix;
  end;
 
+ Procedure TInstruction.done;
+ var
+  k: integer;
+ Begin
+  for k:=1 to numops do
+    begin
+       if (operands[k].operandtype=OPR_REFERENCE) and
+          assigned(operands[k].ref.symbol) then
+            stringdispose(operands[k].ref.symbol);
+       if (operands[k].operandtype=OPR_SYMBOL) and
+          assigned(operands[k].symbol) then
+            stringdispose(operands[k].symbol);
+    end;
+ end;
+ 
 {*************************************************************************}
 {                          Local label utilities                          }
 {*************************************************************************}
@@ -1869,7 +1885,16 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  1998-10-13 13:10:10  peter
+  Revision 1.11  1998-10-13 16:49:59  pierre
+    * undid some changes of Peter that made the compiler wrong
+      for m68k (I had to reinsert some ifdefs)
+    * removed several memory leaks under m68k
+    * removed the meory leaks for assembler readers
+    * cross compiling shoud work again better
+      ( crosscompiling sysamiga works
+       but as68k still complain about some code !)
+
+  Revision 1.10  1998/10/13 13:10:10  peter
     * new style for m68k/i386 infos and enums
 
   Revision 1.9  1998/09/24 17:54:15  carl

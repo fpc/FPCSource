@@ -3781,6 +3781,7 @@ const
                      ConcatLabeledInstr(instr)
                    else
                      ConcatOpCode(instr);
+                   instr.done;
                   end;
         AS_SEPARATOR:Begin
                      Consume(AS_SEPARATOR);
@@ -3843,7 +3844,16 @@ end.
 
 {
   $Log$
-  Revision 1.14  1998-10-07 04:28:52  carl
+  Revision 1.15  1998-10-13 16:50:16  pierre
+    * undid some changes of Peter that made the compiler wrong
+      for m68k (I had to reinsert some ifdefs)
+    * removed several memory leaks under m68k
+    * removed the meory leaks for assembler readers
+    * cross compiling shoud work again better
+      ( crosscompiling sysamiga works
+       but as68k still complain about some code !)
+
+  Revision 1.14  1998/10/07 04:28:52  carl
     * bugfix of in/out with gas (ins/outs still left though)
     * bugfix of wrong error output with concatlabel
     * gettoken always returns something valid now

@@ -92,9 +92,18 @@ begin
                    else
                     aktlocalswitches:=aktlocalswitches-[tlocalswitch(setsw)];
                  { Message for linux which has global checking only }
-                   if (switch='S') and
-                      (target_info.target in [target_i386_linux,target_m68k_linux]) then
-                     Message(scan_n_stack_check_global_under_linux);
+                   if (switch='S') and (
+{$ifdef i386}
+                      (target_info.target = target_i386_linux)
+{$ifdef m68k}
+                        or
+{$endif m68k}
+{$endif i386}
+{$ifdef m68k}
+                      (target_info.target = target_m68k_linux)
+{$endif m68k}
+                       ) then
+                       Message(scan_n_stack_check_global_under_linux);
                  end;
       modulesw : begin
                    if current_module^.in_global then
@@ -155,7 +164,16 @@ end;
 end.
 {
   $Log$
-  Revision 1.15  1998-10-13 13:10:29  peter
+  Revision 1.16  1998-10-13 16:50:22  pierre
+    * undid some changes of Peter that made the compiler wrong
+      for m68k (I had to reinsert some ifdefs)
+    * removed several memory leaks under m68k
+    * removed the meory leaks for assembler readers
+    * cross compiling shoud work again better
+      ( crosscompiling sysamiga works
+       but as68k still complain about some code !)
+
+  Revision 1.15  1998/10/13 13:10:29  peter
     * new style for m68k/i386 infos and enums
 
   Revision 1.14  1998/10/13 08:19:41  pierre

@@ -3338,6 +3338,7 @@ var
                      ConcatLabeledInstr(instr)
                    else
                      ConcatOpCode(instr);
+                   instr.done;
                   end;
         AS_SEPARATOR:Begin
                      Consume(AS_SEPARATOR);
@@ -3394,7 +3395,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  1998-10-07 04:29:44  carl
+  Revision 1.9  1998-10-13 16:50:17  pierre
+    * undid some changes of Peter that made the compiler wrong
+      for m68k (I had to reinsert some ifdefs)
+    * removed several memory leaks under m68k
+    * removed the meory leaks for assembler readers
+    * cross compiling shoud work again better
+      ( crosscompiling sysamiga works
+       but as68k still complain about some code !)
+
+  Revision 1.8  1998/10/07 04:29:44  carl
     * Concatlabel now gives output on error
     * in/out bugfix (still ins/outs left to fix)
 

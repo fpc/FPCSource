@@ -357,6 +357,8 @@ type
     { use this only for already used references       }
     procedure clear_reference(var ref : treference);
 
+    procedure disposereference(var r : preference);
+
     function newreference(const r : treference) : preference;
 
     function reg2str(r : tregister) : string;
@@ -876,6 +878,15 @@ type
      reg2str:=a[r];
       end;
 
+    procedure disposereference(var r : preference);
+
+      begin
+         if assigned(r^.symbol) then
+           stringdispose(r^.symbol);
+         dispose(r);
+         r:=nil;
+      end;
+      
     function newreference(const r : treference) : preference;
 
       var
@@ -999,6 +1010,7 @@ type
        begin
           op1t:=top_const;
           op1:=pointer(_op1^.offset);
+          disposereference(_op1);
        end
      else
        begin
@@ -1071,6 +1083,7 @@ type
        begin
           op2t:=top_const;
           op2:=pointer(_op2^.offset);
+          disposereference(_op2);
        end
      else
        begin
@@ -1234,6 +1247,7 @@ type
        begin
           op2t:=top_const;
           op2:=pointer(_op2^.offset);
+          disposereference(_op2);
        end
      else
        begin
@@ -1290,6 +1304,7 @@ type
        begin
           op1t:=top_const;
           op1:=pointer(_op1^.offset);
+          disposereference(_op1);
        end
      else
        begin
@@ -1313,6 +1328,7 @@ type
        begin
           op1t:=top_const;
           op1:=pointer(_op1^.offset);
+          disposereference(_op1);
        end
      else
        begin
@@ -1324,6 +1340,7 @@ type
        begin
           op2t:=top_const;
           op2:=pointer(_op2^.offset);
+          disposereference(_op2);
        end
      else
        begin
@@ -1384,6 +1401,7 @@ type
        begin
           op2t:=top_const;
           op2:=pointer(_op2^.offset);
+          disposereference(_op2);
        end
      else
        begin
@@ -1467,6 +1485,7 @@ type
         begin
            op1t:=top_const;
            op1:=pointer(_op1^.offset);
+           disposereference(_op1);
         end
       else
         begin
@@ -1494,6 +1513,7 @@ type
         begin
            op2t:=top_const;
            op2:=pointer(_op2^.offset);
+           disposereference(_op2);
         end
       else
         begin
@@ -1573,7 +1593,16 @@ type
 end.
 {
   $Log$
-  Revision 1.7  1998-08-31 12:26:27  peter
+  Revision 1.8  1998-10-13 16:50:15  pierre
+    * undid some changes of Peter that made the compiler wrong
+      for m68k (I had to reinsert some ifdefs)
+    * removed several memory leaks under m68k
+    * removed the meory leaks for assembler readers
+    * cross compiling shoud work again better
+      ( crosscompiling sysamiga works
+       but as68k still complain about some code !)
+
+  Revision 1.7  1998/08/31 12:26:27  peter
     * m68k and palmos updates from surebugfixes
 
   Revision 1.6  1998/08/21 14:08:44  pierre

@@ -119,7 +119,12 @@ Function DoPipe:boolean;
 begin
   DoPipe:=(cs_asm_pipe in aktglobalswitches) and
           not(cs_asm_leave in aktglobalswitches)
-          and (aktoutputformat in [as_i386_o,as_m68k_o]);
+{$ifdef i386}
+          and (aktoutputformat=as_i386_o)
+{$endif i386}
+{$ifdef m68k}
+          and (aktoutputformat=as_m68k_o);
+{$endif m68k}
 end;
 
 
@@ -471,7 +476,16 @@ end;
 end.
 {
   $Log$
-  Revision 1.26  1998-10-13 13:10:11  peter
+  Revision 1.27  1998-10-13 16:50:01  pierre
+    * undid some changes of Peter that made the compiler wrong
+      for m68k (I had to reinsert some ifdefs)
+    * removed several memory leaks under m68k
+    * removed the meory leaks for assembler readers
+    * cross compiling shoud work again better
+      ( crosscompiling sysamiga works
+       but as68k still complain about some code !)
+
+  Revision 1.26  1998/10/13 13:10:11  peter
     * new style for m68k/i386 infos and enums
 
   Revision 1.25  1998/10/13 08:19:24  pierre

@@ -39,58 +39,82 @@ unit systems;
 
 
      type
-       tasmmode= (
-            asmmode_i386_direct,asmmode_i386_att,asmmode_i386_intel,
-            asmmode_m68k_mot
+       tasmmode= (asmmode_none
+{$ifdef i386}
+            ,asmmode_i386_direct,asmmode_i386_att,asmmode_i386_intel
+{$endif i386}
+{$ifdef m68k}
+            ,asmmode_m68k_mot
+{$endif m68k}
        );
      const
        {$ifdef i386} i386asmmodecnt=3; {$else} i386asmmodecnt=0; {$endif}
        {$ifdef m68k} m68kasmmodecnt=1; {$else} m68kasmmodecnt=0; {$endif}
-
+       asmmodecnt=i386asmmodecnt+m68kasmmodecnt+1;
 
      type
-       ttarget = (
-            target_i386_GO32V1,target_i386_GO32V2,target_i386_linux,
-            target_i386_OS2,target_i386_Win32,
-            target_m68k_Amiga,target_m68k_Atari,target_m68k_Mac,
+       ttarget = (target_none
+{$ifdef i386}
+            ,target_i386_GO32V1,target_i386_GO32V2,target_i386_linux,
+            target_i386_OS2,target_i386_Win32
+{$endif i386}
+            ,target_m68k_Amiga,target_m68k_Atari,target_m68k_Mac,
             target_m68k_linux,target_m68k_PalmOS
+{$ifndef i386}
+            ,target_i386_GO32V1,target_i386_GO32V2,target_i386_linux,
+            target_i386_OS2,target_i386_Win32
+{$endif i386}
        );
      const
        {$ifdef i386} i386targetcnt=5; {$else} i386targetcnt=0; {$endif}
        {$ifdef m68k} m68ktargetcnt=5; {$else} m68ktargetcnt=0; {$endif}
-
+       targetcnt=i386targetcnt+m68ktargetcnt+1;
 
      type
-       tasm = (
-            as_i386_o,as_i386_o_aout,as_i386_asw,as_i386_nasmcoff,as_i386_nasmelf,as_i386_nasmobj,
-            as_i386_tasm,as_i386_masm,
-            as_m68k_o,as_m68k_gas,as_m68k_mit,as_m68k_mot,as_m68k_mpw
+       tasm = (as_none
+{$ifdef i386}
+            ,as_i386_o,as_i386_o_aout,as_i386_asw,
+            as_i386_nasmcoff,as_i386_nasmelf,as_i386_nasmobj,
+            as_i386_tasm,as_i386_masm
+{$endif i386}
+{$ifdef m68k}
+            ,as_m68k_o,as_m68k_gas,as_m68k_mit,as_m68k_mot,as_m68k_mpw
+{$endif m68k}
        );
      const
        {$ifdef i386} i386asmcnt=8; {$else} i386asmcnt=0; {$endif}
        {$ifdef m68k} m68kasmcnt=5; {$else} m68kasmcnt=0; {$endif}
-
+       asmcnt=i386asmcnt+m68kasmcnt+1;
 
      type
-       tlink = (
-            link_i386_ld,link_i386_ldgo32v1,link_i386_ldgo32v2,link_i386_ldw,
-            link_i386_ldos2,
-            link_m68k_ld
+       tlink = (link_none
+{$ifdef i386}
+            ,link_i386_ld,link_i386_ldgo32v1,
+            link_i386_ldgo32v2,link_i386_ldw,
+            link_i386_ldos2
+{$endif i386}
+{$ifdef m68k}
+            ,link_m68k_ld
+{$endif m68k}
        );
      const
        {$ifdef i386} i386linkcnt=5; {$else} i386linkcnt=0; {$endif}
        {$ifdef m68k} m68klinkcnt=1; {$else} m68klinkcnt=0; {$endif}
-
+       linkcnt=i386linkcnt+m68klinkcnt+1;
 
      type
-       tar = (
-            ar_i386_ar,ar_i386_arw,
-            ar_m68k_ar
+       tar = (ar_none
+{$ifdef i386}
+            ,ar_i386_ar,ar_i386_arw
+{$endif i386}
+{$ifdef m68k}
+            ,ar_m68k_ar
+{$endif m68k}
        );
      const
        {$ifdef i386} i386arcnt=2; {$else} i386arcnt=0; {$endif}
        {$ifdef m68k} m68karcnt=1; {$else} m68karcnt=0; {$endif}
-
+       arcnt=i386arcnt+m68karcnt+1;
 
      type
        tos = (
@@ -100,9 +124,9 @@ unit systems;
             os_m68k_PalmOS
        );
      const
-       {$ifdef i386} i386oscnt=5; {$else} i386oscnt=0; {$endif}
-       {$ifdef m68k} m68koscnt=5; {$else} m68koscnt=0; {$endif}
-
+       i386oscnt=5;
+       m68koscnt=5;
+       oscnt=i386oscnt+m68koscnt;
 
    type
        tosinfo = packed record
@@ -203,8 +227,7 @@ implementation
 {****************************************************************************
                                  OS Info
 ****************************************************************************}
-       os_infos : array[1..i386oscnt+m68koscnt] of tosinfo = (
-{$ifdef i386}
+       os_infos : array[1..oscnt] of tosinfo = (
           (
             id           : os_i386_go32v1;
             name         : 'GO32 V1 DOS extender';
@@ -279,12 +302,7 @@ implementation
             newline      : #13#10;
             endian       : endian_little;
             use_function_relative_addresses : true
-          )
-      {$ifdef m68k}
-          ,
-      {$endif m68k}
-{$endif i386}
-{$ifdef m68k}
+          ),
           (
             id           : os_m68k_amiga;
             name         : 'Commodore Amiga';
@@ -360,7 +378,6 @@ implementation
             endian       : endian_big;
             use_function_relative_addresses : false
           )
-{$endif m68k}
           );
 
 
@@ -368,9 +385,13 @@ implementation
                              Assembler Info
 ****************************************************************************}
 
-       as_infos : array[1..i386asmcnt+m68kasmcnt] of tasminfo = (
-{$ifdef i386}
+       as_infos : array[1..asmcnt] of tasminfo = (
           (
+            id     : as_none;
+            idtxt  : 'no'
+          )
+{$ifdef i386}
+          ,(
             id     : as_i386_o;
             idtxt  : 'O';
             asmbin : 'as';
@@ -442,12 +463,9 @@ implementation
             labelprefix : '.L';
             comment : '; '
           )
-      {$ifdef m68k}
-          ,
-      {$endif m68k}
 {$endif i386}
 {$ifdef m68k}
-          (
+          ,(
             id     : as_m68k_o;
             idtxt  : 'O';
             asmbin : 'as';
@@ -498,9 +516,12 @@ implementation
 {****************************************************************************
                             Linker Info
 ****************************************************************************}
-       link_infos : array[1..i386linkcnt+m68klinkcnt] of tlinkinfo = (
-{$ifdef i386}
+       link_infos : array[1..linkcnt] of tlinkinfo = (
           (
+            id      : link_none;
+          )
+{$ifdef i386}
+          ,(
             id      : link_i386_ld;
             linkbin : 'ld';
             linkcmd : '$OPT -o $EXE $RES';
@@ -575,12 +596,9 @@ implementation
             inputend   : '';
             libprefix  : '-l'
           )
-      {$ifdef m68k}
-          ,
-      {$endif m68k}
 {$endif i386}
 {$ifdef m68k}
-          (
+          ,(
             id      : link_m68k_ld;
             linkbin : 'ld';
             linkcmd : '$OPT -o $EXE $RES';
@@ -601,9 +619,12 @@ implementation
 {****************************************************************************
                                  Ar Info
 ****************************************************************************}
-           ar_infos : array[1..i386arcnt+m68karcnt] of tarinfo = (
-{$ifdef i386}
+           ar_infos : array[1..arcnt] of tarinfo = (
           (
+            id    : ar_none;
+          )
+{$ifdef i386}
+          ,(
             id    : ar_i386_ar;
             arbin : 'ar';
             arcmd : 'rs $LIB $FILES'
@@ -613,12 +634,9 @@ implementation
             arbin : 'arw';
             arcmd : 'rs $LIB $FILES'
           )
-      {$ifdef m68k}
-          ,
-      {$endif m68k}
 {$endif i386}
 {$ifdef m68k}
-          (
+          ,(
             id    : ar_m68k_ar;
             arbin : 'ar';
             arcmd : 'rs $LIB $FILES'
@@ -629,9 +647,14 @@ implementation
 {****************************************************************************
                             Targets Info
 ****************************************************************************}
-       target_infos : array[1..i386targetcnt+m68ktargetcnt] of ttargetinfo = (
-{$ifdef i386}
+       target_infos : array[1..targetcnt] of ttargetinfo = (
           (
+            target      : target_none;
+            cpu         : no_cpu;
+            short_name  : 'notarget'
+          )
+{$ifdef i386}
+          ,(
             target      : target_i386_GO32V1;
             cpu         : i386;
             short_name  : 'GO32V1';
@@ -731,12 +754,9 @@ implementation
             maxheapsize : 32768*1024;
             stacksize   : 32768
           )
-      {$ifdef m68k}
-          ,
-      {$endif m68k}
 {$endif i386}
 {$ifdef m68k}
-          (
+          ,(
             target      : target_m68k_Amiga;
             cpu         : m68k;
             short_name  : 'AMIGA';
@@ -842,9 +862,13 @@ implementation
 {****************************************************************************
                              AsmModeInfo
 ****************************************************************************}
-       asmmodeinfos : array[1..i386asmmodecnt+m68kasmmodecnt] of tasmmodeinfo = (
-{$ifdef i386}
+       asmmodeinfos : array[1..asmmodecnt] of tasmmodeinfo = (
           (
+            id    : asmmode_none;
+            idtxt : 'none'
+          )
+{$ifdef i386}
+          ,(
             id    : asmmode_i386_direct;
             idtxt : 'DIRECT'
           ),
@@ -856,12 +880,9 @@ implementation
             id    : asmmode_i386_intel;
             idtxt : 'INTEL'
           )
-      {$ifdef m68k}
-          ,
-      {$endif m68k}
 {$endif i386}
 {$ifdef m68k}
-          (
+          ,(
             id    : asmmode_m68k_mot;
             idtxt : 'MOT'
           )
@@ -877,7 +898,8 @@ var
   i : longint;
 begin
   set_target_os:=false;
-  for i:=1 to (sizeof(os_infos) div sizeof(tosinfo)) do
+  { target 1 is none }
+  for i:=2 to oscnt do
    if os_infos[i].id=t then
     begin
       target_os:=os_infos[i];
@@ -892,7 +914,7 @@ var
   i : longint;
 begin
   set_target_asm:=false;
-  for i:=1 to (sizeof(as_infos) div sizeof(tasminfo)) do
+  for i:=1 to asmcnt do
    if as_infos[i].id=t then
     begin
       target_asm:=as_infos[i];
@@ -907,7 +929,7 @@ var
   i : longint;
 begin
   set_target_link:=false;
-  for i:=1 to (sizeof(link_infos) div sizeof(tlinkinfo)) do
+  for i:=1 to linkcnt do
    if link_infos[i].id=t then
     begin
       target_link:=link_infos[i];
@@ -922,7 +944,7 @@ var
   i : longint;
 begin
   set_target_ar:=false;
-  for i:=1 to (sizeof(ar_infos) div sizeof(tarinfo)) do
+  for i:=1 to arcnt do
    if ar_infos[i].id=t then
     begin
       target_ar:=ar_infos[i];
@@ -937,7 +959,7 @@ var
   i : longint;
 begin
   set_target_info:=false;
-  for i:=1 to (sizeof(target_infos) div sizeof(ttargetinfo)) do
+  for i:=1 to targetcnt do
    if target_infos[i].target=t then
     begin
       target_info:=target_infos[i];
@@ -963,7 +985,7 @@ begin
   set_string_target:=false;
   { this should be case insensitive !! PM }
   s:=upper(s);
-  for i:=1 to (sizeof(target_infos) div sizeof(ttargetinfo)) do
+  for i:=1 to targetcnt do
    if target_infos[i].short_name=s then
     begin
       target_info:=target_infos[i];
@@ -985,7 +1007,7 @@ begin
   set_string_asm:=false;
   { this should be case insensitive !! PM }
   s:=upper(s);
-  for i:=1 to (sizeof(as_infos) div sizeof(tasminfo)) do
+  for i:=1 to asmcnt do
    if as_infos[i].idtxt=s then
     begin
       target_asm:=as_infos[i];
@@ -1001,7 +1023,7 @@ begin
   set_string_asmmode:=false;
   { this should be case insensitive !! PM }
   s:=upper(s);
-  for i:=1 to (sizeof(asmmodeinfos) div sizeof(tasmmodeinfo)) do
+  for i:=1 to asmmodecnt do
    if asmmodeinfos[i].idtxt=s then
     begin
       t:=asmmodeinfos[i].id;
@@ -1028,7 +1050,7 @@ var
 begin
   if source_os.name<>'' then
     Message(exec_w_source_os_redefined);
-  for i:=1 to (sizeof(os_infos) div sizeof(tosinfo)) do
+  for i:=1 to oscnt do
    if os_infos[i].id=t then
     begin
       source_os:=os_infos[i];
@@ -1126,7 +1148,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.41  1998-10-13 13:10:31  peter
+  Revision 1.42  1998-10-13 16:50:23  pierre
+    * undid some changes of Peter that made the compiler wrong
+      for m68k (I had to reinsert some ifdefs)
+    * removed several memory leaks under m68k
+    * removed the meory leaks for assembler readers
+    * cross compiling shoud work again better
+      ( crosscompiling sysamiga works
+       but as68k still complain about some code !)
+
+  Revision 1.41  1998/10/13 13:10:31  peter
     * new style for m68k/i386 infos and enums
 
   Revision 1.40  1998/10/13 09:13:09  pierre

@@ -528,7 +528,6 @@ var hs:string;
     hp:Pused_unit;
     unitinits:taasmoutput;
 {$ifdef GDB}
-    oldaktprocname : string;
     stab_function_name:Pai_stab_function_name;
 {$endif GDB}
 begin
@@ -680,7 +679,6 @@ begin
 {$IfDef GDB}
     if (cs_debuginfo in aktmoduleswitches) and target_os.use_function_relative_addresses then
         stab_function_name := new(pai_stab_function_name,init(strpnew(hs)));
-      oldaktprocname:=aktprocsym^.name;
 {$EndIf GDB}
 
 
@@ -691,19 +689,20 @@ begin
               else
                 procinfo.aktentrycode^.insert(new(pai_symbol,init(hs)));
 {$ifdef GDB}
-            if (cs_debuginfo in aktmoduleswitches) and
-               target_os.use_function_relative_addresses then
-            begin
-            procinfo.aktentrycode^.insert(new(pai_stab_function_name,init(strpnew(hs))));
-              { This is not a nice solution to save the name, change it and restore when done }
-                 aktprocsym^.setname(hs);
-                 procinfo.aktentrycode^.insert(new(pai_stabs,init(aktprocsym^.stabstring)));
-        end;
+            if (cs_debuginfo in aktmoduleswitches) then
+             begin
+               if target_os.use_function_relative_addresses then
+                list^.insert(new(pai_stab_function_name,init(strpnew(hs))));
+
+            { This is not a nice solution to save the name, change it and restore when done }
+            { not only not nice but also completely wrong !!! (PM) }
+            {   aktprocsym^.setname(hs);
+               list^.insert(new(pai_stabs,init(aktprocsym^.stabstring))); }
+             end;
 {$endif GDB}
               hs:=proc_names.get;
         end;
 {$ifdef GDB}
-      aktprocsym^.setname(oldaktprocname);
 
     if (cs_debuginfo in aktmoduleswitches) then
         begin
@@ -1345,7 +1344,16 @@ end;
 end.
 {
   $Log$
-  Revision 1.21  1998-10-13 13:10:12  peter
+  Revision 1.22  1998-10-13 16:50:12  pierre
+    * undid some changes of Peter that made the compiler wrong
+      for m68k (I had to reinsert some ifdefs)
+    * removed several memory leaks under m68k
+    * removed the meory leaks for assembler readers
+    * cross compiling shoud work again better
+      ( crosscompiling sysamiga works
+       but as68k still complain about some code !)
+
+  Revision 1.21  1998/10/13 13:10:12  peter
     * new style for m68k/i386 infos and enums
 
   Revision 1.20  1998/10/13 08:19:29  pierre

@@ -171,8 +171,11 @@ implementation
               exit;
            end;
            { nasm can not cope with negativ reals !! }
-         if is_constrealnode(p^.left) and
-            not(aktoutputformat in [as_i386_nasmcoff,as_i386_nasmelf,as_i386_nasmobj]) then
+         if is_constrealnode(p^.left)
+{$ifdef i386}
+           and not(aktoutputformat in [as_i386_nasmcoff,as_i386_nasmelf,as_i386_nasmobj])
+{$endif i386}
+             then
            begin
               t:=genrealconstnode(-p^.left^.value_real);
               disposetree(p);
@@ -319,7 +322,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  1998-10-13 13:10:33  peter
+  Revision 1.4  1998-10-13 16:50:25  pierre
+    * undid some changes of Peter that made the compiler wrong
+      for m68k (I had to reinsert some ifdefs)
+    * removed several memory leaks under m68k
+    * removed the meory leaks for assembler readers
+    * cross compiling shoud work again better
+      ( crosscompiling sysamiga works
+       but as68k still complain about some code !)
+
+  Revision 1.3  1998/10/13 13:10:33  peter
     * new style for m68k/i386 infos and enums
 
   Revision 1.2  1998/10/11 14:31:20  peter

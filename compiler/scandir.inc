@@ -723,11 +723,13 @@ const
 
     procedure dir_oldasmmode(t:tdirectivetoken);
       begin
+{$ifdef i386}
         case t of
          _DIR_I386_ATT    : aktasmmode:=asmmode_i386_att;
          _DIR_I386_DIRECT : aktasmmode:=asmmode_i386_direct;
          _DIR_I386_INTEL  : aktasmmode:=asmmode_i386_intel;
         end;
+{$endif i386}
       end;
 
 
@@ -942,7 +944,16 @@ const
 
 {
   $Log$
-  Revision 1.38  1998-10-13 13:10:28  peter
+  Revision 1.39  1998-10-13 16:50:21  pierre
+    * undid some changes of Peter that made the compiler wrong
+      for m68k (I had to reinsert some ifdefs)
+    * removed several memory leaks under m68k
+    * removed the meory leaks for assembler readers
+    * cross compiling shoud work again better
+      ( crosscompiling sysamiga works
+       but as68k still complain about some code !)
+
+  Revision 1.38  1998/10/13 13:10:28  peter
     * new style for m68k/i386 infos and enums
 
   Revision 1.37  1998/10/08 23:29:04  peter

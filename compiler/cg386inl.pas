@@ -552,6 +552,8 @@ implementation
                       emitcall('FPC_ASSERT',true);
                       emitl(A_LABEL,truelabel);
                    end;
+                 freelabel(truelabel);
+                 freelabel(falselabel);
                  truelabel:=otlabel;
                  falselabel:=oflabel;
               end;
@@ -939,7 +941,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  1998-10-08 17:17:12  pierre
+  Revision 1.13  1998-10-13 16:50:02  pierre
+    * undid some changes of Peter that made the compiler wrong
+      for m68k (I had to reinsert some ifdefs)
+    * removed several memory leaks under m68k
+    * removed the meory leaks for assembler readers
+    * cross compiling shoud work again better
+      ( crosscompiling sysamiga works
+       but as68k still complain about some code !)
+
+  Revision 1.12  1998/10/08 17:17:12  pierre
     * current_module old scanner tagged as invalid if unit is recompiled
     + added ppheap for better info on tracegetmem of heaptrc
       (adds line column and file index)

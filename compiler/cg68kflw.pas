@@ -112,6 +112,8 @@ implementation
               truelabel:=otlabel;
               falselabel:=oflabel;
            end;
+         freelabel(l1);
+         freelabel(l2);
          aktcontinuelabel:=oldclabel;
          aktbreaklabel:=oldblabel;
       end;
@@ -157,6 +159,8 @@ implementation
            emitl(A_LABEL,falselabel);
          if not(assigned(p^.right)) then
            emitl(A_LABEL,truelabel);
+         freelabel(truelabel);
+         freelabel(falselabel);
          truelabel:=otlabel;
          falselabel:=oflabel;
       end;
@@ -357,6 +361,9 @@ implementation
          if temptovalue then
            ungetiftemp(temp1);
 
+         freelabel(aktcontinuelabel);
+         freelabel(aktbreaklabel);
+         freelabel(l3);
          aktcontinuelabel:=oldclabel;
          aktbreaklabel:=oldblabel;
       end;
@@ -479,6 +486,8 @@ implementation
                         end;
               end;
 do_jmp:
+              freelabel(truelabel);
+              freelabel(falselabel);
               truelabel:=otlabel;
               falselabel:=oflabel;
               emitl(A_JMP,aktexit2label);
@@ -769,7 +778,16 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.5  1998-09-17 09:42:24  peter
+  Revision 1.6  1998-10-13 16:50:07  pierre
+    * undid some changes of Peter that made the compiler wrong
+      for m68k (I had to reinsert some ifdefs)
+    * removed several memory leaks under m68k
+    * removed the meory leaks for assembler readers
+    * cross compiling shoud work again better
+      ( crosscompiling sysamiga works
+       but as68k still complain about some code !)
+
+  Revision 1.5  1998/09/17 09:42:24  peter
     + pass_2 for cg386
     * Message() -> CGMessage() for pass_1/pass_2
 

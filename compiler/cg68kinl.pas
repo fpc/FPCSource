@@ -444,6 +444,9 @@ implementation
              exit;
 
            dummycoll.paratyp:=vs_const;
+           disposetree(hp);
+           p^.left:=nil;
+           
            { second arg }
            hp:=node;
            node:=node^.right;
@@ -456,6 +459,7 @@ implementation
                 secondcallparan(hp,@dummycoll,false);
                 if codegenerror then
                   exit;
+                disposetree(hp);
                 hp:=node;
                 node:=node^.right;
                 hp^.right:=nil;
@@ -472,6 +476,7 @@ implementation
                 secondcallparan(hp,@dummycoll,false);
                 if codegenerror then
                   exit;
+                disposetree(hp);
                 hp:=node;
                 node:=node^.right;
                 hp^.right:=nil;
@@ -486,6 +491,8 @@ implementation
            secondcallparan(hp,@dummycoll,false);
            if codegenerror then
              exit;
+
+           disposetree(hp);
 
            if is_real then
              emitcall('FPC_STR_'+float_name[pfloatdef(hp^.resulttype)^.typ],true)
@@ -882,7 +889,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  1998-10-06 20:48:58  peter
+  Revision 1.7  1998-10-13 16:50:08  pierre
+    * undid some changes of Peter that made the compiler wrong
+      for m68k (I had to reinsert some ifdefs)
+    * removed several memory leaks under m68k
+    * removed the meory leaks for assembler readers
+    * cross compiling shoud work again better
+      ( crosscompiling sysamiga works
+       but as68k still complain about some code !)
+
+  Revision 1.6  1998/10/06 20:48:58  peter
     * m68k compiler compiles again
 
   Revision 1.5  1998/09/20 12:26:39  peter
