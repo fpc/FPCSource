@@ -23,16 +23,16 @@
 // TSHTextEdit: Implementation of keyboard handling methods
 
 
-function TSHTextEdit.AddKeyboardAction(AMethod: TKeyboardActionProc;
-  ADescr: String): TKeyboardActionDescr;
+function TSHTextEdit.AddKeyboardAction(AMethod: TKeyboardActionProc;ASelectionAction:TSelectionAction;ADescr: String): TKeyboardActionDescr;
 begin
   Result := TKeyboardActionDescr(KeyboardActions.Add);
   Result.Descr := ADescr;
   Result.Method := AMethod;
+  Result.SelectionAction := ASelectionAction;
 end;
 
-function TSHTextEdit.AddKeyboardAssignment(AKeyCode: Integer;
-  AShiftState: TShiftState; AAction: TKeyboardActionDescr): TShortcut;
+
+function TSHTextEdit.AddKeyboardAssignment(AKeyCode: Integer; AShiftState: TShiftState; AAction: TKeyboardActionDescr): TShortcut;
 begin
   Result := TShortcut(Shortcuts.Add);
   Result.KeyCode := AKeyCode;
@@ -40,11 +40,10 @@ begin
   Result.Action := AAction;
 end;
 
-procedure TSHTextEdit.AddKeyDef(AMethod: TKeyboardActionProc; ADescr: String;
-  AKeyCode: Integer; AShiftState: TShiftState);
+
+procedure TSHTextEdit.AddKeyDef(AMethod: TKeyboardActionProc; ASelectionAction:TSelectionAction; ADescr: String; AKeyCode: Integer; AShiftState: TShiftState);
 begin
-  AddKeyboardAssignment(AKeyCode, AShiftState,
-    AddKeyboardAction(AMethod, ADescr));
+  AddKeyboardAssignment(AKeyCode, AShiftState,AddKeyboardAction(AMethod, ASelectionAction, ADescr));
 end;
 
 
@@ -54,231 +53,151 @@ begin
 end;
 
 
+procedure TSHTextEdit.AdjustCursorToRange;
+begin
+  if FCursorY<Renderer.VertPos then
+   begin
+     HideCursor;
+     FCursorY:=Renderer.VertPos;
+     ShowCursor;
+   end
+  else
+   if FCursorY>Renderer.VertPos+Renderer.PageHeight then
+    begin
+      HideCursor;
+      FCursorY:=Renderer.VertPos+Renderer.PageHeight-1;
+      ShowCursor;
+    end;
+  if FCursorX<Renderer.HorzPos then
+   begin
+     HideCursor;
+     FCursorX:=Renderer.HorzPos;
+     ShowCursor;
+   end
+  else
+   if FCursorX>Renderer.HorzPos+Renderer.PageWidth then
+    begin
+      HideCursor;
+      FCursorX:=Renderer.HorzPos+Renderer.PageWidth-1;
+      ShowCursor;
+    end;
+end;
+
+
+procedure TSHTextEdit.AdjustRangeToCursor;
+var
+  py : integer;
+begin
+  if FCursorY< Renderer.VertPos then
+   Renderer.VertPos:=FCursorY
+  else
+   if FCursorY>=Renderer.VertPos+Renderer.PageHeight then
+    begin
+      py := FCursorY - Renderer.PageHeight + 1;
+      if py < 0 then
+       Renderer.VertPos:=0
+      else
+       Renderer.VertPos:=py;
+    end;
+  if FCursorX<Renderer.HorzPos then
+   Renderer.HorzPos:=FCursorX
+  else
+   if FCursorX>=Renderer.HorzPos+Renderer.PageWidth then
+    begin
+      py := FCursorX - Renderer.PageWidth +1;
+      if py < 0 then
+       Renderer.HorzPos:=0
+      else
+       Renderer.HorzPos:=py;
+    end;
+end;
+
+
 procedure TSHTextEdit.CursorUp;
 begin
-  if FCursorY > 0 then
-    Dec(FCursorY);
-  if FCursorY<Renderer.VertPos then
-   Renderer.VertPos := Renderer.VertPos - 1;
+  if FCursorY>0 then
+   dec(FCursorY);
+  AdjustRangeToCursor;
 end;
 
 
 procedure TSHTextEdit.CursorDown;
 begin
-  if FCursorY < FDoc.LineCount - 1 then
-   Inc(FCursorY);
-  if FCursorY>=Renderer.VertPos+Renderer.PageHeight then
-   Renderer.VertPos := Renderer.VertPos + 1;
+  if FCursorY<FDoc.LineCount-1 then
+   inc(FCursorY);
+  AdjustRangeToCursor;
 end;
 
 
 procedure TSHTextEdit.CursorLeft;
 begin
-  if FCursorX > 0 then
+  dec(FCursorX);
+  if FCursorX < 0 then
    begin
-     Dec(FCursorX);
-     if FCursorX<Renderer.HorzPos then
-      Renderer.HorzPos:=Renderer.HorzPos-1;
-   end
-  else
-    if FCursorY > 0 then
+     if FCursorY>0 then
       begin
-        Dec(FCursorY);
-        FCursorX := FDoc.LineLen[FCursorY];
-        if FCursorY<Renderer.VertPos then
-         Renderer.VertPos := Renderer.VertPos - 1;
-        if FCursorX>=Renderer.HorzPos+Renderer.PageWidth then
-         Renderer.HorzPos:=Renderer.HorzPos+1;
-      end;
+        dec(FCursorY);
+        FCursorX:=FDoc.LineLen[FCursorY];
+      end
+     else
+      FCursorX:=0;
+   end;
+  AdjustRangeToCursor;
 end;
 
 
 procedure TSHTextEdit.CursorRight;
 begin
-  Inc(FCursorX);
-  if FCursorX>=Renderer.HorzPos+Renderer.PageWidth then
-   Renderer.HorzPos:=FCursorX-Renderer.PageWidth+1;
-  if FCursorX>=Renderer.LineWidth then
-   Renderer.LineWidth:=FCursorX+1;
+  inc(FCursorX);
+  AdjustRangeToCursor;
 end;
 
 
 procedure TSHTextEdit.CursorDocBegin;
 begin
-  FCursorX := 0;
-  FCursorY := 0;
-  Renderer.HorzPos:=0;
-  Renderer.VertPos:=0;
+  FCursorX:=0;
+  FCursorY:=0;
+  AdjustRangeToCursor;
 end;
 
 
 procedure TSHTextEdit.CursorDocEnd;
-var
-  py : integer;
 begin
   FCursorY:=FDoc.LineCount-1;
-  FCursorX := FDoc.LineLen[FCursorY];
-  py := FDoc.LineCount - Renderer.PageHeight;
-  if py < 0 then
-    py:=0;
-  Renderer.VertPos := py;
-  if FCursorX >= Renderer.HorzPos+Renderer.PageWidth then
-   Renderer.HorzPos:=FCursorX-Renderer.PageWidth+1;
+  FCursorX:=FDoc.LineLen[FCursorY];
+  AdjustRangeToCursor;
 end;
 
 
 procedure TSHTextEdit.CursorHome;
 begin
-  FCursorX := 0;
-  Renderer.HorzPos:=0;
+  FCursorX:=0;
+  AdjustRangeToCursor;
 end;
 
 
 procedure TSHTextEdit.CursorEnd;
 begin
-  FCursorX := FDoc.LineLen[FCursorY];
-  if FCursorX >= Renderer.HorzPos+Renderer.PageWidth then
-   Renderer.HorzPos:=FCursorX-Renderer.PageWidth+1;
+  FCursorX:=FDoc.LineLen[FCursorY];
+  AdjustRangeToCursor;
 end;
 
 
 procedure TSHTextEdit.CursorPageUp;
 begin
-  if FCursorY > 0 then
-    begin
-      Dec(FCursorY, Renderer.PageHeight);
-      if FCursorY < 0 then
-       begin
-         FCursorY := 0;
-         Renderer.VertPos := 0;
-       end
-      else
-       Renderer.VertPos := Renderer.VertPos - Renderer.PageHeight;
-    end;
+  dec(FCursorY,Renderer.PageHeight);
+  if FCursorY<0 then
+   FCursorY:=0;
+  AdjustRangeToCursor;
 end;
 
 
 procedure TSHTextEdit.CursorPageDown;
-var
-  py : integer;
 begin
-  if FCursorY < FDoc.LineCount - 1 then
-    begin
-      Inc(FCursorY, Renderer.PageHeight);
-      if FCursorY >= FDoc.LineCount then
-       begin
-         FCursorY:=FDoc.LineCount-1;
-         py := FDoc.LineCount - Renderer.PageHeight;
-         if py < 0 then
-          py:=0;
-         Renderer.VertPos := py;
-       end
-      else
-       Renderer.VertPos := Renderer.VertPos + Renderer.PageHeight;
-    end;
-end;
-
-
-
-procedure TSHTextEdit.SetSelectionStart;
-begin
-  if not FSel.IsValid then
-   begin
-     FSel.StartX := FCursorX;
-     FSel.StartY := FCursorY;
-     FSel.EndX := FCursorX;
-     FSel.EndY := FCursorY;
-   end;
-end;
-
-
-procedure TSHTextEdit.SetSelectionEnd;
-begin
-  if FSel.IsValid then
-   begin
-     FSel.EndX := FCursorX;
-     FSel.EndY := FCursorY;
-   end;
-end;
-
-
-procedure TSHTextEdit.SelectionUp;
-begin
-  SetSelectionStart;
-  CursorUp;
-  SetSelectionEnd;
-end;
-
-
-procedure TSHTextEdit.SelectionDown;
-begin
-  SetSelectionStart;
-  CursorDown;
-  SetSelectionEnd;
-end;
-
-
-procedure TSHTextEdit.SelectionLeft;
-begin
-  SetSelectionStart;
-  CursorLeft;
-  SetSelectionEnd;
-end;
-
-
-procedure TSHTextEdit.SelectionRight;
-begin
-  SetSelectionStart;
-  CursorRight;
-  SetSelectionEnd;
-end;
-
-
-procedure TSHTextEdit.SelectionHome;
-begin
-  SetSelectionStart;
-  CursorHome;
-  SetSelectionEnd;
-end;
-
-
-procedure TSHTextEdit.SelectionEnd;
-begin
-  SetSelectionStart;
-  CursorEnd;
-  SetSelectionEnd;
-end;
-
-
-procedure TSHTextEdit.SelectionDocBegin;
-begin
-  SetSelectionStart;
-  CursorDocBegin;
-  SetSelectionEnd;
-end;
-
-
-procedure TSHTextEdit.SelectionDocEnd;
-begin
-  SetSelectionStart;
-  CursorDocEnd;
-  SetSelectionEnd;
-end;
-
-
-procedure TSHTextEdit.SelectionPageUp;
-begin
-  SetSelectionStart;
-  CursorPageUp;
-  SetSelectionEnd;
-end;
-
-
-procedure TSHTextEdit.SelectionPageDown;
-begin
-  SetSelectionStart;
-  CursorPageDown;
-  SetSelectionEnd;
+  inc(FCursorY,Renderer.PageHeight);
+  if FCursorY>FDoc.LineCount-1 then
+   FCursorY:=FDoc.LineCount-1;
+  AdjustRangeToCursor;
 end;
 
 
@@ -549,62 +468,19 @@ begin
 end;
 
 procedure TSHTextEdit.KeyPressed(KeyCode: LongWord; ShiftState: TShiftState);
-var
-  RemoveSel: Boolean;
-
-  function CheckEditingKeys: Boolean;
-
-    procedure CheckSelKeys;
-    begin
-      if ssShift in ShiftState then begin
-        RemoveSel := False;
-        if not FSel.IsValid then begin
-          FSel.StartX := LastCursorX;
-          FSel.StartY := LastCursorY;
-        end;
-        FSel.EndX := FCursorX;
-        FSel.EndY := FCursorY;
-      end;
-    end;
-
-  begin
-    if ShiftState * [ssCtrl, ssAlt] = [] then
-      Result := ExecKey(Chr(KeyCode), False)
-    else
-      Result := False;
-  end;
 
   procedure RedrawArea(x1, y1, x2, y2: Integer);
-  var
-    r: TRect;
   begin
-    // WriteLn('Redraw: ', x1, '/', y1, ' - ', x2, '/', y2);
-    {###if y1 = y2 then begin
-      r.Left := FLeftIndent + x1 * CharW;
-      r.Right := FLeftIndent + x2 * CharW;
-      r.Top := y1 * CharH;
-      r.Bottom := r.Top + CharH;
-      PaintBox.Redraw(r);
-    end else begin
-      r.Left := FLeftIndent + x1 * CharW;
-      r.Right := PaintBox.Width;
-      r.Top := y1 * CharH;
-      r.Bottom := r.Top + CharH;
-      PaintBox.Redraw(r);
-
-      if y1 < y2 - 1 then begin
-        r.Left := FLeftIndent;
-        r.Top := (y1 + 1) * CharH;
-        r.Bottom := y2 * CharH;
-        PaintBox.Redraw(r);
-      end else
-        r.Left := FLeftIndent;
-
-      r.Right := FLeftIndent + x2 * CharW;
-      r.Top := y2 * CharH;
-      r.Bottom := r.Top + CharH;
-      PaintBox.Redraw(r);
-    end;}
+    WriteLn('Redraw: ', x1, '/', y1, ' - ', x2, '/', y2);
+    if y1 = y2 then
+     Renderer.InvalidateRect(x1,y1,x2,y2)
+    else
+     begin
+       Renderer.InvalidateRect(x1,y1,x1+Renderer.PageWidth,y1);
+       if y1 < y2 - 1 then
+        Renderer.InvalidateRect(0,y1+1,Renderer.PageWidth,y2 - 1);
+       Renderer.InvalidateRect(0,y2,x2,y2+1);
+     end;
   end;
 
 var
@@ -619,95 +495,93 @@ begin
   LastCursorX := FCursorX;
   LastCursorY := FCursorY;
   OldSelValid := FSel.IsValid;
-  if OldSelValid then begin
-    OldSelStartX := FSel.OStartX;
-    OldSelStartY := FSel.OStartY;
-    OldSelEndX := FSel.OEndX;
-    OldSelEndY := FSel.OEndY;
-  end;
-
-  RemoveSel := True;
+  if OldSelValid then
+   begin
+     OldSelStartX := FSel.OStartX;
+     OldSelStartY := FSel.OStartY;
+     OldSelEndX := FSel.OEndX;
+     OldSelEndY := FSel.OEndY;
+   end;
 
   // Check for keyboard shortcuts
   AssignmentMatched := False;
-  for i := 0 to Shortcuts.Count - 1 do begin
-    shortcut := TShortcut(Shortcuts.Items[i]);
-    if (KeyCode = shortcut.KeyCode) and
-      (ShiftState * [ssShift, ssCtrl, ssAlt] = shortcut.ShiftState) then begin
-      shortcut.Action.Method;
-      AssignmentMatched := True;
-      break;
-    end;
-  end;
+  for i := 0 to Shortcuts.Count - 1 do
+   begin
+     shortcut := TShortcut(Shortcuts.Items[i]);
+     if (KeyCode = shortcut.KeyCode) and
+        (ShiftState * [ssShift, ssCtrl, ssAlt] = shortcut.ShiftState) then
+      begin
+        shortcut.Action.Method;
+        // Handle the selection extending
+        case shortcut.Action.SelectionAction of
+          selNothing : ;
+          selExtend :
+            begin
+              if not FSel.IsValid then
+               begin
+                 FSel.StartX:=LastCursorX;
+                 FSel.StartY:=LastCursorY;
+               end;
+              FSel.EndX:=FCursorX;
+              FSel.EndY:=FCursorY;
+            end;
+          selClear :
+            begin
+              FSel.Clear;
+            end;
+        end;
+        AssignmentMatched := True;
+        break;
+      end;
+   end;
 
   if not AssignmentMatched then
-    if not CheckEditingKeys then RemoveSel := False;
-
-  // Check selection
-  if FSel.IsValid then begin
-    if (FSel.StartX = FSel.EndX) and (FSel.StartY = FSel.EndY) then
-      FSel.Clear
-  end;
-
-//if RemoveSel then FSel.Clear;
-//PaintBox.Redraw;
+   begin
+     if ShiftState * [ssCtrl, ssAlt] = [] then
+      ExecKey(Chr(KeyCode), False);
+   end;
 
   {Write('Sel = ', FSel.StartX, '/', FSel.StartY, ' - ', FSel.EndX, '/', FSel.EndY);
   if OldSelValid then WriteLn('  Old = ', OldSelStartX, '/', OldSelStartY, ' - ', OldSelEndX, '/', OldSelEndY)
   else WriteLn;}
 
-
-  if RemoveSel then FSel.Clear;
-
-  if not OldSelValid then begin
-    if FSel.IsValid then
+  // Handle the rewriting of selections
+  if not OldSelValid then
+   begin
+     if FSel.IsValid then
       RedrawArea(FSel.OStartX, FSel.OStartY, FSel.OEndX, FSel.OEndY);
-  end else begin
-    if not FSel.IsValid then
+   end
+  else
+   begin
+     if not FSel.IsValid then
       RedrawArea(OldSelStartX, OldSelStartY, OldSelEndX, OldSelEndY)
-    else begin
-      // Do OldSel and FSel intersect?
-      if (OldSelEndY < FSel.OStartY) or (OldSelStartY > FSel.OEndY) or
-         ((OldSelEndY = FSel.OStartY) and (OldSelEndX <= FSel.OStartX)) or
-         ((OldSelStartY = FSel.OEndY) and (OldSelStartX >= FSel.OEndX)) then begin
-         RedrawArea(OldSelStartX, OldSelStartY, OldSelEndX, OldSelEndY);
-         RedrawArea(FSel.OStartX, FSel.OStartY, FSel.OEndX, FSel.OEndY);
-      end else begin
-        // Intersection => determine smallest possible area(s) to redraw
-        // 1. Check if the start position has changed
-        if (OldSelStartX <> FSel.OStartX) or (OldSelStartY <> FSel.OStartY) then
-          if (OldSelStartY < FSel.OStartY) or ((OldSelStartY = FSel.OStartY) and
-             (OldSelStartX < FSel.OStartX)) then
-            RedrawArea(OldSelStartX, OldSelStartY, FSel.OStartX, FSel.OStartY)
-          else
-            RedrawArea(FSel.OStartX, FSel.OStartY, OldSelStartX, OldSelStartY);
-        // 2. Check if end position has changed
-        if (OldSelEndX <> FSel.OEndX) or (OldSelEndY <> FSel.OEndY) then
-          if (OldSelEndY < FSel.OEndY) or ((OldSelEndY = FSel.OEndY) and
-             (OldSelEndX < FSel.OEndX)) then
-            RedrawArea(OldSelEndX, OldSelEndY, FSel.OEndX, FSel.OEndY)
-          else
-            RedrawArea(FSel.OEndX, FSel.OEndY, OldSelEndX, OldSelEndY);
-
-        {if OldSelEndY = FSel.OEndY then begin
-          if OldSelStartX > FSel.OStartX  then
-            RedrawArea(FSel.OStartX, FSel.OEndY, OldSelStartX, FSel.OEndY)
-          else if OldSelStartX < FSel.OStartX then
-            RedrawArea(OldSelStartX, FSel.OEndY, FSel.OStartX, FSel.OEndY);
-          if OldSelEndX < FSel.OEndX then
-            RedrawArea(OldSelEndX, FSel.OEndY, FSel.OEndX, FSel.OEndY)
-          else if OldSelEndX > FSel.OEndX then
-            RedrawArea(FSel.OEndX, FSel.OEndY, OldSelEndX, FSel.OEndY);
-        end else begin
-          if OldSelStartY > FSel.OStartY then
-            RedrawArea(FSel.OStartX, FSel.OStartY, OldSelStartX, OldSelStartY)
-          else if OldSelStartY < FSel.OStartY then
-            RedrawArea(OldSelStartX, OldSelStartY, FSel.OStartX, FSel.OStartY);
-          if OldSelEndY < FSel.OEndY then
-            RedrawArea(OldSelEndX, OldSelEndY, FSel.OEndX, FSel.OEndY)
-          else if OldSelEndY > FSel.OEndY then
-            RedrawArea(FSel.OEndX, FSel.OEndY, OldSelEndX, OldSelEndY);
-        end;}
+     else
+      begin
+        // Do OldSel and FSel intersect?
+        if (OldSelEndY < FSel.OStartY) or (OldSelStartY > FSel.OEndY) or
+           ((OldSelEndY = FSel.OStartY) and (OldSelEndX <= FSel.OStartX)) or
+           ((OldSelStartY = FSel.OEndY) and (OldSelStartX >= FSel.OEndX)) then
+         begin
+           RedrawArea(OldSelStartX, OldSelStartY, OldSelEndX, OldSelEndY);
+           RedrawArea(FSel.OStartX, FSel.OStartY, FSel.OEndX, FSel.OEndY);
+         end
+        else
+         begin
+           // Intersection => determine smallest possible area(s) to redraw
+           // 1. Check if the start position has changed
+           if (OldSelStartX <> FSel.OStartX) or (OldSelStartY <> FSel.OStartY) then
+            if (OldSelStartY < FSel.OStartY) or ((OldSelStartY = FSel.OStartY) and
+               (OldSelStartX < FSel.OStartX)) then
+             RedrawArea(OldSelStartX, OldSelStartY, FSel.OStartX, FSel.OStartY)
+            else
+             RedrawArea(FSel.OStartX, FSel.OStartY, OldSelStartX, OldSelStartY);
+           // 2. Check if end position has changed
+           if (OldSelEndX <> FSel.OEndX) or (OldSelEndY <> FSel.OEndY) then
+            if (OldSelEndY < FSel.OEndY) or ((OldSelEndY = FSel.OEndY) and
+               (OldSelEndX < FSel.OEndX)) then
+             RedrawArea(OldSelEndX, OldSelEndY, FSel.OEndX, FSel.OEndY)
+            else
+             RedrawArea(FSel.OEndX, FSel.OEndY, OldSelEndX, OldSelEndY);
       end;
     end;
   end;
@@ -717,7 +591,11 @@ end;
 
 {
   $Log$
-  Revision 1.4  1999-12-09 23:16:41  peter
+  Revision 1.5  1999-12-10 15:01:02  peter
+    * first things for selection
+    * Better Adjusting of range/cursor
+
+  Revision 1.4  1999/12/09 23:16:41  peter
     * cursor walking is now possible, both horz and vert ranges are now
       adapted
     * filter key modifiers

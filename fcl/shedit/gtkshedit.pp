@@ -88,6 +88,7 @@ type
 
     // ISHRenderer Implemenation:
 
+    procedure InvalidateRect(x1, y1, x2, y2: Integer); override;
     procedure InvalidateLines(y1, y2: Integer); override;
 
     // Drawing
@@ -128,6 +129,7 @@ type
 
 implementation
 
+
 {*****************************************************************************
                               GTK/GDK Callbacks
 *****************************************************************************}
@@ -144,15 +146,17 @@ begin
   x2:=(x2+edit.CharW-1) div edit.CharW;
   y1 := event^.area.y div edit.CharH;
   y2 := (event^.area.y + event^.area.height - 1) div edit.CharH;
-  WriteLn(Format('Expose(%d/%d - %d/%d) for %s', [x1, y1, x2, y2, edit.ClassName]));
+//  WriteLn(Format('Expose(%d/%d - %d/%d) for %s', [x1, y1, x2, y2, edit.ClassName]));
 
   edit.GdkWnd := edit.PaintBox^.window;
   edit.GC := gdk_gc_new(edit.GdkWnd);
   gdk_gc_copy(edit.GC, PGtkStyle(edit.PaintBox^.thestyle)^.
     fg_gc[edit.PaintBox^.state]);
 
+  edit.Edit.AdjustCursorToRange;
   edit.Edit.DrawContent(x1, y1, x2, y2);
 end;
+
 
 function TGtkSHEdit_KeyPressed(GtkWidget: PGtkWidget; Event: PGdkEventKey; edit: TGtkSHEdit): Integer; cdecl;
 var
@@ -184,7 +188,7 @@ begin
   end;
   KeyState:=Event^.State;
 
-  WriteLn('KeyCode ', KeyCode,'   keystate ',KeyState);
+//  WriteLn('KeyCode ', KeyCode,'   keystate ',KeyState);
 
   // Calculate the Key modifiers (shiftstate)
   KeyMods := [];
@@ -201,9 +205,8 @@ begin
   if (KeyState and $2000) <> 0 then KeyMods := KeyMods + [ssAltGr];
 
   edit.Edit.KeyPressed(KeyCode,KeyMods);
-
-  writeln(edit.Edit.Selection.StartX);
 end;
+
 
 function TGtkSHEdit_ButtonPressEvent(GtkWidget: PGtkWidget; event: PGdkEventButton ;  edit: TGtkSHEdit): Integer; cdecl;
 begin
@@ -214,7 +217,7 @@ end;
 
 function TGtkShEdit_FocusInEvent(GtkWidget: PGtkWidget; event: PGdkEventFocus; edit: TGtkSHEdit): Integer; cdecl;
 begin
-  Writeln('focus in');
+//  Writeln('focus in');
   edit.Edit.FocusIn;
   result:=1;
 end;
@@ -222,7 +225,7 @@ end;
 
 function TGtkShEdit_FocusOutEvent(GtkWidget: PGtkWidget; event: PGdkEventFocus; edit: TGtkSHEdit): Integer; cdecl;
 begin
-  Writeln('focus out');
+//  Writeln('focus out');
   edit.Edit.FocusOut;
   result:=1;
 end;
@@ -283,6 +286,7 @@ begin
   gtk_widget_show(Widget);
 end;
 
+
 procedure TGtkSHEdit.SetEdit(AEdit: TSHTextEdit);
 begin
   Edit := AEdit;
@@ -290,34 +294,34 @@ begin
   Edit.shDefault    := AddSHStyle('Default',    colBlack, colWhite, fsNormal);
   Edit.shSelected   := AddSHStyle('Selected',   colWhite, colBlue, fsNormal);
 { Install keys }
-  Edit.AddKeyDef(@Edit.CursorUp, 'Cursor up', GDK_Up, []);
-  Edit.AddKeyDef(@Edit.CursorDown, 'Cursor down', GDK_Down, []);
-  Edit.AddKeyDef(@Edit.CursorLeft, 'Cursor left', GDK_Left, []);
-  Edit.AddKeyDef(@Edit.CursorRight, 'Cursor right', GDK_Right, []);
-  Edit.AddKeyDef(@Edit.CursorHome, 'Cursor Home', GDK_Home, []);
-  Edit.AddKeyDef(@Edit.CursorEnd, 'Cursor Home', GDK_End, []);
-  Edit.AddKeyDef(@Edit.CursorPageUp, 'Cursor PageUp', GDK_Page_Up, []);
-  Edit.AddKeyDef(@Edit.CursorPageDown, 'Cursor PageDown', GDK_Page_Down, []);
-  Edit.AddKeyDef(@Edit.CursorDocBegin, 'Cursor Document Start', GDK_Page_Up, [ssCtrl]);
-  Edit.AddKeyDef(@Edit.CursorDocEnd, 'Cursor Document End', GDK_Page_Down, [ssCtrl]);
+  Edit.AddKeyDef(@Edit.CursorUp, selClear, 'Cursor up', GDK_Up, []);
+  Edit.AddKeyDef(@Edit.CursorDown, selClear, 'Cursor down', GDK_Down, []);
+  Edit.AddKeyDef(@Edit.CursorLeft, selClear, 'Cursor left', GDK_Left, []);
+  Edit.AddKeyDef(@Edit.CursorRight, selClear, 'Cursor right', GDK_Right, []);
+  Edit.AddKeyDef(@Edit.CursorHome, selClear, 'Cursor Home', GDK_Home, []);
+  Edit.AddKeyDef(@Edit.CursorEnd, selClear, 'Cursor Home', GDK_End, []);
+  Edit.AddKeyDef(@Edit.CursorPageUp, selClear, 'Cursor PageUp', GDK_Page_Up, []);
+  Edit.AddKeyDef(@Edit.CursorPageDown, selClear, 'Cursor PageDown', GDK_Page_Down, []);
+  Edit.AddKeyDef(@Edit.CursorDocBegin, selClear, 'Cursor Document Start', GDK_Page_Up, [ssCtrl]);
+  Edit.AddKeyDef(@Edit.CursorDocEnd, selClear, 'Cursor Document End', GDK_Page_Down, [ssCtrl]);
 
-  Edit.AddKeyDef(@Edit.SelectionUp, 'Selection up', GDK_Up, [ssShift]);
-  Edit.AddKeyDef(@Edit.SelectionDown, 'Selection down', GDK_Down, [ssShift]);
-  Edit.AddKeyDef(@Edit.SelectionLeft, 'Selection left', GDK_Left, [ssShift]);
-  Edit.AddKeyDef(@Edit.SelectionRight, 'Selection right', GDK_Right, [ssShift]);
-  Edit.AddKeyDef(@Edit.SelectionHome, 'Selection Home', GDK_Home, [ssShift]);
-  Edit.AddKeyDef(@Edit.SelectionEnd, 'Selection Home', GDK_End, [ssShift]);
-  Edit.AddKeyDef(@Edit.SelectionPageUp, 'Selection PageUp', GDK_Page_Up, [ssShift]);
-  Edit.AddKeyDef(@Edit.SelectionPageDown, 'Selection PageDown', GDK_Page_Down, [ssShift]);
-  Edit.AddKeyDef(@Edit.SelectionDocBegin, 'Selection Document Start', GDK_Page_Up, [ssCtrl,ssShift]);
-  Edit.AddKeyDef(@Edit.SelectionDocEnd, 'Selection Document End', GDK_Page_Down, [ssCtrl,ssShift]);
+  Edit.AddKeyDef(@Edit.CursorUp, selExtend, 'Selection up', GDK_Up, [ssShift]);
+  Edit.AddKeyDef(@Edit.CursorDown, selExtend, 'Selection down', GDK_Down, [ssShift]);
+  Edit.AddKeyDef(@Edit.CursorLeft, selExtend, 'Selection left', GDK_Left, [ssShift]);
+  Edit.AddKeyDef(@Edit.CursorRight, selExtend, 'Selection right', GDK_Right, [ssShift]);
+  Edit.AddKeyDef(@Edit.CursorHome, selExtend, 'Selection Home', GDK_Home, [ssShift]);
+  Edit.AddKeyDef(@Edit.CursorEnd, selExtend, 'Selection Home', GDK_End, [ssShift]);
+  Edit.AddKeyDef(@Edit.CursorPageUp, selExtend, 'Selection PageUp', GDK_Page_Up, [ssShift]);
+  Edit.AddKeyDef(@Edit.CursorPageDown, selExtend, 'Selection PageDown', GDK_Page_Down, [ssShift]);
+  Edit.AddKeyDef(@Edit.CursorDocBegin, selExtend, 'Selection Document Start', GDK_Page_Up, [ssCtrl,ssShift]);
+  Edit.AddKeyDef(@Edit.CursorDocEnd, selExtend, 'Selection Document End', GDK_Page_Down, [ssCtrl,ssShift]);
 
-  Edit.AddKeyDef(@Edit.ToggleOverwriteMode, 'Toggle overwrite mode', GDK_Insert, []);
-  Edit.AddKeyDef(@Edit.EditDelLeft, 'Delete char left of cursor', GDK_Backspace, []);
-  Edit.AddKeyDef(@Edit.EditDelRight, 'Delete char right of cursor', GDK_Delete, []);
-  Edit.AddKeyDef(@Edit.EditDelLine, 'Delete current line', Ord('Y'), [ssCtrl]);
-  Edit.AddKeyDef(@Edit.EditUndo, 'Undo last action', GDK_Backspace, [ssAlt]);
-  Edit.AddKeyDef(@Edit.EditRedo, 'Redo last undone action', GDK_Backspace, [ssShift, ssAlt]);
+  Edit.AddKeyDef(@Edit.ToggleOverwriteMode, selNothing, 'Toggle overwrite mode', GDK_Insert, []);
+  Edit.AddKeyDef(@Edit.EditDelLeft, selClear, 'Delete char left of cursor', GDK_Backspace, []);
+  Edit.AddKeyDef(@Edit.EditDelRight, selClear, 'Delete char right of cursor', GDK_Delete, []);
+  Edit.AddKeyDef(@Edit.EditDelLine, selClear, 'Delete current line', Ord('Y'), [ssCtrl]);
+  Edit.AddKeyDef(@Edit.EditUndo, selClear, 'Undo last action', GDK_Backspace, [ssAlt]);
+  Edit.AddKeyDef(@Edit.EditRedo, selClear, 'Redo last undone action', GDK_Backspace, [ssShift, ssAlt]);
 end;
 
 
@@ -331,6 +335,7 @@ begin
   SHStyles^[SHStyleCount].FontStyle  := AStyle;
   Result := SHStyleCount;
 end;
+
 
 procedure TGtkSHEdit.SetGCColor(AColor: LongWord);
 var
@@ -347,12 +352,25 @@ begin
   end;
 end;
 
+
 procedure TGtkSHEdit.ClearRect(x1, y1, x2, y2: Integer);
 begin
   SetGCColor(SHStyles^[shWhitespace].Background);
   gdk_draw_rectangle(PGdkDrawable(GdkWnd), GC, 1,
     x1 * CharW + LeftIndent, y1 * CharH,
     (x2 - x1 + 1) * CharW, (y2 - y1 + 1) * CharH);
+end;
+
+
+procedure TGtkSHEdit.InvalidateRect(x1, y1, x2, y2: Integer);
+var
+  r : TGdkRectangle;
+begin
+  r.x:=x1*CharW+LeftIndent;
+  r.y:=y1*CharH;
+  r.Width:=(x1 - x2 + 1) * CharW;
+  r.Height:=(y2 - y1 + 1) * CharH;
+  gtk_widget_draw(PGtkWidget(PaintBox), @r);
 end;
 
 
@@ -530,7 +548,7 @@ end;
 
 procedure TGtkSHEdit.SetLineCount(count: Integer);
 begin
-  vadj^.upper := count * CharH;
+  vadj^.upper := (count+1) * CharH;
   gtk_adjustment_changed(vadj);
   gtk_widget_set_usize(PaintBox, Trunc(hadj^.upper), Trunc(vadj^.upper));
 end;
@@ -554,7 +572,7 @@ end;
 
 function TGtkSHEdit.GetVertPos: Integer;
 begin
-  Result := Trunc(vadj^.value) div CharH;
+  Result := (Trunc(vadj^.value)+CharH-1) div CharH;
 end;
 
 
@@ -578,7 +596,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  1999-12-09 23:16:41  peter
+  Revision 1.6  1999-12-10 15:01:02  peter
+    * first things for selection
+    * Better Adjusting of range/cursor
+
+  Revision 1.5  1999/12/09 23:16:41  peter
     * cursor walking is now possible, both horz and vert ranges are now
       adapted
     * filter key modifiers

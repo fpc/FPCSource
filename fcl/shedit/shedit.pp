@@ -44,10 +44,13 @@ type
 
   TKeyboardActionProc = procedure of object;
 
+  TSelectionAction = (selNothing,selExtend,selClear);
+
   TKeyboardActionDescr = class(TCollectionItem)
   public
     Descr: String;                      // Human readable description
     Method: TKeyboardActionProc;
+    SelectionAction : TSelectionAction;
   end;
 
   TShortcut = class(TCollectionItem)
@@ -116,6 +119,7 @@ type
 
   ISHRenderer = class
 
+    procedure InvalidateRect(x1, y1, x2, y2: Integer); virtual; abstract;
     procedure InvalidateLines(y1, y2: Integer); virtual; abstract;
 
     // Drawing
@@ -201,6 +205,8 @@ type
   public
     // Keyboard command handlers
     // Cursor movement
+    procedure AdjustCursorToRange;
+    procedure AdjustRangeToCursor;
     procedure CursorUp;
     procedure CursorDown;
     procedure CursorLeft;
@@ -211,19 +217,7 @@ type
     procedure CursorDocEnd;
     procedure CursorPageUp;
     procedure CursorPageDown;
-    // Selection movement
-    procedure SetSelectionStart;
-    procedure SetSelectionEnd;
-    procedure SelectionUp;
-    procedure SelectionDown;
-    procedure SelectionLeft;
-    procedure SelectionRight;
-    procedure SelectionHome;
-    procedure SelectionEnd;
-    procedure SelectionDocBegin;
-    procedure SelectionDocEnd;
-    procedure SelectionPageUp;
-    procedure SelectionPageDown;
+
     // Misc
     procedure ToggleOverwriteMode;
     procedure EditDelLeft;
@@ -240,12 +234,10 @@ type
 
   public
     constructor Create(ADoc: TTextDoc; ARenderer: ISHRenderer); virtual;
-    function AddKeyboardAction(AMethod: TKeyboardActionProc;
-      ADescr: String): TKeyboardActionDescr;
+    function  AddKeyboardAction(AMethod: TKeyboardActionProc;ASelectionAction:TSelectionAction;ADescr: String): TKeyboardActionDescr;
     function AddKeyboardAssignment(AKeyCode: Integer; AShiftState: TShiftState;
       AAction: TKeyboardActionDescr): TShortcut;
-    procedure AddKeyDef(AMethod: TKeyboardActionProc; ADescr: String;
-      AKeyCode: Integer; AShiftState: TShiftState);
+    procedure AddKeyDef(AMethod: TKeyboardActionProc; ASelectionAction:TSelectionAction; ADescr: String; AKeyCode: Integer; AShiftState: TShiftState);
 
     procedure FocusIn;
     procedure FocusOut;
@@ -410,7 +402,11 @@ end.
 
 {
   $Log$
-  Revision 1.4  1999-12-09 23:16:41  peter
+  Revision 1.5  1999-12-10 15:01:03  peter
+    * first things for selection
+    * Better Adjusting of range/cursor
+
+  Revision 1.4  1999/12/09 23:16:41  peter
     * cursor walking is now possible, both horz and vert ranges are now
       adapted
     * filter key modifiers
