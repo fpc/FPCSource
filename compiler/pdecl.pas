@@ -133,7 +133,7 @@ implementation
                      hp:=tconstsym.create_ptr(orgname,constguid,pg);
                    end
                   else
-                   Message1(parser_e_interface_has_no_guid,tobjectdef(p.resulttype.def).objname^);
+                   Message1(parser_e_interface_has_no_guid,tobjectdef(p.resulttype.def).objrealname^);
                 end
                else
                 Message(cg_e_illegal_expression);
@@ -608,7 +608,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.41  2002-03-04 17:54:59  peter
+  Revision 1.42  2002-04-19 15:46:02  peter
+    * mangledname rewrite, tprocdef.mangledname is now created dynamicly
+      in most cases and not written to the ppu
+    * add mangeledname_prefix() routine to generate the prefix of
+      manglednames depending on the current procedure, object and module
+    * removed static procprefix since the mangledname is now build only
+      on demand from tprocdef.mangledname
+
+  Revision 1.41  2002/03/04 17:54:59  peter
     * allow oridinal labels again
 
   Revision 1.40  2001/12/06 17:57:35  florian

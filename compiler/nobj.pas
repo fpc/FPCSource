@@ -762,7 +762,7 @@ implementation
          if not(is_interface(_class)) and
             has_virtual_method and
             not(has_constructor) then
-           Message1(parser_w_virtual_without_constructor,_class.objname^);
+           Message1(parser_w_virtual_without_constructor,_class.objrealname^);
       end;
 
 
@@ -772,8 +772,8 @@ implementation
 
     function  tclassheader.gintfgetvtbllabelname(intfindex: integer): string;
       begin
-        gintfgetvtbllabelname:='VTBL_'+current_module.modulename^+'$_'+upper(_class.objname^)+
-                               '_$$_'+upper(_class.implementedinterfaces.interfaces(intfindex).objname^);
+        gintfgetvtbllabelname:=mangledname_prefix('VTBL',_class.owner)+_class.objname^+
+                               '_$_'+_class.implementedinterfaces.interfaces(intfindex).objname^;
       end;
 
 
@@ -794,7 +794,7 @@ implementation
         proccount:=implintf.implproccount(intfindex);
         for i:=1 to proccount do
           begin
-            tmps:=implintf.implprocs(intfindex,i).mangledname+'_$$_'+upper(curintf.objname^);
+            tmps:=implintf.implprocs(intfindex,i).mangledname+'_$_'+curintf.objname^;
             { create wrapper code }
             cgintfwrapper(rawcode,implintf.implprocs(intfindex,i),tmps,implintf.ioffsets(intfindex)^);
             { create reference }
@@ -1072,22 +1072,12 @@ implementation
   procedure tclassheader.writeinterfaceids;
     var
       i: longint;
-      s1,s2 : string;
     begin
-       if _class.owner.name=nil then
-         s1:=''
-       else
-         s1:=upper(_class.owner.name^);
-       if _class.objname=nil then
-         s2:=''
-       else
-         s2:=upper(_class.objname^);
-      s1:=s1+'$_'+s2;
       if _class.isiidguidvalid then
         begin
           if (cs_create_smart in aktmoduleswitches) then
             dataSegment.concat(Tai_cut.Create);
-          dataSegment.concat(Tai_symbol.Createname_global('IID$_'+s1,0));
+          dataSegment.concat(Tai_symbol.Createname_global(mangledname_prefix('IID',_class.owner)+_class.objname^,0));
           dataSegment.concat(Tai_const.Create_32bit(longint(_class.iidguid.D1)));
           dataSegment.concat(Tai_const.Create_16bit(_class.iidguid.D2));
           dataSegment.concat(Tai_const.Create_16bit(_class.iidguid.D3));
@@ -1096,7 +1086,7 @@ implementation
         end;
       if (cs_create_smart in aktmoduleswitches) then
         dataSegment.concat(Tai_cut.Create);
-      dataSegment.concat(Tai_symbol.Createname_global('IIDSTR$_'+s1,0));
+      dataSegment.concat(Tai_symbol.Createname_global(mangledname_prefix('IIDSTR',_class.owner)+_class.objname^,0));
       dataSegment.concat(Tai_const.Create_8bit(length(_class.iidstr^)));
       dataSegment.concat(Tai_string.Create(_class.iidstr^));
     end;
@@ -1185,8 +1175,8 @@ implementation
             { write class name }
             getdatalabel(classnamelabel);
             dataSegment.concat(Tai_label.Create(classnamelabel));
-            dataSegment.concat(Tai_const.Create_8bit(length(_class.objname^)));
-            dataSegment.concat(Tai_string.Create(_class.objname^));
+            dataSegment.concat(Tai_const.Create_8bit(length(_class.objrealname^)));
+            dataSegment.concat(Tai_string.Create(_class.objrealname^));
             { generate message and dynamic tables }
             if (oo_has_msgstr in _class.objectoptions) then
               strmessagetable:=genstrmsgtab;
@@ -1280,7 +1270,15 @@ initialization
 end.
 {
   $Log$
-  Revision 1.14  2002-04-15 18:59:07  carl
+  Revision 1.15  2002-04-19 15:46:01  peter
+    * mangledname rewrite, tprocdef.mangledname is now created dynamicly
+      in most cases and not written to the ppu
+    * add mangeledname_prefix() routine to generate the prefix of
+      manglednames depending on the current procedure, object and module
+    * removed static procprefix since the mangledname is now build only
+      on demand from tprocdef.mangledname
+
+  Revision 1.14  2002/04/15 18:59:07  carl
   + target_info.size_of_pointer -> pointer_Size
 
   Revision 1.13  2002/02/11 18:51:35  peter

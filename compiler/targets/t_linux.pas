@@ -95,7 +95,7 @@ begin
   { insert sharedlibrary }
   current_module.linkothersharedlibs.add(SplitName(module),link_allways);
   { reset the mangledname and turn off the dll_var option }
-  aktvarsym.setmangledname(name);
+  aktvarsym.set_mangledname(name);
   exclude(aktvarsym.varoptions,vo_is_dll_var);
 end;
 
@@ -739,7 +739,15 @@ initialization
 end.
 {
   $Log$
-  Revision 1.18  2002-04-15 19:44:23  peter
+  Revision 1.19  2002-04-19 15:46:05  peter
+    * mangledname rewrite, tprocdef.mangledname is now created dynamicly
+      in most cases and not written to the ppu
+    * add mangeledname_prefix() routine to generate the prefix of
+      manglednames depending on the current procedure, object and module
+    * removed static procprefix since the mangledname is now build only
+      on demand from tprocdef.mangledname
+
+  Revision 1.18  2002/04/15 19:44:23  peter
     * fixed stackcheck that would be called recursively when a stack
       error was found
     * generic changeregsize(reg,size) for i386 register resizing

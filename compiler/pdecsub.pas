@@ -110,7 +110,7 @@ implementation
         hvs,
         vs      : tvarsym;
         srsym   : tsym;
-        hs1,hs2 : string;
+        hs1 : string;
         varspez : Tvarspez;
         inserthigh : boolean;
         tdefaultvalue : tconstsym;
@@ -121,8 +121,6 @@ implementation
         defaultrequired:=false;
         { parsing a proc or procvar ? }
         is_procvar:=(aktprocdef.deftype=procvardef);
-        if not is_procvar then
-          hs2:=tprocdef(aktprocdef).mangledname;
         consume(_LKLAMMER);
         { Delphi/Kylix supports nonsense like }
         { procedure p();                      }
@@ -159,11 +157,6 @@ implementation
                  CGMessage(parser_e_self_call_by_value);
               if not is_procvar then
                begin
-{$ifndef UseNiceNames}
-                 hs2:=hs2+'$'+'self';
-{$else UseNiceNames}
-                 hs2:=hs2+tostr(length('self'))+'self';
-{$endif UseNiceNames}
                  htype.setdef(procinfo^._class);
                  vs:=tvarsym.create('@',htype);
                  vs.varspez:=vs_var;
@@ -213,13 +206,11 @@ implementation
                          InternalError(1234124);
                         tarraydef(tt.def).elementtype:=ttypesym(srsym).restype;
                         tarraydef(tt.def).IsArrayOfConst:=true;
-                        hs1:='array_of_const';
                       end
                      else
                       begin
                         { define field type }
                         single_type(tarraydef(tt.def).elementtype,hs1,false);
-                        hs1:='array_of_'+hs1;
                       end;
                      inserthigh:=true;
                    end
@@ -284,11 +275,6 @@ implementation
                   { For proc vars we only need the definitions }
                   if not is_procvar then
                    begin
-{$ifndef UseNiceNames}
-                     hs2:=hs2+'$'+hs1;
-{$else UseNiceNames}
-                     hs2:=hs2+tostr(length(hs1))+hs1;
-{$endif UseNiceNames}
                      vs:=tvarsym.create(s,tt);
                      vs.varspez:=varspez;
                    { we have to add this to avoid var param to be in registers !!!}
@@ -332,8 +318,6 @@ implementation
             end;
           { set the new mangled name }
         until not try_to_consume(_SEMICOLON);
-        if not is_procvar then
-          tprocdef(aktprocdef).setmangledname(hs2);
         dec(testcurobject);
         current_object_option:=old_object_option;
         consume(_RKLAMMER);
@@ -345,15 +329,12 @@ implementation
         orgsp,sp:stringid;
         paramoffset:longint;
         sym:tsym;
-        hs:string;
         doinsert : boolean;
         st : tsymtable;
         srsymtable : tsymtable;
         pdl     : pprocdeflist;
-        overloaded_level:word;
         storepos,procstartfilepos : tfileposinfo;
         i: longint;
-        procdefs : pprocdeflist;
       begin
         { Save the position where this procedure really starts }
         procstartfilepos:=akttokenpos;
@@ -497,39 +478,6 @@ implementation
              end;
          end;
 
-      { Create the mangledname }
-      {$ifndef UseNiceNames}
-        if assigned(procinfo^._class) then
-         begin
-           if (pos('_$$_',procprefix)=0) then
-            hs:=procprefix+'_$$_'+upper(procinfo^._class.objname^)+'_$$_'+sp
-           else
-            hs:=procprefix+'_$'+sp;
-         end
-        else
-         begin
-           if lexlevel=normal_function_level then
-            hs:=procprefix+'_'+sp
-           else
-            hs:=procprefix+'_$'+sp;
-         end;
-      {$else UseNiceNames}
-        if assigned(procinfo^._class) then
-         begin
-           if (pos('_5Class_',procprefix)=0) then
-            hs:=procprefix+'_5Class_'+procinfo^._class.name^+'_'+tostr(length(sp))+sp
-           else
-            hs:=procprefix+'_'+tostr(length(sp))+sp;
-         end
-        else
-         begin
-           if lexlevel=normal_function_level then
-            hs:=procprefix+'_'+tostr(length(sp))+sp
-           else
-            hs:=lowercase(procprefix)+'_'+tostr(length(sp))+sp;
-         end;
-      {$endif UseNiceNames}
-
         doinsert:=true;
         if assigned(aktprocsym) then
          begin
@@ -646,29 +594,6 @@ implementation
 
         { save file position }
         aktprocdef.fileinfo:=procstartfilepos;
-
-        { store mangledname }
-        aktprocdef.setmangledname(hs);
-
-        if not parse_only then
-          begin
-             overloaded_level:=1;
-             { we need another procprefix !!! }
-             { count, but only those in the same unit !!}
-             procdefs:=aktprocsym.defs;
-             while assigned(procdefs) and
-                   (procdefs^.def.owner.symtabletype in [globalsymtable,staticsymtable]) do
-               begin
-                  { only count already implemented functions }
-                  if not(procdefs^.def.forwarddef) then
-                    inc(overloaded_level);
-                  procdefs:=procdefs^.next;
-               end;
-             if overloaded_level>0 then
-               procprefix:=hs+'$'+tostr(overloaded_level)+'$'
-             else
-               procprefix:=hs+'$';
-          end;
 
         { this must also be inserted in the right symtable !! PM }
         { otherwise we get subbtle problems with
@@ -794,10 +719,6 @@ implementation
                               Message(parser_e_comparative_operator_return_boolean);
                              if assigned(otsym) then
                                otsym.vartype.def:=aktprocdef.rettype.def;
-                             { We need to add the return type in the mangledname
-                               to allow overloading with just different results !! (PM) }
-                             aktprocdef.setmangledname(
-                               aktprocdef.mangledname+'$$'+hs);
                              if (optoken=_ASSIGNMENT) and
                                 is_equal(aktprocdef.rettype.def,
                                    tvarsym(aktprocdef.parast.symindex.first).vartype.def) then
@@ -1851,62 +1772,46 @@ const
                     begin
                       { For delphi check if the current implementation has no proccalloption, then
                         take the options from the interface }
-                      if (m_delphi in aktmodeswitches) then
-                       begin
-                         if (aprocdef.proccalloption=pocall_none) then
-                          aprocdef.proccalloption:=hd.proccalloption
-                         else
-                          MessagePos(aprocdef.fileinfo,parser_e_call_convention_dont_match_forward);
-                       end
-                      else
-                       MessagePos(aprocdef.fileinfo,parser_e_call_convention_dont_match_forward);
-                      { restore interface settings for error recovery }
+                      if not(m_delphi in aktmodeswitches) or
+                         (aprocdef.proccalloption<>pocall_none) then
+                        MessagePos(aprocdef.fileinfo,parser_e_call_convention_dont_match_forward);
+                      { restore interface settings }
                       aprocdef.proccalloption:=hd.proccalloption;
-                      aprocdef.setmangledname(hd.mangledname);
+                      aprocdef.has_mangledname:=hd.has_mangledname;
+                      if hd.has_mangledname then
+                        aprocdef.setmangledname(hd.mangledname);
                     end;
 
                    { Check manglednames }
-                   hd.count:=false;
                    if (m_repeat_forward in aktmodeswitches) or
                       aprocdef.haspara then
                     begin
-                      if (hd.mangledname<>aprocdef.mangledname) then
-                       begin
-                         if not(po_external in aprocdef.procoptions) then
-                           MessagePos2(aprocdef.fileinfo,parser_n_interface_name_diff_implementation_name,
-                                       hd.mangledname,aprocdef.mangledname);
-                         { if the mangledname is already used, then rename it to the
-                           new mangledname of the implementation }
-                         if hd.is_used then
-                           renameasmsymbol(hd.mangledname,aprocdef.mangledname);
-                         { reset the mangledname of the interface }
-                         hd.setmangledname(aprocdef.mangledname);
-                       end
-                      else
-                       begin
-                         { If mangled names are equal then they have the same amount of arguments }
-                         { We can check the names of the arguments }
-                         { both symtables are in the same order from left to right }
-                         ad:=tsym(hd.parast.symindex.first);
-                         fd:=tsym(aprocdef.parast.symindex.first);
-                         while assigned(ad) and assigned(fd) do
-                          begin
-                            if ad.name<>fd.name then
-                             begin
-                               { don't give an error if the default parameter is not
-                                 specified in the implementation }
-                               if ((copy(fd.name,1,3)='def') and
-                                   (copy(ad.name,1,3)<>'def')) then
-                                 MessagePos3(aprocdef.fileinfo,parser_e_header_different_var_names,
-                                             aprocsym.name,ad.name,fd.name);
-                               break;
-                             end;
-                            ad:=tsym(ad.indexnext);
-                            fd:=tsym(fd.indexnext);
-                          end;
-                       end;
+                      { If mangled names are equal then they have the same amount of arguments }
+                      { We can check the names of the arguments }
+                      { both symtables are in the same order from left to right }
+                      ad:=tsym(hd.parast.symindex.first);
+                      fd:=tsym(aprocdef.parast.symindex.first);
+                      repeat
+                        { skip default parameter constsyms }
+                        while assigned(ad) and (ad.typ<>varsym) do
+                         ad:=tsym(ad.indexnext);
+                        while assigned(fd) and (fd.typ<>varsym) do
+                         fd:=tsym(fd.indexnext);
+                        { stop when one of the two lists is at the end }
+                        if not assigned(ad) or not assigned(fd) then
+                         break;
+                        if (ad.name<>fd.name) then
+                         begin
+                           MessagePos3(aprocdef.fileinfo,parser_e_header_different_var_names,
+                                       aprocsym.name,ad.name,fd.name);
+                           break;
+                         end;
+                        ad:=tsym(ad.indexnext);
+                        fd:=tsym(fd.indexnext);
+                      until false;
+                      if assigned(ad) or assigned(fd) then
+                        internalerror(200204178);
                     end;
-                   hd.count:=true;
 
                    { Everything is checked, now we can update the forward declaration
                      with the new data from the implementation }
@@ -1914,11 +1819,19 @@ const
                    hd.hasforward:=true;
                    hd.parast.address_fixup:=aprocdef.parast.address_fixup;
                    hd.procoptions:=hd.procoptions+aprocdef.procoptions;
-                   if hd.extnumber=-1 then
+                   if hd.extnumber=65535 then
                      hd.extnumber:=aprocdef.extnumber;
                    while not aprocdef.aliasnames.empty do
                     hd.aliasnames.insert(aprocdef.aliasnames.getfirst);
-
+                   { update mangledname if the implementation has a fixed mangledname set }
+                   if aprocdef.has_mangledname then
+                    begin
+                      { rename also asmsymbol first, because the name can already be used }
+                      renameasmsymbol(hd.mangledname,aprocdef.mangledname);
+                      { update the mangledname }
+                      hd.has_mangledname:=true;
+                      hd.setmangledname(aprocdef.mangledname);
+                    end;
                    { for compilerproc defines we need to rename and update the
                      symbolname to lowercase }
                    if (aprocdef.proccalloption=pocall_compilerproc) then
@@ -1989,7 +1902,13 @@ const
         { if we didn't reuse a forwarddef then we add the procdef to the overloaded
           list }
         if not forwardfound then
-         aprocsym.addprocdef(aprocdef);
+         begin
+           aprocsym.addprocdef(aprocdef);
+           { add overloadnumber for unique naming, the overloadcount is
+             counted per module and 0 for the first procedure }
+           aprocdef.overloadnumber:=aprocsym.overloadcount;
+           inc(aprocsym.overloadcount);
+         end;
 
         { insert otsym only in the right symtable }
         if ((procinfo^.flags and pi_operator)<>0) and
@@ -2017,7 +1936,15 @@ const
 end.
 {
   $Log$
-  Revision 1.49  2002-04-15 19:00:33  carl
+  Revision 1.50  2002-04-19 15:46:02  peter
+    * mangledname rewrite, tprocdef.mangledname is now created dynamicly
+      in most cases and not written to the ppu
+    * add mangeledname_prefix() routine to generate the prefix of
+      manglednames depending on the current procedure, object and module
+    * removed static procprefix since the mangledname is now build only
+      on demand from tprocdef.mangledname
+
+  Revision 1.49  2002/04/15 19:00:33  carl
   + target_info.size_of_pointer -> pointer_Size
 
   Revision 1.48  2002/03/29 13:29:32  peter

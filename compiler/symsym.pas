@@ -46,6 +46,9 @@ interface
 
        { this object is the base for all symbol objects }
        tstoredsym = class(tsym)
+       protected
+          _mangledname : pstring;
+       public
 {$ifdef GDB}
           isstabwritten : boolean;
 {$endif GDB}
@@ -69,6 +72,8 @@ interface
           function  write_references(ppufile:tcompilerppufile;locals:boolean):boolean;virtual;
           function  is_visible_for_proc(currprocdef:tprocdef):boolean;
           function  is_visible_for_object(currobjdef:tobjectdef):boolean;
+          function  mangledname : string;
+          procedure generate_mangledname;virtual;abstract;
        end;
 
        tlabelsym = class(tstoredsym)
@@ -79,7 +84,7 @@ interface
           constructor create(const n : string; l : tasmlabel);
           destructor destroy;override;
           constructor load(ppufile:tcompilerppufile);
-          function mangledname : string;
+          procedure generate_mangledname;override;
           procedure write(ppufile:tcompilerppufile);override;
        end;
 
@@ -104,6 +109,7 @@ interface
           defs      : pprocdeflist; { linked list of overloaded procdefs }
           is_global : boolean;
           overloadchecked : boolean;
+          overloadcount   : longint; { amount of overloaded functions in this module }
           constructor create(const n : string);
           constructor load(ppufile:tcompilerppufile);
           destructor destroy;override;
@@ -156,8 +162,8 @@ interface
           destructor  destroy;override;
           procedure write(ppufile:tcompilerppufile);override;
           procedure deref;override;
-          procedure setmangledname(const s : string);
-          function  mangledname : string;
+          procedure generate_mangledname;override;
+          procedure set_mangledname(const s:string);
           procedure insert_in_data;override;
           function  getsize : longint;
           function  getvaluesize : longint;
@@ -166,8 +172,6 @@ interface
           function  stabstring : pchar;override;
           procedure concatstabto(asmlist : taasmoutput);override;
 {$endif GDB}
-       private
-          _mangledname  : pchar;
        end;
 
        tpropertysym = class(tstoredsym)
@@ -226,14 +230,13 @@ interface
        end;
 
        ttypedconstsym = class(tstoredsym)
-          prefix          : pstring;
           typedconsttype  : ttype;
           is_writable     : boolean;
           constructor create(const n : string;p : tdef;writable : boolean);
           constructor createtype(const n : string;const tt : ttype;writable : boolean);
           constructor load(ppufile:tcompilerppufile);
           destructor destroy;override;
-          function  mangledname : string;
+          procedure generate_mangledname;override;
           procedure write(ppufile:tcompilerppufile);override;
           procedure deref;override;
           function  getsize:longint;
@@ -332,8 +335,6 @@ interface
 
        generrorsym : tsym;
 
-       procprefix : string;     { prefix generated for the current compiled proc }
-
     const
        current_object_option : tsymoptions = [sp_public];
 
@@ -394,6 +395,7 @@ implementation
             inc(refcount);
           end;
          lastref:=defref;
+         _mangledname:=nil;
       end;
 
 
@@ -414,6 +416,7 @@ implementation
          refs:=0;
          lastwritten:=nil;
          refcount:=0;
+         _mangledname:=nil;
 {$ifdef GDB}
          isstabwritten := false;
 {$endif GDB}
@@ -494,6 +497,8 @@ implementation
 
     destructor tstoredsym.destroy;
       begin
+        if assigned(_mangledname) then
+         stringdispose(_mangledname);
         if assigned(defref) then
          begin
            defref.freechain;
@@ -602,6 +607,18 @@ implementation
       end;
 
 
+    function tstoredsym.mangledname : string;
+      begin
+        if not assigned(_mangledname) then
+         begin
+           generate_mangledname;
+           if not assigned(_mangledname) then
+            internalerror(200204171);
+         end;
+        mangledname:=_mangledname^
+      end;
+
+
 {****************************************************************************
                                  TLABELSYM
 ****************************************************************************}
@@ -637,9 +654,9 @@ implementation
       end;
 
 
-    function tlabelsym.mangledname : string;
+    procedure tlabelsym.generate_mangledname;
       begin
-         mangledname:=lab.name;
+        _mangledname:=stringdup(lab.name);
       end;
 
 
@@ -745,6 +762,7 @@ implementation
          owner:=nil;
          is_global:=false;
          overloadchecked:=false;
+         overloadcount:=0;
       end;
 
 
@@ -763,6 +781,7 @@ implementation
          until false;
          is_global:=false;
          overloadchecked:=false;
+         overloadcount:=-1; { invalid, not used anymore }
       end;
 
 
@@ -1307,7 +1326,8 @@ implementation
       begin
          tvarsym(self).create(n,tt);
          include(varoptions,vo_is_C_var);
-         setmangledname(mangled);
+         stringdispose(_mangledname);
+         _mangledname:=stringdup(mangled);
       end;
 
 
@@ -1315,7 +1335,6 @@ implementation
       begin
          inherited loadsym(ppufile);
          typ:=varsym;
-         _mangledname:=nil;
          reg:=R_NO;
          refs := 0;
          varstate:=vs_used;
@@ -1328,13 +1347,12 @@ implementation
          ppufile.gettype(vartype);
          ppufile.getsmallset(varoptions);
          if (vo_is_C_var in varoptions) then
-           setmangledname(ppufile.getstring);
+           _mangledname:=stringdup(ppufile.getstring);
       end;
 
 
     destructor tvarsym.destroy;
       begin
-         strdispose(_mangledname);
          inherited destroy;
       end;
 
@@ -1364,34 +1382,16 @@ implementation
       end;
 
 
-    procedure tvarsym.setmangledname(const s : string);
+    procedure tvarsym.generate_mangledname;
       begin
-        _mangledname:=strpnew(s);
+        _mangledname:=stringdup(mangledname_prefix('U',owner)+name);
       end;
 
 
-    function tvarsym.mangledname : string;
-      var
-        prefix : string;
+    procedure tvarsym.set_mangledname(const s:string);
       begin
-         if assigned(_mangledname) then
-           begin
-              mangledname:=strpas(_mangledname);
-              exit;
-           end;
-         case owner.symtabletype of
-           staticsymtable :
-             if (cs_create_smart in aktmoduleswitches) then
-               prefix:='_'+upper(owner.name^)+'$$$_'
-             else
-               prefix:='_';
-           globalsymtable :
-             prefix:=
-              'U_'+upper(owner.name^)+'_';
-           else
-             Message(sym_e_invalid_call_tvarsymmangledname);
-         end;
-         mangledname:=prefix+name;
+        stringdispose(_mangledname);
+        _mangledname:=stringdup(s);
       end;
 
 
@@ -1708,7 +1708,6 @@ implementation
          typ:=typedconstsym;
          typedconsttype.setdef(p);
          is_writable:=writable;
-         prefix:=stringdup(procprefix);
       end;
 
 
@@ -1718,7 +1717,6 @@ implementation
          typ:=typedconstsym;
          typedconsttype:=tt;
          is_writable:=writable;
-         prefix:=stringdup(procprefix);
       end;
 
 
@@ -1727,21 +1725,19 @@ implementation
          inherited loadsym(ppufile);
          typ:=typedconstsym;
          ppufile.gettype(typedconsttype);
-         prefix:=stringdup(ppufile.getstring);
          is_writable:=boolean(ppufile.getbyte);
       end;
 
 
     destructor ttypedconstsym.destroy;
       begin
-         stringdispose(prefix);
          inherited destroy;
       end;
 
 
-    function ttypedconstsym.mangledname : string;
+    procedure ttypedconstsym.generate_mangledname;
       begin
-         mangledname:='TC_'+prefix^+'_'+name;
+        _mangledname:=stringdup(mangledname_prefix('TC',owner)+name);
       end;
 
 
@@ -1764,7 +1760,6 @@ implementation
       begin
          inherited writesym(ppufile);
          ppufile.puttype(typedconsttype);
-         ppufile.putstring(prefix^);
          ppufile.putbyte(byte(is_writable));
          ppufile.writeentry(ibtypedconstsym);
       end;
@@ -2518,7 +2513,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.34  2002-04-16 16:12:47  peter
+  Revision 1.35  2002-04-19 15:46:03  peter
+    * mangledname rewrite, tprocdef.mangledname is now created dynamicly
+      in most cases and not written to the ppu
+    * add mangeledname_prefix() routine to generate the prefix of
+      manglednames depending on the current procedure, object and module
+    * removed static procprefix since the mangledname is now build only
+      on demand from tprocdef.mangledname
+
+  Revision 1.34  2002/04/16 16:12:47  peter
     * give error when using enums with jumps as array index
     * allow char as enum value
 

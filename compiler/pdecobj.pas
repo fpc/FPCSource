@@ -543,7 +543,7 @@ implementation
                      p2:=search_default_property(aktclass);
                      if assigned(p2) then
                        message1(parser_e_only_one_default_property,
-                         tobjectdef(p2.owner.defowner)^.objname^)
+                         tobjectdef(p2.owner.defowner)^.objrealname^)
                      else
                      }
                        begin
@@ -634,7 +634,7 @@ implementation
                     childof:=interface_iunknown;
                 end;
                 if (oo_is_forward in childof.objectoptions) then
-                  Message1(parser_e_forward_declaration_must_be_resolved,childof.objname^);
+                  Message1(parser_e_forward_declaration_must_be_resolved,childof.objrealname^);
                 aktclass.set_parent(childof);
              end;
          end;
@@ -849,7 +849,7 @@ implementation
                    if assigned(fd) then
                     begin
                       if (oo_is_forward in childof.objectoptions) then
-                       Message1(parser_e_forward_declaration_must_be_resolved,childof.objname^);
+                       Message1(parser_e_forward_declaration_must_be_resolved,childof.objrealname^);
                       aktclass:=fd;
                       { we must inherit several options !!
                         this was missing !!
@@ -1110,7 +1110,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.39  2002-04-04 19:06:00  peter
+  Revision 1.40  2002-04-19 15:46:02  peter
+    * mangledname rewrite, tprocdef.mangledname is now created dynamicly
+      in most cases and not written to the ppu
+    * add mangeledname_prefix() routine to generate the prefix of
+      manglednames depending on the current procedure, object and module
+    * removed static procprefix since the mangledname is now build only
+      on demand from tprocdef.mangledname
+
+  Revision 1.39  2002/04/04 19:06:00  peter
     * removed unused units
     * use tlocation.size in cg.a_*loc*() routines
 

@@ -241,7 +241,6 @@ implementation
          oldrefsymtable,
          olddefaultsymtablestack,
          oldsymtablestack : tsymtable;
-         oldprocprefix    : string;
          oldaktprocsym    : tprocsym;
          oldaktprocdef    : tprocdef;
          oldoverloaded_operators : toverloaded_operators;
@@ -305,7 +304,6 @@ implementation
          oldsymtablestack:=symtablestack;
          olddefaultsymtablestack:=defaultsymtablestack;
          oldrefsymtable:=refsymtable;
-         oldprocprefix:=procprefix;
          oldaktprocsym:=aktprocsym;
          oldaktprocdef:=aktprocdef;
          oldaktdefproccall:=aktdefproccall;
@@ -375,7 +373,6 @@ implementation
          refsymtable:=nil;
          aktprocsym:=nil;
          aktdefproccall:=initdefproccall;
-         procprefix:='';
          registerdef:=true;
          statement_level:=0;
          aktexceptblock:=0;
@@ -544,7 +541,6 @@ implementation
               aktdefproccall:=oldaktdefproccall;
               aktprocsym:=oldaktprocsym;
               aktprocdef:=oldaktprocdef;
-              procprefix:=oldprocprefix;
               move(oldoverloaded_operators,overloaded_operators,sizeof(toverloaded_operators));
               aktlocalswitches:=oldaktlocalswitches;
               aktmoduleswitches:=oldaktmoduleswitches;
@@ -631,7 +627,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.27  2002-01-29 19:43:11  peter
+  Revision 1.28  2002-04-19 15:46:02  peter
+    * mangledname rewrite, tprocdef.mangledname is now created dynamicly
+      in most cases and not written to the ppu
+    * add mangeledname_prefix() routine to generate the prefix of
+      manglednames depending on the current procedure, object and module
+    * removed static procprefix since the mangledname is now build only
+      on demand from tprocdef.mangledname
+
+  Revision 1.27  2002/01/29 19:43:11  peter
     * update target_asm according to outputformat
 
   Revision 1.26  2001/11/02 22:58:02  peter

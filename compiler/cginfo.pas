@@ -83,12 +83,27 @@ interface
        OS_VECTOR = OS_NO; { the normal registers can also be used as vectors }
 {$endif ia64}
 
+    const
+      TCGSize2Size : Array[tcgsize] of integer =
+        (0,1,2,4,8,1,2,4,8,
+         4,8,10,8,
+         1,2,4,8,16,1,2,4,8,16);
+
+
 implementation
 
 end.
 {
   $Log$
-  Revision 1.1  2002-04-02 18:09:47  jonas
+  Revision 1.2  2002-04-19 15:46:01  peter
+    * mangledname rewrite, tprocdef.mangledname is now created dynamicly
+      in most cases and not written to the ppu
+    * add mangeledname_prefix() routine to generate the prefix of
+      manglednames depending on the current procedure, object and module
+    * removed static procprefix since the mangledname is now build only
+      on demand from tprocdef.mangledname
+
+  Revision 1.1  2002/04/02 18:09:47  jonas
     + initial implementation (Peter forgot to commit it)
 
 }

@@ -151,8 +151,9 @@ implementation
            loaded at that time. A symbol reference to an other unit
            is still possible, because it's already loaded (PFV)
            can't use in [] here, becuase unitid can be > 255 }
-         if (ttypesym(srsym).owner.unitid=0) or
-            (ttypesym(srsym).owner.unitid=1) then
+{         if (ttypesym(srsym).owner.unitid=0) or
+            (ttypesym(srsym).owner.unitid=1) then }
+         if (ttypesym(srsym).owner.unitid=0) then
           tt.setdef(ttypesym(srsym).restype.def)
          else
           tt.setsym(srsym);
@@ -630,7 +631,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.36  2002-04-16 16:12:47  peter
+  Revision 1.37  2002-04-19 15:46:03  peter
+    * mangledname rewrite, tprocdef.mangledname is now created dynamicly
+      in most cases and not written to the ppu
+    * add mangeledname_prefix() routine to generate the prefix of
+      manglednames depending on the current procedure, object and module
+    * removed static procprefix since the mangledname is now build only
+      on demand from tprocdef.mangledname
+
+  Revision 1.36  2002/04/16 16:12:47  peter
     * give error when using enums with jumps as array index
     * allow char as enum value
 

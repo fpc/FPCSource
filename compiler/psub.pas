@@ -500,7 +500,6 @@ implementation
         generates the code for it
       }
       var
-        oldprefix        : string;
         oldprocsym       : tprocsym;
         oldprocdef       : tprocdef;
         oldprocinfo      : pprocinfo;
@@ -511,7 +510,6 @@ implementation
       { save old state }
          oldprocdef:=aktprocdef;
          oldprocsym:=aktprocsym;
-         oldprefix:=procprefix;
          oldconstsymtable:=constsymtable;
          oldprocinfo:=procinfo;
       { create a new procedure }
@@ -680,9 +678,6 @@ implementation
          codegen_doneprocedure;
          { Restore old state }
          constsymtable:=oldconstsymtable;
-         { from now on all refernece to mangledname means
-           that the function is already used }
-         aktprocdef.count:=true;
 {$ifdef notused}
          { restore the interface order to maintain CRC values PM }
          if assigned(prevdef) and assigned(aktprocdef.nextoverloaded) then
@@ -695,7 +690,6 @@ implementation
 {$endif notused}
          aktprocsym:=oldprocsym;
          aktprocdef:=oldprocdef;
-         procprefix:=oldprefix;
          procinfo:=oldprocinfo;
          otsym:=nil;
       end;
@@ -817,7 +811,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.47  2002-04-15 19:01:28  carl
+  Revision 1.48  2002-04-19 15:46:02  peter
+    * mangledname rewrite, tprocdef.mangledname is now created dynamicly
+      in most cases and not written to the ppu
+    * add mangeledname_prefix() routine to generate the prefix of
+      manglednames depending on the current procedure, object and module
+    * removed static procprefix since the mangledname is now build only
+      on demand from tprocdef.mangledname
+
+  Revision 1.47  2002/04/15 19:01:28  carl
   + target_info.size_of_pointer -> pointer_Size
 
   Revision 1.46  2002/04/04 18:45:19  carl

@@ -21,7 +21,7 @@
 
     First Implementation 10 Sept 2000 Armin Diehl
 
-    Currently generating NetWare-NLM's only work under Linux and win32. 
+    Currently generating NetWare-NLM's only work under Linux and win32.
     (see http://home.arcor.de/armin.diehl/fpcnw for binutils working
     with win32) while not included in fpc-releases.
 
@@ -55,8 +55,8 @@
        make all
 
     Debugging is currently only possible at assembler level with nwdbg, written
-    by Jan Beulich. (or with my modified RDebug) Nwdbg supports symbols but it's 
-    not a source-level debugger. You can get nwdbg from developer.novell.com. 
+    by Jan Beulich. (or with my modified RDebug) Nwdbg supports symbols but it's
+    not a source-level debugger. You can get nwdbg from developer.novell.com.
     To enter the debugger from your program, call _EnterDebugger (defined in unit system).
 
     A sample program:
@@ -141,7 +141,7 @@ begin
    begin
      aktprocdef.setmangledname(name);
      aktprocdef.has_mangledname:=true;
-   end     
+   end
   else
     message(parser_e_empty_import_name);
 end;
@@ -152,7 +152,7 @@ begin
   { insert sharedlibrary }
   current_module.linkothersharedlibs.add(SplitName(module),link_allways);
   { reset the mangledname and turn off the dll_var option }
-  aktvarsym.setmangledname(name);
+  aktvarsym.set_mangledname(name);
   exclude(aktvarsym.varoptions,vo_is_dll_var);
 end;
 
@@ -302,7 +302,7 @@ begin
   if Description <> '' then
     LinkRes.Add('DESCRIPTION "' + Description + '"');
   LinkRes.Add('VERSION '+tostr(dllmajor)+','+tostr(dllminor)+','+tostr(dllrevision));
-  
+
   p := Pos ('"', nwscreenname);
   while (p > 0) do
   begin
@@ -370,7 +370,7 @@ begin
         imported libraries}
        if (pos ('.a',s) <> 0) OR (pos ('.A', s) <> 0) then
        begin
-         LinkRes.Add ('INPUT '+FindObjectFile(s,'')); 
+         LinkRes.Add ('INPUT '+FindObjectFile(s,''));
        end else
        begin
              i:=Pos(target_info.staticlibext,S);
@@ -551,7 +551,15 @@ initialization
 end.
 {
   $Log$
-  Revision 1.18  2002-04-15 19:16:57  carl
+  Revision 1.19  2002-04-19 15:46:05  peter
+    * mangledname rewrite, tprocdef.mangledname is now created dynamicly
+      in most cases and not written to the ppu
+    * add mangeledname_prefix() routine to generate the prefix of
+      manglednames depending on the current procedure, object and module
+    * removed static procprefix since the mangledname is now build only
+      on demand from tprocdef.mangledname
+
+  Revision 1.18  2002/04/15 19:16:57  carl
   - remove size_of_pointer field
 
   Revision 1.17  2002/03/30 09:09:47  armin

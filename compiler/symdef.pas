@@ -124,6 +124,7 @@ interface
           procedure write(ppufile:tcompilerppufile);override;
           procedure deref;override;
           function  gettypename:string;override;
+          function  getmangledparaname:string;override;
           procedure setsize;
           { debug }
 {$ifdef GDB}
@@ -247,7 +248,8 @@ interface
           procedure writefields(sym:tnamedindexitem);
        public
           childof  : tobjectdef;
-          objname  : pstring;
+          objname,
+          objrealname   : pstring;
           objectoptions : tobjectoptions;
           { to be able to have a variable vmt position }
           { and no vmt field for objects without virtuals }
@@ -345,11 +347,12 @@ interface
           IsVariant,
           IsConstructor,
           IsArrayOfConst : boolean;
-          function gettypename:string;override;
           function elesize : longint;
           constructor create(l,h : longint;const t : ttype);
           constructor load(ppufile:tcompilerppufile);
           procedure write(ppufile:tcompilerppufile);override;
+          function  gettypename:string;override;
+          function  getmangledparaname : string;override;
 {$ifdef GDB}
           function stabstring : pchar;override;
           procedure concatstabto(asmlist : taasmoutput);override;
@@ -424,7 +427,7 @@ interface
           procedure deref;override;
           procedure concatpara(const tt:ttype;sym : tsym;vsp : tvarspez;defval:tsym);
           function  para_size(alignsize:longint) : longint;
-          function  demangled_paras : string;
+          function  typename_paras : string;
           procedure test_if_fpu_result;
           { debug }
 {$ifdef GDB}
@@ -462,7 +465,8 @@ interface
           isstabwritten : boolean;
 {$endif GDB}
        public
-          extnumber  : longint;
+          extnumber      : word;
+          overloadnumber : word;
           messageinf : tmessageinf;
 {$ifndef EXTDEBUG}
           { where is this function defined, needed here because there
@@ -501,8 +505,6 @@ interface
           { true if the procedure has a forward declaration }
           hasforward : boolean;
           { check the problems of manglednames }
-          count      : boolean;
-          is_used    : boolean;
           has_mangledname : boolean;
           { small set which contains the modified registers }
           usedregisters : tregisterset;
@@ -550,6 +552,7 @@ interface
           function  size : longint;override;
           procedure write(ppufile:tcompilerppufile);override;
           function  gettypename:string;override;
+          function  getmangledparaname:string;override;
           function  is_publishable : boolean;override;
           { debug }
 {$ifdef GDB}
@@ -688,6 +691,7 @@ interface
        pbestrealtype : ^ttype = @s64floattype;
 {$endif SPARC}
 
+    function mangledname_prefix(typeprefix:string;st:tsymtable):string;
 
 {$ifdef GDB}
     { GDB Helpers }
@@ -734,6 +738,38 @@ implementation
 {****************************************************************************
                                   Helpers
 ****************************************************************************}
+
+    function mangledname_prefix(typeprefix:string;st:tsymtable):string;
+      var
+        s,
+        prefix : string;
+      begin
+        prefix:='';
+        { sub procedures }
+        while (st.symtabletype=localsymtable) do
+         begin
+           if st.defowner.deftype<>procdef then
+            internalerror(200204173);
+           s:=tprocdef(st.defowner).procsym.name;
+           if tprocdef(st.defowner).overloadnumber>0 then
+            s:=s+'$'+tostr(tprocdef(st.defowner).overloadnumber);
+           prefix:=s+'$'+prefix;
+           st:=st.defowner.owner;
+         end;
+        { object/classes symtable }
+        if (st.symtabletype=objectsymtable) then
+         begin
+           if st.defowner.deftype<>objectdef then
+            internalerror(200204174);
+           prefix:=tobjectdef(st.defowner).objname^+'_$_'+prefix;
+           st:=st.defowner.owner;
+         end;
+        { symtable must now be static or global }
+        if not(st.symtabletype in [staticsymtable,globalsymtable]) then
+         internalerror(200204175);
+        mangledname_prefix:=typeprefix+'_'+st.name^+'_'+prefix;
+      end;
+
 
 {$ifdef GDB}
     procedure forcestabto(asmlist : taasmoutput; pd : tdef);
@@ -1339,6 +1375,12 @@ implementation
                  rttiList.concat(Tai_const.Create_8bit(len));
               end;
          end;
+      end;
+
+
+    function tstringdef.getmangledparaname : string;
+      begin
+        getmangledparaname:='STRING';
       end;
 
 
@@ -2078,6 +2120,19 @@ implementation
       end;
 
 
+    function tfiledef.getmangledparaname : string;
+      begin
+         case filetyp of
+           ft_untyped:
+             getmangledparaname:='FILE';
+           ft_typed:
+             getmangledparaname:='FILE$OF$'+typedfiletype.def.mangledparaname;
+           ft_text:
+             getmangledparaname:='TEXT'
+         end;
+      end;
+
+
 {****************************************************************************
                                TVARIANTDEF
 ****************************************************************************}
@@ -2718,6 +2773,18 @@ implementation
       end;
 
 
+    function tarraydef.getmangledparaname : string;
+      begin
+         if isarrayofconst then
+          getmangledparaname:='array_of_const'
+         else
+          if ((highrange=-1) and (lowrange=0)) then
+           getmangledparaname:='array_of_'+elementtype.def.mangledparaname
+         else
+          internalerror(200204176);
+      end;
+
+
 {***************************************************************************
                               tabstractrecorddef
 ***************************************************************************}
@@ -3144,7 +3211,7 @@ implementation
       end;
 
 
-    function tabstractprocdef.demangled_paras : string;
+    function tabstractprocdef.typename_paras : string;
       var
         hs,s : string;
         hp : TParaItem;
@@ -3153,7 +3220,7 @@ implementation
         hp:=TParaItem(Para.last);
         if not(assigned(hp)) then
           begin
-             demangled_paras:='';
+             typename_paras:='';
              exit;
           end;
         s:='(';
@@ -3210,7 +3277,7 @@ implementation
         s:=s+')';
         if (po_varargs in procoptions) then
          s:=s+';VarArgs';
-        demangled_paras:=s;
+        typename_paras:=s;
       end;
 
 
@@ -3244,7 +3311,7 @@ implementation
          has_mangledname:=false;
          _mangledname:=nil;
          fileinfo:=aktfilepos;
-         extnumber:=-1;
+         extnumber:=$ffff;
          aliasnames:=tstringlist.create;
          localst:=tlocalsymtable.create;
          parast:=tparasymtable.create;
@@ -3272,8 +3339,7 @@ implementation
          _class := nil;
          code:=nil;
          regvarinfo := nil;
-         count:=false;
-         is_used:=false;
+         overloadnumber:=0;
 {$ifdef GDB}
          isstabwritten := false;
 {$endif GDB}
@@ -3286,10 +3352,13 @@ implementation
          deftype:=procdef;
 
          ppufile.getnormalset(usedregisters);
-         has_mangledname:=true;
-         _mangledname:=stringdup(ppufile.getstring);
-
-         extnumber:=ppufile.getlongint;
+         has_mangledname:=boolean(ppufile.getbyte);
+         if has_mangledname then
+          _mangledname:=stringdup(ppufile.getstring)
+         else
+          _mangledname:=nil;
+         overloadnumber:=ppufile.getword;
+         extnumber:=ppufile.getword;
          _class := tobjectdef(ppufile.getderef);
          procsym := tsym(ppufile.getderef);
          ppufile.getposinfo(fileinfo);
@@ -3326,8 +3395,6 @@ implementation
          lastwritten:=nil;
          defref:=nil;
          refcount:=0;
-         count:=true;
-         is_used:=false;
 {$ifdef GDB}
          isstabwritten := false;
 {$endif GDB}
@@ -3373,8 +3440,11 @@ implementation
 
          ppufile.putnormalset(usedregisters);
          ppufile.do_interface_crc:=oldintfcrc;
-         ppufile.putstring(mangledname);
-         ppufile.putlongint(extnumber);
+         ppufile.putbyte(byte(has_mangledname));
+         if has_mangledname then
+          ppufile.putstring(mangledname);
+         ppufile.putword(overloadnumber);
+         ppufile.putword(extnumber);
          ppufile.putderef(_class);
          ppufile.putderef(procsym);
          ppufile.putposinfo(fileinfo);
@@ -3422,8 +3492,8 @@ implementation
       begin
         s:='';
         if assigned(_class) then
-         s:=_class.objname^+'.';
-        s:=s+procsym.realname+demangled_paras;
+         s:=_class.objrealname^+'.';
+        s:=s+procsym.realname+typename_paras;
         fullprocname:=s;
       end;
 
@@ -3704,13 +3774,31 @@ implementation
 
 
     function tprocdef.mangledname : string;
+      var
+        s  : string;
+        hp : TParaItem;
       begin
-         if assigned(_mangledname) then
-           mangledname:=_mangledname^
-         else
-           mangledname:='';
-         if count then
-           is_used:=true;
+        if assigned(_mangledname) then
+         begin
+           mangledname:=_mangledname^;
+           exit;
+         end;
+        { we need to use the symtable where the procsym is inserted,
+          because that is visible to the world }
+        s:=mangledname_prefix('',procsym.owner)+procsym.name+'$';
+        if overloadnumber>0 then
+         s:=s+tostr(overloadnumber)+'$';
+        { add parameter types }
+        hp:=TParaItem(Para.last);
+        while assigned(hp) do
+         begin
+           s:=s+hp.paratype.def.mangledparaname;
+           hp:=TParaItem(hp.previous);
+           if assigned(hp) then
+            s:=s+'$';
+         end;
+        _mangledname:=stringdup(s);
+        mangledname:=_mangledname^;
       end;
 
 
@@ -3783,31 +3871,12 @@ implementation
          cplusplusmangledname:=s;
       end;
 
+
     procedure tprocdef.setmangledname(const s : string);
       begin
-         if assigned(_mangledname) then
-           begin
-{$ifdef MEMDEBUG}
-              dec(manglenamesize,length(_mangledname^));
-{$endif}
-              stringdispose(_mangledname);
-           end;
-         _mangledname:=stringdup(s);
-{$ifdef MEMDEBUG}
-         inc(manglenamesize,length(s));
-{$endif}
-{$ifdef EXTDEBUG}
-         if assigned(parast) then
-           begin
-              stringdispose(parast.name);
-              parast.name:=stringdup('args of '+s);
-           end;
-         if assigned(localst) then
-           begin
-              stringdispose(localst.name);
-              localst.name:=stringdup('locals of '+s);
-           end;
-{$endif}
+        stringdispose(_mangledname);
+        _mangledname:=stringdup(s);
+        has_mangledname:=true;
       end;
 
 
@@ -3971,10 +4040,10 @@ implementation
       begin
          if assigned(rettype.def) and
             (rettype.def<>voidtype.def) then
-           s:='<procedure variable type of function'+demangled_paras+
+           s:='<procedure variable type of function'+typename_paras+
              ':'+rettype.def.gettypename
          else
-           s:='<procedure variable type of procedure'+demangled_paras;
+           s:='<procedure variable type of procedure'+typename_paras;
          if po_methodpointer in procoptions then
            s := s+' of object';
          gettypename := s+';'+ProcCallOptionStr[proccalloption]+'>';
@@ -4011,7 +4080,8 @@ implementation
          symtable.dataalignment:=aktalignment.recordalignmax;
         lastvtableindex:=0;
         set_parent(c);
-        objname:=stringdup(n);
+        objname:=stringdup(upper(n));
+        objrealname:=stringdup(n);
 
         { set up guid }
         isiidguidvalid:=true; { default null guid }
@@ -4040,7 +4110,8 @@ implementation
          objecttype:=tobjectdeftype(ppufile.getbyte);
          savesize:=ppufile.getlongint;
          vmt_offset:=ppufile.getlongint;
-         objname:=stringdup(ppufile.getstring);
+         objrealname:=stringdup(ppufile.getstring);
+         objname:=stringdup(upper(objrealname^));
          childof:=tobjectdef(ppufile.getderef);
          ppufile.getsmallset(objectoptions);
 
@@ -4070,7 +4141,7 @@ implementation
 
          oldread_member:=read_member;
          read_member:=true;
-         symtable:=tobjectsymtable.create(objname^);
+         symtable:=tobjectsymtable.create(objrealname^);
          tobjectsymtable(symtable).load(ppufile);
          read_member:=oldread_member;
 
@@ -4081,11 +4152,11 @@ implementation
          { it !                                  }
          if (childof=nil) and
             (objecttype=odt_class) and
-            (upper(objname^)='TOBJECT') then
+            (objname^='TOBJECT') then
            class_tobject:=self;
          if (childof=nil) and
             (objecttype=odt_interfacecom) and
-            (upper(objname^)='IUNKNOWN') then
+            (objname^='IUNKNOWN') then
            interface_iunknown:=self;
 {$ifdef GDB}
          writing_class_record_stab:=false;
@@ -4098,6 +4169,7 @@ implementation
         if assigned(symtable) then
           symtable.free;
         stringdispose(objname);
+        stringdispose(objrealname);
         stringdispose(iidstr);
         if assigned(implementedinterfaces) then
           implementedinterfaces.free;
@@ -4115,7 +4187,7 @@ implementation
          ppufile.putbyte(byte(objecttype));
          ppufile.putlongint(size);
          ppufile.putlongint(vmt_offset);
-         ppufile.putstring(objname^);
+         ppufile.putstring(objrealname^);
          ppufile.putderef(childof);
          ppufile.putsmallset(objectoptions);
          if objecttype in [odt_interfacecom,odt_interfacecorba] then
@@ -4219,7 +4291,7 @@ implementation
         if (oo_is_forward in objectoptions) then
           begin
              { ok, in future, the forward can be resolved }
-             Message1(sym_e_class_forward_not_resolved,objname^);
+             Message1(sym_e_class_forward_not_resolved,objrealname^);
              exclude(objectoptions,oo_is_forward);
           end;
      end;
@@ -4323,39 +4395,16 @@ implementation
 
 
     function tobjectdef.vmt_mangledname : string;
-    {DM: I get a nil pointer on the owner name. I don't know if this
-     may happen, and I have therefore fixed the problem by doing nil pointer
-     checks.}
-    var
-      s1,s2:string;
     begin
-        if not(oo_has_vmt in objectoptions) then
-          Message1(parser_object_has_no_vmt,objname^);
-        if owner.name=nil then
-          s1:=''
-        else
-          s1:=upper(owner.name^);
-        if objname=nil then
-          s2:=''
-        else
-          s2:=Upper(objname^);
-        vmt_mangledname:='VMT_'+s1+'$_'+s2;
+      if not(oo_has_vmt in objectoptions) then
+        Message1(parser_object_has_no_vmt,objrealname^);
+      vmt_mangledname:=mangledname_prefix('VMT',owner)+objname^;
     end;
 
 
     function tobjectdef.rtti_name : string;
-    var
-      s1,s2:string;
     begin
-       if owner.name=nil then
-         s1:=''
-       else
-         s1:=upper(owner.name^);
-       if objname=nil then
-         s2:=''
-       else
-         s2:=Upper(objname^);
-       rtti_name:='RTTI_'+s1+'$_'+s2;
+      rtti_name:=mangledname_prefix('RTTI',owner)+objname^;
     end;
 
 
@@ -4897,8 +4946,8 @@ implementation
           end;
 
          { generate the name }
-         rttiList.concat(Tai_const.Create_8bit(length(objname^)));
-         rttiList.concat(Tai_string.Create(objname^));
+         rttiList.concat(Tai_const.Create_8bit(length(objrealname^)));
+         rttiList.concat(Tai_string.Create(objrealname^));
 
          case rt of
            initrtti :
@@ -5419,7 +5468,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.70  2002-04-15 19:06:34  carl
+  Revision 1.71  2002-04-19 15:46:03  peter
+    * mangledname rewrite, tprocdef.mangledname is now created dynamicly
+      in most cases and not written to the ppu
+    * add mangeledname_prefix() routine to generate the prefix of
+      manglednames depending on the current procedure, object and module
+    * removed static procprefix since the mangledname is now build only
+      on demand from tprocdef.mangledname
+
+  Revision 1.70  2002/04/15 19:06:34  carl
   + target_info.size_of_pointer -> pointer_Size
 
   Revision 1.69  2002/04/14 16:55:43  carl

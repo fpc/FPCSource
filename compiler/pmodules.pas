@@ -146,13 +146,13 @@ implementation
 {$endif}
            then
          begin
-           { align the first data } 
+           { align the first data }
            dataSegment.insert(Tai_align.Create(used_align(32,
                aktalignment.constalignmin,aktalignment.constalignmax)));
            dataSegment.insert(Tai_string.Create('FPC '+full_version_string+
              ' ['+date_string+'] for '+target_cpu_string+' - '+target_info.shortname));
          end;
-        { align code segment }         
+        { align code segment }
         codeSegment.concat(Tai_align.Create(aktalignment.procalign));
        { Insert start and end of sections }
         fixseg(codesegment,sec_code);
@@ -781,13 +781,6 @@ implementation
          if (current_module.modulename^='OBJPAS') then
            exclude(aktmodeswitches,m_objpas);
 
-         { this should be placed after uses !!}
-{$ifndef UseNiceNames}
-         procprefix:='_'+current_module.modulename^+'$$';
-{$else UseNiceNames}
-         procprefix:='_'+tostr(length(current_module.modulename^))+lowercase(current_module.modulename^)+'_';
-{$endif UseNiceNames}
-
          parse_only:=true;
 
          { generate now the global symboltable }
@@ -1247,9 +1240,6 @@ implementation
 
          Message1(parser_u_parsing_implementation,current_module.mainsource^);
 
-         { reset }
-         procprefix:='';
-
          {The program intialization needs an alias, so it can be called
           from the bootstrap code.}
          codegen_newprocedure;
@@ -1398,7 +1388,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.60  2002-04-14 16:53:10  carl
+  Revision 1.61  2002-04-19 15:46:02  peter
+    * mangledname rewrite, tprocdef.mangledname is now created dynamicly
+      in most cases and not written to the ppu
+    * add mangeledname_prefix() routine to generate the prefix of
+      manglednames depending on the current procedure, object and module
+    * removed static procprefix since the mangledname is now build only
+      on demand from tprocdef.mangledname
+
+  Revision 1.60  2002/04/14 16:53:10  carl
   + align code section and data section according to alignment rules
 
   Revision 1.59  2002/04/07 17:58:38  carl

@@ -70,6 +70,8 @@ interface
          procedure derefimpl;virtual;abstract;
          function  typename:string;
          function  gettypename:string;virtual;
+         function  mangledparaname:string;
+         function  getmangledparaname:string;virtual;abstract;
          function  size:longint;virtual;abstract;
          function  alignment:longint;virtual;abstract;
          function  getsymtable(t:tgetsymtable):tsymtable;virtual;
@@ -174,6 +176,15 @@ implementation
     function tdef.gettypename : string;
       begin
          gettypename:='<unknown type>'
+      end;
+
+
+    function tdef.mangledparaname:string;
+      begin
+        if assigned(typesym) then
+         mangledparaname:=typesym.name
+        else
+         mangledparaname:=getmangledparaname;
       end;
 
 
@@ -517,7 +528,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  2001-12-31 16:59:43  peter
+  Revision 1.14  2002-04-19 15:46:04  peter
+    * mangledname rewrite, tprocdef.mangledname is now created dynamicly
+      in most cases and not written to the ppu
+    * add mangeledname_prefix() routine to generate the prefix of
+      manglednames depending on the current procedure, object and module
+    * removed static procprefix since the mangledname is now build only
+      on demand from tprocdef.mangledname
+
+  Revision 1.13  2001/12/31 16:59:43  peter
     * protected/private symbols parsing fixed
 
   Revision 1.12  2001/11/18 18:43:18  peter

@@ -232,7 +232,7 @@ implementation
                    if (procinfo^.flags and pi_do_call)<>0 then
                      begin
                       for i:=maxfpuvarregs downto 2 do
-                      regvarinfo^.fpuregvars[i]:=nil;
+                        regvarinfo^.fpuregvars[i]:=nil;
                      end
                    else
                      begin
@@ -287,7 +287,8 @@ implementation
                     reference_reset(hr);
                     if vsym.owner.symtabletype in [inlinelocalsymtable,localsymtable] then
                       hr.offset:=-vsym.address+vsym.owner.address_fixup
-                    else hr.offset:=vsym.address+vsym.owner.address_fixup;
+                    else
+                      hr.offset:=vsym.address+vsym.owner.address_fixup;
                     hr.base:=procinfo^.framepointer;
                     cg.a_load_reg_ref(asml,def_cgsize(vsym.vartype.def),vsym.reg,hr);
                   end;
@@ -311,7 +312,8 @@ implementation
           reference_reset(hr);
           if vsym.owner.symtabletype in [inlinelocalsymtable,localsymtable] then
             hr.offset:=-vsym.address+vsym.owner.address_fixup
-          else hr.offset:=vsym.address+vsym.owner.address_fixup;
+          else
+            hr.offset:=vsym.address+vsym.owner.address_fixup;
           hr.base:=procinfo^.framepointer;
           if (vsym.varspez in [vs_var,vs_out]) or
              ((vsym.varspez=vs_const) and
@@ -454,10 +456,12 @@ implementation
 {$endif i386}
             for i := 1 to maxvarregs do
              begin
-               reg32:=changeregsize(regvars[i].reg,S_L);
-               if assigned(regvars[i]) and
-                  (rg.regvar_loaded[reg32]) then
-                asml.concat(Tairegalloc.dealloc(reg32));
+               if assigned(regvars[i]) then
+                begin
+                  reg32:=changeregsize(regvars[i].reg,S_L);
+                  if (rg.regvar_loaded[reg32]) then
+                   asml.concat(Tairegalloc.dealloc(reg32));
+                end;
              end;
           end;
     end;
@@ -466,7 +470,15 @@ end.
 
 {
   $Log$
-  Revision 1.27  2002-04-15 19:44:19  peter
+  Revision 1.28  2002-04-19 15:46:03  peter
+    * mangledname rewrite, tprocdef.mangledname is now created dynamicly
+      in most cases and not written to the ppu
+    * add mangeledname_prefix() routine to generate the prefix of
+      manglednames depending on the current procedure, object and module
+    * removed static procprefix since the mangledname is now build only
+      on demand from tprocdef.mangledname
+
+  Revision 1.27  2002/04/15 19:44:19  peter
     * fixed stackcheck that would be called recursively when a stack
       error was found
     * generic changeregsize(reg,size) for i386 register resizing
