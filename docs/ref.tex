@@ -1752,7 +1752,7 @@ then a run-time error will occur. (run-time error 211, to be precise)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Visibility
 \section{Visibility}
-For objects, only 2 visibility specifiers exist : \var{private} and
+For objects, 3 visibility specifiers exist : \var{private}, \var{protected} and
 \var{public}. If you don't specify a visibility specifier, \var{public}
 is assumed.
 Both methods and fields can be hidden from a programmer by putting them
@@ -1763,6 +1763,9 @@ can  only be accessed in the module (i.e. unit or program) that contains
 the object definition.
 They can be accessed from inside the object's methods or from outside them
 e.g. from other objects' methods, or global functions.
+\item [Protected\ ] Is the same as \var{Private}, except that the members of
+a \var{Protected} section are also accessible to descendent types, even if
+they are implemented in other modules.
 \item [Public\ ] sections are always accessible, from everywhere.
 Fields and metods in a \var{public} section behave as though they were part
 of an ordinary \var{record} type.
@@ -3595,11 +3598,20 @@ The parameter list for a comparision operator or an arithmetic operator
 must always contain 2 parameters. The result type of the comparision
 operator must be \var{Boolean}.
 
+\begin{remark}
+When compiling in \var{Delphi} mode or \var{Objfpc} mode, the result
+identifier may be dropped. The result can then be accessed through
+the standard \var{Result} symbol.
+
+If the result identifier is dropped and the compiler is not in one
+of these modes, a syntax error will occur.
+\end{remark}
+
 The statement block contains the necessary statements to determine the
 result of the operation. It can contain arbitrary large pieces of code;
 it is executed whenever the operation is encountered in some expression.
 The result of the statement block must always be defined; error conditions
-are not checked bythe compiler, and the code must take care of all possible
+are not checked by the compiler, and the code must take care of all possible
 cases, throwing a run-time error if some error condition is encountered.
 
 In the following, the three types of operator definitions will be examined.
