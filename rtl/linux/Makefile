@@ -77,7 +77,7 @@ UNITOBJECTS=$(SYSTEMUNIT) objpas strings \
             dos crt objects printer graph \
             sysutils typinfo math \
             cpu mmx getopts heaptrc \
-            errors sockets ipc
+            errors sockets gpm ipc
 
 # Unit Objects Which are placed in libfpc.so
 SHAREDLIBUNITOBJECTS=$(SYSTEMUNIT) objpas strings \
@@ -85,7 +85,7 @@ SHAREDLIBUNITOBJECTS=$(SYSTEMUNIT) objpas strings \
             dos crt objects printer \
             sysutils typinfo math \
             cpu mmx getopts heaptrc \
-            errors sockets ipc
+            errors sockets gpm ipc
 
 
 #####################################################################
@@ -293,7 +293,10 @@ ipc$(PPUEXT) : ipc.pp linux$(PPUEXT) $(SYSTEMPPU)
 
 #
 # $Log$
-# Revision 1.28  1999-06-03 09:36:32  peter
+# Revision 1.29  1999-07-01 19:39:42  peter
+#   + gpm unit
+#
+# Revision 1.28  1999/06/03 09:36:32  peter
 #   * first things for sharedlib to work again
 #
 # Revision 1.27  1999/05/28 11:28:30  peter
