@@ -241,8 +241,8 @@ implementation
                          ) and
                      not(is_equal(p^.left^.resulttype,defcoll^.data))) then
                        begin
-                          aktfilepos:=p^.left^.fileinfo;
-                          CGMessage(parser_e_call_by_ref_without_typeconv);
+                          CGMessagePos2(p^.left^.fileinfo,parser_e_call_by_ref_without_typeconv,
+                            p^.left^.resulttype^.typename,defcoll^.data^.typename);
                        end;
                    { process cargs arrayconstructor }
                    if is_array_constructor(p^.left^.resulttype) then
@@ -1224,7 +1224,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.67  1999-10-12 15:50:54  pierre
+  Revision 1.68  1999-10-13 10:35:27  peter
+    * var must match exactly error msg extended with got and expected type
+    * array constructor type check now gives error on wrong types
+
+  Revision 1.67  1999/10/12 15:50:54  pierre
    * error if calling interrupt procedure
 
   Revision 1.66  1999/09/27 23:45:00  peter

@@ -497,7 +497,7 @@ parser_e_dont_nest_export=E_EXPORT declared functions can't be nested
 parser_e_methods_dont_be_export=E_methods can't be EXPORTed
 % You cannot declare a procedure that is a method for an object as
 % \var{export}ed. That is, your methods cannot be called from a C program.
-parser_e_call_by_ref_without_typeconv=E_call by var parameters have to match exactly
+parser_e_call_by_ref_without_typeconv=E_call by var parameters have to match exactly: Got $1 expected $2
 % When calling a function declared with \var{var} parameters, the variables in
 % the function call must be of exactly the same type. There is no automatic
 % type conversion.
@@ -900,7 +900,7 @@ type_w_maybe_wrong_hi_lo=W_lo/hi(dword/qword) returns the upper/lower word/dword
 % to type cast the argument to \var{word/integer}
 type_e_integer_or_real_expr_expected=E_Integer or real expression expected
 % The first argument to \var{str} must a real or integer type.
-type_e_wrong_type_in_array_constructor=E_Wrong type in array constructor
+type_e_wrong_type_in_array_constructor=E_Wrong type $1 in array constructor
 % You are trying to use a type in an array constructor which is not
 % allowed.
 type_e_wrong_parameter_type=E_Incompatible type for arg no. $1: Got $2, expected $3

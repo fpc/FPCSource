@@ -436,9 +436,11 @@ implementation
                           firstpass(hp^.left);
                         end;
                      end;
-                   recorddef,
-                   arraydef :
-                     CGMessage(type_e_wrong_type_in_array_constructor);
+                   pointerdef,
+                   classrefdef,
+                   objectdef : ;
+                   else
+                     CGMessagePos1(hp^.left^.fileinfo,type_e_wrong_type_in_array_constructor,hp^.left^.resulttype^.typename);
                  end;
                end;
               if (pd=nil) then
@@ -509,7 +511,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.46  1999-09-27 23:45:01  peter
+  Revision 1.47  1999-10-13 10:35:27  peter
+    * var must match exactly error msg extended with got and expected type
+    * array constructor type check now gives error on wrong types
+
+  Revision 1.46  1999/09/27 23:45:01  peter
     * procinfo is now a pointer
     * support for result setting in sub procedure
 
