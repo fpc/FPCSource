@@ -143,6 +143,24 @@ begin
   Sbrk:=nil;
 end;
 
+{*****************************************************************************
+      OS Memory allocation / deallocation 
+ ****************************************************************************}
+
+function SysOSAlloc(size: ptrint): pointer;
+begin
+  result := sbrk(size);
+end;
+
+// If the OS is capable of freeing memory, define HAS_SYSOSFREE and implement
+// the SysOSFree function properly
+//{$define HAS_SYSOSFREE}
+{
+procedure SysOSFree(p: pointer; size: ptrint);
+begin
+  // code to release memory block
+end;
+}
 
 { include standard heap management }
 {$I heap.inc}
@@ -298,7 +316,11 @@ Begin
 End.
 {
   $Log$
-  Revision 1.10  2004-01-20 23:12:49  hajny
+  Revision 1.11  2004-06-17 16:16:14  peter
+    * New heapmanager that releases memory back to the OS, donated
+      by Micha Nelissen
+
+  Revision 1.10  2004/01/20 23:12:49  hajny
     * ExecuteProcess fixes, ProcessID and ThreadID added
 
   Revision 1.9  2003/09/27 11:52:36  peter

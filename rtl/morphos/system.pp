@@ -716,6 +716,22 @@ begin
   Sbrk:=AllocPooled(MOS_heapPool,size);
 end;
 
+{*****************************************************************************
+      OS Memory allocation / deallocation 
+ ****************************************************************************}
+
+function SysOSAlloc(size: ptrint): pointer;
+begin
+  result := sbrk(size);
+end;
+
+{$define HAS_SYSOSFREE}
+
+procedure SysOSFree(p: pointer; size: ptrint);
+begin
+  fpmunmap(p, size);
+end;
+
 {$I heap.inc}
 
 
@@ -1162,7 +1178,11 @@ end.
 
 {
   $Log$
-  Revision 1.13  2004-06-13 22:50:47  karoly
+  Revision 1.14  2004-06-17 16:16:14  peter
+    * New heapmanager that releases memory back to the OS, donated
+      by Micha Nelissen
+
+  Revision 1.13  2004/06/13 22:50:47  karoly
     * cleanup and changes to use new includes
 
   Revision 1.12  2004/06/06 23:31:13  karoly

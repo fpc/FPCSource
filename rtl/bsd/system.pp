@@ -108,6 +108,23 @@ end;
 { OS independant parts}
 
 {$I system.inc}
+
+{*****************************************************************************
+      OS Memory allocation / deallocation 
+ ****************************************************************************}
+
+function SysOSAlloc(size: ptrint): pointer;
+begin
+  result := sbrk(size);
+end;
+
+{$define HAS_SYSOSFREE}
+
+procedure SysOSFree(p: pointer; size: ptrint);
+begin
+  fpmunmap(p, size);
+end;
+
 { OS dependant parts  }
 
 {$I errno.inc}
@@ -185,7 +202,11 @@ End.
 
 {
   $Log$
-  Revision 1.14  2004-01-22 13:46:14  marco
+  Revision 1.15  2004-06-17 16:16:13  peter
+    * New heapmanager that releases memory back to the OS, donated
+      by Micha Nelissen
+
+  Revision 1.14  2004/01/22 13:46:14  marco
   bsd
 
   Revision 1.13  2004/01/20 23:09:14  hajny

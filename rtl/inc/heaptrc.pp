@@ -721,7 +721,6 @@ var
 
 {$ifdef win32}
 var
-   StartUpHeapEnd : pointer;
    { I found no symbol for start of text section :(
      so we usee the _mainCRTStartup which should be
      in wprt0.ow or wdllprt0.ow PM }
@@ -1019,9 +1018,6 @@ begin
 {$ifdef go32v2}
   Heap_at_init:=HeapPtr;
 {$endif}
-{$ifdef win32}
-  StartupHeapEnd:=HeapEnd;
-{$endif}
 end;
 
 
@@ -1156,7 +1152,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.29  2004-05-22 20:35:52  peter
+  Revision 1.30  2004-06-17 16:16:13  peter
+    * New heapmanager that releases memory back to the OS, donated
+      by Micha Nelissen
+
+  Revision 1.29  2004/05/22 20:35:52  peter
   check whether bp is in the stack value allocated by the main program
 
   Revision 1.28  2004/04/28 20:48:20  peter

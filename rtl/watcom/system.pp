@@ -864,6 +864,22 @@ asm
 {$endif}
 end;
 
+{*****************************************************************************
+      OS Memory allocation / deallocation 
+ ****************************************************************************}
+
+function SysOSAlloc(size: ptrint): pointer;
+begin
+  result := sbrk(size);
+end;
+
+{$define HAS_SYSOSFREE}
+
+procedure SysOSFree(p: pointer; size: ptrint);
+begin
+  fpmunmap(p, size);
+end;
+
 { include standard heap management }
 {$include heap.inc}
 
@@ -1537,7 +1553,11 @@ End.
 
 {
   $Log$
-  Revision 1.13  2004-04-22 21:10:56  peter
+  Revision 1.14  2004-06-17 16:16:14  peter
+    * New heapmanager that releases memory back to the OS, donated
+      by Micha Nelissen
+
+  Revision 1.13  2004/04/22 21:10:56  peter
     * do_read/do_write addr argument changed to pointer
 
   Revision 1.12  2004/01/20 23:12:49  hajny

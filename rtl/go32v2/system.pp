@@ -931,6 +931,22 @@ asm
 {$endif}
 end;
 
+{*****************************************************************************
+      OS Memory allocation / deallocation 
+ ****************************************************************************}
+
+function SysOSAlloc(size: ptrint): pointer;
+begin
+  result := sbrk(size);
+end;
+
+{$define HAS_SYSOSFREE}
+
+procedure SysOSFree(p: pointer; size: ptrint);
+begin
+  fpmunmap(p, size);
+end;
+
 
 { include standard heap management }
 {$I heap.inc}
@@ -1607,7 +1623,11 @@ Begin
 End.
 {
   $Log$
-  Revision 1.35  2004-05-16 18:51:20  peter
+  Revision 1.36  2004-06-17 16:16:13  peter
+    * New heapmanager that releases memory back to the OS, donated
+      by Micha Nelissen
+
+  Revision 1.35  2004/05/16 18:51:20  peter
     * use thandle in do_*
 
   Revision 1.34  2004/04/22 21:10:56  peter

@@ -641,6 +641,22 @@ end;
 function Sbrk(logicalSize: Longint): Mac_Ptr ;
 external 'InterfaceLib' name 'NewPtr'; {Directly mapped to NewPtr}
 
+{*****************************************************************************
+      OS Memory allocation / deallocation 
+ ****************************************************************************}
+
+function SysOSAlloc(size: ptrint): pointer;
+begin
+  result := sbrk(size);
+end;
+
+{$define HAS_SYSOSFREE}
+
+procedure SysOSFree(p: pointer; size: ptrint);
+begin
+  fpmunmap(p, size);
+end;
+
 
 { include standard heap management }
 {$I heap.inc}
@@ -1168,7 +1184,11 @@ end.
 
 {
   $Log$
-  Revision 1.15  2004-05-11 18:05:41  olle
+  Revision 1.16  2004-06-17 16:16:13  peter
+    * New heapmanager that releases memory back to the OS, donated
+      by Micha Nelissen
+
+  Revision 1.15  2004/05/11 18:05:41  olle
     + added call to MaxApplZone to have the whole MacOS heap available
 
   Revision 1.14  2004/04/29 11:27:36  olle

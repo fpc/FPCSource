@@ -257,6 +257,8 @@ end;
      stdcall;external 'kernel32' name 'GetProcessHeap';
    function HeapAlloc(hHeap : DWord; dwFlags : DWord; dwBytes : DWord) : Longint;
      stdcall;external 'kernel32' name 'HeapAlloc';
+   function HeapFree(hHeap : dword; dwFlags : dword; lpMem: pointer) : boolean;
+     stdcall;external 'kernel32' name 'HeapFree';
 {$IFDEF SYSTEMDEBUG}
    function WinAPIHeapSize(hHeap : DWord; dwFlags : DWord; ptr : Pointer) : DWord;
      stdcall;external 'kernel32' name 'HeapSize';
@@ -279,17 +281,28 @@ asm
         movl    intern_HEAPSIZE,%eax
 end ['EAX'];
 
+{*****************************************************************************
+      OS Memory allocation / deallocation 
+ ****************************************************************************}
 
-function Sbrk(size : longint):pointer;
+function SysOSAlloc(size: ptrint): pointer;
 var
   l : longword;
 begin
-  l := HeapAlloc(GetProcessHeap(), 0, size);
+  l := HeapAlloc(GetProcessHeap, 0, size);
 {$ifdef DUMPGROW}
   Writeln('new heap part at $',hexstr(l,8), ' size = ',WinAPIHeapSize(GetProcessHeap()));
 {$endif}
-  sbrk:=pointer(l);
+  SysOSAlloc := pointer(l);
 end;
+
+{$define HAS_SYSOSFREE}
+
+procedure SysOSFree(p: pointer; size: ptrint);
+begin
+  HeapFree(GetProcessHeap, 0, p);
+end;
+
 
 { include standard heap management }
 {$I heap.inc}
@@ -1590,6 +1603,7 @@ begin
   MainInstance:=HInstance;
   cmdshow:=startupinfo.wshowwindow;
   { Setup heap }
+  HeapOrg:=GetHeapStart;
   InitHeap;
   SysInitExceptions;
   SysInitStdIO;
@@ -1608,7 +1622,11 @@ end.
 
 {
   $Log$
-  Revision 1.56  2004-05-16 18:51:20  peter
+  Revision 1.57  2004-06-17 16:16:14  peter
+    * New heapmanager that releases memory back to the OS, donated
+      by Micha Nelissen
+
+  Revision 1.56  2004/05/16 18:51:20  peter
     * use thandle in do_*
 
   Revision 1.55  2004/04/22 21:10:56  peter

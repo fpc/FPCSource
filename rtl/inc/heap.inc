@@ -16,23 +16,14 @@
 
 {****************************************************************************}
 
-{ Reuse bigger blocks instead of allocating a new block at freelist/heapptr.
-  the tried bigger blocks are always multiple sizes of the current block }
-{$define REUSEBIGGER}
-
-{ Allocate small blocks at heapptr instead of walking the freelist }
-{ define SMALLATHEAPPTR}
-
 { Try to find the best matching block in general freelist }
 { define BESTMATCH}
-
-{ Concat free blocks when placing big blocks in the mainlist }
-{$define CONCATFREE}
 
 { DEBUG: Dump info when the heap needs to grow }
 { define DUMPGROW}
 
 { DEBUG: Test the FreeList on correctness }
+
 {$ifdef SYSTEMDEBUG}
 {$define TestFreeLists}
 {$endif SYSTEMDEBUG}
@@ -47,12 +38,15 @@ const
   blockshr     = 4;   { shr value for blocksize=2^blockshr}
   maxblocksize = 512+blocksize; { 1024+8 needed for heaprecord }
 {$endif}
-  maxblock     = maxblocksize div blocksize;
+  maxblockindex = maxblocksize div blocksize; { highest index in array of lists of memchunks }
   maxreusebigger = 8; { max reuse bigger tries }
 
-  usedmask = 1;            { flag if the block is used or not }
-  beforeheapendmask = 2;   { flag if the block is just before a heapptr }
+  usedflag = 1;        { flag if the block is used or not }
+  lastblockflag = 2;   { flag if the block is the last in os chunk }
+  firstblockflag = 4;  { flag if the block is the first in os chunk }
+  fixedsizeflag = 8;   { flag if the block is of fixed size }
   sizemask = not(blocksize-1);
+  fixedsizemask = sizemask and $ffff;
 
 {****************************************************************************}
 
@@ -89,38 +83,54 @@ const
   );
 
 type
-  ppfreerecord = ^pfreerecord;
-  pfreerecord  = ^tfreerecord;
-  tfreerecord  = record
+  pmemchunk_fixed  = ^tmemchunk_fixed;
+  tmemchunk_fixed = record
     size  : ptrint;
-    next,
-    prev  : pfreerecord;
-  end; { 12/24 bytes }
+    next_fixed,
+    prev_fixed : pmemchunk_fixed;
+  end;
 
-  pheaprecord = ^theaprecord;
-  theaprecord = record
-  { this should overlap with tfreerecord }
+  pmemchunk_var  = ^tmemchunk_var;
+  tmemchunk_var = record
+    prevsize : ptrint;
     size  : ptrint;
+    next_var,
+    prev_var  : pmemchunk_var;
+  end;
+
+  { ``header'', ie. size of structure valid when chunk is in use }
+  { should correspond to tmemchunk_xx structure }
+  tmemchunk_fixed_hdr = record
+    size : ptrint;
 {$ifdef cpusparc}
-    { sparc needs alignment on 8 for double }
+    { Sparc needs to alloc aligned on 8 bytes, to allow doubles }
     _dummy : ptrint;
-{$endif cpusparc}    
-  end; { 4/8 bytes }
+{$endif cpusparc}
+  end;
+  tmemchunk_var_hdr = record
+    prevsize : ptrint;
+    size : ptrint;
+  end;
 
-  tfreelists   = array[0..maxblock] of pfreerecord;
-{$ifdef SYSTEMDEBUG}
-  tfreecount   = array[0..maxblock] of dword;
-{$endif SYSTEMDEBUG}
+  poschunk = ^toschunk;
+  toschunk = record
+    size : ptrint;
+    next,
+    prev : poschunk;
+    used : ptrint;
+  end;
+
+  tfreelists   = array[1..maxblockindex] of pmemchunk_fixed;
   pfreelists   = ^tfreelists;
 
 var
   internal_memavail  : ptrint;
   internal_heapsize  : ptrint;
-  freelists          : tfreelists;
-  before_heapend_block : pfreerecord;
-{$ifdef SYSTEMDEBUG}
-  freecount : tfreecount;
-{$endif SYSTEMDEBUG}
+  freelists_fixed    : tfreelists;
+  freelist_var       : pmemchunk_var;
+  freeoslist         : poschunk;
+  freeoslistcount    : dword;
+
 {$ifdef TestFreeLists}
 { this can be turned on by debugger }
 const
@@ -137,7 +147,7 @@ begin
     calling this without initializing is safe }
   MemoryMutexManager.MutexDone;
   { Copy new mutexmanager }
-  MemoryMutexManager:=MutexMgr;
+  MemoryMutexManager := MutexMgr;
   { Init new mutexmanager }
   MemoryMutexManager.MutexInit;
 end;
@@ -149,14 +159,14 @@ begin
    begin
      try
        MemoryMutexManager.MutexLock;
-       MemMgr:=MemoryManager;
+       MemMgr := MemoryManager;
      finally
        MemoryMutexManager.MutexUnlock;
      end;
    end
   else
    begin
-     MemMgr:=MemoryManager;
+     MemMgr := MemoryManager;
    end;
 end;
 
@@ -167,14 +177,14 @@ begin
    begin
      try
        MemoryMutexManager.MutexLock;
-       MemoryManager:=MemMgr;
+       MemoryManager := MemMgr;
      finally
        MemoryMutexManager.MutexUnlock;
      end;
    end
   else
    begin
-     MemoryManager:=MemMgr;
+     MemoryManager := MemMgr;
    end;
 end;
 
@@ -185,7 +195,7 @@ begin
    begin
      try
        MemoryMutexManager.MutexLock;
-       IsMemoryManagerSet:=(MemoryManager.GetMem<>@SysGetMem) or
+       IsMemoryManagerSet := (MemoryManager.GetMem<>@SysGetMem) or
                            (MemoryManager.FreeMem<>@SysFreeMem);
      finally
        MemoryMutexManager.MutexUnlock;
@@ -193,7 +203,7 @@ begin
    end
   else
    begin
-     IsMemoryManagerSet:=(MemoryManager.GetMem<>@SysGetMem) or
+     IsMemoryManagerSet := (MemoryManager.GetMem<>@SysGetMem) or
                          (MemoryManager.FreeMem<>@SysFreeMem);
    end;
 end;
@@ -205,14 +215,14 @@ begin
    begin
      try
        MemoryMutexManager.MutexLock;
-       p:=MemoryManager.GetMem(Size);
+       p := MemoryManager.GetMem(Size);
      finally
        MemoryMutexManager.MutexUnlock;
      end;
    end
   else
    begin
-     p:=MemoryManager.GetMem(Size);
+     p := MemoryManager.GetMem(Size);
    end;
 end;
 
@@ -249,14 +259,14 @@ begin
    begin
      try
        MemoryMutexManager.MutexLock;
-       MaxAvail:=MemoryManager.MaxAvail();
+       MaxAvail := MemoryManager.MaxAvail();
      finally
        MemoryMutexManager.MutexUnlock;
      end;
    end
   else
    begin
-     MaxAvail:=MemoryManager.MaxAvail();
+     MaxAvail := MemoryManager.MaxAvail();
    end;
 end;
 
@@ -267,14 +277,14 @@ begin
    begin
      try
        MemoryMutexManager.MutexLock;
-       MemAvail:=MemoryManager.MemAvail();
+       MemAvail := MemoryManager.MemAvail();
      finally
        MemoryMutexManager.MutexUnlock;
      end;
    end
   else
    begin
-     MemAvail:=MemoryManager.MemAvail();
+     MemAvail := MemoryManager.MemAvail();
    end;
 end;
 
@@ -286,14 +296,14 @@ begin
    begin
      try
        MemoryMutexManager.MutexLock;
-       HeapSize:=MemoryManager.HeapSize();
+       HeapSize := MemoryManager.HeapSize();
      finally
        MemoryMutexManager.MutexUnlock;
      end;
    end
   else
    begin
-     HeapSize:=MemoryManager.HeapSize();
+     HeapSize := MemoryManager.HeapSize();
    end;
 end;
 
@@ -304,14 +314,14 @@ begin
    begin
      try
        MemoryMutexManager.MutexLock;
-       MemSize:=MemoryManager.MemSize(p);
+       MemSize := MemoryManager.MemSize(p);
      finally
        MemoryMutexManager.MutexUnlock;
      end;
    end
   else
    begin
-     MemSize:=MemoryManager.MemSize(p);
+     MemSize := MemoryManager.MemSize(p);
    end;
 end;
 
@@ -323,21 +333,21 @@ begin
    begin
      try
        MemoryMutexManager.MutexLock;
-       Freemem:=MemoryManager.FreeMem(p);
+       Freemem := MemoryManager.FreeMem(p);
      finally
        MemoryMutexManager.MutexUnlock;
      end;
    end
   else
    begin
-     Freemem:=MemoryManager.FreeMem(p);
+     Freemem := MemoryManager.FreeMem(p);
    end;
 end;
 
 function FreeMemory(p:pointer):ptrint;
 
 begin
- FreeMemory:=FreeMem(p);
+ FreeMemory := FreeMem(p);
 end;
 
 function GetMem(size:ptrint):pointer;
@@ -346,21 +356,21 @@ begin
    begin
      try
        MemoryMutexManager.MutexLock;
-       GetMem:=MemoryManager.GetMem(Size);
+       GetMem := MemoryManager.GetMem(Size);
      finally
        MemoryMutexManager.MutexUnlock;
      end;
    end
   else
    begin
-     GetMem:=MemoryManager.GetMem(Size);
+     GetMem := MemoryManager.GetMem(Size);
    end;
 end;
 
 function GetMemory(size:ptrint):pointer;
 
 begin
- GetMemory:=Getmem(size);
+ GetMemory := Getmem(size);
 end;
 
 function AllocMem(Size:ptrint):pointer;
@@ -369,14 +379,14 @@ begin
    begin
      try
        MemoryMutexManager.MutexLock;
-       AllocMem:=MemoryManager.AllocMem(size);
+       AllocMem := MemoryManager.AllocMem(size);
      finally
        MemoryMutexManager.MutexUnlock;
      end;
    end
   else
    begin
-     AllocMem:=MemoryManager.AllocMem(size);
+     AllocMem := MemoryManager.AllocMem(size);
    end;
 end;
 
@@ -387,14 +397,14 @@ begin
    begin
      try
        MemoryMutexManager.MutexLock;
-       ReAllocMem:=MemoryManager.ReAllocMem(p,size);
+       ReAllocMem := MemoryManager.ReAllocMem(p,size);
      finally
        MemoryMutexManager.MutexUnlock;
      end;
    end
   else
    begin
-     ReAllocMem:=MemoryManager.ReAllocMem(p,size);
+     ReAllocMem := MemoryManager.ReAllocMem(p,size);
    end;
 end;
 
@@ -402,7 +412,7 @@ end;
 function ReAllocMemory(var p:pointer;Size:ptrint):pointer;
 
 begin
- ReAllocMemory:=ReAllocMem(p,size);
+ ReAllocMemory := ReAllocMem(p,size);
 end;
 
 {$ifdef ValueGetmem}
@@ -414,14 +424,14 @@ begin
    begin
      try
        MemoryMutexManager.MutexLock;
-       fpc_GetMem:=MemoryManager.GetMem(size);
+       fpc_GetMem := MemoryManager.GetMem(size);
      finally
        MemoryMutexManager.MutexUnlock;
      end;
    end
   else
    begin
-     fpc_GetMem:=MemoryManager.GetMem(size);
+     fpc_GetMem := MemoryManager.GetMem(size);
    end;
 end;
 
@@ -430,7 +440,7 @@ end;
 { Needed for calls from Assembler }
 procedure AsmGetMem(var p:pointer;size:ptrint);[public,alias:'FPC_GETMEM'];
 begin
-  p:=MemoryManager.GetMem(size);
+  p := MemoryManager.GetMem(size);
 end;
 
 {$endif ValueGetmem}
@@ -473,58 +483,58 @@ end;
 
 function SysHeapsize : ptrint;
 begin
-  Sysheapsize:=internal_heapsize;
+  Sysheapsize := internal_heapsize;
 end;
 
 
 function SysMemavail : ptrint;
 begin
-  Sysmemavail:=internal_memavail;
+  Sysmemavail := internal_memavail;
 end;
 
 
-function SysMaxavail : ptrint;
+function SysMaxavail: ptrint;
 var
-  hp : pfreerecord;
+  pmc : pmemchunk_var;
 begin
-  Sysmaxavail:=heapend-heapptr;
-  hp:=freelists[0];
-  while assigned(hp) do
+  pmc := freelist_var;
+  sysmaxavail := 0;
+  while assigned(pmc) do
    begin
-     if hp^.size>Sysmaxavail then
-       Sysmaxavail:=hp^.size;
-     hp:=hp^.next;
+    if pmc^.size>sysmaxavail then
+      sysmaxavail := pmc^.size;
+    pmc := pmc^.next_var;
    end;
 end;
 
 
-{$ifdef DUMPBLOCKS}
+{$ifdef DUMPBLOCKS}   // TODO
 procedure DumpBlocks;
 var
   s,i,j : ptrint;
   hp  : pfreerecord;
 begin
-  for i:=1 to maxblock do
+  for i := 1 to maxblock do
    begin
-     hp:=freelists[i];
-     j:=0;
+     hp := freelists[i];
+     j := 0;
      while assigned(hp) do
       begin
         inc(j);
-        hp:=hp^.next;
+        hp := hp^.next;
       end;
      writeln('Block ',i*blocksize,': ',j);
    end;
 { freelist 0 }
-  hp:=freelists[0];
-  j:=0;
-  s:=0;
+  hp := freelists[0];
+  j := 0;
+  s := 0;
   while assigned(hp) do
    begin
      inc(j);
      if hp^.size>s then
-      s:=hp^.size;
-     hp:=hp^.next;
+      s := hp^.size;
+     hp := hp^.next;
    end;
   writeln('Main: ',j,' maxsize: ',s);
 end;
@@ -535,341 +545,429 @@ end;
 procedure TestFreeLists;
 var
   i,j : ptrint;
-  hp  : pfreerecord;
+  mc  : pmemchunk_fixed;
 begin
-  for i:=0 to maxblock do
+  for i := 1 to maxblockindex do
    begin
-     j:=0;
-     hp:=freelists[i];
-     while assigned(hp) do
+    j := 0;
+    mc := freelists_fixed[i];
+    while assigned(mc) do
       begin
         inc(j);
-        if (i>0) and ((hp^.size and sizemask) <> i * blocksize) then
+      if ((mc^.size and fixedsizemask) <> i * blocksize) then
           RunError(204);
-        hp:=hp^.next;
+      mc := mc^.next_fixed;
       end;
-      if j<>freecount[i] then
-        RunError(204);
     end;
 end;
 {$endif TestFreeLists}
 
+{*****************************************************************************
+                                List adding/removal
+*****************************************************************************}
 
-{$ifdef CONCATFREE}
+procedure append_to_list_fixed(blockindex: ptrint; pmc: pmemchunk_fixed);
+begin
+  pmc^.prev_fixed := nil;
+  pmc^.next_fixed := freelists_fixed[blockindex];
+  if freelists_fixed[blockindex]<>nil then
+    freelists_fixed[blockindex]^.prev_fixed := pmc;
+  freelists_fixed[blockindex] := pmc;
+end;
+
+procedure append_to_list_var(pmc: pmemchunk_var);
+begin
+  pmc^.prev_var := nil;
+  pmc^.next_var := freelist_var;
+  if freelist_var<>nil then
+    freelist_var^.prev_var := pmc;
+  freelist_var := pmc;
+end;
+
+procedure remove_from_list_fixed(blockindex: ptrint; pmc: pmemchunk_fixed);
+begin
+  if assigned(pmc^.next_fixed) then
+    pmc^.next_fixed^.prev_fixed := pmc^.prev_fixed;
+  if assigned(pmc^.prev_fixed) then
+    pmc^.prev_fixed^.next_fixed := pmc^.next_fixed
+  else
+    freelists_fixed[blockindex] := pmc^.next_fixed;
+end;
+
+procedure remove_from_list_var(pmc: pmemchunk_var);
+begin
+  if assigned(pmc^.next_var) then
+    pmc^.next_var^.prev_var := pmc^.prev_var;
+  if assigned(pmc^.prev_var) then
+    pmc^.prev_var^.next_var := pmc^.next_var
+  else
+    freelist_var := pmc^.next_var;
+end;
+
+procedure append_to_oslist(poc: poschunk);
+begin
+  { decide whether to free block or add to list }
+{$ifdef HAS_SYSOSFREE}
+  if freeoslistcount >= 3 then
+     begin
+    dec(internal_heapsize, poc^.size);
+    dec(internal_memavail, poc^.size);
+    SysOSFree(poc, poc^.size);
+  end else begin
+{$endif}
+    poc^.prev := nil;
+    poc^.next := freeoslist;
+    if freeoslist <> nil then
+      freeoslist^.prev := poc;
+    freeoslist := poc;
+    inc(freeoslistcount);
+{$ifdef HAS_SYSOSFREE}
+     end;
+{$endif}
+end;
+
+procedure remove_from_oslist(poc: poschunk);
+begin
+  if assigned(poc^.next) then
+    poc^.next^.prev := poc^.prev;
+  if assigned(poc^.prev) then
+    poc^.prev^.next := poc^.next
+       else
+    freeoslist := poc^.next;
+  dec(freeoslistcount);
+end;
+
+procedure append_to_oslist_var(pmc: pmemchunk_var);
+var
+  poc: poschunk;
+begin
+  // block eligable for freeing
+  poc := pointer(pmc)-sizeof(toschunk);
+  remove_from_list_var(pmc);
+  append_to_oslist(poc);
+end;
+
+procedure append_to_oslist_fixed(blockindex, chunksize: ptrint; poc: poschunk);
+var
+  pmc: pmemchunk_fixed;
+  i, count: ptrint;
+begin
+  count := (poc^.size - sizeof(toschunk)) div chunksize;
+  pmc := pmemchunk_fixed(pointer(poc)+sizeof(toschunk));
+  for i := 0 to count - 1 do
+  begin
+    remove_from_list_fixed(blockindex, pmc);
+    pmc := pointer(pmc)+chunksize;
+     end;
+  append_to_oslist(poc);
+end;
+
+{*****************************************************************************
+                         Split block
+*****************************************************************************}
+
+procedure split_block(pcurr: pmemchunk_var; size: ptrint);
+var
+  pcurr_tmp : pmemchunk_var;
+  sizeleft: ptrint;
+begin
+  sizeleft := (pcurr^.size and sizemask)-size;
+  if sizeleft>=blocksize then
+     begin
+    pcurr_tmp := pmemchunk_var(pointer(pcurr)+size);
+    { update prevsize of block to the right }
+    if (pcurr^.size and lastblockflag) = 0 then
+      pmemchunk_var(pointer(pcurr)+(pcurr^.size and sizemask))^.prevsize := sizeleft;
+    { inherit the lastblockflag }
+    pcurr_tmp^.size := sizeleft or (pcurr^.size and lastblockflag);
+    pcurr_tmp^.prevsize := size;
+    { the block we return is not the last one anymore (there's now a block after it) }
+    { decrease size of block to new size }
+    pcurr^.size := size or (pcurr^.size and (not sizemask and not lastblockflag));
+    { insert the block in the freelist }
+    append_to_list_var(pcurr_tmp);
+     end;
+end;
+
 {*****************************************************************************
                          Try concat freerecords
 *****************************************************************************}
 
-procedure TryConcatFreeRecord(pcurr:pfreerecord);
+procedure concat_two_blocks(mc_left, mc_right: pmemchunk_var);
 var
-  hp : pfreerecord;
-  pcurrsize,s1 : ptrint;
+  mc_tmp : pmemchunk_var;
+  size_right : ptrint;
 begin
-  pcurrsize:=pcurr^.size and sizemask;
-  hp:=pcurr;
-  repeat
-    { block used or before a heapend ? }
-    if (hp^.size and beforeheapendmask)<>0 then
-     begin
-       { Peter, why can't we add this one if free ?? }
-       { It's already added in the previous iteration, we only go to the }
-       { next heap record after this check (JM)                          }
-       pcurr^.size:=pcurrsize or beforeheapendmask;
-       { keep track of the block that lies before the current heapend }
-       if (pointer(pcurr)+pcurrsize+sizeof(tfreerecord) >= heapend) then
-         before_heapend_block := pcurr;
-       break;
-     end;
-    { the size of this block can never be 0. when it is 0 we'll get in
-      an infinite loop, so we throw a RTE instead (PFV) }
-    if (hp^.size and sizemask)=0 then
-      HandleError(204);
-    { get next block }
-    hp:=pfreerecord(pointer(hp)+(hp^.size and sizemask));
-    { when we're at heapptr then we can stop and set heapptr to pcurr }
-    if (hp=heapptr) then
-     begin
-       heapptr:=pcurr;
-       { remove the block }
-       if assigned(pcurr^.next) then
-         pcurr^.next^.prev := pcurr^.prev;
-       if assigned(pcurr^.prev) then
-         pcurr^.prev^.next := pcurr^.next
-       else
-         freelists[0] := pcurr^.next;
-{$ifdef SYSTEMDEBUG}
-       dec(freecount[0]);
-{$endif SYSTEMDEBUG}
-       break;
-     end;
-    { block is used? then we stop and add the block to the freelist }
-    if (hp^.size and usedmask)<>0 then
-     begin
-       pcurr^.size:=pcurrsize;
-       break;
-     end;
-    { remove block from freelist and increase the size }
-    s1:=hp^.size and sizemask;
-    inc(pcurrsize,s1);
-    s1:=s1 shr blockshr;
-    if s1>maxblock then
-     s1:=0;
-    if assigned(hp^.next) then
-     hp^.next^.prev:=hp^.prev;
-    if assigned(hp^.prev) then
-     hp^.prev^.next:=hp^.next
-    else
-     freelists[s1]:=hp^.next;
-{$ifdef SYSTEMDEBUG}
-    dec(freecount[s1]);
-{$endif SYSTEMDEBUG}
-  until false;
+  // left block free, concat with right-block
+  size_right := mc_right^.size and sizemask;
+  inc(mc_left^.size, size_right);
+  // if right-block was last block, copy flag
+  if (mc_right^.size and lastblockflag) <> 0 then
+  begin
+    mc_left^.size := mc_left^.size or lastblockflag;
+  end else begin
+    // there is a block to the right of the right-block, adjust it's prevsize
+    mc_tmp := pmemchunk_var(pointer(mc_right)+size_right);
+    mc_tmp^.prevsize := mc_left^.size and sizemask;
+  end;
+  // remove right-block from doubly linked list
+  remove_from_list_var(mc_right);
 end;
-{$endif CONCATFREE}
+
+procedure try_concat_free_chunk_forward(mc: pmemchunk_var);
+var
+  mc_tmp : pmemchunk_var;
+begin
+  { try concat forward }
+  if (mc^.size and lastblockflag) = 0 then
+   begin
+    mc_tmp := pmemchunk_var(pointer(mc)+(mc^.size and sizemask));
+    if (mc_tmp^.size and usedflag) = 0 then
+    begin
+      // next block free: concat
+      concat_two_blocks(mc, mc_tmp);
+   end;
+      end;
+end;
+
+function try_concat_free_chunk(mc: pmemchunk_var): pmemchunk_var;
+var
+  mc_tmp : pmemchunk_var;
+begin
+  try_concat_free_chunk_forward(mc);
+
+  { try concat backward }
+  if (mc^.size and firstblockflag) = 0 then
+      begin
+    mc_tmp := pmemchunk_var(pointer(mc)-mc^.prevsize);
+    if (mc_tmp^.size and usedflag) = 0 then
+    begin
+      // prior block free: concat
+      concat_two_blocks(mc_tmp, mc);
+      mc := mc_tmp;
+      end;
+  end;
+
+  result := mc;
+end;
+
+{*****************************************************************************
+                                Grow Heap
+*****************************************************************************}
+
+function alloc_oschunk(blockindex, size: ptrint): pointer;
+var
+  pmc       : pmemchunk_fixed;
+  pmcv      : pmemchunk_var;
+  i, count  : ptrint;
+  chunksize : ptrint;
+begin
+  { increase size by size needed for os block header }
+  size := size + sizeof(toschunk);
+  { blocks available in freelist? }
+  result := freeoslist;
+  while result <> nil do
+       begin
+    if poschunk(result)^.size > size then
+           begin
+      size := poschunk(result)^.size;
+      remove_from_oslist(poschunk(result));
+             break;
+           end;
+    result := poschunk(result)^.next;
+       end;
+  if result = nil then
+  begin
+{$ifdef DUMPGROW}
+    writeln('growheap(',size,')  allocating ',(size+$ffff) and $ffff0000);
+    DumpBlocks;
+{$endif}
+    { allocate by 64K size }
+    size := (size+$ffff) and not $ffff;
+    { allocate smaller blocks for fixed-size chunks }
+    if blockindex<>0 then
+    begin
+      result := SysOSAlloc(GrowHeapSizeSmall);
+      if result<>nil then
+        size := GrowHeapSizeSmall;
+    end else
+    { first try 256K (default) }
+    if size<=GrowHeapSize1 then
+    begin
+      result := SysOSAlloc(GrowHeapSize1);
+      if result<>nil then
+        size := GrowHeapSize1;
+    end else
+    { second try 1024K (default) }
+    if size<=GrowHeapSize2 then
+    begin
+      result := SysOSAlloc(GrowHeapSize2);
+      if result<>nil then
+        size := GrowHeapSize2;
+   end
+    { else allocate the needed bytes }
+  else
+      result := SysOSAlloc(size);
+    { try again }
+    if result=nil then
+   begin
+      result := SysOSAlloc(size);
+      if result=nil then
+        HandleError(203);
+    end;
+    { set the total new heap size }
+    inc(internal_memavail,size);
+    inc(internal_heapsize,size);
+  end;
+  { initialize os-block }
+  poschunk(result)^.used := 0;
+  poschunk(result)^.size := size;
+  inc(result, sizeof(toschunk));
+  if blockindex<>0 then
+  begin
+    { chop os chunk in fixedsize parts }
+    chunksize := blockindex shl blockshr;
+    count := (size-sizeof(toschunk)) div chunksize;
+    pmc := pmemchunk_fixed(result);
+    pmc^.prev_fixed := nil;
+    i := 0;
+    repeat
+      pmc^.size := fixedsizeflag or chunksize or (i shl 16);
+      pmc^.next_fixed := pointer(pmc)+chunksize;
+      inc(i);
+      if i < count then
+      begin
+        pmc := pmemchunk_fixed(pointer(pmc)+chunksize);
+        pmc^.prev_fixed := pointer(pmc)-chunksize;
+      end else begin
+        break;
+      end;
+    until false;
+    append_to_list_fixed(blockindex, pmc);
+    pmc^.prev_fixed := pointer(pmc)-chunksize;
+    freelists_fixed[blockindex] := pmemchunk_fixed(result);
+  end else begin
+    pmcv := pmemchunk_var(result);
+    append_to_list_var(pmcv);
+    pmcv^.size := ((size-sizeof(toschunk)) and sizemask) or (firstblockflag or lastblockflag);
+    pmcv^.prevsize := 0;
+  end;
+{$ifdef TestFreeLists}
+  TestFreeLists;
+{$endif TestFreeLists}
+end;
 
 {*****************************************************************************
                                  SysGetMem
 *****************************************************************************}
 
-function SysGetMem(size : ptrint):pointer;
-type
-  heaperrorproc=function(size:ptrint):integer;
+function SysGetMem_Fixed(size: ptrint): pointer;
 var
-  proc  : heaperrorproc;
-  pcurr : pfreerecord;
-  s,s1,maxs1,
-  sizeleft : ptrint;
-  again : boolean;
-{$ifdef BESTMATCH}
-  pbest : pfreerecord;
-{$endif}
+  pcurr: pmemchunk_fixed;
+  poc: poschunk;
+  s: ptrint;
 begin
-{ Something to allocate ? }
-  if size<=0 then
-   begin
-     { give an error for < 0 }
-     if size<0 then
-      HandleError(204);
-     { we always need to allocate something, using heapend is not possible,
-       because heappend can be changed by growheap (PFV) }
-     size:=1;
-   end;
-{ calc to multiply of 16 after adding the needed 8 bytes heaprecord }
-  size:=(size+sizeof(theaprecord)+(blocksize-1)) and (not (blocksize-1));
-  dec(internal_memavail,size);
-{ try to find a block in one of the freelists per size }
-  s:=size shr blockshr;
-  if s<=maxblock then
-   begin
-     pcurr:=freelists[s];
-     { correct size match ? }
-     if assigned(pcurr) then
-      begin
-        { create the block we should return }
-        sysgetmem:=pointer(pcurr)+sizeof(theaprecord);
-        { fix size }
-        pcurr^.size:=pcurr^.size or usedmask;
-        { update freelist }
-        freelists[s]:=pcurr^.next;
-{$ifdef SYSTEMDEBUG}
-        dec(freecount[s]);
-{$endif SYSTEMDEBUG}
-        if assigned(freelists[s]) then
-         freelists[s]^.prev:=nil;
-{$ifdef TestFreeLists}
-        if test_each then
-         TestFreeLists;
-{$endif TestFreeLists}
-        exit;
-      end;
-{$ifdef SMALLATHEAPPTR}
-     if heapend-heapptr>=size then
-      begin
-        sysgetmem:=heapptr;
-        { set end flag if we do not have enough room to add
-          another tfreerecord behind }
-        if (heapptr+size+sizeof(tfreerecord)>=heapend) then
-         begin
-           pheaprecord(sysgetmem)^.size:=size or (usedmask or beforeheapendmask)
-           { keep track of the block that lies before the current heapend }
-           before_heapend_block := sysgetmem;
-         end  
-        else
-         pheaprecord(sysgetmem)^.size:=size or usedmask;
-        inc(sysgetmem,sizeof(theaprecord));
-        inc(heapptr,size);
-{$ifdef TestFreeLists}
-        if test_each then
-         TestFreeLists;
-{$endif TestFreeLists}
-        exit;
-      end;
-{$endif}
-{$ifdef REUSEBIGGER}
-     { try a bigger block }
-     s1:=s+s;
-     maxs1:=s1+maxreusebigger;
-     if maxblock<maxs1 then
-       maxs1:=maxblock;
-     while s1<=maxs1 do
-       begin
-         if freelists[s1]<>nil then
-           begin
-             s:=s1;
-             pcurr:=freelists[s1];
-             break;
-           end;
-         inc(s1);
-       end;
-     pcurr:=nil;
-{$endif}
-   end
-  else
-   pcurr:=nil;
-{ not found, then check the main freelist for the first match }
-  if not(assigned(pcurr)) then
-   begin
-     s:=0;
-{$ifdef BESTMATCH}
-     pbest:=nil;
-{$endif}
-     pcurr:=freelists[0];
-     while assigned(pcurr) do
-      begin
-{$ifdef BESTMATCH}
-        if pcurr^.size=size then
-         break
-        else
-         begin
-           if (pcurr^.size>size) then
-            begin
-              if (not assigned(pbest)) or
-                 (pcurr^.size<pbest^.size) then
-               pbest:=pcurr;
-            end
-         end;
-{$else BESTMATCH}
-{$ifdef CONCATFREE}
-        TryConcatFreeRecord(pcurr);
-        if (pcurr <> heapptr) then
-          begin
-            if pcurr^.size>=size then
-              break;
-          end
-        else
-          begin
-            pcurr := nil;
-            break;
-          end;
-{$else CONCATFREE}
-        if pcurr^.size>=size then
-          break;
-{$endif CONCATFREE}
-{$endif BESTMATCH}
-        pcurr:=pcurr^.next;
-      end;
-{$ifdef BESTMATCH}
-     if not assigned(pcurr) then
-      pcurr:=pbest;
-{$endif}
-   end;
-  { have we found a block, then get it and free up the other left part,
-    if no blocks are found then allocated at the heapptr or grow the heap }
-  if assigned(pcurr) then
-   begin
-     { get pointer of the block we should return }
-     sysgetmem:=pointer(pcurr);
-     { remove the current block from the freelist }
-     if assigned(pcurr^.next) then
-      pcurr^.next^.prev:=pcurr^.prev;
-     if assigned(pcurr^.prev) then
-      pcurr^.prev^.next:=pcurr^.next
-     else
-      freelists[s]:=pcurr^.next;
-{$ifdef SYSTEMDEBUG}
-     dec(freecount[s]);
-{$endif SYSTEMDEBUG}
-     { create the left over freelist block, if at least 16 bytes are free }
-     sizeleft:=pcurr^.size-size;
-     if sizeleft>=sizeof(tfreerecord) then
-      begin
-        pcurr:=pfreerecord(pointer(pcurr)+size);
-        { inherit the beforeheapendmask }
-        pcurr^.size:=sizeleft or (pheaprecord(sysgetmem)^.size and beforeheapendmask);
-        { the block we return does not lie before any heapend anymore (there's now }
-        { a block after it)                                                        }
-        pheaprecord(sysgetmem)^.size := pheaprecord(sysgetmem)^.size and not(beforeheapendmask);
-        { keep track of the block that lies before the current heapend }
-        if (pointer(pcurr)+(pcurr^.size and sizemask)+sizeof(tfreerecord) >= heapend) then
-          before_heapend_block := pcurr;
-        { insert the block in the freelist }
-        pcurr^.prev:=nil;
-        s1:=sizeleft shr blockshr;
-        if s1>maxblock then
-         s1:=0;
-        pcurr^.next:=freelists[s1];
-        if assigned(freelists[s1]) then
-         freelists[s1]^.prev:=pcurr;
-        freelists[s1]:=pcurr;
-{$ifdef SYSTEMDEBUG}
-        inc(freecount[s1]);
-{$endif SYSTEMDEBUG}
-        { create the block we need to return }
-        pheaprecord(sysgetmem)^.size:=size or usedmask;
-      end
-     else
-      begin
-        { create the block we need to return }
-        pheaprecord(sysgetmem)^.size:=size or usedmask or (pheaprecord(sysgetmem)^.size and beforeheapendmask);
-      end;
-
-     inc(sysgetmem,sizeof(theaprecord));
-{$ifdef TestFreeLists}
-     if test_each then
-      TestFreeLists;
-{$endif TestFreeLists}
-     exit;
-   end;
-  { Lastly, the top of the heap is checked, to see if there is }
-  { still memory available.                                   }
-  repeat
-    again:=false;
-    if heapend-heapptr>=size then
-     begin
-       sysgetmem:=heapptr;
-       if (heapptr+size+sizeof(tfreerecord)>=heapend) then
-        begin
-          pheaprecord(sysgetmem)^.size:=size or (usedmask or beforeheapendmask);
-          { keep track of the block that lies before the current heapend }
-          before_heapend_block := sysgetmem;
-        end
-       else
-        pheaprecord(sysgetmem)^.size:=size or usedmask;
-       inc(sysgetmem,sizeof(theaprecord));
-       inc(heapptr,size);
-{$ifdef TestFreeLists}
-       if test_each then
-        TestFreeLists;
-{$endif TestFreeLists}
-       exit;
-     end;
-    { Call the heaperror proc }
-    if assigned(heaperror) then
-     begin
-       proc:=heaperrorproc(heaperror);
-       case proc(size) of
-        0 : HandleError(203);
-        1 : sysgetmem:=nil;
-        2 : again:=true;
-       end;
-     end
-    else
-     HandleError(203);
-  until not again;
+  { try to find a block in one of the freelists per size }
+  s := size shr blockshr;
+  pcurr := freelists_fixed[s];
+  { no free blocks ? }
+  if not assigned(pcurr) then
+    pcurr := alloc_oschunk(s, size);
+  { get a pointer to the block we should return }
+  result := pointer(pcurr)+sizeof(tmemchunk_fixed_hdr);
+  { flag as in-use }
+  pcurr^.size := pcurr^.size or usedflag;
+  { update freelist }
+  freelists_fixed[s] := pcurr^.next_fixed;
+  if assigned(freelists_fixed[s]) then
+    freelists_fixed[s]^.prev_fixed := nil;
+  poc := poschunk(pointer(pcurr)-((pcurr^.size shr 16)*(pcurr^.size and fixedsizemask)+sizeof(toschunk)));
+  inc(poc^.used);
 {$ifdef TestFreeLists}
   if test_each then
     TestFreeLists;
 {$endif TestFreeLists}
+end;
+
+function SysGetMem_Var(size: ptrint): pointer;
+var
+  pcurr, pcurr_tmp : pmemchunk_var;
+{$ifdef BESTMATCH}
+  pbest : pmemchunk_var;
+{$endif}
+begin
+{$ifdef BESTMATCH}
+  pbest := nil;
+{$endif}
+  pcurr := freelist_var;
+     while assigned(pcurr) do
+      begin
+{$ifdef BESTMATCH}
+        if pcurr^.size=size then
+         begin
+      break;
+    end else begin
+           if (pcurr^.size>size) then
+            begin
+              if (not assigned(pbest)) or
+                 (pcurr^.size<pbest^.size) then
+          pbest := pcurr;
+         end;
+          end;
+{$else BESTMATCH}
+        if pcurr^.size>=size then
+          break;
+{$endif BESTMATCH}
+    pcurr := pcurr^.next_var;
+      end;
+{$ifdef BESTMATCH}
+     if not assigned(pcurr) then
+    pcurr := pbest;
+{$endif}
+
+  if not assigned(pcurr) then
+   begin
+    // all os-chunks full, allocate a new one
+    pcurr := alloc_oschunk(0, size);
+  end;
+
+     { get pointer of the block we should return }
+  result := pointer(pcurr)+sizeof(tmemchunk_var_hdr);
+     { remove the current block from the freelist }
+  remove_from_list_var(pcurr);
+     { create the left over freelist block, if at least 16 bytes are free }
+  split_block(pcurr, size);
+  { flag block as used }
+  pcurr^.size := pcurr^.size or usedflag;
+
+{$ifdef TestFreeLists}
+     if test_each then
+      TestFreeLists;
+{$endif TestFreeLists}
+end;
+
+function SysGetMem(size : ptrint):pointer;
+begin
+{ Something to allocate ? }
+  if size<=0 then
+        begin
+    { give an error for < 0 }
+    if size<0 then
+      HandleError(204);
+    { we always need to allocate something, using heapend is not possible,
+      because heappend can be changed by growheap (PFV) }
+    size := 1;
+     end;
+{ calc to multiple of 16 after adding the needed bytes for memchunk header }
+  if size <= (maxblocksize - sizeof(tmemchunk_fixed_hdr)) then
+     begin
+    size := (size+sizeof(tmemchunk_fixed_hdr)+(blocksize-1)) and fixedsizemask;
+    sysgetmem := sysgetmem_fixed(size);
+  end else begin
+    size := (size+sizeof(tmemchunk_var_hdr)+(blocksize-1)) and sizemask;
+    sysgetmem := sysgetmem_var(size);
+       end;
+  dec(internal_memavail,size);
 end;
 
 
@@ -877,48 +975,85 @@ end;
                                SysFreeMem
 *****************************************************************************}
 
-Function SysFreeMem(p : pointer):ptrint;
+function SysFreeMem_Fixed(pcurr: pmemchunk_fixed; size: ptrint): ptrint;
 var
-  pcurrsize,s : ptrint;
-  pcurr : pfreerecord;
+  pcurrsize: ptrint;
+  blockindex: ptrint;
+  poc: poschunk;
 begin
-  if p=nil then
+  pcurrsize := pcurr^.size and fixedsizemask;
+  if size<>pcurrsize then
    HandleError(204);
-{ fix p to point to the heaprecord }
-  pcurr:=pfreerecord(pointer(p)-sizeof(theaprecord));
-  pcurrsize:=pcurr^.size and sizemask;
   inc(internal_memavail,pcurrsize);
-{ insert the block in it's freelist }
-  pcurr^.size:=pcurr^.size and (not usedmask);
-  pcurr^.prev:=nil;
-  s:=pcurrsize shr blockshr;
-  if s>maxblock then
-   s:=0;
-  pcurr^.next:=freelists[s];
-  if assigned(pcurr^.next) then
-   pcurr^.next^.prev:=pcurr;
-  freelists[s]:=pcurr;
-{$ifdef SYSTEMDEBUG}
-  inc(freecount[s]);
-{$endif SYSTEMDEBUG}
-  SysFreeMem:=pcurrsize;
+  { insert the block in it's freelist }
+  pcurr^.size := pcurr^.size and (not usedflag);
+  blockindex := pcurrsize shr blockshr;
+  append_to_list_fixed(blockindex, pcurr);
+  { decrease used blocks count }
+  poc := poschunk(pointer(pcurr)-(pcurr^.size shr 16)*pcurrsize-sizeof(toschunk));
+  if poc^.used = 0 then
+    HandleError(204);
+  dec(poc^.used);
+  if poc^.used = 0 then
+  begin
+    // block eligable for freeing
+    append_to_oslist_fixed(blockindex, pcurrsize, poc);
+  end;
+  SysFreeMem_Fixed := pcurrsize;
 {$ifdef TestFreeLists}
   if test_each then
     TestFreeLists;
 {$endif TestFreeLists}
 end;
 
+function SysFreeMem_Var(pcurr: pmemchunk_var; size: ptrint): ptrint;
+var
+  pcurrsize: ptrint;
+begin
+  pcurrsize := pcurr^.size and sizemask;
+  if size<>pcurrsize then
+    HandleError(204);
+  inc(internal_memavail,pcurrsize);
+  { insert the block in it's freelist }
+  pcurr^.size := pcurr^.size and (not usedflag);
+  append_to_list_var(pcurr);
+  SysFreeMem_Var := pcurrsize;
+  pcurr := try_concat_free_chunk(pcurr);
+  if (pcurr^.size and (firstblockflag or lastblockflag)) = (firstblockflag or lastblockflag) then
+  begin
+    append_to_oslist_var(pcurr);
+  end;
+{$ifdef TestFreeLists}
+  if test_each then
+    TestFreeLists;
+{$endif TestFreeLists}
+end;
+
+function SysFreeMem(p: pointer): ptrint;
+var
+  pcurrsize: ptrint;
+begin
+  if p=nil then
+    HandleError(204);
+  pcurrsize := pmemchunk_fixed(p-sizeof(tmemchunk_fixed_hdr))^.size;
+  { check if this is a fixed- or var-sized chunk }
+  if (pcurrsize and fixedsizeflag) = 0 then
+  begin
+    result := sysfreemem_var(pmemchunk_var(p-sizeof(tmemchunk_var_hdr)), pcurrsize and sizemask);
+  end else begin
+    result := sysfreemem_fixed(pmemchunk_fixed(p-sizeof(tmemchunk_fixed_hdr)), pcurrsize and fixedsizemask);
+  end;
+end;
 
 {*****************************************************************************
                               SysFreeMemSize
 *****************************************************************************}
 
-Function SysFreeMemSize(p : pointer;size : ptrint):ptrint;
+Function SysFreeMemSize(p: pointer; size: ptrint):ptrint;
 var
-  pcurrsize,s : ptrint;
-  pcurr : pfreerecord;
+  pcurrsize: ptrint;
 begin
-  SysFreeMemSize:=0;
+  SysFreeMemSize := 0;
   if size<=0 then
    begin
      if size<0 then
@@ -927,33 +1062,17 @@ begin
    end;
   if p=nil then
    HandleError(204);
-{ fix p to point to the heaprecord }
-  pcurr:=pfreerecord(pointer(p)-sizeof(theaprecord));
-  pcurrsize:=pcurr^.size and sizemask;
-  inc(internal_memavail,pcurrsize);
-{ size check }
-  size:=(size+sizeof(theaprecord)+(blocksize-1)) and (not (blocksize-1));
-  if size<>pcurrsize then
-   HandleError(204);
-{ insert the block in it's freelist }
-  pcurr^.size:=pcurr^.size and (not usedmask);
-  pcurr^.prev:=nil;
-{ set the return values }
-  s:=pcurrsize shr blockshr;
-  if s>maxblock then
-   s:=0;
-  pcurr^.next:=freelists[s];
-  if assigned(pcurr^.next) then
-   pcurr^.next^.prev:=pcurr;
-  freelists[s]:=pcurr;
-{$ifdef SYSTEMDEBUG}
-  inc(freecount[s]);
-{$endif SYSTEMDEBUG}
-  SysFreeMemSize:=pcurrsize;
-{$ifdef TestFreeLists}
-  if test_each then
-    TestFreeLists;
-{$endif TestFreeLists}
+
+  pcurrsize := pmemchunk_fixed(p-sizeof(tmemchunk_fixed_hdr))^.size;
+  { check if this is a fixed- or var-sized chunk }
+  if (pcurrsize and fixedsizeflag) = 0 then
+  begin
+    size := (size+sizeof(tmemchunk_var_hdr)+(blocksize-1)) and sizemask;
+    result := sysfreemem_var(pmemchunk_var(p-sizeof(tmemchunk_var_hdr)), size);
+  end else begin
+    size := (size+sizeof(tmemchunk_fixed_hdr)+(blocksize-1)) and fixedsizemask;
+    result := sysfreemem_fixed(pmemchunk_fixed(p-sizeof(tmemchunk_fixed_hdr)), size);
+  end;
 end;
 
 
@@ -961,9 +1080,17 @@ end;
                                  SysMemSize
 *****************************************************************************}
 
-function SysMemSize(p:pointer):ptrint;
+function SysMemSize(p: pointer): ptrint;
 begin
-  SysMemSize:=(pheaprecord(pointer(p)-sizeof(theaprecord))^.size and sizemask)-sizeof(theaprecord);
+  SysMemSize := pmemchunk_fixed(pointer(p)-sizeof(tmemchunk_fixed_hdr))^.size;
+  if (SysMemSize and fixedsizeflag) = 0 then
+  begin
+    SysMemSize := SysMemSize and sizemask;
+    dec(SysMemSize, sizeof(tmemchunk_var_hdr));
+  end else begin
+    SysMemSize := SysMemSize and fixedsizemask;
+    dec(SysMemSize, sizeof(tmemchunk_fixed_hdr));
+  end;
 end;
 
 
@@ -971,9 +1098,9 @@ end;
                                  SysAllocMem
 *****************************************************************************}
 
-function SysAllocMem(size : ptrint):pointer;
+function SysAllocMem(size: ptrint): pointer;
 begin
-  sysallocmem:=MemoryManager.GetMem(size);
+  sysallocmem := MemoryManager.GetMem(size);
   if sysallocmem<>nil then
    FillChar(sysallocmem^,size,0);
 end;
@@ -983,157 +1110,72 @@ end;
                                  SysResizeMem
 *****************************************************************************}
 
-function SysTryResizeMem(var p:pointer;size : ptrint):boolean;
+function SysTryResizeMem(var p: pointer; size: ptrint): boolean;
 var
+  pcurrsize,
   oldsize,
   currsize,
-  foundsize,
-  sizeleft,
-  s     : ptrint;
-  wasbeforeheapend : boolean;
-  hp,
+  sizeleft : ptrint;
   pnew,
-  pcurr : pfreerecord;
+  pcurr : pmemchunk_var;
 begin
-{ fix needed size }
-  size:=(size+sizeof(theaprecord)+(blocksize-1)) and (not (blocksize-1));
-{ fix p to point to the heaprecord }
-  pcurr:=pfreerecord(pointer(p)-sizeof(theaprecord));
-  currsize:=pcurr^.size and sizemask;
-  oldsize:=currsize;
-  wasbeforeheapend:=(pcurr^.size and beforeheapendmask)<>0;
-{ is the allocated block still correct? }
-  if currsize=size then
+  { fix needed size }
+  if size <= (maxblocksize - sizeof(tmemchunk_fixed_hdr)) then
+  begin
+    size := (size+sizeof(tmemchunk_fixed_hdr)+(blocksize-1)) and fixedsizemask;
+  end else begin
+    size := (size+sizeof(tmemchunk_var_hdr)+(blocksize-1)) and sizemask;
+  end;
+
+  { fix p to point to the heaprecord }
+  pcurrsize := pmemchunk_fixed(p-sizeof(tmemchunk_fixed_hdr))^.size;
+  if (pcurrsize and fixedsizeflag) = 0 then
    begin
-     SysTryResizeMem:=true;
+    currsize := pcurrsize and sizemask;
+  end else begin
+    currsize := pcurrsize and fixedsizemask;
+  end;
+  oldsize := currsize;
+  { is the allocated block still correct? }
+  if (currsize>=size) and (size>(currsize-16)) then
+  begin
+    SysTryResizeMem := true;
 {$ifdef TestFreeLists}
      if test_each then
       TestFreeLists;
 {$endif TestFreeLists}
      exit;
    end;
-{ do we need to allocate more memory ? }
+
+  { don't do resizes on fixed-size blocks }
+//  if (pcurrsize and fixedsizeflag) <> 0 then
+//  begin
+    SysTryResizeMem := false;
+    exit;
+//  end;
+
+  { get pointer to block }
+  pcurr := pmemchunk_var(pointer(p)-sizeof(tmemchunk_var_hdr));
+
+  { do we need to allocate more memory ? }
   if size>currsize then
    begin
    { the size is bigger than the previous size, we need to allocated more mem.
      We first check if the blocks after the current block are free. If not we
      simply call getmem/freemem to get the new block }
-     foundsize:=0;
-     hp:=pcurr;
-     repeat
-       inc(foundsize,hp^.size and sizemask);
-       { block used or before a heapptr ? }
-       if (hp^.size and beforeheapendmask)<>0 then
-        begin
-          wasbeforeheapend:=true;
-          break;
+    try_concat_free_chunk_forward(pcurr);
+    currsize := (pcurr^.size and sizemask);
+    SysTryResizeMem := currsize>=size;
         end;
-       { get next block }
-       hp:=pfreerecord(pointer(hp)+(hp^.size and sizemask));
-       { when we're at heapptr then we can stop }
-       if (hp=heapptr) then
-        begin
-          inc(foundsize,heapend-heapptr);
-          break;
-        end;
-       if (hp^.size and usedmask)<>0 then
-        break;
-     until (foundsize>=size);
-   { found enough free blocks? }
-     if foundsize>=size then
+  if currsize>size then
       begin
-        { we walk the list again and remove all blocks }
-        foundsize:=pcurr^.size and sizemask;
-        hp:=pcurr;
-        repeat
-          { get next block }
-          hp:=pfreerecord(pointer(hp)+(hp^.size and sizemask));
-          { when we're at heapptr then we can increase it, if there is enough
-            room is already checked }
-          if (hp=heapptr) then
-           begin
-             inc(heapptr,size-foundsize);
-             foundsize:=size;
-             if (heapend-heapptr)<sizeof(tfreerecord) then
-              wasbeforeheapend:=true;
-             break;
-           end;
-          s:=hp^.size and sizemask;
-          inc(foundsize,s);
-          { remove block from freelist }
-          s:=s shr blockshr;
-          if s>maxblock then
-           s:=0;
-          if assigned(hp^.next) then
-           hp^.next^.prev:=hp^.prev;
-          if assigned(hp^.prev) then
-           hp^.prev^.next:=hp^.next
-          else
-           freelists[s]:=hp^.next;
-{$ifdef SYSTEMDEBUG}
-           dec(freecount[s]);
-{$endif SYSTEMDEBUG}
-        until (foundsize>=size);
-        if wasbeforeheapend then
-         begin
-           pcurr^.size:=foundsize or usedmask or beforeheapendmask;
-           { keep track of the block that lies before the current heapend }
-           if (pointer(pcurr)+foundsize+sizeof(tfreerecord) >= heapend) then
-             before_heapend_block := pcurr;
-         end
-        else
-         pcurr^.size:=foundsize or usedmask;
-      end
-     else
-      begin
-        { we need to call getmem/move/freemem }
-        SysTryResizeMem:=false;
-{$ifdef TestFreeLists}
-        if test_each then
-         TestFreeLists;
-{$endif TestFreeLists}
-        exit;
-      end;
-     currsize:=pcurr^.size and sizemask;
-   end;
-{ is the size smaller then we can adjust the block to that size and insert
+    { is the size smaller then we can adjust the block to that size and insert
   the other part into the freelist }
-  if size<currsize then
-   begin
      { create the left over freelist block, if at least 16 bytes are free }
-     sizeleft:=currsize-size;
-     if sizeleft>sizeof(tfreerecord) then
-      begin
-        pnew:=pfreerecord(pointer(pcurr)+size);
-        pnew^.size:=sizeleft or (pcurr^.size and beforeheapendmask);
-        { keep track of the block that lies before the current heapend }
-        if (pointer(pnew)+(pnew^.size and sizemask)+sizeof(tfreerecord) >= heapend) then
-          before_heapend_block := pnew;
-        { pcurr does not lie before the heapend anymore }
-        pcurr^.size := pcurr^.size and not(beforeheapendmask);
-        { insert the block in the freelist }
-        pnew^.prev:=nil;
-        s:=sizeleft shr blockshr;
-        if s>maxblock then
-         s:=0;
-        pnew^.next:=freelists[s];
-        if assigned(freelists[s]) then
-         freelists[s]^.prev:=pnew;
-        freelists[s]:=pnew;
-{$ifdef SYSTEMDEBUG}
-        inc(freecount[s]);
-{$endif SYSTEMDEBUG}
-        { fix the size of the current block and leave }
-        pcurr^.size:=size or usedmask;
-      end
-     else
-      begin
-        { fix the size of the current block and leave }
-        pcurr^.size:=size or usedmask or (pcurr^.size and beforeheapendmask);
-      end;
+    split_block(pcurr, size);
+    SysTryResizeMem := true;
    end;
   dec(internal_memavail,size-oldsize);
-  SysTryResizeMem:=true;
 {$ifdef TestFreeLists}
   if test_each then
     TestFreeLists;
@@ -1145,9 +1187,9 @@ end;
                                  SysResizeMem
 *****************************************************************************}
 
-function SysReAllocMem(var p:pointer;size : ptrint):pointer;
+function SysReAllocMem(var p: pointer; size: ptrint):pointer;
 var
-  oldsize : ptrint;
+  minsize : ptrint;
   p2 : pointer;
 begin
   { Free block? }
@@ -1156,27 +1198,27 @@ begin
      if p<>nil then
       begin
         MemoryManager.FreeMem(p);
-        p:=nil;
+      p := nil;
       end;
-   end
-  else
+  end else
    { Allocate a new block? }
    if p=nil then
     begin
-      p:=MemoryManager.GetMem(size);
-    end
-  else
+    p := MemoryManager.AllocMem(size);
+  end else
    { Resize block }
    if not SysTryResizeMem(p,size) then
     begin
-      oldsize:=MemoryManager.MemSize(p);
-      p2:=MemoryManager.GetMem(size);
+    minsize := MemoryManager.MemSize(p);
+    if size < minsize then
+      minsize := size;
+    p2 := MemoryManager.AllocMem(size);
       if p2<>nil then
-       Move(p^,p2^,oldsize);
+      Move(p^,p2^,minsize);
       MemoryManager.FreeMem(p);
-      p:=p2;
+    p := p2;
     end;
-  SysReAllocMem:=p;
+  SysReAllocMem := p;
 end;
 
 
@@ -1193,103 +1235,6 @@ procedure mark(var p : pointer);
 begin
 end;
 
-
-{*****************************************************************************
-                                Grow Heap
-*****************************************************************************}
-
-function growheap(size : SizeInt) : integer;
-var
-  sizeleft,s1 : longword;
-  NewPos    : pointer;
-  pcurr     : pfreerecord;
-begin
-{$ifdef DUMPGROW}
-  writeln('growheap(',size,')  allocating ',(size+$ffff) and $ffff0000);
-  DumpBlocks;
-{$endif}
-  { Allocate by 64K size }
-  size:=(size+$ffff) and $ffff0000;
-  { first try 256K (default) }
-  if size<=GrowHeapSize1 then
-   begin
-     NewPos:=Sbrk(GrowHeapSize1);
-     if NewPos<>nil then
-      size:=GrowHeapSize1;
-   end
-  else
-  { second try 1024K (default) }
-   if size<=GrowHeapSize2 then
-    begin
-      NewPos:=Sbrk(GrowHeapSize2);
-      if NewPos<>nil then
-       size:=GrowHeapSize2;
-    end
-  { else allocate the needed bytes }
-  else
-    NewPos:=SBrk(size);
-  { try again }
-  if NewPos=nil then
-   begin
-     NewPos:=Sbrk(size);
-     if NewPos=nil then
-      begin
-        if ReturnNilIfGrowHeapFails then
-          GrowHeap:=1
-        else
-          GrowHeap:=0;
-        Exit;
-      end;
-   end;
-{ increase heapend or add to freelist }
-  if heapend=newpos then
-   begin
-     heapend:=newpos+size;
-     { the block that was marked as "before heapend" is no longer right before the heapend }
-     if assigned(before_heapend_block) then
-       begin
-         before_heapend_block^.size := before_heapend_block^.size and not(beforeheapendmask);
-         before_heapend_block := nil;
-       end;
-   end
-  else
-   begin
-     { create freelist entry for old heapptr-heapend }
-     sizeleft:=heapend-heapptr;
-     if sizeleft>=sizeof(tfreerecord) then
-      begin
-        pcurr:=pfreerecord(heapptr);
-        pcurr^.size:=sizeleft or beforeheapendmask;
-        { keep track of the block that lies before the current heapend }
-        { insert the block in the freelist }
-        s1:=sizeleft shr blockshr;
-        if s1>maxblock then
-         s1:=0;
-        pcurr^.next:=freelists[s1];
-        pcurr^.prev:=nil;
-        if assigned(freelists[s1]) then
-         freelists[s1]^.prev:=pcurr;
-        freelists[s1]:=pcurr;
-{$ifdef SYSTEMDEBUG}
-        inc(freecount[s1]);
-{$endif SYSTEMDEBUG}
-      end;
-     { now set the new heapptr,heapend to the new block }
-     heapptr:=newpos;
-     heapend:=newpos+size;
-     { no block lies before the current heapend, and the one that lay before }
-     { the previous one will remain before a heapend indefinitely            }
-     before_heapend_block := nil;
-   end;
-{ set the total new heap size }
-  inc(internal_memavail,size);
-  inc(internal_heapsize,size);
-{ try again }
-  GrowHeap:=2;
-{$ifdef TestFreeLists}
-  TestFreeLists;
-{$endif TestFreeLists}
-end;
 
 
 {*****************************************************************************
@@ -1329,22 +1274,21 @@ end;
   the initialization of the system unit }
 procedure InitHeap;
 begin
-  FillChar(FreeLists,sizeof(TFreeLists),0);
-{$ifdef SYSTEMDEBUG}
-  FillChar(FreeCount,sizeof(TFreeCount),0);
-{$endif SYSTEMDEBUG}
-  before_heapend_block := nil;
-  internal_heapsize:=GetHeapSize;
-  internal_memavail:=internal_heapsize;
-  HeapOrg:=GetHeapStart;
-  HeapPtr:=HeapOrg;
-  HeapEnd:=HeapOrg+internal_memavail;
-  HeapError:=@GrowHeap;
+  FillChar(freelists_fixed,sizeof(tfreelists),0);
+  freelist_var := nil;
+  freeoslist := nil;
+  freeoslistcount := 0;
+  internal_heapsize := GetHeapSize;
+  internal_memavail := internal_heapsize;
 end;
 
 {
   $Log$
-  Revision 1.30  2004-05-31 12:18:16  peter
+  Revision 1.31  2004-06-17 16:16:13  peter
+    * New heapmanager that releases memory back to the OS, donated
+      by Micha Nelissen
+
+  Revision 1.30  2004/05/31 12:18:16  peter
     * sparc needs alignment on 8 bytes to allow doubles
 
   Revision 1.29  2004/04/26 16:20:54  peter
@@ -1360,7 +1304,7 @@ end;
 
   Revision 1.26  2004/01/29 22:45:25  jonas
     * improved beforeheapend inheritance (remove flag again when possible,
-      sometimes resulting in more opportunities for TryConcatFreeRecord)
+      sometimes resulting in more opportunities for try_concat_free_chunk)
 
   Revision 1.25  2003/12/15 21:39:16  daniel
     * Small microoptimization

@@ -101,6 +101,22 @@ function fpgetcwd(buf:pchar;_size:size_t):pchar; cdecl; external name 'getcwd';
 {$I ossysc.inc}                         // base syscalls
 {$I osmain.inc}                         // base wrappers *nix RTL (derivatives)
 
+{*****************************************************************************
+      OS Memory allocation / deallocation 
+ ****************************************************************************}
+
+function SysOSAlloc(size: ptrint): pointer;
+begin
+  result := sbrk(size);
+end;
+
+{$define HAS_SYSOSFREE}
+
+procedure SysOSFree(p: pointer; size: ptrint);
+begin
+  fpmunmap(p, size);
+end;
+
 { more OS independant parts}
 
 {$I text.inc}
@@ -174,7 +190,11 @@ End.
 
 {
   $Log$
-  Revision 1.14  2004-01-20 23:09:14  hajny
+  Revision 1.15  2004-06-17 16:16:13  peter
+    * New heapmanager that releases memory back to the OS, donated
+      by Micha Nelissen
+
+  Revision 1.14  2004/01/20 23:09:14  hajny
     * ExecuteProcess fixes, ProcessID and ThreadID added
 
   Revision 1.13  2004/01/01 14:16:55  marco

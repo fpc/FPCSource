@@ -307,6 +307,22 @@ begin
   end;
 end;
 
+{*****************************************************************************
+      OS Memory allocation / deallocation 
+ ****************************************************************************}
+
+function SysOSAlloc(size: ptrint): pointer;
+begin
+  result := sbrk(size);
+end;
+
+{$define HAS_SYSOSFREE}
+
+procedure SysOSFree(p: pointer; size: ptrint);
+begin
+  fpmunmap(p, size);
+end;
+
 { include standard heap management }
 {$I heap.inc}
 
@@ -819,7 +835,11 @@ Begin
 End.
 {
   $Log$
-  Revision 1.21  2004-01-20 23:11:20  hajny
+  Revision 1.22  2004-06-17 16:16:14  peter
+    * New heapmanager that releases memory back to the OS, donated
+      by Micha Nelissen
+
+  Revision 1.21  2004/01/20 23:11:20  hajny
     * ExecuteProcess fixes, ProcessID and ThreadID added
 
   Revision 1.20  2003/10/25 23:43:59  hajny

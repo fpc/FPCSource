@@ -42,11 +42,16 @@ procedure SetMemoryMutexManager(var MutexMgr: TMemoryMutexManager);
 
 { Variables }
 const
+  growheapsizesmall : ptrint=32*1024; { fixed-size small blocks will grow with 32k }
   growheapsize1 : ptrint=256*1024;  { < 256k will grow with 256k }
   growheapsize2 : ptrint=1024*1024; { > 256k will grow with 1m }
   ReturnNilIfGrowHeapFails : boolean = false;
+
+{ the following variable is needed for heaptrc/win32 }
+{$ifdef WIN32}  
 var
-  heaporg,heapptr,heapend,heaperror,freelist : pointer;
+  HeapOrg: pointer;
+{$endif}  
 
 { Default MemoryManager functions }
 Function  SysGetmem(Size:ptrint):Pointer;
@@ -95,7 +100,11 @@ Procedure AsmFreemem(var p:pointer);
 
 {
   $Log$
-  Revision 1.8  2004-03-15 21:48:26  peter
+  Revision 1.9  2004-06-17 16:16:13  peter
+    * New heapmanager that releases memory back to the OS, donated
+      by Micha Nelissen
+
+  Revision 1.8  2004/03/15 21:48:26  peter
     * cmem moved to rtl
     * longint replaced with ptrint in heapmanagers
 
