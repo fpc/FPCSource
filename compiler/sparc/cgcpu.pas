@@ -1123,100 +1123,107 @@ procedure TCgSparc.g_concatcopy(list:taasmoutput;const source,dest:treference;le
     then
       internalerror(2002072704);
 {$endif extdebug}
-        { make sure short loads are handled as optimally as possible }
-        if not loadref then
-          if (len <= 8) and
-             (byte(len) in [1,2,4,8]) then
+   { make sure short loads are handled as optimally as possible }
+    if not loadref
+    then
+      if(len <= 8)and(byte(len) in [1,2,4,8])
+      then
+        begin
+          if len < 8
+          then
             begin
-              if len < 8 then
-                begin
-                  a_load_ref_ref(list,int_cgsize(len),source,dest);
-                  if delsource then
-                    reference_release(list,source);
-                end
-              else
-                begin
-                  r.enum:=R_F0;
-                  a_reg_alloc(list,r);
-                  a_loadfpu_ref_reg(list,OS_F64,source,r);
-                  if delsource then
-                    reference_release(list,source);
-                  a_loadfpu_reg_ref(list,OS_F64,r,dest);
-                  a_reg_dealloc(list,r);
-                end;
-              exit;
+              a_load_ref_ref(list,int_cgsize(len),source,dest);
+              if delsource
+              then
+                reference_release(list,source);
+            end
+          else
+            begin
+              r.enum:=R_F0;
+              a_reg_alloc(list,r);
+              a_loadfpu_ref_reg(list,OS_F64,source,r);
+            if delsource
+            then
+              reference_release(list,source);
+              a_loadfpu_reg_ref(list,OS_F64,r,dest);
+              a_reg_dealloc(list,r);
             end;
-
-        reference_reset(src);
-        reference_reset(dst);
-        { load the address of source into src.base }
-        if loadref then
-          begin
-            src.base := get_scratch_reg_address(list);
-            a_load_ref_reg(list,OS_32,source,src.base);
-            orgsrc := false;
-          end
-        else if not issimpleref(source) or
-                ((source.index.enum <> R_NO) and
-                 ((source.offset + longint(len)) > high(smallint))) then
-          begin
-            src.base := get_scratch_reg_address(list);
-            a_loadaddr_ref_reg(list,source,src.base);
-            orgsrc := false;
-          end
-        else
-          begin
-            src := source;
-            orgsrc := true;
-          end;
-        if not orgsrc and delsource then
-          reference_release(list,source);
+          exit;
+        end;
+      reference_reset(src);
+      reference_reset(dst);
+      { load the address of source into src.base }
+      if loadref
+      then
+        begin
+          src.base := get_scratch_reg_address(list);
+          a_load_ref_reg(list,OS_32,source,src.base);
+          orgsrc := false;
+        end
+      else if not issimpleref(source) or
+        ((source.index.enum<>R_NO)and
+        ((source.offset+longint(len))>high(smallint)))
+      then
+        begin
+          src.base := get_scratch_reg_address(list);
+          a_loadaddr_ref_reg(list,source,src.base);
+          orgsrc := false;
+        end
+      else
+        begin
+          src := source;
+          orgsrc := true;
+        end;
+      if not orgsrc and delsource
+      then
+        reference_release(list,source);
         { load the address of dest into dst.base }
-        if not issimpleref(dest) or
-           ((dest.index.enum <> R_NO) and
-            ((dest.offset + longint(len)) > high(smallint))) then
-          begin
-            dst.base := get_scratch_reg_address(list);
-            a_loadaddr_ref_reg(list,dest,dst.base);
-            orgdst := false;
-          end
-        else
-          begin
-            dst := dest;
-            orgdst := true;
-          end;
-
-        count := len div 8;
-        if count > 4 then
-          { generate a loop }
-          begin
-            { the offsets are zero after the a_loadaddress_ref_reg and just }
-            { have to be set to 8. I put an Inc there so debugging may be   }
-            { easier (should offset be different from zero here, it will be }
-            { easy to notice in the generated assembler                     }
-            inc(dst.offset,8);
-            inc(src.offset,8);
-            list.concat(taicpu.op_reg_const_reg(A_SUB,src.base,8,src.base));
-            list.concat(taicpu.op_reg_const_reg(A_SUB,dst.base,8,dst.base));
-            countreg := get_scratch_reg_int(list,OS_32);
-            a_load_const_reg(list,OS_32,count,countreg);
-            { explicitely allocate R_O0 since it can be used safely here }
-            { (for holding date that's being copied)                    }
-            r.enum:=R_F0;
-            a_reg_alloc(list,r);
-            objectlibrary.getlabel(lab);
-            a_label(list, lab);
-            list.concat(taicpu.op_reg_const_reg(A_SUB,countreg,1,countreg));
-            list.concat(taicpu.op_reg_ref(A_LDF,r,src));
-            list.concat(taicpu.op_reg_ref(A_STD,r,dst));
-            //a_jmp(list,A_BC,C_NE,0,lab);
-            free_scratch_reg(list,countreg);
-            a_reg_dealloc(list,r);
-            len := len mod 8;
-          end;
-
-        count := len div 8;
-        if count > 0 then
+      if not issimpleref(dest) or
+        ((dest.index.enum <> R_NO) and
+        ((dest.offset + longint(len)) > high(smallint)))
+      then
+        begin
+          dst.base := get_scratch_reg_address(list);
+          a_loadaddr_ref_reg(list,dest,dst.base);
+          orgdst := false;
+        end
+      else
+        begin
+          dst := dest;
+          orgdst := true;
+        end;
+      count:=len and 7;{count:=len div 8}
+      if count>4
+      then
+        { generate a loop }
+        begin
+          { the offsets are zero after the a_loadaddress_ref_reg and just }
+          { have to be set to 8. I put an Inc there so debugging may be   }
+          { easier (should offset be different from zero here, it will be }
+          { easy to notice in the generated assembler                     }
+          inc(dst.offset,8);
+          inc(src.offset,8);
+          list.concat(taicpu.op_reg_const_reg(A_SUB,src.base,8,src.base));
+          list.concat(taicpu.op_reg_const_reg(A_SUB,dst.base,8,dst.base));
+          countreg := get_scratch_reg_int(list,OS_32);
+          a_load_const_reg(list,OS_32,count,countreg);
+          { explicitely allocate R_O0 since it can be used safely here }
+          { (for holding date that's being copied)                    }
+          r.enum:=R_F0;
+          a_reg_alloc(list,r);
+          objectlibrary.getlabel(lab);
+          a_label(list, lab);
+          list.concat(taicpu.op_reg_const_reg(A_SUB,countreg,1,countreg));
+          list.concat(taicpu.op_reg_ref(A_LDF,r,src));
+          list.concat(taicpu.op_reg_ref(A_STD,r,dst));
+          //a_jmp(list,A_BC,C_NE,0,lab);
+          free_scratch_reg(list,countreg);
+          a_reg_dealloc(list,r);
+          len := len mod 8;
+        end;
+        count:=len and 7;
+        if count>0
+        then
           { unrolled loop }
           begin
             r.enum:=R_F0;
@@ -1403,7 +1410,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.39  2003-02-19 22:00:16  daniel
+  Revision 1.40  2003-02-25 21:41:44  mazen
+  * code re-aligned 2 spaces
+
+  Revision 1.39  2003/02/19 22:00:16  daniel
     * Code generator converted to new register notation
     - Horribily outdated todo.txt removed
 
