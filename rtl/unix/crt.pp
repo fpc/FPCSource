@@ -1613,7 +1613,8 @@ Initialization
 
 Finalization
   ttyFlushOutput;
-  SetRawMode(False);
+  if not OutputRedir then
+    SetRawMode(False);
 { remove console buf }
   if Assigned(ConsoleBuf) then
    FreeMem(ConsoleBuf,ScreenHeight*ScreenWidth*2);
@@ -1621,7 +1622,10 @@ Finalization
 End.
 {
   $Log$
-  Revision 1.20  2004-07-20 09:26:04  marco
+  Revision 1.21  2004-12-26 16:15:44  peter
+    * restore rawmode only if not redirected
+
+  Revision 1.20  2004/07/20 09:26:04  marco
    * some updates to xy2ansi
 
   Revision 1.19  2004/07/09 19:03:35  peter
