@@ -353,8 +353,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  2000-02-11 23:59:35  jonas
-    + {$asmmode att} for people with -Rintel in their ppc386.cfg
+  Revision 1.12  2000-02-24 18:41:39  peter
+    * removed warnings/notes
+
+  Revision 1.11  2000/02/11 23:59:35  jonas
+    + $asmmode att for people with -Rintel in their ppc386.cfg
 
   Revision 1.10  2000/02/09 13:23:08  peter
     * log truncated

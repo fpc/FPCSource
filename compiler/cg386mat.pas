@@ -52,7 +52,10 @@ implementation
 
     procedure secondmoddiv(var p : ptree);
       var
-         hreg1, hreg2 : tregister;
+         hreg1 : tregister;
+{$ifdef newOptimizations}
+         hreg2 : tregister;
+{$endif}
          shrdiv, andmod, pushed,popeax,popedx : boolean;
 
          power : longint;
@@ -334,7 +337,6 @@ implementation
          hregisterhigh,hregisterlow : tregister;
          pushed,popecx : boolean;
          op : tasmop;
-         hr : preference;
          l1,l2,l3 : pasmlabel;
 
       begin
@@ -676,8 +678,6 @@ implementation
            emit_reg_reg(A_MOVQ,S_NO,R_MM7,p^.location.register);
         end;
 {$endif}
-      var
-         hr : preference;
 
       begin
          if is_64bitint(p^.left^.resulttype) then
@@ -818,8 +818,6 @@ implementation
       var
          hl : pasmlabel;
          opsize : topsize;
-         hr : preference;
-
       begin
          if is_boolean(p^.resulttype) then
           begin
@@ -992,7 +990,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.43  2000-02-18 21:25:48  florian
+  Revision 1.44  2000-02-24 18:41:38  peter
+    * removed warnings/notes
+
+  Revision 1.43  2000/02/18 21:25:48  florian
     * fixed a bug in int64/qword handling was a quite ugly one
 
   Revision 1.42  2000/02/09 13:22:47  peter

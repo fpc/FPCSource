@@ -390,8 +390,6 @@ uses
 
 
     procedure tinputfile.close;
-      var
-        i : word;
       begin
         if is_macro then
          begin
@@ -408,7 +406,7 @@ uses
            {$I-}
             system.close(f);
            {$I+}
-           i:=ioresult;
+           if ioresult<>0 then;
            closed:=true;
          end;
         if assigned(buf) then
@@ -421,8 +419,6 @@ uses
 
 
     procedure tinputfile.tempclose;
-      var
-        i : word;
       begin
         if is_macro then
          exit;
@@ -431,7 +427,7 @@ uses
            {$I-}
             system.close(f);
            {$I+}
-           i:=ioresult;
+           if ioresult<>0 then;
            Freemem(buf,maxbufsize);
            buf:=nil;
            closed:=true;
@@ -1357,7 +1353,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.115  2000-02-10 16:00:23  peter
+  Revision 1.116  2000-02-24 18:41:38  peter
+    * removed warnings/notes
+
+  Revision 1.115  2000/02/10 16:00:23  peter
     * dont' check for ppl files as they aren't used atm.
 
   Revision 1.114  2000/02/09 13:22:52  peter

@@ -382,7 +382,6 @@ implementation
          hp,procs,hp2 : pprocdefcoll;
          pd : pprocdef;
          oldcallprocsym : pprocsym;
-         nextprocsym : pprocsym;
          def_from,def_to,conv_to : pdef;
          hpt,pt,inlinecode : ptree;
          exactmatch,inlined : boolean;
@@ -390,6 +389,7 @@ implementation
          lastparatype : pdef;
          pdc : pparaitem;
 {$ifdef TEST_PROCSYMS}
+         nextprocsym : pprocsym;
          symt : psymtable;
 {$endif TEST_PROCSYMS}
 
@@ -582,8 +582,6 @@ implementation
                        end;
                      nextprocsym:=srsym;
                   end;
-{$else TEST_PROCSYMS}
-                nextprocsym:=nil;
 {$endif TEST_PROCSYMS}
                    { determine length of parameter list }
                    pt:=p^.left;
@@ -1233,7 +1231,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.80  2000-02-17 14:53:43  florian
+  Revision 1.81  2000-02-24 18:41:39  peter
+    * removed warnings/notes
+
+  Revision 1.80  2000/02/17 14:53:43  florian
     * some updates for the newcg
 
   Revision 1.79  2000/02/09 13:23:07  peter

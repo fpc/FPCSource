@@ -427,7 +427,6 @@ var
   cmdstr,
   binstr  : string;
   success : boolean;
-  cnt     : longint;
 begin
   MakeStaticLibrary:=false;
 { remove the library, to be sure that it is rewritten }
@@ -522,7 +521,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.83  2000-02-09 13:22:54  peter
+  Revision 1.84  2000-02-24 18:41:39  peter
+    * removed warnings/notes
+
+  Revision 1.83  2000/02/09 13:22:54  peter
     * log truncated
 
   Revision 1.82  2000/01/14 14:40:37  pierre

@@ -358,9 +358,9 @@ End;
 Procedure RemoveLastDeallocForFuncRes(asmL: PAasmOutput; p: pai);
 
   Procedure DoRemoveLastDeallocForFuncRes(asmL: PAasmOutput; reg: TRegister);
-  var hp, hp2: pai;
+  var
+    hp2: pai;
   begin
-    hp := nil;
     hp2 := p;
     repeat
       hp2 := pai(hp2^.previous);
@@ -2129,7 +2129,10 @@ End.
 
 {
  $Log$
- Revision 1.83  2000-02-10 14:57:14  jonas
+ Revision 1.84  2000-02-24 18:41:38  peter
+   * removed warnings/notes
+
+ Revision 1.83  2000/02/10 14:57:14  jonas
    * fixed bug due to lack of support for top_symbol operands
 
  Revision 1.82  2000/02/09 13:22:51  peter

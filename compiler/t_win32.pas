@@ -976,7 +976,7 @@ var
   peheader : tpeheader;
   firstsecpos,
   maxfillsize,
-  i,l,peheaderpos : longint;
+  l,peheaderpos : longint;
   coffsec : tcoffsechdr;
   secroot,hsecroot : psecfill;
   zerobuf : pointer;
@@ -1076,14 +1076,17 @@ begin
   freemem(zerobuf,maxfillsize);
   close(f);
   {$I+}
-  i:=ioresult;
+  if ioresult<>0 then;
   postprocessexecutable:=true;
 end;
 
 end.
 {
   $Log$
-  Revision 1.18  2000-01-12 10:31:45  peter
+  Revision 1.19  2000-02-24 18:41:39  peter
+    * removed warnings/notes
+
+  Revision 1.18  2000/01/12 10:31:45  peter
     * fixed group() writing
 
   Revision 1.17  2000/01/11 09:52:07  peter

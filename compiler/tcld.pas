@@ -201,8 +201,10 @@ implementation
 *****************************************************************************}
 
     procedure firstassignment(var p : ptree);
+{$ifdef dummyi386}
       var
-         hp : ptree;
+        hp : ptree;
+{$endif}
       begin
          { must be made unique }
          set_unique(p^.left);
@@ -267,7 +269,6 @@ implementation
              end;
             { we call STRCOPY }
             procinfo^.flags:=procinfo^.flags or pi_do_call;
-            hp:=p^.right;
             { test for s:=s+anything ... }
             { the problem is for
               s:=s+s+s;
@@ -485,7 +486,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.60  2000-02-17 14:53:43  florian
+  Revision 1.61  2000-02-24 18:41:39  peter
+    * removed warnings/notes
+
+  Revision 1.60  2000/02/17 14:53:43  florian
     * some updates for the newcg
 
   Revision 1.59  2000/02/09 13:23:07  peter

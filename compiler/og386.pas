@@ -153,8 +153,6 @@ unit og386;
 ****************************************************************************}
 
     constructor tobjectoutput.init(smart:boolean);
-      var
-        i : longint;
       begin
         smarthcount:=0;
         objsmart:=smart;
@@ -167,7 +165,7 @@ unit og386;
            {$I-}
             mkdir(path);
            {$I+}
-           i:=ioresult;
+           if ioresult<>0 then;
            path:=FixPath(path,false);
          end
         else
@@ -275,7 +273,10 @@ unit og386;
 end.
 {
   $Log$
-  Revision 1.17  2000-02-09 13:22:54  peter
+  Revision 1.18  2000-02-24 18:41:39  peter
+    * removed warnings/notes
+
+  Revision 1.17  2000/02/09 13:22:54  peter
     * log truncated
 
   Revision 1.16  2000/01/07 01:14:27  peter

@@ -66,7 +66,6 @@ end;
 destructor tdeffile.done;
 var
   f : file;
-  i : word;
 begin
   if WrittenOnDisk and
      not(cs_link_extern in aktglobalswitches) then
@@ -75,7 +74,7 @@ begin
      {$I-}
       erase(f);
      {$I+}
-     i:=ioresult;
+     if ioresult<>0 then;
    end;
   importlist.done;
   exportlist.done;
@@ -165,7 +164,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  2000-02-09 13:22:53  peter
+  Revision 1.7  2000-02-24 18:41:39  peter
+    * removed warnings/notes
+
+  Revision 1.6  2000/02/09 13:22:53  peter
     * log truncated
 
   Revision 1.5  2000/01/07 01:14:27  peter

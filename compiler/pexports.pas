@@ -39,7 +39,6 @@ unit pexports;
 
       var
          hp : pexported_item;
-         code : integer;
          DefString:string;
          ProcName:string;
          InternalProcName:string;
@@ -156,7 +155,10 @@ end.
 
 {
   $Log$
-  Revision 1.20  2000-02-23 23:06:39  florian
+  Revision 1.21  2000-02-24 18:41:39  peter
+    * removed warnings/notes
+
+  Revision 1.20  2000/02/23 23:06:39  florian
     + the expr for names and indizies of exports sections support now
       every type of expressions which evalute to a constant
 

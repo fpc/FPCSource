@@ -908,7 +908,14 @@ Procedure DoCSE(AsmL: PAasmOutput; First, Last: Pai);
  two different sequences}
 Var Cnt, Cnt2: Longint;
     p, hp1, hp2: Pai;
-    hp3, hp4, hp5: pai;
+    hp3, hp4: pai;
+{$ifdef replacereg}
+    hp5 : pai;
+{$else}
+  {$ifdef csdebug}
+    hp5 : pai;
+  {$endif}
+{$endif}
     RegInfo: TRegInfo;
     RegCounter: TRegister;
     TmpState: Byte;
@@ -1234,7 +1241,10 @@ End.
 
 {
  $Log$
- Revision 1.53  2000-02-19 13:50:29  jonas
+ Revision 1.54  2000-02-24 18:41:38  peter
+   * removed warnings/notes
+
+ Revision 1.53  2000/02/19 13:50:29  jonas
    * fixed bug in -dnewoptizations (showed itself  only if -Or was
      used as well I think)
 

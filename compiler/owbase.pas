@@ -84,8 +84,6 @@ end;
 
 
 procedure tobjectwriter.close;
-var
-  i : longint;
 begin
   if bufidx>0 then
    writebuf;
@@ -96,7 +94,7 @@ begin
      {$I-}
       system.erase(f);
      {$I+}
-     i:=ioresult;
+     if ioresult<>0 then;
    end;
   opened:=false;
   size:=0;
@@ -148,7 +146,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2000-02-09 13:22:55  peter
+  Revision 1.5  2000-02-24 18:41:39  peter
+    * removed warnings/notes
+
+  Revision 1.4  2000/02/09 13:22:55  peter
     * log truncated
 
   Revision 1.3  2000/01/07 01:14:28  peter

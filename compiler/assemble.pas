@@ -201,7 +201,6 @@ end;
 procedure TAsmList.RemoveAsm;
 var
   g : file;
-  i : word;
 begin
   if cs_asm_leave in aktglobalswitches then
    exit;
@@ -213,7 +212,7 @@ begin
      {$I-}
       erase(g);
      {$I+}
-     i:=ioresult;
+     if ioresult<>0 then;
    end;
 end;
 
@@ -429,8 +428,6 @@ end;
 
 
 Constructor TAsmList.Init(smart:boolean);
-var
-  i : word;
 begin
 { load start values }
   asmfile:=current_module^.asmfilename^;
@@ -449,7 +446,7 @@ begin
      {$I-}
       mkdir(path);
      {$I+}
-     i:=ioresult;
+     if ioresult<>0 then;
      path:=FixPath(path,false);
    end
   else
@@ -567,7 +564,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.61  2000-02-09 13:22:45  peter
+  Revision 1.62  2000-02-24 18:41:38  peter
+    * removed warnings/notes
+
+  Revision 1.61  2000/02/09 13:22:45  peter
     * log truncated
 
   Revision 1.60  2000/01/11 09:52:06  peter

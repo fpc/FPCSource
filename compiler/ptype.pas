@@ -287,7 +287,7 @@ uses
 
         var
            hp2,datacoll : pparaitem;
-           p,p2 : ppropertysym;
+           p : ppropertysym;
            overriden : psym;
            hs : string;
            varspez : tvarspez;
@@ -1539,7 +1539,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.19  2000-02-21 22:17:49  florian
+  Revision 1.20  2000-02-24 18:41:39  peter
+    * removed warnings/notes
+
+  Revision 1.19  2000/02/21 22:17:49  florian
     * fixed 819
 
   Revision 1.18  2000/02/09 13:23:01  peter
