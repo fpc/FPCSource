@@ -219,6 +219,37 @@ begin
   else SetVESAMode:=true;
 end;
 
+procedure SetDisplayPage(PageNum : word);
+
+  begin
+     dregs.RealSP:=0;      dregs.RealSS:=0;
+     dregs.RealEAX:=$0500+(PageNum and $FF);
+     RealIntr($10,dregs);
+  end;
+  
+function SetVESADisplayStart(PageNum : word;x,y : integer):Boolean;
+begin
+  if PageNum>VesaInfo.NumberOfPages then
+    PageNum:=0;
+{$ifdef DEBUG}
+  if PageNum>0 then
+    writeln(stderr,'Setting Display Page ',PageNum);
+{$endif DEBUG}
+  dregs.RealEBX:=0{ $80 for Wait for retrace };
+  dregs.RealECX:=x;
+  dregs.RealEDX:=y+PageNum*_maxy;
+  dregs.RealSP:=0;      dregs.RealSS:=0;
+  dregs.RealEAX:=$4F07; RealIntr($10,dregs);
+  { idem as above !!! }
+  if (dregs.RealEAX and $1FF) <> $4F then
+    begin
+       writeln(stderr,'Set Display start error');
+       SetVESADisplayStart:=false;
+    end
+  else
+    SetVESADisplayStart:=true;
+end;
+
 function GetVESAMode:Integer;
 begin
   dregs.RealSP:=0;      dregs.RealSS:=0;
@@ -300,7 +331,10 @@ end;
 
 {
   $Log$
-  Revision 1.6  1998-11-20 18:42:08  pierre
+  Revision 1.7  1998-11-25 13:04:46  pierre
+    + added multi page support
+
+  Revision 1.6  1998/11/20 18:42:08  pierre
     * many bugs related to floodfill and ellipse fixed
 
   Revision 1.5  1998/11/20 10:16:02  pierre

@@ -63,8 +63,11 @@ function  GetY : Integer;
 procedure Bar(x1,y1,x2,y2 : Integer);
 procedure bar3D(x1, y1, x2, y2 : integer;depth : word;top : boolean);
 procedure GetViewSettings(var viewport : ViewPortType);
+function  GetNumberOfPages : word;
 procedure SetActivePage(page : word);
+function  GetActivePage : word;
 procedure SetVisualPage(page : word);
+function  GetVisualPage : word;
 procedure SetWriteMode(WriteMode : integer);
 procedure SetViewPort(x1,y1,x2,y2 : integer;clip : boolean);
 procedure Cleardevice;
@@ -154,6 +157,8 @@ procedure WaitRetrace;
 procedure pixel(offset:longint);
 function  Convert(color:longint):longint;
 function  UnConvert(color:longint):longint;
+function  SetVESADisplayStart(PageNum : word;x,y : integer):Boolean;
+procedure GoodFillPoly(points : word;var polypoints);
 {$endif debug}
 
 {$ifdef Test_linear}
@@ -256,7 +261,13 @@ var    { X/Y Verhaeltnis des Bildschirm }
        { used for fill }
        colormask : longint;
        { Videospeicherbereiche }
-       wbuffer,rbuffer,wrbuffer : ^byte;
+       wbuffer : ^byte;
+       { Offset to current page }
+       AktPageOffset : longint;
+       AktPage : word;
+       AktVisualPage : word;
+       { these are not used !! PM }
+       rbuffer,wrbuffer : ^byte;
        { aktueller Ausgabebereich }
        aktviewport : ViewPortType;
        aktscreen   : ViewPortType;
@@ -296,10 +307,10 @@ var    { X/Y Verhaeltnis des Bildschirm }
        buffersize : longint;
        { in diesem Puffer werden bei SetFillStyle bereits die Pattern in der }
        { zu verwendenden Farbe abgelegt }
-       PatternBuffer : Array[0..63]of LongInt;
+       PatternBuffer : Array [0..63] of LongInt;
 
-       X_Array         : array[0..1280]of LongInt;
-       Y_Array         : array[0..1024]of LongInt;
+       X_Array         : array [0..1280] of LongInt;
+       Y_Array         : array [0..1024] of LongInt;
 
        Sel,Seg      : word;
        VGAInfo      : VGAInfoBlock;
@@ -540,8 +551,8 @@ begin
   aktcolor:=aktbackcolor;
   storewritemode:=aktwritemode;
   aktwritemode:=normalput;
-  ofs1:=Y_ARRAY[aktviewport.y1] + X_ARRAY[aktviewport.x1] ;
-  ofs2:=Y_ARRAY[aktviewport.y1] + X_ARRAY[aktviewport.x2] ;
+  ofs1:=Y_ARRAY[aktviewport.y1] + X_ARRAY[aktviewport.x1];
+  ofs2:=Y_ARRAY[aktviewport.y1] + X_ARRAY[aktviewport.x2];
   for y:=aktviewport.y1 to aktviewport.y2 do
   begin
     bank1:=ofs1 shr winshift;
@@ -691,8 +702,19 @@ begin
      end;
 end;
 
+procedure SetArrays;
+
+  var
+     index:Integer;
+  begin
+     for index:=0 to VESAInfo.XResolution do
+       X_Array[index]:=index * BytesPerPixel;
+     for index:=0 to VESAInfo.YResolution do
+       Y_Array[index]:=index * BytesPerLine + AktPageOffset;
+  end;
+  
 procedure InitGraph(var GraphDriver:Integer;var GraphMode:Integer;const PathToDriver:String);
-var i,index:Integer;
+var i : Integer;
 begin
     { Pfad zu den Fonts }
     bgipath:=PathToDriver;
@@ -725,12 +747,14 @@ begin
       GetVESAInfo(GraphMode);
       if UseLinearFrameBuffer then
         isgraphmode:=SetVESAMode(GraphMode or EnableLinearFrameBuffer);
-      for index:=0 to VESAInfo.XResolution do X_Array[index]:=index * BytesPerPixel;
-      for index:=0 to VESAInfo.YResolution do Y_Array[index]:=index * BytesPerLine;
+      { set zero page }
+      AktPageOffset:=0;
+      SetActivePage(0);
+      SetVisualPage(0);
+      SetArrays;
       SetGraphBufSize(bufferstandardsize);
       graphdefaults;
       InTempCRTMode:=false;
-
       exit;
     end;
     dec(i);
@@ -741,7 +765,6 @@ end;
 
 procedure SetGraphMode(GraphMode:Integer);
 
-var index:Integer;
 begin
    _graphresult:=grOk;
    if not isgraphmode and not InTempCRTMode then
@@ -756,10 +779,11 @@ begin
            begin
               if UseLinearFrameBuffer then
                 isgraphmode:=SetVESAMode(GraphMode or EnableLinearFrameBuffer);
-              for index:=0 to VESAInfo.XResolution do
-                X_Array[index]:=index * BytesPerPixel;
-              for index:=0 to VESAInfo.YResolution do
-                Y_Array[index]:=index * BytesPerLine;
+              { set zero page }
+              AktPageOffset:=0;
+              SetActivePage(0);
+              SetVisualPage(0);
+              SetArrays;
               graphdefaults;
               InTempCRTMode:=false;
               exit;
@@ -871,9 +895,25 @@ begin
     begin
       _graphresult:=grNoInitGraph;;
       exit;
+    end
+  else if (Page<VESAInfo.NumberOfPages) and (AktVisualPage<>Page) then
+    begin
+       SetVESADisplayStart(Page,0,0);
+       {SetDisplayPage(Page);}
+       AktVisualPage:=Page;
     end;
 end;
 
+function GetVisualPage : word;
+  begin
+     GetVisualPage:=AktVisualPage;
+  end;
+  
+function GetActivePage : word;
+  begin
+     GetActivePage:=AktPage;
+  end;
+  
 { mehrere Bildschirmseiten werden nicht unterstÅtzt }
 { Dummy aus KompatibilitÑtsgrÅnden                  }
 procedure SetActivePage(page : word);
@@ -884,9 +924,20 @@ procedure SetActivePage(page : word);
        begin
          _graphresult:=grNoInitGraph;;
           exit;
+       end
+     else  if (Page<VESAInfo.NumberOfPages) and (Page<>AktPage) then
+       begin
+          AktPageOffset:=Page*BytesPerLine*_maxy;
+          AktPage:=Page;
+          SetArrays;
        end;
   end;
 
+function  GetNumberOfPages : word;
+  begin
+     GetNumberOfPages:=VESAInfo.NumberOfPages;
+  end;
+  
 procedure SetWriteMode(WriteMode : integer);
 begin
   _graphresult:=grOk;
@@ -952,11 +1003,17 @@ begin
    rbuffer:=pointer($0);
    wbuffer:=pointer($0);
   end;
+  AktPageOffset:=0;
+  AktPage:=0;
+  AktVisualPage:=0;
 end.
 
 {
   $Log$
-  Revision 1.12  1998-11-23 10:04:16  pierre
+  Revision 1.13  1998-11-25 13:04:43  pierre
+    + added multi page support
+
+  Revision 1.12  1998/11/23 10:04:16  pierre
     * pieslice and sector work now !!
     * bugs in text writing removed
     + scaling for defaultfont added
