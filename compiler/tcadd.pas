@@ -1190,8 +1190,13 @@ implementation
             end
          else
 
-           if (ld^.deftype=enumdef) and (rd^.deftype=enumdef) and (is_equal(ld,rd)) then
+           if (ld^.deftype=enumdef) and (rd^.deftype=enumdef) then
             begin
+              if not(is_equal(ld,rd)) then
+                begin
+                   p^.right:=gentypeconvnode(p^.right,ld);
+                   firstpass(p^.right);
+                end;
               calcregisters(p,1,0,0);
               case p^.treetype of
                  equaln,unequaln,
@@ -1307,7 +1312,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.77  2000-05-11 17:53:40  peter
+  Revision 1.78  2000-05-31 06:58:41  florian
+    * forgot to commit a fix for the enumeration subrange problem, yesterday
+
+  Revision 1.77  2000/05/11 17:53:40  peter
     * small fix for previous commit
 
   Revision 1.76  2000/05/11 16:47:37  peter
