@@ -140,6 +140,10 @@ const
       ffFromCursor       = $0000;
       ffEntireScope      = $0020;
 
+{$ifdef TEST_REGEXP}
+      ffUseRegExp        = $0040;
+{$endif TEST_REGEXP}
+
       coTextColor         = 0;
       coWhiteSpaceColor   = 1;
       coCommentColor      = 2;
@@ -747,6 +751,9 @@ uses
 {$ifdef WinClipSupported}
   Strings,WinClip,
 {$endif WinClipSupported}
+{$ifdef TEST_REGEXP}
+  regexpr,
+{$endif TEST_REGEXP}
   WConsts,WViews,WCEdit;
 
 type
@@ -5922,6 +5929,13 @@ var S: string;
     Count: sw_integer;
     Found,CanExit: boolean;
     SForward,DoReplace,DoReplaceAll: boolean;
+{$ifdef TEST_REGEXP}
+    UseRegExp : boolean;
+    RegExpEngine : TRegExprEngine;
+    RegExpFlags : tregexprflags;
+    regexpindex,regexplen : longint;
+    findstrpchar : pchar;
+{$endif TEST_REGEXP}
     LeftOK,RightOK: boolean;
     FoundCount: sw_integer;
     A,B: TPoint;
@@ -5984,6 +5998,20 @@ begin
   DoReplace:=(FindFlags and ffDoReplace)<>0;
   Confirm:=(FindFlags and ffPromptOnReplace)<>0;
   DoReplaceAll:=(FindFlags and ffReplaceAll)<>0;
+{$ifdef TEST_REGEXP}
+  UseRegExp:=(FindFlags and ffUseRegExp)<>0;
+  if UseRegExp then
+    begin
+      if FindFlags and ffCaseSensitive<>0 then
+        RegExpFlags:=[ref_caseinsensitive]
+      else
+        RegExpFlags:=[];
+      getmem(findstrpchar,length(findstr)+1);
+      strpcopy(findstrpchar,findstr);
+      RegExpEngine:=GenerateRegExprEngine(findstrpchar,RegExpFlags);
+      strdispose(findstrpchar);
+    end;
+{$endif TEST_REGEXP}
   Count:=GetLineCount;
   FoundCount:=0;
   { Empty file ? }
@@ -6053,14 +6081,32 @@ begin
   repeat
     CurDY:=DY;
     S:=GetDisplayText(Y);
-    P:=ContainsText(FindStr,S,X+1);
-    Found:=P<>0;
+{$ifdef TEST_REGEXP}
+    if UseRegExp then
+       begin
+         getmem(findstrpchar,length(Copy(S,X+1,high(S)))+1);
+         strpcopy(findstrpchar,Copy(S,X+1,high(S)));
+         Found:=RegExprPos(RegExpEngine,findstrpchar,regexpindex,regexplen);
+         strdispose(findstrpchar);
+         P:=regexpindex;
+       end
+    else
+{$endif TEST_REGEXP}
+      begin
+        P:=ContainsText(FindStr,S,X+1);
+        Found:=P<>0;
+      end;
     if Found then
       begin
         A.X:=P-1;
         A.Y:=Y;
         B.Y:=Y;
-        B.X:=A.X+length(FindStr);
+{$ifdef TEST_REGEXP}
+        if UseRegExp then
+          B.X:=A.X+regexplen
+        else
+{$endif TEST_REGEXP}
+          B.X:=A.X+length(FindStr);
       end;
     Found:=Found and InArea(A.X,A.Y);
 
@@ -6179,6 +6225,9 @@ begin
     EditorDialog(edSearchFailed,nil);
   if FindStr<>'' then
     PopInfo;
+{$ifdef TEST_REGEXP}
+  DestroyRegExprEngine(RegExpEngine);
+{$endif TEST_REGEXP}
   if (FindFlags and ffmScope)=ffSelectedText then
     { restore selection PM }
     begin
@@ -6943,7 +6992,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.5  2001-09-12 09:31:42  pierre
+  Revision 1.6  2001-09-13 16:11:34  pierre
+   + test code for regexpr use in find dialog
+
+  Revision 1.5  2001/09/12 09:31:42  pierre
    * fix bug 1579
 
   Revision 1.4  2001/09/04 22:58:58  pierre
