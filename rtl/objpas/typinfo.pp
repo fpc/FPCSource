@@ -52,7 +52,7 @@ unit typinfo;
        TTypeKind = (tkUnknown,tkInteger,tkChar,tkEnumeration,
                    tkFloat,tkSet,tkMethod,tkSString,tkLString,tkAString,
                    tkWString,tkVariant,tkArray,tkRecord,tkInterface,
-                   tkClass,tkObject,tkWChar,tkBool);
+                   tkClass,tkObject,tkWChar,tkBool,tkInt64,tkQWord);
 
        TTOrdType = (otSByte,otUByte,otSWord,otUWord,otSLong,otULong);
 
@@ -129,6 +129,10 @@ unit typinfo;
               followed by
                   ResultType : ShortString}
               );
+            tkInt64:
+              (MinInt64Value, MaxInt64Value: Int64);
+            tkQWord:
+              (MinQWordValue, MaxQWordValue: QWord);
             tkInterface:
               ({!!!!!!!}
               );
@@ -364,7 +368,7 @@ unit typinfo;
          hp : PTypeData;
          i : longint;
          p : string;
-         
+
       begin
          P:=UpCase(PropName);
          while Assigned(TypeInfo) do
@@ -499,7 +503,7 @@ unit typinfo;
 
       var
          value,Index,Ivalue : longint;
-	 TypeInfo: PTypeInfo;
+         TypeInfo: PTypeInfo;
 
       begin
          SetIndexValues(PropInfo,Index,Ivalue);
@@ -512,20 +516,20 @@ unit typinfo;
               Value:=CallIntegerFunc(Instance,PPointer(Pointer(Instance.ClassType)+Longint(PropInfo^.GetProc))^,Index,IValue);
          end;
          { cut off unnecessary stuff }
-	 TypeInfo := PropInfo^.PropType;
-	 case TypeInfo^.Kind of
-	   tkChar, tkBool:
-	     Value:=Value and $ff;
-	   tkWChar:
-	     Value:=Value and $ffff;
-	   tkInteger:
-	     case GetTypeData(TypeInfo)^.OrdType of
-        	otSWord,otUWord:
+         TypeInfo := PropInfo^.PropType;
+         case TypeInfo^.Kind of
+           tkChar, tkBool:
+             Value:=Value and $ff;
+           tkWChar:
+             Value:=Value and $ffff;
+           tkInteger:
+             case GetTypeData(TypeInfo)^.OrdType of
+                otSWord,otUWord:
                   Value:=Value and $ffff;
-        	otSByte,otUByte:
+                otSByte,otUByte:
                   Value:=Value and $ff;
              end;
-	 end;
+         end;
          GetOrdProp:=Value;
       end;
 
@@ -842,7 +846,10 @@ end.
 
 {
   $Log$
-  Revision 1.41  2000-06-22 15:31:09  sg
+  Revision 1.42  2000-06-22 20:02:51  peter
+    * qword,int64 rtti support basics
+
+  Revision 1.41  2000/06/22 15:31:09  sg
   * Fixed a small typo in my previous update
 
   Revision 1.40  2000/06/22 15:29:31  sg
