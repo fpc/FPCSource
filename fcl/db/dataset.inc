@@ -27,6 +27,7 @@ begin
   Inherited Create(AOwner);
   FFieldDefs:=TFieldDefs.Create(Self);
   FFieldList:=TFields.Create(Self);
+  FDataSources:=TList.Create;
 end;
 
 
@@ -37,6 +38,12 @@ begin
   Active:=False;
   FFieldDefs.Free;
   FFieldList.Free;
+  With FDatasources do
+    begin
+    While Count>0 do
+      TDatasource(Items[Count]).DataSet:=Nil;
+    Free;  
+    end;  
   Inherited Destroy;
 end;
 
@@ -143,8 +150,27 @@ end;
 
 Procedure TDataset.DataEvent(Event: TDataEvent; Info: Longint);
 
+Var 
+  i : longint;
+
 begin
-  //!! To be implemented
+  // Do some bookkeeping;
+  case Event of
+    deFieldChange :
+      begin
+      if TField(Info).FieldKind in [fkData,fkInternalCalc] then
+        SetModified(True);
+      if FInternalCalcFields and (TField(Info).FieldKind = fkData) then
+          RefreshInternalCalcFields(ActiveBuffer)
+      else if (FCalcFieldsSize <> 0) and FAutoCalcFields and
+        (TField(Info).FieldKind = fkData) then
+        CalculateFields(ActiveBuffer);
+      TField(Info).Change;
+      end;  
+  end;
+  // Distribute event to datasets;    
+  for I := 0 to FDataSources.Count - 1 do
+    TDataSource(FDataSources[I]).ProcessEvent(Event, Info);
 end;
 
 Procedure TDataset.DestroyFields;
@@ -775,6 +801,7 @@ begin
   If Value<>FState then
     begin
     FState:=Value;
+    DataEvent(deUpdateState,0);
     end;
 end;
 
@@ -840,6 +867,7 @@ Procedure TDataset.Cancel;
 begin
   If State in [dsEdit,dsInsert] then
     begin
+    DataEvent(deCheckBrowseMode,0);  
     DoBeforeCancel;
     UpdateCursorPos;
     InternalCancel;
@@ -854,6 +882,7 @@ Procedure TDataset.CheckBrowseMode;
 
 begin
   CheckActive;
+  DataEvent(deCheckBrowseMode,0);
   If State In [dsedit,dsinsert] then
     begin
     UpdateRecord;
@@ -908,7 +937,15 @@ Procedure TDataset.DisableControls;
 
 
 begin
-  //!! To be implemented
+  If FDisableControlsCount=0 then
+    begin
+    { Save current state, 
+      needed to detect change of state when enabling controls.
+    }  
+    FDisableControlsState:=FState;
+    FEnableControlsEvent:=deDatasetChange;
+    end;
+  Inc(FDisableControlsCount);  
 end;
 
 Procedure TDataset.DoInsertAppend(DoAppend : Boolean);
@@ -972,6 +1009,7 @@ begin
   // mark as not modified.
   FModified:=False;
   // Final events.
+  DataEvent(deDatasetChange,0);
   DoAfterInsert;
   DoAfterScroll;
   {$ifdef dsdebug}
@@ -995,6 +1033,7 @@ begin
   If Not TryDoing(@InternalEdit,OnEditError) then
     exit;
   SetState(dsedit);
+  DataEvent(deRecordChange,0);
   DoAfterEdit;
 end;
 
@@ -1002,7 +1041,18 @@ Procedure TDataset.EnableControls;
 
 
 begin
-  //!! To be implemented
+  If FDisableControlsCount>0 then
+    begin
+    Dec(FDisableControlsCount);
+    If FDisableControlsCount=0 then
+      begin
+      // State changed since disablecontrols ?
+      If FDisableControlsState<>FState then 
+        DataEvent(deUpdateState,0);
+      If (FDisableControlsState<>dsInactive) and (FState<>dsInactive) then
+        DataEvent(FEnableControlsEvent,0);
+      end;
+    end;    
 end;
 
 Function TDataset.FieldByName(const FieldName: string): TField;
@@ -1061,6 +1111,7 @@ begin
     GetNextRecords;
   finally
     FBOF:=True;
+    DataEvent(deDatasetChange,0);
     DoAfterScroll;
   end;
 end;
@@ -1157,15 +1208,17 @@ begin
     FActiveRecord:=FRecordCount-1;
   finally
     FEOF:=true;
+    DataEvent(deDataSetChange, 0);
     DoAfterScroll;
   end;
 end;
 
 Function TDataset.MoveBy(Distance: Longint): Longint;
 
-  Procedure Scrollforward;
+  Function Scrollforward : Integer;
 
   begin
+    Result:=0;
 {$ifdef dsdebug}
     Writeln('Scrolling forward :',Distance);
     Writeln('Active buffer : ',FActiveRecord);
@@ -1176,25 +1229,29 @@ Function TDataset.MoveBy(Distance: Longint): Longint;
       If FActiveRecord<FRecordCount-1 then
         begin
         Inc(FActiveRecord);
-        Dec(Distance)
+        Dec(Distance);
+        Inc(Result);
         end
       else
         begin
        {$ifdef dsdebug}
-           Writeln('Moveby : need next record');
+       Writeln('Moveby : need next record');
        {$endif}
         If GetNextRecord then
-          Dec(Distance)
+          begin
+          Dec(Distance);
+          Inc(result);
+          end
         else
           FEOF:=true;
         end;
       end
   end;
 
-  Procedure ScrollBackward;
+  Function ScrollBackward : Integer;
 
   begin
-
+    Result:=0;
 {$ifdef dsdebug}
     Writeln('Scrolling backward:',Abs(Distance));
     Writeln('Active buffer : ',FActiveRecord);
@@ -1205,34 +1262,47 @@ Function TDataset.MoveBy(Distance: Longint): Longint;
       If FActiveRecord>0 then
         begin
         Dec(FActiveRecord);
-        Inc(Distance)
+        Inc(Distance);
+        Dec(Result);
         end
       else
         begin
        {$ifdef dsdebug}
-           Writeln('Moveby : need next record');
+       Writeln('Moveby : need next record');
        {$endif}
         If GetPriorRecord then
-          Inc(Distance)
+          begin
+          Inc(Distance);
+          Dec(Result);
+          end
         else
           FBOF:=true;
         end;
       end
   end;
 
+Var 
+  PrevRecordCount : Integer; 
+  Scrolled : Integer;
+  
 begin
   CheckBrowseMode;
   Result:=0;
+  PrevRecordCount:=0;
   DoBeforeScroll;
   If ((Distance>0) and FEOF) or
      ((Distance<0) and FBOF) then
     exit;
   Try
     If Distance>0 then
-      ScrollForward
+      Scrolled:=ScrollForward
     else
-      ScrollBackward;
+      Scrolled:=ScrollBackward;
   finally
+     If FRecordCount<>PrevRecordCount then
+       DataEvent(deDatasetChange,0)
+     else
+       DataEvent(deDatasetScroll,Scrolled);
      DoAfterScroll;
   end;
 end;
@@ -1267,6 +1337,7 @@ Procedure TDataset.Post;
 begin
   if State in [dsEdit,dsInsert] then
     begin
+    DataEvent(deCheckBrowseMode,0);
 {$ifdef dsdebug}
     writeln ('Post: checking required fields');
 {$endif}
@@ -1304,6 +1375,13 @@ begin
   Resync([]);
 end;
 
+Procedure TDataset.RegisterDataSource(ADatasource : TDataSource);
+
+begin
+  FDatasources.Add(ADataSource);
+end;
+
+
 Procedure TDataset.Resync(Mode: TResyncMode);
 
 Var Count,ShiftCount : Longint;
@@ -1326,6 +1404,7 @@ begin
        begin
        // nothing found, invalidate buffer and bail out.
        ClearBuffers;
+       DataEvent(deDatasetChange,0);
        Exit;
        end;
   If (rmCenter in Mode) then
@@ -1336,14 +1415,21 @@ begin
   // Reposition on 0
   ShiftBuffers(0,FRecordCount-1);
   ActivateBuffers;
-  Count:=0;
-  Writeln ('Getting previous',ShiftCount,' records');
-  While (Count<ShiftCount) and GetPriorRecord do Inc(Count);
-  FActiveRecord:=Count;
-  // fill rest of buffers, adjust ActiveBuffer.
-  SetCurrentRecord(FRecordCount-1);
-  GetNextRecords;
-  Inc(FActiveRecord,GetPriorRecords);
+  try
+    Count:=0;
+    {$ifdef dsdebug}
+    Writeln ('Getting previous',ShiftCount,' records');
+    {$endif}  
+    While (Count<ShiftCount) and GetPriorRecord do Inc(Count);
+    FActiveRecord:=Count;
+    // fill rest of buffers, adjust ActiveBuffer.
+    SetCurrentRecord(FRecordCount-1);
+    GetNextRecords;
+    Inc(FActiveRecord,GetPriorRecords);
+  finally
+    // Notify Everyone
+    DataEvent(deDatasetChange,0);
+  end;  
 end;
 
 Procedure TDataset.SetFields(const Values: array of const);
@@ -1415,7 +1501,8 @@ end;
 Procedure TDataset.UpdateRecord;
 
 begin
-  //!! To be implemented
+  if not (State in dsEditModes) then DatabaseError(SNotInEditState, Self);
+  DataEvent(deUpdateRecord, 0); 
 end;
 
 Procedure TDataset.RemoveField (Field : TField);
@@ -1473,9 +1560,19 @@ begin
   end;
 end;
 
+Procedure TDataset.UnRegisterDataSource(ADatasource : TDatasource);
+
+begin
+  FDataSources.Remove(ADataSource);
+end;
+
+
 {
   $Log$
-  Revision 1.1.2.1  2000-08-05 18:22:29  peter
+  Revision 1.1.2.2  2000-12-23 10:10:21  michael
+  + Added missing TDatasource support
+
+  Revision 1.1.2.1  2000/08/05 18:22:29  peter
     * removed comment level 2 warnings
 
   Revision 1.1  2000/07/13 06:31:27  michael

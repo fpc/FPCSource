@@ -42,10 +42,32 @@ Const
   SNoSuchRecord = 'Could not find the requested record.';  
   SDatasetReadOnly = 'Dataset is read-only.';
   SNeedField = 'Field %s is required, but not supplied.';
-  
+  SNotInEditState = 'Operation not allowed, dataset "%s" is not in an edit state.';  
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:56  michael
-  + removed logs
- 
-}
+  Revision 1.1.2.1  2000-12-23 10:10:22  michael
+  + Added missing TDatasource support
+
+  Revision 1.1  2000/07/13 06:31:27  michael
+  + Initial import
+
+  Revision 1.7  2000/01/07 01:24:32  peter
+    * updated copyright to 2000
+
+  Revision 1.6  2000/01/06 01:20:32  peter
+    * moved out of packages/ back to topdir
+
+  Revision 1.1  2000/01/03 19:33:06  peter
+    * moved to packages dir
+
+  Revision 1.4  1999/11/12 22:53:32  michael
+  + Added append() insert() tested append. Datetime as string works now
+
+  Revision 1.3  1999/11/11 17:31:09  michael
+  + Added Checks for all simple field types.
+  + Initial implementation of Insert/Append
+
+  Revision 1.2  1999/10/24 17:07:54  michael
+  + Added copyright header
+
+}  
