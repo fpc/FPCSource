@@ -2356,9 +2356,9 @@ BEGIN
 END;
 
 {--TGroup-------------------------------------------------------------------}
-{  Draw -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 17Sep97 LdB              }
+{  ReDraw -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 17Sep97 LdB              }
 {---------------------------------------------------------------------------}
-PROCEDURE TGroup.Draw;
+PROCEDURE TGroup.ReDraw;
 VAR P: PView;
 BEGIN
    If (DrawMask AND vdNoChild = 0) Then Begin         { No draw child clear }
@@ -2385,11 +2385,14 @@ BEGIN
 END;
 
 {--TGroup-------------------------------------------------------------------}
-{  ReDraw -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 17Sep97 LdB            }
+{  Draw -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 17Sep97 LdB              }
 {---------------------------------------------------------------------------}
-PROCEDURE TGroup.ReDraw;
+PROCEDURE TGroup.Draw;
 BEGIN
-   DrawView;                                          { For compatability }
+   If Buffer=Nil then
+     ReDraw
+   else
+     WriteBuf(0,0,Size.X,Size.Y,Buffer);
 END;
 
 {--TGroup-------------------------------------------------------------------}
@@ -2431,6 +2434,12 @@ BEGIN
    RemoveView(P);                                     { Remove the view }
    P^.Owner := Nil;                                   { Clear owner ptr }
    P^.Next := Nil;                                    { Clear next ptr }
+   { We need to recalculate correct position }
+   If (P <> Nil) Then                                 { View is valid }
+     If (Options AND ofGFVModeView <> 0) Then         { GFV mode view check }
+       P^.DisplaceBy(-RawOrigin.X, -RawOrigin.Y) Else   { We are in GFV mode }
+       P^.DisplaceBy(-Origin.X*FontWidth,
+         -Origin.Y*FontHeight);                        { Displace old view }
    If (SaveState AND sfVisible <> 0) Then P^.Show;    { Show view }
 END;
 
@@ -5146,7 +5155,10 @@ END.
 
 {
  $Log$
- Revision 1.12  2001-05-30 13:26:18  pierre
+ Revision 1.13  2001-05-31 12:14:06  pierre
+  * fix problems for multiple insert/delete and use Redraw for hild drawing like TV
+
+ Revision 1.12  2001/05/30 13:26:18  pierre
   * fix border problems for views and menus
 
  Revision 1.11  2001/05/30 10:22:25  pierre
