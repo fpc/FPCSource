@@ -749,19 +749,9 @@ unit pmodules;
          current_module^.globalsymtable:=current_module^.localsymtable;
          current_module^.localsymtable:=nil;
 
+         reset_global_defs;
          { ... parse the declarations }
          read_interface_declarations;
-
-{$ifdef GDB}
-         { add all used definitions}
-         if (cs_debuginfo in aktmoduleswitches) then
-           begin
-              { all types }
-              punitsymtable(refsymtable)^.concattypestabto(debuglist);
-              { and all local symbols}
-              refsymtable^.concatstabto(debuglist);
-           end;
-{$endif GDB}
 
          { leave when we got an error }
          if (status.errorcount>0) and not status.skip_error then
@@ -888,12 +878,22 @@ unit pmodules;
          { add all used definitions even for implementation}
          if (cs_debuginfo in aktmoduleswitches) then
           begin
+            if assigned(current_module^.globalsymtable) then
+              begin
+                 { all types }
+                 punitsymtable(current_module^.globalsymtable)^.concattypestabto(debuglist);
+                 { and all local symbols}
+                 punitsymtable(current_module^.globalsymtable)^.concatstabto(debuglist);
+              end;
             { all types }
             punitsymtable(st)^.concattypestabto(debuglist);
             { and all local symbols}
             st^.concatstabto(debuglist);
           end;
 {$endif GDB}
+
+
+         reset_global_defs;
 
          { tests, if all (interface) forwards are resolved }
          if (status.errorcount=0) then
@@ -1020,6 +1020,9 @@ unit pmodules;
          if token=_USES then
            loadunits;
 
+
+         reset_global_defs;
+
          {Insert the name of the main program into the symbol table.}
          if current_module^.modulename^<>'' then
            st^.insert(new(pprogramsym,init(current_module^.modulename^)));
@@ -1098,7 +1101,11 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.75  1998-10-27 13:45:35  pierre
+  Revision 1.76  1998-10-28 18:26:15  pierre
+   * removed some erros after other errors (introduced by useexcept)
+   * stabs works again correctly (for how long !)
+
+  Revision 1.75  1998/10/27 13:45:35  pierre
     * classes get a vmt allways
     * better error info (tried to remove
       several error strings introduced by the tpexcept handling)

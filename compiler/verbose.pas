@@ -290,6 +290,7 @@ end;
 procedure internalerror(i : longint);
 begin
   do_internalerror(i);
+  inc(status.errorcount);
   stop;
 end;
 
@@ -427,7 +428,11 @@ end.
 
 {
   $Log$
-  Revision 1.26  1998-10-27 13:45:38  pierre
+  Revision 1.27  1998-10-28 18:26:24  pierre
+   * removed some erros after other errors (introduced by useexcept)
+   * stabs works again correctly (for how long !)
+
+  Revision 1.26  1998/10/27 13:45:38  pierre
     * classes get a vmt allways
     * better error info (tried to remove
       several error strings introduced by the tpexcept handling)

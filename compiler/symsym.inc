@@ -415,6 +415,9 @@
          pd : pprocdef;
          oldaktfilepos : tfileposinfo;
       begin
+         { don't check if errors !! }
+         if status.errorcount>0 then
+           exit;
          pd:=definition;
          while assigned(pd) do
            begin
@@ -1715,7 +1718,11 @@
 
 {
   $Log$
-  Revision 1.55  1998-10-20 08:07:00  pierre
+  Revision 1.56  1998-10-28 18:26:18  pierre
+   * removed some erros after other errors (introduced by useexcept)
+   * stabs works again correctly (for how long !)
+
+  Revision 1.55  1998/10/20 08:07:00  pierre
     * several memory corruptions due to double freemem solved
       => never use p^.loc.location:=p^.left^.loc.location;
     + finally I added now by default

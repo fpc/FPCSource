@@ -677,6 +677,7 @@ implementation
                                    { bts requires both elements to be registers }
                                      if p^.left^.location.loc in [LOC_MEM,LOC_REFERENCE] then
                                       begin
+                                        ungetiftemp(p^.left^.location.reference);
                                         del_reference(p^.left^.location.reference);
                                         hregister:=getregister32;
                                         exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,opsize,
@@ -688,6 +689,7 @@ implementation
                                       end;
                                      if p^.right^.location.loc in [LOC_MEM,LOC_REFERENCE] then
                                       begin
+                                        ungetiftemp(p^.right^.location.reference);
                                         del_reference(p^.right^.location.reference);
                                         hregister:=getregister32;
                                         exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,opsize,
@@ -1396,7 +1398,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.21  1998-10-25 23:32:48  peter
+  Revision 1.22  1998-10-28 18:26:12  pierre
+   * removed some erros after other errors (introduced by useexcept)
+   * stabs works again correctly (for how long !)
+
+  Revision 1.21  1998/10/25 23:32:48  peter
     * fixed unsigned mul
 
   Revision 1.20  1998/10/21 08:39:56  florian

@@ -51,7 +51,8 @@ type
 
   const
      recoverpospointer : pjmp_buf = nil;
-
+     longjump_used : boolean = false;
+     
 implementation
 
 
@@ -335,7 +336,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  1998-10-26 22:58:24  florian
+  Revision 1.5  1998-10-28 18:26:23  pierre
+   * removed some erros after other errors (introduced by useexcept)
+   * stabs works again correctly (for how long !)
+
+  Revision 1.4  1998/10/26 22:58:24  florian
     * new introduded problem with classes fix, the parent class wasn't set
       correct, if the class was defined forward before
 

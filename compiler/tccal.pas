@@ -221,11 +221,15 @@ implementation
          hp,procs,hp2 : pprocdefcoll;
          pd : pprocdef;
          actprocsym : pprocsym;
+         nextprocsym : pprocsym;
          def_from,def_to,conv_to : pdef;
          pt,inlinecode : ptree;
          exactmatch,inlined : boolean;
          paralength,l : longint;
          pdc : pdefcoll;
+{$ifdef TEST_PROCSYMS}
+         symt : psymtable;
+{$endif TEST_PROCSYMS}
 
          { only Dummy }
          hcvt : tconverttype;
@@ -368,6 +372,33 @@ implementation
               if not(assigned(p^.procdefinition)) then
                 begin
                    actprocsym:=pprocsym(p^.symtableprocentry);
+{$ifdef TEST_PROCSYMS}
+                 if (p^.unit_specific) or
+                    assigned(p^.methodpointer) then
+                   nextprocsym:=nil
+                 else while not assigned(procs) do
+                  begin
+                     symt:=p^.symtableproc;
+                     srsym:=nil;
+                     while assigned(symt^.next) and not assigned(srsym) do
+                       begin
+                          symt:=symt^.next;
+                          getsymonlyin(symt,actprocsym^.name);
+                          if assigned(srsym) then
+                            if srsym^.typ<>procsym then
+                              begin
+                                 { reject all that is not a procedure }
+                                 srsym:=nil;
+                                 { don't search elsewhere }
+                                 while assigned(symt^.next) do
+                                   symt:=symt^.next;
+                              end;
+                       end;
+                     nextprocsym:=srsym;
+                  end;
+{$else TEST_PROCSYMS}
+                nextprocsym:=nil;
+{$endif TEST_PROCSYMS}
                    { determine length of parameter list }
                    pt:=p^.left;
                    paralength:=0;
@@ -414,20 +445,13 @@ implementation
                                end;
                           end;
                         pd:=pd^.nextoverloaded;
-{$ifdef CHAINPROCSYMS}
-                        if (pd=nil) and not (p^.unit_specific) then
-                          begin
-                             actprocsym:=actprocsym^.nextprocsym;
-                             if assigned(actprocsym) then
-                               pd:=actprocsym^.definition;
-                          end;
-{$endif CHAINPROCSYMS}
                      end;
 
                    { no procedures found? then there is something wrong
                      with the parameter size }
                    if not assigned(procs) and
-                      ((parsing_para_level=0) or assigned(p^.left)) then
+                      ((parsing_para_level=0) or assigned(p^.left)) and
+                      (nextprocsym=nil) then
                     begin
                        CGMessage(parser_e_wrong_parameter_size);
                        actprocsym^.write_parameter_lists;
@@ -526,7 +550,8 @@ implementation
                     begin
                       { there is an error, must be wrong type, because
                         wrong size is already checked (PFV) }
-                      if (parsing_para_level=0) or (p^.left<>nil) then
+                      if ((parsing_para_level=0) or (p^.left<>nil)) and
+                         (nextprocsym=nil) then
                        begin
                           CGMessage(parser_e_wrong_parameter_type);
                           actprocsym^.write_parameter_lists;
@@ -553,7 +578,7 @@ implementation
                    { rather than to words                              }
                    { conversion of byte to integer or longint          }
                    {would still not be solved                          }
-                   if assigned(procs^.next) then
+                   if assigned(procs) and assigned(procs^.next) then
                      begin
                         hp:=procs;
                         while assigned(hp) do
@@ -652,43 +677,19 @@ implementation
                           end;
                      end; }
 
-{$ifndef CHAINPROCSYMS}
                    if assigned(procs^.next) then
                      begin
                         CGMessage(cg_e_cant_choose_overload_function);
                         actprocsym^.write_parameter_lists;
                      end;
-{$else CHAINPROCSYMS}
-                   if assigned(procs^.next) then
-                     { if the last retained is the only one }
-                     { from a unit it is OK              PM  }
-                     { the last is the one coming from the first symtable }
-                     { as the diff defcoll are inserted in front }
+{$ifdef TEST_PROCSYMS}
+                   if (procs=nil) and assigned(nextprocsym) then
                      begin
-                        hp2:=procs;
-                        while assigned(hp2^.next) and assigned(hp2^.next^.next) do
-                          hp2:=hp2^.next;
-                        if (hp2^.data^.owner<>hp2^.next^.data^.owner) then
-                          begin
-                             hp:=procs^.next;
-                             {hp2 is the correct one }
-                             hp2:=hp2^.next;
-                             while hp<>hp2 do
-                               begin
-                                 dispose(procs);
-                                 procs:=hp;
-                                 hp:=procs^.next;
-                               end;
-                             procs:=hp2;
-                          end
-                        else
-                           begin
-                              CGMessage(cg_e_cant_choose_overload_function);
-                              actprocsym^.write_parameter_lists;
-                              error(too_much_matches);
-                           end;
+                        p^.symtableprocentry:=nextprocsym;
+                        p^.symtableproc:=symt;
                      end;
-{$endif CHAINPROCSYMS}
+                 end ; { of while assigned(p^.symtableprocentry) do }
+{$endif TEST_PROCSYMS}
      {$ifdef UseBrowser}
                    if make_ref then
                      begin
@@ -923,7 +924,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  1998-10-09 16:36:09  pierre
+  Revision 1.9  1998-10-28 18:26:22  pierre
+   * removed some erros after other errors (introduced by useexcept)
+   * stabs works again correctly (for how long !)
+
+  Revision 1.8  1998/10/09 16:36:09  pierre
     * some memory leaks specific to usebrowser define fixed
     * removed tmodule.implsymtable (was like tmodule.localsymtable)
 

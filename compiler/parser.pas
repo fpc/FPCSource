@@ -290,7 +290,10 @@ unit parser;
        recoverpospointer:=oldrecoverpos;
      end
      else
-       recoverpospointer:=oldrecoverpos;
+       begin
+          recoverpospointer:=oldrecoverpos;
+          longjump_used:=true;
+       end;
 {$endif USEEXCEPT}
          { clear memory }
 {$ifdef Splitheap}
@@ -327,7 +330,8 @@ unit parser;
          if (compile_level>1) then
            begin
               { reset ranges/stabs in exported definitions }
-              reset_global_defs;
+              { reset_global_defs;
+                moved to pmodules (PM) }
 
               { restore scanner }
               c:=oldc;
@@ -409,12 +413,20 @@ unit parser;
           end;
 
          dec(compile_level);
+{$ifdef USEEXCEPT}
+         if longjump_used then
+           longjmp(recoverpospointer^,1);
+{$endif USEEXCEPT}
       end;
 
 end.
 {
   $Log$
-  Revision 1.59  1998-10-26 17:15:18  pierre
+  Revision 1.60  1998-10-28 18:26:14  pierre
+   * removed some erros after other errors (introduced by useexcept)
+   * stabs works again correctly (for how long !)
+
+  Revision 1.59  1998/10/26 17:15:18  pierre
     + added two level of longjump to
       allow clean freeing of used memory on errors
 
