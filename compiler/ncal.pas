@@ -549,7 +549,7 @@ interface
          pd : pprocdef;
          oldcallprocsym : pprocsym;
          def_from,def_to,conv_to : pdef;
-         hpt,inlinecode : tnode;
+         hpt,hpt2,inlinecode : tnode;
          pt : tcallparanode;
          exactmatch,inlined : boolean;
          paralength,lastpara : longint;
@@ -1248,22 +1248,16 @@ interface
                 begin
                    if assigned(left) then
                      begin
-                     { settextbuf needs two args }
-                       if assigned(tcallparanode(left).right) then
-                        hpt:=geninlinenode(pprocdef(procdefinition)^.extnumber,is_const,left)
+                       hpt2:=left;
+                       left:=nil;
+                     { ptr and settextbuf needs two args }
+                       if assigned(tcallparanode(hpt2).right) then
+                        hpt:=geninlinenode(pprocdef(procdefinition)^.extnumber,is_const,hpt2)
                        else
-                         begin
-                           hpt:=geninlinenode(pprocdef(procdefinition)^.extnumber,is_const,
-                                              tcallparanode(left).left);
-                           tcallparanode(left).left:=nil;
-                           left.free;
-                           left:=nil;
-                         end;
+                        hpt:=geninlinenode(pprocdef(procdefinition)^.extnumber,is_const,tcallparanode(hpt2).left);
                      end
                    else
-                     begin
-                       hpt:=geninlinenode(pprocdef(procdefinition)^.extnumber,is_const,nil);
-                     end;
+                     hpt:=geninlinenode(pprocdef(procdefinition)^.extnumber,is_const,nil);
                    firstpass(hpt);
                    pass_1:=hpt;
                    goto errorexit;
@@ -1545,7 +1539,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2000-11-06 21:36:25  peter
+  Revision 1.16  2000-11-11 16:14:52  peter
+    * fixed crash with settextbuf,ptr
+
+  Revision 1.15  2000/11/06 21:36:25  peter
     * fixed var parameter varstate bug
 
   Revision 1.14  2000/11/04 14:25:20  florian
