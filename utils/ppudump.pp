@@ -26,7 +26,7 @@ program pppdump;
 uses ppu;
 
 const
-  Version   = 'Version 0.99.12';
+  Version   = 'Version 0.99.13';
   Title     = 'PPU-Analyser';
   Copyright = 'Copyright (c) 1995-99 by the Free Pascal Development Team';
 
@@ -108,6 +108,46 @@ end;
 {****************************************************************************
                              Read Routines
 ****************************************************************************}
+
+Procedure ReadLinkContainer(const prefix:string);
+{
+  Read a serie of strings and write to the screen starting every line
+  with prefix
+}
+  function maskstr(m:longint):string;
+  const
+    { link options }
+    link_none    = $0;
+    link_allways = $1;
+    link_static  = $2;
+    link_smart   = $4;
+    link_shared  = $8;
+  var
+    s : string;
+  begin
+    s:='';
+    if (m and link_allways)<>0 then
+     s:=s+'always ';
+    if (m and link_static)<>0 then
+     s:=s+'static ';
+    if (m and link_smart)<>0 then
+     s:=s+'smart ';
+    if (m and link_shared)<>0 then
+     s:=s+'shared ';
+    maskstr:=s;
+  end;
+
+var
+  s : string;
+  m : longint;
+begin
+  while not ppufile^.endofentry do
+   begin
+     s:=ppufile^.getstring;
+     m:=ppufile^.getlongint;
+     WriteLn(prefix,s,' (',maskstr(m),')');
+   end;
+end;
 
 Procedure ReadContainer(const prefix:string);
 {
@@ -806,17 +846,23 @@ begin
               end;
            end;
 
-         iblinkofiles :
-           ReadContainer('Link object file: ');
+         iblinkunitofiles :
+           ReadLinkContainer('Link unit object file: ');
 
-         iblinkstaticlibs :
-           ReadContainer('Link static lib: ');
+         iblinkunitstaticlibs :
+           ReadLinkContainer('Link unit static lib: ');
 
-         iblinksharedlibs :
-           ReadContainer('Link shared lib: ');
+         iblinkunitsharedlibs :
+           ReadLinkContainer('Link unit shared lib: ');
 
-         iblinkunitfiles :
-           ReadContainer('Link unit file: ');
+         iblinkotherofiles :
+           ReadLinkContainer('Link other object file: ');
+
+         iblinkotherstaticlibs :
+           ReadLinkContainer('Link other static lib: ');
+
+         iblinkothersharedlibs :
+           ReadLinkContainer('Link other shared lib: ');
 
          iberror :
            begin
@@ -986,18 +1032,16 @@ begin
            write('has_dbx ');
           if (flags and uf_has_browser)<>0 then
            write('has_browser ');
-          if (flags and uf_smartlink)<>0 then
-           write('smartlink ');
           if (flags and uf_in_library)<>0 then
            write('in_library ');
+          if (flags and uf_smart_linked)<>0 then
+           write('smart_linked ');
           if (flags and uf_shared_linked)<>0 then
            write('shared_linked ');
           if (flags and uf_static_linked)<>0 then
            write('static_linked ');
           if (flags and uf_local_browser)<>0 then
            write('local_browser ');
-          if (flags and uf_obj_linked)<>0 then
-           write('obj_linked ');
           if (flags=0) then
            write('(none)');
           writeln;
@@ -1181,7 +1225,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  1999-06-08 22:16:06  peter
+  Revision 1.4  1999-07-03 00:25:44  peter
+    * 0.99.13
+    * new link support
+
+  Revision 1.3  1999/06/08 22:16:06  peter
     * version 0.99.12
 
   Revision 1.2  1999/05/14 17:52:04  peter

@@ -37,11 +37,7 @@ type
 {$endif Test_Double_checksum}
 
 const
-{$ifdef OLDPPU}
-  CurrentPPUVersion=15;
-{$else}
   CurrentPPUVersion=16;
-{$endif}
 
 { buffer sizes }
   maxentrysize = 1024;
@@ -65,19 +61,21 @@ const
   ibendbrowser        = 254;
   ibend               = 255;
   {general}
-  ibmodulename     = 1;
-  ibsourcefiles    = 2;
-  ibloadunit       = 3;
-  ibinitunit       = 5;
-  iblinkofiles     = 6;
-  iblinksharedlibs = 7;
-  iblinkstaticlibs = 8;
-  ibdbxcount       = 9;
-  ibsymref         = 10;
-  ibdefref         = 11;
-  ibendsymtablebrowser   = 12;
-  ibbeginsymtablebrowser = 13;
-  iblinkunitfiles  = 14;
+  ibmodulename           = 1;
+  ibsourcefiles          = 2;
+  ibloadunit             = 3;
+  ibinitunit             = 4;
+  iblinkunitofiles       = 5;
+  iblinkunitstaticlibs   = 6;
+  iblinkunitsharedlibs   = 7;
+  iblinkotherofiles      = 8;
+  iblinkotherstaticlibs  = 9;
+  iblinkothersharedlibs  = 10;
+  ibdbxcount             = 11;
+  ibsymref               = 12;
+  ibdefref               = 13;
+  ibendsymtablebrowser   = 14;
+  ibbeginsymtablebrowser = 15;
   {syms}
   ibtypesym       = 20;
   ibprocsym       = 21;
@@ -117,12 +115,11 @@ const
   uf_big_endian    = $4;
   uf_has_dbx       = $8;
   uf_has_browser   = $10;
-  uf_smartlink     = $20;  { the ppu is smartlinked }
-  uf_in_library    = $40;  { is the file in another file than <ppufile>.* ? }
-  uf_static_linked = $80;  { the ppu is linked in a static library }
-  uf_shared_linked = $100; { the ppu is linked in a shared library }
+  uf_in_library    = $20;  { is the file in another file than <ppufile>.* ? }
+  uf_smart_linked  = $40;  { the ppu can be smartlinked }
+  uf_static_linked = $80;  { the ppu can be linked static }
+  uf_shared_linked = $100; { the ppu can be linked shared }
   uf_local_browser = $200;
-  uf_obj_linked    = $400; { the ppu is linked in a object file }
 
 type
 {$ifdef m68k}
@@ -142,10 +139,8 @@ type
     flags    : longint;
     size     : longint; { size of the ppufile without header }
     checksum : longint; { checksum for this ppufile }
-{$ifndef OLDPPU}
     interface_checksum : longint;
     future   : array[0..2] of longint;
-{$endif}
   end;
 
   tppuentry=packed record
@@ -235,11 +230,19 @@ implementation
 *****************************************************************************}
 
 var
+{$ifdef Delphi}
+  Crc32Tbl : array[0..255] of longword;
+{$else Delphi}
   Crc32Tbl : array[0..255] of longint;
+{$endif Delphi}
 
 procedure MakeCRC32Tbl;
 var
+{$ifdef Delphi}
+  crc : longword;
+{$else Delphi}
   crc : longint;
+{$endif Delphi}
   i,n : byte;
 begin
   for i:=0 to 255 do
@@ -360,7 +363,8 @@ end;
 function tppufile.GetPPUVersion:longint;
 var
   l    : longint;
-  code : word;
+  code : integer;
+
 begin
   Val(header.ver[1]+header.ver[2]+header.ver[3],l,code);
   if code=0 then
@@ -380,11 +384,7 @@ begin
      Id[3]:='U';
      Ver[1]:='0';
      Ver[2]:='1';
-{$ifdef OLDPPU}
-     Ver[3]:='5';
-{$else}
      Ver[3]:='6';
-{$endif}
    end;
 end;
 
@@ -396,7 +396,12 @@ end;
 function tppufile.open:boolean;
 var
   ofmode : byte;
+{$ifdef delphi}
+  i      : integer;
+{$else delphi}
   i      : word;
+{$endif delphi}
+
 begin
   open:=false;
   assign(f,fname);
@@ -792,7 +797,6 @@ begin
   if do_crc then
    begin
      crc:=UpdateCrc32(crc,b,len);
-{$ifndef OLDPPU}
      if do_interface_crc then
        begin
          interface_crc:=UpdateCrc32(interface_crc,b,len);
@@ -820,9 +824,6 @@ begin
        end;
     end;
   if not crc_only then
-{$else}
-    end;
-{$endif OLDPPU}
     writedata(b,len);
   inc(entryidx,len);
 end;
@@ -868,11 +869,23 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  1999-05-12 16:11:39  peter
-    * moved
+  Revision 1.2  1999-07-03 00:25:43  peter
+    * 0.99.13
+    * new link support
 
-  Revision 1.7  1999/04/26 18:27:38  peter
-    * more updates
+  Revision 1.33  1999/05/13 21:59:36  peter
+    * removed oldppu code
+    * warning if objpas is loaded from uses
+    * first things for new deref writing
+
+  Revision 1.32  1999/05/05 09:19:15  florian
+    * more fixes to get it with delphi running
+
+  Revision 1.31  1999/05/04 21:44:59  florian
+    * changes to compile it with Delphi 4.0
+
+  Revision 1.30  1999/04/26 18:30:00  peter
+    * farpointerdef moved into pointerdef.is_far
 
   Revision 1.29  1999/04/26 13:31:41  peter
     * release storenumber,double_checksum
