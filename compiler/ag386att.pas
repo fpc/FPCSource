@@ -631,18 +631,26 @@ unit ag386att;
                if (pai_label(hp)^.l^.is_used) then
                 begin
                   if pai_label(hp)^.l^.typ=AS_GLOBAL then
-                    AsmWriteLn('.globl'#9+pai_label(hp)^.l^.name);
-                  AsmWriteLn(pai_label(hp)^.l^.name+':');
+                   begin
+                     AsmWrite('.globl'#9);
+                     AsmWriteLn(pai_label(hp)^.l^.name);
+                   end;
+                  AsmWrite(pai_label(hp)^.l^.name);
+                  AsmWriteLn(':');
                 end;
              end;
 
            ait_symbol :
              begin
                if pai_symbol(hp)^.is_global then
-                AsmWriteLn('.globl'#9+pai_symbol(hp)^.sym^.name);
+                begin
+                  AsmWrite('.globl'#9);
+                  AsmWriteLn(pai_symbol(hp)^.sym^.name);
+                end;
                if target_info.target=target_i386_linux then
                 begin
-                   AsmWrite(#9'.type'#9+pai_symbol(hp)^.sym^.name);
+                   AsmWrite(#9'.type'#9);
+                   AsmWrite(pai_symbol(hp)^.sym^.name);
                    if assigned(pai(hp^.next)) and
                       (pai(hp^.next)^.typ in [ait_const_symbol,ait_const_rva,
                          ait_const_32bit,ait_const_16bit,ait_const_8bit,ait_datablock,
@@ -651,9 +659,15 @@ unit ag386att;
                    else
                     AsmWriteLn(',@function');
                    if pai_symbol(hp)^.sym^.size>0 then
-                    AsmWriteLn(#9'.size'#9+pai_symbol(hp)^.sym^.name+', '+tostr(pai_symbol(hp)^.sym^.size));
+                    begin
+                      AsmWrite(#9'.size'#9);
+                      AsmWrite(pai_symbol(hp)^.sym^.name);
+                      AsmWrite(', ');
+                      AsmWriteLn(tostr(pai_symbol(hp)^.sym^.size));
+                    end;
                 end;
-               AsmWriteLn(pai_symbol(hp)^.sym^.name+':');
+               AsmWrite(pai_symbol(hp)^.sym^.name);
+               AsmWriteLn(':');
              end;
 
            ait_symbol_end :
@@ -663,7 +677,10 @@ unit ag386att;
                   s:=target_asm.labelprefix+'e'+tostr(symendcount);
                   inc(symendcount);
                   AsmWriteLn(s+':');
-                  AsmWriteLn(#9'.size'#9+pai_symbol(hp)^.sym^.name+', '+s+' - '+pai_symbol(hp)^.sym^.name);
+                  AsmWrite(#9'.size'#9);
+                  AsmWrite(pai_symbol(hp)^.sym^.name);
+                  AsmWrite(', '+s+' - ');
+                  AsmWriteLn(pai_symbol(hp)^.sym^.name);
                 end;
              end;
 
@@ -844,7 +861,11 @@ unit ag386att;
 end.
 {
   $Log$
-  Revision 1.11  1999-08-25 11:59:32  jonas
+  Revision 1.12  1999-08-25 16:03:46  peter
+    * symbol name is now written using separate asmwrite() calls to overcome
+      > 255 char strings
+
+  Revision 1.11  1999/08/25 11:59:32  jonas
     * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
 
   Revision 1.10  1999/08/13 15:44:57  peter
