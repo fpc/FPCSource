@@ -10,19 +10,32 @@ const Inf=1/0;
 var
   s : string;
   error : boolean;
+  s1, s2, s3 : string;
 begin
+  if sizeof(extended) > 8 then
+    begin
+      s1 := '                     +Inf';
+      s2 := '                      Nan';
+      s3 := '                     -Inf';
+   end
+  else
+   begin
+      s1 := '                  +Inf';
+      s2 := '                   Nan';
+      s3 := '                  -Inf';
+   end;
   error:=false;
   str(Inf,s);
   writeln('Inf: "',s,'"');
-  if s<>'                     +Inf' then
+  if s<>s1 then
    error:=true;
   str(NaN,s);
   writeln('Nan: "',s,'"');
-  if s<>'                      Nan' then
+  if s<>s2 then
    error:=true;
   str(MinusInf,s);
   writeln('MinusInf: "',s,'"');
-  if s<>'                     -Inf' then
+  if s<>s3 then
    error:=true;
   if error then
    begin
