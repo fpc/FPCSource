@@ -357,7 +357,7 @@ implementation
            else
              begin
                 { do an property override }
-                overriden:=search_class_member(aktclass,propname);
+                overriden:=search_class_member(aktclass.childof,propname);
                 if assigned(overriden) and (overriden.typ=propertysym) then
                   begin
                     p.dooverride(tpropertysym(overriden));
@@ -1154,7 +1154,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.60  2003-04-25 20:59:33  peter
+  Revision 1.61  2003-04-26 00:32:37  peter
+    * start search for overriden properties in the parent class
+
+  Revision 1.60  2003/04/25 20:59:33  peter
     * removed funcretn,funcretsym, function result is now in varsym
       and aliases for result and function name are added using absolutesym
     * vs_hidden parameter for funcret passed in parameter
