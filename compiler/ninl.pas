@@ -138,7 +138,8 @@ implementation
                       { because it's bigger than high(tconstexprint) (JM) }
                       v := 0
                     else
-                      v := cardinal(v);
+                      if not is_signed(adef) then
+                        v := cardinal(v);
                   hp:=genordinalconstnode(v,adef);
                   firstpass(hp);
                   { fix high(qword) }
@@ -1535,7 +1536,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.28  2001-02-26 19:44:53  peter
+  Revision 1.29  2001-03-03 12:38:08  jonas
+    * fixed low() for signed types < 64bit
+
+  Revision 1.28  2001/02/26 19:44:53  peter
     * merged generic m68k updates from fixes branch
 
   Revision 1.27  2001/02/22 11:24:40  jonas
