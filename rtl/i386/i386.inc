@@ -636,6 +636,7 @@ asm
 .LDISPOSE_CLASS1:
         popl    %edi
 end;
+{$endif TEST_GENERIC}
 
 {$define FPC_SYSTEM_HAS_FPC_HELP_FAIL_CLASS}
 procedure fpc_help_fail_class;assembler;[public,alias:'FPC_HELP_FAIL_CLASS']; {$ifdef hascompilerproc} compilerproc; {$endif}
@@ -652,7 +653,7 @@ asm
 end;
 
 
-
+{$ifndef TEST_GENERIC}
 {$define FPC_SYSTEM_HAS_FPC_CHECK_OBJECT}
 
 { we want the stack for debugging !! PM }
@@ -1175,7 +1176,10 @@ procedure inclocked(var l : longint);assembler;
 
 {
   $Log$
-  Revision 1.24  2002-06-16 08:21:26  carl
+  Revision 1.25  2002-07-06 20:31:59  carl
+  + added TEST_GENERIC to test generic version
+
+  Revision 1.24  2002/06/16 08:21:26  carl
   + TEST_GENERIC to test generic versions of code
 
   Revision 1.23  2002/06/09 12:54:37  jonas
