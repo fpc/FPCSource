@@ -181,7 +181,10 @@ end;
       begin
         list := ModeList;
         { go to the end of the list }
-        while assigned(list^.next) do
+        while assigned(list^.next) and
+              ((list^.drivernumber < mode.drivernumber) or
+               ((list^.drivernumber = mode.drivernumber) and
+                (list^.modenumber < mode.modenumber))) do
           list:=list^.next;
         new(NewLst);
         list^.next := NewLst;
@@ -417,7 +420,22 @@ end;
      modeinfo: PModeInfo;
     begin
       { check if the mode exists... }
-      modeinfo := searchmode(IntcurrentNewDriver,mode);
+      { Depending on the modenumber, we search using the old or new }
+      { graphdriver number (because once we entered graphmode,      }
+      { getgraphmode() returns the old mode number and              }
+      { both setgraphmode(getgraphmode) and setgraphmode(mAAAxBBB)  }
+      { have to work (JM)                                           }
+      case mode of
+        detectMode:
+          begin
+            mode := -32767;
+            modeInfo := searchmode(IntcurrentNewDriver,mode);
+          end;
+        lowNewMode..highNewMode:
+          modeInfo := searchmode(IntcurrentNewDriver,mode);
+        else
+          modeinfo := searchmode(IntcurrentDriver,mode);
+      end;
       if not assigned(modeinfo) then
         begin
 {$ifdef logging}
@@ -573,7 +591,13 @@ end;
 
 {
 $Log$
-Revision 1.31  2000-07-07 17:29:30  jonas
+Revision 1.32  2000-07-08 06:24:21  jonas
+  * fixed problem that occurred if the graphmode was initialized with
+    a new graphdriver, but then setgraphmode was called with as
+    parameter the result of getGraphMode (since that one returns an
+    old-style modenumber)
+
+Revision 1.31  2000/07/07 17:29:30  jonas
   * fixed setgraphmode together with the new graphdrivers
 
 Revision 1.30  2000/07/05 13:07:48  jonas
