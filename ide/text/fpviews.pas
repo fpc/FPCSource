@@ -2800,8 +2800,11 @@ begin
   else
     begin
       FSplit(FileName,D,N,E);
+      if D<>'' then
+        W:=TryToOpen(D);
       DrStr:=GetSourceDirectories;
-      While pos(';',DrStr)>0 do
+      if not assigned(W) then
+       While pos(';',DrStr)>0 do
         Begin
            W:=TryToOpen(Copy(DrStr,1,pos(';',DrStr)-1));
            if assigned(W) then
@@ -3305,7 +3308,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.65  2000-03-21 23:25:16  pierre
+  Revision 1.66  2000-03-23 22:22:25  pierre
+   * file loading problem fixed
+
+  Revision 1.65  2000/03/21 23:25:16  pierre
    adapted to wcedit addition
 
   Revision 1.64  2000/03/14 13:59:41  pierre
