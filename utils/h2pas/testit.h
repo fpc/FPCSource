@@ -36,3 +36,7 @@ mytype* somefunc (char *firstarg);
 
 #define test 0x012345UL
 
+extern long long i641;
+extern unsigned long long q641;
+extern long long int i642;
+extern unsigned long long int q642;

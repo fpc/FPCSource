@@ -45,6 +45,8 @@ program h2pas;
      UINT_STR = 'dword';
      USHORT_STR = 'word';
      CHAR_STR = 'char';
+     INT64_STR = 'int64';
+     QWORD_STR = 'qword';
      { should we use byte or char for 'unsigned char' ?? }
      UCHAR_STR = 'byte';
      REAL_STR = 'double';
@@ -662,7 +664,7 @@ program h2pas;
                       hp1:=p^.p1;
                       l:=0;
                       lastexpr:=nil;
-                      Writeln (outfile,aktspace,'Const');
+                      Writeln (outfile,copy(aktspace,1,length(aktspace)-2),'Const');
                       while assigned(hp1) do
                         begin
                            write (outfile,aktspace,hp1^.p1^.p,' = ');
@@ -1087,7 +1089,8 @@ declaration :
             shift(2);
             if block_type<>bt_var then
               begin
-                 writeln(outfile);
+                 if not(compactmode) then
+                   writeln(outfile);
                  writeln(outfile,aktspace,'var');
               end;
             block_type:=bt_var;
@@ -1109,9 +1112,9 @@ declaration :
                  if assigned(hp^.p1^.p2)and assigned(hp^.p1^.p2^.p)then
                    begin
                       if isExtern then
-                        write(outfile,';cvar;external')
+                        write(outfile,';cvar;external ''')
                       else
-                        write(outfile,';cvar;export');
+                        write(outfile,';cvar;export ''');
                       write(outfile,hp^.p1^.p2^.p);
                    end;
                  writeln(outfile,''';');
@@ -1129,7 +1132,8 @@ declaration :
      {
        if block_type<>bt_type then
          begin
-            writeln(outfile);
+            if not(compactmode) then
+              writeln(outfile);
             writeln(outfile,aktspace,'type');
             block_type:=bt_type;
          end;
@@ -1166,7 +1170,8 @@ declaration :
      {
        if block_type<>bt_type then
          begin
-            writeln(outfile);
+            if not(compactmode) then
+              writeln(outfile);
             writeln(outfile,aktspace,'type');
             block_type:=bt_type;
          end;
@@ -1194,7 +1199,8 @@ declaration :
      {
        if block_type<>bt_type then
          begin
-            writeln(outfile);
+            if not(compactmode) then
+              writeln(outfile);
             writeln(outfile,aktspace,'type');
             block_type:=bt_type;
          end;
@@ -1245,7 +1251,8 @@ declaration :
      {
        if block_type<>bt_type then
          begin
-            writeln(outfile);
+            if not(compactmode) then
+              writeln(outfile);
             writeln(outfile,aktspace,'type');
             block_type:=bt_type;
          end;
@@ -1316,7 +1323,8 @@ declaration :
      {
        if block_type<>bt_type then
          begin
-            writeln(outfile);
+            if not(compactmode) then
+              writeln(outfile);
             writeln(outfile,aktspace,'type');
             block_type:=bt_type;
          end;
@@ -1634,6 +1642,22 @@ special_type_name : INT
      LONG INT
      {
        $$:=new(presobject,init_id(INT_STR));
+     } |
+     LONG LONG INT
+     {
+       $$:=new(presobject,init_id(INT64_STR));
+     } |
+     UNSIGNED LONG LONG INT
+     {
+       $$:=new(presobject,init_id(QWORD_STR));
+     } |
+     LONG LONG
+     {
+       $$:=new(presobject,init_id(INT64_STR));
+     } |
+     UNSIGNED LONG LONG
+     {
+       $$:=new(presobject,init_id(QWORD_STR));
      } |
      UNSIGNED LONG INT
      {
@@ -2089,6 +2113,7 @@ end;
 
 var
   SS : string;
+  i : longint;
 begin
 { Initialize }
   yydebug:=true;
@@ -2118,6 +2143,10 @@ begin
      writeln(outfile,aktspace,'interface');
      writeln(outfile);
      writeln(outfile,'{ Automatically converted by H2Pas ',version,' from ',inputfilename,' }');
+     writeln(outfile,'{ The following command line parameters were used:');
+     for i:=1 to paramcount do
+       writeln(outfile,'    ',paramstr(i));
+     writeln(outfile,'}');
      writeln(outfile);
    end;
   if UseName then
@@ -2175,7 +2204,13 @@ end.
 
 (*
  $Log$
- Revision 1.6  2000-04-01 14:16:32  peter
+ Revision 1.7  2000-04-01 20:19:38  florian
+   + implemented support for 64 bit int types
+   + options are written now to output file
+   * improved compact mode
+   * fixed writing of variables
+
+ Revision 1.6  2000/04/01 14:16:32  peter
    * addition for another procvar style decl (not working correct yet)
 
  Revision 1.5  2000/03/28 06:56:31  michael
@@ -2219,4 +2254,3 @@ end.
    * misplaced comments
    * handle functions without result
 *)
-
