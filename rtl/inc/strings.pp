@@ -129,14 +129,17 @@ implementation
 
       begin
          if p<>nil then
-           freemem(p,strlen(p)+1);
+           dispose(p);
       end;
 
 end.
 
 {
   $Log$
-  Revision 1.5  2000-02-09 16:59:31  peter
+  Revision 1.6  2000-03-18 15:43:05  jonas
+    * strdispose now uses dispose instead of freemem(strlen()+1)
+
+  Revision 1.5  2000/02/09 16:59:31  peter
     * truncated log
 
   Revision 1.4  2000/01/07 16:41:36  daniel
