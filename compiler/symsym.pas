@@ -588,6 +588,7 @@ implementation
         if (sp_protected in symoptions) and
            (
             (
+             assigned(owner.defowner) and
              (owner.defowner.owner.symtabletype in [globalsymtable,staticsymtable]) and
              (owner.defowner.owner.unitid<>0)
             ) and
@@ -610,6 +611,7 @@ implementation
         { private symbols are allowed when we are in the same
           module as they are defined }
         if (sp_private in symoptions) and
+           assigned(owner.defowner) and
            (owner.defowner.owner.symtabletype in [globalsymtable,staticsymtable]) and
            (owner.defowner.owner.unitid<>0) then
           exit;
@@ -619,6 +621,7 @@ implementation
         if (sp_protected in symoptions) and
            (
             (
+             assigned(owner.defowner) and
              (owner.defowner.owner.symtabletype in [globalsymtable,staticsymtable]) and
              (owner.defowner.owner.unitid<>0)
             ) and
@@ -2665,7 +2668,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.111  2003-07-04 22:41:41  pierre
+  Revision 1.112  2003-07-05 22:41:59  peter
+    * check if owner.defowner is valid when checking private/protected
+
+  Revision 1.111  2003/07/04 22:41:41  pierre
    * single threadvar debugging support
 
   Revision 1.110  2003/06/13 21:19:31  peter
