@@ -603,54 +603,43 @@ end;
 }
 
 
-Procedure Str (Var D : Double;Len,fr: Longint; Var S : AnsiString);
-  [Public,Alias : 'FPC_STRANSI_REAL'];
-
-Var SS : ShortString;
-
+Procedure Int_Str_Double (D : Double;Len,fr: Longint; Var S : AnsiString);[Public,Alias : 'FPC_STRANSI_REAL'];
+Var
+  SS : ShortString;
 begin
- {int_Str_Double (D,Len,fr,SS);}
- Short_To_AnsiString (S,SS);
+  int_Str_Real (D,Len,fr,SS);
+  Short_To_AnsiString (pointer(S),SS);
 end;
 
 
-Procedure Str (E : Extended;Lenf,Fr: Longint; Var S : AnsiString);
-  [Public,Alias : 'FPC_STRANSI_EXTENDED'];
-
-Var SS : ShortString;
-
+Procedure Int_Str_Extended (E : Extended;Len,Fr: Longint; Var S : AnsiString);[Public,Alias : 'FPC_STRANSI_EXTENDED'];
+Var
+  SS : ShortString;
 begin
- {int_Str_Extended (E,Len,fr,SS);}
- Short_To_AnsiString (S,SS);
+  int_Str_Extended (E,Len,fr,SS);
+  Short_To_AnsiString (pointer(S),SS);
 end;
 
 
 
-Procedure Str (C : Cardinal;Len : Longint; Var S : AnsiString);
-  [Public,Alias : 'FPC_STRANSI_CARDINAL'];
-
+Procedure Int_Str_Cardinal (C : Cardinal;Len : Longint; Var S : AnsiString);[Public,Alias : 'FPC_STRANSI_CARDINAL'];
+var
+  SS : ShortString;
 begin
+  Int_Str_Cardinal (C,Len,SS);
+  Short_To_AnsiString (pointer(S),SS);
 end;
 
 
 
-Procedure Str (L : Longint; Len : Longint; Var S : AnsiString);
-  [Public,Alias : 'FPC_STRANSI_LONGINT'];
-
-Var SS : ShortString;
-
+Procedure Int_Str_Longint (L : Longint; Len : Longint; Var S : AnsiString);[Public,Alias : 'FPC_STRANSI_LONGINT'];
+Var
+  SS : ShortString;
 begin
- {int_Str_Longint (L,Len,fr,SS);}
- Short_To_AnsiString (S,SS);
+  int_Str_Longint (L,Len,SS);
+  Short_To_AnsiString (pointer(S),SS);
 end;
 
-
-
-Procedure Str (Var W : Word;Len : Longint; Var S : AnsiString);
-  [Public,Alias : 'FPC_STRANSI_EXTENDED'];
-
-begin
-end;
 
 
 (* these procedures are not used by the compiler:
@@ -727,7 +716,10 @@ end;
 
 {
   $Log$
-  Revision 1.6  1999-01-06 12:25:02  florian
+  Revision 1.7  1999-01-06 13:03:39  peter
+    * fixed str() and made it working
+
+  Revision 1.6  1999/01/06 12:25:02  florian
     * naming for str(...) routines inserted
     * don't know what in int64 changed
 
