@@ -662,6 +662,7 @@ implementation
         n: ttemprefnode;
       begin
         n := ttemprefnode(inherited getcopy);
+        n.offset := offset;
 
         if assigned(tempinfo^.hookoncopy) then
           { if the temp has been copied, assume it becomes a new }
@@ -705,7 +706,8 @@ implementation
       begin
         result :=
           inherited docompare(p) and
-          (ttemprefnode(p).tempinfo = tempinfo);
+          (ttemprefnode(p).tempinfo = tempinfo) and
+          (ttemprefnode(p).offset = offset);
       end;
 
     procedure Ttemprefnode.mark_write;
@@ -800,7 +802,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.44  2003-04-22 23:50:22  peter
+  Revision 1.45  2003-04-23 08:41:34  jonas
+    * fixed ttemprefnode.compare and .getcopy to take offset field into
+      account
+
+  Revision 1.44  2003/04/22 23:50:22  peter
     * firstpass uses expectloc
     * checks if there are differences between the expectloc and
       location.loc from secondpass in EXTDEBUG
