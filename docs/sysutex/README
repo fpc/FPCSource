@@ -6,7 +6,7 @@ ex3.pp contains an example of the DateTimeToStr function.
 ex4.pp contains an example of the DateTimeToString function.
 ex5.pp contains an example of the DateTimeToSystemTime function.
 ex7.pp contains an example of the DateToStr function.
-exex8.pp contains an example of the DayOfWeek function.
+ex8.pp contains an example of the DayOfWeek function.
 ex9.pp contains an example of the DecodeDate function.
 ex10.pp contains an example of the DecodeTime function.
 ex11.pp contains an example of the EncodeDate function.
@@ -37,9 +37,13 @@ ex34.pp contains an example of the ExtractFileName function.
 ex35.pp contains an example of the ExtractRelativePath function.
 ex36.pp contains an example of the FileAge function.
 ex37.pp contains an example of the FileCreate function.
-exex38.pp contains an example of the FileExists function.
+ex38.pp contains an example of the FileExists function.
 ex39.pp contains an example of the FileGetDate function.
 ex40.pp contains an example of the FileGetAttr function.
 ex41.pp contains an example of the FileSearch function.
 ex42.pp contains an example of the FileSetAttr function.
 ex43.pp contains an example of the FindFirst function.
+ex44.pp contains an example of the RenameFile function.
+ex45.pp contains an example of the GetDirs function.
+ex46.pp contains an example of the StrBufSize function.
+ex47.pp contains an example of the SetDirSeparators function.
