@@ -1398,7 +1398,7 @@ begin
   if (GDBState=bs_deleted) and (state=bs_enabled) then
     begin
       if (typ=bt_file_line) and assigned(FileName) then
-        Debugger^.Command('break '+GDBFileName(GetStr(FileName))+':'+IntToStr(Line))
+        Debugger^.Command('break '+GDBFileName(NameAndExtOf(GetStr(FileName)))+':'+IntToStr(Line))
       else if (typ=bt_function) and assigned(name) then
         Debugger^.Command('break '+name^)
       else if (typ=bt_address) and assigned(name) then
@@ -1507,7 +1507,7 @@ var W: PSourceWindow;
 begin
   if typ=bt_file_line then
     begin
-      W:=SearchOnDesktop(OSFileName(GetStr(FileName)),false);
+      W:=SearchOnDesktop(FExpand(OSFileName(GetStr(FileName))),false);
       If assigned(W) then
         begin
           if state=bs_enabled then
@@ -4055,7 +4055,10 @@ end.
 
 {
   $Log$
-  Revision 1.11  2002-04-02 11:10:29  pierre
+  Revision 1.12  2002-04-02 12:20:58  pierre
+   * fix problem with breakpoints in subdirs
+
+  Revision 1.11  2002/04/02 11:10:29  pierre
    * fix FPC_BREAK_ERROR problem and avoid blinking J
 
   Revision 1.10  2002/03/27 11:24:09  pierre
