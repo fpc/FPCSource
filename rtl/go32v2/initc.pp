@@ -85,7 +85,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  1998-12-21 11:56:26  pierre
+  Revision 1.1  1998-12-21 13:14:30  peter
+    * moved
+
+  Revision 1.1  1998/12/21 11:56:26  pierre
    First implementation of intc unit
 
 }
