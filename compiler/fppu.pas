@@ -46,7 +46,7 @@ interface
           crc_array2 : pointer;
           crc_size2  : longint;
 {$endif def Test_Double_checksum}
-          constructor create(const s:string;const fn:string;_is_unit:boolean);
+          constructor create(LoadedFrom:TModule;const s:string;const fn:string;_is_unit:boolean);
           destructor destroy;override;
           procedure reset;override;
           function  openppu:boolean;
@@ -91,9 +91,9 @@ uses
                                 TPPUMODULE
  ****************************************************************************}
 
-    constructor tppumodule.create(const s:string;const fn:string;_is_unit:boolean);
+    constructor tppumodule.create(LoadedFrom:TModule;const s:string;const fn:string;_is_unit:boolean);
       begin
-        inherited create(s,_is_unit);
+        inherited create(LoadedFrom,s,_is_unit);
         ppufile:=nil;
       { search the PPU file if it is an unit }
         if is_unit then
@@ -334,12 +334,18 @@ uses
                SetFileName(hs,false);
              end;
           end;
-         if (not fnd) then
-          fnd:=SourceSearchPath('.');
-         if (not fnd) then
-          fnd:=SearchPathList(LocalUnitSearchPath);
-         if (not fnd) then
-          fnd:=SearchPathList(UnitSearchPath);
+          if(not fnd)and Assigned(Loaded_From)
+          then
+            fnd:=SearchPathList(Loaded_From.LocalUnitSearchPath);
+          if not fnd
+          then
+            fnd:=SourceSearchPath('.');
+          if not fnd
+          then
+            fnd:=SearchPathList(LocalUnitSearchPath);
+          if not fnd
+          then
+            fnd:=SearchPathList(UnitSearchPath);
 
          { try to find a file with the first 8 chars of the modulename, like
            dos }
@@ -1266,8 +1272,8 @@ uses
             else
           { generates a new unit info record }
              begin
-                current_module:=tppumodule.create(s,fn,true);
-                second_time:=false;
+               current_module:=tppumodule.create(old_current_module,s,fn,true);
+               second_time:=false;
              end;
             { close old_current_ppu on system that are
               short on file handles like DOS PM }
@@ -1319,7 +1325,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.26  2002-11-15 01:58:46  peter
+  Revision 1.27  2002-11-20 12:36:24  mazen
+  * $UNITPATH directive is now working
+
+  Revision 1.26  2002/11/15 01:58:46  peter
     * merged changes from 1.0.7 up to 04-11
       - -V option for generating bug report tracing
       - more tracing for option parsing

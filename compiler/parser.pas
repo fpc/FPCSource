@@ -388,7 +388,7 @@ implementation
           current_module.reset
          else
           begin
-            current_module:=tppumodule.create(filename,'',false);
+            current_module:=tppumodule.create(nil,filename,'',false);
             main_module:=current_module;
           end;
 
@@ -618,7 +618,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.45  2002-10-07 19:29:52  peter
+  Revision 1.46  2002-11-20 12:36:24  mazen
+  * $UNITPATH directive is now working
+
+  Revision 1.45  2002/10/07 19:29:52  peter
     * Place old data in compile() in the heap to save stack
 
   Revision 1.44  2002/09/05 19:27:06  peter

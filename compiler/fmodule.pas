@@ -80,56 +80,59 @@ interface
        punitmap = ^tunitmap;
 {$endif NEWMAP}
 
-       tmodule = class(tmodulebase)
-          compiled,                 { unit is already compiled }
-          do_reload,                { force reloading of the unit }
-          do_compile,               { need to compile the sources }
-          sources_avail,            { if all sources are reachable }
-          sources_checked,          { if there is already done a check for the sources }
-          is_unit,
-          in_second_compile,        { is this unit being compiled for the 2nd time? }
-          in_second_load,           { is this unit PPU loaded a 2nd time? }
-          in_implementation,        { processing the implementation part? }
-          in_global     : boolean;  { allow global settings }
-          recompile_reason : trecompile_reason;  { the reason why the unit should be recompiled }
-          crc,
-          interface_crc : cardinal;
-          flags         : cardinal;  { the PPU flags }
-          islibrary     : boolean;  { if it is a library (win32 dll) }
-          map           : punitmap; { mapping of all used units }
-          unitcount     : longint;  { local unit counter }
-          globalsymtable,           { pointer to the global symtable of this unit }
-          localsymtable : tsymtable;{ pointer to the local symtable of this unit }
-          scanner       : pointer;  { scanner object used }
-          loaded_from   : tmodule;
-          uses_imports  : boolean;  { Set if the module imports from DLL's.}
-          imports       : tlinkedlist;
-          _exports      : tlinkedlist;
-          externals     : tlinkedlist; {Only for DLL scanners by using Unix-style $LINKLIB }
-          resourcefiles : tstringlist;
+      tmodule = class(tmodulebase)
+        compiled,                 { unit is already compiled }
+        do_reload,                { force reloading of the unit }
+        do_compile,               { need to compile the sources }
+        sources_avail,            { if all sources are reachable }
+        sources_checked,          { if there is already done a check for the sources }
+        is_unit,
+        in_second_compile,        { is this unit being compiled for the 2nd time? }
+        in_second_load,           { is this unit PPU loaded a 2nd time? }
+        in_implementation,        { processing the implementation part? }
+        in_global     : boolean;  { allow global settings }
+        recompile_reason : trecompile_reason;  { the reason why the unit should be recompiled }
+        crc,
+        interface_crc : cardinal;
+        flags         : cardinal;  { the PPU flags }
+        islibrary     : boolean;  { if it is a library (win32 dll) }
+        map           : punitmap; { mapping of all used units }
+        unitcount     : longint;  { local unit counter }
+        globalsymtable,           { pointer to the global symtable of this unit }
+        localsymtable : tsymtable;{ pointer to the local symtable of this unit }
+        scanner       : pointer;  { scanner object used }
+        loaded_from   : tmodule;
+        uses_imports  : boolean;  { Set if the module imports from DLL's.}
+        imports       : tlinkedlist;
+        _exports      : tlinkedlist;
+        externals     : tlinkedlist; {Only for DLL scanners by using Unix-style $LINKLIB }
+        resourcefiles : tstringlist;
+        linkunitofiles,
+        linkunitstaticlibs,
+        linkunitsharedlibs,
+        linkotherofiles,           { objects,libs loaded from the source }
+        linkothersharedlibs,       { using $L or $LINKLIB or import lib (for linux) }
+        linkotherstaticlibs  : tlinkcontainer;
 
-          linkunitofiles,
-          linkunitstaticlibs,
-          linkunitsharedlibs,
-          linkotherofiles,           { objects,libs loaded from the source }
-          linkothersharedlibs,       { using $L or $LINKLIB or import lib (for linux) }
-          linkotherstaticlibs  : tlinkcontainer;
+        used_units           : tlinkedlist;
+        dependent_units      : tlinkedlist;
 
-          used_units           : tlinkedlist;
-          dependent_units      : tlinkedlist;
+        localunitsearchpath,           { local searchpaths }
+        localobjectsearchpath,
+        localincludesearchpath,
+        locallibrarysearchpath : TSearchPathList;
 
-          localunitsearchpath,           { local searchpaths }
-          localobjectsearchpath,
-          localincludesearchpath,
-          locallibrarysearchpath : TSearchPathList;
-
-          asmprefix     : pstring;  { prefix for the smartlink asmfiles }
-          librarydata   : tasmlibrarydata;   { librarydata for this module }
-          constructor create(const s:string;_is_unit:boolean);
-          destructor destroy;override;
-          procedure reset;virtual;
-          procedure numberunits;
-       end;
+        asmprefix     : pstring;  { prefix for the smartlink asmfiles }
+        librarydata   : tasmlibrarydata;   { librarydata for this module }
+        {create creates a new module which name is stored in 's'. LoadedFrom
+        points to the module calling it. It is nil for the first compiled
+        module. This allow inheritence of all path lists. MUST pay attention
+        to that when creating link.res!!!!(mazen)}
+        constructor create(LoadedFrom:TModule;const s:string;_is_unit:boolean);
+        destructor destroy;override;
+        procedure reset;virtual;
+        procedure numberunits;
+      end;
 
        tused_unit = class(tlinkedlistitem)
           unitid          : longint;
@@ -354,7 +357,7 @@ uses
                                   TMODULE
  ****************************************************************************}
 
-    constructor tmodule.create(const s:string;_is_unit:boolean);
+    constructor tmodule.create(LoadedFrom:TModule;const s:string;_is_unit:boolean);
       var
         p : dirstr;
         n : namestr;
@@ -394,7 +397,7 @@ uses
         map:=nil;
         globalsymtable:=nil;
         localsymtable:=nil;
-        loaded_from:=nil;
+        loaded_from:=LoadedFrom;
         do_reload:=false;
         unitcount:=1;
         do_compile:=false;
@@ -603,7 +606,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.28  2002-09-05 19:29:42  peter
+  Revision 1.29  2002-11-20 12:36:23  mazen
+  * $UNITPATH directive is now working
+
+  Revision 1.28  2002/09/05 19:29:42  peter
     * memdebug enhancements
 
   Revision 1.27  2002/08/16 15:31:08  peter
