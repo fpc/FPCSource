@@ -723,9 +723,13 @@ Function TLinkerWin32.WriteResponseFile(isdll:boolean) : Boolean;
 Var
   linkres : TLinkRes;
   HPath   : TStringListItem;
-  s       : string;
+  s,s2    : string;
+  i       : integer;
+  linklibc,
+  found   : boolean;
 begin
   WriteResponseFile:=False;
+  linklibc:=false;
 
   { Open link.res file }
   LinkRes:=TLinkRes.Create(outputexedir+Info.ResName);
@@ -773,6 +777,47 @@ begin
         S:=StaticLibFiles.GetFirst;
         LinkRes.AddFileName(GetShortName(s));
       end;
+     LinkRes.Add(')');
+   end;
+
+  { Write sharedlibraries }
+  if not SharedLibFiles.Empty then
+   begin
+     LinkRes.Add('INPUT(') ;
+     While not SharedLibFiles.Empty do
+      begin
+        S:=SharedLibFiles.GetFirst;
+        if pos('.',s)=0 then
+          { we never directly link a DLL
+            its allways through an import library PM }
+          { libraries created by C compilers have .a extensions }
+          s2:=s+'.a'{ target_os.sharedlibext }
+        else
+          s2:=s;
+        s2:=FindLibraryFile(s2,'',found);
+        if found then
+          begin
+            LinkRes.Add(GetShortName(s2));
+            continue;
+          end;
+        if pos(target_info.sharedlibprefix,s)=1 then
+          s:=copy(s,length(target_info.sharedlibprefix)+1,255);
+        if s<>'c' then
+         begin
+           i:=Pos(target_info.sharedlibext,S);
+           if i>0 then
+            Delete(S,i,255);
+           LinkRes.Add('-l'+s);
+         end
+        else
+         begin
+           LinkRes.Add('-l'+s);
+           linklibc:=true;
+         end;
+      end;
+     { be sure that libc is the last lib }
+     if linklibc then
+      LinkRes.Add('-lc');
      LinkRes.Add(')');
    end;
 
@@ -1367,6 +1412,7 @@ function tDLLScannerWin32.scan(const binname:string):longbool;
  var
   OldFileMode:longint;
  begin
+   Scan:=false;
   if not FindDll(DLLName(binname),impname) then
    exit;
   assign(f,impname);
@@ -1477,7 +1523,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.15  2001-08-07 18:47:15  peter
+  Revision 1.16  2001-09-13 14:47:19  michael
+  + Committed patch from peter
+
+  Revision 1.15  2001/08/07 18:47:15  peter
     * merged netbsd start
     * profile for win32
 

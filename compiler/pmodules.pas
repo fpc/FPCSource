@@ -36,7 +36,7 @@ implementation
 
     uses
        globtype,version,systems,tokens,
-       cutils,comphook,
+       cutils,cclasses,comphook,
        globals,verbose,fmodule,finput,fppu,
        symconst,symbase,symppu,symdef,symsym,symtable,aasm,
        cgbase,
@@ -52,6 +52,7 @@ implementation
       var
         DLLScanner      : TDLLScanner;
         s               : string;
+        KeepShared      : TStringList;
       begin
         { try to create import entries from system dlls }
         if target_info.DllScanSupported and
@@ -62,11 +63,13 @@ implementation
             DLLScanner:=CDLLScanner[target_info.target].Create
            else
             internalerror(200104121);
+           KeepShared:=TStringList.Create;
            { Walk all shared libs }
            While not current_module.linkOtherSharedLibs.Empty do
             begin
               S:=current_module.linkOtherSharedLibs.Getusemask(link_allways);
-              DLLScanner.scan(s)
+              if not DLLScanner.scan(s) then
+               KeepShared.Insert(s);
             end;
            DLLscanner.Free;
            { Recreate import section }
@@ -78,6 +81,13 @@ implementation
                importssection:=taasmoutput.Create;
               importlib.generatelib;
             end;
+           { Readd the not processed files }
+           while not KeepShared.Empty do
+            begin
+              s:=KeepShared.GetFirst;
+              current_module.linkOtherSharedLibs.add(s,link_allways);
+            end;
+           KeepShared.Free;
          end;
 
         { create the .s file and assemble it }
@@ -1329,7 +1339,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.45  2001-08-26 13:36:46  florian
+  Revision 1.46  2001-09-13 14:47:47  michael
+  + Committed patch from peter
+
+  Revision 1.45  2001/08/26 13:36:46  florian
     * some cg reorganisation
     * some PPC updates
 
