@@ -480,18 +480,15 @@ Begin
 End;
 
 {$ifdef UseAnsiStrings}
-Procedure Write_Text_AnsiString (Len : Longint; Var T : TextRec; Var S : AnsiString);[Public, alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'WRITE_TEXT_ANSISTRING'];
+Procedure Write_Text_AnsiString (Len : Longint; Var T : TextRec; S : Pointer);[Public, alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'WRITE_TEXT_ANSISTRING'];
 {
  Writes a AnsiString to the Text file T
 }
 
-Var
-  Temp : Pointer;
 begin
-  Temp:=Pointer(S);
-  If Temp=Nil then
+  If S=Nil then
    exit;
-  Write_pchar (Len,t,PChar(Temp));
+  Write_pchar (Len,t,PChar(S));
 end;
 
 {$endif}
@@ -1242,7 +1239,10 @@ end;
 
 {
   $Log$
-  Revision 1.29  1998-09-28 14:27:08  michael
+  Revision 1.30  1998-09-29 08:39:07  michael
+  + Ansistring write now gets pointer.
+
+  Revision 1.29  1998/09/28 14:27:08  michael
   + AnsiStrings update
 
   Revision 1.28  1998/09/24 23:32:24  peter
