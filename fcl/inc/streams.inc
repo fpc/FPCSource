@@ -227,11 +227,11 @@
 
   begin
     ReadBuffer (TheSize,SizeOf(TheSize));
-    //!! SetLength(Result,Size);
-    //!! Illegal typecast if no AnsiStrings defined.
-    //!! ReadBuffer (Pointer (Result^),Size);
-    //!! P:=Pointer(Result^)+Size;
-    //!! p^:=0;
+    SetLength(Result,Size);
+    // Illegal typecast if no AnsiStrings defined.
+    ReadBuffer (Pointer(Result)^,Size);
+    P:=Pointer(Result)+Size;
+    p^:=0;
     end;
 
   Procedure TStream.WriteAnsiString (S : String);
@@ -241,7 +241,7 @@
   begin
     L:=Length(S);
     WriteBuffer (L,SizeOf(L));
-    //!! WriteBuffer (Pointer(S)^,L);
+    WriteBuffer (Pointer(S)^,L);
   end;
 
   procedure TStream.WriteByte(b : Byte);
@@ -613,7 +613,10 @@ end;
 
 {
   $Log$
-  Revision 1.10  1999-02-02 21:23:19  michael
+  Revision 1.11  1999-02-06 07:16:48  michael
+  + Fixed Stream.ReadAnsiString
+
+  Revision 1.10  1999/02/02 21:23:19  michael
   + only sysutils is used now
 
   Revision 1.9  1999/01/28 23:55:42  florian
