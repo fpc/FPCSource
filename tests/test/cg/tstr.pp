@@ -8,6 +8,8 @@ var
   i: int64;
   q: qword;
   s: tlocalstring;
+  len: byte;
+  frac: word;
 
   procedure check(const ss: tlocalstring);
   begin
@@ -32,6 +34,9 @@ begin
   check('-1');
   str(l:3,s);
   check(' -1');
+  len := 4;
+  str(l:len,s);
+  check('  -1');
 
   c := 10;
   str(c,s);
@@ -75,7 +80,10 @@ begin
   check(' -1.1');
   str(f:5:2,s);
   check('-1.12');
-
+  len := 6;
+  frac := 2;
+  str(f:len:frac,s);
+  check(' -1.12');
 
   i := -1;
   str(i,s);
@@ -112,6 +120,8 @@ var
   i: int64;
   q: qword;
   s: tlocalstring;
+  len: shortint;
+  frac: smallint;
 
   procedure check(const ss: tlocalstring);
   begin
@@ -136,6 +146,9 @@ begin
   check('-1');
   str(l:3,s);
   check(' -1');
+  len := 4;
+  str(l:len,s);
+  check('  -1');
 
   c := 10;
   str(c,s);
@@ -179,7 +192,10 @@ begin
   check(' -1.1');
   str(f:5:2,s);
   check('-1.12');
-
+  len := 6;
+  frac := 2;
+  str(f:len:frac,s);
+  check(' -1.12');
 
   i := -1;
   str(i,s);
@@ -217,6 +233,8 @@ var
   i: int64;
   q: qword;
   s: tlocalstring;
+  len: longint;
+  frac: cardinal;
 
   procedure check(const ss: tlocalstring);
   begin
@@ -241,6 +259,9 @@ begin
   check('-1');
   str(l:3,s);
   check(' -1');
+  len := 4;
+  str(l:len,s);
+  check('  -1');
 
   c := 10;
   str(c,s);
@@ -284,7 +305,10 @@ begin
   check(' -1.1');
   str(f:5:2,s);
   check('-1.12');
-
+  len := 6;
+  frac := 2;
+  str(f:len:frac,s);
+  check(' -1.12');
 
   i := -1;
   str(i,s);
