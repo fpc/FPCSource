@@ -287,17 +287,6 @@ begin
   Write('Use linear ? ');
   readln(st);
   if st='y' then UseLinear:=true;
-  if UseLinear then
-    begin
-       Write('Switch physical address (default true) ? ');
-       readln(st);
-       if st='y' then switch_physical_address:=true
-       else if st='n' then switch_physical_address:=false;
-       Write('Split physical address (default false) ? ');
-       readln(st);
-       if st='y' then split_physical_address:=true
-       else if st='n' then split_physical_address:=false;
-    end;
   {$endif debug}
   {$endif go32v2}
 {$ifdef Linux}
@@ -354,7 +343,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  1998-11-18 11:45:06  pierre
+  Revision 1.3  1998-11-20 10:16:00  pierre
+    * Found out the LinerFrameBuffer problem
+      Was an alignment problem in VesaInfoBlock (see graph.pp file)
+      Compile with -dDEBUG and answer 'y' to 'Use Linear ?' to test
+
+  Revision 1.2  1998/11/18 11:45:06  pierre
    * LinearFrameBuffer test added
 
   Revision 1.1  1998/11/17 18:17:53  pierre

@@ -159,9 +159,9 @@ function  UnConvert(color:longint):longint;
 {$ifdef Test_linear}
   const
      UseLinear : boolean = false;
+     (* Bug was due to alignment problem in  VesaInfoBlock !!
      { the two below are the settings the work for ATI 3D Rage Pro !! }
-     switch_physical_address : boolean = true;
-     split_physical_address : boolean = false;
+     switch_physical_address : boolean = true;*)
 {$endif Test_linear}
 
 {$I MODES.PPI}
@@ -193,40 +193,46 @@ type
   end;
 
   VesaInfoBlock=record
-    ModeAttributes : word;
-    WinAAttributes : byte;
-    WinBAttributes : byte;
-    WinGranularity : word;
-    WinSize        : word;
-    segWINA        : word;
-    segWINB        : word;
-    RealWinFuncPtr : longint;
-    BPL            : word;
+    ModeAttributes : word; { pos 0 }
+    WinAAttributes : byte; { pos 2 }
+    WinBAttributes : byte; { pos 3 }
+    WinGranularity : word; { pos 4 }
+    WinSize        : word; { pos 6 }
+    segWINA        : word; { pos 8 }
+    segWINB        : word; { pos $A }
+    RealWinFuncPtr : longint; { pos $C }
+    BPL            : word; { pos $10 }
   { VESA 1.2 }
-    XResolution    : word;
-    YResolution    : word;
-    XCharSize      : byte;
-    YCharSize      : byte;
-    MumberOfPlanes : byte;
-    BitsPerPixel   : byte;
-    NumberOfBanks  : byte;
-    MemoryModel    : byte;
-    BankSize       : byte;
-    NumberOfPages  : byte;
-    reserved       : byte;
-    rm_size        : byte;
-    rf_pos         : byte;
-    gm_size        : byte;
-    gf_pos         : byte;
-    bm_size        : byte;
-    bf_pos         : byte;
-    res_mask       : word;
-    DirectColorInfo: byte;
+    XResolution    : word; { pos $12 }
+    YResolution    : word; { pos $14 }
+    XCharSize      : byte; { pos $16 }
+    YCharSize      : byte; { pos $17 }
+    MumberOfPlanes : byte; { pos $18 }
+    BitsPerPixel   : byte; { pos $19 }
+    NumberOfBanks  : byte; { pos $1A }
+    MemoryModel    : byte; { pos $1B }
+    BankSize       : byte; { pos $1C }
+    NumberOfPages  : byte; { pos $1D }
+    reserved       : byte; { pos $1E }
+    rm_size        : byte; { pos $1F }
+    rf_pos         : byte; { pos $20 }
+    gm_size        : byte; { pos $21 }
+    gf_pos         : byte; { pos $22 }
+    bm_size        : byte; { pos $23 }
+    bf_pos         : byte; { pos $24 }
+    (* res_mask       : word; { pos $25 }
+      here there was an alignment problem !!
+      with default alignment
+      res_mask was shifted to $26
+      and after PhysAddress to $2A !!! PM *)
+    res_size       : byte;
+    res_pos        : byte;
+    DirectColorInfo: byte; { pos $27 }
   { VESA 2.0 }
-    PhysAddress    : longint;
-    OffscreenPtr   : longint;
-    OffscreenMem   : word;
-    reserved2      : Array[1..458]of Byte;
+    PhysAddress    : longint; { pos $28 }
+    OffscreenPtr   : longint; { pos $2C }
+    OffscreenMem   : word; { pos $30 }
+    reserved2      : Array[1..458]of Byte; { pos $32 }
    end;
 
 const
@@ -932,7 +938,12 @@ end.
 
 {
   $Log$
-  Revision 1.9  1998-11-19 15:09:33  pierre
+  Revision 1.10  1998-11-20 10:16:01  pierre
+    * Found out the LinerFrameBuffer problem
+      Was an alignment problem in VesaInfoBlock (see graph.pp file)
+      Compile with -dDEBUG and answer 'y' to 'Use Linear ?' to test
+
+  Revision 1.9  1998/11/19 15:09:33  pierre
     * several bugfixes for sector/ellipse/floodfill
     + graphic driver mode const in interface G800x600x256...
     + added backput mode as in linux graph.pp
