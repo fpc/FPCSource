@@ -32,9 +32,6 @@
 
 unit DOM;
 
-{$MODE objfpc}
-{$H+}
-
 interface
 
 uses SysUtils, Classes;
@@ -1504,7 +1501,12 @@ end.
 
 {
   $Log$
-  Revision 1.10  2002-09-07 15:15:29  peter
+  Revision 1.11  2002-12-11 21:06:07  sg
+  * Small cleanups
+  * Replaced htmldoc unit with dom_html unit
+  * Added SAX parser framework and SAX HTML parser
+
+  Revision 1.10  2002/09/07 15:15:29  peter
     * old logs removed and tabs fixed
 
   Revision 1.9  2002/03/01 10:02:38  sg

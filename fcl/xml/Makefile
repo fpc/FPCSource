@@ -213,9 +213,9 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override PACKAGE_NAME=fcl
-override TARGET_UNITS+=dom htmldoc xmlcfg xmlread xmlstreaming xmlwrite xhtml htmldefs htmwrite
+override TARGET_UNITS+=sax dom sax_html dom_html xmlcfg xmlread xmlstreaming xmlwrite xhtml htmldefs htmwrite
 override INSTALL_FPCPACKAGE=y
-override COMPILER_OPTIONS+=-S2
+override COMPILER_OPTIONS+=-S2h
 override COMPILER_TARGETDIR+=../$(OS_TARGET)
 ifdef REQUIRE_UNITSDIR
 override UNITSDIR+=$(REQUIRE_UNITSDIR)

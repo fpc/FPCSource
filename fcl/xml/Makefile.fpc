@@ -6,10 +6,10 @@
 main=fcl
 
 [target]
-units=dom htmldoc xmlcfg xmlread xmlstreaming xmlwrite xhtml htmldefs htmwrite
+units=sax dom sax_html dom_html xmlcfg xmlread xmlstreaming xmlwrite xhtml htmldefs htmwrite
 
 [compiler]
-options=-S2
+options=-S2h
 targetdir=../$(OS_TARGET)
 
 [install]
