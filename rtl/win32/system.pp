@@ -1520,8 +1520,6 @@ begin
   if not IsLibrary then
     HInstance:=getmodulehandle(GetCommandFile);
   MainInstance:=HInstance;
-  { No idea how to know this issue !! }
-  IsMultithreaded:=false;
   cmdshow:=startupinfo.wshowwindow;
 { to test stack depth }
   loweststack:=maxlongint;
@@ -1569,7 +1567,10 @@ end.
 
 {
   $Log$
-  Revision 1.17  2001-08-19 21:02:02  florian
+  Revision 1.18  2001-10-09 02:37:29  carl
+  * bugfix #1639 (IsMultiThread varialbe setting)
+
+  Revision 1.17  2001/08/19 21:02:02  florian
     * fixed and added a lot of stuff to get the Jedi DX( headers
       compiled
 

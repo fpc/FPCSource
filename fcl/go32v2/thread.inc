@@ -56,6 +56,7 @@ end;
 constructor TThread.Create(CreateSuspended: Boolean);
 
 begin
+ {IsMultiThread := TRUE; }
 end;
 
 
@@ -92,7 +93,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:58  michael
+  Revision 1.3  2001-10-09 02:25:20  carl
+  * bugfix #1639 (IsMultiThread varialbe setting)
+
+  Revision 1.2  2000/07/13 11:32:58  michael
   + removed logs
  
 }

@@ -210,6 +210,10 @@ const
   Filemode : byte = 2;
   CmdLine : PChar = nil;
 
+ { Delphi Compatibility }
+ { assume that this program will not spawn other threads. }
+  IsMultiThread : boolean = FALSE;
+
 var
 { Standard In- and Output }
   Output,
@@ -221,7 +225,7 @@ var
   LowestStack,
   RandSeed    : Cardinal;
 { Delphi compatible }
-  IsLibrary,IsMultiThreaded,IsConsole : boolean;
+  IsLibrary,IsConsole : boolean;
 {$ifdef MT}
 ThreadVar
 {$else MT}
@@ -550,7 +554,10 @@ const
 
 {
   $Log$
-  Revision 1.35  2001-08-19 21:02:01  florian
+  Revision 1.36  2001-10-09 02:32:51  carl
+  * bugfix #1639 (IsMultiThread varialbe setting)
+
+  Revision 1.35  2001/08/19 21:02:01  florian
     * fixed and added a lot of stuff to get the Jedi DX( headers
       compiled
 

@@ -119,6 +119,7 @@ begin
    FFinished := true;
    Destroy;
   end else FHandle := FThreadID;
+  IsMultiThread := TRUE;
 end;
 
 
@@ -161,7 +162,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2000-12-19 00:43:07  hajny
+  Revision 1.4  2001-10-09 02:21:00  carl
+  * bugfix #1639 (IsMultiThread varialbe setting)
+
+  Revision 1.3  2000/12/19 00:43:07  hajny
     + FCL made compilable under OS/2
 
   Revision 1.2  2000/07/13 11:33:02  michael

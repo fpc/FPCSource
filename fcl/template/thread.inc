@@ -56,6 +56,9 @@ end;
 constructor TThread.Create(CreateSuspended: Boolean);
 
 begin
+  { Should set the following variable to TRUE before }
+  { creating the new thread:                         }
+  IsMultiThread := TRUE;
 end;
 
 
@@ -92,7 +95,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:03  michael
+  Revision 1.3  2001-10-09 02:19:25  carl
+  * bugfix #1639 (IsMultiThread varialbe setting)
+
+  Revision 1.2  2000/07/13 11:33:03  michael
   + removed logs
  
 }

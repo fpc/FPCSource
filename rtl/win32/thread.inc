@@ -144,7 +144,7 @@ function BeginThread(sa : Pointer;stacksize : dword;
 {$ifdef DEBUG_MT}
      writeln('Creating new thread');
 {$endif DEBUG_MT}
-     IsMultithreaded:=true;
+     IsMultithread:=true;
      { the only way to pass data to the newly created thread }
      { in a MT safe way, is to use the heap                  }
      new(ti);
@@ -213,7 +213,10 @@ procedure LeaveCriticalSection(var cs : tcriticalsection);
 
 {
   $Log$
-  Revision 1.4  2001-01-26 21:02:21  florian
+  Revision 1.5  2001-10-09 02:38:39  carl
+  * bugfix #1639 (IsMultiThread varialbe setting)
+
+  Revision 1.4  2001/01/26 21:02:21  florian
   *** empty log message ***
 
   Revision 1.3  2001/01/26 16:38:03  florian

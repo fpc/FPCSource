@@ -116,6 +116,7 @@ begin
   FSuspended := CreateSuspended;
   Flags := 0;
   if CreateSuspended then Flags := CREATE_SUSPENDED;
+  IsMultiThread := TRUE;
   FHandle := CreateThread(nil, 0, @ThreadProc, Pointer(self), Flags, DWord(FThreadID));
 end;
 
@@ -210,7 +211,10 @@ begin
 end;
 {
   $Log$
-  Revision 1.4  2001-04-17 17:36:17  peter
+  Revision 1.5  2001-10-09 02:17:45  carl
+  * bugfix #1639 (IsMultiThread varialbe setting)
+
+  Revision 1.4  2001/04/17 17:36:17  peter
     * fixed for stricter argument checking
 
   Revision 1.3  2000/07/25 11:27:35  jonas

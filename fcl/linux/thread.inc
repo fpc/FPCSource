@@ -175,6 +175,7 @@ begin
   FHandle:= Clone(@ThreadProc,pointer(FStackPointer),Flags,self);
   if FSuspended then Suspend;
   FThreadID := FHandle;
+  IsMultiThread := TRUE;
 end;
 
 
@@ -283,7 +284,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  2001-04-08 11:26:03  peter
+  Revision 1.5  2001-10-09 02:24:14  carl
+  * bugfix #1639 (IsMultiThread varialbe setting)
+
+  Revision 1.4  2001/04/08 11:26:03  peter
     * update so it can be compiled by both 1.0.x and 1.1
 
   Revision 1.3  2001/01/21 20:45:09  marco
