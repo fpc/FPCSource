@@ -6076,6 +6076,24 @@
      TWIN32FINDDATAA = WIN32_FIND_DATA;
      PWIN32FINDDATA = ^WIN32_FIND_DATA;
 
+     WIN32_FIND_DATAW = record
+          dwFileAttributes : DWORD;
+          ftCreationTime : FILETIME;
+          ftLastAccessTime : FILETIME;
+          ftLastWriteTime : FILETIME;
+          nFileSizeHigh : DWORD;
+          nFileSizeLow : DWORD;
+          dwReserved0 : DWORD;
+          dwReserved1 : DWORD;
+          cFileName : array[0..(MAX_PATH)-1] of WCHAR;
+          cAlternateFileName : array[0..13] of WCHAR;
+       end;
+     LPWIN32_FIND_DATAW = ^WIN32_FIND_DATAW;
+     PWIN32_FIND_DATAW = ^WIN32_FIND_DATAW;
+     _WIN32_FIND_DATAW = WIN32_FIND_DATAW;
+     TWIN32FINDDATAW = WIN32_FIND_DATAW;
+     PWIN32FINDDATAW = ^WIN32_FIND_DATAW;
+
      WIN32_STREAM_ID = record
           dwStreamId : DWORD;
           dwStreamAttributes : DWORD;
@@ -6948,7 +6966,10 @@ type
 
 {
   $Log$
-  Revision 1.7  2001-06-13 08:57:01  marco
+  Revision 1.8  2001-07-30 14:23:15  marco
+   * Added finddataw
+
+  Revision 1.7  2001/06/13 08:57:01  marco
    * Fixed va_list to be a pchar.
 
   Revision 1.6  2001/04/04 17:58:36  florian
