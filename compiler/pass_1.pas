@@ -1742,7 +1742,11 @@ unit pass_1;
            begin
               if p^.left^.treetype=calln then
                 begin
-                   hp:=genloadnode(pvarsym(p^.left^.symtableprocentry),p^.left^.symtableproc);
+                     { it could also be a procvar, not only pprocsym ! }
+                     if p^.left^.symtableprocentry^.typ=varsym then
+                        hp:=genloadnode(pvarsym(p^.left^.symtableprocentry),p^.left^.symtableproc)
+                     else
+                        hp:=genloadcallnode(pprocsym(p^.left^.symtableprocentry),p^.left^.symtableproc);
                    { result is a procedure variable }
                    { No, to be TP compatible, you must return a pointer to
                      the procedure that is stored in the procvar.}
@@ -5498,7 +5502,10 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.83  1998-09-11 15:40:21  pierre
+  Revision 1.84  1998-09-16 01:06:17  carl
+    * bugfix of crash with firstaddr on valid code!
+
+  Revision 1.83  1998/09/11 15:40:21  pierre
      * wrong checks for colon paras in write commented out
 
   Revision 1.82.2.1  1998/09/11 15:36:37  pierre
