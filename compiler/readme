@@ -16,3 +16,5 @@ Changes in the syntax or semantic of FPC:
   28/01/99 : implicit conversion from boolean to integer is not possible
              anymore (solved several bugs) but this could lead to errors
              on previously accepted code (PM)
+  01/02/99:  c styled comments are supported (/* ... */), mainly
+             for the Sibyl sources of Medigo (FK) 

@@ -109,6 +109,7 @@ unit scanner;
           procedure skipcomment;
           procedure skipdelphicomment;
           procedure skipoldtpcomment;
+          procedure skipccomment;
           procedure readtoken;
           function  readpreproc:ttoken;
           function  asmgetchar:char;
@@ -921,6 +922,53 @@ implementation
          end;
       end;
 
+    procedure tscannerfile.skipccomment;
+      var
+        found : longint;
+      begin
+        inc_comment_level;
+        readchar;
+      { this is currently not supported }
+        if c='$' then
+         Message(scan_e_wrong_styled_switch);
+      { skip comment }
+        while (comment_level>0) do
+         begin
+           found:=0;
+           repeat
+             case c of
+              #26 : Message(scan_f_end_of_file);
+              '*' : begin
+                      if found=3 then
+                       inc_comment_level
+                      else
+                       found:=1;
+                    end;
+              '/' : begin
+                      if found=1 then
+                       begin
+                         dec_comment_level;
+                         if comment_level=0 then
+                          found:=2;
+                       end
+                      else found:=3;
+                    end;
+             else
+              found:=0;
+             end;
+             c:=inputpointer^;
+             if c=#0 then
+              reload
+             else
+              inc(longint(inputpointer));
+             case c of
+              #26 : reload;
+              #10,
+              #13 : linebreak;
+             end;
+           until (found=2);
+         end;
+      end;
 
     procedure tscannerfile.readtoken;
       var
@@ -1195,6 +1243,11 @@ implementation
                                end;
                          '/' : begin
                                  skipdelphicomment;
+                                 readtoken;
+                                 exit;
+                               end;
+                         '*' : begin
+                                 skipccomment;
                                  readtoken;
                                  exit;
                                end;
@@ -1506,7 +1559,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.71  1999-01-27 13:05:45  pierre
+  Revision 1.72  1999-02-02 00:15:10  florian
+    + c styled comments
+
+  Revision 1.71  1999/01/27 13:05:45  pierre
    * give include file name on error
 
   Revision 1.70  1999/01/19 12:14:38  peter
