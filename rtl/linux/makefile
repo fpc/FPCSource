@@ -266,8 +266,8 @@ prt0$(OEXT) : $(PRT)
 gprt0$(OEXT) : gprt1.as
 	-as gprt1.as -o gprt0$(OEXT)
 
-objpas$(PPUEXT) : ../../objpas/objpas.pp system$(PPUEXT)
-	$(COPY) ../../objpas/objpas.pp .
+objpas$(PPUEXT) : ../objpas/objpas.pp syslinux$(PPUEXT)
+	$(COPY) ../objpas/objpas.pp .
 	$(PP) $(OPT) objpas $(REDIR)
 	$(DEL) objpas.pp
 
