@@ -473,7 +473,11 @@ implementation
      version,verbose,
      types,ppu,
      gendef,fmodule,finput
+{$ifdef CG11}
+     ,node
+{$else CG11}
      ,tree
+{$endif CG11}
      ,cresstr
 {$ifdef newcg}
      ,cgbase
@@ -2878,7 +2882,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  2000-09-24 15:06:29  peter
+  Revision 1.9  2000-10-01 19:48:25  peter
+    * lot of compile updates for cg11
+
+  Revision 1.8  2000/09/24 15:06:29  peter
     * use defines.inc
 
   Revision 1.7  2000/08/27 16:11:54  peter

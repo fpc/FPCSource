@@ -27,10 +27,12 @@ unit types;
 interface
 
     uses
-       cobjects,symtable,cpuinfo
-       {$IFDEF NEWST}
-       ,defs
-       {$ENDIF NEWST};
+       cobjects,
+       cpuinfo,
+{$ifdef CG11}
+       node,
+{$endif}
+       symtable;
 
     type
        tmmxtype = (mmxno,mmxu8bit,mmxs8bit,mmxu16bit,mmxs16bit,
@@ -145,6 +147,47 @@ interface
     { to use on other types                              }
     function is_subequal(def1, def2: pdef): boolean;
 
+{$ifdef CG11}
+     type
+       tconverttype = (
+          tc_equal,
+          tc_not_possible,
+          tc_string_2_string,
+          tc_char_2_string,
+          tc_pchar_2_string,
+          tc_cchar_2_pchar,
+          tc_cstring_2_pchar,
+          tc_ansistring_2_pchar,
+          tc_string_2_chararray,
+          tc_chararray_2_string,
+          tc_array_2_pointer,
+          tc_pointer_2_array,
+          tc_int_2_int,
+          tc_int_2_bool,
+          tc_bool_2_bool,
+          tc_bool_2_int,
+          tc_real_2_real,
+          tc_int_2_real,
+          tc_int_2_fix,
+          tc_real_2_fix,
+          tc_fix_2_real,
+          tc_proc_2_procvar,
+          tc_arrayconstructor_2_set,
+          tc_load_smallset,
+          tc_cord_2_pointer
+       );
+
+    function assignment_overloaded(from_def,to_def : pdef) : pprocdef;
+
+    { Returns:
+       0 - Not convertable
+       1 - Convertable
+       2 - Convertable, but not first choice }
+    function isconvertable(def_from,def_to : pdef;
+             var doconv : tconverttype;fromtreetype : tnodetype;
+             explicit : boolean) : byte;
+{$endif CG11}
+
     { same as is_equal, but with error message if failed }
     function CheckTypes(def1,def2 : pdef) : boolean;
 
@@ -191,13 +234,12 @@ interface
 implementation
 
     uses
-       globtype,globals,htypechk,
-{$ifdef CG11}
-       node,
-{$else}
+       globtype,globals,
+{$ifndef CG11}
+       htypechk,
        tree,
 {$endif}
-       verbose,symconst;
+       verbose,symconst,tokens;
 
     var
        b_needs_init_final : boolean;
@@ -1119,6 +1161,494 @@ implementation
         end; { endif assigned ... }
       end;
 
+{$ifdef CG11}
+    function assignment_overloaded(from_def,to_def : pdef) : pprocdef;
+       var
+          passproc : pprocdef;
+          convtyp : tconverttype;
+       begin
+          assignment_overloaded:=nil;
+          if assigned(overloaded_operators[_ASSIGNMENT]) then
+            passproc:=overloaded_operators[_ASSIGNMENT]^.definition
+          else
+            exit;
+          while passproc<>nil do
+            begin
+              if is_equal(passproc^.rettype.def,to_def) and
+                 (is_equal(pparaitem(passproc^.para^.first)^.paratype.def,from_def) or
+                 (isconvertable(from_def,pparaitem(passproc^.para^.first)^.paratype.def,convtyp,ordconstn,false)=1)) then
+                begin
+                   assignment_overloaded:=passproc;
+                   break;
+                end;
+              passproc:=passproc^.nextoverloaded;
+            end;
+       end;
+
+
+    { Returns:
+       0 - Not convertable
+       1 - Convertable
+       2 - Convertable, but not first choice }
+    function isconvertable(def_from,def_to : pdef;
+             var doconv : tconverttype;fromtreetype : tnodetype;
+             explicit : boolean) : byte;
+
+      { Tbasetype:  uauto,uvoid,uchar,
+                    u8bit,u16bit,u32bit,
+                    s8bit,s16bit,s32,
+                    bool8bit,bool16bit,bool32bit,
+                    u64bit,s64bitint }
+      type
+        tbasedef=(bvoid,bchar,bint,bbool);
+      const
+        basedeftbl:array[tbasetype] of tbasedef =
+          (bvoid,bvoid,bchar,
+           bint,bint,bint,
+           bint,bint,bint,
+           bbool,bbool,bbool,bint,bint,bchar);
+
+        basedefconverts : array[tbasedef,tbasedef] of tconverttype =
+         ((tc_not_possible,tc_not_possible,tc_not_possible,tc_not_possible),
+          (tc_not_possible,tc_equal,tc_not_possible,tc_not_possible),
+          (tc_not_possible,tc_not_possible,tc_int_2_int,tc_int_2_bool),
+          (tc_not_possible,tc_not_possible,tc_bool_2_int,tc_bool_2_bool));
+
+      var
+         b : byte;
+         hd1,hd2 : pdef;
+         hct : tconverttype;
+      begin
+       { safety check }
+         if not(assigned(def_from) and assigned(def_to)) then
+          begin
+            isconvertable:=0;
+            exit;
+          end;
+
+       { tp7 procvar def support, in tp7 a procvar is always called, if the
+         procvar is passed explicit a addrn would be there }
+         if (m_tp_procvar in aktmodeswitches) and
+            (def_from^.deftype=procvardef) and
+            (fromtreetype=loadn) then
+          begin
+            def_from:=pprocvardef(def_from)^.rettype.def;
+          end;
+
+       { we walk the wanted (def_to) types and check then the def_from
+         types if there is a conversion possible }
+         b:=0;
+         case def_to^.deftype of
+           orddef :
+             begin
+               case def_from^.deftype of
+                 orddef :
+                   begin
+                     doconv:=basedefconverts[basedeftbl[porddef(def_from)^.typ],basedeftbl[porddef(def_to)^.typ]];
+                     b:=1;
+                     if (doconv=tc_not_possible) or
+                        ((doconv=tc_int_2_bool) and
+                         (not explicit) and
+                         (not is_boolean(def_from))) or
+                        ((doconv=tc_bool_2_int) and
+                         (not explicit) and
+                         (not is_boolean(def_to))) then
+                       b:=0;
+                   end;
+                 enumdef :
+                   begin
+                     { needed for char(enum) }
+                     if explicit then
+                      begin
+                        doconv:=tc_int_2_int;
+                        b:=1;
+                      end;
+                   end;
+               end;
+             end;
+
+          stringdef :
+             begin
+               case def_from^.deftype of
+                 stringdef :
+                   begin
+                     doconv:=tc_string_2_string;
+                     b:=1;
+                   end;
+                 orddef :
+                   begin
+                   { char to string}
+                     if is_char(def_from) then
+                      begin
+                        doconv:=tc_char_2_string;
+                        b:=1;
+                      end;
+                   end;
+                 arraydef :
+                   begin
+                   { array of char to string, the length check is done by the firstpass of this node }
+                     if is_chararray(def_from) then
+                      begin
+                        doconv:=tc_chararray_2_string;
+                        if (not(cs_ansistrings in aktlocalswitches) and
+                            is_shortstring(def_to)) or
+                           ((cs_ansistrings in aktlocalswitches) and
+                            is_ansistring(def_to)) then
+                         b:=1
+                        else
+                         b:=2;
+                      end;
+                   end;
+                 pointerdef :
+                   begin
+                   { pchar can be assigned to short/ansistrings,
+                     but not in tp7 compatible mode }
+                     if is_pchar(def_from) and not(m_tp7 in aktmodeswitches) then
+                      begin
+                        doconv:=tc_pchar_2_string;
+                        b:=1;
+                      end;
+                   end;
+               end;
+             end;
+
+           floatdef :
+             begin
+               case def_from^.deftype of
+                 orddef :
+                   begin { ordinal to real }
+                     if is_integer(def_from) then
+                       begin
+                          if pfloatdef(def_to)^.typ=f32bit then
+                            doconv:=tc_int_2_fix
+                          else
+                            doconv:=tc_int_2_real;
+                          b:=1;
+                       end;
+                   end;
+                 floatdef :
+                   begin { 2 float types ? }
+                     if pfloatdef(def_from)^.typ=pfloatdef(def_to)^.typ then
+                       doconv:=tc_equal
+                     else
+                       begin
+                          if pfloatdef(def_from)^.typ=f32bit then
+                            doconv:=tc_fix_2_real
+                          else
+                            if pfloatdef(def_to)^.typ=f32bit then
+                              doconv:=tc_real_2_fix
+                            else
+                              doconv:=tc_real_2_real;
+                       end;
+                     b:=1;
+                   end;
+               end;
+             end;
+
+           enumdef :
+             begin
+               if (def_from^.deftype=enumdef) then
+                begin
+                  hd1:=def_from;
+                  while assigned(penumdef(hd1)^.basedef) do
+                   hd1:=penumdef(hd1)^.basedef;
+                  hd2:=def_to;
+                  while assigned(penumdef(hd2)^.basedef) do
+                    hd2:=penumdef(hd2)^.basedef;
+                  if (hd1=hd2) then
+                    begin
+                       b:=1;
+                       { because of packenum they can have different sizes! (JM) }
+                       doconv:=tc_int_2_int;
+                    end;
+                end;
+             end;
+
+           arraydef :
+             begin
+             { open array is also compatible with a single element of its base type }
+               if is_open_array(def_to) and
+                  is_equal(parraydef(def_to)^.elementtype.def,def_from) then
+                begin
+                  doconv:=tc_equal;
+                  b:=1;
+                end
+               else
+                begin
+                  case def_from^.deftype of
+                    arraydef :
+                      begin
+                        { array constructor -> open array }
+                        if is_open_array(def_to) and
+                           is_array_constructor(def_from) then
+                         begin
+                           if is_void(parraydef(def_from)^.elementtype.def) or
+                              is_equal(parraydef(def_to)^.elementtype.def,parraydef(def_from)^.elementtype.def) then
+                            begin
+                              doconv:=tc_equal;
+                              b:=1;
+                            end
+                           else
+                            if isconvertable(parraydef(def_from)^.elementtype.def,
+                                             parraydef(def_to)^.elementtype.def,hct,arrayconstructn,false)<>0 then
+                             begin
+                               doconv:=hct;
+                               b:=2;
+                             end;
+                         end;
+                      end;
+                    pointerdef :
+                      begin
+                        if is_zero_based_array(def_to) and
+                           is_equal(ppointerdef(def_from)^.pointertype.def,parraydef(def_to)^.elementtype.def) then
+                         begin
+                           doconv:=tc_pointer_2_array;
+                           b:=1;
+                         end;
+                      end;
+                    stringdef :
+                      begin
+                        { string to array of char}
+                        if (not(is_special_array(def_to)) or is_open_array(def_to)) and
+                          is_equal(parraydef(def_to)^.elementtype.def,cchardef) then
+                         begin
+                           doconv:=tc_string_2_chararray;
+                           b:=1;
+                         end;
+                      end;
+                  end;
+                end;
+             end;
+
+           pointerdef :
+             begin
+               case def_from^.deftype of
+                 stringdef :
+                   begin
+                     { string constant (which can be part of array constructor)
+                       to zero terminated string constant }
+                     if (fromtreetype in [arrayconstructn,stringconstn]) and
+                        is_pchar(def_to) then
+                      begin
+                        doconv:=tc_cstring_2_pchar;
+                        b:=1;
+                      end;
+                   end;
+                 orddef :
+                   begin
+                     { char constant to zero terminated string constant }
+                     if (fromtreetype=ordconstn) then
+                      begin
+                        if is_equal(def_from,cchardef) and
+                           is_pchar(def_to) then
+                         begin
+                           doconv:=tc_cchar_2_pchar;
+                           b:=1;
+                         end
+                        else
+                         if is_integer(def_from) then
+                          begin
+                            doconv:=tc_cord_2_pointer;
+                            b:=1;
+                          end;
+                      end;
+                   end;
+                 arraydef :
+                   begin
+                     { chararray to pointer }
+                     if is_zero_based_array(def_from) and
+                        is_equal(parraydef(def_from)^.elementtype.def,ppointerdef(def_to)^.pointertype.def) then
+                      begin
+                        doconv:=tc_array_2_pointer;
+                        b:=1;
+                      end;
+                   end;
+                 pointerdef :
+                   begin
+                     { child class pointer can be assigned to anchestor pointers }
+                     if (
+                         (ppointerdef(def_from)^.pointertype.def^.deftype=objectdef) and
+                         (ppointerdef(def_to)^.pointertype.def^.deftype=objectdef) and
+                         pobjectdef(ppointerdef(def_from)^.pointertype.def)^.is_related(
+                           pobjectdef(ppointerdef(def_to)^.pointertype.def))
+                        ) or
+                        { all pointers can be assigned to void-pointer }
+                        is_equal(ppointerdef(def_to)^.pointertype.def,voiddef) or
+                        { in my opnion, is this not clean pascal }
+                        { well, but it's handy to use, it isn't ? (FK) }
+                        is_equal(ppointerdef(def_from)^.pointertype.def,voiddef) then
+                       begin
+                         doconv:=tc_equal;
+                         b:=1;
+                       end;
+                   end;
+                 procvardef :
+                   begin
+                     { procedure variable can be assigned to an void pointer }
+                     { Not anymore. Use the @ operator now.}
+                     if not(m_tp_procvar in aktmodeswitches) and
+                        (ppointerdef(def_to)^.pointertype.def^.deftype=orddef) and
+                        (porddef(ppointerdef(def_to)^.pointertype.def)^.typ=uvoid) then
+                      begin
+                        doconv:=tc_equal;
+                        b:=1;
+                      end;
+                   end;
+                 classrefdef,
+                 objectdef :
+                   begin
+                     { class types and class reference type
+                       can be assigned to void pointers      }
+                     if (
+                         ((def_from^.deftype=objectdef) and pobjectdef(def_from)^.is_class) or
+                         (def_from^.deftype=classrefdef)
+                        ) and
+                        (ppointerdef(def_to)^.pointertype.def^.deftype=orddef) and
+                        (porddef(ppointerdef(def_to)^.pointertype.def)^.typ=uvoid) then
+                       begin
+                         doconv:=tc_equal;
+                         b:=1;
+                       end;
+                   end;
+               end;
+             end;
+
+           setdef :
+             begin
+               { automatic arrayconstructor -> set conversion }
+               if is_array_constructor(def_from) then
+                begin
+                  doconv:=tc_arrayconstructor_2_set;
+                  b:=1;
+                end;
+             end;
+
+           procvardef :
+             begin
+               { proc -> procvar }
+               if (def_from^.deftype=procdef) then
+                begin
+                  doconv:=tc_proc_2_procvar;
+                  if proc_to_procvar_equal(pprocdef(def_from),pprocvardef(def_to)) then
+                   b:=1;
+                end
+               else
+                { for example delphi allows the assignement from pointers }
+                { to procedure variables                                  }
+                if (m_pointer_2_procedure in aktmodeswitches) and
+                  (def_from^.deftype=pointerdef) and
+                  (ppointerdef(def_from)^.pointertype.def^.deftype=orddef) and
+                  (porddef(ppointerdef(def_from)^.pointertype.def)^.typ=uvoid) then
+                begin
+                   doconv:=tc_equal;
+                   b:=1;
+                end
+               else
+               { nil is compatible with procvars }
+                if (fromtreetype=niln) then
+                 begin
+                   doconv:=tc_equal;
+                   b:=1;
+                 end;
+             end;
+
+           objectdef :
+             begin
+               { object pascal objects }
+               if (def_from^.deftype=objectdef) {and
+                  pobjectdef(def_from)^.isclass and pobjectdef(def_to)^.isclass }then
+                begin
+                  doconv:=tc_equal;
+                  if pobjectdef(def_from)^.is_related(pobjectdef(def_to)) then
+                   b:=1;
+                end
+               else
+               { Class specific }
+                if (pobjectdef(def_to)^.is_class) then
+                 begin
+                   { void pointer also for delphi mode }
+                   if (m_delphi in aktmodeswitches) and
+                      is_voidpointer(def_from) then
+                    begin
+                      doconv:=tc_equal;
+                      b:=1;
+                    end
+                   else
+                   { nil is compatible with class instances }
+                    if (fromtreetype=niln) and (pobjectdef(def_to)^.is_class) then
+                     begin
+                       doconv:=tc_equal;
+                       b:=1;
+                     end;
+                 end;
+             end;
+
+           classrefdef :
+             begin
+               { class reference types }
+               if (def_from^.deftype=classrefdef) then
+                begin
+                  doconv:=tc_equal;
+                  if pobjectdef(pclassrefdef(def_from)^.pointertype.def)^.is_related(
+                       pobjectdef(pclassrefdef(def_to)^.pointertype.def)) then
+                   b:=1;
+                end
+               else
+                { nil is compatible with class references }
+                if (fromtreetype=niln) then
+                 begin
+                   doconv:=tc_equal;
+                   b:=1;
+                 end;
+             end;
+
+           filedef :
+             begin
+               { typed files are all equal to the abstract file type
+               name TYPEDFILE in system.pp in is_equal in types.pas
+               the problem is that it sholud be also compatible to FILE
+               but this would leed to a problem for ASSIGN RESET and REWRITE
+               when trying to find the good overloaded function !!
+               so all file function are doubled in system.pp
+               this is not very beautiful !!}
+               if (def_from^.deftype=filedef) and
+                  (
+                   (
+                    (pfiledef(def_from)^.filetyp = ft_typed) and
+                    (pfiledef(def_to)^.filetyp = ft_typed) and
+                    (
+                     (pfiledef(def_from)^.typedfiletype.def = pdef(voiddef)) or
+                     (pfiledef(def_to)^.typedfiletype.def = pdef(voiddef))
+                    )
+                   ) or
+                   (
+                    (
+                     (pfiledef(def_from)^.filetyp = ft_untyped) and
+                     (pfiledef(def_to)^.filetyp = ft_typed)
+                    ) or
+                    (
+                     (pfiledef(def_from)^.filetyp = ft_typed) and
+                     (pfiledef(def_to)^.filetyp = ft_untyped)
+                    )
+                   )
+                  ) then
+                 begin
+                    doconv:=tc_equal;
+                    b:=1;
+                 end
+             end;
+
+           else
+             begin
+             { assignment overwritten ?? }
+               if assignment_overloaded(def_from,def_to)<>nil then
+                b:=2;
+             end;
+         end;
+        isconvertable:=b;
+      end;
+{$endif CG11}
+
     function CheckTypes(def1,def2 : pdef) : boolean;
 
       var
@@ -1148,7 +1678,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  2000-09-30 16:08:46  peter
+  Revision 1.13  2000-10-01 19:48:26  peter
+    * lot of compile updates for cg11
+
+  Revision 1.12  2000/09/30 16:08:46  peter
     * more cg11 updates
 
   Revision 1.11  2000/09/24 15:06:32  peter

@@ -52,7 +52,8 @@ type
     objfile,
     as_bin   : string;
     SmartAsm : boolean;
-    smarthcount : longint;
+    SmartFilesCount,
+    SmartHeaderCount : longint;
     place    : TCutPlace; { special 'end' file for import dir ? }
   {outfile}
     AsmSize,
@@ -80,8 +81,6 @@ type
     procedure WriteAsmList;virtual;
   end;
 
-var
-  SmartLinkFilesCnt : longint;
 
 Procedure GenerateAsm(smart:boolean);
 Procedure OnlyAsm;
@@ -230,7 +229,7 @@ begin
    begin
      if SmartAsm then
       begin
-        if (SmartLinkFilesCnt<=1) then
+        if (SmartFilesCount<=1) then
          Message1(exec_i_assembling_smart,name);
       end
      else
@@ -253,22 +252,22 @@ procedure TAsmList.NextSmartName;
 var
   s : string;
 begin
-  inc(SmartLinkFilesCnt);
-  if SmartLinkFilesCnt>999999 then
+  inc(SmartFilesCount);
+  if SmartFilesCount>999999 then
    Message(asmw_f_too_many_asm_files);
   case place of
     cut_begin :
       begin
-        inc(smarthcount);
-        s:=current_module^.asmprefix^+tostr(smarthcount)+'h';
+        inc(SmartHeaderCount);
+        s:=current_module^.asmprefix^+tostr(SmartHeaderCount)+'h';
       end;
     cut_normal :
-      s:=current_module^.asmprefix^+tostr(smarthcount)+'s';
+      s:=current_module^.asmprefix^+tostr(SmartHeaderCount)+'s';
     cut_end :
-      s:=current_module^.asmprefix^+tostr(smarthcount)+'t';
+      s:=current_module^.asmprefix^+tostr(SmartHeaderCount)+'t';
   end;
-  AsmFile:=Path+FixFileName(s+tostr(SmartLinkFilesCnt)+target_info.asmext);
-  ObjFile:=Path+FixFileName(s+tostr(SmartLinkFilesCnt)+target_info.objext);
+  AsmFile:=Path+FixFileName(s+tostr(SmartFilesCount)+target_info.asmext);
+  ObjFile:=Path+FixFileName(s+tostr(SmartFilesCount)+target_info.objext);
   { insert in container so it can be cleared after the linking }
   SmartLinkOFiles.Insert(Objfile);
 end;
@@ -470,11 +469,11 @@ begin
   objfile:=current_module^.objfilename^;
   name:=FixFileName(current_module^.modulename^);
   OutCnt:=0;
-  SmartLinkFilesCnt:=0;
+  SmartFilesCount:=0;
   SmartLinkOFiles.Clear;
   place:=cut_normal;
   SmartAsm:=smart;
-  SmartHCount:=0;
+  SmartHeaderCount:=0;
 { Which path will be used ? }
   if SmartAsm then
    begin
@@ -597,7 +596,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  2000-09-24 15:06:11  peter
+  Revision 1.6  2000-10-01 19:48:23  peter
+    * lot of compile updates for cg11
+
+  Revision 1.5  2000/09/24 15:06:11  peter
     * use defines.inc
 
   Revision 1.4  2000/08/27 16:11:49  peter

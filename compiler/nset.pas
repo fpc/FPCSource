@@ -135,7 +135,7 @@ implementation
       begin
          pass_1:=nil;
          firstpass(left);
-         left.set_varstate(true);
+         set_varstate(left,true);
          if codegenerror then
           exit;
 
@@ -203,7 +203,7 @@ implementation
          resulttype:=booldef;
 
          firstpass(right);
-         right.set_varstate(true);
+         set_varstate(right,true);
          if codegenerror then
           exit;
 
@@ -237,7 +237,7 @@ implementation
            end;
 
          firstpass(left);
-         left.set_varstate(true);
+         set_varstate(left,true);
          if codegenerror then
            exit;
 
@@ -297,9 +297,9 @@ implementation
       begin
          pass_1:=nil;
          firstpass(left);
-         left.set_varstate(true);
+         set_varstate(left,true);
          firstpass(right);
-         right.set_varstate(true);
+         set_varstate(right,true);
          if codegenerror then
            exit;
          { both types must be compatible }
@@ -425,7 +425,7 @@ implementation
          cleartempgen;
 {$endif newcg}
          firstpass(left);
-         left.set_varstate(true);
+         set_varstate(left,true);
          if codegenerror then
            exit;
          registers32:=left.registers32;
@@ -516,7 +516,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2000-09-27 18:14:31  florian
+  Revision 1.4  2000-10-01 19:48:25  peter
+    * lot of compile updates for cg11
+
+  Revision 1.3  2000/09/27 18:14:31  florian
     * fixed a lot of syntax errors in the n*.pas stuff
 
   Revision 1.2  2000/09/24 20:17:44  florian

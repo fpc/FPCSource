@@ -42,8 +42,6 @@ interface
        { specific node types can be created               }
        caddnode : class of taddnode;
 
-    function isbinaryoverloaded(var p : tbinarynode) : boolean;
-
 implementation
 
     uses
@@ -57,89 +55,9 @@ implementation
       hcodegen,
 {$endif newcg}
       htypechk,pass_1,
+      ncal,nmat,ncnv,nld,ncon,nset,
       cpubase;
 
-    function isbinaryoverloaded(var p : tbinarynode) : boolean;
-
-     var
-         rd,ld   : pdef;
-         t : tnode;
-         optoken : ttoken;
-
-      begin
-        isbinaryoverloaded:=false;
-        { overloaded operator ? }
-        { load easier access variables }
-        rd:=p.right.resulttype;
-        ld:=p.left.resulttype;
-        if isbinaryoperatoroverloadable(ld,rd,voiddef,p.nodetype) then
-          begin
-             isbinaryoverloaded:=true;
-             {!!!!!!!!! handle paras }
-             case p.nodetype of
-                { the nil as symtable signs firstcalln that this is
-                  an overloaded operator }
-                addn:
-                  optoken:=_PLUS;
-                subn:
-                  optoken:=_MINUS;
-                muln:
-                  optoken:=_STAR;
-                starstarn:
-                  optoken:=_STARSTAR;
-                slashn:
-                  optoken:=_SLASH;
-                ltn:
-                  optoken:=tokens._lt;
-                gtn:
-                  optoken:=tokens._gt;
-                lten:
-                  optoken:=_lte;
-                gten:
-                  optoken:=_gte;
-                equaln,unequaln :
-                  optoken:=_EQUAL;
-                symdifn :
-                  optoken:=_SYMDIF;
-                modn :
-                  optoken:=_OP_MOD;
-                orn :
-                  optoken:=_OP_OR;
-                xorn :
-                  optoken:=_OP_XOR;
-                andn :
-                  optoken:=_OP_AND;
-                divn :
-                  optoken:=_OP_DIV;
-                shln :
-                  optoken:=_OP_SHL;
-                shrn :
-                  optoken:=_OP_SHR;
-                else
-                  exit;
-             end;
-             t:=gencallnode(overloaded_operators[optoken],nil);
-             { we have to convert p.left and p.right into
-              callparanodes }
-             if tcallnode(t).symtableprocentry=nil then
-               begin
-                  CGMessage(parser_e_operator_not_overloaded);
-                  t.free;
-               end
-             else
-               begin
-                  inc(tcallnode(t).symtableprocentry^.refs);
-                  tcallnode(t).left:=gencallparanode(p.left,nil);
-                  tcallnode(t).left:=gencallparanode(p.right,tcallnode(t).left);
-                  if p.nodetype=unequaln then
-                   t:=cnotnode.create(t);
-                  p.left:=nil;
-                  p.right:=nil;
-                  firstpass(t);
-                  p:=tbinarynode(t);
-               end;
-          end;
-      end;
 
 {*****************************************************************************
                                 TADDNODE
@@ -206,8 +124,8 @@ implementation
            arrayconstructor_to_set(tarrayconstructnode(right));
 
          { both left and right need to be valid }
-         left.set_varstate(true);
-         right.set_varstate(true);
+         set_varstate(left,true);
+         set_varstate(right,true);
 
          { load easier access variables }
          lt:=left.nodetype;
@@ -1314,7 +1232,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2000-09-30 16:08:45  peter
+  Revision 1.12  2000-10-01 19:48:23  peter
+    * lot of compile updates for cg11
+
+  Revision 1.11  2000/09/30 16:08:45  peter
     * more cg11 updates
 
   Revision 1.10  2000/09/28 19:49:52  florian

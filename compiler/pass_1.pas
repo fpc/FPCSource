@@ -373,7 +373,7 @@ implementation
 
 
 end.
-{$else cg11}
+{$else tnode}
 unit pass_1;
 
 {$i defines.inc}
@@ -426,18 +426,19 @@ implementation
       cutils,cobjects,verbose,globals,
       aasm,symtable,types,
       htypechk,
-      cpubase,cpuasm
+      cpubase,cpuasm,
+      nflw
 {$ifdef newcg}
       ,cgbase
       ,tgcpu
 {$else newcg}
       ,hcodegen
-{$ifdef i386}
+  {$ifdef i386}
       ,tgeni386
-{$endif}
-{$ifdef m68k}
+  {$endif}
+  {$ifdef m68k}
       ,tgen68k
-{$endif}
+  {$endif}
 {$endif}
       ;
 
@@ -741,7 +742,10 @@ end.
 {$endif cg11}
 {
   $Log$
-  Revision 1.7  2000-09-30 16:08:45  peter
+  Revision 1.8  2000-10-01 19:48:25  peter
+    * lot of compile updates for cg11
+
+  Revision 1.7  2000/09/30 16:08:45  peter
     * more cg11 updates
 
   Revision 1.6  2000/09/28 19:49:52  florian

@@ -109,53 +109,6 @@
           loadvmtn
        );
 
-       tconverttype = (
-          tc_equal,
-          tc_not_possible,
-          tc_string_2_string,
-          tc_char_2_string,
-          tc_pchar_2_string,
-          tc_cchar_2_pchar,
-          tc_cstring_2_pchar,
-          tc_ansistring_2_pchar,
-          tc_string_2_chararray,
-          tc_chararray_2_string,
-          tc_array_2_pointer,
-          tc_pointer_2_array,
-          tc_int_2_int,
-          tc_int_2_bool,
-          tc_bool_2_bool,
-          tc_bool_2_int,
-          tc_real_2_real,
-          tc_int_2_real,
-          tc_int_2_fix,
-          tc_real_2_fix,
-          tc_fix_2_real,
-          tc_proc_2_procvar,
-          tc_arrayconstructor_2_set,
-          tc_load_smallset,
-          tc_cord_2_pointer
-       );
-
-      pcaserecord = ^tcaserecord;
-      tcaserecord = record
-          { range }
-          _low,_high : longint;
-
-          { only used by gentreejmp }
-          _at : pasmlabel;
-
-          { label of instruction }
-          statement : pasmlabel;
-
-          { is this the first of an case entry, needed to release statement
-            label (PFV) }
-          firstlabel : boolean;
-
-          { left and right tree node }
-          less,greater : pcaserecord;
-       end;
-
        { all boolean field of ttree are now collected in flags }
        tnodeflags = (
          nf_needs_truefalselabel,
@@ -272,14 +225,7 @@
           function docompare(p : tnode) : boolean;virtual;
           { gets a copy of the node }
           function getcopy : tnode;virtual;
-          procedure unset_varstate;virtual;
-          procedure set_varstate(must_be_valid : boolean);virtual;
 
-          { it would be cleaner to make the following virtual methods }
-          { but this would require an extra vmt entry                 }
-          { so we do some hacking instead ....                        }
-          procedure set_unique;
-          procedure set_funcret_is_valid;
 {$ifdef EXTDEBUG}
           { writes a node for debugging purpose, shouldn't be called }
           { direct, because there is no test for nil, use writenode  }
@@ -325,7 +271,6 @@
           procedure det_temp;override;
           function docompare(p : tnode) : boolean;override;
           procedure swapleftright;
-          function isbinaryoverloaded(var t : tnode) : boolean;
           function getcopy : tnode;override;
           procedure left_right_max;
        end;
@@ -338,7 +283,10 @@
 
 {
   $Log$
-  Revision 1.10  2000-09-28 19:49:52  florian
+  Revision 1.11  2000-10-01 19:48:24  peter
+    * lot of compile updates for cg11
+
+  Revision 1.10  2000/09/28 19:49:52  florian
   *** empty log message ***
 
   Revision 1.9  2000/09/27 18:14:31  florian

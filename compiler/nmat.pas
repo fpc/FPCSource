@@ -82,9 +82,9 @@ interface
       begin
          pass_1:=nil;
          firstpass(left);
-         right.set_varstate(true);
+         set_varstate(right,true);
          firstpass(right);
-         right.set_varstate(true);
+         set_varstate(right,true);
          if codegenerror then
            exit;
 
@@ -217,9 +217,9 @@ interface
       begin
          pass_1:=nil;
          firstpass(left);
-         left.set_varstate(true);
+         set_varstate(left,true);
          firstpass(right);
-         right.set_varstate(true);
+         set_varstate(right,true);
          if codegenerror then
            exit;
 
@@ -286,7 +286,7 @@ interface
       begin
          pass_1:=nil;
          firstpass(left);
-         left.set_varstate(true);
+         set_varstate(left,true);
          registers32:=left.registers32;
          registersfpu:=left.registersfpu;
 {$ifdef SUPPORT_MMX}
@@ -417,7 +417,7 @@ interface
       begin
          pass_1:=nil;
          firstpass(left);
-         left.set_varstate(true);
+         set_varstate(left,true);
          if codegenerror then
            exit;
 
@@ -528,7 +528,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2000-09-27 21:33:22  florian
+  Revision 1.7  2000-10-01 19:48:24  peter
+    * lot of compile updates for cg11
+
+  Revision 1.6  2000/09/27 21:33:22  florian
     * finally nadd.pas compiles
 
   Revision 1.5  2000/09/27 20:25:44  florian

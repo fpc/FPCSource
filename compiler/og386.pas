@@ -62,7 +62,8 @@ interface
 
        pobjectoutput = ^tobjectoutput;
        tobjectoutput = object
-         smarthcount : longint;
+         SmartFilesCount,
+         SmartHeaderCount : longint;
          objsmart  : boolean;
          writer    : pobjectwriter;
          path      : pathstr;
@@ -96,8 +97,7 @@ interface
 
     uses
       comphook,
-      cutils,globtype,globals,verbose,fmodule,
-      assemble;
+      cutils,globtype,globals,verbose,fmodule;
 
 
 {****************************************************************************
@@ -160,7 +160,8 @@ interface
 
     constructor tobjectoutput.init(smart:boolean);
       begin
-        smarthcount:=0;
+        SmartFilesCount:=0;
+        SmartHeaderCount:=0;
         objsmart:=smart;
         objfile:=current_module^.objfilename^;
       { Which path will be used ? }
@@ -195,8 +196,8 @@ interface
       var
         s : string;
       begin
-        inc(SmartLinkFilesCnt);
-        if SmartLinkFilesCnt>999999 then
+        inc(SmartFilesCount);
+        if SmartFilesCount>999999 then
          Message(asmw_f_too_many_asm_files);
         if (cs_asm_leave in aktglobalswitches) then
          s:=current_module^.asmprefix^
@@ -205,15 +206,15 @@ interface
         case place of
           cut_begin :
             begin
-              inc(smarthcount);
-              s:=s+tostr(smarthcount)+'h';
+              inc(SmartHeaderCount);
+              s:=s+tostr(SmartHeaderCount)+'h';
             end;
           cut_normal :
-            s:=s+tostr(smarthcount)+'s';
+            s:=s+tostr(SmartHeaderCount)+'s';
           cut_end :
-            s:=s+tostr(smarthcount)+'t';
+            s:=s+tostr(SmartHeaderCount)+'t';
         end;
-        ObjFile:=FixFileName(s+tostr(SmartLinkFilesCnt)+target_info.objext);
+        ObjFile:=FixFileName(s+tostr(SmartFilesCount)+target_info.objext);
       end;
 
 
@@ -284,7 +285,10 @@ interface
 end.
 {
   $Log$
-  Revision 1.6  2000-09-24 15:06:19  peter
+  Revision 1.7  2000-10-01 19:48:25  peter
+    * lot of compile updates for cg11
+
+  Revision 1.6  2000/09/24 15:06:19  peter
     * use defines.inc
 
   Revision 1.5  2000/08/27 16:11:51  peter

@@ -2224,7 +2224,10 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.9  2000-09-24 21:19:50  peter
+  Revision 1.10  2000-10-01 19:48:25  peter
+    * lot of compile updates for cg11
+
+  Revision 1.9  2000/09/24 21:19:50  peter
     * delphi compile fixes
 
   Revision 1.8  2000/09/24 15:06:22  peter

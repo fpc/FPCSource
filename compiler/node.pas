@@ -27,23 +27,30 @@ unit node;
 interface
 
     uses
-       globtype,globals,cobjects,aasm,cpubase,symtable,
-       tokens;
+       cobjects,
+       globtype,
+       cpubase,
+       aasm,
+       symtable;
 
     {$I nodeh.inc}
 
 implementation
 
     uses
-       htypechk,hcodegen,verbose,
-       pass_1,symconst,cutils;
+       cutils,
+       globals,
+       symconst;
 
     {$I node.inc}
 
 end.
 {
   $Log$
-  Revision 1.7  2000-09-30 16:08:45  peter
+  Revision 1.8  2000-10-01 19:48:24  peter
+    * lot of compile updates for cg11
+
+  Revision 1.7  2000/09/30 16:08:45  peter
     * more cg11 updates
 
   Revision 1.6  2000/09/28 19:49:52  florian

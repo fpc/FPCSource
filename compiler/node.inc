@@ -230,173 +230,6 @@
          fileinfo:=filepos;
       end;
 
-    procedure tnode.unset_varstate;
-
-      begin
-         internalerror(220920002);
-      end;
-
-    procedure tnode.set_varstate(must_be_valid : boolean);
-
-      begin
-         internalerror(220920001);
-      end;
-
-    procedure tnode.set_unique;
-
-      begin
-         case nodetype of
-            vecn:
-               include(flags,nf_callunique);
-            typeconvn,subscriptn,derefn:
-              if assigned(tunarynode(self).left) then
-                tunarynode(self).left.set_unique;
-         end;
-      end;
-
-    procedure tnode.set_funcret_is_valid;
-
-      begin
-         case nodetype of
-            funcretn:
-              if nf_is_first_funcret in flags then
-                pprocinfo(tfuncretnode(self).funcretprocinfo)^.funcret_state:=vs_assigned;
-            vecn,typeconvn,subscriptn{,derefn}:
-              if assigned(tunarynode(self).left) then
-                tunarynode(self).left.set_funcret_is_valid;
-         end;
-      end;
-
-
-{$warning FIX ME !!!!!}
-{$ifdef dummy}
-    procedure unset_varstate(p : ptree);
-      begin
-        while assigned(p) do
-         begin
-           p^.varstateset:=false;
-           case p^.treetype of
-             typeconvn,
-             subscriptn,
-             vecn :
-               p:=p^.left;
-             else
-               break;
-           end;
-         end;
-      end;
-
-
-    procedure set_varstate(p : ptree;must_be_valid : boolean);
-
-      begin
-         if not assigned(p) then
-           exit
-         else
-           begin
-             if p^.varstateset then
-               exit;
-              case p^.treetype of
-           typeconvn :
-             if p^.convtyp in
-               [
-                tc_cchar_2_pchar,
-                tc_cstring_2_pchar,
-                tc_array_2_pointer
-               ] then
-               set_varstate(p^.left,false)
-             else if p^.convtyp in
-               [
-                tc_pchar_2_string,
-                tc_pointer_2_array
-               ] then
-               set_varstate(p^.left,true)
-             else
-               set_varstate(p^.left,must_be_valid);
-           subscriptn :
-             set_varstate(p^.left,must_be_valid);
-           vecn:
-             begin
-               if (p^.left^.resulttype^.deftype in [stringdef,arraydef]) then
-                 set_varstate(p^.left,must_be_valid)
-               else
-                 set_varstate(p^.left,true);
-               set_varstate(p^.right,true);
-             end;
-           { do not parse calln }
-           calln : ;
-           callparan:
-             begin
-               set_varstate(p^.left,must_be_valid);
-               set_varstate(p^.right,must_be_valid);
-             end;
-           loadn :
-         if (p^.symtableentry^.typ=varsym) then
-          begin
-            if must_be_valid and p^.is_first then
-              begin
-                if (pvarsym(p^.symtableentry)^.varstate=vs_declared_and_first_found) or
-                   (pvarsym(p^.symtableentry)^.varstate=vs_set_but_first_not_passed) then
-                 if (assigned(pvarsym(p^.symtableentry)^.owner) and
-                    assigned(aktprocsym) and
-                    (pvarsym(p^.symtableentry)^.owner = aktprocsym^.definition^.localst)) then
-                  begin
-                    if p^.symtable^.symtabletype=localsymtable then
-                     CGMessage1(sym_n_uninitialized_local_variable,pvarsym(p^.symtableentry)^.name)
-                    else
-                     CGMessage1(sym_n_uninitialized_variable,pvarsym(p^.symtableentry)^.name);
-                  end;
-              end;
-          if (p^.is_first) then
-           begin
-             if pvarsym(p^.symtableentry)^.varstate=vs_declared_and_first_found then
-             { this can only happen at left of an assignment, no ? PM }
-              if (parsing_para_level=0) and not must_be_valid then
-               pvarsym(p^.symtableentry)^.varstate:=vs_assigned
-              else
-               pvarsym(p^.symtableentry)^.varstate:=vs_used;
-             if pvarsym(p^.symtableentry)^.varstate=vs_set_but_first_not_passed then
-               pvarsym(p^.symtableentry)^.varstate:=vs_used;
-             p^.is_first:=false;
-           end
-         else
-           begin
-             if (pvarsym(p^.symtableentry)^.varstate=vs_assigned) and
-                (must_be_valid or (parsing_para_level>0) or
-                 (p^.resulttype^.deftype=procvardef)) then
-               pvarsym(p^.symtableentry)^.varstate:=vs_used;
-             if (pvarsym(p^.symtableentry)^.varstate=vs_declared_and_first_found) and
-                (must_be_valid or (parsing_para_level>0) or
-                (p^.resulttype^.deftype=procvardef)) then
-               pvarsym(p^.symtableentry)^.varstate:=vs_set_but_first_not_passed;
-           end;
-         end;
-         funcretn:
-         begin
-         { no claim if setting higher return value_str }
-         if must_be_valid and
-            (procinfo=pprocinfo(p^.funcretprocinfo)) and
-            ((procinfo^.funcret_state=vs_declared) or
-            ((p^.is_first_funcret) and
-             (procinfo^.funcret_state=vs_declared_and_first_found))) then
-           begin
-             CGMessage(sym_w_function_result_not_set);
-             { avoid multiple warnings }
-             procinfo^.funcret_state:=vs_assigned;
-           end;
-         if p^.is_first_funcret and not must_be_valid then
-           pprocinfo(p^.funcretprocinfo)^.funcret_state:=vs_assigned;
-         end;
-         else
-           begin
-             {internalerror(565656);}
-           end;
-         end;{case }
-         p^.varstateset:=true;
-      end;
-    end;
-
-{$endif}
 
 {****************************************************************************
                                  TUNARYNODE
@@ -536,86 +369,6 @@
          getcopy:=p;
       end;
 
-    function tbinarynode.isbinaryoverloaded(var t : tnode) : boolean;
-
-     var
-         rd,ld   : pdef;
-         optoken : ttoken;
-
-      begin
-        t:=nil;
-        isbinaryoverloaded:=false;
-        { overloaded operator ? }
-        { load easier access variables }
-        rd:=right.resulttype;
-        ld:=left.resulttype;
-        if isbinaryoperatoroverloadable(ld,rd,voiddef,nodetype) then
-          begin
-             isbinaryoverloaded:=true;
-             {!!!!!!!!! handle paras }
-             case nodetype of
-                { the nil as symtable signs firstcalln that this is
-                  an overloaded operator }
-                addn:
-                  optoken:=_PLUS;
-                subn:
-                  optoken:=_MINUS;
-                muln:
-                  optoken:=_STAR;
-                starstarn:
-                  optoken:=_STARSTAR;
-                slashn:
-                  optoken:=_SLASH;
-                ltn:
-                  optoken:=tokens._lt;
-                gtn:
-                  optoken:=tokens._gt;
-                lten:
-                  optoken:=_lte;
-                gten:
-                  optoken:=_gte;
-                equaln,unequaln :
-                  optoken:=_EQUAL;
-                symdifn :
-                  optoken:=_SYMDIF;
-                modn :
-                  optoken:=_OP_MOD;
-                orn :
-                  optoken:=_OP_OR;
-                xorn :
-                  optoken:=_OP_XOR;
-                andn :
-                  optoken:=_OP_AND;
-                divn :
-                  optoken:=_OP_DIV;
-                shln :
-                  optoken:=_OP_SHL;
-                shrn :
-                  optoken:=_OP_SHR;
-                else
-                  exit;
-             end;
-             t:=gencallnode(overloaded_operators[optoken],nil);
-             { we have to convert p^.left and p^.right into
-              callparanodes }
-             if tcallnode(t).symtableprocentry=nil then
-               begin
-                  CGMessage(parser_e_operator_not_overloaded);
-                  t.free;
-                  t:=nil;
-               end
-             else
-               begin
-                  inc(tcallnode(t).symtableprocentry^.refs);
-                  tcallnode(t).left:=gencallparanode(left,nil);
-                  tcallnode(t).left:=gencallparanode(right,tcallnode(t).left);
-                  if nodetype=unequaln then
-                    t:=cnotnode.create(t);
-
-                  firstpass(t);
-               end;
-          end;
-      end;
 
     procedure tbinarynode.swapleftright;
 
@@ -625,7 +378,8 @@
       begin
          swapp:=right;
          right:=left;
-         left:=swapp;
+         left:=
+         swapp;
          if nf_swaped in flags then
            exclude(flags,nf_swaped)
          else
@@ -675,7 +429,10 @@
       end;
 {
   $Log$
-  Revision 1.7  2000-09-29 15:45:23  florian
+  Revision 1.8  2000-10-01 19:48:24  peter
+    * lot of compile updates for cg11
+
+  Revision 1.7  2000/09/29 15:45:23  florian
     * make cycle fixed
 
   Revision 1.6  2000/09/28 19:49:52  florian

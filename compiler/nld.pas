@@ -391,14 +391,14 @@ implementation
          { must be made unique }
          if assigned(left) then
            begin
-              left.set_unique;
+              set_unique(left);
 
               { set we the function result? }
-              left.set_funcret_is_valid;
+              set_funcret_is_valid(left);
            end;
 
          firstpass(left);
-         left.set_varstate(false);
+         set_varstate(left,false);
          if codegenerror then
            exit;
 
@@ -436,7 +436,7 @@ implementation
            end;
 {$endif i386}
          firstpass(right);
-         right.set_varstate(true);
+         set_varstate(right,true);
          if codegenerror then
            exit;
 
@@ -558,9 +558,9 @@ implementation
     function tarrayconstructorrangenode.pass_1 : tnode;
       begin
         firstpass(left);
-        left.set_varstate(true);
+        set_varstate(left,true);
         firstpass(right);
-        right.set_varstate(true);
+        set_varstate(right,true);
         calcregisters(self,0,0,0);
         resulttype:=left.resulttype;
       end;
@@ -640,7 +640,7 @@ implementation
            while assigned(hp) do
             begin
               firstpass(hp.left);
-              hp.left.set_varstate(true);
+              set_varstate(hp.left,true);
               if (not get_para_resulttype) and
                 (not(nf_novariaallowed in flags)) then
                begin
@@ -769,7 +769,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2000-09-28 19:49:52  florian
+  Revision 1.5  2000-10-01 19:48:24  peter
+    * lot of compile updates for cg11
+
+  Revision 1.4  2000/09/28 19:49:52  florian
   *** empty log message ***
 
   Revision 1.3  2000/09/27 18:14:31  florian

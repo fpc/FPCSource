@@ -29,9 +29,7 @@ interface
 
     uses
        cobjects,
-{$ifdef CG11}
-       node,
-{$else}
+{$ifndef CG11}
        tree,
 {$endif}
        cpubase,cpuasm,
@@ -112,20 +110,21 @@ interface
     procedure incrstringref(t : pdef;const ref : treference);
     procedure decrstringref(t : pdef;const ref : treference);
 
-    function maybe_push(needed : byte;p : {$ifdef CG11}tnode{$else}ptree{$endif};isint64 : boolean) : boolean;
     procedure push_int(l : longint);
     procedure emit_push_mem(const ref : treference);
     procedure emitpushreferenceaddr(const ref : treference);
+{$ifndef CG11}
+    function maybe_push(needed : byte;p : {$ifdef CG11}tnode{$else}ptree{$endif};isint64 : boolean) : boolean;
     procedure pushsetelement(p : {$ifdef CG11}tnode{$else}ptree{$endif});
     procedure restore(p : {$ifdef CG11}tnode{$else}ptree{$endif};isint64 : boolean);
     procedure push_value_para(p:{$ifdef CG11}tnode{$else}ptree{$endif};inlined,is_cdecl:boolean;
                               para_offset:longint;alignment : longint);
-
 {$ifdef TEMPS_NOT_PUSH}
     { does the same as restore, but uses temp. space instead of pushing }
     function maybe_push(needed : byte;p : ptree;isint64 : boolean) : boolean;
     procedure restorefromtemp(p : ptree;isint64 : boolean);
 {$endif TEMPS_NOT_PUSH}
+{$endif}
 
     procedure floatload(t : tfloattype;const ref : treference);
     procedure floatstore(t : tfloattype;const ref : treference);
@@ -133,12 +132,14 @@ interface
     procedure floatstoreops(t : tfloattype;var op : tasmop;var s : topsize);
 
     procedure maybe_loadesi;
-    procedure maketojumpbool(p : {$ifdef CG11}tnode{$else}ptree{$endif});
     procedure emitloadord2reg(const location:Tlocation;orddef:Porddef;destreg:Tregister;delloc:boolean);
-    procedure emitoverflowcheck(p:{$ifdef CG11}tnode{$else}ptree{$endif});
-    procedure emitrangecheck(p:{$ifdef CG11}tnode{$else}ptree{$endif};todef:pdef);
     procedure concatcopy(source,dest : treference;size : longint;delsource : boolean;loadref:boolean);
-    procedure firstcomplex(p : {$ifdef CG11}tnode{$else}ptree{$endif});
+{$ifndef CG11}
+    procedure maketojumpbool(p : ptree);
+    procedure emitoverflowcheck(p:ptree);
+    procedure emitrangecheck(p:ptree;todef:pdef);
+    procedure firstcomplex(p : ptree);
+{$endif}
 
     procedure genentrycode(alist : paasmoutput;const proc_names:Tstringcontainer;make_global:boolean;
                            stackframe:longint;
@@ -350,22 +351,6 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
           internalerror(7453984);
       end;
 
-{$ifdef nojmpfix}
-    procedure emitjmp(c : tasmcond;var l : pasmlabel);
-      var
-        ai : Paicpu;
-      begin
-        if c=C_None then
-          exprasmlist^.concat(new(paicpu,op_sym(A_JMP,S_NO,l)))
-        else
-          begin
-            ai:=new(paicpu,op_sym(A_Jcc,S_NO,l));
-            ai^.SetCondition(c);
-            ai^.is_jmp:=true;
-            exprasmlist^.concat(ai);
-          end;
-      end;
-{$else nojmpfix}
     procedure emitjmp(c : tasmcond;var l : pasmlabel);
       var
         ai : Paicpu;
@@ -380,7 +365,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
         ai^.is_jmp:=true;
         exprasmlist^.concat(ai);
       end;
-{$endif nojmpfix}
+
 
     procedure emit_flag2reg(flag:tresflags;hregister:tregister);
       var
@@ -1077,74 +1062,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                            Emit Push Functions
 *****************************************************************************}
 
-{$ifdef CG11}
-    function maybe_push(needed : byte;p : tnode;isint64 : boolean) : boolean;
-      var
-         pushed : boolean;
-         {hregister : tregister; }
-{$ifdef TEMPS_NOT_PUSH}
-         href : treference;
-{$endif TEMPS_NOT_PUSH}
-      begin
-         if needed>usablereg32 then
-           begin
-              if (p.location.loc=LOC_REGISTER) then
-                begin
-                   if isint64 then
-                     begin
-{$ifdef TEMPS_NOT_PUSH}
-                        gettempofsizereference(href,8);
-                        p.temp_offset:=href.offset;
-                        href.offset:=href.offset+4;
-                        exprasmlist^.concat(new(paicpu,op_reg(A_MOV,S_L,p.location.registerhigh,href)));
-                        href.offset:=href.offset-4;
-{$else TEMPS_NOT_PUSH}
-                        exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,p.location.registerhigh)));
-{$endif TEMPS_NOT_PUSH}
-                        ungetregister32(p^.location.registerhigh);
-                     end
-{$ifdef TEMPS_NOT_PUSH}
-                   else
-                     begin
-                        gettempofsizereference(href,4);
-                        p.temp_offset:=href.offset;
-                     end
-{$endif TEMPS_NOT_PUSH}
-                     ;
-                   pushed:=true;
-{$ifdef TEMPS_NOT_PUSH}
-                   exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,p.location.register,href)));
-{$else TEMPS_NOT_PUSH}
-                   exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,p.location.register)));
-{$endif TEMPS_NOT_PUSH}
-                   ungetregister32(p.location.register);
-                end
-              else if (p.location.loc in [LOC_MEM,LOC_REFERENCE]) and
-                      ((p.location.reference.base<>R_NO) or
-                       (p.location.reference.index<>R_NO)
-                      ) then
-                  begin
-                     del_reference(p.location.reference);
-                     getexplicitregister32(R_EDI);
-                     emit_ref_reg(A_LEA,S_L,newreference(p^.location.reference),R_EDI);
-{$ifdef TEMPS_NOT_PUSH}
-                     gettempofsizereference(href,4);
-                     exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,R_EDI,href)));
-                     p^.temp_offset:=href.offset;
-{$else TEMPS_NOT_PUSH}
-                     exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,R_EDI)));
-{$endif TEMPS_NOT_PUSH}
-                     ungetregister32(R_EDI);
-                     pushed:=true;
-                  end
-              else pushed:=false;
-           end
-         else pushed:=false;
-         maybe_push:=pushed;
-      end;
-
-{$else CG11}
-
+{$ifndef CG11}
     function maybe_push(needed : byte;p : ptree;isint64 : boolean) : boolean;
       var
          pushed : boolean;
@@ -1210,7 +1128,6 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
          else pushed:=false;
          maybe_push:=pushed;
       end;
-{$endif CG11}
 
 {$ifdef TEMPS_NOT_PUSH}
     function maybe_savetotemp(needed : byte;p : ptree;isint64 : boolean) : boolean;
@@ -1263,6 +1180,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
          maybe_push:=pushed;
       end;
 {$endif TEMPS_NOT_PUSH}
+{$endif CG11}
 
 
     procedure push_int(l : longint);
@@ -1338,7 +1256,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
            end;
         end;
 
-
+{$ifndef CG11}
      procedure pushsetelement(p : ptree);
      {
        copies p a set element on the stack
@@ -1395,8 +1313,9 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
            end;
          end;
       end;
+{$endif CG11}
 
-
+{$ifndef CG11}
     procedure restore(p : ptree;isint64 : boolean);
       var
          hregister :  tregister;
@@ -1443,6 +1362,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
          ungetiftemp(href);
 {$endif TEMPS_NOT_PUSH}
       end;
+{$endif CG11}
 
 {$ifdef TEMPS_NOT_PUSH}
     procedure restorefromtemp(p : ptree;isint64 : boolean);
@@ -1480,6 +1400,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
       end;
 {$endif TEMPS_NOT_PUSH}
 
+{$ifndef CG11}
       procedure push_value_para(p:ptree;inlined,is_cdecl:boolean;
                                 para_offset:longint;alignment : longint);
         var
@@ -1990,7 +1911,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 {$endif SUPPORT_MMX}
           end;
       end;
-
+{$endif CG11}
 
 
 {*****************************************************************************
@@ -2074,262 +1995,6 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 {*****************************************************************************
                            Emit Functions
 *****************************************************************************}
-
-    procedure maketojumpbool(p : ptree);
-    {
-      produces jumps to true respectively false labels using boolean expressions
-    }
-      var
-        opsize : topsize;
-        storepos : tfileposinfo;
-      begin
-         if p^.error then
-           exit;
-         storepos:=aktfilepos;
-         aktfilepos:=p^.fileinfo;
-         if is_boolean(p^.resulttype) then
-           begin
-              if is_constboolnode(p) then
-                begin
-                   if p^.value<>0 then
-                     emitjmp(C_None,truelabel)
-                   else
-                     emitjmp(C_None,falselabel);
-                end
-              else
-                begin
-                   opsize:=def_opsize(p^.resulttype);
-                   case p^.location.loc of
-                      LOC_CREGISTER,LOC_REGISTER : begin
-                                        emit_reg_reg(A_OR,opsize,p^.location.register,
-                                          p^.location.register);
-                                        ungetregister(p^.location.register);
-                                        emitjmp(C_NZ,truelabel);
-                                        emitjmp(C_None,falselabel);
-                                     end;
-                      LOC_MEM,LOC_REFERENCE : begin
-                                        emit_const_ref(
-                                          A_CMP,opsize,0,newreference(p^.location.reference));
-                                        del_reference(p^.location.reference);
-                                        emitjmp(C_NZ,truelabel);
-                                        emitjmp(C_None,falselabel);
-                                     end;
-                      LOC_FLAGS : begin
-                                     emitjmp(flag_2_cond[p^.location.resflags],truelabel);
-                                     emitjmp(C_None,falselabel);
-                                  end;
-                   end;
-                end;
-           end
-         else
-           CGMessage(type_e_mismatch);
-         aktfilepos:=storepos;
-      end;
-
-
-    { produces if necessary overflowcode }
-    procedure emitoverflowcheck(p:ptree);
-      var
-         hl : pasmlabel;
-      begin
-         if not(cs_check_overflow in aktlocalswitches) then
-          exit;
-         getlabel(hl);
-         if not ((p^.resulttype^.deftype=pointerdef) or
-                ((p^.resulttype^.deftype=orddef) and
-                 (porddef(p^.resulttype)^.typ in [u64bit,u16bit,u32bit,u8bit,uchar,
-                                                  bool8bit,bool16bit,bool32bit]))) then
-           emitjmp(C_NO,hl)
-         else
-           emitjmp(C_NB,hl);
-         emitcall('FPC_OVERFLOW');
-         emitlab(hl);
-      end;
-
-    { produces range check code, while one of the operands is a 64 bit
-      integer }
-    procedure emitrangecheck64(p : ptree;todef : pdef);
-
-      begin
-
-         CGMessage(cg_w_64bit_range_check_not_supported);
-         {internalerror(28699);}
-      end;
-
-     { produces if necessary rangecheckcode }
-     procedure emitrangecheck(p:ptree;todef:pdef);
-     {
-       generate range checking code for the value at location t. The
-       type used is the checked against todefs ranges. fromdef (p.resulttype)
-       is the original type used at that location, when both defs are
-       equal the check is also insert (needed for succ,pref,inc,dec)
-     }
-      var
-        neglabel,
-        poslabel : pasmlabel;
-        href   : treference;
-        rstr   : string;
-        hreg   : tregister;
-        opsize : topsize;
-        op     : tasmop;
-        fromdef : pdef;
-        lto,hto,
-        lfrom,hfrom : longint;
-        doublebound,
-        is_reg,
-        popecx : boolean;
-      begin
-        { range checking on and range checkable value? }
-        if not(cs_check_range in aktlocalswitches) or
-           not(todef^.deftype in [orddef,enumdef,arraydef]) then
-          exit;
-        { only check when assigning to scalar, subranges are different,
-          when todef=fromdef then the check is always generated }
-        fromdef:=p^.resulttype;
-        if is_64bitint(fromdef) or is_64bitint(todef) then
-          begin
-             emitrangecheck64(p,todef);
-             exit;
-          end;
-        {we also need lto and hto when checking if we need to use doublebound!
-        (JM)}
-        getrange(todef,lto,hto);
-        if todef<>fromdef then
-         begin
-           getrange(p^.resulttype,lfrom,hfrom);
-           { first check for not being u32bit, then if the to is bigger than
-             from }
-           if (lto<hto) and (lfrom<hfrom) and
-              (lto<=lfrom) and (hto>=hfrom) then
-            exit;
-         end;
-        { generate the rangecheck code for the def where we are going to
-          store the result }
-        doublebound:=false;
-        case todef^.deftype of
-          orddef :
-            begin
-              porddef(todef)^.genrangecheck;
-              rstr:=porddef(todef)^.getrangecheckstring;
-              doublebound:=(porddef(todef)^.typ=u32bit) and (lto>hto);
-            end;
-          enumdef :
-            begin
-              penumdef(todef)^.genrangecheck;
-              rstr:=penumdef(todef)^.getrangecheckstring;
-            end;
-          arraydef :
-            begin
-              parraydef(todef)^.genrangecheck;
-              rstr:=parraydef(todef)^.getrangecheckstring;
-              doublebound:=(lto>hto);
-            end;
-        end;
-      { get op and opsize }
-        opsize:=def2def_opsize(fromdef,u32bitdef);
-        if opsize in [S_B,S_W,S_L] then
-         op:=A_MOV
-        else
-         if is_signed(fromdef) then
-          op:=A_MOVSX
-         else
-          op:=A_MOVZX;
-        is_reg:=(p^.location.loc in [LOC_REGISTER,LOC_CREGISTER]);
-        if is_reg then
-          hreg:=p^.location.register;
-        if not target_os.use_bound_instruction then
-         begin
-           { FPC_BOUNDCHECK needs to be called with
-              %ecx - value
-              %edi - pointer to the ranges }
-           popecx:=false;
-           if not(is_reg) or
-              (p^.location.register<>R_ECX) then
-            begin
-              if not(R_ECX in unused) then
-               begin
-                 exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,R_ECX)));
-                 popecx:=true;
-               end
-                 else exprasmlist^.concat(new(pairegalloc,alloc(R_ECX)));
-              if is_reg then
-               emit_reg_reg(op,opsize,p^.location.register,R_ECX)
-              else
-               emit_ref_reg(op,opsize,newreference(p^.location.reference),R_ECX);
-            end;
-           if doublebound then
-            begin
-              getlabel(neglabel);
-              getlabel(poslabel);
-              emit_reg_reg(A_OR,S_L,R_ECX,R_ECX);
-              emitjmp(C_L,neglabel);
-            end;
-           { insert bound instruction only }
-           getexplicitregister32(R_EDI);
-           exprasmlist^.concat(new(paicpu,op_sym_ofs_reg(A_MOV,S_L,newasmsymbol(rstr),0,R_EDI)));
-           emitcall('FPC_BOUNDCHECK');
-           ungetregister32(R_EDI);
-           { u32bit needs 2 checks }
-           if doublebound then
-            begin
-              emitjmp(C_None,poslabel);
-              emitlab(neglabel);
-              getexplicitregister32(R_EDI);
-              exprasmlist^.concat(new(paicpu,op_sym_ofs_reg(A_MOV,S_L,newasmsymbol(rstr),8,R_EDI)));
-              emitcall('FPC_BOUNDCHECK');
-              ungetregister32(R_EDI);
-              emitlab(poslabel);
-            end;
-           if popecx then
-            exprasmlist^.concat(new(paicpu,op_reg(A_POP,S_L,R_ECX)))
-           else exprasmlist^.concat(new(pairegalloc,dealloc(R_ECX)));
-         end
-        else
-         begin
-           reset_reference(href);
-           href.symbol:=newasmsymbol(rstr);
-           { load the value in a register }
-           if is_reg then
-            begin
-              { be sure that hreg is a 32 bit reg, if not load it in %edi }
-              if p^.location.register in [R_EAX..R_EDI] then
-               hreg:=p^.location.register
-              else
-               begin
-                 getexplicitregister32(R_EDI);
-                 emit_reg_reg(op,opsize,p^.location.register,R_EDI);
-                 hreg:=R_EDI;
-               end;
-            end
-           else
-            begin
-              getexplicitregister32(R_EDI);
-              emit_ref_reg(op,opsize,newreference(p^.location.reference),R_EDI);
-              hreg:=R_EDI;
-            end;
-           if doublebound then
-            begin
-              getlabel(neglabel);
-              getlabel(poslabel);
-              emit_reg_reg(A_TEST,S_L,hreg,hreg);
-              emitjmp(C_L,neglabel);
-            end;
-           { insert bound instruction only }
-           exprasmlist^.concat(new(paicpu,op_reg_ref(A_BOUND,S_L,hreg,newreference(href))));
-           { u32bit needs 2 checks }
-           if doublebound then
-            begin
-              href.offset:=8;
-              emitjmp(C_None,poslabel);
-              emitlab(neglabel);
-              exprasmlist^.concat(new(paicpu,op_reg_ref(A_BOUND,S_L,hreg,newreference(href))));
-              emitlab(poslabel);
-            end;
-           if hreg = R_EDI then
-             ungetregister32(R_EDI);
-         end;
-      end;
-
 
     procedure concatcopy(source,dest : treference;size : longint;delsource,loadref : boolean);
 
@@ -2613,6 +2278,263 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
       end;
 
 
+{$ifndef CG11}
+    procedure maketojumpbool(p : ptree);
+    {
+      produces jumps to true respectively false labels using boolean expressions
+    }
+      var
+        opsize : topsize;
+        storepos : tfileposinfo;
+      begin
+         if p^.error then
+           exit;
+         storepos:=aktfilepos;
+         aktfilepos:=p^.fileinfo;
+         if is_boolean(p^.resulttype) then
+           begin
+              if is_constboolnode(p) then
+                begin
+                   if p^.value<>0 then
+                     emitjmp(C_None,truelabel)
+                   else
+                     emitjmp(C_None,falselabel);
+                end
+              else
+                begin
+                   opsize:=def_opsize(p^.resulttype);
+                   case p^.location.loc of
+                      LOC_CREGISTER,LOC_REGISTER : begin
+                                        emit_reg_reg(A_OR,opsize,p^.location.register,
+                                          p^.location.register);
+                                        ungetregister(p^.location.register);
+                                        emitjmp(C_NZ,truelabel);
+                                        emitjmp(C_None,falselabel);
+                                     end;
+                      LOC_MEM,LOC_REFERENCE : begin
+                                        emit_const_ref(
+                                          A_CMP,opsize,0,newreference(p^.location.reference));
+                                        del_reference(p^.location.reference);
+                                        emitjmp(C_NZ,truelabel);
+                                        emitjmp(C_None,falselabel);
+                                     end;
+                      LOC_FLAGS : begin
+                                     emitjmp(flag_2_cond[p^.location.resflags],truelabel);
+                                     emitjmp(C_None,falselabel);
+                                  end;
+                   end;
+                end;
+           end
+         else
+           CGMessage(type_e_mismatch);
+         aktfilepos:=storepos;
+      end;
+
+
+    { produces if necessary overflowcode }
+    procedure emitoverflowcheck(p:ptree);
+      var
+         hl : pasmlabel;
+      begin
+         if not(cs_check_overflow in aktlocalswitches) then
+          exit;
+         getlabel(hl);
+         if not ((p^.resulttype^.deftype=pointerdef) or
+                ((p^.resulttype^.deftype=orddef) and
+                 (porddef(p^.resulttype)^.typ in [u64bit,u16bit,u32bit,u8bit,uchar,
+                                                  bool8bit,bool16bit,bool32bit]))) then
+           emitjmp(C_NO,hl)
+         else
+           emitjmp(C_NB,hl);
+         emitcall('FPC_OVERFLOW');
+         emitlab(hl);
+      end;
+
+    { produces range check code, while one of the operands is a 64 bit
+      integer }
+    procedure emitrangecheck64(p : ptree;todef : pdef);
+
+      begin
+
+         CGMessage(cg_w_64bit_range_check_not_supported);
+         {internalerror(28699);}
+      end;
+
+     { produces if necessary rangecheckcode }
+     procedure emitrangecheck(p:ptree;todef:pdef);
+     {
+       generate range checking code for the value at location t. The
+       type used is the checked against todefs ranges. fromdef (p.resulttype)
+       is the original type used at that location, when both defs are
+       equal the check is also insert (needed for succ,pref,inc,dec)
+     }
+      var
+        neglabel,
+        poslabel : pasmlabel;
+        href   : treference;
+        rstr   : string;
+        hreg   : tregister;
+        opsize : topsize;
+        op     : tasmop;
+        fromdef : pdef;
+        lto,hto,
+        lfrom,hfrom : longint;
+        doublebound,
+        is_reg,
+        popecx : boolean;
+      begin
+        { range checking on and range checkable value? }
+        if not(cs_check_range in aktlocalswitches) or
+           not(todef^.deftype in [orddef,enumdef,arraydef]) then
+          exit;
+        { only check when assigning to scalar, subranges are different,
+          when todef=fromdef then the check is always generated }
+        fromdef:=p^.resulttype;
+        if is_64bitint(fromdef) or is_64bitint(todef) then
+          begin
+             emitrangecheck64(p,todef);
+             exit;
+          end;
+        {we also need lto and hto when checking if we need to use doublebound!
+        (JM)}
+        getrange(todef,lto,hto);
+        if todef<>fromdef then
+         begin
+           getrange(p^.resulttype,lfrom,hfrom);
+           { first check for not being u32bit, then if the to is bigger than
+             from }
+           if (lto<hto) and (lfrom<hfrom) and
+              (lto<=lfrom) and (hto>=hfrom) then
+            exit;
+         end;
+        { generate the rangecheck code for the def where we are going to
+          store the result }
+        doublebound:=false;
+        case todef^.deftype of
+          orddef :
+            begin
+              porddef(todef)^.genrangecheck;
+              rstr:=porddef(todef)^.getrangecheckstring;
+              doublebound:=(porddef(todef)^.typ=u32bit) and (lto>hto);
+            end;
+          enumdef :
+            begin
+              penumdef(todef)^.genrangecheck;
+              rstr:=penumdef(todef)^.getrangecheckstring;
+            end;
+          arraydef :
+            begin
+              parraydef(todef)^.genrangecheck;
+              rstr:=parraydef(todef)^.getrangecheckstring;
+              doublebound:=(lto>hto);
+            end;
+        end;
+      { get op and opsize }
+        opsize:=def2def_opsize(fromdef,u32bitdef);
+        if opsize in [S_B,S_W,S_L] then
+         op:=A_MOV
+        else
+         if is_signed(fromdef) then
+          op:=A_MOVSX
+         else
+          op:=A_MOVZX;
+        is_reg:=(p^.location.loc in [LOC_REGISTER,LOC_CREGISTER]);
+        if is_reg then
+          hreg:=p^.location.register;
+        if not target_os.use_bound_instruction then
+         begin
+           { FPC_BOUNDCHECK needs to be called with
+              %ecx - value
+              %edi - pointer to the ranges }
+           popecx:=false;
+           if not(is_reg) or
+              (p^.location.register<>R_ECX) then
+            begin
+              if not(R_ECX in unused) then
+               begin
+                 exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,R_ECX)));
+                 popecx:=true;
+               end
+                 else exprasmlist^.concat(new(pairegalloc,alloc(R_ECX)));
+              if is_reg then
+               emit_reg_reg(op,opsize,p^.location.register,R_ECX)
+              else
+               emit_ref_reg(op,opsize,newreference(p^.location.reference),R_ECX);
+            end;
+           if doublebound then
+            begin
+              getlabel(neglabel);
+              getlabel(poslabel);
+              emit_reg_reg(A_OR,S_L,R_ECX,R_ECX);
+              emitjmp(C_L,neglabel);
+            end;
+           { insert bound instruction only }
+           getexplicitregister32(R_EDI);
+           exprasmlist^.concat(new(paicpu,op_sym_ofs_reg(A_MOV,S_L,newasmsymbol(rstr),0,R_EDI)));
+           emitcall('FPC_BOUNDCHECK');
+           ungetregister32(R_EDI);
+           { u32bit needs 2 checks }
+           if doublebound then
+            begin
+              emitjmp(C_None,poslabel);
+              emitlab(neglabel);
+              getexplicitregister32(R_EDI);
+              exprasmlist^.concat(new(paicpu,op_sym_ofs_reg(A_MOV,S_L,newasmsymbol(rstr),8,R_EDI)));
+              emitcall('FPC_BOUNDCHECK');
+              ungetregister32(R_EDI);
+              emitlab(poslabel);
+            end;
+           if popecx then
+            exprasmlist^.concat(new(paicpu,op_reg(A_POP,S_L,R_ECX)))
+           else exprasmlist^.concat(new(pairegalloc,dealloc(R_ECX)));
+         end
+        else
+         begin
+           reset_reference(href);
+           href.symbol:=newasmsymbol(rstr);
+           { load the value in a register }
+           if is_reg then
+            begin
+              { be sure that hreg is a 32 bit reg, if not load it in %edi }
+              if p^.location.register in [R_EAX..R_EDI] then
+               hreg:=p^.location.register
+              else
+               begin
+                 getexplicitregister32(R_EDI);
+                 emit_reg_reg(op,opsize,p^.location.register,R_EDI);
+                 hreg:=R_EDI;
+               end;
+            end
+           else
+            begin
+              getexplicitregister32(R_EDI);
+              emit_ref_reg(op,opsize,newreference(p^.location.reference),R_EDI);
+              hreg:=R_EDI;
+            end;
+           if doublebound then
+            begin
+              getlabel(neglabel);
+              getlabel(poslabel);
+              emit_reg_reg(A_TEST,S_L,hreg,hreg);
+              emitjmp(C_L,neglabel);
+            end;
+           { insert bound instruction only }
+           exprasmlist^.concat(new(paicpu,op_reg_ref(A_BOUND,S_L,hreg,newreference(href))));
+           { u32bit needs 2 checks }
+           if doublebound then
+            begin
+              href.offset:=8;
+              emitjmp(C_None,poslabel);
+              emitlab(neglabel);
+              exprasmlist^.concat(new(paicpu,op_reg_ref(A_BOUND,S_L,hreg,newreference(href))));
+              emitlab(poslabel);
+            end;
+           if hreg = R_EDI then
+             ungetregister32(R_EDI);
+         end;
+      end;
+
+
    { DO NOT RELY on the fact that the ptree is not yet swaped
      because of inlining code PM }
     procedure firstcomplex(p : ptree);
@@ -2644,6 +2566,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
          {else
            p^.swaped:=false; do not modify }
       end;
+{$endif}
 
 
 {*****************************************************************************
@@ -3966,7 +3889,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.16  2000-09-30 16:08:45  peter
+  Revision 1.17  2000-10-01 19:48:23  peter
+    * lot of compile updates for cg11
+
+  Revision 1.16  2000/09/30 16:08:45  peter
     * more cg11 updates
 
   Revision 1.15  2000/09/24 15:06:12  peter

@@ -2869,8 +2869,13 @@ Const local_symtable_index : longint = $8001;
            dispose(parast,done);
          if assigned(localst) and (localst^.symtabletype<>staticsymtable) then
            dispose(localst,done);
+{$ifdef CG11}
+         if (pocall_inline in proccalloptions) and assigned(code) then
+           tnode(code).free;
+{$else}
          if (pocall_inline in proccalloptions) and assigned(code) then
            disposetree(ptree(code));
+{$endif}
          if assigned(regvarinfo) then
            dispose(pregvarinfo(regvarinfo));
          if (po_msgstr in procoptions) then
@@ -4311,7 +4316,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.19  2000-09-24 21:19:52  peter
+  Revision 1.20  2000-10-01 19:48:25  peter
+    * lot of compile updates for cg11
+
+  Revision 1.19  2000/09/24 21:19:52  peter
     * delphi compile fixes
 
   Revision 1.18  2000/09/24 15:06:28  peter

@@ -171,7 +171,7 @@ implementation
            location.loc:=LOC_FPU;
            resulttype:=s80floatdef;
            { redo firstpass for varstate status PM }
-           left.set_varstate(true);
+           set_varstate(left,true);
            if (left.resulttype^.deftype<>floatdef) or
              (pfloatdef(left.resulttype)^.typ<>s80real) then
              begin
@@ -404,7 +404,7 @@ implementation
              in_hi_word:
 
                begin
-                  left.set_varstate(true);
+                  set_varstate(left,true);
                   if registers32<1 then
                     registers32:=1;
                   if inlinenumber in [in_lo_word,in_hi_word] then
@@ -446,7 +446,7 @@ implementation
 
              in_sizeof_x:
                begin
-                 left.set_varstate(false);
+                 set_varstate(left,false);
                  if push_high_param(left.resulttype) then
                   begin
                     getsymonlyin(tloadnode(left).symtable,'high'+pvarsym(tloadnode(left).symtableentry)^.name);
@@ -466,7 +466,7 @@ implementation
 
              in_typeof_x:
                begin
-                  left.set_varstate(false);
+                  set_varstate(left,false);
                   if registers32<1 then
                     registers32:=1;
                   location.loc:=LOC_REGISTER;
@@ -475,7 +475,7 @@ implementation
 
              in_ord_x:
                begin
-                  left.set_varstate(true);
+                  set_varstate(left,true);
                   if (left.nodetype=ordconstn) then
                     begin
                        hp:=genordinalconstnode(tordconstnode(left).value,s32bitdef);
@@ -545,7 +545,7 @@ implementation
 
              in_chr_byte:
                begin
-                  left.set_varstate(true);
+                  set_varstate(left,true);
                   hp:=gentypeconvnode(left,cchardef);
                   left:=nil;
                   include(hp.flags,nf_explizit);
@@ -555,7 +555,7 @@ implementation
 
              in_length_string:
                begin
-                  left.set_varstate(true);
+                  set_varstate(left,true);
                   if is_ansistring(left.resulttype) then
                     resulttype:=s32bitdef
                   else
@@ -600,14 +600,14 @@ implementation
 
              in_assigned_x:
                begin
-                  left.set_varstate(true);
+                  set_varstate(left,true);
                   resulttype:=booldef;
                   location.loc:=LOC_FLAGS;
                end;
 
              in_ofs_x,
              in_seg_x :
-               left.set_varstate(false);
+               set_varstate(left,false);
              in_pred_x,
              in_succ_x:
                begin
@@ -623,7 +623,7 @@ implementation
                          registers32:=1;
                     end;
                   location.loc:=LOC_REGISTER;
-                  left.set_varstate(true);
+                  set_varstate(left,true);
                   if not is_ordinal(resulttype) then
                     CGMessage(type_e_ordinal_expr_expected)
                   else
@@ -651,7 +651,7 @@ implementation
                  if assigned(left) then
                    begin
                       tcallparanode(left).firstcallparan(nil,true);
-                      left.set_varstate(true);
+                      set_varstate(left,true);
                       if codegenerror then
                        exit;
                       { first param must be var }
@@ -708,7 +708,7 @@ implementation
                     begin
                        dowrite:=(inlinenumber in [in_write_x,in_writeln_x]);
                        tcallparanode(left).firstcallparan(nil,true);
-                       left.set_varstate(dowrite);
+                       set_varstate(left,dowrite);
                        { now we can check }
                        hp:=left;
                        while assigned(tcallparanode(hp).right) do
@@ -877,7 +877,7 @@ implementation
                        if codegenerror then
                          exit;
                        tcallparanode(left).firstcallparan(nil,true);
-                       left.set_varstate(true);
+                       set_varstate(left,true);
                        { calc registers }
                        left_max;
                        if extra_register then
@@ -909,7 +909,7 @@ implementation
                begin
                   procinfo^.flags:=procinfo^.flags or pi_do_call;
                   firstpass(left);
-                  left.set_varstate(true);
+                  set_varstate(left,true);
                   resulttype:=voiddef;
                end;
 
@@ -928,12 +928,12 @@ implementation
                   hp:=tcallparanode(left).right;
                   tcallparanode(left).right:=nil;
                   tcallparanode(left).firstcallparan(nil,true);
-                  left.set_varstate(false);
+                  set_varstate(left,false);
                   { remove warning when result is passed }
-                  tcallparanode(left).left.set_funcret_is_valid;
+                  set_funcret_is_valid(tcallparanode(left).left);
                   tcallparanode(left).right:=hp;
                   tcallparanode(tcallparanode(left).right).firstcallparan(nil,true);
-                  tcallparanode(left).right.set_varstate(true);
+                  set_varstate(tcallparanode(left).right,true);
                   hp:=left;
                   { valid string ? }
                   if not assigned(hp) or
@@ -986,7 +986,7 @@ implementation
                   if assigned(hpp) and (nf_is_colon_para in hpp.flags) then
                     begin
                       firstpass(tcallparanode(hpp).left);
-                      tcallparanode(hpp).left.set_varstate(true);
+                      set_varstate(tcallparanode(hpp).left,true);
                       if (not is_integer(tcallparanode(hpp).left.resulttype)) then
                         CGMessage1(type_e_integer_expr_expected,tcallparanode(hpp).left.resulttype^.typename)
                       else
@@ -1001,7 +1001,7 @@ implementation
                              else
                                begin
                                  firstpass(tcallparanode(hpp).left);
-                                 tcallparanode(hpp).left.set_varstate(true);
+                                 set_varstate(tcallparanode(hpp).left,true);
                                  tcallparanode(hpp).left:=gentypeconvnode(tcallparanode(hpp).left,s32bitdef);
                                end;
                            end
@@ -1037,7 +1037,7 @@ implementation
                        tcallparanode(left).right := nil;
                        make_not_regable(tcallparanode(left).left);
                        tcallparanode(left).firstcallparan(nil,true);
-                       tcallparanode(left).set_varstate(false);
+                       set_varstate(left,false);
                        if codegenerror then exit;
                        tcallparanode(left).right := hp;
                      {code has to be a var parameter}
@@ -1058,12 +1058,12 @@ implementation
                   {hpp = destination}
                   make_not_regable(tcallparanode(hpp).left);
                   tcallparanode(hpp).firstcallparan(nil,true);
-                  hpp.set_varstate(false);
+                  set_varstate(hpp,false);
 
                   if codegenerror then
                     exit;
                   { remove warning when result is passed }
-                  tcallparanode(hpp).left.set_funcret_is_valid;
+                  set_funcret_is_valid(tcallparanode(hpp).left);
                   tcallparanode(hpp).right := hp;
                   if valid_for_assign(tcallparanode(hpp).left,false) then
                    begin
@@ -1077,7 +1077,7 @@ implementation
                  {hp = source (String)}
                   { count_ref := false; WHY ?? }
                   tcallparanode(hp).firstcallparan(nil,true);
-                  hp.set_varstate(true);
+                  set_varstate(hp,true);
                   if codegenerror then
                     exit;
                   { if not a stringdef then insert a type conv which
@@ -1105,14 +1105,14 @@ implementation
                  if assigned(left) then
                    begin
                       tcallparanode(left).firstcallparan(nil,true);
-                      left.set_varstate(true);
+                      set_varstate(left,true);
                       registers32:=left.registers32;
                       registersfpu:=left.registersfpu;
 {$ifdef SUPPORT_MMX}
                       registersmmx:=left.registersmmx;
 {$endif SUPPORT_MMX}
                       { remove warning when result is passed }
-                      tcallparanode(left).left.set_funcret_is_valid;
+                      set_funcret_is_valid(tcallparanode(left).left);
                       { first param must be var }
                       valid_for_assign(tcallparanode(left).left,false);
                       { check type }
@@ -1144,7 +1144,7 @@ implementation
              in_low_x,
              in_high_x:
                begin
-                  left.set_varstate(false);
+                  set_varstate(left,false);
                   { this fixes tests\webtbs\tbug879.pp (FK)
                   if left.nodetype in [typen,loadn,subscriptn] then
                     begin
@@ -1319,7 +1319,7 @@ implementation
                  if assigned(left) then
                    begin
                       tcallparanode(left).firstcallparan(nil,true);
-                      left.set_varstate(true);
+                      set_varstate(left,true);
                       registers32:=left.registers32;
                       registersfpu:=left.registersfpu;
 {$ifdef SUPPORT_MMX}
@@ -1366,7 +1366,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2000-09-28 19:49:52  florian
+  Revision 1.6  2000-10-01 19:48:24  peter
+    * lot of compile updates for cg11
+
+  Revision 1.5  2000/09/28 19:49:52  florian
   *** empty log message ***
 
   Revision 1.4  2000/09/28 16:34:47  florian

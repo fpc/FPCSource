@@ -219,7 +219,7 @@ interface
                begin
                  { not completly proper, but avoids some warnings }
                  if (defcoll^.paratyp=vs_var) then
-                   left.set_funcret_is_valid;
+                   set_funcret_is_valid(left);
 
                  { protected has nothing to do with read/write
                  if (defcoll^.paratyp=vs_var) then
@@ -353,7 +353,7 @@ interface
                    { Causes problems with const ansistrings if also }
                    { done for vs_const (JM)                         }
                    if defcoll^.paratyp = vs_var then
-                     left.set_unique;
+                     set_unique(left);
                    make_not_regable(left);
                 end;
 
@@ -363,7 +363,7 @@ interface
                 make_not_regable(left);
 
               if do_count then
-                left.set_varstate(defcoll^.paratyp <> vs_var);
+                set_varstate(left,defcoll^.paratyp <> vs_var);
                 { must only be done after typeconv PM }
               resulttype:=defcoll^.paratype.def;
            end;
@@ -628,7 +628,7 @@ interface
                      goto errorexit;
                 end;
               firstpass(right);
-              right.set_varstate(true);
+              set_varstate(right,true);
 
               { check the parameters }
               pdc:=pparaitem(pprocvardef(right.resulttype)^.para^.first);
@@ -1363,7 +1363,7 @@ interface
                      else
                        method_must_be_valid:=true;
                      firstpass(methodpointer);
-                     methodpointer.set_varstate(method_must_be_valid);
+                     set_varstate(methodpointer,method_must_be_valid);
                      { The object is already used ven if it is called once }
                      if (methodpointer.nodetype=loadn) and
                         (tloadnode(methodpointer).symtableentry^.typ=varsym) then
@@ -1472,7 +1472,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2000-09-28 19:49:52  florian
+  Revision 1.8  2000-10-01 19:48:24  peter
+    * lot of compile updates for cg11
+
+  Revision 1.7  2000/09/28 19:49:52  florian
   *** empty log message ***
 
   Revision 1.6  2000/09/27 18:14:31  florian

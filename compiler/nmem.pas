@@ -483,7 +483,7 @@ implementation
          firstpass(left);
          { this is like the function addr }
          inc(parsing_para_level);
-         left.set_varstate(false);
+         set_varstate(left,false);
          dec(parsing_para_level);
          if codegenerror then
            exit;
@@ -532,7 +532,7 @@ implementation
          make_not_regable(left);
          firstpass(left);
          inc(parsing_para_level);
-         left.set_varstate(false);
+         set_varstate(left,false);
          dec(parsing_para_level);
          if resulttype=nil then
            resulttype:=voidpointerdef;
@@ -570,7 +570,7 @@ implementation
       begin
          pass_1:=nil;
          firstpass(left);
-         left.set_varstate(true);
+         set_varstate(left,true);
          if codegenerror then
            begin
              resulttype:=generrordef;
@@ -853,8 +853,8 @@ implementation
          if assigned(left) and assigned(right) then
             begin
                firstpass(left);
-               left.unset_varstate;
-               left.set_varstate(true);
+               unset_varstate(left);
+               set_varstate(left,true);
                if codegenerror then
                  exit;
                symtable:=withsymtable;
@@ -884,7 +884,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  2000-09-28 19:49:52  florian
+  Revision 1.5  2000-10-01 19:48:24  peter
+    * lot of compile updates for cg11
+
+  Revision 1.4  2000/09/28 19:49:52  florian
   *** empty log message ***
 
   Revision 1.3  2000/09/25 15:37:14  florian

@@ -87,12 +87,6 @@ interface
        allow_array_constructor : boolean = false;
 
 {$ifdef cg11}
-    { if someones has a lot of time he might change this into methods }
-    { tnode and its decendends                                        }
-    { Conversion }
-    function isconvertable(def_from,def_to : pdef;
-             var doconv : tconverttype;fromtreetype : tnodetype;
-             explicit : boolean) : byte;
     { is overloading of this operator allowed for this
       binary operator }
     function isbinaryoperatoroverloadable(ld, rd,dd : pdef;
@@ -105,6 +99,7 @@ interface
 
     { check operator args and result type }
     function isoperatoracceptable(pf : pprocdef; optoken : ttoken) : boolean;
+    function isbinaryoverloaded(var t : tnode) : boolean;
 
     { Register Allocation }
     procedure make_not_regable(p : tnode);
@@ -117,9 +112,23 @@ interface
     function  valid_for_formal_const(p : tnode) : boolean;
     function  is_procsym_load(p:tnode):boolean;
     function  is_procsym_call(p:tnode):boolean;
-    function  assignment_overloaded(from_def,to_def : pdef) : pprocdef;
     procedure test_local_to_procvar(from_def:pprocvardef;to_def:pdef);
     function  valid_for_assign(p:tnode;allowprop:boolean):boolean;
+    { sets the callunique flag, if the node is a vecn, }
+    { takes care of type casts etc.                 }
+    procedure set_unique(p : tnode);
+
+    { sets funcret_is_valid to true, if p contains a funcref node }
+    procedure set_funcret_is_valid(p : tnode);
+
+    {
+    type
+    tvarstaterequire = (vsr_can_be_undefined,vsr_must_be_valid,
+      vsr_is_used_after,vsr_must_be_valid_and_is_used_after); }
+
+    { sets varsym varstate field correctly }
+    procedure unset_varstate(p : tnode);
+    procedure set_varstate(p : tnode;must_be_valid : boolean);
 {$else cg11}
     { Conversion }
     function isconvertable(def_from,def_to : pdef;
@@ -153,6 +162,22 @@ interface
     function  assignment_overloaded(from_def,to_def : pdef) : pprocdef;
     procedure test_local_to_procvar(from_def:pprocvardef;to_def:pdef);
     function  valid_for_assign(p:ptree;allowprop:boolean):boolean;
+    { sets the callunique flag, if the node is a vecn, }
+    { takes care of type casts etc.                 }
+    procedure set_unique(p : ptree);
+
+    { sets funcret_is_valid to true, if p contains a funcref node }
+    procedure set_funcret_is_valid(p : ptree);
+
+    {
+    type
+    tvarstaterequire = (vsr_can_be_undefined,vsr_must_be_valid,
+      vsr_is_used_after,vsr_must_be_valid_and_is_used_after); }
+
+    { sets varsym varstate field correctly }
+    procedure unset_varstate(p : ptree);
+    procedure set_varstate(p : ptree;must_be_valid : boolean);
+
 {$endif cg11}
 
 implementation
@@ -164,7 +189,7 @@ implementation
        types,pass_1,cpubase,
 {$ifdef cg11}
        ncnv,nld,
-       nmem,ncal,
+       nmem,ncal,nmat,
 {$endif cg11}
 {$ifdef newcg}
        cgbase
@@ -174,472 +199,6 @@ implementation
        ;
 
 {$ifdef cg11}
-{****************************************************************************
-                             Convert
-****************************************************************************}
-
-    { Returns:
-       0 - Not convertable
-       1 - Convertable
-       2 - Convertable, but not first choice }
-    function isconvertable(def_from,def_to : pdef;
-             var doconv : tconverttype;fromtreetype : tnodetype;
-             explicit : boolean) : byte;
-
-      { Tbasetype:  uauto,uvoid,uchar,
-                    u8bit,u16bit,u32bit,
-                    s8bit,s16bit,s32,
-                    bool8bit,bool16bit,bool32bit,
-                    u64bit,s64bitint }
-      type
-        tbasedef=(bvoid,bchar,bint,bbool);
-      const
-        basedeftbl:array[tbasetype] of tbasedef =
-          (bvoid,bvoid,bchar,
-           bint,bint,bint,
-           bint,bint,bint,
-           bbool,bbool,bbool,bint,bint,bchar);
-
-        basedefconverts : array[tbasedef,tbasedef] of tconverttype =
-         ((tc_not_possible,tc_not_possible,tc_not_possible,tc_not_possible),
-          (tc_not_possible,tc_equal,tc_not_possible,tc_not_possible),
-          (tc_not_possible,tc_not_possible,tc_int_2_int,tc_int_2_bool),
-          (tc_not_possible,tc_not_possible,tc_bool_2_int,tc_bool_2_bool));
-
-      var
-         b : byte;
-         hd1,hd2 : pdef;
-         hct : tconverttype;
-      begin
-       { safety check }
-         if not(assigned(def_from) and assigned(def_to)) then
-          begin
-            isconvertable:=0;
-            exit;
-          end;
-
-       { tp7 procvar def support, in tp7 a procvar is always called, if the
-         procvar is passed explicit a addrn would be there }
-         if (m_tp_procvar in aktmodeswitches) and
-            (def_from^.deftype=procvardef) and
-            (fromtreetype=loadn) then
-          begin
-            def_from:=pprocvardef(def_from)^.rettype.def;
-          end;
-
-       { we walk the wanted (def_to) types and check then the def_from
-         types if there is a conversion possible }
-         b:=0;
-         case def_to^.deftype of
-           orddef :
-             begin
-               case def_from^.deftype of
-                 orddef :
-                   begin
-                     doconv:=basedefconverts[basedeftbl[porddef(def_from)^.typ],basedeftbl[porddef(def_to)^.typ]];
-                     b:=1;
-                     if (doconv=tc_not_possible) or
-                        ((doconv=tc_int_2_bool) and
-                         (not explicit) and
-                         (not is_boolean(def_from))) or
-                        ((doconv=tc_bool_2_int) and
-                         (not explicit) and
-                         (not is_boolean(def_to))) then
-                       b:=0;
-                   end;
-                 enumdef :
-                   begin
-                     { needed for char(enum) }
-                     if explicit then
-                      begin
-                        doconv:=tc_int_2_int;
-                        b:=1;
-                      end;
-                   end;
-               end;
-             end;
-
-          stringdef :
-             begin
-               case def_from^.deftype of
-                 stringdef :
-                   begin
-                     doconv:=tc_string_2_string;
-                     b:=1;
-                   end;
-                 orddef :
-                   begin
-                   { char to string}
-                     if is_char(def_from) then
-                      begin
-                        doconv:=tc_char_2_string;
-                        b:=1;
-                      end;
-                   end;
-                 arraydef :
-                   begin
-                   { array of char to string, the length check is done by the firstpass of this node }
-                     if is_chararray(def_from) then
-                      begin
-                        doconv:=tc_chararray_2_string;
-                        if (not(cs_ansistrings in aktlocalswitches) and
-                            is_shortstring(def_to)) or
-                           ((cs_ansistrings in aktlocalswitches) and
-                            is_ansistring(def_to)) then
-                         b:=1
-                        else
-                         b:=2;
-                      end;
-                   end;
-                 pointerdef :
-                   begin
-                   { pchar can be assigned to short/ansistrings,
-                     but not in tp7 compatible mode }
-                     if is_pchar(def_from) and not(m_tp7 in aktmodeswitches) then
-                      begin
-                        doconv:=tc_pchar_2_string;
-                        b:=1;
-                      end;
-                   end;
-               end;
-             end;
-
-           floatdef :
-             begin
-               case def_from^.deftype of
-                 orddef :
-                   begin { ordinal to real }
-                     if is_integer(def_from) then
-                       begin
-                          if pfloatdef(def_to)^.typ=f32bit then
-                            doconv:=tc_int_2_fix
-                          else
-                            doconv:=tc_int_2_real;
-                          b:=1;
-                       end;
-                   end;
-                 floatdef :
-                   begin { 2 float types ? }
-                     if pfloatdef(def_from)^.typ=pfloatdef(def_to)^.typ then
-                       doconv:=tc_equal
-                     else
-                       begin
-                          if pfloatdef(def_from)^.typ=f32bit then
-                            doconv:=tc_fix_2_real
-                          else
-                            if pfloatdef(def_to)^.typ=f32bit then
-                              doconv:=tc_real_2_fix
-                            else
-                              doconv:=tc_real_2_real;
-                       end;
-                     b:=1;
-                   end;
-               end;
-             end;
-
-           enumdef :
-             begin
-               if (def_from^.deftype=enumdef) then
-                begin
-                  hd1:=def_from;
-                  while assigned(penumdef(hd1)^.basedef) do
-                   hd1:=penumdef(hd1)^.basedef;
-                  hd2:=def_to;
-                  while assigned(penumdef(hd2)^.basedef) do
-                    hd2:=penumdef(hd2)^.basedef;
-                  if (hd1=hd2) then
-                    begin
-                       b:=1;
-                       { because of packenum they can have different sizes! (JM) }
-                       doconv:=tc_int_2_int;
-                    end;
-                end;
-             end;
-
-           arraydef :
-             begin
-             { open array is also compatible with a single element of its base type }
-               if is_open_array(def_to) and
-                  is_equal(parraydef(def_to)^.elementtype.def,def_from) then
-                begin
-                  doconv:=tc_equal;
-                  b:=1;
-                end
-               else
-                begin
-                  case def_from^.deftype of
-                    arraydef :
-                      begin
-                        { array constructor -> open array }
-                        if is_open_array(def_to) and
-                           is_array_constructor(def_from) then
-                         begin
-                           if is_void(parraydef(def_from)^.elementtype.def) or
-                              is_equal(parraydef(def_to)^.elementtype.def,parraydef(def_from)^.elementtype.def) then
-                            begin
-                              doconv:=tc_equal;
-                              b:=1;
-                            end
-                           else
-                            if isconvertable(parraydef(def_from)^.elementtype.def,
-                                             parraydef(def_to)^.elementtype.def,hct,arrayconstructn,false)<>0 then
-                             begin
-                               doconv:=hct;
-                               b:=2;
-                             end;
-                         end;
-                      end;
-                    pointerdef :
-                      begin
-                        if is_zero_based_array(def_to) and
-                           is_equal(ppointerdef(def_from)^.pointertype.def,parraydef(def_to)^.elementtype.def) then
-                         begin
-                           doconv:=tc_pointer_2_array;
-                           b:=1;
-                         end;
-                      end;
-                    stringdef :
-                      begin
-                        { string to array of char}
-                        if (not(is_special_array(def_to)) or is_open_array(def_to)) and
-                          is_equal(parraydef(def_to)^.elementtype.def,cchardef) then
-                         begin
-                           doconv:=tc_string_2_chararray;
-                           b:=1;
-                         end;
-                      end;
-                  end;
-                end;
-             end;
-
-           pointerdef :
-             begin
-               case def_from^.deftype of
-                 stringdef :
-                   begin
-                     { string constant (which can be part of array constructor)
-                       to zero terminated string constant }
-                     if (fromtreetype in [arrayconstructn,stringconstn]) and
-                        is_pchar(def_to) then
-                      begin
-                        doconv:=tc_cstring_2_pchar;
-                        b:=1;
-                      end;
-                   end;
-                 orddef :
-                   begin
-                     { char constant to zero terminated string constant }
-                     if (fromtreetype=ordconstn) then
-                      begin
-                        if is_equal(def_from,cchardef) and
-                           is_pchar(def_to) then
-                         begin
-                           doconv:=tc_cchar_2_pchar;
-                           b:=1;
-                         end
-                        else
-                         if is_integer(def_from) then
-                          begin
-                            doconv:=tc_cord_2_pointer;
-                            b:=1;
-                          end;
-                      end;
-                   end;
-                 arraydef :
-                   begin
-                     { chararray to pointer }
-                     if is_zero_based_array(def_from) and
-                        is_equal(parraydef(def_from)^.elementtype.def,ppointerdef(def_to)^.pointertype.def) then
-                      begin
-                        doconv:=tc_array_2_pointer;
-                        b:=1;
-                      end;
-                   end;
-                 pointerdef :
-                   begin
-                     { child class pointer can be assigned to anchestor pointers }
-                     if (
-                         (ppointerdef(def_from)^.pointertype.def^.deftype=objectdef) and
-                         (ppointerdef(def_to)^.pointertype.def^.deftype=objectdef) and
-                         pobjectdef(ppointerdef(def_from)^.pointertype.def)^.is_related(
-                           pobjectdef(ppointerdef(def_to)^.pointertype.def))
-                        ) or
-                        { all pointers can be assigned to void-pointer }
-                        is_equal(ppointerdef(def_to)^.pointertype.def,voiddef) or
-                        { in my opnion, is this not clean pascal }
-                        { well, but it's handy to use, it isn't ? (FK) }
-                        is_equal(ppointerdef(def_from)^.pointertype.def,voiddef) then
-                       begin
-                         doconv:=tc_equal;
-                         b:=1;
-                       end;
-                   end;
-                 procvardef :
-                   begin
-                     { procedure variable can be assigned to an void pointer }
-                     { Not anymore. Use the @ operator now.}
-                     if not(m_tp_procvar in aktmodeswitches) and
-                        (ppointerdef(def_to)^.pointertype.def^.deftype=orddef) and
-                        (porddef(ppointerdef(def_to)^.pointertype.def)^.typ=uvoid) then
-                      begin
-                        doconv:=tc_equal;
-                        b:=1;
-                      end;
-                   end;
-                 classrefdef,
-                 objectdef :
-                   begin
-                     { class types and class reference type
-                       can be assigned to void pointers      }
-                     if (
-                         ((def_from^.deftype=objectdef) and pobjectdef(def_from)^.is_class) or
-                         (def_from^.deftype=classrefdef)
-                        ) and
-                        (ppointerdef(def_to)^.pointertype.def^.deftype=orddef) and
-                        (porddef(ppointerdef(def_to)^.pointertype.def)^.typ=uvoid) then
-                       begin
-                         doconv:=tc_equal;
-                         b:=1;
-                       end;
-                   end;
-               end;
-             end;
-
-           setdef :
-             begin
-               { automatic arrayconstructor -> set conversion }
-               if is_array_constructor(def_from) then
-                begin
-                  doconv:=tc_arrayconstructor_2_set;
-                  b:=1;
-                end;
-             end;
-
-           procvardef :
-             begin
-               { proc -> procvar }
-               if (def_from^.deftype=procdef) then
-                begin
-                  doconv:=tc_proc_2_procvar;
-                  if proc_to_procvar_equal(pprocdef(def_from),pprocvardef(def_to)) then
-                   b:=1;
-                end
-               else
-                { for example delphi allows the assignement from pointers }
-                { to procedure variables                                  }
-                if (m_pointer_2_procedure in aktmodeswitches) and
-                  (def_from^.deftype=pointerdef) and
-                  (ppointerdef(def_from)^.pointertype.def^.deftype=orddef) and
-                  (porddef(ppointerdef(def_from)^.pointertype.def)^.typ=uvoid) then
-                begin
-                   doconv:=tc_equal;
-                   b:=1;
-                end
-               else
-               { nil is compatible with procvars }
-                if (fromtreetype=niln) then
-                 begin
-                   doconv:=tc_equal;
-                   b:=1;
-                 end;
-             end;
-
-           objectdef :
-             begin
-               { object pascal objects }
-               if (def_from^.deftype=objectdef) {and
-                  pobjectdef(def_from)^.isclass and pobjectdef(def_to)^.isclass }then
-                begin
-                  doconv:=tc_equal;
-                  if pobjectdef(def_from)^.is_related(pobjectdef(def_to)) then
-                   b:=1;
-                end
-               else
-               { Class specific }
-                if (pobjectdef(def_to)^.is_class) then
-                 begin
-                   { void pointer also for delphi mode }
-                   if (m_delphi in aktmodeswitches) and
-                      is_voidpointer(def_from) then
-                    begin
-                      doconv:=tc_equal;
-                      b:=1;
-                    end
-                   else
-                   { nil is compatible with class instances }
-                    if (fromtreetype=niln) and (pobjectdef(def_to)^.is_class) then
-                     begin
-                       doconv:=tc_equal;
-                       b:=1;
-                     end;
-                 end;
-             end;
-
-           classrefdef :
-             begin
-               { class reference types }
-               if (def_from^.deftype=classrefdef) then
-                begin
-                  doconv:=tc_equal;
-                  if pobjectdef(pclassrefdef(def_from)^.pointertype.def)^.is_related(
-                       pobjectdef(pclassrefdef(def_to)^.pointertype.def)) then
-                   b:=1;
-                end
-               else
-                { nil is compatible with class references }
-                if (fromtreetype=niln) then
-                 begin
-                   doconv:=tc_equal;
-                   b:=1;
-                 end;
-             end;
-
-           filedef :
-             begin
-               { typed files are all equal to the abstract file type
-               name TYPEDFILE in system.pp in is_equal in types.pas
-               the problem is that it sholud be also compatible to FILE
-               but this would leed to a problem for ASSIGN RESET and REWRITE
-               when trying to find the good overloaded function !!
-               so all file function are doubled in system.pp
-               this is not very beautiful !!}
-               if (def_from^.deftype=filedef) and
-                  (
-                   (
-                    (pfiledef(def_from)^.filetyp = ft_typed) and
-                    (pfiledef(def_to)^.filetyp = ft_typed) and
-                    (
-                     (pfiledef(def_from)^.typedfiletype.def = pdef(voiddef)) or
-                     (pfiledef(def_to)^.typedfiletype.def = pdef(voiddef))
-                    )
-                   ) or
-                   (
-                    (
-                     (pfiledef(def_from)^.filetyp = ft_untyped) and
-                     (pfiledef(def_to)^.filetyp = ft_typed)
-                    ) or
-                    (
-                     (pfiledef(def_from)^.filetyp = ft_typed) and
-                     (pfiledef(def_to)^.filetyp = ft_untyped)
-                    )
-                   )
-                  ) then
-                 begin
-                    doconv:=tc_equal;
-                    b:=1;
-                 end
-             end;
-
-           else
-             begin
-             { assignment overwritten ?? }
-               if assignment_overloaded(def_from,def_to)<>nil then
-                b:=2;
-             end;
-         end;
-        isconvertable:=b;
-      end;
-
     { ld is the left type definition
       rd the right type definition
       dd the result type definition  or voiddef if unkown }
@@ -790,6 +349,85 @@ implementation
               end;
           else
             isoperatoracceptable:=false;
+          end;
+      end;
+
+    function isbinaryoverloaded(var t : tnode) : boolean;
+
+     var
+         rd,ld   : pdef;
+         optoken : ttoken;
+         ht      : tnode;
+      begin
+        isbinaryoverloaded:=false;
+        { overloaded operator ? }
+        { load easier access variables }
+        rd:=tbinarynode(t).right.resulttype;
+        ld:=tbinarynode(t).left.resulttype;
+        if isbinaryoperatoroverloadable(ld,rd,voiddef,t.nodetype) then
+          begin
+             isbinaryoverloaded:=true;
+             {!!!!!!!!! handle paras }
+             case t.nodetype of
+                addn:
+                  optoken:=_PLUS;
+                subn:
+                  optoken:=_MINUS;
+                muln:
+                  optoken:=_STAR;
+                starstarn:
+                  optoken:=_STARSTAR;
+                slashn:
+                  optoken:=_SLASH;
+                ltn:
+                  optoken:=tokens._lt;
+                gtn:
+                  optoken:=tokens._gt;
+                lten:
+                  optoken:=_lte;
+                gten:
+                  optoken:=_gte;
+                equaln,unequaln :
+                  optoken:=_EQUAL;
+                symdifn :
+                  optoken:=_SYMDIF;
+                modn :
+                  optoken:=_OP_MOD;
+                orn :
+                  optoken:=_OP_OR;
+                xorn :
+                  optoken:=_OP_XOR;
+                andn :
+                  optoken:=_OP_AND;
+                divn :
+                  optoken:=_OP_DIV;
+                shln :
+                  optoken:=_OP_SHL;
+                shrn :
+                  optoken:=_OP_SHR;
+                else
+                  exit;
+             end;
+             { the nil as symtable signs firstcalln that this is
+               an overloaded operator }
+             ht:=gencallnode(overloaded_operators[optoken],nil);
+             { we have to convert p^.left and p^.right into
+              callparanodes }
+             if tcallnode(ht).symtableprocentry=nil then
+               begin
+                  CGMessage(parser_e_operator_not_overloaded);
+                  ht.free;
+               end
+             else
+               begin
+                  inc(tcallnode(ht).symtableprocentry^.refs);
+                  tcallnode(ht).left:=gencallparanode(tbinarynode(t).right,
+                                                      gencallparanode(tbinarynode(t).left,nil));
+                  if t.nodetype=unequaln then
+                    ht:=cnotnode.create(ht);
+                  firstpass(ht);
+                  t:=ht;
+               end;
           end;
       end;
 
@@ -973,30 +611,6 @@ implementation
       end;
 
 
-    function assignment_overloaded(from_def,to_def : pdef) : pprocdef;
-       var
-          passproc : pprocdef;
-          convtyp : tconverttype;
-       begin
-          assignment_overloaded:=nil;
-          if assigned(overloaded_operators[_assignment]) then
-            passproc:=overloaded_operators[_assignment]^.definition
-          else
-            exit;
-          while passproc<>nil do
-            begin
-              if is_equal(passproc^.rettype.def,to_def) and
-                 (is_equal(pparaitem(passproc^.para^.first)^.paratype.def,from_def) or
-                 (isconvertable(from_def,pparaitem(passproc^.para^.first)^.paratype.def,convtyp,ordconstn,false)=1)) then
-                begin
-                   assignment_overloaded:=passproc;
-                   break;
-                end;
-              passproc:=passproc^.nextoverloaded;
-            end;
-       end;
-
-
     { local routines can't be assigned to procvars }
     procedure test_local_to_procvar(from_def:pprocvardef;to_def:pdef);
       begin
@@ -1161,12 +775,188 @@ implementation
          end;
       end;
 
+
+    procedure set_varstate(p : tnode;must_be_valid : boolean);
+      var
+        hsym : pvarsym;
+      begin
+        while assigned(p) do
+         begin
+           if (nf_varstateset in p.flags) then
+            exit;
+           include(p.flags,nf_varstateset);
+           case p.nodetype of
+             typeconvn :
+               begin
+                 case ttypeconvnode(p).convtype of
+                   tc_cchar_2_pchar,
+                   tc_cstring_2_pchar,
+                   tc_array_2_pointer :
+                     must_be_valid:=false;
+                   tc_pchar_2_string,
+                   tc_pointer_2_array :
+                     must_be_valid:=true;
+                 end;
+                 p:=tunarynode(p).left;
+               end;
+             subscriptn :
+               p:=tunarynode(p).left;
+             vecn:
+               begin
+                 set_varstate(tbinarynode(p).right,true);
+                 if not(tunarynode(p).left.resulttype^.deftype in [stringdef,arraydef]) then
+                  must_be_valid:=true;
+                 p:=tunarynode(p).left;
+               end;
+             { do not parse calln }
+             calln :
+               break;
+             callparan :
+               begin
+                 set_varstate(tbinarynode(p).right,must_be_valid);
+                 p:=tunarynode(p).left;
+               end;
+             loadn :
+               begin
+                 if (tloadnode(p).symtableentry^.typ=varsym) then
+                  begin
+                    hsym:=pvarsym(tloadnode(p).symtableentry);
+                    if must_be_valid and (nf_first in p.flags) then
+                     begin
+                       if (hsym^.varstate=vs_declared_and_first_found) or
+                          (hsym^.varstate=vs_set_but_first_not_passed) then
+                        begin
+                          if (assigned(hsym^.owner) and
+                             assigned(aktprocsym) and
+                             (hsym^.owner = aktprocsym^.definition^.localst)) then
+                           begin
+                             if tloadnode(p).symtable^.symtabletype=localsymtable then
+                              CGMessage1(sym_n_uninitialized_local_variable,hsym^.name)
+                             else
+                              CGMessage1(sym_n_uninitialized_variable,hsym^.name);
+                           end;
+                        end;
+                     end;
+                    if (nf_first in p.flags) then
+                     begin
+                       if hsym^.varstate=vs_declared_and_first_found then
+                        begin
+                          { this can only happen at left of an assignment, no ? PM }
+                          if (parsing_para_level=0) and not must_be_valid then
+                           hsym^.varstate:=vs_assigned
+                          else
+                           hsym^.varstate:=vs_used;
+                        end
+                       else
+                        if hsym^.varstate=vs_set_but_first_not_passed then
+                         hsym^.varstate:=vs_used;
+                       exclude(p.flags,nf_first);
+                     end
+                    else
+                      begin
+                        if (hsym^.varstate=vs_assigned) and
+                           (must_be_valid or (parsing_para_level>0) or
+                            (p.resulttype^.deftype=procvardef)) then
+                          hsym^.varstate:=vs_used;
+                        if (hsym^.varstate=vs_declared_and_first_found) and
+                           (must_be_valid or (parsing_para_level>0) or
+                           (p.resulttype^.deftype=procvardef)) then
+                          hsym^.varstate:=vs_set_but_first_not_passed;
+                      end;
+                  end;
+                 break;
+               end;
+             funcretn:
+               begin
+                 { no claim if setting higher return value_str }
+                 if must_be_valid and
+                    (procinfo=pprocinfo(tfuncretnode(p).funcretprocinfo)) and
+                    ((procinfo^.funcret_state=vs_declared) or
+                    ((nf_is_first_funcret in p.flags) and
+                     (procinfo^.funcret_state=vs_declared_and_first_found))) then
+                   begin
+                     CGMessage(sym_w_function_result_not_set);
+                     { avoid multiple warnings }
+                     procinfo^.funcret_state:=vs_assigned;
+                   end;
+                 if (nf_is_first_funcret in p.flags) and not must_be_valid then
+                   pprocinfo(tfuncretnode(p).funcretprocinfo)^.funcret_state:=vs_assigned;
+                 break;
+               end;
+             else
+               break;
+           end;{case }
+         end;
+      end;
+
+
+    procedure unset_varstate(p : tnode);
+      begin
+        while assigned(p) do
+         begin
+           exclude(p.flags,nf_varstateset);
+           case p.nodetype of
+             typeconvn,
+             subscriptn,
+             vecn :
+               p:=tunarynode(p).left;
+             else
+               break;
+           end;
+         end;
+      end;
+
+
+    procedure set_unique(p : tnode);
+      begin
+        while assigned(p) do
+         begin
+           case p.nodetype of
+             vecn:
+               begin
+                 include(p.flags,nf_callunique);
+                 break;
+               end;
+             typeconvn,
+             subscriptn,
+             derefn:
+               p:=tunarynode(p).left;
+             else
+               break;
+           end;
+         end;
+      end;
+
+
+    procedure set_funcret_is_valid(p:tnode);
+      begin
+        while assigned(p) do
+         begin
+           case p.nodetype of
+             funcretn:
+               begin
+                 if (nf_is_first_funcret in p.flags) then
+                   pprocinfo(tfuncretnode(p).funcretprocinfo)^.funcret_state:=vs_assigned;
+                 break;
+               end;
+             vecn,
+             {derefn,}
+             typeconvn,
+             subscriptn:
+               p:=tunarynode(p).left;
+             else
+               break;
+           end;
+         end;
+      end;
+
+
 {$else cg11}
 {****************************************************************************
                              Convert
 ****************************************************************************}
 
-    { Returns:
+   { Returns:
        0 - Not convertable
        1 - Convertable
        2 - Convertable, but not first choice }
@@ -1709,7 +1499,6 @@ implementation
             )
            );
       end;
-
 
     function isunaryoperatoroverloadable(rd,dd : pdef;
              treetyp : ttreetyp) : boolean;
@@ -2172,11 +1961,186 @@ implementation
          end;
       end;
 
+
+    procedure set_varstate(p : ptree;must_be_valid : boolean);
+      begin
+        while assigned(p) do
+         begin
+           if p^.varstateset then
+            exit;
+           p^.varstateset:=true;
+           case p^.treetype of
+             typeconvn :
+               begin
+                 case p^.convtyp of
+                   tc_cchar_2_pchar,
+                   tc_cstring_2_pchar,
+                   tc_array_2_pointer :
+                     must_be_valid:=false;
+                   tc_pchar_2_string,
+                   tc_pointer_2_array :
+                     must_be_valid:=true;
+                 end;
+                 p:=p^.left;
+               end;
+             subscriptn :
+               p:=p^.left;
+             vecn:
+               begin
+                 set_varstate(p^.right,true);
+                 if not(p^.left^.resulttype^.deftype in [stringdef,arraydef]) then
+                  must_be_valid:=true;
+                 p:=p^.left;
+               end;
+             { do not parse calln }
+             calln :
+               break;
+             callparan :
+               begin
+                 set_varstate(p^.right,must_be_valid);
+                 p:=p^.left;
+               end;
+             loadn :
+               begin
+                 if (p^.symtableentry^.typ=varsym) then
+                  begin
+                    if must_be_valid and p^.is_first then
+                     begin
+                       if (pvarsym(p^.symtableentry)^.varstate=vs_declared_and_first_found) or
+                          (pvarsym(p^.symtableentry)^.varstate=vs_set_but_first_not_passed) then
+                        begin
+                          if (assigned(pvarsym(p^.symtableentry)^.owner) and
+                             assigned(aktprocsym) and
+                             (pvarsym(p^.symtableentry)^.owner = aktprocsym^.definition^.localst)) then
+                           begin
+                             if p^.symtable^.symtabletype=localsymtable then
+                              CGMessage1(sym_n_uninitialized_local_variable,pvarsym(p^.symtableentry)^.name)
+                             else
+                              CGMessage1(sym_n_uninitialized_variable,pvarsym(p^.symtableentry)^.name);
+                           end;
+                        end;
+                     end;
+                    if (p^.is_first) then
+                     begin
+                       if pvarsym(p^.symtableentry)^.varstate=vs_declared_and_first_found then
+                        begin
+                          { this can only happen at left of an assignment, no ? PM }
+                          if (parsing_para_level=0) and not must_be_valid then
+                           pvarsym(p^.symtableentry)^.varstate:=vs_assigned
+                          else
+                           pvarsym(p^.symtableentry)^.varstate:=vs_used;
+                        end
+                       else
+                        if pvarsym(p^.symtableentry)^.varstate=vs_set_but_first_not_passed then
+                         pvarsym(p^.symtableentry)^.varstate:=vs_used;
+                       p^.is_first:=false;
+                     end
+                    else
+                      begin
+                        if (pvarsym(p^.symtableentry)^.varstate=vs_assigned) and
+                           (must_be_valid or (parsing_para_level>0) or
+                            (p^.resulttype^.deftype=procvardef)) then
+                          pvarsym(p^.symtableentry)^.varstate:=vs_used;
+                        if (pvarsym(p^.symtableentry)^.varstate=vs_declared_and_first_found) and
+                           (must_be_valid or (parsing_para_level>0) or
+                           (p^.resulttype^.deftype=procvardef)) then
+                          pvarsym(p^.symtableentry)^.varstate:=vs_set_but_first_not_passed;
+                      end;
+                  end;
+                 break;
+               end;
+             funcretn:
+               begin
+                 { no claim if setting higher return value_str }
+                 if must_be_valid and
+                    (procinfo=pprocinfo(p^.funcretprocinfo)) and
+                    ((procinfo^.funcret_state=vs_declared) or
+                    ((p^.is_first_funcret) and
+                     (procinfo^.funcret_state=vs_declared_and_first_found))) then
+                   begin
+                     CGMessage(sym_w_function_result_not_set);
+                     { avoid multiple warnings }
+                     procinfo^.funcret_state:=vs_assigned;
+                   end;
+                 if p^.is_first_funcret and not must_be_valid then
+                   pprocinfo(p^.funcretprocinfo)^.funcret_state:=vs_assigned;
+                 break;
+               end;
+             else
+               break;
+           end;{case }
+         end;
+      end;
+
+
+    procedure unset_varstate(p : ptree);
+      begin
+        while assigned(p) do
+         begin
+           p^.varstateset:=false;
+           case p^.treetype of
+             typeconvn,
+             subscriptn,
+             vecn :
+               p:=p^.left;
+             else
+               break;
+           end;
+         end;
+      end;
+
+
+    procedure set_unique(p : ptree);
+      begin
+        while assigned(p) do
+         begin
+           case p^.treetype of
+             vecn:
+               begin
+                 p^.callunique:=true;
+                 break;
+               end;
+             typeconvn,
+             subscriptn,
+             derefn:
+               p:=p^.left;
+             else
+               break;
+           end;
+         end;
+      end;
+
+
+    procedure set_funcret_is_valid(p : ptree);
+      begin
+        while assigned(p) do
+         begin
+           case p^.treetype of
+             funcretn:
+               begin
+                 if p^.is_first_funcret then
+                  pprocinfo(p^.funcretprocinfo)^.funcret_state:=vs_assigned;
+                 break;
+               end;
+             vecn,
+             {derefn,}
+             typeconvn,
+             subscriptn:
+               p:=p^.left;
+             else
+               break;
+           end;
+         end;
+      end;
+
 {$endif cg11}
 end.
 {
   $Log$
-  Revision 1.10  2000-09-29 15:45:23  florian
+  Revision 1.11  2000-10-01 19:48:23  peter
+    * lot of compile updates for cg11
+
+  Revision 1.10  2000/09/29 15:45:23  florian
     * make cycle fixed
 
   Revision 1.9  2000/09/28 19:49:51  florian

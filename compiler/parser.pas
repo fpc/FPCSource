@@ -74,6 +74,7 @@ implementation
 
          current_module:=nil;
          compiled_module:=nil;
+         procinfo:=nil;
 
          loaded_units.init;
 
@@ -593,7 +594,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2000-09-24 15:06:20  peter
+  Revision 1.6  2000-10-01 19:48:25  peter
+    * lot of compile updates for cg11
+
+  Revision 1.5  2000/09/24 15:06:20  peter
     * use defines.inc
 
   Revision 1.4  2000/08/27 16:11:51  peter

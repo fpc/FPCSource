@@ -27,7 +27,9 @@ unit ncnv;
 interface
 
     uses
-       node,symtable,nld;
+       node,
+       symtable,types,
+       nld;
 
     type
        ttypeconvnode = class(tunarynode)
@@ -85,8 +87,8 @@ implementation
    uses
       globtype,systems,tokens,
       cutils,cobjects,verbose,globals,
-      symconst,aasm,types,ncon,ncal,
-      nset,nadd,
+      symconst,aasm,
+      ncon,ncal,nset,nadd,
 {$ifdef newcg}
       cgbase,
 {$else newcg}
@@ -1094,9 +1096,9 @@ implementation
       begin
          pass_1:=nil;
          firstpass(left);
-         left.set_varstate(true);
+         set_varstate(left,true);
          firstpass(right);
-         right.set_varstate(true);
+         set_varstate(right,true);
          if codegenerror then
            exit;
 
@@ -1136,9 +1138,9 @@ implementation
       begin
          pass_1:=nil;
          firstpass(right);
-         right.set_varstate(true);
+         set_varstate(right,true);
          firstpass(left);
-         left.set_varstate(true);
+         set_varstate(left,true);
          if codegenerror then
            exit;
 
@@ -1171,7 +1173,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2000-09-28 19:49:52  florian
+  Revision 1.6  2000-10-01 19:48:24  peter
+    * lot of compile updates for cg11
+
+  Revision 1.5  2000/09/28 19:49:52  florian
   *** empty log message ***
 
   Revision 1.4  2000/09/27 18:14:31  florian

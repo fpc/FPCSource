@@ -236,7 +236,7 @@ implementation
 {$endif newcg}
 
          firstpass(left);
-         left.set_varstate(true);
+         set_varstate(left,true);
          if codegenerror then
            exit;
          if not is_boolean(left.resulttype) then
@@ -300,7 +300,7 @@ implementation
          cleartempgen;
 {$endif newcg}
          firstpass(left);
-         left.set_varstate(true);
+         set_varstate(left,true);
 
          { Only check type if no error, we can't leave here because
            the right also needs to be firstpassed }
@@ -439,7 +439,7 @@ implementation
          cleartempgen;
 {$endif newcg}
          firstpass(left);
-         left.set_varstate(false);
+         set_varstate(left,false);
 
 {$ifdef newcg}
          tg.cleartempgen;
@@ -474,7 +474,7 @@ implementation
          cleartempgen;
 {$endif newcg}
          firstpass(t2);
-         t2.set_varstate(true);
+         set_varstate(t2,true);
          if codegenerror then
           exit;
 
@@ -512,7 +512,7 @@ implementation
          cleartempgen;
 {$endif newcg}
          firstpass(right);
-         right.set_varstate(true);
+         set_varstate(right,true);
          if right.nodetype<>ordconstn then
            begin
               right:=gentypeconvnode(right,t2.resulttype);
@@ -658,7 +658,7 @@ implementation
                  ((left.resulttype^.deftype<>objectdef) or
                   not(pobjectdef(left.resulttype)^.is_class)) then
                 CGMessage(type_e_mismatch);
-              left.set_varstate(true);
+              set_varstate(left,true);
               if codegenerror then
                exit;
               { insert needed typeconvs for addr,frame }
@@ -770,7 +770,7 @@ implementation
          aktexceptblock:=left;
          firstpass(left);
          aktexceptblock:=oldexceptblock;
-         left.set_varstate(true);
+         set_varstate(left,true);
 {$ifdef newcg}
          tg.cleartempgen;
 {$else newcg}
@@ -780,7 +780,7 @@ implementation
          aktexceptblock:=right;
          firstpass(right);
          aktexceptblock:=oldexceptblock;
-         right.set_varstate(true);
+         set_varstate(right,true);
          if codegenerror then
            exit;
          left_right_max;
@@ -875,7 +875,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2000-09-28 19:49:52  florian
+  Revision 1.5  2000-10-01 19:48:24  peter
+    * lot of compile updates for cg11
+
+  Revision 1.4  2000/09/28 19:49:52  florian
   *** empty log message ***
 
   Revision 1.3  2000/09/24 21:15:34  florian

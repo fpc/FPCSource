@@ -332,21 +332,10 @@ unit tree;
        maxfirstpasscount : longint = 0;
 {$endif extdebug}
 
-    { sets the callunique flag, if the node is a vecn, }
-    { takes care of type casts etc.                 }
-    procedure set_unique(p : ptree);
-
-    { sets funcret_is_valid to true, if p contains a funcref node }
-    procedure set_funcret_is_valid(p : ptree);
-
     {
     type
     tvarstaterequire = (vsr_can_be_undefined,vsr_must_be_valid,
       vsr_is_used_after,vsr_must_be_valid_and_is_used_after); }
-
-    { sets varsym varstate field correctly }
-    procedure unset_varstate(p : ptree);
-    procedure set_varstate(p : ptree;must_be_valid : boolean);
 
     { returns the ordinal value of the node, if it hasn't a ord. }
     { value an error is generated                                }
@@ -1840,163 +1829,6 @@ unit tree;
     end;
 {$endif newoptimizations2}
 
-    procedure set_unique(p : ptree);
-
-      begin
-         if assigned(p) then
-           begin
-              case p^.treetype of
-                 vecn:
-                    p^.callunique:=true;
-                 typeconvn,subscriptn,derefn:
-                    set_unique(p^.left);
-              end;
-           end;
-      end;
-
-    procedure set_funcret_is_valid(p : ptree);
-
-      begin
-         if assigned(p) then
-           begin
-              case p^.treetype of
-                 funcretn:
-                    begin
-                      if p^.is_first_funcret then
-                        pprocinfo(p^.funcretprocinfo)^.funcret_state:=vs_assigned;
-                    end;
-                 vecn,typeconvn,subscriptn{,derefn}:
-                    set_funcret_is_valid(p^.left);
-              end;
-           end;
-      end;
-
-
-    procedure unset_varstate(p : ptree);
-      begin
-        while assigned(p) do
-         begin
-           p^.varstateset:=false;
-           case p^.treetype of
-             typeconvn,
-             subscriptn,
-             vecn :
-               p:=p^.left;
-             else
-               break;
-           end;
-         end;
-      end;
-
-
-    procedure set_varstate(p : ptree;must_be_valid : boolean);
-
-      begin
-         if not assigned(p) then
-           exit
-         else
-           begin
-             if p^.varstateset then
-               exit;
-              case p^.treetype of
-           typeconvn :
-             if p^.convtyp in
-               [
-                tc_cchar_2_pchar,
-                tc_cstring_2_pchar,
-                tc_array_2_pointer
-               ] then
-               set_varstate(p^.left,false)
-             else if p^.convtyp in
-               [
-                tc_pchar_2_string,
-                tc_pointer_2_array
-               ] then
-               set_varstate(p^.left,true)
-             else
-               set_varstate(p^.left,must_be_valid);
-           subscriptn :
-             set_varstate(p^.left,must_be_valid);
-           vecn:
-             begin
-               if (p^.left^.resulttype^.deftype in [stringdef,arraydef]) then
-                 set_varstate(p^.left,must_be_valid)
-               else
-                 set_varstate(p^.left,true);
-               set_varstate(p^.right,true);
-             end;
-           { do not parse calln }
-           calln : ;
-           callparan:
-             begin
-               set_varstate(p^.left,must_be_valid);
-               set_varstate(p^.right,must_be_valid);
-             end;
-           loadn :
-         if (p^.symtableentry^.typ=varsym) then
-          begin
-            if must_be_valid and p^.is_first then
-              begin
-                if (pvarsym(p^.symtableentry)^.varstate=vs_declared_and_first_found) or
-                   (pvarsym(p^.symtableentry)^.varstate=vs_set_but_first_not_passed) then
-                 if (assigned(pvarsym(p^.symtableentry)^.owner) and
-                    assigned(aktprocsym) and
-                    (pvarsym(p^.symtableentry)^.owner = aktprocsym^.definition^.localst)) then
-                  begin
-                    if p^.symtable^.symtabletype=localsymtable then
-                     CGMessage1(sym_n_uninitialized_local_variable,pvarsym(p^.symtableentry)^.name)
-                    else
-                     CGMessage1(sym_n_uninitialized_variable,pvarsym(p^.symtableentry)^.name);
-                  end;
-              end;
-          if (p^.is_first) then
-           begin
-             if pvarsym(p^.symtableentry)^.varstate=vs_declared_and_first_found then
-             { this can only happen at left of an assignment, no ? PM }
-              if (parsing_para_level=0) and not must_be_valid then
-               pvarsym(p^.symtableentry)^.varstate:=vs_assigned
-              else
-               pvarsym(p^.symtableentry)^.varstate:=vs_used;
-             if pvarsym(p^.symtableentry)^.varstate=vs_set_but_first_not_passed then
-               pvarsym(p^.symtableentry)^.varstate:=vs_used;
-             p^.is_first:=false;
-           end
-         else
-           begin
-             if (pvarsym(p^.symtableentry)^.varstate=vs_assigned) and
-                (must_be_valid or (parsing_para_level>0) or
-                 (p^.resulttype^.deftype=procvardef)) then
-               pvarsym(p^.symtableentry)^.varstate:=vs_used;
-             if (pvarsym(p^.symtableentry)^.varstate=vs_declared_and_first_found) and
-                (must_be_valid or (parsing_para_level>0) or
-                (p^.resulttype^.deftype=procvardef)) then
-               pvarsym(p^.symtableentry)^.varstate:=vs_set_but_first_not_passed;
-           end;
-         end;
-         funcretn:
-         begin
-         { no claim if setting higher return value_str }
-         if must_be_valid and
-            (procinfo=pprocinfo(p^.funcretprocinfo)) and
-            ((procinfo^.funcret_state=vs_declared) or
-            ((p^.is_first_funcret) and
-             (procinfo^.funcret_state=vs_declared_and_first_found))) then
-           begin
-             CGMessage(sym_w_function_result_not_set);
-             { avoid multiple warnings }
-             procinfo^.funcret_state:=vs_assigned;
-           end;
-         if p^.is_first_funcret and not must_be_valid then
-           pprocinfo(p^.funcretprocinfo)^.funcret_state:=vs_assigned;
-         end;
-         else
-           begin
-             {internalerror(565656);}
-           end;
-         end;{case }
-         p^.varstateset:=true;
-      end;
-    end;
 
     procedure clear_location(var loc : tlocation);
 
@@ -2149,7 +1981,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.10  2000-09-27 18:14:31  florian
+  Revision 1.11  2000-10-01 19:48:25  peter
+    * lot of compile updates for cg11
+
+  Revision 1.10  2000/09/27 18:14:31  florian
     * fixed a lot of syntax errors in the n*.pas stuff
 
   Revision 1.9  2000/09/24 15:06:32  peter
