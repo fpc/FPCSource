@@ -1493,7 +1493,7 @@ exist.
 which were possible in Turbo Pascal are no longer possible in Free Pascal.
 \item A file is opened for output only (using \var{fmOutput}) when it is 
 opened with \var{Rewrite}. In order to be able to read from it, it should 
-be reset with \seep{Reset}.
+be reset with \var{Reset}.
 \end{enumerate}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2811,7 +2811,7 @@ put + after a boolean switch option to enable it, - to disable it
            -bl        generate local symbol info
   -B     build all modules
   -C<x>  code generation options:
-           -CD        create dynamic library
+           -CD        create also dynamic library (not supported)
            -Ch<n>     <n> bytes heap (between 1023 and 67107840)
            -Ci        IO-checking
            -Cn        omit linking stage
@@ -2819,7 +2819,6 @@ put + after a boolean switch option to enable it, - to disable it
            -Cr        range checking
            -Cs<n>     set stack size to <n>
            -Ct        stack checking
-           -CD        create also dynamic library (* doesn't work yet *)
            -CX        create also smartlinked library
   -d<x>  defines the symbol <x>
   -e<x>  set path to executable
@@ -2835,10 +2834,11 @@ put + after a boolean switch option to enable it, - to disable it
            -Fr<x>     load error message file <x>
            -Fu<x>     adds <x> to unit path
            -FU<x>     set unit output path to <x>, overrides -FE
-  -g<x>  generate debugger information:
+  -g     generate debugger information:
            -gg        use gsym
            -gd        use dbx
-           -gh        use heap trace unit
+           -gh        use heap trace unit (for memory leak debugging)
+           -gl        use line info unit to show more info for backtraces
            -gc        generate checks for pointers
   -i     information
            -iD        return compiler date
@@ -2857,6 +2857,7 @@ put + after a boolean switch option to enable it, - to disable it
   -S<x>  syntax options:
            -S2        switch some Delphi 2 extensions on
            -Sc        supports operators like C (*=,+=,/= and -=)
+           -sa        include assertion code.
            -Sd        tries to be Delphi compatible
            -Se<x>     compiler stops after the <x> errors (default is 1)
            -Sg        allow LABEL and GOTO
@@ -2908,7 +2909,7 @@ Processor specific options:
   -O<x>  optimizations:
            -Og        generate smaller code
            -OG        generate faster code (default)
-           -Or        keep certain variables in registers (still BUGGY!!!)
+           -Or        keep certain variables in registers
            -Ou        enable uncertain optimizations (see docs)
            -O1        level 1 optimizations (quick optimizations)
            -O2        level 2 optimizations (-O1 + slower optimizations)
@@ -2923,12 +2924,13 @@ Processor specific options:
            -TLINUX    Linux
            -TOS2      OS/2 2.x
            -TWin32    Windows 32 Bit
-  -WB<x>  Set Image base to Hexadecimal <x> value
-  -WC     Specify console type application
-  -WD     Use DEFFILE to export functions of DLL or EXE
-  -WG     Specify graphic type application
-  -WN     Do not generate relocation code (necessary for debugging)
-  -WR     Generate relocation code
+  -W<x>  Win32 target options
+           -WB<x>     Set Image base to Hexadecimal <x> value
+           -WC        Specify console type application
+           -WD        Use DEFFILE to export functions of DLL or EXE
+           -WG        Specify graphic type application
+           -WN        Do not generate relocation code (necessary for debugging)
+           -WR        Generate relocation code
   
   -?     shows this help
   -h     shows this help without waiting
