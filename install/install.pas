@@ -17,6 +17,9 @@
 program install;
 
   uses
+{$ifdef HEAPTRC}
+     heaptrc,
+{$endif HEAPTRC}
      app,dialogs,views,objects,menus,drivers,strings,msgbox,dos,unzip,ziptypes;
 
   const
@@ -323,7 +326,7 @@ program install;
      end;
 
 
-  constructor tunzipdialog.init;
+  constructor tunzipdialog.Init(var Bounds: TRect; ATitle: TTitleStr);
     var
       r : trect;
     begin
@@ -402,13 +405,13 @@ program install;
        inherited init(r,cfg.title+' Installation');
 
        line:=2;
-       r.assign(3,line,8,line+1);
-       insert(new(plabel,init(r,'~P~ath',p)));
-       insert(p);
        r.assign(3,line+1,28,line+2);
 
        f:=new(pinputline,init(r,80));
        insert(f);
+
+       r.assign(3,line,8,line+1);
+       insert(new(plabel,init(r,'~P~ath',f)));
 
      { walk packages reverse and insert a newsitem for each, and set the mask }
        items:=nil;
@@ -436,10 +439,10 @@ program install;
         end;
 
        inc(line,3);
-       r.assign(3,line,14,line+1);
-       insert(new(plabel,init(r,'~C~omponents',p)));
        r.assign(3,line+1,width-3,line+cfg.packages+1);
        p:=new(pcheckboxes,init(r,items));
+       r.assign(3,line,14,line+1);
+       insert(new(plabel,init(r,'~C~omponents',p)));
        pcluster(p)^.enablemask:=mask_components;
        insert(p);
 
@@ -568,7 +571,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  1998-09-22 21:10:31  jonas
+  Revision 1.9  1998-10-23 16:57:40  pierre
+   * compiles without -So option
+   * the main dialog init was buggy !!
+
+  Revision 1.8  1998/09/22 21:10:31  jonas
     * initialize cfg and data with 0 at startup
 
   Revision 1.7  1998/09/16 16:46:37  peter
