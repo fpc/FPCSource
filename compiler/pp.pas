@@ -50,16 +50,24 @@
 
 {$ifdef FPC}
    {$ifndef GDB}
+      { people can try to compile without GDB }
       {$error The compiler switch GDB must be defined}
    {$endif GDB}
+   { but I386 or M68K must be defined }
+   { and only one of the two }
    {$ifndef I386}
       {$ifndef M68K}
-        {$error One of the switches I386 or M68K must be defined}
+        {$fatalerror One of the switches I386 or M68K must be defined}
+      {$endif M68K}
+   {$endif I386}
+   {$ifdef I386}
+      {$ifdef M68K}
+        {$fatalerror ONLY one of the switches I386 or M68K must be defined}
       {$endif M68K}
    {$endif I386}
    {$ifdef support_mmx}
      {$ifndef i386}
-       {$error I386 switch must be on}
+       {$fatalerror I386 switch must be on for MMX support}
      {$endif i386}
    {$endif support_mmx}
 {$endif}
@@ -68,7 +76,7 @@
   {$IFNDEF DPMI}
     {$M 24576,0,655360}
   {$ELSE}
-    {$M 49152}
+    {$M 65000}
   {$ENDIF DPMI}
   {$E+,N+,F+,S-,R-}
 {$endif TP}
@@ -117,6 +125,13 @@ uses
 {$ifdef LINUX}
   catch,
 {$endif LINUX}
+{$IfDef PMD}
+     OpenFiles,
+     BBError,
+     ObjMemory,
+     PMD, MemCheck,
+{$EndIf}
+
   dos,objects,cobjects,
   globals,parser,systems,tree,symtable,options,link,import,files,
   verb_def,verbose;
@@ -356,8 +371,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:14  root
-  Initial revision
+  Revision 1.2  1998-04-07 13:19:47  pierre
+    * bugfixes for reset_gdb_info
+      in MEM parsing for go32v2
+      better external symbol creation
+      support for rhgdb.exe (lowercase file names)
+
+  Revision 1.1.1.1  1998/03/25 11:18:14  root
+  * Restored version
 
   Revision 1.40  1998/03/16 22:42:21  florian
     * some fixes of Peter applied:

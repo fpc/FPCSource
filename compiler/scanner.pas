@@ -331,17 +331,32 @@ for the last instruction of an include file !}
     procedure src_comment;forward;
 
 
+    var prevc : char;
+
     procedure nextchar;
+
       begin
         c:=inputbuffer[inputpointer];
         inc(inputpointer);
         if c=#0 then
          reload;
+
         if c in [#10,#13] then
          begin
+           { here there was a problem if the inputbuffer
+             stopped at #13 and the next at #10
+             because two newlines where counted !! }
+           write_line;
            if (byte(inputbuffer[inputpointer])+byte(c)=23) then
             inc(inputpointer);
-           write_line;
+           if (inputbuffer[inputpointer]=#0) and
+             current_module^.current_inputfile^.filenotatend then
+             begin
+                prevc:=c;
+                reload;
+                if (byte(c)+byte(prevc)=23) then
+                  inc(inputpointer);
+             end;
            c:=newline;
          end;
       end;
@@ -2087,7 +2102,13 @@ for the last instruction of an include file !}
 end.
 {
   $Log$
-  Revision 1.3  1998-03-29 17:27:59  florian
+  Revision 1.4  1998-04-07 13:19:49  pierre
+    * bugfixes for reset_gdb_info
+      in MEM parsing for go32v2
+      better external symbol creation
+      support for rhgdb.exe (lowercase file names)
+
+  Revision 1.3  1998/03/29 17:27:59  florian
     * aopt386 compiles with TP
     * correct line number is displayed, if a #0 is in the input
 

@@ -177,8 +177,8 @@ unit ptconst;
                      begin
                         datasegment^.concat(new(pai_const,init_symbol(
                           strpnew(p^.left^.symtableentry^.mangledname))));
-                        if p^.left^.symtableentry^.owner^.symtabletype=unitsymtable then
-                          concat_external(p^.left^.symtableentry^.mangledname,EXT_NEAR);
+                        maybe_concat_external(p^.left^.symtableentry^.owner,
+                          p^.left^.symtableentry^.mangledname);
                      end
                    else
                      Message(cg_e_illegal_expression);
@@ -437,8 +437,14 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:15  root
-  Initial revision
+  Revision 1.2  1998-04-07 13:19:48  pierre
+    * bugfixes for reset_gdb_info
+      in MEM parsing for go32v2
+      better external symbol creation
+      support for rhgdb.exe (lowercase file names)
+
+  Revision 1.1.1.1  1998/03/25 11:18:15  root
+  * Restored version
 
   Revision 1.13  1998/03/20 23:31:35  florian
     * bug0113 fixed

@@ -158,8 +158,7 @@ implementation
                      end
                     else
                      p^.location.reference.symbol:=stringdup(p^.symtableentry^.mangledname);
-                    if p^.symtableentry^.owner^.symtabletype=unitsymtable then
-                      concat_external(p^.symtableentry^.mangledname,EXT_NEAR);
+                    maybe_concat_external(p^.symtableentry^.owner,p^.symtableentry^.mangledname);
                  end;
               varsym :
                  begin
@@ -296,15 +295,13 @@ implementation
                     stringdispose(p^.location.reference.symbol);
                     p^.location.reference.symbol:=
                       stringdup(pprocsym(p^.symtableentry)^.definition^.mangledname);
-                    if p^.symtable^.symtabletype=unitsymtable then
-                      concat_external(p^.symtableentry^.mangledname,EXT_NEAR);
+                    maybe_concat_external(p^.symtable,p^.symtableentry^.mangledname);
                  end;
               typedconstsym :
                  begin
                     stringdispose(p^.location.reference.symbol);
                     p^.location.reference.symbol:=stringdup(p^.symtableentry^.mangledname);
-                    if p^.symtable^.symtabletype=unitsymtable then
-                    concat_external(p^.symtableentry^.mangledname,EXT_NEAR);
+                    maybe_concat_external(p^.symtable,p^.symtableentry^.mangledname);
                  end;
               else internalerror(4);
          end;
@@ -604,7 +601,7 @@ implementation
 {$ifndef MAKELIB}
                    consts^.insert(new(pai_label,init(lastlabel)));
 {$else MAKELIB}
-                   consts^.insert(new(pai_symbol,init_global('$'+current_module^.name^
+                   consts^.insert(new(pai_symbol,init_global('$'+current_module^.unitname^
                      +'$real_const'+tostr(p^.labnumber))));
                    consts^.insert(new(pai_cut,init));
 {$endif MAKELIB}
@@ -614,7 +611,7 @@ implementation
 {$ifndef MAKELIB}
          p^.location.reference.symbol:=stringdup(lab2str(lastlabel));
 {$else MAKELIB}
-         p^.location.reference.symbol:=stringdup('$'+current_module^.name^
+         p^.location.reference.symbol:=stringdup('$'+current_module^.unitname^
                      +'$real_const'+tostr(p^.labnumber));
 {$endif MAKELIB}
       end;
@@ -705,7 +702,7 @@ implementation
 {$ifndef MAKELIB}
                    consts^.insert(new(pai_label,init(lastlabel)));
 {$else MAKELIB}
-                   consts^.insert(new(pai_symbol,init_global('$'+current_module^.name^
+                   consts^.insert(new(pai_symbol,init_global('$'+current_module^.unitname^
                      +'$string_const'+tostr(p^.labstrnumber))));
                    consts^.insert(new(pai_cut,init));
 {$endif MAKELIB}
@@ -715,7 +712,7 @@ implementation
 {$ifndef MAKELIB}
          p^.location.reference.symbol:=stringdup(lab2str(lastlabel));
 {$else MAKELIB}
-         p^.location.reference.symbol:=stringdup('$'+current_module^.name^
+         p^.location.reference.symbol:=stringdup('$'+current_module^.unitname^
                      +'$string_const'+tostr(p^.labstrnumber));
 {$endif MAKELIB}
          p^.location.loc := LOC_MEM;
@@ -2700,7 +2697,8 @@ implementation
                                          loadesi:=true;
                                          exprasmlist^.concat(new(pai386,op_csymbol_reg(A_MOV,S_L,
                                            newcsymbol(pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname,0),R_ESI)));
-                                         concat_external(pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname,EXT_NEAR);
+                                         maybe_concat_external(pobjectdef(p^.methodpointer^.resulttype)^.owner,
+                                           pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname);
                                          exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_ESI)));
                                       end
                                     else
@@ -2737,7 +2735,8 @@ implementation
                                     { insert the vmt }
                                     exprasmlist^.concat(new(pai386,op_csymbol(A_PUSH,S_L,
                                     newcsymbol(pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname,0))));
-                                    concat_external(pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname,EXT_NEAR);
+                                    maybe_concat_external(pobjectdef(p^.methodpointer^.resulttype)^.owner,
+                                      pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname);
                                     extended_new:=true;
                                  end;
                                hdisposen:
@@ -2752,7 +2751,8 @@ implementation
                                     exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_ESI)));
                                     exprasmlist^.concat(new(pai386,op_csymbol(A_PUSH,S_L,
                                     newcsymbol(pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname,0))));
-                                    concat_external(pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname,EXT_NEAR);
+                                    maybe_concat_external(pobjectdef(p^.methodpointer^.resulttype)^.owner,
+                                      pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname);
                                  end;
                                else
                                  begin
@@ -2806,8 +2806,8 @@ implementation
                                                    exprasmlist^.concat(new(pai386,op_csymbol(A_PUSH,S_L,
                                                      newcsymbol(pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname,
                                                      0))));
-                                                   concat_external(pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname,
-                                                     EXT_NEAR);
+                                                   maybe_concat_external(pobjectdef(p^.methodpointer^.resulttype)^.owner,
+                                                     pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname);
                                                 end
                                               { destructors haven't to dispose the instance, if this is }
                                               { a direct call                                           }
@@ -2969,7 +2969,9 @@ implementation
                 end
               else
                 emitcall(p^.procdefinition^.mangledname,
-                  p^.symtableproc^.symtabletype=unitsymtable);
+                  (p^.symtableproc^.symtabletype=unitsymtable) or
+                  ((p^.symtableproc^.symtabletype=objectsymtable) and
+                  (pobjectdef(p^.symtableproc^.defowner)^.owner^.symtabletype=unitsymtable)));
               if ((p^.procdefinition^.options and poclearstack)<>0) then
                 begin
                    { consider the alignment with the rest (PM) }
@@ -5673,7 +5675,13 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.3  1998-03-28 23:09:55  florian
+  Revision 1.4  1998-04-07 13:19:42  pierre
+    * bugfixes for reset_gdb_info
+      in MEM parsing for go32v2
+      better external symbol creation
+      support for rhgdb.exe (lowercase file names)
+
+  Revision 1.3  1998/03/28 23:09:55  florian
     * secondin bugfix (m68k and i386)
     * overflow checking bugfix (m68k and i386) -- pretty useless in
       secondadd, since everything is done using 32-bit

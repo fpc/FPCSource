@@ -640,6 +640,7 @@ unit pexpr;
                                            p2:=expr;
                                          { support SEG:OFS for go32v2 Mem[] }
                                            if (target_info.target=target_GO32V2) and
+                                              (p1^.treetype=loadn) and
                                               assigned(p1^.symtableentry) and
                                               assigned(p1^.symtableentry^.owner^.name) and
                                               (p1^.symtableentry^.owner^.name^='SYSTEM') and
@@ -663,6 +664,20 @@ unit pexpr;
                                                   p1^.memindex:=true;
                                                 end;
                                              end
+                                           { else
+                                           if (target_info.target=target_GO32V2) and
+                                              assigned(p1^.symtableentry) and
+                                              assigned(p1^.symtableentry^.owner^.name) and
+                                              (p1^.symtableentry^.owner^.name^='SYSTEM') and
+                                              ((p1^.symtableentry^.name='PORT') or
+                                               (p1^.symtableentry^.name='PORTW') or
+                                               (p1^.symtableentry^.name='PORTL')) then
+                                                begin
+                                                  p1:=gennode(vecn,p1,p2);
+                                                  p1^.portindex:=true;
+                                                  p
+                                                end;
+                                             end      }
                                            else
                                              p1:=gennode(vecn,p1,p2);
                                            if pd^.deftype=stringdef then
@@ -1538,7 +1553,13 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.2  1998-03-26 11:18:31  florian
+  Revision 1.3  1998-04-07 13:19:46  pierre
+    * bugfixes for reset_gdb_info
+      in MEM parsing for go32v2
+      better external symbol creation
+      support for rhgdb.exe (lowercase file names)
+
+  Revision 1.2  1998/03/26 11:18:31  florian
     - switch -Sa removed
     - support of a:=b:=0 removed
 
