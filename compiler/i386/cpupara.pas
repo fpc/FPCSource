@@ -31,6 +31,7 @@ unit cpupara;
     uses
        cpubase,
        globtype,
+       cginfo,
        symtype,symdef,paramgr;
 
     type
@@ -43,6 +44,7 @@ unit cpupara;
           function ret_in_param(def : tdef;calloption : tproccalloption) : boolean;override;
           function push_addr_param(def : tdef;calloption : tproccalloption) : boolean;override;
           function getintparaloc(nr : longint) : tparalocation;override;
+          function getparaloc(p : tdef) : tcgloc;
           procedure create_param_loc_info(p : tabstractprocdef);override;
           function getselflocation(p : tabstractprocdef) : tparalocation;override;
        end;
@@ -51,8 +53,8 @@ unit cpupara;
 
     uses
        systems,verbose,
-       symconst,
-       cginfo;
+       symconst,symsym,
+       cgbase;
 
 
     function ti386paramanager.ret_in_param(def : tdef;calloption : tproccalloption) : boolean;
@@ -106,6 +108,7 @@ unit cpupara;
         result:=inherited push_addr_param(def,calloption);
       end;
 
+
     function ti386paramanager.getintparaloc(nr : longint) : tparalocation;
       begin
          getintparaloc.loc:=LOC_REFERENCE;
@@ -113,19 +116,48 @@ unit cpupara;
          getintparaloc.reference.offset:=4*nr;
       end;
 
-    procedure ti386paramanager.create_param_loc_info(p : tabstractprocdef);
+
+    function ti386paramanager.getparaloc(p : tdef) : tcgloc;
       begin
-         { set default para_alignment to target_info.stackalignment }
-         { if para_alignment=0 then
-           para_alignment:=aktalignment.paraalign;
-         }
+        result:=LOC_REFERENCE;
       end;
 
-    function ti386paramanager.getselflocation(p : tabstractprocdef) : tparalocation;
+
+    procedure ti386paramanager.create_param_loc_info(p : tabstractprocdef);
+      var
+        hp : tparaitem;
       begin
+        hp:=tparaitem(p.para.first);
+        while assigned(hp) do
+          begin
+            if hp.paratyp in [vs_var,vs_out] then
+              hp.paraloc.size:=OS_ADDR
+            else
+              hp.paraloc.size:=def_cgsize(hp.paratype.def);
+            hp.paraloc.loc:=LOC_REFERENCE;
+            if assigned(current_procinfo) then
+              hp.paraloc.reference.index:=current_procinfo.framepointer
+            else
+              begin
+                hp.paraloc.reference.index.enum:=R_INTREGISTER;
+                hp.paraloc.reference.index.number:=NR_FRAME_POINTER_REG;
+              end;
+            hp.paraloc.reference.offset:=tvarsym(hp.parasym).adjusted_address;
+            hp:=tparaitem(hp.next);
+          end;
+      end;
+
+
+    function ti386paramanager.getselflocation(p : tabstractprocdef) : tparalocation;
+      var
+        hsym : tvarsym;
+      begin
+         hsym:=tvarsym(trecorddef(methodpointertype.def).symtable.search('self'));
+         if not assigned(hsym) then
+           internalerror(200305251);
          getselflocation.loc:=LOC_REFERENCE;
-         getselflocation.reference.index.enum:=R_ESP;
-         getselflocation.reference.offset:=4;
+         getselflocation.reference.index:=current_procinfo.framepointer;
+         getselflocation.reference.offset:=hsym.adjusted_address;
       end;
 
 begin
@@ -133,7 +165,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2003-05-30 23:57:08  peter
+  Revision 1.13  2003-06-05 20:58:05  peter
+    * updated
+
+  Revision 1.12  2003/05/30 23:57:08  peter
     * more sparc cleanup
     * accumulator removed, splitted in function_return_reg (called) and
       function_result_reg (caller)
