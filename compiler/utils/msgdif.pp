@@ -311,6 +311,7 @@ end;
 procedure WriteReorderedFile(FileName : string;orgnext,diffnext : PMsg);
   var t,t2,t3 : text;
       i,ntcount : longint;
+      j : integer;
       s,s2,s3 : string;
       is_msg : boolean;
       nextdiffkept : pmsg;
@@ -365,11 +366,13 @@ procedure WriteReorderedFile(FileName : string;orgnext,diffnext : PMsg);
                    inc(ntcount);
                end;
              s2:=orgnext^.text;
-             s2:=upcase(copy(s2,1,pos('_',s2)));
+             j:=pos('_',copy(s2,7,20)) + 6;
+             s2:=upcase(copy(s2,1,j));
              s3:=orgnext^.equivalent^.text;
-             s3:=upcase(copy(s3,1,pos('_',s3)));
+             j:=pos('_',copy(s3,7,20)) + 6;
+             s3:=upcase(copy(s3,1,j));
              { that are the conditions in verbose unit }
-             if (length(s3)<5) and (s2<>s3) then
+             if (length(s3)<12) and (s2<>s3) then
                begin
                  Writeln('Warning: different options for ',orgnext^.enum);
                  Writeln('in ',orgFileName,' : ',s2);
@@ -434,7 +437,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2001-02-09 23:04:56  peter
+  Revision 1.4  2001-03-05 21:44:16  peter
+    * small diffs from Sergey applied
+
+  Revision 1.3  2001/02/09 23:04:56  peter
     * updated for new message file by Sergey Korshunoff
 
   Revision 1.2  2000/07/13 11:32:55  michael

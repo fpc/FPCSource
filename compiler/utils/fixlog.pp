@@ -44,7 +44,7 @@ procedure dofile(const fn:string);
 var
   t,f : text;
   s : string;
-  skip : boolean;
+  skip, truncated : boolean;
   year,month,day,
   found,revs,i : integer;
   fbuf,tbuf : pointer;
@@ -68,14 +68,127 @@ begin
   found:=0;
   revs:=0;
   skip:=false;
+  truncated:=false;
   while not eof(t) do
    begin
      readln(t,s);
      case found of
       0 :
         begin
+          if pos('$Log: ',s)>0 then
+           found:=1;
+          skip:=false;
+          writeln(f,s);
+        end;
+      1 :
+        begin
+          i:=pos('Revision',s);
+          if i>0 then
+           begin
+             inc(revs);
+             if revs>maxrevs then
+              begin
+                skip:=true;
+                truncated:=true;
+                found:=2;
+              end
+             else
+              begin
+                inc(i,10);
+                while (i<length(s)) and (s[i]<>' ') do
+                 inc(i);
+                while (i<length(s)) and (s[i]=' ') do
+                 inc(i);
+                if (i<length(s)) and (s[i] in ['0'..'9']) then
+                 begin
+                   Date2Int(Copy(s,i,10),year,month,day);
+                   if (year<Myear) or
+                      ((year=MYear) and (month<Mmonth)) or
+                      ((year=MYear) and (month=Mmonth) and (day<Mday)) then
+                    begin
+                      skip:=true;
+                      truncated:=true;
+                      found:=2;
+//                    write(year,'/',month,'/',day,' date');
+                    end;
+                 end;
+              end;
+           end
+          else
+           if pos('}',s)>0 then
+            begin
+              skip:=false;
+              found:=0;
+            end;
+          if not skip then
+           writeln(f,s);
+        end;
+      2 :
+        begin
+          if pos('}',s)>0 then
+           begin
+             skip:=false;
+             found:=0;
+           end;
+          if not skip then
+           writeln(f,s);
+        end;
+     end;
+   end;
+  close(t);
+  close(f);
+  if revs=0 then
+   writeln(' no log found')
+  else
+   if truncated then
+     writeln(revs-1,' revisions')
+  else
+     writeln(revs,' revisions');
+  erase(t);
+  rename(f,fn);
+  freemem(tbuf);
+  freemem(fbuf);
+end;
+
+var
+  dir : tsearchrec;
+  i   : integer;
+begin
+  writeln('fixlog v1.00 (C) 1999-2000 Peter Vreman');
+  if paramcount<3 then
+   begin
+     writeln('usage: fixlog <revisions> <yyyy-mm-dd> <files> [files]');
+     halt(1);
+   end;
+  MaxRevs:=StrToInt(ParamStr(1));
+  Date2Int(ParamStr(2),MYear,MMonth,MDay);
+  for i:=3 to paramcount do
+   begin
+     if findfirst(paramstr(i),faAnyFile,dir)=0 then
+      repeat
+        dofile(dir.name);
+      until findnext(dir)<>0;
+     findclose(dir);
+   end;
+end.
+{
   $Log$
-  Revision 1.2  2000-07-13 11:32:55  michael
-  + removed logs
- 
+  Revision 1.3  2001-03-05 21:44:16  peter
+    * small diffs from Sergey applied
+
+  Revision 1.1  2000/07/13 06:30:14  michael
+  + Initial import
+
+  Revision 1.4  2000/02/09 13:08:27  peter
+    * usage shows yyyy-mm-dd
+
+  Revision 1.3  2000/01/08 13:52:02  peter
+    * max date added
+
+  Revision 1.2  2000/01/07 01:15:00  peter
+    * updated copyright to 2000
+
+  Revision 1.1  1999/10/06 06:29:03  peter
+    * new tool
+
 }

@@ -26,19 +26,13 @@ var
 begin
   assign(t,paramstr(1));
   reset(t);
-  assign(f,'errorm.msg');
+  assign(f,'New.msg');
   rewrite(f);
   while not eof(t) do
    begin
      readln(t,s);
      if (s<>'') and not(s[1] in ['#','%']) then
       begin
-        if copy(s,1,11)='option_info' then
-         delete(s,1,13)
-        else
-        if copy(s,1,2)='ol' then
-         delete(s,1,6)
-        else
         for i:=0 to 10 do
          if Copy(s,1,length(trtab[i].name))=trtab[i].name then
           begin
@@ -69,12 +63,13 @@ begin
    end;
   close(f);
   close(t);
-  erase(t);
-  rename(f,paramstr(1));
 end.
 
   $Log$
-  Revision 1.2  2000-07-13 11:32:55  michael
+  Revision 1.3  2001-03-05 21:44:16  peter
+    * small diffs from Sergey applied
+
+  Revision 1.2  2000/07/13 11:32:55  michael
   + removed logs
  
 }
