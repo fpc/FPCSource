@@ -25,6 +25,7 @@ interface
 
     const
        // vmtSelfPtr           = -36;  { not implemented yet }
+       vmtMsgStrPtr            = -36;  
        vmtIntfTable            = -32;
        vmtAutoTable            = -28;
        vmtInitTable            = -24;
@@ -42,6 +43,7 @@ interface
        vmtDefaultHandler       = 28;
        vmtAfterConstruction    = 32;
        vmtBeforeDestruction    = 36;
+       vmtDefaultHandlerStr    = 40;
 
     type
        { first, in object pascal, the types must be redefined }
@@ -89,6 +91,7 @@ interface
 
           { message handling routines }
           procedure dispatch(var message);
+          procedure dispatchstr(var message);
 
           class function methodaddress(const name : shortstring) : pointer;
           class function methodname(address : pointer) : shortstring;
@@ -97,6 +100,9 @@ interface
           { new since Delphi 4 }
           procedure AfterConstruction;virtual;
           procedure BeforeDestruction;virtual;
+
+          { new for gtk, default handler for text based messages }
+          procedure DefaultHandlerStr(var message);virtual;
 
           { interface functions, I don't know if we need this }
           {
@@ -374,10 +380,102 @@ Procedure AssignFile(Var f:TypedFile;c:char);
 
       procedure TObject.Dispatch(var message);
 
+        type
+           tmsgtable = record
+              index : dword;
+              method : pointer;
+           end;
+
+           pmsgtable = ^tmsgtable;
+
+           pdword = ^dword;
+
+        var
+           index : dword;
+           count,i : longint;           
+           msgtable : pmsgtable;
+           p : pointer;
+           vmt : tclass;
+
         begin
+           index:=dword(message);
+           vmt:=ClassType;
+           while assigned(vmt) do
+             begin
+                msgtable:=pmsgtable((pdword(vmt)+vmtDynamicTable)^+4);
+                count:=pdword((pdword(vmt)+vmtDynamicTable)^)^;
+                { later, we can implement a binary search here }
+                for i:=0 to count-1 do
+                  begin
+                     if index=msgtable[i].index then
+                       begin
+                          p:=msgtable[i].method;
+                          asm
+                             pushl message
+                             pushl %esi
+                             movl p,%edi
+                             call %edi
+                          end;
+                          exit;
+                       end;
+                  end;
+                vmt:=vmt.ClassParent;
+             end;
+           DefaultHandler(message);
+        end;
+
+      procedure TObject.DispatchStr(var message);
+
+        type
+           tmsgstrtable = record
+              name : pshortstring;
+              method : pointer;
+           end;
+
+           pmsgstrtable = ^tmsgstrtable;
+
+           pdword = ^dword;
+
+        var
+           name : shortstring;
+           count,i : longint;           
+           msgstrtable : pmsgstrtable;
+           p : pointer;
+           vmt : tclass;
+
+        begin
+           name:=pshortstring(message)^;
+           vmt:=ClassType;
+           while assigned(vmt) do
+             begin
+                count:=pdword((pdword(vmt)+vmtMsgStrPtr)^)^;
+                msgstrtable:=pmsgstrtable((pdword(vmt)+vmtMsgStrPtr)^+4);
+                { later, we can implement a binary search here }
+                for i:=0 to count-1 do
+                  begin
+                     if name=msgstrtable[i].name^ then
+                       begin
+                          p:=msgstrtable[i].method;
+                          asm
+                             pushl message
+                             pushl %esi
+                             movl p,%edi
+                             call %edi
+                          end;
+                          exit;
+                       end;
+                  end;
+                vmt:=vmt.ClassParent;
+             end;
+           DefaultHandlerStr(message);
         end;
 
       procedure TObject.DefaultHandler(var message);
+
+        begin
+        end;
+
+      procedure TObject.DefaultHandlerStr(var message);
 
         begin
         end;
@@ -499,7 +597,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  1998-12-24 10:12:03  michael
+  Revision 1.20  1999-02-22 23:30:54  florian
+    + TObject.Dispatch and TObject.DispatchStr added, working
+
+  Revision 1.19  1998/12/24 10:12:03  michael
   Implemented AssignFile and CloseFile compatibility
 
   Revision 1.18  1998/10/12 12:42:58  florian
