@@ -100,11 +100,7 @@ unit pdecl;
                reaktvarsymtable:=precdef(ptypesym(p)^.definition)^.symtable
              else
                reaktvarsymtable:=pobjectdef(ptypesym(p)^.definition)^.publicsyms;
-           {$ifdef tp}
-             reaktvarsymtable^.foreach(testforward_type);
-           {$else}
-             reaktvarsymtable^.foreach(@testforward_type);
-           {$endif}
+             reaktvarsymtable^.foreach({$ifdef fpc}@{$endif}testforward_type);
            end;
       end;
 
@@ -2109,11 +2105,7 @@ unit pdecl;
              parse_var_proc_directives(newtype);
          until token<>ID;
          typecanbeforward:=false;
-      {$ifdef tp}
-         symtablestack^.foreach(testforward_type);
-      {$else}
-         symtablestack^.foreach(@testforward_type);
-      {$endif}
+         symtablestack^.foreach({$ifdef fpc}@{$endif}testforward_type);
          resolve_forwards;
          block_type:=bt_general;
       end;
@@ -2224,7 +2216,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.123  1999-05-27 19:44:45  peter
+  Revision 1.124  1999-06-01 14:45:51  peter
+    * @procvar is now always needed for FPC
+
+  Revision 1.123  1999/05/27 19:44:45  peter
     * removed oldasm
     * plabel -> pasmlabel
     * -a switches to source writing automaticly

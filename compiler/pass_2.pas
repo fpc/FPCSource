@@ -410,18 +410,10 @@ implementation
                         for i:=1 to maxvarregs do
                           regvars[i]:=nil;
                         parasym:=false;
-                      {$ifdef tp}
-                        symtablestack^.foreach(searchregvars);
-                      {$else}
-                        symtablestack^.foreach(@searchregvars);
-                      {$endif}
+                        symtablestack^.foreach({$ifdef fpc}@{$endif}searchregvars);
                         { copy parameter into a register ? }
                         parasym:=true;
-                      {$ifdef tp}
-                        symtablestack^.next^.foreach(searchregvars);
-                      {$else}
-                        symtablestack^.next^.foreach(@searchregvars);
-                      {$endif}
+                        symtablestack^.next^.foreach({$ifdef fpc}@{$endif}searchregvars);
                         { hold needed registers free }
                         for i:=maxvarregs downto maxvarregs-p^.registers32+1 do
                           regvars[i]:=nil;
@@ -547,7 +539,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.23  1999-05-27 19:44:43  peter
+  Revision 1.24  1999-06-01 14:45:50  peter
+    * @procvar is now always needed for FPC
+
+  Revision 1.23  1999/05/27 19:44:43  peter
     * removed oldasm
     * plabel -> pasmlabel
     * -a switches to source writing automaticly

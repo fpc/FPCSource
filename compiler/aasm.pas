@@ -846,11 +846,7 @@ uses
 
     procedure ResetAsmsymbolList;
       begin
-        {$ifdef tp}
-        asmsymbollist^.foreach(resetasmsym);
-        {$else}
-        asmsymbollist^.foreach(@resetasmsym);
-        {$endif}
+        asmsymbollist^.foreach({$ifdef fpc}@{$endif}resetasmsym);
       end;
 
 
@@ -900,7 +896,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.48  1999-05-28 09:11:39  peter
+  Revision 1.49  1999-06-01 14:45:41  peter
+    * @procvar is now always needed for FPC
+
+  Revision 1.48  1999/05/28 09:11:39  peter
     * also count ref when asmlabel^.name is used
 
   Revision 1.47  1999/05/27 19:43:55  peter

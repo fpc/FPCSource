@@ -690,10 +690,11 @@ implementation
                     begin
                       { there is an error, must be wrong type, because
                         wrong size is already checked (PFV) }
-                      if ((parsing_para_level=0) or (p^.left<>nil)) and
-                         (nextprocsym=nil) then
+                      {if ((parsing_para_level=0) or (p^.left<>nil)) and
+                         (nextprocsym=nil) then }
+                      if parsing_para_level=0 then
                        begin
-                         if (not assigned(lastparatype)) and (not assigned(pt^.resulttype)) then
+                         if (not assigned(lastparatype)) or (not assigned(pt^.resulttype)) then
                           internalerror(39393)
                          else
                           CGMessage3(type_e_wrong_parameter_type,tostr(lastpara),
@@ -703,13 +704,22 @@ implementation
                        end
                       else
                        begin
-                         { try to convert to procvar }
-                         p^.treetype:=loadn;
-                         p^.resulttype:=pprocsym(p^.symtableprocentry)^.definition;
-                         p^.symtableentry:=p^.symtableprocentry;
-                         p^.is_first:=false;
-                         p^.disposetyp:=dt_nothing;
-                         firstpass(p);
+                         if (m_tp_procvar in aktmodeswitches) then
+                          begin
+                            { try to convert to procvar }
+                            p^.treetype:=loadn;
+                            p^.resulttype:=pprocsym(p^.symtableprocentry)^.definition;
+                            p^.symtableentry:=p^.symtableprocentry;
+                            p^.is_first:=false;
+                            p^.disposetyp:=dt_nothing;
+                            firstpass(p);
+                          end
+                         else
+                          begin
+                            { only return the resulttype, the check for equal will be done
+                              in the para parsing of the previous function }
+                            p^.resulttype:=pprocsym(p^.symtableprocentry)^.definition^.retdef;
+                          end;
                          goto errorexit;
                        end;
                      end;
@@ -1162,7 +1172,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.49  1999-05-31 20:34:51  peter
+  Revision 1.50  1999-06-01 14:46:00  peter
+    * @procvar is now always needed for FPC
+
+  Revision 1.49  1999/05/31 20:34:51  peter
     * fixed hightree generation when loading highSYM
 
   Revision 1.48  1999/05/27 19:45:13  peter

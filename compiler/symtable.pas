@@ -1614,11 +1614,7 @@ const localsymtablestack : psymtable = nil;
               aktrecordsymtable:=@self;
            end;
          current_ppu^.writeentry(ibbeginsymtablebrowser);
-      {$ifdef tp}
-         foreach(write_refs);
-      {$else}
-         foreach(@write_refs);
-      {$endif}
+         foreach({$ifdef fpc}@{$endif}write_refs);
          current_ppu^.writeentry(ibendsymtablebrowser);
          if symtabletype in [recordsymtable,objectsymtable,
                     parasymtable,localsymtable] then
@@ -1642,11 +1638,7 @@ const localsymtablestack : psymtable = nil;
                   Browserlog.AddLog('---Symtable with no name');
              end;
            Browserlog.Ident;
-         {$ifdef tp}
-           foreach(add_to_browserlog);
-         {$else}
-           foreach(@add_to_browserlog);
-         {$endif}
+           foreach({$ifdef fpc}@{$endif}add_to_browserlog);
            browserlog.Unident;
          end;
       end;
@@ -1660,20 +1652,12 @@ const localsymtablestack : psymtable = nil;
     { checks, if all procsyms and methods are defined }
     procedure tsymtable.check_forwards;
       begin
-      {$ifdef tp}
-         foreach(check_procsym_forward);
-      {$else}
-         foreach(@check_procsym_forward);
-      {$endif}
+         foreach({$ifdef fpc}@{$endif}check_procsym_forward);
       end;
 
     procedure tsymtable.checklabels;
       begin
-      {$ifdef tp}
-         foreach(labeldefined);
-      {$else}
-         foreach(@labeldefined);
-      {$endif}
+         foreach({$ifdef fpc}@{$endif}labeldefined);
       end;
 
     procedure tsymtable.set_alignment(_alignment : byte);
@@ -1721,30 +1705,18 @@ const localsymtablestack : psymtable = nil;
 
     procedure tsymtable.allunitsused;
       begin
-      {$ifdef tp}
-         foreach(unitsymbolused);
-      {$else}
-         foreach(@unitsymbolused);
-      {$endif}
+         foreach({$ifdef fpc}@{$endif}unitsymbolused);
       end;
 
     procedure tsymtable.allsymbolsused;
       begin
-      {$ifdef tp}
-         foreach(varsymbolused);
-      {$else}
-         foreach(@varsymbolused);
-      {$endif}
+         foreach({$ifdef fpc}@{$endif}varsymbolused);
       end;
 
 {$ifdef CHAINPROCSYMS}
     procedure tsymtable.chainprocsyms;
       begin
-      {$ifdef tp}
-         foreach(chainprocsym);
-      {$else}
-         foreach(@chainprocsym);
-      {$endif}
+         foreach({$ifdef fpc}@{$endif}chainprocsym);
       end;
 {$endif CHAINPROCSYMS}
 
@@ -1752,11 +1724,7 @@ const localsymtablestack : psymtable = nil;
       procedure tsymtable.concatstabto(asmlist : paasmoutput);
       begin
         asmoutput:=asmlist;
-      {$ifdef tp}
-        foreach(concatstab);
-      {$else}
-        foreach(@concatstab);
-      {$endif}
+        foreach({$ifdef fpc}@{$endif}concatstab);
       end;
 {$endif}
 
@@ -2004,11 +1972,7 @@ const localsymtablestack : psymtable = nil;
                 dbx_counter := @dbx_count;
              end;
            asmoutput:=asmlist;
-           {$ifdef tp}
-             foreach(concattypestab);
-           {$else}
-             foreach(@concattypestab);
-           {$endif}
+           foreach({$ifdef fpc}@{$endif}concattypestab);
            if cs_gdb_dbx in aktglobalswitches then
              begin
                 dbx_counter := prev_dbx_count;
@@ -2163,11 +2127,7 @@ const localsymtablestack : psymtable = nil;
         _defaultprop:=nil;
         while assigned(pd) do
           begin
-           {$ifdef tp}
-             pd^.publicsyms^.foreach(testfordefaultproperty);
-           {$else}
-             pd^.publicsyms^.foreach(@testfordefaultproperty);
-           {$endif}
+             pd^.publicsyms^.foreach({$ifdef fpc}@{$endif}testfordefaultproperty);
              if assigned(_defaultprop) then
                break;
              pd:=pd^.childof;
@@ -2341,7 +2301,10 @@ const localsymtablestack : psymtable = nil;
 end.
 {
   $Log$
-  Revision 1.17  1999-05-27 19:45:08  peter
+  Revision 1.18  1999-06-01 14:45:58  peter
+    * @procvar is now always needed for FPC
+
+  Revision 1.17  1999/05/27 19:45:08  peter
     * removed oldasm
     * plabel -> pasmlabel
     * -a switches to source writing automaticly

@@ -1878,7 +1878,7 @@
          { procedure of needs_rtti !                         }
          oldb:=binittable;
          binittable:=false;
-         symtable^.foreach(check_rec_inittable);
+         symtable^.foreach({$ifdef fpc}@{$endif}check_rec_inittable);
          needs_inittable:=binittable;
          binittable:=oldb;
       end;
@@ -2037,13 +2037,13 @@
 
     procedure trecdef.write_child_rtti_data;
       begin
-         symtable^.foreach(generate_child_rtti);
+         symtable^.foreach({$ifdef fpc}@{$endif}generate_child_rtti);
       end;
 
 
     procedure trecdef.write_child_init_data;
       begin
-         symtable^.foreach(generate_child_inittable);
+         symtable^.foreach({$ifdef fpc}@{$endif}generate_child_inittable);
       end;
 
 
@@ -2053,9 +2053,9 @@
          write_rtti_name;
          rttilist^.concat(new(pai_const,init_32bit(size)));
          count:=0;
-         symtable^.foreach(count_fields);
+         symtable^.foreach({$ifdef fpc}@{$endif}count_fields);
          rttilist^.concat(new(pai_const,init_32bit(count)));
-         symtable^.foreach(write_field_rtti);
+         symtable^.foreach({$ifdef fpc}@{$endif}write_field_rtti);
       end;
 
 
@@ -2065,9 +2065,9 @@
          write_rtti_name;
          rttilist^.concat(new(pai_const,init_32bit(size)));
          count:=0;
-         symtable^.foreach(count_inittable_fields);
+         symtable^.foreach({$ifdef fpc}@{$endif}count_inittable_fields);
          rttilist^.concat(new(pai_const,init_32bit(count)));
-         symtable^.foreach(write_field_inittable);
+         symtable^.foreach({$ifdef fpc}@{$endif}write_field_inittable);
       end;
 
     function trecdef.gettypename : string;
@@ -2637,11 +2637,7 @@ Const local_symtable_index : longint = $8001;
         strpcopy(strend(StabRecString),','+tostr(i)+';');
         (* confuse gdb !! PM
         if assigned(parast) then
-          {$IfDef TP}
-          parast^.foreach(addparaname)
-          {$Else}
-          parast^.foreach(@addparaname)
-          {$EndIf}
+          parast^.foreach({$ifdef fpc}@{$endif}addparaname)
           else
           begin
           param := para1;
@@ -3214,22 +3210,14 @@ Const local_symtable_index : longint = $8001;
           strpcopy(strend(stabrecstring),'!1,020,'+childof^.numberstring+';');
         {virtual table to implement yet}
         RecOffset := 0;
-        {$ifdef tp}
-          publicsyms^.foreach(addname);
-        {$else}
-          publicsyms^.foreach(@addname);
-        {$endif}
+        publicsyms^.foreach({$ifdef fpc}@{$endif}addname);
       if (options and oo_hasvmt) <> 0 then
         if not assigned(childof) or ((childof^.options and oo_hasvmt) = 0) then
            begin
               strpcopy(strend(stabrecstring),'$vf'+numberstring+':'+typeglobalnumber('vtblarray')
                 +','+tostr(vmt_offset*8)+';');
            end;
-        {$ifdef tp}
-          publicsyms^.foreach(addprocname);
-        {$else}
-          publicsyms^.foreach(@addprocname);
-        {$endif tp }
+        publicsyms^.foreach({$ifdef fpc}@{$endif}addprocname);
         if (options and oo_hasvmt) <> 0  then
           begin
              anc := @self;
@@ -3266,9 +3254,9 @@ Const local_symtable_index : longint = $8001;
 
          rttilist^.concat(new(pai_const,init_32bit(size)));
          count:=0;
-         publicsyms^.foreach(count_inittable_fields);
+         publicsyms^.foreach({$ifdef fpc}@{$endif}count_inittable_fields);
          rttilist^.concat(new(pai_const,init_32bit(count)));
-         publicsyms^.foreach(write_field_inittable);
+         publicsyms^.foreach({$ifdef fpc}@{$endif}write_field_inittable);
       end;
 
 
@@ -3282,7 +3270,7 @@ Const local_symtable_index : longint = $8001;
          { procedure of needs_rtti !                              }
          oldb:=binittable;
          binittable:=false;
-         publicsyms^.foreach(check_rec_inittable);
+         publicsyms^.foreach({$ifdef fpc}@{$endif}check_rec_inittable);
          needs_inittable:=binittable;
          binittable:=oldb;
       end;
@@ -3375,7 +3363,7 @@ Const local_symtable_index : longint = $8001;
 
     procedure tobjectdef.write_child_rtti_data;
       begin
-         publicsyms^.foreach(generate_published_child_rtti);
+         publicsyms^.foreach({$ifdef fpc}@{$endif}generate_published_child_rtti);
       end;
 
 
@@ -3399,7 +3387,7 @@ Const local_symtable_index : longint = $8001;
          else
            i:=0;
          count:=0;
-         publicsyms^.foreach(count_published_properties);
+         publicsyms^.foreach({$ifdef fpc}@{$endif}count_published_properties);
          next_free_name_index:=i+count;
       end;
 
@@ -3431,7 +3419,7 @@ Const local_symtable_index : longint = $8001;
            count:=0;
 
          { write it }
-         publicsyms^.foreach(count_published_properties);
+         publicsyms^.foreach({$ifdef fpc}@{$endif}count_published_properties);
          rttilist^.concat(new(pai_const,init_16bit(count)));
 
          { write unit name }
@@ -3445,7 +3433,7 @@ Const local_symtable_index : longint = $8001;
 
          { write published properties count }
          count:=0;
-         publicsyms^.foreach(count_published_properties);
+         publicsyms^.foreach({$ifdef fpc}@{$endif}count_published_properties);
          rttilist^.concat(new(pai_const,init_16bit(count)));
 
          { count is used to write nameindex   }
@@ -3456,7 +3444,7 @@ Const local_symtable_index : longint = $8001;
          else
            count:=0;
 
-         publicsyms^.foreach(write_property_info);
+         publicsyms^.foreach({$ifdef fpc}@{$endif}write_property_info);
       end;
 
 
@@ -3497,7 +3485,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.124  1999-05-31 16:42:33  peter
+  Revision 1.125  1999-06-01 14:45:56  peter
+    * @procvar is now always needed for FPC
+
+  Revision 1.124  1999/05/31 16:42:33  peter
     * interfacedef flag for procdef if it's defined in the interface, to
       make a difference with 'forward;' directive forwarddef. Fixes 253
 

@@ -203,7 +203,7 @@ implementation
          root:=nil;
          count:=0;
          { insert all message handlers into a tree, sorted by name }
-         _class^.publicsyms^.foreach(insertmsgstr);
+         _class^.publicsyms^.foreach({$ifdef fpc}@{$endif}insertmsgstr);
 
          { write all names }
          if assigned(root) then
@@ -245,7 +245,7 @@ implementation
          root:=nil;
          count:=0;
          { insert all message handlers into a tree, sorted by name }
-         _class^.publicsyms^.foreach(insertmsgint);
+         _class^.publicsyms^.foreach({$ifdef fpc}@{$endif}insertmsgint);
 
          { now start writing of the message string table }
          getdatalabel(r);
@@ -471,11 +471,7 @@ implementation
 
            { walk through all public syms }
            _c:=_class;
-{$ifdef tp}
-           p^.publicsyms^.foreach(eachsym);
-{$else}
-           p^.publicsyms^.foreach(@eachsym);
-{$endif}
+           p^.publicsyms^.foreach({$ifdef fpc}@{$endif}eachsym);
         end;
 
       var
@@ -562,7 +558,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  1999-05-27 19:44:30  peter
+  Revision 1.8  1999-06-01 14:45:49  peter
+    * @procvar is now always needed for FPC
+
+  Revision 1.7  1999/05/27 19:44:30  peter
     * removed oldasm
     * plabel -> pasmlabel
     * -a switches to source writing automaticly

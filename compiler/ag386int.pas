@@ -584,7 +584,7 @@ ait_stab_function_name : ;
     procedure ti386intasmlist.WriteExternals;
       begin
         currentasmlist:=@self;
-        AsmSymbolList^.foreach(writeexternal);
+        AsmSymbolList^.foreach({$ifdef fpc}@{$endif}writeexternal);
       end;
 
 
@@ -627,7 +627,10 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.44  1999-05-27 19:44:00  peter
+  Revision 1.45  1999-06-01 14:45:43  peter
+    * @procvar is now always needed for FPC
+
+  Revision 1.44  1999/05/27 19:44:00  peter
     * removed oldasm
     * plabel -> pasmlabel
     * -a switches to source writing automaticly
