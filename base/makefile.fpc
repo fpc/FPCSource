@@ -1,0 +1,741 @@
+#
+#   $Id$
+#   Copyright (c) 1998 by the Free Pascal Development Team
+#
+#   Common makefile for Free Pascal
+#
+#   See the file COPYING.FPC, included in this distribution,
+#   for details about the copyright.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#
+
+#####################################################################
+# Force default settings
+#####################################################################
+
+# Latest release version
+override RELEASEVER:=0.99.11
+
+
+#####################################################################
+# Autodetect OS (Linux or Dos or Windows NT)
+# define inlinux when running under linux
+# define inWinNT when running under WinNT
+#####################################################################
+
+PWD=$(strip $(wildcard $(addsuffix /pwd.exe,$(subst ;, ,$(PATH)))))
+ifeq ($(PWD),)
+PWD=$(strip $(wildcard $(addsuffix /pwd,$(subst :, ,$(PATH)))))
+ifeq ($(PWD),)
+nopwd:
+	@echo
+	@echo You need the GNU pwd,cp,mv,rm,install utils to use this makefile!
+	@echo Get ftp://tflily.fys.kuleuven.ac.be/pub/fpc/dist/gnuutils.zip
+	@echo
+	@exit
+else
+inlinux=1
+endif
+else
+PWD:=$(subst \,/,$(firstword $(PWD)))
+endif
+
+# Detect NT - NT sets OS to Windows_NT
+ifndef inlinux
+ifeq ($(OS),Windows_NT)
+inWinNT=1
+endif
+endif
+
+
+#####################################################################
+# Check for FPCDIR environment
+#####################################################################
+
+ifndef FPCDIR
+nofpcdir:
+	@echo
+	@echo You need to set the FPCDIR environment variable to use
+	@echo this Makefile.
+	@echo Example: SET FPCDIR=/pp
+	@echo
+	@exit
+endif
+
+
+#####################################################################
+# Targets
+#####################################################################
+
+# Target OS
+ifndef OS_TARGET
+ifdef inlinux
+OS_TARGET=linux
+else
+ifdef inWinNT
+OS_TARGET=win32
+else
+OS_TARGET=go32v2
+endif
+endif
+endif
+
+# Source OS
+ifndef OS_SOURCE
+ifdef inlinux
+OS_SOURCE=linux
+else
+ifndef inWinNT
+OS_SOURCE=win32
+else
+OS_SOURCE=go32v2
+endif
+endif
+endif
+
+# CPU
+ifndef CPU
+CPU=i386
+endif
+
+# Options
+ifndef OPT
+OPT=
+endif
+
+# What compiler to use ?
+ifndef PP
+PP=ppc386
+endif
+
+# assembler, redefine it if cross compiling
+ifndef AS
+AS=as
+endif
+
+# linker, but probably not used
+ifndef LD
+LD=ld
+endif
+
+# Release ? Then force OPT and don't use extra opts via commandline
+ifdef RELEASE
+override OPT:=-Xs -OG2p2 -n
+endif
+
+# Verbose settings (warning,note,info)
+ifdef VERBOSE
+override OPT+=-vwni
+endif
+
+
+#####################################################################
+# Shell commands
+#####################################################################
+
+# To copy pograms
+ifndef COPY
+COPY=cp -fp
+endif
+
+# To move pograms
+ifndef MOVE
+MOVE=mv -f
+endif
+
+# Check delete program
+ifndef DEL
+DEL=rm -f
+endif
+
+# Check deltree program
+ifndef DELTREE
+DELTREE=rm -rf
+endif
+
+# To install files
+ifndef INSTALL
+ifdef inlinux
+INSTALL=install -m 644
+else
+INSTALL=$(COPY)
+# ginstall has the strange thing to stubify all .o files !
+#INSTALL=ginstall -m 644
+endif
+endif
+
+# To install programs
+ifndef INSTALLEXE
+ifdef inlinux
+INSTALLEXE=install -m 755
+else
+INSTALLEXE=$(COPY)
+# ginstall has the strange thing to stubify all .o files !
+#INSTALLEXE=ginstall -m 755
+endif
+endif
+
+# To make a directory.
+ifndef MKDIR
+ifdef inlinux
+MKDIR=install -m 755 -d
+else
+MKDIR=ginstall -m 755 -d
+endif
+endif
+
+
+#####################################################################
+# Default Tools
+#####################################################################
+
+# ppas.bat / ppas.sh
+ifdef inlinux
+PPAS=ppas.sh
+else
+PPAS=ppas.bat
+endif
+
+# ldconfig to rebuild .so cache
+ifdef inlinux
+LDCONFIG=ldconfig
+else
+LDCONFIG=
+endif
+
+# Where is the ppumove program ?
+ifndef PPUMOVE
+PPUMOVE=ppumove
+endif
+
+# diff
+ifndef DIFF
+DIFF=diff
+endif
+
+# date
+ifndef DATE
+# first try go32v2 specific gdate
+DATE=$(strip $(wildcard $(addsuffix /gdate.exe,$(subst ;, ,$(PATH)))))
+# try generic date.exe
+ifeq ($(DATE),)
+DATE=$(strip $(wildcard $(addsuffix /date.exe,$(subst ;, ,$(PATH)))))
+# finally try for linux
+ifeq ($(DATE),)
+DATE=$(strip $(wildcard $(addsuffix /date,$(subst :, ,$(PATH)))))
+ifeq ($(DATE),)
+DATE=
+endif
+else
+DATE:=$(subst \,/,$(firstword $(DATE)))
+endif
+else
+DATE:=$(subst \,/,$(firstword $(DATE)))
+endif
+endif
+
+# Sed
+ifndef SED
+SED=$(strip $(wildcard $(addsuffix /sed.exe,$(subst ;, ,$(PATH)))))
+ifeq ($(SED),)
+SED=$(strip $(wildcard $(addsuffix /sed,$(subst :, ,$(PATH)))))
+ifeq ($(SED),)
+SED=
+endif
+else
+SED:=$(subst \,/,$(firstword $(SED)))
+endif
+endif
+
+
+#####################################################################
+# Default Directories
+#####################################################################
+
+# Base dir
+ifdef PWD
+BASEDIR=$(shell $(PWD))
+endif
+
+# set the directory to the rtl base
+ifndef RTLDIR
+ifdef RTL
+RTLDIR=$(RTL)/$(OS_TARGET)
+else
+RTLDIR:=$(FPCDIR)/rtl/$(OS_TARGET)
+endif
+endif
+
+# specify where units are.
+ifndef UNITDIR
+ifdef UNITS
+UNITDIR=$(UNITS)/$(OS_TARGET)
+else
+UNITDIR=$(FPCDIR)/units/$(OS_TARGET)
+endif
+endif
+
+# set the prefix directory where to install everything
+ifndef PREFIXINSTALLDIR
+ifdef inlinux
+PREFIXINSTALLDIR=/usr
+else
+PREFIXINSTALLDIR=$(FPCDIR)
+endif
+endif
+
+# set the base directory where to install everything
+ifndef BASEINSTALLDIR
+ifdef inlinux
+BASEINSTALLDIR=$(PREFIXINSTALLDIR)/lib/fpc/$(RELEASEVER)
+else
+BASEINSTALLDIR=$(PREFIXINSTALLDIR)
+endif
+endif
+
+
+#####################################################################
+# Install Directories based on BASEINSTALLDIR
+#####################################################################
+
+# Linux binary really goes to baseinstalldir
+ifndef LIBINSTALLDIR
+ifdef inlinux
+LIBINSTALLDIR=$(BASEINSTALLDIR)
+else
+LIBINSTALLDIR=$(BASEINSTALLDIR)/lib
+endif
+endif
+
+# set the directory where to install the binaries
+ifndef BININSTALLDIR
+ifdef inlinux
+BININSTALLDIR=$(PREFIXINSTALLDIR)/bin
+else
+BININSTALLDIR=$(BASEINSTALLDIR)/bin/$(OS_TARGET)
+endif
+endif
+
+# Where the .msg files will be stored
+ifndef MSGINSTALLDIR
+ifdef inlinux
+MSGINSTALLDIR=$(BASEINSTALLDIR)/msg
+else
+MSGINSTALLDIR=$(BININSTALLDIR)
+endif
+endif
+
+# Where the doc files will be stored
+ifndef DOCINSTALLDIR
+ifdef inlinux
+DOCINSTALLDIR=$(PREFIXINSTALLDIR)/doc/fpc/$(RELEASEVER)
+else
+DOCINSTALLDIR=$(BASEINSTALLDIR)/doc
+endif
+endif
+
+########################
+# Unit Directories
+########################
+
+# this can be set to 'rtl' when the RTL units are installed
+ifndef UNITPREFIX
+UNITPREFIX=units
+endif
+
+# set the directory where to install the units.
+ifndef UNITINSTALLDIR
+ifdef inlinux
+UNITINSTALLDIR=$(BASEINSTALLDIR)/$(UNITPREFIX)
+else
+UNITINSTALLDIR=$(BASEINSTALLDIR)/$(UNITPREFIX)/$(OS_TARGET)
+endif
+endif
+
+# set the directory where to install the units.
+ifndef STATIC_UNITINSTALLDIR
+STATIC_UNITINSTALLDIR=$(UNITINSTALLDIR)/static
+endif
+
+# set the directory where to install the units.
+ifndef SHARED_UNITINSTALLDIR
+SHARED_UNITINSTALLDIR=$(UNITINSTALLDIR)/shared
+endif
+
+# set the directory where to install the libs (must exist)
+ifndef STATIC_LIBINSTALLDIR
+STATIC_LIBINSTALLDIR=$(STATIC_UNITINSTALLDIR)
+endif
+
+# set the directory where to install the libs (must exist)
+ifndef SHARED_LIBINSTALLDIR
+ifdef inlinux
+SHARED_LIBINSTALLDIR=$(PREFIXINSTALLDIR)/lib
+else
+SHARED_LIBINSTALLDIR=$(SHARED_UNITINSTALLDIR)
+endif
+endif
+
+
+#####################################################################
+# Compiler Command Line
+#####################################################################
+
+# Load commandline OPTDEF and add CPU define
+override PPOPTDEF:=$(OPTDEF) -d$(CPU)
+
+# Load commandline OPT and add target and unit dir to be sure
+override PPOPT:=$(OPT) -T$(OS_TARGET) $(NEEDOPT)
+
+# RTL first and then Unit dir (a unit can override RTLunit)
+ifdef RTLDIR
+override PPOPT+=$(addprefix -Fu,$(RTLDIR))
+endif
+ifdef UNITDIR
+override PPOPT+=$(addprefix -Fu,$(UNITDIR))
+endif
+ifdef NEEDUNITDIR
+override PPOPT+=$(addprefix -Fu,$(NEEDUNITDIR))
+endif
+
+# Add include dirs INC and PROCINC and OSINC
+ifdef INC
+override PPOPT+=-I$(INC)
+endif
+ifdef PROCINC
+override PPOPT+=-I$(PROCINC)
+endif
+ifdef OSINC
+override PPOPT+=-I$(OSINC)
+endif
+
+# Target dirs
+ifdef TARGETDIR
+override PPOPT+=-FE$(TARGETDIR)
+endif
+ifdef UNITTARGETDIR
+override PPOPT+=-FU$(UNITTARGETDIR)
+endif
+
+# Smartlinking
+ifeq ($(SMARTLINK),YES)
+ifeq ($(LIBTYPE),shared)
+override SMARTLINK=NO
+else
+override PPOPT+=-Cx
+endif
+endif
+
+# Add library type, for static libraries smartlinking is automatic used
+ifeq ($(LIBTYPE),shared)
+override PPOPT+=-CD
+else
+ifeq ($(LIBTYPE),static)
+override PPOPT+=-CS
+endif
+endif
+
+# Add library name
+ifneq ($(LIBNAME),)
+override PPOPT:=$(PPOPT) -o$(LIBNAME)
+endif
+
+# Add defines from PPOPTDEF to PPOPT
+override PPOPT:=$(PPOPT) $(PPOPTDEF)
+
+# Was a config file specified ?
+ifdef CFGFILE
+override PPOPT:=$(PPOPT) @$(CFGFILE)
+endif
+
+override COMPILER=$(PP) $(PPOPT)
+
+
+#####################################################################
+# Default extensions
+#####################################################################
+
+# Default needed extensions (Go32v2,Linux)
+PPLEXT=.ppl
+PPUEXT=.ppu
+OEXT=.o
+ASMEXT=.s
+SMARTEXT=.sl
+STATICLIBEXT=.a
+SHAREDLIBEXT=.so
+
+# Executable extension
+ifdef inlinux
+EXEEXT=
+else
+EXEEXT=.exe
+endif
+
+# Go32v1
+ifeq ($(OS_TARGET),go32v1)
+PPUEXT=.pp1
+OEXT=.o1
+ASMEXT=.s1
+SMARTEXT=.sl1
+STATICLIBEXT=.a1
+SHAREDLIBEXT=.so1
+endif
+
+# Win32
+ifeq ($(OS_TARGET),win32)
+PPUEXT=.ppw
+OEXT=.ow
+ASMEXT=.sw
+SMARTEXT=.slw
+STATICLIBEXT=.aw
+SHAREDLIBEXT=.dll
+endif
+
+# OS/2
+ifeq ($(OS_TARGET),os2)
+PPUEXT=.ppo
+ASMEXT=.so2
+OEXT=.o2
+SMARTEXT=.so
+STATICLIBEXT=.ao
+SHAREDLIBEXT=.dll
+endif
+
+# determine libary extension.
+ifeq ($(LIBTYPE),static)
+LIBEXT=$(STATICLIBEXT)
+else
+LIBEXT=$(SHAREDLIBEXT)
+endif
+
+# library prefix
+LIBPREFIX=lib
+ifeq ($(OS_TARGET),go32v2)
+LIBPREFIX=
+endif
+ifeq ($(OS_TARGET),go32v1)
+LIBPREFIX=
+endif
+
+# determine with .pas extension is used
+ifdef EXEOBJECTS
+override TESTPAS:=$(strip $(wildcard $(addsuffix .pas,$(firstword $(EXEOBJECTS)))))
+else
+override TESTPAS:=$(strip $(wildcard $(addsuffix .pas,$(firstword $(UNITOBJECTS)))))
+endif
+
+ifeq ($(TESTPAS),)
+PASEXT=.pp
+else
+PASEXT=.pas
+endif
+
+
+#####################################################################
+# Export commandline values, so nesting use the same values
+#####################################################################
+
+export FPCDIR FPCMAKE
+export RELEASEVER OS_SOURCE OS_TARGET OPT OPTDEF CPU PP RELEASE VERBOSE
+export SMARTLINK LIBTYPE LIBNAME
+export BASEINSTALLDIR
+
+
+#####################################################################
+# General compile rules
+#####################################################################
+
+ifndef NODEFAULTRULES
+
+# Create Filenames
+EXEFILES=$(addsuffix $(EXEEXT),$(EXEOBJECTS))
+UNITFILES=$(addsuffix $(PPUEXT),$(UNITOBJECTS))
+UNITOFILES=$(addsuffix $(OEXT),$(UNITOBJECTS))
+
+.PHONY : all clean install \
+	 info cfginfo objectinfo installinfo filesinfo
+
+.SUFFIXES : $(EXEEXT) $(PPUEXT) $(PASEXT)
+
+
+#####################################################################
+# Default
+#####################################################################
+
+ifdef DEFAULTUNITS
+all: units
+else
+all: units exes
+endif
+
+units: $(UNITFILES)
+
+exes: $(EXEFILES)
+
+# General compile rules
+%$(PPUEXT): %$(PASEXT)
+	$(COMPILER) $<
+
+%$(EXEEXT): %$(PASEXT)
+	$(COMPILER) $<
+
+
+#####################################################################
+# Library
+#####################################################################
+
+staticlib:
+	$(MAKE) libsclean
+	$(MAKE) all SMARTLINK=YES LIBTYPE=static
+
+
+sharedlib:
+ifdef inlinux
+	$(MAKE) libsclean
+	$(MAKE) all LIBTYPE=shared
+else
+	@echo Shared Libraries not supported
+endif
+
+
+libsclean : clean
+	-$(DEL) *$(STATICLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT)
+
+
+#####################################################################
+# Install rules
+#####################################################################
+
+install : all
+ifndef DEFAULTUNITS
+ifdef EXEOBJECTS
+	$(MKDIR) $(BININSTALLDIR)
+	$(INSTALLEXE) $(EXEFILES) $(BININSTALLDIR)
+endif
+endif
+ifdef UNITOBJECTS
+	$(MKDIR) $(UNITINSTALLDIR)
+	$(INSTALL) $(UNITFILES) $(UNITINSTALLDIR)
+ifeq ($(SMARTLINK),YES)
+	$(INSTALL) $(LIBPREFIX)$(LIBNAME)$(LIBEXT) $(UNITINSTALLDIR)
+else
+	-$(INSTALL) *$(OEXT) $(UNITINSTALLDIR)
+endif
+endif
+
+
+staticlibinstall: staticlib
+	$(MKDIR) $(STATIC_UNITINSTALLDIR)
+	$(INSTALL) $(UNITFILES) $(STATIC_UNITINSTALLDIR)
+	$(MKDIR) $(STATIC_LIBINSTALLDIR)
+	$(INSTALLEXE) *$(STATICLIBEXT) $(STATIC_LIBINSTALLDIR)
+
+
+sharedlibinstall: sharedlib
+	$(MKDIR) $(SHARED_UNITINSTALLDIR)
+	$(INSTALL) $(UNITFILES) $(SHARED_UNITINSTALLDIR)
+	$(MKDIR) $(SHARED_LIBINSTALLDIR)
+	$(INSTALLEXE) *$(SHAREDLIBEXT) $(SHARED_LIBINSTALLDIR)
+
+
+libinstall: staticlibinstall sharedlibinstall
+
+
+#####################################################################
+# Clean rules
+#####################################################################
+
+clean:
+	-$(DEL) *$(OEXT) *$(ASMEXT) *$(PPUEXT) *$(STATICLIBEXT) *$(SHAREDLIBEXT) $(PPAS) link.res log
+	-$(DELTREE) *$(SMARTEXT)
+ifdef EXEOBJECTS
+	-$(DEL) $(EXEFILES)
+endif
+
+
+#####################################################################
+# Depend rules
+#####################################################################
+
+depend:
+	makedep $(UNITOBJECTS)
+
+
+#####################################################################
+# Info rules
+#####################################################################
+
+info: cfginfo objectinfo installinfo
+
+cfginfo:
+	@echo
+	@echo  == Configuration info ==
+	@echo
+	@echo  FPCDir.... $(FPCDIR)
+	@echo  FPCMake... $(FPCMAKE)
+	@echo
+	@echo  Target.... $(OS_TARGET)
+	@echo  Source.... $(OS_SOURCE)
+	@echo  Target.... $(OS_TARGET)
+	@echo  Basedir... $(BASEDIR)
+	@echo  Pwd....... $(PWD)
+ifdef SED
+	@echo  Sed....... $(SED)
+endif
+	@echo
+
+objectinfo:
+	@echo
+	@echo  == Object info ==
+	@echo
+	@echo  UnitObjects... $(UNITOBJECTS)
+	@echo  ExeObjects.... $(EXEOBJECTS)
+	@echo
+
+installinfo:
+	@echo
+	@echo  == Install info ==
+	@echo
+	@echo  BaseInstallDir....... $(BASEINSTALLDIR)
+	@echo  BinInstallDir........ $(BININSTALLDIR)
+	@echo  UnitInstallDir....... $(UNITINSTALLDIR)
+	@echo  StaticUnitInstallDir. $(STATIC_UNITINSTALLDIR)
+	@echo  SharedUnitInstallDir. $(SHARED_UNITINSTALLDIR)
+	@echo  LibInstallDir........ $(LIBINSTALLDIR)
+	@echo  StaticLibInstallDir.. $(STATIC_LIBINSTALLDIR)
+	@echo  SharedLibInstallDir.. $(SHARED_LIBINSTALLDIR)
+	@echo  MsgInstallDir........ $(MSGINSTALLDIR)
+	@echo  DocInstallDir........ $(DOCINSTALLDIR)
+	@echo
+
+# try to get the files in the currentdir
+PASFILES:=$(wildcard *.pas)
+PPFILES:=$(wildcard *.pp)
+INCFILES:=$(wildcard *.inc)
+MSGFILES:=$(wildcard *.msg)
+ASFILES:=$(wildcard *.as)
+
+filesinfo:
+	@echo
+	@echo  == Files info ==
+	@echo
+ifdef PASFILES
+	@echo  Pas files are $(PASFILES)
+endif
+ifdef PPFILES
+	@echo  PP  files are $(PPFILES)
+endif
+ifdef INCFILES
+	@echo  Inc files are $(INCFILES)
+endif
+ifdef MSGFILES
+	@echo  Msg files are $(MSGFILES)
+endif
+ifdef ASFILES
+	@echo  As  files are $(ASFILES)
+endif
+
+endif #NODEFAULTRULES
