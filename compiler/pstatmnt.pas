@@ -196,7 +196,8 @@ unit pstatmnt;
          do_firstpass(caseexpr);
          casedeferror:=false;
          casedef:=caseexpr^.resulttype;
-         if not(is_ordinal(casedef) or is_64bitint(casedef)) then
+         if (not assigned(casedef)) or
+            not(is_ordinal(casedef) or is_64bitint(casedef)) then
           begin
             Message(type_e_ordinal_expr_expected);
             { set error flag so no rangechecks are done }
@@ -1322,7 +1323,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.114  1999-12-01 12:42:32  peter
+  Revision 1.115  1999-12-01 22:43:17  peter
+    * fixed sigsegv with casedef=nil
+
+  Revision 1.114  1999/12/01 12:42:32  peter
     * fixed bug 698
     * removed some notes about unused vars
 
