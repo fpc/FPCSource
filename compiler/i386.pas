@@ -34,6 +34,13 @@ unit i386;
     {$endif}
   {$endif}
 
+  { We Don't need the it table if no assembler parser is selected }
+  {$ifdef NORA386INT}
+    {$ifdef NORA386ATT}
+      {$define NOITTABLE}
+    {$endif}
+  {$endif}
+
     uses
       cobjects,aasm;
 
@@ -450,7 +457,7 @@ unit i386;
        af_ReverseRegRegmem = $10000;
 
     type
-       ttemplate = record
+       ttemplate = packed record
           i : tasmop;
           ops : byte;
           oc : longint;
@@ -462,12 +469,11 @@ unit i386;
     const
        last_instruction_in_cache = A_EMMS;
     type
-
        tins_cache = array[A_MOV..last_instruction_in_cache] of longint;
-
     var
        ins_cache : tins_cache;
 
+{$ifndef NOITTABLE}
     const
        it : array[0..442] of ttemplate = (
          (i : A_MOV;ops : 2;oc : $a0;eb : ao_none;m : af_dw or NoModrm;o1 : ao_disp32;o2 : ao_acc;o3 : 0 ),
@@ -934,12 +940,14 @@ unit i386;
          (i : A_CPUID;ops : 0;oc : $0fa2;eb : ao_none;m : NoModrm;o1 : 0;o2 : 0;o3 : 0),
          (i : A_EMMS;ops : 0;oc : $0f77;eb : ao_none;m : NoModrm;o1 : 0;o2 : 0;o3 : 0),
          (i : A_NONE));
+{$endif NOITTABLE}
 
 {****************************************************************************
                             Assembler Mnemoics
 ****************************************************************************}
 
-     att_op2str : array[firstop..lastop] of string[7] =
+    const
+      att_op2str : array[firstop..lastop] of string[7] =
        ('mov','movz','movs','','add',
         'call','idiv','imul','jmp','lea','mul','neg','not',
         'pop','popal','push','pushal','ret','sub','xchg','xor',
@@ -1769,7 +1777,10 @@ unit i386;
 end.
 {
   $Log$
-  Revision 1.24  1998-12-20 16:21:24  peter
+  Revision 1.25  1998-12-28 15:49:03  peter
+    * no it table necessary if no asm parser is used
+
+  Revision 1.24  1998/12/20 16:21:24  peter
     * smartlinking doesn't crash anymore
 
   Revision 1.23  1998/12/19 00:23:49  florian
