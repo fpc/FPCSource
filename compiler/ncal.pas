@@ -75,6 +75,7 @@ interface
           _funcretnode    : tnode;
           procedure setfuncretnode(const returnnode: tnode);
           procedure convert_carg_array_of_const;
+          procedure order_parameters;
        public
           { the symbol containing the definition of the procedure }
           { to call                                               }
@@ -2335,6 +2336,68 @@ type
       end;
 
 
+    procedure tcallnode.order_parameters;
+      var
+        hp,hpcurr,hpnext,hpfirst,hpprev : tcallparanode;
+        currloc : tcgloc;
+      begin
+        hpfirst:=nil;
+        hpcurr:=tcallparanode(left);
+        while assigned(hpcurr) do
+          begin
+            { pull out }
+            hpnext:=tcallparanode(hpcurr.right);
+            { pull in at the correct place.
+              Used order:
+                1. LOC_REFERENCE with smallest offset (x86 only)
+                2. LOC_REFERENCE with most registers
+                3. LOC_REGISTER with most registers }
+            currloc:=hpcurr.paraitem.paraloc[callerside].loc;
+            hpprev:=nil;
+            hp:=hpfirst;
+            while assigned(hp) do
+              begin
+                case currloc of
+                  LOC_REFERENCE :
+                    begin
+                      case hp.paraitem.paraloc[callerside].loc of
+                        LOC_REFERENCE :
+                          begin
+                            if (hpcurr.registers32>hp.registers32)
+{$ifdef x86}
+                               or (hpcurr.paraitem.paraloc[callerside].reference.offset<hp.paraitem.paraloc[callerside].reference.offset)
+{$endif x86}
+                               then
+                              break;
+                          end;
+                        LOC_REGISTER,
+                        LOC_FPUREGISTER :
+                          break;
+                      end;
+                    end;
+                  LOC_FPUREGISTER,
+                  LOC_REGISTER :
+                    begin
+                      if (hp.paraitem.paraloc[callerside].loc=currloc) and
+                         (hpcurr.registers32>hp.registers32) then
+                        break;
+                    end;
+                end;
+                hpprev:=hp;
+                hp:=tcallparanode(hp.right);
+              end;
+            hpcurr.right:=hp;
+            if assigned(hpprev) then
+              hpprev.right:=hpcurr
+            else
+              hpfirst:=hpcurr;
+            { next }
+            hpcurr:=hpnext;
+          end;
+        left:=hpfirst;
+      end;
+
+
     function tcallnode.pass_1 : tnode;
 {$ifdef m68k}
       var
@@ -2345,9 +2408,23 @@ type
       begin
          result:=nil;
 
+         { calculate the parameter info for the procdef }
+         if not procdefinition.has_paraloc_info then
+           begin
+             paramanager.create_paraloc_info(procdefinition,callerside);
+             procdefinition.has_paraloc_info:=true;
+           end;
+
+         { calculate the parameter info for varargs }
+         if assigned(varargsparas) then
+           paramanager.create_varargs_paraloc_info(procdefinition,varargsparas);
+
          { work trough all parameters to get the register requirements }
          if assigned(left) then
            tcallparanode(left).det_registers;
+
+         { order parameters }
+         order_parameters;
 
          { function result node }
          if assigned(_funcretnode) then
@@ -2608,7 +2685,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.207  2003-11-10 22:02:52  peter
+  Revision 1.208  2003-11-23 17:05:15  peter
+    * register calling is left-right
+    * parameter ordering
+    * left-right calling inserts result parameter last
+
+  Revision 1.207  2003/11/10 22:02:52  peter
     * cross unit inlining fixed
 
   Revision 1.206  2003/11/10 19:09:29  peter

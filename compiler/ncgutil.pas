@@ -1391,28 +1391,30 @@ implementation
             if (not is_void(current_procinfo.procdef.rettype.def)) and
                (tvarsym(current_procinfo.procdef.funcretsym).refs>0) then
               begin
-                if tvarsym(current_procinfo.procdef.funcretsym).localloc.loc<>LOC_REFERENCE then
-                  internalerror(2003091812);
-                if paramanager.ret_in_param(current_procinfo.procdef.rettype.def,current_procinfo.procdef.proccalloption) then
+                if tvarsym(current_procinfo.procdef.funcretsym).localloc.loc=LOC_REFERENCE then
                   begin
-                    list.concat(Tai_stabs.Create(strpnew(
-                       '"'+current_procinfo.procdef.procsym.name+':X*'+tstoreddef(current_procinfo.procdef.rettype.def).numberstring+'",'+
-                       tostr(N_tsym)+',0,0,'+tostr(tvarsym(current_procinfo.procdef.funcretsym).localloc.reference.offset))));
-                    if (m_result in aktmodeswitches) then
-                      list.concat(Tai_stabs.Create(strpnew(
-                         '"RESULT:X*'+tstoreddef(current_procinfo.procdef.rettype.def).numberstring+'",'+
-                         tostr(N_tsym)+',0,0,'+tostr(tvarsym(current_procinfo.procdef.funcretsym).localloc.reference.offset))))
-                  end
-                else
-                  begin
-                    list.concat(Tai_stabs.Create(strpnew(
-                       '"'+current_procinfo.procdef.procsym.name+':X'+tstoreddef(current_procinfo.procdef.rettype.def).numberstring+'",'+
-                       tostr(N_tsym)+',0,0,'+tostr(tvarsym(current_procinfo.procdef.funcretsym).localloc.reference.offset))));
-                    if (m_result in aktmodeswitches) then
-                      list.concat(Tai_stabs.Create(strpnew(
-                         '"RESULT:X'+tstoreddef(current_procinfo.procdef.rettype.def).numberstring+'",'+
-                         tostr(N_tsym)+',0,0,'+tostr(tvarsym(current_procinfo.procdef.funcretsym).localloc.reference.offset))));
-                   end;
+{$warning Need to add gdb support for ret in param register calling}
+                    if paramanager.ret_in_param(current_procinfo.procdef.rettype.def,current_procinfo.procdef.proccalloption) then
+                      begin
+                        list.concat(Tai_stabs.Create(strpnew(
+                           '"'+current_procinfo.procdef.procsym.name+':X*'+tstoreddef(current_procinfo.procdef.rettype.def).numberstring+'",'+
+                           tostr(N_tsym)+',0,0,'+tostr(tvarsym(current_procinfo.procdef.funcretsym).localloc.reference.offset))));
+                        if (m_result in aktmodeswitches) then
+                          list.concat(Tai_stabs.Create(strpnew(
+                             '"RESULT:X*'+tstoreddef(current_procinfo.procdef.rettype.def).numberstring+'",'+
+                             tostr(N_tsym)+',0,0,'+tostr(tvarsym(current_procinfo.procdef.funcretsym).localloc.reference.offset))))
+                      end
+                    else
+                      begin
+                        list.concat(Tai_stabs.Create(strpnew(
+                           '"'+current_procinfo.procdef.procsym.name+':X'+tstoreddef(current_procinfo.procdef.rettype.def).numberstring+'",'+
+                           tostr(N_tsym)+',0,0,'+tostr(tvarsym(current_procinfo.procdef.funcretsym).localloc.reference.offset))));
+                        if (m_result in aktmodeswitches) then
+                          list.concat(Tai_stabs.Create(strpnew(
+                             '"RESULT:X'+tstoreddef(current_procinfo.procdef.rettype.def).numberstring+'",'+
+                             tostr(N_tsym)+',0,0,'+tostr(tvarsym(current_procinfo.procdef.funcretsym).localloc.reference.offset))));
+                       end;
+                  end;
               end;
             mangled_length:=length(current_procinfo.procdef.mangledname);
             getmem(p,2*mangled_length+50);
@@ -1976,7 +1978,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.168  2003-11-22 00:31:25  jonas
+  Revision 1.169  2003-11-23 17:05:15  peter
+    * register calling is left-right
+    * parameter ordering
+    * left-right calling inserts result parameter last
+
+  Revision 1.168  2003/11/22 00:31:25  jonas
     + extra allocations of function result regs for the optimiser
 
   Revision 1.167  2003/11/11 21:10:12  peter

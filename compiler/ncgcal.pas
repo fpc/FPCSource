@@ -291,11 +291,6 @@ implementation
                 (nf_varargs_para in flags)) then
            internalerror(200304242);
 
-         { push from left to right if specified }
-         if assigned(right) and
-            (aktcallnode.procdefinition.proccalloption in pushleftright_pocalls) then
-           tcallparanode(right).secondcallparan;
-
          { Skip nothingn nodes which are used after disabling
            a parameter }
          if (left.nodetype<>nothingn) then
@@ -393,9 +388,8 @@ implementation
                location_copy(aktcallnode.location,left.location);
            end;
 
-         { push from right to left }
-         if assigned(right) and
-            not(aktcallnode.procdefinition.proccalloption in pushleftright_pocalls) then
+         { next parameter }
+         if assigned(right) then
            tcallparanode(right).secondcallparan;
       end;
 
@@ -667,19 +661,9 @@ implementation
          end;
 
       begin
-         if not assigned(procdefinition) then
+         if not assigned(procdefinition) or
+            not procdefinition.has_paraloc_info then
            internalerror(200305264);
-
-         { calculate the parameter info for the procdef }
-         if not procdefinition.has_paraloc_info then
-           begin
-             paramanager.create_paraloc_info(procdefinition,callerside);
-             procdefinition.has_paraloc_info:=true;
-           end;
-
-         { calculate the parameter info for varargs }
-         if assigned(varargsparas) then
-           paramanager.create_varargs_paraloc_info(procdefinition,varargsparas);
 
          if resulttype.def.needs_inittable and
             not paramanager.ret_in_param(resulttype.def,procdefinition.proccalloption) and
@@ -1138,7 +1122,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.139  2003-11-10 22:02:52  peter
+  Revision 1.140  2003-11-23 17:05:15  peter
+    * register calling is left-right
+    * parameter ordering
+    * left-right calling inserts result parameter last
+
+  Revision 1.139  2003/11/10 22:02:52  peter
     * cross unit inlining fixed
 
   Revision 1.138  2003/11/07 15:58:32  florian

@@ -350,9 +350,7 @@ const
      pocall_cdecl,pocall_cppdecl,pocall_palmossyscall
    ];
 
-   pushleftright_pocalls = [
-     pocall_pascal
-   ];
+   pushleftright_pocalls : tproccalloptions = [pocall_register,pocall_pascal];
 
      SymTypeName : array[tsymtyp] of string[12] = (
        'abstractsym','variable','type','proc','unit',
@@ -374,10 +372,19 @@ const
 
 implementation
 
+initialization
+  if pocall_default in [pocall_register,pocall_internproc] then
+    include(pushleftright_pocalls,pocall_compilerproc);
+
 end.
 {
   $Log$
-  Revision 1.70  2003-11-07 15:58:32  florian
+  Revision 1.71  2003-11-23 17:05:16  peter
+    * register calling is left-right
+    * parameter ordering
+    * left-right calling inserts result parameter last
+
+  Revision 1.70  2003/11/07 15:58:32  florian
     * Florian's culmutative nr. 1; contains:
       - invalid calling conventions for a certain cpu are rejected
       - arm softfloat calling conventions

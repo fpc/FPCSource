@@ -113,7 +113,11 @@ implementation
            include(vs.varoptions,vo_is_funcret);
            include(vs.varoptions,vo_regable);
            pd.parast.insert(vs);
-           pd.insertpara(vs.vartype,vs,nil,true);
+           { For left to right add it at the end to be delphi compatible }
+           if pd.proccalloption in pushleftright_pocalls then
+             pd.concatpara(nil,vs.vartype,vs,nil,true)
+           else
+             pd.insertpara(vs.vartype,vs,nil,true);
            { Store the this symbol as funcretsym for procedures }
            if pd.deftype=procdef then
             tprocdef(pd).funcretsym:=vs;
@@ -1773,9 +1777,6 @@ const
         { insert parentfp parameter if required }
         insert_parentfp_para(pd);
 
-        if pd.proccalloption=pocall_pascal then
-          tparaitem(pd.para.first):=reverseparaitems(tparaitem(pd.para.first));
-
         currpara:=tparaitem(pd.para.first);
         while assigned(currpara) do
          begin
@@ -2151,7 +2152,12 @@ const
 end.
 {
   $Log$
-  Revision 1.154  2003-11-12 15:49:06  peter
+  Revision 1.155  2003-11-23 17:05:15  peter
+    * register calling is left-right
+    * parameter ordering
+    * left-right calling inserts result parameter last
+
+  Revision 1.154  2003/11/12 15:49:06  peter
     * virtual conflicts with override
 
   Revision 1.153  2003/11/10 19:09:29  peter

@@ -608,6 +608,7 @@ implementation
         oldaktmaxfpuregisters:=aktmaxfpuregisters;
 
         current_procinfo:=self;
+        aktfilepos:=entrypos;
 
         { get new labels }
         aktbreaklabel:=nil;
@@ -1314,7 +1315,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.172  2003-11-22 00:40:19  jonas
+  Revision 1.173  2003-11-23 17:05:16  peter
+    * register calling is left-right
+    * parameter ordering
+    * left-right calling inserts result parameter last
+
+  Revision 1.172  2003/11/22 00:40:19  jonas
     * fixed optimiser so it compiles again
     * fixed several bugs which were in there already for a long time, but
       which only popped up now :) -O2/-O3 will now optimise less than in

@@ -186,11 +186,22 @@ implementation
                   the symbols of the types }
                 oldsymtablestack:=symtablestack;
                 symtablestack:=symtablestack.next;
-                read_type(tt,'',true);
+                read_type(tt,'',false);
                 symtablestack:=oldsymtablestack;
               end
              else
-              read_type(tt,'',true);
+              read_type(tt,'',false);
+             { Process procvar directives }
+             if (tt.def.deftype=procvardef) and
+                (tt.def.typesym=nil) and
+                is_proc_directive(token,true) then
+               begin
+                  newtype:=ttypesym.create('unnamed',tt);
+                  parse_var_proc_directives(tsym(newtype));
+                  newtype.restype.def:=nil;
+                  tt.def.typesym:=nil;
+                  newtype.free;
+               end;
              { types that use init/final are not allowed in variant parts, but
                classes are allowed }
              if (variantrecordlevel>0) and
@@ -373,10 +384,11 @@ implementation
                      consume(_SEMICOLON);
                    end;
                end;
-             { Parse procvar directives after ; }
+             { Add calling convention for procvars }
              if (tt.def.deftype=procvardef) and
                 (tt.def.typesym=nil) then
                begin
+                 { Parse procvar directives after ; }
                  if is_proc_directive(token,true) then
                    begin
                      newtype:=ttypesym.create('unnamed',tt);
@@ -387,7 +399,8 @@ implementation
                    end;
                  { Add calling convention for procvar }
                  handle_calling_convention(tprocvardef(tt.def));
-              end;
+                 calc_parast(tprocvardef(tt.def));
+               end;
              { Check for variable directives }
              if not symdone and (token=_ID) then
               begin
@@ -646,7 +659,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.57  2003-10-28 15:36:01  peter
+  Revision 1.58  2003-11-23 17:05:15  peter
+    * register calling is left-right
+    * parameter ordering
+    * left-right calling inserts result parameter last
+
+  Revision 1.57  2003/10/28 15:36:01  peter
     * absolute to object field supported, fixes tb0458
 
   Revision 1.56  2003/10/05 12:55:37  peter

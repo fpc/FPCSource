@@ -1124,11 +1124,17 @@ implementation
              currpara:=tparaitem(currpara.next);
             if assigned(currpara) then
              begin
-               if (currpara.next=nil) and
-                  equal_defs(currpara.paratype.def,firstpara) then
+               if equal_defs(currpara.paratype.def,firstpara) then
                  begin
-                   search_procdef_unary_operator:=pd^.def;
-                   break;
+                   { This must be the last not hidden parameter }
+                   currpara:=tparaitem(currpara.next);
+                   while assigned(currpara) and (currpara.is_hidden) do
+                     currpara:=tparaitem(currpara.next);
+                   if currpara=nil then
+                     begin
+                       search_procdef_unary_operator:=pd^.def;
+                       break;
+                     end;
                  end;
              end;
             pd:=pd^.next;
@@ -2683,7 +2689,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.134  2003-10-30 16:23:13  peter
+  Revision 1.135  2003-11-23 17:05:16  peter
+    * register calling is left-right
+    * parameter ordering
+    * left-right calling inserts result parameter last
+
+  Revision 1.134  2003/10/30 16:23:13  peter
     * don't search for overloads in parents for constructors
 
   Revision 1.133  2003/10/29 21:56:28  peter

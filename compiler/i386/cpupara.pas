@@ -327,19 +327,50 @@ unit cpupara;
               paraloc.size:=def_cgsize(hp.paratype.def);
             paraloc.loc:=LOC_REFERENCE;
             paraloc.alignment:=paraalign;
-            paraloc.reference.index:=NR_FRAME_POINTER_REG;
+            if side=callerside then
+              paraloc.reference.index:=NR_STACK_POINTER_REG
+            else
+              paraloc.reference.index:=NR_FRAME_POINTER_REG;
             l:=push_size(hp.paratyp,hp.paratype.def,p.proccalloption);
-            varalign:=size_2_align(l);
-            paraloc.reference.offset:=parasize+target_info.first_parm_offset;
-            varalign:=used_align(varalign,paraalign,paraalign);
+            varalign:=used_align(size_2_align(l),paraalign,paraalign);
+            paraloc.reference.offset:=parasize;
             parasize:=align(parasize+l,varalign);
-            if (side=callerside) then
-              begin
-                paraloc.reference.index:=NR_STACK_POINTER_REG;
-                dec(paraloc.reference.offset,POINTER_SIZE);
-              end;
             hp.paraloc[side]:=paraloc;
             hp:=tparaitem(hp.next);
+          end;
+        { Adapt offsets, for right-to-left calling we need to reverse the
+          offsets for the caller. For left-to-right calling we need to
+          reverse the offsets in the callee }
+        if (side=callerside) then
+          begin
+            if not(p.proccalloption in pushleftright_pocalls) then
+              begin
+                hp:=tparaitem(p.para.first);
+                while assigned(hp) do
+                  begin
+                    l:=push_size(hp.paratyp,hp.paratype.def,p.proccalloption);
+                    varalign:=used_align(size_2_align(l),paraalign,paraalign);
+                    l:=align(l,varalign);
+                    hp.paraloc[side].reference.offset:=parasize-hp.paraloc[side].reference.offset-l;
+                    hp:=tparaitem(hp.next);
+                  end;
+              end;
+          end
+        else
+          begin
+            hp:=tparaitem(p.para.first);
+            while assigned(hp) do
+              begin
+                if (p.proccalloption in pushleftright_pocalls) then
+                  begin
+                    l:=push_size(hp.paratyp,hp.paratype.def,p.proccalloption);
+                    varalign:=used_align(size_2_align(l),paraalign,paraalign);
+                    l:=align(l,varalign);
+                    hp.paraloc[side].reference.offset:=parasize-hp.paraloc[side].reference.offset-l;
+                  end;
+                inc(hp.paraloc[side].reference.offset,target_info.first_parm_offset);
+                hp:=tparaitem(hp.next);
+              end;
           end;
         { We need to return the size allocated }
         result:=parasize;
@@ -385,6 +416,7 @@ unit cpupara;
             if (parareg<=high(parasupregs)) and
                not(
                    is_64bit or
+                   (hp.paratype.def.deftype=floatdef) or
                    ((hp.paratype.def.deftype in [floatdef,recorddef,arraydef]) and
                     (not pushaddr))
                   ) then
@@ -401,21 +433,36 @@ unit cpupara;
             else
               begin
                 paraloc.loc:=LOC_REFERENCE;
-                paraloc.reference.index:=NR_FRAME_POINTER_REG;
+                if side=callerside then
+                  paraloc.reference.index:=NR_STACK_POINTER_REG
+                else
+                  paraloc.reference.index:=NR_FRAME_POINTER_REG;
                 l:=push_size(hp.paratyp,hp.paratype.def,p.proccalloption);
                 varalign:=size_2_align(l);
-                paraloc.reference.offset:=parasize+target_info.first_parm_offset;
+                paraloc.reference.offset:=parasize;
                 varalign:=used_align(varalign,paraalign,paraalign);
                 parasize:=align(parasize+l,varalign);
               end;
-            if (side=callerside) and
-               (paraloc.loc=LOC_REFERENCE) then
-              begin
-                paraloc.reference.index:=NR_STACK_POINTER_REG;
-                dec(paraloc.reference.offset,POINTER_SIZE);
-              end;
             hp.paraloc[side]:=paraloc;
             hp:=tparaitem(hp.next);
+          end;
+        { Register parameters are assigned from left-to-right, adapt offset
+          for calleeside to be reversed }
+        if (side=calleeside) then
+          begin
+            hp:=tparaitem(p.para.first);
+            while assigned(hp) do
+              begin
+                if (hp.paraloc[side].loc=LOC_REFERENCE) then
+                  begin
+                    l:=push_size(hp.paratyp,hp.paratype.def,p.proccalloption);
+                    varalign:=used_align(size_2_align(l),paraalign,paraalign);
+                    l:=align(l,varalign);
+                    hp.paraloc[side].reference.offset:=parasize-hp.paraloc[side].reference.offset-l+
+                        target_info.first_parm_offset;
+                  end;
+                hp:=tparaitem(hp.next);
+              end;
           end;
         { We need to return the size allocated }
         result:=parasize;
@@ -450,7 +497,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.43  2003-11-11 21:11:23  peter
+  Revision 1.44  2003-11-23 17:05:16  peter
+    * register calling is left-right
+    * parameter ordering
+    * left-right calling inserts result parameter last
+
+  Revision 1.43  2003/11/11 21:11:23  peter
     * check for push_addr
 
   Revision 1.42  2003/10/19 01:34:30  florian
