@@ -108,6 +108,8 @@ type
     Constructor Create(APort: Word);
     Property Port : Word Read FPort;
   end;
+  
+{$ifndef win32}
 
   TUnixServer = Class(TSocketServer)
   Private
@@ -122,6 +124,7 @@ type
     Constructor Create(AFileName : String);
     Property FileName : String Read FFileName;
   end;
+{$endif}
 
   TInetSocket = Class(TSocketStream)
   Private
@@ -136,6 +139,7 @@ type
     Property Port : Word Read FPort;
   end;
 
+{$ifndef win32}
   TUnixSocket = Class(TSocketStream)
   Private
     FFileName : String;
@@ -146,6 +150,7 @@ type
     Constructor Create(AFileName : String); {$ifndef ver1_0}Overload;{$endif}
     Property FileName : String Read FFileName;
   end;
+{$endif}
 
 Implementation
 
@@ -348,7 +353,9 @@ end;
 Procedure TSocketServer.SetNonBlocking;
 
 begin
+{$ifndef win32}
   fcntl(FSocket,F_SETFL,OPEN_NONBLOCK);
+{$endif}
   FNonBlocking:=True;
 end;
 
@@ -397,16 +404,18 @@ begin
   L:=SizeOf(FAddr);
   Result:=Sockets.Accept(Socket,Faddr,L);
   If Result<0 then
+{$ifndef win32}
     If SocketError={$ifdef ver1_0}Sys_EWOULDBLOCK{$else}ESysEWOULDBLOCK{$endif} then
       Raise ESocketError.Create(seAcceptWouldBlock,[socket])
     else
+{$endif}
       Raise ESocketError.Create(seAcceptFailed,[socket]);
 end;
 
 { ---------------------------------------------------------------------
     TUnixServer
   ---------------------------------------------------------------------}
-
+{$ifndef win32}
 Constructor TUnixServer.Create(AFileName : String);
 
 Var S : Longint;
@@ -459,6 +468,7 @@ begin
   (Result as TUnixSocket).FFileName:=FFileName;
 end;
 
+{$endif}
 
 { ---------------------------------------------------------------------
     TInetSocket
@@ -509,7 +519,7 @@ end;
 { ---------------------------------------------------------------------
     TUnixSocket
   ---------------------------------------------------------------------}
-
+{$ifndef win32}
 Constructor TUnixSocket.Create(ASocket : Longint);
 
 begin
@@ -537,12 +547,15 @@ begin
   If Not Connect(ASocket,UnixAddr,AddrLen) then
     Raise ESocketError.Create(seConnectFailed,[FFilename]);
 end;
-
+{$endif}
 end.
 
 {
   $Log$
-  Revision 1.16  2003-03-10 21:42:39  michael
+  Revision 1.17  2003-03-11 13:15:40  michael
+  + Initial version working on Win32. Needs some further work
+
+  Revision 1.16  2003/03/10 21:42:39  michael
   + TSocketStream now uses recv/sendto instead of read/write
 
   Revision 1.15  2003/03/07 20:57:09  michael
