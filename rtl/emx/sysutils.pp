@@ -864,6 +864,7 @@ asm
     stosw
     xor eax, eax
     mov al, dl
+    imul 10
     shl eax, 16
     mov al, dh
     stosd
@@ -986,7 +987,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2003-04-04 02:02:44  yuri
+  Revision 1.6  2003-06-06 23:31:55  hajny
+    * fix for bug 2518 applied to EMX as well
+
+  Revision 1.5  2003/04/04 02:02:44  yuri
   * THandle added
 
   Revision 1.4  2003/04/02 21:06:41  hajny
