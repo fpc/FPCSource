@@ -56,12 +56,12 @@ end;
 
 function wexitstatus(status : cint): cint;
 begin
- wexitstatus:=(status and &177) shl 8;
+ wexitstatus:=(status and &177) shr 8;
 end;
 
 function wstopsig(status : cint): cint;
 begin
- wstopsig:=(status and &177) shl 8;
+ wstopsig:=(status and &177) shr 8;
 end;
 
 const wstopped=&177;
@@ -79,7 +79,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2002-10-26 18:27:51  marco
+  Revision 1.4  2002-11-12 14:19:46  marco
+   * fixes to macro
+
+  Revision 1.3  2002/10/26 18:27:51  marco
    * First series POSIX calls commits. Including getcwd.
 
   Revision 1.2  2002/09/07 16:01:17  peter
