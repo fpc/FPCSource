@@ -222,6 +222,12 @@ implementation
                    { we should check the result type of srsym }
                    if not (tloadnode(pt).symtableentry.typ in [varsym,typedconstsym,funcretsym]) then
                      Message(parser_e_absolute_only_to_var_or_const);
+                   abssym:=tabsolutesym.create(vs.realname,tt);
+                   abssym.fileinfo:=vs.fileinfo;
+                   abssym.abstyp:=tovar;
+                   abssym.ref:=tstoredsym(tloadnode(pt).symtableentry);
+                   symtablestack.replace(vs,abssym);
+                   vs.free;
                    { the variable cannot be put into a register
                      if the size definition is not the same.
                    }
@@ -232,12 +238,6 @@ implementation
                           tvarsym(tloadnode(pt).symtableentry).varoptions:=
                           tvarsym(tloadnode(pt).symtableentry).varoptions-[vo_regable,vo_fpuregable]
                      end;
-                   abssym:=tabsolutesym.create(vs.realname,tt);
-                   abssym.fileinfo:=vs.fileinfo;
-                   abssym.abstyp:=tovar;
-                   abssym.ref:=tstoredsym(tloadnode(pt).symtableentry);
-                   symtablestack.replace(vs,abssym);
-                   vs.free;
                  end
                 { funcret }
                 else if (pt.nodetype=funcretn) then
@@ -567,7 +567,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.34  2002-10-03 21:22:01  carl
+  Revision 1.35  2002-10-04 20:53:05  carl
+    * bugfix of crash
+
+  Revision 1.34  2002/10/03 21:22:01  carl
     * don't make the vars regable if they are absolute and their definitions
       are not the same.
 
