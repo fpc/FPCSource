@@ -499,8 +499,8 @@ begin
   { anything...                           }
   if Assigned(ModeList) then
     exit;
-  SaveVideoState:=ggi_savevideostate;
-  RestoreVideoState:=ggi_restorevideostate;
+  SaveVideoState:=@ggi_savevideostate;
+  RestoreVideoState:=@ggi_restorevideostate;
 
   If ggiInit <> 0 then begin
     _graphresult := grNoInitGraph;
@@ -534,7 +534,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.3  2001-01-21 20:21:40  marco
+  Revision 1.4  2001-04-13 23:49:48  peter
+    * fixes for the stricter compiler
+
+  Revision 1.3  2001/01/21 20:21:40  marco
    * Rename fest II. Rtl OK
 
   Revision 1.2  2000/09/18 13:14:50  marco
@@ -542,5 +545,5 @@ end.
 
   Revision 1.2  2000/07/13 11:33:48  michael
   + removed logs
- 
+
 }

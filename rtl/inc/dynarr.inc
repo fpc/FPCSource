@@ -29,7 +29,7 @@ type
    { to calculate memory requirements       }
    pdynarray = ^tdynarray;
    tdynarray = packed record
-      refcount : dword;
+      refcount : longint;
       high : tdynarrayindex;
    end;
 
@@ -202,7 +202,10 @@ function dynarray_copy(var p : pointer;ti : pdynarraytypeinfo;
 
 {
   $Log$
-  Revision 1.5  2000-12-01 23:30:00  florian
+  Revision 1.6  2001-04-13 23:49:48  peter
+    * fixes for the stricter compiler
+
+  Revision 1.5  2000/12/01 23:30:00  florian
     * fixed some bugs in setlength
 
   Revision 1.4  2000/11/12 23:23:34  florian

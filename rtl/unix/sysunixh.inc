@@ -32,7 +32,7 @@ const
   StdOutputHandle = 1;
   StdErrorHandle  = 2;
 
-  FileNameCaseSensitive : boolean = false;
+  FileNameCaseSensitive : boolean = true;
 
   sLineBreak : string[1] = #10;
   DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsLF;
@@ -44,7 +44,10 @@ var
 
 {
   $Log$
-  Revision 1.6  2001-04-13 22:30:55  peter
+  Revision 1.7  2001-04-13 23:49:49  peter
+    * fixes for the stricter compiler
+
+  Revision 1.6  2001/04/13 22:30:55  peter
     * added filenamecasesensitive var
 
   Revision 1.5  2001/03/22 21:56:27  florian

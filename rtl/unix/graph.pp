@@ -525,8 +525,8 @@ end;
      { anything...                           }
      if assigned(ModeList) then
        exit;
-     SaveVideoState:=libvga_savevideostate;
-     RestoreVideoState:=libvga_restorevideostate;
+     SaveVideoState:=@libvga_savevideostate;
+     RestoreVideoState:=@libvga_restorevideostate;
      vga_init;
      For I:=0 to GLastMode do
        begin
@@ -598,7 +598,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.4  2001-01-21 20:21:40  marco
+  Revision 1.5  2001-04-13 23:49:48  peter
+    * fixes for the stricter compiler
+
+  Revision 1.4  2001/01/21 20:21:40  marco
    * Rename fest II. Rtl OK
 
   Revision 1.3  2000/10/12 09:38:34  peter
@@ -616,5 +619,5 @@ end.
 
   Revision 1.2  2000/07/13 11:33:48  michael
   + removed logs
- 
+
 }

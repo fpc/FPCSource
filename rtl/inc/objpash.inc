@@ -47,28 +47,28 @@
     type
        { now the let's declare the base classes for the class object }
        { model                                                       }
-       tobject = class;
-       tclass  = class of tobject;
-       pclass  = ^tclass;
+       TObject = class;
+       TClass  = class of tobject;
+       PClass  = ^tclass;
 
 
        { to access the message table from outside }
-       tmsgstrtable = record
+       TMsgStrTable = record
           name : pshortstring;
           method : pointer;
        end;
 
-       pmsgstrtable = ^tmsgstrtable;
+       PMsgStrTable = ^TMsgStrTable;
 
-       tstringmessagetable = record
+       TStringMessageTable = record
           count : dword;
           msgstrtable : array[0..0] of tmsgstrtable;
        end;
 
        pstringmessagetable = ^tstringmessagetable;
 
-       pguid = ^tguid;
-       tguid = packed record
+       PGuid = ^TGuid;
+       TGuid = packed record
           case integer of
              1 : (
                   Data1 : DWord;
@@ -98,38 +98,38 @@
          Entries: array[0..0] of tinterfaceentry;
        end;
 
-       tobject = class
+       TObject = class
        public
           { please don't change the order of virtual methods, because      }
           { their vmt offsets are used by some assembler code which uses   }
           { hard coded addresses      (FK)                                 }
-          constructor create;
+          constructor Create;
           { the virtual procedures must be in THAT order }
-          destructor destroy;virtual;
+          destructor Destroy;virtual;
           class function newinstance : tobject;virtual;
-          procedure freeinstance;virtual;
-          function safecallexception(exceptobject : tobject;
+          procedure FreeInstance;virtual;
+          function SafeCallException(exceptobject : tobject;
             exceptaddr : pointer) : longint;virtual;
-          procedure defaulthandler(var message);virtual;
+          procedure DefaultHandler(var message);virtual;
 
-          procedure free;
-          class function initinstance(instance : pointer) : tobject;
-          procedure cleanupinstance;
-          function classtype : tclass;
-          class function classinfo : pointer;
-          class function classname : shortstring;
-          class function classnameis(const name : string) : boolean;
-          class function classparent : tclass;
-          class function instancesize : longint;
-          class function inheritsfrom(aclass : tclass) : boolean;
-          class function stringmessagetable : pstringmessagetable;
+          procedure Free;
+          class function InitInstance(instance : pointer) : tobject;
+          procedure CleanupInstance;
+          function ClassType : tclass;
+          class function ClassInfo : pointer;
+          class function ClassName : shortstring;
+          class function ClassNameIs(const name : string) : boolean;
+          class function ClassParent : tclass;
+          class function InstanceSize : longint;
+          class function InheritsFrom(aclass : tclass) : boolean;
+          class function StringMessageTable : pstringmessagetable;
           { message handling routines }
-          procedure dispatch(var message);
-          procedure dispatchstr(var message);
+          procedure Dispatch(var message);
+          procedure DispatchStr(var message);
 
-          class function methodaddress(const name : shortstring) : pointer;
-          class function methodname(address : pointer) : shortstring;
-          function fieldaddress(const name : shortstring) : pointer;
+          class function MethodAddress(const name : shortstring) : pointer;
+          class function MethodName(address : pointer) : shortstring;
+          function FieldAddress(const name : shortstring) : pointer;
 
           { new since Delphi 4 }
           procedure AfterConstruction;virtual;
@@ -140,11 +140,11 @@
 
 {$ifdef HASINTF}
           { interface functions }
-          function getinterface(const iid : tguid; out obj) : boolean;
-          function getinterfacebystr(const iidstr : string; out obj) : boolean;
-          class function getinterfaceentry(const iid : tguid) : pinterfaceentry;
-          class function getinterfaceentrybystr(const iidstr : string) : pinterfaceentry;
-          class function getinterfacetable : pinterfacetable;
+          function GetInterface(const iid : tguid; out obj) : boolean;
+          function GetInterfaceByStr(const iidstr : string; out obj) : boolean;
+          class function GetInterfaceEntry(const iid : tguid) : pinterfaceentry;
+          class function GetInterfaceEntryByStr(const iidstr : string) : pinterfaceentry;
+          class function GetInterfaceTable : pinterfacetable;
 {$endif HASINTF}
        end;
 
@@ -279,7 +279,10 @@
        end;
 {
   $Log$
-  Revision 1.10  2001-04-04 17:56:45  florian
+  Revision 1.11  2001-04-13 23:49:48  peter
+    * fixes for the stricter compiler
+
+  Revision 1.10  2001/04/04 17:56:45  florian
     * TGUID definition from win32/wininc/struct.inc copied
 
   Revision 1.9  2001/03/22 23:26:37  florian

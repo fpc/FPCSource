@@ -349,7 +349,7 @@ end;
    { instead of doing this, but I'm lazy!! And anyways, the   }
    { speed of the routine here is not that important....      }
     var
-     i: word;
+     i: smallint;
      mode: PModeInfo;
     begin
       mode:=nil;
@@ -592,7 +592,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  2000-08-12 12:27:14  jonas
+  Revision 1.5  2001-04-13 23:49:48  peter
+    * fixes for the stricter compiler
+
+  Revision 1.4  2000/08/12 12:27:14  jonas
     + setallpalette hook
     + setallpalette implemented for standard vga and VESA 2.0+
 
