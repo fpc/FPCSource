@@ -880,7 +880,8 @@ var
   procedure WriteString(s: String);
   begin
     Output.WriteByte(Length(s));
-    Output.Write(s[1], Length(s));
+    if Length(s) > 0 then
+      Output.Write(s[1], Length(s));
   end;
 
   procedure WriteInteger(value: LongInt);
@@ -1189,7 +1190,12 @@ end;
 
 {
   $Log$
-  Revision 1.10  2002-09-07 15:15:24  peter
+  Revision 1.11  2002-12-02 12:04:07  sg
+  * Fixed handling of zero-length strings (classes.inc: When converting
+    empty strings from text forms to binary forms; reader.inc: When reading
+    an empty string from a binary serialization)
+
+  Revision 1.10  2002/09/07 15:15:24  peter
     * old logs removed and tabs fixed
 
   Revision 1.9  2002/07/16 13:32:51  florian

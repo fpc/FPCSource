@@ -194,7 +194,8 @@ var
 begin
   Read(i, 1);
   SetLength(Result, i);
-  Read(Pointer(@Result[1])^, i);
+  if i > 0 then
+    Read(Pointer(@Result[1])^, i);
 end;
 
 function TBinaryObjectReader.ReadString(StringType: TValueType): String;
@@ -1267,7 +1268,12 @@ end;
 
 {
   $Log$
-  Revision 1.6  2002-09-07 15:15:25  peter
+  Revision 1.7  2002-12-02 12:04:07  sg
+  * Fixed handling of zero-length strings (classes.inc: When converting
+    empty strings from text forms to binary forms; reader.inc: When reading
+    an empty string from a binary serialization)
+
+  Revision 1.6  2002/09/07 15:15:25  peter
     * old logs removed and tabs fixed
 
 }
