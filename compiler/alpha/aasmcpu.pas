@@ -285,7 +285,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2002-09-07 15:25:10  peter
+  Revision 1.1  2002-09-29 22:34:17  florian
+    * cpuasm renamed to aasmcpu
+
+  Revision 1.2  2002/09/07 15:25:10  peter
     * old logs removed and tabs fixed
 
   Revision 1.1  2002/08/18 09:06:54  florian
