@@ -1226,6 +1226,7 @@ begin
   def_symbol('CARDINALMULFIXED');
 {$endif cardinalmulfix}
   def_symbol('CORRECTFLDCW');
+  def_symbol('ENHANCEDRAISE');
 
 { some stuff for TP compatibility }
 {$ifdef i386}
@@ -1450,7 +1451,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.65  2000-04-10 11:36:19  pierre
+  Revision 1.66  2000-04-24 13:34:29  peter
+    * added enhancedraise define
+
+  Revision 1.65  2000/04/10 11:36:19  pierre
    * get -g-l to work
 
   Revision 1.64  2000/04/07 14:56:18  peter

@@ -260,7 +260,7 @@ begin
   else
    E:=Exception.CreateFmt (SUnKnownRunTimeError,[Errno]);
   end;
-  Raise E at longint(Address),longint(Frame);
+  Raise E at longint(Address){$ifdef ENHANCEDRAISE},longint(Frame){$endif};
 end;
 
 
@@ -306,11 +306,8 @@ Finalization
 end.
 {
     $Log$
-    Revision 1.44  2000-04-24 11:11:50  peter
-      * backtraces for exceptions are now only generated from the place of the
-        exception
-      * frame is also pushed for exceptions
-      * raise statement enhanced with [,<frame>]
+    Revision 1.45  2000-04-24 13:34:29  peter
+      * added enhancedraise define
 
     Revision 1.43  2000/03/30 13:54:15  pierre
      No stack check inside CatchUnhandledException
