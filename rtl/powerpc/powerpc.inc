@@ -526,9 +526,9 @@ asm
         b         .LFillCharVerySmall
 .LFillCharNoZero:
 {$ifdef FPC_ABI_AIX}
-        stw       r5,0(r1)
-        stw       r5,4(r1)
-        lfd       f0,0(r1)
+        stw       r5,-4(r1)
+        stw       r5,-8(r1)
+        lfd       f0,-8(r1)
 {$else FPC_ABI_AIX}
         stw       r5,temp
         stw       r5,temp+4
@@ -1140,7 +1140,10 @@ end;
 
 {
   $Log$
-  Revision 1.70  2004-10-24 14:20:21  jonas
+  Revision 1.71  2004-10-24 14:43:26  jonas
+    * fixed redzone usage in fillchar
+
+  Revision 1.70  2004/10/24 14:20:21  jonas
     * fixed default rounding mode
 
   Revision 1.69  2004/10/19 18:51:15  jonas
