@@ -523,22 +523,31 @@ implementation
     { true if a parameter is too large to copy and only the address is pushed }
     function push_addr_param(def : pdef) : boolean;
       begin
-         push_addr_param:=never_copy_const_param or
-           (def^.deftype = formaldef) or
-           { copy directly small records or arrays unless array of const ! PM }
-           ((def^.deftype=recorddef) and (def^.size>4)) or
-           ((def^.deftype=arraydef) and
-            ((Parraydef(def)^.highrange<Parraydef(def)^.lowrange) or
-             (def^.size>4) or
-             parraydef(def)^.IsConstructor or
-             parraydef(def)^.isArrayOfConst or
-             is_open_array(def)
-            )
-           ) or
-           ((def^.deftype=objectdef) and not(pobjectdef(def)^.is_class)) or
-           ((def^.deftype=stringdef) and (pstringdef(def)^.string_typ in [st_shortstring,st_longstring])) or
-           ((def^.deftype=procvardef) and (po_methodpointer in pprocvardef(def)^.procoptions)) or
-           ((def^.deftype=setdef) and (psetdef(def)^.settype<>smallset));
+        push_addr_param:=false;
+        if never_copy_const_param then
+         push_addr_param:=true
+        else
+         begin
+           case def^.deftype of
+             formaldef :
+               push_addr_param:=true;
+             recorddef :
+               push_addr_param:=(def^.size>4);
+             arraydef :
+               push_addr_param:=((Parraydef(def)^.highrange>Parraydef(def)^.lowrange) and (def^.size>4)) or
+                                is_open_array(def) or
+                                is_array_of_const(def) or
+                                is_array_constructor(def);
+             objectdef :
+               push_addr_param:=not(pobjectdef(def)^.is_class);
+             stringdef :
+               push_addr_param:=pstringdef(def)^.string_typ in [st_shortstring,st_longstring];
+             procvardef :
+               push_addr_param:=(po_methodpointer in pprocvardef(def)^.procoptions);
+             setdef :
+               push_addr_param:=(psetdef(def)^.settype<>smallset);
+           end;
+         end;
       end;
 
     { test if l is in the range of def, outputs error if out of range }
@@ -972,7 +981,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.84  1999-08-13 15:38:23  peter
+  Revision 1.85  1999-08-13 21:27:08  peter
+    * more fixes for push_addr
+
+  Revision 1.84  1999/08/13 15:38:23  peter
     * fixed push_addr_param for records < 4, the array high<low range check
       broke this code.
 
