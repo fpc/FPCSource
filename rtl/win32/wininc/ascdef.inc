@@ -361,7 +361,7 @@ uses
 
   function GetClassInfo(hInstance:HINST; lpClassName:LPCSTR; lpWndClass:LPWNDCLASS):WINBOOL;
 
-  function GetClassInfo(hInstance:HINST; lpClassName:LPCSTR; var WndClass:WNDCLASS):WINBOOL;
+  function GetClassInfo(hInstance:HINST; lpClassName:LPCSTR; var WndClass:TWNDCLASS):WINBOOL;
 
   function RegisterClassEx(var _para1:WNDCLASSEX):ATOM;
 
@@ -1838,7 +1838,10 @@ end.
 {$endif not windows_include_files}
 {
   $Log$
-  Revision 1.3  1999-11-05 09:53:02  pierre
+  Revision 1.4  1999-11-21 01:39:26  pierre
+   * used TWNDCLASS in interface and WNDCLASS in implementation
+
+  Revision 1.3  1999/11/05 09:53:02  pierre
    + some overloaded functions for Delphi compatibility
 
   Revision 1.2  1999/09/28 22:29:59  peter
