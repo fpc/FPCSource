@@ -854,8 +854,8 @@ begin
             Message(parser_w_inlining_disabled);
             aktprocdef.proccalloption:=pocall_fpccall;
           end;
-        hp:=tparaitem(hp.next);
       end;
+     hp:=tparaitem(hp.next);
    end;
 end;
 
@@ -2059,7 +2059,10 @@ const
 end.
 {
   $Log$
-  Revision 1.78  2002-11-15 01:58:53  peter
+  Revision 1.79  2002-11-16 14:20:50  peter
+    * fix infinite loop in pd_inline
+
+  Revision 1.78  2002/11/15 01:58:53  peter
     * merged changes from 1.0.7 up to 04-11
       - -V option for generating bug report tracing
       - more tracing for option parsing
