@@ -15,7 +15,7 @@ units=$(SYSTEMUNIT) unixtype ctypes baseunix strings objpas macpas syscall unixu
       charset ucomplex getopts \
       errors sockets gpm ipc serial terminfo dl dynlibs \
       video mouse keyboard variants types dateutils sysconst \
-      cthreads classes strutils rtlconsts dos objects
+      cthreads classes strutils rtlconsts dos objects legacymem
 
 rsts=math varutils typinfo variants sysconst rtlconsts
 
@@ -290,3 +290,5 @@ cthreads$(PPUEXT) : $(UNIXINC)/cthreads.pp $(SYSTEMUNIT)$(PPUEXT)
 gpm$(PPUEXT): gpm.pp unix$(PPUEXT) baseunix$(PPUEXT) sockets$(PPUEXT)
 
 ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
+
+legacymem$(PPUEXT) :  $(INC)/legacymem.pp sysutils$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)

@@ -15,7 +15,7 @@ units=$(SYSTEMUNIT) unixtype ctypes objpas macpas strings sysctl baseunix unixut
       charset ucomplex getopts heaptrc lineinfo \
       errors terminfo termio video crt mouse keyboard console \
       variants types sysctl dateutils \
-      sysconst cthreads strutils rtlconsts
+      sysconst cthreads strutils rtlconsts legacymem
 
 rsts=math varutils typinfo classes variants dateutils sysconst rtlconsts
 
@@ -263,3 +263,5 @@ initc$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT)
 console$(PPUEXT) : baseunix$(PPUEXT) termio$(PPUEXT)
 
 ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
+
+legacymem$(PPUEXT) :  $(INC)/legacymem.pp sysutils$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
