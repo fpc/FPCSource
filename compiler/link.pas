@@ -308,10 +308,9 @@ Var
   begin
     if s<>'' then
      begin
-       if (pos('\',s)=0) and (pos('/',s)=0) then
-         WriteLn(Linkresponse,'.'+DirSep+s)
-       else
-         WriteLn(Linkresponse,s);
+       if not(s[1] in ['a'..'z','A'..'Z','/','\']) then
+         Write(Linkresponse,'.',DirSep);
+       WriteLn(Linkresponse,s);
      end;
   end;
 
@@ -610,7 +609,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.49  1999-03-25 16:55:30  peter
+  Revision 1.50  1999-04-25 14:31:48  daniel
+  * Bug fixed in linking: compiling files on another drive than the one you
+  currently use you is done correctly.
+
+  Revision 1.49  1999/03/25 16:55:30  peter
     + unitpath,librarypath,includepath,objectpath directives
 
   Revision 1.48  1999/03/23 16:22:43  peter
