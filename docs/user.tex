@@ -255,6 +255,18 @@ for \dos or
 for \windows
 (Again, assuming that you installed in the default location).
 
+On \ostwo, \fpc installs some libraries from the EMX package if they
+were not yet installed. They are located in the 
+\begin{verbatim}
+C:\PP\DLL
+\end{verbatim}
+directory. The name of this directory should be added to the \var{LIBPATH}
+directive in the \file{config.sys} file:
+\begin{verbatim}
+LIBPATH=c:\pp\dll
+\end{verbatim}
+Obviously, any existing directories in the \var{LIBPATH} directive should be
+preserved.
 
 \subsubsection{Optional Installation: The coprocessor emulation}
 For people who have an older CPU type, without math coprocessor (i387)
