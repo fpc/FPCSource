@@ -71,26 +71,8 @@ uses
       { Available Registers }
       {$i rspcon.inc}
 
-      { Integer Super registers first and last }
-{$warning Supreg shall be $00-$1f}
-      first_int_supreg = $00;
-      last_int_supreg = $1f;
-
       first_int_imreg = $20;
-      last_int_imreg = $fe;
-
-      { Float Super register first and last }
-      first_fpu_supreg    = $00;
-      last_fpu_supreg     = $1f;
-
-      first_fpu_imreg     = $20;
-      last_fpu_imreg      = $fe;
-
-      { MM Super register first and last }
-      first_mmx_supreg    = RS_INVALID;
-      last_mmx_supreg     = RS_INVALID;
-      first_mmx_imreg     = RS_INVALID;
-      last_mmx_imreg      = RS_INVALID;
+      first_fpu_imreg = $20;
 
 {$warning TODO Calculate bsstart}
       regnumber_count_bsstart = 128;
@@ -196,7 +178,7 @@ uses
       pparareference = ^tparareference;
       tparareference = packed record
          index       : tregister;
-         offset      : aword;
+         offset      : longint;
       end;
 
     const
@@ -479,7 +461,7 @@ implementation
 
     uses
       rgBase,verbose;
-    
+
     const
       std_regname_table : TRegNameTAble = (
         {$i rspstd.inc}
@@ -568,7 +550,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.56  2003-11-01 19:27:54  peter
+  Revision 1.57  2003-11-10 19:05:50  peter
+    * fixed alias/colouring > 255
+
+  Revision 1.56  2003/11/01 19:27:54  peter
     * 1.9.0
 
   Revision 1.55  2003/10/31 08:47:13  mazen

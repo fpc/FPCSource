@@ -94,7 +94,7 @@ implementation
 
     function tsparcparamanager.get_volatile_registers_fpu(calloption : tproccalloption):TCpuRegisterSet;
       begin
-        result:=[first_fpu_supreg..last_fpu_supreg];;
+        result:=[RS_F0..RS_F31];
       end;
 
 
@@ -294,7 +294,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.34  2003-10-24 11:25:32  mazen
+  Revision 1.35  2003-11-10 19:05:50  peter
+    * fixed alias/colouring > 255
+
+  Revision 1.34  2003/10/24 11:25:32  mazen
   -unused units removed from uses clause
   *fix related to rg which was removed
 

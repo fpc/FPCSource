@@ -172,7 +172,7 @@ unit rgobj;
         colour   : Tsuperregister;
         movelist : Pmovelist;
         adjlist  : Psuperregisterworklist;
-        degree   : byte;
+        degree   : TSuperregister;
       end;
       Preginfo=^TReginfo;
 
@@ -553,7 +553,7 @@ implementation
          maxreginfo:=first_imaginary;
          maxreginfoinc:=16;
          for i:=0 to first_imaginary-1 do
-           reginfo[i].degree:=255;
+           reginfo[i].degree:=high(tsuperregister);
          worklist_moves:=Tlinkedlist.create;
          { Usable registers }
          fillchar(usable_registers,sizeof(usable_registers),0);
@@ -947,8 +947,7 @@ implementation
     procedure trgobj.decrement_degree(m:Tsuperregister);
 
     var adj : Psuperregisterworklist;
-        d : byte;
-        n : tsuperregister;
+        d,n : tsuperregister;
         i : integer;
     begin
       d:=reginfo[m].degree;
@@ -986,13 +985,12 @@ implementation
     procedure trgobj.simplify;
 
     var adj : Psuperregisterworklist;
-        min : byte;
         p,n : Tsuperregister;
-        i   : integer;
+        min,i : integer;
     begin
       {We the element with the least interferences out of the
        simplifyworklist.}
-      min:=$ff;
+      min:=high(integer);
       p:=0;
       n:=0;
       i:=simplifyworklist.head;
@@ -1403,7 +1401,8 @@ implementation
           n:=coalescednodes.buf[i];
           k:=get_alias(n);
           reginfo[n].colour:=reginfo[k].colour;
-          include(used_in_proc,reginfo[k].colour);
+          if reginfo[k].colour<maxcpuregister then
+            include(used_in_proc,reginfo[k].colour);
           coalescednodes.next(i);
         end;
 {$ifdef ra_debug}
@@ -1633,7 +1632,7 @@ implementation
       {Precoloured nodes should have an infinite degree, which we can approach
        by 255.}
       for i:=0 to first_imaginary-1 do
-        reginfo[i].degree:=255;
+        reginfo[i].degree:=high(tsuperregister);
       for i:=first_imaginary to maxreg-1 do
         reginfo[i].degree:=0;
 {      exclude(unusedregs,RS_STACK_POINTER_REG);}
@@ -1820,7 +1819,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.94  2003-11-07 15:58:32  florian
+  Revision 1.95  2003-11-10 19:05:50  peter
+    * fixed alias/colouring > 255
+
+  Revision 1.94  2003/11/07 15:58:32  florian
     * Florian's culmutative nr. 1; contains:
       - invalid calling conventions for a certain cpu are rejected
       - arm softfloat calling conventions
