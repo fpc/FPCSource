@@ -236,10 +236,14 @@ implementation
 
 uses
   Dos,
+{$ifdef Linux}
+  linux,
+{$endif Linux}
   WUtils,WHTMLHlp;
 
+
 Function GetDosTicks:longint; { returns ticks at 18.2 Hz, just like DOS }
-{$IFDEF OS_LINUX}
+{$IFDEF LINUX}
   var
     tv : TimeVal;
     tz : TimeZone;
@@ -936,7 +940,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.12  1999-04-07 21:56:00  peter
+  Revision 1.13  1999-04-13 10:47:51  daniel
+  * Fixed for Linux
+
+  Revision 1.12  1999/04/07 21:56:00  peter
     + object support for browser
     * html help fixes
     * more desktop saving things
