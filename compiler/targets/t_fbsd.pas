@@ -383,8 +383,8 @@ begin
   { objects which must be at the end }
   if linklibc then
    begin
-     Fl1:=librarysearchpath.FindFile('crtend.o',s1)
-     Fl2:=librarysearchpath.FindFile('crtn.o',s2)
+     Fl1:=librarysearchpath.FindFile('crtend.o',s1);
+     Fl2:=librarysearchpath.FindFile('crtn.o',s2);
      if Fl1 or Fl2 then
       begin
         LinkRes.Add('INPUT(');
@@ -712,7 +712,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.23  2002-07-24 13:10:22  marco
+  Revision 1.24  2002-07-24 13:51:34  marco
+   * Fixed small error
+
+  Revision 1.23  2002/07/24 13:10:22  marco
    * urgent fix.
 
   Revision 1.22  2002/07/01 18:46:34  peter
