@@ -1,5 +1,5 @@
-{$R-}
-{ should compile if no range check on }
+{$R+}
+{ should not compile if range check on }
 program BigRange;
 
 const
