@@ -229,7 +229,7 @@ interface
        psysteminfo = ^tsysteminfo;
        tsysteminfo = packed record
           system       : tsystem;
-          name         : string[30];
+          name         : string[34];
           shortname    : string[9];
           flags        : set of tsystemflags;
           cpu          : tsystemcpu;
@@ -693,7 +693,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.70  2003-10-03 22:00:33  peter
+  Revision 1.71  2003-10-18 09:04:11  hajny
+    * Watcom target name didn't fit in name field length
+
+  Revision 1.70  2003/10/03 22:00:33  peter
     * parameter alignment fixes
 
   Revision 1.69  2003/10/02 21:17:08  peter
