@@ -1458,27 +1458,51 @@ unit pexpr;
                                  break;
                                 classh:=classh^.childof;
                               end;
-                             consume(_ID);
-                             do_member_read(getaddr,sym,p1,pd,again);
+                              if sym=nil then
+                                begin
+                                   Message1(sym_e_id_no_member,pattern);
+                                   disposetree(p1);
+                                   p1:=genzeronode(errorn);
+                                   { try to clean up }
+                                   pd:=generrordef;
+                                   consume(_ID);
+                                end
+                              else
+                                begin
+                                   consume(_ID);
+                                   do_member_read(getaddr,sym,p1,pd,again);
+                                end;
                            end;
 
                          objectdef:
                            begin
-                             classh:=pobjectdef(pd);
-                             sym:=nil;
-                             store_static:=allow_only_static;
-                             allow_only_static:=false;
-                             while assigned(classh) do
-                              begin
-                                sym:=pvarsym(classh^.symtable^.search(pattern));
-                                srsymtable:=classh^.symtable;
-                                if assigned(sym) then
-                                 break;
-                                classh:=classh^.childof;
-                              end;
-                             allow_only_static:=store_static;
-                             consume(_ID);
-                             do_member_read(getaddr,sym,p1,pd,again);
+                              classh:=pobjectdef(pd);
+                              sym:=nil;
+                              store_static:=allow_only_static;
+                              allow_only_static:=false;
+                              while assigned(classh) do
+                                begin
+                                   sym:=pvarsym(classh^.symtable^.search(pattern));
+                                   srsymtable:=classh^.symtable;
+                                   if assigned(sym) then
+                                     break;
+                                   classh:=classh^.childof;
+                                end;
+                              allow_only_static:=store_static;
+                              if sym=nil then
+                                begin
+                                   Message1(sym_e_id_no_member,pattern);
+                                   disposetree(p1);
+                                   p1:=genzeronode(errorn);
+                                   { try to clean up }
+                                   pd:=generrordef;
+                                   consume(_ID);
+                                end
+                              else
+                                begin
+                                   consume(_ID);
+                                   do_member_read(getaddr,sym,p1,pd,again);
+                                end;
                            end;
 
                          pointerdef:
@@ -2100,7 +2124,10 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.166  2000-01-09 23:16:05  peter
+  Revision 1.167  2000-01-19 22:41:58  florian
+    * corrected wrong error message of a member of a class/object/classref wasn't found
+
+  Revision 1.166  2000/01/09 23:16:05  peter
     * added st_default stringtype
     * genstringconstnode extended with stringtype parameter using st_default
       will do the old behaviour
