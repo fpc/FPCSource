@@ -4,12 +4,12 @@ program tassert2;
 var
  global_boolean : boolean;
  counter : longint;
- 
-const 
+
+const
   RESULT_BOOLEAN = false;
-  
-  
-  
+
+
+
 procedure fail;
  begin
    Writeln('Failure!');
@@ -26,7 +26,7 @@ procedure test_assert_reference_global;
   global_boolean:=RESULT_BOOLEAN;
   assert(global_boolean);
  end;
- 
+
 procedure test_assert_reference_local;
  var
   b: boolean;
@@ -34,8 +34,8 @@ procedure test_assert_reference_local;
   b:=RESULT_BOOLEAN;
   assert(b);
  end;
- 
- 
+
+
 procedure test_assert_register;
  begin
   assert(get_boolean);
@@ -49,23 +49,23 @@ procedure test_assert_flags;
   j:=-12;
   assert(i < j);
  end;
- 
+
  procedure test_assert_constant;
   begin
     assert(RESULT_BOOLEAN);
   end;
- 
-  { Handle the assertion failed ourselves, so we can test everything in 
+
+  { Handle the assertion failed ourselves, so we can test everything in
     one shot.
   }
-  Procedure MyAssertRoutine(const msg,fname:ShortString;lineno,erroraddr:longint);
+  Procedure MyAssertRoutine(const msg,fname:ShortString;lineno:longint;erroraddr:{$ifdef VER1_0}longint{$else}pointer{$endif});
    begin
      Inc(counter);
    end;
-   
-   
 
- 
+
+
+
 begin
   counter:=0;
   AssertErrorProc := @MyAssertRoutine;
@@ -83,7 +83,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-09-16 19:16:36  carl
+  Revision 1.2  2003-03-17 19:27:00  peter
+    * fixed for 1.1 compiler
+
+  Revision 1.1  2002/09/16 19:16:36  carl
     * several new routines have a testsuit.
 
 }

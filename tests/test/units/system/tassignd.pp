@@ -10,30 +10,33 @@ type
   tmyobject = object
     procedure myroutine(x: byte);
   end;
-  
+
   tmyclass = class
     procedure myroutine(x: byte);
   end;
-  
-  
+
+
   tobjectmethod = procedure (x: byte) of object;
   tclassmethod = procedure (x: byte) of object;
   tproc = procedure (x: byte);
-  
-  
-  type 
+
+
+  type
     objpointer = packed record
       _method : pointer;
       _vmt : pointer;
     end;
-  
-  
-  procedure fail; 
+
+var
+  myobject : tmyobject;
+  myclass : tmyclass;
+
+  procedure fail;
    begin
      WriteLn('Failure!');
      halt(1);
    end;
-  
+
   procedure mydummyproc(x: byte);
    begin
    end;
@@ -42,28 +45,28 @@ type
    begin
      getpointer := nil;
    end;
-   
+
   function getprocpointer : tproc;
    begin
      getprocpointer:=@mydummyproc;
    end;
-   
-{$ifdef fpc}   
+
+{$ifdef fpc}
   function getobjmethodpointer : tobjectmethod;
    begin
-     getobjmethodpointer:=@tmyobject.myroutine;
+     getobjmethodpointer:=@myobject.myroutine;
    end;
 
   function getclamethodpointer : tclassmethod;
    begin
-     getclamethodpointer:=@tmyclass.myroutine;
+     getclamethodpointer:=@myclass.myroutine;
    end;
-{$endif}   
-   
+{$endif}
+
   procedure tmyclass.myroutine(x: byte);
    begin
    end;
-   
+
   procedure tmyobject.myroutine(x: byte);
    begin
    end;
@@ -80,8 +83,6 @@ var
   p : pointer;
   x: array[1..8] of integer;
   _result : boolean;
-  myobject : tmyobject;
-  myclass : tmyclass;
   ptrrecord : objpointer;
 Begin
   myclass := tmyclass.create;
@@ -93,44 +94,44 @@ Begin
   p:=nil;
   if assigned(p) then
     _result := false;
-{$ifdef fpc}    
+{$ifdef fpc}
   if assigned(getpointer) then
     _result := false;
-{$endif}    
+{$endif}
 
   if _result then
     WriteLn('Success!')
   else
     fail;
-  {*******************************************************}    
+  {*******************************************************}
   Write('Assigned(proc) tests...');
   _result := true;
   proc:=@mydummyproc;
   if not assigned(proc) then
     _result := false;
   proc:=nil;
-{$ifdef fpc}  
+{$ifdef fpc}
   if assigned(proc) then
     _result := false;
   if not assigned(getprocpointer) then
     _result := false;
-{$endif}    
+{$endif}
   if _result then
     WriteLn('Success!')
   else
     fail;
-  {*******************************************************}    
+  {*******************************************************}
   Write('Assigned(object method) tests...');
   _result := true;
-{$ifdef fpc}  
+{$ifdef fpc}
   objmethod:=@myobject.myroutine;
   if not assigned(objmethod) then
     _result := false;
-{$endif}    
+{$endif}
   objmethod:=nil;
   if assigned(objmethod) then
     _result := false;
-  { lets put the individual fields to nil 
+  { lets put the individual fields to nil
     This is a hack which should never occur
   }
   objmethod:={$ifdef fpc}@{$endif}myobject.myroutine;
@@ -150,24 +151,24 @@ Begin
 {$ifdef fpc}
   if not assigned(getobjmethodpointer) then
     _result := false;
-{$endif}    
-  
+{$endif}
+
   if _result then
     WriteLn('Success!')
   else
     fail;
-  {*******************************************************}    
+  {*******************************************************}
   Write('Assigned(class method) tests...');
   _result := true;
-{$ifdef fpc}  
+{$ifdef fpc}
   clamethod:=@myclass.myroutine;
   if not assigned(clamethod) then
     _result := false;
-{$endif}    
+{$endif}
   clamethod:=nil;
   if assigned(clamethod) then
     _result := false;
-  { lets put the individual fields to nil 
+  { lets put the individual fields to nil
     This is a hack which should never occur
   }
   clamethod:={$ifdef fpc}@{$endif}myclass.myroutine;
@@ -187,11 +188,11 @@ Begin
 {$ifdef fpc}
   if not assigned(getclamethodpointer) then
     _result := false;
-{$endif}    
-  
+{$endif}
+
   if _result then
     WriteLn('Success!')
   else
     fail;
-    
+
 end.
