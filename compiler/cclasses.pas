@@ -87,7 +87,9 @@ interface
           procedure insertList(p : TLinkedList);
           { concats another List at the end and make this List empty }
           procedure concatList(p : TLinkedList);
-          { concats another List at the end and makes a copy }
+          { concats another List at the start and makes a copy 
+            the list is ordered in reverse.
+          }
           procedure insertListcopy(p : TLinkedList);
           { concats another List at the end and makes a copy }
           procedure concatListcopy(p : TLinkedList);
@@ -1733,7 +1735,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.15  2002-07-01 18:46:21  peter
+  Revision 1.16  2002-08-09 19:08:53  carl
+    + fix incorrect comment in insertlistcopy
+
+  Revision 1.15  2002/07/01 18:46:21  peter
     * internal linker
     * reorganized aasm layer
 
