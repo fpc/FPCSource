@@ -36,11 +36,15 @@ type
   PByte = ^Byte;
 
 const
+{$IFDEF OLDRANDOM}
 { Random / Randomize constants }
   OldRandSeed : Cardinal = 0;
   InitialSeed : Boolean = TRUE;
   Seed2 : Cardinal = 0;
   Seed3 : Cardinal = 0;
+{$ELSE}
+  seed2:cardinal=0;
+{$ENDIF}
 
 { For Error Handling.}
   ErrorBase : Longint = 0;
@@ -174,6 +178,8 @@ End;
 
 {$endif RTLLITE}
 
+{$ifdef OLDRANDOM}
+
 {****************************************************************************
                           Random function routines
 
@@ -248,6 +254,26 @@ begin
     Seed3 := (Random(65000) * Random(65000)) mod 765241;
 end;
 
+{$ELSE OLDRANDOM}
+
+function random:real;
+
+begin
+    do_random1;
+    do_random2;
+    random:=randseed;
+    random:=seed2+random/(65536.0*65536.0);
+    random:=random/(65536.0*65536.0);
+end;
+
+function random(l:cardinal):cardinal;
+
+begin
+    do_random1;
+    random:=randseed mod l;
+end;
+
+{$ENDIF RANDOM}
 
 { Include processor specific routines }
 {$I math.inc}
@@ -580,7 +606,10 @@ end;
 
 {
   $Log$
-  Revision 1.69  1999-11-06 14:35:39  peter
+  Revision 1.70  1999-11-09 20:14:12  daniel
+  * Committed new random generator.
+
+  Revision 1.69  1999/11/06 14:35:39  peter
     * truncated log
 
   Revision 1.68  1999/10/26 12:31:00  peter

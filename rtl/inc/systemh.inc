@@ -179,7 +179,11 @@ Function  Swap (X:Int64):Int64;
 {$endif}
 {$endif RTLLITE}
 
-Function  Random(l:Longint):Longint;
+{$IFNDEF OLDRANDOM}
+Function  Random(l:cardinal):cardinal;
+{$ELSE}
+Function  Random(l:longint):longint;
+{$ENDIF}
 Function  Random:real;
 Procedure Randomize;
 
@@ -398,7 +402,10 @@ const
 
 {
   $Log$
-  Revision 1.65  1999-11-06 14:35:39  peter
+  Revision 1.66  1999-11-09 20:14:12  daniel
+  * Committed new random generator.
+
+  Revision 1.65  1999/11/06 14:35:39  peter
     * truncated log
 
   Revision 1.64  1999/10/27 14:19:10  florian

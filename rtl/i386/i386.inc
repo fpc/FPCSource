@@ -882,9 +882,35 @@ end;
 
 {$endif not HASSAVEREGISTERS}
 
+{The values behind the xors are very important! These values seem to work
+ well, propably there are better ones, but most are worse!! (DM)}
+
+procedure do_random1;assembler;
+
+asm
+    movl randseed,%eax
+    incl %eax
+    rorl $3,%eax
+    xorl $0x4b65af1,%eax
+    movl %eax,randseed
+end;
+
+procedure do_random2;assembler;
+
+asm
+    movl seed2,%eax
+    incl %eax
+    rorl $3,%eax
+    xorl $0x65b9fa14,%eax
+    movl %eax,seed2
+end;
+
 {
   $Log$
-  Revision 1.58  1999-10-30 17:39:05  peter
+  Revision 1.59  1999-11-09 20:14:12  daniel
+  * Committed new random generator.
+
+  Revision 1.58  1999/10/30 17:39:05  peter
     * memorymanager expanded with allocmem/reallocmem
 
   Revision 1.57  1999/10/08 14:40:54  pierre
