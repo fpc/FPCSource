@@ -120,39 +120,30 @@ end;
 {$ifndef FPC_SYSTEM_HAS_FILLCHAR}
 {$define FPC_SYSTEM_HAS_FILLCHAR}
 Procedure FillChar(var x;count:longint;value:byte);assembler;
-var
-  saveedi : longint;
+
 asm
-        movl    %edi,saveedi
+        {A push is prefered over a local variable because a local
+         variable causes the compiler to generate a stackframe.}
         cld
 {$ifdef REGCALL}
+        push    %edi
         movl    %eax,%edi
-        movb    %cl,%al
+        movzbl  %cl,%eax
         movl    %edx,%ecx
 {$else}
         movl    x,%edi
-        movb    value,%al
         movl    count,%ecx
+        movzbl  value,%eax
+        movl    %ecx,%edx
 {$endif}
 { check for zero or negative count }
-        cmpl    $0,%ecx
+        or      %ecx,%ecx
         jle     .LFillEnd
         cmpl    $7,%ecx
         jl      .LFill1
-        movb    %al,%ah
-        movl    %eax,%edx
-        shll    $16,%eax
-        movw    %dx,%ax
-        movl    %ecx,%edx
-        movl    %edi,%ecx       { Align on 32bits }
-        negl    %ecx
-        andl    $3,%ecx
-        subl    %ecx,%edx
-        rep
-        stosb
-        movl    %edx,%ecx
-        andl    $3,%edx
+        imul    $0x01010101,%eax { Expand al into a 4 subbytes of eax}
         shrl    $2,%ecx
+        andl    $3,%edx
         rep
         stosl
         movl    %edx,%ecx
@@ -160,7 +151,9 @@ asm
         rep
         stosb
 .LFillEnd:
-        movl    saveedi,%edi
+{$ifdef REGCALL}
+        pop %edi
+{$endif}
 end;
 {$endif FPC_SYSTEM_HAS_FILLCHAR}
 
@@ -1457,7 +1450,13 @@ end;
 
 {
   $Log$
-  Revision 1.61  2004-04-29 20:00:47  peter
+  Revision 1.62  2004-07-07 17:38:58  daniel
+    * Aligment code in fillchar proved to slow down stuff seriously instead of
+      speeding it up. This is logical, the compiler aligns everything very well,
+      it is possible that fillchar gets called on misaligned data, but it seems
+      this never happens.
+
+  Revision 1.61  2004/04/29 20:00:47  peter
     * inclocked_longint ifdef fixed
 
   Revision 1.60  2004/04/26 15:55:01  peter
