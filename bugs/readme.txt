@@ -197,6 +197,8 @@ Fixed bugs:
   bug0168.pp   set:=set+element is allowed (should be: set:=set+[element]) OK 0.99.9 (PFV)
   bug0169.pp   missing new(type) support for not object/class             OK 0.99.9 (PM)
   bug0170.pp   Asm, {$ifdef} is seen as a separator                  OK 0.99.9 (PFV)
+  bug0171.pp   missing typecasting in constant expressions 
+               solved for pointers                                   OK 0.99.11 (PM)
   bug0172.pp   with with absolute seg:ofs should not be possible OK 0.99.9 (PM)
   bug0173.pp   secondbug is parsed as asm, but should be normal pascalcode OK 0.99.9 (PFV)
   bug0174.pp   Asm, offsets of fields are not possible yet           OK 0.99.9 (PFV)
@@ -217,6 +219,7 @@ Fixed bugs:
                function. Not a bug : wrong syntax !! See source (PM)
   bug0189.pp   cant compare adresses of function variables !!
                As bug0188 FPC syntax problem see source (PM)
+  bug0191.pp   missing vecn constant evaluation                      OK 0.99.11 (PM)
   bug0192.pp   can't compare boolean result with true/false, because the
                boolean result is already in the flags             OK 0.99.11 (PFV)
   bug0194.pp   @procedure var returns value in it instead of address !! OK 0.99.11 (PM)
@@ -255,13 +258,12 @@ bug0175.pp   Asm, mov word,%eax should not be allowed without casting
 bug0152.pp   End value of loop variable must be calculated before loop
              variable is initialized.
 bug0163.pp   missing <= and >= operators for sets.
-bug0171.pp   missing typecasting in constant expressions
 bug0185.pp   missing range checking for Val and subrange types
 bug0187.pp   constructor in a WIth statement isn't called correct.
 bug0190.pp   can't have typecast for var params ??
-bug0191.pp   missing vecn constant evaluation
 bug0193.pp   overflow checking for 8 and 16 bit operations wrong
 bug0198.pp   calling specifications aren't allowed in class declarations,
              this should be allowed
 bug0200.pp   array of char overloading problem with strings
 bug0202.pp   flag results not supported with case
+bug0203.pp   problem with changed mangledname of procedures after use
