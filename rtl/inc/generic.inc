@@ -25,7 +25,7 @@ type
 {$ifndef FPC_SYSTEM_HAS_MOVE}
 procedure Move(const source;var dest;count:SizeInt);[public, alias: 'FPC_MOVE'];
 type
-  bytearray    = array [0..maxlongint-1] of byte;
+  bytearray    = array [0..high(sizeint)-1] of byte;
 var
   i:longint;
 begin
@@ -48,8 +48,8 @@ end;
 {$ifndef FPC_SYSTEM_HAS_FILLCHAR}
 Procedure FillChar(var x;count:SizeInt;value:byte);
 type
-  longintarray = array [0..maxlongint div 4] of longint;
-  bytearray    = array [0..maxlongint-1] of byte;
+  longintarray = array [0..high(sizeint) div 4-1] of longint;
+  bytearray    = array [0..high(sizeint)-1] of byte;
 var
   i,v : longint;
 begin
@@ -85,8 +85,8 @@ end;
 {$ifndef FPC_SYSTEM_HAS_FILLWORD}
 procedure fillword(var x;count : SizeInt;value : word);
 type
-  longintarray = array [0..maxlongint div 4-1] of longint;
-  wordarray    = array [0..maxlongint div 2-1] of word;
+  longintarray = array [0..high(sizeint) div 4-1] of longint;
+  wordarray    = array [0..high(sizeint) div 2-1] of word;
 var
   i,v : longint;
 begin
@@ -112,7 +112,7 @@ end;
 {$ifndef FPC_SYSTEM_HAS_FILLDWORD}
 procedure FillDWord(var x;count : SizeInt;value : DWord);
 type
-  longintarray = array [0..maxlongint div 4] of longint;
+  longintarray = array [0..high(sizeint) div 4-1] of longint;
 begin
   if count <= 0 then exit;
   while Count<>0 do
@@ -136,7 +136,7 @@ end;
 {$ifndef FPC_SYSTEM_HAS_INDEXBYTE}
 function IndexByte(Const buf;len:SizeInt;b:byte):SizeInt;
 type
-  bytearray    = array [0..maxlongint-1] of byte;
+  bytearray    = array [0..high(sizeint)-1] of byte;
 var
   I : longint;
 begin
@@ -157,7 +157,7 @@ end;
 {$ifndef FPC_SYSTEM_HAS_INDEXWORD}
 function Indexword(Const buf;len:SizeInt;b:word):SizeInt;
 type
-  wordarray    = array [0..maxlongint div 2] of word;
+  wordarray    = array [0..high(sizeint) div 2-1] of word;
 var
   I : longint;
 begin
@@ -176,7 +176,7 @@ end;
 {$ifndef FPC_SYSTEM_HAS_INDEXDWORD}
 function IndexDWord(Const buf;len:SizeInt;b:DWord):SizeInt;
 type
-  dwordarray = array [0..maxlongint div 4] of dword;
+  dwordarray = array [0..high(sizeint) div 4-1] of dword;
 var
   I : longint;
 begin
@@ -203,7 +203,7 @@ end;
 {$ifndef FPC_SYSTEM_HAS_COMPAREBYTE}
 function CompareByte(Const buf1,buf2;len:SizeInt):SizeInt;
 type
-  bytearray = array [0..maxlongint-1] of byte;
+  bytearray = array [0..high(sizeint)-1] of byte;
 var
   I : longint;
 begin
@@ -232,7 +232,7 @@ end;
 {$ifndef FPC_SYSTEM_HAS_COMPAREWORD}
 function CompareWord(Const buf1,buf2;len:SizeInt):SizeInt;
 type
-  wordarray = array [0..maxlongint div 2] of word;
+  wordarray = array [0..high(sizeint) div 2-1] of word;
 var
   I : longint;
 begin
@@ -261,7 +261,7 @@ end;
 {$ifndef FPC_SYSTEM_HAS_COMPAREDWORD}
 function CompareDWord(Const buf1,buf2;len:SizeInt):SizeInt;
 type
-  longintarray = array [0..maxlongint div 4] of longint;
+  longintarray = array [0..high(sizeint) div 4-1] of longint;
 var
   I : longint;
 begin
@@ -321,7 +321,7 @@ end;
 {$ifndef FPC_SYSTEM_HAS_COMPARECHAR0}
 function CompareChar0(Const buf1,buf2;len:SizeInt):SizeInt;
 type
-  bytearray = array [0..maxlongint-1] of byte;
+  bytearray = array [0..high(sizeint)-1] of byte;
 var
   i : longint;
 begin
@@ -1245,8 +1245,8 @@ end;
 
 {
   $Log$
-  Revision 1.84  2004-11-02 08:46:50  florian
-    * fixed array sizes
+  Revision 1.85  2004-11-02 08:50:40  florian
+    * changed maxlongint to high(sizeint)
 
   Revision 1.83  2004/10/24 20:01:41  peter
     * saveregisters calling convention is obsolete
