@@ -15,9 +15,9 @@
 
  **********************************************************************}
 
-    function strpas(p : pchar) : string;
-    begin
-      asm
+function strpas(p : pchar) : string;
+begin
+  asm
         cld
         movl    p,%edi
         movl    $0xff,%ecx
@@ -26,8 +26,7 @@
         repne
         scasb
         movl    %ecx,%eax
-
-{$ifdef NEWATT1}
+{$ifdef NEWATT}
         movl    __RESULT,%edi
 {$else}
         movl    8(%ebp),%edi
@@ -52,35 +51,33 @@
         movl    %eax,%ecx
         rep
         movsb
-      end ['ECX','EAX','ESI','EDI'];
-    end;
+  end ['ECX','EAX','ESI','EDI'];
+end;
 
 
-    function strpcopy(d : pchar;const s : string) : pchar;
-
-      begin
-         asm
-            pushl %esi          // Save ESI
-            cld
-            movl 8(%ebp),%edi   // load destination address
-            movl 12(%ebp),%esi   // Load Source adress
-            movl %edi,%ebx      // Set return value
-            lodsb               // load length in ECX
-            movzbl %al,%ecx
-            rep
-            movsb
-            xorb %al,%al        // Set #0
-            stosb
-            movl %ebx,%eax      // return value to EAX
-            popl %esi
-            leave               // ... and ready
-            ret $8
-         end ['EDI','ESI','EBX','EAX','ECX'];
-      end;
+function strpcopy(d : pchar;const s : string) : pchar;assembler;
+asm
+        pushl   %esi            // Save ESI
+        cld
+        movl    d,%edi          // load destination address
+        movl    s,%esi          // Load Source adress
+        movl    %edi,%ebx       // Set return value
+        lodsb                   // load length in ECX
+        movzbl  %al,%ecx
+        rep
+        movsb
+        xorb    %al,%al         // Set #0
+        stosb
+        movl    %ebx,%eax       // return value to EAX
+        popl    %esi
+end ['EDI','ESI','EBX','EAX','ECX'];
 
 {
   $Log$
-  Revision 1.3  1999-03-01 15:41:01  peter
+  Revision 1.4  1999-03-30 16:58:51  peter
+    * use assembler and remove all rets
+
+  Revision 1.3  1999/03/01 15:41:01  peter
     * use external names
     * removed all direct assembler modes
 
