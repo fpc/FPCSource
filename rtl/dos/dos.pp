@@ -759,7 +759,7 @@ end;
 
 procedure findfirst(const path : pathstr;attr : word;var f : searchRec);
 var
-  path0 : array[0..80] of char;
+  path0 : array[0..256] of char;
 begin
   doserror:=0;
   strpcopy(path0,path);
@@ -1139,7 +1139,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.10  1998-08-27 10:30:48  pierre
+  Revision 1.11  1998-08-28 10:45:58  peter
+    * fixed path buffer in findfirst
+
+  Revision 1.10  1998/08/27 10:30:48  pierre
     * go32v1 RTL did not compile (LFNsupport outside go32v2 defines !)
       I renamed tb_selector to tb_segment because
         it is a real mode segment as opposed to
