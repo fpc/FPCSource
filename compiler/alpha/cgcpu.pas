@@ -200,7 +200,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:10  michael
+  Revision 1.1  2002-08-18 09:06:54  florian
+    * alpha files moved compiler/alpha
+
+  Revision 1.1  2000/07/13 06:30:10  michael
   + Initial import
 
   Revision 1.9  2000/01/07 01:14:56  peter

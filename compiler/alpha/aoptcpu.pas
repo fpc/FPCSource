@@ -1,8 +1,9 @@
 {
     $Id$
-    Copyright (C) 1998-2000 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Jonas Maebe, member of the Free Pascal
+    Development Team
 
-    This unit handles the temporary variables stuff for Alpha
+    This unit implements the Alpha optimizer object
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,41 +21,34 @@
 
  ****************************************************************************
 }
-unit tgcpu;
 
-  interface
 
-    uses
-       tgobj;
+Unit aoptcpu;
 
-    type
-    
-       ttgalpha = Object(ttgobj)
-       end;
+Interface
 
-    var
-       tg : ttgalpha;
+uses cpubase, aoptobj, aoptcpub;
 
-implementation
+Type
+  TAOptCpu = Object(TAoptObj)
+    { uses the same constructor as TAopObj }
+  End;
 
-begin
-  tg.init;
-end.
+Implementation
+
+End.
 {
-  $Log$
-  Revision 1.1  2000-07-13 06:30:10  michael
-  + Initial import
+ $Log$
+ Revision 1.1  2002-08-18 09:06:54  florian
+   * alpha files moved compiler/alpha
 
-  Revision 1.4  2000/01/07 01:14:56  peter
-    * updated copyright to 2000
+ Revision 1.1  2000/07/13 06:30:10  michael
+ + Initial import
 
-  Revision 1.3  1999/08/03 00:28:24  florian
-    - removed the stuff of the last commit :)
+ Revision 1.2  2000/01/07 01:14:55  peter
+   * updated copyright to 2000
 
-  Revision 1.2  1999/08/03 00:25:28  florian
-    * added reg var stuff
-
-  Revision 1.1  1999/08/03 00:24:01  michael
-  + Initial implementation
+ Revision 1.1  1999/12/24 22:49:23  jonas
+   + dummy to allow compiling
 
 }

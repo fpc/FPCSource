@@ -3,7 +3,8 @@
     Copyright (c) 1998-2000 by Jonas Maebe, member of the Free Pascal
     Development Team
 
-    This unit implements the Alpha optimizer object
+    This unit contains the processor specific implementation of the
+    assembler optimizer data flow analyzer.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,31 +22,35 @@
 
  ****************************************************************************
 }
-
-
-Unit aoptcpu;
+Unit aoptcpud;
 
 Interface
 
-uses cpubase, aoptobj, aoptcpub;
+uses
+  AOptDA;
 
 Type
-  TAOptCpu = Object(TAoptObj)
-    { uses the same constructor as TAopObj }
+  PAOptDFACpu = ^TAOptDFACpu;
+  TAOptDFACpu = Object(TAOptDFA)
   End;
 
 Implementation
 
+
 End.
+
 {
- $Log$
- Revision 1.1  2000-07-13 06:30:10  michael
- + Initial import
+  $Log$
+  Revision 1.1  2002-08-18 09:06:54  florian
+    * alpha files moved compiler/alpha
 
- Revision 1.2  2000/01/07 01:14:55  peter
-   * updated copyright to 2000
+  Revision 1.1  2000/07/13 06:30:10  michael
+  + Initial import
 
- Revision 1.1  1999/12/24 22:49:23  jonas
-   + dummy to allow compiling
+  Revision 1.2  2000/01/07 01:14:56  peter
+    * updated copyright to 2000
+
+  Revision 1.1  1999/11/09 22:57:09  peter
+    * compiles again both i386,alpha both with optimizer
 
 }
