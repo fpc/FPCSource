@@ -16,7 +16,7 @@
 Unit Unix;
 Interface
 
-Uses BaseUnix;
+Uses UnixUtil,BaseUnix;
 
 {// i ostypes.inc}
 { Get Types and Constants }
@@ -72,12 +72,6 @@ Type
     name : pchar;
     next : pglob;
   end;
-
-  ComStr  = String[255];
-  PathStr = String[255];
-  DirStr  = String[255];
-  NameStr = String[255];
-  ExtStr  = String[255];
 
 const
 
@@ -264,21 +258,10 @@ const
 Function  Octal(l:longint):longint;
 Function  FExpand(Const Path: PathStr):PathStr;
 Function  FSearch(const path:pathstr;dirlist:string):pathstr;
-Procedure FSplit(const Path:PathStr;Var Dir:DirStr;Var Name:NameStr;Var Ext:ExtStr);
-Function  Dirname(Const path:pathstr):pathstr;
-Function  Basename(Const path:pathstr;Const suf:pathstr):pathstr;
-Function  FNMatch(const Pattern,Name:string):Boolean;
 Function  Glob(Const path:pathstr):pglob;
 Procedure Globfree(var p:pglob);
-Function  StringToPPChar(Var S:String):ppchar;
-Function  StringToPPChar(Var S:AnsiString):ppchar;
-Function  StringToPPChar(S : Pchar):ppchar;
-Function  GetFS(var T:Text):longint;
-Function  GetFS(Var F:File):longint;
 {Filedescriptorsets}
 {Stat.Mode Types}
-Function S_ISLNK(m:word):boolean;
-Function S_ISSOCK(m:word):boolean;
 
 {******************************************************************************
                             Implementation
@@ -1621,45 +1604,6 @@ begin
   Octal:=oct;
 end;
 
-Function StringToPPChar(S: PChar):ppchar;
-var
-  nr  : longint;
-  Buf : ^char;
-  p   : ppchar;
-
-begin
-  buf:=s;
-  nr:=0;
-  while(buf^<>#0) do
-   begin
-     while (buf^ in [' ',#9,#10]) do
-      inc(buf);
-     inc(nr);
-     while not (buf^ in [' ',#0,#9,#10]) do
-      inc(buf);
-   end;
-  getmem(p,nr*4);
-  StringToPPChar:=p;
-  if p=nil then
-   begin
-     LinuxError:=ESysEnomem;
-     exit;
-   end;
-  buf:=s;
-  while (buf^<>#0) do
-   begin
-     while (buf^ in [' ',#9,#10]) do
-      begin
-        buf^:=#0;
-        inc(buf);
-      end;
-     p^:=buf;
-     inc(p);
-     p^:=nil;
-     while not (buf^ in [' ',#0,#9,#10]) do
-      inc(buf);
-   end;
-end;
 
 {$DEFINE FPC_FEXPAND_TILDE} { Tilde is expanded to home }
 {$DEFINE FPC_FEXPAND_GETENVPCHAR} { GetEnv result is a PChar }
@@ -1711,156 +1655,6 @@ Begin
      FSearch:=NewDir;
    End;
 End;
-
-
-Procedure FSplit(const Path:PathStr;Var Dir:DirStr;Var Name:NameStr;Var Ext:ExtStr);
-Var
-  DotPos,SlashPos,i : longint;
-Begin
-  SlashPos:=0;
-  DotPos:=256;
-  i:=Length(Path);
-  While (i>0) and (SlashPos=0) Do
-   Begin
-     If (DotPos=256) and (Path[i]='.') Then
-      begin
-        DotPos:=i;
-      end;
-     If (Path[i]='/') Then
-      SlashPos:=i;
-     Dec(i);
-   End;
-  Ext:=Copy(Path,DotPos,255);
-  Dir:=Copy(Path,1,SlashPos);
-  Name:=Copy(Path,SlashPos + 1,DotPos - SlashPos - 1);
-End;
-
-
-Function Dirname(Const path:pathstr):pathstr;
-{
-  This function returns the directory part of a complete path.
-  Unless the directory is root '/', The last character is not
-  a slash.
-}
-var
-  Dir  : PathStr;
-  Name : NameStr;
-  Ext  : ExtStr;
-begin
-  FSplit(Path,Dir,Name,Ext);
-  if length(Dir)>1 then
-   Delete(Dir,length(Dir),1);
-  DirName:=Dir;
-end;
-
-Function StringToPPChar(Var S:String):ppchar;
-{
-  Create a PPChar to structure of pchars which are the arguments specified
-  in the string S. Especially usefull for creating an ArgV for Exec-calls
-  Note that the string S is destroyed by this call.
-}
-
-begin
-  S:=S+#0;
-  StringToPPChar:=StringToPPChar(@S[1]);
-end;
-
-Function StringToPPChar(Var S:AnsiString):ppchar;
-{
-  Create a PPChar to structure of pchars which are the arguments specified
-  in the string S. Especially usefull for creating an ArgV for Exec-calls
-}
-
-begin
-  StringToPPChar:=StringToPPChar(PChar(S));
-end;
-
-Function Basename(Const path:pathstr;Const suf:pathstr):pathstr;
-{
-  This function returns the filename part of a complete path. If suf is
-  supplied, it is cut off the filename.
-}
-var
-  Dir  : PathStr;
-  Name : NameStr;
-  Ext  : ExtStr;
-begin
-  FSplit(Path,Dir,Name,Ext);
-  if Suf<>Ext then
-   Name:=Name+Ext;
-  BaseName:=Name;
-end;
-
-
-Function FNMatch(const Pattern,Name:string):Boolean;
-Var
-  LenPat,LenName : longint;
-
-  Function DoFNMatch(i,j:longint):Boolean;
-  Var
-    Found : boolean;
-  Begin
-  Found:=true;
-  While Found and (i<=LenPat) Do
-   Begin
-     Case Pattern[i] of
-      '?' : Found:=(j<=LenName);
-      '*' : Begin
-            {find the next character in pattern, different of ? and *}
-              while Found and (i<LenPat) do
-                begin
-                inc(i);
-                case Pattern[i] of
-                  '*' : ;
-                  '?' : begin
-                          inc(j);
-                          Found:=(j<=LenName);
-                        end;
-                else
-                  Found:=false;
-                end;
-               end;
-            {Now, find in name the character which i points to, if the * or ?
-             wasn't the last character in the pattern, else, use up all the
-             chars in name}
-              Found:=true;
-              if (i<=LenPat) then
-                begin
-                repeat
-                {find a letter (not only first !) which maches pattern[i]}
-                while (j<=LenName) and (name[j]<>pattern[i]) do
-                  inc (j);
-                 if (j<LenName) then
-                  begin
-                    if DoFnMatch(i+1,j+1) then
-                     begin
-                       i:=LenPat;
-                       j:=LenName;{we can stop}
-                       Found:=true;
-                     end
-                    else
-                     inc(j);{We didn't find one, need to look further}
-                  end;
-               until (j>=LenName);
-                end
-              else
-                j:=LenName;{we can stop}
-            end;
-     else {not a wildcard character in pattern}
-       Found:=(j<=LenName) and (pattern[i]=name[j]);
-     end;
-     inc(i);
-     inc(j);
-   end;
-  DoFnMatch:=Found and (j>LenName);
-  end;
-
-Begin {start FNMatch}
-  LenPat:=Length(Pattern);
-  LenName:=Length(Name);
-  FNMatch:=DoFNMatch(1,1);
-End;
-
 
 Procedure Globfree(var p : pglob);
 {
@@ -1983,21 +1777,6 @@ end;
       Stat.Mode Macro's
 --------------------------------}
 
-Function S_ISLNK(m:word):boolean;
-{
-  Check mode field of inode for link.
-}
-begin
-  S_ISLNK:=(m and STAT_IFMT)=STAT_IFLNK;
-end;
-
-Function S_ISSOCK(m:word):boolean;
-{
-  Check mode field of inode for socket.
-}
-begin
-  S_ISSOCK:=(m and STAT_IFMT)=STAT_IFSOCK;
-end;
 
 Initialization
   InitLocalTime;
@@ -2008,7 +1787,10 @@ End.
 
 {
   $Log$
-  Revision 1.35  2003-09-16 21:46:27  marco
+  Revision 1.36  2003-09-17 17:30:46  marco
+   * Introduction of unixutil
+
+  Revision 1.35  2003/09/16 21:46:27  marco
    * small fixes, checking things on linux
 
   Revision 1.34  2003/09/16 20:52:24  marco

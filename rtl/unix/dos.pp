@@ -158,7 +158,7 @@ Procedure SetVerify(verify: boolean);
 Implementation
 
 Uses
-  Strings,Unix,BaseUnix;
+  Strings,UnixUtil,Unix,BaseUnix;
 
 {******************************************************************************
                            --- Link C Lib if set ---
@@ -664,7 +664,7 @@ End;
 
 Procedure FSplit(Path: PathStr; Var Dir: DirStr; Var Name: NameStr;Var Ext: ExtStr);
 Begin
-  Unix.FSplit(Path,Dir,Name,Ext);
+  UnixUtil.FSplit(Path,Dir,Name,Ext);
 End;
 
 
@@ -673,7 +673,6 @@ Function FExpand(Const Path: PathStr): PathStr;
 Begin
   FExpand:=Unix.FExpand(Path);
 End;
-
 
 
 Function FSearch(path : pathstr;dirlist : string) : pathstr;
@@ -685,8 +684,6 @@ Begin
   else
     FSearch:=Unix.FSearch(path,dirlist);
 End;
-
-
 
 Procedure GetFAttr(var f; var attr : word);
 Var
@@ -906,7 +903,10 @@ End.
 
 {
   $Log$
-  Revision 1.16  2003-09-14 20:15:01  marco
+  Revision 1.17  2003-09-17 17:30:46  marco
+   * Introduction of unixutil
+
+  Revision 1.16  2003/09/14 20:15:01  marco
    * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
 
   Revision 1.15  2003/05/16 20:56:06  florian
