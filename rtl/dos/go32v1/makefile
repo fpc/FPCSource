@@ -131,7 +131,7 @@ endif
 SYSTEMDEPS=$(INC)/system.inc $(INC)/systemh.inc $(INC)/mathh.inc $(INC)/real2str.inc \
 	$(INC)/heaph.inc $(INC)/innr.inc $(INC)/sstrings.inc $(INC)/file.inc \
 	$(INC)/text.inc $(INC)/typefile.inc $(INC)/version.inc $(INC)/filerec.inc \
-	$(INC)/textrec.inc $(INC)/objpas.inc $(INC)/objpash.inc \
+	$(INC)/textrec.inc \
 	$(PROCINC)/math.inc $(PROCINC)/set.inc $(PROCINC)/heap.inc $(PROCINC)/$(CPU).inc
 
 PPUEXT=.pp1
@@ -195,8 +195,8 @@ system$(PPUEXT) : system.pp $(SYSTEMDEPS)
 	$(COPY) $(INC)/*.inc $(PROCINC)/*.inc .
 	$(PP) $(OPT) -Us -Sg system $(REDIR)
 	$(DEL) systemh.inc system.inc real2str.inc version.inc $(CPU).inc sstrings.inc
-	$(DEL) mathh.inc math.inc set.inc innr.inc heap.inc heaph.inc objpash.inc
-	$(DEL) filerec.inc textrec.inc file.inc typefile.inc text.inc objpas.inc
+	$(DEL) mathh.inc math.inc set.inc innr.inc heap.inc heaph.inc
+	$(DEL) filerec.inc textrec.inc file.inc typefile.inc text.inc
 
 prt0$(OEXT) : prt0.as
 	as -D -o prt0$(OEXT) prt0.as

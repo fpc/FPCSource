@@ -162,7 +162,7 @@ PPUEXT=.ppu
 PPLEXT=.ppl
 OEXT=.o
 
-OBJECTS=syslinux strings dos objects linux crt printer getopts errors sockets 
+OBJECTS=syslinux strings linux objpas dos crt objects printer getopts errors sockets
         
 PPUOBJECTS=$(addsuffix $(PPUEXT), $(OBJECTS))
 
@@ -174,7 +174,7 @@ endif
 SYSTEMDEPS=system.inc systemh.inc mathh.inc real2str.inc \
 	heaph.inc innr.inc sstrings.inc file.inc \
 	text.inc typefile.inc version.inc filerec.inc \
-	textrec.inc objpas.inc objpash.inc \
+	textrec.inc
 
 DSYSTEMDEPS=$(addprefix $(INC)/, $(SYSTEMDEPS))
 
@@ -265,6 +265,11 @@ prt0$(OEXT) : $(PRT)
 
 gprt0$(OEXT) : gprt1.as
 	-as gprt1.as -o gprt0$(OEXT)
+
+objpas$(PPUEXT) : ../../objpas/objpas.pp system$(PPUEXT)
+	$(COPY) ../../objpas/objpas.pp .
+	$(PP) $(OPT) objpas $(REDIR)
+	$(DEL) objpas.pp
 
 libs	: all libfpc$(LIBEXT)
 
