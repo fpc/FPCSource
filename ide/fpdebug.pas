@@ -691,7 +691,7 @@ begin
   if DebuggeeTTY <> '' then
     begin
       Command('tty '+DebuggeeTTY);
-      if DebuggeeTTY<>TTYName(inout) then
+      if DebuggeeTTY<>TTYName(stdout) then
         NoSwitch:= true
       else
         NoSwitch:=false;
@@ -3900,7 +3900,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2001-10-11 11:39:35  pierre
+  Revision 1.6  2001-10-14 14:16:06  peter
+    * fixed typo for linux
+
+  Revision 1.5  2001/10/11 11:39:35  pierre
    * better NoSwitch check for unix
 
   Revision 1.4  2001/09/12 09:48:38  pierre
