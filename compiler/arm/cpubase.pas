@@ -134,7 +134,7 @@ uses
       last_supreg = RS_R15;
 
       { registers which may be destroyed by calls }
-      VOLATILE_INTREGISTERS = [RS_R0..RS_R3];
+      VOLATILE_INTREGISTERS = [RS_R0..RS_R3,RS_R12..RS_R15];
       VOLATILE_FPUREGISTERS = [R_F0..R_F3];
 
       { Number of first and last imaginary register. }
@@ -201,7 +201,7 @@ uses
         { load/store }
         PF_B,PF_SB,PF_BT,PF_H,PF_SH,PF_T,
         { multiple load/store address modes }
-        PF_IA,PF_IB,PF_DA,PF_DB,PF_DF,PF_FA,PF_ED,PF_EA
+        PF_IA,PF_IB,PF_DA,PF_DB,PF_FD,PF_FA,PF_ED,PF_EA
       );
 
       TRoundingMode = (RM_None,RM_P,RM_M,RM_Z);
@@ -211,7 +211,7 @@ uses
         's',
         'd','e','p','ep',
         'b','sb','bt','h','sh','t',
-        'ia','ib','da','db','df','fa','ed','ea');
+        'ia','ib','da','db','fd','fa','ed','ea');
 
       roundingmode2str : array[TRoundingMode] of string[1] = ('',
         'p','m','z');
@@ -253,14 +253,15 @@ uses
       trefoptions=(ref_none,ref_parafixup,ref_localfixup,ref_selffixup);
 
       taddressmode = (AM_OFFSET,AM_PREINDEXED,AM_POSTINDEXED);
-      tshiftmode = (SM_LSL,SM_LSR,SM_ASR,SM_ROR,SM_RRX);
+      tshiftmode = (SM_None,SM_LSL,SM_LSR,SM_ASR,SM_ROR,SM_RRX);
 
       { reference record }
       preference = ^treference;
       treference = packed record
          base,
          index       : tregister;
-         scalefactor : byte;
+         shiftimm    : byte;
+         signindex   : shortint;
          offset      : longint;
          symbol      : tasmsymbol;
          offsetfixup : longint;
@@ -483,8 +484,8 @@ uses
                                  Constants
 *****************************************************************************}
 
-      firstsaveintreg = R_R4;
-      lastsaveintreg  = R_R10;
+      firstsaveintreg = RS_R4;
+      lastsaveintreg  = RS_R10;
       firstsavefpureg = R_F4;
       lastsavefpureg  = R_F7;
       firstsavemmreg  = R_S16;
@@ -690,7 +691,11 @@ uses
 end.
 {
   $Log$
-  Revision 1.8  2003-08-28 00:05:29  florian
+  Revision 1.9  2003-08-29 21:36:28  florian
+    * fixed procedure entry/exit code
+    * started to fix reference handling
+
+  Revision 1.8  2003/08/28 00:05:29  florian
     * today's arm patches
 
   Revision 1.7  2003/08/25 23:20:38  florian

@@ -43,6 +43,10 @@ unit agarmgas;
     var
       gas_reg2str : reg2strtable;
 
+    const
+      gas_shiftmode2str : array[tshiftmode] of string[3] = (
+        '','lsl','lsr','asr','ror','rrx');
+
     function gas_regnum_search(const s:string):Tnewregister;
     function gas_regname(const r:Tnewregister):string;
 
@@ -77,50 +81,62 @@ unit agarmgas;
           );
 
     function getreferencestring(var ref : treference) : string;
-    var
-      s : string;
-    begin
-       with ref do
-        begin
-          inc(offset,offsetfixup);
+      var
+        s : string;
+        nobase,noindex : boolean;
+      begin
+         with ref do
+          begin
+            inc(offset,offsetfixup);
 
-          if not assigned(symbol) then
-            s := '['
-          else
-            s:='['+symbol.name;
+            noindex:=(index.enum=R_NO) or ((index.enum=R_INTREGISTER) and (index.number=NR_NO));
+{$ifdef extdebug}
+            nobase:=(base.enum=R_NO) or ((base.enum=R_INTREGISTER) and (base.number=NR_NO));
+            //!!!! if nobase then
+            //!!!!   internalerror(200308292);
 
-          if offset<0 then
-           s:=s+tostr(offset)
-          else
-           if (offset>0) then
-            begin
-              if assigned(symbol) then
-               s:=s+'+'+tostr(offset)
-              else
-               s:=s+tostr(offset);
-            end;
+            // !!! if (not(noindex) or (shiftmode<>SM_None)) and ((offset<>0) or (symbol<>nil)) then
+            // !!!   internalerror(200308293);
+{$endif extdebug}
+            if base.enum=R_INTREGISTER then
+              s:='['+gas_regname(base.number)
+            else
+              s:='['+gas_reg2str[base.enum];
+            if addressmode=AM_POSTINDEXED then
+              s:=s+']';
 
-           if (index.enum=R_NO) and (base.enum<>R_NO) then
-             begin
-                if offset=0 then
-                  begin
-                     if assigned(symbol) then
-                       s:=s+'+0'
-                     else
-                       s:=s+'0';
-                  end;
-                if base.enum=R_INTREGISTER then
-                  s:=s+'('+gas_regname(base.number)+')'
-                else
-                  s:=s+'('+gas_reg2str[base.enum]+')';
-             end
-           else if (index.enum<>R_NO) and (base.enum<>R_NO) and (offset=0) then
-             s:=s+std_reg2str[base.enum]+','+std_reg2str[index.enum]
-           else if ((index.enum<>R_NO) or (base.enum<>R_NO)) then
-             internalerror(19992);
-        end;
-      getreferencestring:=s;
-    end;
+            if not(noindex) then
+              begin
+                 if signindex<0 then
+                   s:=s+', -'
+                 else
+                   s:=s+', ';
+
+                 if index.enum=R_INTREGISTER then
+                   s:=s+gas_regname(index.number)
+                 else
+                   s:=s+gas_reg2str[index.enum];
+
+                 if shiftmode<>SM_None then
+                   s:=s+' ,'+gas_shiftmode2str[shiftmode]+' #'+tostr(shiftimm);
+              end
+            else
+              begin
+                { handle symbol and index }
+                if offset<>0 then
+                  s:=s+', #'+tostr(offset);
+                { !!!!!}
+              end;
+
+             case addressmode of
+               AM_OFFSET:
+                 s:=s+']';
+               AM_PREINDEXED:
+                 s:=s+']!';
+             end;
+          end;
+        getreferencestring:=s;
+      end;
 
 
     function getopstr_jmp(const o:toper) : string;
@@ -170,6 +186,8 @@ unit agarmgas;
     function getopstr(const o:toper) : string;
     var
       hs : string;
+      first : boolean;
+      r : tnewregister;
     begin
       case o.typ of
         top_reg:
@@ -194,6 +212,20 @@ unit agarmgas;
           end;
         top_const:
           getopstr:='#'+tostr(longint(o.val));
+        top_regset:
+          begin
+            getopstr:='{';
+            first:=true;
+            for r:=RS_R0 to RS_R15 do
+              if r in o.regset then
+                begin
+                  if not(first) then
+                    getopstr:=getopstr+',';
+                  getopstr:=getopstr+'r'+tostr(r-RS_R0);
+                  first:=false;
+                end;
+            getopstr:=getopstr+'}';
+          end;
         top_ref:
           getopstr:=getreferencestring(o.ref^);
         top_symbol:
@@ -225,9 +257,9 @@ unit agarmgas;
         sep: string[3];
     begin
       op:=taicpu(hp).opcode;
+{
       if is_calljmp(op) then
         begin
-{
           { direct BO/BI in op[0] and op[1] not supported, put them in condition! }
           case op of
              A_B,A_BA,A_BL,A_BLA:
@@ -240,12 +272,12 @@ unit agarmgas;
 
           if (taicpu(hp).oper[0].typ <> top_none) then
             s:=s+getopstr_jmp(taicpu(hp).oper[0]);
-}
         end
       else
+}
         { process operands }
         begin
-          s:=#9+std_op2str[op];
+          s:=#9+std_op2str[op]+cond2str[taicpu(hp).condition]+oppostfix2str[taicpu(hp).oppostfix];
           if taicpu(hp).ops<>0 then
             begin
             {
@@ -292,7 +324,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2003-08-28 13:26:10  florian
+  Revision 1.6  2003-08-29 21:36:28  florian
+    * fixed procedure entry/exit code
+    * started to fix reference handling
+
+  Revision 1.5  2003/08/28 13:26:10  florian
     * another couple of arm fixes
 
   Revision 1.4  2003/08/28 00:05:29  florian

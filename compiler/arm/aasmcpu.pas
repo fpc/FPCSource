@@ -42,6 +42,7 @@ uses
          oppostfix : TOpPostfix;
          roundingmode : troundingmode;
          procedure loadshifterop(opidx:longint;const so:tshifterop);
+         procedure loadregset(opidx:longint;const s:tsupregset);
          constructor op_none(op : tasmop);
 
          constructor op_reg(op : tasmop;_op1 : tregister);
@@ -50,6 +51,7 @@ uses
          constructor op_reg_reg(op : tasmop;_op1,_op2 : tregister);
          constructor op_reg_ref(op : tasmop;_op1 : tregister;const _op2 : treference);
          constructor op_reg_const(op:tasmop; _op1: tregister; _op2: longint);
+         constructor op_reg_regset(op:tasmop; _op1: tregister; _op2: tsupregset);
 
          constructor op_const_const(op : tasmop;_op1,_op2 : longint);
 
@@ -108,10 +110,27 @@ implementation
         with oper[opidx] do
           begin
             if typ<>top_shifterop then
-              new(shifterop);
+              begin
+                clearop(opidx);
+                new(shifterop);
+              end;
             shifterop^:=so;
             typ:=top_shifterop;
           end;
+      end;
+
+
+    procedure taicpu.loadregset(opidx:longint;const s:tsupregset);
+      begin
+        if opidx>=ops then
+         ops:=opidx+1;
+        with oper[opidx] do
+         begin
+           if typ<>top_regset then
+             clearop(opidx);
+           regset:=s;
+           typ:=top_regset;
+         end;
       end;
 
 
@@ -164,6 +183,17 @@ implementation
          ops:=2;
          loadreg(0,_op1);
          loadconst(1,aword(_op2));
+      end;
+
+
+    constructor taicpu.op_reg_regset(op:tasmop; _op1: tregister; _op2: tsupregset);
+      begin
+         inherited create(op);
+         if (_op1.enum = R_INTREGISTER) and (_op1.number = NR_NO) then
+           internalerror(2003031208);
+         ops:=2;
+         loadreg(0,_op1);
+         loadregset(1,_op2);
       end;
 
 
@@ -693,7 +723,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  2003-08-28 00:05:29  florian
+  Revision 1.7  2003-08-29 21:36:28  florian
+    * fixed procedure entry/exit code
+    * started to fix reference handling
+
+  Revision 1.6  2003/08/28 00:05:29  florian
     * today's arm patches
 
   Revision 1.5  2003/08/27 00:27:56  florian

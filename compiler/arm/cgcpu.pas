@@ -54,6 +54,7 @@ unit cgcpu;
           size: tcgsize; src1, src2, dst: tregister); override;
 
         { move instructions }
+        procedure handle_load_store(list:taasmoutput;op: tasmop;oppostfix : toppostfix;reg:tregister;ref: treference);
         procedure a_load_const_reg(list : taasmoutput; size: tcgsize; a : aword;reg : tregister);override;
         procedure a_load_reg_ref(list : taasmoutput; fromsize, tosize: tcgsize; reg : tregister;const ref : treference);override;
         procedure a_load_ref_reg(list : taasmoutput; fromsize, tosize : tcgsize;const Ref : treference;reg : tregister);override;
@@ -267,7 +268,7 @@ unit cgcpu;
          tmpreg : tregister;
          so : tshifterop;
        begin
-          if is_shifter_const(a,shift) and (op<>OP_MUL) then
+          if is_shifter_const(a,shift) and (not(op in [OP_IMUL,OP_MUL])) then
             case op of
               OP_NEG,OP_NOT,
               OP_DIV,OP_IDIV:
@@ -316,6 +317,7 @@ unit cgcpu;
        size: tcgsize; src1, src2, dst: tregister);
        var
          so : tshifterop;
+         tmpreg : tregister;
        begin
          case op of
            OP_NEG:
@@ -344,6 +346,23 @@ unit cgcpu;
                so.rs:=src2;
                so.shiftertype:=SO_LSL;
                list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src1,so));
+             end;
+           OP_IMUL,
+           OP_MUL:
+             begin
+               { the arm doesn't allow that rd and rm are the same }
+               if dst.number=src2.number then
+                 begin
+                   if src1.number<>src2.number then
+                     list.concat(taicpu.op_reg_reg_reg(A_MUL,dst,src1,src2))
+                   else
+                     begin
+                       writeln('Warning: Fix MUL');
+                       list.concat(taicpu.op_reg_reg_reg(A_MUL,dst,src2,src1));
+                     end;
+                 end
+               else
+                 list.concat(taicpu.op_reg_reg_reg(A_MUL,dst,src2,src1));
              end;
            else
              list.concat(taicpu.op_reg_reg_reg(op_reg_reg_opcg2asmop[op],dst,src2,src1));
@@ -398,13 +417,128 @@ unit cgcpu;
        end;
 
 
+    procedure tcgarm.handle_load_store(list:taasmoutput;op: tasmop;oppostfix : toppostfix;reg:tregister;ref: treference);
+      var
+        tmpreg : tregister;
+        tmpref : treference;
+        instr : taicpu;
+      begin
+        tmpreg.enum:=R_INTREGISTER;
+        tmpreg.number:=NR_NO;
+
+        { Be sure to have a base register }
+        if (ref.base.number=NR_NO) then
+          begin
+            if ref.shiftmode<>SM_None then
+              internalerror(200308294);
+            ref.base:=ref.index;
+            ref.index.number:=NR_NO;
+          end;
+
+        { When need to use SETHI, do it first }
+        if assigned(ref.symbol) or
+           (ref.offset<-4095) or
+           (ref.offset>4095) then
+          begin
+{
+            tmpreg:=rg.getregisterint(list,OS_INT);
+            reference_reset(tmpref);
+            tmpref.symbol:=ref.symbol;
+            tmpref.offset:=ref.offset;
+            tmpref.symaddr:=refs_hi;
+            list.concat(taicpu.op_ref_reg(A_SETHI,tmpref,tmpreg));
+            { Load the low part is left }
+{$warning TODO Maybe not needed to load symbol}
+            tmpref.symaddr:=refs_lo;
+            list.concat(taicpu.op_reg_ref_reg(A_OR,tmpreg,tmpref,tmpreg));
+            { The offset and symbol are loaded, reset in reference }
+            ref.offset:=0;
+            ref.symbol:=nil;
+            { Only an index register or offset is allowed }
+            if tmpreg.number<>NR_NO then
+              begin
+                if (ref.index.number<>NR_NO) then
+                  begin
+                    list.concat(taicpu.op_reg_reg_reg(A_ADD,tmpreg,ref.index,tmpreg));
+                    ref.index:=tmpreg;
+                  end
+                else
+                  begin
+                    if ref.base.number<>NR_NO then
+                      ref.index:=tmpreg
+                    else
+                      ref.base:=tmpreg;
+                  end;
+              end;
+}
+          end;
+{
+        if (ref.base.number<>NR_NO) then
+          begin
+            if (ref.index.number<>NR_NO) and
+               ((ref.offset<>0) or assigned(ref.symbol)) then
+              begin
+                if tmpreg.number=NR_NO then
+                  tmpreg:=rg.getregisterint(list,OS_INT);
+                if (ref.index.number<>NR_NO) then
+                  begin
+                    list.concat(taicpu.op_reg_reg_reg(A_ADD,ref.base,ref.index,tmpreg));
+                    ref.index.number:=NR_NO;
+                  end;
+              end;
+          end;
+}
+        instr:=taicpu.op_reg_ref(op,reg,ref);
+        instr.oppostfix:=oppostfix;
+        list.concat(instr);
+        if (tmpreg.number<>NR_NO) then
+          rg.ungetregisterint(list,tmpreg);
+      end;
+
+
      procedure tcgarm.a_load_reg_ref(list : taasmoutput; fromsize, tosize: tcgsize; reg : tregister;const ref : treference);
+       var
+         oppostfix:toppostfix;
        begin
+         case ToSize of
+           { signed integer registers }
+           OS_8,
+           OS_S8:
+             oppostfix:=PF_B;
+           OS_16,
+           OS_S16:
+             oppostfix:=PF_H;
+           OS_32,
+           OS_S32:
+             oppostfix:=PF_None;
+           else
+             InternalError(200308295);
+         end;
+         handle_load_store(list,A_STR,oppostfix,reg,ref);
        end;
 
 
      procedure tcgarm.a_load_ref_reg(list : taasmoutput; fromsize, tosize : tcgsize;const Ref : treference;reg : tregister);
+       var
+         oppostfix:toppostfix;
        begin
+         case ToSize of
+           { signed integer registers }
+           OS_8:
+             oppostfix:=PF_B;
+           OS_S8:
+             oppostfix:=PF_SB;
+           OS_16:
+             oppostfix:=PF_H;
+           OS_S16:
+             oppostfix:=PF_SH;
+           OS_32,
+           OS_S32:
+             oppostfix:=PF_None;
+           else
+             InternalError(200308291);
+         end;
+         handle_load_store(list,A_LDR,oppostfix,reg,ref);
        end;
 
 
@@ -522,12 +656,59 @@ unit cgcpu;
 
 
      procedure tcgarm.g_stackframe_entry(list : taasmoutput;localsize : longint);
+       var
+         rip,rsp,rfp : tregister;
+         instr : taicpu;
        begin
+         rsp.enum:=R_INTREGISTER;
+         rsp.number:=NR_STACK_POINTER_REG;
+         a_reg_alloc(list,rsp);
+
+         rfp.enum:=R_INTREGISTER;
+         rfp.number:=NR_FRAME_POINTER_REG;
+         a_reg_alloc(list,rfp);
+
+         rip.enum:=R_INTREGISTER;
+         rip.number:=NR_R12;
+         a_reg_alloc(list,rip);
+
+         list.concat(taicpu.op_reg_reg(A_MOV,rip,rsp));
+         { restore int registers and return }
+         instr:=taicpu.op_reg_regset(A_STM,rsp,rg.used_in_proc_int-[RS_R0..RS_R4]+[RS_R11,RS_R12,RS_R15]);
+         instr.oppostfix:=PF_FD;
+         list.concat(instr);
+
+         list.concat(taicpu.op_reg_reg_const(A_SUB,rfp,rip,4));
+         a_reg_alloc(list,rip);
+
+         { allocate necessary stack size }
+         list.concat(taicpu.op_reg_reg_const(A_SUB,rsp,rsp,4));
        end;
 
 
      procedure tcgarm.g_return_from_proc(list : taasmoutput;parasize : aword);
+       var
+         r1,r2 : tregister;
+         instr : taicpu;
        begin
+         if (current_procinfo.framepointer.number=NR_STACK_POINTER_REG) then
+           begin
+             r1.enum:=R_INTREGISTER;
+             r1.number:=NR_R15;
+             r2.enum:=R_INTREGISTER;
+             r2.number:=NR_R14;
+
+             list.concat(taicpu.op_reg_reg(A_MOV,r1,r2));
+           end
+         else
+           begin
+             r1.enum:=R_INTREGISTER;
+             r1.number:=NR_R11;
+             { restore int registers and return }
+             instr:=taicpu.op_reg_regset(A_LDM,r1,rg.used_in_proc_int-[RS_R0..RS_R4]+[RS_R11,RS_R13,RS_R15]);
+             instr.oppostfix:=PF_EA;
+             list.concat(instr);
+           end;
        end;
 
 
@@ -617,7 +798,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2003-08-28 13:26:10  florian
+  Revision 1.8  2003-08-29 21:36:28  florian
+    * fixed procedure entry/exit code
+    * started to fix reference handling
+
+  Revision 1.7  2003/08/28 13:26:10  florian
     * another couple of arm fixes
 
   Revision 1.6  2003/08/28 00:05:29  florian
