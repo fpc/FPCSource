@@ -59,18 +59,22 @@ PRT=prt1
 endif
 
 LOADERAS=$(CPU)/$(PRT).as
-CLOADERAS=$(CPU)/c$(PRT).as
 GLOADERAS=$(CPU)/g$(PRT).as
 
-LOADEROBJECTS=prt0 cprt0 gprt0
+LOADEROBJECTS=prt0 gprt0
+
+ifndef AOUT
+LOADEROBJECTS+=cprt0 cprt21 gprt21
+endif
+
 
 # Unit Objects
 UNITOBJECTS=$(SYSTEMUNIT) objpas strings \
             linux ports \
             dos crt objects printer graph \
-	    sysutils typinfo math \
-	    cpu mmx getopts heaptrc \
-	    errors sockets graph
+            sysutils typinfo math \
+            cpu mmx getopts heaptrc \
+            errors sockets graph
 
 
 #####################################################################
@@ -175,11 +179,21 @@ vpath %$(PASEXT) $(INC) $(PROCINC)
 prt0$(OEXT) : $(LOADERAS)
 	$(AS) -o prt0$(OEXT) $(LOADERAS)
 
-cprt0$(OEXT) : $(CLOADERAS)
-	$(AS) -o cprt0$(OEXT) $(CLOADERAS)
-
 gprt0$(OEXT) : $(GLOADERAS)
 	$(AS) -o gprt0$(OEXT) $(GLOADERAS)
+
+ifndef AOUT
+
+cprt0$(OEXT) : $(CPU)/cprt1.as
+	$(AS) -o cprt0$(OEXT) $(CPU)/cprt1.as
+
+cprt21$(OEXT) : $(CPU)/cprt21.as
+	$(AS) -o cprt21$(OEXT) $(CPU)/cprt21.as 
+
+gprt21$(OEXT) : $(CPU)/gprt21.as
+	$(AS) -o gprt21$(OEXT) $(CPU)/gprt21.as
+
+endif
 
 #
 # System Units (System, Objpas, Strings)
@@ -259,7 +273,10 @@ ipc$(PPUEXT) : ipc.pp linux$(PPUEXT) $(SYSTEMPPU)
 
 #
 # $Log$
-# Revision 1.20  1999-04-22 10:56:32  peter
+# Revision 1.21  1999-05-03 21:29:35  peter
+#   + glibc 2.1 support
+#
+# Revision 1.20  1999/04/22 10:56:32  peter
 #   * fixed sysutils dependencys
 #   * objpas files are agian in the main Makefile, makefile.op is obsolete
 #
