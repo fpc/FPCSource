@@ -130,7 +130,7 @@
        { Application defined data }
        WriteWord($0a);
        { write the name as asciiz }
-       WriteBuffer(ResName[1],length(ResName));
+      // WriteBuffer(ResName[1],length(ResName));
        WriteByte(0);
        { Movable, Pure and Discardable }
        WriteWord($1030);
@@ -613,7 +613,10 @@ end;
 
 {
   $Log$
-  Revision 1.11  1999-02-06 07:16:48  michael
+  Revision 1.12  1999-02-10 14:12:26  michael
+  + Some strange bug in writecoponentres
+
+  Revision 1.11  1999/02/06 07:16:48  michael
   + Fixed Stream.ReadAnsiString
 
   Revision 1.10  1999/02/02 21:23:19  michael
