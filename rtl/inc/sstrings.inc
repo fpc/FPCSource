@@ -380,7 +380,7 @@ end;
 
 Function fpc_Val_SInt_ShortStr(DestSize: longint; Const S: ShortString; var Code: ValSInt): ValSInt; [public, alias:'FPC_VAL_SINT_SHORTSTR']; {$ifdef hascompilerproc} compilerproc; {$endif}
 var
-  u, temp, prev, maxValue: ValUInt;
+  u, temp, prev, maxPrevValue, maxNewValue: ValUInt;
   base : byte;
   negative : boolean;
 begin
@@ -389,7 +389,11 @@ begin
   Code:=InitVal(s,negative,base);
   if Code>length(s) then
    exit;
-  maxValue := ValUInt(MaxUIntValue) div ValUInt(Base);
+  maxPrevValue := ValUInt(MaxUIntValue) div ValUInt(Base);
+  if (base = 10) then
+    maxNewValue := MaxSIntValue + ord(negative)
+  else
+    maxNewValue := MaxUIntValue;
   while Code<=Length(s) do
    begin
      case s[Code] of
@@ -402,11 +406,8 @@ begin
      Prev := Temp;
      Temp := Temp*ValUInt(base);
      If (u >= base) or
-        ((base = 10) and
-         (ValUInt(MaxSIntValue-u+ord(negative)) < Temp)) or
-        ((base <> 10) and
-         (ValUInt(MaxUIntValue-Temp) < u)) or
-        (prev > maxValue) Then
+        (ValUInt(maxNewValue-u) < Temp) or
+        (prev > maxPrevValue) Then
        Begin
          fpc_Val_SInt_ShortStr := 0;
          Exit
@@ -579,7 +580,10 @@ end;
 
 {
   $Log$
-  Revision 1.16  2001-08-13 12:40:16  jonas
+  Revision 1.17  2001-11-16 15:09:47  jonas
+    * optimized fpc_val_sint_shortstr
+
+  Revision 1.16  2001/08/13 12:40:16  jonas
     * renamed some str(x,y) and val(x,y) helpers so the naming scheme is the
       same for all string types
     + added the str(x,y) and val(x,y,z) helpers for int64/qword to
