@@ -28,7 +28,8 @@ Var
 Type 
    TKey   = Longint;
    PULong = ^Cardinal;
-
+   PWord  = ^Word;
+   
 Const 
   { IPC flags for get calls }
 
@@ -227,7 +228,7 @@ type
    case longint of
       0 : ( val : longint );
       1 : ( buf : PSEMid_ds );
-      2 : ( arr : Pointer );
+      2 : ( arr : PWord );
       3 : ( padbuf : PSeminfo );
       4 : ( padpad : pointer );
    end;
