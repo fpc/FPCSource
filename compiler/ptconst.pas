@@ -403,10 +403,16 @@ unit ptconst;
               do_firstpass(p);
               if p^.treetype=ordconstn then
                 begin
-                   if is_equal(p^.resulttype,def) then
-                     curconstsegment^.concat(new(pai_const,init_32bit(p^.value)))
-                   else
-                     Message(cg_e_illegal_expression);
+                  if is_equal(p^.resulttype,def) then
+                   begin
+                     case p^.resulttype^.size of
+                       1 : curconstsegment^.concat(new(pai_const,init_8bit(p^.value)));
+                       2 : curconstsegment^.concat(new(pai_const,init_16bit(p^.value)));
+                       4 : curconstsegment^.concat(new(pai_const,init_32bit(p^.value)));
+                     end;
+                   end
+                  else
+                   Message(cg_e_illegal_expression);
                 end
               else
                 Message(cg_e_illegal_expression);
@@ -501,7 +507,7 @@ unit ptconst;
                             { The terminating #0 to be stored in the .data section (JM) }
                             ca[strlength]:=#0;
                             { End of the PChar. The memory has to be allocated because in }
-                            { tai_string.done, there is a freemem(len+1) (JM)             } 
+                            { tai_string.done, there is a freemem(len+1) (JM)             }
                             ca[strlength+1]:=#0;
                             consts^.concat(new(pai_string,init_length_pchar(ca,strlength+1)));
                           end;
@@ -794,7 +800,10 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:47  michael
+  Revision 1.3  2000-08-05 13:25:06  peter
+    * packenum 1 fixes (merged)
+
+  Revision 1.2  2000/07/13 11:32:47  michael
   + removed logs
 
 }

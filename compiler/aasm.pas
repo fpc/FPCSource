@@ -22,6 +22,12 @@
 }
 unit aasm;
 
+{$ifdef FPC}
+  {$ifdef PACKENUMFIXED}
+    {$PACKENUM 1}
+  {$endif}
+{$endif}
+
   interface
 
     uses
@@ -1108,7 +1114,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.4  2000-07-21 15:14:01  jonas
+  Revision 1.5  2000-08-05 13:25:06  peter
+    * packenum 1 fixes (merged)
+
+  Revision 1.4  2000/07/21 15:14:01  jonas
     + added is_addr field for labels, if they are only used for getting the address
        (e.g. for io checks) and corresponding getaddrlabel() procedure
 

@@ -22,6 +22,12 @@
 unit symconst;
 interface
 
+{$ifdef FPC}
+  {$ifdef PACKENUMFIXED}
+    {$PACKENUM 1}
+  {$endif}
+{$endif}
+
 const
   def_alignment = 4;
 
@@ -215,7 +221,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2000-07-13 12:08:27  michael
+  Revision 1.4  2000-08-05 13:25:06  peter
+    * packenum 1 fixes (merged)
+
+  Revision 1.3  2000/07/13 12:08:27  michael
   + patched to 1.1.0 with former 1.09patch from peter
 
   Revision 1.2  2000/07/13 11:32:49  michael

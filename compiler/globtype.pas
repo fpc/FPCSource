@@ -22,6 +22,12 @@
 unit globtype;
 interface
 
+{$ifdef FPC}
+  {$ifdef PACKENUMFIXED}
+    {$PACKENUM 1}
+  {$endif}
+{$endif}
+
     const
        maxidlen = 64;
 
@@ -201,7 +207,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2000-08-02 19:49:59  peter
+  Revision 1.5  2000-08-05 13:25:06  peter
+    * packenum 1 fixes (merged)
+
+  Revision 1.4  2000/08/02 19:49:59  peter
     * first things for default parameters
 
   Revision 1.3  2000/07/13 12:08:25  michael

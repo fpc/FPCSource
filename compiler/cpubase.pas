@@ -32,6 +32,12 @@ interface
   {$L-,Y-}
 {$endif}
 
+{$ifdef FPC}
+  {$ifdef PACKENUMFIXED}
+    {$PACKENUM 1}
+  {$endif}
+{$endif}
+
 uses
   globals,strings,cobjects,aasm;
 
@@ -896,7 +902,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2000-07-14 05:11:48  michael
+  Revision 1.4  2000-08-05 13:25:06  peter
+    * packenum 1 fixes (merged)
+
+  Revision 1.3  2000/07/14 05:11:48  michael
   + Patch to 1.1
 
   Revision 1.2  2000/07/13 11:32:39  michael
