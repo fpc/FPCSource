@@ -325,6 +325,11 @@ const
        {efUseTabCharacters+}efBackSpaceUnindents+efSyntaxHighlight;
      DefaultTabSize     : integer = 8;
 
+     { used for ShiftDel and ShiftIns to avoid
+       GetShiftState to be considered for extending
+       selection (PM) }
+        
+     DontConsiderShiftState: boolean  = false;
      ToClipCmds         : TCommandSet = ([cmCut,cmCopy]);
      FromClipCmds       : TCommandSet = ([cmPaste]);
      NulClipCmds        : TCommandSet = ([cmClear]);
@@ -2268,6 +2273,7 @@ end;
 procedure TCodeEditor.ClipCut;
 begin
   if IsReadOnly then Exit;
+  DontConsiderShiftState:=true;
   if Clipboard<>nil then
      if Clipboard^.InsertFrom(@Self) then
      begin
@@ -2276,17 +2282,20 @@ begin
        Modified:=true;
        UpdateIndicator;
      end;
+  DontConsiderShiftState:=false;
 end;
 
 procedure TCodeEditor.ClipPaste;
 begin
   if IsReadOnly then Exit;
+  DontConsiderShiftState:=true;
   if Clipboard<>nil then
      begin
        InsertFrom(Clipboard);
        Modified:=true;
        UpdateIndicator;
      end;
+  DontConsiderShiftState:=false;
 end;
 
 procedure TCodeEditor.Undo;
@@ -2580,6 +2589,16 @@ begin
   DrawCursor;
 end;
 
+{ there is a problem with ShiftDel here
+  because GetShitState tells to extend the
+  selection which gives wrong results (PM) }
+
+function ShouldExtend : boolean;
+begin
+  ShouldExtend:=((GetShiftState and kbShift)<>0) and
+    not DontConsiderShiftState;
+end;
+
 procedure TCodeEditor.SetCurPtr(X,Y: integer);
 var OldPos,OldSEnd,OldSStart: TPoint;
     Extended: boolean;
@@ -2592,7 +2611,7 @@ begin
   CurPos.X:=X;
   CurPos.Y:=Y;
   TrackCursor(false);
-  if (NoSelect=false) and ((GetShiftState and kbShift)<>0) then
+  if (NoSelect=false) and (ShouldExtend) then
   begin
     CheckSels;
     Extended:=false;
@@ -3602,7 +3621,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.33  1999-06-25 00:31:51  pierre
+  Revision 1.34  1999-06-28 15:58:07  pierre
+   * ShiftDel problem solved
+
+  Revision 1.33  1999/06/25 00:31:51  pierre
    + FileDir remembers the last directory for Open and Save
 
   Revision 1.32  1999/06/21 23:36:12  pierre
