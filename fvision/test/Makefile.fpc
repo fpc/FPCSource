@@ -6,7 +6,7 @@
 programs=tfileio testapp
 
 [require]
-packages=fv
+packages=fvision
 
 [default]
 fpcdir=../..

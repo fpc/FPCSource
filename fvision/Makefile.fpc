@@ -3,7 +3,7 @@
 #
 
 [package]
-name=fv
+name=fvision
 version=1.0.5
 
 [target]
